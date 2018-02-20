@@ -1,0 +1,16 @@
+{
+  "name": "timeline-state-resolver",
+  "version": "1.0.0",
+  "description": "Parsing a timeline json-object into a series of timed commands to manipulate the state of a running system.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://balte@bitbucket.org/superflytv/timeline-state-resolver.git"
+  },
+  "author": "Balte de Wit",
+  "license": "ISC",
+  "homepage": "https://bitbucket.org/superflytv/timeline-state-resolver#readme"
+}
