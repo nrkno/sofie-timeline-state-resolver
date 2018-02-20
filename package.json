@@ -12,5 +12,9 @@
   },
   "author": "Balte de Wit",
   "license": "ISC",
-  "homepage": "https://bitbucket.org/superflytv/timeline-state-resolver#readme"
+  "homepage": "https://bitbucket.org/superflytv/timeline-state-resolver#readme",
+  "dependencies": {
+    "casparcg-connection": "^3.0.1",
+    "superfly-timeline": "^0.1.1"
+  }
 }
