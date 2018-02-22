@@ -36,7 +36,13 @@ processTimeline([
             value: Date.now()/1000 - 10 // 10 seconds ago
         },
         duration: 60, // 1 minute long
-        LLayer: 1 // Logical layer
+        LLayer: 1, // Logical layer
+        content: {
+            type: 'video',
+            attributes: {
+                file: 'AMB'
+            }
+        }
     },{
         id: 'obj1', // the id must be unique
     
@@ -45,7 +51,13 @@ processTimeline([
             value: '#obj0.end'
         },
         duration: 60, // 1 minute long
-        LLayer: 1 // Logical layer
+        LLayer: 1, // Logical layer
+        content: {
+            type: 'video',
+            attributes: {
+                file: 'TEST'
+            }
+        }
     },{
 
         id: 'obj2',
