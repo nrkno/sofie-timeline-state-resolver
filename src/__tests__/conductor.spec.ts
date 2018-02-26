@@ -47,7 +47,7 @@ test('Timeline: Play AMB for 60s', async () => {
 
 	var now = myConductor.getCurrentTime();
 
-	myConductor.setTimeline([
+	myConductor.timeline = [
 		{
 			id: 'obj0',
 			trigger: {
@@ -64,7 +64,7 @@ test('Timeline: Play AMB for 60s', async () => {
 				}
 			}
 		}
-	]);
+	];
 
 	// fast-forward:
 	jest.advanceTimersByTime(100);

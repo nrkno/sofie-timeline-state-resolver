@@ -3,13 +3,10 @@ import {Resolver} from "superfly-timeline"
 
 import {Device, DeviceCommand} from "./devices/device"
 import {CasparCGDevice} from "./devices/casparCG"
-import {TimelineObject} from "./timeline/timeline"
 
 const LOOKAHEADTIME = 5000;
 
-export interface TimelineContentObject extends TimelineObject {
-
-}
+export interface TimelineContentObject extends TimelineObject {}
 
 export interface Mapping {
 	[layerName:string]: {
@@ -18,9 +15,7 @@ export interface Mapping {
 	}
 }
 
-export interface Device {
-
-}
+export interface Device {}
 
 export interface ConductorOptions {
 	devices: {
@@ -54,9 +49,16 @@ export class Conductor {
 		this._options = options;
 
 	}
-	init():Promise<any> {
-		
+
+	public init():Promise<any> {
 		return this._initializeDevices();
+	}
+
+	public getCurrentTime() {
+		// return a nice, synked time:
+
+		// TODO: Implement time sync, NTP procedure etc...
+		return Date.now()/1000;
 	}
 
 	
@@ -73,15 +75,16 @@ export class Conductor {
 	get timeline():Array<TimelineContentObject> {
 		return this._timeline;
 	}
-	set timeline(timeline:TimelineContentObject[]) {
+	set timeline(timeline:Array<TimelineContentObject>) {
 		// Set the updated timeline (will cause the timeline to re-resolve, and send appropriate commands)
 		this._timeline = timeline;
 		this._resolveTimeline();
 	}
 
+
 	private _initializeDevices():Promise<any> {
 
-		var ps:Array<Promise<any>> = [];
+		const ps:Array<Promise<any>> = [];
 
 		_.each(this._options.devices, (deviceOptions, deviceId) => {
 			if (deviceOptions.type == DeviceTypes.CASPARCG) {
@@ -99,34 +102,40 @@ export class Conductor {
 
 		return Promise.all(ps);
 
-
 	}
-	public getCurrentTime() {
-		// return a nice, synked time:
 
-		// TODO: Implement time sync, NTP procedure etc...
-		return Date.now();
-	}
 	private _resolveTimeline() {
 
+		const now = this.getCurrentTime();
 
-		var now = this.getCurrentTime();
+		const timelineWindow = Resolver.getTimelineInWindow(this.timeline, now, now + LOOKAHEADTIME);
 
-		let timelineWindow = Resolver.getTimelineInWindow(this.timeline, now, now + LOOKAHEADTIME)
-		
 		// Step 1: Filter out some interesting points in time:
-		let nextEvents = Resolver.getNextEvents(timelineWindow, now, 10)
-		let timesToEvaluate = [{time: now}];
+		const nextEvents = Resolver.getNextEvents(timelineWindow, now, 10);
+		const timesToEvaluate = [{ time: now }];
+
 		_.each(nextEvents, (evt) => {
-			if (evt.time < now+LOOKAHEADTIME ) { // only check the events that are close ahead
-				timesToEvaluate.push({time:evt.time});
-			}
+			timesToEvaluate.push({ time: evt.time });
 		});
 
 		// Step 2: evaluate the points in time (do we have to send any commands?)
 		// TODO: use Resolver.getState() and casparcg-state
+		const statesToSolve:Array<TimelineState> = [];
+		const commands:Array<DeviceCommand> = [];
 
-		let commands:Array<DeviceCommand> = [];
+		_.each(timesToEvaluate, (time) => {
+			const tlAroundTime = Resolver.getState(this.timeline, time.time);
+			statesToSolve.push(tlAroundTime);
+		})
+
+		_.each(statesToSolve, (state:TimelineState) => {
+			_.each(state.LLayers, (layerObject, layer) => {
+				if (this._mapping[layer]) {
+					// request mapping's device to resolve commands?
+				}
+			})
+		})
+
 		// Then we should distribute out the commands to the different devices
 		// and let them handle it.
 
@@ -135,15 +144,5 @@ export class Conductor {
 		
 	}
 
-	private sendCommandsToDevices(commands:Array<DeviceCommand>) {
-
-		//this.splitTimelineToDevices(timelineWindow, nextEvents)
-	}
-	/*
-	private splitTimelineToDevices() {
-
-		// iterate over 
-
-	}
-	*/
+	private sendCommandsToDevices(commands:Array<DeviceCommand>) {}
 }

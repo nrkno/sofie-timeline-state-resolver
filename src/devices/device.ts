@@ -1,3 +1,4 @@
+import { TimelineState } from '../../../supertimeline/dist';
 
 
 /*
@@ -14,6 +15,7 @@ export interface DeviceCommand {
 export class Device {
 	
 	private _deviceId:string;
+	private state:TimelineState;
 
 	constructor(deviceId:string) {
 		this._deviceId = deviceId;
@@ -25,7 +27,7 @@ export class Device {
 		return Promise.resolve(true);
 	}
 
-	getCommands(newState, oldState):Array<DeviceCommand> {
+	generateCommandsAgainstState(newState):Array<DeviceCommand> {
 		// Get a
 		// The idea here is to do a comparison between the new and the old states, in order to 
 		// come up with the commands needed to achieve the state
