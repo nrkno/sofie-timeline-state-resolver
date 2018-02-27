@@ -694,6 +694,22 @@ casparcg-connection@^3.0.1:
     xml2js "^0.4.17"
     xmlbuilder "^9.0.1"
 
+"casparcg-connection@git+https://github.com/superflytv/casparcg-connection.git":
+  version "3.0.1"
+  resolved "git+https://github.com/superflytv/casparcg-connection.git#877eb1a1851cd3d26b8ab4271a41d596f1dd1914"
+  dependencies:
+    highland "^3.0.0-beta.3"
+    xml2js "^0.4.17"
+    xmlbuilder "^9.0.1"
+
+"casparcg-state@git+https://Mfn2bXzQtEFXHKpo12x2y78QJMR7gUZz:x-oauth-basic@bitbucket.org/superflytv/casparcg-state.git":
+  version "0.0.5"
+  resolved "git+https://Mfn2bXzQtEFXHKpo12x2y78QJMR7gUZz:x-oauth-basic@bitbucket.org/superflytv/casparcg-state.git#7820ac977415c683e6282e33033b328bb2f71ddb"
+  dependencies:
+    casparcg-connection "git+https://github.com/superflytv/casparcg-connection.git"
+    deep-diff "^0.3.4"
+    underscore "^1.8.3"
+
 center-align@^0.1.1:
   version "0.1.3"
   resolved "https://registry.yarnpkg.com/center-align/-/center-align-0.1.3.tgz#aa0d32629b6ee972200411cbd4461c907bc2b7ad"
@@ -1137,6 +1153,10 @@ debug@^3.1.0:
 decamelize@^1.0.0, decamelize@^1.1.1, decamelize@^1.1.2:
   version "1.2.0"
   resolved "https://registry.yarnpkg.com/decamelize/-/decamelize-1.2.0.tgz#f6534d15148269b20352e7bee26f501f9a191290"
+
+deep-diff@^0.3.4:
+  version "0.3.8"
+  resolved "https://registry.yarnpkg.com/deep-diff/-/deep-diff-0.3.8.tgz#c01de63efb0eec9798801d40c7e0dae25b582c84"
 
 deep-extend@~0.4.0:
   version "0.4.2"
