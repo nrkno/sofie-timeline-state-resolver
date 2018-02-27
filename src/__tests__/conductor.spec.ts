@@ -1,5 +1,6 @@
 import {CasparCG, AMCP} from 'casparcg-connection'
-import {Resolver, Enums} from "superfly-timeline"
+// import {Resolver, Enums} from "superfly-timeline"
+import {Resolver, Enums} from "../../../supertimeline/dist"
 
 import {Conductor, DeviceTypes} from "../conductor"
 
@@ -37,6 +38,8 @@ test('Timeline: Play AMB for 60s', async () => {
 	
 
 	await myConductor.init();
+
+	myConductor.mapping = myLayerMapping;
 
 
 	// Check that no commands has been sent:

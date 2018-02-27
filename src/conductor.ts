@@ -1,5 +1,5 @@
 import * as _ from "underscore"
-import {Resolver} from "superfly-timeline"
+import {Resolver, TimelineObject, TimelineState} from "superfly-timeline"
 
 import {Device, DeviceCommand} from "./devices/device"
 import {CasparCGDevice} from "./devices/casparCG"
@@ -90,7 +90,7 @@ export class Conductor {
 			if (deviceOptions.type == DeviceTypes.CASPARCG) {
 				// Add CasparCG device:
 
-				this.devices[deviceId] = <Device> new CasparCGDevice(deviceId, {
+				this.devices[deviceId] = <Device> new CasparCGDevice(deviceId, this._mapping, {
 					// TODO: Add options
 				});
 
@@ -131,7 +131,12 @@ export class Conductor {
 		_.each(statesToSolve, (state:TimelineState) => {
 			_.each(state.LLayers, (layerObject, layer) => {
 				if (this._mapping[layer]) {
-					// request mapping's device to resolve commands?
+					const deviceName = this._mapping[layer].device;
+					const device = this.devices[deviceName];
+
+					if (device) {
+						device.generateCommandsAgainstState(state, device.state);
+					}
 				}
 			})
 		})
