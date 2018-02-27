@@ -18,6 +18,10 @@ export class CasparCGDevice extends Device {
 
 	constructor(deviceId:string, mapping:Mapping, options) {
 		super(deviceId, mapping);
+
+		this._ccgState = new CasparCGState({externalLog: console.log});
+		this._ccgState.initStateFromChannelInfo([])
+		console.log(this._ccgState)
 	}
 
 	init():Promise<boolean> {
@@ -54,7 +58,7 @@ export class CasparCGDevice extends Device {
 		let commandsToAchieveState:Array<{
 			cmds: Array<CommandNS.IAMCPCommandVO>;
 			additionalLayerState?: StateNS.Layer;
-		}> = this._ccgState.diffStates(oldCasparState || this._ccgState, newCasparState);
+		}> = this._ccgState.diffStates(oldCasparState || new StateNS.CasparCG(), newCasparState);
 
 		let returnCommands = [];
 		_.each(commandsToAchieveState, (command) => {

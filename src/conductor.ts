@@ -69,7 +69,9 @@ export class Conductor {
 		// Set mapping
 		// re-resolve timeline
 		this._mapping = mapping;
-		this._resolveTimeline();
+
+		if (this._timeline)
+			this._resolveTimeline();
 	}
 
 	get timeline():Array<TimelineContentObject> {
@@ -135,7 +137,7 @@ export class Conductor {
 					const device = this.devices[deviceName];
 
 					if (device) {
-						device.generateCommandsAgainstState(state, device.state);
+						device.generateCommandsAgainstState(state);
 					}
 				}
 			})

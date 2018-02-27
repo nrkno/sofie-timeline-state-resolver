@@ -37,9 +37,8 @@ test('Timeline: Play AMB for 60s', async () => {
 	});
 	
 
-	await myConductor.init();
-
 	myConductor.mapping = myLayerMapping;
+	await myConductor.init();
 
 
 	// Check that no commands has been sent:
