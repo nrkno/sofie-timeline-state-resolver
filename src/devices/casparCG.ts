@@ -52,6 +52,8 @@ export class CasparCGDevice extends Device {
 		let newCasparState = this.casparStateFromTimelineState(newState);
 		let oldCasparState;
 
+		console.log(JSON.stringify( newCasparState))
+
 		if (oldState) 
 			oldCasparState = this.casparStateFromTimelineState(oldState);
 
@@ -64,6 +66,8 @@ export class CasparCGDevice extends Device {
 		_.each(commandsToAchieveState, (command) => {
 			returnCommands.push({ time: newState.time, deviceId: this._deviceId, cmd: command });
 		})
+
+		console.log(returnCommands);
 
 		return returnCommands;
 	}
@@ -86,11 +90,13 @@ export class CasparCGDevice extends Device {
 
 			switch (layer.content.type) {
 				case 'video' :
+					stateLayer.content = 'media';
 					stateLayer.media = layer.content.attributes.file;
 					stateLayer.looping = layer.content.attributes.loop === true;
+					break;
 			}
 
-			channel.layers[mapping.layer] = layer;
+			channel.layers[mapping.layer] = stateLayer;
 		})
 
 		return caspar;

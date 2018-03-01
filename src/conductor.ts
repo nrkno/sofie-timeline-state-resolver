@@ -124,6 +124,7 @@ export class Conductor {
 		// TODO: use Resolver.getState() and casparcg-state
 		const statesToSolve:Array<TimelineState> = [];
 		const commands:Array<DeviceCommand> = [];
+		let prevstate:TimelineState;
 
 		_.each(timesToEvaluate, (time) => {
 			const tlAroundTime = Resolver.getState(this.timeline, time.time);
@@ -136,12 +137,17 @@ export class Conductor {
 					const deviceName = this._mapping[layer].device;
 					const device = this.devices[deviceName];
 
-					if (device) {
-						device.generateCommandsAgainstState(state);
-					}
+					if (device && prevstate) 
+						commands.push(device.generateCommandsAgainstState(state, prevstate));
+					else if (device)
+						commands.push(device.generateCommandsAgainstState(state));
+					
+					prevstate = state;
 				}
 			})
 		})
+
+		console.log(commands)
 
 		// Then we should distribute out the commands to the different devices
 		// and let them handle it.
@@ -151,5 +157,7 @@ export class Conductor {
 		
 	}
 
-	private sendCommandsToDevices(commands:Array<DeviceCommand>) {}
+	private sendCommandsToDevices(commands:Array<DeviceCommand>) {
+		console.log(commands[0][0].cmd)
+	}
 }
