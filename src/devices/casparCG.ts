@@ -1,7 +1,7 @@
 import * as _ from "underscore"
-import {Device, DeviceCommand} from "./device"
+import {Device, DeviceCommand, DeviceCommandContainer} from "./device"
 
-import { CasparCG, Command as CommandNS } from "casparcg-connection"
+import { CasparCG, Command as CommandNS, AMCPUtil } from "casparcg-connection"
 import { Mapping } from '../conductor';
 import { TimelineState } from 'superfly-timeline';
 import { CasparCGState, StateObject as StateNS } from "casparcg-state";
@@ -21,7 +21,6 @@ export class CasparCGDevice extends Device {
 
 		this._ccgState = new CasparCGState({externalLog: console.log});
 		this._ccgState.initStateFromChannelInfo([])
-		console.log(this._ccgState)
 	}
 
 	init():Promise<boolean> {
@@ -52,8 +51,6 @@ export class CasparCGDevice extends Device {
 		let newCasparState = this.casparStateFromTimelineState(newState);
 		let oldCasparState;
 
-		console.log(JSON.stringify( newCasparState))
-
 		if (oldState) 
 			oldCasparState = this.casparStateFromTimelineState(oldState);
 
@@ -62,14 +59,33 @@ export class CasparCGDevice extends Device {
 			additionalLayerState?: StateNS.Layer;
 		}> = this._ccgState.diffStates(oldCasparState || new StateNS.CasparCG(), newCasparState);
 
-		let returnCommands = [];
+		let returnCommands = {
+			time: newState.time, 
+			deviceId: this.deviceId, 
+			commands: []
+		};
 		_.each(commandsToAchieveState, (command) => {
-			returnCommands.push({ time: newState.time, deviceId: this._deviceId, cmd: command });
+			// returnCommands.push({ 
+			// 	time: newState.time, 
+			// 	deviceId: this.deviceId, 
+			// 	commands: commandsToAchieveState
+			// });
+			_.each(command.cmds, (cmd) => {
+				returnCommands.commands.push(cmd);
+			})
 		})
 
-		console.log(returnCommands);
-
 		return returnCommands;
+	}
+
+	handleCommands(commandContainer:DeviceCommandContainer) {
+		// get a diff with currently scheduled commands
+		// remove obsolete
+		// add new commands
+		_.each(commandContainer.commands, (commandObj) => {
+			let command = AMCPUtil.deSerialize(commandObj, 'id');
+			this._ccg.do(command);
+		})
 	}
 
 	private casparStateFromTimelineState(timelineState: TimelineState):StateNS.CasparCG {
@@ -83,16 +99,18 @@ export class CasparCGDevice extends Device {
 				throw 'Mapping not found: we can\'t handle this error (yet?)';
 			
 			const channel = new StateNS.Channel();
-			channel.channelNo = mapping.channel || 1;
+			channel.channelNo = Number(mapping.channel) || 1;
 			caspar.channels[channel.channelNo] = channel;
 
 			const stateLayer = new StateNS.Layer();
+			stateLayer.layerNo = Number(mapping.layer) || 0;
 
 			switch (layer.content.type) {
 				case 'video' :
 					stateLayer.content = 'media';
 					stateLayer.media = layer.content.attributes.file;
 					stateLayer.looping = layer.content.attributes.loop === true;
+					stateLayer.playing = true;
 					break;
 			}
 

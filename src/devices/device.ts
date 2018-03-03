@@ -13,9 +13,14 @@ export interface DeviceCommand {
 	command: any
 }
 
+export interface DeviceCommandContainer {
+	deviceId: string,
+	commands: Array<DeviceCommand>
+}
+
 export class Device {
 	
-	protected _deviceId:string;
+	private _deviceId:string;
 	public state:TimelineState;
 	public _mapping:Mapping;
 
@@ -36,6 +41,13 @@ export class Device {
 		// come up with the commands needed to achieve the state
 		// return an array of the commands needed
 		throw "This class method must be replaced by the Device class!";
+	}
+
+	get deviceId() {
+		return this._deviceId;
+	}
+	set deviceId(deviceId) {
+		this._deviceId = deviceId;
 	}
 
 }

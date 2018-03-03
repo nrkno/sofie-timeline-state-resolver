@@ -75,8 +75,8 @@ test('Timeline: Play AMB for 60s', async () => {
 	expect(CasparCG.mockDo).toHaveBeenCalledTimes(1);
 	expect(CasparCG.mockDo.mock.calls[0][0]).toBeInstanceOf(AMCP.PlayCommand);
 
-	expect(CasparCG.mockDo.mock.calls[0][0].ccgString).toMatch(/LOOP/);
-	expect(CasparCG.mockDo.mock.calls[0][0].ccgString).toMatch(/AMB/);
+	expect(CasparCG.mockDo.mock.calls[0][0]._objectParams.loop).toEqual(true);
+	expect(CasparCG.mockDo.mock.calls[0][0]._objectParams.clip).toMatch(/AMB/);
 	expect(CasparCG.mockDo.mock.calls[0][0].seek).toBeGreaterThanOrEqual(10*50);
 	expect(CasparCG.mockDo.mock.calls[0][0].seek).toBeLessThan(10*50 + 10);
 	expect(CasparCG.mockDo.mock.calls[0][0].layer).toEqual(42);

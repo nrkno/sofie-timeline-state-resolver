@@ -1,7 +1,7 @@
 import * as _ from "underscore"
 import {Resolver, TimelineObject, TimelineState} from "superfly-timeline"
 
-import {Device, DeviceCommand} from "./devices/device"
+import {Device, DeviceCommand, DeviceCommandContainer} from "./devices/device"
 import {CasparCGDevice} from "./devices/casparCG"
 
 const LOOKAHEADTIME = 5000;
@@ -123,7 +123,7 @@ export class Conductor {
 		// Step 2: evaluate the points in time (do we have to send any commands?)
 		// TODO: use Resolver.getState() and casparcg-state
 		const statesToSolve:Array<TimelineState> = [];
-		const commands:Array<DeviceCommand> = [];
+		const deviceCommands:Array<DeviceCommandContainer> = [];
 		let prevstate:TimelineState;
 
 		_.each(timesToEvaluate, (time) => {
@@ -133,31 +133,46 @@ export class Conductor {
 
 		_.each(statesToSolve, (state:TimelineState) => {
 			_.each(state.LLayers, (layerObject, layer) => {
-				if (this._mapping[layer]) {
-					const deviceName = this._mapping[layer].device;
-					const device = this.devices[deviceName];
+				if (this.mapping[layer]) {
+					const deviceId = this.mapping[layer].device;
+					const device = this.devices[deviceId];
+					let commands;
 
 					if (device && prevstate) 
-						commands.push(device.generateCommandsAgainstState(state, prevstate));
+						commands = device.generateCommandsAgainstState(state, prevstate);
 					else if (device)
-						commands.push(device.generateCommandsAgainstState(state));
+						commands = device.generateCommandsAgainstState(state);
+					
+					let deviceCommandContainer = _.find(deviceCommands, (commandContainer) => deviceId == commandContainer.deviceId);
+					if (deviceCommandContainer) {
+						Array.prototype.push.apply(deviceCommandContainer.commands, commands);
+					} else {
+						deviceCommands.push({
+							deviceId,
+							commands
+						})
+					}
 					
 					prevstate = state;
 				}
 			})
 		})
 
-		console.log(commands)
-
 		// Then we should distribute out the commands to the different devices
 		// and let them handle it.
 
 
-		this.sendCommandsToDevices(commands);
+		this.sendCommandsToDevices(deviceCommands);
 		
 	}
 
-	private sendCommandsToDevices(commands:Array<DeviceCommand>) {
-		console.log(commands[0][0].cmd)
+	private sendCommandsToDevices(commandsInTime:Array<DeviceCommandContainer>) {
+		_.each(commandsInTime, (commandContainer:DeviceCommandContainer) => {
+			const device = this.devices[commandContainer.deviceId];
+
+			if (device) {
+				device.handleCommands(commandContainer.commands);
+			}
+		})
 	}
 }
