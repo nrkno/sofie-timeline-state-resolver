@@ -1,6 +1,7 @@
 
 // mock CasparCG
 import * as _ from "underscore"
+import {AMCP as AMCP2} from '../../node_modules/casparcg-connection'
 
 
 
@@ -9,6 +10,8 @@ var test = 0;
 var mockDo = jest.fn();
 
 var instances = [];
+
+export const AMCP = AMCP2;
 
 export class CasparCG {
 	constructor() {
