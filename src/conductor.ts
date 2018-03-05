@@ -39,6 +39,8 @@ export class Conductor {
 	private _options:ConductorOptions
 
 	private devices:{[deviceName:string]: Device} = {};
+
+	private _timer:Timer;
 	
 
 	constructor(options:ConductorOptions) {
@@ -48,6 +50,11 @@ export class Conductor {
 
 		this._options = options;
 
+		this._timer = setInterval(() => {
+			if (this.timeline)
+				this._resolveTimeline();
+		}, 2500);
+		setInterval(() => this._resolveTimeline(), 2500);
 	}
 
 	public init():Promise<any> {
@@ -114,6 +121,7 @@ export class Conductor {
 
 		// Step 1: Filter out some interesting points in time:
 		const nextEvents = Resolver.getNextEvents(timelineWindow, now, 10);
+		console.log(nextEvents, timelineWindow, this.timeline)
 		const timesToEvaluate = [{ time: now }];
 
 		_.each(nextEvents, (evt) => {
