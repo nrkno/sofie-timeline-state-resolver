@@ -53,6 +53,8 @@ export class CasparCGDevice extends Device {
 
 		if (oldState) 
 			oldCasparState = this.casparStateFromTimelineState(oldState);
+		else
+			oldCasparState = this._ccgState.getState();
 
 		let commandsToAchieveState:Array<{
 			cmds: Array<CommandNS.IAMCPCommandVO>;
@@ -85,6 +87,10 @@ export class CasparCGDevice extends Device {
 		_.each(commandContainer.commands, (commandObj) => {
 			let command = AMCPUtil.deSerialize(commandObj, 'id');
 			this._ccg.do(command);
+
+			console.log(commandObj);
+
+			this._ccgState.applyCommands([ { cmd: commandObj } ]);
 		})
 	}
 
