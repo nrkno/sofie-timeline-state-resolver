@@ -4,8 +4,6 @@ import {Resolver, TimelineObject, TimelineState} from "superfly-timeline"
 import {Device, DeviceCommand, DeviceCommandContainer} from "./devices/device"
 import {CasparCGDevice} from "./devices/casparCG"
 
-const LOOKAHEADTIME = 5000;
-
 export interface TimelineContentObject extends TimelineObject {}
 
 export interface Mapping {
@@ -54,7 +52,6 @@ export class Conductor {
 			if (this.timeline)
 				this._resolveTimeline();
 		}, 2500);
-		setInterval(() => this._resolveTimeline(), 2500);
 	}
 
 	public init():Promise<any> {
@@ -121,7 +118,7 @@ export class Conductor {
 
 		// Step 1: Filter out some interesting points in time:
 		const nextEvents = Resolver.getNextEvents(timelineWindow, now, 10);
-		console.log(nextEvents, timelineWindow, this.timeline)
+		// console.log(nextEvents, timelineWindow, this.timeline)
 		const timesToEvaluate = [{ time: now }];
 
 		_.each(nextEvents, (evt) => {
@@ -135,34 +132,33 @@ export class Conductor {
 		let prevstate:TimelineState;
 
 		_.each(timesToEvaluate, (time) => {
-			const tlAroundTime = Resolver.getState(this.timeline, time.time);
+			let tlAroundTime = Resolver.getState(this.timeline, time.time);
 			statesToSolve.push(tlAroundTime);
 		})
 
 		_.each(statesToSolve, (state:TimelineState) => {
-			_.each(state.LLayers, (layerObject, layer) => {
-				if (this.mapping[layer]) {
-					const deviceId = this.mapping[layer].device;
-					const device = this.devices[deviceId];
-					let commands;
+			_.each(this.devices, (device) => {
+				let deviceId = device.deviceId;
+				let commands;
 
-					if (device && prevstate) 
-						commands = device.generateCommandsAgainstState(state, prevstate);
-					else if (device)
-						commands = device.generateCommandsAgainstState(state);
-					
+				if (prevstate) 
+					commands = device.generateCommandsAgainstState(state, prevstate);
+				else
+					commands = device.generateCommandsAgainstState(state);
+				
+				if (commands) {
 					let deviceCommandContainer = _.find(deviceCommands, (commandContainer) => deviceId == commandContainer.deviceId);
 					if (deviceCommandContainer) {
-						Array.prototype.push.apply(deviceCommandContainer.commands, commands);
+						deviceCommandContainer.commands.push(commands);
 					} else {
 						deviceCommands.push({
 							deviceId,
-							commands
+							commands: [commands]
 						})
 					}
-					
-					prevstate = state;
 				}
+				
+				prevstate = state;
 			})
 		})
 
@@ -179,7 +175,7 @@ export class Conductor {
 			const device = this.devices[commandContainer.deviceId];
 
 			if (device) {
-				device.handleCommands(commandContainer.commands);
+				device.handleCommands(commandContainer);
 			}
 		})
 	}
