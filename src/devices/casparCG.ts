@@ -21,7 +21,7 @@ export class CasparCGDevice extends Device {
 		super(deviceId, mapping);
 
 		this._ccgState = new CasparCGState({externalLog: console.log});
-		this._ccgState.initStateFromChannelInfo([{
+		this._ccgState.initStateFromChannelInfo([{ // @todo: these should be implemented from osc info
 			channelNo: 1,
 			format: 'PAL',
 			frameRate: 50
@@ -34,6 +34,9 @@ export class CasparCGDevice extends Device {
 		setInterval(() => {this.checkCommandBus()}, 20);
 	}
 
+	/**
+	 * Initiates the connection with CasparCG through the ccg-connection lib.
+	 */
 	init():Promise<boolean> {
 
 		return new Promise((resolve/*, reject*/) => {
@@ -58,6 +61,11 @@ export class CasparCGDevice extends Device {
 		});
 	}
 
+	/**
+	 * Generates an array of CasparCG commands by comparing the newState against the oldState, or the current device state.
+	 * @param newState The state to target.
+	 * @param oldState The "current" state of the device. If omitted, will use the actual current state.
+	 */
 	generateCommandsAgainstState(newState:TimelineState, oldState?:TimelineState):Array<DeviceCommand> {
 		let newCasparState = this.casparStateFromTimelineState(newState);
 		let oldCasparState;
@@ -91,6 +99,10 @@ export class CasparCGDevice extends Device {
 		return returnCommands;
 	}
 
+	/**
+	 * A receiver for generated commands.
+	 * @param commandContainer A container that carries the commands.
+	 */
 	handleCommands(commandContainer:DeviceCommandContainer) {
 		if (commandContainer.deviceId == this.deviceId) {
 			this._queue = commandContainer.commands;
@@ -98,6 +110,10 @@ export class CasparCGDevice extends Device {
 		}
 	}
 
+	/**
+	 * Takes a timeline state and returns a CasparCG State that will work with the state lib.
+	 * @param timelineState The timeline state to generate from.
+	 */
 	private casparStateFromTimelineState(timelineState: TimelineState):StateNS.CasparCG {
 
 		const caspar = new StateNS.CasparCG();
@@ -132,17 +148,19 @@ export class CasparCGDevice extends Device {
 
 	}
 
+	/**
+	 * This checks the _queue to see if any commands should be sent to CasparCG.
+	 * @todo: replace with timecode scheduled commands.
+	 */
 	private checkCommandBus() {
-		if (this._queue && this._queue.length) {
-			while (this._queue[0].time < Date.now()/1000+.02) {
+		if (this._queue) {
+			while (this._queue.length > 0 && this._queue[0].time < Date.now()/1000+.02) {
 				let commandContainer = this._queue[0];
 				this._queue.splice(0, 1);
 				
 				_.each(commandContainer.commands, (commandObj) => {
 					let command = AMCPUtil.deSerialize(commandObj, 'id');
 					this._ccg.do(command);
-		
-					console.log(Date.now()/1000, commandObj);
 		
 					this._ccgState.applyCommands([ { cmd: commandObj } ]);
 				})

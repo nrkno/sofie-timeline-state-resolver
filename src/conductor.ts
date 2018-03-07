@@ -4,6 +4,8 @@ import {Resolver, TimelineObject, TimelineState} from "superfly-timeline"
 import {Device, DeviceCommand, DeviceCommandContainer} from "./devices/device"
 import {CasparCGDevice} from "./devices/casparCG"
 
+const LOOKAHEADTIME = 5000;
+
 export interface TimelineContentObject extends TimelineObject {}
 
 export interface Mapping {
@@ -28,7 +30,9 @@ export enum DeviceTypes {
 	CASPARCG=0
 }
 
-
+/**
+ * The main class that serves to interface with all functionality.
+ */
 export class Conductor {
 
 	private _timeline:Array<TimelineContentObject>;
@@ -43,24 +47,26 @@ export class Conductor {
 
 	constructor(options:ConductorOptions) {
 		
-		//this.setTimeline(options.timeline||[]);
-		//this.setMapping(options.mapping||{});
-
 		this._options = options;
 
 		this._timer = setInterval(() => {
 			if (this.timeline)
 				this._resolveTimeline();
 		}, 2500);
+
 	}
 
+	/**
+	 * Initializes the devices that were passed as options.
+	 */
 	public init():Promise<any> {
 		return this._initializeDevices();
 	}
 
+	/**
+	 * Returns a nice, synchronized time.
+	 */
 	public getCurrentTime() {
-		// return a nice, synked time:
-
 		// TODO: Implement time sync, NTP procedure etc...
 		return Date.now()/1000;
 	}
@@ -88,6 +94,10 @@ export class Conductor {
 	}
 
 
+	/**
+	 * Sets up the devices as they were passed to the constructor via the options object.
+	 * @todo: allow for runtime reconfiguration of devices. 
+	 */
 	private _initializeDevices():Promise<any> {
 
 		const ps:Array<Promise<any>> = [];
@@ -110,6 +120,9 @@ export class Conductor {
 
 	}
 
+	/**
+	 * Resolves the timeline for the next few seconds, generates the commands and passes off the commands.
+	 */
 	private _resolveTimeline() {
 
 		const now = this.getCurrentTime();
@@ -125,7 +138,6 @@ export class Conductor {
 		});
 
 		// Step 2: evaluate the points in time (do we have to send any commands?)
-		// TODO: use Resolver.getState() and casparcg-state
 		const statesToSolve:Array<TimelineState> = [];
 		const deviceCommands:Array<DeviceCommandContainer> = [];
 		let prevstate:TimelineState;
@@ -163,12 +175,14 @@ export class Conductor {
 
 		// Then we should distribute out the commands to the different devices
 		// and let them handle it.
-
-
 		this.sendCommandsToDevices(deviceCommands);
 		
 	}
 
+	/**
+	 * Takes in the commands generated through the _resolveTimeline() function and passes it to the devices.
+	 * @param commandsInTime 
+	 */
 	private sendCommandsToDevices(commandsInTime:Array<DeviceCommandContainer>) {
 		_.each(commandsInTime, (commandContainer:DeviceCommandContainer) => {
 			const device = this.devices[commandContainer.deviceId];
