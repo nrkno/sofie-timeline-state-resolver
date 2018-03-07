@@ -15,12 +15,23 @@ export class CasparCGDevice extends Device {
 	private _ccg:CasparCG;
 	private _state:TimelineState;
 	private _ccgState:CasparCGState;
+	private _queue:Array<any>;
 
 	constructor(deviceId:string, mapping:Mapping, options) {
 		super(deviceId, mapping);
 
 		this._ccgState = new CasparCGState({externalLog: console.log});
-		this._ccgState.initStateFromChannelInfo([])
+		this._ccgState.initStateFromChannelInfo([{
+			channelNo: 1,
+			format: 'PAL',
+			frameRate: 50
+		}, {
+			channelNo: 2,
+			format: 'PAL',
+			frameRate: 50
+		}])
+
+		setInterval(() => {this.checkCommandBus()}, 20);
 	}
 
 	init():Promise<boolean> {
@@ -81,17 +92,10 @@ export class CasparCGDevice extends Device {
 	}
 
 	handleCommands(commandContainer:DeviceCommandContainer) {
-		// get a diff with currently scheduled commands
-		// remove obsolete
-		// add new commands
-		_.each(commandContainer.commands, (commandObj) => {
-			let command = AMCPUtil.deSerialize(commandObj, 'id');
-			this._ccg.do(command);
-
-			console.log(commandObj);
-
-			this._ccgState.applyCommands([ { cmd: commandObj } ]);
-		})
+		if (commandContainer.deviceId == this.deviceId) {
+			this._queue = commandContainer.commands;
+			this.checkCommandBus();
+		}
 	}
 
 	private casparStateFromTimelineState(timelineState: TimelineState):StateNS.CasparCG {
@@ -102,7 +106,7 @@ export class CasparCGDevice extends Device {
 			const mapping:Mapping = this._mapping[layerName];
 
 			if (!mapping)
-				throw 'Mapping not found: we can\'t handle this error (yet?)';
+				return; // we got passed a LLayer that doesn't belong to this device.
 			
 			const channel = new StateNS.Channel();
 			channel.channelNo = Number(mapping.channel) || 1;
@@ -117,6 +121,7 @@ export class CasparCGDevice extends Device {
 					stateLayer.media = layer.content.attributes.file;
 					stateLayer.looping = layer.content.attributes.loop === true;
 					stateLayer.playing = true;
+					stateLayer.playTime = layer.resolved.startTime;
 					break;
 			}
 
@@ -125,5 +130,23 @@ export class CasparCGDevice extends Device {
 
 		return caspar;
 
+	}
+
+	private checkCommandBus() {
+		if (this._queue && this._queue.length) {
+			while (this._queue[0].time < Date.now()/1000+.02) {
+				let commandContainer = this._queue[0];
+				this._queue.splice(0, 1);
+				
+				_.each(commandContainer.commands, (commandObj) => {
+					let command = AMCPUtil.deSerialize(commandObj, 'id');
+					this._ccg.do(command);
+		
+					console.log(Date.now()/1000, commandObj);
+		
+					this._ccgState.applyCommands([ { cmd: commandObj } ]);
+				})
+			}
+		}
 	}
 }

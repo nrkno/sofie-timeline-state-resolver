@@ -118,7 +118,6 @@ export class Conductor {
 
 		// Step 1: Filter out some interesting points in time:
 		const nextEvents = Resolver.getNextEvents(timelineWindow, now, 10);
-		// console.log(nextEvents, timelineWindow, this.timeline)
 		const timesToEvaluate = [{ time: now }];
 
 		_.each(nextEvents, (evt) => {
