@@ -13,7 +13,6 @@ jest.mock('casparcg-connection');
 
 
 test('Timeline: Play AMB for 60s', async () => {
-
 	
 
 	var myLayerMapping = {
@@ -47,7 +46,14 @@ test('Timeline: Play AMB for 60s', async () => {
 	
 	jest.useFakeTimers();
 
+	setTimeout(() => {console.log('TIME IS UP');}, 1000);
+	// jest.advanceTimersByTime(5000);
+	jest.runOnlyPendingTimers();
+
 	var now = myConductor.getCurrentTime();
+	Date.now = jest.fn();
+	Date.now
+		.mockReturnValue(now*1000);
 
 	myConductor.timeline = [
 		{
@@ -69,7 +75,11 @@ test('Timeline: Play AMB for 60s', async () => {
 	];
 
 	// fast-forward:
-	jest.advanceTimersByTime(40000);
+
+	Date.now
+		.mockReturnValue(now*1000 + 5000);
+	// jest.advanceTimersByTime(5000);
+	jest.runOnlyPendingTimers();
 
 	// Check that an ACMP-command has been sent
 	expect(CasparCG.mockDo).toHaveBeenCalledTimes(1);
@@ -85,8 +95,12 @@ test('Timeline: Play AMB for 60s', async () => {
 
 
 	// fast-forward:
-	jest.advanceTimersByTime(20000);
-	jest.runAllTimers();
+	// jest.advanceTimersByTime(20000);
+
+	Date.now
+		.mockReturnValue(now*1000 + 15000);
+	// jest.advanceTimersByTime(10000);
+	jest.runOnlyPendingTimers();
 
 	expect(CasparCG.mockDo.mock.calls.length).toBe(2);
 	expect(CasparCG.mockDo.mock.calls[1][0]).toBeInstanceOf(AMCP.StopCommand);
@@ -95,9 +109,14 @@ test('Timeline: Play AMB for 60s', async () => {
 	expect(CasparCG.mockDo.mock.calls[1][0].channel).toEqual(2);
 
 	// fast-forward:
-	jest.advanceTimersByTime(10000);
+	// jest.advanceTimersByTime(10000);
 
 	// Nothing more should've happened:
+
+	Date.now
+		.mockReturnValue(now*1000 + 35000);
+	jest.advanceTimersByTime(20000);
+
 	expect(CasparCG.mockDo.mock.calls.length).toBe(2);
 
 
