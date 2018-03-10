@@ -4,7 +4,7 @@ import {Device, DeviceCommand, DeviceCommandContainer} from "./device"
 import { CasparCG, Command as CommandNS, AMCPUtil } from "casparcg-connection"
 import { Mapping } from '../conductor';
 import { TimelineState } from 'superfly-timeline';
-import { CasparCGState, StateObject as StateNS } from "casparcg-state";
+import { CasparCG as StateNS, CasparCGState } from "casparcg-state";
 
 
 /*
@@ -23,12 +23,12 @@ export class CasparCGDevice extends Device {
 		this._ccgState = new CasparCGState({externalLog: console.log});
 		this._ccgState.initStateFromChannelInfo([{ // @todo: these should be implemented from osc info
 			channelNo: 1,
-			format: 'PAL',
-			frameRate: 50
+			videMode: 'PAL',
+			fps: 50
 		}, {
 			channelNo: 2,
-			format: 'PAL',
-			frameRate: 50
+			videoMode: 'PAL',
+			fps: 50
 		}])
 
 		setInterval(() => {this.checkCommandBus()}, 20);
@@ -129,42 +129,78 @@ export class CasparCGDevice extends Device {
 			// @todo: check if we need fps as well.
 			caspar.channels[channel.channelNo] = channel;
 
-			const stateLayer = new StateNS.Layer();
-			stateLayer.layerNo = Number(mapping.layer) || 0;
+			let stateLayer:StateNS.IBaseLayer;
 
 			switch (layer.content.type) {
 				case 'video' :
-					stateLayer.content = 'media';
-					stateLayer.media = layer.content.attributes.file;
-					stateLayer.looping = layer.content.attributes.loop === true;
-					stateLayer.seek = layer.content.attributes.seek;
-
-					stateLayer.playing = true;
-					stateLayer.playTime = layer.resolved.startTime;
-					// @todo: implement pauses (when are things paused?)
-					// @todo: implement vf / af. depends on ccg-connection.
+					stateLayer = {
+						content: StateNS.LayerContentType.MEDIA,
+						media: layer.content.attributes.file,
+						playTime: layer.resolved.startTime,
+						playing: true,
+				
+						looping: layer.content.attributes.loop,
+						seek: layer.content.attributes.seek
+					}
 					break;
 				case 'ip' :
-					stateLayer.content = 'media';
-					stateLayer.media = layer.content.attributes.uri;
-
-					stateLayer.playing = true;
-					stateLayer.playTime = layer.resolved.startTime;
+					stateLayer = {
+						content: StateNS.LayerContentType.MEDIA,
+						media: layer.content.attributes.uri,
+						playTime: layer.resolved.startTime,
+						playing: true
+					}
 					break;
 				case 'input' :
-					stateLayer.content = 'input';
+					stateLayer = {
+						content: StateNS.LayerContentType.INPUT,
+						media: 'decklink',
+						input: {
+							device: layer.content.attributes.device
+						},
+						playing: true
 
-					stateLayer.input = {
-						device: layer.content.attributes.device,
-						format: layer.content.attributes.format
-						// @todo: vf/af in state and in ccg-con
-					};
-
-					stateLayer.playing = true;
-					stateLayer.playTime = layer.resolved.startTime;
-					// @todo: implement pauses (when are things paused?)
+					}
 					break;
 			}
+			
+
+			// const stateLayer = new StateNS.Layer();
+			// stateLayer.layerNo = Number(mapping.layer) || 0;
+
+			// switch (layer.content.type) {
+			// 	case 'video' :
+			// 		stateLayer.content = 'media';
+			// 		stateLayer.media = layer.content.attributes.file;
+			// 		stateLayer.looping = layer.content.attributes.loop === true;
+			// 		stateLayer.seek = layer.content.attributes.seek;
+
+			// 		stateLayer.playing = true;
+			// 		stateLayer.playTime = layer.resolved.startTime;
+			// 		// @todo: implement pauses (when are things paused?)
+			// 		// @todo: implement vf / af. depends on ccg-connection.
+			// 		break;
+			// 	case 'ip' :
+			// 		stateLayer.content = 'media';
+			// 		stateLayer.media = layer.content.attributes.uri;
+
+			// 		stateLayer.playing = true;
+			// 		stateLayer.playTime = layer.resolved.startTime;
+			// 		break;
+			// 	case 'input' :
+			// 		stateLayer.content = 'input';
+
+			// 		stateLayer.input = {
+			// 			device: layer.content.attributes.device,
+			// 			format: layer.content.attributes.format
+			// 			// @todo: vf/af in state and in ccg-con
+			// 		};
+
+			// 		stateLayer.playing = true;
+			// 		stateLayer.playTime = layer.resolved.startTime;
+			// 		// @todo: implement pauses (when are things paused?)
+			// 		break;
+			// }
 
 			channel.layers[mapping.layer] = stateLayer;
 		})
