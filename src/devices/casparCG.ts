@@ -162,45 +162,53 @@ export class CasparCGDevice extends Device {
 
 					}
 					break;
+				case 'template' :
+					stateLayer = {
+						content: StateNS.LayerContentType.TEMPLATE,
+						media: layer.content.attributes.name,
+
+						playTime: layer.resolved.startTime,
+						playing: true,
+
+						templateType: layer.content.attributes.type || 'html',
+						templateData: layer.content.attributes.data,
+						cgStop: layer.content.attributes.useStopCommand
+					}
+					break;
 			}
-			
 
-			// const stateLayer = new StateNS.Layer();
-			// stateLayer.layerNo = Number(mapping.layer) || 0;
+			if (layer.content.transition)
+				switch (layer.content.type) {
+					case 'video' || 'ip' || 'template':
+						// create transition object
+						let media = stateLayer.media;
+						let transitions = {};
 
-			// switch (layer.content.type) {
-			// 	case 'video' :
-			// 		stateLayer.content = 'media';
-			// 		stateLayer.media = layer.content.attributes.file;
-			// 		stateLayer.looping = layer.content.attributes.loop === true;
-			// 		stateLayer.seek = layer.content.attributes.seek;
+						if (layer.content.inTransition)
+							transitions.inTransition = new StateNS.Transition(
+								layer.content.inTransition.type,
+								layer.content.inTransition.duration,
+								layer.content.inTransition.easing,
+								layer.content.inTransition.direction
+							);
 
-			// 		stateLayer.playing = true;
-			// 		stateLayer.playTime = layer.resolved.startTime;
-			// 		// @todo: implement pauses (when are things paused?)
-			// 		// @todo: implement vf / af. depends on ccg-connection.
-			// 		break;
-			// 	case 'ip' :
-			// 		stateLayer.content = 'media';
-			// 		stateLayer.media = layer.content.attributes.uri;
+						if (layer.content.outTransition)
+							transitions.outTransition = new StateNS.Transition(
+								layer.content.outTransition.type,
+								layer.content.outTransition.duration,
+								layer.content.outTransition.easing,
+								layer.content.outTransition.direction
+							);
 
-			// 		stateLayer.playing = true;
-			// 		stateLayer.playTime = layer.resolved.startTime;
-			// 		break;
-			// 	case 'input' :
-			// 		stateLayer.content = 'input';
-
-			// 		stateLayer.input = {
-			// 			device: layer.content.attributes.device,
-			// 			format: layer.content.attributes.format
-			// 			// @todo: vf/af in state and in ccg-con
-			// 		};
-
-			// 		stateLayer.playing = true;
-			// 		stateLayer.playTime = layer.resolved.startTime;
-			// 		// @todo: implement pauses (when are things paused?)
-			// 		break;
-			// }
+						stateLayer.media = new StateNS.TransitionObject(media, {
+							inTransition: transitions.inTransition,
+							outTransition: transitions.outTransition
+						});
+						break;
+					default : 
+						// create transition using mixer
+						break;
+				}
 
 			channel.layers[mapping.layer] = stateLayer;
 		})
