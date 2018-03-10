@@ -126,6 +126,7 @@ export class CasparCGDevice extends Device {
 			
 			const channel = new StateNS.Channel();
 			channel.channelNo = Number(mapping.channel) || 1;
+			// @todo: check if we need fps as well.
 			caspar.channels[channel.channelNo] = channel;
 
 			const stateLayer = new StateNS.Layer();
@@ -136,8 +137,32 @@ export class CasparCGDevice extends Device {
 					stateLayer.content = 'media';
 					stateLayer.media = layer.content.attributes.file;
 					stateLayer.looping = layer.content.attributes.loop === true;
+					stateLayer.seek = layer.content.attributes.seek;
+
 					stateLayer.playing = true;
 					stateLayer.playTime = layer.resolved.startTime;
+					// @todo: implement pauses (when are things paused?)
+					// @todo: implement vf / af. depends on ccg-connection.
+					break;
+				case 'ip' :
+					stateLayer.content = 'media';
+					stateLayer.media = layer.content.attributes.uri;
+
+					stateLayer.playing = true;
+					stateLayer.playTime = layer.resolved.startTime;
+					break;
+				case 'input' :
+					stateLayer.content = 'input';
+
+					stateLayer.input = {
+						device: layer.content.attributes.device,
+						format: layer.content.attributes.format
+						// @todo: vf/af in state and in ccg-con
+					};
+
+					stateLayer.playing = true;
+					stateLayer.playTime = layer.resolved.startTime;
+					// @todo: implement pauses (when are things paused?)
 					break;
 			}
 
