@@ -9,31 +9,31 @@ import {Conductor, DeviceTypes} from "../conductor"
 
 //jest.mock('../conductor');
 jest.mock('casparcg-connection');
+	
+
+var myLayerMapping = {
+	'myLayer': {
+		device: 'myCCG',
+		channel: 2,
+		layer: 42
+	}
+}
+
+
+
+
+var myConductor = new Conductor({
+	devices: {
+		'myCCG': {
+			type: DeviceTypes.CASPARCG
+		}
+	},
+	initializeAsClear: true 
+});
 
 
 
 test('Timeline: Play AMB for 60s', async () => {
-	
-
-	var myLayerMapping = {
-		'myLayer': {
-			device: 'myCCG',
-			channel: 2,
-			layer: 42
-		}
-	}
-
-	
-
-
-	var myConductor = new Conductor({
-		devices: {
-			'myCCG': {
-				type: DeviceTypes.CASPARCG
-			}
-		},
-		initializeAsClear: true 
-	});
 	
 
 	myConductor.mapping = myLayerMapping;
@@ -45,10 +45,6 @@ test('Timeline: Play AMB for 60s', async () => {
 
 	
 	jest.useFakeTimers();
-
-	setTimeout(() => {console.log('TIME IS UP');}, 1000);
-	// jest.advanceTimersByTime(5000);
-	jest.runOnlyPendingTimers();
 
 	var now = myConductor.getCurrentTime();
 	Date.now = jest.fn();
@@ -170,3 +166,98 @@ test('Timeline: Play AMB for 60s', async () => {
 	
 	*/
 });
+
+test('Timeline: AMB with transitions', async () => {
+	
+	myConductor.mapping = myLayerMapping;
+	await myConductor.init();
+
+
+	// Check that no commands has been sent:
+	expect(CasparCG.mockDo).toHaveBeenCalledTimes(0)
+
+	
+	jest.useFakeTimers();
+
+	var now = myConductor.getCurrentTime();
+	Date.now = jest.fn();
+	Date.now
+		.mockReturnValue(now*1000);
+
+	myConductor.timeline = [
+		{
+			id: 'obj0',
+			trigger: {
+				type: Enums.TriggerType.TIME_ABSOLUTE,
+				value: now-10, // 10 seconds ago
+			},
+			duration: 20,
+			LLayer: 'myLayer',
+			content: {
+				type: 'video', // more to be implemented later!
+				attributes: {
+					file: 'AMB',
+					loop: true,
+				},
+				transitions: {
+					inTransition: {
+						type: 'MIX',
+						duration: 10,
+						easing: 'linear',
+						direction: 'left'
+					},
+					outTransition: {
+						type: 'MIX',
+						duration: 10,
+						easing: 'linear',
+						direction: 'right'
+					}
+				}
+			}
+		}
+	];
+
+	// fast-forward:
+
+	Date.now
+		.mockReturnValue(now*1000 + 5000);
+	// jest.advanceTimersByTime(5000);
+	jest.runOnlyPendingTimers();
+
+	// Check that an ACMP-command has been sent
+	expect(CasparCG.mockDo).toHaveBeenCalledTimes(1);
+	expect(CasparCG.mockDo.mock.calls[0][0]).toBeInstanceOf(AMCP.PlayCommand);
+
+	expect(CasparCG.mockDo.mock.calls[0][0]._objectParams.loop).toEqual(true);
+	expect(CasparCG.mockDo.mock.calls[0][0]._objectParams.clip).toMatch(/AMB/);
+	expect(CasparCG.mockDo.mock.calls[0][0]._objectParams.transition).toMatch(/MIX/);
+	expect(CasparCG.mockDo.mock.calls[0][0]._objectParams.transitionDuration).toEqual(500);
+	expect(CasparCG.mockDo.mock.calls[0][0]._objectParams.transitionEasing).toMatch(/linear/);
+	expect(CasparCG.mockDo.mock.calls[0][0]._objectParams.transitionDirection).toMatch(/LEFT/);
+	expect(CasparCG.mockDo.mock.calls[0][0].layer).toEqual(42);
+	expect(CasparCG.mockDo.mock.calls[0][0].channel).toEqual(2);
+
+
+	// fast-forward:
+	// jest.advanceTimersByTime(20000);
+
+	Date.now
+		.mockReturnValue(now*1000 + 15000);
+	// jest.advanceTimersByTime(10000);
+	jest.runOnlyPendingTimers();
+
+	expect(CasparCG.mockDo.mock.calls.length).toBe(2);
+	expect(CasparCG.mockDo.mock.calls[1][0]).toBeInstanceOf(AMCP.StopCommand);
+	// @todo: add tests for removal
+	expect(CasparCG.mockDo.mock.calls[1][0].layer).toEqual(42);
+	expect(CasparCG.mockDo.mock.calls[1][0].channel).toEqual(2);
+	// @todo: do some more checks for transitions
+
+	// Nothing more should've happened:
+
+	Date.now
+		.mockReturnValue(now*1000 + 35000);
+	jest.advanceTimersByTime(20000);
+
+	expect(CasparCG.mockDo.mock.calls.length).toBe(2);
+})

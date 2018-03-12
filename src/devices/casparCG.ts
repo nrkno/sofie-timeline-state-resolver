@@ -23,7 +23,7 @@ export class CasparCGDevice extends Device {
 		this._ccgState = new CasparCGState({externalLog: console.log});
 		this._ccgState.initStateFromChannelInfo([{ // @todo: these should be implemented from osc info
 			channelNo: 1,
-			videMode: 'PAL',
+			videoMode: 'PAL',
 			fps: 50
 		}, {
 			channelNo: 2,
@@ -116,7 +116,7 @@ export class CasparCGDevice extends Device {
 	 */
 	private casparStateFromTimelineState(timelineState: TimelineState):StateNS.CasparCG {
 
-		const caspar = new StateNS.CasparCG();
+		const caspar = new StateNS.State();
 		
 		_.each(timelineState.LLayers, (layer, layerName) => {
 			const mapping:Mapping = this._mapping[layerName];
@@ -175,29 +175,56 @@ export class CasparCGDevice extends Device {
 						cgStop: layer.content.attributes.useStopCommand
 					}
 					break;
+				case 'route' :
+					if (layer.content.attributes.LLayer) {
+						let routeMapping = this._mapping[layer.content.attributes.LLayer]
+						if (routeMapping) {
+							layer.container.attributes.channel = routeMapping.channel;
+							layer.container.attributes.layer = routeMapping.layer;
+						}
+					} 
+					stateLayer = {
+						content: StateNS.LayerContentType.ROUTE,
+						media: 'route',
+						route: {
+							channel: layer.container.attributes.channel,
+							layer: layer.container.attributes.layer
+						},
+						playing: true,
+						playTime: layer.resolved.startTime
+					}
+					break;
+				case 'record' :
+					stateLayer = {
+						content: StateNS.LayerContentType.RECORD,
+						encoderOptions: layer.content.attributes.file + ' ' + layer.content.attributes.encoderOptions,
+						playing: true,
+						playTime: layer.resolved.startTime
+					}
+					break;
 			}
 
-			if (layer.content.transition)
+			if (layer.content.transitions)
 				switch (layer.content.type) {
-					case 'video' || 'ip' || 'template':
+					case 'video' || 'ip' || 'template' || 'input'  || 'route':
 						// create transition object
 						let media = stateLayer.media;
 						let transitions = {};
 
-						if (layer.content.inTransition)
+						if (layer.content.transitions.inTransition)
 							transitions.inTransition = new StateNS.Transition(
-								layer.content.inTransition.type,
-								layer.content.inTransition.duration,
-								layer.content.inTransition.easing,
-								layer.content.inTransition.direction
+								layer.content.transitions.inTransition.type,
+								layer.content.transitions.inTransition.duration,
+								layer.content.transitions.inTransition.easing,
+								layer.content.transitions.inTransition.direction
 							);
 
-						if (layer.content.outTransition)
+						if (layer.content.transitions.outTransition)
 							transitions.outTransition = new StateNS.Transition(
-								layer.content.outTransition.type,
-								layer.content.outTransition.duration,
-								layer.content.outTransition.easing,
-								layer.content.outTransition.direction
+								layer.content.transitions.outTransition.type,
+								layer.content.transitions.outTransition.duration,
+								layer.content.transitions.outTransition.easing,
+								layer.content.transitions.outTransition.direction
 							);
 
 						stateLayer.media = new StateNS.TransitionObject(media, {
@@ -210,6 +237,10 @@ export class CasparCGDevice extends Device {
 						break;
 				}
 
+			
+			stateLayer.layerNo = mapping.layer;
+			console.log(layer)
+			
 			channel.layers[mapping.layer] = stateLayer;
 		})
 
