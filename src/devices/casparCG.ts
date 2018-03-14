@@ -2,8 +2,9 @@ import * as _ from 'underscore'
 import { Device, DeviceCommand, DeviceCommandContainer } from './device'
 
 import { CasparCG, Command as CommandNS, AMCPUtil } from 'casparcg-connection'
-import { Mapping } from '../conductor'
-import { TimelineState } from 'superfly-timeline'
+import { Mappings, MappingCasparCG, DeviceType } from './mapping'
+
+import { TimelineState, TimelineResolvedKeyframe, TimelineResolvedObject } from 'superfly-timeline'
 import { CasparCG as StateNS, CasparCGState } from 'casparcg-state'
 
 /*
@@ -16,7 +17,7 @@ export class CasparCGDevice extends Device {
 	private _ccgState: CasparCGState
 	private _queue: Array<any>
 
-	constructor (deviceId: string, mapping: Mapping, options) {
+	constructor (deviceId: string, mapping: Mappings, options) {
 		super(deviceId, mapping)
 
 		this._ccgState = new CasparCGState({externalLog: console.log})
@@ -73,9 +74,9 @@ export class CasparCGDevice extends Device {
 		}
 
 		let commandsToAchieveState: Array<{
-			cmds: Array<CommandNS.IAMCPCommandVO>;
-			additionalLayerState?: StateNS.Layer;
-		}> = this._ccgState.diffStates(oldCasparState || new StateNS.CasparCG(), newCasparState)
+			cmds: Array<CommandNS.IAMCPCommandVO>
+			additionalLayerState?: StateNS.ILayerBase
+		}> = this._ccgState.diffStates(oldCasparState, newCasparState)
 
 		let returnCommands = {
 			time: newState.time,
@@ -101,22 +102,24 @@ export class CasparCGDevice extends Device {
 	 * @param commandContainer A container that carries the commands.
 	 */
 	handleCommands (commandContainer: DeviceCommandContainer) {
-		if (commandContainer.deviceId == this.deviceId) {
+		if (commandContainer.deviceId === this.deviceId) {
 			this._queue = commandContainer.commands
 			this.checkCommandBus()
 		}
 	}
-
+	get deviceType () {
+		return DeviceType.CASPARCG
+	}
 	/**
 	 * Takes a timeline state and returns a CasparCG State that will work with the state lib.
 	 * @param timelineState The timeline state to generate from.
 	 */
-	private casparStateFromTimelineState (timelineState: TimelineState): StateNS.CasparCG {
+	private casparStateFromTimelineState (timelineState: TimelineState): StateNS.State {
 
 		const caspar = new StateNS.State()
 
-		_.each(timelineState.LLayers, (layer, layerName) => {
-			const mapping: Mapping = this._mapping[layerName]
+		_.each(timelineState.LLayers, (layer: TimelineResolvedObject, layerName: string) => {
+			const mapping: MappingCasparCG = this._mapping[layerName] as MappingCasparCG
 
 			if (!mapping) {
 				return
@@ -127,84 +130,88 @@ export class CasparCGDevice extends Device {
 			// @todo: check if we need fps as well.
 			caspar.channels[channel.channelNo] = channel
 
-			let stateLayer: StateNS.IBaseLayer
+			let stateLayer: StateNS.ILayerBase
 
-			switch (layer.content.type) {
-				case 'video' :
-					stateLayer = {
-						content: StateNS.LayerContentType.MEDIA,
-						media: layer.content.attributes.file,
-						playTime: layer.resolved.startTime,
-						playing: true,
+			if (layer.content.type === 'video') {
+				let l: StateNS.IMediaLayer = {
+					layerNo: mapping.layer,
+					content: StateNS.LayerContentType.MEDIA,
+					media: layer.content.attributes.file,
+					playTime: layer.resolved.startTime,
+					playing: true,
 
-						looping: layer.content.attributes.loop,
-						seek: layer.content.attributes.seek
-					}
-					break
-				case 'ip' :
-					stateLayer = {
-						content: StateNS.LayerContentType.MEDIA,
-						media: layer.content.attributes.uri,
-						playTime: layer.resolved.startTime,
-						playing: true
-					}
-					break
-				case 'input' :
-					stateLayer = {
-						content: StateNS.LayerContentType.INPUT,
-						media: 'decklink',
-						input: {
-							device: layer.content.attributes.device
-						},
-						playing: true
+					looping: layer.content.attributes.loop,
+					seek: layer.content.attributes.seek
+				}
+				stateLayer = l
+			} else if (layer.content.type === 'ip') {
+				let l: StateNS.IMediaLayer = {
+					layerNo: mapping.layer,
+					content: StateNS.LayerContentType.MEDIA,
+					media: layer.content.attributes.uri,
+					playTime: layer.resolved.startTime,
+					playing: true
+				}
+				stateLayer = l
+			} else if (layer.content.type === 'input') {
+				let l: StateNS.IInputLayer = {
+					layerNo: mapping.layer,
+					content: StateNS.LayerContentType.INPUT,
+					media: 'decklink',
+					input: {
+						device: layer.content.attributes.device
+					},
+					playing: true
+				}
+				stateLayer = l
+			} else if (layer.content.type === 'template') {
+				let l: StateNS.ITemplateLayer = {
+					layerNo: mapping.layer,
+					content: StateNS.LayerContentType.TEMPLATE,
+					media: layer.content.attributes.name,
 
-					}
-					break
-				case 'template' :
-					stateLayer = {
-						content: StateNS.LayerContentType.TEMPLATE,
-						media: layer.content.attributes.name,
+					playTime: layer.resolved.startTime,
+					playing: true,
 
-						playTime: layer.resolved.startTime,
-						playing: true,
-
-						templateType: layer.content.attributes.type || 'html',
-						templateData: layer.content.attributes.data,
-						cgStop: layer.content.attributes.useStopCommand
+					templateType: layer.content.attributes.type || 'html',
+					templateData: layer.content.attributes.data,
+					cgStop: layer.content.attributes.useStopCommand
+				}
+				stateLayer = l
+			} else if (layer.content.type === 'route') {
+				if (layer.content.attributes.LLayer) {
+					let routeMapping = this._mapping[layer.content.attributes.LLayer]
+					if (routeMapping) {
+						layer.container.attributes.channel = routeMapping.channel
+						layer.container.attributes.layer = routeMapping.layer
 					}
-					break
-				case 'route' :
-					if (layer.content.attributes.LLayer) {
-						let routeMapping = this._mapping[layer.content.attributes.LLayer]
-						if (routeMapping) {
-							layer.container.attributes.channel = routeMapping.channel
-							layer.container.attributes.layer = routeMapping.layer
-						}
-					}
-					stateLayer = {
-						content: StateNS.LayerContentType.ROUTE,
-						media: 'route',
-						route: {
-							channel: layer.container.attributes.channel,
-							layer: layer.container.attributes.layer
-						},
-						playing: true,
-						playTime: layer.resolved.startTime
-					}
-					break
-				case 'record' :
-					stateLayer = {
-						content: StateNS.LayerContentType.RECORD,
-						encoderOptions: layer.content.attributes.file + ' ' + layer.content.attributes.encoderOptions,
-						playing: true,
-						playTime: layer.resolved.startTime
-					}
-					break
+				}
+				let l: StateNS.IRouteLayer = {
+					layerNo: mapping.layer,
+					content: StateNS.LayerContentType.ROUTE,
+					media: 'route',
+					route: {
+						channel: layer.container.attributes.channel,
+						layer: layer.container.attributes.layer
+					},
+					playing: true,
+					playTime: layer.resolved.startTime
+				}
+				stateLayer = l
+			} else if (layer.content.type === 'record') {
+				let l: StateNS.IRecordLayer = {
+					layerNo: mapping.layer,
+					content: StateNS.LayerContentType.RECORD,
+					encoderOptions: layer.content.attributes.file + ' ' + layer.content.attributes.encoderOptions,
+					playing: true,
+					playTime: layer.resolved.startTime
+				}
+				stateLayer = l
 			}
 
 			if (layer.content.transitions) {
 				switch (layer.content.type) {
-					case 'video' || 'ip' || 'template' || 'input'  || 'route':
+					case 'video' || 'ip' || 'template' || 'input' || 'route':
 						// create transition object
 						let media = stateLayer.media
 						let transitions = {}
@@ -237,8 +244,6 @@ export class CasparCGDevice extends Device {
 						break
 				}
 			}
-
-			stateLayer.layerNo = mapping.layer
 			console.log(layer)
 
 			channel.layers[mapping.layer] = stateLayer

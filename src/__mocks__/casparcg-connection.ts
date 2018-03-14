@@ -1,43 +1,40 @@
 
 // mock CasparCG
-import * as _ from "underscore"
+import * as _ from 'underscore'
 import {AMCP as AMCP2, AMCPUtil as util} from '../../node_modules/casparcg-connection'
 
+let test = 0
 
+let mockDo = jest.fn()
 
-var test = 0;
+let instances = []
 
-var mockDo = jest.fn();
-
-var instances = [];
-
-export const AMCP = AMCP2;
-export const AMCPUtil = util;
+export const AMCP = AMCP2
+export const AMCPUtil = util
 
 export class CasparCG {
-	constructor() {
-		//console.log('Mock CasparCG: constructor was called');
+	constructor () {
+		// console.log('Mock CasparCG: constructor was called');
 
 		setTimeout(() => {
 			// simulate that we're connected
-			this.onConnected();
+			this.onConnected()
 		},10)
 
-		instances.push(this);
+		instances.push(this)
 	}
-	
 
 	do() {
-		mockDo.apply(this,arguments);
+		mockDo.apply(this,arguments)
 	}
 
 
 
-	static get mockDo() {
-		return mockDo;
+	static get mockDo () {
+		return mockDo
 	}
-	static get instances() {
-		return instances;
+	static get instances () {
+		return instances
 	}
 }
 /*
