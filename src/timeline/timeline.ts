@@ -2,7 +2,7 @@ export enum TriggerType {
 
 	TIME_ABSOLUTE = 0,	// The object is placed on an absolute time on the timeline
 	TIME_RELATIVE = 1,	// The object is defined by an expression defining the time relative to other objects
-		
+
 	// To be implemented (and might never be)
 	//EVENT = 2,			// the object is not on the timeline, but can be triggered typically from an external source
 
@@ -22,18 +22,17 @@ export enum TraceLevel {
 	TRACE = 2
 }
 
-
 export interface TimelineObject {
 	id: string,
 	trigger: {
 		type: TriggerType,
-		value: number, // unix timestamp
+		value: number // unix timestamp
 	},
 	duration: number, // seconds
 	LLayer: string | number,
-	content: any	
+	content: any
 }
-export interface Timeline extends Array<TimelineObject>{}
+export interface Timeline extends Array<TimelineObject> {}
 
 export interface SuperTimeline {
 	enums: {
