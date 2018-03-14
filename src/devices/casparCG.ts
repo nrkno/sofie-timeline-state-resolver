@@ -238,10 +238,19 @@ export class CasparCGDevice extends Device {
 				}
 			}
 
-			stateLayer.layerNo = mapping.layer
-			console.log(layer)
+			if (layer.resolved.mixer) {
+				// just pass through values here:
+				let mixer: StateNS.Mixer = {}
+				_.each(layer.resolved.mixer, (value, property) => {
+					mixer[property] = value;
+				});
+				stateLayer.mixer = mixer;
+			}
 
-			channel.layers[mapping.layer] = stateLayer
+			
+			stateLayer.layerNo = mapping.layer;
+			
+			channel.layers[mapping.layer] = stateLayer;
 		})
 
 		return caspar

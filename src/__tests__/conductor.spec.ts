@@ -32,7 +32,7 @@ var myConductor = new Conductor({
 });
 
 
-
+/*
 test('Timeline: Play AMB for 60s', async () => {
 	
 
@@ -164,7 +164,7 @@ test('Timeline: Play AMB for 60s', async () => {
 	]);
 
 	
-	*/
+	/
 });
 
 test('Timeline: AMB with transitions', async () => {
@@ -260,4 +260,135 @@ test('Timeline: AMB with transitions', async () => {
 	jest.advanceTimersByTime(20000);
 
 	expect(CasparCG.mockDo.mock.calls.length).toBe(2);
+}) */
+
+
+
+test ('Timeline: Mixer commands', async () => {
+	
+
+	
+	jest.useFakeTimers();
+	myConductor.mapping = myLayerMapping;
+	await myConductor.init();
+
+
+	// Check that no commands has been sent:
+	expect(CasparCG.mockDo).toHaveBeenCalledTimes(0)
+
+	var now = myConductor.getCurrentTime();
+	Date.now = jest.fn();
+	Date.now
+		.mockReturnValue(now*1000);
+
+	myConductor.timeline = [
+		{
+			id: 'obj0',
+			trigger: {
+				type: Enums.TriggerType.TIME_ABSOLUTE,
+				value: now-10, // 10 seconds ago
+			},
+			duration: 120,
+			LLayer: 'myLayer',
+			content: {
+				type: 'video', // more to be implemented later!
+				attributes: {
+					file: 'AMB',
+					loop: true,
+				},
+				keyframes: [{
+					trigger: {
+						type: Enums.TriggerType.TIME_ABSOLUTE, // Absolute time, relative time or logical
+						value: 5 // 0 = parent's start
+					},
+					duration: 60,
+					content: { mixer: { 
+						perspective: {
+							topLeftX: 0,
+							topLeftY: 0,
+							topRightX: 0.5,
+							topRightY: 0,
+							bottomRightX: 0.5,
+							bottomRightY: 1,
+							bottomLeftX: 0,
+							bottomLeftY: 1
+						}
+					}}
+				 
+				},{
+					trigger: {
+						type: Enums.TriggerType.TIME_ABSOLUTE, // Absolute time, relative time or logical
+						value: 65 // 0 = parent's start
+					},
+					duration: 60,
+					content: { mixer: { 
+						perspective: {
+							topLeftX: 0,
+							topLeftY: 0,
+							topRightX: 1,
+							topRightY: 0,
+							bottomRightX: 1,
+							bottomRightY: 1,
+							bottomLeftX: 0,
+							bottomLeftY: 1
+						}
+					}}
+				 
+				}]
+			}
+		}
+	];
+
+	// fast-forward:
+
+	Date.now
+		.mockReturnValue(now*1000 + 5000);
+	// jest.advanceTimersByTime(5000);
+	jest.runOnlyPendingTimers();
+
+	// Check that an ACMP-command has been sent
+	expect(CasparCG.mockDo).toHaveBeenCalledTimes(2);
+	expect(CasparCG.mockDo.mock.calls[0][0]).toBeInstanceOf(AMCP.PlayCommand);
+
+	// console.log(CasparCG.mockDo.mock.calls[1][0]);
+	expect(CasparCG.mockDo.mock.calls[0][0]._objectParams.loop).toEqual(true);
+	expect(CasparCG.mockDo.mock.calls[0][0]._objectParams.clip).toMatch(/AMB/);
+	// @todo: add tests for mixer
+	expect(CasparCG.mockDo.mock.calls[0][0].layer).toEqual(42);
+	expect(CasparCG.mockDo.mock.calls[0][0].channel).toEqual(2);
+
+	expect(CasparCG.mockDo.mock.calls[1][0].layer).toEqual(42);
+	expect(CasparCG.mockDo.mock.calls[1][0].channel).toEqual(2);
+	expect(CasparCG.mockDo.mock.calls[1][0]._objectParams.keyword).toMatch(/PERSPECTIVE/);
+	expect(CasparCG.mockDo.mock.calls[1][0]._objectParams.topRightX).toEqual(0.5);
+
+
+	// fast-forward:
+	// jest.advanceTimersByTime(20000);
+
+	Date.now
+		.mockReturnValue(now*1000 + 55000);
+	// jest.advanceTimersByTime(10000);
+	jest.runOnlyPendingTimers();
+
+	expect(CasparCG.mockDo.mock.calls.length).toBe(3);
+	expect(CasparCG.mockDo.mock.calls[2][0]).toBeInstanceOf(AMCP.StopCommand);
+
+	expect(CasparCG.mockDo.mock.calls[2][0].layer).toEqual(42);
+	expect(CasparCG.mockDo.mock.calls[2][0].channel).toEqual(2);
+	// @todo: do some more checks for mixer
+
+	expect(CasparCG.mockDo.mock.calls[2][0].layer).toEqual(42);
+	expect(CasparCG.mockDo.mock.calls[2][0].channel).toEqual(2);
+	expect(CasparCG.mockDo.mock.calls[2][0]._objectParams.keyword).toMatch(/PERSPECTIVE/);
+	expect(CasparCG.mockDo.mock.calls[2][0]._objectParams.topRightX).toEqual(1);
+
+	// Nothing more should've happened:
+
+	Date.now
+		.mockReturnValue(now*1000 + 65000);
+	jest.advanceTimersByTime(20000);
+
+	expect(CasparCG.mockDo.mock.calls.length).toBe(3);
+
 })
