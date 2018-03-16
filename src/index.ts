@@ -1,8 +1,5 @@
 
+export * from './conductor'
+export * from './devices/mapping'
 
-
-
-import {Conductor} from "./conductor"
-
-
-let myConductor = new Conductor();
+// let myConductor = new Conductor();
