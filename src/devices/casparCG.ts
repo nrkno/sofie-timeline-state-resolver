@@ -13,27 +13,34 @@ import { CasparCG as StateNS, CasparCGState } from 'casparcg-state'
 export class CasparCGDevice extends Device {
 
 	private _ccg: CasparCG
-	private _state: TimelineState
 	private _ccgState: CasparCGState
 	private _queue: Array<any>
+	private _commandReceiver: (time: number, cmd) => void
 
-	constructor (deviceId: string, mapping: Mappings, options) {
-		super(deviceId, mapping)
+	constructor (deviceId: string, deviceOptions: any, options) {
+		super(deviceId, deviceOptions, options)
 
-		this._ccgState = new CasparCGState({externalLog: console.log})
-		this._ccgState.initStateFromChannelInfo([{ // @todo: these should be implemented from osc info
-			channelNo: 1,
-			videoMode: 'PAL',
-			fps: 50
-		}, {
-			channelNo: 2,
-			videoMode: 'PAL',
-			fps: 50
-		}])
+		if (deviceOptions.options) {
+			if (deviceOptions.options.commandReceiver) this._commandReceiver = deviceOptions.options.commandReceiver
+		}
+
+		this._ccgState = new CasparCGState({externalLog: console.log, currentTime: this.getCurrentTime})
 
 		setInterval(() => {
-			this.checkCommandBus()
-		}, 20)
+			// send any commands due:
+
+			let now = this.getCurrentTime()
+
+			this._queue = _.reject(this._queue, (q) => {
+				if (q.time <= now) {
+					if (this._commandReceiver) {
+						this._commandReceiver(now, q.command)
+					}
+					return true
+				}
+				return false
+			})
+		}, 100)
 	}
 
 	/**
@@ -48,12 +55,18 @@ export class CasparCGDevice extends Device {
 			})
 
 			this._ccg.onConnected = () => {
+				this._ccgState.initStateFromChannelInfo([{ // @todo: these should be implemented from osc info
+					channelNo: 1,
+					videoMode: 'PAL',
+					fps: 50
+				} as StateNS.ChannelInfo, {
+					channelNo: 2,
+					videoMode: 'PAL',
+					fps: 50
+				} as StateNS.ChannelInfo])
+
 				resolve(true)
-
-				// this._ccg.do('test')
 			}
-
-			// TODO:
 
 		})
 	}
@@ -63,63 +76,52 @@ export class CasparCGDevice extends Device {
 	 * @param newState The state to target.
 	 * @param oldState The "current" state of the device. If omitted, will use the actual current state.
 	 */
-	generateCommandsAgainstState (newState: TimelineState, oldState?: TimelineState): Array<DeviceCommand> {
-		let newCasparState = this.casparStateFromTimelineState(newState)
-		let oldCasparState
+	handleState (newState: TimelineState) {
+		let oldState = this.getStateBefore(newState.time) || {time: 0, LLayers: {}, GLayers: {}}
 
-		if (oldState) {
-			oldCasparState = this.casparStateFromTimelineState(oldState)
-		} else {
-			oldCasparState = this._ccgState.getState()
-		}
+		let newCasparState = this.convertStateToCaspar(newState)
+		let oldCasparState = this.convertStateToCaspar(oldState)
 
-		let commandsToAchieveState: Array<{
-			cmds: Array<CommandNS.IAMCPCommandVO>
-			additionalLayerState?: StateNS.ILayerBase
-		}> = this._ccgState.diffStates(oldCasparState, newCasparState)
+		let commandsToAchieveState: Array<CommandNS.IAMCPCommandVO> = this._diffStates(oldCasparState, newCasparState)
 
-		let returnCommands = {
-			time: newState.time,
-			deviceId: this.deviceId,
-			commands: []
-		}
-		_.each(commandsToAchieveState, (command) => {
-			// returnCommands.push({
-			// 	time: newState.time,
-			// 	deviceId: this.deviceId,
-			// 	commands: commandsToAchieveState
-			// });
-			_.each(command.cmds, (cmd) => {
-				returnCommands.commands.push(cmd)
+		// clear any queued commands on this time:
+		this._queue = _.reject(this._queue, (q) => { return q.time === newState.time })
+
+		// add the new commands to the queue:
+		_.each(commandsToAchieveState, (cmd) => {
+			this._queue.push({
+				time: newState.time,
+				command: cmd
 			})
 		})
 
-		return returnCommands
+		// store the new state, for later use:
+		this.setState(newState)
 	}
 
-	/**
-	 * A receiver for generated commands.
-	 * @param commandContainer A container that carries the commands.
-	 */
-	handleCommands (commandContainer: DeviceCommandContainer) {
-		if (commandContainer.deviceId === this.deviceId) {
-			this._queue = commandContainer.commands
-			this.checkCommandBus()
-		}
+	clearFuture (clearAfterTime: number) {
+		// Clear any scheduled commands after this time
+		this._queue = _.reject(this._queue, (q) => { return q.time > clearAfterTime })
 	}
+
 	get deviceType () {
 		return DeviceType.CASPARCG
 	}
+
+	get queue () {
+		return _.values(this._queue)
+	}
+
 	/**
 	 * Takes a timeline state and returns a CasparCG State that will work with the state lib.
 	 * @param timelineState The timeline state to generate from.
 	 */
-	private casparStateFromTimelineState (timelineState: TimelineState): StateNS.State {
+	convertStateToCaspar (timelineState: TimelineState): StateNS.State {
 
 		const caspar = new StateNS.State()
 
 		_.each(timelineState.LLayers, (layer: TimelineResolvedObject, layerName: string) => {
-			const mapping: MappingCasparCG = this._mapping[layerName] as MappingCasparCG
+			const mapping: MappingCasparCG = this.mapping[layerName] as MappingCasparCG
 
 			if (!mapping) {
 				return
@@ -207,6 +209,13 @@ export class CasparCGDevice extends Device {
 					playTime: layer.resolved.startTime
 				}
 				stateLayer = l
+			} else {
+				let l: StateNS.IEmptyLayer = {
+					content: StateNS.LayerContentType.NOTHING,
+					playing: false,
+					pauseTime: 0
+				}
+				stateLayer = l
 			}
 
 			if (layer.content.transitions) {
@@ -214,7 +223,7 @@ export class CasparCGDevice extends Device {
 					case 'video' || 'ip' || 'template' || 'input' || 'route':
 						// create transition object
 						let media = stateLayer.media
-						let transitions = {}
+						let transitions = {} as any
 
 						if (layer.content.transitions.inTransition) {
 							transitions.inTransition = new StateNS.Transition(
@@ -263,23 +272,16 @@ export class CasparCGDevice extends Device {
 
 	}
 
-	/**
-	 * This checks the _queue to see if any commands should be sent to CasparCG.
-	 * @todo: replace with timecode scheduled commands.
-	 */
-	private checkCommandBus () {
-		if (this._queue) {
-			while (this._queue.length > 0 && this._queue[0].time < Date.now() / 1000 + .02) {
-				let commandContainer = this._queue[0]
-				this._queue.splice(0, 1)
+	private _diffStates (oldState, newState): Array<CommandNS.IAMCPCommandVO> {
+		let commands: Array<{
+			cmds: Array<CommandNS.IAMCPCommandVO>
+			additionalLayerState?: StateNS.ILayerBase
+		}> = this._ccgState.diffStates(oldState, newState)
 
-				_.each(commandContainer.commands, (commandObj) => {
-					let command = AMCPUtil.deSerialize(commandObj, 'id')
-					this._ccg.do(command)
-
-					this._ccgState.applyCommands([ { cmd: commandObj } ])
-				})
-			}
+		if (commands.length) {
+			return commands[0].cmds
+		} else {
+			return []
 		}
 	}
 }

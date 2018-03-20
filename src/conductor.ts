@@ -133,6 +133,7 @@ export class Conductor {
 			}
 			if (newDevice) {
 				this.devices[deviceId] = newDevice
+				newDevice.mapping = this.mapping
 				ps.push(newDevice.init())
 			}
 		})
@@ -250,72 +251,5 @@ export class Conductor {
 		}
 		this._triggerResolveTimeline(timeUntilNextResolve)
 
-		/*
-		const timelineWindow = Resolver.getTimelineInWindow(this.timeline, resolveTime, resolveTime + LOOKAHEADTIME)
-		// Step 1: Filter out some interesting points in time:
-		const nextEvents = Resolver.getNextEvents(timelineWindow, now, 10)
-		const timesToEvaluate = [{ time: now }]
-
-		_.each(nextEvents, (evt) => {
-			timesToEvaluate.push({ time: evt.time })
-		})
-
-		// Step 2: evaluate the points in time (do we have to send any commands?)
-		const statesToSolve: Array<TimelineState> = []
-		const deviceCommands: Array<DeviceCommandContainer> = []
-		let prevstate: TimelineState
-
-		_.each(timesToEvaluate, (time) => {
-			let tlAroundTime = Resolver.getState(this.timeline, time.time)
-			statesToSolve.push(tlAroundTime)
-		})
-
-		_.each(statesToSolve, (state: TimelineState) => {
-			_.each(this.devices, (device) => {
-				let deviceId = device.deviceId
-				let commands
-
-				if (prevstate) {
-					commands = device.generateCommandsAgainstState(state, prevstate)
-				} else {
-					commands = device.generateCommandsAgainstState(state)
-				}
-
-				if (commands) {
-					let deviceCommandContainer = _.find(deviceCommands, (commandContainer) => deviceId === commandContainer.deviceId)
-					if (deviceCommandContainer) {
-						deviceCommandContainer.commands.push(commands)
-					} else {
-						deviceCommands.push({
-							deviceId,
-							commands: [commands]
-						})
-					}
-				}
-
-				prevstate = state
-			})
-		})
-
-		// Then we should distribute out the commands to the different devices
-		// and let them handle it.
-		this.sendCommandsToDevices(deviceCommands)
-		*/
-
-	}
-	
-
-	/**
-	 * Takes in the commands generated through the _resolveTimeline() function and passes it to the devices.
-	 * @param commandsInTime
-	 */
-	private sendCommandsToDevices (commandsInTime: Array<DeviceCommandContainer>) {
-		_.each(commandsInTime, (commandContainer: DeviceCommandContainer) => {
-			const device = this.devices[commandContainer.deviceId]
-
-			if (device) {
-				device.handleCommands(commandContainer)
-			}
-		})
 	}
 }

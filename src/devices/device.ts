@@ -27,6 +27,7 @@ export class Device {
 	private _deviceOptions: any
 
 	private _states: {[time: number]: TimelineState}
+	private _mappings: Mappings
 
 	constructor (deviceId: string, deviceOptions: any, options) {
 		this._deviceId = deviceId
@@ -81,6 +82,13 @@ export class Device {
 				delete this._states[time]
 			}
 		})
+	}
+
+	get mapping (): Mappings {
+		return this._mappings
+	}
+	set mapping (mappings: Mappings) {
+		this._mappings = mappings
 	}
 
 	get deviceId () {
