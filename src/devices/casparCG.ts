@@ -130,6 +130,7 @@ export class CasparCGDevice extends Device {
 			const channel = new StateNS.Channel()
 			channel.channelNo = Number(mapping.channel) || 1
 			// @todo: check if we need fps as well.
+			channel.fps = 50
 			caspar.channels[channel.channelNo] = channel
 
 			let stateLayer: StateNS.ILayerBase

@@ -70,8 +70,8 @@ export class Conductor {
 
 		// TODO: Implement time sync, NTP procedure etc...
 		if (this._getCurrentTime) {
-			//console.log(this._getCurrentTime)
-			//return 0
+			// console.log(this._getCurrentTime)
+			// return 0
 			return this._getCurrentTime()
 		} else {
 			return Date.now()
