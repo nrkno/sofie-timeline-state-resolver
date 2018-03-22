@@ -108,6 +108,451 @@ test('CasparCG: Play AMB for 60s', async () => {
 	})
 })
 
+test('CasparCG: Play IP input for 60s', async () => {
+	jest.useFakeTimers()
+
+	let commandReceiver0 = jest.fn((command) => {
+		// nothing.
+	})
+	let myLayerMapping0: MappingCasparCG = {
+		device: DeviceType.CASPARCG,
+		deviceId: 'myCCG',
+		channel: 2,
+		layer: 42
+	}
+	let myLayerMapping: Mappings = {
+		'myLayer0': myLayerMapping0
+	}
+
+	let myConductor = new Conductor({
+		devices: {
+			'myCCG': {
+				type: DeviceType.CASPARCG,
+				options: {
+					commandReceiver: commandReceiver0
+				}
+			}
+		},
+		initializeAsClear: true,
+		getCurrentTime: getCurrentTime
+	})
+	myConductor.mapping = myLayerMapping
+	myConductor.init() // we cannot do an await, because setTimeout will never call without jest moving on.
+	advanceTime(100) // 5600
+
+	let device = myConductor.getDevice('myCCG')
+
+	// Check that no commands has been scheduled:
+	expect(device.queue).toHaveLength(0)
+
+	myConductor.timeline = [
+		{
+			id: 'obj0',
+			trigger: {
+				type: TriggerType.TIME_ABSOLUTE,
+				value: now - 1000 // 1 seconds ago
+			},
+			duration: 2000,
+			LLayer: 'myLayer0',
+			content: {
+				type: 'ip',
+				attributes: {
+					uri: 'rtsp://127.0.0.1:5004'
+				}
+			}
+		}
+	]
+
+	advanceTime(100) // 5700
+
+	// one command has been sent:
+	expect(commandReceiver0).toHaveBeenCalledTimes(1)
+	expect(commandReceiver0.mock.calls[0][1]._objectParams).toMatchObject({
+		channel: 2,
+		layer: 42,
+		noClear: false,
+		clip: 'rtsp://127.0.0.1:5004',
+		seek: 0 // can't seek in an ip input
+	})
+
+	// advance time to end of clip:
+	advanceTime(1500) // 7200
+
+	// two commands have been sent:
+	expect(commandReceiver0).toHaveBeenCalledTimes(2)
+	expect(commandReceiver0.mock.calls[1][1]).toMatchObject({
+		channel: 2,
+		layer: 42,
+		payload: {},
+		response: {},
+		status: 0,
+		_commandName: 'ClearCommand',
+		_objectParams: { channel: 2, layer: 42 },
+		_stringParamsArray: []
+	})
+})
+
+test('CasparCG: Play decklink input for 60s', async () => {
+	jest.useFakeTimers()
+
+	let commandReceiver0 = jest.fn((command) => {
+		// nothing.
+	})
+	let myLayerMapping0: MappingCasparCG = {
+		device: DeviceType.CASPARCG,
+		deviceId: 'myCCG',
+		channel: 2,
+		layer: 42
+	}
+	let myLayerMapping: Mappings = {
+		'myLayer0': myLayerMapping0
+	}
+
+	let myConductor = new Conductor({
+		devices: {
+			'myCCG': {
+				type: DeviceType.CASPARCG,
+				options: {
+					commandReceiver: commandReceiver0
+				}
+			}
+		},
+		initializeAsClear: true,
+		getCurrentTime: getCurrentTime
+	})
+	myConductor.mapping = myLayerMapping
+	myConductor.init() // we cannot do an await, because setTimeout will never call without jest moving on.
+	advanceTime(100) // 5600
+
+	let device = myConductor.getDevice('myCCG')
+
+	// Check that no commands has been scheduled:
+	expect(device.queue).toHaveLength(0)
+
+	myConductor.timeline = [
+		{
+			id: 'obj0',
+			trigger: {
+				type: TriggerType.TIME_ABSOLUTE,
+				value: now - 1000 // 1 seconds ago
+			},
+			duration: 2000,
+			LLayer: 'myLayer0',
+			content: {
+				type: 'input',
+				attributes: {
+					device: 1
+				}
+			}
+		}
+	]
+
+	advanceTime(100) // 5700
+
+	// one command has been sent:
+	expect(commandReceiver0).toHaveBeenCalledTimes(1)
+	expect(commandReceiver0.mock.calls[0][1]._objectParams).toMatchObject({
+		channel: 2,
+		layer: 42,
+		device: 1
+	})
+
+	// advance time to end of clip:
+	advanceTime(1500) // 7200
+
+	// two commands have been sent:
+	expect(commandReceiver0).toHaveBeenCalledTimes(2)
+	expect(commandReceiver0.mock.calls[1][1]).toMatchObject({
+		channel: 2,
+		layer: 42,
+		payload: {},
+		response: {},
+		status: 0,
+		_commandName: 'ClearCommand',
+		_objectParams: { channel: 2, layer: 42 },
+		_stringParamsArray: []
+	})
+})
+
+test('CasparCG: Play template for 60s', async () => {
+	jest.useFakeTimers()
+
+	let commandReceiver0 = jest.fn((command) => {
+		// nothing.
+	})
+	let myLayerMapping0: MappingCasparCG = {
+		device: DeviceType.CASPARCG,
+		deviceId: 'myCCG',
+		channel: 2,
+		layer: 42
+	}
+	let myLayerMapping: Mappings = {
+		'myLayer0': myLayerMapping0
+	}
+
+	let myConductor = new Conductor({
+		devices: {
+			'myCCG': {
+				type: DeviceType.CASPARCG,
+				options: {
+					commandReceiver: commandReceiver0
+				}
+			}
+		},
+		initializeAsClear: true,
+		getCurrentTime: getCurrentTime
+	})
+	myConductor.mapping = myLayerMapping
+	myConductor.init() // we cannot do an await, because setTimeout will never call without jest moving on.
+	advanceTime(100) // 5600
+
+	let device = myConductor.getDevice('myCCG')
+
+	// Check that no commands has been scheduled:
+	expect(device.queue).toHaveLength(0)
+
+	myConductor.timeline = [
+		{
+			id: 'obj0',
+			trigger: {
+				type: TriggerType.TIME_ABSOLUTE,
+				value: now - 1000 // 1 seconds ago
+			},
+			duration: 2000,
+			LLayer: 'myLayer0',
+			content: {
+				type: 'template',
+				attributes: {
+					name: 'LT',
+					data: {
+						f0: 'Hello',
+						f1: 'World'
+					},
+					useStopCommand: true
+				}
+			}
+		}
+	]
+
+	advanceTime(100) // 5700
+
+	// one command has been sent:
+	expect(commandReceiver0).toHaveBeenCalledTimes(1)
+	expect(commandReceiver0.mock.calls[0][1]._commandName).toEqual('CGAddCommand')
+	expect(commandReceiver0.mock.calls[0][1]._objectParams).toMatchObject({
+		channel: 2,
+		layer: 42,
+		noClear: false,
+		templateName: 'LT',
+		flashLayer: 1,
+		playOnLoad: true,
+		data: { f0: 'Hello', f1: 'World' },
+		cgStop: true,
+		templateType: 'html'
+	})
+
+	// advance time to end of clip:
+	advanceTime(1500) // 7200
+
+	// two commands have been sent:
+	expect(commandReceiver0).toHaveBeenCalledTimes(2)
+	expect(commandReceiver0.mock.calls[1][1]._commandName).toEqual('CGStopCommand')
+})
+
+test('CasparCG: Play template for 60s', async () => {
+	jest.useFakeTimers()
+
+	let commandReceiver0 = jest.fn((command) => {
+		// nothing.
+	})
+	let myLayerMapping0: MappingCasparCG = {
+		device: DeviceType.CASPARCG,
+		deviceId: 'myCCG',
+		channel: 2,
+		layer: 42
+	}
+	let myLayerMapping: Mappings = {
+		'myLayer0': myLayerMapping0
+	}
+
+	let myConductor = new Conductor({
+		devices: {
+			'myCCG': {
+				type: DeviceType.CASPARCG,
+				options: {
+					commandReceiver: commandReceiver0
+				}
+			}
+		},
+		initializeAsClear: true,
+		getCurrentTime: getCurrentTime
+	})
+	myConductor.mapping = myLayerMapping
+	myConductor.init() // we cannot do an await, because setTimeout will never call without jest moving on.
+	advanceTime(100) // 5600
+
+	let device = myConductor.getDevice('myCCG')
+
+	// Check that no commands has been scheduled:
+	expect(device.queue).toHaveLength(0)
+
+	myConductor.timeline = [
+		{
+			id: 'obj0',
+			trigger: {
+				type: TriggerType.TIME_ABSOLUTE,
+				value: now - 1000 // 1 seconds ago
+			},
+			duration: 2000,
+			LLayer: 'myLayer0',
+			content: {
+				type: 'record',
+				attributes: {
+					file: 'RECORDING',
+					encoderOptions: '-format mkv -c:v libx264 -crf 22'
+				}
+			}
+		}
+	]
+
+	advanceTime(100) // 5700
+
+	// one command has been sent:
+	expect(commandReceiver0).toHaveBeenCalledTimes(1)
+	expect(commandReceiver0.mock.calls[0][1]._commandName).toEqual('CustomCommand')
+	expect(commandReceiver0.mock.calls[0][1]._objectParams).toMatchObject({
+		channel: 2,
+		layer: 42,
+		noClear: false,
+		media: 'RECORDING',
+		encoderOptions: '-format mkv -c:v libx264 -crf 22',
+		command: 'ADD 2 FILE RECORDING -format mkv -c:v libx264 -crf 22',
+		customCommand: 'add file'
+	})
+
+	// advance time to end of clip:
+	advanceTime(1500) // 7200
+
+	// two commands have been sent:
+	expect(commandReceiver0).toHaveBeenCalledTimes(2)
+	expect(commandReceiver0.mock.calls[1][1]._commandName).toEqual('CustomCommand')
+})
+
+test('CasparCG: Play 2 routes for 60s', async () => {
+	jest.useFakeTimers()
+
+	let commandReceiver0 = jest.fn((command) => {
+		// nothing.
+	})
+	let myLayerMapping0: MappingCasparCG = {
+		device: DeviceType.CASPARCG,
+		deviceId: 'myCCG',
+		channel: 2,
+		layer: 42
+	}
+	let myLayerMapping1: MappingCasparCG = {
+		device: DeviceType.CASPARCG,
+		deviceId: 'myCCG',
+		channel: 1,
+		layer: 42
+	}
+	let myLayerMapping: Mappings = {
+		'myLayer0': myLayerMapping0,
+		'myLayer1': myLayerMapping1
+	}
+
+	let myConductor = new Conductor({
+		devices: {
+			'myCCG': {
+				type: DeviceType.CASPARCG,
+				options: {
+					commandReceiver: commandReceiver0
+				}
+			}
+		},
+		initializeAsClear: true,
+		getCurrentTime: getCurrentTime
+	})
+	myConductor.mapping = myLayerMapping
+	myConductor.init() // we cannot do an await, because setTimeout will never call without jest moving on.
+	advanceTime(100) // 5600
+
+	let device = myConductor.getDevice('myCCG')
+
+	// Check that no commands has been scheduled:
+	expect(device.queue).toHaveLength(0)
+
+	myConductor.timeline = [
+		{
+			id: 'obj0',
+			trigger: {
+				type: TriggerType.TIME_ABSOLUTE,
+				value: now - 1000 // 1 seconds ago
+			},
+			duration: 3000,
+			LLayer: 'myLayer0',
+			content: {
+				type: 'route',
+				attributes: {
+					LLayer: 'myLayer1'
+				}
+			}
+		},
+		{
+			id: 'obj1',
+			trigger: {
+				type: TriggerType.TIME_ABSOLUTE,
+				value: now + 1000 // 1 seconds into the future
+			},
+			duration: 1000,
+			LLayer: 'myLayer1',
+			content: {
+				type: 'route',
+				attributes: {
+					channel: 2,
+					layer: 23
+				}
+			}
+		}
+	]
+
+	advanceTime(100) // 5700
+
+	// one command has been sent:
+	expect(commandReceiver0).toHaveBeenCalledTimes(1)
+	expect(commandReceiver0.mock.calls[0][1]._objectParams).toMatchObject({
+		channel: 2,
+		layer: 42,
+		noClear: false,
+		routeChannel: 1,
+		routeLayer: 42,
+		command: 'PLAY 2-42 route://1-42',
+		customCommand: 'route'
+	})
+
+	advanceTime(1000) // 6700
+
+	expect(commandReceiver0).toHaveBeenCalledTimes(2)
+	expect(commandReceiver0.mock.calls[1][1]._objectParams).toMatchObject({
+		channel: 1,
+		layer: 42,
+		noClear: false,
+		routeChannel: 2,
+		routeLayer: 23,
+		command: 'PLAY 1-42 route://2-23',
+		customCommand: 'route'
+	})
+
+	// advance time to end of clip:
+	advanceTime(1500) // 7200
+
+	// two more commands have been sent:
+	expect(commandReceiver0).toHaveBeenCalledTimes(4)
+	// expect 2 clear commands:
+	expect(commandReceiver0.mock.calls[2][1]._commandName).toEqual('ClearCommand')
+	expect(commandReceiver0.mock.calls[3][1]._commandName).toEqual('ClearCommand')
+})
+
 test('CasparCG: AMB with transitions', async () => {
 	jest.useFakeTimers()
 

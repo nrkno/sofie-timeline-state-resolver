@@ -153,7 +153,8 @@ export class CasparCGDevice extends Device {
 					content: StateNS.LayerContentType.MEDIA,
 					media: layer.content.attributes.uri,
 					playTime: layer.resolved.startTime,
-					playing: true
+					playing: true,
+					seek: 0 // ip inputs can't be seeked
 				}
 				stateLayer = l
 			} else if (layer.content.type === 'input') {
@@ -183,10 +184,10 @@ export class CasparCGDevice extends Device {
 				stateLayer = l
 			} else if (layer.content.type === 'route') {
 				if (layer.content.attributes.LLayer) {
-					let routeMapping = this._mapping[layer.content.attributes.LLayer]
+					let routeMapping = this.mapping[layer.content.attributes.LLayer] as MappingCasparCG
 					if (routeMapping) {
-						layer.container.attributes.channel = routeMapping.channel
-						layer.container.attributes.layer = routeMapping.layer
+						layer.content.attributes.channel = routeMapping.channel
+						layer.content.attributes.layer = routeMapping.layer
 					}
 				}
 				let l: StateNS.IRouteLayer = {
@@ -194,8 +195,8 @@ export class CasparCGDevice extends Device {
 					content: StateNS.LayerContentType.ROUTE,
 					media: 'route',
 					route: {
-						channel: layer.container.attributes.channel,
-						layer: layer.container.attributes.layer
+						channel: layer.content.attributes.channel,
+						layer: layer.content.attributes.layer
 					},
 					playing: true,
 					playTime: layer.resolved.startTime
@@ -205,7 +206,8 @@ export class CasparCGDevice extends Device {
 				let l: StateNS.IRecordLayer = {
 					layerNo: mapping.layer,
 					content: StateNS.LayerContentType.RECORD,
-					encoderOptions: layer.content.attributes.file + ' ' + layer.content.attributes.encoderOptions,
+					media: layer.content.attributes.file,
+					encoderOptions: layer.content.attributes.encoderOptions,
 					playing: true,
 					playTime: layer.resolved.startTime
 				}
@@ -279,10 +281,12 @@ export class CasparCGDevice extends Device {
 			additionalLayerState?: StateNS.ILayerBase
 		}> = this._ccgState.diffStates(oldState, newState)
 
-		if (commands.length) {
-			return commands[0].cmds
-		} else {
-			return []
-		}
+		let returnCommands = []
+
+		_.each(commands, (cmdObject) => {
+			returnCommands = returnCommands.concat(cmdObject.cmds)
+		})
+
+		return returnCommands
 	}
 }
