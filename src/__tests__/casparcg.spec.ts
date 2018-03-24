@@ -798,3 +798,69 @@ test ('CasparCG: Mixer commands', async () => {
 	expect(commandReceiver0.mock.calls.length).toBe(4)
 
 })
+
+test('CasparCG: loadbg command', async () => {
+	jest.useFakeTimers()
+
+	let commandReceiver0 = jest.fn((command) => {
+		// nothing.
+	})
+	let myLayerMapping0: MappingCasparCG = {
+		device: DeviceType.CASPARCG,
+		deviceId: 'myCCG',
+		channel: 2,
+		layer: 42
+	}
+	let myLayerMapping: Mappings = {
+		'myLayer0': myLayerMapping0
+	}
+
+	let myConductor = new Conductor({
+		devices: {
+			'myCCG': {
+				type: DeviceType.CASPARCG,
+				options: {
+					commandReceiver: commandReceiver0
+				}
+			}
+		},
+		initializeAsClear: true,
+		getCurrentTime: getCurrentTime
+	})
+	myConductor.mapping = myLayerMapping
+	myConductor.init() // we cannot do an await, because setTimeout will never call without jest moving on.
+	advanceTime(100) // 5600
+
+	myConductor.timeline = [
+		{
+			id: 'obj0',
+			trigger: {
+				type: TriggerType.TIME_ABSOLUTE,
+				value: now + 1100 // 1 seconds ago
+			},
+			duration: 2000,
+			LLayer: 'myLayer0',
+			content: {
+				type: 'video',
+				attributes: {
+					file: 'AMB',
+					loop: true
+				}
+			}
+		}
+	]
+
+	advanceTime(100)
+	expect(commandReceiver0.mock.calls[0][1]._commandName).toEqual('LoadbgCommand')
+	expect(commandReceiver0.mock.calls[0][1]._objectParams).toMatchObject({
+		channel: 2,
+		layer: 42,
+		noClear: false,
+		clip: 'AMB',
+		seek: 0,
+		loop: true
+	})
+	advanceTime(2000)
+	expect(commandReceiver0.mock.calls[1][1]._commandName).toEqual('PlayCommand')
+
+})

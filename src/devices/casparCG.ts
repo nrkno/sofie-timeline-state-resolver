@@ -7,6 +7,8 @@ import { Mappings, MappingCasparCG, DeviceType } from './mapping'
 import { TimelineState, TimelineResolvedKeyframe, TimelineResolvedObject } from 'superfly-timeline'
 import { CasparCG as StateNS, CasparCGState } from 'casparcg-state'
 
+const BGLOADTIME = 1000 // the time we will look back to schedule a loadbg command.
+
 /*
 	This is a wrapper for a CasparCG device. All commands will be sent through this
 */
@@ -88,12 +90,7 @@ export class CasparCGDevice extends Device {
 		this._queue = _.reject(this._queue, (q) => { return q.time === newState.time })
 
 		// add the new commands to the queue:
-		_.each(commandsToAchieveState, (cmd) => {
-			this._queue.push({
-				time: newState.time,
-				command: cmd
-			})
-		})
+		this._addToQueue(commandsToAchieveState, oldState, newState.time)
 
 		// store the new state, for later use:
 		this.setState(newState)
@@ -288,5 +285,39 @@ export class CasparCGDevice extends Device {
 		})
 
 		return returnCommands
+	}
+
+	private _addToQueue (commandsToAchieveState, oldState: TimelineState, time: number) {
+		_.each(commandsToAchieveState, (cmd) => {
+			if (cmd._commandName === 'PlayCommand') {
+				let mapping = this._reverseGetMapping(cmd.channel, cmd.layer)
+
+				if (oldState.time < time - BGLOADTIME && time >= this.getCurrentTime() + BGLOADTIME) { // @todo: put the loadbg command just after the oldState.time when convenient?
+					let loadbgCmd = Object.assign({}, cmd) // make a deep copy
+					loadbgCmd._commandName = 'LoadbgCommand'
+					this._queue.push({
+						time: time - BGLOADTIME,
+						command: loadbgCmd
+					})
+
+					cmd._objectParams = {
+						channel: cmd.channel,
+						layer: cmd.layer,
+						noClear: cmd._objectParams.noClear
+					}
+				}
+			}
+
+			this._queue.push({
+				time: time,
+				command: cmd
+			})
+		})
+	}
+
+	private _reverseGetMapping (channel: number, layer: number): MappingCasparCG {
+		return _.find(this.mapping, (mapping: MappingCasparCG) => {
+			return (channel === mapping.channel && layer === mapping.layer)
+		})
 	}
 }
