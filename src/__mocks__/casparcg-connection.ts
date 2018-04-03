@@ -1,7 +1,7 @@
 
 // mock CasparCG
 import * as _ from 'underscore'
-import {AMCP as AMCP2, AMCPUtil as util} from '../../node_modules/casparcg-connection'
+import {AMCP as AMCP2, AMCPUtil as util, Command} from '../../node_modules/casparcg-connection'
 
 let test = 0
 
@@ -13,22 +13,56 @@ export const AMCP = AMCP2
 export const AMCPUtil = util
 
 export class CasparCG {
+	onConnected: () => void
+
 	constructor () {
 		// console.log('Mock CasparCG: constructor was called');
 
 		setTimeout(() => {
 			// simulate that we're connected
-			this.onConnected()
+			if (this.onConnected) this.onConnected()
 		},10)
 
 		instances.push(this)
 	}
 
-	do() {
+	do () {
 		mockDo.apply(this,arguments)
 	}
 
+	info () {
+		return new Promise((resolve) => {
+			let cmd = new AMCP.InfoCommand()
+			cmd.response = new Command.AMCPResponse()
+			cmd.response.code = 200
+			cmd.response.raw = '200 INFO OK\n1 PAL PLAYING\n2 PAL PLAYING'
+			cmd.response.data = [{
+				channel: 1,
+				format: 'pal',
+				channelRate: 50,
+				frameRate: 25,
+				interlaced: true
+			},{
+				channel: 2,
+				format: 'pal',
+				channelRate: 50,
+				frameRate: 25,
+				interlaced: true
+			}]
+			resolve(cmd)
+		})
+	}
 
+	time () {
+		return new Promise((resolve) => {
+			let cmd = new AMCP.TimeCommand()
+			cmd.response = new Command.AMCPResponse()
+			cmd.response.code = 201
+			cmd.response.raw = '201 INFO OK\n00:00:00:00'
+			cmd.response.data = '00:00:00:00'
+			resolve(cmd)
+		})
+	}
 
 	static get mockDo () {
 		return mockDo

@@ -37,7 +37,7 @@ export class Conductor {
 
 	private devices: {[deviceName: string]: Device} = {}
 
-	private _timer: Timer
+	private _timer: NodeJS.Timer
 
 	private _getCurrentTime?: () => number
 
