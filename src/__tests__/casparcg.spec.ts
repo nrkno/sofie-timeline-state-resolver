@@ -51,7 +51,7 @@ test('CasparCG: Play AMB for 60s', async () => {
 		getCurrentTime: getCurrentTime
 	})
 	myConductor.mapping = myLayerMapping
-	myConductor.init() // we cannot do an await, because setTimeout will never call without jest moving on.
+	await myConductor.init() // we cannot do an await, because setTimeout will never call without jest moving on.
 	advanceTime(100) // 5600
 
 	let device = myConductor.getDevice('myCCG')
@@ -81,7 +81,7 @@ test('CasparCG: Play AMB for 60s', async () => {
 	advanceTime(100) // 5700
 
 	// one command has been sent:
-	expect(commandReceiver0).toHaveBeenCalledTimes(1)
+	expect(commandReceiver0).toHaveBeenCalledTimes(2)
 	expect(commandReceiver0.mock.calls[0][1]._objectParams).toMatchObject({
 		channel: 2,
 		layer: 42,
@@ -96,16 +96,10 @@ test('CasparCG: Play AMB for 60s', async () => {
 
 	// two commands have been sent:
 	expect(commandReceiver0).toHaveBeenCalledTimes(2)
-	expect(commandReceiver0.mock.calls[1][1]).toMatchObject({ 
-		channel: 2,
-		layer: 42,
-		payload: {},
-		response: {},
-		status: 0,
-		_commandName: 'ClearCommand',
-		_objectParams: { channel: 2, layer: 42 },
-		_stringParamsArray: []
-	})
+	expect(commandReceiver0.mock.calls[1][1].name).toEqual('ScheduleSetCommand')
+	expect(commandReceiver0.mock.calls[1][1]._objectParams.command.name).toEqual('ClearCommand')
+	expect(commandReceiver0.mock.calls[1][1]._objectParams.command.channel).toEqual(2)
+	expect(commandReceiver0.mock.calls[1][1]._objectParams.command.layer).toEqual(42)
 })
 
 test('CasparCG: Play IP input for 60s', async () => {
@@ -137,8 +131,7 @@ test('CasparCG: Play IP input for 60s', async () => {
 		getCurrentTime: getCurrentTime
 	})
 	myConductor.mapping = myLayerMapping
-	myConductor.init() // we cannot do an await, because setTimeout will never call without jest moving on.
-	advanceTime(100) // 5600
+	await myConductor.init()
 
 	let device = myConductor.getDevice('myCCG')
 
@@ -166,7 +159,7 @@ test('CasparCG: Play IP input for 60s', async () => {
 	advanceTime(100) // 5700
 
 	// one command has been sent:
-	expect(commandReceiver0).toHaveBeenCalledTimes(1)
+	expect(commandReceiver0).toHaveBeenCalledTimes(2)
 	expect(commandReceiver0.mock.calls[0][1]._objectParams).toMatchObject({
 		channel: 2,
 		layer: 42,
@@ -180,16 +173,10 @@ test('CasparCG: Play IP input for 60s', async () => {
 
 	// two commands have been sent:
 	expect(commandReceiver0).toHaveBeenCalledTimes(2)
-	expect(commandReceiver0.mock.calls[1][1]).toMatchObject({
-		channel: 2,
-		layer: 42,
-		payload: {},
-		response: {},
-		status: 0,
-		_commandName: 'ClearCommand',
-		_objectParams: { channel: 2, layer: 42 },
-		_stringParamsArray: []
-	})
+	expect(commandReceiver0.mock.calls[1][1].name).toEqual('ScheduleSetCommand')
+	expect(commandReceiver0.mock.calls[1][1]._objectParams.command.name).toEqual('ClearCommand')
+	expect(commandReceiver0.mock.calls[1][1]._objectParams.command.channel).toEqual(2)
+	expect(commandReceiver0.mock.calls[1][1]._objectParams.command.layer).toEqual(42)
 })
 
 test('CasparCG: Play decklink input for 60s', async () => {
@@ -221,8 +208,7 @@ test('CasparCG: Play decklink input for 60s', async () => {
 		getCurrentTime: getCurrentTime
 	})
 	myConductor.mapping = myLayerMapping
-	myConductor.init() // we cannot do an await, because setTimeout will never call without jest moving on.
-	advanceTime(100) // 5600
+	await myConductor.init()
 
 	let device = myConductor.getDevice('myCCG')
 
@@ -250,7 +236,7 @@ test('CasparCG: Play decklink input for 60s', async () => {
 	advanceTime(100) // 5700
 
 	// one command has been sent:
-	expect(commandReceiver0).toHaveBeenCalledTimes(1)
+	expect(commandReceiver0).toHaveBeenCalledTimes(2)
 	expect(commandReceiver0.mock.calls[0][1]._objectParams).toMatchObject({
 		channel: 2,
 		layer: 42,
@@ -262,16 +248,9 @@ test('CasparCG: Play decklink input for 60s', async () => {
 
 	// two commands have been sent:
 	expect(commandReceiver0).toHaveBeenCalledTimes(2)
-	expect(commandReceiver0.mock.calls[1][1]).toMatchObject({
-		channel: 2,
-		layer: 42,
-		payload: {},
-		response: {},
-		status: 0,
-		_commandName: 'ClearCommand',
-		_objectParams: { channel: 2, layer: 42 },
-		_stringParamsArray: []
-	})
+	expect(commandReceiver0.mock.calls[1][1].name).toEqual('ScheduleSetCommand')
+	expect(commandReceiver0.mock.calls[1][1]._objectParams.command.name).toEqual('ClearCommand')
+	expect(commandReceiver0.mock.calls[1][1]._objectParams.command._objectParams).toMatchObject({ channel: 2, layer: 42 })
 })
 
 test('CasparCG: Play template for 60s', async () => {
@@ -303,8 +282,7 @@ test('CasparCG: Play template for 60s', async () => {
 		getCurrentTime: getCurrentTime
 	})
 	myConductor.mapping = myLayerMapping
-	myConductor.init() // we cannot do an await, because setTimeout will never call without jest moving on.
-	advanceTime(100) // 5600
+	await myConductor.init()
 
 	let device = myConductor.getDevice('myCCG')
 
@@ -337,8 +315,8 @@ test('CasparCG: Play template for 60s', async () => {
 	advanceTime(100) // 5700
 
 	// one command has been sent:
-	expect(commandReceiver0).toHaveBeenCalledTimes(1)
-	expect(commandReceiver0.mock.calls[0][1]._commandName).toEqual('CGAddCommand')
+	expect(commandReceiver0).toHaveBeenCalledTimes(2)
+	expect(commandReceiver0.mock.calls[0][1].name).toEqual('CGAddCommand')
 	expect(commandReceiver0.mock.calls[0][1]._objectParams).toMatchObject({
 		channel: 2,
 		layer: 42,
@@ -351,12 +329,8 @@ test('CasparCG: Play template for 60s', async () => {
 		templateType: 'html'
 	})
 
-	// advance time to end of clip:
-	advanceTime(1500) // 7200
-
-	// two commands have been sent:
-	expect(commandReceiver0).toHaveBeenCalledTimes(2)
-	expect(commandReceiver0.mock.calls[1][1]._commandName).toEqual('CGStopCommand')
+	expect(commandReceiver0.mock.calls[1][1].name).toEqual('ScheduleSetCommand')
+	expect(commandReceiver0.mock.calls[1][1]._objectParams.command.name).toEqual('CGStopCommand')
 })
 
 test('CasparCG: Play template for 60s', async () => {
@@ -388,8 +362,7 @@ test('CasparCG: Play template for 60s', async () => {
 		getCurrentTime: getCurrentTime
 	})
 	myConductor.mapping = myLayerMapping
-	myConductor.init() // we cannot do an await, because setTimeout will never call without jest moving on.
-	advanceTime(100) // 5600
+	await myConductor.init()
 
 	let device = myConductor.getDevice('myCCG')
 
@@ -418,8 +391,8 @@ test('CasparCG: Play template for 60s', async () => {
 	advanceTime(100) // 5700
 
 	// one command has been sent:
-	expect(commandReceiver0).toHaveBeenCalledTimes(1)
-	expect(commandReceiver0.mock.calls[0][1]._commandName).toEqual('CustomCommand')
+	expect(commandReceiver0).toHaveBeenCalledTimes(2)
+	expect(commandReceiver0.mock.calls[0][1].name).toEqual('CustomCommand')
 	expect(commandReceiver0.mock.calls[0][1]._objectParams).toMatchObject({
 		channel: 2,
 		layer: 42,
@@ -430,12 +403,8 @@ test('CasparCG: Play template for 60s', async () => {
 		customCommand: 'add file'
 	})
 
-	// advance time to end of clip:
-	advanceTime(1500) // 7200
-
-	// two commands have been sent:
-	expect(commandReceiver0).toHaveBeenCalledTimes(2)
-	expect(commandReceiver0.mock.calls[1][1]._commandName).toEqual('CustomCommand')
+	expect(commandReceiver0.mock.calls[1][1].name).toEqual('ScheduleSetCommand')
+	expect(commandReceiver0.mock.calls[1][1]._objectParams.command.name).toEqual('CustomCommand')
 })
 
 test('CasparCG: Play 2 routes for 60s', async () => {
@@ -474,8 +443,7 @@ test('CasparCG: Play 2 routes for 60s', async () => {
 		getCurrentTime: getCurrentTime
 	})
 	myConductor.mapping = myLayerMapping
-	myConductor.init() // we cannot do an await, because setTimeout will never call without jest moving on.
-	advanceTime(100) // 5600
+	await myConductor.init()
 
 	let device = myConductor.getDevice('myCCG')
 
@@ -519,7 +487,7 @@ test('CasparCG: Play 2 routes for 60s', async () => {
 	advanceTime(100) // 5700
 
 	// one command has been sent:
-	expect(commandReceiver0).toHaveBeenCalledTimes(1)
+	expect(commandReceiver0).toHaveBeenCalledTimes(4)
 	expect(commandReceiver0.mock.calls[0][1]._objectParams).toMatchObject({
 		channel: 2,
 		layer: 42,
@@ -532,8 +500,8 @@ test('CasparCG: Play 2 routes for 60s', async () => {
 
 	advanceTime(1000) // 6700
 
-	expect(commandReceiver0).toHaveBeenCalledTimes(2)
-	expect(commandReceiver0.mock.calls[1][1]._objectParams).toMatchObject({
+	// expect(commandReceiver0).toHaveBeenCalledTimes(2)
+	expect(commandReceiver0.mock.calls[1][1]._objectParams.command._objectParams).toMatchObject({
 		channel: 1,
 		layer: 42,
 		noClear: false,
@@ -547,10 +515,10 @@ test('CasparCG: Play 2 routes for 60s', async () => {
 	advanceTime(1500) // 7200
 
 	// two more commands have been sent:
-	expect(commandReceiver0).toHaveBeenCalledTimes(4)
+	// expect(commandReceiver0).toHaveBeenCalledTimes(4)
 	// expect 2 clear commands:
-	expect(commandReceiver0.mock.calls[2][1]._commandName).toEqual('ClearCommand')
-	expect(commandReceiver0.mock.calls[3][1]._commandName).toEqual('ClearCommand')
+	expect(commandReceiver0.mock.calls[2][1]._objectParams.command.name).toEqual('ClearCommand')
+	expect(commandReceiver0.mock.calls[3][1]._objectParams.command.name).toEqual('ClearCommand')
 })
 
 test('CasparCG: AMB with transitions', async () => {
@@ -582,8 +550,7 @@ test('CasparCG: AMB with transitions', async () => {
 		getCurrentTime: getCurrentTime
 	})
 	myConductor.mapping = myLayerMapping
-	myConductor.init() // we cannot do an await, because setTimeout will never call without jest moving on.
-	advanceTime(100) // 7300
+	await myConductor.init()
 
 	// Check that no commands has been sent:
 	expect(commandReceiver0).toHaveBeenCalledTimes(0)
@@ -622,9 +589,10 @@ test('CasparCG: AMB with transitions', async () => {
 
 	// fast-forward:
 	advanceTime(100) // 7400
-
+	console.log(commandReceiver0.mock.calls[1][1])
+	// console.log(commandReceiver0.mock.calls[2][1])
 	// Check that an ACMP-command has been sent
-	expect(commandReceiver0).toHaveBeenCalledTimes(1)
+	expect(commandReceiver0).toHaveBeenCalledTimes(2)
 	expect(commandReceiver0.mock.calls[0][1]._objectParams).toMatchObject({
 		channel: 2,
 		layer: 42,
@@ -638,11 +606,7 @@ test('CasparCG: AMB with transitions', async () => {
 		loop: false
 	})
 
-	// fast-forward:
-	advanceTime(2000) // 9400
-
-	expect(commandReceiver0).toHaveBeenCalledTimes(2)
-	expect(commandReceiver0.mock.calls[0][1]._objectParams).toMatchObject({
+	expect(commandReceiver0.mock.calls[0][1]._objectParams.command._objectParams).toMatchObject({
 		channel: 2,
 		layer: 42,
 		transition: 'MIX',
@@ -653,7 +617,7 @@ test('CasparCG: AMB with transitions', async () => {
 	})
 
 	// Nothing more should've happened:
-	advanceTime(1000) // 10400
+	advanceTime(4000) // 10400
 
 	expect(commandReceiver0.mock.calls.length).toBe(2)
 })
@@ -687,8 +651,7 @@ test ('CasparCG: Mixer commands', async () => {
 		getCurrentTime: getCurrentTime
 	})
 	myConductor.mapping = myLayerMapping
-	myConductor.init() // we cannot do an await, because setTimeout will never call without jest moving on.
-	advanceTime(100) // 10500
+	await myConductor.init()
 
 	// Check that no commands has been sent:
 	expect(commandReceiver0).toHaveBeenCalledTimes(0)
@@ -759,7 +722,7 @@ test ('CasparCG: Mixer commands', async () => {
 	// Check that ACMP-commands has been sent
 	expect(commandReceiver0).toHaveBeenCalledTimes(2)
 	// we've already tested play commands so let's check the mixer command:
-	expect(commandReceiver0.mock.calls[1][1]._commandName).toMatch(/MixerPerspectiveCommand/)
+	expect(commandReceiver0.mock.calls[1][1].name).toMatch(/MixerPerspectiveCommand/)
 	expect(commandReceiver0.mock.calls[1][1]._objectParams).toMatchObject({
 		channel: 2,
 		layer: 42,
@@ -777,10 +740,10 @@ test ('CasparCG: Mixer commands', async () => {
 	// fast-forward:
 	advanceTime(5000)
 
-	expect(commandReceiver0.mock.calls.length).toBe(3)
+	expect(commandReceiver0.mock.calls.length).toBe(4)
 	// expect(CasparCG.mockDo.mock.calls[2][0]).toBeInstanceOf(AMCP.StopCommand);
-	expect(commandReceiver0.mock.calls[2][1]._commandName).toMatch(/MixerPerspectiveCommand/)
-	expect(commandReceiver0.mock.calls[2][1]._objectParams).toMatchObject({
+	expect(commandReceiver0.mock.calls[2][1]._objectParams.command.name).toMatch(/MixerPerspectiveCommand/)
+	expect(commandReceiver0.mock.calls[2][1]._objectParams.command._objectParams).toMatchObject({
 		channel: 2,
 		layer: 42,
 		topLeftX: 0,
@@ -793,9 +756,6 @@ test ('CasparCG: Mixer commands', async () => {
 		bottomLeftY: 1,
 		keyword: 'PERSPECTIVE'
 	})
-
-	advanceTime(6000)
-	expect(commandReceiver0.mock.calls.length).toBe(4)
 
 })
 
@@ -828,15 +788,14 @@ test('CasparCG: loadbg command', async () => {
 		getCurrentTime: getCurrentTime
 	})
 	myConductor.mapping = myLayerMapping
-	myConductor.init() // we cannot do an await, because setTimeout will never call without jest moving on.
-	advanceTime(100) // 5600
+	await myConductor.init()
 
 	myConductor.timeline = [
 		{
 			id: 'obj0',
 			trigger: {
 				type: TriggerType.TIME_ABSOLUTE,
-				value: now + 1100 // 1 seconds ago
+				value: now + 1100 // 1 second in the future
 			},
 			duration: 2000,
 			LLayer: 'myLayer0',
@@ -851,7 +810,8 @@ test('CasparCG: loadbg command', async () => {
 	]
 
 	advanceTime(100)
-	expect(commandReceiver0.mock.calls[0][1]._commandName).toEqual('LoadbgCommand')
+	console.log(commandReceiver0.mock.calls[0][1]._objectParams.command)
+	expect(commandReceiver0.mock.calls[0][1].name).toEqual('LoadbgCommand')
 	expect(commandReceiver0.mock.calls[0][1]._objectParams).toMatchObject({
 		channel: 2,
 		layer: 42,
@@ -861,6 +821,6 @@ test('CasparCG: loadbg command', async () => {
 		loop: true
 	})
 	advanceTime(2000)
-	expect(commandReceiver0.mock.calls[1][1]._commandName).toEqual('PlayCommand')
+	expect(commandReceiver0.mock.calls[1][1]._objectParams.command.name).toEqual('PlayCommand')
 
 })

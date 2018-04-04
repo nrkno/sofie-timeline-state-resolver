@@ -7,7 +7,7 @@ import { Mappings, MappingCasparCG, DeviceType } from './mapping'
 import { TimelineState, TimelineResolvedKeyframe, TimelineResolvedObject } from 'superfly-timeline'
 import { CasparCG as StateNS, CasparCGState } from 'casparcg-state'
 
-const BGLOADTIME = 2000 // the time we will look back to schedule a loadbg command.
+const BGLOADTIME = 1000 // the time we will look back to schedule a loadbg command.
 
 /*
 	This is a wrapper for a CasparCG device. All commands will be sent through this
@@ -127,10 +127,6 @@ export class CasparCGDevice extends Device {
 
 		_.each(timelineState.LLayers, (layer: TimelineResolvedObject, layerName: string) => {
 			const mapping: MappingCasparCG = this.mapping[layerName] as MappingCasparCG
-
-			if (!mapping) {
-				return
-			} // we got passed a LLayer that doesn't belong to this device.
 
 			const channel = new StateNS.Channel()
 			channel.channelNo = Number(mapping.channel) || 1
@@ -297,14 +293,18 @@ export class CasparCGDevice extends Device {
 
 	private _addToQueue (commandsToAchieveState, oldState: TimelineState, time: number) {
 		_.each(commandsToAchieveState, (cmd) => {
-			if (cmd._commandName === 'PlayCommand') {
-				let mapping = this._reverseGetMapping(cmd.channel, cmd.layer)
-
-				if (oldState.time < time - BGLOADTIME && time >= this.getCurrentTime() + BGLOADTIME) { // @todo: put the loadbg command just after the oldState.time when convenient?
+			if (cmd._commandName === 'PlayCommand' && cmd._objectParams.clip !== 'empty') {
+				if (oldState.time > 0 && time > this.getCurrentTime()) { // @todo: put the loadbg command just after the oldState.time when convenient?
 					let loadbgCmd = Object.assign({}, cmd) // make a deep copy
 					loadbgCmd._commandName = 'LoadbgCommand'
-					let command = AMCPUtil.deSerialize(cmd as CommandNS.IAMCPCommandVO, 'id')
-					this._commandReceiver(this.getCurrentTime(), command)
+
+					let command = AMCPUtil.deSerialize(loadbgCmd as CommandNS.IAMCPCommandVO, 'id')
+					let scheduleCommand = command
+
+					if (oldState.time >= this.getCurrentTime()) {
+						scheduleCommand = new AMCP.ScheduleSetCommand({ token: command.token, timecode: this.convertTimeToTimecode(oldState.time), command })
+					}
+					this._commandReceiver(this.getCurrentTime(), scheduleCommand)
 
 					cmd._objectParams = {
 						channel: cmd.channel,
@@ -320,16 +320,9 @@ export class CasparCGDevice extends Device {
 			if (time === this.getCurrentTime()) {
 				this._commandReceiver(this.getCurrentTime(), command)
 			} else {
-				console.log(time, this.getCurrentTime())
 				this._commandReceiver(this.getCurrentTime(), scheduleCommand)
 				this._queue[command.token] = time
 			}
-		})
-	}
-
-	private _reverseGetMapping (channel: number, layer: number): MappingCasparCG {
-		return _.find(this.mapping, (mapping: MappingCasparCG) => {
-			return (channel === mapping.channel && layer === mapping.layer)
 		})
 	}
 
