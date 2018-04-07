@@ -36,32 +36,41 @@ export class CasparCGDevice extends Device {
 	 */
 	init (): Promise<boolean> {
 
-		return new Promise((resolve/*, reject*/) => {
+		return new Promise((outerResolve/*, reject*/) => {
 
 			this._ccg = new CasparCG({
 				// TODO: add options
 			})
 
-			this._ccg.info().then((command) => {
-				this._ccgState.initStateFromChannelInfo(_.map(command.response.data, (obj) => { return { channelNo: obj.channel, videoMode: obj.format.toUpperCase(), fps: obj.channelRate } }) as StateNS.ChannelInfo[])
+			Promise.all([
+				new Promise((resolve, reject) => {
+					this._ccg.info().then((command) => {
+						this._ccgState.initStateFromChannelInfo(_.map(command.response.data, (obj) => { return { channelNo: obj.channel, videoMode: obj.format.toUpperCase(), fps: obj.channelRate } }) as StateNS.ChannelInfo[])
 
-				resolve(true)
-			})
+						resolve(true)
+					}).catch(() => reject())
+				}),new Promise((resolve, reject) => {
+					this._ccg.time(1).then((cmd) => { // @todo: keep time per channel
+						let segments = (cmd.response.data as string).split(':')
+						let time = 0
 
-			this._ccg.time().then((cmd) => {
-				let segments = (cmd.response.data as string).split(':')
-				let time = 0
+						// fields:
+						time += Number(segments[3]) * 1000 / 50
+						// seconds
+						time += Number(segments[2]) * 1000
+						// minutes
+						time += Number(segments[1]) * 60 * 1000
+						// hours
+						time += Number(segments[0]) * 60 * 60 * 1000
 
-				// fields:
-				time += Number(segments[3]) * 1000 / 50
-				// seconds
-				time += Number(segments[2]) * 1000
-				// minutes
-				time += Number(segments[2]) * 60 * 1000
-				// hours
-				time += Number(segments[2]) * 60 * 60 * 1000
-
-				this._timeToTimecodeMap = { time: this.getCurrentTime(), timecode: time }
+						this._timeToTimecodeMap = { time: this.getCurrentTime(), timecode: time }
+						resolve(true)
+					}).catch(() => reject())
+				})
+			]).then(() => {
+				outerResolve(true)
+			}).catch(() => {
+				outerResolve(false)
 			})
 
 		})
