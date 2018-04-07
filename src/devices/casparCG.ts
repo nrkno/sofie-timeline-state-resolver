@@ -137,9 +137,9 @@ export class CasparCGDevice extends Device {
 		_.each(timelineState.LLayers, (layer: TimelineResolvedObject, layerName: string) => {
 			const mapping: MappingCasparCG = this.mapping[layerName] as MappingCasparCG
 
-			const channel = new StateNS.Channel()
+			const channel = caspar.channels[mapping.channel] ? caspar.channels[mapping.channel] : new StateNS.Channel()
 			channel.channelNo = Number(mapping.channel) || 1
-			// @todo: check if we need fps as well.
+			// @todo: check if we need to get fps.
 			channel.fps = 50
 			caspar.channels[channel.channelNo] = channel
 
@@ -326,7 +326,7 @@ export class CasparCGDevice extends Device {
 			let command = AMCPUtil.deSerialize(cmd as CommandNS.IAMCPCommandVO, 'id')
 			let scheduleCommand = new AMCP.ScheduleSetCommand({ token: command.token, timecode: this.convertTimeToTimecode(time), command })
 
-			if (time === this.getCurrentTime()) {
+			if (time <= this.getCurrentTime()) {
 				this._commandReceiver(this.getCurrentTime(), command)
 			} else {
 				this._commandReceiver(this.getCurrentTime(), scheduleCommand)
