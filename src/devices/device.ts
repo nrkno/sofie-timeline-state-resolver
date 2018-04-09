@@ -44,6 +44,9 @@ export class Device {
 
 		// return Promise.resolve(true)
 	}
+	terminate (): Promise<boolean> {
+		return Promise.resolve(true)
+	}
 	getCurrentTime () {
 		if (this._getCurrentTime) return this._getCurrentTime()
 		return Date.now()

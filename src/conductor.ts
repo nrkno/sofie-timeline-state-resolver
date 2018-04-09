@@ -23,7 +23,8 @@ export interface ConductorOptions {
 		}
 	},
 	initializeAsClear: true, // don't do any initial checks with devices to determine state, instead assume that everything is clear, black and quiet
-	getCurrentTime: () => number
+	getCurrentTime: () => number,
+	autoInit?: boolean
 }
 /**
  * The main class that serves to interface with all functionality.
@@ -37,8 +38,6 @@ export class Conductor {
 
 	private devices: {[deviceName: string]: Device} = {}
 
-	private _timer: NodeJS.Timer
-
 	private _getCurrentTime?: () => number
 
 	private _nextResolveTime: number = 0
@@ -50,11 +49,13 @@ export class Conductor {
 
 		if (options.getCurrentTime) this._getCurrentTime = options.getCurrentTime
 
-		this._timer = setInterval(() => {
+		setInterval(() => {
 			if (this.timeline) {
 				this._resolveTimeline()
 			}
 		}, 2500)
+
+		if (options.autoInit) this.init()
 
 	}
 	/**
@@ -109,6 +110,47 @@ export class Conductor {
 	public getDevice (deviceId) {
 		return this.devices[deviceId]
 	}
+	public addDevice (deviceId, deviceOptions): Promise<any> {
+		let newDevice: Device | null = null
+
+		if (deviceOptions.type === DeviceType.ABSTRACT) {
+			// Add Abstract device:
+			newDevice = new AbstractDevice(deviceId, deviceOptions, {
+				// TODO: Add options
+				getCurrentTime: () => { return this.getCurrentTime() }
+			}) as Device
+		} else if (deviceOptions.type === DeviceType.CASPARCG) {
+			// Add CasparCG device:
+			newDevice = new CasparCGDevice(deviceId, deviceOptions, {
+				// TODO: Add options
+				getCurrentTime: () => { return this.getCurrentTime() }
+			}) as Device
+		}
+		if (newDevice) {
+			this.devices[deviceId] = newDevice
+			newDevice.mapping = this.mapping
+			return newDevice.init()
+		}
+		// if we cannot find a device:
+		return new Promise((resolve) => {
+			resolve(false)
+		})
+	}
+	public removeDevice (deviceId): Promise<boolean> {
+		let device = this.devices[deviceId]
+
+		if (device) {
+			let ps = device.terminate()
+			ps.then((res) => {
+				if (res) {
+					delete this.devices[deviceId]
+				}
+			})
+			return ps
+		} else {
+			return new Promise((resolve) => resolve(false))
+		}
+	}
 
 	/**
 	 * Sets up the devices as they were passed to the constructor via the options object.
@@ -119,26 +161,27 @@ export class Conductor {
 		const ps: Array<Promise<any>> = []
 
 		_.each(this._options.devices, (deviceOptions, deviceId) => {
-			let newDevice: Device | null = null
+			ps.push(this.addDevice(deviceId, deviceOptions))
+			// let newDevice: Device | null = null
 
-			if (deviceOptions.type === DeviceType.ABSTRACT) {
-				// Add Abstract device:
-				newDevice = new AbstractDevice(deviceId, deviceOptions, {
-					// TODO: Add options
-					getCurrentTime: () => { return this.getCurrentTime() }
-				}) as Device
-			} else if (deviceOptions.type === DeviceType.CASPARCG) {
-				// Add CasparCG device:
-				newDevice = new CasparCGDevice(deviceId, deviceOptions, {
-					// TODO: Add options
-					getCurrentTime: () => { return this.getCurrentTime() }
-				}) as Device
-			}
-			if (newDevice) {
-				this.devices[deviceId] = newDevice
-				newDevice.mapping = this.mapping
-				ps.push(newDevice.init())
-			}
+			// if (deviceOptions.type === DeviceType.ABSTRACT) {
+			// 	// Add Abstract device:
+			// 	newDevice = new AbstractDevice(deviceId, deviceOptions, {
+			// 		// TODO: Add options
+			// 		getCurrentTime: () => { return this.getCurrentTime() }
+			// 	}) as Device
+			// } else if (deviceOptions.type === DeviceType.CASPARCG) {
+			// 	// Add CasparCG device:
+			// 	newDevice = new CasparCGDevice(deviceId, deviceOptions, {
+			// 		// TODO: Add options
+			// 		getCurrentTime: () => { return this.getCurrentTime() }
+			// 	}) as Device
+			// }
+			// if (newDevice) {
+			// 	this.devices[deviceId] = newDevice
+			// 	newDevice.mapping = this.mapping
+			// 	ps.push(newDevice.init())
+			// }
 		})
 
 		return Promise.all(ps)

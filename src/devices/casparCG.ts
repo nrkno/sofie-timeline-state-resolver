@@ -28,7 +28,7 @@ export class CasparCGDevice extends Device {
 			else this._commandReceiver = this._defaultCommandReceiver
 		}
 
-		this._ccgState = new CasparCGState({externalLog: console.log, currentTime: this.getCurrentTime})
+		this._ccgState = new CasparCGState({currentTime: this.getCurrentTime})
 	}
 
 	/**
@@ -73,6 +73,15 @@ export class CasparCGDevice extends Device {
 				outerResolve(false)
 			})
 
+		})
+	}
+
+	terminate (): Promise<boolean> {
+		return new Promise((resolve) => {
+			this._ccg.disconnect()
+			this._ccg.onDisconnected = () => {
+				resolve()
+			}
 		})
 	}
 
