@@ -164,4 +164,23 @@ test('Test Abstract-device functionality', async () => {
 			myAttr2: 'two'
 		}
 	})
+
+	await conductor.removeDevice('device1').then((res) => {
+		expect(res).toBe(true)
+	})
+	expect(conductor.getDevice('device1')).toBe(undefined)
+
+	conductor.addDevice(
+		'device1',
+		{ type: DeviceType.ABSTRACT, options: { commandReceiver: commandReceiver1 } }
+	).then((res) => {
+		expect(res).toBe(true)
+	})
+
+	conductor.mapping = {
+		'myLayer0': myLayerMapping1,
+		'myLayer1': myLayerMapping0
+	}
+	abstractThing0.trigger.value = now
+	conductor.timeline = [ abstractThing0 ]
 })
