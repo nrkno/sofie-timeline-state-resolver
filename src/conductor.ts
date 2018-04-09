@@ -84,6 +84,9 @@ export class Conductor {
 		// Set mapping
 		// re-resolve timeline
 		this._mapping = mapping
+		_.each(this.devices, (device: Device) => {
+			device.mapping = this.mapping
+		})
 
 		if (this._timeline) {
 			this._resolveTimeline()
