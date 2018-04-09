@@ -35,7 +35,7 @@ export class CasparCG {
 			let cmd = new AMCP.InfoCommand()
 			cmd.response = new Command.AMCPResponse()
 			cmd.response.code = 200
-			cmd.response.raw = '200 INFO OK\n1 PAL PLAYING\n2 PAL PLAYING'
+			cmd.response.raw = '200 INFO OK\n1 PAL PLAYING\n2 PAL PLAYING\n3 PAL PLAYING'
 			cmd.response.data = [{
 				channel: 1,
 				format: 'pal',
@@ -48,14 +48,20 @@ export class CasparCG {
 				channelRate: 50,
 				frameRate: 25,
 				interlaced: true
+			},{
+				channel: 3,
+				format: 'pal',
+				channelRate: 50,
+				frameRate: 25,
+				interlaced: true
 			}]
 			resolve(cmd)
 		})
 	}
 
-	time () {
+	time (channel: number) {
 		return new Promise((resolve) => {
-			let cmd = new AMCP.TimeCommand()
+			let cmd = new AMCP.TimeCommand({ channel })
 			cmd.response = new Command.AMCPResponse()
 			cmd.response.code = 201
 			cmd.response.raw = '201 INFO OK\n00:00:00:00'
