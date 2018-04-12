@@ -1,7 +1,8 @@
-import { TimelineState } from 'superfly-timeline';
-import { Mapping } from '../conductor';
-
-
+import * as _ from 'underscore'
+import { TimelineState } from 'superfly-timeline'
+import { Mappings, DeviceType } from './mapping'
+import { CasparCG as StateNS, CasparCGState } from 'casparcg-state'
+import { stat } from 'fs'
 /*
 	This is a base class for all the Device wrappers.
 	The Device wrappers will
@@ -19,35 +20,89 @@ export interface DeviceCommandContainer {
 }
 
 export class Device {
-	
-	private _deviceId:string;
-	public state:TimelineState;
-	public _mapping:Mapping;
 
-	constructor(deviceId:string, mapping:Mapping) {
-		this._deviceId = deviceId;
-		this._mapping = mapping;
+	private _getCurrentTime: () => number
+
+	private _deviceId: string
+	private _deviceOptions: any
+
+	private _states: {[time: number]: TimelineState}
+	private _mappings: Mappings
+
+	constructor (deviceId: string, deviceOptions: any, options) {
+		this._deviceId = deviceId
+		this._deviceOptions = deviceOptions
+
+		this._states = {}
+		if (options.getCurrentTime) {
+			this._getCurrentTime = options.getCurrentTime
+		}
 	}
-	init():Promise<boolean> {
+	init (): Promise<boolean> {
 		// connect to the device, resolve the promise when ready.
-		throw "This class method must be replaced by the Device class!";
+		throw new Error('This class method must be replaced by the Device class!')
 
-		return Promise.resolve(true);
+		// return Promise.resolve(true)
+	}
+	terminate (): Promise<boolean> {
+		return Promise.resolve(true)
+	}
+	getCurrentTime () {
+		if (this._getCurrentTime) return this._getCurrentTime()
+		return Date.now()
 	}
 
-	generateCommandsAgainstState(newState:TimelineState, oldState:TimelineState):Array<DeviceCommand> {
-		// Get a
-		// The idea here is to do a comparison between the new and the old states, in order to 
-		// come up with the commands needed to achieve the state
-		// return an array of the commands needed
-		throw "This class method must be replaced by the Device class!";
+	handleState (newState: TimelineState) {
+		// Handle this new state, at the point in time specified
+		throw new Error('This class method must be replaced by the Device class!')
+	}
+	clearFuture (clearAfterTime: number) {
+		// Clear any scheduled commands after this time
+		throw new Error('This class method must be replaced by the Device class!')
 	}
 
-	get deviceId() {
-		return this._deviceId;
+	getStateBefore (time: number): TimelineState | null {
+
+		let foundTime = 0
+		let foundState: TimelineState | null = null
+		_.each(this._states, (state: TimelineState, stateTime: number) => {
+			if (stateTime > foundTime && stateTime < time) {
+				foundState = state
+				foundTime = stateTime
+			}
+		})
+		return foundState
 	}
-	set deviceId(deviceId) {
-		this._deviceId = deviceId;
+	setState (state) {
+		this._states[state.time] = state
+
+		this.cleanUpStates(0, state.time) // remove states after this time, as they are not relevant anymore
+	}
+	cleanUpStates (removeBeforeTime, removeAfterTime) {
+		_.each(_.keys(this._states), (time) => {
+
+			if (time < removeBeforeTime || time > removeAfterTime || !time) {
+				delete this._states[time]
+			}
+		})
+	}
+
+	get mapping (): Mappings {
+		return this._mappings
+	}
+	set mapping (mappings: Mappings) {
+		this._mappings = mappings
+	}
+
+	get deviceId () {
+		return this._deviceId
+	}
+	set deviceId (deviceId) {
+		this._deviceId = deviceId
+	}
+	get deviceType (): DeviceType {
+		// return DeviceType.ABSTRACT
+		throw new Error('This class method must be replaced by the Device class!')
 	}
 
 }

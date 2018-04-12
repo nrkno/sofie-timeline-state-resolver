@@ -702,12 +702,13 @@ casparcg-connection@^3.0.1:
     xml2js "^0.4.17"
     xmlbuilder "^9.0.1"
 
-"casparcg-state@git+https://Mfn2bXzQtEFXHKpo12x2y78QJMR7gUZz:x-oauth-basic@bitbucket.org/superflytv/casparcg-state.git":
+"casparcg-state@git+https://Mfn2bXzQtEFXHKpo12x2y78QJMR7gUZz:x-oauth-basic@bitbucket.org/superflytv/casparcg-state.git#develop":
   version "0.0.5"
-  resolved "git+https://Mfn2bXzQtEFXHKpo12x2y78QJMR7gUZz:x-oauth-basic@bitbucket.org/superflytv/casparcg-state.git#7820ac977415c683e6282e33033b328bb2f71ddb"
+  resolved "git+https://Mfn2bXzQtEFXHKpo12x2y78QJMR7gUZz:x-oauth-basic@bitbucket.org/superflytv/casparcg-state.git#fa1a6c1f44be99a6dd09ba35bad7ae7c0b518968"
   dependencies:
     casparcg-connection "git+https://github.com/superflytv/casparcg-connection.git"
     deep-diff "^0.3.4"
+    fast-clone "^1.4.2"
     underscore "^1.8.3"
 
 center-align@^0.1.1:

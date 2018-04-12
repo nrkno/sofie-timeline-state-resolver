@@ -102,8 +102,9 @@
   ],
   "dependencies": {
     "casparcg-connection": "^3.0.1",
-    "casparcg-state": "git+https://Mfn2bXzQtEFXHKpo12x2y78QJMR7gUZz:x-oauth-basic@bitbucket.org/superflytv/casparcg-state.git",
+    "casparcg-state": "git+https://Mfn2bXzQtEFXHKpo12x2y78QJMR7gUZz:x-oauth-basic@bitbucket.org/superflytv/casparcg-state.git#develop",
     "superfly-timeline": "^0.1.1",
-    "tslib": "^1.6.0"
+    "tslib": "^1.6.0",
+    "underscore": "^1.8.3"
   }
 }
