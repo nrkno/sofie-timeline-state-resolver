@@ -1,3 +1,6 @@
+# Timeline State Resolver
+
+This takes an output from the SuperFlyTV/supertimeline library and converts it into device states, diffs these states against previous states and sends commands where necessary.
 
 Dev install instructions:
 
@@ -6,21 +9,21 @@ Dev install instructions:
 	This is like npm, but better
 
 * Install jest
-	yarn global add jest
+	`yarn global add jest`
 	This is our resting framework
 
 * Install dependencies
-	yarn
+	`yarn`
 	or
-	yarn install
+	`yarn install`
 
 Then you can:
 
 * Build:
-	yarn build
+	`yarn build`
 
 * run test
-	jest
+	`jest`
 
 * watch
-	yarn watch
+	`yarn watch`
