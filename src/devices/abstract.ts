@@ -1,11 +1,8 @@
 import * as _ from 'underscore'
-import { Device, DeviceCommand, DeviceCommandContainer } from './device'
+import { Device } from './device'
+import { DeviceType } from './mapping'
 
-import { CasparCG, Command as CommandNS, AMCPUtil } from 'casparcg-connection'
-import { Mappings, MappingCasparCG, DeviceType } from './mapping'
-
-import { TimelineState, TimelineResolvedKeyframe, TimelineResolvedObject } from 'superfly-timeline'
-import { CasparCG as StateNS, CasparCGState } from 'casparcg-state'
+import { TimelineState } from 'superfly-timeline'
 
 /*
 	This is a wrapper for an "Abstract" device
@@ -30,7 +27,7 @@ export class AbstractDevice extends Device {
 
 			let now = this.getCurrentTime()
 
-			//console.log('check queue ' + now, _.values(this._queue).length )
+			// console.log('check queue ' + now, _.values(this._queue).length )
 
 			this._queue = _.reject(this._queue, (q) => {
 				if (q.time <= now) {
@@ -99,7 +96,7 @@ export class AbstractDevice extends Device {
 
 		let commands: Array<any> = []
 
-		_.each(newAbstractState.LLayers, (newLayer, layerKey) => {
+		_.each(newAbstractState.LLayers, (newLayer: any, layerKey) => {
 			let oldLayer = oldAbstractState.LLayers[layerKey]
 			if (!oldLayer) {
 				// added!
@@ -119,7 +116,7 @@ export class AbstractDevice extends Device {
 			}
 		})
 		// removed
-		_.each(oldAbstractState.LLayers, (oldLayer, layerKey) => {
+		_.each(oldAbstractState.LLayers, (oldLayer: any, layerKey) => {
 			let newLayer = newAbstractState.LLayers[layerKey]
 			if (!newLayer) {
 				// removed!

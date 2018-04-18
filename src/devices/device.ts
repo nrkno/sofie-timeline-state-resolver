@@ -1,8 +1,6 @@
 import * as _ from 'underscore'
 import { TimelineState } from 'superfly-timeline'
 import { Mappings, DeviceType } from './mapping'
-import { CasparCG as StateNS, CasparCGState } from 'casparcg-state'
-import { stat } from 'fs'
 /*
 	This is a base class for all the Device wrappers.
 	The Device wrappers will
@@ -26,14 +24,13 @@ export class Device {
 	private _deviceId: string
 	private _deviceOptions: any
 
-	private _states: {[time: number]: TimelineState}
+	private _states: {[time: string]: TimelineState} = {}
 	private _mappings: Mappings
 
 	constructor (deviceId: string, deviceOptions: any, options) {
 		this._deviceId = deviceId
 		this._deviceOptions = deviceOptions
 
-		this._states = {}
 		if (options.getCurrentTime) {
 			this._getCurrentTime = options.getCurrentTime
 		}
@@ -54,10 +51,12 @@ export class Device {
 
 	handleState (newState: TimelineState) {
 		// Handle this new state, at the point in time specified
+		newState = newState
 		throw new Error('This class method must be replaced by the Device class!')
 	}
 	clearFuture (clearAfterTime: number) {
 		// Clear any scheduled commands after this time
+		clearAfterTime = clearAfterTime
 		throw new Error('This class method must be replaced by the Device class!')
 	}
 
@@ -65,7 +64,8 @@ export class Device {
 
 		let foundTime = 0
 		let foundState: TimelineState | null = null
-		_.each(this._states, (state: TimelineState, stateTime: number) => {
+		_.each(this._states, (state: TimelineState, stateTimeStr: string) => {
+			let stateTime = parseFloat(stateTimeStr)
 			if (stateTime > foundTime && stateTime < time) {
 				foundState = state
 				foundTime = stateTime
@@ -74,12 +74,12 @@ export class Device {
 		return foundState
 	}
 	setState (state) {
-		this._states[state.time] = state
+		this._states[state.time + ''] = state
 
 		this.cleanUpStates(0, state.time) // remove states after this time, as they are not relevant anymore
 	}
 	cleanUpStates (removeBeforeTime, removeAfterTime) {
-		_.each(_.keys(this._states), (time) => {
+		_.each(_.keys(this._states), (time: string) => {
 
 			if (time < removeBeforeTime || time > removeAfterTime || !time) {
 				delete this._states[time]

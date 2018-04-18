@@ -1,7 +1,7 @@
 import * as _ from 'underscore'
 import { Resolver, TimelineObject, TimelineState, TimelineResolvedObject } from 'superfly-timeline'
 
-import { Device, DeviceCommand, DeviceCommandContainer } from './devices/device'
+import { Device } from './devices/device'
 import { CasparCGDevice } from './devices/casparCG'
 import { AbstractDevice } from './devices/abstract'
 import { Mappings, Mapping, DeviceType } from './devices//mapping'
@@ -36,7 +36,7 @@ export class Conductor {
 
 	private _options: ConductorOptions
 
-	private devices: {[deviceName: string]: Device} = {}
+	private devices: {[deviceId: string]: Device} = {}
 
 	private _getCurrentTime?: () => number
 
@@ -136,7 +136,7 @@ export class Conductor {
 			resolve(false)
 		})
 	}
-	public removeDevice (deviceId): Promise<boolean> {
+	public removeDevice (deviceId: string): Promise<boolean> {
 		let device = this.devices[deviceId]
 
 		if (device) {
@@ -150,6 +150,14 @@ export class Conductor {
 		} else {
 			return new Promise((resolve) => resolve(false))
 		}
+	}
+	public destroy (): Promise<void> {
+		return Promise.all(_.map(_.keys(this.devices), (deviceId: string) => {
+			this.removeDevice(deviceId)
+		}))
+		.then(() => {
+			return
+		})
 	}
 
 	/**
@@ -248,7 +256,7 @@ export class Conductor {
 			})
 			return filteredState
 		}
-		_.each(this.devices, (device: Device, deviceName: string) => {
+		_.each(this.devices, (device: Device/*, deviceName: string*/) => {
 
 			// The subState contains only the parts of the state relevant to that device
 			let subState: TimelineState = {

@@ -1,7 +1,7 @@
 
 // mock CasparCG
 import * as _ from 'underscore'
-import {AMCP as AMCP2, AMCPUtil as util, Command} from '../../node_modules/casparcg-connection'
+import {AMCP as AMCP2, AMCPUtil as util, Command } from '../../node_modules/casparcg-connection'
 
 let test = 0
 
@@ -81,7 +81,6 @@ export class CasparCG {
 
 //jest.mock("casparcg-connection")
 
-
 export const mockDo = jest.fn();
 
 const CasparCG = jest.fn().mockImplementation(() => {
@@ -92,9 +91,8 @@ export default CasparCG;
 
 */
 
-//const CasparCG = jest.genMockFromModule('casparcg-connection');
+// const CasparCG = jest.genMockFromModule('casparcg-connection');
 
+// console.log('mock CasparCG',CasparCG);
 
-//console.log('mock CasparCG',CasparCG);
-
-//export default CasparCG;
+// export default CasparCG;
