@@ -1,6 +1,6 @@
 # Timeline State Resolver
 
-This takes an output from the SuperFlyTV/supertimeline library and converts it into device states, diffs these states against previous states and sends commands where necessary.
+This takes an output from the SuperFlyTV/supertimeline library and converts it into device states, diffs these states against previous states and sends commands where necessary. Created by SuperFly.tv
 
 Dev install instructions:
 
