@@ -65,6 +65,10 @@ export class Device extends EventEmitter {
 		clearAfterTime = clearAfterTime
 		throw new Error('This class method must be replaced by the Device class!')
 	}
+	get connected (): boolean {
+		// Returns connection status
+		throw new Error('This class method must be replaced by the Device class!')
+	}
 
 	getStateBefore (time: number): TimelineState | null {
 
@@ -102,6 +106,10 @@ export class Device extends EventEmitter {
 
 	get deviceId () {
 		return this._deviceId
+	}
+	get deviceName (): string {
+		// Return a human-readable name for this device
+		throw new Error('This class method must be replaced by the Device class!')
 	}
 	set deviceId (deviceId) {
 		this._deviceId = deviceId

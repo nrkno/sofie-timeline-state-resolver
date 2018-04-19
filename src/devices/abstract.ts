@@ -89,12 +89,18 @@ export class AbstractDevice extends Device {
 		// Clear any scheduled commands after this time
 		this._queue = _.reject(this._queue, (q) => { return q.time > clearAfterTime })
 	}
+	get connected (): boolean {
+		return false
+	}
 	convertStateToAbstract (state: TimelineState) {
 		// convert the timeline state into something we can use
 		return state
 	}
 	get deviceType () {
 		return DeviceType.ABSTRACT
+	}
+	get deviceName (): string {
+		return 'Abstract ' + this.deviceId
 	}
 	get queue () {
 		return _.values(this._queue)

@@ -136,9 +136,16 @@ export class CasparCGDevice extends Device {
 			if (this._queue[token] > clearAfterTime) this._commandReceiver(this.getCurrentTime(), new AMCP.ScheduleRemoveCommand(token))
 		}
 	}
+	get connected (): boolean {
+		// Returns connection status
+		return this._ccg.connected
+	}
 
 	get deviceType () {
 		return DeviceType.CASPARCG
+	}
+	get deviceName (): string {
+		return 'CasparCG ' + this._ccg.host + ':' + this._ccg.port
 	}
 
 	get queue () {
@@ -374,11 +381,13 @@ export class CasparCGDevice extends Device {
 	}
 	private _defaultCommandReceiver (time: number, cmd) {
 		time = time
-		this._ccg.do(cmd).then((resCommand) => {
+		this._ccg.do(cmd)
+		.then((resCommand) => {
 			if (this._queue[resCommand.token]) {
 				delete this._queue[resCommand.token]
 			}
 		}).catch((e) => {
+			console.log(e)
 			if (cmd.name === 'ScheduleSetCommand') {
 				delete this._queue[cmd.getParam('command').token]
 			}

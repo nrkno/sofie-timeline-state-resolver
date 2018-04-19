@@ -13,7 +13,8 @@ const MINTIMEUNIT = 1 // Minimum unit of time
 
 export interface TimelineContentObject extends TimelineObject {}
 
-export interface Device {}
+export { Device } from './devices/device'
+// export interface Device {}
 
 export interface ConductorOptions {
 	devices: {
@@ -28,8 +29,8 @@ export interface ConductorOptions {
  */
 export class Conductor {
 
-	private _timeline: Array<TimelineContentObject>
-	private _mapping: Mappings
+	private _timeline: Array<TimelineContentObject> = []
+	private _mapping: Mappings = {}
 
 	private _options: ConductorOptions
 
