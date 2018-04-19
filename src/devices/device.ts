@@ -1,6 +1,7 @@
 import * as _ from 'underscore'
 import { TimelineState } from 'superfly-timeline'
 import { Mappings, DeviceType } from './mapping'
+import { EventEmitter } from 'events'
 /*
 	This is a base class for all the Device wrappers.
 	The Device wrappers will
@@ -16,18 +17,22 @@ export interface DeviceCommandContainer {
 	deviceId: string,
 	commands: Array<DeviceCommand>
 }
-
-export class Device {
+export interface DeviceOptions {
+	type: DeviceType,
+	options?: {}
+}
+export class Device extends EventEmitter {
 
 	private _getCurrentTime: () => number
 
 	private _deviceId: string
-	private _deviceOptions: any
+	private _deviceOptions: DeviceOptions
 
 	private _states: {[time: string]: TimelineState} = {}
 	private _mappings: Mappings
 
-	constructor (deviceId: string, deviceOptions: any, options) {
+	constructor (deviceId: string, deviceOptions: DeviceOptions, options) {
+		super()
 		this._deviceId = deviceId
 		this._deviceOptions = deviceOptions
 
@@ -35,8 +40,9 @@ export class Device {
 			this._getCurrentTime = options.getCurrentTime
 		}
 	}
-	init (): Promise<boolean> {
+	init (connectionOptions: any): Promise<boolean> {
 		// connect to the device, resolve the promise when ready.
+		connectionOptions = connectionOptions // ts-ignore
 		throw new Error('This class method must be replaced by the Device class!')
 
 		// return Promise.resolve(true)

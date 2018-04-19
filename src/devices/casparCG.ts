@@ -1,8 +1,8 @@
 import * as _ from 'underscore'
-import { Device } from './device'
+import { Device, DeviceOptions } from './device'
 
 import { CasparCG, Command as CommandNS, AMCPUtil, AMCP } from 'casparcg-connection'
-import { MappingCasparCG, DeviceType } from './mapping'
+import { MappingCasparCG, DeviceType, Mapping } from './mapping'
 
 import { TimelineState, TimelineResolvedObject } from 'superfly-timeline'
 import { CasparCG as StateNS, CasparCGState } from 'casparcg-state'
@@ -12,6 +12,15 @@ import { CasparCG as StateNS, CasparCGState } from 'casparcg-state'
 /*
 	This is a wrapper for a CasparCG device. All commands will be sent through this
 */
+export interface CasparCGDeviceOptions extends DeviceOptions {
+	options?: {
+		commandReceiver?: (time: number, cmd) => void
+	}
+}
+export interface CasparCGOptions {
+	host: string,
+	port: number
+}
 export class CasparCGDevice extends Device {
 
 	private _ccg: CasparCG
@@ -20,7 +29,7 @@ export class CasparCGDevice extends Device {
 	private _commandReceiver: (time: number, cmd) => void
 	private _timeToTimecodeMap: {time: number, timecode: number}
 
-	constructor (deviceId: string, deviceOptions: any, options) {
+	constructor (deviceId: string, deviceOptions: CasparCGDeviceOptions, options) {
 		super(deviceId, deviceOptions, options)
 
 		if (deviceOptions.options) {
@@ -34,52 +43,50 @@ export class CasparCGDevice extends Device {
 	/**
 	 * Initiates the connection with CasparCG through the ccg-connection lib.
 	 */
-	init (): Promise<boolean> {
+	init (connectionOptions: CasparCGOptions): Promise<boolean> {
+		this._ccg = new CasparCG({
+			host: connectionOptions.host,
+			port: connectionOptions.port,
+			autoConnect: true,
+			onConnectionChanged: (connected: boolean) => {
+				this.emit('connectionChanged', connected)
+			}
+		})
 
-		return new Promise((outerResolve/*, reject*/) => {
+		return Promise.all([
+			new Promise((resolve, reject) => {
+				this._ccg.info()
+				.then((command) => {
+					this._ccgState.initStateFromChannelInfo(_.map(command.response.data as any, (obj: any) => {
+						return {
+							channelNo: obj.channel,
+							videoMode: obj.format.toUpperCase(),
+							fps: obj.channelRate
+						}
+					}) as StateNS.ChannelInfo[])
 
-			this._ccg = new CasparCG({
-				// TODO: add options
+					resolve(true)
+				}).catch((e) => reject(e))
+			}),new Promise((resolve, reject) => {
+				this._ccg.time(1).then((cmd) => { // @todo: keep time per channel
+					let segments = (cmd.response.data as string).split(':')
+					let time = 0
+
+					// fields:
+					time += Number(segments[3]) * 1000 / 50
+					// seconds
+					time += Number(segments[2]) * 1000
+					// minutes
+					time += Number(segments[1]) * 60 * 1000
+					// hours
+					time += Number(segments[0]) * 60 * 60 * 1000
+
+					this._timeToTimecodeMap = { time: this.getCurrentTime(), timecode: time }
+					resolve(true)
+				}).catch(() => reject())
 			})
-
-			Promise.all([
-				new Promise((resolve, reject) => {
-					this._ccg.info().then((command) => {
-
-						this._ccgState.initStateFromChannelInfo(_.map(command.response.data as any, (obj: any) => {
-							return {
-								channelNo: obj.channel,
-								videoMode: obj.format.toUpperCase(),
-								fps: obj.channelRate
-							}
-						}) as StateNS.ChannelInfo[])
-
-						resolve(true)
-					}).catch(() => reject())
-				}),new Promise((resolve, reject) => {
-					this._ccg.time(1).then((cmd) => { // @todo: keep time per channel
-						let segments = (cmd.response.data as string).split(':')
-						let time = 0
-
-						// fields:
-						time += Number(segments[3]) * 1000 / 50
-						// seconds
-						time += Number(segments[2]) * 1000
-						// minutes
-						time += Number(segments[1]) * 60 * 1000
-						// hours
-						time += Number(segments[0]) * 60 * 60 * 1000
-
-						this._timeToTimecodeMap = { time: this.getCurrentTime(), timecode: time }
-						resolve(true)
-					}).catch(() => reject())
-				})
-			]).then(() => {
-				outerResolve(true)
-			}).catch(() => {
-				outerResolve(false)
-			})
-
+		]).then(() => {
+			return true
 		})
 	}
 
@@ -151,158 +158,163 @@ export class CasparCGDevice extends Device {
 		const caspar = new StateNS.State()
 
 		_.each(timelineState.LLayers, (layer: TimelineResolvedObject, layerName: string) => {
-			const mapping: MappingCasparCG = this.mapping[layerName] as MappingCasparCG
+			const foundMapping: Mapping = this.mapping[layerName]
 
-			const channel = caspar.channels[mapping.channel] ? caspar.channels[mapping.channel] : new StateNS.Channel()
-			channel.channelNo = Number(mapping.channel) || 1
-			// @todo: check if we need to get fps.
-			channel.fps = 50
-			caspar.channels[channel.channelNo] = channel
+			if (
+				foundMapping.device === DeviceType.CASPARCG &&
+				_.has(foundMapping,'channel') &&
+				_.has(foundMapping,'layer')
+			) {
 
-			let stateLayer: StateNS.ILayerBase | null = null
-
-			if (layer.content.type === 'video') {
-				let l: StateNS.IMediaLayer = {
-					layerNo: mapping.layer,
-					content: StateNS.LayerContentType.MEDIA,
-					media: layer.content.attributes.file,
-					playTime: layer.resolved.startTime || null,
-					playing: true,
-
-					looping: layer.content.attributes.loop,
-					seek: layer.content.attributes.seek
+				const mapping: MappingCasparCG = {
+					device: DeviceType.CASPARCG,
+					deviceId: foundMapping.deviceId,
+					channel: foundMapping.channel || 0,
+					layer: foundMapping.layer || 0
 				}
-				stateLayer = l
-			} else if (layer.content.type === 'ip') {
-				let l: StateNS.IMediaLayer = {
-					layerNo: mapping.layer,
-					content: StateNS.LayerContentType.MEDIA,
-					media: layer.content.attributes.uri,
-					playTime: layer.resolved.startTime || null,
-					playing: true,
-					seek: 0 // ip inputs can't be seeked
-				}
-				stateLayer = l
-			} else if (layer.content.type === 'input') {
-				let l: StateNS.IInputLayer = {
-					layerNo: mapping.layer,
-					content: StateNS.LayerContentType.INPUT,
-					media: 'decklink',
-					input: {
-						device: layer.content.attributes.device
-					},
-					playing: true,
-					playTime: null
-				}
-				stateLayer = l
-			} else if (layer.content.type === 'template') {
-				let l: StateNS.ITemplateLayer = {
-					layerNo: mapping.layer,
-					content: StateNS.LayerContentType.TEMPLATE,
-					media: layer.content.attributes.name,
 
-					playTime: layer.resolved.startTime || null,
-					playing: true,
+				const channel = caspar.channels[mapping.channel] ? caspar.channels[mapping.channel] : new StateNS.Channel()
+				channel.channelNo = Number(mapping.channel) || 1
+				// @todo: check if we need to get fps.
+				channel.fps = 50
+				caspar.channels[channel.channelNo] = channel
 
-					templateType: layer.content.attributes.type || 'html',
-					templateData: layer.content.attributes.data,
-					cgStop: layer.content.attributes.useStopCommand
-				}
-				stateLayer = l
-			} else if (layer.content.type === 'route') {
-				if (layer.content.attributes.LLayer) {
-					let routeMapping = this.mapping[layer.content.attributes.LLayer] as MappingCasparCG
-					if (routeMapping) {
-						layer.content.attributes.channel = routeMapping.channel
-						layer.content.attributes.layer = routeMapping.layer
+				let stateLayer: StateNS.ILayerBase | null = null
+
+				if (layer.content.type === 'video') {
+					let l: StateNS.IMediaLayer = {
+						layerNo: mapping.layer,
+						content: StateNS.LayerContentType.MEDIA,
+						media: layer.content.attributes.file,
+						playTime: layer.resolved.startTime || null,
+						playing: true,
+
+						looping: layer.content.attributes.loop,
+						seek: layer.content.attributes.seek
+					}
+					stateLayer = l
+				} else if (layer.content.type === 'ip') {
+					let l: StateNS.IMediaLayer = {
+						layerNo: mapping.layer,
+						content: StateNS.LayerContentType.MEDIA,
+						media: layer.content.attributes.uri,
+						playTime: layer.resolved.startTime || null,
+						playing: true,
+						seek: 0 // ip inputs can't be seeked
+					}
+					stateLayer = l
+				} else if (layer.content.type === 'input') {
+					let l: StateNS.IInputLayer = {
+						layerNo: mapping.layer,
+						content: StateNS.LayerContentType.INPUT,
+						media: 'decklink',
+						input: {
+							device: layer.content.attributes.device
+						},
+						playing: true,
+						playTime: null
+					}
+					stateLayer = l
+				} else if (layer.content.type === 'template') {
+					let l: StateNS.ITemplateLayer = {
+						layerNo: mapping.layer,
+						content: StateNS.LayerContentType.TEMPLATE,
+						media: layer.content.attributes.name,
+
+						playTime: layer.resolved.startTime || null,
+						playing: true,
+
+						templateType: layer.content.attributes.type || 'html',
+						templateData: layer.content.attributes.data,
+						cgStop: layer.content.attributes.useStopCommand
+					}
+					stateLayer = l
+				} else if (layer.content.type === 'route') {
+					if (layer.content.attributes.LLayer) {
+						let routeMapping = this.mapping[layer.content.attributes.LLayer] as MappingCasparCG
+						if (routeMapping) {
+							layer.content.attributes.channel = routeMapping.channel
+							layer.content.attributes.layer = routeMapping.layer
+						}
+					}
+					let l: StateNS.IRouteLayer = {
+						layerNo: mapping.layer,
+						content: StateNS.LayerContentType.ROUTE,
+						media: 'route',
+						route: {
+							channel: layer.content.attributes.channel,
+							layer: layer.content.attributes.layer
+						},
+						playing: true,
+						playTime: null // layer.resolved.startTime || null
+					}
+					stateLayer = l
+				} else if (layer.content.type === 'record') {
+					if (layer.resolved.startTime) {
+						let l: StateNS.IRecordLayer = {
+							layerNo: mapping.layer,
+							content: StateNS.LayerContentType.RECORD,
+							media: layer.content.attributes.file,
+							encoderOptions: layer.content.attributes.encoderOptions,
+							playing: true,
+							playTime: layer.resolved.startTime
+						}
+						stateLayer = l
 					}
 				}
-				let l: StateNS.IRouteLayer = {
-					layerNo: mapping.layer,
-					content: StateNS.LayerContentType.ROUTE,
-					media: 'route',
-					route: {
-						channel: layer.content.attributes.channel,
-						layer: layer.content.attributes.layer
-					},
-					playing: true,
-					playTime: null // layer.resolved.startTime || null
-				}
-				stateLayer = l
-			} else if (layer.content.type === 'record') {
-				if (layer.resolved.startTime) {
-					let l: StateNS.IRecordLayer = {
+				if (!stateLayer) {
+					let l: StateNS.IEmptyLayer = {
 						layerNo: mapping.layer,
-						content: StateNS.LayerContentType.RECORD,
-						media: layer.content.attributes.file,
-						encoderOptions: layer.content.attributes.encoderOptions,
-						playing: true,
-						playTime: layer.resolved.startTime
+						content: StateNS.LayerContentType.NOTHING,
+						playing: false,
+						pauseTime: 0
 					}
 					stateLayer = l
 				}
-			}
-
-			if (!stateLayer) {
-				let l: StateNS.IEmptyLayer = {
-					layerNo: mapping.layer,
-					content: StateNS.LayerContentType.NOTHING,
-					playing: false,
-					pauseTime: 0
-				}
-				stateLayer = l
-			}
-
-			if (stateLayer) {
-
-				if (layer.content.transitions) {
-					switch (layer.content.type) {
-						case 'video' || 'ip' || 'template' || 'input' || 'route':
-							// create transition object
-							let media = stateLayer.media
-							let transitions = {} as any
-
-							if (layer.content.transitions.inTransition) {
-								transitions.inTransition = new StateNS.Transition(
-									layer.content.transitions.inTransition.type,
-									layer.content.transitions.inTransition.duration,
-									layer.content.transitions.inTransition.easing,
-									layer.content.transitions.inTransition.direction
-								)
-							}
-
-							if (layer.content.transitions.outTransition) {
-								transitions.outTransition = new StateNS.Transition(
-									layer.content.transitions.outTransition.type,
-									layer.content.transitions.outTransition.duration,
-									layer.content.transitions.outTransition.easing,
-									layer.content.transitions.outTransition.direction
-								)
-							}
-
-							stateLayer.media = new StateNS.TransitionObject(media, {
-								inTransition: transitions.inTransition,
-								outTransition: transitions.outTransition
-							})
-							break
-						default :
-							// create transition using mixer
-							break
+				if (stateLayer) {
+					if (layer.content.transitions) {
+						switch (layer.content.type) {
+							case 'video' || 'ip' || 'template' || 'input' || 'route':
+								// create transition object
+								let media = stateLayer.media
+								let transitions = {} as any
+								if (layer.content.transitions.inTransition) {
+									transitions.inTransition = new StateNS.Transition(
+										layer.content.transitions.inTransition.type,
+										layer.content.transitions.inTransition.duration,
+										layer.content.transitions.inTransition.easing,
+										layer.content.transitions.inTransition.direction
+									)
+								}
+								if (layer.content.transitions.outTransition) {
+									transitions.outTransition = new StateNS.Transition(
+										layer.content.transitions.outTransition.type,
+										layer.content.transitions.outTransition.duration,
+										layer.content.transitions.outTransition.easing,
+										layer.content.transitions.outTransition.direction
+									)
+								}
+								stateLayer.media = new StateNS.TransitionObject(media, {
+									inTransition: transitions.inTransition,
+									outTransition: transitions.outTransition
+								})
+								break
+							default :
+								// create transition using mixer
+								break
+						}
 					}
+					if (layer.resolved.mixer) {
+						// just pass through values here:
+						let mixer: StateNS.Mixer = {}
+						_.each(layer.resolved.mixer, (value, property) => {
+							mixer[property] = value
+						})
+						stateLayer.mixer = mixer
+					}
+					stateLayer.layerNo = mapping.layer
+					channel.layers[mapping.layer] = stateLayer
 				}
-
-				if (layer.resolved.mixer) {
-					// just pass through values here:
-					let mixer: StateNS.Mixer = {}
-					_.each(layer.resolved.mixer, (value, property) => {
-						mixer[property] = value
-					})
-					stateLayer.mixer = mixer
-				}
-
-				stateLayer.layerNo = mapping.layer
-
-				channel.layers[mapping.layer] = stateLayer
 			}
 
 		})
@@ -326,8 +338,8 @@ export class CasparCGDevice extends Device {
 		return returnCommands
 	}
 
-	private _addToQueue (commandsToAchieveState, oldState: TimelineState, time: number) {
-		_.each(commandsToAchieveState, (cmd: any) => {
+	private _addToQueue (commandsToAchieveState: Array<CommandNS.IAMCPCommandVO>, oldState: TimelineState, time: number) {
+		_.each(commandsToAchieveState, (cmd: CommandNS.IAMCPCommandVO) => {
 			if (cmd._commandName === 'PlayCommand' && cmd._objectParams.clip !== 'empty') {
 				if (oldState.time > 0 && time > this.getCurrentTime()) { // @todo: put the loadbg command just after the oldState.time when convenient?
 					let loadbgCmd = Object.assign({}, cmd) // make a deep copy
@@ -367,7 +379,6 @@ export class CasparCGDevice extends Device {
 				delete this._queue[resCommand.token]
 			}
 		}).catch((e) => {
-			console.log(e.response)
 			if (cmd.name === 'ScheduleSetCommand') {
 				delete this._queue[cmd.getParam('command').token]
 			}

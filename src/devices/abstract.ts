@@ -1,5 +1,5 @@
 import * as _ from 'underscore'
-import { Device } from './device'
+import { Device, DeviceOptions } from './device'
 import { DeviceType } from './mapping'
 
 import { TimelineState } from 'superfly-timeline'
@@ -10,13 +10,18 @@ import { TimelineState } from 'superfly-timeline'
 	An abstract device is just a test-device that doesn't really do anything, but can be used
 	as a preliminary mock
 */
+export interface AbstractDeviceOptions extends DeviceOptions {
+	options?: {
+		commandReceiver?: (time: number, cmd) => void
+	}
+}
 export class AbstractDevice extends Device {
 
 	private _queue: Array<any>
 
 	private _commandReceiver: (time: number, cmd) => void
 
-	constructor (deviceId: string, deviceOptions: any, options) {
+	constructor (deviceId: string, deviceOptions: AbstractDeviceOptions, options) {
 		super(deviceId, deviceOptions, options)
 		if (deviceOptions.options) {
 			if (deviceOptions.options.commandReceiver) this._commandReceiver = deviceOptions.options.commandReceiver
@@ -47,6 +52,10 @@ export class AbstractDevice extends Device {
 	init (): Promise<boolean> {
 		return new Promise((resolve/*, reject*/) => {
 			// This is where we would do initialization, like connecting to the devices, etc
+
+			// myDevide.onConnectionChange((connected: boolean) => {
+				// this.emit('connectionChanged', connected)
+			// })
 			resolve(true)
 		})
 	}

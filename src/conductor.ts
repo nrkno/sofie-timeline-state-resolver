@@ -1,10 +1,10 @@
 import * as _ from 'underscore'
 import { Resolver, TimelineObject, TimelineState, TimelineResolvedObject } from 'superfly-timeline'
 
-import { Device } from './devices/device'
+import { Device, DeviceOptions } from './devices/device'
 import { CasparCGDevice } from './devices/casparCG'
 import { AbstractDevice } from './devices/abstract'
-import { Mappings, Mapping, DeviceType } from './devices//mapping'
+import { Mappings, Mapping, DeviceType } from './devices/mapping'
 
 const LOOKAHEADTIME = 5000 // Will look ahead this far into the future
 const PREPARETIME = 2000 // Will prepare commands this time before the event is to happen
@@ -17,12 +17,9 @@ export interface Device {}
 
 export interface ConductorOptions {
 	devices: {
-		[deviceName: string]: {
-			type: DeviceType,
-			options?: {}
-		}
+		[deviceName: string]: DeviceOptions
 	},
-	initializeAsClear: true, // don't do any initial checks with devices to determine state, instead assume that everything is clear, black and quiet
+	initializeAsClear: boolean, // don't do any initial checks with devices to determine state, instead assume that everything is clear, black and quiet
 	getCurrentTime: () => number,
 	autoInit?: boolean
 }
@@ -42,6 +39,7 @@ export class Conductor {
 
 	private _nextResolveTime: number = 0
 	private _resolveTimelineTrigger: NodeJS.Timer
+	private _isInitialized: boolean = false
 
 	constructor (options: ConductorOptions) {
 
@@ -61,8 +59,12 @@ export class Conductor {
 	/**
 	 * Initializes the devices that were passed as options.
 	 */
-	public init (): Promise<any> {
+	public init (): Promise<void> {
 		return this._initializeDevices()
+		.then(() => {
+			this._isInitialized = true
+			this._resetResolver()
+		})
 	}
 	/**
 	 * Returns a nice, synchronized time.
@@ -107,10 +109,13 @@ export class Conductor {
 
 	}
 
+	public getDevices (): Array<Device> {
+		return _.values(this.devices)
+	}
 	public getDevice (deviceId) {
 		return this.devices[deviceId]
 	}
-	public addDevice (deviceId, deviceOptions): Promise<any> {
+	public addDevice (deviceId, deviceOptions: DeviceOptions): Promise<any> {
 		let newDevice: Device | null = null
 
 		if (deviceOptions.type === DeviceType.ABSTRACT) {
@@ -129,7 +134,7 @@ export class Conductor {
 		if (newDevice) {
 			this.devices[deviceId] = newDevice
 			newDevice.mapping = this.mapping
-			return newDevice.init()
+			return newDevice.init(deviceOptions.options)
 		}
 		// if we cannot find a device:
 		return new Promise((resolve) => {
@@ -165,35 +170,12 @@ export class Conductor {
 	 * @todo: allow for runtime reconfiguration of devices.
 	 */
 	private _initializeDevices (): Promise<any> {
-
 		const ps: Array<Promise<any>> = []
-
 		_.each(this._options.devices, (deviceOptions, deviceId) => {
 			ps.push(this.addDevice(deviceId, deviceOptions))
-			// let newDevice: Device | null = null
-
-			// if (deviceOptions.type === DeviceType.ABSTRACT) {
-			// 	// Add Abstract device:
-			// 	newDevice = new AbstractDevice(deviceId, deviceOptions, {
-			// 		// TODO: Add options
-			// 		getCurrentTime: () => { return this.getCurrentTime() }
-			// 	}) as Device
-			// } else if (deviceOptions.type === DeviceType.CASPARCG) {
-			// 	// Add CasparCG device:
-			// 	newDevice = new CasparCGDevice(deviceId, deviceOptions, {
-			// 		// TODO: Add options
-			// 		getCurrentTime: () => { return this.getCurrentTime() }
-			// 	}) as Device
-			// }
-			// if (newDevice) {
-			// 	this.devices[deviceId] = newDevice
-			// 	newDevice.mapping = this.mapping
-			// 	ps.push(newDevice.init())
-			// }
 		})
 
 		return Promise.all(ps)
-
 	}
 	/**
 	 * Resets the resolve-time, so that the resolving will happen for the point-in time NOW
@@ -231,6 +213,7 @@ export class Conductor {
 	 * Resolves the timeline for the next resolve-time, generates the commands and passes on the commands.
 	 */
 	private _resolveTimeline () {
+		if (!this._isInitialized) return
 		const now = this.getCurrentTime()
 		let resolveTime: number = this._nextResolveTime || now
 
