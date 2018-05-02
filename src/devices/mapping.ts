@@ -19,5 +19,6 @@ export interface MappingAbstract extends Mapping {
 }
 export enum DeviceType {
 	ABSTRACT = 0,
-	CASPARCG = 1
+	CASPARCG = 1,
+	ATEM = 2
 }

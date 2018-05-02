@@ -5,6 +5,7 @@ import { Device, DeviceOptions } from './devices/device'
 import { CasparCGDevice } from './devices/casparCG'
 import { AbstractDevice } from './devices/abstract'
 import { Mappings, Mapping, DeviceType } from './devices/mapping'
+import { AtemDevice } from './devices/atem'
 
 const LOOKAHEADTIME = 5000 // Will look ahead this far into the future
 const PREPARETIME = 2000 // Will prepare commands this time before the event is to happen
@@ -128,6 +129,11 @@ export class Conductor {
 		} else if (deviceOptions.type === DeviceType.CASPARCG) {
 			// Add CasparCG device:
 			newDevice = new CasparCGDevice(deviceId, deviceOptions, {
+				// TODO: Add options
+				getCurrentTime: () => { return this.getCurrentTime() }
+			}) as Device
+		} else if (deviceOptions.type === DeviceType.ATEM) {
+			newDevice = new AtemDevice(deviceId, deviceOptions, {
 				// TODO: Add options
 				getCurrentTime: () => { return this.getCurrentTime() }
 			}) as Device

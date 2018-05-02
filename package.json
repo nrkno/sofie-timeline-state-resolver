@@ -101,6 +101,8 @@
     "production"
   ],
   "dependencies": {
+    "atem-connection": "git+https://github.com/nrkno/tv-automation-atem-connection#dist",
+    "atem-state": "git+https://github.com/nrkno/tv-automation-atem-state#dist",
     "casparcg-connection": "git+https://github.com/SuperFlyTV/casparcg-connection.git#master",
     "casparcg-state": "git+https://Mfn2bXzQtEFXHKpo12x2y78QJMR7gUZz:x-oauth-basic@bitbucket.org/superflytv/casparcg-state.git#develop",
     "superfly-timeline": "git+https://github.com/SuperFlyTV/supertimeline.git#dist",
