@@ -1,10 +1,10 @@
 import * as _ from 'underscore'
 import { Device, DeviceOptions } from './device'
-import { DeviceType } from './mapping'
+import { DeviceType, MappingAtem, MappingAtemType } from './mapping'
 
-import { TimelineState } from 'superfly-timeline'
-import { Atem, AtemState as DeviceState } from 'atem-connection'
-import { AtemState } from 'atem-state'
+import { TimelineState, TimelineResolvedObject } from 'superfly-timeline'
+import { Atem, AtemState as DeviceState, VideoState } from 'atem-connection'
+import { AtemState, Defaults as StateDefault } from 'atem-state'
 import AbstractCommand from 'atem-connection/dist/commands/AbstractCommand'
 
 /*
@@ -31,6 +31,7 @@ export class AtemDevice extends Device {
 		super(deviceId, deviceOptions, options)
 		if (deviceOptions.options) {
 			if (deviceOptions.options.commandReceiver) this._commandReceiver = deviceOptions.options.commandReceiver
+			else this._commandReceiver = this._defaultCommandReceiver
 		}
 
 		setInterval(() => {
@@ -95,7 +96,69 @@ export class AtemDevice extends Device {
 	}
 	convertStateToAtem (state: TimelineState): DeviceState {
 		// @todo: convert the timeline state into something we can use
-		return new DeviceState()
+		const deviceState = this._getDefaultState()
+
+		_.each(state.LLayers, (tlObject: TimelineResolvedObject, layerName: string) => {
+			let obj = tlObject.content
+			const mapping = this.mapping[layerName] as MappingAtem
+			if (mapping) {
+				if (mapping.index) {
+					obj = {}
+					obj[mapping.index] = tlObject.content
+				}
+				switch (mapping.mappingType) {
+					case (MappingAtemType.MixEffect) :
+						obj = {
+							video: {
+								ME: obj
+							}
+						}
+						break
+					case (MappingAtemType.DownStreamKeyer) :
+						obj = {
+							video: {
+								downstreamKeyers: obj
+							}
+						}
+						break
+					case (MappingAtemType.SuperSourceBox) :
+						obj = {
+							video: {
+								superSourceBoxes: obj
+							}
+						}
+						break
+					case (MappingAtemType.Auxilliary) :
+						obj = {
+							video: {
+								auxilliaries: obj
+							}
+						}
+						break
+					case (MappingAtemType.MediaPlayer) :
+						obj = {
+							mediaState: {
+								players: obj
+							}
+						}
+						break
+				}
+			}
+
+			const traverseState = (mutation, mutableObj) => {
+				for (const key in mutation) {
+					if (typeof mutation[key] === 'object' && mutableObj[key]) {
+						traverseState(mutation[key], mutableObj[key])
+					} else if (mutableObj[key]) {
+						mutableObj[key] = mutation
+					}
+				}
+			}
+
+			traverseState(obj, DeviceState)
+		})
+
+		return deviceState
 	}
 	get deviceType () {
 		return DeviceType.ATEM
@@ -113,5 +176,31 @@ export class AtemDevice extends Device {
 		let commands: Array<AbstractCommand> = this._state.diffStates(oldAbstractState, newAbstractState)
 
 		return commands
+	}
+
+	private _getDefaultState (): DeviceState {
+		const deviceState = new DeviceState()
+
+		for (let i = 0; i < this._device.state.info.capabilities.MEs; i++) {
+			deviceState.video.ME[i] = StateDefault.Video.MixEffect as VideoState.MixEffect
+		}
+		for (let i = 0; i < this._device.state.video.downstreamKeyers.length; i++) {
+			deviceState.video.downstreamKeyers[i] = StateDefault.Video.DownStreamKeyer
+		}
+		for (let i = 0; i < this._device.state.info.capabilities.auxilliaries; i++) {
+			deviceState.video.auxilliaries[i] = StateDefault.Video.defaultInput
+		}
+		for (let i = 0; i < this._device.state.info.capabilities.superSources; i++) {
+			deviceState.video.superSourceBoxes[i] = StateDefault.Video.SuperSourceBox
+		}
+
+		return deviceState
+	}
+
+	private _defaultCommandReceiver (time: number, command: AbstractCommand) {
+		time = time // seriously this needs to stop
+		this._device.sendCommand(command).then(() => {
+			// @todo: command was acknowledged by atem, how will we check if it did what we wanted?
+		})
 	}
 }

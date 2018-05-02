@@ -17,6 +17,17 @@ export interface MappingAbstract extends Mapping {
 	device: DeviceType.ABSTRACT,
 	abstractPipe: number
 }
+export interface MappingAtem extends Mapping {
+	mappingType: MappingAtemType
+	index?: number
+}
+export enum MappingAtemType {
+	MixEffect,
+	DownStreamKeyer,
+	SuperSourceBox,
+	Auxilliary,
+	MediaPlayer
+}
 export enum DeviceType {
 	ABSTRACT = 0,
 	CASPARCG = 1,
