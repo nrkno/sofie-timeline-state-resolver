@@ -3,8 +3,8 @@ import { Device, DeviceOptions } from './device'
 import { DeviceType, MappingAtem, MappingAtemType } from './mapping'
 
 import { TimelineState, TimelineResolvedObject } from 'superfly-timeline'
-import { Atem, AtemState as DeviceState, VideoState } from 'atem-connection'
-import { AtemState, Defaults as StateDefault } from 'atem-state'
+import { Atem, VideoState } from 'atem-connection'
+import { AtemState, State as DeviceState, Defaults as StateDefault } from 'atem-state'
 import AbstractCommand from 'atem-connection/dist/commands/AbstractCommand'
 
 /*
@@ -102,7 +102,7 @@ export class AtemDevice extends Device {
 			let obj = tlObject.content
 			const mapping = this.mapping[layerName] as MappingAtem
 			if (mapping) {
-				if (mapping.index) {
+				if (mapping.index !== undefined) {
 					obj = {}
 					obj[mapping.index] = tlObject.content
 				}
@@ -149,13 +149,13 @@ export class AtemDevice extends Device {
 				for (const key in mutation) {
 					if (typeof mutation[key] === 'object' && mutableObj[key]) {
 						traverseState(mutation[key], mutableObj[key])
-					} else if (mutableObj[key]) {
-						mutableObj[key] = mutation
+					} else {
+						mutableObj[key] = mutation[key]
 					}
 				}
 			}
 
-			traverseState(obj, DeviceState)
+			traverseState(obj, deviceState)
 		})
 
 		return deviceState
@@ -171,27 +171,25 @@ export class AtemDevice extends Device {
 	}
 
 	private _diffStates (oldAbstractState, newAbstractState): Array<AbstractCommand> {
-		// in this abstract class, let's just cheat:
-
 		let commands: Array<AbstractCommand> = this._state.diffStates(oldAbstractState, newAbstractState)
 
 		return commands
 	}
 
 	private _getDefaultState (): DeviceState {
-		const deviceState = new DeviceState()
+		let deviceState = new DeviceState()
 
 		for (let i = 0; i < this._device.state.info.capabilities.MEs; i++) {
-			deviceState.video.ME[i] = StateDefault.Video.MixEffect as VideoState.MixEffect
+			deviceState.video.ME[i] = JSON.parse(JSON.stringify(StateDefault.Video.MixEffect)) as VideoState.MixEffect
 		}
 		for (let i = 0; i < this._device.state.video.downstreamKeyers.length; i++) {
-			deviceState.video.downstreamKeyers[i] = StateDefault.Video.DownStreamKeyer
+			deviceState.video.downstreamKeyers[i] = JSON.parse(JSON.stringify(StateDefault.Video.DownStreamKeyer))
 		}
 		for (let i = 0; i < this._device.state.info.capabilities.auxilliaries; i++) {
-			deviceState.video.auxilliaries[i] = StateDefault.Video.defaultInput
+			deviceState.video.auxilliaries[i] = JSON.parse(JSON.stringify(StateDefault.Video.defaultInput))
 		}
 		for (let i = 0; i < this._device.state.info.capabilities.superSources; i++) {
-			deviceState.video.superSourceBoxes[i] = StateDefault.Video.SuperSourceBox
+			deviceState.video.superSourceBoxes[i] = JSON.parse(JSON.stringify(StateDefault.Video.SuperSourceBox))
 		}
 
 		return deviceState
