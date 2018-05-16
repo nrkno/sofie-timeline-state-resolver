@@ -1,7 +1,8 @@
 import { Resolver, TimelineObject, TimelineState, TriggerType } from 'superfly-timeline'
 
 import { Mappings, MappingCasparCG, MappingAbstract, DeviceType } from '../devices/mapping'
-import { Conductor } from '../conductor'
+import { Conductor, TimelineTriggerTimeResult } from '../conductor'
+import * as _ from 'underscore'
 
 let nowActual: number = Date.now()
 let now: number = 1000
@@ -183,4 +184,91 @@ test('Test Abstract-device functionality', async () => {
 	}
 	abstractThing0.trigger.value = now
 	conductor.timeline = [ abstractThing0 ]
+})
+
+test('Test the "Now"-functionality', async () => {
+	jest.useFakeTimers()
+
+	let commandReceiver0 = jest.fn((command) => {
+		// nothing
+	})
+	let commandReceiver1 = jest.fn((command) => {
+		// nothing
+	})
+
+	let myLayerMapping0: MappingAbstract = {
+		device: DeviceType.ABSTRACT,
+		deviceId: 'device0',
+		abstractPipe: 32
+	}
+	let myLayerMapping: Mappings = {
+		'myLayer0': myLayerMapping0
+	}
+
+	let conductor = new Conductor({
+		devices: {
+			'device0': {
+				type: DeviceType.ABSTRACT,
+				options: {
+					commandReceiver: commandReceiver0
+				}
+			}
+		},
+		initializeAsClear: true,
+		getCurrentTime: getCurrentTime
+	})
+
+	conductor.mapping = myLayerMapping
+	await conductor.init()
+
+	// add something that will play "now"
+	let abstractThing0: TimelineObject = {
+		id: 'a0',
+		trigger: {
+			type: TriggerType.TIME_ABSOLUTE,
+			value: 'now'
+		},
+		duration: 5000,
+		LLayer: 'myLayer0',
+		content: {
+			myAttr1: 'one',
+			myAttr2: 'two'
+		}
+	}
+	let timeline = [abstractThing0]
+
+	let setTimelineTriggerTime = jest.fn((r: TimelineTriggerTimeResult) => {
+		_.each(r.objectIds, (id) => {
+			let o = _.findWhere(timeline, { id: id })
+			if (o) {
+				o.trigger.value = r.time
+			}
+		})
+		// update the timeline:
+		conductor.timeline = timeline
+	})
+	conductor.on('setTimelineTriggerTime', setTimelineTriggerTime)
+
+	let device0 = conductor.getDevice('device0')
+	// let device1 = conductor.getDevice('device1')
+
+	// The queues should be empty
+	expect(device0.queue).toHaveLength(0)
+	// expect(device1.queue).toHaveLength(0)
+
+	conductor.timeline = timeline
+
+	// there should now be one command queued:
+	expect(device0.queue).toHaveLength(1)
+
+	// the setTimelineTriggerTime event should have been emitted:
+	expect(setTimelineTriggerTime).toHaveBeenCalledTimes(1)
+	expect(setTimelineTriggerTime.mock.calls[0][0].time).toEqual(1000)
+
+	// Move forward in time
+	advanceTime(500) // to time 1500
+	expect(commandReceiver0).toHaveBeenCalledTimes(1)
+
+	advanceTime(5000) // to time 6500
+	expect(commandReceiver0).toHaveBeenCalledTimes(2)
 })

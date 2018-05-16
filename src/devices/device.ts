@@ -36,6 +36,8 @@ export class Device extends EventEmitter {
 		this._deviceId = deviceId
 		this._deviceOptions = deviceOptions
 
+		this._deviceOptions = this._deviceOptions // ts-lint fix
+
 		if (options.getCurrentTime) {
 			this._getCurrentTime = options.getCurrentTime
 		}

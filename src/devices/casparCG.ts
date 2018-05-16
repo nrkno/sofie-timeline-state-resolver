@@ -37,7 +37,9 @@ export class CasparCGDevice extends Device {
 			else this._commandReceiver = this._defaultCommandReceiver
 		}
 
-		this._ccgState = new CasparCGState({currentTime: this.getCurrentTime})
+		this._ccgState = new CasparCGState({
+			currentTime: this.getCurrentTime
+		})
 	}
 
 	/**
