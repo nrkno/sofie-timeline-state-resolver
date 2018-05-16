@@ -1,15 +1,17 @@
 import { Resolver, TimelineObject, TimelineState, TriggerType } from 'superfly-timeline'
 
 import { Mappings, MappingCasparCG, MappingAbstract, DeviceType } from '../devices/mapping'
-import { Conductor, TimelineTriggerTimeResult } from '../conductor'
+import { Conductor, TimelineTriggerTimeResult, TimelineContentObject } from '../conductor'
 import * as _ from 'underscore'
 
 let nowActual: number = Date.now()
 let now: number = 1000
 
 beforeAll(() => {
-	Date.now = jest.fn()
-	Date.now['mockReturnValue'](1000)
+	Date.now = jest.fn(() => {
+		return getCurrentTime()
+	})
+	// Date.now['mockReturnValue'](now)
 })
 function getCurrentTime () {
 	return now
@@ -20,7 +22,6 @@ function advanceTime (advanceTime: number) {
 	jest.advanceTimersByTime(advanceTime)
 	// console.log('Advancing ' + advanceTime + ' ms -----------------------')
 }
-
 test('Test Abstract-device functionality', async () => {
 	jest.useFakeTimers()
 
@@ -69,8 +70,9 @@ test('Test Abstract-device functionality', async () => {
 	await conductor.init()
 
 	// add something that will play in a seconds time
-	let abstractThing0: TimelineObject = {
+	let abstractThing0: TimelineContentObject = {
 		id: 'a0',
+		roId: 'ro0',
 		trigger: {
 			type: TriggerType.TIME_ABSOLUTE,
 			value: now
@@ -82,8 +84,9 @@ test('Test Abstract-device functionality', async () => {
 			myAttr2: 'two'
 		}
 	}
-	let abstractThing1: TimelineObject = {
+	let abstractThing1: TimelineContentObject = {
 		id: 'a1',
+		roId: 'ro0',
 		trigger: {
 			type: TriggerType.TIME_ABSOLUTE,
 			value: now + 1000
@@ -186,7 +189,7 @@ test('Test Abstract-device functionality', async () => {
 	conductor.timeline = [ abstractThing0 ]
 })
 
-test('Test the "Now"-functionality', async () => {
+test.only('Test the "Now" and "Callback-functionality', async () => {
 	jest.useFakeTimers()
 
 	let commandReceiver0 = jest.fn((command) => {
@@ -218,12 +221,13 @@ test('Test the "Now"-functionality', async () => {
 		getCurrentTime: getCurrentTime
 	})
 
-	conductor.mapping = myLayerMapping
 	await conductor.init()
+	conductor.mapping = myLayerMapping
 
 	// add something that will play "now"
-	let abstractThing0: TimelineObject = {
+	let abstractThing0: TimelineContentObject = {
 		id: 'a0',
+		roId: 'ro0',
 		trigger: {
 			type: TriggerType.TIME_ABSOLUTE,
 			value: 'now'
@@ -235,7 +239,25 @@ test('Test the "Now"-functionality', async () => {
 			myAttr2: 'two'
 		}
 	}
-	let timeline = [abstractThing0]
+	let abstractThing1: TimelineContentObject = {
+		id: 'a1',
+		roId: 'ro0',
+		trigger: {
+			type: TriggerType.TIME_RELATIVE,
+			value: '#a0.start + 300'
+		},
+		duration: 5000,
+		LLayer: 'myLayer0',
+		content: {
+			myAttr1: 'one',
+			myAttr2: 'two',
+			callBack: 'abc',
+			callBackData: {
+				hello: 'dude'
+			}
+		}
+	}
+	let timeline = [abstractThing0, abstractThing1]
 
 	let setTimelineTriggerTime = jest.fn((r: TimelineTriggerTimeResult) => {
 		_.each(r.objectIds, (id) => {
@@ -245,9 +267,12 @@ test('Test the "Now"-functionality', async () => {
 			}
 		})
 		// update the timeline:
+		// console.log('Setting timeline from callback..')
 		conductor.timeline = timeline
 	})
 	conductor.on('setTimelineTriggerTime', setTimelineTriggerTime)
+	let timelineCallback = jest.fn()
+	conductor.on('timelineCallback', timelineCallback)
 
 	let device0 = conductor.getDevice('device0')
 	// let device1 = conductor.getDevice('device1')
@@ -256,6 +281,7 @@ test('Test the "Now"-functionality', async () => {
 	expect(device0.queue).toHaveLength(0)
 	// expect(device1.queue).toHaveLength(0)
 
+	// console.log('Setting timeline..')
 	conductor.timeline = timeline
 
 	// there should now be one command queued:
@@ -265,10 +291,27 @@ test('Test the "Now"-functionality', async () => {
 	expect(setTimelineTriggerTime).toHaveBeenCalledTimes(1)
 	expect(setTimelineTriggerTime.mock.calls[0][0].time).toEqual(1000)
 
+	// the timelineCallback event should have been emitted:
+	expect(timelineCallback).toHaveBeenCalledTimes(0)
+
 	// Move forward in time
-	advanceTime(500) // to time 1500
+	advanceTime(100) // to time 1100
+
 	expect(commandReceiver0).toHaveBeenCalledTimes(1)
+	expect(timelineCallback).toHaveBeenCalledTimes(0)
+	// console.log(timelineCallback.mock.calls)
+
+	advanceTime(400) // to time 1500
+
+	expect(commandReceiver0).toHaveBeenCalledTimes(2)
+	expect(timelineCallback).toHaveBeenCalledTimes(1)
+	expect(timelineCallback.mock.calls[0][0]).toEqual(1300)
+	expect(timelineCallback.mock.calls[0][1]).toEqual('a1')
+	expect(timelineCallback.mock.calls[0][2]).toEqual('abc')
+	expect(timelineCallback.mock.calls[0][3]).toEqual({hello: 'dude'})
 
 	advanceTime(5000) // to time 6500
-	expect(commandReceiver0).toHaveBeenCalledTimes(2)
+
+	expect(commandReceiver0).toHaveBeenCalledTimes(3)
+
 })

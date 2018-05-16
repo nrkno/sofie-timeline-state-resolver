@@ -12,13 +12,17 @@ import { AbstractDevice } from './devices/abstract'
 import { Mappings, Mapping, DeviceType } from './devices/mapping'
 import { AtemDevice } from './devices/atem'
 import { EventEmitter } from 'events'
+import { TimelineCallback } from './timelineCallback'
 
 const LOOKAHEADTIME = 5000 // Will look ahead this far into the future
 const PREPARETIME = 2000 // Will prepare commands this time before the event is to happen
 const MINTRIGGERTIME = 10 // Minimum time between triggers
 const MINTIMEUNIT = 1 // Minimum unit of time
 
-export interface TimelineContentObject extends TimelineObject {}
+export interface TimelineContentObject extends TimelineObject {
+	roId: string
+}
+export { TriggerType }
 
 export interface TimelineTriggerTimeResult {
 	time: number,
@@ -53,6 +57,7 @@ export class Conductor extends EventEmitter {
 	private _nextResolveTime: number = 0
 	private _resolveTimelineTrigger: NodeJS.Timer
 	private _isInitialized: boolean = false
+	private _timelineCallback: TimelineCallback
 
 	constructor (options: ConductorOptions) {
 		super()
@@ -65,6 +70,11 @@ export class Conductor extends EventEmitter {
 				this._resolveTimeline()
 			}
 		}, 2500)
+
+		this._timelineCallback = new TimelineCallback(this.getCurrentTime)
+		this._timelineCallback.on('callback', (...args) => {
+			this.emit('timelineCallback', ...args)
+		})
 
 		if (options.autoInit) this.init()
 
@@ -243,13 +253,14 @@ export class Conductor extends EventEmitter {
 		const now = this.getCurrentTime()
 		let resolveTime: number = this._nextResolveTime || now
 
-		// console.log('resolveTimeline -----------------------------')
-		// console.log(resolveTime)
+		// console.log('resolveTimeline ' + resolveTime + ' -----------------------------')
 
 		this._fixNowObjects(resolveTime)
 
+		let timeline = this.timeline
+
 		// Generate the state for that time:
-		let tlState = Resolver.getState(this.timeline, resolveTime)
+		let tlState = Resolver.getState(timeline, resolveTime)
 
 		// Split the state into substates that are relevant for each device
 		let getFilteredLayers = (layers, device) => {
@@ -282,7 +293,7 @@ export class Conductor extends EventEmitter {
 		// Now that we've handled this point in time, it's time to determine what the next point in time is:
 
 		// console.log(tlState.time)
-		const timelineWindow = Resolver.getTimelineInWindow(this.timeline, tlState.time, tlState.time + LOOKAHEADTIME)
+		const timelineWindow = Resolver.getTimelineInWindow(timeline, tlState.time, tlState.time + LOOKAHEADTIME)
 
 		const nextEvents = Resolver.getNextEvents(timelineWindow, tlState.time + MINTIMEUNIT, 1)
 
@@ -314,9 +325,16 @@ export class Conductor extends EventEmitter {
 			// resolve at "now" then next time:
 			this._nextResolveTime = 0
 		}
-		this._triggerResolveTimeline(timeUntilNextResolve)
+		// Special function: send callback to Core
+		_.each (tlState.GLayers, (o: TimelineResolvedObject) => {
+			if (o.content.callBack) {
+				this._timelineCallback.queue(resolveTime, o.id, o.content.callBack, o.content.callBackData)
+			}
+		})
 
+		this._triggerResolveTimeline(timeUntilNextResolve)
 	}
+
 	private _fixNowObjects (now: number) {
 		let objectsFixed: Array<string> = []
 		_.each(this.timeline, (o: TimelineContentObject) => {
