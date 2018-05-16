@@ -139,9 +139,14 @@ export class Conductor {
 			}) as Device
 		}
 		if (newDevice) {
+			console.log('Initializing ' + DeviceType[deviceOptions.type] + '...')
 			this.devices[deviceId] = newDevice
 			newDevice.mapping = this.mapping
 			return newDevice.init(deviceOptions.options)
+			.then((device) => {
+				console.log(DeviceType[deviceOptions.type] + ' initialized!')
+				return device
+			})
 		}
 		// if we cannot find a device:
 		return new Promise((resolve) => {
@@ -220,7 +225,10 @@ export class Conductor {
 	 * Resolves the timeline for the next resolve-time, generates the commands and passes on the commands.
 	 */
 	private _resolveTimeline () {
-		if (!this._isInitialized) return
+		if (!this._isInitialized) {
+			console.log('TSR is not initialized yet')
+			return
+		}
 		const now = this.getCurrentTime()
 		let resolveTime: number = this._nextResolveTime || now
 
