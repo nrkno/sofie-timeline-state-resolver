@@ -73,8 +73,8 @@
   resolved "https://registry.yarnpkg.com/@types/minimatch/-/minimatch-2.0.29.tgz#5002e14f75e2d71e564281df0431c8c1b4a2a36a"
 
 "@types/node@*":
-  version "10.0.9"
-  resolved "https://registry.yarnpkg.com/@types/node/-/node-10.0.9.tgz#7cb73a6ef9cf4e41e5354e114e824bfdfd96a6b4"
+  version "10.1.0"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-10.1.0.tgz#2783ee1b6c47cbd4044f4a233976c1ac5fa9e942"
 
 "@types/node@^8.0.4":
   version "8.10.15"
@@ -325,7 +325,7 @@ asynckit@^0.4.0:
 
 "atem-state@git+https://github.com/nrkno/tv-automation-atem-state#dist":
   version "0.0.0"
-  resolved "git+https://github.com/nrkno/tv-automation-atem-state#973c68527816b21070634507425867bfdeec512a"
+  resolved "git+https://github.com/nrkno/tv-automation-atem-state#651e03fa380130b2faa9f17acbfe7c56a57d6b1e"
   dependencies:
     atem-connection "git+https://github.com/nrkno/tv-automation-atem-connection#dist"
     tslib "^1.9.0"
@@ -694,28 +694,19 @@ caseless@~0.12.0:
   version "0.12.0"
   resolved "https://registry.yarnpkg.com/caseless/-/caseless-0.12.0.tgz#1b681c21ff84033c826543090689420d187151dc"
 
-"casparcg-connection@git+https://github.com/SuperFlyTV/casparcg-connection.git#master":
+casparcg-connection@^4.0.3:
   version "4.0.3"
-  resolved "git+https://github.com/SuperFlyTV/casparcg-connection.git#bd4fb3ec4a04f9451965261c4e09af04d8eff24a"
+  resolved "https://registry.yarnpkg.com/casparcg-connection/-/casparcg-connection-4.0.3.tgz#ccb8d63435b40ff0672236c5925b2e0b80a0ff7e"
   dependencies:
     highland "^3.0.0-beta.6"
     xml2js "^0.4.19"
     xmlbuilder "^9.0.7"
 
-"casparcg-connection@git+https://github.com/superflytv/casparcg-connection.git":
-  version "4.0.3"
-  uid bd4fb3ec4a04f9451965261c4e09af04d8eff24a
-  resolved "git+https://github.com/superflytv/casparcg-connection.git#bd4fb3ec4a04f9451965261c4e09af04d8eff24a"
-  dependencies:
-    highland "^3.0.0-beta.6"
-    xml2js "^0.4.19"
-    xmlbuilder "^9.0.7"
-
-"casparcg-state@git+https://Mfn2bXzQtEFXHKpo12x2y78QJMR7gUZz:x-oauth-basic@bitbucket.org/superflytv/casparcg-state.git#develop":
+"casparcg-state@git+https://github.com/SuperFlyTV/casparcg-state.git#dist":
   version "0.0.5"
-  resolved "git+https://Mfn2bXzQtEFXHKpo12x2y78QJMR7gUZz:x-oauth-basic@bitbucket.org/superflytv/casparcg-state.git#9059e74f88ebe802314ef0aec842a370f2cb69e6"
+  resolved "git+https://github.com/SuperFlyTV/casparcg-state.git#ff7b3ffc9814a37841d39e01cb708816c4529f03"
   dependencies:
-    casparcg-connection "git+https://github.com/superflytv/casparcg-connection.git"
+    casparcg-connection "^4.0.3"
     deep-diff "^0.3.4"
     fast-clone "^1.4.2"
     underscore "^1.8.3"
@@ -3310,8 +3301,8 @@ nwmatcher@^1.4.3:
   resolved "https://registry.yarnpkg.com/nwmatcher/-/nwmatcher-1.4.4.tgz#2285631f34a95f0d0395cd900c96ed39b58f346e"
 
 nyc@^11.0.3:
-  version "11.7.3"
-  resolved "https://registry.yarnpkg.com/nyc/-/nyc-11.7.3.tgz#164f4cfad84dee6d8f353824231d9dd683aa14ea"
+  version "11.8.0"
+  resolved "https://registry.yarnpkg.com/nyc/-/nyc-11.8.0.tgz#1e8453b0644f8fea4d829b1a6636663157cd3b00"
   dependencies:
     archy "^1.0.0"
     arrify "^1.0.1"
