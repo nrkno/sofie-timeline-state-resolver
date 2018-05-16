@@ -104,7 +104,7 @@
   "dependencies": {
     "atem-connection": "git+https://github.com/nrkno/tv-automation-atem-connection#dist",
     "atem-state": "git+https://github.com/nrkno/tv-automation-atem-state#dist",
-    "casparcg-connection": "git+https://github.com/SuperFlyTV/casparcg-connection.git#master",
+    "casparcg-connection": "^4.0.3",
     "casparcg-state": "git+https://github.com/SuperFlyTV/casparcg-state.git#dist",
     "superfly-timeline": "git+https://github.com/SuperFlyTV/supertimeline.git#dist",
     "tslib": "^1.6.0",
