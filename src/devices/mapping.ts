@@ -31,5 +31,7 @@ export enum MappingAtemType {
 export enum DeviceType {
 	ABSTRACT = 0,
 	CASPARCG = 1,
-	ATEM = 2
+	ATEM = 2,
+	LAWO = 3, // yet to be implemented
+	HTTPSEND = 4 // yet to be implemented
 }
