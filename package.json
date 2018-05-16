@@ -29,6 +29,7 @@
   ],
   "scripts": {
     "info": "npm-scripts-info",
+    "installclean": "trash yarn.lock && yarn cache clean atem-connection atem-state && yarn install",
     "build": "trash dist && yarn build:main",
     "build:main": "tsc -p tsconfig.json",
     "lint": "tslint --project tsconfig.jest.json --config tslint.json",

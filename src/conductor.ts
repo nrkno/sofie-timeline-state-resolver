@@ -1,11 +1,17 @@
 import * as _ from 'underscore'
-import { Resolver, TimelineObject, TimelineState, TimelineResolvedObject } from 'superfly-timeline'
+import { Resolver,
+	TimelineObject,
+	TimelineState,
+	TimelineResolvedObject,
+	TriggerType
+} from 'superfly-timeline'
 
 import { Device, DeviceOptions } from './devices/device'
 import { CasparCGDevice } from './devices/casparCG'
 import { AbstractDevice } from './devices/abstract'
 import { Mappings, Mapping, DeviceType } from './devices/mapping'
 import { AtemDevice } from './devices/atem'
+import { EventEmitter } from 'events'
 
 const LOOKAHEADTIME = 5000 // Will look ahead this far into the future
 const PREPARETIME = 2000 // Will prepare commands this time before the event is to happen
@@ -13,6 +19,11 @@ const MINTRIGGERTIME = 10 // Minimum time between triggers
 const MINTIMEUNIT = 1 // Minimum unit of time
 
 export interface TimelineContentObject extends TimelineObject {}
+
+export interface TimelineTriggerTimeResult {
+	time: number,
+	objectIds: Array<string>
+}
 
 export { Device } from './devices/device'
 // export interface Device {}
@@ -28,7 +39,7 @@ export interface ConductorOptions {
 /**
  * The main class that serves to interface with all functionality.
  */
-export class Conductor {
+export class Conductor extends EventEmitter {
 
 	private _timeline: Array<TimelineContentObject> = []
 	private _mapping: Mappings = {}
@@ -44,7 +55,7 @@ export class Conductor {
 	private _isInitialized: boolean = false
 
 	constructor (options: ConductorOptions) {
-
+		super()
 		this._options = options
 
 		if (options.getCurrentTime) this._getCurrentTime = options.getCurrentTime
@@ -235,6 +246,8 @@ export class Conductor {
 		// console.log('resolveTimeline -----------------------------')
 		// console.log(resolveTime)
 
+		this._fixNowObjects(resolveTime)
+
 		// Generate the state for that time:
 		let tlState = Resolver.getState(this.timeline, resolveTime)
 
@@ -303,5 +316,24 @@ export class Conductor {
 		}
 		this._triggerResolveTimeline(timeUntilNextResolve)
 
+	}
+	private _fixNowObjects (now: number) {
+		let objectsFixed: Array<string> = []
+		_.each(this.timeline, (o: TimelineContentObject) => {
+			if (
+				(o.trigger || {}).type === TriggerType.TIME_ABSOLUTE &&
+				o.trigger.value === 'now'
+			) {
+				o.trigger.value = now // set the objects to "now" so that they are resolved correctly right now
+				objectsFixed.push(o.id)
+			}
+		})
+		if (objectsFixed.length) {
+			let r: TimelineTriggerTimeResult = {
+				time: now,
+				objectIds: objectsFixed
+			}
+			this.emit('setTimelineTriggerTime', r)
+		}
 	}
 }
