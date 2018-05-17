@@ -5,6 +5,7 @@ import { Resolver,
 	TimelineResolvedObject,
 	TriggerType
 } from 'superfly-timeline'
+let clone = require('fast-clone')
 
 import { Device, DeviceOptions } from './devices/device'
 import { CasparCGDevice } from './devices/casparCG'
@@ -255,12 +256,22 @@ export class Conductor extends EventEmitter {
 
 		// console.log('resolveTimeline ' + resolveTime + ' -----------------------------')
 
+		if (resolveTime > now + LOOKAHEADTIME) {
+			console.log('Too far ahead')
+			this._triggerResolveTimeline(LOOKAHEADTIME)
+			return
+		}
+
 		this._fixNowObjects(resolveTime)
 
 		let timeline = this.timeline
+		// @ts-ignore
+		// console.log('timeline', JSON.stringify(timeline, ' ', 2))
 
 		// Generate the state for that time:
-		let tlState = Resolver.getState(timeline, resolveTime)
+		let tlState = Resolver.getState(clone(timeline), resolveTime)
+
+		// console.log('tlState', tlState.LLayers)
 
 		// Split the state into substates that are relevant for each device
 		let getFilteredLayers = (layers, device) => {
@@ -286,6 +297,7 @@ export class Conductor extends EventEmitter {
 				LLayers: getFilteredLayers(tlState.LLayers, device),
 				GLayers: getFilteredLayers(tlState.GLayers, device)
 			}
+			// console.log('State of device ' + device.deviceName, tlState.LLayers )
 			// Pass along the state to the device, it will generate its commands and execute them:
 			device.handleState(subState)
 		})
@@ -332,25 +344,38 @@ export class Conductor extends EventEmitter {
 			}
 		})
 
+		// console.log('this._nextResolveTime', this._nextResolveTime)
 		this._triggerResolveTimeline(timeUntilNextResolve)
 	}
 
 	private _fixNowObjects (now: number) {
+
+		let fixObjects = (objs) => {
+
+			_.each(objs, (o: TimelineContentObject) => {
+				if (
+					(o.trigger || {}).type === TriggerType.TIME_ABSOLUTE &&
+					o.trigger.value === 'now'
+				) {
+					o.trigger.value = now // set the objects to "now" so that they are resolved correctly right now
+					objectsFixed.push(o.id)
+				}
+				if (o.content.objects) {
+					fixObjects(o.content.objects)
+				}
+			})
+
+		}
 		let objectsFixed: Array<string> = []
-		_.each(this.timeline, (o: TimelineContentObject) => {
-			if (
-				(o.trigger || {}).type === TriggerType.TIME_ABSOLUTE &&
-				o.trigger.value === 'now'
-			) {
-				o.trigger.value = now // set the objects to "now" so that they are resolved correctly right now
-				objectsFixed.push(o.id)
-			}
-		})
+
+		fixObjects(this.timeline)
+
 		if (objectsFixed.length) {
 			let r: TimelineTriggerTimeResult = {
 				time: now,
 				objectIds: objectsFixed
 			}
+			// console.log('setTimelineTriggerTime', r)
 			this.emit('setTimelineTriggerTime', r)
 		}
 	}

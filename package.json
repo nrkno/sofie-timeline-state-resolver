@@ -108,6 +108,7 @@
     "casparcg-state": "git+https://github.com/SuperFlyTV/casparcg-state.git#dist",
     "superfly-timeline": "git+https://github.com/SuperFlyTV/supertimeline.git#dist",
     "tslib": "^1.6.0",
-    "underscore": "^1.8.3"
+    "underscore": "^1.8.3",
+    "fast-clone": "^1.5.3"
   }
 }

@@ -124,6 +124,7 @@ export class CasparCGDevice extends Device {
 				delete this._queue[token]
 			}
 		}
+		// console.log('commandsToAchieveState', commandsToAchieveState)
 
 		// add the new commands to the queue:
 		this._addToQueue(commandsToAchieveState, oldState, newState.time)
@@ -351,6 +352,7 @@ export class CasparCGDevice extends Device {
 		_.each(commandsToAchieveState, (cmd: CommandNS.IAMCPCommandVO) => {
 			if (cmd._commandName === 'PlayCommand' && cmd._objectParams.clip !== 'empty') {
 				if (oldState.time > 0 && time > this.getCurrentTime()) { // @todo: put the loadbg command just after the oldState.time when convenient?
+					// console.log('making a loadbg out of it ', time , this.getCurrentTime())
 					let loadbgCmd = Object.assign({}, cmd) // make a deep copy
 					loadbgCmd._commandName = 'LoadbgCommand'
 
