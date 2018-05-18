@@ -101,14 +101,14 @@ test('Test Abstract-device functionality', async () => {
 	let device1 = conductor.getDevice('device1')
 
 	// The queues should be empty
-	expect(device0.queue).toHaveLength(0)
-	expect(device1.queue).toHaveLength(0)
+	expect(device0['queue']).toHaveLength(0)
+	expect(device1['queue']).toHaveLength(0)
 
 	conductor.timeline = [abstractThing0, abstractThing1]
 
 	// there should now be one command queued:
-	expect(device0.queue).toHaveLength(1)
-	expect(device1.queue).toHaveLength(0)
+	expect(device0['queue']).toHaveLength(1)
+	expect(device1['queue']).toHaveLength(0)
 
 	// Move forward in time
 	advanceTime(500) // to time 1500
@@ -128,7 +128,7 @@ test('Test Abstract-device functionality', async () => {
 	commandReceiver0.mockClear()
 	advanceTime(1000) // 2500
 
-	// expect(device0.queue).toHaveLength(0)
+	// expect(device0['queue']).toHaveLength(0)
 
 	expect(commandReceiver0).toHaveBeenCalledTimes(1)
 	expect(commandReceiver0.mock.calls[0][0]).toEqual(2500)
@@ -274,14 +274,14 @@ test.only('Test the "Now" and "Callback-functionality', async () => {
 	// let device1 = conductor.getDevice('device1')
 
 	// The queues should be empty
-	expect(device0.queue).toHaveLength(0)
-	// expect(device1.queue).toHaveLength(0)
+	expect(device0['queue']).toHaveLength(0)
+	// expect(device1['queue']).toHaveLength(0)
 
 	// console.log('Setting timeline..')
 	conductor.timeline = timeline
 
 	// there should now be one command queued:
-	expect(device0.queue).toHaveLength(1)
+	expect(device0['queue']).toHaveLength(1)
 
 	// the setTimelineTriggerTime event should have been emitted:
 	expect(setTimelineTriggerTime).toHaveBeenCalledTimes(1)

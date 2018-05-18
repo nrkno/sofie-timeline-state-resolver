@@ -64,6 +64,8 @@ export class Conductor extends EventEmitter {
 		super()
 		this._options = options
 
+		this._options = this._options // ts-lint fix: not used
+
 		if (options.getCurrentTime) this._getCurrentTime = options.getCurrentTime
 
 		setInterval(() => {

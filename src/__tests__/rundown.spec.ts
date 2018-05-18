@@ -85,7 +85,7 @@ test('Do a "full" rundown', async () => {
 	let device = myConductor.getDevice('myCCG')
 
 	// Check that no commands has been scheduled:
-	expect(device.queue).toHaveLength(0)
+	expect(device['queue']).toHaveLength(0)
 
 	// 00:00 - aux - bg_item1
 	// 00:00 - gfx - short opener
