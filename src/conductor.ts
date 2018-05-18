@@ -257,7 +257,7 @@ export class Conductor extends EventEmitter {
 		// console.log('resolveTimeline ' + resolveTime + ' -----------------------------')
 
 		if (resolveTime > now + LOOKAHEADTIME) {
-			console.log('Too far ahead')
+			console.log('Too far ahead (' + resolveTime + ')')
 			this._triggerResolveTimeline(LOOKAHEADTIME)
 			return
 		}
