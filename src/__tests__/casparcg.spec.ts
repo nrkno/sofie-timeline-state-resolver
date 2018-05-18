@@ -57,7 +57,7 @@ test('CasparCG: Play AMB for 60s', async () => {
 	let device = myConductor.getDevice('myCCG')
 
 	// Check that no commands has been scheduled:
-	expect(device.queue).toHaveLength(0)
+	expect(device['queue']).toHaveLength(0)
 
 	myConductor.timeline = [
 		{
@@ -136,7 +136,7 @@ test('CasparCG: Play IP input for 60s', async () => {
 	let device = myConductor.getDevice('myCCG')
 
 	// Check that no commands has been scheduled:
-	expect(device.queue).toHaveLength(0)
+	expect(device['queue']).toHaveLength(0)
 
 	myConductor.timeline = [
 		{
@@ -213,7 +213,7 @@ test('CasparCG: Play decklink input for 60s', async () => {
 	let device = myConductor.getDevice('myCCG')
 
 	// Check that no commands has been scheduled:
-	expect(device.queue).toHaveLength(0)
+	expect(device['queue']).toHaveLength(0)
 
 	myConductor.timeline = [
 		{
@@ -287,7 +287,7 @@ test('CasparCG: Play template for 60s', async () => {
 	let device = myConductor.getDevice('myCCG')
 
 	// Check that no commands has been scheduled:
-	expect(device.queue).toHaveLength(0)
+	expect(device['queue']).toHaveLength(0)
 
 	myConductor.timeline = [
 		{
@@ -367,7 +367,7 @@ test('CasparCG: Play template for 60s', async () => {
 	let device = myConductor.getDevice('myCCG')
 
 	// Check that no commands has been scheduled:
-	expect(device.queue).toHaveLength(0)
+	expect(device['queue']).toHaveLength(0)
 
 	myConductor.timeline = [
 		{
@@ -448,7 +448,7 @@ test('CasparCG: Play 2 routes for 60s', async () => {
 	let device = myConductor.getDevice('myCCG')
 
 	// Check that no commands has been scheduled:
-	expect(device.queue).toHaveLength(0)
+	expect(device['queue']).toHaveLength(0)
 
 	myConductor.timeline = [
 		{

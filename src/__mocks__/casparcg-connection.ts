@@ -3,8 +3,6 @@
 import * as _ from 'underscore'
 import {AMCP as AMCP2, AMCPUtil as util, Command } from '../../node_modules/casparcg-connection'
 
-let test = 0
-
 let mockDo = jest.fn()
 
 let instances = []

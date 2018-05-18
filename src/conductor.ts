@@ -21,7 +21,7 @@ const MINTRIGGERTIME = 10 // Minimum time between triggers
 const MINTIMEUNIT = 1 // Minimum unit of time
 
 export interface TimelineContentObject extends TimelineObject {
-	roId: string
+	// roId: string
 }
 export { TriggerType }
 
@@ -77,7 +77,12 @@ export class Conductor extends EventEmitter {
 			this.emit('timelineCallback', ...args)
 		})
 
-		if (options.autoInit) this.init()
+		if (options.autoInit) {
+			this.init()
+			.catch((e) => {
+				console.log('Error during auto-init: ', e)
+			})
+		}
 
 	}
 	/**
@@ -179,20 +184,20 @@ export class Conductor extends EventEmitter {
 		let device = this.devices[deviceId]
 
 		if (device) {
-			let ps = device.terminate()
-			ps.then((res) => {
+			return device.terminate()
+			.then((res) => {
 				if (res) {
 					delete this.devices[deviceId]
 				}
+				return res
 			})
-			return ps
 		} else {
 			return new Promise((resolve) => resolve(false))
 		}
 	}
 	public destroy (): Promise<void> {
 		return Promise.all(_.map(_.keys(this.devices), (deviceId: string) => {
-			this.removeDevice(deviceId)
+			return this.removeDevice(deviceId)
 		}))
 		.then(() => {
 			return
@@ -274,7 +279,7 @@ export class Conductor extends EventEmitter {
 		// console.log('tlState', tlState.LLayers)
 
 		// Split the state into substates that are relevant for each device
-		let getFilteredLayers = (layers, device) => {
+		let getFilteredLayers = (layers: TimelineState['LLayers'], device: Device) => {
 			let filteredState = {}
 			_.each(layers, (o: TimelineResolvedObject, layerId: string) => {
 				let mapping: Mapping = this._mapping[o.LLayer + '']
@@ -349,7 +354,7 @@ export class Conductor extends EventEmitter {
 	}
 
 	private _fixNowObjects (now: number) {
-
+		let objectsFixed: Array<string> = []
 		let fixObjects = (objs) => {
 
 			_.each(objs, (o: TimelineContentObject) => {
@@ -366,7 +371,6 @@ export class Conductor extends EventEmitter {
 			})
 
 		}
-		let objectsFixed: Array<string> = []
 
 		fixObjects(this.timeline)
 

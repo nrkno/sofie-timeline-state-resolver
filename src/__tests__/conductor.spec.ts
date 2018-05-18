@@ -1,10 +1,10 @@
-import { Resolver, TimelineObject, TimelineState, TriggerType } from 'superfly-timeline'
+import { TriggerType } from 'superfly-timeline'
 
-import { Mappings, MappingCasparCG, MappingAbstract, DeviceType } from '../devices/mapping'
+import { Mappings, MappingAbstract, DeviceType } from '../devices/mapping'
 import { Conductor, TimelineTriggerTimeResult, TimelineContentObject } from '../conductor'
 import * as _ from 'underscore'
 
-let nowActual: number = Date.now()
+// let nowActual: number = Date.now()
 let now: number = 1000
 
 beforeAll(() => {
@@ -25,10 +25,10 @@ function advanceTime (advanceTime: number) {
 test('Test Abstract-device functionality', async () => {
 	jest.useFakeTimers()
 
-	let commandReceiver0 = jest.fn((command) => {
+	let commandReceiver0 = jest.fn(() => {
 		// nothing
 	})
-	let commandReceiver1 = jest.fn((command) => {
+	let commandReceiver1 = jest.fn(() => {
 		// nothing
 	})
 
@@ -72,7 +72,6 @@ test('Test Abstract-device functionality', async () => {
 	// add something that will play in a seconds time
 	let abstractThing0: TimelineContentObject = {
 		id: 'a0',
-		roId: 'ro0',
 		trigger: {
 			type: TriggerType.TIME_ABSOLUTE,
 			value: now
@@ -86,7 +85,6 @@ test('Test Abstract-device functionality', async () => {
 	}
 	let abstractThing1: TimelineContentObject = {
 		id: 'a1',
-		roId: 'ro0',
 		trigger: {
 			type: TriggerType.TIME_ABSOLUTE,
 			value: now + 1000
@@ -180,6 +178,9 @@ test('Test Abstract-device functionality', async () => {
 	).then((res) => {
 		expect(res).toBe(true)
 	})
+	.catch((e) => {
+		throw e
+	})
 
 	conductor.mapping = {
 		'myLayer0': myLayerMapping1,
@@ -192,10 +193,7 @@ test('Test Abstract-device functionality', async () => {
 test.only('Test the "Now" and "Callback-functionality', async () => {
 	jest.useFakeTimers()
 
-	let commandReceiver0 = jest.fn((command) => {
-		// nothing
-	})
-	let commandReceiver1 = jest.fn((command) => {
+	let commandReceiver0 = jest.fn(() => {
 		// nothing
 	})
 
@@ -227,7 +225,6 @@ test.only('Test the "Now" and "Callback-functionality', async () => {
 	// add something that will play "now"
 	let abstractThing0: TimelineContentObject = {
 		id: 'a0',
-		roId: 'ro0',
 		trigger: {
 			type: TriggerType.TIME_ABSOLUTE,
 			value: 'now'
@@ -241,7 +238,6 @@ test.only('Test the "Now" and "Callback-functionality', async () => {
 	}
 	let abstractThing1: TimelineContentObject = {
 		id: 'a1',
-		roId: 'ro0',
 		trigger: {
 			type: TriggerType.TIME_RELATIVE,
 			value: '#a0.start + 300'
