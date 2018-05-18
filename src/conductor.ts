@@ -86,14 +86,13 @@ export class Conductor extends EventEmitter {
 
 	}
 	/**
-	 * Initializes the devices that were passed as options.
+	 * Initialization, TODO, maybe do something here?
 	 */
 	public init (): Promise<void> {
-		return this._initializeDevices()
-		.then(() => {
-			this._isInitialized = true
-			this._resetResolver()
-		})
+		this._isInitialized = true
+		this._resetResolver()
+
+		return Promise.resolve()
 	}
 	/**
 	 * Returns a nice, synchronized time.
@@ -141,7 +140,7 @@ export class Conductor extends EventEmitter {
 	public getDevices (): Array<Device> {
 		return _.values(this.devices)
 	}
-	public getDevice (deviceId) {
+	public getDevice (deviceId: string) {
 		return this.devices[deviceId]
 	}
 	public addDevice (deviceId, deviceOptions: DeviceOptions): Promise<any> {
@@ -203,19 +202,8 @@ export class Conductor extends EventEmitter {
 			return
 		})
 	}
-
-	/**
-	 * Sets up the devices as they were passed to the constructor via the options object.
-	 * @todo: allow for runtime reconfiguration of devices.
-	 */
-	private _initializeDevices (): Promise<any> {
-		const ps: Array<Promise<any>> = []
-		_.each(this._options.devices, (deviceOptions, deviceId) => {
-			ps.push(this.addDevice(deviceId, deviceOptions))
-		})
-
-		return Promise.all(ps)
-	}
+	// 	return Promise.all(ps)
+	// }
 	/**
 	 * Resets the resolve-time, so that the resolving will happen for the point-in time NOW
 	 * next time
@@ -345,7 +333,8 @@ export class Conductor extends EventEmitter {
 		// Special function: send callback to Core
 		_.each (tlState.GLayers, (o: TimelineResolvedObject) => {
 			if (o.content.callBack) {
-				this._timelineCallback.queue(resolveTime, o.id, o.content.callBack, o.content.callBackData)
+				// this._timelineCallback.queue(resolveTime, o.id, o.content.callBack, o.content.callBackData)
+				this._timelineCallback.queue(o.resolved.startTime, o.id, o.content.callBack, o.content.callBackData)
 			}
 		})
 

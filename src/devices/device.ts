@@ -120,5 +120,8 @@ export class Device extends EventEmitter {
 		// return DeviceType.ABSTRACT
 		throw new Error('This class method must be replaced by the Device class!')
 	}
+	get deviceOptions (): DeviceOptions {
+		return this._deviceOptions
+	}
 
 }
