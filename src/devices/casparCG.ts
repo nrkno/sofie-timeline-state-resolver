@@ -21,6 +21,15 @@ export interface CasparCGOptions {
 	host: string,
 	port: number
 }
+export enum TimelineContentTypeCasparCg { //  CasparCG-state
+	VIDEO = 'video',
+	IP = 'ip',
+	INPUT = 'input',
+	TEMPLATE = 'template',
+	ROUTE = 'route',
+	RECORD = 'record',
+	AUDIO = 'audio'
+}
 export class CasparCGDevice extends Device {
 
 	private _ccg: CasparCG
@@ -191,7 +200,7 @@ export class CasparCGDevice extends Device {
 
 				let stateLayer: StateNS.ILayerBase | null = null
 
-				if (layer.content.type === 'video') {
+				if (layer.content.type === TimelineContentTypeCasparCg.VIDEO) {
 					let l: StateNS.IMediaLayer = {
 						layerNo: mapping.layer,
 						content: StateNS.LayerContentType.MEDIA,
@@ -203,7 +212,7 @@ export class CasparCGDevice extends Device {
 						seek: layer.content.attributes.seek
 					}
 					stateLayer = l
-				} else if (layer.content.type === 'ip') {
+				} else if (layer.content.type === TimelineContentTypeCasparCg.IP) {
 					let l: StateNS.IMediaLayer = {
 						layerNo: mapping.layer,
 						content: StateNS.LayerContentType.MEDIA,
@@ -213,7 +222,7 @@ export class CasparCGDevice extends Device {
 						seek: 0 // ip inputs can't be seeked
 					}
 					stateLayer = l
-				} else if (layer.content.type === 'input') {
+				} else if (layer.content.type === TimelineContentTypeCasparCg.INPUT) {
 					let l: StateNS.IInputLayer = {
 						layerNo: mapping.layer,
 						content: StateNS.LayerContentType.INPUT,
@@ -225,7 +234,7 @@ export class CasparCGDevice extends Device {
 						playTime: null
 					}
 					stateLayer = l
-				} else if (layer.content.type === 'template') {
+				} else if (layer.content.type === TimelineContentTypeCasparCg.TEMPLATE) {
 					let l: StateNS.ITemplateLayer = {
 						layerNo: mapping.layer,
 						content: StateNS.LayerContentType.TEMPLATE,
@@ -239,7 +248,7 @@ export class CasparCGDevice extends Device {
 						cgStop: layer.content.attributes.useStopCommand
 					}
 					stateLayer = l
-				} else if (layer.content.type === 'route') {
+				} else if (layer.content.type === TimelineContentTypeCasparCg.ROUTE) {
 					if (layer.content.attributes.LLayer) {
 						let routeMapping = this.mapping[layer.content.attributes.LLayer] as MappingCasparCG
 						if (routeMapping) {
@@ -259,7 +268,7 @@ export class CasparCGDevice extends Device {
 						playTime: null // layer.resolved.startTime || null
 					}
 					stateLayer = l
-				} else if (layer.content.type === 'record') {
+				} else if (layer.content.type === TimelineContentTypeCasparCg.RECORD) {
 					if (layer.resolved.startTime) {
 						let l: StateNS.IRecordLayer = {
 							layerNo: mapping.layer,
@@ -284,7 +293,11 @@ export class CasparCGDevice extends Device {
 				if (stateLayer) {
 					if (layer.content.transitions) {
 						switch (layer.content.type) {
-							case 'video' || 'ip' || 'template' || 'input' || 'route':
+							case TimelineContentTypeCasparCg.VIDEO:
+							case TimelineContentTypeCasparCg.IP:
+							case TimelineContentTypeCasparCg.TEMPLATE:
+							case TimelineContentTypeCasparCg.INPUT:
+							case TimelineContentTypeCasparCg.ROUTE:
 								// create transition object
 								let media = stateLayer.media
 								let transitions = {} as any

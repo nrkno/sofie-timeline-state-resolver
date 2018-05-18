@@ -19,6 +19,12 @@ export interface AtemOptions {
 	host: string
 	port?: number
 }
+export enum TimelineContentTypeAtem { //  Atem-state
+	ME = 'me',
+	DSK = 'dsk',
+	AUX = 'aux',
+	SSRC = 'ssrc'
+}
 export class AtemDevice extends Device {
 
 	private _queue: Array<any>
@@ -107,35 +113,35 @@ export class AtemDevice extends Device {
 					obj[mapping.index] = tlObject.content
 				}
 				switch (mapping.mappingType) {
-					case (MappingAtemType.MixEffect) :
+					case MappingAtemType.MixEffect:
 						obj = {
 							video: {
 								ME: obj
 							}
 						}
 						break
-					case (MappingAtemType.DownStreamKeyer) :
+					case MappingAtemType.DownStreamKeyer:
 						obj = {
 							video: {
 								downstreamKeyers: obj
 							}
 						}
 						break
-					case (MappingAtemType.SuperSourceBox) :
+					case MappingAtemType.SuperSourceBox:
 						obj = {
 							video: {
 								superSourceBoxes: obj
 							}
 						}
 						break
-					case (MappingAtemType.Auxilliary) :
+					case MappingAtemType.Auxilliary:
 						obj = {
 							video: {
 								auxilliaries: obj
 							}
 						}
 						break
-					case (MappingAtemType.MediaPlayer) :
+					case MappingAtemType.MediaPlayer:
 						obj = {
 							mediaState: {
 								players: obj
