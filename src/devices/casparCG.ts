@@ -195,7 +195,7 @@ export class CasparCGDevice extends Device {
 				const channel = caspar.channels[mapping.channel] ? caspar.channels[mapping.channel] : new StateNS.Channel()
 				channel.channelNo = Number(mapping.channel) || 1
 				// @todo: check if we need to get fps.
-				channel.fps = 50
+				channel.fps = 50 / 1000 // 50 fps over 1000ms
 				caspar.channels[channel.channelNo] = channel
 
 				let stateLayer: StateNS.ILayerBase | null = null
@@ -217,7 +217,7 @@ export class CasparCGDevice extends Device {
 						layerNo: mapping.layer,
 						content: StateNS.LayerContentType.MEDIA,
 						media: layer.content.attributes.uri,
-						playTime: layer.resolved.startTime || null,
+						playTime: null, // ip inputs can't be seeked // layer.resolved.startTime || null,
 						playing: true,
 						seek: 0 // ip inputs can't be seeked
 					}
@@ -365,8 +365,8 @@ export class CasparCGDevice extends Device {
 		_.each(commandsToAchieveState, (cmd: CommandNS.IAMCPCommandVO) => {
 			if (cmd._commandName === 'PlayCommand' && cmd._objectParams.clip !== 'empty') {
 				if (oldState.time > 0 && time > this.getCurrentTime()) { // @todo: put the loadbg command just after the oldState.time when convenient?
-					// console.log('making a loadbg out of it ', time , this.getCurrentTime())
-					let loadbgCmd = Object.assign({}, cmd) // make a deep copy
+					console.log('making a loadbg out of it ', time , this.getCurrentTime())
+					let loadbgCmd = Object.assign({}, cmd) // make a shallow copy
 					loadbgCmd._commandName = 'LoadbgCommand'
 
 					let command = AMCPUtil.deSerialize(loadbgCmd as CommandNS.IAMCPCommandVO, 'id')

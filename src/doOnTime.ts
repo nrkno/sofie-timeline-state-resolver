@@ -1,8 +1,15 @@
 import { EventEmitter } from 'events'
+import * as _ from 'underscore'
 
-export class TimelineCallback extends EventEmitter {
+interface DoOrder {
+	time: number,
+	fcn: () => void
+}
+
+export class DoOnTime extends EventEmitter {
 	getCurrentTime: () => number
-	private _queue: Array<any> = []
+	private _i: number = 0
+	private _queue: {[id: string]: DoOrder} = {}
 	private _checkQueueTimeout: any = 0
 
 	constructor (getCurrentTime: () => number) {
@@ -17,15 +24,14 @@ export class TimelineCallback extends EventEmitter {
 
 		let nextTime = now + 99999
 
-		for (let i = this._queue.length - 1; i >= 0; i--) {
-			let o = this._queue[i]
+		_.each(this._queue, (o: DoOrder, id: string) => {
 			if (o.time <= now) {
-				this.emit('callback', o.time, o.id, o.callbackName, o.data)
-				this._queue.splice(i, 1)
+				o.fcn()
+				delete this._queue[id]
 			} else {
 				if (o.time < nextTime) nextTime = o.time
 			}
-		}
+		})
 		// next check
 		let timeToNext = Math.min(1000,
 			nextTime - now
@@ -34,8 +40,15 @@ export class TimelineCallback extends EventEmitter {
 			this.checkQueue()
 		}, timeToNext)
 	}
-	public queue (time, id, callbackName, data) {
-		this._queue.push({time, id, callbackName, data})
+	public queue (time, fcn: () => void): string {
+		if (!(time > 0)) throw Error('time argument must be > 0')
+		if (!_.isFunction(fcn)) throw Error('fcn argument must be a function!')
+		let id = '_' + (this._i++)
+		this._queue[id] = {
+			time: time,
+			fcn: fcn
+		}
 		this.checkQueue()
+		return id
 	}
 }

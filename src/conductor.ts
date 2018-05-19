@@ -13,7 +13,7 @@ import { AbstractDevice } from './devices/abstract'
 import { Mappings, Mapping, DeviceType } from './devices/mapping'
 import { AtemDevice } from './devices/atem'
 import { EventEmitter } from 'events'
-import { TimelineCallback } from './timelineCallback'
+import { DoOnTime } from './doOnTime'
 
 const LOOKAHEADTIME = 5000 // Will look ahead this far into the future
 const PREPARETIME = 2000 // Will prepare commands this time before the event is to happen
@@ -34,9 +34,9 @@ export { Device } from './devices/device'
 // export interface Device {}
 
 export interface ConductorOptions {
-	devices: {
-		[deviceName: string]: DeviceOptions
-	},
+	// devices: {
+	// 	[deviceName: string]: DeviceOptions
+	// },
 	initializeAsClear: boolean, // don't do any initial checks with devices to determine state, instead assume that everything is clear, black and quiet
 	getCurrentTime: () => number,
 	autoInit?: boolean
@@ -58,7 +58,7 @@ export class Conductor extends EventEmitter {
 	private _nextResolveTime: number = 0
 	private _resolveTimelineTrigger: NodeJS.Timer
 	private _isInitialized: boolean = false
-	private _timelineCallback: TimelineCallback
+	private _doOnTime: DoOnTime
 
 	constructor (options: ConductorOptions) {
 		super()
@@ -74,10 +74,10 @@ export class Conductor extends EventEmitter {
 			}
 		}, 2500)
 
-		this._timelineCallback = new TimelineCallback(this.getCurrentTime)
-		this._timelineCallback.on('callback', (...args) => {
-			this.emit('timelineCallback', ...args)
-		})
+		this._doOnTime = new DoOnTime(this.getCurrentTime)
+		// this._doOnTime.on('callback', (...args) => {
+		// 	this.emit('timelineCallback', ...args)
+		// })
 
 		if (options.autoInit) {
 			this.init()
@@ -249,7 +249,7 @@ export class Conductor extends EventEmitter {
 		const now = this.getCurrentTime()
 		let resolveTime: number = this._nextResolveTime || now
 
-		// console.log('resolveTimeline ' + resolveTime + ' -----------------------------')
+		console.log('resolveTimeline ' + resolveTime + ' -----------------------------')
 
 		if (resolveTime > now + LOOKAHEADTIME) {
 			console.log('Too far ahead (' + resolveTime + ')')
@@ -266,7 +266,7 @@ export class Conductor extends EventEmitter {
 		// Generate the state for that time:
 		let tlState = Resolver.getState(clone(timeline), resolveTime)
 
-		// console.log('tlState', tlState.LLayers)
+		console.log('tlState', tlState.LLayers)
 
 		// Split the state into substates that are relevant for each device
 		let getFilteredLayers = (layers: TimelineState['LLayers'], device: Device) => {
@@ -335,8 +335,16 @@ export class Conductor extends EventEmitter {
 		// Special function: send callback to Core
 		_.each (tlState.GLayers, (o: TimelineResolvedObject) => {
 			if (o.content.callBack) {
-				// this._timelineCallback.queue(resolveTime, o.id, o.content.callBack, o.content.callBackData)
-				this._timelineCallback.queue(o.resolved.startTime, o.id, o.content.callBack, o.content.callBackData)
+				// this._doOnTime.queue(resolveTime, o.id, o.content.callBack, o.content.callBackData)
+				// this._doOnTime.queue(o.resolved.startTime, o.id, o.content.callBack, o.content.callBackData)
+				this._doOnTime.queue(o.resolved.startTime, () => {
+					this.emit('timelineCallback',
+						o.resolved.startTime,
+						o.id,
+						o.content.callBack,
+						o.content.callBackData
+					)
+				})
 			}
 		})
 
