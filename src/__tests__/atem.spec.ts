@@ -41,21 +41,19 @@ describe('Atem', () => {
 		}
 
 		let myConductor = new Conductor({
-			devices: {
-				'myAtem': {
-					type: DeviceType.ATEM,
-					options: {
-						commandReceiver: commandReceiver0,
-						host: '192.168.168.240',
-						port: 9910
-					}
-				}
-			},
 			initializeAsClear: true,
 			getCurrentTime: getCurrentTime
 		})
+		await myConductor.init()
+		await myConductor.addDevice('myAtem', {
+			type: DeviceType.ATEM,
+			options: {
+				commandReceiver: commandReceiver0,
+				host: '192.168.168.240',
+				port: 9910
+			}
+		})
 		myConductor.mapping = myLayerMapping
-		await myConductor.init() // we cannot do an await, because setTimeout will never call without jest moving on.
 		advanceTime(100) // 1100
 
 		let device = myConductor.getDevice('myAtem') as AtemDevice

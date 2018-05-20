@@ -8,7 +8,7 @@ import { Conductor } from '../conductor'
 // let nowActual: number = Date.now()
 
 describe('Rundown', () => {
-	let now: number = 1000
+	let now: number = 10000
 	beforeAll(() => {
 		Date.now = jest.fn(() => {
 			return getCurrentTime()
@@ -69,20 +69,18 @@ describe('Rundown', () => {
 		}
 
 		let myConductor = new Conductor({
-			devices: {
-				'myCCG': {
-					type: DeviceType.CASPARCG,
-					options: {
-						commandReceiver: commandReceiver0
-					}
-				}
-			},
 			initializeAsClear: true,
 			getCurrentTime: getCurrentTime
 		})
-		myConductor.mapping = myLayerMapping
 		await myConductor.init()
-		advanceTime(100) // 5600
+		await myConductor.addDevice('myCCG', {
+			type: DeviceType.CASPARCG,
+			options: {
+				commandReceiver: commandReceiver0
+			}
+		})
+		myConductor.mapping = myLayerMapping
+		advanceTime(1) // 10001
 
 		let device = myConductor.getDevice('myCCG')
 
@@ -282,7 +280,7 @@ describe('Rundown', () => {
 			}
 		]
 
-		advanceTime(100) // 5700
+		advanceTime(100) // 10101
 
 		// PLAY 1-10 ROUTE://3-10
 		// PLAY 1-11 OPENER_SHORT
@@ -291,6 +289,7 @@ describe('Rundown', () => {
 		// PLAY 3-20 DECKLINK 4
 		expect(commandReceiver0.mock.calls[0][1].name).toEqual('CustomCommand')
 		expect(commandReceiver0.mock.calls[0][1]._objectParams.command).toEqual('PLAY 1-10 route://3-10')
+		expect(commandReceiver0.mock.calls[1][1].name).toEqual('PlayCommand')
 		expect(commandReceiver0.mock.calls[1][1]._objectParams).toMatchObject({
 			channel: 1,
 			layer: 11,
@@ -299,6 +298,7 @@ describe('Rundown', () => {
 			loop: false,
 			seek: 0
 		})
+		expect(commandReceiver0.mock.calls[2][1].name).toEqual('PlayCommand')
 		expect(commandReceiver0.mock.calls[2][1]._objectParams).toMatchObject({
 			channel: 2,
 			layer: 10,
@@ -307,6 +307,7 @@ describe('Rundown', () => {
 			loop: true,
 			seek: 0
 		})
+		expect(commandReceiver0.mock.calls[3][1].name).toEqual('PlayDecklinkCommand')
 		expect(commandReceiver0.mock.calls[3][1]._objectParams).toMatchObject({
 			channel: 3,
 			layer: 10,
@@ -315,6 +316,7 @@ describe('Rundown', () => {
 			format: null,
 			channelLayout: null
 		})
+		expect(commandReceiver0.mock.calls[4][1].name).toEqual('PlayDecklinkCommand')
 		expect(commandReceiver0.mock.calls[4][1]._objectParams).toMatchObject({
 			channel: 3,
 			layer: 20,
@@ -325,6 +327,8 @@ describe('Rundown', () => {
 		})
 
 		// SCHEDULE SET 1.5s MIXER OPACITY 25
+		expect(commandReceiver0.mock.calls[5][1].name).toEqual('ScheduleSetCommand')
+		expect(commandReceiver0.mock.calls[5][1]._objectParams.command.name).toEqual('MixerOpacityCommand')
 		expect(commandReceiver0.mock.calls[5][1]._objectParams.timecode).toEqual('00:00:01:25')
 		expect(commandReceiver0.mock.calls[5][1]._objectParams.command._objectParams).toMatchObject({
 			'channel': 1,
@@ -357,7 +361,7 @@ describe('Rundown', () => {
 			templateType: 'html'
 		})
 
-		advanceTime(1500)
+		advanceTime(1500) // 11601
 		// SCHEDULE SET 4.5s CG STOP
 		// SCHEDULE SET 4.5s LOADBG 1-11 STINGER
 		expect(commandReceiver0.mock.calls[8][1]._objectParams.timecode).toEqual('00:00:04:25')

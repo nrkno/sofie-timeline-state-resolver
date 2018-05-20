@@ -207,19 +207,17 @@ describe('Conductor', () => {
 		}
 
 		let conductor = new Conductor({
-			devices: {
-				'device0': {
-					type: DeviceType.ABSTRACT,
-					options: {
-						commandReceiver: commandReceiver0
-					}
-				}
-			},
 			initializeAsClear: true,
 			getCurrentTime: getCurrentTime
 		})
 
 		await conductor.init()
+		await conductor.addDevice('device0', {
+			type: DeviceType.ABSTRACT,
+			options: {
+				commandReceiver: commandReceiver0
+			}
+		})
 		conductor.mapping = myLayerMapping
 
 		// add something that will play "now"
