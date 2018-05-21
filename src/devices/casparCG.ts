@@ -123,7 +123,7 @@ export class CasparCGDevice extends Device {
 
 		let commandsToAchieveState: Array<CommandNS.IAMCPCommandVO> = this._diffStates(oldCasparState, newCasparState)
 
-		// clear any queued commands on this time:
+		// clear any queued commands later than this time:
 		let now = this.getCurrentTime()
 		for (let token in this._queue) {
 			if (this._queue[token] < now) {
@@ -365,7 +365,7 @@ export class CasparCGDevice extends Device {
 		_.each(commandsToAchieveState, (cmd: CommandNS.IAMCPCommandVO) => {
 			if (cmd._commandName === 'PlayCommand' && cmd._objectParams.clip !== 'empty') {
 				if (oldState.time > 0 && time > this.getCurrentTime()) { // @todo: put the loadbg command just after the oldState.time when convenient?
-					console.log('making a loadbg out of it ', time , this.getCurrentTime())
+					// console.log('making a loadbg out of it ', time , this.getCurrentTime())
 					let loadbgCmd = Object.assign({}, cmd) // make a shallow copy
 					loadbgCmd._commandName = 'LoadbgCommand'
 

@@ -1,9 +1,11 @@
 import { EventEmitter } from 'events'
 import * as _ from 'underscore'
 
+export type DoOrderFunction = (...args: any[]) => void
 interface DoOrder {
-	time: number,
-	fcn: () => void
+	time: number
+	fcn: DoOrderFunction
+	args: any[]
 }
 
 export class DoOnTime extends EventEmitter {
@@ -16,8 +18,37 @@ export class DoOnTime extends EventEmitter {
 		super()
 		this.getCurrentTime = getCurrentTime
 	}
-
-	public checkQueue () {
+	public queue (time, fcn: DoOrderFunction, ...args: any[]): string {
+		if (!(time > 0)) throw Error('time argument must be > 0')
+		if (!_.isFunction(fcn)) throw Error('fcn argument must be a function!')
+		let id = '_' + (this._i++)
+		this._queue[id] = {
+			time: time,
+			fcn: fcn,
+			args: args
+		}
+		this._checkQueue()
+		return id
+	}
+	public remove (id: string) {
+		delete this._queue[id]
+	}
+	public getQueue () {
+		return _.map(this._queue, (q, id) => {
+			return {
+				id: id,
+				time: q.time
+			}
+		})
+	}
+	public clearQueueAfter (time) {
+		_.each(this._queue, (q: DoOrder, id: string) => {
+			if (q.time >= time) {
+				this.remove(id)
+			}
+		})
+	}
+	private _checkQueue () {
 		clearTimeout(this._checkQueueTimeout)
 
 		let now = this.getCurrentTime()
@@ -26,8 +57,8 @@ export class DoOnTime extends EventEmitter {
 
 		_.each(this._queue, (o: DoOrder, id: string) => {
 			if (o.time <= now) {
-				o.fcn()
-				delete this._queue[id]
+				o.fcn(...o.args)
+				this.remove(id)
 			} else {
 				if (o.time < nextTime) nextTime = o.time
 			}
@@ -37,18 +68,7 @@ export class DoOnTime extends EventEmitter {
 			nextTime - now
 		)
 		this._checkQueueTimeout = setTimeout(() => {
-			this.checkQueue()
+			this._checkQueue()
 		}, timeToNext)
-	}
-	public queue (time, fcn: () => void): string {
-		if (!(time > 0)) throw Error('time argument must be > 0')
-		if (!_.isFunction(fcn)) throw Error('fcn argument must be a function!')
-		let id = '_' + (this._i++)
-		this._queue[id] = {
-			time: time,
-			fcn: fcn
-		}
-		this.checkQueue()
-		return id
 	}
 }

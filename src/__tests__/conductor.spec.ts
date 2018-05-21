@@ -22,8 +22,11 @@ describe('Conductor', () => {
 		jest.advanceTimersByTime(advanceTime)
 		// console.log('Advancing ' + advanceTime + ' ms -----------------------')
 	}
-	test('Test Abstract-device functionality', async () => {
+	beforeEach(() => {
+		now = 10000
 		jest.useFakeTimers()
+	})
+	test('Test Abstract-device functionality', async () => {
 
 		let commandReceiver0 = jest.fn(() => {
 			// nothing
@@ -68,6 +71,18 @@ describe('Conductor', () => {
 
 		conductor.mapping = myLayerMapping
 		await conductor.init()
+		await conductor.addDevice('device0', {
+			type: DeviceType.ABSTRACT,
+			options: {
+				commandReceiver: commandReceiver0
+			}
+		})
+		await conductor.addDevice('device1', {
+			type: DeviceType.ABSTRACT,
+			options: {
+				commandReceiver: commandReceiver1
+			}
+		})
 
 		// add something that will play in a seconds time
 		let abstractThing0: TimelineContentObject = {
@@ -114,7 +129,7 @@ describe('Conductor', () => {
 		advanceTime(500) // to time 1500
 
 		expect(commandReceiver0).toHaveBeenCalledTimes(1)
-		expect(commandReceiver0.mock.calls[0][0]).toEqual(1500)
+		expect(commandReceiver0.mock.calls[0][0]).toEqual(10500)
 		expect(commandReceiver0.mock.calls[0][1]).toMatchObject({
 			commandName: 'addedAbstract',
 			content: {
@@ -131,7 +146,7 @@ describe('Conductor', () => {
 		// expect(device0['queue']).toHaveLength(0)
 
 		expect(commandReceiver0).toHaveBeenCalledTimes(1)
-		expect(commandReceiver0.mock.calls[0][0]).toEqual(2500)
+		expect(commandReceiver0.mock.calls[0][0]).toEqual(11500)
 		expect(commandReceiver0.mock.calls[0][1]).toMatchObject({
 			commandName: 'removedAbstract',
 			content: {
@@ -141,7 +156,7 @@ describe('Conductor', () => {
 			}
 		})
 		expect(commandReceiver1).toHaveBeenCalledTimes(1)
-		expect(commandReceiver1.mock.calls[0][0]).toEqual(2500)
+		expect(commandReceiver1.mock.calls[0][0]).toEqual(11500)
 		expect(commandReceiver1.mock.calls[0][1]).toMatchObject({
 			commandName: 'addedAbstract',
 			content: {
@@ -157,7 +172,7 @@ describe('Conductor', () => {
 
 		expect(commandReceiver0).toHaveBeenCalledTimes(0)
 		expect(commandReceiver1).toHaveBeenCalledTimes(1)
-		expect(commandReceiver1.mock.calls[0][0]).toEqual(5500)
+		expect(commandReceiver1.mock.calls[0][0]).toEqual(14500)
 		expect(commandReceiver1.mock.calls[0][1]).toMatchObject({
 			commandName: 'removedAbstract',
 			content: {
@@ -190,8 +205,7 @@ describe('Conductor', () => {
 		conductor.timeline = [ abstractThing0 ]
 	})
 
-	test.only('Test the "Now" and "Callback-functionality', async () => {
-		jest.useFakeTimers()
+	test('Test the "Now" and "Callback-functionality', async () => {
 
 		let commandReceiver0 = jest.fn(() => {
 			// nothing
@@ -283,7 +297,7 @@ describe('Conductor', () => {
 
 		// the setTimelineTriggerTime event should have been emitted:
 		expect(setTimelineTriggerTime).toHaveBeenCalledTimes(1)
-		expect(setTimelineTriggerTime.mock.calls[0][0].time).toEqual(1000)
+		expect(setTimelineTriggerTime.mock.calls[0][0].time).toEqual(10000)
 
 		// the timelineCallback event should have been emitted:
 		expect(timelineCallback).toHaveBeenCalledTimes(0)
@@ -299,7 +313,7 @@ describe('Conductor', () => {
 
 		expect(commandReceiver0).toHaveBeenCalledTimes(2)
 		expect(timelineCallback).toHaveBeenCalledTimes(1)
-		expect(timelineCallback.mock.calls[0][0]).toEqual(1300)
+		expect(timelineCallback.mock.calls[0][0]).toEqual(10300)
 		expect(timelineCallback.mock.calls[0][1]).toEqual('a1')
 		expect(timelineCallback.mock.calls[0][2]).toEqual('abc')
 		expect(timelineCallback.mock.calls[0][3]).toEqual({hello: 'dude'})

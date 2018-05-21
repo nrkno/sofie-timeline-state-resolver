@@ -10,6 +10,7 @@ let clone = require('fast-clone')
 import { Device, DeviceOptions } from './devices/device'
 import { CasparCGDevice } from './devices/casparCG'
 import { AbstractDevice } from './devices/abstract'
+import { HttpSendDevice } from './devices/httpSend'
 import { Mappings, Mapping, DeviceType } from './devices/mapping'
 import { AtemDevice } from './devices/atem'
 import { EventEmitter } from 'events'
@@ -151,18 +152,19 @@ export class Conductor extends EventEmitter {
 		if (deviceOptions.type === DeviceType.ABSTRACT) {
 			// Add Abstract device:
 			newDevice = new AbstractDevice(deviceId, deviceOptions, {
-				// TODO: Add options
 				getCurrentTime: () => { return this.getCurrentTime() }
 			}) as Device
 		} else if (deviceOptions.type === DeviceType.CASPARCG) {
 			// Add CasparCG device:
 			newDevice = new CasparCGDevice(deviceId, deviceOptions, {
-				// TODO: Add options
 				getCurrentTime: () => { return this.getCurrentTime() }
 			}) as Device
 		} else if (deviceOptions.type === DeviceType.ATEM) {
 			newDevice = new AtemDevice(deviceId, deviceOptions, {
-				// TODO: Add options
+				getCurrentTime: () => { return this.getCurrentTime() }
+			}) as Device
+		} else if (deviceOptions.type === DeviceType.HTTPSEND) {
+			newDevice = new HttpSendDevice(deviceId, deviceOptions, {
 				getCurrentTime: () => { return this.getCurrentTime() }
 			}) as Device
 		}
@@ -266,7 +268,7 @@ export class Conductor extends EventEmitter {
 		// Generate the state for that time:
 		let tlState = Resolver.getState(clone(timeline), resolveTime)
 
-		console.log('tlState', tlState.LLayers)
+		// console.log('tlState', tlState.LLayers)
 
 		// Split the state into substates that are relevant for each device
 		let getFilteredLayers = (layers: TimelineState['LLayers'], device: Device) => {
