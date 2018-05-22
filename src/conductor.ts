@@ -146,8 +146,8 @@ export class Conductor extends EventEmitter {
 	public getDevice (deviceId: string) {
 		return this.devices[deviceId]
 	}
-	public addDevice (deviceId, deviceOptions: DeviceOptions): Promise<any> {
-		let newDevice: Device | null = null
+	public addDevice (deviceId, deviceOptions: DeviceOptions): Promise<Device> {
+		let newDevice: Device
 
 		if (deviceOptions.type === DeviceType.ABSTRACT) {
 			// Add Abstract device:
@@ -167,23 +167,21 @@ export class Conductor extends EventEmitter {
 			newDevice = new HttpSendDevice(deviceId, deviceOptions, {
 				getCurrentTime: () => { return this.getCurrentTime() }
 			}) as Device
+		} else {
+			return Promise.reject('No matching device type for "' + deviceOptions.type + '" found')
 		}
-		if (newDevice) {
-			console.log('Initializing ' + DeviceType[deviceOptions.type] + '...')
-			this.devices[deviceId] = newDevice
-			newDevice.mapping = this.mapping
-			return newDevice.init(deviceOptions.options)
-			.then((device) => {
-				console.log(DeviceType[deviceOptions.type] + ' initialized!')
-				return device
-			})
-		}
-		// if we cannot find a device:
-		return new Promise((resolve) => {
-			resolve(false)
+
+		console.log('Initializing ' + DeviceType[deviceOptions.type] + '...')
+		this.devices[deviceId] = newDevice
+		newDevice.mapping = this.mapping
+
+		return newDevice.init(deviceOptions.options)
+		.then(() => {
+			console.log(DeviceType[deviceOptions.type] + ' initialized!')
+			return newDevice
 		})
 	}
-	public removeDevice (deviceId: string): Promise<boolean> {
+	public removeDevice (deviceId: string): Promise<void> {
 		let device = this.devices[deviceId]
 
 		if (device) {
@@ -192,10 +190,9 @@ export class Conductor extends EventEmitter {
 				if (res) {
 					delete this.devices[deviceId]
 				}
-				return res
 			})
 		} else {
-			return new Promise((resolve) => resolve(false))
+			return Promise.reject('No device found')
 		}
 	}
 	public destroy (): Promise<void> {
@@ -259,6 +256,7 @@ export class Conductor extends EventEmitter {
 			return
 		}
 
+
 		this._fixNowObjects(resolveTime)
 
 		let timeline = this.timeline
@@ -296,7 +294,11 @@ export class Conductor extends EventEmitter {
 			}
 			// console.log('State of device ' + device.deviceName, tlState.LLayers )
 			// Pass along the state to the device, it will generate its commands and execute them:
-			device.handleState(subState)
+			try {
+				device.handleState(subState)
+			} catch (e) {
+				console.log('Error in device "' + device.deviceId + '"', e)
+			}
 		})
 
 		// Now that we've handled this point in time, it's time to determine what the next point in time is:
