@@ -14,6 +14,7 @@ import { Mappings, Mapping, DeviceType } from './devices/mapping'
 import { AtemDevice } from './devices/atem'
 import { EventEmitter } from 'events'
 import { TimelineCallback } from './timelineCallback'
+import { LawoDevice } from './devices/lawo';
 
 const LOOKAHEADTIME = 5000 // Will look ahead this far into the future
 const PREPARETIME = 2000 // Will prepare commands this time before the event is to happen
@@ -161,6 +162,11 @@ export class Conductor extends EventEmitter {
 			}) as Device
 		} else if (deviceOptions.type === DeviceType.ATEM) {
 			newDevice = new AtemDevice(deviceId, deviceOptions, {
+				// TODO: Add options
+				getCurrentTime: () => { return this.getCurrentTime() }
+			}) as Device
+		} else if (deviceOptions.type === DeviceType.LAWO) {
+			newDevice = new LawoDevice(deviceId, deviceOptions, {
 				// TODO: Add options
 				getCurrentTime: () => { return this.getCurrentTime() }
 			}) as Device

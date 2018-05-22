@@ -63,10 +63,10 @@ export class LawoDevice extends Device {
 
 		let oldState: TimelineState = this.getStateBefore(newState.time) || {time: 0, LLayers: {}, GLayers: {}}
 
-		let oldAbstractState = this.convertStateToLawo(oldState)
-		let newAbstractState = this.convertStateToLawo(newState)
+		let oldLawoState = this.convertStateToLawo(oldState)
+		let newLawoState = this.convertStateToLawo(newState)
 
-		let commandsToAchieveState: Array<any> = this._diffStates(oldAbstractState, newAbstractState)
+		let commandsToAchieveState: Array<any> = this._diffStates(oldLawoState, newLawoState)
 
 		// clear any queued commands on this time:
 		this._queue = _.reject(this._queue, (q) => { return q.time === newState.time })
@@ -127,8 +127,9 @@ export class LawoDevice extends Device {
 
 		let commands: Array<any> = []
 
-		_.each(newLawoState.channels, (newChannel: { muted: boolean, volume: number }, channelNo: number) => {
+		_.each(newLawoState, (newChannel: { muted: boolean, volume: number }, channelNo: number) => {
 			let oldChannel = oldLawoState[channelNo]
+			console.log(newLawoState, oldLawoState)
 			if (!oldChannel) {
 				commands.push({
 					type: 'VOLUME',
@@ -158,7 +159,7 @@ export class LawoDevice extends Device {
 			}
 		})
 		// removed
-		_.each(oldLawoState.LLayers, (oldChannel: any, channelNo) => {
+		_.each(oldLawoState, (oldChannel: any, channelNo) => {
 			let newChannel = newLawoState[channelNo]
 			if (!newChannel) {
 				commands.push({
