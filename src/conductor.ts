@@ -256,7 +256,6 @@ export class Conductor extends EventEmitter {
 			return
 		}
 
-
 		this._fixNowObjects(resolveTime)
 
 		let timeline = this.timeline
