@@ -21,6 +21,9 @@ export interface MappingAtem extends Mapping {
 	mappingType: MappingAtemType
 	index?: number
 }
+export interface MappingLawo extends Mapping {
+	channel: number
+}
 export enum MappingAtemType {
 	MixEffect,
 	DownStreamKeyer,
