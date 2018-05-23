@@ -259,13 +259,31 @@ export class Conductor extends EventEmitter {
 		this._fixNowObjects(resolveTime)
 
 		let timeline = this.timeline
+		_.each(timeline, (o) => {
+			delete o['parent']
+			if (o.isGroup) {
+				if (o.content.objects) {
+					_.each(o.content.objects, (o2) => {
+						delete o2['parent']
+					})
+				}
+			}
+		})
 		// @ts-ignore
 		// console.log('timeline', JSON.stringify(timeline, ' ', 2))
 
 		// Generate the state for that time:
 		let tlState = Resolver.getState(clone(timeline), resolveTime)
 
-		// console.log('tlState', tlState.LLayers)
+		_.each(tlState.LLayers, (obj) => {
+			delete obj.parent
+		})
+		_.each(tlState.GLayers, (obj) => {
+			delete obj.parent
+		})
+
+		// @ts-ignore
+		// console.log('tlState', JSON.stringify(tlState.LLayers,' ', 2))
 
 		// Split the state into substates that are relevant for each device
 		let getFilteredLayers = (layers: TimelineState['LLayers'], device: Device) => {
