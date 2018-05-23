@@ -66,7 +66,19 @@ export class AtemDevice extends Device {
 			this._state = new AtemState()
 			this._device = new Atem()
 			this._device.connect(options.host, options.port)
-			this._device.once('connected', () => resolve(true))
+			this._device.once('connected', () => {
+				// check if state has been initialized:
+				if (typeof this._device.state.info.capabilities !== 'undefined') {
+					resolve(true)
+				} else {
+					let interval = setInterval(() => {
+						if (typeof this._device.state.info.capabilities !== 'undefined') {
+							clearInterval(interval)
+							resolve(true)
+						}
+					}, 0)
+				}
+			})
 		})
 	}
 	handleState (newState: TimelineState) {
