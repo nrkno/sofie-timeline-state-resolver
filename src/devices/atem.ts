@@ -30,6 +30,7 @@ export class AtemDevice extends Device {
 	private _queue: Array<any>
 	private _device: Atem
 	private _state: AtemState
+	private _initialized: boolean = false
 
 	private _commandReceiver: (time: number, cmd) => void
 
@@ -69,14 +70,16 @@ export class AtemDevice extends Device {
 			this._device.once('connected', () => {
 				// check if state has been initialized:
 				if (typeof this._device.state.info.capabilities !== 'undefined') {
+					this._initialized = true
 					resolve(true)
 				} else {
 					let interval = setInterval(() => {
 						if (typeof this._device.state.info.capabilities !== 'undefined') {
 							clearInterval(interval)
+							this._initialized = true
 							resolve(true)
 						}
-					}, 0)
+					}, 100)
 				}
 			})
 		})
@@ -84,6 +87,10 @@ export class AtemDevice extends Device {
 	handleState (newState: TimelineState) {
 		// Handle this new state, at the point in time specified
 
+		if (!this._initialized) {
+			// before it's initialized don't do anything
+			return
+		}
 		let oldState: TimelineState = this.getStateBefore(newState.time) || {time: 0, LLayers: {}, GLayers: {}}
 
 		let oldAtemState = this.convertStateToAtem(oldState)
@@ -113,7 +120,9 @@ export class AtemDevice extends Device {
 		return false
 	}
 	convertStateToAtem (state: TimelineState): DeviceState {
-		// @todo: convert the timeline state into something we can use
+		if (!this._initialized) throw Error('convertStateToAtem cannot be used before inititialized')
+
+		// Convert the timeline state into something we can use easier:
 		const deviceState = this._getDefaultState()
 
 		_.each(state.LLayers, (tlObject: TimelineResolvedObject, layerName: string) => {
