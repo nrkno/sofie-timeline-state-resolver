@@ -419,7 +419,7 @@ export class CasparCGDevice extends Device {
 			('0' + (Math.floor(timecodeTime / 3.6e6) % 24)).substr(-2),
 			('0' + (Math.floor(timecodeTime / 6e4) % 60)).substr(-2),
 			('0' + (Math.floor(timecodeTime / 1e3) % 60)).substr(-2),
-			('0' + (Math.floor(timecodeTime / 20) % 50)).substr(-2)
+			('0' + (Math.floor(timecodeTime / 40) % 25)).substr(-2) // @todo: dynamic fps
 		]
 
 		return timecode.join(':')
