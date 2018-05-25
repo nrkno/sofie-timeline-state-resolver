@@ -94,7 +94,7 @@ export class Conductor extends EventEmitter {
 	 */
 	public init (): Promise<void> {
 		this._isInitialized = true
-		this._resetResolver()
+		this.resetResolver()
 
 		return Promise.resolve()
 	}
@@ -135,7 +135,7 @@ export class Conductor extends EventEmitter {
 		// Highest priority right now is to determine if any commands have to be sent RIGHT NOW
 		// After that, we'll move further ahead in time, creating commands ready for scheduling
 
-		this._resetResolver()
+		this.resetResolver()
 
 	}
 
@@ -158,7 +158,7 @@ export class Conductor extends EventEmitter {
 				// Add CasparCG device:
 				newDevice = new CasparCGDevice(deviceId, deviceOptions, {
 					getCurrentTime: () => { return this.getCurrentTime() }
-				}) as Device
+				}, this) as Device
 			} else if (deviceOptions.type === DeviceType.ATEM) {
 				newDevice = new AtemDevice(deviceId, deviceOptions, {
 					getCurrentTime: () => { return this.getCurrentTime() }
@@ -213,7 +213,7 @@ export class Conductor extends EventEmitter {
 	 * Resets the resolve-time, so that the resolving will happen for the point-in time NOW
 	 * next time
 	 */
-	private _resetResolver () {
+	public resetResolver () {
 
 		this._nextResolveTime = 0 // This will cause _resolveTimeline() to generate the state for NOW
 

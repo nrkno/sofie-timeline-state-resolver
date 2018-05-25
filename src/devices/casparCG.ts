@@ -1,11 +1,12 @@
 import * as _ from 'underscore'
 import { Device, DeviceOptions } from './device'
 
-import { CasparCG, Command as CommandNS, AMCPUtil, AMCP } from 'casparcg-connection'
+import { CasparCG, Command as CommandNS, AMCPUtil, AMCP, CasparCGSocketStatusEvent } from 'casparcg-connection'
 import { MappingCasparCG, DeviceType, Mapping } from './mapping'
 
 import { TimelineState, TimelineResolvedObject } from 'superfly-timeline'
 import { CasparCG as StateNS, CasparCGState } from 'casparcg-state'
+import { Conductor } from '../conductor'
 
 // const BGLOADTIME = 1000 // the time we will look back to schedule a loadbg command.
 
@@ -33,12 +34,13 @@ export enum TimelineContentTypeCasparCg { //  CasparCG-state
 export class CasparCGDevice extends Device {
 
 	private _ccg: CasparCG
+	private _conductor: Conductor
 	private _ccgState: CasparCGState
 	private _queue: { [key: string]: number } = {}
 	private _commandReceiver: (time: number, cmd) => void
 	private _timeToTimecodeMap: {time: number, timecode: number}
 
-	constructor (deviceId: string, deviceOptions: CasparCGDeviceOptions, options) {
+	constructor (deviceId: string, deviceOptions: CasparCGDeviceOptions, options, conductor: Conductor) {
 		super(deviceId, deviceOptions, options)
 
 		if (deviceOptions.options) {
@@ -49,6 +51,7 @@ export class CasparCGDevice extends Device {
 		this._ccgState = new CasparCGState({
 			currentTime: this.getCurrentTime
 		})
+		this._conductor = conductor
 	}
 
 	/**
@@ -59,8 +62,19 @@ export class CasparCGDevice extends Device {
 			host: connectionOptions.host,
 			port: connectionOptions.port,
 			autoConnect: true,
+			virginServerCheck: true,
 			onConnectionChanged: (connected: boolean) => {
 				this.emit('connectionChanged', connected)
+			}
+		})
+		this._ccg.on(CasparCGSocketStatusEvent.CONNECTED, (event: CasparCGSocketStatusEvent) => {
+			if (event.valueOf().virginServer === true) {
+				// a "virgin server" was just restarted (so it is cleared & black).
+				// Otherwise it was probably just a loss of connection
+
+				this._ccgState.softClearState()
+				this.clearStates()
+				this._conductor.resetResolver() // trigger a re-calc
 			}
 		})
 
