@@ -4315,7 +4315,7 @@ subarg@^1.0.0:
 
 "superfly-timeline@git+https://github.com/SuperFlyTV/supertimeline.git#dist":
   version "0.1.1"
-  resolved "git+https://github.com/SuperFlyTV/supertimeline.git#88df0e1c7295a199f45146be37bf726dd0f1ddf4"
+  resolved "git+https://github.com/SuperFlyTV/supertimeline.git#19abe6020bf13999e5f3749ecf0135e060a7cd32"
   dependencies:
     "@types/underscore" "^1.8.7"
     fast-clone "^1.4.2"
