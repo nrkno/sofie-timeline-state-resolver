@@ -70,18 +70,8 @@ export class AtemDevice extends Device {
 			this._device.connect(options.host, options.port)
 			this._device.once('connected', () => {
 				// check if state has been initialized:
-				if (typeof this._device.state.info.capabilities !== 'undefined') {
-					this._initialized = true
-					resolve(true)
-				} else {
-					let interval = setInterval(() => {
-						if (typeof this._device.state.info.capabilities !== 'undefined') {
-							clearInterval(interval)
-							this._initialized = true
-							resolve(true)
-						}
-					}, 100)
-				}
+				this._initialized = true
+				resolve(true)
 			})
 		})
 	}
