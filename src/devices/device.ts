@@ -98,17 +98,10 @@ export class Device extends EventEmitter {
 			}
 		})
 	}
-	clearStates (): void {
+	clearStates () {
 		_.each(_.keys(this._states), (time: string) => {
 			delete this._states[time]
 		})
-		// Soft clear state:
-		// let currentState = this._currentStateStorage.fetchState()
-		// _.each(currentState.channels, (channel) => {
-		// 	channel.layers = {}
-		// })
-		// // Save new state:
-		// this._currentStateStorage.storeState(currentState)
 	}
 
 	get mapping (): Mappings {

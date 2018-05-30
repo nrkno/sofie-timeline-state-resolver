@@ -20,7 +20,8 @@ export interface CasparCGDeviceOptions extends DeviceOptions {
 }
 export interface CasparCGOptions {
 	host: string,
-	port: number
+	port: number,
+	syncTimecode?: boolean
 }
 export enum TimelineContentTypeCasparCg { //  CasparCG-state
 	VIDEO = 'video',
@@ -38,7 +39,7 @@ export class CasparCGDevice extends Device {
 	private _ccgState: CasparCGState
 	private _queue: { [key: string]: number } = {}
 	private _commandReceiver: (time: number, cmd) => void
-	private _timeToTimecodeMap: {time: number, timecode: number}
+	private _timeToTimecodeMap: {time: number, timecode: number} = {time: 0, timecode: 0}
 
 	constructor (deviceId: string, deviceOptions: CasparCGDeviceOptions, options, conductor: Conductor) {
 		super(deviceId, deviceOptions, options)
@@ -92,23 +93,29 @@ export class CasparCGDevice extends Device {
 
 					resolve(true)
 				}).catch((e) => reject(e))
-			}),new Promise((resolve, reject) => {
-				this._ccg.time(1).then((cmd) => { // @todo: keep time per channel
-					let segments = (cmd.response.data as string).split(':')
-					let time = 0
+			}), new Promise((resolve, reject) => {
 
-					// fields:
-					time += Number(segments[3]) * 1000 / 50
-					// seconds
-					time += Number(segments[2]) * 1000
-					// minutes
-					time += Number(segments[1]) * 60 * 1000
-					// hours
-					time += Number(segments[0]) * 60 * 60 * 1000
+				if (connectionOptions.syncTimecode) {
+					this._ccg.time(1).then((cmd) => { // @todo: keep time per channel
+						let segments = (cmd.response.data as string).split(':')
+						let time = 0
 
-					this._timeToTimecodeMap = { time: this.getCurrentTime(), timecode: time }
+						// fields:
+						time += Number(segments[3]) * 1000 / 50
+						// seconds
+						time += Number(segments[2]) * 1000
+						// minutes
+						time += Number(segments[1]) * 60 * 1000
+						// hours
+						time += Number(segments[0]) * 60 * 60 * 1000
+
+						this._timeToTimecodeMap = { time: this.getCurrentTime(), timecode: time }
+						resolve(true)
+					}).catch(() => reject())
+				} else {
+					this._timeToTimecodeMap = { time: 0, timecode: 0 }
 					resolve(true)
-				}).catch(() => reject())
+				}
 			})
 		]).then(() => {
 			return true
