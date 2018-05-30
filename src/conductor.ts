@@ -26,10 +26,7 @@ export interface TimelineContentObject extends TimelineObject {
 }
 export { TriggerType }
 
-export interface TimelineTriggerTimeResult {
-	time: number,
-	objectIds: Array<string>
-}
+export type TimelineTriggerTimeResult = Array<{id: string, time: number}>
 
 export { Device } from './devices/device'
 // export interface Device {}
@@ -345,11 +342,14 @@ export class Conductor extends EventEmitter {
 					)
 				)
 
+				// console.log('timeUntilNextResolve', timeUntilNextResolve)
+
 				// resolve at nextEvent.time next time:
 				this._nextResolveTime = nextEvent.time
 
 			} else {
 				// there's nothing ahead in the timeline
+				// console.log('no next events')
 
 				// Tell the devices that the future is clear:
 				_.each(this.devices, (device: Device) => {
@@ -387,31 +387,80 @@ export class Conductor extends EventEmitter {
 	}
 
 	private _fixNowObjects (now: number) {
-		let objectsFixed: Array<string> = []
-		let fixObjects = (objs) => {
+		let objectsFixed: Array<{
+			id: string,
+			time: number
+		}> = []
+
+		let setObjectTime = (o: TimelineContentObject, time: number) => {
+			o.trigger.value = time // set the objects to "now" so that they are resolved correctly temporarily
+			objectsFixed.push({
+				id: o.id,
+				time: time
+			})
+		}
+
+		let timeline = this.timeline
+		// First: fix the ones on the first level (i e not in groups), because they are easy:
+		_.each(timeline, (o: TimelineContentObject) => {
+			if (
+				(o.trigger || {}).type === TriggerType.TIME_ABSOLUTE &&
+				o.trigger.value === 'now'
+			) {
+				setObjectTime(o, now)
+			}
+		})
+
+		// Then, resolve the timeline to be able to set "now" inside groups, relative to parents:
+		let dontIterateAgain
+		let wouldLikeToIterateAgain
+		let tl
+		let tld
+		let fixObjects = (objs, parentObject?: TimelineContentObject ) => {
 
 			_.each(objs, (o: TimelineContentObject) => {
 				if (
 					(o.trigger || {}).type === TriggerType.TIME_ABSOLUTE &&
 					o.trigger.value === 'now'
 				) {
-					o.trigger.value = now // set the objects to "now" so that they are resolved correctly right now
-					objectsFixed.push(o.id)
+					// find parent, and set relative to that
+					if (parentObject) {
+						let developedParent = _.findWhere(tld.groups, {id: parentObject.id})
+						if (developedParent && developedParent['resolved'].startTime) {
+							dontIterateAgain = false
+							setObjectTime(o, now - developedParent['resolved'].startTime)
+						} else {
+							// the parent isn't found, it's probably not resolved (yet), try iterating once more:
+							wouldLikeToIterateAgain = true
+						}
+					} else {
+						dontIterateAgain = false
+						setObjectTime(o, now)
+					}
 				}
-				if (o.content.objects) {
-					fixObjects(o.content.objects)
+				if (o.isGroup && o.content.objects) {
+					fixObjects(o.content.objects, o)
 				}
 			})
 
 		}
 
-		fixObjects(this.timeline)
+		for (let i = 0; i < 10; i++) {
+			wouldLikeToIterateAgain = false
+			dontIterateAgain = true
+
+			tl = Resolver.getTimelineInWindow(timeline)
+			tld = Resolver.developTimelineAroundTime(tl, now)
+			fixObjects(timeline)
+			if (!wouldLikeToIterateAgain && dontIterateAgain) break
+		}
+
+		// fixObjects(this.timeline, 0)
+
+		// console.log('objectsFixed', objectsFixed)
 
 		if (objectsFixed.length) {
-			let r: TimelineTriggerTimeResult = {
-				time: now,
-				objectIds: objectsFixed
-			}
+			let r: TimelineTriggerTimeResult = objectsFixed
 			// console.log('setTimelineTriggerTime', r)
 			this.emit('setTimelineTriggerTime', r)
 		}
