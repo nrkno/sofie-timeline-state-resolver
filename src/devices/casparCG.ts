@@ -28,6 +28,7 @@ export enum TimelineContentTypeCasparCg { //  CasparCG-state
 	IP = 'ip',
 	INPUT = 'input',
 	TEMPLATE = 'template',
+	HTMLPAGE = 'htmlpage',
 	ROUTE = 'route',
 	RECORD = 'record',
 	AUDIO = 'audio'
@@ -267,6 +268,16 @@ export class CasparCGDevice extends Device {
 						templateType: layer.content.attributes.type || 'html',
 						templateData: layer.content.attributes.data,
 						cgStop: layer.content.attributes.useStopCommand
+					}
+					stateLayer = l
+				} else if (layer.content.type === TimelineContentTypeCasparCg.HTMLPAGE) {
+					let l: StateNS.IHtmlPageLayer = {
+						layerNo: mapping.layer,
+						content: StateNS.LayerContentType.HTMLPAGE,
+						media: layer.content.attributes.url,
+
+						playTime: layer.resolved.startTime || null,
+						playing: true
 					}
 					stateLayer = l
 				} else if (layer.content.type === TimelineContentTypeCasparCg.ROUTE) {

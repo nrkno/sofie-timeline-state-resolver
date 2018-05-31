@@ -6,7 +6,7 @@ import { Mappings, MappingAtem, DeviceType, MappingAtemType } from '../devices/m
 import { Conductor } from '../conductor'
 import { HttpSendDevice } from '../devices/httpSend'
 
-// let nowActual = Date.now
+// let nowActual = Date.now()
 describe('HTTP-Send', () => {
 	let now: number = 10000
 	beforeAll(() => {
