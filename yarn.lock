@@ -354,7 +354,7 @@ asynckit@^0.4.0:
 
 "atem-state@git+https://github.com/nrkno/tv-automation-atem-state#dist":
   version "0.0.0"
-  resolved "git+https://github.com/nrkno/tv-automation-atem-state#69c11385ecfded1858ed6953c2543e578803b198"
+  resolved "git+https://github.com/nrkno/tv-automation-atem-state#98b5318cb5fbccfc1dabbca8ae89cc3a515eaf2e"
   dependencies:
     atem-connection "git+https://github.com/nrkno/tv-automation-atem-connection#dist"
     tslib "^1.9.0"
