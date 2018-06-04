@@ -22,7 +22,8 @@ export interface MappingAtem extends Mapping {
 	index?: number
 }
 export interface MappingLawo extends Mapping {
-	channel: number
+	path: Array<number>
+	defaults?: { [attrName: string]: boolean | string | number }
 }
 export enum MappingAtemType {
 	MixEffect,

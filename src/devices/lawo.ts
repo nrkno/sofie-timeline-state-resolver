@@ -1,8 +1,9 @@
 import * as _ from 'underscore'
 import { Device, DeviceOptions } from './device'
-import { DeviceType, MappingLawo } from './mapping'
+import { DeviceType, MappingLawo, Mappings } from './mapping'
 
 import { TimelineState, TimelineResolvedObject } from 'superfly-timeline'
+import { DeviceTree } from 'emberplus'
 
 /*
 	This is a wrapper for an "Abstract" device
@@ -11,13 +12,18 @@ import { TimelineState, TimelineResolvedObject } from 'superfly-timeline'
 	as a preliminary mock
 */
 export interface LawoOptions extends DeviceOptions {
+	host: string,
+	port: number,
 	options?: {
 		commandReceiver?: (time: number, cmd) => void
 	}
 }
 export class LawoDevice extends Device {
 
-	private _queue: Array<any>
+	private _queue: Array<{ time: number, command: Object}>
+	private _device: DeviceTree
+	private _resolveMappingsOnConnect = false
+	private _mappingToAttributes: { [layerName: string]: { [attrName: string]: number } } = {}
 
 	private _commandReceiver: (time: number, cmd) => void
 
@@ -25,7 +31,16 @@ export class LawoDevice extends Device {
 		super(deviceId, deviceOptions, options)
 		if (deviceOptions.options) {
 			if (deviceOptions.options.commandReceiver) this._commandReceiver = deviceOptions.options.commandReceiver
+			else this._commandReceiver = this._defaultCommandReceiver
 		}
+
+		this._device = new DeviceTree(deviceOptions.host, deviceOptions.port)
+		this._device.on('connected', () => {
+			if (this._resolveMappingsOnConnect) {
+				this._resolveMappings()
+			}
+		})
+		// @todo: put the lawo into our default state
 
 		setInterval(() => {
 			// send any commands due:
@@ -51,9 +66,8 @@ export class LawoDevice extends Device {
 	 */
 	init (): Promise<boolean> {
 		return new Promise((resolve/*, reject*/) => {
-			// @todo: initiate ember+ connection
-
-			resolve(true)
+			this._device.connect().then(() => resolve(true))
+			// @todo: timeout
 		})
 	}
 	handleState (newState: TimelineState) {
@@ -91,22 +105,12 @@ export class LawoDevice extends Device {
 	}
 	convertStateToLawo (state: TimelineState) {
 		// convert the timeline state into something we can use
-		const lawoState: Array<{ muted: boolean, volume: number }> = []
+		const lawoState: { [path: string]: { [attrName: string]: boolean | number | string }} = {}
 
 		_.each(state.LLayers, (tlObject: TimelineResolvedObject, layerName: string) => {
 			const mapping = this.mapping[layerName] as MappingLawo
-			const channel = {
-				muted: true,
-				volume: 0
-			}
-			if (tlObject.content.muted === false) {
-				channel.muted = false
-			}
-			if (typeof tlObject.content.volume !== 'undefined') {
-				channel.volume = tlObject.content.volume
-			}
 			if (typeof mapping !== 'undefined') {
-				lawoState[mapping.channel] = channel
+				lawoState[mapping.path.join('/')] = { ...lawoState[mapping.path.join('/')], ...tlObject.content }
 			}
 		})
 
@@ -122,58 +126,66 @@ export class LawoDevice extends Device {
 		return _.values(this._queue)
 	}
 
+	set mapping (mappings: Mappings) {
+		super.mapping = mappings
+
+		if (this._device.isConnected()) {
+			this._resolveMappings()
+		} else {
+			this._resolveMappingsOnConnect = true
+		}
+	}
+
 	private _diffStates (oldLawoState, newLawoState) {
 		// in this abstract class, let's just cheat:
 
 		let commands: Array<any> = []
 
-		_.each(newLawoState, (newChannel: { muted: boolean, volume: number }, channelNo: number) => {
-			let oldChannel = oldLawoState[channelNo]
-			console.log(newLawoState, oldLawoState)
-			if (!oldChannel) {
-				commands.push({
-					type: 'VOLUME',
-					channelNo,
-					value: newChannel.volume
-				})
-				commands.push({
-					type: 'MUTED',
-					channelNo,
-					value: newChannel.muted
-				})
-			} else {
-				if (oldChannel.volume !== newChannel.volume) {
-					commands.push({
-						type: 'VOLUME',
-						channelNo,
-						value: newChannel.volume
-					})
-				}
-				if (oldChannel.muted !== newChannel.muted) {
-					commands.push({
-						type: 'MUTED',
-						channelNo,
-						value: newChannel.muted
-					})
+		_.each(newLawoState, (newNode: { [attrName: string]: boolean | number | string }, path: string) => {
+			let oldNode = oldLawoState[path]
+			if (!oldNode) oldNode = _.find(this.mapping, (mapping: MappingLawo) => mapping.path.join('.') === path) as MappingLawo
+			for (const attr in newNode) {
+				if (newNode[attr] !== oldNode[attr]) {
+					commands.push({ path, attribute: attr, value: newNode[attr] })
 				}
 			}
 		})
 		// removed
-		_.each(oldLawoState, (oldChannel: any, channelNo) => {
-			let newChannel = newLawoState[channelNo]
-			if (!newChannel) {
-				commands.push({
-					type: 'VOLUME',
-					channelNo,
-					value: 0
-				})
-				commands.push({
-					type: 'MUTED',
-					channelNo,
-					value: true
-				})
+		_.each(oldLawoState, (oldNode: any, path: string) => {
+			let newNode = newLawoState[path]
+			if (!newNode) newNode = _.find(this.mapping, (mapping: MappingLawo) => mapping.path.join('.') === path) as MappingLawo
+			for (const attr in newNode) {
+				if (newNode[attr] !== oldNode[attr]) {
+					commands.push({ path, attribute: attr, value: newNode[attr] })
+				}
 			}
 		})
 		return commands
+	}
+
+	private _defaultCommandReceiver (time: number, command: { path: string, attribute: string, value: number | boolean | string }) {
+		const path = _.map(command.path.split('/'), (val: string) => Number(val))
+		path.push(this._mappingToAttributes[command.path][command.attribute])
+
+		this._device.getNodeByPath(path).then((node: any) => {
+			this._device.setValue(node, command.value).catch(console.log)
+		})
+	}
+
+	private _resolveMappings () {
+		_.each(this.mapping, (mapping: MappingLawo, layerName: string) => {
+			const pathStr = mapping.path.join('/')
+			this._device.getNodeByPath(mapping.path).then((node) => {
+				// @todo: should we describe to the node?
+				this._device.getDirectory(node).then((directory) => {
+					_.each(directory.elements, (element: any) => {
+						if (!this._mappingToAttributes[pathStr]) {
+							this._mappingToAttributes[pathStr] = {}
+						}
+						this._mappingToAttributes[pathStr][element.name] = element.index // @todo: check actual props of the element...
+					})
+				})
+			})
+		})
 	}
 }
