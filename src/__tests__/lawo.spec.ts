@@ -1,10 +1,10 @@
-import { Commands, Atem } from 'atem-connection'
-import { Enums } from 'atem-state'
 import { Resolver, TimelineObject, TimelineState, TriggerType } from 'superfly-timeline'
 
 import { Mappings, MappingLawo, DeviceType } from '../devices/mapping'
 import { Conductor } from '../conductor'
 import { LawoDevice } from '../devices/lawo'
+import { DeviceOptions } from '../devices/device'
+import { DeviceTree } from 'emberplus'
 
 let nowActual: number = Date.now()
 let now: number = 1000
@@ -32,20 +32,25 @@ test('Lawo: add channel', async () => {
 	let myChannelMapping0: MappingLawo = {
 		device: DeviceType.LAWO,
 		deviceId: 'myLawo',
-		channel: 0
+		path: [1, 1, 2, 3],
+		defaults: {
+			'Motor dB Value': -191
+		}
 	}
 	let myChannelMapping: Mappings = {
-		'myChannel0': myChannelMapping0
+		'lawo_c1_fader': myChannelMapping0
 	}
 
 	let myConductor = new Conductor({
 		devices: {
 			'myLawo': {
 				type: DeviceType.LAWO,
+				host: '160.67.96.51',
+				port: 9000,
 				options: {
 					commandReceiver: commandReceiver0
 				}
-			}
+			} as DeviceOptions
 		},
 		initializeAsClear: true,
 		getCurrentTime: getCurrentTime
@@ -68,10 +73,9 @@ test('Lawo: add channel', async () => {
 				value: now + 1000 // 1 seconds in the future
 			},
 			duration: 2000,
-			LLayer: 'myChannel0',
+			LLayer: 'lawo_c1_fader',
 			content: {
-				muted: false,
-				volume: 100
+				'Motor dB Value': -6
 			}
 		}
 	]
@@ -80,16 +84,18 @@ test('Lawo: add channel', async () => {
 
 	expect(commandReceiver0.mock.calls[0][1]).toMatchObject(
 		{
-			type: 'VOLUME',
-			channelNo: 0,
-			value: 100
+			attribute: 'Motor dB Value',
+			value: -6,
+			path: '1/1/2/3'
 		}
 	)
+
+	advanceTime(2000)
 	expect(commandReceiver0.mock.calls[1][1]).toMatchObject(
 		{
-			type: 'MUTED',
-			channelNo: 0,
-			value: false
+			attribute: 'Motor dB Value',
+			value: -191,
+			path: '1/1/2/3'
 		}
 	)
 })
@@ -104,20 +110,25 @@ test('Lawo: change volume', async () => {
 	let myChannelMapping0: MappingLawo = {
 		device: DeviceType.LAWO,
 		deviceId: 'myLawo',
-		channel: 0
+		path: [1, 1, 2, 3],
+		defaults: {
+			'Motor dB Value': -191
+		}
 	}
 	let myChannelMapping: Mappings = {
-		'myChannel0': myChannelMapping0
+		'lawo_c1_fader': myChannelMapping0
 	}
 
 	let myConductor = new Conductor({
 		devices: {
 			'myLawo': {
 				type: DeviceType.LAWO,
+				host: '160.67.96.51',
+				port: 9000,
 				options: {
 					commandReceiver: commandReceiver0
 				}
-			}
+			} as DeviceOptions
 		},
 		initializeAsClear: true,
 		getCurrentTime: getCurrentTime
@@ -140,10 +151,9 @@ test('Lawo: change volume', async () => {
 				value: now - 1000 // 1 seconds in the future
 			},
 			duration: 2000,
-			LLayer: 'myChannel0',
+			LLayer: 'lawo_c1_fader',
 			content: {
-				muted: false,
-				volume: 100
+				'Motor dB Value': 0 // 0 dBFS
 			}
 		}
 	]
@@ -157,173 +167,18 @@ test('Lawo: change volume', async () => {
 				value: now - 1000 // 1 seconds in the future
 			},
 			duration: 2000,
-			LLayer: 'myChannel0',
+			LLayer: 'lawo_c1_fader',
 			content: {
-				muted: false,
-				volume: 50
+				'Motor dB Value': -15 // -15 dBFS
 			}
 		}
 	]
 	advanceTime(100)
-	expect(commandReceiver0.mock.calls[2][1]).toMatchObject(
+	expect(commandReceiver0.mock.calls[1][1]).toMatchObject(
 		{
-			type: 'VOLUME',
-			channelNo: 0,
-			value: 50
-		}
-	)
-})
-
-test('Lawo: mute channel', async () => {
-	now = 1000
-	jest.useFakeTimers()
-
-	let commandReceiver0 = jest.fn((command) => {
-		// nothing.
-	})
-	let myChannelMapping0: MappingLawo = {
-		device: DeviceType.LAWO,
-		deviceId: 'myLawo',
-		channel: 0
-	}
-	let myChannelMapping: Mappings = {
-		'myChannel0': myChannelMapping0
-	}
-
-	let myConductor = new Conductor({
-		devices: {
-			'myLawo': {
-				type: DeviceType.LAWO,
-				options: {
-					commandReceiver: commandReceiver0
-				}
-			}
-		},
-		initializeAsClear: true,
-		getCurrentTime: getCurrentTime
-	})
-	myConductor.mapping = myChannelMapping
-	await myConductor.init() // we cannot do an await, because setTimeout will never call without jest moving on.
-	advanceTime(100) // 1100
-
-	let device = myConductor.getDevice('myLawo') as LawoDevice
-	// console.log(device._device.state)
-
-	// Check that no commands has been scheduled:
-	expect(device.queue).toHaveLength(0)
-
-	myConductor.timeline = [
-		{
-			id: 'obj0',
-			trigger: {
-				type: TriggerType.TIME_ABSOLUTE,
-				value: now - 1000 // 1 seconds in the future
-			},
-			duration: 2000,
-			LLayer: 'myChannel0',
-			content: {
-				muted: false,
-				volume: 100
-			}
-		}
-	]
-
-	advanceTime(100)
-	myConductor.timeline = [
-		{
-			id: 'obj0',
-			trigger: {
-				type: TriggerType.TIME_ABSOLUTE,
-				value: now - 1000 // 1 seconds in the future
-			},
-			duration: 2000,
-			LLayer: 'myChannel0',
-			content: {
-				muted: true,
-				volume: 100
-			}
-		}
-	]
-	advanceTime(100)
-	expect(commandReceiver0.mock.calls[2][1]).toMatchObject(
-		{
-			type: 'MUTED',
-			channelNo: 0,
-			value: true
-		}
-	)
-})
-
-test('Lawo: remove channel', async () => {
-	now = 1000
-	jest.useFakeTimers()
-
-	let commandReceiver0 = jest.fn((command) => {
-		// nothing.
-	})
-	let myChannelMapping0: MappingLawo = {
-		device: DeviceType.LAWO,
-		deviceId: 'myLawo',
-		channel: 0
-	}
-	let myChannelMapping: Mappings = {
-		'myChannel0': myChannelMapping0
-	}
-
-	let myConductor = new Conductor({
-		devices: {
-			'myLawo': {
-				type: DeviceType.LAWO,
-				options: {
-					commandReceiver: commandReceiver0
-				}
-			}
-		},
-		initializeAsClear: true,
-		getCurrentTime: getCurrentTime
-	})
-	myConductor.mapping = myChannelMapping
-	await myConductor.init() // we cannot do an await, because setTimeout will never call without jest moving on.
-	advanceTime(100) // 1100
-
-	let device = myConductor.getDevice('myLawo') as LawoDevice
-	// console.log(device._device.state)
-
-	// Check that no commands has been scheduled:
-	expect(device.queue).toHaveLength(0)
-
-	myConductor.timeline = [
-		{
-			id: 'obj0',
-			trigger: {
-				type: TriggerType.TIME_ABSOLUTE,
-				value: now - 1000 // 1 seconds in the future
-			},
-			duration: 2000,
-			LLayer: 'myChannel0',
-			content: {
-				muted: false,
-				volume: 100
-			}
-		}
-	]
-
-	advanceTime(100)
-	myConductor.timeline = [
-	]
-	advanceTime(100)
-	expect(commandReceiver0.mock.calls[2][1]).toMatchObject(
-		{
-			type: 'VOLUME',
-			channelNo: 0,
-			value: 0
-		}
-	)
-	expect(commandReceiver0.mock.calls[3][1]).toMatchObject(
-		{
-			type: 'MUTED',
-			channelNo: 0,
-			value: true
+			path: '1/1/2/3',
+			attribute: 'Motor dB Value',
+			value: -15
 		}
 	)
 })
