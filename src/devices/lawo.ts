@@ -92,6 +92,7 @@ export class LawoDevice extends Device {
 				command: cmd
 			})
 		})
+		console.log(this._queue)
 
 		// store the new state, for later use:
 		this.setState(newState)
@@ -135,6 +136,9 @@ export class LawoDevice extends Device {
 			this._resolveMappingsOnConnect = true
 		}
 	}
+	get mapping () {
+		return super.mapping
+	}
 
 	private _diffStates (oldLawoState, newLawoState) {
 		// in this abstract class, let's just cheat:
@@ -143,9 +147,11 @@ export class LawoDevice extends Device {
 
 		_.each(newLawoState, (newNode: { [attrName: string]: boolean | number | string }, path: string) => {
 			let oldNode = oldLawoState[path]
-			if (!oldNode) oldNode = _.find(this.mapping, (mapping: MappingLawo) => mapping.path.join('.') === path) as MappingLawo
+			const mapping = _.find(this.mapping, (mapping: MappingLawo) => mapping.path.join('/') === path) as MappingLawo
+			const mappingAttrs = this._mappingToAttributes[path]
+			if (!oldNode) oldNode = mapping.defaults
 			for (const attr in newNode) {
-				if (newNode[attr] !== oldNode[attr]) {
+				if (newNode[attr] !== oldNode[attr] && mappingAttrs[attr] !== undefined) {
 					commands.push({ path, attribute: attr, value: newNode[attr] })
 				}
 			}
@@ -153,7 +159,7 @@ export class LawoDevice extends Device {
 		// removed
 		_.each(oldLawoState, (oldNode: any, path: string) => {
 			let newNode = newLawoState[path]
-			if (!newNode) newNode = _.find(this.mapping, (mapping: MappingLawo) => mapping.path.join('.') === path) as MappingLawo
+			if (!newNode) newNode = (_.find(this.mapping, (mapping: MappingLawo) => mapping.path.join('/') === path) as MappingLawo).defaults
 			for (const attr in newNode) {
 				if (newNode[attr] !== oldNode[attr]) {
 					commands.push({ path, attribute: attr, value: newNode[attr] })
@@ -176,14 +182,13 @@ export class LawoDevice extends Device {
 		_.each(this.mapping, (mapping: MappingLawo, layerName: string) => {
 			const pathStr = mapping.path.join('/')
 			this._device.getNodeByPath(mapping.path).then((node) => {
-				// @todo: should we describe to the node?
-				this._device.getDirectory(node).then((directory) => {
-					_.each(directory.elements, (element: any) => {
-						if (!this._mappingToAttributes[pathStr]) {
-							this._mappingToAttributes[pathStr] = {}
-						}
-						this._mappingToAttributes[pathStr][element.name] = element.index // @todo: check actual props of the element...
-					})
+				// @todo: this might need a getDirectory() first.
+				// @todo: should we subscribe to the node?
+				_.each(node.getChildren(), (element: any) => {
+					if (!this._mappingToAttributes[pathStr]) {
+						this._mappingToAttributes[pathStr] = {}
+					}
+					this._mappingToAttributes[pathStr][element.contents.identifier] = element.number
 				})
 			})
 		})
