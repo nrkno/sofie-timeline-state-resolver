@@ -42,7 +42,7 @@ export class LawoDevice extends Device {
 				this._resolveMappings()
 			}
 		})
-		// @todo: put the lawo into our default state
+		this._enforceDeviceState()
 
 		setInterval(() => {
 			// send any commands due:
@@ -205,6 +205,36 @@ export class LawoDevice extends Device {
 					}
 					this._mappingToAttributes[pathStr][element.contents.identifier] = element.number
 				})
+			})
+		})
+	}
+
+	private _enforceDeviceState () {
+		const curState = this.getStateBefore(this.getCurrentTime())
+		const emptyState = {}
+		const defaultState = curState ? this.convertStateToLawo(curState) : {}
+
+		_.each(this.mapping, (mapping: MappingLawo) => {
+			if (mapping.defaults) {
+				const path = mapping.path.join('/')
+				emptyState[path] = {}
+				if (defaultState[path] === undefined) defaultState[path] = {}
+				_.each(mapping.defaults!, (val: number | boolean | string, attr: string) => {
+					if (defaultState[path][attr] === undefined) defaultState[path][attr] = val
+				})
+			}
+		})
+
+		const commandsToAchieveState = this._diffStates(emptyState, defaultState)
+
+		// clear any queued commands on this time:
+		this._queue = _.reject(this._queue, (q) => { return q.time === this.getCurrentTime() })
+
+		// add the new commands to the queue:
+		_.each(commandsToAchieveState, (cmd) => {
+			this._queue.push({
+				time: this.getCurrentTime(),
+				command: cmd
 			})
 		})
 	}
