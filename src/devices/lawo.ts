@@ -3,7 +3,7 @@ import { Device, DeviceOptions } from './device'
 import { DeviceType, MappingLawo, Mappings } from './mapping'
 
 import { TimelineState, TimelineResolvedObject } from 'superfly-timeline'
-import { DeviceTree } from 'emberplus'
+import { DeviceTree, Node } from 'emberplus'
 
 /*
 	This is a wrapper for an "Abstract" device
@@ -24,6 +24,7 @@ export class LawoDevice extends Device {
 	private _device: DeviceTree
 	private _resolveMappingsOnConnect = false
 	private _mappingToAttributes: { [layerName: string]: { [attrName: string]: number } } = {}
+	private _savedNodes: { [pathName: string]: Node } = {}
 
 	private _commandReceiver: (time: number, cmd) => void
 
@@ -36,6 +37,7 @@ export class LawoDevice extends Device {
 
 		this._device = new DeviceTree(deviceOptions.host, deviceOptions.port)
 		this._device.on('connected', () => {
+			this._savedNodes = {} // reset cache
 			if (this._resolveMappingsOnConnect) {
 				this._resolveMappings()
 			}
@@ -173,15 +175,28 @@ export class LawoDevice extends Device {
 		const path = _.map(command.path.split('/'), (val: string) => Number(val))
 		path.push(this._mappingToAttributes[command.path][command.attribute])
 
-		this._device.getNodeByPath(path).then((node: any) => {
+		this._getNodeByPath(path).then((node: any) => {
 			this._device.setValue(node, command.value).catch(console.log)
+		})
+	}
+
+	private async _getNodeByPath (path: Array<number>): Node {
+		return new Promise ((resolve) => {
+			if (this._savedNodes[path.join('/')] !== undefined) {
+				resolve(this._savedNodes[path.join('/')])
+			} else {
+				this._device.getNodeByPath(path).then((node) => {
+					this._savedNodes[path.join('/')] = node
+					resolve(node)
+				})
+			}
 		})
 	}
 
 	private _resolveMappings () {
 		_.each(this.mapping, (mapping: MappingLawo, layerName: string) => {
 			const pathStr = mapping.path.join('/')
-			this._device.getNodeByPath(mapping.path).then((node) => {
+			this._getNodeByPath(mapping.path).then((node) => {
 				// @todo: this might need a getDirectory() first.
 				// @todo: should we subscribe to the node?
 				_.each(node.getChildren(), (element: any) => {
