@@ -29,7 +29,10 @@
   ],
   "scripts": {
     "info": "npm-scripts-info",
-    "installclean": "trash yarn.lock && yarn cache clean atem-connection atem-state && yarn install",
+    "cleancache": "yarn cache clean atem-connection atem-state casparcg-connection casparcg-state superfly-timeline",
+    "unlink:all": "yarn unlink atem-connection & yarn unlink atem-state & yarn unlink casparcg-connection & yarn unlink casparcg-state & yarn unlink superfly-timeline",
+    "installclean": "yarn unlink:all & yarn cleancache && yarn --check-files",
+    "buildclean": "yarn installclean && yarn build",
     "build": "trash dist && yarn build:main",
     "build:main": "tsc -p tsconfig.json",
     "lint": "tslint --project tsconfig.jest.json --config tslint.json",
