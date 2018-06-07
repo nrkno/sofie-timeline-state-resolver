@@ -361,7 +361,7 @@ atem-connection@^0.1.1:
 
 "atem-state@git+https://github.com/nrkno/tv-automation-atem-state#dist":
   version "0.0.0"
-  resolved "git+https://github.com/nrkno/tv-automation-atem-state#98b5318cb5fbccfc1dabbca8ae89cc3a515eaf2e"
+  resolved "git+https://github.com/nrkno/tv-automation-atem-state#904d379fe50029ff54578179be1bcfcff28a860e"
   dependencies:
     atem-connection "git+https://github.com/nrkno/tv-automation-atem-connection#dist"
     tslib "^1.9.0"
