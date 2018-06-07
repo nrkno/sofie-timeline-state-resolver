@@ -165,7 +165,7 @@ export class Conductor extends EventEmitter {
 					getCurrentTime: () => { return this.getCurrentTime() }
 				}) as Device
 			} else {
-				return Promise.reject('No matching device type for "' + deviceOptions.type + '" found')
+				return Promise.reject('No matching device type for "' + deviceOptions.type + '" ("' + DeviceType[deviceOptions.type] + '") found')
 			}
 
 			this.emit('info', 'Initializing ' + DeviceType[deviceOptions.type] + '...')
