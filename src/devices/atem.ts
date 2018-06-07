@@ -32,6 +32,7 @@ export class AtemDevice extends Device {
 	private _device: Atem
 	private _state: AtemState
 	private _initialized: boolean = false
+	private _connected: boolean = false // note: ideally this should be replaced by this._device.connected
 
 	private _commandReceiver: (time: number, cmd) => void
 
@@ -69,10 +70,31 @@ export class AtemDevice extends Device {
 			this._device = new Atem()
 			this._device.connect(options.host, options.port)
 			this._device.once('connected', () => {
+				// console.log('-------------- ATEM CONNECTED')
+				// this.emit('connectionChanged', true)
 				// check if state has been initialized:
+				this._connected = true
 				this._initialized = true
 				resolve(true)
 			})
+			this._device.on('connected', () => {
+				this._connected = true
+				this.emit('connectionChanged', true)
+			})
+			this._device.on('disconnected', () => {
+				this._connected = false
+				this.emit('connectionChanged', false)
+			})
+		})
+	}
+	terminate (): Promise<boolean> {
+		return new Promise((resolve) => {
+			// TODO: implement dispose function in atem-connection
+			// this._device.dispose()
+			// .then(() => {
+			// resolve(true)
+			// })
+			resolve(true)
 		})
 	}
 	handleState (newState: TimelineState) {
@@ -113,7 +135,7 @@ export class AtemDevice extends Device {
 		this._queue = _.reject(this._queue, (q) => { return q.time > clearAfterTime })
 	}
 	get connected (): boolean {
-		return false
+		return this._connected
 	}
 	convertStateToAtem (state: TimelineState): DeviceState {
 		if (!this._initialized) throw Error('convertStateToAtem cannot be used before inititialized')
