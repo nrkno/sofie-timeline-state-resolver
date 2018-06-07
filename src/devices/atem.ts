@@ -3,9 +3,8 @@ import { Device, DeviceOptions } from './device'
 import { DeviceType, MappingAtem, MappingAtemType } from './mapping'
 
 import { TimelineState, TimelineResolvedObject } from 'superfly-timeline'
-import { Atem, VideoState } from 'atem-connection'
+import { Atem, VideoState, Commands as AtemCommands } from 'atem-connection'
 import { AtemState, State as DeviceState, Defaults as StateDefault } from 'atem-state'
-import AbstractCommand from 'atem-connection/dist/commands/AbstractCommand'
 
 /*
 	This is a wrapper for the Atem Device. Commands to any and all atem devices will be sent through here.
@@ -114,7 +113,7 @@ export class AtemDevice extends Device {
 		// @ts-ignore
 		// console.log('newAtemState', JSON.stringify(newAtemState, ' ', 2))
 
-		let commandsToAchieveState: Array<AbstractCommand> = this._diffStates(oldAtemState, newAtemState)
+		let commandsToAchieveState: Array<AtemCommands.AbstractCommand> = this._diffStates(oldAtemState, newAtemState)
 
 		// clear any queued commands on this time:
 		this._queue = _.reject(this._queue, (q) => { return q.time === newState.time })
@@ -210,8 +209,8 @@ export class AtemDevice extends Device {
 		return _.values(this._queue)
 	}
 
-	private _diffStates (oldAbstractState, newAbstractState): Array<AbstractCommand> {
-		let commands: Array<AbstractCommand> = this._state.diffStates(oldAbstractState, newAbstractState)
+	private _diffStates (oldAbstractState, newAbstractState): Array<AtemCommands.AbstractCommand> {
+		let commands: Array<AtemCommands.AbstractCommand> = this._state.diffStates(oldAbstractState, newAbstractState)
 
 		return commands
 	}
@@ -235,7 +234,7 @@ export class AtemDevice extends Device {
 		return deviceState
 	}
 
-	private _defaultCommandReceiver (time: number, command: AbstractCommand) {
+	private _defaultCommandReceiver (time: number, command: AtemCommands.AbstractCommand) {
 		time = time // seriously this needs to stop
 		this._device.sendCommand(command).then(() => {
 			// @todo: command was acknowledged by atem, how will we check if it did what we wanted?
