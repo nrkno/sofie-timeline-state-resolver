@@ -92,7 +92,9 @@
     "gh-pages": "^1.0.0",
     "jest": "^22.4.2",
     "mkdirp": "^0.5.1",
+    "node-license-validator": "^1.3.0",
     "npm-scripts-info": "^0.3.6",
+    "nsp": "^3.2.1",
     "nyc": "^11.0.3",
     "opn-cli": "^3.1.0",
     "sleep-ms": "^2.0.1",
@@ -102,9 +104,7 @@
     "tslint": "^5.4.3",
     "tslint-config-standard": "^6.0.1",
     "typedoc": "^0.8.0",
-    "typescript": "^2.4.1",
-    "node-license-validator": "^1.3.0",
-    "nsp": "^3.2.1"
+    "typescript": "^2.4.1"
   },
   "keywords": [
     "mos",
@@ -122,13 +122,13 @@
   ],
   "dependencies": {
     "@types/request": "^2.47.0",
-    "atem-connection": "git+https://github.com/nrkno/tv-automation-atem-connection#dist",
+    "atem-connection": "^0.1.2",
     "atem-state": "git+https://github.com/nrkno/tv-automation-atem-state#dist",
     "casparcg-connection": "^4.0.3",
     "casparcg-state": "git+https://github.com/SuperFlyTV/casparcg-state.git#dist",
     "fast-clone": "^1.5.3",
     "request": "^2.86.0",
-    "superfly-timeline": "git+https://github.com/SuperFlyTV/supertimeline.git#dist",
+    "superfly-timeline": "^0.1.1",
     "tslib": "^1.6.0",
     "underscore": "^1.8.3"
   },
