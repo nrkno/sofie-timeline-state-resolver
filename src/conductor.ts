@@ -58,6 +58,8 @@ export class Conductor extends EventEmitter {
 	private _isInitialized: boolean = false
 	private _doOnTime: DoOnTime
 
+	private _sentCallbacks: {[key: string]: boolean} = {}
+
 	constructor (options: ConductorOptions) {
 		super()
 		this._options = options
@@ -281,12 +283,11 @@ export class Conductor extends EventEmitter {
 			let tlState = Resolver.getState(clone(timeline), resolveTime)
 
 			_.each(tlState.LLayers, (obj) => {
-				delete obj.parent
+				delete obj['parent']
 			})
 			_.each(tlState.GLayers, (obj) => {
-				delete obj.parent
+				delete obj['parent']
 			})
-
 			// @ts-ignore
 			// console.log('tlState', JSON.stringify(tlState.LLayers,' ', 2))
 
@@ -360,20 +361,30 @@ export class Conductor extends EventEmitter {
 				this._nextResolveTime = 0
 			}
 			// Special function: send callback to Core
+			let sentCallbacksOld = this._sentCallbacks
+			let sentCallbacksNew: {[key: string]: boolean} = {}
 			_.each (tlState.GLayers, (o: TimelineResolvedObject) => {
 				if (o.content.callBack) {
-					// this._doOnTime.queue(resolveTime, o.id, o.content.callBack, o.content.callBackData)
-					// this._doOnTime.queue(o.resolved.startTime, o.id, o.content.callBack, o.content.callBackData)
-					this._doOnTime.queue(o.resolved.startTime, () => {
-						this.emit('timelineCallback',
-							o.resolved.startTime,
-							o.id,
-							o.content.callBack,
-							o.content.callBackData
-						)
-					})
+					let callBackId = o.id + o.content.callBack + o.resolved.startTime + JSON.stringify(o.content.callBackData)
+					sentCallbacksNew[callBackId] = true
+					if (!sentCallbacksOld[callBackId]) {
+						// this._doOnTime.queue(resolveTime, o.id, o.content.callBack, o.content.callBackData)
+						// this._doOnTime.queue(o.resolved.startTime, o.id, o.content.callBack, o.content.callBackData)
+						this._doOnTime.queue(o.resolved.startTime, () => {
+							this.emit('timelineCallback',
+								o.resolved.startTime,
+								o.id,
+								o.content.callBack,
+								o.content.callBackData
+							)
+						})
+					} else {
+						// callback already sent, do nothing
+						console.log('callback already sent', callBackId)
+					}
 				}
 			})
+			this._sentCallbacks = sentCallbacksNew
 		} catch (e) {
 			this.emit('error', e)
 		}
@@ -434,6 +445,7 @@ export class Conductor extends EventEmitter {
 							wouldLikeToIterateAgain = true
 						}
 					} else {
+						// no parent object
 						dontIterateAgain = false
 						setObjectTime(o, now)
 					}
