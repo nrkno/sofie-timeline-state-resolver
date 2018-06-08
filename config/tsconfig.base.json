@@ -13,7 +13,7 @@
         "../node_modules/*",
         "../src/types/*"
       ],
-      "typescript-starter": [
+      "state-timeline-resolver": [
         "../src/index.ts"
       ]
     },
