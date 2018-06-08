@@ -9,12 +9,12 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/superflytv/timeline-state-resolver.git"
+    "url": "git+https://github.com/nrkno/tv-automation-state-timeline-resolver.git"
   },
   "bugs": {
-    "url": "https://github.com/superflytv/timeline-state-resolver/issues"
+    "url": "https://github.com/nrkno/tv-automation-state-timeline-resolver/issues"
   },
-  "homepage": "https://github.com/superflytv/timeline-state-resolver#readme",
+  "homepage": "https://github.com/nrkno/tv-automation-state-timeline-resolver#readme",
   "author": {
     "name": "Balte de Wit",
     "email": "balte@superfly.tv",
