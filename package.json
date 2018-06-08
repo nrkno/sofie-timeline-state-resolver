@@ -57,8 +57,8 @@
     "license-validate": "node-license-validator -p -d --allow-licenses MIT BSD BSD-3-Clause ISC Apache"
   },
   "scripts-info": {
-	"info": "Display information about the scripts",
-	"installclean": "Remove yarn.lock, cleare yarn cache, and reinstall",
+    "info": "Display information about the scripts",
+    "installclean": "Remove yarn.lock, cleare yarn cache, and reinstall",
     "build": "(Trash and re)build the library",
     "build:main": "Builds main build command without trash.",
     "lint": "Lint all typescript source files",
@@ -102,7 +102,7 @@
     "tslint": "^5.4.3",
     "tslint-config-standard": "^6.0.1",
     "typedoc": "^0.8.0",
-	"typescript": "^2.4.1",
+    "typescript": "^2.4.1",
     "node-license-validator": "^1.3.0",
     "nsp": "^3.2.1"
   },
