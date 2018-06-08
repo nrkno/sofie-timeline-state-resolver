@@ -112,5 +112,9 @@
     "superfly-timeline": "git+https://github.com/SuperFlyTV/supertimeline.git#dist",
     "tslib": "^1.6.0",
     "underscore": "^1.8.3"
+  },
+  "standard-version": {
+    "message": "chore(release): %s [skip ci]",
+    "tagPrefix": ""
   }
 }
