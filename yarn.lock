@@ -4393,19 +4393,12 @@ subarg@^1.0.0:
   dependencies:
     minimist "^1.1.0"
 
-superfly-timeline@^0.1.1:
-  version "0.1.1"
-  resolved "https://registry.yarnpkg.com/superfly-timeline/-/superfly-timeline-0.1.1.tgz#f5d451e17f5fe9eab223ec0f840506f9eca99f9a"
-  dependencies:
-    fast-clone "^1.4.2"
-    underscore "^1.8.3"
-
 "superfly-timeline@git+https://github.com/superflytv/supertimeline#dist":
-  version "0.1.1"
-  resolved "git+https://github.com/superflytv/supertimeline#fd5f80c4bb69a059805908c0ba2879914cee8010"
+  version "2.0.0"
+  resolved "git+https://github.com/superflytv/supertimeline#15f85e2b3b50c8a303b365b63c14e5642acd8df9"
   dependencies:
-    "@types/underscore" "^1.8.7"
-    underscore "^1.8.3"
+    "@types/underscore" "^1.8.8"
+    underscore "^1.9.1"
 
 supports-color@^2.0.0:
   version "2.0.0"
