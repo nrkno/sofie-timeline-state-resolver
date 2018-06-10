@@ -358,18 +358,18 @@ atem-connection@^0.1.2:
     pngjs "^3.3.2"
     tslib "^1.9.0"
 
-"atem-connection@git+https://github.com/nrkno/tv-automation-atem-connection#dist":
-  version "0.0.0"
-  resolved "git+https://github.com/nrkno/tv-automation-atem-connection#cdbb450333e7c9d8b96afb44f1e79f676d643950"
+atem-connection@^0.1.3:
+  version "0.1.3"
+  resolved "https://registry.yarnpkg.com/atem-connection/-/atem-connection-0.1.3.tgz#d2d66464bb72415414596739e9ea80e7b35abf59"
   dependencies:
     pngjs "^3.3.2"
     tslib "^1.9.0"
 
-"atem-state@git+https://github.com/nrkno/tv-automation-atem-state#dist":
-  version "0.0.0"
-  resolved "git+https://github.com/nrkno/tv-automation-atem-state#98b5318cb5fbccfc1dabbca8ae89cc3a515eaf2e"
+atem-state@^0.1.0:
+  version "0.1.0"
+  resolved "https://registry.yarnpkg.com/atem-state/-/atem-state-0.1.0.tgz#19cfcaf3d8f71a30086927a01fbdb91033905fb0"
   dependencies:
-    atem-connection "git+https://github.com/nrkno/tv-automation-atem-connection#dist"
+    atem-connection "^0.1.3"
     tslib "^1.9.0"
 
 atob@^2.1.1:
@@ -730,7 +730,7 @@ caseless@~0.12.0:
   version "0.12.0"
   resolved "https://registry.yarnpkg.com/caseless/-/caseless-0.12.0.tgz#1b681c21ff84033c826543090689420d187151dc"
 
-casparcg-connection@^4.0.3:
+casparcg-connection@^4.0.3, casparcg-connection@^4.1.0:
   version "4.1.0"
   resolved "https://registry.yarnpkg.com/casparcg-connection/-/casparcg-connection-4.1.0.tgz#db2ed0962fa6221954a978e4871a1d79e3114f9e"
   dependencies:
@@ -738,14 +738,13 @@ casparcg-connection@^4.0.3:
     xml2js "^0.4.19"
     xmlbuilder "^9.0.7"
 
-"casparcg-state@git+https://github.com/SuperFlyTV/casparcg-state.git#dist":
-  version "0.0.5"
-  resolved "git+https://github.com/SuperFlyTV/casparcg-state.git#b3b24fcc690eb4c4039f2856dbdfcf388ca4539d"
+casparcg-state@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/casparcg-state/-/casparcg-state-1.0.0.tgz#9426ff806e124548fbbe4acb17075d35e34d8cd3"
   dependencies:
-    casparcg-connection "^4.0.3"
-    deep-diff "^0.3.4"
-    fast-clone "^1.4.2"
-    underscore "^1.8.3"
+    casparcg-connection "^4.1.0"
+    fast-clone "^1.5.3"
+    underscore "^1.9.1"
 
 center-align@^0.1.1:
   version "0.1.3"
@@ -1250,10 +1249,6 @@ decamelize@^1.0.0, decamelize@^1.1.0, decamelize@^1.1.1, decamelize@^1.1.2:
 decode-uri-component@^0.2.0:
   version "0.2.0"
   resolved "https://registry.yarnpkg.com/decode-uri-component/-/decode-uri-component-0.2.0.tgz#eb3913333458775cb84cd1a1fae062106bb87545"
-
-deep-diff@^0.3.4:
-  version "0.3.8"
-  resolved "https://registry.yarnpkg.com/deep-diff/-/deep-diff-0.3.8.tgz#c01de63efb0eec9798801d40c7e0dae25b582c84"
 
 deep-extend@^0.6.0:
   version "0.6.0"
@@ -4915,6 +4910,10 @@ uglify-to-browserify@~1.0.0:
 underscore@^1.8.3:
   version "1.9.0"
   resolved "https://registry.yarnpkg.com/underscore/-/underscore-1.9.0.tgz#31dbb314cfcc88f169cd3692d9149d81a00a73e4"
+
+underscore@^1.9.1:
+  version "1.9.1"
+  resolved "https://registry.yarnpkg.com/underscore/-/underscore-1.9.1.tgz#06dce34a0e68a7babc29b365b8e74b8925203961"
 
 union-value@^1.0.0:
   version "1.0.0"
