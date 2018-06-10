@@ -24,14 +24,15 @@ export interface CasparCGOptions {
 	syncTimecode?: boolean
 }
 export enum TimelineContentTypeCasparCg { //  CasparCG-state
-	VIDEO = 'video',
+	VIDEO = 'video', // to be deprecated & replaced by MEDIA
+	AUDIO = 'audio', // to be deprecated & replaced by MEDIA
+	MEDIA = 'media',
 	IP = 'ip',
 	INPUT = 'input',
 	TEMPLATE = 'template',
 	HTMLPAGE = 'htmlpage',
 	ROUTE = 'route',
-	RECORD = 'record',
-	AUDIO = 'audio'
+	RECORD = 'record'
 }
 export class CasparCGDevice extends Device {
 
@@ -222,7 +223,11 @@ export class CasparCGDevice extends Device {
 
 				let stateLayer: StateNS.ILayerBase | null = null
 
-				if (layer.content.type === TimelineContentTypeCasparCg.VIDEO) {
+				if (
+					layer.content.type === TimelineContentTypeCasparCg.VIDEO || // to be deprecated & replaced by MEDIA
+					layer.content.type === TimelineContentTypeCasparCg.AUDIO || // to be deprecated & replaced by MEDIA
+					layer.content.type === TimelineContentTypeCasparCg.MEDIA
+				) {
 					let l: StateNS.IMediaLayer = {
 						layerNo: mapping.layer,
 						content: StateNS.LayerContentType.MEDIA,
