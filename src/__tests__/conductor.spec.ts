@@ -182,10 +182,8 @@ describe('Conductor', () => {
 			}
 		})
 
-		await conductor.removeDevice('device1').then((res) => {
-			expect(res).toBe(true)
-		})
-		expect(conductor.getDevice('device1')).toBe(undefined)
+		await conductor.removeDevice('device1')
+		expect(conductor.getDevice('device1')).toBeFalsy()
 
 		conductor.addDevice(
 			'device1',
@@ -235,7 +233,7 @@ describe('Conductor', () => {
 		conductor.mapping = myLayerMapping
 
 		// add something that will play "now"
-		let abstractThing0: TimelineContentObject = {
+		let abstractThing0: TimelineContentObject = { // will be converted from "now" to 10000
 			id: 'a0',
 			trigger: {
 				type: TriggerType.TIME_ABSOLUTE,
@@ -248,7 +246,7 @@ describe('Conductor', () => {
 				myAttr2: 'two'
 			}
 		}
-		let abstractThing1: TimelineContentObject = {
+		let abstractThing1: TimelineContentObject = { // will cause a callback to be sent
 			id: 'a1',
 			trigger: {
 				type: TriggerType.TIME_RELATIVE,
@@ -267,11 +265,11 @@ describe('Conductor', () => {
 		}
 		let timeline = [abstractThing0, abstractThing1]
 
-		let setTimelineTriggerTime = jest.fn((r: TimelineTriggerTimeResult) => {
-			_.each(r.objectIds, (id) => {
-				let o = _.findWhere(timeline, { id: id })
+		let setTimelineTriggerTime = jest.fn((results: TimelineTriggerTimeResult) => {
+			_.each(results, (trigger) => {
+				let o = _.findWhere(timeline, { id: trigger.id })
 				if (o) {
-					o.trigger.value = r.time
+					o.trigger.value = trigger.time
 				}
 			})
 			// update the timeline:
@@ -283,6 +281,7 @@ describe('Conductor', () => {
 		conductor.on('timelineCallback', timelineCallback)
 
 		let device0 = conductor.getDevice('device0')
+		expect(device0).toBeTruthy()
 		// let device1 = conductor.getDevice('device1')
 
 		// The queues should be empty
@@ -297,7 +296,7 @@ describe('Conductor', () => {
 
 		// the setTimelineTriggerTime event should have been emitted:
 		expect(setTimelineTriggerTime).toHaveBeenCalledTimes(1)
-		expect(setTimelineTriggerTime.mock.calls[0][0].time).toEqual(10000)
+		expect(setTimelineTriggerTime.mock.calls[0][0][0].time).toEqual(10000)
 
 		// the timelineCallback event should have been emitted:
 		expect(timelineCallback).toHaveBeenCalledTimes(0)
