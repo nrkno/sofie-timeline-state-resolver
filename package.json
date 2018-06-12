@@ -106,9 +106,10 @@
     "atem-state": "git+https://github.com/nrkno/tv-automation-atem-state#dist",
     "casparcg-connection": "^4.0.3",
     "casparcg-state": "git+https://github.com/SuperFlyTV/casparcg-state.git#dist",
+    "emberplus": "git+https://github.com/nrkno/tv-automation-emberplus-connection",
+    "fast-clone": "^1.5.3",
     "superfly-timeline": "git+https://github.com/SuperFlyTV/supertimeline.git#dist",
     "tslib": "^1.6.0",
-    "underscore": "^1.8.3",
-    "fast-clone": "^1.5.3"
+    "underscore": "^1.8.3"
   }
 }
