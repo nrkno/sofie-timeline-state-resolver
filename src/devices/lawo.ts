@@ -3,7 +3,7 @@ import { Device, DeviceOptions } from './device'
 import { DeviceType, MappingLawo, Mappings } from './mapping'
 
 import { TimelineState, TimelineResolvedObject } from 'superfly-timeline'
-import { DeviceTree, Node } from 'emberplus'
+import { DeviceTree, Ember } from 'emberplus'
 
 /*
 	This is a wrapper for an "Abstract" device
@@ -24,7 +24,8 @@ export class LawoDevice extends Device {
 	private _device: DeviceTree
 	private _resolveMappingsOnConnect = false
 	private _mappingToAttributes: { [layerName: string]: { [attrName: string]: number } } = {}
-	private _savedNodes: { [pathName: string]: Node } = {}
+	private _savedNodes: { [pathName: string]: Ember.Node } = {}
+	private _sourceNames: { [index: string]: string } = {}
 
 	private _commandReceiver: (time: number, cmd) => void
 
@@ -41,6 +42,15 @@ export class LawoDevice extends Device {
 			if (this._resolveMappingsOnConnect) {
 				this._resolveMappings()
 			}
+			this._device.getNodeByPath([1, 1]).then((node) => {
+				this._device.getDirectory(node).then((res) => {
+					const children = node.getChildren()
+					if (node === undefined || children === undefined || res === undefined) return // no sources here.
+					for (const child of children) {
+						this._sourceNames[child.number] = child.identifier
+					}
+				})
+			})
 		})
 		this._enforceDeviceState()
 
@@ -108,7 +118,7 @@ export class LawoDevice extends Device {
 	}
 	convertStateToLawo (state: TimelineState) {
 		// convert the timeline state into something we can use
-		const lawoState: { [path: string]: { [attrName: string]: boolean | number | string }} = {}
+		const lawoState: { [path: string]: { [attrName: string]: boolean | number | string | object }} = {}
 
 		_.each(state.LLayers, (tlObject: TimelineResolvedObject, layerName: string) => {
 			const mapping = this.mapping[layerName] as MappingLawo
@@ -147,14 +157,16 @@ export class LawoDevice extends Device {
 
 		let commands: Array<any> = []
 
-		_.each(newLawoState, (newNode: { [attrName: string]: boolean | number | string }, path: string) => {
+		_.each(newLawoState, (newNode: { [attrName: string]: boolean | number | string | object, transition: any }, path: string) => {
 			let oldNode = oldLawoState[path]
 			const mapping = _.find(this.mapping, (mapping: MappingLawo) => mapping.path.join('/') === path) as MappingLawo
 			const mappingAttrs = this._mappingToAttributes[path]
 			if (!oldNode) oldNode = mapping.defaults
 			for (const attr in newNode) {
 				if (newNode[attr] !== oldNode[attr] && mappingAttrs[attr] !== undefined) {
-					commands.push({ path, attribute: attr, value: newNode[attr] })
+					// @todo: typings!!
+					if (typeof newNode[attr] === 'object') commands.push({ path, attribute: attr, value: (newNode[attr] as { value: any }).value, transitionDuration: (newNode[attr] as any).transitionDuration })
+					else commands.push({ path, attribute: attr, value: newNode[attr] })
 				}
 			}
 		})
@@ -171,16 +183,23 @@ export class LawoDevice extends Device {
 		return commands
 	}
 
-	private _defaultCommandReceiver (time: number, command: { path: string, attribute: string, value: number | boolean | string }) {
-		const path = _.map(command.path.split('/'), (val: string) => Number(val))
-		path.push(this._mappingToAttributes[command.path][command.attribute])
+	private _defaultCommandReceiver (time: number, command: { path: string, attribute: string, value: number | boolean | string, transitionDuration?: number }) {
+		if (command.transitionDuration !== undefined && command.attribute === 'Motor dB Value') { // I don't think we can transition any other values
+			const source = this._sourceNames[command.path.substr(4, 1)] // theoretically speaking anyway
+			if (!source) return // maybe warn user?
+			const faderRamp = new Ember.QualifiedFunction([1, 2, 2])
+			this._device.invokeFunction(faderRamp, { source, value: command.value, duration: command.transitionDuration })
+		} else {
+			const path = _.map(command.path.split('/'), (val: string) => Number(val))
+			path.push(this._mappingToAttributes[command.path][command.attribute])
 
-		this._getNodeByPath(path).then((node: any) => {
-			this._device.setValue(node, command.value).catch(console.log)
-		})
+			this._getNodeByPath(path).then((node: any) => {
+				this._device.setValue(node, command.value).catch(console.log)
+			})
+		}
 	}
 
-	private async _getNodeByPath (path: Array<number>): Node {
+	private async _getNodeByPath (path: Array<number>): Ember.Node {
 		return new Promise ((resolve) => {
 			if (this._savedNodes[path.join('/')] !== undefined) {
 				resolve(this._savedNodes[path.join('/')])
