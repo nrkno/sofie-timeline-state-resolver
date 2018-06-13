@@ -12,10 +12,10 @@ import { DeviceTree, Ember } from 'emberplus'
 	as a preliminary mock
 */
 export interface LawoOptions extends DeviceOptions {
-	host: string,
-	port: number,
 	options?: {
-		commandReceiver?: (time: number, cmd) => void
+		commandReceiver?: (time: number, cmd) => void,
+		host?: string,
+		port?: number
 	}
 }
 export class LawoDevice extends Device {
@@ -35,8 +35,9 @@ export class LawoDevice extends Device {
 			if (deviceOptions.options.commandReceiver) this._commandReceiver = deviceOptions.options.commandReceiver
 			else this._commandReceiver = this._defaultCommandReceiver
 		}
-
-		this._device = new DeviceTree(deviceOptions.host, deviceOptions.port)
+		let host = deviceOptions.options && deviceOptions.options.host ? deviceOptions.options.host : null
+		let port = deviceOptions.options && deviceOptions.options.port ? deviceOptions.options.port : null
+		this._device = new DeviceTree(host, port)
 		this._device.on('connected', () => {
 			this._savedNodes = {} // reset cache
 			if (this._resolveMappingsOnConnect) {
@@ -183,6 +184,7 @@ export class LawoDevice extends Device {
 		return commands
 	}
 
+	// @ts-ignore no-unused-vars
 	private _defaultCommandReceiver (time: number, command: { path: string, attribute: string, value: number | boolean | string, transitionDuration?: number }) {
 		if (command.transitionDuration !== undefined && command.attribute === 'Motor dB Value') { // I don't think we can transition any other values
 			const source = this._sourceNames[command.path.substr(4, 1)] // theoretically speaking anyway
@@ -213,6 +215,7 @@ export class LawoDevice extends Device {
 	}
 
 	private _resolveMappings () {
+		// @ts-ignore no-unused-vars
 		_.each(this.mapping, (mapping: MappingLawo, layerName: string) => {
 			const pathStr = mapping.path.join('/')
 			this._getNodeByPath(mapping.path).then((node) => {
