@@ -25,6 +25,7 @@ export class AbstractDevice extends Device {
 		super(deviceId, deviceOptions, options)
 		if (deviceOptions.options) {
 			if (deviceOptions.options.commandReceiver) this._commandReceiver = deviceOptions.options.commandReceiver
+			else this._commandReceiver = this._defaultCommandReceiver
 		}
 
 		setInterval(() => {
@@ -142,5 +143,10 @@ export class AbstractDevice extends Device {
 			}
 		})
 		return commands
+	}
+	private _defaultCommandReceiver (time: number, cmd) {
+		time = time
+		// execute the command here
+		cmd = cmd
 	}
 }

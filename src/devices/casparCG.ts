@@ -1,11 +1,12 @@
 import * as _ from 'underscore'
 import { Device, DeviceOptions } from './device'
 
-import { CasparCG, Command as CommandNS, AMCPUtil, AMCP } from 'casparcg-connection'
+import { CasparCG, Command as CommandNS, AMCPUtil, AMCP, CasparCGSocketStatusEvent } from 'casparcg-connection'
 import { MappingCasparCG, DeviceType, Mapping } from './mapping'
 
 import { TimelineState, TimelineResolvedObject } from 'superfly-timeline'
 import { CasparCG as StateNS, CasparCGState } from 'casparcg-state'
+import { Conductor } from '../conductor'
 
 // const BGLOADTIME = 1000 // the time we will look back to schedule a loadbg command.
 
@@ -19,26 +20,30 @@ export interface CasparCGDeviceOptions extends DeviceOptions {
 }
 export interface CasparCGOptions {
 	host: string,
-	port: number
+	port: number,
+	syncTimecode?: boolean
 }
 export enum TimelineContentTypeCasparCg { //  CasparCG-state
-	VIDEO = 'video',
+	VIDEO = 'video', // to be deprecated & replaced by MEDIA
+	AUDIO = 'audio', // to be deprecated & replaced by MEDIA
+	MEDIA = 'media',
 	IP = 'ip',
 	INPUT = 'input',
 	TEMPLATE = 'template',
+	HTMLPAGE = 'htmlpage',
 	ROUTE = 'route',
-	RECORD = 'record',
-	AUDIO = 'audio'
+	RECORD = 'record'
 }
 export class CasparCGDevice extends Device {
 
 	private _ccg: CasparCG
+	private _conductor: Conductor
 	private _ccgState: CasparCGState
 	private _queue: { [key: string]: number } = {}
 	private _commandReceiver: (time: number, cmd) => void
-	private _timeToTimecodeMap: {time: number, timecode: number}
+	private _timeToTimecodeMap: {time: number, timecode: number} = {time: 0, timecode: 0}
 
-	constructor (deviceId: string, deviceOptions: CasparCGDeviceOptions, options) {
+	constructor (deviceId: string, deviceOptions: CasparCGDeviceOptions, options, conductor: Conductor) {
 		super(deviceId, deviceOptions, options)
 
 		if (deviceOptions.options) {
@@ -49,6 +54,7 @@ export class CasparCGDevice extends Device {
 		this._ccgState = new CasparCGState({
 			currentTime: this.getCurrentTime
 		})
+		this._conductor = conductor
 	}
 
 	/**
@@ -59,8 +65,19 @@ export class CasparCGDevice extends Device {
 			host: connectionOptions.host,
 			port: connectionOptions.port,
 			autoConnect: true,
+			virginServerCheck: true,
 			onConnectionChanged: (connected: boolean) => {
 				this.emit('connectionChanged', connected)
+			}
+		})
+		this._ccg.on(CasparCGSocketStatusEvent.CONNECTED, (event: CasparCGSocketStatusEvent) => {
+			if (event.valueOf().virginServer === true) {
+				// a "virgin server" was just restarted (so it is cleared & black).
+				// Otherwise it was probably just a loss of connection
+
+				this._ccgState.softClearState()
+				this.clearStates()
+				this._conductor.resetResolver() // trigger a re-calc
 			}
 		})
 
@@ -78,23 +95,29 @@ export class CasparCGDevice extends Device {
 
 					resolve(true)
 				}).catch((e) => reject(e))
-			}),new Promise((resolve, reject) => {
-				this._ccg.time(1).then((cmd) => { // @todo: keep time per channel
-					let segments = (cmd.response.data as string).split(':')
-					let time = 0
+			}), new Promise((resolve, reject) => {
 
-					// fields:
-					time += Number(segments[3]) * 1000 / 50
-					// seconds
-					time += Number(segments[2]) * 1000
-					// minutes
-					time += Number(segments[1]) * 60 * 1000
-					// hours
-					time += Number(segments[0]) * 60 * 60 * 1000
+				if (connectionOptions.syncTimecode) {
+					this._ccg.time(1).then((cmd) => { // @todo: keep time per channel
+						let segments = (cmd.response.data as string).split(':')
+						let time = 0
 
-					this._timeToTimecodeMap = { time: this.getCurrentTime(), timecode: time }
+						// fields:
+						time += Number(segments[3]) * 1000 / 50
+						// seconds
+						time += Number(segments[2]) * 1000
+						// minutes
+						time += Number(segments[1]) * 60 * 1000
+						// hours
+						time += Number(segments[0]) * 60 * 60 * 1000
+
+						this._timeToTimecodeMap = { time: this.getCurrentTime(), timecode: time }
+						resolve(true)
+					}).catch(() => reject())
+				} else {
+					this._timeToTimecodeMap = { time: 0, timecode: 0 }
 					resolve(true)
-				}).catch(() => reject())
+				}
 			})
 		]).then(() => {
 			return true
@@ -123,7 +146,7 @@ export class CasparCGDevice extends Device {
 
 		let commandsToAchieveState: Array<CommandNS.IAMCPCommandVO> = this._diffStates(oldCasparState, newCasparState)
 
-		// clear any queued commands on this time:
+		// clear any queued commands later than this time:
 		let now = this.getCurrentTime()
 		for (let token in this._queue) {
 			if (this._queue[token] < now) {
@@ -195,12 +218,16 @@ export class CasparCGDevice extends Device {
 				const channel = caspar.channels[mapping.channel] ? caspar.channels[mapping.channel] : new StateNS.Channel()
 				channel.channelNo = Number(mapping.channel) || 1
 				// @todo: check if we need to get fps.
-				channel.fps = 50
+				channel.fps = 50 / 1000 // 50 fps over 1000ms
 				caspar.channels[channel.channelNo] = channel
 
 				let stateLayer: StateNS.ILayerBase | null = null
 
-				if (layer.content.type === TimelineContentTypeCasparCg.VIDEO) {
+				if (
+					layer.content.type === TimelineContentTypeCasparCg.VIDEO || // to be deprecated & replaced by MEDIA
+					layer.content.type === TimelineContentTypeCasparCg.AUDIO || // to be deprecated & replaced by MEDIA
+					layer.content.type === TimelineContentTypeCasparCg.MEDIA
+				) {
 					let l: StateNS.IMediaLayer = {
 						layerNo: mapping.layer,
 						content: StateNS.LayerContentType.MEDIA,
@@ -217,7 +244,7 @@ export class CasparCGDevice extends Device {
 						layerNo: mapping.layer,
 						content: StateNS.LayerContentType.MEDIA,
 						media: layer.content.attributes.uri,
-						playTime: layer.resolved.startTime || null,
+						playTime: null, // ip inputs can't be seeked // layer.resolved.startTime || null,
 						playing: true,
 						seek: 0 // ip inputs can't be seeked
 					}
@@ -246,6 +273,16 @@ export class CasparCGDevice extends Device {
 						templateType: layer.content.attributes.type || 'html',
 						templateData: layer.content.attributes.data,
 						cgStop: layer.content.attributes.useStopCommand
+					}
+					stateLayer = l
+				} else if (layer.content.type === TimelineContentTypeCasparCg.HTMLPAGE) {
+					let l: StateNS.IHtmlPageLayer = {
+						layerNo: mapping.layer,
+						content: StateNS.LayerContentType.HTMLPAGE,
+						media: layer.content.attributes.url,
+
+						playTime: layer.resolved.startTime || null,
+						playing: true
 					}
 					stateLayer = l
 				} else if (layer.content.type === TimelineContentTypeCasparCg.ROUTE) {
@@ -366,7 +403,7 @@ export class CasparCGDevice extends Device {
 			if (cmd._commandName === 'PlayCommand' && cmd._objectParams.clip !== 'empty') {
 				if (oldState.time > 0 && time > this.getCurrentTime()) { // @todo: put the loadbg command just after the oldState.time when convenient?
 					// console.log('making a loadbg out of it ', time , this.getCurrentTime())
-					let loadbgCmd = Object.assign({}, cmd) // make a deep copy
+					let loadbgCmd = Object.assign({}, cmd) // make a shallow copy
 					loadbgCmd._commandName = 'LoadbgCommand'
 
 					let command = AMCPUtil.deSerialize(loadbgCmd as CommandNS.IAMCPCommandVO, 'id')
@@ -419,7 +456,7 @@ export class CasparCGDevice extends Device {
 			('0' + (Math.floor(timecodeTime / 3.6e6) % 24)).substr(-2),
 			('0' + (Math.floor(timecodeTime / 6e4) % 60)).substr(-2),
 			('0' + (Math.floor(timecodeTime / 1e3) % 60)).substr(-2),
-			('0' + (Math.floor(timecodeTime / 20) % 50)).substr(-2)
+			('0' + (Math.floor(timecodeTime / 40) % 25)).substr(-2) // @todo: dynamic fps
 		]
 
 		return timecode.join(':')

@@ -1,14 +1,13 @@
 // import {Resolver, Enums} from "superfly-timeline"
 // import { Commands, Atem } from 'atem-connection'
-import { Enums } from 'atem-state'
 import { TriggerType } from 'superfly-timeline'
 
 import { Mappings, MappingAtem, DeviceType, MappingAtemType } from '../devices/mapping'
 import { Conductor } from '../conductor'
-import { AtemDevice } from '../devices/atem'
+import { HttpSendDevice } from '../devices/httpSend'
 
-// let nowActual: number = Date.now()
-describe('Atem', () => {
+// let nowActual = Date.now()
+describe('HTTP-Send', () => {
 	let now: number = 10000
 	beforeAll(() => {
 		Date.now = jest.fn(() => {
@@ -24,15 +23,16 @@ describe('Atem', () => {
 		jest.advanceTimersByTime(advanceTime)
 		// console.log('Advancing ' + advanceTime + ' ms -----------------------')
 	}
-	test('Atem: switch input', async () => {
+	beforeEach(() => {
 		jest.useFakeTimers()
-
+	})
+	test('POST message', async () => {
 		let commandReceiver0 = jest.fn(() => {
 			// nothing.
 		})
 		let myLayerMapping0: MappingAtem = {
-			device: DeviceType.ATEM,
-			deviceId: 'myAtem',
+			device: DeviceType.HTTPSEND,
+			deviceId: 'myHTTP',
 			mappingType: MappingAtemType.MixEffect,
 			index: 0
 		}
@@ -45,18 +45,16 @@ describe('Atem', () => {
 			getCurrentTime: getCurrentTime
 		})
 		await myConductor.init()
-		await myConductor.addDevice('myAtem', {
-			type: DeviceType.ATEM,
+		await myConductor.addDevice('myHTTP', {
+			type: DeviceType.HTTPSEND,
 			options: {
-				commandReceiver: commandReceiver0,
-				host: '192.168.168.240',
-				port: 9910
+				commandReceiver: commandReceiver0
 			}
 		})
 		myConductor.mapping = myLayerMapping
 		advanceTime(100) // 1100
 
-		let device = myConductor.getDevice('myAtem') as AtemDevice
+		let device = myConductor.getDevice('myHTTP') as HttpSendDevice
 		// console.log(device._device.state)
 
 		// Check that no commands has been scheduled:
@@ -67,35 +65,37 @@ describe('Atem', () => {
 				id: 'obj0',
 				trigger: {
 					type: TriggerType.TIME_ABSOLUTE,
-					value: now - 1000 // 1 seconds ago
+					value: now + 1000 // in 1 second
 				},
 				duration: 2000,
 				LLayer: 'myLayer0',
 				content: {
-					input: 2,
-					transition: Enums.TransitionStyle.CUT
+					type: 'POST',
+					url: 'http://superfly.tv',
+					params: {
+						a: 1,
+						b: 2
+					}
 				}
 			}
 		]
 
-		advanceTime(100) // 1200
+		advanceTime(990) // 10990
+		expect(commandReceiver0).toHaveBeenCalledTimes(0)
+		advanceTime(110) // 11000
 
+		expect(commandReceiver0).toHaveBeenCalledTimes(1)
 		expect(commandReceiver0.mock.calls[0][1]).toMatchObject(
 			{
-				flag: 0,
-				rawName: 'PrvI',
-				mixEffect: 0,
-				properties: {
-					source: 2
+				type: 'POST',
+				url: 'http://superfly.tv',
+				params: {
+					a: 1,
+					b: 2
 				}
 			}
 		)
-		expect(commandReceiver0.mock.calls[1][1]).toMatchObject(
-			{
-				flag: 0,
-				rawName: 'DCut',
-				mixEffect: 0
-			}
-		)
+		advanceTime(5000) // 16000
+		expect(commandReceiver0).toHaveBeenCalledTimes(1)
 	})
 })
