@@ -29,9 +29,9 @@ describe('CasparCG', () => {
 	}
 	beforeEach(() => {
 		now = 10000
+		jest.useFakeTimers()
 	})
 	test('CasparCG: Play AMB for 60s', async () => {
-		jest.useFakeTimers()
 
 		let commandReceiver0 = jest.fn(() => {
 			// nothing.
@@ -110,7 +110,6 @@ describe('CasparCG', () => {
 	})
 
 	test('CasparCG: Play IP input for 60s', async () => {
-		jest.useFakeTimers()
 
 		let commandReceiver0 = jest.fn(() => {
 			// nothing.
@@ -187,7 +186,6 @@ describe('CasparCG', () => {
 	})
 
 	test('CasparCG: Play decklink input for 60s', async () => {
-		jest.useFakeTimers()
 
 		let commandReceiver0 = jest.fn(() => {
 			// nothing.
@@ -260,7 +258,6 @@ describe('CasparCG', () => {
 	})
 
 	test('CasparCG: Play template for 60s', async () => {
-		jest.useFakeTimers()
 
 		let commandReceiver0 = jest.fn(() => {
 			// nothing.
@@ -339,7 +336,6 @@ describe('CasparCG', () => {
 	})
 
 	test('CasparCG: Play template for 60s', async () => {
-		jest.useFakeTimers()
 
 		let commandReceiver0 = jest.fn(() => {
 			// nothing.
@@ -412,7 +408,6 @@ describe('CasparCG', () => {
 	})
 
 	test('CasparCG: Play 2 routes for 60s', async () => {
-		jest.useFakeTimers()
 
 		let commandReceiver0 = jest.fn(() => {
 			// nothing.
@@ -525,7 +520,6 @@ describe('CasparCG', () => {
 	})
 
 	test('CasparCG: AMB with transitions', async () => {
-		jest.useFakeTimers()
 
 		let commandReceiver0 = jest.fn(() => {
 			// nothing.
@@ -628,7 +622,6 @@ describe('CasparCG', () => {
 	})
 
 	test ('CasparCG: Mixer commands', async () => {
-		jest.useFakeTimers()
 
 		let commandReceiver0 = jest.fn(() => {
 			// nothing.
@@ -765,7 +758,6 @@ describe('CasparCG', () => {
 	})
 
 	test('CasparCG: loadbg command', async () => {
-		jest.useFakeTimers()
 
 		let commandReceiver0 = jest.fn(() => {
 			// nothing.
@@ -849,7 +841,6 @@ describe('CasparCG', () => {
 	})
 
 	test('CasparCG: Schedule Play, then change my mind', async () => {
-		jest.useFakeTimers()
 
 		let commandReceiver0 = jest.fn(() => {
 			// nothing.

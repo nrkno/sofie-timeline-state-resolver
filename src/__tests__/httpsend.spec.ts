@@ -29,6 +29,7 @@ describe('HTTP-Send', () => {
 		// console.log('Advancing ' + advanceTime + ' ms -----------------------')
 	}
 	beforeEach(() => {
+		now = 10000
 		jest.useFakeTimers()
 	})
 	test('POST message', async () => {

@@ -27,9 +27,12 @@ describe('Rundown', () => {
 		jest.advanceTimersByTime(advanceTime)
 		// console.log('Advancing ' + advanceTime + ' ms -----------------------')
 	}
+	beforeEach(() => {
+		now = 10000
+		jest.useFakeTimers()
+	})
 
 	test('Do a "full" rundown', async () => {
-		jest.useFakeTimers()
 
 		let commandReceiver0 = jest.fn(() => {
 			// nothing.
