@@ -25,7 +25,7 @@ export enum TimelineContentTypeLawo { //  Lawo-state
 interface TimelineLawoObject extends TimelineResolvedObject {
 	content: {
 		type: TimelineContentTypeLawo,
-		value: EmberPlusValue
+		value: LawoStateNodeAttr
 	}
 }
 export enum EmberPlusValueType {
@@ -57,7 +57,7 @@ export interface EmberPlusValueString extends EmberPlusValue {
 }
 
 export interface LawoState {
-	[path: string]: EmberPlusValue
+	[path: string]: LawoStateNodeAttr
 }
 // export interface LawoStateNode {
 // 	[attrName: string]: EmberPlusValue
@@ -245,7 +245,7 @@ export class LawoDevice extends Device {
 			}
 		}
 		_.each(newLawoState, (newValue: EmberPlusValue, path: string) => {
-			let oldValue: EmberPlusValue = oldLawoState[path] || null
+			let oldValue: LawoStateNodeAttr = oldLawoState[path] || null
 			if (!_.isEqual(newValue, oldValue) ) {
 				addCommand(path, newValue)
 			}
