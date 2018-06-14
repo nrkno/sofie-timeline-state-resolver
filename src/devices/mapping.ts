@@ -1,4 +1,4 @@
-import { LawoStateNode } from './lawo'
+import { LawoStateNodeAttr } from './lawo'
 
 export interface Mappings {
 	[layerName: string]: Mapping
@@ -30,9 +30,8 @@ export interface MappingHTTPSend extends Mapping {
 export interface MappingLawo extends Mapping {
 	device: DeviceType.LAWO,
 	path: Array<number>
-	defaults?: LawoStateNode
+	default?: LawoStateNodeAttr
 }
-export { LawoStateNode }
 export enum MappingAtemType {
 	MixEffect,
 	DownStreamKeyer,
