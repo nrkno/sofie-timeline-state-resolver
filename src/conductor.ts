@@ -245,7 +245,7 @@ export class Conductor extends EventEmitter {
 	 */
 	private _resolveTimeline () {
 		let timeUntilNextResolve = LOOKAHEADTIME
-
+		let startTime = Date.now()
 		try {
 
 			if (!this._isInitialized) {
@@ -380,7 +380,7 @@ export class Conductor extends EventEmitter {
 						})
 					} else {
 						// callback already sent, do nothing
-						console.log('callback already sent', callBackId)
+						// console.log('callback already sent', callBackId)
 					}
 				}
 			})
@@ -395,6 +395,7 @@ export class Conductor extends EventEmitter {
 		} catch (e) {
 			this.emit('error', e)
 		}
+		console.log('resolveTimeline done in ' + (Date.now() - startTime) + 'ms')
 	}
 
 	private _fixNowObjects (now: number) {
