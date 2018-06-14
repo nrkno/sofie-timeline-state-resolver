@@ -122,8 +122,8 @@ export class LawoDevice extends Device {
 		const lawoState: { [path: string]: { [attrName: string]: boolean | number | string | object }} = {}
 
 		_.each(state.LLayers, (tlObject: TimelineResolvedObject, layerName: string) => {
-			const mapping = this.mapping[layerName] as MappingLawo
-			if (typeof mapping !== 'undefined') {
+			const mapping: MappingLawo | undefined = this.mapping[layerName] as MappingLawo
+			if (mapping) {
 				lawoState[mapping.path.join('/')] = { ...lawoState[mapping.path.join('/')], ...tlObject.content }
 			}
 		})
@@ -164,10 +164,22 @@ export class LawoDevice extends Device {
 			const mappingAttrs = this._mappingToAttributes[path]
 			if (!oldNode) oldNode = mapping.defaults
 			for (const attr in newNode) {
-				if (newNode[attr] !== oldNode[attr] && mappingAttrs[attr] !== undefined) {
+				if (newNode[attr] !== oldNode[attr] && mappingAttrs[attr]) {
 					// @todo: typings!!
-					if (typeof newNode[attr] === 'object') commands.push({ path, attribute: attr, value: (newNode[attr] as { value: any }).value, transitionDuration: (newNode[attr] as any).transitionDuration })
-					else commands.push({ path, attribute: attr, value: newNode[attr] })
+					if (typeof newNode[attr] === 'object') {
+						commands.push({
+							path,
+							attribute: attr,
+							value: (newNode[attr] as { value: any }).value,
+							transitionDuration: (newNode[attr] as any).transitionDuration
+						})
+					} else {
+						commands.push({
+							path,
+							attribute: attr,
+							value: newNode[attr]
+						})
+					}
 				}
 			}
 		})
@@ -240,9 +252,9 @@ export class LawoDevice extends Device {
 			if (mapping.defaults) {
 				const path = mapping.path.join('/')
 				emptyState[path] = {}
-				if (defaultState[path] === undefined) defaultState[path] = {}
+				if (!defaultState[path]) defaultState[path] = {}
 				_.each(mapping.defaults!, (val: number | boolean | string, attr: string) => {
-					if (defaultState[path][attr] === undefined) defaultState[path][attr] = val
+					if (!defaultState[path][attr]) defaultState[path][attr] = val
 				})
 			}
 		})

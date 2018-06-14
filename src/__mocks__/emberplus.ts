@@ -1,23 +1,6 @@
 import { EventEmitter } from 'events'
+// @ts-ignore import json file
 const mockData = require('./lawo-out.json')
-
-export class DeviceTree extends EventEmitter {
-	connect () {
-		return new Promise((resolve) => resolve())
-	}
-
-	isConnected () {
-		return true
-	}
-
-	getNodeByPath (path: Array<number>) {
-		return new Promise((resolve) => resolve(new Node(path)))
-	}
-
-	setValue (node: Node, value: boolean | number | string) {
-		return new Promise((resolve) => resolve())
-	}
-}
 
 export class Node {
 	node: any
@@ -39,5 +22,25 @@ export class Node {
 
 	getChildren () {
 		return this.node.children as Array<any>
+	}
+}
+
+export class DeviceTree extends EventEmitter {
+	connect () {
+		return new Promise((resolve) => resolve())
+	}
+
+	isConnected () {
+		return true
+	}
+
+	getNodeByPath (path: Array<number>) {
+		return new Promise((resolve) => resolve(new Node(path)))
+	}
+
+	setValue (node: Node, value: boolean | number | string) {
+		node = node // not used
+		value = value // not used
+		return new Promise((resolve) => resolve())
 	}
 }
