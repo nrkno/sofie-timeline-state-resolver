@@ -1,0 +1,354 @@
+{
+	"elements": [
+		{
+			"number": 1,
+			"contents": {
+				"isOnline": true,
+				"identifier": "Sapphire"
+			},
+			"children": [
+				{
+					"number": 1,
+					"contents": {
+						"isOnline": true,
+						"identifier": "Sources"
+					},
+					"children": [
+						{
+							"number": 2,
+							"contents": {
+								"isOnline": true,
+								"identifier": "RM1"
+							},
+							"children": [
+								{
+									"number": 1,
+									"contents": {
+										"identifier": "Audio Type",
+										"type": "enum",
+										"enumeration": "None\nMono\nStereo\nSurround 5.1\nSurround 5.1+2",
+										"value": 2,
+										"access": "read",
+										"isOnline": true,
+										"maximum": 4,
+										"minimum": 0
+									}
+								},
+								{
+									"number": 2,
+									"contents": {
+										"identifier": "Source Class",
+										"type": "enum",
+										"enumeration": "Audio\nProTools\nVCA Group\nMiniMix\nJade",
+										"value": 0,
+										"access": "read",
+										"isOnline": true,
+										"maximum": 4,
+										"minimum": 0
+									}
+								},
+								{
+									"number": 3,
+									"contents": {
+										"isOnline": true,
+										"identifier": "Fader"
+									},
+									"children": [
+										{
+											"number": 1,
+											"contents": {
+												"identifier": "Number",
+												"type": "integer",
+												"value": 12,
+												"access": "read",
+												"isOnline": true,
+												"maximum": 120,
+												"minimum": 0
+											}
+										},
+										{
+											"number": 2,
+											"contents": {
+												"identifier": "Motor dB Value",
+												"type": "real",
+												"value": 0,
+												"access": "readWrite",
+												"isOnline": true,
+												"maximum": 9,
+												"minimum": -191
+											}
+										},
+										{
+											"number": 3,
+											"contents": {
+												"identifier": "Motor Position",
+												"type": "integer",
+												"value": 204,
+												"access": "readWrite",
+												"isOnline": true,
+												"maximum": 255,
+												"minimum": 0
+											}
+										},
+										{
+											"number": 4,
+											"contents": {
+												"identifier": "Manual dB Value",
+												"type": "real",
+												"value": 4.5,
+												"access": "readWrite",
+												"isOnline": true,
+												"maximum": 9,
+												"minimum": -191
+											}
+										},
+										{
+											"number": 5,
+											"contents": {
+												"identifier": "Manual Position",
+												"type": "integer",
+												"value": 228,
+												"access": "readWrite",
+												"isOnline": true,
+												"maximum": 255,
+												"minimum": 0
+											}
+										}
+									]
+								},
+								{
+									"number": 4,
+									"contents": {
+										"isOnline": true,
+										"identifier": "DSP"
+									},
+									"children": [
+										{
+											"number": 3,
+											"contents": {
+												"identifier": "Channel Enabled",
+												"type": "boolean",
+												"value": false
+											}
+										}
+									]
+								},
+								{
+									"number": 5,
+									"contents": {
+										"isOnline": true,
+										"identifier": "Aux Busses"
+									}
+								},
+								{
+									"number": 6,
+									"contents": {
+										"isOnline": true,
+										"identifier": "MF Keys"
+									}
+								},
+								{
+									"number": 7,
+									"contents": {
+										"isOnline": true,
+										"identifier": "States"
+									}
+								},
+								{
+									"number": 8,
+									"contents": {
+										"isOnline": true,
+										"identifier": "VCA Groups"
+									}
+								}
+							]
+						},
+						{
+							"number": 4,
+							"contents": {
+								"isOnline": true,
+								"identifier": "RM8"
+							}
+						},
+						{
+							"number": 5,
+							"contents": {
+								"isOnline": true,
+								"identifier": "RM7"
+							}
+						},
+						{
+							"number": 6,
+							"contents": {
+								"isOnline": true,
+								"identifier": "RM6"
+							}
+						},
+						{
+							"number": 7,
+							"contents": {
+								"isOnline": true,
+								"identifier": "RM5"
+							}
+						},
+						{
+							"number": 8,
+							"contents": {
+								"isOnline": true,
+								"identifier": "RM4"
+							}
+						},
+						{
+							"number": 9,
+							"contents": {
+								"isOnline": true,
+								"identifier": "RM3"
+							}
+						},
+						{
+							"number": 10,
+							"contents": {
+								"isOnline": true,
+								"identifier": "RM2"
+							}
+						},
+						{
+							"number": 67,
+							"contents": {
+								"isOnline": true,
+								"identifier": "RM1 R"
+							}
+						},
+						{
+							"number": 68,
+							"contents": {
+								"isOnline": true,
+								"identifier": "RM8 R"
+							}
+						},
+						{
+							"number": 69,
+							"contents": {
+								"isOnline": true,
+								"identifier": "RM7 R"
+							}
+						},
+						{
+							"number": 70,
+							"contents": {
+								"isOnline": true,
+								"identifier": "RM6 R"
+							}
+						},
+						{
+							"number": 71,
+							"contents": {
+								"isOnline": true,
+								"identifier": "RM5R"
+							}
+						},
+						{
+							"number": 72,
+							"contents": {
+								"isOnline": true,
+								"identifier": "RM4 R"
+							}
+						},
+						{
+							"number": 73,
+							"contents": {
+								"isOnline": true,
+								"identifier": "RM3 R"
+							}
+						},
+						{
+							"number": 74,
+							"contents": {
+								"isOnline": true,
+								"identifier": "RM2 R"
+							}
+						},
+						{
+							"number": 90,
+							"contents": {
+								"isOnline": true,
+								"identifier": "RM9"
+							}
+						},
+						{
+							"number": 91,
+							"contents": {
+								"isOnline": true,
+								"identifier": "RM10"
+							}
+						},
+						{
+							"number": 94,
+							"contents": {
+								"isOnline": true,
+								"identifier": "RM9 R"
+							}
+						},
+						{
+							"number": 95,
+							"contents": {
+								"isOnline": true,
+								"identifier": "RM10 R"
+							}
+						}
+					]
+				},
+				{
+					"number": 2,
+					"contents": {
+						"isOnline": true,
+						"identifier": "Sums"
+					}
+				},
+				{
+					"number": 3,
+					"contents": {
+						"isOnline": true,
+						"identifier": "Matrices"
+					}
+				},
+				{
+					"number": 4,
+					"contents": {
+						"isOnline": true,
+						"identifier": "GPIOs"
+					}
+				},
+				{
+					"number": 5,
+					"contents": {
+						"isOnline": true,
+						"identifier": "Functions"
+					}
+				},
+				{
+					"number": 29,
+					"contents": {
+						"isOnline": true,
+						"identifier": "System"
+					}
+				},
+				{
+					"number": 30,
+					"contents": {
+						"isOnline": true,
+						"identifier": "identity",
+						"schemaIdentifiers": "de.l-s-b.emberplus.identity"
+					}
+				},
+				{
+					"number": 31,
+					"contents": {
+						"isOnline": true,
+						"identifier": "Configuration"
+					}
+				}
+			]
+		}
+	]
+}

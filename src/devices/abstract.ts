@@ -1,11 +1,8 @@
 import * as _ from 'underscore'
-import { Device, DeviceCommand, DeviceCommandContainer } from './device'
+import { Device, DeviceOptions } from './device'
+import { DeviceType } from './mapping'
 
-import { CasparCG, Command as CommandNS, AMCPUtil } from 'casparcg-connection'
-import { Mappings, MappingCasparCG, DeviceType } from './mapping'
-
-import { TimelineState, TimelineResolvedKeyframe, TimelineResolvedObject } from 'superfly-timeline'
-import { CasparCG as StateNS, CasparCGState } from 'casparcg-state'
+import { TimelineState } from 'superfly-timeline'
 
 /*
 	This is a wrapper for an "Abstract" device
@@ -13,16 +10,22 @@ import { CasparCG as StateNS, CasparCGState } from 'casparcg-state'
 	An abstract device is just a test-device that doesn't really do anything, but can be used
 	as a preliminary mock
 */
+export interface AbstractDeviceOptions extends DeviceOptions {
+	options?: {
+		commandReceiver?: (time: number, cmd) => void
+	}
+}
 export class AbstractDevice extends Device {
 
 	private _queue: Array<any>
 
 	private _commandReceiver: (time: number, cmd) => void
 
-	constructor (deviceId: string, deviceOptions: any, options) {
+	constructor (deviceId: string, deviceOptions: AbstractDeviceOptions, options) {
 		super(deviceId, deviceOptions, options)
 		if (deviceOptions.options) {
 			if (deviceOptions.options.commandReceiver) this._commandReceiver = deviceOptions.options.commandReceiver
+			else this._commandReceiver = this._defaultCommandReceiver
 		}
 
 		setInterval(() => {
@@ -30,7 +33,7 @@ export class AbstractDevice extends Device {
 
 			let now = this.getCurrentTime()
 
-			//console.log('check queue ' + now, _.values(this._queue).length )
+			// console.log('check queue ' + now, _.values(this._queue).length )
 
 			this._queue = _.reject(this._queue, (q) => {
 				if (q.time <= now) {
@@ -50,6 +53,10 @@ export class AbstractDevice extends Device {
 	init (): Promise<boolean> {
 		return new Promise((resolve/*, reject*/) => {
 			// This is where we would do initialization, like connecting to the devices, etc
+
+			// myDevide.onConnectionChange((connected: boolean) => {
+				// this.emit('connectionChanged', connected)
+			// })
 			resolve(true)
 		})
 	}
@@ -58,7 +65,7 @@ export class AbstractDevice extends Device {
 
 		// console.log('handleState')
 
-		let oldState: TimelineState = this.getStateBefore(newState.time) || {time: 0, LLayers: {}, GLayers: {}}
+		let oldState: TimelineState = this.getStateBefore(newState.time) || { time: 0, LLayers: {}, GLayers: {} }
 
 		let oldAbstractState = this.convertStateToAbstract(oldState)
 		let newAbstractState = this.convertStateToAbstract(newState)
@@ -83,12 +90,18 @@ export class AbstractDevice extends Device {
 		// Clear any scheduled commands after this time
 		this._queue = _.reject(this._queue, (q) => { return q.time > clearAfterTime })
 	}
+	get connected (): boolean {
+		return false
+	}
 	convertStateToAbstract (state: TimelineState) {
 		// convert the timeline state into something we can use
 		return state
 	}
 	get deviceType () {
 		return DeviceType.ABSTRACT
+	}
+	get deviceName (): string {
+		return 'Abstract ' + this.deviceId
 	}
 	get queue () {
 		return _.values(this._queue)
@@ -99,7 +112,7 @@ export class AbstractDevice extends Device {
 
 		let commands: Array<any> = []
 
-		_.each(newAbstractState.LLayers, (newLayer, layerKey) => {
+		_.each(newAbstractState.LLayers, (newLayer: any, layerKey) => {
 			let oldLayer = oldAbstractState.LLayers[layerKey]
 			if (!oldLayer) {
 				// added!
@@ -109,7 +122,7 @@ export class AbstractDevice extends Device {
 				})
 			} else {
 				// changed?
-				if (oldLayer.id !== newLayer.id ) {
+				if (oldLayer.id !== newLayer.id) {
 					// changed!
 					commands.push({
 						commandName: 'changedAbstract',
@@ -119,7 +132,7 @@ export class AbstractDevice extends Device {
 			}
 		})
 		// removed
-		_.each(oldAbstractState.LLayers, (oldLayer, layerKey) => {
+		_.each(oldAbstractState.LLayers, (oldLayer: any, layerKey) => {
 			let newLayer = newAbstractState.LLayers[layerKey]
 			if (!newLayer) {
 				// removed!
@@ -130,5 +143,10 @@ export class AbstractDevice extends Device {
 			}
 		})
 		return commands
+	}
+	private _defaultCommandReceiver (time: number, cmd) {
+		time = time
+		// execute the command here
+		cmd = cmd
 	}
 }

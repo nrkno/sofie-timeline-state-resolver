@@ -9,26 +9,39 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/superflytv/timeline-state-resolver.git"
+    "url": "git+https://github.com/nrkno/tv-automation-state-timeline-resolver.git"
   },
   "bugs": {
-    "url": "https://github.com/superflytv/timeline-state-resolver/issues"
+    "url": "https://github.com/nrkno/tv-automation-state-timeline-resolver/issues"
   },
-  "homepage": "https://github.com/superflytv/timeline-state-resolver#readme",
-  "author": {
-    "name": "Balte de Wit",
-    "email": "balte@superfly.tv",
-    "url": "http://superfly.tv"
-  },
+  "homepage": "https://github.com/nrkno/tv-automation-state-timeline-resolver#readme",
   "contributors": [
     {
       "name": "Johan Nyman",
       "email": "johan@superfly.tv",
       "url": "http://superfly.tv"
+    },
+    {
+      "name": "Balte de Wit",
+      "email": "balte@superfly.tv",
+      "url": "http://superfly.tv"
+    },
+    {
+      "name": "Jesper Stærkær",
+      "email": "jesper@superfly.tv",
+      "url": "http://superfly.tv"
+    },
+    {
+      "name": "Stephan Nordnes Eriksen",
+      "email": "Stephanruler@gmail.com"
     }
   ],
   "scripts": {
     "info": "npm-scripts-info",
+    "cleancache": "yarn cache clean atem-connection atem-state casparcg-connection casparcg-state superfly-timeline",
+    "unlink:all": "yarn unlink atem-connection & yarn unlink atem-state & yarn unlink casparcg-connection & yarn unlink casparcg-state & yarn unlink superfly-timeline",
+    "installclean": "yarn unlink:all & yarn cleancache && yarn --check-files",
+    "buildclean": "yarn installclean && yarn build",
     "build": "trash dist && yarn build:main",
     "build:main": "tsc -p tsconfig.json",
     "lint": "tslint --project tsconfig.jest.json --config tslint.json",
@@ -36,55 +49,70 @@
     "test": "yarn lint && yarn unit",
     "test:integration": "yarn lint && jest --config=jest-integration.config.js",
     "watch": "jest --watch",
-    "cov": "jest; opn coverage/lcov-report/index.html",
+    "cov": "jest --coverage; opn coverage/lcov-report/index.html",
     "cov-open": "opn coverage/lcov-report/index.html",
     "send-coverage": "jest && codecov",
     "docs": "yarn docs:html && opn docs/index.html",
+    "docs:test": "yarn docs:html",
     "docs:html": "typedoc src/index.ts --excludePrivate --mode file --theme minimal --out docs",
     "docs:json": "typedoc --mode file --json docs/typedoc.json src/index.ts",
     "docs:publish": "yarn docs:html && gh-pages -d docs",
     "changelog": "standard-version",
     "release": "yarn reset && yarn test && yarn docs:publish && yarn changelog",
     "reset": "git clean -dfx && git reset --hard && yarn",
-    "ci": "yarn test"
+    "ci": "yarn test && yarn docs:test",
+    "validate:dependencies": "nsp check && yarn license-validate",
+    "license-validate": "node-license-validator -p -d --allow-licenses MIT BSD BSD-3-Clause ISC Apache Unlicense --allow-packages cycle"
   },
   "scripts-info": {
     "info": "Display information about the scripts",
+    "installclean": "Remove yarn.lock, cleare yarn cache, and reinstall",
     "build": "(Trash and re)build the library",
+    "build:main": "Builds main build command without trash.",
     "lint": "Lint all typescript source files",
     "unit": "Build the library and run unit tests",
     "test": "Lint, build, and test the library",
+    "test:integration": "Integration tests. Work in progress",
     "watch": "Watch source files, rebuild library on changes, rerun relevant tests",
     "cov": "Run tests, generate the HTML coverage report, and open it in a browser",
+    "cov-open": "Open current test coverage",
+    "send-coverage": "send coverage to codecov",
     "docs": "Generate HTML API documentation and open it in a browser",
-    "docs:publish": "Generate HTML API documentation and push it to GitHub Pages",
+    "docs:test": "Running the docs generation for testing.",
+    "docs:html": "Generate HTML documentation",
     "docs:json": "Generate API documentation in typedoc JSON format",
+    "docs:publish": "Generate HTML API documentation and push it to GitHub Pages",
     "changelog": "Bump package.json version, update CHANGELOG.md, tag a release",
+    "release": "Clean, build, test, publish docs, and prepare release (a one-step publish process). Updates versions and creates git commits.",
     "reset": "Delete all untracked files and reset the repo to the last commit",
-    "release": "Clean, build, test, publish docs, and prepare release (a one-step publish process)"
+    "ci": "Test script for running by the CI (CircleCI)",
+    "validate:dependencies": "Scan dependencies for vulnerabilities and check licenses",
+    "license-validate": "Validate licenses for dependencies."
   },
   "engines": {
     "node": ">=4.5"
   },
   "devDependencies": {
-    "@types/jest": "^22.1.3",
+    "@types/jest": "^23.1.0",
     "@types/node": "^8.0.4",
-    "codecov": "^2.2.0",
+    "codecov": "^3.0.2",
     "cpx": "^1.5.0",
-    "gh-pages": "^1.0.0",
-    "jest": "^22.4.2",
+    "gh-pages": "^1.2.0",
+    "jest": "^23.1.0",
     "mkdirp": "^0.5.1",
-    "npm-scripts-info": "^0.3.6",
-    "nyc": "^11.0.3",
+    "node-license-validator": "^1.3.0",
+    "npm-scripts-info": "^0.3.7",
+    "nsp": "^3.2.1",
+    "nyc": "^12.0.2",
     "opn-cli": "^3.1.0",
     "sleep-ms": "^2.0.1",
     "standard-version": "^4.0.0",
     "trash-cli": "^1.4.0",
-    "ts-jest": "^22.0.4",
-    "tslint": "^5.4.3",
-    "tslint-config-standard": "^6.0.1",
-    "typedoc": "^0.8.0",
-    "typescript": "^2.4.1"
+    "ts-jest": "^22.4.6",
+    "tslint": "^5.10.0",
+    "tslint-config-standard": "^7.0.0",
+    "typedoc": "^0.11.1",
+    "typescript": "^2.9.2"
   },
   "keywords": [
     "mos",
@@ -101,10 +129,16 @@
     "production"
   ],
   "dependencies": {
-    "casparcg-connection": "^3.0.1",
-    "casparcg-state": "git+https://Mfn2bXzQtEFXHKpo12x2y78QJMR7gUZz:x-oauth-basic@bitbucket.org/superflytv/casparcg-state.git#develop",
-    "superfly-timeline": "^0.1.1",
-    "tslib": "^1.6.0",
-    "underscore": "^1.8.3"
+    "@types/request": "^2.47.0",
+    "atem-connection": "^0.1.3",
+    "atem-state": "^0.1.2",
+    "casparcg-connection": "^4.1.0",
+    "casparcg-state": "^1.0.4",
+    "emberplus": "git+https://github.com/nrkno/tv-automation-emberplus-connection.git#dist",
+    "fast-clone": "^1.5.3",
+    "request": "^2.87.0",
+    "superfly-timeline": "^2.0.2",
+    "underscore": "^1.8.3",
+    "underscore-deep-extend": "^1.1.5"
   }
 }

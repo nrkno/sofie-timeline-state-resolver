@@ -1,8 +1,7 @@
 import * as _ from 'underscore'
 import { TimelineState } from 'superfly-timeline'
 import { Mappings, DeviceType } from './mapping'
-import { CasparCG as StateNS, CasparCGState } from 'casparcg-state'
-import { stat } from 'fs'
+import { EventEmitter } from 'events'
 /*
 	This is a base class for all the Device wrappers.
 	The Device wrappers will
@@ -18,28 +17,41 @@ export interface DeviceCommandContainer {
 	deviceId: string,
 	commands: Array<DeviceCommand>
 }
+export interface DeviceOptions {
+	type: DeviceType,
+	options?: {}
+	externalLog?: (...args: any[]) => void
+}
+export class Device extends EventEmitter {
 
-export class Device {
-
+	protected _log: (...args: any[]) => void
 	private _getCurrentTime: () => number
 
 	private _deviceId: string
-	private _deviceOptions: any
+	private _deviceOptions: DeviceOptions
 
-	private _states: {[time: number]: TimelineState}
+	private _states: {[time: string]: TimelineState} = {}
 	private _mappings: Mappings
 
-	constructor (deviceId: string, deviceOptions: any, options) {
+	constructor (deviceId: string, deviceOptions: DeviceOptions, options) {
+		super()
 		this._deviceId = deviceId
 		this._deviceOptions = deviceOptions
 
-		this._states = {}
+		this._deviceOptions = this._deviceOptions // ts-lint fix
+
 		if (options.getCurrentTime) {
 			this._getCurrentTime = options.getCurrentTime
 		}
+		if (options.externalLog) {
+			this._log = options.externalLog
+		} else {
+			this._log = () => { return }
+		}
 	}
-	init (): Promise<boolean> {
+	init (connectionOptions: any): Promise<boolean> {
 		// connect to the device, resolve the promise when ready.
+		connectionOptions = connectionOptions // ts-ignore
 		throw new Error('This class method must be replaced by the Device class!')
 
 		// return Promise.resolve(true)
@@ -54,10 +66,16 @@ export class Device {
 
 	handleState (newState: TimelineState) {
 		// Handle this new state, at the point in time specified
+		newState = newState
 		throw new Error('This class method must be replaced by the Device class!')
 	}
 	clearFuture (clearAfterTime: number) {
 		// Clear any scheduled commands after this time
+		clearAfterTime = clearAfterTime
+		throw new Error('This class method must be replaced by the Device class!')
+	}
+	get connected (): boolean {
+		// Returns connection status
 		throw new Error('This class method must be replaced by the Device class!')
 	}
 
@@ -65,7 +83,8 @@ export class Device {
 
 		let foundTime = 0
 		let foundState: TimelineState | null = null
-		_.each(this._states, (state: TimelineState, stateTime: number) => {
+		_.each(this._states, (state: TimelineState, stateTimeStr: string) => {
+			let stateTime = parseFloat(stateTimeStr)
 			if (stateTime > foundTime && stateTime < time) {
 				foundState = state
 				foundTime = stateTime
@@ -74,16 +93,21 @@ export class Device {
 		return foundState
 	}
 	setState (state) {
-		this._states[state.time] = state
+		this._states[state.time + ''] = state
 
 		this.cleanUpStates(0, state.time) // remove states after this time, as they are not relevant anymore
 	}
 	cleanUpStates (removeBeforeTime, removeAfterTime) {
-		_.each(_.keys(this._states), (time) => {
+		_.each(_.keys(this._states), (time: string) => {
 
 			if (time < removeBeforeTime || time > removeAfterTime || !time) {
 				delete this._states[time]
 			}
+		})
+	}
+	clearStates () {
+		_.each(_.keys(this._states), (time: string) => {
+			delete this._states[time]
 		})
 	}
 
@@ -97,6 +121,10 @@ export class Device {
 	get deviceId () {
 		return this._deviceId
 	}
+	get deviceName (): string {
+		// Return a human-readable name for this device
+		throw new Error('This class method must be replaced by the Device class!')
+	}
 	set deviceId (deviceId) {
 		this._deviceId = deviceId
 	}
@@ -104,5 +132,7 @@ export class Device {
 		// return DeviceType.ABSTRACT
 		throw new Error('This class method must be replaced by the Device class!')
 	}
-
+	get deviceOptions (): DeviceOptions {
+		return this._deviceOptions
+	}
 }
