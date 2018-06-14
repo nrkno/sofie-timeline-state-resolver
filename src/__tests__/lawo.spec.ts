@@ -1,12 +1,9 @@
-import { Resolver, TimelineObject, TimelineState, TriggerType } from 'superfly-timeline'
+import { TriggerType } from 'superfly-timeline'
 
 import { Mappings, MappingLawo, DeviceType } from '../devices/mapping'
 import { Conductor } from '../conductor'
 import { LawoDevice } from '../devices/lawo'
-import { DeviceOptions } from '../devices/device'
-import { DeviceTree } from 'emberplus'
 
-let nowActual: number = Date.now()
 let now: number = 1000
 
 beforeAll(() => {
@@ -26,7 +23,7 @@ function advanceTime (advanceTime: number) {
 test('Lawo: add channel', async () => {
 	jest.useFakeTimers()
 
-	let commandReceiver0 = jest.fn((command) => {
+	let commandReceiver0 = jest.fn(() => {
 		// nothing.
 	})
 	let myChannelMapping0: MappingLawo = {
@@ -42,21 +39,29 @@ test('Lawo: add channel', async () => {
 	}
 
 	let myConductor = new Conductor({
-		devices: {
-			'myLawo': {
-				type: DeviceType.LAWO,
-				host: '160.67.96.51',
-				port: 9000,
-				options: {
-					commandReceiver: commandReceiver0
-				}
-			} as DeviceOptions
-		},
+		// devices: {
+		// 	'myLawo': {
+		// 		type: DeviceType.LAWO,
+		// 		host: '160.67.96.51',
+		// 		port: 9000,
+		// 		options: {
+		// 			commandReceiver: commandReceiver0
+		// 		}
+		// 	} as DeviceOptions
+		// },
 		initializeAsClear: true,
 		getCurrentTime: getCurrentTime
 	})
 	myConductor.mapping = myChannelMapping
 	await myConductor.init() // we cannot do an await, because setTimeout will never call without jest moving on.
+	await myConductor.addDevice('myLawo', {
+		type: DeviceType.LAWO,
+		options: {
+			host: '160.67.96.51',
+			port: 9000,
+			commandReceiver: commandReceiver0
+		}
+	})
 	advanceTime(100) // 1100
 
 	let device = myConductor.getDevice('myLawo') as LawoDevice
@@ -104,7 +109,7 @@ test('Lawo: change volume', async () => {
 	now = 1000
 	jest.useFakeTimers()
 
-	let commandReceiver0 = jest.fn((command) => {
+	let commandReceiver0 = jest.fn(() => {
 		// nothing.
 	})
 	let myChannelMapping0: MappingLawo = {
@@ -120,21 +125,19 @@ test('Lawo: change volume', async () => {
 	}
 
 	let myConductor = new Conductor({
-		devices: {
-			'myLawo': {
-				type: DeviceType.LAWO,
-				host: '160.67.96.51',
-				port: 9000,
-				options: {
-					commandReceiver: commandReceiver0
-				}
-			} as DeviceOptions
-		},
 		initializeAsClear: true,
 		getCurrentTime: getCurrentTime
 	})
 	myConductor.mapping = myChannelMapping
 	await myConductor.init() // we cannot do an await, because setTimeout will never call without jest moving on.
+	await myConductor.addDevice('myLawo', {
+		type: DeviceType.LAWO,
+		options: {
+			host: '160.67.96.51',
+			port: 9000,
+			commandReceiver: commandReceiver0
+		}
+	})
 	advanceTime(100) // 1100
 
 	let device = myConductor.getDevice('myLawo') as LawoDevice
