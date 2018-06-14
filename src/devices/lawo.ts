@@ -225,7 +225,7 @@ export class LawoDevice extends Device {
 		let commands: Array<LawoCommand> = []
 
 		let addCommand = (path, newValue: LawoStateNodeAttr) => {
-			if (typeof newValue === 'object' && _.has(newValue,'transitionDuration')) {
+			if (_.has(newValue,'transitionDuration')) {
 				// it's a Transition:
 				let transition = newValue as LawoStateNodeAttrTransition
 				commands.push({

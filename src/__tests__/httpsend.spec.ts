@@ -2,7 +2,7 @@
 // import { Commands, Atem } from 'atem-connection'
 import { TriggerType } from 'superfly-timeline'
 
-import { Mappings, MappingAtem, DeviceType, MappingAtemType, MappingHTTPSend } from '../devices/mapping'
+import { Mappings, DeviceType, MappingHTTPSend } from '../devices/mapping'
 import { Conductor } from '../conductor'
 import { HttpSendDevice } from '../devices/httpSend'
 

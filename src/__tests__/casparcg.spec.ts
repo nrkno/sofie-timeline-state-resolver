@@ -23,7 +23,9 @@ describe('CasparCG', () => {
 		jest.advanceTimersByTime(advanceTime)
 		// console.log('Advancing ' + advanceTime + ' ms -----------------------')
 	}
-
+	beforeEach(() => {
+		now = 10000
+	})
 	test('CasparCG: Play AMB for 60s', async () => {
 		jest.useFakeTimers()
 
@@ -774,11 +776,13 @@ describe('CasparCG', () => {
 		await myConductor.addDevice('myCCG', {
 			type: DeviceType.CASPARCG,
 			options: {
-				commandReceiver: commandReceiver0
+				commandReceiver: commandReceiver0,
+				timeBase: 50
 			}
 		})
 		myConductor.mapping = myLayerMapping
 
+		expect(getCurrentTime()).toEqual(10000)
 		myConductor.timeline = [
 			{
 				id: 'obj0',
@@ -811,7 +815,7 @@ describe('CasparCG', () => {
 		})
 		expect(commandReceiver0.mock.calls[1][1].name).toEqual('ScheduleSetCommand')
 		// console.log(commandReceiver0.mock.calls[1][1])
-		expect(commandReceiver0.mock.calls[1][1]._objectParams.timecode).toEqual('00:00:01:10') // 1s 10 frames == 1.2 s
+		expect(commandReceiver0.mock.calls[1][1]._objectParams.timecode).toEqual('00:00:11:10') // 11s 10 frames == 1.2 s @50fpx
 
 		expect(commandReceiver0.mock.calls[1][1]._objectParams.command.name).toEqual('PlayCommand')
 		expect(commandReceiver0.mock.calls[1][1]._objectParams.command._objectParams).toEqual({
@@ -855,7 +859,8 @@ describe('CasparCG', () => {
 		await myConductor.addDevice('myCCG', {
 			type: DeviceType.CASPARCG,
 			options: {
-				commandReceiver: commandReceiver0
+				commandReceiver: commandReceiver0,
+				timeBase: 50
 			}
 		})
 		myConductor.mapping = myLayerMapping
@@ -891,7 +896,7 @@ describe('CasparCG', () => {
 		})
 		expect(commandReceiver0.mock.calls[1][1].name).toEqual('ScheduleSetCommand')
 		// console.log(commandReceiver0.mock.calls[1][1])
-		expect(commandReceiver0.mock.calls[1][1]._objectParams.timecode).toEqual('00:00:01:10') // 1s 10 frames == 1.2 s
+		expect(commandReceiver0.mock.calls[1][1]._objectParams.timecode).toEqual('00:00:11:10') // 11s 10 frames == 1.2 s @ 50 fps
 
 		expect(commandReceiver0.mock.calls[1][1]._objectParams.command.name).toEqual('PlayCommand')
 		expect(commandReceiver0.mock.calls[1][1]._objectParams.command._objectParams).toEqual({
