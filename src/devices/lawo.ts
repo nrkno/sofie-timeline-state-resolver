@@ -176,7 +176,7 @@ export class LawoDevice extends Device {
 
 		_.each(state.LLayers, (tlObject: TimelineLawoObject, layerName: string) => {
 			const mapping: MappingLawo | undefined = this.mapping[layerName] as MappingLawo
-			if (mapping && mapping.device === DeviceType.LAWO ) {
+			if (mapping && mapping.path && mapping.device === DeviceType.LAWO ) {
 
 				if (tlObject.content.type === TimelineContentTypeLawo.LAWO) {
 					let path = mapping.path.join('/')
@@ -186,7 +186,7 @@ export class LawoDevice extends Device {
 		})
 		// Apply default states defined in mappings
 		_.each(this.mapping, (mapping: MappingLawo) => {
-			if (mapping && mapping.device === DeviceType.LAWO && mapping.default) {
+			if (mapping && mapping.path && mapping.device === DeviceType.LAWO && mapping.default) {
 
 				let path = mapping.path.join('/')
 				lawoState[path] = lawoState[path] || mapping.default
