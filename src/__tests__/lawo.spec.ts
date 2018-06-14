@@ -2,7 +2,7 @@ import { TriggerType } from 'superfly-timeline'
 
 import { Mappings, MappingLawo, DeviceType } from '../devices/mapping'
 import { Conductor } from '../conductor'
-import { LawoDevice } from '../devices/lawo'
+import { LawoDevice, TimelineContentTypeLawo } from '../devices/lawo'
 
 let now: number = 1000
 
@@ -17,7 +17,6 @@ function getCurrentTime () {
 function advanceTime (advanceTime: number) {
 	now += advanceTime
 	jest.advanceTimersByTime(advanceTime)
-	// console.log('Advancing ' + advanceTime + ' ms -----------------------')
 }
 
 test('Lawo: add channel', async () => {
@@ -65,28 +64,45 @@ test('Lawo: add channel', async () => {
 	advanceTime(100) // 1100
 
 	let device = myConductor.getDevice('myLawo') as LawoDevice
-	// console.log(device._device.state)
 
 	// Check that no commands has been scheduled:
 	expect(device.queue).toHaveLength(0)
-
 	myConductor.timeline = [
 		{
 			id: 'obj0',
 			trigger: {
 				type: TriggerType.TIME_ABSOLUTE,
-				value: now + 1000 // 1 seconds in the future
+				value: now - 1000 // 1 seconds in the past
 			},
 			duration: 2000,
 			LLayer: 'lawo_c1_fader',
 			content: {
-				'Motor dB Value': -6
+				type: TimelineContentTypeLawo.LAWO,
+				attributes: {
+					'Motor dB Value': -6
+				}
+			}
+		},
+		{
+			id: 'obj1',
+			trigger: {
+				type: TriggerType.TIME_ABSOLUTE,
+				value: now + 500 // 0.5 seconds in the future
+			},
+			duration: 2000,
+			LLayer: 'lawo_c1_fader',
+			content: {
+				type: TimelineContentTypeLawo.LAWO,
+				attributes: {
+					'Motor dB Value': -4
+				}
 			}
 		}
 	]
 
-	advanceTime(1000)
+	advanceTime(100) // 1200
 
+	expect(commandReceiver0).toHaveBeenCalledTimes(1)
 	expect(commandReceiver0.mock.calls[0][1]).toMatchObject(
 		{
 			attribute: 'Motor dB Value',
@@ -95,8 +111,20 @@ test('Lawo: add channel', async () => {
 		}
 	)
 
-	advanceTime(2000)
+	advanceTime(800) // 2000
+
+	expect(commandReceiver0).toHaveBeenCalledTimes(2)
 	expect(commandReceiver0.mock.calls[1][1]).toMatchObject(
+		{
+			attribute: 'Motor dB Value',
+			value: -4,
+			path: '1/1/2/3'
+		}
+	)
+
+	advanceTime(2000) // 4000
+	expect(commandReceiver0).toHaveBeenCalledTimes(3)
+	expect(commandReceiver0.mock.calls[2][1]).toMatchObject(
 		{
 			attribute: 'Motor dB Value',
 			value: -191,
@@ -141,11 +169,9 @@ test('Lawo: change volume', async () => {
 	advanceTime(100) // 1100
 
 	let device = myConductor.getDevice('myLawo') as LawoDevice
-	// console.log(device._device.state)
 
 	// Check that no commands has been scheduled:
 	expect(device.queue).toHaveLength(0)
-
 	myConductor.timeline = [
 		{
 			id: 'obj0',
@@ -156,7 +182,10 @@ test('Lawo: change volume', async () => {
 			duration: 2000,
 			LLayer: 'lawo_c1_fader',
 			content: {
-				'Motor dB Value': 0 // 0 dBFS
+				type: TimelineContentTypeLawo.LAWO,
+				attributes: {
+					'Motor dB Value': 0 // 0 dBFS
+				}
 			}
 		}
 	]
@@ -172,7 +201,10 @@ test('Lawo: change volume', async () => {
 			duration: 2000,
 			LLayer: 'lawo_c1_fader',
 			content: {
-				'Motor dB Value': -15 // -15 dBFS
+				type: TimelineContentTypeLawo.LAWO,
+				attributes: {
+					'Motor dB Value': -15 // -15 dBFS
+				}
 			}
 		}
 	]

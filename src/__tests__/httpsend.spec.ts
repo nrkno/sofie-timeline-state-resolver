@@ -2,7 +2,7 @@
 // import { Commands, Atem } from 'atem-connection'
 import { TriggerType } from 'superfly-timeline'
 
-import { Mappings, MappingAtem, DeviceType, MappingAtemType } from '../devices/mapping'
+import { Mappings, MappingAtem, DeviceType, MappingAtemType, MappingHTTPSend } from '../devices/mapping'
 import { Conductor } from '../conductor'
 import { HttpSendDevice } from '../devices/httpSend'
 
@@ -30,11 +30,9 @@ describe('HTTP-Send', () => {
 		let commandReceiver0 = jest.fn(() => {
 			// nothing.
 		})
-		let myLayerMapping0: MappingAtem = {
+		let myLayerMapping0: MappingHTTPSend = {
 			device: DeviceType.HTTPSEND,
-			deviceId: 'myHTTP',
-			mappingType: MappingAtemType.MixEffect,
-			index: 0
+			deviceId: 'myHTTP'
 		}
 		let myLayerMapping: Mappings = {
 			'myLayer0': myLayerMapping0

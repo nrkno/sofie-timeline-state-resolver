@@ -110,7 +110,7 @@
     "atem-state": "^0.1.0",
     "casparcg-connection": "^4.1.0",
     "casparcg-state": "git+https://github.com/SuperFlyTV/casparcg-state.git#dist",
-    "emberplus": "git+https://github.com/nrkno/tv-automation-emberplus-connection",
+    "emberplus": "git+https://github.com/nrkno/tv-automation-emberplus-connection.git#dist",
     "fast-clone": "^1.5.3",
     "request": "^2.86.0",
     "superfly-timeline": "git+https://github.com/superflytv/supertimeline#dist",

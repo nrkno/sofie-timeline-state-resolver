@@ -78,13 +78,14 @@ export class HttpSendDevice extends Device {
 	}
 	clearFuture (clearAfterTime: number) {
 		// Clear any scheduled commands after this time
-		this._queue = _.reject(this._queue, (q) => { return q.time > clearAfterTime })
+		this._doOnTime.clearQueueAfter(clearAfterTime)
 	}
 	get connected (): boolean {
 		return false
 	}
 	convertStateToHttpSend (state: TimelineState) {
 		// convert the timeline state into something we can use
+		// (won't even use this.mapping)
 		return state
 	}
 	get deviceType () {
@@ -94,7 +95,7 @@ export class HttpSendDevice extends Device {
 		return 'HTTP-Send ' + this.deviceId
 	}
 	get queue () {
-		return _.values(this._queue)
+		return this._doOnTime.getQueue()
 	}
 	private _addToQueue (commandsToAchieveState: Array<Command>, time: number) {
 		_.each(commandsToAchieveState, (cmd: Command) => {

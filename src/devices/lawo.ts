@@ -4,6 +4,7 @@ import { DeviceType, MappingLawo, Mappings } from './mapping'
 
 import { TimelineState, TimelineResolvedObject } from 'superfly-timeline'
 import { DeviceTree, Ember } from 'emberplus'
+import { DoOnTime } from '../doOnTime'
 
 /*
 	This is a wrapper for an "Abstract" device
@@ -18,25 +19,69 @@ export interface LawoOptions extends DeviceOptions {
 		port?: number
 	}
 }
+export enum TimelineContentTypeLawo { //  Lawo-state
+	LAWO = 'lawo' // a general content type, possibly to be replaced by specific ones later?
+}
+interface TimelineLawoObject extends TimelineResolvedObject {
+	content: {
+		type: TimelineContentTypeLawo,
+		attributes: {
+			[lawoProperty: string]: any
+		}
+	}
+}
+export interface LawoState {
+	[path: string]: LawoStateNode
+}
+export interface LawoStateNode {
+	[attrName: string]: LawoStateNodeAttr
+}
+export type LawoStateNodeBaseAttr = boolean | number | string
+export type LawoStateNodeAttr = LawoStateNodeBaseAttr | LawoStateNodeAttrTransition
+export interface LawoStateNodeAttrTransition {
+	value: LawoStateNodeBaseAttr
+	transitionDuration: number
+}
+export interface LawoCommand {
+	path: string,
+	attribute: string,
+	value: LawoStateNodeBaseAttr,
+	transitionDuration?: number
+}
 export class LawoDevice extends Device {
-
-	private _queue: Array<{ time: number, command: Object}>
+	private _doOnTime: DoOnTime
+	// private _queue: Array<{ time: number, command: LawoCommand}>
 	private _device: DeviceTree
 	private _resolveMappingsOnConnect = false
 	private _mappingToAttributes: { [layerName: string]: { [attrName: string]: number } } = {}
 	private _savedNodes: { [pathName: string]: Ember.Node } = {}
 	private _sourceNames: { [index: string]: string } = {}
 
-	private _commandReceiver: (time: number, cmd) => void
+	private _commandReceiver: (time: number, cmd: LawoCommand) => void
 
 	constructor (deviceId: string, deviceOptions: LawoOptions, options) {
 		super(deviceId, deviceOptions, options)
 		if (deviceOptions.options) {
-			if (deviceOptions.options.commandReceiver) this._commandReceiver = deviceOptions.options.commandReceiver
-			else this._commandReceiver = this._defaultCommandReceiver
+			if (deviceOptions.options.commandReceiver) {
+				this._commandReceiver = deviceOptions.options.commandReceiver
+			} else {
+				this._commandReceiver = this._defaultCommandReceiver
+			}
 		}
-		let host = deviceOptions.options && deviceOptions.options.host ? deviceOptions.options.host : null
-		let port = deviceOptions.options && deviceOptions.options.port ? deviceOptions.options.port : null
+		let host = (
+			deviceOptions.options && deviceOptions.options.host
+			? deviceOptions.options.host :
+			null
+		)
+		let port = (
+			deviceOptions.options && deviceOptions.options.port ?
+			deviceOptions.options.port :
+			null
+		)
+		this._doOnTime = new DoOnTime(() => {
+			return this.getCurrentTime()
+		})
+
 		this._device = new DeviceTree(host, port)
 		this._device.on('connected', () => {
 			this._savedNodes = {} // reset cache
@@ -46,36 +91,36 @@ export class LawoDevice extends Device {
 			this._device.getNodeByPath([1, 1]).then((node) => {
 				this._device.getDirectory(node).then((res) => {
 					const children = node.getChildren()
-					if (node === undefined || children === undefined || res === undefined) return // no sources here.
+					if (!node || !children || !res ) return // no sources here.
 					for (const child of children) {
 						this._sourceNames[child.number] = child.identifier
 					}
 				})
 			})
 		})
-		this._enforceDeviceState()
+		// this._enforceDeviceState()
 
-		setInterval(() => {
-			// send any commands due:
+		// setInterval(() => {
+		// 	// send any commands due:
 
-			let now = this.getCurrentTime()
+		// 	let now = this.getCurrentTime()
 
-			// console.log('check queue ' + now, _.values(this._queue).length )
+		// 	// console.log('check queue ' + now, _.values(this._queue).length )
 
-			this._queue = _.reject(this._queue, (q) => {
-				if (q.time <= now) {
-					if (this._commandReceiver) {
-						this._commandReceiver(now, q.command)
-					}
-					return true
-				}
-				return false
-			})
-		}, 100)
+		// 	this._queue = _.reject(this._queue, (q) => {
+		// 		if (q.time <= now) {
+		// 			if (this._commandReceiver) {
+		// 				this._commandReceiver(now, q.command)
+		// 			}
+		// 			return true
+		// 		}
+		// 		return false
+		// 	})
+		// }, 100)
 	}
 
 	/**
-	 * Initiates the connection with CasparCG through the ccg-connection lib.
+	 * Initiates the connection with Lawo
 	 */
 	init (): Promise<boolean> {
 		return new Promise((resolve/*, reject*/) => {
@@ -86,45 +131,79 @@ export class LawoDevice extends Device {
 	handleState (newState: TimelineState) {
 		// Handle this new state, at the point in time specified
 
-		// console.log('handleState')
+		console.log('handleState', newState.time)
 
 		let oldState: TimelineState = this.getStateBefore(newState.time) || {time: 0, LLayers: {}, GLayers: {}}
 
 		let oldLawoState = this.convertStateToLawo(oldState)
+		console.log('oldLawoState', oldLawoState)
 		let newLawoState = this.convertStateToLawo(newState)
+		console.log('newLawoState', newLawoState)
 
-		let commandsToAchieveState: Array<any> = this._diffStates(oldLawoState, newLawoState)
+		let commandsToAchieveState: Array<LawoCommand> = this._diffStates(oldLawoState, newLawoState)
+
+		console.log('commandsToAchieveState', commandsToAchieveState)
+		// clear any queued commands later than this time:
+		this._doOnTime.clearQueueAfter(newState.time)
+		// add the new commands to the queue:
+		this._addToQueue(commandsToAchieveState, newState.time)
 
 		// clear any queued commands on this time:
-		this._queue = _.reject(this._queue, (q) => { return q.time === newState.time })
+		// this._queue = _.reject(this._queue, (q) => { return q.time === newState.time })
 
 		// add the new commands to the queue:
-		_.each(commandsToAchieveState, (cmd) => {
-			this._queue.push({
-				time: newState.time,
-				command: cmd
-			})
-		})
-		console.log(this._queue)
+		// _.each(commandsToAchieveState, (cmd) => {
+		// 	this._queue.push({
+		// 		time: newState.time,
+		// 		command: cmd
+		// 	})
+		// })
+		// console.log('_queue', this._queue)
 
 		// store the new state, for later use:
 		this.setState(newState)
 	}
 	clearFuture (clearAfterTime: number) {
 		// Clear any scheduled commands after this time
-		this._queue = _.reject(this._queue, (q) => { return q.time > clearAfterTime })
+		this._doOnTime.clearQueueAfter(clearAfterTime)
+		// this._queue = _.reject(this._queue, (q) => { return q.time > clearAfterTime })
 	}
 	get connected (): boolean {
 		return false
 	}
-	convertStateToLawo (state: TimelineState) {
+	convertStateToLawo (state: TimelineState): LawoState {
 		// convert the timeline state into something we can use
-		const lawoState: { [path: string]: { [attrName: string]: boolean | number | string | object }} = {}
+		// console.log('convertStateToLawo -----------')
+		const lawoState: LawoState = {}
 
-		_.each(state.LLayers, (tlObject: TimelineResolvedObject, layerName: string) => {
+		_.each(state.LLayers, (tlObject: TimelineLawoObject, layerName: string) => {
+			// console.log(tlObject.content)
 			const mapping: MappingLawo | undefined = this.mapping[layerName] as MappingLawo
-			if (mapping) {
-				lawoState[mapping.path.join('/')] = { ...lawoState[mapping.path.join('/')], ...tlObject.content }
+			if (mapping && mapping.device === DeviceType.LAWO ) {
+
+				let path = mapping.path.join('/')
+
+				if (tlObject.content.type === TimelineContentTypeLawo.LAWO) {
+
+					let lawoObject: LawoStateNode = _.extend(
+						lawoState[path] || {},
+						tlObject.content.attributes
+					)
+					lawoState[path] = lawoObject
+				}
+			}
+		})
+		// console.log('lawoState before defaults', lawoState)
+		// Apply default states defined in mappings
+		_.each(this.mapping, (mapping: MappingLawo) => {
+			if (mapping && mapping.device === DeviceType.LAWO && mapping.defaults) {
+				let path = mapping.path.join('/')
+				let lawoObject: LawoStateNode = _.extend(
+					{}, // to not overwrite defaults object
+					mapping.defaults,
+					lawoState[path] || {}
+				)
+				lawoState[path] = lawoObject
 			}
 		})
 
@@ -137,7 +216,7 @@ export class LawoDevice extends Device {
 		return 'Lawo ' + this.deviceId
 	}
 	get queue () {
-		return _.values(this._queue)
+		return this._doOnTime.getQueue()
 	}
 
 	set mapping (mappings: Mappings) {
@@ -152,58 +231,71 @@ export class LawoDevice extends Device {
 	get mapping () {
 		return super.mapping
 	}
+	private _addToQueue (commandsToAchieveState: Array<LawoCommand>, time: number) {
+		_.each(commandsToAchieveState, (cmd: LawoCommand) => {
 
-	private _diffStates (oldLawoState, newLawoState) {
-		// in this abstract class, let's just cheat:
-
-		let commands: Array<any> = []
-
-		_.each(newLawoState, (newNode: { [attrName: string]: boolean | number | string | object, transition: any }, path: string) => {
-			let oldNode = oldLawoState[path]
-			const mapping = _.find(this.mapping, (mapping: MappingLawo) => mapping.path.join('/') === path) as MappingLawo
-			const mappingAttrs = this._mappingToAttributes[path]
-			if (!oldNode) oldNode = mapping.defaults
-			for (const attr in newNode) {
-				if (newNode[attr] !== oldNode[attr] && mappingAttrs[attr]) {
-					// @todo: typings!!
-					if (typeof newNode[attr] === 'object') {
-						commands.push({
-							path,
-							attribute: attr,
-							value: (newNode[attr] as { value: any }).value,
-							transitionDuration: (newNode[attr] as any).transitionDuration
-						})
-					} else {
-						commands.push({
-							path,
-							attribute: attr,
-							value: newNode[attr]
-						})
-					}
-				}
-			}
+			// add the new commands to the queue:
+			this._doOnTime.queue(time, (cmd: LawoCommand) => {
+				this._commandReceiver(time, cmd)
+			}, cmd)
 		})
-		// removed
-		_.each(oldLawoState, (oldNode: any, path: string) => {
-			let newNode = newLawoState[path]
-			if (!newNode) newNode = (_.find(this.mapping, (mapping: MappingLawo) => mapping.path.join('/') === path) as MappingLawo).defaults
-			for (const attr in newNode) {
-				if (newNode[attr] !== oldNode[attr]) {
-					commands.push({ path, attribute: attr, value: newNode[attr] })
-				}
+	}
+	private _diffStates (oldLawoState: LawoState, newLawoState: LawoState): Array<LawoCommand> {
+
+		let commands: Array<LawoCommand> = []
+
+		let addCommand = (path, attrName, newAttr) => {
+			if (typeof newAttr === 'object') {
+				// it's a Transition:
+				let transition: LawoStateNodeAttrTransition = newAttr
+				commands.push({
+					path,
+					attribute: attrName,
+					value: transition.value,
+					transitionDuration: transition.transitionDuration
+				})
+			} else {
+				// It's a plain value:
+				commands.push({
+					path,
+					attribute: attrName,
+					value: newAttr
+				})
 			}
+		}
+		_.each(newLawoState, (newNode: LawoStateNode, path: string) => {
+			let oldNode: LawoStateNode = oldLawoState[path] || {}
+			_.each(newNode, (newAttr: LawoStateNodeAttr, attrName: string ) => {
+				let oldAttr = oldNode[attrName]
+				if (!_.isEqual(newAttr, oldAttr) ) {
+					console.log('# Not equal: ', newAttr, oldAttr)
+					addCommand(path, attrName, newAttr)
+				}
+			})
+		})
+		// Removed attributes:
+		_.each(oldLawoState, (oldNode: any, path: string) => {
+			let newNode = newLawoState[path] || {}
+			_.each(oldNode, (oldAttr: LawoStateNodeAttr, attrName: string ) => {
+				if (!_.has(newNode, attrName)) {
+					console.log('# Removed: ', oldAttr)
+					addCommand(path, attrName, oldAttr)
+				}
+			})
 		})
 		return commands
 	}
 
 	// @ts-ignore no-unused-vars
-	private _defaultCommandReceiver (time: number, command: { path: string, attribute: string, value: number | boolean | string, transitionDuration?: number }) {
-		if (command.transitionDuration !== undefined && command.attribute === 'Motor dB Value') { // I don't think we can transition any other values
+	private _defaultCommandReceiver (time: number, command: LawoCommand) {
+		if (command.transitionDuration && command.attribute === 'Motor dB Value') { // I don't think we can transition any other values
 			const source = this._sourceNames[command.path.substr(4, 1)] // theoretically speaking anyway
 			if (!source) return // maybe warn user?
 			const faderRamp = new Ember.QualifiedFunction([1, 2, 2])
 			this._device.invokeFunction(faderRamp, { source, value: command.value, duration: command.transitionDuration })
 		} else {
+
+			// TODO: this._mappingToAttributes is dependent of this.mappings, which we should not have any dependencies to at this point
 			const path = _.map(command.path.split('/'), (val: string) => Number(val))
 			path.push(this._mappingToAttributes[command.path][command.attribute])
 
@@ -239,36 +331,6 @@ export class LawoDevice extends Device {
 					}
 					this._mappingToAttributes[pathStr][element.contents.identifier] = element.number
 				})
-			})
-		})
-	}
-
-	private _enforceDeviceState () {
-		const curState = this.getStateBefore(this.getCurrentTime())
-		const emptyState = {}
-		const defaultState = curState ? this.convertStateToLawo(curState) : {}
-
-		_.each(this.mapping, (mapping: MappingLawo) => {
-			if (mapping.defaults) {
-				const path = mapping.path.join('/')
-				emptyState[path] = {}
-				if (!defaultState[path]) defaultState[path] = {}
-				_.each(mapping.defaults!, (val: number | boolean | string, attr: string) => {
-					if (!defaultState[path][attr]) defaultState[path][attr] = val
-				})
-			}
-		})
-
-		const commandsToAchieveState = this._diffStates(emptyState, defaultState)
-
-		// clear any queued commands on this time:
-		this._queue = _.reject(this._queue, (q) => { return q.time === this.getCurrentTime() })
-
-		// add the new commands to the queue:
-		_.each(commandsToAchieveState, (cmd) => {
-			this._queue.push({
-				time: this.getCurrentTime(),
-				command: cmd
 			})
 		})
 	}

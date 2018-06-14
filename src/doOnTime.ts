@@ -43,6 +43,13 @@ export class DoOnTime extends EventEmitter {
 	}
 	public clearQueueAfter (time) {
 		_.each(this._queue, (q: DoOrder, id: string) => {
+			if (q.time > time) {
+				this.remove(id)
+			}
+		})
+	}
+	public clearQueueNowAndAfter (time) {
+		_.each(this._queue, (q: DoOrder, id: string) => {
 			if (q.time >= time) {
 				this.remove(id)
 			}
