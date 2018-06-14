@@ -116,7 +116,6 @@ describe('Atem', () => {
 				mixEffect: 0
 			}
 		)
-		console.log('===========================================')
 		advanceTime(2000) // 22200
 
 		expect(commandReceiver0).toHaveBeenCalledTimes(4)
