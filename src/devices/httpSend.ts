@@ -152,39 +152,39 @@ export class HttpSendDevice extends Device {
 		time = time
 		if (cmd.type === ReqestType.POST) {
 
-			console.log('Sending POST request to ',
-				cmd.url,
-				cmd.params
-			)
+			// console.log('Sending POST request to ',
+			// 	cmd.url,
+			// 	cmd.params
+			// )
 			request.post(
 				cmd.url, // 'http://www.yoursite.com/formpage',
 				{ json: cmd.params },
 				(error, response, body) => {
 					if (error) {
-						console.log('Error in httpSend: ' + error)
+						this.emit('error', 'Error in httpSend POST: ' + error)
 					} else if (response.statusCode === 200) {
-						console.log('200 Response from ' + cmd.url, body)
+						// console.log('200 Response from ' + cmd.url, body)
 					} else {
-						console.log(response.statusCode + ' Response from ' + cmd.url, body)
+						// console.log(response.statusCode + ' Response from ' + cmd.url, body)
 					}
 				}
 			)
 		} else if (cmd.type === ReqestType.GET) {
 
-			console.log('Sending POST request to ',
-				cmd.url,
-				cmd.params
-			)
+			// console.log('Sending POST request to ',
+			// 	cmd.url,
+			// 	cmd.params
+			// )
 			request.get(
 				cmd.url, // 'http://www.yoursite.com/formpage',
 				{ json: cmd.params },
 				(error, response, body) => {
 					if (error) {
-						console.log('Error in httpSend: ' + error)
+						this.emit('error', 'Error in httpSend GET: ' + error)
 					} else if (response.statusCode === 200) {
-						console.log('200 Response from ' + cmd.url, body)
+						// console.log('200 Response from ' + cmd.url, body)
 					} else {
-						console.log(response.statusCode + ' Response from ' + cmd.url, body)
+						// console.log(response.statusCode + ' Response from ' + cmd.url, body)
 					}
 				}
 			)
