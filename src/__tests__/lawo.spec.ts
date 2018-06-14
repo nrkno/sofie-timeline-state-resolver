@@ -4,7 +4,7 @@ import { Mappings, MappingLawo, DeviceType } from '../devices/mapping'
 import { Conductor } from '../conductor'
 import { LawoDevice, TimelineContentTypeLawo, EmberPlusValueReal, EmberPlusValueType } from '../devices/lawo'
 
-let externalLog = (...args ) => {
+let externalLog = (...args) => {
 	args = args
 	// console.log('trace', ...args)
 }

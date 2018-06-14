@@ -6,7 +6,7 @@ import { Mappings, MappingCasparCG, DeviceType } from '../devices/mapping'
 import { Conductor } from '../conductor'
 import { TimelineContentTypeCasparCg } from '../devices/casparCG'
 
-let externalLog = (...args ) => {
+let externalLog = (...args) => {
 	args = args
 	// console.log('trace', ...args)
 }
@@ -621,7 +621,7 @@ describe('CasparCG', () => {
 		expect(commandReceiver0.mock.calls.length).toBe(2)
 	})
 
-	test ('CasparCG: Mixer commands', async () => {
+	test('CasparCG: Mixer commands', async () => {
 
 		let commandReceiver0 = jest.fn(() => {
 			// nothing.

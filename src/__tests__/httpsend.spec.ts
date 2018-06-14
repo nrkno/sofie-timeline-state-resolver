@@ -6,7 +6,7 @@ import { Mappings, DeviceType, MappingHTTPSend } from '../devices/mapping'
 import { Conductor } from '../conductor'
 import { HttpSendDevice } from '../devices/httpSend'
 
-let externalLog = (...args ) => {
+let externalLog = (...args) => {
 	args = args
 	// console.log('trace', ...args)
 }

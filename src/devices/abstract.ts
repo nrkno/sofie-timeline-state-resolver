@@ -65,7 +65,7 @@ export class AbstractDevice extends Device {
 
 		// console.log('handleState')
 
-		let oldState: TimelineState = this.getStateBefore(newState.time) || {time: 0, LLayers: {}, GLayers: {}}
+		let oldState: TimelineState = this.getStateBefore(newState.time) || { time: 0, LLayers: {}, GLayers: {} }
 
 		let oldAbstractState = this.convertStateToAbstract(oldState)
 		let newAbstractState = this.convertStateToAbstract(newState)
@@ -122,7 +122,7 @@ export class AbstractDevice extends Device {
 				})
 			} else {
 				// changed?
-				if (oldLayer.id !== newLayer.id ) {
+				if (oldLayer.id !== newLayer.id) {
 					// changed!
 					commands.push({
 						commandName: 'changedAbstract',

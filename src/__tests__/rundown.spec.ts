@@ -5,7 +5,7 @@ import { TriggerType } from 'superfly-timeline'
 import { Mappings, MappingCasparCG, DeviceType } from '../devices/mapping'
 import { Conductor } from '../conductor'
 
-let externalLog = (...args ) => {
+let externalLog = (...args) => {
 	args = args
 	// console.log('trace', ...args)
 }
@@ -370,7 +370,7 @@ describe('Rundown', () => {
 			templateName: 'LT',
 			flashLayer: 1,
 			playOnLoad: true,
-			data: {name: 'Presentator 123'},
+			data: { name: 'Presentator 123' },
 			cgStop: true,
 			templateType: 'html'
 		})

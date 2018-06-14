@@ -43,7 +43,7 @@ export class CasparCGDevice extends Device {
 	private _ccgState: CasparCGState
 	private _queue: { [key: string]: number } = {}
 	private _commandReceiver: (time: number, cmd) => void
-	private _timeToTimecodeMap: {time: number, timecode: number} = {time: 0, timecode: 0}
+	private _timeToTimecodeMap: {time: number, timecode: number} = { time: 0, timecode: 0 }
 	private _timeBase: {[channel: string]: number} | number = {}
 
 	constructor (deviceId: string, deviceOptions: CasparCGDeviceOptions, options, conductor: Conductor) {
@@ -92,7 +92,7 @@ export class CasparCGDevice extends Device {
 			new Promise((resolve, reject) => {
 				this._ccg.info()
 				.then((command) => {
-					this._ccgState.initStateFromChannelInfo(_.map(command.response.data as any, (obj: any) => {
+					this._ccgState.initStateFromChannelInfo(_.map(command.response.data, (obj: any) => {
 						return {
 							channelNo: obj.channel,
 							videoMode: obj.format.toUpperCase(),
@@ -146,7 +146,7 @@ export class CasparCGDevice extends Device {
 	 * @param oldState The "current" state of the device. If omitted, will use the actual current state.
 	 */
 	handleState (newState: TimelineState) {
-		let oldState = this.getStateBefore(newState.time) || {time: 0, LLayers: {}, GLayers: {}}
+		let oldState = this.getStateBefore(newState.time) || { time: 0, LLayers: {}, GLayers: {} }
 
 		let newCasparState = this.convertStateToCaspar(newState)
 		let oldCasparState = this.convertStateToCaspar(oldState)
@@ -433,7 +433,7 @@ export class CasparCGDevice extends Device {
 				}
 			}
 
-			let command = AMCPUtil.deSerialize(cmd as CommandNS.IAMCPCommandVO, 'id')
+			let command = AMCPUtil.deSerialize(cmd, 'id')
 			let scheduleCommand = new AMCP.ScheduleSetCommand({
 				token: command.token,
 				timecode: this.convertTimeToTimecode(time, command.channel),

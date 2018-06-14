@@ -5,7 +5,7 @@ import { Conductor, TimelineTriggerTimeResult, TimelineContentObject } from '../
 import * as _ from 'underscore'
 
 // let nowActual: number = Date.now()
-let externalLog = (...args ) => {
+let externalLog = (...args) => {
 	args = args
 	// console.log('trace', ...args)
 }
@@ -310,7 +310,7 @@ describe('Conductor', () => {
 		expect(timelineCallback.mock.calls[0][0]).toEqual(10300)
 		expect(timelineCallback.mock.calls[0][1]).toEqual('a1')
 		expect(timelineCallback.mock.calls[0][2]).toEqual('abc')
-		expect(timelineCallback.mock.calls[0][3]).toEqual({hello: 'dude'})
+		expect(timelineCallback.mock.calls[0][3]).toEqual({ hello: 'dude' })
 
 		advanceTime(5000) // to time 6500
 

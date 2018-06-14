@@ -61,7 +61,7 @@ export class HttpSendDevice extends Device {
 
 		// console.log('handleState')
 
-		let oldState: TimelineState = this.getStateBefore(newState.time) || {time: 0, LLayers: {}, GLayers: {}}
+		let oldState: TimelineState = this.getStateBefore(newState.time) || { time: 0, LLayers: {}, GLayers: {} }
 
 		let oldAbstractState = this.convertStateToHttpSend(oldState)
 		let newAbstractState = this.convertStateToHttpSend(newState)
@@ -126,7 +126,7 @@ export class HttpSendDevice extends Device {
 				})
 			} else {
 				// changed?
-				if (!_.isEqual(oldLayer.content, newLayer.content) ) {
+				if (!_.isEqual(oldLayer.content, newLayer.content)) {
 					// changed!
 					commands.push({
 						commandName: 'changed',

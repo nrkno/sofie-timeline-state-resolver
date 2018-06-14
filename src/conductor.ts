@@ -373,7 +373,7 @@ export class Conductor extends EventEmitter {
 			// Special function: send callback to Core
 			let sentCallbacksOld = this._sentCallbacks
 			let sentCallbacksNew: {[key: string]: boolean} = {}
-			_.each (tlState.GLayers, (o: TimelineResolvedObject) => {
+			_.each(tlState.GLayers, (o: TimelineResolvedObject) => {
 				if (o.content.callBack) {
 					let callBackId = o.id + o.content.callBack + o.resolved.startTime + JSON.stringify(o.content.callBackData)
 					sentCallbacksNew[callBackId] = true
@@ -438,7 +438,7 @@ export class Conductor extends EventEmitter {
 		let wouldLikeToIterateAgain
 		let tl
 		let tld
-		let fixObjects = (objs, parentObject?: TimelineContentObject ) => {
+		let fixObjects = (objs, parentObject?: TimelineContentObject) => {
 
 			_.each(objs, (o: TimelineContentObject) => {
 				if (
@@ -447,7 +447,7 @@ export class Conductor extends EventEmitter {
 				) {
 					// find parent, and set relative to that
 					if (parentObject) {
-						let developedParent = _.findWhere(tld.groups, {id: parentObject.id})
+						let developedParent = _.findWhere(tld.groups, { id: parentObject.id })
 						if (developedParent && developedParent['resolved'].startTime) {
 							dontIterateAgain = false
 							setObjectTime(o, now - developedParent['resolved'].startTime)

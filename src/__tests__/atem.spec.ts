@@ -7,7 +7,7 @@ import { Mappings, MappingAtem, DeviceType, MappingAtemType } from '../devices/m
 import { Conductor } from '../conductor'
 import { AtemDevice, TimelineContentTypeAtem } from '../devices/atem'
 
-let externalLog = (...args ) => {
+let externalLog = (...args) => {
 	args = args
 	// console.log('trace', ...args)
 }

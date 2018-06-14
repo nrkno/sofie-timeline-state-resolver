@@ -104,7 +104,7 @@ export class AtemDevice extends Device {
 			this._log('Atem not initialized yet')
 			return
 		}
-		let oldState: TimelineState = this.getStateBefore(newState.time) || {time: 0, LLayers: {}, GLayers: {}}
+		let oldState: TimelineState = this.getStateBefore(newState.time) || { time: 0, LLayers: {}, GLayers: {} }
 
 		let oldAtemState = this.convertStateToAtem(oldState)
 		let newAtemState = this.convertStateToAtem(newState)
@@ -144,7 +144,7 @@ export class AtemDevice extends Device {
 			let content = tlObject.content
 			const mapping = this.mapping[layerName] as MappingAtem
 			if (mapping) {
-				if (mapping.index !== undefined && mapping.index >= 0 ) { // index must be 0 or higher
+				if (mapping.index !== undefined && mapping.index >= 0) { // index must be 0 or higher
 					// 	obj = {}
 					// 	obj[mapping.index] = tlObject.content
 					// }

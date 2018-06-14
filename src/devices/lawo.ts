@@ -113,7 +113,7 @@ export class LawoDevice extends Device {
 			this._device.getNodeByPath([1, 1]).then((node) => {
 				this._device.getDirectory(node).then((res) => {
 					const children = node.getChildren()
-					if (!node || !children || !res ) return // no sources here.
+					if (!node || !children || !res) return // no sources here.
 					for (const child of children) {
 						this._sourceNames[child.number] = child.identifier
 					}
@@ -147,7 +147,7 @@ export class LawoDevice extends Device {
 	}
 	handleState (newState: TimelineState) {
 		// Handle this new state, at the point in time specified
-		let oldState: TimelineState = this.getStateBefore(newState.time) || {time: 0, LLayers: {}, GLayers: {}}
+		let oldState: TimelineState = this.getStateBefore(newState.time) || { time: 0, LLayers: {}, GLayers: {} }
 
 		let oldLawoState = this.convertStateToLawo(oldState)
 		let newLawoState = this.convertStateToLawo(newState)
@@ -176,7 +176,7 @@ export class LawoDevice extends Device {
 
 		_.each(state.LLayers, (tlObject: TimelineLawoObject, layerName: string) => {
 			const mapping: MappingLawo | undefined = this.mapping[layerName] as MappingLawo
-			if (mapping && mapping.path && mapping.device === DeviceType.LAWO ) {
+			if (mapping && mapping.path && mapping.device === DeviceType.LAWO) {
 
 				if (tlObject.content.type === TimelineContentTypeLawo.LAWO) {
 					let path = mapping.path.join('/')
@@ -246,7 +246,7 @@ export class LawoDevice extends Device {
 		}
 		_.each(newLawoState, (newValue: EmberPlusValue, path: string) => {
 			let oldValue: LawoStateNodeAttr = oldLawoState[path] || null
-			if (!_.isEqual(newValue, oldValue) ) {
+			if (!_.isEqual(newValue, oldValue)) {
 				addCommand(path, newValue)
 			}
 		})
