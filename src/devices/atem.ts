@@ -1,5 +1,5 @@
 import * as _ from 'underscore'
-import * as deepExtend from 'underscore-deep-extend'
+import * as underScoreDeepExtend from 'underscore-deep-extend'
 import { Device, DeviceOptions } from './device'
 import { DeviceType, MappingAtem, MappingAtemType } from './mapping'
 
@@ -8,11 +8,15 @@ import { Atem, VideoState, Commands as AtemCommands } from 'atem-connection'
 import { AtemState, State as DeviceState, Defaults as StateDefault } from 'atem-state'
 import { DoOnTime } from '../doOnTime'
 
-_.mixin({ deepExtend: deepExtend(_) })
+_.mixin({ deepExtend: underScoreDeepExtend(_) })
 
-/*
-	This is a wrapper for the Atem Device. Commands to any and all atem devices will be sent through here.
-*/
+function deepExtend<T> (destination: T, ...sources: any[]) {
+	// @ts-ignore (mixin)
+	return _.deepExtend(destination, ...sources)
+}
+/**
+ * This is a wrapper for the Atem Device. Commands to any and all atem devices will be sent through here.
+ */
 export interface AtemDeviceOptions extends DeviceOptions {
 	options?: {
 		commandReceiver?: (time: number, cmd) => void
@@ -148,31 +152,31 @@ export class AtemDevice extends Device {
 						case MappingAtemType.MixEffect:
 							if (content.type === TimelineContentTypeAtem.ME) {
 								let me = deviceState.video.ME[mapping.index]
-								_.extend(me, content.attributes)
+								deepExtend(me, content.attributes)
 							}
 							break
 						case MappingAtemType.DownStreamKeyer:
 							if (content.type === TimelineContentTypeAtem.DSK) {
 								let dsk = deviceState.video.downstreamKeyers[mapping.index]
-								_.extend(dsk, content.attributes)
+								deepExtend(dsk, content.attributes)
 							}
 							break
 						case MappingAtemType.SuperSourceBox:
 							if (content.type === TimelineContentTypeAtem.SSRC) {
 								let ssrc = deviceState.video.superSourceBoxes
-								_.extend(ssrc, content.attributes.boxes)
+								deepExtend(ssrc, content.attributes.boxes)
 							}
 							break
 						case MappingAtemType.Auxilliary:
 							if (content.type === TimelineContentTypeAtem.AUX) {
 								let aux = deviceState.video.auxilliaries[mapping.index]
-								_.extend(aux, content.attributes)
+								deepExtend(aux, content.attributes)
 							}
 							break
 						case MappingAtemType.MediaPlayer:
 							if (content.type === TimelineContentTypeAtem.MEDIAPLAYER) {
 								let ms = deviceState.media.players[mapping.index]
-								_.extend(ms, content.attributes)
+								deepExtend(ms, content.attributes)
 							}
 							break
 					}
