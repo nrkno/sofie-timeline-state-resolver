@@ -177,6 +177,8 @@ export class Conductor extends EventEmitter {
 				return Promise.reject('No matching device type for "' + deviceOptions.type + '" ("' + DeviceType[deviceOptions.type] + '") found')
 			}
 
+			newDevice.on('error', (e) => this.emit('error', e))
+
 			this.emit('info', 'Initializing ' + DeviceType[deviceOptions.type] + '...')
 			this.devices[deviceId] = newDevice
 			newDevice.mapping = this.mapping
