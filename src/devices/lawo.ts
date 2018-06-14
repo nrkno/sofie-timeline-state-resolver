@@ -83,6 +83,9 @@ export class LawoDevice extends Device {
 		})
 
 		this._device = new DeviceTree(host, port)
+		this._device.on('error', (e) => {
+			this.emit('error', e)
+		})
 		this._device.on('connected', () => {
 			this._savedNodes = {} // reset cache
 			if (this._resolveMappingsOnConnect) {
@@ -104,9 +107,23 @@ export class LawoDevice extends Device {
 	 * Initiates the connection with Lawo
 	 */
 	init (): Promise<boolean> {
-		return new Promise((resolve/*, reject*/) => {
-			this._device.connect().then(() => resolve(true))
-			// @todo: timeout
+		return new Promise((resolve, reject) => {
+			let fail = (e) => reject(e)
+			try {
+				this._device.once('error', fail)
+				this._device.connect()	// default timeout = 2
+				.then(() => {
+					this._device.removeListener('error', fail)
+					resolve(true)
+				})
+				.catch((e) => {
+					this._device.removeListener('error', fail)
+					reject(e)
+				})
+			} catch (e) {
+				this._device.removeListener('error', fail)
+				reject(e)
+			}
 		})
 	}
 	handleState (newState: TimelineState) {
