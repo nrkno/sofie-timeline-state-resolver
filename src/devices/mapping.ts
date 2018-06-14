@@ -1,3 +1,5 @@
+import { LawoStateNodeAttr } from './lawo'
+
 export interface Mappings {
 	[layerName: string]: Mapping
 }
@@ -18,8 +20,17 @@ export interface MappingAbstract extends Mapping {
 	abstractPipe: number
 }
 export interface MappingAtem extends Mapping {
+	device: DeviceType.ATEM,
 	mappingType: MappingAtemType
 	index?: number
+}
+export interface MappingHTTPSend extends Mapping {
+	device: DeviceType.HTTPSEND
+}
+export interface MappingLawo extends Mapping {
+	device: DeviceType.LAWO,
+	path: Array<number>
+	default?: LawoStateNodeAttr
 }
 export enum MappingAtemType {
 	MixEffect,

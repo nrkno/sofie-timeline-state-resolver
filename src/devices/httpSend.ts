@@ -30,7 +30,7 @@ interface CommandContent {
 export class HttpSendDevice extends Device {
 
 	private _doOnTime: DoOnTime
-	private _queue: Array<any>
+	// private _queue: Array<any>
 
 	private _commandReceiver: (time: number, cmd) => void
 
@@ -78,13 +78,14 @@ export class HttpSendDevice extends Device {
 	}
 	clearFuture (clearAfterTime: number) {
 		// Clear any scheduled commands after this time
-		this._queue = _.reject(this._queue, (q) => { return q.time > clearAfterTime })
+		this._doOnTime.clearQueueAfter(clearAfterTime)
 	}
 	get connected (): boolean {
 		return false
 	}
 	convertStateToHttpSend (state: TimelineState) {
 		// convert the timeline state into something we can use
+		// (won't even use this.mapping)
 		return state
 	}
 	get deviceType () {
@@ -94,7 +95,7 @@ export class HttpSendDevice extends Device {
 		return 'HTTP-Send ' + this.deviceId
 	}
 	get queue () {
-		return _.values(this._queue)
+		return this._doOnTime.getQueue()
 	}
 	private _addToQueue (commandsToAchieveState: Array<Command>, time: number) {
 		_.each(commandsToAchieveState, (cmd: Command) => {
@@ -151,39 +152,39 @@ export class HttpSendDevice extends Device {
 		time = time
 		if (cmd.type === ReqestType.POST) {
 
-			console.log('Sending POST request to ',
-				cmd.url,
-				cmd.params
-			)
+			// console.log('Sending POST request to ',
+			// 	cmd.url,
+			// 	cmd.params
+			// )
 			request.post(
 				cmd.url, // 'http://www.yoursite.com/formpage',
 				{ json: cmd.params },
-				(error, response, body) => {
+				(error, response) => {
 					if (error) {
-						console.log('Error in httpSend: ' + error)
+						this.emit('error', 'Error in httpSend POST: ' + error)
 					} else if (response.statusCode === 200) {
-						console.log('200 Response from ' + cmd.url, body)
+						// console.log('200 Response from ' + cmd.url, body)
 					} else {
-						console.log(response.statusCode + ' Response from ' + cmd.url, body)
+						// console.log(response.statusCode + ' Response from ' + cmd.url, body)
 					}
 				}
 			)
 		} else if (cmd.type === ReqestType.GET) {
 
-			console.log('Sending POST request to ',
-				cmd.url,
-				cmd.params
-			)
+			// console.log('Sending POST request to ',
+			// 	cmd.url,
+			// 	cmd.params
+			// )
 			request.get(
 				cmd.url, // 'http://www.yoursite.com/formpage',
 				{ json: cmd.params },
-				(error, response, body) => {
+				(error, response) => {
 					if (error) {
-						console.log('Error in httpSend: ' + error)
+						this.emit('error', 'Error in httpSend GET: ' + error)
 					} else if (response.statusCode === 200) {
-						console.log('200 Response from ' + cmd.url, body)
+						// console.log('200 Response from ' + cmd.url, body)
 					} else {
-						console.log(response.statusCode + ' Response from ' + cmd.url, body)
+						// console.log(response.statusCode + ' Response from ' + cmd.url, body)
 					}
 				}
 			)

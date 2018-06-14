@@ -20,9 +20,11 @@ export interface DeviceCommandContainer {
 export interface DeviceOptions {
 	type: DeviceType,
 	options?: {}
+	externalLog?: (...args: any[]) => void
 }
 export class Device extends EventEmitter {
 
+	protected _log: (...args: any[]) => void
 	private _getCurrentTime: () => number
 
 	private _deviceId: string
@@ -40,6 +42,11 @@ export class Device extends EventEmitter {
 
 		if (options.getCurrentTime) {
 			this._getCurrentTime = options.getCurrentTime
+		}
+		if (options.externalLog) {
+			this._log = options.externalLog
+		} else {
+			this._log = () => { return }
 		}
 	}
 	init (connectionOptions: any): Promise<boolean> {
@@ -128,5 +135,4 @@ export class Device extends EventEmitter {
 	get deviceOptions (): DeviceOptions {
 		return this._deviceOptions
 	}
-
 }

@@ -5,7 +5,12 @@ import { TriggerType } from 'superfly-timeline'
 
 import { Mappings, MappingAtem, DeviceType, MappingAtemType } from '../devices/mapping'
 import { Conductor } from '../conductor'
-import { AtemDevice } from '../devices/atem'
+import { AtemDevice, TimelineContentTypeAtem } from '../devices/atem'
+
+let externalLog = (...args ) => {
+	args = args
+	// console.log('trace', ...args)
+}
 
 // let nowActual: number = Date.now()
 describe('Atem', () => {
@@ -41,6 +46,7 @@ describe('Atem', () => {
 		}
 
 		let myConductor = new Conductor({
+			externalLog: externalLog,
 			initializeAsClear: true,
 			getCurrentTime: getCurrentTime
 		})
@@ -49,12 +55,12 @@ describe('Atem', () => {
 			type: DeviceType.ATEM,
 			options: {
 				commandReceiver: commandReceiver0,
-				host: '192.168.168.240',
+				host: '127.0.0.1',
 				port: 9910
 			}
 		})
 		myConductor.mapping = myLayerMapping
-		advanceTime(100) // 1100
+		advanceTime(100) // 10100
 
 		let device = myConductor.getDevice('myAtem') as AtemDevice
 		// console.log(device._device.state)
@@ -72,17 +78,33 @@ describe('Atem', () => {
 				duration: 2000,
 				LLayer: 'myLayer0',
 				content: {
+					type: TimelineContentTypeAtem.ME,
 					attributes: {
 						input: 2,
 						transition: Enums.TransitionStyle.CUT
-					},
-					type: 'me'
+					}
+				}
+			},
+			{
+				id: 'obj1',
+				trigger: {
+					type: TriggerType.TIME_RELATIVE,
+					value: '#obj0.end'
+				},
+				duration: 2000,
+				LLayer: 'myLayer0',
+				content: {
+					type: TimelineContentTypeAtem.ME,
+					attributes: {
+						input: 3,
+						transition: Enums.TransitionStyle.CUT
+					}
 				}
 			}
 		]
 
-		advanceTime(100) // 1200
-
+		advanceTime(100) // 10200
+		expect(commandReceiver0).toHaveBeenCalledTimes(2)
 		expect(commandReceiver0.mock.calls[0][1]).toMatchObject(
 			{
 				flag: 0,
@@ -94,6 +116,26 @@ describe('Atem', () => {
 			}
 		)
 		expect(commandReceiver0.mock.calls[1][1]).toMatchObject(
+			{
+				flag: 0,
+				rawName: 'DCut',
+				mixEffect: 0
+			}
+		)
+		advanceTime(2000) // 22200
+
+		expect(commandReceiver0).toHaveBeenCalledTimes(4)
+		expect(commandReceiver0.mock.calls[2][1]).toMatchObject(
+			{
+				flag: 0,
+				rawName: 'PrvI',
+				mixEffect: 0,
+				properties: {
+					source: 3
+				}
+			}
+		)
+		expect(commandReceiver0.mock.calls[3][1]).toMatchObject(
 			{
 				flag: 0,
 				rawName: 'DCut',
@@ -119,6 +161,7 @@ describe('Atem', () => {
 		}
 
 		let myConductor = new Conductor({
+			externalLog: externalLog,
 			initializeAsClear: true,
 			getCurrentTime: getCurrentTime
 		})

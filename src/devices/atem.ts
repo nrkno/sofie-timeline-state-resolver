@@ -6,6 +6,7 @@ import { DeviceType, MappingAtem, MappingAtemType } from './mapping'
 import { TimelineState, TimelineResolvedObject } from 'superfly-timeline'
 import { Atem, VideoState, Commands as AtemCommands } from 'atem-connection'
 import { AtemState, State as DeviceState, Defaults as StateDefault } from 'atem-state'
+import { DoOnTime } from '../doOnTime'
 
 _.mixin({ deepExtend: deepExtend(_) })
 
@@ -30,7 +31,9 @@ export enum TimelineContentTypeAtem { //  Atem-state
 }
 export class AtemDevice extends Device {
 
-	private _queue: Array<any>
+	// private _queue: Array<any>
+	private _doOnTime: DoOnTime
+
 	private _device: Atem
 	private _state: AtemState
 	private _initialized: boolean = false
@@ -44,22 +47,9 @@ export class AtemDevice extends Device {
 			if (deviceOptions.options.commandReceiver) this._commandReceiver = deviceOptions.options.commandReceiver
 			else this._commandReceiver = this._defaultCommandReceiver
 		}
-
-		setInterval(() => {
-			// send any commands due:
-
-			let now = this.getCurrentTime()
-
-			this._queue = _.reject(this._queue, (q) => {
-				if (q.time <= now) {
-					if (this._commandReceiver) {
-						this._commandReceiver(now, q.command)
-					}
-					return true
-				}
-				return false
-			})
-		}, 100)
+		this._doOnTime = new DoOnTime(() => {
+			return this.getCurrentTime()
+		})
 	}
 
 	/**
@@ -103,9 +93,11 @@ export class AtemDevice extends Device {
 		// Handle this new state, at the point in time specified
 		// @ts-ignore
 		// console.log('handleState', JSON.stringify(newState, ' ', 2))
+		// console.log('handleState', newState.LLayers['myLayer0'])
 
 		if (!this._initialized) {
 			// before it's initialized don't do anything
+			this._log('Atem not initialized yet')
 			return
 		}
 		let oldState: TimelineState = this.getStateBefore(newState.time) || {time: 0, LLayers: {}, GLayers: {}}
@@ -115,27 +107,25 @@ export class AtemDevice extends Device {
 
 		// @ts-ignore
 		// console.log('newAtemState', JSON.stringify(newAtemState, ' ', 2))
+		// console.log('oldAtemState', JSON.stringify(oldAtemState, ' ', 2))
+		// console.log('newAtemState', newAtemState.video.ME[0])
 
 		let commandsToAchieveState: Array<AtemCommands.AbstractCommand> = this._diffStates(oldAtemState, newAtemState)
 
-		// clear any queued commands on this time:
-		this._queue = _.reject(this._queue, (q) => { return q.time === newState.time })
-
+		// console.log('commandsToAchieveState', commandsToAchieveState)
+		// clear any queued commands later than this time:
+		this._doOnTime.clearQueueAfter(newState.time)
 		// add the new commands to the queue:
-		_.each(commandsToAchieveState, (cmd) => {
-			this._queue.push({
-				time: newState.time,
-				command: cmd
-			})
-			console.log(...this._queue)
-		})
+		this._addToQueue(commandsToAchieveState, newState.time)
 
 		// store the new state, for later use:
 		this.setState(newState)
 	}
 	clearFuture (clearAfterTime: number) {
 		// Clear any scheduled commands after this time
-		this._queue = _.reject(this._queue, (q) => { return q.time > clearAfterTime })
+		this._doOnTime.clearQueueAfter(clearAfterTime)
+		// Clear any scheduled commands after this time
+		// this._queue = _.reject(this._queue, (q) => { return q.time > clearAfterTime })
 	}
 	get connected (): boolean {
 		return this._connected
@@ -150,44 +140,42 @@ export class AtemDevice extends Device {
 			let content = tlObject.content
 			const mapping = this.mapping[layerName] as MappingAtem
 			if (mapping) {
-				if (!(mapping.index !== undefined && mapping.index >= 0)) return // index must be 0 or higher
-
-				switch (mapping.mappingType) {
-					case MappingAtemType.MixEffect:
-						if (content.type === TimelineContentTypeAtem.ME) {
-							let me = deviceState.video.ME[mapping.index]
-							// @ts-ignore (mixin)
-							_.deepExtend(me, content.attributes)
-						}
-						break
-					case MappingAtemType.DownStreamKeyer:
-						if (content.type === TimelineContentTypeAtem.DSK) {
-							let dsk = deviceState.video.downstreamKeyers[mapping.index]
-							// @ts-ignore (mixin)
-							_.deepExtend(dsk, content.attributes)
-						}
-						break
-					case MappingAtemType.SuperSourceBox:
-						if (content.type === TimelineContentTypeAtem.SSRC) {
-							let ssrc = deviceState.video.superSourceBoxes
-							// @ts-ignore (mixin)
-							_.deepExtend(ssrc, content.attributes.boxes)
-						}
-						break
-					case MappingAtemType.Auxilliary:
-						if (content.type === TimelineContentTypeAtem.AUX) {
-							let aux = deviceState.video.auxilliaries[mapping.index]
-							// @ts-ignore (mixin)
-							_.deepExtend(aux, content.attributes)
-						}
-						break
-					case MappingAtemType.MediaPlayer:
-						if (content.type === TimelineContentTypeAtem.MEDIAPLAYER) {
-							let ms = deviceState.media.players[mapping.index]
-							// @ts-ignore (mixin)
-							_.deepExtend(ms, content.attributes)
-						}
-						break
+				if (mapping.index !== undefined && mapping.index >= 0 ) { // index must be 0 or higher
+					// 	obj = {}
+					// 	obj[mapping.index] = tlObject.content
+					// }
+					switch (mapping.mappingType) {
+						case MappingAtemType.MixEffect:
+							if (content.type === TimelineContentTypeAtem.ME) {
+								let me = deviceState.video.ME[mapping.index]
+								_.extend(me, content.attributes)
+							}
+							break
+						case MappingAtemType.DownStreamKeyer:
+							if (content.type === TimelineContentTypeAtem.DSK) {
+								let dsk = deviceState.video.downstreamKeyers[mapping.index]
+								_.extend(dsk, content.attributes)
+							}
+							break
+						case MappingAtemType.SuperSourceBox:
+							if (content.type === TimelineContentTypeAtem.SSRC) {
+								let ssrc = deviceState.video.superSourceBoxes
+								_.extend(ssrc, content.attributes.boxes)
+							}
+							break
+						case MappingAtemType.Auxilliary:
+							if (content.type === TimelineContentTypeAtem.AUX) {
+								let aux = deviceState.video.auxilliaries[mapping.index]
+								_.extend(aux, content.attributes)
+							}
+							break
+						case MappingAtemType.MediaPlayer:
+							if (content.type === TimelineContentTypeAtem.MEDIAPLAYER) {
+								let ms = deviceState.media.players[mapping.index]
+								_.extend(ms, content.attributes)
+							}
+							break
+					}
 				}
 			}
 		})
@@ -201,9 +189,17 @@ export class AtemDevice extends Device {
 		return 'Atem ' + this.deviceId
 	}
 	get queue () {
-		return _.values(this._queue)
+		return this._doOnTime.getQueue()
 	}
+	private _addToQueue (commandsToAchieveState: Array<AtemCommands.AbstractCommand>, time: number) {
+		_.each(commandsToAchieveState, (cmd: AtemCommands.AbstractCommand) => {
 
+			// add the new commands to the queue:
+			this._doOnTime.queue(time, (cmd: AtemCommands.AbstractCommand) => {
+				this._commandReceiver(time, cmd)
+			}, cmd)
+		})
+	}
 	private _diffStates (oldAbstractState, newAbstractState): Array<AtemCommands.AbstractCommand> {
 		let commands: Array<AtemCommands.AbstractCommand> = this._state.diffStates(oldAbstractState, newAbstractState)
 

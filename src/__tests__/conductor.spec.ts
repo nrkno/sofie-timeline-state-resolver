@@ -5,6 +5,16 @@ import { Conductor, TimelineTriggerTimeResult, TimelineContentObject } from '../
 import * as _ from 'underscore'
 
 // let nowActual: number = Date.now()
+let externalLog = (...args ) => {
+	args = args
+	// console.log('trace', ...args)
+}
+// process.on('unhandledRejection', (reason, p) => {
+// 	setTimeout(() => {
+// 		console.log('Unhandled Rejection at: Promise' + p + 'reason:' + reason.stack)
+// 	},10)
+// 	console.log('Unhandled Rejection at: Promise' + p + 'reason:' + reason.stack)
+// })
 
 describe('Conductor', () => {
 	let now: number = 10000
@@ -51,20 +61,7 @@ describe('Conductor', () => {
 		}
 
 		let conductor = new Conductor({
-			// devices: {
-			// 	'device0': {
-			// 		type: DeviceType.ABSTRACT,
-			// 		options: {
-			// 			commandReceiver: commandReceiver0
-			// 		}
-			// 	},
-			// 	'device1': {
-			// 		type: DeviceType.ABSTRACT,
-			// 		options: {
-			// 			commandReceiver: commandReceiver1
-			// 		}
-			// 	}
-			// },
+			externalLog: externalLog,
 			initializeAsClear: true,
 			getCurrentTime: getCurrentTime
 		})
@@ -185,14 +182,11 @@ describe('Conductor', () => {
 		await conductor.removeDevice('device1')
 		expect(conductor.getDevice('device1')).toBeFalsy()
 
-		conductor.addDevice(
+		await conductor.addDevice(
 			'device1',
 			{ type: DeviceType.ABSTRACT, options: { commandReceiver: commandReceiver1 } }
 		).then((res) => {
-			expect(res).toBe(true)
-		})
-		.catch((e) => {
-			throw e
+			expect(res).toBeTruthy()
 		})
 
 		conductor.mapping = {
@@ -219,6 +213,7 @@ describe('Conductor', () => {
 		}
 
 		let conductor = new Conductor({
+			externalLog: externalLog,
 			initializeAsClear: true,
 			getCurrentTime: getCurrentTime
 		})

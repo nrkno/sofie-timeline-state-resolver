@@ -5,6 +5,10 @@ import { TriggerType } from 'superfly-timeline'
 import { Mappings, MappingCasparCG, DeviceType } from '../devices/mapping'
 import { Conductor } from '../conductor'
 
+let externalLog = (...args ) => {
+	args = args
+	// console.log('trace', ...args)
+}
 // let nowActual: number = Date.now()
 
 describe('Rundown', () => {
@@ -69,6 +73,7 @@ describe('Rundown', () => {
 		}
 
 		let myConductor = new Conductor({
+			externalLog: externalLog,
 			initializeAsClear: true,
 			getCurrentTime: getCurrentTime
 		})
@@ -76,7 +81,8 @@ describe('Rundown', () => {
 		await myConductor.addDevice('myCCG', {
 			type: DeviceType.CASPARCG,
 			options: {
-				commandReceiver: commandReceiver0
+				commandReceiver: commandReceiver0,
+				timeBase: 50
 			}
 		})
 		myConductor.mapping = myLayerMapping
@@ -282,11 +288,14 @@ describe('Rundown', () => {
 
 		advanceTime(100) // 10101
 
+		expect(getCurrentTime()).toEqual(10101)
+
 		// PLAY 1-10 ROUTE://3-10
 		// PLAY 1-11 OPENER_SHORT
 		// PLAY 2-10 BG1
 		// PLAY 3-10 DECKLINK 3
 		// PLAY 3-20 DECKLINK 4
+		expect(commandReceiver0).toHaveBeenCalledTimes(7)
 		expect(commandReceiver0.mock.calls[0][1].name).toEqual('CustomCommand')
 		expect(commandReceiver0.mock.calls[0][1]._objectParams.command).toEqual('PLAY 1-10 route://3-10')
 		expect(commandReceiver0.mock.calls[1][1].name).toEqual('PlayCommand')
@@ -329,7 +338,7 @@ describe('Rundown', () => {
 		// SCHEDULE SET 1.5s MIXER OPACITY 25
 		expect(commandReceiver0.mock.calls[5][1].name).toEqual('ScheduleSetCommand')
 		expect(commandReceiver0.mock.calls[5][1]._objectParams.command.name).toEqual('MixerOpacityCommand')
-		expect(commandReceiver0.mock.calls[5][1]._objectParams.timecode).toEqual('00:00:01:25')
+		expect(commandReceiver0.mock.calls[5][1]._objectParams.timecode).toEqual('00:00:11:25')
 		expect(commandReceiver0.mock.calls[5][1]._objectParams.command._objectParams).toMatchObject({
 			'channel': 1,
 			'layer': 11,
@@ -340,15 +349,17 @@ describe('Rundown', () => {
 			'opacity': 0,
 			'keyword': 'OPACITY'
 		})
-		expect(commandReceiver0.mock.calls[6][1]._objectParams.timecode).toEqual('00:00:02:00')
+		expect(commandReceiver0.mock.calls[6][1]._objectParams.timecode).toEqual('00:00:12:00')
 		expect(commandReceiver0.mock.calls[6][1]._objectParams.command._objectParams).toMatchObject({
 			'channel': 1,
 			'layer': 11
 		})
 
-		advanceTime(1000)
+		advanceTime(1000) // 11101
+		expect(getCurrentTime()).toEqual(11101)
+		expect(commandReceiver0).toHaveBeenCalledTimes(8)
 		// SCHEDULE SET 3s CG ADD 1-11 ...
-		expect(commandReceiver0.mock.calls[7][1]._objectParams.timecode).toEqual('00:00:03:00')
+		expect(commandReceiver0.mock.calls[7][1]._objectParams.timecode).toEqual('00:00:13:00')
 		expect(commandReceiver0.mock.calls[7][1]._objectParams.command._objectParams).toMatchObject({
 			channel: 1,
 			layer: 11,
@@ -361,16 +372,18 @@ describe('Rundown', () => {
 			templateType: 'html'
 		})
 
-		advanceTime(1500) // 11601
+		advanceTime(1500) // 12601
+		expect(getCurrentTime()).toEqual(12601)
+		expect(commandReceiver0).toHaveBeenCalledTimes(11)
 		// SCHEDULE SET 4.5s CG STOP
 		// SCHEDULE SET 4.5s LOADBG 1-11 STINGER
-		expect(commandReceiver0.mock.calls[8][1]._objectParams.timecode).toEqual('00:00:04:25')
+		expect(commandReceiver0.mock.calls[8][1]._objectParams.timecode).toEqual('00:00:14:25')
 		expect(commandReceiver0.mock.calls[8][1]._objectParams.command._objectParams).toMatchObject({
 			channel: 1,
 			layer: 11,
 			flashLayer: 1
 		})
-		expect(commandReceiver0.mock.calls[9][1]._objectParams.timecode).toEqual('00:00:04:25')
+		expect(commandReceiver0.mock.calls[9][1]._objectParams.timecode).toEqual('00:00:14:25')
 		expect(commandReceiver0.mock.calls[9][1]._objectParams.command._objectParams).toMatchObject({
 			channel: 1,
 			layer: 11,
@@ -380,23 +393,25 @@ describe('Rundown', () => {
 			seek: 0
 		})
 
-		advanceTime(500)
 		// SCHEDULE SET 5s PLAY 1-11
-		expect(commandReceiver0.mock.calls[10][1]._objectParams.timecode).toEqual('00:00:05:00')
+		expect(commandReceiver0.mock.calls[10][1]._objectParams.timecode).toEqual('00:00:15:00')
 		expect(commandReceiver0.mock.calls[10][1]._objectParams.command._objectParams).toMatchObject({
 			channel: 1,
 			layer: 11,
 			noClear: false
 		})
 
-		advanceTime(500)
+		advanceTime(1399) // 14000
+		expect(getCurrentTime()).toEqual(14000)
+		expect(commandReceiver0).toHaveBeenCalledTimes(15)
 		// SCHEDULE SET 5.5s PLAY 1-10 ROUTE://3-20
 		// SCHEDULE SET 5s LOADBG 2-10 BG2
 		// SCHEDULE SET 5.5s PLAY 2-10
-		expect(commandReceiver0.mock.calls[11][1]._objectParams.timecode).toEqual('00:00:05:25')
+		expect(commandReceiver0.mock.calls[11][1]._objectParams.timecode).toEqual('00:00:15:25')
 		expect(commandReceiver0.mock.calls[11][1]._objectParams.command.name).toEqual('CustomCommand')
 		expect(commandReceiver0.mock.calls[11][1]._objectParams.command._objectParams.command).toEqual('PLAY 1-10 route://3-20')
-		expect(commandReceiver0.mock.calls[12][1]._objectParams.timecode).toEqual('00:00:05:00')
+
+		expect(commandReceiver0.mock.calls[12][1]._objectParams.timecode).toEqual('00:00:15:00')
 		expect(commandReceiver0.mock.calls[12][1]._objectParams.command._objectParams).toMatchObject({
 			channel: 2,
 			layer: 10,
@@ -405,21 +420,24 @@ describe('Rundown', () => {
 			loop: true,
 			seek: 0
 		})
-		expect(commandReceiver0.mock.calls[13][1]._objectParams.timecode).toEqual('00:00:05:25')
+		expect(commandReceiver0.mock.calls[13][1]._objectParams.timecode).toEqual('00:00:15:25')
 		expect(commandReceiver0.mock.calls[13][1]._objectParams.command._objectParams).toMatchObject({
 			channel: 2,
 			layer: 10,
 			noClear: false
 		})
 
-		advanceTime(500)
-		expect(commandReceiver0.mock.calls[14][1]._objectParams.timecode).toEqual('00:00:06:00')
+		expect(commandReceiver0.mock.calls[14][1]._objectParams.timecode).toEqual('00:00:16:00')
 		expect(commandReceiver0.mock.calls[14][1]._objectParams.command._objectParams).toMatchObject({
 			'channel': 1,
 			'layer': 11
 		})
+
+		advanceTime(1000)
+		expect(getCurrentTime()).toEqual(15000)
+		expect(commandReceiver0).toHaveBeenCalledTimes(19)
 		// SCHEDULE SET 6s LOADBG 1-11 OPENER_FULL PUSH 13
-		expect(commandReceiver0.mock.calls[15][1]._objectParams.timecode).toEqual('00:00:06:00')
+		expect(commandReceiver0.mock.calls[15][1]._objectParams.timecode).toEqual('00:00:16:00')
 		expect(commandReceiver0.mock.calls[15][1]._objectParams.command._objectParams).toMatchObject({
 			channel: 1,
 			layer: 11,
@@ -427,33 +445,35 @@ describe('Rundown', () => {
 			clip: 'opener_full',
 			loop: false,
 			seek: 0,
-			transition: 'push',
+			transition: 'PUSH',
 			transitionDuration: 13,
 			transitionEasing: 'linear',
 			transitionDirection: 'right'
 		})
 
-		advanceTime(2000)
 		// SCHEDULE SET 8s PLAY 1-11
-		expect(commandReceiver0.mock.calls[16][1]._objectParams.timecode).toEqual('00:00:08:00')
+		expect(commandReceiver0.mock.calls[16][1]._objectParams.timecode).toEqual('00:00:18:00')
 		expect(commandReceiver0.mock.calls[16][1]._objectParams.command._objectParams).toMatchObject({
 			channel: 1,
 			layer: 11,
 			noClear: false
 		})
-		expect(commandReceiver0.mock.calls[17][1]._objectParams.timecode).toEqual('00:00:08:00')
+		expect(commandReceiver0.mock.calls[17][1]._objectParams.timecode).toEqual('00:00:18:00')
 		expect(commandReceiver0.mock.calls[17][1]._objectParams.command._objectParams).toMatchObject({
 			'channel': 1,
 			'layer': 10
 		})
-		expect(commandReceiver0.mock.calls[18][1]._objectParams.timecode).toEqual('00:00:08:00')
+		expect(commandReceiver0.mock.calls[18][1]._objectParams.timecode).toEqual('00:00:18:00')
 		expect(commandReceiver0.mock.calls[18][1]._objectParams.command._objectParams).toMatchObject({
 			'channel': 2,
 			'layer': 10
 		})
 
-		advanceTime(2000)
-		expect(commandReceiver0.mock.calls[19][1]._objectParams.timecode).toEqual('00:00:13:00')
+		advanceTime(5000)
+		expect(getCurrentTime()).toEqual(20000)
+		expect(commandReceiver0).toHaveBeenCalledTimes(20)
+
+		expect(commandReceiver0.mock.calls[19][1]._objectParams.timecode).toEqual('00:00:23:00')
 		expect(commandReceiver0.mock.calls[19][1]._objectParams.command._objectParams).toMatchObject({
 			'channel': 1,
 			'layer': 11

@@ -16,6 +16,8 @@ import { Conductor } from '../conductor'
 export interface CasparCGDeviceOptions extends DeviceOptions {
 	options?: {
 		commandReceiver?: (time: number, cmd) => void
+		/* Timecode base of channel */
+		timeBase?: {[channel: string]: number} | number
 	}
 }
 export interface CasparCGOptions {
@@ -42,6 +44,7 @@ export class CasparCGDevice extends Device {
 	private _queue: { [key: string]: number } = {}
 	private _commandReceiver: (time: number, cmd) => void
 	private _timeToTimecodeMap: {time: number, timecode: number} = {time: 0, timecode: 0}
+	private _timeBase: {[channel: string]: number} | number = {}
 
 	constructor (deviceId: string, deviceOptions: CasparCGDeviceOptions, options, conductor: Conductor) {
 		super(deviceId, deviceOptions, options)
@@ -49,10 +52,14 @@ export class CasparCGDevice extends Device {
 		if (deviceOptions.options) {
 			if (deviceOptions.options.commandReceiver) this._commandReceiver = deviceOptions.options.commandReceiver
 			else this._commandReceiver = this._defaultCommandReceiver
+			if (deviceOptions.options.timeBase) this._timeBase = deviceOptions.options.timeBase
 		}
 
 		this._ccgState = new CasparCGState({
-			currentTime: this.getCurrentTime
+			currentTime: this.getCurrentTime,
+			externalLog: (...args) => {
+				this._log(...args)
+			}
 		})
 		this._conductor = conductor
 	}
@@ -410,7 +417,11 @@ export class CasparCGDevice extends Device {
 					let scheduleCommand = command
 
 					if (oldState.time >= this.getCurrentTime()) {
-						scheduleCommand = new AMCP.ScheduleSetCommand({ token: command.token, timecode: this.convertTimeToTimecode(oldState.time), command })
+						scheduleCommand = new AMCP.ScheduleSetCommand({
+							token: command.token,
+							timecode: this.convertTimeToTimecode(oldState.time, command.channel),
+							command
+						})
 					}
 					this._commandReceiver(this.getCurrentTime(), scheduleCommand)
 
@@ -423,7 +434,11 @@ export class CasparCGDevice extends Device {
 			}
 
 			let command = AMCPUtil.deSerialize(cmd as CommandNS.IAMCPCommandVO, 'id')
-			let scheduleCommand = new AMCP.ScheduleSetCommand({ token: command.token, timecode: this.convertTimeToTimecode(time), command })
+			let scheduleCommand = new AMCP.ScheduleSetCommand({
+				token: command.token,
+				timecode: this.convertTimeToTimecode(time, command.channel),
+				command
+			})
 
 			if (time <= this.getCurrentTime()) {
 				this._commandReceiver(this.getCurrentTime(), command)
@@ -441,22 +456,28 @@ export class CasparCGDevice extends Device {
 				delete this._queue[resCommand.token]
 			}
 		}).catch((e) => {
-			console.log(e)
+			this._log(e)
 			if (cmd.name === 'ScheduleSetCommand') {
 				delete this._queue[cmd.getParam('command').token]
 			}
 		})
 	}
 
-	private convertTimeToTimecode (time: number): string {
+	private convertTimeToTimecode (time: number, channel: number): string {
 		let relTime = time - this._timeToTimecodeMap.time
 		let timecodeTime = this._timeToTimecodeMap.timecode + relTime
+
+		let timeBase = (
+			typeof this._timeBase === 'object' ?
+			this._timeBase[channel + ''] :
+			this._timeBase
+		) || 25
 
 		let timecode = [
 			('0' + (Math.floor(timecodeTime / 3.6e6) % 24)).substr(-2),
 			('0' + (Math.floor(timecodeTime / 6e4) % 60)).substr(-2),
 			('0' + (Math.floor(timecodeTime / 1e3) % 60)).substr(-2),
-			('0' + (Math.floor(timecodeTime / 40) % 25)).substr(-2) // @todo: dynamic fps
+			('0' + (Math.floor(timecodeTime / (1000 / timeBase)) % timeBase)).substr(-(timeBase + '').length)
 		]
 
 		return timecode.join(':')
