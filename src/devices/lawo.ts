@@ -98,25 +98,6 @@ export class LawoDevice extends Device {
 				})
 			})
 		})
-		// this._enforceDeviceState()
-
-		// setInterval(() => {
-		// 	// send any commands due:
-
-		// 	let now = this.getCurrentTime()
-
-		// 	// console.log('check queue ' + now, _.values(this._queue).length )
-
-		// 	this._queue = _.reject(this._queue, (q) => {
-		// 		if (q.time <= now) {
-		// 			if (this._commandReceiver) {
-		// 				this._commandReceiver(now, q.command)
-		// 			}
-		// 			return true
-		// 		}
-		// 		return false
-		// 	})
-		// }, 100)
 	}
 
 	/**
@@ -131,34 +112,18 @@ export class LawoDevice extends Device {
 	handleState (newState: TimelineState) {
 		// Handle this new state, at the point in time specified
 
-		console.log('handleState', newState.time)
 
 		let oldState: TimelineState = this.getStateBefore(newState.time) || {time: 0, LLayers: {}, GLayers: {}}
 
 		let oldLawoState = this.convertStateToLawo(oldState)
-		console.log('oldLawoState', oldLawoState)
 		let newLawoState = this.convertStateToLawo(newState)
-		console.log('newLawoState', newLawoState)
 
 		let commandsToAchieveState: Array<LawoCommand> = this._diffStates(oldLawoState, newLawoState)
 
-		console.log('commandsToAchieveState', commandsToAchieveState)
 		// clear any queued commands later than this time:
 		this._doOnTime.clearQueueAfter(newState.time)
 		// add the new commands to the queue:
 		this._addToQueue(commandsToAchieveState, newState.time)
-
-		// clear any queued commands on this time:
-		// this._queue = _.reject(this._queue, (q) => { return q.time === newState.time })
-
-		// add the new commands to the queue:
-		// _.each(commandsToAchieveState, (cmd) => {
-		// 	this._queue.push({
-		// 		time: newState.time,
-		// 		command: cmd
-		// 	})
-		// })
-		// console.log('_queue', this._queue)
 
 		// store the new state, for later use:
 		this.setState(newState)
@@ -173,11 +138,9 @@ export class LawoDevice extends Device {
 	}
 	convertStateToLawo (state: TimelineState): LawoState {
 		// convert the timeline state into something we can use
-		// console.log('convertStateToLawo -----------')
 		const lawoState: LawoState = {}
 
 		_.each(state.LLayers, (tlObject: TimelineLawoObject, layerName: string) => {
-			// console.log(tlObject.content)
 			const mapping: MappingLawo | undefined = this.mapping[layerName] as MappingLawo
 			if (mapping && mapping.device === DeviceType.LAWO ) {
 
@@ -193,7 +156,6 @@ export class LawoDevice extends Device {
 				}
 			}
 		})
-		// console.log('lawoState before defaults', lawoState)
 		// Apply default states defined in mappings
 		_.each(this.mapping, (mapping: MappingLawo) => {
 			if (mapping && mapping.device === DeviceType.LAWO && mapping.defaults) {
@@ -268,7 +230,6 @@ export class LawoDevice extends Device {
 			_.each(newNode, (newAttr: LawoStateNodeAttr, attrName: string ) => {
 				let oldAttr = oldNode[attrName]
 				if (!_.isEqual(newAttr, oldAttr) ) {
-					console.log('# Not equal: ', newAttr, oldAttr)
 					addCommand(path, attrName, newAttr)
 				}
 			})
@@ -278,7 +239,6 @@ export class LawoDevice extends Device {
 			let newNode = newLawoState[path] || {}
 			_.each(oldNode, (oldAttr: LawoStateNodeAttr, attrName: string ) => {
 				if (!_.has(newNode, attrName)) {
-					console.log('# Removed: ', oldAttr)
 					addCommand(path, attrName, oldAttr)
 				}
 			})
