@@ -159,7 +159,7 @@ export class HttpSendDevice extends Device {
 			request.post(
 				cmd.url, // 'http://www.yoursite.com/formpage',
 				{ json: cmd.params },
-				(error, response, body) => {
+				(error, response) => {
 					if (error) {
 						this.emit('error', 'Error in httpSend POST: ' + error)
 					} else if (response.statusCode === 200) {
@@ -178,7 +178,7 @@ export class HttpSendDevice extends Device {
 			request.get(
 				cmd.url, // 'http://www.yoursite.com/formpage',
 				{ json: cmd.params },
-				(error, response, body) => {
+				(error, response) => {
 					if (error) {
 						this.emit('error', 'Error in httpSend GET: ' + error)
 					} else if (response.statusCode === 200) {
