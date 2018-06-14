@@ -3,7 +3,7 @@ import { Device, DeviceOptions } from './device'
 import { DeviceType, MappingLawo, Mappings } from './mapping'
 
 import { TimelineState, TimelineResolvedObject } from 'superfly-timeline'
-import { DeviceTree, Ember } from 'emberplus'
+import { DeviceTree } from 'emberplus'
 import { DoOnTime } from '../doOnTime'
 
 /*
@@ -78,9 +78,6 @@ export class LawoDevice extends Device {
 	private _doOnTime: DoOnTime
 	// private _queue: Array<{ time: number, command: LawoCommand}>
 	private _device: DeviceTree
-	private _resolveMappingsOnConnect = false
-	private _mappingToAttributes: { [layerName: string]: { [attrName: string]: number } } = {}
-	private _savedNodes: { [pathName: string]: Ember.Node } = {}
 	private _sourceNames: { [index: string]: string } = {}
 
 	private _commandReceiver: (time: number, cmd: LawoCommand) => void
@@ -113,10 +110,6 @@ export class LawoDevice extends Device {
 			this.emit('error', e)
 		})
 		this._device.on('connected', () => {
-			this._savedNodes = {} // reset cache
-			if (this._resolveMappingsOnConnect) {
-				this._resolveMappings()
-			}
 			this._device.getNodeByPath([1, 1]).then((node) => {
 				this._device.getDirectory(node).then((res) => {
 					const children = node.getChildren()
@@ -214,12 +207,6 @@ export class LawoDevice extends Device {
 
 	set mapping (mappings: Mappings) {
 		super.mapping = mappings
-
-		if (this._device.isConnected()) {
-			this._resolveMappings()
-		} else {
-			this._resolveMappingsOnConnect = true
-		}
 	}
 	get mapping () {
 		return super.mapping
@@ -276,50 +263,20 @@ export class LawoDevice extends Device {
 
 	// @ts-ignore no-unused-vars
 	private _defaultCommandReceiver (time: number, command: LawoCommand) {
-		if (command.transitionDuration && command.attribute === 'Motor dB Value') { // I don't think we can transition any other values
-			const source = this._sourceNames[command.path.substr(4, 1)] // theoretically speaking anyway
-			if (!source) return // maybe warn user?
-			const faderRamp = new Ember.QualifiedFunction([1, 2, 2])
-			this._device.invokeFunction(faderRamp, { source, value: command.value, duration: command.transitionDuration })
-		} else {
+		// if (command.transitionDuration && command.attribute === 'Motor dB Value') { // I don't think we can transition any other values
+		// 	const source = this._sourceNames[command.path.substr(4, 1)] // theoretically speaking anyway
+		// 	if (!source) return // maybe warn user?
+		// 	const faderRamp = new Ember.QualifiedFunction([1, 2, 2])
+		// 	this._device.invokeFunction(faderRamp, { source, value: command.value, duration: command.transitionDuration })
+		// } else {
 
-			// TODO: this._mappingToAttributes is dependent of this.mappings, which we should not have any dependencies to at this point
-			const path = _.map(command.path.split('/'), (val: string) => Number(val))
-			path.push(this._mappingToAttributes[command.path][command.attribute])
+		// 	// TODO: this._mappingToAttributes is dependent of this.mappings, which we should not have any dependencies to at this point
+		// 	const path = _.map(command.path.split('/'), (val: string) => Number(val))
+		// 	// path.push(this._mappingToAttributes[command.path][command.attribute])
 
-			this._getNodeByPath(path).then((node: any) => {
-				this._device.setValue(node, command.value).catch(console.log)
-			})
-		}
-	}
-
-	private async _getNodeByPath (path: Array<number>): Ember.Node {
-		return new Promise ((resolve) => {
-			if (this._savedNodes[path.join('/')] !== undefined) {
-				resolve(this._savedNodes[path.join('/')])
-			} else {
-				this._device.getNodeByPath(path).then((node) => {
-					this._savedNodes[path.join('/')] = node
-					resolve(node)
-				})
-			}
-		})
-	}
-
-	private _resolveMappings () {
-		// @ts-ignore no-unused-vars
-		_.each(this.mapping, (mapping: MappingLawo, layerName: string) => {
-			const pathStr = mapping.path.join('/')
-			this._getNodeByPath(mapping.path).then((node) => {
-				// @todo: this might need a getDirectory() first.
-				// @todo: should we subscribe to the node?
-				_.each(node.getChildren(), (element: any) => {
-					if (!this._mappingToAttributes[pathStr]) {
-						this._mappingToAttributes[pathStr] = {}
-					}
-					this._mappingToAttributes[pathStr][element.contents.identifier] = element.number
-				})
-			})
-		})
+		// 	this._getNodeByPath(path).then((node: any) => {
+		// 		this._device.setValue(node, command.value).catch(console.log)
+		// 	})
+		// }
 	}
 }
