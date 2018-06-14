@@ -25,27 +25,53 @@ export enum TimelineContentTypeLawo { //  Lawo-state
 interface TimelineLawoObject extends TimelineResolvedObject {
 	content: {
 		type: TimelineContentTypeLawo,
-		attributes: {
-			[lawoProperty: string]: any
-		}
+		value: EmberPlusValue
 	}
 }
+export enum EmberPlusValueType {
+	REAL 	= 'real',
+	INT 	= 'int',
+	BOOLEAN = 'boolean',
+	STRING 	= 'string'
+}
+export interface EmberPlusValue {
+	type: EmberPlusValueType,
+	value: EmberPlusValueBase
+}
+export type EmberPlusValueBase = boolean | number | string
+export interface EmberPlusValueReal extends EmberPlusValue {
+	type: EmberPlusValueType.REAL,
+	value: number
+}
+export interface EmberPlusValueInt extends EmberPlusValue {
+	type: EmberPlusValueType.INT,
+	value: number
+}
+export interface EmberPlusValueBoolean extends EmberPlusValue {
+	type: EmberPlusValueType.BOOLEAN,
+	value: boolean
+}
+export interface EmberPlusValueString extends EmberPlusValue {
+	type: EmberPlusValueType.STRING,
+	value: string
+}
+
 export interface LawoState {
-	[path: string]: LawoStateNode
+	[path: string]: EmberPlusValue
 }
-export interface LawoStateNode {
-	[attrName: string]: LawoStateNodeAttr
-}
-export type LawoStateNodeBaseAttr = boolean | number | string
-export type LawoStateNodeAttr = LawoStateNodeBaseAttr | LawoStateNodeAttrTransition
+// export interface LawoStateNode {
+// 	[attrName: string]: EmberPlusValue
+// }
+
+export type LawoStateNodeAttr = EmberPlusValue | LawoStateNodeAttrTransition
 export interface LawoStateNodeAttrTransition {
-	value: LawoStateNodeBaseAttr
+	value: EmberPlusValue
 	transitionDuration: number
 }
 export interface LawoCommand {
 	path: string,
-	attribute: string,
-	value: LawoStateNodeBaseAttr,
+	value: EmberPlusValueBase,
+	type: EmberPlusValueType,
 	transitionDuration?: number
 }
 export class LawoDevice extends Device {
@@ -128,8 +154,6 @@ export class LawoDevice extends Device {
 	}
 	handleState (newState: TimelineState) {
 		// Handle this new state, at the point in time specified
-
-
 		let oldState: TimelineState = this.getStateBefore(newState.time) || {time: 0, LLayers: {}, GLayers: {}}
 
 		let oldLawoState = this.convertStateToLawo(oldState)
@@ -161,28 +185,18 @@ export class LawoDevice extends Device {
 			const mapping: MappingLawo | undefined = this.mapping[layerName] as MappingLawo
 			if (mapping && mapping.device === DeviceType.LAWO ) {
 
-				let path = mapping.path.join('/')
-
 				if (tlObject.content.type === TimelineContentTypeLawo.LAWO) {
-
-					let lawoObject: LawoStateNode = _.extend(
-						lawoState[path] || {},
-						tlObject.content.attributes
-					)
-					lawoState[path] = lawoObject
+					let path = mapping.path.join('/')
+					lawoState[path] = tlObject.content.value
 				}
 			}
 		})
 		// Apply default states defined in mappings
 		_.each(this.mapping, (mapping: MappingLawo) => {
-			if (mapping && mapping.device === DeviceType.LAWO && mapping.defaults) {
+			if (mapping && mapping.device === DeviceType.LAWO && mapping.default) {
+
 				let path = mapping.path.join('/')
-				let lawoObject: LawoStateNode = _.extend(
-					{}, // to not overwrite defaults object
-					mapping.defaults,
-					lawoState[path] || {}
-				)
-				lawoState[path] = lawoObject
+				lawoState[path] = lawoState[path] || mapping.default
 			}
 		})
 
@@ -223,42 +237,39 @@ export class LawoDevice extends Device {
 
 		let commands: Array<LawoCommand> = []
 
-		let addCommand = (path, attrName, newAttr) => {
-			if (typeof newAttr === 'object') {
+		let addCommand = (path, newValue: LawoStateNodeAttr) => {
+			if (typeof newValue === 'object' && _.has(newValue,'transitionDuration')) {
 				// it's a Transition:
-				let transition: LawoStateNodeAttrTransition = newAttr
+				let transition = newValue as LawoStateNodeAttrTransition
 				commands.push({
 					path,
-					attribute: attrName,
-					value: transition.value,
+					type: transition.value.type,
+					value: transition.value.value,
 					transitionDuration: transition.transitionDuration
 				})
 			} else {
 				// It's a plain value:
+				let value = newValue as EmberPlusValue
 				commands.push({
 					path,
-					attribute: attrName,
-					value: newAttr
+					type: value.type,
+					value: value.value
 				})
 			}
 		}
-		_.each(newLawoState, (newNode: LawoStateNode, path: string) => {
-			let oldNode: LawoStateNode = oldLawoState[path] || {}
-			_.each(newNode, (newAttr: LawoStateNodeAttr, attrName: string ) => {
-				let oldAttr = oldNode[attrName]
-				if (!_.isEqual(newAttr, oldAttr) ) {
-					addCommand(path, attrName, newAttr)
-				}
-			})
+		_.each(newLawoState, (newValue: EmberPlusValue, path: string) => {
+			let oldValue: EmberPlusValue = oldLawoState[path] || null
+			if (!_.isEqual(newValue, oldValue) ) {
+				addCommand(path, newValue)
+			}
 		})
 		// Removed attributes:
-		_.each(oldLawoState, (oldNode: any, path: string) => {
-			let newNode = newLawoState[path] || {}
-			_.each(oldNode, (oldAttr: LawoStateNodeAttr, attrName: string ) => {
-				if (!_.has(newNode, attrName)) {
-					addCommand(path, attrName, oldAttr)
-				}
-			})
+		_.each(oldLawoState, (oldValue: EmberPlusValue, path: string) => {
+			let newValue = newLawoState[path] || {}
+
+			if (!newValue) {
+				addCommand(path, oldValue)
+			}
 		})
 		return commands
 	}

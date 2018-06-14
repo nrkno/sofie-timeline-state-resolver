@@ -2,7 +2,7 @@ import { TriggerType } from 'superfly-timeline'
 
 import { Mappings, MappingLawo, DeviceType } from '../devices/mapping'
 import { Conductor } from '../conductor'
-import { LawoDevice, TimelineContentTypeLawo } from '../devices/lawo'
+import { LawoDevice, TimelineContentTypeLawo, EmberPlusValueReal, EmberPlusValueType } from '../devices/lawo'
 
 let now: number = 1000
 
@@ -13,6 +13,7 @@ beforeAll(() => {
 function getCurrentTime () {
 	return now
 }
+export function literal<T> (o: T) { return o }
 
 function advanceTime (advanceTime: number) {
 	now += advanceTime
@@ -28,10 +29,11 @@ test('Lawo: add channel', async () => {
 	let myChannelMapping0: MappingLawo = {
 		device: DeviceType.LAWO,
 		deviceId: 'myLawo',
-		path: [1, 1, 2, 3],
-		defaults: {
-			'Motor dB Value': -191
-		}
+		path: [1, 1, 2, 3, 2],
+		default: literal<EmberPlusValueReal>({
+			type: EmberPlusValueType.REAL,
+			value: -191
+		})
 	}
 	let myChannelMapping: Mappings = {
 		'lawo_c1_fader': myChannelMapping0
@@ -78,9 +80,10 @@ test('Lawo: add channel', async () => {
 			LLayer: 'lawo_c1_fader',
 			content: {
 				type: TimelineContentTypeLawo.LAWO,
-				attributes: {
-					'Motor dB Value': -6
-				}
+				value: literal<EmberPlusValueReal>({
+					type: EmberPlusValueType.REAL,
+					value: -6
+				})
 			}
 		},
 		{
@@ -93,9 +96,10 @@ test('Lawo: add channel', async () => {
 			LLayer: 'lawo_c1_fader',
 			content: {
 				type: TimelineContentTypeLawo.LAWO,
-				attributes: {
-					'Motor dB Value': -4
-				}
+				value: literal<EmberPlusValueReal>({
+					type: EmberPlusValueType.REAL,
+					value: -4
+				})
 			}
 		}
 	]
@@ -105,9 +109,10 @@ test('Lawo: add channel', async () => {
 	expect(commandReceiver0).toHaveBeenCalledTimes(1)
 	expect(commandReceiver0.mock.calls[0][1]).toMatchObject(
 		{
-			attribute: 'Motor dB Value',
+			// attribute: 'Motor dB Value',
+			type: EmberPlusValueType.REAL,
 			value: -6,
-			path: '1/1/2/3'
+			path: '1/1/2/3/2'
 		}
 	)
 
@@ -116,9 +121,10 @@ test('Lawo: add channel', async () => {
 	expect(commandReceiver0).toHaveBeenCalledTimes(2)
 	expect(commandReceiver0.mock.calls[1][1]).toMatchObject(
 		{
-			attribute: 'Motor dB Value',
+			// attribute: 'Motor dB Value',
+			type: EmberPlusValueType.REAL,
 			value: -4,
-			path: '1/1/2/3'
+			path: '1/1/2/3/2'
 		}
 	)
 
@@ -126,9 +132,10 @@ test('Lawo: add channel', async () => {
 	expect(commandReceiver0).toHaveBeenCalledTimes(3)
 	expect(commandReceiver0.mock.calls[2][1]).toMatchObject(
 		{
-			attribute: 'Motor dB Value',
+			// attribute: 'Motor dB Value',
+			type: EmberPlusValueType.REAL,
 			value: -191,
-			path: '1/1/2/3'
+			path: '1/1/2/3/2'
 		}
 	)
 })
@@ -143,10 +150,11 @@ test('Lawo: change volume', async () => {
 	let myChannelMapping0: MappingLawo = {
 		device: DeviceType.LAWO,
 		deviceId: 'myLawo',
-		path: [1, 1, 2, 3],
-		defaults: {
-			'Motor dB Value': -191
-		}
+		path: [1, 1, 2, 3, 2],
+		default: literal<EmberPlusValueReal>({
+			type: EmberPlusValueType.REAL,
+			value: -191
+		})
 	}
 	let myChannelMapping: Mappings = {
 		'lawo_c1_fader': myChannelMapping0
@@ -183,9 +191,10 @@ test('Lawo: change volume', async () => {
 			LLayer: 'lawo_c1_fader',
 			content: {
 				type: TimelineContentTypeLawo.LAWO,
-				attributes: {
-					'Motor dB Value': 0 // 0 dBFS
-				}
+				value: literal<EmberPlusValueReal>({
+					type: EmberPlusValueType.REAL,
+					value: 0
+				})
 			}
 		}
 	]
@@ -202,17 +211,19 @@ test('Lawo: change volume', async () => {
 			LLayer: 'lawo_c1_fader',
 			content: {
 				type: TimelineContentTypeLawo.LAWO,
-				attributes: {
-					'Motor dB Value': -15 // -15 dBFS
-				}
+				value: literal<EmberPlusValueReal>({
+					type: EmberPlusValueType.REAL,
+					value: -15
+				})
 			}
 		}
 	]
 	advanceTime(100)
 	expect(commandReceiver0.mock.calls[1][1]).toMatchObject(
 		{
-			path: '1/1/2/3',
-			attribute: 'Motor dB Value',
+			path: '1/1/2/3/2',
+			// attribute: 'Motor dB Value',
+			type: EmberPlusValueType.REAL,
 			value: -15
 		}
 	)
