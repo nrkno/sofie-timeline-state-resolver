@@ -30,7 +30,7 @@ interface CommandContent {
 export class HttpSendDevice extends Device {
 
 	private _doOnTime: DoOnTime
-	private _queue: Array<any>
+	// private _queue: Array<any>
 
 	private _commandReceiver: (time: number, cmd) => void
 

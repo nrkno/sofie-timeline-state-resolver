@@ -3,7 +3,7 @@ import { Device, DeviceOptions } from './device'
 import { DeviceType, MappingLawo, Mappings } from './mapping'
 
 import { TimelineState, TimelineResolvedObject } from 'superfly-timeline'
-import { DeviceTree, Ember } from 'emberplus'
+import { DeviceTree } from 'emberplus'
 import { DoOnTime } from '../doOnTime'
 
 /*
@@ -25,36 +25,59 @@ export enum TimelineContentTypeLawo { //  Lawo-state
 interface TimelineLawoObject extends TimelineResolvedObject {
 	content: {
 		type: TimelineContentTypeLawo,
-		attributes: {
-			[lawoProperty: string]: any
-		}
+		value: LawoStateNodeAttr
 	}
 }
+export enum EmberPlusValueType {
+	REAL 	= 'real',
+	INT 	= 'int',
+	BOOLEAN = 'boolean',
+	STRING 	= 'string'
+}
+export interface EmberPlusValue {
+	type: EmberPlusValueType,
+	value: EmberPlusValueBase
+}
+export type EmberPlusValueBase = boolean | number | string
+export interface EmberPlusValueReal extends EmberPlusValue {
+	type: EmberPlusValueType.REAL,
+	value: number
+}
+export interface EmberPlusValueInt extends EmberPlusValue {
+	type: EmberPlusValueType.INT,
+	value: number
+}
+export interface EmberPlusValueBoolean extends EmberPlusValue {
+	type: EmberPlusValueType.BOOLEAN,
+	value: boolean
+}
+export interface EmberPlusValueString extends EmberPlusValue {
+	type: EmberPlusValueType.STRING,
+	value: string
+}
+
 export interface LawoState {
-	[path: string]: LawoStateNode
+	[path: string]: LawoStateNodeAttr
 }
-export interface LawoStateNode {
-	[attrName: string]: LawoStateNodeAttr
-}
-export type LawoStateNodeBaseAttr = boolean | number | string
-export type LawoStateNodeAttr = LawoStateNodeBaseAttr | LawoStateNodeAttrTransition
+// export interface LawoStateNode {
+// 	[attrName: string]: EmberPlusValue
+// }
+
+export type LawoStateNodeAttr = EmberPlusValue | LawoStateNodeAttrTransition
 export interface LawoStateNodeAttrTransition {
-	value: LawoStateNodeBaseAttr
+	value: EmberPlusValue
 	transitionDuration: number
 }
 export interface LawoCommand {
 	path: string,
-	attribute: string,
-	value: LawoStateNodeBaseAttr,
+	value: EmberPlusValueBase,
+	type: EmberPlusValueType,
 	transitionDuration?: number
 }
 export class LawoDevice extends Device {
 	private _doOnTime: DoOnTime
 	// private _queue: Array<{ time: number, command: LawoCommand}>
 	private _device: DeviceTree
-	private _resolveMappingsOnConnect = false
-	private _mappingToAttributes: { [layerName: string]: { [attrName: string]: number } } = {}
-	private _savedNodes: { [pathName: string]: Ember.Node } = {}
 	private _sourceNames: { [index: string]: string } = {}
 
 	private _commandReceiver: (time: number, cmd: LawoCommand) => void
@@ -87,10 +110,6 @@ export class LawoDevice extends Device {
 			this.emit('error', e)
 		})
 		this._device.on('connected', () => {
-			this._savedNodes = {} // reset cache
-			if (this._resolveMappingsOnConnect) {
-				this._resolveMappings()
-			}
 			this._device.getNodeByPath([1, 1]).then((node) => {
 				this._device.getDirectory(node).then((res) => {
 					const children = node.getChildren()
@@ -128,8 +147,6 @@ export class LawoDevice extends Device {
 	}
 	handleState (newState: TimelineState) {
 		// Handle this new state, at the point in time specified
-
-
 		let oldState: TimelineState = this.getStateBefore(newState.time) || {time: 0, LLayers: {}, GLayers: {}}
 
 		let oldLawoState = this.convertStateToLawo(oldState)
@@ -159,30 +176,20 @@ export class LawoDevice extends Device {
 
 		_.each(state.LLayers, (tlObject: TimelineLawoObject, layerName: string) => {
 			const mapping: MappingLawo | undefined = this.mapping[layerName] as MappingLawo
-			if (mapping && mapping.device === DeviceType.LAWO ) {
-
-				let path = mapping.path.join('/')
+			if (mapping && mapping.path && mapping.device === DeviceType.LAWO ) {
 
 				if (tlObject.content.type === TimelineContentTypeLawo.LAWO) {
-
-					let lawoObject: LawoStateNode = _.extend(
-						lawoState[path] || {},
-						tlObject.content.attributes
-					)
-					lawoState[path] = lawoObject
+					let path = mapping.path.join('/')
+					lawoState[path] = tlObject.content.value
 				}
 			}
 		})
 		// Apply default states defined in mappings
 		_.each(this.mapping, (mapping: MappingLawo) => {
-			if (mapping && mapping.device === DeviceType.LAWO && mapping.defaults) {
+			if (mapping && mapping.path && mapping.device === DeviceType.LAWO && mapping.default) {
+
 				let path = mapping.path.join('/')
-				let lawoObject: LawoStateNode = _.extend(
-					{}, // to not overwrite defaults object
-					mapping.defaults,
-					lawoState[path] || {}
-				)
-				lawoState[path] = lawoObject
+				lawoState[path] = lawoState[path] || mapping.default
 			}
 		})
 
@@ -200,12 +207,6 @@ export class LawoDevice extends Device {
 
 	set mapping (mappings: Mappings) {
 		super.mapping = mappings
-
-		if (this._device.isConnected()) {
-			this._resolveMappings()
-		} else {
-			this._resolveMappingsOnConnect = true
-		}
 	}
 	get mapping () {
 		return super.mapping
@@ -223,92 +224,59 @@ export class LawoDevice extends Device {
 
 		let commands: Array<LawoCommand> = []
 
-		let addCommand = (path, attrName, newAttr) => {
-			if (typeof newAttr === 'object') {
+		let addCommand = (path, newValue: LawoStateNodeAttr) => {
+			if (typeof newValue === 'object' && _.has(newValue,'transitionDuration')) {
 				// it's a Transition:
-				let transition: LawoStateNodeAttrTransition = newAttr
+				let transition = newValue as LawoStateNodeAttrTransition
 				commands.push({
 					path,
-					attribute: attrName,
-					value: transition.value,
+					type: transition.value.type,
+					value: transition.value.value,
 					transitionDuration: transition.transitionDuration
 				})
 			} else {
 				// It's a plain value:
+				let value = newValue as EmberPlusValue
 				commands.push({
 					path,
-					attribute: attrName,
-					value: newAttr
+					type: value.type,
+					value: value.value
 				})
 			}
 		}
-		_.each(newLawoState, (newNode: LawoStateNode, path: string) => {
-			let oldNode: LawoStateNode = oldLawoState[path] || {}
-			_.each(newNode, (newAttr: LawoStateNodeAttr, attrName: string ) => {
-				let oldAttr = oldNode[attrName]
-				if (!_.isEqual(newAttr, oldAttr) ) {
-					addCommand(path, attrName, newAttr)
-				}
-			})
+		_.each(newLawoState, (newValue: EmberPlusValue, path: string) => {
+			let oldValue: LawoStateNodeAttr = oldLawoState[path] || null
+			if (!_.isEqual(newValue, oldValue) ) {
+				addCommand(path, newValue)
+			}
 		})
 		// Removed attributes:
-		_.each(oldLawoState, (oldNode: any, path: string) => {
-			let newNode = newLawoState[path] || {}
-			_.each(oldNode, (oldAttr: LawoStateNodeAttr, attrName: string ) => {
-				if (!_.has(newNode, attrName)) {
-					addCommand(path, attrName, oldAttr)
-				}
-			})
+		_.each(oldLawoState, (oldValue: EmberPlusValue, path: string) => {
+			let newValue = newLawoState[path] || {}
+
+			if (!newValue) {
+				addCommand(path, oldValue)
+			}
 		})
 		return commands
 	}
 
 	// @ts-ignore no-unused-vars
 	private _defaultCommandReceiver (time: number, command: LawoCommand) {
-		if (command.transitionDuration && command.attribute === 'Motor dB Value') { // I don't think we can transition any other values
-			const source = this._sourceNames[command.path.substr(4, 1)] // theoretically speaking anyway
-			if (!source) return // maybe warn user?
-			const faderRamp = new Ember.QualifiedFunction([1, 2, 2])
-			this._device.invokeFunction(faderRamp, { source, value: command.value, duration: command.transitionDuration })
-		} else {
+		// if (command.transitionDuration && command.attribute === 'Motor dB Value') { // I don't think we can transition any other values
+		// 	const source = this._sourceNames[command.path.substr(4, 1)] // theoretically speaking anyway
+		// 	if (!source) return // maybe warn user?
+		// 	const faderRamp = new Ember.QualifiedFunction([1, 2, 2])
+		// 	this._device.invokeFunction(faderRamp, { source, value: command.value, duration: command.transitionDuration })
+		// } else {
 
-			// TODO: this._mappingToAttributes is dependent of this.mappings, which we should not have any dependencies to at this point
-			const path = _.map(command.path.split('/'), (val: string) => Number(val))
-			path.push(this._mappingToAttributes[command.path][command.attribute])
+		// 	// TODO: this._mappingToAttributes is dependent of this.mappings, which we should not have any dependencies to at this point
+		// 	const path = _.map(command.path.split('/'), (val: string) => Number(val))
+		// 	// path.push(this._mappingToAttributes[command.path][command.attribute])
 
-			this._getNodeByPath(path).then((node: any) => {
-				this._device.setValue(node, command.value).catch(console.log)
-			})
-		}
-	}
-
-	private async _getNodeByPath (path: Array<number>): Ember.Node {
-		return new Promise ((resolve) => {
-			if (this._savedNodes[path.join('/')] !== undefined) {
-				resolve(this._savedNodes[path.join('/')])
-			} else {
-				this._device.getNodeByPath(path).then((node) => {
-					this._savedNodes[path.join('/')] = node
-					resolve(node)
-				})
-			}
-		})
-	}
-
-	private _resolveMappings () {
-		// @ts-ignore no-unused-vars
-		_.each(this.mapping, (mapping: MappingLawo, layerName: string) => {
-			const pathStr = mapping.path.join('/')
-			this._getNodeByPath(mapping.path).then((node) => {
-				// @todo: this might need a getDirectory() first.
-				// @todo: should we subscribe to the node?
-				_.each(node.getChildren(), (element: any) => {
-					if (!this._mappingToAttributes[pathStr]) {
-						this._mappingToAttributes[pathStr] = {}
-					}
-					this._mappingToAttributes[pathStr][element.contents.identifier] = element.number
-				})
-			})
-		})
+		// 	this._getNodeByPath(path).then((node: any) => {
+		// 		this._device.setValue(node, command.value).catch(console.log)
+		// 	})
+		// }
 	}
 }
