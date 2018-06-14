@@ -114,6 +114,7 @@
     "request": "^2.86.0",
     "superfly-timeline": "git+https://github.com/superflytv/supertimeline#dist",
     "tslib": "^1.6.0",
-    "underscore": "^1.8.3"
+    "underscore": "^1.8.3",
+    "underscore-deep-extend": "^1.1.5"
   }
 }

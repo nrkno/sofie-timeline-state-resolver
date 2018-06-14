@@ -1,10 +1,13 @@
 import * as _ from 'underscore'
+import * as deepExtend from 'underscore-deep-extend'
 import { Device, DeviceOptions } from './device'
 import { DeviceType, MappingAtem, MappingAtemType } from './mapping'
 
 import { TimelineState, TimelineResolvedObject } from 'superfly-timeline'
 import { Atem, VideoState, Commands as AtemCommands } from 'atem-connection'
 import { AtemState, State as DeviceState, Defaults as StateDefault } from 'atem-state'
+
+_.mixin({ deepExtend: deepExtend(_) })
 
 /*
 	This is a wrapper for the Atem Device. Commands to any and all atem devices will be sent through here.
@@ -124,6 +127,7 @@ export class AtemDevice extends Device {
 				time: newState.time,
 				command: cmd
 			})
+			console.log(...this._queue)
 		})
 
 		// store the new state, for later use:
@@ -147,54 +151,45 @@ export class AtemDevice extends Device {
 			const mapping = this.mapping[layerName] as MappingAtem
 			if (mapping) {
 				if (!(mapping.index !== undefined && mapping.index >= 0)) return // index must be 0 or higher
-				// 	obj = {}
-				// 	obj[mapping.index] = tlObject.content
-				// }
+
 				switch (mapping.mappingType) {
 					case MappingAtemType.MixEffect:
 						if (content.type === TimelineContentTypeAtem.ME) {
 							let me = deviceState.video.ME[mapping.index]
-							_.extend(me, content.attributes)
+							// @ts-ignore (mixin)
+							_.deepExtend(me, content.attributes)
 						}
 						break
 					case MappingAtemType.DownStreamKeyer:
 						if (content.type === TimelineContentTypeAtem.DSK) {
 							let dsk = deviceState.video.downstreamKeyers[mapping.index]
-							_.extend(dsk, content.attributes)
+							// @ts-ignore (mixin)
+							_.deepExtend(dsk, content.attributes)
 						}
 						break
 					case MappingAtemType.SuperSourceBox:
 						if (content.type === TimelineContentTypeAtem.SSRC) {
 							let ssrc = deviceState.video.superSourceBoxes
-							_.extend(ssrc, content.attributes.boxes)
+							// @ts-ignore (mixin)
+							_.deepExtend(ssrc, content.attributes.boxes)
 						}
 						break
 					case MappingAtemType.Auxilliary:
 						if (content.type === TimelineContentTypeAtem.AUX) {
 							let aux = deviceState.video.auxilliaries[mapping.index]
-							_.extend(aux, content.attributes)
+							// @ts-ignore (mixin)
+							_.deepExtend(aux, content.attributes)
 						}
 						break
 					case MappingAtemType.MediaPlayer:
 						if (content.type === TimelineContentTypeAtem.MEDIAPLAYER) {
 							let ms = deviceState.media.players[mapping.index]
-							_.extend(ms, content.attributes)
+							// @ts-ignore (mixin)
+							_.deepExtend(ms, content.attributes)
 						}
 						break
 				}
 			}
-
-			// const traverseState = (mutation, mutableObj) => {
-			// 	for (const key in mutation) {
-			// 		if (typeof mutation[key] === 'object' && mutableObj[key]) {
-			// 			traverseState(mutation[key], mutableObj[key])
-			// 		} else {
-			// 			mutableObj[key] = mutation[key]
-			// 		}
-			// 	}
-			// }
-
-			// traverseState(obj, deviceState)
 		})
 
 		return deviceState
@@ -220,6 +215,12 @@ export class AtemDevice extends Device {
 
 		for (let i = 0; i < this._device.state.info.capabilities.MEs; i++) {
 			deviceState.video.ME[i] = JSON.parse(JSON.stringify(StateDefault.Video.MixEffect)) as VideoState.MixEffect
+			for (const usk in this._device.state.video.ME[i].upstreamKeyers) {
+				deviceState.video.ME[i].upstreamKeyers[usk] = JSON.parse(JSON.stringify(StateDefault.Video.UpstreamKeyer(Number(usk))))
+				for (const flyKf in this._device.state.video.ME[i].upstreamKeyers[usk].flyKeyframes) {
+					deviceState.video.ME[i].upstreamKeyers[usk].flyKeyframes[flyKf] = JSON.parse(JSON.stringify(StateDefault.Video.flyKeyframe(Number(flyKf))))
+				}
+			}
 		}
 		for (let i = 0; i < this._device.state.video.downstreamKeyers.length; i++) {
 			deviceState.video.downstreamKeyers[i] = JSON.parse(JSON.stringify(StateDefault.Video.DownStreamKeyer))
