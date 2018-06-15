@@ -131,14 +131,14 @@
   "dependencies": {
     "@types/request": "^2.47.0",
     "atem-connection": "^0.1.3",
-    "atem-state": "^0.1.2",
+    "atem-state": "^0.1.4",
     "casparcg-connection": "^4.1.0",
-    "casparcg-state": "^1.0.4",
+    "casparcg-state": "^1.0.5",
     "emberplus": "git+https://github.com/nrkno/tv-automation-emberplus-connection.git#dist",
     "fast-clone": "^1.5.3",
     "request": "^2.87.0",
-    "superfly-timeline": "^2.0.2",
-    "underscore": "^1.8.3",
+    "superfly-timeline": "^2.0.3",
+    "underscore": "^1.9.1",
     "underscore-deep-extend": "^1.1.5"
   },
   "standard-version": {

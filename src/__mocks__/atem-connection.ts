@@ -2,6 +2,7 @@ import {
 
 } from '../../node_modules/atem-connection'
 import { EventEmitter } from 'events'
+const mockData = require('./atem-out.json')
 
 export {
 	Enums,
@@ -27,92 +28,6 @@ export class Atem extends EventEmitter {
 		}, 10)
 	}
 	get state () {
-		return {
-			info: {
-				// apiVersion: VersionProps
-				capabilities: { // AtemCapabilites
-					MEs: 1,
-					sources: 8,
-					colorGenerators: 2,
-					auxilliaries: 1,
-					talkbackOutputs: 0,
-					mediaPlayers: 2,
-					serialPorts: 1,
-					maxHyperdecks: 1,
-					DVEs: 1,
-					stingers: 1,
-					superSources: 1
-				}
-				// model: Model
-				// productIdentifier: string
-			},
-			video: {
-				ME: [{ // Array<MixEffect>
-					// programInput: number,
-					// previewInput: number,
-					// inTransition: boolean,
-					// transitionPreview: boolean,
-					// transitionPosition: number,
-					// transitionFramesLeft: number,
-					// fadeToBlack: boolean,
-					// numberOfKeyers: number,
-					// transitionProperties: TransitionProperties,
-					// transitionSettings: TransitionSettings,
-					upstreamKeyers: [{ // Array<USK.UpstreamKeyer>
-						// readonly upstreamKeyerId: number,
-						// mixEffectKeyType: number,
-						// flyEnabled: boolean,
-						// fillSource: number,
-						// cutSource: number,
-						// maskEnabled: boolean,
-						// maskTop: number,
-						// maskBottom: number,
-						// maskLeft: number,
-						// maskRight: number,
-						// dveSettings: UpstreamKeyerDVESettings,
-						// chromaSettings: UpstreamKeyerChromaSettings,
-						// lumaSettings: UpstreamKeyerLumaSettings,
-						// patternSettings: UpstreamKeyerPatternSettings,
-						// flyKeyframes: Array<UpstreamKeyerFlyKeyframe>,
-						// flyProperties: UpstreamKeyerFlySettings,
-						// onAir: boolean
-					}]
-				}],
-				downstreamKeyers: [{ // Array<DownstreamKeyer>
-					sources: {
-						fillSource: 1,
-						cutSource: 2
-					}
-					// properties: DownstreamKeyerProperties,
-					// onAir: boolean,
-					// inTransition: boolean,
-					// isAuto: boolean,
-					// remainingFrames: number
-				}],
-				// auxilliaries: Array<number>
-				superSourceBoxes: [{ // Array<SuperSourceBox>
-					// enabled: boolean,
-					// source: number,
-					// x: number,
-					// y: number,
-					// size: number,
-					// cropped: boolean,
-					// cropTop: number,
-					// cropBottom: number,
-					// cropLeft: number,
-					// cropRight: number
-				}]
-				// getMe(index: number): MixEffect
-				// getDownstreamKeyer(index: number): DownstreamKeyer
-			}
-			// channels: Array<{
-			// 	name: string
-			// 	label: string
-			// }>
-			// tallies: Array<number>
-			// audio: AtemAudioState
-			// media: MediaState
-			// inputs: Array<InputChannel>
-		}
+		return mockData
 	}
 }

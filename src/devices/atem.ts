@@ -152,31 +152,31 @@ export class AtemDevice extends Device {
 						case MappingAtemType.MixEffect:
 							if (content.type === TimelineContentTypeAtem.ME) {
 								let me = deviceState.video.ME[mapping.index]
-								deepExtend(me, content.attributes)
+								if (me) deepExtend(me, content.attributes)
 							}
 							break
 						case MappingAtemType.DownStreamKeyer:
 							if (content.type === TimelineContentTypeAtem.DSK) {
 								let dsk = deviceState.video.downstreamKeyers[mapping.index]
-								deepExtend(dsk, content.attributes)
+								if (dsk) deepExtend(dsk, content.attributes)
 							}
 							break
 						case MappingAtemType.SuperSourceBox:
 							if (content.type === TimelineContentTypeAtem.SSRC) {
 								let ssrc = deviceState.video.superSourceBoxes
-								deepExtend(ssrc, content.attributes.boxes)
+								if (ssrc) deepExtend(ssrc, content.attributes.boxes)
 							}
 							break
 						case MappingAtemType.Auxilliary:
 							if (content.type === TimelineContentTypeAtem.AUX) {
 								let aux = deviceState.video.auxilliaries[mapping.index]
-								deepExtend(aux, content.attributes)
+								if (aux) deepExtend(aux, content.attributes)
 							}
 							break
 						case MappingAtemType.MediaPlayer:
 							if (content.type === TimelineContentTypeAtem.MEDIAPLAYER) {
 								let ms = deviceState.media.players[mapping.index]
-								deepExtend(ms, content.attributes)
+								if (ms) deepExtend(ms, content.attributes)
 							}
 							break
 					}
@@ -241,4 +241,13 @@ export class AtemDevice extends Device {
 			// @todo: command was acknowledged by atem, how will we check if it did what we wanted?
 		})
 	}
+
+	// private _enforceDeviceState () {
+	// 	const actualState = this._device.state
+	// 	const theoreticalState = this.convertStateToAtem(this.getStateBefore(this.getCurrentTime()) || { LLayers: {}, GLayers: {}, time: this.getCurrentTime() })
+
+	// 	const commandsToAchieveState = this._diffStates(actualState, theoreticalState)
+
+	// 	this._addToQueue(commandsToAchieveState, this.getCurrentTime())
+	// }
 }

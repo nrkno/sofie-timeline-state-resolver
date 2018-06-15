@@ -58,7 +58,8 @@ describe('Atem', () => {
 			type: DeviceType.ATEM,
 			options: {
 				commandReceiver: commandReceiver0,
-				host: '127.0.0.1',
+				// host: '192.168.168.240',
+				host: '92.62.46.187',
 				port: 9910
 			}
 		})
@@ -150,8 +151,8 @@ describe('Atem', () => {
 	test('Atem: upstream keyer', async () => {
 		jest.useFakeTimers()
 
-		let commandReceiver0 = jest.fn((time, cmd) => {
-			console.log(time, cmd)
+		let commandReceiver0 = jest.fn(() => {
+			// nothing
 		})
 		let myLayerMapping0: MappingAtem = {
 			device: DeviceType.ATEM,
@@ -199,7 +200,6 @@ describe('Atem', () => {
 				content: {
 					attributes: {
 						upstreamKeyers: [
-							{},
 							{
 								patternSettings: {
 									style: 5,
@@ -215,21 +215,20 @@ describe('Atem', () => {
 
 		advanceTime(100) // 1200
 
-		// TODO: Implement tests
-		// expect(commandReceiver0).toHaveBeenCalledTimes(1)
-		// expect(commandReceiver0.mock.calls[0][1]).toMatchObject(
-		// 	{
-		// 		flag: 53,
-		// 		rawName: 'KePt',
-		// 		mixEffect: 0,
-		// 		upstreamKeyerId: 1,
-		// 		properties: {
-		// 			positionX: 250,
-		// 			positionY: 500,
-		// 			style: 5,
-		// 			symmetry: 5000
-		// 		}
-		// 	}
-		// )
+		expect(commandReceiver0).toHaveBeenCalledTimes(1)
+		expect(commandReceiver0.mock.calls[0][1]).toMatchObject(
+			{
+				flag: 53,
+				rawName: 'KePt',
+				mixEffect: 0,
+				upstreamKeyerId: 0,
+				properties: {
+					positionX: 250,
+					positionY: 500,
+					style: 5,
+					symmetry: 5000
+				}
+			}
+		)
 	})
 })
