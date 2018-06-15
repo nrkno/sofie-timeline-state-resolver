@@ -151,7 +151,7 @@ describe('Atem', () => {
 	test('Atem: upstream keyer', async () => {
 		jest.useFakeTimers()
 
-		let commandReceiver0 = jest.fn((time, cmd) => {
+		let commandReceiver0 = jest.fn(() => {
 			// nothing
 		})
 		let myLayerMapping0: MappingAtem = {
