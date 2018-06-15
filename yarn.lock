@@ -1452,7 +1452,7 @@ ecc-jsbn@~0.1.1:
 
 "emberplus@git+https://github.com/nrkno/tv-automation-emberplus-connection.git#dist":
   version "1.7.8"
-  resolved "git+https://github.com/nrkno/tv-automation-emberplus-connection.git#015abcca216d74af902f23c9dddd417078a49643"
+  resolved "git+https://github.com/nrkno/tv-automation-emberplus-connection.git#1fbb5142356912f90fce6e993fc6c277ba733246"
   dependencies:
     asn1 evs-broadcast/node-asn1
     enum "^2.4.0"

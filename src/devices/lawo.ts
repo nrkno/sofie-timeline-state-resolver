@@ -107,9 +107,18 @@ export class LawoDevice extends Device {
 
 		this._device = new DeviceTree(host, port)
 		this._device.on('error', (e) => {
-			this.emit('error', e)
+			if (
+				(e.message + '').match(/econnrefused/i) ||
+				(e.message + '').match(/disconnected/i)
+			) {
+				this.emit('connectionChanged', false)
+			} else {
+				this.emit('error', e)
+			}
 		})
 		this._device.on('connected', () => {
+			this.emit('connectionChanged', true)
+
 			this._device.getNodeByPath([1, 1]).then((node) => {
 				this._device.getDirectory(node).then((res) => {
 					const children = node.getChildren()
