@@ -1,6 +1,6 @@
 {
   "name": "timeline-state-resolver",
-  "version": "0.0.0",
+  "version": "0.1.5",
   "description": "Have timeline, control stuff",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
@@ -140,5 +140,9 @@
     "superfly-timeline": "^2.0.2",
     "underscore": "^1.8.3",
     "underscore-deep-extend": "^1.1.5"
+  },
+  "standard-version": {
+    "message": "chore(release): %s [skip ci]",
+    "tagPrefix": ""
   }
 }
