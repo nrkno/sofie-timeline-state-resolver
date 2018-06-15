@@ -76,7 +76,6 @@ export class AtemDevice extends Device {
 			this._device.on('connected', () => {
 				this._connected = true
 				this.emit('connectionChanged', true)
-				this._enforceDeviceState()
 			})
 			this._device.on('disconnected', () => {
 				this._connected = false
@@ -243,12 +242,12 @@ export class AtemDevice extends Device {
 		})
 	}
 
-	private _enforceDeviceState () {
-		const actualState = this._device.state
-		const theoreticalState = this.convertStateToAtem(this.getStateBefore(this.getCurrentTime()) || { LLayers: {}, GLayers: {}, time: this.getCurrentTime() })
+	// private _enforceDeviceState () {
+	// 	const actualState = this._device.state
+	// 	const theoreticalState = this.convertStateToAtem(this.getStateBefore(this.getCurrentTime()) || { LLayers: {}, GLayers: {}, time: this.getCurrentTime() })
 
-		const commandsToAchieveState = this._diffStates(actualState, theoreticalState)
+	// 	const commandsToAchieveState = this._diffStates(actualState, theoreticalState)
 
-		this._addToQueue(commandsToAchieveState, this.getCurrentTime())
-	}
+	// 	this._addToQueue(commandsToAchieveState, this.getCurrentTime())
+	// }
 }
