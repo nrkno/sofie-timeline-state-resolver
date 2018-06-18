@@ -29,7 +29,7 @@ export interface MappingHTTPSend extends Mapping {
 }
 export interface MappingLawo extends Mapping {
 	device: DeviceType.LAWO,
-	path: Array<number>
+	path: string
 	default?: LawoStateNodeAttr
 }
 export enum MappingAtemType {
