@@ -230,6 +230,30 @@ export class Conductor extends EventEmitter {
 		this._triggerResolveTimeline()
 	}
 	/**
+	 * Send a makeReady-trigger to all devices
+	 */
+	public devicesMakeReady (okToDestoryStuff?: boolean): Promise<void> {
+		let p = Promise.resolve()
+		_.each(this.devices, (device: Device) => {
+			p = p.then(() => {
+				return device.makeReady(okToDestoryStuff)
+			})
+		})
+		return p
+	}
+	/**
+	 * Send a standDown-trigger to all devices
+	 */
+	public devicesStandDown (okToDestoryStuff?: boolean): Promise<void> {
+		let p = Promise.resolve()
+		_.each(this.devices, (device: Device) => {
+			p = p.then(() => {
+				return device.standDown(okToDestoryStuff)
+			})
+		})
+		return p
+	}
+	/**
 	 * This is the main resolve-loop.
 	 */
 	private _triggerResolveTimeline (timeUntilTrigger?: number) {

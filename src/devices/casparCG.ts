@@ -392,6 +392,60 @@ export class CasparCGDevice extends Device {
 
 	}
 
+	makeReady (okToDestoryStuff?: boolean): Promise<void> {
+		// Sync Caspar Time to our time:
+		return this._ccg.info()
+		.then((command) => {
+			let channels: any = command.response.data
+
+			// console.log('channels', channels)
+
+			let p = Promise.resolve()
+			_.each(channels, (channel: any) => {
+
+				let channelNo = channel.channel
+				// let fps = channel.channelRate
+				let startTime
+				p = p.then(() => {
+
+					startTime = this.getCurrentTime()
+					return this._ccg.do(
+						new AMCP.CustomCommand({
+							command: (
+								'TIME ' + channelNo + ' ' + this.convertTimeToTimecode(startTime, channelNo)
+							)
+						})
+					)
+				})
+				.then(() => {
+					let duration = this.getCurrentTime() - startTime
+					if (duration > 20) { // @todo: acceptable time is dependent on fps
+						throw Error('Caspar Time command took too long ("' + duration + '")')
+					}
+				})
+			})
+			// Clear all channels (?)
+			p = p.then(() => {
+				if (okToDestoryStuff) {
+					return Promise.all(
+						_.map(channels, (channel: any) => {
+							return this._commandReceiver(this.getCurrentTime(), new AMCP.ClearCommand({
+								channel: channel.channel
+							}))
+						})
+					).then(() => { return })
+				}
+				return Promise.resolve()
+			})
+			return p.then(() => { return })
+		})
+		.then(() => {
+			// reset our own state(s):
+			this.clearStates()
+			// a resolveTimeline will be triggered later
+		})
+	}
+
 	private _diffStates (oldState, newState): Array<CommandNS.IAMCPCommandVO> {
 		let commands: Array<{
 			cmds: Array<CommandNS.IAMCPCommandVO>

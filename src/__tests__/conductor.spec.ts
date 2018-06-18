@@ -317,4 +317,78 @@ describe('Conductor', () => {
 		expect(commandReceiver0).toHaveBeenCalledTimes(3)
 
 	})
+
+	test('devicesMakeReady', async () => {
+		let commandReceiver0 = jest.fn(() => {
+			return Promise.resolve()
+		})
+		let commandReceiver1 = jest.fn(() => {
+			return Promise.resolve()
+		})
+		let commandReceiver2 = jest.fn(() => {
+			return Promise.resolve()
+		})
+		let commandReceiver3 = jest.fn(() => {
+			return Promise.resolve()
+		})
+		let commandReceiver4 = jest.fn(() => {
+			return Promise.resolve()
+		})
+
+		let conductor = new Conductor({
+			externalLog: externalLog,
+			initializeAsClear: true,
+			getCurrentTime: getCurrentTime
+		})
+
+		await conductor.init()
+		await conductor.addDevice('device0', {
+			type: DeviceType.ABSTRACT,
+			options: {
+				commandReceiver: commandReceiver0
+			}
+		})
+		await conductor.addDevice('device1', {
+			type: DeviceType.CASPARCG,
+			options: {
+				commandReceiver: commandReceiver1
+			}
+		})
+		await conductor.addDevice('device2', {
+			type: DeviceType.ATEM,
+			options: {
+				commandReceiver: commandReceiver2
+			}
+		})
+		await conductor.addDevice('device3', {
+			type: DeviceType.HTTPSEND,
+			options: {
+				commandReceiver: commandReceiver3
+			}
+		})
+		await conductor.addDevice('device4', {
+			type: DeviceType.LAWO,
+			options: {
+				commandReceiver: commandReceiver4
+			}
+		})
+
+		await conductor.devicesMakeReady(true)
+
+		advanceTime(10) // to allow for commands to be sent
+
+		expect(commandReceiver1).toHaveBeenCalledTimes(3)
+		expect(commandReceiver1.mock.calls[0][1].name).toEqual('ClearCommand')
+		expect(commandReceiver1.mock.calls[0][1]._objectParams).toMatchObject({
+			channel: 1
+		})
+		expect(commandReceiver1.mock.calls[1][1].name).toEqual('ClearCommand')
+		expect(commandReceiver1.mock.calls[1][1]._objectParams).toMatchObject({
+			channel: 2
+		})
+		expect(commandReceiver1.mock.calls[2][1].name).toEqual('ClearCommand')
+		expect(commandReceiver1.mock.calls[2][1]._objectParams).toMatchObject({
+			channel: 3
+		})
+	})
 })
