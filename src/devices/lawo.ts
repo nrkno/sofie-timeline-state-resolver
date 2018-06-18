@@ -3,7 +3,7 @@ import { Device, DeviceOptions } from './device'
 import { DeviceType, MappingLawo, Mappings } from './mapping'
 
 import { TimelineState, TimelineResolvedObject } from 'superfly-timeline'
-import { DeviceTree } from 'emberplus'
+import { DeviceTree, Ember } from 'emberplus'
 import { DoOnTime } from '../doOnTime'
 
 /*
@@ -76,9 +76,9 @@ export interface LawoCommand {
 }
 export class LawoDevice extends Device {
 	private _doOnTime: DoOnTime
-	// private _queue: Array<{ time: number, command: LawoCommand}>
 	private _device: DeviceTree
-	private _sourceNames: { [index: string]: string } = {}
+
+	private _savedNodes = []
 
 	private _commandReceiver: (time: number, cmd: LawoCommand) => void
 
@@ -128,6 +128,15 @@ export class LawoDevice extends Device {
 					}
 				})
 			})
+			// this._device.getNodeByPath([1, 1]).then((node) => {
+			// 	this._device.getDirectory(node).then((res) => {
+			// 		const children = node.getChildren()
+			// 		if (!node || !children || !res ) return // no sources here.
+			// 		for (const child of children) {
+			// 			this._sourceNames[child.number] = child.identifier
+			// 		}
+			// 	})
+			// })
 		})
 	}
 
@@ -270,8 +279,26 @@ export class LawoDevice extends Device {
 		return commands
 	}
 
+	private async _getNodeByPath (path: string): Ember.Node {
+		return new Promise ((resolve) => {
+			if (this._savedNodes[path] !== undefined) {
+				resolve(this._savedNodes[path])
+			} else {
+				this._device.getNodeByPath(path)
+				.then((node) => {
+					this._savedNodes[path] = node
+					resolve(node)
+				})
+				.catch((e) => this.emit('error', `Path error: ${e.toString()}`))
+
+			}
+		})
+	}
+
 	// @ts-ignore no-unused-vars
 	private _defaultCommandReceiver (time: number, command: LawoCommand) {
+		this.emit('info', `Ember command: ${JSON.stringify(command)}`)
+
 		// if (command.transitionDuration && command.attribute === 'Motor dB Value') { // I don't think we can transition any other values
 		// 	const source = this._sourceNames[command.path.substr(4, 1)] // theoretically speaking anyway
 		// 	if (!source) return // maybe warn user?
@@ -279,13 +306,14 @@ export class LawoDevice extends Device {
 		// 	this._device.invokeFunction(faderRamp, { source, value: command.value, duration: command.transitionDuration })
 		// } else {
 
-		// 	// TODO: this._mappingToAttributes is dependent of this.mappings, which we should not have any dependencies to at this point
-		// 	const path = _.map(command.path.split('/'), (val: string) => Number(val))
-		// 	// path.push(this._mappingToAttributes[command.path][command.attribute])
+		// TODO: this._mappingToAttributes is dependent of this.mappings, which we should not have any dependencies to at this point
 
-		// 	this._getNodeByPath(path).then((node: any) => {
-		// 		this._device.setValue(node, command.value).catch(console.log)
-		// 	})
-		// }
+		this._getNodeByPath(command.path)
+			.then((node: any) => {
+				this._device.setValue(node, new Ember.ParameterContents(command.value, 'real'))
+				.then((res) => this.emit('info', `Ember result: ${JSON.stringify(res)}`))
+				.catch((e) => console.log(e))
+			})
+			.catch((e) => this.emit('error', `Ember command error: ${e.toString()}`))
 	}
 }
