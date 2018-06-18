@@ -118,25 +118,6 @@ export class LawoDevice extends Device {
 		})
 		this._device.on('connected', () => {
 			this.emit('connectionChanged', true)
-
-			this._device.getNodeByPath([1, 1]).then((node) => {
-				this._device.getDirectory(node).then((res) => {
-					const children = node.getChildren()
-					if (!node || !children || !res) return // no sources here.
-					for (const child of children) {
-						this._sourceNames[child.number] = child.identifier
-					}
-				})
-			})
-			// this._device.getNodeByPath([1, 1]).then((node) => {
-			// 	this._device.getDirectory(node).then((res) => {
-			// 		const children = node.getChildren()
-			// 		if (!node || !children || !res ) return // no sources here.
-			// 		for (const child of children) {
-			// 			this._sourceNames[child.number] = child.identifier
-			// 		}
-			// 	})
-			// })
 		})
 	}
 
@@ -280,7 +261,7 @@ export class LawoDevice extends Device {
 	}
 
 	private async _getNodeByPath (path: string): Ember.Node {
-		return new Promise ((resolve) => {
+		return new Promise((resolve) => {
 			if (this._savedNodes[path] !== undefined) {
 				resolve(this._savedNodes[path])
 			} else {
