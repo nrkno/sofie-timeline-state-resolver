@@ -178,8 +178,7 @@ export class LawoDevice extends Device {
 			if (mapping && mapping.path && mapping.device === DeviceType.LAWO) {
 
 				if (tlObject.content.type === TimelineContentTypeLawo.LAWO) {
-					let path = mapping.path.join('/')
-					lawoState[path] = tlObject.content.value
+					lawoState[mapping.path] = tlObject.content.value
 				}
 			}
 		})
@@ -187,8 +186,7 @@ export class LawoDevice extends Device {
 		_.each(this.mapping, (mapping: MappingLawo) => {
 			if (mapping && mapping.path && mapping.device === DeviceType.LAWO && mapping.default) {
 
-				let path = mapping.path.join('/')
-				lawoState[path] = lawoState[path] || mapping.default
+				lawoState[mapping.path] = lawoState[mapping.path] || mapping.default
 			}
 		})
 
