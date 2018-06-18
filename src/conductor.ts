@@ -180,6 +180,7 @@ export class Conductor extends EventEmitter {
 			}
 
 			newDevice.on('error', (e) => this.emit('error', e))
+			newDevice.on('info', (e) => this.emit('info', e))
 
 			this.emit('info', 'Initializing ' + DeviceType[deviceOptions.type] + '...')
 			this.devices[deviceId] = newDevice
