@@ -35,7 +35,7 @@ describe('Rundown', () => {
 	test('Do a "full" rundown', async () => {
 
 		let commandReceiver0 = jest.fn(() => {
-			// nothing.
+			return Promise.resolve()
 		})
 		let cam1Mapping: MappingCasparCG = {
 			device: DeviceType.CASPARCG,

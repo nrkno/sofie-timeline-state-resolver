@@ -11,7 +11,7 @@ import { TimelineState } from 'superfly-timeline'
 */
 export interface HttpSendDeviceOptions extends DeviceOptions {
 	options?: {
-		commandReceiver?: (time: number, cmd) => void
+		commandReceiver?: (time: number, cmd) => Promise<any>
 	}
 }
 interface Command {
@@ -32,7 +32,7 @@ export class HttpSendDevice extends Device {
 	private _doOnTime: DoOnTime
 	// private _queue: Array<any>
 
-	private _commandReceiver: (time: number, cmd) => void
+	private _commandReceiver: (time: number, cmd) => Promise<any>
 
 	constructor (deviceId: string, deviceOptions: HttpSendDeviceOptions, options) {
 		super(deviceId, deviceOptions, options)
@@ -40,7 +40,10 @@ export class HttpSendDevice extends Device {
 			if (deviceOptions.options.commandReceiver) this._commandReceiver = deviceOptions.options.commandReceiver
 			else this._commandReceiver = this._defaultCommandReceiver
 		}
-		this._doOnTime = new DoOnTime(options.getCurrentTime)
+		this._doOnTime = new DoOnTime(() => {
+			return this.getCurrentTime()
+		})
+		this._doOnTime.on('error', e => this.emit(e))
 	}
 
 	/**
@@ -106,7 +109,7 @@ export class HttpSendDevice extends Device {
 					cmd.commandName === 'added' ||
 					cmd.commandName === 'changed'
 				) {
-					this._commandReceiver(time, cmd.content)
+					return this._commandReceiver(time, cmd.content)
 				}
 			}, cmd)
 		})
@@ -148,7 +151,7 @@ export class HttpSendDevice extends Device {
 		})
 		return commands
 	}
-	private _defaultCommandReceiver (time: number, cmd: CommandContent) {
+	private _defaultCommandReceiver (time: number, cmd: CommandContent): Promise<any> {
 		time = time
 		if (cmd.type === ReqestType.POST) {
 
@@ -156,38 +159,48 @@ export class HttpSendDevice extends Device {
 			// 	cmd.url,
 			// 	cmd.params
 			// )
-			request.post(
-				cmd.url, // 'http://www.yoursite.com/formpage',
-				{ json: cmd.params },
-				(error, response) => {
-					if (error) {
-						this.emit('error', 'Error in httpSend POST: ' + error)
-					} else if (response.statusCode === 200) {
-						// console.log('200 Response from ' + cmd.url, body)
-					} else {
-						// console.log(response.statusCode + ' Response from ' + cmd.url, body)
+			return new Promise((resolve, reject) => {
+				request.post(
+					cmd.url, // 'http://www.yoursite.com/formpage',
+					{ json: cmd.params },
+					(error, response) => {
+						if (error) {
+							this.emit('error', 'Error in httpSend POST: ' + error)
+							reject(error)
+						} else if (response.statusCode === 200) {
+							// console.log('200 Response from ' + cmd.url, body)
+							resolve()
+						} else {
+							// console.log(response.statusCode + ' Response from ' + cmd.url, body)
+							resolve()
+						}
 					}
-				}
-			)
+				)
+			})
 		} else if (cmd.type === ReqestType.GET) {
 
 			// console.log('Sending POST request to ',
 			// 	cmd.url,
 			// 	cmd.params
 			// )
-			request.get(
-				cmd.url, // 'http://www.yoursite.com/formpage',
-				{ json: cmd.params },
-				(error, response) => {
-					if (error) {
-						this.emit('error', 'Error in httpSend GET: ' + error)
-					} else if (response.statusCode === 200) {
-						// console.log('200 Response from ' + cmd.url, body)
-					} else {
-						// console.log(response.statusCode + ' Response from ' + cmd.url, body)
+			return new Promise((resolve, reject) => {
+				request.get(
+					cmd.url, // 'http://www.yoursite.com/formpage',
+					{ json: cmd.params },
+					(error, response) => {
+						if (error) {
+							this.emit('error', 'Error in httpSend GET: ' + error)
+							reject(error)
+						} else if (response.statusCode === 200) {
+							// console.log('200 Response from ' + cmd.url, body)
+							resolve()
+						} else {
+							// console.log(response.statusCode + ' Response from ' + cmd.url, body)
+							resolve()
+						}
 					}
-				}
-			)
+				)
+			})
 		} else throw new Error('Unknown HTTP-send type: "' + cmd.type + '"')
 	}
 }

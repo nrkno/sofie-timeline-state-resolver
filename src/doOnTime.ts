@@ -1,7 +1,7 @@
 import { EventEmitter } from 'events'
 import * as _ from 'underscore'
 
-export type DoOrderFunction = (...args: any[]) => void
+export type DoOrderFunction = (...args: any[]) => void | Promise<any> | any
 interface DoOrder {
 	time: number
 	fcn: DoOrderFunction
@@ -27,7 +27,9 @@ export class DoOnTime extends EventEmitter {
 			fcn: fcn,
 			args: args
 		}
-		this._checkQueue()
+		setTimeout(() => {
+			this._checkQueue()
+		},0)
 		return id
 	}
 	public remove (id: string) {
@@ -64,7 +66,10 @@ export class DoOnTime extends EventEmitter {
 
 		_.each(this._queue, (o: DoOrder, id: string) => {
 			if (o.time <= now) {
-				o.fcn(...o.args)
+				Promise.resolve(o.fcn(...o.args))
+				.catch((e) => {
+					this.emit('error', e)
+				})
 				this.remove(id)
 			} else {
 				if (o.time < nextTime) nextTime = o.time

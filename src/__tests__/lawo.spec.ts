@@ -33,12 +33,12 @@ describe('Lawo', () => {
 	test('Lawo: add channel', async () => {
 
 		let commandReceiver0 = jest.fn(() => {
-			// nothing.
+			return Promise.resolve()
 		})
 		let myChannelMapping0: MappingLawo = {
 			device: DeviceType.LAWO,
 			deviceId: 'myLawo',
-			path: [1, 1, 2, 3, 2],
+			path: '1.1.2.3.2',
 			default: literal<EmberPlusValueReal>({
 				type: EmberPlusValueType.REAL,
 				value: -191
@@ -112,7 +112,7 @@ describe('Lawo', () => {
 				// attribute: 'Motor dB Value',
 				type: EmberPlusValueType.REAL,
 				value: -6,
-				path: '1/1/2/3/2'
+				path: '1.1.2.3.2'
 			}
 		)
 
@@ -124,7 +124,7 @@ describe('Lawo', () => {
 				// attribute: 'Motor dB Value',
 				type: EmberPlusValueType.REAL,
 				value: -4,
-				path: '1/1/2/3/2'
+				path: '1.1.2.3.2'
 			}
 		)
 
@@ -135,7 +135,7 @@ describe('Lawo', () => {
 				// attribute: 'Motor dB Value',
 				type: EmberPlusValueType.REAL,
 				value: -191,
-				path: '1/1/2/3/2'
+				path: '1.1.2.3.2'
 			}
 		)
 	})
@@ -143,12 +143,12 @@ describe('Lawo', () => {
 	test('Lawo: change volume', async () => {
 
 		let commandReceiver0 = jest.fn(() => {
-			// nothing.
+			return Promise.resolve()
 		})
 		let myChannelMapping0: MappingLawo = {
 			device: DeviceType.LAWO,
 			deviceId: 'myLawo',
-			path: [1, 1, 2, 3, 2],
+			path: '1.1.2.3.2',
 			default: literal<EmberPlusValueReal>({
 				type: EmberPlusValueType.REAL,
 				value: -191
@@ -220,7 +220,7 @@ describe('Lawo', () => {
 		advanceTime(100)
 		expect(commandReceiver0.mock.calls[1][1]).toMatchObject(
 			{
-				path: '1/1/2/3/2',
+				path: '1.1.2.3.2',
 				// attribute: 'Motor dB Value',
 				type: EmberPlusValueType.REAL,
 				value: -15

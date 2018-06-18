@@ -34,7 +34,7 @@ describe('CasparCG', () => {
 	test('CasparCG: Play AMB for 60s', async () => {
 
 		let commandReceiver0 = jest.fn(() => {
-			// nothing.
+			return Promise.resolve()
 		})
 		let myLayerMapping0: MappingCasparCG = {
 			device: DeviceType.CASPARCG,
@@ -112,7 +112,7 @@ describe('CasparCG', () => {
 	test('CasparCG: Play IP input for 60s', async () => {
 
 		let commandReceiver0 = jest.fn(() => {
-			// nothing.
+			return Promise.resolve()
 		})
 		let myLayerMapping0: MappingCasparCG = {
 			device: DeviceType.CASPARCG,
@@ -188,7 +188,7 @@ describe('CasparCG', () => {
 	test('CasparCG: Play decklink input for 60s', async () => {
 
 		let commandReceiver0 = jest.fn(() => {
-			// nothing.
+			return Promise.resolve()
 		})
 		let myLayerMapping0: MappingCasparCG = {
 			device: DeviceType.CASPARCG,
@@ -260,7 +260,7 @@ describe('CasparCG', () => {
 	test('CasparCG: Play template for 60s', async () => {
 
 		let commandReceiver0 = jest.fn(() => {
-			// nothing.
+			return Promise.resolve()
 		})
 		let myLayerMapping0: MappingCasparCG = {
 			device: DeviceType.CASPARCG,
@@ -338,7 +338,7 @@ describe('CasparCG', () => {
 	test('CasparCG: Play template for 60s', async () => {
 
 		let commandReceiver0 = jest.fn(() => {
-			// nothing.
+			return Promise.resolve()
 		})
 		let myLayerMapping0: MappingCasparCG = {
 			device: DeviceType.CASPARCG,
@@ -410,7 +410,7 @@ describe('CasparCG', () => {
 	test('CasparCG: Play 2 routes for 60s', async () => {
 
 		let commandReceiver0 = jest.fn(() => {
-			// nothing.
+			return Promise.resolve()
 		})
 		let myLayerMapping0: MappingCasparCG = {
 			device: DeviceType.CASPARCG,
@@ -522,7 +522,7 @@ describe('CasparCG', () => {
 	test('CasparCG: AMB with transitions', async () => {
 
 		let commandReceiver0 = jest.fn(() => {
-			// nothing.
+			return Promise.resolve()
 		})
 		let myLayerMapping0: MappingCasparCG = {
 			device: DeviceType.CASPARCG,
@@ -624,7 +624,7 @@ describe('CasparCG', () => {
 	test('CasparCG: Mixer commands', async () => {
 
 		let commandReceiver0 = jest.fn(() => {
-			// nothing.
+			return Promise.resolve()
 		})
 		let myLayerMapping0: MappingCasparCG = {
 			device: DeviceType.CASPARCG,
@@ -760,7 +760,7 @@ describe('CasparCG', () => {
 	test('CasparCG: loadbg command', async () => {
 
 		let commandReceiver0 = jest.fn(() => {
-			// nothing.
+			return Promise.resolve()
 		})
 		let myLayerMapping0: MappingCasparCG = {
 			device: DeviceType.CASPARCG,
@@ -843,7 +843,7 @@ describe('CasparCG', () => {
 	test('CasparCG: Schedule Play, then change my mind', async () => {
 
 		let commandReceiver0 = jest.fn(() => {
-			// nothing.
+			return Promise.resolve()
 		})
 		let myLayerMapping0: MappingCasparCG = {
 			device: DeviceType.CASPARCG,

@@ -19,7 +19,7 @@ function deepExtend<T> (destination: T, ...sources: any[]) {
  */
 export interface AtemDeviceOptions extends DeviceOptions {
 	options?: {
-		commandReceiver?: (time: number, cmd) => void
+		commandReceiver?: (time: number, cmd) => Promise<any>
 	}
 }
 export interface AtemOptions {
@@ -43,7 +43,7 @@ export class AtemDevice extends Device {
 	private _initialized: boolean = false
 	private _connected: boolean = false // note: ideally this should be replaced by this._device.connected
 
-	private _commandReceiver: (time: number, cmd) => void
+	private _commandReceiver: (time: number, cmd) => Promise<any>
 
 	constructor (deviceId: string, deviceOptions: AtemDeviceOptions, options) {
 		super(deviceId, deviceOptions, options)
@@ -54,6 +54,7 @@ export class AtemDevice extends Device {
 		this._doOnTime = new DoOnTime(() => {
 			return this.getCurrentTime()
 		})
+		this._doOnTime.on('error', e => this.emit(e))
 	}
 
 	/**
@@ -203,7 +204,7 @@ export class AtemDevice extends Device {
 
 			// add the new commands to the queue:
 			this._doOnTime.queue(time, (cmd: AtemCommands.AbstractCommand) => {
-				this._commandReceiver(time, cmd)
+				return this._commandReceiver(time, cmd)
 			}, cmd)
 		})
 	}
@@ -238,9 +239,9 @@ export class AtemDevice extends Device {
 		return deviceState
 	}
 
-	private _defaultCommandReceiver (time: number, command: AtemCommands.AbstractCommand) {
+	private _defaultCommandReceiver (time: number, command: AtemCommands.AbstractCommand): Promise<any> {
 		time = time // seriously this needs to stop
-		this._device.sendCommand(command).then(() => {
+		return this._device.sendCommand(command).then(() => {
 			// @todo: command was acknowledged by atem, how will we check if it did what we wanted?
 		})
 	}

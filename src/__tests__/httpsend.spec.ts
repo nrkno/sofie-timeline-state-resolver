@@ -34,7 +34,7 @@ describe('HTTP-Send', () => {
 	})
 	test('POST message', async () => {
 		let commandReceiver0 = jest.fn(() => {
-			// nothing.
+			return Promise.resolve()
 		})
 		let myLayerMapping0: MappingHTTPSend = {
 			device: DeviceType.HTTPSEND,

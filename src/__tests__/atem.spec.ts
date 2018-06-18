@@ -36,7 +36,7 @@ describe('Atem', () => {
 		jest.useFakeTimers()
 
 		let commandReceiver0 = jest.fn(() => {
-			// nothing.
+			return Promise.resolve()
 		})
 		let myLayerMapping0: MappingAtem = {
 			device: DeviceType.ATEM,

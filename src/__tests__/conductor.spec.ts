@@ -39,10 +39,10 @@ describe('Conductor', () => {
 	test('Test Abstract-device functionality', async () => {
 
 		let commandReceiver0 = jest.fn(() => {
-			// nothing
+			return Promise.resolve()
 		})
 		let commandReceiver1 = jest.fn(() => {
-			// nothing
+			return Promise.resolve()
 		})
 
 		let myLayerMapping0: MappingAbstract = {
@@ -104,8 +104,8 @@ describe('Conductor', () => {
 			duration: 1000,
 			LLayer: 'myLayer1',
 			content: {
-				myAttr1: 'one',
-				myAttr2: 'two'
+				myAttr1: 'three',
+				myAttr2: 'four'
 			}
 		}
 
@@ -123,10 +123,10 @@ describe('Conductor', () => {
 		expect(device1['queue']).toHaveLength(0)
 
 		// Move forward in time
-		advanceTime(500) // to time 1500
+		advanceTime(500) // to time 10500
 
 		expect(commandReceiver0).toHaveBeenCalledTimes(1)
-		expect(commandReceiver0.mock.calls[0][0]).toEqual(10500)
+		expect(commandReceiver0.mock.calls[0][0]).toEqual(10000)
 		expect(commandReceiver0.mock.calls[0][1]).toMatchObject({
 			commandName: 'addedAbstract',
 			content: {
@@ -138,12 +138,12 @@ describe('Conductor', () => {
 		expect(commandReceiver1).toHaveBeenCalledTimes(0)
 
 		commandReceiver0.mockClear()
-		advanceTime(1000) // 2500
+		advanceTime(1000) // 11500
 
 		// expect(device0['queue']).toHaveLength(0)
 
 		expect(commandReceiver0).toHaveBeenCalledTimes(1)
-		expect(commandReceiver0.mock.calls[0][0]).toEqual(11500)
+		expect(commandReceiver0.mock.calls[0][0]).toEqual(11000)
 		expect(commandReceiver0.mock.calls[0][1]).toMatchObject({
 			commandName: 'removedAbstract',
 			content: {
@@ -153,29 +153,29 @@ describe('Conductor', () => {
 			}
 		})
 		expect(commandReceiver1).toHaveBeenCalledTimes(1)
-		expect(commandReceiver1.mock.calls[0][0]).toEqual(11500)
+		expect(commandReceiver1.mock.calls[0][0]).toEqual(11000)
 		expect(commandReceiver1.mock.calls[0][1]).toMatchObject({
 			commandName: 'addedAbstract',
 			content: {
 				GLayer: 'myLayer1',
-				myAttr1: 'one',
-				myAttr2: 'two'
+				myAttr1: 'three',
+				myAttr2: 'four'
 			}
 		})
 
 		commandReceiver0.mockClear()
 		commandReceiver1.mockClear()
-		advanceTime(3000) // 5500
+		advanceTime(3000)
 
 		expect(commandReceiver0).toHaveBeenCalledTimes(0)
 		expect(commandReceiver1).toHaveBeenCalledTimes(1)
-		expect(commandReceiver1.mock.calls[0][0]).toEqual(14500)
+		expect(commandReceiver1.mock.calls[0][0]).toEqual(12000)
 		expect(commandReceiver1.mock.calls[0][1]).toMatchObject({
 			commandName: 'removedAbstract',
 			content: {
 				GLayer: 'myLayer1',
-				myAttr1: 'one',
-				myAttr2: 'two'
+				myAttr1: 'three',
+				myAttr2: 'four'
 			}
 		})
 
@@ -200,7 +200,7 @@ describe('Conductor', () => {
 	test('Test the "Now" and "Callback-functionality', async () => {
 
 		let commandReceiver0 = jest.fn(() => {
-			// nothing
+			return Promise.resolve()
 		})
 
 		let myLayerMapping0: MappingAbstract = {
