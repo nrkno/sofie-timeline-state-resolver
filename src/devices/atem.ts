@@ -3,7 +3,7 @@ import * as underScoreDeepExtend from 'underscore-deep-extend'
 import { Device, DeviceOptions } from './device'
 import { DeviceType, MappingAtem, MappingAtemType } from './mapping'
 
-import { TimelineState, TimelineResolvedObject } from 'superfly-timeline'
+import { TimelineState } from 'superfly-timeline'
 import { Atem, VideoState, Commands as AtemCommands } from 'atem-connection'
 import { AtemState, State as DeviceState, Defaults as StateDefault } from 'atem-state'
 import { DoOnTime } from '../doOnTime'
@@ -140,7 +140,10 @@ export class AtemDevice extends Device {
 		// Convert the timeline state into something we can use easier:
 		const deviceState = this._getDefaultState()
 
-		_.each(state.LLayers, (tlObject: TimelineResolvedObject, layerName: string) => {
+		const sortedLayers = _.map(state.LLayers, (tlObject, layerName) => ({ layerName, tlObject }))
+			.sort((a,b) => a.layerName.localeCompare(b.layerName))
+
+		_.each(sortedLayers, ({ tlObject, layerName }) => {
 			let content = tlObject.content
 			const mapping = this.mapping[layerName] as MappingAtem
 			if (mapping) {
