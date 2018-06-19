@@ -29,7 +29,8 @@ export interface MappingHTTPSend extends Mapping {
 }
 export interface MappingLawo extends Mapping {
 	device: DeviceType.LAWO,
-	path: string
+	mappingType: MappingLawoType,
+	identifier: string,
 	default?: LawoStateNodeAttr
 }
 export enum MappingAtemType {
@@ -38,6 +39,9 @@ export enum MappingAtemType {
 	SuperSourceBox,
 	Auxilliary,
 	MediaPlayer
+}
+export enum MappingLawoType {
+	Source
 }
 export enum DeviceType {
 	ABSTRACT = 0,
