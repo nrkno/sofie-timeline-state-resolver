@@ -24,22 +24,28 @@ export interface LawoOptions extends DeviceOptions {
 export enum TimelineContentTypeLawo { //  Lawo-state
 	SOURCE = 'lawosource' // a general content type, possibly to be replaced by specific ones later?
 }
-interface TimelineObjLawoSource extends TimelineResolvedObject {
+export interface TimelineObjLawo extends TimelineResolvedObject {
+	content: {
+		type: TimelineContentTypeLawo,
+		attributes: {
+			[key: string]: {
+				[attr: string]: any
+				triggerValue: string // only used for trigging new command sent
+			}
+		}
+	}
+}
+export interface TimelineObjLawoSource extends TimelineObjLawo {
 	content: {
 		type: TimelineContentTypeLawo,
 		attributes: {
 			'Fader/Motor dB Value': {
 				value: number,
-				transitionDuration?: number
+				transitionDuration?: number,
+				triggerValue: string // only used for trigging new command sent
 			}
 		}
 	}
-}
-export enum EmberPlusValueType {
-	REAL 	= 'real',
-	INT 	= 'int',
-	BOOLEAN = 'boolean',
-	STRING 	= 'string'
 }
 export interface LawoSourceAttribute {
 	value: number,
@@ -48,15 +54,16 @@ export interface LawoSourceAttribute {
 export type EmberPlusValue = boolean | number | string
 
 export interface LawoState {
-	[path: string]: LawoStateNodeAttr
+	[path: string]: LawoStateNode
 }
 
-export interface LawoStateNodeAttr {
+export interface LawoStateNode {
 	type: TimelineContentTypeLawo
 	value: EmberPlusValue,
 	key: string,
 	identifier: string,
-	transitionDuration?: number
+	transitionDuration?: number,
+	triggerValue: string
 }
 export interface LawoCommand {
 	path: string,
@@ -173,18 +180,20 @@ export class LawoDevice extends Device {
 		// convert the timeline state into something we can use
 		const lawoState: LawoState = {}
 
-		_.each(state.LLayers, (tlObject: TimelineObjLawoSource, layerName: string) => {
+		_.each(state.LLayers, (tlObject: TimelineObjLawo, layerName: string) => {
 			const mapping: MappingLawo | undefined = this.mapping[layerName] as MappingLawo
 			if (mapping && mapping.identifier && mapping.device === DeviceType.LAWO) {
 
 				if (tlObject.content.type === TimelineContentTypeLawo.SOURCE) {
-					_.each(tlObject.content.attributes, (value, key) => {
+					let tlObjectSource = tlObject as TimelineObjLawoSource
+					_.each(tlObjectSource.content.attributes, (value, key) => {
 						lawoState[this._sourceNodeAttributePath(mapping.identifier, key)] = {
-							type: tlObject.content.type,
+							type: tlObjectSource.content.type,
 							key: key,
 							identifier: mapping.identifier,
 							value: value.value,
-							transitionDuration: value.transitionDuration
+							transitionDuration: value.transitionDuration,
+							triggerValue: value.triggerValue
 						}
 					})
 				}
@@ -222,22 +231,22 @@ export class LawoDevice extends Device {
 
 		let commands: Array<LawoCommand> = []
 
-		let addCommand = (path, newValue: LawoStateNodeAttr) => {
+		let addCommand = (path, newNode: LawoStateNode) => {
 			// It's a plain value:
 			commands.push({
 				path: path,
-				type: newValue.type,
-				key: newValue.key,
-				identifier: newValue.identifier,
-				value: newValue.value,
-				transitionDuration: newValue.transitionDuration
+				type: newNode.type,
+				key: newNode.key,
+				identifier: newNode.identifier,
+				value: newNode.value,
+				transitionDuration: newNode.transitionDuration
 			})
 		}
 
-		_.each(newLawoState, (newValue: LawoStateNodeAttr, path: string) => {
-			let oldValue: LawoStateNodeAttr = oldLawoState[path] || null
-			if (!_.isEqual(newValue, oldValue)) {
-				addCommand(path, newValue)
+		_.each(newLawoState, (newNode: LawoStateNode, path: string) => {
+			let oldValue: LawoStateNode = oldLawoState[path] || null
+			if (!_.isEqual(newNode, oldValue)) {
+				addCommand(path, newNode)
 			}
 		})
 		return commands
@@ -263,7 +272,11 @@ export class LawoDevice extends Device {
 	}
 
 	private _sourceNodeAttributePath (identifier: string, attributePath: string): string {
-		return `${this._sourcesPath}.${identifier}.${attributePath.replace('/', '.')}`
+		return _.compact([
+			this._sourcesPath,
+			identifier,
+			attributePath.replace('/', '.')
+		]).join('.')
 	}
 
 	// @ts-ignore no-unused-vars
