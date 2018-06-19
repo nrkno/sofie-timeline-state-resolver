@@ -1,5 +1,3 @@
-import { LawoStateNodeAttr } from './lawo'
-
 export interface Mappings {
 	[layerName: string]: Mapping
 }
@@ -29,8 +27,8 @@ export interface MappingHTTPSend extends Mapping {
 }
 export interface MappingLawo extends Mapping {
 	device: DeviceType.LAWO,
-	path: string
-	default?: LawoStateNodeAttr
+	mappingType: MappingLawoType,
+	identifier: string
 }
 export enum MappingAtemType {
 	MixEffect,
@@ -38,6 +36,9 @@ export enum MappingAtemType {
 	SuperSourceBox,
 	Auxilliary,
 	MediaPlayer
+}
+export enum MappingLawoType {
+	SOURCE = 'source'
 }
 export enum DeviceType {
 	ABSTRACT = 0,
