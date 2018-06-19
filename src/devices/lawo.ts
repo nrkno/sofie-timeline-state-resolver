@@ -14,7 +14,7 @@ import { DoOnTime } from '../doOnTime'
 */
 export interface LawoOptions extends DeviceOptions {
 	options?: {
-		commandReceiver?: (time: number, cmd) => void,
+		commandReceiver?: (time: number, cmd) => Promise<any>,
 		host?: string,
 		port?: number
 	}
@@ -80,7 +80,7 @@ export class LawoDevice extends Device {
 
 	private _savedNodes = []
 
-	private _commandReceiver: (time: number, cmd: LawoCommand) => void
+	private _commandReceiver: (time: number, cmd: LawoCommand) => Promise<any>
 
 	constructor (deviceId: string, deviceOptions: LawoOptions, options) {
 		super(deviceId, deviceOptions, options)
@@ -104,6 +104,7 @@ export class LawoDevice extends Device {
 		this._doOnTime = new DoOnTime(() => {
 			return this.getCurrentTime()
 		})
+		this._doOnTime.on('error', e => this.emit(e))
 
 		this._device = new DeviceTree(host, port)
 		this._device.on('error', (e) => {
@@ -164,7 +165,6 @@ export class LawoDevice extends Device {
 	clearFuture (clearAfterTime: number) {
 		// Clear any scheduled commands after this time
 		this._doOnTime.clearQueueAfter(clearAfterTime)
-		// this._queue = _.reject(this._queue, (q) => { return q.time > clearAfterTime })
 	}
 	get connected (): boolean {
 		return false
@@ -178,8 +178,7 @@ export class LawoDevice extends Device {
 			if (mapping && mapping.path && mapping.device === DeviceType.LAWO) {
 
 				if (tlObject.content.type === TimelineContentTypeLawo.LAWO) {
-					let path = mapping.path.join('/')
-					lawoState[path] = tlObject.content.value
+					lawoState[mapping.path] = tlObject.content.value
 				}
 			}
 		})
@@ -187,8 +186,7 @@ export class LawoDevice extends Device {
 		_.each(this.mapping, (mapping: MappingLawo) => {
 			if (mapping && mapping.path && mapping.device === DeviceType.LAWO && mapping.default) {
 
-				let path = mapping.path.join('/')
-				lawoState[path] = lawoState[path] || mapping.default
+				lawoState[mapping.path] = lawoState[mapping.path] || mapping.default
 			}
 		})
 
@@ -215,7 +213,7 @@ export class LawoDevice extends Device {
 
 			// add the new commands to the queue:
 			this._doOnTime.queue(time, (cmd: LawoCommand) => {
-				this._commandReceiver(time, cmd)
+				return this._commandReceiver(time, cmd)
 			}, cmd)
 		})
 	}
@@ -260,8 +258,8 @@ export class LawoDevice extends Device {
 		return commands
 	}
 
-	private async _getNodeByPath (path: string): Ember.Node {
-		return new Promise((resolve) => {
+	private async _getNodeByPath (path: string): Promise<Ember.Node> {
+		return new Promise((resolve, reject) => {
 			if (this._savedNodes[path] !== undefined) {
 				resolve(this._savedNodes[path])
 			} else {
@@ -270,14 +268,17 @@ export class LawoDevice extends Device {
 					this._savedNodes[path] = node
 					resolve(node)
 				})
-				.catch((e) => this.emit('error', `Path error: ${e.toString()}`))
+				.catch((e) => {
+					this.emit('error', `Path error: ${e.toString()}`)
+					reject(e)
+				})
 
 			}
 		})
 	}
 
 	// @ts-ignore no-unused-vars
-	private _defaultCommandReceiver (time: number, command: LawoCommand) {
+	private _defaultCommandReceiver (time: number, command: LawoCommand): Promise<any> {
 		this.emit('info', `Ember command: ${JSON.stringify(command)}`)
 
 		// if (command.transitionDuration && command.attribute === 'Motor dB Value') { // I don't think we can transition any other values
@@ -289,12 +290,14 @@ export class LawoDevice extends Device {
 
 		// TODO: this._mappingToAttributes is dependent of this.mappings, which we should not have any dependencies to at this point
 
-		this._getNodeByPath(command.path)
-			.then((node: any) => {
-				this._device.setValue(node, new Ember.ParameterContents(command.value, 'real'))
-				.then((res) => this.emit('info', `Ember result: ${JSON.stringify(res)}`))
-				.catch((e) => console.log(e))
-			})
-			.catch((e) => this.emit('error', `Ember command error: ${e.toString()}`))
+		return this._getNodeByPath(command.path)
+		.then((node: any) => {
+			this._device.setValue(node, new Ember.ParameterContents(command.value, 'real'))
+			.then((res) => this.emit('info', `Ember result: ${JSON.stringify(res)}`))
+			.catch((e) => console.log(e))
+		})
+		.catch((e) => {
+			this.emit('error', `Ember command error: ${e.toString()}`)
+		})
 	}
 }

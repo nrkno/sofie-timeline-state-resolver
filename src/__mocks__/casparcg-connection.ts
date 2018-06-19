@@ -67,6 +67,9 @@ export class CasparCG extends EventEmitter {
 			resolve(cmd)
 		})
 	}
+	clear (channel) {
+		return this.do(new AMCP.ClearCommand({ channel }))
+	}
 
 	time (channel: number) {
 		return new Promise((resolve) => {

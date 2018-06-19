@@ -15,7 +15,7 @@ import { Conductor } from '../conductor'
 */
 export interface CasparCGDeviceOptions extends DeviceOptions {
 	options?: {
-		commandReceiver?: (time: number, cmd) => void
+		commandReceiver?: (time: number, cmd: CommandNS.IAMCPCommand) => Promise<any>
 		/* Timecode base of channel */
 		timeBase?: {[channel: string]: number} | number
 	}
@@ -42,7 +42,7 @@ export class CasparCGDevice extends Device {
 	private _conductor: Conductor
 	private _ccgState: CasparCGState
 	private _queue: { [key: string]: number } = {}
-	private _commandReceiver: (time: number, cmd) => void
+	private _commandReceiver: (time: number, cmd: CommandNS.IAMCPCommand) => Promise<any>
 	private _timeToTimecodeMap: {time: number, timecode: number} = { time: 0, timecode: 0 }
 	private _timeBase: {[channel: string]: number} | number = {}
 
@@ -159,7 +159,7 @@ export class CasparCGDevice extends Device {
 			if (this._queue[token] < now) {
 				delete this._queue[token]
 			} else if (this._queue[token] === newState.time) {
-				this._commandReceiver(this.getCurrentTime(), new AMCP.ScheduleRemoveCommand(token))
+				this._doCommand(new AMCP.ScheduleRemoveCommand(token))
 				delete this._queue[token]
 			}
 		}
@@ -175,7 +175,9 @@ export class CasparCGDevice extends Device {
 	clearFuture (clearAfterTime: number) {
 		// Clear any scheduled commands after this time
 		for (let token in this._queue) {
-			if (this._queue[token] > clearAfterTime) this._commandReceiver(this.getCurrentTime(), new AMCP.ScheduleRemoveCommand(token))
+			if (this._queue[token] > clearAfterTime) {
+				this._doCommand(new AMCP.ScheduleRemoveCommand(token))
+			}
 		}
 	}
 	get connected (): boolean {
@@ -390,6 +392,58 @@ export class CasparCGDevice extends Device {
 
 	}
 
+	makeReady (okToDestoryStuff?: boolean): Promise<void> {
+		// Sync Caspar Time to our time:
+		return this._ccg.info()
+		.then((command) => {
+			let channels: any = command.response.data
+
+			// console.log('channels', channels)
+
+			let p = Promise.resolve()
+			_.each(channels, (channel: any) => {
+
+				let channelNo = channel.channel
+				// let fps = channel.channelRate
+				let startTime
+				p = p.then(() => {
+
+					startTime = this.getCurrentTime()
+					return this._commandReceiver(startTime, new AMCP.CustomCommand({
+						command: (
+							'TIME ' + channelNo + ' ' + this.convertTimeToTimecode(startTime, channelNo)
+						)
+					}))
+				})
+				.then(() => {
+					let duration = this.getCurrentTime() - startTime
+					if (duration > 20) { // @todo: acceptable time is dependent on fps
+						throw Error('Caspar Time command took too long ("' + duration + '")')
+					}
+				})
+			})
+			// Clear all channels (?)
+			p = p.then(() => {
+				if (okToDestoryStuff) {
+					return Promise.all(
+						_.map(channels, (channel: any) => {
+							return this._commandReceiver(this.getCurrentTime(), new AMCP.ClearCommand({
+								channel: channel.channel
+							}))
+						})
+					).then(() => { return })
+				}
+				return Promise.resolve()
+			})
+			return p.then(() => { return })
+		})
+		.then(() => {
+			// reset our own state(s):
+			this.clearStates()
+			// a resolveTimeline will be triggered later
+		})
+	}
+
 	private _diffStates (oldState, newState): Array<CommandNS.IAMCPCommandVO> {
 		let commands: Array<{
 			cmds: Array<CommandNS.IAMCPCommandVO>
@@ -403,6 +457,10 @@ export class CasparCGDevice extends Device {
 		})
 
 		return returnCommands
+	}
+	private _doCommand (command): void {
+		this._commandReceiver(this.getCurrentTime(), command)
+		.catch(e => this.emit('error', e))
 	}
 
 	private _addToQueue (commandsToAchieveState: Array<CommandNS.IAMCPCommandVO>, oldState: TimelineState, time: number) {
@@ -423,7 +481,7 @@ export class CasparCGDevice extends Device {
 							command
 						})
 					}
-					this._commandReceiver(this.getCurrentTime(), scheduleCommand)
+					this._doCommand(scheduleCommand)
 
 					cmd._objectParams = {
 						channel: cmd.channel,
@@ -441,16 +499,16 @@ export class CasparCGDevice extends Device {
 			})
 
 			if (time <= this.getCurrentTime()) {
-				this._commandReceiver(this.getCurrentTime(), command)
+				this._doCommand(command)
 			} else {
-				this._commandReceiver(this.getCurrentTime(), scheduleCommand)
+				this._doCommand(scheduleCommand)
 				this._queue[command.token] = time
 			}
 		})
 	}
-	private _defaultCommandReceiver (time: number, cmd) {
+	private _defaultCommandReceiver (time: number, cmd): Promise<any> {
 		time = time
-		this._ccg.do(cmd)
+		return this._ccg.do(cmd)
 		.then((resCommand) => {
 			if (this._queue[resCommand.token]) {
 				delete this._queue[resCommand.token]

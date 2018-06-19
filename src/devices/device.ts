@@ -110,6 +110,27 @@ export class Device extends EventEmitter {
 			delete this._states[time]
 		})
 	}
+	/**
+	 * The makeReady method could be triggered at a time before broadcast
+	 * Whenever we know that the user want's to make sure things are ready for broadcast
+	 * The exact implementation differ between different devices
+	 * @param okToDestoryStuff If true, the device may do things that might affect the output (temporarily)
+	 */
+	makeReady (okToDestoryStuff?: boolean): Promise<void> {
+		// This method should be overwritten by child
+		okToDestoryStuff = okToDestoryStuff
+		return Promise.resolve()
+	}
+	/**
+	 * The standDown event could be triggered at a time after broadcast
+	 * The exact implementation differ between different devices
+	 * @param okToDestoryStuff If true, the device may do things that might affect the output (temporarily)
+	 */
+	standDown (okToDestoryStuff?: boolean): Promise<void> {
+		// This method should be overwritten by child
+		okToDestoryStuff = okToDestoryStuff
+		return Promise.resolve()
+	}
 
 	get mapping (): Mappings {
 		return this._mappings

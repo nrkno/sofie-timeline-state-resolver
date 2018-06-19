@@ -80,6 +80,7 @@ export class Conductor extends EventEmitter {
 		this._doOnTime = new DoOnTime(() => {
 			return this.getCurrentTime()
 		})
+		this._doOnTime.on('error', e => this.emit(e))
 		// this._doOnTime.on('callback', (...args) => {
 		// 	this.emit('timelineCallback', ...args)
 		// })
@@ -227,6 +228,31 @@ export class Conductor extends EventEmitter {
 		this._nextResolveTime = 0 // This will cause _resolveTimeline() to generate the state for NOW
 
 		this._triggerResolveTimeline()
+	}
+	/**
+	 * Send a makeReady-trigger to all devices
+	 */
+	public devicesMakeReady (okToDestoryStuff?: boolean): Promise<void> {
+		let p = Promise.resolve()
+		_.each(this.devices, (device: Device) => {
+			p = p.then(() => {
+				return device.makeReady(okToDestoryStuff)
+			})
+		})
+		this._resolveTimeline()
+		return p
+	}
+	/**
+	 * Send a standDown-trigger to all devices
+	 */
+	public devicesStandDown (okToDestoryStuff?: boolean): Promise<void> {
+		let p = Promise.resolve()
+		_.each(this.devices, (device: Device) => {
+			p = p.then(() => {
+				return device.standDown(okToDestoryStuff)
+			})
+		})
+		return p
 	}
 	/**
 	 * This is the main resolve-loop.

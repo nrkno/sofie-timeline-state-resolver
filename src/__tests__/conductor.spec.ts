@@ -39,10 +39,10 @@ describe('Conductor', () => {
 	test('Test Abstract-device functionality', async () => {
 
 		let commandReceiver0 = jest.fn(() => {
-			// nothing
+			return Promise.resolve()
 		})
 		let commandReceiver1 = jest.fn(() => {
-			// nothing
+			return Promise.resolve()
 		})
 
 		let myLayerMapping0: MappingAbstract = {
@@ -104,8 +104,8 @@ describe('Conductor', () => {
 			duration: 1000,
 			LLayer: 'myLayer1',
 			content: {
-				myAttr1: 'one',
-				myAttr2: 'two'
+				myAttr1: 'three',
+				myAttr2: 'four'
 			}
 		}
 
@@ -123,10 +123,10 @@ describe('Conductor', () => {
 		expect(device1['queue']).toHaveLength(0)
 
 		// Move forward in time
-		advanceTime(500) // to time 1500
+		advanceTime(500) // to time 10500
 
 		expect(commandReceiver0).toHaveBeenCalledTimes(1)
-		expect(commandReceiver0.mock.calls[0][0]).toEqual(10500)
+		expect(commandReceiver0.mock.calls[0][0]).toEqual(10000)
 		expect(commandReceiver0.mock.calls[0][1]).toMatchObject({
 			commandName: 'addedAbstract',
 			content: {
@@ -138,12 +138,12 @@ describe('Conductor', () => {
 		expect(commandReceiver1).toHaveBeenCalledTimes(0)
 
 		commandReceiver0.mockClear()
-		advanceTime(1000) // 2500
+		advanceTime(1000) // 11500
 
 		// expect(device0['queue']).toHaveLength(0)
 
 		expect(commandReceiver0).toHaveBeenCalledTimes(1)
-		expect(commandReceiver0.mock.calls[0][0]).toEqual(11500)
+		expect(commandReceiver0.mock.calls[0][0]).toEqual(11000)
 		expect(commandReceiver0.mock.calls[0][1]).toMatchObject({
 			commandName: 'removedAbstract',
 			content: {
@@ -153,29 +153,29 @@ describe('Conductor', () => {
 			}
 		})
 		expect(commandReceiver1).toHaveBeenCalledTimes(1)
-		expect(commandReceiver1.mock.calls[0][0]).toEqual(11500)
+		expect(commandReceiver1.mock.calls[0][0]).toEqual(11000)
 		expect(commandReceiver1.mock.calls[0][1]).toMatchObject({
 			commandName: 'addedAbstract',
 			content: {
 				GLayer: 'myLayer1',
-				myAttr1: 'one',
-				myAttr2: 'two'
+				myAttr1: 'three',
+				myAttr2: 'four'
 			}
 		})
 
 		commandReceiver0.mockClear()
 		commandReceiver1.mockClear()
-		advanceTime(3000) // 5500
+		advanceTime(3000)
 
 		expect(commandReceiver0).toHaveBeenCalledTimes(0)
 		expect(commandReceiver1).toHaveBeenCalledTimes(1)
-		expect(commandReceiver1.mock.calls[0][0]).toEqual(14500)
+		expect(commandReceiver1.mock.calls[0][0]).toEqual(12000)
 		expect(commandReceiver1.mock.calls[0][1]).toMatchObject({
 			commandName: 'removedAbstract',
 			content: {
 				GLayer: 'myLayer1',
-				myAttr1: 'one',
-				myAttr2: 'two'
+				myAttr1: 'three',
+				myAttr2: 'four'
 			}
 		})
 
@@ -200,7 +200,7 @@ describe('Conductor', () => {
 	test('Test the "Now" and "Callback-functionality', async () => {
 
 		let commandReceiver0 = jest.fn(() => {
-			// nothing
+			return Promise.resolve()
 		})
 
 		let myLayerMapping0: MappingAbstract = {
@@ -316,5 +316,92 @@ describe('Conductor', () => {
 
 		expect(commandReceiver0).toHaveBeenCalledTimes(3)
 
+	})
+
+	test('devicesMakeReady', async () => {
+		let commandReceiver0 = jest.fn(() => {
+			return Promise.resolve()
+		})
+		let commandReceiver1 = jest.fn(() => {
+			return Promise.resolve()
+		})
+		let commandReceiver2 = jest.fn(() => {
+			return Promise.resolve()
+		})
+		let commandReceiver3 = jest.fn(() => {
+			return Promise.resolve()
+		})
+		let commandReceiver4 = jest.fn(() => {
+			return Promise.resolve()
+		})
+
+		let conductor = new Conductor({
+			externalLog: externalLog,
+			initializeAsClear: true,
+			getCurrentTime: getCurrentTime
+		})
+
+		await conductor.init()
+		await conductor.addDevice('device0', {
+			type: DeviceType.ABSTRACT,
+			options: {
+				commandReceiver: commandReceiver0
+			}
+		})
+		await conductor.addDevice('device1', {
+			type: DeviceType.CASPARCG,
+			options: {
+				commandReceiver: commandReceiver1
+			}
+		})
+		await conductor.addDevice('device2', {
+			type: DeviceType.ATEM,
+			options: {
+				commandReceiver: commandReceiver2
+			}
+		})
+		await conductor.addDevice('device3', {
+			type: DeviceType.HTTPSEND,
+			options: {
+				commandReceiver: commandReceiver3
+			}
+		})
+		await conductor.addDevice('device4', {
+			type: DeviceType.LAWO,
+			options: {
+				commandReceiver: commandReceiver4
+			}
+		})
+
+		await conductor.devicesMakeReady(true)
+
+		advanceTime(10) // to allow for commands to be sent
+
+		expect(commandReceiver1).toHaveBeenCalledTimes(6)
+		expect(commandReceiver1.mock.calls[0][1].name).toEqual('CustomCommand')
+		expect(commandReceiver1.mock.calls[0][1]._objectParams).toMatchObject({
+			command: 'TIME 1 00:00:10:00'
+		})
+		expect(commandReceiver1.mock.calls[1][1].name).toEqual('CustomCommand')
+		expect(commandReceiver1.mock.calls[1][1]._objectParams).toMatchObject({
+			command: 'TIME 2 00:00:10:00'
+		})
+		expect(commandReceiver1.mock.calls[2][1].name).toEqual('CustomCommand')
+		expect(commandReceiver1.mock.calls[2][1]._objectParams).toMatchObject({
+			command: 'TIME 3 00:00:10:00'
+		})
+
+		expect(commandReceiver1.mock.calls[3][1].name).toEqual('ClearCommand')
+		expect(commandReceiver1.mock.calls[3][1]._objectParams).toMatchObject({
+			channel: 1
+		})
+		expect(commandReceiver1.mock.calls[4][1].name).toEqual('ClearCommand')
+		expect(commandReceiver1.mock.calls[4][1]._objectParams).toMatchObject({
+			channel: 2
+		})
+		expect(commandReceiver1.mock.calls[5][1].name).toEqual('ClearCommand')
+		expect(commandReceiver1.mock.calls[5][1]._objectParams).toMatchObject({
+			channel: 3
+		})
 	})
 })
