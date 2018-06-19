@@ -20,6 +20,7 @@ interface Command {
 }
 enum ReqestType {
 	POST = 'post',
+	PUT = 'put',
 	GET = 'get'
 }
 interface CommandContent {
@@ -157,10 +158,6 @@ export class HttpSendDevice extends Device {
 		time = time
 		if (cmd.type === ReqestType.POST) {
 
-			// console.log('Sending POST request to ',
-			// 	cmd.url,
-			// 	cmd.params
-			// )
 			return new Promise((resolve, reject) => {
 				request.post(
 					cmd.url, // 'http://www.yoursite.com/formpage',
@@ -168,6 +165,26 @@ export class HttpSendDevice extends Device {
 					(error, response) => {
 						if (error) {
 							this.emit('error', 'Error in httpSend POST: ' + error)
+							reject(error)
+						} else if (response.statusCode === 200) {
+							// console.log('200 Response from ' + cmd.url, body)
+							resolve()
+						} else {
+							// console.log(response.statusCode + ' Response from ' + cmd.url, body)
+							resolve()
+						}
+					}
+				)
+			})
+		} else if (cmd.type === ReqestType.PUT) {
+
+			return new Promise((resolve, reject) => {
+				request.put(
+					cmd.url, // 'http://www.yoursite.com/formpage',
+					{ json: cmd.params },
+					(error, response) => {
+						if (error) {
+							this.emit('error', 'Error in httpSend PUT: ' + error)
 							reject(error)
 						} else if (response.statusCode === 200) {
 							// console.log('200 Response from ' + cmd.url, body)
