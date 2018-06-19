@@ -110,6 +110,8 @@ export class HttpSendDevice extends Device {
 					cmd.commandName === 'changed'
 				) {
 					return this._commandReceiver(time, cmd.content)
+				} else {
+					return null
 				}
 			}, cmd)
 		})
