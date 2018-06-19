@@ -239,6 +239,7 @@ export class Conductor extends EventEmitter {
 				return device.makeReady(okToDestoryStuff)
 			})
 		})
+		this._resolveTimeline()
 		return p
 	}
 	/**
