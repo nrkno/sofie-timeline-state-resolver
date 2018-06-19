@@ -270,7 +270,7 @@ export class LawoDevice extends Device {
 	private _defaultCommandReceiver (time: number, command: LawoCommand): Promise<any> {
 		if (command.key === 'Fader/Motor dB Value') {	// fader level
 			if (command.transitionDuration && command.transitionDuration > 0) {	// with timed fader movement
-				return this._device.invokeFunction(new Ember.QualifiedFunction(this._rampMotorFunctionPath), [command.identifier, new Ember.ParameterContents(command.value, 'real'), new Ember.ParameterContents(command.transitionDuration * 5 / 1000, 'real')])
+				return this._device.invokeFunction(new Ember.QualifiedFunction(this._rampMotorFunctionPath), [command.identifier, new Ember.ParameterContents(command.value, 'real'), new Ember.ParameterContents(command.transitionDuration / 1000, 'real')])
 				.then((res) => this.emit('info', `Ember function result: ${JSON.stringify(res)}`))
 					.catch((e) => {
 						this.emit('error', `Ember function command error: ${e.toString()}`)
