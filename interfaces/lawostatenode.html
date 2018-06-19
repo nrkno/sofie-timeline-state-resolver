@@ -3,7 +3,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<title>EmberPlusValueType | timeline-state-resolver</title>
+	<title>LawoStateNode | timeline-state-resolver</title>
 	<meta name="description" content="">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<style type="text/css">/*! normalize.css v1.1.3 | MIT License | git.io/normalize */
@@ -909,20 +909,26 @@ img { max-width: 100%; }
 </header>
 <nav class="tsd-navigation secondary">
 	<ul>
-		<li class="current tsd-kind-enum tsd-is-external">
-			<a href="emberplusvaluetype.html" class="tsd-kind-icon">Ember<wbr>Plus<wbr>Value<wbr>Type</a>
+		<li class="current tsd-kind-interface tsd-is-external">
+			<a href="lawostatenode.html" class="tsd-kind-icon">Lawo<wbr>State<wbr>Node</a>
 			<ul>
-				<li class=" tsd-kind-enum-member tsd-parent-kind-enum tsd-is-external">
-					<a href="emberplusvaluetype.html#boolean" class="tsd-kind-icon">BOOLEAN</a>
+				<li class=" tsd-kind-property tsd-parent-kind-interface tsd-is-external">
+					<a href="lawostatenode.html#identifier" class="tsd-kind-icon">identifier</a>
 				</li>
-				<li class=" tsd-kind-enum-member tsd-parent-kind-enum tsd-is-external">
-					<a href="emberplusvaluetype.html#int" class="tsd-kind-icon">INT</a>
+				<li class=" tsd-kind-property tsd-parent-kind-interface tsd-is-external">
+					<a href="lawostatenode.html#key" class="tsd-kind-icon">key</a>
 				</li>
-				<li class=" tsd-kind-enum-member tsd-parent-kind-enum tsd-is-external">
-					<a href="emberplusvaluetype.html#real" class="tsd-kind-icon">REAL</a>
+				<li class=" tsd-kind-property tsd-parent-kind-interface tsd-is-external">
+					<a href="lawostatenode.html#transitionduration" class="tsd-kind-icon">transition<wbr>Duration</a>
 				</li>
-				<li class=" tsd-kind-enum-member tsd-parent-kind-enum tsd-is-external">
-					<a href="emberplusvaluetype.html#string" class="tsd-kind-icon">STRING</a>
+				<li class=" tsd-kind-property tsd-parent-kind-interface tsd-is-external">
+					<a href="lawostatenode.html#triggervalue" class="tsd-kind-icon">trigger<wbr>Value</a>
+				</li>
+				<li class=" tsd-kind-property tsd-parent-kind-interface tsd-is-external">
+					<a href="lawostatenode.html#type" class="tsd-kind-icon">type</a>
+				</li>
+				<li class=" tsd-kind-property tsd-parent-kind-interface tsd-is-external">
+					<a href="lawostatenode.html#value" class="tsd-kind-icon">value</a>
 				</li>
 			</ul>
 		</li>
@@ -930,61 +936,91 @@ img { max-width: 100%; }
 </nav>
 <div class="container container-main">
 	<div class="content-wrap">
+		<section class="tsd-panel tsd-hierarchy">
+			<h3>Hierarchy</h3>
+			<ul class="tsd-hierarchy">
+				<li>
+					<span class="target">LawoStateNode</span>
+				</li>
+			</ul>
+		</section>
 		<section class="tsd-panel-group tsd-index-group">
 			<h2>Index</h2>
 			<section class="tsd-panel tsd-index-panel">
 				<div class="tsd-index-content">
 					<section class="tsd-index-section tsd-is-external">
-						<h3>Enumeration members</h3>
+						<h3>Properties</h3>
 						<ul class="tsd-index-list">
-							<li class="tsd-kind-enum-member tsd-parent-kind-enum tsd-is-external"><a href="emberplusvaluetype.html#boolean" class="tsd-kind-icon">BOOLEAN</a></li>
-							<li class="tsd-kind-enum-member tsd-parent-kind-enum tsd-is-external"><a href="emberplusvaluetype.html#int" class="tsd-kind-icon">INT</a></li>
-							<li class="tsd-kind-enum-member tsd-parent-kind-enum tsd-is-external"><a href="emberplusvaluetype.html#real" class="tsd-kind-icon">REAL</a></li>
-							<li class="tsd-kind-enum-member tsd-parent-kind-enum tsd-is-external"><a href="emberplusvaluetype.html#string" class="tsd-kind-icon">STRING</a></li>
+							<li class="tsd-kind-property tsd-parent-kind-interface tsd-is-external"><a href="lawostatenode.html#identifier" class="tsd-kind-icon">identifier</a></li>
+							<li class="tsd-kind-property tsd-parent-kind-interface tsd-is-external"><a href="lawostatenode.html#key" class="tsd-kind-icon">key</a></li>
+							<li class="tsd-kind-property tsd-parent-kind-interface tsd-is-external"><a href="lawostatenode.html#transitionduration" class="tsd-kind-icon">transition<wbr>Duration</a></li>
+							<li class="tsd-kind-property tsd-parent-kind-interface tsd-is-external"><a href="lawostatenode.html#triggervalue" class="tsd-kind-icon">trigger<wbr>Value</a></li>
+							<li class="tsd-kind-property tsd-parent-kind-interface tsd-is-external"><a href="lawostatenode.html#type" class="tsd-kind-icon">type</a></li>
+							<li class="tsd-kind-property tsd-parent-kind-interface tsd-is-external"><a href="lawostatenode.html#value" class="tsd-kind-icon">value</a></li>
 						</ul>
 					</section>
 				</div>
 			</section>
 		</section>
 		<section class="tsd-panel-group tsd-member-group tsd-is-external">
-			<h2>Enumeration members</h2>
-			<section class="tsd-panel tsd-member tsd-kind-enum-member tsd-parent-kind-enum tsd-is-external">
-				<a name="boolean" class="tsd-anchor"></a>
-				<h3>BOOLEAN</h3>
-				<div class="tsd-signature tsd-kind-icon">BOOLEAN<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol"> =&nbsp;&quot;boolean&quot;</span></div>
+			<h2>Properties</h2>
+			<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface tsd-is-external">
+				<a name="identifier" class="tsd-anchor"></a>
+				<h3>identifier</h3>
+				<div class="tsd-signature tsd-kind-icon">identifier<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/e8aa2ec/src/devices/lawo.ts#L34">devices/lawo.ts:34</a></li>
+						<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/1c45020/src/devices/lawo.ts#L64">devices/lawo.ts:64</a></li>
 					</ul>
 				</aside>
 			</section>
-			<section class="tsd-panel tsd-member tsd-kind-enum-member tsd-parent-kind-enum tsd-is-external">
-				<a name="int" class="tsd-anchor"></a>
-				<h3>INT</h3>
-				<div class="tsd-signature tsd-kind-icon">INT<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol"> =&nbsp;&quot;int&quot;</span></div>
+			<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface tsd-is-external">
+				<a name="key" class="tsd-anchor"></a>
+				<h3>key</h3>
+				<div class="tsd-signature tsd-kind-icon">key<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/e8aa2ec/src/devices/lawo.ts#L33">devices/lawo.ts:33</a></li>
+						<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/1c45020/src/devices/lawo.ts#L63">devices/lawo.ts:63</a></li>
 					</ul>
 				</aside>
 			</section>
-			<section class="tsd-panel tsd-member tsd-kind-enum-member tsd-parent-kind-enum tsd-is-external">
-				<a name="real" class="tsd-anchor"></a>
-				<h3>REAL</h3>
-				<div class="tsd-signature tsd-kind-icon">REAL<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol"> =&nbsp;&quot;real&quot;</span></div>
+			<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface tsd-is-external">
+				<a name="transitionduration" class="tsd-anchor"></a>
+				<h3><span class="tsd-flag ts-flagOptional">Optional</span> transition<wbr>Duration</h3>
+				<div class="tsd-signature tsd-kind-icon">transition<wbr>Duration<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">number</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/e8aa2ec/src/devices/lawo.ts#L32">devices/lawo.ts:32</a></li>
+						<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/1c45020/src/devices/lawo.ts#L65">devices/lawo.ts:65</a></li>
 					</ul>
 				</aside>
 			</section>
-			<section class="tsd-panel tsd-member tsd-kind-enum-member tsd-parent-kind-enum tsd-is-external">
-				<a name="string" class="tsd-anchor"></a>
-				<h3>STRING</h3>
-				<div class="tsd-signature tsd-kind-icon">STRING<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol"> =&nbsp;&quot;string&quot;</span></div>
+			<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface tsd-is-external">
+				<a name="triggervalue" class="tsd-anchor"></a>
+				<h3>trigger<wbr>Value</h3>
+				<div class="tsd-signature tsd-kind-icon">trigger<wbr>Value<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/e8aa2ec/src/devices/lawo.ts#L35">devices/lawo.ts:35</a></li>
+						<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/1c45020/src/devices/lawo.ts#L66">devices/lawo.ts:66</a></li>
+					</ul>
+				</aside>
+			</section>
+			<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface tsd-is-external">
+				<a name="type" class="tsd-anchor"></a>
+				<h3>type</h3>
+				<div class="tsd-signature tsd-kind-icon">type<span class="tsd-signature-symbol">:</span> <a href="../enums/timelinecontenttypelawo.html" class="tsd-signature-type">TimelineContentTypeLawo</a></div>
+				<aside class="tsd-sources">
+					<ul>
+						<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/1c45020/src/devices/lawo.ts#L61">devices/lawo.ts:61</a></li>
+					</ul>
+				</aside>
+			</section>
+			<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface tsd-is-external">
+				<a name="value" class="tsd-anchor"></a>
+				<h3>value</h3>
+				<div class="tsd-signature tsd-kind-icon">value<span class="tsd-signature-symbol">:</span> <a href="../globals.html#emberplusvalue" class="tsd-signature-type">EmberPlusValue</a></div>
+				<aside class="tsd-sources">
+					<ul>
+						<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/1c45020/src/devices/lawo.ts#L62">devices/lawo.ts:62</a></li>
 					</ul>
 				</aside>
 			</section>
