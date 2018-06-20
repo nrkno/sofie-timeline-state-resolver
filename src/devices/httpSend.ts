@@ -44,7 +44,7 @@ export class HttpSendDevice extends Device {
 		this._doOnTime = new DoOnTime(() => {
 			return this.getCurrentTime()
 		})
-		this._doOnTime.on('error', e => this.emit(e))
+		this._doOnTime.on('error', e => this.emit('error', e))
 	}
 
 	/**
