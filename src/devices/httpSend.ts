@@ -220,6 +220,8 @@ export class HttpSendDevice extends Device {
 					}
 				)
 			})
-		} else throw new Error('Unknown HTTP-send type: "' + cmd.type + '"')
+		} else {
+			return Promise.reject('Unknown HTTP-send type: "' + cmd.type + '"')
+		}
 	}
 }
