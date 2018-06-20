@@ -156,6 +156,7 @@ export class HttpSendDevice extends Device {
 	}
 	private _defaultCommandReceiver (time: number, cmd: CommandContent): Promise<any> {
 		time = time
+		this.emit('info', 'HTTP: Send ', cmd)
 		if (cmd.type === ReqestType.POST) {
 
 			return new Promise((resolve, reject) => {
