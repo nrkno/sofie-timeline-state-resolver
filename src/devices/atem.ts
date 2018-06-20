@@ -173,8 +173,7 @@ export class AtemDevice extends Device {
 							break
 						case MappingAtemType.Auxilliary:
 							if (content.type === TimelineContentTypeAtem.AUX) {
-								let aux = deviceState.video.auxilliaries[mapping.index]
-								if (aux) deepExtend(aux, content.attributes)
+								deviceState.video.auxilliaries[mapping.index] = content.attributes.input
 							}
 							break
 						case MappingAtemType.MediaPlayer:
