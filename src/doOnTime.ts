@@ -66,10 +66,14 @@ export class DoOnTime extends EventEmitter {
 
 		_.each(this._queue, (o: DoOrder, id: string) => {
 			if (o.time <= now) {
-				Promise.resolve(o.fcn(...o.args))
-				.catch((e) => {
+				try {
+					Promise.resolve(o.fcn(...o.args))
+					.catch((e) => {
+						this.emit('error', e)
+					})
+				} catch (e) {
 					this.emit('error', e)
-				})
+				}
 				this.remove(id)
 			} else {
 				if (o.time < nextTime) nextTime = o.time

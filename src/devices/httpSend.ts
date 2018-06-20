@@ -44,7 +44,7 @@ export class HttpSendDevice extends Device {
 		this._doOnTime = new DoOnTime(() => {
 			return this.getCurrentTime()
 		})
-		this._doOnTime.on('error', e => this.emit(e))
+		this._doOnTime.on('error', e => this.emit('error', e))
 	}
 
 	/**
@@ -156,6 +156,7 @@ export class HttpSendDevice extends Device {
 	}
 	private _defaultCommandReceiver (time: number, cmd: CommandContent): Promise<any> {
 		time = time
+		this.emit('info', 'HTTP: Send ', cmd)
 		if (cmd.type === ReqestType.POST) {
 
 			return new Promise((resolve, reject) => {
@@ -220,6 +221,8 @@ export class HttpSendDevice extends Device {
 					}
 				)
 			})
-		} else throw new Error('Unknown HTTP-send type: "' + cmd.type + '"')
+		} else {
+			return Promise.reject('Unknown HTTP-send type: "' + cmd.type + '"')
+		}
 	}
 }

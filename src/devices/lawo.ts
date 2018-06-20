@@ -47,10 +47,6 @@ export interface TimelineObjLawoSource extends TimelineObjLawo {
 		}
 	}
 }
-export interface LawoSourceAttribute {
-	value: number,
-	transitionDuration?: number,
-}
 export type EmberPlusValue = boolean | number | string
 
 export interface LawoState {
@@ -111,7 +107,7 @@ export class LawoDevice extends Device {
 		this._doOnTime = new DoOnTime(() => {
 			return this.getCurrentTime()
 		})
-		this._doOnTime.on('error', e => this.emit(e))
+		this._doOnTime.on('error', e => this.emit('error', e))
 
 		this._device = new DeviceTree(host, port)
 		this._device.on('error', (e) => {
