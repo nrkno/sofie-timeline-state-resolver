@@ -17,8 +17,9 @@
 			"maxHyperdecks": 4,
 			"DVEs": 1,
 			"stingers": 1,
-			"superSources": 1
-		}
+			"hasSuperSource": true
+		},
+		"superSourceBoxes": 4
 	},
 	"video": {
 		"ME": [
