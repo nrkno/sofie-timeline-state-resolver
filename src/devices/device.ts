@@ -92,8 +92,8 @@ export class Device extends EventEmitter {
 		})
 		return foundState
 	}
-	setState (state) {
-		this._states[state.time + ''] = state
+	setState (state, time?) {
+		this._states[time ? time + '' : state.time + ''] = state
 
 		this.cleanUpStates(0, state.time) // remove states after this time, as they are not relevant anymore
 	}
