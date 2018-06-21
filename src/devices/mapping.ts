@@ -18,8 +18,17 @@ export interface MappingAbstract extends Mapping {
 	abstractPipe: number
 }
 export interface MappingAtem extends Mapping {
+	device: DeviceType.ATEM,
 	mappingType: MappingAtemType
 	index?: number
+}
+export interface MappingHTTPSend extends Mapping {
+	device: DeviceType.HTTPSEND
+}
+export interface MappingLawo extends Mapping {
+	device: DeviceType.LAWO,
+	mappingType: MappingLawoType,
+	identifier: string
 }
 export enum MappingAtemType {
 	MixEffect,
@@ -28,8 +37,13 @@ export enum MappingAtemType {
 	Auxilliary,
 	MediaPlayer
 }
+export enum MappingLawoType {
+	SOURCE = 'source'
+}
 export enum DeviceType {
 	ABSTRACT = 0,
 	CASPARCG = 1,
-	ATEM = 2
+	ATEM = 2,
+	LAWO = 3, // yet to be implemented
+	HTTPSEND = 4
 }

@@ -3,6 +3,7 @@ import { Device, DeviceOptions } from './device'
 import { DeviceType } from './mapping'
 
 import { TimelineState } from 'superfly-timeline'
+import { DoOnTime } from '../doOnTime'
 
 /*
 	This is a wrapper for an "Abstract" device
@@ -12,38 +13,26 @@ import { TimelineState } from 'superfly-timeline'
 */
 export interface AbstractDeviceOptions extends DeviceOptions {
 	options?: {
-		commandReceiver?: (time: number, cmd) => void
+		commandReceiver?: (time: number, cmd) => Promise<any>
 	}
 }
+export type Command = any
 export class AbstractDevice extends Device {
+	private _doOnTime: DoOnTime
+	// private _queue: Array<any>
 
-	private _queue: Array<any>
-
-	private _commandReceiver: (time: number, cmd) => void
+	private _commandReceiver: (time: number, cmd: Command) => Promise<any>
 
 	constructor (deviceId: string, deviceOptions: AbstractDeviceOptions, options) {
 		super(deviceId, deviceOptions, options)
 		if (deviceOptions.options) {
 			if (deviceOptions.options.commandReceiver) this._commandReceiver = deviceOptions.options.commandReceiver
+			else this._commandReceiver = this._defaultCommandReceiver
 		}
-
-		setInterval(() => {
-			// send any commands due:
-
-			let now = this.getCurrentTime()
-
-			// console.log('check queue ' + now, _.values(this._queue).length )
-
-			this._queue = _.reject(this._queue, (q) => {
-				if (q.time <= now) {
-					if (this._commandReceiver) {
-						this._commandReceiver(now, q.command)
-					}
-					return true
-				}
-				return false
-			})
-		}, 100)
+		this._doOnTime = new DoOnTime(() => {
+			return this.getCurrentTime()
+		})
+		this._doOnTime.on('error', e => this.emit('error', e))
 	}
 
 	/**
@@ -52,42 +41,30 @@ export class AbstractDevice extends Device {
 	init (): Promise<boolean> {
 		return new Promise((resolve/*, reject*/) => {
 			// This is where we would do initialization, like connecting to the devices, etc
-
-			// myDevide.onConnectionChange((connected: boolean) => {
-				// this.emit('connectionChanged', connected)
-			// })
 			resolve(true)
 		})
 	}
 	handleState (newState: TimelineState) {
 		// Handle this new state, at the point in time specified
 
-		// console.log('handleState')
-
-		let oldState: TimelineState = this.getStateBefore(newState.time) || {time: 0, LLayers: {}, GLayers: {}}
+		let oldState: TimelineState = this.getStateBefore(newState.time) || { time: 0, LLayers: {}, GLayers: {} }
 
 		let oldAbstractState = this.convertStateToAbstract(oldState)
 		let newAbstractState = this.convertStateToAbstract(newState)
 
-		let commandsToAchieveState: Array<any> = this._diffStates(oldAbstractState, newAbstractState)
+		let commandsToAchieveState: Array<Command> = this._diffStates(oldAbstractState, newAbstractState)
 
-		// clear any queued commands on this time:
-		this._queue = _.reject(this._queue, (q) => { return q.time === newState.time })
-
+		// clear any queued commands later than this time:
+		this._doOnTime.clearQueueNowAndAfter(newState.time)
 		// add the new commands to the queue:
-		_.each(commandsToAchieveState, (cmd) => {
-			this._queue.push({
-				time: newState.time,
-				command: cmd
-			})
-		})
+		this._addToQueue(commandsToAchieveState, newState.time)
 
 		// store the new state, for later use:
 		this.setState(newState)
 	}
 	clearFuture (clearAfterTime: number) {
 		// Clear any scheduled commands after this time
-		this._queue = _.reject(this._queue, (q) => { return q.time > clearAfterTime })
+		this._doOnTime.clearQueueAfter(clearAfterTime)
 	}
 	get connected (): boolean {
 		return false
@@ -103,9 +80,17 @@ export class AbstractDevice extends Device {
 		return 'Abstract ' + this.deviceId
 	}
 	get queue () {
-		return _.values(this._queue)
+		return this._doOnTime.getQueue()
 	}
+	private _addToQueue (commandsToAchieveState: Array<Command>, time: number) {
+		_.each(commandsToAchieveState, (cmd: Command) => {
 
+			// add the new commands to the queue:
+			this._doOnTime.queue(time, (cmd: Command) => {
+				return this._commandReceiver(time, cmd)
+			}, cmd)
+		})
+	}
 	private _diffStates (oldAbstractState, newAbstractState) {
 		// in this abstract class, let's just cheat:
 
@@ -121,7 +106,7 @@ export class AbstractDevice extends Device {
 				})
 			} else {
 				// changed?
-				if (oldLayer.id !== newLayer.id ) {
+				if (oldLayer.id !== newLayer.id) {
 					// changed!
 					commands.push({
 						commandName: 'changedAbstract',
@@ -142,5 +127,12 @@ export class AbstractDevice extends Device {
 			}
 		})
 		return commands
+	}
+	private _defaultCommandReceiver (time: number, cmd): Promise<any> {
+		time = time
+		// execute the command here
+		cmd = cmd
+
+		return Promise.resolve()
 	}
 }

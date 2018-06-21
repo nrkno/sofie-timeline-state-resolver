@@ -20,9 +20,11 @@ export interface DeviceCommandContainer {
 export interface DeviceOptions {
 	type: DeviceType,
 	options?: {}
+	externalLog?: (...args: any[]) => void
 }
 export class Device extends EventEmitter {
 
+	protected _log: (...args: any[]) => void
 	private _getCurrentTime: () => number
 
 	private _deviceId: string
@@ -36,8 +38,15 @@ export class Device extends EventEmitter {
 		this._deviceId = deviceId
 		this._deviceOptions = deviceOptions
 
+		this._deviceOptions = this._deviceOptions // ts-lint fix
+
 		if (options.getCurrentTime) {
 			this._getCurrentTime = options.getCurrentTime
+		}
+		if (options.externalLog) {
+			this._log = options.externalLog
+		} else {
+			this._log = () => { return }
 		}
 	}
 	init (connectionOptions: any): Promise<boolean> {
@@ -96,6 +105,32 @@ export class Device extends EventEmitter {
 			}
 		})
 	}
+	clearStates () {
+		_.each(_.keys(this._states), (time: string) => {
+			delete this._states[time]
+		})
+	}
+	/**
+	 * The makeReady method could be triggered at a time before broadcast
+	 * Whenever we know that the user want's to make sure things are ready for broadcast
+	 * The exact implementation differ between different devices
+	 * @param okToDestoryStuff If true, the device may do things that might affect the output (temporarily)
+	 */
+	makeReady (okToDestoryStuff?: boolean): Promise<void> {
+		// This method should be overwritten by child
+		okToDestoryStuff = okToDestoryStuff
+		return Promise.resolve()
+	}
+	/**
+	 * The standDown event could be triggered at a time after broadcast
+	 * The exact implementation differ between different devices
+	 * @param okToDestoryStuff If true, the device may do things that might affect the output (temporarily)
+	 */
+	standDown (okToDestoryStuff?: boolean): Promise<void> {
+		// This method should be overwritten by child
+		okToDestoryStuff = okToDestoryStuff
+		return Promise.resolve()
+	}
 
 	get mapping (): Mappings {
 		return this._mappings
@@ -118,5 +153,7 @@ export class Device extends EventEmitter {
 		// return DeviceType.ABSTRACT
 		throw new Error('This class method must be replaced by the Device class!')
 	}
-
+	get deviceOptions (): DeviceOptions {
+		return this._deviceOptions
+	}
 }

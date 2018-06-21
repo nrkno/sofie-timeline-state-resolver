@@ -1,31 +1,49 @@
 import * as _ from 'underscore'
+import * as underScoreDeepExtend from 'underscore-deep-extend'
 import { Device, DeviceOptions } from './device'
 import { DeviceType, MappingAtem, MappingAtemType } from './mapping'
 
-import { TimelineState, TimelineResolvedObject } from 'superfly-timeline'
-import { Atem, VideoState } from 'atem-connection'
+import { TimelineState } from 'superfly-timeline'
+import { Atem, VideoState, Commands as AtemCommands } from 'atem-connection'
 import { AtemState, State as DeviceState, Defaults as StateDefault } from 'atem-state'
-import AbstractCommand from 'atem-connection/dist/commands/AbstractCommand'
+import { DoOnTime } from '../doOnTime'
 
-/*
-	This is a wrapper for the Atem Device. Commands to any and all atem devices will be sent through here.
-*/
+_.mixin({ deepExtend: underScoreDeepExtend(_) })
+
+function deepExtend<T> (destination: T, ...sources: any[]) {
+	// @ts-ignore (mixin)
+	return _.deepExtend(destination, ...sources)
+}
+/**
+ * This is a wrapper for the Atem Device. Commands to any and all atem devices will be sent through here.
+ */
 export interface AtemDeviceOptions extends DeviceOptions {
 	options?: {
-		commandReceiver?: (time: number, cmd) => void
+		commandReceiver?: (time: number, cmd) => Promise<any>
 	}
 }
 export interface AtemOptions {
 	host: string
 	port?: number
 }
+export enum TimelineContentTypeAtem { //  Atem-state
+	ME = 'me',
+	DSK = 'dsk',
+	AUX = 'aux',
+	SSRC = 'ssrc',
+	MEDIAPLAYER = 'mp'
+}
 export class AtemDevice extends Device {
 
-	private _queue: Array<any>
+	// private _queue: Array<any>
+	private _doOnTime: DoOnTime
+
 	private _device: Atem
 	private _state: AtemState
+	private _initialized: boolean = false
+	private _connected: boolean = false // note: ideally this should be replaced by this._device.connected
 
-	private _commandReceiver: (time: number, cmd) => void
+	private _commandReceiver: (time: number, cmd) => Promise<any>
 
 	constructor (deviceId: string, deviceOptions: AtemDeviceOptions, options) {
 		super(deviceId, deviceOptions, options)
@@ -33,22 +51,10 @@ export class AtemDevice extends Device {
 			if (deviceOptions.options.commandReceiver) this._commandReceiver = deviceOptions.options.commandReceiver
 			else this._commandReceiver = this._defaultCommandReceiver
 		}
-
-		setInterval(() => {
-			// send any commands due:
-
-			let now = this.getCurrentTime()
-
-			this._queue = _.reject(this._queue, (q) => {
-				if (q.time <= now) {
-					if (this._commandReceiver) {
-						this._commandReceiver(now, q.command)
-					}
-					return true
-				}
-				return false
-			})
-		}, 100)
+		this._doOnTime = new DoOnTime(() => {
+			return this.getCurrentTime()
+		})
+		this._doOnTime.on('error', e => this.emit('error', e))
 	}
 
 	/**
@@ -60,102 +66,125 @@ export class AtemDevice extends Device {
 			this._state = new AtemState()
 			this._device = new Atem()
 			this._device.connect(options.host, options.port)
-			this._device.once('connected', () => resolve(true))
+			this._device.once('connected', () => {
+				// console.log('-------------- ATEM CONNECTED')
+				// this.emit('connectionChanged', true)
+				// check if state has been initialized:
+				this._connected = true
+				this._initialized = true
+				resolve(true)
+			})
+			this._device.on('connected', () => {
+				this._connected = true
+				this.emit('connectionChanged', true)
+			})
+			this._device.on('disconnected', () => {
+				this._connected = false
+				this.emit('connectionChanged', false)
+			})
+		})
+	}
+	terminate (): Promise<boolean> {
+		return new Promise((resolve) => {
+			// TODO: implement dispose function in atem-connection
+			// this._device.dispose()
+			// .then(() => {
+			// resolve(true)
+			// })
+			resolve(true)
 		})
 	}
 	handleState (newState: TimelineState) {
 		// Handle this new state, at the point in time specified
+		// @ts-ignore
+		// console.log('handleState', JSON.stringify(newState, ' ', 2))
+		// console.log('handleState', newState.LLayers['myLayer0'])
 
-		let oldState: TimelineState = this.getStateBefore(newState.time) || {time: 0, LLayers: {}, GLayers: {}}
+		if (!this._initialized) {
+			// before it's initialized don't do anything
+			this._log('Atem not initialized yet')
+			return
+		}
+		let oldState: TimelineState = this.getStateBefore(newState.time) || { time: 0, LLayers: {}, GLayers: {} }
 
 		let oldAtemState = this.convertStateToAtem(oldState)
 		let newAtemState = this.convertStateToAtem(newState)
 
-		let commandsToAchieveState: Array<AbstractCommand> = this._diffStates(oldAtemState, newAtemState)
+		// @ts-ignore
+		// console.log('newAtemState', JSON.stringify(newAtemState, ' ', 2))
+		// console.log('oldAtemState', JSON.stringify(oldAtemState, ' ', 2))
+		// console.log('newAtemState', newAtemState.video.ME[0])
 
-		// clear any queued commands on this time:
-		this._queue = _.reject(this._queue, (q) => { return q.time === newState.time })
+		let commandsToAchieveState: Array<AtemCommands.AbstractCommand> = this._diffStates(oldAtemState, newAtemState)
 
+		// console.log('commandsToAchieveState', commandsToAchieveState)
+		// clear any queued commands later than this time:
+		this._doOnTime.clearQueueAfter(newState.time)
 		// add the new commands to the queue:
-		_.each(commandsToAchieveState, (cmd) => {
-			this._queue.push({
-				time: newState.time,
-				command: cmd
-			})
-		})
+		this._addToQueue(commandsToAchieveState, newState.time)
 
 		// store the new state, for later use:
 		this.setState(newState)
 	}
 	clearFuture (clearAfterTime: number) {
 		// Clear any scheduled commands after this time
-		this._queue = _.reject(this._queue, (q) => { return q.time > clearAfterTime })
+		this._doOnTime.clearQueueAfter(clearAfterTime)
+		// Clear any scheduled commands after this time
+		// this._queue = _.reject(this._queue, (q) => { return q.time > clearAfterTime })
 	}
 	get connected (): boolean {
-		return false
+		return this._connected
 	}
 	convertStateToAtem (state: TimelineState): DeviceState {
-		// @todo: convert the timeline state into something we can use
+		if (!this._initialized) throw Error('convertStateToAtem cannot be used before inititialized')
+
+		// Convert the timeline state into something we can use easier:
 		const deviceState = this._getDefaultState()
 
-		_.each(state.LLayers, (tlObject: TimelineResolvedObject, layerName: string) => {
-			let obj = tlObject.content
+		const sortedLayers = _.map(state.LLayers, (tlObject, layerName) => ({ layerName, tlObject }))
+			.sort((a,b) => a.layerName.localeCompare(b.layerName))
+
+		_.each(sortedLayers, ({ tlObject, layerName }) => {
+			let content = tlObject.content
 			const mapping = this.mapping[layerName] as MappingAtem
 			if (mapping) {
-				if (mapping.index !== undefined) {
-					obj = {}
-					obj[mapping.index] = tlObject.content
-				}
-				switch (mapping.mappingType) {
-					case (MappingAtemType.MixEffect) :
-						obj = {
-							video: {
-								ME: obj
+				if (mapping.index !== undefined && mapping.index >= 0) { // index must be 0 or higher
+					// 	obj = {}
+					// 	obj[mapping.index] = tlObject.content
+					// }
+					switch (mapping.mappingType) {
+						case MappingAtemType.MixEffect:
+							if (content.type === TimelineContentTypeAtem.ME) {
+								let me = deviceState.video.ME[mapping.index]
+								if (me) deepExtend(me, content.attributes)
 							}
-						}
-						break
-					case (MappingAtemType.DownStreamKeyer) :
-						obj = {
-							video: {
-								downstreamKeyers: obj
+							break
+						case MappingAtemType.DownStreamKeyer:
+							if (content.type === TimelineContentTypeAtem.DSK) {
+								let dsk = deviceState.video.downstreamKeyers[mapping.index]
+								if (dsk) deepExtend(dsk, content.attributes)
 							}
-						}
-						break
-					case (MappingAtemType.SuperSourceBox) :
-						obj = {
-							video: {
-								superSourceBoxes: obj
+							break
+						case MappingAtemType.SuperSourceBox:
+							if (content.type === TimelineContentTypeAtem.SSRC) {
+								let ssrc = deviceState.video.superSourceBoxes
+								if (ssrc) deepExtend(ssrc, content.attributes.boxes)
 							}
-						}
-						break
-					case (MappingAtemType.Auxilliary) :
-						obj = {
-							video: {
-								auxilliaries: obj
+							break
+						case MappingAtemType.Auxilliary:
+							if (content.type === TimelineContentTypeAtem.AUX) {
+								deviceState.video.auxilliaries[mapping.index] = content.attributes.input
 							}
-						}
-						break
-					case (MappingAtemType.MediaPlayer) :
-						obj = {
-							mediaState: {
-								players: obj
+							break
+						case MappingAtemType.MediaPlayer:
+							if (content.type === TimelineContentTypeAtem.MEDIAPLAYER) {
+								let ms = deviceState.media.players[mapping.index]
+								if (ms) deepExtend(ms, content.attributes)
 							}
-						}
-						break
-				}
-			}
-
-			const traverseState = (mutation, mutableObj) => {
-				for (const key in mutation) {
-					if (typeof mutation[key] === 'object' && mutableObj[key]) {
-						traverseState(mutation[key], mutableObj[key])
-					} else {
-						mutableObj[key] = mutation[key]
+							break
 					}
 				}
 			}
-
-			traverseState(obj, deviceState)
 		})
 
 		return deviceState
@@ -167,11 +196,19 @@ export class AtemDevice extends Device {
 		return 'Atem ' + this.deviceId
 	}
 	get queue () {
-		return _.values(this._queue)
+		return this._doOnTime.getQueue()
 	}
+	private _addToQueue (commandsToAchieveState: Array<AtemCommands.AbstractCommand>, time: number) {
+		_.each(commandsToAchieveState, (cmd: AtemCommands.AbstractCommand) => {
 
-	private _diffStates (oldAbstractState, newAbstractState): Array<AbstractCommand> {
-		let commands: Array<AbstractCommand> = this._state.diffStates(oldAbstractState, newAbstractState)
+			// add the new commands to the queue:
+			this._doOnTime.queue(time, (cmd: AtemCommands.AbstractCommand) => {
+				return this._commandReceiver(time, cmd)
+			}, cmd)
+		})
+	}
+	private _diffStates (oldAbstractState, newAbstractState): Array<AtemCommands.AbstractCommand> {
+		let commands: Array<AtemCommands.AbstractCommand> = this._state.diffStates(oldAbstractState, newAbstractState)
 
 		return commands
 	}
@@ -181,6 +218,12 @@ export class AtemDevice extends Device {
 
 		for (let i = 0; i < this._device.state.info.capabilities.MEs; i++) {
 			deviceState.video.ME[i] = JSON.parse(JSON.stringify(StateDefault.Video.MixEffect)) as VideoState.MixEffect
+			for (const usk in this._device.state.video.ME[i].upstreamKeyers) {
+				deviceState.video.ME[i].upstreamKeyers[usk] = JSON.parse(JSON.stringify(StateDefault.Video.UpstreamKeyer(Number(usk))))
+				for (const flyKf in this._device.state.video.ME[i].upstreamKeyers[usk].flyKeyframes) {
+					deviceState.video.ME[i].upstreamKeyers[usk].flyKeyframes[flyKf] = JSON.parse(JSON.stringify(StateDefault.Video.flyKeyframe(Number(flyKf))))
+				}
+			}
 		}
 		for (let i = 0; i < this._device.state.video.downstreamKeyers.length; i++) {
 			deviceState.video.downstreamKeyers[i] = JSON.parse(JSON.stringify(StateDefault.Video.DownStreamKeyer))
@@ -188,17 +231,26 @@ export class AtemDevice extends Device {
 		for (let i = 0; i < this._device.state.info.capabilities.auxilliaries; i++) {
 			deviceState.video.auxilliaries[i] = JSON.parse(JSON.stringify(StateDefault.Video.defaultInput))
 		}
-		for (let i = 0; i < this._device.state.info.capabilities.superSources; i++) {
+		for (let i = 0; i < 4 /* @todo from _SSC */; i++) {
 			deviceState.video.superSourceBoxes[i] = JSON.parse(JSON.stringify(StateDefault.Video.SuperSourceBox))
 		}
 
 		return deviceState
 	}
 
-	private _defaultCommandReceiver (time: number, command: AbstractCommand) {
+	private _defaultCommandReceiver (time: number, command: AtemCommands.AbstractCommand): Promise<any> {
 		time = time // seriously this needs to stop
-		this._device.sendCommand(command).then(() => {
+		return this._device.sendCommand(command).then(() => {
 			// @todo: command was acknowledged by atem, how will we check if it did what we wanted?
 		})
 	}
+
+	// private _enforceDeviceState () {
+	// 	const actualState = this._device.state
+	// 	const theoreticalState = this.convertStateToAtem(this.getStateBefore(this.getCurrentTime()) || { LLayers: {}, GLayers: {}, time: this.getCurrentTime() })
+
+	// 	const commandsToAchieveState = this._diffStates(actualState, theoreticalState)
+
+	// 	this._addToQueue(commandsToAchieveState, this.getCurrentTime())
+	// }
 }

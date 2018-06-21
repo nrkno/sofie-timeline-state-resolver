@@ -1,33 +1,42 @@
 
 // mock CasparCG
 import * as _ from 'underscore'
-import {AMCP as AMCP2, AMCPUtil as util, Command } from '../../node_modules/casparcg-connection'
-
-let test = 0
+import {
+	AMCP as orgAMCP,
+	AMCPUtil as orgAMCPUtil,
+	Command as orgCommand,
+	CasparCGSocketStatusEvent as orgCasparCGSocketStatusEvent
+} from '../../node_modules/casparcg-connection'
+import { EventEmitter } from 'events'
 
 let mockDo = jest.fn()
 
 let instances = []
 
-export const AMCP = AMCP2
-export const AMCPUtil = util
+export const AMCP = orgAMCP
+export const AMCPUtil = orgAMCPUtil
+export const Command = orgCommand
+export const CasparCGSocketStatusEvent = orgCasparCGSocketStatusEvent
 
-export class CasparCG {
+export class CasparCG extends EventEmitter {
 	onConnected: () => void
 
 	constructor () {
+		super()
 		// console.log('Mock CasparCG: constructor was called');
 
 		setTimeout(() => {
 			// simulate that we're connected
 			if (this.onConnected) this.onConnected()
+			this.emit(CasparCGSocketStatusEvent.CONNECTED, true)
 		},10)
 
 		instances.push(this)
 	}
 
-	do () {
+	do (cmd) {
 		mockDo.apply(this,arguments)
+		return Promise.resolve(cmd)
 	}
 
 	info () {
@@ -57,6 +66,9 @@ export class CasparCG {
 			}]
 			resolve(cmd)
 		})
+	}
+	clear (channel) {
+		return this.do(new AMCP.ClearCommand({ channel }))
 	}
 
 	time (channel: number) {
