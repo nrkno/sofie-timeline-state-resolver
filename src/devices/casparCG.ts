@@ -142,10 +142,14 @@ export class CasparCGDevice extends Device {
 
 	/**
 	 * Generates an array of CasparCG commands by comparing the newState against the oldState, or the current device state.
-	 * @param newState The state to target.
-	 * @param oldState The "current" state of the device. If omitted, will use the actual current state.
 	 */
 	handleState (newState: TimelineState) {
+		// check if initialized:
+		if (!this._ccgState.isInitialised) {
+			this._log('CasparCG State not initialized yet')
+			return
+		}
+
 		let oldState = this.getStateBefore(newState.time) || { time: 0, LLayers: {}, GLayers: {} }
 
 		let newCasparState = this.convertStateToCaspar(newState)
