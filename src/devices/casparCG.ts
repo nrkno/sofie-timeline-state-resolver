@@ -146,7 +146,7 @@ export class CasparCGDevice extends Device {
 	handleState (newState: TimelineState) {
 		// check if initialized:
 		if (!this._ccgState.isInitialised) {
-			this._log('Warning: Tried to resolve state for CCG Device when CCGState was not yet initalized')
+			this._log('CasparCG State not initialized yet')
 			return
 		}
 
