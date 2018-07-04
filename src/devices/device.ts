@@ -32,6 +32,7 @@ export class Device extends EventEmitter {
 
 	private _states: {[time: string]: TimelineState} = {}
 	private _mappings: Mappings
+	private _setStateCount: number = 0
 
 	constructor (deviceId: string, deviceOptions: DeviceOptions, options) {
 		super()
@@ -80,7 +81,6 @@ export class Device extends EventEmitter {
 	}
 
 	getStateBefore (time: number): TimelineState | null {
-
 		let foundTime = 0
 		let foundState: TimelineState | null = null
 		_.each(this._states, (state: TimelineState, stateTimeStr: string) => {
@@ -96,12 +96,31 @@ export class Device extends EventEmitter {
 		this._states[state.time + ''] = state
 
 		this.cleanUpStates(0, state.time) // remove states after this time, as they are not relevant anymore
+		this._setStateCount++
+		if (this._setStateCount > 10) {
+			this._setStateCount = 0
+
+			// Clean up old states:
+			let stateBeforeNow = this.getStateBefore(this._getCurrentTime())
+			if (stateBeforeNow && stateBeforeNow.time) {
+				this.cleanUpStates(stateBeforeNow.time - 1, 0)
+			}
+		}
 	}
 	cleanUpStates (removeBeforeTime, removeAfterTime) {
-		_.each(_.keys(this._states), (time: string) => {
-
-			if (time < removeBeforeTime || time > removeAfterTime || !time) {
-				delete this._states[time]
+		_.each(_.keys(this._states), (stateTimeStr: string) => {
+			let stateTime = parseFloat(stateTimeStr)
+			if (
+				(
+					removeBeforeTime &&
+					stateTime < removeBeforeTime
+				) ||
+				(
+					removeAfterTime &&
+					stateTime > removeAfterTime
+				) ||
+				!stateTime) {
+				delete this._states[stateTime]
 			}
 		})
 	}
