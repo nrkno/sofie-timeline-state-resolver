@@ -401,24 +401,28 @@ export class Conductor extends EventEmitter {
 			let sentCallbacksOld = this._sentCallbacks
 			let sentCallbacksNew: {[key: string]: boolean} = {}
 			_.each(tlState.GLayers, (o: TimelineResolvedObject) => {
-				if (o.content.callBack) {
-					let callBackId = o.id + o.content.callBack + o.resolved.startTime + JSON.stringify(o.content.callBackData)
-					sentCallbacksNew[callBackId] = true
-					if (!sentCallbacksOld[callBackId]) {
-						// this._doOnTime.queue(resolveTime, o.id, o.content.callBack, o.content.callBackData)
-						// this._doOnTime.queue(o.resolved.startTime, o.id, o.content.callBack, o.content.callBackData)
-						this._doOnTime.queue(o.resolved.startTime, () => {
-							this.emit('timelineCallback',
-								o.resolved.startTime,
-								o.id,
-								o.content.callBack,
-								o.content.callBackData
-							)
-						})
-					} else {
-						// callback already sent, do nothing
-						// this._log('callback already sent', callBackId)
+				try {
+					if (o.content.callBack) {
+						let callBackId = o.id + o.content.callBack + o.resolved.startTime + JSON.stringify(o.content.callBackData)
+						sentCallbacksNew[callBackId] = true
+						if (!sentCallbacksOld[callBackId]) {
+							// this._doOnTime.queue(resolveTime, o.id, o.content.callBack, o.content.callBackData)
+							// this._doOnTime.queue(o.resolved.startTime, o.id, o.content.callBack, o.content.callBackData)
+							this._doOnTime.queue(o.resolved.startTime, () => {
+								this.emit('timelineCallback',
+									o.resolved.startTime,
+									o.id,
+									o.content.callBack,
+									o.content.callBackData
+								)
+							})
+						} else {
+							// callback already sent, do nothing
+							// this._log('callback already sent', callBackId)
+						}
 					}
+				} catch (e) {
+					this.emit('error', e)
 				}
 			})
 			this._sentCallbacks = sentCallbacksNew
