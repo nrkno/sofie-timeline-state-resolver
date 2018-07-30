@@ -146,7 +146,7 @@ export class AtemDevice extends Device {
 			.sort((a,b) => a.layerName.localeCompare(b.layerName))
 
 		_.each(sortedLayers, ({ tlObject, layerName }) => {
-			let content = tlObject.content
+			let content = tlObject.resolved || tlObject.content
 			const mapping = this.mapping[layerName] as MappingAtem
 			if (mapping) {
 				if (mapping.index !== undefined && mapping.index >= 0) { // index must be 0 or higher
