@@ -75,6 +75,7 @@ export class AtemDevice extends Device {
 				resolve(true)
 			})
 			this._device.on('connected', () => {
+				this.setState(this._device.state, this.getCurrentTime())
 				this._connected = true
 				this.emit('connectionChanged', true)
 			})
@@ -105,9 +106,9 @@ export class AtemDevice extends Device {
 			this._log('Atem not initialized yet')
 			return
 		}
-		let oldState: TimelineState = this.getStateBefore(newState.time) || { time: 0, LLayers: {}, GLayers: {} }
+		let oldState = this.getStateBefore(newState.time) || this._getDefaultState()
 
-		let oldAtemState = this.convertStateToAtem(oldState)
+		let oldAtemState = oldState
 		let newAtemState = this.convertStateToAtem(newState)
 
 		// @ts-ignore
@@ -124,7 +125,7 @@ export class AtemDevice extends Device {
 		this._addToQueue(commandsToAchieveState, newState.time)
 
 		// store the new state, for later use:
-		this.setState(newState)
+		this.setState(newAtemState, newState.time)
 	}
 	clearFuture (clearAfterTime: number) {
 		// Clear any scheduled commands after this time
@@ -145,7 +146,7 @@ export class AtemDevice extends Device {
 			.sort((a,b) => a.layerName.localeCompare(b.layerName))
 
 		_.each(sortedLayers, ({ tlObject, layerName }) => {
-			let content = tlObject.content
+			let content = tlObject.resolved || tlObject.content
 			const mapping = this.mapping[layerName] as MappingAtem
 			if (mapping) {
 				if (mapping.index !== undefined && mapping.index >= 0) { // index must be 0 or higher
@@ -231,7 +232,7 @@ export class AtemDevice extends Device {
 		for (let i = 0; i < this._device.state.info.capabilities.auxilliaries; i++) {
 			deviceState.video.auxilliaries[i] = JSON.parse(JSON.stringify(StateDefault.Video.defaultInput))
 		}
-		for (let i = 0; i < 4 /* @todo from _SSC */; i++) {
+		for (let i = 0; i < this._device.state.info.superSourceBoxes; i++) {
 			deviceState.video.superSourceBoxes[i] = JSON.parse(JSON.stringify(StateDefault.Video.SuperSourceBox))
 		}
 
