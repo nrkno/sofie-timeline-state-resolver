@@ -4851,9 +4851,9 @@ subarg@^1.0.0:
   dependencies:
     minimist "^1.1.0"
 
-superfly-timeline@^2.1.0:
-  version "2.1.0"
-  resolved "https://registry.yarnpkg.com/superfly-timeline/-/superfly-timeline-2.1.0.tgz#6668afba4cb59ae4174547046be7be15e7908de1"
+superfly-timeline@^4.0.0:
+  version "4.0.0"
+  resolved "https://registry.yarnpkg.com/superfly-timeline/-/superfly-timeline-4.0.0.tgz#53e7495cf260ee239f30a57e6bbfef790881224e"
   dependencies:
     "@types/underscore" "^1.8.8"
     underscore "^1.9.1"
