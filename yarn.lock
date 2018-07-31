@@ -446,9 +446,16 @@ atem-connection@^0.1.7:
     pngjs "^3.3.2"
     tslib "^1.9.0"
 
-atem-state@^0.1.7:
-  version "0.1.7"
-  resolved "https://registry.yarnpkg.com/atem-state/-/atem-state-0.1.7.tgz#fcfdf03d9d0701537d4b6fabedcc380e51ec743a"
+atem-connection@^0.2.1:
+  version "0.2.1"
+  resolved "https://registry.yarnpkg.com/atem-connection/-/atem-connection-0.2.1.tgz#8471a6f6fcf467df6428cccd7ea2743f2797b390"
+  dependencies:
+    pngjs "^3.3.2"
+    tslib "^1.9.0"
+
+atem-state@^0.2.0:
+  version "0.2.0"
+  resolved "https://registry.yarnpkg.com/atem-state/-/atem-state-0.2.0.tgz#88305f9ea1668f83ca73aa4ef2412a9991d60382"
   dependencies:
     atem-connection "^0.1.7"
     tslib "^1.9.2"
