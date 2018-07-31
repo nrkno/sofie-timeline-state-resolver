@@ -184,6 +184,9 @@ export class CasparCGDevice extends Device {
 			}
 		}
 	}
+	get canConnect (): boolean {
+		return true
+	}
 	get connected (): boolean {
 		// Returns connection status
 		return this._ccg.connected

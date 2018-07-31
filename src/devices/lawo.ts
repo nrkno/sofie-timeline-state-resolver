@@ -169,6 +169,9 @@ export class LawoDevice extends Device {
 		// Clear any scheduled commands after this time
 		this._doOnTime.clearQueueAfter(clearAfterTime)
 	}
+	get canConnect (): boolean {
+		return true
+	}
 	get connected (): boolean {
 		return false
 	}

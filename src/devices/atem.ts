@@ -133,6 +133,9 @@ export class AtemDevice extends Device {
 		// Clear any scheduled commands after this time
 		// this._queue = _.reject(this._queue, (q) => { return q.time > clearAfterTime })
 	}
+	get canConnect (): boolean {
+		return true
+	}
 	get connected (): boolean {
 		return this._connected
 	}

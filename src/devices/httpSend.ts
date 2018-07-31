@@ -84,6 +84,9 @@ export class HttpSendDevice extends Device {
 		// Clear any scheduled commands after this time
 		this._doOnTime.clearQueueAfter(clearAfterTime)
 	}
+	get canConnect (): boolean {
+		return false
+	}
 	get connected (): boolean {
 		return false
 	}

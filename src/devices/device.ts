@@ -75,6 +75,9 @@ export class Device extends EventEmitter {
 		clearAfterTime = clearAfterTime
 		throw new Error('This class method must be replaced by the Device class!')
 	}
+	get canConnect (): boolean {
+		throw new Error('This class method must be replaced by the Device class!')
+	}
 	get connected (): boolean {
 		// Returns connection status
 		throw new Error('This class method must be replaced by the Device class!')
