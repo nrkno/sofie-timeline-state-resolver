@@ -2,7 +2,7 @@ import * as _ from 'underscore'
 import { Device, DeviceOptions } from './device'
 
 import { CasparCG, Command as CommandNS, AMCPUtil, AMCP, CasparCGSocketStatusEvent } from 'casparcg-connection'
-import { MappingCasparCG, DeviceType, Mapping } from './mapping'
+import { MappingCasparCG, DeviceType, Mapping, TimelineResolvedObjectExtended } from './mapping'
 
 import { TimelineState, TimelineResolvedObject } from 'superfly-timeline'
 import { CasparCG as StateNS, CasparCGState } from 'casparcg-state'
@@ -216,9 +216,14 @@ export class CasparCGDevice extends Device {
 		const caspar = new StateNS.State()
 
 		_.each(timelineState.LLayers, (layer: TimelineResolvedObject, layerName: string) => {
-			const foundMapping: Mapping = this.mapping[layerName]
+			const layerExt = layer as TimelineResolvedObjectExtended
+			let foundMapping: Mapping = this.mapping[layerName]
+			if (!foundMapping && layerExt.isBackground && layerExt.originalLLayer) {
+				foundMapping = this.mapping[layerExt.originalLLayer]
+			}
 
 			if (
+				foundMapping &&
 				foundMapping.device === DeviceType.CASPARCG &&
 				_.has(foundMapping,'channel') &&
 				_.has(foundMapping,'layer')
@@ -238,7 +243,6 @@ export class CasparCGDevice extends Device {
 				caspar.channels[channel.channelNo] = channel
 
 				let stateLayer: StateNS.ILayerBase | null = null
-
 				if (
 					layer.content.type === TimelineContentTypeCasparCg.VIDEO || // to be deprecated & replaced by MEDIA
 					layer.content.type === TimelineContentTypeCasparCg.AUDIO || // to be deprecated & replaced by MEDIA
@@ -389,10 +393,29 @@ export class CasparCGDevice extends Device {
 						stateLayer.mixer = mixer
 					}
 					stateLayer.layerNo = mapping.layer
-					channel.layers[mapping.layer] = stateLayer
+				}
+
+				if (stateLayer && !layerExt.isBackground) {
+					const prev = channel.layers[mapping.layer] || {}
+					channel.layers[mapping.layer] = _.extend(stateLayer, _.pick(prev, 'nextUp'))
+				} else if (stateLayer && layerExt.isBackground) {
+					const res = channel.layers[mapping.layer]
+					if (!res) {
+						let s = stateLayer as StateNS.NextUp
+						s.auto = false
+
+						let l: StateNS.IEmptyLayer = {
+							layerNo: mapping.layer,
+							content: StateNS.LayerContentType.NOTHING,
+							playing: false,
+							pauseTime: 0,
+							nextUp: s,
+							noClear: true
+						}
+						channel.layers[mapping.layer] = l
+					}
 				}
 			}
-
 		})
 
 		return caspar

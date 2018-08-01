@@ -1,7 +1,7 @@
 import * as _ from 'underscore'
 import * as underScoreDeepExtend from 'underscore-deep-extend'
 import { Device, DeviceOptions } from './device'
-import { DeviceType, MappingAtem, MappingAtemType } from './mapping'
+import { DeviceType, MappingAtem, MappingAtemType, TimelineResolvedObjectExtended } from './mapping'
 
 import { TimelineState } from 'superfly-timeline'
 import { Atem, VideoState, Commands as AtemCommands } from 'atem-connection'
@@ -149,8 +149,13 @@ export class AtemDevice extends Device {
 			.sort((a,b) => a.layerName.localeCompare(b.layerName))
 
 		_.each(sortedLayers, ({ tlObject, layerName }) => {
-			let content = tlObject.resolved || tlObject.content
-			const mapping = this.mapping[layerName] as MappingAtem
+			const tlObjectExt = tlObject as TimelineResolvedObjectExtended
+			const content = tlObject.resolved || tlObject.content
+			let mapping = this.mapping[layerName] as MappingAtem
+			if (!mapping && tlObjectExt.originalLLayer) {
+				mapping = this.mapping[tlObjectExt.originalLLayer] as MappingAtem
+			}
+
 			if (mapping) {
 				if (mapping.index !== undefined && mapping.index >= 0) { // index must be 0 or higher
 					// 	obj = {}
@@ -158,29 +163,44 @@ export class AtemDevice extends Device {
 					// }
 					switch (mapping.mappingType) {
 						case MappingAtemType.MixEffect:
+							if (tlObjectExt.isBackground) {
+								break
+							}
 							if (content.type === TimelineContentTypeAtem.ME) {
 								let me = deviceState.video.ME[mapping.index]
 								if (me) deepExtend(me, content.attributes)
 							}
 							break
 						case MappingAtemType.DownStreamKeyer:
+							if (tlObjectExt.isBackground) {
+								break
+							}
 							if (content.type === TimelineContentTypeAtem.DSK) {
 								let dsk = deviceState.video.downstreamKeyers[mapping.index]
 								if (dsk) deepExtend(dsk, content.attributes)
 							}
 							break
 						case MappingAtemType.SuperSourceBox:
+							if (tlObjectExt.isBackground && (!tlObjectExt.originalLLayer || tlObjectExt.originalLLayer && state.LLayers[tlObjectExt.originalLLayer])) {
+								break
+							}
 							if (content.type === TimelineContentTypeAtem.SSRC) {
 								let ssrc = deviceState.video.superSourceBoxes
 								if (ssrc) deepExtend(ssrc, content.attributes.boxes)
 							}
 							break
 						case MappingAtemType.Auxilliary:
+							if (tlObjectExt.isBackground) {
+								break
+							}
 							if (content.type === TimelineContentTypeAtem.AUX) {
 								deviceState.video.auxilliaries[mapping.index] = content.attributes.input
 							}
 							break
 						case MappingAtemType.MediaPlayer:
+							if (tlObjectExt.isBackground) {
+								break
+							}
 							if (content.type === TimelineContentTypeAtem.MEDIAPLAYER) {
 								let ms = deviceState.media.players[mapping.index]
 								if (ms) deepExtend(ms, content.attributes)
