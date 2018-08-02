@@ -361,17 +361,17 @@ export class CasparCGDevice extends Device {
 								if (layer.content.transitions.inTransition) {
 									transitions.inTransition = new StateNS.Transition(
 										layer.content.transitions.inTransition.type,
-										layer.content.transitions.inTransition.duration,
-										layer.content.transitions.inTransition.easing,
-										layer.content.transitions.inTransition.direction
+										layer.content.transitions.inTransition.duration || layer.content.transitions.inTransition.maskFile,
+										layer.content.transitions.inTransition.easing || layer.content.transitions.inTransition.delay,
+										layer.content.transitions.inTransition.direction || layer.content.transitions.inTransition.overlayFile
 									)
 								}
 								if (layer.content.transitions.outTransition) {
 									transitions.outTransition = new StateNS.Transition(
 										layer.content.transitions.outTransition.type,
-										layer.content.transitions.outTransition.duration,
-										layer.content.transitions.outTransition.easing,
-										layer.content.transitions.outTransition.direction
+										layer.content.transitions.outTransition.duration || layer.content.transitions.inTransition.maskFile,
+										layer.content.transitions.outTransition.easing || layer.content.transitions.inTransition.delay,
+										layer.content.transitions.outTransition.direction || layer.content.transitions.inTransition.overlayFile
 									)
 								}
 								stateLayer.media = new StateNS.TransitionObject(media, {
