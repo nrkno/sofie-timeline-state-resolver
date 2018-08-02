@@ -300,11 +300,9 @@ export class Conductor extends EventEmitter {
 				return
 			}
 
-			console.log(this.timeline.length)
 			this._fixNowObjects(resolveTime)
 
 			let timeline = this.timeline
-			console.log(timeline.length)
 			_.each(timeline, (o) => {
 				delete o['parent']
 				if (o.isGroup) {
