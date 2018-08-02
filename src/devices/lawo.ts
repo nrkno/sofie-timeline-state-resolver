@@ -75,6 +75,8 @@ export class LawoDevice extends Device {
 
 	private _savedNodes = []
 
+	private _connected: boolean = false
+
 	private _commandReceiver: (time: number, cmd: LawoCommand) => Promise<any>
 	private _sourcesPath: string
 	private _rampMotorFunctionPath: string
@@ -115,13 +117,16 @@ export class LawoDevice extends Device {
 				(e.message + '').match(/econnrefused/i) ||
 				(e.message + '').match(/disconnected/i)
 			) {
-				this.emit('connectionChanged', false)
+				this._setConnected(false)
 			} else {
 				this.emit('error', e)
 			}
 		})
 		this._device.on('connected', () => {
-			this.emit('connectionChanged', true)
+			this._setConnected(true)
+		})
+		this._device.on('disconnected', () => {
+			this._setConnected(false)
 		})
 	}
 
@@ -169,8 +174,11 @@ export class LawoDevice extends Device {
 		// Clear any scheduled commands after this time
 		this._doOnTime.clearQueueAfter(clearAfterTime)
 	}
+	get canConnect (): boolean {
+		return true
+	}
 	get connected (): boolean {
-		return false
+		return this._connected
 	}
 	convertStateToLawo (state: TimelineState): LawoState {
 		// convert the timeline state into something we can use
@@ -213,6 +221,12 @@ export class LawoDevice extends Device {
 	}
 	get mapping () {
 		return super.mapping
+	}
+	private _setConnected (connected: boolean) {
+		if (this._connected !== connected) {
+			this._connected = connected
+			this.emit('connectionChanged', this._connected)
+		}
 	}
 	private _addToQueue (commandsToAchieveState: Array<LawoCommand>, time: number) {
 		_.each(commandsToAchieveState, (cmd: LawoCommand) => {
