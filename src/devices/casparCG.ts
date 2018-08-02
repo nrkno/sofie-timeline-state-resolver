@@ -253,7 +253,8 @@ export class CasparCGDevice extends Device {
 						content: StateNS.LayerContentType.MEDIA,
 						media: layer.content.attributes.file,
 						playTime: layer.resolved.startTime || null,
-						playing: true,
+						pauseTime: layer.resolved.pauseTime || null,
+						playing: layer.resolved.playing !== undefined ? layer.resolved.playing : true,
 
 						looping: layer.content.attributes.loop,
 						seek: layer.content.attributes.seek
