@@ -401,11 +401,11 @@ export class CasparCGDevice extends Device {
 					const prev = channel.layers[mapping.layer] || {}
 					channel.layers[mapping.layer] = _.extend(stateLayer, _.pick(prev, 'nextUp'))
 				} else if (stateLayer && layerExt.isBackground) {
+					let s = stateLayer as StateNS.NextUp
+					s.auto = false
+
 					const res = channel.layers[mapping.layer]
 					if (!res) {
-						let s = stateLayer as StateNS.NextUp
-						s.auto = false
-
 						let l: StateNS.IEmptyLayer = {
 							layerNo: mapping.layer,
 							content: StateNS.LayerContentType.NOTHING,
@@ -415,6 +415,8 @@ export class CasparCGDevice extends Device {
 							noClear: true
 						}
 						channel.layers[mapping.layer] = l
+					} else {
+						channel.layers[mapping.layer].nextUp = s
 					}
 				}
 			}
