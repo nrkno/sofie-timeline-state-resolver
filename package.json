@@ -133,7 +133,7 @@
     "atem-connection": "^0.2.1",
     "atem-state": "^0.3.0",
     "casparcg-connection": "^4.3.0",
-    "casparcg-state": "^1.0.5",
+    "casparcg-state": "^1.1.2",
     "emberplus": "git+https://github.com/nrkno/tv-automation-emberplus-connection.git#dist",
     "fast-clone": "^1.5.3",
     "request": "^2.87.0",
