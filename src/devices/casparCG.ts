@@ -322,6 +322,7 @@ export class CasparCGDevice extends Device {
 							channel: layer.content.attributes.channel,
 							layer: layer.content.attributes.layer
 						},
+						mode: layer.content.attributes.mode || undefined,
 						playing: true,
 						playTime: null // layer.resolved.startTime || null
 					}
