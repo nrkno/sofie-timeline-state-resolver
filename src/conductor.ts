@@ -233,11 +233,11 @@ export class Conductor extends EventEmitter {
 	/**
 	 * Send a makeReady-trigger to all devices
 	 */
-	public devicesMakeReady (okToDestoryStuff?: boolean): Promise<void> {
+	public devicesMakeReady (okToDestroyStuff?: boolean): Promise<void> {
 		let p = Promise.resolve()
 		_.each(this.devices, (device: Device) => {
 			p = p.then(() => {
-				return device.makeReady(okToDestoryStuff)
+				return device.makeReady(okToDestroyStuff)
 			})
 		})
 		this._resolveTimeline()
@@ -246,11 +246,11 @@ export class Conductor extends EventEmitter {
 	/**
 	 * Send a standDown-trigger to all devices
 	 */
-	public devicesStandDown (okToDestoryStuff?: boolean): Promise<void> {
+	public devicesStandDown (okToDestroyStuff?: boolean): Promise<void> {
 		let p = Promise.resolve()
 		_.each(this.devices, (device: Device) => {
 			p = p.then(() => {
-				return device.standDown(okToDestoryStuff)
+				return device.standDown(okToDestroyStuff)
 			})
 		})
 		return p

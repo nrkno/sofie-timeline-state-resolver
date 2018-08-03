@@ -400,7 +400,7 @@ export class CasparCGDevice extends Device {
 
 	}
 
-	makeReady (okToDestoryStuff?: boolean): Promise<void> {
+	makeReady (okToDestroyStuff?: boolean): Promise<void> {
 		// Sync Caspar Time to our time:
 		return this._ccg.info()
 		.then((command) => {
@@ -432,7 +432,7 @@ export class CasparCGDevice extends Device {
 			})
 			// Clear all channels (?)
 			p = p.then(() => {
-				if (okToDestoryStuff) {
+				if (okToDestroyStuff) {
 					return Promise.all(
 						_.map(channels, (channel: any) => {
 							return this._commandReceiver(this.getCurrentTime(), new AMCP.ClearCommand({
