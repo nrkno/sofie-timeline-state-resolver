@@ -804,27 +804,19 @@ caseless@~0.12.0:
   version "0.12.0"
   resolved "https://registry.yarnpkg.com/caseless/-/caseless-0.12.0.tgz#1b681c21ff84033c826543090689420d187151dc"
 
-casparcg-connection@^4.1.0:
-  version "4.1.0"
-  resolved "https://registry.yarnpkg.com/casparcg-connection/-/casparcg-connection-4.1.0.tgz#db2ed0962fa6221954a978e4871a1d79e3114f9e"
+casparcg-connection@^4.3.1:
+  version "4.3.1"
+  resolved "https://registry.yarnpkg.com/casparcg-connection/-/casparcg-connection-4.3.1.tgz#4d1337795655c3b7d677014ab77c364b10520fa9"
   dependencies:
     highland "^3.0.0-beta.6"
     xml2js "^0.4.19"
     xmlbuilder "^9.0.7"
 
-casparcg-connection@^4.3.0:
-  version "4.3.0"
-  resolved "https://registry.yarnpkg.com/casparcg-connection/-/casparcg-connection-4.3.0.tgz#ebc2c950fd2d5e265f671624933e7f37ae9315d3"
+casparcg-state@^1.1.3:
+  version "1.1.3"
+  resolved "https://registry.yarnpkg.com/casparcg-state/-/casparcg-state-1.1.3.tgz#4d31804431a7b84c7e64302b44ae01bddfd712f9"
   dependencies:
-    highland "^3.0.0-beta.6"
-    xml2js "^0.4.19"
-    xmlbuilder "^9.0.7"
-
-casparcg-state@^1.1.2:
-  version "1.1.2"
-  resolved "https://registry.yarnpkg.com/casparcg-state/-/casparcg-state-1.1.2.tgz#7b39e1c820b9f017ceae80e19fca13de1e429c8e"
-  dependencies:
-    casparcg-connection "^4.1.0"
+    casparcg-connection "^4.3.1"
     fast-clone "^1.5.3"
     underscore "^1.9.1"
 
@@ -4851,9 +4843,9 @@ subarg@^1.0.0:
   dependencies:
     minimist "^1.1.0"
 
-superfly-timeline@^4.0.0:
-  version "4.0.0"
-  resolved "https://registry.yarnpkg.com/superfly-timeline/-/superfly-timeline-4.0.0.tgz#53e7495cf260ee239f30a57e6bbfef790881224e"
+superfly-timeline@^4.0.1:
+  version "4.0.1"
+  resolved "https://registry.yarnpkg.com/superfly-timeline/-/superfly-timeline-4.0.1.tgz#b13387665bb7d3d21e77307aa2195f4c03b1b7b8"
   dependencies:
     "@types/underscore" "^1.8.8"
     underscore "^1.9.1"
