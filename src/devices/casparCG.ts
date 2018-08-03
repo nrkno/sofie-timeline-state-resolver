@@ -2,7 +2,7 @@ import * as _ from 'underscore'
 import { Device, DeviceOptions } from './device'
 
 import { CasparCG, Command as CommandNS, AMCPUtil, AMCP, CasparCGSocketStatusEvent } from 'casparcg-connection'
-import { MappingCasparCG, DeviceType, Mapping } from './mapping'
+import { MappingCasparCG, DeviceType, Mapping, TimelineResolvedObjectExtended } from './mapping'
 
 import { TimelineState, TimelineResolvedObject } from 'superfly-timeline'
 import { CasparCG as StateNS, CasparCGState } from 'casparcg-state'
@@ -22,8 +22,7 @@ export interface CasparCGDeviceOptions extends DeviceOptions {
 }
 export interface CasparCGOptions {
 	host: string,
-	port: number,
-	syncTimecode?: boolean
+	port: number
 }
 export enum TimelineContentTypeCasparCg { //  CasparCG-state
 	VIDEO = 'video', // to be deprecated & replaced by MEDIA
@@ -78,6 +77,8 @@ export class CasparCGDevice extends Device {
 			}
 		})
 		this._ccg.on(CasparCGSocketStatusEvent.CONNECTED, (event: CasparCGSocketStatusEvent) => {
+			this.makeReady(false) // always make sure timecode is correct, setting it can never do bad
+			.catch((e) => this.emit('error', e))
 			if (event.valueOf().virginServer === true) {
 				// a "virgin server" was just restarted (so it is cleared & black).
 				// Otherwise it was probably just a loss of connection
@@ -88,45 +89,20 @@ export class CasparCGDevice extends Device {
 			}
 		})
 
-		return Promise.all([
-			new Promise((resolve, reject) => {
-				this._ccg.info()
-				.then((command) => {
-					this._ccgState.initStateFromChannelInfo(_.map(command.response.data, (obj: any) => {
-						return {
-							channelNo: obj.channel,
-							videoMode: obj.format.toUpperCase(),
-							fps: obj.channelRate
-						}
-					}) as StateNS.ChannelInfo[])
+		return new Promise((resolve, reject) => {
+			this._ccg.info()
+			.then((command) => {
+				this._ccgState.initStateFromChannelInfo(_.map(command.response.data, (obj: any) => {
+					return {
+						channelNo: obj.channel,
+						videoMode: obj.format.toUpperCase(),
+						fps: obj.channelRate
+					}
+				}) as StateNS.ChannelInfo[])
 
-					resolve(true)
-				}).catch((e) => reject(e))
-			}), new Promise((resolve, reject) => {
-
-				if (connectionOptions.syncTimecode) {
-					this._ccg.time(1).then((cmd) => { // @todo: keep time per channel
-						let segments = (cmd.response.data as string).split(':')
-						let time = 0
-
-						// fields:
-						time += Number(segments[3]) * 1000 / 50
-						// seconds
-						time += Number(segments[2]) * 1000
-						// minutes
-						time += Number(segments[1]) * 60 * 1000
-						// hours
-						time += Number(segments[0]) * 60 * 60 * 1000
-
-						this._timeToTimecodeMap = { time: this.getCurrentTime(), timecode: time }
-						resolve(true)
-					}).catch(() => reject())
-				} else {
-					this._timeToTimecodeMap = { time: 0, timecode: 0 }
-					resolve(true)
-				}
-			})
-		]).then(() => {
+				resolve(true)
+			}).catch((e) => reject(e))
+		}).then(() => {
 			return true
 		})
 	}
@@ -216,9 +192,14 @@ export class CasparCGDevice extends Device {
 		const caspar = new StateNS.State()
 
 		_.each(timelineState.LLayers, (layer: TimelineResolvedObject, layerName: string) => {
-			const foundMapping: Mapping = this.mapping[layerName]
+			const layerExt = layer as TimelineResolvedObjectExtended
+			let foundMapping: Mapping = this.mapping[layerName]
+			if (!foundMapping && layerExt.isBackground && layerExt.originalLLayer) {
+				foundMapping = this.mapping[layerExt.originalLLayer]
+			}
 
 			if (
+				foundMapping &&
 				foundMapping.device === DeviceType.CASPARCG &&
 				_.has(foundMapping,'channel') &&
 				_.has(foundMapping,'layer')
@@ -238,7 +219,6 @@ export class CasparCGDevice extends Device {
 				caspar.channels[channel.channelNo] = channel
 
 				let stateLayer: StateNS.ILayerBase | null = null
-
 				if (
 					layer.content.type === TimelineContentTypeCasparCg.VIDEO || // to be deprecated & replaced by MEDIA
 					layer.content.type === TimelineContentTypeCasparCg.AUDIO || // to be deprecated & replaced by MEDIA
@@ -249,7 +229,8 @@ export class CasparCGDevice extends Device {
 						content: StateNS.LayerContentType.MEDIA,
 						media: layer.content.attributes.file,
 						playTime: layer.resolved.startTime || null,
-						playing: true,
+						pauseTime: layer.resolved.pauseTime || null,
+						playing: layer.resolved.playing !== undefined ? layer.resolved.playing : true,
 
 						looping: layer.content.attributes.loop,
 						seek: layer.content.attributes.seek
@@ -317,6 +298,7 @@ export class CasparCGDevice extends Device {
 							channel: layer.content.attributes.channel,
 							layer: layer.content.attributes.layer
 						},
+						mode: layer.content.attributes.mode || undefined,
 						playing: true,
 						playTime: null // layer.resolved.startTime || null
 					}
@@ -357,17 +339,17 @@ export class CasparCGDevice extends Device {
 								if (layer.content.transitions.inTransition) {
 									transitions.inTransition = new StateNS.Transition(
 										layer.content.transitions.inTransition.type,
-										layer.content.transitions.inTransition.duration,
-										layer.content.transitions.inTransition.easing,
-										layer.content.transitions.inTransition.direction
+										layer.content.transitions.inTransition.duration || layer.content.transitions.inTransition.maskFile,
+										layer.content.transitions.inTransition.easing || layer.content.transitions.inTransition.delay,
+										layer.content.transitions.inTransition.direction || layer.content.transitions.inTransition.overlayFile
 									)
 								}
 								if (layer.content.transitions.outTransition) {
 									transitions.outTransition = new StateNS.Transition(
 										layer.content.transitions.outTransition.type,
-										layer.content.transitions.outTransition.duration,
-										layer.content.transitions.outTransition.easing,
-										layer.content.transitions.outTransition.direction
+										layer.content.transitions.outTransition.duration || layer.content.transitions.inTransition.maskFile,
+										layer.content.transitions.outTransition.easing || layer.content.transitions.inTransition.delay,
+										layer.content.transitions.outTransition.direction || layer.content.transitions.inTransition.overlayFile
 									)
 								}
 								stateLayer.media = new StateNS.TransitionObject(media, {
@@ -389,17 +371,38 @@ export class CasparCGDevice extends Device {
 						stateLayer.mixer = mixer
 					}
 					stateLayer.layerNo = mapping.layer
-					channel.layers[mapping.layer] = stateLayer
+				}
+
+				if (stateLayer && !layerExt.isBackground) {
+					const prev = channel.layers[mapping.layer] || {}
+					channel.layers[mapping.layer] = _.extend(stateLayer, _.pick(prev, 'nextUp'))
+				} else if (stateLayer && layerExt.isBackground) {
+					let s = stateLayer as StateNS.NextUp
+					s.auto = false
+
+					const res = channel.layers[mapping.layer]
+					if (!res) {
+						let l: StateNS.IEmptyLayer = {
+							layerNo: mapping.layer,
+							content: StateNS.LayerContentType.NOTHING,
+							playing: false,
+							pauseTime: 0,
+							nextUp: s,
+							noClear: true
+						}
+						channel.layers[mapping.layer] = l
+					} else {
+						channel.layers[mapping.layer].nextUp = s
+					}
 				}
 			}
-
 		})
 
 		return caspar
 
 	}
 
-	makeReady (okToDestoryStuff?: boolean): Promise<void> {
+	makeReady (okToDestroyStuff?: boolean): Promise<void> {
 		// Sync Caspar Time to our time:
 		return this._ccg.info()
 		.then((command) => {
@@ -431,7 +434,7 @@ export class CasparCGDevice extends Device {
 			})
 			// Clear all channels (?)
 			p = p.then(() => {
-				if (okToDestoryStuff) {
+				if (okToDestroyStuff) {
 					return Promise.all(
 						_.map(channels, (channel: any) => {
 							return this._commandReceiver(this.getCurrentTime(), new AMCP.ClearCommand({

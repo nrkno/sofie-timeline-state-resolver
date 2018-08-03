@@ -1,3 +1,5 @@
+import { TimelineResolvedObject } from 'superfly-timeline'
+
 export interface Mappings {
 	[layerName: string]: Mapping
 }
@@ -46,4 +48,9 @@ export enum DeviceType {
 	ATEM = 2,
 	LAWO = 3, // yet to be implemented
 	HTTPSEND = 4
+}
+
+export interface TimelineResolvedObjectExtended extends TimelineResolvedObject {
+	isBackground?: boolean
+	originalLLayer?: string | number
 }

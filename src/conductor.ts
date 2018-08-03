@@ -11,7 +11,7 @@ import { Device, DeviceOptions } from './devices/device'
 import { CasparCGDevice } from './devices/casparCG'
 import { AbstractDevice } from './devices/abstract'
 import { HttpSendDevice } from './devices/httpSend'
-import { Mappings, Mapping, DeviceType } from './devices/mapping'
+import { Mappings, Mapping, DeviceType, TimelineResolvedObjectExtended } from './devices/mapping'
 import { AtemDevice } from './devices/atem'
 import { EventEmitter } from 'events'
 import { LawoDevice } from './devices/lawo'
@@ -233,11 +233,11 @@ export class Conductor extends EventEmitter {
 	/**
 	 * Send a makeReady-trigger to all devices
 	 */
-	public devicesMakeReady (okToDestoryStuff?: boolean): Promise<void> {
+	public devicesMakeReady (okToDestroyStuff?: boolean): Promise<void> {
 		let p = Promise.resolve()
 		_.each(this.devices, (device: Device) => {
 			p = p.then(() => {
-				return device.makeReady(okToDestoryStuff)
+				return device.makeReady(okToDestroyStuff)
 			})
 		})
 		this._resolveTimeline()
@@ -246,11 +246,11 @@ export class Conductor extends EventEmitter {
 	/**
 	 * Send a standDown-trigger to all devices
 	 */
-	public devicesStandDown (okToDestoryStuff?: boolean): Promise<void> {
+	public devicesStandDown (okToDestroyStuff?: boolean): Promise<void> {
 		let p = Promise.resolve()
 		_.each(this.devices, (device: Device) => {
 			p = p.then(() => {
-				return device.standDown(okToDestoryStuff)
+				return device.standDown(okToDestroyStuff)
 			})
 		})
 		return p
@@ -332,7 +332,11 @@ export class Conductor extends EventEmitter {
 			let getFilteredLayers = (layers: TimelineState['LLayers'], device: Device) => {
 				let filteredState = {}
 				_.each(layers, (o: TimelineResolvedObject, layerId: string) => {
+					const oExt = o as TimelineResolvedObjectExtended
 					let mapping: Mapping = this._mapping[o.LLayer + '']
+					if (!mapping && oExt.originalLLayer) {
+						mapping = this._mapping[oExt.originalLLayer]
+					}
 					if (mapping) {
 						if (
 							mapping.deviceId === device.deviceId &&
