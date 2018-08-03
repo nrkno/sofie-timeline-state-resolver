@@ -22,8 +22,7 @@ export interface CasparCGDeviceOptions extends DeviceOptions {
 }
 export interface CasparCGOptions {
 	host: string,
-	port: number,
-	syncTimecode?: boolean
+	port: number
 }
 export enum TimelineContentTypeCasparCg { //  CasparCG-state
 	VIDEO = 'video', // to be deprecated & replaced by MEDIA
@@ -88,45 +87,20 @@ export class CasparCGDevice extends Device {
 			}
 		})
 
-		return Promise.all([
-			new Promise((resolve, reject) => {
-				this._ccg.info()
-				.then((command) => {
-					this._ccgState.initStateFromChannelInfo(_.map(command.response.data, (obj: any) => {
-						return {
-							channelNo: obj.channel,
-							videoMode: obj.format.toUpperCase(),
-							fps: obj.channelRate
-						}
-					}) as StateNS.ChannelInfo[])
+		return new Promise((resolve, reject) => {
+			this._ccg.info()
+			.then((command) => {
+				this._ccgState.initStateFromChannelInfo(_.map(command.response.data, (obj: any) => {
+					return {
+						channelNo: obj.channel,
+						videoMode: obj.format.toUpperCase(),
+						fps: obj.channelRate
+					}
+				}) as StateNS.ChannelInfo[])
 
-					resolve(true)
-				}).catch((e) => reject(e))
-			}), new Promise((resolve, reject) => {
-
-				if (connectionOptions.syncTimecode) {
-					this._ccg.time(1).then((cmd) => { // @todo: keep time per channel
-						let segments = (cmd.response.data as string).split(':')
-						let time = 0
-
-						// fields:
-						time += Number(segments[3]) * 1000 / 50
-						// seconds
-						time += Number(segments[2]) * 1000
-						// minutes
-						time += Number(segments[1]) * 60 * 1000
-						// hours
-						time += Number(segments[0]) * 60 * 60 * 1000
-
-						this._timeToTimecodeMap = { time: this.getCurrentTime(), timecode: time }
-						resolve(true)
-					}).catch(() => reject())
-				} else {
-					this._timeToTimecodeMap = { time: 0, timecode: 0 }
-					resolve(true)
-				}
-			})
-		]).then(() => {
+				resolve(true)
+			}).catch((e) => reject(e))
+		}).then(() => {
 			return true
 		})
 	}
