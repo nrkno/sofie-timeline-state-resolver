@@ -77,6 +77,7 @@ export class CasparCGDevice extends Device {
 			}
 		})
 		this._ccg.on(CasparCGSocketStatusEvent.CONNECTED, (event: CasparCGSocketStatusEvent) => {
+			this.makeReady(false) // always make sure timecode is correct, setting it can never do bad
 			if (event.valueOf().virginServer === true) {
 				// a "virgin server" was just restarted (so it is cleared & black).
 				// Otherwise it was probably just a loss of connection
