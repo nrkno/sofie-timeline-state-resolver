@@ -83,6 +83,7 @@ export class AtemDevice extends Device {
 				this._connected = false
 				this.emit('connectionChanged', false)
 			})
+			this._device.on('error', (e) => this.emit('error', e))
 		})
 	}
 	terminate (): Promise<boolean> {
