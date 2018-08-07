@@ -387,8 +387,7 @@ export class CasparCGDevice extends Device {
 							content: StateNS.LayerContentType.NOTHING,
 							playing: false,
 							pauseTime: 0,
-							nextUp: s,
-							noClear: true
+							nextUp: s
 						}
 						channel.layers[mapping.layer] = l
 					} else {
@@ -428,8 +427,7 @@ export class CasparCGDevice extends Device {
 				.then(() => {
 					let duration = this.getCurrentTime() - startTime
 					if (duration > 20) { // @todo: acceptable time is dependent on fps
-						this.emit('error', 'Caspar Time command took too long ("' + duration + '")')
-						// throw Error('Caspar Time command took too long ("' + duration + '")')
+						throw Error('Caspar Time command took too long ("' + duration + '")')
 					}
 				})
 			})
@@ -500,7 +498,7 @@ export class CasparCGDevice extends Device {
 				delete this._queue[resCommand.token]
 			}
 		}).catch((error) => {
-			this.emit('error', { cmdName: cmd.name, cmd, error})
+			this.emit('error', { cmdName: cmd.name, cmd, error })
 			this._log(cmd, error)
 			if (cmd.name === 'ScheduleSetCommand') {
 				delete this._queue[cmd.getParam('command').token]
