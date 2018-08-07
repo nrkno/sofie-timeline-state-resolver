@@ -220,6 +220,22 @@ describe('Rundown', () => {
 				LLayer: 'gfx'
 			},
 			{
+				id: 'stinger_opener_1_bg',
+				content: {
+					type: 'video',
+					attributes: {
+						file: 'stinger1'
+					}
+				},
+				trigger: {
+					type: TriggerType.TIME_RELATIVE,
+					value: '#cam_opener_item_1.end - 1000'
+				},
+				isBackground: true,
+				duration: 1000,
+				LLayer: 'gfx'
+			},
+			{
 				id: 'stinger_opener_1',
 				content: {
 					type: 'video',
@@ -251,6 +267,23 @@ describe('Rundown', () => {
 				LLayer: 'pgm'
 			},
 			{
+				id: 'bg_item2_0_bg',
+				content: {
+					type: 'video',
+					attributes: {
+						file: 'BG2',
+						loop: true
+					}
+				},
+				trigger: {
+					type: TriggerType.TIME_RELATIVE,
+					value: '#cam_opener_item_2.start'
+				},
+				isBackground: true,
+				duration: 1399,
+				LLayer: 'aux1'
+			},
+			{
 				id: 'bg_item2_0',
 				content: {
 					type: 'video',
@@ -265,6 +298,28 @@ describe('Rundown', () => {
 				},
 				duration: 10000,
 				LLayer: 'aux1'
+			},
+			{
+				id: 'opener_full_bg',
+				content: {
+					type: 'video',
+					attributes: {
+						file: 'opener_full'
+					},
+					transitions: {
+						inTransition: {
+							type: 'PUSH',
+							duration: 250
+						}
+					}
+				},
+				trigger: {
+					type: TriggerType.TIME_RELATIVE,
+					value: '#opener_full.start - 2000'
+				},
+				isBackground: true,
+				duration: 2000,
+				LLayer: 'gfx'
 			},
 			{
 				id: 'opener_full',
@@ -392,8 +447,7 @@ describe('Rundown', () => {
 			layer: 11,
 			noClear: false,
 			clip: 'stinger1',
-			loop: false,
-			seek: 0
+			auto: false
 		})
 
 		// SCHEDULE SET 5s PLAY 1-11
@@ -406,7 +460,7 @@ describe('Rundown', () => {
 
 		advanceTime(1399) // 14000
 		expect(getCurrentTime()).toEqual(14000)
-		expect(commandReceiver0).toHaveBeenCalledTimes(15)
+		expect(commandReceiver0).toHaveBeenCalledTimes(16)
 		// SCHEDULE SET 5.5s PLAY 1-10 ROUTE://3-20
 		// SCHEDULE SET 5s LOADBG 2-10 BG2
 		// SCHEDULE SET 5.5s PLAY 2-10
@@ -414,17 +468,16 @@ describe('Rundown', () => {
 		expect(commandReceiver0.mock.calls[11][1]._objectParams.command.name).toEqual('CustomCommand')
 		expect(commandReceiver0.mock.calls[11][1]._objectParams.command._objectParams.command).toEqual('PLAY 1-10 route://3-20')
 
-		expect(commandReceiver0.mock.calls[12][1]._objectParams.timecode).toEqual('00:00:15:00')
-		expect(commandReceiver0.mock.calls[12][1]._objectParams.command._objectParams).toMatchObject({
+		expect(commandReceiver0.mock.calls[13][1]._objectParams.timecode).toEqual('00:00:15:25')
+		expect(commandReceiver0.mock.calls[13][1]._objectParams.command._objectParams).toMatchObject({
 			channel: 2,
 			layer: 10,
 			noClear: false,
 			clip: 'BG2',
-			loop: true,
-			seek: 0
+			auto: false
 		})
-		expect(commandReceiver0.mock.calls[13][1]._objectParams.timecode).toEqual('00:00:15:25')
-		expect(commandReceiver0.mock.calls[13][1]._objectParams.command._objectParams).toMatchObject({
+		expect(commandReceiver0.mock.calls[12][1]._objectParams.timecode).toEqual('00:00:15:25')
+		expect(commandReceiver0.mock.calls[12][1]._objectParams.command._objectParams).toMatchObject({
 			channel: 2,
 			layer: 10,
 			noClear: false
@@ -435,10 +488,6 @@ describe('Rundown', () => {
 			'channel': 1,
 			'layer': 11
 		})
-
-		advanceTime(1000)
-		expect(getCurrentTime()).toEqual(15000)
-		expect(commandReceiver0).toHaveBeenCalledTimes(19)
 		// SCHEDULE SET 6s LOADBG 1-11 OPENER_FULL PUSH 13
 		expect(commandReceiver0.mock.calls[15][1]._objectParams.timecode).toEqual('00:00:16:00')
 		expect(commandReceiver0.mock.calls[15][1]._objectParams.command._objectParams).toMatchObject({
@@ -446,38 +495,48 @@ describe('Rundown', () => {
 			layer: 11,
 			noClear: false,
 			clip: 'opener_full',
-			loop: false,
-			seek: 0,
+			auto: false,
 			transition: 'PUSH',
 			transitionDuration: 13,
 			transitionEasing: 'linear',
 			transitionDirection: 'right'
 		})
 
-		// SCHEDULE SET 8s PLAY 1-11
-		expect(commandReceiver0.mock.calls[16][1]._objectParams.timecode).toEqual('00:00:18:00')
+		advanceTime(1000)
+		expect(getCurrentTime()).toEqual(15000)
+		expect(commandReceiver0).toHaveBeenCalledTimes(20)
+
+		expect(commandReceiver0.mock.calls[16][1]._objectParams.timecode).toEqual('00:00:16:45')
 		expect(commandReceiver0.mock.calls[16][1]._objectParams.command._objectParams).toMatchObject({
+			channel: 2,
+			layer: 10,
+			noClear: false
+		})
+
+		// SCHEDULE SET 8s PLAY 1-11
+		expect(commandReceiver0.mock.calls[17][1]._objectParams.timecode).toEqual('00:00:18:00')
+		expect(commandReceiver0.mock.calls[17][1]._objectParams.command._objectParams).toMatchObject({
 			channel: 1,
 			layer: 11,
 			noClear: false
 		})
-		expect(commandReceiver0.mock.calls[17][1]._objectParams.timecode).toEqual('00:00:18:00')
-		expect(commandReceiver0.mock.calls[17][1]._objectParams.command._objectParams).toMatchObject({
+		expect(commandReceiver0.mock.calls[18][1]._objectParams.timecode).toEqual('00:00:18:00')
+		expect(commandReceiver0.mock.calls[18][1]._objectParams.command._objectParams).toMatchObject({
 			'channel': 1,
 			'layer': 10
 		})
-		expect(commandReceiver0.mock.calls[18][1]._objectParams.timecode).toEqual('00:00:18:00')
-		expect(commandReceiver0.mock.calls[18][1]._objectParams.command._objectParams).toMatchObject({
+		expect(commandReceiver0.mock.calls[19][1]._objectParams.timecode).toEqual('00:00:18:00')
+		expect(commandReceiver0.mock.calls[19][1]._objectParams.command._objectParams).toMatchObject({
 			'channel': 2,
 			'layer': 10
 		})
 
 		advanceTime(5000)
 		expect(getCurrentTime()).toEqual(20000)
-		expect(commandReceiver0).toHaveBeenCalledTimes(20)
+		expect(commandReceiver0).toHaveBeenCalledTimes(21)
 
-		expect(commandReceiver0.mock.calls[19][1]._objectParams.timecode).toEqual('00:00:23:00')
-		expect(commandReceiver0.mock.calls[19][1]._objectParams.command._objectParams).toMatchObject({
+		expect(commandReceiver0.mock.calls[20][1]._objectParams.timecode).toEqual('00:00:23:00')
+		expect(commandReceiver0.mock.calls[20][1]._objectParams.command._objectParams).toMatchObject({
 			'channel': 1,
 			'layer': 11
 		})

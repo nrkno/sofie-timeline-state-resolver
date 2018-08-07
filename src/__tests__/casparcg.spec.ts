@@ -790,6 +790,23 @@ describe('CasparCG', () => {
 		expect(getCurrentTime()).toEqual(10000)
 		myConductor.timeline = [
 			{
+				id: 'obj0_bg',
+				trigger: {
+					type: TriggerType.TIME_ABSOLUTE,
+					value: getCurrentTime()
+				},
+				duration: 1200,
+				isBackground: true,
+				LLayer: 'myLayer0',
+				content: {
+					type: TimelineContentTypeCasparCg.VIDEO,
+					attributes: {
+						file: 'AMB',
+						loop: true
+					}
+				}
+			},
+			{
 				id: 'obj0',
 				trigger: {
 					type: TriggerType.TIME_ABSOLUTE,
@@ -815,8 +832,7 @@ describe('CasparCG', () => {
 			layer: 42,
 			noClear: false,
 			clip: 'AMB',
-			seek: 0,
-			loop: true
+			auto: false
 		})
 		expect(commandReceiver0.mock.calls[1][1].name).toEqual('ScheduleSetCommand')
 		// console.log(commandReceiver0.mock.calls[1][1])
@@ -871,6 +887,23 @@ describe('CasparCG', () => {
 		myConductor.mapping = myLayerMapping
 		myConductor.timeline = [
 			{
+				id: 'obj0_bg',
+				trigger: {
+					type: TriggerType.TIME_ABSOLUTE,
+					value: getCurrentTime() // 1.2 seconds in the future
+				},
+				isBackground: true,
+				duration: 1200,
+				LLayer: 'myLayer0',
+				content: {
+					type: TimelineContentTypeCasparCg.VIDEO,
+					attributes: {
+						file: 'AMB',
+						loop: true
+					}
+				}
+			},
+			{
 				id: 'obj0',
 				trigger: {
 					type: TriggerType.TIME_ABSOLUTE,
@@ -896,8 +929,7 @@ describe('CasparCG', () => {
 			layer: 42,
 			noClear: false,
 			clip: 'AMB',
-			seek: 0,
-			loop: true
+			auto: false
 		})
 		expect(commandReceiver0.mock.calls[1][1].name).toEqual('ScheduleSetCommand')
 		// console.log(commandReceiver0.mock.calls[1][1])
