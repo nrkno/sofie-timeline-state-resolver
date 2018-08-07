@@ -129,10 +129,10 @@ export class Conductor extends EventEmitter {
 			this._resolveTimeline()
 		}
 	}
-	get timeline (): Array<TimelineContentObject> {
+	get timeline (): Array<TimelineContentObject | TimelineResolvedObjectExtended> {
 		return this._timeline
 	}
-	set timeline (timeline: Array<TimelineContentObject>) {
+	set timeline (timeline: Array<TimelineContentObject | TimelineResolvedObjectExtended>) {
 
 		this._timeline = timeline
 		// We've got a new timeline, anything could've happened at this point

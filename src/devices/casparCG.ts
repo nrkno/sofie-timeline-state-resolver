@@ -146,7 +146,7 @@ export class CasparCGDevice extends Device {
 		// console.log('commandsToAchieveState', commandsToAchieveState)
 
 		// add the new commands to the queue:
-		this._addToQueue(commandsToAchieveState, oldState, newState.time)
+		this._addToQueue(commandsToAchieveState, newState.time)
 
 		// store the new state, for later use:
 		this.setState(newState)
@@ -387,8 +387,7 @@ export class CasparCGDevice extends Device {
 							content: StateNS.LayerContentType.NOTHING,
 							playing: false,
 							pauseTime: 0,
-							nextUp: s,
-							noClear: true
+							nextUp: s
 						}
 						channel.layers[mapping.layer] = l
 					} else {
@@ -473,33 +472,8 @@ export class CasparCGDevice extends Device {
 		.catch(e => this.emit('error', e))
 	}
 
-	private _addToQueue (commandsToAchieveState: Array<CommandNS.IAMCPCommandVO>, oldState: TimelineState, time: number) {
+	private _addToQueue (commandsToAchieveState: Array<CommandNS.IAMCPCommandVO>, time: number) {
 		_.each(commandsToAchieveState, (cmd: CommandNS.IAMCPCommandVO) => {
-			if (cmd._commandName === 'PlayCommand' && cmd._objectParams.clip !== 'empty') {
-				if (oldState.time > 0 && time > this.getCurrentTime()) { // @todo: put the loadbg command just after the oldState.time when convenient?
-					// console.log('making a loadbg out of it ', time , this.getCurrentTime())
-					let loadbgCmd = Object.assign({}, cmd) // make a shallow copy
-					loadbgCmd._commandName = 'LoadbgCommand'
-
-					let command = AMCPUtil.deSerialize(loadbgCmd as CommandNS.IAMCPCommandVO, 'id')
-					let scheduleCommand = command
-
-					if (oldState.time >= this.getCurrentTime()) {
-						scheduleCommand = new AMCP.ScheduleSetCommand({
-							token: command.token,
-							timecode: this.convertTimeToTimecode(oldState.time, command.channel),
-							command
-						})
-					}
-					this._doCommand(scheduleCommand)
-
-					cmd._objectParams = {
-						channel: cmd.channel,
-						layer: cmd.layer,
-						noClear: cmd._objectParams.noClear
-					}
-				}
-			}
 
 			let command = AMCPUtil.deSerialize(cmd, 'id')
 			let scheduleCommand = new AMCP.ScheduleSetCommand({
@@ -523,8 +497,9 @@ export class CasparCGDevice extends Device {
 			if (this._queue[resCommand.token]) {
 				delete this._queue[resCommand.token]
 			}
-		}).catch((e) => {
-			this._log(e)
+		}).catch((error) => {
+			this.emit('error', { cmdName: cmd.name, cmd, error })
+			this._log(cmd, error)
 			if (cmd.name === 'ScheduleSetCommand') {
 				delete this._queue[cmd.getParam('command').token]
 			}

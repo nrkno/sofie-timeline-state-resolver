@@ -83,6 +83,7 @@ export class AtemDevice extends Device {
 				this._connected = false
 				this.emit('connectionChanged', false)
 			})
+			this._device.on('error', (e) => this.emit('error', e))
 		})
 	}
 	terminate (): Promise<boolean> {
@@ -249,7 +250,7 @@ export class AtemDevice extends Device {
 				}
 			}
 		}
-		for (let i = 0; i < this._device.state.video.downstreamKeyers.length; i++) {
+		for (let i = 0; i < Object.keys(this._device.state.video.downstreamKeyers).length; i++) {
 			deviceState.video.downstreamKeyers[i] = JSON.parse(JSON.stringify(StateDefault.Video.DownStreamKeyer))
 		}
 		for (let i = 0; i < this._device.state.info.capabilities.auxilliaries; i++) {
