@@ -7,6 +7,7 @@ import { TimelineState } from 'superfly-timeline'
 import { Atem, VideoState, Commands as AtemCommands } from 'atem-connection'
 import { AtemState, State as DeviceState, Defaults as StateDefault } from 'atem-state'
 import { DoOnTime } from '../doOnTime'
+import { Conductor } from '../conductor'
 
 _.mixin({ deepExtend: underScoreDeepExtend(_) })
 
@@ -42,10 +43,11 @@ export class AtemDevice extends Device {
 	private _state: AtemState
 	private _initialized: boolean = false
 	private _connected: boolean = false // note: ideally this should be replaced by this._device.connected
+	private _conductor: Conductor
 
 	private _commandReceiver: (time: number, cmd) => Promise<any>
 
-	constructor (deviceId: string, deviceOptions: AtemDeviceOptions, options) {
+	constructor (deviceId: string, deviceOptions: AtemDeviceOptions, options, conductor: Conductor) {
 		super(deviceId, deviceOptions, options)
 		if (deviceOptions.options) {
 			if (deviceOptions.options.commandReceiver) this._commandReceiver = deviceOptions.options.commandReceiver
@@ -55,6 +57,7 @@ export class AtemDevice extends Device {
 			return this.getCurrentTime()
 		})
 		this._doOnTime.on('error', e => this.emit('error', e))
+		this._conductor = conductor
 	}
 
 	/**
@@ -78,6 +81,7 @@ export class AtemDevice extends Device {
 				this.setState(this._device.state, this.getCurrentTime())
 				this._connected = true
 				this.emit('connectionChanged', true)
+				this._conductor.resetResolver()
 			})
 			this._device.on('disconnected', () => {
 				this._connected = false

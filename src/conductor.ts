@@ -170,7 +170,7 @@ export class Conductor extends EventEmitter {
 				// Add CasparCG device:
 				newDevice = new CasparCGDevice(deviceId, deviceOptions, options, this) as Device
 			} else if (deviceOptions.type === DeviceType.ATEM) {
-				newDevice = new AtemDevice(deviceId, deviceOptions, options) as Device
+				newDevice = new AtemDevice(deviceId, deviceOptions, options, this) as Device
 			} else if (deviceOptions.type === DeviceType.HTTPSEND) {
 				newDevice = new HttpSendDevice(deviceId, deviceOptions, options) as Device
 			} else if (deviceOptions.type === DeviceType.LAWO) {
