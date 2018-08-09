@@ -378,17 +378,20 @@ describe('Conductor', () => {
 		advanceTime(10) // to allow for commands to be sent
 
 		expect(commandReceiver1).toHaveBeenCalledTimes(6)
-		expect(commandReceiver1.mock.calls[0][1].name).toEqual('CustomCommand')
+		expect(commandReceiver1.mock.calls[0][1].name).toEqual('TimeCommand')
 		expect(commandReceiver1.mock.calls[0][1]._objectParams).toMatchObject({
-			command: 'TIME 1 00:00:10:00'
+			channel: 1,
+			timecode: '00:00:10:00'
 		})
-		expect(commandReceiver1.mock.calls[1][1].name).toEqual('CustomCommand')
+		expect(commandReceiver1.mock.calls[1][1].name).toEqual('TimeCommand')
 		expect(commandReceiver1.mock.calls[1][1]._objectParams).toMatchObject({
-			command: 'TIME 2 00:00:10:00'
+			channel: 2,
+			timecode: '00:00:10:00'
 		})
-		expect(commandReceiver1.mock.calls[2][1].name).toEqual('CustomCommand')
+		expect(commandReceiver1.mock.calls[2][1].name).toEqual('TimeCommand')
 		expect(commandReceiver1.mock.calls[2][1]._objectParams).toMatchObject({
-			command: 'TIME 3 00:00:10:00'
+			channel: 3,
+			timecode: '00:00:10:00'
 		})
 
 		expect(commandReceiver1.mock.calls[3][1].name).toEqual('ClearCommand')

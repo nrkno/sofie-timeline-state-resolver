@@ -418,10 +418,9 @@ export class CasparCGDevice extends Device {
 				p = p.then(() => {
 
 					startTime = this.getCurrentTime()
-					return this._commandReceiver(startTime, new AMCP.CustomCommand({
-						command: (
-							'TIME ' + channelNo + ' ' + this.convertTimeToTimecode(startTime, channelNo)
-						)
+					return this._commandReceiver(startTime, new AMCP.TimeCommand({
+						channel: channelNo,
+						timecode: this.convertTimeToTimecode(startTime, channelNo)
 					}))
 				})
 				.then(() => {
