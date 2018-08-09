@@ -439,18 +439,18 @@ asynckit@^0.4.0:
   version "0.4.0"
   resolved "https://registry.yarnpkg.com/asynckit/-/asynckit-0.4.0.tgz#c79ed97f7f34cb8f2ba1bc9790bcc366474b4b79"
 
-atem-connection@^0.3.0:
-  version "0.3.0"
-  resolved "https://registry.yarnpkg.com/atem-connection/-/atem-connection-0.3.0.tgz#d3b2e99e07584d6baac78b6b8f5508a53701f0e9"
+atem-connection@^0.3.1:
+  version "0.3.1"
+  resolved "https://registry.yarnpkg.com/atem-connection/-/atem-connection-0.3.1.tgz#bdfe2cc8864e87dc2defec2f63e9f210d12f480b"
   dependencies:
     pngjs "^3.3.2"
     tslib "^1.9.0"
 
-atem-state@^0.3.1:
-  version "0.3.1"
-  resolved "https://registry.yarnpkg.com/atem-state/-/atem-state-0.3.1.tgz#6c0920a23c737be48667b2b71c72e7cdba2fadff"
+atem-state@^0.3.2:
+  version "0.3.2"
+  resolved "https://registry.yarnpkg.com/atem-state/-/atem-state-0.3.2.tgz#aa6fb221cf28abd46ffe04402ddd8aa7d9ee94e4"
   dependencies:
-    atem-connection "^0.3.0"
+    atem-connection "^0.3.1"
     tslib "^1.9.2"
 
 atob@^2.1.1:
