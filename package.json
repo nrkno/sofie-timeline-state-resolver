@@ -130,8 +130,8 @@
   ],
   "dependencies": {
     "@types/request": "^2.47.0",
-    "atem-connection": "^0.3.2",
-    "atem-state": "^0.3.3",
+    "atem-connection": "^0.4.0",
+    "atem-state": "^0.3.5",
     "casparcg-connection": "^4.4.0",
     "casparcg-state": "^1.1.5",
     "emberplus": "git+https://github.com/nrkno/tv-automation-emberplus-connection.git#dist",
