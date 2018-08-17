@@ -804,14 +804,6 @@ caseless@~0.12.0:
   version "0.12.0"
   resolved "https://registry.yarnpkg.com/caseless/-/caseless-0.12.0.tgz#1b681c21ff84033c826543090689420d187151dc"
 
-casparcg-connection@^4.4.0:
-  version "4.4.0"
-  resolved "https://registry.yarnpkg.com/casparcg-connection/-/casparcg-connection-4.4.0.tgz#728c9c3c24a6db3490019ea98cde672667b9c98b"
-  dependencies:
-    highland "^3.0.0-beta.6"
-    xml2js "^0.4.19"
-    xmlbuilder "^9.0.7"
-
 casparcg-connection@^4.5.0:
   version "4.5.0"
   resolved "https://registry.yarnpkg.com/casparcg-connection/-/casparcg-connection-4.5.0.tgz#c85cba1b17682337e20fe7608b83e960c77ac405"

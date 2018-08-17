@@ -132,7 +132,7 @@
     "@types/request": "^2.47.0",
     "atem-connection": "^0.5.0",
     "atem-state": "^0.3.6",
-    "casparcg-connection": "^4.4.0",
+    "casparcg-connection": "^4.5.0",
     "casparcg-state": "^1.2.0",
     "emberplus": "git+https://github.com/nrkno/tv-automation-emberplus-connection.git#dist",
     "fast-clone": "^1.5.3",
