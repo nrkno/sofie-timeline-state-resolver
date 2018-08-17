@@ -273,7 +273,7 @@ export class AtemDevice extends Device {
 		for (let i = 0; i < this._device.state.info.superSourceBoxes; i++) {
 			deviceState.video.superSourceBoxes[i] = JSON.parse(JSON.stringify(StateDefault.Video.SuperSourceBox))
 		}
-		if (this._device.state.info.superSourceBoxes > 0) {
+		if (this._device.state.video.superSourceProperties) {
 			deviceState.video.superSourceProperties = JSON.parse(JSON.stringify(StateDefault.Video.SuperSourceProperties))
 		}
 
