@@ -439,18 +439,18 @@ asynckit@^0.4.0:
   version "0.4.0"
   resolved "https://registry.yarnpkg.com/asynckit/-/asynckit-0.4.0.tgz#c79ed97f7f34cb8f2ba1bc9790bcc366474b4b79"
 
-atem-connection@^0.3.2:
-  version "0.3.2"
-  resolved "https://registry.yarnpkg.com/atem-connection/-/atem-connection-0.3.2.tgz#526b51c7332b59ba77c6bdc53c21866e6b2b7300"
+atem-connection@^0.5.0:
+  version "0.5.0"
+  resolved "https://registry.yarnpkg.com/atem-connection/-/atem-connection-0.5.0.tgz#aaa7f702839593cc3d057617c3a392dc5a46e310"
   dependencies:
     pngjs "^3.3.2"
     tslib "^1.9.0"
 
-atem-state@^0.3.3:
-  version "0.3.3"
-  resolved "https://registry.yarnpkg.com/atem-state/-/atem-state-0.3.3.tgz#9d87a73be912a854b2cf904d42e354cbbcc719af"
+atem-state@^0.3.6:
+  version "0.3.6"
+  resolved "https://registry.yarnpkg.com/atem-state/-/atem-state-0.3.6.tgz#5b8d88d6037b78b26b31e77462dc592023f6be46"
   dependencies:
-    atem-connection "^0.3.2"
+    atem-connection "^0.5.0"
     tslib "^1.9.2"
 
 atob@^2.1.1:
@@ -804,19 +804,19 @@ caseless@~0.12.0:
   version "0.12.0"
   resolved "https://registry.yarnpkg.com/caseless/-/caseless-0.12.0.tgz#1b681c21ff84033c826543090689420d187151dc"
 
-casparcg-connection@^4.4.0:
-  version "4.4.0"
-  resolved "https://registry.yarnpkg.com/casparcg-connection/-/casparcg-connection-4.4.0.tgz#728c9c3c24a6db3490019ea98cde672667b9c98b"
+casparcg-connection@^4.5.0:
+  version "4.5.0"
+  resolved "https://registry.yarnpkg.com/casparcg-connection/-/casparcg-connection-4.5.0.tgz#c85cba1b17682337e20fe7608b83e960c77ac405"
   dependencies:
     highland "^3.0.0-beta.6"
     xml2js "^0.4.19"
     xmlbuilder "^9.0.7"
 
-casparcg-state@^1.1.5:
-  version "1.1.5"
-  resolved "https://registry.yarnpkg.com/casparcg-state/-/casparcg-state-1.1.5.tgz#a5dbeaf54981256f3cf68094805f6d731a8584c9"
+casparcg-state@^1.2.0:
+  version "1.2.0"
+  resolved "https://registry.yarnpkg.com/casparcg-state/-/casparcg-state-1.2.0.tgz#bedb868f6417b8f2c55c82db56c0e774502eddd3"
   dependencies:
-    casparcg-connection "^4.4.0"
+    casparcg-connection "^4.5.0"
     fast-clone "^1.5.3"
     underscore "^1.9.1"
 

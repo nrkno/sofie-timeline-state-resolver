@@ -426,7 +426,7 @@ export class CasparCGDevice extends Device {
 				.then(() => {
 					let duration = this.getCurrentTime() - startTime
 					if (duration > 20) { // @todo: acceptable time is dependent on fps
-						throw Error('Caspar Time command took too long ("' + duration + '")')
+						this.emit('error', 'CasparCG Time command took too long ("' + duration + '"), channel will be slightly out of sync!')
 					}
 				})
 			})

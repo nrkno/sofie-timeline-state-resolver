@@ -32,6 +32,7 @@ export enum TimelineContentTypeAtem { //  Atem-state
 	DSK = 'dsk',
 	AUX = 'aux',
 	SSRC = 'ssrc',
+	SSRCPROPS = 'ssrcProps',
 	MEDIAPLAYER = 'mp'
 }
 export class AtemDevice extends Device {
@@ -194,6 +195,15 @@ export class AtemDevice extends Device {
 								if (ssrc) deepExtend(ssrc, content.attributes.boxes)
 							}
 							break
+						case MappingAtemType.SuperSourceProperties:
+							if (tlObjectExt.isBackground && (!tlObjectExt.originalLLayer || tlObjectExt.originalLLayer && state.LLayers[tlObjectExt.originalLLayer])) {
+								break
+							}
+							if (content.type === TimelineContentTypeAtem.SSRCPROPS) {
+								let ssrc = deviceState.video.superSourceProperties
+								if (ssrc) deepExtend(ssrc, content.attributes)
+							}
+							break
 						case MappingAtemType.Auxilliary:
 							if (tlObjectExt.isBackground) {
 								break
@@ -262,6 +272,9 @@ export class AtemDevice extends Device {
 		}
 		for (let i = 0; i < this._device.state.info.superSourceBoxes; i++) {
 			deviceState.video.superSourceBoxes[i] = JSON.parse(JSON.stringify(StateDefault.Video.SuperSourceBox))
+		}
+		if (this._device.state.video.superSourceProperties) {
+			deviceState.video.superSourceProperties = JSON.parse(JSON.stringify(StateDefault.Video.SuperSourceProperties))
 		}
 
 		return deviceState

@@ -354,7 +354,7 @@ describe('Rundown', () => {
 		// PLAY 3-10 DECKLINK 3
 		// PLAY 3-20 DECKLINK 4
 		expect(commandReceiver0).toHaveBeenCalledTimes(7)
-		expect(commandReceiver0.mock.calls[0][1].name).toEqual('CustomCommand')
+		expect(commandReceiver0.mock.calls[0][1].name).toEqual('PlayRouteCommand')
 		expect(commandReceiver0.mock.calls[0][1]._objectParams.command).toEqual('PLAY 1-10 route://3-10')
 		expect(commandReceiver0.mock.calls[1][1].name).toEqual('PlayCommand')
 		expect(commandReceiver0.mock.calls[1][1]._objectParams).toMatchObject({
@@ -465,7 +465,7 @@ describe('Rundown', () => {
 		// SCHEDULE SET 5s LOADBG 2-10 BG2
 		// SCHEDULE SET 5.5s PLAY 2-10
 		expect(commandReceiver0.mock.calls[11][1]._objectParams.timecode).toEqual('00:00:15:25')
-		expect(commandReceiver0.mock.calls[11][1]._objectParams.command.name).toEqual('CustomCommand')
+		expect(commandReceiver0.mock.calls[11][1]._objectParams.command.name).toEqual('PlayRouteCommand')
 		expect(commandReceiver0.mock.calls[11][1]._objectParams.command._objectParams.command).toEqual('PLAY 1-10 route://3-20')
 
 		expect(commandReceiver0.mock.calls[13][1]._objectParams.timecode).toEqual('00:00:15:25')
