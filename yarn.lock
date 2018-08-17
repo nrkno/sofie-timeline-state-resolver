@@ -812,11 +812,19 @@ casparcg-connection@^4.4.0:
     xml2js "^0.4.19"
     xmlbuilder "^9.0.7"
 
-casparcg-state@^1.1.5:
-  version "1.1.5"
-  resolved "https://registry.yarnpkg.com/casparcg-state/-/casparcg-state-1.1.5.tgz#a5dbeaf54981256f3cf68094805f6d731a8584c9"
+casparcg-connection@^4.5.0:
+  version "4.5.0"
+  resolved "https://registry.yarnpkg.com/casparcg-connection/-/casparcg-connection-4.5.0.tgz#c85cba1b17682337e20fe7608b83e960c77ac405"
   dependencies:
-    casparcg-connection "^4.4.0"
+    highland "^3.0.0-beta.6"
+    xml2js "^0.4.19"
+    xmlbuilder "^9.0.7"
+
+casparcg-state@^1.2.0:
+  version "1.2.0"
+  resolved "https://registry.yarnpkg.com/casparcg-state/-/casparcg-state-1.2.0.tgz#bedb868f6417b8f2c55c82db56c0e774502eddd3"
+  dependencies:
+    casparcg-connection "^4.5.0"
     fast-clone "^1.5.3"
     underscore "^1.9.1"
 
