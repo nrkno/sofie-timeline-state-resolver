@@ -13,6 +13,8 @@ import { Conductor } from '../conductor'
 /*
 	This is a wrapper for a CasparCG device. All commands will be sent through this
 */
+const MAX_TIMESYNC_TRIES = 5
+const MAX_TIMESYNC_DURATION = 20
 export interface CasparCGDeviceOptions extends DeviceOptions {
 	options?: {
 		commandReceiver?: (time: number, cmd: CommandNS.IAMCPCommand) => Promise<any>
@@ -406,6 +408,24 @@ export class CasparCGDevice extends Device {
 		return this._ccg.info()
 		.then((command) => {
 			let channels: any = command.response.data
+			const attemptSync = (channelNo, tries) => {
+				let startTime = this.getCurrentTime()
+				return this._commandReceiver(startTime, new AMCP.TimeCommand({
+					channel: channelNo,
+					timecode: this.convertTimeToTimecode(startTime, channelNo)
+				}))
+				.then(async () => {
+					let duration = this.getCurrentTime() - startTime
+					if (duration > MAX_TIMESYNC_DURATION) { // @todo: acceptable time is dependent on fps
+						if (tries > MAX_TIMESYNC_TRIES) {
+							this.emit('error', 'CasparCG Time command took too long (' + MAX_TIMESYNC_TRIES + ' tries took longer than ' + MAX_TIMESYNC_DURATION + 'ms), channel will be slightly out of sync!')
+							return Promise.resolve()
+						}
+						await new Promise(resolve => { setTimeout(() => resolve(), MAX_TIMESYNC_DURATION) })
+						return attemptSync(channelNo, tries + 1)
+					}
+				})
+			}
 
 			// console.log('channels', channels)
 
@@ -413,22 +433,7 @@ export class CasparCGDevice extends Device {
 			_.each(channels, (channel: any) => {
 
 				let channelNo = channel.channel
-				// let fps = channel.channelRate
-				let startTime
-				p = p.then(() => {
-
-					startTime = this.getCurrentTime()
-					return this._commandReceiver(startTime, new AMCP.TimeCommand({
-						channel: channelNo,
-						timecode: this.convertTimeToTimecode(startTime, channelNo)
-					}))
-				})
-				.then(() => {
-					let duration = this.getCurrentTime() - startTime
-					if (duration > 20) { // @todo: acceptable time is dependent on fps
-						this.emit('error', 'CasparCG Time command took too long ("' + duration + '"), channel will be slightly out of sync!')
-					}
-				})
+				p = p.then(() => attemptSync(channelNo, 1))
 			})
 			// Clear all channels (?)
 			p = p.then(() => {
@@ -496,6 +501,7 @@ export class CasparCGDevice extends Device {
 			if (this._queue[resCommand.token]) {
 				delete this._queue[resCommand.token]
 			}
+			this.emit('command', cmd)
 		}).catch((error) => {
 			this.emit('error', { cmdName: cmd.name, cmd, error })
 			this._log(cmd, error)

@@ -172,6 +172,7 @@ export class HttpSendDevice extends Device {
 							reject(error)
 						} else if (response.statusCode === 200) {
 							// console.log('200 Response from ' + cmd.url, body)
+							this.emit('command', cmd)
 							resolve()
 						} else {
 							// console.log(response.statusCode + ' Response from ' + cmd.url, body)
@@ -191,6 +192,7 @@ export class HttpSendDevice extends Device {
 							this.emit('error', 'Error in httpSend PUT: ' + error)
 							reject(error)
 						} else if (response.statusCode === 200) {
+							this.emit('command', cmd)
 							// console.log('200 Response from ' + cmd.url, body)
 							resolve()
 						} else {
@@ -215,6 +217,7 @@ export class HttpSendDevice extends Device {
 							this.emit('error', 'Error in httpSend GET: ' + error)
 							reject(error)
 						} else if (response.statusCode === 200) {
+							this.emit('command', cmd)
 							// console.log('200 Response from ' + cmd.url, body)
 							resolve()
 						} else {

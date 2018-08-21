@@ -195,15 +195,6 @@ export class AtemDevice extends Device {
 								if (ssrc) deepExtend(ssrc, content.attributes.boxes)
 							}
 							break
-						case MappingAtemType.SuperSourceProperties:
-							if (tlObjectExt.isBackground && (!tlObjectExt.originalLLayer || tlObjectExt.originalLLayer && state.LLayers[tlObjectExt.originalLLayer])) {
-								break
-							}
-							if (content.type === TimelineContentTypeAtem.SSRCPROPS) {
-								let ssrc = deviceState.video.superSourceProperties
-								if (ssrc) deepExtend(ssrc, content.attributes)
-							}
-							break
 						case MappingAtemType.Auxilliary:
 							if (tlObjectExt.isBackground) {
 								break
@@ -221,6 +212,14 @@ export class AtemDevice extends Device {
 								if (ms) deepExtend(ms, content.attributes)
 							}
 							break
+					}
+				}
+				if (mapping.mappingType === MappingAtemType.SuperSourceProperties) {
+					if (!(tlObjectExt.isBackground && (!tlObjectExt.originalLLayer || tlObjectExt.originalLLayer && state.LLayers[tlObjectExt.originalLLayer]))) {
+						if (content.type === TimelineContentTypeAtem.SSRCPROPS) {
+							let ssrc = deviceState.video.superSourceProperties
+							if (ssrc) deepExtend(ssrc, content.attributes)
+						}
 					}
 				}
 			}
@@ -283,6 +282,7 @@ export class AtemDevice extends Device {
 	private _defaultCommandReceiver (time: number, command: AtemCommands.AbstractCommand): Promise<any> {
 		time = time // seriously this needs to stop
 		return this._device.sendCommand(command).then(() => {
+			this.emit('command', command)
 			// @todo: command was acknowledged by atem, how will we check if it did what we wanted?
 		})
 	}

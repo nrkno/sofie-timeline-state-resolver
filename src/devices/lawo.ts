@@ -294,7 +294,10 @@ export class LawoDevice extends Device {
 		if (command.key === 'Fader/Motor dB Value') {	// fader level
 			if (command.transitionDuration && command.transitionDuration > 0) {	// with timed fader movement
 				return this._device.invokeFunction(new Ember.QualifiedFunction(this._rampMotorFunctionPath), [command.identifier, new Ember.ParameterContents(command.value, 'real'), new Ember.ParameterContents(command.transitionDuration / 1000, 'real')])
-				.then((res) => this.emit('info', `Ember function result: ${JSON.stringify(res)}`))
+				.then((res) => {
+					this.emit('command', command)
+					this.emit('info', `Ember function result: ${JSON.stringify(res)}`)
+				})
 					.catch((e) => {
 						this.emit('error', `Ember function command error: ${e.toString()}`)
 					})
@@ -303,7 +306,10 @@ export class LawoDevice extends Device {
 				return this._getNodeByPath(command.path)
 				.then((node: any) => {
 					this._device.setValue(node, new Ember.ParameterContents(command.value, 'real'))
-					.then((res) => this.emit('info', `Ember result: ${JSON.stringify(res)}`))
+					.then((res) => {
+						this.emit('command', command)
+						this.emit('info', `Ember result: ${JSON.stringify(res)}`)
+					})
 					.catch((e) => console.log(e))
 				})
 				.catch((e) => {
