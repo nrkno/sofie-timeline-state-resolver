@@ -501,6 +501,7 @@ export class CasparCGDevice extends Device {
 			if (this._queue[resCommand.token]) {
 				delete this._queue[resCommand.token]
 			}
+			this.emit('command', cmd)
 		}).catch((error) => {
 			this.emit('error', { cmdName: cmd.name, cmd, error })
 			this._log(cmd, error)

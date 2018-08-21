@@ -282,6 +282,7 @@ export class AtemDevice extends Device {
 	private _defaultCommandReceiver (time: number, command: AtemCommands.AbstractCommand): Promise<any> {
 		time = time // seriously this needs to stop
 		return this._device.sendCommand(command).then(() => {
+			this.emit('command', command)
 			// @todo: command was acknowledged by atem, how will we check if it did what we wanted?
 		})
 	}
