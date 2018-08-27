@@ -155,7 +155,7 @@ export class LawoDevice extends Device {
 	}
 	handleState (newState: TimelineState) {
 		// Handle this new state, at the point in time specified
-		let oldState: TimelineState = this.getStateBefore(newState.time) || { time: 0, LLayers: {}, GLayers: {} }
+		let oldState: TimelineState = (this.getStateBefore(newState.time) || { state: { time: 0, LLayers: {}, GLayers: {} } }).state
 
 		let oldLawoState = this.convertStateToLawo(oldState)
 		let newLawoState = this.convertStateToLawo(newState)
@@ -168,7 +168,7 @@ export class LawoDevice extends Device {
 		this._addToQueue(commandsToAchieveState, newState.time)
 
 		// store the new state, for later use:
-		this.setState(newState)
+		this.setState(newState, newState.time)
 	}
 	clearFuture (clearAfterTime: number) {
 		// Clear any scheduled commands after this time
