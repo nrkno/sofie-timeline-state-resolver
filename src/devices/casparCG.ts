@@ -128,7 +128,7 @@ export class CasparCGDevice extends Device {
 			return
 		}
 
-		let oldState = this.getStateBefore(newState.time) || { time: 0, LLayers: {}, GLayers: {} }
+		let oldState = (this.getStateBefore(newState.time) || { state: { time: 0, LLayers: {}, GLayers: {} } }).state
 
 		let newCasparState = this.convertStateToCaspar(newState)
 		let oldCasparState = this.convertStateToCaspar(oldState)
@@ -151,7 +151,7 @@ export class CasparCGDevice extends Device {
 		this._addToQueue(commandsToAchieveState, newState.time)
 
 		// store the new state, for later use:
-		this.setState(newState)
+		this.setState(newState, newState.time)
 	}
 
 	clearFuture (clearAfterTime: number) {

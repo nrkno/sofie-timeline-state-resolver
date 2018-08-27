@@ -83,7 +83,7 @@ export class Device extends EventEmitter {
 		throw new Error('This class method must be replaced by the Device class!')
 	}
 
-	getStateBefore (time: number): TimelineState | null {
+	getStateBefore (time: number): {state: TimelineState, time: number} | null {
 		let foundTime = 0
 		let foundState: TimelineState | null = null
 		_.each(this._states, (state: TimelineState, stateTimeStr: string) => {
@@ -93,12 +93,20 @@ export class Device extends EventEmitter {
 				foundTime = stateTime
 			}
 		})
-		return foundState
+		if (foundState) {
+			return {
+				state: foundState,
+				time: foundTime
+			}
+		}
+		return null
 	}
-	setState (state, time?) {
-		this._states[time ? time + '' : state.time + ''] = state
+	setState (state, time) {
+		// if (!state.time) throw new Error('setState: falsy state.time')
+		if (!time) throw new Error('setState: falsy time')
+		this._states[time + ''] = state
 
-		this.cleanUpStates(0, state.time) // remove states after this time, as they are not relevant anymore
+		this.cleanUpStates(0, time) // remove states after this time, as they are not relevant anymore
 		this._setStateCount++
 		if (this._setStateCount > 10) {
 			this._setStateCount = 0

@@ -112,7 +112,7 @@ export class AtemDevice extends Device {
 			this._log('Atem not initialized yet')
 			return
 		}
-		let oldState = this.getStateBefore(newState.time) || this._getDefaultState()
+		let oldState = (this.getStateBefore(newState.time) || { state: this._getDefaultState() }).state
 
 		let oldAtemState = oldState
 		let newAtemState = this.convertStateToAtem(newState)
