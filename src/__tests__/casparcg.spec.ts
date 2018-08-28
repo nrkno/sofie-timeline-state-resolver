@@ -595,11 +595,11 @@ describe('CasparCG', () => {
 			layer: 42,
 			noClear: false,
 			transition: 'MIX',
-			transitionDuration: 50,
+			transitionDuration: 25,
 			transitionEasing: 'linear',
 			transitionDirection: 'left',
 			clip: 'AMB',
-			seek: 50,
+			seek: 25,
 			loop: false
 		})
 		expect(commandReceiver0.mock.calls[1][1].name).toEqual('ScheduleSetCommand')
@@ -609,7 +609,7 @@ describe('CasparCG', () => {
 			channel: 2,
 			layer: 42,
 			transition: 'MIX',
-			transitionDuration: 50,
+			transitionDuration: 25,
 			transitionEasing: 'linear',
 			transitionDirection: 'right',
 			clip: 'empty'

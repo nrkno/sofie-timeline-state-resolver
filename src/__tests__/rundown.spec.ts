@@ -401,7 +401,7 @@ describe('Rundown', () => {
 			'channel': 1,
 			'layer': 11,
 			'transition': 'mix',
-			'transitionDuration': 25,
+			'transitionDuration': 13,
 			'transitionEasing': 'linear',
 			'transitionDirection': 'right',
 			'opacity': 0,
@@ -497,7 +497,7 @@ describe('Rundown', () => {
 			clip: 'opener_full',
 			auto: false,
 			transition: 'PUSH',
-			transitionDuration: 13,
+			transitionDuration: 6,
 			transitionEasing: 'linear',
 			transitionDirection: 'right'
 		})

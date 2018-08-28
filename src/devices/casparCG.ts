@@ -14,7 +14,7 @@ import { Conductor } from '../conductor'
 	This is a wrapper for a CasparCG device. All commands will be sent through this
 */
 const MAX_TIMESYNC_TRIES = 5
-const MAX_TIMESYNC_DURATION = 20
+const MAX_TIMESYNC_DURATION = 40
 export interface CasparCGDeviceOptions extends DeviceOptions {
 	options?: {
 		commandReceiver?: (time: number, cmd: CommandNS.IAMCPCommand) => Promise<any>
@@ -98,7 +98,7 @@ export class CasparCGDevice extends Device {
 					return {
 						channelNo: obj.channel,
 						videoMode: obj.format.toUpperCase(),
-						fps: obj.channelRate
+						fps: obj.frameRate
 					}
 				}) as StateNS.ChannelInfo[])
 
@@ -217,7 +217,7 @@ export class CasparCGDevice extends Device {
 				const channel = caspar.channels[mapping.channel] ? caspar.channels[mapping.channel] : new StateNS.Channel()
 				channel.channelNo = Number(mapping.channel) || 1
 				// @todo: check if we need to get fps.
-				channel.fps = 50 / 1000 // 50 fps over 1000ms
+				channel.fps = 25 / 1000 // 25 fps over 1000ms
 				caspar.channels[channel.channelNo] = channel
 
 				let stateLayer: StateNS.ILayerBase | null = null
