@@ -163,7 +163,7 @@ export class LawoDevice extends Device {
 		let commandsToAchieveState: Array<LawoCommand> = this._diffStates(oldLawoState, newLawoState)
 
 		// clear any queued commands later than this time:
-		this._doOnTime.clearQueueAfter(newState.time)
+		this._doOnTime.clearQueueNowAndAfter(newState.time)
 		// add the new commands to the queue:
 		this._addToQueue(commandsToAchieveState, newState.time)
 
