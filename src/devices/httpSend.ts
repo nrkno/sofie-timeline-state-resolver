@@ -73,7 +73,7 @@ export class HttpSendDevice extends Device {
 		let commandsToAchieveState: Array<any> = this._diffStates(oldAbstractState, newAbstractState)
 
 		// clear any queued commands later than this time:
-		this._doOnTime.clearQueueAfter(newState.time)
+		this._doOnTime.clearQueueNowAndAfter(newState.time)
 		// add the new commands to the queue:
 		this._addToQueue(commandsToAchieveState, newState.time)
 
