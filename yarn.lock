@@ -812,9 +812,9 @@ casparcg-connection@^4.5.0:
     xml2js "^0.4.19"
     xmlbuilder "^9.0.7"
 
-casparcg-state@^1.2.0:
-  version "1.2.0"
-  resolved "https://registry.yarnpkg.com/casparcg-state/-/casparcg-state-1.2.0.tgz#bedb868f6417b8f2c55c82db56c0e774502eddd3"
+casparcg-state@^1.3.1:
+  version "1.3.1"
+  resolved "https://registry.yarnpkg.com/casparcg-state/-/casparcg-state-1.3.1.tgz#5fc41402e9c4edce65357d3fcb895a2852f79600"
   dependencies:
     casparcg-connection "^4.5.0"
     fast-clone "^1.5.3"
