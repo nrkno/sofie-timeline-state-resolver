@@ -349,9 +349,9 @@ export class CasparCGDevice extends Device {
 								if (layer.content.transitions.outTransition) {
 									transitions.outTransition = new StateNS.Transition(
 										layer.content.transitions.outTransition.type,
-										layer.content.transitions.outTransition.duration || layer.content.transitions.inTransition.maskFile,
-										layer.content.transitions.outTransition.easing || layer.content.transitions.inTransition.delay,
-										layer.content.transitions.outTransition.direction || layer.content.transitions.inTransition.overlayFile
+										layer.content.transitions.outTransition.duration || layer.content.transitions.outTransition.maskFile,
+										layer.content.transitions.outTransition.easing || layer.content.transitions.outTransition.delay,
+										layer.content.transitions.outTransition.direction || layer.content.transitions.outTransition.overlayFile
 									)
 								}
 								stateLayer.media = new StateNS.TransitionObject(media, {
