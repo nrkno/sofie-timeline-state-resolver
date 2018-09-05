@@ -477,11 +477,13 @@ export class CasparCGDevice extends Device {
 	}
 
 	private _addToQueue (commandsToAchieveState: Array<CommandNS.IAMCPCommandVO>, time: number) {
+		let i = 0
 		_.each(commandsToAchieveState, (cmd: CommandNS.IAMCPCommandVO) => {
 
 			let command = AMCPUtil.deSerialize(cmd, 'id')
+			const token = `${time.toString(36).substr(-8)}_${('000' + i++).substr(-4)}`
 			let scheduleCommand = new AMCP.ScheduleSetCommand({
-				token: command.token,
+				token,
 				timecode: this.convertTimeToTimecode(time, command.channel),
 				command
 			})
@@ -490,7 +492,7 @@ export class CasparCGDevice extends Device {
 				this._doCommand(command)
 			} else {
 				this._doCommand(scheduleCommand)
-				this._queue[command.token] = time
+				this._queue[token] = time
 			}
 		})
 	}
