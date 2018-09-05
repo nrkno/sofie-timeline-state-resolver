@@ -137,7 +137,7 @@
     "emberplus": "git+https://github.com/nrkno/tv-automation-emberplus-connection.git#dist",
     "fast-clone": "^1.5.3",
     "request": "^2.87.0",
-    "superfly-timeline": "^5.0.2",
+    "superfly-timeline": "^5.0.4",
     "underscore": "^1.9.1",
     "underscore-deep-extend": "^1.1.5"
   },
