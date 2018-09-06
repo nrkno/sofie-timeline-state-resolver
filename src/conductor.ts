@@ -36,8 +36,8 @@ export interface ConductorOptions {
 	// devices: {
 	// 	[deviceName: string]: DeviceOptions
 	// },
-	initializeAsClear: boolean // don't do any initial checks with devices to determine state, instead assume that everything is clear, black and quiet
-	getCurrentTime: () => number
+	initializeAsClear?: boolean // don't do any initial checks with devices to determine state, instead assume that everything is clear, black and quiet
+	getCurrentTime?: () => number
 	autoInit?: boolean
 	externalLog?: (...args: any[]) => void
 }
@@ -63,7 +63,7 @@ export class Conductor extends EventEmitter {
 	private _sentCallbacks: {[key: string]: boolean} = {}
 	private _externalLog?: (...args: any[]) => void
 
-	constructor (options: ConductorOptions) {
+	constructor (options: ConductorOptions = {}) {
 		super()
 		this._options = options
 

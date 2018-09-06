@@ -7,6 +7,7 @@ import { MappingCasparCG, DeviceType, Mapping, TimelineResolvedObjectExtended } 
 import { TimelineState, TimelineResolvedObject } from 'superfly-timeline'
 import { CasparCG as StateNS, CasparCGState } from 'casparcg-state'
 import { Conductor } from '../conductor'
+import { DoOnTime } from '../doOnTime'
 
 // const BGLOADTIME = 1000 // the time we will look back to schedule a loadbg command.
 
@@ -24,7 +25,8 @@ export interface CasparCGDeviceOptions extends DeviceOptions {
 }
 export interface CasparCGOptions {
 	host: string,
-	port: number
+	port: number,
+	useScheduling?: boolean // whether to use the CasparCG-SCHEDULE command to run future commands, or the internal (backwards-compatible) command queue
 }
 export enum TimelineContentTypeCasparCg { //  CasparCG-state
 	VIDEO = 'video', // to be deprecated & replaced by MEDIA
@@ -42,10 +44,12 @@ export class CasparCGDevice extends Device {
 	private _ccg: CasparCG
 	private _conductor: Conductor
 	private _ccgState: CasparCGState
-	private _queue: { [key: string]: number } = {}
+	private _queue: { [token: string]: {time: number, command: CommandNS.IAMCPCommand} } = {}
 	private _commandReceiver: (time: number, cmd: CommandNS.IAMCPCommand) => Promise<any>
 	private _timeToTimecodeMap: {time: number, timecode: number} = { time: 0, timecode: 0 }
 	private _timeBase: {[channel: string]: number} | number = {}
+	private _useScheduling?: boolean
+	private _doOnTime: DoOnTime
 
 	constructor (deviceId: string, deviceOptions: CasparCGDeviceOptions, options, conductor: Conductor) {
 		super(deviceId, deviceOptions, options)
@@ -62,6 +66,10 @@ export class CasparCGDevice extends Device {
 				this._log(...args)
 			}
 		})
+		this._doOnTime = new DoOnTime(() => {
+			return this.getCurrentTime()
+		})
+		this._doOnTime.on('error', e => this.emit('error', e))
 		this._conductor = conductor
 	}
 
@@ -78,6 +86,7 @@ export class CasparCGDevice extends Device {
 				this.emit('connectionChanged', connected)
 			}
 		})
+		this._useScheduling = connectionOptions.useScheduling
 		this._ccg.on(CasparCGSocketStatusEvent.CONNECTED, (event: CasparCGSocketStatusEvent) => {
 			this.makeReady(false) // always make sure timecode is correct, setting it can never do bad
 			.catch((e) => this.emit('error', e))
@@ -135,18 +144,13 @@ export class CasparCGDevice extends Device {
 
 		let commandsToAchieveState: Array<CommandNS.IAMCPCommandVO> = this._diffStates(oldCasparState, newCasparState)
 
-		// clear any queued commands later than this time:
-		let now = this.getCurrentTime()
-		for (let token in this._queue) {
-			if (this._queue[token] < now) {
-				delete this._queue[token]
-			} else if (this._queue[token] === newState.time) {
-				this._doCommand(new AMCP.ScheduleRemoveCommand(token))
-				delete this._queue[token]
-			}
-		}
 		// console.log('commandsToAchieveState', commandsToAchieveState)
-
+		// clear any queued commands later than this time:
+		if (this._useScheduling) {
+			this._clearScheduledFutureCommands(newState.time, commandsToAchieveState)
+		} else {
+			this._doOnTime.clearQueueNowAndAfter(newState.time)
+		}
 		// add the new commands to the queue:
 		this._addToQueue(commandsToAchieveState, newState.time)
 
@@ -156,10 +160,14 @@ export class CasparCGDevice extends Device {
 
 	clearFuture (clearAfterTime: number) {
 		// Clear any scheduled commands after this time
-		for (let token in this._queue) {
-			if (this._queue[token] > clearAfterTime) {
-				this._doCommand(new AMCP.ScheduleRemoveCommand(token))
+		if (this._useScheduling) {
+			for (let token in this._queue) {
+				if (this._queue[token].time > clearAfterTime) {
+					this._doCommand(new AMCP.ScheduleRemoveCommand(token))
+				}
 			}
+		} else {
+			this._doOnTime.clearQueueAfter(clearAfterTime)
 		}
 	}
 	get canConnect (): boolean {
@@ -471,32 +479,85 @@ export class CasparCGDevice extends Device {
 
 		return returnCommands
 	}
-	private _doCommand (command): void {
+	private _doCommand (command: CommandNS.IAMCPCommand): void {
 		this._commandReceiver(this.getCurrentTime(), command)
 		.catch(e => this.emit('error', e))
 	}
+	private _clearScheduledFutureCommands (time: number, commandsToSendNow: Array<CommandNS.IAMCPCommandVO>) {
+		// clear any queued commands later than this time:
+		let now = this.getCurrentTime()
+		_.each(this._queue, (q, token: string) => {
+			if (q.time < now) {
+				// the command has expired / been executed
+				delete this._queue[token]
+			} else if (q.time >= time) {
+				// The command is in the future
 
+				// check if that command is about to be scheduled here as well:
+				let matchingCommand: CommandNS.IAMCPCommand | undefined
+				let matchingCommandI: number = -1
+				if (q.time === time) {
+
+					_.each(commandsToSendNow, (cmd: CommandNS.IAMCPCommandVO, i) => {
+						let command: CommandNS.IAMCPCommand = AMCPUtil.deSerialize(cmd, 'id')
+
+						if (
+							command.name 	=== q.command.name &&
+							command.channel	=== q.command.channel &&
+							command.layer	=== q.command.layer &&
+							_.isEqual(command.payload, q.command.payload)
+						) {
+							matchingCommand = command
+							matchingCommandI = i
+						}
+					})
+				}
+
+				if (matchingCommand) {
+					// We're about to send a command that's already scheduled in CasparCG
+					// just ignore it then..
+
+					// remove the commands from commands to send
+					commandsToSendNow.splice(matchingCommandI, 1)
+				} else {
+					this._doCommand(new AMCP.ScheduleRemoveCommand(token))
+					delete this._queue[token]
+				}
+
+			}
+		})
+	}
 	private _addToQueue (commandsToAchieveState: Array<CommandNS.IAMCPCommandVO>, time: number) {
 		let i = 0
 		_.each(commandsToAchieveState, (cmd: CommandNS.IAMCPCommandVO) => {
 
-			let command = AMCPUtil.deSerialize(cmd, 'id')
-			const token = `${time.toString(36).substr(-8)}_${('000' + i++).substr(-4)}`
-			let scheduleCommand = new AMCP.ScheduleSetCommand({
-				token,
-				timecode: this.convertTimeToTimecode(time, command.channel),
-				command
-			})
+			let command: CommandNS.IAMCPCommand = AMCPUtil.deSerialize(cmd, 'id')
 
-			if (time <= this.getCurrentTime()) {
-				this._doCommand(command)
+			if (this._useScheduling) {
+				if (time <= this.getCurrentTime()) {
+					this._doCommand(command)
+				} else {
+					const token = `${time.toString(36).substr(-8)}_${('000' + i++).substr(-4)}`
+					let scheduleCommand = new AMCP.ScheduleSetCommand({
+						token,
+						timecode: this.convertTimeToTimecode(time, command.channel),
+						command
+					})
+					this._doCommand(scheduleCommand)
+					this._queue[token] = {
+						time: time,
+						command: command
+					}
+				}
 			} else {
-				this._doCommand(scheduleCommand)
-				this._queue[token] = time
+				this._doOnTime.queue(time, (command: CommandNS.IAMCPCommand) => {
+					this._doCommand(command)
+				}, command)
 			}
+
 		})
 	}
-	private _defaultCommandReceiver (time: number, cmd): Promise<any> {
+	private _defaultCommandReceiver (time: number, cmd: CommandNS.IAMCPCommand): Promise<any> {
 		time = time
 		return this._ccg.do(cmd)
 		.then((resCommand) => {
@@ -508,7 +569,8 @@ export class CasparCGDevice extends Device {
 			this.emit('error', { cmdName: cmd.name, cmd, error })
 			this._log(cmd, error)
 			if (cmd.name === 'ScheduleSetCommand') {
-				delete this._queue[cmd.getParam('command').token]
+				// delete this._queue[cmd.getParam('command').token]
+				delete this._queue[cmd.token]
 			}
 		})
 	}
