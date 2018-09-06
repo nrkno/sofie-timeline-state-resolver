@@ -55,7 +55,8 @@ describe('CasparCG', () => {
 		await myConductor.addDevice('myCCG', {
 			type: DeviceType.CASPARCG,
 			options: {
-				commandReceiver: commandReceiver0
+				commandReceiver: commandReceiver0,
+				useScheduling: true
 			}
 		})
 		myConductor.mapping = myLayerMapping
@@ -133,7 +134,8 @@ describe('CasparCG', () => {
 		await myConductor.addDevice('myCCG', {
 			type: DeviceType.CASPARCG,
 			options: {
-				commandReceiver: commandReceiver0
+				commandReceiver: commandReceiver0,
+				useScheduling: true
 			}
 		})
 		myConductor.mapping = myLayerMapping
@@ -209,7 +211,8 @@ describe('CasparCG', () => {
 		await myConductor.addDevice('myCCG', {
 			type: DeviceType.CASPARCG,
 			options: {
-				commandReceiver: commandReceiver0
+				commandReceiver: commandReceiver0,
+				useScheduling: true
 			}
 		})
 		myConductor.mapping = myLayerMapping
@@ -281,7 +284,8 @@ describe('CasparCG', () => {
 		await myConductor.addDevice('myCCG', {
 			type: DeviceType.CASPARCG,
 			options: {
-				commandReceiver: commandReceiver0
+				commandReceiver: commandReceiver0,
+				useScheduling: true
 			}
 		})
 		myConductor.mapping = myLayerMapping
@@ -359,7 +363,8 @@ describe('CasparCG', () => {
 		await myConductor.addDevice('myCCG', {
 			type: DeviceType.CASPARCG,
 			options: {
-				commandReceiver: commandReceiver0
+				commandReceiver: commandReceiver0,
+				useScheduling: true
 			}
 		})
 		myConductor.mapping = myLayerMapping
@@ -438,7 +443,8 @@ describe('CasparCG', () => {
 		await myConductor.addDevice('myCCG', {
 			type: DeviceType.CASPARCG,
 			options: {
-				commandReceiver: commandReceiver0
+				commandReceiver: commandReceiver0,
+				useScheduling: true
 			}
 		})
 		myConductor.mapping = myLayerMapping
@@ -543,7 +549,8 @@ describe('CasparCG', () => {
 		await myConductor.addDevice('myCCG', {
 			type: DeviceType.CASPARCG,
 			options: {
-				commandReceiver: commandReceiver0
+				commandReceiver: commandReceiver0,
+				useScheduling: true
 			}
 		})
 		myConductor.mapping = myLayerMapping
@@ -645,7 +652,8 @@ describe('CasparCG', () => {
 		await myConductor.addDevice('myCCG', {
 			type: DeviceType.CASPARCG,
 			options: {
-				commandReceiver: commandReceiver0
+				commandReceiver: commandReceiver0,
+				useScheduling: true
 			}
 		})
 		myConductor.mapping = myLayerMapping
@@ -782,7 +790,8 @@ describe('CasparCG', () => {
 			type: DeviceType.CASPARCG,
 			options: {
 				commandReceiver: commandReceiver0,
-				timeBase: 50
+				timeBase: 50,
+				useScheduling: true
 			}
 		})
 		myConductor.mapping = myLayerMapping
@@ -881,7 +890,8 @@ describe('CasparCG', () => {
 			type: DeviceType.CASPARCG,
 			options: {
 				commandReceiver: commandReceiver0,
-				timeBase: 50
+				timeBase: 50,
+				useScheduling: true
 			}
 		})
 		myConductor.mapping = myLayerMapping
