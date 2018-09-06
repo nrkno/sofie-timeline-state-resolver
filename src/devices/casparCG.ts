@@ -520,10 +520,6 @@ export class CasparCGDevice extends Device {
 					// remove the commands from commands to send
 					commandsToSendNow.splice(matchingCommandI, 1)
 				} else {
-					
-					console.log('commandsToSendNow', commandsToSendNow)
-					console.log('this._queue', this._queue)
-					console.log('aaaaaaaaa ' + token, time, q)
 					this._doCommand(new AMCP.ScheduleRemoveCommand(token))
 					delete this._queue[token]
 				}
