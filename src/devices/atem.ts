@@ -101,6 +101,15 @@ export class AtemDevice extends Device {
 			resolve(true)
 		})
 	}
+
+	makeReady (okToDestroyStuff?: boolean): Promise<void> {
+		if (okToDestroyStuff) {
+			this._doOnTime.clearQueueNowAndAfter(this.getCurrentTime())
+			this.setState(this._device.state, this.getCurrentTime())
+		}
+		return Promise.resolve()
+	}
+
 	handleState (newState: TimelineState) {
 		// Handle this new state, at the point in time specified
 		// @ts-ignore
@@ -123,6 +132,7 @@ export class AtemDevice extends Device {
 		// console.log('newAtemState', newAtemState.video.ME[0])
 
 		let commandsToAchieveState: Array<AtemCommands.AbstractCommand> = this._diffStates(oldAtemState, newAtemState)
+		console.error('ATEM STATE:::' + commandsToAchieveState.length)
 
 		// console.log('commandsToAchieveState', commandsToAchieveState)
 		// clear any queued commands later than this time:
