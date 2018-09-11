@@ -132,7 +132,6 @@ export class AtemDevice extends Device {
 		// console.log('newAtemState', newAtemState.video.ME[0])
 
 		let commandsToAchieveState: Array<AtemCommands.AbstractCommand> = this._diffStates(oldAtemState, newAtemState)
-		console.error('ATEM STATE:::' + commandsToAchieveState.length)
 
 		// console.log('commandsToAchieveState', commandsToAchieveState)
 		// clear any queued commands later than this time:
