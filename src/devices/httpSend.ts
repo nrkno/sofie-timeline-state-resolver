@@ -28,8 +28,12 @@ interface CommandContent {
 	url: string
 	params: {[key: string]: number | string}
 }
+export interface HttpSendOptions {
+	makeReadyCommands?: CommandContent[]
+}
 export class HttpSendDevice extends Device {
 
+	private _makeReadyCommands: CommandContent[]
 	private _doOnTime: DoOnTime
 	// private _queue: Array<any>
 
@@ -50,7 +54,9 @@ export class HttpSendDevice extends Device {
 	/**
 	 * Initiates the connection with CasparCG through the ccg-connection lib.
 	 */
-	init (): Promise<boolean> {
+	init (options: HttpSendOptions): Promise<boolean> {
+		this._makeReadyCommands = options.makeReadyCommands || []
+
 		return new Promise((resolve/*, reject*/) => {
 			// This is where we would do initialization, like connecting to the devices, etc
 
@@ -84,6 +90,20 @@ export class HttpSendDevice extends Device {
 		// Clear any scheduled commands after this time
 		this._doOnTime.clearQueueAfter(clearAfterTime)
 	}
+
+	makeReady (okToDestroyStuff?: boolean): Promise<void> {
+		if (okToDestroyStuff && this._makeReadyCommands && this._makeReadyCommands.length > 0) {
+			const time = this.getCurrentTime()
+			_.each(this._makeReadyCommands, (cmd: CommandContent) => {
+				// add the new commands to the queue:
+				this._doOnTime.queue(time, (cmd: CommandContent) => {
+					return this._commandReceiver(time, cmd)
+				}, cmd)
+			})
+		}
+		return Promise.resolve()
+	}
+
 	get canConnect (): boolean {
 		return false
 	}

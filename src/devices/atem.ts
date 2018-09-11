@@ -101,6 +101,15 @@ export class AtemDevice extends Device {
 			resolve(true)
 		})
 	}
+
+	makeReady (okToDestroyStuff?: boolean): Promise<void> {
+		if (okToDestroyStuff) {
+			this._doOnTime.clearQueueNowAndAfter(this.getCurrentTime())
+			this.setState(this._device.state, this.getCurrentTime())
+		}
+		return Promise.resolve()
+	}
+
 	handleState (newState: TimelineState) {
 		// Handle this new state, at the point in time specified
 		// @ts-ignore
