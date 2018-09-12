@@ -1,5 +1,5 @@
 
-# Sofie: The Modern TV News Studio Automation System (Timeline State Resolver)
+# Sofie: The Modern TV News Studio Automation System (Timeline State Resolver library)
 
 [![CircleCI](https://circleci.com/gh/nrkno/tv-automation-state-timeline-resolver.svg?style=svg)](https://circleci.com/gh/nrkno/tv-automation-state-timeline-resolver)
 
