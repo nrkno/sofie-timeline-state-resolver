@@ -1,10 +1,10 @@
 
-# Sofie: The Modern TV News Studio Automation System (Timeline State Resolver)
+# Sofie: The Modern TV News Studio Automation System (Timeline State Resolver library)
 
 [![CircleCI](https://circleci.com/gh/nrkno/tv-automation-state-timeline-resolver.svg?style=svg)](https://circleci.com/gh/nrkno/tv-automation-state-timeline-resolver)
 
 ## Abstract
-This library orchestrates and control different devices.
+This library orchestrates and controls different devices.
 It's input is a [supertimeline](https://github.com/SuperFlyTV/supertimeline) data structure and a layer-to-device-map.
 Using the input, it resolves the expected state, diffs the state against current state and sends commands where necessary. Created by SuperFly.tv
 
