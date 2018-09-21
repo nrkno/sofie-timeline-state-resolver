@@ -8,6 +8,7 @@ import { TimelineState, TimelineResolvedObject } from 'superfly-timeline'
 import { CasparCG as StateNS, CasparCGState } from 'casparcg-state'
 import { Conductor } from '../conductor'
 import { DoOnTime } from '../doOnTime'
+import * as request from 'request'
 
 // const BGLOADTIME = 1000 // the time we will look back to schedule a loadbg command.
 
@@ -26,7 +27,9 @@ export interface CasparCGDeviceOptions extends DeviceOptions {
 export interface CasparCGOptions {
 	host: string,
 	port: number,
-	useScheduling?: boolean // whether to use the CasparCG-SCHEDULE command to run future commands, or the internal (backwards-compatible) command queue
+	useScheduling?: boolean, // whether to use the CasparCG-SCHEDULE command to run future commands, or the internal (backwards-compatible) command queue
+	launcherHost: string,
+	launcherPort: string
 }
 export enum TimelineContentTypeCasparCg { //  CasparCG-state
 	VIDEO = 'video', // to be deprecated & replaced by MEDIA
@@ -50,6 +53,7 @@ export class CasparCGDevice extends Device {
 	private _timeBase: {[channel: string]: number} | number = {}
 	private _useScheduling?: boolean
 	private _doOnTime: DoOnTime
+	private _connectionOptions?: CasparCGOptions
 
 	constructor (deviceId: string, deviceOptions: CasparCGDeviceOptions, options, conductor: Conductor) {
 		super(deviceId, deviceOptions, options)
@@ -77,6 +81,7 @@ export class CasparCGDevice extends Device {
 	 * Initiates the connection with CasparCG through the ccg-connection lib.
 	 */
 	init (connectionOptions: CasparCGOptions): Promise<boolean> {
+		this._connectionOptions = connectionOptions
 		this._ccg = new CasparCG({
 			host: connectionOptions.host,
 			port: connectionOptions.port,
@@ -462,6 +467,30 @@ export class CasparCGDevice extends Device {
 			// reset our own state(s):
 			this.clearStates()
 			// a resolveTimeline will be triggered later
+		})
+	}
+
+	restartCasparCG (): Promise<any> {
+		return new Promise((resolve, reject) => {
+
+			if (!this._connectionOptions) throw new Error('CasparCGDevice._connectionOptions is not set!')
+			if (!this._connectionOptions.launcherHost) throw new Error('CasparCGDevice: config.launcherHost is not set!')
+			if (!this._connectionOptions.launcherPort) throw new Error('CasparCGDevice: config.launcherPort is not set!')
+
+			let url = `http://${this._connectionOptions.launcherHost}:${this._connectionOptions.launcherPort}/processes/casparcg/restart`
+			request.post(
+				url,
+				{}, // json: cmd.params
+				(error, response) => {
+					if (error) {
+						reject(error)
+					} else if (response.statusCode === 200) {
+						resolve()
+					} else {
+						reject('Bad reply: [' + response.statusCode + '] ' + response.body)
+					}
+				}
+			)
 		})
 	}
 
