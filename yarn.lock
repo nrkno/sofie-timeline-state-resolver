@@ -812,9 +812,9 @@ casparcg-connection@^4.5.1:
     xml2js "^0.4.19"
     xmlbuilder "^9.0.7"
 
-casparcg-state@^1.3.2:
-  version "1.3.2"
-  resolved "https://registry.yarnpkg.com/casparcg-state/-/casparcg-state-1.3.2.tgz#f86864fd690ef1374bb6d6d7ae5acfc0167483c1"
+casparcg-state@^1.3.3:
+  version "1.3.3"
+  resolved "https://registry.yarnpkg.com/casparcg-state/-/casparcg-state-1.3.3.tgz#2d4ade537c165d541e5d00093b5c6d1fd9d2bd46"
   dependencies:
     casparcg-connection "^4.5.1"
     fast-clone "^1.5.3"
@@ -4843,9 +4843,9 @@ subarg@^1.0.0:
   dependencies:
     minimist "^1.1.0"
 
-superfly-timeline@^5.0.4:
-  version "5.0.4"
-  resolved "https://registry.yarnpkg.com/superfly-timeline/-/superfly-timeline-5.0.4.tgz#5f3af2d5129c2b02b99790f17fdaea5dc5ca407c"
+superfly-timeline@^6.0.1:
+  version "6.0.1"
+  resolved "https://registry.yarnpkg.com/superfly-timeline/-/superfly-timeline-6.0.1.tgz#79f9c831ed2b3bb46f8b9dd3a02a282bf409179e"
   dependencies:
     "@types/underscore" "^1.8.8"
     underscore "^1.9.1"

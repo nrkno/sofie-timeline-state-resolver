@@ -443,11 +443,13 @@ export class CasparCGDevice extends Device {
 			// console.log('channels', channels)
 
 			let p = Promise.resolve()
-			_.each(channels, (channel: any) => {
+			if (this._useScheduling) {
+				_.each(channels, (channel: any) => {
 
-				let channelNo = channel.channel
-				p = p.then(() => attemptSync(channelNo, 1))
-			})
+					let channelNo = channel.channel
+					p = p.then(() => attemptSync(channelNo, 1))
+				})
+			}
 			// Clear all channels (?)
 			p = p.then(() => {
 				if (okToDestroyStuff) {
