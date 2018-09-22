@@ -377,33 +377,33 @@ describe('Conductor', () => {
 
 		advanceTime(10) // to allow for commands to be sent
 
-		expect(commandReceiver1).toHaveBeenCalledTimes(6)
-		expect(commandReceiver1.mock.calls[0][1].name).toEqual('TimeCommand')
-		expect(commandReceiver1.mock.calls[0][1]._objectParams).toMatchObject({
-			channel: 1,
-			timecode: '00:00:10:00'
-		})
-		expect(commandReceiver1.mock.calls[1][1].name).toEqual('TimeCommand')
-		expect(commandReceiver1.mock.calls[1][1]._objectParams).toMatchObject({
-			channel: 2,
-			timecode: '00:00:10:00'
-		})
-		expect(commandReceiver1.mock.calls[2][1].name).toEqual('TimeCommand')
-		expect(commandReceiver1.mock.calls[2][1]._objectParams).toMatchObject({
-			channel: 3,
-			timecode: '00:00:10:00'
-		})
+		expect(commandReceiver1).toHaveBeenCalledTimes(3)
+		// expect(commandReceiver1.mock.calls[0][1].name).toEqual('TimeCommand')
+		// expect(commandReceiver1.mock.calls[0][1]._objectParams).toMatchObject({
+		// 	channel: 1,
+		// 	timecode: '00:00:10:00'
+		// })
+		// expect(commandReceiver1.mock.calls[1][1].name).toEqual('TimeCommand')
+		// expect(commandReceiver1.mock.calls[1][1]._objectParams).toMatchObject({
+		// 	channel: 2,
+		// 	timecode: '00:00:10:00'
+		// })
+		// expect(commandReceiver1.mock.calls[2][1].name).toEqual('TimeCommand')
+		// expect(commandReceiver1.mock.calls[2][1]._objectParams).toMatchObject({
+		// 	channel: 3,
+		// 	timecode: '00:00:10:00'
+		// })
 
-		expect(commandReceiver1.mock.calls[3][1].name).toEqual('ClearCommand')
-		expect(commandReceiver1.mock.calls[3][1]._objectParams).toMatchObject({
+		expect(commandReceiver1.mock.calls[0][1].name).toEqual('ClearCommand')
+		expect(commandReceiver1.mock.calls[0][1]._objectParams).toMatchObject({
 			channel: 1
 		})
-		expect(commandReceiver1.mock.calls[4][1].name).toEqual('ClearCommand')
-		expect(commandReceiver1.mock.calls[4][1]._objectParams).toMatchObject({
+		expect(commandReceiver1.mock.calls[1][1].name).toEqual('ClearCommand')
+		expect(commandReceiver1.mock.calls[1][1]._objectParams).toMatchObject({
 			channel: 2
 		})
-		expect(commandReceiver1.mock.calls[5][1].name).toEqual('ClearCommand')
-		expect(commandReceiver1.mock.calls[5][1]._objectParams).toMatchObject({
+		expect(commandReceiver1.mock.calls[2][1].name).toEqual('ClearCommand')
+		expect(commandReceiver1.mock.calls[2][1]._objectParams).toMatchObject({
 			channel: 3
 		})
 	})
