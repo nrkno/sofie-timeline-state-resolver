@@ -1,0 +1,547 @@
+import * as _ from 'underscore'
+import { Device, DeviceOptions } from './device'
+import { DeviceType, MappingPanasonicPtz, Mappings } from './mapping'
+import * as request from 'request'
+import * as querystring from 'querystring'
+import { sprintf } from 'sprintf-js'
+
+import { TimelineState, TimelineKeyframe, TimelineResolvedObject } from 'superfly-timeline'
+import { DoOnTime } from '../doOnTime'
+import { EventEmitter } from 'events'
+
+export interface PanasonicDeviceSettings {
+	identifier: string
+	url: string
+}
+
+export interface PanasonicPtzOptions extends DeviceOptions {
+	options?: {
+		commandReceiver?: (time: number, cmd) => Promise<any>,
+		cameraDevices?: Array<PanasonicDeviceSettings>
+	}
+}
+export enum TimelineContentTypePanasonicPtz {
+	PRESET = 'presetMem',
+	SPEED = 'presetSpeed'
+}
+export interface TimelineObjPanasonicPtz extends TimelineResolvedObject {
+	content: {
+		keyframes?: Array<TimelineKeyframe>
+		type: TimelineContentTypePanasonicPtz
+		identifier: string
+	}
+}
+export interface TimelineObjPanasonicPtzPresetSpeed extends TimelineObjPanasonicPtz {
+	content: {
+		type: TimelineContentTypePanasonicPtz.SPEED
+		speed: number
+		identifier: string
+	}
+}
+
+export interface TimelineObjPanasonicPtzPreset extends TimelineObjPanasonicPtz {
+	content: {
+		type: TimelineContentTypePanasonicPtz.PRESET
+		identifier: string
+		preset: number
+	}
+}
+
+export interface PanasonicPtzState {
+	[identifier: string]: PanasonicPtzStateNode
+}
+
+export interface PanasonicPtzStateNode {
+	identifier: string,
+	speed: number,
+	preset: number
+}
+export interface PanasonicPtzCommand {
+	identifier: string,
+	type: TimelineContentTypePanasonicPtz,
+	speed?: number,
+	preset?: number
+}
+interface CommandQueueItem {
+	command: string
+	executing: boolean
+	resolve: (response: string) => void
+	reject: (error: any) => void
+}
+class PanasonicPtzCamera {
+	private _url: string
+	private _commandDelay: number
+	private _commandQueue: Array<CommandQueueItem> = []
+
+	constructor (url: string, commandDelay: number = 130) {
+		this._commandDelay = commandDelay
+		this._url = url
+	}
+
+	get url () {
+		return this._url
+	}
+
+	sendCommand (command: string): Promise<string> {
+		const p: Promise<string> = new Promise((resolve, reject) => {
+			this._commandQueue.push({ command: command, executing: false, resolve: resolve, reject: reject })
+		})
+		if (this._commandQueue.length === 1) this._executeQueue()
+		return p
+	}
+
+	private _dropFromQueue (item: CommandQueueItem) {
+		const index = this._commandQueue.findIndex(i => i === item)
+		if (index >= 0) {
+			this._commandQueue.splice(index, 1)
+		} else {
+			throw new Error(`Command ${item.command} should be dropped from the queue, but could not be found!`)
+		}
+	}
+
+	private _executeQueue () {
+		const qItem = this._commandQueue.find(i => !i.executing)
+		if (!qItem) {
+			return
+		}
+
+		qItem.executing = true
+		request.get(
+			this._url + '?' + querystring.stringify({ 'cmd': qItem.command, 'res': '1' }),
+			{},
+			(error, response) => {
+				if (error) {
+					console.error(error)
+					this._dropFromQueue(qItem)
+					qItem.reject(error)
+					return
+				}
+				this._dropFromQueue(qItem)
+				qItem.resolve(response.body)
+			}
+		)
+
+		// find any commands that aren't executing yet and execute one after 130ms
+		if (this._commandQueue.filter(i => !i.executing).length > 0) {
+			setTimeout(() => {
+				this._executeQueue()
+			}, this._commandDelay)
+		}
+	}
+}
+enum PanasonicHttpCommands {
+	POWER_MODE_QUERY = '#O',
+
+	PRESET_NUMBER_CONTROL_TPL = '#R%02i',
+	PRESET_NUMBER_QUERY = '#S',
+	PRESET_SPEED_CONTROL_TPL = '#UPVS%03i',
+	PRESET_SPEED_QUERY = '#UPVS'
+}
+enum PanasonicHttpResponse {
+	POWER_MODE_ON = 'p1',
+	POWER_MODE_STBY = 'p0',
+	POWER_MODE_TURNING_ON = 'p3',
+
+	PRESET_NUMBER_TPL = 's',
+	PRESET_SPEED_TPL = 'uPVS',
+
+	ERROR_1 = 'E1',
+	ERROR_2 = 'E2',
+	ERROR_3 = 'E3'
+}
+export class PanasonicPtzHttpInterface extends EventEmitter {
+	private _devices: Array<PanasonicPtzCamera> = []
+	private _identifierMap: _.Dictionary<number> = {}
+
+	constructor (deviceList: Array<PanasonicDeviceSettings>) {
+		super()
+
+		this._devices = []
+		this._identifierMap = {}
+		deviceList.forEach((item) => {
+			this._devices.push(new PanasonicPtzCamera(item.url))
+			this._identifierMap[item.identifier] = this._devices.length - 1
+		})
+	}
+
+	/**
+	 * List of available camera devices
+	 *
+	 * @readonly
+	 * @type {Array<PanasonicPtzCamera>}
+	 * @memberof PanasonicPtzHttpInterface
+	 */
+	get devices (): Array<PanasonicPtzCamera> {
+		return this._devices
+	}
+
+	private static _isError (response: string) {
+		if (response === PanasonicHttpResponse.ERROR_1 ||
+			response === PanasonicHttpResponse.ERROR_2 ||
+			response === PanasonicHttpResponse.ERROR_3) {
+			return true
+		} else {
+			return false
+		}
+	}
+
+	/**
+	 * Get the last preset recalled in the camera
+	 * @param {string} identifier
+	 * @returns {Promise<number>}
+	 * @memberof PanasonicPtzHttpInterface
+	 */
+	getPreset (identifier: string): Promise<number> {
+		const device = this._findDevice(identifier)
+
+		return new Promise((resolve, reject) => {
+			device.sendCommand(PanasonicHttpCommands.PRESET_NUMBER_QUERY).then((response) => {
+				if (PanasonicPtzHttpInterface._isError(response)) {
+					this.emit('error', response)
+					reject(response)
+				} else if (response.startsWith(PanasonicHttpResponse.PRESET_NUMBER_TPL)) {
+					const preset = Number.parseInt(response.substr(PanasonicHttpResponse.PRESET_NUMBER_TPL.length))
+					resolve(preset)
+				} else {
+					this.emit('error', response)
+					reject(response)
+				}
+			}).catch((error) => {
+				this.emit('disconnected', error, device)
+				reject(error)
+			})
+		})
+	}
+
+	/**
+	 * Recall camera preset
+	 * @param {string} identifier Camera identifier as set up in the device list
+	 * @param {number} preset The preset to be recalled in the camera
+	 * @returns {Promise<number>} A promise: the preset the camera will transition to
+	 * @memberof PanasonicPtzHttpInterface
+	 */
+	recallPreset (identifier: string, preset: number): Promise<number> {
+		const device = this._findDevice(identifier)
+
+		if (!_.isFinite(preset)) throw new Error('Camera speed preset is not a finite number')
+		if (preset < 0 || preset > 99) throw new Error('Illegal preset number')
+
+		return new Promise((resolve, reject) => {
+			device.sendCommand(sprintf(PanasonicHttpCommands.PRESET_NUMBER_CONTROL_TPL, preset)).then((response) => {
+				if (PanasonicPtzHttpInterface._isError(response)) {
+					this.emit('error', response)
+					reject(response)
+				} else if (response.startsWith(PanasonicHttpResponse.PRESET_NUMBER_TPL)) {
+					const preset = Number.parseInt(response.substr(PanasonicHttpResponse.PRESET_NUMBER_TPL.length))
+					resolve(preset)
+				} else {
+					this.emit('error', response)
+					reject(response)
+				}
+			}).catch((error) => {
+				this.emit('disconnected', error, device)
+				reject(error)
+			})
+		})
+	}
+
+	/**
+	 * Get camera preset recall speed, within speed table
+	 * @returns {Promise<number>} A promise: the speed set in the camera
+	 * @memberof PanasonicPtzHttpInterface
+	 */
+	getSpeed (identifier: string): Promise<number> {
+		const device = this._findDevice(identifier)
+
+		return new Promise((resolve, reject) => {
+			device.sendCommand(PanasonicHttpCommands.PRESET_SPEED_QUERY).then((response) => {
+				if (PanasonicPtzHttpInterface._isError(response)) {
+					this.emit('error', response)
+					reject(response)
+				} else if (response.startsWith(PanasonicHttpResponse.PRESET_SPEED_TPL)) {
+					const speed = Number.parseInt(response.substr(PanasonicHttpResponse.PRESET_SPEED_TPL.length))
+					resolve(speed)
+				} else {
+					this.emit('error', response)
+					reject(response)
+				}
+			}).catch((error) => {
+				this.emit('disconnected', error, device)
+				reject(error)
+			})
+		})
+	}
+
+	/**
+	 * Set camera preset recall speed, within speed table
+	 * @param {string} identifier Camera identifier as set up in the device list
+	 * @param {number} speed Speed to be set for the camera preset recall. 250-999 or 0. 0 is maximum speed
+	 * @returns {Promise<number>} A promise: the speed set in the camera
+	 * @memberof PanasonicPtzHttpInterface
+	 */
+	setSpeed (identifier: string, speed: number): Promise<number> {
+		const device = this._findDevice(identifier)
+
+		if (!_.isFinite(speed)) throw new Error('Camera speed preset is not a finite number')
+		if ((speed < 250 || speed > 999) && (speed !== 0)) throw new Error('Camera speed must be between 250 and 999 or needs to be 0')
+
+		return new Promise((resolve, reject) => {
+			device.sendCommand(sprintf(PanasonicHttpCommands.PRESET_SPEED_CONTROL_TPL, speed)).then((response) => {
+				if (PanasonicPtzHttpInterface._isError(response)) {
+					this.emit('error', response)
+					reject(response)
+				} else if (response.startsWith(PanasonicHttpResponse.PRESET_SPEED_TPL)) {
+					const speed = Number.parseInt(response.substr(PanasonicHttpResponse.PRESET_SPEED_TPL.length))
+					resolve(speed)
+				} else {
+					this.emit('error', response)
+					reject(response)
+				}
+			}).catch((error) => {
+				this.emit('disconnected', error, device)
+				reject(error)
+			})
+		})
+	}
+
+	/**
+	 * Ping a camera by checking it's power status. Will return true if the camera is on, false if it's off but reachable and will fail otherwise
+	 * @param {string} identifier Camera identifier as set up in the device list
+	 * @returns {Promose<boolean | string>} A promise: true if the camera is ON, false if the camera is off, 'turningOn' if transitioning from STBY to ON
+	 * @memberof PanasonicPtzHttpInterface
+	 */
+	ping (identifier: string): Promise<boolean | string> {
+		const device = this._findDevice(identifier)
+		return new Promise((resolve, reject) => {
+			device.sendCommand(PanasonicHttpCommands.POWER_MODE_QUERY).then((response) => {
+				if (PanasonicPtzHttpInterface._isError(response)) {
+					this.emit('error', response)
+					reject(response)
+				} else if (response === PanasonicHttpResponse.POWER_MODE_ON) {
+					resolve(true)
+				} else if (response === PanasonicHttpResponse.POWER_MODE_STBY) {
+					resolve(false)
+				} else if (response === PanasonicHttpResponse.POWER_MODE_TURNING_ON) {
+					resolve('turningOn')
+				} else {
+					this.emit('error', response)
+					reject(response)
+				}
+			}).catch((error) => {
+				this.emit('disconnected', error, device)
+				reject(error)
+			})
+		})
+	}
+
+	private _findDevice (identifier: string): PanasonicPtzCamera {
+		const index = this._identifierMap[identifier]
+		if (index !== undefined) {
+			return this._devices[index]
+		}
+		throw new Error(`Could not find PTZ camera ${identifier}`)
+	}
+}
+export class PanasonicPtzDevice extends Device {
+	private _doOnTime: DoOnTime
+	private _device: PanasonicPtzHttpInterface | undefined
+	private _connected: Array<boolean> = []
+	private _cameraDevices: Array<PanasonicDeviceSettings> = []
+
+	private _commandReceiver: (time: number, cmd: PanasonicPtzCommand) => Promise<any>
+
+	constructor (deviceId: string, deviceOptions: PanasonicPtzOptions, options) {
+		super(deviceId, deviceOptions, options)
+		if (deviceOptions.options) {
+			if (deviceOptions.options.commandReceiver) {
+				this._commandReceiver = deviceOptions.options.commandReceiver
+			} else {
+				this._commandReceiver = this._defaultCommandReceiver
+			}
+		}
+		this._doOnTime = new DoOnTime(() => {
+			return this.getCurrentTime()
+		})
+		this._doOnTime.on('error', e => this.emit('error', e))
+		if (deviceOptions.options && deviceOptions.options.cameraDevices) {
+			this._cameraDevices = deviceOptions.options.cameraDevices
+			this._device = new PanasonicPtzHttpInterface(deviceOptions.options.cameraDevices)
+			this._device.on('error', (msg) => {
+				this.emit('error', msg)
+			})
+			this._device.on('disconnected', (msg, device) => {
+				console.error(msg)
+				const index = this._device!.devices.findIndex(i => i === device)
+				if (index >= 0) this._setConnected(index, false)
+			})
+		} else {
+			this._device = undefined
+		}
+	}
+
+	init (): Promise<boolean> {
+		if (this._device && this._cameraDevices) {
+			const allDevices: Array<Promise<any>> = []
+			this._cameraDevices.forEach((camera, index) => {
+				allDevices.push(this._device!.ping(camera.identifier).then((result) => {
+					this._setConnected(index, !!result)
+				}))
+			})
+			return new Promise((resolve, reject) => {
+				Promise.all(allDevices).then(() => {
+					resolve(true)
+				}).catch((error) => {
+					console.error(error)
+					reject(error)
+				})
+			})
+		}
+		// @ts-ignore no-unused-vars
+		return new Promise((resolve, reject) => {
+			reject(new Error('There are no cameras set up for this device'))
+		})
+	}
+
+	convertStateToPtz (state: TimelineState): PanasonicPtzState {
+		// convert the timeline state into something we can use
+		const ptzState: PanasonicPtzState = this._getDefaultState()
+
+		_.each(state.LLayers, (tlObject: TimelineObjPanasonicPtz, layerName: string) => {
+			const mapping: MappingPanasonicPtz | undefined = this.mapping[layerName] as MappingPanasonicPtz
+			if (mapping && mapping.identifier && mapping.device === DeviceType.PANASONIC_PTZ) {
+				if (tlObject.content.type === TimelineContentTypePanasonicPtz.PRESET) {
+					let tlObjectSource = tlObject as TimelineObjPanasonicPtzPreset
+					ptzState[mapping.identifier] = _.extend(ptzState[mapping.identifier], {
+						preset: tlObjectSource.content.preset
+					})
+				} else if (tlObject.content.type === TimelineContentTypePanasonicPtz.SPEED) {
+					let tlObjectSource = tlObject as TimelineObjPanasonicPtzPresetSpeed
+					ptzState[mapping.identifier] = _.extend(ptzState[mapping.identifier], {
+						speed: tlObjectSource.content.speed
+					})
+				}
+			}
+		})
+
+		return ptzState
+	}
+
+	handleState (newState: TimelineState) {
+		// Handle this new state, at the point in time specified
+		let oldState: TimelineState = (this.getStateBefore(newState.time) || { state: { time: 0, LLayers: {}, GLayers: {} } }).state
+
+		let oldPtzState = this.convertStateToPtz(oldState)
+		let newPtzState = this.convertStateToPtz(newState)
+
+		let commandsToAchieveState: Array<PanasonicPtzCommand> = this._diffStates(oldPtzState, newPtzState)
+
+		// clear any queued commands later than this time:
+		this._doOnTime.clearQueueNowAndAfter(newState.time)
+		// add the new commands to the queue:
+		this._addToQueue(commandsToAchieveState, newState.time)
+
+		// store the new state, for later use:
+		this.setState(newState, newState.time)
+	}
+
+	clearFuture (clearAfterTime: number) {
+		// Clear any scheduled commands after this time
+		this._doOnTime.clearQueueAfter(clearAfterTime)
+	}
+
+	private _getDefaultState (): PanasonicPtzState {
+		if (this._device) {
+			_.indexBy(this._cameraDevices.map((item): PanasonicPtzStateNode => {
+				return {
+					identifier: item.identifier,
+					preset: 0,
+					speed: 0
+				}
+			}), i => i.identifier)
+		}
+		return {}
+	}
+
+	// @ts-ignore no-unused-vars
+	private _defaultCommandReceiver (time: number, cmd: PanasonicPtzCommand): Promise<any> {
+		if (cmd.type === TimelineContentTypePanasonicPtz.PRESET) {	// fader level
+			if (this._device && cmd.preset) {
+				this._device.recallPreset(cmd.identifier, cmd.preset).then((res) => {
+					this.emit('command', cmd)
+					this.emit('info', `Panasonic PTZ result: ${res}`)
+				})
+				.catch((e) => console.error(e))
+			}
+		} else if (cmd.type === TimelineContentTypePanasonicPtz.SPEED) {	// fader level
+			if (this._device && cmd.speed) {
+				this._device.setSpeed(cmd.identifier, cmd.speed).then((res) => {
+					this.emit('command', cmd)
+					this.emit('info', `Panasonic PTZ result: ${res}`)
+				})
+				.catch((e) => console.error(e))
+			}
+		}
+	}
+
+	private _addToQueue (commandsToAchieveState: Array<PanasonicPtzCommand>, time: number) {
+		_.each(commandsToAchieveState, (cmd: PanasonicPtzCommand) => {
+
+			// add the new commands to the queue:
+			this._doOnTime.queue(time, (cmd: PanasonicPtzCommand) => {
+				return this._commandReceiver(time, cmd)
+			}, cmd)
+		})
+	}
+	private _diffStates (oldPtzState: PanasonicPtzState, newPtzState: PanasonicPtzState): Array<PanasonicPtzCommand> {
+
+		let commands: Array<PanasonicPtzCommand> = []
+
+		let addCommand = (identifier, newNode: PanasonicPtzStateNode) => {
+			// It's a plain value:
+			commands.push({
+				identifier: identifier,
+				type: newNode.preset ? TimelineContentTypePanasonicPtz.PRESET :
+					  newNode.speed ? TimelineContentTypePanasonicPtz.SPEED : TimelineContentTypePanasonicPtz.SPEED,
+				preset: newNode.preset,
+				speed: newNode.speed
+			})
+		}
+
+		_.each(newPtzState, (newNode: PanasonicPtzStateNode, identifier: string) => {
+			let oldValue: PanasonicPtzStateNode = oldPtzState[identifier] || null
+			if (!_.isEqual(newNode, oldValue)) {
+				addCommand(identifier, newNode)
+			}
+		})
+		return commands
+	}
+
+	get canConnect (): boolean {
+		return true
+	}
+	get connected (): boolean {
+		return _.reduce(this._connected, (item, memo) => memo && item, true)
+	}
+	get deviceType () {
+		return DeviceType.PANASONIC_PTZ
+	}
+	get deviceName (): string {
+		return 'Panasonic PTZ ' + this.deviceId
+	}
+	get queue () {
+		return this._doOnTime.getQueue()
+	}
+
+	set mapping (mappings: Mappings) {
+		super.mapping = mappings
+	}
+	get mapping () {
+		return super.mapping
+	}
+	private _setConnected (device: number, connected: boolean) {
+		if (this._connected[device] !== connected) {
+			this._connected[device] = connected
+			this.emit('connectionChanged', this.connected)
+		}
+	}
+}
