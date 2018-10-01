@@ -13,6 +13,7 @@ export interface PanasonicPtzOptions extends DeviceOptions {
 	options?: {
 		commandReceiver?: (time: number, cmd) => Promise<any>,
 		host: string
+		port: number
 		https?: boolean
 	}
 }
@@ -143,11 +144,11 @@ enum PanasonicHttpResponse {
 export class PanasonicPtzHttpInterface extends EventEmitter {
 	private _device: PanasonicPtzCamera
 
-	constructor (host: string, https?: boolean) {
+	constructor (host: string, port: number, https?: boolean) {
 		super()
 
 		this._device = new PanasonicPtzCamera(
-			(https ? 'https' : 'http') + '://' + host + '/cgi-bin/aw_ptz'
+			(https ? 'https' : 'http') + '://' + host + (port ? ':' + port : '') + '/cgi-bin/aw_ptz'
 		)
 	}
 
@@ -328,7 +329,7 @@ export class PanasonicPtzDevice extends Device {
 		this._doOnTime.on('error', e => this.emit('error', e))
 
 		if (deviceOptions.options && deviceOptions.options.host) {
-			this._device = new PanasonicPtzHttpInterface(deviceOptions.options.host, deviceOptions.options.https)
+			this._device = new PanasonicPtzHttpInterface(deviceOptions.options.host, deviceOptions.options.port, deviceOptions.options.https)
 			this._device.on('error', (msg) => {
 				this.emit('error', msg)
 			})
