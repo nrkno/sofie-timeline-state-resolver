@@ -12,8 +12,8 @@ import { EventEmitter } from 'events'
 export interface PanasonicPtzOptions extends DeviceOptions {
 	options?: {
 		commandReceiver?: (time: number, cmd) => Promise<any>,
-		host: string
-		port: number
+		host?: string
+		port?: number
 		https?: boolean
 	}
 }
