@@ -1,6 +1,6 @@
 import * as _ from 'underscore'
 import { Device, DeviceOptions } from './device'
-import { DeviceType, MappingPanasonicPtz, Mappings } from './mapping'
+import { DeviceType, MappingPanasonicPtz, Mappings, MappingPanasonicPtzType } from './mapping'
 import * as request from 'request'
 import * as querystring from 'querystring'
 import { sprintf } from 'sprintf-js'
@@ -53,8 +53,8 @@ export interface PanasonicPtzState {
 
 export interface PanasonicPtzStateNode {
 	identifier: string,
-	speed: number,
-	preset: number
+	speed: number | undefined,
+	preset: number | undefined
 }
 export interface PanasonicPtzCommand {
 	identifier: string,
@@ -68,7 +68,7 @@ interface CommandQueueItem {
 	resolve: (response: string) => void
 	reject: (error: any) => void
 }
-class PanasonicPtzCamera {
+export class PanasonicPtzCamera {
 	private _url: string
 	private _commandDelay: number
 	private _commandQueue: Array<CommandQueueItem> = []
@@ -216,7 +216,7 @@ export class PanasonicPtzHttpInterface extends EventEmitter {
 	/**
 	 * Recall camera preset
 	 * @param {string} identifier Camera identifier as set up in the device list
-	 * @param {number} preset The preset to be recalled in the camera
+	 * @param {number} preset The preset to be recalled in the camera. 0-99
 	 * @returns {Promise<number>} A promise: the preset the camera will transition to
 	 * @memberof PanasonicPtzHttpInterface
 	 */
@@ -336,7 +336,7 @@ export class PanasonicPtzHttpInterface extends EventEmitter {
 
 	private _findDevice (identifier: string): PanasonicPtzCamera {
 		const index = this._identifierMap[identifier]
-		if (index !== undefined) {
+		if (index >= 0) {
 			return this._devices[index]
 		}
 		throw new Error(`Could not find PTZ camera ${identifier}`)
@@ -363,6 +363,7 @@ export class PanasonicPtzDevice extends Device {
 			return this.getCurrentTime()
 		})
 		this._doOnTime.on('error', e => this.emit('error', e))
+
 		if (deviceOptions.options && deviceOptions.options.cameraDevices) {
 			this._cameraDevices = deviceOptions.options.cameraDevices
 			this._device = new PanasonicPtzHttpInterface(deviceOptions.options.cameraDevices)
@@ -409,12 +410,12 @@ export class PanasonicPtzDevice extends Device {
 		_.each(state.LLayers, (tlObject: TimelineObjPanasonicPtz, layerName: string) => {
 			const mapping: MappingPanasonicPtz | undefined = this.mapping[layerName] as MappingPanasonicPtz
 			if (mapping && mapping.identifier && mapping.device === DeviceType.PANASONIC_PTZ) {
-				if (tlObject.content.type === TimelineContentTypePanasonicPtz.PRESET) {
+				if (mapping.mappingType === MappingPanasonicPtzType.PRESET) {
 					let tlObjectSource = tlObject as TimelineObjPanasonicPtzPreset
 					ptzState[mapping.identifier] = _.extend(ptzState[mapping.identifier], {
 						preset: tlObjectSource.content.preset
 					})
-				} else if (tlObject.content.type === TimelineContentTypePanasonicPtz.SPEED) {
+				} else if (mapping.mappingType === MappingPanasonicPtzType.PRESET_SPEED) {
 					let tlObjectSource = tlObject as TimelineObjPanasonicPtzPresetSpeed
 					ptzState[mapping.identifier] = _.extend(ptzState[mapping.identifier], {
 						speed: tlObjectSource.content.speed
@@ -451,11 +452,11 @@ export class PanasonicPtzDevice extends Device {
 
 	private _getDefaultState (): PanasonicPtzState {
 		if (this._device) {
-			_.indexBy(this._cameraDevices.map((item): PanasonicPtzStateNode => {
+			return _.indexBy(this._cameraDevices.map((item): PanasonicPtzStateNode => {
 				return {
 					identifier: item.identifier,
-					preset: 0,
-					speed: 0
+					preset: undefined,
+					speed: undefined
 				}
 			}), i => i.identifier)
 		}
@@ -496,21 +497,27 @@ export class PanasonicPtzDevice extends Device {
 
 		let commands: Array<PanasonicPtzCommand> = []
 
-		let addCommand = (identifier, newNode: PanasonicPtzStateNode) => {
-			// It's a plain value:
-			commands.push({
-				identifier: identifier,
-				type: newNode.preset ? TimelineContentTypePanasonicPtz.PRESET :
-					  newNode.speed ? TimelineContentTypePanasonicPtz.SPEED : TimelineContentTypePanasonicPtz.SPEED,
-				preset: newNode.preset,
-				speed: newNode.speed
-			})
+		let addCommands = (identifier, newNode: PanasonicPtzStateNode, oldValue: PanasonicPtzStateNode) => {
+			if (newNode.preset !== oldValue.preset && newNode.preset !== undefined) {
+				commands.push({
+					identifier: identifier,
+					type: TimelineContentTypePanasonicPtz.PRESET,
+					preset: newNode.preset
+				})
+			}
+			if (newNode.speed !== oldValue.speed && newNode.speed !== undefined) {
+				commands.push({
+					identifier: identifier,
+					type: TimelineContentTypePanasonicPtz.SPEED,
+					speed: newNode.speed
+				})
+			}
 		}
 
 		_.each(newPtzState, (newNode: PanasonicPtzStateNode, identifier: string) => {
 			let oldValue: PanasonicPtzStateNode = oldPtzState[identifier] || null
 			if (!_.isEqual(newNode, oldValue)) {
-				addCommand(identifier, newNode)
+				addCommands(identifier, newNode, oldValue)
 			}
 		})
 		return commands
