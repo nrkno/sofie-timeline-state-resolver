@@ -307,6 +307,8 @@ export class PanasonicPtzHttpInterface extends EventEmitter {
 		})
 	}
 }
+
+const PROBE_INTERVAL = 10 * 1000 // Probe every 10s
 export class PanasonicPtzDevice extends Device {
 	private _doOnTime: DoOnTime
 	private _device: PanasonicPtzHttpInterface | undefined
@@ -347,6 +349,18 @@ export class PanasonicPtzDevice extends Device {
 			return new Promise((resolve, reject) => {
 				this._device!.ping().then((result) => {
 					this._setConnected(!!result)
+
+					if (result) {
+						setInterval(() => {
+							this._device!.ping().then((result) => {
+								this._setConnected(!!result)
+							}).catch((e) => {
+								console.error(e)
+								this._setConnected(false)
+							})
+						}, PROBE_INTERVAL)
+					}
+
 					resolve(true)
 				}).catch((e) => {
 					reject(e)
