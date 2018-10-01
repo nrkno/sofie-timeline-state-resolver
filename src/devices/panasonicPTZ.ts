@@ -144,7 +144,7 @@ enum PanasonicHttpResponse {
 export class PanasonicPtzHttpInterface extends EventEmitter {
 	private _device: PanasonicPtzCamera
 
-	constructor (host: string, port: number, https?: boolean) {
+	constructor (host: string, port?: number, https?: boolean) {
 		super()
 
 		this._device = new PanasonicPtzCamera(
