@@ -46,6 +46,7 @@ export interface ConductorOptions {
  */
 export class Conductor extends EventEmitter {
 
+	private _logDebug: boolean = false
 	private _timeline: Array<TimelineContentObject> = []
 	private _mapping: Mappings = {}
 
@@ -141,6 +142,12 @@ export class Conductor extends EventEmitter {
 
 		this.resetResolver()
 
+	}
+	get logDebug (): boolean {
+		return this._logDebug
+	}
+	set logDebug (val: boolean) {
+		this._logDebug = val
 	}
 
 	public getDevices (): Array<Device> {

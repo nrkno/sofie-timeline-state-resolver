@@ -22,7 +22,15 @@ export interface DeviceOptions {
 	options?: {}
 	externalLog?: (...args: any[]) => void
 }
-export class Device extends EventEmitter {
+// export enum Events {
+
+// }
+interface IDevice {
+	on (event: 'error', listener: (err: Error) => void): this
+	on (event: 'info', listener: (info: any) => void): this
+	on (event: 'command', listener: (cmd: any) => void): this
+}
+export class Device extends EventEmitter implements IDevice {
 
 	protected _log: (...args: any[]) => void
 	private _getCurrentTime: () => number
