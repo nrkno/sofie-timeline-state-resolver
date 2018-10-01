@@ -50,7 +50,6 @@ export enum MappingPanasonicPtzType {
 export interface MappingPanasonicPtz extends Mapping {
 	device: DeviceType.PANASONIC_PTZ
 	mappingType: MappingPanasonicPtzType
-	identifier: string
 }
 export enum DeviceType {
 	ABSTRACT = 0,

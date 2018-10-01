@@ -47,14 +47,12 @@ describe('Panasonic PTZ', () => {
 		let myChannelMapping0: MappingPanasonicPtz = {
 			device: DeviceType.PANASONIC_PTZ,
 			deviceId: 'myPtz',
-			mappingType: MappingPanasonicPtzType.PRESET,
-			identifier: 'K1'
+			mappingType: MappingPanasonicPtzType.PRESET
 		}
 		let myChannelMapping1: MappingPanasonicPtz = {
 			device: DeviceType.PANASONIC_PTZ,
 			deviceId: 'myPtz',
-			mappingType: MappingPanasonicPtzType.PRESET_SPEED,
-			identifier: 'K1'
+			mappingType: MappingPanasonicPtzType.PRESET_SPEED
 		}
 		let myChannelMapping: Mappings = {
 			'ptz_k1': myChannelMapping0,
@@ -72,12 +70,7 @@ describe('Panasonic PTZ', () => {
 			type: DeviceType.PANASONIC_PTZ,
 			options: {
 				commandReceiver: commandReceiver0,
-				cameraDevices: [
-					{
-						identifier: 'K1',
-						url: 'http://192.168.0.10/cgi-bin/aw_ptz'
-					}
-				]
+				host: '192.168.0.10'
 			}
 		})
 		advanceTime(100) // 1100
