@@ -1,6 +1,6 @@
 {
   "name": "timeline-state-resolver",
-  "version": "0.13.6",
+  "version": "0.17.1",
   "description": "Have timeline, control stuff",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
@@ -29,6 +29,11 @@
     {
       "name": "Jesper Stærkær",
       "email": "jesper@superfly.tv",
+      "url": "http://superfly.tv"
+    },
+    {
+      "name": "Jan Starzak",
+      "email": "jan@superfly.tv",
       "url": "http://superfly.tv"
     },
     {
@@ -94,12 +99,14 @@
   },
   "devDependencies": {
     "@types/jest": "^23.1.0",
+    "@types/nock": "^9.3.0",
     "@types/node": "^8.0.4",
     "codecov": "^3.0.2",
     "cpx": "^1.5.0",
     "gh-pages": "^1.2.0",
     "jest": "^23.1.0",
     "mkdirp": "^0.5.1",
+    "nock": "^10.0.0",
     "node-license-validator": "^1.3.0",
     "npm-scripts-info": "^0.3.7",
     "nsp": "^3.2.1",
@@ -130,13 +137,15 @@
   ],
   "dependencies": {
     "@types/request": "^2.47.0",
+    "@types/sprintf-js": "^1.1.0",
     "atem-connection": "^0.5.0",
     "atem-state": "^0.3.6",
-    "casparcg-connection": "^4.5.1",
+    "casparcg-connection": "^4.5.3",
     "casparcg-state": "^1.3.3",
     "emberplus": "git+https://github.com/nrkno/tv-automation-emberplus-connection.git#dist",
     "fast-clone": "^1.5.3",
     "request": "^2.87.0",
+    "sprintf-js": "^1.1.1",
     "superfly-timeline": "^6.0.1",
     "underscore": "^1.9.1",
     "underscore-deep-extend": "^1.1.5"
