@@ -6,7 +6,6 @@ import { TriggerType } from 'superfly-timeline'
 import { Mappings, MappingAtem, DeviceType, MappingAtemType } from '../devices/mapping'
 import { Conductor } from '../conductor'
 import { AtemDevice, TimelineContentTypeAtem } from '../devices/atem'
-import { UpstreamKeyer } from 'atem-connection/dist/state/video/upstreamKeyers';
 
 // let nowActual: number = Date.now()
 describe('Atem', () => {
