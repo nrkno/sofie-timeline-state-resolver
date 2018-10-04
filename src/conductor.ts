@@ -294,16 +294,16 @@ export class Conductor extends EventEmitter {
 		try {
 
 			if (!this._isInitialized) {
-				this.emit('info', 'TSR is not initialized yet')
+				this.emit('warning', 'TSR is not initialized yet')
 				return
 			}
 			const now = this.getCurrentTime()
 			let resolveTime: number = this._nextResolveTime || now
 
-			this.emit('info', 'resolveTimeline ' + resolveTime + ' -----------------------------')
+			this.emit('debug', 'resolveTimeline ' + resolveTime + ' -----------------------------')
 
 			if (resolveTime > now + LOOKAHEADTIME) {
-				this.emit('info', 'Too far ahead (' + resolveTime + ')')
+				this.emit('debug', 'Too far ahead (' + resolveTime + ')')
 				this._triggerResolveTimeline(LOOKAHEADTIME)
 				return
 			}
@@ -375,7 +375,7 @@ export class Conductor extends EventEmitter {
 
 			// Now that we've handled this point in time, it's time to determine what the next point in time is:
 
-			// this.emit('info', tlState.time)
+			// this.emit('debug', tlState.time)
 			const timelineWindow = Resolver.getTimelineInWindow(timeline, tlState.time, tlState.time + LOOKAHEADTIME)
 
 			const nextEvents = Resolver.getNextEvents(timelineWindow, tlState.time + MINTIMEUNIT, 1)
@@ -384,7 +384,7 @@ export class Conductor extends EventEmitter {
 			if (nextEvents.length) {
 				let nextEvent = nextEvents[0]
 
-				// this.emit('info', 'nextEvent', nextEvent)
+				// this.emit('debug', 'nextEvent', nextEvent)
 
 				timeUntilNextResolve = Math.max(MINTRIGGERTIME,
 					Math.min(LOOKAHEADTIME,
@@ -392,14 +392,14 @@ export class Conductor extends EventEmitter {
 					)
 				)
 
-				// this.emit('info', 'timeUntilNextResolve', timeUntilNextResolve)
+				// this.emit('debug', 'timeUntilNextResolve', timeUntilNextResolve)
 
 				// resolve at nextEvent.time next time:
 				this._nextResolveTime = nextEvent.time
 
 			} else {
 				// there's nothing ahead in the timeline
-				// this.emit('info', 'no next events')
+				// this.emit('debug', 'no next events')
 
 				// Tell the devices that the future is clear:
 				_.each(this.devices, (device: Device) => {
@@ -428,7 +428,7 @@ export class Conductor extends EventEmitter {
 								)
 							} else {
 								// callback already sent, do nothing
-								this.emit('info', 'callback already sent', callBackId)
+								this.emit('debug', 'callback already sent', callBackId)
 							}
 						})
 					}
@@ -437,6 +437,8 @@ export class Conductor extends EventEmitter {
 				}
 			})
 			this._sentCallbacks = sentCallbacksNew
+
+			this.emit('info', 'resolveTimeline at time ' + resolveTime + ' done in ' + (Date.now() - startTime) + 'ms')
 		} catch (e) {
 			this.emit('error', e)
 		}
@@ -447,7 +449,6 @@ export class Conductor extends EventEmitter {
 		} catch (e) {
 			this.emit('error', e)
 		}
-		this.emit('info', 'resolveTimeline done in ' + (Date.now() - startTime) + 'ms')
 	}
 
 	private _fixNowObjects (now: number) {
