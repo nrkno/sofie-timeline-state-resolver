@@ -1,5 +1,5 @@
 import * as _ from 'underscore'
-import { Device, DeviceOptions } from './device'
+import { Device, DeviceOptions, CommandWithContext } from './device'
 import { DeviceType, MappingLawo, Mappings } from './mapping'
 
 import { TimelineState, TimelineResolvedObject } from 'superfly-timeline'
@@ -292,11 +292,15 @@ export class LawoDevice extends Device {
 	// @ts-ignore no-unused-vars
 	private _defaultCommandReceiver (time: number, command: LawoCommand): Promise<any> {
 		if (command.key === 'Fader/Motor dB Value') {	// fader level
+			let cwc: CommandWithContext = {
+				context: null,
+				command: command
+			}
+			this.emit('debug', cwc)
 			if (command.transitionDuration && command.transitionDuration > 0) {	// with timed fader movement
 				return this._device.invokeFunction(new Ember.QualifiedFunction(this._rampMotorFunctionPath), [command.identifier, new Ember.ParameterContents(command.value, 'real'), new Ember.ParameterContents(command.transitionDuration / 1000, 'real')])
 				.then((res) => {
-					this.emit('command', command)
-					this.emit('info', `Ember function result: ${JSON.stringify(res)}`)
+					this.emit('debug', `Ember function result: ${JSON.stringify(res)}`)
 				})
 					.catch((e) => {
 						this.emit('error', `Ember function command error: ${e.toString()}`)
@@ -307,8 +311,7 @@ export class LawoDevice extends Device {
 				.then((node: any) => {
 					this._device.setValue(node, new Ember.ParameterContents(command.value, 'real'))
 					.then((res) => {
-						this.emit('command', command)
-						this.emit('info', `Ember result: ${JSON.stringify(res)}`)
+						this.emit('debug', `Ember result: ${JSON.stringify(res)}`)
 					})
 					.catch((e) => console.log(e))
 				})
@@ -316,6 +319,9 @@ export class LawoDevice extends Device {
 					this.emit('error', `Ember command error: ${e.toString()}`)
 				})
 			}
+		} else {
+			// this.emit('error', `Ember command error: ${e.toString()}`)
+			return Promise.reject(`Lawo: Unsupported command.key: "${command.key}"`)
 		}
 	}
 }

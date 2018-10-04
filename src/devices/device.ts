@@ -20,19 +20,22 @@ export interface DeviceCommandContainer {
 export interface DeviceOptions {
 	type: DeviceType,
 	options?: {}
-	externalLog?: (...args: any[]) => void
+}
+export interface CommandWithContext {
+	context: any,
+	command: any
 }
 // export enum Events {
 
 // }
 interface IDevice {
-	on (event: 'error', listener: (err: Error) => void): this
-	on (event: 'info', listener: (info: any) => void): this
-	on (event: 'command', listener: (cmd: any) => void): this
+	on (event: 'info',  	listener: (info: any) => void): this
+	on (event: 'warning', 	listener: (warning: any) => void): this
+	on (event: 'error', 	listener: (err: Error) => void): this
+	on (event: 'debug', 	listener: (...debug: any[]) => void): this
 }
 export class Device extends EventEmitter implements IDevice {
 
-	protected _log: (...args: any[]) => void
 	private _getCurrentTime: () => number
 
 	private _deviceId: string
@@ -51,11 +54,6 @@ export class Device extends EventEmitter implements IDevice {
 
 		if (options.getCurrentTime) {
 			this._getCurrentTime = options.getCurrentTime
-		}
-		if (options.externalLog) {
-			this._log = options.externalLog
-		} else {
-			this._log = () => { return }
 		}
 	}
 	init (connectionOptions: any): Promise<boolean> {

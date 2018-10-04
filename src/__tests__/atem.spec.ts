@@ -6,11 +6,7 @@ import { TriggerType } from 'superfly-timeline'
 import { Mappings, MappingAtem, DeviceType, MappingAtemType } from '../devices/mapping'
 import { Conductor } from '../conductor'
 import { AtemDevice, TimelineContentTypeAtem } from '../devices/atem'
-
-let externalLog = (...args) => {
-	args = args
-	// console.log('trace', ...args)
-}
+import { UpstreamKeyer } from 'atem-connection/dist/state/video/upstreamKeyers';
 
 // let nowActual: number = Date.now()
 describe('Atem', () => {
@@ -49,7 +45,6 @@ describe('Atem', () => {
 		}
 
 		let myConductor = new Conductor({
-			externalLog: externalLog,
 			initializeAsClear: true,
 			getCurrentTime: getCurrentTime
 		})
@@ -165,7 +160,6 @@ describe('Atem', () => {
 		}
 
 		let myConductor = new Conductor({
-			externalLog: externalLog,
 			initializeAsClear: true,
 			getCurrentTime: getCurrentTime
 		})
@@ -187,7 +181,6 @@ describe('Atem', () => {
 
 		// Check that no commands has been scheduled:
 		expect(device.queue).toHaveLength(0)
-
 		myConductor.timeline = [
 			{
 				id: 'obj0',

@@ -6,11 +6,6 @@ import { LawoDevice,
 	TimelineContentTypeLawo
 } from '../devices/lawo'
 
-let externalLog = (...args) => {
-	args = args
-	// console.log('trace', ...args)
-}
-
 describe('Lawo', () => {
 	let now: number = 1000
 
@@ -48,7 +43,6 @@ describe('Lawo', () => {
 		}
 
 		let myConductor = new Conductor({
-			externalLog: externalLog,
 			initializeAsClear: true,
 			getCurrentTime: getCurrentTime
 		})

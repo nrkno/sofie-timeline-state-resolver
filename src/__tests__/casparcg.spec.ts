@@ -6,10 +6,6 @@ import { Mappings, MappingCasparCG, DeviceType } from '../devices/mapping'
 import { Conductor } from '../conductor'
 import { TimelineContentTypeCasparCg } from '../devices/casparCG'
 
-let externalLog = (...args) => {
-	args = args
-	// console.log('trace', ...args)
-}
 // let nowActual: number = Date.getCurrentTime()()
 describe('CasparCG', () => {
 	let now: number = 10000
@@ -47,7 +43,6 @@ describe('CasparCG', () => {
 		}
 
 		let myConductor = new Conductor({
-			externalLog: externalLog,
 			initializeAsClear: true,
 			getCurrentTime: getCurrentTime
 		})
@@ -126,7 +121,6 @@ describe('CasparCG', () => {
 		}
 
 		let myConductor = new Conductor({
-			externalLog: externalLog,
 			initializeAsClear: true,
 			getCurrentTime: getCurrentTime
 		})
@@ -203,7 +197,6 @@ describe('CasparCG', () => {
 		}
 
 		let myConductor = new Conductor({
-			externalLog: externalLog,
 			initializeAsClear: true,
 			getCurrentTime: getCurrentTime
 		})
@@ -276,7 +269,6 @@ describe('CasparCG', () => {
 		}
 
 		let myConductor = new Conductor({
-			externalLog: externalLog,
 			initializeAsClear: true,
 			getCurrentTime: getCurrentTime
 		})
@@ -355,7 +347,6 @@ describe('CasparCG', () => {
 		}
 
 		let myConductor = new Conductor({
-			externalLog: externalLog,
 			initializeAsClear: true,
 			getCurrentTime: getCurrentTime
 		})
@@ -435,7 +426,6 @@ describe('CasparCG', () => {
 		}
 
 		let myConductor = new Conductor({
-			externalLog: externalLog,
 			initializeAsClear: true,
 			getCurrentTime: getCurrentTime
 		})
@@ -541,7 +531,6 @@ describe('CasparCG', () => {
 		}
 
 		let myConductor = new Conductor({
-			externalLog: externalLog,
 			initializeAsClear: true,
 			getCurrentTime: getCurrentTime
 		})
@@ -644,7 +633,6 @@ describe('CasparCG', () => {
 		}
 
 		let myConductor = new Conductor({
-			externalLog: externalLog,
 			initializeAsClear: true,
 			getCurrentTime: getCurrentTime
 		})
@@ -781,7 +769,6 @@ describe('CasparCG', () => {
 		}
 
 		let myConductor = new Conductor({
-			externalLog: externalLog,
 			initializeAsClear: true,
 			getCurrentTime: getCurrentTime
 		})
@@ -881,7 +868,6 @@ describe('CasparCG', () => {
 		}
 
 		let myConductor = new Conductor({
-			externalLog: externalLog,
 			initializeAsClear: true,
 			getCurrentTime: getCurrentTime
 		})

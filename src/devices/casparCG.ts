@@ -1,5 +1,5 @@
 import * as _ from 'underscore'
-import { Device, DeviceOptions } from './device'
+import { Device, DeviceOptions, CommandWithContext } from './device'
 
 import { CasparCG, Command as CommandNS, AMCPUtil, AMCP, CasparCGSocketStatusEvent } from 'casparcg-connection'
 import { MappingCasparCG, DeviceType, Mapping, TimelineResolvedObjectExtended } from './mapping'
@@ -67,7 +67,7 @@ export class CasparCGDevice extends Device {
 		this._ccgState = new CasparCGState({
 			currentTime: this.getCurrentTime,
 			externalLog: (...args) => {
-				this._log(...args)
+				this.emit('debug', ...args)
 			}
 		})
 		this._doOnTime = new DoOnTime(() => {
@@ -138,7 +138,7 @@ export class CasparCGDevice extends Device {
 	handleState (newState: TimelineState) {
 		// check if initialized:
 		if (!this._ccgState.isInitialised) {
-			this._log('CasparCG State not initialized yet')
+			this.emit('warning', 'CasparCG State not initialized yet')
 			return
 		}
 
@@ -590,15 +590,20 @@ export class CasparCGDevice extends Device {
 	}
 	private _defaultCommandReceiver (time: number, cmd: CommandNS.IAMCPCommand): Promise<any> {
 		time = time
+
+		let cwc: CommandWithContext = {
+			context: null,
+			command: cmd
+		}
+		this.emit('debug', cwc)
+
 		return this._ccg.do(cmd)
 		.then((resCommand) => {
 			if (this._queue[resCommand.token]) {
 				delete this._queue[resCommand.token]
 			}
-			this.emit('command', cmd)
 		}).catch((error) => {
-			this.emit('error', { cmdName: cmd.name, cmd, error })
-			this._log(cmd, error)
+			this.emit('error', Error('Error ' + cmd.name + ' ' + error))
 			if (cmd.name === 'ScheduleSetCommand') {
 				// delete this._queue[cmd.getParam('command').token]
 				delete this._queue[cmd.token]

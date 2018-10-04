@@ -1,6 +1,6 @@
 import * as _ from 'underscore'
 import * as underScoreDeepExtend from 'underscore-deep-extend'
-import { Device, DeviceOptions } from './device'
+import { Device, DeviceOptions, CommandWithContext } from './device'
 import { DeviceType, MappingAtem, MappingAtemType, TimelineResolvedObjectExtended } from './mapping'
 
 import { TimelineState } from 'superfly-timeline'
@@ -40,10 +40,10 @@ export class AtemDevice extends Device {
 	// private _queue: Array<any>
 	private _doOnTime: DoOnTime
 
-	private _device: Atem
+	private _atem: Atem
 	private _state: AtemState
 	private _initialized: boolean = false
-	private _connected: boolean = false // note: ideally this should be replaced by this._device.connected
+	private _connected: boolean = false // note: ideally this should be replaced by this._atem.connected
 	private _conductor: Conductor
 
 	private _commandReceiver: (time: number, cmd) => Promise<any>
@@ -68,9 +68,9 @@ export class AtemDevice extends Device {
 		return new Promise((resolve/*, reject*/) => {
 			// This is where we would do initialization, like connecting to the devices, etc
 			this._state = new AtemState()
-			this._device = new Atem()
-			this._device.connect(options.host, options.port)
-			this._device.once('connected', () => {
+			this._atem = new Atem()
+			this._atem.connect(options.host, options.port)
+			this._atem.once('connected', () => {
 				// console.log('-------------- ATEM CONNECTED')
 				// this.emit('connectionChanged', true)
 				// check if state has been initialized:
@@ -78,23 +78,23 @@ export class AtemDevice extends Device {
 				this._initialized = true
 				resolve(true)
 			})
-			this._device.on('connected', () => {
-				this.setState(this._device.state, this.getCurrentTime())
+			this._atem.on('connected', () => {
+				this.setState(this._atem.state, this.getCurrentTime())
 				this._connected = true
 				this.emit('connectionChanged', true)
 				this._conductor.resetResolver()
 			})
-			this._device.on('disconnected', () => {
+			this._atem.on('disconnected', () => {
 				this._connected = false
 				this.emit('connectionChanged', false)
 			})
-			this._device.on('error', (e) => this.emit('error', e))
+			this._atem.on('error', (e) => this.emit('error', e))
 		})
 	}
 	terminate (): Promise<boolean> {
 		return new Promise((resolve) => {
 			// TODO: implement dispose function in atem-connection
-			// this._device.dispose()
+			// this._atem.dispose()
 			// .then(() => {
 			// resolve(true)
 			// })
@@ -105,7 +105,7 @@ export class AtemDevice extends Device {
 	makeReady (okToDestroyStuff?: boolean): Promise<void> {
 		if (okToDestroyStuff) {
 			this._doOnTime.clearQueueNowAndAfter(this.getCurrentTime())
-			this.setState(this._device.state, this.getCurrentTime())
+			this.setState(this._atem.state, this.getCurrentTime())
 		}
 		return Promise.resolve()
 	}
@@ -118,7 +118,7 @@ export class AtemDevice extends Device {
 
 		if (!this._initialized) {
 			// before it's initialized don't do anything
-			this._log('Atem not initialized yet')
+			this.emit('info', 'Atem not initialized yet')
 			return
 		}
 		let oldState = (this.getStateBefore(newState.time) || { state: this._getDefaultState() }).state
@@ -133,7 +133,6 @@ export class AtemDevice extends Device {
 
 		let commandsToAchieveState: Array<AtemCommands.AbstractCommand> = this._diffStates(oldAtemState, newAtemState)
 
-		// console.log('commandsToAchieveState', commandsToAchieveState)
 		// clear any queued commands later than this time:
 		this._doOnTime.clearQueueNowAndAfter(newState.time)
 		// add the new commands to the queue:
@@ -145,8 +144,6 @@ export class AtemDevice extends Device {
 	clearFuture (clearAfterTime: number) {
 		// Clear any scheduled commands after this time
 		this._doOnTime.clearQueueAfter(clearAfterTime)
-		// Clear any scheduled commands after this time
-		// this._queue = _.reject(this._queue, (q) => { return q.time > clearAfterTime })
 	}
 	get canConnect (): boolean {
 		return true
@@ -173,9 +170,7 @@ export class AtemDevice extends Device {
 
 			if (mapping) {
 				if (mapping.index !== undefined && mapping.index >= 0) { // index must be 0 or higher
-					// 	obj = {}
-					// 	obj[mapping.index] = tlObject.content
-					// }
+
 					switch (mapping.mappingType) {
 						case MappingAtemType.MixEffect:
 							if (tlObjectExt.isBackground) {
@@ -263,25 +258,25 @@ export class AtemDevice extends Device {
 	private _getDefaultState (): DeviceState {
 		let deviceState = new DeviceState()
 
-		for (let i = 0; i < this._device.state.info.capabilities.MEs; i++) {
+		for (let i = 0; i < this._atem.state.info.capabilities.MEs; i++) {
 			deviceState.video.ME[i] = JSON.parse(JSON.stringify(StateDefault.Video.MixEffect)) as VideoState.MixEffect
-			for (const usk in this._device.state.video.ME[i].upstreamKeyers) {
+			for (const usk in this._atem.state.video.ME[i].upstreamKeyers) {
 				deviceState.video.ME[i].upstreamKeyers[usk] = JSON.parse(JSON.stringify(StateDefault.Video.UpstreamKeyer(Number(usk))))
-				for (const flyKf in this._device.state.video.ME[i].upstreamKeyers[usk].flyKeyframes) {
+				for (const flyKf in this._atem.state.video.ME[i].upstreamKeyers[usk].flyKeyframes) {
 					deviceState.video.ME[i].upstreamKeyers[usk].flyKeyframes[flyKf] = JSON.parse(JSON.stringify(StateDefault.Video.flyKeyframe(Number(flyKf))))
 				}
 			}
 		}
-		for (let i = 0; i < Object.keys(this._device.state.video.downstreamKeyers).length; i++) {
+		for (let i = 0; i < Object.keys(this._atem.state.video.downstreamKeyers).length; i++) {
 			deviceState.video.downstreamKeyers[i] = JSON.parse(JSON.stringify(StateDefault.Video.DownStreamKeyer))
 		}
-		for (let i = 0; i < this._device.state.info.capabilities.auxilliaries; i++) {
+		for (let i = 0; i < this._atem.state.info.capabilities.auxilliaries; i++) {
 			deviceState.video.auxilliaries[i] = JSON.parse(JSON.stringify(StateDefault.Video.defaultInput))
 		}
-		for (let i = 0; i < this._device.state.info.superSourceBoxes; i++) {
+		for (let i = 0; i < this._atem.state.info.superSourceBoxes; i++) {
 			deviceState.video.superSourceBoxes[i] = JSON.parse(JSON.stringify(StateDefault.Video.SuperSourceBox))
 		}
-		if (this._device.state.video.superSourceProperties) {
+		if (this._atem.state.video.superSourceProperties) {
 			deviceState.video.superSourceProperties = JSON.parse(JSON.stringify(StateDefault.Video.SuperSourceProperties))
 		}
 
@@ -290,18 +285,14 @@ export class AtemDevice extends Device {
 
 	private _defaultCommandReceiver (time: number, command: AtemCommands.AbstractCommand): Promise<any> {
 		time = time // seriously this needs to stop
-		return this._device.sendCommand(command).then(() => {
-			this.emit('command', command)
+		let cwc: CommandWithContext = {
+			context: null,
+			command: command
+		}
+		this.emit('debug', cwc)
+
+		return this._atem.sendCommand(command).then(() => {
 			// @todo: command was acknowledged by atem, how will we check if it did what we wanted?
 		})
 	}
-
-	// private _enforceDeviceState () {
-	// 	const actualState = this._device.state
-	// 	const theoreticalState = this.convertStateToAtem(this.getStateBefore(this.getCurrentTime()) || { LLayers: {}, GLayers: {}, time: this.getCurrentTime() })
-
-	// 	const commandsToAchieveState = this._diffStates(actualState, theoreticalState)
-
-	// 	this._addToQueue(commandsToAchieveState, this.getCurrentTime())
-	// }
 }

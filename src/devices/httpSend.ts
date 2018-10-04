@@ -1,5 +1,5 @@
 import * as _ from 'underscore'
-import { Device, DeviceOptions } from './device'
+import { Device, DeviceOptions, CommandWithContext } from './device'
 import { DeviceType } from './mapping'
 import { DoOnTime } from '../doOnTime'
 import * as request from 'request'
@@ -19,9 +19,10 @@ interface Command {
 	content: any
 }
 enum ReqestType {
+	GET = 'get',
 	POST = 'post',
 	PUT = 'put',
-	GET = 'get'
+	DELETE = 'delete'
 }
 interface CommandContent {
 	type: ReqestType
@@ -179,76 +180,56 @@ export class HttpSendDevice extends Device {
 	}
 	private _defaultCommandReceiver (time: number, cmd: CommandContent): Promise<any> {
 		time = time
-		this.emit('info', 'HTTP: Send ', cmd)
-		if (cmd.type === ReqestType.POST) {
+		// this.emit('info', 'HTTP: Send ', cmd)
 
-			return new Promise((resolve, reject) => {
-				request.post(
-					cmd.url, // 'http://www.yoursite.com/formpage',
-					{ json: cmd.params },
-					(error, response) => {
-						if (error) {
-							this.emit('error', 'Error in httpSend POST: ' + error)
-							reject(error)
-						} else if (response.statusCode === 200) {
-							// console.log('200 Response from ' + cmd.url, body)
-							this.emit('command', cmd)
-							resolve()
-						} else {
-							// console.log(response.statusCode + ' Response from ' + cmd.url, body)
-							resolve()
-						}
-					}
-				)
-			})
-		} else if (cmd.type === ReqestType.PUT) {
-
-			return new Promise((resolve, reject) => {
-				request.put(
-					cmd.url, // 'http://www.yoursite.com/formpage',
-					{ json: cmd.params },
-					(error, response) => {
-						if (error) {
-							this.emit('error', 'Error in httpSend PUT: ' + error)
-							reject(error)
-						} else if (response.statusCode === 200) {
-							this.emit('command', cmd)
-							// console.log('200 Response from ' + cmd.url, body)
-							resolve()
-						} else {
-							// console.log(response.statusCode + ' Response from ' + cmd.url, body)
-							resolve()
-						}
-					}
-				)
-			})
-		} else if (cmd.type === ReqestType.GET) {
-
-			// console.log('Sending POST request to ',
-			// 	cmd.url,
-			// 	cmd.params
-			// )
-			return new Promise((resolve, reject) => {
-				request.get(
-					cmd.url, // 'http://www.yoursite.com/formpage',
-					{ json: cmd.params },
-					(error, response) => {
-						if (error) {
-							this.emit('error', 'Error in httpSend GET: ' + error)
-							reject(error)
-						} else if (response.statusCode === 200) {
-							this.emit('command', cmd)
-							// console.log('200 Response from ' + cmd.url, body)
-							resolve()
-						} else {
-							// console.log(response.statusCode + ' Response from ' + cmd.url, body)
-							resolve()
-						}
-					}
-				)
-			})
-		} else {
-			return Promise.reject('Unknown HTTP-send type: "' + cmd.type + '"')
+		let cwc: CommandWithContext = {
+			context: null,
+			command: cmd
 		}
+		this.emit('debug', cwc)
+
+		return new Promise((resolve, reject) => {
+			let handleResponse = (error, response) => {
+				if (error) {
+					this.emit('error', `HTTPSend: Error ${cmd.type}: ${error}`)
+					reject(error)
+				} else if (response.statusCode === 200) {
+					// console.log('200 Response from ' + cmd.url, body)
+					this.emit('debug', `HTTPSend: ${cmd.type}: Good statuscode response on url "${cmd.url}": ${response.statusCode}`)
+					resolve()
+				} else {
+					this.emit('warning', `HTTPSend: ${cmd.type}: Bad statuscode response on url "${cmd.url}": ${response.statusCode}`)
+					// console.log(response.statusCode + ' Response from ' + cmd.url, body)
+					resolve()
+				}
+			}
+			if (cmd.type === ReqestType.POST) {
+				request.post(
+					cmd.url,
+					{ json: cmd.params },
+					handleResponse
+				)
+			} else if (cmd.type === ReqestType.PUT) {
+				request.put(
+					cmd.url,
+					{ json: cmd.params },
+					handleResponse
+				)
+			} else if (cmd.type === ReqestType.GET) {
+				request.get(
+					cmd.url,
+					{ json: cmd.params },
+					handleResponse
+				)
+			} else if (cmd.type === ReqestType.DELETE) {
+				request.delete(
+					cmd.url,
+					{ json: cmd.params },
+					handleResponse
+				)
+			} else {
+				reject(`Unknown HTTP-send type: "${cmd.type}"`)
+			}
+		})
 	}
 }

@@ -1,5 +1,5 @@
 import * as _ from 'underscore'
-import { Device, DeviceOptions } from './device'
+import { Device, DeviceOptions, CommandWithContext } from './device'
 import { DeviceType } from './mapping'
 
 import { TimelineState } from 'superfly-timeline'
@@ -133,6 +133,14 @@ export class AbstractDevice extends Device {
 	}
 	private _defaultCommandReceiver (time: number, cmd): Promise<any> {
 		time = time
+
+		// emit the command to debug:
+		let cwc: CommandWithContext = {
+			context: null,
+			command: cmd
+		}
+		this.emit('debug', cwc)
+
 		// execute the command here
 		cmd = cmd
 

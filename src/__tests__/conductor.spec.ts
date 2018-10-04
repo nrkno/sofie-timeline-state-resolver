@@ -5,10 +5,6 @@ import { Conductor, TimelineTriggerTimeResult, TimelineContentObject } from '../
 import * as _ from 'underscore'
 
 // let nowActual: number = Date.now()
-let externalLog = (...args) => {
-	args = args
-	// console.log('trace', ...args)
-}
 // process.on('unhandledRejection', (reason, p) => {
 // 	setTimeout(() => {
 // 		console.log('Unhandled Rejection at: Promise' + p + 'reason:' + reason.stack)
@@ -61,7 +57,6 @@ describe('Conductor', () => {
 		}
 
 		let conductor = new Conductor({
-			externalLog: externalLog,
 			initializeAsClear: true,
 			getCurrentTime: getCurrentTime
 		})
@@ -213,7 +208,6 @@ describe('Conductor', () => {
 		}
 
 		let conductor = new Conductor({
-			externalLog: externalLog,
 			initializeAsClear: true,
 			getCurrentTime: getCurrentTime
 		})
@@ -336,7 +330,6 @@ describe('Conductor', () => {
 		})
 
 		let conductor = new Conductor({
-			externalLog: externalLog,
 			initializeAsClear: true,
 			getCurrentTime: getCurrentTime
 		})

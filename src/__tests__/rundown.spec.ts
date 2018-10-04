@@ -5,10 +5,6 @@ import { TriggerType } from 'superfly-timeline'
 import { Mappings, MappingCasparCG, DeviceType } from '../devices/mapping'
 import { Conductor } from '../conductor'
 
-let externalLog = (...args) => {
-	args = args
-	// console.log('trace', ...args)
-}
 // let nowActual: number = Date.now()
 
 describe('Rundown', () => {
@@ -76,7 +72,6 @@ describe('Rundown', () => {
 		}
 
 		let myConductor = new Conductor({
-			externalLog: externalLog,
 			initializeAsClear: true,
 			getCurrentTime: getCurrentTime
 		})
