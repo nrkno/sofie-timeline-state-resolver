@@ -60,12 +60,15 @@ interface CommandQueueItem {
 	resolve: (response: string) => void
 	reject: (error: any) => void
 }
-export class PanasonicPtzCamera {
+export class PanasonicPtzCamera extends EventEmitter {
 	private _url: string
 	private _commandDelay: number
 	private _commandQueue: Array<CommandQueueItem> = []
+	private _executeQueueTimeout: NodeJS.Timer
 
 	constructor (url: string, commandDelay: number = 130) {
+		super()
+
 		this._commandDelay = commandDelay
 		this._url = url
 	}
@@ -81,6 +84,10 @@ export class PanasonicPtzCamera {
 		if (this._commandQueue.length === 1) this._executeQueue()
 		return p
 	}
+	dispose () {
+		this._commandQueue = []
+		clearTimeout(this._executeQueueTimeout)
+	}
 
 	private _dropFromQueue (item: CommandQueueItem) {
 		const index = this._commandQueue.findIndex(i => i === item)
@@ -92,6 +99,7 @@ export class PanasonicPtzCamera {
 	}
 
 	private _executeQueue () {
+		if (this._executeQueueTimeout) clearTimeout(this._executeQueueTimeout)
 		const qItem = this._commandQueue.find(i => !i.executing)
 		if (!qItem) {
 			return
@@ -103,7 +111,7 @@ export class PanasonicPtzCamera {
 			{},
 			(error, response) => {
 				if (error) {
-					console.error(error)
+					this.emit('error', error)
 					this._dropFromQueue(qItem)
 					qItem.reject(error)
 					return
@@ -115,7 +123,7 @@ export class PanasonicPtzCamera {
 
 		// find any commands that aren't executing yet and execute one after 130ms
 		if (this._commandQueue.filter(i => !i.executing).length > 0) {
-			setTimeout(() => {
+			this._executeQueueTimeout = setTimeout(() => {
 				this._executeQueue()
 			}, this._commandDelay)
 		}
@@ -150,6 +158,9 @@ export class PanasonicPtzHttpInterface extends EventEmitter {
 		this._device = new PanasonicPtzCamera(
 			(https ? 'https' : 'http') + '://' + host + (port ? ':' + port : '') + '/cgi-bin/aw_ptz'
 		)
+		this._device.on('error', (err) => {
+			this.emit('error', err)
+		})
 	}
 
 	private static _isError (response: string) {
@@ -161,7 +172,9 @@ export class PanasonicPtzHttpInterface extends EventEmitter {
 			return false
 		}
 	}
-
+	dispose () {
+		this._device.dispose()
+	}
 	/**
 	 * Get the last preset recalled in the camera
 	 * @returns {Promise<number>}
@@ -336,7 +349,7 @@ export class PanasonicPtzDevice extends Device {
 				this.emit('error', msg)
 			})
 			this._device.on('disconnected', (msg) => {
-				console.error(msg)
+				this.emit('error', msg)
 				this._setConnected(false)
 			})
 		} else {
@@ -355,7 +368,7 @@ export class PanasonicPtzDevice extends Device {
 							this._device!.ping().then((result) => {
 								this._setConnected(!!result)
 							}).catch((e) => {
-								console.error(e)
+								this.emit('error', e)
 								this._setConnected(false)
 							})
 						}, PROBE_INTERVAL)
@@ -417,7 +430,12 @@ export class PanasonicPtzDevice extends Device {
 		// Clear any scheduled commands after this time
 		this._doOnTime.clearQueueAfter(clearAfterTime)
 	}
-
+	terminate () {
+		if (this._device) {
+			this._device.dispose()
+		}
+		return Promise.resolve(true)
+	}
 	private _getDefaultState (): PanasonicPtzState {
 		return {
 			preset: undefined,
@@ -433,7 +451,7 @@ export class PanasonicPtzDevice extends Device {
 					this.emit('command', cmd)
 					this.emit('info', `Panasonic PTZ result: ${res}`)
 				})
-				.catch((e) => console.error(e))
+				.catch((e) => this.emit('error', e))
 			}
 		} else if (cmd.type === TimelineContentTypePanasonicPtz.SPEED) {	// fader level
 			if (this._device && cmd.speed) {
@@ -441,7 +459,7 @@ export class PanasonicPtzDevice extends Device {
 					this.emit('command', cmd)
 					this.emit('info', `Panasonic PTZ result: ${res}`)
 				})
-				.catch((e) => console.error(e))
+				.catch((e) => this.emit('error', e))
 			}
 		}
 	}
