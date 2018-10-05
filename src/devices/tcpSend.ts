@@ -7,6 +7,7 @@ import { DoOnTime } from '../doOnTime'
 import { TimelineState } from 'superfly-timeline'
 
 const TIMEOUT = 3000 // ms
+const RETRY_TIMEOUT = 5000 // ms
 /*
 	This is a TCPSendDevice, it sends commands over tcp when it feels like it
 */
@@ -39,10 +40,13 @@ export class TCPSendDevice extends Device {
 	private _makeReadyCommands: CommandContent[]
 	private _doOnTime: DoOnTime
 	private _tcpClient: Socket | null = null
-	private _tcpClientConnected: boolean = false
+	private _connected: boolean = false
 	private _host: string
 	private _port: number
 	private _bufferEncoding?: string
+	private _setDisconnected: boolean = false // set to true if disconnect() has been called (then do not trye to reconnect)
+	
+	private _retryConnectTimeout: NodeJS.Timer
 	// private _queue: Array<any>
 
 	private _commandReceiver: (time: number, cmd: CommandContent) => Promise<any>
@@ -65,7 +69,10 @@ export class TCPSendDevice extends Device {
 		this._port = options.port
 		this._bufferEncoding = options.bufferEncoding
 
-		return Promise.resolve(true) // This device doesn't have any initialization procedure
+		return this._connectTCPClient()
+		.then(() => {
+			return true
+		})
 	}
 	handleState (newState: TimelineState) {
 		// Handle this new state, at the point in time specified
@@ -95,7 +102,9 @@ export class TCPSendDevice extends Device {
 	makeReady (okToDestroyStuff?: boolean): Promise<void> {
 		if (okToDestroyStuff) {
 			this._disconnectTCPClient()
-			this._connectTCPClient()
+			.then(() => {
+				return this._connectTCPClient()
+			})
 			.catch((err) => {
 				this.emit('error', err)
 			})
@@ -113,6 +122,7 @@ export class TCPSendDevice extends Device {
 	}
 	terminate () {
 		this._doOnTime.dispose()
+		clearTimeout(this._retryConnectTimeout)
 
 		return this._disconnectTCPClient()
 		.then(() => {
@@ -121,10 +131,10 @@ export class TCPSendDevice extends Device {
 	}
 
 	get canConnect (): boolean {
-		return false
+		return true
 	}
 	get connected (): boolean {
-		return false
+		return this._connected
 	}
 	convertStateToTCPSend (state: TimelineState) {
 		// convert the timeline state into something we can use
@@ -139,6 +149,34 @@ export class TCPSendDevice extends Device {
 	}
 	get queue () {
 		return this._doOnTime.getQueue()
+	}
+	private _setConnected (connected: boolean) {
+		if (this._connected !== connected) {
+
+			this._connected = connected
+			this.emit('connectionChanged', connected)
+
+			if (!connected) {
+				this._triggerRetryConnection()
+			}
+		}
+	}
+	private _triggerRetryConnection () {
+		if (!this._retryConnectTimeout) {		
+			this._retryConnectTimeout = setTimeout(() => {
+				this._retryConnection()
+			}, RETRY_TIMEOUT)
+		}
+	}
+	private _retryConnection () {
+		clearTimeout(this._retryConnectTimeout)
+
+		if (!this.connected && !this._setDisconnected) {
+			this._connectTCPClient()
+			.catch(() => {
+				
+			})
+		}
 	}
 	private _addToQueue (commandsToAchieveState: Array<Command>, time: number) {
 		_.each(commandsToAchieveState, (cmd: Command) => {
@@ -195,8 +233,9 @@ export class TCPSendDevice extends Device {
 	}
 	private _disconnectTCPClient (): Promise<void> {
 		return new Promise((resolve) => {
+			this._setDisconnected = true
 			if (this._tcpClient) {
-				if (this._tcpClientConnected) {
+				if (this.connected) {
 					this._tcpClient.once('close', () => {
 						resolve()
 					})
@@ -209,7 +248,7 @@ export class TCPSendDevice extends Device {
 						resolve()
 					}, TIMEOUT)
 					setTimeout(() => {
-						if (this._tcpClient && this._tcpClientConnected) {
+						if (this._tcpClient && this.connected) {
 							// Forcefully destroy the connection:
 							this._tcpClient.destroy()
 						}
@@ -231,26 +270,28 @@ export class TCPSendDevice extends Device {
 
 				this._tcpClient = null
 			}
-			this._tcpClientConnected = false
+			this._setConnected(false)
 		})
 	}
 	private _connectTCPClient (): Promise<void> {
-		
+		this._setDisconnected = false
+
 		if (!this._tcpClient) {
 			this._tcpClient = new Socket();
+			console.log('c')
 			this._tcpClient.on('connect', () => {
-				this._tcpClientConnected = true
+				console.log('connect')
+				this._setConnected(true)
 			})
 			this._tcpClient.on('close', () => {
-				this._tcpClientConnected = false
+				this._setConnected(false)
 			})
 			this._tcpClient.on('end', () => {
-				this._tcpClientConnected = false
+				this._setConnected(false)
 			})
 		}
-		if (!this._tcpClientConnected) {
+		if (!this.connected) {
 			return new Promise((resolve, reject) => {
-
 				this._tcpClient!.connect(this._port, this._host, () => {
 					resolve()
 					// client.write('Hello, server! Love, Client.');

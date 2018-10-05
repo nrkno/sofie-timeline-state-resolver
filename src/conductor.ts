@@ -17,6 +17,7 @@ import { EventEmitter } from 'events'
 import { LawoDevice } from './devices/lawo'
 import { PanasonicPtzDevice } from './devices/panasonicPTZ'
 import { DoOnTime } from './doOnTime'
+import { TCPSendDevice } from './devices/tcpSend'
 
 const LOOKAHEADTIME = 5000 // Will look ahead this far into the future
 const PREPARETIME = 2000 // Will prepare commands this time before the event is to happen
@@ -177,6 +178,8 @@ export class Conductor extends EventEmitter {
 				newDevice = new LawoDevice(deviceId, deviceOptions, options) as Device
 			} else if (deviceOptions.type === DeviceType.PANASONIC_PTZ) {
 				newDevice = new PanasonicPtzDevice(deviceId, deviceOptions, options) as Device
+			} else if (deviceOptions.type === DeviceType.TCPSEND) {
+				newDevice = new TCPSendDevice(deviceId, deviceOptions, options) as Device
 			} else {
 				return Promise.reject('No matching device type for "' + deviceOptions.type + '" ("' + DeviceType[deviceOptions.type] + '") found')
 			}
@@ -193,7 +196,6 @@ export class Conductor extends EventEmitter {
 			this.emit('info', 'Initializing ' + DeviceType[deviceOptions.type] + '...')
 			this.devices[deviceId] = newDevice
 			newDevice.mapping = this.mapping
-
 			return newDevice.init(deviceOptions.options)
 			.then(() => {
 				this.emit('info', (DeviceType[deviceOptions.type] + ' initialized!'))
