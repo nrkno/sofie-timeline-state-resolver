@@ -467,7 +467,9 @@ export class CasparCGDevice extends Device {
 		})
 		.then(() => {
 			// reset our own state(s):
-			this.clearStates()
+			if (okToDestroyStuff) {
+				this.clearStates()
+			}
 			// a resolveTimeline will be triggered later
 		})
 	}
