@@ -51,13 +51,17 @@ export interface MappingPanasonicPtz extends Mapping {
 	device: DeviceType.PANASONIC_PTZ
 	mappingType: MappingPanasonicPtzType
 }
+export interface MappingTCPSend extends Mapping {
+	device: DeviceType.TCPSEND
+}
 export enum DeviceType {
 	ABSTRACT = 0,
 	CASPARCG = 1,
 	ATEM = 2,
-	LAWO = 3, // yet to be implemented
+	LAWO = 3,
 	HTTPSEND = 4,
-	PANASONIC_PTZ = 5
+	PANASONIC_PTZ = 5,
+	TCPSEND = 6
 }
 
 export interface TimelineResolvedObjectExtended extends TimelineResolvedObject {
