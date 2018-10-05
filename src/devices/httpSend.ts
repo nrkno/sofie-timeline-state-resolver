@@ -18,14 +18,14 @@ interface Command {
 	commandName: 'added' | 'changed' | 'removed',
 	content: any
 }
-enum ReqestType {
+enum RequestType {
 	GET = 'get',
 	POST = 'post',
 	PUT = 'put',
 	DELETE = 'delete'
 }
 interface CommandContent {
-	type: ReqestType
+	type: RequestType
 	url: string
 	params: {[key: string]: number | string}
 }
@@ -36,9 +36,8 @@ export class HttpSendDevice extends Device {
 
 	private _makeReadyCommands: CommandContent[]
 	private _doOnTime: DoOnTime
-	// private _queue: Array<any>
 
-	private _commandReceiver: (time: number, cmd) => Promise<any>
+	private _commandReceiver: (time: number, cmd: CommandContent) => Promise<any>
 
 	constructor (deviceId: string, deviceOptions: HttpSendDeviceOptions, options) {
 		super(deviceId, deviceOptions, options)
@@ -51,21 +50,10 @@ export class HttpSendDevice extends Device {
 		})
 		this._doOnTime.on('error', e => this.emit('error', e))
 	}
-
-	/**
-	 * Initiates the connection with CasparCG through the ccg-connection lib.
-	 */
 	init (options: HttpSendOptions): Promise<boolean> {
 		this._makeReadyCommands = options.makeReadyCommands || []
-
-		return new Promise((resolve/*, reject*/) => {
-			// This is where we would do initialization, like connecting to the devices, etc
-
-			// myDevide.onConnectionChange((connected: boolean) => {
-				// this.emit('connectionChanged', connected)
-			// })
-			resolve(true)
-		})
+		
+		return Promise.resolve(true) // This device doesn't have any initialization procedure
 	}
 	handleState (newState: TimelineState) {
 		// Handle this new state, at the point in time specified
@@ -203,25 +191,25 @@ export class HttpSendDevice extends Device {
 					resolve()
 				}
 			}
-			if (cmd.type === ReqestType.POST) {
+			if (cmd.type === RequestType.POST) {
 				request.post(
 					cmd.url,
 					{ json: cmd.params },
 					handleResponse
 				)
-			} else if (cmd.type === ReqestType.PUT) {
+			} else if (cmd.type === RequestType.PUT) {
 				request.put(
 					cmd.url,
 					{ json: cmd.params },
 					handleResponse
 				)
-			} else if (cmd.type === ReqestType.GET) {
+			} else if (cmd.type === RequestType.GET) {
 				request.get(
 					cmd.url,
 					{ json: cmd.params },
 					handleResponse
 				)
-			} else if (cmd.type === ReqestType.DELETE) {
+			} else if (cmd.type === RequestType.DELETE) {
 				request.delete(
 					cmd.url,
 					{ json: cmd.params },
