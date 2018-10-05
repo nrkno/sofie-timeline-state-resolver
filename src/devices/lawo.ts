@@ -174,6 +174,21 @@ export class LawoDevice extends Device {
 		// Clear any scheduled commands after this time
 		this._doOnTime.clearQueueAfter(clearAfterTime)
 	}
+	terminate () {
+		this._doOnTime.dispose()
+
+		// @todo: Implement lawo dispose function upstream
+		try {
+			this._lawo.disconnect()
+			this._lawo.removeAllListeners('error')
+			this._lawo.removeAllListeners('connected')
+			this._lawo.removeAllListeners('disconnected')
+
+		} catch (e) {
+			this.emit('error', e)
+		}
+		return Promise.resolve(true)
+	}
 	get canConnect (): boolean {
 		return true
 	}

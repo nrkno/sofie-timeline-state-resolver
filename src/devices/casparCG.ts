@@ -124,6 +124,7 @@ export class CasparCGDevice extends Device {
 	}
 
 	terminate (): Promise<boolean> {
+		this._doOnTime.dispose()
 		return new Promise((resolve) => {
 			this._ccg.disconnect()
 			this._ccg.onDisconnected = () => {

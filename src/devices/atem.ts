@@ -92,6 +92,8 @@ export class AtemDevice extends Device {
 		})
 	}
 	terminate (): Promise<boolean> {
+		this._doOnTime.dispose()
+		
 		return new Promise((resolve) => {
 			// TODO: implement dispose function in atem-connection
 			// this._atem.dispose()

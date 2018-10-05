@@ -66,6 +66,10 @@ export class AbstractDevice extends Device {
 		// Clear any scheduled commands after this time
 		this._doOnTime.clearQueueAfter(clearAfterTime)
 	}
+	terminate () {
+		this._doOnTime.dispose()
+		return Promise.resolve(true)
+	}
 	get canConnect (): boolean {
 		return false
 	}

@@ -79,6 +79,10 @@ export class HttpSendDevice extends Device {
 		// Clear any scheduled commands after this time
 		this._doOnTime.clearQueueAfter(clearAfterTime)
 	}
+	terminate () {
+		this._doOnTime.dispose()
+		return Promise.resolve(true)
+	}
 
 	makeReady (okToDestroyStuff?: boolean): Promise<void> {
 		if (okToDestroyStuff && this._makeReadyCommands && this._makeReadyCommands.length > 0) {
