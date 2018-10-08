@@ -77,8 +77,6 @@ export class TCPSendDevice extends Device {
 	handleState (newState: TimelineState) {
 		// Handle this new state, at the point in time specified
 
-		// console.log('handleState')
-
 		let oldState: TimelineState = (this.getStateBefore(newState.time) || { state: { time: 0, LLayers: {}, GLayers: {} } }).state
 
 		let oldAbstractState = this.convertStateToTCPSend(oldState)
@@ -278,9 +276,7 @@ export class TCPSendDevice extends Device {
 
 		if (!this._tcpClient) {
 			this._tcpClient = new Socket();
-			console.log('c')
 			this._tcpClient.on('connect', () => {
-				console.log('connect')
 				this._setConnected(true)
 			})
 			this._tcpClient.on('close', () => {
@@ -305,7 +301,6 @@ export class TCPSendDevice extends Device {
 		}
 	}
 	private _sendTCPMessage (message: string): Promise<void> {
-		
 		// Do we have a client?
 		return this._connectTCPClient()
 		.then(() => {
