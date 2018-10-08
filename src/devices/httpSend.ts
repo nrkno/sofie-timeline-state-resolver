@@ -52,7 +52,7 @@ export class HttpSendDevice extends Device {
 	}
 	init (options: HttpSendOptions): Promise<boolean> {
 		this._makeReadyCommands = options.makeReadyCommands || []
-		
+
 		return Promise.resolve(true) // This device doesn't have any initialization procedure
 	}
 	handleState (newState: TimelineState) {

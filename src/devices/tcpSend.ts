@@ -45,7 +45,6 @@ export class TCPSendDevice extends Device {
 	private _port: number
 	private _bufferEncoding?: string
 	private _setDisconnected: boolean = false // set to true if disconnect() has been called (then do not trye to reconnect)
-	
 	private _retryConnectTimeout: NodeJS.Timer
 	// private _queue: Array<any>
 
@@ -160,7 +159,7 @@ export class TCPSendDevice extends Device {
 		}
 	}
 	private _triggerRetryConnection () {
-		if (!this._retryConnectTimeout) {		
+		if (!this._retryConnectTimeout) {
 			this._retryConnectTimeout = setTimeout(() => {
 				this._retryConnection()
 			}, RETRY_TIMEOUT)
@@ -171,8 +170,8 @@ export class TCPSendDevice extends Device {
 
 		if (!this.connected && !this._setDisconnected) {
 			this._connectTCPClient()
-			.catch(() => {
-				
+			.catch((err) => {
+				this.emit('error', err)
 			})
 		}
 	}
@@ -251,7 +250,6 @@ export class TCPSendDevice extends Device {
 							this._tcpClient.destroy()
 						}
 					}, Math.floor(TIMEOUT / 2))
-	
 				} else {
 					resolve()
 				}
@@ -275,7 +273,7 @@ export class TCPSendDevice extends Device {
 		this._setDisconnected = false
 
 		if (!this._tcpClient) {
-			this._tcpClient = new Socket();
+			this._tcpClient = new Socket()
 			this._tcpClient.on('connect', () => {
 				this._setConnected(true)
 			})
@@ -291,7 +289,7 @@ export class TCPSendDevice extends Device {
 				this._tcpClient!.connect(this._port, this._host, () => {
 					resolve()
 					// client.write('Hello, server! Love, Client.');
-				});
+				})
 				setTimeout(() => {
 					reject(`TCP timeout: Unable to connect to ${this._host}:${this._port}`)
 				}, TIMEOUT)

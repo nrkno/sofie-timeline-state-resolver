@@ -10,7 +10,7 @@ import { Socket as MockSocket } from 'net'
 jest.mock('net')
 let setTimeoutOrg = setTimeout
 
-function waitALittleBit() {
+function waitALittleBit () {
 	return new Promise((resolve) => {
 		setTimeoutOrg(resolve, 10)
 	})
@@ -36,8 +36,7 @@ describe('TCP-Send', () => {
 		now = 10000
 		jest.useFakeTimers()
 	})
-	afterEach(() => {
-	})
+	// afterEach(() => {})
 	test('Send message', async () => {
 
 		let device
@@ -46,7 +45,7 @@ describe('TCP-Send', () => {
 			// return Promise.resolve()
 			device._defaultCommandReceiver(time, cmd)
 		})
-		
+
 		let onSocketCreate = jest.fn()
 		let onConnection = jest.fn()
 		let onSocketClose = jest.fn()
@@ -62,7 +61,6 @@ describe('TCP-Send', () => {
 			socket.onClose = onSocketClose
 		})
 
-
 		let myLayerMapping0: MappingTCPSend = {
 			device: DeviceType.TCPSEND,
 			deviceId: 'myTCP'
@@ -76,8 +74,6 @@ describe('TCP-Send', () => {
 			getCurrentTime: getCurrentTime
 		})
 		await myConductor.init()
-
-		
 
 		await myConductor.addDevice('myTCP', {
 			type: DeviceType.TCPSEND,
@@ -117,7 +113,6 @@ describe('TCP-Send', () => {
 		// Check that no commands has been scheduled:
 		expect(device.queue).toHaveLength(0)
 
-
 		// Test Added object:
 		myConductor.timeline = [
 			{
@@ -145,10 +140,8 @@ describe('TCP-Send', () => {
 		await waitALittleBit()
 		expect(onSocketWrite).toHaveBeenCalledTimes(1)
 		expect(onSocketWrite.mock.calls[0][0]).toEqual(Buffer.from('hello world'))
-		
 
 		// Test Changed object:
-
 		myConductor.timeline = [
 			{
 				id: 'obj0',
@@ -173,13 +166,10 @@ describe('TCP-Send', () => {
 		expect(onSocketWrite).toHaveBeenCalledTimes(2)
 		expect(onSocketWrite.mock.calls[1][0]).toEqual(Buffer.from('anyone here'))
 
-
 		// Test Removed object:
 		advanceTime(4000) // 16000
 		expect(commandReceiver0).toHaveBeenCalledTimes(2)
 		expect(onSocketWrite).toHaveBeenCalledTimes(2)
-
-
 
 		// test disconnected
 		// @ts-ignore
@@ -199,10 +189,8 @@ describe('TCP-Send', () => {
 		expect(onConnectionChanged).toHaveBeenCalledTimes(2)
 		expect(onConnectionChanged.mock.calls[1][0]).toEqual(true)
 
-
 		// Test makeReady:
-		myConductor.devicesMakeReady(true)
-		await waitALittleBit()
+		await myConductor.devicesMakeReady(true)
 		jest.advanceTimersByTime(10)
 		await waitALittleBit()
 
@@ -221,7 +209,6 @@ describe('TCP-Send', () => {
 		// dispose
 		device.terminate()
 
-		
 		expect(onSocketClose).toHaveBeenCalledTimes(2)
 		expect(onConnectionChanged).toHaveBeenCalledTimes(5)
 		expect(onConnectionChanged.mock.calls[4][0]).toEqual(false)

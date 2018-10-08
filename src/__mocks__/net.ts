@@ -1,20 +1,20 @@
-import { EventEmitter } from "events"
+import { EventEmitter } from 'events'
 let setTimeoutOrg = setTimeout
 const sockets: Array<Socket> = []
 const onNextSocket: Array<Function> = []
 
 export class Socket extends EventEmitter {
-	private _port: number
-	private _host: string
-	private _connected: boolean = false
-	
+
 	public onWrite: (buff: Buffer, encoding: string) => void
 	public onConnect: (port: number, host: string) => void
 	public onClose: () => void
 
-	constructor() {
-		super()
+	private _port: number
+	private _host: string
+	private _connected: boolean = false
 
+	constructor () {
+		super()
 
 		let cb = onNextSocket.shift()
 		if (cb) {
@@ -45,24 +45,22 @@ export class Socket extends EventEmitter {
 		}, 3)
 
 	}
-	public write(buff: Buffer, encoding: string = 'utf8') {
+	public write (buff: Buffer, encoding: string = 'utf8') {
 		if (this.onWrite) {
 			this.onWrite(buff, encoding)
 		}
 	}
-	public end() {
+	public end () {
 		this.setEnd()
 		this.setClosed()
 	}
 
-	
-	public mockClose() {
+	public mockClose () {
 		this.setClosed()
 	}
-	public mockData(data: Buffer) {
+	public mockData (data: Buffer) {
 		this.emit('data', data)
 	}
-
 
 	private setConnected () {
 		if (this._connected !== true) {
