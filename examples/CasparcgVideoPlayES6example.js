@@ -25,8 +25,8 @@ tsrConductor.init()
 	tsrConductor.addDevice('casparcg0', {
 		type: DeviceType.CASPARCG,
 		options: {
-			host: '91.224.210.82',
-			port: 21914
+			host: 'localhost',
+			port: 5250
 		},
 		externalLog: (...args) => console.log(...args)
 	});
