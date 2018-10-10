@@ -35,6 +35,11 @@ export enum TimelineContentTypeAtem { //  Atem-state
 	SSRCPROPS = 'ssrcProps',
 	MEDIAPLAYER = 'mp'
 }
+export interface AtemCommandWithContext {
+	command: AtemCommands.AbstractCommand
+	context: CommandContext
+}
+type CommandContext = any
 export class AtemDevice extends Device {
 
 	// private _queue: Array<any>
@@ -46,7 +51,7 @@ export class AtemDevice extends Device {
 	private _connected: boolean = false // note: ideally this should be replaced by this._atem.connected
 	private _conductor: Conductor
 
-	private _commandReceiver: (time: number, cmd) => Promise<any>
+	private _commandReceiver: (time: number, command: AtemCommands.AbstractCommand, context: CommandContext) => Promise<any>
 
 	constructor (deviceId: string, deviceOptions: AtemDeviceOptions, options, conductor: Conductor) {
 		super(deviceId, deviceOptions, options)
@@ -133,7 +138,7 @@ export class AtemDevice extends Device {
 		// console.log('oldAtemState', JSON.stringify(oldAtemState, ' ', 2))
 		// console.log('newAtemState', newAtemState.video.ME[0])
 
-		let commandsToAchieveState: Array<AtemCommands.AbstractCommand> = this._diffStates(oldAtemState, newAtemState)
+		let commandsToAchieveState: Array<AtemCommandWithContext> = this._diffStates(oldAtemState, newAtemState)
 
 		// clear any queued commands later than this time:
 		this._doOnTime.clearQueueNowAndAfter(newState.time)
@@ -242,19 +247,30 @@ export class AtemDevice extends Device {
 	get queue () {
 		return this._doOnTime.getQueue()
 	}
-	private _addToQueue (commandsToAchieveState: Array<AtemCommands.AbstractCommand>, time: number) {
-		_.each(commandsToAchieveState, (cmd: AtemCommands.AbstractCommand) => {
+	private _addToQueue (commandsToAchieveState: Array<AtemCommandWithContext>, time: number) {
+		_.each(commandsToAchieveState, (cmd: AtemCommandWithContext) => {
 
 			// add the new commands to the queue:
-			this._doOnTime.queue(time, (cmd: AtemCommands.AbstractCommand) => {
-				return this._commandReceiver(time, cmd)
+			this._doOnTime.queue(time, (cmd: AtemCommandWithContext) => {
+				return this._commandReceiver(time, cmd.command, cmd.context)
 			}, cmd)
 		})
 	}
-	private _diffStates (oldAbstractState, newAbstractState): Array<AtemCommands.AbstractCommand> {
-		let commands: Array<AtemCommands.AbstractCommand> = this._state.diffStates(oldAbstractState, newAbstractState)
-
-		return commands
+	private _diffStates (oldAbstractState, newAbstractState): Array<AtemCommandWithContext> {
+		return _.map(
+			this._state.diffStates(oldAbstractState, newAbstractState),
+			(cmd: any) => {
+				if (_.has(cmd,'command') && _.has(cmd,'context')) {
+					return cmd as AtemCommandWithContext
+				} else {
+					// backwards compability, to be removed later:
+					return {
+						command: cmd as AtemCommands.AbstractCommand,
+						context: null
+					}
+				}
+			}
+		)
 	}
 
 	private _getDefaultState (): DeviceState {
@@ -285,10 +301,10 @@ export class AtemDevice extends Device {
 		return deviceState
 	}
 
-	private _defaultCommandReceiver (time: number, command: AtemCommands.AbstractCommand): Promise<any> {
+	private _defaultCommandReceiver (time: number, command: AtemCommands.AbstractCommand, context: CommandContext): Promise<any> {
 		time = time // seriously this needs to stop
 		let cwc: CommandWithContext = {
-			context: null,
+			context: context,
 			command: command
 		}
 		this.emit('debug', cwc)

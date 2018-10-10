@@ -1,5 +1,5 @@
 import * as _ from 'underscore'
-import { Device, DeviceOptions } from './device'
+import { Device, DeviceOptions, CommandWithContext } from './device'
 import { DeviceType, MappingPanasonicPtz, Mappings, MappingPanasonicPtzType } from './mapping'
 import * as request from 'request'
 import * as querystring from 'querystring'
@@ -54,6 +54,11 @@ export interface PanasonicPtzCommand {
 	speed?: number,
 	preset?: number
 }
+export interface PanasonicPtzCommandWitContext {
+	command: PanasonicPtzCommand,
+	context: CommandContext
+}
+type CommandContext = any
 interface CommandQueueItem {
 	command: string
 	executing: boolean
@@ -327,7 +332,7 @@ export class PanasonicPtzDevice extends Device {
 	private _device: PanasonicPtzHttpInterface | undefined
 	private _connected: boolean = false
 
-	private _commandReceiver: (time: number, cmd: PanasonicPtzCommand) => Promise<any>
+	private _commandReceiver: (time: number, cmd: PanasonicPtzCommand, context: CommandContext) => Promise<any>
 
 	constructor (deviceId: string, deviceOptions: PanasonicPtzOptions, options) {
 		super(deviceId, deviceOptions, options)
@@ -415,7 +420,7 @@ export class PanasonicPtzDevice extends Device {
 		let oldPtzState = this.convertStateToPtz(oldState)
 		let newPtzState = this.convertStateToPtz(newState)
 
-		let commandsToAchieveState: Array<PanasonicPtzCommand> = this._diffStates(oldPtzState, newPtzState)
+		let commandsToAchieveState: Array<PanasonicPtzCommandWitContext> = this._diffStates(oldPtzState, newPtzState)
 
 		// clear any queued commands later than this time:
 		this._doOnTime.clearQueueNowAndAfter(newState.time)
@@ -444,50 +449,63 @@ export class PanasonicPtzDevice extends Device {
 	}
 
 	// @ts-ignore no-unused-vars
-	private _defaultCommandReceiver (time: number, cmd: PanasonicPtzCommand): Promise<any> {
-		if (cmd.type === TimelineContentTypePanasonicPtz.PRESET) {	// fader level
+	private _defaultCommandReceiver (time: number, cmd: PanasonicPtzCommand, context: CommandContext): Promise<any> {
+		let cwc: CommandWithContext = {
+			context: context,
+			command: cmd
+		}
+		if (cmd.type === TimelineContentTypePanasonicPtz.PRESET) {
+
 			if (this._device && cmd.preset) {
-				this._device.recallPreset(cmd.preset).then((res) => {
-					this.emit('command', cmd)
-					this.emit('info', `Panasonic PTZ result: ${res}`)
+				this.emit('debug', cwc)
+				this._device.recallPreset(cmd.preset)
+				.then((res) => {
+					this.emit('debug', `Panasonic PTZ result: ${res}`)
 				})
 				.catch((e) => this.emit('error', e))
-			}
-		} else if (cmd.type === TimelineContentTypePanasonicPtz.SPEED) {	// fader level
+			} // @todo: else: add throw here?
+		} else if (cmd.type === TimelineContentTypePanasonicPtz.SPEED) {
 			if (this._device && cmd.speed) {
-				this._device.setSpeed(cmd.speed).then((res) => {
-					this.emit('command', cmd)
-					this.emit('info', `Panasonic PTZ result: ${res}`)
+				this.emit('debug', cwc)
+				this._device.setSpeed(cmd.speed)
+				.then((res) => {
+					this.emit('debug', `Panasonic PTZ result: ${res}`)
 				})
 				.catch((e) => this.emit('error', e))
-			}
+			} // @todo: else: add throw here?
 		}
 	}
 
-	private _addToQueue (commandsToAchieveState: Array<PanasonicPtzCommand>, time: number) {
-		_.each(commandsToAchieveState, (cmd: PanasonicPtzCommand) => {
+	private _addToQueue (commandsToAchieveState: Array<PanasonicPtzCommandWitContext>, time: number) {
+		_.each(commandsToAchieveState, (cmd: PanasonicPtzCommandWitContext) => {
 
 			// add the new commands to the queue:
-			this._doOnTime.queue(time, (cmd: PanasonicPtzCommand) => {
-				return this._commandReceiver(time, cmd)
+			this._doOnTime.queue(time, (cmd: PanasonicPtzCommandWitContext) => {
+				return this._commandReceiver(time, cmd.command, cmd.context)
 			}, cmd)
 		})
 	}
-	private _diffStates (oldPtzState: PanasonicPtzState, newPtzState: PanasonicPtzState): Array<PanasonicPtzCommand> {
+	private _diffStates (oldPtzState: PanasonicPtzState, newPtzState: PanasonicPtzState): Array<PanasonicPtzCommandWitContext> {
 
-		let commands: Array<PanasonicPtzCommand> = []
+		let commands: Array<PanasonicPtzCommandWitContext> = []
 
 		let addCommands = (newNode: PanasonicPtzState, oldValue: PanasonicPtzState) => {
 			if (newNode.preset !== oldValue.preset && newNode.preset !== undefined) {
 				commands.push({
-					type: TimelineContentTypePanasonicPtz.PRESET,
-					preset: newNode.preset
+					command: {
+						type: TimelineContentTypePanasonicPtz.PRESET,
+						preset: newNode.preset
+					},
+					context: `preset differ (${newNode.preset}, ${oldValue.preset})`
 				})
 			}
 			if (newNode.speed !== oldValue.speed && newNode.speed !== undefined) {
 				commands.push({
-					type: TimelineContentTypePanasonicPtz.SPEED,
-					speed: newNode.speed
+					command: {
+						type: TimelineContentTypePanasonicPtz.SPEED,
+						speed: newNode.speed
+					},
+					context: `preset differ (${newNode.speed}, ${oldValue.speed})`
 				})
 			}
 		}

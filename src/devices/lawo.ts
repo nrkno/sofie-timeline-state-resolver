@@ -5,6 +5,7 @@ import { DeviceType, MappingLawo, Mappings } from './mapping'
 import { TimelineState, TimelineResolvedObject } from 'superfly-timeline'
 import { DeviceTree, Ember } from 'emberplus'
 import { DoOnTime } from '../doOnTime'
+import { getDiff } from '../lib'
 
 /*
 	This is a wrapper for an "Abstract" device
@@ -69,6 +70,11 @@ export interface LawoCommand {
 	type: TimelineContentTypeLawo,
 	transitionDuration?: number
 }
+export interface LawoCommandWithContext {
+	cmd: LawoCommand,
+	context: CommandContext
+}
+type CommandContext = string
 export class LawoDevice extends Device {
 	private _doOnTime: DoOnTime
 	private _lawo: DeviceTree
@@ -77,7 +83,7 @@ export class LawoDevice extends Device {
 
 	private _connected: boolean = false
 
-	private _commandReceiver: (time: number, cmd: LawoCommand) => Promise<any>
+	private _commandReceiver: (time: number, cmd: LawoCommand, context: CommandContext) => Promise<any>
 	private _sourcesPath: string
 	private _rampMotorFunctionPath: string
 
@@ -160,7 +166,7 @@ export class LawoDevice extends Device {
 		let oldLawoState = this.convertStateToLawo(oldState)
 		let newLawoState = this.convertStateToLawo(newState)
 
-		let commandsToAchieveState: Array<LawoCommand> = this._diffStates(oldLawoState, newLawoState)
+		let commandsToAchieveState: Array<LawoCommandWithContext> = this._diffStates(oldLawoState, newLawoState)
 
 		// clear any queued commands later than this time:
 		this._doOnTime.clearQueueNowAndAfter(newState.time)
@@ -243,35 +249,41 @@ export class LawoDevice extends Device {
 			this.emit('connectionChanged', this._connected)
 		}
 	}
-	private _addToQueue (commandsToAchieveState: Array<LawoCommand>, time: number) {
-		_.each(commandsToAchieveState, (cmd: LawoCommand) => {
+	private _addToQueue (commandsToAchieveState: Array<LawoCommandWithContext>, time: number) {
+		_.each(commandsToAchieveState, (cmd: LawoCommandWithContext) => {
 
 			// add the new commands to the queue:
-			this._doOnTime.queue(time, (cmd: LawoCommand) => {
-				return this._commandReceiver(time, cmd)
+			this._doOnTime.queue(time, (cmd: LawoCommandWithContext) => {
+				return this._commandReceiver(time, cmd.cmd, cmd.context)
 			}, cmd)
 		})
 	}
-	private _diffStates (oldLawoState: LawoState, newLawoState: LawoState): Array<LawoCommand> {
+	private _diffStates (oldLawoState: LawoState, newLawoState: LawoState): Array<LawoCommandWithContext> {
 
-		let commands: Array<LawoCommand> = []
+		let commands: Array<LawoCommandWithContext> = []
 
-		let addCommand = (path, newNode: LawoStateNode) => {
-			// It's a plain value:
-			commands.push({
-				path: path,
-				type: newNode.type,
-				key: newNode.key,
-				identifier: newNode.identifier,
-				value: newNode.value,
-				transitionDuration: newNode.transitionDuration
-			})
-		}
+		// let addCommand = (path, newNode: LawoStateNode) => {
+		// }
 
 		_.each(newLawoState, (newNode: LawoStateNode, path: string) => {
 			let oldValue: LawoStateNode = oldLawoState[path] || null
-			if (!_.isEqual(newNode, oldValue)) {
-				addCommand(path, newNode)
+			let diff = getDiff(newNode, oldValue)
+			// if (!_.isEqual(newNode, oldValue)) {
+			if (diff) {
+				// addCommand(path, newNode)
+
+				// It's a plain value:
+				commands.push({
+					cmd: {
+						path: path,
+						type: newNode.type,
+						key: newNode.key,
+						identifier: newNode.identifier,
+						value: newNode.value,
+						transitionDuration: newNode.transitionDuration
+					},
+					context: diff
+				})
 			}
 		})
 		return commands
@@ -305,10 +317,10 @@ export class LawoDevice extends Device {
 	}
 
 	// @ts-ignore no-unused-vars
-	private _defaultCommandReceiver (time: number, command: LawoCommand): Promise<any> {
+	private _defaultCommandReceiver (time: number, command: LawoCommand, context: CommandContext): Promise<any> {
 		if (command.key === 'Fader/Motor dB Value') {	// fader level
 			let cwc: CommandWithContext = {
-				context: null,
+				context: context,
 				command: command
 			}
 			this.emit('debug', cwc)
@@ -317,9 +329,9 @@ export class LawoDevice extends Device {
 				.then((res) => {
 					this.emit('debug', `Ember function result: ${JSON.stringify(res)}`)
 				})
-					.catch((e) => {
-						this.emit('error', `Ember function command error: ${e.toString()}`)
-					})
+				.catch((e) => {
+					this.emit('error', `Ember function command error: ${e.toString()}`)
+				})
 
 			} else { // withouth timed fader movement
 				return this._getNodeByPath(command.path)
