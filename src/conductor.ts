@@ -428,7 +428,7 @@ export class Conductor extends EventEmitter {
 								)
 							} else {
 								// callback already sent, do nothing
-								this.emit('debug', 'callback already sent', callBackId)
+								// this.emit('debug', 'callback already sent', callBackId)
 							}
 						})
 					}
