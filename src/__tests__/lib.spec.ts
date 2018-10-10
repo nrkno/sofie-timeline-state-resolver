@@ -7,12 +7,19 @@ describe('equal', () => {
 	https://github.com/jashkenas/underscore/blob/master/test/objects.js
 	*/
 	function testEqual (a, b) {
+
+		let d = getDiff(a, b)
+
 		if (_.isEqual(a, b)) {
 			// they are equal
-			expect(getDiff(a, b)).toEqual(null)
+			expect(d).toEqual(null)
 		} else {
+			// console.log('--------------------------')
+			// console.log(a)
+			// console.log(b)
+			// console.log(d)
 			// they are not equal
-			expect(getDiff(a, b)).toBeTruthy()
+			expect(d).toBeTruthy()
 		}
 	}
 

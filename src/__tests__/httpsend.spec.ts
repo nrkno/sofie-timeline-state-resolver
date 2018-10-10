@@ -94,6 +94,7 @@ describe('HTTP-Send', () => {
 				}
 			}
 		)
+		expect(commandReceiver0.mock.calls[0][2]).toMatch(/added/) // context
 		advanceTime(5000) // 16000
 		expect(commandReceiver0).toHaveBeenCalledTimes(1)
 	})

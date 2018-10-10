@@ -23,14 +23,17 @@ function diff (a?: any, b?: any, aStack?: any, bStack?: any): string | null {
 		} else return null
 	}
 	// `null` or `undefined` only equal to itself (strict comparison).
-	if (a == null || b == null) {
-		return `null/undefined (${a}, ${b})`
+	if (a == null) {
+		return `First value is null/undefined (${a}, ${b})`
+	}
+	if (b == null) {
+		return `Second value is null/undefined (${a}, ${b})`
 	}
 	// `NaN`s are equivalent, but non-reflexive.
 	if (a !== a) {
 		if (b !== b) {
 			return null
-		} else return `a is NaN, but b isn't (${a}, ${b})`
+		} else return `first value is NaN, but second value isn't (${a}, ${b})`
 	}
 	// Exhaust primitive checks
 	let type = typeof a
@@ -170,7 +173,7 @@ function deepDiff (a: any, b: any, aStack: any, bStack: any): string | null {
 			} else {
 				let d = diff(a[key], b[key], aStack, bStack)
 				if (d) {
-					return `value[${key}]: ${d}`
+					return `object.${key}: ${d}`
 				}
 			}
 		}
