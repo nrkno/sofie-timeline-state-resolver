@@ -9,11 +9,6 @@ import {
 
 import * as nock from 'nock'
 
-let externalLog = (...args) => {
-	args = args
-	// console.log('trace', ...args)
-}
-
 nock('http://192.168.0.10')
 	.get('/cgi-bin/aw_ptz?cmd=%23O&res=1')
 	.reply(200, 'p1')
@@ -60,7 +55,6 @@ describe('Panasonic PTZ', () => {
 		}
 
 		let myConductor = new Conductor({
-			externalLog: externalLog,
 			initializeAsClear: true,
 			getCurrentTime: getCurrentTime
 		})

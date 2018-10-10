@@ -129,7 +129,9 @@ describe('Conductor', () => {
 				myAttr1: 'one',
 				myAttr2: 'two'
 			}
+
 		})
+		expect(commandReceiver0.mock.calls[0][2]).toEqual('added: a0') // context
 		expect(commandReceiver1).toHaveBeenCalledTimes(0)
 
 		commandReceiver0.mockClear()
@@ -147,6 +149,7 @@ describe('Conductor', () => {
 				myAttr2: 'two'
 			}
 		})
+		expect(commandReceiver0.mock.calls[0][2]).toEqual('removed: a0') // context
 		expect(commandReceiver1).toHaveBeenCalledTimes(1)
 		expect(commandReceiver1.mock.calls[0][0]).toEqual(11000)
 		expect(commandReceiver1.mock.calls[0][1]).toMatchObject({
@@ -173,6 +176,7 @@ describe('Conductor', () => {
 				myAttr2: 'four'
 			}
 		})
+		expect(commandReceiver1.mock.calls[0][2]).toEqual('removed: a1') // context
 
 		await conductor.removeDevice('device1')
 		expect(conductor.getDevice('device1')).toBeFalsy()
