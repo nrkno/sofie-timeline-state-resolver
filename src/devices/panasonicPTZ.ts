@@ -25,21 +25,18 @@ export interface TimelineObjPanasonicPtz extends TimelineResolvedObject {
 	content: {
 		keyframes?: Array<TimelineKeyframe>
 		type: TimelineContentTypePanasonicPtz
-		identifier: string
 	}
 }
 export interface TimelineObjPanasonicPtzPresetSpeed extends TimelineObjPanasonicPtz {
 	content: {
 		type: TimelineContentTypePanasonicPtz.SPEED
 		speed: number
-		identifier: string
 	}
 }
 
 export interface TimelineObjPanasonicPtzPreset extends TimelineObjPanasonicPtz {
 	content: {
 		type: TimelineContentTypePanasonicPtz.PRESET
-		identifier: string
 		preset: number
 	}
 }
@@ -54,7 +51,7 @@ export interface PanasonicPtzCommand {
 	speed?: number,
 	preset?: number
 }
-export interface PanasonicPtzCommandWitContext {
+export interface PanasonicPtzCommandWithContext {
 	command: PanasonicPtzCommand,
 	context: CommandContext
 }
@@ -420,7 +417,7 @@ export class PanasonicPtzDevice extends Device {
 		let oldPtzState = this.convertStateToPtz(oldState)
 		let newPtzState = this.convertStateToPtz(newState)
 
-		let commandsToAchieveState: Array<PanasonicPtzCommandWitContext> = this._diffStates(oldPtzState, newPtzState)
+		let commandsToAchieveState: Array<PanasonicPtzCommandWithContext> = this._diffStates(oldPtzState, newPtzState)
 
 		// clear any queued commands later than this time:
 		this._doOnTime.clearQueueNowAndAfter(newState.time)
@@ -476,18 +473,18 @@ export class PanasonicPtzDevice extends Device {
 		}
 	}
 
-	private _addToQueue (commandsToAchieveState: Array<PanasonicPtzCommandWitContext>, time: number) {
-		_.each(commandsToAchieveState, (cmd: PanasonicPtzCommandWitContext) => {
+	private _addToQueue (commandsToAchieveState: Array<PanasonicPtzCommandWithContext>, time: number) {
+		_.each(commandsToAchieveState, (cmd: PanasonicPtzCommandWithContext) => {
 
 			// add the new commands to the queue:
-			this._doOnTime.queue(time, (cmd: PanasonicPtzCommandWitContext) => {
+			this._doOnTime.queue(time, (cmd: PanasonicPtzCommandWithContext) => {
 				return this._commandReceiver(time, cmd.command, cmd.context)
 			}, cmd)
 		})
 	}
-	private _diffStates (oldPtzState: PanasonicPtzState, newPtzState: PanasonicPtzState): Array<PanasonicPtzCommandWitContext> {
+	private _diffStates (oldPtzState: PanasonicPtzState, newPtzState: PanasonicPtzState): Array<PanasonicPtzCommandWithContext> {
 
-		let commands: Array<PanasonicPtzCommandWitContext> = []
+		let commands: Array<PanasonicPtzCommandWithContext> = []
 
 		let addCommands = (newNode: PanasonicPtzState, oldValue: PanasonicPtzState) => {
 			if (newNode.preset !== oldValue.preset && newNode.preset !== undefined) {
