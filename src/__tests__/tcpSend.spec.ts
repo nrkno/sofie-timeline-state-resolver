@@ -18,7 +18,7 @@ function waitALittleBit () {
 
 // let nowActual = Date.now()
 describe('TCP-Send', () => {
-	let now: number = 1000
+	let now: number = 10000
 	beforeAll(() => {
 		Date.now = jest.fn(() => {
 			return getCurrentTime()
@@ -32,6 +32,15 @@ describe('TCP-Send', () => {
 		now += advanceTime
 		jest.advanceTimersByTime(advanceTime)
 	}
+	function advanceTimeTo (time: number) {
+		if (time > now) {
+			advanceTime(time - now)
+
+			expect(now).toEqual(time)
+		} else {
+			throw Error('Cant go back in time')
+		}
+	}
 	beforeEach(() => {
 		now = 10000
 		jest.useFakeTimers()
@@ -41,9 +50,9 @@ describe('TCP-Send', () => {
 
 		let device
 
-		let commandReceiver0 = jest.fn((time, cmd) => {
+		let commandReceiver0 = jest.fn((time, cmd, context) => {
 			// return Promise.resolve()
-			device._defaultCommandReceiver(time, cmd)
+			device._defaultCommandReceiver(time, cmd, context)
 		})
 
 		let onSocketCreate = jest.fn()
@@ -99,8 +108,8 @@ describe('TCP-Send', () => {
 		let socket = sockets[0]
 
 		myConductor.mapping = myLayerMapping
-		advanceTime(100) // 1100
-
+		advanceTimeTo(10100) // 10100
+		expect(now).toEqual(10100)
 		expect(onConnection).toHaveBeenCalledTimes(1)
 
 		device = myConductor.getDevice('myTCP') as TCPSendDevice
@@ -119,7 +128,7 @@ describe('TCP-Send', () => {
 				id: 'obj0',
 				trigger: {
 					type: TriggerType.TIME_ABSOLUTE,
-					value: now + 1000 // in 1 second
+					value: 11000
 				},
 				duration: 2000,
 				LLayer: 'myLayer0',
@@ -129,14 +138,16 @@ describe('TCP-Send', () => {
 			}
 		]
 
-		advanceTime(990) // 10990
+		advanceTimeTo(10990)
+
 		expect(commandReceiver0).toHaveBeenCalledTimes(0)
-		advanceTime(110) // 11000
+		advanceTimeTo(11100)
 
 		expect(commandReceiver0).toHaveBeenCalledTimes(1)
 		expect(commandReceiver0.mock.calls[0][1]).toMatchObject({
 			message: 'hello world'
 		})
+		expect(commandReceiver0.mock.calls[0][2]).toMatch(/added: obj0/)
 		await waitALittleBit()
 		expect(onSocketWrite).toHaveBeenCalledTimes(1)
 		expect(onSocketWrite.mock.calls[0][0]).toEqual(Buffer.from('hello world'))
@@ -147,7 +158,7 @@ describe('TCP-Send', () => {
 				id: 'obj0',
 				trigger: {
 					type: TriggerType.TIME_ABSOLUTE,
-					value: now + 1000 // in 1 second
+					value: 11000
 				},
 				duration: 2000,
 				LLayer: 'myLayer0',
@@ -157,17 +168,18 @@ describe('TCP-Send', () => {
 			}
 		]
 
-		advanceTime(1000) // 12000
+		advanceTimeTo(12000) // 12000
 		expect(commandReceiver0).toHaveBeenCalledTimes(2)
 		expect(commandReceiver0.mock.calls[1][1]).toMatchObject({
 			message: 'anyone here'
 		})
-		await waitALittleBit()
+		expect(commandReceiver0.mock.calls[1][2]).toMatch(/changed: obj0/)
+		await waitALittleBit() // allow for async socket events to fire
 		expect(onSocketWrite).toHaveBeenCalledTimes(2)
 		expect(onSocketWrite.mock.calls[1][0]).toEqual(Buffer.from('anyone here'))
 
 		// Test Removed object:
-		advanceTime(4000) // 16000
+		advanceTimeTo(16000) // 16000
 		expect(commandReceiver0).toHaveBeenCalledTimes(2)
 		expect(onSocketWrite).toHaveBeenCalledTimes(2)
 

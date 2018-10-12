@@ -4,7 +4,7 @@ import { Device, DeviceOptions, CommandWithContext } from './device'
 import { DeviceType } from './mapping'
 import { DoOnTime } from '../doOnTime'
 
-import { TimelineState } from 'superfly-timeline'
+import { TimelineState, TimelineResolvedObject } from 'superfly-timeline'
 
 const TIMEOUT = 3000 // ms
 const RETRY_TIMEOUT = 5000 // ms
@@ -16,9 +16,10 @@ export interface TCPSendDeviceOptions extends DeviceOptions {
 		commandReceiver?: (time: number, cmd) => Promise<any>
 	}
 }
-interface Command {
+interface TCPSendCommand {
 	commandName: 'added' | 'changed' | 'removed',
-	content: CommandContent
+	content: CommandContent,
+	context: CommandContext
 }
 interface CommandContent {
 	message: string
@@ -30,11 +31,12 @@ export interface TCPSendOptions {
 	port: number
 	bufferEncoding?: string // encoding of messages, ex 'hex', default is 'utf8'
 }
-interface LLayer {
+interface LLayer extends TimelineResolvedObject {
 	content: {
 		message: string
 	}
 }
+type CommandContext = any
 export class TCPSendDevice extends Device {
 
 	private _makeReadyCommands: CommandContent[]
@@ -48,7 +50,7 @@ export class TCPSendDevice extends Device {
 	private _retryConnectTimeout: NodeJS.Timer
 	// private _queue: Array<any>
 
-	private _commandReceiver: (time: number, cmd: CommandContent) => Promise<any>
+	private _commandReceiver: (time: number, cmd: CommandContent, context: CommandContext) => Promise<any>
 
 	constructor (deviceId: string, deviceOptions: TCPSendDeviceOptions, options) {
 		super(deviceId, deviceOptions, options)
@@ -111,7 +113,7 @@ export class TCPSendDevice extends Device {
 			_.each(this._makeReadyCommands, (cmd: CommandContent) => {
 				// add the new commands to the queue:
 				this._doOnTime.queue(time, (cmd: CommandContent) => {
-					return this._commandReceiver(time, cmd)
+					return this._commandReceiver(time, cmd, 'makeReady')
 				}, cmd)
 			})
 		}
@@ -175,43 +177,47 @@ export class TCPSendDevice extends Device {
 			})
 		}
 	}
-	private _addToQueue (commandsToAchieveState: Array<Command>, time: number) {
-		_.each(commandsToAchieveState, (cmd: Command) => {
+	private _addToQueue (commandsToAchieveState: Array<TCPSendCommand>, time: number) {
+		_.each(commandsToAchieveState, (cmd: TCPSendCommand) => {
 
 			// add the new commands to the queue:
-			this._doOnTime.queue(time, (cmd: Command) => {
+			this._doOnTime.queue(time, (cmd: TCPSendCommand) => {
 				if (
 					cmd.commandName === 'added' ||
 					cmd.commandName === 'changed'
 				) {
-					return this._commandReceiver(time, cmd.content)
+					return this._commandReceiver(time, cmd.content, cmd.context)
 				} else {
 					return null
 				}
 			}, cmd)
 		})
 	}
-	private _diffStates (oldTCPSendState, newTCPSendState): Array<Command> {
+	private _diffStates (oldTCPSendState: TimelineState , newTCPSendState: TimelineState): Array<TCPSendCommand> {
 		// in this TCPSend class, let's just cheat:
+		let commands: Array<TCPSendCommand> = []
 
-		let commands: Array<Command> = []
-
-		_.each(newTCPSendState.LLayers, (newLayer: LLayer, layerKey) => {
+		_.each(newTCPSendState.LLayers, (newLayer: LLayer, layerKey: string) => {
 			let oldLayer = oldTCPSendState.LLayers[layerKey]
-			if (!oldLayer) {
-				// added!
-				commands.push({
-					commandName: 'added',
-					content: newLayer.content
-				})
-			} else {
-				// changed?
-				if (!_.isEqual(oldLayer.content, newLayer.content)) {
-					// changed!
+			// added/changed
+			if (newLayer.content) {
+				if (!oldLayer) {
+					// added!
 					commands.push({
-						commandName: 'changed',
-						content: newLayer.content
+						commandName: 'added',
+						content: newLayer.content,
+						context: `added: ${newLayer.id}`
 					})
+				} else {
+					// changed?
+					if (!_.isEqual(oldLayer.content, newLayer.content)) {
+						// changed!
+						commands.push({
+							commandName: 'changed',
+							content: newLayer.content,
+							context: `changed: ${newLayer.id}`
+						})
+					}
 				}
 			}
 		})
@@ -222,7 +228,8 @@ export class TCPSendDevice extends Device {
 				// removed!
 				commands.push({
 					commandName: 'removed',
-					content: oldLayer.content
+					content: oldLayer.content,
+					context: `removed: ${oldLayer.id}`
 				})
 			}
 		})
@@ -307,16 +314,20 @@ export class TCPSendDevice extends Device {
 			} else throw Error('_sendTCPMessage: _tcpClient is falsy!')
 		})
 	}
-	private _defaultCommandReceiver (time: number, cmd: CommandContent): Promise<any> {
+	private _defaultCommandReceiver (time: number, cmd: CommandContent, context: CommandContext): Promise<any> {
 		time = time
 		// this.emit('info', 'TCTSend ', cmd)
 
 		let cwc: CommandWithContext = {
-			context: null,
+			context: context,
 			command: cmd
 		}
 		this.emit('debug', cwc)
 
-		return this._sendTCPMessage(cmd.message)
+		if (cmd.message) {
+			return this._sendTCPMessage(cmd.message)
+		} else {
+			return Promise.reject('tcpCommand.message not set')
+		}
 	}
 }
