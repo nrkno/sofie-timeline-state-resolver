@@ -1,5 +1,5 @@
 import * as _ from 'underscore'
-import { Device, DeviceOptions, CommandWithContext } from './device'
+import { DeviceWithState, DeviceOptions, CommandWithContext } from './device'
 
 import { CasparCG, Command as CommandNS, AMCPUtil, AMCP, CasparCGSocketStatusEvent } from 'casparcg-connection'
 import { MappingCasparCG, DeviceType, Mapping, TimelineResolvedObjectExtended } from './mapping'
@@ -42,7 +42,7 @@ export enum TimelineContentTypeCasparCg { //  CasparCG-state
 	ROUTE = 'route',
 	RECORD = 'record'
 }
-export class CasparCGDevice extends Device {
+export class CasparCGDevice extends DeviceWithState<TimelineState> {
 
 	private _ccg: CasparCG
 	private _conductor: Conductor

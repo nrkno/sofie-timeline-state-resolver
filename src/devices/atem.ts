@@ -1,6 +1,6 @@
 import * as _ from 'underscore'
 import * as underScoreDeepExtend from 'underscore-deep-extend'
-import { Device, DeviceOptions, CommandWithContext } from './device'
+import { DeviceWithState, DeviceOptions, CommandWithContext } from './device'
 import { DeviceType, MappingAtem, MappingAtemType, TimelineResolvedObjectExtended } from './mapping'
 
 import { TimelineState } from 'superfly-timeline'
@@ -40,7 +40,7 @@ export interface AtemCommandWithContext {
 	context: CommandContext
 }
 type CommandContext = any
-export class AtemDevice extends Device {
+export class AtemDevice extends DeviceWithState<DeviceState> {
 
 	// private _queue: Array<any>
 	private _doOnTime: DoOnTime
@@ -128,7 +128,7 @@ export class AtemDevice extends Device {
 			this.emit('info', 'Atem not initialized yet')
 			return
 		}
-		let oldState = (this.getStateBefore(newState.time) || { state: this._getDefaultState() }).state
+		let oldState: DeviceState = (this.getStateBefore(newState.time) || { state: this._getDefaultState() }).state
 
 		let oldAtemState = oldState
 		let newAtemState = this.convertStateToAtem(newState)
@@ -256,7 +256,7 @@ export class AtemDevice extends Device {
 			}, cmd)
 		})
 	}
-	private _diffStates (oldAbstractState, newAbstractState): Array<AtemCommandWithContext> {
+	private _diffStates (oldAbstractState: DeviceState, newAbstractState: DeviceState): Array<AtemCommandWithContext> {
 		return _.map(
 			this._state.diffStates(oldAbstractState, newAbstractState),
 			(cmd: any) => {

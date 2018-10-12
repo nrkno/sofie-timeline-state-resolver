@@ -1,5 +1,5 @@
 import * as _ from 'underscore'
-import { Device, DeviceOptions, CommandWithContext } from './device'
+import { DeviceWithState, DeviceOptions, CommandWithContext } from './device'
 import { DeviceType, MappingLawo, Mappings } from './mapping'
 
 import { TimelineState, TimelineResolvedObject } from 'superfly-timeline'
@@ -75,7 +75,7 @@ export interface LawoCommandWithContext {
 	context: CommandContext
 }
 type CommandContext = string
-export class LawoDevice extends Device {
+export class LawoDevice extends DeviceWithState<TimelineState> {
 	private _doOnTime: DoOnTime
 	private _lawo: DeviceTree
 

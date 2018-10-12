@@ -1,5 +1,5 @@
 import * as _ from 'underscore'
-import { Device, DeviceOptions, CommandWithContext } from './device'
+import { DeviceWithState, DeviceOptions, CommandWithContext } from './device'
 import { DeviceType, MappingPanasonicPtz, Mappings, MappingPanasonicPtzType } from './mapping'
 import * as request from 'request'
 import * as querystring from 'querystring'
@@ -324,7 +324,7 @@ export class PanasonicPtzHttpInterface extends EventEmitter {
 }
 
 const PROBE_INTERVAL = 10 * 1000 // Probe every 10s
-export class PanasonicPtzDevice extends Device {
+export class PanasonicPtzDevice extends DeviceWithState<TimelineState> {
 	private _doOnTime: DoOnTime
 	private _device: PanasonicPtzHttpInterface | undefined
 	private _connected: boolean = false

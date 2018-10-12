@@ -1,5 +1,5 @@
 import * as _ from 'underscore'
-import { Device, DeviceOptions, CommandWithContext } from './device'
+import { DeviceWithState, DeviceOptions, CommandWithContext } from './device'
 import { DeviceType } from './mapping'
 import { DoOnTime } from '../doOnTime'
 import * as request from 'request'
@@ -34,7 +34,7 @@ interface CommandContent {
 export interface HttpSendOptions {
 	makeReadyCommands?: CommandContent[]
 }
-export class HttpSendDevice extends Device {
+export class HttpSendDevice extends DeviceWithState<TimelineState> {
 
 	private _makeReadyCommands: CommandContent[]
 	private _doOnTime: DoOnTime
