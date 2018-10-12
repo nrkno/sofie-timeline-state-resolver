@@ -35,13 +35,12 @@ export interface HyperdeckCommandWithContext {
 }
 
 export interface TransportInfoCommandResponseExt /*extends HyperdeckCommands.TransportInfoCommandResponse */ {
-	Status: TransportStatus
-	RecordFilename?: string
+	status: TransportStatus
+	recordFilename?: string
 }
 
 export interface DeviceState {
 	notify: HyperdeckCommands.NotifyCommandResponse
-	// slots: HyperdeckCommands.SlotInfoCommandResponse[]
 	transport: TransportInfoCommandResponseExt
 }
 
@@ -173,7 +172,7 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> {
 
 			if (mapping) {
 				switch (mapping.mappingType) {
-					case MappingHyperdeckType.Transport:
+					case MappingHyperdeckType.TRANSPORT:
 						if (content.type === TimelineContentTypeHyperdeck.TRANSPORT) {
 							if (deviceState.transport) {
 								deepExtend(deviceState.transport, content.attributes)
@@ -214,25 +213,25 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> {
 			const notifyCmd = new HyperdeckCommands.NotifySetCommand()
 			let hasChange = false
 
-			if (oldAbstractState.notify.Remote !== newAbstractState.notify.Remote) {
+			if (oldAbstractState.notify.remote !== newAbstractState.notify.remote) {
 				hasChange = true
-				notifyCmd.Remote = newAbstractState.notify.Remote
+				notifyCmd.remote = newAbstractState.notify.remote
 			}
-			if (oldAbstractState.notify.Transport !== newAbstractState.notify.Transport) {
+			if (oldAbstractState.notify.transport !== newAbstractState.notify.transport) {
 				hasChange = true
-				notifyCmd.Transport = newAbstractState.notify.Transport
+				notifyCmd.transport = newAbstractState.notify.transport
 			}
-			if (oldAbstractState.notify.Slot !== newAbstractState.notify.Slot) {
+			if (oldAbstractState.notify.slot !== newAbstractState.notify.slot) {
 				hasChange = true
-				notifyCmd.Slot = newAbstractState.notify.Slot
+				notifyCmd.slot = newAbstractState.notify.slot
 			}
-			if (oldAbstractState.notify.Configuration !== newAbstractState.notify.Configuration) {
+			if (oldAbstractState.notify.configuration !== newAbstractState.notify.configuration) {
 				hasChange = true
-				notifyCmd.Configuration = newAbstractState.notify.Configuration
+				notifyCmd.configuration = newAbstractState.notify.configuration
 			}
-			if (oldAbstractState.notify.DroppedFrames !== newAbstractState.notify.DroppedFrames) {
+			if (oldAbstractState.notify.droppedFrames !== newAbstractState.notify.droppedFrames) {
 				hasChange = true
-				notifyCmd.DroppedFrames = newAbstractState.notify.DroppedFrames
+				notifyCmd.droppedFrames = newAbstractState.notify.droppedFrames
 			}
 
 			if (hasChange) {
@@ -244,10 +243,10 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> {
 		}
 
 		if (oldAbstractState.transport && newAbstractState.transport) {
-			switch (newAbstractState.transport.Status) {
-				case TransportStatus.Record:
-					if (oldAbstractState.transport.Status === newAbstractState.transport.Status) {
-						if (oldAbstractState.transport.RecordFilename === undefined || oldAbstractState.transport.RecordFilename === newAbstractState.transport.RecordFilename) {
+			switch (newAbstractState.transport.status) {
+				case TransportStatus.RECORD:
+					if (oldAbstractState.transport.status === newAbstractState.transport.status) {
+						if (oldAbstractState.transport.recordFilename === undefined || oldAbstractState.transport.recordFilename === newAbstractState.transport.recordFilename) {
 							// TODO - sometimes we can loose track of the filename, should we split the record when recovering from that? (it might loose some frames)
 							break
 						}
@@ -258,14 +257,14 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> {
 					}
 
 					commandsToAchieveState.push({
-						command: new HyperdeckCommands.RecordCommand(newAbstractState.transport.RecordFilename),
+						command: new HyperdeckCommands.RecordCommand(newAbstractState.transport.recordFilename),
 						context: null // TODO
 					})
 					break
 				default:
 					// TODO - warn
 					// for now we are assuming they want a stop. that could be conditional later on
-					if (oldAbstractState.transport.Status === TransportStatus.Record) {
+					if (oldAbstractState.transport.status === TransportStatus.RECORD) {
 						commandsToAchieveState.push({
 							command: new HyperdeckCommands.StopCommand(),
 							context: null // TODO
@@ -299,14 +298,14 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> {
 	private _getDefaultState (): DeviceState {
 		const res: DeviceState = {
 			notify: { // TODO - this notify block will want configuring per device or will the state lib always want it the same?
-				Remote: false,
-				Transport: false,
-				Slot: false,
-				Configuration: false,
-				DroppedFrames: false
+				remote: false,
+				transport: false,
+				slot: false,
+				configuration: false,
+				droppedFrames: false
 			},
 			transport: {
-				Status: TransportStatus.Preview
+				status: TransportStatus.PREVIEW
 			}
 		}
 
