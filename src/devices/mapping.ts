@@ -46,7 +46,7 @@ export enum MappingAtemType {
 	SuperSourceProperties
 }
 export enum MappingHyperdeckType {
-	TRANSPORT
+	TRANSPORT = 'transport'
 }
 export enum MappingLawoType {
 	SOURCE = 'source'

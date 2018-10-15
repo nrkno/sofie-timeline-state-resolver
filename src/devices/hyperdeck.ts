@@ -30,7 +30,7 @@ export enum TimelineContentTypeHyperdeck {
 	TRANSPORT = 'transport'
 }
 export interface HyperdeckCommandWithContext {
-	command: HyperdeckCommands.AbstractCommand
+	command: HyperdeckCommands.ICommand
 	context: CommandContext
 }
 
@@ -54,7 +54,7 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> {
 	private _connected: boolean = false // note: ideally this should be replaced by this._hyperdeck.connected
 	private _conductor: Conductor
 
-	private _commandReceiver: (time: number, command: HyperdeckCommands.AbstractCommand, context: CommandContext) => Promise<any>
+	private _commandReceiver: (time: number, command: HyperdeckCommands.ICommand, context: CommandContext) => Promise<any>
 
 	constructor (deviceId: string, deviceOptions: HyperdeckDeviceOptions, options, conductor: Conductor) {
 		super(deviceId, deviceOptions, options)
@@ -312,7 +312,7 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> {
 		return res
 	}
 
-	private _defaultCommandReceiver (time: number, command: HyperdeckCommands.AbstractCommand, context: CommandContext): Promise<any> {
+	private _defaultCommandReceiver (time: number, command: HyperdeckCommands.ICommand, context: CommandContext): Promise<any> {
 		time = time // seriously this needs to stop
 		let cwc: CommandWithContext = {
 			context: context,
