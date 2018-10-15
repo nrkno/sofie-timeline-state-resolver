@@ -299,7 +299,12 @@ export class LawoDevice extends Device {
 					this.emit('info', `Ember function result: ${JSON.stringify(res)}`)
 				})
 					.catch((e) => {
-						this.emit('error', `Ember function command error: ${e.toString()}`)
+						if (e.success === false) { // @todo: QualifiedFunction Fader/Motor cannot handle too short durations or small value changes
+							this.emit('command', command)
+							this.emit('info', `Ember function result: ${JSON.stringify(e)}`)
+						} else {
+							this.emit('error', `Ember function command error: ${e.toString()}`)
+						}
 					})
 
 			} else { // withouth timed fader movement
