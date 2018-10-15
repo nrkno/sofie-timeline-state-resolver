@@ -2,11 +2,11 @@ import { TriggerType } from 'superfly-timeline'
 
 import { Mappings, MappingHyperdeck, DeviceType, MappingHyperdeckType } from '../devices/mapping'
 import { Conductor } from '../conductor'
-import { 
+import {
 	HyperdeckDevice,
 	TimelineContentTypeHyperdeck
 } from '../devices/hyperdeck'
-import { RecordCommand, StopCommand } from 'hyperdeck-connection/dist/commands';
+import { RecordCommand, StopCommand } from 'hyperdeck-connection/dist/commands'
 
 let myChannelMapping0: MappingHyperdeck = {
 	device: DeviceType.HYPERDECK,
