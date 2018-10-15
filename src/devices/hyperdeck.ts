@@ -30,7 +30,7 @@ export enum TimelineContentTypeHyperdeck {
 	TRANSPORT = 'transport'
 }
 export interface HyperdeckCommandWithContext {
-	command: HyperdeckCommands.ICommand
+	command: HyperdeckCommands.AbstractCommand
 	context: CommandContext
 }
 
@@ -54,7 +54,7 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> {
 	private _connected: boolean = false // note: ideally this should be replaced by this._hyperdeck.connected
 	private _conductor: Conductor
 
-	private _commandReceiver: (time: number, command: HyperdeckCommands.ICommand, context: CommandContext) => Promise<any>
+	private _commandReceiver: (time: number, command: HyperdeckCommands.AbstractCommand, context: CommandContext) => Promise<any>
 
 	constructor (deviceId: string, deviceOptions: HyperdeckDeviceOptions, options, conductor: Conductor) {
 		super(deviceId, deviceOptions, options)
@@ -281,9 +281,8 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> {
 	private async _queryCurrentState (): Promise<DeviceState> {
 		if (!this._connected) return this._getDefaultState()
 
-		const notify = new HyperdeckCommands.NotifyGetCommand()
-		const transport = new HyperdeckCommands.TransportInfoCommand()
-		this._hyperdeck.sendCommand(notify, transport)
+		const notify = this._hyperdeck.sendCommand(new HyperdeckCommands.NotifyGetCommand())
+		const transport = this._hyperdeck.sendCommand(new HyperdeckCommands.TransportInfoCommand())
 
 		const notifyRes = await notify
 		const transportRes = await transport
@@ -312,7 +311,7 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> {
 		return res
 	}
 
-	private _defaultCommandReceiver (time: number, command: HyperdeckCommands.ICommand, context: CommandContext): Promise<any> {
+	private _defaultCommandReceiver (time: number, command: HyperdeckCommands.AbstractCommand, context: CommandContext): Promise<any> {
 		time = time // seriously this needs to stop
 		let cwc: CommandWithContext = {
 			context: context,
@@ -320,7 +319,6 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> {
 		}
 		this.emit('debug', cwc)
 
-		this._hyperdeck.sendCommand(command)
-		return command
+		return this._hyperdeck.sendCommand(command)
 	}
 }
