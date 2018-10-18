@@ -462,7 +462,7 @@ export class PanasonicPtzDevice extends Device {
 		}
 		if (cmd.type === TimelineContentTypePanasonicPtz.PRESET) {
 
-			if (this._device && cmd.preset) {
+			if (this._device && cmd.preset !== undefined) {
 				this.emit('debug', cwc)
 				this._device.recallPreset(cmd.preset)
 				.then((res) => {
@@ -471,7 +471,7 @@ export class PanasonicPtzDevice extends Device {
 				.catch((e) => this.emit('error', e))
 			} // @todo: else: add throw here?
 		} else if (cmd.type === TimelineContentTypePanasonicPtz.SPEED) {
-			if (this._device && cmd.speed) {
+			if (this._device && cmd.speed !== undefined) {
 				this.emit('debug', cwc)
 				this._device.setSpeed(cmd.speed)
 				.then((res) => {
