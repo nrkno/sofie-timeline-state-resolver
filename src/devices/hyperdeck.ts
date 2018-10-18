@@ -135,8 +135,6 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> {
 		let oldHyperdeckState = oldState
 		let newHyperdeckState = this.convertStateToHyperdeck(newState)
 
-		this.emit('info', 'Hyperdeck STATE: ' + JSON.stringify(newHyperdeckState))
-
 		let commandsToAchieveState: Array<HyperdeckCommandWithContext> = this._diffStates(oldHyperdeckState, newHyperdeckState)
 
 		// clear any queued commands later than this time:

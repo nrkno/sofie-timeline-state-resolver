@@ -2614,9 +2614,10 @@ humanize-url@^1.0.0:
     normalize-url "^1.0.0"
     strip-url-auth "^1.0.0"
 
-"hyperdeck-connection@https://github.com/nrkno/tv-automation-hyperdeck-connection":
-  version "0.0.1"
-  resolved "https://github.com/nrkno/tv-automation-hyperdeck-connection#8acf897e559840722eac40783022091daef552c0"
+hyperdeck-connection@^0.1.2:
+  version "0.1.2"
+  resolved "https://registry.yarnpkg.com/hyperdeck-connection/-/hyperdeck-connection-0.1.2.tgz#f95f2c6179f60fe46011185c8c242688aa6d1561"
+  integrity sha512-C5aiTo8x6YW13B6d6HnlHWR0/0bj4iyFgLW/vr0/nNJTvG+f6MiC6cPWjQqocedGhsT5r3IfTkK6nl8vgy39OQ==
   dependencies:
     underscore "^1.9.1"
     underscore-deep-extend "^1.1.5"
