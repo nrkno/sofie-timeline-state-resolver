@@ -1,5 +1,5 @@
 import * as _ from 'underscore'
-import { Device, DeviceOptions, CommandWithContext } from './device'
+import { Device, DeviceOptions, CommandWithContext, DeviceStatus, StatusCode } from './device'
 import { DeviceType, MappingLawo, Mappings } from './mapping'
 
 import { TimelineState, TimelineResolvedObject } from 'superfly-timeline'
@@ -243,10 +243,15 @@ export class LawoDevice extends Device {
 	get mapping () {
 		return super.mapping
 	}
+	getStatus (): DeviceStatus {
+		return {
+			statusCode: this._connected ? StatusCode.GOOD : StatusCode.BAD
+		}
+	}
 	private _setConnected (connected: boolean) {
 		if (this._connected !== connected) {
 			this._connected = connected
-			this.emit('connectionChanged', this._connected)
+			this._connectionChanged()
 		}
 	}
 	private _addToQueue (commandsToAchieveState: Array<LawoCommandWithContext>, time: number) {
@@ -355,5 +360,8 @@ export class LawoDevice extends Device {
 			// this.emit('error', `Ember command error: ${e.toString()}`)
 			return Promise.reject(`Lawo: Unsupported command.key: "${command.key}"`)
 		}
+	}
+	private _connectionChanged () {
+		this.emit('connectionChanged', this.getStatus())
 	}
 }

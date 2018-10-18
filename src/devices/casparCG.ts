@@ -1,5 +1,5 @@
 import * as _ from 'underscore'
-import { Device, DeviceOptions, CommandWithContext } from './device'
+import { Device, DeviceOptions, CommandWithContext, DeviceStatus, StatusCode } from './device'
 
 import { CasparCG, Command as CommandNS, AMCPUtil, AMCP, CasparCGSocketStatusEvent } from 'casparcg-connection'
 import { MappingCasparCG, DeviceType, Mapping, TimelineResolvedObjectExtended } from './mapping'
@@ -54,6 +54,7 @@ export class CasparCGDevice extends Device {
 	private _useScheduling?: boolean
 	private _doOnTime: DoOnTime
 	private _connectionOptions?: CasparCGOptions
+	private _connected: boolean = false
 
 	constructor (deviceId: string, deviceOptions: CasparCGDeviceOptions, options, conductor: Conductor) {
 		super(deviceId, deviceOptions, options)
@@ -88,7 +89,8 @@ export class CasparCGDevice extends Device {
 			autoConnect: true,
 			virginServerCheck: true,
 			onConnectionChanged: (connected: boolean) => {
-				this.emit('connectionChanged', connected)
+				this._connected = connected
+				this._connectionChanged()
 			}
 		})
 		this._useScheduling = connectionOptions.useScheduling
@@ -498,6 +500,11 @@ export class CasparCGDevice extends Device {
 			)
 		})
 	}
+	getStatus (): DeviceStatus {
+		return {
+			statusCode: this._connected ? StatusCode.GOOD : StatusCode.BAD
+		}
+	}
 
 	private _diffStates (oldState, newState): Array<CommandNS.IAMCPCommandVO> {
 		let commands: Array<{
@@ -632,5 +639,8 @@ export class CasparCGDevice extends Device {
 		]
 
 		return timecode.join(':')
+	}
+	private _connectionChanged () {
+		this.emit('connectionChanged', this.getStatus())
 	}
 }

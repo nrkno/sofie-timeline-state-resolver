@@ -1,5 +1,5 @@
 import * as _ from 'underscore'
-import { Device, DeviceOptions, CommandWithContext } from './device'
+import { Device, DeviceOptions, CommandWithContext, DeviceStatus, StatusCode } from './device'
 import { DeviceType, MappingPanasonicPtz, Mappings, MappingPanasonicPtzType } from './mapping'
 import * as request from 'request'
 import * as querystring from 'querystring'
@@ -438,6 +438,11 @@ export class PanasonicPtzDevice extends Device {
 		}
 		return Promise.resolve(true)
 	}
+	getStatus (): DeviceStatus {
+		return {
+			statusCode: this._connected ? StatusCode.GOOD : StatusCode.BAD
+		}
+	}
 	private _getDefaultState (): PanasonicPtzState {
 		return {
 			preset: undefined,
@@ -538,7 +543,10 @@ export class PanasonicPtzDevice extends Device {
 	private _setConnected (connected: boolean) {
 		if (this._connected !== connected) {
 			this._connected = connected
-			this.emit('connectionChanged', this.connected)
+			this._connectionChanged()
 		}
+	}
+	private _connectionChanged () {
+		this.emit('connectionChanged', this.getStatus())
 	}
 }
