@@ -66,7 +66,7 @@ export class PanasonicPtzCamera extends EventEmitter {
 	private _url: string
 	private _commandDelay: number
 	private _commandQueue: Array<CommandQueueItem> = []
-	private _executeQueueTimeout: NodeJS.Timer
+	private _executeQueueTimeout: Array<NodeJS.Timer> = []
 
 	constructor (url: string, commandDelay: number = 130) {
 		super()
@@ -83,12 +83,14 @@ export class PanasonicPtzCamera extends EventEmitter {
 		const p: Promise<string> = new Promise((resolve, reject) => {
 			this._commandQueue.push({ command: command, executing: false, resolve: resolve, reject: reject })
 		})
-		if (this._commandQueue.length === 1) this._executeQueue()
+		if (this._commandQueue.filter(i => i.executing).length === 0) this._executeQueue()
 		return p
 	}
 	dispose () {
 		this._commandQueue = []
-		clearTimeout(this._executeQueueTimeout)
+		_.each(this._executeQueueTimeout, (item) => {
+			clearTimeout(item)
+		})
 	}
 
 	private _dropFromQueue (item: CommandQueueItem) {
@@ -101,7 +103,6 @@ export class PanasonicPtzCamera extends EventEmitter {
 	}
 
 	private _executeQueue () {
-		if (this._executeQueueTimeout) clearTimeout(this._executeQueueTimeout)
 		const qItem = this._commandQueue.find(i => !i.executing)
 		if (!qItem) {
 			return
@@ -125,9 +126,17 @@ export class PanasonicPtzCamera extends EventEmitter {
 
 		// find any commands that aren't executing yet and execute one after 130ms
 		if (this._commandQueue.filter(i => !i.executing).length > 0) {
-			this._executeQueueTimeout = setTimeout(() => {
+			const timeout = setTimeout(() => {
+				// remove from timeouts list
+				const index = this._executeQueueTimeout.indexOf(timeout)
+				if (index >= 0) {
+					this._executeQueueTimeout.splice(index, 1)
+				}
+
 				this._executeQueue()
 			}, this._commandDelay)
+			// add to timeouts list so that we can cancel them when disposing
+			this._executeQueueTimeout.push(timeout)
 		}
 	}
 }
