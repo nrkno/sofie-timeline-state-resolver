@@ -25,6 +25,18 @@ export interface CommandWithContext {
 	context: any,
 	command: any
 }
+export enum StatusCode {
+	UNKNOWN = 0, 		// Status unknown
+	GOOD = 1, 			// All good and green
+	WARNING_MINOR = 2,	// Everything is not OK, operation is not affected
+	WARNING_MAJOR = 3, 	// Everything is not OK, operation might be affected
+	BAD = 4, 			// Operation affected, possible to recover
+	FATAL = 5			// Operation affected, not possible to recover without manual interference
+}
+export interface DeviceStatus {
+	statusCode: StatusCode,
+	messages?: Array<string>
+}
 // export enum Events {
 
 // }
@@ -34,7 +46,7 @@ interface IDevice {
 	on (event: 'error', 	listener: (err: Error) => void): this
 	on (event: 'debug', 	listener: (...debug: any[]) => void): this
 }
-export class Device extends EventEmitter implements IDevice {
+export abstract class Device extends EventEmitter implements IDevice {
 
 	private _getCurrentTime: () => number
 
@@ -56,13 +68,11 @@ export class Device extends EventEmitter implements IDevice {
 			this._getCurrentTime = options.getCurrentTime
 		}
 	}
-	init (connectionOptions: any): Promise<boolean> {
-		// connect to the device, resolve the promise when ready.
-		connectionOptions = connectionOptions // ts-ignore
-		throw new Error('This class method must be replaced by the Device class!')
-
-		// return Promise.resolve(true)
-	}
+	/**
+	 * Connect to the device, resolve the promise when ready.
+	 * @param connectionOptions Device-specific options
+	 */
+	abstract init (connectionOptions: any): Promise<boolean>
 	terminate (): Promise<boolean> {
 		return Promise.resolve(true)
 	}
@@ -71,23 +81,14 @@ export class Device extends EventEmitter implements IDevice {
 		return Date.now()
 	}
 
-	handleState (newState: TimelineState) {
-		// Handle this new state, at the point in time specified
-		newState = newState
-		throw new Error('This class method must be replaced by the Device class!')
-	}
-	clearFuture (clearAfterTime: number) {
-		// Clear any scheduled commands after this time
-		clearAfterTime = clearAfterTime
-		throw new Error('This class method must be replaced by the Device class!')
-	}
-	get canConnect (): boolean {
-		throw new Error('This class method must be replaced by the Device class!')
-	}
-	get connected (): boolean {
-		// Returns connection status
-		throw new Error('This class method must be replaced by the Device class!')
-	}
+	abstract handleState (newState: TimelineState)
+	/**
+	 * Clear any scheduled commands after this time
+	 * @param clearAfterTime
+	 */
+	abstract clearFuture (clearAfterTime: number)
+	abstract get canConnect (): boolean
+	abstract get connected (): boolean
 
 	getStateBefore (time: number): {state: TimelineState, time: number} | null {
 		let foundTime = 0
@@ -108,7 +109,6 @@ export class Device extends EventEmitter implements IDevice {
 		return null
 	}
 	setState (state, time) {
-		// if (!state.time) throw new Error('setState: falsy state.time')
 		if (!time) throw new Error('setState: falsy time')
 		this._states[time + ''] = state
 
@@ -167,7 +167,7 @@ export class Device extends EventEmitter implements IDevice {
 		okToDestroyStuff = okToDestroyStuff
 		return Promise.resolve()
 	}
-
+	abstract getStatus (): DeviceStatus
 	get mapping (): Mappings {
 		return this._mappings
 	}
@@ -178,17 +178,14 @@ export class Device extends EventEmitter implements IDevice {
 	get deviceId () {
 		return this._deviceId
 	}
-	get deviceName (): string {
-		// Return a human-readable name for this device
-		throw new Error('This class method must be replaced by the Device class!')
-	}
+	/**
+	 * A human-readable name for this device
+	 */
+	abstract get deviceName (): string
 	set deviceId (deviceId) {
 		this._deviceId = deviceId
 	}
-	get deviceType (): DeviceType {
-		// return DeviceType.ABSTRACT
-		throw new Error('This class method must be replaced by the Device class!')
-	}
+	abstract get deviceType (): DeviceType
 	get deviceOptions (): DeviceOptions {
 		return this._deviceOptions
 	}

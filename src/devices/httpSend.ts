@@ -1,5 +1,5 @@
 import * as _ from 'underscore'
-import { Device, DeviceOptions, CommandWithContext } from './device'
+import { Device, DeviceOptions, CommandWithContext, DeviceStatus, StatusCode } from './device'
 import { DeviceType } from './mapping'
 import { DoOnTime } from '../doOnTime'
 import * as request from 'request'
@@ -85,7 +85,12 @@ export class HttpSendDevice extends Device {
 		this._doOnTime.dispose()
 		return Promise.resolve(true)
 	}
-
+	getStatus (): DeviceStatus {
+		// Good, since this device has no status, really
+		return {
+			statusCode: StatusCode.GOOD
+		}
+	}
 	makeReady (okToDestroyStuff?: boolean): Promise<void> {
 		if (okToDestroyStuff && this._makeReadyCommands && this._makeReadyCommands.length > 0) {
 			const time = this.getCurrentTime()
