@@ -32,7 +32,7 @@ export class Hyperdeck extends EventEmitter {
 
 	private _mockCommandReceiver?: (cmd: Commands.AbstractCommand) => Promise<any>
 
-	constructor (options?: HyperdeckOptions) {
+	constructor (_options?: HyperdeckOptions) {
 		super()
 		hyperdeckmockInstances.push(this)
 	}
