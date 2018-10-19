@@ -69,6 +69,8 @@ export class AtemDevice extends DeviceWithState<DeviceState> {
 	private _connected: boolean = false // note: ideally this should be replaced by this._atem.connected
 	private _conductor: Conductor
 
+	private firstStateAfterMakeReady: boolean = true // note: temprorary for some improved logging
+
 	private _commandReceiver: (time: number, command: AtemCommands.AbstractCommand, context: CommandContext) => Promise<any>
 
 	constructor (deviceId: string, deviceOptions: AtemDeviceOptions, options, conductor: Conductor) {
@@ -127,6 +129,7 @@ export class AtemDevice extends DeviceWithState<DeviceState> {
 	}
 
 	makeReady (okToDestroyStuff?: boolean): Promise<void> {
+		this.firstStateAfterMakeReady = true
 		if (okToDestroyStuff) {
 			this._doOnTime.clearQueueNowAndAfter(this.getCurrentTime())
 			this.setState(this._atem.state, this.getCurrentTime())
@@ -149,6 +152,11 @@ export class AtemDevice extends DeviceWithState<DeviceState> {
 
 		let oldAtemState = oldState
 		let newAtemState = this.convertStateToAtem(newState)
+
+		if (this.firstStateAfterMakeReady) {
+			this.firstStateAfterMakeReady = false
+			this.emit('info', { reason: 'firstStateAfterMakeReady', before: (oldAtemState || {}).video, after: (newAtemState || {}).video })
+		}
 
 		// @ts-ignore
 		// console.log('newAtemState', JSON.stringify(newAtemState, ' ', 2))
