@@ -1,10 +1,21 @@
 import * as _ from 'underscore'
 import * as underScoreDeepExtend from 'underscore-deep-extend'
-import { DeviceWithState, DeviceOptions, CommandWithContext } from './device'
-import { DeviceType, MappingHyperdeck, MappingHyperdeckType } from './mapping'
-
 import { TimelineState } from 'superfly-timeline'
-import { Hyperdeck, Commands as HyperdeckCommands, TransportStatus } from 'hyperdeck-connection'
+import {
+	DeviceWithState,
+	DeviceOptions,
+	CommandWithContext
+} from './device'
+import {
+	DeviceType,
+	MappingHyperdeck,
+	MappingHyperdeckType
+} from './mapping'
+import {
+	Hyperdeck,
+	Commands as HyperdeckCommands,
+	TransportStatus
+} from 'hyperdeck-connection'
 import { DoOnTime } from '../doOnTime'
 import { Conductor } from '../conductor'
 
