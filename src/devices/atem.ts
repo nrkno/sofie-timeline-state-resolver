@@ -301,8 +301,7 @@ export class AtemDevice extends DeviceWithState<DeviceState> {
 		return deviceState
 	}
 
-	private _defaultCommandReceiver (time: number, command: AtemCommands.AbstractCommand, context: CommandContext): Promise<any> {
-		time = time // seriously this needs to stop
+	private _defaultCommandReceiver (_time: number, command: AtemCommands.AbstractCommand, context: CommandContext): Promise<any> {
 		let cwc: CommandWithContext = {
 			context: context,
 			command: command

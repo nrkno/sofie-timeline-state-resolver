@@ -320,8 +320,7 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> {
 		return res
 	}
 
-	private _defaultCommandReceiver (time: number, command: HyperdeckCommands.AbstractCommand, context: CommandContext): Promise<any> {
-		time = time // seriously this needs to stop
+	private _defaultCommandReceiver (_time: number, command: HyperdeckCommands.AbstractCommand, context: CommandContext): Promise<any> {
 		let cwc: CommandWithContext = {
 			context: context,
 			command: command
