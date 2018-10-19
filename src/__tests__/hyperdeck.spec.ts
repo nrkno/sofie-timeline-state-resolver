@@ -8,6 +8,7 @@ import {
 	TimelineContentTypeHyperdeck
 } from '../devices/hyperdeck'
 import { RecordCommand, StopCommand } from 'hyperdeck-connection/dist/commands'
+import { Hyperdeck } from '../__mocks__/hyperdeck-connection'
 
 let myChannelMapping0: MappingHyperdeck = {
 	device: DeviceType.HYPERDECK,
@@ -37,9 +38,13 @@ describe('Hyperdeck', () => {
 	})
 
 	test('Hyperdeck: Record', async () => {
+		let device: HyperdeckDevice
 
-		let commandReceiver0 = jest.fn(() => {
-			return Promise.resolve()
+		let commandReceiver0 = jest.fn((...args: any[]) => {
+			// Just forward the command:
+
+			// @ts-ignore private function
+			return device._defaultCommandReceiver(...args)
 		})
 		let myChannelMapping: Mappings = {
 			'hyperdeck0_transport': myChannelMapping0
@@ -61,7 +66,17 @@ describe('Hyperdeck', () => {
 		})
 		advanceTime(100) // 1100
 
-		let device = myConductor.getDevice('hyperdeck0') as HyperdeckDevice
+		let hyperdeckInstances = Hyperdeck.getMockInstances()
+		expect(hyperdeckInstances).toHaveLength(1)
+
+		let hyperdeckMock: Hyperdeck = hyperdeckInstances[0]
+
+		let hyperdeckMockCommand = jest.fn(() => {
+			return Promise.resolve()
+		})
+		hyperdeckMock.setMockCommandReceiver(hyperdeckMockCommand)
+
+		device = myConductor.getDevice('hyperdeck0') as HyperdeckDevice
 
 		// Check that no commands has been scheduled:
 		expect(device.queue).toHaveLength(0)
@@ -105,6 +120,12 @@ describe('Hyperdeck', () => {
 		expect(commandReceiver0.mock.calls[0][1]).toBeInstanceOf(RecordCommand)
 		expect(commandReceiver0.mock.calls[0][1]).toHaveProperty('filename', 'sofie_dev')
 		expect(commandReceiver0.mock.calls[0][2]).toBeNull() // context
+		// also test the actual command sent to hyperdeck:
+		expect(hyperdeckMockCommand).toHaveBeenCalledTimes(1)
+		expect(hyperdeckMockCommand.mock.calls[0][0]).toBeInstanceOf(RecordCommand)
+		expect(hyperdeckMockCommand.mock.calls[0][0]).toMatchObject({
+			filename: 'sofie_dev'
+		})
 
 		advanceTime(800) // 2000
 

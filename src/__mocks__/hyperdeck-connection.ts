@@ -10,13 +10,14 @@ let setTimeoutOrg = setTimeout
 export interface HyperdeckOptions {
 	pingPeriod?: number // set to 0 to disable
 	debug?: boolean
-	externalLog?: (arg0?: any, arg1?: any, arg2?: any, arg3?: any) => void
 }
 
 export {
 	TransportStatus,
 	Commands
 }
+
+const hyperdeckmockInstances: Array<Hyperdeck> = []
 
 export class Hyperdeck extends EventEmitter {
 	DEFAULT_PORT = 9993
@@ -29,8 +30,15 @@ export class Hyperdeck extends EventEmitter {
 	private _host: string
 	private _port: number
 
+	private _mockCommandReceiver?: (cmd: Commands.AbstractCommand) => Promise<any>
+
 	constructor (options?: HyperdeckOptions) {
 		super()
+		hyperdeckmockInstances.push(this)
+	}
+
+	public static getMockInstances () {
+		return hyperdeckmockInstances
 	}
 
 	connect (address: string, port?: number) {
@@ -60,10 +68,16 @@ export class Hyperdeck extends EventEmitter {
 		})
 	}
 
-	sendCommand (command: any): Promise<any> {
+	sendCommand (command: Commands.AbstractCommand): Promise<any> {
+		if (this._mockCommandReceiver) {
+			return this._mockCommandReceiver(command)
+		}
 		return Promise.resolve()
 	}
 
+	public setMockCommandReceiver (fcn: (cmd: Commands.AbstractCommand) => Promise<any>) {
+		this._mockCommandReceiver = fcn
+	}
 	get connected () {
 		return this._connected
 	}
