@@ -215,32 +215,32 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> {
 		})
 	}
 
-	private _diffStates (oldAbstractState: DeviceState, newAbstractState: DeviceState): Array<HyperdeckCommandWithContext> {
+	private _diffStates (oldHyperdeckState: DeviceState, newHyperdeckState: DeviceState): Array<HyperdeckCommandWithContext> {
 		const commandsToAchieveState: HyperdeckCommandWithContext[] = []
 
-		if (oldAbstractState.notify && newAbstractState.notify) {
+		if (oldHyperdeckState.notify && newHyperdeckState.notify) {
 			const notifyCmd = new HyperdeckCommands.NotifySetCommand()
 			let hasChange = false
 
-			if (oldAbstractState.notify.remote !== newAbstractState.notify.remote) {
+			if (oldHyperdeckState.notify.remote !== newHyperdeckState.notify.remote) {
 				hasChange = true
-				notifyCmd.remote = newAbstractState.notify.remote
+				notifyCmd.remote = newHyperdeckState.notify.remote
 			}
-			if (oldAbstractState.notify.transport !== newAbstractState.notify.transport) {
+			if (oldHyperdeckState.notify.transport !== newHyperdeckState.notify.transport) {
 				hasChange = true
-				notifyCmd.transport = newAbstractState.notify.transport
+				notifyCmd.transport = newHyperdeckState.notify.transport
 			}
-			if (oldAbstractState.notify.slot !== newAbstractState.notify.slot) {
+			if (oldHyperdeckState.notify.slot !== newHyperdeckState.notify.slot) {
 				hasChange = true
-				notifyCmd.slot = newAbstractState.notify.slot
+				notifyCmd.slot = newHyperdeckState.notify.slot
 			}
-			if (oldAbstractState.notify.configuration !== newAbstractState.notify.configuration) {
+			if (oldHyperdeckState.notify.configuration !== newHyperdeckState.notify.configuration) {
 				hasChange = true
-				notifyCmd.configuration = newAbstractState.notify.configuration
+				notifyCmd.configuration = newHyperdeckState.notify.configuration
 			}
-			if (oldAbstractState.notify.droppedFrames !== newAbstractState.notify.droppedFrames) {
+			if (oldHyperdeckState.notify.droppedFrames !== newHyperdeckState.notify.droppedFrames) {
 				hasChange = true
-				notifyCmd.droppedFrames = newAbstractState.notify.droppedFrames
+				notifyCmd.droppedFrames = newHyperdeckState.notify.droppedFrames
 			}
 
 			if (hasChange) {
@@ -251,11 +251,11 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> {
 			}
 		}
 
-		if (oldAbstractState.transport && newAbstractState.transport) {
-			switch (newAbstractState.transport.status) {
+		if (oldHyperdeckState.transport && newHyperdeckState.transport) {
+			switch (newHyperdeckState.transport.status) {
 				case TransportStatus.RECORD:
-					if (oldAbstractState.transport.status === newAbstractState.transport.status) {
-						if (oldAbstractState.transport.recordFilename === undefined || oldAbstractState.transport.recordFilename === newAbstractState.transport.recordFilename) {
+					if (oldHyperdeckState.transport.status === newHyperdeckState.transport.status) {
+						if (oldHyperdeckState.transport.recordFilename === undefined || oldHyperdeckState.transport.recordFilename === newHyperdeckState.transport.recordFilename) {
 							// TODO - sometimes we can loose track of the filename, should we split the record when recovering from that? (it might loose some frames)
 							break
 						}
@@ -266,14 +266,14 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> {
 					}
 
 					commandsToAchieveState.push({
-						command: new HyperdeckCommands.RecordCommand(newAbstractState.transport.recordFilename),
+						command: new HyperdeckCommands.RecordCommand(newHyperdeckState.transport.recordFilename),
 						context: null // TODO
 					})
 					break
 				default:
 					// TODO - warn
 					// for now we are assuming they want a stop. that could be conditional later on
-					if (oldAbstractState.transport.status === TransportStatus.RECORD) {
+					if (oldHyperdeckState.transport.status === TransportStatus.RECORD) {
 						commandsToAchieveState.push({
 							command: new HyperdeckCommands.StopCommand(),
 							context: null // TODO
