@@ -94,7 +94,7 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> {
 			this._hyperdeck.on('connected', () => {
 				return this._queryCurrentState().then(state => {
 					this.setState(state, this.getCurrentTime())
-					if (firstConnect) { // TODO - or was the call order different before?
+					if (firstConnect) {
 						firstConnect = false
 						this._initialized = true
 						resolve(true)
@@ -174,7 +174,7 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> {
 		const deviceState = this._getDefaultState()
 
 		const sortedLayers = _.map(state.LLayers, (tlObject, layerName) => ({ layerName, tlObject }))
-			.sort((a,b) => a.layerName.localeCompare(b.layerName))
+			.sort((a, b) => a.layerName.localeCompare(b.layerName))
 
 		_.each(sortedLayers, ({ tlObject, layerName }) => {
 			const content = tlObject.resolved || tlObject.content
@@ -230,56 +230,60 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> {
 			const notifyCmd = new HyperdeckCommands.NotifySetCommand()
 			let hasChange = false
 
-			if (oldHyperdeckState.notify.remote !== newHyperdeckState.notify.remote) {
-				hasChange = true
-				notifyCmd.remote = newHyperdeckState.notify.remote
-			}
-			if (oldHyperdeckState.notify.transport !== newHyperdeckState.notify.transport) {
-				hasChange = true
-				notifyCmd.transport = newHyperdeckState.notify.transport
-			}
-			if (oldHyperdeckState.notify.slot !== newHyperdeckState.notify.slot) {
-				hasChange = true
-				notifyCmd.slot = newHyperdeckState.notify.slot
-			}
-			if (oldHyperdeckState.notify.configuration !== newHyperdeckState.notify.configuration) {
-				hasChange = true
-				notifyCmd.configuration = newHyperdeckState.notify.configuration
-			}
-			if (oldHyperdeckState.notify.droppedFrames !== newHyperdeckState.notify.droppedFrames) {
-				hasChange = true
-				notifyCmd.droppedFrames = newHyperdeckState.notify.droppedFrames
+			const keys = _.unique(_.keys(oldHyperdeckState.notify).concat(_.keys(newHyperdeckState.notify)))
+			for (let k of keys) {
+				if (oldHyperdeckState.notify[k] !== newHyperdeckState.notify[k]) {
+					hasChange = true
+					notifyCmd[k] = newHyperdeckState.notify[k]
+				}
 			}
 
 			if (hasChange) {
 				commandsToAchieveState.push({
 					command: notifyCmd,
-					context: null // TODO
+					context: {
+						oldState: oldHyperdeckState.notify,
+						newState: newHyperdeckState.notify
+					}
 				})
 			}
-		} // TODO: else what?
+		} else {
+			this.emit('error', 'diffStates missing notify object', oldHyperdeckState.notify, newHyperdeckState.notify)
+		}
 
 		if (oldHyperdeckState.transport && newHyperdeckState.transport) {
 			switch (newHyperdeckState.transport.status) {
 				case TransportStatus.RECORD:
-					if (oldHyperdeckState.transport.status === newHyperdeckState.transport.status) {
-						if (
-							oldHyperdeckState.transport.recordFilename === undefined ||
-							oldHyperdeckState.transport.recordFilename === newHyperdeckState.transport.recordFilename
-						) {
-							// TODO - sometimes we can loose track of the filename, should we split the record when recovering from that? (it might loose some frames)
-							break
-						}
+					// TODO - sometimes we can loose track of the filename (eg on reconnect).
+					// should we split the record when recovering from that? (it might loose some frames)
+					const filenameChanged = oldHyperdeckState.transport.recordFilename !== undefined &&
+						oldHyperdeckState.transport.recordFilename !== newHyperdeckState.transport.recordFilename
+
+					if (oldHyperdeckState.transport.status !== newHyperdeckState.transport.status) { // Start recording
+						commandsToAchieveState.push({
+							command: new HyperdeckCommands.RecordCommand(newHyperdeckState.transport.recordFilename),
+							context: {
+								oldState: oldHyperdeckState.transport,
+								newState: newHyperdeckState.transport
+							}
+						})
+					} else if (filenameChanged) { // Split recording
 						commandsToAchieveState.push({
 							command: new HyperdeckCommands.StopCommand(),
-							context: null // TODO
+							context: {
+								oldState: oldHyperdeckState.transport,
+								newState: newHyperdeckState.transport
+							}
 						})
-					}
+						commandsToAchieveState.push({
+							command: new HyperdeckCommands.RecordCommand(newHyperdeckState.transport.recordFilename),
+							context: {
+								oldState: oldHyperdeckState.transport,
+								newState: newHyperdeckState.transport
+							}
+						})
+					} // else continue recording
 
-					commandsToAchieveState.push({
-						command: new HyperdeckCommands.RecordCommand(newHyperdeckState.transport.recordFilename),
-						context: null // TODO
-					})
 					break
 				default:
 					// TODO - warn
@@ -287,13 +291,18 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> {
 					if (oldHyperdeckState.transport.status === TransportStatus.RECORD) {
 						commandsToAchieveState.push({
 							command: new HyperdeckCommands.StopCommand(),
-							context: null // TODO
+							context: {
+								oldState: oldHyperdeckState.transport,
+								newState: newHyperdeckState.transport
+							}
 						})
 					}
 					break
 			}
 
-		} // TODO: else what?
+		} else {
+			this.emit('error', 'diffStates missing transport object', oldHyperdeckState.transport, newHyperdeckState.transport)
+		}
 
 		return commandsToAchieveState
 	}

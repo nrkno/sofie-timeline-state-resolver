@@ -128,7 +128,7 @@ describe('Hyperdeck', () => {
 		expect(commandReceiver0).toHaveBeenCalledTimes(1)
 		expect(commandReceiver0.mock.calls[0][1]).toBeInstanceOf(RecordCommand)
 		expect(commandReceiver0.mock.calls[0][1]).toHaveProperty('filename', 'sofie_dev')
-		expect(commandReceiver0.mock.calls[0][2]).toBeNull() // context
+		expect(commandReceiver0.mock.calls[0][2]).toBeTruthy() // context
 		// also test the actual command sent to hyperdeck:
 		expect(hyperdeckMockCommand).toHaveBeenCalledTimes(1)
 		expect(hyperdeckMockCommand.mock.calls[0][0]).toBeInstanceOf(RecordCommand)
@@ -144,7 +144,7 @@ describe('Hyperdeck', () => {
 
 		expect(commandReceiver0).toHaveBeenCalledTimes(2)
 		expect(commandReceiver0.mock.calls[1][1]).toBeInstanceOf(StopCommand)
-		expect(commandReceiver0.mock.calls[1][2]).toBeNull() // context
+		expect(commandReceiver0.mock.calls[1][2]).toBeTruthy() // context
 
 		advanceTimeTo(13000)
 		expect(commandReceiver0).toHaveBeenCalledTimes(2)
