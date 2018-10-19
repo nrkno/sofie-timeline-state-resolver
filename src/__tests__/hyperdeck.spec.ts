@@ -1,3 +1,4 @@
+jest.mock('hyperdeck-connection')
 import { TriggerType } from 'superfly-timeline'
 
 import { Mappings, MappingHyperdeck, DeviceType, MappingHyperdeckType } from '../devices/mapping'
