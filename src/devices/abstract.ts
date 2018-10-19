@@ -1,8 +1,14 @@
 import * as _ from 'underscore'
-import { Device, DeviceOptions } from './device'
+import {
+	DeviceWithState,
+	DeviceOptions,
+	CommandWithContext,
+	DeviceStatus,
+	StatusCode
+} from './device'
 import { DeviceType } from './mapping'
 
-import { TimelineState } from 'superfly-timeline'
+import { TimelineState, TimelineResolvedObject } from 'superfly-timeline'
 import { DoOnTime } from '../doOnTime'
 
 /*
@@ -16,12 +22,18 @@ export interface AbstractDeviceOptions extends DeviceOptions {
 		commandReceiver?: (time: number, cmd) => Promise<any>
 	}
 }
-export type Command = any
-export class AbstractDevice extends Device {
+export interface Command {
+	commandName: string,
+	content: CommandContent,
+	context: CommandContext
+}
+type CommandContent = any
+type CommandContext = string
+export class AbstractDevice extends DeviceWithState<TimelineState> {
 	private _doOnTime: DoOnTime
 	// private _queue: Array<any>
 
-	private _commandReceiver: (time: number, cmd: Command) => Promise<any>
+	private _commandReceiver: (time: number, cmd: Command, context: CommandContext) => Promise<any>
 
 	constructor (deviceId: string, deviceOptions: AbstractDeviceOptions, options) {
 		super(deviceId, deviceOptions, options)
@@ -66,6 +78,10 @@ export class AbstractDevice extends Device {
 		// Clear any scheduled commands after this time
 		this._doOnTime.clearQueueAfter(clearAfterTime)
 	}
+	terminate () {
+		this._doOnTime.dispose()
+		return Promise.resolve(true)
+	}
 	get canConnect (): boolean {
 		return false
 	}
@@ -85,27 +101,33 @@ export class AbstractDevice extends Device {
 	get queue () {
 		return this._doOnTime.getQueue()
 	}
+	getStatus (): DeviceStatus {
+		return {
+			statusCode: StatusCode.GOOD
+		}
+	}
 	private _addToQueue (commandsToAchieveState: Array<Command>, time: number) {
 		_.each(commandsToAchieveState, (cmd: Command) => {
 
 			// add the new commands to the queue:
 			this._doOnTime.queue(time, (cmd: Command) => {
-				return this._commandReceiver(time, cmd)
+				return this._commandReceiver(time, cmd, cmd.context)
 			}, cmd)
 		})
 	}
-	private _diffStates (oldAbstractState, newAbstractState) {
+	private _diffStates (oldAbstractState: TimelineState, newAbstractState: TimelineState) {
 		// in this abstract class, let's just cheat:
 
-		let commands: Array<any> = []
+		let commands: Array<Command> = []
 
-		_.each(newAbstractState.LLayers, (newLayer: any, layerKey) => {
+		_.each(newAbstractState.LLayers, (newLayer: TimelineResolvedObject, layerKey) => {
 			let oldLayer = oldAbstractState.LLayers[layerKey]
 			if (!oldLayer) {
 				// added!
 				commands.push({
 					commandName: 'addedAbstract',
-					content: newLayer.content
+					content: newLayer.content,
+					context: `added: ${newLayer.id}`
 				})
 			} else {
 				// changed?
@@ -113,26 +135,39 @@ export class AbstractDevice extends Device {
 					// changed!
 					commands.push({
 						commandName: 'changedAbstract',
-						content: newLayer.content
+						content: newLayer.content,
+						context: `changed: ${newLayer.id}`
 					})
 				}
 			}
 		})
 		// removed
-		_.each(oldAbstractState.LLayers, (oldLayer: any, layerKey) => {
+		_.each(oldAbstractState.LLayers, (oldLayer: TimelineResolvedObject, layerKey) => {
 			let newLayer = newAbstractState.LLayers[layerKey]
 			if (!newLayer) {
 				// removed!
 				commands.push({
 					commandName: 'removedAbstract',
-					content: oldLayer.content
+					content: oldLayer.content,
+					context: `removed: ${oldLayer.id}`
 				})
 			}
 		})
 		return commands
 	}
-	private _defaultCommandReceiver (time: number, cmd): Promise<any> {
+	private _defaultCommandReceiver (time: number, cmd: Command, context: CommandContext): Promise<any> {
 		time = time
+
+		// emit the command to debug:
+		let cwc: CommandWithContext = {
+			context: context,
+			command: {
+				commandName: cmd.commandName,
+				content: cmd.content
+			}
+		}
+		this.emit('debug', cwc)
+
 		// execute the command here
 		cmd = cmd
 

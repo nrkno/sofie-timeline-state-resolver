@@ -7,11 +7,6 @@ import { Mappings, MappingAtem, DeviceType, MappingAtemType } from '../devices/m
 import { Conductor } from '../conductor'
 import { AtemDevice, TimelineContentTypeAtem } from '../devices/atem'
 
-let externalLog = (...args) => {
-	args = args
-	// console.log('trace', ...args)
-}
-
 // let nowActual: number = Date.now()
 describe('Atem', () => {
 	let now: number = 10000
@@ -49,7 +44,6 @@ describe('Atem', () => {
 		}
 
 		let myConductor = new Conductor({
-			externalLog: externalLog,
 			initializeAsClear: true,
 			getCurrentTime: getCurrentTime
 		})
@@ -165,7 +159,6 @@ describe('Atem', () => {
 		}
 
 		let myConductor = new Conductor({
-			externalLog: externalLog,
 			initializeAsClear: true,
 			getCurrentTime: getCurrentTime
 		})
@@ -187,7 +180,6 @@ describe('Atem', () => {
 
 		// Check that no commands has been scheduled:
 		expect(device.queue).toHaveLength(0)
-
 		myConductor.timeline = [
 			{
 				id: 'obj0',

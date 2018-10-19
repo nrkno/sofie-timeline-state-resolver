@@ -6,11 +6,6 @@ import { Mappings, DeviceType, MappingHTTPSend } from '../devices/mapping'
 import { Conductor } from '../conductor'
 import { HttpSendDevice } from '../devices/httpSend'
 
-let externalLog = (...args) => {
-	args = args
-	// console.log('trace', ...args)
-}
-
 // let nowActual = Date.now()
 describe('HTTP-Send', () => {
 	let now: number = 10000
@@ -45,7 +40,6 @@ describe('HTTP-Send', () => {
 		}
 
 		let myConductor = new Conductor({
-			externalLog: externalLog,
 			initializeAsClear: true,
 			getCurrentTime: getCurrentTime
 		})
@@ -100,6 +94,7 @@ describe('HTTP-Send', () => {
 				}
 			}
 		)
+		expect(commandReceiver0.mock.calls[0][2]).toMatch(/added/) // context
 		advanceTime(5000) // 16000
 		expect(commandReceiver0).toHaveBeenCalledTimes(1)
 	})

@@ -1,10 +1,27 @@
 import * as _ from 'underscore'
-import { Device, DeviceOptions } from './device'
-import { DeviceType, MappingLawo, Mappings } from './mapping'
 
-import { TimelineState, TimelineResolvedObject } from 'superfly-timeline'
-import { DeviceTree, Ember } from 'emberplus'
+import {
+	DeviceWithState,
+	DeviceOptions,
+	CommandWithContext,
+	DeviceStatus,
+	StatusCode
+} from './device'
+import {
+	DeviceType,
+	MappingLawo,
+	Mappings
+} from './mapping'
+import {
+	TimelineState,
+	TimelineResolvedObject
+} from 'superfly-timeline'
+import {
+	DeviceTree,
+	Ember
+} from 'emberplus'
 import { DoOnTime } from '../doOnTime'
+import { getDiff } from '../lib'
 
 /*
 	This is a wrapper for an "Abstract" device
@@ -69,15 +86,20 @@ export interface LawoCommand {
 	type: TimelineContentTypeLawo,
 	transitionDuration?: number
 }
-export class LawoDevice extends Device {
+export interface LawoCommandWithContext {
+	cmd: LawoCommand,
+	context: CommandContext
+}
+type CommandContext = string
+export class LawoDevice extends DeviceWithState<TimelineState> {
 	private _doOnTime: DoOnTime
-	private _device: DeviceTree
+	private _lawo: DeviceTree
 
 	private _savedNodes = []
 
 	private _connected: boolean = false
 
-	private _commandReceiver: (time: number, cmd: LawoCommand) => Promise<any>
+	private _commandReceiver: (time: number, cmd: LawoCommand, context: CommandContext) => Promise<any>
 	private _sourcesPath: string
 	private _rampMotorFunctionPath: string
 
@@ -111,8 +133,8 @@ export class LawoDevice extends Device {
 		})
 		this._doOnTime.on('error', e => this.emit('error', e))
 
-		this._device = new DeviceTree(host, port)
-		this._device.on('error', (e) => {
+		this._lawo = new DeviceTree(host, port)
+		this._lawo.on('error', (e) => {
 			if (
 				(e.message + '').match(/econnrefused/i) ||
 				(e.message + '').match(/disconnected/i)
@@ -122,10 +144,10 @@ export class LawoDevice extends Device {
 				this.emit('error', e)
 			}
 		})
-		this._device.on('connected', () => {
+		this._lawo.on('connected', () => {
 			this._setConnected(true)
 		})
-		this._device.on('disconnected', () => {
+		this._lawo.on('disconnected', () => {
 			this._setConnected(false)
 		})
 	}
@@ -137,18 +159,18 @@ export class LawoDevice extends Device {
 		return new Promise((resolve, reject) => {
 			let fail = (e) => reject(e)
 			try {
-				this._device.once('error', fail)
-				this._device.connect()	// default timeout = 2
+				this._lawo.once('error', fail)
+				this._lawo.connect()	// default timeout = 2
 				.then(() => {
-					this._device.removeListener('error', fail)
+					this._lawo.removeListener('error', fail)
 					resolve(true)
 				})
 				.catch((e) => {
-					this._device.removeListener('error', fail)
+					this._lawo.removeListener('error', fail)
 					reject(e)
 				})
 			} catch (e) {
-				this._device.removeListener('error', fail)
+				this._lawo.removeListener('error', fail)
 				reject(e)
 			}
 		})
@@ -160,7 +182,7 @@ export class LawoDevice extends Device {
 		let oldLawoState = this.convertStateToLawo(oldState)
 		let newLawoState = this.convertStateToLawo(newState)
 
-		let commandsToAchieveState: Array<LawoCommand> = this._diffStates(oldLawoState, newLawoState)
+		let commandsToAchieveState: Array<LawoCommandWithContext> = this._diffStates(oldLawoState, newLawoState)
 
 		// clear any queued commands later than this time:
 		this._doOnTime.clearQueueNowAndAfter(newState.time)
@@ -173,6 +195,21 @@ export class LawoDevice extends Device {
 	clearFuture (clearAfterTime: number) {
 		// Clear any scheduled commands after this time
 		this._doOnTime.clearQueueAfter(clearAfterTime)
+	}
+	terminate () {
+		this._doOnTime.dispose()
+
+		// @todo: Implement lawo dispose function upstream
+		try {
+			this._lawo.disconnect()
+			this._lawo.removeAllListeners('error')
+			this._lawo.removeAllListeners('connected')
+			this._lawo.removeAllListeners('disconnected')
+
+		} catch (e) {
+			this.emit('error', e)
+		}
+		return Promise.resolve(true)
 	}
 	get canConnect (): boolean {
 		return true
@@ -222,41 +259,52 @@ export class LawoDevice extends Device {
 	get mapping () {
 		return super.mapping
 	}
+	getStatus (): DeviceStatus {
+		return {
+			statusCode: this._connected ? StatusCode.GOOD : StatusCode.BAD
+		}
+	}
 	private _setConnected (connected: boolean) {
 		if (this._connected !== connected) {
 			this._connected = connected
-			this.emit('connectionChanged', this._connected)
+			this._connectionChanged()
 		}
 	}
-	private _addToQueue (commandsToAchieveState: Array<LawoCommand>, time: number) {
-		_.each(commandsToAchieveState, (cmd: LawoCommand) => {
+	private _addToQueue (commandsToAchieveState: Array<LawoCommandWithContext>, time: number) {
+		_.each(commandsToAchieveState, (cmd: LawoCommandWithContext) => {
 
 			// add the new commands to the queue:
-			this._doOnTime.queue(time, (cmd: LawoCommand) => {
-				return this._commandReceiver(time, cmd)
+			this._doOnTime.queue(time, (cmd: LawoCommandWithContext) => {
+				return this._commandReceiver(time, cmd.cmd, cmd.context)
 			}, cmd)
 		})
 	}
-	private _diffStates (oldLawoState: LawoState, newLawoState: LawoState): Array<LawoCommand> {
+	private _diffStates (oldLawoState: LawoState, newLawoState: LawoState): Array<LawoCommandWithContext> {
 
-		let commands: Array<LawoCommand> = []
+		let commands: Array<LawoCommandWithContext> = []
 
-		let addCommand = (path, newNode: LawoStateNode) => {
-			// It's a plain value:
-			commands.push({
-				path: path,
-				type: newNode.type,
-				key: newNode.key,
-				identifier: newNode.identifier,
-				value: newNode.value,
-				transitionDuration: newNode.transitionDuration
-			})
-		}
+		// let addCommand = (path, newNode: LawoStateNode) => {
+		// }
 
 		_.each(newLawoState, (newNode: LawoStateNode, path: string) => {
 			let oldValue: LawoStateNode = oldLawoState[path] || null
-			if (!_.isEqual(newNode, oldValue)) {
-				addCommand(path, newNode)
+			let diff = getDiff(newNode, oldValue)
+			// if (!_.isEqual(newNode, oldValue)) {
+			if (diff) {
+				// addCommand(path, newNode)
+
+				// It's a plain value:
+				commands.push({
+					cmd: {
+						path: path,
+						type: newNode.type,
+						key: newNode.key,
+						identifier: newNode.identifier,
+						value: newNode.value,
+						transitionDuration: newNode.transitionDuration
+					},
+					context: diff
+				})
 			}
 		})
 		return commands
@@ -267,7 +315,7 @@ export class LawoDevice extends Device {
 			if (this._savedNodes[path] !== undefined) {
 				resolve(this._savedNodes[path])
 			} else {
-				this._device.getNodeByPath(path)
+				this._lawo.getNodeByPath(path)
 				.then((node) => {
 					this._savedNodes[path] = node
 					resolve(node)
@@ -290,13 +338,17 @@ export class LawoDevice extends Device {
 	}
 
 	// @ts-ignore no-unused-vars
-	private _defaultCommandReceiver (time: number, command: LawoCommand): Promise<any> {
+	private _defaultCommandReceiver (time: number, command: LawoCommand, context: CommandContext): Promise<any> {
 		if (command.key === 'Fader/Motor dB Value') {	// fader level
+			let cwc: CommandWithContext = {
+				context: context,
+				command: command
+			}
+			this.emit('debug', cwc)
 			if (command.transitionDuration && command.transitionDuration > 0) {	// with timed fader movement
-				return this._device.invokeFunction(new Ember.QualifiedFunction(this._rampMotorFunctionPath), [command.identifier, new Ember.ParameterContents(command.value, 'real'), new Ember.ParameterContents(command.transitionDuration / 1000, 'real')])
+				return this._lawo.invokeFunction(new Ember.QualifiedFunction(this._rampMotorFunctionPath), [command.identifier, new Ember.ParameterContents(command.value, 'real'), new Ember.ParameterContents(command.transitionDuration / 1000, 'real')])
 				.then((res) => {
-					this.emit('command', command)
-					this.emit('info', `Ember function result: ${JSON.stringify(res)}`)
+					this.emit('debug', `Ember function result: ${JSON.stringify(res)}`)
 				})
 					.catch((e) => {
 						if (e.success === false) { // @todo: QualifiedFunction Fader/Motor cannot handle too short durations or small value changes
@@ -310,10 +362,9 @@ export class LawoDevice extends Device {
 			} else { // withouth timed fader movement
 				return this._getNodeByPath(command.path)
 				.then((node: any) => {
-					this._device.setValue(node, new Ember.ParameterContents(command.value, 'real'))
+					this._lawo.setValue(node, new Ember.ParameterContents(command.value, 'real'))
 					.then((res) => {
-						this.emit('command', command)
-						this.emit('info', `Ember result: ${JSON.stringify(res)}`)
+						this.emit('debug', `Ember result: ${JSON.stringify(res)}`)
 					})
 					.catch((e) => console.log(e))
 				})
@@ -321,6 +372,12 @@ export class LawoDevice extends Device {
 					this.emit('error', `Ember command error: ${e.toString()}`)
 				})
 			}
+		} else {
+			// this.emit('error', `Ember command error: ${e.toString()}`)
+			return Promise.reject(`Lawo: Unsupported command.key: "${command.key}"`)
 		}
+	}
+	private _connectionChanged () {
+		this.emit('connectionChanged', this.getStatus())
 	}
 }

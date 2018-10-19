@@ -27,7 +27,7 @@ export class DoOnTime extends EventEmitter {
 			fcn: fcn,
 			args: args
 		}
-		setTimeout(() => {
+		this._checkQueueTimeout = setTimeout(() => {
 			this._checkQueue()
 		},0)
 		return id
@@ -56,6 +56,10 @@ export class DoOnTime extends EventEmitter {
 				this.remove(id)
 			}
 		})
+	}
+	dispose (): void {
+		this.clearQueueAfter(0) // clear all
+		clearTimeout(this._checkQueueTimeout)
 	}
 	private _checkQueue () {
 		clearTimeout(this._checkQueueTimeout)

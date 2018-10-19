@@ -15,6 +15,8 @@ import { Mappings, Mapping, DeviceType, TimelineResolvedObjectExtended } from '.
 import { AtemDevice } from './devices/atem'
 import { EventEmitter } from 'events'
 import { LawoDevice } from './devices/lawo'
+import { PanasonicPtzDevice } from './devices/panasonicPTZ'
+import { HyperdeckDevice } from './devices/hyperdeck'
 import { DoOnTime } from './doOnTime'
 
 const LOOKAHEADTIME = 5000 // Will look ahead this far into the future
@@ -39,13 +41,13 @@ export interface ConductorOptions {
 	initializeAsClear?: boolean // don't do any initial checks with devices to determine state, instead assume that everything is clear, black and quiet
 	getCurrentTime?: () => number
 	autoInit?: boolean
-	externalLog?: (...args: any[]) => void
 }
 /**
  * The main class that serves to interface with all functionality.
  */
 export class Conductor extends EventEmitter {
 
+	private _logDebug: boolean = false
 	private _timeline: Array<TimelineContentObject> = []
 	private _mapping: Mappings = {}
 
@@ -61,7 +63,6 @@ export class Conductor extends EventEmitter {
 	private _doOnTime: DoOnTime
 
 	private _sentCallbacks: {[key: string]: boolean} = {}
-	private _externalLog?: (...args: any[]) => void
 
 	constructor (options: ConductorOptions = {}) {
 		super()
@@ -70,7 +71,6 @@ export class Conductor extends EventEmitter {
 		this._options = this._options // ts-lint fix: not used
 
 		if (options.getCurrentTime) this._getCurrentTime = options.getCurrentTime
-		if (options.externalLog) this._externalLog = options.externalLog
 
 		setInterval(() => {
 			if (this.timeline) {
@@ -142,6 +142,12 @@ export class Conductor extends EventEmitter {
 		this.resetResolver()
 
 	}
+	get logDebug (): boolean {
+		return this._logDebug
+	}
+	set logDebug (val: boolean) {
+		this._logDebug = val
+	}
 
 	public getDevices (): Array<Device> {
 		return _.values(this.devices)
@@ -155,12 +161,7 @@ export class Conductor extends EventEmitter {
 			let newDevice: Device
 
 			let options = {
-				getCurrentTime: () => { return this.getCurrentTime() },
-				externalLog: (
-					this._externalLog ?
-					(...args) => { this._log(...args) } :
-					undefined
-				)
+				getCurrentTime: () => { return this.getCurrentTime() }
 			}
 
 			if (deviceOptions.type === DeviceType.ABSTRACT) {
@@ -175,13 +176,22 @@ export class Conductor extends EventEmitter {
 				newDevice = new HttpSendDevice(deviceId, deviceOptions, options) as Device
 			} else if (deviceOptions.type === DeviceType.LAWO) {
 				newDevice = new LawoDevice(deviceId, deviceOptions, options) as Device
+			} else if (deviceOptions.type === DeviceType.PANASONIC_PTZ) {
+				newDevice = new PanasonicPtzDevice(deviceId, deviceOptions, options) as Device
+			} else if (deviceOptions.type === DeviceType.HYPERDECK) {
+				newDevice = new HyperdeckDevice(deviceId, deviceOptions, options, this) as Device
 			} else {
 				return Promise.reject('No matching device type for "' + deviceOptions.type + '" ("' + DeviceType[deviceOptions.type] + '") found')
 			}
 
-			newDevice.on('error', (e) => this.emit('error', e))
-			newDevice.on('info', (e) => this.emit('info', e))
-			newDevice.on('command', (cmd) => this.emit('command', deviceId, cmd))
+			newDevice.on('debug',	(e) => {
+				if (this.logDebug) {
+					this.emit('debug', 	e)
+				}
+			})
+			newDevice.on('info',	(e) => this.emit('info', 	e))
+			newDevice.on('warning',	(e) => this.emit('warning', e))
+			newDevice.on('error',	(e) => this.emit('error', 	e))
 
 			this.emit('info', 'Initializing ' + DeviceType[deviceOptions.type] + '...')
 			this.devices[deviceId] = newDevice
@@ -189,7 +199,7 @@ export class Conductor extends EventEmitter {
 
 			return newDevice.init(deviceOptions.options)
 			.then(() => {
-				this._log(DeviceType[deviceOptions.type] + ' initialized!')
+				this.emit('info', (DeviceType[deviceOptions.type] + ' initialized!'))
 				return newDevice
 			})
 		} catch (e) {
@@ -261,7 +271,7 @@ export class Conductor extends EventEmitter {
 	 */
 	private _triggerResolveTimeline (timeUntilTrigger?: number) {
 
-		// this._log('_triggerResolveTimeline', timeUntilTrigger)
+		// this.emit('info', '_triggerResolveTimeline', timeUntilTrigger)
 
 		if (this._resolveTimelineTrigger) {
 			clearTimeout(this._resolveTimelineTrigger)
@@ -287,16 +297,16 @@ export class Conductor extends EventEmitter {
 		try {
 
 			if (!this._isInitialized) {
-				this._log('TSR is not initialized yet')
+				this.emit('warning', 'TSR is not initialized yet')
 				return
 			}
 			const now = this.getCurrentTime()
 			let resolveTime: number = this._nextResolveTime || now
 
-			this._log('resolveTimeline ' + resolveTime + ' -----------------------------')
+			this.emit('debug', 'resolveTimeline ' + resolveTime + ' -----------------------------')
 
 			if (resolveTime > now + LOOKAHEADTIME) {
-				this._log('Too far ahead (' + resolveTime + ')')
+				this.emit('debug', 'Too far ahead (' + resolveTime + ')')
 				this._triggerResolveTimeline(LOOKAHEADTIME)
 				return
 			}
@@ -315,7 +325,7 @@ export class Conductor extends EventEmitter {
 				}
 			})
 			// @ts-ignore
-			// this._log('timeline', JSON.stringify(timeline, ' ', 2))
+			// this.emit('info', 'timeline', JSON.stringify(timeline, ' ', 2))
 
 			// Generate the state for that time:
 			let tlState = Resolver.getState(clone(timeline), resolveTime)
@@ -327,7 +337,7 @@ export class Conductor extends EventEmitter {
 				delete obj['parent']
 			})
 			// @ts-ignore
-			// this._log('tlState', JSON.stringify(tlState.LLayers,' ', 2))
+			// this.emit('info', 'tlState', JSON.stringify(tlState.LLayers,' ', 2))
 
 			// Split the state into substates that are relevant for each device
 			let getFilteredLayers = (layers: TimelineState['LLayers'], device: Device) => {
@@ -357,7 +367,7 @@ export class Conductor extends EventEmitter {
 					LLayers: getFilteredLayers(tlState.LLayers, device),
 					GLayers: getFilteredLayers(tlState.GLayers, device)
 				}
-				// this._log('State of device ' + device.deviceName, tlState.LLayers )
+				// this.emit('info', 'State of device ' + device.deviceName, tlState.LLayers )
 				// Pass along the state to the device, it will generate its commands and execute them:
 				try {
 					device.handleState(subState)
@@ -368,7 +378,7 @@ export class Conductor extends EventEmitter {
 
 			// Now that we've handled this point in time, it's time to determine what the next point in time is:
 
-			// this._log(tlState.time)
+			// this.emit('debug', tlState.time)
 			const timelineWindow = Resolver.getTimelineInWindow(timeline, tlState.time, tlState.time + LOOKAHEADTIME)
 
 			const nextEvents = Resolver.getNextEvents(timelineWindow, tlState.time + MINTIMEUNIT, 1)
@@ -377,7 +387,7 @@ export class Conductor extends EventEmitter {
 			if (nextEvents.length) {
 				let nextEvent = nextEvents[0]
 
-				// this._log('nextEvent', nextEvent)
+				// this.emit('debug', 'nextEvent', nextEvent)
 
 				timeUntilNextResolve = Math.max(MINTRIGGERTIME,
 					Math.min(LOOKAHEADTIME,
@@ -385,14 +395,14 @@ export class Conductor extends EventEmitter {
 					)
 				)
 
-				// this._log('timeUntilNextResolve', timeUntilNextResolve)
+				// this.emit('debug', 'timeUntilNextResolve', timeUntilNextResolve)
 
 				// resolve at nextEvent.time next time:
 				this._nextResolveTime = nextEvent.time
 
 			} else {
 				// there's nothing ahead in the timeline
-				// this._log('no next events')
+				// this.emit('debug', 'no next events')
 
 				// Tell the devices that the future is clear:
 				_.each(this.devices, (device: Device) => {
@@ -421,7 +431,7 @@ export class Conductor extends EventEmitter {
 								)
 							} else {
 								// callback already sent, do nothing
-								this._log('callback already sent', callBackId)
+								// this.emit('debug', 'callback already sent', callBackId)
 							}
 						})
 					}
@@ -430,17 +440,18 @@ export class Conductor extends EventEmitter {
 				}
 			})
 			this._sentCallbacks = sentCallbacksNew
+
+			this.emit('info', 'resolveTimeline at time ' + resolveTime + ' done in ' + (Date.now() - startTime) + 'ms')
 		} catch (e) {
 			this.emit('error', e)
 		}
 
 		try {
-			// this._log('this._nextResolveTime', this._nextResolveTime)
+			// this.emit('info', 'this._nextResolveTime', this._nextResolveTime)
 			this._triggerResolveTimeline(timeUntilNextResolve)
 		} catch (e) {
 			this.emit('error', e)
 		}
-		this._log('resolveTimeline done in ' + (Date.now() - startTime) + 'ms')
 	}
 
 	private _fixNowObjects (now: number) {
@@ -515,19 +526,12 @@ export class Conductor extends EventEmitter {
 
 		// fixObjects(this.timeline, 0)
 
-		// this._log('objectsFixed', objectsFixed)
+		// this.emit('info', 'objectsFixed', objectsFixed)
 
 		if (objectsFixed.length) {
 			let r: TimelineTriggerTimeResult = objectsFixed
-			// this._log('setTimelineTriggerTime', r)
+			// this.emit('info', 'setTimelineTriggerTime', r)
 			this.emit('setTimelineTriggerTime', r)
-		}
-	}
-	private _log (...args) {
-		if (this._externalLog) {
-			this._externalLog(...args)
-		} else {
-			console.log(...args)
 		}
 	}
 }

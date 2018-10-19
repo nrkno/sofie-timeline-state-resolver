@@ -6,11 +6,6 @@ import { LawoDevice,
 	TimelineContentTypeLawo
 } from '../devices/lawo'
 
-let externalLog = (...args) => {
-	args = args
-	// console.log('trace', ...args)
-}
-
 describe('Lawo', () => {
 	let now: number = 1000
 
@@ -48,7 +43,6 @@ describe('Lawo', () => {
 		}
 
 		let myConductor = new Conductor({
-			externalLog: externalLog,
 			initializeAsClear: true,
 			getCurrentTime: getCurrentTime
 		})
@@ -158,6 +152,7 @@ describe('Lawo', () => {
 				path: 'BASE.Fader.Motor dB Value'
 			}
 		)
+		expect(commandReceiver0.mock.calls[0][2]).toMatch(/null/i) // context
 
 		advanceTime(800) // 2000
 
@@ -171,6 +166,7 @@ describe('Lawo', () => {
 				path: 'BASE.Fader.Motor dB Value'
 			}
 		)
+		expect(commandReceiver0.mock.calls[1][2]).toBeTruthy() // context
 
 		advanceTime(500) // 2500
 		expect(commandReceiver0).toHaveBeenCalledTimes(2)
@@ -186,6 +182,7 @@ describe('Lawo', () => {
 				path: 'BASE.Fader.Motor dB Value'
 			}
 		)
+		expect(commandReceiver0.mock.calls[2][2]).toMatch(/triggerValue/i) // context
 		advanceTime(2000) // 5500
 		expect(commandReceiver0).toHaveBeenCalledTimes(3)
 		// no new commands should be sent, nothing is sent on object end

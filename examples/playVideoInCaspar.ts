@@ -12,12 +12,11 @@ import {
 import { TimelineContentTypeCasparCg } from '../src/devices/casparCG'
 
 // Initialize TSR:
-const tsr = new Conductor({
-	externalLog: console.log
-})
-tsr.on('error', e => console.log('error', e))
+const tsr = new Conductor()
 tsr.on('info', e => console.log('info', e))
-tsr.on('command', (deviceId, cmd) => console.log('command', deviceId, cmd))
+tsr.on('warning', e => console.log('warning', e))
+tsr.on('error', e => console.log('error', e))
+tsr.on('debug', (deviceId, cmd) => console.log('debug', deviceId, cmd))
 // tsr.on('timelineCallback', e => console.log('timelineCallback', e))
 
 let a = async function () {
@@ -29,8 +28,7 @@ let a = async function () {
 		options: {
 			host: '127.0.0.1'
 			// port: 5250
-		},
-		externalLog: (...args) => console.log(...args)
+		}
 	})
 
 	// Setup mappings from layers to outputs:

@@ -1,11 +1,32 @@
 import * as _ from 'underscore'
-import { Device, DeviceOptions } from './device'
+import {
+	DeviceWithState,
+	DeviceOptions,
+	CommandWithContext,
+	DeviceStatus,
+	StatusCode
+} from './device'
+import {
+	CasparCG,
+	Command as CommandNS,
+	AMCPUtil,
+	AMCP,
+	CasparCGSocketStatusEvent
+} from 'casparcg-connection'
+import {
+	MappingCasparCG,
+	DeviceType,
+	Mapping,
+	TimelineResolvedObjectExtended
+} from './mapping'
 
-import { CasparCG, Command as CommandNS, AMCPUtil, AMCP, CasparCGSocketStatusEvent } from 'casparcg-connection'
-import { MappingCasparCG, DeviceType, Mapping, TimelineResolvedObjectExtended } from './mapping'
-
-import { TimelineState, TimelineResolvedObject } from 'superfly-timeline'
-import { CasparCG as StateNS, CasparCGState } from 'casparcg-state'
+import {
+	TimelineState,
+	TimelineResolvedObject
+} from 'superfly-timeline'
+import {
+	CasparCG as StateNS,
+	CasparCGState } from 'casparcg-state'
 import { Conductor } from '../conductor'
 import { DoOnTime } from '../doOnTime'
 import * as request from 'request'
@@ -42,7 +63,7 @@ export enum TimelineContentTypeCasparCg { //  CasparCG-state
 	ROUTE = 'route',
 	RECORD = 'record'
 }
-export class CasparCGDevice extends Device {
+export class CasparCGDevice extends DeviceWithState<TimelineState> {
 
 	private _ccg: CasparCG
 	private _conductor: Conductor
@@ -54,6 +75,7 @@ export class CasparCGDevice extends Device {
 	private _useScheduling?: boolean
 	private _doOnTime: DoOnTime
 	private _connectionOptions?: CasparCGOptions
+	private _connected: boolean = false
 
 	constructor (deviceId: string, deviceOptions: CasparCGDeviceOptions, options, conductor: Conductor) {
 		super(deviceId, deviceOptions, options)
@@ -67,7 +89,7 @@ export class CasparCGDevice extends Device {
 		this._ccgState = new CasparCGState({
 			currentTime: this.getCurrentTime,
 			externalLog: (...args) => {
-				this._log(...args)
+				this.emit('debug', ...args)
 			}
 		})
 		this._doOnTime = new DoOnTime(() => {
@@ -88,7 +110,8 @@ export class CasparCGDevice extends Device {
 			autoConnect: true,
 			virginServerCheck: true,
 			onConnectionChanged: (connected: boolean) => {
-				this.emit('connectionChanged', connected)
+				this._connected = connected
+				this._connectionChanged()
 			}
 		})
 		this._useScheduling = connectionOptions.useScheduling
@@ -124,6 +147,7 @@ export class CasparCGDevice extends Device {
 	}
 
 	terminate (): Promise<boolean> {
+		this._doOnTime.dispose()
 		return new Promise((resolve) => {
 			this._ccg.disconnect()
 			this._ccg.onDisconnected = () => {
@@ -138,7 +162,7 @@ export class CasparCGDevice extends Device {
 	handleState (newState: TimelineState) {
 		// check if initialized:
 		if (!this._ccgState.isInitialised) {
-			this._log('CasparCG State not initialized yet')
+			this.emit('warning', 'CasparCG State not initialized yet')
 			return
 		}
 
@@ -467,7 +491,9 @@ export class CasparCGDevice extends Device {
 		})
 		.then(() => {
 			// reset our own state(s):
-			this.clearStates()
+			if (okToDestroyStuff) {
+				this.clearStates()
+			}
 			// a resolveTimeline will be triggered later
 		})
 	}
@@ -494,6 +520,11 @@ export class CasparCGDevice extends Device {
 				}
 			)
 		})
+	}
+	getStatus (): DeviceStatus {
+		return {
+			statusCode: this._connected ? StatusCode.GOOD : StatusCode.BAD
+		}
 	}
 
 	private _diffStates (oldState, newState): Array<CommandNS.IAMCPCommandVO> {
@@ -590,15 +621,20 @@ export class CasparCGDevice extends Device {
 	}
 	private _defaultCommandReceiver (time: number, cmd: CommandNS.IAMCPCommand): Promise<any> {
 		time = time
+
+		let cwc: CommandWithContext = {
+			context: null,
+			command: cmd
+		}
+		this.emit('debug', cwc)
+
 		return this._ccg.do(cmd)
 		.then((resCommand) => {
 			if (this._queue[resCommand.token]) {
 				delete this._queue[resCommand.token]
 			}
-			this.emit('command', cmd)
 		}).catch((error) => {
-			this.emit('error', { cmdName: cmd.name, cmd, error })
-			this._log(cmd, error)
+			this.emit('error', Error('Error ' + cmd.name + ' ' + error))
 			if (cmd.name === 'ScheduleSetCommand') {
 				// delete this._queue[cmd.getParam('command').token]
 				delete this._queue[cmd.token]
@@ -624,5 +660,8 @@ export class CasparCGDevice extends Device {
 		]
 
 		return timecode.join(':')
+	}
+	private _connectionChanged () {
+		this.emit('connectionChanged', this.getStatus())
 	}
 }
