@@ -216,6 +216,7 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> {
 	}
 
 	private _diffStates (oldHyperdeckState: DeviceState, newHyperdeckState: DeviceState): Array<HyperdeckCommandWithContext> {
+
 		const commandsToAchieveState: HyperdeckCommandWithContext[] = []
 
 		if (oldHyperdeckState.notify && newHyperdeckState.notify) {
@@ -249,13 +250,16 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> {
 					context: null // TODO
 				})
 			}
-		}
+		} // TODO: else what?
 
 		if (oldHyperdeckState.transport && newHyperdeckState.transport) {
 			switch (newHyperdeckState.transport.status) {
 				case TransportStatus.RECORD:
 					if (oldHyperdeckState.transport.status === newHyperdeckState.transport.status) {
-						if (oldHyperdeckState.transport.recordFilename === undefined || oldHyperdeckState.transport.recordFilename === newHyperdeckState.transport.recordFilename) {
+						if (
+							oldHyperdeckState.transport.recordFilename === undefined ||
+							oldHyperdeckState.transport.recordFilename === newHyperdeckState.transport.recordFilename
+						) {
 							// TODO - sometimes we can loose track of the filename, should we split the record when recovering from that? (it might loose some frames)
 							break
 						}
@@ -282,7 +286,7 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> {
 					break
 			}
 
-		}
+		} // TODO: else what?
 
 		return commandsToAchieveState
 	}

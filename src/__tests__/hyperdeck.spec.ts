@@ -17,7 +17,7 @@ let myChannelMapping0: MappingHyperdeck = {
 }
 
 describe('Hyperdeck', () => {
-	let now: number = 1000
+	let now: number = 10000
 
 	beforeAll(() => {
 		Date.now = jest.fn()
@@ -28,12 +28,19 @@ describe('Hyperdeck', () => {
 	}
 	// function literal<T> (o: T) { return o }
 
+	function advanceTimeTo (time: number) {
+		let t = time - now
+		advanceTime(t)
+		expect(now).toEqual(time)
+	}
+
 	function advanceTime (advanceTime: number) {
+		if (advanceTime < 0) throw Error('Time can only be advanced forwards!')
 		now += advanceTime
 		jest.advanceTimersByTime(advanceTime)
 	}
 	beforeEach(() => {
-		now = 1000
+		now = 10000
 		jest.useFakeTimers()
 	})
 
@@ -64,7 +71,9 @@ describe('Hyperdeck', () => {
 				commandReceiver: commandReceiver0
 			}
 		})
-		advanceTime(100) // 1100
+		advanceTime(100) // 10100
+
+		expect(commandReceiver0).toHaveBeenCalledTimes(0)
 
 		let hyperdeckInstances = Hyperdeck.getMockInstances()
 		expect(hyperdeckInstances).toHaveLength(1)
@@ -85,7 +94,7 @@ describe('Hyperdeck', () => {
 				id: 'obj0',
 				trigger: {
 					type: TriggerType.TIME_ABSOLUTE,
-					value: now - 1000 // 1 seconds in the past
+					value: 9000
 				},
 				duration: 2000,
 				LLayer: 'hyperdeck0_transport',
@@ -101,7 +110,7 @@ describe('Hyperdeck', () => {
 				id: 'obj1',
 				trigger: {
 					type: TriggerType.TIME_ABSOLUTE,
-					value: now + 500 // 0.5 seconds in the future
+					value: 10500
 				},
 				duration: 2000,
 				LLayer: 'hyperdeck0_transport',
@@ -114,7 +123,7 @@ describe('Hyperdeck', () => {
 			}
 		]
 
-		advanceTime(100) // 1200
+		advanceTimeTo(10200)
 
 		expect(commandReceiver0).toHaveBeenCalledTimes(1)
 		expect(commandReceiver0.mock.calls[0][1]).toBeInstanceOf(RecordCommand)
@@ -127,13 +136,17 @@ describe('Hyperdeck', () => {
 			filename: 'sofie_dev'
 		})
 
-		advanceTime(800) // 2000
+		myConductor.timeline = myConductor.timeline // Same timeline
+		advanceTimeTo(10400)
+		expect(hyperdeckMockCommand).toHaveBeenCalledTimes(1) // nothing has changed, so it should not be called again
+
+		advanceTimeTo(12000)
 
 		expect(commandReceiver0).toHaveBeenCalledTimes(2)
 		expect(commandReceiver0.mock.calls[1][1]).toBeInstanceOf(StopCommand)
 		expect(commandReceiver0.mock.calls[1][2]).toBeNull() // context
 
-		advanceTime(500) // 2500
+		advanceTimeTo(13000)
 		expect(commandReceiver0).toHaveBeenCalledTimes(2)
 		// no new commands should have been sent, becuse obj2 is the same as obj1
 	})
