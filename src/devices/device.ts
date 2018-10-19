@@ -53,9 +53,7 @@ export abstract class Device extends EventEmitter implements IDevice {
 	private _deviceId: string
 	private _deviceOptions: DeviceOptions
 
-	private _states: {[time: string]: TimelineState} = {}
 	private _mappings: Mappings
-	private _setStateCount: number = 0
 
 	constructor (deviceId: string, deviceOptions: DeviceOptions, options) {
 		super()
@@ -68,6 +66,7 @@ export abstract class Device extends EventEmitter implements IDevice {
 			this._getCurrentTime = options.getCurrentTime
 		}
 	}
+
 	/**
 	 * Connect to the device, resolve the promise when ready.
 	 * @param connectionOptions Device-specific options
@@ -90,62 +89,6 @@ export abstract class Device extends EventEmitter implements IDevice {
 	abstract get canConnect (): boolean
 	abstract get connected (): boolean
 
-	getStateBefore (time: number): {state: TimelineState, time: number} | null {
-		let foundTime = 0
-		let foundState: TimelineState | null = null
-		_.each(this._states, (state: TimelineState, stateTimeStr: string) => {
-			let stateTime = parseFloat(stateTimeStr)
-			if (stateTime > foundTime && stateTime < time) {
-				foundState = state
-				foundTime = stateTime
-			}
-		})
-		if (foundState) {
-			return {
-				state: foundState,
-				time: foundTime
-			}
-		}
-		return null
-	}
-	setState (state, time) {
-		if (!time) throw new Error('setState: falsy time')
-		this._states[time + ''] = state
-
-		this.cleanUpStates(0, time) // remove states after this time, as they are not relevant anymore
-		this._setStateCount++
-		if (this._setStateCount > 10) {
-			this._setStateCount = 0
-
-			// Clean up old states:
-			let stateBeforeNow = this.getStateBefore(this._getCurrentTime())
-			if (stateBeforeNow && stateBeforeNow.time) {
-				this.cleanUpStates(stateBeforeNow.time - 1, 0)
-			}
-		}
-	}
-	cleanUpStates (removeBeforeTime, removeAfterTime) {
-		_.each(_.keys(this._states), (stateTimeStr: string) => {
-			let stateTime = parseFloat(stateTimeStr)
-			if (
-				(
-					removeBeforeTime &&
-					stateTime < removeBeforeTime
-				) ||
-				(
-					removeAfterTime &&
-					stateTime > removeAfterTime
-				) ||
-				!stateTime) {
-				delete this._states[stateTime]
-			}
-		})
-	}
-	clearStates () {
-		_.each(_.keys(this._states), (time: string) => {
-			delete this._states[time]
-		})
-	}
 	/**
 	 * The makeReady method could be triggered at a time before broadcast
 	 * Whenever we know that the user want's to make sure things are ready for broadcast
@@ -168,6 +111,7 @@ export abstract class Device extends EventEmitter implements IDevice {
 		return Promise.resolve()
 	}
 	abstract getStatus (): DeviceStatus
+
 	get mapping (): Mappings {
 		return this._mappings
 	}
@@ -178,15 +122,140 @@ export abstract class Device extends EventEmitter implements IDevice {
 	get deviceId () {
 		return this._deviceId
 	}
+	set deviceId (deviceId) {
+		this._deviceId = deviceId
+	}
 	/**
 	 * A human-readable name for this device
 	 */
 	abstract get deviceName (): string
-	set deviceId (deviceId) {
-		this._deviceId = deviceId
-	}
 	abstract get deviceType (): DeviceType
 	get deviceOptions (): DeviceOptions {
 		return this._deviceOptions
+	}
+// }
+
+// export abstract class DeviceWithState<T> extends Device {
+// 	private _states: {[time: string]: T} = {}
+// 	private _setStateCount: number = 0
+
+// 	getStateBefore (time: number): {state: T, time: number} | null {
+// 		let foundTime = 0
+// 		let foundState: T | null = null
+// 		_.each(this._states, (state: T, stateTimeStr: string) => {
+// 			let stateTime = parseFloat(stateTimeStr)
+// 			if (stateTime > foundTime && stateTime < time) {
+// 				foundState = state
+// 				foundTime = stateTime
+// 			}
+// 		})
+// 		if (foundState) {
+// 			return {
+// 				state: foundState,
+// 				time: foundTime
+// 			}
+// 		}
+// 		return null
+// 	}
+// 	setState (state: T, time: number) {
+// 		if (!time) throw new Error('setState: falsy time')
+// 		this._states[time + ''] = state
+
+// 		this.cleanUpStates(0, time) // remove states after this time, as they are not relevant anymore
+// 		this._setStateCount++
+// 		if (this._setStateCount > 10) {
+// 			this._setStateCount = 0
+
+// 			// Clean up old states:
+// 			let stateBeforeNow = this.getStateBefore(this.getCurrentTime())
+// 			if (stateBeforeNow && stateBeforeNow.time) {
+// 				this.cleanUpStates(stateBeforeNow.time - 1, 0)
+// 			}
+// 		}
+// 	}
+// 	cleanUpStates (removeBeforeTime: number, removeAfterTime: number) {
+// 		_.each(_.keys(this._states), (stateTimeStr: string) => {
+// 			let stateTime = parseFloat(stateTimeStr)
+// 			if (
+// 				(
+// 					removeBeforeTime &&
+// 					stateTime < removeBeforeTime
+// 				) ||
+// 				(
+// 					removeAfterTime &&
+// 					stateTime > removeAfterTime
+// 				) ||
+// 				!stateTime) {
+// 				delete this._states[stateTime]
+// 			}
+// 		})
+// 	}
+// 	clearStates () {
+// 		_.each(_.keys(this._states), (time: string) => {
+// 			delete this._states[time]
+// 		})
+// 	}
+}
+
+export abstract class DeviceWithState<T> extends Device {
+	private _states: {[time: string]: T} = {}
+	private _setStateCount: number = 0
+
+	getStateBefore (time: number): {state: T, time: number} | null {
+		let foundTime = 0
+		let foundState: T | null = null
+		_.each(this._states, (state: T, stateTimeStr: string) => {
+			let stateTime = parseFloat(stateTimeStr)
+			if (stateTime > foundTime && stateTime < time) {
+				foundState = state
+				foundTime = stateTime
+			}
+		})
+		if (foundState) {
+			return {
+				state: foundState,
+				time: foundTime
+			}
+		}
+		return null
+	}
+	setState (state: T, time: number) {
+		// if (!state.time) throw new Error('setState: falsy state.time')
+		if (!time) throw new Error('setState: falsy time')
+		this._states[time + ''] = state
+
+		this.cleanUpStates(0, time) // remove states after this time, as they are not relevant anymore
+		this._setStateCount++
+		if (this._setStateCount > 10) {
+			this._setStateCount = 0
+
+			// Clean up old states:
+			let stateBeforeNow = this.getStateBefore(this.getCurrentTime())
+			if (stateBeforeNow && stateBeforeNow.time) {
+				this.cleanUpStates(stateBeforeNow.time - 1, 0)
+			}
+		}
+	}
+	cleanUpStates (removeBeforeTime: number, removeAfterTime: number) {
+		_.each(_.keys(this._states), (stateTimeStr: string) => {
+			let stateTime = parseFloat(stateTimeStr)
+			if (
+				(
+					removeBeforeTime &&
+					stateTime < removeBeforeTime
+				) ||
+				(
+					removeAfterTime &&
+					stateTime > removeAfterTime
+				) ||
+				!stateTime) {
+				delete this._states[stateTime]
+			}
+		})
+	}
+	clearStates () {
+		_.each(_.keys(this._states), (time: string) => {
+			delete this._states[time]
+		})
 	}
 }

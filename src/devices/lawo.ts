@@ -1,9 +1,25 @@
 import * as _ from 'underscore'
-import { Device, DeviceOptions, CommandWithContext, DeviceStatus, StatusCode } from './device'
-import { DeviceType, MappingLawo, Mappings } from './mapping'
 
-import { TimelineState, TimelineResolvedObject } from 'superfly-timeline'
-import { DeviceTree, Ember } from 'emberplus'
+import {
+	DeviceWithState,
+	DeviceOptions,
+	CommandWithContext,
+	DeviceStatus,
+	StatusCode
+} from './device'
+import {
+	DeviceType,
+	MappingLawo,
+	Mappings
+} from './mapping'
+import {
+	TimelineState,
+	TimelineResolvedObject
+} from 'superfly-timeline'
+import {
+	DeviceTree,
+	Ember
+} from 'emberplus'
 import { DoOnTime } from '../doOnTime'
 import { getDiff } from '../lib'
 
@@ -75,7 +91,7 @@ export interface LawoCommandWithContext {
 	context: CommandContext
 }
 type CommandContext = string
-export class LawoDevice extends Device {
+export class LawoDevice extends DeviceWithState<TimelineState> {
 	private _doOnTime: DoOnTime
 	private _lawo: DeviceTree
 

@@ -16,6 +16,7 @@ import { AtemDevice } from './devices/atem'
 import { EventEmitter } from 'events'
 import { LawoDevice } from './devices/lawo'
 import { PanasonicPtzDevice } from './devices/panasonicPTZ'
+import { HyperdeckDevice } from './devices/hyperdeck'
 import { DoOnTime } from './doOnTime'
 
 const LOOKAHEADTIME = 5000 // Will look ahead this far into the future
@@ -177,6 +178,8 @@ export class Conductor extends EventEmitter {
 				newDevice = new LawoDevice(deviceId, deviceOptions, options) as Device
 			} else if (deviceOptions.type === DeviceType.PANASONIC_PTZ) {
 				newDevice = new PanasonicPtzDevice(deviceId, deviceOptions, options) as Device
+			} else if (deviceOptions.type === DeviceType.HYPERDECK) {
+				newDevice = new HyperdeckDevice(deviceId, deviceOptions, options, this) as Device
 			} else {
 				return Promise.reject('No matching device type for "' + deviceOptions.type + '" ("' + DeviceType[deviceOptions.type] + '") found')
 			}

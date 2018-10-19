@@ -24,6 +24,11 @@ export interface MappingAtem extends Mapping {
 	mappingType: MappingAtemType
 	index?: number
 }
+export interface MappingHyperdeck extends Mapping {
+	device: DeviceType.HYPERDECK,
+	mappingType: MappingHyperdeckType
+	index?: number
+}
 export interface MappingHTTPSend extends Mapping {
 	device: DeviceType.HTTPSEND
 }
@@ -39,6 +44,9 @@ export enum MappingAtemType {
 	Auxilliary,
 	MediaPlayer,
 	SuperSourceProperties
+}
+export enum MappingHyperdeckType {
+	TRANSPORT = 'transport'
 }
 export enum MappingLawoType {
 	SOURCE = 'source'
@@ -57,7 +65,8 @@ export enum DeviceType {
 	ATEM = 2,
 	LAWO = 3, // yet to be implemented
 	HTTPSEND = 4,
-	PANASONIC_PTZ = 5
+	PANASONIC_PTZ = 5,
+	HYPERDECK = 7
 }
 
 export interface TimelineResolvedObjectExtended extends TimelineResolvedObject {

@@ -1,11 +1,25 @@
 import * as _ from 'underscore'
-import { Device, DeviceOptions, CommandWithContext, DeviceStatus, StatusCode } from './device'
-import { DeviceType, MappingPanasonicPtz, Mappings, MappingPanasonicPtzType } from './mapping'
+import {
+	DeviceWithState,
+	DeviceOptions,
+	CommandWithContext,
+	DeviceStatus,
+	StatusCode
+} from './device'
+import {
+	DeviceType,
+	MappingPanasonicPtz,
+	Mappings,
+	MappingPanasonicPtzType
+} from './mapping'
 import * as request from 'request'
 import * as querystring from 'querystring'
 import { sprintf } from 'sprintf-js'
-
-import { TimelineState, TimelineKeyframe, TimelineResolvedObject } from 'superfly-timeline'
+import {
+	TimelineState,
+	TimelineKeyframe,
+	TimelineResolvedObject
+} from 'superfly-timeline'
 import { DoOnTime } from '../doOnTime'
 import { EventEmitter } from 'events'
 
@@ -333,7 +347,7 @@ export class PanasonicPtzHttpInterface extends EventEmitter {
 }
 
 const PROBE_INTERVAL = 10 * 1000 // Probe every 10s
-export class PanasonicPtzDevice extends Device {
+export class PanasonicPtzDevice extends DeviceWithState<TimelineState> {
 	private _doOnTime: DoOnTime
 	private _device: PanasonicPtzHttpInterface | undefined
 	private _connected: boolean = false

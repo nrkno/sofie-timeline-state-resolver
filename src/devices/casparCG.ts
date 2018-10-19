@@ -1,11 +1,32 @@
 import * as _ from 'underscore'
-import { Device, DeviceOptions, CommandWithContext, DeviceStatus, StatusCode } from './device'
+import {
+	DeviceWithState,
+	DeviceOptions,
+	CommandWithContext,
+	DeviceStatus,
+	StatusCode
+} from './device'
+import {
+	CasparCG,
+	Command as CommandNS,
+	AMCPUtil,
+	AMCP,
+	CasparCGSocketStatusEvent
+} from 'casparcg-connection'
+import {
+	MappingCasparCG,
+	DeviceType,
+	Mapping,
+	TimelineResolvedObjectExtended
+} from './mapping'
 
-import { CasparCG, Command as CommandNS, AMCPUtil, AMCP, CasparCGSocketStatusEvent } from 'casparcg-connection'
-import { MappingCasparCG, DeviceType, Mapping, TimelineResolvedObjectExtended } from './mapping'
-
-import { TimelineState, TimelineResolvedObject } from 'superfly-timeline'
-import { CasparCG as StateNS, CasparCGState } from 'casparcg-state'
+import {
+	TimelineState,
+	TimelineResolvedObject
+} from 'superfly-timeline'
+import {
+	CasparCG as StateNS,
+	CasparCGState } from 'casparcg-state'
 import { Conductor } from '../conductor'
 import { DoOnTime } from '../doOnTime'
 import * as request from 'request'
@@ -42,7 +63,7 @@ export enum TimelineContentTypeCasparCg { //  CasparCG-state
 	ROUTE = 'route',
 	RECORD = 'record'
 }
-export class CasparCGDevice extends Device {
+export class CasparCGDevice extends DeviceWithState<TimelineState> {
 
 	private _ccg: CasparCG
 	private _conductor: Conductor
