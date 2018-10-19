@@ -25,6 +25,18 @@ export interface CommandWithContext {
 	context: any,
 	command: any
 }
+export enum StatusCode {
+	UNKNOWN = 0, 		// Status unknown
+	GOOD = 1, 			// All good and green
+	WARNING_MINOR = 2,	// Everything is not OK, operation is not affected
+	WARNING_MAJOR = 3, 	// Everything is not OK, operation might be affected
+	BAD = 4, 			// Operation affected, possible to recover
+	FATAL = 5			// Operation affected, not possible to recover without manual interference
+}
+export interface DeviceStatus {
+	statusCode: StatusCode,
+	messages?: Array<string>
+}
 // export enum Events {
 
 // }
@@ -34,7 +46,6 @@ interface IDevice {
 	on (event: 'error', 	listener: (err: Error) => void): this
 	on (event: 'debug', 	listener: (...debug: any[]) => void): this
 }
-
 export abstract class Device extends EventEmitter implements IDevice {
 
 	private _getCurrentTime: () => number
@@ -55,6 +66,11 @@ export abstract class Device extends EventEmitter implements IDevice {
 			this._getCurrentTime = options.getCurrentTime
 		}
 	}
+
+	/**
+	 * Connect to the device, resolve the promise when ready.
+	 * @param connectionOptions Device-specific options
+	 */
 	abstract init (connectionOptions: any): Promise<boolean>
 	terminate (): Promise<boolean> {
 		return Promise.resolve(true)
@@ -65,6 +81,10 @@ export abstract class Device extends EventEmitter implements IDevice {
 	}
 
 	abstract handleState (newState: TimelineState)
+	/**
+	 * Clear any scheduled commands after this time
+	 * @param clearAfterTime
+	 */
 	abstract clearFuture (clearAfterTime: number)
 	abstract get canConnect (): boolean
 	abstract get connected (): boolean
@@ -90,6 +110,7 @@ export abstract class Device extends EventEmitter implements IDevice {
 		okToDestroyStuff = okToDestroyStuff
 		return Promise.resolve()
 	}
+	abstract getStatus (): DeviceStatus
 
 	get mapping (): Mappings {
 		return this._mappings
@@ -104,11 +125,76 @@ export abstract class Device extends EventEmitter implements IDevice {
 	set deviceId (deviceId) {
 		this._deviceId = deviceId
 	}
+	/**
+	 * A human-readable name for this device
+	 */
 	abstract get deviceName (): string
 	abstract get deviceType (): DeviceType
 	get deviceOptions (): DeviceOptions {
 		return this._deviceOptions
 	}
+// }
+
+// export abstract class DeviceWithState<T> extends Device {
+// 	private _states: {[time: string]: T} = {}
+// 	private _setStateCount: number = 0
+
+// 	getStateBefore (time: number): {state: T, time: number} | null {
+// 		let foundTime = 0
+// 		let foundState: T | null = null
+// 		_.each(this._states, (state: T, stateTimeStr: string) => {
+// 			let stateTime = parseFloat(stateTimeStr)
+// 			if (stateTime > foundTime && stateTime < time) {
+// 				foundState = state
+// 				foundTime = stateTime
+// 			}
+// 		})
+// 		if (foundState) {
+// 			return {
+// 				state: foundState,
+// 				time: foundTime
+// 			}
+// 		}
+// 		return null
+// 	}
+// 	setState (state: T, time: number) {
+// 		if (!time) throw new Error('setState: falsy time')
+// 		this._states[time + ''] = state
+
+// 		this.cleanUpStates(0, time) // remove states after this time, as they are not relevant anymore
+// 		this._setStateCount++
+// 		if (this._setStateCount > 10) {
+// 			this._setStateCount = 0
+
+// 			// Clean up old states:
+// 			let stateBeforeNow = this.getStateBefore(this.getCurrentTime())
+// 			if (stateBeforeNow && stateBeforeNow.time) {
+// 				this.cleanUpStates(stateBeforeNow.time - 1, 0)
+// 			}
+// 		}
+// 	}
+// 	cleanUpStates (removeBeforeTime: number, removeAfterTime: number) {
+// 		_.each(_.keys(this._states), (stateTimeStr: string) => {
+// 			let stateTime = parseFloat(stateTimeStr)
+// 			if (
+// 				(
+// 					removeBeforeTime &&
+// 					stateTime < removeBeforeTime
+// 				) ||
+// 				(
+// 					removeAfterTime &&
+// 					stateTime > removeAfterTime
+// 				) ||
+// 				!stateTime) {
+// 				delete this._states[stateTime]
+// 			}
+// 		})
+// 	}
+// 	clearStates () {
+// 		_.each(_.keys(this._states), (time: string) => {
+// 			delete this._states[time]
+// 		})
+// 	}
 }
 
 export abstract class DeviceWithState<T> extends Device {

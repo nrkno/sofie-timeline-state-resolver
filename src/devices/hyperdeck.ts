@@ -4,7 +4,9 @@ import { TimelineState } from 'superfly-timeline'
 import {
 	DeviceWithState,
 	DeviceOptions,
-	CommandWithContext
+	CommandWithContext,
+	DeviceStatus,
+	StatusCode
 } from './device'
 import {
 	DeviceType,
@@ -62,7 +64,7 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> {
 
 	private _hyperdeck: Hyperdeck
 	private _initialized: boolean = false
-	private _connected: boolean = false // note: ideally this should be replaced by this._hyperdeck.connected
+	private _connected: boolean = false
 	private _conductor: Conductor
 
 	private _commandReceiver: (time: number, command: HyperdeckCommands.AbstractCommand, context: CommandContext) => Promise<any>
@@ -92,20 +94,19 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> {
 			this._hyperdeck.on('connected', () => {
 				return this._queryCurrentState().then(state => {
 					this.setState(state, this.getCurrentTime())
-					this._connected = true
 					if (firstConnect) { // TODO - or was the call order different before?
 						firstConnect = false
 						this._initialized = true
 						resolve(true)
 					}
-
-					this.emit('connectionChanged', true)
+					this._connected = true
+					this._connectionChanged()
 					this._conductor.resetResolver()
 				})
 			})
 			this._hyperdeck.on('disconnected', () => {
 				this._connected = false
-				this.emit('connectionChanged', false)
+				this._connectionChanged()
 			})
 			this._hyperdeck.on('error', (e) => this.emit('error', e))
 		})
@@ -204,6 +205,12 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> {
 	}
 	get queue () {
 		return this._doOnTime.getQueue()
+	}
+	getStatus (): DeviceStatus {
+		// TODO: add status check here, to set warning if we've set it to record, but it's not
+		return {
+			statusCode: this._connected ? StatusCode.GOOD : StatusCode.BAD
+		}
 	}
 	private _addToQueue (commandsToAchieveState: Array<HyperdeckCommandWithContext>, time: number) {
 		_.each(commandsToAchieveState, (cmd: HyperdeckCommandWithContext) => {
@@ -332,5 +339,8 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> {
 		this.emit('debug', cwc)
 
 		return this._hyperdeck.sendCommand(command)
+	}
+	private _connectionChanged () {
+		this.emit('connectionChanged', this.getStatus())
 	}
 }

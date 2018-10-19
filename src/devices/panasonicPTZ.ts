@@ -1,11 +1,25 @@
 import * as _ from 'underscore'
-import { DeviceWithState, DeviceOptions, CommandWithContext } from './device'
-import { DeviceType, MappingPanasonicPtz, Mappings, MappingPanasonicPtzType } from './mapping'
+import {
+	DeviceWithState,
+	DeviceOptions,
+	CommandWithContext,
+	DeviceStatus,
+	StatusCode
+} from './device'
+import {
+	DeviceType,
+	MappingPanasonicPtz,
+	Mappings,
+	MappingPanasonicPtzType
+} from './mapping'
 import * as request from 'request'
 import * as querystring from 'querystring'
 import { sprintf } from 'sprintf-js'
-
-import { TimelineState, TimelineKeyframe, TimelineResolvedObject } from 'superfly-timeline'
+import {
+	TimelineState,
+	TimelineKeyframe,
+	TimelineResolvedObject
+} from 'superfly-timeline'
 import { DoOnTime } from '../doOnTime'
 import { EventEmitter } from 'events'
 
@@ -66,7 +80,7 @@ export class PanasonicPtzCamera extends EventEmitter {
 	private _url: string
 	private _commandDelay: number
 	private _commandQueue: Array<CommandQueueItem> = []
-	private _executeQueueTimeout: NodeJS.Timer
+	private _executeQueueTimeout: Array<NodeJS.Timer> = []
 
 	constructor (url: string, commandDelay: number = 130) {
 		super()
@@ -83,12 +97,14 @@ export class PanasonicPtzCamera extends EventEmitter {
 		const p: Promise<string> = new Promise((resolve, reject) => {
 			this._commandQueue.push({ command: command, executing: false, resolve: resolve, reject: reject })
 		})
-		if (this._commandQueue.length === 1) this._executeQueue()
+		if (this._commandQueue.filter(i => i.executing).length === 0) this._executeQueue()
 		return p
 	}
 	dispose () {
 		this._commandQueue = []
-		clearTimeout(this._executeQueueTimeout)
+		_.each(this._executeQueueTimeout, (item) => {
+			clearTimeout(item)
+		})
 	}
 
 	private _dropFromQueue (item: CommandQueueItem) {
@@ -101,7 +117,6 @@ export class PanasonicPtzCamera extends EventEmitter {
 	}
 
 	private _executeQueue () {
-		if (this._executeQueueTimeout) clearTimeout(this._executeQueueTimeout)
 		const qItem = this._commandQueue.find(i => !i.executing)
 		if (!qItem) {
 			return
@@ -125,9 +140,17 @@ export class PanasonicPtzCamera extends EventEmitter {
 
 		// find any commands that aren't executing yet and execute one after 130ms
 		if (this._commandQueue.filter(i => !i.executing).length > 0) {
-			this._executeQueueTimeout = setTimeout(() => {
+			const timeout = setTimeout(() => {
+				// remove from timeouts list
+				const index = this._executeQueueTimeout.indexOf(timeout)
+				if (index >= 0) {
+					this._executeQueueTimeout.splice(index, 1)
+				}
+
 				this._executeQueue()
 			}, this._commandDelay)
+			// add to timeouts list so that we can cancel them when disposing
+			this._executeQueueTimeout.push(timeout)
 		}
 	}
 }
@@ -438,6 +461,11 @@ export class PanasonicPtzDevice extends DeviceWithState<TimelineState> {
 		}
 		return Promise.resolve(true)
 	}
+	getStatus (): DeviceStatus {
+		return {
+			statusCode: this._connected ? StatusCode.GOOD : StatusCode.BAD
+		}
+	}
 	private _getDefaultState (): PanasonicPtzState {
 		return {
 			preset: undefined,
@@ -453,7 +481,7 @@ export class PanasonicPtzDevice extends DeviceWithState<TimelineState> {
 		}
 		if (cmd.type === TimelineContentTypePanasonicPtz.PRESET) {
 
-			if (this._device && cmd.preset) {
+			if (this._device && cmd.preset !== undefined) {
 				this.emit('debug', cwc)
 				this._device.recallPreset(cmd.preset)
 				.then((res) => {
@@ -462,7 +490,7 @@ export class PanasonicPtzDevice extends DeviceWithState<TimelineState> {
 				.catch((e) => this.emit('error', e))
 			} // @todo: else: add throw here?
 		} else if (cmd.type === TimelineContentTypePanasonicPtz.SPEED) {
-			if (this._device && cmd.speed) {
+			if (this._device && cmd.speed !== undefined) {
 				this.emit('debug', cwc)
 				this._device.setSpeed(cmd.speed)
 				.then((res) => {
@@ -538,7 +566,10 @@ export class PanasonicPtzDevice extends DeviceWithState<TimelineState> {
 	private _setConnected (connected: boolean) {
 		if (this._connected !== connected) {
 			this._connected = connected
-			this.emit('connectionChanged', this.connected)
+			this._connectionChanged()
 		}
+	}
+	private _connectionChanged () {
+		this.emit('connectionChanged', this.getStatus())
 	}
 }

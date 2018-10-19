@@ -1,10 +1,19 @@
 import * as _ from 'underscore'
-import { DeviceWithState, DeviceOptions, CommandWithContext } from './device'
+import {
+	DeviceWithState,
+	DeviceOptions,
+	CommandWithContext,
+	DeviceStatus,
+	StatusCode
+} from './device'
 import { DeviceType } from './mapping'
 import { DoOnTime } from '../doOnTime'
 import * as request from 'request'
 
-import { TimelineState, TimelineResolvedObject } from 'superfly-timeline'
+import {
+	TimelineState,
+	TimelineResolvedObject
+} from 'superfly-timeline'
 
 /*
 	This is a HTTPSendDevice, it sends http commands when it feels like it
@@ -85,7 +94,12 @@ export class HttpSendDevice extends DeviceWithState<TimelineState> {
 		this._doOnTime.dispose()
 		return Promise.resolve(true)
 	}
-
+	getStatus (): DeviceStatus {
+		// Good, since this device has no status, really
+		return {
+			statusCode: StatusCode.GOOD
+		}
+	}
 	makeReady (okToDestroyStuff?: boolean): Promise<void> {
 		if (okToDestroyStuff && this._makeReadyCommands && this._makeReadyCommands.length > 0) {
 			const time = this.getCurrentTime()

@@ -1,11 +1,32 @@
 import * as _ from 'underscore'
-import { DeviceWithState, DeviceOptions, CommandWithContext } from './device'
+import {
+	DeviceWithState,
+	DeviceOptions,
+	CommandWithContext,
+	DeviceStatus,
+	StatusCode
+} from './device'
+import {
+	CasparCG,
+	Command as CommandNS,
+	AMCPUtil,
+	AMCP,
+	CasparCGSocketStatusEvent
+} from 'casparcg-connection'
+import {
+	MappingCasparCG,
+	DeviceType,
+	Mapping,
+	TimelineResolvedObjectExtended
+} from './mapping'
 
-import { CasparCG, Command as CommandNS, AMCPUtil, AMCP, CasparCGSocketStatusEvent } from 'casparcg-connection'
-import { MappingCasparCG, DeviceType, Mapping, TimelineResolvedObjectExtended } from './mapping'
-
-import { TimelineState, TimelineResolvedObject } from 'superfly-timeline'
-import { CasparCG as StateNS, CasparCGState } from 'casparcg-state'
+import {
+	TimelineState,
+	TimelineResolvedObject
+} from 'superfly-timeline'
+import {
+	CasparCG as StateNS,
+	CasparCGState } from 'casparcg-state'
 import { Conductor } from '../conductor'
 import { DoOnTime } from '../doOnTime'
 import * as request from 'request'
@@ -54,6 +75,7 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> {
 	private _useScheduling?: boolean
 	private _doOnTime: DoOnTime
 	private _connectionOptions?: CasparCGOptions
+	private _connected: boolean = false
 
 	constructor (deviceId: string, deviceOptions: CasparCGDeviceOptions, options, conductor: Conductor) {
 		super(deviceId, deviceOptions, options)
@@ -88,7 +110,8 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> {
 			autoConnect: true,
 			virginServerCheck: true,
 			onConnectionChanged: (connected: boolean) => {
-				this.emit('connectionChanged', connected)
+				this._connected = connected
+				this._connectionChanged()
 			}
 		})
 		this._useScheduling = connectionOptions.useScheduling
@@ -498,6 +521,11 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> {
 			)
 		})
 	}
+	getStatus (): DeviceStatus {
+		return {
+			statusCode: this._connected ? StatusCode.GOOD : StatusCode.BAD
+		}
+	}
 
 	private _diffStates (oldState, newState): Array<CommandNS.IAMCPCommandVO> {
 		let commands: Array<{
@@ -632,5 +660,8 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> {
 		]
 
 		return timecode.join(':')
+	}
+	private _connectionChanged () {
+		this.emit('connectionChanged', this.getStatus())
 	}
 }
