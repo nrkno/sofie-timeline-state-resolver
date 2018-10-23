@@ -1,12 +1,11 @@
-// import {Resolver, Enums} from "superfly-timeline"
-// import { Commands, Atem } from 'atem-connection'
+jest.mock('ws')
 import { TriggerType } from 'superfly-timeline'
 
 import { Mappings, DeviceType, MappingPharos } from '../devices/mapping'
 import { Conductor } from '../conductor'
 import { PharosDevice } from '../devices/pharos'
+const WebSocket = require('../__mocks__/ws')
 
-// let nowActual = Date.now()
 describe('Pharos', () => {
 	let now: number = 10000
 	beforeAll(() => {
@@ -31,10 +30,14 @@ describe('Pharos', () => {
 	beforeEach(() => {
 		now = 10000
 		jest.useFakeTimers()
+
 	})
 	test('Scene', async () => {
-		let commandReceiver0 = jest.fn(() => {
-			return Promise.resolve()
+		let device
+		let commandReceiver0 = jest.fn((...args) => {
+			// pipe through the command
+			return device._defaultCommandReceiver(...args)
+			// return Promise.resolve()
 		})
 		let myLayerMapping0: MappingPharos = {
 			device: DeviceType.PHAROS,
@@ -48,19 +51,55 @@ describe('Pharos', () => {
 			initializeAsClear: true,
 			getCurrentTime: getCurrentTime
 		})
+		let errorHandler = jest.fn()
+		myConductor.on('error', errorHandler)
+
+		let mockReply = jest.fn((_ws: WebSocket, message: string) => {
+			let data = JSON.parse(message)
+			if (data.request === 'project') {
+				return {
+					request: data.request,
+					author: 'Jest',
+					filename: 'filename',
+					name: 'Jest test mock',
+					unique_id: 'abcde123',
+					upload_date: '2018-10-22T08:09:02'
+				}
+			} else {
+				console.log(data)
+			}
+			return ''
+		})
+		WebSocket.mockConstructor((ws: WebSocket) => {
+			// @ts-ignore mock
+			ws.mockReplyFunction((message) => {
+
+				if (message === '') return '' // ping message
+
+				return mockReply(ws, message)
+			})
+		})
+
 		await myConductor.init()
 		await myConductor.addDevice('myPharos', {
 			type: DeviceType.PHAROS,
 			options: {
 				commandReceiver: commandReceiver0,
-				host: '10.0.1.251'
+				host: '127.0.0.1'
 			}
 		})
 		myConductor.mapping = myLayerMapping
+
+		let wsInstances = WebSocket.getMockInstances()
+		expect(wsInstances).toHaveLength(1)
+		// let wsInstance = wsInstances[0]
+
 		advanceTimeTo(10100)
 
-		let device = myConductor.getDevice('myPharos') as PharosDevice
-		// console.log(device._device.state)
+		device = myConductor.getDevice('myPharos') as PharosDevice
+
+		expect(mockReply).toHaveBeenCalledTimes(1)
+		expect(mockReply.mock.calls[0][1]).toMatch(/project/) // get project info
 
 		// Check that no commands has been scheduled:
 		expect(device.queue).toHaveLength(0)
@@ -116,6 +155,9 @@ describe('Pharos', () => {
 
 		advanceTimeTo(10990)
 		expect(commandReceiver0).toHaveBeenCalledTimes(0)
+
+		mockReply.mockReset()
+		expect(mockReply).toHaveBeenCalledTimes(0)
 
 		advanceTimeTo(11500)
 		expect(commandReceiver0).toHaveBeenCalledTimes(1)

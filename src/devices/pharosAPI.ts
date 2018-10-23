@@ -512,6 +512,9 @@ export class Pharos extends EventEmitter {
 			this.once('connected', () => {
 				resolve()
 			})
+			this.once('error', (e) => {
+				reject(e)
+			})
 			setTimeout(() => {
 				reject(new Error('Connection timeout'))
 			}, 3000)
@@ -644,6 +647,8 @@ export class Pharos extends EventEmitter {
 			}
 		} else if (json.redirect) {
 			this.emit('error', `Redirect to ${json.redirect}`)
+		} else {
+			this.emit('error', `Unknown reply: ${json}`)
 		}
 	}
 	private _handleWebsocketError (e) {
