@@ -6,6 +6,7 @@ import { Mappings, DeviceType, MappingTCPSend } from '../devices/mapping'
 import { Conductor } from '../conductor'
 import { TCPSendDevice } from '../devices/TCPSend'
 import { Socket as MockSocket } from 'net'
+import { StatusCode } from '../devices/device'
 
 jest.mock('net')
 let setTimeoutOrg = setTimeout
@@ -189,7 +190,9 @@ describe('TCP-Send', () => {
 		expect(onSocketClose).toHaveBeenCalledTimes(1)
 		await waitALittleBit()
 		expect(onConnectionChanged).toHaveBeenCalledTimes(1)
-		expect(onConnectionChanged.mock.calls[0][0]).toEqual(false)
+		expect(onConnectionChanged.mock.calls[0][0]).toMatchObject({
+			statusCode: StatusCode.BAD
+		})
 
 		// test retry
 		jest.advanceTimersByTime(6000) // enough time has passed
@@ -199,7 +202,9 @@ describe('TCP-Send', () => {
 		expect(onConnection).toHaveBeenCalledTimes(2)
 		await waitALittleBit()
 		expect(onConnectionChanged).toHaveBeenCalledTimes(2)
-		expect(onConnectionChanged.mock.calls[1][0]).toEqual(true)
+		expect(onConnectionChanged.mock.calls[1][0]).toMatchObject({
+			statusCode: StatusCode.GOOD
+		})
 
 		// Test makeReady:
 		await myConductor.devicesMakeReady(true)
@@ -207,8 +212,12 @@ describe('TCP-Send', () => {
 		await waitALittleBit()
 
 		expect(onConnectionChanged).toHaveBeenCalledTimes(4)
-		expect(onConnectionChanged.mock.calls[2][0]).toEqual(false)
-		expect(onConnectionChanged.mock.calls[3][0]).toEqual(true)
+		expect(onConnectionChanged.mock.calls[2][0]).toMatchObject({
+			statusCode: StatusCode.BAD
+		})
+		expect(onConnectionChanged.mock.calls[3][0]).toMatchObject({
+			statusCode: StatusCode.GOOD
+		})
 
 		expect(commandReceiver0).toHaveBeenCalledTimes(4)
 		expect(commandReceiver0.mock.calls[2][1]).toMatchObject({
@@ -223,7 +232,9 @@ describe('TCP-Send', () => {
 
 		expect(onSocketClose).toHaveBeenCalledTimes(2)
 		expect(onConnectionChanged).toHaveBeenCalledTimes(5)
-		expect(onConnectionChanged.mock.calls[4][0]).toEqual(false)
+		expect(onConnectionChanged.mock.calls[4][0]).toMatchObject({
+			statusCode: StatusCode.BAD
+		})
 
 		// expect(0).toEqual(1)
 	})

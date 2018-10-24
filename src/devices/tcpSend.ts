@@ -1,6 +1,6 @@
 import { Socket } from 'net'
 import * as _ from 'underscore'
-import { Device, DeviceOptions, CommandWithContext } from './device'
+import { DeviceOptions, CommandWithContext, DeviceWithState, DeviceStatus, StatusCode } from './device'
 import { DeviceType } from './mapping'
 import { DoOnTime } from '../doOnTime'
 
@@ -37,7 +37,7 @@ interface LLayer extends TimelineResolvedObject {
 	}
 }
 type CommandContext = any
-export class TCPSendDevice extends Device {
+export class TCPSendDevice extends DeviceWithState<TimelineState> {
 
 	private _makeReadyCommands: CommandContent[]
 	private _doOnTime: DoOnTime
@@ -149,11 +149,16 @@ export class TCPSendDevice extends Device {
 	get queue () {
 		return this._doOnTime.getQueue()
 	}
+	getStatus (): DeviceStatus {
+		return {
+			statusCode: this._connected ? StatusCode.GOOD : StatusCode.BAD
+		}
+	}
 	private _setConnected (connected: boolean) {
 		if (this._connected !== connected) {
 
 			this._connected = connected
-			this.emit('connectionChanged', connected)
+			this._connectionChanged()
 
 			if (!connected) {
 				this._triggerRetryConnection()
@@ -329,5 +334,8 @@ export class TCPSendDevice extends Device {
 		} else {
 			return Promise.reject('tcpCommand.message not set')
 		}
+	}
+	private _connectionChanged () {
+		this.emit('connectionChanged', this.getStatus())
 	}
 }
