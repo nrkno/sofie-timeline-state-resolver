@@ -1,5 +1,11 @@
 import * as _ from 'underscore'
-import { Device, DeviceOptions, CommandWithContext } from './device'
+import {
+	DeviceWithState,
+	DeviceOptions,
+	CommandWithContext,
+	DeviceStatus,
+	StatusCode
+} from './device'
 import { DeviceType } from './mapping'
 
 import { TimelineState, TimelineResolvedObject } from 'superfly-timeline'
@@ -23,7 +29,7 @@ export interface Command {
 }
 type CommandContent = any
 type CommandContext = string
-export class AbstractDevice extends Device {
+export class AbstractDevice extends DeviceWithState<TimelineState> {
 	private _doOnTime: DoOnTime
 	// private _queue: Array<any>
 
@@ -94,6 +100,11 @@ export class AbstractDevice extends Device {
 	}
 	get queue () {
 		return this._doOnTime.getQueue()
+	}
+	getStatus (): DeviceStatus {
+		return {
+			statusCode: StatusCode.GOOD
+		}
 	}
 	private _addToQueue (commandsToAchieveState: Array<Command>, time: number) {
 		_.each(commandsToAchieveState, (cmd: Command) => {

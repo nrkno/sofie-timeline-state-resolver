@@ -1,11 +1,29 @@
 import * as _ from 'underscore'
 import * as underScoreDeepExtend from 'underscore-deep-extend'
-import { Device, DeviceOptions, CommandWithContext } from './device'
-import { DeviceType, MappingAtem, MappingAtemType, TimelineResolvedObjectExtended } from './mapping'
-
+import {
+	DeviceWithState,
+	DeviceOptions,
+	CommandWithContext,
+	DeviceStatus,
+	StatusCode
+} from './device'
+import {
+	DeviceType,
+	MappingAtem,
+	MappingAtemType,
+	TimelineResolvedObjectExtended
+} from './mapping'
 import { TimelineState } from 'superfly-timeline'
-import { Atem, VideoState, Commands as AtemCommands } from 'atem-connection'
-import { AtemState, State as DeviceState, Defaults as StateDefault } from 'atem-state'
+import {
+	Atem,
+	VideoState,
+	Commands as AtemCommands
+} from 'atem-connection'
+import {
+	AtemState,
+	State as DeviceState,
+	Defaults as StateDefault
+} from 'atem-state'
 import { DoOnTime } from '../doOnTime'
 import { Conductor } from '../conductor'
 
@@ -40,7 +58,7 @@ export interface AtemCommandWithContext {
 	context: CommandContext
 }
 type CommandContext = any
-export class AtemDevice extends Device {
+export class AtemDevice extends DeviceWithState<DeviceState> {
 
 	// private _queue: Array<any>
 	private _doOnTime: DoOnTime
@@ -50,6 +68,8 @@ export class AtemDevice extends Device {
 	private _initialized: boolean = false
 	private _connected: boolean = false // note: ideally this should be replaced by this._atem.connected
 	private _conductor: Conductor
+
+	private firstStateAfterMakeReady: boolean = true // note: temprorary for some improved logging
 
 	private _commandReceiver: (time: number, command: AtemCommands.AbstractCommand, context: CommandContext) => Promise<any>
 
@@ -74,10 +94,7 @@ export class AtemDevice extends Device {
 			// This is where we would do initialization, like connecting to the devices, etc
 			this._state = new AtemState()
 			this._atem = new Atem()
-			this._atem.connect(options.host, options.port)
 			this._atem.once('connected', () => {
-				// console.log('-------------- ATEM CONNECTED')
-				// this.emit('connectionChanged', true)
 				// check if state has been initialized:
 				this._connected = true
 				this._initialized = true
@@ -86,14 +103,16 @@ export class AtemDevice extends Device {
 			this._atem.on('connected', () => {
 				this.setState(this._atem.state, this.getCurrentTime())
 				this._connected = true
-				this.emit('connectionChanged', true)
+				this._connectionChanged()
 				this._conductor.resetResolver()
 			})
 			this._atem.on('disconnected', () => {
 				this._connected = false
-				this.emit('connectionChanged', false)
+				this._connectionChanged()
 			})
 			this._atem.on('error', (e) => this.emit('error', e))
+
+			this._atem.connect(options.host, options.port)
 		})
 	}
 	terminate (): Promise<boolean> {
@@ -110,6 +129,7 @@ export class AtemDevice extends Device {
 	}
 
 	makeReady (okToDestroyStuff?: boolean): Promise<void> {
+		this.firstStateAfterMakeReady = true
 		if (okToDestroyStuff) {
 			this._doOnTime.clearQueueNowAndAfter(this.getCurrentTime())
 			this.setState(this._atem.state, this.getCurrentTime())
@@ -128,10 +148,15 @@ export class AtemDevice extends Device {
 			this.emit('info', 'Atem not initialized yet')
 			return
 		}
-		let oldState = (this.getStateBefore(newState.time) || { state: this._getDefaultState() }).state
+		let oldState: DeviceState = (this.getStateBefore(newState.time) || { state: this._getDefaultState() }).state
 
 		let oldAtemState = oldState
 		let newAtemState = this.convertStateToAtem(newState)
+
+		if (this.firstStateAfterMakeReady) {
+			this.firstStateAfterMakeReady = false
+			this.emit('info', { reason: 'firstStateAfterMakeReady', before: (oldAtemState || {}).video, after: (newAtemState || {}).video })
+		}
 
 		// @ts-ignore
 		// console.log('newAtemState', JSON.stringify(newAtemState, ' ', 2))
@@ -247,6 +272,34 @@ export class AtemDevice extends Device {
 	get queue () {
 		return this._doOnTime.getQueue()
 	}
+	public getStatus (): DeviceStatus {
+		let statusCode = StatusCode.GOOD
+		let messages: Array<string> = []
+
+		if (statusCode === StatusCode.GOOD) {
+			if (!this._connected) {
+				statusCode = StatusCode.BAD
+				messages.push(`Atem disconnected`)
+			}
+		}
+		if (statusCode === StatusCode.GOOD) {
+			let psus = this._atem.state.info.power || []
+
+			// psus = [true, false] // tmp test
+			_.each(psus, (psu: boolean, i: number) => {
+				if (!psu) {
+					statusCode = StatusCode.WARNING_MAJOR
+					messages.push(`Atem PSU ${i + 1}/${psus.length} is faulty`)
+				}
+			})
+		}
+
+		let deviceStatus: DeviceStatus = {
+			statusCode: statusCode,
+			messages: messages
+		}
+		return deviceStatus
+	}
 	private _addToQueue (commandsToAchieveState: Array<AtemCommandWithContext>, time: number) {
 		_.each(commandsToAchieveState, (cmd: AtemCommandWithContext) => {
 
@@ -256,7 +309,7 @@ export class AtemDevice extends Device {
 			}, cmd)
 		})
 	}
-	private _diffStates (oldAbstractState, newAbstractState): Array<AtemCommandWithContext> {
+	private _diffStates (oldAbstractState: DeviceState, newAbstractState: DeviceState): Array<AtemCommandWithContext> {
 		return _.map(
 			this._state.diffStates(oldAbstractState, newAbstractState),
 			(cmd: any) => {
@@ -301,8 +354,7 @@ export class AtemDevice extends Device {
 		return deviceState
 	}
 
-	private _defaultCommandReceiver (time: number, command: AtemCommands.AbstractCommand, context: CommandContext): Promise<any> {
-		time = time // seriously this needs to stop
+	private _defaultCommandReceiver (_time: number, command: AtemCommands.AbstractCommand, context: CommandContext): Promise<any> {
 		let cwc: CommandWithContext = {
 			context: context,
 			command: command
@@ -312,5 +364,8 @@ export class AtemDevice extends Device {
 		return this._atem.sendCommand(command).then(() => {
 			// @todo: command was acknowledged by atem, how will we check if it did what we wanted?
 		})
+	}
+	private _connectionChanged () {
+		this.emit('connectionChanged', this.getStatus())
 	}
 }

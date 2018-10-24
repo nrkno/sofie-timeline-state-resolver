@@ -1,9 +1,25 @@
 import * as _ from 'underscore'
-import { Device, DeviceOptions, CommandWithContext } from './device'
-import { DeviceType, MappingLawo, Mappings } from './mapping'
 
-import { TimelineState, TimelineResolvedObject } from 'superfly-timeline'
-import { DeviceTree, Ember } from 'emberplus'
+import {
+	DeviceWithState,
+	DeviceOptions,
+	CommandWithContext,
+	DeviceStatus,
+	StatusCode
+} from './device'
+import {
+	DeviceType,
+	MappingLawo,
+	Mappings
+} from './mapping'
+import {
+	TimelineState,
+	TimelineResolvedObject
+} from 'superfly-timeline'
+import {
+	DeviceTree,
+	Ember
+} from 'emberplus'
 import { DoOnTime } from '../doOnTime'
 import { getDiff } from '../lib'
 
@@ -75,7 +91,7 @@ export interface LawoCommandWithContext {
 	context: CommandContext
 }
 type CommandContext = string
-export class LawoDevice extends Device {
+export class LawoDevice extends DeviceWithState<TimelineState> {
 	private _doOnTime: DoOnTime
 	private _lawo: DeviceTree
 
@@ -243,10 +259,15 @@ export class LawoDevice extends Device {
 	get mapping () {
 		return super.mapping
 	}
+	getStatus (): DeviceStatus {
+		return {
+			statusCode: this._connected ? StatusCode.GOOD : StatusCode.BAD
+		}
+	}
 	private _setConnected (connected: boolean) {
 		if (this._connected !== connected) {
 			this._connected = connected
-			this.emit('connectionChanged', this._connected)
+			this._connectionChanged()
 		}
 	}
 	private _addToQueue (commandsToAchieveState: Array<LawoCommandWithContext>, time: number) {
@@ -329,9 +350,14 @@ export class LawoDevice extends Device {
 				.then((res) => {
 					this.emit('debug', `Ember function result: ${JSON.stringify(res)}`)
 				})
-				.catch((e) => {
-					this.emit('error', `Ember function command error: ${e.toString()}`)
-				})
+					.catch((e) => {
+						if (e.success === false) { // @todo: QualifiedFunction Fader/Motor cannot handle too short durations or small value changes
+							this.emit('command', command)
+							this.emit('info', `Ember function result: ${JSON.stringify(e)}`)
+						} else {
+							this.emit('error', `Ember function command error: ${e.toString()}`)
+						}
+					})
 
 			} else { // withouth timed fader movement
 				return this._getNodeByPath(command.path)
@@ -350,5 +376,8 @@ export class LawoDevice extends Device {
 			// this.emit('error', `Ember command error: ${e.toString()}`)
 			return Promise.reject(`Lawo: Unsupported command.key: "${command.key}"`)
 		}
+	}
+	private _connectionChanged () {
+		this.emit('connectionChanged', this.getStatus())
 	}
 }

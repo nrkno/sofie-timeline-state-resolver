@@ -16,8 +16,10 @@ import { AtemDevice } from './devices/atem'
 import { EventEmitter } from 'events'
 import { LawoDevice } from './devices/lawo'
 import { PanasonicPtzDevice } from './devices/panasonicPTZ'
+import { HyperdeckDevice } from './devices/hyperdeck'
 import { DoOnTime } from './doOnTime'
 import { TCPSendDevice } from './devices/tcpSend'
+import { PharosDevice } from './devices/pharos'
 
 const LOOKAHEADTIME = 5000 // Will look ahead this far into the future
 const PREPARETIME = 2000 // Will prepare commands this time before the event is to happen
@@ -180,6 +182,10 @@ export class Conductor extends EventEmitter {
 				newDevice = new PanasonicPtzDevice(deviceId, deviceOptions, options) as Device
 			} else if (deviceOptions.type === DeviceType.TCPSEND) {
 				newDevice = new TCPSendDevice(deviceId, deviceOptions, options) as Device
+			} else if (deviceOptions.type === DeviceType.HYPERDECK) {
+				newDevice = new HyperdeckDevice(deviceId, deviceOptions, options, this) as Device
+			} else if (deviceOptions.type === DeviceType.PHAROS) {
+				newDevice = new PharosDevice(deviceId, deviceOptions, options) as Device
 			} else {
 				return Promise.reject('No matching device type for "' + deviceOptions.type + '" ("' + DeviceType[deviceOptions.type] + '") found')
 			}

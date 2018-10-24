@@ -1,11 +1,25 @@
 import * as _ from 'underscore'
-import { Device, DeviceOptions, CommandWithContext } from './device'
-import { DeviceType, MappingPanasonicPtz, Mappings, MappingPanasonicPtzType } from './mapping'
+import {
+	DeviceWithState,
+	DeviceOptions,
+	CommandWithContext,
+	DeviceStatus,
+	StatusCode
+} from './device'
+import {
+	DeviceType,
+	MappingPanasonicPtz,
+	Mappings,
+	MappingPanasonicPtzType
+} from './mapping'
 import * as request from 'request'
 import * as querystring from 'querystring'
 import { sprintf } from 'sprintf-js'
-
-import { TimelineState, TimelineKeyframe, TimelineResolvedObject } from 'superfly-timeline'
+import {
+	TimelineState,
+	TimelineKeyframe,
+	TimelineResolvedObject
+} from 'superfly-timeline'
 import { DoOnTime } from '../doOnTime'
 import { EventEmitter } from 'events'
 
@@ -25,21 +39,18 @@ export interface TimelineObjPanasonicPtz extends TimelineResolvedObject {
 	content: {
 		keyframes?: Array<TimelineKeyframe>
 		type: TimelineContentTypePanasonicPtz
-		identifier: string
 	}
 }
 export interface TimelineObjPanasonicPtzPresetSpeed extends TimelineObjPanasonicPtz {
 	content: {
 		type: TimelineContentTypePanasonicPtz.SPEED
 		speed: number
-		identifier: string
 	}
 }
 
 export interface TimelineObjPanasonicPtzPreset extends TimelineObjPanasonicPtz {
 	content: {
 		type: TimelineContentTypePanasonicPtz.PRESET
-		identifier: string
 		preset: number
 	}
 }
@@ -54,7 +65,7 @@ export interface PanasonicPtzCommand {
 	speed?: number,
 	preset?: number
 }
-export interface PanasonicPtzCommandWitContext {
+export interface PanasonicPtzCommandWithContext {
 	command: PanasonicPtzCommand,
 	context: CommandContext
 }
@@ -69,7 +80,7 @@ export class PanasonicPtzCamera extends EventEmitter {
 	private _url: string
 	private _commandDelay: number
 	private _commandQueue: Array<CommandQueueItem> = []
-	private _executeQueueTimeout: NodeJS.Timer
+	private _executeQueueTimeout: Array<NodeJS.Timer> = []
 
 	constructor (url: string, commandDelay: number = 130) {
 		super()
@@ -86,12 +97,14 @@ export class PanasonicPtzCamera extends EventEmitter {
 		const p: Promise<string> = new Promise((resolve, reject) => {
 			this._commandQueue.push({ command: command, executing: false, resolve: resolve, reject: reject })
 		})
-		if (this._commandQueue.length === 1) this._executeQueue()
+		if (this._commandQueue.filter(i => i.executing).length === 0) this._executeQueue()
 		return p
 	}
 	dispose () {
 		this._commandQueue = []
-		clearTimeout(this._executeQueueTimeout)
+		_.each(this._executeQueueTimeout, (item) => {
+			clearTimeout(item)
+		})
 	}
 
 	private _dropFromQueue (item: CommandQueueItem) {
@@ -104,7 +117,6 @@ export class PanasonicPtzCamera extends EventEmitter {
 	}
 
 	private _executeQueue () {
-		if (this._executeQueueTimeout) clearTimeout(this._executeQueueTimeout)
 		const qItem = this._commandQueue.find(i => !i.executing)
 		if (!qItem) {
 			return
@@ -128,9 +140,17 @@ export class PanasonicPtzCamera extends EventEmitter {
 
 		// find any commands that aren't executing yet and execute one after 130ms
 		if (this._commandQueue.filter(i => !i.executing).length > 0) {
-			this._executeQueueTimeout = setTimeout(() => {
+			const timeout = setTimeout(() => {
+				// remove from timeouts list
+				const index = this._executeQueueTimeout.indexOf(timeout)
+				if (index >= 0) {
+					this._executeQueueTimeout.splice(index, 1)
+				}
+
 				this._executeQueue()
 			}, this._commandDelay)
+			// add to timeouts list so that we can cancel them when disposing
+			this._executeQueueTimeout.push(timeout)
 		}
 	}
 }
@@ -327,7 +347,7 @@ export class PanasonicPtzHttpInterface extends EventEmitter {
 }
 
 const PROBE_INTERVAL = 10 * 1000 // Probe every 10s
-export class PanasonicPtzDevice extends Device {
+export class PanasonicPtzDevice extends DeviceWithState<TimelineState> {
 	private _doOnTime: DoOnTime
 	private _device: PanasonicPtzHttpInterface | undefined
 	private _connected: boolean = false
@@ -420,7 +440,7 @@ export class PanasonicPtzDevice extends Device {
 		let oldPtzState = this.convertStateToPtz(oldState)
 		let newPtzState = this.convertStateToPtz(newState)
 
-		let commandsToAchieveState: Array<PanasonicPtzCommandWitContext> = this._diffStates(oldPtzState, newPtzState)
+		let commandsToAchieveState: Array<PanasonicPtzCommandWithContext> = this._diffStates(oldPtzState, newPtzState)
 
 		// clear any queued commands later than this time:
 		this._doOnTime.clearQueueNowAndAfter(newState.time)
@@ -441,6 +461,11 @@ export class PanasonicPtzDevice extends Device {
 		}
 		return Promise.resolve(true)
 	}
+	getStatus (): DeviceStatus {
+		return {
+			statusCode: this._connected ? StatusCode.GOOD : StatusCode.BAD
+		}
+	}
 	private _getDefaultState (): PanasonicPtzState {
 		return {
 			preset: undefined,
@@ -456,7 +481,7 @@ export class PanasonicPtzDevice extends Device {
 		}
 		if (cmd.type === TimelineContentTypePanasonicPtz.PRESET) {
 
-			if (this._device && cmd.preset) {
+			if (this._device && cmd.preset !== undefined) {
 				this.emit('debug', cwc)
 				this._device.recallPreset(cmd.preset)
 				.then((res) => {
@@ -465,7 +490,7 @@ export class PanasonicPtzDevice extends Device {
 				.catch((e) => this.emit('error', e))
 			} // @todo: else: add throw here?
 		} else if (cmd.type === TimelineContentTypePanasonicPtz.SPEED) {
-			if (this._device && cmd.speed) {
+			if (this._device && cmd.speed !== undefined) {
 				this.emit('debug', cwc)
 				this._device.setSpeed(cmd.speed)
 				.then((res) => {
@@ -476,18 +501,18 @@ export class PanasonicPtzDevice extends Device {
 		}
 	}
 
-	private _addToQueue (commandsToAchieveState: Array<PanasonicPtzCommandWitContext>, time: number) {
-		_.each(commandsToAchieveState, (cmd: PanasonicPtzCommandWitContext) => {
+	private _addToQueue (commandsToAchieveState: Array<PanasonicPtzCommandWithContext>, time: number) {
+		_.each(commandsToAchieveState, (cmd: PanasonicPtzCommandWithContext) => {
 
 			// add the new commands to the queue:
-			this._doOnTime.queue(time, (cmd: PanasonicPtzCommandWitContext) => {
+			this._doOnTime.queue(time, (cmd: PanasonicPtzCommandWithContext) => {
 				return this._commandReceiver(time, cmd.command, cmd.context)
 			}, cmd)
 		})
 	}
-	private _diffStates (oldPtzState: PanasonicPtzState, newPtzState: PanasonicPtzState): Array<PanasonicPtzCommandWitContext> {
+	private _diffStates (oldPtzState: PanasonicPtzState, newPtzState: PanasonicPtzState): Array<PanasonicPtzCommandWithContext> {
 
-		let commands: Array<PanasonicPtzCommandWitContext> = []
+		let commands: Array<PanasonicPtzCommandWithContext> = []
 
 		let addCommands = (newNode: PanasonicPtzState, oldValue: PanasonicPtzState) => {
 			if (newNode.preset !== oldValue.preset && newNode.preset !== undefined) {
@@ -541,7 +566,10 @@ export class PanasonicPtzDevice extends Device {
 	private _setConnected (connected: boolean) {
 		if (this._connected !== connected) {
 			this._connected = connected
-			this.emit('connectionChanged', this.connected)
+			this._connectionChanged()
 		}
+	}
+	private _connectionChanged () {
+		this.emit('connectionChanged', this.getStatus())
 	}
 }
