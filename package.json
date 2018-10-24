@@ -138,6 +138,7 @@
   "dependencies": {
     "@types/request": "^2.47.0",
     "@types/sprintf-js": "^1.1.0",
+    "@types/ws": "^6.0.1",
     "atem-connection": "^0.6.0",
     "atem-state": "^0.3.6",
     "casparcg-connection": "^4.5.3",
@@ -149,7 +150,8 @@
     "sprintf-js": "^1.1.1",
     "superfly-timeline": "^6.0.1",
     "underscore": "^1.9.1",
-    "underscore-deep-extend": "^1.1.5"
+    "underscore-deep-extend": "^1.1.5",
+    "ws": "^6.1.0"
   },
   "standard-version": {
     "message": "chore(release): %s [skip ci]",
