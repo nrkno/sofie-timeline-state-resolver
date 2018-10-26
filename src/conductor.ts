@@ -247,11 +247,14 @@ export class Conductor extends EventEmitter {
 	public devicesMakeReady (okToDestroyStuff?: boolean): Promise<void> {
 		let p = Promise.resolve()
 		_.each(this.devices, (device: Device) => {
+			// TODO - run these in parallel?
 			p = p.then(() => {
 				return device.makeReady(okToDestroyStuff)
 			})
 		})
-		this._resolveTimeline()
+		p = p.then(() => {
+			this._resolveTimeline()
+		})
 		return p
 	}
 	/**

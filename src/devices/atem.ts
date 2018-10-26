@@ -101,6 +101,8 @@ export class AtemDevice extends DeviceWithState<DeviceState> {
 				resolve(true)
 			})
 			this._atem.on('connected', () => {
+				this._doOnTime.clearQueueNowAndAfter(this.getCurrentTime())
+				this.clearStates()
 				this.setState(this._atem.state, this.getCurrentTime())
 				this._connected = true
 				this._connectionChanged()
@@ -132,6 +134,7 @@ export class AtemDevice extends DeviceWithState<DeviceState> {
 		this.firstStateAfterMakeReady = true
 		if (okToDestroyStuff) {
 			this._doOnTime.clearQueueNowAndAfter(this.getCurrentTime())
+			this.clearStates()
 			this.setState(this._atem.state, this.getCurrentTime())
 		}
 		return Promise.resolve()
