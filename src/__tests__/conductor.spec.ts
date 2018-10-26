@@ -44,12 +44,10 @@ describe('Conductor', () => {
 		let myLayerMapping0: MappingAbstract = {
 			device: DeviceType.ABSTRACT,
 			deviceId: 'device0',
-			abstractPipe: 32
 		}
 		let myLayerMapping1: MappingAbstract = {
 			device: DeviceType.ABSTRACT,
 			deviceId: 'device1',
-			abstractPipe: 33
 		}
 		let myLayerMapping: Mappings = {
 			'myLayer0': myLayerMapping0,
@@ -205,7 +203,6 @@ describe('Conductor', () => {
 		let myLayerMapping0: MappingAbstract = {
 			device: DeviceType.ABSTRACT,
 			deviceId: 'device0',
-			abstractPipe: 32
 		}
 		let myLayerMapping: Mappings = {
 			'myLayer0': myLayerMapping0

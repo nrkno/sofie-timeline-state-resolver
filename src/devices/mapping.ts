@@ -16,8 +16,7 @@ export interface MappingCasparCG extends Mapping {
 	layer: number
 }
 export interface MappingAbstract extends Mapping {
-	device: DeviceType.ABSTRACT,
-	abstractPipe: number
+	device: DeviceType.ABSTRACT
 }
 export interface MappingAtem extends Mapping {
 	device: DeviceType.ATEM,
