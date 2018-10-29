@@ -52,7 +52,9 @@ export enum MappingLawoType {
 }
 export enum MappingPanasonicPtzType {
 	PRESET_SPEED = 0,
-	PRESET = 1
+	PRESET = 1,
+	ZOOM = 2,
+	ZOOM_SPEED = 3
 }
 export interface MappingPanasonicPtz extends Mapping {
 	device: DeviceType.PANASONIC_PTZ

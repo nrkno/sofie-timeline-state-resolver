@@ -30,7 +30,9 @@ export interface PanasonicPtzOptions extends DeviceOptions {
 }
 export enum TimelineContentTypePanasonicPtz {
 	PRESET = 'presetMem',
-	SPEED = 'presetSpeed'
+	SPEED = 'presetSpeed',
+	ZOOM_SPEED = 'zoomSpeed',
+	ZOOM = 'zoom'
 }
 export interface TimelineObjPanasonicPtz extends TimelineResolvedObject {
 	content: {
@@ -38,6 +40,20 @@ export interface TimelineObjPanasonicPtz extends TimelineResolvedObject {
 		type: TimelineContentTypePanasonicPtz
 	}
 }
+export interface TimelineObjPanasonicPtzZoomSpeed extends TimelineObjPanasonicPtz {
+	content: {
+		type: TimelineContentTypePanasonicPtz.ZOOM_SPEED
+		zoomSpeed: number
+	}
+}
+
+export interface TimelineObjPanasonicPtzZoom extends TimelineObjPanasonicPtz {
+	content: {
+		type: TimelineContentTypePanasonicPtz.ZOOM
+		zoom: number
+	}
+}
+
 export interface TimelineObjPanasonicPtzPresetSpeed extends TimelineObjPanasonicPtz {
 	content: {
 		type: TimelineContentTypePanasonicPtz.SPEED
@@ -54,13 +70,17 @@ export interface TimelineObjPanasonicPtzPreset extends TimelineObjPanasonicPtz {
 
 export interface PanasonicPtzState {
 	speed: number | undefined,
-	preset: number | undefined
+	preset: number | undefined,
+	zoomSpeed: number | undefined,
+	zoom: number | undefined
 }
 
 export interface PanasonicPtzCommand {
 	type: TimelineContentTypePanasonicPtz,
 	speed?: number,
-	preset?: number
+	preset?: number,
+	zoomSpeed?: number, // -1 is full speed WIDE, +1 is full speed TELE, 0 is stationary
+	zoom?: number // 0 is WIDE, 1 is TELE
 }
 export interface PanasonicPtzCommandWithContext {
 	command: PanasonicPtzCommand,
@@ -148,6 +168,16 @@ export class PanasonicPtzDevice extends DeviceWithState<TimelineState> {
 					_.extend(ptzState, {
 						speed: tlObjectSource.content.speed
 					})
+				} else if (mapping.mappingType === MappingPanasonicPtzType.ZOOM_SPEED) {
+					let tlObjectSource = tlObject as TimelineObjPanasonicPtzZoomSpeed
+					_.extend(ptzState, {
+						zoomSpeed: tlObjectSource.content.zoomSpeed
+					})
+				} else if (mapping.mappingType === MappingPanasonicPtzType.ZOOM) {
+					let tlObjectSource = tlObject as TimelineObjPanasonicPtzZoom
+					_.extend(ptzState, {
+						zoom: tlObjectSource.content.zoom
+					})
 				}
 			}
 		})
@@ -191,7 +221,9 @@ export class PanasonicPtzDevice extends DeviceWithState<TimelineState> {
 	private _getDefaultState (): PanasonicPtzState {
 		return {
 			preset: undefined,
-			speed: undefined
+			speed: undefined,
+			zoomSpeed: undefined,
+			zoom: undefined
 		}
 	}
 
@@ -202,7 +234,6 @@ export class PanasonicPtzDevice extends DeviceWithState<TimelineState> {
 			command: cmd
 		}
 		if (cmd.type === TimelineContentTypePanasonicPtz.PRESET) {
-
 			if (this._device && cmd.preset !== undefined) {
 				this.emit('debug', cwc)
 				this._device.recallPreset(cmd.preset)
@@ -215,6 +246,26 @@ export class PanasonicPtzDevice extends DeviceWithState<TimelineState> {
 			if (this._device && cmd.speed !== undefined) {
 				this.emit('debug', cwc)
 				this._device.setSpeed(cmd.speed)
+				.then((res) => {
+					this.emit('debug', `Panasonic PTZ result: ${res}`)
+				})
+				.catch((e) => this.emit('error', e))
+			} // @todo: else: add throw here?
+		} else if (cmd.type === TimelineContentTypePanasonicPtz.ZOOM_SPEED) {
+			if (this._device && cmd.zoomSpeed !== undefined) {
+				this.emit('debug', cwc)
+				// scale -1 - 0 - +1 range to 01 - 50 - 99 range
+				this._device.setZoomSpeed((cmd.zoomSpeed * 49) + 50)
+				.then((res) => {
+					this.emit('debug', `Panasonic PTZ result: ${res}`)
+				})
+				.catch((e) => this.emit('error', e))
+			} // @todo: else: add throw here?
+		} else if (cmd.type === TimelineContentTypePanasonicPtz.ZOOM) {
+			if (this._device && cmd.zoom !== undefined) {
+				this.emit('debug', cwc)
+				// scale 0 - +1 range to 555h - FFFh range
+				this._device.setZoom((cmd.zoom * 0xAAA) + 0x555)
 				.then((res) => {
 					this.emit('debug', `Panasonic PTZ result: ${res}`)
 				})
@@ -252,7 +303,25 @@ export class PanasonicPtzDevice extends DeviceWithState<TimelineState> {
 						type: TimelineContentTypePanasonicPtz.SPEED,
 						speed: newNode.speed
 					},
-					context: `preset differ (${newNode.speed}, ${oldValue.speed})`
+					context: `preset spped differ (${newNode.speed}, ${oldValue.speed})`
+				})
+			}
+			if (newNode.zoomSpeed !== oldValue.zoomSpeed && newNode.zoomSpeed !== undefined) {
+				commands.push({
+					command: {
+						type: TimelineContentTypePanasonicPtz.ZOOM_SPEED,
+						speed: newNode.zoomSpeed
+					},
+					context: `zoom speed differ (${newNode.zoomSpeed}, ${oldValue.zoomSpeed})`
+				})
+			}
+			if (newNode.zoom !== oldValue.zoom && newNode.zoom !== undefined) {
+				commands.push({
+					command: {
+						type: TimelineContentTypePanasonicPtz.ZOOM,
+						zoom: newNode.zoom
+					},
+					context: `zoom speed differ (${newNode.zoom}, ${oldValue.zoom})`
 				})
 			}
 		}
