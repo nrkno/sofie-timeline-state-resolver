@@ -6,4 +6,7 @@ export * from './devices/mapping'
 export { DeviceOptions } from './devices/device'
 export { CasparCGDevice } from './devices/casparCG'
 
+export * from './enums'
+export * from './types'
+
 // @todo remove this line of comment

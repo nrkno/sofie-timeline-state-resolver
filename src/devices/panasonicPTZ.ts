@@ -13,10 +13,16 @@ import {
 	MappingPanasonicPtzType
 } from './mapping'
 import {
-	TimelineState,
-	TimelineKeyframe,
-	TimelineResolvedObject
-} from 'superfly-timeline'
+	TimelineContentTypePanasonicPtz
+} from '../enums'
+import {
+	TimelineObjPanasonicPtz,
+	TimelineObjPanasonicPtzPreset,
+	TimelineObjPanasonicPtzPresetSpeed,
+	TimelineObjPanasonicPtzZoomSpeed,
+	TimelineObjPanasonicPtzZoom
+} from '../types'
+import { TimelineState } from 'superfly-timeline'
 import { DoOnTime } from '../doOnTime'
 import { PanasonicPtzHttpInterface } from './panasonicPTZAPI'
 
@@ -26,45 +32,6 @@ export interface PanasonicPtzOptions extends DeviceOptions {
 		host?: string
 		port?: number
 		https?: boolean
-	}
-}
-export enum TimelineContentTypePanasonicPtz {
-	PRESET = 'presetMem',
-	SPEED = 'presetSpeed',
-	ZOOM_SPEED = 'zoomSpeed',
-	ZOOM = 'zoom'
-}
-export interface TimelineObjPanasonicPtz extends TimelineResolvedObject {
-	content: {
-		keyframes?: Array<TimelineKeyframe>
-		type: TimelineContentTypePanasonicPtz
-	}
-}
-export interface TimelineObjPanasonicPtzZoomSpeed extends TimelineObjPanasonicPtz {
-	content: {
-		type: TimelineContentTypePanasonicPtz.ZOOM_SPEED
-		zoomSpeed: number
-	}
-}
-
-export interface TimelineObjPanasonicPtzZoom extends TimelineObjPanasonicPtz {
-	content: {
-		type: TimelineContentTypePanasonicPtz.ZOOM
-		zoom: number
-	}
-}
-
-export interface TimelineObjPanasonicPtzPresetSpeed extends TimelineObjPanasonicPtz {
-	content: {
-		type: TimelineContentTypePanasonicPtz.SPEED
-		speed: number
-	}
-}
-
-export interface TimelineObjPanasonicPtzPreset extends TimelineObjPanasonicPtz {
-	content: {
-		type: TimelineContentTypePanasonicPtz.PRESET
-		preset: number
 	}
 }
 

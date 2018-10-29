@@ -7,6 +7,7 @@ import {
 	StatusCode
 } from './device'
 import { DeviceType } from './mapping'
+import { TimelineContentTypeHttp } from '../enums'
 import { DoOnTime } from '../doOnTime'
 import * as request from 'request'
 
@@ -28,15 +29,9 @@ interface Command {
 	content: CommandContent,
 	context: CommandContext
 }
-enum RequestType {
-	GET = 'get',
-	POST = 'post',
-	PUT = 'put',
-	DELETE = 'delete'
-}
 type CommandContext = string
 interface CommandContent {
-	type: RequestType
+	type: TimelineContentTypeHttp
 	url: string
 	params: {[key: string]: number | string}
 }
@@ -214,25 +209,25 @@ export class HttpSendDevice extends DeviceWithState<TimelineState> {
 					resolve()
 				}
 			}
-			if (cmd.type === RequestType.POST) {
+			if (cmd.type === TimelineContentTypeHttp.POST) {
 				request.post(
 					cmd.url,
 					{ json: cmd.params },
 					handleResponse
 				)
-			} else if (cmd.type === RequestType.PUT) {
+			} else if (cmd.type === TimelineContentTypeHttp.PUT) {
 				request.put(
 					cmd.url,
 					{ json: cmd.params },
 					handleResponse
 				)
-			} else if (cmd.type === RequestType.GET) {
+			} else if (cmd.type === TimelineContentTypeHttp.GET) {
 				request.get(
 					cmd.url,
 					{ json: cmd.params },
 					handleResponse
 				)
-			} else if (cmd.type === RequestType.DELETE) {
+			} else if (cmd.type === TimelineContentTypeHttp.DELETE) {
 				request.delete(
 					cmd.url,
 					{ json: cmd.params },

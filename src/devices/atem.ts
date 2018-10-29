@@ -13,6 +13,9 @@ import {
 	MappingAtemType,
 	TimelineResolvedObjectExtended
 } from './mapping'
+import {
+	TimelineContentTypeAtem
+} from '../enums'
 import { TimelineState } from 'superfly-timeline'
 import {
 	Atem,
@@ -44,14 +47,6 @@ export interface AtemDeviceOptions extends DeviceOptions {
 export interface AtemOptions {
 	host: string
 	port?: number
-}
-export enum TimelineContentTypeAtem { //  Atem-state
-	ME = 'me',
-	DSK = 'dsk',
-	AUX = 'aux',
-	SSRC = 'ssrc',
-	SSRCPROPS = 'ssrcProps',
-	MEDIAPLAYER = 'mp'
 }
 export interface AtemCommandWithContext {
 	command: AtemCommands.AbstractCommand

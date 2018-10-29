@@ -14,6 +14,9 @@ import {
 	MappingHyperdeckType
 } from './mapping'
 import {
+	TimelineContentTypeHyperdeck
+} from '../enums'
+import {
 	Hyperdeck,
 	Commands as HyperdeckCommands,
 	TransportStatus
@@ -38,9 +41,6 @@ export interface HyperdeckDeviceOptions extends DeviceOptions {
 export interface HyperdeckOptions {
 	host: string
 	port?: number
-}
-export enum TimelineContentTypeHyperdeck {
-	TRANSPORT = 'transport'
 }
 export interface HyperdeckCommandWithContext {
 	command: HyperdeckCommands.AbstractCommand

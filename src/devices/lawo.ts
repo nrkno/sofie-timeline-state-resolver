@@ -13,6 +13,9 @@ import {
 	Mappings
 } from './mapping'
 import {
+	TimelineContentTypeLawo
+} from '../enums'
+import {
 	TimelineState,
 	TimelineResolvedObject
 } from 'superfly-timeline'
@@ -37,9 +40,6 @@ export interface LawoOptions extends DeviceOptions {
 		sourcesPath?: string,
 		rampMotorFunctionPath?: string
 	}
-}
-export enum TimelineContentTypeLawo { //  Lawo-state
-	SOURCE = 'lawosource' // a general content type, possibly to be replaced by specific ones later?
 }
 export interface TimelineObjLawo extends TimelineResolvedObject {
 	content: {
