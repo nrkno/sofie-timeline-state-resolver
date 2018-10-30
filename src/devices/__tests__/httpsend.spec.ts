@@ -9,27 +9,19 @@ import {
 } from '../mapping'
 import { Conductor } from '../../conductor'
 import { HttpSendDevice } from '../httpSend'
+import { MockTime } from '../../__tests__/mockTime.spec'
 
 // let nowActual = Date.now()
 describe('HTTP-Send', () => {
-	let now: number = 10000
+	let mockTime = new MockTime()
 	beforeAll(() => {
 		Date.now = jest.fn(() => {
-			return getCurrentTime()
+			return mockTime.getCurrentTime()
 		})
 		// Date.now['mockReturnValue'](now)
 	})
-	function getCurrentTime () {
-		return now
-	}
-	function advanceTime (advanceTime: number) {
-		now += advanceTime
-		jest.advanceTimersByTime(advanceTime)
-		// console.log('Advancing ' + advanceTime + ' ms -----------------------')
-	}
 	beforeEach(() => {
-		now = 10000
-		jest.useFakeTimers()
+		mockTime.init()
 	})
 	test('POST message', async () => {
 		let commandReceiver0 = jest.fn(() => {
@@ -45,7 +37,7 @@ describe('HTTP-Send', () => {
 
 		let myConductor = new Conductor({
 			initializeAsClear: true,
-			getCurrentTime: getCurrentTime
+			getCurrentTime: mockTime.getCurrentTime
 		})
 		await myConductor.init()
 		await myConductor.addDevice('myHTTP', {
@@ -55,10 +47,9 @@ describe('HTTP-Send', () => {
 			}
 		})
 		myConductor.mapping = myLayerMapping
-		advanceTime(100) // 1100
+		mockTime.advanceTimeTo(10100)
 
 		let device = myConductor.getDevice('myHTTP') as HttpSendDevice
-		// console.log(device._device.state)
 
 		// Check that no commands has been scheduled:
 		expect(device.queue).toHaveLength(0)
@@ -68,7 +59,7 @@ describe('HTTP-Send', () => {
 				id: 'obj0',
 				trigger: {
 					type: TriggerType.TIME_ABSOLUTE,
-					value: now + 1000 // in 1 second
+					value: mockTime.now + 1000 // in 1 second
 				},
 				duration: 2000,
 				LLayer: 'myLayer0',
@@ -83,9 +74,9 @@ describe('HTTP-Send', () => {
 			}
 		]
 
-		advanceTime(990) // 10990
+		mockTime.advanceTimeTo(10990)
 		expect(commandReceiver0).toHaveBeenCalledTimes(0)
-		advanceTime(110) // 11000
+		mockTime.advanceTimeTo(11100)
 
 		expect(commandReceiver0).toHaveBeenCalledTimes(1)
 		expect(commandReceiver0.mock.calls[0][1]).toMatchObject(
@@ -99,7 +90,7 @@ describe('HTTP-Send', () => {
 			}
 		)
 		expect(commandReceiver0.mock.calls[0][2]).toMatch(/added/) // context
-		advanceTime(5000) // 16000
+		mockTime.advanceTimeTo(16000)
 		expect(commandReceiver0).toHaveBeenCalledTimes(1)
 	})
 })

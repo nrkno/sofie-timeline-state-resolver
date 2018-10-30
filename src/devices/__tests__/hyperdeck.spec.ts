@@ -16,6 +16,7 @@ import {
 	StopCommand
 } from 'hyperdeck-connection/dist/commands'
 import { Hyperdeck } from '../../__mocks__/hyperdeck-connection'
+import { MockTime } from '../../__tests__/mockTime.spec'
 
 let myChannelMapping0: MappingHyperdeck = {
 	device: DeviceType.HYPERDECK,
@@ -24,31 +25,14 @@ let myChannelMapping0: MappingHyperdeck = {
 }
 
 describe('Hyperdeck', () => {
-	let now: number = 10000
+	let mockTime = new MockTime()
 
 	beforeAll(() => {
 		Date.now = jest.fn()
 		Date.now['mockReturnValue'](1000)
 	})
-	function getCurrentTime () {
-		return now
-	}
-	// function literal<T> (o: T) { return o }
-
-	function advanceTimeTo (time: number) {
-		let t = time - now
-		advanceTime(t)
-		expect(now).toEqual(time)
-	}
-
-	function advanceTime (advanceTime: number) {
-		if (advanceTime < 0) throw Error('Time can only be advanced forwards!')
-		now += advanceTime
-		jest.advanceTimersByTime(advanceTime)
-	}
 	beforeEach(() => {
-		now = 10000
-		jest.useFakeTimers()
+		mockTime.init()
 	})
 
 	test('Hyperdeck: Record', async () => {
@@ -66,7 +50,7 @@ describe('Hyperdeck', () => {
 
 		let myConductor = new Conductor({
 			initializeAsClear: true,
-			getCurrentTime: getCurrentTime
+			getCurrentTime: mockTime.getCurrentTime
 		})
 		myConductor.mapping = myChannelMapping
 		await myConductor.init() // we cannot do an await, because setTimeout will never call without jest moving on.
@@ -78,7 +62,7 @@ describe('Hyperdeck', () => {
 				commandReceiver: commandReceiver0
 			}
 		})
-		advanceTime(100) // 10100
+		mockTime.advanceTimeTo(10100)
 
 		expect(commandReceiver0).toHaveBeenCalledTimes(0)
 
@@ -130,7 +114,7 @@ describe('Hyperdeck', () => {
 			}
 		]
 
-		advanceTimeTo(10200)
+		mockTime.advanceTimeTo(10200)
 
 		expect(commandReceiver0).toHaveBeenCalledTimes(1)
 		expect(commandReceiver0.mock.calls[0][1]).toBeInstanceOf(RecordCommand)
@@ -144,16 +128,16 @@ describe('Hyperdeck', () => {
 		})
 
 		myConductor.timeline = myConductor.timeline // Same timeline
-		advanceTimeTo(10400)
+		mockTime.advanceTimeTo(10400)
 		expect(hyperdeckMockCommand).toHaveBeenCalledTimes(1) // nothing has changed, so it should not be called again
 
-		advanceTimeTo(12000)
+		mockTime.advanceTimeTo(12000)
 
 		expect(commandReceiver0).toHaveBeenCalledTimes(2)
 		expect(commandReceiver0.mock.calls[1][1]).toBeInstanceOf(StopCommand)
 		expect(commandReceiver0.mock.calls[1][2]).toBeTruthy() // context
 
-		advanceTimeTo(13000)
+		mockTime.advanceTimeTo(13000)
 		expect(commandReceiver0).toHaveBeenCalledTimes(2)
 		// no new commands should have been sent, becuse obj2 is the same as obj1
 	})

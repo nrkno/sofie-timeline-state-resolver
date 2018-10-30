@@ -13,30 +13,21 @@ import {
 } from '../panasonicPTZ'
 
 import * as nock from 'nock'
+import { MockTime } from '../../__tests__/mockTime.spec'
 
 nock('http://192.168.0.10')
 	.get('/cgi-bin/aw_ptz?cmd=%23O&res=1')
 	.reply(200, 'p1')
 
 describe('Panasonic PTZ', () => {
-	let now: number = 1000
+	let mockTime = new MockTime()
 
 	beforeAll(() => {
 		Date.now = jest.fn()
 		Date.now['mockReturnValue'](1000)
 	})
-	function getCurrentTime () {
-		return now
-	}
-	// function literal<T> (o: T) { return o }
-
-	function advanceTime (advanceTime: number) {
-		now += advanceTime
-		jest.advanceTimersByTime(advanceTime)
-	}
 	beforeEach(() => {
-		now = 1000
-		jest.useFakeTimers()
+		mockTime.init()
 	})
 
 	test('Panasonic PTZ: change preset', async () => {
@@ -61,7 +52,7 @@ describe('Panasonic PTZ', () => {
 
 		let myConductor = new Conductor({
 			initializeAsClear: true,
-			getCurrentTime: getCurrentTime
+			getCurrentTime: mockTime.getCurrentTime
 		})
 		myConductor.mapping = myChannelMapping
 		await myConductor.init() // we cannot do an await, because setTimeout will never call without jest moving on.
@@ -72,7 +63,7 @@ describe('Panasonic PTZ', () => {
 				host: '192.168.0.10'
 			}
 		})
-		advanceTime(100) // 1100
+		mockTime.advanceTimeTo(10100)
 
 		let device = myConductor.getDevice('myPtz') as PanasonicPtzDevice
 
@@ -84,7 +75,7 @@ describe('Panasonic PTZ', () => {
 				id: 'obj0',
 				trigger: {
 					type: TriggerType.TIME_ABSOLUTE,
-					value: now - 1000 // 1 seconds in the past
+					value: mockTime.now - 1000 // 1 seconds in the past
 				},
 				duration: 2000,
 				LLayer: 'ptz_k1',
@@ -97,7 +88,7 @@ describe('Panasonic PTZ', () => {
 				id: 'obj0_s',
 				trigger: {
 					type: TriggerType.TIME_ABSOLUTE,
-					value: now - 1000 // 1 seconds in the past
+					value: mockTime.now - 1000 // 1 seconds in the past
 				},
 				duration: 10000,
 				LLayer: 'ptz_k1_s',
@@ -110,7 +101,7 @@ describe('Panasonic PTZ', () => {
 				id: 'obj1',
 				trigger: {
 					type: TriggerType.TIME_ABSOLUTE,
-					value: now + 500 // 0.5 seconds in the future
+					value: mockTime.now + 500 // 0.5 seconds in the future
 				},
 				duration: 2000,
 				LLayer: 'ptz_k1',
@@ -123,7 +114,7 @@ describe('Panasonic PTZ', () => {
 				id: 'obj2',
 				trigger: {
 					type: TriggerType.TIME_ABSOLUTE,
-					value: now + 1000 // 1 seconds in the future
+					value: mockTime.now + 1000 // 1 seconds in the future
 				},
 				duration: 2000,
 				LLayer: 'ptz_k1',
@@ -136,7 +127,7 @@ describe('Panasonic PTZ', () => {
 				id: 'obj2_s',
 				trigger: {
 					type: TriggerType.TIME_ABSOLUTE,
-					value: now + 1000 // 1 seconds in the past
+					value: mockTime.now + 1000 // 1 seconds in the past
 				},
 				duration: 500,
 				LLayer: 'ptz_k1_s',
@@ -149,7 +140,7 @@ describe('Panasonic PTZ', () => {
 				id: 'obj3',
 				trigger: {
 					type: TriggerType.TIME_ABSOLUTE,
-					value: now + 2000 // 2 seconds in the future
+					value: mockTime.now + 2000 // 2 seconds in the future
 				},
 				duration: 2000,
 				LLayer: 'ptz_k1',
@@ -160,7 +151,7 @@ describe('Panasonic PTZ', () => {
 			}
 		]
 
-		advanceTime(100) // 1200
+		mockTime.advanceTimeTo(10200)
 
 		expect(commandReceiver0).toHaveBeenCalledTimes(2)
 		expect(commandReceiver0.mock.calls[0][1]).toMatchObject(
@@ -176,7 +167,7 @@ describe('Panasonic PTZ', () => {
 			}
 		)
 
-		advanceTime(800) // 2000
+		mockTime.advanceTimeTo(11000)
 
 		expect(commandReceiver0).toHaveBeenCalledTimes(3)
 		expect(commandReceiver0.mock.calls[2][1]).toMatchObject(
@@ -186,7 +177,7 @@ describe('Panasonic PTZ', () => {
 			}
 		)
 
-		advanceTime(500) // 2500
+		mockTime.advanceTimeTo(11500)
 
 		expect(commandReceiver0).toHaveBeenCalledTimes(4)
 		expect(commandReceiver0.mock.calls[3][1]).toMatchObject(
@@ -196,7 +187,7 @@ describe('Panasonic PTZ', () => {
 			}
 		)
 
-		advanceTime(500) // 3000
+		mockTime.advanceTimeTo(12000)
 
 		// return speed to previous value
 		expect(commandReceiver0).toHaveBeenCalledTimes(5)
@@ -208,7 +199,7 @@ describe('Panasonic PTZ', () => {
 			}
 		)
 
-		advanceTime(500) // 3500
+		mockTime.advanceTimeTo(12500)
 
 		expect(commandReceiver0).toHaveBeenCalledTimes(6)
 		expect(commandReceiver0.mock.calls[5][1]).toMatchObject(
@@ -218,7 +209,7 @@ describe('Panasonic PTZ', () => {
 				preset: 1
 			}
 		)
-		advanceTime(7000) // 10500
+		mockTime.advanceTimeTo(16000)
 
 		expect(commandReceiver0).toHaveBeenCalledTimes(6)
 		// no new commands should be sent, nothing is sent on object end

@@ -3,6 +3,7 @@ import { TriggerType } from 'superfly-timeline'
 import { Mappings, MappingAbstract, DeviceType } from '../devices/mapping'
 import { Conductor, TimelineTriggerTimeResult, TimelineContentObject } from '../conductor'
 import * as _ from 'underscore'
+import { MockTime } from './mocktime.spec'
 
 // let nowActual: number = Date.now()
 // process.on('unhandledRejection', (reason, p) => {
@@ -13,24 +14,14 @@ import * as _ from 'underscore'
 // })
 
 describe('Conductor', () => {
-	let now: number = 10000
+	let mockTime = new MockTime()
 	beforeAll(() => {
 		Date.now = jest.fn(() => {
-			return getCurrentTime()
+			return mockTime.getCurrentTime()
 		})
-		// Date.now['mockReturnValue'](now)
 	})
-	function getCurrentTime () {
-		return now
-	}
-	function advanceTime (advanceTime: number) {
-		now += advanceTime
-		jest.advanceTimersByTime(advanceTime)
-		// console.log('Advancing ' + advanceTime + ' ms -----------------------')
-	}
 	beforeEach(() => {
-		now = 10000
-		jest.useFakeTimers()
+		mockTime.init()
 	})
 	test('Test Abstract-device functionality', async () => {
 
@@ -43,11 +34,11 @@ describe('Conductor', () => {
 
 		let myLayerMapping0: MappingAbstract = {
 			device: DeviceType.ABSTRACT,
-			deviceId: 'device0',
+			deviceId: 'device0'
 		}
 		let myLayerMapping1: MappingAbstract = {
 			device: DeviceType.ABSTRACT,
-			deviceId: 'device1',
+			deviceId: 'device1'
 		}
 		let myLayerMapping: Mappings = {
 			'myLayer0': myLayerMapping0,
@@ -56,7 +47,7 @@ describe('Conductor', () => {
 
 		let conductor = new Conductor({
 			initializeAsClear: true,
-			getCurrentTime: getCurrentTime
+			getCurrentTime: mockTime.getCurrentTime
 		})
 
 		conductor.mapping = myLayerMapping
@@ -79,7 +70,7 @@ describe('Conductor', () => {
 			id: 'a0',
 			trigger: {
 				type: TriggerType.TIME_ABSOLUTE,
-				value: now
+				value: mockTime.now
 			},
 			duration: 1000,
 			LLayer: 'myLayer0',
@@ -92,7 +83,7 @@ describe('Conductor', () => {
 			id: 'a1',
 			trigger: {
 				type: TriggerType.TIME_ABSOLUTE,
-				value: now + 1000
+				value: mockTime.now + 1000
 			},
 			duration: 1000,
 			LLayer: 'myLayer1',
@@ -116,7 +107,7 @@ describe('Conductor', () => {
 		expect(device1['queue']).toHaveLength(0)
 
 		// Move forward in time
-		advanceTime(500) // to time 10500
+		mockTime.advanceTime(500) // to time 10500
 
 		expect(commandReceiver0).toHaveBeenCalledTimes(1)
 		expect(commandReceiver0.mock.calls[0][0]).toEqual(10000)
@@ -133,7 +124,7 @@ describe('Conductor', () => {
 		expect(commandReceiver1).toHaveBeenCalledTimes(0)
 
 		commandReceiver0.mockClear()
-		advanceTime(1000) // 11500
+		mockTime.advanceTimeTo(11500)
 
 		// expect(device0['queue']).toHaveLength(0)
 
@@ -161,7 +152,7 @@ describe('Conductor', () => {
 
 		commandReceiver0.mockClear()
 		commandReceiver1.mockClear()
-		advanceTime(3000)
+		mockTime.advanceTime(3000)
 
 		expect(commandReceiver0).toHaveBeenCalledTimes(0)
 		expect(commandReceiver1).toHaveBeenCalledTimes(1)
@@ -190,7 +181,7 @@ describe('Conductor', () => {
 			'myLayer0': myLayerMapping1,
 			'myLayer1': myLayerMapping0
 		}
-		abstractThing0.trigger.value = now
+		abstractThing0.trigger.value = mockTime.now
 		conductor.timeline = [ abstractThing0 ]
 	})
 
@@ -202,7 +193,7 @@ describe('Conductor', () => {
 
 		let myLayerMapping0: MappingAbstract = {
 			device: DeviceType.ABSTRACT,
-			deviceId: 'device0',
+			deviceId: 'device0'
 		}
 		let myLayerMapping: Mappings = {
 			'myLayer0': myLayerMapping0
@@ -210,7 +201,7 @@ describe('Conductor', () => {
 
 		let conductor = new Conductor({
 			initializeAsClear: true,
-			getCurrentTime: getCurrentTime
+			getCurrentTime: mockTime.getCurrentTime
 		})
 
 		await conductor.init()
@@ -263,7 +254,6 @@ describe('Conductor', () => {
 				}
 			})
 			// update the timeline:
-			// console.log('Setting timeline from callback..')
 			conductor.timeline = timeline
 		})
 		conductor.on('setTimelineTriggerTime', setTimelineTriggerTime)
@@ -278,7 +268,6 @@ describe('Conductor', () => {
 		expect(device0['queue']).toHaveLength(0)
 		// expect(device1['queue']).toHaveLength(0)
 
-		// console.log('Setting timeline..')
 		conductor.timeline = timeline
 
 		// there should now be one command queued:
@@ -292,13 +281,12 @@ describe('Conductor', () => {
 		expect(timelineCallback).toHaveBeenCalledTimes(0)
 
 		// Move forward in time
-		advanceTime(100) // to time 1100
+		mockTime.advanceTime(100) // to time 1100
 
 		expect(commandReceiver0).toHaveBeenCalledTimes(1)
 		expect(timelineCallback).toHaveBeenCalledTimes(0)
-		// console.log(timelineCallback.mock.calls)
 
-		advanceTime(400) // to time 1500
+		mockTime.advanceTime(400) // to time 1500
 
 		expect(commandReceiver0).toHaveBeenCalledTimes(2)
 		expect(timelineCallback).toHaveBeenCalledTimes(1)
@@ -307,7 +295,7 @@ describe('Conductor', () => {
 		expect(timelineCallback.mock.calls[0][2]).toEqual('abc')
 		expect(timelineCallback.mock.calls[0][3]).toEqual({ hello: 'dude' })
 
-		advanceTime(5000) // to time 6500
+		mockTime.advanceTime(5000) // to time 6500
 
 		expect(commandReceiver0).toHaveBeenCalledTimes(3)
 
@@ -332,7 +320,7 @@ describe('Conductor', () => {
 
 		let conductor = new Conductor({
 			initializeAsClear: true,
-			getCurrentTime: getCurrentTime
+			getCurrentTime: mockTime.getCurrentTime
 		})
 
 		await conductor.init()
@@ -369,7 +357,7 @@ describe('Conductor', () => {
 
 		await conductor.devicesMakeReady(true)
 
-		advanceTime(10) // to allow for commands to be sent
+		mockTime.advanceTime(10) // to allow for commands to be sent
 
 		expect(commandReceiver1).toHaveBeenCalledTimes(3)
 		// expect(commandReceiver1.mock.calls[0][1].name).toEqual('TimeCommand')
