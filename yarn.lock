@@ -5762,10 +5762,10 @@ subarg@^1.0.0:
   dependencies:
     minimist "^1.1.0"
 
-superfly-timeline@^6.0.1:
-  version "6.0.1"
-  resolved "https://registry.yarnpkg.com/superfly-timeline/-/superfly-timeline-6.0.1.tgz#79f9c831ed2b3bb46f8b9dd3a02a282bf409179e"
-  integrity sha512-HuolvdWpe41qWiIB27IuqZxa6G8ZxBJow0xV76rYPbLWz0n6yyTf9yuDEc8tMK/NUbbxDAP1xzmRusqvuUoo6g==
+superfly-timeline@^6.0.2:
+  version "6.0.2"
+  resolved "https://registry.yarnpkg.com/superfly-timeline/-/superfly-timeline-6.0.2.tgz#49597d9a91eb9ad3df6795bf86544ccb4ba891d0"
+  integrity sha512-yDz86cEPf/y15Zlo8v6vI2y5emV3/0GNBgQSOrJfqetyGJzE4MSDOSUBa+WlXsPMHwMrFxkQHRFIFDSruLWfYQ==
   dependencies:
     "@types/underscore" "^1.8.8"
     underscore "^1.9.1"
