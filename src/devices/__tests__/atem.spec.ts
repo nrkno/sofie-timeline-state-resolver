@@ -3,9 +3,9 @@
 import { Enums, MixEffect } from 'atem-state'
 import { TriggerType } from 'superfly-timeline'
 
-import { Mappings, MappingAtem, DeviceType, MappingAtemType } from '../devices/mapping'
-import { Conductor } from '../conductor'
-import { AtemDevice, TimelineContentTypeAtem } from '../devices/atem'
+import { Mappings, MappingAtem, DeviceType, MappingAtemType } from '../mapping'
+import { Conductor } from '../../conductor'
+import { AtemDevice, TimelineContentTypeAtem } from '../atem'
 
 // let nowActual: number = Date.now()
 describe('Atem', () => {
@@ -190,6 +190,7 @@ describe('Atem', () => {
 				duration: 2000,
 				LLayer: 'myLayer0',
 				content: {
+					// @ts-ignore dveSettings missing
 					attributes: {
 						upstreamKeyers: [
 							{

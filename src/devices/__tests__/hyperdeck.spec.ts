@@ -1,14 +1,21 @@
 jest.mock('hyperdeck-connection')
 import { TriggerType } from 'superfly-timeline'
-
-import { Mappings, MappingHyperdeck, DeviceType, MappingHyperdeckType } from '../devices/mapping'
-import { Conductor } from '../conductor'
+import {
+	Mappings,
+	MappingHyperdeck,
+	DeviceType,
+	MappingHyperdeckType
+} from '../mapping'
+import { Conductor } from '../../conductor'
 import {
 	HyperdeckDevice,
 	TimelineContentTypeHyperdeck
-} from '../devices/hyperdeck'
-import { RecordCommand, StopCommand } from 'hyperdeck-connection/dist/commands'
-import { Hyperdeck } from '../__mocks__/hyperdeck-connection'
+} from '../hyperdeck'
+import {
+	RecordCommand,
+	StopCommand
+} from 'hyperdeck-connection/dist/commands'
+import { Hyperdeck } from '../../__mocks__/hyperdeck-connection'
 
 let myChannelMapping0: MappingHyperdeck = {
 	device: DeviceType.HYPERDECK,

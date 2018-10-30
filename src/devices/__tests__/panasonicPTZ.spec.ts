@@ -1,11 +1,16 @@
 import { TriggerType } from 'superfly-timeline'
 
-import { Mappings, MappingPanasonicPtz, DeviceType, MappingPanasonicPtzType } from '../devices/mapping'
-import { Conductor } from '../conductor'
+import {
+	Mappings,
+	MappingPanasonicPtz,
+	DeviceType,
+	MappingPanasonicPtzType
+} from '../mapping'
+import { Conductor } from '../../conductor'
 import {
 	PanasonicPtzDevice,
 	TimelineContentTypePanasonicPtz
-} from '../devices/panasonicPTZ'
+} from '../panasonicPTZ'
 
 import * as nock from 'nock'
 

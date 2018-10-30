@@ -2,9 +2,13 @@
 // import {Resolver, Enums} from "superfly-timeline"
 import { TriggerType } from 'superfly-timeline'
 
-import { Mappings, MappingCasparCG, DeviceType } from '../devices/mapping'
-import { Conductor } from '../conductor'
-import { TimelineContentTypeCasparCg } from '../devices/casparCG'
+import {
+	Mappings,
+	MappingCasparCG,
+	DeviceType
+} from '../mapping'
+import { Conductor } from '../../conductor'
+import { TimelineContentTypeCasparCg } from '../casparCG'
 
 // let nowActual: number = Date.getCurrentTime()()
 describe('CasparCG', () => {

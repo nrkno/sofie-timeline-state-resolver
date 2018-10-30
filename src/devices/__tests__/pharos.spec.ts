@@ -1,10 +1,10 @@
 jest.mock('ws')
 import { TriggerType } from 'superfly-timeline'
 
-import { Mappings, DeviceType, MappingPharos } from '../devices/mapping'
-import { Conductor } from '../conductor'
-import { PharosDevice } from '../devices/pharos'
-const WebSocket = require('../__mocks__/ws')
+import { Mappings, DeviceType, MappingPharos } from '../mapping'
+import { Conductor } from '../../conductor'
+import { PharosDevice } from '../pharos'
+const WebSocket = require('../../__mocks__/ws')
 
 describe('Pharos', () => {
 	let now: number = 10000

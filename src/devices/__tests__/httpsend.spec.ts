@@ -2,9 +2,13 @@
 // import { Commands, Atem } from 'atem-connection'
 import { TriggerType } from 'superfly-timeline'
 
-import { Mappings, DeviceType, MappingHTTPSend } from '../devices/mapping'
-import { Conductor } from '../conductor'
-import { HttpSendDevice } from '../devices/httpSend'
+import {
+	Mappings,
+	DeviceType,
+	MappingHTTPSend
+} from '../mapping'
+import { Conductor } from '../../conductor'
+import { HttpSendDevice } from '../httpSend'
 
 // let nowActual = Date.now()
 describe('HTTP-Send', () => {

@@ -1,10 +1,14 @@
 import { TriggerType } from 'superfly-timeline'
-
-import { Mappings, MappingLawo, DeviceType, MappingLawoType } from '../devices/mapping'
-import { Conductor } from '../conductor'
+import {
+	Mappings,
+	MappingLawo,
+	DeviceType,
+	MappingLawoType
+} from '../mapping'
+import { Conductor } from '../../conductor'
 import { LawoDevice,
 	TimelineContentTypeLawo
-} from '../devices/lawo'
+} from '../lawo'
 
 describe('Lawo', () => {
 	let now: number = 1000
