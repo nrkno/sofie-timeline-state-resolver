@@ -19,7 +19,7 @@ const orgSetTimeout = setTimeout
 describe('Panasonic PTZ', () => {
 	let mockTime = new MockTime()
 
-	let onGet = jest.fn((url, options, callback) => {
+	let onGet = jest.fn((url, _options, callback) => {
 		orgSetTimeout(() => {
 			if (url === 'http://192.168.0.10/cgi-bin/aw_ptz?cmd=%23O&res=1') {
 				callback(null, {

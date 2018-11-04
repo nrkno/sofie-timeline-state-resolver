@@ -1,9 +1,7 @@
 import { TriggerType } from 'superfly-timeline'
 import {
 	Mappings,
-	MappingAtem,
 	DeviceType,
-	MappingAtemType,
 	MappingAbstract
 } from '../mapping'
 import { Conductor } from '../../conductor'

@@ -236,7 +236,7 @@ function wait (time: number = 1) {
 describe('PharosAPI', () => {
 
 	let requestReturnsOK = true
-	function handleRequest (url, options, callback) {
+	function handleRequest (url, _options, callback) {
 		orgSetTimeout(() => {
 			let body: string = ''
 			if (url.match(/api\/log/)) {
@@ -408,9 +408,13 @@ describe('PharosAPI', () => {
 		expect(pharos.connected).toEqual(true)
 
 		// dispose during request
-		let p = pharos.getSystemInfo()
-		pharos.dispose()
-		expect(p).rejects.toMatch(/disposing/i)
+		let onCatch = jest.fn()
+		pharos.getSystemInfo()
+		.catch(onCatch)
+		await pharos.dispose()
+		expect(onCatch).toHaveBeenCalledTimes(1)
+		expect(onCatch.mock.calls[0][0]).toMatch(/disposing/i)
+
 	})
 	test('Basic methods', async () => {
 
@@ -720,7 +724,6 @@ describe('PharosAPI', () => {
 
 		let wsInstances = WebSocket.getMockInstances()
 		expect(wsInstances).toHaveLength(1)
-		let wsInstance = wsInstances[0]
 
 		expect(pharos.connected).toEqual(true)
 		expect(mockReply).toHaveBeenCalledTimes(0)
@@ -988,7 +991,6 @@ describe('PharosAPI', () => {
 
 		let wsInstances = WebSocket.getMockInstances()
 		expect(wsInstances).toHaveLength(1)
-		let wsInstance = wsInstances[0]
 
 		expect(pharos.connected).toEqual(true)
 		expect(mockReply).toHaveBeenCalledTimes(0)
@@ -1098,7 +1100,6 @@ describe('PharosAPI', () => {
 
 		let wsInstances = WebSocket.getMockInstances()
 		expect(wsInstances).toHaveLength(1)
-		let wsInstance = wsInstances[0]
 
 		expect(pharos.connected).toEqual(true)
 		expect(mockReply).toHaveBeenCalledTimes(0)
