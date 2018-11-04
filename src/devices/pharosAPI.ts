@@ -11,6 +11,9 @@ import * as _ from 'underscore'
 // This should probably be moved into it's own library
 
 type Primitives = string | number | boolean | null | undefined
+
+const CONNECT_TIMEOUT = 3000
+const PING_TIMEOUT = 10 * 1000
 export interface Options {
 	host: string
 	ssl?: boolean
@@ -77,7 +80,7 @@ export interface GroupInfo {
 	}>
 }
 export interface ContentTargetInfo {
-
+	// Data structure unknown
 }
 export interface ControllerInfo {
 	controllers: Array<{
@@ -90,11 +93,30 @@ export interface ControllerInfo {
 	}>
 }
 export interface RemoteDeviceInfo {
-	remote_devices: Array<any>
+	remote_devices: Array<{
+		num: number
+		type: string
+		serial: Array<string>
+		outputs: Array<{
+			output: number
+			value: boolean
+		}>
+		inputs: Array<{
+			input: number
+			type: string
+			value: boolean
+		}>
+		online: boolean
+	}>
 }
 export interface Temperature {
 	temp: {
-		ambient_temp: number
+		sys_temp: number 		// (only for LPC X and VLC/VLC +)
+		core1_temp: number 		// (only for LPC X and VLC/VLC +)
+		core2_temp: number 		// (only for LPC X rev 1
+		ambient_temp: number 	// (only for TPC, LPC X rev 1)
+		cc_temp: number 		// (only for LPC X rev 2 and VLC/VLC +)
+		gpu_temp: number 		// (only for VLC/VLC +)
 	}
 }
 export interface FanSpeed {
@@ -112,22 +134,27 @@ export interface Protocols {
 		name: string,
 		type: number,
 		universes: Array<{
-			key: {
-				kinet_port: 1,
-				kinet_power_supply_num: 1
-			}
 			name: string
+			key: {
+				index?: number // For DMX, Pathport, sACN and Art-Net:
+				kinet_port?: number, // For KiNET
+				kinet_power_supply_num?: number // For KiNET
+			}
+		}>,
+		dmx_proxy?: Array<{
+			name: string
+			ip_address: string
 		}>
 	}>
 }
 export interface Output {
 	channels: Array<number>
 	disabled: boolean
-	proxied_?: string
-	tpc_name?: string
+	proxied_tpc_name?: string
 }
 export interface LuaVariables {
-
+	// Unknown how this looks like, this is a pure guess:
+	[key: string]: any
 }
 export interface Triggers {
 	triggers: Array<{
@@ -143,7 +170,7 @@ export interface Triggers {
 		type: string
 	}>
 }
-enum Protocol {
+export enum Protocol {
 	DMX = 'dmx',
 	PATHPORT = 'pathport',
 	ARTNET = 'art-net',
@@ -151,6 +178,15 @@ enum Protocol {
 	SACN = 'sacn',
 	DVI = 'dvi',
 	RIODMX = 'rio-dmx'
+}
+export interface RGBOptions {
+	intensity?: number
+	red?: number
+	green?: number
+	blue?: number
+	temperature?: number
+	fade?: number
+	path?: 'Default' | 'Linear' | 'Start' | 'End' | 'Braked' | 'Accelerated' | 'Damped' | 'Overshoot'
 }
 
 /**
@@ -171,29 +207,36 @@ export class Pharos extends EventEmitter {
 	private _options: Options
 	private _connected: boolean = false
 
+	private _webSocketKeepAliveTimeout: NodeJS.Timer | null = null
+
 	// constructor () {}
-	connect (options: Options) {
+	connect (options: Options): Promise<void> {
 		return this._connectSocket(options)
 	}
 
 	public get connected (): boolean {
 		return this._connected
 	}
-	public dispose () {
-		if (this._socket) this._socket.close()
-
-		_.each(this._requestPromises, (rp, id) => {
-			_.each(rp, (promise) => {
-				promise.reject('Disposing')
+	public dispose (): Promise<void> {
+		return new Promise((resolve) => {
+			_.each(this._requestPromises, (rp, id) => {
+				_.each(rp, (promise) => {
+					promise.reject('Disposing')
+				})
+				delete this._requestPromises[id]
 			})
-			delete this._requestPromises[id]
-		})
+			_.each(this._broadcastCallbacks, (_fcns, id) => {
+				delete this._broadcastCallbacks[id]
+			})
 
-		_.each(this._broadcastCallbacks, (_fcns, id) => {
-			delete this._broadcastCallbacks[id]
+			if (this.connected) {
+				this.once('disconnected', resolve)
+			}
+			if (this._socket) this._socket.close()
+			if (!this.connected) {
+				resolve()
+			}
 		})
-
-		this._connectionChanged(false)
 	}
 
 	public getSystemInfo (): Promise<SystemInfo> {
@@ -203,24 +246,30 @@ export class Pharos extends EventEmitter {
 		return this.request('project')
 	}
 	public getCurrentTime (): Promise<CurrentTime> {
-		return this.request('current_time')
+		return this.request('time')
 	}
 	/**
 	 * @param params Example: { num: '1,2,5-9' }
 	 */
-	public getTimelineInfo (params?: {num?: string}): Promise<TimelineInfo> {
+	public getTimelineInfo (num?: string | number): Promise<TimelineInfo> {
+		let params: any = {}
+		if (num) params.num = num + ''
 		return this.request('timeline', params)
 	}
 	/**
 	 * @param params Example: { num: '1,2,5-9' }
 	 */
-	public getSceneInfo (params?: {num?: string}): Promise<SceneInfo> {
+	public getSceneInfo (num?: string | number): Promise<SceneInfo> {
+		let params: any = {}
+		if (num) params.num = num + ''
 		return this.request('scene', params)
 	}
 	/**
 	 * @param params Example: { num: '1,2,5-9' }
 	 */
-	public getGroupInfo (params?: {num?: string}): Promise<GroupInfo> {
+	public getGroupInfo (num?: string | number): Promise<GroupInfo> {
+		let params: any = {}
+		if (num) params.num = num + ''
 		return this.request('group', params)
 	}
 	public getContentTargetInfo (): Promise<ContentTargetInfo> {
@@ -238,7 +287,12 @@ export class Pharos extends EventEmitter {
 	public getFanSpeed (): Promise<FanSpeed> {
 		return this.request('fan_speed')
 	}
-	public getTextSlot (params?: any): Promise<TextSlot> {
+	public getTextSlot (names?: string | Array<string>): Promise<TextSlot> {
+		let params: any = {}
+		if (names) {
+			if (!_.isArray(names)) names = [names]
+			params.names = names.join(',') // TODO: test that this actually works
+		}
 		return this.request('text_slot', params)
 	}
 	public getProtocols (): Promise<Protocols> {
@@ -247,36 +301,41 @@ export class Pharos extends EventEmitter {
 	/**
 	 * @param key {universe?: universeKey} Example: "dmx:1", "rio-dmx:rio44:1" // DMX, Pathport, sACN and Art-Net, protocol:kinetPowerSupplyNum:kinetPort for KiNET and protocol:remoteDeviceType:remoteDeviceNum for RIO DMX
 	 */
-	public getOutput (key?: {universe?: string}): Promise<Output> {
-		return this.request('output', {
-			universe: key
-		})
+	public getOutput (universe?: string): Promise<Output> {
+		let params: any = {}
+		if (universe) params.universe = universe
+		return this.request('output', params)
 	}
-	public getLuaVariables (vars): Promise<LuaVariables> {
-		return this.request('lua', { 'variables' : vars })
+	public getLuaVariables (vars?: string | Array<string>): Promise<LuaVariables> {
+		let params: any = {}
+		if (vars) {
+			if (!_.isArray(vars)) vars = [vars]
+			params.variables = vars.join(',')
+		}
+		return this.request('lua', params)
 	}
-	public getTriggers (vars): Promise<Triggers> {
-		return this.request('trigger', vars)
+	public getTriggers (): Promise<Triggers> {
+		return this.request('trigger')
 	}
-	public subscribeTimelineStatus (callback) {
+	public subscribeTimelineStatus (callback): Promise<void> {
 		return this.subscribe('timeline', callback)
 	}
-	public subscribeSceneStatus (callback) {
+	public subscribeSceneStatus (callback): Promise<void> {
 		return this.subscribe('scene', callback)
 	}
-	public subscribeGroupStatus (callback) {
+	public subscribeGroupStatus (callback): Promise<void> {
 		return this.subscribe('group', callback)
 	}
-	public subscribeContentTargetStatus (callback) {
+	public subscribeContentTargetStatus (callback): Promise<void> {
 		return this.subscribe('content_target', callback)
 	}
-	public subscribeRemoteDeviceStatus (callback) {
+	public subscribeRemoteDeviceStatus (callback): Promise<void> {
 		return this.subscribe('remote_device', callback)
 	}
-	public subscribeBeacon (callback) {
+	public subscribeBeacon (callback): Promise<void> {
 		return this.subscribe('beacon', callback)
 	}
-	public subscribeLua (callback) {
+	public subscribeLua (callback): Promise<void> {
 		return this.subscribe('lua', callback)
 	}
 	public startTimeline (timelineNum: number) {
@@ -321,14 +380,20 @@ export class Pharos extends EventEmitter {
 	public setTimelineRate (timelineNum: number, rate: number) {
 		return this.command('POST', '/api/timeline', { action: 'set_rate', num: timelineNum, rate: rate })
 	}
-	public setTimelinePosition (position: number) {
-		return this.command('POST', '/api/timeline', { action: 'set_position', position: position })
+	public setTimelinePosition (timelineNum: number, position: number) {
+		return this.command('POST', '/api/timeline', { action: 'set_position', num: timelineNum, position: position })
 	}
-	public fireTrigger (params: any = {}) {
-		return this.command('POST', '/api/trigger', params)
+	public fireTrigger (triggerNum: number, vars?: Array<any>, testConditions?: boolean) {
+		return this.command('POST', '/api/trigger', {
+			num: triggerNum,
+			var: (vars || []).join(','),
+			conditions: !!testConditions
+		})
 	}
-	public runCommand (params: any = {}) {
-		return this.command('POST', '/api/cmdline', params)
+	public runCommand (input: string) {
+		return this.command('POST', '/api/cmdline', {
+			input: input
+		})
 	}
 	/**
 	 * Master the intensity of a group (applied as a multiplier to output levels)
@@ -362,24 +427,39 @@ export class Pharos extends EventEmitter {
 			delay: delay
 		})
 	}
-	public setGroupOverride (params: any = {}) {
-		params.target = 'group'
+	public setGroupOverride (groupNum: number, options: RGBOptions) {
+		let params: any = _.extend({}, options, {
+			num: groupNum,
+			target: 'group'
+		})
 		return this.command('PUT', '/api/override', params)
 	}
-	public setFixtureOverride (params: any = {}) {
-		params.target = 'fixture'
+	public setFixtureOverride (fixtureNum: number, options: RGBOptions) {
+		let params: any = _.extend({}, options, {
+			num: fixtureNum,
+			target: 'fixture'
+		})
 		return this.command('PUT', '/api/override', params)
 	}
-	public clearGroupOverrides (params: any = {}) {
-		params.target = 'group'
+	public clearGroupOverrides (groupNum?: number, fade?: number) {
+		let params: any = {
+			target: 'group'
+		}
+		if (groupNum !== undefined) params.num = groupNum
+		if (fade !== undefined) params.fade = fade
 		return this.command('DELETE', '/api/override', params)
 	}
-	public clearFixtureOverrides (params: any = {}) {
-		params.target = 'fixture'
+	public clearFixtureOverrides (fixtureNum?: number, fade?: number) {
+		let params: any = {
+			target: 'fixture'
+		}
+		if (fixtureNum !== undefined) params.num = fixtureNum
+		if (fade !== undefined) params.fade = fade
 		return this.command('DELETE', '/api/override', params)
 	}
-	public clearAllOverrides (params: any = {}) {
-		delete params.num
+	public clearAllOverrides (fade?: number) {
+		let params: any = {}
+		if (fade !== undefined) params.fade = fade
 		return this.command('DELETE', '/api/override', params)
 	}
 	public enableOutput (protocol: Protocol) {
@@ -388,17 +468,30 @@ export class Pharos extends EventEmitter {
 	public disableOutput (protocol: Protocol) {
 		return this.command('POST', '/api/output', { action: 'disable', protocol: protocol })
 	}
-	public setTextSlot (params: any = {}) {
-		return this.command('PUT', '/api/text_slot', params)
+	public setTextSlot (slot: string, value: string) {
+		return this.command('PUT', '/api/text_slot', {
+			name: slot,
+			value: value
+		})
 	}
-	public toggleBeacon () {
+	public flashBeacon () {
 		return this.command('POST', '/api/beacon')
 	}
-	public parkChannel (params: any = {}) {
-		return this.command('POST', '/api/channel', params)
+	public parkChannel (universeKey: string, channelList: Array<number | string>, level: number) {
+		return this.command('POST', '/api/channel', {
+			universe: universeKey,
+			channels: (channelList || []).join(','),
+			level: level
+		})
 	}
-	public unparkChannel (params: any = {}) {
-		return this.command('DELETE', '/api/channel', params)
+	public unparkChannel (universeKey: string, channelList: Array<number | string>) {
+		return this.command('DELETE', '/api/channel', {
+			universe: universeKey,
+			channels: (channelList || []).join(',')
+		})
+	}
+	public getLog () {
+		return this.command('GET', '/api/log')
 	}
 	public clearLog () {
 		return this.command('DELETE', '/api/log')
@@ -457,14 +550,17 @@ export class Pharos extends EventEmitter {
 					}
 				})
 			}
-			let handleResponse = (error, response) => {
+			let handleResponse: request.RequestCallback = (error, response: request.Response) => {
 				if (error) {
 					this.emit('error', new Error(`Error ${method}: ${error}`))
 					reject(error)
 				} else if (response.statusCode === 400) {
 					reject(new Error(`Error: [400]: Bad request`))
+					// TODO: Maybe handle other response-codes?
+				} else if (response.statusCode >= 200 && response.statusCode <= 299) {
+					resolve(response.body)
 				} else {
-					resolve(response.statusCode)
+					reject(new Error(`Error: StatusCode: [${response.statusCode}]`))
 				}
 			}
 			if (method === 'POST') {
@@ -497,7 +593,7 @@ export class Pharos extends EventEmitter {
 		})
 	}
 
-	private _connectSocket (options?: Options) {
+	private _connectSocket (options?: Options): Promise<void> {
 		if (options) {
 			this._options = options
 		}
@@ -517,7 +613,7 @@ export class Pharos extends EventEmitter {
 			})
 			setTimeout(() => {
 				reject(new Error('Connection timeout'))
-			}, 3000)
+			}, CONNECT_TIMEOUT)
 
 			this._socket.on('open', () => {
 				this._connectionChanged(true)
@@ -566,10 +662,11 @@ export class Pharos extends EventEmitter {
 				}
 			})
 			this._socket.on('error', (e) => {
-				this._handleWebsocketError(e)
+				this._handleWebsocketReconnection(e)
 			})
 			this._socket.on('close', () => {
-				this._connectionChanged(false)
+				// this._connectionChanged(false)
+				this._handleWebsocketReconnection()
 			})
 		})
 
@@ -598,18 +695,24 @@ export class Pharos extends EventEmitter {
 	}
 	private _webSocketKeepAlive () {
 		// send a zero length message as a ping to keep the connection alive
+		if (this._webSocketKeepAliveTimeout) {
+			clearTimeout(this._webSocketKeepAliveTimeout) // to prevent multiple loops of pings
+		}
+		this._webSocketKeepAliveTimeout = null
 		if (this._keepAlive) {
 			if (this._replyReceived) {
-				this._sendMessage('')
-				.catch(e => this.emit('error', e))
+				if (this._connected) { // we only have to ping if we think we're connected
+					this._sendMessage('')
+					.catch(e => this.emit('error', e))
+				}
 
-				setTimeout(() => {
+				this._webSocketKeepAliveTimeout = setTimeout(() => {
 					this._webSocketKeepAlive()
-				}, 10 * 1000)
+				}, PING_TIMEOUT)
 				this._replyReceived = false
 			} else {
 				// never got a reply, throw an error
-				this._handleWebsocketError(new Error('ping timeout'))
+				this._handleWebsocketReconnection(new Error('ping timeout'))
 			}
 		}
 	}
@@ -651,15 +754,19 @@ export class Pharos extends EventEmitter {
 			this.emit('error', `Unknown reply: ${json}`)
 		}
 	}
-	private _handleWebsocketError (e) {
+	private _handleWebsocketReconnection (e?: Error) {
+		// Called when a socket connection is closed for whatever reason
 		this._keepAlive = false
 		this._socket = null
 
 		this._connectionChanged(false)
 
-		if (this._reconnectAttempts === 0) { // Only emit error on first error
-			this.emit('error', e)
+		if (e) {
+			if (this._reconnectAttempts === 0) { // Only emit error on first error
+				this.emit('error', e)
+			}
 		}
+
 		setTimeout(() => {
 			this._reconnect()
 		}, Math.min(60, this._reconnectAttempts) * 1000)

@@ -144,7 +144,10 @@ export class PharosDevice extends DeviceWithState<TimelineState> {
 	}
 	terminate () {
 		this._doOnTime.dispose()
-		return Promise.resolve(true)
+		return this._pharos.dispose()
+		.then(() => {
+			return true
+		})
 	}
 	get canConnect (): boolean {
 		return true

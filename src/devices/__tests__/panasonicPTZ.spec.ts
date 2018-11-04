@@ -1,5 +1,5 @@
+jest.mock('request')
 import { TriggerType } from 'superfly-timeline'
-
 import {
 	Mappings,
 	MappingPanasonicPtz,
@@ -11,16 +11,27 @@ import {
 	PanasonicPtzDevice,
 	TimelineContentTypePanasonicPtz
 } from '../panasonicPTZ'
-
-import * as nock from 'nock'
 import { MockTime } from '../../__tests__/mockTime.spec'
+const request = require('../../__mocks__/request')
 
-nock('http://192.168.0.10')
-	.get('/cgi-bin/aw_ptz?cmd=%23O&res=1')
-	.reply(200, 'p1')
+const orgSetTimeout = setTimeout
 
 describe('Panasonic PTZ', () => {
 	let mockTime = new MockTime()
+
+	let onGet = jest.fn((url, options, callback) => {
+		orgSetTimeout(() => {
+			if (url === 'http://192.168.0.10/cgi-bin/aw_ptz?cmd=%23O&res=1') {
+				callback(null, {
+					statusCode: 200,
+					body: 'p1'
+				})
+			} else {
+				callback(new Error('Unsupported mock'), null)
+			}
+		}, 1)
+	})
+	request.setMockGet(onGet)
 
 	beforeAll(() => {
 		Date.now = jest.fn()
