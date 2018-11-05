@@ -3,7 +3,7 @@ import { TriggerType } from 'superfly-timeline'
 import { Mappings, MappingAbstract, DeviceType } from '../devices/mapping'
 import { Conductor, TimelineTriggerTimeResult, TimelineContentObject } from '../conductor'
 import * as _ from 'underscore'
-import { MockTime } from './mocktime.spec'
+import { MockTime } from './mockTime.spec'
 
 // let nowActual: number = Date.now()
 // process.on('unhandledRejection', (reason, p) => {
