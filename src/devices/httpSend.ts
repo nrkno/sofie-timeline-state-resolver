@@ -6,8 +6,8 @@ import {
 	DeviceStatus,
 	StatusCode
 } from './device'
-import { DeviceType } from './mapping'
-import { TimelineContentTypeHttp } from '../enums'
+import { DeviceType } from '../types/mapping'
+import { TimelineContentTypeHttp } from '../types/http'
 import { DoOnTime } from '../doOnTime'
 import * as request from 'request'
 

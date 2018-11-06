@@ -9,12 +9,12 @@ import {
 } from './device'
 import {
 	DeviceType,
-	MappingLawo,
 	Mappings
-} from './mapping'
+} from '../types/mapping'
 import {
-	TimelineContentTypeLawo
-} from '../enums'
+	TimelineContentTypeLawo,
+	MappingLawo
+} from '../types/lawo'
 import {
 	TimelineState,
 	TimelineResolvedObject

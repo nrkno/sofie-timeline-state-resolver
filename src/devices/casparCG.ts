@@ -14,14 +14,14 @@ import {
 	CasparCGSocketStatusEvent
 } from 'casparcg-connection'
 import {
-	MappingCasparCG,
 	DeviceType,
 	Mapping,
 	TimelineResolvedObjectExtended
-} from './mapping'
+} from '../types/mapping'
 import {
-	TimelineContentTypeCasparCg
-} from '../enums'
+	TimelineContentTypeCasparCg,
+	MappingCasparCG
+} from '../types/casparcg'
 
 import {
 	TimelineState,

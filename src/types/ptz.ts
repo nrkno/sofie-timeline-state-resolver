@@ -1,17 +1,27 @@
-import {
-	TimelineKeyframe,
-	TimelineResolvedObject
-} from 'superfly-timeline' // TODO - strip down to reduce dependency size
+import { TimelineObject, TimelineKeyframe } from 'superfly-timeline'
+import { Mapping, DeviceType } from './mapping'
 
-import {
-	TimelineContentTypePanasonicPtz
-} from './enums'
+export interface MappingPanasonicPtz extends Mapping {
+	device: DeviceType.PANASONIC_PTZ
+	mappingType: MappingPanasonicPtzType
+}
+export enum MappingPanasonicPtzType {
+	PRESET_SPEED = 0,
+	PRESET = 1,
+	ZOOM = 2,
+	ZOOM_SPEED = 3
+}
 
-export type TimelineObjAny = TimelineObjPanasonicPtzAny | any
+export enum TimelineContentTypePanasonicPtz {
+	PRESET = 'presetMem',
+	SPEED = 'presetSpeed',
+	ZOOM_SPEED = 'zoomSpeed',
+	ZOOM = 'zoom'
+}
 
 export type TimelineObjPanasonicPtzAny = TimelineObjPanasonicPtz | TimelineObjPanasonicPtzPresetSpeed | TimelineObjPanasonicPtzPreset
 
-export interface TimelineObjPanasonicPtz extends TimelineResolvedObject {
+export interface TimelineObjPanasonicPtz extends TimelineObject {
 	content: {
 		keyframes?: Array<TimelineKeyframe>
 		type: TimelineContentTypePanasonicPtz

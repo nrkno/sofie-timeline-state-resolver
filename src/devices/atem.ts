@@ -9,13 +9,13 @@ import {
 } from './device'
 import {
 	DeviceType,
-	MappingAtem,
-	MappingAtemType,
 	TimelineResolvedObjectExtended
-} from './mapping'
+} from '../types/mapping'
 import {
-	TimelineContentTypeAtem
-} from '../enums'
+	TimelineContentTypeAtem,
+	MappingAtem,
+	MappingAtemType
+} from '../types/atem'
 import { TimelineState } from 'superfly-timeline'
 import {
 	Atem,
