@@ -7,3 +7,27 @@ export * from './pharos'
 export * from './ptz'
 
 export * from './mapping'
+
+import { TimelineContentTypeAtem, TimelineObjAtemAny } from './atem'
+import { TimelineContentTypeCasparCg, TimelineObjCCGAny } from './casparcg'
+import { TimelineContentTypeHttp, TimelineObjHTTPRequest } from './http'
+import { TimelineContentTypeHyperdeck, TimelineObjHyperdeckAny } from './hyperdeck'
+import { TimelineContentTypeLawo, TimelineObjLawoAny } from './lawo'
+import { TimelineContentTypePharos, TimelineObjPharosAny } from './pharos'
+import { TimelineContentTypePanasonicPtz, TimelineObjPanasonicPtzAny } from './ptz'
+
+export type TimelineContentTypeAny = TimelineContentTypeAtem
+	| TimelineContentTypeCasparCg
+	| TimelineContentTypeHttp
+	| TimelineContentTypeHyperdeck
+	| TimelineContentTypeLawo
+	| TimelineContentTypePharos
+	| TimelineContentTypePanasonicPtz
+
+export type TimelineObjectAny = TimelineObjAtemAny
+	| TimelineObjCCGAny
+	| TimelineObjHTTPRequest
+	| TimelineObjLawoAny
+	| TimelineObjHyperdeckAny
+	| TimelineObjPanasonicPtzAny
+	| TimelineObjPharosAny

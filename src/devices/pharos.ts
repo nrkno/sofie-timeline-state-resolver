@@ -8,17 +8,13 @@ import {
 } from './device'
 import { DeviceType } from '../types/mapping'
 import {
-	PharosOptions
+	PharosOptions,
+	TimelineContentTypePharos
 } from '../types/pharos'
 
 import { TimelineState, TimelineResolvedObject, TimelineResolvedKeyframe } from 'superfly-timeline'
 import { DoOnTime } from '../doOnTime'
 import { Pharos, ProjectInfo } from './pharosAPI'
-
-export enum TimelineContentTypePharos {
-	SCENE = 'scene',
-	TIMELINE = 'timeline'
-}
 
 /*
 	This is a wrapper for an Pharos-devices,

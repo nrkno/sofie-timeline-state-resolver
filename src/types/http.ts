@@ -1,3 +1,4 @@
+import { TimelineObject, TimelineKeyframe } from 'superfly-timeline'
 import { Mapping, DeviceType } from './mapping'
 
 export interface MappingHTTPSend extends Mapping {
@@ -7,7 +8,7 @@ export interface MappingHTTPSend extends Mapping {
 export interface HttpSendCommandContent {
 	type: TimelineContentTypeHttp
 	url: string
-	params: {[key: string]: number | string}
+	params: {[key: string]: number | string | any}
 }
 export interface HttpSendOptions {
 	makeReadyCommands?: HttpSendCommandContent[]
@@ -18,4 +19,10 @@ export enum TimelineContentTypeHttp {
 	POST = 'post',
 	PUT = 'put',
 	DELETE = 'delete'
+}
+
+export interface TimelineObjHTTPRequest extends TimelineObject {
+	content: HttpSendCommandContent & {
+		keyframes?: Array<TimelineKeyframe>
+	}
 }
