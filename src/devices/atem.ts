@@ -14,7 +14,8 @@ import {
 import {
 	TimelineContentTypeAtem,
 	MappingAtem,
-	MappingAtemType
+	MappingAtemType,
+	AtemOptions
 } from '../types/atem'
 import { TimelineState } from 'superfly-timeline'
 import {
@@ -44,10 +45,7 @@ export interface AtemDeviceOptions extends DeviceOptions {
 		commandReceiver?: (time: number, cmd) => Promise<any>
 	}
 }
-export interface AtemOptions {
-	host: string
-	port?: number
-}
+
 export interface AtemCommandWithContext {
 	command: AtemCommands.AbstractCommand
 	context: CommandContext

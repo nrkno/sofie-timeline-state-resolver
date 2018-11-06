@@ -4,6 +4,15 @@ export interface MappingHTTPSend extends Mapping {
 	device: DeviceType.HTTPSEND
 }
 
+export interface HttpSendCommandContent {
+	type: TimelineContentTypeHttp
+	url: string
+	params: {[key: string]: number | string}
+}
+export interface HttpSendOptions {
+	makeReadyCommands?: HttpSendCommandContent[]
+}
+
 export enum TimelineContentTypeHttp {
 	GET = 'get',
 	POST = 'post',

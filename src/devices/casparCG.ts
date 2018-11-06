@@ -20,7 +20,8 @@ import {
 } from '../types/mapping'
 import {
 	TimelineContentTypeCasparCg,
-	MappingCasparCG
+	MappingCasparCG,
+	CasparCGOptions
 } from '../types/casparcg'
 
 import {
@@ -48,13 +49,7 @@ export interface CasparCGDeviceOptions extends DeviceOptions {
 		timeBase?: {[channel: string]: number} | number
 	}
 }
-export interface CasparCGOptions {
-	host: string,
-	port: number,
-	useScheduling?: boolean, // whether to use the CasparCG-SCHEDULE command to run future commands, or the internal (backwards-compatible) command queue
-	launcherHost: string,
-	launcherPort: string
-}
+
 export class CasparCGDevice extends DeviceWithState<TimelineState> {
 
 	private _ccg: CasparCG

@@ -13,9 +13,6 @@ export interface Mapping {
 export interface MappingAbstract extends Mapping {
 	device: DeviceType.ABSTRACT
 }
-export interface MappingPharos extends Mapping {
-	device: DeviceType.PHAROS
-}
 export enum DeviceType {
 	ABSTRACT = 0,
 	CASPARCG = 1,

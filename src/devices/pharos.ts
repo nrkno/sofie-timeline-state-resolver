@@ -7,6 +7,9 @@ import {
 	StatusCode
 } from './device'
 import { DeviceType } from '../types/mapping'
+import {
+	PharosOptions
+} from '../types/pharos'
 
 import { TimelineState, TimelineResolvedObject, TimelineResolvedKeyframe } from 'superfly-timeline'
 import { DoOnTime } from '../doOnTime'
@@ -25,10 +28,6 @@ export interface PharosDeviceOptions extends DeviceOptions {
 	options?: {
 		commandReceiver?: (time: number, cmd) => Promise<any>
 	}
-}
-export interface PharosOptions {
-	host: string
-	ssl: boolean
 }
 export interface Command {
 	content: CommandContent,

@@ -14,7 +14,8 @@ import {
 import {
 	TimelineContentTypeHyperdeck,
 	MappingHyperdeck,
-	MappingHyperdeckType
+	MappingHyperdeckType,
+	HyperdeckOptions
 } from '../types/hyperdeck'
 import {
 	Hyperdeck,
@@ -37,10 +38,6 @@ export interface HyperdeckDeviceOptions extends DeviceOptions {
 	options?: {
 		commandReceiver?: (time: number, cmd) => Promise<any>
 	}
-}
-export interface HyperdeckOptions {
-	host: string
-	port?: number
 }
 export interface HyperdeckCommandWithContext {
 	command: HyperdeckCommands.AbstractCommand

@@ -9,6 +9,11 @@ export enum MappingHyperdeckType {
 	TRANSPORT = 'transport'
 }
 
+export interface HyperdeckOptions {
+	host: string
+	port?: number
+}
+
 export enum TimelineContentTypeHyperdeck {
 	TRANSPORT = 'transport'
 }

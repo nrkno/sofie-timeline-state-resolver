@@ -16,6 +16,11 @@ export enum MappingAtemType {
 	SuperSourceProperties
 }
 
+export interface AtemOptions {
+	host: string
+	port?: number
+}
+
 export enum TimelineContentTypeAtem { //  Atem-state
 	ME = 'me',
 	DSK = 'dsk',

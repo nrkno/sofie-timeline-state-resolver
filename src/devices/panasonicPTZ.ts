@@ -24,7 +24,7 @@ import { TimelineState, TimelineResolvedObject } from 'superfly-timeline'
 import { DoOnTime } from '../doOnTime'
 import { PanasonicPtzHttpInterface } from './panasonicPTZAPI'
 
-export interface PanasonicPtzOptions extends DeviceOptions {
+export interface PanasonicPtzOptions extends DeviceOptions { // TODO - this doesnt match the others
 	options?: {
 		commandReceiver?: (time: number, cmd) => Promise<any>,
 		host?: string

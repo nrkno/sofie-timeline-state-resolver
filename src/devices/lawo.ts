@@ -32,7 +32,7 @@ import { getDiff } from '../lib'
 	An abstract device is just a test-device that doesn't really do anything, but can be used
 	as a preliminary mock
 */
-export interface LawoOptions extends DeviceOptions {
+export interface LawoOptions extends DeviceOptions { // TODO - this doesnt match what the other ones do
 	options?: {
 		commandReceiver?: (time: number, cmd) => Promise<any>,
 		host?: string,
