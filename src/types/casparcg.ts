@@ -414,15 +414,15 @@ export interface TransitionObject {
 	changeTransition: Transition0
 	outTransition: Transition0
 }
-export interface Transition0 extends ITransition {
-	type: string
-	duration: number
-	easing: string
-	direction: string
-}
 export interface ITransition {
 	type?: string
 	duration: number
 	easing?: string
 	direction?: string
+}
+export interface Transition0 extends ITransition {
+	type: string
+	duration: number
+	easing: string
+	direction: string
 }
