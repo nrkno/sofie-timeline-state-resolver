@@ -1,34 +1,22 @@
-// import {Resolver, Enums} from "superfly-timeline"
-// import { Commands, Atem } from 'atem-connection'
 import { Enums, MixEffect } from 'atem-state'
 import { TriggerType } from 'superfly-timeline'
 
-import { Mappings, MappingAtem, DeviceType, MappingAtemType } from '../devices/mapping'
-import { Conductor } from '../conductor'
-import { AtemDevice, TimelineContentTypeAtem } from '../devices/atem'
+import { Mappings, MappingAtem, DeviceType, MappingAtemType } from '../mapping'
+import { Conductor } from '../../conductor'
+import { AtemDevice, TimelineContentTypeAtem } from '../atem'
+import { MockTime } from '../../__tests__/mockTime.spec'
 
-// let nowActual: number = Date.now()
 describe('Atem', () => {
-	let now: number = 10000
+	let mockTime = new MockTime()
 	beforeAll(() => {
 		Date.now = jest.fn(() => {
-			return getCurrentTime()
+			return mockTime.getCurrentTime()
 		})
-		// Date.now['mockReturnValue'](now)
 	})
-	function getCurrentTime () {
-		return now
-	}
-	function advanceTime (advanceTime: number) {
-		now += advanceTime
-		jest.advanceTimersByTime(advanceTime)
-		// console.log('Advancing ' + advanceTime + ' ms -----------------------')
-	}
 	beforeEach(() => {
-		now = 10000
+		mockTime.init()
 	})
 	test('Atem: switch input', async () => {
-		jest.useFakeTimers()
 
 		let commandReceiver0 = jest.fn(() => {
 			return Promise.resolve()
@@ -45,23 +33,21 @@ describe('Atem', () => {
 
 		let myConductor = new Conductor({
 			initializeAsClear: true,
-			getCurrentTime: getCurrentTime
+			getCurrentTime: mockTime.getCurrentTime
 		})
 		await myConductor.init()
 		await myConductor.addDevice('myAtem', {
 			type: DeviceType.ATEM,
 			options: {
 				commandReceiver: commandReceiver0,
-				// host: '192.168.168.240',
 				host: '92.62.46.187',
 				port: 9910
 			}
 		})
 		myConductor.mapping = myLayerMapping
-		advanceTime(100) // 10100
+		mockTime.advanceTimeTo(10100)
 
 		let device = myConductor.getDevice('myAtem') as AtemDevice
-		// console.log(device._device.state)
 
 		// Check that no commands has been scheduled:
 		expect(device.queue).toHaveLength(0)
@@ -71,7 +57,7 @@ describe('Atem', () => {
 				id: 'obj0',
 				trigger: {
 					type: TriggerType.TIME_ABSOLUTE,
-					value: now - 1000 // 1 seconds ago
+					value: mockTime.now - 1000 // 1 seconds ago
 				},
 				duration: 2000,
 				LLayer: 'myLayer0',
@@ -101,7 +87,7 @@ describe('Atem', () => {
 			}
 		]
 
-		advanceTime(100) // 10200
+		mockTime.advanceTimeTo(10200)
 		expect(commandReceiver0).toHaveBeenCalledTimes(2)
 		expect(commandReceiver0.mock.calls[0][1]).toMatchObject(
 			{
@@ -120,7 +106,7 @@ describe('Atem', () => {
 				mixEffect: 0
 			}
 		)
-		advanceTime(2000) // 22200
+		mockTime.advanceTimeTo(12200)
 
 		expect(commandReceiver0).toHaveBeenCalledTimes(4)
 		expect(commandReceiver0.mock.calls[2][1]).toMatchObject(
@@ -143,7 +129,6 @@ describe('Atem', () => {
 	})
 
 	test('Atem: upstream keyer', async () => {
-		jest.useFakeTimers()
 
 		let commandReceiver0 = jest.fn(() => {
 			// nothing
@@ -160,23 +145,21 @@ describe('Atem', () => {
 
 		let myConductor = new Conductor({
 			initializeAsClear: true,
-			getCurrentTime: getCurrentTime
+			getCurrentTime: mockTime.getCurrentTime
 		})
 		await myConductor.init()
 		await myConductor.addDevice('myAtem', {
 			type: DeviceType.ATEM,
 			options: {
 				commandReceiver: commandReceiver0,
-				// host: '192.168.168.240',
 				host: '92.62.46.187',
 				port: 9910
 			}
 		})
 		myConductor.mapping = myLayerMapping
-		advanceTime(100) // 1100
+		mockTime.advanceTimeTo(10100)
 
 		let device = myConductor.getDevice('myAtem') as AtemDevice
-		// console.log(device._device.state)
 
 		// Check that no commands has been scheduled:
 		expect(device.queue).toHaveLength(0)
@@ -185,11 +168,12 @@ describe('Atem', () => {
 				id: 'obj0',
 				trigger: {
 					type: TriggerType.TIME_ABSOLUTE,
-					value: now - 1000 // 1 seconds ago
+					value: mockTime.now - 1000 // 1 seconds ago
 				},
 				duration: 2000,
 				LLayer: 'myLayer0',
 				content: {
+					// @ts-ignore dveSettings missing
 					attributes: {
 						upstreamKeyers: [
 							{
@@ -205,7 +189,7 @@ describe('Atem', () => {
 			}
 		]
 
-		advanceTime(100) // 1200
+		mockTime.advanceTimeTo(10200)
 
 		expect(commandReceiver0).toHaveBeenCalledTimes(1)
 		expect(commandReceiver0.mock.calls[0][1]).toMatchObject(

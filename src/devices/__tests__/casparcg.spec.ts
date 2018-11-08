@@ -2,30 +2,24 @@
 // import {Resolver, Enums} from "superfly-timeline"
 import { TriggerType } from 'superfly-timeline'
 
-import { Mappings, MappingCasparCG, DeviceType } from '../devices/mapping'
-import { Conductor } from '../conductor'
-import { TimelineContentTypeCasparCg } from '../devices/casparCG'
+import {
+	Mappings,
+	MappingCasparCG,
+	DeviceType
+} from '../mapping'
+import { Conductor } from '../../conductor'
+import { TimelineContentTypeCasparCg } from '../casparCG'
+import { MockTime } from '../../__tests__/mockTime.spec'
 
-// let nowActual: number = Date.getCurrentTime()()
 describe('CasparCG', () => {
-	let now: number = 10000
+	let mockTime = new MockTime()
 	beforeAll(() => {
 		Date.now = jest.fn(() => {
-			return getCurrentTime()
+			return mockTime.getCurrentTime()
 		})
-		// Date.getCurrentTime()['mockReturnValue'](getCurrentTime())
 	})
-	function getCurrentTime () {
-		return now
-	}
-	function advanceTime (advanceTime: number) {
-		now += advanceTime
-		jest.advanceTimersByTime(advanceTime)
-		// console.log('Advancing ' + advanceTime + ' ms -----------------------')
-	}
 	beforeEach(() => {
-		now = 10000
-		jest.useFakeTimers()
+		mockTime.init()
 	})
 	test('CasparCG: Play AMB for 60s', async () => {
 
@@ -44,7 +38,7 @@ describe('CasparCG', () => {
 
 		let myConductor = new Conductor({
 			initializeAsClear: true,
-			getCurrentTime: getCurrentTime
+			getCurrentTime: mockTime.getCurrentTime
 		})
 		await myConductor.init() // we cannot do an await, because setTimeout will never call without jest moving on.
 		await myConductor.addDevice('myCCG', {
@@ -55,7 +49,7 @@ describe('CasparCG', () => {
 			}
 		})
 		myConductor.mapping = myLayerMapping
-		advanceTime(100) // 5600
+		mockTime.advanceTimeTo(10100)
 
 		let device = myConductor.getDevice('myCCG')
 
@@ -67,7 +61,7 @@ describe('CasparCG', () => {
 				id: 'obj0',
 				trigger: {
 					type: TriggerType.TIME_ABSOLUTE,
-					value: getCurrentTime() - 1000 // 1 seconds ago
+					value: mockTime.getCurrentTime() - 1000 // 1 seconds ago
 				},
 				duration: 2000,
 				LLayer: 'myLayer0',
@@ -81,7 +75,7 @@ describe('CasparCG', () => {
 			}
 		]
 
-		advanceTime(100) // 5700
+		mockTime.advanceTimeTo(10200)
 
 		// one command has been sent:
 		expect(commandReceiver0).toHaveBeenCalledTimes(2)
@@ -95,7 +89,7 @@ describe('CasparCG', () => {
 		})
 
 		// advance time to end of clip:
-		advanceTime(1500) // 7200
+		mockTime.advanceTimeTo(11200)
 
 		// two commands have been sent:
 		expect(commandReceiver0).toHaveBeenCalledTimes(2)
@@ -122,7 +116,7 @@ describe('CasparCG', () => {
 
 		let myConductor = new Conductor({
 			initializeAsClear: true,
-			getCurrentTime: getCurrentTime
+			getCurrentTime: mockTime.getCurrentTime
 		})
 		await myConductor.init()
 		await myConductor.addDevice('myCCG', {
@@ -143,7 +137,7 @@ describe('CasparCG', () => {
 				id: 'obj0',
 				trigger: {
 					type: TriggerType.TIME_ABSOLUTE,
-					value: getCurrentTime() - 1000 // 1 seconds ago
+					value: mockTime.getCurrentTime() - 1000 // 1 seconds ago
 				},
 				duration: 2000,
 				LLayer: 'myLayer0',
@@ -155,13 +149,10 @@ describe('CasparCG', () => {
 				}
 			}
 		]
-		// console.log(getCurrentTime())
-		advanceTime(100)
-		// console.log(getCurrentTime())
+		mockTime.advanceTime(100)
 
 		// one command has been sent:
 		expect(commandReceiver0).toHaveBeenCalledTimes(2)
-		// console.log(commandReceiver0.mock.calls)
 		expect(commandReceiver0.mock.calls[0][1]._objectParams).toMatchObject({
 			channel: 2,
 			layer: 42,
@@ -171,7 +162,7 @@ describe('CasparCG', () => {
 		})
 
 		// advance time to end of clip:
-		advanceTime(2000)
+		mockTime.advanceTime(2000)
 
 		// two commands have been sent:
 		expect(commandReceiver0).toHaveBeenCalledTimes(2)
@@ -198,7 +189,7 @@ describe('CasparCG', () => {
 
 		let myConductor = new Conductor({
 			initializeAsClear: true,
-			getCurrentTime: getCurrentTime
+			getCurrentTime: mockTime.getCurrentTime
 		})
 		await myConductor.init()
 		await myConductor.addDevice('myCCG', {
@@ -220,7 +211,7 @@ describe('CasparCG', () => {
 				id: 'obj0',
 				trigger: {
 					type: TriggerType.TIME_ABSOLUTE,
-					value: getCurrentTime() - 1000 // 1 seconds ago
+					value: mockTime.getCurrentTime() - 1000 // 1 seconds ago
 				},
 				duration: 2000,
 				LLayer: 'myLayer0',
@@ -233,7 +224,7 @@ describe('CasparCG', () => {
 			}
 		]
 
-		advanceTime(100) // 5700
+		mockTime.advanceTimeTo(10100)
 
 		// one command has been sent:
 		expect(commandReceiver0).toHaveBeenCalledTimes(2)
@@ -244,7 +235,7 @@ describe('CasparCG', () => {
 		})
 
 		// advance time to end of clip:
-		advanceTime(1500) // 7200
+		mockTime.advanceTimeTo(11200)
 
 		// two commands have been sent:
 		expect(commandReceiver0).toHaveBeenCalledTimes(2)
@@ -270,7 +261,7 @@ describe('CasparCG', () => {
 
 		let myConductor = new Conductor({
 			initializeAsClear: true,
-			getCurrentTime: getCurrentTime
+			getCurrentTime: mockTime.getCurrentTime
 		})
 		await myConductor.init()
 		await myConductor.addDevice('myCCG', {
@@ -292,7 +283,7 @@ describe('CasparCG', () => {
 				id: 'obj0',
 				trigger: {
 					type: TriggerType.TIME_ABSOLUTE,
-					value: getCurrentTime() - 1000 // 1 seconds ago
+					value: mockTime.getCurrentTime() - 1000 // 1 seconds ago
 				},
 				duration: 2000,
 				LLayer: 'myLayer0',
@@ -310,7 +301,7 @@ describe('CasparCG', () => {
 			}
 		]
 
-		advanceTime(100) // 5700
+		mockTime.advanceTimeTo(10100)
 
 		// one command has been sent:
 		expect(commandReceiver0).toHaveBeenCalledTimes(2)
@@ -348,7 +339,7 @@ describe('CasparCG', () => {
 
 		let myConductor = new Conductor({
 			initializeAsClear: true,
-			getCurrentTime: getCurrentTime
+			getCurrentTime: mockTime.getCurrentTime
 		})
 		await myConductor.init()
 		await myConductor.addDevice('myCCG', {
@@ -370,7 +361,7 @@ describe('CasparCG', () => {
 				id: 'obj0',
 				trigger: {
 					type: TriggerType.TIME_ABSOLUTE,
-					value: getCurrentTime() - 1000 // 1 seconds ago
+					value: mockTime.getCurrentTime() - 1000 // 1 seconds ago
 				},
 				duration: 2000,
 				LLayer: 'myLayer0',
@@ -384,7 +375,7 @@ describe('CasparCG', () => {
 			}
 		]
 
-		advanceTime(100) // 5700
+		mockTime.advanceTimeTo(10100)
 
 		// one command has been sent:
 		expect(commandReceiver0).toHaveBeenCalledTimes(2)
@@ -427,7 +418,7 @@ describe('CasparCG', () => {
 
 		let myConductor = new Conductor({
 			initializeAsClear: true,
-			getCurrentTime: getCurrentTime
+			getCurrentTime: mockTime.getCurrentTime
 		})
 		await myConductor.init()
 		await myConductor.addDevice('myCCG', {
@@ -449,7 +440,7 @@ describe('CasparCG', () => {
 				id: 'obj0',
 				trigger: {
 					type: TriggerType.TIME_ABSOLUTE,
-					value: getCurrentTime() - 1000 // 1 seconds ago
+					value: mockTime.getCurrentTime() - 1000 // 1 seconds ago
 				},
 				duration: 3000,
 				LLayer: 'myLayer0',
@@ -464,7 +455,7 @@ describe('CasparCG', () => {
 				id: 'obj1',
 				trigger: {
 					type: TriggerType.TIME_ABSOLUTE,
-					value: getCurrentTime() + 1000 // 1 seconds into the future
+					value: mockTime.getCurrentTime() + 1000 // 1 seconds into the future
 				},
 				duration: 1000,
 				LLayer: 'myLayer1',
@@ -478,7 +469,7 @@ describe('CasparCG', () => {
 			}
 		]
 
-		advanceTime(100) // 5700
+		mockTime.advanceTimeTo(10100)
 
 		// one command has been sent:
 		expect(commandReceiver0).toHaveBeenCalledTimes(4)
@@ -492,7 +483,7 @@ describe('CasparCG', () => {
 			customCommand: 'route'
 		})
 
-		advanceTime(1000) // 6700
+		mockTime.advanceTimeTo(11000)
 
 		// expect(commandReceiver0).toHaveBeenCalledTimes(2)
 		expect(commandReceiver0.mock.calls[1][1]._objectParams.command._objectParams).toMatchObject({
@@ -506,7 +497,7 @@ describe('CasparCG', () => {
 		})
 
 		// advance time to end of clip:
-		advanceTime(1500) // 7200
+		mockTime.advanceTimeTo(12000)
 
 		// two more commands have been sent:
 		// expect(commandReceiver0).toHaveBeenCalledTimes(4)
@@ -532,7 +523,7 @@ describe('CasparCG', () => {
 
 		let myConductor = new Conductor({
 			initializeAsClear: true,
-			getCurrentTime: getCurrentTime
+			getCurrentTime: mockTime.getCurrentTime
 		})
 		await myConductor.init()
 		await myConductor.addDevice('myCCG', {
@@ -552,7 +543,7 @@ describe('CasparCG', () => {
 				id: 'obj0',
 				trigger: {
 					type: TriggerType.TIME_ABSOLUTE,
-					value: getCurrentTime() - 1000 // 1 seconds ago
+					value: mockTime.getCurrentTime() - 1000 // 1 seconds ago
 				},
 				duration: 2000,
 				LLayer: 'myLayer0',
@@ -580,9 +571,7 @@ describe('CasparCG', () => {
 		]
 
 		// fast-forward:
-		advanceTime(100)
-		// console.log(commandReceiver0.mock.calls[1][1])
-		// console.log(commandReceiver0.mock.calls[2][1])
+		mockTime.advanceTime(100)
 		// Check that an ACMP-command has been sent
 		expect(commandReceiver0).toHaveBeenCalledTimes(2)
 		expect(commandReceiver0.mock.calls[0][1].name).toEqual('PlayCommand')
@@ -599,7 +588,6 @@ describe('CasparCG', () => {
 			loop: false
 		})
 		expect(commandReceiver0.mock.calls[1][1].name).toEqual('ScheduleSetCommand')
-		// console.log(commandReceiver0.mock.calls[1][1]._objectParams.command._objectParams)
 		expect(commandReceiver0.mock.calls[1][1]._objectParams.command.name).toEqual('PlayCommand')
 		expect(commandReceiver0.mock.calls[1][1]._objectParams.command._objectParams).toMatchObject({
 			channel: 2,
@@ -612,7 +600,7 @@ describe('CasparCG', () => {
 		})
 
 		// Nothing more should've happened:
-		advanceTime(4000) // 10400
+		mockTime.advanceTimeTo(10400)
 
 		expect(commandReceiver0.mock.calls.length).toBe(2)
 	})
@@ -634,7 +622,7 @@ describe('CasparCG', () => {
 
 		let myConductor = new Conductor({
 			initializeAsClear: true,
-			getCurrentTime: getCurrentTime
+			getCurrentTime: mockTime.getCurrentTime
 		})
 		await myConductor.init()
 		await myConductor.addDevice('myCCG', {
@@ -654,7 +642,7 @@ describe('CasparCG', () => {
 				id: 'obj0',
 				trigger: {
 					type: TriggerType.TIME_ABSOLUTE,
-					value: getCurrentTime() - 1000 // 1 seconds ago
+					value: mockTime.getCurrentTime() - 1000 // 1 seconds ago
 				},
 				duration: 12000, // 12s
 				LLayer: 'myLayer0',
@@ -710,7 +698,7 @@ describe('CasparCG', () => {
 		]
 
 		// fast-forward:
-		advanceTime(500)
+		mockTime.advanceTime(500)
 
 		// Check that ACMP-commands has been sent
 		expect(commandReceiver0).toHaveBeenCalledTimes(2)
@@ -731,11 +719,10 @@ describe('CasparCG', () => {
 		})
 
 		// fast-forward:
-		advanceTime(5000)
+		mockTime.advanceTime(5000)
 
 		expect(commandReceiver0.mock.calls).toHaveLength(3)
 		// expect(CasparCG.mockDo.mock.calls[2][0]).toBeInstanceOf(AMCP.StopCommand);
-		// console.log(commandReceiver0.mock.calls[2][1])
 		expect(commandReceiver0.mock.calls[2][1].name).toMatch(/MixerPerspectiveCommand/)
 		expect(commandReceiver0.mock.calls[2][1]._objectParams).toMatchObject({
 			channel: 2,
@@ -770,7 +757,7 @@ describe('CasparCG', () => {
 
 		let myConductor = new Conductor({
 			initializeAsClear: true,
-			getCurrentTime: getCurrentTime
+			getCurrentTime: mockTime.getCurrentTime
 		})
 		await myConductor.init()
 		await myConductor.addDevice('myCCG', {
@@ -783,13 +770,13 @@ describe('CasparCG', () => {
 		})
 		myConductor.mapping = myLayerMapping
 
-		expect(getCurrentTime()).toEqual(10000)
+		expect(mockTime.getCurrentTime()).toEqual(10000)
 		myConductor.timeline = [
 			{
 				id: 'obj0_bg',
 				trigger: {
 					type: TriggerType.TIME_ABSOLUTE,
-					value: getCurrentTime()
+					value: mockTime.getCurrentTime()
 				},
 				duration: 1200,
 				isBackground: true,
@@ -806,7 +793,7 @@ describe('CasparCG', () => {
 				id: 'obj0',
 				trigger: {
 					type: TriggerType.TIME_ABSOLUTE,
-					value: getCurrentTime() + 1200 // 1.2 seconds in the future
+					value: mockTime.getCurrentTime() + 1200 // 1.2 seconds in the future
 				},
 				duration: 2000,
 				LLayer: 'myLayer0',
@@ -820,7 +807,7 @@ describe('CasparCG', () => {
 			}
 		]
 
-		advanceTime(100)
+		mockTime.advanceTime(100)
 		expect(commandReceiver0).toHaveBeenCalledTimes(3)
 		expect(commandReceiver0.mock.calls[1][1].name).toEqual('LoadbgCommand')
 		expect(commandReceiver0.mock.calls[1][1]._objectParams).toMatchObject({
@@ -831,7 +818,6 @@ describe('CasparCG', () => {
 			auto: false
 		})
 		expect(commandReceiver0.mock.calls[2][1].name).toEqual('ScheduleSetCommand')
-		// console.log(commandReceiver0.mock.calls[1][1])
 		expect(commandReceiver0.mock.calls[2][1]._objectParams.timecode).toEqual('00:00:11:10') // 11s 10 frames == 1.2 s @50fpx
 
 		expect(commandReceiver0.mock.calls[2][1]._objectParams.command.name).toEqual('PlayCommand')
@@ -841,7 +827,7 @@ describe('CasparCG', () => {
 			noClear: false
 		})
 
-		advanceTime(2000)
+		mockTime.advanceTime(2000)
 		expect(commandReceiver0).toHaveBeenCalledTimes(4)
 		expect(commandReceiver0.mock.calls[3][1].name).toEqual('ScheduleSetCommand')
 		expect(commandReceiver0.mock.calls[3][1]._objectParams.command.name).toEqual('ClearCommand')
@@ -869,7 +855,7 @@ describe('CasparCG', () => {
 
 		let myConductor = new Conductor({
 			initializeAsClear: true,
-			getCurrentTime: getCurrentTime
+			getCurrentTime: mockTime.getCurrentTime
 		})
 		await myConductor.init()
 		await myConductor.addDevice('myCCG', {
@@ -886,7 +872,7 @@ describe('CasparCG', () => {
 				id: 'obj0_bg',
 				trigger: {
 					type: TriggerType.TIME_ABSOLUTE,
-					value: getCurrentTime() // 1.2 seconds in the future
+					value: mockTime.getCurrentTime() // 1.2 seconds in the future
 				},
 				isBackground: true,
 				duration: 1200,
@@ -903,7 +889,7 @@ describe('CasparCG', () => {
 				id: 'obj0',
 				trigger: {
 					type: TriggerType.TIME_ABSOLUTE,
-					value: getCurrentTime() + 1200 // 1.2 seconds in the future
+					value: mockTime.getCurrentTime() + 1200 // 1.2 seconds in the future
 				},
 				duration: 2000,
 				LLayer: 'myLayer0',
@@ -917,7 +903,7 @@ describe('CasparCG', () => {
 			}
 		]
 
-		advanceTime(100) //  10100
+		mockTime.advanceTime(100) //  10100
 		expect(commandReceiver0).toHaveBeenCalledTimes(3)
 		expect(commandReceiver0.mock.calls[1][1].name).toEqual('LoadbgCommand')
 		expect(commandReceiver0.mock.calls[1][1]._objectParams).toMatchObject({
@@ -928,7 +914,6 @@ describe('CasparCG', () => {
 			auto: false
 		})
 		expect(commandReceiver0.mock.calls[2][1].name).toEqual('ScheduleSetCommand')
-		// console.log(commandReceiver0.mock.calls[1][1])
 		expect(commandReceiver0.mock.calls[2][1]._objectParams.timecode).toEqual('00:00:11:10') // 11s 10 frames == 1.2 s @ 50 fps
 
 		expect(commandReceiver0.mock.calls[2][1]._objectParams.command.name).toEqual('PlayCommand')
@@ -941,14 +926,14 @@ describe('CasparCG', () => {
 
 		// then change my mind:
 		myConductor.timeline = []
-		advanceTime(100) //  10100
+		mockTime.advanceTime(100) //  10100
 
 		expect(commandReceiver0).toHaveBeenCalledTimes(4)
 		// expect(commandReceiver0.mock.calls[3][1].name).toEqual('ClearCommand')
 		expect(commandReceiver0.mock.calls[3][1].name).toEqual('ScheduleRemoveCommand')
 		expect(commandReceiver0.mock.calls[3][1]._stringParamsArray[0]).toEqual(tokenPlay)
 
-		advanceTime(2000) //  10100
+		mockTime.advanceTime(2000) //  10100
 		expect(commandReceiver0).toHaveBeenCalledTimes(4)
 
 	})

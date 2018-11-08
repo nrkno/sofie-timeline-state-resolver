@@ -1,30 +1,25 @@
 import { TriggerType } from 'superfly-timeline'
-
-import { Mappings, MappingLawo, DeviceType, MappingLawoType } from '../devices/mapping'
-import { Conductor } from '../conductor'
+import {
+	Mappings,
+	MappingLawo,
+	DeviceType,
+	MappingLawoType
+} from '../mapping'
+import { Conductor } from '../../conductor'
 import { LawoDevice,
 	TimelineContentTypeLawo
-} from '../devices/lawo'
+} from '../lawo'
+import { MockTime } from '../../__tests__/mockTime.spec'
 
 describe('Lawo', () => {
-	let now: number = 1000
+	let mockTime = new MockTime()
 
 	beforeAll(() => {
 		Date.now = jest.fn()
 		Date.now['mockReturnValue'](1000)
 	})
-	function getCurrentTime () {
-		return now
-	}
-	// function literal<T> (o: T) { return o }
-
-	function advanceTime (advanceTime: number) {
-		now += advanceTime
-		jest.advanceTimersByTime(advanceTime)
-	}
 	beforeEach(() => {
-		now = 1000
-		jest.useFakeTimers()
+		mockTime.init()
 	})
 
 	test('Lawo: Change volume', async () => {
@@ -44,7 +39,7 @@ describe('Lawo', () => {
 
 		let myConductor = new Conductor({
 			initializeAsClear: true,
-			getCurrentTime: getCurrentTime
+			getCurrentTime: mockTime.getCurrentTime
 		})
 		myConductor.mapping = myChannelMapping
 		await myConductor.init() // we cannot do an await, because setTimeout will never call without jest moving on.
@@ -56,7 +51,7 @@ describe('Lawo', () => {
 				commandReceiver: commandReceiver0
 			}
 		})
-		advanceTime(100) // 1100
+		mockTime.advanceTimeTo(10100)
 
 		let device = myConductor.getDevice('myLawo') as LawoDevice
 
@@ -67,7 +62,7 @@ describe('Lawo', () => {
 				id: 'obj0',
 				trigger: {
 					type: TriggerType.TIME_ABSOLUTE,
-					value: now - 1000 // 1 seconds in the past
+					value: mockTime.now - 1000 // 1 seconds in the past
 				},
 				duration: 2000,
 				LLayer: 'lawo_c1_fader',
@@ -86,7 +81,7 @@ describe('Lawo', () => {
 				id: 'obj1',
 				trigger: {
 					type: TriggerType.TIME_ABSOLUTE,
-					value: now + 500 // 0.5 seconds in the future
+					value: mockTime.now + 500 // 0.5 seconds in the future
 				},
 				duration: 2000,
 				LLayer: 'lawo_c1_fader',
@@ -105,7 +100,7 @@ describe('Lawo', () => {
 				id: 'obj2',
 				trigger: {
 					type: TriggerType.TIME_ABSOLUTE,
-					value: now + 1000 // 1 seconds in the future
+					value: mockTime.now + 1000 // 1 seconds in the future
 				},
 				duration: 2000,
 				LLayer: 'lawo_c1_fader',
@@ -124,7 +119,7 @@ describe('Lawo', () => {
 				id: 'obj3',
 				trigger: {
 					type: TriggerType.TIME_ABSOLUTE,
-					value: now + 2000 // 2 seconds in the future
+					value: mockTime.now + 2000 // 2 seconds in the future
 				},
 				duration: 2000,
 				LLayer: 'lawo_c1_fader',
@@ -141,7 +136,7 @@ describe('Lawo', () => {
 			}
 		]
 
-		advanceTime(100) // 1200
+		mockTime.advanceTimeTo(10200)
 
 		expect(commandReceiver0).toHaveBeenCalledTimes(1)
 		expect(commandReceiver0.mock.calls[0][1]).toMatchObject(
@@ -154,7 +149,7 @@ describe('Lawo', () => {
 		)
 		expect(commandReceiver0.mock.calls[0][2]).toMatch(/null/i) // context
 
-		advanceTime(800) // 2000
+		mockTime.advanceTimeTo(11000)
 
 		expect(commandReceiver0).toHaveBeenCalledTimes(2)
 		expect(commandReceiver0.mock.calls[1][1]).toMatchObject(
@@ -168,11 +163,11 @@ describe('Lawo', () => {
 		)
 		expect(commandReceiver0.mock.calls[1][2]).toBeTruthy() // context
 
-		advanceTime(500) // 2500
+		mockTime.advanceTimeTo(11500)
 		expect(commandReceiver0).toHaveBeenCalledTimes(2)
 		// no new commands should have been sent, becuse obj2 is the same as obj1
 
-		advanceTime(1000) // 3500
+		mockTime.advanceTimeTo(12500)
 		expect(commandReceiver0).toHaveBeenCalledTimes(3)
 		expect(commandReceiver0.mock.calls[2][1]).toMatchObject(
 			{
@@ -183,7 +178,7 @@ describe('Lawo', () => {
 			}
 		)
 		expect(commandReceiver0.mock.calls[2][2]).toMatch(/triggerValue/i) // context
-		advanceTime(2000) // 5500
+		mockTime.advanceTimeTo(14500)
 		expect(commandReceiver0).toHaveBeenCalledTimes(3)
 		// no new commands should be sent, nothing is sent on object end
 	})

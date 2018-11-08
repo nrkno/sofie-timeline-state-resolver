@@ -1,31 +1,25 @@
-// import { CasparCG, AMCP } from 'casparcg-connection'
-// import {Resolver, Enums} from "superfly-timeline"
 import { TriggerType } from 'superfly-timeline'
 
-import { Mappings, MappingCasparCG, DeviceType } from '../devices/mapping'
+import {
+	Mappings,
+	MappingCasparCG,
+	DeviceType
+} from '../devices/mapping'
 import { Conductor } from '../conductor'
+import { MockTime } from './mockTime.spec'
 
 // let nowActual: number = Date.now()
 
 describe('Rundown', () => {
-	let now: number = 10000
+	let mockTime = new MockTime()
 	beforeAll(() => {
 		Date.now = jest.fn(() => {
-			return getCurrentTime()
+			return mockTime.getCurrentTime()
 		})
 		// Date.now['mockReturnValue'](now)
 	})
-	function getCurrentTime () {
-		return now
-	}
-	function advanceTime (advanceTime: number) {
-		now += advanceTime
-		jest.advanceTimersByTime(advanceTime)
-		// console.log('Advancing ' + advanceTime + ' ms -----------------------')
-	}
 	beforeEach(() => {
-		now = 10000
-		jest.useFakeTimers()
+		mockTime.init()
 	})
 
 	test('Do a "full" rundown', async () => {
@@ -73,7 +67,7 @@ describe('Rundown', () => {
 
 		let myConductor = new Conductor({
 			initializeAsClear: true,
-			getCurrentTime: getCurrentTime
+			getCurrentTime: mockTime.getCurrentTime
 		})
 		await myConductor.init()
 		await myConductor.addDevice('myCCG', {
@@ -85,7 +79,7 @@ describe('Rundown', () => {
 			}
 		})
 		myConductor.mapping = myLayerMapping
-		advanceTime(1) // 10001
+		mockTime.advanceTimeTo(10001)
 
 		let device = myConductor.getDevice('myCCG')
 
@@ -340,9 +334,9 @@ describe('Rundown', () => {
 			}
 		]
 
-		advanceTime(100) // 10101
+		mockTime.advanceTimeTo(10101)
 
-		expect(getCurrentTime()).toEqual(10101)
+		expect(mockTime.getCurrentTime()).toEqual(10101)
 
 		// PLAY 1-10 ROUTE://3-10
 		// PLAY 1-11 OPENER_SHORT
@@ -409,8 +403,8 @@ describe('Rundown', () => {
 			'layer': 11
 		})
 
-		advanceTime(1000) // 11101
-		expect(getCurrentTime()).toEqual(11101)
+		mockTime.advanceTimeTo(11101)
+		expect(mockTime.getCurrentTime()).toEqual(11101)
 		expect(commandReceiver0).toHaveBeenCalledTimes(8)
 		// SCHEDULE SET 3s CG ADD 1-11 ...
 		expect(commandReceiver0.mock.calls[7][1]._objectParams.timecode).toEqual('00:00:13:00')
@@ -426,8 +420,8 @@ describe('Rundown', () => {
 			templateType: 'html'
 		})
 
-		advanceTime(1500) // 12601
-		expect(getCurrentTime()).toEqual(12601)
+		mockTime.advanceTimeTo(12601)
+		expect(mockTime.getCurrentTime()).toEqual(12601)
 		expect(commandReceiver0).toHaveBeenCalledTimes(12)
 		// SCHEDULE SET 4.5s CG STOP
 		// SCHEDULE SET 4.5s LOADBG 1-11 STINGER
@@ -454,8 +448,8 @@ describe('Rundown', () => {
 			noClear: false
 		})
 
-		advanceTime(1399) // 14000
-		expect(getCurrentTime()).toEqual(14000)
+		mockTime.advanceTimeTo(14000)
+		expect(mockTime.getCurrentTime()).toEqual(14000)
 		expect(commandReceiver0).toHaveBeenCalledTimes(19)
 		// SCHEDULE SET 5.5s PLAY 1-10 ROUTE://3-20
 		// SCHEDULE SET 5s LOADBG 2-10 BG2
@@ -498,8 +492,8 @@ describe('Rundown', () => {
 			transitionDirection: 'right'
 		})
 
-		advanceTime(1000)
-		expect(getCurrentTime()).toEqual(15000)
+		mockTime.advanceTime(1000)
+		expect(mockTime.getCurrentTime()).toEqual(15000)
 		expect(commandReceiver0).toHaveBeenCalledTimes(23)
 
 		expect(commandReceiver0.mock.calls[19][1]._objectParams.timecode).toEqual('00:00:16:45')
@@ -527,13 +521,8 @@ describe('Rundown', () => {
 			'layer': 10
 		})
 
-		advanceTime(5000)
-		expect(getCurrentTime()).toEqual(20000)
-
-		// commandReceiver0.mock.calls.forEach((call, i) => {
-			// console.log(i, call[1].token, call[1].name)
-		// })
-		// expect(commandReceiver0).toHaveBeenCalledTimes(25)
+		mockTime.advanceTime(5000)
+		expect(mockTime.getCurrentTime()).toEqual(20000)
 
 		expect(commandReceiver0.mock.calls[23][1]._objectParams.timecode).toEqual('00:00:23:00')
 		expect(commandReceiver0.mock.calls[23][1]._objectParams.command._objectParams).toMatchObject({

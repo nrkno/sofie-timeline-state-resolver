@@ -1,36 +1,22 @@
 jest.mock('ws')
 import { TriggerType } from 'superfly-timeline'
 
-import { Mappings, DeviceType, MappingPharos } from '../devices/mapping'
-import { Conductor } from '../conductor'
-import { PharosDevice } from '../devices/pharos'
-const WebSocket = require('../__mocks__/ws')
+import { Mappings, DeviceType, MappingPharos } from '../mapping'
+import { Conductor } from '../../conductor'
+import { PharosDevice } from '../pharos'
+import { MockTime } from '../../__tests__/mockTime.spec'
+const WebSocket = require('../../__mocks__/ws')
 
 describe('Pharos', () => {
-	let now: number = 10000
+	let mockTime = new MockTime()
 	beforeAll(() => {
 		Date.now = jest.fn(() => {
-			return getCurrentTime()
+			return mockTime.getCurrentTime()
 		})
 		// Date.now['mockReturnValue'](now)
 	})
-	function getCurrentTime () {
-		return now
-	}
-	function advanceTime (advanceTime: number) {
-		expect(advanceTime).toBeGreaterThan(0)
-		now += advanceTime
-		jest.advanceTimersByTime(advanceTime)
-		// console.log('Advancing ' + advanceTime + ' ms -----------------------')
-	}
-	function advanceTimeTo (time: number) {
-		let advance = time - now
-		advanceTime(advance)
-	}
 	beforeEach(() => {
-		now = 10000
-		jest.useFakeTimers()
-
+		mockTime.init()
 	})
 	test('Scene', async () => {
 		let device
@@ -49,7 +35,7 @@ describe('Pharos', () => {
 
 		let myConductor = new Conductor({
 			initializeAsClear: true,
-			getCurrentTime: getCurrentTime
+			getCurrentTime: mockTime.getCurrentTime
 		})
 		let errorHandler = jest.fn()
 		myConductor.on('error', errorHandler)
@@ -94,7 +80,7 @@ describe('Pharos', () => {
 		expect(wsInstances).toHaveLength(1)
 		// let wsInstance = wsInstances[0]
 
-		advanceTimeTo(10100)
+		mockTime.advanceTimeTo(10100)
 
 		device = myConductor.getDevice('myPharos') as PharosDevice
 
@@ -109,7 +95,7 @@ describe('Pharos', () => {
 				id: 'scene0',
 				trigger: {
 					type: TriggerType.TIME_ABSOLUTE,
-					value: now + 1000
+					value: mockTime.now + 1000
 				},
 				duration: 5000,
 				LLayer: 'myLayer0',
@@ -153,19 +139,19 @@ describe('Pharos', () => {
 			}
 		]
 
-		advanceTimeTo(10990)
+		mockTime.advanceTimeTo(10990)
 		expect(commandReceiver0).toHaveBeenCalledTimes(0)
 
 		mockReply.mockReset()
 		expect(mockReply).toHaveBeenCalledTimes(0)
 
-		advanceTimeTo(11500)
+		mockTime.advanceTimeTo(11500)
 		expect(commandReceiver0).toHaveBeenCalledTimes(1)
 		expect(commandReceiver0.mock.calls[0][1].content.args[0]).toEqual(1) // scene
 		expect(commandReceiver0.mock.calls[0][2]).toMatch(/added/) // context
 		expect(commandReceiver0.mock.calls[0][2]).toMatch(/scene0/) // context
 
-		advanceTimeTo(12500)
+		mockTime.advanceTimeTo(12500)
 		expect(commandReceiver0).toHaveBeenCalledTimes(3)
 		expect(commandReceiver0.mock.calls[1][1].content.args[0]).toEqual(1) // scene
 		expect(commandReceiver0.mock.calls[1][2]).toMatch(/changed from/) // context
@@ -175,7 +161,7 @@ describe('Pharos', () => {
 		expect(commandReceiver0.mock.calls[2][2]).toMatch(/changed to/) // context
 		expect(commandReceiver0.mock.calls[2][2]).toMatch(/scene1/) // context
 
-		advanceTimeTo(13500)
+		mockTime.advanceTimeTo(13500)
 		expect(commandReceiver0).toHaveBeenCalledTimes(5)
 		expect(commandReceiver0.mock.calls[3][1].content.args[0]).toEqual(2) // scene
 		expect(commandReceiver0.mock.calls[3][2]).toMatch(/removed/) // context
@@ -185,13 +171,13 @@ describe('Pharos', () => {
 		expect(commandReceiver0.mock.calls[4][2]).toMatch(/removed/) // context
 		expect(commandReceiver0.mock.calls[4][2]).toMatch(/scene2/) // context
 
-		advanceTimeTo(14500)
+		mockTime.advanceTimeTo(14500)
 		expect(commandReceiver0).toHaveBeenCalledTimes(6)
 		expect(commandReceiver0.mock.calls[5][1].content.args[0]).toEqual(2) // scene
 		expect(commandReceiver0.mock.calls[5][2]).toMatch(/added/) // context
 		expect(commandReceiver0.mock.calls[5][2]).toMatch(/scene1/) // context
 
-		advanceTimeTo(20000)
+		mockTime.advanceTimeTo(20000)
 		expect(commandReceiver0).toHaveBeenCalledTimes(7)
 		expect(commandReceiver0.mock.calls[6][1].content.args[0]).toEqual(2) // scene
 		expect(commandReceiver0.mock.calls[6][2]).toMatch(/removed/) // context

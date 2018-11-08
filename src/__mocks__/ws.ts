@@ -17,7 +17,11 @@ class WebSocket extends EventEmitter {
 	private _mockHost: string = 'ws://127.0.0.1'
 	private _mockConnect: boolean = true
 	private _emittedConnected: boolean = false
+	private _hasEmittedConnected: boolean = false
+	private _failConnectEmitTimeout: number = 3000
 	private _replyFunction?: Function
+
+	private _readyState: number = this.CLOSED
 
 	constructor (pathName) {
 		super()
@@ -29,9 +33,13 @@ class WebSocket extends EventEmitter {
 			mockConstructor(this)
 		}
 
+		this._readyState = this.CONNECTING
+
 		orgSetTimeout(() => {
 			if (!this._updateConnectionStatus()) {
-				this.emit('error', new Error('Unable to Connect'))
+				setTimeout(() => {
+					this.emit('error', new Error('Unable to Connect'))
+				}, this._failConnectEmitTimeout)
 			}
 		}, 1)
 
@@ -42,6 +50,9 @@ class WebSocket extends EventEmitter {
 	}
 	public static getMockInstances () {
 		return instances
+	}
+	public static clearMockInstances () {
+		return instances.splice(0, 9999)
 	}
 	public static mockConstructor (fcn: (WebSocket) => void) {
 		mockConstructor = fcn
@@ -55,10 +66,13 @@ class WebSocket extends EventEmitter {
 
 				Promise.resolve(this._replyFunction(message))
 				.then((reply) => {
-					if (typeof reply !== 'string') reply = JSON.stringify(reply)
-					this.emit('message', reply)
+					if (reply) {
+						if (typeof reply !== 'string') reply = JSON.stringify(reply)
+						this.emit('message', reply)
+					}
 				})
 				.catch((err) => {
+					console.log('err')
 					this.emit('error', err)
 				})
 			} else {
@@ -67,7 +81,7 @@ class WebSocket extends EventEmitter {
 		}
 	}
 	public get readyState () {
-		return this.OPEN
+		return this._readyState
 	}
 	public mockReplyFunction (fcn: (msg: string) => Promise<string> | string) {
 		this._replyFunction = fcn
@@ -77,6 +91,17 @@ class WebSocket extends EventEmitter {
 
 		this._updateConnectionStatus()
 	}
+	public mockSendMessage (message: string | object) {
+		if (typeof message !== 'string') message = JSON.stringify(message)
+		this.emit('message', message)
+	}
+	public close () {
+		this._readyState = this.CLOSING
+
+		orgSetTimeout(() => {
+			this.mockSetConnected(false)
+		}, 1)
+	}
 	private _updateConnectionStatus () {
 
 		let connected = (
@@ -84,12 +109,15 @@ class WebSocket extends EventEmitter {
 			this._mockConnect
 		)
 
-		if (connected !== this._emittedConnected) {
+		if (connected !== this._emittedConnected || !this._hasEmittedConnected) {
 			this._emittedConnected = connected
+			this._hasEmittedConnected = true
 
 			if (connected) {
+				this._readyState = this.OPEN
 				this.emit('open')
 			} else {
+				this._readyState = this.CLOSED
 				this.emit('close')
 			}
 		}

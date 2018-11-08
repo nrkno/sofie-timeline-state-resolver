@@ -14,11 +14,6 @@ describe('equal', () => {
 			// they are equal
 			expect(d).toEqual(null)
 		} else {
-			// console.log('--------------------------')
-			// console.log(a)
-			// console.log(b)
-			// console.log(d)
-			// they are not equal
 			expect(d).toBeTruthy()
 		}
 	}
