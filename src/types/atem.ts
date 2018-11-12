@@ -53,6 +53,27 @@ export type SuperSourceBox = {
 	cropRight?: number
 }
 
+export interface AtemTransitionSettings {
+	// dip
+	// DVE
+	mix?: {
+		rate: number
+	}
+	// stinger
+	wipe?: {
+		rate?: number,
+		pattern?: number,
+		borderWidth?: number,
+		borderInput?: number,
+		symmetry?: number,
+		borderSoftness?: number,
+		xPosition?: number,
+		yPosition?: number,
+		reverseDirection?: boolean,
+		flipFlop?: boolean
+	}
+}
+
 export interface TimelineObjAtemME extends TimelineObject {
 	content: {
 		keyframes?: Array<TimelineKeyframe>
@@ -71,26 +92,7 @@ export interface TimelineObjAtemME extends TimelineObject {
 			// numberOfKeyers?: number;
 			// transitionProperties?: AtemTransitionProperties;
 
-			transitionSettings?: {
-				// dip
-				// DVE
-				mix?: {
-					rate: number
-				}
-				// stinger
-				wipe?: {
-					rate?: number,
-					pattern?: number,
-					borderWidth?: number,
-					borderInput?: number,
-					symmetry?: number,
-					borderSoftness?: number,
-					xPosition?: number,
-					yPosition?: number,
-					reverseDirection?: boolean,
-					flipFlop?: boolean
-				}
-			},
+			transitionSettings?: AtemTransitionSettings,
 
 			upstreamKeyers?: {
 				readonly upstreamKeyerId: number,

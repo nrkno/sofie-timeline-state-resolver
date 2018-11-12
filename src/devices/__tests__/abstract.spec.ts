@@ -3,7 +3,7 @@ import {
 	Mappings,
 	DeviceType,
 	MappingAbstract
-} from '../mapping'
+} from '../../types/mapping'
 import { Conductor } from '../../conductor'
 import { AbstractDevice } from '../abstract'
 import { StatusCode } from '../device'

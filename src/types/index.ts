@@ -16,6 +16,12 @@ import { TimelineContentTypeLawo, TimelineObjLawoAny } from './lawo'
 import { TimelineContentTypePharos, TimelineObjPharosAny } from './pharos'
 import { TimelineContentTypePanasonicPtz, TimelineObjPanasonicPtzAny } from './ptz'
 
+import { TimelineObject } from 'superfly-timeline'
+export interface TimelineObjEmpty extends TimelineObject {
+	content: {}
+	classes: Array<string>
+}
+
 export type TimelineContentTypeAny = TimelineContentTypeAtem
 	| TimelineContentTypeCasparCg
 	| TimelineContentTypeHttp
@@ -24,7 +30,8 @@ export type TimelineContentTypeAny = TimelineContentTypeAtem
 	| TimelineContentTypePharos
 	| TimelineContentTypePanasonicPtz
 
-export type TimelineObjectAny = TimelineObjAtemAny
+export type TimelineObjectAny = TimelineObjEmpty
+	| TimelineObjAtemAny
 	| TimelineObjCCGAny
 	| TimelineObjHTTPRequest
 	| TimelineObjLawoAny

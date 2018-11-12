@@ -14,8 +14,6 @@ import {
 import { MockTime } from '../../__tests__/mockTime.spec'
 const request = require('../../__mocks__/request')
 
-import * as nock from 'nock'
-
 const orgSetTimeout = setTimeout
 
 describe('Panasonic PTZ', () => {
