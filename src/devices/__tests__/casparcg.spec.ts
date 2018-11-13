@@ -928,13 +928,19 @@ describe('CasparCG', () => {
 		myConductor.timeline = []
 		mockTime.advanceTime(100) //  10100
 
-		expect(commandReceiver0).toHaveBeenCalledTimes(4)
+		expect(commandReceiver0).toHaveBeenCalledTimes(5)
 		// expect(commandReceiver0.mock.calls[3][1].name).toEqual('ClearCommand')
 		expect(commandReceiver0.mock.calls[3][1].name).toEqual('ScheduleRemoveCommand')
 		expect(commandReceiver0.mock.calls[3][1]._stringParamsArray[0]).toEqual(tokenPlay)
+		expect(commandReceiver0.mock.calls[4][1].name).toEqual('LoadbgCommand')
+		expect(commandReceiver0.mock.calls[4][1]._objectParams).toMatchObject({
+			channel: 2,
+			layer: 42,
+			clip: 'EMPTY'
+		})
 
 		mockTime.advanceTime(2000) //  10100
-		expect(commandReceiver0).toHaveBeenCalledTimes(4)
+		expect(commandReceiver0).toHaveBeenCalledTimes(5)
 
 	})
 })
