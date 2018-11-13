@@ -22,7 +22,7 @@ describe('Rundown', () => {
 		mockTime.init()
 	})
 
-	test('Do a "full" rundown', async () => {
+	test('Do a full rundown', async () => {
 
 		let commandReceiver0 = jest.fn(() => {
 			return Promise.resolve()
@@ -451,14 +451,15 @@ describe('Rundown', () => {
 		mockTime.advanceTimeTo(14000)
 		expect(mockTime.getCurrentTime()).toEqual(14000)
 		expect(commandReceiver0).toHaveBeenCalledTimes(19)
+		// SCHEDULE SET 5.5s PLAY 2-10
 		// SCHEDULE SET 5.5s PLAY 1-10 ROUTE://3-20
 		// SCHEDULE SET 5s LOADBG 2-10 BG2
-		// SCHEDULE SET 5.5s PLAY 2-10
-		expect(commandReceiver0.mock.calls[12][1]._objectParams.timecode).toEqual('00:00:15:25')
-		expect(commandReceiver0.mock.calls[12][1]._objectParams.command.name).toEqual('PlayRouteCommand')
-		expect(commandReceiver0.mock.calls[12][1]._objectParams.command._objectParams.command).toEqual('PLAY 1-10 route://3-20')
+		expect(commandReceiver0.mock.calls[13][1]._objectParams.timecode).toEqual('00:00:15:25')
+		expect(commandReceiver0.mock.calls[13][1]._objectParams.command.name).toEqual('PlayRouteCommand')
+		expect(commandReceiver0.mock.calls[13][1]._objectParams.command._objectParams.command).toEqual('PLAY 1-10 route://3-20')
 
 		expect(commandReceiver0.mock.calls[15][1]._objectParams.timecode).toEqual('00:00:15:25')
+		expect(commandReceiver0.mock.calls[15][1]._objectParams.command.name).toEqual('LoadbgCommand')
 		expect(commandReceiver0.mock.calls[15][1]._objectParams.command._objectParams).toMatchObject({
 			channel: 2,
 			layer: 10,
@@ -466,8 +467,9 @@ describe('Rundown', () => {
 			clip: 'BG2',
 			auto: false
 		})
-		expect(commandReceiver0.mock.calls[13][1]._objectParams.timecode).toEqual('00:00:15:25')
-		expect(commandReceiver0.mock.calls[13][1]._objectParams.command._objectParams).toMatchObject({
+		expect(commandReceiver0.mock.calls[12][1]._objectParams.timecode).toEqual('00:00:15:25')
+		// expect(commandReceiver0.mock.calls[12][1]._objectParams.command.name).toEqual('PlayCommand')
+		expect(commandReceiver0.mock.calls[12][1]._objectParams.command._objectParams).toMatchObject({
 			channel: 2,
 			layer: 10,
 			noClear: false
