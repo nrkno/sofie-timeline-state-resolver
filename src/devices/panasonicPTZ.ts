@@ -12,16 +12,13 @@ import {
 	Mappings,
 	MappingPanasonicPtzType
 } from './mapping'
-import * as request from 'request'
-import * as querystring from 'querystring'
-import { sprintf } from 'sprintf-js'
 import {
 	TimelineState,
 	TimelineKeyframe,
 	TimelineResolvedObject
 } from 'superfly-timeline'
 import { DoOnTime } from '../doOnTime'
-import { EventEmitter } from 'events'
+import { PanasonicPtzHttpInterface } from './panasonicPTZAPI'
 
 export interface PanasonicPtzOptions extends DeviceOptions {
 	options?: {
@@ -33,7 +30,9 @@ export interface PanasonicPtzOptions extends DeviceOptions {
 }
 export enum TimelineContentTypePanasonicPtz {
 	PRESET = 'presetMem',
-	SPEED = 'presetSpeed'
+	SPEED = 'presetSpeed',
+	ZOOM_SPEED = 'zoomSpeed',
+	ZOOM = 'zoom'
 }
 export interface TimelineObjPanasonicPtz extends TimelineResolvedObject {
 	content: {
@@ -41,6 +40,20 @@ export interface TimelineObjPanasonicPtz extends TimelineResolvedObject {
 		type: TimelineContentTypePanasonicPtz
 	}
 }
+export interface TimelineObjPanasonicPtzZoomSpeed extends TimelineObjPanasonicPtz {
+	content: {
+		type: TimelineContentTypePanasonicPtz.ZOOM_SPEED
+		zoomSpeed: number
+	}
+}
+
+export interface TimelineObjPanasonicPtzZoom extends TimelineObjPanasonicPtz {
+	content: {
+		type: TimelineContentTypePanasonicPtz.ZOOM
+		zoom: number
+	}
+}
+
 export interface TimelineObjPanasonicPtzPresetSpeed extends TimelineObjPanasonicPtz {
 	content: {
 		type: TimelineContentTypePanasonicPtz.SPEED
@@ -57,294 +70,23 @@ export interface TimelineObjPanasonicPtzPreset extends TimelineObjPanasonicPtz {
 
 export interface PanasonicPtzState {
 	speed: number | undefined,
-	preset: number | undefined
+	preset: number | undefined,
+	zoomSpeed: number | undefined,
+	zoom: number | undefined
 }
 
 export interface PanasonicPtzCommand {
 	type: TimelineContentTypePanasonicPtz,
 	speed?: number,
-	preset?: number
+	preset?: number,
+	zoomSpeed?: number, // -1 is full speed WIDE, +1 is full speed TELE, 0 is stationary
+	zoom?: number // 0 is WIDE, 1 is TELE
 }
 export interface PanasonicPtzCommandWithContext {
 	command: PanasonicPtzCommand,
 	context: CommandContext
 }
 type CommandContext = any
-interface CommandQueueItem {
-	command: string
-	executing: boolean
-	resolve: (response: string) => void
-	reject: (error: any) => void
-}
-export class PanasonicPtzCamera extends EventEmitter {
-	private _url: string
-	private _commandDelay: number
-	private _commandQueue: Array<CommandQueueItem> = []
-	private _executeQueueTimeout: Array<NodeJS.Timer> = []
-
-	constructor (url: string, commandDelay: number = 130) {
-		super()
-
-		this._commandDelay = commandDelay
-		this._url = url
-	}
-
-	get url () {
-		return this._url
-	}
-
-	sendCommand (command: string): Promise<string> {
-		const p: Promise<string> = new Promise((resolve, reject) => {
-			this._commandQueue.push({ command: command, executing: false, resolve: resolve, reject: reject })
-		})
-		if (this._commandQueue.filter(i => i.executing).length === 0) this._executeQueue()
-		return p
-	}
-	dispose () {
-		this._commandQueue = []
-		_.each(this._executeQueueTimeout, (item) => {
-			clearTimeout(item)
-		})
-	}
-
-	private _dropFromQueue (item: CommandQueueItem) {
-		const index = this._commandQueue.findIndex(i => i === item)
-		if (index >= 0) {
-			this._commandQueue.splice(index, 1)
-		} else {
-			throw new Error(`Command ${item.command} should be dropped from the queue, but could not be found!`)
-		}
-	}
-
-	private _executeQueue () {
-		const qItem = this._commandQueue.find(i => !i.executing)
-		if (!qItem) {
-			return
-		}
-
-		qItem.executing = true
-		request.get(
-			this._url + '?' + querystring.stringify({ 'cmd': qItem.command, 'res': '1' }),
-			{},
-			(error, response) => {
-				if (error) {
-					this.emit('error', error)
-					this._dropFromQueue(qItem)
-					qItem.reject(error)
-					return
-				}
-				this._dropFromQueue(qItem)
-				qItem.resolve(response.body)
-			}
-		)
-
-		// find any commands that aren't executing yet and execute one after 130ms
-		if (this._commandQueue.filter(i => !i.executing).length > 0) {
-			const timeout = setTimeout(() => {
-				// remove from timeouts list
-				const index = this._executeQueueTimeout.indexOf(timeout)
-				if (index >= 0) {
-					this._executeQueueTimeout.splice(index, 1)
-				}
-
-				this._executeQueue()
-			}, this._commandDelay)
-			// add to timeouts list so that we can cancel them when disposing
-			this._executeQueueTimeout.push(timeout)
-		}
-	}
-}
-enum PanasonicHttpCommands {
-	POWER_MODE_QUERY = '#O',
-
-	PRESET_NUMBER_CONTROL_TPL = '#R%02i',
-	PRESET_NUMBER_QUERY = '#S',
-	PRESET_SPEED_CONTROL_TPL = '#UPVS%03i',
-	PRESET_SPEED_QUERY = '#UPVS'
-}
-enum PanasonicHttpResponse {
-	POWER_MODE_ON = 'p1',
-	POWER_MODE_STBY = 'p0',
-	POWER_MODE_TURNING_ON = 'p3',
-
-	PRESET_NUMBER_TPL = 's',
-	PRESET_SPEED_TPL = 'uPVS',
-
-	ERROR_1 = 'E1',
-	ERROR_2 = 'E2',
-	ERROR_3 = 'E3'
-}
-export class PanasonicPtzHttpInterface extends EventEmitter {
-	private _device: PanasonicPtzCamera
-
-	constructor (host: string, port?: number, https?: boolean) {
-		super()
-
-		this._device = new PanasonicPtzCamera(
-			(https ? 'https' : 'http') + '://' + host + (port ? ':' + port : '') + '/cgi-bin/aw_ptz'
-		)
-		this._device.on('error', (err) => {
-			this.emit('error', err)
-		})
-	}
-
-	private static _isError (response: string) {
-		if (response === PanasonicHttpResponse.ERROR_1 ||
-			response === PanasonicHttpResponse.ERROR_2 ||
-			response === PanasonicHttpResponse.ERROR_3) {
-			return true
-		} else {
-			return false
-		}
-	}
-	dispose () {
-		this._device.dispose()
-	}
-	/**
-	 * Get the last preset recalled in the camera
-	 * @returns {Promise<number>}
-	 * @memberof PanasonicPtzHttpInterface
-	 */
-	getPreset (): Promise<number> {
-		const device = this._device
-
-		return new Promise((resolve, reject) => {
-			device.sendCommand(PanasonicHttpCommands.PRESET_NUMBER_QUERY).then((response) => {
-				if (PanasonicPtzHttpInterface._isError(response)) {
-					this.emit('error', response)
-					reject(response)
-				} else if (response.startsWith(PanasonicHttpResponse.PRESET_NUMBER_TPL)) {
-					const preset = Number.parseInt(response.substr(PanasonicHttpResponse.PRESET_NUMBER_TPL.length))
-					resolve(preset)
-				} else {
-					this.emit('error', response)
-					reject(response)
-				}
-			}).catch((error) => {
-				this.emit('disconnected', error)
-				reject(error)
-			})
-		})
-	}
-
-	/**
-	 * Recall camera preset
-	 * @param {number} preset The preset to be recalled in the camera. 0-99
-	 * @returns {Promise<number>} A promise: the preset the camera will transition to
-	 * @memberof PanasonicPtzHttpInterface
-	 */
-	recallPreset (preset: number): Promise<number> {
-		const device = this._device
-
-		if (!_.isFinite(preset)) throw new Error('Camera speed preset is not a finite number')
-		if (preset < 0 || preset > 99) throw new Error('Illegal preset number')
-
-		return new Promise((resolve, reject) => {
-			device.sendCommand(sprintf(PanasonicHttpCommands.PRESET_NUMBER_CONTROL_TPL, preset)).then((response) => {
-				if (PanasonicPtzHttpInterface._isError(response)) {
-					this.emit('error', response)
-					reject(response)
-				} else if (response.startsWith(PanasonicHttpResponse.PRESET_NUMBER_TPL)) {
-					const preset = Number.parseInt(response.substr(PanasonicHttpResponse.PRESET_NUMBER_TPL.length))
-					resolve(preset)
-				} else {
-					this.emit('error', response)
-					reject(response)
-				}
-			}).catch((error) => {
-				this.emit('disconnected', error)
-				reject(error)
-			})
-		})
-	}
-
-	/**
-	 * Get camera preset recall speed, within speed table
-	 * @returns {Promise<number>} A promise: the speed set in the camera
-	 * @memberof PanasonicPtzHttpInterface
-	 */
-	getSpeed (): Promise<number> {
-		const device = this._device
-
-		return new Promise((resolve, reject) => {
-			device.sendCommand(PanasonicHttpCommands.PRESET_SPEED_QUERY).then((response) => {
-				if (PanasonicPtzHttpInterface._isError(response)) {
-					this.emit('error', response)
-					reject(response)
-				} else if (response.startsWith(PanasonicHttpResponse.PRESET_SPEED_TPL)) {
-					const speed = Number.parseInt(response.substr(PanasonicHttpResponse.PRESET_SPEED_TPL.length))
-					resolve(speed)
-				} else {
-					this.emit('error', response)
-					reject(response)
-				}
-			}).catch((error) => {
-				this.emit('disconnected', error)
-				reject(error)
-			})
-		})
-	}
-
-	/**
-	 * Set camera preset recall speed, within speed table
-	 * @param {number} speed Speed to be set for the camera preset recall. 250-999 or 0. 0 is maximum speed
-	 * @returns {Promise<number>} A promise: the speed set in the camera
-	 * @memberof PanasonicPtzHttpInterface
-	 */
-	setSpeed (speed: number): Promise<number> {
-		const device = this._device
-
-		if (!_.isFinite(speed)) throw new Error('Camera speed preset is not a finite number')
-		if ((speed < 250 || speed > 999) && (speed !== 0)) throw new Error('Camera speed must be between 250 and 999 or needs to be 0')
-
-		return new Promise((resolve, reject) => {
-			device.sendCommand(sprintf(PanasonicHttpCommands.PRESET_SPEED_CONTROL_TPL, speed)).then((response) => {
-				if (PanasonicPtzHttpInterface._isError(response)) {
-					this.emit('error', response)
-					reject(response)
-				} else if (response.startsWith(PanasonicHttpResponse.PRESET_SPEED_TPL)) {
-					const speed = Number.parseInt(response.substr(PanasonicHttpResponse.PRESET_SPEED_TPL.length))
-					resolve(speed)
-				} else {
-					this.emit('error', response)
-					reject(response)
-				}
-			}).catch((error) => {
-				this.emit('disconnected', error)
-				reject(error)
-			})
-		})
-	}
-
-	/**
-	 * Ping a camera by checking it's power status. Will return true if the camera is on, false if it's off but reachable and will fail otherwise
-	 * @returns {Promose<boolean | string>} A promise: true if the camera is ON, false if the camera is off, 'turningOn' if transitioning from STBY to ON
-	 * @memberof PanasonicPtzHttpInterface
-	 */
-	ping (): Promise<boolean | string> {
-		const device = this._device
-		return new Promise((resolve, reject) => {
-			device.sendCommand(PanasonicHttpCommands.POWER_MODE_QUERY).then((response) => {
-				if (PanasonicPtzHttpInterface._isError(response)) {
-					this.emit('error', response)
-					reject(response)
-				} else if (response === PanasonicHttpResponse.POWER_MODE_ON) {
-					resolve(true)
-				} else if (response === PanasonicHttpResponse.POWER_MODE_STBY) {
-					resolve(false)
-				} else if (response === PanasonicHttpResponse.POWER_MODE_TURNING_ON) {
-					resolve('turningOn')
-				} else {
-					this.emit('error', response)
-					reject(response)
-				}
-			}).catch((error) => {
-				this.emit('disconnected', error)
-				reject(error)
-			})
-		})
-	}
-}
 
 const PROBE_INTERVAL = 10 * 1000 // Probe every 10s
 export class PanasonicPtzDevice extends DeviceWithState<TimelineState> {
@@ -426,6 +168,16 @@ export class PanasonicPtzDevice extends DeviceWithState<TimelineState> {
 					_.extend(ptzState, {
 						speed: tlObjectSource.content.speed
 					})
+				} else if (mapping.mappingType === MappingPanasonicPtzType.ZOOM_SPEED) {
+					let tlObjectSource = tlObject as TimelineObjPanasonicPtzZoomSpeed
+					_.extend(ptzState, {
+						zoomSpeed: tlObjectSource.content.zoomSpeed
+					})
+				} else if (mapping.mappingType === MappingPanasonicPtzType.ZOOM) {
+					let tlObjectSource = tlObject as TimelineObjPanasonicPtzZoom
+					_.extend(ptzState, {
+						zoom: tlObjectSource.content.zoom
+					})
 				}
 			}
 		})
@@ -469,7 +221,9 @@ export class PanasonicPtzDevice extends DeviceWithState<TimelineState> {
 	private _getDefaultState (): PanasonicPtzState {
 		return {
 			preset: undefined,
-			speed: undefined
+			speed: undefined,
+			zoomSpeed: undefined,
+			zoom: undefined
 		}
 	}
 
@@ -480,7 +234,6 @@ export class PanasonicPtzDevice extends DeviceWithState<TimelineState> {
 			command: cmd
 		}
 		if (cmd.type === TimelineContentTypePanasonicPtz.PRESET) {
-
 			if (this._device && cmd.preset !== undefined) {
 				this.emit('debug', cwc)
 				this._device.recallPreset(cmd.preset)
@@ -493,6 +246,26 @@ export class PanasonicPtzDevice extends DeviceWithState<TimelineState> {
 			if (this._device && cmd.speed !== undefined) {
 				this.emit('debug', cwc)
 				this._device.setSpeed(cmd.speed)
+				.then((res) => {
+					this.emit('debug', `Panasonic PTZ result: ${res}`)
+				})
+				.catch((e) => this.emit('error', e))
+			} // @todo: else: add throw here?
+		} else if (cmd.type === TimelineContentTypePanasonicPtz.ZOOM_SPEED) {
+			if (this._device && cmd.zoomSpeed !== undefined) {
+				this.emit('debug', cwc)
+				// scale -1 - 0 - +1 range to 01 - 50 - 99 range
+				this._device.setZoomSpeed((cmd.zoomSpeed * 49) + 50)
+				.then((res) => {
+					this.emit('debug', `Panasonic PTZ result: ${res}`)
+				})
+				.catch((e) => this.emit('error', e))
+			} // @todo: else: add throw here?
+		} else if (cmd.type === TimelineContentTypePanasonicPtz.ZOOM) {
+			if (this._device && cmd.zoom !== undefined) {
+				this.emit('debug', cwc)
+				// scale 0 - +1 range to 555h - FFFh range
+				this._device.setZoom((cmd.zoom * 0xAAA) + 0x555)
 				.then((res) => {
 					this.emit('debug', `Panasonic PTZ result: ${res}`)
 				})
@@ -530,7 +303,25 @@ export class PanasonicPtzDevice extends DeviceWithState<TimelineState> {
 						type: TimelineContentTypePanasonicPtz.SPEED,
 						speed: newNode.speed
 					},
-					context: `preset differ (${newNode.speed}, ${oldValue.speed})`
+					context: `preset spped differ (${newNode.speed}, ${oldValue.speed})`
+				})
+			}
+			if (newNode.zoomSpeed !== oldValue.zoomSpeed && newNode.zoomSpeed !== undefined) {
+				commands.push({
+					command: {
+						type: TimelineContentTypePanasonicPtz.ZOOM_SPEED,
+						speed: newNode.zoomSpeed
+					},
+					context: `zoom speed differ (${newNode.zoomSpeed}, ${oldValue.zoomSpeed})`
+				})
+			}
+			if (newNode.zoom !== oldValue.zoom && newNode.zoom !== undefined) {
+				commands.push({
+					command: {
+						type: TimelineContentTypePanasonicPtz.ZOOM,
+						zoom: newNode.zoom
+					},
+					context: `zoom speed differ (${newNode.zoom}, ${oldValue.zoom})`
 				})
 			}
 		}

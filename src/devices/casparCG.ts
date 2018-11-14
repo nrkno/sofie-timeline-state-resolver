@@ -528,18 +528,20 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> {
 	}
 
 	private _diffStates (oldState, newState): Array<CommandNS.IAMCPCommandVO> {
-		let commands: Array<{
-			cmds: Array<CommandNS.IAMCPCommandVO>
-			additionalLayerState?: StateNS.ILayerBase
-		}> = this._ccgState.diffStates(oldState, newState)
+		// @todo: this is a tmp fix for the command order. should be removed when ccg-state has been refactored.
+		return this._ccgState.diffStatesOrderedCommands(oldState, newState)
+		// let commands: Array<{
+		// 	cmds: Array<CommandNS.IAMCPCommandVO>
+		// 	additionalLayerState?: StateNS.ILayerBase
+		// }> = this._ccgState.diffStates(oldState, newState)
 
-		let returnCommands: Array<CommandNS.IAMCPCommandVO> = []
+		// let returnCommands: Array<CommandNS.IAMCPCommandVO> = []
 
-		_.each(commands, (cmdObject) => {
-			returnCommands = returnCommands.concat(cmdObject.cmds)
-		})
+		// _.each(commands, (cmdObject) => {
+		// 	returnCommands = returnCommands.concat(cmdObject.cmds)
+		// })
 
-		return returnCommands
+		// return returnCommands
 	}
 	private _doCommand (command: CommandNS.IAMCPCommand): void {
 		this._commandReceiver(this.getCurrentTime(), command)

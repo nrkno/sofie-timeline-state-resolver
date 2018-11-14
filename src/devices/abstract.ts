@@ -168,8 +168,7 @@ export class AbstractDevice extends DeviceWithState<TimelineState> {
 		}
 		this.emit('debug', cwc)
 
-		// execute the command here
-		cmd = cmd
+		// Note: In the Abstract case, the execution does nothing
 
 		return Promise.resolve()
 	}
