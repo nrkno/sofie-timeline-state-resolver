@@ -146,7 +146,7 @@
     "hyperdeck-connection": "^0.1.2",
     "request": "^2.87.0",
     "sprintf-js": "^1.1.1",
-    "superfly-timeline": "^6.0.2",
+    "superfly-timeline": "^6.0.3",
     "underscore": "^1.9.1",
     "underscore-deep-extend": "^1.1.5",
     "ws": "^6.1.0"
