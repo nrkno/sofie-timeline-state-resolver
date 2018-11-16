@@ -99,6 +99,11 @@ jobs:
       # - deploy:
       #     name: Publish to NPM with npm
       #     command: npm publish --access=public
+      #
+      # Also deploy types package to NPM:
+      - run:
+          name: Publish Types to NPM with yarn
+          command: cd src/types && NEW_VERSION=$(node -p "require('./package.json').version") && yarn publish --access=public --new-version=$NEW_VERSION --network-timeout 100000
 
 workflows:
   version: 2

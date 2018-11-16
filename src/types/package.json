@@ -2,9 +2,8 @@
 	"name": "timeline-state-resolver-types",
 	"version": "0.17.2",
 	"description": "Have timeline, control stuff",
-	"main": "dist/index.js",
-	"typings": "dist/index.d.ts",
-	"module": "dist/module/index.js",
+	"main": "index.js",
+	"typings": "index.ts",
 	"license": "MIT",
 	"repository": {
 	  "type": "git",
