@@ -1,6 +1,6 @@
 import * as _ from 'underscore'
 import { TimelineState } from 'superfly-timeline'
-import { Mappings, DeviceType } from './mapping'
+import { Mappings, DeviceType } from '../types/mapping'
 import { EventEmitter } from 'events'
 /*
 	This is a base class for all the Device wrappers.

@@ -6,7 +6,12 @@ import {
 	DeviceStatus,
 	StatusCode
 } from './device'
-import { DeviceType } from './mapping'
+import { DeviceType } from '../types/mapping'
+import {
+	TimelineContentTypeHttp,
+	HttpSendOptions,
+	HttpSendCommandContent
+} from '../types/http'
 import { DoOnTime } from '../doOnTime'
 import * as request from 'request'
 
@@ -25,30 +30,16 @@ export interface HttpSendDeviceOptions extends DeviceOptions {
 }
 interface Command {
 	commandName: 'added' | 'changed' | 'removed',
-	content: CommandContent,
+	content: HttpSendCommandContent,
 	context: CommandContext
 }
-enum RequestType {
-	GET = 'get',
-	POST = 'post',
-	PUT = 'put',
-	DELETE = 'delete'
-}
 type CommandContext = string
-interface CommandContent {
-	type: RequestType
-	url: string
-	params: {[key: string]: number | string}
-}
-export interface HttpSendOptions {
-	makeReadyCommands?: CommandContent[]
-}
 export class HttpSendDevice extends DeviceWithState<TimelineState> {
 
-	private _makeReadyCommands: CommandContent[]
+	private _makeReadyCommands: HttpSendCommandContent[]
 	private _doOnTime: DoOnTime
 
-	private _commandReceiver: (time: number, cmd: CommandContent, context: CommandContext) => Promise<any>
+	private _commandReceiver: (time: number, cmd: HttpSendCommandContent, context: CommandContext) => Promise<any>
 
 	constructor (deviceId: string, deviceOptions: HttpSendDeviceOptions, options) {
 		super(deviceId, deviceOptions, options)
@@ -103,9 +94,9 @@ export class HttpSendDevice extends DeviceWithState<TimelineState> {
 	makeReady (okToDestroyStuff?: boolean): Promise<void> {
 		if (okToDestroyStuff && this._makeReadyCommands && this._makeReadyCommands.length > 0) {
 			const time = this.getCurrentTime()
-			_.each(this._makeReadyCommands, (cmd: CommandContent) => {
+			_.each(this._makeReadyCommands, (cmd: HttpSendCommandContent) => {
 				// add the new commands to the queue:
-				this._doOnTime.queue(time, (cmd: CommandContent) => {
+				this._doOnTime.queue(time, (cmd: HttpSendCommandContent) => {
 					return this._commandReceiver(time, cmd, 'makeReady')
 				}, cmd)
 			})
@@ -160,7 +151,7 @@ export class HttpSendDevice extends DeviceWithState<TimelineState> {
 				// added!
 				commands.push({
 					commandName: 'added',
-					content: newLayer.content as CommandContent,
+					content: newLayer.content as HttpSendCommandContent,
 					context: `added: ${newLayer.id}`
 				})
 			} else {
@@ -169,7 +160,7 @@ export class HttpSendDevice extends DeviceWithState<TimelineState> {
 					// changed!
 					commands.push({
 						commandName: 'changed',
-						content: newLayer.content as CommandContent,
+						content: newLayer.content as HttpSendCommandContent,
 						context: `changed: ${newLayer.id}`
 					})
 				}
@@ -182,14 +173,14 @@ export class HttpSendDevice extends DeviceWithState<TimelineState> {
 				// removed!
 				commands.push({
 					commandName: 'removed',
-					content: oldLayer.content as CommandContent,
+					content: oldLayer.content as HttpSendCommandContent,
 					context: `removed: ${oldLayer.id}`
 				})
 			}
 		})
 		return commands
 	}
-	private _defaultCommandReceiver (time: number, cmd: CommandContent, context: CommandContext): Promise<any> {
+	private _defaultCommandReceiver (time: number, cmd: HttpSendCommandContent, context: CommandContext): Promise<any> {
 		time = time
 		// this.emit('info', 'HTTP: Send ', cmd)
 
@@ -214,25 +205,25 @@ export class HttpSendDevice extends DeviceWithState<TimelineState> {
 					resolve()
 				}
 			}
-			if (cmd.type === RequestType.POST) {
+			if (cmd.type === TimelineContentTypeHttp.POST) {
 				request.post(
 					cmd.url,
 					{ json: cmd.params },
 					handleResponse
 				)
-			} else if (cmd.type === RequestType.PUT) {
+			} else if (cmd.type === TimelineContentTypeHttp.PUT) {
 				request.put(
 					cmd.url,
 					{ json: cmd.params },
 					handleResponse
 				)
-			} else if (cmd.type === RequestType.GET) {
+			} else if (cmd.type === TimelineContentTypeHttp.GET) {
 				request.get(
 					cmd.url,
 					{ json: cmd.params },
 					handleResponse
 				)
-			} else if (cmd.type === RequestType.DELETE) {
+			} else if (cmd.type === TimelineContentTypeHttp.DELETE) {
 				request.delete(
 					cmd.url,
 					{ json: cmd.params },
