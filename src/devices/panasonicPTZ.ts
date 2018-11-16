@@ -8,63 +8,27 @@ import {
 } from './device'
 import {
 	DeviceType,
-	MappingPanasonicPtz,
-	Mappings,
-	MappingPanasonicPtzType
-} from './mapping'
+	Mappings
+} from '../types/mapping'
 import {
-	TimelineState,
-	TimelineKeyframe,
-	TimelineResolvedObject
-} from 'superfly-timeline'
+	TimelineObjPanasonicPtzPreset,
+	TimelineObjPanasonicPtzPresetSpeed,
+	TimelineObjPanasonicPtzZoomSpeed,
+	TimelineObjPanasonicPtzZoom,
+	TimelineContentTypePanasonicPtz,
+	MappingPanasonicPtz,
+	MappingPanasonicPtzType
+} from '../types/ptz'
+import { TimelineState, TimelineResolvedObject } from 'superfly-timeline'
 import { DoOnTime } from '../doOnTime'
 import { PanasonicPtzHttpInterface } from './panasonicPTZAPI'
 
-export interface PanasonicPtzOptions extends DeviceOptions {
+export interface PanasonicPtzOptions extends DeviceOptions { // TODO - this doesnt match the others
 	options?: {
 		commandReceiver?: (time: number, cmd) => Promise<any>,
 		host?: string
 		port?: number
 		https?: boolean
-	}
-}
-export enum TimelineContentTypePanasonicPtz {
-	PRESET = 'presetMem',
-	SPEED = 'presetSpeed',
-	ZOOM_SPEED = 'zoomSpeed',
-	ZOOM = 'zoom'
-}
-export interface TimelineObjPanasonicPtz extends TimelineResolvedObject {
-	content: {
-		keyframes?: Array<TimelineKeyframe>
-		type: TimelineContentTypePanasonicPtz
-	}
-}
-export interface TimelineObjPanasonicPtzZoomSpeed extends TimelineObjPanasonicPtz {
-	content: {
-		type: TimelineContentTypePanasonicPtz.ZOOM_SPEED
-		zoomSpeed: number
-	}
-}
-
-export interface TimelineObjPanasonicPtzZoom extends TimelineObjPanasonicPtz {
-	content: {
-		type: TimelineContentTypePanasonicPtz.ZOOM
-		zoom: number
-	}
-}
-
-export interface TimelineObjPanasonicPtzPresetSpeed extends TimelineObjPanasonicPtz {
-	content: {
-		type: TimelineContentTypePanasonicPtz.SPEED
-		speed: number
-	}
-}
-
-export interface TimelineObjPanasonicPtzPreset extends TimelineObjPanasonicPtz {
-	content: {
-		type: TimelineContentTypePanasonicPtz.PRESET
-		preset: number
 	}
 }
 
@@ -155,7 +119,7 @@ export class PanasonicPtzDevice extends DeviceWithState<TimelineState> {
 		// convert the timeline state into something we can use
 		const ptzState: PanasonicPtzState = this._getDefaultState()
 
-		_.each(state.LLayers, (tlObject: TimelineObjPanasonicPtz, layerName: string) => {
+		_.each(state.LLayers, (tlObject: TimelineResolvedObject, layerName: string) => {
 			const mapping: MappingPanasonicPtz | undefined = this.mapping[layerName] as MappingPanasonicPtz
 			if (mapping && mapping.device === DeviceType.PANASONIC_PTZ) {
 				if (mapping.mappingType === MappingPanasonicPtzType.PRESET) {

@@ -6,16 +6,15 @@ import {
 	DeviceStatus,
 	StatusCode
 } from './device'
-import { DeviceType } from './mapping'
+import { DeviceType } from '../types/mapping'
+import {
+	PharosOptions,
+	TimelineContentTypePharos
+} from '../types/pharos'
 
 import { TimelineState, TimelineResolvedObject, TimelineResolvedKeyframe } from 'superfly-timeline'
 import { DoOnTime } from '../doOnTime'
 import { Pharos, ProjectInfo } from './pharosAPI'
-
-export enum TimelineContentTypePharos {
-	SCENE = 'scene',
-	TIMELINE = 'timeline'
-}
 
 /*
 	This is a wrapper for an Pharos-devices,
@@ -25,10 +24,6 @@ export interface PharosDeviceOptions extends DeviceOptions {
 	options?: {
 		commandReceiver?: (time: number, cmd) => Promise<any>
 	}
-}
-export interface PharosOptions {
-	host: string
-	ssl: boolean
 }
 export interface Command {
 	content: CommandContent,

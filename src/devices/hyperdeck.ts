@@ -9,10 +9,14 @@ import {
 	StatusCode
 } from './device'
 import {
-	DeviceType,
+	DeviceType
+} from '../types/mapping'
+import {
+	TimelineContentTypeHyperdeck,
 	MappingHyperdeck,
-	MappingHyperdeckType
-} from './mapping'
+	MappingHyperdeckType,
+	HyperdeckOptions
+} from '../types/hyperdeck'
 import {
 	Hyperdeck,
 	Commands as HyperdeckCommands,
@@ -34,13 +38,6 @@ export interface HyperdeckDeviceOptions extends DeviceOptions {
 	options?: {
 		commandReceiver?: (time: number, cmd) => Promise<any>
 	}
-}
-export interface HyperdeckOptions {
-	host: string
-	port?: number
-}
-export enum TimelineContentTypeHyperdeck {
-	TRANSPORT = 'transport'
 }
 export interface HyperdeckCommandWithContext {
 	command: HyperdeckCommands.AbstractCommand

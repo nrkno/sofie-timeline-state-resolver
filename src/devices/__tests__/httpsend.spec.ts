@@ -2,13 +2,10 @@
 // import { Commands, Atem } from 'atem-connection'
 import { TriggerType } from 'superfly-timeline'
 
-import {
-	Mappings,
-	DeviceType,
-	MappingHTTPSend
-} from '../mapping'
+import { Mappings, DeviceType } from '../../types/mapping'
 import { Conductor } from '../../conductor'
 import { HttpSendDevice } from '../httpSend'
+import { MappingHTTPSend } from '../../types/http'
 import { MockTime } from '../../__tests__/mockTime.spec'
 
 // let nowActual = Date.now()
