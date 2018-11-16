@@ -103,7 +103,7 @@ jobs:
       # Also deploy types package to NPM:
       - run:
           name: Publish Types to NPM with yarn
-          command: cd src/types && NEW_VERSION=$(node -p "require('./package.json').version") && yarn publish --access=public --new-version=$NEW_VERSION --network-timeout 100000
+          command: NEW_VERSION=$(node -p "require('./package.json').version") && cd src/types && yarn version --no-git-tag-version --new-version=$NEW_VERSION && yarn publish --access=public --new-version=$NEW_VERSION --network-timeout 100000 && cd ../..
 
 workflows:
   version: 2

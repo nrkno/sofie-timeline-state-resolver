@@ -13,8 +13,12 @@ Using the input, it resolves the expected state, diffs the state against current
 ## Supported devices
 * [CasparCG](http://casparcg.com/) - using the [casparcg-connection](https://github.com/SuperFlyTV/casparcg-connection) library
 * ATEM vision mixers - using the [atem-connection](https://github.com/nrkno/tv-automation-atem-connection) library
+* Hyperdeck record/playback - using the [hyperdeck-connection](https://github.com/nrkno/tv-automation-hyperdeck-connection) library
 * Lawo sound mixers - using the [emberplus](https://github.com/nrkno/tv-automation-emberplus-connection) library
+* Panasoniz PTZ cameras
+* Pharos devices
 * Arbitrary HTTP-interfaces
+
 
 ## Dev install instructions
 
