@@ -123,22 +123,22 @@ export class PanasonicPtzDevice extends DeviceWithState<TimelineState> {
 			const mapping: MappingPanasonicPtz | undefined = this.mapping[layerName] as MappingPanasonicPtz
 			if (mapping && mapping.device === DeviceType.PANASONIC_PTZ) {
 				if (mapping.mappingType === MappingPanasonicPtzType.PRESET) {
-					let tlObjectSource = tlObject as TimelineObjPanasonicPtzPreset
+					let tlObjectSource = tlObject as TimelineResolvedObject & TimelineObjPanasonicPtzPreset
 					_.extend(ptzState, {
 						preset: tlObjectSource.content.preset
 					})
 				} else if (mapping.mappingType === MappingPanasonicPtzType.PRESET_SPEED) {
-					let tlObjectSource = tlObject as TimelineObjPanasonicPtzPresetSpeed
+					let tlObjectSource = tlObject as TimelineResolvedObject & TimelineObjPanasonicPtzPresetSpeed
 					_.extend(ptzState, {
 						speed: tlObjectSource.content.speed
 					})
 				} else if (mapping.mappingType === MappingPanasonicPtzType.ZOOM_SPEED) {
-					let tlObjectSource = tlObject as TimelineObjPanasonicPtzZoomSpeed
+					let tlObjectSource = tlObject as TimelineResolvedObject & TimelineObjPanasonicPtzZoomSpeed
 					_.extend(ptzState, {
 						zoomSpeed: tlObjectSource.content.zoomSpeed
 					})
 				} else if (mapping.mappingType === MappingPanasonicPtzType.ZOOM) {
-					let tlObjectSource = tlObject as TimelineObjPanasonicPtzZoom
+					let tlObjectSource = tlObject as TimelineResolvedObject & TimelineObjPanasonicPtzZoom
 					_.extend(ptzState, {
 						zoom: tlObjectSource.content.zoom
 					})
