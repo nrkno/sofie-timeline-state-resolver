@@ -1,4 +1,4 @@
-import { TimelineObject, TimelineKeyframe } from 'superfly-timeline'
+import { TimelineKeyframe, TimelineResolvedObject } from 'superfly-timeline'
 import { Mapping, DeviceType } from './mapping'
 
 export interface MappingPanasonicPtz extends Mapping {
@@ -21,7 +21,7 @@ export enum TimelineContentTypePanasonicPtz {
 
 export type TimelineObjPanasonicPtzAny = TimelineObjPanasonicPtz | TimelineObjPanasonicPtzPresetSpeed | TimelineObjPanasonicPtzPreset
 
-export interface TimelineObjPanasonicPtz extends TimelineObject {
+export interface TimelineObjPanasonicPtz extends TimelineResolvedObject {
 	content: {
 		keyframes?: Array<TimelineKeyframe>
 		type: TimelineContentTypePanasonicPtz

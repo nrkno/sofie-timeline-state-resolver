@@ -11,7 +11,6 @@ import {
 	Mappings
 } from '../types/mapping'
 import {
-	TimelineObjPanasonicPtz,
 	TimelineObjPanasonicPtzPreset,
 	TimelineObjPanasonicPtzPresetSpeed,
 	TimelineObjPanasonicPtzZoomSpeed,
@@ -120,26 +119,26 @@ export class PanasonicPtzDevice extends DeviceWithState<TimelineState> {
 		// convert the timeline state into something we can use
 		const ptzState: PanasonicPtzState = this._getDefaultState()
 
-		_.each(state.LLayers, (tlObject: TimelineResolvedObject & TimelineObjPanasonicPtz, layerName: string) => {
+		_.each(state.LLayers, (tlObject: TimelineResolvedObject, layerName: string) => {
 			const mapping: MappingPanasonicPtz | undefined = this.mapping[layerName] as MappingPanasonicPtz
 			if (mapping && mapping.device === DeviceType.PANASONIC_PTZ) {
 				if (mapping.mappingType === MappingPanasonicPtzType.PRESET) {
-					let tlObjectSource = tlObject as TimelineResolvedObject & TimelineObjPanasonicPtzPreset
+					let tlObjectSource = tlObject as TimelineObjPanasonicPtzPreset
 					_.extend(ptzState, {
 						preset: tlObjectSource.content.preset
 					})
 				} else if (mapping.mappingType === MappingPanasonicPtzType.PRESET_SPEED) {
-					let tlObjectSource = tlObject as TimelineResolvedObject & TimelineObjPanasonicPtzPresetSpeed
+					let tlObjectSource = tlObject as TimelineObjPanasonicPtzPresetSpeed
 					_.extend(ptzState, {
 						speed: tlObjectSource.content.speed
 					})
 				} else if (mapping.mappingType === MappingPanasonicPtzType.ZOOM_SPEED) {
-					let tlObjectSource = tlObject as TimelineResolvedObject & TimelineObjPanasonicPtzZoomSpeed
+					let tlObjectSource = tlObject as TimelineObjPanasonicPtzZoomSpeed
 					_.extend(ptzState, {
 						zoomSpeed: tlObjectSource.content.zoomSpeed
 					})
 				} else if (mapping.mappingType === MappingPanasonicPtzType.ZOOM) {
-					let tlObjectSource = tlObject as TimelineResolvedObject & TimelineObjPanasonicPtzZoom
+					let tlObjectSource = tlObject as TimelineObjPanasonicPtzZoom
 					_.extend(ptzState, {
 						zoom: tlObjectSource.content.zoom
 					})
