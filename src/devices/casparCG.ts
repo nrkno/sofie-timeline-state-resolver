@@ -16,13 +16,11 @@ import {
 import {
 	DeviceType,
 	Mapping,
-	TimelineResolvedObjectExtended
-} from '../types/mapping'
-import {
+	TimelineResolvedObjectExtended,
 	TimelineContentTypeCasparCg,
 	MappingCasparCG,
 	CasparCGOptions
-} from '../types/casparcg'
+} from '../types/'
 
 import {
 	TimelineState,

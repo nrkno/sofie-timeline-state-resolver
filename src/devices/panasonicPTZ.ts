@@ -8,9 +8,7 @@ import {
 } from './device'
 import {
 	DeviceType,
-	Mappings
-} from '../types/mapping'
-import {
+	Mappings,
 	TimelineObjPanasonicPtzPreset,
 	TimelineObjPanasonicPtzPresetSpeed,
 	TimelineObjPanasonicPtzZoomSpeed,
@@ -18,7 +16,7 @@ import {
 	TimelineContentTypePanasonicPtz,
 	MappingPanasonicPtz,
 	MappingPanasonicPtzType
-} from '../types/ptz'
+} from '../types/'
 import { TimelineState, TimelineResolvedObject } from 'superfly-timeline'
 import { DoOnTime } from '../doOnTime'
 import { PanasonicPtzHttpInterface } from './panasonicPTZAPI'

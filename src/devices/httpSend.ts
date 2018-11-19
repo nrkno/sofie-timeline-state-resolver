@@ -6,12 +6,12 @@ import {
 	DeviceStatus,
 	StatusCode
 } from './device'
-import { DeviceType } from '../types/mapping'
 import {
+	DeviceType,
 	TimelineContentTypeHttp,
 	HttpSendOptions,
 	HttpSendCommandContent
-} from '../types/http'
+} from '../types/'
 import { DoOnTime } from '../doOnTime'
 import * as request from 'request'
 

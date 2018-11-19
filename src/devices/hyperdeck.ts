@@ -9,14 +9,12 @@ import {
 	StatusCode
 } from './device'
 import {
-	DeviceType
-} from '../types/mapping'
-import {
+	DeviceType,
 	TimelineContentTypeHyperdeck,
 	MappingHyperdeck,
 	MappingHyperdeckType,
 	HyperdeckOptions
-} from '../types/hyperdeck'
+} from '../types/'
 import {
 	Hyperdeck,
 	Commands as HyperdeckCommands,

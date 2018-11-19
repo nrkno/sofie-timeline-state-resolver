@@ -9,14 +9,12 @@ import {
 } from './device'
 import {
 	DeviceType,
-	TimelineResolvedObjectExtended
-} from '../types/mapping'
-import {
+	TimelineResolvedObjectExtended,
 	TimelineContentTypeAtem,
 	MappingAtem,
 	MappingAtemType,
 	AtemOptions
-} from '../types/atem'
+} from '../types/'
 import { TimelineState } from 'superfly-timeline'
 import {
 	Atem,

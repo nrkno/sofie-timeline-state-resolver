@@ -9,12 +9,10 @@ import {
 } from './device'
 import {
 	DeviceType,
-	Mappings
-} from '../types/mapping'
-import {
+	Mappings,
 	TimelineContentTypeLawo,
 	MappingLawo
-} from '../types/lawo'
+} from '../types/'
 import {
 	TimelineState,
 	TimelineResolvedObject

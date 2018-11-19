@@ -1,7 +1,9 @@
 import { TriggerType } from 'superfly-timeline'
-
-import { Mappings, DeviceType } from '../types/mapping'
-import { MappingCasparCG } from '../types/casparcg'
+import {
+	MappingCasparCG,
+	Mappings,
+	DeviceType
+} from '../types/'
 import { Conductor } from '../conductor'
 import { MockTime } from './mockTime.spec'
 

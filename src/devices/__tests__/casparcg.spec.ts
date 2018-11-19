@@ -1,10 +1,13 @@
 // import { CasparCG, AMCP } from 'casparcg-connection'
 // import {Resolver, Enums} from "superfly-timeline"
 import { TriggerType } from 'superfly-timeline'
-
-import { Mappings, DeviceType } from '../../types/mapping'
 import { Conductor } from '../../conductor'
-import { TimelineContentTypeCasparCg, MappingCasparCG } from '../../types/casparcg'
+import {
+	TimelineContentTypeCasparCg,
+	MappingCasparCG,
+	Mappings,
+	DeviceType
+} from '../../types/'
 import { MockTime } from '../../__tests__/mockTime.spec'
 
 describe('CasparCG', () => {

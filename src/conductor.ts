@@ -11,7 +11,12 @@ import { Device, DeviceOptions } from './devices/device'
 import { CasparCGDevice } from './devices/casparCG'
 import { AbstractDevice } from './devices/abstract'
 import { HttpSendDevice } from './devices/httpSend'
-import { Mappings, Mapping, DeviceType, TimelineResolvedObjectExtended } from './types/mapping'
+import {
+	Mappings,
+	Mapping,
+	DeviceType,
+	TimelineResolvedObjectExtended
+} from './types/'
 import { AtemDevice } from './devices/atem'
 import { EventEmitter } from 'events'
 import { LawoDevice } from './devices/lawo'

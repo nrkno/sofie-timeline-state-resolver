@@ -1,16 +1,16 @@
 jest.mock('request')
 import { TriggerType } from 'superfly-timeline'
-
-import { Mappings, DeviceType } from '../../types/mapping'
 import { Conductor } from '../../conductor'
 import {
 	PanasonicPtzDevice
 } from '../panasonicPTZ'
 import {
+	Mappings,
+	DeviceType,
 	TimelineContentTypePanasonicPtz,
 	MappingPanasonicPtz,
 	MappingPanasonicPtzType
-} from '../../types/ptz'
+} from '../../types/'
 import { MockTime } from '../../__tests__/mockTime.spec'
 const request = require('../../__mocks__/request')
 
