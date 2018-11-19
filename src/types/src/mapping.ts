@@ -1,4 +1,4 @@
-import { TimelineResolvedObject } from 'superfly-timeline'
+import { TimelineResolvedObject } from './superfly-timeline'
 
 export interface Mappings {
 	[layerName: string]: Mapping

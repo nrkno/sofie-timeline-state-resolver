@@ -16,7 +16,7 @@ import { TimelineContentTypeLawo, TimelineObjLawoAny } from './lawo'
 import { TimelineContentTypePharos, TimelineObjPharosAny } from './pharos'
 import { TimelineContentTypePanasonicPtz, TimelineObjPanasonicPtzAny } from './ptz'
 
-import { TimelineObject } from 'superfly-timeline'
+import { TimelineObject } from './superfly-timeline'
 export interface TimelineObjEmpty extends TimelineObject {
 	content: {}
 	classes: Array<string>

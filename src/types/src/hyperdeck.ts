@@ -1,4 +1,4 @@
-import { TimelineObject } from 'superfly-timeline'
+import { TimelineObject } from './superfly-timeline'
 import { Mapping, DeviceType } from './mapping'
 
 export interface MappingHyperdeck extends Mapping {
