@@ -9,7 +9,7 @@ module.exports = {
 		'js'
 	],
 	transform: {
-		'^.+\\.(ts|tsx)$': './node_modules/ts-jest/preprocessor.js'
+		'^.+\\.(ts|tsx)$': '../../node_modules/ts-jest/preprocessor.js'
 	},
 	testMatch: [
 		'**/__tests__/**/*.spec.(ts|js)'

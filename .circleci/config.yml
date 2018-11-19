@@ -35,8 +35,12 @@ jobs:
     steps:
       - attach_workspace:
           at: ~/project
-      - run: yarn install
-      - run: yarn ci
+      - run:
+        name: Test
+        command: yarn install && yarn ci
+      - run:
+        name: Test Types
+        command: yarn types-install && yarn types-ci
   Send Coverage:
     <<: *defaults
     steps:
@@ -58,8 +62,12 @@ jobs:
     steps:
       - attach_workspace:
           at: ~/project
-      - run: yarn install
-      - run: yarn build
+      - run:
+        name: Install and build
+        command: yarn install && yarn build
+      - run:
+        name: Install and build types
+        command: yarn types-install && yarn types-build
       - persist_to_workspace:
           root: .
           paths: [.]

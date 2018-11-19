@@ -37,14 +37,20 @@
 	  {
 		"name": "Stephan Nordnes Eriksen",
 		"email": "Stephanruler@gmail.com"
-	  }
+		},
+		{
+			"name": "Julian Waller",
+			"email": "julian@superfly.tv",
+			"url": "http://superfly.tv"
+		}
 	],
 	"scripts": {
 	  "info": "npm-scripts-info",
 	  "installclean": "yarn unlink:all & yarn cleancache && yarn --check-files",
 	  "buildclean": "yarn installclean && yarn build",
-	  "build": "trash dist && yarn build:main",
-	  "build:main": "tsc -p ../../tsconfig.json -outDir dist",
+		"unit": "jest",
+		"build": "trash dist && yarn build:main",
+	  "build:main": "tsc -p tsconfig.json -outDir dist",
 	  "lint": "tslint --project ../../tsconfig.jest.json --config ../../tslint.json",
 	  "validate:dependencies": "nsp check && yarn license-validate",
 	  "license-validate": "node-license-validator -p -d --allow-licenses MIT BSD BSD-3-Clause ISC Apache Unlicense --allow-packages cycle"
