@@ -70,10 +70,10 @@
 	  "npm-scripts-info": "^0.3.7",
 	  "nsp": "^3.2.1",
 	  "nyc": "^12.0.2",
-	  "opn-cli": "^3.1.0",
+	  "opn-cli": "^4.0.0",
 	  "trash-cli": "^1.4.0",
-	  "tslint": "^5.10.0",
-	  "tslint-config-standard": "^7.0.0",
+		"tslint": "^5.10.0",
+	  "tslint-config-standard": "^8.0.1",
 	  "typescript": "^2.9.2"
 	},
 	"keywords": [
