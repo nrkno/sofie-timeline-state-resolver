@@ -61,11 +61,11 @@ jobs:
       - attach_workspace:
           at: ~/project
       - run:
-        name: Install and build
-        command: yarn install && yarn build
+          name: Install and build
+          command: yarn install && yarn build
       - run:
-        name: Install and build types
-        command: yarn types-install && yarn types-build
+          name: Install and build types
+          command: yarn types-install && yarn types-build
       - persist_to_workspace:
           root: .
           paths: [.]
