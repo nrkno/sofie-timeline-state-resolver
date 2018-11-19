@@ -35,12 +35,10 @@ jobs:
     steps:
       - attach_workspace:
           at: ~/project
-      - run:
-        name: Test
-        command: yarn install && yarn ci
-      - run:
-        name: Test Types
-        command: yarn types-install && yarn types-ci
+      - run: yarn install
+      - run: yarn ci
+      - run: yarn types-install
+      - run: yarn types-ci
   Send Coverage:
     <<: *defaults
     steps:
