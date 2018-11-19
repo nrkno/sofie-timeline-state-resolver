@@ -1,11 +1,13 @@
 // import {Resolver, Enums} from "superfly-timeline"
 // import { Commands, Atem } from 'atem-connection'
 import { TriggerType } from 'superfly-timeline'
-
-import { Mappings, DeviceType } from '../../types/mapping'
 import { Conductor } from '../../conductor'
 import { HttpSendDevice } from '../httpSend'
-import { MappingHTTPSend } from '../../types/http'
+import {
+	MappingHTTPSend,
+	Mappings,
+	DeviceType
+} from '../../types/src'
 import { MockTime } from '../../__tests__/mockTime.spec'
 
 // let nowActual = Date.now()

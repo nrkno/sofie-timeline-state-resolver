@@ -104,7 +104,7 @@ class WebSocket extends EventEmitter {
 	}
 	private _updateConnectionStatus () {
 
-		let connected = (
+		let connected: boolean = !!(
 			this._pathName.match(this._mockHost) &&
 			this._mockConnect
 		)

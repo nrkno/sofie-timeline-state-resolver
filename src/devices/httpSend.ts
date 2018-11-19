@@ -6,12 +6,12 @@ import {
 	DeviceStatus,
 	StatusCode
 } from './device'
-import { DeviceType } from '../types/mapping'
 import {
+	DeviceType,
 	TimelineContentTypeHttp,
 	HttpSendOptions,
 	HttpSendCommandContent
-} from '../types/http'
+} from '../types/src'
 import { DoOnTime } from '../doOnTime'
 import * as request from 'request'
 
@@ -151,7 +151,7 @@ export class HttpSendDevice extends DeviceWithState<TimelineState> {
 				// added!
 				commands.push({
 					commandName: 'added',
-					content: newLayer.content as HttpSendCommandContent,
+					content: newLayer.content as HttpSendCommandContent, // tslint:disable-line
 					context: `added: ${newLayer.id}`
 				})
 			} else {
@@ -160,7 +160,7 @@ export class HttpSendDevice extends DeviceWithState<TimelineState> {
 					// changed!
 					commands.push({
 						commandName: 'changed',
-						content: newLayer.content as HttpSendCommandContent,
+						content: newLayer.content as HttpSendCommandContent, // tslint:disable-line
 						context: `changed: ${newLayer.id}`
 					})
 				}
@@ -173,7 +173,7 @@ export class HttpSendDevice extends DeviceWithState<TimelineState> {
 				// removed!
 				commands.push({
 					commandName: 'removed',
-					content: oldLayer.content as HttpSendCommandContent,
+					content: oldLayer.content as HttpSendCommandContent, // tslint:disable-line
 					context: `removed: ${oldLayer.id}`
 				})
 			}

@@ -9,14 +9,12 @@ import {
 	StatusCode
 } from './device'
 import {
-	DeviceType
-} from '../types/mapping'
-import {
+	DeviceType,
 	TimelineContentTypeHyperdeck,
 	MappingHyperdeck,
 	MappingHyperdeckType,
 	HyperdeckOptions
-} from '../types/hyperdeck'
+} from '../types/src'
 import {
 	Hyperdeck,
 	Commands as HyperdeckCommands,
@@ -175,7 +173,7 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> {
 
 		_.each(sortedLayers, ({ tlObject, layerName }) => {
 			const content = tlObject.resolved || tlObject.content
-			const mapping = this.mapping[layerName] as MappingHyperdeck
+			const mapping = this.mapping[layerName] as MappingHyperdeck // tslint:disable-line
 
 			if (mapping) {
 				switch (mapping.mappingType) {

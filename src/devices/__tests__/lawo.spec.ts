@@ -1,13 +1,13 @@
 import { TriggerType } from 'superfly-timeline'
-
-import { Mappings, DeviceType } from '../../types/mapping'
 import { Conductor } from '../../conductor'
 import { LawoDevice } from '../lawo'
 import {
+	Mappings,
+	DeviceType,
 	TimelineContentTypeLawo,
 	MappingLawo,
 	MappingLawoType
-} from '../../types/lawo'
+} from '../../types/src'
 import { MockTime } from '../../__tests__/mockTime.spec'
 
 describe('Lawo', () => {

@@ -381,8 +381,8 @@ describe('equal', () => {
 	})
 
 	test('Objects without a `constructor` property', () => {
-		let a
-		let b
+		let a: any
+		let b: any
 		if (Object.create) {
 			a = Object.create(null, { x: { value: 1, enumerable: true } })
 			b = { x: 1 }

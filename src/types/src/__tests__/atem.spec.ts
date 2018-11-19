@@ -1,5 +1,5 @@
 import { Enums as AtemStateEnums } from 'atem-state'
-import { AtemTransitionStyle } from '../atem'
+import { AtemTransitionStyle } from '../'
 
 describe('Atem types', () => {
 	test('Atem types: TransitionStyle', async () => {

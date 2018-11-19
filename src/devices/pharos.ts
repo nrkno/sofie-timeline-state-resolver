@@ -6,11 +6,11 @@ import {
 	DeviceStatus,
 	StatusCode
 } from './device'
-import { DeviceType } from '../types/mapping'
 import {
+	DeviceType,
 	PharosOptions,
 	TimelineContentTypePharos
-} from '../types/pharos'
+} from '../types/src'
 
 import { TimelineState, TimelineResolvedObject, TimelineResolvedKeyframe } from 'superfly-timeline'
 import { DoOnTime } from '../doOnTime'

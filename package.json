@@ -39,7 +39,12 @@
     {
       "name": "Stephan Nordnes Eriksen",
       "email": "Stephanruler@gmail.com"
-    }
+    },
+    {
+			"name": "Julian Waller",
+			"email": "julian@superfly.tv",
+			"url": "http://superfly.tv"
+		}
   ],
   "scripts": {
     "info": "npm-scripts-info",
@@ -67,7 +72,11 @@
     "reset": "git clean -dfx && git reset --hard && yarn",
     "ci": "yarn test && yarn docs:test",
     "validate:dependencies": "nsp check && yarn license-validate",
-    "license-validate": "node-license-validator -p -d --allow-licenses MIT BSD BSD-3-Clause ISC Apache Unlicense --allow-packages cycle"
+    "license-validate": "node-license-validator -p -d --allow-licenses MIT BSD BSD-3-Clause ISC Apache Unlicense --allow-packages cycle",
+    "types-build": "cd src/types && trash dist && yarn build:main && cd ../..",
+    "types-install": "cd src/types && yarn install && cd ../..",
+    "types-test": "cd src/types && yarn lint && yarn unit && cd ../..",
+    "types-ci": "cd src/types && yarn lint && yarn unit && cd ../.."
   },
   "scripts-info": {
     "info": "Display information about the scripts",
@@ -109,14 +118,14 @@
     "npm-scripts-info": "^0.3.7",
     "nsp": "^3.2.1",
     "nyc": "^12.0.2",
-    "opn-cli": "^3.1.0",
+    "opn-cli": "^4.0.0",
     "sleep-ms": "^2.0.1",
     "standard-version": "^4.0.0",
     "trash-cli": "^1.4.0",
     "ts-jest": "^22.4.6",
     "tslint": "^5.10.0",
-    "tslint-config-standard": "^7.0.0",
-    "typedoc": "^0.11.1",
+    "tslint-config-standard": "^8.0.1",
+    "typedoc": "^0.13.0",
     "typescript": "^2.9.2"
   },
   "keywords": [

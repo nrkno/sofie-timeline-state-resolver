@@ -16,13 +16,11 @@ import {
 import {
 	DeviceType,
 	Mapping,
-	TimelineResolvedObjectExtended
-} from '../types/mapping'
-import {
+	TimelineResolvedObjectExtended,
 	TimelineContentTypeCasparCg,
 	MappingCasparCG,
 	CasparCGOptions
-} from '../types/casparcg'
+} from '../types/src'
 
 import {
 	TimelineState,
@@ -218,6 +216,7 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> {
 		const caspar = new StateNS.State()
 
 		_.each(timelineState.LLayers, (layer: TimelineResolvedObject, layerName: string) => {
+			// tslint:disable-next-line
 			const layerExt = layer as TimelineResolvedObjectExtended
 			let foundMapping: Mapping = this.mapping[layerName]
 			if (!foundMapping && layerExt.isBackground && layerExt.originalLLayer) {
@@ -310,6 +309,7 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> {
 					stateLayer = l
 				} else if (layer.content.type === TimelineContentTypeCasparCg.ROUTE) {
 					if (layer.content.attributes.LLayer) {
+						// tslint:disable-next-line
 						let routeMapping = this.mapping[layer.content.attributes.LLayer] as MappingCasparCG
 						if (routeMapping) {
 							layer.content.attributes.channel = routeMapping.channel

@@ -156,7 +156,7 @@ export class PanasonicPtzHttpInterface extends EventEmitter {
 					this.emit('error', response)
 					reject(response)
 				} else if (response.startsWith(PanasonicHttpResponse.PRESET_NUMBER_TPL)) {
-					const preset = Number.parseInt(response.substr(PanasonicHttpResponse.PRESET_NUMBER_TPL.length))
+					const preset = Number.parseInt(response.substr(PanasonicHttpResponse.PRESET_NUMBER_TPL.length), 10)
 					resolve(preset)
 				} else {
 					this.emit('error', response)
@@ -187,7 +187,7 @@ export class PanasonicPtzHttpInterface extends EventEmitter {
 					this.emit('error', response)
 					reject(response)
 				} else if (response.startsWith(PanasonicHttpResponse.PRESET_NUMBER_TPL)) {
-					const preset = Number.parseInt(response.substr(PanasonicHttpResponse.PRESET_NUMBER_TPL.length))
+					const preset = Number.parseInt(response.substr(PanasonicHttpResponse.PRESET_NUMBER_TPL.length), 10)
 					resolve(preset)
 				} else {
 					this.emit('error', response)
@@ -214,7 +214,7 @@ export class PanasonicPtzHttpInterface extends EventEmitter {
 					this.emit('error', response)
 					reject(response)
 				} else if (response.startsWith(PanasonicHttpResponse.PRESET_SPEED_TPL)) {
-					const speed = Number.parseInt(response.substr(PanasonicHttpResponse.PRESET_SPEED_TPL.length))
+					const speed = Number.parseInt(response.substr(PanasonicHttpResponse.PRESET_SPEED_TPL.length), 10)
 					resolve(speed)
 				} else {
 					this.emit('error', response)
@@ -245,7 +245,7 @@ export class PanasonicPtzHttpInterface extends EventEmitter {
 					this.emit('error', response)
 					reject(response)
 				} else if (response.startsWith(PanasonicHttpResponse.PRESET_SPEED_TPL)) {
-					const speed = Number.parseInt(response.substr(PanasonicHttpResponse.PRESET_SPEED_TPL.length))
+					const speed = Number.parseInt(response.substr(PanasonicHttpResponse.PRESET_SPEED_TPL.length), 10)
 					resolve(speed)
 				} else {
 					this.emit('error', response)
@@ -272,7 +272,7 @@ export class PanasonicPtzHttpInterface extends EventEmitter {
 					this.emit('error', response)
 					reject(response)
 				} else if (response.startsWith(PanasonicHttpResponse.ZOOM_SPEED_TPL)) {
-					const speed = Number.parseInt(response.substr(PanasonicHttpResponse.ZOOM_SPEED_TPL.length))
+					const speed = Number.parseInt(response.substr(PanasonicHttpResponse.ZOOM_SPEED_TPL.length), 10)
 					resolve(speed)
 				} else {
 					this.emit('error', response)
@@ -303,7 +303,7 @@ export class PanasonicPtzHttpInterface extends EventEmitter {
 					this.emit('error', response)
 					reject(response)
 				} else if (response.startsWith(PanasonicHttpResponse.ZOOM_SPEED_TPL)) {
-					const speed = Number.parseInt(response.substr(PanasonicHttpResponse.ZOOM_SPEED_TPL.length))
+					const speed = Number.parseInt(response.substr(PanasonicHttpResponse.ZOOM_SPEED_TPL.length), 10)
 					resolve(speed)
 				} else {
 					this.emit('error', response)

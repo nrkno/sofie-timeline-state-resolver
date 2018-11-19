@@ -6,7 +6,7 @@ import {
 	DeviceStatus,
 	StatusCode
 } from './device'
-import { DeviceType } from '../types/mapping'
+import { DeviceType } from '../types/src'
 
 import { TimelineState, TimelineResolvedObject } from 'superfly-timeline'
 import { DoOnTime } from '../doOnTime'

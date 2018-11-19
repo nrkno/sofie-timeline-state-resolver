@@ -1,5 +1,5 @@
 // import { Enum } from 'casparcg-connection'
-// import { Transition } from '../casparcg'
+// import { Transition } from '../'
 
 describe('CasparCG types', () => {
 	// Note: these can't be tested as ccg-conn isnt true enums

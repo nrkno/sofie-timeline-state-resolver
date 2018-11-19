@@ -2,8 +2,8 @@
 	"name": "timeline-state-resolver-types",
 	"version": "1.3.0",
 	"description": "Have timeline, control stuff",
-	"main": "index.js",
-	"typings": "index.ts",
+	"main": "dist/index.js",
+	"typings": "dist/index.d.ts",
 	"license": "MIT",
 	"repository": {
 	  "type": "git",
@@ -37,15 +37,21 @@
 	  {
 		"name": "Stephan Nordnes Eriksen",
 		"email": "Stephanruler@gmail.com"
-	  }
+		},
+		{
+			"name": "Julian Waller",
+			"email": "julian@superfly.tv",
+			"url": "http://superfly.tv"
+		}
 	],
 	"scripts": {
 	  "info": "npm-scripts-info",
 	  "installclean": "yarn unlink:all & yarn cleancache && yarn --check-files",
 	  "buildclean": "yarn installclean && yarn build",
-	  "build": "trash dist && yarn build:main",
+		"unit": "jest",
+		"build": "trash dist && yarn build:main",
 	  "build:main": "tsc -p tsconfig.json -outDir dist",
-	  "lint": "tslint --project tsconfig.jest.json --config tslint.json",
+	  "lint": "tslint --project ../../tsconfig.jest.json --config ../../tslint.json",
 	  "validate:dependencies": "nsp check && yarn license-validate",
 	  "license-validate": "node-license-validator -p -d --allow-licenses MIT BSD BSD-3-Clause ISC Apache Unlicense --allow-packages cycle"
 	},
@@ -70,10 +76,10 @@
 	  "npm-scripts-info": "^0.3.7",
 	  "nsp": "^3.2.1",
 	  "nyc": "^12.0.2",
-	  "opn-cli": "^3.1.0",
+	  "opn-cli": "^4.0.0",
 	  "trash-cli": "^1.4.0",
-	  "tslint": "^5.10.0",
-	  "tslint-config-standard": "^7.0.0",
+		"tslint": "^5.10.0",
+	  "tslint-config-standard": "^8.0.1",
 	  "typescript": "^2.9.2"
 	},
 	"keywords": [

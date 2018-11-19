@@ -11,7 +11,12 @@ import { Device, DeviceOptions } from './devices/device'
 import { CasparCGDevice } from './devices/casparCG'
 import { AbstractDevice } from './devices/abstract'
 import { HttpSendDevice } from './devices/httpSend'
-import { Mappings, Mapping, DeviceType, TimelineResolvedObjectExtended } from './types/mapping'
+import {
+	Mappings,
+	Mapping,
+	DeviceType,
+	TimelineResolvedObjectExtended
+} from './types/src'
 import { AtemDevice } from './devices/atem'
 import { EventEmitter } from 'events'
 import { LawoDevice } from './devices/lawo'
@@ -346,7 +351,7 @@ export class Conductor extends EventEmitter {
 			let getFilteredLayers = (layers: TimelineState['LLayers'], device: Device) => {
 				let filteredState = {}
 				_.each(layers, (o: TimelineResolvedObject, layerId: string) => {
-					const oExt = o as TimelineResolvedObjectExtended
+					const oExt: TimelineResolvedObjectExtended = o
 					let mapping: Mapping = this._mapping[o.LLayer + '']
 					if (!mapping && oExt.originalLLayer) {
 						mapping = this._mapping[oExt.originalLLayer]

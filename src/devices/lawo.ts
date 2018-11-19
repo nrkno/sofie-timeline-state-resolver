@@ -9,12 +9,10 @@ import {
 } from './device'
 import {
 	DeviceType,
-	Mappings
-} from '../types/mapping'
-import {
+	Mappings,
 	TimelineContentTypeLawo,
 	MappingLawo
-} from '../types/lawo'
+} from '../types/src'
 import {
 	TimelineState,
 	TimelineResolvedObject
@@ -222,7 +220,7 @@ export class LawoDevice extends DeviceWithState<TimelineState> {
 		const lawoState: LawoState = {}
 
 		_.each(state.LLayers, (tlObject: TimelineObjLawo, layerName: string) => {
-			const mapping: MappingLawo | undefined = this.mapping[layerName] as MappingLawo
+			const mapping: MappingLawo | undefined = this.mapping[layerName] as MappingLawo // tslint:disable-line
 			if (mapping && mapping.identifier && mapping.device === DeviceType.LAWO) {
 
 				if (tlObject.content.type === TimelineContentTypeLawo.SOURCE) {
