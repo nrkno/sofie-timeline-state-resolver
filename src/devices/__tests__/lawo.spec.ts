@@ -7,7 +7,7 @@ import {
 	TimelineContentTypeLawo,
 	MappingLawo,
 	MappingLawoType
-} from '../../types'
+} from '../../types/src'
 import { MockTime } from '../../__tests__/mockTime.spec'
 
 describe('Lawo', () => {

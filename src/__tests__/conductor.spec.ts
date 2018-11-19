@@ -4,7 +4,7 @@ import {
 	Mappings,
 	MappingAbstract,
 	DeviceType
-} from '../types/'
+} from '../types/src'
 import { Conductor, TimelineTriggerTimeResult, TimelineContentObject } from '../conductor'
 import * as _ from 'underscore'
 import { MockTime } from './mockTime.spec'

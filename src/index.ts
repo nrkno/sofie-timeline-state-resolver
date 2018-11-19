@@ -12,4 +12,4 @@ export {
 export { DeviceOptions } from './devices/device'
 export { CasparCGDevice } from './devices/casparCG'
 
-export * from './types/'
+export * from './types/src'

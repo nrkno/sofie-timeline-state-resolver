@@ -10,7 +10,7 @@ import {
 	DeviceType,
 	PharosOptions,
 	TimelineContentTypePharos
-} from '../types/'
+} from '../types/src'
 
 import { TimelineState, TimelineResolvedObject, TimelineResolvedKeyframe } from 'superfly-timeline'
 import { DoOnTime } from '../doOnTime'

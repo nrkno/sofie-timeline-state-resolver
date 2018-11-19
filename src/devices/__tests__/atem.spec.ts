@@ -9,7 +9,7 @@ import {
 	MappingAtem,
 	MappingAtemType,
 	TimelineContentTypeAtem
-} from '../../types/'
+} from '../../types/src'
 
 describe('Atem', () => {
 	let mockTime = new MockTime()

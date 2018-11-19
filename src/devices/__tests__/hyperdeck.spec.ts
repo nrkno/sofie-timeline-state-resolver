@@ -12,7 +12,7 @@ import {
 	TimelineContentTypeHyperdeck,
 	MappingHyperdeck,
 	MappingHyperdeckType
-} from '../../types/'
+} from '../../types/src'
 import { MockTime } from '../../__tests__/mockTime.spec'
 
 let myChannelMapping0: MappingHyperdeck = {

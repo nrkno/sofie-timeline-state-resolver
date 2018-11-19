@@ -12,7 +12,7 @@ import {
 	Mappings,
 	TimelineContentTypeLawo,
 	MappingLawo
-} from '../types/'
+} from '../types/src'
 import {
 	TimelineState,
 	TimelineResolvedObject

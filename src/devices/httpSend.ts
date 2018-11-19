@@ -11,7 +11,7 @@ import {
 	TimelineContentTypeHttp,
 	HttpSendOptions,
 	HttpSendCommandContent
-} from '../types/'
+} from '../types/src'
 import { DoOnTime } from '../doOnTime'
 import * as request from 'request'
 

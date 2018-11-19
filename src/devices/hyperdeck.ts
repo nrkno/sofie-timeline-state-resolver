@@ -14,7 +14,7 @@ import {
 	MappingHyperdeck,
 	MappingHyperdeckType,
 	HyperdeckOptions
-} from '../types/'
+} from '../types/src'
 import {
 	Hyperdeck,
 	Commands as HyperdeckCommands,

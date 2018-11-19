@@ -7,7 +7,7 @@ import {
 	MappingHTTPSend,
 	Mappings,
 	DeviceType
-} from '../../types/'
+} from '../../types/src'
 import { MockTime } from '../../__tests__/mockTime.spec'
 
 // let nowActual = Date.now()

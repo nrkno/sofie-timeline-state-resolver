@@ -7,7 +7,7 @@ import {
 	MappingCasparCG,
 	Mappings,
 	DeviceType
-} from '../../types/'
+} from '../../types/src'
 import { MockTime } from '../../__tests__/mockTime.spec'
 
 describe('CasparCG', () => {

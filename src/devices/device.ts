@@ -3,7 +3,7 @@ import { TimelineState } from 'superfly-timeline'
 import {
 	Mappings,
 	DeviceType
-} from '../types/'
+} from '../types/src'
 import { EventEmitter } from 'events'
 /*
 	This is a base class for all the Device wrappers.

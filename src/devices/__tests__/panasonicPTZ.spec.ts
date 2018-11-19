@@ -10,7 +10,7 @@ import {
 	TimelineContentTypePanasonicPtz,
 	MappingPanasonicPtz,
 	MappingPanasonicPtzType
-} from '../../types/'
+} from '../../types/src'
 import { MockTime } from '../../__tests__/mockTime.spec'
 const request = require('../../__mocks__/request')
 

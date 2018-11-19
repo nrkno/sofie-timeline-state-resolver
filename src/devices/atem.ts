@@ -14,7 +14,7 @@ import {
 	MappingAtem,
 	MappingAtemType,
 	AtemOptions
-} from '../types/'
+} from '../types/src'
 import { TimelineState } from 'superfly-timeline'
 import {
 	Atem,

@@ -16,7 +16,7 @@ import {
 	TimelineContentTypePanasonicPtz,
 	MappingPanasonicPtz,
 	MappingPanasonicPtzType
-} from '../types/'
+} from '../types/src'
 import { TimelineState, TimelineResolvedObject } from 'superfly-timeline'
 import { DoOnTime } from '../doOnTime'
 import { PanasonicPtzHttpInterface } from './panasonicPTZAPI'

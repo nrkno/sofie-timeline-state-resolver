@@ -20,7 +20,7 @@ import {
 	TimelineContentTypeCasparCg,
 	MappingCasparCG,
 	CasparCGOptions
-} from '../types/'
+} from '../types/src'
 
 import {
 	TimelineState,

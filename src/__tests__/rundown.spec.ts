@@ -3,7 +3,7 @@ import {
 	MappingCasparCG,
 	Mappings,
 	DeviceType
-} from '../types/'
+} from '../types/src'
 import { Conductor } from '../conductor'
 import { MockTime } from './mockTime.spec'
 

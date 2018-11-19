@@ -6,7 +6,7 @@ import {
 	Mappings,
 	DeviceType,
 	MappingPharos
-} from '../../types/'
+} from '../../types/src'
 import { MockTime } from '../../__tests__/mockTime.spec'
 const WebSocket = require('../../__mocks__/ws')
 

@@ -16,7 +16,7 @@ import {
 	Mapping,
 	DeviceType,
 	TimelineResolvedObjectExtended
-} from './types/'
+} from './types/src'
 import { AtemDevice } from './devices/atem'
 import { EventEmitter } from 'events'
 import { LawoDevice } from './devices/lawo'
