@@ -173,7 +173,7 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> {
 
 		_.each(sortedLayers, ({ tlObject, layerName }) => {
 			const content = tlObject.resolved || tlObject.content
-			const mapping = this.mapping[layerName] as MappingHyperdeck
+			const mapping = this.mapping[layerName] as MappingHyperdeck // tslint:disable-line
 
 			if (mapping) {
 				switch (mapping.mappingType) {

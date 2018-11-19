@@ -351,7 +351,7 @@ export class Conductor extends EventEmitter {
 			let getFilteredLayers = (layers: TimelineState['LLayers'], device: Device) => {
 				let filteredState = {}
 				_.each(layers, (o: TimelineResolvedObject, layerId: string) => {
-					const oExt = o as TimelineResolvedObjectExtended
+					const oExt: TimelineResolvedObjectExtended = o
 					let mapping: Mapping = this._mapping[o.LLayer + '']
 					if (!mapping && oExt.originalLLayer) {
 						mapping = this._mapping[oExt.originalLLayer]

@@ -186,9 +186,9 @@ export class AtemDevice extends DeviceWithState<DeviceState> {
 		_.each(sortedLayers, ({ tlObject, layerName }) => {
 			const tlObjectExt = tlObject as TimelineResolvedObjectExtended
 			const content = tlObject.resolved || tlObject.content
-			let mapping = this.mapping[layerName] as MappingAtem
+			let mapping = this.mapping[layerName] as MappingAtem // tslint:disable-line
 			if (!mapping && tlObjectExt.originalLLayer) {
-				mapping = this.mapping[tlObjectExt.originalLLayer] as MappingAtem
+				mapping = this.mapping[tlObjectExt.originalLLayer] as MappingAtem // tslint:disable-line
 			}
 
 			if (mapping) {
