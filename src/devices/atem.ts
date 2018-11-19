@@ -81,7 +81,7 @@ export class AtemDevice extends DeviceWithState<DeviceState> {
 	 * Initiates the connection with the ATEM through the atem-connection lib.
 	 */
 	init (options: AtemOptions): Promise<boolean> {
-		return new Promise((resolve/*, reject*/) => {
+		return new Promise((resolve, reject) => {
 			// This is where we would do initialization, like connecting to the devices, etc
 			this._state = new AtemState()
 			this._atem = new Atem()
@@ -104,6 +104,9 @@ export class AtemDevice extends DeviceWithState<DeviceState> {
 			this._atem.on('error', (e) => this.emit('error', e))
 
 			this._atem.connect(options.host, options.port)
+			.catch(e => {
+				reject(e)
+			})
 		})
 	}
 	terminate (): Promise<boolean> {

@@ -1,6 +1,5 @@
 
 // mock CasparCG
-import * as _ from 'underscore'
 import {
 	AMCP as orgAMCP,
 	AMCPUtil as orgAMCPUtil,
@@ -11,7 +10,7 @@ import { EventEmitter } from 'events'
 
 let mockDo = jest.fn()
 
-let instances = []
+let instances: Array<CasparCG> = []
 
 export const AMCP = orgAMCP
 export const AMCPUtil = orgAMCPUtil

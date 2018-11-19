@@ -81,4 +81,10 @@ export class Hyperdeck extends EventEmitter {
 	get connected () {
 		return this._connected
 	}
+	get host () {
+		return this._host
+	}
+	get port () {
+		return this._port
+	}
 }
