@@ -5,7 +5,8 @@ export * from './hyperdeck'
 export * from './lawo'
 export * from './pharos'
 export * from './ptz'
-export * from './superfly-timeline'
+import * as Timeline from './superfly-timeline'
+export { Timeline }
 
 export * from './mapping'
 
@@ -17,8 +18,7 @@ import { TimelineContentTypeLawo, TimelineObjLawoAny } from './lawo'
 import { TimelineContentTypePharos, TimelineObjPharosAny } from './pharos'
 import { TimelineContentTypePanasonicPtz, TimelineObjPanasonicPtzAny } from './ptz'
 
-import { TimelineObject } from './superfly-timeline'
-export interface TimelineObjEmpty extends TimelineObject {
+export interface TimelineObjEmpty extends Timeline.TimelineObject {
 	content: {}
 	classes: Array<string>
 }
