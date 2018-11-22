@@ -5,6 +5,7 @@ export * from './hyperdeck'
 export * from './lawo'
 export * from './pharos'
 export * from './ptz'
+export * from './superfly-timeline'
 
 export * from './mapping'
 
