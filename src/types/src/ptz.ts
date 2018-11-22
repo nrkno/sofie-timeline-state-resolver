@@ -1,4 +1,4 @@
-import { TimelineKeyframe, TimelineObject } from 'superfly-timeline'
+import { TimelineKeyframe, TimelineObject } from './superfly-timeline'
 import { Mapping, DeviceType } from './mapping'
 
 export interface MappingPanasonicPtz extends Mapping {

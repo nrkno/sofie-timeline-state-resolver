@@ -77,10 +77,12 @@
 	  "nsp": "^3.2.1",
 	  "nyc": "^12.0.2",
 	  "opn-cli": "^4.0.0",
+		"superfly-timeline": "^6.0.3",
 	  "trash-cli": "^1.4.0",
 		"tslint": "^5.10.0",
 	  "tslint-config-standard": "^8.0.1",
-	  "typescript": "^2.9.2"
+		"typescript": "^2.9.2",
+		"underscore": "^1.9.1"
 	},
 	"keywords": [
 	  "mos",
@@ -95,9 +97,6 @@
 	  "nrcs",
 	  "rundown",
 	  "production"
-	],
-	"dependencies": {
-	  "superfly-timeline": "^6.0.1"
-	}
-  }
+	]
+}
   
