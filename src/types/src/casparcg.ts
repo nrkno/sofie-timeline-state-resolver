@@ -1,4 +1,4 @@
-import { TimelineObject, TimelineKeyframe } from 'superfly-timeline'
+import { TimelineObject, TimelineKeyframe } from './superfly-timeline'
 import { Mapping, DeviceType } from './mapping'
 
 export interface MappingCasparCG extends Mapping {
