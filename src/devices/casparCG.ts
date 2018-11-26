@@ -196,14 +196,18 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> {
 	}
 	get connected (): boolean {
 		// Returns connection status
-		return this._ccg.connected
+		return this._ccg ? this._ccg.connected : false
 	}
 
 	get deviceType () {
 		return DeviceType.CASPARCG
 	}
 	get deviceName (): string {
-		return 'CasparCG ' + this._ccg.host + ':' + this._ccg.port
+		if (this._ccg) {
+			return 'CasparCG ' + this._ccg.host + ':' + this._ccg.port
+		} else {
+			return 'Uninitialized CasparCG'
+		}
 	}
 
 	get queue () {
