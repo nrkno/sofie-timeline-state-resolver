@@ -73,7 +73,7 @@ export class AtemDevice extends DeviceWithState<DeviceState> {
 		this._doOnTime = new DoOnTime(() => {
 			return this.getCurrentTime()
 		})
-		this._doOnTime.on('error', e => this.emit('error', e))
+		this._doOnTime.on('error', e => this.emit('error', 'doOnTime', e))
 		this._conductor = conductor
 	}
 
@@ -101,7 +101,7 @@ export class AtemDevice extends DeviceWithState<DeviceState> {
 				this._connected = false
 				this._connectionChanged()
 			})
-			this._atem.on('error', (e) => this.emit('error', e))
+			this._atem.on('error', (e) => this.emit('error', 'Atem', e))
 
 			this._atem.connect(options.host, options.port)
 			.catch(e => {

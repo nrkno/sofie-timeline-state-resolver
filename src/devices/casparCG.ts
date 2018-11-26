@@ -80,7 +80,7 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> {
 		this._doOnTime = new DoOnTime(() => {
 			return this.getCurrentTime()
 		})
-		this._doOnTime.on('error', e => this.emit('error', e))
+		this._doOnTime.on('error', e => this.emit('error', 'doOnTime', e))
 		this._conductor = conductor
 	}
 
@@ -102,7 +102,7 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> {
 		this._useScheduling = connectionOptions.useScheduling
 		this._ccg.on(CasparCGSocketStatusEvent.CONNECTED, (event: CasparCGSocketStatusEvent) => {
 			this.makeReady(false) // always make sure timecode is correct, setting it can never do bad
-			.catch((e) => this.emit('error', e))
+			.catch((e) => this.emit('error', 'casparCG.makeReady', e))
 			if (event.valueOf().virginServer === true) {
 				// a "virgin server" was just restarted (so it is cleared & black).
 				// Otherwise it was probably just a loss of connection
@@ -532,7 +532,7 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> {
 	}
 	private _doCommand (command: CommandNS.IAMCPCommand): void {
 		this._commandReceiver(this.getCurrentTime(), command)
-		.catch(e => this.emit('error', e))
+		.catch(e => this.emit('error', 'casparcg._commandReceiver', e))
 	}
 	private _clearScheduledFutureCommands (time: number, commandsToSendNow: Array<CommandNS.IAMCPCommandVO>) {
 		// clear any queued commands later than this time:
@@ -623,7 +623,7 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> {
 				delete this._queue[resCommand.token]
 			}
 		}).catch((error) => {
-			this.emit('error', Error('Error ' + cmd.name + ' ' + error))
+			this.emit('error', 'casparcg.defaultCommandReceiver ' + cmd.name, error)
 			if (cmd.name === 'ScheduleSetCommand') {
 				// delete this._queue[cmd.getParam('command').token]
 				delete this._queue[cmd.token]

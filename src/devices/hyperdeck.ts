@@ -73,7 +73,7 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> {
 		this._doOnTime = new DoOnTime(() => {
 			return this.getCurrentTime()
 		})
-		this._doOnTime.on('error', e => this.emit('error', e))
+		this._doOnTime.on('error', e => this.emit('error', 'doOnTime', e))
 		this._conductor = conductor
 	}
 
@@ -103,7 +103,7 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> {
 				this._connected = false
 				this._connectionChanged()
 			})
-			this._hyperdeck.on('error', (e) => this.emit('error', e))
+			this._hyperdeck.on('error', (e) => this.emit('error', 'Hyperdeck', e))
 		})
 	}
 	terminate (): Promise<boolean> {

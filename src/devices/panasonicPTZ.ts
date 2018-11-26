@@ -70,15 +70,15 @@ export class PanasonicPtzDevice extends DeviceWithState<TimelineState> {
 		this._doOnTime = new DoOnTime(() => {
 			return this.getCurrentTime()
 		})
-		this._doOnTime.on('error', e => this.emit('error', e))
+		this._doOnTime.on('error', e => this.emit('error', 'doOnTime', e))
 
 		if (deviceOptions.options && deviceOptions.options.host) {
 			this._device = new PanasonicPtzHttpInterface(deviceOptions.options.host, deviceOptions.options.port, deviceOptions.options.https)
 			this._device.on('error', (msg) => {
-				this.emit('error', msg)
+				this.emit('error', 'PanasonicPtzHttpInterface', msg)
 			})
 			this._device.on('disconnected', (msg) => {
-				this.emit('error', msg)
+				this.emit('error', 'PanasonicPtzHttpInterface disconnected', msg)
 				this._setConnected(false)
 			})
 		} else {
@@ -97,7 +97,7 @@ export class PanasonicPtzDevice extends DeviceWithState<TimelineState> {
 							this._device!.ping().then((result) => {
 								this._setConnected(!!result)
 							}).catch((e) => {
-								this.emit('error', e)
+								this.emit('error', 'ping', e)
 								this._setConnected(false)
 							})
 						}, PROBE_INTERVAL)
@@ -202,7 +202,7 @@ export class PanasonicPtzDevice extends DeviceWithState<TimelineState> {
 				.then((res) => {
 					this.emit('debug', `Panasonic PTZ result: ${res}`)
 				})
-				.catch((e) => this.emit('error', e))
+				.catch((e) => this.emit('error', 'PTZ.recallPreset', e))
 			} // @todo: else: add throw here?
 		} else if (cmd.type === TimelineContentTypePanasonicPtz.SPEED) {
 			if (this._device && cmd.speed !== undefined) {
@@ -211,7 +211,7 @@ export class PanasonicPtzDevice extends DeviceWithState<TimelineState> {
 				.then((res) => {
 					this.emit('debug', `Panasonic PTZ result: ${res}`)
 				})
-				.catch((e) => this.emit('error', e))
+				.catch((e) => this.emit('error', 'PTZ.setSpeed', e))
 			} // @todo: else: add throw here?
 		} else if (cmd.type === TimelineContentTypePanasonicPtz.ZOOM_SPEED) {
 			if (this._device && cmd.zoomSpeed !== undefined) {
@@ -221,7 +221,7 @@ export class PanasonicPtzDevice extends DeviceWithState<TimelineState> {
 				.then((res) => {
 					this.emit('debug', `Panasonic PTZ result: ${res}`)
 				})
-				.catch((e) => this.emit('error', e))
+				.catch((e) => this.emit('error', 'PTZ.setZoomSpeed', e))
 			} // @todo: else: add throw here?
 		} else if (cmd.type === TimelineContentTypePanasonicPtz.ZOOM) {
 			if (this._device && cmd.zoom !== undefined) {
@@ -231,7 +231,7 @@ export class PanasonicPtzDevice extends DeviceWithState<TimelineState> {
 				.then((res) => {
 					this.emit('debug', `Panasonic PTZ result: ${res}`)
 				})
-				.catch((e) => this.emit('error', e))
+				.catch((e) => this.emit('error', 'PTZ.setZoom', e))
 			} // @todo: else: add throw here?
 		}
 	}
