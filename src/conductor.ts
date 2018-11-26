@@ -26,6 +26,7 @@ import { HyperdeckDevice } from './devices/hyperdeck'
 import { DoOnTime } from './doOnTime'
 import { PharosDevice } from './devices/pharos'
 import { OSCMessageDevice } from './devices/osc'
+import { threadedClass, ThreadedClass } from 'threadedclass'
 
 const LOOKAHEADTIME = 5000 // Will look ahead this far into the future
 const PREPARETIME = 2000 // Will prepare commands this time before the event is to happen
@@ -67,7 +68,7 @@ export class Conductor extends EventEmitter {
 
 	private _options: ConductorOptions
 
-	private devices: {[deviceId: string]: Device} = {}
+	private devices: {[deviceId: string]: ThreadedClass<Device>} = {}
 
 	private _getCurrentTime?: () => number
 
@@ -75,6 +76,7 @@ export class Conductor extends EventEmitter {
 	private _resolveTimelineTrigger: NodeJS.Timer
 	private _isInitialized: boolean = false
 	private _doOnTime: DoOnTime
+	// private isMultiThreaded = false
 
 	private _sentCallbacks: {[key: string]: TimelineCallback} = {}
 
@@ -135,7 +137,9 @@ export class Conductor extends EventEmitter {
 		// Set mapping
 		// re-resolve timeline
 		this._mapping = mapping
-		_.each(this.devices, (device: Device) => {
+		_.each(this.devices, (device: ThreadedClass<Device>) => {
+			// @todo:
+			// @ts-ignore
 			device.mapping = this.mapping
 		})
 
@@ -163,45 +167,113 @@ export class Conductor extends EventEmitter {
 		this._logDebug = val
 	}
 
-	public getDevices (): Array<Device> {
+	public getDevices (): Array<ThreadedClass<Device>> {
 		return _.values(this.devices)
 	}
 	public getDevice (deviceId: string) {
 		return this.devices[deviceId]
 	}
 
-	public addDevice (deviceId, deviceOptions: DeviceOptions): Promise<Device> {
+	/**
+	 * Adds a a device that can be referenced by the timeline and mappings.
+	 * @param deviceId Id used by the mappings to reference the device.
+	 * @returns A promise that resolves with the created device, or rejects with an error message.
+	 */
+	public async addDevice (deviceId, deviceOptions: DeviceOptions): Promise<ThreadedClass<Device>> {
 		try {
-			let newDevice: Device
+			console.log('try add device')
+			let newDevice: ThreadedClass<Device>
 
 			let options = {
 				getCurrentTime: () => { return this.getCurrentTime() }
 			}
 
 			if (deviceOptions.type === DeviceType.ABSTRACT) {
-				// Add Abstract device:
-				newDevice = new AbstractDevice(deviceId, deviceOptions, options) as Device
+				newDevice = await threadedClass<AbstractDevice>(
+					'./devices/abstract',
+					AbstractDevice,
+					[ deviceId, deviceOptions, options ]
+				)
 			} else if (deviceOptions.type === DeviceType.CASPARCG) {
 				// Add CasparCG device:
-				newDevice = new CasparCGDevice(deviceId, deviceOptions, options, this) as Device
+				console.log('adding caspar')
+				newDevice = await threadedClass<CasparCGDevice>(
+					'./devices/casparCG',
+					CasparCGDevice,
+					[ deviceId, deviceOptions, options, this.resetResolver ]
+				)
 			} else if (deviceOptions.type === DeviceType.ATEM) {
-				newDevice = new AtemDevice(deviceId, deviceOptions, options, this) as Device
+				newDevice = await threadedClass<AtemDevice>(
+					'./devices/atem',
+					AtemDevice,
+					[ deviceId, deviceOptions, options, this.resetResolver ]
+				)
 			} else if (deviceOptions.type === DeviceType.HTTPSEND) {
-				newDevice = new HttpSendDevice(deviceId, deviceOptions, options) as Device
+				newDevice = await threadedClass<HttpSendDevice>(
+					'./devices/httpSend',
+					HttpSendDevice,
+					[ deviceId, deviceOptions, options ]
+				)
 			} else if (deviceOptions.type === DeviceType.LAWO) {
-				newDevice = new LawoDevice(deviceId, deviceOptions, options) as Device
+				newDevice = await threadedClass<LawoDevice>(
+					'./devices/lawo',
+					LawoDevice,
+					[ deviceId, deviceOptions, options ]
+				)
 			} else if (deviceOptions.type === DeviceType.PANASONIC_PTZ) {
-				newDevice = new PanasonicPtzDevice(deviceId, deviceOptions, options) as Device
+				newDevice = await threadedClass<PanasonicPtzDevice>(
+					'./devices/panasonicPtz',
+					PanasonicPtzDevice,
+					[ deviceId, deviceOptions, options ]
+				)
 			} else if (deviceOptions.type === DeviceType.HYPERDECK) {
-				newDevice = new HyperdeckDevice(deviceId, deviceOptions, options, this) as Device
+				newDevice = await threadedClass<HyperdeckDevice>(
+					'./devices/hyperdeck',
+					HyperdeckDevice,
+					[ deviceId, deviceOptions, options, this ]
+				)
 			} else if (deviceOptions.type === DeviceType.PHAROS) {
-				newDevice = new PharosDevice(deviceId, deviceOptions, options) as Device
+				newDevice = await threadedClass<PharosDevice>(
+					'./devices/pharos',
+					PharosDevice,
+					[ deviceId, deviceOptions, options ]
+				)
 			} else if (deviceOptions.type === DeviceType.OSC) {
-				newDevice = new OSCMessageDevice(deviceId, deviceOptions, options) as Device
+				newDevice = await threadedClass<OSCMessageDevice>(
+					'./devices/osc',
+					OSCMessageDevice,
+					[ deviceId, deviceOptions, options ]
+				)
 			} else {
-				return Promise.reject('No matching device type for "' + deviceOptions.type + '" ("' + DeviceType[deviceOptions.type] + '") found')
+				return Promise.reject('No matching multithreaded device type for "' +
+				deviceOptions.type + '" ("' + DeviceType[deviceOptions.type] + '") found')
 			}
+			console.log('added device')
+			// } else {
+			// 	if (deviceOptions.type === DeviceType.ABSTRACT) {
+			// 		// Add Abstract device:
+			// 		newDevice = new AbstractDevice(deviceId, deviceOptions, options) as Device
+			// 	} else if (deviceOptions.type === DeviceType.CASPARCG) {
+			// 		// Add CasparCG device:
+			// 		newDevice = new CasparCGDevice(deviceId, deviceOptions, options, this) as Device
+			// 	} else if (deviceOptions.type === DeviceType.ATEM) {
+			// 		newDevice = new AtemDevice(deviceId, deviceOptions, options, this) as Device
+			// 	} else if (deviceOptions.type === DeviceType.HTTPSEND) {
+			// 		newDevice = new HttpSendDevice(deviceId, deviceOptions, options) as Device
+			// 	} else if (deviceOptions.type === DeviceType.LAWO) {
+			// 		newDevice = new LawoDevice(deviceId, deviceOptions, options) as Device
+			// 	} else if (deviceOptions.type === DeviceType.PANASONIC_PTZ) {
+			// 		newDevice = new PanasonicPtzDevice(deviceId, deviceOptions, options) as Device
+			// 	} else if (deviceOptions.type === DeviceType.HYPERDECK) {
+			// 		newDevice = new HyperdeckDevice(deviceId, deviceOptions, options, this) as Device
+			// 	} else if (deviceOptions.type === DeviceType.PHAROS) {
+			// 		newDevice = new PharosDevice(deviceId, deviceOptions, options) as Device
+			// 	} else {
+			// 		return Promise.reject('No matching device type for "' + deviceOptions.type + '" ("' + DeviceType[deviceOptions.type] + '") found')
+			// 	}
+			// }
 
+			console.log('set up event listeners')
 			newDevice.on('debug',	(...e) => {
 				if (this.logDebug) {
 					this.emit('debug', newDevice.deviceId, ...e)
@@ -213,9 +285,14 @@ export class Conductor extends EventEmitter {
 
 			this.emit('info', 'Initializing ' + DeviceType[deviceOptions.type] + '...')
 			this.devices[deviceId] = newDevice
+			console.log('set mappings')
+			// @todo: have to disable ts checks for get/set properties currently
+			// @ts-ignore
 			newDevice.mapping = this.mapping
 
+			console.log('init device')
 			return newDevice.init(deviceOptions.options)
+			.then(p => p)
 			.then(() => {
 				this.emit('info', (DeviceType[deviceOptions.type] + ' initialized!'))
 				return newDevice
@@ -264,9 +341,9 @@ export class Conductor extends EventEmitter {
 	 */
 	public devicesMakeReady (okToDestroyStuff?: boolean): Promise<void> {
 		let p = Promise.resolve()
-		_.each(this.devices, (device: Device) => {
-			p = p.then(() => {
-				return device.makeReady(okToDestroyStuff)
+		_.each(this.devices, (device: ThreadedClass<Device>) => {
+			p = p.then(async () => {
+				return await device.makeReady(okToDestroyStuff)
 			})
 		})
 		this._resolveTimeline()
@@ -277,9 +354,9 @@ export class Conductor extends EventEmitter {
 	 */
 	public devicesStandDown (okToDestroyStuff?: boolean): Promise<void> {
 		let p = Promise.resolve()
-		_.each(this.devices, (device: Device) => {
-			p = p.then(() => {
-				return device.standDown(okToDestroyStuff)
+		_.each(this.devices, (device: ThreadedClass<Device>) => {
+			p = p.then(async () => {
+				return await device.standDown(okToDestroyStuff)
 			})
 		})
 		return p
@@ -367,9 +444,11 @@ export class Conductor extends EventEmitter {
 			// this.emit('info', 'tlState', JSON.stringify(tlState.LLayers,' ', 2))
 
 			// Split the state into substates that are relevant for each device
-			let getFilteredLayers = (layers: TimelineState['LLayers'], device: Device) => {
+			let getFilteredLayers = async (layers: TimelineState['LLayers'], device: ThreadedClass<Device>) => {
 				let filteredState = {}
-				_.each(layers, (o: TimelineResolvedObject, layerId: string) => {
+				const deviceId = await device.deviceId()
+				const deviceType = await device.deviceType()
+				_.each(layers, async (o: TimelineResolvedObject, layerId: string) => {
 					const oExt: TimelineResolvedObjectExtended = o
 					let mapping: Mapping = this._mapping[o.LLayer + '']
 					if (!mapping && oExt.originalLLayer) {
@@ -377,8 +456,8 @@ export class Conductor extends EventEmitter {
 					}
 					if (mapping) {
 						if (
-							mapping.deviceId === device.deviceId &&
-							mapping.device === device.deviceType
+							mapping.deviceId === deviceId &&
+							mapping.device === deviceType
 						) {
 							filteredState[layerId] = o
 						}
@@ -386,13 +465,13 @@ export class Conductor extends EventEmitter {
 				})
 				return filteredState
 			}
-			_.each(this.devices, (device: Device/*, deviceName: string*/) => {
+			_.each(this.devices, async (device: ThreadedClass<Device>/*, deviceName: string*/) => {
 
 				// The subState contains only the parts of the state relevant to that device
 				let subState: TimelineState = {
 					time: tlState.time,
-					LLayers: getFilteredLayers(tlState.LLayers, device),
-					GLayers: getFilteredLayers(tlState.GLayers, device)
+					LLayers: await getFilteredLayers(tlState.LLayers, device),
+					GLayers: await getFilteredLayers(tlState.GLayers, device)
 				}
 				// this.emit('info', 'State of device ' + device.deviceName, tlState.LLayers )
 				// Pass along the state to the device, it will generate its commands and execute them:
@@ -432,7 +511,7 @@ export class Conductor extends EventEmitter {
 				// this.emit('debug', 'no next events')
 
 				// Tell the devices that the future is clear:
-				_.each(this.devices, (device: Device) => {
+				_.each(this.devices, (device: ThreadedClass<Device>) => {
 					device.clearFuture(tlState.time)
 				})
 
