@@ -85,11 +85,11 @@ export class PharosDevice extends DeviceWithState<TimelineState> {
 		this._doOnTime = new DoOnTime(() => {
 			return this.getCurrentTime()
 		})
-		this._doOnTime.on('error', e => this.emit('error', e))
+		this._doOnTime.on('error', e => this.emit('error', 'doOnTime', e))
 
 		this._pharos = new Pharos()
 
-		this._pharos.on('error', e => this.emit('error', e))
+		this._pharos.on('error', e => this.emit('error', 'Pharos', e))
 		this._pharos.on('connected', () => {
 			this._connectionChanged()
 		})

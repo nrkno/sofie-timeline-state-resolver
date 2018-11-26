@@ -129,7 +129,7 @@ export class LawoDevice extends DeviceWithState<TimelineState> {
 		this._doOnTime = new DoOnTime(() => {
 			return this.getCurrentTime()
 		})
-		this._doOnTime.on('error', e => this.emit('error', e))
+		this._doOnTime.on('error', e => this.emit('error', 'DoOnTime', e))
 
 		this._lawo = new DeviceTree(host, port)
 		this._lawo.on('error', (e) => {
@@ -139,7 +139,7 @@ export class LawoDevice extends DeviceWithState<TimelineState> {
 			) {
 				this._setConnected(false)
 			} else {
-				this.emit('error', e)
+				this.emit('error', 'Emberplus', e)
 			}
 		})
 		this._lawo.on('connected', () => {
@@ -205,7 +205,7 @@ export class LawoDevice extends DeviceWithState<TimelineState> {
 			this._lawo.removeAllListeners('disconnected')
 
 		} catch (e) {
-			this.emit('error', e)
+			this.emit('error', 'terminate', e)
 		}
 		return Promise.resolve(true)
 	}

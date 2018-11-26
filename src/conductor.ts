@@ -199,7 +199,7 @@ export class Conductor extends EventEmitter {
 			})
 			newDevice.on('info',	(e) => this.emit('info', 	e))
 			newDevice.on('warning',	(e) => this.emit('warning', e))
-			newDevice.on('error',	(e) => this.emit('error', 	e))
+			newDevice.on('error',	(e, ...args) => this.emit('error', `Device ${newDevice.deviceName} (${newDevice.deviceId})`, e, ...args))
 
 			this.emit('info', 'Initializing ' + DeviceType[deviceOptions.type] + '...')
 			this.devices[deviceId] = newDevice
@@ -211,7 +211,7 @@ export class Conductor extends EventEmitter {
 				return newDevice
 			})
 		} catch (e) {
-			this.emit('error', e)
+			this.emit('error', 'conductor.addDevice', e)
 			return Promise.reject(e)
 		}
 	}
@@ -444,21 +444,21 @@ export class Conductor extends EventEmitter {
 						})
 					}
 				} catch (e) {
-					this.emit('error', e)
+					this.emit('error', `callback to core, obj "${o.id}"`, e)
 				}
 			})
 			this._sentCallbacks = sentCallbacksNew
 
 			this.emit('info', 'resolveTimeline at time ' + resolveTime + ' done in ' + (Date.now() - startTime) + 'ms')
 		} catch (e) {
-			this.emit('error', e)
+			this.emit('error', 'resolveTimeline' + e)
 		}
 
 		try {
 			// this.emit('info', 'this._nextResolveTime', this._nextResolveTime)
 			this._triggerResolveTimeline(timeUntilNextResolve)
 		} catch (e) {
-			this.emit('error', e)
+			this.emit('error', 'triggerResolveTimeline', e)
 		}
 	}
 

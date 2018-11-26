@@ -44,7 +44,7 @@ export class AbstractDevice extends DeviceWithState<TimelineState> {
 		this._doOnTime = new DoOnTime(() => {
 			return this.getCurrentTime()
 		})
-		this._doOnTime.on('error', e => this.emit('error', e))
+		this._doOnTime.on('error', e => this.emit('error', 'doOnTime', e))
 	}
 
 	/**

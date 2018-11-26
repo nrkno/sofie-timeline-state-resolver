@@ -193,7 +193,7 @@ export class HttpSendDevice extends DeviceWithState<TimelineState> {
 		return new Promise((resolve, reject) => {
 			let handleResponse = (error, response) => {
 				if (error) {
-					this.emit('error', `HTTPSend: Error ${cmd.type}: ${error}`)
+					this.emit('error', `HTTPSend: Error ${cmd.type}`, error)
 					reject(error)
 				} else if (response.statusCode === 200) {
 					// console.log('200 Response from ' + cmd.url, body)
