@@ -81,6 +81,9 @@ export class PanasonicPtzDevice extends DeviceWithState<TimelineState> {
 				this.emit('error', 'PanasonicPtzHttpInterface disconnected', msg)
 				this._setConnected(false)
 			})
+			this._device.on('debug', (...args) => {
+				this.emit('debug', 'Panasonic PTZ', ...args)
+			})
 		} else {
 			this._device = undefined
 		}
@@ -184,7 +187,7 @@ export class PanasonicPtzDevice extends DeviceWithState<TimelineState> {
 		return {
 			preset: undefined,
 			speed: undefined,
-			zoomSpeed: undefined,
+			zoomSpeed: 0,
 			zoom: undefined
 		}
 	}

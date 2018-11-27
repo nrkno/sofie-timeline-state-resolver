@@ -56,9 +56,12 @@ export class PanasonicPtzCamera extends EventEmitter {
 			return
 		}
 
+		const queryUrl = this._url + '?' + querystring.stringify({ 'cmd': qItem.command, 'res': '1' })
+		this.emit('debug', 'Command sent', queryUrl)
+
 		qItem.executing = true
 		request.get(
-			this._url + '?' + querystring.stringify({ 'cmd': qItem.command, 'res': '1' }),
+			queryUrl,
 			{},
 			(error, response) => {
 				if (error) {
@@ -128,6 +131,9 @@ export class PanasonicPtzHttpInterface extends EventEmitter {
 		this._device.on('error', (err) => {
 			this.emit('error', err)
 		})
+		this._device.on('debug', (...args) => {
+			this.emit('debug', ...args)
+		})
 	}
 
 	private static _isError (response: string) {
@@ -153,14 +159,12 @@ export class PanasonicPtzHttpInterface extends EventEmitter {
 		return new Promise((resolve, reject) => {
 			device.sendCommand(PanasonicHttpCommands.PRESET_NUMBER_QUERY).then((response) => {
 				if (PanasonicPtzHttpInterface._isError(response)) {
-					this.emit('error', response)
-					reject(response)
+					reject(`Device returned an error: ${response}`)
 				} else if (response.startsWith(PanasonicHttpResponse.PRESET_NUMBER_TPL)) {
 					const preset = Number.parseInt(response.substr(PanasonicHttpResponse.PRESET_NUMBER_TPL.length), 10)
 					resolve(preset)
 				} else {
-					this.emit('error', response)
-					reject(response)
+					reject(`Unknown response: ${response}`)
 				}
 			}).catch((error) => {
 				this.emit('disconnected', error)
@@ -184,14 +188,12 @@ export class PanasonicPtzHttpInterface extends EventEmitter {
 		return new Promise((resolve, reject) => {
 			device.sendCommand(sprintf(PanasonicHttpCommands.PRESET_NUMBER_CONTROL_TPL, preset)).then((response) => {
 				if (PanasonicPtzHttpInterface._isError(response)) {
-					this.emit('error', response)
-					reject(response)
+					reject(`Device returned an error: ${response}`)
 				} else if (response.startsWith(PanasonicHttpResponse.PRESET_NUMBER_TPL)) {
 					const preset = Number.parseInt(response.substr(PanasonicHttpResponse.PRESET_NUMBER_TPL.length), 10)
 					resolve(preset)
 				} else {
-					this.emit('error', response)
-					reject(response)
+					reject(`Unknown response: ${response}`)
 				}
 			}).catch((error) => {
 				this.emit('disconnected', error)
@@ -211,14 +213,12 @@ export class PanasonicPtzHttpInterface extends EventEmitter {
 		return new Promise((resolve, reject) => {
 			device.sendCommand(PanasonicHttpCommands.PRESET_SPEED_QUERY).then((response) => {
 				if (PanasonicPtzHttpInterface._isError(response)) {
-					this.emit('error', response)
-					reject(response)
+					reject(`Device returned an error: ${response}`)
 				} else if (response.startsWith(PanasonicHttpResponse.PRESET_SPEED_TPL)) {
 					const speed = Number.parseInt(response.substr(PanasonicHttpResponse.PRESET_SPEED_TPL.length), 10)
 					resolve(speed)
 				} else {
-					this.emit('error', response)
-					reject(response)
+					reject(`Unknown response: ${response}`)
 				}
 			}).catch((error) => {
 				this.emit('disconnected', error)
@@ -242,14 +242,12 @@ export class PanasonicPtzHttpInterface extends EventEmitter {
 		return new Promise((resolve, reject) => {
 			device.sendCommand(sprintf(PanasonicHttpCommands.PRESET_SPEED_CONTROL_TPL, speed)).then((response) => {
 				if (PanasonicPtzHttpInterface._isError(response)) {
-					this.emit('error', response)
-					reject(response)
+					reject(`Device returned an error: ${response}`)
 				} else if (response.startsWith(PanasonicHttpResponse.PRESET_SPEED_TPL)) {
 					const speed = Number.parseInt(response.substr(PanasonicHttpResponse.PRESET_SPEED_TPL.length), 10)
 					resolve(speed)
 				} else {
-					this.emit('error', response)
-					reject(response)
+					reject(`Unknown response: ${response}`)
 				}
 			}).catch((error) => {
 				this.emit('disconnected', error)
@@ -269,14 +267,12 @@ export class PanasonicPtzHttpInterface extends EventEmitter {
 		return new Promise((resolve, reject) => {
 			device.sendCommand(PanasonicHttpCommands.ZOOM_SPEED_QUERY).then((response) => {
 				if (PanasonicPtzHttpInterface._isError(response)) {
-					this.emit('error', response)
-					reject(response)
+					reject(`Device returned an error: ${response}`)
 				} else if (response.startsWith(PanasonicHttpResponse.ZOOM_SPEED_TPL)) {
 					const speed = Number.parseInt(response.substr(PanasonicHttpResponse.ZOOM_SPEED_TPL.length), 10)
 					resolve(speed)
 				} else {
-					this.emit('error', response)
-					reject(response)
+					reject(`Unknown response: ${response}`)
 				}
 			}).catch((error) => {
 				this.emit('disconnected', error)
@@ -300,14 +296,12 @@ export class PanasonicPtzHttpInterface extends EventEmitter {
 		return new Promise((resolve, reject) => {
 			device.sendCommand(sprintf(PanasonicHttpCommands.ZOOM_SPEED_CONTROL_TPL, speed)).then((response) => {
 				if (PanasonicPtzHttpInterface._isError(response)) {
-					this.emit('error', response)
-					reject(response)
+					reject(`Device returned an error: ${response}`)
 				} else if (response.startsWith(PanasonicHttpResponse.ZOOM_SPEED_TPL)) {
 					const speed = Number.parseInt(response.substr(PanasonicHttpResponse.ZOOM_SPEED_TPL.length), 10)
 					resolve(speed)
 				} else {
-					this.emit('error', response)
-					reject(response)
+					reject(`Unknown response: ${response}`)
 				}
 			}).catch((error) => {
 				this.emit('disconnected', error)
@@ -327,14 +321,12 @@ export class PanasonicPtzHttpInterface extends EventEmitter {
 		return new Promise((resolve, reject) => {
 			device.sendCommand(PanasonicHttpCommands.ZOOM_QUERY).then((response) => {
 				if (PanasonicPtzHttpInterface._isError(response)) {
-					this.emit('error', response)
-					reject(response)
+					reject(`Device returned an error: ${response}`)
 				} else if (response.startsWith(PanasonicHttpResponse.ZOOM_TPL)) {
 					const zoom = Number.parseInt(response.substr(PanasonicHttpResponse.ZOOM_TPL.length), 16)
 					resolve(zoom)
 				} else {
-					this.emit('error', response)
-					reject(response)
+					reject(`Unknown response: ${response}`)
 				}
 			}).catch((error) => {
 				this.emit('disconnected', error)
@@ -358,14 +350,12 @@ export class PanasonicPtzHttpInterface extends EventEmitter {
 		return new Promise((resolve, reject) => {
 			device.sendCommand(sprintf(PanasonicHttpCommands.ZOOM_CONTROL_TPL, level)).then((response) => {
 				if (PanasonicPtzHttpInterface._isError(response)) {
-					this.emit('error', response)
-					reject(response)
+					reject(`Device returned an error: ${response}`)
 				} else if (response.startsWith(PanasonicHttpResponse.ZOOM_CONTROL_TPL)) {
 					const level = Number.parseInt(response.substr(PanasonicHttpResponse.ZOOM_CONTROL_TPL.length), 16)
 					resolve(level)
 				} else {
-					this.emit('error', response)
-					reject(response)
+					reject(`Unknown response: ${response}`)
 				}
 			}).catch((error) => {
 				this.emit('disconnected', error)
@@ -384,8 +374,7 @@ export class PanasonicPtzHttpInterface extends EventEmitter {
 		return new Promise((resolve, reject) => {
 			device.sendCommand(PanasonicHttpCommands.POWER_MODE_QUERY).then((response) => {
 				if (PanasonicPtzHttpInterface._isError(response)) {
-					this.emit('error', response)
-					reject(response)
+					reject(`Device returned an error: ${response}`)
 				} else if (response === PanasonicHttpResponse.POWER_MODE_ON) {
 					resolve(true)
 				} else if (response === PanasonicHttpResponse.POWER_MODE_STBY) {
@@ -393,8 +382,7 @@ export class PanasonicPtzHttpInterface extends EventEmitter {
 				} else if (response === PanasonicHttpResponse.POWER_MODE_TURNING_ON) {
 					resolve('turningOn')
 				} else {
-					this.emit('error', response)
-					reject(response)
+					reject(`Unknown response: ${response}`)
 				}
 			}).catch((error) => {
 				this.emit('disconnected', error)
