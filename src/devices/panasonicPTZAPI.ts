@@ -97,7 +97,7 @@ enum PanasonicHttpCommands {
 	PRESET_SPEED_QUERY = '#UPVS',
 	ZOOM_SPEED_CONTROL_TPL = '#Z%02i',
 	ZOOM_SPEED_QUERY = '#Z',
-	ZOOM_CONTROL_TPL = '#AXZ%03Xh',
+	ZOOM_CONTROL_TPL = '#AXZ%03X',
 	ZOOM_QUERY = '#GZ'
 }
 enum PanasonicHttpResponse {
