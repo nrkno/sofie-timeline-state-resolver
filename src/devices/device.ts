@@ -118,6 +118,9 @@ export abstract class Device extends EventEmitter implements IDevice {
 	set mapping (mappings: Mappings) {
 		this._mappings = mappings
 	}
+	setMapping (mappings: Mappings) {
+		this._mappings = mappings
+	}
 
 	get deviceId () {
 		return this._deviceId

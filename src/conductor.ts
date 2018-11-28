@@ -138,9 +138,7 @@ export class Conductor extends EventEmitter {
 		// re-resolve timeline
 		this._mapping = mapping
 		_.each(this.devices, (device: ThreadedClass<Device>) => {
-			// @todo:
-			// @ts-ignore
-			device.mapping = this.mapping
+			device.setMapping(mapping).catch(() => null)
 		})
 
 		if (this._timeline) {
@@ -181,7 +179,6 @@ export class Conductor extends EventEmitter {
 	 */
 	public async addDevice (deviceId, deviceOptions: DeviceOptions): Promise<ThreadedClass<Device>> {
 		try {
-			console.log('try add device')
 			let newDevice: ThreadedClass<Device>
 
 			let options = {
@@ -196,17 +193,16 @@ export class Conductor extends EventEmitter {
 				)
 			} else if (deviceOptions.type === DeviceType.CASPARCG) {
 				// Add CasparCG device:
-				console.log('adding caspar')
 				newDevice = await threadedClass<CasparCGDevice>(
 					'./devices/casparCG',
 					CasparCGDevice,
-					[ deviceId, deviceOptions, options, this.resetResolver ]
+					[ deviceId, deviceOptions, options ]
 				)
 			} else if (deviceOptions.type === DeviceType.ATEM) {
 				newDevice = await threadedClass<AtemDevice>(
 					'./devices/atem',
 					AtemDevice,
-					[ deviceId, deviceOptions, options, this.resetResolver ]
+					[ deviceId, deviceOptions, options ]
 				)
 			} else if (deviceOptions.type === DeviceType.HTTPSEND) {
 				newDevice = await threadedClass<HttpSendDevice>(
@@ -248,7 +244,6 @@ export class Conductor extends EventEmitter {
 				return Promise.reject('No matching multithreaded device type for "' +
 				deviceOptions.type + '" ("' + DeviceType[deviceOptions.type] + '") found')
 			}
-			console.log('added device')
 			// } else {
 			// 	if (deviceOptions.type === DeviceType.ABSTRACT) {
 			// 		// Add Abstract device:
@@ -278,19 +273,16 @@ export class Conductor extends EventEmitter {
 				if (this.logDebug) {
 					this.emit('debug', newDevice.deviceId, ...e)
 				}
-			})
-			newDevice.on('info',	(e) => this.emit('info', 	e))
-			newDevice.on('warning',	(e) => this.emit('warning', e))
-			newDevice.on('error',	(e, ...args) => this.emit('error', `Device ${newDevice.deviceName} (${newDevice.deviceId})`, e, ...args))
+			}).catch(() => null)
+			newDevice.on('info',	(e) => this.emit('info', 	e)).catch(() => null)
+			newDevice.on('warning',	(e) => this.emit('warning', e)).catch(() => null)
+			newDevice.on('error',	(e) => this.emit('error', 	e)).catch(() => null)
+			newDevice.on('error',	(e, ...args) => this.emit('error', `Device ${newDevice.deviceName} (${newDevice.deviceId})`, e, ...args)).catch(() => null)
 
 			this.emit('info', 'Initializing ' + DeviceType[deviceOptions.type] + '...')
 			this.devices[deviceId] = newDevice
-			console.log('set mappings')
-			// @todo: have to disable ts checks for get/set properties currently
-			// @ts-ignore
-			newDevice.mapping = this.mapping
+			newDevice.setMapping(this.mapping).catch(() => null)
 
-			console.log('init device')
 			return newDevice.init(deviceOptions.options)
 			.then(p => p)
 			.then(() => {
@@ -343,7 +335,7 @@ export class Conductor extends EventEmitter {
 		let p = Promise.resolve()
 		_.each(this.devices, (device: ThreadedClass<Device>) => {
 			p = p.then(async () => {
-				return await device.makeReady(okToDestroyStuff)
+				return device.makeReady(okToDestroyStuff)
 			})
 		})
 		this._resolveTimeline()
@@ -356,7 +348,7 @@ export class Conductor extends EventEmitter {
 		let p = Promise.resolve()
 		_.each(this.devices, (device: ThreadedClass<Device>) => {
 			p = p.then(async () => {
-				return await device.standDown(okToDestroyStuff)
+				return device.standDown(okToDestroyStuff)
 			})
 		})
 		return p
@@ -476,7 +468,7 @@ export class Conductor extends EventEmitter {
 				// this.emit('info', 'State of device ' + device.deviceName, tlState.LLayers )
 				// Pass along the state to the device, it will generate its commands and execute them:
 				try {
-					device.handleState(subState)
+					device.handleState(subState).catch(() => null)
 				} catch (e) {
 					this.emit('error', 'Error in device "' + device.deviceId + '"' + e + ' ' + e.stack)
 				}
@@ -512,7 +504,7 @@ export class Conductor extends EventEmitter {
 
 				// Tell the devices that the future is clear:
 				_.each(this.devices, (device: ThreadedClass<Device>) => {
-					device.clearFuture(tlState.time)
+					device.clearFuture(tlState.time).catch(() => null)
 				})
 
 				// resolve at "now" then next time:

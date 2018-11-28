@@ -36,7 +36,6 @@ import {
 import {
 	CasparCG as StateNS,
 	CasparCGState } from 'casparcg-state'
-import { Conductor } from '../conductor'
 import { DoOnTime } from '../doOnTime'
 import * as request from 'request'
 
@@ -58,7 +57,6 @@ export interface CasparCGDeviceOptions extends DeviceOptions {
 export class CasparCGDevice extends DeviceWithState<TimelineState> {
 
 	private _ccg: CasparCG
-	private _conductor: Conductor
 	private _ccgState: CasparCGState
 	private _queue: { [token: string]: {time: number, command: CommandNS.IAMCPCommand} } = {}
 	private _commandReceiver: (time: number, cmd: CommandNS.IAMCPCommand) => Promise<any>
@@ -69,7 +67,7 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> {
 	private _connectionOptions?: CasparCGOptions
 	private _connected: boolean = false
 
-	constructor (deviceId: string, deviceOptions: CasparCGDeviceOptions, options, conductor: Conductor) {
+	constructor (deviceId: string, deviceOptions: CasparCGDeviceOptions, options) {
 		super(deviceId, deviceOptions, options)
 
 		if (deviceOptions.options) {
@@ -88,7 +86,6 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> {
 			return this.getCurrentTime()
 		})
 		this._doOnTime.on('error', e => this.emit('error', 'doOnTime', e))
-		this._conductor = conductor
 	}
 
 	/**
@@ -116,7 +113,7 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> {
 
 				this._ccgState.softClearState()
 				this.clearStates()
-				this._conductor.resetResolver() // trigger a re-calc
+				this.emit('resetResolver')
 			}
 		})
 

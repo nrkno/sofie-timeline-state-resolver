@@ -28,7 +28,7 @@ import {
 	Defaults as StateDefault
 } from 'atem-state'
 import { DoOnTime } from '../doOnTime'
-import { Conductor } from '../conductor'
+// import { Conductor } from '../conductor'
 
 _.mixin({ deepExtend: underScoreDeepExtend(_) })
 
@@ -59,7 +59,6 @@ export class AtemDevice extends DeviceWithState<DeviceState> {
 	private _state: AtemState
 	private _initialized: boolean = false
 	private _connected: boolean = false // note: ideally this should be replaced by this._atem.connected
-	private _conductor: Conductor
 
 	private firstStateAfterMakeReady: boolean = true // note: temprorary for some improved logging
 
@@ -71,7 +70,7 @@ export class AtemDevice extends DeviceWithState<DeviceState> {
 
 	private _commandReceiver: (time: number, command: AtemCommands.AbstractCommand, context: CommandContext) => Promise<any>
 
-	constructor (deviceId: string, deviceOptions: AtemDeviceOptions, options, conductor: Conductor) {
+	constructor (deviceId: string, deviceOptions: AtemDeviceOptions, options) {
 		super(deviceId, deviceOptions, options)
 		if (deviceOptions.options) {
 			if (deviceOptions.options.commandReceiver) this._commandReceiver = deviceOptions.options.commandReceiver
@@ -81,7 +80,6 @@ export class AtemDevice extends DeviceWithState<DeviceState> {
 			return this.getCurrentTime()
 		})
 		this._doOnTime.on('error', e => this.emit('error', 'doOnTime', e))
-		this._conductor = conductor
 	}
 
 	/**
@@ -91,7 +89,7 @@ export class AtemDevice extends DeviceWithState<DeviceState> {
 		return new Promise((resolve, reject) => {
 			// This is where we would do initialization, like connecting to the devices, etc
 			this._state = new AtemState()
-			this._atem = new Atem()
+			this._atem = new Atem({ externalLog: console.log })
 			this._atem.once('connected', () => {
 				// check if state has been initialized:
 				this._connected = true
@@ -102,7 +100,7 @@ export class AtemDevice extends DeviceWithState<DeviceState> {
 				this.setState(this._atem.state, this.getCurrentTime())
 				this._connected = true
 				this._connectionChanged()
-				this._conductor.resetResolver()
+				this.emit('resetResolver')
 			})
 			this._atem.on('disconnected', () => {
 				this._connected = false
