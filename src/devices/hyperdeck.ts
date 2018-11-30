@@ -3,13 +3,13 @@ import * as underScoreDeepExtend from 'underscore-deep-extend'
 import { TimelineState } from 'superfly-timeline'
 import {
 	DeviceWithState,
-	DeviceOptions,
 	CommandWithContext,
 	DeviceStatus,
 	StatusCode
 } from './device'
 import {
 	DeviceType,
+	DeviceOptions,
 	TimelineContentTypeHyperdeck,
 	MappingHyperdeck,
 	MappingHyperdeckType,

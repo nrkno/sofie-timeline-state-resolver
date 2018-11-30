@@ -1,13 +1,13 @@
 import * as _ from 'underscore'
 import {
 	DeviceWithState,
-	DeviceOptions,
 	CommandWithContext,
 	DeviceStatus,
 	StatusCode
 } from './device'
 import {
 	DeviceType,
+	DeviceOptions,
 	Mappings,
 	TimelineObjPanasonicPtzPreset,
 	TimelineObjPanasonicPtzPresetSpeed,

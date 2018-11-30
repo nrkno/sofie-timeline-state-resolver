@@ -24,6 +24,11 @@ export enum DeviceType {
 	PHAROS = 8
 }
 
+export interface DeviceOptions {
+	type: DeviceType,
+	options?: {}
+}
+
 export interface TimelineResolvedObjectExtended extends TimelineResolvedObject {
 	isBackground?: boolean
 	originalLLayer?: string | number

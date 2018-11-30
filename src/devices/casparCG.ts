@@ -1,7 +1,6 @@
 import * as _ from 'underscore'
 import {
 	DeviceWithState,
-	DeviceOptions,
 	CommandWithContext,
 	DeviceStatus,
 	StatusCode
@@ -15,6 +14,7 @@ import {
 } from 'casparcg-connection'
 import {
 	DeviceType,
+	DeviceOptions,
 	Mapping,
 	TimelineResolvedObjectExtended,
 	TimelineContentTypeCasparCg,

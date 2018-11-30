@@ -2,7 +2,8 @@ import * as _ from 'underscore'
 import { TimelineState } from 'superfly-timeline'
 import {
 	Mappings,
-	DeviceType
+	DeviceType,
+	DeviceOptions
 } from '../types/src'
 import { EventEmitter } from 'events'
 /*
@@ -19,10 +20,6 @@ export interface DeviceCommand {
 export interface DeviceCommandContainer {
 	deviceId: string,
 	commands: Array<DeviceCommand>
-}
-export interface DeviceOptions {
-	type: DeviceType,
-	options?: {}
 }
 export interface CommandWithContext {
 	context: any,

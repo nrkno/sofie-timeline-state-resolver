@@ -1,12 +1,11 @@
 import * as _ from 'underscore'
 import {
 	DeviceWithState,
-	DeviceOptions,
 	CommandWithContext,
 	DeviceStatus,
 	StatusCode
 } from './device'
-import { DeviceType } from '../types/src'
+import { DeviceType, DeviceOptions } from '../types/src'
 
 import { TimelineState, TimelineResolvedObject } from 'superfly-timeline'
 import { DoOnTime } from '../doOnTime'
