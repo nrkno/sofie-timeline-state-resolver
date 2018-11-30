@@ -7,7 +7,7 @@ import { Resolver,
 } from 'superfly-timeline'
 let clone = require('fast-clone')
 
-import { Device, DeviceOptions } from './devices/device'
+import { Device } from './devices/device'
 import { CasparCGDevice } from './devices/casparCG'
 import { AbstractDevice } from './devices/abstract'
 import { HttpSendDevice } from './devices/httpSend'
@@ -15,6 +15,7 @@ import {
 	Mappings,
 	Mapping,
 	DeviceType,
+	DeviceOptions,
 	TimelineResolvedObjectExtended
 } from './types/src'
 import { AtemDevice } from './devices/atem'
@@ -334,6 +335,15 @@ export class Conductor extends EventEmitter {
 			})
 			// @ts-ignore
 			// this.emit('info', 'timeline', JSON.stringify(timeline, ' ', 2))
+
+			// this.emit('info', 'EVENTS: ', JSON.stringify(Resolver.getNextEvents(clone(timeline), resolveTime, 100).map(e => {
+			// 	return {
+			// 		time: e.time,
+			// 		id: e.obj.id,
+			// 		type: e.type,
+			// 		layer: e.obj.LLayer
+			// 	}
+			// })))
 
 			// Generate the state for that time:
 			let tlState = Resolver.getState(clone(timeline), resolveTime)

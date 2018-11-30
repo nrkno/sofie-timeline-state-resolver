@@ -2,13 +2,13 @@ import * as _ from 'underscore'
 import * as underScoreDeepExtend from 'underscore-deep-extend'
 import {
 	DeviceWithState,
-	DeviceOptions,
 	CommandWithContext,
 	DeviceStatus,
 	StatusCode
 } from './device'
 import {
 	DeviceType,
+	DeviceOptions,
 	TimelineResolvedObjectExtended,
 	TimelineContentTypeAtem,
 	MappingAtem,
