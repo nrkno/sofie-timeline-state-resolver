@@ -129,7 +129,6 @@
     "typescript": "^2.9.2"
   },
   "keywords": [
-    "mos",
     "broadcast",
     "socket",
     "typescript",
@@ -137,8 +136,6 @@
     "open",
     "source",
     "automation",
-    "ncs",
-    "nrcs",
     "rundown",
     "production"
   ],
