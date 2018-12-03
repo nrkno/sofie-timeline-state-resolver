@@ -48,7 +48,15 @@ describe('CasparCG', () => {
 			}
 		})
 		myConductor.mapping = myLayerMapping
-		mockTime.advanceTimeTo(10100)
+		await mockTime.advanceTimeToTicks(10100)
+
+		expect(commandReceiver0).toHaveBeenCalledTimes(3)
+
+		expect(commandReceiver0.mock.calls[0][1]._objectParams).toMatchObject({ channel: 1, timecode: '00:00:10:00' })
+		expect(commandReceiver0.mock.calls[1][1]._objectParams).toMatchObject({ channel: 2, timecode: '00:00:10:00' })
+		expect(commandReceiver0.mock.calls[2][1]._objectParams).toMatchObject({ channel: 3, timecode: '00:00:10:00' })
+
+		commandReceiver0.mockClear()
 
 		let device = myConductor.getDevice('myCCG')
 
@@ -74,7 +82,7 @@ describe('CasparCG', () => {
 			}
 		]
 
-		mockTime.advanceTimeTo(10200)
+		await mockTime.advanceTimeToTicks(10200)
 
 		// one command has been sent:
 		expect(commandReceiver0).toHaveBeenCalledTimes(2)
