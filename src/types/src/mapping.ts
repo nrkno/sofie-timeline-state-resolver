@@ -21,7 +21,8 @@ export enum DeviceType {
 	HTTPSEND = 4,
 	PANASONIC_PTZ = 5,
 	HYPERDECK = 7,
-	PHAROS = 8
+	PHAROS = 8,
+	OSC = 9
 }
 
 export interface DeviceOptions {
