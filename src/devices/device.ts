@@ -37,9 +37,9 @@ export interface DeviceStatus {
 	statusCode: StatusCode,
 	messages?: Array<string>
 }
-// export enum Events {
 
-// }
+export function literal<T> (o: T) { return o }
+
 interface IDevice {
 	on (event: 'info',  	listener: (info: any) => void): this
 	on (event: 'warning', 	listener: (warning: any) => void): this

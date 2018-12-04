@@ -3,6 +3,7 @@ export * from './casparcg'
 export * from './http'
 export * from './hyperdeck'
 export * from './lawo'
+export * from './osc'
 export * from './pharos'
 export * from './ptz'
 import * as Timeline from './superfly-timeline'
@@ -15,6 +16,7 @@ import { TimelineContentTypeCasparCg, TimelineObjCCGAny } from './casparcg'
 import { TimelineContentTypeHttp, TimelineObjHTTPRequest } from './http'
 import { TimelineContentTypeHyperdeck, TimelineObjHyperdeckAny } from './hyperdeck'
 import { TimelineContentTypeLawo, TimelineObjLawoAny } from './lawo'
+import { TimelineContentTypeOSC, TimelineObjOSCMessage } from './osc'
 import { TimelineContentTypePharos, TimelineObjPharosAny } from './pharos'
 import { TimelineContentTypePanasonicPtz, TimelineObjPanasonicPtzAny } from './ptz'
 
@@ -28,6 +30,7 @@ export type TimelineContentTypeAny = TimelineContentTypeAtem
 	| TimelineContentTypeHttp
 	| TimelineContentTypeHyperdeck
 	| TimelineContentTypeLawo
+	| TimelineContentTypeOSC
 	| TimelineContentTypePharos
 	| TimelineContentTypePanasonicPtz
 
@@ -35,7 +38,8 @@ export type TimelineObjectAny = TimelineObjEmpty
 	| TimelineObjAtemAny
 	| TimelineObjCCGAny
 	| TimelineObjHTTPRequest
-	| TimelineObjLawoAny
 	| TimelineObjHyperdeckAny
+	| TimelineObjLawoAny
+	| TimelineObjOSCMessage
 	| TimelineObjPanasonicPtzAny
 	| TimelineObjPharosAny

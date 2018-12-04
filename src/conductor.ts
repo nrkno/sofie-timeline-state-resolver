@@ -25,6 +25,7 @@ import { PanasonicPtzDevice } from './devices/panasonicPTZ'
 import { HyperdeckDevice } from './devices/hyperdeck'
 import { DoOnTime } from './doOnTime'
 import { PharosDevice } from './devices/pharos'
+import { OSCMessageDevice } from './devices/osc'
 
 const LOOKAHEADTIME = 5000 // Will look ahead this far into the future
 const PREPARETIME = 2000 // Will prepare commands this time before the event is to happen
@@ -189,6 +190,8 @@ export class Conductor extends EventEmitter {
 				newDevice = new HyperdeckDevice(deviceId, deviceOptions, options, this) as Device
 			} else if (deviceOptions.type === DeviceType.PHAROS) {
 				newDevice = new PharosDevice(deviceId, deviceOptions, options) as Device
+			} else if (deviceOptions.type === DeviceType.OSC) {
+				newDevice = new OSCMessageDevice(deviceId, deviceOptions, options) as Device
 			} else {
 				return Promise.reject('No matching device type for "' + deviceOptions.type + '" ("' + DeviceType[deviceOptions.type] + '") found')
 			}
