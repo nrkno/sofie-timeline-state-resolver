@@ -10,7 +10,7 @@ import {
 	TimelineObjOSCMessage
 } from '../../types/src'
 import { MockTime } from '../../__tests__/mockTime.spec'
-import { literal } from '../device';
+import { literal } from '../device'
 
 // let nowActual = Date.now()
 describe('OSC-Message', () => {
