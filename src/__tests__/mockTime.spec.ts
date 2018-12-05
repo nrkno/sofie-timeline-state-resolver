@@ -73,3 +73,20 @@ test('mockTime', () => {
 		mockTime.advanceTimeTo(11000)
 	}).toThrowError()
 })
+test('mockTimeAsync', async done => {
+	let mockTime = new MockTime()
+	mockTime.init()
+	expect(mockTime.now).toEqual(10000)
+	expect(mockTime.now).toEqual(10000)
+
+	await mockTime.advanceTimeTicks(100)
+	expect(mockTime.now).toEqual(10100)
+	await mockTime.advanceTimeToTicks(12000)
+	expect(mockTime.now).toEqual(12000)
+	mockTime.advanceTimeToTicks(11000).catch((e) => {
+		done()
+	})
+	// expect(() => {
+	// 	return 
+	// }).toThrowError()
+})

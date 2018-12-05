@@ -13,7 +13,7 @@ export type Promisify<T> = {
 
 export interface IProxy {
 	_destroyChild: Function
-	on: Function
+	_orgClass: Function
 }
 export class ProxyClass {
 	public _destroyChild: Function
@@ -32,6 +32,7 @@ export function threadedClass<T> (orgModule: string, orgClass: any, constructorA
 	return new Promise((resolve, reject) => {
 		let c = new orgClass(...constructorArgs)
 		let proxy = new ProxyClass() as ThreadedClass<T>
+		proxy._orgClass = c
 
 		let allProps = getAllProperties(c)
 		allProps.forEach((prop: string) => {
@@ -54,7 +55,17 @@ export function threadedClass<T> (orgModule: string, orgClass: any, constructorA
 			if (typeof c[prop] === 'function') {
 				proxy[prop] = (...args) => new Promise(resolve => resolve(c[prop](...args)))
 			} else {
-				proxy[prop] = () => new Promise(resolve => resolve(c[prop]))
+				// proxy[prop] = () => new Promise(resolve => resolve(c[prop]))
+				Object.defineProperty(proxy, prop, {
+					get: function () {
+						return Promise.resolve(c[prop])
+					},
+					set: function (val) {
+						c[prop] = val
+						return Promise.resolve()
+					},
+					configurable: true
+				})
 			}
 		})
 

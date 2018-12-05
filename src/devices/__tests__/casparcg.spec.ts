@@ -61,7 +61,7 @@ describe('CasparCG', () => {
 		let device = myConductor.getDevice('myCCG')
 
 		// Check that no commands has been scheduled:
-		expect(device['queue']).toHaveLength(0)
+		expect(await device['queue']).toHaveLength(0)
 
 		myConductor.timeline = [
 			{
@@ -96,7 +96,7 @@ describe('CasparCG', () => {
 		})
 
 		// advance time to end of clip:
-		mockTime.advanceTimeTo(11200)
+		await mockTime.advanceTimeToTicks(11200)
 
 		// two commands have been sent:
 		expect(commandReceiver0).toHaveBeenCalledTimes(2)
@@ -130,7 +130,7 @@ describe('CasparCG', () => {
 			type: DeviceType.CASPARCG,
 			options: {
 				commandReceiver: commandReceiver0,
-				useScheduling: true
+				useScheduling: false
 			}
 		})
 		myConductor.mapping = myLayerMapping
@@ -138,7 +138,7 @@ describe('CasparCG', () => {
 		let device = myConductor.getDevice('myCCG')
 
 		// Check that no commands has been scheduled:
-		expect(device['queue']).toHaveLength(0)
+		expect(await device['queue']).toHaveLength(0)
 		myConductor.timeline = [
 			{
 				id: 'obj0',
@@ -156,10 +156,10 @@ describe('CasparCG', () => {
 				}
 			}
 		]
-		mockTime.advanceTime(100)
+		await mockTime.advanceTimeTicks(100)
 
 		// one command has been sent:
-		expect(commandReceiver0).toHaveBeenCalledTimes(2)
+		expect(commandReceiver0).toHaveBeenCalledTimes(1)
 		expect(commandReceiver0.mock.calls[0][1]._objectParams).toMatchObject({
 			channel: 2,
 			layer: 42,
@@ -169,14 +169,14 @@ describe('CasparCG', () => {
 		})
 
 		// advance time to end of clip:
-		mockTime.advanceTime(2000)
+		await mockTime.advanceTimeTicks(2000)
 
 		// two commands have been sent:
 		expect(commandReceiver0).toHaveBeenCalledTimes(2)
-		expect(commandReceiver0.mock.calls[1][1].name).toEqual('ScheduleSetCommand')
-		expect(commandReceiver0.mock.calls[1][1]._objectParams.command.name).toEqual('ClearCommand')
-		expect(commandReceiver0.mock.calls[1][1]._objectParams.command.channel).toEqual(2)
-		expect(commandReceiver0.mock.calls[1][1]._objectParams.command.layer).toEqual(42)
+		// expect(commandReceiver0.mock.calls[1][1].name).toEqual('ScheduleSetCommand')
+		expect(commandReceiver0.mock.calls[1][1].name).toEqual('ClearCommand')
+		expect(commandReceiver0.mock.calls[1][1].channel).toEqual(2)
+		expect(commandReceiver0.mock.calls[1][1].layer).toEqual(42)
 	})
 
 	test('CasparCG: Play decklink input for 60s', async () => {
@@ -211,7 +211,7 @@ describe('CasparCG', () => {
 		let device = myConductor.getDevice('myCCG')
 
 		// Check that no commands has been scheduled:
-		expect(device['queue']).toHaveLength(0)
+		expect(await device['queue']).toHaveLength(0)
 
 		myConductor.timeline = [
 			{
@@ -231,10 +231,10 @@ describe('CasparCG', () => {
 			}
 		]
 
-		mockTime.advanceTimeTo(10100)
+		await mockTime.advanceTimeToTicks(10100)
 
 		// one command has been sent:
-		expect(commandReceiver0).toHaveBeenCalledTimes(2)
+		expect(commandReceiver0).toHaveBeenCalledTimes(5)
 		expect(commandReceiver0.mock.calls[0][1]._objectParams).toMatchObject({
 			channel: 2,
 			layer: 42,
@@ -242,13 +242,13 @@ describe('CasparCG', () => {
 		})
 
 		// advance time to end of clip:
-		mockTime.advanceTimeTo(11200)
+		await mockTime.advanceTimeToTicks(11200)
 
 		// two commands have been sent:
-		expect(commandReceiver0).toHaveBeenCalledTimes(2)
-		expect(commandReceiver0.mock.calls[1][1].name).toEqual('ScheduleSetCommand')
-		expect(commandReceiver0.mock.calls[1][1]._objectParams.command.name).toEqual('ClearCommand')
-		expect(commandReceiver0.mock.calls[1][1]._objectParams.command._objectParams).toMatchObject({ channel: 2, layer: 42 })
+		expect(commandReceiver0).toHaveBeenCalledTimes(5)
+		expect(commandReceiver0.mock.calls[4][1].name).toEqual('ScheduleSetCommand')
+		expect(commandReceiver0.mock.calls[4][1]._objectParams.command.name).toEqual('ClearCommand')
+		expect(commandReceiver0.mock.calls[4][1]._objectParams.command._objectParams).toMatchObject({ channel: 2, layer: 42 })
 	})
 
 	test('CasparCG: Play template for 60s', async () => {
@@ -283,7 +283,7 @@ describe('CasparCG', () => {
 		let device = myConductor.getDevice('myCCG')
 
 		// Check that no commands has been scheduled:
-		expect(device['queue']).toHaveLength(0)
+		expect(await device['queue']).toHaveLength(0)
 
 		myConductor.timeline = [
 			{
@@ -308,10 +308,10 @@ describe('CasparCG', () => {
 			}
 		]
 
-		mockTime.advanceTimeTo(10100)
+		await mockTime.advanceTimeToTicks(10100)
 
 		// one command has been sent:
-		expect(commandReceiver0).toHaveBeenCalledTimes(2)
+		expect(commandReceiver0).toHaveBeenCalledTimes(5)
 		expect(commandReceiver0.mock.calls[0][1].name).toEqual('CGAddCommand')
 		expect(commandReceiver0.mock.calls[0][1]._objectParams).toMatchObject({
 			channel: 2,
@@ -325,8 +325,8 @@ describe('CasparCG', () => {
 			templateType: 'html'
 		})
 
-		expect(commandReceiver0.mock.calls[1][1].name).toEqual('ScheduleSetCommand')
-		expect(commandReceiver0.mock.calls[1][1]._objectParams.command.name).toEqual('CGStopCommand')
+		expect(commandReceiver0.mock.calls[4][1].name).toEqual('ScheduleSetCommand')
+		expect(commandReceiver0.mock.calls[4][1]._objectParams.command.name).toEqual('CGStopCommand')
 	})
 
 	test('CasparCG: Play template for 60s', async () => {
@@ -361,7 +361,7 @@ describe('CasparCG', () => {
 		let device = myConductor.getDevice('myCCG')
 
 		// Check that no commands has been scheduled:
-		expect(device['queue']).toHaveLength(0)
+		expect(await device['queue']).toHaveLength(0)
 
 		myConductor.timeline = [
 			{
@@ -382,10 +382,10 @@ describe('CasparCG', () => {
 			}
 		]
 
-		mockTime.advanceTimeTo(10100)
+		await mockTime.advanceTimeToTicks(10100)
 
 		// one command has been sent:
-		expect(commandReceiver0).toHaveBeenCalledTimes(2)
+		expect(commandReceiver0).toHaveBeenCalledTimes(5)
 		expect(commandReceiver0.mock.calls[0][1].name).toEqual('CustomCommand')
 		expect(commandReceiver0.mock.calls[0][1]._objectParams).toMatchObject({
 			channel: 2,
@@ -397,8 +397,8 @@ describe('CasparCG', () => {
 			customCommand: 'add file'
 		})
 
-		expect(commandReceiver0.mock.calls[1][1].name).toEqual('ScheduleSetCommand')
-		expect(commandReceiver0.mock.calls[1][1]._objectParams.command.name).toEqual('CustomCommand')
+		expect(commandReceiver0.mock.calls[4][1].name).toEqual('ScheduleSetCommand')
+		expect(commandReceiver0.mock.calls[4][1]._objectParams.command.name).toEqual('CustomCommand')
 	})
 
 	test('CasparCG: Play 2 routes for 60s', async () => {
@@ -440,7 +440,7 @@ describe('CasparCG', () => {
 		let device = myConductor.getDevice('myCCG')
 
 		// Check that no commands has been scheduled:
-		expect(device['queue']).toHaveLength(0)
+		expect(await device['queue']).toHaveLength(0)
 
 		myConductor.timeline = [
 			{
@@ -476,10 +476,10 @@ describe('CasparCG', () => {
 			}
 		]
 
-		mockTime.advanceTimeTo(10100)
+		await mockTime.advanceTimeToTicks(10100)
 
 		// one command has been sent:
-		expect(commandReceiver0).toHaveBeenCalledTimes(4)
+		expect(commandReceiver0).toHaveBeenCalledTimes(7)
 		expect(commandReceiver0.mock.calls[0][1]._objectParams).toMatchObject({
 			channel: 2,
 			layer: 42,
@@ -490,10 +490,10 @@ describe('CasparCG', () => {
 			customCommand: 'route'
 		})
 
-		mockTime.advanceTimeTo(11000)
+		await mockTime.advanceTimeToTicks(11000)
 
 		// expect(commandReceiver0).toHaveBeenCalledTimes(2)
-		expect(commandReceiver0.mock.calls[1][1]._objectParams.command._objectParams).toMatchObject({
+		expect(commandReceiver0.mock.calls[4][1]._objectParams.command._objectParams).toMatchObject({
 			channel: 1,
 			layer: 42,
 			noClear: false,
@@ -504,13 +504,13 @@ describe('CasparCG', () => {
 		})
 
 		// advance time to end of clip:
-		mockTime.advanceTimeTo(12000)
+		await mockTime.advanceTimeToTicks(12000)
 
 		// two more commands have been sent:
 		// expect(commandReceiver0).toHaveBeenCalledTimes(4)
 		// expect 2 clear commands:
-		expect(commandReceiver0.mock.calls[2][1]._objectParams.command.name).toEqual('ClearCommand')
-		expect(commandReceiver0.mock.calls[3][1]._objectParams.command.name).toEqual('ClearCommand')
+		expect(commandReceiver0.mock.calls[5][1]._objectParams.command.name).toEqual('ClearCommand')
+		expect(commandReceiver0.mock.calls[6][1]._objectParams.command.name).toEqual('ClearCommand')
 	})
 
 	test('CasparCG: AMB with transitions', async () => {
@@ -578,9 +578,9 @@ describe('CasparCG', () => {
 		]
 
 		// fast-forward:
-		mockTime.advanceTime(100)
+		await mockTime.advanceTimeTicks(100)
 		// Check that an ACMP-command has been sent
-		expect(commandReceiver0).toHaveBeenCalledTimes(2)
+		expect(commandReceiver0).toHaveBeenCalledTimes(5)
 		expect(commandReceiver0.mock.calls[0][1].name).toEqual('PlayCommand')
 		expect(commandReceiver0.mock.calls[0][1]._objectParams).toMatchObject({
 			channel: 2,
@@ -594,9 +594,9 @@ describe('CasparCG', () => {
 			seek: 25,
 			loop: false
 		})
-		expect(commandReceiver0.mock.calls[1][1].name).toEqual('ScheduleSetCommand')
-		expect(commandReceiver0.mock.calls[1][1]._objectParams.command.name).toEqual('PlayCommand')
-		expect(commandReceiver0.mock.calls[1][1]._objectParams.command._objectParams).toMatchObject({
+		expect(commandReceiver0.mock.calls[4][1].name).toEqual('ScheduleSetCommand')
+		expect(commandReceiver0.mock.calls[4][1]._objectParams.command.name).toEqual('PlayCommand')
+		expect(commandReceiver0.mock.calls[4][1]._objectParams.command._objectParams).toMatchObject({
 			channel: 2,
 			layer: 42,
 			transition: 'MIX',
@@ -607,9 +607,9 @@ describe('CasparCG', () => {
 		})
 
 		// Nothing more should've happened:
-		mockTime.advanceTimeTo(10400)
+		await mockTime.advanceTimeToTicks(10400)
 
-		expect(commandReceiver0.mock.calls.length).toBe(2)
+		expect(commandReceiver0.mock.calls.length).toBe(5)
 	})
 
 	test('CasparCG: Mixer commands', async () => {
@@ -705,10 +705,10 @@ describe('CasparCG', () => {
 		]
 
 		// fast-forward:
-		mockTime.advanceTime(500)
+		await mockTime.advanceTimeTicks(500)
 
 		// Check that ACMP-commands has been sent
-		expect(commandReceiver0).toHaveBeenCalledTimes(2)
+		expect(commandReceiver0).toHaveBeenCalledTimes(5)
 		// we've already tested play commands so let's check the mixer command:
 		expect(commandReceiver0.mock.calls[1][1].name).toMatch(/MixerPerspectiveCommand/)
 		expect(commandReceiver0.mock.calls[1][1]._objectParams).toMatchObject({
@@ -726,12 +726,12 @@ describe('CasparCG', () => {
 		})
 
 		// fast-forward:
-		mockTime.advanceTime(5000)
+		await mockTime.advanceTimeTicks(5000)
 
-		expect(commandReceiver0.mock.calls).toHaveLength(3)
+		expect(commandReceiver0.mock.calls).toHaveLength(6)
 		// expect(CasparCG.mockDo.mock.calls[2][0]).toBeInstanceOf(AMCP.StopCommand);
-		expect(commandReceiver0.mock.calls[2][1].name).toMatch(/MixerPerspectiveCommand/)
-		expect(commandReceiver0.mock.calls[2][1]._objectParams).toMatchObject({
+		expect(commandReceiver0.mock.calls[5][1]._objectParams.command.name).toMatch(/MixerPerspectiveCommand/)
+		expect(commandReceiver0.mock.calls[5][1]._objectParams.command._objectParams).toMatchObject({
 			channel: 2,
 			layer: 42,
 			topLeftX: 0,
@@ -814,8 +814,8 @@ describe('CasparCG', () => {
 			}
 		]
 
-		mockTime.advanceTime(100)
-		expect(commandReceiver0).toHaveBeenCalledTimes(2)
+		await mockTime.advanceTimeTicks(100)
+		expect(commandReceiver0).toHaveBeenCalledTimes(5)
 		expect(commandReceiver0.mock.calls[0][1].name).toEqual('LoadbgCommand')
 		expect(commandReceiver0.mock.calls[0][1]._objectParams).toMatchObject({
 			channel: 2,
@@ -824,21 +824,21 @@ describe('CasparCG', () => {
 			clip: 'AMB',
 			auto: false
 		})
-		expect(commandReceiver0.mock.calls[1][1].name).toEqual('ScheduleSetCommand')
-		expect(commandReceiver0.mock.calls[1][1]._objectParams.timecode).toEqual('00:00:11:10') // 11s 10 frames == 1.2 s @50fpx
+		expect(commandReceiver0.mock.calls[4][1].name).toEqual('ScheduleSetCommand')
+		expect(commandReceiver0.mock.calls[4][1]._objectParams.timecode).toEqual('00:00:11:10') // 11s 10 frames == 1.2 s @50fpx
 
-		expect(commandReceiver0.mock.calls[1][1]._objectParams.command.name).toEqual('PlayCommand')
-		expect(commandReceiver0.mock.calls[1][1]._objectParams.command._objectParams).toEqual({
+		expect(commandReceiver0.mock.calls[4][1]._objectParams.command.name).toEqual('PlayCommand')
+		expect(commandReceiver0.mock.calls[4][1]._objectParams.command._objectParams).toEqual({
 			channel: 2,
 			layer: 42,
 			noClear: false
 		})
 
-		mockTime.advanceTime(2000)
-		expect(commandReceiver0).toHaveBeenCalledTimes(3)
-		expect(commandReceiver0.mock.calls[2][1].name).toEqual('ScheduleSetCommand')
-		expect(commandReceiver0.mock.calls[2][1]._objectParams.command.name).toEqual('ClearCommand')
-		expect(commandReceiver0.mock.calls[2][1]._objectParams.command._objectParams).toEqual({
+		await mockTime.advanceTimeTicks(2000)
+		expect(commandReceiver0).toHaveBeenCalledTimes(6)
+		expect(commandReceiver0.mock.calls[5][1].name).toEqual('ScheduleSetCommand')
+		expect(commandReceiver0.mock.calls[5][1]._objectParams.command.name).toEqual('ClearCommand')
+		expect(commandReceiver0.mock.calls[5][1]._objectParams.command._objectParams).toEqual({
 			channel: 2,
 			layer: 42
 		})
@@ -910,8 +910,8 @@ describe('CasparCG', () => {
 			}
 		]
 
-		mockTime.advanceTime(100) //  10100
-		expect(commandReceiver0).toHaveBeenCalledTimes(2)
+		await mockTime.advanceTimeTicks(100) //  10100
+		expect(commandReceiver0).toHaveBeenCalledTimes(5)
 		expect(commandReceiver0.mock.calls[0][1].name).toEqual('LoadbgCommand')
 		expect(commandReceiver0.mock.calls[0][1]._objectParams).toMatchObject({
 			channel: 2,
@@ -920,34 +920,34 @@ describe('CasparCG', () => {
 			clip: 'AMB',
 			auto: false
 		})
-		expect(commandReceiver0.mock.calls[1][1].name).toEqual('ScheduleSetCommand')
-		expect(commandReceiver0.mock.calls[1][1]._objectParams.timecode).toEqual('00:00:11:10') // 11s 10 frames == 1.2 s @ 50 fps
+		expect(commandReceiver0.mock.calls[4][1].name).toEqual('ScheduleSetCommand')
+		expect(commandReceiver0.mock.calls[4][1]._objectParams.timecode).toEqual('00:00:11:10') // 11s 10 frames == 1.2 s @ 50 fps
 
-		expect(commandReceiver0.mock.calls[1][1]._objectParams.command.name).toEqual('PlayCommand')
-		expect(commandReceiver0.mock.calls[1][1]._objectParams.command._objectParams).toEqual({
+		expect(commandReceiver0.mock.calls[4][1]._objectParams.command.name).toEqual('PlayCommand')
+		expect(commandReceiver0.mock.calls[4][1]._objectParams.command._objectParams).toEqual({
 			channel: 2,
 			layer: 42,
 			noClear: false
 		})
-		let tokenPlay = commandReceiver0.mock.calls[1][1]._objectParams.token
+		let tokenPlay = commandReceiver0.mock.calls[4][1]._objectParams.token
 
 		// then change my mind:
 		myConductor.timeline = []
-		mockTime.advanceTime(100) //  10100
+		await mockTime.advanceTimeTicks(100) //  10100
 
-		expect(commandReceiver0).toHaveBeenCalledTimes(4)
+		expect(commandReceiver0).toHaveBeenCalledTimes(8)
 		// expect(commandReceiver0.mock.calls[3][1].name).toEqual('ClearCommand')
-		expect(commandReceiver0.mock.calls[2][1].name).toEqual('ScheduleRemoveCommand')
-		expect(commandReceiver0.mock.calls[2][1]._stringParamsArray[0]).toEqual(tokenPlay)
-		expect(commandReceiver0.mock.calls[3][1].name).toEqual('LoadbgCommand')
-		expect(commandReceiver0.mock.calls[3][1]._objectParams).toMatchObject({
+		expect(commandReceiver0.mock.calls[6][1].name).toEqual('ScheduleRemoveCommand')
+		expect(commandReceiver0.mock.calls[6][1]._stringParamsArray[0]).toEqual(tokenPlay)
+		expect(commandReceiver0.mock.calls[7][1].name).toEqual('LoadbgCommand')
+		expect(commandReceiver0.mock.calls[7][1]._objectParams).toMatchObject({
 			channel: 2,
 			layer: 42,
 			clip: 'EMPTY'
 		})
 
-		mockTime.advanceTime(2000) //  10100
-		expect(commandReceiver0).toHaveBeenCalledTimes(4)
+		await mockTime.advanceTimeTicks(2000) //  10100
+		expect(commandReceiver0).toHaveBeenCalledTimes(8)
 
 	})
 })
