@@ -149,7 +149,7 @@ export class AtemDevice extends DeviceWithState<DeviceState> {
 
 		if (this.firstStateAfterMakeReady) {
 			this.firstStateAfterMakeReady = false
-			this.emit('info', { reason: 'firstStateAfterMakeReady', before: (oldAtemState || {}).video, after: (newAtemState || {}).video })
+			this.emit('debug', JSON.stringify({ reason: 'firstStateAfterMakeReady', before: (oldAtemState || {}).video, after: (newAtemState || {}).video }))
 		}
 
 		// @ts-ignore
