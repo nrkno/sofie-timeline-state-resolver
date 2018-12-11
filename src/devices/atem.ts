@@ -19,6 +19,7 @@ import { TimelineState } from 'superfly-timeline'
 import {
 	Atem,
 	VideoState,
+	AtemState as AtemAtemState,
 	Commands as AtemCommands
 } from 'atem-connection'
 import {
@@ -62,6 +63,12 @@ export class AtemDevice extends DeviceWithState<DeviceState> {
 
 	private firstStateAfterMakeReady: boolean = true // note: temprorary for some improved logging
 
+	private _atemStatus: {
+		psus: Array<any>
+	} = {
+		psus: []
+	}
+
 	private _commandReceiver: (time: number, command: AtemCommands.AbstractCommand, context: CommandContext) => Promise<any>
 
 	constructor (deviceId: string, deviceOptions: AtemDeviceOptions, options, conductor: Conductor) {
@@ -102,6 +109,7 @@ export class AtemDevice extends DeviceWithState<DeviceState> {
 				this._connectionChanged()
 			})
 			this._atem.on('error', (e) => this.emit('error', 'Atem', e))
+			this._atem.on('stateChanged', (state) => this._onAtemStateChanged(state))
 
 			this._atem.connect(options.host, options.port)
 			.catch(e => {
@@ -277,7 +285,7 @@ export class AtemDevice extends DeviceWithState<DeviceState> {
 			}
 		}
 		if (statusCode === StatusCode.GOOD) {
-			let psus = this._atem.state.info.power || []
+			let psus = this._atemStatus.psus
 
 			// psus = [true, false] // tmp test
 			_.each(psus, (psu: boolean, i: number) => {
@@ -358,6 +366,15 @@ export class AtemDevice extends DeviceWithState<DeviceState> {
 		return this._atem.sendCommand(command).then(() => {
 			// @todo: command was acknowledged by atem, how will we check if it did what we wanted?
 		})
+	}
+	private _onAtemStateChanged (newState: AtemAtemState) {
+		let psus = newState.info.power || []
+
+		if (!_.isEqual(this._atemStatus.psus, psus)) {
+			this._atemStatus.psus = _.clone(psus)
+
+			this._connectionChanged()
+		}
 	}
 	private _connectionChanged () {
 		this.emit('connectionChanged', this.getStatus())
