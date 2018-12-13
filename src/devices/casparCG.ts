@@ -272,7 +272,8 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> {
 						playing: layer.resolved.playing !== undefined ? layer.resolved.playing : true,
 
 						looping: layer.content.attributes.loop,
-						seek: layer.content.attributes.seek
+						seek: layer.content.attributes.seek,
+						channelLayout: layer.content.attributes.channelLayout
 					}
 					stateLayer = l
 				} else if (layer.content.type === TimelineContentTypeCasparCg.IP) {
@@ -280,6 +281,7 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> {
 						layerNo: mapping.layer,
 						content: StateNS.LayerContentType.MEDIA,
 						media: layer.content.attributes.uri,
+						channelLayout: layer.content.attributes.channelLayout,
 						playTime: null, // ip inputs can't be seeked // layer.resolved.startTime || null,
 						playing: true,
 						seek: 0 // ip inputs can't be seeked
@@ -291,7 +293,8 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> {
 						content: StateNS.LayerContentType.INPUT,
 						media: 'decklink',
 						input: {
-							device: layer.content.attributes.device
+							device: layer.content.attributes.device,
+							channelLayout: layer.content.attributes.channelLayout
 						},
 						playing: true,
 						playTime: null
@@ -335,7 +338,8 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> {
 						media: 'route',
 						route: {
 							channel: layer.content.attributes.channel,
-							layer: layer.content.attributes.layer
+							layer: layer.content.attributes.layer,
+							channelLayout: layer.content.attributes.channelLayout
 						},
 						mode: layer.content.attributes.mode || undefined,
 						playing: true,
