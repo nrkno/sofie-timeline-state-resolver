@@ -53,7 +53,7 @@ export abstract class Device extends EventEmitter implements IDevice {
 	private _deviceId: string
 	private _deviceOptions: DeviceOptions
 
-	private _mappings: Mappings
+	private _mappings: Mappings = {}
 
 	constructor (deviceId: string, deviceOptions: DeviceOptions, options) {
 		super()

@@ -68,7 +68,7 @@ export class Conductor extends EventEmitter {
 
 	private _options: ConductorOptions
 
-	private devices: {[deviceId: string]: ThreadedClass<Device>} = {}
+	private devices: {[deviceId: string]: Device | ThreadedClass<Device>} = {}
 
 	private _getCurrentTime?: () => number
 
@@ -76,7 +76,7 @@ export class Conductor extends EventEmitter {
 	private _resolveTimelineTrigger: NodeJS.Timer
 	private _isInitialized: boolean = false
 	private _doOnTime: DoOnTime
-	// private isMultiThreaded = false
+	private isMultiThreaded = true
 
 	private _sentCallbacks: {[key: string]: TimelineCallback} = {}
 
@@ -138,7 +138,7 @@ export class Conductor extends EventEmitter {
 		// re-resolve timeline
 		this._mapping = mapping
 		_.each(this.devices, (device: ThreadedClass<Device>) => {
-			device.setMapping(mapping).catch(() => null)
+			device.mapping = mapping
 		})
 
 		if (this._timeline) {
@@ -165,7 +165,7 @@ export class Conductor extends EventEmitter {
 		this._logDebug = val
 	}
 
-	public getDevices (): Array<ThreadedClass<Device>> {
+	public getDevices (): Array<ThreadedClass<Device> | Device> {
 		return _.values(this.devices)
 	}
 	public getDevice (deviceId: string) {
@@ -177,114 +177,118 @@ export class Conductor extends EventEmitter {
 	 * @param deviceId Id used by the mappings to reference the device.
 	 * @returns A promise that resolves with the created device, or rejects with an error message.
 	 */
-	public async addDevice (deviceId, deviceOptions: DeviceOptions): Promise<ThreadedClass<Device>> {
+	public async addDevice (deviceId, deviceOptions: DeviceOptions): Promise<ThreadedClass<Device> | Device> {
 		try {
-			let newDevice: ThreadedClass<Device>
+			let newDevice: ThreadedClass<Device> | Device
 
 			let options = {
 				getCurrentTime: () => { return this.getCurrentTime() }
 			}
 
-			if (deviceOptions.type === DeviceType.ABSTRACT) {
-				newDevice = await threadedClass<AbstractDevice>(
-					'./devices/abstract',
-					AbstractDevice,
-					[ deviceId, deviceOptions, options ]
-				)
-			} else if (deviceOptions.type === DeviceType.CASPARCG) {
-				// Add CasparCG device:
-				newDevice = await threadedClass<CasparCGDevice>(
-					'./devices/casparCG',
-					CasparCGDevice,
-					[ deviceId, deviceOptions, options ]
-				)
-			} else if (deviceOptions.type === DeviceType.ATEM) {
-				newDevice = await threadedClass<AtemDevice>(
-					'./devices/atem',
-					AtemDevice,
-					[ deviceId, deviceOptions, options ]
-				)
-			} else if (deviceOptions.type === DeviceType.HTTPSEND) {
-				newDevice = await threadedClass<HttpSendDevice>(
-					'./devices/httpSend',
-					HttpSendDevice,
-					[ deviceId, deviceOptions, options ]
-				)
-			} else if (deviceOptions.type === DeviceType.LAWO) {
-				newDevice = await threadedClass<LawoDevice>(
-					'./devices/lawo',
-					LawoDevice,
-					[ deviceId, deviceOptions, options ]
-				)
-			} else if (deviceOptions.type === DeviceType.PANASONIC_PTZ) {
-				newDevice = await threadedClass<PanasonicPtzDevice>(
-					'./devices/panasonicPtz',
-					PanasonicPtzDevice,
-					[ deviceId, deviceOptions, options ]
-				)
-			} else if (deviceOptions.type === DeviceType.HYPERDECK) {
-				newDevice = await threadedClass<HyperdeckDevice>(
-					'./devices/hyperdeck',
-					HyperdeckDevice,
-					[ deviceId, deviceOptions, options, this ]
-				)
-			} else if (deviceOptions.type === DeviceType.PHAROS) {
-				newDevice = await threadedClass<PharosDevice>(
-					'./devices/pharos',
-					PharosDevice,
-					[ deviceId, deviceOptions, options ]
-				)
-			} else if (deviceOptions.type === DeviceType.OSC) {
-				newDevice = await threadedClass<OSCMessageDevice>(
-					'./devices/osc',
-					OSCMessageDevice,
-					[ deviceId, deviceOptions, options ]
-				)
-			} else {
-				return Promise.reject('No matching multithreaded device type for "' +
-				deviceOptions.type + '" ("' + DeviceType[deviceOptions.type] + '") found')
-			}
-			// } else {
-			// 	if (deviceOptions.type === DeviceType.ABSTRACT) {
-			// 		// Add Abstract device:
-			// 		newDevice = new AbstractDevice(deviceId, deviceOptions, options) as Device
-			// 	} else if (deviceOptions.type === DeviceType.CASPARCG) {
-			// 		// Add CasparCG device:
-			// 		newDevice = new CasparCGDevice(deviceId, deviceOptions, options, this) as Device
-			// 	} else if (deviceOptions.type === DeviceType.ATEM) {
-			// 		newDevice = new AtemDevice(deviceId, deviceOptions, options, this) as Device
-			// 	} else if (deviceOptions.type === DeviceType.HTTPSEND) {
-			// 		newDevice = new HttpSendDevice(deviceId, deviceOptions, options) as Device
-			// 	} else if (deviceOptions.type === DeviceType.LAWO) {
-			// 		newDevice = new LawoDevice(deviceId, deviceOptions, options) as Device
-			// 	} else if (deviceOptions.type === DeviceType.PANASONIC_PTZ) {
-			// 		newDevice = new PanasonicPtzDevice(deviceId, deviceOptions, options) as Device
-			// 	} else if (deviceOptions.type === DeviceType.HYPERDECK) {
-			// 		newDevice = new HyperdeckDevice(deviceId, deviceOptions, options, this) as Device
-			// 	} else if (deviceOptions.type === DeviceType.PHAROS) {
-			// 		newDevice = new PharosDevice(deviceId, deviceOptions, options) as Device
-			// 	} else {
-			// 		return Promise.reject('No matching device type for "' + deviceOptions.type + '" ("' + DeviceType[deviceOptions.type] + '") found')
-			// 	}
-			// }
-
-			console.log('set up event listeners')
-			newDevice.on('debug',	(...e) => {
-				if (this.logDebug) {
-					this.emit('debug', newDevice.deviceId, ...e)
+			if (this.isMultiThreaded) {
+				if (deviceOptions.type === DeviceType.ABSTRACT) {
+					newDevice = await threadedClass<AbstractDevice>(
+						'./devices/abstract',
+						AbstractDevice,
+						[ deviceId, deviceOptions, options ]
+					)
+				} else if (deviceOptions.type === DeviceType.CASPARCG) {
+					// Add CasparCG device:
+					newDevice = await threadedClass<CasparCGDevice>(
+						'./devices/casparCG',
+						CasparCGDevice,
+						[ deviceId, deviceOptions, options ]
+					)
+				} else if (deviceOptions.type === DeviceType.ATEM) {
+					newDevice = await threadedClass<AtemDevice>(
+						'./devices/atem',
+						AtemDevice,
+						[ deviceId, deviceOptions, options ]
+					)
+				} else if (deviceOptions.type === DeviceType.HTTPSEND) {
+					newDevice = await threadedClass<HttpSendDevice>(
+						'./devices/httpSend',
+						HttpSendDevice,
+						[ deviceId, deviceOptions, options ]
+					)
+				} else if (deviceOptions.type === DeviceType.LAWO) {
+					newDevice = await threadedClass<LawoDevice>(
+						'./devices/lawo',
+						LawoDevice,
+						[ deviceId, deviceOptions, options ]
+					)
+				} else if (deviceOptions.type === DeviceType.PANASONIC_PTZ) {
+					newDevice = await threadedClass<PanasonicPtzDevice>(
+						'./devices/panasonicPtz',
+						PanasonicPtzDevice,
+						[ deviceId, deviceOptions, options ]
+					)
+				} else if (deviceOptions.type === DeviceType.HYPERDECK) {
+					newDevice = await threadedClass<HyperdeckDevice>(
+						'./devices/hyperdeck',
+						HyperdeckDevice,
+						[ deviceId, deviceOptions, options ]
+					)
+				} else if (deviceOptions.type === DeviceType.PHAROS) {
+					newDevice = await threadedClass<PharosDevice>(
+						'./devices/pharos',
+						PharosDevice,
+						[ deviceId, deviceOptions, options ]
+					)
+				} else {
+					return Promise.reject('No matching multithreaded device type for "' +
+					deviceOptions.type + '" ("' + DeviceType[deviceOptions.type] + '") found')
 				}
-			}).catch(() => null)
-			newDevice.on('info',	(e) => this.emit('info', 	e)).catch(() => null)
-			newDevice.on('warning',	(e) => this.emit('warning', e)).catch(() => null)
-			newDevice.on('error',	(e) => this.emit('error', 	e)).catch(() => null)
-			newDevice.on('error',	(e, ...args) => this.emit('error', `Device ${newDevice.deviceName} (${newDevice.deviceId})`, e, ...args)).catch(() => null)
+
+				newDevice.on('debug',	(...e) => {
+					if (this.logDebug) {
+						this.emit('debug', newDevice.deviceId, ...e)
+					}
+				}).catch(() => null)
+				newDevice.on('info',	(e) => this.emit('info', 	e)).catch(() => null)
+				newDevice.on('warning',	(e) => this.emit('warning', e)).catch(() => null)
+				newDevice.on('error',	(e) => this.emit('error', 	e)).catch(() => null)
+				newDevice.on('resetResolver', () => this.resetResolver()).catch(() => null)
+			} else {
+				if (deviceOptions.type === DeviceType.ABSTRACT) {
+					// Add Abstract device:
+					newDevice = new AbstractDevice(deviceId, deviceOptions, options) as Device
+				} else if (deviceOptions.type === DeviceType.CASPARCG) {
+					// Add CasparCG device:
+					newDevice = new CasparCGDevice(deviceId, deviceOptions, options) as Device
+				} else if (deviceOptions.type === DeviceType.ATEM) {
+					newDevice = new AtemDevice(deviceId, deviceOptions, options) as Device
+				} else if (deviceOptions.type === DeviceType.HTTPSEND) {
+					newDevice = new HttpSendDevice(deviceId, deviceOptions, options) as Device
+				} else if (deviceOptions.type === DeviceType.LAWO) {
+					newDevice = new LawoDevice(deviceId, deviceOptions, options) as Device
+				} else if (deviceOptions.type === DeviceType.PANASONIC_PTZ) {
+					newDevice = new PanasonicPtzDevice(deviceId, deviceOptions, options) as Device
+				} else if (deviceOptions.type === DeviceType.HYPERDECK) {
+					newDevice = new HyperdeckDevice(deviceId, deviceOptions, options) as Device
+				} else if (deviceOptions.type === DeviceType.PHAROS) {
+					newDevice = new PharosDevice(deviceId, deviceOptions, options) as Device
+				} else {
+					return Promise.reject('No matching device type for "' + deviceOptions.type + '" ("' + DeviceType[deviceOptions.type] + '") found')
+				}
+
+				newDevice.on('debug',	(...e) => {
+					if (this.logDebug) {
+						this.emit('debug', newDevice.deviceId, ...e)
+					}
+				})
+				newDevice.on('info',	(e) => this.emit('info', 	e))
+				newDevice.on('warning',	(e) => this.emit('warning', e))
+				newDevice.on('error',	(e) => this.emit('error', 	e))
+				newDevice.on('resetResolver', () => this.resetResolver())
+			}
 
 			this.emit('info', 'Initializing ' + DeviceType[deviceOptions.type] + '...')
 			this.devices[deviceId] = newDevice
-			newDevice.setMapping(this.mapping).catch(() => null)
+			// newDevice.setMapping(this.mapping).catch(() => null)
+			newDevice.mapping = this.mapping	
 
-			return newDevice.init(deviceOptions.options)
-			.then(p => p)
+			return (newDevice as Device).init(deviceOptions.options)
 			.then(() => {
 				this.emit('info', (DeviceType[deviceOptions.type] + ' initialized!'))
 				return newDevice
@@ -298,7 +302,7 @@ export class Conductor extends EventEmitter {
 		let device = this.devices[deviceId]
 
 		if (device) {
-			return device.terminate()
+			return (device as Device).terminate()
 			.then((res) => {
 				if (res) {
 					delete this.devices[deviceId]
@@ -438,8 +442,8 @@ export class Conductor extends EventEmitter {
 			// Split the state into substates that are relevant for each device
 			let getFilteredLayers = async (layers: TimelineState['LLayers'], device: ThreadedClass<Device>) => {
 				let filteredState = {}
-				const deviceId = await device.deviceId()
-				const deviceType = await device.deviceType()
+				const deviceId = await device.deviceId
+				const deviceType = await device.deviceType
 				_.each(layers, async (o: TimelineResolvedObject, layerId: string) => {
 					const oExt: TimelineResolvedObjectExtended = o
 					let mapping: Mapping = this._mapping[o.LLayer + '']
@@ -468,7 +472,7 @@ export class Conductor extends EventEmitter {
 				// this.emit('info', 'State of device ' + device.deviceName, tlState.LLayers )
 				// Pass along the state to the device, it will generate its commands and execute them:
 				try {
-					device.handleState(subState).catch(() => null)
+					device.handleState(subState)
 				} catch (e) {
 					this.emit('error', 'Error in device "' + device.deviceId + '"' + e + ' ' + e.stack)
 				}
@@ -504,7 +508,7 @@ export class Conductor extends EventEmitter {
 
 				// Tell the devices that the future is clear:
 				_.each(this.devices, (device: ThreadedClass<Device>) => {
-					device.clearFuture(tlState.time).catch(() => null)
+					Promise.resolve(device.clearFuture(tlState.time)).catch(() => null)
 				})
 
 				// resolve at "now" then next time:
