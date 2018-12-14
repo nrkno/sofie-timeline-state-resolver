@@ -19,7 +19,14 @@ import {
 	TimelineResolvedObjectExtended,
 	TimelineContentTypeCasparCg,
 	MappingCasparCG,
-	CasparCGOptions
+	CasparCGOptions,
+	TimelineObjCCGVideo,
+	TimelineObjCCGHTMLPage,
+	TimelineObjCCGRoute,
+	TimelineObjCCGInput,
+	TimelineObjCCGRecord,
+	TimelineObjCCGTemplate,
+	TimelineObjCCGProducerContentBase
 } from '../types/src'
 
 import {
@@ -249,17 +256,19 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> {
 					layer.content.type === TimelineContentTypeCasparCg.AUDIO || // to be deprecated & replaced by MEDIA
 					layer.content.type === TimelineContentTypeCasparCg.MEDIA
 				) {
+					const mediaObj = layer as TimelineObjCCGVideo & TimelineResolvedObjectExtended
+
 					let l: StateNS.IMediaLayer = {
 						layerNo: mapping.layer,
 						content: StateNS.LayerContentType.MEDIA,
-						media: layer.content.attributes.file,
-						playTime: layer.resolved.startTime || null,
-						pauseTime: layer.resolved.pauseTime || null,
-						playing: layer.resolved.playing !== undefined ? layer.resolved.playing : true,
+						media: mediaObj.content.attributes.file,
+						playTime: mediaObj.resolved.startTime || null,
+						pauseTime: mediaObj.resolved.pauseTime || null,
+						playing: mediaObj.resolved.playing !== undefined ? mediaObj.resolved.playing : true,
 
-						looping: layer.content.attributes.loop,
-						seek: layer.content.attributes.seek,
-						channelLayout: layer.content.attributes.channelLayout
+						looping: mediaObj.content.attributes.loop,
+						seek: mediaObj.content.attributes.seek,
+						channelLayout: mediaObj.content.attributes.channelLayout
 					}
 					stateLayer = l
 				} else if (layer.content.type === TimelineContentTypeCasparCg.IP) {
@@ -274,49 +283,57 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> {
 					}
 					stateLayer = l
 				} else if (layer.content.type === TimelineContentTypeCasparCg.INPUT) {
+					const inputObj = layer as TimelineObjCCGInput & TimelineResolvedObjectExtended
+
 					let l: StateNS.IInputLayer = {
 						layerNo: mapping.layer,
 						content: StateNS.LayerContentType.INPUT,
 						media: 'decklink',
 						input: {
-							device: layer.content.attributes.device,
-							channelLayout: layer.content.attributes.channelLayout
+							device: inputObj.content.attributes.device,
+							channelLayout: inputObj.content.attributes.channelLayout
 						},
 						playing: true,
 						playTime: null
 					}
 					stateLayer = l
 				} else if (layer.content.type === TimelineContentTypeCasparCg.TEMPLATE) {
+					const recordObj = layer as TimelineObjCCGTemplate & TimelineResolvedObjectExtended
+
 					let l: StateNS.ITemplateLayer = {
 						layerNo: mapping.layer,
 						content: StateNS.LayerContentType.TEMPLATE,
-						media: layer.content.attributes.name,
+						media: recordObj.content.attributes.name,
 
-						playTime: layer.resolved.startTime || null,
+						playTime: recordObj.resolved.startTime || null,
 						playing: true,
 
-						templateType: layer.content.attributes.type || 'html',
-						templateData: layer.content.attributes.data,
-						cgStop: layer.content.attributes.useStopCommand
+						templateType: recordObj.content.attributes.type || 'html',
+						templateData: recordObj.content.attributes.data,
+						cgStop: recordObj.content.attributes.useStopCommand
 					}
 					stateLayer = l
 				} else if (layer.content.type === TimelineContentTypeCasparCg.HTMLPAGE) {
+					const htmlObj = layer as TimelineObjCCGHTMLPage & TimelineResolvedObjectExtended
+
 					let l: StateNS.IHtmlPageLayer = {
 						layerNo: mapping.layer,
 						content: StateNS.LayerContentType.HTMLPAGE,
-						media: layer.content.attributes.url,
+						media: htmlObj.content.attributes.url,
 
-						playTime: layer.resolved.startTime || null,
+						playTime: htmlObj.resolved.startTime || null,
 						playing: true
 					}
 					stateLayer = l
 				} else if (layer.content.type === TimelineContentTypeCasparCg.ROUTE) {
-					if (layer.content.attributes.LLayer) {
+					const routeObj = layer as TimelineObjCCGRoute & TimelineResolvedObjectExtended
+
+					if (routeObj.content.attributes.LLayer) {
 						// tslint:disable-next-line
-						let routeMapping = this.mapping[layer.content.attributes.LLayer] as MappingCasparCG
+						let routeMapping = this.mapping[routeObj.content.attributes.LLayer] as MappingCasparCG
 						if (routeMapping) {
-							layer.content.attributes.channel = routeMapping.channel
-							layer.content.attributes.layer = routeMapping.layer
+							routeObj.content.attributes.channel = routeMapping.channel
+							routeObj.content.attributes.layer = routeMapping.layer
 						}
 					}
 					let l: StateNS.IRouteLayer = {
@@ -324,24 +341,26 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> {
 						content: StateNS.LayerContentType.ROUTE,
 						media: 'route',
 						route: {
-							channel: layer.content.attributes.channel,
-							layer: layer.content.attributes.layer,
-							channelLayout: layer.content.attributes.channelLayout
+							channel: routeObj.content.attributes.channel || 0,
+							layer: routeObj.content.attributes.layer,
+							channelLayout: routeObj.content.attributes.channelLayout
 						},
-						mode: layer.content.attributes.mode || undefined,
+						mode: routeObj.content.attributes.mode || undefined,
 						playing: true,
 						playTime: null // layer.resolved.startTime || null
 					}
 					stateLayer = l
 				} else if (layer.content.type === TimelineContentTypeCasparCg.RECORD) {
-					if (layer.resolved.startTime) {
+					const recordObj = layer as TimelineObjCCGRecord & TimelineResolvedObjectExtended
+
+					if (recordObj.resolved.startTime) {
 						let l: StateNS.IRecordLayer = {
 							layerNo: mapping.layer,
 							content: StateNS.LayerContentType.RECORD,
-							media: layer.content.attributes.file,
-							encoderOptions: layer.content.attributes.encoderOptions,
+							media: recordObj.content.attributes.file,
+							encoderOptions: recordObj.content.attributes.encoderOptions,
 							playing: true,
-							playTime: layer.resolved.startTime
+							playTime: recordObj.resolved.startTime || 0
 						}
 						stateLayer = l
 					}
@@ -356,8 +375,9 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> {
 					stateLayer = l
 				}
 				if (stateLayer) {
-					if (layer.content.transitions) {
-						switch (layer.content.type) {
+					const baseContent = layer.content as TimelineObjCCGProducerContentBase
+					if (baseContent.transitions) {
+						switch (baseContent.type) {
 							case TimelineContentTypeCasparCg.VIDEO:
 							case TimelineContentTypeCasparCg.IP:
 							case TimelineContentTypeCasparCg.TEMPLATE:
@@ -366,20 +386,20 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> {
 								// create transition object
 								let media = stateLayer.media
 								let transitions = {} as any
-								if (layer.content.transitions.inTransition) {
+								if (baseContent.transitions.inTransition) {
 									transitions.inTransition = new StateNS.Transition(
-										layer.content.transitions.inTransition.type,
-										layer.content.transitions.inTransition.duration || layer.content.transitions.inTransition.maskFile,
-										layer.content.transitions.inTransition.easing || layer.content.transitions.inTransition.delay,
-										layer.content.transitions.inTransition.direction || layer.content.transitions.inTransition.overlayFile
+										baseContent.transitions.inTransition.type,
+										baseContent.transitions.inTransition.duration || baseContent.transitions.inTransition.maskFile,
+										baseContent.transitions.inTransition.easing || baseContent.transitions.inTransition.delay,
+										baseContent.transitions.inTransition.direction || baseContent.transitions.inTransition.overlayFile
 									)
 								}
-								if (layer.content.transitions.outTransition) {
+								if (baseContent.transitions.outTransition) {
 									transitions.outTransition = new StateNS.Transition(
-										layer.content.transitions.outTransition.type,
-										layer.content.transitions.outTransition.duration || layer.content.transitions.outTransition.maskFile,
-										layer.content.transitions.outTransition.easing || layer.content.transitions.outTransition.delay,
-										layer.content.transitions.outTransition.direction || layer.content.transitions.outTransition.overlayFile
+										baseContent.transitions.outTransition.type,
+										baseContent.transitions.outTransition.duration || baseContent.transitions.outTransition.maskFile,
+										baseContent.transitions.outTransition.easing || baseContent.transitions.outTransition.delay,
+										baseContent.transitions.outTransition.direction || baseContent.transitions.outTransition.overlayFile
 									)
 								}
 								stateLayer.media = new StateNS.TransitionObject(media, {

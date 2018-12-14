@@ -41,44 +41,44 @@ export interface TimelineTransition { // TODO split into transition and sting
 	easing?: Ease,
 	direction?: Direction
 	maskFile?: string
+	delay?: number
+	overlayFile?: string
+}
+
+export interface TimelineObjCCGProducerContentBase {
+	keyframes?: Array<TimelineKeyframe>
+	type: TimelineContentTypeCasparCg
+	transitions?: {
+		inTransition?: TimelineTransition
+		outTransition?: TimelineTransition
+	}
+	mixer?: Mixer
 }
 
 export interface TimelineObjCCGAudio extends TimelineObject {
 	content: {
-		// objects?: Array<TimelineObject>
-		keyframes?: Array<TimelineKeyframe>
 		type: TimelineContentTypeCasparCg.AUDIO
-		transitions?: {
-			inTransition?: TimelineTransition
-			outTransition?: TimelineTransition
-		}
 		attributes: {
 			file: string
 			loop?: boolean
 			audioFilter?: string
+			channelLayout?: string
 		}
-		mixer?: Mixer
-	}
+	} & TimelineObjCCGProducerContentBase
 }
 
 export interface TimelineObjCCGVideo extends TimelineObject {
 	content: {
-		// objects?: Array<TimelineObject>
-		keyframes?: Array<TimelineKeyframe>
 		type: TimelineContentTypeCasparCg.VIDEO
-		transitions?: {
-			inTransition?: TimelineTransition
-			outTransition?: TimelineTransition
-		}
 		attributes: {
 			file: string
 			loop?: boolean
 			seek?: number  // note that seeking while looping is not supported by cg-state currently.
 			videoFilter?: string
 			audioFilter?: string
+			channelLayout?: string
 		}
-		mixer?: Mixer
-	}
+	} & TimelineObjCCGProducerContentBase
 }
 // export interface TimelineObjCCGIP extends TimelineObject {
 // 	content: {
@@ -99,73 +99,47 @@ export interface TimelineObjCCGVideo extends TimelineObject {
 // }
 export interface TimelineObjCCGInput extends TimelineObject {
 	content: {
-		// objects?: Array<TimelineObject>
-		keyframes?: Array<TimelineKeyframe>
 		type: TimelineContentTypeCasparCg.INPUT
-		transitions?: {
-			inTransition?: TimelineTransition
-			outTransition?: TimelineTransition
-		}
 		attributes: {
 			type: string // 'decklink',
 			device: number,
 			deviceFormat: ChannelFormat // '1080i5000',
 			videoFilter?: string
 			audioFilter?: string
+			channelLayout?: string
 		}
-		mixer?: Mixer
-	}
+	} & TimelineObjCCGProducerContentBase
 }
 export interface TimelineObjCCGHTMLPage extends TimelineObject {
 	content: {
-		// objects?: Array<TimelineObject>
-		keyframes?: Array<TimelineKeyframe>
 		type: TimelineContentTypeCasparCg.HTMLPAGE
-		transitions?: {
-			inTransition?: TimelineTransition
-			outTransition?: TimelineTransition
-		}
 		attributes: {
 			url: string
 		}
-		mixer?: Mixer
-	}
+	} & TimelineObjCCGProducerContentBase
 }
 export interface TimelineObjCCGTemplate extends TimelineObject {
 	content: {
-		// objects?: Array<TimelineObject>
-		keyframes?: Array<TimelineKeyframe>
 		type: TimelineContentTypeCasparCg.TEMPLATE
-		transitions?: {
-			inTransition?: TimelineTransition
-			outTransition?: TimelineTransition
-		}
 		attributes: {
 			type?: 'html' | 'flash'
 			name: string,
 			data?: any, // free to do whatever inside the object, so long as the template likes it
 			useStopCommand: boolean // whether to use CG stop or CLEAR layer
 		}
-		mixer?: Mixer
-	}
+	} & TimelineObjCCGProducerContentBase
 }
 export interface TimelineObjCCGRoute extends TimelineObject {
 	content: {
-		// objects?: Array<TimelineObject>
-		keyframes?: Array<TimelineKeyframe>
 		type: TimelineContentTypeCasparCg.ROUTE
-		transitions?: {
-			inTransition?: TimelineTransition
-			outTransition?: TimelineTransition
-		}
 		attributes: {
 			channel?: number
 			layer?: number
 			LLayer?: string // uses mappings to route, overrides channel/layer parameters.
 			mode?: 'BACKGROUND' | 'NEXT'
+			channelLayout?: string
 		}
-		mixer?: Mixer
-	}
+	} & TimelineObjCCGProducerContentBase
 }
 export interface TimelineObjCCGRecord extends TimelineObject {
 	content: {
