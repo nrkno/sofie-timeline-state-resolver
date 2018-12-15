@@ -68,7 +68,7 @@ export class Conductor extends EventEmitter {
 
 	private _options: ConductorOptions
 
-	private devices: {[deviceId: string]: Device | ThreadedClass<Device>} = {}
+	private devices: {[deviceId: string]: ThreadedClass<Device>} = {}
 
 	private _getCurrentTime?: () => number
 
@@ -76,7 +76,7 @@ export class Conductor extends EventEmitter {
 	private _resolveTimelineTrigger: NodeJS.Timer
 	private _isInitialized: boolean = false
 	private _doOnTime: DoOnTime
-	private isMultiThreaded = true
+	private isMultiThreaded = false
 
 	private _sentCallbacks: {[key: string]: TimelineCallback} = {}
 
@@ -138,7 +138,7 @@ export class Conductor extends EventEmitter {
 		// re-resolve timeline
 		this._mapping = mapping
 		_.each(this.devices, (device: ThreadedClass<Device>) => {
-			device.mapping = mapping
+			device.mapping = Promise.resolve(mapping)
 		})
 
 		if (this._timeline) {
@@ -177,63 +177,71 @@ export class Conductor extends EventEmitter {
 	 * @param deviceId Id used by the mappings to reference the device.
 	 * @returns A promise that resolves with the created device, or rejects with an error message.
 	 */
-	public async addDevice (deviceId, deviceOptions: DeviceOptions): Promise<ThreadedClass<Device> | Device> {
+	public async addDevice (deviceId, deviceOptions: DeviceOptions): Promise<ThreadedClass<Device>> {
 		try {
-			let newDevice: ThreadedClass<Device> | Device
+			let newDevice: ThreadedClass<Device>
 
 			let options = {
 				getCurrentTime: () => { return this.getCurrentTime() }
 			}
 
-			if (this.isMultiThreaded) {
+			// if (this.isMultiThreaded) {
 				if (deviceOptions.type === DeviceType.ABSTRACT) {
 					newDevice = await threadedClass<AbstractDevice>(
-						'./devices/abstract',
+						'../dist/devices/abstract.js',
 						AbstractDevice,
-						[ deviceId, deviceOptions, options ]
+						[ deviceId, deviceOptions, options ],
+						{ processUsage: this.isMultiThreaded ? .1 : 0, autoRestart: true }
 					)
 				} else if (deviceOptions.type === DeviceType.CASPARCG) {
 					// Add CasparCG device:
 					newDevice = await threadedClass<CasparCGDevice>(
-						'./devices/casparCG',
+						'../dist/devices/casparCG.js',
 						CasparCGDevice,
-						[ deviceId, deviceOptions, options ]
+						[ deviceId, deviceOptions, options ],
+						{ processUsage: this.isMultiThreaded ? 1 : 0, autoRestart: true }
 					)
 				} else if (deviceOptions.type === DeviceType.ATEM) {
 					newDevice = await threadedClass<AtemDevice>(
-						'./devices/atem',
+						'../dist/devices/atem.js',
 						AtemDevice,
-						[ deviceId, deviceOptions, options ]
+						[ deviceId, deviceOptions, options ],
+						{ processUsage: this.isMultiThreaded ? 1 : 0, autoRestart: true }
 					)
 				} else if (deviceOptions.type === DeviceType.HTTPSEND) {
 					newDevice = await threadedClass<HttpSendDevice>(
-						'./devices/httpSend',
+						'../dist/devices/httpSend.js',
 						HttpSendDevice,
-						[ deviceId, deviceOptions, options ]
+						[ deviceId, deviceOptions, options ],
+						{ processUsage: this.isMultiThreaded ? .25 : 0, autoRestart: true }
 					)
 				} else if (deviceOptions.type === DeviceType.LAWO) {
 					newDevice = await threadedClass<LawoDevice>(
-						'./devices/lawo',
+						'../dist/devices/lawo.js',
 						LawoDevice,
-						[ deviceId, deviceOptions, options ]
+						[ deviceId, deviceOptions, options ],
+						{ processUsage: this.isMultiThreaded ? .5 : 0, autoRestart: true }
 					)
 				} else if (deviceOptions.type === DeviceType.PANASONIC_PTZ) {
 					newDevice = await threadedClass<PanasonicPtzDevice>(
-						'./devices/panasonicPtz',
+						'../dist/devices/panasonicPtz.js',
 						PanasonicPtzDevice,
-						[ deviceId, deviceOptions, options ]
+						[ deviceId, deviceOptions, options ],
+						{ processUsage: this.isMultiThreaded ? .25 : 0, autoRestart: true }
 					)
 				} else if (deviceOptions.type === DeviceType.HYPERDECK) {
 					newDevice = await threadedClass<HyperdeckDevice>(
-						'./devices/hyperdeck',
+						'../dist/devices/hyperdeck.js',
 						HyperdeckDevice,
-						[ deviceId, deviceOptions, options ]
+						[ deviceId, deviceOptions, options ],
+						{ processUsage: this.isMultiThreaded ? .25 : 0, autoRestart: true }
 					)
 				} else if (deviceOptions.type === DeviceType.PHAROS) {
 					newDevice = await threadedClass<PharosDevice>(
-						'./devices/pharos',
+						'../dist/devices/pharos.js',
 						PharosDevice,
-						[ deviceId, deviceOptions, options ]
+						[ deviceId, deviceOptions, options ],
+						{ processUsage: this.isMultiThreaded ? .25 : 0, autoRestart: true }
 					)
 				} else {
 					return Promise.reject('No matching multithreaded device type for "' +
@@ -249,7 +257,7 @@ export class Conductor extends EventEmitter {
 				newDevice.on('warning',	(e) => this.emit('warning', e)).catch(() => null)
 				newDevice.on('error',	(e) => this.emit('error', 	e)).catch(() => null)
 				newDevice.on('resetResolver', () => this.resetResolver()).catch(() => null)
-			} else {
+			/* } else {
 				if (deviceOptions.type === DeviceType.ABSTRACT) {
 					// Add Abstract device:
 					newDevice = new AbstractDevice(deviceId, deviceOptions, options) as Device
@@ -281,14 +289,14 @@ export class Conductor extends EventEmitter {
 				newDevice.on('warning',	(e) => this.emit('warning', e))
 				newDevice.on('error',	(e) => this.emit('error', 	e))
 				newDevice.on('resetResolver', () => this.resetResolver())
-			}
+			} */
 
 			this.emit('info', 'Initializing ' + DeviceType[deviceOptions.type] + '...')
 			this.devices[deviceId] = newDevice
 			// newDevice.setMapping(this.mapping).catch(() => null)
-			newDevice.mapping = this.mapping	
+			newDevice.mapping = Promise.resolve(this.mapping)	
 
-			return (newDevice as Device).init(deviceOptions.options)
+			return (newDevice).init(deviceOptions.options)
 			.then(() => {
 				this.emit('info', (DeviceType[deviceOptions.type] + ' initialized!'))
 				return newDevice
@@ -302,7 +310,7 @@ export class Conductor extends EventEmitter {
 		let device = this.devices[deviceId]
 
 		if (device) {
-			return (device as Device).terminate()
+			return (device).terminate()
 			.then((res) => {
 				if (res) {
 					delete this.devices[deviceId]
