@@ -1,6 +1,10 @@
 import { TriggerType } from 'superfly-timeline'
 
-import { Mappings, MappingAbstract, DeviceType } from '../devices/mapping'
+import {
+	Mappings,
+	MappingAbstract,
+	DeviceType
+} from '../types/src'
 import { Conductor, TimelineTriggerTimeResult, TimelineContentObject } from '../conductor'
 import * as _ from 'underscore'
 import { MockTime } from './mockTime.spec'

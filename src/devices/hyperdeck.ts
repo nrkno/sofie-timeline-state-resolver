@@ -3,16 +3,18 @@ import * as underScoreDeepExtend from 'underscore-deep-extend'
 import { TimelineState } from 'superfly-timeline'
 import {
 	DeviceWithState,
-	DeviceOptions,
 	CommandWithContext,
 	DeviceStatus,
 	StatusCode
 } from './device'
 import {
 	DeviceType,
+	DeviceOptions,
+	TimelineContentTypeHyperdeck,
 	MappingHyperdeck,
-	MappingHyperdeckType
-} from './mapping'
+	MappingHyperdeckType,
+	HyperdeckOptions
+} from '../types/src'
 import {
 	Hyperdeck,
 	Commands as HyperdeckCommands,
@@ -34,13 +36,6 @@ export interface HyperdeckDeviceOptions extends DeviceOptions {
 	options?: {
 		commandReceiver?: (time: number, cmd) => Promise<any>
 	}
-}
-export interface HyperdeckOptions {
-	host: string
-	port?: number
-}
-export enum TimelineContentTypeHyperdeck {
-	TRANSPORT = 'transport'
 }
 export interface HyperdeckCommandWithContext {
 	command: HyperdeckCommands.AbstractCommand
@@ -78,7 +73,7 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> {
 		this._doOnTime = new DoOnTime(() => {
 			return this.getCurrentTime()
 		})
-		this._doOnTime.on('error', e => this.emit('error', e))
+		this._doOnTime.on('error', e => this.emit('error', 'doOnTime', e))
 		this._conductor = conductor
 	}
 
@@ -108,7 +103,7 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> {
 				this._connected = false
 				this._connectionChanged()
 			})
-			this._hyperdeck.on('error', (e) => this.emit('error', e))
+			this._hyperdeck.on('error', (e) => this.emit('error', 'Hyperdeck', e))
 		})
 	}
 	terminate (): Promise<boolean> {
@@ -178,7 +173,7 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> {
 
 		_.each(sortedLayers, ({ tlObject, layerName }) => {
 			const content = tlObject.resolved || tlObject.content
-			const mapping = this.mapping[layerName] as MappingHyperdeck
+			const mapping = this.mapping[layerName] as MappingHyperdeck // tslint:disable-line
 
 			if (mapping) {
 				switch (mapping.mappingType) {

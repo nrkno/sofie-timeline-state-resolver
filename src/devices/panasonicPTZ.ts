@@ -1,70 +1,32 @@
 import * as _ from 'underscore'
 import {
 	DeviceWithState,
-	DeviceOptions,
 	CommandWithContext,
 	DeviceStatus,
 	StatusCode
 } from './device'
 import {
 	DeviceType,
-	MappingPanasonicPtz,
+	DeviceOptions,
 	Mappings,
+	TimelineObjPanasonicPtzPreset,
+	TimelineObjPanasonicPtzPresetSpeed,
+	TimelineObjPanasonicPtzZoomSpeed,
+	TimelineObjPanasonicPtzZoom,
+	TimelineContentTypePanasonicPtz,
+	MappingPanasonicPtz,
 	MappingPanasonicPtzType
-} from './mapping'
-import {
-	TimelineState,
-	TimelineKeyframe,
-	TimelineResolvedObject
-} from 'superfly-timeline'
+} from '../types/src'
+import { TimelineState, TimelineResolvedObject } from 'superfly-timeline'
 import { DoOnTime } from '../doOnTime'
 import { PanasonicPtzHttpInterface } from './panasonicPTZAPI'
 
-export interface PanasonicPtzOptions extends DeviceOptions {
+export interface PanasonicPtzOptions extends DeviceOptions { // TODO - this doesnt match the others
 	options?: {
 		commandReceiver?: (time: number, cmd) => Promise<any>,
 		host?: string
 		port?: number
 		https?: boolean
-	}
-}
-export enum TimelineContentTypePanasonicPtz {
-	PRESET = 'presetMem',
-	SPEED = 'presetSpeed',
-	ZOOM_SPEED = 'zoomSpeed',
-	ZOOM = 'zoom'
-}
-export interface TimelineObjPanasonicPtz extends TimelineResolvedObject {
-	content: {
-		keyframes?: Array<TimelineKeyframe>
-		type: TimelineContentTypePanasonicPtz
-	}
-}
-export interface TimelineObjPanasonicPtzZoomSpeed extends TimelineObjPanasonicPtz {
-	content: {
-		type: TimelineContentTypePanasonicPtz.ZOOM_SPEED
-		zoomSpeed: number
-	}
-}
-
-export interface TimelineObjPanasonicPtzZoom extends TimelineObjPanasonicPtz {
-	content: {
-		type: TimelineContentTypePanasonicPtz.ZOOM
-		zoom: number
-	}
-}
-
-export interface TimelineObjPanasonicPtzPresetSpeed extends TimelineObjPanasonicPtz {
-	content: {
-		type: TimelineContentTypePanasonicPtz.SPEED
-		speed: number
-	}
-}
-
-export interface TimelineObjPanasonicPtzPreset extends TimelineObjPanasonicPtz {
-	content: {
-		type: TimelineContentTypePanasonicPtz.PRESET
-		preset: number
 	}
 }
 
@@ -108,16 +70,19 @@ export class PanasonicPtzDevice extends DeviceWithState<TimelineState> {
 		this._doOnTime = new DoOnTime(() => {
 			return this.getCurrentTime()
 		})
-		this._doOnTime.on('error', e => this.emit('error', e))
+		this._doOnTime.on('error', e => this.emit('error', 'doOnTime', e))
 
 		if (deviceOptions.options && deviceOptions.options.host) {
 			this._device = new PanasonicPtzHttpInterface(deviceOptions.options.host, deviceOptions.options.port, deviceOptions.options.https)
 			this._device.on('error', (msg) => {
-				this.emit('error', msg)
+				this.emit('error', 'PanasonicPtzHttpInterface', msg)
 			})
 			this._device.on('disconnected', (msg) => {
-				this.emit('error', msg)
+				this.emit('error', 'PanasonicPtzHttpInterface disconnected', msg)
 				this._setConnected(false)
+			})
+			this._device.on('debug', (...args) => {
+				this.emit('debug', 'Panasonic PTZ', ...args)
 			})
 		} else {
 			this._device = undefined
@@ -135,7 +100,7 @@ export class PanasonicPtzDevice extends DeviceWithState<TimelineState> {
 							this._device!.ping().then((result) => {
 								this._setConnected(!!result)
 							}).catch((e) => {
-								this.emit('error', e)
+								this.emit('error', 'ping', e)
 								this._setConnected(false)
 							})
 						}, PROBE_INTERVAL)
@@ -155,26 +120,26 @@ export class PanasonicPtzDevice extends DeviceWithState<TimelineState> {
 		// convert the timeline state into something we can use
 		const ptzState: PanasonicPtzState = this._getDefaultState()
 
-		_.each(state.LLayers, (tlObject: TimelineObjPanasonicPtz, layerName: string) => {
-			const mapping: MappingPanasonicPtz | undefined = this.mapping[layerName] as MappingPanasonicPtz
+		_.each(state.LLayers, (tlObject: TimelineResolvedObject, layerName: string) => {
+			const mapping: MappingPanasonicPtz | undefined = this.mapping[layerName] as MappingPanasonicPtz // tslint:disable-line
 			if (mapping && mapping.device === DeviceType.PANASONIC_PTZ) {
 				if (mapping.mappingType === MappingPanasonicPtzType.PRESET) {
-					let tlObjectSource = tlObject as TimelineObjPanasonicPtzPreset
+					let tlObjectSource = tlObject as TimelineResolvedObject & TimelineObjPanasonicPtzPreset
 					_.extend(ptzState, {
 						preset: tlObjectSource.content.preset
 					})
 				} else if (mapping.mappingType === MappingPanasonicPtzType.PRESET_SPEED) {
-					let tlObjectSource = tlObject as TimelineObjPanasonicPtzPresetSpeed
+					let tlObjectSource = tlObject as TimelineResolvedObject & TimelineObjPanasonicPtzPresetSpeed
 					_.extend(ptzState, {
 						speed: tlObjectSource.content.speed
 					})
 				} else if (mapping.mappingType === MappingPanasonicPtzType.ZOOM_SPEED) {
-					let tlObjectSource = tlObject as TimelineObjPanasonicPtzZoomSpeed
+					let tlObjectSource = tlObject as TimelineResolvedObject & TimelineObjPanasonicPtzZoomSpeed
 					_.extend(ptzState, {
 						zoomSpeed: tlObjectSource.content.zoomSpeed
 					})
 				} else if (mapping.mappingType === MappingPanasonicPtzType.ZOOM) {
-					let tlObjectSource = tlObject as TimelineObjPanasonicPtzZoom
+					let tlObjectSource = tlObject as TimelineResolvedObject & TimelineObjPanasonicPtzZoom
 					_.extend(ptzState, {
 						zoom: tlObjectSource.content.zoom
 					})
@@ -222,7 +187,7 @@ export class PanasonicPtzDevice extends DeviceWithState<TimelineState> {
 		return {
 			preset: undefined,
 			speed: undefined,
-			zoomSpeed: undefined,
+			zoomSpeed: 0,
 			zoom: undefined
 		}
 	}
@@ -240,7 +205,7 @@ export class PanasonicPtzDevice extends DeviceWithState<TimelineState> {
 				.then((res) => {
 					this.emit('debug', `Panasonic PTZ result: ${res}`)
 				})
-				.catch((e) => this.emit('error', e))
+				.catch((e) => this.emit('error', 'PTZ.recallPreset', e))
 			} // @todo: else: add throw here?
 		} else if (cmd.type === TimelineContentTypePanasonicPtz.SPEED) {
 			if (this._device && cmd.speed !== undefined) {
@@ -249,7 +214,7 @@ export class PanasonicPtzDevice extends DeviceWithState<TimelineState> {
 				.then((res) => {
 					this.emit('debug', `Panasonic PTZ result: ${res}`)
 				})
-				.catch((e) => this.emit('error', e))
+				.catch((e) => this.emit('error', 'PTZ.setSpeed', e))
 			} // @todo: else: add throw here?
 		} else if (cmd.type === TimelineContentTypePanasonicPtz.ZOOM_SPEED) {
 			if (this._device && cmd.zoomSpeed !== undefined) {
@@ -259,7 +224,7 @@ export class PanasonicPtzDevice extends DeviceWithState<TimelineState> {
 				.then((res) => {
 					this.emit('debug', `Panasonic PTZ result: ${res}`)
 				})
-				.catch((e) => this.emit('error', e))
+				.catch((e) => this.emit('error', 'PTZ.setZoomSpeed', e))
 			} // @todo: else: add throw here?
 		} else if (cmd.type === TimelineContentTypePanasonicPtz.ZOOM) {
 			if (this._device && cmd.zoom !== undefined) {
@@ -269,7 +234,7 @@ export class PanasonicPtzDevice extends DeviceWithState<TimelineState> {
 				.then((res) => {
 					this.emit('debug', `Panasonic PTZ result: ${res}`)
 				})
-				.catch((e) => this.emit('error', e))
+				.catch((e) => this.emit('error', 'PTZ.setZoom', e))
 			} // @todo: else: add throw here?
 		}
 	}

@@ -1,6 +1,10 @@
 import * as _ from 'underscore'
 import { TimelineState } from 'superfly-timeline'
-import { Mappings, DeviceType } from './mapping'
+import {
+	Mappings,
+	DeviceType,
+	DeviceOptions
+} from '../types/src'
 import { EventEmitter } from 'events'
 /*
 	This is a base class for all the Device wrappers.
@@ -16,10 +20,6 @@ export interface DeviceCommand {
 export interface DeviceCommandContainer {
 	deviceId: string,
 	commands: Array<DeviceCommand>
-}
-export interface DeviceOptions {
-	type: DeviceType,
-	options?: {}
 }
 export interface CommandWithContext {
 	context: any,
@@ -37,9 +37,9 @@ export interface DeviceStatus {
 	statusCode: StatusCode,
 	messages?: Array<string>
 }
-// export enum Events {
 
-// }
+export function literal<T> (o: T) { return o }
+
 interface IDevice {
 	on (event: 'info',  	listener: (info: any) => void): this
 	on (event: 'warning', 	listener: (warning: any) => void): this

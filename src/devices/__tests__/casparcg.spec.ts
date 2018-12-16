@@ -1,14 +1,13 @@
 // import { CasparCG, AMCP } from 'casparcg-connection'
 // import {Resolver, Enums} from "superfly-timeline"
 import { TriggerType } from 'superfly-timeline'
-
-import {
-	Mappings,
-	MappingCasparCG,
-	DeviceType
-} from '../mapping'
 import { Conductor } from '../../conductor'
-import { TimelineContentTypeCasparCg } from '../casparCG'
+import {
+	TimelineContentTypeCasparCg,
+	MappingCasparCG,
+	Mappings,
+	DeviceType
+} from '../../types/src'
 import { MockTime } from '../../__tests__/mockTime.spec'
 
 describe('CasparCG', () => {
@@ -808,30 +807,30 @@ describe('CasparCG', () => {
 		]
 
 		mockTime.advanceTime(100)
-		expect(commandReceiver0).toHaveBeenCalledTimes(3)
-		expect(commandReceiver0.mock.calls[1][1].name).toEqual('LoadbgCommand')
-		expect(commandReceiver0.mock.calls[1][1]._objectParams).toMatchObject({
+		expect(commandReceiver0).toHaveBeenCalledTimes(2)
+		expect(commandReceiver0.mock.calls[0][1].name).toEqual('LoadbgCommand')
+		expect(commandReceiver0.mock.calls[0][1]._objectParams).toMatchObject({
 			channel: 2,
 			layer: 42,
 			noClear: false,
 			clip: 'AMB',
 			auto: false
 		})
-		expect(commandReceiver0.mock.calls[2][1].name).toEqual('ScheduleSetCommand')
-		expect(commandReceiver0.mock.calls[2][1]._objectParams.timecode).toEqual('00:00:11:10') // 11s 10 frames == 1.2 s @50fpx
+		expect(commandReceiver0.mock.calls[1][1].name).toEqual('ScheduleSetCommand')
+		expect(commandReceiver0.mock.calls[1][1]._objectParams.timecode).toEqual('00:00:11:10') // 11s 10 frames == 1.2 s @50fpx
 
-		expect(commandReceiver0.mock.calls[2][1]._objectParams.command.name).toEqual('PlayCommand')
-		expect(commandReceiver0.mock.calls[2][1]._objectParams.command._objectParams).toEqual({
+		expect(commandReceiver0.mock.calls[1][1]._objectParams.command.name).toEqual('PlayCommand')
+		expect(commandReceiver0.mock.calls[1][1]._objectParams.command._objectParams).toEqual({
 			channel: 2,
 			layer: 42,
 			noClear: false
 		})
 
 		mockTime.advanceTime(2000)
-		expect(commandReceiver0).toHaveBeenCalledTimes(4)
-		expect(commandReceiver0.mock.calls[3][1].name).toEqual('ScheduleSetCommand')
-		expect(commandReceiver0.mock.calls[3][1]._objectParams.command.name).toEqual('ClearCommand')
-		expect(commandReceiver0.mock.calls[3][1]._objectParams.command._objectParams).toEqual({
+		expect(commandReceiver0).toHaveBeenCalledTimes(3)
+		expect(commandReceiver0.mock.calls[2][1].name).toEqual('ScheduleSetCommand')
+		expect(commandReceiver0.mock.calls[2][1]._objectParams.command.name).toEqual('ClearCommand')
+		expect(commandReceiver0.mock.calls[2][1]._objectParams.command._objectParams).toEqual({
 			channel: 2,
 			layer: 42
 		})
@@ -904,43 +903,43 @@ describe('CasparCG', () => {
 		]
 
 		mockTime.advanceTime(100) //  10100
-		expect(commandReceiver0).toHaveBeenCalledTimes(3)
-		expect(commandReceiver0.mock.calls[1][1].name).toEqual('LoadbgCommand')
-		expect(commandReceiver0.mock.calls[1][1]._objectParams).toMatchObject({
+		expect(commandReceiver0).toHaveBeenCalledTimes(2)
+		expect(commandReceiver0.mock.calls[0][1].name).toEqual('LoadbgCommand')
+		expect(commandReceiver0.mock.calls[0][1]._objectParams).toMatchObject({
 			channel: 2,
 			layer: 42,
 			noClear: false,
 			clip: 'AMB',
 			auto: false
 		})
-		expect(commandReceiver0.mock.calls[2][1].name).toEqual('ScheduleSetCommand')
-		expect(commandReceiver0.mock.calls[2][1]._objectParams.timecode).toEqual('00:00:11:10') // 11s 10 frames == 1.2 s @ 50 fps
+		expect(commandReceiver0.mock.calls[1][1].name).toEqual('ScheduleSetCommand')
+		expect(commandReceiver0.mock.calls[1][1]._objectParams.timecode).toEqual('00:00:11:10') // 11s 10 frames == 1.2 s @ 50 fps
 
-		expect(commandReceiver0.mock.calls[2][1]._objectParams.command.name).toEqual('PlayCommand')
-		expect(commandReceiver0.mock.calls[2][1]._objectParams.command._objectParams).toEqual({
+		expect(commandReceiver0.mock.calls[1][1]._objectParams.command.name).toEqual('PlayCommand')
+		expect(commandReceiver0.mock.calls[1][1]._objectParams.command._objectParams).toEqual({
 			channel: 2,
 			layer: 42,
 			noClear: false
 		})
-		let tokenPlay = commandReceiver0.mock.calls[2][1]._objectParams.token
+		let tokenPlay = commandReceiver0.mock.calls[1][1]._objectParams.token
 
 		// then change my mind:
 		myConductor.timeline = []
 		mockTime.advanceTime(100) //  10100
 
-		expect(commandReceiver0).toHaveBeenCalledTimes(5)
+		expect(commandReceiver0).toHaveBeenCalledTimes(4)
 		// expect(commandReceiver0.mock.calls[3][1].name).toEqual('ClearCommand')
-		expect(commandReceiver0.mock.calls[3][1].name).toEqual('ScheduleRemoveCommand')
-		expect(commandReceiver0.mock.calls[3][1]._stringParamsArray[0]).toEqual(tokenPlay)
-		expect(commandReceiver0.mock.calls[4][1].name).toEqual('LoadbgCommand')
-		expect(commandReceiver0.mock.calls[4][1]._objectParams).toMatchObject({
+		expect(commandReceiver0.mock.calls[2][1].name).toEqual('ScheduleRemoveCommand')
+		expect(commandReceiver0.mock.calls[2][1]._stringParamsArray[0]).toEqual(tokenPlay)
+		expect(commandReceiver0.mock.calls[3][1].name).toEqual('LoadbgCommand')
+		expect(commandReceiver0.mock.calls[3][1]._objectParams).toMatchObject({
 			channel: 2,
 			layer: 42,
 			clip: 'EMPTY'
 		})
 
 		mockTime.advanceTime(2000) //  10100
-		expect(commandReceiver0).toHaveBeenCalledTimes(5)
+		expect(commandReceiver0).toHaveBeenCalledTimes(4)
 
 	})
 })

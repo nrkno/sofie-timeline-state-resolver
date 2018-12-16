@@ -1,10 +1,15 @@
 import { Enums, MixEffect } from 'atem-state'
 import { TriggerType } from 'superfly-timeline'
-
-import { Mappings, MappingAtem, DeviceType, MappingAtemType } from '../mapping'
 import { Conductor } from '../../conductor'
-import { AtemDevice, TimelineContentTypeAtem } from '../atem'
+import { AtemDevice } from '../atem'
 import { MockTime } from '../../__tests__/mockTime.spec'
+import {
+	Mappings,
+	DeviceType ,
+	MappingAtem,
+	MappingAtemType,
+	TimelineContentTypeAtem
+} from '../../types/src'
 
 describe('Atem', () => {
 	let mockTime = new MockTime()

@@ -7,11 +7,17 @@ import { Resolver,
 } from 'superfly-timeline'
 let clone = require('fast-clone')
 
-import { Device, DeviceOptions } from './devices/device'
+import { Device } from './devices/device'
 import { CasparCGDevice } from './devices/casparCG'
 import { AbstractDevice } from './devices/abstract'
 import { HttpSendDevice } from './devices/httpSend'
-import { Mappings, Mapping, DeviceType, TimelineResolvedObjectExtended } from './devices/mapping'
+import {
+	Mappings,
+	Mapping,
+	DeviceType,
+	DeviceOptions,
+	TimelineResolvedObjectExtended
+} from './types/src'
 import { AtemDevice } from './devices/atem'
 import { EventEmitter } from 'events'
 import { LawoDevice } from './devices/lawo'
@@ -19,6 +25,7 @@ import { PanasonicPtzDevice } from './devices/panasonicPTZ'
 import { HyperdeckDevice } from './devices/hyperdeck'
 import { DoOnTime } from './doOnTime'
 import { PharosDevice } from './devices/pharos'
+import { OSCMessageDevice } from './devices/osc'
 
 const LOOKAHEADTIME = 5000 // Will look ahead this far into the future
 const PREPARETIME = 2000 // Will prepare commands this time before the event is to happen
@@ -183,6 +190,8 @@ export class Conductor extends EventEmitter {
 				newDevice = new HyperdeckDevice(deviceId, deviceOptions, options, this) as Device
 			} else if (deviceOptions.type === DeviceType.PHAROS) {
 				newDevice = new PharosDevice(deviceId, deviceOptions, options) as Device
+			} else if (deviceOptions.type === DeviceType.OSC) {
+				newDevice = new OSCMessageDevice(deviceId, deviceOptions, options) as Device
 			} else {
 				return Promise.reject('No matching device type for "' + deviceOptions.type + '" ("' + DeviceType[deviceOptions.type] + '") found')
 			}
@@ -194,7 +203,7 @@ export class Conductor extends EventEmitter {
 			})
 			newDevice.on('info',	(e) => this.emit('info', 	e))
 			newDevice.on('warning',	(e) => this.emit('warning', e))
-			newDevice.on('error',	(e) => this.emit('error', 	e))
+			newDevice.on('error',	(e, ...args) => this.emit('error', `Device ${newDevice.deviceName} (${newDevice.deviceId})`, e, ...args))
 
 			this.emit('info', 'Initializing ' + DeviceType[deviceOptions.type] + '...')
 			this.devices[deviceId] = newDevice
@@ -206,7 +215,7 @@ export class Conductor extends EventEmitter {
 				return newDevice
 			})
 		} catch (e) {
-			this.emit('error', e)
+			this.emit('error', 'conductor.addDevice', e)
 			return Promise.reject(e)
 		}
 	}
@@ -330,6 +339,15 @@ export class Conductor extends EventEmitter {
 			// @ts-ignore
 			// this.emit('info', 'timeline', JSON.stringify(timeline, ' ', 2))
 
+			// this.emit('info', 'EVENTS: ', JSON.stringify(Resolver.getNextEvents(clone(timeline), resolveTime, 100).map(e => {
+			// 	return {
+			// 		time: e.time,
+			// 		id: e.obj.id,
+			// 		type: e.type,
+			// 		layer: e.obj.LLayer
+			// 	}
+			// })))
+
 			// Generate the state for that time:
 			let tlState = Resolver.getState(clone(timeline), resolveTime)
 
@@ -346,7 +364,7 @@ export class Conductor extends EventEmitter {
 			let getFilteredLayers = (layers: TimelineState['LLayers'], device: Device) => {
 				let filteredState = {}
 				_.each(layers, (o: TimelineResolvedObject, layerId: string) => {
-					const oExt = o as TimelineResolvedObjectExtended
+					const oExt: TimelineResolvedObjectExtended = o
 					let mapping: Mapping = this._mapping[o.LLayer + '']
 					if (!mapping && oExt.originalLLayer) {
 						mapping = this._mapping[oExt.originalLLayer]
@@ -439,21 +457,21 @@ export class Conductor extends EventEmitter {
 						})
 					}
 				} catch (e) {
-					this.emit('error', e)
+					this.emit('error', `callback to core, obj "${o.id}"`, e)
 				}
 			})
 			this._sentCallbacks = sentCallbacksNew
 
 			this.emit('info', 'resolveTimeline at time ' + resolveTime + ' done in ' + (Date.now() - startTime) + 'ms')
 		} catch (e) {
-			this.emit('error', e)
+			this.emit('error', 'resolveTimeline' + e)
 		}
 
 		try {
 			// this.emit('info', 'this._nextResolveTime', this._nextResolveTime)
 			this._triggerResolveTimeline(timeUntilNextResolve)
 		} catch (e) {
-			this.emit('error', e)
+			this.emit('error', 'triggerResolveTimeline', e)
 		}
 	}
 

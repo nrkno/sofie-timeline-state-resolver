@@ -2,21 +2,24 @@ import * as _ from 'underscore'
 import * as underScoreDeepExtend from 'underscore-deep-extend'
 import {
 	DeviceWithState,
-	DeviceOptions,
 	CommandWithContext,
 	DeviceStatus,
 	StatusCode
 } from './device'
 import {
 	DeviceType,
+	DeviceOptions,
+	TimelineResolvedObjectExtended,
+	TimelineContentTypeAtem,
 	MappingAtem,
 	MappingAtemType,
-	TimelineResolvedObjectExtended
-} from './mapping'
+	AtemOptions
+} from '../types/src'
 import { TimelineState } from 'superfly-timeline'
 import {
 	Atem,
 	VideoState,
+	AtemState as AtemAtemState,
 	Commands as AtemCommands
 } from 'atem-connection'
 import {
@@ -41,18 +44,7 @@ export interface AtemDeviceOptions extends DeviceOptions {
 		commandReceiver?: (time: number, cmd) => Promise<any>
 	}
 }
-export interface AtemOptions {
-	host: string
-	port?: number
-}
-export enum TimelineContentTypeAtem { //  Atem-state
-	ME = 'me',
-	DSK = 'dsk',
-	AUX = 'aux',
-	SSRC = 'ssrc',
-	SSRCPROPS = 'ssrcProps',
-	MEDIAPLAYER = 'mp'
-}
+
 export interface AtemCommandWithContext {
 	command: AtemCommands.AbstractCommand
 	context: CommandContext
@@ -71,6 +63,12 @@ export class AtemDevice extends DeviceWithState<DeviceState> {
 
 	private firstStateAfterMakeReady: boolean = true // note: temprorary for some improved logging
 
+	private _atemStatus: {
+		psus: Array<any>
+	} = {
+		psus: []
+	}
+
 	private _commandReceiver: (time: number, command: AtemCommands.AbstractCommand, context: CommandContext) => Promise<any>
 
 	constructor (deviceId: string, deviceOptions: AtemDeviceOptions, options, conductor: Conductor) {
@@ -82,7 +80,7 @@ export class AtemDevice extends DeviceWithState<DeviceState> {
 		this._doOnTime = new DoOnTime(() => {
 			return this.getCurrentTime()
 		})
-		this._doOnTime.on('error', e => this.emit('error', e))
+		this._doOnTime.on('error', e => this.emit('error', 'doOnTime', e))
 		this._conductor = conductor
 	}
 
@@ -90,7 +88,7 @@ export class AtemDevice extends DeviceWithState<DeviceState> {
 	 * Initiates the connection with the ATEM through the atem-connection lib.
 	 */
 	init (options: AtemOptions): Promise<boolean> {
-		return new Promise((resolve/*, reject*/) => {
+		return new Promise((resolve, reject) => {
 			// This is where we would do initialization, like connecting to the devices, etc
 			this._state = new AtemState()
 			this._atem = new Atem()
@@ -110,9 +108,13 @@ export class AtemDevice extends DeviceWithState<DeviceState> {
 				this._connected = false
 				this._connectionChanged()
 			})
-			this._atem.on('error', (e) => this.emit('error', e))
+			this._atem.on('error', (e) => this.emit('error', 'Atem', e))
+			this._atem.on('stateChanged', (state) => this._onAtemStateChanged(state))
 
 			this._atem.connect(options.host, options.port)
+			.catch(e => {
+				reject(e)
+			})
 		})
 	}
 	terminate (): Promise<boolean> {
@@ -195,9 +197,9 @@ export class AtemDevice extends DeviceWithState<DeviceState> {
 		_.each(sortedLayers, ({ tlObject, layerName }) => {
 			const tlObjectExt = tlObject as TimelineResolvedObjectExtended
 			const content = tlObject.resolved || tlObject.content
-			let mapping = this.mapping[layerName] as MappingAtem
+			let mapping = this.mapping[layerName] as MappingAtem // tslint:disable-line
 			if (!mapping && tlObjectExt.originalLLayer) {
-				mapping = this.mapping[tlObjectExt.originalLLayer] as MappingAtem
+				mapping = this.mapping[tlObjectExt.originalLLayer] as MappingAtem // tslint:disable-line
 			}
 
 			if (mapping) {
@@ -283,7 +285,7 @@ export class AtemDevice extends DeviceWithState<DeviceState> {
 			}
 		}
 		if (statusCode === StatusCode.GOOD) {
-			let psus = this._atem.state.info.power || []
+			let psus = this._atemStatus.psus
 
 			// psus = [true, false] // tmp test
 			_.each(psus, (psu: boolean, i: number) => {
@@ -364,6 +366,15 @@ export class AtemDevice extends DeviceWithState<DeviceState> {
 		return this._atem.sendCommand(command).then(() => {
 			// @todo: command was acknowledged by atem, how will we check if it did what we wanted?
 		})
+	}
+	private _onAtemStateChanged (newState: AtemAtemState) {
+		let psus = newState.info.power || []
+
+		if (!_.isEqual(this._atemStatus.psus, psus)) {
+			this._atemStatus.psus = _.clone(psus)
+
+			this._connectionChanged()
+		}
 	}
 	private _connectionChanged () {
 		this.emit('connectionChanged', this.getStatus())

@@ -1,17 +1,19 @@
-// import {Resolver, Enums} from "superfly-timeline"
-// import { Commands, Atem } from 'atem-connection'
 import { TriggerType } from 'superfly-timeline'
 import { Conductor } from '../../conductor'
-import { HttpSendDevice } from '../httpSend'
+import { OSCMessageDevice } from '../osc'
 import {
-	MappingHTTPSend,
+	MappingOSC,
 	Mappings,
-	DeviceType
+	DeviceType,
+	TimelineContentTypeOSC,
+	OSCValueType,
+	TimelineObjOSCMessage
 } from '../../types/src'
 import { MockTime } from '../../__tests__/mockTime.spec'
+import { literal } from '../device'
 
 // let nowActual = Date.now()
-describe('HTTP-Send', () => {
+describe('OSC-Message', () => {
 	let mockTime = new MockTime()
 	beforeAll(() => {
 		Date.now = jest.fn(() => {
@@ -26,9 +28,9 @@ describe('HTTP-Send', () => {
 		let commandReceiver0 = jest.fn(() => {
 			return Promise.resolve()
 		})
-		let myLayerMapping0: MappingHTTPSend = {
-			device: DeviceType.HTTPSEND,
-			deviceId: 'myHTTP'
+		let myLayerMapping0: MappingOSC = {
+			device: DeviceType.OSC,
+			deviceId: 'osc0'
 		}
 		let myLayerMapping: Mappings = {
 			'myLayer0': myLayerMapping0
@@ -39,8 +41,8 @@ describe('HTTP-Send', () => {
 			getCurrentTime: mockTime.getCurrentTime
 		})
 		await myConductor.init()
-		await myConductor.addDevice('myHTTP', {
-			type: DeviceType.HTTPSEND,
+		await myConductor.addDevice('osc0', {
+			type: DeviceType.OSC,
 			options: {
 				commandReceiver: commandReceiver0
 			}
@@ -48,13 +50,13 @@ describe('HTTP-Send', () => {
 		myConductor.mapping = myLayerMapping
 		mockTime.advanceTimeTo(10100)
 
-		let device = myConductor.getDevice('myHTTP') as HttpSendDevice
+		let device = myConductor.getDevice('osc0') as OSCMessageDevice
 
 		// Check that no commands has been scheduled:
 		expect(device.queue).toHaveLength(0)
 
 		myConductor.timeline = [
-			{
+			literal<TimelineObjOSCMessage>({
 				id: 'obj0',
 				trigger: {
 					type: TriggerType.TIME_ABSOLUTE,
@@ -63,14 +65,23 @@ describe('HTTP-Send', () => {
 				duration: 2000,
 				LLayer: 'myLayer0',
 				content: {
-					type: 'POST',
-					url: 'http://superfly.tv',
-					params: {
-						a: 1,
-						b: 2
-					}
+					type: TimelineContentTypeOSC.OSC,
+					path: '/test-path',
+					values: [{
+						type: OSCValueType.INT,
+						value: 123.
+					}, {
+						type: OSCValueType.FLOAT,
+						value: 123.45
+					}, {
+						type: OSCValueType.STRING,
+						value: 'abc'
+					}, {
+						type: OSCValueType.BLOB,
+						value: new Uint8Array([1, 3, 5])
+					}]
 				}
-			}
+			})
 		]
 
 		mockTime.advanceTimeTo(10990)
@@ -80,12 +91,21 @@ describe('HTTP-Send', () => {
 		expect(commandReceiver0).toHaveBeenCalledTimes(1)
 		expect(commandReceiver0.mock.calls[0][1]).toMatchObject(
 			{
-				type: 'POST',
-				url: 'http://superfly.tv',
-				params: {
-					a: 1,
-					b: 2
-				}
+				type: TimelineContentTypeOSC.OSC,
+				path: '/test-path',
+				values: [{
+					type: OSCValueType.INT,
+					value: 123.
+				}, {
+					type: OSCValueType.FLOAT,
+					value: 123.45
+				}, {
+					type: OSCValueType.STRING,
+					value: 'abc'
+				}, {
+					type: OSCValueType.BLOB,
+					value: new Uint8Array([1, 3, 5])
+				}]
 			}
 		)
 		expect(commandReceiver0.mock.calls[0][2]).toMatch(/added/) // context

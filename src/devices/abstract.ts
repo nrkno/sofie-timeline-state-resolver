@@ -1,12 +1,11 @@
 import * as _ from 'underscore'
 import {
 	DeviceWithState,
-	DeviceOptions,
 	CommandWithContext,
 	DeviceStatus,
 	StatusCode
 } from './device'
-import { DeviceType } from './mapping'
+import { DeviceType, DeviceOptions } from '../types/src'
 
 import { TimelineState, TimelineResolvedObject } from 'superfly-timeline'
 import { DoOnTime } from '../doOnTime'
@@ -44,7 +43,7 @@ export class AbstractDevice extends DeviceWithState<TimelineState> {
 		this._doOnTime = new DoOnTime(() => {
 			return this.getCurrentTime()
 		})
-		this._doOnTime.on('error', e => this.emit('error', e))
+		this._doOnTime.on('error', e => this.emit('error', 'doOnTime', e))
 	}
 
 	/**

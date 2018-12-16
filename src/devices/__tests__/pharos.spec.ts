@@ -1,9 +1,12 @@
 jest.mock('ws')
 import { TriggerType } from 'superfly-timeline'
-
-import { Mappings, DeviceType, MappingPharos } from '../mapping'
 import { Conductor } from '../../conductor'
 import { PharosDevice } from '../pharos'
+import {
+	Mappings,
+	DeviceType,
+	MappingPharos
+} from '../../types/src'
 import { MockTime } from '../../__tests__/mockTime.spec'
 const WebSocket = require('../../__mocks__/ws')
 

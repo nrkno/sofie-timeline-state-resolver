@@ -1,9 +1,13 @@
 
 export * from './conductor'
-export * from './devices/mapping'
+export {
+	Mappings,
+	Mapping,
+	MappingAbstract,
+	DeviceType,
+	DeviceOptions,
+	TimelineResolvedObjectExtended
+} from './types/src/'
 
 // let myConductor = new Conductor();
-export { DeviceOptions } from './devices/device'
 export { CasparCGDevice } from './devices/casparCG'
-
-// @todo remove this line of comment

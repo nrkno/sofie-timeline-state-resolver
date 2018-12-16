@@ -2,16 +2,17 @@ import * as _ from 'underscore'
 
 import {
 	DeviceWithState,
-	DeviceOptions,
 	CommandWithContext,
 	DeviceStatus,
 	StatusCode
 } from './device'
 import {
 	DeviceType,
-	MappingLawo,
-	Mappings
-} from './mapping'
+	DeviceOptions,
+	Mappings,
+	TimelineContentTypeLawo,
+	MappingLawo
+} from '../types/src'
 import {
 	TimelineState,
 	TimelineResolvedObject
@@ -29,7 +30,7 @@ import { getDiff } from '../lib'
 	An abstract device is just a test-device that doesn't really do anything, but can be used
 	as a preliminary mock
 */
-export interface LawoOptions extends DeviceOptions {
+export interface LawoOptions extends DeviceOptions { // TODO - this doesnt match what the other ones do
 	options?: {
 		commandReceiver?: (time: number, cmd) => Promise<any>,
 		host?: string,
@@ -37,9 +38,6 @@ export interface LawoOptions extends DeviceOptions {
 		sourcesPath?: string,
 		rampMotorFunctionPath?: string
 	}
-}
-export enum TimelineContentTypeLawo { //  Lawo-state
-	SOURCE = 'lawosource' // a general content type, possibly to be replaced by specific ones later?
 }
 export interface TimelineObjLawo extends TimelineResolvedObject {
 	content: {
@@ -131,7 +129,7 @@ export class LawoDevice extends DeviceWithState<TimelineState> {
 		this._doOnTime = new DoOnTime(() => {
 			return this.getCurrentTime()
 		})
-		this._doOnTime.on('error', e => this.emit('error', e))
+		this._doOnTime.on('error', e => this.emit('error', 'DoOnTime', e))
 
 		this._lawo = new DeviceTree(host, port)
 		this._lawo.on('error', (e) => {
@@ -141,7 +139,7 @@ export class LawoDevice extends DeviceWithState<TimelineState> {
 			) {
 				this._setConnected(false)
 			} else {
-				this.emit('error', e)
+				this.emit('error', 'Emberplus', e)
 			}
 		})
 		this._lawo.on('connected', () => {
@@ -207,7 +205,7 @@ export class LawoDevice extends DeviceWithState<TimelineState> {
 			this._lawo.removeAllListeners('disconnected')
 
 		} catch (e) {
-			this.emit('error', e)
+			this.emit('error', 'terminate', e)
 		}
 		return Promise.resolve(true)
 	}
@@ -222,7 +220,7 @@ export class LawoDevice extends DeviceWithState<TimelineState> {
 		const lawoState: LawoState = {}
 
 		_.each(state.LLayers, (tlObject: TimelineObjLawo, layerName: string) => {
-			const mapping: MappingLawo | undefined = this.mapping[layerName] as MappingLawo
+			const mapping: MappingLawo | undefined = this.mapping[layerName] as MappingLawo // tslint:disable-line
 			if (mapping && mapping.identifier && mapping.device === DeviceType.LAWO) {
 
 				if (tlObject.content.type === TimelineContentTypeLawo.SOURCE) {

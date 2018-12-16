@@ -1,21 +1,20 @@
 import * as _ from 'underscore'
 import {
 	DeviceWithState,
-	DeviceOptions,
 	CommandWithContext,
 	DeviceStatus,
 	StatusCode
 } from './device'
-import { DeviceType } from './mapping'
+import {
+	DeviceType,
+	DeviceOptions,
+	PharosOptions,
+	TimelineContentTypePharos
+} from '../types/src'
 
 import { TimelineState, TimelineResolvedObject, TimelineResolvedKeyframe } from 'superfly-timeline'
 import { DoOnTime } from '../doOnTime'
 import { Pharos, ProjectInfo } from './pharosAPI'
-
-export enum TimelineContentTypePharos {
-	SCENE = 'scene',
-	TIMELINE = 'timeline'
-}
 
 /*
 	This is a wrapper for an Pharos-devices,
@@ -25,10 +24,6 @@ export interface PharosDeviceOptions extends DeviceOptions {
 	options?: {
 		commandReceiver?: (time: number, cmd) => Promise<any>
 	}
-}
-export interface PharosOptions {
-	host: string
-	ssl: boolean
 }
 export interface Command {
 	content: CommandContent,
@@ -90,11 +85,11 @@ export class PharosDevice extends DeviceWithState<TimelineState> {
 		this._doOnTime = new DoOnTime(() => {
 			return this.getCurrentTime()
 		})
-		this._doOnTime.on('error', e => this.emit('error', e))
+		this._doOnTime.on('error', e => this.emit('error', 'doOnTime', e))
 
 		this._pharos = new Pharos()
 
-		this._pharos.on('error', e => this.emit('error', e))
+		this._pharos.on('error', e => this.emit('error', 'Pharos', e))
 		this._pharos.on('connected', () => {
 			this._connectionChanged()
 		})

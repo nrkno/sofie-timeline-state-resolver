@@ -8,40 +8,36 @@ import {
 import {
 	DeviceType,
 	DeviceOptions,
-	TimelineContentTypeHttp,
-	HttpSendOptions,
-	HttpSendCommandContent
+	OSCMessageCommandContent,
+	OSCOptions
 } from '../types/src'
 import { DoOnTime } from '../doOnTime'
-import * as request from 'request'
 
 import {
 	TimelineState,
 	TimelineResolvedObject
 } from 'superfly-timeline'
+import * as osc from 'osc'
 
-/*
-	This is a HTTPSendDevice, it sends http commands when it feels like it
-*/
-export interface HttpSendDeviceOptions extends DeviceOptions {
+export interface OSCMessageDeviceOptions extends DeviceOptions {
 	options?: {
 		commandReceiver?: (time: number, cmd) => Promise<any>
 	}
 }
 interface Command {
 	commandName: 'added' | 'changed' | 'removed',
-	content: HttpSendCommandContent,
+	content: OSCMessageCommandContent,
 	context: CommandContext
 }
 type CommandContext = string
-export class HttpSendDevice extends DeviceWithState<TimelineState> {
+export class OSCMessageDevice extends DeviceWithState<TimelineState> {
 
-	private _makeReadyCommands: HttpSendCommandContent[]
 	private _doOnTime: DoOnTime
+	private _oscClient: osc.UDPPort
 
-	private _commandReceiver: (time: number, cmd: HttpSendCommandContent, context: CommandContext) => Promise<any>
+	private _commandReceiver: (time: number, cmd: OSCMessageCommandContent, context: CommandContext) => Promise<any>
 
-	constructor (deviceId: string, deviceOptions: HttpSendDeviceOptions, options) {
+	constructor (deviceId: string, deviceOptions: OSCMessageDeviceOptions, options) {
 		super(deviceId, deviceOptions, options)
 		if (deviceOptions.options) {
 			if (deviceOptions.options.commandReceiver) this._commandReceiver = deviceOptions.options.commandReceiver
@@ -52,8 +48,16 @@ export class HttpSendDevice extends DeviceWithState<TimelineState> {
 		})
 		this._doOnTime.on('error', e => this.emit('error', e))
 	}
-	init (options: HttpSendOptions): Promise<boolean> {
-		this._makeReadyCommands = options.makeReadyCommands || []
+	init (options: OSCOptions): Promise<boolean> {
+		this._oscClient = new osc.UDPPort({
+			localAddress: '0.0.0.0',
+			localPort: 0,
+
+			remoteAddress: options.host,
+			remotePort: options.port,
+			metadata: true
+		})
+		this._oscClient.open()
 
 		return Promise.resolve(true) // This device doesn't have any initialization procedure
 	}
@@ -64,8 +68,8 @@ export class HttpSendDevice extends DeviceWithState<TimelineState> {
 
 		let oldState: TimelineState = (this.getStateBefore(newState.time) || { state: { time: 0, LLayers: {}, GLayers: {} } }).state
 
-		let oldAbstractState = this.convertStateToHttpSend(oldState)
-		let newAbstractState = this.convertStateToHttpSend(newState)
+		let oldAbstractState = this.convertStateToOSCMessage(oldState)
+		let newAbstractState = this.convertStateToOSCMessage(newState)
 
 		let commandsToAchieveState: Array<any> = this._diffStates(oldAbstractState, newAbstractState)
 
@@ -92,15 +96,7 @@ export class HttpSendDevice extends DeviceWithState<TimelineState> {
 		}
 	}
 	makeReady (okToDestroyStuff?: boolean): Promise<void> {
-		if (okToDestroyStuff && this._makeReadyCommands && this._makeReadyCommands.length > 0) {
-			const time = this.getCurrentTime()
-			_.each(this._makeReadyCommands, (cmd: HttpSendCommandContent) => {
-				// add the new commands to the queue:
-				this._doOnTime.queue(time, (cmd: HttpSendCommandContent) => {
-					return this._commandReceiver(time, cmd, 'makeReady')
-				}, cmd)
-			})
-		}
+		okToDestroyStuff = okToDestroyStuff
 		return Promise.resolve()
 	}
 
@@ -110,16 +106,16 @@ export class HttpSendDevice extends DeviceWithState<TimelineState> {
 	get connected (): boolean {
 		return false
 	}
-	convertStateToHttpSend (state: TimelineState) {
+	convertStateToOSCMessage (state: TimelineState) {
 		// convert the timeline state into something we can use
 		// (won't even use this.mapping)
 		return state
 	}
 	get deviceType () {
-		return DeviceType.HTTPSEND
+		return DeviceType.OSC
 	}
 	get deviceName (): string {
-		return 'HTTP-Send ' + this.deviceId
+		return 'OSC ' + this.deviceId
 	}
 	get queue () {
 		return this._doOnTime.getQueue()
@@ -140,18 +136,18 @@ export class HttpSendDevice extends DeviceWithState<TimelineState> {
 			}, cmd)
 		})
 	}
-	private _diffStates (oldhttpSendState: TimelineState, newhttpSendState: TimelineState): Array<Command> {
-		// in this httpSend class, let's just cheat:
+	private _diffStates (oldoscSendState: TimelineState, newOscSendState: TimelineState): Array<Command> {
+		// in this oscSend class, let's just cheat:
 
 		let commands: Array<Command> = []
 
-		_.each(newhttpSendState.LLayers, (newLayer: TimelineResolvedObject, layerKey: string) => {
-			let oldLayer = oldhttpSendState.LLayers[layerKey]
+		_.each(newOscSendState.LLayers, (newLayer: TimelineResolvedObject, layerKey: string) => {
+			let oldLayer = oldoscSendState.LLayers[layerKey]
 			if (!oldLayer) {
 				// added!
 				commands.push({
 					commandName: 'added',
-					content: newLayer.content as HttpSendCommandContent, // tslint:disable-line
+					content: newLayer.content as OSCMessageCommandContent, // tslint:disable-line
 					context: `added: ${newLayer.id}`
 				})
 			} else {
@@ -160,29 +156,29 @@ export class HttpSendDevice extends DeviceWithState<TimelineState> {
 					// changed!
 					commands.push({
 						commandName: 'changed',
-						content: newLayer.content as HttpSendCommandContent, // tslint:disable-line
+						content: newLayer.content as OSCMessageCommandContent, // tslint:disable-line
 						context: `changed: ${newLayer.id}`
 					})
 				}
 			}
 		})
 		// removed
-		_.each(oldhttpSendState.LLayers, (oldLayer: TimelineResolvedObject, layerKey) => {
-			let newLayer = newhttpSendState.LLayers[layerKey]
+		_.each(oldoscSendState.LLayers, (oldLayer: TimelineResolvedObject, layerKey) => {
+			let newLayer = newOscSendState.LLayers[layerKey]
 			if (!newLayer) {
 				// removed!
 				commands.push({
 					commandName: 'removed',
-					content: oldLayer.content as HttpSendCommandContent, // tslint:disable-line
+					content: oldLayer.content as OSCMessageCommandContent, // tslint:disable-line
 					context: `removed: ${oldLayer.id}`
 				})
 			}
 		})
 		return commands
 	}
-	private _defaultCommandReceiver (time: number, cmd: HttpSendCommandContent, context: CommandContext): Promise<any> {
+	private _defaultCommandReceiver (time: number, cmd: OSCMessageCommandContent, context: CommandContext): Promise<any> {
 		time = time
-		// this.emit('info', 'HTTP: Send ', cmd)
+		// this.emit('info', 'OSC: Send ', cmd)
 
 		let cwc: CommandWithContext = {
 			context: context,
@@ -190,48 +186,15 @@ export class HttpSendDevice extends DeviceWithState<TimelineState> {
 		}
 		this.emit('debug', cwc)
 
-		return new Promise((resolve, reject) => {
-			let handleResponse = (error, response) => {
-				if (error) {
-					this.emit('error', `HTTPSend: Error ${cmd.type}`, error)
-					reject(error)
-				} else if (response.statusCode === 200) {
-					// console.log('200 Response from ' + cmd.url, body)
-					this.emit('debug', `HTTPSend: ${cmd.type}: Good statuscode response on url "${cmd.url}": ${response.statusCode}`)
-					resolve()
-				} else {
-					this.emit('warning', `HTTPSend: ${cmd.type}: Bad statuscode response on url "${cmd.url}": ${response.statusCode}`)
-					// console.log(response.statusCode + ' Response from ' + cmd.url, body)
-					resolve()
-				}
-			}
-			if (cmd.type === TimelineContentTypeHttp.POST) {
-				request.post(
-					cmd.url,
-					{ json: cmd.params },
-					handleResponse
-				)
-			} else if (cmd.type === TimelineContentTypeHttp.PUT) {
-				request.put(
-					cmd.url,
-					{ json: cmd.params },
-					handleResponse
-				)
-			} else if (cmd.type === TimelineContentTypeHttp.GET) {
-				request.get(
-					cmd.url,
-					{ json: cmd.params },
-					handleResponse
-				)
-			} else if (cmd.type === TimelineContentTypeHttp.DELETE) {
-				request.delete(
-					cmd.url,
-					{ json: cmd.params },
-					handleResponse
-				)
-			} else {
-				reject(`Unknown HTTP-send type: "${cmd.type}"`)
-			}
-		})
+		try {
+			this._oscClient.send({
+				address: cmd.path,
+				args: cmd.values
+			})
+
+			return Promise.resolve()
+		} catch (e) {
+			return Promise.reject(e)
+		}
 	}
 }

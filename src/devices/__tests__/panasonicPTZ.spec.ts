@@ -1,16 +1,16 @@
 jest.mock('request')
 import { TriggerType } from 'superfly-timeline'
-import {
-	Mappings,
-	MappingPanasonicPtz,
-	DeviceType,
-	MappingPanasonicPtzType
-} from '../mapping'
 import { Conductor } from '../../conductor'
 import {
-	PanasonicPtzDevice,
-	TimelineContentTypePanasonicPtz
+	PanasonicPtzDevice
 } from '../panasonicPTZ'
+import {
+	Mappings,
+	DeviceType,
+	TimelineContentTypePanasonicPtz,
+	MappingPanasonicPtz,
+	MappingPanasonicPtzType
+} from '../../types/src'
 import { MockTime } from '../../__tests__/mockTime.spec'
 const request = require('../../__mocks__/request')
 
@@ -56,9 +56,21 @@ describe('Panasonic PTZ', () => {
 			deviceId: 'myPtz',
 			mappingType: MappingPanasonicPtzType.PRESET_SPEED
 		}
+		let myChannelMapping2: MappingPanasonicPtz = {
+			device: DeviceType.PANASONIC_PTZ,
+			deviceId: 'myPtz',
+			mappingType: MappingPanasonicPtzType.ZOOM
+		}
+		let myChannelMapping3: MappingPanasonicPtz = {
+			device: DeviceType.PANASONIC_PTZ,
+			deviceId: 'myPtz',
+			mappingType: MappingPanasonicPtzType.ZOOM_SPEED
+		}
 		let myChannelMapping: Mappings = {
 			'ptz_k1': myChannelMapping0,
-			'ptz_k1_s': myChannelMapping1
+			'ptz_k1_s': myChannelMapping1,
+			'ptz_k1_z': myChannelMapping2,
+			'ptz_k1_zs': myChannelMapping3
 		}
 
 		let myConductor = new Conductor({
@@ -138,7 +150,7 @@ describe('Panasonic PTZ', () => {
 				id: 'obj2_s',
 				trigger: {
 					type: TriggerType.TIME_ABSOLUTE,
-					value: mockTime.now + 1000 // 1 seconds in the past
+					value: mockTime.now + 1000 // 1 seconds in the future
 				},
 				duration: 500,
 				LLayer: 'ptz_k1_s',
@@ -158,6 +170,32 @@ describe('Panasonic PTZ', () => {
 				content: {
 					type: TimelineContentTypePanasonicPtz.PRESET,
 					preset: 1
+				}
+			},
+			{
+				id: 'obj4',
+				trigger: {
+					type: TriggerType.TIME_ABSOLUTE,
+					value: mockTime.now + 6000 // 6 seconds in the future
+				},
+				duration: 2000,
+				LLayer: 'ptz_k1_z',
+				content: {
+					type: TimelineContentTypePanasonicPtz.ZOOM,
+					zoom: 0
+				}
+			},
+			{
+				id: 'obj5',
+				trigger: {
+					type: TriggerType.TIME_ABSOLUTE,
+					value: mockTime.now + 6000 // 6 seconds in the future
+				},
+				duration: 2000,
+				LLayer: 'ptz_k1_zs',
+				content: {
+					type: TimelineContentTypePanasonicPtz.ZOOM_SPEED,
+					zoomSpeed: 1
 				}
 			}
 		]
@@ -224,5 +262,31 @@ describe('Panasonic PTZ', () => {
 
 		expect(commandReceiver0).toHaveBeenCalledTimes(6)
 		// no new commands should be sent, nothing is sent on object end
+
+		mockTime.advanceTimeTo(16500)
+
+		expect(commandReceiver0).toHaveBeenCalledTimes(8)
+		expect(commandReceiver0.mock.calls[6][1]).toMatchObject(
+			{
+				type: TimelineContentTypePanasonicPtz.ZOOM_SPEED,
+				speed: 1
+			}
+		)
+		expect(commandReceiver0.mock.calls[7][1]).toMatchObject(
+			{
+				type: TimelineContentTypePanasonicPtz.ZOOM,
+				zoom: 0
+			}
+		)
+		mockTime.advanceTimeTo(18500)
+
+		// The end of Zoom Speed object should reset zoom speed to 0
+		expect(commandReceiver0).toHaveBeenCalledTimes(9)
+		expect(commandReceiver0.mock.calls[8][1]).toMatchObject(
+			{
+				type: TimelineContentTypePanasonicPtz.ZOOM_SPEED,
+				speed: 0
+			}
+		)
 	})
 })
