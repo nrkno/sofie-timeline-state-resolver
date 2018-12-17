@@ -245,7 +245,8 @@ describe('Conductor', () => {
 				callBack: 'abc',
 				callBackData: {
 					hello: 'dude'
-				}
+				},
+				callBackStopped: 'abcStopped'
 			}
 		}
 		let timeline = [abstractThing0, abstractThing1]
@@ -303,6 +304,14 @@ describe('Conductor', () => {
 
 		expect(commandReceiver0).toHaveBeenCalledTimes(3)
 
+		expect(timelineCallback).toHaveBeenCalledTimes(2)
+		expect(timelineCallback.mock.calls[1][0]).toEqual(15300)
+		expect(timelineCallback.mock.calls[1][1]).toEqual('a1')
+		expect(timelineCallback.mock.calls[1][2]).toEqual('abcStopped')
+		expect(timelineCallback.mock.calls[1][3]).toEqual({ hello: 'dude' })
+
+		mockTime.advanceTime(3500) // to time 10000
+		expect(timelineCallback).toHaveBeenCalledTimes(2)
 	})
 
 	test('devicesMakeReady', async () => {

@@ -50,6 +50,12 @@ export interface ConductorOptions {
 	getCurrentTime?: () => number
 	autoInit?: boolean
 }
+interface TimelineCallback {
+	id: string
+	callBack?: string
+	callBackStopped?: string
+	callBackData: any
+}
 /**
  * The main class that serves to interface with all functionality.
  */
@@ -70,7 +76,7 @@ export class Conductor extends EventEmitter {
 	private _isInitialized: boolean = false
 	private _doOnTime: DoOnTime
 
-	private _sentCallbacks: {[key: string]: boolean} = {}
+	private _sentCallbacks: {[key: string]: TimelineCallback} = {}
 
 	constructor (options: ConductorOptions = {}) {
 		super()
@@ -435,29 +441,56 @@ export class Conductor extends EventEmitter {
 			}
 			// Special function: send callback to Core
 			let sentCallbacksOld = this._sentCallbacks
-			let sentCallbacksNew: {[key: string]: boolean} = {}
+			let sentCallbacksNew: {[key: string]: TimelineCallback} = {}
 			this._doOnTime.clearQueueNowAndAfter(tlState.time)
 			_.each(tlState.GLayers, (o: TimelineResolvedObject) => {
 				try {
-					if (o.content.callBack) {
-						let callBackId = o.id + o.content.callBack + o.resolved.startTime + JSON.stringify(o.content.callBackData)
-						this._doOnTime.queue(o.resolved.startTime, () => {
-							sentCallbacksNew[callBackId] = true
-							if (!sentCallbacksOld[callBackId]) {
-								this.emit('timelineCallback',
-									o.resolved.startTime,
-									o.id,
-									o.content.callBack,
-									o.content.callBackData
-								)
-							} else {
-								// callback already sent, do nothing
-								// this.emit('debug', 'callback already sent', callBackId)
-							}
-						})
+					if (o.content.callBack || o.content.callBackStopped) {
+						let callBackId = (
+							o.id +
+							o.content.callBack +
+							o.content.callBackStopped +
+							o.resolved.startTime +
+							JSON.stringify(o.content.callBackData)
+						)
+						sentCallbacksNew[callBackId] = {
+							id: o.id,
+							callBack: o.content.callBack,
+							callBackStopped: o.content.callBackStopped,
+							callBackData: o.content.callBackData
+						}
+						if (o.content.callBack) {
+							this._doOnTime.queue(o.resolved.startTime, () => {
+								if (!sentCallbacksOld[callBackId]) {
+									// Object has started playing
+									this.emit('timelineCallback',
+										o.resolved.startTime,
+										o.id,
+										o.content.callBack,
+										o.content.callBackData
+									)
+								} else {
+									// callback already sent, do nothing
+									// this.emit('debug', 'callback already sent', callBackId)
+								}
+							})
+						}
 					}
 				} catch (e) {
 					this.emit('error', `callback to core, obj "${o.id}"`, e)
+				}
+			})
+			_.each(sentCallbacksOld, (cb, callBackId: string) => {
+				if (cb.callBackStopped) {
+					if (!sentCallbacksNew[callBackId]) {
+						// Object has stopped playing
+						this.emit('timelineCallback',
+							tlState.time,
+							cb.id,
+							cb.callBackStopped,
+							cb.callBackData
+						)
+					}
 				}
 			})
 			this._sentCallbacks = sentCallbacksNew
