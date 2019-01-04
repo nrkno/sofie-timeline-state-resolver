@@ -245,7 +245,7 @@ export class Conductor extends EventEmitter {
 				)
 			} else if (deviceOptions.type === DeviceType.PANASONIC_PTZ) {
 				newDevice = await threadedClass<PanasonicPtzDevice>(
-					'../dist/devices/panasonicPtz.js',
+					'../dist/devices/panasonicPTZ.js',
 					PanasonicPtzDevice,
 					[ deviceId, deviceOptions, options ],
 					{
