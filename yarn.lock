@@ -4485,11 +4485,6 @@ ms@^2.1.1:
   resolved "https://registry.yarnpkg.com/ms/-/ms-2.1.1.tgz#30a5864eb3ebb0a66f2ebe6d727af06a09d86e0a"
   integrity sha512-tgp+dl5cGk28utYktBsrFqA7HKgrhgPsg6Z/EfhWI4gl1Hwq8B/GmY/0oXZ6nF8hDVesS/FpnYaD/kOWhYQvyg==
 
-mute-stream@0.0.7:
-  version "0.0.7"
-  resolved "https://registry.yarnpkg.com/mute-stream/-/mute-stream-0.0.7.tgz#3075ce93bc21b8fab43e1bc4da7e8115ed1e7bab"
-  integrity sha1-MHXOk7whuPq0PhvE2n6BFe0ee6s=
-
 nan@^2.9.2:
   version "2.11.1"
   resolved "https://registry.yarnpkg.com/nan/-/nan-2.11.1.tgz#90e22bccb8ca57ea4cd37cc83d3819b52eea6766"
@@ -5771,7 +5766,7 @@ semver-diff@^2.0.0:
   dependencies:
     semver "^5.0.3"
 
-"semver@2 || 3 || 4 || 5", semver@^5.0.3, semver@^5.1.0, semver@^5.3.0, semver@^5.4.1, semver@^5.5.0:
+"semver@2 || 3 || 4 || 5", semver@^5.0.3, semver@^5.1.0, semver@^5.3.0, semver@^5.5.0:
   version "5.6.0"
   resolved "https://registry.yarnpkg.com/semver/-/semver-5.6.0.tgz#7e74256fbaa49c75aa7c7a205cc22799cac80004"
   integrity sha512-RS9R6R35NYgQn++fkDWaOmqGoj4Ek9gGs+DPxNUZKuwE183xjJroKvyo1IzVFeXvUrvmALy6FWD5xrdJT25gMg==
@@ -6409,10 +6404,10 @@ text-extensions@^1.0.0:
   resolved "https://registry.yarnpkg.com/text-extensions/-/text-extensions-1.9.0.tgz#1853e45fee39c945ce6f6c36b2d659b5aabc2a26"
   integrity sha512-wiBrwC1EhBelW12Zy26JeOUkQ5mRu+5o8rpsJk5+2t+Y5vE7e842qtZDQ2g1NpX/29HdyFeJ4nSIhI47ENSxlQ==
 
-threadedclass@^0.0.7:
-  version "0.0.7"
-  resolved "https://registry.yarnpkg.com/threadedclass/-/threadedclass-0.0.7.tgz#c956ed6e3e76d583cedb4da33fc606402bce8972"
-  integrity sha512-QnvfcmakMjE5wVqjL1j/JtWebjvi6ugdJqG5e49JkhASd4fk6cIftD2sKaFTtcTZYvK3blqnR85VoumTAJDsHQ==
+threadedclass@^0.2.1:
+  version "0.2.1"
+  resolved "https://registry.yarnpkg.com/threadedclass/-/threadedclass-0.2.1.tgz#db6f06fb95a2630971c16fc2e245c470e95090e7"
+  integrity sha512-YGGgl7OvbLafbB9i8QFiCz3aRp1n8rqVRzgSI/cnbk7bABg0cuZmKmIpG8i65QW+rfIEDmBlfvtzhWfyVtEaVg==
   dependencies:
     callsites "^2.0.0"
     tslib "^1.6.0"
