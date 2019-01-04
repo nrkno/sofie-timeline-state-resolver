@@ -631,6 +631,8 @@ describe('CasparCG', () => {
 			initializeAsClear: true,
 			getCurrentTime: mockTime.getCurrentTime
 		})
+		myConductor.on('error', e => { throw new Error(e) })
+		myConductor.on('warning', msg => { console.warn(msg) })
 		await myConductor.init()
 		await myConductor.addDevice('myCCG', {
 			type: DeviceType.CASPARCG,
@@ -705,7 +707,7 @@ describe('CasparCG', () => {
 		]
 
 		// fast-forward:
-		await mockTime.advanceTimeTicks(500)
+		await mockTime.advanceTimeTicks(100)
 
 		// Check that ACMP-commands has been sent
 		expect(commandReceiver0).toHaveBeenCalledTimes(5)

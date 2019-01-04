@@ -443,7 +443,6 @@ describe('Rundown', () => {
 			auto: false
 		})
 
-		
 		await mockTime.advanceTimeToTicks(13000)
 		commandReceiver0Calls += 1
 		expect(commandReceiver0).toHaveBeenCalledTimes(commandReceiver0Calls)

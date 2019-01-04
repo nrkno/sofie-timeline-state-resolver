@@ -87,6 +87,6 @@ test('mockTimeAsync', async done => {
 		done()
 	})
 	// expect(() => {
-	// 	return 
+	// 	return
 	// }).toThrowError()
 })

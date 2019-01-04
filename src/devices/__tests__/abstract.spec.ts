@@ -51,8 +51,8 @@ describe('Abstract device', () => {
 		device.terminate = jest.fn(device.terminate)
 		let onError = jest.fn()
 		let onDebug = jest.fn()
-		device.on('error', onError)
-		device.on('debug', onDebug)
+		device.on('error', onError).catch(() => null)
+		device.on('debug', onDebug).catch(() => null)
 
 		expect(await device.canConnect).toBeFalsy()
 		expect(await device.connected).toBeFalsy()
@@ -153,8 +153,8 @@ describe('Abstract device', () => {
 		device.terminate = jest.fn(device.terminate)
 		let onError = jest.fn()
 		let onDebug = jest.fn()
-		device.on('error', onError)
-		device.on('debug', onDebug)
+		device.on('error', onError).catch(() => null)
+		device.on('debug', onDebug).catch(() => null)
 
 		// Check that no commands has been scheduled:
 		expect(await device.queue).toHaveLength(0)
@@ -177,7 +177,7 @@ describe('Abstract device', () => {
 
 		await myConductor.removeDevice(await device.deviceId)
 
-		expect(await device.terminate).toHaveBeenCalledTimes(1)
+		expect(device.terminate).toHaveBeenCalledTimes(1)
 		expect(myConductor.getDevice('myAbstract')).toBeFalsy()
 
 		expect(onError).toHaveBeenCalledTimes(0)

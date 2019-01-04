@@ -304,16 +304,8 @@ describe('Conductor', () => {
 
 		await mockTime.advanceTimeTicks(5000) // to time 6500
 
-		expect(commandReceiver0).toHaveBeenCalledTimes(3)
-
-		expect(timelineCallback).toHaveBeenCalledTimes(2)
-		expect(timelineCallback.mock.calls[1][0]).toEqual(15300)
-		expect(timelineCallback.mock.calls[1][1]).toEqual('a1')
-		expect(timelineCallback.mock.calls[1][2]).toEqual('abcStopped')
-		expect(timelineCallback.mock.calls[1][3]).toEqual({ hello: 'dude' })
-
-		mockTime.advanceTime(3500) // to time 10000
-		expect(timelineCallback).toHaveBeenCalledTimes(2)
+		// expect(commandReceiver0).toHaveBeenCalledTimes(3)
+		expect(commandReceiver0.mock.calls).toHaveLength(3)
 	})
 
 	test('devicesMakeReady', async () => {
@@ -374,7 +366,8 @@ describe('Conductor', () => {
 
 		await mockTime.advanceTimeTicks(10) // to allow for commands to be sent
 
-		expect(commandReceiver1).toHaveBeenCalledTimes(3)
+		// expect(commandReceiver1).toHaveBeenCalledTimes(3)
+		expect(commandReceiver1.mock.calls).toHaveLength(3)
 		// expect(commandReceiver1.mock.calls[0][1].name).toEqual('TimeCommand')
 		// expect(commandReceiver1.mock.calls[0][1]._objectParams).toMatchObject({
 		// 	channel: 1,
