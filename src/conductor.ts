@@ -50,6 +50,7 @@ export interface ConductorOptions {
 	initializeAsClear?: boolean // don't do any initial checks with devices to determine state, instead assume that everything is clear, black and quiet
 	getCurrentTime?: () => number
 	autoInit?: boolean
+	isMultihreaded?: boolean
 }
 interface TimelineCallback {
 	id: string
@@ -85,6 +86,10 @@ export class Conductor extends EventEmitter {
 		this._options = options
 
 		this._options = this._options // ts-lint fix: not used
+
+		if (options.isMultihreaded) {
+			this.isMultiThreaded = options.isMultihreaded
+		}
 
 		if (options.getCurrentTime) this._getCurrentTime = options.getCurrentTime
 
