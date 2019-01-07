@@ -171,10 +171,10 @@ export class Conductor extends EventEmitter {
 		this._logDebug = val
 	}
 
-	public getDevices (): Array<ThreadedClass<Device> | Device> {
+	public getDevices (): Array<ThreadedClass<Device>> {
 		return _.values(this.devices)
 	}
-	public getDevice (deviceId: string) {
+	public getDevice (deviceId: string): ThreadedClass<Device> {
 		return this.devices[deviceId]
 	}
 
