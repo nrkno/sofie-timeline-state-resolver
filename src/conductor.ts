@@ -276,6 +276,17 @@ export class Conductor extends EventEmitter {
 						disableMultithreading: !this.isMultiThreaded
 					}
 				)
+			} else if (deviceOptions.type === DeviceType.OSC) {
+				newDevice = await threadedClass<OSCMessageDevice>(
+					'../dist/devices/osc.js',
+					OSCMessageDevice,
+					[ deviceId, deviceOptions, options ],
+					{
+						threadUsage: this.isMultiThreaded ? .25 : 0,
+						autoRestart: true,
+						disableMultithreading: !this.isMultiThreaded
+					}
+				)
 			} else {
 				return Promise.reject('No matching multithreaded device type for "' +
 				deviceOptions.type + '" ("' + DeviceType[deviceOptions.type] + '") found')
