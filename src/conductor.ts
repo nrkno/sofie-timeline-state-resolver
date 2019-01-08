@@ -186,6 +186,11 @@ export class Conductor extends EventEmitter {
 	public async addDevice (deviceId, deviceOptions: DeviceOptions): Promise<ThreadedClass<Device>> {
 		try {
 			let newDevice: ThreadedClass<Device>
+			let threadedClassOptions = {
+				threadUsage: deviceOptions.threadUsage || 1,
+				autoRestart: true,
+				disableMultithreading: !this.isMultiThreaded
+			}
 
 			let options = {
 				getCurrentTime: () => { return this.getCurrentTime() }
@@ -209,88 +214,56 @@ export class Conductor extends EventEmitter {
 					'../dist/devices/casparCG.js',
 					CasparCGDevice,
 					[ deviceId, deviceOptions, options ],
-					{
-						threadUsage: this.isMultiThreaded ? 1 : 0,
-						autoRestart: true,
-						disableMultithreading: !this.isMultiThreaded
-					}
+					threadedClassOptions
 				)
 			} else if (deviceOptions.type === DeviceType.ATEM) {
 				newDevice = await threadedClass<AtemDevice>(
 					'../dist/devices/atem.js',
 					AtemDevice,
 					[ deviceId, deviceOptions, options ],
-					{
-						threadUsage: this.isMultiThreaded ? 1 : 0,
-						autoRestart: true,
-						disableMultithreading: !this.isMultiThreaded
-					}
+					threadedClassOptions
 				)
 			} else if (deviceOptions.type === DeviceType.HTTPSEND) {
 				newDevice = await threadedClass<HttpSendDevice>(
 					'../dist/devices/httpSend.js',
 					HttpSendDevice,
 					[ deviceId, deviceOptions, options ],
-					{
-						threadUsage: this.isMultiThreaded ? .25 : 0,
-						autoRestart: true,
-						disableMultithreading: !this.isMultiThreaded
-					}
+					threadedClassOptions
 				)
 			} else if (deviceOptions.type === DeviceType.LAWO) {
 				newDevice = await threadedClass<LawoDevice>(
 					'../dist/devices/lawo.js',
 					LawoDevice,
 					[ deviceId, deviceOptions, options ],
-					{
-						threadUsage: this.isMultiThreaded ? .5 : 0,
-						autoRestart: true,
-						disableMultithreading: !this.isMultiThreaded
-					}
+					threadedClassOptions
 				)
 			} else if (deviceOptions.type === DeviceType.PANASONIC_PTZ) {
 				newDevice = await threadedClass<PanasonicPtzDevice>(
 					'../dist/devices/panasonicPTZ.js',
 					PanasonicPtzDevice,
 					[ deviceId, deviceOptions, options ],
-					{
-						threadUsage: this.isMultiThreaded ? .25 : 0,
-						autoRestart: true,
-						disableMultithreading: !this.isMultiThreaded
-					}
+					threadedClassOptions
 				)
 			} else if (deviceOptions.type === DeviceType.HYPERDECK) {
 				newDevice = await threadedClass<HyperdeckDevice>(
 					'../dist/devices/hyperdeck.js',
 					HyperdeckDevice,
 					[ deviceId, deviceOptions, options ],
-					{
-						threadUsage: this.isMultiThreaded ? .25 : 0,
-						autoRestart: true,
-						disableMultithreading: !this.isMultiThreaded
-					}
+					threadedClassOptions
 				)
 			} else if (deviceOptions.type === DeviceType.PHAROS) {
 				newDevice = await threadedClass<PharosDevice>(
 					'../dist/devices/pharos.js',
 					PharosDevice,
 					[ deviceId, deviceOptions, options ],
-					{
-						threadUsage: this.isMultiThreaded ? .25 : 0,
-						autoRestart: true,
-						disableMultithreading: !this.isMultiThreaded
-					}
+					threadedClassOptions
 				)
 			} else if (deviceOptions.type === DeviceType.OSC) {
 				newDevice = await threadedClass<OSCMessageDevice>(
 					'../dist/devices/osc.js',
 					OSCMessageDevice,
 					[ deviceId, deviceOptions, options ],
-					{
-						threadUsage: this.isMultiThreaded ? .25 : 0,
-						autoRestart: true,
-						disableMultithreading: !this.isMultiThreaded
-					}
+					threadedClassOptions
 				)
 			} else {
 				return Promise.reject('No matching multithreaded device type for "' +
@@ -306,43 +279,9 @@ export class Conductor extends EventEmitter {
 			newDevice.on('warning',	(e) => this.emit('warning', e)).catch(() => null)
 			newDevice.on('error',	(e) => this.emit('error', 	e)).catch(() => null)
 			newDevice.on('resetResolver', () => this.resetResolver()).catch(() => null)
-			/* } else {
-				if (deviceOptions.type === DeviceType.ABSTRACT) {
-					// Add Abstract device:
-					newDevice = new AbstractDevice(deviceId, deviceOptions, options) as Device
-				} else if (deviceOptions.type === DeviceType.CASPARCG) {
-					// Add CasparCG device:
-					newDevice = new CasparCGDevice(deviceId, deviceOptions, options) as Device
-				} else if (deviceOptions.type === DeviceType.ATEM) {
-					newDevice = new AtemDevice(deviceId, deviceOptions, options) as Device
-				} else if (deviceOptions.type === DeviceType.HTTPSEND) {
-					newDevice = new HttpSendDevice(deviceId, deviceOptions, options) as Device
-				} else if (deviceOptions.type === DeviceType.LAWO) {
-					newDevice = new LawoDevice(deviceId, deviceOptions, options) as Device
-				} else if (deviceOptions.type === DeviceType.PANASONIC_PTZ) {
-					newDevice = new PanasonicPtzDevice(deviceId, deviceOptions, options) as Device
-				} else if (deviceOptions.type === DeviceType.HYPERDECK) {
-					newDevice = new HyperdeckDevice(deviceId, deviceOptions, options) as Device
-				} else if (deviceOptions.type === DeviceType.PHAROS) {
-					newDevice = new PharosDevice(deviceId, deviceOptions, options) as Device
-				} else {
-					return Promise.reject('No matching device type for "' + deviceOptions.type + '" ("' + DeviceType[deviceOptions.type] + '") found')
-				}
-
-				newDevice.on('debug',	(...e) => {
-					if (this.logDebug) {
-						this.emit('debug', newDevice.deviceId, ...e)
-					}
-				})
-				newDevice.on('info',	(e) => this.emit('info', 	e))
-				newDevice.on('warning',	(e) => this.emit('warning', e))
-				newDevice.on('error',	(e) => this.emit('error', 	e))
-				newDevice.on('resetResolver', () => this.resetResolver())
-			} */
 
 			this.emit('info', 'Initializing ' + DeviceType[deviceOptions.type] + '...')
 			this.devices[deviceId] = newDevice
-			// newDevice.setMapping(this.mapping).catch(() => null)
 			// @ts-ignore
 			newDevice.mapping = this.mapping
 
