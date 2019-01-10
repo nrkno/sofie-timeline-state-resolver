@@ -291,7 +291,7 @@ export class AtemDevice extends DeviceWithState<DeviceState> {
 			_.each(psus, (psu: boolean, i: number) => {
 				if (!psu) {
 					statusCode = StatusCode.WARNING_MAJOR
-					messages.push(`Atem PSU ${i + 1}/${psus.length} is faulty`)
+					messages.push(`Atem PSU ${i + 1} is faulty. The device has ${psus.length} PSU(s) in total.`)
 				}
 			})
 		}
