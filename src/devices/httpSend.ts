@@ -31,7 +31,8 @@ export interface HttpSendDeviceOptions extends DeviceOptions {
 interface Command {
 	commandName: 'added' | 'changed' | 'removed',
 	content: HttpSendCommandContent,
-	context: CommandContext
+	context: CommandContext,
+	layer: string
 }
 type CommandContext = string
 export class HttpSendDevice extends DeviceWithState<TimelineState> {
@@ -152,7 +153,8 @@ export class HttpSendDevice extends DeviceWithState<TimelineState> {
 				commands.push({
 					commandName: 'added',
 					content: newLayer.content as HttpSendCommandContent, // tslint:disable-line
-					context: `added: ${newLayer.id}`
+					context: `added: ${newLayer.id}`,
+					layer: layerKey
 				})
 			} else {
 				// changed?
@@ -161,7 +163,8 @@ export class HttpSendDevice extends DeviceWithState<TimelineState> {
 					commands.push({
 						commandName: 'changed',
 						content: newLayer.content as HttpSendCommandContent, // tslint:disable-line
-						context: `changed: ${newLayer.id}`
+						context: `changed: ${newLayer.id}`,
+						layer: layerKey
 					})
 				}
 			}
@@ -174,11 +177,13 @@ export class HttpSendDevice extends DeviceWithState<TimelineState> {
 				commands.push({
 					commandName: 'removed',
 					content: oldLayer.content as HttpSendCommandContent, // tslint:disable-line
-					context: `removed: ${oldLayer.id}`
+					context: `removed: ${oldLayer.id}`,
+					layer: layerKey
 				})
 			}
 		})
-		return commands
+
+		return commands.sort((a, b) => a.layer.localeCompare(b.layer))
 	}
 	private _defaultCommandReceiver (time: number, cmd: HttpSendCommandContent, context: CommandContext): Promise<any> {
 		time = time
