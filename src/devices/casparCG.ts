@@ -203,7 +203,7 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> {
 		return DeviceType.CASPARCG
 	}
 	get deviceName (): string {
-		return 'CasparCG ' + this._ccg.host + ':' + this._ccg.port
+		return 'CasparCG ' + this.deviceId + this._ccg.host + ':' + this._ccg.port
 	}
 
 	get queue () {
