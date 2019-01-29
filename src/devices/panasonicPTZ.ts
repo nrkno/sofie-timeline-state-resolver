@@ -75,7 +75,7 @@ export class PanasonicPtzDevice extends DeviceWithState<TimelineState> {
 		if (deviceOptions.options && deviceOptions.options.host) {
 			this._device = new PanasonicPtzHttpInterface(deviceOptions.options.host, deviceOptions.options.port, deviceOptions.options.https)
 			this._device.on('error', (msg) => {
-				if (msg.code === 'ECONNREFUSED') return // ignore, since we catch this in connection logic 
+				if (msg.code === 'ECONNREFUSED') return // ignore, since we catch this in connection logic
 				this.emit('error', 'PanasonicPtzHttpInterface', msg)
 			})
 			this._device.on('disconnected', () => {
