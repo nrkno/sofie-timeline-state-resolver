@@ -75,10 +75,10 @@ export class PanasonicPtzDevice extends DeviceWithState<TimelineState> {
 		if (deviceOptions.options && deviceOptions.options.host) {
 			this._device = new PanasonicPtzHttpInterface(deviceOptions.options.host, deviceOptions.options.port, deviceOptions.options.https)
 			this._device.on('error', (msg) => {
+				if (msg.code === 'ECONNREFUSED') return // ignore, since we catch this in connection logic
 				this.emit('error', 'PanasonicPtzHttpInterface', msg)
 			})
-			this._device.on('disconnected', (msg) => {
-				this.emit('error', 'PanasonicPtzHttpInterface disconnected', msg)
+			this._device.on('disconnected', () => {
 				this._setConnected(false)
 			})
 			this._device.on('debug', (...args) => {
@@ -92,19 +92,16 @@ export class PanasonicPtzDevice extends DeviceWithState<TimelineState> {
 	init (): Promise<boolean> {
 		if (this._device) {
 			return new Promise((resolve, reject) => {
+				setInterval(() => {
+					this._device!.ping().then((result) => {
+						this._setConnected(!!result)
+					}).catch(() => {
+						this._setConnected(false)
+					})
+				}, PROBE_INTERVAL)
+
 				this._device!.ping().then((result) => {
 					this._setConnected(!!result)
-
-					if (result) {
-						setInterval(() => {
-							this._device!.ping().then((result) => {
-								this._setConnected(!!result)
-							}).catch((e) => {
-								this.emit('error', 'ping', e)
-								this._setConnected(false)
-							})
-						}, PROBE_INTERVAL)
-					}
 
 					resolve(true)
 				}).catch((e) => {

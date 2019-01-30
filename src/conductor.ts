@@ -58,6 +58,14 @@ interface TimelineCallback {
 	callBackStopped?: string
 	callBackData: any
 }
+type TimelineCallbacks = {[key: string]: TimelineCallback}
+interface QueueCallback {
+	type: 'start' | 'stop'
+	time: number | null | undefined
+	id: string
+	callBack: string
+	callBackData: any
+}
 /**
  * The main class that serves to interface with all functionality.
  */
@@ -79,7 +87,9 @@ export class Conductor extends EventEmitter {
 	private _doOnTime: DoOnTime
 	private isMultiThreaded = false
 
-	private _sentCallbacks: {[key: string]: TimelineCallback} = {}
+	private _queuedCallbacks: QueueCallback[] = []
+	private _triggerSendStartStopCallbacksTimeout: NodeJS.Timer | null = null
+	private _sentCallbacks: TimelineCallbacks = {}
 
 	constructor (options: ConductorOptions = {}) {
 		super()
@@ -521,8 +531,8 @@ export class Conductor extends EventEmitter {
 				this._nextResolveTime = 0
 			}
 			// Special function: send callback to Core
-			let sentCallbacksOld = this._sentCallbacks
-			let sentCallbacksNew: {[key: string]: TimelineCallback} = {}
+			let sentCallbacksOld: TimelineCallbacks = this._sentCallbacks
+			let sentCallbacksNew: TimelineCallbacks = {}
 			this._doOnTime.clearQueueNowAndAfter(tlState.time)
 			_.each(tlState.GLayers, (o: TimelineResolvedObject) => {
 				try {
@@ -544,12 +554,13 @@ export class Conductor extends EventEmitter {
 							this._doOnTime.queue(o.resolved.startTime, () => {
 								if (!sentCallbacksOld[callBackId]) {
 									// Object has started playing
-									this.emit('timelineCallback',
-										o.resolved.startTime,
-										o.id,
-										o.content.callBack,
-										o.content.callBackData
-									)
+									this._queueCallback({
+										type: 'start',
+										time: o.resolved.startTime,
+										id: o.id,
+										callBack: o.content.callBack,
+										callBackData: o.content.callBackData
+									})
 								} else {
 									// callback already sent, do nothing
 									// this.emit('debug', 'callback already sent', callBackId)
@@ -565,12 +576,13 @@ export class Conductor extends EventEmitter {
 				if (cb.callBackStopped) {
 					if (!sentCallbacksNew[callBackId]) {
 						// Object has stopped playing
-						this.emit('timelineCallback',
-							tlState.time,
-							cb.id,
-							cb.callBackStopped,
-							cb.callBackData
-						)
+						this._queueCallback({
+							type: 'start',
+							time: tlState.time,
+							id: cb.id,
+							callBack: cb.callBackStopped,
+							callBackData: cb.callBackData
+						})
 					}
 				}
 			})
@@ -668,5 +680,72 @@ export class Conductor extends EventEmitter {
 			// this.emit('info', 'setTimelineTriggerTime', r)
 			this.emit('setTimelineTriggerTime', r)
 		}
+	}
+
+	private _queueCallback (cb: QueueCallback) {
+		this._queuedCallbacks.push(cb)
+		this._triggerSendStartStopCallbacks()
+	}
+	private _triggerSendStartStopCallbacks () {
+		if (this._triggerSendStartStopCallbacksTimeout) {
+			clearTimeout(this._triggerSendStartStopCallbacksTimeout)
+		}
+		this._triggerSendStartStopCallbacksTimeout = setTimeout(() => {
+			this._triggerSendStartStopCallbacksTimeout = null
+			this._sendStartStopCallbacks()
+		}, 100)
+	}
+	private _sendStartStopCallbacks () {
+		// Go through the queue and filter out any stops that are immediately followed by a start:
+		const startTimes: {[id: string]: number} = {}
+		const stopTimes: {[id: string]: number} = {}
+
+		const callbacks: {[id: string]: QueueCallback} = {}
+		_.each(this._queuedCallbacks, cb => {
+			callbacks[cb.id] = cb
+
+			if (cb.time) {
+
+				if (cb.type === 'start') {
+					let prevTime = stopTimes[cb.id]
+					if (prevTime) {
+						if (Math.abs(prevTime - cb.time) < 50) {
+							// Too little time has passed, remove that stop/start
+							delete callbacks[cb.id]
+						}
+					}
+					startTimes[cb.id] = cb.time
+				} else if (cb.type === 'stop') {
+					let prevTime = startTimes[cb.id]
+					if (prevTime) {
+						if (Math.abs(prevTime - cb.time) < 50) {
+							// Too little time has passed, remove that stop/start
+							delete callbacks[cb.id]
+						}
+					}
+					stopTimes[cb.id] = cb.time
+				}
+			}
+		})
+		this._queuedCallbacks = []
+
+		let callbacksArray = _.values(callbacks).sort((a, b) => {
+			if (a.type === 'start' && b.type !== 'start') return 1
+			if (a.type !== 'start' && b.type === 'start') return -1
+
+			if ((a.time || 0) > (b.time || 0)) return 1
+			if ((a.time || 0) < (b.time || 0)) return -1
+
+			return 0
+		})
+
+		_.each(callbacksArray, cb => {
+			this.emit('timelineCallback',
+				cb.time,
+				cb.id,
+				cb.callBack,
+				cb.callBackData
+			)
+		})
 	}
 }
