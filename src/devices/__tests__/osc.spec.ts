@@ -11,6 +11,7 @@ import {
 } from '../../types/src'
 import { MockTime } from '../../__tests__/mockTime.spec'
 import { literal } from '../device'
+import { ThreadedClass } from 'threadedclass'
 
 // let nowActual = Date.now()
 describe('OSC-Message', () => {
@@ -40,6 +41,7 @@ describe('OSC-Message', () => {
 			initializeAsClear: true,
 			getCurrentTime: mockTime.getCurrentTime
 		})
+		myConductor.on('error', e => console.error(e))
 		await myConductor.init()
 		await myConductor.addDevice('osc0', {
 			type: DeviceType.OSC,
@@ -48,12 +50,12 @@ describe('OSC-Message', () => {
 			}
 		})
 		myConductor.mapping = myLayerMapping
-		mockTime.advanceTimeTo(10100)
+		await mockTime.advanceTimeToTicks(10100)
 
-		let device = myConductor.getDevice('osc0') as OSCMessageDevice
+		let device = myConductor.getDevice('osc0') as ThreadedClass<OSCMessageDevice>
 
 		// Check that no commands has been scheduled:
-		expect(device.queue).toHaveLength(0)
+		expect(await device.queue).toHaveLength(0)
 
 		myConductor.timeline = [
 			literal<TimelineObjOSCMessage>({
@@ -84,9 +86,9 @@ describe('OSC-Message', () => {
 			})
 		]
 
-		mockTime.advanceTimeTo(10990)
+		await mockTime.advanceTimeToTicks(10990)
 		expect(commandReceiver0).toHaveBeenCalledTimes(0)
-		mockTime.advanceTimeTo(11100)
+		await mockTime.advanceTimeToTicks(11100)
 
 		expect(commandReceiver0).toHaveBeenCalledTimes(1)
 		expect(commandReceiver0.mock.calls[0][1]).toMatchObject(
@@ -109,7 +111,7 @@ describe('OSC-Message', () => {
 			}
 		)
 		expect(commandReceiver0.mock.calls[0][2]).toMatch(/added/) // context
-		mockTime.advanceTimeTo(16000)
+		await mockTime.advanceTimeToTicks(16000)
 		expect(commandReceiver0).toHaveBeenCalledTimes(1)
 	})
 })

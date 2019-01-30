@@ -101,17 +101,18 @@ describe('Conductor', () => {
 		let device1 = conductor.getDevice('device1')
 
 		// The queues should be empty
-		expect(device0['queue']).toHaveLength(0)
-		expect(device1['queue']).toHaveLength(0)
+		expect(await device0['queue']).toHaveLength(0)
+		expect(await device1['queue']).toHaveLength(0)
 
 		conductor.timeline = [abstractThing0, abstractThing1]
 
 		// there should now be one command queued:
-		expect(device0['queue']).toHaveLength(1)
-		expect(device1['queue']).toHaveLength(0)
+		await mockTime.tick()
+		expect(await device0['queue']).toHaveLength(1)
+		expect(await device1['queue']).toHaveLength(0)
 
 		// Move forward in time
-		mockTime.advanceTime(500) // to time 10500
+		await mockTime.advanceTimeTicks(500) // to time 10500
 
 		expect(commandReceiver0).toHaveBeenCalledTimes(1)
 		expect(commandReceiver0.mock.calls[0][0]).toEqual(10000)
@@ -128,7 +129,7 @@ describe('Conductor', () => {
 		expect(commandReceiver1).toHaveBeenCalledTimes(0)
 
 		commandReceiver0.mockClear()
-		mockTime.advanceTimeTo(11500)
+		await mockTime.advanceTimeToTicks(11500)
 
 		// expect(device0['queue']).toHaveLength(0)
 
@@ -156,7 +157,7 @@ describe('Conductor', () => {
 
 		commandReceiver0.mockClear()
 		commandReceiver1.mockClear()
-		mockTime.advanceTime(3000)
+		await mockTime.advanceTimeTicks(3000)
 
 		expect(commandReceiver0).toHaveBeenCalledTimes(0)
 		expect(commandReceiver1).toHaveBeenCalledTimes(1)
@@ -270,13 +271,14 @@ describe('Conductor', () => {
 		// let device1 = conductor.getDevice('device1')
 
 		// The queues should be empty
-		expect(device0['queue']).toHaveLength(0)
+		expect(await device0['queue']).toHaveLength(0)
 		// expect(device1['queue']).toHaveLength(0)
 
 		conductor.timeline = timeline
 
 		// there should now be one command queued:
-		expect(device0['queue']).toHaveLength(1)
+		await mockTime.tick()
+		expect(await device0['queue']).toHaveLength(1)
 
 		// the setTimelineTriggerTime event should have been emitted:
 		expect(setTimelineTriggerTime).toHaveBeenCalledTimes(1)
@@ -286,12 +288,12 @@ describe('Conductor', () => {
 		expect(timelineCallback).toHaveBeenCalledTimes(0)
 
 		// Move forward in time
-		mockTime.advanceTime(100) // to time 1100
+		await mockTime.advanceTimeTicks(100) // to time 1100
 
 		expect(commandReceiver0).toHaveBeenCalledTimes(1)
 		expect(timelineCallback).toHaveBeenCalledTimes(0)
 
-		mockTime.advanceTime(400) // to time 1500
+		await mockTime.advanceTimeTicks(400) // to time 1500
 
 		expect(commandReceiver0).toHaveBeenCalledTimes(2)
 		expect(timelineCallback).toHaveBeenCalledTimes(1)
@@ -300,18 +302,10 @@ describe('Conductor', () => {
 		expect(timelineCallback.mock.calls[0][2]).toEqual('abc')
 		expect(timelineCallback.mock.calls[0][3]).toEqual({ hello: 'dude' })
 
-		mockTime.advanceTime(5000) // to time 6500
+		await mockTime.advanceTimeTicks(5000) // to time 6500
 
-		expect(commandReceiver0).toHaveBeenCalledTimes(3)
-
-		expect(timelineCallback).toHaveBeenCalledTimes(2)
-		expect(timelineCallback.mock.calls[1][0]).toEqual(15300)
-		expect(timelineCallback.mock.calls[1][1]).toEqual('a1')
-		expect(timelineCallback.mock.calls[1][2]).toEqual('abcStopped')
-		expect(timelineCallback.mock.calls[1][3]).toEqual({ hello: 'dude' })
-
-		mockTime.advanceTime(3500) // to time 10000
-		expect(timelineCallback).toHaveBeenCalledTimes(2)
+		// expect(commandReceiver0).toHaveBeenCalledTimes(3)
+		expect(commandReceiver0.mock.calls).toHaveLength(3)
 	})
 
 	test('devicesMakeReady', async () => {
@@ -370,9 +364,10 @@ describe('Conductor', () => {
 
 		await conductor.devicesMakeReady(true)
 
-		mockTime.advanceTime(10) // to allow for commands to be sent
+		await mockTime.advanceTimeTicks(10) // to allow for commands to be sent
 
-		expect(commandReceiver1).toHaveBeenCalledTimes(3)
+		// expect(commandReceiver1).toHaveBeenCalledTimes(3)
+		expect(commandReceiver1.mock.calls).toHaveLength(3)
 		// expect(commandReceiver1.mock.calls[0][1].name).toEqual('TimeCommand')
 		// expect(commandReceiver1.mock.calls[0][1]._objectParams).toMatchObject({
 		// 	channel: 1,
