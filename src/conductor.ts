@@ -26,6 +26,7 @@ import { HyperdeckDevice } from './devices/hyperdeck'
 import { DoOnTime } from './doOnTime'
 import { PharosDevice } from './devices/pharos'
 import { OSCMessageDevice } from './devices/osc'
+import { threadedClass, ThreadedClass } from 'threadedclass'
 
 const LOOKAHEADTIME = 5000 // Will look ahead this far into the future
 const PREPARETIME = 2000 // Will prepare commands this time before the event is to happen
@@ -49,6 +50,21 @@ export interface ConductorOptions {
 	initializeAsClear?: boolean // don't do any initial checks with devices to determine state, instead assume that everything is clear, black and quiet
 	getCurrentTime?: () => number
 	autoInit?: boolean
+	isMultihreaded?: boolean
+}
+interface TimelineCallback {
+	id: string
+	callBack?: string
+	callBackStopped?: string
+	callBackData: any
+}
+type TimelineCallbacks = {[key: string]: TimelineCallback}
+interface QueueCallback {
+	type: 'start' | 'stop'
+	time: number | null | undefined
+	id: string
+	callBack: string
+	callBackData: any
 }
 /**
  * The main class that serves to interface with all functionality.
@@ -61,7 +77,7 @@ export class Conductor extends EventEmitter {
 
 	private _options: ConductorOptions
 
-	private devices: {[deviceId: string]: Device} = {}
+	private devices: {[deviceId: string]: ThreadedClass<Device>} = {}
 
 	private _getCurrentTime?: () => number
 
@@ -69,14 +85,21 @@ export class Conductor extends EventEmitter {
 	private _resolveTimelineTrigger: NodeJS.Timer
 	private _isInitialized: boolean = false
 	private _doOnTime: DoOnTime
+	private isMultiThreaded = false
 
-	private _sentCallbacks: {[key: string]: boolean} = {}
+	private _queuedCallbacks: QueueCallback[] = []
+	private _triggerSendStartStopCallbacksTimeout: NodeJS.Timer | null = null
+	private _sentCallbacks: TimelineCallbacks = {}
 
 	constructor (options: ConductorOptions = {}) {
 		super()
 		this._options = options
 
 		this._options = this._options // ts-lint fix: not used
+
+		if (options.isMultihreaded) {
+			this.isMultiThreaded = options.isMultihreaded
+		}
 
 		if (options.getCurrentTime) this._getCurrentTime = options.getCurrentTime
 
@@ -129,8 +152,9 @@ export class Conductor extends EventEmitter {
 		// Set mapping
 		// re-resolve timeline
 		this._mapping = mapping
-		_.each(this.devices, (device: Device) => {
-			device.mapping = this.mapping
+		_.each(this.devices, (device: ThreadedClass<Device>) => {
+			// @ts-ignore
+			device.mapping = mapping
 		})
 
 		if (this._timeline) {
@@ -157,59 +181,121 @@ export class Conductor extends EventEmitter {
 		this._logDebug = val
 	}
 
-	public getDevices (): Array<Device> {
+	public getDevices (): Array<ThreadedClass<Device>> {
 		return _.values(this.devices)
 	}
-	public getDevice (deviceId: string) {
+	public getDevice (deviceId: string): ThreadedClass<Device> {
 		return this.devices[deviceId]
 	}
 
-	public addDevice (deviceId, deviceOptions: DeviceOptions): Promise<Device> {
+	/**
+	 * Adds a a device that can be referenced by the timeline and mappings.
+	 * @param deviceId Id used by the mappings to reference the device.
+	 * @returns A promise that resolves with the created device, or rejects with an error message.
+	 */
+	public async addDevice (deviceId, deviceOptions: DeviceOptions): Promise<ThreadedClass<Device>> {
 		try {
-			let newDevice: Device
+			let newDevice: ThreadedClass<Device>
+			let threadedClassOptions = {
+				threadUsage: deviceOptions.threadUsage || 1,
+				autoRestart: true,
+				disableMultithreading: !this.isMultiThreaded
+			}
 
 			let options = {
 				getCurrentTime: () => { return this.getCurrentTime() }
 			}
 
+			// if (this.isMultiThreaded) {
 			if (deviceOptions.type === DeviceType.ABSTRACT) {
-				// Add Abstract device:
-				newDevice = new AbstractDevice(deviceId, deviceOptions, options) as Device
+				newDevice = await threadedClass<AbstractDevice>(
+					'../dist/devices/abstract.js',
+					AbstractDevice,
+					[ deviceId, deviceOptions, options ],
+					{
+						threadUsage: this.isMultiThreaded ? .1 : 0,
+						autoRestart: true,
+						disableMultithreading: !this.isMultiThreaded
+					}
+				)
 			} else if (deviceOptions.type === DeviceType.CASPARCG) {
 				// Add CasparCG device:
-				newDevice = new CasparCGDevice(deviceId, deviceOptions, options, this) as Device
+				newDevice = await threadedClass<CasparCGDevice>(
+					'../dist/devices/casparCG.js',
+					CasparCGDevice,
+					[ deviceId, deviceOptions, options ],
+					threadedClassOptions
+				)
 			} else if (deviceOptions.type === DeviceType.ATEM) {
-				newDevice = new AtemDevice(deviceId, deviceOptions, options, this) as Device
+				newDevice = await threadedClass<AtemDevice>(
+					'../dist/devices/atem.js',
+					AtemDevice,
+					[ deviceId, deviceOptions, options ],
+					threadedClassOptions
+				)
 			} else if (deviceOptions.type === DeviceType.HTTPSEND) {
-				newDevice = new HttpSendDevice(deviceId, deviceOptions, options) as Device
+				newDevice = await threadedClass<HttpSendDevice>(
+					'../dist/devices/httpSend.js',
+					HttpSendDevice,
+					[ deviceId, deviceOptions, options ],
+					threadedClassOptions
+				)
 			} else if (deviceOptions.type === DeviceType.LAWO) {
-				newDevice = new LawoDevice(deviceId, deviceOptions, options) as Device
+				newDevice = await threadedClass<LawoDevice>(
+					'../dist/devices/lawo.js',
+					LawoDevice,
+					[ deviceId, deviceOptions, options ],
+					threadedClassOptions
+				)
 			} else if (deviceOptions.type === DeviceType.PANASONIC_PTZ) {
-				newDevice = new PanasonicPtzDevice(deviceId, deviceOptions, options) as Device
+				newDevice = await threadedClass<PanasonicPtzDevice>(
+					'../dist/devices/panasonicPTZ.js',
+					PanasonicPtzDevice,
+					[ deviceId, deviceOptions, options ],
+					threadedClassOptions
+				)
 			} else if (deviceOptions.type === DeviceType.HYPERDECK) {
-				newDevice = new HyperdeckDevice(deviceId, deviceOptions, options, this) as Device
+				newDevice = await threadedClass<HyperdeckDevice>(
+					'../dist/devices/hyperdeck.js',
+					HyperdeckDevice,
+					[ deviceId, deviceOptions, options ],
+					threadedClassOptions
+				)
 			} else if (deviceOptions.type === DeviceType.PHAROS) {
-				newDevice = new PharosDevice(deviceId, deviceOptions, options) as Device
+				newDevice = await threadedClass<PharosDevice>(
+					'../dist/devices/pharos.js',
+					PharosDevice,
+					[ deviceId, deviceOptions, options ],
+					threadedClassOptions
+				)
 			} else if (deviceOptions.type === DeviceType.OSC) {
-				newDevice = new OSCMessageDevice(deviceId, deviceOptions, options) as Device
+				newDevice = await threadedClass<OSCMessageDevice>(
+					'../dist/devices/osc.js',
+					OSCMessageDevice,
+					[ deviceId, deviceOptions, options ],
+					threadedClassOptions
+				)
 			} else {
-				return Promise.reject('No matching device type for "' + deviceOptions.type + '" ("' + DeviceType[deviceOptions.type] + '") found')
+				return Promise.reject('No matching multithreaded device type for "' +
+				deviceOptions.type + '" ("' + DeviceType[deviceOptions.type] + '") found')
 			}
 
-			newDevice.on('debug',	(...e) => {
+			newDevice.on('debug', (...e) => {
 				if (this.logDebug) {
 					this.emit('debug', newDevice.deviceId, ...e)
 				}
-			})
-			newDevice.on('info',	(e) => this.emit('info', 	e))
-			newDevice.on('warning',	(e) => this.emit('warning', e))
-			newDevice.on('error',	(e, ...args) => this.emit('error', `Device ${newDevice.deviceName} (${newDevice.deviceId})`, e, ...args))
+			}).catch(() => null)
+			newDevice.on('info',	(e) => this.emit('info', 	e)).catch(() => null)
+			newDevice.on('warning',	(e) => this.emit('warning', e)).catch(() => null)
+			newDevice.on('error',	(e) => this.emit('error', 	e)).catch(() => null)
+			newDevice.on('resetResolver', () => this.resetResolver()).catch(() => null)
 
 			this.emit('info', 'Initializing ' + DeviceType[deviceOptions.type] + '...')
 			this.devices[deviceId] = newDevice
+			// @ts-ignore
 			newDevice.mapping = this.mapping
 
-			return newDevice.init(deviceOptions.options)
+			return (newDevice).init(deviceOptions.options)
 			.then(() => {
 				this.emit('info', (DeviceType[deviceOptions.type] + ' initialized!'))
 				return newDevice
@@ -223,7 +309,7 @@ export class Conductor extends EventEmitter {
 		let device = this.devices[deviceId]
 
 		if (device) {
-			return device.terminate()
+			return (device).terminate()
 			.then((res) => {
 				if (res) {
 					delete this.devices[deviceId]
@@ -258,8 +344,8 @@ export class Conductor extends EventEmitter {
 	 */
 	public devicesMakeReady (okToDestroyStuff?: boolean): Promise<void> {
 		let p = Promise.resolve()
-		_.each(this.devices, (device: Device) => {
-			p = p.then(() => {
+		_.each(this.devices, (device: ThreadedClass<Device>) => {
+			p = p.then(async () => {
 				return device.makeReady(okToDestroyStuff)
 			})
 		})
@@ -271,8 +357,8 @@ export class Conductor extends EventEmitter {
 	 */
 	public devicesStandDown (okToDestroyStuff?: boolean): Promise<void> {
 		let p = Promise.resolve()
-		_.each(this.devices, (device: Device) => {
-			p = p.then(() => {
+		_.each(this.devices, (device: ThreadedClass<Device>) => {
+			p = p.then(async () => {
 				return device.standDown(okToDestroyStuff)
 			})
 		})
@@ -361,9 +447,11 @@ export class Conductor extends EventEmitter {
 			// this.emit('info', 'tlState', JSON.stringify(tlState.LLayers,' ', 2))
 
 			// Split the state into substates that are relevant for each device
-			let getFilteredLayers = (layers: TimelineState['LLayers'], device: Device) => {
+			let getFilteredLayers = async (layers: TimelineState['LLayers'], device: ThreadedClass<Device>) => {
 				let filteredState = {}
-				_.each(layers, (o: TimelineResolvedObject, layerId: string) => {
+				const deviceId = await device.deviceId
+				const deviceType = await device.deviceType
+				_.each(layers, async (o: TimelineResolvedObject, layerId: string) => {
 					const oExt: TimelineResolvedObjectExtended = o
 					let mapping: Mapping = this._mapping[o.LLayer + '']
 					if (!mapping && oExt.originalLLayer) {
@@ -371,8 +459,8 @@ export class Conductor extends EventEmitter {
 					}
 					if (mapping) {
 						if (
-							mapping.deviceId === device.deviceId &&
-							mapping.device === device.deviceType
+							mapping.deviceId === deviceId &&
+							mapping.device === deviceType
 						) {
 							filteredState[layerId] = o
 						}
@@ -380,21 +468,30 @@ export class Conductor extends EventEmitter {
 				})
 				return filteredState
 			}
-			_.each(this.devices, (device: Device/*, deviceName: string*/) => {
+			_.each(this.devices, async (device: ThreadedClass<Device>/*, deviceName: string*/) => {
 
 				// The subState contains only the parts of the state relevant to that device
 				let subState: TimelineState = {
 					time: tlState.time,
-					LLayers: getFilteredLayers(tlState.LLayers, device),
-					GLayers: getFilteredLayers(tlState.GLayers, device)
+					LLayers: await getFilteredLayers(tlState.LLayers, device),
+					GLayers: await getFilteredLayers(tlState.GLayers, device)
+				}
+				let removeParent = o => {
+					for (let key in o) {
+						if (key === 'parent') {
+							delete o['parent']
+						} else if (typeof o[key] === 'object') {
+							o[key] = removeParent(o[key])
+						}
+					}
+					return o
 				}
 				// this.emit('info', 'State of device ' + device.deviceName, tlState.LLayers )
 				// Pass along the state to the device, it will generate its commands and execute them:
-				try {
-					device.handleState(subState)
-				} catch (e) {
+				device.handleState(removeParent(subState))
+				.catch(e => {
 					this.emit('error', 'Error in device "' + device.deviceId + '"' + e + ' ' + e.stack)
-				}
+				})
 			})
 
 			// Now that we've handled this point in time, it's time to determine what the next point in time is:
@@ -426,38 +523,67 @@ export class Conductor extends EventEmitter {
 				// this.emit('debug', 'no next events')
 
 				// Tell the devices that the future is clear:
-				_.each(this.devices, (device: Device) => {
-					device.clearFuture(tlState.time)
+				_.each(this.devices, (device: ThreadedClass<Device>) => {
+					Promise.resolve(device.clearFuture(tlState.time)).catch(() => null)
 				})
 
 				// resolve at "now" then next time:
 				this._nextResolveTime = 0
 			}
 			// Special function: send callback to Core
-			let sentCallbacksOld = this._sentCallbacks
-			let sentCallbacksNew: {[key: string]: boolean} = {}
+			let sentCallbacksOld: TimelineCallbacks = this._sentCallbacks
+			let sentCallbacksNew: TimelineCallbacks = {}
 			this._doOnTime.clearQueueNowAndAfter(tlState.time)
 			_.each(tlState.GLayers, (o: TimelineResolvedObject) => {
 				try {
-					if (o.content.callBack) {
-						let callBackId = o.id + o.content.callBack + o.resolved.startTime + JSON.stringify(o.content.callBackData)
-						this._doOnTime.queue(o.resolved.startTime, () => {
-							sentCallbacksNew[callBackId] = true
-							if (!sentCallbacksOld[callBackId]) {
-								this.emit('timelineCallback',
-									o.resolved.startTime,
-									o.id,
-									o.content.callBack,
-									o.content.callBackData
-								)
-							} else {
-								// callback already sent, do nothing
-								// this.emit('debug', 'callback already sent', callBackId)
-							}
-						})
+					if (o.content.callBack || o.content.callBackStopped) {
+						let callBackId = (
+							o.id +
+							o.content.callBack +
+							o.content.callBackStopped +
+							o.resolved.startTime +
+							JSON.stringify(o.content.callBackData)
+						)
+						sentCallbacksNew[callBackId] = {
+							id: o.id,
+							callBack: o.content.callBack,
+							callBackStopped: o.content.callBackStopped,
+							callBackData: o.content.callBackData
+						}
+						if (o.content.callBack) {
+							this._doOnTime.queue(o.resolved.startTime, () => {
+								if (!sentCallbacksOld[callBackId]) {
+									// Object has started playing
+									this._queueCallback({
+										type: 'start',
+										time: o.resolved.startTime,
+										id: o.id,
+										callBack: o.content.callBack,
+										callBackData: o.content.callBackData
+									})
+								} else {
+									// callback already sent, do nothing
+									// this.emit('debug', 'callback already sent', callBackId)
+								}
+							})
+						}
 					}
 				} catch (e) {
 					this.emit('error', `callback to core, obj "${o.id}"`, e)
+				}
+			})
+			_.each(sentCallbacksOld, (cb, callBackId: string) => {
+				if (cb.callBackStopped) {
+					if (!sentCallbacksNew[callBackId]) {
+						// Object has stopped playing
+						this._queueCallback({
+							type: 'start',
+							time: tlState.time,
+							id: cb.id,
+							callBack: cb.callBackStopped,
+							callBackData: cb.callBackData
+						})
+					}
 				}
 			})
 			this._sentCallbacks = sentCallbacksNew
@@ -554,5 +680,72 @@ export class Conductor extends EventEmitter {
 			// this.emit('info', 'setTimelineTriggerTime', r)
 			this.emit('setTimelineTriggerTime', r)
 		}
+	}
+
+	private _queueCallback (cb: QueueCallback) {
+		this._queuedCallbacks.push(cb)
+		this._triggerSendStartStopCallbacks()
+	}
+	private _triggerSendStartStopCallbacks () {
+		if (this._triggerSendStartStopCallbacksTimeout) {
+			clearTimeout(this._triggerSendStartStopCallbacksTimeout)
+		}
+		this._triggerSendStartStopCallbacksTimeout = setTimeout(() => {
+			this._triggerSendStartStopCallbacksTimeout = null
+			this._sendStartStopCallbacks()
+		}, 100)
+	}
+	private _sendStartStopCallbacks () {
+		// Go through the queue and filter out any stops that are immediately followed by a start:
+		const startTimes: {[id: string]: number} = {}
+		const stopTimes: {[id: string]: number} = {}
+
+		const callbacks: {[id: string]: QueueCallback} = {}
+		_.each(this._queuedCallbacks, cb => {
+			callbacks[cb.id] = cb
+
+			if (cb.time) {
+
+				if (cb.type === 'start') {
+					let prevTime = stopTimes[cb.id]
+					if (prevTime) {
+						if (Math.abs(prevTime - cb.time) < 50) {
+							// Too little time has passed, remove that stop/start
+							delete callbacks[cb.id]
+						}
+					}
+					startTimes[cb.id] = cb.time
+				} else if (cb.type === 'stop') {
+					let prevTime = startTimes[cb.id]
+					if (prevTime) {
+						if (Math.abs(prevTime - cb.time) < 50) {
+							// Too little time has passed, remove that stop/start
+							delete callbacks[cb.id]
+						}
+					}
+					stopTimes[cb.id] = cb.time
+				}
+			}
+		})
+		this._queuedCallbacks = []
+
+		let callbacksArray = _.values(callbacks).sort((a, b) => {
+			if (a.type === 'start' && b.type !== 'start') return 1
+			if (a.type !== 'start' && b.type === 'start') return -1
+
+			if ((a.time || 0) > (b.time || 0)) return 1
+			if ((a.time || 0) < (b.time || 0)) return -1
+
+			return 0
+		})
+
+		_.each(callbacksArray, cb => {
+			this.emit('timelineCallback',
+				cb.time,
+				cb.id,
+				cb.callBack,
+				cb.callBackData
+			)
+		})
 	}
 }

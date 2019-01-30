@@ -8,6 +8,7 @@ import {
 	MappingPharos
 } from '../../types/src'
 import { MockTime } from '../../__tests__/mockTime.spec'
+import { ThreadedClass } from 'threadedclass'
 const WebSocket = require('../../__mocks__/ws')
 
 describe('Pharos', () => {
@@ -83,15 +84,15 @@ describe('Pharos', () => {
 		expect(wsInstances).toHaveLength(1)
 		// let wsInstance = wsInstances[0]
 
-		mockTime.advanceTimeTo(10100)
+		await mockTime.advanceTimeToTicks(10100)
 
-		device = myConductor.getDevice('myPharos') as PharosDevice
+		device = myConductor.getDevice('myPharos') as ThreadedClass<PharosDevice>
 
 		expect(mockReply).toHaveBeenCalledTimes(1)
 		expect(mockReply.mock.calls[0][1]).toMatch(/project/) // get project info
 
 		// Check that no commands has been scheduled:
-		expect(device.queue).toHaveLength(0)
+		expect(await device.queue).toHaveLength(0)
 
 		myConductor.timeline = [
 			{
@@ -142,19 +143,19 @@ describe('Pharos', () => {
 			}
 		]
 
-		mockTime.advanceTimeTo(10990)
+		await mockTime.advanceTimeToTicks(10990)
 		expect(commandReceiver0).toHaveBeenCalledTimes(0)
 
 		mockReply.mockReset()
 		expect(mockReply).toHaveBeenCalledTimes(0)
 
-		mockTime.advanceTimeTo(11500)
+		await mockTime.advanceTimeToTicks(11500)
 		expect(commandReceiver0).toHaveBeenCalledTimes(1)
 		expect(commandReceiver0.mock.calls[0][1].content.args[0]).toEqual(1) // scene
 		expect(commandReceiver0.mock.calls[0][2]).toMatch(/added/) // context
 		expect(commandReceiver0.mock.calls[0][2]).toMatch(/scene0/) // context
 
-		mockTime.advanceTimeTo(12500)
+		await mockTime.advanceTimeToTicks(12500)
 		expect(commandReceiver0).toHaveBeenCalledTimes(3)
 		expect(commandReceiver0.mock.calls[1][1].content.args[0]).toEqual(1) // scene
 		expect(commandReceiver0.mock.calls[1][2]).toMatch(/changed from/) // context
@@ -164,7 +165,7 @@ describe('Pharos', () => {
 		expect(commandReceiver0.mock.calls[2][2]).toMatch(/changed to/) // context
 		expect(commandReceiver0.mock.calls[2][2]).toMatch(/scene1/) // context
 
-		mockTime.advanceTimeTo(13500)
+		await mockTime.advanceTimeToTicks(13500)
 		expect(commandReceiver0).toHaveBeenCalledTimes(5)
 		expect(commandReceiver0.mock.calls[3][1].content.args[0]).toEqual(2) // scene
 		expect(commandReceiver0.mock.calls[3][2]).toMatch(/removed/) // context
@@ -174,13 +175,13 @@ describe('Pharos', () => {
 		expect(commandReceiver0.mock.calls[4][2]).toMatch(/removed/) // context
 		expect(commandReceiver0.mock.calls[4][2]).toMatch(/scene2/) // context
 
-		mockTime.advanceTimeTo(14500)
+		await mockTime.advanceTimeToTicks(14500)
 		expect(commandReceiver0).toHaveBeenCalledTimes(6)
 		expect(commandReceiver0.mock.calls[5][1].content.args[0]).toEqual(2) // scene
 		expect(commandReceiver0.mock.calls[5][2]).toMatch(/added/) // context
 		expect(commandReceiver0.mock.calls[5][2]).toMatch(/scene1/) // context
 
-		mockTime.advanceTimeTo(20000)
+		await mockTime.advanceTimeToTicks(20000)
 		expect(commandReceiver0).toHaveBeenCalledTimes(7)
 		expect(commandReceiver0.mock.calls[6][1].content.args[0]).toEqual(2) // scene
 		expect(commandReceiver0.mock.calls[6][2]).toMatch(/removed/) // context

@@ -200,6 +200,9 @@ export class Pharos extends EventEmitter {
 	private _queryString: string = ''
 	private _serverSessionKey: string | null = null
 	private _reconnectAttempts: number = 0
+	private _isConnecting: boolean = false
+	private _isReconnecting: boolean = false
+	private _aboutToReconnect: boolean = false
 	private _pendingMessages: Array<{msg: string, resolve: Function, reject: Function}> = []
 	private _requestPromises: {[id: string]: Array<{resolve: Function, reject: Function}>} = {}
 	private _broadcastCallbacks: {[id: string]: Array<Function>} = {}
@@ -211,7 +214,11 @@ export class Pharos extends EventEmitter {
 
 	// constructor () {}
 	connect (options: Options): Promise<void> {
+		this._isConnecting = true
 		return this._connectSocket(options)
+		.then(() => {
+			this._isConnecting = false
+		})
 	}
 
 	public get connected (): boolean {
@@ -717,10 +724,30 @@ export class Pharos extends EventEmitter {
 		}
 	}
 	private _reconnect () {
-		// try to _reconnect
-		this._reconnectAttempts++
-		this._connectSocket()
-		.catch(e => this.emit('error', e))
+		if (this._isConnecting) return // don't reconnect while a connect is already running
+
+		if (!this._isReconnecting) {
+			// try to _reconnect
+			this._reconnectAttempts++
+			this._isReconnecting = true
+			this._connectSocket()
+			.then(() => {
+				this._isReconnecting = false
+			})
+			.catch(e => {
+				this._isReconnecting = false
+				this.emit('error', e)
+
+				// If the reconnection failed and another reconnection attempt was ignored, do that now instead:
+				if (this._aboutToReconnect) {
+					this._aboutToReconnect = false
+					this._reconnect()
+				}
+			})
+		} else {
+			// Nothing, ignore if we're already trying to reconnect
+			this._aboutToReconnect = true
+		}
 	}
 	private _onReceiveMessage (json: any) {
 		if (json.broadcast) {

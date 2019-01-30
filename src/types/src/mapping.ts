@@ -27,6 +27,7 @@ export enum DeviceType {
 
 export interface DeviceOptions {
 	type: DeviceType,
+	threadUsage?: number,
 	options?: {}
 }
 

@@ -21,7 +21,6 @@ import {
 	TransportStatus
 } from 'hyperdeck-connection'
 import { DoOnTime } from '../doOnTime'
-import { Conductor } from '../conductor'
 
 _.mixin({ deepExtend: underScoreDeepExtend(_) })
 
@@ -60,11 +59,10 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> {
 	private _hyperdeck: Hyperdeck
 	private _initialized: boolean = false
 	private _connected: boolean = false
-	private _conductor: Conductor
 
 	private _commandReceiver: (time: number, command: HyperdeckCommands.AbstractCommand, context: CommandContext) => Promise<any>
 
-	constructor (deviceId: string, deviceOptions: HyperdeckDeviceOptions, options, conductor: Conductor) {
+	constructor (deviceId: string, deviceOptions: HyperdeckDeviceOptions, options) {
 		super(deviceId, deviceOptions, options)
 		if (deviceOptions.options) {
 			if (deviceOptions.options.commandReceiver) this._commandReceiver = deviceOptions.options.commandReceiver
@@ -74,7 +72,6 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> {
 			return this.getCurrentTime()
 		})
 		this._doOnTime.on('error', e => this.emit('error', 'doOnTime', e))
-		this._conductor = conductor
 	}
 
 	/**
@@ -96,7 +93,7 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> {
 					}
 					this._connected = true
 					this._connectionChanged()
-					this._conductor.resetResolver()
+					this.emit('resetResolver')
 				})
 			})
 			this._hyperdeck.on('disconnected', () => {

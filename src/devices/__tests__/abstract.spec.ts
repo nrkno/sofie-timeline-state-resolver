@@ -8,6 +8,7 @@ import { Conductor } from '../../conductor'
 import { AbstractDevice } from '../abstract'
 import { StatusCode } from '../device'
 import { MockTime } from '../../__tests__/mockTime.spec'
+import { ThreadedClass } from 'threadedclass'
 
 describe('Abstract device', () => {
 	let mockTime = new MockTime()
@@ -44,22 +45,22 @@ describe('Abstract device', () => {
 			}
 		})
 		myConductor.mapping = myLayerMapping
-		mockTime.advanceTimeTo(10100)
+		await mockTime.advanceTimeToTicks(10100)
 
-		let device = myConductor.getDevice('myAbstract') as AbstractDevice
+		let device = myConductor.getDevice('myAbstract') as ThreadedClass<AbstractDevice>
 		device.terminate = jest.fn(device.terminate)
 		let onError = jest.fn()
 		let onDebug = jest.fn()
-		device.on('error', onError)
-		device.on('debug', onDebug)
+		device.on('error', onError).catch(() => null)
+		device.on('debug', onDebug).catch(() => null)
 
-		expect(device.canConnect).toBeFalsy()
-		expect(device.connected).toBeFalsy()
-		expect(device.deviceName).toMatch(/abstract/i)
-		expect(device.getStatus()).toMatchObject({ statusCode: StatusCode.GOOD })
+		expect(await device.canConnect).toBeFalsy()
+		expect(await device.connected).toBeFalsy()
+		expect(await device.deviceName).toMatch(/abstract/i)
+		expect(await device.getStatus()).toMatchObject({ statusCode: StatusCode.GOOD })
 
 		// Check that no commands has been scheduled:
-		expect(device.queue).toHaveLength(0)
+		expect(await device.queue).toHaveLength(0)
 
 		myConductor.timeline = [
 			{
@@ -84,7 +85,7 @@ describe('Abstract device', () => {
 			}
 		]
 
-		mockTime.advanceTimeTo(10200)
+		await mockTime.advanceTimeToTicks(10200)
 		expect(commandReceiver0).toHaveBeenCalledTimes(1)
 		expect(commandReceiver0.mock.calls[0][1]).toMatchObject(
 			{
@@ -96,7 +97,7 @@ describe('Abstract device', () => {
 			}
 		)
 
-		mockTime.advanceTimeTo(11200)
+		await mockTime.advanceTimeToTicks(11200)
 		expect(commandReceiver0).toHaveBeenCalledTimes(2)
 		expect(commandReceiver0.mock.calls[1][1]).toMatchObject(
 			{
@@ -108,7 +109,7 @@ describe('Abstract device', () => {
 			}
 		)
 
-		mockTime.advanceTimeTo(15000)
+		await mockTime.advanceTimeToTicks(15000)
 		expect(commandReceiver0).toHaveBeenCalledTimes(3)
 		expect(commandReceiver0.mock.calls[2][1]).toMatchObject(
 			{
@@ -119,7 +120,7 @@ describe('Abstract device', () => {
 				context: 'removed: obj1'
 			}
 		)
-		await myConductor.removeDevice(device.deviceId)
+		await myConductor.removeDevice(await device.deviceId)
 
 		expect(device.terminate).toHaveBeenCalledTimes(1)
 		expect(myConductor.getDevice('myAbstract')).toBeFalsy()
@@ -146,17 +147,17 @@ describe('Abstract device', () => {
 			options: {}
 		})
 		myConductor.mapping = myLayerMapping
-		mockTime.advanceTimeTo(10100)
+		await mockTime.advanceTimeToTicks(10100)
 
-		let device = myConductor.getDevice('myAbstract') as AbstractDevice
+		let device = myConductor.getDevice('myAbstract') as ThreadedClass<AbstractDevice>
 		device.terminate = jest.fn(device.terminate)
 		let onError = jest.fn()
 		let onDebug = jest.fn()
-		device.on('error', onError)
-		device.on('debug', onDebug)
+		device.on('error', onError).catch(() => null)
+		device.on('debug', onDebug).catch(() => null)
 
 		// Check that no commands has been scheduled:
-		expect(device.queue).toHaveLength(0)
+		expect(await device.queue).toHaveLength(0)
 
 		myConductor.timeline = [
 			{
@@ -171,10 +172,10 @@ describe('Abstract device', () => {
 			}
 		]
 
-		mockTime.advanceTimeTo(10200)
+		await mockTime.advanceTimeToTicks(10200)
 		expect(onDebug).toHaveBeenCalledTimes(1)
 
-		await myConductor.removeDevice(device.deviceId)
+		await myConductor.removeDevice(await device.deviceId)
 
 		expect(device.terminate).toHaveBeenCalledTimes(1)
 		expect(myConductor.getDevice('myAbstract')).toBeFalsy()

@@ -10,6 +10,7 @@ import {
 	MappingAtemType,
 	TimelineContentTypeAtem
 } from '../../types/src'
+import { ThreadedClass } from 'threadedclass'
 
 describe('Atem', () => {
 	let mockTime = new MockTime()
@@ -50,12 +51,12 @@ describe('Atem', () => {
 			}
 		})
 		myConductor.mapping = myLayerMapping
-		mockTime.advanceTimeTo(10100)
+		await mockTime.advanceTimeToTicks(10100)
 
-		let device = myConductor.getDevice('myAtem') as AtemDevice
+		let device = myConductor.getDevice('myAtem') as ThreadedClass<AtemDevice>
 
 		// Check that no commands has been scheduled:
-		expect(device.queue).toHaveLength(0)
+		expect(await device.queue).toHaveLength(0)
 
 		myConductor.timeline = [
 			{
@@ -92,7 +93,7 @@ describe('Atem', () => {
 			}
 		]
 
-		mockTime.advanceTimeTo(10200)
+		await mockTime.advanceTimeToTicks(10200)
 		expect(commandReceiver0).toHaveBeenCalledTimes(2)
 		expect(commandReceiver0.mock.calls[0][1]).toMatchObject(
 			{
@@ -111,7 +112,7 @@ describe('Atem', () => {
 				mixEffect: 0
 			}
 		)
-		mockTime.advanceTimeTo(12200)
+		await mockTime.advanceTimeToTicks(12200)
 
 		expect(commandReceiver0).toHaveBeenCalledTimes(4)
 		expect(commandReceiver0.mock.calls[2][1]).toMatchObject(
@@ -162,12 +163,12 @@ describe('Atem', () => {
 			}
 		})
 		myConductor.mapping = myLayerMapping
-		mockTime.advanceTimeTo(10100)
+		await mockTime.advanceTimeToTicks(10100)
 
-		let device = myConductor.getDevice('myAtem') as AtemDevice
+		let device = myConductor.getDevice('myAtem') as ThreadedClass<AtemDevice>
 
 		// Check that no commands has been scheduled:
-		expect(device.queue).toHaveLength(0)
+		expect(await device.queue).toHaveLength(0)
 		myConductor.timeline = [
 			{
 				id: 'obj0',
@@ -194,7 +195,7 @@ describe('Atem', () => {
 			}
 		]
 
-		mockTime.advanceTimeTo(10200)
+		await mockTime.advanceTimeToTicks(10200)
 
 		expect(commandReceiver0).toHaveBeenCalledTimes(1)
 		expect(commandReceiver0.mock.calls[0][1]).toMatchObject(

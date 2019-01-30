@@ -9,7 +9,6 @@ import {
 import {
 	DeviceType,
 	DeviceOptions,
-	TimelineResolvedObjectExtended,
 	TimelineContentTypeAtem,
 	MappingAtem,
 	MappingAtemType,
@@ -28,7 +27,7 @@ import {
 	Defaults as StateDefault
 } from 'atem-state'
 import { DoOnTime } from '../doOnTime'
-import { Conductor } from '../conductor'
+// import { Conductor } from '../conductor'
 
 _.mixin({ deepExtend: underScoreDeepExtend(_) })
 
@@ -59,7 +58,6 @@ export class AtemDevice extends DeviceWithState<DeviceState> {
 	private _state: AtemState
 	private _initialized: boolean = false
 	private _connected: boolean = false // note: ideally this should be replaced by this._atem.connected
-	private _conductor: Conductor
 
 	private firstStateAfterMakeReady: boolean = true // note: temprorary for some improved logging
 
@@ -71,7 +69,7 @@ export class AtemDevice extends DeviceWithState<DeviceState> {
 
 	private _commandReceiver: (time: number, command: AtemCommands.AbstractCommand, context: CommandContext) => Promise<any>
 
-	constructor (deviceId: string, deviceOptions: AtemDeviceOptions, options, conductor: Conductor) {
+	constructor (deviceId: string, deviceOptions: AtemDeviceOptions, options) {
 		super(deviceId, deviceOptions, options)
 		if (deviceOptions.options) {
 			if (deviceOptions.options.commandReceiver) this._commandReceiver = deviceOptions.options.commandReceiver
@@ -81,7 +79,6 @@ export class AtemDevice extends DeviceWithState<DeviceState> {
 			return this.getCurrentTime()
 		})
 		this._doOnTime.on('error', e => this.emit('error', 'doOnTime', e))
-		this._conductor = conductor
 	}
 
 	/**
@@ -91,7 +88,7 @@ export class AtemDevice extends DeviceWithState<DeviceState> {
 		return new Promise((resolve, reject) => {
 			// This is where we would do initialization, like connecting to the devices, etc
 			this._state = new AtemState()
-			this._atem = new Atem()
+			this._atem = new Atem({ externalLog: console.log })
 			this._atem.once('connected', () => {
 				// check if state has been initialized:
 				this._connected = true
@@ -102,7 +99,7 @@ export class AtemDevice extends DeviceWithState<DeviceState> {
 				this.setState(this._atem.state, this.getCurrentTime())
 				this._connected = true
 				this._connectionChanged()
-				this._conductor.resetResolver()
+				this.emit('resetResolver')
 			})
 			this._atem.on('disconnected', () => {
 				this._connected = false
@@ -195,56 +192,36 @@ export class AtemDevice extends DeviceWithState<DeviceState> {
 			.sort((a,b) => a.layerName.localeCompare(b.layerName))
 
 		_.each(sortedLayers, ({ tlObject, layerName }) => {
-			const tlObjectExt = tlObject as TimelineResolvedObjectExtended
 			const content = tlObject.resolved || tlObject.content
 			let mapping = this.mapping[layerName] as MappingAtem // tslint:disable-line
-			if (!mapping && tlObjectExt.originalLLayer) {
-				mapping = this.mapping[tlObjectExt.originalLLayer] as MappingAtem // tslint:disable-line
-			}
 
 			if (mapping) {
 				if (mapping.index !== undefined && mapping.index >= 0) { // index must be 0 or higher
-
 					switch (mapping.mappingType) {
 						case MappingAtemType.MixEffect:
-							if (tlObjectExt.isBackground) {
-								break
-							}
 							if (content.type === TimelineContentTypeAtem.ME) {
 								let me = deviceState.video.ME[mapping.index]
 								if (me) deepExtend(me, content.attributes)
 							}
 							break
 						case MappingAtemType.DownStreamKeyer:
-							if (tlObjectExt.isBackground) {
-								break
-							}
 							if (content.type === TimelineContentTypeAtem.DSK) {
 								let dsk = deviceState.video.downstreamKeyers[mapping.index]
 								if (dsk) deepExtend(dsk, content.attributes)
 							}
 							break
 						case MappingAtemType.SuperSourceBox:
-							if (tlObjectExt.isBackground && (!tlObjectExt.originalLLayer || tlObjectExt.originalLLayer && state.LLayers[tlObjectExt.originalLLayer])) {
-								break
-							}
 							if (content.type === TimelineContentTypeAtem.SSRC) {
 								let ssrc = deviceState.video.superSourceBoxes
 								if (ssrc) deepExtend(ssrc, content.attributes.boxes)
 							}
 							break
 						case MappingAtemType.Auxilliary:
-							if (tlObjectExt.isBackground) {
-								break
-							}
 							if (content.type === TimelineContentTypeAtem.AUX) {
 								deviceState.video.auxilliaries[mapping.index] = content.attributes.input
 							}
 							break
 						case MappingAtemType.MediaPlayer:
-							if (tlObjectExt.isBackground) {
-								break
-							}
 							if (content.type === TimelineContentTypeAtem.MEDIAPLAYER) {
 								let ms = deviceState.media.players[mapping.index]
 								if (ms) deepExtend(ms, content.attributes)
@@ -252,12 +229,11 @@ export class AtemDevice extends DeviceWithState<DeviceState> {
 							break
 					}
 				}
+
 				if (mapping.mappingType === MappingAtemType.SuperSourceProperties) {
-					if (!(tlObjectExt.isBackground && (!tlObjectExt.originalLLayer || tlObjectExt.originalLLayer && state.LLayers[tlObjectExt.originalLLayer]))) {
-						if (content.type === TimelineContentTypeAtem.SSRCPROPS) {
-							let ssrc = deviceState.video.superSourceProperties
-							if (ssrc) deepExtend(ssrc, content.attributes)
-						}
+					if (content.type === TimelineContentTypeAtem.SSRCPROPS) {
+						let ssrc = deviceState.video.superSourceProperties
+						if (ssrc) deepExtend(ssrc, content.attributes)
 					}
 				}
 			}
@@ -291,7 +267,7 @@ export class AtemDevice extends DeviceWithState<DeviceState> {
 			_.each(psus, (psu: boolean, i: number) => {
 				if (!psu) {
 					statusCode = StatusCode.WARNING_MAJOR
-					messages.push(`Atem PSU ${i + 1}/${psus.length} is faulty`)
+					messages.push(`Atem PSU ${i + 1} is faulty. The device has ${psus.length} PSU(s) in total.`)
 				}
 			})
 		}

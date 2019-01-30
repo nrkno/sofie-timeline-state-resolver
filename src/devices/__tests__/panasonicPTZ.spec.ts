@@ -12,6 +12,7 @@ import {
 	MappingPanasonicPtzType
 } from '../../types/src'
 import { MockTime } from '../../__tests__/mockTime.spec'
+import { ThreadedClass } from 'threadedclass'
 const request = require('../../__mocks__/request')
 
 const orgSetTimeout = setTimeout
@@ -86,12 +87,12 @@ describe('Panasonic PTZ', () => {
 				host: '192.168.0.10'
 			}
 		})
-		mockTime.advanceTimeTo(10100)
+		await mockTime.advanceTimeToTicks(10100)
 
-		let device = myConductor.getDevice('myPtz') as PanasonicPtzDevice
+		let device = myConductor.getDevice('myPtz') as ThreadedClass<PanasonicPtzDevice>
 
 		// Check that no commands has been scheduled:
-		expect(device.queue).toHaveLength(0)
+		expect(await device.queue).toHaveLength(0)
 
 		myConductor.timeline = [
 			{
@@ -200,7 +201,7 @@ describe('Panasonic PTZ', () => {
 			}
 		]
 
-		mockTime.advanceTimeTo(10200)
+		await mockTime.advanceTimeToTicks(10200)
 
 		expect(commandReceiver0).toHaveBeenCalledTimes(2)
 		expect(commandReceiver0.mock.calls[0][1]).toMatchObject(
@@ -216,7 +217,7 @@ describe('Panasonic PTZ', () => {
 			}
 		)
 
-		mockTime.advanceTimeTo(11000)
+		await mockTime.advanceTimeToTicks(11000)
 
 		expect(commandReceiver0).toHaveBeenCalledTimes(3)
 		expect(commandReceiver0.mock.calls[2][1]).toMatchObject(
@@ -226,7 +227,7 @@ describe('Panasonic PTZ', () => {
 			}
 		)
 
-		mockTime.advanceTimeTo(11500)
+		await mockTime.advanceTimeToTicks(11500)
 
 		expect(commandReceiver0).toHaveBeenCalledTimes(4)
 		expect(commandReceiver0.mock.calls[3][1]).toMatchObject(
@@ -236,7 +237,7 @@ describe('Panasonic PTZ', () => {
 			}
 		)
 
-		mockTime.advanceTimeTo(12000)
+		await mockTime.advanceTimeToTicks(12000)
 
 		// return speed to previous value
 		expect(commandReceiver0).toHaveBeenCalledTimes(5)
@@ -248,7 +249,7 @@ describe('Panasonic PTZ', () => {
 			}
 		)
 
-		mockTime.advanceTimeTo(12500)
+		await mockTime.advanceTimeToTicks(12500)
 
 		expect(commandReceiver0).toHaveBeenCalledTimes(6)
 		expect(commandReceiver0.mock.calls[5][1]).toMatchObject(
@@ -258,7 +259,7 @@ describe('Panasonic PTZ', () => {
 				preset: 1
 			}
 		)
-		mockTime.advanceTimeTo(16000)
+		await mockTime.advanceTimeToTicks(16000)
 
 		expect(commandReceiver0).toHaveBeenCalledTimes(6)
 		// no new commands should be sent, nothing is sent on object end

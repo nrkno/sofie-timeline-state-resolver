@@ -9,6 +9,7 @@ import {
 	MappingLawoType
 } from '../../types/src'
 import { MockTime } from '../../__tests__/mockTime.spec'
+import { ThreadedClass } from 'threadedclass'
 
 describe('Lawo', () => {
 	let mockTime = new MockTime()
@@ -50,12 +51,12 @@ describe('Lawo', () => {
 				commandReceiver: commandReceiver0
 			}
 		})
-		mockTime.advanceTimeTo(10100)
+		await mockTime.advanceTimeToTicks(10100)
 
-		let device = myConductor.getDevice('myLawo') as LawoDevice
+		let device = myConductor.getDevice('myLawo') as ThreadedClass<LawoDevice>
 
 		// Check that no commands has been scheduled:
-		expect(device.queue).toHaveLength(0)
+		expect(await device.queue).toHaveLength(0)
 		myConductor.timeline = [
 			{
 				id: 'obj0',
@@ -135,7 +136,7 @@ describe('Lawo', () => {
 			}
 		]
 
-		mockTime.advanceTimeTo(10200)
+		await mockTime.advanceTimeToTicks(10200)
 
 		expect(commandReceiver0).toHaveBeenCalledTimes(1)
 		expect(commandReceiver0.mock.calls[0][1]).toMatchObject(
@@ -148,7 +149,7 @@ describe('Lawo', () => {
 		)
 		expect(commandReceiver0.mock.calls[0][2]).toMatch(/null/i) // context
 
-		mockTime.advanceTimeTo(11000)
+		await mockTime.advanceTimeToTicks(11000)
 
 		expect(commandReceiver0).toHaveBeenCalledTimes(2)
 		expect(commandReceiver0.mock.calls[1][1]).toMatchObject(
@@ -162,11 +163,11 @@ describe('Lawo', () => {
 		)
 		expect(commandReceiver0.mock.calls[1][2]).toBeTruthy() // context
 
-		mockTime.advanceTimeTo(11500)
+		await mockTime.advanceTimeToTicks(11500)
 		expect(commandReceiver0).toHaveBeenCalledTimes(2)
 		// no new commands should have been sent, becuse obj2 is the same as obj1
 
-		mockTime.advanceTimeTo(12500)
+		await mockTime.advanceTimeToTicks(12500)
 		expect(commandReceiver0).toHaveBeenCalledTimes(3)
 		expect(commandReceiver0.mock.calls[2][1]).toMatchObject(
 			{
@@ -177,7 +178,7 @@ describe('Lawo', () => {
 			}
 		)
 		expect(commandReceiver0.mock.calls[2][2]).toMatch(/triggerValue/i) // context
-		mockTime.advanceTimeTo(14500)
+		await mockTime.advanceTimeToTicks(14500)
 		expect(commandReceiver0).toHaveBeenCalledTimes(3)
 		// no new commands should be sent, nothing is sent on object end
 	})

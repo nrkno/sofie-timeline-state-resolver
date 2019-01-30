@@ -9,6 +9,7 @@ import {
 	DeviceType
 } from '../../types/src'
 import { MockTime } from '../../__tests__/mockTime.spec'
+import { ThreadedClass } from 'threadedclass'
 
 // let nowActual = Date.now()
 describe('HTTP-Send', () => {
@@ -46,12 +47,12 @@ describe('HTTP-Send', () => {
 			}
 		})
 		myConductor.mapping = myLayerMapping
-		mockTime.advanceTimeTo(10100)
+		await mockTime.advanceTimeToTicks(10100)
 
-		let device = myConductor.getDevice('myHTTP') as HttpSendDevice
+		let device = myConductor.getDevice('myHTTP') as ThreadedClass<HttpSendDevice>
 
 		// Check that no commands has been scheduled:
-		expect(device.queue).toHaveLength(0)
+		expect(await device.queue).toHaveLength(0)
 
 		myConductor.timeline = [
 			{
@@ -73,9 +74,9 @@ describe('HTTP-Send', () => {
 			}
 		]
 
-		mockTime.advanceTimeTo(10990)
+		await mockTime.advanceTimeToTicks(10990)
 		expect(commandReceiver0).toHaveBeenCalledTimes(0)
-		mockTime.advanceTimeTo(11100)
+		await mockTime.advanceTimeToTicks(11100)
 
 		expect(commandReceiver0).toHaveBeenCalledTimes(1)
 		expect(commandReceiver0.mock.calls[0][1]).toMatchObject(
@@ -89,7 +90,7 @@ describe('HTTP-Send', () => {
 			}
 		)
 		expect(commandReceiver0.mock.calls[0][2]).toMatch(/added/) // context
-		mockTime.advanceTimeTo(16000)
+		await mockTime.advanceTimeToTicks(16000)
 		expect(commandReceiver0).toHaveBeenCalledTimes(1)
 	})
 })
