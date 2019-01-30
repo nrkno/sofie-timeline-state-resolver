@@ -9,7 +9,6 @@ import {
 import {
 	DeviceType,
 	DeviceOptions,
-	TimelineResolvedObjectExtended,
 	TimelineContentTypeAtem,
 	MappingAtem,
 	MappingAtemType,
@@ -195,56 +194,36 @@ export class AtemDevice extends DeviceWithState<DeviceState> {
 			.sort((a,b) => a.layerName.localeCompare(b.layerName))
 
 		_.each(sortedLayers, ({ tlObject, layerName }) => {
-			const tlObjectExt = tlObject as TimelineResolvedObjectExtended
 			const content = tlObject.resolved || tlObject.content
 			let mapping = this.mapping[layerName] as MappingAtem // tslint:disable-line
-			if (!mapping && tlObjectExt.originalLLayer) {
-				mapping = this.mapping[tlObjectExt.originalLLayer] as MappingAtem // tslint:disable-line
-			}
 
 			if (mapping) {
 				if (mapping.index !== undefined && mapping.index >= 0) { // index must be 0 or higher
-
 					switch (mapping.mappingType) {
 						case MappingAtemType.MixEffect:
-							if (tlObjectExt.isBackground) {
-								break
-							}
 							if (content.type === TimelineContentTypeAtem.ME) {
 								let me = deviceState.video.ME[mapping.index]
 								if (me) deepExtend(me, content.attributes)
 							}
 							break
 						case MappingAtemType.DownStreamKeyer:
-							if (tlObjectExt.isBackground) {
-								break
-							}
 							if (content.type === TimelineContentTypeAtem.DSK) {
 								let dsk = deviceState.video.downstreamKeyers[mapping.index]
 								if (dsk) deepExtend(dsk, content.attributes)
 							}
 							break
 						case MappingAtemType.SuperSourceBox:
-							if (tlObjectExt.isBackground && (!tlObjectExt.originalLLayer || tlObjectExt.originalLLayer && state.LLayers[tlObjectExt.originalLLayer])) {
-								break
-							}
 							if (content.type === TimelineContentTypeAtem.SSRC) {
 								let ssrc = deviceState.video.superSourceBoxes
 								if (ssrc) deepExtend(ssrc, content.attributes.boxes)
 							}
 							break
 						case MappingAtemType.Auxilliary:
-							if (tlObjectExt.isBackground) {
-								break
-							}
 							if (content.type === TimelineContentTypeAtem.AUX) {
 								deviceState.video.auxilliaries[mapping.index] = content.attributes.input
 							}
 							break
 						case MappingAtemType.MediaPlayer:
-							if (tlObjectExt.isBackground) {
-								break
-							}
 							if (content.type === TimelineContentTypeAtem.MEDIAPLAYER) {
 								let ms = deviceState.media.players[mapping.index]
 								if (ms) deepExtend(ms, content.attributes)
@@ -252,12 +231,11 @@ export class AtemDevice extends DeviceWithState<DeviceState> {
 							break
 					}
 				}
+
 				if (mapping.mappingType === MappingAtemType.SuperSourceProperties) {
-					if (!(tlObjectExt.isBackground && (!tlObjectExt.originalLLayer || tlObjectExt.originalLLayer && state.LLayers[tlObjectExt.originalLLayer]))) {
-						if (content.type === TimelineContentTypeAtem.SSRCPROPS) {
-							let ssrc = deviceState.video.superSourceProperties
-							if (ssrc) deepExtend(ssrc, content.attributes)
-						}
+					if (content.type === TimelineContentTypeAtem.SSRCPROPS) {
+						let ssrc = deviceState.video.superSourceProperties
+						if (ssrc) deepExtend(ssrc, content.attributes)
 					}
 				}
 			}
