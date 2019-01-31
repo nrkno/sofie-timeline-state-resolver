@@ -1011,6 +1011,9 @@ img { max-width: 100%; }
 				<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-external">
 					<a href="casparcgdevice.html#restartcasparcg" class="tsd-kind-icon">restart<wbr>CasparCG</a>
 				</li>
+				<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-inherited tsd-is-external">
+					<a href="casparcgdevice.html#setmapping" class="tsd-kind-icon">set<wbr>Mapping</a>
+				</li>
 				<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-overwrite tsd-is-inherited tsd-is-external">
 					<a href="casparcgdevice.html#setmaxlisteners" class="tsd-kind-icon">set<wbr>Max<wbr>Listeners</a>
 				</li>
@@ -1106,6 +1109,7 @@ img { max-width: 100%; }
 							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-overwrite tsd-is-inherited tsd-is-external"><a href="casparcgdevice.html#removealllisteners" class="tsd-kind-icon">remove<wbr>All<wbr>Listeners</a></li>
 							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-overwrite tsd-is-inherited tsd-is-external"><a href="casparcgdevice.html#removelistener" class="tsd-kind-icon">remove<wbr>Listener</a></li>
 							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-external"><a href="casparcgdevice.html#restartcasparcg" class="tsd-kind-icon">restart<wbr>CasparCG</a></li>
+							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited tsd-is-external"><a href="casparcgdevice.html#setmapping" class="tsd-kind-icon">set<wbr>Mapping</a></li>
 							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-overwrite tsd-is-inherited tsd-is-external"><a href="casparcgdevice.html#setmaxlisteners" class="tsd-kind-icon">set<wbr>Max<wbr>Listeners</a></li>
 							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited tsd-is-external"><a href="casparcgdevice.html#setstate" class="tsd-kind-icon">set<wbr>State</a></li>
 							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited tsd-is-external"><a href="casparcgdevice.html#standdown" class="tsd-kind-icon">stand<wbr>Down</a></li>
@@ -1122,14 +1126,14 @@ img { max-width: 100%; }
 				<a name="constructor" class="tsd-anchor"></a>
 				<h3>constructor</h3>
 				<ul class="tsd-signatures tsd-kind-constructor tsd-parent-kind-class tsd-is-overwrite tsd-is-external">
-					<li class="tsd-signature tsd-kind-icon">new <wbr>CasparCGDevice<span class="tsd-signature-symbol">(</span>deviceId<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, deviceOptions<span class="tsd-signature-symbol">: </span><a href="../interfaces/casparcgdeviceoptions.html" class="tsd-signature-type">CasparCGDeviceOptions</a>, options<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span>, conductor<span class="tsd-signature-symbol">: </span><a href="conductor.html" class="tsd-signature-type">Conductor</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="casparcgdevice.html" class="tsd-signature-type">CasparCGDevice</a></li>
+					<li class="tsd-signature tsd-kind-icon">new <wbr>CasparCGDevice<span class="tsd-signature-symbol">(</span>deviceId<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, deviceOptions<span class="tsd-signature-symbol">: </span><a href="../interfaces/casparcgdeviceoptions.html" class="tsd-signature-type">CasparCGDeviceOptions</a>, options<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="casparcgdevice.html" class="tsd-signature-type">CasparCGDevice</a></li>
 				</ul>
 				<ul class="tsd-descriptions">
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<p>Overrides <a href="device.html">Device</a>.<a href="device.html#constructor">constructor</a></p>
 							<ul>
-								<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/97aa9c7/src/devices/casparCG.ts#L70">devices/casparCG.ts:70</a></li>
+								<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/cdd0f52/src/devices/casparCG.ts#L68">devices/casparCG.ts:68</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -1142,9 +1146,6 @@ img { max-width: 100%; }
 							</li>
 							<li>
 								<h5>options: <span class="tsd-signature-type">any</span></h5>
-							</li>
-							<li>
-								<h5>conductor: <a href="conductor.html" class="tsd-signature-type">Conductor</a></h5>
 							</li>
 						</ul>
 						<h4 class="tsd-returns-title">Returns <a href="casparcgdevice.html" class="tsd-signature-type">CasparCGDevice</a></h4>
@@ -1175,7 +1176,7 @@ img { max-width: 100%; }
 				<aside class="tsd-sources">
 					<p>Overrides <a href="device.html">Device</a>.<a href="device.html#canconnect">canConnect</a></p>
 					<ul>
-						<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/97aa9c7/src/devices/casparCG.ts#L194">devices/casparCG.ts:194</a></li>
+						<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/cdd0f52/src/devices/casparCG.ts#L191">devices/casparCG.ts:191</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -1186,7 +1187,7 @@ img { max-width: 100%; }
 				<aside class="tsd-sources">
 					<p>Overrides <a href="device.html">Device</a>.<a href="device.html#connected">connected</a></p>
 					<ul>
-						<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/97aa9c7/src/devices/casparCG.ts#L197">devices/casparCG.ts:197</a></li>
+						<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/cdd0f52/src/devices/casparCG.ts#L194">devices/casparCG.ts:194</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -1197,8 +1198,8 @@ img { max-width: 100%; }
 				<aside class="tsd-sources">
 					<p>Inherited from <a href="device.html">Device</a>.<a href="device.html#deviceid">deviceId</a></p>
 					<ul>
-						<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/97aa9c7/src/devices/device.ts#L122">devices/device.ts:122</a></li>
-						<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/97aa9c7/src/devices/device.ts#L125">devices/device.ts:125</a></li>
+						<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/cdd0f52/src/devices/device.ts#L125">devices/device.ts:125</a></li>
+						<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/cdd0f52/src/devices/device.ts#L128">devices/device.ts:128</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -1209,7 +1210,7 @@ img { max-width: 100%; }
 				<aside class="tsd-sources">
 					<p>Overrides <a href="device.html">Device</a>.<a href="device.html#devicename">deviceName</a></p>
 					<ul>
-						<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/97aa9c7/src/devices/casparCG.ts#L205">devices/casparCG.ts:205</a></li>
+						<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/cdd0f52/src/devices/casparCG.ts#L202">devices/casparCG.ts:202</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -1220,7 +1221,7 @@ img { max-width: 100%; }
 				<aside class="tsd-sources">
 					<p>Inherited from <a href="device.html">Device</a>.<a href="device.html#deviceoptions">deviceOptions</a></p>
 					<ul>
-						<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/97aa9c7/src/devices/device.ts#L133">devices/device.ts:133</a></li>
+						<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/cdd0f52/src/devices/device.ts#L136">devices/device.ts:136</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -1231,7 +1232,7 @@ img { max-width: 100%; }
 				<aside class="tsd-sources">
 					<p>Overrides <a href="device.html">Device</a>.<a href="device.html#devicetype">deviceType</a></p>
 					<ul>
-						<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/97aa9c7/src/devices/casparCG.ts#L202">devices/casparCG.ts:202</a></li>
+						<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/cdd0f52/src/devices/casparCG.ts#L199">devices/casparCG.ts:199</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -1242,8 +1243,8 @@ img { max-width: 100%; }
 				<aside class="tsd-sources">
 					<p>Inherited from <a href="device.html">Device</a>.<a href="device.html#mapping">mapping</a></p>
 					<ul>
-						<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/97aa9c7/src/devices/device.ts#L115">devices/device.ts:115</a></li>
-						<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/97aa9c7/src/devices/device.ts#L118">devices/device.ts:118</a></li>
+						<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/cdd0f52/src/devices/device.ts#L115">devices/device.ts:115</a></li>
+						<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/cdd0f52/src/devices/device.ts#L118">devices/device.ts:118</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -1253,7 +1254,7 @@ img { max-width: 100%; }
 				<div class="tsd-signature tsd-kind-icon">queue<span class="tsd-signature-symbol">:</span> </div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/97aa9c7/src/devices/casparCG.ts#L209">devices/casparCG.ts:209</a></li>
+						<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/cdd0f52/src/devices/casparCG.ts#L210">devices/casparCG.ts:210</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -1317,7 +1318,7 @@ img { max-width: 100%; }
 						<aside class="tsd-sources">
 							<p>Inherited from <a href="devicewithstate.html">DeviceWithState</a>.<a href="devicewithstate.html#cleanupstates">cleanUpStates</a></p>
 							<ul>
-								<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/97aa9c7/src/devices/device.ts#L239">devices/device.ts:239</a></li>
+								<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/cdd0f52/src/devices/device.ts#L242">devices/device.ts:242</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -1344,7 +1345,7 @@ img { max-width: 100%; }
 						<aside class="tsd-sources">
 							<p>Overrides <a href="device.html">Device</a>.<a href="device.html#clearfuture">clearFuture</a></p>
 							<ul>
-								<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/97aa9c7/src/devices/casparCG.ts#L182">devices/casparCG.ts:182</a></li>
+								<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/cdd0f52/src/devices/casparCG.ts#L179">devices/casparCG.ts:179</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -1368,7 +1369,7 @@ img { max-width: 100%; }
 						<aside class="tsd-sources">
 							<p>Inherited from <a href="devicewithstate.html">DeviceWithState</a>.<a href="devicewithstate.html#clearstates">clearStates</a></p>
 							<ul>
-								<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/97aa9c7/src/devices/device.ts#L256">devices/device.ts:256</a></li>
+								<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/cdd0f52/src/devices/device.ts#L259">devices/device.ts:259</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
@@ -1385,7 +1386,7 @@ img { max-width: 100%; }
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/97aa9c7/src/devices/casparCG.ts#L221">devices/casparCG.ts:221</a></li>
+								<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/cdd0f52/src/devices/casparCG.ts#L222">devices/casparCG.ts:222</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -1464,7 +1465,7 @@ img { max-width: 100%; }
 						<aside class="tsd-sources">
 							<p>Inherited from <a href="device.html">Device</a>.<a href="device.html#getcurrenttime">getCurrentTime</a></p>
 							<ul>
-								<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/97aa9c7/src/devices/device.ts#L78">devices/device.ts:78</a></li>
+								<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/cdd0f52/src/devices/device.ts#L78">devices/device.ts:78</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">number</span></h4>
@@ -1501,7 +1502,7 @@ img { max-width: 100%; }
 						<aside class="tsd-sources">
 							<p>Inherited from <a href="devicewithstate.html">DeviceWithState</a>.<a href="devicewithstate.html#getstatebefore">getStateBefore</a></p>
 							<ul>
-								<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/97aa9c7/src/devices/device.ts#L204">devices/device.ts:204</a></li>
+								<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/cdd0f52/src/devices/device.ts#L207">devices/device.ts:207</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -1528,7 +1529,7 @@ img { max-width: 100%; }
 						<aside class="tsd-sources">
 							<p>Overrides <a href="device.html">Device</a>.<a href="device.html#getstatus">getStatus</a></p>
 							<ul>
-								<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/97aa9c7/src/devices/casparCG.ts#L535">devices/casparCG.ts:535</a></li>
+								<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/cdd0f52/src/devices/casparCG.ts#L536">devices/casparCG.ts:536</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-returns-title">Returns <a href="../interfaces/devicestatus.html" class="tsd-signature-type">DeviceStatus</a></h4>
@@ -1546,7 +1547,7 @@ img { max-width: 100%; }
 						<aside class="tsd-sources">
 							<p>Overrides <a href="device.html">Device</a>.<a href="device.html#handlestate">handleState</a></p>
 							<ul>
-								<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/97aa9c7/src/devices/casparCG.ts#L154">devices/casparCG.ts:154</a></li>
+								<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/cdd0f52/src/devices/casparCG.ts#L151">devices/casparCG.ts:151</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -1575,7 +1576,7 @@ img { max-width: 100%; }
 						<aside class="tsd-sources">
 							<p>Overrides <a href="device.html">Device</a>.<a href="device.html#init">init</a></p>
 							<ul>
-								<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/97aa9c7/src/devices/casparCG.ts#L97">devices/casparCG.ts:97</a></li>
+								<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/cdd0f52/src/devices/casparCG.ts#L94">devices/casparCG.ts:94</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -1654,7 +1655,7 @@ img { max-width: 100%; }
 						<aside class="tsd-sources">
 							<p>Overrides <a href="device.html">Device</a>.<a href="device.html#makeready">makeReady</a></p>
 							<ul>
-								<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/97aa9c7/src/devices/casparCG.ts#L454">devices/casparCG.ts:454</a></li>
+								<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/cdd0f52/src/devices/casparCG.ts#L455">devices/casparCG.ts:455</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -1932,10 +1933,34 @@ img { max-width: 100%; }
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/97aa9c7/src/devices/casparCG.ts#L512">devices/casparCG.ts:512</a></li>
+								<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/cdd0f52/src/devices/casparCG.ts#L513">devices/casparCG.ts:513</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span></h4>
+					</li>
+				</ul>
+			</section>
+			<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-inherited tsd-is-external">
+				<a name="setmapping" class="tsd-anchor"></a>
+				<h3>set<wbr>Mapping</h3>
+				<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-inherited tsd-is-external">
+					<li class="tsd-signature tsd-kind-icon">set<wbr>Mapping<span class="tsd-signature-symbol">(</span>mappings<span class="tsd-signature-symbol">: </span><a href="../interfaces/mappings.html" class="tsd-signature-type">Mappings</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+				</ul>
+				<ul class="tsd-descriptions">
+					<li class="tsd-description">
+						<aside class="tsd-sources">
+							<p>Inherited from <a href="device.html">Device</a>.<a href="device.html#setmapping">setMapping</a></p>
+							<ul>
+								<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/cdd0f52/src/devices/device.ts#L121">devices/device.ts:121</a></li>
+							</ul>
+						</aside>
+						<h4 class="tsd-parameters-title">Parameters</h4>
+						<ul class="tsd-parameters">
+							<li>
+								<h5>mappings: <a href="../interfaces/mappings.html" class="tsd-signature-type">Mappings</a></h5>
+							</li>
+						</ul>
+						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
 					</li>
 				</ul>
 			</section>
@@ -1975,7 +2000,7 @@ img { max-width: 100%; }
 						<aside class="tsd-sources">
 							<p>Inherited from <a href="devicewithstate.html">DeviceWithState</a>.<a href="devicewithstate.html#setstate">setState</a></p>
 							<ul>
-								<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/97aa9c7/src/devices/device.ts#L222">devices/device.ts:222</a></li>
+								<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/cdd0f52/src/devices/device.ts#L225">devices/device.ts:225</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -2002,7 +2027,7 @@ img { max-width: 100%; }
 						<aside class="tsd-sources">
 							<p>Inherited from <a href="device.html">Device</a>.<a href="device.html#standdown">standDown</a></p>
 							<ul>
-								<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/97aa9c7/src/devices/device.ts#L108">devices/device.ts:108</a></li>
+								<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/cdd0f52/src/devices/device.ts#L108">devices/device.ts:108</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -2035,7 +2060,7 @@ img { max-width: 100%; }
 						<aside class="tsd-sources">
 							<p>Overrides <a href="device.html">Device</a>.<a href="device.html#terminate">terminate</a></p>
 							<ul>
-								<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/97aa9c7/src/devices/casparCG.ts#L141">devices/casparCG.ts:141</a></li>
+								<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/cdd0f52/src/devices/casparCG.ts#L138">devices/casparCG.ts:138</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">&gt;</span></h4>
