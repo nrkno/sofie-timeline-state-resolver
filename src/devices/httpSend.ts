@@ -163,7 +163,7 @@ export class HttpSendDevice extends DeviceWithState<TimelineState> {
 					commands.push({
 						commandName: 'changed',
 						content: newLayer.content as HttpSendCommandContent, // tslint:disable-line
-						context: `changed: ${newLayer.id}`,
+						context: `changed: ${newLayer.id} (previously: ${oldLayer.id})`,
 						layer: layerKey
 					})
 				}
