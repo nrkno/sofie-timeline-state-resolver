@@ -61,7 +61,7 @@
     "watch": "jest --watch",
     "cov": "jest --coverage; opn coverage/lcov-report/index.html",
     "cov-open": "opn coverage/lcov-report/index.html",
-    "send-coverage": "jest && codecov",
+    "send-coverage": "yarn test && codecov",
     "docs": "yarn docs:html && opn docs/index.html",
     "docs:test": "yarn docs:html",
     "docs:html": "typedoc src/index.ts --excludePrivate --mode file --theme minimal --out docs",
