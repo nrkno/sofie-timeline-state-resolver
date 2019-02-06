@@ -105,6 +105,79 @@ describe('CasparCG', () => {
 		expect(commandReceiver0.mock.calls[1][1]._objectParams.command.channel).toEqual(2)
 		expect(commandReceiver0.mock.calls[1][1]._objectParams.command.layer).toEqual(42)
 	})
+	test('CasparCG: Play AMB for 60s, start at 10s', async () => {
+
+		let commandReceiver0 = jest.fn(() => {
+			return Promise.resolve()
+		})
+		let myLayerMapping0: MappingCasparCG = {
+			device: DeviceType.CASPARCG,
+			deviceId: 'myCCG',
+			channel: 2,
+			layer: 42
+		}
+		let myLayerMapping: Mappings = {
+			'myLayer0': myLayerMapping0
+		}
+
+		let myConductor = new Conductor({
+			initializeAsClear: true,
+			getCurrentTime: mockTime.getCurrentTime
+		})
+		await myConductor.init() // we cannot do an await, because setTimeout will never call without jest moving on.
+		await myConductor.addDevice('myCCG', {
+			type: DeviceType.CASPARCG,
+			options: {
+				commandReceiver: commandReceiver0,
+				useScheduling: true
+			}
+		})
+		myConductor.mapping = myLayerMapping
+		await mockTime.advanceTimeToTicks(10100)
+
+		expect(commandReceiver0).toHaveBeenCalledTimes(3)
+
+		expect(commandReceiver0.mock.calls[0][1]._objectParams).toMatchObject({ channel: 1, timecode: '00:00:10:00' })
+		expect(commandReceiver0.mock.calls[1][1]._objectParams).toMatchObject({ channel: 2, timecode: '00:00:10:00' })
+		expect(commandReceiver0.mock.calls[2][1]._objectParams).toMatchObject({ channel: 3, timecode: '00:00:10:00' })
+
+		commandReceiver0.mockClear()
+
+		let device = myConductor.getDevice('myCCG')
+
+		// Check that no commands has been scheduled:
+		expect(await device['queue']).toHaveLength(0)
+
+		myConductor.timeline = [
+			{
+				id: 'obj0',
+				trigger: {
+					type: TriggerType.TIME_ABSOLUTE,
+					value: mockTime.getCurrentTime() - 10000 // 10 seconds ago
+				},
+				duration: 60000,
+				LLayer: 'myLayer0',
+				content: {
+					type: TimelineContentTypeCasparCg.VIDEO,
+					attributes: {
+						file: 'AMB'
+					}
+				}
+			}
+		]
+
+		await mockTime.advanceTimeToTicks(10200)
+
+		// one command has been sent:
+		expect(commandReceiver0).toHaveBeenCalledTimes(1)
+		expect(commandReceiver0.mock.calls[0][1]._objectParams).toMatchObject({
+			channel: 2,
+			layer: 42,
+			noClear: false,
+			clip: 'AMB',
+			seek: 25 * 10
+		})
+	})
 
 	test('CasparCG: Play IP input for 60s', async () => {
 
