@@ -77,7 +77,6 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> {
 		}
 
 		this._ccgState = new CasparCGState({
-			currentTime: this.getCurrentTime,
 			externalLog: (...args) => {
 				this.emit('debug', ...args)
 			}
@@ -126,7 +125,7 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> {
 						videoMode: obj.format.toUpperCase(),
 						fps: obj.frameRate
 					}
-				}) as StateNS.ChannelInfo[])
+				}) as StateNS.ChannelInfo[], this.getCurrentTime())
 
 				resolve(true)
 			}).catch((e) => reject(e))
@@ -160,7 +159,7 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> {
 		let newCasparState = this.convertStateToCaspar(newState)
 		let oldCasparState = this.convertStateToCaspar(oldState)
 
-		let commandsToAchieveState: Array<CommandNS.IAMCPCommandVO> = this._diffStates(oldCasparState, newCasparState)
+		let commandsToAchieveState: Array<CommandNS.IAMCPCommandVO> = this._diffStates(oldCasparState, newCasparState, newState.time)
 
 		// console.log('commandsToAchieveState', commandsToAchieveState)
 		// clear any queued commands later than this time:
@@ -539,9 +538,9 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> {
 		}
 	}
 
-	private _diffStates (oldState, newState): Array<CommandNS.IAMCPCommandVO> {
+	private _diffStates (oldState, newState, time: number): Array<CommandNS.IAMCPCommandVO> {
 		// @todo: this is a tmp fix for the command order. should be removed when ccg-state has been refactored.
-		return this._ccgState.diffStatesOrderedCommands(oldState, newState)
+		return this._ccgState.diffStatesOrderedCommands(oldState, newState, time)
 		// let commands: Array<{
 		// 	cmds: Array<CommandNS.IAMCPCommandVO>
 		// 	additionalLayerState?: StateNS.ILayerBase
