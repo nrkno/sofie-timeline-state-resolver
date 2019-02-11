@@ -378,7 +378,9 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> {
 					const baseContent = layer.content as TimelineObjCCGProducerContentBase
 					if (baseContent.transitions) {
 						switch (baseContent.type) {
+							case TimelineContentTypeCasparCg.MEDIA:
 							case TimelineContentTypeCasparCg.VIDEO:
+							case TimelineContentTypeCasparCg.AUDIO:
 							case TimelineContentTypeCasparCg.IP:
 							case TimelineContentTypeCasparCg.TEMPLATE:
 							case TimelineContentTypeCasparCg.INPUT:
