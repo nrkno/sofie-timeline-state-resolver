@@ -516,7 +516,7 @@ export class Conductor extends EventEmitter {
 				// this.emit('debug', 'timeUntilNextResolve', timeUntilNextResolve)
 
 				// resolve at nextEvent.time next time:
-				this._nextResolveTime = nextEvent.time
+				this._nextResolveTime = Math.min(tlState.time + LOOKAHEADTIME, nextEvent.time)
 
 			} else {
 				// there's nothing ahead in the timeline
