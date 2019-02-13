@@ -20,7 +20,7 @@ import {
 	TimelineContentTypeCasparCg,
 	MappingCasparCG,
 	CasparCGOptions,
-	TimelineObjCCGVideo,
+	TimelineObjCCGMedia,
 	TimelineObjCCGHTMLPage,
 	TimelineObjCCGRoute,
 	TimelineObjCCGInput,
@@ -256,7 +256,7 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> {
 					layer.content.type === TimelineContentTypeCasparCg.AUDIO || // to be deprecated & replaced by MEDIA
 					layer.content.type === TimelineContentTypeCasparCg.MEDIA
 				) {
-					const mediaObj = layer as TimelineObjCCGVideo & TimelineResolvedObjectExtended
+					const mediaObj = layer as TimelineObjCCGMedia & TimelineResolvedObjectExtended
 
 					let l: StateNS.IMediaLayer = {
 						layerNo: mapping.layer,
