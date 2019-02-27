@@ -50,8 +50,8 @@ const toString = ObjProto.toString
 // Internal recursive comparison function for `getDiff`.
 function deepDiff (a: any, b: any, aStack: any, bStack: any): string | null {
 	// Unwrap any wrapped objects.
-	if (a instanceof _) a = a._wrapped
-	if (b instanceof _) b = b._wrapped
+	if (a instanceof _) a = (a as any)._wrapped
+	if (b instanceof _) b = (b as any)._wrapped
 	// Compare `[[Class]]` names.
 	let aClassName = toString.call(a)
 	let bClassName = toString.call(b)
