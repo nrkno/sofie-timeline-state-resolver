@@ -75,8 +75,8 @@
     "license-validate": "node-license-validator -p -d --allow-licenses MIT BSD BSD-2-Clause BSD-3-Clause ISC Apache Unlicense WTFPL --allow-packages cycle",
     "types-build": "cd src/types && trash dist && yarn build:main && cd ../..",
     "types-install": "cd src/types && yarn install && cd ../..",
-    "types-test": "cd src/types && yarn lint && yarn unit && cd ../..",
-    "types-ci": "cd src/types && yarn lint && yarn unit && cd ../.."
+    "types-test": "cd src/types && yarn lint && yarn unit --maxWorkers 2 && cd ../..",
+    "types-ci": "cd src/types && yarn lint && yarn unit --maxWorkers 2 && cd ../.."
   },
   "scripts-info": {
     "info": "Display information about the scripts",
