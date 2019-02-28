@@ -847,10 +847,10 @@ asynckit@^0.4.0:
   resolved "https://registry.yarnpkg.com/asynckit/-/asynckit-0.4.0.tgz#c79ed97f7f34cb8f2ba1bc9790bcc366474b4b79"
   integrity sha1-x57Zf380y48robyXkLzDZkdLS3k=
 
-atem-connection@^0.8.0, atem-connection@^0.8.1:
-  version "0.8.1"
-  resolved "https://registry.yarnpkg.com/atem-connection/-/atem-connection-0.8.1.tgz#e7fadeab3a33ff5d15db157c8c8f1c2ca2ce23b8"
-  integrity sha512-LHCJ1Cy/WIVakZ/PcXxJyHTF17nbQQVa4FgJsNhi+dBrbm5mzcMO06p3KPl/e/kwQlpli+Letk60u/MvDvpoeQ==
+atem-connection@^0.9.0:
+  version "0.9.0"
+  resolved "https://registry.yarnpkg.com/atem-connection/-/atem-connection-0.9.0.tgz#339f4de190be169451e6f1e039690d1be8757130"
+  integrity sha512-DyFBarJ3DD6nmLrJ8oWPogJHbpApqqW8mDrCAcFsEZICMLkx/1L4UKZatOYn9ua/iKlU+NDUmps7uH4q3qluJQ==
   dependencies:
     exit-hook "^2.0.0"
     nanotimer "^0.3.15"
@@ -859,12 +859,12 @@ atem-connection@^0.8.0, atem-connection@^0.8.1:
     tslib "^1.9.0"
     wavefile "^8.4.4"
 
-atem-state@^0.4.0:
-  version "0.4.0"
-  resolved "https://registry.yarnpkg.com/atem-state/-/atem-state-0.4.0.tgz#d3c5ccf40b9ddc521eef06fdc90c075f59ea2205"
-  integrity sha512-8AIkRSsvelpBVXDsPwQfeKB2UHTUlwROMRfaSFi3UsBMVs/6e2qSLRbBAaNDfTUSGyqIh9weAW1AU7L1bko8qg==
+atem-state@^0.4.1:
+  version "0.4.1"
+  resolved "https://registry.yarnpkg.com/atem-state/-/atem-state-0.4.1.tgz#e91643f98a14e42808d19b228191698d9c7586fb"
+  integrity sha512-kYKVMAVqGwoZlueI2ejrJO3hkoSfvPHJjOblmTLJ2bb692EQw5fLEWtwI//dno3VIVzFnwB5NITKwxvw+mQBnw==
   dependencies:
-    atem-connection "^0.8.0"
+    atem-connection "^0.9.0"
     tslib "^1.9.2"
 
 atob@^2.1.1:
@@ -5966,10 +5966,10 @@ text-extensions@^1.0.0:
   resolved "https://registry.yarnpkg.com/text-extensions/-/text-extensions-1.9.0.tgz#1853e45fee39c945ce6f6c36b2d659b5aabc2a26"
   integrity sha512-wiBrwC1EhBelW12Zy26JeOUkQ5mRu+5o8rpsJk5+2t+Y5vE7e842qtZDQ2g1NpX/29HdyFeJ4nSIhI47ENSxlQ==
 
-threadedclass@^0.2.1:
-  version "0.2.1"
-  resolved "https://registry.yarnpkg.com/threadedclass/-/threadedclass-0.2.1.tgz#db6f06fb95a2630971c16fc2e245c470e95090e7"
-  integrity sha512-YGGgl7OvbLafbB9i8QFiCz3aRp1n8rqVRzgSI/cnbk7bABg0cuZmKmIpG8i65QW+rfIEDmBlfvtzhWfyVtEaVg==
+threadedclass@^0.4.1:
+  version "0.4.1"
+  resolved "https://registry.yarnpkg.com/threadedclass/-/threadedclass-0.4.1.tgz#3a9f26ec86e5f847c891b427d03506c3274d80a3"
+  integrity sha512-q+P1rXF9QkHZY90X0B8icqG5ML3qUdpxYwEwx0AHlLtFTGD5fXWHHGplNRo54t7i26jZG2+wImdQ7oUUMBNVvg==
   dependencies:
     callsites "^2.0.0"
     tslib "^1.6.0"
