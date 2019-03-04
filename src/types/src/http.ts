@@ -9,6 +9,7 @@ export interface HttpSendCommandContent {
 	type: TimelineContentTypeHttp
 	url: string
 	params: {[key: string]: number | string | any}
+	temporalPriority?: number // default: 0
 }
 export interface HttpSendOptions {
 	makeReadyCommands?: HttpSendCommandContent[]
