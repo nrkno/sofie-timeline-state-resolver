@@ -190,11 +190,8 @@ describe('HTTP-Send', () => {
 
 		// Expecting to see the ordering below:
 		expect(commandReceiver0).toHaveBeenCalledTimes(3)
-		expect(commandReceiver0.mock.calls[0][1]).toMatchObject( { url: 'http://superfly.tv/1' })
-		expect(commandReceiver0.mock.calls[1][1]).toMatchObject( { url: 'http://superfly.tv/3' })
-		expect(commandReceiver0.mock.calls[2][1]).toMatchObject( { url: 'http://superfly.tv/2' })
-
-		await mockTime.advanceTimeToTicks(16000)
-		expect(commandReceiver0).toHaveBeenCalledTimes(1)
+		expect(commandReceiver0).toBeCalledWith(expect.anything(), expect.objectContaining({ url: 'http://superfly.tv/1' }), expect.anything())
+		expect(commandReceiver0).toBeCalledWith(expect.anything(), expect.objectContaining({ url: 'http://superfly.tv/3' }), expect.anything())
+		expect(commandReceiver0).toBeCalledWith(expect.anything(), expect.objectContaining({ url: 'http://superfly.tv/2' }), expect.anything())
 	})
 })
