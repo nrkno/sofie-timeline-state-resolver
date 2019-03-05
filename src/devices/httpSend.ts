@@ -182,8 +182,11 @@ export class HttpSendDevice extends DeviceWithState<TimelineState> {
 				})
 			}
 		})
-
-		return commands.sort((a, b) => a.layer.localeCompare(b.layer))
+		return commands
+		.sort((a, b) => a.layer.localeCompare(b.layer))
+		.sort((a, b) => {
+			return (a.content.temporalPriority || 0) - (b.content.temporalPriority || 0)
+		})
 	}
 	private _defaultCommandReceiver (time: number, cmd: HttpSendCommandContent, context: CommandContext): Promise<any> {
 		time = time
