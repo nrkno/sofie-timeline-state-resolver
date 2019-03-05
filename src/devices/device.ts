@@ -40,6 +40,10 @@ export interface DeviceStatus {
 
 export function literal<T> (o: T) { return o }
 
+export interface DeviceClassOptions {
+	getCurrentTime: () => number
+}
+
 interface IDevice {
 	on (event: 'info',  	listener: (info: any) => void): this
 	on (event: 'warning', 	listener: (warning: any) => void): this
@@ -55,7 +59,7 @@ export abstract class Device extends EventEmitter implements IDevice {
 
 	private _mappings: Mappings = {}
 
-	constructor (deviceId: string, deviceOptions: DeviceOptions, options) {
+	constructor (deviceId: string, deviceOptions: DeviceOptions, options: DeviceClassOptions) {
 		super()
 		this._deviceId = deviceId
 		this._deviceOptions = deviceOptions
