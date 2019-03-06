@@ -52,12 +52,14 @@ interface IDevice {
 }
 export abstract class Device extends EventEmitter implements IDevice {
 
-	private _getCurrentTime: () => number
+	private _getCurrentTime: () => Promise<number>
 
 	private _deviceId: string
 	private _deviceOptions: DeviceOptions
 
 	private _mappings: Mappings = {}
+	private _currentTimeDiff: number = 0
+	private _currentTimeUpdated: number = 0
 
 	constructor (deviceId: string, deviceOptions: DeviceOptions, options: DeviceClassOptions) {
 		super()
@@ -67,8 +69,10 @@ export abstract class Device extends EventEmitter implements IDevice {
 		this._deviceOptions = this._deviceOptions // ts-lint fix
 
 		if (options.getCurrentTime) {
-			this._getCurrentTime = options.getCurrentTime
+			this._getCurrentTime = () => Promise.resolve(options.getCurrentTime())
 		}
+
+		this._updateCurrentTime()
 	}
 
 	/**
@@ -80,8 +84,10 @@ export abstract class Device extends EventEmitter implements IDevice {
 		return Promise.resolve(true)
 	}
 	getCurrentTime () {
-		if (this._getCurrentTime) return this._getCurrentTime()
-		return Date.now()
+		if ((Date.now() - this._currentTimeUpdated) > 5 * 60 * 1000) {
+			this._updateCurrentTime()
+		}
+		return Date.now() - this._currentTimeDiff
 	}
 
 	abstract handleState (newState: TimelineState)
@@ -139,6 +145,20 @@ export abstract class Device extends EventEmitter implements IDevice {
 	abstract get deviceType (): DeviceType
 	get deviceOptions (): DeviceOptions {
 		return this._deviceOptions
+	}
+	private _updateCurrentTime () {
+		if (this._getCurrentTime) {
+			const startTime = Date.now()
+			this._getCurrentTime()
+			.then((parentTime) => {
+				const endTime = Date.now()
+				const clientTime = Math.round((startTime + endTime) / 2)
+
+				this._currentTimeDiff = clientTime - parentTime
+				this._currentTimeUpdated = endTime
+
+			})
+		}
 	}
 // }
 
