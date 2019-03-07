@@ -154,6 +154,8 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> {
 			this.emit('warning', 'CasparCG State not initialized yet')
 			return
 		}
+		// console.log('handleState', newState)
+		this.emit('debug', 'handleState', newState)
 
 		let oldState = (this.getStateBefore(newState.time) || { state: { time: 0, LLayers: {}, GLayers: {} } }).state
 
@@ -163,6 +165,7 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> {
 		let commandsToAchieveState: Array<CommandNS.IAMCPCommandVO> = this._diffStates(oldCasparState, newCasparState)
 
 		// console.log('commandsToAchieveState', commandsToAchieveState)
+		this.emit('debug', 'commandsToAchieveState', commandsToAchieveState)
 		// clear any queued commands later than this time:
 		if (this._useScheduling) {
 			this._clearScheduledFutureCommands(newState.time, commandsToAchieveState)
