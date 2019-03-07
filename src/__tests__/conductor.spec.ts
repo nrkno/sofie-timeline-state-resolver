@@ -8,6 +8,8 @@ import {
 import { Conductor, TimelineTriggerTimeResult, TimelineContentObject } from '../conductor'
 import * as _ from 'underscore'
 import { MockTime } from './mockTime.spec'
+import { ThreadedClass } from 'threadedclass'
+import { HyperdeckDevice } from '../devices/hyperdeck'
 
 // let nowActual: number = Date.now()
 // process.on('unhandledRejection', (reason, p) => {
@@ -266,7 +268,7 @@ describe('Conductor', () => {
 		let timelineCallback = jest.fn()
 		conductor.on('timelineCallback', timelineCallback)
 
-		let device0 = conductor.getDevice('device0')
+		let device0 = conductor.getDevice('device0') as ThreadedClass<HyperdeckDevice>
 		expect(device0).toBeTruthy()
 		// let device1 = conductor.getDevice('device1')
 
@@ -274,11 +276,27 @@ describe('Conductor', () => {
 		expect(await device0['queue']).toHaveLength(0)
 		// expect(device1['queue']).toHaveLength(0)
 
+		expect(setTimelineTriggerTime).toHaveBeenCalledTimes(0)
 		conductor.timeline = timeline
 
 		// there should now be one command queued:
 		await mockTime.tick()
-		expect(await device0['queue']).toHaveLength(1)
+		let queue = await device0.queue
+		expect(queue).toHaveLength(2)
+		expect(queue[0]).toMatchObject({
+			time: 10000,
+			args: [{
+				commandName: 'addedAbstract',
+				context: 'added: a0'
+			}]
+		})
+		expect(queue[1]).toMatchObject({
+			time: 10300,
+			args: [{
+				commandName: 'changedAbstract',
+				context: 'changed: a1'
+			}]
+		})
 
 		// the setTimelineTriggerTime event should have been emitted:
 		expect(setTimelineTriggerTime).toHaveBeenCalledTimes(1)
@@ -288,12 +306,12 @@ describe('Conductor', () => {
 		expect(timelineCallback).toHaveBeenCalledTimes(0)
 
 		// Move forward in time
-		await mockTime.advanceTimeTicks(100) // to time 1100
+		await mockTime.advanceTimeToTicks(10100)
 
 		expect(commandReceiver0).toHaveBeenCalledTimes(1)
 		expect(timelineCallback).toHaveBeenCalledTimes(0)
 
-		await mockTime.advanceTimeTicks(400) // to time 1500
+		await mockTime.advanceTimeToTicks(10500)
 
 		expect(commandReceiver0).toHaveBeenCalledTimes(2)
 		expect(timelineCallback).toHaveBeenCalledTimes(1)
@@ -302,7 +320,7 @@ describe('Conductor', () => {
 		expect(timelineCallback.mock.calls[0][2]).toEqual('abc')
 		expect(timelineCallback.mock.calls[0][3]).toEqual({ hello: 'dude' })
 
-		await mockTime.advanceTimeTicks(5000) // to time 6500
+		await mockTime.advanceTimeToTicks(15500)
 
 		// expect(commandReceiver0).toHaveBeenCalledTimes(3)
 		expect(commandReceiver0.mock.calls).toHaveLength(3)

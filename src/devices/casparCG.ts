@@ -203,7 +203,7 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> {
 		if (this._ccg) {
 		  return 'CasparCG ' + this.deviceId + ' ' + this._ccg.host + ':' + this._ccg.port
 		} else {
-			return 'Uninitialized CasparCG'
+			return 'Uninitialized CasparCG ' + this.deviceId
 		}
 	}
 

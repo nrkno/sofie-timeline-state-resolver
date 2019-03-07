@@ -49,7 +49,7 @@ export class MockTime {
 	}
 	advanceTimeToTicks = async (time: number) => {
 		let advance = time - this._now
-		if (advance < 0) throw new Error('advanceTime must be positive!')
+		if (advance < 0) throw new Error('advanceTime must be positive (' + advance + ')!')
 		await this.advanceTimeTicks(advance)
 		expect(this._now).toEqual(time)
 	}

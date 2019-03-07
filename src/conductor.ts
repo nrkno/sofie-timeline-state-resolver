@@ -1,5 +1,5 @@
 import * as _ from 'underscore'
-import { Resolver,
+import {
 	TimelineObject,
 	TimelineState,
 	TimelineResolvedObject,
@@ -27,6 +27,7 @@ import { DoOnTime } from './doOnTime'
 import { PharosDevice } from './devices/pharos'
 import { OSCMessageDevice } from './devices/osc'
 import { threadedClass, ThreadedClass } from 'threadedclass'
+import { AsyncResolver } from './AsyncResolver'
 
 const LOOKAHEADTIME = 5000 // Will look ahead this far into the future
 const PREPARETIME = 2000 // Will prepare commands this time before the event is to happen
@@ -51,6 +52,7 @@ export interface ConductorOptions {
 	getCurrentTime?: () => number
 	autoInit?: boolean
 	isMultihreaded?: boolean
+	multiThreadedResolver?: boolean
 }
 interface TimelineCallback {
 	id: string
@@ -86,10 +88,15 @@ export class Conductor extends EventEmitter {
 	private _isInitialized: boolean = false
 	private _doOnTime: DoOnTime
 	private isMultiThreaded = false
+	private _multiThreadedResolver: boolean = false
 
 	private _queuedCallbacks: QueueCallback[] = []
 	private _triggerSendStartStopCallbacksTimeout: NodeJS.Timer | null = null
 	private _sentCallbacks: TimelineCallbacks = {}
+
+	private _resolveTimelineRunning: boolean = false
+	private _resolveTimelineOnQueue: boolean = false
+	private _resolver: ThreadedClass<AsyncResolver>
 
 	constructor (options: ConductorOptions = {}) {
 		super()
@@ -100,6 +107,8 @@ export class Conductor extends EventEmitter {
 		if (options.isMultihreaded) {
 			this.isMultiThreaded = options.isMultihreaded
 		}
+
+		this._multiThreadedResolver = !!options.multiThreadedResolver
 
 		if (options.getCurrentTime) this._getCurrentTime = options.getCurrentTime
 
@@ -127,11 +136,20 @@ export class Conductor extends EventEmitter {
 	/**
 	 * Initialization, TODO, maybe do something here?
 	 */
-	public init (): Promise<void> {
+	public async init (): Promise<void> {
+		this._resolver = await threadedClass<AsyncResolver>(
+			'../dist/AsyncResolver.js',
+			AsyncResolver,
+			[],
+			{
+				threadUsage: this._multiThreadedResolver ? 1 : 0,
+				autoRestart: true,
+				disableMultithreading: !this._multiThreadedResolver
+			}
+		)
+
 		this._isInitialized = true
 		this.resetResolver()
-
-		return Promise.resolve()
 	}
 	/**
 	 * Returns a nice, synchronized time.
@@ -284,11 +302,23 @@ export class Conductor extends EventEmitter {
 				if (this.logDebug) {
 					this.emit('debug', newDevice.deviceId, ...e)
 				}
-			}).catch(() => null)
-			newDevice.on('info',	(e) => this.emit('info', 	e)).catch(() => null)
-			newDevice.on('warning',	(e) => this.emit('warning', e)).catch(() => null)
-			newDevice.on('error',	(e) => this.emit('error', 	e)).catch(() => null)
-			newDevice.on('resetResolver', () => this.resetResolver()).catch(() => null)
+			}).catch(console.error)
+
+			let deviceName = await newDevice.deviceName
+			const fixError = (e) => {
+				let name = `Device "${deviceName || deviceId}"`
+				if (e.reason) e.reason = name + ': ' + e.reason
+				if (e.message) e.message = name + ': ' + e.message
+				if (e.stack) {
+					e.stack += '\nAt device' + name
+				}
+				if (_.isString(e)) e = name + ': ' + e
+				return e
+			}
+			newDevice.on('info',	(e) => this.emit('info', 	fixError(e))).catch(console.error)
+			newDevice.on('warning',	(e) => this.emit('warning', fixError(e))).catch(console.error)
+			newDevice.on('error',	(e) => this.emit('error', 	fixError(e))).catch(console.error)
+			newDevice.on('resetResolver', () => this.resetResolver()).catch(console.error)
 
 			this.emit('info', 'Initializing ' + DeviceType[deviceOptions.type] + '...')
 			this.devices[deviceId] = newDevice
@@ -296,7 +326,8 @@ export class Conductor extends EventEmitter {
 			newDevice.mapping = this.mapping
 
 			return (newDevice).init(deviceOptions.options)
-			.then(() => {
+			.then(async () => {
+				deviceName = await newDevice.deviceName
 				this.emit('info', (DeviceType[deviceOptions.type] + ' initialized!'))
 				return newDevice
 			})
@@ -390,6 +421,29 @@ export class Conductor extends EventEmitter {
 	 * Resolves the timeline for the next resolve-time, generates the commands and passes on the commands.
 	 */
 	private _resolveTimeline () {
+		if (this._resolveTimelineRunning) {
+			// If a resolve is already running, put in queue to run later:
+			this._resolveTimelineOnQueue = true
+			return
+		}
+
+		this._resolveTimelineRunning = true
+		this._resolveTimelineInner()
+		.catch(e => {
+			this.emit('error', 'Caught error in _resolveTimelineInner' + e)
+		})
+		.then(() => {
+			this._resolveTimelineRunning = false
+			if (this._resolveTimelineOnQueue) {
+				this._resolveTimelineOnQueue = false
+				this._resolveTimeline()
+			}
+		})
+		.catch(e => {
+			this.emit('error', 'Caught error in _resolveTimeline.then' + e)
+		})
+	}
+	private async _resolveTimelineInner () {
 		let timeUntilNextResolve = LOOKAHEADTIME
 		let startTime = Date.now()
 		try {
@@ -409,7 +463,7 @@ export class Conductor extends EventEmitter {
 				return
 			}
 
-			this._fixNowObjects(resolveTime)
+			await this._fixNowObjects(resolveTime)
 
 			let timeline = this.timeline
 			_.each(timeline, (o) => {
@@ -435,7 +489,7 @@ export class Conductor extends EventEmitter {
 			// })))
 
 			// Generate the state for that time:
-			let tlState = Resolver.getState(clone(timeline), resolveTime)
+			let tlState = await this._resolver.getState(clone(timeline), resolveTime)
 
 			_.each(tlState.LLayers, (obj) => {
 				delete obj['parent']
@@ -497,9 +551,11 @@ export class Conductor extends EventEmitter {
 			// Now that we've handled this point in time, it's time to determine what the next point in time is:
 
 			// this.emit('debug', tlState.time)
-			const timelineWindow = Resolver.getTimelineInWindow(timeline, tlState.time, tlState.time + LOOKAHEADTIME)
+			const timelineWindow = await this._resolver.getTimelineInWindow(timeline, tlState.time, tlState.time + LOOKAHEADTIME)
+			// const timelineWindow = Resolver.getTimelineInWindow(timeline, tlState.time, tlState.time + LOOKAHEADTIME)
 
-			const nextEvents = Resolver.getNextEvents(timelineWindow, tlState.time + MINTIMEUNIT, 1)
+			const nextEvents = await this._resolver.getNextEvents(timelineWindow, tlState.time + MINTIMEUNIT, 1)
+			// const nextEvents = Resolver.getNextEvents(timelineWindow, tlState.time + MINTIMEUNIT, 1)
 
 			const now2 = this.getCurrentTime()
 			if (nextEvents.length) {
@@ -601,7 +657,7 @@ export class Conductor extends EventEmitter {
 		}
 	}
 
-	private _fixNowObjects (now: number) {
+	private async _fixNowObjects (now: number) {
 		let objectsFixed: Array<{
 			id: string,
 			time: number
@@ -665,8 +721,8 @@ export class Conductor extends EventEmitter {
 			wouldLikeToIterateAgain = false
 			dontIterateAgain = true
 
-			tl = Resolver.getTimelineInWindow(timeline)
-			tld = Resolver.developTimelineAroundTime(tl, now)
+			tl = await this._resolver.getTimelineInWindow(timeline)
+			tld = await this._resolver.developTimelineAroundTime(tl, now)
 			fixObjects(timeline)
 			if (!wouldLikeToIterateAgain && dontIterateAgain) break
 		}
