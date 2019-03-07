@@ -48,6 +48,7 @@
 		"info": "npm-scripts-info",
 		"installclean": "yarn unlink:all & yarn cleancache && yarn --check-files",
 		"buildclean": "yarn installclean && yarn build",
+		"unitci": "jest --maxWorkers 2",
 		"unit": "jest",
 		"build": "trash dist && yarn build:main",
 		"build:main": "tsc -p tsconfig.json -outDir dist",
