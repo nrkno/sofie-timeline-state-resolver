@@ -474,7 +474,6 @@ export class Conductor extends EventEmitter {
 				return
 			}
 
-
 			const fixObject = (o) => {
 				if (nowIds[o.id]) o.trigger.value = nowIds[o.id]
 				delete o['parent']
