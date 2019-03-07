@@ -302,11 +302,23 @@ export class Conductor extends EventEmitter {
 				if (this.logDebug) {
 					this.emit('debug', newDevice.deviceId, ...e)
 				}
-			}).catch(() => null)
-			newDevice.on('info',	(e) => this.emit('info', 	e)).catch(() => null)
-			newDevice.on('warning',	(e) => this.emit('warning', e)).catch(() => null)
-			newDevice.on('error',	(e) => this.emit('error', 	e)).catch(() => null)
-			newDevice.on('resetResolver', () => this.resetResolver()).catch(() => null)
+			}).catch(console.error)
+
+			let deviceName = await newDevice.deviceName
+			const fixError = (e) => {
+				let name = `Device "${deviceName || deviceId}"`
+				if (e.reason) e.reason = name + ': ' + e.reason
+				if (e.message) e.message = name + ': ' + e.message
+				if (e.stack) {
+					e.stack += '\nAt device' + name
+				}
+				if (_.isString(e)) e = name + ': ' + e
+				return e
+			}
+			newDevice.on('info',	(e) => this.emit('info', 	fixError(e))).catch(console.error)
+			newDevice.on('warning',	(e) => this.emit('warning', fixError(e))).catch(console.error)
+			newDevice.on('error',	(e) => this.emit('error', 	fixError(e))).catch(console.error)
+			newDevice.on('resetResolver', () => this.resetResolver()).catch(console.error)
 
 			this.emit('info', 'Initializing ' + DeviceType[deviceOptions.type] + '...')
 			this.devices[deviceId] = newDevice
@@ -314,7 +326,8 @@ export class Conductor extends EventEmitter {
 			newDevice.mapping = this.mapping
 
 			return (newDevice).init(deviceOptions.options)
-			.then(() => {
+			.then(async () => {
+				deviceName = await newDevice.deviceName
 				this.emit('info', (DeviceType[deviceOptions.type] + ' initialized!'))
 				return newDevice
 			})
