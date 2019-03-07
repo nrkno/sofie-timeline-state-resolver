@@ -424,18 +424,19 @@ describe('Rundown', () => {
 
 		await mockTime.advanceTimeToTicks(12601)
 		expect(mockTime.getCurrentTime()).toEqual(12601)
-		commandReceiver0Calls += 2
+		commandReceiver0Calls += 3
+
 		expect(commandReceiver0).toHaveBeenCalledTimes(commandReceiver0Calls)
 		// SCHEDULE SET 4.5s CG STOP
 		// SCHEDULE SET 4.5s LOADBG 1-11 STINGER
-		expect(commandReceiver0.mock.calls[commandReceiver0Calls - 2][1]._objectParams.timecode).toEqual('00:00:14:25')
-		expect(commandReceiver0.mock.calls[commandReceiver0Calls - 2][1]._objectParams.command._objectParams).toMatchObject({
+		expect(commandReceiver0.mock.calls[commandReceiver0Calls - 3][1]._objectParams.timecode).toEqual('00:00:14:25')
+		expect(commandReceiver0.mock.calls[commandReceiver0Calls - 3][1]._objectParams.command._objectParams).toMatchObject({
 			channel: 1,
 			layer: 11,
 			flashLayer: 1
 		})
-		expect(commandReceiver0.mock.calls[commandReceiver0Calls - 1][1]._objectParams.timecode).toEqual('00:00:14:25')
-		expect(commandReceiver0.mock.calls[commandReceiver0Calls - 1][1]._objectParams.command._objectParams).toMatchObject({
+		expect(commandReceiver0.mock.calls[commandReceiver0Calls - 2][1]._objectParams.timecode).toEqual('00:00:14:25')
+		expect(commandReceiver0.mock.calls[commandReceiver0Calls - 2][1]._objectParams.command._objectParams).toMatchObject({
 			channel: 1,
 			layer: 11,
 			noClear: false,
@@ -443,9 +444,9 @@ describe('Rundown', () => {
 			auto: false
 		})
 
-		await mockTime.advanceTimeToTicks(13000)
-		commandReceiver0Calls += 1
-		expect(commandReceiver0).toHaveBeenCalledTimes(commandReceiver0Calls)
+		// await mockTime.advanceTimeToTicks(13000)
+		// commandReceiver0Calls += 1
+		// expect(commandReceiver0).toHaveBeenCalledTimes(commandReceiver0Calls)
 		// SCHEDULE SET 5s PLAY 1-11
 		expect(commandReceiver0.mock.calls[commandReceiver0Calls - 1][1]._objectParams.timecode).toEqual('00:00:15:00')
 		expect(commandReceiver0.mock.calls[commandReceiver0Calls - 1][1]._objectParams.command._objectParams).toMatchObject({

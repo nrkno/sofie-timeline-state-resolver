@@ -39,7 +39,8 @@ export class DoOnTime extends EventEmitter {
 		return _.map(this._queue, (q, id) => {
 			return {
 				id: id,
-				time: q.time
+				time: q.time,
+				args: q.args
 			}
 		})
 	}
