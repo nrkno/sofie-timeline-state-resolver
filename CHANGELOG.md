@@ -2,24 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
-# [1.8.0](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/1.7.1...1.8.0) (2019-03-07)
+## [1.8.1](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/1.8.0...1.8.1) (2019-03-07)
 
 
 ### Bug Fixes
 
-* cast underscore variable to any ([1a10af9](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/1a10af9))
-* disable ts-jest diagnostics ([967e0ff](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/967e0ff))
-* set maxWorkers for jest ([8ee4e33](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/8ee4e33))
-* syncing version between projects ([294b90a](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/294b90a))
-* tag device messages with deviceId ([0928554](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/0928554))
-* test scripts ([08c4f3e](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/08c4f3e))
-* tsconfig location ([d832d36](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/d832d36))
-* types test scripts ([439ee77](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/439ee77))
-
-
-### Features
-
-* add AsyncResolver, sp the timeline resolving is moved to run in a separate thread ([681988c](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/681988c))
+* fixes to make resolving work asynchronously ([514c7f4](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/514c7f4))
 
 
 
