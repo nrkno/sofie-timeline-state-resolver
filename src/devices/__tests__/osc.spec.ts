@@ -49,10 +49,11 @@ describe('OSC-Message', () => {
 				commandReceiver: commandReceiver0
 			}
 		})
-		myConductor.mapping = myLayerMapping
+		await myConductor.setMapping(myLayerMapping)
 		await mockTime.advanceTimeToTicks(10100)
 
-		let device = myConductor.getDevice('osc0') as ThreadedClass<OSCMessageDevice>
+		let deviceContainer = myConductor.getDevice('osc0')
+		let device = await deviceContainer.device as ThreadedClass<OSCMessageDevice>
 
 		// Check that no commands has been scheduled:
 		expect(await device.queue).toHaveLength(0)

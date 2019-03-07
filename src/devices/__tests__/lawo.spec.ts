@@ -41,7 +41,7 @@ describe('Lawo', () => {
 			initializeAsClear: true,
 			getCurrentTime: mockTime.getCurrentTime
 		})
-		myConductor.mapping = myChannelMapping
+		await myConductor.setMapping(myChannelMapping)
 		await myConductor.init() // we cannot do an await, because setTimeout will never call without jest moving on.
 		await myConductor.addDevice('myLawo', {
 			type: DeviceType.LAWO,
@@ -53,7 +53,8 @@ describe('Lawo', () => {
 		})
 		await mockTime.advanceTimeToTicks(10100)
 
-		let device = myConductor.getDevice('myLawo') as ThreadedClass<LawoDevice>
+		let deviceContainer = myConductor.getDevice('myLawo')
+		let device = await deviceContainer.device as ThreadedClass<LawoDevice>
 
 		// Check that no commands has been scheduled:
 		expect(await device.queue).toHaveLength(0)

@@ -10,6 +10,14 @@ import {
 } from '../../types/src'
 import { MockTime } from '../../__tests__/mockTime.spec'
 
+// usage logCalls(commandReceiver0)
+function logCalls(fcn) {
+	console.log('calls')
+	fcn.mock.calls.forEach((call) => {
+		console.log(call[0], call[1])
+	})
+}
+
 describe('CasparCG', () => {
 	let mockTime = new MockTime()
 	beforeAll(() => {
@@ -47,7 +55,7 @@ describe('CasparCG', () => {
 				useScheduling: true
 			}
 		})
-		myConductor.mapping = myLayerMapping
+		await myConductor.setMapping(myLayerMapping)
 		await mockTime.advanceTimeToTicks(10100)
 
 		expect(commandReceiver0).toHaveBeenCalledTimes(3)
@@ -58,7 +66,8 @@ describe('CasparCG', () => {
 
 		commandReceiver0.mockClear()
 
-		let device = myConductor.getDevice('myCCG')
+		let deviceContainer = myConductor.getDevice('myCCG')
+		let device = await deviceContainer.device
 
 		// Check that no commands has been scheduled:
 		expect(await device['queue']).toHaveLength(0)
@@ -132,7 +141,7 @@ describe('CasparCG', () => {
 				useScheduling: true
 			}
 		})
-		myConductor.mapping = myLayerMapping
+		await myConductor.setMapping(myLayerMapping)
 		await mockTime.advanceTimeToTicks(10100)
 
 		expect(commandReceiver0).toHaveBeenCalledTimes(3)
@@ -143,7 +152,8 @@ describe('CasparCG', () => {
 
 		commandReceiver0.mockClear()
 
-		let device = myConductor.getDevice('myCCG')
+		let deviceContainer = myConductor.getDevice('myCCG')
+		let device = await deviceContainer.device
 
 		// Check that no commands has been scheduled:
 		expect(await device['queue']).toHaveLength(0)
@@ -206,9 +216,10 @@ describe('CasparCG', () => {
 				useScheduling: false
 			}
 		})
-		myConductor.mapping = myLayerMapping
+		await myConductor.setMapping(myLayerMapping)
 
-		let device = myConductor.getDevice('myCCG')
+		let deviceContainer = myConductor.getDevice('myCCG')
+		let device = await deviceContainer.device
 
 		// Check that no commands has been scheduled:
 		expect(await device['queue']).toHaveLength(0)
@@ -279,21 +290,27 @@ describe('CasparCG', () => {
 				useScheduling: true
 			}
 		})
-		myConductor.mapping = myLayerMapping
+		await myConductor.setMapping(myLayerMapping)
 
-		let device = myConductor.getDevice('myCCG')
+		let deviceContainer = myConductor.getDevice('myCCG')
+		let device = await deviceContainer.device
 
 		// Check that no commands has been scheduled:
 		expect(await device['queue']).toHaveLength(0)
+
+		// await mockTime.advanceTimeToTicks(10050)
+		// expect(commandReceiver0).toHaveBeenCalledTimes(3)
+
+		// await mockTime.advanceTimeToTicks(10010)
 
 		myConductor.timeline = [
 			{
 				id: 'obj0',
 				trigger: {
 					type: TriggerType.TIME_ABSOLUTE,
-					value: mockTime.getCurrentTime() - 1000 // 1 seconds ago
+					value: 9000
 				},
-				duration: 2000,
+				duration: 2000, // 11000
 				LLayer: 'myLayer0',
 				content: {
 					type: TimelineContentTypeCasparCg.INPUT,
@@ -303,25 +320,33 @@ describe('CasparCG', () => {
 				}
 			}
 		]
-
+		// console.log('advance to 10100')
 		await mockTime.advanceTimeToTicks(10100)
 
 		// one command has been sent:
 		expect(commandReceiver0).toHaveBeenCalledTimes(5)
+
+		expect(commandReceiver0.mock.calls[0][1].name).toEqual('PlayDecklinkCommand')
 		expect(commandReceiver0.mock.calls[0][1]._objectParams).toMatchObject({
 			channel: 2,
 			layer: 42,
 			device: 1
 		})
 
-		// advance time to end of clip:
-		await mockTime.advanceTimeToTicks(11200)
+		expect(commandReceiver0.mock.calls[1][1].name).toEqual('TimeCommand')
+		expect(commandReceiver0.mock.calls[2][1].name).toEqual('TimeCommand')
+		expect(commandReceiver0.mock.calls[3][1].name).toEqual('TimeCommand')
 
-		// two commands have been sent:
-		expect(commandReceiver0).toHaveBeenCalledTimes(5)
 		expect(commandReceiver0.mock.calls[4][1].name).toEqual('ScheduleSetCommand')
 		expect(commandReceiver0.mock.calls[4][1]._objectParams.command.name).toEqual('ClearCommand')
 		expect(commandReceiver0.mock.calls[4][1]._objectParams.command._objectParams).toMatchObject({ channel: 2, layer: 42 })
+
+		// advance time to end of clip:
+		// console.log('advance to 11200')
+		// await mockTime.advanceTimeToTicks(11200)
+
+		// two commands have been sent:
+		// expect(commandReceiver0).toHaveBeenCalledTimes(5)
 	})
 
 	test('CasparCG: Play template for 60s', async () => {
@@ -351,9 +376,10 @@ describe('CasparCG', () => {
 				useScheduling: true
 			}
 		})
-		myConductor.mapping = myLayerMapping
+		await myConductor.setMapping(myLayerMapping)
 
-		let device = myConductor.getDevice('myCCG')
+		let deviceContainer = myConductor.getDevice('myCCG')
+		let device = await deviceContainer.device
 
 		// Check that no commands has been scheduled:
 		expect(await device['queue']).toHaveLength(0)
@@ -429,9 +455,10 @@ describe('CasparCG', () => {
 				useScheduling: true
 			}
 		})
-		myConductor.mapping = myLayerMapping
+		await myConductor.setMapping(myLayerMapping)
 
-		let device = myConductor.getDevice('myCCG')
+		let deviceContainer = myConductor.getDevice('myCCG')
+		let device = await deviceContainer.device
 
 		// Check that no commands has been scheduled:
 		expect(await device['queue']).toHaveLength(0)
@@ -508,9 +535,10 @@ describe('CasparCG', () => {
 				useScheduling: true
 			}
 		})
-		myConductor.mapping = myLayerMapping
+		await myConductor.setMapping(myLayerMapping)
 
-		let device = myConductor.getDevice('myCCG')
+		let deviceContainer = myConductor.getDevice('myCCG')
+		let device = await deviceContainer.device
 
 		// Check that no commands has been scheduled:
 		expect(await device['queue']).toHaveLength(0)
@@ -613,7 +641,7 @@ describe('CasparCG', () => {
 				useScheduling: true
 			}
 		})
-		myConductor.mapping = myLayerMapping
+		await myConductor.setMapping(myLayerMapping)
 
 		// Check that no commands has been sent:
 		expect(commandReceiver0).toHaveBeenCalledTimes(0)
@@ -714,7 +742,7 @@ describe('CasparCG', () => {
 				useScheduling: true
 			}
 		})
-		myConductor.mapping = myLayerMapping
+		await myConductor.setMapping(myLayerMapping)
 
 		// Check that no commands has been sent:
 		expect(commandReceiver0).toHaveBeenCalledTimes(0)
@@ -850,7 +878,7 @@ describe('CasparCG', () => {
 				useScheduling: true
 			}
 		})
-		myConductor.mapping = myLayerMapping
+		await myConductor.setMapping(myLayerMapping)
 
 		expect(mockTime.getCurrentTime()).toEqual(10000)
 		myConductor.timeline = [
@@ -948,7 +976,7 @@ describe('CasparCG', () => {
 				useScheduling: true
 			}
 		})
-		myConductor.mapping = myLayerMapping
+		await myConductor.setMapping(myLayerMapping)
 		myConductor.timeline = [
 			{
 				id: 'obj0_bg',

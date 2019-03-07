@@ -1,6 +1,6 @@
 jest.mock('ws')
 import { TriggerType } from 'superfly-timeline'
-import { Conductor } from '../../conductor'
+import { Conductor, DeviceContainer } from '../../conductor'
 import { PharosDevice } from '../pharos'
 import {
 	Mappings,
@@ -78,7 +78,7 @@ describe('Pharos', () => {
 				host: '127.0.0.1'
 			}
 		})
-		myConductor.mapping = myLayerMapping
+		await myConductor.setMapping(myLayerMapping)
 
 		let wsInstances = WebSocket.getMockInstances()
 		expect(wsInstances).toHaveLength(1)
@@ -86,7 +86,8 @@ describe('Pharos', () => {
 
 		await mockTime.advanceTimeToTicks(10100)
 
-		device = myConductor.getDevice('myPharos') as ThreadedClass<PharosDevice>
+		let deviceContainer = myConductor.getDevice('myPharos')
+		device = await deviceContainer.device as ThreadedClass<PharosDevice>
 
 		expect(mockReply).toHaveBeenCalledTimes(1)
 		expect(mockReply.mock.calls[0][1]).toMatch(/project/) // get project info

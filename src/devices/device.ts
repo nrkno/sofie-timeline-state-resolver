@@ -61,12 +61,20 @@ export abstract class Device extends EventEmitter implements IDevice {
 	private _currentTimeDiff: number = 0
 	private _currentTimeUpdated: number = 0
 
+	public useDirectTime: boolean = false
+
 	constructor (deviceId: string, deviceOptions: DeviceOptions, options: DeviceClassOptions) {
 		super()
 		this._deviceId = deviceId
 		this._deviceOptions = deviceOptions
 
 		this._deviceOptions = this._deviceOptions // ts-lint fix
+
+		if (process.env.JEST_WORKER_ID !== undefined) {
+			// running in Jest test environment.
+			// Because Jest does a lot of funky stuff with the timing, we have to pull the time directly.
+			this.useDirectTime = true
+		}
 
 		if (options.getCurrentTime) {
 			this._getCurrentTime = () => Promise.resolve(options.getCurrentTime())
@@ -83,11 +91,15 @@ export abstract class Device extends EventEmitter implements IDevice {
 	terminate (): Promise<boolean> {
 		return Promise.resolve(true)
 	}
-	getCurrentTime () {
+	getCurrentTime (): Promise<number> {
+		if (this.useDirectTime) {
+			// Used when running in test
+			return this._getCurrentTime()
+		}
 		if ((Date.now() - this._currentTimeUpdated) > 5 * 60 * 1000) {
 			this._updateCurrentTime()
 		}
-		return Date.now() - this._currentTimeDiff
+		return Promise.resolve(Date.now() - this._currentTimeDiff)
 	}
 
 	abstract handleState (newState: TimelineState)
@@ -122,11 +134,8 @@ export abstract class Device extends EventEmitter implements IDevice {
 	}
 	abstract getStatus (): DeviceStatus
 
-	get mapping (): Mappings {
+	getMapping (): Mappings {
 		return this._mappings
-	}
-	set mapping (mappings: Mappings) {
-		this._mappings = mappings
 	}
 	setMapping (mappings: Mappings) {
 		this._mappings = mappings
@@ -134,9 +143,6 @@ export abstract class Device extends EventEmitter implements IDevice {
 
 	get deviceId () {
 		return this._deviceId
-	}
-	set deviceId (deviceId) {
-		this._deviceId = deviceId
 	}
 	/**
 	 * A human-readable name for this device
@@ -157,6 +163,9 @@ export abstract class Device extends EventEmitter implements IDevice {
 				this._currentTimeDiff = clientTime - parentTime
 				this._currentTimeUpdated = endTime
 
+			})
+			.catch((err) => {
+				this.emit('error', err)
 			})
 		}
 	}
@@ -246,7 +255,7 @@ export abstract class DeviceWithState<T> extends Device {
 		}
 		return null
 	}
-	setState (state: T, time: number) {
+	async setState (state: T, time: number) {
 		// if (!state.time) throw new Error('setState: falsy state.time')
 		if (!time) throw new Error('setState: falsy time')
 		this._states[time + ''] = state
@@ -257,7 +266,7 @@ export abstract class DeviceWithState<T> extends Device {
 			this._setStateCount = 0
 
 			// Clean up old states:
-			let stateBeforeNow = this.getStateBefore(this.getCurrentTime())
+			let stateBeforeNow = this.getStateBefore(await this.getCurrentTime())
 			if (stateBeforeNow && stateBeforeNow.time) {
 				this.cleanUpStates(stateBeforeNow.time - 1, 0)
 			}

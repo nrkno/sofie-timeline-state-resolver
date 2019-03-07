@@ -78,7 +78,7 @@ describe('Panasonic PTZ', () => {
 			initializeAsClear: true,
 			getCurrentTime: mockTime.getCurrentTime
 		})
-		myConductor.mapping = myChannelMapping
+		await myConductor.setMapping(myChannelMapping)
 		await myConductor.init() // we cannot do an await, because setTimeout will never call without jest moving on.
 		await myConductor.addDevice('myPtz', {
 			type: DeviceType.PANASONIC_PTZ,
@@ -89,7 +89,8 @@ describe('Panasonic PTZ', () => {
 		})
 		await mockTime.advanceTimeToTicks(10100)
 
-		let device = myConductor.getDevice('myPtz') as ThreadedClass<PanasonicPtzDevice>
+		let deviceContainer = myConductor.getDevice('myPtz')
+		let device = await deviceContainer.device as ThreadedClass<PanasonicPtzDevice>
 
 		// Check that no commands has been scheduled:
 		expect(await device.queue).toHaveLength(0)

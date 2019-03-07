@@ -53,6 +53,7 @@
     "installclean": "yarn unlink:all & yarn cleancache && yarn --check-files",
     "buildclean": "yarn installclean && yarn build",
     "build": "trash dist && yarn build:main",
+    "buildtest": "yarn build && jest",
     "build:main": "tsc -p tsconfig.json",
     "lint": "tslint --project tsconfig.jest.json --config tslint.json",
     "unit": "jest",
@@ -152,7 +153,7 @@
     "request": "^2.88.0",
     "sprintf-js": "^1.1.2",
     "superfly-timeline": "^6.0.3",
-    "threadedclass": "^0.4.3",
+    "threadedclass": "^0.5.0",
     "underscore": "^1.9.1",
     "underscore-deep-extend": "^1.1.5",
     "ws": "^6.1.2"

@@ -5966,10 +5966,10 @@ text-extensions@^1.0.0:
   resolved "https://registry.yarnpkg.com/text-extensions/-/text-extensions-1.9.0.tgz#1853e45fee39c945ce6f6c36b2d659b5aabc2a26"
   integrity sha512-wiBrwC1EhBelW12Zy26JeOUkQ5mRu+5o8rpsJk5+2t+Y5vE7e842qtZDQ2g1NpX/29HdyFeJ4nSIhI47ENSxlQ==
 
-threadedclass@^0.4.3:
-  version "0.4.3"
-  resolved "https://registry.yarnpkg.com/threadedclass/-/threadedclass-0.4.3.tgz#4089fe5f74547fd31067bb3fc9bb6bf0f37e0d7e"
-  integrity sha512-kK17UwxsRFdF1XdJXqu35HL0R4YbX5cHbkWxYcX1lT6j+vEMcODr6vsdSEYr2g7+oIaM/eFns/0z+q9WjeVfDg==
+threadedclass@^0.5.0:
+  version "0.5.0"
+  resolved "https://registry.yarnpkg.com/threadedclass/-/threadedclass-0.5.0.tgz#463edcab331d3903b7b8bcaedff45249d121e112"
+  integrity sha512-+cEKVFsvIj7A67TuO2uB6va30HqIc6zOeNNwzFuR3NySAVgmNvfHpyTtRHf5/DW4Iwrz/gjbx8PW9c4JTo+VaQ==
   dependencies:
     callsites "^2.0.0"
     tslib "^1.6.0"

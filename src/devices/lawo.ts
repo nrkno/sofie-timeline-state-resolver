@@ -9,7 +9,6 @@ import {
 import {
 	DeviceType,
 	DeviceOptions,
-	Mappings,
 	TimelineContentTypeLawo,
 	MappingLawo
 } from '../types/src'
@@ -220,7 +219,7 @@ export class LawoDevice extends DeviceWithState<TimelineState> {
 		const lawoState: LawoState = {}
 
 		_.each(state.LLayers, (tlObject: TimelineObjLawo, layerName: string) => {
-			const mapping: MappingLawo | undefined = this.mapping[layerName] as MappingLawo // tslint:disable-line
+			const mapping: MappingLawo | undefined = this.getMapping()[layerName] as MappingLawo // tslint:disable-line
 			if (mapping && mapping.identifier && mapping.device === DeviceType.LAWO) {
 
 				if (tlObject.content.type === TimelineContentTypeLawo.SOURCE) {
@@ -251,12 +250,6 @@ export class LawoDevice extends DeviceWithState<TimelineState> {
 		return this._doOnTime.getQueue()
 	}
 
-	set mapping (mappings: Mappings) {
-		super.mapping = mappings
-	}
-	get mapping () {
-		return super.mapping
-	}
 	getStatus (): DeviceStatus {
 		return {
 			statusCode: this._connected ? StatusCode.GOOD : StatusCode.BAD

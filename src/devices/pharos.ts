@@ -162,11 +162,10 @@ export class PharosDevice extends DeviceWithState<TimelineState> {
 	get queue () {
 		return this._doOnTime.getQueue()
 	}
-	makeReady (okToDestroyStuff?: boolean): Promise<void> {
+	async makeReady (okToDestroyStuff?: boolean): Promise<void> {
 		if (okToDestroyStuff) {
-			this._doOnTime.clearQueueNowAndAfter(this.getCurrentTime())
+			this._doOnTime.clearQueueNowAndAfter(await this.getCurrentTime())
 		}
-		return Promise.resolve()
 	}
 	getStatus (): DeviceStatus {
 		return {

@@ -78,10 +78,11 @@ describe('Rundown', () => {
 				useScheduling: true
 			}
 		})
-		myConductor.mapping = myLayerMapping
+		await myConductor.setMapping(myLayerMapping)
 		await mockTime.advanceTimeToTicks(10001)
 
-		let device = myConductor.getDevice('myCCG')
+		let deviceContainer = myConductor.getDevice('myCCG')
+		let device = await deviceContainer.device
 
 		// Check that no commands has been scheduled:
 		expect(await device['queue']).toHaveLength(0)

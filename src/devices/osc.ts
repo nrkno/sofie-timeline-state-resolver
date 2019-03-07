@@ -108,7 +108,7 @@ export class OSCMessageDevice extends DeviceWithState<TimelineState> {
 	}
 	convertStateToOSCMessage (state: TimelineState) {
 		// convert the timeline state into something we can use
-		// (won't even use this.mapping)
+		// (won't even use this.getMapping())
 		return state
 	}
 	get deviceType () {

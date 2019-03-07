@@ -47,10 +47,11 @@ describe('HTTP-Send', () => {
 				commandReceiver: commandReceiver0
 			}
 		})
-		myConductor.mapping = myLayerMapping
+		await myConductor.setMapping(myLayerMapping)
 		await mockTime.advanceTimeToTicks(10100)
 
-		let device = myConductor.getDevice('myHTTP') as ThreadedClass<HttpSendDevice>
+		let deviceContainer = myConductor.getDevice('myHTTP')
+		let device = await deviceContainer.device as ThreadedClass<HttpSendDevice>
 
 		// Check that no commands has been scheduled:
 		expect(await device.queue).toHaveLength(0)
@@ -127,10 +128,11 @@ describe('HTTP-Send', () => {
 				commandReceiver: commandReceiver0
 			}
 		})
-		myConductor.mapping = myLayerMapping
+		await myConductor.setMapping(myLayerMapping)
 		await mockTime.advanceTimeToTicks(10100)
 
-		let device = myConductor.getDevice('myHTTP') as ThreadedClass<HttpSendDevice>
+		let deviceContainer = myConductor.getDevice('myHTTP')
+		let device = await deviceContainer.device as ThreadedClass<HttpSendDevice>
 
 		// Check that no commands has been scheduled:
 		expect(await device.queue).toHaveLength(0)

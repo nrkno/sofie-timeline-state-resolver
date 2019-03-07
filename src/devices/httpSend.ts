@@ -12,7 +12,7 @@ import {
 	HttpSendOptions,
 	HttpSendCommandContent
 } from '../types/src'
-import { DoOnTime } from '../doOnTime'
+import { DoOnTime, SendMode } from '../doOnTime'
 import * as request from 'request'
 
 import {
@@ -50,7 +50,7 @@ export class HttpSendDevice extends DeviceWithState<TimelineState> {
 		}
 		this._doOnTime = new DoOnTime(() => {
 			return this.getCurrentTime()
-		})
+		}, SendMode.IN_ORDER)
 		this._doOnTime.on('error', e => this.emit('error', e))
 	}
 	init (options: HttpSendOptions): Promise<boolean> {
@@ -92,9 +92,9 @@ export class HttpSendDevice extends DeviceWithState<TimelineState> {
 			statusCode: StatusCode.GOOD
 		}
 	}
-	makeReady (okToDestroyStuff?: boolean): Promise<void> {
+	async makeReady (okToDestroyStuff?: boolean): Promise<void> {
 		if (okToDestroyStuff && this._makeReadyCommands && this._makeReadyCommands.length > 0) {
-			const time = this.getCurrentTime()
+			const time = await this.getCurrentTime()
 			_.each(this._makeReadyCommands, (cmd: HttpSendCommandContent) => {
 				// add the new commands to the queue:
 				this._doOnTime.queue(time, (cmd: HttpSendCommandContent) => {
@@ -102,7 +102,6 @@ export class HttpSendDevice extends DeviceWithState<TimelineState> {
 				}, cmd)
 			})
 		}
-		return Promise.resolve()
 	}
 
 	get canConnect (): boolean {

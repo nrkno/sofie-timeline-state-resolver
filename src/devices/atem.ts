@@ -96,10 +96,14 @@ export class AtemDevice extends DeviceWithState<DeviceState> {
 				resolve(true)
 			})
 			this._atem.on('connected', () => {
-				this.setState(this._atem.state, this.getCurrentTime())
-				this._connected = true
-				this._connectionChanged()
-				this.emit('resetResolver')
+				this.getCurrentTime()
+				.then((time) => {
+					this.setState(this._atem.state, time)
+					this._connected = true
+					this._connectionChanged()
+					this.emit('resetResolver')
+				})
+				.catch(e => this.emit('error', e))
 			})
 			this._atem.on('disconnected', () => {
 				this._connected = false
@@ -127,13 +131,12 @@ export class AtemDevice extends DeviceWithState<DeviceState> {
 		})
 	}
 
-	makeReady (okToDestroyStuff?: boolean): Promise<void> {
+	async makeReady (okToDestroyStuff?: boolean): Promise<void> {
 		this.firstStateAfterMakeReady = true
 		if (okToDestroyStuff) {
-			this._doOnTime.clearQueueNowAndAfter(this.getCurrentTime())
-			this.setState(this._atem.state, this.getCurrentTime())
+			this._doOnTime.clearQueueNowAndAfter(await this.getCurrentTime())
+			this.setState(this._atem.state, await this.getCurrentTime())
 		}
-		return Promise.resolve()
 	}
 
 	handleState (newState: TimelineState) {
@@ -193,7 +196,7 @@ export class AtemDevice extends DeviceWithState<DeviceState> {
 
 		_.each(sortedLayers, ({ tlObject, layerName }) => {
 			const content = tlObject.resolved || tlObject.content
-			let mapping = this.mapping[layerName] as MappingAtem // tslint:disable-line
+			let mapping = this.getMapping()[layerName] as MappingAtem // tslint:disable-line
 
 			if (mapping) {
 				if (mapping.index !== undefined && mapping.index >= 0) { // index must be 0 or higher

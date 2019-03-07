@@ -101,6 +101,9 @@ export class Conductor extends EventEmitter {
 	private _statMeasureReason: string = ''
 	private _statReports: StatReport[] = []
 
+	private _resolveTimelineRunning: boolean = false
+	private _resolveTimelineOnQueue: boolean = false
+
 	constructor (options: ConductorOptions = {}) {
 		super()
 		this._options = options
@@ -115,7 +118,7 @@ export class Conductor extends EventEmitter {
 			}
 		}, 2500)
 		this._doOnTime = new DoOnTime(() => {
-			return this.getCurrentTime()
+			return Promise.resolve(this.getCurrentTime())
 		})
 		this._doOnTime.on('error', e => this.emit('error', e))
 		// this._doOnTime.on('callback', (...args) => {
@@ -154,14 +157,17 @@ export class Conductor extends EventEmitter {
 	get mapping (): Mappings {
 		return this._mapping
 	}
-	set mapping (mapping: Mappings) {
+	async setMapping (mapping: Mappings) {
 		// Set mapping
 		// re-resolve timeline
 		this._mapping = mapping
+
+		let ps: Promise<any>[] = []
 		_.each(this.devices, (d: DeviceContainer) => {
 			// @ts-ignore
-			d.device.mapping = mapping
+			ps.push(d.device.setMapping(mapping))
 		})
+		await Promise.all(ps)
 
 		if (this._timeline) {
 			this._resolveTimeline()
@@ -317,7 +323,7 @@ export class Conductor extends EventEmitter {
 			this.emit('info', 'Initializing ' + DeviceType[deviceOptions.type] + '...')
 			this.devices[deviceId] = newDevice
 			// @ts-ignore
-			newDevice.mapping = this.mapping
+			await newDevice.device.setMapping(this.mapping)
 
 			return newDevice.device.init(deviceOptions.options)
 			.then(() => {
@@ -414,9 +420,26 @@ export class Conductor extends EventEmitter {
 	 * Resolves the timeline for the next resolve-time, generates the commands and passes on the commands.
 	 */
 	private _resolveTimeline () {
+		if (this._resolveTimelineRunning) {
+			// If a resolve is already running, put in queue to run later:
+			this._resolveTimelineOnQueue = true
+			return
+		}
+
+		this._resolveTimelineRunning = true
 		this._resolveTimelineInner()
 		.catch(e => {
-			this.emit('error', 'Caught error in _resolveTimelineInner' + e)
+			this.emit('error', 'Caught error in _resolveTimelineInner', e)
+		})
+		.then(() => {
+			this._resolveTimelineRunning = false
+			if (this._resolveTimelineOnQueue) {
+				this._resolveTimelineOnQueue = false
+				this._resolveTimeline()
+			}
+		})
+		.catch(e => {
+			this.emit('error', 'Caught error in _resolveTimeline.then', e)
 		})
 	}
 	private async _resolveTimelineInner () {
@@ -487,8 +510,8 @@ export class Conductor extends EventEmitter {
 			// Split the state into substates that are relevant for each device
 			let getFilteredLayers = async (layers: TimelineState['LLayers'], device: DeviceContainer) => {
 				let filteredState = {}
-				const deviceId = await device.deviceId
-				const deviceType = await device.deviceType
+				const deviceId = device.deviceId
+				const deviceType = device.deviceType
 				_.each(layers, async (o: TimelineResolvedObject, layerId: string) => {
 					const oExt: TimelineResolvedObjectExtended = o
 					let mapping: Mapping = this._mapping[o.LLayer + '']
@@ -588,7 +611,7 @@ export class Conductor extends EventEmitter {
 							callBackStopped: o.content.callBackStopped,
 							callBackData: o.content.callBackData
 						}
-						if (o.content.callBack) {
+						if (o.content.callBack && o.resolved.startTime) {
 							this._doOnTime.queue(o.resolved.startTime, () => {
 								if (!sentCallbacksOld[callBackId]) {
 									// Object has started playing

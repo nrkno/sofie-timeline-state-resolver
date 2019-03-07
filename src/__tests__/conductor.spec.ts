@@ -54,7 +54,7 @@ describe('Conductor', () => {
 			getCurrentTime: mockTime.getCurrentTime
 		})
 
-		conductor.mapping = myLayerMapping
+		conductor.setMapping(myLayerMapping)
 		await conductor.init()
 		await conductor.addDevice('device0', {
 			type: DeviceType.ABSTRACT,
@@ -97,8 +97,10 @@ describe('Conductor', () => {
 			}
 		}
 
-		let device0 = conductor.getDevice('device0')
-		let device1 = conductor.getDevice('device1')
+		let device0Container = conductor.getDevice('device0')
+		let device0 = device0Container.device
+		let device1Container = conductor.getDevice('device1')
+		let device1 = device1Container.device
 
 		// The queues should be empty
 		expect(await device0['queue']).toHaveLength(0)
@@ -182,10 +184,10 @@ describe('Conductor', () => {
 			expect(res).toBeTruthy()
 		})
 
-		conductor.mapping = {
+		await conductor.setMapping({
 			'myLayer0': myLayerMapping1,
 			'myLayer1': myLayerMapping0
-		}
+		})
 		abstractThing0.trigger.value = mockTime.now
 		conductor.timeline = [ abstractThing0 ]
 	})
@@ -216,7 +218,7 @@ describe('Conductor', () => {
 				commandReceiver: commandReceiver0
 			}
 		})
-		conductor.mapping = myLayerMapping
+		conductor.setMapping(myLayerMapping)
 
 		// add something that will play "now"
 		let abstractThing0: TimelineContentObject = { // will be converted from "now" to 10000
@@ -266,7 +268,8 @@ describe('Conductor', () => {
 		let timelineCallback = jest.fn()
 		conductor.on('timelineCallback', timelineCallback)
 
-		let device0 = conductor.getDevice('device0')
+		let device0Container = conductor.getDevice('device0')
+		let device0 = device0Container.device
 		expect(device0).toBeTruthy()
 		// let device1 = conductor.getDevice('device1')
 

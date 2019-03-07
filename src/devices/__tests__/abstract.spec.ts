@@ -44,10 +44,12 @@ describe('Abstract device', () => {
 				commandReceiver: commandReceiver0
 			}
 		})
-		myConductor.mapping = myLayerMapping
+		await myConductor.setMapping(myLayerMapping)
 		await mockTime.advanceTimeToTicks(10100)
 
-		let device = myConductor.getDevice('myAbstract') as ThreadedClass<AbstractDevice>
+		let deviceContainer = myConductor.getDevice('myAbstract')
+		let device = await deviceContainer.device as ThreadedClass<AbstractDevice>
+
 		device.terminate = jest.fn(device.terminate)
 		let onError = jest.fn()
 		let onDebug = jest.fn()
@@ -146,10 +148,12 @@ describe('Abstract device', () => {
 			type: DeviceType.ABSTRACT,
 			options: {}
 		})
-		myConductor.mapping = myLayerMapping
+		await myConductor.setMapping(myLayerMapping)
 		await mockTime.advanceTimeToTicks(10100)
 
-		let device = myConductor.getDevice('myAbstract') as ThreadedClass<AbstractDevice>
+		let deviceContainer = myConductor.getDevice('myAbstract')
+		let device = await deviceContainer.device as ThreadedClass<AbstractDevice>
+
 		device.terminate = jest.fn(device.terminate)
 		let onError = jest.fn()
 		let onDebug = jest.fn()

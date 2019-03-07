@@ -50,7 +50,9 @@ describe('Hyperdeck', () => {
 			initializeAsClear: true,
 			getCurrentTime: mockTime.getCurrentTime
 		})
-		myConductor.mapping = myChannelMapping
+		myConductor.on('error', console.log)
+		await myConductor.setMapping(myChannelMapping)
+
 		await myConductor.init() // we cannot do an await, because setTimeout will never call without jest moving on.
 		await myConductor.addDevice('hyperdeck0', {
 			type: DeviceType.HYPERDECK,
@@ -74,10 +76,12 @@ describe('Hyperdeck', () => {
 		})
 		hyperdeckMock.setMockCommandReceiver(hyperdeckMockCommand)
 
-		device = myConductor.getDevice('hyperdeck0') as ThreadedClass<HyperdeckDevice>
+		let deviceContainer = myConductor.getDevice('hyperdeck0')
+		device = await deviceContainer.device as ThreadedClass<HyperdeckDevice>
 
 		// Check that no commands has been scheduled:
 		expect(await device.queue).toHaveLength(0)
+		console.log('set timeline')
 		myConductor.timeline = [
 			{
 				id: 'obj0',
