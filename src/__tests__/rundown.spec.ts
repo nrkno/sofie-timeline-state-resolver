@@ -533,9 +533,10 @@ describe('Rundown', () => {
 			'layer': 10
 		})
 
-		await mockTime.advanceTimeTicks(5000)
-		expect(mockTime.getCurrentTime()).toEqual(20000)
+		await mockTime.advanceTimeToTicks(22000)
+		expect(mockTime.getCurrentTime()).toEqual(22000)
 		commandReceiver0Calls += 1
+
 		expect(commandReceiver0).toHaveBeenCalledTimes(commandReceiver0Calls)
 
 		expect(commandReceiver0.mock.calls[commandReceiver0Calls - 1][1]._objectParams.timecode).toEqual('00:00:23:00')

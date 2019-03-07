@@ -19,8 +19,8 @@ export class DoOnTime extends EventEmitter {
 		this.getCurrentTime = getCurrentTime
 	}
 	public queue (time, fcn: DoOrderFunction, ...args: any[]): string {
-		if (!(time > 0)) throw Error('time argument must be > 0')
-		if (!_.isFunction(fcn)) throw Error('fcn argument must be a function!')
+		if (!(time >= 0)) throw Error(`DoOnTime: time argument must be >= 0 (${time})`)
+		if (!_.isFunction(fcn)) throw Error(`DoOnTime: fcn argument must be a function! (${typeof fcn})`)
 		let id = '_' + (this._i++)
 		this._queue[id] = {
 			time: time,

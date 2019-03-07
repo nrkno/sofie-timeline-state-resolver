@@ -881,10 +881,10 @@ describe('CasparCG', () => {
 				id: 'obj0_bg',
 				trigger: {
 					type: TriggerType.TIME_ABSOLUTE,
-					value: mockTime.getCurrentTime() // 1.2 seconds in the future
+					value: mockTime.getCurrentTime() // 10000
 				},
 				isBackground: true,
-				duration: 1200,
+				duration: 1200, // 11200
 				LLayer: 'myLayer0',
 				content: {
 					type: TimelineContentTypeCasparCg.VIDEO,
@@ -898,9 +898,9 @@ describe('CasparCG', () => {
 				id: 'obj0',
 				trigger: {
 					type: TriggerType.TIME_ABSOLUTE,
-					value: mockTime.getCurrentTime() + 1200 // 1.2 seconds in the future
+					value: mockTime.getCurrentTime() + 1200 // 1.2 seconds in the future, 11200
 				},
-				duration: 2000,
+				duration: 2000, // 13200
 				LLayer: 'myLayer0',
 				content: {
 					type: TimelineContentTypeCasparCg.VIDEO,
@@ -912,7 +912,9 @@ describe('CasparCG', () => {
 			}
 		]
 
-		await mockTime.advanceTimeTicks(100) //  10100
+		expect(commandReceiver0).toHaveBeenCalledTimes(0)
+		await mockTime.advanceTimeToTicks(10100)
+
 		expect(commandReceiver0).toHaveBeenCalledTimes(5)
 		expect(commandReceiver0.mock.calls[0][1].name).toEqual('LoadbgCommand')
 		expect(commandReceiver0.mock.calls[0][1]._objectParams).toMatchObject({
@@ -931,11 +933,12 @@ describe('CasparCG', () => {
 			layer: 42,
 			noClear: false
 		})
+
 		let tokenPlay = commandReceiver0.mock.calls[4][1]._objectParams.token
 
 		// then change my mind:
 		myConductor.timeline = []
-		await mockTime.advanceTimeTicks(100) //  10100
+		await mockTime.advanceTimeToTicks(10200)
 
 		expect(commandReceiver0).toHaveBeenCalledTimes(8)
 		// expect(commandReceiver0.mock.calls[3][1].name).toEqual('ClearCommand')
@@ -948,7 +951,7 @@ describe('CasparCG', () => {
 			clip: 'EMPTY'
 		})
 
-		await mockTime.advanceTimeTicks(2000) //  10100
+		await mockTime.advanceTimeToTicks(20000)
 		expect(commandReceiver0).toHaveBeenCalledTimes(8)
 
 	})
