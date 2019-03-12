@@ -36,7 +36,7 @@ import {
 import {
 	CasparCG as StateNS,
 	CasparCGState } from 'casparcg-state'
-import { DoOnTime } from '../doOnTime'
+import { DoOnTime, SendMode } from '../doOnTime'
 import * as request from 'request'
 
 // const BGLOADTIME = 1000 // the time we will look back to schedule a loadbg command.
@@ -148,6 +148,8 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> {
 			this.emit('warning', 'CasparCG State not initialized yet')
 			return
 		}
+		// console.log('handleState', newState)
+		this.emit('debug', 'handleState', newState)
 
 		let oldState = (this.getStateBefore(newState.time) || { state: { time: 0, LLayers: {}, GLayers: {} } }).state
 
@@ -157,6 +159,7 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> {
 		let commandsToAchieveState: Array<CommandNS.IAMCPCommandVO> = this._diffStates(oldCasparState, newCasparState, newState.time)
 
 		// console.log('commandsToAchieveState', commandsToAchieveState)
+		this.emit('debug', 'commandsToAchieveState', commandsToAchieveState)
 		// clear any queued commands later than this time:
 		if (this._useScheduling) {
 			this._clearScheduledFutureCommands(newState.time, commandsToAchieveState)
@@ -197,7 +200,7 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> {
 		if (this._ccg) {
 		  return 'CasparCG ' + this.deviceId + ' ' + this._ccg.host + ':' + this._ccg.port
 		} else {
-			return 'Uninitialized CasparCG'
+			return 'Uninitialized CasparCG ' + this.deviceId
 		}
 	}
 

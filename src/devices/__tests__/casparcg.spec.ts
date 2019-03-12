@@ -1023,7 +1023,7 @@ describe('CasparCG', () => {
 					value: 10000
 				},
 				isBackground: true,
-				duration: 1200,
+				duration: 1200, // 11200
 				LLayer: 'myLayer0',
 				content: {
 					type: TimelineContentTypeCasparCg.VIDEO,
@@ -1039,7 +1039,7 @@ describe('CasparCG', () => {
 					type: TriggerType.TIME_ABSOLUTE,
 					value: 11200 // 1.2 seconds in the future
 				},
-				duration: 2000,
+				duration: 2000, // 13200
 				LLayer: 'myLayer0',
 				content: {
 					type: TimelineContentTypeCasparCg.VIDEO,
@@ -1070,6 +1070,7 @@ describe('CasparCG', () => {
 			layer: 42,
 			noClear: false
 		})
+
 		let tokenPlay = commandReceiver0.mock.calls[4][1]._objectParams.token
 
 		// then change my mind:

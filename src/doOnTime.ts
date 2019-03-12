@@ -14,6 +14,12 @@ export enum SendMode {
 	/** Send messages in order, wait for the previous message to be acknowledged before sending the next */
 	IN_ORDER = 1
 }
+export interface DoOnTimeOptions {
+	/** If set, report back that a command was slow if not sent at this time */
+	limitSlowSentCommand?: number
+	/** If set, report back that a command was slow if not fullfilled (sent + ack:ed) at this time */
+	limitSlowFulfilledCommand?: number
+}
 export class DoOnTime extends EventEmitter {
 	getCurrentTime: () => number
 	private _i: number = 0
@@ -22,15 +28,17 @@ export class DoOnTime extends EventEmitter {
 	private _sendMode: SendMode
 	private _commandsToSendNow: (() => Promise<any>)[] = []
 	private _sendingCommands: boolean = false
+	private _options: DoOnTimeOptions
 
-	constructor (getCurrentTime: () => number, sendMode: SendMode = SendMode.BURST) {
+	constructor (getCurrentTime: () => number, sendMode: SendMode = SendMode.BURST, options?: DoOnTimeOptions) {
 		super()
 		this.getCurrentTime = getCurrentTime
 		this._sendMode = sendMode
+		this._options = options || {}
 	}
 	public queue (time: number, fcn: DoOrderFunction, ...args: any[]): string {
-		if (!(time > 0)) throw Error('time argument must be > 0')
-		if (!_.isFunction(fcn)) throw Error('fcn argument must be a function!')
+		if (!(time >= 0)) throw Error(`DoOnTime: time argument must be >= 0 (${time})`)
+		if (!_.isFunction(fcn)) throw Error(`DoOnTime: fcn argument must be a function! (${typeof fcn})`)
 		let id = '_' + (this._i++)
 		this._queue[id] = {
 			time: time,
@@ -49,7 +57,8 @@ export class DoOnTime extends EventEmitter {
 		return _.map(this._queue, (q, id) => {
 			return {
 				id: id,
-				time: q.time
+				time: q.time,
+				args: q.args
 			}
 		})
 	}
@@ -82,7 +91,13 @@ export class DoOnTime extends EventEmitter {
 			if (o.time <= now) {
 				this._commandsToSendNow.push(() => {
 					try {
-						return Promise.resolve(o.fcn(...o.args))
+						let startSend = this.getCurrentTime()
+						let endSend: number = 0
+						let p = Promise.resolve(o.fcn(...o.args))
+						.then(() => this._verifyFulfillCommand(o, startSend, endSend))
+						endSend = this.getCurrentTime()
+						this._verifySendCommand(o, startSend, endSend)
+						return p
 					} catch (e) {
 						this.emit('error', e)
 						return Promise.reject(e)
@@ -146,6 +161,36 @@ export class DoOnTime extends EventEmitter {
 		} catch (e) {
 			this._sendingCommands = false
 			throw e
+		}
+	}
+	private _verifySendCommand (o: DoOrder, startSend: number, endSend: number) {
+		if (this._options.limitSlowSentCommand) {
+			let dt: number = endSend - o.time
+			if (dt > this._options.limitSlowSentCommand) {
+				let output = {
+					plannedSend: o.time,
+					startSend: startSend,
+					endSend: endSend,
+					args: o.args
+				}
+				this.emit('slowCommand', `Slow sent command, should have been sent at ${o.time}, was ${dt} ms slow. Command: ${JSON.stringify(output)}`)
+			}
+		}
+	}
+	private _verifyFulfillCommand (o: DoOrder, startSend: number, endSend: number) {
+		if (this._options.limitSlowFulfilledCommand) {
+			let fullfilled = this.getCurrentTime()
+			let dt: number = fullfilled - o.time
+			if (dt > this._options.limitSlowFulfilledCommand) {
+				let output = {
+					plannedSend: o.time,
+					startSend: startSend,
+					endSend: endSend,
+					fullfilled: fullfilled,
+					args: o.args
+				}
+				this.emit('slowCommand', `Slow fulfilled command, should have been fulfilled at ${o.time}, was ${dt} ms slow. Command: ${JSON.stringify(output)}`)
+			}
 		}
 	}
 }

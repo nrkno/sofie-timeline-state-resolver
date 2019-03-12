@@ -52,7 +52,7 @@ describe('Hyperdeck', () => {
 		myConductor.on('error', console.log)
 		await myConductor.setMapping(myChannelMapping)
 
-		await myConductor.init() // we cannot do an await, because setTimeout will never call without jest moving on.
+		await myConductor.init()
 		await myConductor.addDevice('hyperdeck0', {
 			type: DeviceType.HYPERDECK,
 			options: {
@@ -61,7 +61,7 @@ describe('Hyperdeck', () => {
 				commandReceiver: commandReceiver0
 			}
 		})
-		mockTime.advanceTimeTo(10100)
+		await mockTime.advanceTimeToTicks(10100)
 
 		expect(commandReceiver0).toHaveBeenCalledTimes(0)
 
