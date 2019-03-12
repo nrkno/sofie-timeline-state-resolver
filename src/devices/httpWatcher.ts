@@ -83,6 +83,7 @@ export class HttpWatcherDevice extends Device {
 			)
 		} else {
 			this.status = StatusCode.BAD
+			this.emit('connectionChanged', this.getStatus())
 		}
 	}
 	stopInterval () {
@@ -100,15 +101,18 @@ export class HttpWatcherDevice extends Device {
 		if (error) {
 			this.emit('error', `HTTPWatch: Error ${this.uri}`, error)
 			this.status = StatusCode.BAD
+			this.emit('connectionChanged', this.getStatus())
 			return
 		}
 		if (response.statusCode === this.expectedHttpResponse
 			&& body && (body.toString() || '').indexOf(this.keyword) >= 0) {
 			this.emit('debug', `HTTPWatch: ${this.httpMethod}: Good statuscode response on url "${this.uri}": ${response.statusCode}`)
 			this.status = StatusCode.GOOD
+			this.emit('connectionChanged', this.getStatus())
 		} else {
 			this.emit('warning', `HTTPWatch: ${this.httpMethod}: Bad statuscode response on url "${this.uri}": ${response.statusCode}`)
 			this.status = StatusCode.BAD
+			this.emit('connectionChanged', this.getStatus())
 		}
 	}
 
