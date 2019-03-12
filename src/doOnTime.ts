@@ -15,7 +15,7 @@ export enum SendMode {
 	IN_ORDER = 1
 }
 export class DoOnTime extends EventEmitter {
-	getCurrentTime: () => Promise<number>
+	getCurrentTime: () => number
 	private _i: number = 0
 	private _queue: {[id: string]: DoOrder} = {}
 	private _checkQueueTimeout: any = 0
@@ -23,7 +23,7 @@ export class DoOnTime extends EventEmitter {
 	private _commandsToSendNow: (() => Promise<any>)[] = []
 	private _sendingCommands: boolean = false
 
-	constructor (getCurrentTime: () => Promise<number>, sendMode: SendMode = SendMode.BURST) {
+	constructor (getCurrentTime: () => number, sendMode: SendMode = SendMode.BURST) {
 		super()
 		this.getCurrentTime = getCurrentTime
 		this._sendMode = sendMode
@@ -38,7 +38,7 @@ export class DoOnTime extends EventEmitter {
 			args: args
 		}
 		this._checkQueueTimeout = setTimeout(() => {
-			this._checkQueue().catch(e => this.emit('error', e))
+			this._checkQueue()
 		},0)
 		return id
 	}
@@ -71,10 +71,10 @@ export class DoOnTime extends EventEmitter {
 		this.clearQueueAfter(0) // clear all
 		clearTimeout(this._checkQueueTimeout)
 	}
-	private async _checkQueue () {
+	private _checkQueue () {
 		clearTimeout(this._checkQueueTimeout)
 
-		let now = await this.getCurrentTime()
+		let now = this.getCurrentTime()
 
 		let nextTime = now + 99999
 
@@ -101,7 +101,7 @@ export class DoOnTime extends EventEmitter {
 			nextTime - now
 		)
 		this._checkQueueTimeout = setTimeout(() => {
-			this._checkQueue().catch(e => this.emit('error', e))
+			this._checkQueue()
 		}, timeToNext)
 	}
 	private _sendNextCommand () {

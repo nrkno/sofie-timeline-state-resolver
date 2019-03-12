@@ -13,9 +13,7 @@ import { ThreadedClass } from 'threadedclass'
 describe('Abstract device', () => {
 	let mockTime = new MockTime()
 	beforeAll(() => {
-		Date.now = jest.fn(() => {
-			return mockTime.getCurrentTime()
-		})
+		mockTime.mockDateNow()
 	})
 	beforeEach(() => {
 		mockTime.init()
@@ -48,7 +46,7 @@ describe('Abstract device', () => {
 		await mockTime.advanceTimeToTicks(10100)
 
 		let deviceContainer = myConductor.getDevice('myAbstract')
-		let device = await deviceContainer.device as ThreadedClass<AbstractDevice>
+		let device = deviceContainer.device as ThreadedClass<AbstractDevice>
 
 		device.terminate = jest.fn(device.terminate)
 		let onError = jest.fn()
@@ -152,7 +150,7 @@ describe('Abstract device', () => {
 		await mockTime.advanceTimeToTicks(10100)
 
 		let deviceContainer = myConductor.getDevice('myAbstract')
-		let device = await deviceContainer.device as ThreadedClass<AbstractDevice>
+		let device = deviceContainer.device as ThreadedClass<AbstractDevice>
 
 		device.terminate = jest.fn(device.terminate)
 		let onError = jest.fn()

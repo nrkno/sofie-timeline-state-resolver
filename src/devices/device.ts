@@ -52,7 +52,7 @@ interface IDevice {
 }
 export abstract class Device extends EventEmitter implements IDevice {
 
-	private _getCurrentTime: () => Promise<number>
+	private _getCurrentTime: () => Promise<number> | number
 
 	private _deviceId: string
 	private _deviceOptions: DeviceOptions
@@ -77,7 +77,7 @@ export abstract class Device extends EventEmitter implements IDevice {
 		}
 
 		if (options.getCurrentTime) {
-			this._getCurrentTime = () => Promise.resolve(options.getCurrentTime())
+			this._getCurrentTime = () => options.getCurrentTime()
 		}
 
 		this._updateCurrentTime()
@@ -91,15 +91,16 @@ export abstract class Device extends EventEmitter implements IDevice {
 	terminate (): Promise<boolean> {
 		return Promise.resolve(true)
 	}
-	getCurrentTime (): Promise<number> {
+	getCurrentTime (): number {
 		if (this.useDirectTime) {
 			// Used when running in test
+			// @ts-ignore
 			return this._getCurrentTime()
 		}
 		if ((Date.now() - this._currentTimeUpdated) > 5 * 60 * 1000) {
 			this._updateCurrentTime()
 		}
-		return Promise.resolve(Date.now() - this._currentTimeDiff)
+		return Date.now() - this._currentTimeDiff
 	}
 
 	abstract handleState (newState: TimelineState)
@@ -155,7 +156,7 @@ export abstract class Device extends EventEmitter implements IDevice {
 	private _updateCurrentTime () {
 		if (this._getCurrentTime) {
 			const startTime = Date.now()
-			this._getCurrentTime()
+			Promise.resolve(this._getCurrentTime())
 			.then((parentTime) => {
 				const endTime = Date.now()
 				const clientTime = Math.round((startTime + endTime) / 2)
@@ -255,7 +256,7 @@ export abstract class DeviceWithState<T> extends Device {
 		}
 		return null
 	}
-	async setState (state: T, time: number) {
+	setState (state: T, time: number) {
 		// if (!state.time) throw new Error('setState: falsy state.time')
 		if (!time) throw new Error('setState: falsy time')
 		this._states[time + ''] = state
@@ -266,7 +267,7 @@ export abstract class DeviceWithState<T> extends Device {
 			this._setStateCount = 0
 
 			// Clean up old states:
-			let stateBeforeNow = this.getStateBefore(await this.getCurrentTime())
+			let stateBeforeNow = this.getStateBefore(this.getCurrentTime())
 			if (stateBeforeNow && stateBeforeNow.time) {
 				this.cleanUpStates(stateBeforeNow.time - 1, 0)
 			}

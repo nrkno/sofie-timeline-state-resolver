@@ -94,7 +94,7 @@ export class HttpSendDevice extends DeviceWithState<TimelineState> {
 	}
 	async makeReady (okToDestroyStuff?: boolean): Promise<void> {
 		if (okToDestroyStuff && this._makeReadyCommands && this._makeReadyCommands.length > 0) {
-			const time = await this.getCurrentTime()
+			const time = this.getCurrentTime()
 			_.each(this._makeReadyCommands, (cmd: HttpSendCommandContent) => {
 				// add the new commands to the queue:
 				this._doOnTime.queue(time, (cmd: HttpSendCommandContent) => {

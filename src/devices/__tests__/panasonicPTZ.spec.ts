@@ -35,8 +35,7 @@ describe('Panasonic PTZ', () => {
 	request.setMockGet(onGet)
 
 	beforeAll(() => {
-		Date.now = jest.fn()
-		Date.now['mockReturnValue'](1000)
+		mockTime.mockDateNow()
 	})
 	beforeEach(() => {
 		mockTime.init()
@@ -90,7 +89,7 @@ describe('Panasonic PTZ', () => {
 		await mockTime.advanceTimeToTicks(10100)
 
 		let deviceContainer = myConductor.getDevice('myPtz')
-		let device = await deviceContainer.device as ThreadedClass<PanasonicPtzDevice>
+		let device = deviceContainer.device as ThreadedClass<PanasonicPtzDevice>
 
 		// Check that no commands has been scheduled:
 		expect(await device.queue).toHaveLength(0)

@@ -14,10 +14,7 @@ const WebSocket = require('../../__mocks__/ws')
 describe('Pharos', () => {
 	let mockTime = new MockTime()
 	beforeAll(() => {
-		Date.now = jest.fn(() => {
-			return mockTime.getCurrentTime()
-		})
-		// Date.now['mockReturnValue'](now)
+		mockTime.mockDateNow()
 	})
 	beforeEach(() => {
 		mockTime.init()
@@ -87,7 +84,7 @@ describe('Pharos', () => {
 		await mockTime.advanceTimeToTicks(10100)
 
 		let deviceContainer = myConductor.getDevice('myPharos')
-		device = await deviceContainer.device as ThreadedClass<PharosDevice>
+		device = deviceContainer.device as ThreadedClass<PharosDevice>
 
 		expect(mockReply).toHaveBeenCalledTimes(1)
 		expect(mockReply.mock.calls[0][1]).toMatch(/project/) // get project info

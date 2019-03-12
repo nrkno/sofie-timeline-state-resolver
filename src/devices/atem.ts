@@ -96,14 +96,12 @@ export class AtemDevice extends DeviceWithState<DeviceState> {
 				resolve(true)
 			})
 			this._atem.on('connected', () => {
-				this.getCurrentTime()
-				.then((time) => {
-					this.setState(this._atem.state, time)
-					this._connected = true
-					this._connectionChanged()
-					this.emit('resetResolver')
-				})
-				.catch(e => this.emit('error', e))
+				let time = this.getCurrentTime()
+				this.setState(this._atem.state, time)
+				this._connected = true
+				this._connectionChanged()
+				this.emit('resetResolver')
+
 			})
 			this._atem.on('disconnected', () => {
 				this._connected = false
@@ -134,8 +132,8 @@ export class AtemDevice extends DeviceWithState<DeviceState> {
 	async makeReady (okToDestroyStuff?: boolean): Promise<void> {
 		this.firstStateAfterMakeReady = true
 		if (okToDestroyStuff) {
-			this._doOnTime.clearQueueNowAndAfter(await this.getCurrentTime())
-			this.setState(this._atem.state, await this.getCurrentTime())
+			this._doOnTime.clearQueueNowAndAfter(this.getCurrentTime())
+			this.setState(this._atem.state, this.getCurrentTime())
 		}
 	}
 

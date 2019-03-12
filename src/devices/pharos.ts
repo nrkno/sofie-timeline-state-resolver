@@ -164,7 +164,7 @@ export class PharosDevice extends DeviceWithState<TimelineState> {
 	}
 	async makeReady (okToDestroyStuff?: boolean): Promise<void> {
 		if (okToDestroyStuff) {
-			this._doOnTime.clearQueueNowAndAfter(await this.getCurrentTime())
+			this._doOnTime.clearQueueNowAndAfter(this.getCurrentTime())
 		}
 	}
 	getStatus (): DeviceStatus {

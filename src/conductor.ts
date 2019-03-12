@@ -118,7 +118,7 @@ export class Conductor extends EventEmitter {
 			}
 		}, 2500)
 		this._doOnTime = new DoOnTime(() => {
-			return Promise.resolve(this.getCurrentTime())
+			return this.getCurrentTime()
 		})
 		this._doOnTime.on('error', e => this.emit('error', e))
 		// this._doOnTime.on('callback', (...args) => {

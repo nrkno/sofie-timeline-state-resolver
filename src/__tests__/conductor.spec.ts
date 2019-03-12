@@ -8,6 +8,8 @@ import {
 import { Conductor, TimelineTriggerTimeResult, TimelineContentObject } from '../conductor'
 import * as _ from 'underscore'
 import { MockTime } from './mockTime.spec'
+import { ThreadedClass } from 'threadedclass'
+import { AbstractDevice } from '../devices/abstract'
 
 // let nowActual: number = Date.now()
 // process.on('unhandledRejection', (reason, p) => {
@@ -20,9 +22,7 @@ import { MockTime } from './mockTime.spec'
 describe('Conductor', () => {
 	let mockTime = new MockTime()
 	beforeAll(() => {
-		Date.now = jest.fn(() => {
-			return mockTime.getCurrentTime()
-		})
+		mockTime.mockDateNow()
 	})
 	beforeEach(() => {
 		mockTime.init()
@@ -54,7 +54,7 @@ describe('Conductor', () => {
 			getCurrentTime: mockTime.getCurrentTime
 		})
 
-		conductor.setMapping(myLayerMapping)
+		await conductor.setMapping(myLayerMapping)
 		await conductor.init()
 		await conductor.addDevice('device0', {
 			type: DeviceType.ABSTRACT,
@@ -218,16 +218,16 @@ describe('Conductor', () => {
 				commandReceiver: commandReceiver0
 			}
 		})
-		conductor.setMapping(myLayerMapping)
+		await conductor.setMapping(myLayerMapping)
 
 		// add something that will play "now"
 		let abstractThing0: TimelineContentObject = { // will be converted from "now" to 10000
 			id: 'a0',
 			trigger: {
 				type: TriggerType.TIME_ABSOLUTE,
-				value: 'now'
+				value: 'now' // 10000
 			},
-			duration: 5000,
+			duration: 5000, // 15000
 			LLayer: 'myLayer0',
 			content: {
 				myAttr1: 'one',
@@ -238,9 +238,9 @@ describe('Conductor', () => {
 			id: 'a1',
 			trigger: {
 				type: TriggerType.TIME_RELATIVE,
-				value: '#a0.start + 300'
+				value: '#a0.start + 300' // 10300
 			},
-			duration: 5000,
+			duration: 5000, // 15300
 			LLayer: 'myLayer0',
 			content: {
 				myAttr1: 'one',
@@ -269,19 +269,23 @@ describe('Conductor', () => {
 		conductor.on('timelineCallback', timelineCallback)
 
 		let device0Container = conductor.getDevice('device0')
-		let device0 = device0Container.device
+		let device0 = device0Container.device as ThreadedClass<AbstractDevice>
 		expect(device0).toBeTruthy()
 		// let device1 = conductor.getDevice('device1')
 
 		// The queues should be empty
-		expect(await device0['queue']).toHaveLength(0)
+		expect(await device0.queue).toHaveLength(0)
 		// expect(device1['queue']).toHaveLength(0)
 
 		conductor.timeline = timeline
 
-		// there should now be one command queued:
+		// there should now be commands queued:
 		await mockTime.tick()
-		expect(await device0['queue']).toHaveLength(1)
+		const q = await device0.queue
+
+		expect(q).toHaveLength(2)
+		expect(q[0].time).toEqual(10000)
+		expect(q[1].time).toEqual(10300)
 
 		// the setTimelineTriggerTime event should have been emitted:
 		expect(setTimelineTriggerTime).toHaveBeenCalledTimes(1)

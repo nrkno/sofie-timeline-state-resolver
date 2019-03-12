@@ -357,7 +357,7 @@ export class LawoDevice extends DeviceWithState<TimelineState> {
 					.then((res) => {
 						this.emit('debug', `Ember result: ${JSON.stringify(res)}`)
 					})
-					.catch((e) => console.log(e))
+					.catch((e) => this.emit('error', 'Lawo: Error in setValue:' + e.toString()))
 				})
 				.catch((e) => {
 					this.emit('error', `Ember command error: ${e.toString()}`)

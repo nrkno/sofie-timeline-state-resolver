@@ -26,8 +26,7 @@ describe('Hyperdeck', () => {
 	let mockTime = new MockTime()
 
 	beforeAll(() => {
-		Date.now = jest.fn()
-		Date.now['mockReturnValue'](1000)
+		mockTime.mockDateNow()
 	})
 	beforeEach(() => {
 		mockTime.init()
@@ -77,11 +76,10 @@ describe('Hyperdeck', () => {
 		hyperdeckMock.setMockCommandReceiver(hyperdeckMockCommand)
 
 		let deviceContainer = myConductor.getDevice('hyperdeck0')
-		device = await deviceContainer.device as ThreadedClass<HyperdeckDevice>
+		device = deviceContainer.device as ThreadedClass<HyperdeckDevice>
 
 		// Check that no commands has been scheduled:
 		expect(await device.queue).toHaveLength(0)
-		console.log('set timeline')
 		myConductor.timeline = [
 			{
 				id: 'obj0',

@@ -87,7 +87,7 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> {
 				this._queryCurrentState()
 				.then(async (state) => {
 
-					this.setState(state, await this.getCurrentTime())
+					this.setState(state, this.getCurrentTime())
 					if (firstConnect) {
 						firstConnect = false
 						this._initialized = true
@@ -121,7 +121,7 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> {
 
 	async makeReady (okToDestroyStuff?: boolean): Promise<void> {
 		if (okToDestroyStuff) {
-			let time = await this.getCurrentTime()
+			let time = this.getCurrentTime()
 			this._doOnTime.clearQueueNowAndAfter(time)
 
 			// TODO - could this being slow/offline be a problem?

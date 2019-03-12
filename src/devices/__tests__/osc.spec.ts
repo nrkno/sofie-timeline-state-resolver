@@ -17,10 +17,7 @@ import { ThreadedClass } from 'threadedclass'
 describe('OSC-Message', () => {
 	let mockTime = new MockTime()
 	beforeAll(() => {
-		Date.now = jest.fn(() => {
-			return mockTime.getCurrentTime()
-		})
-		// Date.now['mockReturnValue'](now)
+		mockTime.mockDateNow()
 	})
 	beforeEach(() => {
 		mockTime.init()
@@ -53,7 +50,7 @@ describe('OSC-Message', () => {
 		await mockTime.advanceTimeToTicks(10100)
 
 		let deviceContainer = myConductor.getDevice('osc0')
-		let device = await deviceContainer.device as ThreadedClass<OSCMessageDevice>
+		let device = deviceContainer.device as ThreadedClass<OSCMessageDevice>
 
 		// Check that no commands has been scheduled:
 		expect(await device.queue).toHaveLength(0)

@@ -15,8 +15,7 @@ describe('Lawo', () => {
 	let mockTime = new MockTime()
 
 	beforeAll(() => {
-		Date.now = jest.fn()
-		Date.now['mockReturnValue'](1000)
+		mockTime.mockDateNow()
 	})
 	beforeEach(() => {
 		mockTime.init()
@@ -54,7 +53,7 @@ describe('Lawo', () => {
 		await mockTime.advanceTimeToTicks(10100)
 
 		let deviceContainer = myConductor.getDevice('myLawo')
-		let device = await deviceContainer.device as ThreadedClass<LawoDevice>
+		let device = deviceContainer.device as ThreadedClass<LawoDevice>
 
 		// Check that no commands has been scheduled:
 		expect(await device.queue).toHaveLength(0)
