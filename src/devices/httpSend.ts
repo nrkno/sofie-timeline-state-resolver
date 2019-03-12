@@ -8,7 +8,6 @@ import {
 import {
 	DeviceType,
 	DeviceOptions,
-	TimelineContentTypeHttp,
 	HttpSendOptions,
 	HttpSendCommandContent
 } from '../types/src'
@@ -210,26 +209,9 @@ export class HttpSendDevice extends DeviceWithState<TimelineState> {
 					resolve()
 				}
 			}
-			if (cmd.type === TimelineContentTypeHttp.POST) {
-				request.post(
-					cmd.url,
-					{ json: cmd.params },
-					handleResponse
-				)
-			} else if (cmd.type === TimelineContentTypeHttp.PUT) {
-				request.put(
-					cmd.url,
-					{ json: cmd.params },
-					handleResponse
-				)
-			} else if (cmd.type === TimelineContentTypeHttp.GET) {
-				request.get(
-					cmd.url,
-					{ json: cmd.params },
-					handleResponse
-				)
-			} else if (cmd.type === TimelineContentTypeHttp.DELETE) {
-				request.delete(
+			let requestMethod = request[cmd.type]
+			if (requestMethod) {
+				requestMethod(
 					cmd.url,
 					{ json: cmd.params },
 					handleResponse
