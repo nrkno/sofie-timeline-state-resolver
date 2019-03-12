@@ -4,6 +4,9 @@ import { Mapping, DeviceType } from './mapping'
 export interface MappingHTTPSend extends Mapping {
 	device: DeviceType.HTTPSEND
 }
+export interface MappingHTTPWatcher extends Mapping {
+	device: DeviceType.HTTPWATCHER
+}
 
 export interface HttpSendCommandContent {
 	type: TimelineContentTypeHttp

@@ -27,6 +27,7 @@ import { PharosDevice } from './devices/pharos'
 import { OSCMessageDevice } from './devices/osc'
 import { threadedClass, ThreadedClass } from 'threadedclass'
 import { AsyncResolver } from './AsyncResolver'
+import { HttpWatcherDevice } from './devices/httpWatcher'
 
 export const LOOKAHEADTIME = 5000 // Will look ahead this far into the future
 export const PREPARETIME = 2000 // Will prepare commands this time before the event is to happen
@@ -261,6 +262,13 @@ export class Conductor extends EventEmitter {
 				newDevice = await threadedClass<HttpSendDevice>(
 					'../dist/devices/httpSend.js',
 					HttpSendDevice,
+					[ deviceId, deviceOptions, options ],
+					threadedClassOptions
+				)
+			} else if (deviceOptions.type === DeviceType.HTTPWATCHER) {
+				newDevice = await threadedClass<HttpWatcherDevice>(
+					'../dist/devices/httpWatcher.js',
+					HttpWatcherDevice,
 					[ deviceId, deviceOptions, options ],
 					threadedClassOptions
 				)
