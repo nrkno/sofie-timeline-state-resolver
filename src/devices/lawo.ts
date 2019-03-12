@@ -20,7 +20,7 @@ import {
 	DeviceTree,
 	Ember
 } from 'emberplus'
-import { DoOnTime } from '../doOnTime'
+import { DoOnTime, SendMode } from '../doOnTime'
 import { getDiff } from '../lib'
 
 /*
@@ -127,8 +127,9 @@ export class LawoDevice extends DeviceWithState<TimelineState> {
 		)
 		this._doOnTime = new DoOnTime(() => {
 			return this.getCurrentTime()
-		})
+		}, SendMode.BURST, this._deviceOptions)
 		this._doOnTime.on('error', e => this.emit('error', 'DoOnTime', e))
+		this._doOnTime.on('slowCommand', msg => this.emit('slowCommand', this.deviceName + ': ' + msg))
 
 		this._lawo = new DeviceTree(host, port)
 		this._lawo.on('error', (e) => {

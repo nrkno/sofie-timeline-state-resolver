@@ -8,7 +8,7 @@ import {
 import { DeviceType, DeviceOptions } from '../types/src'
 
 import { TimelineState, TimelineResolvedObject } from 'superfly-timeline'
-import { DoOnTime } from '../doOnTime'
+import { DoOnTime, SendMode } from '../doOnTime'
 
 /*
 	This is a wrapper for an "Abstract" device
@@ -42,8 +42,9 @@ export class AbstractDevice extends DeviceWithState<TimelineState> {
 		}
 		this._doOnTime = new DoOnTime(() => {
 			return this.getCurrentTime()
-		})
+		}, SendMode.BURST, this._deviceOptions)
 		this._doOnTime.on('error', e => this.emit('error', 'doOnTime', e))
+		this._doOnTime.on('slowCommand', msg => this.emit('slowCommand', this.deviceName + ': ' + msg))
 	}
 
 	/**

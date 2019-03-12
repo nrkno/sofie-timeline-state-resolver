@@ -1,5 +1,6 @@
 import { EventEmitter } from 'events'
 import * as _ from 'underscore'
+import { SlowReportOptions } from './types/src/mapping'
 
 export type DoOrderFunction = (...args: any[]) => void | Promise<any> | any
 interface DoOrder {
@@ -14,11 +15,7 @@ export enum SendMode {
 	/** Send messages in order, wait for the previous message to be acknowledged before sending the next */
 	IN_ORDER = 1
 }
-export interface DoOnTimeOptions {
-	/** If set, report back that a command was slow if not sent at this time */
-	limitSlowSentCommand?: number
-	/** If set, report back that a command was slow if not fullfilled (sent + ack:ed) at this time */
-	limitSlowFulfilledCommand?: number
+export interface DoOnTimeOptions extends SlowReportOptions {
 }
 export class DoOnTime extends EventEmitter {
 	getCurrentTime: () => number

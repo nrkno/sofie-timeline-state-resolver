@@ -17,7 +17,7 @@ import {
 	MappingPanasonicPtzType
 } from '../types/src'
 import { TimelineState, TimelineResolvedObject } from 'superfly-timeline'
-import { DoOnTime } from '../doOnTime'
+import { DoOnTime, SendMode } from '../doOnTime'
 import { PanasonicPtzHttpInterface } from './panasonicPTZAPI'
 
 export interface PanasonicPtzOptions extends DeviceOptions { // TODO - this doesnt match the others
@@ -68,8 +68,9 @@ export class PanasonicPtzDevice extends DeviceWithState<TimelineState> {
 		}
 		this._doOnTime = new DoOnTime(() => {
 			return this.getCurrentTime()
-		})
+		}, SendMode.BURST, this._deviceOptions)
 		this._doOnTime.on('error', e => this.emit('error', 'doOnTime', e))
+		this._doOnTime.on('slowCommand', msg => this.emit('slowCommand', this.deviceName + ': ' + msg))
 
 		if (deviceOptions.options && deviceOptions.options.host) {
 			this._device = new PanasonicPtzHttpInterface(deviceOptions.options.host, deviceOptions.options.port, deviceOptions.options.https)

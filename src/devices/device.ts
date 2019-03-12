@@ -55,20 +55,20 @@ export abstract class Device extends EventEmitter implements IDevice {
 	private _getCurrentTime: () => Promise<number> | number
 
 	private _deviceId: string
-	private _deviceOptions: DeviceOptions
 
 	private _mappings: Mappings = {}
 	private _currentTimeDiff: number = 0
 	private _currentTimeUpdated: number = 0
 
 	public useDirectTime: boolean = false
+	protected _deviceOptions: DeviceOptions
 
 	constructor (deviceId: string, deviceOptions: DeviceOptions, options: DeviceClassOptions) {
 		super()
 		this._deviceId = deviceId
 		this._deviceOptions = deviceOptions
 
-		this._deviceOptions = this._deviceOptions // ts-lint fix
+		// this._deviceOptions = this._deviceOptions // ts-lint fix
 
 		if (process.env.JEST_WORKER_ID !== undefined) {
 			// running in Jest test environment.

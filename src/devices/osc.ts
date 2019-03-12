@@ -11,7 +11,7 @@ import {
 	OSCMessageCommandContent,
 	OSCOptions
 } from '../types/src'
-import { DoOnTime } from '../doOnTime'
+import { DoOnTime, SendMode } from '../doOnTime'
 
 import {
 	TimelineState,
@@ -45,8 +45,9 @@ export class OSCMessageDevice extends DeviceWithState<TimelineState> {
 		}
 		this._doOnTime = new DoOnTime(() => {
 			return this.getCurrentTime()
-		})
+		}, SendMode.BURST, this._deviceOptions)
 		this._doOnTime.on('error', e => this.emit('error', e))
+		this._doOnTime.on('slowCommand', msg => this.emit('slowCommand', this.deviceName + ': ' + msg))
 	}
 	init (options: OSCOptions): Promise<boolean> {
 		this._oscClient = new osc.UDPPort({
