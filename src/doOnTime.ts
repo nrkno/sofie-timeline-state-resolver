@@ -168,6 +168,13 @@ export class DoOnTime extends EventEmitter {
 			throw e
 		}
 	}
+	private representArguments (o: DoOrder) {
+		if (o.args[0] && o.args[0].serialize) {
+			return o.args[0].serialize
+		} else {
+			return o.args
+		}
+	}
 	private _verifySendCommand (o: DoOrder, startSend: number, endSend: number): boolean {
 		if (this._options.limitSlowSentCommand) {
 			let dt: number = endSend - o.time
@@ -179,7 +186,7 @@ export class DoOnTime extends EventEmitter {
 					plannedSend: o.time,
 					startSend: startSend,
 					endSend: endSend,
-					args: o.args
+					args: this.representArguments(o)
 				}
 				this.emit('slowCommand', `Slow sent command, should have been sent at ${o.time}, was ${dt} ms slow (was added ${beforeTime} ms before planned), sendMode: ${SendMode[this._sendMode]}. Command: ${JSON.stringify(output)}`)
 				return true
@@ -199,7 +206,7 @@ export class DoOnTime extends EventEmitter {
 					startSend: startSend,
 					endSend: endSend,
 					fullfilled: fullfilled,
-					args: o.args
+					args: this.representArguments(o)
 				}
 				this.emit('slowCommand', `Slow fulfilled command, should have been fulfilled at ${o.time}, was ${dt} ms slow. Command: ${JSON.stringify(output)}`)
 			}
