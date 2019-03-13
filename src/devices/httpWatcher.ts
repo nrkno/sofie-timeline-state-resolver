@@ -20,8 +20,7 @@ import {
 */
 export interface HttpWatcherDeviceOptions extends DeviceOptions {
 	options?: {
-		host?: string
-		port?: string
+		uri?: string
 		httpMethod?: string
 		expectedHttpResponse?: number
 		keyword?: string
@@ -30,8 +29,6 @@ export interface HttpWatcherDeviceOptions extends DeviceOptions {
 }
 
 export class HttpWatcherDevice extends Device {
-	private host: string
-	private port: number
 	private uri: string
 	private httpMethod: TimelineContentTypeHttp
 	private expectedHttpResponse: number | undefined
@@ -43,9 +40,6 @@ export class HttpWatcherDevice extends Device {
 	constructor (deviceId: string, deviceOptions: HttpWatcherDeviceOptions, options) {
 		super(deviceId, deviceOptions, options)
 		const opts = deviceOptions.options || {}
-
-		this.host = opts.host || 'localhost'
-		this.port = Number(opts.port) || 80
 
 		switch (opts.httpMethod) {
 			case 'post':
@@ -64,12 +58,10 @@ export class HttpWatcherDevice extends Device {
 				break
 		}
 
-		// this.httpMethod = opts.httpMethod || 'localhost'
 		this.expectedHttpResponse = Number(opts.expectedHttpResponse) || undefined
 		this.keyword = opts.keyword
 		this.intervalTime = Number(opts.interval) || 30
-
-		this.uri = this.host + ':' + this.port
+		this.uri = opts.uri || 'http://localhost'
 	}
 
 	onInterval () {

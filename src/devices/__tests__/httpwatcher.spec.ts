@@ -33,7 +33,7 @@ describe('HTTP-Watcher', () => {
 			return mockTime.getCurrentTime()
 		})
 		onGet = jest.fn((url, _options, callback) => {
-			if (url === 'http://localhost:80') {
+			if (url === 'http://localhost') {
 				callback(null, {
 					statusCode: mockStatusCode,
 					body: mockBody
@@ -80,8 +80,7 @@ describe('HTTP-Watcher', () => {
 		const generatedDeviceContainer = await myConductor.addDevice('myHTTPWatch', {
 			type: DeviceType.HTTPWATCHER,
 			options: {
-				host: 'http://localhost',
-				port: '1234',
+				uri: 'http://localhost:1234',
 				httpMethod: 'get',
 				expectedHttpResponse: 200,
 				keyword: 'my keyword',
@@ -128,8 +127,7 @@ describe('HTTP-Watcher', () => {
 		const generatedDeviceContainer = await myConductor.addDevice('myHTTPWatch', {
 			type: DeviceType.HTTPWATCHER,
 			options: {
-				host: 'http://localhost',
-				port: '80',
+				uri: 'http://localhost',
 				httpMethod: 'get',
 				// expectedHttpResponse: 200,
 				keyword: 'my keyword',
@@ -179,8 +177,7 @@ describe('HTTP-Watcher', () => {
 		const generatedDeviceContainer = await myConductor.addDevice('myHTTPWatch', {
 			type: DeviceType.HTTPWATCHER,
 			options: {
-				host: 'http://localhost',
-				port: '80',
+				uri: 'http://localhost',
 				httpMethod: 'get',
 				expectedHttpResponse: 200,
 				// keyword: 'my keyword',
@@ -228,8 +225,7 @@ describe('HTTP-Watcher', () => {
 		const generatedDeviceContainer = await myConductor.addDevice('myHTTPWatch', {
 			type: DeviceType.HTTPWATCHER,
 			options: {
-				host: 'http://localhost',
-				port: '80',
+				uri: 'http://localhost',
 				httpMethod: 'get',
 				expectedHttpResponse: 200,
 				keyword: 'my keyword',
@@ -255,8 +251,7 @@ describe('HTTP-Watcher', () => {
 		const generatedDeviceContainer = await myConductor.addDevice('myHTTPWatch', {
 			type: DeviceType.HTTPWATCHER,
 			options: {
-				host: 'http://localhost',
-				port: '1234',
+				uri: 'http://localhost',
 				httpMethod: 'get',
 				expectedHttpResponse: 200,
 				keyword: 'my keyword',
@@ -279,8 +274,7 @@ describe('HTTP-Watcher', () => {
 		const generatedDeviceContainer = await myConductor.addDevice('myHTTPWatch', {
 			type: DeviceType.HTTPWATCHER,
 			options: {
-				host: 'http://localhost',
-				port: '80',
+				uri: 'http://localhost',
 				httpMethod: 'get',
 				expectedHttpResponse: 200,
 				keyword: 'bad keyword',
@@ -315,8 +309,7 @@ describe('HTTP-Watcher', () => {
 		const generatedDeviceContainer = await myConductor.addDevice('myHTTPWatch', {
 			type: DeviceType.HTTPWATCHER,
 			options: {
-				host: 'http://localhost',
-				port: '1234',
+				uri: 'http://localhost:1234',
 				httpMethod: 'get',
 				expectedHttpResponse: 200,
 				keyword: 'my keyword',
@@ -350,8 +343,7 @@ describe('HTTP-Watcher', () => {
 		const generatedDeviceContainer = await myConductor.addDevice('myHTTPWatch', {
 			type: DeviceType.HTTPWATCHER,
 			options: {
-				host: 'http://localhost',
-				port: '1234',
+				uri: 'http://localhost:1234',
 				httpMethod: 'post',
 				expectedHttpResponse: 200,
 				keyword: 'my keyword2',
@@ -374,30 +366,7 @@ describe('HTTP-Watcher', () => {
 		const generatedDeviceContainer = await myConductor.addDevice('myHTTPWatch', {
 			type: DeviceType.HTTPWATCHER,
 			options: {
-				host: 'http://localhost',
-				port: '80',
-				httpMethod: 'jibberish',
-				expectedHttpResponse: 200,
-				keyword: 'my keyword',
-				interval: 10 * 1000
-			}
-		})
-		const generatedDevice = generatedDeviceContainer.device
-		expect(await generatedDevice.getStatus()).toEqual({ statusCode: StatusCode.UNKNOWN })
-		await myConductor.setMapping(myLayerMapping)
-
-		await mockTime.advanceTimeTicks(10100)
-		expect(onGet).toBeCalledTimes(1)
-		expect(await generatedDevice.getStatus()).toEqual({ statusCode: StatusCode.GOOD })
-
-		await generatedDevice.terminate()
-	})
-	test('Port defaults to 80 returns GOOD state', async () => {
-		await myConductor.init()
-		const generatedDeviceContainer = await myConductor.addDevice('myHTTPWatch', {
-			type: DeviceType.HTTPWATCHER,
-			options: {
-				host: 'http://localhost',
+				uri: 'http://localhost',
 				httpMethod: 'jibberish',
 				expectedHttpResponse: 200,
 				keyword: 'my keyword',
