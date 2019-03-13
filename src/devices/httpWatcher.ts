@@ -22,7 +22,7 @@ export interface HttpWatcherDeviceOptions extends DeviceOptions {
 	options?: {
 		host?: string
 		port?: string
-		httpMethod?: string
+		httpMethod?: 'post' | 'delete' | 'put' | 'get'
 		expectedHttpResponse?: number
 		keyword?: string
 		interval?: number
@@ -57,7 +57,6 @@ export class HttpWatcherDevice extends Device {
 				this.httpMethod = TimelineContentTypeHttp.PUT
 				break
 			case 'get':
-			case '':
 			case undefined:
 			default:
 				this.httpMethod = TimelineContentTypeHttp.GET
