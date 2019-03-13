@@ -22,7 +22,8 @@ export enum DeviceType {
 	PANASONIC_PTZ = 5,
 	HYPERDECK = 7,
 	PHAROS = 8,
-	OSC = 9
+	OSC = 9,
+	HTTPWATCHER = 10
 }
 
 export interface DeviceOptions extends SlowReportOptions {

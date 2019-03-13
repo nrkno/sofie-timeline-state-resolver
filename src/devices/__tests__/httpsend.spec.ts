@@ -77,16 +77,14 @@ describe('HTTP-Send', () => {
 		await mockTime.advanceTimeToTicks(11100)
 
 		expect(commandReceiver0).toHaveBeenCalledTimes(1)
-		expect(commandReceiver0.mock.calls[0][1]).toMatchObject(
-			{
-				type: 'POST',
-				url: 'http://superfly.tv',
-				params: {
-					a: 1,
-					b: 2
-				}
+		expect(commandReceiver0).toBeCalledWith(expect.anything(), expect.objectContaining({
+			type: 'POST',
+			url: 'http://superfly.tv',
+			params: {
+				a: 1,
+				b: 2
 			}
-		)
+		}), expect.anything())
 		expect(commandReceiver0.mock.calls[0][2]).toMatch(/added/) // context
 		await mockTime.advanceTimeToTicks(16000)
 		expect(commandReceiver0).toHaveBeenCalledTimes(1)
