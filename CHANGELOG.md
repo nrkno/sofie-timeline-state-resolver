@@ -2,12 +2,51 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
-## [1.8.1](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/1.8.0...1.8.1) (2019-03-07)
+# [0.0.0](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/1.8.1...0.0.0) (2019-03-13)
 
 
 ### Bug Fixes
 
-* fixes to make resolving work asynchronously ([514c7f4](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/514c7f4))
+* revert the getCurrentTime fix, so it's not a promise again. ([2d74fca](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/2d74fca))
+* **casparcg:** Apply transitions to AUDIO and MEDIA object types ([bf38847](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/bf38847))
+* add connectionChanged event emit ([101fa40](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/101fa40))
+* cast underscore variable to any ([3ae249c](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/3ae249c))
+* disable ts-jest diagnostics ([96dc1d1](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/96dc1d1))
+* emit error messages ([33df055](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/33df055))
+* make estimateResolveTime opt-in ([fc3f30b](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/fc3f30b))
+* nicer looking logs ([33cbda4](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/33cbda4))
+* re-introduce many tests ([33a721d](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/33a721d))
+* refactor Device.getCurrentTime, so the internal call to it stays internal (and not send between processes in multithreaded mode) ([4ed8c85](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/4ed8c85))
+* set maxWorkers for jest ([194c562](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/194c562))
+* set minimum interval to 1 second + 'URI not set' warning ([340d95b](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/340d95b))
+* some small refactorings ([2954039](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/2954039))
+* syncing version between projects ([83094ce](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/83094ce))
+* **httpwatcher:** changed options.interval from seconds to ms, to match other settings ([ebc9e3a](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/ebc9e3a))
+* **httpWatcher:** add missing terminate method, add private _setStatus method, report error/reason as status message instead of emitting error event ([35f7ba4](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/35f7ba4))
+* **httpWatcher:** stronger typings for options.httpMethod ([549162b](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/549162b))
+* **tsr:** Restrict the next resolve time to inside the current window, to ensure we don't miss something that the timeline excluded ([7e1ace8](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/7e1ace8))
+* threadedclass dep (to fix error with circular objects in single-threaded mode) ([a18bf3c](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/a18bf3c))
+* threadedClass dep update (fix Error when using device.on('event')) ([4783abb](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/4783abb))
+* tsconfig location ([e4d9e1b](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/e4d9e1b))
+
+
+### Features
+
+* add httpWatcher ([650f059](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/650f059))
+* added DeviceContainer, to be able to read properties like "deviceId" without the round-trip to the child process ([bbbdbaa](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/bbbdbaa))
+* casparcg: proper handling of points in time ([95dafb4](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/95dafb4))
+* DoOnTime: add burst-mode (equaling old functionality) and in-order-mode (run commands in sequence) ([5820aa1](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/5820aa1))
+* implement slowCommand feedback ([1d10229](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/1d10229))
+* implement temporalPriority in httpSend ([fc68fe8](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/fc68fe8))
+* monitor and improve command responsiveness ([8d9dfb4](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/8d9dfb4))
+* remove host+port. Use uri ([cc4d40b](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/cc4d40b))
+* reworked getCurrentTime so it's always a promise, to makie it work in tests ([6b69125](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/6b69125))
+* update threadedclass (error tracing) & atem-connection (audio channels) ([7985159](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/7985159))
+
+
+### BREAKING CHANGES
+
+* addDevice not returns a DeviceContainer instead of the previous Threadedclass<Device>
 
 
 
