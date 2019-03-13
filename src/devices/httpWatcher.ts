@@ -29,7 +29,7 @@ export interface HttpWatcherDeviceOptions extends DeviceOptions {
 }
 
 export class HttpWatcherDevice extends Device {
-	private uri: string
+	private uri?: string
 	private httpMethod: TimelineContentTypeHttp
 	private expectedHttpResponse: number | undefined
 	private keyword: string | undefined
@@ -40,7 +40,6 @@ export class HttpWatcherDevice extends Device {
 	constructor (deviceId: string, deviceOptions: HttpWatcherDeviceOptions, options) {
 		super(deviceId, deviceOptions, options)
 		const opts = deviceOptions.options || {}
-
 		switch (opts.httpMethod) {
 			case 'post':
 				this.httpMethod = TimelineContentTypeHttp.POST
@@ -60,11 +59,15 @@ export class HttpWatcherDevice extends Device {
 
 		this.expectedHttpResponse = Number(opts.expectedHttpResponse) || undefined
 		this.keyword = opts.keyword
-		this.intervalTime = Number(opts.interval) || 30
-		this.uri = opts.uri || 'http://localhost'
+		this.intervalTime = Math.max(Number(opts.interval) || 1000, 1000)
+		this.uri = opts.uri
 	}
 
 	onInterval () {
+		if (!this.uri) {
+			this._setStatus(StatusCode.BAD, 'URI not set')
+			return
+		}
 		let reqMethod = request[this.httpMethod]
 		if (reqMethod) {
 			reqMethod(
