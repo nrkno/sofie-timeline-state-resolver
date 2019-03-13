@@ -161,10 +161,10 @@ export class Conductor extends EventEmitter {
 		await this._resolver.on('setTimelineTriggerTime', (r) => {
 			this.emit('setTimelineTriggerTime', r)
 		})
-		await this._resolver.on('info', (...args) => this.emit('info', ...args))
-		await this._resolver.on('debug', (...args) => this.emit('debug', ...args))
-		await this._resolver.on('error', (...args) => this.emit('error', ...args))
-		await this._resolver.on('warning', (...args) => this.emit('warning', ...args))
+		await this._resolver.on('info', (...args) => this.emit('info', 'Resolver', ...args))
+		await this._resolver.on('debug', (...args) => this.emit('debug', 'Resolver', ...args))
+		await this._resolver.on('error', (...args) => this.emit('error', 'Resolver', ...args))
+		await this._resolver.on('warning', (...args) => this.emit('warning', 'Resolver', ...args))
 
 		this._isInitialized = true
 		this.resetResolver()
@@ -352,7 +352,9 @@ export class Conductor extends EventEmitter {
 			}).catch(console.error)
 
 			let deviceName = newDevice.deviceName
+
 			const fixError = (e) => {
+
 				let name = `Device "${deviceName || deviceId}"`
 				if (e.reason) e.reason = name + ': ' + e.reason
 				if (e.message) e.message = name + ': ' + e.message
@@ -360,11 +362,12 @@ export class Conductor extends EventEmitter {
 					e.stack += '\nAt device' + name
 				}
 				if (_.isString(e)) e = name + ': ' + e
+
 				return e
 			}
-			newDevice.device.on('info',	(e) => this.emit('info', 	fixError(e))).catch(console.error)
-			newDevice.device.on('warning',	(e) => this.emit('warning', fixError(e))).catch(console.error)
-			newDevice.device.on('error',	(e) => this.emit('error', 	fixError(e))).catch(console.error)
+			newDevice.device.on('info',		(e, ...args) => this.emit('info', 		fixError(e), ...args)).catch(console.error)
+			newDevice.device.on('warning',	(e, ...args) => this.emit('warning', 	fixError(e), ...args)).catch(console.error)
+			newDevice.device.on('error',	(e, ...args) => this.emit('error', 		fixError(e), ...args)).catch(console.error)
 			newDevice.device.on('resetResolver', () => this.resetResolver()).catch(console.error)
 
 			this.emit('info', 'Initializing ' + DeviceType[deviceOptions.type] + '...')
@@ -564,6 +567,10 @@ export class Conductor extends EventEmitter {
 			})
 
 			statTimeTimelineResolved = Date.now()
+
+			if (this.getCurrentTime() > resolveTime) {
+				this.emit('warn', `Resolver is ${this.getCurrentTime() - resolveTime} ms late`)
+			}
 
 			// Split the state into substates that are relevant for each device
 			let getFilteredLayers = async (layers: TimelineState['LLayers'], device: DeviceContainer) => {
