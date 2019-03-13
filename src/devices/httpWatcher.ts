@@ -22,7 +22,7 @@ export interface HttpWatcherDeviceOptions extends DeviceOptions {
 	options?: {
 		host?: string
 		port?: string
-		httpMethod?: 'post' | 'delete' | 'put' | 'get'
+		httpMethod?: string
 		expectedHttpResponse?: number
 		keyword?: string
 		interval?: number
@@ -75,7 +75,6 @@ export class HttpWatcherDevice extends Device {
 	onInterval () {
 		let reqMethod = request[this.httpMethod]
 		if (reqMethod) {
-
 			reqMethod(
 				this.uri,
 				{},
@@ -157,7 +156,7 @@ export class HttpWatcherDevice extends Device {
 		return false
 	}
 	get deviceType () {
-		return DeviceType.HTTPSEND
+		return DeviceType.HTTPWATCHER
 	}
 	get deviceName (): string {
 		return 'HTTP-Watch ' + this.deviceId
