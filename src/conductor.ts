@@ -57,6 +57,7 @@ export interface ConductorOptions {
 	getCurrentTime?: () => number
 	autoInit?: boolean
 	multiThreadedResolver?: boolean
+	proActiveResolve?: boolean
 }
 interface TimelineCallback {
 	id: string
@@ -738,18 +739,22 @@ export class Conductor extends EventEmitter {
 		return nextResolveTime
 	}
 	estimateResolveTime (): any {
-		let objectCount = this.timeline.length
+		if (this._options.proActiveResolve) {
+			let objectCount = this.timeline.length
 
-		let sizeFactor = Math.pow(objectCount / 50, 0.5) * 50 // a pretty nice-looking graph that levels out when objectCount is larger
-		return (
-			Math.min(
-				200,
-				Math.floor(
-					DEFAULT_PREPARATION_TIME +
-					sizeFactor * 0.5 // add ms for every object (ish) in timeline
+			let sizeFactor = Math.pow(objectCount / 50, 0.5) * 50 // a pretty nice-looking graph that levels out when objectCount is larger
+			return (
+				Math.min(
+					200,
+					Math.floor(
+						DEFAULT_PREPARATION_TIME +
+						sizeFactor * 0.5 // add ms for every object (ish) in timeline
+					)
 				)
 			)
-		)
+		} else {
+			return 0
+		}
 	}
 
 	// private async _fixNowObjects (now: number) {
