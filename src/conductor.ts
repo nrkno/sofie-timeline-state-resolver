@@ -37,6 +37,8 @@ export const PREPARETIME = 2000 // Will prepare commands this time before the ev
 export const MINTRIGGERTIME = 10 // Minimum time between triggers
 export const MINTIMEUNIT = 1 // Minimum unit of time
 
+export const DEFAULT_PREPARATION_TIME = 20 // When resolving "now", move this far into the future, to account for computation times
+
 export interface TimelineContentObject extends TimelineObject {
 	// roId: string
 }
@@ -72,6 +74,7 @@ interface QueueCallback {
 }
 interface StatReport {
 	reason?: string
+	timelineStartResolve: number
 	timelineResolved: number
 	stateHandled: number,
 	done: number,
@@ -497,6 +500,7 @@ export class Conductor extends EventEmitter {
 		let timeUntilNextResolve = LOOKAHEADTIME
 		let statMeasureStart: number = this._statMeasureStart
 		let statTimeStateHandled: number = 0
+		let statTimeTimelineStartResolve: number = 0
 		let statTimeTimelineResolved: number = 0
 
 		let startTime = Date.now()
@@ -509,9 +513,15 @@ export class Conductor extends EventEmitter {
 				return
 			}
 			const now = this.getCurrentTime()
-			let resolveTime: number = this._nextResolveTime || now
+			let resolveTime: number = this._nextResolveTime
 
-			this.emit('debug', 'resolveTimeline ' + resolveTime + ' -----------------------------')
+			if (!this._nextResolveTime) {
+				let estimatedResolveTime = this.estimateResolveTime()
+				resolveTime = now + estimatedResolveTime
+				this.emit('info', 'resolveTimeline ' + resolveTime + ' (+' + estimatedResolveTime + ') -----------------------------')
+			} else {
+				this.emit('info', 'resolveTimeline ' + resolveTime + ' -----------------------------')
+			}
 
 			if (resolveTime > now + LOOKAHEADTIME) {
 				this.emit('debug', 'Too far ahead (' + resolveTime + ')')
@@ -531,8 +541,10 @@ export class Conductor extends EventEmitter {
 				}
 			}
 
+			statTimeTimelineStartResolve = Date.now()
 			const nowIds: {[id: string]: number} = {}
 			let timeline = this.timeline
+
 			// Remove any .parents from timeline (circular objects):
 			_.each(timeline, (o) => {
 				fixObject(o)
@@ -704,6 +716,7 @@ export class Conductor extends EventEmitter {
 		}
 
 		this.statReport(statMeasureStart, {
+			timelineStartResolve: statTimeTimelineStartResolve,
 			timelineResolved: statTimeTimelineResolved,
 			stateHandled: statTimeStateHandled,
 			done: Date.now()
@@ -716,6 +729,20 @@ export class Conductor extends EventEmitter {
 			this.emit('error', 'triggerResolveTimeline', e)
 		}
 		return nextResolveTime
+	}
+	estimateResolveTime (): any {
+		let objectCount = this.timeline.length
+
+		let sizeFactor = Math.pow(objectCount / 50, 0.5) * 50 // a pretty nice-looking graph that levels out when objectCount is larger
+		return (
+			Math.min(
+				200,
+				Math.floor(
+					DEFAULT_PREPARATION_TIME +
+					sizeFactor * 0.5 // add ms for every object (ish) in timeline
+				)
+			)
+		)
 	}
 
 	// private async _fixNowObjects (now: number) {
@@ -886,6 +913,7 @@ export class Conductor extends EventEmitter {
 			// Save the report:
 			const reportDuration: StatReport = {
 				reason:				this._statMeasureReason,
+				timelineStartResolve: report.timelineStartResolve - startTime,
 				timelineResolved:	report.timelineResolved - startTime,
 				stateHandled: 		report.stateHandled - startTime,
 				done: 				report.done - startTime

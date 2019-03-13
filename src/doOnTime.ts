@@ -7,13 +7,15 @@ interface DoOrder {
 	time: number
 	fcn: DoOrderFunction
 	args: any[]
+	addedTime: number
+	prepareTime: number
 }
 
 export enum SendMode {
 	/** Send messages as quick as possible */
 	BURST = 1,
 	/** Send messages in order, wait for the previous message to be acknowledged before sending the next */
-	IN_ORDER = 1
+	IN_ORDER = 2
 }
 export interface DoOnTimeOptions extends SlowReportOptions {
 }
@@ -40,7 +42,9 @@ export class DoOnTime extends EventEmitter {
 		this._queue[id] = {
 			time: time,
 			fcn: fcn,
-			args: args
+			args: args,
+			addedTime: this.getCurrentTime(),
+			prepareTime: 0
 		}
 		this._checkQueueTimeout = setTimeout(() => {
 			this._checkQueue()
@@ -86,14 +90,18 @@ export class DoOnTime extends EventEmitter {
 
 		_.each(this._queue, (o: DoOrder, id: string) => {
 			if (o.time <= now) {
+				o.prepareTime = this.getCurrentTime()
 				this._commandsToSendNow.push(() => {
 					try {
 						let startSend = this.getCurrentTime()
 						let endSend: number = 0
+						let sentTooSlow: boolean = false
 						let p = Promise.resolve(o.fcn(...o.args))
-						.then(() => this._verifyFulfillCommand(o, startSend, endSend))
+						.then(() => {
+							if (!sentTooSlow) this._verifyFulfillCommand(o, startSend, endSend)
+						})
 						endSend = this.getCurrentTime()
-						this._verifySendCommand(o, startSend, endSend)
+						sentTooSlow = this._verifySendCommand(o, startSend, endSend)
 						return p
 					} catch (e) {
 						this.emit('error', e)
@@ -160,19 +168,24 @@ export class DoOnTime extends EventEmitter {
 			throw e
 		}
 	}
-	private _verifySendCommand (o: DoOrder, startSend: number, endSend: number) {
+	private _verifySendCommand (o: DoOrder, startSend: number, endSend: number): boolean {
 		if (this._options.limitSlowSentCommand) {
 			let dt: number = endSend - o.time
+			let beforeTime: number = o.time - o.addedTime
 			if (dt > this._options.limitSlowSentCommand) {
 				let output = {
+					added: o.addedTime,
+					prepareTime: o.prepareTime,
 					plannedSend: o.time,
 					startSend: startSend,
 					endSend: endSend,
 					args: o.args
 				}
-				this.emit('slowCommand', `Slow sent command, should have been sent at ${o.time}, was ${dt} ms slow. Command: ${JSON.stringify(output)}`)
+				this.emit('slowCommand', `Slow sent command, should have been sent at ${o.time}, was ${dt} ms slow (was added ${beforeTime} ms before planned), sendMode: ${SendMode[this._sendMode]}. Command: ${JSON.stringify(output)}`)
+				return true
 			}
 		}
+		return false
 	}
 	private _verifyFulfillCommand (o: DoOrder, startSend: number, endSend: number) {
 		if (this._options.limitSlowFulfilledCommand) {
@@ -180,6 +193,8 @@ export class DoOnTime extends EventEmitter {
 			let dt: number = fullfilled - o.time
 			if (dt > this._options.limitSlowFulfilledCommand) {
 				let output = {
+					added: o.addedTime,
+					prepareTime: o.prepareTime,
 					plannedSend: o.time,
 					startSend: startSend,
 					endSend: endSend,
