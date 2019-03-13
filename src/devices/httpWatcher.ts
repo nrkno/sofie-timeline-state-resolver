@@ -98,7 +98,7 @@ export class HttpWatcherDevice extends Device {
 
 	handleResponse (error: any, response: request.Response, body: any) {
 		if (error) {
-			this.emit('error', `HTTPWatch: Error ${this.uri}`, error)
+			this.emit('error', `HTTPWatch: Error ${this.uri}` + error)
 			this.status = StatusCode.BAD
 			this.emit('connectionChanged', this.getStatus())
 			return
