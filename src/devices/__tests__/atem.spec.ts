@@ -15,9 +15,7 @@ import { ThreadedClass } from 'threadedclass'
 describe('Atem', () => {
 	let mockTime = new MockTime()
 	beforeAll(() => {
-		Date.now = jest.fn(() => {
-			return mockTime.getCurrentTime()
-		})
+		mockTime.mockDateNow()
 	})
 	beforeEach(() => {
 		mockTime.init()
@@ -50,10 +48,11 @@ describe('Atem', () => {
 				port: 9910
 			}
 		})
-		myConductor.mapping = myLayerMapping
+		await myConductor.setMapping(myLayerMapping)
 		await mockTime.advanceTimeToTicks(10100)
 
-		let device = myConductor.getDevice('myAtem') as ThreadedClass<AtemDevice>
+		let deviceContainer = myConductor.getDevice('myAtem')
+		let device = deviceContainer.device as ThreadedClass<AtemDevice>
 
 		// Check that no commands has been scheduled:
 		expect(await device.queue).toHaveLength(0)
@@ -162,11 +161,11 @@ describe('Atem', () => {
 				port: 9910
 			}
 		})
-		myConductor.mapping = myLayerMapping
+		await myConductor.setMapping(myLayerMapping)
 		await mockTime.advanceTimeToTicks(10100)
 
-		let device = myConductor.getDevice('myAtem') as ThreadedClass<AtemDevice>
-
+		let deviceContainer = myConductor.getDevice('myAtem')
+		let device = deviceContainer.device as ThreadedClass<AtemDevice>
 		// Check that no commands has been scheduled:
 		expect(await device.queue).toHaveLength(0)
 		myConductor.timeline = [

@@ -13,9 +13,7 @@ import { ThreadedClass } from 'threadedclass'
 describe('Abstract device', () => {
 	let mockTime = new MockTime()
 	beforeAll(() => {
-		Date.now = jest.fn(() => {
-			return mockTime.getCurrentTime()
-		})
+		mockTime.mockDateNow()
 	})
 	beforeEach(() => {
 		mockTime.init()
@@ -44,10 +42,12 @@ describe('Abstract device', () => {
 				commandReceiver: commandReceiver0
 			}
 		})
-		myConductor.mapping = myLayerMapping
+		await myConductor.setMapping(myLayerMapping)
 		await mockTime.advanceTimeToTicks(10100)
 
-		let device = myConductor.getDevice('myAbstract') as ThreadedClass<AbstractDevice>
+		let deviceContainer = myConductor.getDevice('myAbstract')
+		let device = deviceContainer.device as ThreadedClass<AbstractDevice>
+
 		device.terminate = jest.fn(device.terminate)
 		let onError = jest.fn()
 		let onDebug = jest.fn()
@@ -146,10 +146,12 @@ describe('Abstract device', () => {
 			type: DeviceType.ABSTRACT,
 			options: {}
 		})
-		myConductor.mapping = myLayerMapping
+		await myConductor.setMapping(myLayerMapping)
 		await mockTime.advanceTimeToTicks(10100)
 
-		let device = myConductor.getDevice('myAbstract') as ThreadedClass<AbstractDevice>
+		let deviceContainer = myConductor.getDevice('myAbstract')
+		let device = deviceContainer.device as ThreadedClass<AbstractDevice>
+
 		device.terminate = jest.fn(device.terminate)
 		let onError = jest.fn()
 		let onDebug = jest.fn()

@@ -22,16 +22,25 @@ export enum DeviceType {
 	PANASONIC_PTZ = 5,
 	HYPERDECK = 7,
 	PHAROS = 8,
-	OSC = 9
+	OSC = 9,
+	HTTPWATCHER = 10
 }
 
-export interface DeviceOptions {
-	type: DeviceType,
-	threadUsage?: number,
+export interface DeviceOptions extends SlowReportOptions {
+	type: DeviceType
+	isMultiThreaded?: boolean
+	threadUsage?: number
 	options?: {}
 }
 
 export interface TimelineResolvedObjectExtended extends TimelineResolvedObject {
 	isBackground?: boolean
 	originalLLayer?: string | number
+}
+
+export interface SlowReportOptions {
+	/** If set, report back that a command was slow if not sent at this time */
+	limitSlowSentCommand?: number
+	/** If set, report back that a command was slow if not fullfilled (sent + ack:ed) at this time */
+	limitSlowFulfilledCommand?: number
 }

@@ -26,8 +26,7 @@ describe('Hyperdeck', () => {
 	let mockTime = new MockTime()
 
 	beforeAll(() => {
-		Date.now = jest.fn()
-		Date.now['mockReturnValue'](1000)
+		mockTime.mockDateNow()
 	})
 	beforeEach(() => {
 		mockTime.init()
@@ -50,7 +49,9 @@ describe('Hyperdeck', () => {
 			initializeAsClear: true,
 			getCurrentTime: mockTime.getCurrentTime
 		})
-		myConductor.mapping = myChannelMapping
+		myConductor.on('error', console.log)
+		await myConductor.setMapping(myChannelMapping)
+
 		await myConductor.init()
 		await myConductor.addDevice('hyperdeck0', {
 			type: DeviceType.HYPERDECK,
@@ -74,7 +75,8 @@ describe('Hyperdeck', () => {
 		})
 		hyperdeckMock.setMockCommandReceiver(hyperdeckMockCommand)
 
-		device = myConductor.getDevice('hyperdeck0') as ThreadedClass<HyperdeckDevice>
+		let deviceContainer = myConductor.getDevice('hyperdeck0')
+		device = deviceContainer.device as ThreadedClass<HyperdeckDevice>
 
 		// Check that no commands has been scheduled:
 		expect(await device.queue).toHaveLength(0)

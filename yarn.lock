@@ -847,10 +847,10 @@ asynckit@^0.4.0:
   resolved "https://registry.yarnpkg.com/asynckit/-/asynckit-0.4.0.tgz#c79ed97f7f34cb8f2ba1bc9790bcc366474b4b79"
   integrity sha1-x57Zf380y48robyXkLzDZkdLS3k=
 
-atem-connection@^0.8.0, atem-connection@^0.8.1:
-  version "0.8.1"
-  resolved "https://registry.yarnpkg.com/atem-connection/-/atem-connection-0.8.1.tgz#e7fadeab3a33ff5d15db157c8c8f1c2ca2ce23b8"
-  integrity sha512-LHCJ1Cy/WIVakZ/PcXxJyHTF17nbQQVa4FgJsNhi+dBrbm5mzcMO06p3KPl/e/kwQlpli+Letk60u/MvDvpoeQ==
+atem-connection@^0.9.0:
+  version "0.9.0"
+  resolved "https://registry.yarnpkg.com/atem-connection/-/atem-connection-0.9.0.tgz#339f4de190be169451e6f1e039690d1be8757130"
+  integrity sha512-DyFBarJ3DD6nmLrJ8oWPogJHbpApqqW8mDrCAcFsEZICMLkx/1L4UKZatOYn9ua/iKlU+NDUmps7uH4q3qluJQ==
   dependencies:
     exit-hook "^2.0.0"
     nanotimer "^0.3.15"
@@ -859,12 +859,12 @@ atem-connection@^0.8.0, atem-connection@^0.8.1:
     tslib "^1.9.0"
     wavefile "^8.4.4"
 
-atem-state@^0.4.0:
-  version "0.4.0"
-  resolved "https://registry.yarnpkg.com/atem-state/-/atem-state-0.4.0.tgz#d3c5ccf40b9ddc521eef06fdc90c075f59ea2205"
-  integrity sha512-8AIkRSsvelpBVXDsPwQfeKB2UHTUlwROMRfaSFi3UsBMVs/6e2qSLRbBAaNDfTUSGyqIh9weAW1AU7L1bko8qg==
+atem-state@^0.4.1:
+  version "0.4.1"
+  resolved "https://registry.yarnpkg.com/atem-state/-/atem-state-0.4.1.tgz#e91643f98a14e42808d19b228191698d9c7586fb"
+  integrity sha512-kYKVMAVqGwoZlueI2ejrJO3hkoSfvPHJjOblmTLJ2bb692EQw5fLEWtwI//dno3VIVzFnwB5NITKwxvw+mQBnw==
   dependencies:
-    atem-connection "^0.8.0"
+    atem-connection "^0.9.0"
     tslib "^1.9.2"
 
 atob@^2.1.1:
@@ -1168,10 +1168,10 @@ casparcg-connection@^4.6.0:
     xml2js "^0.4.19"
     xmlbuilder "^9.0.7"
 
-casparcg-state@^1.5.1:
-  version "1.5.1"
-  resolved "https://registry.yarnpkg.com/casparcg-state/-/casparcg-state-1.5.1.tgz#22ab6f91664c3c3de3fd1671ed67400187471c3c"
-  integrity sha512-m9B/m+XuUw2lvDlu0XWE4WVkhfbEsRM7+IDvFVW6146eAN02YP/w32i+7n13Mv2oj9FlmuaijIhDQPhhfOcdJA==
+casparcg-state@^1.6.0:
+  version "1.6.0"
+  resolved "https://registry.yarnpkg.com/casparcg-state/-/casparcg-state-1.6.0.tgz#17c6d629fc5f5236153cab0566c9eef007332c7a"
+  integrity sha512-0QFxa8mjA07pjDvK3Z5zUCxp6vyDUgGCJEh8BFF+pg1n2szF+lRiyM/6cPr4/MZAzfLMoQptR/B7bQfdzJ/bvw==
   dependencies:
     casparcg-connection "^4.6.0"
     fast-clone "^1.5.3"

@@ -20,7 +20,7 @@ import {
 	Commands as HyperdeckCommands,
 	TransportStatus
 } from 'hyperdeck-connection'
-import { DoOnTime } from '../doOnTime'
+import { DoOnTime, SendMode } from '../doOnTime'
 
 _.mixin({ deepExtend: underScoreDeepExtend(_) })
 
@@ -70,8 +70,9 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> {
 		}
 		this._doOnTime = new DoOnTime(() => {
 			return this.getCurrentTime()
-		})
+		}, SendMode.BURST, this._deviceOptions)
 		this._doOnTime.on('error', e => this.emit('error', 'doOnTime', e))
+		this._doOnTime.on('slowCommand', msg => this.emit('slowCommand', this.deviceName + ': ' + msg))
 	}
 
 	/**
@@ -84,7 +85,9 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> {
 			this._hyperdeck = new Hyperdeck()
 			this._hyperdeck.connect(options.host, options.port)
 			this._hyperdeck.on('connected', () => {
-				return this._queryCurrentState().then(state => {
+				this._queryCurrentState()
+				.then(async (state) => {
+
 					this.setState(state, this.getCurrentTime())
 					if (firstConnect) {
 						firstConnect = false
@@ -95,6 +98,7 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> {
 					this._connectionChanged()
 					this.emit('resetResolver')
 				})
+				.catch(e => this.emit('error', '_hyperdeck.on("conected")', e))
 			})
 			this._hyperdeck.on('disconnected', () => {
 				this._connected = false
@@ -116,16 +120,16 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> {
 		})
 	}
 
-	makeReady (okToDestroyStuff?: boolean): Promise<void> {
+	async makeReady (okToDestroyStuff?: boolean): Promise<void> {
 		if (okToDestroyStuff) {
-			this._doOnTime.clearQueueNowAndAfter(this.getCurrentTime())
+			let time = this.getCurrentTime()
+			this._doOnTime.clearQueueNowAndAfter(time)
 
 			// TODO - could this being slow/offline be a problem?
-			return this._queryCurrentState().then(state => {
-				this.setState(state, this.getCurrentTime())
-			})
+			let state = await this._queryCurrentState()
+
+			this.setState(state, time)
 		}
-		return Promise.resolve()
 	}
 
 	handleState (newState: TimelineState) {
@@ -167,11 +171,9 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> {
 
 		const sortedLayers = _.map(state.LLayers, (tlObject, layerName) => ({ layerName, tlObject }))
 			.sort((a, b) => a.layerName.localeCompare(b.layerName))
-
 		_.each(sortedLayers, ({ tlObject, layerName }) => {
 			const content = tlObject.resolved || tlObject.content
-			const mapping = this.mapping[layerName] as MappingHyperdeck // tslint:disable-line
-
+			const mapping = this.getMapping()[layerName] as MappingHyperdeck // tslint:disable-line
 			if (mapping) {
 				switch (mapping.mappingType) {
 					case MappingHyperdeckType.TRANSPORT:
@@ -206,7 +208,6 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> {
 	}
 	private _addToQueue (commandsToAchieveState: Array<HyperdeckCommandWithContext>, time: number) {
 		_.each(commandsToAchieveState, (cmd: HyperdeckCommandWithContext) => {
-
 			// add the new commands to the queue:
 			this._doOnTime.queue(time, (cmd: HyperdeckCommandWithContext) => {
 				return this._commandReceiver(time, cmd.command, cmd.context)

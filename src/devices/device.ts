@@ -40,6 +40,10 @@ export interface DeviceStatus {
 
 export function literal<T> (o: T) { return o }
 
+export interface DeviceClassOptions {
+	getCurrentTime: () => number
+}
+
 interface IDevice {
 	on (event: 'info',  	listener: (info: any) => void): this
 	on (event: 'warning', 	listener: (warning: any) => void): this
@@ -48,23 +52,35 @@ interface IDevice {
 }
 export abstract class Device extends EventEmitter implements IDevice {
 
-	private _getCurrentTime: () => number
+	private _getCurrentTime: () => Promise<number> | number
 
 	private _deviceId: string
-	private _deviceOptions: DeviceOptions
 
 	private _mappings: Mappings = {}
+	private _currentTimeDiff: number = 0
+	private _currentTimeUpdated: number = 0
 
-	constructor (deviceId: string, deviceOptions: DeviceOptions, options) {
+	public useDirectTime: boolean = false
+	protected _deviceOptions: DeviceOptions
+
+	constructor (deviceId: string, deviceOptions: DeviceOptions, options: DeviceClassOptions) {
 		super()
 		this._deviceId = deviceId
 		this._deviceOptions = deviceOptions
 
-		this._deviceOptions = this._deviceOptions // ts-lint fix
+		// this._deviceOptions = this._deviceOptions // ts-lint fix
+
+		if (process.env.JEST_WORKER_ID !== undefined) {
+			// running in Jest test environment.
+			// Because Jest does a lot of funky stuff with the timing, we have to pull the time directly.
+			this.useDirectTime = true
+		}
 
 		if (options.getCurrentTime) {
-			this._getCurrentTime = options.getCurrentTime
+			this._getCurrentTime = () => options.getCurrentTime()
 		}
+
+		this._updateCurrentTime()
 	}
 
 	/**
@@ -75,9 +91,16 @@ export abstract class Device extends EventEmitter implements IDevice {
 	terminate (): Promise<boolean> {
 		return Promise.resolve(true)
 	}
-	getCurrentTime () {
-		if (this._getCurrentTime) return this._getCurrentTime()
-		return Date.now()
+	getCurrentTime (): number {
+		if (this.useDirectTime) {
+			// Used when running in test
+			// @ts-ignore
+			return this._getCurrentTime()
+		}
+		if ((Date.now() - this._currentTimeUpdated) > 5 * 60 * 1000) {
+			this._updateCurrentTime()
+		}
+		return Date.now() - this._currentTimeDiff
 	}
 
 	abstract handleState (newState: TimelineState)
@@ -112,11 +135,8 @@ export abstract class Device extends EventEmitter implements IDevice {
 	}
 	abstract getStatus (): DeviceStatus
 
-	get mapping (): Mappings {
+	getMapping (): Mappings {
 		return this._mappings
-	}
-	set mapping (mappings: Mappings) {
-		this._mappings = mappings
 	}
 	setMapping (mappings: Mappings) {
 		this._mappings = mappings
@@ -125,9 +145,6 @@ export abstract class Device extends EventEmitter implements IDevice {
 	get deviceId () {
 		return this._deviceId
 	}
-	set deviceId (deviceId) {
-		this._deviceId = deviceId
-	}
 	/**
 	 * A human-readable name for this device
 	 */
@@ -135,6 +152,23 @@ export abstract class Device extends EventEmitter implements IDevice {
 	abstract get deviceType (): DeviceType
 	get deviceOptions (): DeviceOptions {
 		return this._deviceOptions
+	}
+	private _updateCurrentTime () {
+		if (this._getCurrentTime) {
+			const startTime = Date.now()
+			Promise.resolve(this._getCurrentTime())
+			.then((parentTime) => {
+				const endTime = Date.now()
+				const clientTime = Math.round((startTime + endTime) / 2)
+
+				this._currentTimeDiff = clientTime - parentTime
+				this._currentTimeUpdated = endTime
+
+			})
+			.catch((err) => {
+				this.emit('error', err)
+			})
+		}
 	}
 // }
 

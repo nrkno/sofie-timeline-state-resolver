@@ -26,7 +26,7 @@ import {
 	State as DeviceState,
 	Defaults as StateDefault
 } from 'atem-state'
-import { DoOnTime } from '../doOnTime'
+import { DoOnTime, SendMode } from '../doOnTime'
 // import { Conductor } from '../conductor'
 
 _.mixin({ deepExtend: underScoreDeepExtend(_) })
@@ -77,8 +77,9 @@ export class AtemDevice extends DeviceWithState<DeviceState> {
 		}
 		this._doOnTime = new DoOnTime(() => {
 			return this.getCurrentTime()
-		})
+		}, SendMode.BURST, this._deviceOptions)
 		this._doOnTime.on('error', e => this.emit('error', 'doOnTime', e))
+		this._doOnTime.on('slowCommand', msg => this.emit('slowCommand', this.deviceName + ': ' + msg))
 	}
 
 	/**
@@ -96,10 +97,12 @@ export class AtemDevice extends DeviceWithState<DeviceState> {
 				resolve(true)
 			})
 			this._atem.on('connected', () => {
-				this.setState(this._atem.state, this.getCurrentTime())
+				let time = this.getCurrentTime()
+				this.setState(this._atem.state, time)
 				this._connected = true
 				this._connectionChanged()
 				this.emit('resetResolver')
+
 			})
 			this._atem.on('disconnected', () => {
 				this._connected = false
@@ -127,13 +130,12 @@ export class AtemDevice extends DeviceWithState<DeviceState> {
 		})
 	}
 
-	makeReady (okToDestroyStuff?: boolean): Promise<void> {
+	async makeReady (okToDestroyStuff?: boolean): Promise<void> {
 		this.firstStateAfterMakeReady = true
 		if (okToDestroyStuff) {
 			this._doOnTime.clearQueueNowAndAfter(this.getCurrentTime())
 			this.setState(this._atem.state, this.getCurrentTime())
 		}
-		return Promise.resolve()
 	}
 
 	handleState (newState: TimelineState) {
@@ -193,7 +195,7 @@ export class AtemDevice extends DeviceWithState<DeviceState> {
 
 		_.each(sortedLayers, ({ tlObject, layerName }) => {
 			const content = tlObject.resolved || tlObject.content
-			let mapping = this.mapping[layerName] as MappingAtem // tslint:disable-line
+			let mapping = this.getMapping()[layerName] as MappingAtem // tslint:disable-line
 
 			if (mapping) {
 				if (mapping.index !== undefined && mapping.index >= 0) { // index must be 0 or higher

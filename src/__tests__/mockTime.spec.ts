@@ -2,6 +2,11 @@ const setTimeoutOrg = setTimeout
 export class MockTime {
 	private _now: number = 10000
 	private _hasBeeninit: boolean = false
+	mockDateNow () {
+		Date.now = jest.fn(() => {
+			return this.getCurrentTime()
+		})
+	}
 	get now () {
 		if (!this._hasBeeninit) throw new Error('Has not been init')
 		return this.getCurrentTime()
@@ -19,6 +24,7 @@ export class MockTime {
 	}
 	advanceTime = (advanceTime: number) => {
 		this._now += advanceTime
+		// console.log('0advanceTime', advanceTime)
 		jest.advanceTimersByTime(advanceTime)
 	}
 	advanceTimeTo = (time: number) => {
@@ -29,6 +35,7 @@ export class MockTime {
 	}
 	advanceTimeTicks = async (advanceTime: number) => {
 		// this._now += advanceTime
+		// console.log('advanceTimeTicks ' + advanceTime)
 
 		let endTime = this._now + advanceTime
 
@@ -43,6 +50,7 @@ export class MockTime {
 			this._now += advanceChunk
 
 			await this.tick()
+			// console.log('advanceChunk', advanceChunk, this._now)
 			jest.advanceTimersByTime(advanceChunk)
 		}
 		await this.tick()

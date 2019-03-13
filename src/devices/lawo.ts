@@ -9,7 +9,6 @@ import {
 import {
 	DeviceType,
 	DeviceOptions,
-	Mappings,
 	TimelineContentTypeLawo,
 	MappingLawo
 } from '../types/src'
@@ -21,7 +20,7 @@ import {
 	DeviceTree,
 	Ember
 } from 'emberplus'
-import { DoOnTime } from '../doOnTime'
+import { DoOnTime, SendMode } from '../doOnTime'
 import { getDiff } from '../lib'
 
 /*
@@ -128,8 +127,9 @@ export class LawoDevice extends DeviceWithState<TimelineState> {
 		)
 		this._doOnTime = new DoOnTime(() => {
 			return this.getCurrentTime()
-		})
+		}, SendMode.BURST, this._deviceOptions)
 		this._doOnTime.on('error', e => this.emit('error', 'DoOnTime', e))
+		this._doOnTime.on('slowCommand', msg => this.emit('slowCommand', this.deviceName + ': ' + msg))
 
 		this._lawo = new DeviceTree(host, port)
 		this._lawo.on('error', (e) => {
@@ -220,7 +220,7 @@ export class LawoDevice extends DeviceWithState<TimelineState> {
 		const lawoState: LawoState = {}
 
 		_.each(state.LLayers, (tlObject: TimelineObjLawo, layerName: string) => {
-			const mapping: MappingLawo | undefined = this.mapping[layerName] as MappingLawo // tslint:disable-line
+			const mapping: MappingLawo | undefined = this.getMapping()[layerName] as MappingLawo // tslint:disable-line
 			if (mapping && mapping.identifier && mapping.device === DeviceType.LAWO) {
 
 				if (tlObject.content.type === TimelineContentTypeLawo.SOURCE) {
@@ -251,12 +251,6 @@ export class LawoDevice extends DeviceWithState<TimelineState> {
 		return this._doOnTime.getQueue()
 	}
 
-	set mapping (mappings: Mappings) {
-		super.mapping = mappings
-	}
-	get mapping () {
-		return super.mapping
-	}
 	getStatus (): DeviceStatus {
 		return {
 			statusCode: this._connected ? StatusCode.GOOD : StatusCode.BAD
@@ -364,7 +358,7 @@ export class LawoDevice extends DeviceWithState<TimelineState> {
 					.then((res) => {
 						this.emit('debug', `Ember result: ${JSON.stringify(res)}`)
 					})
-					.catch((e) => console.log(e))
+					.catch((e) => this.emit('error', 'Lawo: Error in setValue:' + e.toString()))
 				})
 				.catch((e) => {
 					this.emit('error', `Ember command error: ${e.toString()}`)

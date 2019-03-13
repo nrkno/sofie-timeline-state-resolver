@@ -8,11 +8,10 @@ import {
 import {
 	DeviceType,
 	DeviceOptions,
-	TimelineContentTypeHttp,
 	HttpSendOptions,
 	HttpSendCommandContent
 } from '../types/src'
-import { DoOnTime } from '../doOnTime'
+import { DoOnTime, SendMode } from '../doOnTime'
 import * as request from 'request'
 
 import {
@@ -50,8 +49,9 @@ export class HttpSendDevice extends DeviceWithState<TimelineState> {
 		}
 		this._doOnTime = new DoOnTime(() => {
 			return this.getCurrentTime()
-		})
+		}, SendMode.IN_ORDER, this._deviceOptions)
 		this._doOnTime.on('error', e => this.emit('error', e))
+		this._doOnTime.on('slowCommand', msg => this.emit('slowCommand', this.deviceName + ': ' + msg))
 	}
 	init (options: HttpSendOptions): Promise<boolean> {
 		this._makeReadyCommands = options.makeReadyCommands || []
@@ -92,7 +92,7 @@ export class HttpSendDevice extends DeviceWithState<TimelineState> {
 			statusCode: StatusCode.GOOD
 		}
 	}
-	makeReady (okToDestroyStuff?: boolean): Promise<void> {
+	async makeReady (okToDestroyStuff?: boolean): Promise<void> {
 		if (okToDestroyStuff && this._makeReadyCommands && this._makeReadyCommands.length > 0) {
 			const time = this.getCurrentTime()
 			_.each(this._makeReadyCommands, (cmd: HttpSendCommandContent) => {
@@ -102,7 +102,6 @@ export class HttpSendDevice extends DeviceWithState<TimelineState> {
 				}, cmd)
 			})
 		}
-		return Promise.resolve()
 	}
 
 	get canConnect (): boolean {
@@ -163,7 +162,7 @@ export class HttpSendDevice extends DeviceWithState<TimelineState> {
 					commands.push({
 						commandName: 'changed',
 						content: newLayer.content as HttpSendCommandContent, // tslint:disable-line
-						context: `changed: ${newLayer.id}`,
+						context: `changed: ${newLayer.id} (previously: ${oldLayer.id})`,
 						layer: layerKey
 					})
 				}
@@ -182,8 +181,11 @@ export class HttpSendDevice extends DeviceWithState<TimelineState> {
 				})
 			}
 		})
-
-		return commands.sort((a, b) => a.layer.localeCompare(b.layer))
+		return commands
+		.sort((a, b) => a.layer.localeCompare(b.layer))
+		.sort((a, b) => {
+			return (a.content.temporalPriority || 0) - (b.content.temporalPriority || 0)
+		})
 	}
 	private _defaultCommandReceiver (time: number, cmd: HttpSendCommandContent, context: CommandContext): Promise<any> {
 		time = time
@@ -210,26 +212,9 @@ export class HttpSendDevice extends DeviceWithState<TimelineState> {
 					resolve()
 				}
 			}
-			if (cmd.type === TimelineContentTypeHttp.POST) {
-				request.post(
-					cmd.url,
-					{ json: cmd.params },
-					handleResponse
-				)
-			} else if (cmd.type === TimelineContentTypeHttp.PUT) {
-				request.put(
-					cmd.url,
-					{ json: cmd.params },
-					handleResponse
-				)
-			} else if (cmd.type === TimelineContentTypeHttp.GET) {
-				request.get(
-					cmd.url,
-					{ json: cmd.params },
-					handleResponse
-				)
-			} else if (cmd.type === TimelineContentTypeHttp.DELETE) {
-				request.delete(
+			let requestMethod = request[cmd.type]
+			if (requestMethod) {
+				requestMethod(
 					cmd.url,
 					{ json: cmd.params },
 					handleResponse

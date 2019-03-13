@@ -8,7 +8,6 @@ import {
 import {
 	DeviceType,
 	DeviceOptions,
-	Mappings,
 	TimelineObjPanasonicPtzPreset,
 	TimelineObjPanasonicPtzPresetSpeed,
 	TimelineObjPanasonicPtzZoomSpeed,
@@ -18,7 +17,7 @@ import {
 	MappingPanasonicPtzType
 } from '../types/src'
 import { TimelineState, TimelineResolvedObject } from 'superfly-timeline'
-import { DoOnTime } from '../doOnTime'
+import { DoOnTime, SendMode } from '../doOnTime'
 import { PanasonicPtzHttpInterface } from './panasonicPTZAPI'
 
 export interface PanasonicPtzOptions extends DeviceOptions { // TODO - this doesnt match the others
@@ -69,8 +68,9 @@ export class PanasonicPtzDevice extends DeviceWithState<TimelineState> {
 		}
 		this._doOnTime = new DoOnTime(() => {
 			return this.getCurrentTime()
-		})
+		}, SendMode.BURST, this._deviceOptions)
 		this._doOnTime.on('error', e => this.emit('error', 'doOnTime', e))
+		this._doOnTime.on('slowCommand', msg => this.emit('slowCommand', this.deviceName + ': ' + msg))
 
 		if (deviceOptions.options && deviceOptions.options.host) {
 			this._device = new PanasonicPtzHttpInterface(deviceOptions.options.host, deviceOptions.options.port, deviceOptions.options.https)
@@ -118,7 +118,7 @@ export class PanasonicPtzDevice extends DeviceWithState<TimelineState> {
 		const ptzState: PanasonicPtzState = this._getDefaultState()
 
 		_.each(state.LLayers, (tlObject: TimelineResolvedObject, layerName: string) => {
-			const mapping: MappingPanasonicPtz | undefined = this.mapping[layerName] as MappingPanasonicPtz // tslint:disable-line
+			const mapping: MappingPanasonicPtz | undefined = this.getMapping()[layerName] as MappingPanasonicPtz // tslint:disable-line
 			if (mapping && mapping.device === DeviceType.PANASONIC_PTZ) {
 				if (mapping.mappingType === MappingPanasonicPtzType.PRESET) {
 					let tlObjectSource = tlObject as TimelineResolvedObject & TimelineObjPanasonicPtzPreset
@@ -308,13 +308,6 @@ export class PanasonicPtzDevice extends DeviceWithState<TimelineState> {
 	}
 	get queue () {
 		return this._doOnTime.getQueue()
-	}
-
-	set mapping (mappings: Mappings) {
-		super.mapping = mappings
-	}
-	get mapping () {
-		return super.mapping
 	}
 	private _setConnected (connected: boolean) {
 		if (this._connected !== connected) {

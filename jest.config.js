@@ -27,6 +27,12 @@ module.exports = {
 		  statements: 0
 		}
 	},
+	collectCoverageFrom: [
+		"**/src/**/*.{ts,js}",
+		"!**/node_modules/**",
+		"!**/dist/**",
+		"!**/src/types/**"
+	],
 	coverageDirectory: "./coverage/",
 	collectCoverage: true
 }
