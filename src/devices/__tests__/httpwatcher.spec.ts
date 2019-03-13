@@ -58,7 +58,7 @@ describe('HTTP-Watcher', () => {
 				httpMethod: 'get',
 				expectedHttpResponse: 200,
 				keyword: 'my keyword',
-				interval: 10
+				interval: 10 * 1000
 			}
 		})
 		.catch(error => {
@@ -109,7 +109,7 @@ describe('HTTP-Watcher', () => {
 				httpMethod: 'get',
 				expectedHttpResponse: 200,
 				keyword: 'my keyword',
-				interval: 10
+				interval: 10 * 1000
 			}
 		})
 		.catch(error => {
@@ -167,7 +167,7 @@ describe('HTTP-Watcher', () => {
 				httpMethod: 'get',
 				expectedHttpResponse: 200,
 				keyword: 'my keyword',
-				interval: 10
+				interval: 10 * 1000
 			}
 		})
 		.catch(error => {
@@ -226,7 +226,7 @@ describe('HTTP-Watcher', () => {
 				httpMethod: 'get',
 				expectedHttpResponse: 200,
 				keyword: 'my keyword',
-				interval: 10
+				interval: 10 * 1000
 			}
 		})
 		.catch(error => {
@@ -295,7 +295,7 @@ describe('HTTP-Watcher', () => {
 				httpMethod: 'post',
 				expectedHttpResponse: 200,
 				keyword: 'my keyword2',
-				interval: 10
+				interval: 10 * 1000
 			}
 		})
 		.catch(error => {
@@ -365,7 +365,7 @@ describe('HTTP-Watcher', () => {
 				httpMethod: 'jibberish',
 				expectedHttpResponse: 200,
 				keyword: 'my keyword',
-				interval: 10
+				interval: 10 * 1000
 			}
 		})
 		.catch(error => {
@@ -423,7 +423,7 @@ describe('HTTP-Watcher', () => {
 				httpMethod: 'jibberish',
 				expectedHttpResponse: 200,
 				keyword: 'my keyword',
-				interval: 10
+				interval: 10 * 1000
 			}
 		})
 		.catch(error => {

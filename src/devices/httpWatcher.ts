@@ -66,7 +66,7 @@ export class HttpWatcherDevice extends Device {
 		// this.httpMethod = opts.httpMethod || 'localhost'
 		this.expectedHttpResponse = Number(opts.expectedHttpResponse) || 200
 		this.keyword = opts.keyword || 'localhost'
-		this.intervalTime = (Number(opts.interval) || 30) * 1000
+		this.intervalTime = Number(opts.interval) || 30
 
 		this.uri = this.host + ':' + this.port
 	}
