@@ -284,10 +284,12 @@ export class Conductor extends EventEmitter {
 					threadedClassOptions
 				)
 			} else if (deviceOptions.type === DeviceType.HTTPWATCHER) {
-				newDevice = await threadedClass<HttpWatcherDevice>(
-					'../dist/devices/httpWatcher.js',
+				newDevice = await new DeviceContainer().create<HttpWatcherDevice>(
+					'../../dist/devices/httpWatcher.js',
 					HttpWatcherDevice,
-					[ deviceId, deviceOptions, options ],
+					deviceId,
+					deviceOptions,
+					options,
 					threadedClassOptions
 				)
 			} else if (deviceOptions.type === DeviceType.LAWO) {

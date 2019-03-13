@@ -64,7 +64,7 @@ describe('HTTP-Watcher', () => {
 		myConductor.on('error', onError)
 
 		await myConductor.init()
-		const generatedDevice = await myConductor.addDevice('myHTTPWatch', {
+		const generatedDeviceContainer = await myConductor.addDevice('myHTTPWatch', {
 			type: DeviceType.HTTPWATCHER,
 			options: {
 				host: 'http://localhost',
@@ -75,11 +75,12 @@ describe('HTTP-Watcher', () => {
 				interval: 10 * 1000
 			}
 		})
+		const generatedDevice = generatedDeviceContainer.device
 
 		expect(generatedDevice).toBeTruthy()
 		expect(await generatedDevice.getStatus()).toMatchObject({ statusCode: StatusCode.UNKNOWN })
 
-		myConductor.mapping = myLayerMapping
+		await myConductor.setMapping(myLayerMapping)
 
 		await mockTime.advanceTimeTicks(10100)
 		expect(onGet).toHaveBeenCalled()
@@ -101,9 +102,7 @@ describe('HTTP-Watcher', () => {
 		await mockTime.advanceTimeTicks(10100)
 		expect(await generatedDevice.getStatus()).toMatchObject({ statusCode: StatusCode.GOOD })
 
-		let device = myConductor.getDevice('myHTTPWatch') as ThreadedClass<HttpWatcherDevice>
-
-		await device.terminate()
+		await generatedDevice.terminate()
 		jest.clearAllTimers()
 		expect(onError).toHaveBeenCalledTimes(0)
 	})
@@ -125,7 +124,7 @@ describe('HTTP-Watcher', () => {
 		myConductor.on('error', onError)
 
 		await myConductor.init()
-		const generatedDevice = await myConductor.addDevice('myHTTPWatch', {
+		const generatedDeviceContainer = await myConductor.addDevice('myHTTPWatch', {
 			type: DeviceType.HTTPWATCHER,
 			options: {
 				host: 'http://localhost',
@@ -136,11 +135,12 @@ describe('HTTP-Watcher', () => {
 				interval: 10 * 1000
 			}
 		})
+		const generatedDevice = generatedDeviceContainer.device
 
 		expect(generatedDevice).toBeTruthy()
 		expect(await generatedDevice.getStatus()).toMatchObject({ statusCode: StatusCode.UNKNOWN })
 
-		myConductor.mapping = myLayerMapping
+		await myConductor.setMapping(myLayerMapping)
 
 		await mockTime.advanceTimeTicks(10100)
 		expect(onGet).toHaveBeenCalled()
@@ -162,9 +162,7 @@ describe('HTTP-Watcher', () => {
 		await mockTime.advanceTimeTicks(10100)
 		expect(await generatedDevice.getStatus()).toMatchObject({ statusCode: StatusCode.GOOD })
 
-		let device = myConductor.getDevice('myHTTPWatch') as ThreadedClass<HttpWatcherDevice>
-
-		await device.terminate()
+		await generatedDevice.terminate()
 		jest.clearAllTimers()
 		expect(onError).toHaveBeenCalledTimes(0)
 	})
@@ -186,7 +184,7 @@ describe('HTTP-Watcher', () => {
 		myConductor.on('error', onError)
 
 		await myConductor.init()
-		const generatedDevice = await myConductor.addDevice('myHTTPWatch', {
+		const generatedDeviceContainer = await myConductor.addDevice('myHTTPWatch', {
 			type: DeviceType.HTTPWATCHER,
 			options: {
 				host: 'http://localhost',
@@ -197,11 +195,12 @@ describe('HTTP-Watcher', () => {
 				interval: 10 * 1000
 			}
 		})
+		const generatedDevice = generatedDeviceContainer.device
 
 		expect(generatedDevice).toBeTruthy()
 		expect(await generatedDevice.getStatus()).toMatchObject({ statusCode: StatusCode.UNKNOWN })
 
-		myConductor.mapping = myLayerMapping
+		await myConductor.setMapping(myLayerMapping)
 
 		await mockTime.advanceTimeTicks(10100)
 		expect(onGet).toHaveBeenCalled()
@@ -223,9 +222,7 @@ describe('HTTP-Watcher', () => {
 		await mockTime.advanceTimeTicks(10100)
 		expect(await generatedDevice.getStatus()).toMatchObject({ statusCode: StatusCode.GOOD })
 
-		let device = myConductor.getDevice('myHTTPWatch') as ThreadedClass<HttpWatcherDevice>
-
-		await device.terminate()
+		await generatedDevice.terminate()
 		jest.clearAllTimers()
 		expect(onError).toHaveBeenCalledTimes(0)
 	})
