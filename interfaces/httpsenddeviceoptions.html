@@ -912,6 +912,15 @@ img { max-width: 100%; }
 		<li class="current tsd-kind-interface tsd-is-external">
 			<a href="httpsenddeviceoptions.html" class="tsd-kind-icon">Http<wbr>Send<wbr>Device<wbr>Options</a>
 			<ul>
+				<li class=" tsd-kind-property tsd-parent-kind-interface tsd-is-inherited tsd-is-external">
+					<a href="httpsenddeviceoptions.html#ismultithreaded" class="tsd-kind-icon">is<wbr>Multi<wbr>Threaded</a>
+				</li>
+				<li class=" tsd-kind-property tsd-parent-kind-interface tsd-is-inherited tsd-is-external">
+					<a href="httpsenddeviceoptions.html#limitslowfulfilledcommand" class="tsd-kind-icon">limit<wbr>Slow<wbr>Fulfilled<wbr>Command</a>
+				</li>
+				<li class=" tsd-kind-property tsd-parent-kind-interface tsd-is-inherited tsd-is-external">
+					<a href="httpsenddeviceoptions.html#limitslowsentcommand" class="tsd-kind-icon">limit<wbr>Slow<wbr>Sent<wbr>Command</a>
+				</li>
 				<li class=" tsd-kind-property tsd-parent-kind-interface tsd-is-overwrite tsd-is-external">
 					<a href="httpsenddeviceoptions.html#options" class="tsd-kind-icon">options</a>
 				</li>
@@ -947,6 +956,9 @@ img { max-width: 100%; }
 					<section class="tsd-index-section tsd-is-external">
 						<h3>Properties</h3>
 						<ul class="tsd-index-list">
+							<li class="tsd-kind-property tsd-parent-kind-interface tsd-is-inherited tsd-is-external"><a href="httpsenddeviceoptions.html#ismultithreaded" class="tsd-kind-icon">is<wbr>Multi<wbr>Threaded</a></li>
+							<li class="tsd-kind-property tsd-parent-kind-interface tsd-is-inherited tsd-is-external"><a href="httpsenddeviceoptions.html#limitslowfulfilledcommand" class="tsd-kind-icon">limit<wbr>Slow<wbr>Fulfilled<wbr>Command</a></li>
+							<li class="tsd-kind-property tsd-parent-kind-interface tsd-is-inherited tsd-is-external"><a href="httpsenddeviceoptions.html#limitslowsentcommand" class="tsd-kind-icon">limit<wbr>Slow<wbr>Sent<wbr>Command</a></li>
 							<li class="tsd-kind-property tsd-parent-kind-interface tsd-is-overwrite tsd-is-external"><a href="httpsenddeviceoptions.html#options" class="tsd-kind-icon">options</a></li>
 							<li class="tsd-kind-property tsd-parent-kind-interface tsd-is-inherited tsd-is-external"><a href="httpsenddeviceoptions.html#threadusage" class="tsd-kind-icon">thread<wbr>Usage</a></li>
 							<li class="tsd-kind-property tsd-parent-kind-interface tsd-is-inherited tsd-is-external"><a href="httpsenddeviceoptions.html#type" class="tsd-kind-icon">type</a></li>
@@ -957,6 +969,49 @@ img { max-width: 100%; }
 		</section>
 		<section class="tsd-panel-group tsd-member-group tsd-is-external">
 			<h2>Properties</h2>
+			<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface tsd-is-inherited tsd-is-external">
+				<a name="ismultithreaded" class="tsd-anchor"></a>
+				<h3><span class="tsd-flag ts-flagOptional">Optional</span> is<wbr>Multi<wbr>Threaded</h3>
+				<div class="tsd-signature tsd-kind-icon">is<wbr>Multi<wbr>Threaded<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">false</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">true</span></div>
+				<aside class="tsd-sources">
+					<p>Inherited from <a href="deviceoptions.html">DeviceOptions</a>.<a href="deviceoptions.html#ismultithreaded">isMultiThreaded</a></p>
+					<ul>
+						<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/2d36705/src/types/src/mapping.ts#L31">types/src/mapping.ts:31</a></li>
+					</ul>
+				</aside>
+			</section>
+			<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface tsd-is-inherited tsd-is-external">
+				<a name="limitslowfulfilledcommand" class="tsd-anchor"></a>
+				<h3><span class="tsd-flag ts-flagOptional">Optional</span> limit<wbr>Slow<wbr>Fulfilled<wbr>Command</h3>
+				<div class="tsd-signature tsd-kind-icon">limit<wbr>Slow<wbr>Fulfilled<wbr>Command<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">number</span></div>
+				<aside class="tsd-sources">
+					<p>Inherited from <a href="slowreportoptions.html">SlowReportOptions</a>.<a href="slowreportoptions.html#limitslowfulfilledcommand">limitSlowFulfilledCommand</a></p>
+					<ul>
+						<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/2d36705/src/types/src/mapping.ts#L45">types/src/mapping.ts:45</a></li>
+					</ul>
+				</aside>
+				<div class="tsd-comment tsd-typography">
+					<div class="lead">
+						<p>If set, report back that a command was slow if not fullfilled (sent + ack:ed) at this time</p>
+					</div>
+				</div>
+			</section>
+			<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface tsd-is-inherited tsd-is-external">
+				<a name="limitslowsentcommand" class="tsd-anchor"></a>
+				<h3><span class="tsd-flag ts-flagOptional">Optional</span> limit<wbr>Slow<wbr>Sent<wbr>Command</h3>
+				<div class="tsd-signature tsd-kind-icon">limit<wbr>Slow<wbr>Sent<wbr>Command<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">number</span></div>
+				<aside class="tsd-sources">
+					<p>Inherited from <a href="slowreportoptions.html">SlowReportOptions</a>.<a href="slowreportoptions.html#limitslowsentcommand">limitSlowSentCommand</a></p>
+					<ul>
+						<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/2d36705/src/types/src/mapping.ts#L43">types/src/mapping.ts:43</a></li>
+					</ul>
+				</aside>
+				<div class="tsd-comment tsd-typography">
+					<div class="lead">
+						<p>If set, report back that a command was slow if not sent at this time</p>
+					</div>
+				</div>
+			</section>
 			<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface tsd-is-overwrite tsd-is-external">
 				<a name="options" class="tsd-anchor"></a>
 				<h3><span class="tsd-flag ts-flagOptional">Optional</span> options</h3>
@@ -964,7 +1019,7 @@ img { max-width: 100%; }
 				<aside class="tsd-sources">
 					<p>Overrides <a href="deviceoptions.html">DeviceOptions</a>.<a href="deviceoptions.html#options">options</a></p>
 					<ul>
-						<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/1d05cb8/src/devices/httpSend.ts#L27">devices/httpSend.ts:27</a></li>
+						<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/2d36705/src/devices/httpSend.ts#L26">devices/httpSend.ts:26</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -975,7 +1030,7 @@ img { max-width: 100%; }
 				<aside class="tsd-sources">
 					<p>Inherited from <a href="deviceoptions.html">DeviceOptions</a>.<a href="deviceoptions.html#threadusage">threadUsage</a></p>
 					<ul>
-						<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/1d05cb8/src/types/src/mapping.ts#L30">types/src/mapping.ts:30</a></li>
+						<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/2d36705/src/types/src/mapping.ts#L32">types/src/mapping.ts:32</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -986,7 +1041,7 @@ img { max-width: 100%; }
 				<aside class="tsd-sources">
 					<p>Inherited from <a href="deviceoptions.html">DeviceOptions</a>.<a href="deviceoptions.html#type">type</a></p>
 					<ul>
-						<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/1d05cb8/src/types/src/mapping.ts#L29">types/src/mapping.ts:29</a></li>
+						<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/2d36705/src/types/src/mapping.ts#L30">types/src/mapping.ts:30</a></li>
 					</ul>
 				</aside>
 			</section>

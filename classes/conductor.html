@@ -921,7 +921,7 @@ img { max-width: 100%; }
 				<li class=" tsd-kind-accessor tsd-parent-kind-class tsd-is-external">
 					<a href="conductor.html#logdebug" class="tsd-kind-icon">log<wbr>Debug</a>
 				</li>
-				<li class=" tsd-kind-accessor tsd-parent-kind-class tsd-is-external">
+				<li class=" tsd-kind-get-signature tsd-parent-kind-class tsd-is-external">
 					<a href="conductor.html#mapping" class="tsd-kind-icon">mapping</a>
 				</li>
 				<li class=" tsd-kind-accessor tsd-parent-kind-class tsd-is-external">
@@ -944,6 +944,9 @@ img { max-width: 100%; }
 				</li>
 				<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-overwrite tsd-is-inherited tsd-is-external">
 					<a href="conductor.html#emit" class="tsd-kind-icon">emit</a>
+				</li>
+				<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-external">
+					<a href="conductor.html#estimateresolvetime" class="tsd-kind-icon">estimate<wbr>Resolve<wbr>Time</a>
 				</li>
 				<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-overwrite tsd-is-inherited tsd-is-external">
 					<a href="conductor.html#eventnames" class="tsd-kind-icon">event<wbr>Names</a>
@@ -992,6 +995,9 @@ img { max-width: 100%; }
 				</li>
 				<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-external">
 					<a href="conductor.html#resetresolver" class="tsd-kind-icon">reset<wbr>Resolver</a>
+				</li>
+				<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-external">
+					<a href="conductor.html#setmapping" class="tsd-kind-icon">set<wbr>Mapping</a>
 				</li>
 				<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-overwrite tsd-is-inherited tsd-is-external">
 					<a href="conductor.html#setmaxlisteners" class="tsd-kind-icon">set<wbr>Max<wbr>Listeners</a>
@@ -1045,7 +1051,7 @@ img { max-width: 100%; }
 						<h3>Accessors</h3>
 						<ul class="tsd-index-list">
 							<li class="tsd-kind-accessor tsd-parent-kind-class tsd-is-external"><a href="conductor.html#logdebug" class="tsd-kind-icon">log<wbr>Debug</a></li>
-							<li class="tsd-kind-accessor tsd-parent-kind-class tsd-is-external"><a href="conductor.html#mapping" class="tsd-kind-icon">mapping</a></li>
+							<li class="tsd-kind-get-signature tsd-parent-kind-class tsd-is-external"><a href="conductor.html#mapping" class="tsd-kind-icon">mapping</a></li>
 							<li class="tsd-kind-accessor tsd-parent-kind-class tsd-is-external"><a href="conductor.html#timeline" class="tsd-kind-icon">timeline</a></li>
 						</ul>
 					</section>
@@ -1058,6 +1064,7 @@ img { max-width: 100%; }
 							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-external"><a href="conductor.html#devicesmakeready" class="tsd-kind-icon">devices<wbr>Make<wbr>Ready</a></li>
 							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-external"><a href="conductor.html#devicesstanddown" class="tsd-kind-icon">devices<wbr>Stand<wbr>Down</a></li>
 							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-overwrite tsd-is-inherited tsd-is-external"><a href="conductor.html#emit" class="tsd-kind-icon">emit</a></li>
+							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-external"><a href="conductor.html#estimateresolvetime" class="tsd-kind-icon">estimate<wbr>Resolve<wbr>Time</a></li>
 							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-overwrite tsd-is-inherited tsd-is-external"><a href="conductor.html#eventnames" class="tsd-kind-icon">event<wbr>Names</a></li>
 							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-external"><a href="conductor.html#getcurrenttime" class="tsd-kind-icon">get<wbr>Current<wbr>Time</a></li>
 							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-external"><a href="conductor.html#getdevice" class="tsd-kind-icon">get<wbr>Device</a></li>
@@ -1074,6 +1081,7 @@ img { max-width: 100%; }
 							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-external"><a href="conductor.html#removedevice" class="tsd-kind-icon">remove<wbr>Device</a></li>
 							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-overwrite tsd-is-inherited tsd-is-external"><a href="conductor.html#removelistener" class="tsd-kind-icon">remove<wbr>Listener</a></li>
 							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-external"><a href="conductor.html#resetresolver" class="tsd-kind-icon">reset<wbr>Resolver</a></li>
+							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-external"><a href="conductor.html#setmapping" class="tsd-kind-icon">set<wbr>Mapping</a></li>
 							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-overwrite tsd-is-inherited tsd-is-external"><a href="conductor.html#setmaxlisteners" class="tsd-kind-icon">set<wbr>Max<wbr>Listeners</a></li>
 							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited tsd-is-static tsd-is-external"><a href="conductor.html#listenercount-1" class="tsd-kind-icon">listener<wbr>Count</a></li>
 						</ul>
@@ -1093,7 +1101,7 @@ img { max-width: 100%; }
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/1d05cb8/src/conductor.ts#L98">conductor.ts:98</a></li>
+								<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/2d36705/src/conductor.ts#L115">conductor.ts:115</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -1129,19 +1137,18 @@ img { max-width: 100%; }
 				<div class="tsd-signature tsd-kind-icon">log<wbr>Debug<span class="tsd-signature-symbol">:</span> </div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/1d05cb8/src/conductor.ts#L201">conductor.ts:201</a></li>
-						<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/1d05cb8/src/conductor.ts#L204">conductor.ts:204</a></li>
+						<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/2d36705/src/conductor.ts#L217">conductor.ts:217</a></li>
+						<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/2d36705/src/conductor.ts#L220">conductor.ts:220</a></li>
 					</ul>
 				</aside>
 			</section>
-			<section class="tsd-panel tsd-member tsd-kind-accessor tsd-parent-kind-class tsd-is-external">
+			<section class="tsd-panel tsd-member tsd-kind-get-signature tsd-parent-kind-class tsd-is-external">
 				<a name="mapping" class="tsd-anchor"></a>
 				<h3>mapping</h3>
 				<div class="tsd-signature tsd-kind-icon">mapping<span class="tsd-signature-symbol">:</span> </div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/1d05cb8/src/conductor.ts#L172">conductor.ts:172</a></li>
-						<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/1d05cb8/src/conductor.ts#L175">conductor.ts:175</a></li>
+						<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/2d36705/src/conductor.ts#L185">conductor.ts:185</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -1151,8 +1158,8 @@ img { max-width: 100%; }
 				<div class="tsd-signature tsd-kind-icon">timeline<span class="tsd-signature-symbol">:</span> </div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/1d05cb8/src/conductor.ts#L188">conductor.ts:188</a></li>
-						<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/1d05cb8/src/conductor.ts#L191">conductor.ts:191</a></li>
+						<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/2d36705/src/conductor.ts#L204">conductor.ts:204</a></li>
+						<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/2d36705/src/conductor.ts#L207">conductor.ts:207</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -1163,13 +1170,13 @@ img { max-width: 100%; }
 				<a name="adddevice" class="tsd-anchor"></a>
 				<h3>add<wbr>Device</h3>
 				<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-external">
-					<li class="tsd-signature tsd-kind-icon">add<wbr>Device<span class="tsd-signature-symbol">(</span>deviceId<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span>, deviceOptions<span class="tsd-signature-symbol">: </span><a href="../interfaces/deviceoptions.html" class="tsd-signature-type">DeviceOptions</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">ThreadedClass</span><span class="tsd-signature-symbol">&lt;</span><a href="device.html" class="tsd-signature-type">Device</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">&gt;</span></li>
+					<li class="tsd-signature tsd-kind-icon">add<wbr>Device<span class="tsd-signature-symbol">(</span>deviceId<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span>, deviceOptions<span class="tsd-signature-symbol">: </span><a href="../interfaces/deviceoptions.html" class="tsd-signature-type">DeviceOptions</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="devicecontainer.html" class="tsd-signature-type">DeviceContainer</a><span class="tsd-signature-symbol">&gt;</span></li>
 				</ul>
 				<ul class="tsd-descriptions">
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/1d05cb8/src/conductor.ts#L220">conductor.ts:220</a></li>
+								<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/2d36705/src/conductor.ts#L236">conductor.ts:236</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -1189,7 +1196,7 @@ img { max-width: 100%; }
 								<h5>deviceOptions: <a href="../interfaces/deviceoptions.html" class="tsd-signature-type">DeviceOptions</a></h5>
 							</li>
 						</ul>
-						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">ThreadedClass</span><span class="tsd-signature-symbol">&lt;</span><a href="device.html" class="tsd-signature-type">Device</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">&gt;</span></h4>
+						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="devicecontainer.html" class="tsd-signature-type">DeviceContainer</a><span class="tsd-signature-symbol">&gt;</span></h4>
 						<p>A promise that resolves with the created device, or rejects with an error message.</p>
 					</li>
 				</ul>
@@ -1250,7 +1257,7 @@ img { max-width: 100%; }
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/1d05cb8/src/conductor.ts#L359">conductor.ts:359</a></li>
+								<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/2d36705/src/conductor.ts#L404">conductor.ts:404</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4>
@@ -1267,7 +1274,7 @@ img { max-width: 100%; }
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/1d05cb8/src/conductor.ts#L382">conductor.ts:382</a></li>
+								<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/2d36705/src/conductor.ts#L427">conductor.ts:427</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -1295,7 +1302,7 @@ img { max-width: 100%; }
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/1d05cb8/src/conductor.ts#L395">conductor.ts:395</a></li>
+								<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/2d36705/src/conductor.ts#L440">conductor.ts:440</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -1341,6 +1348,23 @@ img { max-width: 100%; }
 					</li>
 				</ul>
 			</section>
+			<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-external">
+				<a name="estimateresolvetime" class="tsd-anchor"></a>
+				<h3>estimate<wbr>Resolve<wbr>Time</h3>
+				<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-external">
+					<li class="tsd-signature tsd-kind-icon">estimate<wbr>Resolve<wbr>Time<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span></li>
+				</ul>
+				<ul class="tsd-descriptions">
+					<li class="tsd-description">
+						<aside class="tsd-sources">
+							<ul>
+								<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/2d36705/src/conductor.ts#L741">conductor.ts:741</a></li>
+							</ul>
+						</aside>
+						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">any</span></h4>
+					</li>
+				</ul>
+			</section>
 			<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-overwrite tsd-is-inherited tsd-is-external">
 				<a name="eventnames" class="tsd-anchor"></a>
 				<h3>event<wbr>Names</h3>
@@ -1370,7 +1394,7 @@ img { max-width: 100%; }
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/1d05cb8/src/conductor.ts#L163">conductor.ts:163</a></li>
+								<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/2d36705/src/conductor.ts#L176">conductor.ts:176</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -1386,13 +1410,13 @@ img { max-width: 100%; }
 				<a name="getdevice" class="tsd-anchor"></a>
 				<h3>get<wbr>Device</h3>
 				<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-external">
-					<li class="tsd-signature tsd-kind-icon">get<wbr>Device<span class="tsd-signature-symbol">(</span>deviceId<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">ThreadedClass</span><span class="tsd-signature-symbol">&lt;</span><a href="device.html" class="tsd-signature-type">Device</a><span class="tsd-signature-symbol">&gt;</span></li>
+					<li class="tsd-signature tsd-kind-icon">get<wbr>Device<span class="tsd-signature-symbol">(</span>deviceId<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="devicecontainer.html" class="tsd-signature-type">DeviceContainer</a></li>
 				</ul>
 				<ul class="tsd-descriptions">
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/1d05cb8/src/conductor.ts#L211">conductor.ts:211</a></li>
+								<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/2d36705/src/conductor.ts#L227">conductor.ts:227</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -1401,7 +1425,7 @@ img { max-width: 100%; }
 								<h5>deviceId: <span class="tsd-signature-type">string</span></h5>
 							</li>
 						</ul>
-						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">ThreadedClass</span><span class="tsd-signature-symbol">&lt;</span><a href="device.html" class="tsd-signature-type">Device</a><span class="tsd-signature-symbol">&gt;</span></h4>
+						<h4 class="tsd-returns-title">Returns <a href="devicecontainer.html" class="tsd-signature-type">DeviceContainer</a></h4>
 					</li>
 				</ul>
 			</section>
@@ -1409,16 +1433,16 @@ img { max-width: 100%; }
 				<a name="getdevices" class="tsd-anchor"></a>
 				<h3>get<wbr>Devices</h3>
 				<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-external">
-					<li class="tsd-signature tsd-kind-icon">get<wbr>Devices<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Array</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">ThreadedClass</span><span class="tsd-signature-symbol">&lt;</span><a href="device.html" class="tsd-signature-type">Device</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">&gt;</span></li>
+					<li class="tsd-signature tsd-kind-icon">get<wbr>Devices<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Array</span><span class="tsd-signature-symbol">&lt;</span><a href="devicecontainer.html" class="tsd-signature-type">DeviceContainer</a><span class="tsd-signature-symbol">&gt;</span></li>
 				</ul>
 				<ul class="tsd-descriptions">
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/1d05cb8/src/conductor.ts#L208">conductor.ts:208</a></li>
+								<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/2d36705/src/conductor.ts#L224">conductor.ts:224</a></li>
 							</ul>
 						</aside>
-						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Array</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">ThreadedClass</span><span class="tsd-signature-symbol">&lt;</span><a href="device.html" class="tsd-signature-type">Device</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">&gt;</span></h4>
+						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Array</span><span class="tsd-signature-symbol">&lt;</span><a href="devicecontainer.html" class="tsd-signature-type">DeviceContainer</a><span class="tsd-signature-symbol">&gt;</span></h4>
 					</li>
 				</ul>
 			</section>
@@ -1451,7 +1475,7 @@ img { max-width: 100%; }
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/1d05cb8/src/conductor.ts#L138">conductor.ts:138</a></li>
+								<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/2d36705/src/conductor.ts#L151">conductor.ts:151</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -1732,7 +1756,7 @@ img { max-width: 100%; }
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/1d05cb8/src/conductor.ts#L345">conductor.ts:345</a></li>
+								<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/2d36705/src/conductor.ts#L390">conductor.ts:390</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -1801,7 +1825,7 @@ img { max-width: 100%; }
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/1d05cb8/src/conductor.ts#L373">conductor.ts:373</a></li>
+								<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/2d36705/src/conductor.ts#L418">conductor.ts:418</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -1811,6 +1835,29 @@ img { max-width: 100%; }
 							</div>
 						</div>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+					</li>
+				</ul>
+			</section>
+			<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-external">
+				<a name="setmapping" class="tsd-anchor"></a>
+				<h3>set<wbr>Mapping</h3>
+				<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-external">
+					<li class="tsd-signature tsd-kind-icon">set<wbr>Mapping<span class="tsd-signature-symbol">(</span>mapping<span class="tsd-signature-symbol">: </span><a href="../interfaces/mappings.html" class="tsd-signature-type">Mappings</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></li>
+				</ul>
+				<ul class="tsd-descriptions">
+					<li class="tsd-description">
+						<aside class="tsd-sources">
+							<ul>
+								<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/2d36705/src/conductor.ts#L188">conductor.ts:188</a></li>
+							</ul>
+						</aside>
+						<h4 class="tsd-parameters-title">Parameters</h4>
+						<ul class="tsd-parameters">
+							<li>
+								<h5>mapping: <a href="../interfaces/mappings.html" class="tsd-signature-type">Mappings</a></h5>
+							</li>
+						</ul>
+						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4>
 					</li>
 				</ul>
 			</section>
