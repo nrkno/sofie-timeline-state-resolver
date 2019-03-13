@@ -14,16 +14,39 @@ const request = require('../../__mocks__/request')
 
 describe('HTTP-Watcher', () => {
 	let mockTime = new MockTime()
+
+	let onGet: jest.Mock<void, any[]>
+	let mockStatusCode: number
+	let mockBody: string
 	beforeAll(() => {
 		Date.now = jest.fn(() => {
 			return mockTime.getCurrentTime()
 		})
+		onGet = jest.fn((url, _options, callback) => {
+			if (url === 'http://localhost:80') {
+				callback(null, {
+					statusCode: mockStatusCode,
+					body: mockBody
+				}, mockBody)
+			} else if (url === 'http://localhost:1234') {
+				callback(null, {
+					statusCode: mockStatusCode,
+					body: mockBody
+				}, mockBody)
+			} else {
+				callback(new Error('Unsupported mock url: ' + url), null)
+			}
+		})
+		request.setMockGet(onGet)
 	})
 	beforeEach(() => {
 		mockTime.init()
+
+		mockStatusCode = 200
+		mockBody = 'this is my keyword and its really nice'
 	})
 
-	test('Successful GET returns GOOD state', async () => {
+	test('Good reply, turns bad, then good again', async () => {
 		let myLayerMapping0: MappingHTTPWatcher = {
 			device: DeviceType.HTTPWATCHER,
 			deviceId: 'myHTTPWatch'
@@ -37,17 +60,8 @@ describe('HTTP-Watcher', () => {
 			getCurrentTime: mockTime.getCurrentTime
 		})
 
-		let onGet = jest.fn((url, _options, callback) => {
-			if (url === 'http://localhost:1234') {
-				callback(null, {
-					statusCode: 200,
-					body: 'my keyword'
-				}, 'my keyword')
-			} else {
-				callback(new Error('Unsupported mock'), null)
-			}
-		})
-		request.setMockGet(onGet)
+		let onError = jest.fn()
+		myConductor.on('error', onError)
 
 		await myConductor.init()
 		const generatedDevice = await myConductor.addDevice('myHTTPWatch', {
@@ -61,27 +75,39 @@ describe('HTTP-Watcher', () => {
 				interval: 10 * 1000
 			}
 		})
-		.catch(error => {
-			fail(error)
-			return
-		})
-		if (!generatedDevice) {
-			expect(generatedDevice).toBeTruthy()
-			return
-		}
-		expect(await generatedDevice.getStatus()).toEqual({ statusCode: StatusCode.UNKNOWN })
+
+		expect(generatedDevice).toBeTruthy()
+		expect(await generatedDevice.getStatus()).toMatchObject({ statusCode: StatusCode.UNKNOWN })
+
 		myConductor.mapping = myLayerMapping
 
 		await mockTime.advanceTimeTicks(10100)
-		expect(onGet).toBeCalledTimes(1)
-		expect(await generatedDevice.getStatus()).toEqual({ statusCode: StatusCode.GOOD })
+		expect(onGet).toHaveBeenCalled()
+		expect(await generatedDevice.getStatus()).toMatchObject({ statusCode: StatusCode.GOOD })
+
+		mockStatusCode = 500
+		await mockTime.advanceTimeTicks(10100)
+		expect(await generatedDevice.getStatus()).toMatchObject({ statusCode: StatusCode.BAD, messages: [/status code/i] })
+
+		mockStatusCode = 200
+		await mockTime.advanceTimeTicks(10100)
+		expect(await generatedDevice.getStatus()).toMatchObject({ statusCode: StatusCode.GOOD })
+
+		mockBody = 'sorry not sorry'
+		await mockTime.advanceTimeTicks(10100)
+		expect(await generatedDevice.getStatus()).toMatchObject({ statusCode: StatusCode.BAD, messages: [/keyword/i] })
+
+		mockBody = 'heres my keyword again'
+		await mockTime.advanceTimeTicks(10100)
+		expect(await generatedDevice.getStatus()).toMatchObject({ statusCode: StatusCode.GOOD })
 
 		let device = myConductor.getDevice('myHTTPWatch') as ThreadedClass<HttpWatcherDevice>
 
-		await device.stopInterval()
+		await device.terminate()
 		jest.clearAllTimers()
+		expect(onError).toHaveBeenCalledTimes(0)
 	})
-	test('Un-Successful get returns BAD state', async () => {
+	test('Only check keyword', async () => {
 		let myLayerMapping0: MappingHTTPWatcher = {
 			device: DeviceType.HTTPWATCHER,
 			deviceId: 'myHTTPWatch'
@@ -95,355 +121,112 @@ describe('HTTP-Watcher', () => {
 			getCurrentTime: mockTime.getCurrentTime
 		})
 
-		let onGet = jest.fn((url, _options, callback) => {
-			callback(new Error('Bad Gateway'), null)
-		})
-		request.setMockGet(onGet)
+		let onError = jest.fn()
+		myConductor.on('error', onError)
 
 		await myConductor.init()
 		const generatedDevice = await myConductor.addDevice('myHTTPWatch', {
 			type: DeviceType.HTTPWATCHER,
 			options: {
 				host: 'http://localhost',
-				port: '1234',
+				port: '80',
+				httpMethod: 'get',
+				// expectedHttpResponse: 200,
+				keyword: 'my keyword',
+				interval: 10 * 1000
+			}
+		})
+
+		expect(generatedDevice).toBeTruthy()
+		expect(await generatedDevice.getStatus()).toMatchObject({ statusCode: StatusCode.UNKNOWN })
+
+		myConductor.mapping = myLayerMapping
+
+		await mockTime.advanceTimeTicks(10100)
+		expect(onGet).toHaveBeenCalled()
+		expect(await generatedDevice.getStatus()).toMatchObject({ statusCode: StatusCode.GOOD })
+
+		mockStatusCode = 500 // should not matter
+		await mockTime.advanceTimeTicks(10100)
+		expect(await generatedDevice.getStatus()).toMatchObject({ statusCode: StatusCode.GOOD })
+
+		mockStatusCode = 200
+		await mockTime.advanceTimeTicks(10100)
+		expect(await generatedDevice.getStatus()).toMatchObject({ statusCode: StatusCode.GOOD })
+
+		mockBody = 'sorry not sorry'
+		await mockTime.advanceTimeTicks(10100)
+		expect(await generatedDevice.getStatus()).toMatchObject({ statusCode: StatusCode.BAD, messages: [/keyword/i] })
+
+		mockBody = 'heres my keyword again'
+		await mockTime.advanceTimeTicks(10100)
+		expect(await generatedDevice.getStatus()).toMatchObject({ statusCode: StatusCode.GOOD })
+
+		let device = myConductor.getDevice('myHTTPWatch') as ThreadedClass<HttpWatcherDevice>
+
+		await device.terminate()
+		jest.clearAllTimers()
+		expect(onError).toHaveBeenCalledTimes(0)
+	})
+	test('Only check response code', async () => {
+		let myLayerMapping0: MappingHTTPWatcher = {
+			device: DeviceType.HTTPWATCHER,
+			deviceId: 'myHTTPWatch'
+		}
+		let myLayerMapping: Mappings = {
+			'myLayer0': myLayerMapping0
+		}
+
+		let myConductor = new Conductor({
+			initializeAsClear: true,
+			getCurrentTime: mockTime.getCurrentTime
+		})
+
+		let onError = jest.fn()
+		myConductor.on('error', onError)
+
+		await myConductor.init()
+		const generatedDevice = await myConductor.addDevice('myHTTPWatch', {
+			type: DeviceType.HTTPWATCHER,
+			options: {
+				host: 'http://localhost',
+				port: '80',
 				httpMethod: 'get',
 				expectedHttpResponse: 200,
-				keyword: 'my keyword',
+				// keyword: 'my keyword',
 				interval: 10 * 1000
 			}
 		})
-		.catch(error => {
-			fail(error)
-			return
-		})
-		if (!generatedDevice) {
-			expect(generatedDevice).toBeTruthy()
-			return
-		}
-		expect(await generatedDevice.getStatus()).toEqual({ statusCode: StatusCode.UNKNOWN })
+
+		expect(generatedDevice).toBeTruthy()
+		expect(await generatedDevice.getStatus()).toMatchObject({ statusCode: StatusCode.UNKNOWN })
+
 		myConductor.mapping = myLayerMapping
 
 		await mockTime.advanceTimeTicks(10100)
-		expect(onGet).toBeCalledTimes(1)
-		expect(await generatedDevice.getStatus()).toEqual({ statusCode: StatusCode.BAD })
+		expect(onGet).toHaveBeenCalled()
+		expect(await generatedDevice.getStatus()).toMatchObject({ statusCode: StatusCode.GOOD })
 
-		let device = myConductor.getDevice('myHTTPWatch') as ThreadedClass<HttpWatcherDevice>
-
-		await device.stopInterval()
-		jest.clearAllTimers()
-	})
-	test('Un-Successful get, bad keyword, returns BAD state', async () => {
-		let myLayerMapping0: MappingHTTPWatcher = {
-			device: DeviceType.HTTPWATCHER,
-			deviceId: 'myHTTPWatch'
-		}
-		let myLayerMapping: Mappings = {
-			'myLayer0': myLayerMapping0
-		}
-
-		let myConductor = new Conductor({
-			initializeAsClear: true,
-			getCurrentTime: mockTime.getCurrentTime
-		})
-
-		let onGet = jest.fn((url, _options, callback) => {
-			if (url === 'http://localhost:1234') {
-				callback(null, {
-					statusCode: 200,
-					body: 'bad keyword'
-				}, 'bad keyword')
-			} else {
-				callback(new Error('Unsupported mock'), null)
-			}
-		})
-		request.setMockGet(onGet)
-
-		await myConductor.init()
-		const generatedDevice = await myConductor.addDevice('myHTTPWatch', {
-			type: DeviceType.HTTPWATCHER,
-			options: {
-				host: 'http://localhost',
-				port: '1234',
-				httpMethod: 'get',
-				expectedHttpResponse: 200,
-				keyword: 'my keyword',
-				interval: 10 * 1000
-			}
-		})
-		.catch(error => {
-			fail(error)
-			return
-		})
-		if (!generatedDevice) {
-			expect(generatedDevice).toBeTruthy()
-			return
-		}
-		expect(await generatedDevice.getStatus()).toEqual({ statusCode: StatusCode.UNKNOWN })
-		myConductor.mapping = myLayerMapping
-
+		mockStatusCode = 500
 		await mockTime.advanceTimeTicks(10100)
-		expect(onGet).toBeCalledTimes(1)
-		expect(await generatedDevice.getStatus()).toEqual({ statusCode: StatusCode.BAD })
+		expect(await generatedDevice.getStatus()).toMatchObject({ statusCode: StatusCode.BAD, messages: [/status code/i] })
 
-		let device = myConductor.getDevice('myHTTPWatch') as ThreadedClass<HttpWatcherDevice>
-
-		await device.stopInterval()
-		jest.clearAllTimers()
-	})
-
-	test('Un-Successful get, wrong status code, returns BAD state', async () => {
-		let myLayerMapping0: MappingHTTPWatcher = {
-			device: DeviceType.HTTPWATCHER,
-			deviceId: 'myHTTPWatch'
-		}
-		let myLayerMapping: Mappings = {
-			'myLayer0': myLayerMapping0
-		}
-
-		let myConductor = new Conductor({
-			initializeAsClear: true,
-			getCurrentTime: mockTime.getCurrentTime
-		})
-
-		let onGet = jest.fn((url, _options, callback) => {
-			if (url === 'http://localhost:1234') {
-				callback(null, {
-					statusCode: 201,
-					body: 'my keyword'
-				}, 'my keyword')
-			} else {
-				callback(new Error('Unsupported mock'), null)
-			}
-		})
-		request.setMockGet(onGet)
-
-		await myConductor.init()
-		const generatedDevice = await myConductor.addDevice('myHTTPWatch', {
-			type: DeviceType.HTTPWATCHER,
-			options: {
-				host: 'http://localhost',
-				port: '1234',
-				httpMethod: 'get',
-				expectedHttpResponse: 200,
-				keyword: 'my keyword',
-				interval: 10 * 1000
-			}
-		})
-		.catch(error => {
-			fail(error)
-			return
-		})
-		if (!generatedDevice) {
-			expect(generatedDevice).toBeTruthy()
-			return
-		}
-		expect(await generatedDevice.getStatus()).toEqual({ statusCode: StatusCode.UNKNOWN })
-		myConductor.mapping = myLayerMapping
-
+		mockStatusCode = 200
 		await mockTime.advanceTimeTicks(10100)
-		expect(onGet).toBeCalledTimes(1)
-		expect(await generatedDevice.getStatus()).toEqual({ statusCode: StatusCode.BAD })
+		expect(await generatedDevice.getStatus()).toMatchObject({ statusCode: StatusCode.GOOD })
 
-		let device = myConductor.getDevice('myHTTPWatch') as ThreadedClass<HttpWatcherDevice>
-
-		await device.stopInterval()
-		jest.clearAllTimers()
-	})
-	test('Successful http POST returns GOOD state', async () => {
-		let myLayerMapping0: MappingHTTPWatcher = {
-			device: DeviceType.HTTPWATCHER,
-			deviceId: 'myHTTPWatch'
-		}
-		let myLayerMapping: Mappings = {
-			'myLayer0': myLayerMapping0
-		}
-
-		let myConductor = new Conductor({
-			initializeAsClear: true,
-			getCurrentTime: mockTime.getCurrentTime
-		})
-
-		let onGet = jest.fn((url, _options, callback) => {
-			if (url === 'http://localhost:1234') {
-				callback(null, {
-					statusCode: 200,
-					body: 'my keyword'
-				}, 'my keyword')
-			} else {
-				callback(new Error('Unsupported mock'), null)
-			}
-		})
-		let onPost = jest.fn((url, _options, callback) => {
-			if (url === 'http://localhost:1234') {
-				callback(null, {
-					statusCode: 200,
-					body: 'my keyword2'
-				}, 'my keyword2')
-			} else {
-				callback(new Error('Unsupported mock'), null)
-			}
-		})
-		request.setMockGet(onGet)
-		request.setMockPost(onPost)
-
-		await myConductor.init()
-		const generatedDevice = await myConductor.addDevice('myHTTPWatch', {
-			type: DeviceType.HTTPWATCHER,
-			options: {
-				host: 'http://localhost',
-				port: '1234',
-				httpMethod: 'post',
-				expectedHttpResponse: 200,
-				keyword: 'my keyword2',
-				interval: 10 * 1000
-			}
-		})
-		.catch(error => {
-			fail(error)
-			return
-		})
-		if (!generatedDevice) {
-			expect(generatedDevice).toBeTruthy()
-			return
-		}
-		expect(await generatedDevice.getStatus()).toEqual({ statusCode: StatusCode.UNKNOWN })
-		myConductor.mapping = myLayerMapping
-
+		mockBody = 'sorry not sorry' // should not matter
 		await mockTime.advanceTimeTicks(10100)
-		expect(onGet).toBeCalledTimes(0)
-		expect(onPost).toBeCalledTimes(1)
-		expect(await generatedDevice.getStatus()).toEqual({ statusCode: StatusCode.GOOD })
+		expect(await generatedDevice.getStatus()).toMatchObject({ statusCode: StatusCode.GOOD })
 
-		let device = myConductor.getDevice('myHTTPWatch') as ThreadedClass<HttpWatcherDevice>
-
-		await device.stopInterval()
-		jest.clearAllTimers()
-	})
-	test('"jibberish" http method defaults to GET and returns GOOD state', async () => {
-		let myLayerMapping0: MappingHTTPWatcher = {
-			device: DeviceType.HTTPWATCHER,
-			deviceId: 'myHTTPWatch'
-		}
-		let myLayerMapping: Mappings = {
-			'myLayer0': myLayerMapping0
-		}
-
-		let myConductor = new Conductor({
-			initializeAsClear: true,
-			getCurrentTime: mockTime.getCurrentTime
-		})
-
-		let onGet = jest.fn((url, _options, callback) => {
-			if (url === 'http://localhost:1234') {
-				callback(null, {
-					statusCode: 200,
-					body: 'my keyword'
-				}, 'my keyword')
-			} else {
-				callback(new Error('Unsupported mock'), null)
-			}
-		})
-		let onPost = jest.fn((url, _options, callback) => {
-			if (url === 'http://localhost:1234') {
-				callback(null, {
-					statusCode: 200,
-					body: 'my keyword2'
-				}, 'my keyword2')
-			} else {
-				callback(new Error('Unsupported mock'), null)
-			}
-		})
-		request.setMockGet(onGet)
-		request.setMockPost(onPost)
-
-		await myConductor.init()
-		const generatedDevice = await myConductor.addDevice('myHTTPWatch', {
-			type: DeviceType.HTTPWATCHER,
-			options: {
-				host: 'http://localhost',
-				port: '1234',
-				httpMethod: 'jibberish',
-				expectedHttpResponse: 200,
-				keyword: 'my keyword',
-				interval: 10 * 1000
-			}
-		})
-		.catch(error => {
-			fail(error)
-			return
-		})
-		if (!generatedDevice) {
-			expect(generatedDevice).toBeTruthy()
-			return
-		}
-		expect(await generatedDevice.getStatus()).toEqual({ statusCode: StatusCode.UNKNOWN })
-		myConductor.mapping = myLayerMapping
-
+		mockBody = 'heres my keyword again'
 		await mockTime.advanceTimeTicks(10100)
-		expect(onGet).toBeCalledTimes(1)
-		expect(onPost).toBeCalledTimes(0)
-		expect(await generatedDevice.getStatus()).toEqual({ statusCode: StatusCode.GOOD })
+		expect(await generatedDevice.getStatus()).toMatchObject({ statusCode: StatusCode.GOOD })
 
 		let device = myConductor.getDevice('myHTTPWatch') as ThreadedClass<HttpWatcherDevice>
 
-		await device.stopInterval()
+		await device.terminate()
 		jest.clearAllTimers()
-	})
-	test('Port defaults to 80 returns GOOD state', async () => {
-		let myLayerMapping0: MappingHTTPWatcher = {
-			device: DeviceType.HTTPWATCHER,
-			deviceId: 'myHTTPWatch'
-		}
-		let myLayerMapping: Mappings = {
-			'myLayer0': myLayerMapping0
-		}
-
-		let myConductor = new Conductor({
-			initializeAsClear: true,
-			getCurrentTime: mockTime.getCurrentTime
-		})
-
-		let onGet = jest.fn((url, _options, callback) => {
-			if (url === 'http://localhost:80') {
-				callback(null, {
-					statusCode: 200,
-					body: 'my keyword'
-				}, 'my keyword')
-			} else {
-				callback(new Error('Unsupported mock'), null)
-			}
-		})
-		request.setMockGet(onGet)
-
-		await myConductor.init()
-		const generatedDevice = await myConductor.addDevice('myHTTPWatch', {
-			type: DeviceType.HTTPWATCHER,
-			options: {
-				host: 'http://localhost',
-				httpMethod: 'jibberish',
-				expectedHttpResponse: 200,
-				keyword: 'my keyword',
-				interval: 10 * 1000
-			}
-		})
-		.catch(error => {
-			fail(error)
-			return
-		})
-		if (!generatedDevice) {
-			expect(generatedDevice).toBeTruthy()
-			return
-		}
-		expect(await generatedDevice.getStatus()).toEqual({ statusCode: StatusCode.UNKNOWN })
-		myConductor.mapping = myLayerMapping
-
-		await mockTime.advanceTimeTicks(10100)
-		expect(onGet).toBeCalledTimes(1)
-		expect(await generatedDevice.getStatus()).toEqual({ statusCode: StatusCode.GOOD })
-
-		let device = myConductor.getDevice('myHTTPWatch') as ThreadedClass<HttpWatcherDevice>
-
-		await device.stopInterval()
-		jest.clearAllTimers()
+		expect(onError).toHaveBeenCalledTimes(0)
 	})
 })
