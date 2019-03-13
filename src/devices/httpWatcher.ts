@@ -34,11 +34,12 @@ export class HttpWatcherDevice extends Device {
 	private port: number
 	private uri: string
 	private httpMethod: TimelineContentTypeHttp
-	private expectedHttpResponse: number = 200
-	private keyword: string
+	private expectedHttpResponse: number | undefined
+	private keyword: string | undefined
 	private intervalTime: number
 	private interval: NodeJS.Timer | undefined
 	private status: StatusCode = StatusCode.UNKNOWN
+	private statusReason: string | undefined
 	constructor (deviceId: string, deviceOptions: HttpWatcherDeviceOptions, options) {
 		super(deviceId, deviceOptions, options)
 		const opts = deviceOptions.options || {}
@@ -64,8 +65,8 @@ export class HttpWatcherDevice extends Device {
 		}
 
 		// this.httpMethod = opts.httpMethod || 'localhost'
-		this.expectedHttpResponse = Number(opts.expectedHttpResponse) || 200
-		this.keyword = opts.keyword || 'localhost'
+		this.expectedHttpResponse = Number(opts.expectedHttpResponse) || undefined
+		this.keyword = opts.keyword
 		this.intervalTime = Number(opts.interval) || 30
 
 		this.uri = this.host + ':' + this.port
@@ -81,8 +82,7 @@ export class HttpWatcherDevice extends Device {
 				this.handleResponse.bind(this)
 			)
 		} else {
-			this.status = StatusCode.BAD
-			this.emit('connectionChanged', this.getStatus())
+			this._setStatus(StatusCode.BAD, `Bad request method: "${this.httpMethod}"`)
 		}
 	}
 	stopInterval () {
@@ -98,20 +98,20 @@ export class HttpWatcherDevice extends Device {
 
 	handleResponse (error: any, response: request.Response, body: any) {
 		if (error) {
-			this.emit('error', `HTTPWatch: Error ${this.uri}` + error)
-			this.status = StatusCode.BAD
-			this.emit('connectionChanged', this.getStatus())
-			return
-		}
-		if (response.statusCode === this.expectedHttpResponse
-			&& body && (body.toString() || '').indexOf(this.keyword) >= 0) {
-			this.emit('debug', `HTTPWatch: ${this.httpMethod}: Good statuscode response on url "${this.uri}": ${response.statusCode}`)
-			this.status = StatusCode.GOOD
-			this.emit('connectionChanged', this.getStatus())
+			this._setStatus(StatusCode.BAD, error.toString() || 'Unknown')
+		} else if (
+			this.expectedHttpResponse &&
+			this.expectedHttpResponse !== response.statusCode
+		) {
+			this._setStatus(StatusCode.BAD, `Expected status code ${this.expectedHttpResponse}, got ${response.statusCode}`)
+		} else if (
+			this.keyword &&
+			body &&
+			(body.toString() || '').indexOf(this.keyword) === -1
+		) {
+			this._setStatus(StatusCode.BAD, `Expected keyword "${this.keyword}" not found`)
 		} else {
-			this.emit('warning', `HTTPWatch: ${this.httpMethod}: Bad statuscode response on url "${this.uri}": ${response.statusCode}`)
-			this.status = StatusCode.BAD
-			this.emit('connectionChanged', this.getStatus())
+			this._setStatus(StatusCode.GOOD)
 		}
 	}
 
@@ -127,8 +127,26 @@ export class HttpWatcherDevice extends Device {
 		// NOP
 	}
 	getStatus (): DeviceStatus {
-		return {
+		let s: DeviceStatus = {
 			statusCode: this.status
+		}
+		if (this.statusReason) s.messages = [this.statusReason]
+		return s
+	}
+	terminate (): Promise<boolean> {
+		this.stopInterval()
+
+		return Promise.resolve(true)
+	}
+	private _setStatus (status: StatusCode, reason?: string) {
+		if (
+			this.status !== status ||
+			this.statusReason !== reason
+		) {
+			this.status = status
+			this.statusReason = reason
+
+			this.emit('connectionChanged', this.getStatus())
 		}
 	}
 
