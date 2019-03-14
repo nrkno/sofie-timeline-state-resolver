@@ -2,12 +2,7 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
-## [1.8.1](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/1.8.0...1.8.1) (2019-03-07)
-
-
-### Bug Fixes
-
-* fixes to make resolving work asynchronously ([514c7f4](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/514c7f4))
+## [2.0.1](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/2.0.0...2.0.1) (2019-03-14)
 
 
 
