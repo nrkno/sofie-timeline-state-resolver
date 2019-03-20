@@ -667,7 +667,7 @@ export class Conductor extends EventEmitter {
 			_.each(tlState.GLayers, (o: TimelineResolvedObject) => {
 				try {
 					if (o.content.callBack || o.content.callBackStopped) {
-						let callBackId = (
+						const callBackId = (
 							o.id +
 							o.content.callBack +
 							o.content.callBackStopped +
@@ -681,8 +681,10 @@ export class Conductor extends EventEmitter {
 							callBackData: o.content.callBackData
 						}
 						if (o.content.callBack && o.resolved.startTime) {
+							// Check if it will have been cleared from the doOnTime queue
+							const hasBeenSent = !!o.resolved.startTime && o.resolved.startTime < tlState.time
 							this._doOnTime.queue(o.resolved.startTime, () => {
-								if (!sentCallbacksOld[callBackId]) {
+								if (!hasBeenSent || !sentCallbacksOld[callBackId]) {
 									// Object has started playing
 									this._queueCallback({
 										type: 'start',
