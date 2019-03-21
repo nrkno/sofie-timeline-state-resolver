@@ -58,7 +58,8 @@ export class AbstractDevice extends DeviceWithState<TimelineState> {
 	handleState (newState: TimelineState) {
 		// Handle this new state, at the point in time specified
 
-		let oldState: TimelineState = (this.getStateBefore(newState.time) || { state: { time: 0, LLayers: {}, GLayers: {} } }).state
+		let previousStateTime = Math.max(this.getCurrentTime(), newState.time)
+		let oldState: TimelineState = (this.getStateBefore(previousStateTime) || { state: { time: 0, LLayers: {}, GLayers: {} } }).state
 
 		let oldAbstractState = this.convertStateToAbstract(oldState)
 		let newAbstractState = this.convertStateToAbstract(newState)
@@ -66,7 +67,7 @@ export class AbstractDevice extends DeviceWithState<TimelineState> {
 		let commandsToAchieveState: Array<Command> = this._diffStates(oldAbstractState, newAbstractState)
 
 		// clear any queued commands later than this time:
-		this._doOnTime.clearQueueNowAndAfter(newState.time)
+		this._doOnTime.clearQueueNowAndAfter(previousStateTime)
 		// add the new commands to the queue:
 		this._addToQueue(commandsToAchieveState, newState.time)
 

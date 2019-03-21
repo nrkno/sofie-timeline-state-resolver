@@ -118,7 +118,8 @@ export class PharosDevice extends DeviceWithState<TimelineState> {
 	handleState (newState: TimelineState) {
 		// Handle this new state, at the point in time specified
 
-		let oldState: TimelineState = (this.getStateBefore(newState.time) || { state: { time: 0, LLayers: {}, GLayers: {} } }).state
+		let previousStateTime = Math.max(this.getCurrentTime(), newState.time)
+		let oldState: TimelineState = (this.getStateBefore(previousStateTime) || { state: { time: 0, LLayers: {}, GLayers: {} } }).state
 
 		let oldPharosState = this.convertStateToPharos(oldState)
 		let newPharosState = this.convertStateToPharos(newState)
@@ -126,7 +127,7 @@ export class PharosDevice extends DeviceWithState<TimelineState> {
 		let commandsToAchieveState: Array<Command> = this._diffStates(oldPharosState, newPharosState)
 
 		// clear any queued commands later than this time:
-		this._doOnTime.clearQueueNowAndAfter(newState.time)
+		this._doOnTime.clearQueueNowAndAfter(previousStateTime)
 		// add the new commands to the queue:
 		this._addToQueue(commandsToAchieveState, newState.time)
 
