@@ -859,10 +859,10 @@ atem-connection@^0.9.0:
     tslib "^1.9.0"
     wavefile "^8.4.4"
 
-atem-state@^0.4.1:
-  version "0.4.1"
-  resolved "https://registry.yarnpkg.com/atem-state/-/atem-state-0.4.1.tgz#e91643f98a14e42808d19b228191698d9c7586fb"
-  integrity sha512-kYKVMAVqGwoZlueI2ejrJO3hkoSfvPHJjOblmTLJ2bb692EQw5fLEWtwI//dno3VIVzFnwB5NITKwxvw+mQBnw==
+atem-state@^0.5.0:
+  version "0.5.0"
+  resolved "https://registry.yarnpkg.com/atem-state/-/atem-state-0.5.0.tgz#22bd5babe220c9f70c8f06a94f4a19e2581fcaaa"
+  integrity sha512-7kP6ZqDwU4thRomOnjF/HL+ac0XGWFS5djV4XHFuxZlmzlKyYLSgmCI66o6XhjzbEpjfqQp9Nn6USYKAdfVBLA==
   dependencies:
     atem-connection "^0.9.0"
     tslib "^1.9.2"
