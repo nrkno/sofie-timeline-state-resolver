@@ -229,6 +229,16 @@ export class AtemDevice extends DeviceWithState<DeviceState> {
 								if (ms) deepExtend(ms, content.attributes)
 							}
 							break
+						case MappingAtemType.AudioChannel:
+							if (content.type === TimelineContentTypeAtem.AUDIOCHANNEL) {
+								const chan = deviceState.audio.channels[mapping.index]
+								if (chan) {
+									deviceState.audio.channels[mapping.index] = {
+										...chan,
+										...content.attributes
+									}
+								}
+							}
 					}
 				}
 
@@ -329,6 +339,9 @@ export class AtemDevice extends DeviceWithState<DeviceState> {
 		}
 		if (this._atem.state.video.superSourceProperties) {
 			deviceState.video.superSourceProperties = JSON.parse(JSON.stringify(StateDefault.Video.SuperSourceProperties))
+		}
+		for (const i of Object.keys(this._atem.state.audio.channels)) {
+			deviceState.audio.channels[i] = JSON.parse(JSON.stringify(StateDefault.Audio.Channel))
 		}
 
 		return deviceState
