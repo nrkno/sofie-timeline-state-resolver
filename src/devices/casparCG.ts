@@ -157,7 +157,8 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> {
 		// console.log('handleState', newState)
 		this.emit('debug', 'handleState', newState)
 
-		let oldState = (this.getStateBefore(newState.time) || { state: { time: 0, LLayers: {}, GLayers: {} } }).state
+		let previousStateTime = Math.max(this.getCurrentTime(), newState.time)
+		let oldState = (this.getStateBefore(previousStateTime) || { state: { time: 0, LLayers: {}, GLayers: {} } }).state
 
 		let newCasparState = this.convertStateToCaspar(newState)
 		let oldCasparState = this.convertStateToCaspar(oldState)
@@ -170,7 +171,7 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> {
 		if (this._useScheduling) {
 			this._clearScheduledFutureCommands(newState.time, commandsToAchieveState)
 		} else {
-			this._doOnTime.clearQueueNowAndAfter(newState.time)
+			this._doOnTime.clearQueueNowAndAfter(previousStateTime)
 		}
 		// add the new commands to the queue:
 		this._addToQueue(commandsToAchieveState, newState.time)

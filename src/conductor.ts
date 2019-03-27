@@ -54,6 +54,7 @@ export interface ConductorOptions {
 	multiThreadedResolver?: boolean
 }
 interface TimelineCallback {
+	time: number
 	id: string
 	callBack?: string
 	callBackStopped?: string
@@ -590,6 +591,10 @@ export class Conductor extends EventEmitter {
 			let sentCallbacksOld: TimelineCallbacks = this._sentCallbacks
 			let sentCallbacksNew: TimelineCallbacks = {}
 			this._doOnTime.clearQueueNowAndAfter(tlState.time)
+
+			_.each(sentCallbacksOld, (o: TimelineCallback, callbackId: string) => {
+				if (o.time >= tlState.time) delete sentCallbacksOld[callbackId]
+			})
 			_.each(tlState.GLayers, (o: TimelineResolvedObject) => {
 				try {
 					if (o.content.callBack || o.content.callBackStopped) {
@@ -601,6 +606,7 @@ export class Conductor extends EventEmitter {
 							JSON.stringify(o.content.callBackData)
 						)
 						sentCallbacksNew[callBackId] = {
+							time: o.resolved.startTime || 0,
 							id: o.id,
 							callBack: o.content.callBack,
 							callBackStopped: o.content.callBackStopped,

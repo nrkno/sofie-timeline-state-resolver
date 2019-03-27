@@ -25,9 +25,9 @@
 		"ME": [
 			{
 				"transitionProperties": {
-					"style": 2,
+					"style": 0,
 					"selection": 1,
-					"nextStyle": 2,
+					"nextStyle": 0,
 					"nextSelection": 1
 				},
 				"transitionSettings": {
@@ -332,9 +332,9 @@
 			},
 			{
 				"transitionProperties": {
-					"style": 3,
+					"style": 0,
 					"selection": 1,
-					"nextStyle": 3,
+					"nextStyle": 0,
 					"nextSelection": 1
 				},
 				"transitionSettings": {
