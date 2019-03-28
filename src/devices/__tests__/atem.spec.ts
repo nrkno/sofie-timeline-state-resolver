@@ -304,7 +304,7 @@ describe('Atem', () => {
 		}), {
 			getCurrentTime: mockTime.getCurrentTime
 		})
-		device.mapping = myLayerMapping
+		device.setMapping(myLayerMapping)
 		// device.on('info', console.log)
 
 		await device.init(literal<AtemOptions>({
