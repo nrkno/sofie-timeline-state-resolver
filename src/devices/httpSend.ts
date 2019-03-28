@@ -63,7 +63,8 @@ export class HttpSendDevice extends DeviceWithState<TimelineState> {
 
 		// console.log('handleState')
 
-		let oldState: TimelineState = (this.getStateBefore(newState.time) || { state: { time: 0, LLayers: {}, GLayers: {} } }).state
+		let previousStateTime = Math.max(this.getCurrentTime(), newState.time)
+		let oldState: TimelineState = (this.getStateBefore(previousStateTime) || { state: { time: 0, LLayers: {}, GLayers: {} } }).state
 
 		let oldAbstractState = this.convertStateToHttpSend(oldState)
 		let newAbstractState = this.convertStateToHttpSend(newState)
@@ -71,7 +72,7 @@ export class HttpSendDevice extends DeviceWithState<TimelineState> {
 		let commandsToAchieveState: Array<any> = this._diffStates(oldAbstractState, newAbstractState)
 
 		// clear any queued commands later than this time:
-		this._doOnTime.clearQueueNowAndAfter(newState.time)
+		this._doOnTime.clearQueueNowAndAfter(previousStateTime)
 		// add the new commands to the queue:
 		this._addToQueue(commandsToAchieveState, newState.time)
 

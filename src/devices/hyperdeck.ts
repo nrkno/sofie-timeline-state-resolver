@@ -138,7 +138,9 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> {
 			this.emit('info', 'Hyperdeck not initialized yet')
 			return
 		}
-		let oldState: DeviceState = (this.getStateBefore(newState.time) || { state: this._getDefaultState() }).state
+
+		let previousStateTime = Math.max(this.getCurrentTime(), newState.time)
+		let oldState: DeviceState = (this.getStateBefore(previousStateTime) || { state: this._getDefaultState() }).state
 
 		let oldHyperdeckState = oldState
 		let newHyperdeckState = this.convertStateToHyperdeck(newState)
@@ -146,7 +148,7 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> {
 		let commandsToAchieveState: Array<HyperdeckCommandWithContext> = this._diffStates(oldHyperdeckState, newHyperdeckState)
 
 		// clear any queued commands later than this time:
-		this._doOnTime.clearQueueNowAndAfter(newState.time)
+		this._doOnTime.clearQueueNowAndAfter(previousStateTime)
 		// add the new commands to the queue:
 		this._addToQueue(commandsToAchieveState, newState.time)
 
