@@ -52,7 +52,7 @@ let a = async function () {
 				duration: 60 * 1000,
 				LLayer: 'layer0',
 				content: {
-					type: TimelineContentTypeCasparCg.VIDEO,
+					type: TimelineContentTypeCasparCg.MEDIA,
 					attributes: {
 						file: 'AMB',
 						loop: true
@@ -72,7 +72,7 @@ let a = async function () {
 					duration: 60 * 1000,
 					LLayer: 'layer0',
 					content: {
-						type: TimelineContentTypeCasparCg.VIDEO,
+						type: TimelineContentTypeCasparCg.MEDIA,
 						attributes: {
 							file: 'CG1080i50',
 							loop: true
@@ -88,7 +88,7 @@ let a = async function () {
 					duration: 60 * 1000,
 					LLayer: 'layer0',
 					content: {
-						type: TimelineContentTypeCasparCg.VIDEO,
+						type: TimelineContentTypeCasparCg.MEDIA,
 						attributes: {
 							file: 'AMB',
 							loop: true

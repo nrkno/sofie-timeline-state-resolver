@@ -80,7 +80,7 @@ describe('CasparCG', () => {
 				duration: 2000,
 				LLayer: 'myLayer0',
 				content: {
-					type: TimelineContentTypeCasparCg.VIDEO,
+					type: TimelineContentTypeCasparCg.MEDIA,
 					attributes: {
 						file: 'AMB',
 						loop: true
@@ -680,7 +680,7 @@ describe('CasparCG', () => {
 				duration: 2000,
 				LLayer: 'myLayer0',
 				content: {
-					type: TimelineContentTypeCasparCg.VIDEO, // more to be implemented later!
+					type: TimelineContentTypeCasparCg.MEDIA, // more to be implemented later!
 					attributes: {
 						file: 'AMB'
 					},
@@ -781,7 +781,7 @@ describe('CasparCG', () => {
 				duration: 12000, // 12s
 				LLayer: 'myLayer0',
 				content: {
-					type: TimelineContentTypeCasparCg.VIDEO, // more to be implemented later!
+					type: TimelineContentTypeCasparCg.MEDIA, // more to be implemented later!
 					attributes: {
 						file: 'AMB',
 						loop: true
@@ -923,7 +923,7 @@ describe('CasparCG', () => {
 				isBackground: true,
 				LLayer: 'myLayer0',
 				content: {
-					type: TimelineContentTypeCasparCg.VIDEO,
+					type: TimelineContentTypeCasparCg.MEDIA,
 					attributes: {
 						file: 'AMB',
 						loop: true
@@ -939,7 +939,7 @@ describe('CasparCG', () => {
 				duration: 2000,
 				LLayer: 'myLayer0',
 				content: {
-					type: TimelineContentTypeCasparCg.VIDEO,
+					type: TimelineContentTypeCasparCg.MEDIA,
 					attributes: {
 						file: 'AMB',
 						loop: true
@@ -1026,7 +1026,7 @@ describe('CasparCG', () => {
 				duration: 1200, // 11200
 				LLayer: 'myLayer0',
 				content: {
-					type: TimelineContentTypeCasparCg.VIDEO,
+					type: TimelineContentTypeCasparCg.MEDIA,
 					attributes: {
 						file: 'AMB',
 						loop: true
@@ -1042,7 +1042,7 @@ describe('CasparCG', () => {
 				duration: 2000, // 13200
 				LLayer: 'myLayer0',
 				content: {
-					type: TimelineContentTypeCasparCg.VIDEO,
+					type: TimelineContentTypeCasparCg.MEDIA,
 					attributes: {
 						file: 'AMB',
 						loop: true

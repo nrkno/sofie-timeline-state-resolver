@@ -27,8 +27,7 @@ export enum TimelineContentTypeCasparCg { //  CasparCG-state
 	RECORD = 'record'
 }
 
-export type TimelineObjCCGAny = TimelineObjCCGAudio
-	| TimelineObjCCGVideo
+export type TimelineObjCCGAny = TimelineObjCCGMedia
 	| TimelineObjCCGInput
 	| TimelineObjCCGHTMLPage
 	| TimelineObjCCGRecord
@@ -55,21 +54,9 @@ export interface TimelineObjCCGProducerContentBase {
 	mixer?: Mixer
 }
 
-export interface TimelineObjCCGAudio extends TimelineObject {
+export interface TimelineObjCCGMedia extends TimelineObject {
 	content: {
-		type: TimelineContentTypeCasparCg.AUDIO
-		attributes: {
-			file: string
-			loop?: boolean
-			audioFilter?: string
-			channelLayout?: string
-		}
-	} & TimelineObjCCGProducerContentBase
-}
-
-export interface TimelineObjCCGVideo extends TimelineObject {
-	content: {
-		type: TimelineContentTypeCasparCg.VIDEO
+		type: TimelineContentTypeCasparCg.MEDIA
 		attributes: {
 			file: string
 			loop?: boolean
