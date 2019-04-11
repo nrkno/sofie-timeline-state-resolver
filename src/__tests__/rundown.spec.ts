@@ -6,6 +6,8 @@ import {
 } from '../types/src'
 import { Conductor } from '../conductor'
 import { MockTime } from './mockTime.spec'
+import * as _ from 'underscore'
+import { getMockCall } from './lib.spec'
 
 // let nowActual: number = Date.now()
 
@@ -135,7 +137,7 @@ describe('Rundown', () => {
 			{
 				id: 'bg_item1_0',
 				content: {
-					type: 'video',
+					type: 'media',
 					attributes: {
 						file: 'BG1',
 						loop: true
@@ -151,7 +153,7 @@ describe('Rundown', () => {
 			{
 				id: 'opener_clip_short',
 				content: {
-					type: 'video',
+					type: 'media',
 					attributes: {
 						file: 'opener_short'
 					},
@@ -217,7 +219,7 @@ describe('Rundown', () => {
 			{
 				id: 'stinger_opener_1_bg',
 				content: {
-					type: 'video',
+					type: 'media',
 					attributes: {
 						file: 'stinger1'
 					}
@@ -233,7 +235,7 @@ describe('Rundown', () => {
 			{
 				id: 'stinger_opener_1',
 				content: {
-					type: 'video',
+					type: 'media',
 					attributes: {
 						file: 'stinger1'
 					}
@@ -264,7 +266,7 @@ describe('Rundown', () => {
 			{
 				id: 'bg_item2_0_bg',
 				content: {
-					type: 'video',
+					type: 'media',
 					attributes: {
 						file: 'BG2',
 						loop: true
@@ -281,7 +283,7 @@ describe('Rundown', () => {
 			{
 				id: 'bg_item2_0',
 				content: {
-					type: 'video',
+					type: 'media',
 					attributes: {
 						file: 'BG2',
 						loop: true
@@ -297,7 +299,7 @@ describe('Rundown', () => {
 			{
 				id: 'opener_full_bg',
 				content: {
-					type: 'video',
+					type: 'media',
 					attributes: {
 						file: 'opener_full'
 					},
@@ -319,7 +321,7 @@ describe('Rundown', () => {
 			{
 				id: 'opener_full',
 				content: {
-					type: 'video',
+					type: 'media',
 					attributes: {
 						file: 'opener_full'
 					},
@@ -338,7 +340,6 @@ describe('Rundown', () => {
 				LLayer: 'gfx'
 			}
 		]
-
 		await mockTime.advanceTimeToTicks(10101)
 
 		expect(mockTime.getCurrentTime()).toEqual(10101)
@@ -349,8 +350,11 @@ describe('Rundown', () => {
 		// PLAY 3-10 DECKLINK 3
 		// PLAY 3-20 DECKLINK 4
 		commandReceiver0Calls += 7
+		_.each(commandReceiver0.mock.calls, c => console.log(c[1].name, c[1]._objectParams))
 		expect(commandReceiver0).toHaveBeenCalledTimes(commandReceiver0Calls)
 		expect(commandReceiver0.mock.calls[commandReceiver0Calls - 7][1].name).toEqual('PlayRouteCommand')
+		expect(getMockCall(commandReceiver0, commandReceiver0Calls - 7, 1).name).toEqual('PlayRouteCommand')
+
 		expect(commandReceiver0.mock.calls[commandReceiver0Calls - 7][1]._objectParams.command).toEqual('PLAY 1-10 route://3-10')
 		expect(commandReceiver0.mock.calls[commandReceiver0Calls - 6][1].name).toEqual('PlayCommand')
 		expect(commandReceiver0.mock.calls[commandReceiver0Calls - 6][1]._objectParams).toMatchObject({

@@ -252,8 +252,6 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> {
 
 				let stateLayer: StateNS.ILayerBase | null = null
 				if (
-					layer.content.type === TimelineContentTypeCasparCg.VIDEO || // to be deprecated & replaced by MEDIA
-					layer.content.type === TimelineContentTypeCasparCg.AUDIO || // to be deprecated & replaced by MEDIA
 					layer.content.type === TimelineContentTypeCasparCg.MEDIA
 				) {
 					const mediaObj = layer as TimelineObjCCGMedia & TimelineResolvedObjectExtended
@@ -379,8 +377,6 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> {
 					if (baseContent.transitions) {
 						switch (baseContent.type) {
 							case TimelineContentTypeCasparCg.MEDIA:
-							case TimelineContentTypeCasparCg.VIDEO:
-							case TimelineContentTypeCasparCg.AUDIO:
 							case TimelineContentTypeCasparCg.IP:
 							case TimelineContentTypeCasparCg.TEMPLATE:
 							case TimelineContentTypeCasparCg.INPUT:

@@ -16,8 +16,6 @@ export interface CasparCGOptions {
 }
 
 export enum TimelineContentTypeCasparCg { //  CasparCG-state
-	VIDEO = 'video', // to be deprecated & replaced by MEDIA
-	AUDIO = 'audio', // to be deprecated & replaced by MEDIA
 	MEDIA = 'media',
 	IP = 'ip',
 	INPUT = 'input',

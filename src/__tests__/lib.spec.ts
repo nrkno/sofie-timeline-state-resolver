@@ -1,5 +1,6 @@
-import { getDiff } from '../lib'
 import * as _ from 'underscore'
+import * as objectPath from 'object-path'
+import { getDiff } from '../lib'
 
 describe('equal', () => {
 	/*
@@ -423,3 +424,6 @@ describe('equal', () => {
 
 	// testEqual(0).toEqual(1)
 })
+export function getMockCall<T> (fcn: jest.Mock<T>, callIndex: number, paramIndex: number): any {
+	return fcn.mock.calls[callIndex][paramIndex]
+}
