@@ -12,6 +12,7 @@ import {
 import { MockTime } from '../../__tests__/mockTime.spec'
 import { literal } from '../device'
 import { ThreadedClass } from 'threadedclass'
+import { getMockCall } from '../../__tests__/lib.spec'
 
 // let nowActual = Date.now()
 describe('OSC-Message', () => {
@@ -89,7 +90,7 @@ describe('OSC-Message', () => {
 		await mockTime.advanceTimeToTicks(11100)
 
 		expect(commandReceiver0).toHaveBeenCalledTimes(1)
-		expect(commandReceiver0.mock.calls[0][1]).toMatchObject(
+		expect(getMockCall(commandReceiver0, 0, 1)).toMatchObject(
 			{
 				type: TimelineContentTypeOSC.OSC,
 				path: '/test-path',
@@ -108,7 +109,7 @@ describe('OSC-Message', () => {
 				}]
 			}
 		)
-		expect(commandReceiver0.mock.calls[0][2]).toMatch(/added/) // context
+		expect(getMockCall(commandReceiver0, 0, 2)).toMatch(/added/) // context
 		await mockTime.advanceTimeToTicks(16000)
 		expect(commandReceiver0).toHaveBeenCalledTimes(1)
 	})

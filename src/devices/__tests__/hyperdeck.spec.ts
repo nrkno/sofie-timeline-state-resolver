@@ -15,6 +15,7 @@ import {
 } from '../../types/src'
 import { MockTime } from '../../__tests__/mockTime.spec'
 import { ThreadedClass } from 'threadedclass'
+import { getMockCall } from '../../__tests__/lib.spec'
 
 let myChannelMapping0: MappingHyperdeck = {
 	device: DeviceType.HYPERDECK,
@@ -117,14 +118,14 @@ describe('Hyperdeck', () => {
 		await mockTime.advanceTimeToTicks(10200)
 
 		expect(commandReceiver0).toHaveBeenCalledTimes(1)
-		expect(commandReceiver0.mock.calls[0][1]).toBeInstanceOf(RecordCommand)
-		expect(commandReceiver0.mock.calls[0][1]).toHaveProperty('filename', 'sofie_dev')
-		expect(commandReceiver0.mock.calls[0][2]).toBeTruthy() // context
+		expect(getMockCall(commandReceiver0, 0, 1)).toBeInstanceOf(RecordCommand)
+		expect(getMockCall(commandReceiver0, 0, 1)).toHaveProperty('filename', 'sofie_dev')
+		expect(getMockCall(commandReceiver0, 0, 2)).toBeTruthy() // context
 		// also test the actual command sent to hyperdeck:
 		expect(hyperdeckMockCommand).toHaveBeenCalledTimes(1)
 		// @todo: fix this test:
-		// expect(hyperdeckMockCommand.mock.calls[0][0]).toBeInstanceOf(RecordCommand)
-		expect(hyperdeckMockCommand.mock.calls[0][0]).toMatchObject({
+		// expect(getMockCall(hyperdeckMockCommand, 0, 0)).toBeInstanceOf(RecordCommand)
+		expect(getMockCall(hyperdeckMockCommand, 0, 0)).toMatchObject({
 			filename: 'sofie_dev'
 		})
 
@@ -135,8 +136,8 @@ describe('Hyperdeck', () => {
 		await mockTime.advanceTimeToTicks(12000)
 
 		expect(commandReceiver0).toHaveBeenCalledTimes(2)
-		expect(commandReceiver0.mock.calls[1][1]).toBeInstanceOf(StopCommand)
-		expect(commandReceiver0.mock.calls[1][2]).toBeTruthy() // context
+		expect(getMockCall(commandReceiver0, 1, 1)).toBeInstanceOf(StopCommand)
+		expect(getMockCall(commandReceiver0, 1, 2)).toBeTruthy() // context
 
 		await mockTime.advanceTimeToTicks(13000)
 		expect(commandReceiver0).toHaveBeenCalledTimes(2)

@@ -11,6 +11,7 @@ import { MockTime } from './mockTime.spec'
 import { ThreadedClass } from 'threadedclass'
 import { AbstractDevice } from '../devices/abstract'
 import { HyperdeckDevice } from '../devices/hyperdeck'
+import { getMockCall } from './lib.spec'
 
 // let nowActual: number = Date.now()
 // process.on('unhandledRejection', (reason, p) => {
@@ -118,8 +119,8 @@ describe('Conductor', () => {
 		await mockTime.advanceTimeTicks(500) // to time 10500
 
 		expect(commandReceiver0).toHaveBeenCalledTimes(1)
-		expect(commandReceiver0.mock.calls[0][0]).toEqual(10000)
-		expect(commandReceiver0.mock.calls[0][1]).toMatchObject({
+		expect(getMockCall(commandReceiver0, 0, 0)).toEqual(10000)
+		expect(getMockCall(commandReceiver0, 0, 1)).toMatchObject({
 			commandName: 'addedAbstract',
 			content: {
 				GLayer: 'myLayer0',
@@ -128,7 +129,7 @@ describe('Conductor', () => {
 			}
 
 		})
-		expect(commandReceiver0.mock.calls[0][2]).toEqual('added: a0') // context
+		expect(getMockCall(commandReceiver0, 0, 2)).toEqual('added: a0') // context
 		expect(commandReceiver1).toHaveBeenCalledTimes(0)
 
 		commandReceiver0.mockClear()
@@ -137,8 +138,8 @@ describe('Conductor', () => {
 		// expect(device0['queue']).toHaveLength(0)
 
 		expect(commandReceiver0).toHaveBeenCalledTimes(1)
-		expect(commandReceiver0.mock.calls[0][0]).toEqual(11000)
-		expect(commandReceiver0.mock.calls[0][1]).toMatchObject({
+		expect(getMockCall(commandReceiver0, 0, 0)).toEqual(11000)
+		expect(getMockCall(commandReceiver0, 0, 1)).toMatchObject({
 			commandName: 'removedAbstract',
 			content: {
 				GLayer: 'myLayer0',
@@ -146,10 +147,10 @@ describe('Conductor', () => {
 				myAttr2: 'two'
 			}
 		})
-		expect(commandReceiver0.mock.calls[0][2]).toEqual('removed: a0') // context
+		expect(getMockCall(commandReceiver0, 0, 2)).toEqual('removed: a0') // context
 		expect(commandReceiver1).toHaveBeenCalledTimes(1)
-		expect(commandReceiver1.mock.calls[0][0]).toEqual(11000)
-		expect(commandReceiver1.mock.calls[0][1]).toMatchObject({
+		expect(getMockCall(commandReceiver1, 0, 0)).toEqual(11000)
+		expect(getMockCall(commandReceiver1, 0, 1)).toMatchObject({
 			commandName: 'addedAbstract',
 			content: {
 				GLayer: 'myLayer1',
@@ -164,8 +165,8 @@ describe('Conductor', () => {
 
 		expect(commandReceiver0).toHaveBeenCalledTimes(0)
 		expect(commandReceiver1).toHaveBeenCalledTimes(1)
-		expect(commandReceiver1.mock.calls[0][0]).toEqual(12000)
-		expect(commandReceiver1.mock.calls[0][1]).toMatchObject({
+		expect(getMockCall(commandReceiver1, 0, 0)).toEqual(12000)
+		expect(getMockCall(commandReceiver1, 0, 1)).toMatchObject({
 			commandName: 'removedAbstract',
 			content: {
 				GLayer: 'myLayer1',
@@ -173,7 +174,7 @@ describe('Conductor', () => {
 				myAttr2: 'four'
 			}
 		})
-		expect(commandReceiver1.mock.calls[0][2]).toEqual('removed: a1') // context
+		expect(getMockCall(commandReceiver1, 0, 2)).toEqual('removed: a1') // context
 
 		await conductor.removeDevice('device1')
 		expect(conductor.getDevice('device1')).toBeFalsy()
@@ -292,7 +293,7 @@ describe('Conductor', () => {
 
 		// the setTimelineTriggerTime event should have been emitted:
 		expect(setTimelineTriggerTime).toHaveBeenCalledTimes(1)
-		expect(setTimelineTriggerTime.mock.calls[0][0][0].time).toEqual(10000)
+		expect(getMockCall(setTimelineTriggerTime, 0, 0)[0].time).toEqual(10000)
 
 		// the timelineCallback event should have been emitted:
 		expect(timelineCallback).toHaveBeenCalledTimes(0)
@@ -307,10 +308,10 @@ describe('Conductor', () => {
 
 		expect(commandReceiver0).toHaveBeenCalledTimes(2)
 		expect(timelineCallback).toHaveBeenCalledTimes(1)
-		expect(timelineCallback.mock.calls[0][0]).toEqual(10300)
-		expect(timelineCallback.mock.calls[0][1]).toEqual('a1')
-		expect(timelineCallback.mock.calls[0][2]).toEqual('abc')
-		expect(timelineCallback.mock.calls[0][3]).toEqual({ hello: 'dude' })
+		expect(getMockCall(timelineCallback, 0, 0)).toEqual(10300)
+		expect(getMockCall(timelineCallback, 0, 1)).toEqual('a1')
+		expect(getMockCall(timelineCallback, 0, 2)).toEqual('abc')
+		expect(getMockCall(timelineCallback, 0, 3)).toEqual({ hello: 'dude' })
 
 		await mockTime.advanceTimeToTicks(15500)
 
@@ -378,32 +379,32 @@ describe('Conductor', () => {
 
 		// expect(commandReceiver1).toHaveBeenCalledTimes(3)
 		expect(commandReceiver1.mock.calls).toHaveLength(3)
-		// expect(commandReceiver1.mock.calls[0][1].name).toEqual('TimeCommand')
-		// expect(commandReceiver1.mock.calls[0][1]._objectParams).toMatchObject({
+		// expect(getMockCall(commandReceiver1, 0, 1).name).toEqual('TimeCommand')
+		// expect(getMockCall(commandReceiver1, 0, 1)._objectParams).toMatchObject({
 		// 	channel: 1,
 		// 	timecode: '00:00:10:00'
 		// })
-		// expect(commandReceiver1.mock.calls[1][1].name).toEqual('TimeCommand')
-		// expect(commandReceiver1.mock.calls[1][1]._objectParams).toMatchObject({
+		// expect(getMockCall(commandReceiver1, 1, 1).name).toEqual('TimeCommand')
+		// expect(getMockCall(commandReceiver1, 1, 1)._objectParams).toMatchObject({
 		// 	channel: 2,
 		// 	timecode: '00:00:10:00'
 		// })
-		// expect(commandReceiver1.mock.calls[2][1].name).toEqual('TimeCommand')
-		// expect(commandReceiver1.mock.calls[2][1]._objectParams).toMatchObject({
+		// expect(getMockCall(commandReceiver1, 2, 1).name).toEqual('TimeCommand')
+		// expect(getMockCall(commandReceiver1, 2, 1)._objectParams).toMatchObject({
 		// 	channel: 3,
 		// 	timecode: '00:00:10:00'
 		// })
 
-		expect(commandReceiver1.mock.calls[0][1].name).toEqual('ClearCommand')
-		expect(commandReceiver1.mock.calls[0][1]._objectParams).toMatchObject({
+		expect(getMockCall(commandReceiver1, 0, 1).name).toEqual('ClearCommand')
+		expect(getMockCall(commandReceiver1, 0, 1)._objectParams).toMatchObject({
 			channel: 1
 		})
-		expect(commandReceiver1.mock.calls[1][1].name).toEqual('ClearCommand')
-		expect(commandReceiver1.mock.calls[1][1]._objectParams).toMatchObject({
+		expect(getMockCall(commandReceiver1, 1, 1).name).toEqual('ClearCommand')
+		expect(getMockCall(commandReceiver1, 1, 1)._objectParams).toMatchObject({
 			channel: 2
 		})
-		expect(commandReceiver1.mock.calls[2][1].name).toEqual('ClearCommand')
-		expect(commandReceiver1.mock.calls[2][1]._objectParams).toMatchObject({
+		expect(getMockCall(commandReceiver1, 2, 1).name).toEqual('ClearCommand')
+		expect(getMockCall(commandReceiver1, 2, 1)._objectParams).toMatchObject({
 			channel: 3
 		})
 	})

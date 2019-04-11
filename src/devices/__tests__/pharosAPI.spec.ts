@@ -20,6 +20,7 @@ import {
 	Triggers,
 	Protocol
 } from '../pharosAPI'
+import { getMockCall } from '../../__tests__/lib.spec'
 const WebSocket = require('../../__mocks__/ws')
 const request = require('../../__mocks__/request')
 
@@ -333,7 +334,7 @@ describe('PharosAPI', () => {
 		expect(pharos.connected).toEqual(false)
 		expect(onDisconnected).toHaveBeenCalledTimes(1)
 		expect(onError).toHaveBeenCalledTimes(1)
-		expect(onError.mock.calls[0][0].toString()).toMatch(/timeout/i)
+		expect(getMockCall(onError, 0, 0).toString()).toMatch(/timeout/i)
 
 		// Successful reconnection attempt:
 		allowSocketConnected = true
@@ -413,7 +414,7 @@ describe('PharosAPI', () => {
 		.catch(onCatch)
 		await pharos.dispose()
 		expect(onCatch).toHaveBeenCalledTimes(1)
-		expect(onCatch.mock.calls[0][0]).toMatch(/disposing/i)
+		expect(getMockCall(onCatch, 0, 0)).toMatch(/disposing/i)
 
 	})
 	test('Basic methods', async () => {
@@ -738,48 +739,48 @@ describe('PharosAPI', () => {
 
 		await pharos.releaseAll('group0', 20)
 		expect(onPost).toHaveBeenCalledTimes(1)
-		expect(onPost.mock.calls[0][0]).toEqual('http://127.0.0.1/api/release_all')
-		expect(onPost.mock.calls[0][1]).toMatchObject({
+		expect(getMockCall(onPost, 0, 0)).toEqual('http://127.0.0.1/api/release_all')
+		expect(getMockCall(onPost, 0, 1)).toMatchObject({
 			group: 'group0', fade: 20
 		})
 		onPost.mockClear()
 
 		await pharos.pauseAll()
 		expect(onPost).toHaveBeenCalledTimes(1)
-		expect(onPost.mock.calls[0][0]).toEqual('http://127.0.0.1/api/timeline')
-		expect(onPost.mock.calls[0][1]).toMatchObject({
+		expect(getMockCall(onPost, 0, 0)).toEqual('http://127.0.0.1/api/timeline')
+		expect(getMockCall(onPost, 0, 1)).toMatchObject({
 			action: 'pause'
 		})
 		onPost.mockClear()
 
 		await pharos.resumeAll()
 		expect(onPost).toHaveBeenCalledTimes(1)
-		expect(onPost.mock.calls[0][0]).toEqual('http://127.0.0.1/api/timeline')
-		expect(onPost.mock.calls[0][1]).toMatchObject({
+		expect(getMockCall(onPost, 0, 0)).toEqual('http://127.0.0.1/api/timeline')
+		expect(getMockCall(onPost, 0, 1)).toMatchObject({
 			action: 'resume'
 		})
 		onPost.mockClear()
 
 		await pharos.fireTrigger(5, ['a', 'b'], true)
 		expect(onPost).toHaveBeenCalledTimes(1)
-		expect(onPost.mock.calls[0][0]).toEqual('http://127.0.0.1/api/trigger')
-		expect(onPost.mock.calls[0][1]).toMatchObject({
+		expect(getMockCall(onPost, 0, 0)).toEqual('http://127.0.0.1/api/trigger')
+		expect(getMockCall(onPost, 0, 1)).toMatchObject({
 			num: 5, var: 'a,b', conditions: true
 		})
 		onPost.mockClear()
 
 		await pharos.runCommand('scriptName01')
 		expect(onPost).toHaveBeenCalledTimes(1)
-		expect(onPost.mock.calls[0][0]).toEqual('http://127.0.0.1/api/cmdline')
-		expect(onPost.mock.calls[0][1]).toMatchObject({
+		expect(getMockCall(onPost, 0, 0)).toEqual('http://127.0.0.1/api/cmdline')
+		expect(getMockCall(onPost, 0, 1)).toMatchObject({
 			input: 'scriptName01'
 		})
 		onPost.mockClear()
 
 		await pharos.masterIntensity(3, 15, 20, 1)
 		expect(onPost).toHaveBeenCalledTimes(1)
-		expect(onPost.mock.calls[0][0]).toEqual('http://127.0.0.1/api/group')
-		expect(onPost.mock.calls[0][1]).toMatchObject({
+		expect(getMockCall(onPost, 0, 0)).toEqual('http://127.0.0.1/api/group')
+		expect(getMockCall(onPost, 0, 1)).toMatchObject({
 			action: 'master_intensity',
 			num: 3,
 			level: 15,
@@ -790,8 +791,8 @@ describe('PharosAPI', () => {
 
 		await pharos.masterContentTargetIntensity('primary', 15, 20, 1)
 		expect(onPost).toHaveBeenCalledTimes(1)
-		expect(onPost.mock.calls[0][0]).toEqual('http://127.0.0.1/api/content_target')
-		expect(onPost.mock.calls[0][1]).toMatchObject({
+		expect(getMockCall(onPost, 0, 0)).toEqual('http://127.0.0.1/api/content_target')
+		expect(getMockCall(onPost, 0, 1)).toMatchObject({
 			action: 'master_intensity',
 			type: 'primary',
 			level: 15,
@@ -802,7 +803,7 @@ describe('PharosAPI', () => {
 
 		await pharos.resetHardware()
 		expect(onPost).toHaveBeenCalledTimes(1)
-		expect(onPost.mock.calls[0][0]).toEqual('http://127.0.0.1/api/reset')
+		expect(getMockCall(onPost, 0, 0)).toEqual('http://127.0.0.1/api/reset')
 		onPost.mockClear()
 
 		await pharos.setGroupOverride(3, {
@@ -815,8 +816,8 @@ describe('PharosAPI', () => {
 			path: 'Default'
 		})
 		expect(onPut).toHaveBeenCalledTimes(1)
-		expect(onPut.mock.calls[0][0]).toEqual('http://127.0.0.1/api/override')
-		expect(onPut.mock.calls[0][1]).toMatchObject({
+		expect(getMockCall(onPut, 0, 0)).toEqual('http://127.0.0.1/api/override')
+		expect(getMockCall(onPut, 0, 1)).toMatchObject({
 			target: 'group',
 			num: 3,
 			intensity: 1,
@@ -831,8 +832,8 @@ describe('PharosAPI', () => {
 
 		await pharos.clearGroupOverrides(3, 2.1)
 		expect(onDelete).toHaveBeenCalledTimes(1)
-		expect(onDelete.mock.calls[0][0]).toEqual('http://127.0.0.1/api/override')
-		expect(onDelete.mock.calls[0][1]).toMatchObject({
+		expect(getMockCall(onDelete, 0, 0)).toEqual('http://127.0.0.1/api/override')
+		expect(getMockCall(onDelete, 0, 1)).toMatchObject({
 			target: 'group',
 			num: 3,
 			fade: 2.1
@@ -841,8 +842,8 @@ describe('PharosAPI', () => {
 
 		await pharos.clearGroupOverrides()
 		expect(onDelete).toHaveBeenCalledTimes(1)
-		expect(onDelete.mock.calls[0][0]).toEqual('http://127.0.0.1/api/override')
-		expect(onDelete.mock.calls[0][1]).toMatchObject({
+		expect(getMockCall(onDelete, 0, 0)).toEqual('http://127.0.0.1/api/override')
+		expect(getMockCall(onDelete, 0, 1)).toMatchObject({
 			target: 'group'
 		})
 		onDelete.mockClear()
@@ -857,8 +858,8 @@ describe('PharosAPI', () => {
 			path: 'Default'
 		})
 		expect(onPut).toHaveBeenCalledTimes(1)
-		expect(onPut.mock.calls[0][0]).toEqual('http://127.0.0.1/api/override')
-		expect(onPut.mock.calls[0][1]).toMatchObject({
+		expect(getMockCall(onPut, 0, 0)).toEqual('http://127.0.0.1/api/override')
+		expect(getMockCall(onPut, 0, 1)).toMatchObject({
 			target: 'fixture',
 			num: 3,
 			intensity: 1,
@@ -873,8 +874,8 @@ describe('PharosAPI', () => {
 
 		await pharos.clearFixtureOverrides(3, 2.1)
 		expect(onDelete).toHaveBeenCalledTimes(1)
-		expect(onDelete.mock.calls[0][0]).toEqual('http://127.0.0.1/api/override')
-		expect(onDelete.mock.calls[0][1]).toMatchObject({
+		expect(getMockCall(onDelete, 0, 0)).toEqual('http://127.0.0.1/api/override')
+		expect(getMockCall(onDelete, 0, 1)).toMatchObject({
 			target: 'fixture',
 			num: 3,
 			fade: 2.1
@@ -883,23 +884,23 @@ describe('PharosAPI', () => {
 
 		await pharos.clearFixtureOverrides()
 		expect(onDelete).toHaveBeenCalledTimes(1)
-		expect(onDelete.mock.calls[0][0]).toEqual('http://127.0.0.1/api/override')
-		expect(onDelete.mock.calls[0][1]).toMatchObject({
+		expect(getMockCall(onDelete, 0, 0)).toEqual('http://127.0.0.1/api/override')
+		expect(getMockCall(onDelete, 0, 1)).toMatchObject({
 			target: 'fixture'
 		})
 		onDelete.mockClear()
 
 		await pharos.clearAllOverrides()
 		expect(onDelete).toHaveBeenCalledTimes(1)
-		expect(onDelete.mock.calls[0][0]).toEqual('http://127.0.0.1/api/override')
-		expect(onDelete.mock.calls[0][1]).toMatchObject({
+		expect(getMockCall(onDelete, 0, 0)).toEqual('http://127.0.0.1/api/override')
+		expect(getMockCall(onDelete, 0, 1)).toMatchObject({
 		})
 		onDelete.mockClear()
 
 		await pharos.enableOutput(Protocol.DMX)
 		expect(onPost).toHaveBeenCalledTimes(1)
-		expect(onPost.mock.calls[0][0]).toEqual('http://127.0.0.1/api/output')
-		expect(onPost.mock.calls[0][1]).toMatchObject({
+		expect(getMockCall(onPost, 0, 0)).toEqual('http://127.0.0.1/api/output')
+		expect(getMockCall(onPost, 0, 1)).toMatchObject({
 			'action': 'enable',
 			'protocol': 'dmx'
 		})
@@ -907,8 +908,8 @@ describe('PharosAPI', () => {
 
 		await pharos.disableOutput(Protocol.DMX)
 		expect(onPost).toHaveBeenCalledTimes(1)
-		expect(onPost.mock.calls[0][0]).toEqual('http://127.0.0.1/api/output')
-		expect(onPost.mock.calls[0][1]).toMatchObject({
+		expect(getMockCall(onPost, 0, 0)).toEqual('http://127.0.0.1/api/output')
+		expect(getMockCall(onPost, 0, 1)).toMatchObject({
 			'action': 'disable',
 			'protocol': 'dmx'
 		})
@@ -916,8 +917,8 @@ describe('PharosAPI', () => {
 
 		await pharos.setTextSlot('slot1', 'myLittleValue')
 		expect(onPut).toHaveBeenCalledTimes(1)
-		expect(onPut.mock.calls[0][0]).toEqual('http://127.0.0.1/api/text_slot')
-		expect(onPut.mock.calls[0][1]).toMatchObject({
+		expect(getMockCall(onPut, 0, 0)).toEqual('http://127.0.0.1/api/text_slot')
+		expect(getMockCall(onPut, 0, 1)).toMatchObject({
 			name: 'slot1',
 			value: 'myLittleValue'
 		})
@@ -925,13 +926,13 @@ describe('PharosAPI', () => {
 
 		await pharos.flashBeacon()
 		expect(onPost).toHaveBeenCalledTimes(1)
-		expect(onPost.mock.calls[0][0]).toEqual('http://127.0.0.1/api/beacon')
+		expect(getMockCall(onPost, 0, 0)).toEqual('http://127.0.0.1/api/beacon')
 		onPost.mockClear()
 
 		await pharos.parkChannel('dmx:1', ['1-5',7], 128)
 		expect(onPost).toHaveBeenCalledTimes(1)
-		expect(onPost.mock.calls[0][0]).toEqual('http://127.0.0.1/api/channel')
-		expect(onPost.mock.calls[0][1]).toMatchObject({
+		expect(getMockCall(onPost, 0, 0)).toEqual('http://127.0.0.1/api/channel')
+		expect(getMockCall(onPost, 0, 1)).toMatchObject({
 			universe: 'dmx:1',
 			channels: '1-5,7',
 			level: 128
@@ -940,8 +941,8 @@ describe('PharosAPI', () => {
 
 		await pharos.unparkChannel('dmx:1', ['1-5',7])
 		expect(onDelete).toHaveBeenCalledTimes(1)
-		expect(onDelete.mock.calls[0][0]).toEqual('http://127.0.0.1/api/channel')
-		expect(onDelete.mock.calls[0][1]).toMatchObject({
+		expect(getMockCall(onDelete, 0, 0)).toEqual('http://127.0.0.1/api/channel')
+		expect(getMockCall(onDelete, 0, 1)).toMatchObject({
 			universe: 'dmx:1',
 			channels: '1-5,7'
 		})
@@ -949,13 +950,13 @@ describe('PharosAPI', () => {
 
 		let log = await pharos.getLog()
 		expect(onGet).toHaveBeenCalledTimes(1)
-		expect(onGet.mock.calls[0][0]).toEqual('http://127.0.0.1/api/log')
+		expect(getMockCall(onGet, 0, 0)).toEqual('http://127.0.0.1/api/log')
 		expect(log).toMatch(/my little log/i)
 		onGet.mockClear()
 
 		await pharos.clearLog()
 		expect(onDelete).toHaveBeenCalledTimes(1)
-		expect(onDelete.mock.calls[0][0]).toEqual('http://127.0.0.1/api/log')
+		expect(getMockCall(onDelete, 0, 0)).toEqual('http://127.0.0.1/api/log')
 		onDelete.mockClear()
 
 		await pharos.dispose()
@@ -1005,64 +1006,64 @@ describe('PharosAPI', () => {
 
 		await pharos.startTimeline(5)
 		expect(onPost).toHaveBeenCalledTimes(1)
-		expect(onPost.mock.calls[0][0]).toEqual('http://127.0.0.1/api/timeline')
-		expect(onPost.mock.calls[0][1]).toMatchObject({
+		expect(getMockCall(onPost, 0, 0)).toEqual('http://127.0.0.1/api/timeline')
+		expect(getMockCall(onPost, 0, 1)).toMatchObject({
 			action: 'start', num: 5
 		})
 		onPost.mockClear()
 
 		await pharos.releaseTimeline(5, 20)
 		expect(onPost).toHaveBeenCalledTimes(1)
-		expect(onPost.mock.calls[0][0]).toEqual('http://127.0.0.1/api/timeline')
-		expect(onPost.mock.calls[0][1]).toMatchObject({
+		expect(getMockCall(onPost, 0, 0)).toEqual('http://127.0.0.1/api/timeline')
+		expect(getMockCall(onPost, 0, 1)).toMatchObject({
 			action: 'release', num: 5, fade: 20
 		})
 		onPost.mockClear()
 
 		await pharos.toggleTimeline(5, 20)
 		expect(onPost).toHaveBeenCalledTimes(1)
-		expect(onPost.mock.calls[0][0]).toEqual('http://127.0.0.1/api/timeline')
-		expect(onPost.mock.calls[0][1]).toMatchObject({
+		expect(getMockCall(onPost, 0, 0)).toEqual('http://127.0.0.1/api/timeline')
+		expect(getMockCall(onPost, 0, 1)).toMatchObject({
 			action: 'toggle', num: 5, fade: 20
 		})
 		onPost.mockClear()
 
 		await pharos.pauseTimeline(5)
 		expect(onPost).toHaveBeenCalledTimes(1)
-		expect(onPost.mock.calls[0][0]).toEqual('http://127.0.0.1/api/timeline')
-		expect(onPost.mock.calls[0][1]).toMatchObject({
+		expect(getMockCall(onPost, 0, 0)).toEqual('http://127.0.0.1/api/timeline')
+		expect(getMockCall(onPost, 0, 1)).toMatchObject({
 			action: 'pause', num: 5
 		})
 		onPost.mockClear()
 
 		await pharos.resumeTimeline(5)
 		expect(onPost).toHaveBeenCalledTimes(1)
-		expect(onPost.mock.calls[0][0]).toEqual('http://127.0.0.1/api/timeline')
-		expect(onPost.mock.calls[0][1]).toMatchObject({
+		expect(getMockCall(onPost, 0, 0)).toEqual('http://127.0.0.1/api/timeline')
+		expect(getMockCall(onPost, 0, 1)).toMatchObject({
 			action: 'resume', num: 5
 		})
 		onPost.mockClear()
 
 		await pharos.releaseAllTimelines('group0', 20)
 		expect(onPost).toHaveBeenCalledTimes(1)
-		expect(onPost.mock.calls[0][0]).toEqual('http://127.0.0.1/api/timeline')
-		expect(onPost.mock.calls[0][1]).toMatchObject({
+		expect(getMockCall(onPost, 0, 0)).toEqual('http://127.0.0.1/api/timeline')
+		expect(getMockCall(onPost, 0, 1)).toMatchObject({
 			action: 'release', group: 'group0', fade: 20
 		})
 		onPost.mockClear()
 
 		await pharos.setTimelineRate(5, 0.5)
 		expect(onPost).toHaveBeenCalledTimes(1)
-		expect(onPost.mock.calls[0][0]).toEqual('http://127.0.0.1/api/timeline')
-		expect(onPost.mock.calls[0][1]).toMatchObject({
+		expect(getMockCall(onPost, 0, 0)).toEqual('http://127.0.0.1/api/timeline')
+		expect(getMockCall(onPost, 0, 1)).toMatchObject({
 			action: 'set_rate', num: 5, rate: 0.5
 		})
 		onPost.mockClear()
 
 		await pharos.setTimelinePosition(5, 0.6)
 		expect(onPost).toHaveBeenCalledTimes(1)
-		expect(onPost.mock.calls[0][0]).toEqual('http://127.0.0.1/api/timeline')
-		expect(onPost.mock.calls[0][1]).toMatchObject({
+		expect(getMockCall(onPost, 0, 0)).toEqual('http://127.0.0.1/api/timeline')
+		expect(getMockCall(onPost, 0, 1)).toMatchObject({
 			action: 'set_position', num: 5, position: 0.6
 		})
 		onPost.mockClear()
@@ -1114,32 +1115,32 @@ describe('PharosAPI', () => {
 
 		await pharos.startScene(5)
 		expect(onPost).toHaveBeenCalledTimes(1)
-		expect(onPost.mock.calls[0][0]).toEqual('http://127.0.0.1/api/scene')
-		expect(onPost.mock.calls[0][1]).toMatchObject({
+		expect(getMockCall(onPost, 0, 0)).toEqual('http://127.0.0.1/api/scene')
+		expect(getMockCall(onPost, 0, 1)).toMatchObject({
 			action: 'start', num: 5
 		})
 		onPost.mockClear()
 
 		await pharos.releaseScene(5, 20)
 		expect(onPost).toHaveBeenCalledTimes(1)
-		expect(onPost.mock.calls[0][0]).toEqual('http://127.0.0.1/api/scene')
-		expect(onPost.mock.calls[0][1]).toMatchObject({
+		expect(getMockCall(onPost, 0, 0)).toEqual('http://127.0.0.1/api/scene')
+		expect(getMockCall(onPost, 0, 1)).toMatchObject({
 			action: 'release', num: 5, fade: 20
 		})
 		onPost.mockClear()
 
 		await pharos.toggleScene(5, 20)
 		expect(onPost).toHaveBeenCalledTimes(1)
-		expect(onPost.mock.calls[0][0]).toEqual('http://127.0.0.1/api/scene')
-		expect(onPost.mock.calls[0][1]).toMatchObject({
+		expect(getMockCall(onPost, 0, 0)).toEqual('http://127.0.0.1/api/scene')
+		expect(getMockCall(onPost, 0, 1)).toMatchObject({
 			action: 'toggle', num: 5, fade: 20
 		})
 		onPost.mockClear()
 
 		await pharos.releaseAllScenes('group0', 20)
 		expect(onPost).toHaveBeenCalledTimes(1)
-		expect(onPost.mock.calls[0][0]).toEqual('http://127.0.0.1/api/scene')
-		expect(onPost.mock.calls[0][1]).toMatchObject({
+		expect(getMockCall(onPost, 0, 0)).toEqual('http://127.0.0.1/api/scene')
+		expect(getMockCall(onPost, 0, 1)).toMatchObject({
 			action: 'release', group: 'group0', fade: 20
 		})
 		onPost.mockClear()
