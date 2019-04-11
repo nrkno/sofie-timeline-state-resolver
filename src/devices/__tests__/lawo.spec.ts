@@ -10,6 +10,7 @@ import {
 } from '../../types/src'
 import { MockTime } from '../../__tests__/mockTime.spec'
 import { ThreadedClass } from 'threadedclass'
+import { getMockCall } from '../../__tests__/lib.spec'
 
 describe('Lawo', () => {
 	let mockTime = new MockTime()
@@ -139,7 +140,7 @@ describe('Lawo', () => {
 		await mockTime.advanceTimeToTicks(10200)
 
 		expect(commandReceiver0).toHaveBeenCalledTimes(1)
-		expect(commandReceiver0.mock.calls[0][1]).toMatchObject(
+		expect(getMockCall(commandReceiver0, 0, 1)).toMatchObject(
 			{
 				// attribute: 'Motor dB Value',
 				type: TimelineContentTypeLawo.SOURCE,
@@ -147,12 +148,12 @@ describe('Lawo', () => {
 				path: 'BASE.Fader.Motor dB Value'
 			}
 		)
-		expect(commandReceiver0.mock.calls[0][2]).toMatch(/null/i) // context
+		expect(getMockCall(commandReceiver0, 0, 2)).toMatch(/null/i) // context
 
 		await mockTime.advanceTimeToTicks(11000)
 
 		expect(commandReceiver0).toHaveBeenCalledTimes(2)
-		expect(commandReceiver0.mock.calls[1][1]).toMatchObject(
+		expect(getMockCall(commandReceiver0, 1, 1)).toMatchObject(
 			{
 				// attribute: 'Motor dB Value',
 				type: TimelineContentTypeLawo.SOURCE,
@@ -161,7 +162,7 @@ describe('Lawo', () => {
 				path: 'BASE.Fader.Motor dB Value'
 			}
 		)
-		expect(commandReceiver0.mock.calls[1][2]).toBeTruthy() // context
+		expect(getMockCall(commandReceiver0, 1, 2)).toBeTruthy() // context
 
 		await mockTime.advanceTimeToTicks(11500)
 		expect(commandReceiver0).toHaveBeenCalledTimes(2)
@@ -169,7 +170,7 @@ describe('Lawo', () => {
 
 		await mockTime.advanceTimeToTicks(12500)
 		expect(commandReceiver0).toHaveBeenCalledTimes(3)
-		expect(commandReceiver0.mock.calls[2][1]).toMatchObject(
+		expect(getMockCall(commandReceiver0, 2, 1)).toMatchObject(
 			{
 				// attribute: 'Motor dB Value',
 				type: TimelineContentTypeLawo.SOURCE,
@@ -177,7 +178,7 @@ describe('Lawo', () => {
 				path: 'BASE.Fader.Motor dB Value'
 			}
 		)
-		expect(commandReceiver0.mock.calls[2][2]).toMatch(/triggerValue/i) // context
+		expect(getMockCall(commandReceiver0, 2, 2)).toMatch(/triggerValue/i) // context
 		await mockTime.advanceTimeToTicks(14500)
 		expect(commandReceiver0).toHaveBeenCalledTimes(3)
 		// no new commands should be sent, nothing is sent on object end

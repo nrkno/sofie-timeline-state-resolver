@@ -9,6 +9,7 @@ import {
 } from '../../types/src'
 import { MockTime } from '../../__tests__/mockTime.spec'
 import { ThreadedClass } from 'threadedclass'
+import { getMockCall } from '../../__tests__/lib.spec'
 const WebSocket = require('../../__mocks__/ws')
 
 describe('Pharos', () => {
@@ -87,7 +88,7 @@ describe('Pharos', () => {
 		device = deviceContainer.device as ThreadedClass<PharosDevice>
 
 		expect(mockReply).toHaveBeenCalledTimes(1)
-		expect(mockReply.mock.calls[0][1]).toMatch(/project/) // get project info
+		expect(getMockCall(mockReply, 0, 1)).toMatch(/project/) // get project info
 
 		// Check that no commands has been scheduled:
 		expect(await device.queue).toHaveLength(0)
@@ -149,40 +150,40 @@ describe('Pharos', () => {
 
 		await mockTime.advanceTimeToTicks(11500)
 		expect(commandReceiver0).toHaveBeenCalledTimes(1)
-		expect(commandReceiver0.mock.calls[0][1].content.args[0]).toEqual(1) // scene
-		expect(commandReceiver0.mock.calls[0][2]).toMatch(/added/) // context
-		expect(commandReceiver0.mock.calls[0][2]).toMatch(/scene0/) // context
+		expect(getMockCall(commandReceiver0, 0, 1).content.args[0]).toEqual(1) // scene
+		expect(getMockCall(commandReceiver0, 0, 2)).toMatch(/added/) // context
+		expect(getMockCall(commandReceiver0, 0, 2)).toMatch(/scene0/) // context
 
 		await mockTime.advanceTimeToTicks(12500)
 		expect(commandReceiver0).toHaveBeenCalledTimes(3)
-		expect(commandReceiver0.mock.calls[1][1].content.args[0]).toEqual(1) // scene
-		expect(commandReceiver0.mock.calls[1][2]).toMatch(/changed from/) // context
-		expect(commandReceiver0.mock.calls[1][2]).toMatch(/scene0/) // context
+		expect(getMockCall(commandReceiver0, 1, 1).content.args[0]).toEqual(1) // scene
+		expect(getMockCall(commandReceiver0, 1, 2)).toMatch(/changed from/) // context
+		expect(getMockCall(commandReceiver0, 1, 2)).toMatch(/scene0/) // context
 
-		expect(commandReceiver0.mock.calls[2][1].content.args[0]).toEqual(2) // scene
-		expect(commandReceiver0.mock.calls[2][2]).toMatch(/changed to/) // context
-		expect(commandReceiver0.mock.calls[2][2]).toMatch(/scene1/) // context
+		expect(getMockCall(commandReceiver0, 2, 1).content.args[0]).toEqual(2) // scene
+		expect(getMockCall(commandReceiver0, 2, 2)).toMatch(/changed to/) // context
+		expect(getMockCall(commandReceiver0, 2, 2)).toMatch(/scene1/) // context
 
 		await mockTime.advanceTimeToTicks(13500)
 		expect(commandReceiver0).toHaveBeenCalledTimes(5)
-		expect(commandReceiver0.mock.calls[3][1].content.args[0]).toEqual(2) // scene
-		expect(commandReceiver0.mock.calls[3][2]).toMatch(/removed/) // context
-		expect(commandReceiver0.mock.calls[3][2]).toMatch(/scene1/) // context
+		expect(getMockCall(commandReceiver0, 3, 1).content.args[0]).toEqual(2) // scene
+		expect(getMockCall(commandReceiver0, 3, 2)).toMatch(/removed/) // context
+		expect(getMockCall(commandReceiver0, 3, 2)).toMatch(/scene1/) // context
 
-		expect(commandReceiver0.mock.calls[4][1].content.args[0]).toEqual(2) // scene
-		expect(commandReceiver0.mock.calls[4][2]).toMatch(/removed/) // context
-		expect(commandReceiver0.mock.calls[4][2]).toMatch(/scene2/) // context
+		expect(getMockCall(commandReceiver0, 4, 1).content.args[0]).toEqual(2) // scene
+		expect(getMockCall(commandReceiver0, 4, 2)).toMatch(/removed/) // context
+		expect(getMockCall(commandReceiver0, 4, 2)).toMatch(/scene2/) // context
 
 		await mockTime.advanceTimeToTicks(14500)
 		expect(commandReceiver0).toHaveBeenCalledTimes(6)
-		expect(commandReceiver0.mock.calls[5][1].content.args[0]).toEqual(2) // scene
-		expect(commandReceiver0.mock.calls[5][2]).toMatch(/added/) // context
-		expect(commandReceiver0.mock.calls[5][2]).toMatch(/scene1/) // context
+		expect(getMockCall(commandReceiver0, 5, 1).content.args[0]).toEqual(2) // scene
+		expect(getMockCall(commandReceiver0, 5, 2)).toMatch(/added/) // context
+		expect(getMockCall(commandReceiver0, 5, 2)).toMatch(/scene1/) // context
 
 		await mockTime.advanceTimeToTicks(20000)
 		expect(commandReceiver0).toHaveBeenCalledTimes(7)
-		expect(commandReceiver0.mock.calls[6][1].content.args[0]).toEqual(2) // scene
-		expect(commandReceiver0.mock.calls[6][2]).toMatch(/removed/) // context
-		expect(commandReceiver0.mock.calls[6][2]).toMatch(/scene1/) // context
+		expect(getMockCall(commandReceiver0, 6, 1).content.args[0]).toEqual(2) // scene
+		expect(getMockCall(commandReceiver0, 6, 2)).toMatch(/removed/) // context
+		expect(getMockCall(commandReceiver0, 6, 2)).toMatch(/scene1/) // context
 	})
 })

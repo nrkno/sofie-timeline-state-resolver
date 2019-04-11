@@ -11,6 +11,7 @@ import {
 import { MockTime } from '../../__tests__/mockTime.spec'
 import { ThreadedClass } from 'threadedclass'
 import { TimelineObjHTTPRequest, TimelineContentTypeHttp } from '../../types/src/http'
+import { getMockCall } from '../../__tests__/lib.spec'
 
 // let nowActual = Date.now()
 describe('HTTP-Send', () => {
@@ -85,7 +86,7 @@ describe('HTTP-Send', () => {
 				b: 2
 			}
 		}), expect.anything())
-		expect(commandReceiver0.mock.calls[0][2]).toMatch(/added/) // context
+		expect(getMockCall(commandReceiver0, 0, 2)).toMatch(/added/) // context
 		await mockTime.advanceTimeToTicks(16000)
 		expect(commandReceiver0).toHaveBeenCalledTimes(1)
 	})

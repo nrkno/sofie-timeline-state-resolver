@@ -12,7 +12,8 @@ export enum MappingAtemType {
 	SuperSourceBox,
 	Auxilliary,
 	MediaPlayer,
-	SuperSourceProperties
+	SuperSourceProperties,
+	AudioChannel
 }
 
 export interface AtemOptions {
@@ -26,7 +27,8 @@ export enum TimelineContentTypeAtem { //  Atem-state
 	AUX = 'aux',
 	SSRC = 'ssrc',
 	SSRCPROPS = 'ssrcProps',
-	MEDIAPLAYER = 'mp'
+	MEDIAPLAYER = 'mp',
+	AUDIOCHANNEL = 'audioChan'
 }
 
 export enum AtemTransitionStyle { // Note: copied from atem-state
@@ -193,6 +195,18 @@ export interface TimelineObjAtemSsrcProps extends TimelineObject {
 			// borderLuma: number
 			// borderLightSourceDirection: number
 			// borderLightSourceAltitude: number
+		}
+	}
+}
+
+export interface TimelineObjAtemAudioChannel extends TimelineObject {
+	content: {
+		keyframes?: Array<TimelineKeyframe>
+		type: TimelineContentTypeAtem.AUDIOCHANNEL
+		attributes: {
+			gain?: number
+			balance?: number
+			mixOption?: number
 		}
 	}
 }

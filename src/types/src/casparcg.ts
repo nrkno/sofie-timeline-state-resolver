@@ -16,8 +16,6 @@ export interface CasparCGOptions {
 }
 
 export enum TimelineContentTypeCasparCg { //  CasparCG-state
-	VIDEO = 'video', // to be deprecated & replaced by MEDIA
-	AUDIO = 'audio', // to be deprecated & replaced by MEDIA
 	MEDIA = 'media',
 	IP = 'ip',
 	INPUT = 'input',
@@ -27,8 +25,7 @@ export enum TimelineContentTypeCasparCg { //  CasparCG-state
 	RECORD = 'record'
 }
 
-export type TimelineObjCCGAny = TimelineObjCCGAudio
-	| TimelineObjCCGVideo
+export type TimelineObjCCGAny = TimelineObjCCGMedia
 	| TimelineObjCCGInput
 	| TimelineObjCCGHTMLPage
 	| TimelineObjCCGRecord
@@ -55,25 +52,17 @@ export interface TimelineObjCCGProducerContentBase {
 	mixer?: Mixer
 }
 
-export interface TimelineObjCCGAudio extends TimelineObject {
+export interface TimelineObjCCGMedia extends TimelineObject {
 	content: {
-		type: TimelineContentTypeCasparCg.AUDIO
+		type: TimelineContentTypeCasparCg.MEDIA
 		attributes: {
 			file: string
 			loop?: boolean
-			audioFilter?: string
-			channelLayout?: string
-		}
-	} & TimelineObjCCGProducerContentBase
-}
 
-export interface TimelineObjCCGVideo extends TimelineObject {
-	content: {
-		type: TimelineContentTypeCasparCg.VIDEO
-		attributes: {
-			file: string
-			loop?: boolean
-			seek?: number  // note that seeking while looping is not supported by cg-state currently.
+			seek?: number
+			inPoint?: number
+			length?: number // Note that for seeking to work when looping, length has to be provided
+
 			videoFilter?: string
 			audioFilter?: string
 			channelLayout?: string

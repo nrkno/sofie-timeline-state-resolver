@@ -13,6 +13,7 @@ import {
 } from '../../types/src'
 import { MockTime } from '../../__tests__/mockTime.spec'
 import { ThreadedClass } from 'threadedclass'
+import { getMockCall } from '../../__tests__/lib.spec'
 const request = require('../../__mocks__/request')
 
 const orgSetTimeout = setTimeout
@@ -204,13 +205,13 @@ describe('Panasonic PTZ', () => {
 		await mockTime.advanceTimeToTicks(10200)
 
 		expect(commandReceiver0).toHaveBeenCalledTimes(2)
-		expect(commandReceiver0.mock.calls[0][1]).toMatchObject(
+		expect(getMockCall(commandReceiver0, 0, 1)).toMatchObject(
 			{
 				type: TimelineContentTypePanasonicPtz.PRESET,
 				preset: 1
 			}
 		)
-		expect(commandReceiver0.mock.calls[1][1]).toMatchObject(
+		expect(getMockCall(commandReceiver0, 1, 1)).toMatchObject(
 			{
 				type: TimelineContentTypePanasonicPtz.SPEED,
 				speed: 250
@@ -220,7 +221,7 @@ describe('Panasonic PTZ', () => {
 		await mockTime.advanceTimeToTicks(11000)
 
 		expect(commandReceiver0).toHaveBeenCalledTimes(3)
-		expect(commandReceiver0.mock.calls[2][1]).toMatchObject(
+		expect(getMockCall(commandReceiver0, 2, 1)).toMatchObject(
 			{
 				type: TimelineContentTypePanasonicPtz.PRESET,
 				preset: 2
@@ -230,7 +231,7 @@ describe('Panasonic PTZ', () => {
 		await mockTime.advanceTimeToTicks(11500)
 
 		expect(commandReceiver0).toHaveBeenCalledTimes(4)
-		expect(commandReceiver0.mock.calls[3][1]).toMatchObject(
+		expect(getMockCall(commandReceiver0, 3, 1)).toMatchObject(
 			{
 				type: TimelineContentTypePanasonicPtz.SPEED,
 				speed: 0
@@ -241,7 +242,7 @@ describe('Panasonic PTZ', () => {
 
 		// return speed to previous value
 		expect(commandReceiver0).toHaveBeenCalledTimes(5)
-		expect(commandReceiver0.mock.calls[4][1]).toMatchObject(
+		expect(getMockCall(commandReceiver0, 4, 1)).toMatchObject(
 			{
 				// attribute: 'Motor dB Value',
 				type: TimelineContentTypePanasonicPtz.SPEED,
@@ -252,7 +253,7 @@ describe('Panasonic PTZ', () => {
 		await mockTime.advanceTimeToTicks(12500)
 
 		expect(commandReceiver0).toHaveBeenCalledTimes(6)
-		expect(commandReceiver0.mock.calls[5][1]).toMatchObject(
+		expect(getMockCall(commandReceiver0, 5, 1)).toMatchObject(
 			{
 				// attribute: 'Motor dB Value',
 				type: TimelineContentTypePanasonicPtz.PRESET,
@@ -267,13 +268,13 @@ describe('Panasonic PTZ', () => {
 		mockTime.advanceTimeTo(16500)
 
 		expect(commandReceiver0).toHaveBeenCalledTimes(8)
-		expect(commandReceiver0.mock.calls[6][1]).toMatchObject(
+		expect(getMockCall(commandReceiver0, 6, 1)).toMatchObject(
 			{
 				type: TimelineContentTypePanasonicPtz.ZOOM_SPEED,
 				speed: 1
 			}
 		)
-		expect(commandReceiver0.mock.calls[7][1]).toMatchObject(
+		expect(getMockCall(commandReceiver0, 7, 1)).toMatchObject(
 			{
 				type: TimelineContentTypePanasonicPtz.ZOOM,
 				zoom: 0
@@ -283,7 +284,7 @@ describe('Panasonic PTZ', () => {
 
 		// The end of Zoom Speed object should reset zoom speed to 0
 		expect(commandReceiver0).toHaveBeenCalledTimes(9)
-		expect(commandReceiver0.mock.calls[8][1]).toMatchObject(
+		expect(getMockCall(commandReceiver0, 8, 1)).toMatchObject(
 			{
 				type: TimelineContentTypePanasonicPtz.ZOOM_SPEED,
 				speed: 0

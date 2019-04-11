@@ -9,6 +9,7 @@ import { AbstractDevice } from '../abstract'
 import { StatusCode } from '../device'
 import { MockTime } from '../../__tests__/mockTime.spec'
 import { ThreadedClass } from 'threadedclass'
+import { getMockCall } from '../../__tests__/lib.spec'
 
 describe('Abstract device', () => {
 	let mockTime = new MockTime()
@@ -87,7 +88,7 @@ describe('Abstract device', () => {
 
 		await mockTime.advanceTimeToTicks(10200)
 		expect(commandReceiver0).toHaveBeenCalledTimes(1)
-		expect(commandReceiver0.mock.calls[0][1]).toMatchObject(
+		expect(getMockCall(commandReceiver0, 0, 1)).toMatchObject(
 			{
 				commandName: 'addedAbstract',
 				content: {
@@ -99,7 +100,7 @@ describe('Abstract device', () => {
 
 		await mockTime.advanceTimeToTicks(11200)
 		expect(commandReceiver0).toHaveBeenCalledTimes(2)
-		expect(commandReceiver0.mock.calls[1][1]).toMatchObject(
+		expect(getMockCall(commandReceiver0, 1, 1)).toMatchObject(
 			{
 				commandName: 'changedAbstract',
 				content: {
@@ -111,7 +112,7 @@ describe('Abstract device', () => {
 
 		await mockTime.advanceTimeToTicks(15000)
 		expect(commandReceiver0).toHaveBeenCalledTimes(3)
-		expect(commandReceiver0.mock.calls[2][1]).toMatchObject(
+		expect(getMockCall(commandReceiver0, 2, 1)).toMatchObject(
 			{
 				commandName: 'removedAbstract',
 				content: {

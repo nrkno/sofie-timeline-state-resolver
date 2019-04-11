@@ -1,5 +1,5 @@
-import { getDiff } from '../lib'
 import * as _ from 'underscore'
+import { getDiff } from '../lib'
 
 describe('equal', () => {
 	/*
@@ -423,3 +423,9 @@ describe('equal', () => {
 
 	// testEqual(0).toEqual(1)
 })
+/**
+ * Just a wrapper to :any type, to be used in tests only
+ */
+export function getMockCall<T> (fcn: jest.Mock<T>, callIndex: number, paramIndex: number): any {
+	return fcn.mock.calls[callIndex][paramIndex]
+}
