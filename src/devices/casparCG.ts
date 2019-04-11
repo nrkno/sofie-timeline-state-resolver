@@ -266,6 +266,8 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> {
 
 						looping: mediaObj.content.attributes.loop,
 						seek: mediaObj.content.attributes.seek,
+						inPoint: mediaObj.content.attributes.inPoint,
+						length: mediaObj.content.attributes.length,
 						channelLayout: mediaObj.content.attributes.channelLayout
 					}
 					stateLayer = l

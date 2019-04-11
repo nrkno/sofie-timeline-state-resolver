@@ -100,7 +100,7 @@ describe('CasparCG', () => {
 			noClear: false,
 			clip: 'AMB',
 			loop: true,
-			seek: 0 // looping and seeking at the same time is not supported.
+			seek: 0 // looping and seeking nos supported when length not provided
 		})
 
 		// advance time to end of clip:
@@ -957,7 +957,9 @@ describe('CasparCG', () => {
 			layer: 42,
 			noClear: false,
 			clip: 'AMB',
-			auto: false
+			auto: false,
+			loop: true,
+			seek: 0
 		})
 		expect(getMockCall(commandReceiver0, 4, 1).name).toEqual('ScheduleSetCommand')
 		expect(getMockCall(commandReceiver0, 4, 1)._objectParams.timecode).toEqual('00:00:11:10') // 11s 10 frames == 1.2 s @50fpx
@@ -1060,7 +1062,9 @@ describe('CasparCG', () => {
 			layer: 42,
 			noClear: false,
 			clip: 'AMB',
-			auto: false
+			auto: false,
+			loop: true,
+			seek: 0
 		})
 		expect(getMockCall(commandReceiver0, 4, 1).name).toEqual('ScheduleSetCommand')
 		expect(getMockCall(commandReceiver0, 4, 1)._objectParams.timecode).toEqual('00:00:11:10') // 11s 10 frames == 1.2 s @ 50 fps

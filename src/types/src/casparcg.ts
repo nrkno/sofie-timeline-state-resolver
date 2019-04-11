@@ -58,7 +58,11 @@ export interface TimelineObjCCGMedia extends TimelineObject {
 		attributes: {
 			file: string
 			loop?: boolean
-			seek?: number  // note that seeking while looping is not supported by cg-state currently.
+
+			seek?: number
+			inPoint?: number
+			length?: number // Note that for seeking to work when looping, length has to be provided
+
 			videoFilter?: string
 			audioFilter?: string
 			channelLayout?: string
