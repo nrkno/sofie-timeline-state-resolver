@@ -81,8 +81,11 @@ interface StatReport {
 	stateHandled: number,
 	done: number,
 }
+
 /**
- * The main class that serves to interface with all functionality.
+ * The Conductor class serves as the main class for interacting. It contains
+ * methods for setting mappings, timelines and adding/removing devices. It keeps
+ * track of when to resolve the timeline and updates the devices with new states.
  */
 export class Conductor extends EventEmitter {
 
@@ -147,7 +150,7 @@ export class Conductor extends EventEmitter {
 
 	}
 	/**
-	 * Initialization, TODO, maybe do something here?
+	 * Initializates the resolver, with optional multithreading
 	 */
 	public async init (): Promise<void> {
 		this._resolver = await threadedClass<AsyncResolver>(
@@ -183,9 +186,17 @@ export class Conductor extends EventEmitter {
 			return Date.now()
 		}
 	}
+	/**
+	 * Returns the mappings
+	 */
 	get mapping (): Mappings {
 		return this._mapping
 	}
+	/**
+	 * Updates the mappings in the Conductor class and all devices and forces
+	 * a resolve timeline.
+	 * @param mapping The new mappings
+	 */
 	async setMapping (mapping: Mappings) {
 		// Set mapping
 		// re-resolve timeline
@@ -202,9 +213,15 @@ export class Conductor extends EventEmitter {
 			this._resolveTimeline()
 		}
 	}
+	/**
+	 * Returns the current timeline
+	 */
 	get timeline (): Array<TimelineContentObject | TimelineResolvedObjectExtended> {
 		return this._timeline
 	}
+	/**
+	 * Sets a new timeline and resets the resolver.
+	 */
 	set timeline (timeline: Array<TimelineContentObject | TimelineResolvedObjectExtended>) {
 		this.statStartMeasure('timeline received')
 		this._timeline = timeline
@@ -232,6 +249,7 @@ export class Conductor extends EventEmitter {
 	/**
 	 * Adds a a device that can be referenced by the timeline and mappings.
 	 * @param deviceId Id used by the mappings to reference the device.
+	 * @param deviceOptions The options used to initalize the device
 	 * @returns A promise that resolves with the created device, or rejects with an error message.
 	 */
 	public async addDevice (deviceId, deviceOptions: DeviceOptions): Promise<DeviceContainer> {
@@ -388,6 +406,10 @@ export class Conductor extends EventEmitter {
 			return Promise.reject(e)
 		}
 	}
+	/**
+	 * Safely remove a device
+	 * @param deviceId The id of the device to be removed
+	 */
 	public removeDevice (deviceId: string): Promise<void> {
 		let device = this.devices[deviceId]
 
@@ -402,6 +424,9 @@ export class Conductor extends EventEmitter {
 			return Promise.reject('No device found')
 		}
 	}
+	/**
+	 * Remove all devices
+	 */
 	public destroy (): Promise<void> {
 		return Promise.all(_.map(_.keys(this.devices), (deviceId: string) => {
 			return this.removeDevice(deviceId)
@@ -410,8 +435,6 @@ export class Conductor extends EventEmitter {
 			return
 		})
 	}
-	// 	return Promise.all(ps)
-	// }
 	/**
 	 * Resets the resolve-time, so that the resolving will happen for the point-in time NOW
 	 * next time
@@ -500,23 +523,21 @@ export class Conductor extends EventEmitter {
 		})
 	}
 	private async _resolveTimelineInner () {
-		let nextResolveTime: number = 0
+		if (!this._isInitialized) {
+			this.emit('warning', 'TSR is not initialized yet')
+			return
+		}
 
+		let nextResolveTime: number = 0
 		let timeUntilNextResolve = LOOKAHEADTIME
+		let startTime = Date.now()
+
 		let statMeasureStart: number = this._statMeasureStart
 		let statTimeStateHandled: number = 0
 		let statTimeTimelineStartResolve: number = 0
 		let statTimeTimelineResolved: number = 0
 
-		let startTime = Date.now()
 		try {
-
-			let ps: Promise<any>[] = []
-
-			if (!this._isInitialized) {
-				this.emit('warning', 'TSR is not initialized yet')
-				return
-			}
 			const now = this.getCurrentTime()
 			let resolveTime: number = this._nextResolveTime
 
@@ -550,7 +571,8 @@ export class Conductor extends EventEmitter {
 			const nowIds: {[id: string]: number} = {}
 			let timeline = this.timeline
 
-			// Remove any .parents from timeline (circular objects):
+			// To prevent trying to transfer multithreaded objects over IPC we remove
+			// any references to the parent property:
 			_.each(timeline, (o) => {
 				fixObject(o)
 			})
@@ -596,8 +618,9 @@ export class Conductor extends EventEmitter {
 				})
 				return filteredState
 			}
-			ps = _.map(this.devices, async (device: DeviceContainer) => {
 
+			let ps: Promise<any>[] = []
+			ps = _.map(this.devices, async (device: DeviceContainer) => {
 				// The subState contains only the parts of the state relevant to that device
 				let subState: TimelineState = {
 					time: tlState.time,
@@ -626,10 +649,6 @@ export class Conductor extends EventEmitter {
 			statTimeStateHandled = Date.now()
 
 			// Now that we've handled this point in time, it's time to determine what the next point in time is:
-
-			// const timelineWindow = Resolver.getTimelineInWindow(timeline, tlState.time, tlState.time + LOOKAHEADTIME)
-			// const nextEvents = Resolver.getNextEvents(timelineWindow, tlState.time + MINTIMEUNIT, 1)
-
 			let nextEventTime = await this._resolver.getNextTimelineEvent(timeline, tlState.time)
 
 			const now2 = this.getCurrentTime()
@@ -641,14 +660,11 @@ export class Conductor extends EventEmitter {
 					)
 				)
 
-				// this.emit('debug', 'timeUntilNextResolve', timeUntilNextResolve)
-
 				// resolve at nextEventTime next time:
 				nextResolveTime = Math.min(tlState.time + LOOKAHEADTIME, nextEventTime)
 
 			} else {
-				// there's nothing ahead in the timeline
-
+				// there's nothing ahead in the timeline,
 				// Tell the devices that the future is clear:
 				ps = _.map(this.devices, (device: DeviceContainer) => {
 					return device.device.clearFuture(tlState.time)
@@ -661,6 +677,7 @@ export class Conductor extends EventEmitter {
 				// resolve at "now" then next time:
 				nextResolveTime = 0
 			}
+			
 			// Special function: send callback to Core
 			let sentCallbacksOld: TimelineCallbacks = this._sentCallbacks
 			let sentCallbacksNew: TimelineCallbacks = {}
@@ -737,7 +754,6 @@ export class Conductor extends EventEmitter {
 		})
 
 		try {
-			// this.emit('info', 'this._nextResolveTime', this._nextResolveTime)
 			this._triggerResolveTimeline(timeUntilNextResolve)
 		} catch (e) {
 			this.emit('error', 'triggerResolveTimeline', e)
@@ -762,87 +778,6 @@ export class Conductor extends EventEmitter {
 			return 0
 		}
 	}
-
-	// private async _fixNowObjects (now: number) {
-	// 	let objectsFixed: Array<{
-	// 		id: string,
-	// 		time: number
-	// 	}> = []
-
-	// 	let setObjectTime = (o: TimelineContentObject, time: number) => {
-	// 		o.trigger.value = time // set the objects to "now" so that they are resolved correctly temporarily
-	// 		objectsFixed.push({
-	// 			id: o.id,
-	// 			time: time
-	// 		})
-	// 	}
-
-	// 	let timeline = this.timeline
-	// 	// First: fix the ones on the first level (i e not in groups), because they are easy:
-	// 	_.each(timeline, (o: TimelineContentObject) => {
-	// 		if (
-	// 			(o.trigger || {}).type === TriggerType.TIME_ABSOLUTE &&
-	// 			o.trigger.value === 'now'
-	// 		) {
-	// 			setObjectTime(o, now)
-	// 		}
-	// 	})
-
-	// 	// Then, resolve the timeline to be able to set "now" inside groups, relative to parents:
-	// 	let dontIterateAgain
-	// 	let wouldLikeToIterateAgain
-	// 	let tl
-	// 	let tld
-	// 	let fixObjects = (objs, parentObject?: TimelineContentObject) => {
-
-	// 		_.each(objs, (o: TimelineContentObject) => {
-	// 			if (
-	// 				(o.trigger || {}).type === TriggerType.TIME_ABSOLUTE &&
-	// 				o.trigger.value === 'now'
-	// 			) {
-	// 				// find parent, and set relative to that
-	// 				if (parentObject) {
-	// 					let developedParent = _.findWhere(tld.groups, { id: parentObject.id })
-	// 					if (developedParent && developedParent['resolved'].startTime) {
-	// 						dontIterateAgain = false
-	// 						setObjectTime(o, now - developedParent['resolved'].startTime)
-	// 					} else {
-	// 						// the parent isn't found, it's probably not resolved (yet), try iterating once more:
-	// 						wouldLikeToIterateAgain = true
-	// 					}
-	// 				} else {
-	// 					// no parent object
-	// 					dontIterateAgain = false
-	// 					setObjectTime(o, now)
-	// 				}
-	// 			}
-	// 			if (o.isGroup && o.content.objects) {
-	// 				fixObjects(o.content.objects, o)
-	// 			}
-	// 		})
-
-	// 	}
-
-	// 	for (let i = 0; i < 10; i++) {
-	// 		wouldLikeToIterateAgain = false
-	// 		dontIterateAgain = true
-
-	// 		tl = await this._resolver.getTimelineInWindow(timeline)
-	// 		tld = await this._resolver.developTimelineAroundTime(tl, now)
-	// 		fixObjects(timeline)
-	// 		if (!wouldLikeToIterateAgain && dontIterateAgain) break
-	// 	}
-
-	// 	// fixObjects(this.timeline, 0)
-
-	// 	// this.emit('info', 'objectsFixed', objectsFixed)
-
-	// 	if (objectsFixed.length) {
-	// 		let r: TimelineTriggerTimeResult = objectsFixed
-	// 		// this.emit('info', 'setTimelineTriggerTime', r)
-	// 		this.emit('setTimelineTriggerTime', r)
-	// 	}
-	// }
 
 	private _queueCallback (cb: QueueCallback) {
 		this._queuedCallbacks.push(cb)
