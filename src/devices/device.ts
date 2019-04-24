@@ -50,6 +50,10 @@ interface IDevice {
 	on (event: 'error', 	listener: (err: Error) => void): this
 	on (event: 'debug', 	listener: (...debug: any[]) => void): this
 }
+/**
+ * Base class for all Devices to inherit from. Defines the API that the conductor
+ * class will use.
+ */
 export abstract class Device extends EventEmitter implements IDevice {
 
 	private _getCurrentTime: () => Promise<number> | number
@@ -170,74 +174,22 @@ export abstract class Device extends EventEmitter implements IDevice {
 			})
 		}
 	}
-// }
-
-// export abstract class DeviceWithState<T> extends Device {
-// 	private _states: {[time: string]: T} = {}
-// 	private _setStateCount: number = 0
-
-// 	getStateBefore (time: number): {state: T, time: number} | null {
-// 		let foundTime = 0
-// 		let foundState: T | null = null
-// 		_.each(this._states, (state: T, stateTimeStr: string) => {
-// 			let stateTime = parseFloat(stateTimeStr)
-// 			if (stateTime > foundTime && stateTime < time) {
-// 				foundState = state
-// 				foundTime = stateTime
-// 			}
-// 		})
-// 		if (foundState) {
-// 			return {
-// 				state: foundState,
-// 				time: foundTime
-// 			}
-// 		}
-// 		return null
-// 	}
-// 	setState (state: T, time: number) {
-// 		if (!time) throw new Error('setState: falsy time')
-// 		this._states[time + ''] = state
-
-// 		this.cleanUpStates(0, time) // remove states after this time, as they are not relevant anymore
-// 		this._setStateCount++
-// 		if (this._setStateCount > 10) {
-// 			this._setStateCount = 0
-
-// 			// Clean up old states:
-// 			let stateBeforeNow = this.getStateBefore(this.getCurrentTime())
-// 			if (stateBeforeNow && stateBeforeNow.time) {
-// 				this.cleanUpStates(stateBeforeNow.time - 1, 0)
-// 			}
-// 		}
-// 	}
-// 	cleanUpStates (removeBeforeTime: number, removeAfterTime: number) {
-// 		_.each(_.keys(this._states), (stateTimeStr: string) => {
-// 			let stateTime = parseFloat(stateTimeStr)
-// 			if (
-// 				(
-// 					removeBeforeTime &&
-// 					stateTime < removeBeforeTime
-// 				) ||
-// 				(
-// 					removeAfterTime &&
-// 					stateTime > removeAfterTime
-// 				) ||
-// 				!stateTime) {
-// 				delete this._states[stateTime]
-// 			}
-// 		})
-// 	}
-// 	clearStates () {
-// 		_.each(_.keys(this._states), (time: string) => {
-// 			delete this._states[time]
-// 		})
-// 	}
 }
 
+/**
+ * Basic class that devices with state tracking can inherit from. Defines some
+ * extra convenience methods for tracking state while inheriting all other methods
+ * from the Device class.
+ */
 export abstract class DeviceWithState<T> extends Device {
 	private _states: {[time: string]: T} = {}
 	private _setStateCount: number = 0
 
+	/**
+	 * Get the last known state before a point time. Useful for creating device
+	 * diffs.
+	 * @param time
+	 */
 	getStateBefore (time: number): {state: T, time: number} | null {
 		let foundTime = 0
 		let foundState: T | null = null
@@ -256,8 +208,13 @@ export abstract class DeviceWithState<T> extends Device {
 		}
 		return null
 	}
+	/**
+	 * Saves a state on a certain time point. Overwrites any previous state
+	 * saved at the same time. Removes any state after this time point.
+	 * @param state 
+	 * @param time 
+	 */
 	setState (state: T, time: number) {
-		// if (!state.time) throw new Error('setState: falsy state.time')
 		if (!time) throw new Error('setState: falsy time')
 		this._states[time + ''] = state
 
@@ -273,6 +230,11 @@ export abstract class DeviceWithState<T> extends Device {
 			}
 		}
 	}
+	/**
+	 * Sets a windows outside of which all states will be removed.
+	 * @param removeBeforeTime 
+	 * @param removeAfterTime 
+	 */
 	cleanUpStates (removeBeforeTime: number, removeAfterTime: number) {
 		_.each(_.keys(this._states), (stateTimeStr: string) => {
 			let stateTime = parseFloat(stateTimeStr)
@@ -290,6 +252,9 @@ export abstract class DeviceWithState<T> extends Device {
 			}
 		})
 	}
+	/**
+	 * Removes all states
+	 */
 	clearStates () {
 		_.each(_.keys(this._states), (time: string) => {
 			delete this._states[time]
