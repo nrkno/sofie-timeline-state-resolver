@@ -582,7 +582,7 @@ export class Conductor extends EventEmitter {
 				this.timeline
 			)
 
-			// Apply changes to fixed objects (the "now" feature):
+			// Apply changes to fixed objects (set "now" triggers to an actual time):
 			_.each(objectsFixed, (o) => {
 				nowIds[o.id] = o.time
 			})
@@ -619,6 +619,7 @@ export class Conductor extends EventEmitter {
 				return filteredState
 			}
 
+			// push state to the right device
 			let ps: Promise<any>[] = []
 			ps = _.map(this.devices, async (device: DeviceContainer) => {
 				// The subState contains only the parts of the state relevant to that device
@@ -637,7 +638,6 @@ export class Conductor extends EventEmitter {
 					}
 					return o
 				}
-				// this.emit('info', 'State of device ' + device.deviceName, tlState.LLayers )
 				// Pass along the state to the device, it will generate its commands and execute them:
 				await device.device.handleState(removeParent(subState))
 				.catch(e => {
@@ -651,12 +651,12 @@ export class Conductor extends EventEmitter {
 			// Now that we've handled this point in time, it's time to determine what the next point in time is:
 			let nextEventTime = await this._resolver.getNextTimelineEvent(timeline, tlState.time)
 
-			const now2 = this.getCurrentTime()
+			const nowPostExec = this.getCurrentTime()
 			if (nextEventTime) {
 
 				timeUntilNextResolve = Math.max(MINTRIGGERTIME,
 					Math.min(LOOKAHEADTIME,
-						(nextEventTime - now2) - PREPARETIME
+						(nextEventTime - nowPostExec) - PREPARETIME
 					)
 				)
 
@@ -677,15 +677,17 @@ export class Conductor extends EventEmitter {
 				// resolve at "now" then next time:
 				nextResolveTime = 0
 			}
-			
+
 			// Special function: send callback to Core
 			let sentCallbacksOld: TimelineCallbacks = this._sentCallbacks
 			let sentCallbacksNew: TimelineCallbacks = {}
 			this._doOnTime.clearQueueNowAndAfter(tlState.time)
 
+			// clear callbacks scheduled after the current tlState
 			_.each(sentCallbacksOld, (o: TimelineCallback, callbackId: string) => {
 				if (o.time >= tlState.time) delete sentCallbacksOld[callbackId]
 			})
+			// schedule callbacks to be executed
 			_.each(tlState.GLayers, (o: TimelineResolvedObject) => {
 				try {
 					if (o.content.callBack || o.content.callBackStopped) {
@@ -716,7 +718,6 @@ export class Conductor extends EventEmitter {
 									})
 								} else {
 									// callback already sent, do nothing
-									// this.emit('debug', 'callback already sent', callBackId)
 								}
 							})
 						}
@@ -730,7 +731,7 @@ export class Conductor extends EventEmitter {
 					if (!sentCallbacksNew[callBackId]) {
 						// Object has stopped playing
 						this._queueCallback({
-							type: 'start',
+							type: 'stop',
 							time: tlState.time,
 							id: cb.id,
 							callBack: cb.callBackStopped,
@@ -746,6 +747,7 @@ export class Conductor extends EventEmitter {
 			this.emit('error', 'resolveTimeline' + e + '\nStack: ' + e.stack)
 		}
 
+		// Report time taken to resolve
 		this.statReport(statMeasureStart, {
 			timelineStartResolve: statTimeTimelineStartResolve,
 			timelineResolved: statTimeTimelineResolved,
@@ -753,6 +755,7 @@ export class Conductor extends EventEmitter {
 			done: Date.now()
 		})
 
+		// Try to trigger the next resolval
 		try {
 			this._triggerResolveTimeline(timeUntilNextResolve)
 		} catch (e) {
@@ -760,6 +763,11 @@ export class Conductor extends EventEmitter {
 		}
 		return nextResolveTime
 	}
+	/**
+	 * Returns a time estimate for the resolval duration based on the amount of
+	 * objects on the timeline. If the proActiveResolve option is falsy this
+	 * returns 0.
+	 */
 	estimateResolveTime (): any {
 		if (this._options.proActiveResolve) {
 			let objectCount = this.timeline.length
@@ -826,6 +834,7 @@ export class Conductor extends EventEmitter {
 		})
 		this._queuedCallbacks = []
 
+		// sort the callbacks
 		let callbacksArray = _.values(callbacks).sort((a, b) => {
 			if (a.type === 'start' && b.type !== 'start') return 1
 			if (a.type !== 'start' && b.type === 'start') return -1
@@ -836,6 +845,7 @@ export class Conductor extends EventEmitter {
 			return 0
 		})
 
+		// emit callbacks
 		_.each(callbacksArray, cb => {
 			this.emit('timelineCallback',
 				cb.time,
