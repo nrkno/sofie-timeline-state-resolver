@@ -82,7 +82,7 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> {
 		return new Promise((resolve/*, reject*/) => {
 			let firstConnect = true
 
-			this._hyperdeck = new Hyperdeck()
+			this._hyperdeck = new Hyperdeck({ pingPeriod: 1000 })
 			this._hyperdeck.connect(options.host, options.port)
 			this._hyperdeck.on('connected', () => {
 				this._queryCurrentState()
