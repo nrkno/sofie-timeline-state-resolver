@@ -155,7 +155,7 @@
     "casparcg-state": "^1.7.0",
     "emberplus": "git+https://github.com/nrkno/tv-automation-emberplus-connection#dist10102018",
     "fast-clone": "^1.5.3",
-    "hyperdeck-connection": "^0.1.4",
+    "hyperdeck-connection": "^0.1.5",
     "osc": "^2.2.4",
     "request": "^2.88.0",
     "sprintf-js": "^1.1.2",
