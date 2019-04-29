@@ -16,10 +16,6 @@ import { TimelineState, TimelineResolvedObject, TimelineResolvedKeyframe } from 
 import { DoOnTime, SendMode } from '../doOnTime'
 import { Pharos, ProjectInfo } from './pharosAPI'
 
-/*
-	This is a wrapper for an Pharos-devices,
-	https://www.pharoscontrols.com/downloads/documentation/application-notes/
-*/
 export interface PharosDeviceOptions extends DeviceOptions {
 	options?: {
 		commandReceiver?: (time: number, cmd) => Promise<any>
@@ -67,12 +63,15 @@ interface CommandContent {
 	args: any[]
 }
 type CommandContext = string
+/**
+ * This is a wrapper for a Pharos-devices,
+ * https://www.pharoscontrols.com/downloads/documentation/application-notes/
+ */
 export class PharosDevice extends DeviceWithState<TimelineState> {
 	private _doOnTime: DoOnTime
 
 	private _pharos: Pharos
 	private _pharosProjectInfo?: ProjectInfo
-	// private _queue: Array<any>
 
 	private _commandReceiver: (time: number, cmd: Command, context: CommandContext) => Promise<any>
 
@@ -100,7 +99,7 @@ export class PharosDevice extends DeviceWithState<TimelineState> {
 	}
 
 	/**
-	 * Initiates the connection with CasparCG through the ccg-connection lib.
+	 * Initiates the connection with Pharos through the PharosAPI.
 	 */
 	init (connectionOptions: PharosOptions): Promise<boolean> {
 		return new Promise((resolve, reject) => {
@@ -116,6 +115,11 @@ export class PharosDevice extends DeviceWithState<TimelineState> {
 			.catch(e => reject(e))
 		})
 	}
+	/**
+	 * Handles a new state such that the device will be in that state at a specific point
+	 * in time.
+	 * @param newState 
+	 */
 	handleState (newState: TimelineState) {
 		// Handle this new state, at the point in time specified
 
@@ -183,9 +187,12 @@ export class PharosDevice extends DeviceWithState<TimelineState> {
 			}, cmd)
 		})
 	}
+	/**
+	 * Generates commands to transition from old to new state.
+	 * @param oldOscSendState The assumed current state
+	 * @param newOscSendState The desired state of the device
+	 */
 	private _diffStates (oldPharosState: PharosState, newPharosState: PharosState) {
-		// in this Pharos class, let's just cheat:
-
 		let commands: Array<Command> = []
 		let stoppedLayers: {[layerKey: string]: true} = {}
 
