@@ -15,9 +15,6 @@ import {
 	TimelineState
 } from 'superfly-timeline'
 
-/*
-	This is a HTTPSendDevice, it sends http commands when it feels like it
-*/
 export interface HttpWatcherDeviceOptions extends DeviceOptions {
 	options?: {
 		uri?: string
@@ -28,6 +25,10 @@ export interface HttpWatcherDeviceOptions extends DeviceOptions {
 	}
 }
 
+/**
+ * This is a HTTPWatcherDevice, requests a uri on a regular interval and watches
+ * it's response.
+ */
 export class HttpWatcherDevice extends Device {
 	private uri?: string
 	private httpMethod: TimelineContentTypeHttp
