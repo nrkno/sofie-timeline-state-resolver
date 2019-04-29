@@ -30,6 +30,9 @@ interface Command {
 	context: CommandContext
 }
 type CommandContext = string
+/**
+ * This is a generic wrapper for any osc-enabled device.
+ */
 export class OSCMessageDevice extends DeviceWithState<TimelineState> {
 
 	private _doOnTime: DoOnTime
@@ -62,17 +65,20 @@ export class OSCMessageDevice extends DeviceWithState<TimelineState> {
 
 		return Promise.resolve(true) // This device doesn't have any initialization procedure
 	}
+	/**
+	 * Handles a new state such that the device will be in that state at a specific point
+	 * in time.
+	 * @param newState 
+	 */
 	handleState (newState: TimelineState) {
-		// Handle this new state, at the point in time specified
-
-		// console.log('handleState')
-
+		// Transform timeline states into device states
 		let previousStateTime = Math.max(this.getCurrentTime(), newState.time)
 		let oldState: TimelineState = (this.getStateBefore(previousStateTime) || { state: { time: 0, LLayers: {}, GLayers: {} } }).state
 
 		let oldAbstractState = this.convertStateToOSCMessage(oldState)
 		let newAbstractState = this.convertStateToOSCMessage(newState)
 
+		// Generate commands necessary to transition to the new state
 		let commandsToAchieveState: Array<any> = this._diffStates(oldAbstractState, newAbstractState)
 
 		// clear any queued commands later than this time:
@@ -83,8 +89,11 @@ export class OSCMessageDevice extends DeviceWithState<TimelineState> {
 		// store the new state, for later use:
 		this.setState(newState, newState.time)
 	}
+	/**
+	 * Clear any scheduled commands after this time
+	 * @param clearAfterTime 
+	 */
 	clearFuture (clearAfterTime: number) {
-		// Clear any scheduled commands after this time
 		this._doOnTime.clearQueueAfter(clearAfterTime)
 	}
 	terminate () {
@@ -108,9 +117,12 @@ export class OSCMessageDevice extends DeviceWithState<TimelineState> {
 	get connected (): boolean {
 		return false
 	}
+	/**
+	 * Transform the timeline state into a device state, which is in this case also
+	 * a timeline state.
+	 * @param state 
+	 */
 	convertStateToOSCMessage (state: TimelineState) {
-		// convert the timeline state into something we can use
-		// (won't even use this.getMapping())
 		return state
 	}
 	get deviceType () {
@@ -122,10 +134,13 @@ export class OSCMessageDevice extends DeviceWithState<TimelineState> {
 	get queue () {
 		return this._doOnTime.getQueue()
 	}
+	/**
+	 * add the new commands to the queue:
+	 * @param commandsToAchieveState 
+	 * @param time 
+	 */
 	private _addToQueue (commandsToAchieveState: Array<Command>, time: number) {
 		_.each(commandsToAchieveState, (cmd: Command) => {
-
-			// add the new commands to the queue:
 			this._doOnTime.queue(time, (cmd: Command) => {
 				if (
 					cmd.commandName === 'added' ||
@@ -138,13 +153,18 @@ export class OSCMessageDevice extends DeviceWithState<TimelineState> {
 			}, cmd)
 		})
 	}
-	private _diffStates (oldoscSendState: TimelineState, newOscSendState: TimelineState): Array<Command> {
+	/**
+	 * Generates commands to transition from old to new state.
+	 * @param oldOscSendState The assumed current state
+	 * @param newOscSendState The desired state of the device
+	 */
+	private _diffStates (oldOscSendState: TimelineState, newOscSendState: TimelineState): Array<Command> {
 		// in this oscSend class, let's just cheat:
 
 		let commands: Array<Command> = []
 
 		_.each(newOscSendState.LLayers, (newLayer: TimelineResolvedObject, layerKey: string) => {
-			let oldLayer = oldoscSendState.LLayers[layerKey]
+			let oldLayer = oldOscSendState.LLayers[layerKey]
 			if (!oldLayer) {
 				// added!
 				commands.push({
@@ -165,7 +185,7 @@ export class OSCMessageDevice extends DeviceWithState<TimelineState> {
 			}
 		})
 		// removed
-		_.each(oldoscSendState.LLayers, (oldLayer: TimelineResolvedObject, layerKey) => {
+		_.each(oldOscSendState.LLayers, (oldLayer: TimelineResolvedObject, layerKey) => {
 			let newLayer = newOscSendState.LLayers[layerKey]
 			if (!newLayer) {
 				// removed!
@@ -180,7 +200,6 @@ export class OSCMessageDevice extends DeviceWithState<TimelineState> {
 	}
 	private _defaultCommandReceiver (time: number, cmd: OSCMessageCommandContent, context: CommandContext): Promise<any> {
 		time = time
-		// this.emit('info', 'OSC: Send ', cmd)
 
 		let cwc: CommandWithContext = {
 			context: context,
