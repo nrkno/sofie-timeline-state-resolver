@@ -179,7 +179,7 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> {
 
 	/**
 	 * Clear any scheduled commands after this time
-	 * @param clearAfterTime 
+	 * @param clearAfterTime
 	 */
 	clearFuture (clearAfterTime: number) {
 		if (this._useScheduling) {

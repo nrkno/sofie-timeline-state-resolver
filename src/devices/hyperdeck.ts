@@ -141,7 +141,7 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> {
 	/**
 	 * Saves and handles state at specified point in time such that the device will be in
 	 * that state at that time.
-	 * @param newState 
+	 * @param newState
 	 */
 	handleState (newState: TimelineState) {
 		if (!this._initialized) {
@@ -170,7 +170,7 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> {
 	}
 	/**
 	 * Clears any scheduled commands after this time
-	 * @param clearAfterTime 
+	 * @param clearAfterTime
 	 */
 	clearFuture (clearAfterTime: number) {
 		this._doOnTime.clearQueueAfter(clearAfterTime)
@@ -183,7 +183,7 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> {
 	}
 	/**
 	 * Converts a timeline state to a device state.
-	 * @param state 
+	 * @param state
 	 */
 	convertStateToHyperdeck (state: TimelineState): DeviceState {
 		if (!this._initialized) throw Error('convertStateToHyperdeck cannot be used before inititialized')

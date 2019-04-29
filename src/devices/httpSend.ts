@@ -210,7 +210,7 @@ export class HttpSendDevice extends DeviceWithState<TimelineState> {
 					resolve()
 				}
 			}
-			
+
 			// send the http request:
 			let requestMethod = request[cmd.type]
 			if (requestMethod) {

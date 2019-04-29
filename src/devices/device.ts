@@ -211,8 +211,8 @@ export abstract class DeviceWithState<T> extends Device {
 	/**
 	 * Saves a state on a certain time point. Overwrites any previous state
 	 * saved at the same time. Removes any state after this time point.
-	 * @param state 
-	 * @param time 
+	 * @param state
+	 * @param time
 	 */
 	setState (state: T, time: number) {
 		if (!time) throw new Error('setState: falsy time')
@@ -232,8 +232,8 @@ export abstract class DeviceWithState<T> extends Device {
 	}
 	/**
 	 * Sets a windows outside of which all states will be removed.
-	 * @param removeBeforeTime 
-	 * @param removeAfterTime 
+	 * @param removeBeforeTime
+	 * @param removeAfterTime
 	 */
 	cleanUpStates (removeBeforeTime: number, removeAfterTime: number) {
 		_.each(_.keys(this._states), (stateTimeStr: string) => {

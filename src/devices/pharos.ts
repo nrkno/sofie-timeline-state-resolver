@@ -118,7 +118,7 @@ export class PharosDevice extends DeviceWithState<TimelineState> {
 	/**
 	 * Handles a new state such that the device will be in that state at a specific point
 	 * in time.
-	 * @param newState 
+	 * @param newState
 	 */
 	handleState (newState: TimelineState) {
 		// Handle this new state, at the point in time specified

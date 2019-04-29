@@ -124,7 +124,7 @@ export class PanasonicPtzDevice extends DeviceWithState<TimelineState> {
 
 	/**
 	 * Converts a timeline state into a device state.
-	 * @param state 
+	 * @param state
 	 */
 	convertStateToPtz (state: TimelineState): PanasonicPtzState {
 		// convert the timeline state into something we can use
@@ -163,7 +163,7 @@ export class PanasonicPtzDevice extends DeviceWithState<TimelineState> {
 	/**
 	 * Handles a new state such that the device will be in that state at a specific point
 	 * in time.
-	 * @param newState 
+	 * @param newState
 	 */
 	handleState (newState: TimelineState) {
 		// Create device states
@@ -258,8 +258,8 @@ export class PanasonicPtzDevice extends DeviceWithState<TimelineState> {
 
 	/**
 	 * Queues an array of commands to be executed at `time`
-	 * @param commandsToAchieveState 
-	 * @param time 
+	 * @param commandsToAchieveState
+	 * @param time
 	 */
 	private _addToQueue (commandsToAchieveState: Array<PanasonicPtzCommandWithContext>, time: number) {
 		_.each(commandsToAchieveState, (cmd: PanasonicPtzCommandWithContext) => {

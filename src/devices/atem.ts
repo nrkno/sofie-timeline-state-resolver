@@ -179,7 +179,7 @@ export class AtemDevice extends DeviceWithState<DeviceState> {
 	}
 	/**
 	 * Clear any scheduled commands after `clearAfterTime`
-	 * @param clearAfterTime 
+	 * @param clearAfterTime
 	 */
 	clearFuture (clearAfterTime: number) {
 		this._doOnTime.clearQueueAfter(clearAfterTime)
@@ -306,8 +306,8 @@ export class AtemDevice extends DeviceWithState<DeviceState> {
 	}
 	/**
 	 * Execute `commandsToAchieveState` at `time` using the doOnTime class
-	 * @param commandsToAchieveState 
-	 * @param time 
+	 * @param commandsToAchieveState
+	 * @param time
 	 */
 	private _addToQueue (commandsToAchieveState: Array<AtemCommandWithContext>, time: number) {
 		_.each(commandsToAchieveState, (cmd: AtemCommandWithContext) => {
@@ -320,8 +320,8 @@ export class AtemDevice extends DeviceWithState<DeviceState> {
 	}
 	/**
 	 * Diffs two states and generate commands based on the diff.
-	 * @param oldAtemState 
-	 * @param newAtemState 
+	 * @param oldAtemState
+	 * @param newAtemState
 	 */
 	private _diffStates (oldAtemState: DeviceState, newAtemState: DeviceState): Array<AtemCommandWithContext> {
 		return _.map(

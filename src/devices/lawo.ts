@@ -84,7 +84,7 @@ export interface LawoCommandWithContext {
 type CommandContext = string
 /**
  * This is a wrapper for a Lawo sound mixer
- * 
+ *
  * It controls mutes and fades over Ember Plus.
  */
 export class LawoDevice extends DeviceWithState<TimelineState> {
@@ -174,7 +174,7 @@ export class LawoDevice extends DeviceWithState<TimelineState> {
 	}
 	/**
 	 * Handles a state such that the device will reflect that state at the given time.
-	 * @param newState 
+	 * @param newState
 	 */
 	handleState (newState: TimelineState) {
 		// Convert timeline states to device states
@@ -197,7 +197,7 @@ export class LawoDevice extends DeviceWithState<TimelineState> {
 	}
 	/**
 	 * Clear any scheduled commands after this time
-	 * @param clearAfterTime 
+	 * @param clearAfterTime
 	 */
 	clearFuture (clearAfterTime: number) {
 		this._doOnTime.clearQueueAfter(clearAfterTime)
@@ -229,7 +229,7 @@ export class LawoDevice extends DeviceWithState<TimelineState> {
 	}
 	/**
 	 * Converts a timeline state into a device state.
-	 * @param state 
+	 * @param state
 	 */
 	convertStateToLawo (state: TimelineState): LawoState {
 		const lawoState: LawoState = {}
@@ -318,7 +318,7 @@ export class LawoDevice extends DeviceWithState<TimelineState> {
 
 	/**
 	 * Gets an ember node based on its path
-	 * @param path 
+	 * @param path
 	 */
 	private async _getNodeByPath (path: string): Promise<Ember.Node> {
 		return new Promise((resolve, reject) => {
@@ -341,8 +341,8 @@ export class LawoDevice extends DeviceWithState<TimelineState> {
 
 	/**
 	 * Returns an attribute path
-	 * @param identifier 
-	 * @param attributePath 
+	 * @param identifier
+	 * @param attributePath
 	 */
 	private _sourceNodeAttributePath (identifier: string, attributePath: string): string {
 		return _.compact([

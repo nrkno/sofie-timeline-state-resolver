@@ -68,7 +68,7 @@ export class OSCMessageDevice extends DeviceWithState<TimelineState> {
 	/**
 	 * Handles a new state such that the device will be in that state at a specific point
 	 * in time.
-	 * @param newState 
+	 * @param newState
 	 */
 	handleState (newState: TimelineState) {
 		// Transform timeline states into device states
@@ -91,7 +91,7 @@ export class OSCMessageDevice extends DeviceWithState<TimelineState> {
 	}
 	/**
 	 * Clear any scheduled commands after this time
-	 * @param clearAfterTime 
+	 * @param clearAfterTime
 	 */
 	clearFuture (clearAfterTime: number) {
 		this._doOnTime.clearQueueAfter(clearAfterTime)
@@ -120,7 +120,7 @@ export class OSCMessageDevice extends DeviceWithState<TimelineState> {
 	/**
 	 * Transform the timeline state into a device state, which is in this case also
 	 * a timeline state.
-	 * @param state 
+	 * @param state
 	 */
 	convertStateToOSCMessage (state: TimelineState) {
 		return state
@@ -136,8 +136,8 @@ export class OSCMessageDevice extends DeviceWithState<TimelineState> {
 	}
 	/**
 	 * add the new commands to the queue:
-	 * @param commandsToAchieveState 
-	 * @param time 
+	 * @param commandsToAchieveState
+	 * @param time
 	 */
 	private _addToQueue (commandsToAchieveState: Array<Command>, time: number) {
 		_.each(commandsToAchieveState, (cmd: Command) => {

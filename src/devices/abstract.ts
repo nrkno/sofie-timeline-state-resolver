@@ -58,7 +58,7 @@ export class AbstractDevice extends DeviceWithState<TimelineState> {
 	}
 	/**
 	 * Handle a new state, at the point in time specified
-	 * @param newState 
+	 * @param newState
 	 */
 	handleState (newState: TimelineState) {
 		let previousStateTime = Math.max(this.getCurrentTime(), newState.time)
@@ -79,7 +79,7 @@ export class AbstractDevice extends DeviceWithState<TimelineState> {
 	}
 	/**
 	 * Clear any scheduled commands after this time
-	 * @param clearAfterTime 
+	 * @param clearAfterTime
 	 */
 	clearFuture (clearAfterTime: number) {
 		this._doOnTime.clearQueueAfter(clearAfterTime)
@@ -99,7 +99,7 @@ export class AbstractDevice extends DeviceWithState<TimelineState> {
 	}
 	/**
 	 * converts the timeline state into something we can use
-	 * @param state 
+	 * @param state
 	 */
 	convertStateToAbstract (state: TimelineState) {
 		return state
@@ -130,8 +130,8 @@ export class AbstractDevice extends DeviceWithState<TimelineState> {
 	/**
 	 * Generates commands based such that we will transition from the old state
 	 * to the new state.
-	 * @param oldAbstractState 
-	 * @param newAbstractState 
+	 * @param oldAbstractState
+	 * @param newAbstractState
 	 */
 	private _diffStates (oldAbstractState: TimelineState, newAbstractState: TimelineState) {
 		// in this abstract class, let's just cheat:

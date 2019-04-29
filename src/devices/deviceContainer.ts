@@ -9,7 +9,7 @@ import { DeviceOptions, DeviceType } from '../types/src'
 /**
  * A device container is a wrapper around a device in ThreadedClass class, it
  * keeps a local property of some basic information about the device (like
- * names and id's) to prevent a costly round trip over IPC. 
+ * names and id's) to prevent a costly round trip over IPC.
  */
 export class DeviceContainer {
 
