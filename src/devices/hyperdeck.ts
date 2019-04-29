@@ -28,9 +28,6 @@ function deepExtend<T> (destination: T, ...sources: any[]) {
 	// @ts-ignore (mixin)
 	return _.deepExtend(destination, ...sources)
 }
-/**
- * This is a wrapper for the Hyperdeck Device. Commands to any and all hyperdeck devices will be sent through here.
- */
 export interface HyperdeckDeviceOptions extends DeviceOptions {
 	options?: {
 		commandReceiver?: (time: number, cmd) => Promise<any>
@@ -52,6 +49,9 @@ export interface DeviceState {
 }
 
 type CommandContext = any
+/**
+ * This is a wrapper for the Hyperdeck Device. Commands to any and all hyperdeck devices will be sent through here.
+ */
 export class HyperdeckDevice extends DeviceWithState<DeviceState> {
 
 	private _doOnTime: DoOnTime
@@ -107,6 +107,9 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> {
 			this._hyperdeck.on('error', (e) => this.emit('error', 'Hyperdeck', e))
 		})
 	}
+	/**
+	 * Makes this device ready for garbage collection.
+	 */
 	terminate (): Promise<boolean> {
 		this._doOnTime.dispose()
 
@@ -120,6 +123,9 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> {
 		})
 	}
 
+	/**
+	 * Prepares device for playout
+	 */
 	async makeReady (okToDestroyStuff?: boolean): Promise<void> {
 		if (okToDestroyStuff) {
 			let time = this.getCurrentTime()
@@ -132,6 +138,11 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> {
 		}
 	}
 
+	/**
+	 * Saves and handles state at specified point in time such that the device will be in
+	 * that state at that time.
+	 * @param newState 
+	 */
 	handleState (newState: TimelineState) {
 		if (!this._initialized) {
 			// before it's initialized don't do anything
@@ -139,12 +150,14 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> {
 			return
 		}
 
+		// Create device states
 		let previousStateTime = Math.max(this.getCurrentTime(), newState.time)
 		let oldState: DeviceState = (this.getStateBefore(previousStateTime) || { state: this._getDefaultState() }).state
 
 		let oldHyperdeckState = oldState
 		let newHyperdeckState = this.convertStateToHyperdeck(newState)
 
+		// Generate commands to transition to new state
 		let commandsToAchieveState: Array<HyperdeckCommandWithContext> = this._diffStates(oldHyperdeckState, newHyperdeckState)
 
 		// clear any queued commands later than this time:
@@ -155,8 +168,11 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> {
 		// store the new state, for later use:
 		this.setState(newHyperdeckState, newState.time)
 	}
+	/**
+	 * Clears any scheduled commands after this time
+	 * @param clearAfterTime 
+	 */
 	clearFuture (clearAfterTime: number) {
-		// Clear any scheduled commands after this time
 		this._doOnTime.clearQueueAfter(clearAfterTime)
 	}
 	get canConnect (): boolean {
@@ -165,6 +181,10 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> {
 	get connected (): boolean {
 		return this._connected
 	}
+	/**
+	 * Converts a timeline state to a device state.
+	 * @param state 
+	 */
 	convertStateToHyperdeck (state: TimelineState): DeviceState {
 		if (!this._initialized) throw Error('convertStateToHyperdeck cannot be used before inititialized')
 
@@ -217,6 +237,11 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> {
 		})
 	}
 
+	/**
+	 * Generates commands to transition from old to new state.
+	 * @param oldHyperdeckState The assumed current state
+	 * @param newHyperdeckState The desired state of the device
+	 */
 	private _diffStates (oldHyperdeckState: DeviceState, newHyperdeckState: DeviceState): Array<HyperdeckCommandWithContext> {
 
 		const commandsToAchieveState: HyperdeckCommandWithContext[] = []
@@ -302,6 +327,9 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> {
 		return commandsToAchieveState
 	}
 
+	/**
+	 * Gets the current state of the device
+	 */
 	private async _queryCurrentState (): Promise<DeviceState> {
 		if (!this._connected) return this._getDefaultState()
 
@@ -318,6 +346,9 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> {
 		return res
 	}
 
+	/**
+	 * Gets the default state of the device
+	 */
 	private _getDefaultState (): DeviceState {
 		const res: DeviceState = {
 			notify: { // TODO - this notify block will want configuring per device or will the state lib always want it the same?

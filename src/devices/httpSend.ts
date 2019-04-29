@@ -18,10 +18,6 @@ import {
 	TimelineState,
 	TimelineResolvedObject
 } from 'superfly-timeline'
-
-/*
-	This is a HTTPSendDevice, it sends http commands when it feels like it
-*/
 export interface HttpSendDeviceOptions extends DeviceOptions {
 	options?: {
 		commandReceiver?: (time: number, cmd) => Promise<any>
@@ -34,6 +30,10 @@ interface Command {
 	layer: string
 }
 type CommandContext = string
+
+/**
+ * This is a HTTPSendDevice, it sends http commands when it feels like it
+ */
 export class HttpSendDevice extends DeviceWithState<TimelineState> {
 
 	private _makeReadyCommands: HttpSendCommandContent[]
@@ -60,8 +60,6 @@ export class HttpSendDevice extends DeviceWithState<TimelineState> {
 	}
 	handleState (newState: TimelineState) {
 		// Handle this new state, at the point in time specified
-
-		// console.log('handleState')
 
 		let previousStateTime = Math.max(this.getCurrentTime(), newState.time)
 		let oldState: TimelineState = (this.getStateBefore(previousStateTime) || { state: { time: 0, LLayers: {}, GLayers: {} } }).state
@@ -190,7 +188,6 @@ export class HttpSendDevice extends DeviceWithState<TimelineState> {
 	}
 	private _defaultCommandReceiver (time: number, cmd: HttpSendCommandContent, context: CommandContext): Promise<any> {
 		time = time
-		// this.emit('info', 'HTTP: Send ', cmd)
 
 		let cwc: CommandWithContext = {
 			context: context,
@@ -213,6 +210,8 @@ export class HttpSendDevice extends DeviceWithState<TimelineState> {
 					resolve()
 				}
 			}
+			
+			// send the http request:
 			let requestMethod = request[cmd.type]
 			if (requestMethod) {
 				requestMethod(

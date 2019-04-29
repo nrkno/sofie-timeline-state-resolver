@@ -10,12 +10,6 @@ import { DeviceType, DeviceOptions } from '../types/src'
 import { TimelineState, TimelineResolvedObject } from 'superfly-timeline'
 import { DoOnTime, SendMode } from '../doOnTime'
 
-/*
-	This is a wrapper for an "Abstract" device
-
-	An abstract device is just a test-device that doesn't really do anything, but can be used
-	as a preliminary mock
-*/
 export interface AbstractDeviceOptions extends DeviceOptions {
 	options?: {
 		commandReceiver?: (time: number, cmd) => Promise<any>
@@ -28,9 +22,15 @@ export interface Command {
 }
 type CommandContent = any
 type CommandContext = string
+
+/*
+	This is a wrapper for an "Abstract" device
+
+	An abstract device is just a test-device that doesn't really do anything, but can be used
+	as a preliminary mock
+*/
 export class AbstractDevice extends DeviceWithState<TimelineState> {
 	private _doOnTime: DoOnTime
-	// private _queue: Array<any>
 
 	private _commandReceiver: (time: number, cmd: Command, context: CommandContext) => Promise<any>
 
@@ -56,9 +56,11 @@ export class AbstractDevice extends DeviceWithState<TimelineState> {
 			resolve(true)
 		})
 	}
+	/**
+	 * Handle a new state, at the point in time specified
+	 * @param newState 
+	 */
 	handleState (newState: TimelineState) {
-		// Handle this new state, at the point in time specified
-
 		let previousStateTime = Math.max(this.getCurrentTime(), newState.time)
 		let oldState: TimelineState = (this.getStateBefore(previousStateTime) || { state: { time: 0, LLayers: {}, GLayers: {} } }).state
 
@@ -75,10 +77,16 @@ export class AbstractDevice extends DeviceWithState<TimelineState> {
 		// store the new state, for later use:
 		this.setState(newState, newState.time)
 	}
+	/**
+	 * Clear any scheduled commands after this time
+	 * @param clearAfterTime 
+	 */
 	clearFuture (clearAfterTime: number) {
-		// Clear any scheduled commands after this time
 		this._doOnTime.clearQueueAfter(clearAfterTime)
 	}
+	/**
+	 * Dispose of the device so it can be garbage collected.
+	 */
 	terminate () {
 		this._doOnTime.dispose()
 		return Promise.resolve(true)
@@ -89,8 +97,11 @@ export class AbstractDevice extends DeviceWithState<TimelineState> {
 	get connected (): boolean {
 		return false
 	}
+	/**
+	 * converts the timeline state into something we can use
+	 * @param state 
+	 */
 	convertStateToAbstract (state: TimelineState) {
-		// convert the timeline state into something we can use
 		return state
 	}
 	get deviceType () {
@@ -116,6 +127,12 @@ export class AbstractDevice extends DeviceWithState<TimelineState> {
 			}, cmd)
 		})
 	}
+	/**
+	 * Generates commands based such that we will transition from the old state
+	 * to the new state.
+	 * @param oldAbstractState 
+	 * @param newAbstractState 
+	 */
 	private _diffStates (oldAbstractState: TimelineState, newAbstractState: TimelineState) {
 		// in this abstract class, let's just cheat:
 

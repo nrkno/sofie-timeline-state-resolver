@@ -10,6 +10,10 @@ interface CommandQueueItem {
 	resolve: (response: string) => void
 	reject: (error: any) => void
 }
+/**
+ * Low level device class for Panasonic PTZ devices executing a
+ * basic queue.
+ */
 export class PanasonicPtzCamera extends EventEmitter {
 	private _url: string
 	private _commandDelay: number
@@ -119,6 +123,10 @@ enum PanasonicHttpResponse {
 	ERROR_2 = 'E2',
 	ERROR_3 = 'E3'
 }
+/**
+ * High level methods for interfacing with a panasonic PTZ camera. This class
+ * depends on the PanasonicPtzCamera class.
+ */
 export class PanasonicPtzHttpInterface extends EventEmitter {
 	private _device: PanasonicPtzCamera
 
