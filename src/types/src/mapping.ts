@@ -1,4 +1,5 @@
 import { ResolvedTimelineObjectInstance } from './superfly-timeline'
+import { DeviceType } from '.'
 
 export interface Mappings {
 	[layerName: string]: Mapping
@@ -13,8 +14,6 @@ export interface Mapping {
 export interface MappingAbstract extends Mapping {
 	device: DeviceType.ABSTRACT
 }
-import { DeviceType } from '../../types/src'
-export { DeviceType }
 
 export interface DeviceOptions extends SlowReportOptions {
 	type: DeviceType

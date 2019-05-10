@@ -20,11 +20,6 @@ export { Timeline }
 
 export * from './mapping'
 
-export interface TimelineObjEmpty extends Timeline.TimelineObject {
-	content: {}
-	classes: Array<string>
-}
-
 export type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>
 
 export enum DeviceType {
@@ -65,7 +60,16 @@ export interface TSRTimelineObjBase extends Omit<Timeline.TimelineObject, 'conte
 	}
 }
 
+export interface TimelineObjEmpty extends TSRTimelineObjBase {
+	content: {
+		deviceType: DeviceType.ABSTRACT
+		type: 'empty'
+	}
+	classes: Array<string>
+}
+
 export type TSRTimelineObj = (
+	TimelineObjEmpty |
 	TimelineObjAbstractAny |
 	TimelineObjAtemAny |
 	TimelineObjCasparCGAny |

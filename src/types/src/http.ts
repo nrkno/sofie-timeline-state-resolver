@@ -1,5 +1,5 @@
-import { Mapping, DeviceType } from './mapping'
-import { TSRTimelineObjBase } from '.'
+import { Mapping } from './mapping'
+import { TSRTimelineObjBase, DeviceType } from '.'
 
 export interface MappingHTTPSend extends Mapping {
 	device: DeviceType.HTTPSEND

@@ -1,5 +1,5 @@
-import { Mapping, DeviceType } from './mapping'
-import { TSRTimelineObjBase } from '.'
+import { Mapping } from './mapping'
+import { TSRTimelineObjBase, DeviceType } from '.'
 
 export interface MappingAtem extends Mapping {
 	device: DeviceType.ATEM,
