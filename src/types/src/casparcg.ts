@@ -1,5 +1,5 @@
-import { TimelineObject, TimelineKeyframe } from './superfly-timeline'
 import { Mapping, DeviceType } from './mapping'
+import { TSRTimelineObjBase } from '.'
 
 export interface MappingCasparCG extends Mapping {
 	device: DeviceType.CASPARCG,
@@ -25,13 +25,6 @@ export enum TimelineContentTypeCasparCg { //  CasparCG-state
 	RECORD = 'record'
 }
 
-export type TimelineObjCCGAny = TimelineObjCCGMedia
-	| TimelineObjCCGInput
-	| TimelineObjCCGHTMLPage
-	| TimelineObjCCGRecord
-	| TimelineObjCCGRoute
-	| TimelineObjCCGTemplate
-
 export interface TimelineTransition { // TODO split into transition and sting
 	type: Transition
 	duration?: number,
@@ -43,7 +36,7 @@ export interface TimelineTransition { // TODO split into transition and sting
 }
 
 export interface TimelineObjCCGProducerContentBase {
-	keyframes?: Array<TimelineKeyframe>
+	/** The type of CasparCG content  */
 	type: TimelineContentTypeCasparCg
 	transitions?: {
 		inTransition?: TimelineTransition
@@ -51,94 +44,131 @@ export interface TimelineObjCCGProducerContentBase {
 	}
 	mixer?: Mixer
 }
-
-export interface TimelineObjCCGMedia extends TimelineObject {
+export type TimelineObjCasparCGAny = (
+	TimelineObjCCGMedia |
+	TimelineObjCCGIP |
+	TimelineObjCCGInput |
+	TimelineObjCCGHTMLPage |
+	TimelineObjCCGRecord |
+	TimelineObjCCGRoute |
+	TimelineObjCCGTemplate
+)
+export interface TimelineObjCasparCGBase extends TSRTimelineObjBase {
 	content: {
+		deviceType: DeviceType.CASPARCG
+		type: TimelineContentTypeCasparCg
+	}
+}
+
+export interface TimelineObjCCGMedia extends TimelineObjCasparCGBase {
+	content: {
+		deviceType: DeviceType.CASPARCG
 		type: TimelineContentTypeCasparCg.MEDIA
-		attributes: {
-			file: string
-			loop?: boolean
 
-			seek?: number
-			inPoint?: number
-			length?: number // Note that for seeking to work when looping, length has to be provided
+		/** Path to the file to be played (example: 'AMB') */
+		file: string
+		/** Whether the media file should be looping or not */
+		loop?: boolean
 
-			videoFilter?: string
-			audioFilter?: string
-			channelLayout?: string
-		}
+		/** The point where the file starts playing [milliseconds from start of file] */
+		seek?: number
+		/** The point where the file returns to, when looping [milliseconds from start of file] */
+		inPoint?: number
+		/** The duration of the file. The playout will either freeze or loop after this time.
+		 * Note that for seeking to work when looping, .length has to be provided. [milliseconds]
+		 */
+		length?: number
+
+		// videoFilter?: string
+		// audioFilter?: string
+		/** Audio channel layout (example 'stereo') */
+		channelLayout?: string
+
+		/** When pausing, the unix-time the playout was paused. */
+		pauseTime?: number
+		/** If the video is playing or is paused (defaults to true) */
+		playing?: boolean
 	} & TimelineObjCCGProducerContentBase
 }
-// export interface TimelineObjCCGIP extends TimelineObject {
-// 	content: {
-// 		objects?: Array<TimelineObject>
-// 		keyframes?: Array<TimelineKeyframe>
-// 		type: TimelineContentType.IP
-// 		transitions?: {
-// 			inTransition?: TimelineTransition
-// 			outTransition?: TimelineTransition
-// 		}
-// 		attributes: {
-// 			uri: string
-// 			videoFilter?: string
-// 			audioFilter?: string
-// 		}
-// 		mixer?: Mixer
-// 	}
-// }
-export interface TimelineObjCCGInput extends TimelineObject {
+export interface TimelineObjCCGIP extends TimelineObjCasparCGBase {
 	content: {
+		deviceType: DeviceType.CASPARCG
+		type: TimelineContentTypeCasparCg.IP
+		/** The URI to the input stream */
+		uri: string
+
+		// videoFilter?: string
+		// audioFilter?: string
+		/** Audio channel layout (example 'stereo') */
+		channelLayout?: string
+	} & TimelineObjCCGProducerContentBase
+}
+export interface TimelineObjCCGInput extends TimelineObjCasparCGBase {
+	content: {
+		deviceType: DeviceType.CASPARCG
 		type: TimelineContentTypeCasparCg.INPUT
-		attributes: {
-			type: string // 'decklink',
-			device: number,
-			deviceFormat: ChannelFormat // '1080i5000',
-			videoFilter?: string
-			audioFilter?: string
-			channelLayout?: string
-		}
+		/** The type of input (example: 'decklink') */
+		inputType: string
+		/** The inoput device index (to check in CASPARCG, run INFO SYSTEM) */
+		device: number,
+		/** The input format (example: '1080i5000') */
+		deviceFormat: ChannelFormat // ,
+
+		// videoFilter?: string
+		// audioFilter?: string
+		/** Audio channel layout (example 'stereo') */
+		channelLayout?: string
 	} & TimelineObjCCGProducerContentBase
 }
-export interface TimelineObjCCGHTMLPage extends TimelineObject {
+export interface TimelineObjCCGHTMLPage extends TimelineObjCasparCGBase {
 	content: {
+		deviceType: DeviceType.CASPARCG
 		type: TimelineContentTypeCasparCg.HTMLPAGE
-		attributes: {
-			url: string
-		}
+		/** The URL to load */
+		url: string
 	} & TimelineObjCCGProducerContentBase
 }
-export interface TimelineObjCCGTemplate extends TimelineObject {
+export interface TimelineObjCCGTemplate extends TimelineObjCasparCGBase {
 	content: {
+		deviceType: DeviceType.CASPARCG
 		type: TimelineContentTypeCasparCg.TEMPLATE
-		attributes: {
-			type?: 'html' | 'flash'
-			name: string,
-			data?: any, // free to do whatever inside the object, so long as the template likes it
-			useStopCommand: boolean // whether to use CG stop or CLEAR layer
-		}
+		/** The type of template to load ('html' or 'flash') */
+		templateType?: 'html' | 'flash'
+		/** The name/path of the template */
+		name: string,
+		/** The data to send into the template. Fee to be whatever, as long as the template likes it */
+		data?: any,
+		/** Whether to use CG stop or CLEAR layer when stopping the template. Defaults to false = CLEAR  */
+		useStopCommand: boolean
 	} & TimelineObjCCGProducerContentBase
 }
-export interface TimelineObjCCGRoute extends TimelineObject {
+export interface TimelineObjCCGRoute extends TimelineObjCasparCGBase {
 	content: {
+		deviceType: DeviceType.CASPARCG
 		type: TimelineContentTypeCasparCg.ROUTE
-		attributes: {
-			channel?: number
-			layer?: number
-			LLayer?: string // uses mappings to route, overrides channel/layer parameters.
-			mode?: 'BACKGROUND' | 'NEXT'
-			channelLayout?: string
-		}
+		/** The CasparCG-channel to route from */
+		channel?: number
+		/** The CasparCG-layer to route from */
+		layer?: number
+
+		/** Uses the mappings to determine what layer to route (overrides channel/layer parameters) */
+		mappedLayer?: string
+
+		/** Type of routing ('BACKGROUND' | 'NEXT') */
+		mode?: 'BACKGROUND' | 'NEXT'
+		/** Audio channel layout (example 'stereo') */
+		channelLayout?: string
+
 	} & TimelineObjCCGProducerContentBase
 }
-export interface TimelineObjCCGRecord extends TimelineObject {
+export interface TimelineObjCCGRecord extends TimelineObjCasparCGBase {
 	content: {
-		// objects?: Array<TimelineObject>
-		keyframes?: Array<TimelineKeyframe>
+		deviceType: DeviceType.CASPARCG
 		type: TimelineContentTypeCasparCg.RECORD
-		attributes: {
-			file?: string,
-			encoderOptions: string
-		}
+		/** The filename to output to (will be in the media folder) */
+		file?: string,
+		/** ffmpeg encoder options (example '-vcodec libx264 -preset ultrafast') */
+		encoderOptions: string
 	}
 }
 

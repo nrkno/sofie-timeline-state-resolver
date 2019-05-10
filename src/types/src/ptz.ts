@@ -1,5 +1,5 @@
-import { TimelineKeyframe, TimelineObject } from './superfly-timeline'
 import { Mapping, DeviceType } from './mapping'
+import { TSRTimelineObjBase } from '.'
 
 export interface MappingPanasonicPtz extends Mapping {
 	device: DeviceType.PANASONIC_PTZ
@@ -19,16 +19,21 @@ export enum TimelineContentTypePanasonicPtz {
 	ZOOM = 'zoom'
 }
 
-export type TimelineObjPanasonicPtzAny = TimelineObjPanasonicPtz | TimelineObjPanasonicPtzPresetSpeed | TimelineObjPanasonicPtzPreset
-
-export interface TimelineObjPanasonicPtz extends TimelineObject {
+export type TimelineObjPanasonicPtzAny = (
+	TimelineObjPanasonicPtzZoomSpeed |
+	TimelineObjPanasonicPtzZoom |
+	TimelineObjPanasonicPtzPresetSpeed |
+	TimelineObjPanasonicPtzPreset
+)
+export interface TimelineObjPanasonicPtz extends TSRTimelineObjBase {
 	content: {
-		keyframes?: Array<TimelineKeyframe>
+		deviceType: DeviceType.PANASONIC_PTZ
 		type: TimelineContentTypePanasonicPtz
 	}
 }
 export interface TimelineObjPanasonicPtzZoomSpeed extends TimelineObjPanasonicPtz {
 	content: {
+		deviceType: DeviceType.PANASONIC_PTZ
 		type: TimelineContentTypePanasonicPtz.ZOOM_SPEED
 		zoomSpeed: number
 	}
@@ -36,6 +41,7 @@ export interface TimelineObjPanasonicPtzZoomSpeed extends TimelineObjPanasonicPt
 
 export interface TimelineObjPanasonicPtzZoom extends TimelineObjPanasonicPtz {
 	content: {
+		deviceType: DeviceType.PANASONIC_PTZ
 		type: TimelineContentTypePanasonicPtz.ZOOM
 		zoom: number
 	}
@@ -43,6 +49,7 @@ export interface TimelineObjPanasonicPtzZoom extends TimelineObjPanasonicPtz {
 
 export interface TimelineObjPanasonicPtzPresetSpeed extends TimelineObjPanasonicPtz {
 	content: {
+		deviceType: DeviceType.PANASONIC_PTZ
 		type: TimelineContentTypePanasonicPtz.SPEED
 		speed: number
 	}
@@ -50,6 +57,7 @@ export interface TimelineObjPanasonicPtzPresetSpeed extends TimelineObjPanasonic
 
 export interface TimelineObjPanasonicPtzPreset extends TimelineObjPanasonicPtz {
 	content: {
+		deviceType: DeviceType.PANASONIC_PTZ
 		type: TimelineContentTypePanasonicPtz.PRESET
 		preset: number
 	}

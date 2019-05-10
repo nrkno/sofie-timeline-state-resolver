@@ -15,8 +15,7 @@ import { DoOnTime, SendMode } from '../doOnTime'
 import * as request from 'request'
 
 import {
-	TimelineState,
-	TimelineResolvedObject
+	TimelineState, ResolvedTimelineObjectInstance
 } from 'superfly-timeline'
 export interface HttpSendDeviceOptions extends DeviceOptions {
 	options?: {
@@ -62,7 +61,7 @@ export class HttpSendDevice extends DeviceWithState<TimelineState> {
 		// Handle this new state, at the point in time specified
 
 		let previousStateTime = Math.max(this.getCurrentTime(), newState.time)
-		let oldState: TimelineState = (this.getStateBefore(previousStateTime) || { state: { time: 0, LLayers: {}, GLayers: {} } }).state
+		let oldState: TimelineState = (this.getStateBefore(previousStateTime) || { state: { time: 0, layers: {}, nextEvents: [] } }).state
 
 		let oldAbstractState = this.convertStateToHttpSend(oldState)
 		let newAbstractState = this.convertStateToHttpSend(newState)
@@ -144,39 +143,39 @@ export class HttpSendDevice extends DeviceWithState<TimelineState> {
 
 		let commands: Array<Command> = []
 
-		_.each(newhttpSendState.LLayers, (newLayer: TimelineResolvedObject, layerKey: string) => {
-			let oldLayer = oldhttpSendState.LLayers[layerKey]
+		_.each(newhttpSendState.layers, (newLayer: ResolvedTimelineObjectInstance, layerKey: string) => {
+			let oldLayer = oldhttpSendState.layers[layerKey]
 			if (!oldLayer) {
 				// added!
 				commands.push({
-					commandName: 'added',
-					content: newLayer.content as HttpSendCommandContent, // tslint:disable-line
-					context: `added: ${newLayer.id}`,
-					layer: layerKey
+					commandName:	'added',
+					content:		newLayer.content as HttpSendCommandContent,
+					context:		`added: ${newLayer.id}`,
+					layer:			layerKey
 				})
 			} else {
 				// changed?
 				if (!_.isEqual(oldLayer.content, newLayer.content)) {
 					// changed!
 					commands.push({
-						commandName: 'changed',
-						content: newLayer.content as HttpSendCommandContent, // tslint:disable-line
-						context: `changed: ${newLayer.id} (previously: ${oldLayer.id})`,
-						layer: layerKey
+						commandName:	'changed',
+						content:		newLayer.content as HttpSendCommandContent,
+						context:		`changed: ${newLayer.id} (previously: ${oldLayer.id})`,
+						layer:			layerKey
 					})
 				}
 			}
 		})
 		// removed
-		_.each(oldhttpSendState.LLayers, (oldLayer: TimelineResolvedObject, layerKey) => {
-			let newLayer = newhttpSendState.LLayers[layerKey]
+		_.each(oldhttpSendState.layers, (oldLayer: ResolvedTimelineObjectInstance, layerKey) => {
+			let newLayer = newhttpSendState.layers[layerKey]
 			if (!newLayer) {
 				// removed!
 				commands.push({
-					commandName: 'removed',
-					content: oldLayer.content as HttpSendCommandContent, // tslint:disable-line
-					context: `removed: ${oldLayer.id}`,
-					layer: layerKey
+					commandName:	'removed',
+					content:		oldLayer.content as HttpSendCommandContent,
+					context:		`removed: ${oldLayer.id}`,
+					layer:			 layerKey
 				})
 			}
 		})
@@ -201,12 +200,10 @@ export class HttpSendDevice extends DeviceWithState<TimelineState> {
 					this.emit('error', `HTTPSend: Error ${cmd.type}`, error)
 					reject(error)
 				} else if (response.statusCode === 200) {
-					// console.log('200 Response from ' + cmd.url, body)
 					this.emit('debug', `HTTPSend: ${cmd.type}: Good statuscode response on url "${cmd.url}": ${response.statusCode}`)
 					resolve()
 				} else {
 					this.emit('warning', `HTTPSend: ${cmd.type}: Bad statuscode response on url "${cmd.url}": ${response.statusCode}`)
-					// console.log(response.statusCode + ' Response from ' + cmd.url, body)
 					resolve()
 				}
 			}

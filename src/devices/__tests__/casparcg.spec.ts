@@ -1,12 +1,14 @@
-// import { CasparCG, AMCP } from 'casparcg-connection'
-// import {Resolver, Enums} from "superfly-timeline"
-import { TriggerType } from 'superfly-timeline'
 import { Conductor } from '../../conductor'
 import {
 	TimelineContentTypeCasparCg,
 	MappingCasparCG,
 	Mappings,
-	DeviceType
+	DeviceType,
+	ChannelFormat,
+	TimelineObjCasparCGAny,
+	Transition,
+	Ease,
+	Direction
 } from '../../types/src'
 import { MockTime } from '../../__tests__/mockTime.spec'
 import { getMockCall } from '../../__tests__/lib.spec'
@@ -74,18 +76,17 @@ describe('CasparCG', () => {
 		myConductor.timeline = [
 			{
 				id: 'obj0',
-				trigger: {
-					type: TriggerType.TIME_ABSOLUTE,
-					value: mockTime.getCurrentTime() - 1000 // 1 seconds ago
+				enable: {
+					start: mockTime.getCurrentTime() - 1000, // 1 seconds ago
+					duration: 2000
 				},
-				duration: 2000,
-				LLayer: 'myLayer0',
+				layer: 'myLayer0',
 				content: {
+					deviceType: DeviceType.CASPARCG,
 					type: TimelineContentTypeCasparCg.MEDIA,
-					attributes: {
-						file: 'AMB',
-						loop: true
-					}
+
+					file: 'AMB',
+					loop: true
 				}
 			}
 		]
@@ -160,17 +161,16 @@ describe('CasparCG', () => {
 		myConductor.timeline = [
 			{
 				id: 'obj0',
-				trigger: {
-					type: TriggerType.TIME_ABSOLUTE,
-					value: mockTime.getCurrentTime() - 10000 // 10 seconds ago
+				enable: {
+					start: mockTime.getCurrentTime() - 10000, // 10 seconds ago
+					duration: 60000
 				},
-				duration: 60000,
-				LLayer: 'myLayer0',
+				layer: 'myLayer0',
 				content: {
+					deviceType: DeviceType.CASPARCG,
 					type: TimelineContentTypeCasparCg.MEDIA,
-					attributes: {
-						file: 'AMB'
-					}
+
+					file: 'AMB'
 				}
 			}
 		]
@@ -225,17 +225,16 @@ describe('CasparCG', () => {
 		myConductor.timeline = [
 			{
 				id: 'obj0',
-				trigger: {
-					type: TriggerType.TIME_ABSOLUTE,
-					value: mockTime.getCurrentTime() - 1000 // 1 seconds ago
+				enable: {
+					start: mockTime.getCurrentTime() - 1000, // 1 seconds ago
+					duration: 2000
 				},
-				duration: 2000,
-				LLayer: 'myLayer0',
+				layer: 'myLayer0',
 				content: {
+					deviceType: DeviceType.CASPARCG,
 					type: TimelineContentTypeCasparCg.IP,
-					attributes: {
-						uri: 'rtsp://127.0.0.1:5004'
-					}
+
+					uri: 'rtsp://127.0.0.1:5004'
 				}
 			}
 		]
@@ -311,21 +310,21 @@ describe('CasparCG', () => {
 		myConductor.timeline = [
 			{
 				id: 'obj0',
-				trigger: {
-					type: TriggerType.TIME_ABSOLUTE,
-					value: 9000
+				enable: {
+					start: 9000,
+					duration: 2000 // 11000
 				},
-				duration: 2000, // 11000
-				LLayer: 'myLayer0',
+				layer: 'myLayer0',
 				content: {
+					deviceType: DeviceType.CASPARCG,
 					type: TimelineContentTypeCasparCg.INPUT,
-					attributes: {
-						device: 1
-					}
+
+					device: 1,
+					inputType: 'decklink',
+					deviceFormat: ChannelFormat.HD_720P5000
 				}
 			}
 		]
-		// console.log('advance to 10100')
 		await mockTime.advanceTimeToTicks(10100)
 
 		// one command has been sent:
@@ -343,7 +342,6 @@ describe('CasparCG', () => {
 		expect(getMockCall(commandReceiver0, 4, 1)._objectParams.command._objectParams).toMatchObject({ channel: 2, layer: 42 })
 
 		// advance time to end of clip:
-		// console.log('advance to 11200')
 		// await mockTime.advanceTimeToTicks(11200)
 
 		// two commands have been sent:
@@ -394,22 +392,21 @@ describe('CasparCG', () => {
 		myConductor.timeline = [
 			{
 				id: 'obj0',
-				trigger: {
-					type: TriggerType.TIME_ABSOLUTE,
-					value: 9000
+				enable: {
+					start: 9000,
+					duration: 2000
 				},
-				duration: 2000,
-				LLayer: 'myLayer0',
+				layer: 'myLayer0',
 				content: {
+					deviceType: DeviceType.CASPARCG,
 					type: TimelineContentTypeCasparCg.TEMPLATE,
-					attributes: {
-						name: 'LT',
-						data: {
-							f0: 'Hello',
-							f1: 'World'
-						},
-						useStopCommand: true
-					}
+
+					name: 'LT',
+					data: {
+						f0: 'Hello',
+						f1: 'World'
+					},
+					useStopCommand: true
 				}
 			}
 		]
@@ -479,18 +476,17 @@ describe('CasparCG', () => {
 		myConductor.timeline = [
 			{
 				id: 'obj0',
-				trigger: {
-					type: TriggerType.TIME_ABSOLUTE,
-					value: 9000
+				enable: {
+					start: 9000,
+					duration: 2000
 				},
-				duration: 2000,
-				LLayer: 'myLayer0',
+				layer: 'myLayer0',
 				content: {
+					deviceType: DeviceType.CASPARCG,
 					type: TimelineContentTypeCasparCg.RECORD,
-					attributes: {
-						file: 'RECORDING',
-						encoderOptions: '-format mkv -c:v libx264 -crf 22'
-					}
+
+					file: 'RECORDING',
+					encoderOptions: '-format mkv -c:v libx264 -crf 22'
 				}
 			}
 		]
@@ -565,33 +561,31 @@ describe('CasparCG', () => {
 		myConductor.timeline = [
 			{
 				id: 'obj0',
-				trigger: {
-					type: TriggerType.TIME_ABSOLUTE,
-					value: 9000
+				enable: {
+					start: 9000,
+					duration: 3000
 				},
-				duration: 3000,
-				LLayer: 'myLayer0',
+				layer: 'myLayer0',
 				content: {
+					deviceType: DeviceType.CASPARCG,
 					type: TimelineContentTypeCasparCg.ROUTE,
-					attributes: {
-						LLayer: 'myLayer1'
-					}
+
+					mappedLayer: 'myLayer1'
 				}
 			},
 			{
 				id: 'obj1',
-				trigger: {
-					type: TriggerType.TIME_ABSOLUTE,
-					value: 11000
+				enable: {
+					start: 11000,
+					duration: 1000
 				},
-				duration: 1000,
-				LLayer: 'myLayer1',
+				layer: 'myLayer1',
 				content: {
+					deviceType: DeviceType.CASPARCG,
 					type: TimelineContentTypeCasparCg.ROUTE,
-					attributes: {
-						channel: 2,
-						layer: 23
-					}
+
+					channel: 2,
+					layer: 23
 				}
 			}
 		]
@@ -674,29 +668,29 @@ describe('CasparCG', () => {
 		myConductor.timeline = [
 			{
 				id: 'obj0',
-				trigger: {
-					type: TriggerType.TIME_ABSOLUTE,
-					value: mockTime.getCurrentTime() - 1000 // 1 seconds ago
+				enable: {
+					start: mockTime.getCurrentTime() - 1000, // 1 seconds ago
+					duration: 2000
 				},
-				duration: 2000,
-				LLayer: 'myLayer0',
+				layer: 'myLayer0',
 				content: {
-					type: TimelineContentTypeCasparCg.MEDIA, // more to be implemented later!
-					attributes: {
-						file: 'AMB'
-					},
+					deviceType: DeviceType.CASPARCG,
+					type: TimelineContentTypeCasparCg.MEDIA,
+
+					file: 'AMB',
+
 					transitions: {
 						inTransition: {
-							type: 'MIX',
+							type: Transition.MIX,
 							duration: 1000,
-							easing: 'linear',
-							direction: 'left'
+							easing: Ease.LINEAR,
+							direction: Direction.LEFT
 						},
 						outTransition: {
-							type: 'MIX',
+							type: Transition.MIX,
 							duration: 1000,
-							easing: 'linear',
-							direction: 'right'
+							easing: Ease.LINEAR,
+							direction: Direction.RIGHT
 						}
 					}
 				}
@@ -714,8 +708,8 @@ describe('CasparCG', () => {
 			noClear: false,
 			transition: 'MIX',
 			transitionDuration: 25,
-			transitionEasing: 'linear',
-			transitionDirection: 'left',
+			transitionEasing: 'LINEAR',
+			transitionDirection: 'LEFT',
 			clip: 'AMB',
 			seek: 25,
 			loop: false
@@ -727,8 +721,8 @@ describe('CasparCG', () => {
 			layer: 42,
 			transition: 'MIX',
 			transitionDuration: 25,
-			transitionEasing: 'linear',
-			transitionDirection: 'right',
+			transitionEasing: 'LINEAR',
+			transitionDirection: 'RIGHT',
 			clip: 'empty'
 		})
 
@@ -775,26 +769,26 @@ describe('CasparCG', () => {
 		myConductor.timeline = [
 			{
 				id: 'obj0',
-				trigger: {
-					type: TriggerType.TIME_ABSOLUTE,
-					value: mockTime.getCurrentTime() - 1000 // 1 seconds ago
+				enable: {
+					start: mockTime.getCurrentTime() - 1000, // 1 seconds ago
+					duration: 12000 // 12s
 				},
-				duration: 12000, // 12s
-				LLayer: 'myLayer0',
+				layer: 'myLayer0',
 				content: {
+					deviceType: DeviceType.CASPARCG,
 					type: TimelineContentTypeCasparCg.MEDIA, // more to be implemented later!
-					attributes: {
-						file: 'AMB',
-						loop: true
+					file: 'AMB',
+					loop: true
+
+				},
+				keyframes: [{
+					id: 'kf1',
+					enable: {
+						start: 500, // 0 = parent's start
+						duration: 5500
 					},
-					keyframes: [{
-						id: 'kf1',
-						trigger: {
-							type: TriggerType.TIME_ABSOLUTE, // Absolute time, relative time or logical
-							value: 500 // 0 = parent's start
-						},
-						duration: 5500,
-						content: { mixer: {
+					content: {
+						mixer: {
 							perspective: {
 								topLeftX: 0,
 								topLeftY: 0,
@@ -805,16 +799,17 @@ describe('CasparCG', () => {
 								bottomLeftX: 0,
 								bottomLeftY: 1
 							}
-						}}
+						}
+					}
 
-					},{
-						id: 'kf2',
-						trigger: {
-							type: TriggerType.TIME_ABSOLUTE, // Absolute time, relative time or logical
-							value: 6000 // 0 = parent's start
-						},
-						duration: 6000,
-						content: { mixer: {
+				},{
+					id: 'kf2',
+					enable: {
+						start: 6000, // 0 = parent's start
+						duration: 6000
+					},
+					content: {
+						mixer: {
 							perspective: {
 								topLeftX: 0,
 								topLeftY: 0,
@@ -825,10 +820,9 @@ describe('CasparCG', () => {
 								bottomLeftX: 0,
 								bottomLeftY: 1
 							}
-						}}
-
-					}]
-				}
+						}
+					}
+				}]
 			}
 		]
 
@@ -916,35 +910,34 @@ describe('CasparCG', () => {
 		myConductor.timeline = [
 			{
 				id: 'obj0_bg',
-				trigger: {
-					type: TriggerType.TIME_ABSOLUTE,
-					value: 10000
+				enable: {
+					start: 10000,
+					duration: 1200
 				},
-				duration: 1200,
-				isBackground: true,
-				LLayer: 'myLayer0',
+				layer: 'myLayer0',
 				content: {
+					deviceType: DeviceType.CASPARCG,
 					type: TimelineContentTypeCasparCg.MEDIA,
-					attributes: {
-						file: 'AMB',
-						loop: true
-					}
-				}
+
+					file: 'AMB',
+					loop: true
+				},
+				// @ts-ignore
+				isLookahead: true
 			},
 			{
 				id: 'obj0',
-				trigger: {
-					type: TriggerType.TIME_ABSOLUTE,
-					value: 11200 // 1.2 seconds in the future
+				enable: {
+					start: 11200, // 1.2 seconds in the future
+					duration: 2000
 				},
-				duration: 2000,
-				LLayer: 'myLayer0',
+				layer: 'myLayer0',
 				content: {
+					deviceType: DeviceType.CASPARCG,
 					type: TimelineContentTypeCasparCg.MEDIA,
-					attributes: {
-						file: 'AMB',
-						loop: true
-					}
+
+					file: 'AMB',
+					loop: true
 				}
 			}
 		]
@@ -1021,35 +1014,34 @@ describe('CasparCG', () => {
 		myConductor.timeline = [
 			{
 				id: 'obj0_bg',
-				trigger: {
-					type: TriggerType.TIME_ABSOLUTE,
-					value: 10000
+				enable: {
+					start: 10000,
+					duration: 1200 // 11200
 				},
-				isBackground: true,
-				duration: 1200, // 11200
-				LLayer: 'myLayer0',
+				layer: 'myLayer0',
 				content: {
+					deviceType: DeviceType.CASPARCG,
 					type: TimelineContentTypeCasparCg.MEDIA,
-					attributes: {
-						file: 'AMB',
-						loop: true
-					}
-				}
+
+					file: 'AMB',
+					loop: true
+				},
+				// @ts-ignore
+				isLookahead: true
 			},
 			{
 				id: 'obj0',
-				trigger: {
-					type: TriggerType.TIME_ABSOLUTE,
-					value: 11200 // 1.2 seconds in the future
+				enable: {
+					start: 11200, // 1.2 seconds in the future
+					duration: 2000 // 13200
 				},
-				duration: 2000, // 13200
-				LLayer: 'myLayer0',
+				layer: 'myLayer0',
 				content: {
+					deviceType: DeviceType.CASPARCG,
 					type: TimelineContentTypeCasparCg.MEDIA,
-					attributes: {
-						file: 'AMB',
-						loop: true
-					}
+
+					file: 'AMB',
+					loop: true
 				}
 			}
 		]

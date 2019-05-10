@@ -1,5 +1,5 @@
-import { TimelineObject, TimelineKeyframe } from './superfly-timeline'
 import { Mapping, DeviceType } from './mapping'
+import { TSRTimelineObjBase } from '.'
 
 export interface PharosOptions {
 	host: string
@@ -17,29 +17,37 @@ export enum TimelineContentTypePharos {
 
 export type TimelineObjPharosAny = TimelineObjPharosScene | TimelineObjPharosTimeline
 
-export interface TimelineObjPharosScene extends TimelineObject {
+export interface TimelineObjPharos extends TSRTimelineObjBase {
 	content: {
-		keyframes?: Array<TimelineKeyframe>
-		type: TimelineContentTypePharos.SCENE
-		attributes: {
-			scene: number,
-			fade?: number,
-			stopped?: boolean,
-			noRelease?: true
-		}
+		deviceType: DeviceType.PHAROS
+		type: TimelineContentTypePharos
+
+		/** override: don't stop / release */
+		noRelease?: true
+		stopped?: boolean
 	}
 }
-export interface TimelineObjPharosTimeline extends TimelineObject {
+export interface TimelineObjPharosScene extends TimelineObjPharos {
 	content: {
-		keyframes?: Array<TimelineKeyframe>
+		deviceType: DeviceType.PHAROS
+		type: TimelineContentTypePharos.SCENE
+		stopped?: boolean
+		noRelease?: true
+
+		scene: number
+		fade?: number
+	}
+}
+export interface TimelineObjPharosTimeline extends TimelineObjPharos {
+	content: {
+		deviceType: DeviceType.PHAROS
 		type: TimelineContentTypePharos.TIMELINE
-		attributes: {
-			timeline: number,
-			pause?: boolean,
-			rate?: boolean,
-			fade?: number,
-			stopped?: boolean,
-			noRelease?: true
-		}
+		stopped?: boolean
+		noRelease?: true
+
+		timeline: number
+		pause?: boolean
+		rate?: boolean
+		fade?: number
 	}
 }

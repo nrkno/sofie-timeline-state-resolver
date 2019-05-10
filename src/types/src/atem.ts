@@ -1,5 +1,5 @@
-import { TimelineObject, TimelineKeyframe } from './superfly-timeline'
 import { Mapping, DeviceType } from './mapping'
+import { TSRTimelineObjBase } from '.'
 
 export interface MappingAtem extends Mapping {
 	device: DeviceType.ATEM,
@@ -40,8 +40,6 @@ export enum AtemTransitionStyle { // Note: copied from atem-state
 	CUT
 }
 
-export type TimelineObjAtemAny = TimelineObjAtemME | TimelineObjAtemDSK | TimelineObjAtemAUX | TimelineObjAtemSsrc | TimelineObjAtemSsrcProps
-
 export type SuperSourceBox = {
 	enabled: boolean,
 	source?: number,
@@ -75,12 +73,25 @@ export interface AtemTransitionSettings {
 		flipFlop?: boolean
 	}
 }
-
-export interface TimelineObjAtemME extends TimelineObject {
+export type TimelineObjAtemAny = (
+	TimelineObjAtemME |
+	TimelineObjAtemDSK |
+	TimelineObjAtemAUX |
+	TimelineObjAtemSsrc |
+	TimelineObjAtemSsrcProps
+)
+export interface TimelineObjAtemBase extends TSRTimelineObjBase {
 	content: {
-		keyframes?: Array<TimelineKeyframe>
+		deviceType: DeviceType.ATEM
+		type: TimelineContentTypeAtem
+	}
+}
+
+export interface TimelineObjAtemME extends TimelineObjAtemBase {
+	content: {
+		deviceType: DeviceType.ATEM
 		type: TimelineContentTypeAtem.ME
-		attributes: { // Casparcg-state
+		me: {
 			input?: number,
 			transition?: AtemTransitionStyle,
 
@@ -124,11 +135,11 @@ export interface TimelineObjAtemME extends TimelineObject {
 		}
 	}
 }
-export interface TimelineObjAtemDSK extends TimelineObject {
+export interface TimelineObjAtemDSK extends TimelineObjAtemBase {
 	content: {
-		keyframes?: Array<TimelineKeyframe>
+		deviceType: DeviceType.ATEM
 		type: TimelineContentTypeAtem.DSK
-		attributes: {
+		dsk: {
 			onAir: boolean,
 			sources?: {
 				fillSource: number,
@@ -152,29 +163,29 @@ export interface TimelineObjAtemDSK extends TimelineObject {
 		}
 	}
 }
-export interface TimelineObjAtemAUX extends TimelineObject {
+export interface TimelineObjAtemAUX extends TimelineObjAtemBase {
 	content: {
-		keyframes?: Array<TimelineKeyframe>
+		deviceType: DeviceType.ATEM
 		type: TimelineContentTypeAtem.AUX
-		attributes: {
+		aux: {
 			input: number
 		}
 	}
 }
-export interface TimelineObjAtemSsrc extends TimelineObject {
+export interface TimelineObjAtemSsrc extends TimelineObjAtemBase {
 	content: {
-		keyframes?: Array<TimelineKeyframe>
+		deviceType: DeviceType.ATEM
 		type: TimelineContentTypeAtem.SSRC
-		attributes: {
+		ssrc: {
 			boxes: Array<SuperSourceBox>
 		}
 	}
 }
-export interface TimelineObjAtemSsrcProps extends TimelineObject {
+export interface TimelineObjAtemSsrcProps extends TimelineObjAtemBase {
 	content: {
-		keyframes?: Array<TimelineKeyframe>
+		deviceType: DeviceType.ATEM
 		type: TimelineContentTypeAtem.SSRCPROPS
-		attributes: {
+		ssrcProps: {
 			artFillSource: number
 			artCutSource: number
 			artOption: number
@@ -198,12 +209,24 @@ export interface TimelineObjAtemSsrcProps extends TimelineObject {
 		}
 	}
 }
-
-export interface TimelineObjAtemAudioChannel extends TimelineObject {
+export interface TimelineObjAtemMediaPlayer extends TimelineObjAtemBase {
 	content: {
-		keyframes?: Array<TimelineKeyframe>
+		deviceType: DeviceType.ATEM
+		type: TimelineContentTypeAtem.MEDIAPLAYER
+
+		mediaPlayer: {
+			playing: boolean
+			loop: boolean
+			atBeginning: boolean
+			clipFrame: number
+		}
+	}
+}
+export interface TimelineObjAtemAudioChannel extends TimelineObjAtemBase {
+	content: {
+		deviceType: DeviceType.ATEM
 		type: TimelineContentTypeAtem.AUDIOCHANNEL
-		attributes: {
+		audioChannel: {
 			gain?: number
 			balance?: number
 			mixOption?: number

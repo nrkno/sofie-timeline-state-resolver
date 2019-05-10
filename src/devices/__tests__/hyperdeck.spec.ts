@@ -1,5 +1,4 @@
 jest.mock('hyperdeck-connection')
-import { TriggerType } from 'superfly-timeline'
 import { Conductor } from '../../conductor'
 import {
 	HyperdeckDevice
@@ -11,7 +10,8 @@ import {
 	DeviceType,
 	TimelineContentTypeHyperdeck,
 	MappingHyperdeck,
-	MappingHyperdeckType
+	MappingHyperdeckType,
+	TransportStatus
 } from '../../types/src'
 import { MockTime } from '../../__tests__/mockTime.spec'
 import { ThreadedClass } from 'threadedclass'
@@ -50,7 +50,6 @@ describe('Hyperdeck', () => {
 			initializeAsClear: true,
 			getCurrentTime: mockTime.getCurrentTime
 		})
-		myConductor.on('error', console.log)
 		await myConductor.setMapping(myChannelMapping)
 
 		await myConductor.init()
@@ -84,33 +83,32 @@ describe('Hyperdeck', () => {
 		myConductor.timeline = [
 			{
 				id: 'obj0',
-				trigger: {
-					type: TriggerType.TIME_ABSOLUTE,
-					value: 9000
+				enable: {
+					start: 9000,
+					duration: 2000 // 11000
 				},
-				duration: 2000,
-				LLayer: 'hyperdeck0_transport',
+				layer: 'hyperdeck0_transport',
 				content: {
+					deviceType: DeviceType.HYPERDECK,
 					type: TimelineContentTypeHyperdeck.TRANSPORT,
-					attributes: {
-						status: 'record',
-						recordFilename: 'sofie_dev'
-					}
+
+					status: TransportStatus.RECORD,
+					recordFilename: 'sofie_dev'
+
 				}
 			},
 			{
 				id: 'obj1',
-				trigger: {
-					type: TriggerType.TIME_ABSOLUTE,
-					value: 10500
+				enable: {
+					start: 10500,
+					duration: 2000
 				},
-				duration: 2000,
-				LLayer: 'hyperdeck0_transport',
+				layer: 'hyperdeck0_transport',
 				content: {
+					deviceType: DeviceType.HYPERDECK,
 					type: TimelineContentTypeHyperdeck.TRANSPORT,
-					attributes: {
-						status: 'preview'
-					}
+
+					status: TransportStatus.PREVIEW
 				}
 			}
 		]

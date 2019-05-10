@@ -1,8 +1,10 @@
-import { TriggerType } from 'superfly-timeline'
 import {
 	MappingCasparCG,
 	Mappings,
-	DeviceType
+	DeviceType,
+	TimelineContentTypeCasparCg,
+	ChannelFormat,
+	Transition
 } from '../types/src'
 import { Conductor } from '../conductor'
 import { MockTime } from './mockTime.spec'
@@ -105,239 +107,235 @@ describe('Rundown', () => {
 			{
 				id: 'cam1',
 				content: {
-					type: 'input',
-					attributes: {
-						device: 3
-					}
+					deviceType: DeviceType.CASPARCG,
+					type: TimelineContentTypeCasparCg.INPUT,
+
+					device: 3,
+					inputType: 'decklink',
+					deviceFormat: ChannelFormat.HD_720P5000
+
 				},
-				duration: 0, // always on
-				trigger: {
-					type: TriggerType.TIME_ABSOLUTE,
-					value: 10000
+				enable: {
+					start: 10000
+					// duration: 0 // always on
 				},
-				LLayer: 'cam1'
+				layer: 'cam1'
 			},
 			{
 				id: 'cam2',
 				content: {
-					type: 'input',
-					attributes: {
-						device: 4
-					}
+					deviceType: DeviceType.CASPARCG,
+					type: TimelineContentTypeCasparCg.INPUT,
+
+					device: 4,
+					inputType: 'decklink',
+					deviceFormat: ChannelFormat.HD_720P5000
 				},
-				duration: 0, // always on
-				trigger: {
-					type: TriggerType.TIME_ABSOLUTE,
-					value: 10000
+				enable: {
+					start: 10000
+					// duration: 0, // always on
 				},
-				LLayer: 'cam2'
+				layer: 'cam2'
 			},
 
 			// rundown
 			{
 				id: 'bg_item1_0',
 				content: {
-					type: 'media',
-					attributes: {
-						file: 'BG1',
-						loop: true
-					}
+					deviceType: DeviceType.CASPARCG,
+					type: TimelineContentTypeCasparCg.MEDIA,
+
+					file: 'BG1',
+					loop: true
 				},
-				trigger: {
-					type: TriggerType.LOGICAL,
-					value: '.opener_item_1'
+				enable: {
+					while: '.opener_item_1'
+					// duration: 10000,
 				},
-				duration: 10000,
-				LLayer: 'aux1'
+				layer: 'aux1'
 			},
 			{
 				id: 'opener_clip_short',
 				content: {
-					type: 'media',
-					attributes: {
-						file: 'opener_short'
-					},
-					keyframes: [
-						{
-							id: 'kf1',
-							trigger: {
-								type: TriggerType.TIME_RELATIVE,
-								value: '#opener_clip_short.end - 500'
-							},
-							duration: 500,
-							content: { mixer: {
-								opacity: 0,
-								inTransition: {
-									duration: 500
-								}
-							} }
-						}
-					]
+					deviceType: DeviceType.CASPARCG,
+					type: TimelineContentTypeCasparCg.MEDIA,
+
+					file: 'opener_short'
 				},
-				trigger: {
-					type: TriggerType.TIME_ABSOLUTE,
-					value: 10000
+				keyframes: [
+					{
+						id: 'kf1',
+						enable: {
+							start: '#opener_clip_short.end - 500',
+							duration: 500
+						},
+						content: { mixer: {
+							opacity: 0,
+							inTransition: {
+								duration: 500
+							}
+						} }
+					}
+				],
+				enable: {
+					start: 10000,
+					duration: 2000
 				},
-				duration: 2000,
-				LLayer: 'gfx'
+				layer: 'gfx'
 			},
 			{
 				id: 'cam_opener_item_1',
 				content: {
-					type: 'route',
-					attributes: {
-						LLayer: 'cam1'
-					}
+					deviceType: DeviceType.CASPARCG,
+					type: TimelineContentTypeCasparCg.ROUTE,
+
+					mappedLayer: 'cam1'
 				},
 				classes: ['opener_item_1'],
-				trigger: {
-					type: TriggerType.TIME_RELATIVE,
-					value: '#opener_clip_short.start'
+				enable: {
+					start: '#opener_clip_short.start',
+					duration: 5500
 				},
-				duration: 5500,
-				LLayer: 'pgm'
+				layer: 'pgm'
 			},
 			{
 				id: 'lt_opener',
 				content: {
-					type: 'template',
-					attributes: {
-						name: 'LT',
-						data: {
-							name: 'Presentator 123'
-						},
-						useStopCommand: true
-					}
+					deviceType: DeviceType.CASPARCG,
+					type: TimelineContentTypeCasparCg.TEMPLATE,
+
+					name: 'LT',
+					data: {
+						name: 'Presentator 123'
+					},
+					useStopCommand: true
 				},
-				trigger: {
-					type: TriggerType.TIME_RELATIVE,
-					value: '#opener_clip_short.end + 1000'
+				enable: {
+					start: '#opener_clip_short.end + 1000',
+					duration: 1500
 				},
-				duration: 1500,
-				LLayer: 'gfx'
+				layer: 'gfx'
 			},
 			{
 				id: 'stinger_opener_1_bg',
 				content: {
-					type: 'media',
-					attributes: {
-						file: 'stinger1'
-					}
+					deviceType: DeviceType.CASPARCG,
+					type: TimelineContentTypeCasparCg.MEDIA,
+
+					file: 'stinger1'
 				},
-				trigger: {
-					type: TriggerType.TIME_RELATIVE,
-					value: '#cam_opener_item_1.end - 1000'
+				enable: {
+					start: '#cam_opener_item_1.end - 1000',
+					duration: 1000
 				},
-				isBackground: true,
-				duration: 1000,
-				LLayer: 'gfx'
+				layer: 'gfx',
+				// @ts-ignore
+				isLookahead: true
 			},
 			{
 				id: 'stinger_opener_1',
 				content: {
-					type: 'media',
-					attributes: {
-						file: 'stinger1'
-					}
+					deviceType: DeviceType.CASPARCG,
+					type: TimelineContentTypeCasparCg.MEDIA,
+
+					file: 'stinger1'
 				},
-				trigger: {
-					type: TriggerType.TIME_RELATIVE,
-					value: '#cam_opener_item_1.end - 500'
+				enable: {
+					start: '#cam_opener_item_1.end - 500',
+					duration: 1000
 				},
-				duration: 1000,
-				LLayer: 'gfx'
+				layer: 'gfx'
 			},
 			{
 				id: 'cam_opener_item_2',
 				content: {
-					type: 'route',
-					attributes: {
-						LLayer: 'cam2'
-					}
+					deviceType: DeviceType.CASPARCG,
+					type: TimelineContentTypeCasparCg.ROUTE,
+
+					mappedLayer: 'cam2'
 				},
 				classes: ['opener_item_2'],
-				trigger: {
-					type: TriggerType.TIME_RELATIVE,
-					value: '#cam_opener_item_1.end'
+				enable: {
+					start: '#cam_opener_item_1.end',
+					duration: 2500
 				},
-				duration: 2500,
-				LLayer: 'pgm'
+				layer: 'pgm'
 			},
 			{
 				id: 'bg_item2_0_bg',
 				content: {
-					type: 'media',
-					attributes: {
-						file: 'BG2',
-						loop: true
-					}
+					deviceType: DeviceType.CASPARCG,
+					type: TimelineContentTypeCasparCg.MEDIA,
+
+					file: 'BG2',
+					loop: true
 				},
-				trigger: {
-					type: TriggerType.TIME_RELATIVE,
-					value: '#cam_opener_item_2.start'
+				enable: {
+					start: '#cam_opener_item_2.start',
+					duration: 1399
 				},
-				isBackground: true,
-				duration: 1399,
-				LLayer: 'aux1'
+				layer: 'aux1',
+				// @ts-ignore
+				isLookahead: true
 			},
 			{
 				id: 'bg_item2_0',
 				content: {
-					type: 'media',
-					attributes: {
-						file: 'BG2',
-						loop: true
-					}
+					deviceType: DeviceType.CASPARCG,
+					type: TimelineContentTypeCasparCg.MEDIA,
+
+					file: 'BG2',
+					loop: true
 				},
-				trigger: {
-					type: TriggerType.LOGICAL,
-					value: '.opener_item_2'
+				enable: {
+					while: '.opener_item_2'
+					// duration: 10000,
 				},
-				duration: 10000,
-				LLayer: 'aux1'
+				layer: 'aux1'
 			},
 			{
 				id: 'opener_full_bg',
 				content: {
-					type: 'media',
-					attributes: {
-						file: 'opener_full'
-					},
+					deviceType: DeviceType.CASPARCG,
+					type: TimelineContentTypeCasparCg.MEDIA,
+
+					file: 'opener_full',
+
 					transitions: {
 						inTransition: {
-							type: 'PUSH',
+							type: Transition.PUSH,
 							duration: 250
 						}
 					}
 				},
-				trigger: {
-					type: TriggerType.TIME_RELATIVE,
-					value: '#opener_full.start - 2000'
+				enable: {
+					start: '#opener_full.start - 2000',
+					duration: 2000
 				},
-				isBackground: true,
-				duration: 2000,
-				LLayer: 'gfx'
+				layer: 'gfx',
+				// @ts-ignore
+				isLookahead: true
 			},
 			{
 				id: 'opener_full',
 				content: {
-					type: 'media',
-					attributes: {
-						file: 'opener_full'
-					},
+					deviceType: DeviceType.CASPARCG,
+					type: TimelineContentTypeCasparCg.MEDIA,
+
+					file: 'opener_full',
+
 					transitions: {
 						inTransition: {
-							type: 'PUSH',
+							type: Transition.PUSH,
 							duration: 250
 						}
 					}
 				},
-				trigger: {
-					type: TriggerType.TIME_RELATIVE,
-					value: '#cam_opener_item_2.end'
+				enable: {
+					start: '#cam_opener_item_2.end',
+					duration: 5000
 				},
-				duration: 5000,
-				LLayer: 'gfx'
+				layer: 'gfx'
 			}
 		]
 		await mockTime.advanceTimeToTicks(10101)
@@ -393,9 +391,6 @@ describe('Rundown', () => {
 		})
 
 		// SCHEDULE SET 1.5s MIXER OPACITY 25
-		// commandReceiver0.mock.calls.forEach(c => {
-		// 	console.log(c[1].name, c[1]._objectParams)
-		// })
 		expect(getMockCall(commandReceiver0, commandReceiver0Calls - 2, 1).name).toEqual('ScheduleSetCommand')
 		expect(getMockCall(commandReceiver0, commandReceiver0Calls - 2, 1)._objectParams.command.name).toEqual('MixerOpacityCommand')
 		expect(getMockCall(commandReceiver0, commandReceiver0Calls - 2, 1)._objectParams.timecode).toEqual('00:00:11:25')

@@ -1,5 +1,5 @@
-import { TimelineObject, TimelineKeyframe } from './superfly-timeline'
 import { Mapping, DeviceType } from './mapping'
+import { TSRTimelineObjBase } from '.'
 
 export interface MappingHTTPSend extends Mapping {
 	device: DeviceType.HTTPSEND
@@ -25,8 +25,15 @@ export enum TimelineContentTypeHttp {
 	DELETE = 'delete'
 }
 
-export interface TimelineObjHTTPRequest extends TimelineObject {
-	content: HttpSendCommandContent & {
-		keyframes?: Array<TimelineKeyframe>
+export type TimelineObjHTTPSendAny = TimelineObjHTTPRequest
+export interface TimelineObjHTTPSendBase extends TSRTimelineObjBase {
+	content: {
+		deviceType: DeviceType.HTTPSEND
+		// type: TimelineContentTypeCasparCg
 	}
+}
+export interface TimelineObjHTTPRequest extends TimelineObjHTTPSendBase {
+	content: {
+		deviceType: DeviceType.HTTPSEND
+	} & HttpSendCommandContent
 }

@@ -1,5 +1,5 @@
-import { TimelineObject } from './superfly-timeline'
 import { Mapping, DeviceType } from './mapping'
+import { TSRTimelineObjBase } from '.'
 
 export interface MappingLawo extends Mapping {
 	device: DeviceType.LAWO,
@@ -16,26 +16,21 @@ export enum TimelineContentTypeLawo { //  Lawo-state
 
 export type TimelineObjLawoAny = TimelineObjLawoSource
 
-export interface TimelineObjLawo extends TimelineObject {
+export interface TimelineObjLawoBase extends TSRTimelineObjBase {
 	content: {
-		type: TimelineContentTypeLawo,
-		attributes: {
-			[key: string]: {
-				[attr: string]: any
-				triggerValue?: string // only used for trigging new command sent
-			}
-		}
+		deviceType: DeviceType.LAWO
+		type: TimelineContentTypeLawo
 	}
 }
-export interface TimelineObjLawoSource extends TimelineObjLawo {
+export interface TimelineObjLawoSource extends TimelineObjLawoBase {
 	content: {
-		type: TimelineContentTypeLawo,
-		attributes: {
-			'Fader/Motor dB Value': {
-				value: number,
-				transitionDuration?: number,
-				triggerValue?: string // only used for trigging new command sent
-			}
+		deviceType: DeviceType.LAWO
+		type: TimelineContentTypeLawo.SOURCE,
+
+		'Fader/Motor dB Value': {
+			value: number,
+			transitionDuration?: number,
+			triggerValue?: string // only used for trigging new command sent
 		}
 	}
 }

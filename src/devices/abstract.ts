@@ -7,7 +7,7 @@ import {
 } from './device'
 import { DeviceType, DeviceOptions } from '../types/src'
 
-import { TimelineState, TimelineResolvedObject } from 'superfly-timeline'
+import { TimelineState, ResolvedTimelineObjectInstance } from 'superfly-timeline'
 import { DoOnTime, SendMode } from '../doOnTime'
 
 export interface AbstractDeviceOptions extends DeviceOptions {
@@ -62,7 +62,7 @@ export class AbstractDevice extends DeviceWithState<TimelineState> {
 	 */
 	handleState (newState: TimelineState) {
 		let previousStateTime = Math.max(this.getCurrentTime(), newState.time)
-		let oldState: TimelineState = (this.getStateBefore(previousStateTime) || { state: { time: 0, LLayers: {}, GLayers: {} } }).state
+		let oldState: TimelineState = (this.getStateBefore(previousStateTime) || { state: { time: 0, layers: {}, nextEvents: [] } }).state
 
 		let oldAbstractState = this.convertStateToAbstract(oldState)
 		let newAbstractState = this.convertStateToAbstract(newState)
@@ -138,8 +138,8 @@ export class AbstractDevice extends DeviceWithState<TimelineState> {
 
 		let commands: Array<Command> = []
 
-		_.each(newAbstractState.LLayers, (newLayer: TimelineResolvedObject, layerKey) => {
-			let oldLayer = oldAbstractState.LLayers[layerKey]
+		_.each(newAbstractState.layers, (newLayer: ResolvedTimelineObjectInstance, layerKey) => {
+			let oldLayer = oldAbstractState.layers[layerKey]
 			if (!oldLayer) {
 				// added!
 				commands.push({
@@ -160,8 +160,8 @@ export class AbstractDevice extends DeviceWithState<TimelineState> {
 			}
 		})
 		// removed
-		_.each(oldAbstractState.LLayers, (oldLayer: TimelineResolvedObject, layerKey) => {
-			let newLayer = newAbstractState.LLayers[layerKey]
+		_.each(oldAbstractState.layers, (oldLayer: ResolvedTimelineObjectInstance, layerKey) => {
+			let newLayer = newAbstractState.layers[layerKey]
 			if (!newLayer) {
 				// removed!
 				commands.push({
