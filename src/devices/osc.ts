@@ -9,7 +9,9 @@ import {
 	DeviceType,
 	DeviceOptions,
 	OSCMessageCommandContent,
-	OSCOptions
+	OSCOptions,
+	SomeOSCValue,
+	OSCValueType
 } from '../types/src'
 import { DoOnTime, SendMode } from '../doOnTime'
 
@@ -17,6 +19,7 @@ import {
 	TimelineState, ResolvedTimelineObjectInstance
 } from 'superfly-timeline'
 import * as osc from 'osc'
+import { Easing } from '../easings'
 
 export interface OSCMessageDeviceOptions extends DeviceOptions {
 	options?: {
@@ -36,6 +39,10 @@ export class OSCMessageDevice extends DeviceWithState<TimelineState> {
 
 	private _doOnTime: DoOnTime
 	private _oscClient: osc.UDPPort
+	private tweens: { [address: string]: {
+		started: number
+	} & OSCMessageCommandContent } = {}
+	private tweenTimeout: NodeJS.Timer | undefined
 
 	private _commandReceiver: (time: number, cmd: OSCMessageCommandContent, context: CommandContext) => Promise<any>
 
@@ -207,14 +214,85 @@ export class OSCMessageDevice extends DeviceWithState<TimelineState> {
 		this.emit('debug', cwc)
 
 		try {
-			this._oscClient.send({
-				address: cmd.path,
-				args: cmd.values
-			})
+			if (cmd.tween && cmd.from) {
+				this.tweens[cmd.path] = { // push the tween
+					started: time,
+					...cmd
+				}
+				this._oscClient.send({ // send first parameters
+					address: cmd.path,
+					args: cmd.from
+				})
+				// @todo: check for easing, check for length of from, check for types
+				// trigger loop:
+				if (!this.tweenTimeout) this.tweenTimeout = setTimeout(() => this.runAnimation(), 0)
+			} else {
+				this._oscClient.send({
+					address: cmd.path,
+					args: cmd.values
+				})
+			}
 
 			return Promise.resolve()
 		} catch (e) {
 			return Promise.reject(e)
+		}
+	}
+	private runAnimation () {
+		for (const addr in this.tweens) {
+			// delete old tweens
+			if (this.tweens[addr].started + this.tweens[addr].tween!.duration < this.getCurrentTime()) {
+				delete this.tweens[addr]
+			}
+		}
+
+		for (const addr in this.tweens) {
+			const tween = this.tweens[addr]
+			// check if easing exists:
+			const easingType = Easing[tween.tween!.type]
+			const easing = (easingType || {})[tween.tween!.direction]
+			if (easing) {
+				// scale time in range 0...1, then calculate progress in range 0..1
+				const deltaTime = this.getCurrentTime() - tween.started
+				const progress = deltaTime / tween.tween!.duration
+				const fraction = easing(progress)
+				// calculate individual values:
+				const values: Array<SomeOSCValue> = []
+				for (let i = 0; i < Math.max(tween.from!.length, tween.values.length); i++) {
+					if (!tween.from![i]) {
+						values[i] = tween.values[i]
+					} else if (!tween.values[i]) {
+						values[i] = tween.from![i]
+					} else {
+						if (tween.from![i].type === OSCValueType.FLOAT && tween.values[i].type === OSCValueType.FLOAT) {
+							const oldVal = tween.from![i].value as number
+							const newVal = tween.values[i].value as number
+							values[i] = {
+								type: OSCValueType.FLOAT,
+								value: oldVal + (newVal - oldVal) * fraction
+							}
+						} else if (tween.from![i].type === OSCValueType.INT && tween.values[i].type === OSCValueType.INT) {
+							const oldVal = tween.from![i].value as number
+							const newVal = tween.values[i].value as number
+							values[i] = {
+								type: OSCValueType.INT,
+								value: oldVal + Math.round((newVal - oldVal) * fraction)
+							}
+						}
+					}
+				}
+				
+				this._oscClient.send({
+					address: tween.path,
+					args: values
+				})
+			}
+		}
+
+		if (Object.keys(this.tweens).length > 0) {
+			this.tweenTimeout = setTimeout(() => this.runAnimation(), 0)
+		} else {
+			this.tweenTimeout = undefined
 		}
 	}
 }
