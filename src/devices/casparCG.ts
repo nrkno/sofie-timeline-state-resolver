@@ -233,8 +233,8 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> {
 			const layerExt = layer as ResolvedTimelineObjectInstanceExtended
 			let foundMapping: Mapping = this.getMapping()[layerName]
 			// if the tlObj is specifies to do a loadbg the original Layer is used to resolve the mapping
-			if (!foundMapping && layerExt.isLookahead && layerExt.originalLayer) {
-				foundMapping = this.getMapping()[layerExt.originalLayer]
+			if (!foundMapping && layerExt.isLookahead && layerExt.lookaheadForLayer) {
+				foundMapping = this.getMapping()[layerExt.lookaheadForLayer]
 			}
 
 			if (

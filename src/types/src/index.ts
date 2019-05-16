@@ -16,8 +16,9 @@ import { TimelineObjOSCAny } from './osc'
 import { TimelineObjPharosAny } from './pharos'
 import { TimelineObjPanasonicPtzAny } from './ptz'
 import { TimelineObjAbstractAny } from './abstract'
-export { Timeline }
+import { TSRTimelineObjProps } from './mapping'
 
+export { Timeline }
 export * from './mapping'
 
 export type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>
@@ -35,26 +36,7 @@ export enum DeviceType {
 	HTTPWATCHER = 10
 }
 
-// export type TimelineContentTypeAny = TimelineContentTypeAtem
-// 	| TimelineContentTypeCasparCg
-// 	| TimelineContentTypeHttp
-// 	| TimelineContentTypeHyperdeck
-// 	| TimelineContentTypeLawo
-// 	| TimelineContentTypeOSC
-// 	| TimelineContentTypePharos
-// 	| TimelineContentTypePanasonicPtz
-
-// export type TimelineObjectAny = TimelineObjEmpty
-// 	| TimelineObjAtemAny
-// 	| TimelineObjCCGAny
-// 	| TimelineObjHTTPRequest
-// 	| TimelineObjHyperdeckAny
-// 	| TimelineObjLawoAny
-// 	| TimelineObjOSCMessage
-// 	| TimelineObjPanasonicPtzAny
-// 	| TimelineObjPharosAny
-
-export interface TSRTimelineObjBase extends Omit<Timeline.TimelineObject, 'content'> {
+export interface TSRTimelineObjBase extends Omit<Timeline.TimelineObject, 'content'>, TSRTimelineObjProps {
 	content: {
 		deviceType: DeviceType
 	}
