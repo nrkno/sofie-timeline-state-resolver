@@ -122,6 +122,8 @@ export class Conductor extends EventEmitter {
 
 	private _resolver: ThreadedClass<AsyncResolver>
 
+	private _interval: NodeJS.Timer
+
 	constructor (options: ConductorOptions = {}) {
 		super()
 		this._options = options
@@ -132,7 +134,7 @@ export class Conductor extends EventEmitter {
 
 		if (options.getCurrentTime) this._getCurrentTime = options.getCurrentTime
 
-		setInterval(() => {
+		this._interval = setInterval(() => {
 			if (this.timeline) {
 				this._resolveTimeline()
 			}
@@ -432,13 +434,13 @@ export class Conductor extends EventEmitter {
 	/**
 	 * Remove all devices
 	 */
-	public destroy (): Promise<void> {
-		return Promise.all(_.map(_.keys(this.devices), (deviceId: string) => {
+	public async destroy (): Promise<void> {
+
+		clearTimeout(this._interval)
+
+		await Promise.all(_.map(_.keys(this.devices), (deviceId: string) => {
 			return this.removeDevice(deviceId)
 		}))
-		.then(() => {
-			return
-		})
 	}
 	/**
 	 * Resets the resolve-time, so that the resolving will happen for the point-in time NOW
@@ -548,6 +550,11 @@ export class Conductor extends EventEmitter {
 
 		try {
 			const now = this.getCurrentTime()
+
+			if (this._nextResolveTime < now) {
+				this._nextResolveTime = now
+			}
+
 			let resolveTime: number = this._nextResolveTime
 
 			if (!this._nextResolveTime) {
@@ -715,8 +722,8 @@ export class Conductor extends EventEmitter {
 				})
 				await Promise.all(ps)
 
-				// resolve at "now" then next time:
-				nextResolveTime = 0
+				// resolve at this time then next time (or later):
+				nextResolveTime = Math.min(tlState.time)
 			}
 
 			// Special function: send callback to Core
