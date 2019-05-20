@@ -23,7 +23,8 @@ import { Easing } from '../easings'
 
 export interface OSCMessageDeviceOptions extends DeviceOptions {
 	options?: {
-		commandReceiver?: (time: number, cmd) => Promise<any>
+		commandReceiver?: (time: number, cmd) => Promise<any>,
+		oscSender?: (msg: osc.OscMessage, address?: string | undefined, port?: number | undefined) => void
 	}
 }
 interface Command {
@@ -42,15 +43,19 @@ export class OSCMessageDevice extends DeviceWithState<TimelineState> {
 	private tweens: { [address: string]: {
 		started: number
 	} & OSCMessageCommandContent } = {}
-	private tweenTimeout: NodeJS.Timer | undefined
+	private tweenInterval: NodeJS.Timer | undefined
 
 	private _commandReceiver: (time: number, cmd: OSCMessageCommandContent, context: CommandContext) => Promise<any>
+	private _oscSender: (msg: osc.OscMessage, address?: string | undefined, port?: number | undefined) => void
 
 	constructor (deviceId: string, deviceOptions: OSCMessageDeviceOptions, options) {
 		super(deviceId, deviceOptions, options)
 		if (deviceOptions.options) {
 			if (deviceOptions.options.commandReceiver) this._commandReceiver = deviceOptions.options.commandReceiver
 			else this._commandReceiver = this._defaultCommandReceiver
+
+			if (deviceOptions.options.oscSender) this._oscSender = deviceOptions.options.oscSender
+			else this._oscSender = this._defaultOscSender
 		}
 		this._doOnTime = new DoOnTime(() => {
 			return this.getCurrentTime()
@@ -219,15 +224,15 @@ export class OSCMessageDevice extends DeviceWithState<TimelineState> {
 					started: time,
 					...cmd
 				}
-				this._oscClient.send({ // send first parameters
+				this._oscSender({ // send first parameters
 					address: cmd.path,
-					args: cmd.from
+					args: [ ...cmd.values ].map((o: SomeOSCValue, i: number) => cmd.from![i] || o)
 				})
 				// @todo: check for easing, check for length of from, check for types
 				// trigger loop:
-				if (!this.tweenTimeout) this.tweenTimeout = setTimeout(() => this.runAnimation(), 0)
+				if (!this.tweenInterval) this.tweenInterval = setInterval(() => this.runAnimation(), 40)
 			} else {
-				this._oscClient.send({
+				this._oscSender({
 					address: cmd.path,
 					args: cmd.values
 				})
@@ -237,6 +242,9 @@ export class OSCMessageDevice extends DeviceWithState<TimelineState> {
 		} catch (e) {
 			return Promise.reject(e)
 		}
+	}
+	private _defaultOscSender (msg: osc.OscMessage, address?: string | undefined, port?: number | undefined): void {
+		this._oscClient.send(msg, address, port)
 	}
 	private runAnimation () {
 		for (const addr in this.tweens) {
@@ -281,18 +289,19 @@ export class OSCMessageDevice extends DeviceWithState<TimelineState> {
 						}
 					}
 				}
-				
-				this._oscClient.send({
+
+				this._oscSender({
 					address: tween.path,
 					args: values
 				})
 			}
 		}
 
-		if (Object.keys(this.tweens).length > 0) {
-			this.tweenTimeout = setTimeout(() => this.runAnimation(), 0)
-		} else {
-			this.tweenTimeout = undefined
+		if (Object.keys(this.tweens).length === 0) {
+		// 	this.tweenInterval = setTimeout(() => this.runAnimation(), 40)
+		// } else {
+			clearInterval(this.tweenInterval!)
+			this.tweenInterval = undefined
 		}
 	}
 }
