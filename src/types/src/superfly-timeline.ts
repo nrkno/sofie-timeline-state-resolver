@@ -1,7 +1,7 @@
 // Note: These types are copies from superfly-timeline
 
 // Enums ------------------------------------------------------------
-export declare enum EventType {
+export enum EventType {
 	START = 0,
 	END = 1,
 	KEYFRAME = 2
@@ -24,6 +24,8 @@ export interface ResolveOptions {
 	limitCount?: number
 	/** Limits the repeating objects to a time in the future */
 	limitTime?: Time
+	/** If set to true, the resolver will go through the instances of the objects and fix collisions, so that the instances more closely resembles the end state. */
+	resolveInstanceCollisions?: boolean
 }
 export interface TimelineObject {
 	id: ObjectId
@@ -83,6 +85,7 @@ export interface ResolvedTimeline {
 	classes: {
 		[className: string]: Array<string>
 	}
+	/** Map of the object ids, per layer */
 	layers: {
 		[layer: string]: Array<string>
 	}
@@ -133,7 +136,7 @@ export interface Cap {
 	start: Time
 	end: Time | null
 }
-export interface Reference {
+export interface ValueWithReference {
 	value: number
 	references: Array<string>
 }
@@ -158,9 +161,11 @@ export interface ResolvedExpressionObj {
 }
 export interface TimelineState {
 	time: Time
-	layers: {
-		[layer: string]: ResolvedTimelineObjectInstance
-	}
+	layers: StateInTime
+	nextEvents: Array<NextEvent>
+}
+export interface ResolvedStates extends ResolvedTimeline {
+	state: AllStates
 	nextEvents: Array<NextEvent>
 }
 export interface ResolvedTimelineObjectInstance extends ResolvedTimelineObject {
@@ -170,6 +175,23 @@ export interface NextEvent {
 	type: EventType
 	time: Time
 	objId: string
+}
+export interface ResolvedTimelineObjectInstanceKeyframe extends ResolvedTimelineObjectInstance {
+	isKeyframe?: boolean
+	keyframeEndTime?: TimeMaybe
+}
+export interface AllStates {
+	[layer: string]: {
+		[time: string]: ResolvedTimelineObjectInstanceKeyframe[] | null
+	}
+}
+export interface StateInTime {
+	[layer: string]: ResolvedTimelineObjectInstance
+}
+export interface TimeEvent {
+	time: number
+	/** true when the event indicate that something starts, false when something ends */
+	enable: boolean
 }
 
 // Resolver ------------------------------------------------------------
@@ -181,14 +203,18 @@ export declare class Resolver {
 	 * @param options Resolve options
 	 */
 	static resolveTimeline (timeline: Array<TimelineObject>, options: ResolveOptions): ResolvedTimeline
+	/** Calculate the state for all points in time.  */
+	static resolveAllStates (resolvedTimeline: ResolvedTimeline): ResolvedStates
 	/**
-	 * Calculate the state at a given point in time. Using a ResolvedTimeline calculated by Resolver.resolveTimeline.
+	 * Calculate the state at a given point in time.
+	 * Using a ResolvedTimeline calculated by Resolver.resolveTimeline() or
+	 * a ResolvedStates calculated by Resolver.resolveAllStates()
 	 * @param resolved ResolvedTimeline calculated by Resolver.resolveTimeline.
 	 * @param time The point in time where to calculate the state
 	 * @param eventLimit (Optional) Limits the number of returned upcoming events.
 	 */
-	static getState (resolved: ResolvedTimeline, time: Time, eventLimit?: number): TimelineState
+	static getState (resolved: ResolvedTimeline | ResolvedStates, time: Time, eventLimit?: number): TimelineState
 }
 export declare function resolveTimelineObj (resolvedTimeline: ResolvedTimeline, obj: ResolvedTimelineObject): void
 declare type ObjectRefType = 'start' | 'end' | 'duration'
-export declare function lookupExpression (resolvedTimeline: ResolvedTimeline, obj: TimelineObject, expr: Expression | null, context: ObjectRefType): Array<TimelineObjectInstance> | Reference | null
+export declare function lookupExpression (resolvedTimeline: ResolvedTimeline, obj: TimelineObject, expr: Expression | null, context: ObjectRefType): Array<TimelineObjectInstance> | ValueWithReference | null

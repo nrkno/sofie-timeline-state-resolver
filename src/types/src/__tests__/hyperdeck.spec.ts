@@ -15,7 +15,6 @@ describe('Hyperdeck types', () => {
 	test('Hyperdeck types: TransportStatus', async () => {
 		expect(LocalTransportStatus).toEqual(UpstreamTransportStatus)
 	})
-	/*
 	test('Hyperdeck types: SlotId', async () => {
 		expect(LocalSlotId).toEqual(UpstreamSlotId)
 	})
@@ -25,5 +24,4 @@ describe('Hyperdeck types', () => {
 	test('Hyperdeck types: VideoFormat', async () => {
 		expect(LocalVideoFormat).toEqual(UpstreamVideoFormat)
 	})
-	*/
 })
