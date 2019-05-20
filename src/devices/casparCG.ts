@@ -269,7 +269,14 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> {
 						layerNo:		mapping.layer,
 						content:		StateNS.LayerContentType.MEDIA,
 						media:			mediaObj.content.file,
-						playTime:		layer.instance.start || null,
+						playTime:		(
+							mediaObj.content.loop &&
+							!mediaObj.content.seek &&
+							!mediaObj.content.inPoint &&
+							!mediaObj.content.length ?
+							null :
+							layer.instance.start
+						) || null,
 
 						pauseTime:		mediaObj.content.pauseTime || null,
 						playing:		mediaObj.content.playing !== undefined ? mediaObj.content.playing : true,
