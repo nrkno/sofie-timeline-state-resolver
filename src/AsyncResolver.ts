@@ -2,7 +2,8 @@ import {
 	Resolver,
 	TimelineObject,
 	ResolvedTimeline,
-	ResolvedTimelineObject
+	ResolvedTimelineObject,
+	ResolvedStates
 } from 'superfly-timeline'
 import _ = require('underscore')
 import {
@@ -21,22 +22,24 @@ export class AsyncResolver extends EventEmitter {
 
 		let objectsFixed = this._fixNowObjects(timeline, resolveTime)
 
-		let resolvedTimeline = Resolver.resolveTimeline(timeline, {
+		const resolvedTimeline = Resolver.resolveTimeline(timeline, {
 			limitCount: 999,
 			limitTime: limitTime,
 			time: resolveTime
 		})
 
+		const resolvedStates = Resolver.resolveAllStates(resolvedTimeline)
+
 		return {
-			resolvedTimeline,
+			resolvedStates,
 			objectsFixed
 		}
 	}
 	public async getState (
-		timeline: ResolvedTimeline,
+		resolved: ResolvedStates,
 		resolveTime: number
 	) {
-		return Resolver.getState(timeline, resolveTime)
+		return Resolver.getState(resolved, resolveTime)
 	}
 
 	private _fixNowObjects (timeline: TSRTimeline, now: number): TimelineTriggerTimeResult {
@@ -72,7 +75,7 @@ export class AsyncResolver extends EventEmitter {
 		let dontIterateAgain: boolean = false
 		let wouldLikeToIterateAgain: boolean = false
 
-		let resolved: ResolvedTimeline
+		let resolvedTimeline: ResolvedTimeline
 		let fixObjects = (objs: TimelineObject[], parentObject?: TimelineObject) => {
 
 			_.each(objs, (o: TSRTimelineObj) => {
@@ -82,7 +85,7 @@ export class AsyncResolver extends EventEmitter {
 					// find parent, and set relative to that
 					if (parentObject) {
 
-						let resolvedParent: ResolvedTimelineObject = resolved.objects[parentObject.id]
+						let resolvedParent: ResolvedTimelineObject = resolvedTimeline.objects[parentObject.id]
 
 						let parentInstance = resolvedParent.resolved.instances[0]
 						if (resolvedParent.resolved.resolved && parentInstance) {
@@ -108,11 +111,11 @@ export class AsyncResolver extends EventEmitter {
 			wouldLikeToIterateAgain = false
 			dontIterateAgain = true
 
-			resolved = Resolver.resolveTimeline(_.values(timeLineMap), {
+			resolvedTimeline = Resolver.resolveTimeline(_.values(timeLineMap), {
 				time: now
 			})
 
-			fixObjects(_.values(resolved.objects))
+			fixObjects(_.values(resolvedTimeline.objects))
 			if (!wouldLikeToIterateAgain && dontIterateAgain) break
 		}
 

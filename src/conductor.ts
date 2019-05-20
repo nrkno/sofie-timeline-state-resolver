@@ -1,8 +1,8 @@
 import * as _ from 'underscore'
 import {
 	TimelineState,
-	ResolvedTimeline,
-	ResolvedTimelineObjectInstance
+	ResolvedTimelineObjectInstance,
+	ResolvedStates
 } from 'superfly-timeline'
 
 import { DeviceClassOptions } from './devices/device'
@@ -97,11 +97,11 @@ export class Conductor extends EventEmitter {
 	private _getCurrentTime?: () => number
 
 	private _nextResolveTime: number = 0
-	private _resolvedTimeline: {
-		timeline: ResolvedTimeline | null,
+	private _resolvedStates: {
+		resolvedStates: ResolvedStates | null,
 		resolveTime: number
 	} = {
-		timeline: null,
+		resolvedStates: null,
 		resolveTime: 0
 	}
 	private _resolveTimelineTrigger: NodeJS.Timer
@@ -447,8 +447,8 @@ export class Conductor extends EventEmitter {
 	public resetResolver () {
 
 		this._nextResolveTime = 0 // This will cause _resolveTimeline() to generate the state for NOW
-		this._resolvedTimeline = {
-			timeline: null,
+		this._resolvedStates = {
+			resolvedStates: null,
 			resolveTime: 0
 		}
 
@@ -586,26 +586,26 @@ export class Conductor extends EventEmitter {
 				fixObject(o)
 			})
 
-			let resolvedTimeline: ResolvedTimeline
+			let resolvedStates: ResolvedStates
 			let objectsFixed: { id: string, time: number}[] = []
 			if (
-				this._resolvedTimeline.timeline &&
-				this._resolvedTimeline.resolveTime >= now &&
-				this._resolvedTimeline.resolveTime < now + RESOLVE_LIMIT_TIME
+				this._resolvedStates.resolvedStates &&
+				this._resolvedStates.resolveTime >= now &&
+				this._resolvedStates.resolveTime < now + RESOLVE_LIMIT_TIME
 			) {
-				resolvedTimeline = this._resolvedTimeline.timeline
+				resolvedStates = this._resolvedStates.resolvedStates
 			} else {
 				let o = await this._resolver.resolveTimeline(
 					resolveTime,
 					this.timeline,
 					RESOLVE_LIMIT_TIME
 				)
-				resolvedTimeline = o.resolvedTimeline
+				resolvedStates = o.resolvedStates
 				objectsFixed = o.objectsFixed
 			}
 
 			let tlState = await this._resolver.getState(
-				resolvedTimeline,
+				resolvedStates,
 				resolveTime
 			)
 
