@@ -518,7 +518,6 @@ describe('Rundown', () => {
 		commandReceiver0Calls += 3
 		expect(commandReceiver0).toHaveBeenCalledTimes(commandReceiver0Calls)
 
-
 		// SCHEDULE SET 8s PLAY 1-11
 		expect(getMockCall(commandReceiver0, commandReceiver0Calls - 3, 1)._objectParams.timecode).toEqual('00:00:18:00')
 		expect(getMockCall(commandReceiver0, commandReceiver0Calls - 3, 1)._objectParams.command._objectParams).toMatchObject({
