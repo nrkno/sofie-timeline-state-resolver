@@ -1089,4 +1089,93 @@ describe('CasparCG', () => {
 		expect(commandReceiver0).toHaveBeenCalledTimes(7)
 
 	})
+	test('CasparCG: Play a looping video, then continue looping', async () => {
+
+		let commandReceiver0 = jest.fn(() => {
+			return Promise.resolve()
+		})
+		let myLayerMapping0: MappingCasparCG = {
+			device: DeviceType.CASPARCG,
+			deviceId: 'myCCG',
+			channel: 1,
+			layer: 10
+		}
+		let myLayerMapping: Mappings = {
+			'myLayer0': myLayerMapping0
+		}
+
+		let myConductor = new Conductor({
+			initializeAsClear: true,
+			getCurrentTime: mockTime.getCurrentTime
+		})
+		await myConductor.init()
+		await myConductor.addDevice('myCCG', {
+			type: DeviceType.CASPARCG,
+			options: {
+				commandReceiver: commandReceiver0,
+				timeBase: 50,
+				useScheduling: true
+			}
+		})
+		await myConductor.setMapping(myLayerMapping)
+
+		await mockTime.advanceTimeToTicks(10050)
+		expect(commandReceiver0).toHaveBeenCalledTimes(3)
+		expect(getMockCall(commandReceiver0, 0, 1).name).toEqual('TimeCommand')
+		expect(getMockCall(commandReceiver0, 1, 1).name).toEqual('TimeCommand')
+		expect(getMockCall(commandReceiver0, 2, 1).name).toEqual('TimeCommand')
+
+		myConductor.timeline = [
+			{
+				id: 'obj0',
+				enable: {
+					start: 10000,
+					duration: 5000 // 15000
+				},
+				layer: 'myLayer0',
+				content: {
+					deviceType: DeviceType.CASPARCG,
+					type: TimelineContentTypeCasparCg.MEDIA,
+
+					file: 'AMB',
+					loop: true
+				}
+			},
+			{
+				id: 'obj1',
+				enable: {
+					start: '#obj0.end', // 15000
+					duration: 5000 // 20000
+				},
+				layer: 'myLayer0',
+				content: {
+					deviceType: DeviceType.CASPARCG,
+					type: TimelineContentTypeCasparCg.MEDIA,
+
+					file: 'AMB',
+					loop: true
+				}
+			}
+		]
+
+		await mockTime.advanceTimeToTicks(30000)
+		expect(commandReceiver0).toHaveBeenCalledTimes(5)
+
+		expect(getMockCall(commandReceiver0, 3, 1).name).toEqual('PlayCommand')
+		expect(getMockCall(commandReceiver0, 3, 1)._objectParams).toMatchObject({
+			channel: 1,
+			layer: 10,
+			noClear: false,
+			clip: 'AMB',
+			loop: true,
+			seek: 0
+		})
+		expect(getMockCall(commandReceiver0, 4, 1).name).toEqual('ScheduleSetCommand')
+		expect(getMockCall(commandReceiver0, 4, 1)._objectParams.timecode).toEqual('00:00:20:00')
+		expect(getMockCall(commandReceiver0, 4, 1)._objectParams.command.name).toEqual('ClearCommand')
+		expect(getMockCall(commandReceiver0, 4, 1)._objectParams.command._objectParams).toEqual({
+			channel: 1,
+			layer: 10
+		})
+	})
 })
