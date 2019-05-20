@@ -220,6 +220,19 @@ export class OSCMessageDevice extends DeviceWithState<TimelineState> {
 
 		try {
 			if (cmd.tween && cmd.from) {
+				const easingType = Easing[cmd.tween!.type]
+				const easing = (easingType || {})[cmd.tween!.direction]
+
+				if (!easing) throw new Error(`Easing "${cmd.tween.type}.${cmd.tween.direction}" not found`)
+
+				for (let i = 0; i < Math.max(cmd.from.length, cmd.values.length); i++) {
+					if (cmd.from[i] && cmd.values[i]) {
+						if (cmd.from[i].value !== cmd.values[i].value && cmd.from[i].type !== cmd.values[i].type) {
+							throw new Error('Cannot interpolate between values of different types')
+						}
+					}
+				}
+
 				this.tweens[cmd.path] = { // push the tween
 					started: time,
 					...cmd
@@ -228,7 +241,7 @@ export class OSCMessageDevice extends DeviceWithState<TimelineState> {
 					address: cmd.path,
 					args: [ ...cmd.values ].map((o: SomeOSCValue, i: number) => cmd.from![i] || o)
 				})
-				// @todo: check for easing, check for length of from, check for types
+
 				// trigger loop:
 				if (!this.tweenInterval) this.tweenInterval = setInterval(() => this.runAnimation(), 40)
 			} else {
@@ -286,6 +299,8 @@ export class OSCMessageDevice extends DeviceWithState<TimelineState> {
 								type: OSCValueType.INT,
 								value: oldVal + Math.round((newVal - oldVal) * fraction)
 							}
+						} else {
+							values[i] = tween.values[i]
 						}
 					}
 				}
@@ -298,8 +313,6 @@ export class OSCMessageDevice extends DeviceWithState<TimelineState> {
 		}
 
 		if (Object.keys(this.tweens).length === 0) {
-		// 	this.tweenInterval = setTimeout(() => this.runAnimation(), 40)
-		// } else {
 			clearInterval(this.tweenInterval!)
 			this.tweenInterval = undefined
 		}
