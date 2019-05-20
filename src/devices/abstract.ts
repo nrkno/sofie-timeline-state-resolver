@@ -122,7 +122,7 @@ export class AbstractDevice extends DeviceWithState<TimelineState> {
 		_.each(commandsToAchieveState, (cmd: Command) => {
 
 			// add the new commands to the queue:
-			this._doOnTime.queue(time, (cmd: Command) => {
+			this._doOnTime.queue(time, undefined, (cmd: Command) => {
 				return this._commandReceiver(time, cmd, cmd.context)
 			}, cmd)
 		})

@@ -262,7 +262,7 @@ export class PanasonicPtzDevice extends DeviceWithState<TimelineState> {
 		_.each(commandsToAchieveState, (cmd: PanasonicPtzCommandWithContext) => {
 
 			// add the new commands to the queue:
-			this._doOnTime.queue(time, (cmd: PanasonicPtzCommandWithContext) => {
+			this._doOnTime.queue(time, undefined, (cmd: PanasonicPtzCommandWithContext) => {
 				return this._commandReceiver(time, cmd.command, cmd.context)
 			}, cmd)
 		})

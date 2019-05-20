@@ -755,7 +755,7 @@ export class Conductor extends EventEmitter {
 							callBackData: instance.content.callBackData
 						}
 						if (instance.content.callBack && instance.instance.start) {
-							this._doOnTime.queue(instance.instance.start, () => {
+							this._doOnTime.queue(instance.instance.start, undefined, () => {
 								if (!sentCallbacksOld[callBackId]) {
 									// Object has started playing
 									this._queueCallback({

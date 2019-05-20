@@ -264,7 +264,7 @@ export class LawoDevice extends DeviceWithState<TimelineState> {
 		_.each(commandsToAchieveState, (cmd: LawoCommandWithContext) => {
 
 			// add the new commands to the queue:
-			this._doOnTime.queue(time, (cmd: LawoCommandWithContext) => {
+			this._doOnTime.queue(time, undefined, (cmd: LawoCommandWithContext) => {
 				return this._commandReceiver(time, cmd.cmd, cmd.context)
 			}, cmd)
 		})

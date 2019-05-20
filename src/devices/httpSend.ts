@@ -95,7 +95,7 @@ export class HttpSendDevice extends DeviceWithState<TimelineState> {
 			const time = this.getCurrentTime()
 			_.each(this._makeReadyCommands, (cmd: HttpSendCommandContent) => {
 				// add the new commands to the queue:
-				this._doOnTime.queue(time, (cmd: HttpSendCommandContent) => {
+				this._doOnTime.queue(time, cmd.queueId, (cmd: HttpSendCommandContent) => {
 					return this._commandReceiver(time, cmd, 'makeReady')
 				}, cmd)
 			})
@@ -126,7 +126,7 @@ export class HttpSendDevice extends DeviceWithState<TimelineState> {
 		_.each(commandsToAchieveState, (cmd: Command) => {
 
 			// add the new commands to the queue:
-			this._doOnTime.queue(time, (cmd: Command) => {
+			this._doOnTime.queue(time, cmd.content.queueId, (cmd: Command) => {
 				if (
 					cmd.commandName === 'added' ||
 					cmd.commandName === 'changed'

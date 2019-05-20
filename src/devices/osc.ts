@@ -140,7 +140,7 @@ export class OSCMessageDevice extends DeviceWithState<TimelineState> {
 	 */
 	private _addToQueue (commandsToAchieveState: Array<Command>, time: number) {
 		_.each(commandsToAchieveState, (cmd: Command) => {
-			this._doOnTime.queue(time, (cmd: Command) => {
+			this._doOnTime.queue(time, undefined, (cmd: Command) => {
 				if (
 					cmd.commandName === 'added' ||
 					cmd.commandName === 'changed'

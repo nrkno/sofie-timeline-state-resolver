@@ -13,6 +13,8 @@ export interface HttpSendCommandContent {
 	url: string
 	params: {[key: string]: number | string | any}
 	temporalPriority?: number // default: 0
+	/** Commands in the same queue will be sent in order (will wait for the previous to finish before sending next */
+	queueId?: string
 }
 export interface HttpSendOptions {
 	makeReadyCommands?: HttpSendCommandContent[]

@@ -638,7 +638,7 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> {
 					}
 				}
 			} else {
-				this._doOnTime.queue(time, (command: CommandNS.IAMCPCommand) => {
+				this._doOnTime.queue(time, undefined, (command: CommandNS.IAMCPCommand) => {
 					return this._doCommand(command)
 				}, command)
 			}

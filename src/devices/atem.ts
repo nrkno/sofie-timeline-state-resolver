@@ -328,7 +328,7 @@ export class AtemDevice extends DeviceWithState<DeviceState> {
 		_.each(commandsToAchieveState, (cmd: AtemCommandWithContext) => {
 
 			// add the new commands to the queue:
-			this._doOnTime.queue(time, (cmd: AtemCommandWithContext) => {
+			this._doOnTime.queue(time, undefined, (cmd: AtemCommandWithContext) => {
 				return this._commandReceiver(time, cmd.command, cmd.context)
 			}, cmd)
 		})

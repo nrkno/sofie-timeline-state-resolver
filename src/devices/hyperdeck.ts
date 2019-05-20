@@ -239,7 +239,7 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> {
 	private _addToQueue (commandsToAchieveState: Array<HyperdeckCommandWithContext>, time: number) {
 		_.each(commandsToAchieveState, (cmd: HyperdeckCommandWithContext) => {
 			// add the new commands to the queue:
-			this._doOnTime.queue(time, (cmd: HyperdeckCommandWithContext) => {
+			this._doOnTime.queue(time, undefined, (cmd: HyperdeckCommandWithContext) => {
 				return this._commandReceiver(time, cmd.command, cmd.context)
 			}, cmd)
 		})
