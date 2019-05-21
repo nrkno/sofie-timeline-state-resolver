@@ -188,8 +188,8 @@ describe('HTTP-Send', () => {
 
 		// Expecting to see the ordering below:
 		expect(commandReceiver0).toHaveBeenCalledTimes(3)
-		expect(commandReceiver0).toBeCalledWith(expect.anything(), expect.objectContaining({ url: 'http://superfly.tv/1' }), expect.anything())
-		expect(commandReceiver0).toBeCalledWith(expect.anything(), expect.objectContaining({ url: 'http://superfly.tv/3' }), expect.anything())
-		expect(commandReceiver0).toBeCalledWith(expect.anything(), expect.objectContaining({ url: 'http://superfly.tv/2' }), expect.anything())
+		expect(commandReceiver0).toHaveBeenNthCalledWith(1, expect.anything(), expect.objectContaining({ url: 'http://superfly.tv/1' }), expect.anything())
+		expect(commandReceiver0).toHaveBeenNthCalledWith(2, expect.anything(), expect.objectContaining({ url: 'http://superfly.tv/3' }), expect.anything())
+		expect(commandReceiver0).toHaveBeenNthCalledWith(3, expect.anything(), expect.objectContaining({ url: 'http://superfly.tv/2' }), expect.anything())
 	})
 })

@@ -197,13 +197,13 @@ export class HttpSendDevice extends DeviceWithState<TimelineState> {
 		return new Promise((resolve, reject) => {
 			let handleResponse = (error, response) => {
 				if (error) {
-					this.emit('error', `HTTPSend: Error ${cmd.type}`, error)
+					this.emit('error', `HTTPSend: Error ${cmd.type} (${context})`, error)
 					reject(error)
 				} else if (response.statusCode === 200) {
-					this.emit('debug', `HTTPSend: ${cmd.type}: Good statuscode response on url "${cmd.url}": ${response.statusCode}`)
+					this.emit('debug', `HTTPSend: ${cmd.type}: Good statuscode response on url "${cmd.url}": ${response.statusCode} (${context})`)
 					resolve()
 				} else {
-					this.emit('warning', `HTTPSend: ${cmd.type}: Bad statuscode response on url "${cmd.url}": ${response.statusCode}`)
+					this.emit('warning', `HTTPSend: ${cmd.type}: Bad statuscode response on url "${cmd.url}": ${response.statusCode} (${context})`)
 					resolve()
 				}
 			}
