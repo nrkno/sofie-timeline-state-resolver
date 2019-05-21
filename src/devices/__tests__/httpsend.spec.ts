@@ -1,6 +1,3 @@
-// import {Resolver, Enums} from "superfly-timeline"
-// import { Commands, Atem } from 'atem-connection'
-import { TriggerType } from 'superfly-timeline'
 import { Conductor } from '../../conductor'
 import { HttpSendDevice } from '../httpSend'
 import {
@@ -57,14 +54,15 @@ describe('HTTP-Send', () => {
 		myConductor.timeline = [
 			{
 				id: 'obj0',
-				trigger: {
-					type: TriggerType.TIME_ABSOLUTE,
-					value: mockTime.now + 1000 // in 1 second
+				enable: {
+					start: mockTime.now + 1000, // in 1 second
+					duration: 2000
 				},
-				duration: 2000,
-				LLayer: 'myLayer0',
+				layer: 'myLayer0',
 				content: {
-					type: 'POST',
+					deviceType: DeviceType.HTTPSEND,
+					type: TimelineContentTypeHttp.POST,
+
 					url: 'http://superfly.tv',
 					params: {
 						a: 1,
@@ -79,7 +77,7 @@ describe('HTTP-Send', () => {
 
 		expect(commandReceiver0).toHaveBeenCalledTimes(1)
 		expect(commandReceiver0).toBeCalledWith(expect.anything(), expect.objectContaining({
-			type: 'POST',
+			type: 'post',
 			url: 'http://superfly.tv',
 			params: {
 				a: 1,
@@ -135,14 +133,15 @@ describe('HTTP-Send', () => {
 		let timeline: Array<TimelineObjHTTPRequest> = [
 			{
 				id: 'obj0',
-				trigger: {
-					type: TriggerType.TIME_ABSOLUTE,
-					value: mockTime.now + 1000 // in 1 second
+				enable: {
+					start: mockTime.now + 1000, // in 1 second
+					duration: 2000
 				},
-				duration: 2000,
-				LLayer: 'myLayer0',
+				layer: 'myLayer0',
 				content: {
-					type: 'POST' as TimelineContentTypeHttp,
+					deviceType: DeviceType.HTTPSEND,
+					type: 'POST' as TimelineContentTypeHttp.POST,
+
 					url: 'http://superfly.tv/1',
 					params: {},
 					temporalPriority: 1
@@ -150,14 +149,15 @@ describe('HTTP-Send', () => {
 			},
 			{
 				id: 'obj1',
-				trigger: {
-					type: TriggerType.TIME_ABSOLUTE,
-					value: mockTime.now + 1000 // in 1 second
+				enable: {
+					start: mockTime.now + 1000, // in 1 second
+					duration: 2000
 				},
-				duration: 2000,
-				LLayer: 'myLayer1',
+				layer: 'myLayer1',
 				content: {
-					type: 'POST' as TimelineContentTypeHttp,
+					deviceType: DeviceType.HTTPSEND,
+					type: 'POST' as TimelineContentTypeHttp.POST,
+
 					url: 'http://superfly.tv/2',
 					params: {},
 					temporalPriority: 3
@@ -165,14 +165,15 @@ describe('HTTP-Send', () => {
 			},
 			{
 				id: 'obj2',
-				trigger: {
-					type: TriggerType.TIME_ABSOLUTE,
-					value: mockTime.now + 1000 // in 1 second
+				enable: {
+					start: mockTime.now + 1000, // in 1 second
+					duration: 2000
 				},
-				duration: 2000,
-				LLayer: 'myLayer2',
+				layer: 'myLayer2',
 				content: {
-					type: 'POST' as TimelineContentTypeHttp,
+					deviceType: DeviceType.HTTPSEND,
+					type: 'POST' as TimelineContentTypeHttp.POST,
+
 					url: 'http://superfly.tv/3',
 					params: {},
 					temporalPriority: 2
@@ -187,8 +188,8 @@ describe('HTTP-Send', () => {
 
 		// Expecting to see the ordering below:
 		expect(commandReceiver0).toHaveBeenCalledTimes(3)
-		expect(commandReceiver0).toBeCalledWith(expect.anything(), expect.objectContaining({ url: 'http://superfly.tv/1' }), expect.anything())
-		expect(commandReceiver0).toBeCalledWith(expect.anything(), expect.objectContaining({ url: 'http://superfly.tv/3' }), expect.anything())
-		expect(commandReceiver0).toBeCalledWith(expect.anything(), expect.objectContaining({ url: 'http://superfly.tv/2' }), expect.anything())
+		expect(commandReceiver0).toHaveBeenNthCalledWith(1, expect.anything(), expect.objectContaining({ url: 'http://superfly.tv/1' }), expect.anything())
+		expect(commandReceiver0).toHaveBeenNthCalledWith(2, expect.anything(), expect.objectContaining({ url: 'http://superfly.tv/3' }), expect.anything())
+		expect(commandReceiver0).toHaveBeenNthCalledWith(3, expect.anything(), expect.objectContaining({ url: 'http://superfly.tv/2' }), expect.anything())
 	})
 })

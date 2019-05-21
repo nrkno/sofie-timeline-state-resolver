@@ -1,5 +1,5 @@
-import { TimelineObject, TimelineKeyframe } from './superfly-timeline'
-import { Mapping, DeviceType } from './mapping'
+import { Mapping } from './mapping'
+import { TSRTimelineObjBase, DeviceType } from '.'
 
 export interface OSCOptions {
 	host: string
@@ -40,9 +40,16 @@ export interface OSCMessageCommandContent {
 	path: string
 	values: SomeOSCValue[]
 }
+export type TimelineObjOSCAny = TimelineObjOSCMessage
 
-export interface TimelineObjOSCMessage extends TimelineObject {
-	content: OSCMessageCommandContent & {
-		keyframes?: Array<TimelineKeyframe>
+export interface TimelineObjOSC extends TSRTimelineObjBase {
+	content: {
+		deviceType: DeviceType.OSC
+		type: TimelineContentTypeOSC
 	}
+}
+export interface TimelineObjOSCMessage extends TimelineObjOSC {
+	content: {
+		deviceType: DeviceType.OSC
+	} & OSCMessageCommandContent
 }

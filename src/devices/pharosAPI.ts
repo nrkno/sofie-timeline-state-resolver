@@ -810,30 +810,3 @@ export class Pharos extends EventEmitter {
 		}
 	}
 }
-// Test it:
-// async function aaa () {
-// 	let ph = new Pharos()
-
-// 	await ph.connect({
-// 		host: '10.0.1.251'
-// 	})
-// 	console.log('connected!')
-
-// 	console.log('subscribeSceneStatus', await ph.subscribeSceneStatus((data) => {
-// 		console.log('sub data', data)
-// 	}))
-
-// 	console.log('subscribed')
-
-// 	// console.log('toggleScene', await ph.startScene(1))
-
-// 	// await ph.toggleScene(1)
-
-// 	// await ph.toggleScene(2)
-// 	// await ph.toggleScene(2)
-
-// }
-
-// aaa()
-// .then(console.log)
-// .catch(console.log)

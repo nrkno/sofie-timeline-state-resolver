@@ -1,25 +1,16 @@
-import { TriggerType } from 'superfly-timeline'
-
 import {
 	Mappings,
 	MappingAbstract,
-	DeviceType
+	DeviceType,
+	TSRTimelineObj,
+	TSRTimeline
 } from '../types/src'
-import { Conductor, TimelineTriggerTimeResult, TimelineContentObject } from '../conductor'
+import { Conductor, TimelineTriggerTimeResult } from '../conductor'
 import * as _ from 'underscore'
 import { MockTime } from './mockTime.spec'
 import { ThreadedClass } from 'threadedclass'
 import { AbstractDevice } from '../devices/abstract'
-import { HyperdeckDevice } from '../devices/hyperdeck'
 import { getMockCall } from './lib.spec'
-
-// let nowActual: number = Date.now()
-// process.on('unhandledRejection', (reason, p) => {
-// 	setTimeout(() => {
-// 		console.log('Unhandled Rejection at: Promise' + p + 'reason:' + reason.stack)
-// 	},10)
-// 	console.log('Unhandled Rejection at: Promise' + p + 'reason:' + reason.stack)
-// })
 
 describe('Conductor', () => {
 	let mockTime = new MockTime()
@@ -72,28 +63,28 @@ describe('Conductor', () => {
 		})
 
 		// add something that will play in a seconds time
-		let abstractThing0: TimelineContentObject = {
+		let abstractThing0: TSRTimelineObj = {
 			id: 'a0',
-			trigger: {
-				type: TriggerType.TIME_ABSOLUTE,
-				value: mockTime.now
+			enable: {
+				start: mockTime.now,
+				duration: 1000
 			},
-			duration: 1000,
-			LLayer: 'myLayer0',
+			layer: 'myLayer0',
 			content: {
+				deviceType: DeviceType.ABSTRACT,
 				myAttr1: 'one',
 				myAttr2: 'two'
 			}
 		}
-		let abstractThing1: TimelineContentObject = {
+		let abstractThing1: TSRTimelineObj = {
 			id: 'a1',
-			trigger: {
-				type: TriggerType.TIME_ABSOLUTE,
-				value: mockTime.now + 1000
+			enable: {
+				start: mockTime.now + 1000,
+				duration: 1000
 			},
-			duration: 1000,
-			LLayer: 'myLayer1',
+			layer: 'myLayer1',
 			content: {
+				deviceType: DeviceType.ABSTRACT,
 				myAttr1: 'three',
 				myAttr2: 'four'
 			}
@@ -123,7 +114,7 @@ describe('Conductor', () => {
 		expect(getMockCall(commandReceiver0, 0, 1)).toMatchObject({
 			commandName: 'addedAbstract',
 			content: {
-				GLayer: 'myLayer0',
+				deviceType: 0, // abstract
 				myAttr1: 'one',
 				myAttr2: 'two'
 			}
@@ -142,7 +133,7 @@ describe('Conductor', () => {
 		expect(getMockCall(commandReceiver0, 0, 1)).toMatchObject({
 			commandName: 'removedAbstract',
 			content: {
-				GLayer: 'myLayer0',
+				deviceType: 0, // abstract
 				myAttr1: 'one',
 				myAttr2: 'two'
 			}
@@ -153,7 +144,7 @@ describe('Conductor', () => {
 		expect(getMockCall(commandReceiver1, 0, 1)).toMatchObject({
 			commandName: 'addedAbstract',
 			content: {
-				GLayer: 'myLayer1',
+				deviceType: 0, // abstract
 				myAttr1: 'three',
 				myAttr2: 'four'
 			}
@@ -169,7 +160,7 @@ describe('Conductor', () => {
 		expect(getMockCall(commandReceiver1, 0, 1)).toMatchObject({
 			commandName: 'removedAbstract',
 			content: {
-				GLayer: 'myLayer1',
+				deviceType: 0, // abstract
 				myAttr1: 'three',
 				myAttr2: 'four'
 			}
@@ -190,7 +181,7 @@ describe('Conductor', () => {
 			'myLayer0': myLayerMapping1,
 			'myLayer1': myLayerMapping0
 		})
-		abstractThing0.trigger.value = mockTime.now
+		abstractThing0.enable.start = mockTime.now
 		conductor.timeline = [ abstractThing0 ]
 	})
 
@@ -223,28 +214,28 @@ describe('Conductor', () => {
 		await conductor.setMapping(myLayerMapping)
 
 		// add something that will play "now"
-		let abstractThing0: TimelineContentObject = { // will be converted from "now" to 10000
+		let abstractThing0: TSRTimelineObj = { // will be converted from "now" to 10000
 			id: 'a0',
-			trigger: {
-				type: TriggerType.TIME_ABSOLUTE,
-				value: 'now' // 10000
+			enable: {
+				start: 'now', // 10000
+				duration: 5000 // 15000
 			},
-			duration: 5000, // 15000
-			LLayer: 'myLayer0',
+			layer: 'myLayer0',
 			content: {
+				deviceType: DeviceType.ABSTRACT,
 				myAttr1: 'one',
 				myAttr2: 'two'
 			}
 		}
-		let abstractThing1: TimelineContentObject = { // will cause a callback to be sent
+		let abstractThing1: TSRTimelineObj = { // will cause a callback to be sent
 			id: 'a1',
-			trigger: {
-				type: TriggerType.TIME_RELATIVE,
-				value: '#a0.start + 300' // 10300
+			enable: {
+				start: '#a0.start + 300', // 10300
+				duration: 5000 // 15300
 			},
-			duration: 5000, // 15300
-			LLayer: 'myLayer0',
+			layer: 'myLayer0',
 			content: {
+				deviceType: DeviceType.ABSTRACT,
 				myAttr1: 'one',
 				myAttr2: 'two',
 				callBack: 'abc',
@@ -254,19 +245,20 @@ describe('Conductor', () => {
 				callBackStopped: 'abcStopped'
 			}
 		}
-		let timeline = [abstractThing0, abstractThing1]
+		let timeline: TSRTimeline = [abstractThing0, abstractThing1]
 
 		let setTimelineTriggerTime = jest.fn((results: TimelineTriggerTimeResult) => {
 			_.each(results, (trigger) => {
 				let o = _.findWhere(timeline, { id: trigger.id })
 				if (o) {
-					o.trigger.value = trigger.time
+					o.enable.start = trigger.time
 				}
 			})
 			// update the timeline:
 			conductor.timeline = timeline
 		})
 		conductor.on('setTimelineTriggerTime', setTimelineTriggerTime)
+
 		let timelineCallback = jest.fn()
 		conductor.on('timelineCallback', timelineCallback)
 

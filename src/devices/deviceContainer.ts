@@ -6,17 +6,11 @@ import {
 import { DeviceClassOptions, Device } from './device'
 import { DeviceOptions, DeviceType } from '../types/src'
 
-// newDevice = await threadedClass<AbstractDevice>(
-// 	'../dist/devices/abstract.js',
-// 	AbstractDevice,
-// 	[ deviceId, deviceOptions, options ],
-// 	{
-// 		threadUsage: this._isMultiThreaded ? .1 : 0,
-// 		autoRestart: true,
-// 		disableMultithreading: !this._isMultiThreaded
-// 	}
-// )
-
+/**
+ * A device container is a wrapper around a device in ThreadedClass class, it
+ * keeps a local property of some basic information about the device (like
+ * names and id's) to prevent a costly round trip over IPC.
+ */
 export class DeviceContainer {
 
 	public _device: ThreadedClass<Device>

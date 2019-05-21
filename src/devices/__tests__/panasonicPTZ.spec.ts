@@ -1,5 +1,4 @@
 jest.mock('request')
-import { TriggerType } from 'superfly-timeline'
 import { Conductor } from '../../conductor'
 import {
 	PanasonicPtzDevice
@@ -98,104 +97,104 @@ describe('Panasonic PTZ', () => {
 		myConductor.timeline = [
 			{
 				id: 'obj0',
-				trigger: {
-					type: TriggerType.TIME_ABSOLUTE,
-					value: mockTime.now - 1000 // 1 seconds in the past
+				enable: {
+					start: mockTime.now - 1000, // 1 seconds in the past
+					duration: 2000
 				},
-				duration: 2000,
-				LLayer: 'ptz_k1',
+				layer: 'ptz_k1',
 				content: {
+					deviceType: DeviceType.PANASONIC_PTZ,
 					type: TimelineContentTypePanasonicPtz.PRESET,
 					preset: 1
 				}
 			},
 			{
 				id: 'obj0_s',
-				trigger: {
-					type: TriggerType.TIME_ABSOLUTE,
-					value: mockTime.now - 1000 // 1 seconds in the past
+				enable: {
+					start: mockTime.now - 1000, // 1 seconds in the past
+					duration: 10000
 				},
-				duration: 10000,
-				LLayer: 'ptz_k1_s',
+				layer: 'ptz_k1_s',
 				content: {
+					deviceType: DeviceType.PANASONIC_PTZ,
 					type: TimelineContentTypePanasonicPtz.SPEED,
 					speed: 250
 				}
 			},
 			{
 				id: 'obj1',
-				trigger: {
-					type: TriggerType.TIME_ABSOLUTE,
-					value: mockTime.now + 500 // 0.5 seconds in the future
+				enable: {
+					start: mockTime.now + 500, // 0.5 seconds in the future
+					duration: 2000
 				},
-				duration: 2000,
-				LLayer: 'ptz_k1',
+				layer: 'ptz_k1',
 				content: {
+					deviceType: DeviceType.PANASONIC_PTZ,
 					type: TimelineContentTypePanasonicPtz.PRESET,
 					preset: 2
 				}
 			},
 			{
 				id: 'obj2',
-				trigger: {
-					type: TriggerType.TIME_ABSOLUTE,
-					value: mockTime.now + 1000 // 1 seconds in the future
+				enable: {
+					start: mockTime.now + 1000, // 1 seconds in the future
+					duration: 2000
 				},
-				duration: 2000,
-				LLayer: 'ptz_k1',
+				layer: 'ptz_k1',
 				content: {
+					deviceType: DeviceType.PANASONIC_PTZ,
 					type: TimelineContentTypePanasonicPtz.PRESET,
 					preset: 2
 				}
 			},
 			{
 				id: 'obj2_s',
-				trigger: {
-					type: TriggerType.TIME_ABSOLUTE,
-					value: mockTime.now + 1000 // 1 seconds in the future
+				enable: {
+					start: mockTime.now + 1000, // 1 seconds in the future
+					duration: 500
 				},
-				duration: 500,
-				LLayer: 'ptz_k1_s',
+				layer: 'ptz_k1_s',
 				content: {
+					deviceType: DeviceType.PANASONIC_PTZ,
 					type: TimelineContentTypePanasonicPtz.SPEED,
 					speed: 0
 				}
 			},
 			{
 				id: 'obj3',
-				trigger: {
-					type: TriggerType.TIME_ABSOLUTE,
-					value: mockTime.now + 2000 // 2 seconds in the future
+				enable: {
+					start: mockTime.now + 2000, // 2 seconds in the future
+					duration: 2000
 				},
-				duration: 2000,
-				LLayer: 'ptz_k1',
+				layer: 'ptz_k1',
 				content: {
+					deviceType: DeviceType.PANASONIC_PTZ,
 					type: TimelineContentTypePanasonicPtz.PRESET,
 					preset: 1
 				}
 			},
 			{
 				id: 'obj4',
-				trigger: {
-					type: TriggerType.TIME_ABSOLUTE,
-					value: mockTime.now + 6000 // 6 seconds in the future
+				enable: {
+					start: mockTime.now + 6000, // 6 seconds in the future
+					duration: 2000
 				},
-				duration: 2000,
-				LLayer: 'ptz_k1_z',
+				layer: 'ptz_k1_z',
 				content: {
+					deviceType: DeviceType.PANASONIC_PTZ,
 					type: TimelineContentTypePanasonicPtz.ZOOM,
 					zoom: 0
 				}
 			},
 			{
 				id: 'obj5',
-				trigger: {
-					type: TriggerType.TIME_ABSOLUTE,
-					value: mockTime.now + 6000 // 6 seconds in the future
+				enable: {
+					start: mockTime.now + 6000, // 6 seconds in the future
+					duration: 2000
 				},
-				duration: 2000,
-				LLayer: 'ptz_k1_zs',
+				layer: 'ptz_k1_zs',
 				content: {
+					deviceType: DeviceType.PANASONIC_PTZ,
 					type: TimelineContentTypePanasonicPtz.ZOOM_SPEED,
 					zoomSpeed: 1
 				}

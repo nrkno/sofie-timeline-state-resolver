@@ -1,15 +1,9 @@
 
 import {
 	Conductor,
-	DeviceType,
-	ConductorOptions,
-	Device,
-	TimelineContentObject,
-	TriggerType,
-	TimelineTriggerTimeResult,
-	DeviceOptions
+	DeviceType
 } from '../src/index' // from 'timeline-state-resolver'
-import { TimelineContentTypeCasparCg } from '../src/devices/casparCG'
+import { TimelineContentTypeCasparCg, TSRTimelineObj } from '../src/types/src' // from 'timeline-state-resolver-types'
 
 // Initialize TSR:
 const tsr = new Conductor()
@@ -32,29 +26,29 @@ let a = async function () {
 	})
 
 	// Setup mappings from layers to outputs:
-	tsr.mapping = {
+	tsr.setMapping({
 		'layer0': {
 			device: DeviceType.CASPARCG,
 			deviceId: 'casparcg0',
 			channel: 1,
 			layer: 10
 		}
-	}
+	})
 	// Set a new timeline:
-	let video0: TimelineContentObject = {
+	let video0: TSRTimelineObj = {
 		id: 'video0',
-		trigger: {
-			type: TriggerType.TIME_ABSOLUTE,
-			value: Date.now()
+		enable: {
+			start: Date.now(),
+			duration: 60 * 1000
 		},
-		duration: 60 * 1000,
-		LLayer: 'layer0',
+		layer: 'layer0',
 		content: {
+			deviceType: DeviceType.CASPARCG,
 			type: TimelineContentTypeCasparCg.MEDIA,
-			attributes: {
-				file: 'AMB',
-				loop: true
-			}
+
+			file: 'AMB',
+			loop: true
+
 			// playing: false,
 			// pauseTime: Date.now()
 		}

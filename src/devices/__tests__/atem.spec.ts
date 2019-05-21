@@ -1,5 +1,5 @@
 import { Enums, MixEffect } from 'atem-state'
-import { TriggerType, TimelineResolvedObject } from 'superfly-timeline'
+import { ResolvedTimelineObjectInstance } from 'superfly-timeline'
 import { Conductor } from '../../conductor'
 import { AtemDevice, AtemDeviceOptions } from '../atem'
 import { MockTime } from '../../__tests__/mockTime.spec'
@@ -9,7 +9,8 @@ import {
 	MappingAtem,
 	MappingAtemType,
 	TimelineContentTypeAtem,
-	AtemOptions
+	AtemOptions,
+	AtemTransitionStyle
 } from '../../types/src'
 import { ThreadedClass } from 'threadedclass'
 import { TimelineState } from '../../types/src/superfly-timeline'
@@ -30,8 +31,8 @@ describe('Atem', () => {
 		})
 		const mockState: TimelineState = {
 			time: mockTime.now + 50,
-			GLayers: {},
-			LLayers: {}
+			layers: {},
+			nextEvents: []
 		}
 
 		let device = new AtemDevice('mock', literal<AtemDeviceOptions>({
@@ -91,33 +92,33 @@ describe('Atem', () => {
 		myConductor.timeline = [
 			{
 				id: 'obj0',
-				trigger: {
-					type: TriggerType.TIME_ABSOLUTE,
-					value: mockTime.now - 1000 // 1 seconds ago
+				enable: {
+					start: mockTime.now - 1000, // 1 seconds ago
+					duration: 2000
 				},
-				duration: 2000,
-				LLayer: 'myLayer0',
+				layer: 'myLayer0',
 				content: {
+					deviceType: DeviceType.ATEM,
 					type: TimelineContentTypeAtem.ME,
-					attributes: {
+					me: {
 						input: 2,
-						transition: Enums.TransitionStyle.CUT
+						transition: AtemTransitionStyle.CUT
 					}
 				}
 			},
 			{
 				id: 'obj1',
-				trigger: {
-					type: TriggerType.TIME_RELATIVE,
-					value: '#obj0.end'
+				enable: {
+					start: '#obj0.end',
+					duration: 2000
 				},
-				duration: 2000,
-				LLayer: 'myLayer0',
+				layer: 'myLayer0',
 				content: {
+					deviceType: DeviceType.ATEM,
 					type: TimelineContentTypeAtem.ME,
-					attributes: {
+					me: {
 						input: 3,
-						transition: Enums.TransitionStyle.CUT
+						transition: AtemTransitionStyle.CUT
 					}
 				}
 			}
@@ -205,15 +206,15 @@ describe('Atem', () => {
 		myConductor.timeline = [
 			{
 				id: 'obj0',
-				trigger: {
-					type: TriggerType.TIME_ABSOLUTE,
-					value: mockTime.now - 1000 // 1 seconds ago
+				enable: {
+					start: mockTime.now - 1000, // 1 seconds ago
+					duration: 2000
 				},
-				duration: 2000,
-				LLayer: 'myLayer0',
+				layer: 'myLayer0',
 				content: {
-					// @ts-ignore dveSettings missing
-					attributes: {
+					deviceType: DeviceType.ATEM,
+					type: TimelineContentTypeAtem.ME,
+					me: {
 						upstreamKeyers: [
 							{
 								patternSettings: {
@@ -222,8 +223,7 @@ describe('Atem', () => {
 								}
 							}
 						]
-					} as Partial<MixEffect>,
-					type: 'me'
+					}
 				}
 			}
 		]
@@ -261,39 +261,33 @@ describe('Atem', () => {
 			})
 		}
 
-		const resolvedObj: TimelineResolvedObject = {
+		const resolvedObj: ResolvedTimelineObjectInstance = {
 			id: 'obj0',
-			trigger: {
-				type: TriggerType.TIME_ABSOLUTE,
-				value: mockTime.now - 1000 // 1 seconds ago
+			enable: {
+				start: mockTime.now - 1000, // 1 seconds ago
+				duration: 0
 			},
-			duration: 0,
-			LLayer: 'myLayer0',
+			layer: 'myLayer0',
 			content: {
 				type: TimelineContentTypeAtem.ME,
-				attributes: {
+				me: {
 					input: 4,
 					transition: Enums.TransitionStyle.CUT
 				}
 			},
 			resolved: {
-				startTime: 1,
-				endTime: mockTime.now + 99999,
-				type: TimelineContentTypeAtem.ME,
-				attributes: {
-					input: 4,
-					transition: Enums.TransitionStyle.CUT
-				}
-			}
+				resolved: true,
+				resolving: false,
+				instances: [{ start: mockTime.now - 1000, end: Infinity, id: 'a0', references: [] }]
+			},
+			instance: { start: mockTime.now - 1000, end: Infinity, id: 'a0', references: [] }
 		}
 		const mockState: TimelineState = {
 			time: mockTime.now + 50,
-			GLayers: {
+			layers: {
 				'myLayer0': resolvedObj
 			},
-			LLayers: {
-				'myLayer0': resolvedObj
-			}
+			nextEvents: []
 		}
 
 		let device = new AtemDevice('mock', literal<AtemDeviceOptions>({
@@ -305,7 +299,6 @@ describe('Atem', () => {
 			getCurrentTime: mockTime.getCurrentTime
 		})
 		device.setMapping(myLayerMapping)
-		// device.on('info', console.log)
 
 		await device.init(literal<AtemOptions>({
 			host: '127.0.0.1'

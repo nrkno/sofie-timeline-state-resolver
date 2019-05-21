@@ -10,11 +10,12 @@ import {
 	DeviceType,
 	DeviceOptions,
 	TimelineContentTypeLawo,
-	MappingLawo
+	MappingLawo,
+	TimelineObjLawoSource,
+	TimelineObjLawoAny
 } from '../types/src'
 import {
-	TimelineState,
-	TimelineResolvedObject
+	TimelineState, ResolvedTimelineObjectInstance
 } from 'superfly-timeline'
 import {
 	DeviceTree,
@@ -23,12 +24,6 @@ import {
 import { DoOnTime, SendMode } from '../doOnTime'
 import { getDiff } from '../lib'
 
-/*
-	This is a wrapper for an "Abstract" device
-
-	An abstract device is just a test-device that doesn't really do anything, but can be used
-	as a preliminary mock
-*/
 export interface LawoOptions extends DeviceOptions { // TODO - this doesnt match what the other ones do
 	options?: {
 		commandReceiver?: (time: number, cmd) => Promise<any>,
@@ -38,29 +33,7 @@ export interface LawoOptions extends DeviceOptions { // TODO - this doesnt match
 		rampMotorFunctionPath?: string
 	}
 }
-export interface TimelineObjLawo extends TimelineResolvedObject {
-	content: {
-		type: TimelineContentTypeLawo,
-		attributes: {
-			[key: string]: {
-				[attr: string]: any
-				triggerValue: string // only used for trigging new command sent
-			}
-		}
-	}
-}
-export interface TimelineObjLawoSource extends TimelineObjLawo {
-	content: {
-		type: TimelineContentTypeLawo,
-		attributes: {
-			'Fader/Motor dB Value': {
-				value: number,
-				transitionDuration?: number,
-				triggerValue: string // only used for trigging new command sent
-			}
-		}
-	}
-}
+
 export type EmberPlusValue = boolean | number | string
 
 export interface LawoState {
@@ -88,6 +61,11 @@ export interface LawoCommandWithContext {
 	context: CommandContext
 }
 type CommandContext = string
+/**
+ * This is a wrapper for a Lawo sound mixer
+ *
+ * It controls mutes and fades over Ember Plus.
+ */
 export class LawoDevice extends DeviceWithState<TimelineState> {
 	private _doOnTime: DoOnTime
 	private _lawo: DeviceTree
@@ -173,14 +151,19 @@ export class LawoDevice extends DeviceWithState<TimelineState> {
 			}
 		})
 	}
+	/**
+	 * Handles a state such that the device will reflect that state at the given time.
+	 * @param newState
+	 */
 	handleState (newState: TimelineState) {
-		// Handle this new state, at the point in time specified
+		// Convert timeline states to device states
 		let previousStateTime = Math.max(this.getCurrentTime(), newState.time)
-		let oldState: TimelineState = (this.getStateBefore(previousStateTime) || { state: { time: 0, LLayers: {}, GLayers: {} } }).state
+		let oldState: TimelineState = (this.getStateBefore(previousStateTime) || { state: { time: 0, layers: {}, nextEvents: [] } }).state
 
 		let oldLawoState = this.convertStateToLawo(oldState)
 		let newLawoState = this.convertStateToLawo(newState)
 
+		// generate commands to transition to new state
 		let commandsToAchieveState: Array<LawoCommandWithContext> = this._diffStates(oldLawoState, newLawoState)
 
 		// clear any queued commands later than this time:
@@ -191,10 +174,17 @@ export class LawoDevice extends DeviceWithState<TimelineState> {
 		// store the new state, for later use:
 		this.setState(newState, newState.time)
 	}
+	/**
+	 * Clear any scheduled commands after this time
+	 * @param clearAfterTime
+	 */
 	clearFuture (clearAfterTime: number) {
-		// Clear any scheduled commands after this time
 		this._doOnTime.clearQueueAfter(clearAfterTime)
 	}
+	/**
+	 * Safely disconnect from physical device such that this instance of the class
+	 * can be garbage collected.
+	 */
 	terminate () {
 		this._doOnTime.dispose()
 
@@ -216,26 +206,33 @@ export class LawoDevice extends DeviceWithState<TimelineState> {
 	get connected (): boolean {
 		return this._connected
 	}
+	/**
+	 * Converts a timeline state into a device state.
+	 * @param state
+	 */
 	convertStateToLawo (state: TimelineState): LawoState {
-		// convert the timeline state into something we can use
 		const lawoState: LawoState = {}
 
-		_.each(state.LLayers, (tlObject: TimelineObjLawo, layerName: string) => {
-			const mapping: MappingLawo | undefined = this.getMapping()[layerName] as MappingLawo // tslint:disable-line
+		_.each(state.layers, (tlObject: ResolvedTimelineObjectInstance, layerName: string) => {
+			const lawoObj = tlObject as any as TimelineObjLawoAny
+
+			const mapping: MappingLawo | undefined = this.getMapping()[layerName] as MappingLawo
 			if (mapping && mapping.identifier && mapping.device === DeviceType.LAWO) {
 
-				if (tlObject.content.type === TimelineContentTypeLawo.SOURCE) {
-					let tlObjectSource = tlObject as TimelineObjLawoSource
-					_.each(tlObjectSource.content.attributes, (value, key) => {
-						lawoState[this._sourceNodeAttributePath(mapping.identifier, key)] = {
-							type: tlObjectSource.content.type,
-							key: key,
-							identifier: mapping.identifier,
-							value: value.value,
-							transitionDuration: value.transitionDuration,
-							triggerValue: value.triggerValue
-						}
-					})
+				if (lawoObj.content.type === TimelineContentTypeLawo.SOURCE) {
+					let tlObjectSource: TimelineObjLawoSource = lawoObj
+
+					const fader: TimelineObjLawoSource['content']['Fader/Motor dB Value'] = tlObjectSource.content['Fader/Motor dB Value']
+
+					lawoState[this._sourceNodeAttributePath(mapping.identifier, 'Fader/Motor dB Value')] = {
+						type: tlObjectSource.content.type,
+						key: 'Fader/Motor dB Value',
+						identifier: mapping.identifier,
+						value: fader.value,
+						transitionDuration: fader.transitionDuration,
+						triggerValue: fader.triggerValue || ''
+					}
+
 				}
 			}
 		})
@@ -267,25 +264,24 @@ export class LawoDevice extends DeviceWithState<TimelineState> {
 		_.each(commandsToAchieveState, (cmd: LawoCommandWithContext) => {
 
 			// add the new commands to the queue:
-			this._doOnTime.queue(time, (cmd: LawoCommandWithContext) => {
+			this._doOnTime.queue(time, undefined, (cmd: LawoCommandWithContext) => {
 				return this._commandReceiver(time, cmd.cmd, cmd.context)
 			}, cmd)
 		})
 	}
+	/**
+	 * Generates commands to transition from one device state to another.
+	 * @param oldLawoState The assumed device state
+	 * @param newLawoState The desired device state
+	 */
 	private _diffStates (oldLawoState: LawoState, newLawoState: LawoState): Array<LawoCommandWithContext> {
 
 		let commands: Array<LawoCommandWithContext> = []
 
-		// let addCommand = (path, newNode: LawoStateNode) => {
-		// }
-
 		_.each(newLawoState, (newNode: LawoStateNode, path: string) => {
 			let oldValue: LawoStateNode = oldLawoState[path] || null
 			let diff = getDiff(newNode, oldValue)
-			// if (!_.isEqual(newNode, oldValue)) {
 			if (diff) {
-				// addCommand(path, newNode)
-
 				// It's a plain value:
 				commands.push({
 					cmd: {
@@ -303,6 +299,10 @@ export class LawoDevice extends DeviceWithState<TimelineState> {
 		return commands
 	}
 
+	/**
+	 * Gets an ember node based on its path
+	 * @param path
+	 */
 	private async _getNodeByPath (path: string): Promise<Ember.Node> {
 		return new Promise((resolve, reject) => {
 			if (this._savedNodes[path] !== undefined) {
@@ -322,6 +322,11 @@ export class LawoDevice extends DeviceWithState<TimelineState> {
 		})
 	}
 
+	/**
+	 * Returns an attribute path
+	 * @param identifier
+	 * @param attributePath
+	 */
 	private _sourceNodeAttributePath (identifier: string, attributePath: string): string {
 		return _.compact([
 			this._sourcesPath,

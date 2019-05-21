@@ -12,7 +12,14 @@ import {
 	TimelineContentTypeAtem,
 	MappingAtem,
 	MappingAtemType,
-	AtemOptions
+	AtemOptions,
+	TimelineObjAtemME,
+	TimelineObjAtemDSK,
+	TimelineObjAtemMediaPlayer,
+	TimelineObjAtemAudioChannel,
+	TimelineObjAtemSsrc,
+	TimelineObjAtemAUX,
+	TimelineObjAtemSsrcProps
 } from '../types/src'
 import { TimelineState } from 'superfly-timeline'
 import {
@@ -27,7 +34,6 @@ import {
 	Defaults as StateDefault
 } from 'atem-state'
 import { DoOnTime, SendMode } from '../doOnTime'
-// import { Conductor } from '../conductor'
 
 _.mixin({ deepExtend: underScoreDeepExtend(_) })
 
@@ -35,9 +41,6 @@ function deepExtend<T> (destination: T, ...sources: any[]) {
 	// @ts-ignore (mixin)
 	return _.deepExtend(destination, ...sources)
 }
-/**
- * This is a wrapper for the Atem Device. Commands to any and all atem devices will be sent through here.
- */
 export interface AtemDeviceOptions extends DeviceOptions {
 	options?: {
 		commandReceiver?: (time: number, cmd) => Promise<any>
@@ -49,9 +52,11 @@ export interface AtemCommandWithContext {
 	context: CommandContext
 }
 type CommandContext = any
-export class AtemDevice extends DeviceWithState<DeviceState> {
 
-	// private _queue: Array<any>
+/**
+ * This is a wrapper for the Atem Device. Commands to any and all atem devices will be sent through here.
+ */
+export class AtemDevice extends DeviceWithState<DeviceState> {
 	private _doOnTime: DoOnTime
 
 	private _atem: Atem
@@ -62,7 +67,7 @@ export class AtemDevice extends DeviceWithState<DeviceState> {
 	private firstStateAfterMakeReady: boolean = true // note: temprorary for some improved logging
 
 	private _atemStatus: {
-		psus: Array<any>
+		psus: Array<boolean>
 	} = {
 		psus: []
 	}
@@ -83,7 +88,8 @@ export class AtemDevice extends DeviceWithState<DeviceState> {
 	}
 
 	/**
-	 * Initiates the connection with the ATEM through the atem-connection lib.
+	 * Initiates the connection with the ATEM through the atem-connection lib
+	 * and initiates Atem State lib.
 	 */
 	init (options: AtemOptions): Promise<boolean> {
 		return new Promise((resolve, reject) => {
@@ -117,6 +123,10 @@ export class AtemDevice extends DeviceWithState<DeviceState> {
 			})
 		})
 	}
+	/**
+	 * Safely terminate everything to do with this device such that it can be
+	 * garbage collected.
+	 */
 	terminate (): Promise<boolean> {
 		this._doOnTime.dispose()
 
@@ -130,6 +140,10 @@ export class AtemDevice extends DeviceWithState<DeviceState> {
 		})
 	}
 
+	/**
+	 * Prepare device for playout
+	 * @param okToDestroyStuff If true, may break output
+	 */
 	async makeReady (okToDestroyStuff?: boolean): Promise<void> {
 		this.firstStateAfterMakeReady = true
 		if (okToDestroyStuff) {
@@ -138,32 +152,27 @@ export class AtemDevice extends DeviceWithState<DeviceState> {
 		}
 	}
 
+	/**
+	 * Process a state, diff against previous state and generate commands to
+	 * be executed at the state's time.
+	 * @param newState The state to handle
+	 */
 	handleState (newState: TimelineState) {
-		// Handle this new state, at the point in time specified
-		// @ts-ignore
-		// console.log('handleState', JSON.stringify(newState, ' ', 2))
-		// console.log('handleState', newState.LLayers['myLayer0'])
-
-		if (!this._initialized) {
-			// before it's initialized don't do anything
+		if (!this._initialized) { // before it's initialized don't do anything
 			this.emit('info', 'Atem not initialized yet')
 			return
 		}
+
 		let previousStateTime = Math.max(this.getCurrentTime(), newState.time)
 		let oldState: DeviceState = (this.getStateBefore(previousStateTime) || { state: this._getDefaultState() }).state
 
 		let oldAtemState = oldState
 		let newAtemState = this.convertStateToAtem(newState)
 
-		if (this.firstStateAfterMakeReady) {
+		if (this.firstStateAfterMakeReady) { // emit a debug message with the states:
 			this.firstStateAfterMakeReady = false
 			this.emit('debug', JSON.stringify({ reason: 'firstStateAfterMakeReady', before: (oldAtemState || {}).video, after: (newAtemState || {}).video }))
 		}
-
-		// @ts-ignore
-		// console.log('newAtemState', JSON.stringify(newAtemState, ' ', 2))
-		// console.log('oldAtemState', JSON.stringify(oldAtemState, ' ', 2))
-		// console.log('newAtemState', newAtemState.video.ME[0])
 
 		let commandsToAchieveState: Array<AtemCommandWithContext> = this._diffStates(oldAtemState, newAtemState)
 
@@ -175,8 +184,11 @@ export class AtemDevice extends DeviceWithState<DeviceState> {
 		// store the new state, for later use:
 		this.setState(newAtemState, newState.time)
 	}
+	/**
+	 * Clear any scheduled commands after `clearAfterTime`
+	 * @param clearAfterTime
+	 */
 	clearFuture (clearAfterTime: number) {
-		// Clear any scheduled commands after this time
 		this._doOnTime.clearQueueAfter(clearAfterTime)
 	}
 	get canConnect (): boolean {
@@ -185,58 +197,71 @@ export class AtemDevice extends DeviceWithState<DeviceState> {
 	get connected (): boolean {
 		return this._connected
 	}
+	/**
+	 * Convert a timeline state into an Atem state.
+	 * @param state The state to be converted
+	 */
 	convertStateToAtem (state: TimelineState): DeviceState {
 		if (!this._initialized) throw Error('convertStateToAtem cannot be used before inititialized')
 
-		// Convert the timeline state into something we can use easier:
+		// Start out with default state:
 		const deviceState = this._getDefaultState()
 
-		const sortedLayers = _.map(state.LLayers, (tlObject, layerName) => ({ layerName, tlObject }))
+		// Sort layer based on Layer name
+		const sortedLayers = _.map(state.layers, (tlObject, layerName) => ({ layerName, tlObject }))
 			.sort((a,b) => a.layerName.localeCompare(b.layerName))
 
+		// For every layer, augment the state
 		_.each(sortedLayers, ({ tlObject, layerName }) => {
-			const content = tlObject.resolved || tlObject.content
-			let mapping = this.getMapping()[layerName] as MappingAtem // tslint:disable-line
+			// const content = tlObject.content
+
+			let mapping = this.getMapping()[layerName] as MappingAtem
 
 			if (mapping) {
 				if (mapping.index !== undefined && mapping.index >= 0) { // index must be 0 or higher
 					switch (mapping.mappingType) {
 						case MappingAtemType.MixEffect:
-							if (content.type === TimelineContentTypeAtem.ME) {
+							if (tlObject.content.type === TimelineContentTypeAtem.ME) {
 								let me = deviceState.video.ME[mapping.index]
-								if (me) deepExtend(me, content.attributes)
+								let atemObj = tlObject as any as TimelineObjAtemME
+								if (me) deepExtend(me, atemObj.content.me)
 							}
 							break
 						case MappingAtemType.DownStreamKeyer:
-							if (content.type === TimelineContentTypeAtem.DSK) {
+							if (tlObject.content.type === TimelineContentTypeAtem.DSK) {
 								let dsk = deviceState.video.downstreamKeyers[mapping.index]
-								if (dsk) deepExtend(dsk, content.attributes)
+								let atemObj = tlObject as any as TimelineObjAtemDSK
+								if (dsk) deepExtend(dsk, atemObj.content.dsk)
 							}
 							break
 						case MappingAtemType.SuperSourceBox:
-							if (content.type === TimelineContentTypeAtem.SSRC) {
+							if (tlObject.content.type === TimelineContentTypeAtem.SSRC) {
 								let ssrc = deviceState.video.superSourceBoxes
-								if (ssrc) deepExtend(ssrc, content.attributes.boxes)
+								let atemObj = tlObject as any as TimelineObjAtemSsrc
+								if (ssrc) deepExtend(ssrc, atemObj.content.ssrc.boxes)
 							}
 							break
 						case MappingAtemType.Auxilliary:
-							if (content.type === TimelineContentTypeAtem.AUX) {
-								deviceState.video.auxilliaries[mapping.index] = content.attributes.input
+							if (tlObject.content.type === TimelineContentTypeAtem.AUX) {
+								let atemObj = tlObject as any as TimelineObjAtemAUX
+								deviceState.video.auxilliaries[mapping.index] = atemObj.content.aux.input
 							}
 							break
 						case MappingAtemType.MediaPlayer:
-							if (content.type === TimelineContentTypeAtem.MEDIAPLAYER) {
+							if (tlObject.content.type === TimelineContentTypeAtem.MEDIAPLAYER) {
 								let ms = deviceState.media.players[mapping.index]
-								if (ms) deepExtend(ms, content.attributes)
+								let atemObj = tlObject as any as TimelineObjAtemMediaPlayer
+								if (ms) deepExtend(ms, atemObj.content.mediaPlayer)
 							}
 							break
 						case MappingAtemType.AudioChannel:
-							if (content.type === TimelineContentTypeAtem.AUDIOCHANNEL) {
+							if (tlObject.content.type === TimelineContentTypeAtem.AUDIOCHANNEL) {
 								const chan = deviceState.audio.channels[mapping.index]
+								let atemObj = tlObject as any as TimelineObjAtemAudioChannel
 								if (chan) {
 									deviceState.audio.channels[mapping.index] = {
 										...chan,
-										...content.attributes
+										...atemObj.content
 									}
 								}
 							}
@@ -244,9 +269,10 @@ export class AtemDevice extends DeviceWithState<DeviceState> {
 				}
 
 				if (mapping.mappingType === MappingAtemType.SuperSourceProperties) {
-					if (content.type === TimelineContentTypeAtem.SSRCPROPS) {
+					if (tlObject.content.type === TimelineContentTypeAtem.SSRCPROPS) {
 						let ssrc = deviceState.video.superSourceProperties
-						if (ssrc) deepExtend(ssrc, content.attributes)
+						let atemObj = tlObject as any as TimelineObjAtemSsrcProps
+						if (ssrc) deepExtend(ssrc, atemObj.content.ssrcProps)
 					}
 				}
 			}
@@ -263,6 +289,9 @@ export class AtemDevice extends DeviceWithState<DeviceState> {
 	get queue () {
 		return this._doOnTime.getQueue()
 	}
+	/**
+	 * Check status and return it with useful messages appended.
+	 */
 	public getStatus (): DeviceStatus {
 		let statusCode = StatusCode.GOOD
 		let messages: Array<string> = []
@@ -276,7 +305,6 @@ export class AtemDevice extends DeviceWithState<DeviceState> {
 		if (statusCode === StatusCode.GOOD) {
 			let psus = this._atemStatus.psus
 
-			// psus = [true, false] // tmp test
 			_.each(psus, (psu: boolean, i: number) => {
 				if (!psu) {
 					statusCode = StatusCode.WARNING_MAJOR
@@ -291,18 +319,28 @@ export class AtemDevice extends DeviceWithState<DeviceState> {
 		}
 		return deviceStatus
 	}
+	/**
+	 * Execute `commandsToAchieveState` at `time` using the doOnTime class
+	 * @param commandsToAchieveState
+	 * @param time
+	 */
 	private _addToQueue (commandsToAchieveState: Array<AtemCommandWithContext>, time: number) {
 		_.each(commandsToAchieveState, (cmd: AtemCommandWithContext) => {
 
 			// add the new commands to the queue:
-			this._doOnTime.queue(time, (cmd: AtemCommandWithContext) => {
+			this._doOnTime.queue(time, undefined, (cmd: AtemCommandWithContext) => {
 				return this._commandReceiver(time, cmd.command, cmd.context)
 			}, cmd)
 		})
 	}
-	private _diffStates (oldAbstractState: DeviceState, newAbstractState: DeviceState): Array<AtemCommandWithContext> {
+	/**
+	 * Diffs two states and generate commands based on the diff.
+	 * @param oldAtemState
+	 * @param newAtemState
+	 */
+	private _diffStates (oldAtemState: DeviceState, newAtemState: DeviceState): Array<AtemCommandWithContext> {
 		return _.map(
-			this._state.diffStates(oldAbstractState, newAbstractState),
+			this._state.diffStates(oldAtemState, newAtemState),
 			(cmd: any) => {
 				if (_.has(cmd,'command') && _.has(cmd,'context')) {
 					return cmd as AtemCommandWithContext
@@ -317,6 +355,10 @@ export class AtemDevice extends DeviceWithState<DeviceState> {
 		)
 	}
 
+	/**
+	 * Returns the default state of an atem device, partially base on the topology and partially based on reported
+	 * properties. This can be used to augment with device state info.
+	 */
 	private _getDefaultState (): DeviceState {
 		let deviceState = new DeviceState()
 
