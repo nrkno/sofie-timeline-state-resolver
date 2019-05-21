@@ -17,7 +17,6 @@ import { TimelineObjPharosAny } from './pharos'
 import { TimelineObjPanasonicPtzAny } from './ptz'
 import { TimelineObjAbstractAny } from './abstract'
 import { TSRTimelineObjProps } from './mapping'
-import { TimelineKeyframe } from './superfly-timeline';
 
 export { Timeline }
 export * from './mapping'
@@ -37,7 +36,7 @@ export enum DeviceType {
 	HTTPWATCHER = 10
 }
 
-export interface TSRTimelineKeyframe<T> extends TimelineKeyframe {
+export interface TSRTimelineKeyframe<T> extends Timeline.TimelineKeyframe {
 	content: Partial<T>
 }
 
