@@ -1,4 +1,3 @@
-import { TriggerType } from 'superfly-timeline'
 import { Conductor } from '../../conductor'
 import { LawoDevice } from '../lawo'
 import {
@@ -61,77 +60,73 @@ describe('Lawo', () => {
 		myConductor.timeline = [
 			{
 				id: 'obj0',
-				trigger: {
-					type: TriggerType.TIME_ABSOLUTE,
-					value: mockTime.now - 1000 // 1 seconds in the past
+				enable: {
+					start: mockTime.now - 1000, // 1 seconds in the past
+					duration: 2000
 				},
-				duration: 2000,
-				LLayer: 'lawo_c1_fader',
+				layer: 'lawo_c1_fader',
 				content: {
+					deviceType: DeviceType.LAWO,
 					type: TimelineContentTypeLawo.SOURCE,
-					attributes: {
-						'Fader/Motor dB Value': {
-							value: -6
-							// transitionDuration?: number,
-							// triggerValue: string // only used for trigging new command sent
-						}
+
+					'Fader/Motor dB Value': {
+						value: -6
+						// transitionDuration?: number,
+						// triggerValue: string // only used for trigging new command sent
 					}
 				}
 			},
 			{
 				id: 'obj1',
-				trigger: {
-					type: TriggerType.TIME_ABSOLUTE,
-					value: mockTime.now + 500 // 0.5 seconds in the future
+				enable: {
+					start: mockTime.now + 500, // 0.5 seconds in the future
+					duration: 2000
 				},
-				duration: 2000,
-				LLayer: 'lawo_c1_fader',
+				layer: 'lawo_c1_fader',
 				content: {
+					deviceType: DeviceType.LAWO,
 					type: TimelineContentTypeLawo.SOURCE,
-					attributes: {
-						'Fader/Motor dB Value': {
-							value: -4,
-							transitionDuration: 400
-							// triggerValue: string // only used for trigging new command sent
-						}
+
+					'Fader/Motor dB Value': {
+						value: -4,
+						transitionDuration: 400
+						// triggerValue: string // only used for trigging new command sent
 					}
 				}
 			},
 			{
 				id: 'obj2',
-				trigger: {
-					type: TriggerType.TIME_ABSOLUTE,
-					value: mockTime.now + 1000 // 1 seconds in the future
+				enable: {
+					start: mockTime.now + 1000, // 1 seconds in the future
+					duration: 2000
 				},
-				duration: 2000,
-				LLayer: 'lawo_c1_fader',
+				layer: 'lawo_c1_fader',
 				content: {
+					deviceType: DeviceType.LAWO,
 					type: TimelineContentTypeLawo.SOURCE,
-					attributes: {
-						'Fader/Motor dB Value': {
-							value: -4,
-							transitionDuration: 400
-							// triggerValue: string // only used for trigging new command sent
-						}
+
+					'Fader/Motor dB Value': {
+						value: -4,
+						transitionDuration: 400
+						// triggerValue: string // only used for trigging new command sent
 					}
 				}
 			},
 			{
 				id: 'obj3',
-				trigger: {
-					type: TriggerType.TIME_ABSOLUTE,
-					value: mockTime.now + 2000 // 2 seconds in the future
+				enable: {
+					start: mockTime.now + 2000, // 2 seconds in the future
+					duration: 2000
 				},
-				duration: 2000,
-				LLayer: 'lawo_c1_fader',
+				layer: 'lawo_c1_fader',
 				content: {
+					deviceType: DeviceType.LAWO,
 					type: TimelineContentTypeLawo.SOURCE,
-					attributes: {
-						'Fader/Motor dB Value': {
-							value: -4,
-							transitionDuration: 400,
-							triggerValue: 'asdf' // only used for trigging new command sent
-						}
+
+					'Fader/Motor dB Value': {
+						value: -4,
+						transitionDuration: 400,
+						triggerValue: 'asdf' // only used for trigging new command sent
 					}
 				}
 			}

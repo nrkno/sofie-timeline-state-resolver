@@ -1,4 +1,3 @@
-import { TriggerType } from 'superfly-timeline'
 import {
 	Mappings,
 	DeviceType,
@@ -66,23 +65,27 @@ describe('Abstract device', () => {
 		myConductor.timeline = [
 			{
 				id: 'obj0',
-				trigger: {
-					type: TriggerType.TIME_ABSOLUTE,
-					value: mockTime.now - 1000 // 1 seconds ago
+				enable: {
+					start: mockTime.now - 1000, // 1 seconds ago
+					duration: 2000
 				},
-				duration: 2000,
-				LLayer: 'myLayer0',
-				content: {}
+				layer: 'myLayer0',
+				content: {
+					deviceType: DeviceType.ABSTRACT,
+					tmp0: 'abc'
+				}
 			},
 			{
 				id: 'obj1',
-				trigger: {
-					type: TriggerType.TIME_RELATIVE,
-					value: '#obj0.end'
+				enable: {
+					start: '#obj0.end',
+					duration: 1000
 				},
-				duration: 1000,
-				LLayer: 'myLayer0',
-				content: {}
+				layer: 'myLayer0',
+				content: {
+					deviceType: DeviceType.ABSTRACT,
+					tmp0: 'abcde'
+				}
 			}
 		]
 
@@ -92,7 +95,8 @@ describe('Abstract device', () => {
 			{
 				commandName: 'addedAbstract',
 				content: {
-					GLayer: 'myLayer0'
+					deviceType: 0, // abstract
+					tmp0: 'abc'
 				},
 				context: 'added: obj0'
 			}
@@ -104,7 +108,8 @@ describe('Abstract device', () => {
 			{
 				commandName: 'changedAbstract',
 				content: {
-					GLayer: 'myLayer0'
+					deviceType: 0, // abstract
+					tmp0: 'abcde'
 				},
 				context: 'changed: obj1'
 			}
@@ -116,7 +121,8 @@ describe('Abstract device', () => {
 			{
 				commandName: 'removedAbstract',
 				content: {
-					GLayer: 'myLayer0'
+					deviceType: 0, // abstract
+					tmp0: 'abcde'
 				},
 				context: 'removed: obj1'
 			}
@@ -165,13 +171,14 @@ describe('Abstract device', () => {
 		myConductor.timeline = [
 			{
 				id: 'obj0',
-				trigger: {
-					type: TriggerType.TIME_ABSOLUTE,
-					value: mockTime.now - 1000 // 1 seconds ago
+				enable: {
+					start: mockTime.now - 1000, // 1 seconds ago
+					duration: 2000
 				},
-				duration: 2000,
-				LLayer: 'myLayer0',
-				content: {}
+				layer: 'myLayer0',
+				content: {
+					deviceType: DeviceType.ABSTRACT
+				}
 			}
 		]
 

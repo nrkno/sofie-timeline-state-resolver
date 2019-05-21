@@ -1,5 +1,5 @@
 import * as _ from 'underscore'
-import * as underScoreDeepExtend from 'underscore-deep-extend'
+// import * as underScoreDeepExtend from 'underscore-deep-extend'
 import { TimelineState } from 'superfly-timeline'
 import {
 	DeviceWithState,
@@ -13,7 +13,9 @@ import {
 	TimelineContentTypeHyperdeck,
 	MappingHyperdeck,
 	MappingHyperdeckType,
-	HyperdeckOptions
+	HyperdeckOptions,
+	TimelineObjHyperdeckTransport,
+	TimelineObjHyperdeckAny
 } from '../types/src'
 import {
 	Hyperdeck,
@@ -22,12 +24,11 @@ import {
 } from 'hyperdeck-connection'
 import { DoOnTime, SendMode } from '../doOnTime'
 
-_.mixin({ deepExtend: underScoreDeepExtend(_) })
-
-function deepExtend<T> (destination: T, ...sources: any[]) {
-	// @ts-ignore (mixin)
-	return _.deepExtend(destination, ...sources)
-}
+// _.mixin({ deepExtend: underScoreDeepExtend(_) })
+// function deepExtend<T> (destination: T, ...sources: any[]) {
+// 	// @ts-ignore (mixin)
+// 	return _.deepExtend(destination, ...sources)
+// }
 export interface HyperdeckDeviceOptions extends DeviceOptions {
 	options?: {
 		commandReceiver?: (time: number, cmd) => Promise<any>
@@ -38,7 +39,7 @@ export interface HyperdeckCommandWithContext {
 	context: CommandContext
 }
 
-export interface TransportInfoCommandResponseExt /*extends HyperdeckCommands.TransportInfoCommandResponse */ {
+export interface TransportInfoCommandResponseExt {
 	status: TransportStatus
 	recordFilename?: string
 }
@@ -191,26 +192,33 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> {
 		// Convert the timeline state into something we can use easier:
 		const deviceState = this._getDefaultState()
 
-		const sortedLayers = _.map(state.LLayers, (tlObject, layerName) => ({ layerName, tlObject }))
+		const sortedLayers = _.map(state.layers, (tlObject, layerName) => ({ layerName, tlObject }))
 			.sort((a, b) => a.layerName.localeCompare(b.layerName))
 		_.each(sortedLayers, ({ tlObject, layerName }) => {
-			const content = tlObject.resolved || tlObject.content
-			const mapping = this.getMapping()[layerName] as MappingHyperdeck // tslint:disable-line
+
+			const hyperdeckObj = tlObject as any as TimelineObjHyperdeckAny
+
+			const mapping = this.getMapping()[layerName] as MappingHyperdeck
+
 			if (mapping) {
 				switch (mapping.mappingType) {
 					case MappingHyperdeckType.TRANSPORT:
-						if (content.type === TimelineContentTypeHyperdeck.TRANSPORT) {
-							if (deviceState.transport) {
-								deepExtend(deviceState.transport, content.attributes)
-							} else {
-								deviceState.transport = content.attributes
+						if (hyperdeckObj.content.type === TimelineContentTypeHyperdeck.TRANSPORT) {
+							const hyperdeckObjTransport = tlObject as any as TimelineObjHyperdeckTransport
+							if (!deviceState.transport) {
+								deviceState.transport = {
+									status: 		hyperdeckObjTransport.content.status,
+									recordFilename: hyperdeckObjTransport.content.recordFilename
+								}
 							}
+
+							deviceState.transport.status			= hyperdeckObjTransport.content.status
+							deviceState.transport.recordFilename	= hyperdeckObjTransport.content.recordFilename
 						}
 						break
 				}
 			}
 		})
-
 		return deviceState
 	}
 	get deviceType () {
@@ -231,7 +239,7 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> {
 	private _addToQueue (commandsToAchieveState: Array<HyperdeckCommandWithContext>, time: number) {
 		_.each(commandsToAchieveState, (cmd: HyperdeckCommandWithContext) => {
 			// add the new commands to the queue:
-			this._doOnTime.queue(time, (cmd: HyperdeckCommandWithContext) => {
+			this._doOnTime.queue(time, undefined, (cmd: HyperdeckCommandWithContext) => {
 				return this._commandReceiver(time, cmd.command, cmd.context)
 			}, cmd)
 		})
@@ -243,7 +251,6 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> {
 	 * @param newHyperdeckState The desired state of the device
 	 */
 	private _diffStates (oldHyperdeckState: DeviceState, newHyperdeckState: DeviceState): Array<HyperdeckCommandWithContext> {
-
 		const commandsToAchieveState: HyperdeckCommandWithContext[] = []
 
 		if (oldHyperdeckState.notify && newHyperdeckState.notify) {

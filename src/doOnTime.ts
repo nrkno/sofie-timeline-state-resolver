@@ -22,11 +22,16 @@ export interface DoOnTimeOptions extends SlowReportOptions {
 export class DoOnTime extends EventEmitter {
 	getCurrentTime: () => number
 	private _i: number = 0
-	private _queue: {[id: string]: DoOrder} = {}
+	private _queues: {
+		[queueId: string]: {[id: string]: DoOrder}
+	} = {}
+
 	private _checkQueueTimeout: any = 0
 	private _sendMode: SendMode
 	private _commandsToSendNow: (() => Promise<any>)[] = []
-	private _sendingCommands: boolean = false
+	private _sendingCommands: {
+		[queueId: string]: boolean
+	} = {}
 	private _options: DoOnTimeOptions
 
 	constructor (getCurrentTime: () => number, sendMode: SendMode = SendMode.BURST, options?: DoOnTimeOptions) {
@@ -35,11 +40,14 @@ export class DoOnTime extends EventEmitter {
 		this._sendMode = sendMode
 		this._options = options || {}
 	}
-	public queue (time: number, fcn: DoOrderFunction, ...args: any[]): string {
+	public queue (time: number, queueId: string | undefined, fcn: DoOrderFunction, ...args: any[]): string {
 		if (!(time >= 0)) throw Error(`DoOnTime: time argument must be >= 0 (${time})`)
 		if (!_.isFunction(fcn)) throw Error(`DoOnTime: fcn argument must be a function! (${typeof fcn})`)
 		let id = '_' + (this._i++)
-		this._queue[id] = {
+
+		if (!queueId) queueId = '_' // default
+		if (!this._queues[queueId]) this._queues[queueId] = {}
+		this._queues[queueId][id] = {
 			time: time,
 			fcn: fcn,
 			args: args,
@@ -51,35 +59,46 @@ export class DoOnTime extends EventEmitter {
 		},0)
 		return id
 	}
-	public remove (id: string) {
-		delete this._queue[id]
-	}
 	public getQueue () {
-		return _.map(this._queue, (q, id) => {
-			return {
-				id: id,
-				time: q.time,
-				args: q.args
-			}
+		const fullQueue: Array<{id: string, queueId: string, time: number, args: any[]}> = []
+
+		_.each(this._queues, (queue, queueId) => {
+			_.each(queue, (q, id) => {
+				fullQueue.push({
+					id: id,
+					queueId: queueId,
+					time: q.time,
+					args: q.args
+				})
+			})
 		})
+
+		return fullQueue
 	}
 	public clearQueueAfter (time: number) {
-		_.each(this._queue, (q: DoOrder, id: string) => {
-			if (q.time > time) {
-				this.remove(id)
-			}
+		_.each(this._queues, (queue, queueId: string) => {
+			_.each(queue, (q: DoOrder, id: string) => {
+				if (q.time > time) {
+					this._remove(queueId, id)
+				}
+			})
 		})
 	}
 	public clearQueueNowAndAfter (time: number) {
-		_.each(this._queue, (q: DoOrder, id: string) => {
-			if (q.time >= time) {
-				this.remove(id)
-			}
+		_.each(this._queues, (queue, queueId: string) => {
+			_.each(queue, (q: DoOrder, id: string) => {
+				if (q.time >= time) {
+					this._remove(queueId, id)
+				}
+			})
 		})
 	}
 	dispose (): void {
 		this.clearQueueAfter(0) // clear all
 		clearTimeout(this._checkQueueTimeout)
+	}
+	private _remove (queueId: string, id: string) {
+		delete this._queues[queueId][id]
 	}
 	private _checkQueue () {
 		clearTimeout(this._checkQueueTimeout)
@@ -88,33 +107,35 @@ export class DoOnTime extends EventEmitter {
 
 		let nextTime = now + 99999
 
-		_.each(this._queue, (o: DoOrder, id: string) => {
-			if (o.time <= now) {
-				o.prepareTime = this.getCurrentTime()
-				this._commandsToSendNow.push(() => {
-					try {
-						let startSend = this.getCurrentTime()
-						let endSend: number = 0
-						let sentTooSlow: boolean = false
-						let p = Promise.resolve(o.fcn(...o.args))
-						.then(() => {
-							if (!sentTooSlow) this._verifyFulfillCommand(o, startSend, endSend)
-						})
-						endSend = this.getCurrentTime()
-						sentTooSlow = this._verifySendCommand(o, startSend, endSend)
-						return p
-					} catch (e) {
-						this.emit('error', e)
-						return Promise.reject(e)
-					}
-				})
-				this.remove(id)
-			} else {
-				if (o.time < nextTime) nextTime = o.time
-			}
+		_.each(this._queues, (queue, queueId: string) => {
+			_.each(queue, (o: DoOrder, id: string) => {
+				if (o.time <= now) {
+					o.prepareTime = this.getCurrentTime()
+					this._commandsToSendNow.push(() => {
+						try {
+							let startSend = this.getCurrentTime()
+							let endSend: number = 0
+							let sentTooSlow: boolean = false
+							let p = Promise.resolve(o.fcn(...o.args))
+							.then(() => {
+								if (!sentTooSlow) this._verifyFulfillCommand(o, startSend, endSend)
+							})
+							endSend = this.getCurrentTime()
+							sentTooSlow = this._verifySendCommand(o, startSend, endSend)
+							return p
+						} catch (e) {
+							this.emit('error', e)
+							return Promise.reject(e)
+						}
+					})
+					this._remove(queueId, id)
+				} else {
+					if (o.time < nextTime) nextTime = o.time
+				}
+			})
+			// Go through the commands to be sent:
+			this._sendNextCommand(queueId)
 		})
-		// Go through the commands to be sent:
-		this._sendNextCommand()
 
 		// schedule next check:
 		let timeToNext = Math.min(1000,
@@ -124,11 +145,11 @@ export class DoOnTime extends EventEmitter {
 			this._checkQueue()
 		}, timeToNext)
 	}
-	private _sendNextCommand () {
-		if (this._sendingCommands) {
+	private _sendNextCommand (queueId: string) {
+		if (this._sendingCommands[queueId]) {
 			return
 		}
-		this._sendingCommands = true
+		this._sendingCommands[queueId] = true
 
 		try {
 			const commandToSend = this._commandsToSendNow.shift()
@@ -139,10 +160,10 @@ export class DoOnTime extends EventEmitter {
 					.catch((e) => {
 						this.emit('error', e)
 					})
-					this._sendingCommands = false
+					this._sendingCommands[queueId] = false
 					// send next message:
 					setTimeout(() => {
-						this._sendNextCommand()
+						this._sendNextCommand(queueId)
 					}, 0)
 				} else { // SendMode.IN_ORDER
 					// send one, wait for it to finish, then send next:
@@ -151,20 +172,20 @@ export class DoOnTime extends EventEmitter {
 						this.emit('error', e)
 					})
 					.then(() => {
-						this._sendingCommands = false
+						this._sendingCommands[queueId] = false
 						// send next message:
-						this._sendNextCommand()
+						this._sendNextCommand(queueId)
 					})
 					.catch((e) => {
-						this._sendingCommands = false
+						this._sendingCommands[queueId] = false
 						this.emit('error', e)
 					})
 				}
 			} else {
-				this._sendingCommands = false
+				this._sendingCommands[queueId] = false
 			}
 		} catch (e) {
-			this._sendingCommands = false
+			this._sendingCommands[queueId] = false
 			throw e
 		}
 	}

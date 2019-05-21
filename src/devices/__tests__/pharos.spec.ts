@@ -1,11 +1,11 @@
 jest.mock('ws')
-import { TriggerType } from 'superfly-timeline'
 import { Conductor, DeviceContainer } from '../../conductor'
 import { PharosDevice } from '../pharos'
 import {
 	Mappings,
 	DeviceType,
-	MappingPharos
+	MappingPharos,
+	TimelineContentTypePharos
 } from '../../types/src'
 import { MockTime } from '../../__tests__/mockTime.spec'
 import { ThreadedClass } from 'threadedclass'
@@ -96,48 +96,45 @@ describe('Pharos', () => {
 		myConductor.timeline = [
 			{
 				id: 'scene0',
-				trigger: {
-					type: TriggerType.TIME_ABSOLUTE,
-					value: mockTime.now + 1000
+				enable: {
+					start: mockTime.now + 1000,
+					duration: 5000
 				},
-				duration: 5000,
-				LLayer: 'myLayer0',
+				layer: 'myLayer0',
 				content: {
-					type: 'scene',
-					attributes: {
-						scene: 1
-					}
+					deviceType: DeviceType.PHAROS,
+					type: TimelineContentTypePharos.SCENE,
+
+					scene: 1
 				}
 			},
 			{
 				id: 'scene1',
-				trigger: {
-					type: TriggerType.TIME_RELATIVE,
-					value: '#scene0.start + 1000'
+				enable: {
+					start: '#scene0.start + 1000',
+					duration: 5000
 				},
-				duration: 5000,
-				LLayer: 'myLayer0',
+				layer: 'myLayer0',
 				content: {
-					type: 'scene',
-					attributes: {
-						scene: 2
-					}
+					deviceType: DeviceType.PHAROS,
+					type: TimelineContentTypePharos.SCENE,
+
+					scene: 2
 				}
 			},
 			{
 				id: 'scene2',
-				trigger: {
-					type: TriggerType.TIME_RELATIVE,
-					value: '#scene1.start + 1000'
+				enable: {
+					start: '#scene1.start + 1000',
+					duration: 1000
 				},
-				duration: 1000,
-				LLayer: 'myLayer0',
+				layer: 'myLayer0',
 				content: {
-					type: 'scene',
-					attributes: {
-						stopped: true,
-						scene: 2
-					}
+					deviceType: DeviceType.PHAROS,
+					type: TimelineContentTypePharos.SCENE,
+
+					scene: 2,
+					stopped: true
 				}
 			}
 		]

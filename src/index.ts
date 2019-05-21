@@ -6,8 +6,7 @@ export {
 	Mapping,
 	MappingAbstract,
 	DeviceType,
-	DeviceOptions,
-	TimelineResolvedObjectExtended
+	DeviceOptions
 } from './types/src/'
 
 // let myConductor = new Conductor();

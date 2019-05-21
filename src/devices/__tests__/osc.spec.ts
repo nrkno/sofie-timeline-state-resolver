@@ -1,4 +1,3 @@
-import { TriggerType } from 'superfly-timeline'
 import { Conductor } from '../../conductor'
 import { OSCMessageDevice } from '../osc'
 import {
@@ -59,14 +58,15 @@ describe('OSC-Message', () => {
 		myConductor.timeline = [
 			literal<TimelineObjOSCMessage>({
 				id: 'obj0',
-				trigger: {
-					type: TriggerType.TIME_ABSOLUTE,
-					value: mockTime.now + 1000 // in 1 second
+				enable: {
+					start: mockTime.now + 1000, // in 1 second
+					duration: 2000
 				},
-				duration: 2000,
-				LLayer: 'myLayer0',
+				layer: 'myLayer0',
 				content: {
+					deviceType: DeviceType.OSC,
 					type: TimelineContentTypeOSC.OSC,
+
 					path: '/test-path',
 					values: [{
 						type: OSCValueType.INT,

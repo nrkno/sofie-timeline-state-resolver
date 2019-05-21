@@ -1,4 +1,5 @@
-import { TimelineResolvedObject } from './superfly-timeline'
+import { ResolvedTimelineObjectInstance } from './superfly-timeline'
+import { DeviceType } from '.'
 
 export interface Mappings {
 	[layerName: string]: Mapping
@@ -13,18 +14,6 @@ export interface Mapping {
 export interface MappingAbstract extends Mapping {
 	device: DeviceType.ABSTRACT
 }
-export enum DeviceType {
-	ABSTRACT = 0,
-	CASPARCG = 1,
-	ATEM = 2,
-	LAWO = 3, // yet to be implemented
-	HTTPSEND = 4,
-	PANASONIC_PTZ = 5,
-	HYPERDECK = 7,
-	PHAROS = 8,
-	OSC = 9,
-	HTTPWATCHER = 10
-}
 
 export interface DeviceOptions extends SlowReportOptions {
 	type: DeviceType
@@ -33,9 +22,14 @@ export interface DeviceOptions extends SlowReportOptions {
 	options?: {}
 }
 
-export interface TimelineResolvedObjectExtended extends TimelineResolvedObject {
-	isBackground?: boolean
-	originalLLayer?: string | number
+export interface ResolvedTimelineObjectInstanceExtended extends ResolvedTimelineObjectInstance, TSRTimelineObjProps {
+}
+
+export interface TSRTimelineObjProps {
+	/** Only set to true when an object is inserted by lookahead */
+	isLookahead?: boolean
+	/** Only valid when isLookahead is true. Set so that a lookahead object knows what layer it belongs to */
+	lookaheadForLayer?: string | number
 }
 
 export interface SlowReportOptions {

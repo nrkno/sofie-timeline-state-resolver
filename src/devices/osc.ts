@@ -14,8 +14,7 @@ import {
 import { DoOnTime, SendMode } from '../doOnTime'
 
 import {
-	TimelineState,
-	TimelineResolvedObject
+	TimelineState, ResolvedTimelineObjectInstance
 } from 'superfly-timeline'
 import * as osc from 'osc'
 
@@ -73,7 +72,7 @@ export class OSCMessageDevice extends DeviceWithState<TimelineState> {
 	handleState (newState: TimelineState) {
 		// Transform timeline states into device states
 		let previousStateTime = Math.max(this.getCurrentTime(), newState.time)
-		let oldState: TimelineState = (this.getStateBefore(previousStateTime) || { state: { time: 0, LLayers: {}, GLayers: {} } }).state
+		let oldState: TimelineState = (this.getStateBefore(previousStateTime) || { state: { time: 0, layers: {}, nextEvents: [] } }).state
 
 		let oldAbstractState = this.convertStateToOSCMessage(oldState)
 		let newAbstractState = this.convertStateToOSCMessage(newState)
@@ -141,7 +140,7 @@ export class OSCMessageDevice extends DeviceWithState<TimelineState> {
 	 */
 	private _addToQueue (commandsToAchieveState: Array<Command>, time: number) {
 		_.each(commandsToAchieveState, (cmd: Command) => {
-			this._doOnTime.queue(time, (cmd: Command) => {
+			this._doOnTime.queue(time, undefined, (cmd: Command) => {
 				if (
 					cmd.commandName === 'added' ||
 					cmd.commandName === 'changed'
@@ -163,36 +162,36 @@ export class OSCMessageDevice extends DeviceWithState<TimelineState> {
 
 		let commands: Array<Command> = []
 
-		_.each(newOscSendState.LLayers, (newLayer: TimelineResolvedObject, layerKey: string) => {
-			let oldLayer = oldOscSendState.LLayers[layerKey]
+		_.each(newOscSendState.layers, (newLayer: ResolvedTimelineObjectInstance, layerKey: string) => {
+			let oldLayer = oldOscSendState.layers[layerKey]
 			if (!oldLayer) {
 				// added!
 				commands.push({
-					commandName: 'added',
-					content: newLayer.content as OSCMessageCommandContent, // tslint:disable-line
-					context: `added: ${newLayer.id}`
+					commandName:	'added',
+					content:		newLayer.content as OSCMessageCommandContent,
+					context:		`added: ${newLayer.id}`
 				})
 			} else {
 				// changed?
 				if (!_.isEqual(oldLayer.content, newLayer.content)) {
 					// changed!
 					commands.push({
-						commandName: 'changed',
-						content: newLayer.content as OSCMessageCommandContent, // tslint:disable-line
-						context: `changed: ${newLayer.id}`
+						commandName:	'changed',
+						content:		newLayer.content as OSCMessageCommandContent,
+						context:		`changed: ${newLayer.id}`
 					})
 				}
 			}
 		})
 		// removed
-		_.each(oldOscSendState.LLayers, (oldLayer: TimelineResolvedObject, layerKey) => {
-			let newLayer = newOscSendState.LLayers[layerKey]
+		_.each(oldOscSendState.layers, (oldLayer: ResolvedTimelineObjectInstance, layerKey) => {
+			let newLayer = newOscSendState.layers[layerKey]
 			if (!newLayer) {
 				// removed!
 				commands.push({
-					commandName: 'removed',
-					content: oldLayer.content as OSCMessageCommandContent, // tslint:disable-line
-					context: `removed: ${oldLayer.id}`
+					commandName:	'removed',
+					content:		oldLayer.content as OSCMessageCommandContent,
+					context:		`removed: ${oldLayer.id}`
 				})
 			}
 		})

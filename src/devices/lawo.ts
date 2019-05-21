@@ -10,11 +10,12 @@ import {
 	DeviceType,
 	DeviceOptions,
 	TimelineContentTypeLawo,
-	MappingLawo
+	MappingLawo,
+	TimelineObjLawoSource,
+	TimelineObjLawoAny
 } from '../types/src'
 import {
-	TimelineState,
-	TimelineResolvedObject
+	TimelineState, ResolvedTimelineObjectInstance
 } from 'superfly-timeline'
 import {
 	DeviceTree,
@@ -32,29 +33,7 @@ export interface LawoOptions extends DeviceOptions { // TODO - this doesnt match
 		rampMotorFunctionPath?: string
 	}
 }
-export interface TimelineObjLawo extends TimelineResolvedObject {
-	content: {
-		type: TimelineContentTypeLawo,
-		attributes: {
-			[key: string]: {
-				[attr: string]: any
-				triggerValue: string // only used for trigging new command sent
-			}
-		}
-	}
-}
-export interface TimelineObjLawoSource extends TimelineObjLawo {
-	content: {
-		type: TimelineContentTypeLawo,
-		attributes: {
-			'Fader/Motor dB Value': {
-				value: number,
-				transitionDuration?: number,
-				triggerValue: string // only used for trigging new command sent
-			}
-		}
-	}
-}
+
 export type EmberPlusValue = boolean | number | string
 
 export interface LawoState {
@@ -179,7 +158,7 @@ export class LawoDevice extends DeviceWithState<TimelineState> {
 	handleState (newState: TimelineState) {
 		// Convert timeline states to device states
 		let previousStateTime = Math.max(this.getCurrentTime(), newState.time)
-		let oldState: TimelineState = (this.getStateBefore(previousStateTime) || { state: { time: 0, LLayers: {}, GLayers: {} } }).state
+		let oldState: TimelineState = (this.getStateBefore(previousStateTime) || { state: { time: 0, layers: {}, nextEvents: [] } }).state
 
 		let oldLawoState = this.convertStateToLawo(oldState)
 		let newLawoState = this.convertStateToLawo(newState)
@@ -234,22 +213,26 @@ export class LawoDevice extends DeviceWithState<TimelineState> {
 	convertStateToLawo (state: TimelineState): LawoState {
 		const lawoState: LawoState = {}
 
-		_.each(state.LLayers, (tlObject: TimelineObjLawo, layerName: string) => { // for all LLayers
-			const mapping: MappingLawo | undefined = this.getMapping()[layerName] as MappingLawo // tslint:disable-line
-			if (mapping && mapping.identifier && mapping.device === DeviceType.LAWO) { // where we have a mapping
+		_.each(state.layers, (tlObject: ResolvedTimelineObjectInstance, layerName: string) => {
+			const lawoObj = tlObject as any as TimelineObjLawoAny
 
-				if (tlObject.content.type === TimelineContentTypeLawo.SOURCE) { // and the objectType is a source
-					let tlObjectSource = tlObject as TimelineObjLawoSource
-					_.each(tlObjectSource.content.attributes, (value, key) => { // for all attributes
-						lawoState[this._sourceNodeAttributePath(mapping.identifier, key)] = { // store in state
-							type: tlObjectSource.content.type,
-							key: key,
-							identifier: mapping.identifier,
-							value: value.value,
-							transitionDuration: value.transitionDuration,
-							triggerValue: value.triggerValue
-						}
-					})
+			const mapping: MappingLawo | undefined = this.getMapping()[layerName] as MappingLawo
+			if (mapping && mapping.identifier && mapping.device === DeviceType.LAWO) {
+
+				if (lawoObj.content.type === TimelineContentTypeLawo.SOURCE) {
+					let tlObjectSource: TimelineObjLawoSource = lawoObj
+
+					const fader: TimelineObjLawoSource['content']['Fader/Motor dB Value'] = tlObjectSource.content['Fader/Motor dB Value']
+
+					lawoState[this._sourceNodeAttributePath(mapping.identifier, 'Fader/Motor dB Value')] = {
+						type: tlObjectSource.content.type,
+						key: 'Fader/Motor dB Value',
+						identifier: mapping.identifier,
+						value: fader.value,
+						transitionDuration: fader.transitionDuration,
+						triggerValue: fader.triggerValue || ''
+					}
+
 				}
 			}
 		})
@@ -281,7 +264,7 @@ export class LawoDevice extends DeviceWithState<TimelineState> {
 		_.each(commandsToAchieveState, (cmd: LawoCommandWithContext) => {
 
 			// add the new commands to the queue:
-			this._doOnTime.queue(time, (cmd: LawoCommandWithContext) => {
+			this._doOnTime.queue(time, undefined, (cmd: LawoCommandWithContext) => {
 				return this._commandReceiver(time, cmd.cmd, cmd.context)
 			}, cmd)
 		})

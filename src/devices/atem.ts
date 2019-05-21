@@ -12,7 +12,14 @@ import {
 	TimelineContentTypeAtem,
 	MappingAtem,
 	MappingAtemType,
-	AtemOptions
+	AtemOptions,
+	TimelineObjAtemME,
+	TimelineObjAtemDSK,
+	TimelineObjAtemMediaPlayer,
+	TimelineObjAtemAudioChannel,
+	TimelineObjAtemSsrc,
+	TimelineObjAtemAUX,
+	TimelineObjAtemSsrcProps
 } from '../types/src'
 import { TimelineState } from 'superfly-timeline'
 import {
@@ -200,54 +207,61 @@ export class AtemDevice extends DeviceWithState<DeviceState> {
 		// Start out with default state:
 		const deviceState = this._getDefaultState()
 
-		// Sort layer based on LLayer name
-		const sortedLayers = _.map(state.LLayers, (tlObject, layerName) => ({ layerName, tlObject }))
+		// Sort layer based on Layer name
+		const sortedLayers = _.map(state.layers, (tlObject, layerName) => ({ layerName, tlObject }))
 			.sort((a,b) => a.layerName.localeCompare(b.layerName))
 
 		// For every layer, augment the state
 		_.each(sortedLayers, ({ tlObject, layerName }) => {
-			const content = tlObject.resolved || tlObject.content
-			let mapping = this.getMapping()[layerName] as MappingAtem // tslint:disable-line
+			// const content = tlObject.content
+
+			let mapping = this.getMapping()[layerName] as MappingAtem
 
 			if (mapping) {
 				if (mapping.index !== undefined && mapping.index >= 0) { // index must be 0 or higher
 					switch (mapping.mappingType) {
 						case MappingAtemType.MixEffect:
-							if (content.type === TimelineContentTypeAtem.ME) {
+							if (tlObject.content.type === TimelineContentTypeAtem.ME) {
 								let me = deviceState.video.ME[mapping.index]
-								if (me) deepExtend(me, content.attributes)
+								let atemObj = tlObject as any as TimelineObjAtemME
+								if (me) deepExtend(me, atemObj.content.me)
 							}
 							break
 						case MappingAtemType.DownStreamKeyer:
-							if (content.type === TimelineContentTypeAtem.DSK) {
+							if (tlObject.content.type === TimelineContentTypeAtem.DSK) {
 								let dsk = deviceState.video.downstreamKeyers[mapping.index]
-								if (dsk) deepExtend(dsk, content.attributes)
+								let atemObj = tlObject as any as TimelineObjAtemDSK
+								if (dsk) deepExtend(dsk, atemObj.content.dsk)
 							}
 							break
 						case MappingAtemType.SuperSourceBox:
-							if (content.type === TimelineContentTypeAtem.SSRC) {
+							if (tlObject.content.type === TimelineContentTypeAtem.SSRC) {
 								let ssrc = deviceState.video.superSourceBoxes
-								if (ssrc) deepExtend(ssrc, content.attributes.boxes)
+								let atemObj = tlObject as any as TimelineObjAtemSsrc
+								if (ssrc) deepExtend(ssrc, atemObj.content.ssrc.boxes)
 							}
 							break
 						case MappingAtemType.Auxilliary:
-							if (content.type === TimelineContentTypeAtem.AUX) {
-								deviceState.video.auxilliaries[mapping.index] = content.attributes.input
+							if (tlObject.content.type === TimelineContentTypeAtem.AUX) {
+								let atemObj = tlObject as any as TimelineObjAtemAUX
+								deviceState.video.auxilliaries[mapping.index] = atemObj.content.aux.input
 							}
 							break
 						case MappingAtemType.MediaPlayer:
-							if (content.type === TimelineContentTypeAtem.MEDIAPLAYER) {
+							if (tlObject.content.type === TimelineContentTypeAtem.MEDIAPLAYER) {
 								let ms = deviceState.media.players[mapping.index]
-								if (ms) deepExtend(ms, content.attributes)
+								let atemObj = tlObject as any as TimelineObjAtemMediaPlayer
+								if (ms) deepExtend(ms, atemObj.content.mediaPlayer)
 							}
 							break
 						case MappingAtemType.AudioChannel:
-							if (content.type === TimelineContentTypeAtem.AUDIOCHANNEL) {
+							if (tlObject.content.type === TimelineContentTypeAtem.AUDIOCHANNEL) {
 								const chan = deviceState.audio.channels[mapping.index]
+								let atemObj = tlObject as any as TimelineObjAtemAudioChannel
 								if (chan) {
 									deviceState.audio.channels[mapping.index] = {
 										...chan,
-										...content.attributes
+										...atemObj.content
 									}
 								}
 							}
@@ -255,9 +269,10 @@ export class AtemDevice extends DeviceWithState<DeviceState> {
 				}
 
 				if (mapping.mappingType === MappingAtemType.SuperSourceProperties) {
-					if (content.type === TimelineContentTypeAtem.SSRCPROPS) {
+					if (tlObject.content.type === TimelineContentTypeAtem.SSRCPROPS) {
 						let ssrc = deviceState.video.superSourceProperties
-						if (ssrc) deepExtend(ssrc, content.attributes)
+						let atemObj = tlObject as any as TimelineObjAtemSsrcProps
+						if (ssrc) deepExtend(ssrc, atemObj.content.ssrcProps)
 					}
 				}
 			}
@@ -313,7 +328,7 @@ export class AtemDevice extends DeviceWithState<DeviceState> {
 		_.each(commandsToAchieveState, (cmd: AtemCommandWithContext) => {
 
 			// add the new commands to the queue:
-			this._doOnTime.queue(time, (cmd: AtemCommandWithContext) => {
+			this._doOnTime.queue(time, undefined, (cmd: AtemCommandWithContext) => {
 				return this._commandReceiver(time, cmd.command, cmd.context)
 			}, cmd)
 		})

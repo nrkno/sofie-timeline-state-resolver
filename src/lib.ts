@@ -149,10 +149,7 @@ function deepDiff (a: any, b: any, aStack: any, bStack: any): string | null {
 		if (length !== b.length) return `length differ (${a.length}, ${b.length})`
 		// Deep compare the contents, ignoring non-numeric properties.
 		while (length--) {
-			// console.log('---------------------------------------------')
-			// console.log('arr ', a[length], b[length])
 			let d = diff(a[length], b[length], aStack, bStack)
-			// console.log('diff', d)
 			if (d) {
 				return `array[${length}]: ${d}`
 			}
