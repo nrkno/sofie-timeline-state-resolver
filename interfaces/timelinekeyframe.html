@@ -919,13 +919,16 @@ img { max-width: 100%; }
 					<a href="timelinekeyframe.html#content" class="tsd-kind-icon">content</a>
 				</li>
 				<li class=" tsd-kind-property tsd-parent-kind-interface tsd-is-external">
+					<a href="timelinekeyframe.html#disabled" class="tsd-kind-icon">disabled</a>
+				</li>
+				<li class=" tsd-kind-property tsd-parent-kind-interface tsd-is-external">
 					<a href="timelinekeyframe.html#duration" class="tsd-kind-icon">duration</a>
 				</li>
 				<li class=" tsd-kind-property tsd-parent-kind-interface tsd-is-external">
-					<a href="timelinekeyframe.html#id" class="tsd-kind-icon">id</a>
+					<a href="timelinekeyframe.html#enable" class="tsd-kind-icon">enable</a>
 				</li>
 				<li class=" tsd-kind-property tsd-parent-kind-interface tsd-is-external">
-					<a href="timelinekeyframe.html#trigger" class="tsd-kind-icon">trigger</a>
+					<a href="timelinekeyframe.html#id" class="tsd-kind-icon">id</a>
 				</li>
 			</ul>
 		</li>
@@ -940,7 +943,10 @@ img { max-width: 100%; }
 					<span class="target">TimelineKeyframe</span>
 					<ul class="tsd-hierarchy">
 						<li>
-							<a href="timelineresolvedkeyframe.html" class="tsd-signature-type">TimelineResolvedKeyframe</a>
+							<a href="timelineobjectkeyframe.html" class="tsd-signature-type">TimelineObjectKeyframe</a>
+						</li>
+						<li>
+							<a href="tsrtimelinekeyframe.html" class="tsd-signature-type">TSRTimelineKeyframe</a>
 						</li>
 					</ul>
 				</li>
@@ -955,9 +961,10 @@ img { max-width: 100%; }
 						<ul class="tsd-index-list">
 							<li class="tsd-kind-property tsd-parent-kind-interface tsd-is-external"><a href="timelinekeyframe.html#classes" class="tsd-kind-icon">classes</a></li>
 							<li class="tsd-kind-property tsd-parent-kind-interface tsd-is-external"><a href="timelinekeyframe.html#content" class="tsd-kind-icon">content</a></li>
+							<li class="tsd-kind-property tsd-parent-kind-interface tsd-is-external"><a href="timelinekeyframe.html#disabled" class="tsd-kind-icon">disabled</a></li>
 							<li class="tsd-kind-property tsd-parent-kind-interface tsd-is-external"><a href="timelinekeyframe.html#duration" class="tsd-kind-icon">duration</a></li>
+							<li class="tsd-kind-property tsd-parent-kind-interface tsd-is-external"><a href="timelinekeyframe.html#enable" class="tsd-kind-icon">enable</a></li>
 							<li class="tsd-kind-property tsd-parent-kind-interface tsd-is-external"><a href="timelinekeyframe.html#id" class="tsd-kind-icon">id</a></li>
-							<li class="tsd-kind-property tsd-parent-kind-interface tsd-is-external"><a href="timelinekeyframe.html#trigger" class="tsd-kind-icon">trigger</a></li>
 						</ul>
 					</section>
 				</div>
@@ -968,20 +975,30 @@ img { max-width: 100%; }
 			<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface tsd-is-external">
 				<a name="classes" class="tsd-anchor"></a>
 				<h3><span class="tsd-flag ts-flagOptional">Optional</span> classes</h3>
-				<div class="tsd-signature tsd-kind-icon">classes<span class="tsd-signature-symbol">:</span> <a href="unresolvedtimeline.html#array" class="tsd-signature-type">Array</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">&gt;</span></div>
+				<div class="tsd-signature tsd-kind-icon">classes<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Array</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">&gt;</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/57b1646/src/types/src/superfly-timeline.ts#L72">types/src/superfly-timeline.ts:72</a></li>
+						<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/431a62b/src/types/src/superfly-timeline.ts#L73">types/src/superfly-timeline.ts:73</a></li>
 					</ul>
 				</aside>
 			</section>
 			<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface tsd-is-external">
 				<a name="content" class="tsd-anchor"></a>
-				<h3><span class="tsd-flag ts-flagOptional">Optional</span> content</h3>
-				<div class="tsd-signature tsd-kind-icon">content<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">object</span></div>
+				<h3>content</h3>
+				<div class="tsd-signature tsd-kind-icon">content<span class="tsd-signature-symbol">:</span> <a href="../globals.html#content" class="tsd-signature-type">Content</a></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/57b1646/src/types/src/superfly-timeline.ts#L69">types/src/superfly-timeline.ts:69</a></li>
+						<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/431a62b/src/types/src/superfly-timeline.ts#L74">types/src/superfly-timeline.ts:74</a></li>
+					</ul>
+				</aside>
+			</section>
+			<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface tsd-is-external">
+				<a name="disabled" class="tsd-anchor"></a>
+				<h3><span class="tsd-flag ts-flagOptional">Optional</span> disabled</h3>
+				<div class="tsd-signature tsd-kind-icon">disabled<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">false</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">true</span></div>
+				<aside class="tsd-sources">
+					<ul>
+						<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/431a62b/src/types/src/superfly-timeline.ts#L75">types/src/superfly-timeline.ts:75</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -991,7 +1008,17 @@ img { max-width: 100%; }
 				<div class="tsd-signature tsd-kind-icon">duration<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">string</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/57b1646/src/types/src/superfly-timeline.ts#L68">types/src/superfly-timeline.ts:68</a></li>
+						<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/431a62b/src/types/src/superfly-timeline.ts#L72">types/src/superfly-timeline.ts:72</a></li>
+					</ul>
+				</aside>
+			</section>
+			<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface tsd-is-external">
+				<a name="enable" class="tsd-anchor"></a>
+				<h3>enable</h3>
+				<div class="tsd-signature tsd-kind-icon">enable<span class="tsd-signature-symbol">:</span> <a href="timelineenable.html" class="tsd-signature-type">TimelineEnable</a></div>
+				<aside class="tsd-sources">
+					<ul>
+						<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/431a62b/src/types/src/superfly-timeline.ts#L71">types/src/superfly-timeline.ts:71</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -1001,30 +1028,9 @@ img { max-width: 100%; }
 				<div class="tsd-signature tsd-kind-icon">id<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/57b1646/src/types/src/superfly-timeline.ts#L63">types/src/superfly-timeline.ts:63</a></li>
+						<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/431a62b/src/types/src/superfly-timeline.ts#L70">types/src/superfly-timeline.ts:70</a></li>
 					</ul>
 				</aside>
-			</section>
-			<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface tsd-is-external">
-				<a name="trigger" class="tsd-anchor"></a>
-				<h3>trigger</h3>
-				<div class="tsd-signature tsd-kind-icon">trigger<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">object</span></div>
-				<aside class="tsd-sources">
-					<ul>
-						<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/57b1646/src/types/src/superfly-timeline.ts#L64">types/src/superfly-timeline.ts:64</a></li>
-					</ul>
-				</aside>
-				<div class="tsd-type-declaration">
-					<h4>Type declaration</h4>
-					<ul class="tsd-parameters">
-						<li class="tsd-parameter">
-							<h5>type<span class="tsd-signature-symbol">: </span><a href="../enums/triggertype.html" class="tsd-signature-type">TriggerType</a></h5>
-						</li>
-						<li class="tsd-parameter">
-							<h5>value<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">string</span></h5>
-						</li>
-					</ul>
-				</div>
 			</section>
 		</section>
 		<footer class="with-border-bottom">

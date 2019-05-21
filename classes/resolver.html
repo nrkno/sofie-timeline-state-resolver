@@ -911,6 +911,17 @@ img { max-width: 100%; }
 	<ul>
 		<li class="current tsd-kind-class tsd-is-external">
 			<a href="resolver.html" class="tsd-kind-icon">Resolver</a>
+			<ul>
+				<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-static tsd-is-external">
+					<a href="resolver.html#getstate" class="tsd-kind-icon">get<wbr>State</a>
+				</li>
+				<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-static tsd-is-external">
+					<a href="resolver.html#resolveallstates" class="tsd-kind-icon">resolve<wbr>All<wbr>States</a>
+				</li>
+				<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-static tsd-is-external">
+					<a href="resolver.html#resolvetimeline" class="tsd-kind-icon">resolve<wbr>Timeline</a>
+				</li>
+			</ul>
 		</li>
 	</ul>
 </nav>
@@ -923,6 +934,135 @@ img { max-width: 100%; }
 					<span class="target">Resolver</span>
 				</li>
 			</ul>
+		</section>
+		<section class="tsd-panel-group tsd-index-group">
+			<h2>Index</h2>
+			<section class="tsd-panel tsd-index-panel">
+				<div class="tsd-index-content">
+					<section class="tsd-index-section tsd-is-external">
+						<h3>Methods</h3>
+						<ul class="tsd-index-list">
+							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-static tsd-is-external"><a href="resolver.html#getstate" class="tsd-kind-icon">get<wbr>State</a></li>
+							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-static tsd-is-external"><a href="resolver.html#resolveallstates" class="tsd-kind-icon">resolve<wbr>All<wbr>States</a></li>
+							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-static tsd-is-external"><a href="resolver.html#resolvetimeline" class="tsd-kind-icon">resolve<wbr>Timeline</a></li>
+						</ul>
+					</section>
+				</div>
+			</section>
+		</section>
+		<section class="tsd-panel-group tsd-member-group tsd-is-external">
+			<h2>Methods</h2>
+			<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-static tsd-is-external">
+				<a name="getstate" class="tsd-anchor"></a>
+				<h3><span class="tsd-flag ts-flagStatic">Static</span> get<wbr>State</h3>
+				<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-static tsd-is-external">
+					<li class="tsd-signature tsd-kind-icon">get<wbr>State<span class="tsd-signature-symbol">(</span>resolved<span class="tsd-signature-symbol">: </span><a href="../interfaces/resolvedtimeline.html" class="tsd-signature-type">ResolvedTimeline</a><span class="tsd-signature-symbol"> | </span><a href="../interfaces/resolvedstates.html" class="tsd-signature-type">ResolvedStates</a>, time<span class="tsd-signature-symbol">: </span><a href="../globals.html#time" class="tsd-signature-type">Time</a>, eventLimit<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="../interfaces/timelinestate.html" class="tsd-signature-type">TimelineState</a></li>
+				</ul>
+				<ul class="tsd-descriptions">
+					<li class="tsd-description">
+						<aside class="tsd-sources">
+							<ul>
+								<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/431a62b/src/types/src/superfly-timeline.ts#L216">types/src/superfly-timeline.ts:216</a></li>
+							</ul>
+						</aside>
+						<div class="tsd-comment tsd-typography">
+							<div class="lead">
+								<p>Calculate the state at a given point in time.
+									Using a ResolvedTimeline calculated by Resolver.resolveTimeline() or
+								a ResolvedStates calculated by Resolver.resolveAllStates()</p>
+							</div>
+						</div>
+						<h4 class="tsd-parameters-title">Parameters</h4>
+						<ul class="tsd-parameters">
+							<li>
+								<h5>resolved: <a href="../interfaces/resolvedtimeline.html" class="tsd-signature-type">ResolvedTimeline</a><span class="tsd-signature-symbol"> | </span><a href="../interfaces/resolvedstates.html" class="tsd-signature-type">ResolvedStates</a></h5>
+								<div class="tsd-comment tsd-typography">
+									<p>ResolvedTimeline calculated by Resolver.resolveTimeline.</p>
+								</div>
+							</li>
+							<li>
+								<h5>time: <a href="../globals.html#time" class="tsd-signature-type">Time</a></h5>
+								<div class="tsd-comment tsd-typography">
+									<p>The point in time where to calculate the state</p>
+								</div>
+							</li>
+							<li>
+								<h5><span class="tsd-flag ts-flagOptional">Optional</span> eventLimit: <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">number</span></h5>
+								<div class="tsd-comment tsd-typography">
+									<p>(Optional) Limits the number of returned upcoming events.</p>
+								</div>
+							</li>
+						</ul>
+						<h4 class="tsd-returns-title">Returns <a href="../interfaces/timelinestate.html" class="tsd-signature-type">TimelineState</a></h4>
+					</li>
+				</ul>
+			</section>
+			<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-static tsd-is-external">
+				<a name="resolveallstates" class="tsd-anchor"></a>
+				<h3><span class="tsd-flag ts-flagStatic">Static</span> resolve<wbr>All<wbr>States</h3>
+				<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-static tsd-is-external">
+					<li class="tsd-signature tsd-kind-icon">resolve<wbr>All<wbr>States<span class="tsd-signature-symbol">(</span>resolvedTimeline<span class="tsd-signature-symbol">: </span><a href="../interfaces/resolvedtimeline.html" class="tsd-signature-type">ResolvedTimeline</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="../interfaces/resolvedstates.html" class="tsd-signature-type">ResolvedStates</a></li>
+				</ul>
+				<ul class="tsd-descriptions">
+					<li class="tsd-description">
+						<aside class="tsd-sources">
+							<ul>
+								<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/431a62b/src/types/src/superfly-timeline.ts#L207">types/src/superfly-timeline.ts:207</a></li>
+							</ul>
+						</aside>
+						<div class="tsd-comment tsd-typography">
+							<div class="lead">
+								<p>Calculate the state for all points in time.</p>
+							</div>
+						</div>
+						<h4 class="tsd-parameters-title">Parameters</h4>
+						<ul class="tsd-parameters">
+							<li>
+								<h5>resolvedTimeline: <a href="../interfaces/resolvedtimeline.html" class="tsd-signature-type">ResolvedTimeline</a></h5>
+							</li>
+						</ul>
+						<h4 class="tsd-returns-title">Returns <a href="../interfaces/resolvedstates.html" class="tsd-signature-type">ResolvedStates</a></h4>
+					</li>
+				</ul>
+			</section>
+			<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-static tsd-is-external">
+				<a name="resolvetimeline" class="tsd-anchor"></a>
+				<h3><span class="tsd-flag ts-flagStatic">Static</span> resolve<wbr>Timeline</h3>
+				<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-static tsd-is-external">
+					<li class="tsd-signature tsd-kind-icon">resolve<wbr>Timeline<span class="tsd-signature-symbol">(</span>timeline<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Array</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/timelineobject.html" class="tsd-signature-type">TimelineObject</a><span class="tsd-signature-symbol">&gt;</span>, options<span class="tsd-signature-symbol">: </span><a href="../interfaces/resolveoptions.html" class="tsd-signature-type">ResolveOptions</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="../interfaces/resolvedtimeline.html" class="tsd-signature-type">ResolvedTimeline</a></li>
+				</ul>
+				<ul class="tsd-descriptions">
+					<li class="tsd-description">
+						<aside class="tsd-sources">
+							<ul>
+								<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/431a62b/src/types/src/superfly-timeline.ts#L205">types/src/superfly-timeline.ts:205</a></li>
+							</ul>
+						</aside>
+						<div class="tsd-comment tsd-typography">
+							<div class="lead">
+								<p>Go through all objects on the timeline and calculate all the timings.
+								Returns a ResolvedTimeline which can be piped into Resolver.getState()</p>
+							</div>
+						</div>
+						<h4 class="tsd-parameters-title">Parameters</h4>
+						<ul class="tsd-parameters">
+							<li>
+								<h5>timeline: <span class="tsd-signature-type">Array</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/timelineobject.html" class="tsd-signature-type">TimelineObject</a><span class="tsd-signature-symbol">&gt;</span></h5>
+								<div class="tsd-comment tsd-typography">
+									<p>Array of timeline objects</p>
+								</div>
+							</li>
+							<li>
+								<h5>options: <a href="../interfaces/resolveoptions.html" class="tsd-signature-type">ResolveOptions</a></h5>
+								<div class="tsd-comment tsd-typography">
+									<p>Resolve options</p>
+								</div>
+							</li>
+						</ul>
+						<h4 class="tsd-returns-title">Returns <a href="../interfaces/resolvedtimeline.html" class="tsd-signature-type">ResolvedTimeline</a></h4>
+					</li>
+				</ul>
+			</section>
 		</section>
 		<footer class="with-border-bottom">
 			<div class="container">

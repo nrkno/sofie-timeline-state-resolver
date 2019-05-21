@@ -912,11 +912,14 @@ img { max-width: 100%; }
 		<li class="current tsd-kind-interface tsd-is-external">
 			<a href="pharosstate.html" class="tsd-kind-icon">Pharos<wbr>State</a>
 			<ul>
-				<li class=" tsd-kind-property tsd-parent-kind-interface tsd-is-inherited tsd-is-external">
-					<a href="pharosstate.html#glayers" class="tsd-kind-icon">GLayers</a>
+				<li class=" tsd-kind-property tsd-parent-kind-interface tsd-is-external">
+					<a href="pharosstate.html#layers" class="tsd-kind-icon">Layers</a>
 				</li>
-				<li class=" tsd-kind-property tsd-parent-kind-interface tsd-is-overwrite tsd-is-external">
-					<a href="pharosstate.html#llayers" class="tsd-kind-icon">LLayers</a>
+				<li class=" tsd-kind-property tsd-parent-kind-interface tsd-is-inherited tsd-is-external">
+					<a href="pharosstate.html#layers-1" class="tsd-kind-icon">layers</a>
+				</li>
+				<li class=" tsd-kind-property tsd-parent-kind-interface tsd-is-inherited tsd-is-external">
+					<a href="pharosstate.html#nextevents" class="tsd-kind-icon">next<wbr>Events</a>
 				</li>
 				<li class=" tsd-kind-property tsd-parent-kind-interface tsd-is-inherited tsd-is-external">
 					<a href="pharosstate.html#time" class="tsd-kind-icon">time</a>
@@ -947,8 +950,9 @@ img { max-width: 100%; }
 					<section class="tsd-index-section tsd-is-external">
 						<h3>Properties</h3>
 						<ul class="tsd-index-list">
-							<li class="tsd-kind-property tsd-parent-kind-interface tsd-is-inherited tsd-is-external"><a href="pharosstate.html#glayers" class="tsd-kind-icon">GLayers</a></li>
-							<li class="tsd-kind-property tsd-parent-kind-interface tsd-is-overwrite tsd-is-external"><a href="pharosstate.html#llayers" class="tsd-kind-icon">LLayers</a></li>
+							<li class="tsd-kind-property tsd-parent-kind-interface tsd-is-external"><a href="pharosstate.html#layers" class="tsd-kind-icon">Layers</a></li>
+							<li class="tsd-kind-property tsd-parent-kind-interface tsd-is-inherited tsd-is-external"><a href="pharosstate.html#layers-1" class="tsd-kind-icon">layers</a></li>
+							<li class="tsd-kind-property tsd-parent-kind-interface tsd-is-inherited tsd-is-external"><a href="pharosstate.html#nextevents" class="tsd-kind-icon">next<wbr>Events</a></li>
 							<li class="tsd-kind-property tsd-parent-kind-interface tsd-is-inherited tsd-is-external"><a href="pharosstate.html#time" class="tsd-kind-icon">time</a></li>
 						</ul>
 					</section>
@@ -957,52 +961,54 @@ img { max-width: 100%; }
 		</section>
 		<section class="tsd-panel-group tsd-member-group tsd-is-external">
 			<h2>Properties</h2>
-			<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface tsd-is-inherited tsd-is-external">
-				<a name="glayers" class="tsd-anchor"></a>
-				<h3>GLayers</h3>
-				<div class="tsd-signature tsd-kind-icon">GLayers<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">object</span></div>
+			<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface tsd-is-external">
+				<a name="layers" class="tsd-anchor"></a>
+				<h3>Layers</h3>
+				<div class="tsd-signature tsd-kind-icon">Layers<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">object</span></div>
 				<aside class="tsd-sources">
-					<p>Inherited from TimelineState.GLayers</p>
 					<ul>
-						<li>Defined in /home/circleci/project/node_modules/superfly-timeline/dist/resolver/resolver.d.ts:90</li>
+						<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/431a62b/src/devices/pharos.ts#L32">devices/pharos.ts:32</a></li>
 					</ul>
 				</aside>
 				<div class="tsd-type-declaration">
 					<h4>Type declaration</h4>
 					<ul class="tsd-parameters">
 						<li class="tsd-parameter-index-signature">
-							<h5><span class="tsd-signature-symbol">[</span>GLayer: <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">]: </span><span class="tsd-signature-type">TimelineResolvedObject</span></h5>
+							<h5><span class="tsd-signature-symbol">[</span>Layer: <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">]: </span><a href="timelineobjpharos.html" class="tsd-signature-type">TimelineObjPharos</a></h5>
 						</li>
 					</ul>
 				</div>
 			</section>
-			<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface tsd-is-overwrite tsd-is-external">
-				<a name="llayers" class="tsd-anchor"></a>
-				<h3>LLayers</h3>
-				<div class="tsd-signature tsd-kind-icon">LLayers<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">object</span></div>
+			<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface tsd-is-inherited tsd-is-external">
+				<a name="layers-1" class="tsd-anchor"></a>
+				<h3>layers</h3>
+				<div class="tsd-signature tsd-kind-icon">layers<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">StateInTime</span></div>
 				<aside class="tsd-sources">
-					<p>Overrides TimelineState.LLayers</p>
+					<p>Inherited from TimelineState.layers</p>
 					<ul>
-						<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/57b1646/src/devices/pharos.ts#L34">devices/pharos.ts:34</a></li>
+						<li>Defined in /home/circleci/project/node_modules/superfly-timeline/dist/api/api.d.ts:156</li>
 					</ul>
 				</aside>
-				<div class="tsd-type-declaration">
-					<h4>Type declaration</h4>
-					<ul class="tsd-parameters">
-						<li class="tsd-parameter-index-signature">
-							<h5><span class="tsd-signature-symbol">[</span>LLayer: <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">]: </span><a href="../globals.html#timelinepharosobj" class="tsd-signature-type">TimelinePharosObj</a></h5>
-						</li>
+			</section>
+			<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface tsd-is-inherited tsd-is-external">
+				<a name="nextevents" class="tsd-anchor"></a>
+				<h3>next<wbr>Events</h3>
+				<div class="tsd-signature tsd-kind-icon">next<wbr>Events<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Array</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">NextEvent</span><span class="tsd-signature-symbol">&gt;</span></div>
+				<aside class="tsd-sources">
+					<p>Inherited from TimelineState.nextEvents</p>
+					<ul>
+						<li>Defined in /home/circleci/project/node_modules/superfly-timeline/dist/api/api.d.ts:157</li>
 					</ul>
-				</div>
+				</aside>
 			</section>
 			<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface tsd-is-inherited tsd-is-external">
 				<a name="time" class="tsd-anchor"></a>
 				<h3>time</h3>
-				<div class="tsd-signature tsd-kind-icon">time<span class="tsd-signature-symbol">:</span> <a href="../globals.html#sometime" class="tsd-signature-type">SomeTime</a></div>
+				<div class="tsd-signature tsd-kind-icon">time<span class="tsd-signature-symbol">:</span> <a href="../globals.html#time" class="tsd-signature-type">Time</a></div>
 				<aside class="tsd-sources">
 					<p>Inherited from TimelineState.time</p>
 					<ul>
-						<li>Defined in /home/circleci/project/node_modules/superfly-timeline/dist/resolver/resolver.d.ts:89</li>
+						<li>Defined in /home/circleci/project/node_modules/superfly-timeline/dist/api/api.d.ts:155</li>
 					</ul>
 				</aside>
 			</section>
