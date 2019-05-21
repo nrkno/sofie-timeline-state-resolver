@@ -5971,10 +5971,10 @@ success-symbol@^0.1.0:
   resolved "https://registry.yarnpkg.com/success-symbol/-/success-symbol-0.1.0.tgz#24022e486f3bf1cdca094283b769c472d3b72897"
   integrity sha1-JAIuSG878c3KCUKDt2nEctO3KJc=
 
-superfly-timeline@^7.1.0:
-  version "7.1.0"
-  resolved "https://registry.yarnpkg.com/superfly-timeline/-/superfly-timeline-7.1.0.tgz#baa8cad89489bf5795b74b0b25206aa55d063f08"
-  integrity sha512-m3jAyME3iDuuE89iKyNdYaMAhZf3Ze22dbww8qZtW67PNwhhETnbLKpVxGs2k7o2tDKTwzG6oa4ysZqOtbUIXw==
+superfly-timeline@^7.1.2:
+  version "7.1.2"
+  resolved "https://registry.yarnpkg.com/superfly-timeline/-/superfly-timeline-7.1.2.tgz#23cc4fcdfbc3cb10cdf6712023cb0e54c3ed0586"
+  integrity sha512-IHVRl17rZou1fgRcvn1EgXc+w7VCHwaE62nBHKWZn0Xaw8DvddN/oPKtb6oUscuKuql/FojmePiOPAGbE2pZvw==
   dependencies:
     "@types/underscore" "^1.8.9"
     underscore "^1.9.1"
