@@ -52,7 +52,9 @@ export class AsyncResolver extends EventEmitter {
 		let setObjectTime = (o: TSRTimelineObj, time: number) => {
 			o.enable.start = time // set the objects to "now" so that they are resolved correctly temporarily
 			const o2 = timeLineMap[o.id]
-			o2.enable.start = time
+			if (o2) {
+				o2.enable.start = time
+			}
 
 			objectsFixed.push({
 				id: o.id,
