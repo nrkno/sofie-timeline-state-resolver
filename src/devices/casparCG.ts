@@ -270,7 +270,7 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> {
 						length: mediaObj.content.attributes.length,
 						channelLayout: mediaObj.content.attributes.channelLayout
 					}
-					if (!mediaObj.content.attributes.noStarttime) {
+					if (mediaObj.content.attributes.noStarttime) {
 						l.playTime = null
 					}
 
