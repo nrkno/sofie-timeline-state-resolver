@@ -270,6 +270,10 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> {
 						length: mediaObj.content.attributes.length,
 						channelLayout: mediaObj.content.attributes.channelLayout
 					}
+					if (mediaObj.content.attributes.noStarttime) {
+						l.playTime = null
+					}
+
 					stateLayer = l
 				} else if (layer.content.type === TimelineContentTypeCasparCg.IP) {
 					let l: StateNS.IMediaLayer = {
