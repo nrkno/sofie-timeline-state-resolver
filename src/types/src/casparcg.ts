@@ -88,6 +88,9 @@ export interface TimelineObjCCGMedia extends TimelineObjCasparCGBase {
 		pauseTime?: number
 		/** If the video is playing or is paused (defaults to true) */
 		playing?: boolean
+
+		/** If true, the startTime won't be used to SEEK to the correct place in the media */
+		noStarttime?: boolean
 	} & TimelineObjCCGProducerContentBase
 }
 export interface TimelineObjCCGIP extends TimelineObjCasparCGBase {
