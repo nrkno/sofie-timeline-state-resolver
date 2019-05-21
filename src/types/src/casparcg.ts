@@ -63,6 +63,8 @@ export interface TimelineObjCCGMedia extends TimelineObject {
 			inPoint?: number
 			length?: number // Note that for seeking to work when looping, length has to be provided
 
+			noStarttime?: boolean // If true, the startTime won't be used to SEEK to the correct place in the media
+
 			videoFilter?: string
 			audioFilter?: string
 			channelLayout?: string
