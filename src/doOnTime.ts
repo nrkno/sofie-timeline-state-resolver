@@ -34,6 +34,22 @@ export class DoOnTime extends EventEmitter {
 	} = {}
 	private _options: DoOnTimeOptions
 
+	/* tslint:disable:unified-signatures */
+
+	// Overide EventEmitter.on() for stronger typings:
+	on (event: 'error', listener: (err: Error) => void): this
+	on (event: 'slowCommand', listener: (commandInfo: string) => void): this
+	on (event: string | symbol, listener: (...args: any[]) => void): this {
+		return super.on(event, listener)
+	}
+	// Overide EventEmitter.emit() for stronger typings:
+	emit (event: 'error',	err: Error): boolean
+	emit (event: 'slowCommand', commandInfo: string): boolean // A report that a command was sent too late
+	emit (event: string, ...args: any[]): boolean {
+		return super.emit(event, ...args)
+	}
+	/* tslint:enable:unified-signatures */
+
 	constructor (getCurrentTime: () => number, sendMode: SendMode = SendMode.BURST, options?: DoOnTimeOptions) {
 		super()
 		this.getCurrentTime = getCurrentTime

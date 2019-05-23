@@ -86,7 +86,7 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> {
 		this._doOnTime = new DoOnTime(() => {
 			return this.getCurrentTime()
 		}, SendMode.BURST, this._deviceOptions)
-		this._doOnTime.on('error', e => this.emit('error', 'doOnTime', e))
+		this._doOnTime.on('error', e => this.emit('error', 'CasparCG.doOnTime', e))
 		this._doOnTime.on('slowCommand', msg => this.emit('slowCommand', this.deviceName + ': ' + msg))
 	}
 
@@ -186,7 +186,7 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> {
 		if (this._useScheduling) {
 			for (let token in this._queue) {
 				if (this._queue[token].time > clearAfterTime) {
-					this._doCommand(new AMCP.ScheduleRemoveCommand(token)).catch(e => this.emit('error', e))
+					this._doCommand(new AMCP.ScheduleRemoveCommand(token)).catch(e => this.emit('error', 'CasparCG.ScheduleRemoveCommand', e))
 				}
 			}
 		} else {
@@ -489,7 +489,7 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> {
 			let duration = this.getCurrentTime() - startTime
 			if (duration > MAX_TIMESYNC_DURATION) { // @todo: acceptable time is dependent on fps
 				if (tries > MAX_TIMESYNC_TRIES) {
-					this.emit('error', 'CasparCG Time command took too long (' + MAX_TIMESYNC_TRIES + ' tries took longer than ' + MAX_TIMESYNC_DURATION + 'ms), channel will be slightly out of sync!')
+					this.emit('error', 'CasparCG', new Error(`CasparCG Time command took too long (${MAX_TIMESYNC_TRIES} tries took longer than ${MAX_TIMESYNC_DURATION}ms), channel will be slightly out of sync!`))
 					return Promise.resolve()
 				}
 				await new Promise(resolve => { setTimeout(() => resolve(), MAX_TIMESYNC_DURATION) })
@@ -603,7 +603,7 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> {
 					// remove the commands from commands to send
 					commandsToSendNow.splice(matchingCommandI, 1)
 				} else {
-					this._doCommand(new AMCP.ScheduleRemoveCommand(token)).catch(e => this.emit('error', e))
+					this._doCommand(new AMCP.ScheduleRemoveCommand(token)).catch(e => this.emit('error', 'CasparCG.ScheduleRemoveCommand', e))
 					delete this._queue[token]
 				}
 
@@ -627,7 +627,7 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> {
 
 			if (this._useScheduling) {
 				if (time <= now) {
-					this._doCommand(command).catch(e => this.emit('error', e))
+					this._doCommand(command).catch(e => this.emit('error', 'CasparCG._doCommand', e))
 				} else {
 					const token = `${time.toString(36).substr(-8)}_${('000' + i++).substr(-4)}`
 					let scheduleCommand = new AMCP.ScheduleSetCommand({
@@ -635,7 +635,7 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> {
 						timecode: this.convertTimeToTimecode(time, command.channel),
 						command
 					})
-					this._doCommand(scheduleCommand).catch(e => this.emit('error', e))
+					this._doCommand(scheduleCommand).catch(e => this.emit('error', 'CasparCG._doCommand', e))
 					this._queue[token] = {
 						time: time,
 						command: command
@@ -669,7 +669,7 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> {
 				delete this._queue[resCommand.token]
 			}
 		}).catch((error) => {
-			this.emit('error', 'casparcg.defaultCommandReceiver ' + cmd.name, error)
+			this.emit('error', `casparcg.defaultCommandReceiver (${cmd.name})`, error)
 			if (cmd.name === 'ScheduleSetCommand') {
 				// delete this._queue[cmd.getParam('command').token]
 				delete this._queue[cmd.token]

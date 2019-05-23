@@ -106,7 +106,7 @@ export class LawoDevice extends DeviceWithState<TimelineState> {
 		this._doOnTime = new DoOnTime(() => {
 			return this.getCurrentTime()
 		}, SendMode.BURST, this._deviceOptions)
-		this._doOnTime.on('error', e => this.emit('error', 'DoOnTime', e))
+		this._doOnTime.on('error', e => this.emit('error', 'Lawo.doOnTime', e))
 		this._doOnTime.on('slowCommand', msg => this.emit('slowCommand', this.deviceName + ': ' + msg))
 
 		this._lawo = new DeviceTree(host, port)
@@ -117,7 +117,7 @@ export class LawoDevice extends DeviceWithState<TimelineState> {
 			) {
 				this._setConnected(false)
 			} else {
-				this.emit('error', 'Emberplus', e)
+				this.emit('error', 'Lawo.Emberplus', e)
 			}
 		})
 		this._lawo.on('connected', () => {
@@ -196,7 +196,7 @@ export class LawoDevice extends DeviceWithState<TimelineState> {
 			this._lawo.removeAllListeners('disconnected')
 
 		} catch (e) {
-			this.emit('error', 'terminate', e)
+			this.emit('error', 'Lawo.terminate', e)
 		}
 		return Promise.resolve(true)
 	}
@@ -314,7 +314,7 @@ export class LawoDevice extends DeviceWithState<TimelineState> {
 					resolve(node)
 				})
 				.catch((e) => {
-					this.emit('error', `Path error: ${e.toString()}`)
+					this.emit('error', 'Lawo path error', e)
 					reject(e)
 				})
 
@@ -350,10 +350,9 @@ export class LawoDevice extends DeviceWithState<TimelineState> {
 				})
 					.catch((e) => {
 						if (e.success === false) { // @todo: QualifiedFunction Fader/Motor cannot handle too short durations or small value changes
-							this.emit('command', command)
 							this.emit('info', `Ember function result: ${JSON.stringify(e)}`)
 						} else {
-							this.emit('error', `Ember function command error: ${e.toString()}`)
+							this.emit('error', 'Lawo: Ember function command error', e)
 						}
 					})
 
@@ -364,10 +363,10 @@ export class LawoDevice extends DeviceWithState<TimelineState> {
 					.then((res) => {
 						this.emit('debug', `Ember result: ${JSON.stringify(res)}`)
 					})
-					.catch((e) => this.emit('error', 'Lawo: Error in setValue:' + e.toString()))
+					.catch((e) => this.emit('error', 'Lawo: Error in setValue', e))
 				})
 				.catch((e) => {
-					this.emit('error', `Ember command error: ${e.toString()}`)
+					this.emit('error', 'Lawo: Ember command error', e)
 				})
 			}
 		} else {

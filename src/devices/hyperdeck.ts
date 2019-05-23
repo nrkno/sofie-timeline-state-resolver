@@ -72,7 +72,7 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> {
 		this._doOnTime = new DoOnTime(() => {
 			return this.getCurrentTime()
 		}, SendMode.BURST, this._deviceOptions)
-		this._doOnTime.on('error', e => this.emit('error', 'doOnTime', e))
+		this._doOnTime.on('error', e => this.emit('error', 'Hyperdeck.doOnTime', e))
 		this._doOnTime.on('slowCommand', msg => this.emit('slowCommand', this.deviceName + ': ' + msg))
 	}
 
@@ -99,7 +99,7 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> {
 					this._connectionChanged()
 					this.emit('resetResolver')
 				})
-				.catch(e => this.emit('error', '_hyperdeck.on("conected")', e))
+				.catch(e => this.emit('error', 'Hyperdeck.on("connected")', e))
 			})
 			this._hyperdeck.on('disconnected', () => {
 				this._connected = false
@@ -275,7 +275,7 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> {
 				})
 			}
 		} else {
-			this.emit('error', 'diffStates missing notify object', oldHyperdeckState.notify, newHyperdeckState.notify)
+			this.emit('error', 'Hyperdeck', new Error(`diffStates missing notify object: ${JSON.stringify(oldHyperdeckState.notify)}, ${JSON.stringify(newHyperdeckState.notify)}`))
 		}
 
 		if (oldHyperdeckState.transport && newHyperdeckState.transport) {
@@ -328,7 +328,7 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> {
 			}
 
 		} else {
-			this.emit('error', 'diffStates missing transport object', oldHyperdeckState.transport, newHyperdeckState.transport)
+			this.emit('error', 'Hyperdeck', new Error(`diffStates missing transport object: ${JSON.stringify(oldHyperdeckState.transport)}, ${JSON.stringify(newHyperdeckState.transport)}`))
 		}
 
 		return commandsToAchieveState

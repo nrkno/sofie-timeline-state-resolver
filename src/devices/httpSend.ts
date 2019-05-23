@@ -49,7 +49,7 @@ export class HttpSendDevice extends DeviceWithState<TimelineState> {
 		this._doOnTime = new DoOnTime(() => {
 			return this.getCurrentTime()
 		}, SendMode.IN_ORDER, this._deviceOptions)
-		this._doOnTime.on('error', e => this.emit('error', e))
+		this._doOnTime.on('error', e => this.emit('error', 'HTTPSend.doOnTime', e))
 		this._doOnTime.on('slowCommand', msg => this.emit('slowCommand', this.deviceName + ': ' + msg))
 	}
 	init (options: HttpSendOptions): Promise<boolean> {
@@ -197,7 +197,7 @@ export class HttpSendDevice extends DeviceWithState<TimelineState> {
 		return new Promise((resolve, reject) => {
 			let handleResponse = (error, response) => {
 				if (error) {
-					this.emit('error', `HTTPSend: Error ${cmd.type} (${context})`, error)
+					this.emit('error', `HTTPSend.response error ${cmd.type} (${context}`, error)
 					reject(error)
 				} else if (response.statusCode === 200) {
 					this.emit('debug', `HTTPSend: ${cmd.type}: Good statuscode response on url "${cmd.url}": ${response.statusCode} (${context})`)
