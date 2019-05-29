@@ -132,11 +132,10 @@ export class AtemDevice extends DeviceWithState<DeviceState> {
 
 		return new Promise((resolve) => {
 			// TODO: implement dispose function in atem-connection
-			// this._atem.dispose()
-			// .then(() => {
-			// resolve(true)
-			// })
-			resolve(true)
+			this._atem.disconnect()
+			.then(() => {
+				resolve(true)
+			})
 		})
 	}
 
