@@ -136,6 +136,9 @@ export class AtemDevice extends DeviceWithState<DeviceState> {
 			.then(() => {
 				resolve(true)
 			})
+			.catch(() => {
+				resolve(false)
+			})
 		})
 	}
 
