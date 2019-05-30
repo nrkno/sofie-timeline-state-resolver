@@ -43,10 +43,10 @@ export class OSCMessageDevice extends DeviceWithState<TimelineState> {
 
 	private _doOnTime: DoOnTime
 	private _oscClient: osc.UDPPort
-	private tweens: { [address: string]: {
+	private transitions: { [address: string]: {
 		started: number
 	} & OSCMessageCommandContent } = {}
-	private tweenInterval: NodeJS.Timer | undefined
+	private transitionInterval: NodeJS.Timer | undefined
 
 	private _commandReceiver: (time: number, cmd: OSCMessageCommandContent, context: CommandContext) => Promise<any>
 	private _oscSender: (msg: osc.OscMessage, address?: string | undefined, port?: number | undefined) => void
@@ -235,11 +235,11 @@ export class OSCMessageDevice extends DeviceWithState<TimelineState> {
 		this.emit('debug', cwc)
 
 		try {
-			if (cmd.tween && cmd.from) {
-				const easingType = Easing[cmd.tween.type]
-				const easing = (easingType || {})[cmd.tween.direction]
+			if (cmd.transition && cmd.from) {
+				const easingType = Easing[cmd.transition.type]
+				const easing = (easingType || {})[cmd.transition.direction]
 
-				if (!easing) throw new Error(`Easing "${cmd.tween.type}.${cmd.tween.direction}" not found`)
+				if (!easing) throw new Error(`Easing "${cmd.transition.type}.${cmd.transition.direction}" not found`)
 
 				for (let i = 0; i < Math.max(cmd.from.length, cmd.values.length); i++) {
 					if (cmd.from[i] && cmd.values[i]) {
@@ -249,7 +249,7 @@ export class OSCMessageDevice extends DeviceWithState<TimelineState> {
 					}
 				}
 
-				this.tweens[cmd.path] = { // push the tween
+				this.transitions[cmd.path] = { // push the tween
 					started: time,
 					...cmd
 				}
@@ -259,7 +259,7 @@ export class OSCMessageDevice extends DeviceWithState<TimelineState> {
 				})
 
 				// trigger loop:
-				if (!this.tweenInterval) this.tweenInterval = setInterval(() => this.runAnimation(), 40)
+				if (!this.transitionInterval) this.transitionInterval = setInterval(() => this.runAnimation(), 40)
 			} else {
 				this._oscSender({
 					address: cmd.path,
@@ -276,22 +276,22 @@ export class OSCMessageDevice extends DeviceWithState<TimelineState> {
 		this._oscClient.send(msg, address, port)
 	}
 	private runAnimation () {
-		for (const addr in this.tweens) {
+		for (const addr in this.transitions) {
 			// delete old tweens
-			if (this.tweens[addr].started + this.tweens[addr].tween!.duration < this.getCurrentTime()) {
-				delete this.tweens[addr]
+			if (this.transitions[addr].started + this.transitions[addr].transition!.duration < this.getCurrentTime()) {
+				delete this.transitions[addr]
 			}
 		}
 
-		for (const addr in this.tweens) {
-			const tween = this.tweens[addr]
+		for (const addr in this.transitions) {
+			const tween = this.transitions[addr]
 			// check if easing exists:
-			const easingType = Easing[tween.tween!.type]
-			const easing = (easingType || {})[tween.tween!.direction]
+			const easingType = Easing[tween.transition!.type]
+			const easing = (easingType || {})[tween.transition!.direction]
 			if (easing) {
 				// scale time in range 0...1, then calculate progress in range 0..1
 				const deltaTime = this.getCurrentTime() - tween.started
-				const progress = deltaTime / tween.tween!.duration
+				const progress = deltaTime / tween.transition!.duration
 				const fraction = easing(progress)
 				// calculate individual values:
 				const values: Array<SomeOSCValue> = []
@@ -328,9 +328,9 @@ export class OSCMessageDevice extends DeviceWithState<TimelineState> {
 			}
 		}
 
-		if (Object.keys(this.tweens).length === 0) {
-			clearInterval(this.tweenInterval!)
-			this.tweenInterval = undefined
+		if (Object.keys(this.transitions).length === 0) {
+			clearInterval(this.transitionInterval!)
+			this.transitionInterval = undefined
 		}
 	}
 }

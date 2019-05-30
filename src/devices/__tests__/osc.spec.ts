@@ -22,7 +22,7 @@ describe('OSC-Message', () => {
 	beforeEach(() => {
 		mockTime.init()
 	})
-	test('POST message', async () => {
+	test('OSC message', async () => {
 		let commandReceiver0 = jest.fn(() => {
 			return Promise.resolve()
 		})
@@ -113,7 +113,7 @@ describe('OSC-Message', () => {
 		await mockTime.advanceTimeToTicks(16000)
 		expect(commandReceiver0).toHaveBeenCalledTimes(1)
 	})
-	test('POST message', async () => {
+	test('OSC transition', async () => {
 		let commandReceiver0 = jest.fn(() => {
 			return Promise.resolve()
 		})
@@ -182,7 +182,7 @@ describe('OSC-Message', () => {
 						type: OSCValueType.FLOAT,
 						value: 100
 					}],
-					tween: {
+					transition: {
 						duration: 1000,
 						type: 'Linear',
 						direction: 'None'

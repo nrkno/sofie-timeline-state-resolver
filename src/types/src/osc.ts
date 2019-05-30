@@ -40,7 +40,7 @@ export interface OSCMessageCommandContent {
 	type: TimelineContentTypeOSC.OSC
 	path: string
 	values: SomeOSCValue[]
-	tween?: {
+	transition?: {
 		duration: number
 		type: keyof typeof Easing
 		direction: 'In' | 'Out' | 'InOut' | 'None'
