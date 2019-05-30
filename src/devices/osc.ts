@@ -16,7 +16,7 @@ import {
 import { DoOnTime, SendMode } from '../doOnTime'
 
 import {
-	TimelineState, ResolvedTimelineObjectInstance
+	TimelineState
 } from 'superfly-timeline'
 import * as osc from 'osc'
 import { Easing } from '../easings'
@@ -33,6 +33,9 @@ interface Command {
 	context: CommandContext
 }
 type CommandContext = string
+interface OSCDeviceState {
+	[address: string]: OSCMessageCommandContent
+}
 /**
  * This is a generic wrapper for any osc-enabled device.
  */
@@ -134,7 +137,20 @@ export class OSCMessageDevice extends DeviceWithState<TimelineState> {
 	 * @param state
 	 */
 	convertStateToOSCMessage (state: TimelineState) {
-		return state
+		const addrToOSCMessage: OSCDeviceState = {}
+		const addrToPriority: { [address: string]: number } = {}
+
+		_.each(state.layers, (layer) => {
+			const content = layer.content as OSCMessageCommandContent
+			if ((addrToOSCMessage[content.path]
+				&& addrToPriority[content.path] <= (layer.priority || 0))
+				|| !addrToOSCMessage[content.path]) {
+				addrToOSCMessage[content.path] = content
+				addrToPriority[content.path] = layer.priority || 0
+			}
+		})
+
+		return addrToOSCMessage
 	}
 	get deviceType () {
 		return DeviceType.OSC
@@ -169,41 +185,41 @@ export class OSCMessageDevice extends DeviceWithState<TimelineState> {
 	 * @param oldOscSendState The assumed current state
 	 * @param newOscSendState The desired state of the device
 	 */
-	private _diffStates (oldOscSendState: TimelineState, newOscSendState: TimelineState): Array<Command> {
+	private _diffStates (oldOscSendState: OSCDeviceState, newOscSendState: OSCDeviceState): Array<Command> {
 		// in this oscSend class, let's just cheat:
 
 		let commands: Array<Command> = []
 
-		_.each(newOscSendState.layers, (newLayer: ResolvedTimelineObjectInstance, layerKey: string) => {
-			let oldLayer = oldOscSendState.layers[layerKey]
+		_.each(newOscSendState, (newCommandContent: OSCMessageCommandContent, address: string) => {
+			let oldLayer = oldOscSendState[address]
 			if (!oldLayer) {
 				// added!
 				commands.push({
 					commandName:	'added',
-					content:		newLayer.content as OSCMessageCommandContent,
-					context:		`added: ${newLayer.id}`
+					content:		newCommandContent,
+					context:		`added: ${address}`
 				})
 			} else {
 				// changed?
-				if (!_.isEqual(oldLayer.content, newLayer.content)) {
+				if (!_.isEqual(oldLayer, newCommandContent)) {
 					// changed!
 					commands.push({
 						commandName:	'changed',
-						content:		newLayer.content as OSCMessageCommandContent,
-						context:		`changed: ${newLayer.id}`
+						content:		newCommandContent,
+						context:		`changed: ${address}`
 					})
 				}
 			}
 		})
 		// removed
-		_.each(oldOscSendState.layers, (oldLayer: ResolvedTimelineObjectInstance, layerKey) => {
-			let newLayer = newOscSendState.layers[layerKey]
+		_.each(oldOscSendState, (oldCommandContent: OSCMessageCommandContent, address) => {
+			let newLayer = newOscSendState[address]
 			if (!newLayer) {
 				// removed!
 				commands.push({
 					commandName:	'removed',
-					content:		oldLayer.content as OSCMessageCommandContent,
-					context:		`removed: ${oldLayer.id}`
+					content:		oldCommandContent,
+					context:		`removed: ${address}`
 				})
 			}
 		})
@@ -220,8 +236,8 @@ export class OSCMessageDevice extends DeviceWithState<TimelineState> {
 
 		try {
 			if (cmd.tween && cmd.from) {
-				const easingType = Easing[cmd.tween!.type]
-				const easing = (easingType || {})[cmd.tween!.direction]
+				const easingType = Easing[cmd.tween.type]
+				const easing = (easingType || {})[cmd.tween.direction]
 
 				if (!easing) throw new Error(`Easing "${cmd.tween.type}.${cmd.tween.direction}" not found`)
 
