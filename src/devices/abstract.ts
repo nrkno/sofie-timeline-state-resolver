@@ -16,8 +16,9 @@ export interface AbstractDeviceOptions extends DeviceOptions {
 	}
 }
 export interface Command {
-	commandName: string,
-	content: CommandContent,
+	commandName: string
+	timelineObjId: string
+	content: CommandContent
 	context: CommandContext
 }
 type CommandContent = any
@@ -32,7 +33,7 @@ type CommandContext = string
 export class AbstractDevice extends DeviceWithState<TimelineState> {
 	private _doOnTime: DoOnTime
 
-	private _commandReceiver: (time: number, cmd: Command, context: CommandContext) => Promise<any>
+	private _commandReceiver: (time: number, cmd: Command, context: CommandContext, timelineObjId: string) => Promise<any>
 
 	constructor (deviceId: string, deviceOptions: AbstractDeviceOptions, options) {
 		super(deviceId, deviceOptions, options)
@@ -123,7 +124,7 @@ export class AbstractDevice extends DeviceWithState<TimelineState> {
 
 			// add the new commands to the queue:
 			this._doOnTime.queue(time, undefined, (cmd: Command) => {
-				return this._commandReceiver(time, cmd, cmd.context)
+				return this._commandReceiver(time, cmd, cmd.context, cmd.timelineObjId)
 			}, cmd)
 		})
 	}
@@ -145,6 +146,7 @@ export class AbstractDevice extends DeviceWithState<TimelineState> {
 				commands.push({
 					commandName: 'addedAbstract',
 					content: newLayer.content,
+					timelineObjId: newLayer.id,
 					context: `added: ${newLayer.id}`
 				})
 			} else {
@@ -154,6 +156,7 @@ export class AbstractDevice extends DeviceWithState<TimelineState> {
 					commands.push({
 						commandName: 'changedAbstract',
 						content: newLayer.content,
+						timelineObjId: newLayer.id,
 						context: `changed: ${newLayer.id}`
 					})
 				}
@@ -167,17 +170,19 @@ export class AbstractDevice extends DeviceWithState<TimelineState> {
 				commands.push({
 					commandName: 'removedAbstract',
 					content: oldLayer.content,
+					timelineObjId: oldLayer.id,
 					context: `removed: ${oldLayer.id}`
 				})
 			}
 		})
 		return commands
 	}
-	private _defaultCommandReceiver (time: number, cmd: Command, context: CommandContext): Promise<any> {
+	private _defaultCommandReceiver (time: number, cmd: Command, context: CommandContext, timelineObjId: string): Promise<any> {
 		time = time
 
 		// emit the command to debug:
 		let cwc: CommandWithContext = {
+			timelineObjId: timelineObjId,
 			context: context,
 			command: {
 				commandName: cmd.commandName,

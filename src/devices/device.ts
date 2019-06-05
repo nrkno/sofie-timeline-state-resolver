@@ -22,7 +22,8 @@ export interface DeviceCommandContainer {
 	commands: Array<DeviceCommand>
 }
 export interface CommandWithContext {
-	context: any,
+	context: any
+	timelineObjId: string
 	command: any
 }
 export enum StatusCode {

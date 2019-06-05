@@ -20,13 +20,15 @@ import * as osc from 'osc'
 
 export interface OSCMessageDeviceOptions extends DeviceOptions {
 	options?: {
-		commandReceiver?: (time: number, cmd) => Promise<any>
+		commandReceiver?: CommandReceiver
 	}
 }
+export type CommandReceiver = (time: number, cmd: OSCMessageCommandContent, context: CommandContext, timelineObjId: string) => Promise<any>
 interface Command {
 	commandName: 'added' | 'changed' | 'removed',
 	content: OSCMessageCommandContent,
 	context: CommandContext
+	timelineObjId: string
 }
 type CommandContext = string
 /**
@@ -37,7 +39,7 @@ export class OSCMessageDevice extends DeviceWithState<TimelineState> {
 	private _doOnTime: DoOnTime
 	private _oscClient: osc.UDPPort
 
-	private _commandReceiver: (time: number, cmd: OSCMessageCommandContent, context: CommandContext) => Promise<any>
+	private _commandReceiver: CommandReceiver
 
 	constructor (deviceId: string, deviceOptions: OSCMessageDeviceOptions, options) {
 		super(deviceId, deviceOptions, options)
@@ -145,7 +147,7 @@ export class OSCMessageDevice extends DeviceWithState<TimelineState> {
 					cmd.commandName === 'added' ||
 					cmd.commandName === 'changed'
 				) {
-					return this._commandReceiver(time, cmd.content, cmd.context)
+					return this._commandReceiver(time, cmd.content, cmd.context, cmd.timelineObjId)
 				} else {
 					return null
 				}
@@ -169,7 +171,8 @@ export class OSCMessageDevice extends DeviceWithState<TimelineState> {
 				commands.push({
 					commandName:	'added',
 					content:		newLayer.content as OSCMessageCommandContent,
-					context:		`added: ${newLayer.id}`
+					context:		`added: ${newLayer.id}`,
+					timelineObjId:	newLayer.id
 				})
 			} else {
 				// changed?
@@ -178,7 +181,8 @@ export class OSCMessageDevice extends DeviceWithState<TimelineState> {
 					commands.push({
 						commandName:	'changed',
 						content:		newLayer.content as OSCMessageCommandContent,
-						context:		`changed: ${newLayer.id}`
+						context:		`changed: ${newLayer.id}`,
+						timelineObjId:	newLayer.id
 					})
 				}
 			}
@@ -191,18 +195,20 @@ export class OSCMessageDevice extends DeviceWithState<TimelineState> {
 				commands.push({
 					commandName:	'removed',
 					content:		oldLayer.content as OSCMessageCommandContent,
-					context:		`removed: ${oldLayer.id}`
+					context:		`removed: ${oldLayer.id}`,
+					timelineObjId:	oldLayer.id
 				})
 			}
 		})
 		return commands
 	}
-	private _defaultCommandReceiver (time: number, cmd: OSCMessageCommandContent, context: CommandContext): Promise<any> {
+	private _defaultCommandReceiver (time: number, cmd: OSCMessageCommandContent, context: CommandContext, timelineObjId: string): Promise<any> {
 		time = time
 
 		let cwc: CommandWithContext = {
 			context: context,
-			command: cmd
+			command: cmd,
+			timelineObjId: timelineObjId
 		}
 		this.emit('debug', cwc)
 

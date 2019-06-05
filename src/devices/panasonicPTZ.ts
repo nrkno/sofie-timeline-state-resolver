@@ -22,18 +22,31 @@ import { PanasonicPtzHttpInterface } from './panasonicPTZAPI'
 
 export interface PanasonicPtzOptions extends DeviceOptions { // TODO - this doesnt match the others
 	options?: {
-		commandReceiver?: (time: number, cmd) => Promise<any>,
+		commandReceiver?: CommandReceiver
 		host?: string
 		port?: number
 		https?: boolean
 	}
 }
+export type CommandReceiver = (time: number, cmd: PanasonicPtzCommand, context: CommandContext, timelineObjId: string) => Promise<any>
 
 export interface PanasonicPtzState {
-	speed: number | undefined,
-	preset: number | undefined,
-	zoomSpeed: number | undefined,
-	zoom: number | undefined
+	speed?: {
+		value: number
+		timelineObjId: string
+	}
+	preset?: {
+		value: number
+		timelineObjId: string
+	}
+	zoomSpeed?: {
+		value: number
+		timelineObjId: string
+	}
+	zoom?: {
+		value: number
+		timelineObjId: string
+	}
 }
 
 export interface PanasonicPtzCommand {
@@ -44,8 +57,9 @@ export interface PanasonicPtzCommand {
 	zoom?: number // 0 is WIDE, 1 is TELE
 }
 export interface PanasonicPtzCommandWithContext {
-	command: PanasonicPtzCommand,
+	command: PanasonicPtzCommand
 	context: CommandContext
+	timelineObjId: string
 }
 type CommandContext = any
 
@@ -60,7 +74,7 @@ export class PanasonicPtzDevice extends DeviceWithState<TimelineState> {
 	private _device: PanasonicPtzHttpInterface | undefined
 	private _connected: boolean = false
 
-	private _commandReceiver: (time: number, cmd: PanasonicPtzCommand, context: CommandContext) => Promise<any>
+	private _commandReceiver: CommandReceiver
 
 	constructor (deviceId: string, deviceOptions: PanasonicPtzOptions, options) {
 		super(deviceId, deviceOptions, options)
@@ -136,20 +150,28 @@ export class PanasonicPtzDevice extends DeviceWithState<TimelineState> {
 
 				if (mapping.mappingType === MappingPanasonicPtzType.PRESET) {
 					let tlObjectSource = tlObject as any as TimelineObjPanasonicPtzPreset
-					ptzState.preset = tlObjectSource.content.preset
-
+					ptzState.preset = {
+						value: tlObjectSource.content.preset,
+						timelineObjId: tlObject.id
+					}
 				} else if (mapping.mappingType === MappingPanasonicPtzType.PRESET_SPEED) {
 					let tlObjectSource = tlObject as any as TimelineObjPanasonicPtzPresetSpeed
-					ptzState.speed = tlObjectSource.content.speed
-
+					ptzState.speed = {
+						value: tlObjectSource.content.speed,
+						timelineObjId: tlObject.id
+					}
 				} else if (mapping.mappingType === MappingPanasonicPtzType.ZOOM_SPEED) {
 					let tlObjectSource = tlObject as any as TimelineObjPanasonicPtzZoomSpeed
-					ptzState.zoomSpeed = tlObjectSource.content.zoomSpeed
-
+					ptzState.zoomSpeed = {
+						value: tlObjectSource.content.zoomSpeed,
+						timelineObjId: tlObject.id
+					}
 				} else if (mapping.mappingType === MappingPanasonicPtzType.ZOOM) {
 					let tlObjectSource = tlObject as any as TimelineObjPanasonicPtzZoom
-					ptzState.zoom = tlObjectSource.content.zoom
-
+					ptzState.zoom = {
+						value: tlObjectSource.content.zoom,
+						timelineObjId: tlObject.id
+					}
 				}
 			}
 		})
@@ -199,18 +221,22 @@ export class PanasonicPtzDevice extends DeviceWithState<TimelineState> {
 	}
 	private _getDefaultState (): PanasonicPtzState {
 		return {
-			preset: undefined,
-			speed: undefined,
-			zoomSpeed: 0,
-			zoom: undefined
+			// preset: undefined,
+			// speed: undefined,
+			zoomSpeed: {
+				value: 0,
+				timelineObjId: 'default'
+			}
+			// zoom: undefined
 		}
 	}
 
 	// @ts-ignore no-unused-vars
-	private _defaultCommandReceiver (time: number, cmd: PanasonicPtzCommand, context: CommandContext): Promise<any> {
+	private _defaultCommandReceiver (time: number, cmd: PanasonicPtzCommand, context: CommandContext, timelineObjId: string): Promise<any> {
 		let cwc: CommandWithContext = {
 			context: context,
-			command: cmd
+			command: cmd,
+			timelineObjId: timelineObjId
 		}
 		if (cmd.type === TimelineContentTypePanasonicPtz.PRESET) { // recall preset
 			if (this._device && cmd.preset !== undefined) {
@@ -263,7 +289,7 @@ export class PanasonicPtzDevice extends DeviceWithState<TimelineState> {
 
 			// add the new commands to the queue:
 			this._doOnTime.queue(time, undefined, (cmd: PanasonicPtzCommandWithContext) => {
-				return this._commandReceiver(time, cmd.command, cmd.context)
+				return this._commandReceiver(time, cmd.command, cmd.context, cmd.timelineObjId)
 			}, cmd)
 		})
 	}
@@ -281,36 +307,40 @@ export class PanasonicPtzDevice extends DeviceWithState<TimelineState> {
 				commands.push({
 					command: {
 						type: TimelineContentTypePanasonicPtz.PRESET,
-						preset: newNode.preset
+						preset: newNode.preset.value
 					},
-					context: `preset differ (${newNode.preset}, ${oldValue.preset})`
+					context: `preset differ (${newNode.preset}, ${oldValue.preset})`,
+					timelineObjId: newNode.preset.timelineObjId
 				})
 			}
 			if (newNode.speed !== oldValue.speed && newNode.speed !== undefined) {
 				commands.push({
 					command: {
 						type: TimelineContentTypePanasonicPtz.SPEED,
-						speed: newNode.speed
+						speed: newNode.speed.value
 					},
-					context: `preset spped differ (${newNode.speed}, ${oldValue.speed})`
+					context: `preset spped differ (${newNode.speed}, ${oldValue.speed})`,
+					timelineObjId: newNode.speed.timelineObjId
 				})
 			}
 			if (newNode.zoomSpeed !== oldValue.zoomSpeed && newNode.zoomSpeed !== undefined) {
 				commands.push({
 					command: {
 						type: TimelineContentTypePanasonicPtz.ZOOM_SPEED,
-						speed: newNode.zoomSpeed
+						speed: newNode.zoomSpeed.value
 					},
-					context: `zoom speed differ (${newNode.zoomSpeed}, ${oldValue.zoomSpeed})`
+					context: `zoom speed differ (${newNode.zoomSpeed}, ${oldValue.zoomSpeed})`,
+					timelineObjId: newNode.zoomSpeed.timelineObjId
 				})
 			}
 			if (newNode.zoom !== oldValue.zoom && newNode.zoom !== undefined) {
 				commands.push({
 					command: {
 						type: TimelineContentTypePanasonicPtz.ZOOM,
-						zoom: newNode.zoom
+						zoom: newNode.zoom.value
 					},
-					context: `zoom speed differ (${newNode.zoom}, ${oldValue.zoom})`
+					context: `zoom speed differ (${newNode.zoom}, ${oldValue.zoom})`,
+					timelineObjId: newNode.zoom.timelineObjId
 				})
 			}
 		}
