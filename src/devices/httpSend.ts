@@ -226,5 +226,8 @@ export class HttpSendDevice extends DeviceWithState<TimelineState> {
 				reject(`Unknown HTTP-send type: "${cmd.type}"`)
 			}
 		})
+		.catch(error => {
+			this.emit('commandError', error, cwc)
+		})
 	}
 }

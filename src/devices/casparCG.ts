@@ -701,7 +701,29 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> {
 				delete this._queue[resCommand.token]
 			}
 		}).catch((error) => {
-			this.emit('error', `casparcg.defaultCommandReceiver (${cmd.name})`, error)
+			let errorString = ''
+			if (error && error.response && error.response.code === 404) {
+				errorString = `404: File not found`
+			}
+
+			if (!errorString) {
+				errorString = (
+					error && error.response && error.response.raw ?
+					error.response.raw
+					: error.toString()
+				)
+			}
+
+			if (cmd.name) {
+				errorString += ` ${cmd.name} `
+			}
+			if (cmd['_objectParams'] && !_.isEmpty(cmd['_objectParams'])) {
+				errorString += ', params: ' + JSON.stringify(cmd['_objectParams'])
+			} else if (cmd.payload && !_.isEmpty(cmd.payload)) {
+				errorString += ', payload: ' + JSON.stringify(cmd.payload)
+			}
+			console.log('commandError', errorString)
+			this.emit('commandError', new Error(errorString), cwc)
 			if (cmd.name === 'ScheduleSetCommand') {
 				// delete this._queue[cmd.getParam('command').token]
 				delete this._queue[cmd.token]

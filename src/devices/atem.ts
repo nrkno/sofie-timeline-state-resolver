@@ -406,6 +406,9 @@ export class AtemDevice extends DeviceWithState<DeviceState> {
 		.then(() => {
 			// @todo: command was acknowledged by atem, how will we check if it did what we wanted?
 		})
+		.catch((error) => {
+			this.emit('commandError', error, cwc)
+		})
 	}
 	private _onAtemStateChanged (newState: AtemAtemState) {
 		let psus = newState.info.power || []

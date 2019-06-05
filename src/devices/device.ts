@@ -177,12 +177,13 @@ export abstract class Device extends EventEmitter {
 	on (event: 'error',				listener: (context: string, err: Error) => void): this
 	on (event: 'debug',				listener: (...debug: any[]) => void): this
 	/** The connection status has changed */
-	on (event: 'connectionChanged', listener: (statue: DeviceStatus) => void): this
+	on (event: 'connectionChanged', listener: (status: DeviceStatus) => void): this
 	/** A message to the resolver that something has happened that warrants a reset of the resolver (to re-run it again) */
 	on (event: 'resetResolver',		listener: () => void): this
 	/** A report that a command was sent too late */
 	on (event: 'slowCommand',		listener: (commandInfo: string) => void): this
-	// on (event: 'playoutError', listener: () => void): this
+	/** Something went wrong when executing a command  */
+	on (event: 'commandError', listener: (error: Error, context: CommandWithContext) => void): this
 	on (event: string | symbol, listener: (...args: any[]) => void): this {
 		return super.on(event, listener)
 	}
@@ -194,6 +195,7 @@ export abstract class Device extends EventEmitter {
 	emit (event: 'connectionChanged',	status: DeviceStatus): boolean
 	emit (event: 'resetResolver'): boolean
 	emit (event: 'slowCommand',			commandInfo: string): boolean
+	emit (event: 'commandError',		error: Error, context: CommandWithContext): boolean
 	emit (event: string, ...args: any[]): boolean {
 		return super.emit(event, ...args)
 	}

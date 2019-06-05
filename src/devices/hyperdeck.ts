@@ -397,6 +397,9 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> {
 		this.emit('debug', cwc)
 
 		return this._hyperdeck.sendCommand(command)
+		.catch(error => {
+			this.emit('commandError', error, cwc)
+		})
 	}
 	private _connectionChanged () {
 		this.emit('connectionChanged', this.getStatus())

@@ -284,7 +284,10 @@ export class LawoDevice extends DeviceWithState<TimelineState> {
 
 		_.each(newLawoState, (newNode: LawoStateNode, path: string) => {
 			let oldValue: LawoStateNode = oldLawoState[path] || null
-			let diff = getDiff(newNode, oldValue)
+			let diff = getDiff(
+				_.omit(newNode, 'timelineObjId'),
+				_.omit(oldValue, 'timelineObjId')
+			)
 			if (diff) {
 				// It's a plain value:
 				commands.push({

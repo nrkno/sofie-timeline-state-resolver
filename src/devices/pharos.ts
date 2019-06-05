@@ -345,7 +345,7 @@ export class PharosDevice extends DeviceWithState<TimelineState> {
 
 		return commands
 	}
-	private _defaultCommandReceiver (time: number, cmd: Command, context: CommandContext, timelineObjId: string): Promise<any> {
+	private async _defaultCommandReceiver (time: number, cmd: Command, context: CommandContext, timelineObjId: string): Promise<any> {
 		time = time
 
 		// emit the command to debug:
@@ -361,7 +361,11 @@ export class PharosDevice extends DeviceWithState<TimelineState> {
 		this.emit('debug', cwc)
 
 		// execute the command here
-		return cmd.content.fcn(...cmd.content.args)
+		try {
+			await cmd.content.fcn(...cmd.content.args)
+		} catch (e) {
+			this.emit('commandError', e, cwc)
+		}
 	}
 	private _connectionChanged () {
 		this.emit('connectionChanged', this.getStatus())

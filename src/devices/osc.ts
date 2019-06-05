@@ -220,7 +220,8 @@ export class OSCMessageDevice extends DeviceWithState<TimelineState> {
 
 			return Promise.resolve()
 		} catch (e) {
-			return Promise.reject(e)
+			this.emit('commandError', e, cwc)
+			return Promise.resolve()
 		}
 	}
 }
