@@ -327,7 +327,7 @@ export class PanasonicPtzDevice extends DeviceWithState<TimelineState> {
 					timelineObjId: newNode.zoomSpeed.timelineObjId
 				})
 			}
-			if (newNode.zoom && this.getValue(newNode.zoom) !== this.getValue(oldValue.zoom) && newNode.zoom !== undefined) {
+			if (newNode.zoom && this.getValue(newNode.zoom) !== this.getValue(oldValue.zoom) && this.getValue(newNode.zoom) !== undefined) {
 				commands.push({
 					command: {
 						type: TimelineContentTypePanasonicPtz.ZOOM,
