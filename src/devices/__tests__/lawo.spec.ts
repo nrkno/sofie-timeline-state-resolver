@@ -143,7 +143,7 @@ describe('Lawo', () => {
 				path: 'BASE.Fader.Motor dB Value'
 			}
 		)
-		expect(getMockCall(commandReceiver0, 0, 2)).toMatch(/null/i) // context
+		expect(getMockCall(commandReceiver0, 0, 2)).toBeTruthy()
 
 		await mockTime.advanceTimeToTicks(11000)
 
