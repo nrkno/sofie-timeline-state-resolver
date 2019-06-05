@@ -3,6 +3,10 @@ import * as _ from 'underscore'
 import { SlowReportOptions } from './types/src/mapping'
 
 export type DoOrderFunction = (...args: any[]) => void | Promise<any> | any
+export type DoOrderFunctionNothing = () => void | Promise<any> | any
+export type DoOrderFunction0<A> = (arg0: A) => void | Promise<any> | any
+export type DoOrderFunction1<A, B> = (arg0: A, arg1: B) => void | Promise<any> | any
+
 interface DoOrder {
 	time: number
 	fcn: DoOrderFunction
@@ -56,6 +60,9 @@ export class DoOnTime extends EventEmitter {
 		this._sendMode = sendMode
 		this._options = options || {}
 	}
+	public queue (time: number, queueId: string | undefined, fcn: DoOrderFunctionNothing): string
+	public queue<A> (time: number, queueId: string | undefined, fcn: DoOrderFunction0<A>, arg0: A): string
+	public queue<A, B> (time: number, queueId: string | undefined, fcn: DoOrderFunction1<A, B>, arg0: A, arg1: B): string
 	public queue (time: number, queueId: string | undefined, fcn: DoOrderFunction, ...args: any[]): string {
 		if (!(time >= 0)) throw Error(`DoOnTime: time argument must be >= 0 (${time})`)
 		if (!_.isFunction(fcn)) throw Error(`DoOnTime: fcn argument must be a function! (${typeof fcn})`)
@@ -140,7 +147,6 @@ export class DoOnTime extends EventEmitter {
 							sentTooSlow = this._verifySendCommand(o, startSend, endSend)
 							return p
 						} catch (e) {
-							this.emit('error', e)
 							return Promise.reject(e)
 						}
 					})
@@ -225,7 +231,7 @@ export class DoOnTime extends EventEmitter {
 					endSend: endSend,
 					args: this.representArguments(o)
 				}
-				this.emit('slowCommand', `Slow sent command, should have been sent at ${o.time}, was ${dt} ms slow (was added ${beforeTime} ms before planned), sendMode: ${SendMode[this._sendMode]}. Command: ${JSON.stringify(output)}`)
+				this.emit('slowCommand', `Slow sent command, should have been sent at ${o.time}, was ${dt} ms slow (was added ${(beforeTime >= 0) ? `${beforeTime} ms before` : `${-beforeTime} ms after` } planned), sendMode: ${SendMode[this._sendMode]}. Command: ${JSON.stringify(output)}`)
 				return true
 			}
 		}
