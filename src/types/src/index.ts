@@ -33,7 +33,8 @@ export enum DeviceType {
 	HYPERDECK = 7,
 	PHAROS = 8,
 	OSC = 9,
-	HTTPWATCHER = 10
+	HTTPWATCHER = 10,
+	SISYFOS = 11
 }
 
 export interface TSRTimelineKeyframe<T> extends Timeline.TimelineKeyframe {

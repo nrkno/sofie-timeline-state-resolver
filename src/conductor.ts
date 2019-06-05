@@ -31,6 +31,7 @@ export { DeviceContainer }
 import { threadedClass, ThreadedClass } from 'threadedclass'
 import { AsyncResolver } from './AsyncResolver'
 import { HttpWatcherDevice } from './devices/httpWatcher'
+import { SisyfosMessageDevice } from './devices/sisyfos'
 
 export const LOOKAHEADTIME = 5000 // Will look ahead this far into the future
 export const PREPARETIME = 2000 // Will prepare commands this time before the event is to happen
@@ -362,6 +363,15 @@ export class Conductor extends EventEmitter {
 				newDevice = await new DeviceContainer().create<OSCMessageDevice>(
 					'../../dist/devices/osc.js',
 					OSCMessageDevice,
+					deviceId,
+					deviceOptions,
+					options,
+					threadedClassOptions
+				)
+			} else if (deviceOptions.type === DeviceType.SISYFOS) {
+				newDevice = await new DeviceContainer().create<OSCMessageDevice>(
+					'../../dist/devices/sisyfos.js',
+					SisyfosMessageDevice,
 					deviceId,
 					deviceOptions,
 					options,
