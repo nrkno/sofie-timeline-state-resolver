@@ -51,6 +51,10 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState> {
 	}
 	init (options: SisfyosOptions): Promise<boolean> {
 		this._sisyfos = new SisyfosInterface()
+		this._sisyfos.once('initialized', () => {
+			this.setState(this._sisyfos.state, this.getCurrentTime())
+			this.emit('resetResolver')
+		})
 
 		return new Promise((resolve) => {
 			this._sisyfos.connect(options.host, options.port)
@@ -63,6 +67,8 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState> {
 	 * @param newState
 	 */
 	handleState (newState: TimelineState) {
+		if (!this._sisyfos.state) return // no me gusta
+
 		// Transform timeline states into device states
 		let previousStateTime = Math.max(this.getCurrentTime(), newState.time)
 		let oldState: SisyfosState = (this.getStateBefore(previousStateTime) || { state: { groups: {}, channels: {} } }).state
@@ -161,10 +167,10 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState> {
 		return deviceState
 	}
 	get deviceType () {
-		return DeviceType.OSC
+		return DeviceType.SISYFOS
 	}
 	get deviceName (): string {
-		return 'OSC ' + this.deviceId
+		return 'Sisyfos ' + this.deviceId
 	}
 	get queue () {
 		return this._doOnTime.getQueue()
@@ -288,7 +294,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState> {
 				requireTake = true
 			}
 
-			if (oldChannel.faderLevel !== newChannel.faderLevel) {
+			if (oldChannel && oldChannel.faderLevel !== newChannel.faderLevel) {
 				commands.push({
 					context: 'faderLevel change',
 					content: {

@@ -1,7 +1,8 @@
 import * as osc from 'osc'
 import { SisyfosState, SisyfosCommand, Commands, ToggleCommand, FaderCommand } from '../types/src/sisyfos'
+import { EventEmitter } from 'events'
 
-export class SisyfosInterface {
+export class SisyfosInterface extends EventEmitter {
 	host: string
 	port: number
 
@@ -25,7 +26,7 @@ export class SisyfosInterface {
 			remotePort: this.port,
 			metadata: true
 		})
-		this._oscClient.on('message', this.receiver)
+		this._oscClient.on('message', (received: osc.OscMessage) => this.receiver(received))
 
 		return new Promise((resolve) => {
 			this._oscClient.open()
@@ -76,6 +77,7 @@ export class SisyfosInterface {
 					channels: extState.channel,
 					groups: extState.grpFader
 				}
+				this.emit('initialized')
 			} else if (address[1] === 'ch') {
 				const ch = address[2]
 				this._state.channels[ch] = {
