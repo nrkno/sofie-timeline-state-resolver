@@ -42,17 +42,17 @@ export class SisyfosInterface extends EventEmitter {
 		if (command.type === Commands.TAKE) {
 			this._oscClient.send({ address: '/take', args: [] })
 		} else if (command.type === Commands.TOGGLE_PGM) {
-			this._oscClient.send({ address: `/ch/${(command as ToggleCommand).channel}/pgm`, args: [{
+			this._oscClient.send({ address: `/ch/${(command as ToggleCommand).channel + 1}/pgm`, args: [{
 				type: 'i',
 				value: (command as ToggleCommand).value ? 1 : 0
 			}] })
 		} else if (command.type === Commands.TOGGLE_PST) {
-			this._oscClient.send({ address: `/ch/${(command as ToggleCommand).channel}/pst`, args: [{
+			this._oscClient.send({ address: `/ch/${(command as ToggleCommand).channel + 1}/pst`, args: [{
 				type: 'i',
 				value: (command as ToggleCommand).value ? 1 : 0
 			}] })
 		} else if (command.type === Commands.SET_FADER) {
-			this._oscClient.send({ address: `/ch/${(command as FaderCommand).channel}/faderlevel`, args: [{
+			this._oscClient.send({ address: `/ch/${(command as FaderCommand).channel + 1}/faderlevel`, args: [{
 				type: 'f',
 				value: (command as FaderCommand).value
 			}] })
@@ -68,7 +68,7 @@ export class SisyfosInterface extends EventEmitter {
 	}
 
 	private receiver (message: osc.OscMessage) {
-		const address = message.address.split('/')
+		const address = message.address.substr(1).split('/')
 
 		if (address[0] === 'state') {
 			if (address[1] === 'full') {
