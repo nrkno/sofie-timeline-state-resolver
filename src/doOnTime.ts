@@ -6,6 +6,7 @@ export type DoOrderFunction = (...args: any[]) => void | Promise<any> | any
 export type DoOrderFunctionNothing = () => void | Promise<any> | any
 export type DoOrderFunction0<A> = (arg0: A) => void | Promise<any> | any
 export type DoOrderFunction1<A, B> = (arg0: A, arg1: B) => void | Promise<any> | any
+export type DoOrderFunction2<A, B, C> = (arg0: A, arg1: B, arg2: C) => void | Promise<any> | any
 
 interface DoOrder {
 	time: number
@@ -63,6 +64,7 @@ export class DoOnTime extends EventEmitter {
 	public queue (time: number, queueId: string | undefined, fcn: DoOrderFunctionNothing): string
 	public queue<A> (time: number, queueId: string | undefined, fcn: DoOrderFunction0<A>, arg0: A): string
 	public queue<A, B> (time: number, queueId: string | undefined, fcn: DoOrderFunction1<A, B>, arg0: A, arg1: B): string
+	public queue<A, B, C> (time: number, queueId: string | undefined, fcn: DoOrderFunction2<A, B, C>, arg0: A, arg1: B, arg2: C): string
 	public queue (time: number, queueId: string | undefined, fcn: DoOrderFunction, ...args: any[]): string {
 		if (!(time >= 0)) throw Error(`DoOnTime: time argument must be >= 0 (${time})`)
 		if (!_.isFunction(fcn)) throw Error(`DoOnTime: fcn argument must be a function! (${typeof fcn})`)

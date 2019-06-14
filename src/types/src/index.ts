@@ -6,6 +6,7 @@ export * from './lawo'
 export * from './osc'
 export * from './pharos'
 export * from './ptz'
+export * from './quantel'
 import * as Timeline from './superfly-timeline'
 import { TimelineObjAtemAny } from './atem'
 import { TimelineObjCasparCGAny } from './casparcg'
@@ -17,6 +18,7 @@ import { TimelineObjPharosAny } from './pharos'
 import { TimelineObjPanasonicPtzAny } from './ptz'
 import { TimelineObjAbstractAny } from './abstract'
 import { TSRTimelineObjProps } from './mapping'
+import { TimelineObjQuantelAny } from './quantel'
 
 export { Timeline }
 export * from './mapping'
@@ -33,7 +35,8 @@ export enum DeviceType {
 	HYPERDECK = 7,
 	PHAROS = 8,
 	OSC = 9,
-	HTTPWATCHER = 10
+	HTTPWATCHER = 10,
+	QUANTEL = 11
 }
 
 export interface TSRTimelineKeyframe<T> extends Timeline.TimelineKeyframe {
@@ -65,7 +68,8 @@ export type TSRTimelineObj = (
 	TimelineObjLawoAny |
 	TimelineObjOSCAny |
 	TimelineObjPharosAny |
-	TimelineObjPanasonicPtzAny
+	TimelineObjPanasonicPtzAny |
+	TimelineObjQuantelAny
 )
 
 export type TSRTimeline = Array<TSRTimelineObj>

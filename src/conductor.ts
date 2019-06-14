@@ -29,6 +29,7 @@ import { DeviceContainer } from './devices/deviceContainer'
 import { threadedClass, ThreadedClass } from 'threadedclass'
 import { AsyncResolver } from './AsyncResolver'
 import { HttpWatcherDevice } from './devices/httpWatcher'
+import { QuantelDevice } from './devices/quantel'
 
 export { DeviceContainer }
 export { CommandWithContext }
@@ -363,6 +364,15 @@ export class Conductor extends EventEmitter {
 				newDevice = await new DeviceContainer().create<OSCMessageDevice>(
 					'../../dist/devices/osc.js',
 					OSCMessageDevice,
+					deviceId,
+					deviceOptions,
+					options,
+					threadedClassOptions
+				)
+			} else if (deviceOptions.type === DeviceType.QUANTEL) {
+				newDevice = await new DeviceContainer().create<QuantelDevice>(
+					'../../dist/devices/quantel.js',
+					QuantelDevice,
 					deviceId,
 					deviceOptions,
 					options,
