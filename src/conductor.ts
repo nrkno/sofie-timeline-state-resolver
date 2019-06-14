@@ -415,6 +415,8 @@ export class Conductor extends EventEmitter {
 
 			await newDevice.device.init(deviceOptions.options)
 
+			await newDevice.reloadProps() // because the device name might have changed after init
+
 			deviceName = newDevice.deviceName
 			this.emit('info', (DeviceType[deviceOptions.type] + ' initialized!'))
 			return newDevice
@@ -642,13 +644,12 @@ export class Conductor extends EventEmitter {
 			}
 
 			// Split the state into substates that are relevant for each device
-			let getFilteredLayers = async (layers: TimelineState['layers'], device: DeviceContainer) => {
+			let getFilteredLayers = (layers: TimelineState['layers'], device: DeviceContainer) => {
 				let filteredState = {}
 				const deviceId = device.deviceId
 				const deviceType = device.deviceType
-				_.each(layers, async (o: ResolvedTimelineObjectInstance, layerId: string) => {
+				_.each(layers, (o: ResolvedTimelineObjectInstance, layerId: string) => {
 					const oExt: ResolvedTimelineObjectInstanceExtended = o
-
 					let mapping: Mapping = this._mapping[o.layer + '']
 					if (!mapping && oExt.isLookahead && oExt.lookaheadForLayer) {
 						mapping = this._mapping[oExt.lookaheadForLayer]
@@ -664,14 +665,13 @@ export class Conductor extends EventEmitter {
 				})
 				return filteredState
 			}
-
 			// push state to the right device
 			let ps: Promise<any>[] = []
 			ps = _.map(this.devices, async (device: DeviceContainer) => {
 				// The subState contains only the parts of the state relevant to that device
 				let subState: TimelineState = {
 					time: tlState.time,
-					layers: await getFilteredLayers(tlState.layers, device),
+					layers: getFilteredLayers(tlState.layers, device),
 					nextEvents: []
 				}
 				let removeParent = o => {

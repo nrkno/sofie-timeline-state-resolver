@@ -40,11 +40,15 @@ export class DeviceContainer {
 			[ deviceId, deviceOptions, options ],
 			threadConfig
 		)
+		await this.reloadProps()
+
+		return this
+	}
+
+	public async reloadProps (): Promise<void> {
 		this._deviceId = await this.device.deviceId
 		this._deviceType = await this.device.deviceType
 		this._deviceName = await this.device.deviceName
-
-		return this
 	}
 
 	public get device (): ThreadedClass<Device> 				{ return this._device }
