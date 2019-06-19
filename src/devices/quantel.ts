@@ -489,7 +489,7 @@ class QuantelManager {
 		let clipId = await this.getClipId(cmd.clip)
 
 		const clipData = await this._quantel.getClip(clipId)
-
+		if (!clipData) throw new Error(`Clip ${clipId} not found`)
 		if (!clipData.PoolID) throw new Error(`Clip ${clipData.ClipID} missing PoolID`)
 
 		// Check that the clip is present on the server:
@@ -528,7 +528,7 @@ class QuantelManager {
 		} else {
 
 			// Fetch fragments of clip:
-			const fragments = await (
+			const fragmentsInfo = await (
 				cmd.clip.inPoint && cmd.clip.length ?
 				this._quantel.getClipFragments(clipId, inPoint, outPoint) :
 				this._quantel.getClipFragments(clipId)
@@ -540,7 +540,7 @@ class QuantelManager {
 
 			// Load the fragments onto Port:
 			portInPoint = portStatus.endOfData || 0
-			const newPortStatus = await this._quantel.loadFragmentsOntoPort(cmd.portId, fragments, portInPoint)
+			const newPortStatus = await this._quantel.loadFragmentsOntoPort(cmd.portId, fragmentsInfo.fragments, portInPoint)
 			if (!newPortStatus) throw new Error(`Port ${cmd.portId} not found after loading fragments`)
 			portOutPoint = newPortStatus.endOfData - 1
 
