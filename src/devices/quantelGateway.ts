@@ -285,64 +285,70 @@ type Methods = 'post' | 'get' | 'put' | 'delete'
 
 // Note: These typings are a copied from https://github.com/nrkno/tv-automation-quantel-gateway
 export namespace Q {
+	type DateString = string // it's a string with an ISO-date in it
 
 	export interface ZoneInfo {
-		type: 'ZoneInfo',
-		zoneNumber: number,
-		zoneName: string,
+		type: 'ZonePortal'
+		zoneNumber: number
+		zoneName: string
 		isRemote: boolean
 	}
 
 	export interface ServerInfo {
-		type: 'ServerInfo',
-		ident: number,
-		down: boolean,
-		name?: string,
-		numChannels?: number,
-		pools?: number[],
-		portNames?: string[],
+		type: 'Server'
+		ident: number
+		down: boolean
+		name?: string
+		numChannels?: number
+		pools?: number[]
+		portNames?: string[]
 		chanPorts?: string[]
 	}
 
 	export interface PortRef {
-		serverID: number | string,
-		portName: string,
+		serverID: number | string
+		portName: string
 	}
 
 	export interface PortInfo extends PortRef {
-		type?: 'PortInfo',
-		channelNo: number,
-		portID?: number,
-		audioOnly?: boolean,
-		assigned?: boolean,
+		type?: 'PortInfo'
+		channelNo: number
+		portID?: number
+		audioOnly?: boolean
+		assigned?: boolean
 	}
 
 	export interface PortStatus extends PortRef {
-		type: 'PortStatus',
-		portID: number,
-		refTime: string,
-		portTime: string,
-		speed: number,
-		offset: number,
-		status: string,
-		endOfData: number,
-		framesUnused: number,
-		outputTime: string,
-		channels: number[],
+		type: 'PortStatus'
+		portID: number
+		refTime: string
+		portTime: string
+		speed: number
+		offset: number
+		status: string
+		endOfData: number
+		framesUnused: number
+		outputTime: string
+		channels: number[]
 	}
 
 	export interface ReleaseStatus extends PortRef {
-		type: 'ReleaseStatus',
+		type: 'ReleaseStatus'
 		released: boolean
 	}
 
 	export interface ClipRef {
-		clipID: number,
+		clipID: number
 	}
 
 	export interface FragmentRef extends ClipRef {
-		start?: number,
-		finish?: number,
+		start?: number
+		finish?: number
+	}
+
+	export interface PortFragmentRef extends PortRef {
+		start?: number
+		finish?: number
 	}
 
 	export interface ClipPropertyList {
@@ -350,88 +356,119 @@ export namespace Q {
 	}
 
 	export interface ClipDataSummary {
-		type: string,
-		ClipID: number,
-		CloneID: number | null,
-		Completed: Date | null,
-		Created: Date, // ISO-formatted date
-		Description: string,
+		type: 'ClipDataSummary' | 'ClipData'
+		ClipID: number
+		CloneID: number | null
+		Completed: DateString | null
+		Created: DateString, // ISO-formatted date
+		Description: string
 		Frames: string, // TODO ISA type is None ... not sure whether to convert to number
-		Owner: string,
-		PoolID: number | null,
-		Title: string,
+		Owner: string
+		PoolID: number | null
+		Title: string
 	}
 
 	export interface ClipData extends ClipDataSummary {
-		Category: string,
-		CloneZone: number | null,
-		Destination: number | null,
-		Expiry: Date | null, // ISO-formatted date
-	 	HasEditData: number | null,
-		Inpoint: number | null,
-		JobID: number | null,
-		Modified: string | null,
-		NumAudTracks: number | null,
-		Number: number | null,
-		NumVidTracks: number | null,
-		Outpoint: number | null,
-		PlaceHolder: boolean,
-		PlayAspect: string,
-		PublishedBy: string,
-		Register: string,
-		Tape: string,
-		Template: number | null,
-		UnEdited: number | null,
-		PlayMode: string,
-		MosActive: boolean,
-		Division: string,
-		AudioFormats: string,
-		VideoFormats: string,
-		ClipGUID: string,
-		Protection: string,
-		VDCPID: string,
-		PublishCompleted: Date | null, // ISO-formatted date
+		type: 'ClipData'
+		Category: string
+		CloneZone: number | null
+		Destination: number | null
+		Expiry: DateString | null, // ISO-formatted date
+	 	HasEditData: number | null
+		Inpoint: number | null
+		JobID: number | null
+		Modified: string | null
+		NumAudTracks: number | null
+		Number: number | null
+		NumVidTracks: number | null
+		Outpoint: number | null
+		PlaceHolder: boolean
+		PlayAspect: string
+		PublishedBy: string
+		Register: string
+		Tape: string
+		Template: number | null
+		UnEdited: number | null
+		PlayMode: string
+		MosActive: boolean
+		Division: string
+		AudioFormats: string
+		VideoFormats: string
+		ClipGUID: string
+		Protection: string
+		VDCPID: string
+		PublishCompleted: DateString | null, // ISO-formatted date
 	}
 
 	export interface ServerFragment {
-		type: 'VideoFragment' | 'AudioFragment' | 'TimeCode',
-		trackNum: number,
-		start: number,
-		end: number,
+		type: string
+		trackNum: number
+		start: number
+		finish: number
+	}
+	export type ServerFragmentTypes =
+		VideoFragment |
+		AudioFragment |
+		AUXFragment |
+		CCFragment |
+		TimecodeFragment |
+		EffectFragment
+
+	interface PositionData extends ServerFragment {
+		rushID: string
+		format: number
+		poolID: number
+		poolFrame: number
+		skew: number
+		rushFrame: number
 	}
 
-	export interface VideoFragment extends ServerFragment {
-		rushID: string,
-		format: number,
-		poolID: number,
-		poolFrame: number,
-		skew: number,
-		rushFrame: number,
+	export interface VideoFragment extends PositionData {
+		type: 'VideoFragment'
 	}
 
-	export interface AudioFragment extends VideoFragment { }
-	export interface AUXFragment extends VideoFragment { }
+	export interface AudioFragment extends PositionData {
+		type: 'AudioFragment'
+	}
+
+	export interface AUXFragment extends PositionData {
+		type: 'AUXFragment'
+	}
 
 	export interface CCFragment extends ServerFragment {
-		ccID: string,
-		ccType: number,
-		effectID: number,
+		type: 'CCFragment'
+		ccID: string
+		ccType: number
+		effectID: number
+	}
+	export interface EffectFragment extends ServerFragment {
+		type: 'EffectFragment'
+		effectID: number
+	}
+
+	export interface TimecodeFragment extends ServerFragment {
+		startTimecode: string
+		userBits: number
 	}
 
 	// TODO extend with the different types
 	export interface ServerFragments extends ClipRef {
-		type: 'ServerFragments',
-		fragments: ServerFragment[]
+		type: 'ServerFragments'
+		fragments: ServerFragmentTypes[]
+	}
+
+	export interface PortServerFragments extends ServerFragments, PortRef {
+		clipID: -1
 	}
 
 	export interface PortLoadInfo extends PortRef {
-		fragments: ServerFragment[],
+		fragments: ServerFragmentTypes[]
 		offset?: number
 	}
 
 	export interface PortLoadStatus extends PortRef {
-		type: string,
-		fragmentCount: number,
+		type: 'PortLoadStatus'
+		fragmentCount: number
 		offset: number
 	}
 
@@ -443,13 +480,13 @@ export namespace Q {
 	}
 
 	export interface TriggerInfo extends PortRef {
-		trigger: Trigger,
+		trigger: Trigger
 		offset?: number
 	}
 
 	export interface TriggerResult extends TriggerInfo {
-		type: string,
-		success: boolean,
+		type: 'TriggerResult'
+		success: boolean
 	}
 
 	export interface JumpInfo extends PortRef {
@@ -457,29 +494,39 @@ export namespace Q {
 	}
 
 	export interface JumpResult extends JumpInfo {
-		type: string,
-		success: boolean,
+		type: 'HardJumpResult' | 'TriggeredJumpResult'
+		success: boolean
 	}
 
 	export interface ThumbnailSize {
-		width: number,
+		width: number
 		height: number
 	}
 
 	export interface ThumbnailOrder extends ClipRef {
-		offset: number,
-		stride: number,
-		count: number,
+		offset: number
+		stride: number
+		count: number
 	}
 
 	export interface ConnectionDetails {
-		type: string,
-		isaIOR: string | null,
-		href: string,
+		type: string
+		isaIOR: string | null
+		href: string
 	}
 
 	export interface CloneRequest extends ClipRef {
-		poolID: number,
+		poolID: number
 		highPriority?: boolean
+	}
+
+	export interface WipeInfo extends PortRef {
+		start?: number
+		frames?: number
+	}
+
+	export interface WipeResult extends WipeInfo {
+		type: 'WipeResult'
+		wiped: boolean
 	}
 }
