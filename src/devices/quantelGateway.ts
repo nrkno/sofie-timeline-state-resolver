@@ -20,15 +20,8 @@ export class QuantelGateway extends EventEmitter {
 	private _statusMessage: string | null = 'Initializing...' // null = all good
 	private _cachedServer?: Q.ServerInfo | null
 
-	// TMP, to be removed later:
-	private _doOnTime: DoOnTime
-
 	constructor () {
 		super()
-
-		this._doOnTime = new DoOnTime(() => {
-			return Date.now()
-		}, SendMode.IN_ORDER)
 	}
 
 	public async init (
@@ -237,29 +230,30 @@ export class QuantelGateway extends EventEmitter {
 		}
 		return this._ensureGoodResponse(this.sendRaw(method, `${resource}`, queryParameters, bodyData))
 	}
+	// private sendRaw (
+	// 	method: Methods,
+	// 	resource: string,
+	// 	queryParameters?: QueryParameters,
+	// 	bodyData?: object
+	// ): Promise<any> {
+
+	// 	// This is a temporary implementation, to make the stuff run in order
+	// 	return new Promise((resolve, reject) => {
+	// 		this._doOnTime.queue(
+	// 			0, // run as soon as possible
+	// 			undefined,
+	// 			(method, resource, bodyData) => {
+	// 				return this.sendRaw2(method, resource, queryParameters, bodyData)
+	// 				.then(resolve)
+	// 				.catch(reject)
+	// 			},
+	// 			method,
+	// 			resource,
+	// 			bodyData
+	// 		)
+	// 	})
+	// }
 	private sendRaw (
-		method: Methods,
-		resource: string,
-		queryParameters?: QueryParameters,
-		bodyData?: object
-	): Promise<any> {
-		// This is a temporary implementation, to make the stuff run in order
-		return new Promise((resolve, reject) => {
-			this._doOnTime.queue(
-				0, // run as soon as possible
-				undefined,
-				(method, resource, bodyData) => {
-					return this.sendRaw2(method, resource, queryParameters, bodyData)
-					.then(resolve)
-					.catch(reject)
-				},
-				method,
-				resource,
-				bodyData
-			)
-		})
-	}
-	private sendRaw2 (
 		method: Methods,
 		resource: string,
 		queryParameters?: QueryParameters,
