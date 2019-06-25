@@ -660,8 +660,8 @@ class QuantelManager {
 
 			// Schedule the port to stop at the last frame of the clip
 			if (loadedFragments.portOutPoint) {
-				await this._quantel.portStop(cmd.portId, loadedFragments.portOutPoint)
-				trackedPort.scheduledStop = loadedFragments.portOutPoint
+				await this._quantel.portStop(cmd.portId, loadedFragments.portOutPoint - 1)
+				trackedPort.scheduledStop = loadedFragments.portOutPoint - 1
 			}
 		}
 	}
