@@ -136,80 +136,90 @@ export class QuantelGateway extends EventEmitter {
 
 	/** Create a port and connect it to a channel */
 	public async getPort (portId: string): Promise<Q.PortStatus | null> {
-		return this._ensureGoodResponse(this.sendServer('get', `port/${portId}`), true)
+		try {
+			return this.sendServer('get', `port/${portId}`)
+		} catch (e) {
+			if (e.status === 404) return null
+			throw e
+		}
 	}
 	public async createPort (portId: string, channelId: number): Promise<Q.PortInfo> {
-		return this._ensureGoodResponse(this.sendServer('put', `port/${portId}/channel/${channelId}`))
+		return this.sendServer('put', `port/${portId}/channel/${channelId}`)
 	}
 	public async releasePort (portId: string): Promise<Q.ReleaseStatus> {
-		return this._ensureGoodResponse(this.sendServer('delete', `port/${portId}`))
+		return this.sendServer('delete', `port/${portId}`)
 	}
 
 	/** Get info about a clip */
 	public async getClip (clipId: number): Promise<Q.ClipData | null> {
-		return this._ensureGoodResponse(this.sendZone('get', `clip/${clipId}`) as Promise<Q.ClipData>, true)
+		try {
+			return this.sendZone('get', `clip/${clipId}`) as Promise<Q.ClipData>
+		} catch (e) {
+			if (e.status === 404) return null
+			throw e
+		}
 	}
 	public async searchClip (searchQuery: { Title: string }): Promise<Q.ClipDataSummary[]> {
-		return this._ensureGoodResponse(this.sendZone('get', `clip`, {
+		return this.sendZone('get', `clip`, {
 			Title: searchQuery.Title
-		}))
+		})
 	}
 	public async getClipFragments (clipId: number): Promise<Q.ServerFragments>
 	public async getClipFragments (clipId: number, inPoint: number, outPoint: number): Promise<Q.ServerFragments> // Query fragments for a specific in-out range:
 	public async getClipFragments (clipId: number, inPoint?: number, outPoint?: number): Promise<Q.ServerFragments> {
 		if (inPoint !== undefined && outPoint !== undefined) {
-			return this._ensureGoodResponse(this.sendZone('get', `clip/${clipId}/fragments/${inPoint}-${outPoint}`))
+			return this.sendZone('get', `clip/${clipId}/fragments/${inPoint}-${outPoint}`)
 		} else {
-			return this._ensureGoodResponse(this.sendZone('get', `clip/${clipId}/fragments`))
+			return this.sendZone('get', `clip/${clipId}/fragments`)
 		}
 	}
 	/** Load specified fragments onto a port */
 	public async loadFragmentsOntoPort (portId: string, fragments: Q.ServerFragmentTypes[], offset?: number): Promise<Q.PortStatus> {
-		return this._ensureGoodResponse(this.sendServer('post', `port/${portId}/fragments`, {
+		return this.sendServer('post', `port/${portId}/fragments`, {
 			offset: offset
-		}, fragments))
+		}, fragments)
 	}
 	/** Query the port for which fragments are loaded. */
 	public async getFragmentsOnPort (portId: string, rangeStart?: number, rangeEnd?: number): Promise<Q.ServerFragments> {
-		return this._ensureGoodResponse(this.sendServer('get', `port/${portId}/fragments`, {
+		return this.sendServer('get', `port/${portId}/fragments`, {
 			start: rangeStart,
 			finish: rangeEnd
-		}))
+		})
 		// /:zoneID/server/:serverID/port/:portID/fragments(?start=:start&finish=:finish)
 	}
 	/** Start playing on a port */
 	public async portPlay (portId: string): Promise<Q.TriggerResult> {
-		const response = await this._ensureGoodResponse(this.sendServer('post', `port/${portId}/trigger/START`)) as Q.TriggerResult
+		const response = await this.sendServer('post', `port/${portId}/trigger/START`) as Q.TriggerResult
 		if (!response.success) throw Error(`Quantel trigger start: Server returned success=${response.success}`)
 		return response
 	}
 	/** Stop (pause) playback on a port. If stopAtFrame is provided, the playback will stop at the frame specified. */
 	public async portStop (portId: string, stopAtFrame?: number): Promise<Q.TriggerResult> {
-		const response = await this._ensureGoodResponse(this.sendServer('post', `port/${portId}/trigger/STOP`, {
+		const response = await this.sendServer('post', `port/${portId}/trigger/STOP`, {
 			offset: stopAtFrame
-		})) as Q.TriggerResult
+		}) as Q.TriggerResult
 		if (!response.success) throw Error(`Quantel trigger stop: Server returned success=${response.success}`)
 		return response
 	}
 	/** Jump directly to a frame, note that this might cause flicker on the output, as the frames haven't been preloaded  */
 	public async portHardJump (portId: string, jumpToFrame?: number): Promise<Q.JumpResult> {
-		const response = await this._ensureGoodResponse(this.sendServer('post', `port/${portId}/trigger/JUMP`, {
+		const response = await this.sendServer('post', `port/${portId}/trigger/JUMP`, {
 			offset: jumpToFrame
-		})) as Q.JumpResult
+		}) as Q.JumpResult
 		if (!response.success) throw Error(`Quantel hard jump: Server returned success=${response.success}`)
 		return response
 	}
 	/** Prepare a jump to a frame (so that those frames are preloaded into memory) */
 	public async portPrepareJump (portId: string, jumpToFrame?: number): Promise<Q.JumpResult> {
-		const response = await this._ensureGoodResponse(this.sendServer('put', `port/${portId}/jump`, {
+		const response = await this.sendServer('put', `port/${portId}/jump`, {
 			offset: jumpToFrame
-		})) as Q.JumpResult
+		}) as Q.JumpResult
 		if (!response.success) throw Error(`Quantel prepare jump: Server returned success=${response.success}`)
 		return response
 	}
 	/** After having preloading a jump, trigger the jump */
 	public async portTriggerJump (portId: string): Promise<Q.TriggerResult> {
-		const response = await this._ensureGoodResponse(this.sendServer('post', `port/${portId}/trigger/JUMP`)) as Q.TriggerResult
+		const response = await this.sendServer('post', `port/${portId}/trigger/JUMP`) as Q.TriggerResult
 		if (!response.success) throw Error(`Quantel trigger jump: Server returned success=${response.success}`)
 		return response
 	}
@@ -217,10 +227,10 @@ export class QuantelGateway extends EventEmitter {
 	 * If offsetIn and offsetOut is provided, will clear the fragments for that time range
 	 */
 	public async portClear (portId: string, rangeStart?: number, rangeEnd?: number): Promise<Q.WipeResult> {
-		const response = await this._ensureGoodResponse(this.sendServer('delete', `port/${portId}/fragments`, {
+		const response = await this.sendServer('delete', `port/${portId}/fragments`, {
 			start: rangeStart,
 			finish: rangeEnd
-		})) as Q.WipeResult
+		}) as Q.WipeResult
 		if (!response.wiped) throw Error(`Quantel clear port: Server returned wiped=${response.wiped}`)
 		return response
 	}
@@ -270,6 +280,7 @@ export class QuantelGateway extends EventEmitter {
 			let requestMethod = request[method]
 			if (requestMethod) {
 				const url = this.urlQuery(this._gatewayUrl + '/' + resource, queryParameters)
+
 				requestMethod(
 					url,
 					{
