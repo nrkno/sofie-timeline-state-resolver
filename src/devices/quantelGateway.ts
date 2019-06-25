@@ -45,7 +45,6 @@ export class QuantelGateway extends EventEmitter {
 
 		// Connect to ISA:
 		await this.connectToISA(ISAUrl)
-
 		this._zoneId = zoneId || 'default'
 		this._serverId = serverId
 

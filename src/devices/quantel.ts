@@ -551,7 +551,6 @@ class QuantelManager {
 				outPoint: outPoint
 			}
 		}
-
 		// Prepare the jump?
 		let timeLeftToPlay = cmd.timeOfPlay - this.getCurrentTime()
 		if (timeLeftToPlay > 0) { // We have time to prepare the jump
@@ -568,6 +567,7 @@ class QuantelManager {
 		}
 	}
 	public async playClip (cmd: QuantelCommandPlayClip): Promise<void> {
+
 		await this.prepareClipJump(cmd, 'play')
 	}
 	public async pauseClip (cmd: QuantelCommandPauseClip): Promise<void> {
@@ -575,7 +575,6 @@ class QuantelManager {
 	}
 	public async clearClip (cmd: QuantelCommandClearClip): Promise<void> {
 		const trackedPort = this.getTrackedPort(cmd.portId)
-
 		await this._quantel.portClear(cmd.portId)
 
 		trackedPort.jumpOffset = null
@@ -587,7 +586,6 @@ class QuantelManager {
 		const trackedPort = this.getTrackedPort(cmd.portId)
 
 		const clipId = await this.getClipId(cmd.clip)
-
 		const loadedFragments = trackedPort.loadedFragments[clipId]
 
 		if (!loadedFragments) {
@@ -612,7 +610,6 @@ class QuantelManager {
 			// Invalidate stored jump:
 			trackedPort.jumpOffset = null
 		}
-
 		// Jump the port playhead to the correct place
 		if (trackedPort.jumpOffset !== null) {
 			// Good, there is a prepared jump
@@ -623,13 +620,11 @@ class QuantelManager {
 				trackedPort.scheduledStop = null
 				trackedPort.playing = false
 			}
-
 			// Trigger the jump:
 			await this._quantel.portTriggerJump(cmd.portId)
 			trackedPort.offset = trackedPort.jumpOffset
 		} else {
 			// No jump has been prepared
-
 			if (cmd.mode === QuantelControlMode.QUALITY) {
 				// Prepare a soft jump:
 				await this._quantel.portPrepareJump(cmd.portId, jumpToOffset)
