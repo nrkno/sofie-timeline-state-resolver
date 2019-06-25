@@ -71,15 +71,14 @@ interface ErrorResponse {
 	stack: string
 }
 function urlRoute (requestType: string, url: string, routes: {[route: string]: (params: Params) => object}): object {
-	let body: object = {
+	let body: any = {
 		status: 404,
 		message: `(Mock) Not found. Request ${requestType} ${url}`,
 		stack: ''
 	}
 
 	const matchUrl = `${requestType} ${url}`
-
-	// console.log('request: ' + matchUrl)
+	let reroutedParams: any = null
 
 	let found = false
 	let routeKeys = Object.keys(routes).sort((a,b) => {
@@ -105,8 +104,15 @@ function urlRoute (requestType: string, url: string, routes: {[route: string]: (
 					const p = param.slice(1) // remove the prepended ':'
 					params[p] = m[index + 1]
 				})
-				body = callback(params)
-				found = true
+
+				body = callback(reroutedParams || params)
+
+				if (body.__reroute === true) {
+					// reroute to another other route
+					if (!reroutedParams) reroutedParams = params
+				} else {
+					found = true
+				}
 			}
 		}
 	})
@@ -184,21 +190,29 @@ function handleRequest (quantelServer: QuantelServerMockOptions, triggerFcn: Fun
 					}
 				},
 				// Port info:
-				'get /:zoneID/server/:serverID/port/:portID': (params): Q.PortStatus => {
-					return {
-						type: 'PortStatus',
-						serverID: params.serverID,
-						portName: 'fred',
-						refTime: '14:47:31:00',
-						portTime: '10:00:15:03',
-						portID: params.portID,
-						speed: 1,
-						offset: 0,
-						status: 'unknown',
-						endOfData: 0,
-						framesUnused: 0,
-						channels: [ 1 ],
-						outputTime: '00:00:00:00'
+				'get /:zoneID/server/:serverID/port/:portID': (params): Q.PortStatus | ErrorResponse => {
+					if (quantelServer[params.portID]) {
+						return {
+							type: 'PortStatus',
+							serverID: params.serverID,
+							portName: 'fred',
+							refTime: '14:47:31:00',
+							portTime: '10:00:15:03',
+							portID: params.portID,
+							speed: 1,
+							offset: 0,
+							status: 'unknown',
+							endOfData: quantelServer[params.portID].endOfData || 0,
+							framesUnused: 0,
+							channels: [ 1 ],
+							outputTime: '00:00:00:00'
+						}
+					} else {
+						return {
+							status: 404,
+							message: `Not found. The port with identifier '${params.portID}' was not found.`,
+							stack: ''
+						}
 					}
 				},
 				// Search for clip:
@@ -327,14 +341,37 @@ function handleRequest (quantelServer: QuantelServerMockOptions, triggerFcn: Fun
 					}
 				},
 				// get clip fragments:
+				'get /:zoneID/clip/:clipID/fragments/:inOutPoints': () => {
+					return { __reroute: true }
+				},
 				'get /:zoneID/clip/:clipID/fragments': (params): Q.ServerFragments | ErrorResponse => {
-					if (params.clipID === '2' || params.clipID === '1337') {
+					const finish = (
+						params.clipID === '2' ?
+						1000 :
+						params.clipID === '1337' ?
+						2000 :
+						0
+					)
+					let inPoint = 0
+					let outPoint = finish
+
+					if (params.inOutPoints) {
+						let m = params.inOutPoints.match(/(\d+)-(\d+)/)
+						if (m) {
+							inPoint = parseInt(m[1], 10)
+							outPoint = Math.min(outPoint, parseInt(m[2], 10))
+						}
+					}
+
+					outPoint = outPoint - inPoint
+
+					if (finish) {
 						const fragments: Q.ServerFragmentTypes[] = [
 							{
 								type: 'VideoFragment',
 								trackNum: 0,
 								start: 0,
-								finish: 1000,
+								finish: outPoint,
 								rushID: '1bb281cdcb7c491085c1b2fac53e4db1',
 								format: 90,
 								poolID: 11,
@@ -353,14 +390,14 @@ function handleRequest (quantelServer: QuantelServerMockOptions, triggerFcn: Fun
 								type: 'EffectFragment',
 								trackNum: 0,
 								start: 20,
-								finish: 1000,
+								finish: outPoint,
 								effectID: 256
 							},
 							{
 								type: 'AudioFragment',
 								trackNum: 0,
 								start: 0,
-								finish: 1000,
+								finish: outPoint,
 								rushID: '353a81482189451e8c56c5de72fdecac',
 								format: 73,
 								poolID: 11,
@@ -383,6 +420,9 @@ function handleRequest (quantelServer: QuantelServerMockOptions, triggerFcn: Fun
 					}
 				},
 				// Load fragments onto port:
+				'post /:zoneID/server/:serverID/port/:portID/fragments?offset=:offset': () => {
+					return { __reroute: true }
+				},
 				'post /:zoneID/server/:serverID/port/:portID/fragments': (params): Q.PortStatus | ErrorResponse => {
 					if (params.portID === 'my_port') {
 
@@ -391,8 +431,10 @@ function handleRequest (quantelServer: QuantelServerMockOptions, triggerFcn: Fun
 						const fragments = bodyData as Q.ServerFragmentTypes[]
 						let endOfData = 0
 						_.each(fragments, f => {
-							if (f.finish + 1 > endOfData) endOfData = f.finish + 1
+							if (f.finish > endOfData) endOfData = f.finish
 						})
+						endOfData += parseInt(params.offset, 10) || 0
+
 						quantelServer[params.portID].endOfData = endOfData
 
 						return {
