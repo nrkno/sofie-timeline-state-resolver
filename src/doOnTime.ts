@@ -109,14 +109,17 @@ export class DoOnTime extends EventEmitter {
 			})
 		})
 	}
-	public clearQueueNowAndAfter (time: number) {
+	public clearQueueNowAndAfter (time: number): number {
+		let removed: number = 0
 		_.each(this._queues, (queue, queueId: string) => {
 			_.each(queue, (q: DoOrder, id: string) => {
 				if (q.time >= time) {
 					this._remove(queueId, id)
+					removed++
 				}
 			})
 		})
+		return removed
 	}
 	dispose (): void {
 		this.clearQueueAfter(0) // clear all
