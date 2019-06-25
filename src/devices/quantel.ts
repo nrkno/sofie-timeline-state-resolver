@@ -65,7 +65,6 @@ export class QuantelDevice extends DeviceWithState<QuantelState> {
 			if (deviceOptions.options.commandReceiver) this._commandReceiver = deviceOptions.options.commandReceiver
 			else this._commandReceiver = this._defaultCommandReceiver
 		}
-
 		this._quantel = new QuantelGateway()
 		this._quantel.on('error', e => this.emit('error', 'Quantel.QuantelGateway', e))
 
@@ -83,6 +82,9 @@ export class QuantelDevice extends DeviceWithState<QuantelState> {
 
 	async init (connectionOptions: QuantelOptions): Promise<boolean> {
 		this._connectionOptions = connectionOptions
+		if (!this._connectionOptions.gatewayUrl) 	throw new Error('Quantel bad connection option: gatewayUrl')
+		if (!this._connectionOptions.ISAUrl)		throw new Error('Quantel bad connection option: ISAUrl')
+		if (!this._connectionOptions.serverId)		throw new Error('Quantel bad connection option: serverId')
 
 		await this._quantel.init(
 			this._connectionOptions.gatewayUrl,
@@ -204,7 +206,6 @@ export class QuantelDevice extends DeviceWithState<QuantelState> {
 
 		_.each(timelineState.layers, (layer: ResolvedTimelineObjectInstance, layerName: string) => {
 
-			// const layerExt = layer as ResolvedTimelineObjectInstanceExtended
 			let foundMapping: Mapping = mappings[layerName]
 
 			if (
@@ -374,8 +375,6 @@ export class QuantelDevice extends DeviceWithState<QuantelState> {
 	private _addToQueue (commandsToAchieveState: Array<QuantelCommand>) {
 
 		_.each(commandsToAchieveState, (cmd: QuantelCommand) => {
-
-			// let command = AMCPUtil.deSerialize(cmd, 'id')
 
 			this._doOnTime.queue(cmd.time, cmd.portId, (c: {cmd: QuantelCommand}) => {
 				return this._doCommand(c.cmd, c.cmd.type + '_' + c.cmd.timelineObjId, c.cmd.timelineObjId)
