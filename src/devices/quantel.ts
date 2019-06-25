@@ -373,9 +373,7 @@ export class QuantelDevice extends DeviceWithState<QuantelState> {
 	 * @param time Point in time to send commands at
 	 */
 	private _addToQueue (commandsToAchieveState: Array<QuantelCommand>) {
-
 		_.each(commandsToAchieveState, (cmd: QuantelCommand) => {
-
 			this._doOnTime.queue(cmd.time, cmd.portId, (c: {cmd: QuantelCommand}) => {
 				return this._doCommand(c.cmd, c.cmd.type + '_' + c.cmd.timelineObjId, c.cmd.timelineObjId)
 			}, { cmd: cmd })
@@ -485,7 +483,6 @@ class QuantelManager {
 		const server = await this.getServer()
 
 		let clipId = await this.getClipId(cmd.clip)
-
 		const clipData = await this._quantel.getClip(clipId)
 		if (!clipData) throw new Error(`Clip ${clipId} not found`)
 		if (!clipData.PoolID) throw new Error(`Clip ${clipData.ClipID} missing PoolID`)
@@ -495,21 +492,33 @@ class QuantelManager {
 			throw new Error(`Clip "${clipData.ClipID}" PoolID ${clipData.PoolID} not found on server (${server.ident})`)
 		}
 
+		let useInOutPoints: boolean = !!(
+			cmd.clip.inPoint ||
+			cmd.clip.length
+		)
+
+		let inPoint = cmd.clip.inPoint
+		let length = cmd.clip.length
+
 		/** In point [frames] */
-		const inPoint: number = (
-			cmd.clip.inPoint ?
-			Math.round(cmd.clip.inPoint * DEFAULT_FPS / 1000) : // todo: handle fps, get it from clip?
+		const inPointFrames: number = (
+			inPoint ?
+			Math.round(inPoint * DEFAULT_FPS / 1000) : // todo: handle fps, get it from clip?
 			0
 		) || 0
 
 		/** Duration [frames] */
-		const length: number = (
-			cmd.clip.length ?
-			Math.round(cmd.clip.length * DEFAULT_FPS / 1000) : // todo: handle fps, get it from clip?
+		let lengthFrames: number = (
+			length ?
+			Math.round(length * DEFAULT_FPS / 1000) : // todo: handle fps, get it from clip?
 			0
 		) || parseInt(clipData.Frames, 10) || 0
 
-		const outPoint = inPoint + length
+		if (inPoint && !length) {
+			lengthFrames -= inPointFrames
+		}
+
+		const outPointFrames = inPointFrames + lengthFrames
 
 		let portInPoint: number
 		let portOutPoint: number
@@ -517,25 +526,23 @@ class QuantelManager {
 		const loadedFragments = trackedPort.loadedFragments[clipId]
 		if (
 			loadedFragments &&
-			loadedFragments.inPoint === inPoint &&
-			loadedFragments.outPoint === outPoint
+			loadedFragments.inPoint === inPointFrames &&
+			loadedFragments.outPoint === outPointFrames
 		) {
 			// Reuse the already loaded fragment:
 			portInPoint = loadedFragments.portInPoint
 			portOutPoint = loadedFragments.portOutPoint
 		} else {
-
 			// Fetch fragments of clip:
 			const fragmentsInfo = await (
-				cmd.clip.inPoint && cmd.clip.length ?
-				this._quantel.getClipFragments(clipId, inPoint, outPoint) :
+				useInOutPoints ?
+				this._quantel.getClipFragments(clipId, inPointFrames, outPointFrames) :
 				this._quantel.getClipFragments(clipId)
 			)
 
 			// Check what the end-frame of the port is:
 			const portStatus = await this._quantel.getPort(cmd.portId)
 			if (!portStatus) throw new Error(`Port ${cmd.portId} not found`)
-
 			// Load the fragments onto Port:
 			portInPoint = portStatus.endOfData || 0
 			const newPortStatus = await this._quantel.loadFragmentsOntoPort(cmd.portId, fragmentsInfo.fragments, portInPoint)
@@ -546,8 +553,8 @@ class QuantelManager {
 			trackedPort.loadedFragments[clipId] = {
 				portInPoint: portInPoint,
 				portOutPoint: portOutPoint,
-				inPoint: inPoint,
-				outPoint: outPoint
+				inPoint: inPointFrames,
+				outPoint: outPointFrames
 			}
 		}
 		// Prepare the jump?
@@ -566,7 +573,6 @@ class QuantelManager {
 		}
 	}
 	public async playClip (cmd: QuantelCommandPlayClip): Promise<void> {
-
 		await this.prepareClipJump(cmd, 'play')
 	}
 	public async pauseClip (cmd: QuantelCommandPauseClip): Promise<void> {
@@ -591,10 +597,8 @@ class QuantelManager {
 			// huh, the fragments hasn't been loaded
 			throw new Error(`Fragments of clip ${clipId} wasn't loaded`)
 		}
-
 		const clipFps = DEFAULT_FPS // todo: handle fps, get it from clip?
-
-		const jumpToOffset = Math.round(
+		const jumpToOffset = Math.floor(
 			loadedFragments.portInPoint + (
 				cmd.clip.playTime ?
 				Math.max(0, (cmd.clip.pauseTime || this.getCurrentTime()) - cmd.clip.playTime) * clipFps / 1000 :
@@ -612,7 +616,6 @@ class QuantelManager {
 		// Jump the port playhead to the correct place
 		if (trackedPort.jumpOffset !== null) {
 			// Good, there is a prepared jump
-
 			if (alsoDoAction === 'pause') {
 				// Pause the playback:
 				await this._quantel.portStop(cmd.portId)
@@ -630,7 +633,7 @@ class QuantelManager {
 				trackedPort.jumpOffset = jumpToOffset
 
 				// Allow the server some time to load the clip:
-				await this.wait(SOFT_JUMP_WAIT_TIME)
+				await this.wait(SOFT_JUMP_WAIT_TIME) // This is going to
 
 				if (alsoDoAction === 'pause') {
 					// Pause the playback:
@@ -660,8 +663,8 @@ class QuantelManager {
 
 			// Schedule the port to stop at the last frame of the clip
 			if (loadedFragments.portOutPoint) {
-				await this._quantel.portStop(cmd.portId, loadedFragments.portOutPoint - 1)
-				trackedPort.scheduledStop = loadedFragments.portOutPoint - 1
+				await this._quantel.portStop(cmd.portId, loadedFragments.portOutPoint)
+				trackedPort.scheduledStop = loadedFragments.portOutPoint
 			}
 		}
 	}
