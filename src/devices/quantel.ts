@@ -430,17 +430,16 @@ export class QuantelDevice extends DeviceWithState<QuantelState> {
 	}
 }
 class QuantelManager {
-	private _quantelState: QuantelTrackedState
-
+	private _quantelState: QuantelTrackedState = {
+		clipId: {},
+		port: {}
+	}
+	private _cache = new Cache()
 	constructor (
 		private _quantel: QuantelGateway,
 		private getCurrentTime: () => number
-	) {
-		this._quantelState = {
-			clipId: {},
-			port: {}
-		}
-	}
+	) {}
+
 	public async setupPort (cmd: QuantelCommandSetupPort): Promise<void> {
 		const trackedPort = this._quantelState.port[cmd.portId]
 
@@ -686,32 +685,92 @@ class QuantelManager {
 	private async getClipId (clip: QuantelStatePortClip): Promise<number> {
 		let clipId = clip.clipId
 
-		const server = await this.getServer()
+		if (!clipId && clip.title) {
 
-		if (!clipId) {
+			clipId = await this._cache.getSet(`clip.${clip.title}.clipId`, async () => {
 
-			// Look up the clip:
-			const foundClips = await this._quantel.searchClip({
-				Title: clip.title
+				const server = await this.getServer()
+
+				// Look up the clip:
+				const foundClips = await this._quantel.searchClip({
+					Title: clip.title
+				})
+				const foundClip = _.find(foundClips, (clip) => {
+					return (
+						clip.PoolID &&
+						(server.pools || []).indexOf(clip.PoolID) !== -1
+					)
+				})
+				if (!foundClip) throw new Error(`Clip "${clip.title}" not found on server (${server.ident})`)
+
+				// Store to tracked state:
+				this._quantelState.clipId[clip.title] = foundClip.ClipID
+
+				return foundClip.ClipID
 			})
-			const foundClip = _.find(foundClips, (clip) => {
-				return (
-					clip.PoolID &&
-					(server.pools || []).indexOf(clip.PoolID) !== -1
-				)
-			})
-			if (!foundClip) throw new Error(`Clip "${clip.title}" not found on server (${server.ident})`)
-
-			clipId = foundClip.ClipID
-			// Store to tracked state:
-			this._quantelState.clipId[clip.title] = clipId
 		}
+		if (!clipId) throw new Error(`Unable to determine clipId for clip '${clip.title}'`)
+
 		return clipId
 	}
 	private wait (time: number) {
 		return new Promise(resolve => {
 			setTimeout(resolve, time)
 		})
+	}
+}
+class Cache {
+	private data: {[key: string]: {
+		endTime: number
+		value: any
+	}} = {}
+	private callCount: number = 0
+	set (key: string, value: any, ttl: number = 30000): any {
+		this.data[key] = {
+			endTime: Date.now() + ttl,
+			value: value
+		}
+		this.callCount++
+		if (this.callCount > 100) {
+			this.callCount = 0
+			this._triggerClean()
+		}
+		return value
+	}
+	get (key: string): any | undefined {
+		const o = this.data[key]
+		if (o && (o.endTime || 0) >= Date.now()) return o.value
+	}
+	exists (key: string): boolean {
+		const o = this.data[key]
+		return (o && (o.endTime || 0) >= Date.now())
+	}
+	getSet<T extends any> (key, fcn: () => T, ttl?: number): T {
+		if (this.exists(key)) {
+			return this.get(key)
+		} else {
+			let value = fcn()
+			if (value && _.isObject(value) && _.isFunction(value.then)) {
+				// value is a promise
+				return (
+					Promise.resolve(value)
+					.then((value) => {
+						return this.set(key, value, ttl)
+					})
+				) as any as T
+			} else {
+				return this.set(key, value, ttl)
+			}
+		}
+	}
+	private _triggerClean () {
+		setTimeout(() => {
+			_.each(this.data, (o, key) => {
+				if ((o.endTime || 0) < Date.now()) {
+					delete this.data[key]
+				}
+			})
+		}, 1)
 	}
 }
 
@@ -746,7 +805,7 @@ interface QuantelCommandBase {
 	portId: string
 	timelineObjId: string
 }
-enum QuantelCommandType {
+export enum QuantelCommandType {
 	SETUPPORT = 'setupPort',
 	LOADCLIPFRAGMENTS = 'loadClipFragments',
 	PLAYCLIP = 'playClip',
