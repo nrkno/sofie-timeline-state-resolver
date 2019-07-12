@@ -426,7 +426,7 @@ function handleRequest (quantelServer: QuantelServerMockOptions, triggerFcn: Fun
 				'post /:zoneID/server/:serverID/port/:portID/fragments?offset=:offset': () => {
 					return { __reroute: true }
 				},
-				'post /:zoneID/server/:serverID/port/:portID/fragments': (params): Q.PortStatus | ErrorResponse => {
+				'post /:zoneID/server/:serverID/port/:portID/fragments': (params): Q.PortLoadStatus | ErrorResponse => {
 					if (params.portID === 'my_port') {
 
 						if (!_.isArray(bodyData)) throw new Error('Bad body data')
@@ -441,20 +441,13 @@ function handleRequest (quantelServer: QuantelServerMockOptions, triggerFcn: Fun
 						quantelServer[params.portID].endOfData = endOfData
 
 						return {
-							type: 'PortStatus',
+							type: 'PortLoadStatus',
 							serverID: params.serverID,
-							portName: 'fred',
-							refTime: '14:47:31:00',
-							portTime: '10:00:15:03',
-							portID: params.portID,
-							speed: 1,
+							portName: 'my_port',
 							offset: 0,
 							status: 'unknown',
-							endOfData: quantelServer[params.portID].endOfData,
-							framesUnused: 0,
-							channels: [ 1 ],
-							outputTime: '00:00:00:00'
-						}
+							fragmentCount: 4
+						} as Q.PortLoadStatus
 					}
 					return {
 						status: 404,

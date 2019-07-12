@@ -174,7 +174,7 @@ export class QuantelGateway extends EventEmitter {
 		}
 	}
 	/** Load specified fragments onto a port */
-	public async loadFragmentsOntoPort (portId: string, fragments: Q.ServerFragmentTypes[], offset?: number): Promise<Q.PortStatus> {
+	public async loadFragmentsOntoPort (portId: string, fragments: Q.ServerFragmentTypes[], offset?: number): Promise<Q.PortLoadStatus> {
 		return this.sendServer('post', `port/${portId}/fragments`, {
 			offset: offset
 		}, fragments)
