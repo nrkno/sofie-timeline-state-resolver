@@ -1,7 +1,7 @@
 import * as request from 'request'
 import { EventEmitter } from 'events'
 import * as _ from 'underscore'
-import { DoOnTime, SendMode } from '../doOnTime'
+// import { DoOnTime, SendMode } from '../doOnTime'
 
 const CHECK_STATUS_INTERVAL = 3000
 const CALL_TIMEOUT = 1000
@@ -318,7 +318,7 @@ export class QuantelGateway extends EventEmitter {
 		let queryString = _.compact(
 			_.map(params, (value, key: string) => {
 				if (value !== undefined) {
-					return `${key}=${encodeURIComponent(value)}`
+					return `${key}=${encodeURIComponent(value.toString())}`
 				}
 				return null
 			})

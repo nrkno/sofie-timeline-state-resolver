@@ -1,7 +1,7 @@
 import * as _ from 'underscore'
 import { Q } from '../quantelGateway'
 const request = require('../../__mocks__/request')
-const orgSetTimeout = setTimeout
+// const orgSetTimeout = setTimeout
 
 /*
 	This file mocks the server-side part of the Quantel Gateway, ie the REST interface of
@@ -16,6 +16,7 @@ export function setupQuantelGatewayMock () {
 		port: {}
 	}
 
+	// @ts-ignore: not logging
 	const onRequest = jest.fn((type: string, url: string) => {
 		// console.log('onRequest', type, url)
 	})
@@ -118,7 +119,7 @@ function urlRoute (requestType: string, url: string, routes: {[route: string]: (
 	})
 	return body
 }
-function handleRequest (quantelServer: QuantelServerMockOptions, triggerFcn: Function, type: string, url: string, bodyData: any, callback) {
+function handleRequest (quantelServer: QuantelServerMockOptions, triggerFcn: Function, type: string, url: string, bodyData: any, callback: (err: Error | null, value?: any) => void) {
 	process.nextTick(() => {
 
 		triggerFcn(type, url)
@@ -127,14 +128,16 @@ function handleRequest (quantelServer: QuantelServerMockOptions, triggerFcn: Fun
 			const resource = (url.match(/http:\/\/[^\/]+(.*)/) || [])[1] || ''
 
 			let body: object = {}
-			let m: any
+			// let m: any
 
 			body = urlRoute(type, resource, {
+				// @ts-ignore: no need for params
 				'post /connect/:isaURL': (params) => {
 					return {
 						something: 1234
 					}
 				},
+				// @ts-ignore: no need for params
 				'get /:zoneID/server': (params): Q.ServerInfo[] => {
 					return [{
 						type: 'Server',
