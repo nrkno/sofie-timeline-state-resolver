@@ -224,6 +224,7 @@ function handleRequest (quantelServer: QuantelServerMockOptions, triggerFcn: Fun
 						{
 							type: 'ClipDataSummary',
 							ClipID: 2,
+							ClipGUID: '0b124a741fa84c3eb7a707d13cc1f5aa',
 							CloneID: 2,
 							Completed: '2019-06-12T11:18:37.000Z',
 							Created: '2019-06-12T11:18:37.000Z',
@@ -236,6 +237,7 @@ function handleRequest (quantelServer: QuantelServerMockOptions, triggerFcn: Fun
 						{
 							type: 'ClipDataSummary',
 							ClipID: 1337,
+							ClipGUID: 'abcdef872832832a2b932c97d9b2eb9',
 							CloneID: 1337,
 							Completed: '2019-06-12T11:18:37.000Z',
 							Created: '2019-06-12T11:18:37.000Z',

@@ -547,7 +547,7 @@ class QuantelManager {
 			portInPoint = portStatus.endOfData || 0
 			const newPortStatus = await this._quantel.loadFragmentsOntoPort(cmd.portId, fragmentsInfo.fragments, portInPoint)
 			if (!newPortStatus) throw new Error(`Port ${cmd.portId} not found after loading fragments`)
-			portOutPoint = newPortStatus.endOfData - 1
+			portOutPoint = portInPoint + fragmentsInfo.fragments.reduce((x, y) => x > y.finish ? x : y.finish, 0) - 1 // newPortStatus.endOfData - 1
 
 			// Store a reference to the beginning of the fragments:
 			trackedPort.loadedFragments[clipId] = {
