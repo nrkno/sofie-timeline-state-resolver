@@ -257,7 +257,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState> {
 			C: {
 				A: [ 0, 2, 4 ],
 				B: [ 0, 2, 0 ],
-				C: [ 1, 0, 1 ],
+				C: [ 1, 0, 3 ],
 				D: [ 2, 0, 0 ]
 			},
 			D: {
