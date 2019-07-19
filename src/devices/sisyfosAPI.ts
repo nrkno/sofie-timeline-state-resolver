@@ -74,20 +74,13 @@ export class SisyfosInterface extends EventEmitter {
 			if (address[1] === 'full') {
 				const extState = JSON.parse(message.args[0].value)
 				this._state = {
-					channels: extState.channel,
-					groups: extState.grpFader
+					channels: extState.channel
 				}
 				this.emit('initialized')
 			} else if (address[1] === 'ch') {
 				const ch = address[2]
 				this._state.channels[ch] = {
 					...this._state.channels[ch],
-					...this.parseChannelCommand(message, address.slice(3))
-				}
-			} else if (address[1] === 'grp') {
-				const grp = address[2]
-				this._state.groups[grp] = {
-					...this._state.channels[grp],
 					...this.parseChannelCommand(message, address.slice(3))
 				}
 			}

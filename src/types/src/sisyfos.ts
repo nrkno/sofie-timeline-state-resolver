@@ -61,8 +61,7 @@ export interface SisyfosChannel {
 }
 
 export interface SisyfosState {
-	channels: { [index: string]: SisyfosChannel },
-	groups: { [index: string]: SisyfosChannel }
+	channels: { [index: string]: SisyfosChannel }
 }
 
 export interface TimelineObjSisyfos extends ResolvedTimelineObjectInstance, TSRTimelineObjProps {
