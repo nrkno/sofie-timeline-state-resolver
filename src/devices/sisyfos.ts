@@ -145,13 +145,21 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState> {
 			if (foundMapping) {
 				const channel = deviceState.channels[foundMapping.channel]
 
-				if (layer.content.select) {
-					if (layer.content.isPst || layer.isLookahead) {
+				if (layer.isLookahead) {
+					if (layer.content.isPgm) {
 						channel.pstOn = true
 					} else {
+						channel.pstOn = false
+					}
+				} else {
+					if (layer.content.isPst) {
+						channel.pstOn = true
+					}
+					if (layer.content.isPgm) {
 						channel.pgmOn = true
 					}
 				}
+
 				if (layer.content.faderLevel !== undefined) {
 					channel.faderLevel = layer.content.faderLevel
 				}

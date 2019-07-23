@@ -17,7 +17,7 @@ export enum TimelineContentTypeSisyfos {
 
 export interface SisyfosCommandContent {
 	type: TimelineContentTypeSisyfos.SISYFOS
-	select: boolean
+	isPgm?: boolean
 	isPst?: boolean
 	faderLevel?: number
 }

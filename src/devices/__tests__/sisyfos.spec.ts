@@ -20,7 +20,7 @@ describe('Sisyfos', () => {
 		mockTime.init()
 	})
 
-	test('Sisyfos: set pst to pgm + lookahead', async () => {
+	test('Sisyfos: set pst & lookahead and take to pgm', async () => {
 
 		let commandReceiver0 = jest.fn(() => {
 			return Promise.resolve()
@@ -86,7 +86,6 @@ describe('Sisyfos', () => {
 					deviceType: DeviceType.SISYFOS,
 					type: TimelineContentTypeSisyfos.SISYFOS,
 
-					select: true,
 					isPst: true
 				}
 			},
@@ -101,7 +100,7 @@ describe('Sisyfos', () => {
 					deviceType: DeviceType.SISYFOS,
 					type: TimelineContentTypeSisyfos.SISYFOS,
 
-					select: true
+					isPgm: true
 				}
 			},
 			{
@@ -115,7 +114,7 @@ describe('Sisyfos', () => {
 					deviceType: DeviceType.SISYFOS,
 					type: TimelineContentTypeSisyfos.SISYFOS,
 
-					select: true
+					isPgm: true
 				},
 				isLookahead: true,
 				lookaheadForLayer: 'sisyfos_channel_2'
@@ -131,7 +130,7 @@ describe('Sisyfos', () => {
 					deviceType: DeviceType.SISYFOS,
 					type: TimelineContentTypeSisyfos.SISYFOS,
 
-					select: true
+					isPgm: true
 				}
 			}
 		]
@@ -195,5 +194,138 @@ describe('Sisyfos', () => {
 			channel: 1,
 			value: false
 		})
-	}
+	})
+
+	test('Sisyfos: set lookahead and take to pgm, with lookahead still on', async () => {
+
+		let commandReceiver0 = jest.fn(() => {
+			return Promise.resolve()
+		})
+		let myChannelMapping0: MappingSisyfos = {
+			device: DeviceType.SISYFOS,
+			deviceId: 'mySisyfos',
+			channel: 0
+		}
+		let myChannelMapping1: MappingSisyfos = {
+			device: DeviceType.SISYFOS,
+			deviceId: 'mySisyfos',
+			channel: 1
+		}
+		let myChannelMapping2: MappingSisyfos = {
+			device: DeviceType.SISYFOS,
+			deviceId: 'mySisyfos',
+			channel: 1
+		}
+		let myChannelMapping3: MappingSisyfos = {
+			device: DeviceType.SISYFOS,
+			deviceId: 'mySisyfos',
+			channel: 3
+		}
+		let myChannelMapping: Mappings = {
+			'sisyfos_channel_1': myChannelMapping0,
+			'sisyfos_channel_2': myChannelMapping1,
+			'sisyfos_channel_2_lookahead': myChannelMapping2,
+			'sisyfos_channel_4': myChannelMapping3
+		}
+
+		let myConductor = new Conductor({
+			initializeAsClear: true,
+			getCurrentTime: mockTime.getCurrentTime
+		})
+		await myConductor.setMapping(myChannelMapping)
+		await myConductor.init() // we cannot do an await, because setTimeout will never call without jest moving on.
+		await myConductor.addDevice('mySisyfos', {
+			type: DeviceType.SISYFOS,
+			options: {
+				commandReceiver: commandReceiver0,
+				host: '192.168.0.10',
+				port: 8900
+			}
+		})
+		await mockTime.advanceTimeToTicks(10100)
+
+		let deviceContainer = myConductor.getDevice('mySisyfos')
+		let device = deviceContainer.device as ThreadedClass<SisyfosMessageDevice>
+
+		// Check that no commands has been scheduled:
+		expect(await device.queue).toHaveLength(0)
+
+		myConductor.timeline = [
+			{
+				id: 'obj0',
+				enable: {
+					start: mockTime.now - 1000, // 1 seconds in the past
+					duration: 2000
+				},
+				layer: 'sisyfos_channel_2_lookahead',
+				content: {
+					deviceType: DeviceType.SISYFOS,
+					type: TimelineContentTypeSisyfos.SISYFOS,
+
+					isPgm: true
+				},
+				isLookahead: true,
+				lookaheadForLayer: 'sisyfos_channel_2'
+			},
+			{
+				id: 'obj1',
+				enable: {
+					start: mockTime.now + 1000, // 1 seconds in the future
+					duration: 2000
+				},
+				layer: 'sisyfos_channel_2',
+				content: {
+					deviceType: DeviceType.SISYFOS,
+					type: TimelineContentTypeSisyfos.SISYFOS,
+
+					isPgm: true
+				}
+			},
+			{
+				id: 'obj2',
+				enable: {
+					start: mockTime.now + 1000, // 1 seconds in the past
+					duration: 2000
+				},
+				layer: 'sisyfos_channel_2_lookahead',
+				content: {
+					deviceType: DeviceType.SISYFOS,
+					type: TimelineContentTypeSisyfos.SISYFOS,
+
+					isPgm: false
+				},
+				isLookahead: true,
+				lookaheadForLayer: 'sisyfos_channel_2'
+			}
+		]
+
+		await mockTime.advanceTimeTicks(100) // now-ish
+		expect(commandReceiver0.mock.calls.length).toEqual(1)
+		// set pst
+		expect(getMockCall(commandReceiver0, 0, 1)).toMatchObject({
+			type: 'togglePst',
+			channel: 1,
+			value: true
+		})
+
+		await mockTime.advanceTimeTicks(1000) // 1 seconds into the future
+		expect(commandReceiver0.mock.calls.length).toEqual(2)
+		// take
+		expect(getMockCall(commandReceiver0, 1, 1)).toMatchObject({
+			type: 'take'
+		})
+
+		await mockTime.advanceTimeTicks(2000) // 3 seconds into the future
+		expect(commandReceiver0.mock.calls.length).toEqual(4)
+		// take
+		expect(getMockCall(commandReceiver0, 2, 1)).toMatchObject({
+			type: 'take'
+		})
+		// set pst off
+		expect(getMockCall(commandReceiver0, 3, 1)).toMatchObject({
+			type: 'togglePst',
+			channel: 1,
+			value: false
+		})
+	})
 })
