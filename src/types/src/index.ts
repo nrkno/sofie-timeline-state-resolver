@@ -17,6 +17,7 @@ import { TimelineObjPharosAny } from './pharos'
 import { TimelineObjPanasonicPtzAny } from './ptz'
 import { TimelineObjAbstractAny } from './abstract'
 import { TSRTimelineObjProps } from './mapping'
+import { TimelineObjSisyfosAny } from './sisyfos'
 
 export { Timeline }
 export * from './mapping'
@@ -66,7 +67,8 @@ export type TSRTimelineObj = (
 	TimelineObjLawoAny |
 	TimelineObjOSCAny |
 	TimelineObjPharosAny |
-	TimelineObjPanasonicPtzAny
+	TimelineObjPanasonicPtzAny |
+	TimelineObjSisyfosAny
 )
 
 export type TSRTimeline = Array<TSRTimelineObj>

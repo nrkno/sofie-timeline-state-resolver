@@ -29,11 +29,11 @@ export class SisyfosInterface extends EventEmitter {
 		this._oscClient.on('message', (received: osc.OscMessage) => this.receiver(received))
 
 		return new Promise((resolve) => {
-			this._oscClient.open()
 			this._oscClient.once('ready', () => {
 				// resolve()
 				this._oscClient.send({ address: '/state/full', args: [] })
 			})
+			this._oscClient.open()
 			resolve()
 		})
 	}

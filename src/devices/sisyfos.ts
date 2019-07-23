@@ -12,12 +12,12 @@ import {
 import { DoOnTime, SendMode } from '../doOnTime'
 
 import {
-	TimelineState
+	TimelineState, ResolvedTimelineObjectInstance
 } from 'superfly-timeline'
 import { SisfyosOptions, SisyfosState, SisyfosChannel, TimelineObjSisyfosMessage, MappingSisyfos, ToggleCommand, Commands, SisyfosCommand } from '../types/src/sisyfos'
 import { SisyfosInterface } from './sisyfosAPI'
 
-export interface OSCMessageDeviceOptions extends DeviceOptions {
+export interface SisyfosDeviceOptions extends DeviceOptions {
 	options?: {
 		commandReceiver?: (time: number, cmd) => Promise<any>
 	}
@@ -37,7 +37,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState> {
 
 	private _commandReceiver: (time: number, cmd: SisyfosCommand, context: CommandContext) => Promise<any>
 
-	constructor (deviceId: string, deviceOptions: OSCMessageDeviceOptions, options) {
+	constructor (deviceId: string, deviceOptions: SisyfosDeviceOptions, options) {
 		super(deviceId, deviceOptions, options)
 		if (deviceOptions.options) {
 			if (deviceOptions.options.commandReceiver) this._commandReceiver = deviceOptions.options.commandReceiver
@@ -134,7 +134,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState> {
 		}
 
 		_.each(state.layers, (tlObject, layerName) => {
-			const layer = tlObject as TimelineObjSisyfosMessage
+			const layer = tlObject as ResolvedTimelineObjectInstance & TimelineObjSisyfosMessage
 			let foundMapping: MappingSisyfos = this.getMapping()[layerName] as any // @todo: make ts understand this
 
 			// if the tlObj is specifies to load to PST the original Layer is used to resolve the mapping

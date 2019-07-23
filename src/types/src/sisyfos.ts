@@ -16,13 +16,13 @@ export enum TimelineContentTypeSisyfos {
 	SISYFOS = 'sisyfos'
 }
 
-export interface OSCMessageCommandContent {
+export interface SisyfosCommandContent {
 	type: TimelineContentTypeSisyfos.SISYFOS
 	select: boolean
 	isPst?: boolean
 	faderLevel?: number
 }
-export type TimelineObjOSCAny = TimelineObjSisyfosMessage
+export type TimelineObjSisyfosAny = TimelineObjSisyfosMessage
 
 export enum Commands {
 	TOGGLE_PGM = 'togglePgm',
@@ -64,7 +64,7 @@ export interface SisyfosState {
 	channels: { [index: string]: SisyfosChannel }
 }
 
-export interface TimelineObjSisyfos extends ResolvedTimelineObjectInstance, TSRTimelineObjProps {
+export interface TimelineObjSisyfos extends TSRTimelineObjProps {
 	content: {
 		deviceType: DeviceType.SISYFOS
 		type: TimelineContentTypeSisyfos
@@ -73,5 +73,5 @@ export interface TimelineObjSisyfos extends ResolvedTimelineObjectInstance, TSRT
 export interface TimelineObjSisyfosMessage extends TimelineObjSisyfos {
 	content: {
 		deviceType: DeviceType.SISYFOS
-	} & OSCMessageCommandContent
+	} & SisyfosCommandContent
 }
