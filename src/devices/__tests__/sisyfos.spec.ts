@@ -8,7 +8,7 @@ import { MockTime } from '../../__tests__/mockTime.spec'
 import { ThreadedClass } from 'threadedclass'
 import { MappingSisyfos, TimelineContentTypeSisyfos } from '../../types/src/sisyfos'
 import { SisyfosMessageDevice } from '../sisyfos'
-import { getMockCall } from '../../__tests__/lib.spec';
+import { getMockCall } from '../../__tests__/lib.spec'
 
 describe('Sisyfos', () => {
 	let mockTime = new MockTime()

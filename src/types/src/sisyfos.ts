@@ -1,6 +1,5 @@
-import { Mapping, TSRTimelineObjProps } from './mapping'
-import { DeviceType } from '.'
-import { ResolvedTimelineObjectInstance } from 'superfly-timeline'
+import { Mapping } from './mapping'
+import { DeviceType, TSRTimelineObjBase } from '.'
 
 export interface SisfyosOptions {
 	host: string
@@ -64,7 +63,7 @@ export interface SisyfosState {
 	channels: { [index: string]: SisyfosChannel }
 }
 
-export interface TimelineObjSisyfos extends TSRTimelineObjProps {
+export interface TimelineObjSisyfos extends TSRTimelineObjBase {
 	content: {
 		deviceType: DeviceType.SISYFOS
 		type: TimelineContentTypeSisyfos
