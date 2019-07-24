@@ -65,6 +65,10 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> {
 	private _initialized: boolean = false
 	private _connected: boolean = false
 
+	private _recordingTime: number
+	private _minRecordingTime: number // 15 minutes
+	private _recTimePollTimer: NodeJS.Timer
+
 	private _commandReceiver: CommandReceiver
 
 	constructor (deviceId: string, deviceOptions: HyperdeckDeviceOptions, options) {
@@ -104,6 +108,12 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> {
 					this.emit('resetResolver')
 				})
 				.catch(e => this.emit('error', 'Hyperdeck.on("connected")', e))
+
+				if (options.minRecordingTime) {
+					this._minRecordingTime = options.minRecordingTime
+					if (this._recTimePollTimer) clearTimeout(this._recTimePollTimer)
+					this._queryRecordingTime()
+				}
 			})
 			this._hyperdeck.on('disconnected', () => {
 				this._connected = false
@@ -117,6 +127,7 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> {
 	 */
 	terminate (): Promise<boolean> {
 		this._doOnTime.dispose()
+		if (this._recTimePollTimer) clearTimeout(this._recTimePollTimer)
 
 		return new Promise((resolve) => {
 			// TODO: implement dispose function in hyperdeck-connection
@@ -236,8 +247,24 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> {
 	}
 	getStatus (): DeviceStatus {
 		// TODO: add status check here, to set warning if we've set it to record, but it's not
+		let statusCode = StatusCode.GOOD
+		let messages: Array<string> = []
+
+		if (!this._connected) statusCode = StatusCode.BAD
+
+		if (this._recordingTime < this._minRecordingTime && this._connected && this._minRecordingTime) {
+			if (this._recordingTime === 0) {
+				statusCode = StatusCode.BAD
+			} else {
+				statusCode = StatusCode.WARNING_MAJOR
+			}
+			let t = `${Math.floor(this._recordingTime / 60)} minutes and ${this._recordingTime % 60} seconds`
+			messages.push('Recording time left is less than ' + t)
+		}
+
 		return {
-			statusCode: this._connected ? StatusCode.GOOD : StatusCode.BAD
+			statusCode,
+			messages
 		}
 	}
 	private _addToQueue (commandsToAchieveState: Array<HyperdeckCommandWithContext>, time: number) {
@@ -365,6 +392,29 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> {
 			timelineObjId: 'currentState'
 		}
 		return res
+	}
+
+	/**
+	 * Queries the recording time left in seconds of the device and mutates
+	 * this._recordingTime
+	 */
+	private async _queryRecordingTime (): Promise<void> {
+		let time = 0
+
+		for (let slot = 1; true; slot++) {
+			try {
+				const res = await this._hyperdeck.sendCommand(new HyperdeckCommands.SlotInfoCommand(slot))
+				time += res.recordingTime
+			} catch (e) {
+				break
+			}
+		}
+
+		this._recordingTime = time
+
+		this._recTimePollTimer = setTimeout(() => {
+			this._queryRecordingTime()
+		}, Math.max(time / 2, 10) * 1000)
 	}
 
 	/**
