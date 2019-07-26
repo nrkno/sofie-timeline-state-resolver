@@ -155,6 +155,17 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> {
 	}
 
 	/**
+	 * 
+	 */
+	async formatDisks () {
+		const confirmation = await this._hyperdeck.sendCommand(new HyperdeckCommands.FormatCommand())
+
+		const formatCmd = new HyperdeckCommands.FormatConfirmCommand()
+		formatCmd.code = confirmation.code
+		return this._hyperdeck.sendCommand(formatCmd)
+	}
+
+	/**
 	 * Saves and handles state at specified point in time such that the device will be in
 	 * that state at that time.
 	 * @param newState

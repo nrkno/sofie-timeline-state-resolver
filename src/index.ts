@@ -11,3 +11,4 @@ export {
 
 // let myConductor = new Conductor();
 export { CasparCGDevice } from './devices/casparCG'
+export { HyperdeckDevice } from './devices/hyperdeck'
