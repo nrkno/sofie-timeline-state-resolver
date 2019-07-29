@@ -113,7 +113,7 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> {
 				if (options.minRecordingTime) {
 					this._minRecordingTime = options.minRecordingTime
 					if (this._recTimePollTimer) clearTimeout(this._recTimePollTimer)
-					this._queryRecordingTime()
+					this._queryRecordingTime().catch(e => this.emit('error', 'HyperDeck.queryRecordingTime', e))
 				}
 			})
 			this._hyperdeck.on('disconnected', () => {
@@ -156,7 +156,8 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> {
 	}
 
 	/**
-	 * 
+	 * Sends commands to the HyperDeck to format disks. Afterwards,
+	 * calls this._queryRecordingTime
 	 */
 	formatDisks () {
 		const cmd = new HyperdeckCommands.FormatCommand()
@@ -442,7 +443,7 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> {
 			}
 		}
 		this._recTimePollTimer = setTimeout(() => {
-			this._queryRecordingTime()
+			this._queryRecordingTime().catch(e => this.emit('error', 'HyperDeck.queryRecordingTime', e))
 		}, timeTillNextUpdate * 1000)
 	}
 
