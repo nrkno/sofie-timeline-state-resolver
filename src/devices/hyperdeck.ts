@@ -21,7 +21,8 @@ import {
 	Hyperdeck,
 	Commands as HyperdeckCommands,
 	TransportStatus,
-	FilesystemFormat
+	FilesystemFormat,
+	SlotStatus
 } from 'hyperdeck-connection'
 import { DoOnTime, SendMode } from '../doOnTime'
 
@@ -69,6 +70,7 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> {
 	private _recordingTime: number
 	private _minRecordingTime: number // 15 minutes
 	private _recTimePollTimer: NodeJS.Timer
+	private _slots = 0
 
 	private _commandReceiver: CommandReceiver
 
@@ -102,6 +104,7 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> {
 					if (firstConnect) {
 						firstConnect = false
 						this._initialized = true
+						this._slots = await this._querySlotNumber()
 						resolve(true)
 					}
 					this._connected = true
@@ -159,17 +162,35 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> {
 	 * Sends commands to the HyperDeck to format disks. Afterwards,
 	 * calls this._queryRecordingTime
 	 */
-	formatDisks () {
-		const cmd = new HyperdeckCommands.FormatCommand()
-		cmd.filesystem = FilesystemFormat.exFAT
-		return this._hyperdeck.sendCommand(cmd).then(confirmation => {
-			const formatCmd = new HyperdeckCommands.FormatConfirmCommand()
-			formatCmd.code = confirmation.code
-			return this._hyperdeck.sendCommand(formatCmd)
-		}).then(() => {
-			clearTimeout(this._recTimePollTimer)
-			this._recTimePollTimer = setTimeout(() => this._queryRecordingTime(), 10 * 1000)
-		})
+	async formatDisks () {
+		const wait = t => new Promise(resolve => setTimeout(() => resolve(), t))
+
+		for (let i = 1; i <= this._slots; i++) {
+			// select slot
+			const slotSel = new HyperdeckCommands.SlotSelectCommand()
+			slotSel.slotId = i + ''
+			try {
+				await this._hyperdeck.sendCommand(slotSel)
+			} catch (e) {
+				continue
+			}
+			// get code:
+			const prepare = new HyperdeckCommands.FormatCommand()
+			prepare.filesystem = FilesystemFormat.exFAT
+			const res = await this._hyperdeck.sendCommand(prepare)
+
+			const format = new HyperdeckCommands.FormatConfirmCommand()
+			format.code = res.code
+			await this._hyperdeck.sendCommand(format)
+
+			// now actualy await until finished:
+			let slotInfo = new HyperdeckCommands.SlotInfoCommand(i)
+			while ((await this._hyperdeck.sendCommand(slotInfo)).status === SlotStatus.EMPTY) {
+				await wait(500)
+			}
+		}
+
+		this._queryRecordingTime()
 	}
 
 	/**
@@ -445,6 +466,21 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> {
 		this._recTimePollTimer = setTimeout(() => {
 			this._queryRecordingTime().catch(e => this.emit('error', 'HyperDeck.queryRecordingTime', e))
 		}, timeTillNextUpdate * 1000)
+	}
+
+	private async _querySlotNumber (): Promise<number> {
+		let slots = 0
+
+		for (let slot = 1; true; slot++) {
+			try {
+				await this._hyperdeck.sendCommand(new HyperdeckCommands.SlotInfoCommand(slot))
+				slots++
+			} catch (e) {
+				break
+			}
+		}
+
+		return slots
 	}
 
 	/**
