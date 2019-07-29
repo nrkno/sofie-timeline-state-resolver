@@ -20,7 +20,8 @@ import {
 import {
 	Hyperdeck,
 	Commands as HyperdeckCommands,
-	TransportStatus
+	TransportStatus,
+	FilesystemFormat
 } from 'hyperdeck-connection'
 import { DoOnTime, SendMode } from '../doOnTime'
 
@@ -157,12 +158,17 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> {
 	/**
 	 * 
 	 */
-	async formatDisks () {
-		const confirmation = await this._hyperdeck.sendCommand(new HyperdeckCommands.FormatCommand())
-
-		const formatCmd = new HyperdeckCommands.FormatConfirmCommand()
-		formatCmd.code = confirmation.code
-		return this._hyperdeck.sendCommand(formatCmd)
+	formatDisks () {
+		const cmd = new HyperdeckCommands.FormatCommand()
+		cmd.filesystem = FilesystemFormat.exFAT
+		return this._hyperdeck.sendCommand(cmd).then(confirmation => {
+			const formatCmd = new HyperdeckCommands.FormatConfirmCommand()
+			formatCmd.code = confirmation.code
+			return this._hyperdeck.sendCommand(formatCmd)
+		}).then(() => {
+			clearTimeout(this._recTimePollTimer)
+			this._recTimePollTimer = setTimeout(() => this._queryRecordingTime(), 10 * 1000)
+		})
 	}
 
 	/**
@@ -410,6 +416,9 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> {
 	 * this._recordingTime
 	 */
 	private async _queryRecordingTime (): Promise<void> {
+		if (this._recTimePollTimer) {
+			clearTimeout(this._recTimePollTimer)
+		}
 		let time = 0
 
 		for (let slot = 1; true; slot++) {
@@ -422,10 +431,19 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> {
 		}
 
 		this._recordingTime = time
+		this.emit('connectionChanged', this.getStatus())
 
+		let timeTillNextUpdate = 10
+		if (time > 10) {
+			if (time - this._minRecordingTime > 10) {
+				timeTillNextUpdate = (time - this._minRecordingTime) / 2
+			} else if (time - this._minRecordingTime < 0) {
+				timeTillNextUpdate = time / 2
+			}
+		}
 		this._recTimePollTimer = setTimeout(() => {
 			this._queryRecordingTime()
-		}, Math.max(time / 2, 10) * 1000)
+		}, timeTillNextUpdate * 1000)
 	}
 
 	/**
