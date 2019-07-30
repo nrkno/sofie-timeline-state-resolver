@@ -224,6 +224,7 @@ function handleRequest (quantelServer: QuantelServerMockOptions, triggerFcn: Fun
 						{
 							type: 'ClipDataSummary',
 							ClipID: 2,
+							ClipGUID: '0b124a741fa84c3eb7a707d13cc1f5aa',
 							CloneID: 2,
 							Completed: '2019-06-12T11:18:37.000Z',
 							Created: '2019-06-12T11:18:37.000Z',
@@ -236,6 +237,7 @@ function handleRequest (quantelServer: QuantelServerMockOptions, triggerFcn: Fun
 						{
 							type: 'ClipDataSummary',
 							ClipID: 1337,
+							ClipGUID: 'abcdef872832832a2b932c97d9b2eb9',
 							CloneID: 1337,
 							Completed: '2019-06-12T11:18:37.000Z',
 							Created: '2019-06-12T11:18:37.000Z',
@@ -426,7 +428,7 @@ function handleRequest (quantelServer: QuantelServerMockOptions, triggerFcn: Fun
 				'post /:zoneID/server/:serverID/port/:portID/fragments?offset=:offset': () => {
 					return { __reroute: true }
 				},
-				'post /:zoneID/server/:serverID/port/:portID/fragments': (params): Q.PortStatus | ErrorResponse => {
+				'post /:zoneID/server/:serverID/port/:portID/fragments': (params): Q.PortLoadStatus | ErrorResponse => {
 					if (params.portID === 'my_port') {
 
 						if (!_.isArray(bodyData)) throw new Error('Bad body data')
@@ -441,20 +443,13 @@ function handleRequest (quantelServer: QuantelServerMockOptions, triggerFcn: Fun
 						quantelServer[params.portID].endOfData = endOfData
 
 						return {
-							type: 'PortStatus',
+							type: 'PortLoadStatus',
 							serverID: params.serverID,
-							portName: 'fred',
-							refTime: '14:47:31:00',
-							portTime: '10:00:15:03',
-							portID: params.portID,
-							speed: 1,
+							portName: 'my_port',
 							offset: 0,
 							status: 'unknown',
-							endOfData: quantelServer[params.portID].endOfData,
-							framesUnused: 0,
-							channels: [ 1 ],
-							outputTime: '00:00:00:00'
-						}
+							fragmentCount: 4
+						} as Q.PortLoadStatus
 					}
 					return {
 						status: 404,

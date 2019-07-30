@@ -147,7 +147,8 @@ describe('QuantelGateway', () => {
 
 		const response = await quantel.loadFragmentsOntoPort(portId, fragmentInfo.fragments)
 		expect(response).toMatchObject({
-			portID: 'my_port'
+			portName: 'my_port',
+			fragmentCount: 4
 		})
 
 		expect(onError).toHaveBeenCalledTimes(0)
