@@ -1,7 +1,6 @@
 import * as request from 'request'
 import { EventEmitter } from 'events'
 import * as _ from 'underscore'
-// import { DoOnTime, SendMode } from '../doOnTime'
 
 const CHECK_STATUS_INTERVAL = 3000
 const CALL_TIMEOUT = 1000
@@ -53,7 +52,7 @@ export class QuantelGateway extends EventEmitter {
 	}
 	public async connectToISA (ISAUrl: string) {
 		this._ISAUrl = ISAUrl.replace(/^https?:\/\//, '') // trim any https://
-		return this._ensureGoodResponse(this.sendRaw('post', `connect/${encodeURIComponent(this._ISAUrl) }`, undefined))
+		return this._ensureGoodResponse(this.sendRaw('post', `connect/${encodeURIComponent(this._ISAUrl) }`))
 	}
 	public dispose () {
 		clearInterval(this._monitorInterval)
@@ -159,10 +158,8 @@ export class QuantelGateway extends EventEmitter {
 			throw e
 		}
 	}
-	public async searchClip (searchQuery: { Title: string }): Promise<Q.ClipDataSummary[]> {
-		return this.sendZone('get', `clip`, {
-			Title: searchQuery.Title
-		})
+	public async searchClip (searchQuery: ClipSearchQuery): Promise<Q.ClipDataSummary[]> {
+		return this.sendZone('get', `clip`, searchQuery)
 	}
 	public async getClipFragments (clipId: number): Promise<Q.ServerFragments>
 	public async getClipFragments (clipId: number, inPoint: number, outPoint: number): Promise<Q.ServerFragments> // Query fragments for a specific in-out range:
@@ -360,6 +357,58 @@ export class QuantelGateway extends EventEmitter {
 type QueryParameters = {[key: string]: string | number | undefined}
 type Methods = 'post' | 'get' | 'put' | 'delete'
 
+export type Optional<T> = {
+	[K in keyof T]?: T[K]
+}
+export type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>
+interface ClipSearchQuery {
+	/** Limit the maximum number of clips returned */
+	limit?: number
+	// clip properties
+
+	// ClipDataSummary:
+	ClipID?: number
+	CloneID?: number
+	Completed?: string
+	Created?: string
+	Description?: string
+	Frames?: string
+	Owner?: string
+	PoolID?: number
+	Title?: string
+
+	// Q.ClipData:
+	Category?: string
+	CloneZone?: number
+	Destination?: number
+	Expiry?: string
+	HasEditData?: number
+	Inpoint?: number
+	JobID?: number
+	Modified?: string
+	NumAudTracks?: number
+	Number?: number
+	NumVidTracks?: number
+	Outpoint?: number
+
+	PlayAspect?: string
+	PublishedBy?: string
+	Register?: string
+	Tape?: string
+	Template?: number
+	UnEdited?: number
+	PlayMode?: string
+
+	Division?: string
+	AudioFormats?: string
+	VideoFormats?: string
+	ClipGUID?: string
+	Protection?: string
+	VDCPID?: string
+	PublishCompleted?: string
+
+	[index: string]: string | number | undefined
+}
 // Note: These typings are a copied from https://github.com/nrkno/tv-automation-quantel-gateway
 export namespace Q {
 	type DateString = string // it's a string with an ISO-date in it
