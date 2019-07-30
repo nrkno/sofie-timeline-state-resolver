@@ -328,7 +328,7 @@ export class QuantelGateway extends EventEmitter {
 	private async _ensureGoodResponse<T extends Promise<any>> (pResponse: T): Promise<T>
 	private async _ensureGoodResponse<T extends Promise<any>> (pResponse: T, if404ThenNull: true): Promise<T | null>
 	private async _ensureGoodResponse<T extends Promise<any>> (pResponse: T, if404ThenNull?: boolean): Promise<T | null> {
-		const response = await pResponse
+		const response = await Promise.resolve(pResponse) // Wrapped in Promise.resolve due to for some reason, tslint doen't understand that pResponse is a Promise
 		if (
 			response &&
 			_.isObject(response) &&

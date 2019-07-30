@@ -648,7 +648,7 @@ class QuantelManager {
 
 			} else { // cmd.mode === QuantelControlMode.SPEED
 				// Just do a hard jump:
-				this._quantel.portHardJump(cmd.portId, jumpToOffset)
+				await this._quantel.portHardJump(cmd.portId, jumpToOffset)
 
 				trackedPort.offset = jumpToOffset
 				trackedPort.playing = false
