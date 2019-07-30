@@ -1,5 +1,6 @@
 import { Mapping } from './mapping'
 import { TSRTimelineObjBase, DeviceType } from '.'
+import { Easing } from '../../easings'
 
 export interface OSCOptions {
 	host: string
@@ -39,6 +40,13 @@ export interface OSCMessageCommandContent {
 	type: TimelineContentTypeOSC.OSC
 	path: string
 	values: SomeOSCValue[]
+	transition?: {
+		duration: number
+		type: keyof typeof Easing
+		direction: 'In' | 'Out' | 'InOut' | 'None'
+	}
+	from?: SomeOSCValue[]
+	fromTlObject: string
 }
 export type TimelineObjOSCAny = TimelineObjOSCMessage
 

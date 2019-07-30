@@ -36,7 +36,9 @@ import {
 } from 'superfly-timeline'
 import {
 	CasparCG as StateNS,
-	CasparCGState } from 'casparcg-state'
+	CasparCGState,
+	IAMCPCommandVOWithContext
+} from 'casparcg-state'
 import { DoOnTime, SendMode } from '../doOnTime'
 import * as request from 'request'
 
@@ -44,12 +46,12 @@ const MAX_TIMESYNC_TRIES = 5
 const MAX_TIMESYNC_DURATION = 40
 export interface CasparCGDeviceOptions extends DeviceOptions {
 	options?: {
-		commandReceiver?: (time: number, cmd: CommandNS.IAMCPCommand) => Promise<any>
+		commandReceiver?: CommandReceiver
 		/* Timecode base of channel */
 		timeBase?: {[channel: string]: number} | number
 	}
 }
-
+export type CommandReceiver = (time: number, cmd: CommandNS.IAMCPCommand, context: string, timelineObjId: string) => Promise<any>
 /**
  * This class is used to interface with CasparCG installations. It creates
  * device states from timeline states and then diffs these states to generate
@@ -61,7 +63,7 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> {
 	private _ccg: CasparCG
 	private _ccgState: CasparCGState
 	private _queue: { [token: string]: {time: number, command: CommandNS.IAMCPCommand} } = {}
-	private _commandReceiver: (time: number, cmd: CommandNS.IAMCPCommand) => Promise<any>
+	private _commandReceiver: CommandReceiver
 	private _timeToTimecodeMap: {time: number, timecode: number} = { time: 0, timecode: 0 }
 	private _timeBase: {[channel: string]: number} | number = {}
 	private _useScheduling?: boolean
@@ -86,7 +88,7 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> {
 		this._doOnTime = new DoOnTime(() => {
 			return this.getCurrentTime()
 		}, SendMode.BURST, this._deviceOptions)
-		this._doOnTime.on('error', e => this.emit('error', 'doOnTime', e))
+		this._doOnTime.on('error', e => this.emit('error', 'CasparCG.doOnTime', e))
 		this._doOnTime.on('slowCommand', msg => this.emit('slowCommand', this.deviceName + ': ' + msg))
 	}
 
@@ -163,7 +165,7 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> {
 		let newCasparState = this.convertStateToCaspar(newState)
 		let oldCasparState = this.convertStateToCaspar(oldState)
 
-		let commandsToAchieveState: Array<CommandNS.IAMCPCommandVO> = this._diffStates(oldCasparState, newCasparState, newState.time)
+		let commandsToAchieveState = this._diffStates(oldCasparState, newCasparState, newState.time)
 
 		// clear any queued commands later than this time:
 		if (this._useScheduling) {
@@ -186,7 +188,11 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> {
 		if (this._useScheduling) {
 			for (let token in this._queue) {
 				if (this._queue[token].time > clearAfterTime) {
-					this._doCommand(new AMCP.ScheduleRemoveCommand(token)).catch(e => this.emit('error', e))
+					this._doCommand(
+						new AMCP.ScheduleRemoveCommand(token),
+						`clearFuture (${clearAfterTime})`,
+						''
+					).catch(e => this.emit('error', 'CasparCG.ScheduleRemoveCommand', e))
 				}
 			}
 		} else {
@@ -266,6 +272,7 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> {
 					const mediaObj = layer as any as TimelineObjCCGMedia
 
 					stateLayer = literal<StateNS.IMediaLayer>({
+						id: 			layer.id,
 						layerNo:		mapping.layer,
 						content:		StateNS.LayerContentType.MEDIA,
 						media:			mediaObj.content.file,
@@ -297,6 +304,7 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> {
 					const ipObj = layer as any as TimelineObjCCGIP
 
 					stateLayer = literal<StateNS.IMediaLayer>({
+						id: 			layer.id,
 						layerNo:		mapping.layer,
 						content:		StateNS.LayerContentType.MEDIA,
 						media:			ipObj.content.uri,
@@ -309,6 +317,7 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> {
 					const inputObj = layer as any as TimelineObjCCGInput
 
 					stateLayer = literal<StateNS.IInputLayer>({
+						id: 			layer.id,
 						layerNo:		mapping.layer,
 						content:		StateNS.LayerContentType.INPUT,
 						media:			'decklink',
@@ -323,6 +332,7 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> {
 					const recordObj = layer as any as TimelineObjCCGTemplate
 
 					stateLayer = literal<StateNS.ITemplateLayer>({
+						id: 			layer.id,
 						layerNo:		mapping.layer,
 						content:		StateNS.LayerContentType.TEMPLATE,
 						media:			recordObj.content.name,
@@ -338,6 +348,7 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> {
 					const htmlObj = layer as any as TimelineObjCCGHTMLPage
 
 					stateLayer = literal<StateNS.IHtmlPageLayer>({
+						id: 			layer.id,
 						layerNo:	mapping.layer,
 						content:	StateNS.LayerContentType.HTMLPAGE,
 						media:		htmlObj.content.url,
@@ -356,6 +367,7 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> {
 						}
 					}
 					stateLayer = literal<StateNS.IRouteLayer>({
+						id: 			layer.id,
 						layerNo:		mapping.layer,
 						content:		StateNS.LayerContentType.ROUTE,
 						media:			'route',
@@ -373,6 +385,7 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> {
 
 					if (layer.instance.start) {
 						stateLayer = literal<StateNS.IRecordLayer>({
+							id: 				layer.id,
 							layerNo:			mapping.layer,
 							content:			StateNS.LayerContentType.RECORD,
 							media:				recordObj.content.file,
@@ -386,6 +399,7 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> {
 				// if no appropriate layer could be created, make it an empty layer
 				if (!stateLayer) {
 					let l: StateNS.IEmptyLayer = {
+						id: layer.id,
 						layerNo: mapping.layer,
 						content: StateNS.LayerContentType.NOTHING,
 						playing: false,
@@ -451,6 +465,7 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> {
 					const res = channel.layers[mapping.layer]
 					if (!res) { // create a new empty foreground layer if not found
 						let l: StateNS.IEmptyLayer = {
+							id: layer.id,
 							layerNo: mapping.layer,
 							content: StateNS.LayerContentType.NOTHING,
 							playing: false,
@@ -481,15 +496,20 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> {
 		let channels: any[] = command.response.data
 		const attemptSync = async (channelNo, tries): Promise<void> => {
 			let startTime = this.getCurrentTime()
-			await this._commandReceiver(startTime, new AMCP.TimeCommand({
-				channel: channelNo,
-				timecode: this.convertTimeToTimecode(startTime, channelNo)
-			}))
+			await this._commandReceiver(
+				startTime,
+				new AMCP.TimeCommand({
+					channel: channelNo,
+					timecode: this.convertTimeToTimecode(startTime, channelNo)
+				}),
+				'makeReady',
+				''
+			)
 
 			let duration = this.getCurrentTime() - startTime
 			if (duration > MAX_TIMESYNC_DURATION) { // @todo: acceptable time is dependent on fps
 				if (tries > MAX_TIMESYNC_TRIES) {
-					this.emit('error', 'CasparCG Time command took too long (' + MAX_TIMESYNC_TRIES + ' tries took longer than ' + MAX_TIMESYNC_DURATION + 'ms), channel will be slightly out of sync!')
+					this.emit('error', 'CasparCG', new Error(`CasparCG Time command took too long (${MAX_TIMESYNC_TRIES} tries took longer than ${MAX_TIMESYNC_DURATION}ms), channel will be slightly out of sync!`))
 					return Promise.resolve()
 				}
 				await new Promise(resolve => { setTimeout(() => resolve(), MAX_TIMESYNC_DURATION) })
@@ -509,9 +529,14 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> {
 		if (okToDestroyStuff) {
 			await Promise.all(
 				_.map(channels, async (channel: any) => {
-					await this._commandReceiver(this.getCurrentTime(), new AMCP.ClearCommand({
-						channel: channel.channel
-					}))
+					await this._commandReceiver(
+						this.getCurrentTime(),
+						new AMCP.ClearCommand({
+							channel: channel.channel
+						}),
+						'makeReady and destroystuff',
+						''
+					)
 				})
 			)
 		}
@@ -554,18 +579,18 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> {
 		}
 	}
 
-	private _diffStates (oldState, newState, time: number): Array<CommandNS.IAMCPCommandVO> {
+	private _diffStates (oldState, newState, time: number): Array<IAMCPCommandVOWithContext> {
 		// @todo: this is a tmp fix for the command order. should be removed when ccg-state has been refactored.
 		return this._ccgState.diffStatesOrderedCommands(oldState, newState, time)
 	}
-	private _doCommand (command: CommandNS.IAMCPCommand): Promise<void> {
+	private _doCommand (command: CommandNS.IAMCPCommand, context: string, timlineObjId: string): Promise<void> {
 		let time = this.getCurrentTime()
-		return this._commandReceiver(time, command)
+		return this._commandReceiver(time, command, context, timlineObjId)
 	}
 	/**
 	 * Clear future commands after {@code time} if they are not in {@code commandsToSendNow}.
 	 */
-	private _clearScheduledFutureCommands (time: number, commandsToSendNow: Array<CommandNS.IAMCPCommandVO>) {
+	private _clearScheduledFutureCommands (time: number, commandsToSendNow: Array<IAMCPCommandVOWithContext>) {
 		// clear any queued commands later than this time:
 		let now = this.getCurrentTime()
 
@@ -603,7 +628,11 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> {
 					// remove the commands from commands to send
 					commandsToSendNow.splice(matchingCommandI, 1)
 				} else {
-					this._doCommand(new AMCP.ScheduleRemoveCommand(token)).catch(e => this.emit('error', e))
+					this._doCommand(
+						new AMCP.ScheduleRemoveCommand(token),
+						`_clearScheduledFutureCommands (${time})`,
+						''
+					).catch(e => this.emit('error', 'CasparCG.ScheduleRemoveCommand', e))
 					delete this._queue[token]
 				}
 
@@ -617,17 +646,18 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> {
 	 * @param commandsToAchieveState Commands to be added to queue
 	 * @param time Point in time to send commands at
 	 */
-	private _addToQueue (commandsToAchieveState: Array<CommandNS.IAMCPCommandVO>, time: number) {
+	private _addToQueue (commandsToAchieveState: Array<IAMCPCommandVOWithContext>, time: number) {
 		let i = 0
 		let now = this.getCurrentTime()
 
-		_.each(commandsToAchieveState, (cmd: CommandNS.IAMCPCommandVO) => {
+		_.each(commandsToAchieveState, (cmd: IAMCPCommandVOWithContext) => {
 
-			let command: CommandNS.IAMCPCommand = AMCPUtil.deSerialize(cmd, 'id')
+			let command = AMCPUtil.deSerialize(cmd, 'id')
 
 			if (this._useScheduling) {
 				if (time <= now) {
-					this._doCommand(command).catch(e => this.emit('error', e))
+					this._doCommand(command, cmd.context.context, cmd.context.layerId)
+					.catch(e => this.emit('error', 'CasparCG._doCommand', e))
 				} else {
 					const token = `${time.toString(36).substr(-8)}_${('000' + i++).substr(-4)}`
 					let scheduleCommand = new AMCP.ScheduleSetCommand({
@@ -635,16 +665,17 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> {
 						timecode: this.convertTimeToTimecode(time, command.channel),
 						command
 					})
-					this._doCommand(scheduleCommand).catch(e => this.emit('error', e))
+					this._doCommand(scheduleCommand, cmd.context.context, cmd.context.layerId)
+					.catch(e => this.emit('error', 'CasparCG._doCommand', e))
 					this._queue[token] = {
 						time: time,
 						command: command
 					}
 				}
 			} else {
-				this._doOnTime.queue(time, undefined, (command: CommandNS.IAMCPCommand) => {
-					return this._doCommand(command)
-				}, command)
+				this._doOnTime.queue(time, undefined, (c: {command: CommandNS.IAMCPCommand, cmd: IAMCPCommandVOWithContext}) => {
+					return this._doCommand(c.command, c.cmd.context.context, c.cmd.context.layerId)
+				}, { command: command, cmd: cmd })
 			}
 		})
 
@@ -654,11 +685,12 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> {
 	 * @param time deprecated
 	 * @param cmd Command to execute
 	 */
-	private _defaultCommandReceiver (time: number, cmd: CommandNS.IAMCPCommand): Promise<any> {
+	private _defaultCommandReceiver (time: number, cmd: CommandNS.IAMCPCommand, context: string, timelineObjId: string): Promise<any> {
 		time = time
 
 		let cwc: CommandWithContext = {
-			context: null,
+			context: context,
+			timelineObjId: timelineObjId,
 			command: cmd
 		}
 		this.emit('debug', cwc)
@@ -669,7 +701,29 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> {
 				delete this._queue[resCommand.token]
 			}
 		}).catch((error) => {
-			this.emit('error', 'casparcg.defaultCommandReceiver ' + cmd.name, error)
+			let errorString = ''
+			if (error && error.response && error.response.code === 404) {
+				errorString = `404: File not found`
+			}
+
+			if (!errorString) {
+				errorString = (
+					error && error.response && error.response.raw ?
+					error.response.raw
+					: error.toString()
+				)
+			}
+
+			if (cmd.name) {
+				errorString += ` ${cmd.name} `
+			}
+			if (cmd['_objectParams'] && !_.isEmpty(cmd['_objectParams'])) {
+				errorString += ', params: ' + JSON.stringify(cmd['_objectParams'])
+			} else if (cmd.payload && !_.isEmpty(cmd.payload)) {
+				errorString += ', payload: ' + JSON.stringify(cmd.payload)
+			}
+			console.log('commandError', errorString)
+			this.emit('commandError', new Error(errorString), cwc)
 			if (cmd.name === 'ScheduleSetCommand') {
 				// delete this._queue[cmd.getParam('command').token]
 				delete this._queue[cmd.token]

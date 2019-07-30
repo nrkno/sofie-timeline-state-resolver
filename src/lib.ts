@@ -160,7 +160,7 @@ function deepDiff (a: any, b: any, aStack: any, bStack: any): string | null {
 		let key
 		length = keys.length
 		// Ensure that both objects contain the same number of properties before comparing deep equality.
-		if (_.keys(b).length !== length) return `keys length differ (${a.length}, ${b.length})`
+		if (_.keys(b).length !== length) return `keys length differ (${_.keys(b).length}, ${length})`
 		while (length--) {
 			// Deep compare each member
 			key = keys[length]

@@ -31,12 +31,14 @@ import { DoOnTime, SendMode } from '../doOnTime'
 // }
 export interface HyperdeckDeviceOptions extends DeviceOptions {
 	options?: {
-		commandReceiver?: (time: number, cmd) => Promise<any>
+		commandReceiver?: CommandReceiver
 	}
 }
+export type CommandReceiver = (time: number, command: HyperdeckCommands.AbstractCommand, context: CommandContext, timelineObjId: string) => Promise<any>
 export interface HyperdeckCommandWithContext {
 	command: HyperdeckCommands.AbstractCommand
 	context: CommandContext
+	timelineObjId: string
 }
 
 export interface TransportInfoCommandResponseExt {
@@ -47,6 +49,8 @@ export interface TransportInfoCommandResponseExt {
 export interface DeviceState {
 	notify: HyperdeckCommands.NotifyCommandResponse
 	transport: TransportInfoCommandResponseExt
+	/** The timelineObject this state originates from */
+	timelineObjId: string
 }
 
 type CommandContext = any
@@ -61,7 +65,7 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> {
 	private _initialized: boolean = false
 	private _connected: boolean = false
 
-	private _commandReceiver: (time: number, command: HyperdeckCommands.AbstractCommand, context: CommandContext) => Promise<any>
+	private _commandReceiver: CommandReceiver
 
 	constructor (deviceId: string, deviceOptions: HyperdeckDeviceOptions, options) {
 		super(deviceId, deviceOptions, options)
@@ -72,7 +76,7 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> {
 		this._doOnTime = new DoOnTime(() => {
 			return this.getCurrentTime()
 		}, SendMode.BURST, this._deviceOptions)
-		this._doOnTime.on('error', e => this.emit('error', 'doOnTime', e))
+		this._doOnTime.on('error', e => this.emit('error', 'Hyperdeck.doOnTime', e))
 		this._doOnTime.on('slowCommand', msg => this.emit('slowCommand', this.deviceName + ': ' + msg))
 	}
 
@@ -99,7 +103,7 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> {
 					this._connectionChanged()
 					this.emit('resetResolver')
 				})
-				.catch(e => this.emit('error', '_hyperdeck.on("conected")', e))
+				.catch(e => this.emit('error', 'Hyperdeck.on("connected")', e))
 			})
 			this._hyperdeck.on('disconnected', () => {
 				this._connected = false
@@ -240,7 +244,7 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> {
 		_.each(commandsToAchieveState, (cmd: HyperdeckCommandWithContext) => {
 			// add the new commands to the queue:
 			this._doOnTime.queue(time, undefined, (cmd: HyperdeckCommandWithContext) => {
-				return this._commandReceiver(time, cmd.command, cmd.context)
+				return this._commandReceiver(time, cmd.command, cmd.context, cmd.timelineObjId)
 			}, cmd)
 		})
 	}
@@ -255,13 +259,17 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> {
 
 		if (oldHyperdeckState.notify && newHyperdeckState.notify) {
 			const notifyCmd = new HyperdeckCommands.NotifySetCommand()
-			let hasChange = false
+			let hasChange: {
+				timelineObjId: string
+			} | null = null
 
 			const keys = _.unique(_.keys(oldHyperdeckState.notify).concat(_.keys(newHyperdeckState.notify)))
 			for (let k of keys) {
 				if (oldHyperdeckState.notify[k] !== newHyperdeckState.notify[k]) {
-					hasChange = true
 					notifyCmd[k] = newHyperdeckState.notify[k]
+					hasChange = {
+						timelineObjId: newHyperdeckState.timelineObjId
+					}
 				}
 			}
 
@@ -271,11 +279,12 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> {
 					context: {
 						oldState: oldHyperdeckState.notify,
 						newState: newHyperdeckState.notify
-					}
+					},
+					timelineObjId: hasChange.timelineObjId
 				})
 			}
 		} else {
-			this.emit('error', 'diffStates missing notify object', oldHyperdeckState.notify, newHyperdeckState.notify)
+			this.emit('error', 'Hyperdeck', new Error(`diffStates missing notify object: ${JSON.stringify(oldHyperdeckState.notify)}, ${JSON.stringify(newHyperdeckState.notify)}`))
 		}
 
 		if (oldHyperdeckState.transport && newHyperdeckState.transport) {
@@ -292,7 +301,8 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> {
 							context: {
 								oldState: oldHyperdeckState.transport,
 								newState: newHyperdeckState.transport
-							}
+							},
+							timelineObjId: newHyperdeckState.timelineObjId
 						})
 					} else if (filenameChanged) { // Split recording
 						commandsToAchieveState.push({
@@ -300,14 +310,16 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> {
 							context: {
 								oldState: oldHyperdeckState.transport,
 								newState: newHyperdeckState.transport
-							}
+							},
+							timelineObjId: newHyperdeckState.timelineObjId
 						})
 						commandsToAchieveState.push({
 							command: new HyperdeckCommands.RecordCommand(newHyperdeckState.transport.recordFilename),
 							context: {
 								oldState: oldHyperdeckState.transport,
 								newState: newHyperdeckState.transport
-							}
+							},
+							timelineObjId: newHyperdeckState.timelineObjId
 						})
 					} // else continue recording
 
@@ -321,14 +333,15 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> {
 							context: {
 								oldState: oldHyperdeckState.transport,
 								newState: newHyperdeckState.transport
-							}
+							},
+							timelineObjId: newHyperdeckState.timelineObjId
 						})
 					}
 					break
 			}
 
 		} else {
-			this.emit('error', 'diffStates missing transport object', oldHyperdeckState.transport, newHyperdeckState.transport)
+			this.emit('error', 'Hyperdeck', new Error(`diffStates missing transport object: ${JSON.stringify(oldHyperdeckState.transport)}, ${JSON.stringify(newHyperdeckState.transport)}`))
 		}
 
 		return commandsToAchieveState
@@ -348,7 +361,8 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> {
 
 		const res: DeviceState = {
 			notify: notifyRes,
-			transport: transportRes
+			transport: transportRes,
+			timelineObjId: 'currentState'
 		}
 		return res
 	}
@@ -367,20 +381,25 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> {
 			},
 			transport: {
 				status: TransportStatus.PREVIEW
-			}
+			},
+			timelineObjId: ''
 		}
 
 		return res
 	}
 
-	private _defaultCommandReceiver (_time: number, command: HyperdeckCommands.AbstractCommand, context: CommandContext): Promise<any> {
+	private _defaultCommandReceiver (_time: number, command: HyperdeckCommands.AbstractCommand, context: CommandContext, timelineObjId: string): Promise<any> {
 		let cwc: CommandWithContext = {
 			context: context,
+			timelineObjId: timelineObjId,
 			command: command
 		}
 		this.emit('debug', cwc)
 
 		return this._hyperdeck.sendCommand(command)
+		.catch(error => {
+			this.emit('commandError', error, cwc)
+		})
 	}
 	private _connectionChanged () {
 		this.emit('connectionChanged', this.getStatus())

@@ -19,13 +19,15 @@ import {
 } from 'superfly-timeline'
 export interface HttpSendDeviceOptions extends DeviceOptions {
 	options?: {
-		commandReceiver?: (time: number, cmd) => Promise<any>
+		commandReceiver?: CommandReceiver
 	}
 }
+export type CommandReceiver = (time: number, cmd: HttpSendCommandContent, context: CommandContext, timelineObjId: string) => Promise<any>
 interface Command {
-	commandName: 'added' | 'changed' | 'removed',
-	content: HttpSendCommandContent,
-	context: CommandContext,
+	commandName: 'added' | 'changed' | 'removed'
+	content: HttpSendCommandContent
+	context: CommandContext
+	timelineObjId: string
 	layer: string
 }
 type CommandContext = string
@@ -38,7 +40,7 @@ export class HttpSendDevice extends DeviceWithState<TimelineState> {
 	private _makeReadyCommands: HttpSendCommandContent[]
 	private _doOnTime: DoOnTime
 
-	private _commandReceiver: (time: number, cmd: HttpSendCommandContent, context: CommandContext) => Promise<any>
+	private _commandReceiver: CommandReceiver
 
 	constructor (deviceId: string, deviceOptions: HttpSendDeviceOptions, options) {
 		super(deviceId, deviceOptions, options)
@@ -49,7 +51,7 @@ export class HttpSendDevice extends DeviceWithState<TimelineState> {
 		this._doOnTime = new DoOnTime(() => {
 			return this.getCurrentTime()
 		}, SendMode.IN_ORDER, this._deviceOptions)
-		this._doOnTime.on('error', e => this.emit('error', e))
+		this._doOnTime.on('error', e => this.emit('error', 'HTTPSend.doOnTime', e))
 		this._doOnTime.on('slowCommand', msg => this.emit('slowCommand', this.deviceName + ': ' + msg))
 	}
 	init (options: HttpSendOptions): Promise<boolean> {
@@ -96,7 +98,7 @@ export class HttpSendDevice extends DeviceWithState<TimelineState> {
 			_.each(this._makeReadyCommands, (cmd: HttpSendCommandContent) => {
 				// add the new commands to the queue:
 				this._doOnTime.queue(time, cmd.queueId, (cmd: HttpSendCommandContent) => {
-					return this._commandReceiver(time, cmd, 'makeReady')
+					return this._commandReceiver(time, cmd, 'makeReady', '')
 				}, cmd)
 			})
 		}
@@ -131,7 +133,7 @@ export class HttpSendDevice extends DeviceWithState<TimelineState> {
 					cmd.commandName === 'added' ||
 					cmd.commandName === 'changed'
 				) {
-					return this._commandReceiver(time, cmd.content, cmd.context)
+					return this._commandReceiver(time, cmd.content, cmd.context, cmd.timelineObjId)
 				} else {
 					return null
 				}
@@ -148,6 +150,7 @@ export class HttpSendDevice extends DeviceWithState<TimelineState> {
 			if (!oldLayer) {
 				// added!
 				commands.push({
+					timelineObjId:	newLayer.id,
 					commandName:	'added',
 					content:		newLayer.content as HttpSendCommandContent,
 					context:		`added: ${newLayer.id}`,
@@ -158,6 +161,7 @@ export class HttpSendDevice extends DeviceWithState<TimelineState> {
 				if (!_.isEqual(oldLayer.content, newLayer.content)) {
 					// changed!
 					commands.push({
+						timelineObjId:	newLayer.id,
 						commandName:	'changed',
 						content:		newLayer.content as HttpSendCommandContent,
 						context:		`changed: ${newLayer.id} (previously: ${oldLayer.id})`,
@@ -172,6 +176,7 @@ export class HttpSendDevice extends DeviceWithState<TimelineState> {
 			if (!newLayer) {
 				// removed!
 				commands.push({
+					timelineObjId:	oldLayer.id,
 					commandName:	'removed',
 					content:		oldLayer.content as HttpSendCommandContent,
 					context:		`removed: ${oldLayer.id}`,
@@ -185,19 +190,20 @@ export class HttpSendDevice extends DeviceWithState<TimelineState> {
 			return (a.content.temporalPriority || 0) - (b.content.temporalPriority || 0)
 		})
 	}
-	private _defaultCommandReceiver (time: number, cmd: HttpSendCommandContent, context: CommandContext): Promise<any> {
+	private _defaultCommandReceiver (time: number, cmd: HttpSendCommandContent, context: CommandContext, timelineObjId: string): Promise<any> {
 		time = time
 
 		let cwc: CommandWithContext = {
 			context: context,
-			command: cmd
+			command: cmd,
+			timelineObjId: timelineObjId
 		}
 		this.emit('debug', cwc)
 
 		return new Promise((resolve, reject) => {
 			let handleResponse = (error, response) => {
 				if (error) {
-					this.emit('error', `HTTPSend: Error ${cmd.type} (${context})`, error)
+					this.emit('error', `HTTPSend.response error ${cmd.type} (${context}`, error)
 					reject(error)
 				} else if (response.statusCode === 200) {
 					this.emit('debug', `HTTPSend: ${cmd.type}: Good statuscode response on url "${cmd.url}": ${response.statusCode} (${context})`)
@@ -219,6 +225,9 @@ export class HttpSendDevice extends DeviceWithState<TimelineState> {
 			} else {
 				reject(`Unknown HTTP-send type: "${cmd.type}"`)
 			}
+		})
+		.catch(error => {
+			this.emit('commandError', error, cwc)
 		})
 	}
 }

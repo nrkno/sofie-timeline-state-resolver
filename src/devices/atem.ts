@@ -50,6 +50,7 @@ export interface AtemDeviceOptions extends DeviceOptions {
 export interface AtemCommandWithContext {
 	command: AtemCommands.AbstractCommand
 	context: CommandContext
+	timelineObjId: string
 }
 type CommandContext = any
 
@@ -72,7 +73,7 @@ export class AtemDevice extends DeviceWithState<DeviceState> {
 		psus: []
 	}
 
-	private _commandReceiver: (time: number, command: AtemCommands.AbstractCommand, context: CommandContext) => Promise<any>
+	private _commandReceiver: (time: number, command: AtemCommands.AbstractCommand, context: CommandContext, timelineObjId: string) => Promise<any>
 
 	constructor (deviceId: string, deviceOptions: AtemDeviceOptions, options) {
 		super(deviceId, deviceOptions, options)
@@ -83,7 +84,7 @@ export class AtemDevice extends DeviceWithState<DeviceState> {
 		this._doOnTime = new DoOnTime(() => {
 			return this.getCurrentTime()
 		}, SendMode.BURST, this._deviceOptions)
-		this._doOnTime.on('error', e => this.emit('error', 'doOnTime', e))
+		this._doOnTime.on('error', e => this.emit('error', 'Atem.doOnTime', e))
 		this._doOnTime.on('slowCommand', msg => this.emit('slowCommand', this.deviceName + ': ' + msg))
 	}
 
@@ -132,11 +133,13 @@ export class AtemDevice extends DeviceWithState<DeviceState> {
 
 		return new Promise((resolve) => {
 			// TODO: implement dispose function in atem-connection
-			// this._atem.dispose()
-			// .then(() => {
-			// resolve(true)
-			// })
-			resolve(true)
+			this._atem.disconnect()
+			.then(() => {
+				resolve(true)
+			})
+			.catch(() => {
+				resolve(false)
+			})
 		})
 	}
 
@@ -329,7 +332,7 @@ export class AtemDevice extends DeviceWithState<DeviceState> {
 
 			// add the new commands to the queue:
 			this._doOnTime.queue(time, undefined, (cmd: AtemCommandWithContext) => {
-				return this._commandReceiver(time, cmd.command, cmd.context)
+				return this._commandReceiver(time, cmd.command, cmd.context, cmd.timelineObjId)
 			}, cmd)
 		})
 	}
@@ -348,7 +351,8 @@ export class AtemDevice extends DeviceWithState<DeviceState> {
 					// backwards compability, to be removed later:
 					return {
 						command: cmd as AtemCommands.AbstractCommand,
-						context: null
+						context: null,
+						timelineObjId: '' // @todo: implement in Atem-state
 					}
 				}
 			}
@@ -390,15 +394,20 @@ export class AtemDevice extends DeviceWithState<DeviceState> {
 		return deviceState
 	}
 
-	private _defaultCommandReceiver (_time: number, command: AtemCommands.AbstractCommand, context: CommandContext): Promise<any> {
+	private _defaultCommandReceiver (_time: number, command: AtemCommands.AbstractCommand, context: CommandContext, timelineObjId: string): Promise<any> {
 		let cwc: CommandWithContext = {
 			context: context,
-			command: command
+			command: command,
+			timelineObjId: timelineObjId
 		}
 		this.emit('debug', cwc)
 
-		return this._atem.sendCommand(command).then(() => {
+		return this._atem.sendCommand(command)
+		.then(() => {
 			// @todo: command was acknowledged by atem, how will we check if it did what we wanted?
+		})
+		.catch((error) => {
+			this.emit('commandError', error, cwc)
 		})
 	}
 	private _onAtemStateChanged (newState: AtemAtemState) {
