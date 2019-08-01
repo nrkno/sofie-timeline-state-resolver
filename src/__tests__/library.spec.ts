@@ -1,5 +1,5 @@
 // These imports are pointed to what external libraries will import
-import { Conductor, DeviceOptions, DeviceType } from '../../dist/'
+import { Conductor, DeviceOptions, DeviceType, CasparCGDevice } from '../../dist/'
 import {
 	DeviceType as Types_DeviceType,
 	TSRTimeline,
@@ -13,6 +13,7 @@ describe('Usage of library', () => {
 
 	test('main library', () => {
 
+		expect(CasparCGDevice).toBeTruthy()
 		expect(Conductor).toBeTruthy()
 
 		// Expect this type to exist:
