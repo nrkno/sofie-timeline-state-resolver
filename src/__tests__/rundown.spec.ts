@@ -1,38 +1,33 @@
-// import { CasparCG, AMCP } from 'casparcg-connection'
-// import {Resolver, Enums} from "superfly-timeline"
-import { TriggerType } from 'superfly-timeline'
-
-import { Mappings, MappingCasparCG, DeviceType } from '../devices/mapping'
+import {
+	MappingCasparCG,
+	Mappings,
+	DeviceType,
+	TimelineContentTypeCasparCg,
+	ChannelFormat,
+	Transition
+} from '../types/src'
 import { Conductor } from '../conductor'
+import { MockTime } from './mockTime.spec'
+import * as _ from 'underscore'
+import { getMockCall } from './lib.spec'
 
 // let nowActual: number = Date.now()
 
 describe('Rundown', () => {
-	let now: number = 10000
+	let mockTime = new MockTime()
 	beforeAll(() => {
-		Date.now = jest.fn(() => {
-			return getCurrentTime()
-		})
-		// Date.now['mockReturnValue'](now)
+		mockTime.mockDateNow()
 	})
-	function getCurrentTime () {
-		return now
-	}
-	function advanceTime (advanceTime: number) {
-		now += advanceTime
-		jest.advanceTimersByTime(advanceTime)
-		// console.log('Advancing ' + advanceTime + ' ms -----------------------')
-	}
 	beforeEach(() => {
-		now = 10000
-		jest.useFakeTimers()
+		mockTime.init()
 	})
 
-	test('Do a "full" rundown', async () => {
+	test('Do a full rundown', async () => {
 
 		let commandReceiver0 = jest.fn(() => {
 			return Promise.resolve()
 		})
+		let commandReceiver0Calls = 0
 		let cam1Mapping: MappingCasparCG = {
 			device: DeviceType.CASPARCG,
 			deviceId: 'myCCG',
@@ -73,7 +68,7 @@ describe('Rundown', () => {
 
 		let myConductor = new Conductor({
 			initializeAsClear: true,
-			getCurrentTime: getCurrentTime
+			getCurrentTime: mockTime.getCurrentTime
 		})
 		await myConductor.init()
 		await myConductor.addDevice('myCCG', {
@@ -84,13 +79,21 @@ describe('Rundown', () => {
 				useScheduling: true
 			}
 		})
-		myConductor.mapping = myLayerMapping
-		advanceTime(1) // 10001
+		await myConductor.setMapping(myLayerMapping)
+		await mockTime.advanceTimeToTicks(10001)
 
-		let device = myConductor.getDevice('myCCG')
+		let deviceContainer = myConductor.getDevice('myCCG')
+		let device = deviceContainer.device
 
 		// Check that no commands has been scheduled:
-		expect(device['queue']).toHaveLength(0)
+		expect(await device['queue']).toHaveLength(0)
+
+		await mockTime.advanceTimeToTicks(10050)
+		commandReceiver0Calls += 3
+		expect(commandReceiver0).toHaveBeenCalledTimes(commandReceiver0Calls)
+		expect(getMockCall(commandReceiver0, commandReceiver0Calls - 3, 1).name).toEqual('TimeCommand')
+		expect(getMockCall(commandReceiver0, commandReceiver0Calls - 2, 1).name).toEqual('TimeCommand')
+		expect(getMockCall(commandReceiver0, commandReceiver0Calls - 1, 1).name).toEqual('TimeCommand')
 
 		// 00:00 - aux - bg_item1
 		// 00:00 - gfx - short opener
@@ -104,256 +107,253 @@ describe('Rundown', () => {
 			{
 				id: 'cam1',
 				content: {
-					type: 'input',
-					attributes: {
-						device: 3
-					}
+					deviceType: DeviceType.CASPARCG,
+					type: TimelineContentTypeCasparCg.INPUT,
+
+					device: 3,
+					inputType: 'decklink',
+					deviceFormat: ChannelFormat.HD_720P5000
+
 				},
-				duration: 0, // always on
-				trigger: {
-					type: TriggerType.TIME_ABSOLUTE,
-					value: Date.now()
+				enable: {
+					start: 10000 // 00:10:00
+					// duration: 0 // always on
 				},
-				LLayer: 'cam1'
+				layer: 'cam1'
 			},
 			{
 				id: 'cam2',
 				content: {
-					type: 'input',
-					attributes: {
-						device: 4
-					}
+					deviceType: DeviceType.CASPARCG,
+					type: TimelineContentTypeCasparCg.INPUT,
+
+					device: 4,
+					inputType: 'decklink',
+					deviceFormat: ChannelFormat.HD_720P5000
 				},
-				duration: 0, // always on
-				trigger: {
-					type: TriggerType.TIME_ABSOLUTE,
-					value: Date.now()
+				enable: {
+					start: 10000 // 00:10:00
+					// duration: 0, // always on
 				},
-				LLayer: 'cam2'
+				layer: 'cam2'
 			},
 
 			// rundown
 			{
 				id: 'bg_item1_0',
 				content: {
-					type: 'video',
-					attributes: {
-						file: 'BG1',
-						loop: true
-					}
+					deviceType: DeviceType.CASPARCG,
+					type: TimelineContentTypeCasparCg.MEDIA,
+
+					file: 'BG1',
+					loop: true
 				},
-				trigger: {
-					type: TriggerType.LOGICAL,
-					value: '.opener_item_1'
+				enable: {
+					while: '.opener_item_1'  // 00:10:00 - 00:15:25
+					// duration: 10000,
 				},
-				duration: 10000,
-				LLayer: 'aux1'
+				layer: 'aux1'
 			},
 			{
 				id: 'opener_clip_short',
 				content: {
-					type: 'video',
-					attributes: {
-						file: 'opener_short'
-					},
-					keyframes: [
-						{
-							id: 'kf1',
-							trigger: {
-								type: TriggerType.TIME_RELATIVE,
-								value: '#opener_clip_short.end - 500'
-							},
-							duration: 500,
-							content: { mixer: {
-								opacity: 0,
-								inTransition: {
-									duration: 500
-								}
-							} }
-						}
-					]
+					deviceType: DeviceType.CASPARCG,
+					type: TimelineContentTypeCasparCg.MEDIA,
+
+					file: 'opener_short'
 				},
-				trigger: {
-					type: TriggerType.TIME_ABSOLUTE,
-					value: Date.now()
+				keyframes: [
+					{
+						id: 'kf1',
+						enable: {
+							start: '#opener_clip_short.end - 500',
+							duration: 500
+						},
+						content: { mixer: {
+							opacity: 0,
+							inTransition: {
+								duration: 500
+							}
+						} }
+					}
+				],
+				enable: {
+					start: 10000, // 00:10:00
+					duration: 2000 // 00:12:00
 				},
-				duration: 2000,
-				LLayer: 'gfx'
+				layer: 'gfx'
 			},
 			{
 				id: 'cam_opener_item_1',
 				content: {
-					type: 'route',
-					attributes: {
-						LLayer: 'cam1'
-					}
+					deviceType: DeviceType.CASPARCG,
+					type: TimelineContentTypeCasparCg.ROUTE,
+
+					mappedLayer: 'cam1'
 				},
 				classes: ['opener_item_1'],
-				trigger: {
-					type: TriggerType.TIME_RELATIVE,
-					value: '#opener_clip_short.start'
+				enable: {
+					start: '#opener_clip_short.start',  // 00:10:00
+					duration: 5500	 // 00:15:25
 				},
-				duration: 5500,
-				LLayer: 'pgm'
+				layer: 'pgm'
 			},
 			{
 				id: 'lt_opener',
 				content: {
-					type: 'template',
-					attributes: {
-						name: 'LT',
-						data: {
-							name: 'Presentator 123'
-						},
-						useStopCommand: true
-					}
+					deviceType: DeviceType.CASPARCG,
+					type: TimelineContentTypeCasparCg.TEMPLATE,
+
+					name: 'LT',
+					data: {
+						name: 'Presentator 123'
+					},
+					useStopCommand: true
 				},
-				trigger: {
-					type: TriggerType.TIME_RELATIVE,
-					value: '#opener_clip_short.end + 1000'
+				enable: {
+					start: '#opener_clip_short.end + 1000',	 // 00:16:25
+					duration: 1500	 // 00:18:00
 				},
-				duration: 1500,
-				LLayer: 'gfx'
+				layer: 'gfx'
 			},
 			{
 				id: 'stinger_opener_1_bg',
 				content: {
-					type: 'video',
-					attributes: {
-						file: 'stinger1'
-					}
+					deviceType: DeviceType.CASPARCG,
+					type: TimelineContentTypeCasparCg.MEDIA,
+
+					file: 'stinger1'
 				},
-				trigger: {
-					type: TriggerType.TIME_RELATIVE,
-					value: '#cam_opener_item_1.end - 1000'
+				enable: {
+					start: '#cam_opener_item_1.end - 1000', // 00:14:25
+					duration: 1000 // 00:16:25
 				},
-				isBackground: true,
-				duration: 1000,
-				LLayer: 'gfx'
+				layer: 'gfx',
+				// @ts-ignore
+				isLookahead: true
 			},
 			{
 				id: 'stinger_opener_1',
 				content: {
-					type: 'video',
-					attributes: {
-						file: 'stinger1'
-					}
+					deviceType: DeviceType.CASPARCG,
+					type: TimelineContentTypeCasparCg.MEDIA,
+
+					file: 'stinger1'
 				},
-				trigger: {
-					type: TriggerType.TIME_RELATIVE,
-					value: '#cam_opener_item_1.end - 500'
+				enable: {
+					start: '#cam_opener_item_1.end - 500', // 00:15:00
+					duration: 1000 // 00:16:00
 				},
-				duration: 1000,
-				LLayer: 'gfx'
+				layer: 'gfx'
 			},
 			{
 				id: 'cam_opener_item_2',
 				content: {
-					type: 'route',
-					attributes: {
-						LLayer: 'cam2'
-					}
+					deviceType: DeviceType.CASPARCG,
+					type: TimelineContentTypeCasparCg.ROUTE,
+
+					mappedLayer: 'cam2'
 				},
 				classes: ['opener_item_2'],
-				trigger: {
-					type: TriggerType.TIME_RELATIVE,
-					value: '#cam_opener_item_1.end'
+				enable: {
+					start: '#cam_opener_item_1.end',  // 00:15:25
+					duration: 2500 // 00:18:00
 				},
-				duration: 2500,
-				LLayer: 'pgm'
+				layer: 'pgm'
 			},
 			{
 				id: 'bg_item2_0_bg',
 				content: {
-					type: 'video',
-					attributes: {
-						file: 'BG2',
-						loop: true
-					}
+					deviceType: DeviceType.CASPARCG,
+					type: TimelineContentTypeCasparCg.MEDIA,
+
+					file: 'BG2',
+					loop: true
 				},
-				trigger: {
-					type: TriggerType.TIME_RELATIVE,
-					value: '#cam_opener_item_2.start'
+				enable: {
+					start: '#cam_opener_item_2.start', // 00:15:25
+					duration: 1399 // 00:16:35?
 				},
-				isBackground: true,
-				duration: 1399,
-				LLayer: 'aux1'
+				layer: 'aux1',
+				// @ts-ignore
+				isLookahead: true
 			},
 			{
 				id: 'bg_item2_0',
 				content: {
-					type: 'video',
-					attributes: {
-						file: 'BG2',
-						loop: true
-					}
+					deviceType: DeviceType.CASPARCG,
+					type: TimelineContentTypeCasparCg.MEDIA,
+
+					file: 'BG2',
+					loop: true
 				},
-				trigger: {
-					type: TriggerType.LOGICAL,
-					value: '.opener_item_2'
+				enable: {
+					while: '.opener_item_2' // 00:15:25 - 00:18:00
+					// duration: 10000,
 				},
-				duration: 10000,
-				LLayer: 'aux1'
+				layer: 'aux1'
 			},
 			{
 				id: 'opener_full_bg',
 				content: {
-					type: 'video',
-					attributes: {
-						file: 'opener_full'
-					},
+					deviceType: DeviceType.CASPARCG,
+					type: TimelineContentTypeCasparCg.MEDIA,
+
+					file: 'opener_full',
+
 					transitions: {
 						inTransition: {
-							type: 'PUSH',
+							type: Transition.PUSH,
 							duration: 250
 						}
 					}
 				},
-				trigger: {
-					type: TriggerType.TIME_RELATIVE,
-					value: '#opener_full.start - 2000'
+				enable: {
+					start: '#opener_full.start - 2000',
+					duration: 2000
 				},
-				isBackground: true,
-				duration: 2000,
-				LLayer: 'gfx'
+				layer: 'gfx',
+				// @ts-ignore
+				isLookahead: true
 			},
 			{
 				id: 'opener_full',
 				content: {
-					type: 'video',
-					attributes: {
-						file: 'opener_full'
-					},
+					deviceType: DeviceType.CASPARCG,
+					type: TimelineContentTypeCasparCg.MEDIA,
+
+					file: 'opener_full',
+
 					transitions: {
 						inTransition: {
-							type: 'PUSH',
+							type: Transition.PUSH,
 							duration: 250
 						}
 					}
 				},
-				trigger: {
-					type: TriggerType.TIME_RELATIVE,
-					value: '#cam_opener_item_2.end'
+				enable: {
+					start: '#cam_opener_item_2.end', // 00:16:44
+					duration: 5000 // 00:21:44
 				},
-				duration: 5000,
-				LLayer: 'gfx'
+				layer: 'gfx'
 			}
 		]
+		await mockTime.advanceTimeToTicks(10101)
 
-		advanceTime(100) // 10101
-
-		expect(getCurrentTime()).toEqual(10101)
+		expect(mockTime.getCurrentTime()).toEqual(10101)
 
 		// PLAY 1-10 ROUTE://3-10
 		// PLAY 1-11 OPENER_SHORT
 		// PLAY 2-10 BG1
 		// PLAY 3-10 DECKLINK 3
 		// PLAY 3-20 DECKLINK 4
-		expect(commandReceiver0).toHaveBeenCalledTimes(7)
-		expect(commandReceiver0.mock.calls[0][1].name).toEqual('PlayRouteCommand')
-		expect(commandReceiver0.mock.calls[0][1]._objectParams.command).toEqual('PLAY 1-10 route://3-10')
-		expect(commandReceiver0.mock.calls[1][1].name).toEqual('PlayCommand')
-		expect(commandReceiver0.mock.calls[1][1]._objectParams).toMatchObject({
+		commandReceiver0Calls += 7
+		expect(commandReceiver0).toHaveBeenCalledTimes(commandReceiver0Calls)
+		expect(getMockCall(commandReceiver0, commandReceiver0Calls - 7, 1).name).toEqual('PlayRouteCommand')
+		expect(getMockCall(commandReceiver0, commandReceiver0Calls - 7, 1)._objectParams.command).toEqual('PLAY 1-10 route://3-10')
+
+		expect(getMockCall(commandReceiver0, commandReceiver0Calls - 6, 1).name).toEqual('PlayCommand')
+		expect(getMockCall(commandReceiver0, commandReceiver0Calls - 6, 1)._objectParams).toMatchObject({
 			channel: 1,
 			layer: 11,
 			noClear: false,
@@ -361,8 +361,8 @@ describe('Rundown', () => {
 			loop: false,
 			seek: 0
 		})
-		expect(commandReceiver0.mock.calls[2][1].name).toEqual('PlayCommand')
-		expect(commandReceiver0.mock.calls[2][1]._objectParams).toMatchObject({
+		expect(getMockCall(commandReceiver0, commandReceiver0Calls - 5, 1).name).toEqual('PlayCommand')
+		expect(getMockCall(commandReceiver0, commandReceiver0Calls - 5, 1)._objectParams).toMatchObject({
 			channel: 2,
 			layer: 10,
 			noClear: false,
@@ -370,8 +370,8 @@ describe('Rundown', () => {
 			loop: true,
 			seek: 0
 		})
-		expect(commandReceiver0.mock.calls[3][1].name).toEqual('PlayDecklinkCommand')
-		expect(commandReceiver0.mock.calls[3][1]._objectParams).toMatchObject({
+		expect(getMockCall(commandReceiver0, commandReceiver0Calls - 4, 1).name).toEqual('PlayDecklinkCommand')
+		expect(getMockCall(commandReceiver0, commandReceiver0Calls - 4, 1)._objectParams).toMatchObject({
 			channel: 3,
 			layer: 10,
 			noClear: false,
@@ -379,8 +379,8 @@ describe('Rundown', () => {
 			format: undefined,
 			channelLayout: undefined
 		})
-		expect(commandReceiver0.mock.calls[4][1].name).toEqual('PlayDecklinkCommand')
-		expect(commandReceiver0.mock.calls[4][1]._objectParams).toMatchObject({
+		expect(getMockCall(commandReceiver0, commandReceiver0Calls - 3, 1).name).toEqual('PlayDecklinkCommand')
+		expect(getMockCall(commandReceiver0, commandReceiver0Calls - 3, 1)._objectParams).toMatchObject({
 			channel: 3,
 			layer: 20,
 			noClear: false,
@@ -390,10 +390,10 @@ describe('Rundown', () => {
 		})
 
 		// SCHEDULE SET 1.5s MIXER OPACITY 25
-		expect(commandReceiver0.mock.calls[5][1].name).toEqual('ScheduleSetCommand')
-		expect(commandReceiver0.mock.calls[5][1]._objectParams.command.name).toEqual('MixerOpacityCommand')
-		expect(commandReceiver0.mock.calls[5][1]._objectParams.timecode).toEqual('00:00:11:25')
-		expect(commandReceiver0.mock.calls[5][1]._objectParams.command._objectParams).toMatchObject({
+		expect(getMockCall(commandReceiver0, commandReceiver0Calls - 2, 1).name).toEqual('ScheduleSetCommand')
+		expect(getMockCall(commandReceiver0, commandReceiver0Calls - 2, 1)._objectParams.command.name).toEqual('MixerOpacityCommand')
+		expect(getMockCall(commandReceiver0, commandReceiver0Calls - 2, 1)._objectParams.timecode).toEqual('00:00:11:25')
+		expect(getMockCall(commandReceiver0, commandReceiver0Calls - 2, 1)._objectParams.command._objectParams).toMatchObject({
 			'channel': 1,
 			'layer': 11,
 			'transition': 'mix',
@@ -403,18 +403,21 @@ describe('Rundown', () => {
 			'opacity': 0,
 			'keyword': 'OPACITY'
 		})
-		expect(commandReceiver0.mock.calls[6][1]._objectParams.timecode).toEqual('00:00:12:00')
-		expect(commandReceiver0.mock.calls[6][1]._objectParams.command._objectParams).toMatchObject({
+		expect(getMockCall(commandReceiver0, commandReceiver0Calls - 1, 1).name).toEqual('ScheduleSetCommand')
+		expect(getMockCall(commandReceiver0, commandReceiver0Calls - 1, 1)._objectParams.timecode).toEqual('00:00:12:00')
+		expect(getMockCall(commandReceiver0, commandReceiver0Calls - 1, 1)._objectParams.command.name).toEqual('ClearCommand')
+		expect(getMockCall(commandReceiver0, commandReceiver0Calls - 1, 1)._objectParams.command._objectParams).toMatchObject({
 			'channel': 1,
 			'layer': 11
 		})
 
-		advanceTime(1000) // 11101
-		expect(getCurrentTime()).toEqual(11101)
-		expect(commandReceiver0).toHaveBeenCalledTimes(8)
+		await mockTime.advanceTimeToTicks(11101)
+		expect(mockTime.getCurrentTime()).toEqual(11101)
+		commandReceiver0Calls += 1
+		expect(commandReceiver0).toHaveBeenCalledTimes(commandReceiver0Calls)
 		// SCHEDULE SET 3s CG ADD 1-11 ...
-		expect(commandReceiver0.mock.calls[7][1]._objectParams.timecode).toEqual('00:00:13:00')
-		expect(commandReceiver0.mock.calls[7][1]._objectParams.command._objectParams).toMatchObject({
+		expect(getMockCall(commandReceiver0, commandReceiver0Calls - 1, 1)._objectParams.timecode).toEqual('00:00:13:00')
+		expect(getMockCall(commandReceiver0, commandReceiver0Calls - 1, 1)._objectParams.command._objectParams).toMatchObject({
 			channel: 1,
 			layer: 11,
 			noClear: false,
@@ -426,67 +429,79 @@ describe('Rundown', () => {
 			templateType: 'html'
 		})
 
-		advanceTime(1500) // 12601
-		expect(getCurrentTime()).toEqual(12601)
-		expect(commandReceiver0).toHaveBeenCalledTimes(12)
+		await mockTime.advanceTimeToTicks(12601)
+		expect(mockTime.getCurrentTime()).toEqual(12601)
+		commandReceiver0Calls += 3
+
+		expect(commandReceiver0).toHaveBeenCalledTimes(commandReceiver0Calls)
 		// SCHEDULE SET 4.5s CG STOP
 		// SCHEDULE SET 4.5s LOADBG 1-11 STINGER
-		expect(commandReceiver0.mock.calls[8][1]._objectParams.timecode).toEqual('00:00:14:25')
-		expect(commandReceiver0.mock.calls[8][1]._objectParams.command._objectParams).toMatchObject({
+		expect(getMockCall(commandReceiver0, commandReceiver0Calls - 3, 1)._objectParams.timecode).toEqual('00:00:14:25')
+		expect(getMockCall(commandReceiver0, commandReceiver0Calls - 3, 1)._objectParams.command._objectParams).toMatchObject({
 			channel: 1,
 			layer: 11,
 			flashLayer: 1
 		})
-		expect(commandReceiver0.mock.calls[10][1]._objectParams.timecode).toEqual('00:00:14:25')
-		expect(commandReceiver0.mock.calls[10][1]._objectParams.command._objectParams).toMatchObject({
+		expect(getMockCall(commandReceiver0, commandReceiver0Calls - 2, 1)._objectParams.timecode).toEqual('00:00:14:25')
+		expect(getMockCall(commandReceiver0, commandReceiver0Calls - 2, 1)._objectParams.command._objectParams).toMatchObject({
 			channel: 1,
-			layer: 11,
+			layer: 11, // gfx
 			noClear: false,
 			clip: 'stinger1',
 			auto: false
 		})
 
+		// await mockTime.advanceTimeToTicks(13000)
+		// commandReceiver0Calls += 1
+		// expect(commandReceiver0).toHaveBeenCalledTimes(commandReceiver0Calls)
 		// SCHEDULE SET 5s PLAY 1-11
-		expect(commandReceiver0.mock.calls[11][1]._objectParams.timecode).toEqual('00:00:15:00')
-		expect(commandReceiver0.mock.calls[11][1]._objectParams.command._objectParams).toMatchObject({
+		expect(getMockCall(commandReceiver0, commandReceiver0Calls - 1, 1)._objectParams.timecode).toEqual('00:00:15:00')
+		expect(getMockCall(commandReceiver0, commandReceiver0Calls - 1, 1)._objectParams.command._objectParams).toMatchObject({
 			channel: 1,
-			layer: 11,
+			layer: 11, // gfx
 			noClear: false
 		})
 
-		advanceTime(1399) // 14000
-		expect(getCurrentTime()).toEqual(14000)
-		expect(commandReceiver0).toHaveBeenCalledTimes(19)
+		await mockTime.advanceTimeToTicks(14000)
+		expect(mockTime.getCurrentTime()).toEqual(14000)
+		commandReceiver0Calls += 4
+
+		expect(commandReceiver0).toHaveBeenCalledTimes(commandReceiver0Calls)
+		// SCHEDULE SET 5.5s PLAY 2-10
 		// SCHEDULE SET 5.5s PLAY 1-10 ROUTE://3-20
 		// SCHEDULE SET 5s LOADBG 2-10 BG2
-		// SCHEDULE SET 5.5s PLAY 2-10
-		expect(commandReceiver0.mock.calls[12][1]._objectParams.timecode).toEqual('00:00:15:25')
-		expect(commandReceiver0.mock.calls[12][1]._objectParams.command.name).toEqual('PlayRouteCommand')
-		expect(commandReceiver0.mock.calls[12][1]._objectParams.command._objectParams.command).toEqual('PLAY 1-10 route://3-20')
+		// expect(getMockCall(commandReceiver0, 12, 1)._objectParams.command.name).toEqual('PlayCommand')
 
-		expect(commandReceiver0.mock.calls[15][1]._objectParams.timecode).toEqual('00:00:15:25')
-		expect(commandReceiver0.mock.calls[15][1]._objectParams.command._objectParams).toMatchObject({
+		expect(getMockCall(commandReceiver0, commandReceiver0Calls - 4, 1)._objectParams.timecode).toEqual('00:00:15:25')
+		expect(getMockCall(commandReceiver0, commandReceiver0Calls - 4, 1)._objectParams.command.name).toEqual('PlayRouteCommand')
+		expect(getMockCall(commandReceiver0, commandReceiver0Calls - 4, 1)._objectParams.command._objectParams.command).toEqual('PLAY 1-10 route://3-20')
+
+		// expect(getMockCall(commandReceiver0, commandReceiver0Calls - 4, 1)._objectParams.timecode).toEqual('00:00:15:25')
+		// expect(getMockCall(commandReceiver0, commandReceiver0Calls - 4, 1)._objectParams.command.name).toEqual('PlayCommand')
+		// expect(getMockCall(commandReceiver0, commandReceiver0Calls - 4, 1)._objectParams.command._objectParams).toMatchObject({
+		// 	channel: 2,
+		// 	layer: 10,
+		// 	noClear: false
+		// })
+
+		expect(getMockCall(commandReceiver0, commandReceiver0Calls - 3, 1)._objectParams.timecode).toEqual('00:00:15:25')
+		expect(getMockCall(commandReceiver0, commandReceiver0Calls - 3, 1)._objectParams.command.name).toEqual('PlayCommand')
+		expect(getMockCall(commandReceiver0, commandReceiver0Calls - 3, 1)._objectParams.command._objectParams).toMatchObject({
 			channel: 2,
 			layer: 10,
 			noClear: false,
-			clip: 'BG2',
-			auto: false
-		})
-		expect(commandReceiver0.mock.calls[13][1]._objectParams.timecode).toEqual('00:00:15:25')
-		expect(commandReceiver0.mock.calls[13][1]._objectParams.command._objectParams).toMatchObject({
-			channel: 2,
-			layer: 10,
-			noClear: false
+			clip: 'BG2'
+			// auto: false
 		})
 
-		expect(commandReceiver0.mock.calls[16][1]._objectParams.timecode).toEqual('00:00:16:00')
-		expect(commandReceiver0.mock.calls[16][1]._objectParams.command._objectParams).toMatchObject({
+		expect(getMockCall(commandReceiver0, commandReceiver0Calls - 2, 1)._objectParams.timecode).toEqual('00:00:16:00')
+		expect(getMockCall(commandReceiver0, commandReceiver0Calls - 2, 1)._objectParams.command._objectParams).toMatchObject({
 			'channel': 1,
 			'layer': 11
 		})
 		// SCHEDULE SET 6s LOADBG 1-11 OPENER_FULL PUSH 13
-		expect(commandReceiver0.mock.calls[18][1]._objectParams.timecode).toEqual('00:00:16:00')
-		expect(commandReceiver0.mock.calls[18][1]._objectParams.command._objectParams).toMatchObject({
+		expect(getMockCall(commandReceiver0, commandReceiver0Calls - 1, 1)._objectParams.timecode).toEqual('00:00:16:00')
+		expect(getMockCall(commandReceiver0, commandReceiver0Calls - 1, 1)._objectParams.command._objectParams).toMatchObject({
 			channel: 1,
 			layer: 11,
 			noClear: false,
@@ -498,45 +513,37 @@ describe('Rundown', () => {
 			transitionDirection: 'right'
 		})
 
-		advanceTime(1000)
-		expect(getCurrentTime()).toEqual(15000)
-		expect(commandReceiver0).toHaveBeenCalledTimes(23)
-
-		expect(commandReceiver0.mock.calls[19][1]._objectParams.timecode).toEqual('00:00:16:45')
-		expect(commandReceiver0.mock.calls[19][1]._objectParams.command._objectParams).toMatchObject({
-			channel: 2,
-			layer: 10,
-			noClear: false
-		})
+		await mockTime.advanceTimeTicks(1000)
+		expect(mockTime.getCurrentTime()).toEqual(15000)
+		commandReceiver0Calls += 3
+		expect(commandReceiver0).toHaveBeenCalledTimes(commandReceiver0Calls)
 
 		// SCHEDULE SET 8s PLAY 1-11
-		expect(commandReceiver0.mock.calls[20][1]._objectParams.timecode).toEqual('00:00:18:00')
-		expect(commandReceiver0.mock.calls[20][1]._objectParams.command._objectParams).toMatchObject({
+		expect(getMockCall(commandReceiver0, commandReceiver0Calls - 3, 1)._objectParams.timecode).toEqual('00:00:18:00')
+		expect(getMockCall(commandReceiver0, commandReceiver0Calls - 3, 1)._objectParams.command._objectParams).toMatchObject({
 			channel: 1,
 			layer: 11,
 			noClear: false
 		})
-		expect(commandReceiver0.mock.calls[21][1]._objectParams.timecode).toEqual('00:00:18:00')
-		expect(commandReceiver0.mock.calls[21][1]._objectParams.command._objectParams).toMatchObject({
+		expect(getMockCall(commandReceiver0, commandReceiver0Calls - 2, 1)._objectParams.timecode).toEqual('00:00:18:00')
+		expect(getMockCall(commandReceiver0, commandReceiver0Calls - 2, 1)._objectParams.command._objectParams).toMatchObject({
 			'channel': 1,
 			'layer': 10
 		})
-		expect(commandReceiver0.mock.calls[22][1]._objectParams.timecode).toEqual('00:00:18:00')
-		expect(commandReceiver0.mock.calls[22][1]._objectParams.command._objectParams).toMatchObject({
+		expect(getMockCall(commandReceiver0, commandReceiver0Calls - 1, 1)._objectParams.timecode).toEqual('00:00:18:00')
+		expect(getMockCall(commandReceiver0, commandReceiver0Calls - 1, 1)._objectParams.command._objectParams).toMatchObject({
 			'channel': 2,
 			'layer': 10
 		})
 
-		advanceTime(5000)
-		expect(getCurrentTime()).toEqual(20000)
+		await mockTime.advanceTimeToTicks(22000)
+		expect(mockTime.getCurrentTime()).toEqual(22000)
+		commandReceiver0Calls += 1
 
-		// commandReceiver0.mock.calls.forEach((call, i) => {
-			// console.log(i, call[1].token, call[1].name)
-		// })
-		// expect(commandReceiver0).toHaveBeenCalledTimes(25)
+		expect(commandReceiver0).toHaveBeenCalledTimes(commandReceiver0Calls)
 
-		expect(commandReceiver0.mock.calls[23][1]._objectParams.timecode).toEqual('00:00:23:00')
-		expect(commandReceiver0.mock.calls[23][1]._objectParams.command._objectParams).toMatchObject({
+		expect(getMockCall(commandReceiver0, commandReceiver0Calls - 1, 1)._objectParams.timecode).toEqual('00:00:23:00')
+		expect(getMockCall(commandReceiver0, commandReceiver0Calls - 1, 1)._objectParams.command._objectParams).toMatchObject({
 			'channel': 1,
 			'layer': 11
 		})

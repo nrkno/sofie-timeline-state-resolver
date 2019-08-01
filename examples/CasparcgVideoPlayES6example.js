@@ -2,13 +2,7 @@
 //copy and paste it to your own project
 
 const { Conductor,
-        DeviceType,
-        ConductorOptions,
-        Device,
-        TimelineContentObject,
-        TriggerType,
-        TimelineTriggerTimeResult,
-        DeviceOptions
+        DeviceType
 	} = require("timeline-state-resolver");
 
 // Initialize TimelineStateResolver:
@@ -44,18 +38,18 @@ tsrConductor.init()
 	// Set a new timeline:
 	var video0 = ({
 		id: 'video0', // the id must be unique
-		trigger: {
-			type: TriggerType.TIME_ABSOLUTE,
-			value: Date.now() // This will cause the video to start playing "now"
+		enable: {
+			start: Date.now(), // This will cause the video to start playing "now"
+			duration: 60 * 1000 // Duration / How long the video will be played
 		},
-		duration: 60 * 1000, // Duration / How long the video will be played
-		LLayer: 'layer1-10',
+		layer: 'layer1-10',
 		content: {
+			deviceType: DeviceType.CASPARCG,
 			type: 'video',
-			attributes: {
-				file: 'go1080p25', // The file name of the video
-				loop: true // true will cause the video to loop
-			}
+
+			file: 'go1080p25', // The file name of the video
+			loop: true // true will cause the video to loop
+
 			// playing: false, // Set to true to pause the clip
 			// pauseTime: Date.now() // the time at which the clip was paused
 		} 

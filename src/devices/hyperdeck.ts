@@ -1,53 +1,47 @@
 import * as _ from 'underscore'
-import * as underScoreDeepExtend from 'underscore-deep-extend'
+// import * as underScoreDeepExtend from 'underscore-deep-extend'
 import { TimelineState } from 'superfly-timeline'
 import {
 	DeviceWithState,
-	DeviceOptions,
 	CommandWithContext,
 	DeviceStatus,
 	StatusCode
 } from './device'
 import {
 	DeviceType,
+	DeviceOptions,
+	TimelineContentTypeHyperdeck,
 	MappingHyperdeck,
-	MappingHyperdeckType
-} from './mapping'
+	MappingHyperdeckType,
+	HyperdeckOptions,
+	TimelineObjHyperdeckTransport,
+	TimelineObjHyperdeckAny
+} from '../types/src'
 import {
 	Hyperdeck,
 	Commands as HyperdeckCommands,
 	TransportStatus
 } from 'hyperdeck-connection'
-import { DoOnTime } from '../doOnTime'
-import { Conductor } from '../conductor'
+import { DoOnTime, SendMode } from '../doOnTime'
 
-_.mixin({ deepExtend: underScoreDeepExtend(_) })
-
-function deepExtend<T> (destination: T, ...sources: any[]) {
-	// @ts-ignore (mixin)
-	return _.deepExtend(destination, ...sources)
-}
-/**
- * This is a wrapper for the Hyperdeck Device. Commands to any and all hyperdeck devices will be sent through here.
- */
+// _.mixin({ deepExtend: underScoreDeepExtend(_) })
+// function deepExtend<T> (destination: T, ...sources: any[]) {
+// 	// @ts-ignore (mixin)
+// 	return _.deepExtend(destination, ...sources)
+// }
 export interface HyperdeckDeviceOptions extends DeviceOptions {
 	options?: {
-		commandReceiver?: (time: number, cmd) => Promise<any>
+		commandReceiver?: CommandReceiver
 	}
 }
-export interface HyperdeckOptions {
-	host: string
-	port?: number
-}
-export enum TimelineContentTypeHyperdeck {
-	TRANSPORT = 'transport'
-}
+export type CommandReceiver = (time: number, command: HyperdeckCommands.AbstractCommand, context: CommandContext, timelineObjId: string) => Promise<any>
 export interface HyperdeckCommandWithContext {
 	command: HyperdeckCommands.AbstractCommand
 	context: CommandContext
+	timelineObjId: string
 }
 
-export interface TransportInfoCommandResponseExt /*extends HyperdeckCommands.TransportInfoCommandResponse */ {
+export interface TransportInfoCommandResponseExt {
 	status: TransportStatus
 	recordFilename?: string
 }
@@ -55,9 +49,14 @@ export interface TransportInfoCommandResponseExt /*extends HyperdeckCommands.Tra
 export interface DeviceState {
 	notify: HyperdeckCommands.NotifyCommandResponse
 	transport: TransportInfoCommandResponseExt
+	/** The timelineObject this state originates from */
+	timelineObjId: string
 }
 
 type CommandContext = any
+/**
+ * This is a wrapper for the Hyperdeck Device. Commands to any and all hyperdeck devices will be sent through here.
+ */
 export class HyperdeckDevice extends DeviceWithState<DeviceState> {
 
 	private _doOnTime: DoOnTime
@@ -65,11 +64,10 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> {
 	private _hyperdeck: Hyperdeck
 	private _initialized: boolean = false
 	private _connected: boolean = false
-	private _conductor: Conductor
 
-	private _commandReceiver: (time: number, command: HyperdeckCommands.AbstractCommand, context: CommandContext) => Promise<any>
+	private _commandReceiver: CommandReceiver
 
-	constructor (deviceId: string, deviceOptions: HyperdeckDeviceOptions, options, conductor: Conductor) {
+	constructor (deviceId: string, deviceOptions: HyperdeckDeviceOptions, options) {
 		super(deviceId, deviceOptions, options)
 		if (deviceOptions.options) {
 			if (deviceOptions.options.commandReceiver) this._commandReceiver = deviceOptions.options.commandReceiver
@@ -77,9 +75,9 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> {
 		}
 		this._doOnTime = new DoOnTime(() => {
 			return this.getCurrentTime()
-		})
-		this._doOnTime.on('error', e => this.emit('error', e))
-		this._conductor = conductor
+		}, SendMode.BURST, this._deviceOptions)
+		this._doOnTime.on('error', e => this.emit('error', 'Hyperdeck.doOnTime', e))
+		this._doOnTime.on('slowCommand', msg => this.emit('slowCommand', this.deviceName + ': ' + msg))
 	}
 
 	/**
@@ -89,10 +87,12 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> {
 		return new Promise((resolve/*, reject*/) => {
 			let firstConnect = true
 
-			this._hyperdeck = new Hyperdeck()
+			this._hyperdeck = new Hyperdeck({ pingPeriod: 1000 })
 			this._hyperdeck.connect(options.host, options.port)
 			this._hyperdeck.on('connected', () => {
-				return this._queryCurrentState().then(state => {
+				this._queryCurrentState()
+				.then(async (state) => {
+
 					this.setState(state, this.getCurrentTime())
 					if (firstConnect) {
 						firstConnect = false
@@ -101,16 +101,20 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> {
 					}
 					this._connected = true
 					this._connectionChanged()
-					this._conductor.resetResolver()
+					this.emit('resetResolver')
 				})
+				.catch(e => this.emit('error', 'Hyperdeck.on("connected")', e))
 			})
 			this._hyperdeck.on('disconnected', () => {
 				this._connected = false
 				this._connectionChanged()
 			})
-			this._hyperdeck.on('error', (e) => this.emit('error', e))
+			this._hyperdeck.on('error', (e) => this.emit('error', 'Hyperdeck', e))
 		})
 	}
+	/**
+	 * Makes this device ready for garbage collection.
+	 */
 	terminate (): Promise<boolean> {
 		this._doOnTime.dispose()
 
@@ -124,41 +128,56 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> {
 		})
 	}
 
-	makeReady (okToDestroyStuff?: boolean): Promise<void> {
+	/**
+	 * Prepares device for playout
+	 */
+	async makeReady (okToDestroyStuff?: boolean): Promise<void> {
 		if (okToDestroyStuff) {
-			this._doOnTime.clearQueueNowAndAfter(this.getCurrentTime())
+			let time = this.getCurrentTime()
+			this._doOnTime.clearQueueNowAndAfter(time)
 
 			// TODO - could this being slow/offline be a problem?
-			return this._queryCurrentState().then(state => {
-				this.setState(state, this.getCurrentTime())
-			})
+			let state = await this._queryCurrentState()
+
+			this.setState(state, time)
 		}
-		return Promise.resolve()
 	}
 
+	/**
+	 * Saves and handles state at specified point in time such that the device will be in
+	 * that state at that time.
+	 * @param newState
+	 */
 	handleState (newState: TimelineState) {
 		if (!this._initialized) {
 			// before it's initialized don't do anything
 			this.emit('info', 'Hyperdeck not initialized yet')
 			return
 		}
-		let oldState: DeviceState = (this.getStateBefore(newState.time) || { state: this._getDefaultState() }).state
+
+		// Create device states
+		let previousStateTime = Math.max(this.getCurrentTime(), newState.time)
+		let oldState: DeviceState = (this.getStateBefore(previousStateTime) || { state: this._getDefaultState() }).state
 
 		let oldHyperdeckState = oldState
 		let newHyperdeckState = this.convertStateToHyperdeck(newState)
 
+		// Generate commands to transition to new state
 		let commandsToAchieveState: Array<HyperdeckCommandWithContext> = this._diffStates(oldHyperdeckState, newHyperdeckState)
 
 		// clear any queued commands later than this time:
-		this._doOnTime.clearQueueNowAndAfter(newState.time)
+		this._doOnTime.clearQueueNowAndAfter(previousStateTime)
 		// add the new commands to the queue:
 		this._addToQueue(commandsToAchieveState, newState.time)
 
 		// store the new state, for later use:
 		this.setState(newHyperdeckState, newState.time)
 	}
+	/**
+	 * Clears any scheduled commands after this time
+	 * @param clearAfterTime
+	 */
 	clearFuture (clearAfterTime: number) {
-		// Clear any scheduled commands after this time
 		this._doOnTime.clearQueueAfter(clearAfterTime)
 	}
 	get canConnect (): boolean {
@@ -167,34 +186,43 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> {
 	get connected (): boolean {
 		return this._connected
 	}
+	/**
+	 * Converts a timeline state to a device state.
+	 * @param state
+	 */
 	convertStateToHyperdeck (state: TimelineState): DeviceState {
 		if (!this._initialized) throw Error('convertStateToHyperdeck cannot be used before inititialized')
 
 		// Convert the timeline state into something we can use easier:
 		const deviceState = this._getDefaultState()
 
-		const sortedLayers = _.map(state.LLayers, (tlObject, layerName) => ({ layerName, tlObject }))
+		const sortedLayers = _.map(state.layers, (tlObject, layerName) => ({ layerName, tlObject }))
 			.sort((a, b) => a.layerName.localeCompare(b.layerName))
-
 		_.each(sortedLayers, ({ tlObject, layerName }) => {
-			const content = tlObject.resolved || tlObject.content
-			const mapping = this.mapping[layerName] as MappingHyperdeck
+
+			const hyperdeckObj = tlObject as any as TimelineObjHyperdeckAny
+
+			const mapping = this.getMapping()[layerName] as MappingHyperdeck
 
 			if (mapping) {
 				switch (mapping.mappingType) {
 					case MappingHyperdeckType.TRANSPORT:
-						if (content.type === TimelineContentTypeHyperdeck.TRANSPORT) {
-							if (deviceState.transport) {
-								deepExtend(deviceState.transport, content.attributes)
-							} else {
-								deviceState.transport = content.attributes
+						if (hyperdeckObj.content.type === TimelineContentTypeHyperdeck.TRANSPORT) {
+							const hyperdeckObjTransport = tlObject as any as TimelineObjHyperdeckTransport
+							if (!deviceState.transport) {
+								deviceState.transport = {
+									status: 		hyperdeckObjTransport.content.status,
+									recordFilename: hyperdeckObjTransport.content.recordFilename
+								}
 							}
+
+							deviceState.transport.status			= hyperdeckObjTransport.content.status
+							deviceState.transport.recordFilename	= hyperdeckObjTransport.content.recordFilename
 						}
 						break
 				}
 			}
 		})
-
 		return deviceState
 	}
 	get deviceType () {
@@ -214,27 +242,34 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> {
 	}
 	private _addToQueue (commandsToAchieveState: Array<HyperdeckCommandWithContext>, time: number) {
 		_.each(commandsToAchieveState, (cmd: HyperdeckCommandWithContext) => {
-
 			// add the new commands to the queue:
-			this._doOnTime.queue(time, (cmd: HyperdeckCommandWithContext) => {
-				return this._commandReceiver(time, cmd.command, cmd.context)
+			this._doOnTime.queue(time, undefined, (cmd: HyperdeckCommandWithContext) => {
+				return this._commandReceiver(time, cmd.command, cmd.context, cmd.timelineObjId)
 			}, cmd)
 		})
 	}
 
+	/**
+	 * Generates commands to transition from old to new state.
+	 * @param oldHyperdeckState The assumed current state
+	 * @param newHyperdeckState The desired state of the device
+	 */
 	private _diffStates (oldHyperdeckState: DeviceState, newHyperdeckState: DeviceState): Array<HyperdeckCommandWithContext> {
-
 		const commandsToAchieveState: HyperdeckCommandWithContext[] = []
 
 		if (oldHyperdeckState.notify && newHyperdeckState.notify) {
 			const notifyCmd = new HyperdeckCommands.NotifySetCommand()
-			let hasChange = false
+			let hasChange: {
+				timelineObjId: string
+			} | null = null
 
 			const keys = _.unique(_.keys(oldHyperdeckState.notify).concat(_.keys(newHyperdeckState.notify)))
 			for (let k of keys) {
 				if (oldHyperdeckState.notify[k] !== newHyperdeckState.notify[k]) {
-					hasChange = true
 					notifyCmd[k] = newHyperdeckState.notify[k]
+					hasChange = {
+						timelineObjId: newHyperdeckState.timelineObjId
+					}
 				}
 			}
 
@@ -244,11 +279,12 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> {
 					context: {
 						oldState: oldHyperdeckState.notify,
 						newState: newHyperdeckState.notify
-					}
+					},
+					timelineObjId: hasChange.timelineObjId
 				})
 			}
 		} else {
-			this.emit('error', 'diffStates missing notify object', oldHyperdeckState.notify, newHyperdeckState.notify)
+			this.emit('error', 'Hyperdeck', new Error(`diffStates missing notify object: ${JSON.stringify(oldHyperdeckState.notify)}, ${JSON.stringify(newHyperdeckState.notify)}`))
 		}
 
 		if (oldHyperdeckState.transport && newHyperdeckState.transport) {
@@ -265,7 +301,8 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> {
 							context: {
 								oldState: oldHyperdeckState.transport,
 								newState: newHyperdeckState.transport
-							}
+							},
+							timelineObjId: newHyperdeckState.timelineObjId
 						})
 					} else if (filenameChanged) { // Split recording
 						commandsToAchieveState.push({
@@ -273,14 +310,16 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> {
 							context: {
 								oldState: oldHyperdeckState.transport,
 								newState: newHyperdeckState.transport
-							}
+							},
+							timelineObjId: newHyperdeckState.timelineObjId
 						})
 						commandsToAchieveState.push({
 							command: new HyperdeckCommands.RecordCommand(newHyperdeckState.transport.recordFilename),
 							context: {
 								oldState: oldHyperdeckState.transport,
 								newState: newHyperdeckState.transport
-							}
+							},
+							timelineObjId: newHyperdeckState.timelineObjId
 						})
 					} // else continue recording
 
@@ -294,19 +333,23 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> {
 							context: {
 								oldState: oldHyperdeckState.transport,
 								newState: newHyperdeckState.transport
-							}
+							},
+							timelineObjId: newHyperdeckState.timelineObjId
 						})
 					}
 					break
 			}
 
 		} else {
-			this.emit('error', 'diffStates missing transport object', oldHyperdeckState.transport, newHyperdeckState.transport)
+			this.emit('error', 'Hyperdeck', new Error(`diffStates missing transport object: ${JSON.stringify(oldHyperdeckState.transport)}, ${JSON.stringify(newHyperdeckState.transport)}`))
 		}
 
 		return commandsToAchieveState
 	}
 
+	/**
+	 * Gets the current state of the device
+	 */
 	private async _queryCurrentState (): Promise<DeviceState> {
 		if (!this._connected) return this._getDefaultState()
 
@@ -318,11 +361,15 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> {
 
 		const res: DeviceState = {
 			notify: notifyRes,
-			transport: transportRes
+			transport: transportRes,
+			timelineObjId: 'currentState'
 		}
 		return res
 	}
 
+	/**
+	 * Gets the default state of the device
+	 */
 	private _getDefaultState (): DeviceState {
 		const res: DeviceState = {
 			notify: { // TODO - this notify block will want configuring per device or will the state lib always want it the same?
@@ -334,20 +381,25 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> {
 			},
 			transport: {
 				status: TransportStatus.PREVIEW
-			}
+			},
+			timelineObjId: ''
 		}
 
 		return res
 	}
 
-	private _defaultCommandReceiver (_time: number, command: HyperdeckCommands.AbstractCommand, context: CommandContext): Promise<any> {
+	private _defaultCommandReceiver (_time: number, command: HyperdeckCommands.AbstractCommand, context: CommandContext, timelineObjId: string): Promise<any> {
 		let cwc: CommandWithContext = {
 			context: context,
+			timelineObjId: timelineObjId,
 			command: command
 		}
 		this.emit('debug', cwc)
 
 		return this._hyperdeck.sendCommand(command)
+		.catch(error => {
+			this.emit('commandError', error, cwc)
+		})
 	}
 	private _connectionChanged () {
 		this.emit('connectionChanged', this.getStatus())

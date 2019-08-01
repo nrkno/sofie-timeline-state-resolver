@@ -1,5 +1,5 @@
-import { getDiff } from '../lib'
 import * as _ from 'underscore'
+import { getDiff } from '../lib'
 
 describe('equal', () => {
 	/*
@@ -14,11 +14,6 @@ describe('equal', () => {
 			// they are equal
 			expect(d).toEqual(null)
 		} else {
-			// console.log('--------------------------')
-			// console.log(a)
-			// console.log(b)
-			// console.log(d)
-			// they are not equal
 			expect(d).toBeTruthy()
 		}
 	}
@@ -386,8 +381,8 @@ describe('equal', () => {
 	})
 
 	test('Objects without a `constructor` property', () => {
-		let a
-		let b
+		let a: any
+		let b: any
 		if (Object.create) {
 			a = Object.create(null, { x: { value: 1, enumerable: true } })
 			b = { x: 1 }
@@ -428,3 +423,9 @@ describe('equal', () => {
 
 	// testEqual(0).toEqual(1)
 })
+/**
+ * Just a wrapper to :any type, to be used in tests only
+ */
+export function getMockCall<T> (fcn: jest.Mock<T>, callIndex: number, paramIndex: number): any {
+	return fcn.mock.calls[callIndex][paramIndex]
+}

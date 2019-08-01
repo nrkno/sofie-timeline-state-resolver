@@ -37,6 +37,8 @@ jobs:
           at: ~/project
       - run: yarn install
       - run: yarn ci
+      - run: yarn types-install
+      - run: yarn types-ci
   Send Coverage:
     <<: *defaults
     steps:
@@ -58,8 +60,12 @@ jobs:
     steps:
       - attach_workspace:
           at: ~/project
-      - run: yarn install
-      - run: yarn build
+      - run:
+          name: Install and build
+          command: yarn install && yarn build
+      - run:
+          name: Install and build types
+          command: yarn types-install && yarn types-build
       - persist_to_workspace:
           root: .
           paths: [.]
@@ -71,7 +77,7 @@ jobs:
           at: ~/project
       - add_ssh_keys:
           fingerprints:
-            - "eb:2b:60:6a:0d:87:f1:1f:8d:45:4f:99:be:0b:9e:6f"
+            - "ba:9e:70:ce:7e:1f:6c:cd:20:2e:ac:e7:ae:48:20:09"
       - run: yarn install
       - run: mkdir -p ~/.ssh
       - run:
@@ -99,6 +105,11 @@ jobs:
       # - deploy:
       #     name: Publish to NPM with npm
       #     command: npm publish --access=public
+      #
+      # Also deploy types package to NPM:
+      - run:
+          name: Publish Types to NPM with yarn
+          command: NEW_VERSION=$(node -p "require('./package.json').version") && cd src/types && yarn version --no-git-tag-version --new-version=$NEW_VERSION && yarn publish --access=public --new-version=$NEW_VERSION --network-timeout 100000 && cd ../..
 
 workflows:
   version: 2

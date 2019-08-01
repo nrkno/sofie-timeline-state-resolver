@@ -1,0 +1,107 @@
+{
+	"name": "timeline-state-resolver-types",
+	"version": "1.3.0",
+	"description": "Have timeline, control stuff",
+	"main": "dist/index.js",
+	"typings": "dist/index.d.ts",
+	"license": "MIT",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/nrkno/tv-automation-state-timeline-resolver.git"
+	},
+	"bugs": {
+		"url": "https://github.com/nrkno/tv-automation-state-timeline-resolver/issues"
+	},
+	"homepage": "https://github.com/nrkno/tv-automation-state-timeline-resolver#readme",
+	"contributors": [
+		{
+			"name": "Johan Nyman",
+			"email": "johan@superfly.tv",
+			"url": "http://superfly.tv"
+		},
+		{
+			"name": "Balte de Wit",
+			"email": "balte@superfly.tv",
+			"url": "http://superfly.tv"
+		},
+		{
+			"name": "Jesper Stærkær",
+			"email": "jesper@superfly.tv",
+			"url": "http://superfly.tv"
+		},
+		{
+			"name": "Jan Starzak",
+			"email": "jan@superfly.tv",
+			"url": "http://superfly.tv"
+		},
+		{
+			"name": "Stephan Nordnes Eriksen",
+			"email": "Stephanruler@gmail.com"
+		},
+		{
+			"name": "Julian Waller",
+			"email": "julian@superfly.tv",
+			"url": "http://superfly.tv"
+		}
+	],
+	"scripts": {
+		"info": "npm-scripts-info",
+		"installclean": "yarn unlink:all & yarn cleancache && yarn --check-files",
+		"buildclean": "yarn installclean && yarn build",
+		"test": "yarn lint && yarn build && yarn unit",
+		"testci": "yarn lint && yarn build && yarn unitci",
+		"unitci": "jest --maxWorkers 2",
+		"unit": "jest",
+		"build": "trash dist && yarn build:main",
+		"build:main": "tsc -p tsconfig.json -outDir dist",
+		"lint": "tslint --project ../../tsconfig.jest.json --config ../../tslint.json",
+		"validate:dependencies": "nsp check && yarn license-validate",
+		"license-validate": "node-license-validator -p -d --allow-licenses MIT BSD BSD-3-Clause ISC Apache Unlicense --allow-packages cycle"
+	},
+	"scripts-info": {
+		"info": "Display information about the scripts",
+		"installclean": "Remove yarn.lock, cleare yarn cache, and reinstall",
+		"build": "(Trash and re)build the library",
+		"build:main": "Builds main build command without trash.",
+		"lint": "Lint all typescript source files",
+		"ci": "Test script for running by the CI (CircleCI)",
+		"validate:dependencies": "Scan dependencies for vulnerabilities and check licenses",
+		"license-validate": "Validate licenses for dependencies."
+	},
+	"engines": {
+		"node": ">=4.5"
+	},
+	"devDependencies": {
+		"@types/node": "^8.0.4",
+		"cpx": "^1.5.0",
+		"mkdirp": "^0.5.1",
+		"node-license-validator": "^1.3.0",
+		"npm-scripts-info": "^0.3.9",
+		"nsp": "^3.2.1",
+		"nyc": "^14.1.1",
+		"open-cli": "^5.0.0",
+		"superfly-timeline": "^7.1.2",
+		"trash-cli": "^3.0.0",
+		"tslint": "^5.17.0",
+		"tslint-config-standard": "^8.0.1",
+		"typescript": "^3.3.3333",
+		"underscore": "^1.9.1"
+	},
+	"keywords": [
+		"mos",
+		"broadcast",
+		"socket",
+		"typescript",
+		"javascript",
+		"open",
+		"source",
+		"automation",
+		"ncs",
+		"nrcs",
+		"rundown",
+		"production"
+	],
+	"dependencies": {
+		"tslib": "^1.9.3"
+	}
+}

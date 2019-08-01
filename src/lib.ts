@@ -50,8 +50,8 @@ const toString = ObjProto.toString
 // Internal recursive comparison function for `getDiff`.
 function deepDiff (a: any, b: any, aStack: any, bStack: any): string | null {
 	// Unwrap any wrapped objects.
-	if (a instanceof _) a = a._wrapped
-	if (b instanceof _) b = b._wrapped
+	if (a instanceof _) a = (a as any)._wrapped
+	if (b instanceof _) b = (b as any)._wrapped
 	// Compare `[[Class]]` names.
 	let aClassName = toString.call(a)
 	let bClassName = toString.call(b)
@@ -149,10 +149,7 @@ function deepDiff (a: any, b: any, aStack: any, bStack: any): string | null {
 		if (length !== b.length) return `length differ (${a.length}, ${b.length})`
 		// Deep compare the contents, ignoring non-numeric properties.
 		while (length--) {
-			// console.log('---------------------------------------------')
-			// console.log('arr ', a[length], b[length])
 			let d = diff(a[length], b[length], aStack, bStack)
-			// console.log('diff', d)
 			if (d) {
 				return `array[${length}]: ${d}`
 			}
@@ -163,7 +160,7 @@ function deepDiff (a: any, b: any, aStack: any, bStack: any): string | null {
 		let key
 		length = keys.length
 		// Ensure that both objects contain the same number of properties before comparing deep equality.
-		if (_.keys(b).length !== length) return `keys length differ (${a.length}, ${b.length})`
+		if (_.keys(b).length !== length) return `keys length differ (${_.keys(b).length}, ${length})`
 		while (length--) {
 			// Deep compare each member
 			key = keys[length]

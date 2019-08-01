@@ -1,6 +1,5 @@
 
 // mock CasparCG
-import * as _ from 'underscore'
 import {
 	AMCP as orgAMCP,
 	AMCPUtil as orgAMCPUtil,
@@ -11,7 +10,7 @@ import { EventEmitter } from 'events'
 
 let mockDo = jest.fn()
 
-let instances = []
+let instances: Array<CasparCG> = []
 
 export const AMCP = orgAMCP
 export const AMCPUtil = orgAMCPUtil
@@ -23,7 +22,6 @@ export class CasparCG extends EventEmitter {
 
 	constructor () {
 		super()
-		// console.log('Mock CasparCG: constructor was called');
 
 		setTimeout(() => {
 			// simulate that we're connected
@@ -89,22 +87,3 @@ export class CasparCG extends EventEmitter {
 		return instances
 	}
 }
-/*
-
-//jest.mock("casparcg-connection")
-
-export const mockDo = jest.fn();
-
-const CasparCG = jest.fn().mockImplementation(() => {
-  return {do: mockDo};
-});
-
-export default CasparCG;
-
-*/
-
-// const CasparCG = jest.genMockFromModule('casparcg-connection');
-
-// console.log('mock CasparCG',CasparCG);
-
-// export default CasparCG;

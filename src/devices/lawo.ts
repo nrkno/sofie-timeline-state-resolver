@@ -2,68 +2,38 @@ import * as _ from 'underscore'
 
 import {
 	DeviceWithState,
-	DeviceOptions,
 	CommandWithContext,
 	DeviceStatus,
 	StatusCode
 } from './device'
 import {
 	DeviceType,
+	DeviceOptions,
+	TimelineContentTypeLawo,
 	MappingLawo,
-	Mappings
-} from './mapping'
+	TimelineObjLawoSource,
+	TimelineObjLawoAny
+} from '../types/src'
 import {
-	TimelineState,
-	TimelineResolvedObject
+	TimelineState, ResolvedTimelineObjectInstance
 } from 'superfly-timeline'
 import {
 	DeviceTree,
 	Ember
 } from 'emberplus'
-import { DoOnTime } from '../doOnTime'
+import { DoOnTime, SendMode } from '../doOnTime'
 import { getDiff } from '../lib'
 
-/*
-	This is a wrapper for an "Abstract" device
-
-	An abstract device is just a test-device that doesn't really do anything, but can be used
-	as a preliminary mock
-*/
-export interface LawoOptions extends DeviceOptions {
+export interface LawoOptions extends DeviceOptions { // TODO - this doesnt match what the other ones do
 	options?: {
-		commandReceiver?: (time: number, cmd) => Promise<any>,
-		host?: string,
-		port?: number,
-		sourcesPath?: string,
+		commandReceiver?: CommandReceiver
+		host?: string
+		port?: number
+		sourcesPath?: string
 		rampMotorFunctionPath?: string
 	}
 }
-export enum TimelineContentTypeLawo { //  Lawo-state
-	SOURCE = 'lawosource' // a general content type, possibly to be replaced by specific ones later?
-}
-export interface TimelineObjLawo extends TimelineResolvedObject {
-	content: {
-		type: TimelineContentTypeLawo,
-		attributes: {
-			[key: string]: {
-				[attr: string]: any
-				triggerValue: string // only used for trigging new command sent
-			}
-		}
-	}
-}
-export interface TimelineObjLawoSource extends TimelineObjLawo {
-	content: {
-		type: TimelineContentTypeLawo,
-		attributes: {
-			'Fader/Motor dB Value': {
-				value: number,
-				transitionDuration?: number,
-				triggerValue: string // only used for trigging new command sent
-			}
-		}
-	}
-}
+export type CommandReceiver = (time: number, cmd: LawoCommand, context: CommandContext, timelineObjId: string) => Promise<any>
 export type EmberPlusValue = boolean | number | string
 
 export interface LawoState {
@@ -77,6 +47,8 @@ export interface LawoStateNode {
 	identifier: string,
 	transitionDuration?: number,
 	triggerValue: string
+	/** Reference to the original timeline object: */
+	timelineObjId: string
 }
 export interface LawoCommand {
 	path: string,
@@ -87,10 +59,16 @@ export interface LawoCommand {
 	transitionDuration?: number
 }
 export interface LawoCommandWithContext {
-	cmd: LawoCommand,
+	cmd: LawoCommand
 	context: CommandContext
+	timelineObjId: string
 }
 type CommandContext = string
+/**
+ * This is a wrapper for a Lawo sound mixer
+ *
+ * It controls mutes and fades over Ember Plus.
+ */
 export class LawoDevice extends DeviceWithState<TimelineState> {
 	private _doOnTime: DoOnTime
 	private _lawo: DeviceTree
@@ -99,7 +77,7 @@ export class LawoDevice extends DeviceWithState<TimelineState> {
 
 	private _connected: boolean = false
 
-	private _commandReceiver: (time: number, cmd: LawoCommand, context: CommandContext) => Promise<any>
+	private _commandReceiver: CommandReceiver
 	private _sourcesPath: string
 	private _rampMotorFunctionPath: string
 
@@ -130,8 +108,9 @@ export class LawoDevice extends DeviceWithState<TimelineState> {
 		)
 		this._doOnTime = new DoOnTime(() => {
 			return this.getCurrentTime()
-		})
-		this._doOnTime.on('error', e => this.emit('error', e))
+		}, SendMode.BURST, this._deviceOptions)
+		this._doOnTime.on('error', e => this.emit('error', 'Lawo.doOnTime', e))
+		this._doOnTime.on('slowCommand', msg => this.emit('slowCommand', this.deviceName + ': ' + msg))
 
 		this._lawo = new DeviceTree(host, port)
 		this._lawo.on('error', (e) => {
@@ -141,7 +120,7 @@ export class LawoDevice extends DeviceWithState<TimelineState> {
 			) {
 				this._setConnected(false)
 			} else {
-				this.emit('error', e)
+				this.emit('error', 'Lawo.Emberplus', e)
 			}
 		})
 		this._lawo.on('connected', () => {
@@ -175,27 +154,40 @@ export class LawoDevice extends DeviceWithState<TimelineState> {
 			}
 		})
 	}
+	/**
+	 * Handles a state such that the device will reflect that state at the given time.
+	 * @param newState
+	 */
 	handleState (newState: TimelineState) {
-		// Handle this new state, at the point in time specified
-		let oldState: TimelineState = (this.getStateBefore(newState.time) || { state: { time: 0, LLayers: {}, GLayers: {} } }).state
+		// Convert timeline states to device states
+		let previousStateTime = Math.max(this.getCurrentTime(), newState.time)
+		let oldState: TimelineState = (this.getStateBefore(previousStateTime) || { state: { time: 0, layers: {}, nextEvents: [] } }).state
 
 		let oldLawoState = this.convertStateToLawo(oldState)
 		let newLawoState = this.convertStateToLawo(newState)
 
+		// generate commands to transition to new state
 		let commandsToAchieveState: Array<LawoCommandWithContext> = this._diffStates(oldLawoState, newLawoState)
 
 		// clear any queued commands later than this time:
-		this._doOnTime.clearQueueNowAndAfter(newState.time)
+		this._doOnTime.clearQueueNowAndAfter(previousStateTime)
 		// add the new commands to the queue:
 		this._addToQueue(commandsToAchieveState, newState.time)
 
 		// store the new state, for later use:
 		this.setState(newState, newState.time)
 	}
+	/**
+	 * Clear any scheduled commands after this time
+	 * @param clearAfterTime
+	 */
 	clearFuture (clearAfterTime: number) {
-		// Clear any scheduled commands after this time
 		this._doOnTime.clearQueueAfter(clearAfterTime)
 	}
+	/**
+	 * Safely disconnect from physical device such that this instance of the class
+	 * can be garbage collected.
+	 */
 	terminate () {
 		this._doOnTime.dispose()
 
@@ -207,7 +199,7 @@ export class LawoDevice extends DeviceWithState<TimelineState> {
 			this._lawo.removeAllListeners('disconnected')
 
 		} catch (e) {
-			this.emit('error', e)
+			this.emit('error', 'Lawo.terminate', e)
 		}
 		return Promise.resolve(true)
 	}
@@ -217,26 +209,34 @@ export class LawoDevice extends DeviceWithState<TimelineState> {
 	get connected (): boolean {
 		return this._connected
 	}
+	/**
+	 * Converts a timeline state into a device state.
+	 * @param state
+	 */
 	convertStateToLawo (state: TimelineState): LawoState {
-		// convert the timeline state into something we can use
 		const lawoState: LawoState = {}
 
-		_.each(state.LLayers, (tlObject: TimelineObjLawo, layerName: string) => {
-			const mapping: MappingLawo | undefined = this.mapping[layerName] as MappingLawo
+		_.each(state.layers, (tlObject: ResolvedTimelineObjectInstance, layerName: string) => {
+			const lawoObj = tlObject as any as TimelineObjLawoAny
+
+			const mapping: MappingLawo | undefined = this.getMapping()[layerName] as MappingLawo
 			if (mapping && mapping.identifier && mapping.device === DeviceType.LAWO) {
 
-				if (tlObject.content.type === TimelineContentTypeLawo.SOURCE) {
-					let tlObjectSource = tlObject as TimelineObjLawoSource
-					_.each(tlObjectSource.content.attributes, (value, key) => {
-						lawoState[this._sourceNodeAttributePath(mapping.identifier, key)] = {
-							type: tlObjectSource.content.type,
-							key: key,
-							identifier: mapping.identifier,
-							value: value.value,
-							transitionDuration: value.transitionDuration,
-							triggerValue: value.triggerValue
-						}
-					})
+				if (lawoObj.content.type === TimelineContentTypeLawo.SOURCE) {
+					let tlObjectSource: TimelineObjLawoSource = lawoObj
+
+					const fader: TimelineObjLawoSource['content']['Fader/Motor dB Value'] = tlObjectSource.content['Fader/Motor dB Value']
+
+					lawoState[this._sourceNodeAttributePath(mapping.identifier, 'Fader/Motor dB Value')] = {
+						type: tlObjectSource.content.type,
+						key: 'Fader/Motor dB Value',
+						identifier: mapping.identifier,
+						value: fader.value,
+						transitionDuration: fader.transitionDuration,
+						triggerValue: fader.triggerValue || '',
+						timelineObjId: tlObject.id
+					}
+
 				}
 			}
 		})
@@ -253,12 +253,6 @@ export class LawoDevice extends DeviceWithState<TimelineState> {
 		return this._doOnTime.getQueue()
 	}
 
-	set mapping (mappings: Mappings) {
-		super.mapping = mappings
-	}
-	get mapping () {
-		return super.mapping
-	}
 	getStatus (): DeviceStatus {
 		return {
 			statusCode: this._connected ? StatusCode.GOOD : StatusCode.BAD
@@ -274,25 +268,27 @@ export class LawoDevice extends DeviceWithState<TimelineState> {
 		_.each(commandsToAchieveState, (cmd: LawoCommandWithContext) => {
 
 			// add the new commands to the queue:
-			this._doOnTime.queue(time, (cmd: LawoCommandWithContext) => {
-				return this._commandReceiver(time, cmd.cmd, cmd.context)
+			this._doOnTime.queue(time, undefined, (cmd: LawoCommandWithContext) => {
+				return this._commandReceiver(time, cmd.cmd, cmd.context, cmd.timelineObjId)
 			}, cmd)
 		})
 	}
+	/**
+	 * Generates commands to transition from one device state to another.
+	 * @param oldLawoState The assumed device state
+	 * @param newLawoState The desired device state
+	 */
 	private _diffStates (oldLawoState: LawoState, newLawoState: LawoState): Array<LawoCommandWithContext> {
 
 		let commands: Array<LawoCommandWithContext> = []
 
-		// let addCommand = (path, newNode: LawoStateNode) => {
-		// }
-
 		_.each(newLawoState, (newNode: LawoStateNode, path: string) => {
 			let oldValue: LawoStateNode = oldLawoState[path] || null
-			let diff = getDiff(newNode, oldValue)
-			// if (!_.isEqual(newNode, oldValue)) {
+			let diff = getDiff(
+				_.omit(newNode, 'timelineObjId'),
+				_.omit(oldValue, 'timelineObjId')
+			)
 			if (diff) {
-				// addCommand(path, newNode)
-
 				// It's a plain value:
 				commands.push({
 					cmd: {
@@ -303,13 +299,18 @@ export class LawoDevice extends DeviceWithState<TimelineState> {
 						value: newNode.value,
 						transitionDuration: newNode.transitionDuration
 					},
-					context: diff
+					context: diff,
+					timelineObjId: newNode.timelineObjId
 				})
 			}
 		})
 		return commands
 	}
 
+	/**
+	 * Gets an ember node based on its path
+	 * @param path
+	 */
 	private async _getNodeByPath (path: string): Promise<Ember.Node> {
 		return new Promise((resolve, reject) => {
 			if (this._savedNodes[path] !== undefined) {
@@ -321,7 +322,7 @@ export class LawoDevice extends DeviceWithState<TimelineState> {
 					resolve(node)
 				})
 				.catch((e) => {
-					this.emit('error', `Path error: ${e.toString()}`)
+					this.emit('error', 'Lawo path error', e)
 					reject(e)
 				})
 
@@ -329,6 +330,11 @@ export class LawoDevice extends DeviceWithState<TimelineState> {
 		})
 	}
 
+	/**
+	 * Returns an attribute path
+	 * @param identifier
+	 * @param attributePath
+	 */
 	private _sourceNodeAttributePath (identifier: string, attributePath: string): string {
 		return _.compact([
 			this._sourcesPath,
@@ -338,44 +344,60 @@ export class LawoDevice extends DeviceWithState<TimelineState> {
 	}
 
 	// @ts-ignore no-unused-vars
-	private _defaultCommandReceiver (time: number, command: LawoCommand, context: CommandContext): Promise<any> {
-		if (command.key === 'Fader/Motor dB Value') {	// fader level
-			let cwc: CommandWithContext = {
-				context: context,
-				command: command
-			}
-			this.emit('debug', cwc)
-			if (command.transitionDuration && command.transitionDuration > 0) {	// with timed fader movement
-				return this._lawo.invokeFunction(new Ember.QualifiedFunction(this._rampMotorFunctionPath), [command.identifier, new Ember.ParameterContents(command.value, 'real'), new Ember.ParameterContents(command.transitionDuration / 1000, 'real')])
-				.then((res) => {
-					this.emit('debug', `Ember function result: ${JSON.stringify(res)}`)
-				})
-					.catch((e) => {
-						if (e.success === false) { // @todo: QualifiedFunction Fader/Motor cannot handle too short durations or small value changes
-							this.emit('command', command)
-							this.emit('info', `Ember function result: ${JSON.stringify(e)}`)
-						} else {
-							this.emit('error', `Ember function command error: ${e.toString()}`)
-						}
-					})
+	private async _defaultCommandReceiver (time: number, command: LawoCommand, context: CommandContext, timelineObjId: string): Promise<any> {
 
-			} else { // withouth timed fader movement
-				return this._getNodeByPath(command.path)
-				.then((node: any) => {
-					this._lawo.setValue(node, new Ember.ParameterContents(command.value, 'real'))
-					.then((res) => {
-						this.emit('debug', `Ember result: ${JSON.stringify(res)}`)
-					})
-					.catch((e) => console.log(e))
-				})
-				.catch((e) => {
-					this.emit('error', `Ember command error: ${e.toString()}`)
-				})
-			}
-		} else {
-			// this.emit('error', `Ember command error: ${e.toString()}`)
-			return Promise.reject(`Lawo: Unsupported command.key: "${command.key}"`)
+		const cwc: CommandWithContext = {
+			context: context,
+			command: command,
+			timelineObjId: timelineObjId
 		}
+		try {
+			if (command.key === 'Fader/Motor dB Value') {	// fader level
+				// this.emit('debug', cwc)
+
+				if (command.transitionDuration && command.transitionDuration > 0) {	// with timed fader movement
+					try {
+						const res = await this._lawo.invokeFunction(
+							new Ember.QualifiedFunction(this._rampMotorFunctionPath),
+							[
+								command.identifier,
+								new Ember.ParameterContents(command.value, 'real'),
+								new Ember.ParameterContents(command.transitionDuration / 1000, 'real')
+							]
+						)
+						this.emit('debug', `Ember function result: ${JSON.stringify(res)}`)
+					} catch (e) {
+						if (e.success === false) { // @todo: QualifiedFunction Fader/Motor cannot handle too short durations or small value changes
+							this.emit('info', `Ember function result: ${JSON.stringify(e)}`)
+						}
+						this.emit('error', 'Lawo: Ember function command error', e)
+						throw e
+					}
+
+				} else { // withouth timed fader movement
+					try {
+						const node: any = await this._getNodeByPath(command.path)
+
+						const res = await this._lawo.setValue(node, new Ember.ParameterContents(command.value, 'real'))
+
+						try {
+							this.emit('debug', `Ember result: ${JSON.stringify(res)}`)
+						} catch (e) {
+							this.emit('error', 'Lawo: Error in setValue', e)
+							throw e
+						}
+					} catch (e) {
+						this.emit('error', 'Lawo: Ember command error', e)
+						throw e
+					}
+				}
+			} else {
+				throw new Error(`Lawo: Unsupported command.key: "${command.key}"`)
+			}
+		} catch (error) {
+			this.emit('commandError', error, cwc)
+		}
+
 	}
 	private _connectionChanged () {
 		this.emit('connectionChanged', this.getStatus())

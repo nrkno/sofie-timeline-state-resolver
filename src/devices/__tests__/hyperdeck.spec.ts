@@ -1,0 +1,144 @@
+jest.mock('hyperdeck-connection')
+import { Conductor } from '../../conductor'
+import {
+	HyperdeckDevice
+} from '../hyperdeck'
+import { RecordCommand, StopCommand } from 'hyperdeck-connection/dist/commands'
+import { Hyperdeck } from '../../__mocks__/hyperdeck-connection'
+import {
+	Mappings,
+	DeviceType,
+	TimelineContentTypeHyperdeck,
+	MappingHyperdeck,
+	MappingHyperdeckType,
+	TransportStatus
+} from '../../types/src'
+import { MockTime } from '../../__tests__/mockTime.spec'
+import { ThreadedClass } from 'threadedclass'
+import { getMockCall } from '../../__tests__/lib.spec'
+
+let myChannelMapping0: MappingHyperdeck = {
+	device: DeviceType.HYPERDECK,
+	deviceId: 'hyperdeck0',
+	mappingType: MappingHyperdeckType.TRANSPORT
+}
+
+describe('Hyperdeck', () => {
+	let mockTime = new MockTime()
+
+	beforeAll(() => {
+		mockTime.mockDateNow()
+	})
+	beforeEach(() => {
+		mockTime.init()
+	})
+
+	test('Hyperdeck: Record', async () => {
+		let device: ThreadedClass<HyperdeckDevice>
+
+		let commandReceiver0 = jest.fn((...args: any[]) => {
+			// Just forward the command:
+
+			// @ts-ignore private function
+			return device._defaultCommandReceiver(...args)
+		})
+		let myChannelMapping: Mappings = {
+			'hyperdeck0_transport': myChannelMapping0
+		}
+
+		let myConductor = new Conductor({
+			initializeAsClear: true,
+			getCurrentTime: mockTime.getCurrentTime
+		})
+		await myConductor.setMapping(myChannelMapping)
+
+		await myConductor.init()
+		await myConductor.addDevice('hyperdeck0', {
+			type: DeviceType.HYPERDECK,
+			options: {
+				host: '127.0.0.1',
+				port: 9993,
+				commandReceiver: commandReceiver0
+			}
+		})
+		await mockTime.advanceTimeToTicks(10100)
+
+		expect(commandReceiver0).toHaveBeenCalledTimes(0)
+
+		let hyperdeckInstances = Hyperdeck.getMockInstances()
+		expect(hyperdeckInstances).toHaveLength(1)
+
+		let hyperdeckMock: Hyperdeck = hyperdeckInstances[0]
+
+		let hyperdeckMockCommand = jest.fn(() => {
+			return Promise.resolve()
+		})
+		hyperdeckMock.setMockCommandReceiver(hyperdeckMockCommand)
+
+		let deviceContainer = myConductor.getDevice('hyperdeck0')
+		device = deviceContainer.device as ThreadedClass<HyperdeckDevice>
+
+		// Check that no commands has been scheduled:
+		expect(await device.queue).toHaveLength(0)
+		myConductor.timeline = [
+			{
+				id: 'obj0',
+				enable: {
+					start: 9000,
+					duration: 2000 // 11000
+				},
+				layer: 'hyperdeck0_transport',
+				content: {
+					deviceType: DeviceType.HYPERDECK,
+					type: TimelineContentTypeHyperdeck.TRANSPORT,
+
+					status: TransportStatus.RECORD,
+					recordFilename: 'sofie_dev'
+
+				}
+			},
+			{
+				id: 'obj1',
+				enable: {
+					start: 10500,
+					duration: 2000
+				},
+				layer: 'hyperdeck0_transport',
+				content: {
+					deviceType: DeviceType.HYPERDECK,
+					type: TimelineContentTypeHyperdeck.TRANSPORT,
+
+					status: TransportStatus.PREVIEW
+				}
+			}
+		]
+
+		await mockTime.advanceTimeToTicks(10200)
+
+		expect(commandReceiver0).toHaveBeenCalledTimes(1)
+		expect(getMockCall(commandReceiver0, 0, 1)).toBeInstanceOf(RecordCommand)
+		expect(getMockCall(commandReceiver0, 0, 1)).toHaveProperty('filename', 'sofie_dev')
+		expect(getMockCall(commandReceiver0, 0, 2)).toBeTruthy() // context
+		// also test the actual command sent to hyperdeck:
+		expect(hyperdeckMockCommand).toHaveBeenCalledTimes(1)
+		// @todo: fix this test:
+		// expect(getMockCall(hyperdeckMockCommand, 0, 0)).toBeInstanceOf(RecordCommand)
+		expect(getMockCall(hyperdeckMockCommand, 0, 0)).toMatchObject({
+			filename: 'sofie_dev'
+		})
+
+		myConductor.timeline = myConductor.timeline // Same timeline
+		await mockTime.advanceTimeToTicks(10400)
+		expect(hyperdeckMockCommand).toHaveBeenCalledTimes(1) // nothing has changed, so it should not be called again
+
+		await mockTime.advanceTimeToTicks(12000)
+
+		expect(commandReceiver0).toHaveBeenCalledTimes(2)
+		expect(getMockCall(commandReceiver0, 1, 1)).toBeInstanceOf(StopCommand)
+		expect(getMockCall(commandReceiver0, 1, 2)).toBeTruthy() // context
+
+		await mockTime.advanceTimeToTicks(13000)
+		expect(commandReceiver0).toHaveBeenCalledTimes(2)
+		// no new commands should have been sent, becuse obj2 is the same as obj1
+	})
+})
