@@ -45,6 +45,16 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState> {
 			if (deviceOptions.options.commandReceiver) this._commandReceiver = deviceOptions.options.commandReceiver
 			else this._commandReceiver = this._defaultCommandReceiver
 		}
+
+		this._sisyfos = new SisyfosInterface()
+		this._sisyfos.on('error', e => this.emit('error', 'Sisyfos', e))
+		this._sisyfos.on('connected', () => {
+			this._connectionChanged()
+		})
+		this._sisyfos.on('disconnected', () => {
+			this._connectionChanged()
+		})
+
 		this._doOnTime = new DoOnTime(() => {
 			return this.getCurrentTime()
 		}, SendMode.BURST, this._deviceOptions)
@@ -52,7 +62,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState> {
 		this._doOnTime.on('slowCommand', msg => this.emit('slowCommand', this.deviceName + ': ' + msg))
 	}
 	init (options: SisfyosOptions): Promise<boolean> {
-		this._sisyfos = new SisyfosInterface()
+
 		this._sisyfos.once('initialized', () => {
 			this.setState(this.getDeviceState(), this.getCurrentTime())
 			this.emit('resetResolver')
@@ -101,9 +111,15 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState> {
 		return Promise.resolve(true)
 	}
 	getStatus (): DeviceStatus {
-		// Good, since this device has no status, really
-		return {
-			statusCode: StatusCode.GOOD
+		if (!this._sisyfos.connected) {
+			return {
+				statusCode: StatusCode.BAD,
+				messages: ['Sisyfos discunnected']
+			}
+		} else {
+			return {
+				statusCode: StatusCode.GOOD
+			}
 		}
 	}
 	makeReady (okToDestroyStuff?: boolean): Promise<void> {
@@ -115,10 +131,10 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState> {
 	}
 
 	get canConnect (): boolean {
-		return false
+		return true
 	}
 	get connected (): boolean {
-		return false
+		return this._sisyfos.connected
 	}
 	getDeviceState (): SisyfosState {
 		const deviceStateFromAPI = this._sisyfos.state
@@ -426,5 +442,8 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState> {
 		} catch (e) {
 			return Promise.reject(e)
 		}
+	}
+	private _connectionChanged () {
+		this.emit('connectionChanged', this.getStatus())
 	}
 }

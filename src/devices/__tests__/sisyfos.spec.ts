@@ -4,6 +4,7 @@ import {
 	Mappings,
 	DeviceType
 } from '../../types/src'
+import { MockOSC } from '../../__mocks__/osc'
 import { MockTime } from '../../__tests__/mockTime.spec'
 import { ThreadedClass } from 'threadedclass'
 import { MappingSisyfos, TimelineContentTypeSisyfos } from '../../types/src/sisyfos'
@@ -12,6 +13,14 @@ import { getMockCall } from '../../__tests__/lib.spec'
 
 describe('Sisyfos', () => {
 	let mockTime = new MockTime()
+
+	const orgSetTimeout = setTimeout
+
+	function wait (time: number = 1) {
+		return new Promise((resolve) => {
+			orgSetTimeout(resolve, time)
+		})
+	}
 
 	beforeAll(() => {
 		mockTime.mockDateNow()
@@ -327,5 +336,58 @@ describe('Sisyfos', () => {
 			channel: 1,
 			value: false
 		})
+	})
+	test('Connection status', async () => {
+		let commandReceiver0 = jest.fn(() => {
+			return Promise.resolve()
+		})
+
+		let myConductor = new Conductor({
+			initializeAsClear: true,
+			getCurrentTime: mockTime.getCurrentTime
+		})
+		// await myConductor.setMapping(myChannelMapping)
+		await myConductor.init()
+		await myConductor.addDevice('mySisyfos', {
+			type: DeviceType.SISYFOS,
+			options: {
+				commandReceiver: commandReceiver0,
+				host: '127.0.0.1',
+				port: 1234
+			}
+		})
+		await mockTime.advanceTimeToTicks(10100)
+
+		let deviceContainer = myConductor.getDevice('mySisyfos')
+		let device = deviceContainer.device as ThreadedClass<SisyfosMessageDevice>
+
+		let onConnectionChanged = jest.fn()
+		await device.on('connectionChanged', onConnectionChanged)
+
+		// Check that no commands has been scheduled:
+		expect(await device.queue).toHaveLength(0)
+		expect(await device.connected).toEqual(true)
+		expect(onConnectionChanged).toHaveBeenCalledTimes(0)
+
+		// Simulate a connection loss:
+		MockOSC.connectionIsGood = false
+
+		await mockTime.advanceTimeTicks(3000)
+		await(wait(1))
+		await mockTime.advanceTimeTicks(3000)
+		await(wait(1))
+
+		expect(await device.connected).toEqual(false)
+		expect(onConnectionChanged).toHaveBeenCalledTimes(1)
+
+		// Simulate a connection regain:
+		MockOSC.connectionIsGood = true
+		await mockTime.advanceTimeTicks(3000)
+		await(wait(1))
+		await mockTime.advanceTimeTicks(3000)
+		await(wait(1))
+
+		expect(await device.connected).toEqual(true)
+		expect(onConnectionChanged).toHaveBeenCalledTimes(2)
 	})
 })
