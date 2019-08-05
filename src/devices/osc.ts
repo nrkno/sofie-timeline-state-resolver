@@ -9,26 +9,35 @@ import {
 	DeviceType,
 	DeviceOptions,
 	OSCMessageCommandContent,
-	OSCOptions
+	OSCOptions,
+	SomeOSCValue,
+	OSCValueType
 } from '../types/src'
 import { DoOnTime, SendMode } from '../doOnTime'
 
 import {
-	TimelineState, ResolvedTimelineObjectInstance
+	TimelineState
 } from 'superfly-timeline'
 import * as osc from 'osc'
+import { Easing } from '../easings'
 
 export interface OSCMessageDeviceOptions extends DeviceOptions {
 	options?: {
-		commandReceiver?: (time: number, cmd) => Promise<any>
+		commandReceiver?: CommandReceiver,
+		oscSender?: (msg: osc.OscMessage, address?: string | undefined, port?: number | undefined) => void
 	}
 }
+export type CommandReceiver = (time: number, cmd: OSCMessageCommandContent, context: CommandContext, timelineObjId: string) => Promise<any>
 interface Command {
 	commandName: 'added' | 'changed' | 'removed',
 	content: OSCMessageCommandContent,
 	context: CommandContext
+	timelineObjId: string
 }
 type CommandContext = string
+interface OSCDeviceState {
+	[address: string]: OSCMessageCommandContent
+}
 /**
  * This is a generic wrapper for any osc-enabled device.
  */
@@ -36,14 +45,22 @@ export class OSCMessageDevice extends DeviceWithState<TimelineState> {
 
 	private _doOnTime: DoOnTime
 	private _oscClient: osc.UDPPort
+	private transitions: { [address: string]: {
+		started: number
+	} & OSCMessageCommandContent } = {}
+	private transitionInterval: NodeJS.Timer | undefined
 
-	private _commandReceiver: (time: number, cmd: OSCMessageCommandContent, context: CommandContext) => Promise<any>
+	private _commandReceiver: CommandReceiver
+	private _oscSender: (msg: osc.OscMessage, address?: string | undefined, port?: number | undefined) => void
 
 	constructor (deviceId: string, deviceOptions: OSCMessageDeviceOptions, options) {
 		super(deviceId, deviceOptions, options)
 		if (deviceOptions.options) {
 			if (deviceOptions.options.commandReceiver) this._commandReceiver = deviceOptions.options.commandReceiver
 			else this._commandReceiver = this._defaultCommandReceiver
+
+			if (deviceOptions.options.oscSender) this._oscSender = deviceOptions.options.oscSender
+			else this._oscSender = this._defaultOscSender
 		}
 		this._doOnTime = new DoOnTime(() => {
 			return this.getCurrentTime()
@@ -122,7 +139,21 @@ export class OSCMessageDevice extends DeviceWithState<TimelineState> {
 	 * @param state
 	 */
 	convertStateToOSCMessage (state: TimelineState) {
-		return state
+		const addrToOSCMessage: OSCDeviceState = {}
+		const addrToPriority: { [address: string]: number } = {}
+
+		_.each(state.layers, (layer) => {
+			const content = layer.content as OSCMessageCommandContent
+			content.fromTlObject = layer.id
+			if ((addrToOSCMessage[content.path]
+				&& addrToPriority[content.path] <= (layer.priority || 0))
+				|| !addrToOSCMessage[content.path]) {
+				addrToOSCMessage[content.path] = content
+				addrToPriority[content.path] = layer.priority || 0
+			}
+		})
+
+		return addrToOSCMessage
 	}
 	get deviceType () {
 		return DeviceType.OSC
@@ -145,7 +176,7 @@ export class OSCMessageDevice extends DeviceWithState<TimelineState> {
 					cmd.commandName === 'added' ||
 					cmd.commandName === 'changed'
 				) {
-					return this._commandReceiver(time, cmd.content, cmd.context)
+					return this._commandReceiver(time, cmd.content, cmd.context, cmd.timelineObjId)
 				} else {
 					return null
 				}
@@ -157,64 +188,157 @@ export class OSCMessageDevice extends DeviceWithState<TimelineState> {
 	 * @param oldOscSendState The assumed current state
 	 * @param newOscSendState The desired state of the device
 	 */
-	private _diffStates (oldOscSendState: TimelineState, newOscSendState: TimelineState): Array<Command> {
+	private _diffStates (oldOscSendState: OSCDeviceState, newOscSendState: OSCDeviceState): Array<Command> {
 		// in this oscSend class, let's just cheat:
 
 		let commands: Array<Command> = []
 
-		_.each(newOscSendState.layers, (newLayer: ResolvedTimelineObjectInstance, layerKey: string) => {
-			let oldLayer = oldOscSendState.layers[layerKey]
+		_.each(newOscSendState, (newCommandContent: OSCMessageCommandContent, address: string) => {
+			let oldLayer = oldOscSendState[address]
 			if (!oldLayer) {
 				// added!
 				commands.push({
 					commandName:	'added',
-					content:		newLayer.content as OSCMessageCommandContent,
-					context:		`added: ${newLayer.id}`
+					context:		`added: ${newCommandContent.fromTlObject}`,
+					timelineObjId:	newCommandContent.fromTlObject,
+					content:		newCommandContent
 				})
 			} else {
 				// changed?
-				if (!_.isEqual(oldLayer.content, newLayer.content)) {
+				if (!_.isEqual(oldLayer, newCommandContent)) {
 					// changed!
 					commands.push({
 						commandName:	'changed',
-						content:		newLayer.content as OSCMessageCommandContent,
-						context:		`changed: ${newLayer.id}`
+						context:		`changed: ${newCommandContent.fromTlObject}`,
+						timelineObjId:	newCommandContent.fromTlObject,
+						content:		newCommandContent
 					})
 				}
 			}
 		})
 		// removed
-		_.each(oldOscSendState.layers, (oldLayer: ResolvedTimelineObjectInstance, layerKey) => {
-			let newLayer = newOscSendState.layers[layerKey]
+		_.each(oldOscSendState, (oldCommandContent: OSCMessageCommandContent, address) => {
+			let newLayer = newOscSendState[address]
 			if (!newLayer) {
 				// removed!
 				commands.push({
 					commandName:	'removed',
-					content:		oldLayer.content as OSCMessageCommandContent,
-					context:		`removed: ${oldLayer.id}`
+					context:		`removed: ${oldCommandContent.fromTlObject}`,
+					timelineObjId:	oldCommandContent.fromTlObject,
+					content:		oldCommandContent
 				})
 			}
 		})
 		return commands
 	}
-	private _defaultCommandReceiver (time: number, cmd: OSCMessageCommandContent, context: CommandContext): Promise<any> {
+	private _defaultCommandReceiver (time: number, cmd: OSCMessageCommandContent, context: CommandContext, timelineObjId: string): Promise<any> {
 		time = time
 
 		let cwc: CommandWithContext = {
 			context: context,
-			command: cmd
+			command: cmd,
+			timelineObjId: timelineObjId
 		}
 		this.emit('debug', cwc)
 
 		try {
-			this._oscClient.send({
-				address: cmd.path,
-				args: cmd.values
-			})
+			if (cmd.transition && cmd.from) {
+				const easingType = Easing[cmd.transition.type]
+				const easing = (easingType || {})[cmd.transition.direction]
+
+				if (!easing) throw new Error(`Easing "${cmd.transition.type}.${cmd.transition.direction}" not found`)
+
+				for (let i = 0; i < Math.max(cmd.from.length, cmd.values.length); i++) {
+					if (cmd.from[i] && cmd.values[i]) {
+						if (cmd.from[i].value !== cmd.values[i].value && cmd.from[i].type !== cmd.values[i].type) {
+							throw new Error('Cannot interpolate between values of different types')
+						}
+					}
+				}
+
+				this.transitions[cmd.path] = { // push the tween
+					started: time,
+					...cmd
+				}
+				this._oscSender({ // send first parameters
+					address: cmd.path,
+					args: [ ...cmd.values ].map((o: SomeOSCValue, i: number) => cmd.from![i] || o)
+				})
+
+				// trigger loop:
+				if (!this.transitionInterval) this.transitionInterval = setInterval(() => this.runAnimation(), 40)
+			} else {
+				this._oscSender({
+					address: cmd.path,
+					args: cmd.values
+				})
+			}
 
 			return Promise.resolve()
 		} catch (e) {
-			return Promise.reject(e)
+			this.emit('commandError', e, cwc)
+			return Promise.resolve()
+		}
+	}
+	private _defaultOscSender (msg: osc.OscMessage, address?: string | undefined, port?: number | undefined): void {
+		this._oscClient.send(msg, address, port)
+	}
+	private runAnimation () {
+		for (const addr in this.transitions) {
+			// delete old tweens
+			if (this.transitions[addr].started + this.transitions[addr].transition!.duration < this.getCurrentTime()) {
+				delete this.transitions[addr]
+			}
+		}
+
+		for (const addr in this.transitions) {
+			const tween = this.transitions[addr]
+			// check if easing exists:
+			const easingType = Easing[tween.transition!.type]
+			const easing = (easingType || {})[tween.transition!.direction]
+			if (easing) {
+				// scale time in range 0...1, then calculate progress in range 0..1
+				const deltaTime = this.getCurrentTime() - tween.started
+				const progress = deltaTime / tween.transition!.duration
+				const fraction = easing(progress)
+				// calculate individual values:
+				const values: Array<SomeOSCValue> = []
+				for (let i = 0; i < Math.max(tween.from!.length, tween.values.length); i++) {
+					if (!tween.from![i]) {
+						values[i] = tween.values[i]
+					} else if (!tween.values[i]) {
+						values[i] = tween.from![i]
+					} else {
+						if (tween.from![i].type === OSCValueType.FLOAT && tween.values[i].type === OSCValueType.FLOAT) {
+							const oldVal = tween.from![i].value as number
+							const newVal = tween.values[i].value as number
+							values[i] = {
+								type: OSCValueType.FLOAT,
+								value: oldVal + (newVal - oldVal) * fraction
+							}
+						} else if (tween.from![i].type === OSCValueType.INT && tween.values[i].type === OSCValueType.INT) {
+							const oldVal = tween.from![i].value as number
+							const newVal = tween.values[i].value as number
+							values[i] = {
+								type: OSCValueType.INT,
+								value: oldVal + Math.round((newVal - oldVal) * fraction)
+							}
+						} else {
+							values[i] = tween.values[i]
+						}
+					}
+				}
+
+				this._oscSender({
+					address: tween.path,
+					args: values
+				})
+			}
+		}
+
+		if (Object.keys(this.transitions).length === 0) {
+			clearInterval(this.transitionInterval!)
+			this.transitionInterval = undefined
 		}
 	}
 }

@@ -83,7 +83,7 @@ describe('HTTP-Send', () => {
 				a: 1,
 				b: 2
 			}
-		}), expect.anything())
+		}), expect.anything(), expect.stringContaining('obj0'))
 		expect(getMockCall(commandReceiver0, 0, 2)).toMatch(/added/) // context
 		await mockTime.advanceTimeToTicks(16000)
 		expect(commandReceiver0).toHaveBeenCalledTimes(1)
@@ -188,8 +188,8 @@ describe('HTTP-Send', () => {
 
 		// Expecting to see the ordering below:
 		expect(commandReceiver0).toHaveBeenCalledTimes(3)
-		expect(commandReceiver0).toHaveBeenNthCalledWith(1, expect.anything(), expect.objectContaining({ url: 'http://superfly.tv/1' }), expect.anything())
-		expect(commandReceiver0).toHaveBeenNthCalledWith(2, expect.anything(), expect.objectContaining({ url: 'http://superfly.tv/3' }), expect.anything())
-		expect(commandReceiver0).toHaveBeenNthCalledWith(3, expect.anything(), expect.objectContaining({ url: 'http://superfly.tv/2' }), expect.anything())
+		expect(commandReceiver0).toHaveBeenNthCalledWith(1, expect.anything(), expect.objectContaining({ url: 'http://superfly.tv/1' }), expect.anything(), expect.stringContaining('obj0'))
+		expect(commandReceiver0).toHaveBeenNthCalledWith(2, expect.anything(), expect.objectContaining({ url: 'http://superfly.tv/3' }), expect.anything(), expect.stringContaining('obj2'))
+		expect(commandReceiver0).toHaveBeenNthCalledWith(3, expect.anything(), expect.objectContaining({ url: 'http://superfly.tv/2' }), expect.anything(), expect.stringContaining('obj1'))
 	})
 })

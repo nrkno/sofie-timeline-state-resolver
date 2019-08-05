@@ -1,6 +1,9 @@
 import { Mapping } from './mapping'
 import { TSRTimelineObjBase, DeviceType } from '.'
 
+// Note: This type is a loose referral to (a copy of) keyof typeof Easing in '../../easings', so that Easing structure won't be included in the types package
+export type OSCEasingType = 'Linear' | 'Quadratic' | 'Cubic' | 'Quartic' | 'Quintic' | 'Sinusoidal' | 'Exponential' | 'Circular' | 'Elastic' | 'Back' | 'Bounce'
+
 export interface OSCOptions {
 	host: string
 	port: number
@@ -39,6 +42,13 @@ export interface OSCMessageCommandContent {
 	type: TimelineContentTypeOSC.OSC
 	path: string
 	values: SomeOSCValue[]
+	transition?: {
+		duration: number
+		type: OSCEasingType
+		direction: 'In' | 'Out' | 'InOut' | 'None'
+	}
+	from?: SomeOSCValue[]
+	fromTlObject: string
 }
 export type TimelineObjOSCAny = TimelineObjOSCMessage
 

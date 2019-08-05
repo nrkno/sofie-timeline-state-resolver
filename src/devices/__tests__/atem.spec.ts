@@ -136,14 +136,14 @@ describe('Atem', () => {
 					source: 2
 				}
 			}
-		), null)
+		), null, expect.stringContaining(''))
 		expect(commandReceiver0).toBeCalledWith(expect.anything(), expect.objectContaining(
 			{
 				flag: 0,
 				rawName: 'DCut',
 				mixEffect: 0
 			}
-		), null)
+		), null, expect.stringContaining(''))
 
 		commandReceiver0.mockClear()
 		await mockTime.advanceTimeToTicks(12200)
@@ -158,14 +158,14 @@ describe('Atem', () => {
 					source: 3
 				}
 			}
-		), null)
+		), null, expect.stringContaining(''))
 		expect(commandReceiver0).toBeCalledWith(expect.anything(), expect.objectContaining(
 			{
 				flag: 0,
 				rawName: 'DCut',
 				mixEffect: 0
 			}
-		), null)
+		), null, expect.stringContaining(''))
 	})
 
 	test('Atem: upstream keyer', async () => {
@@ -244,7 +244,7 @@ describe('Atem', () => {
 					symmetry: 5000
 				}
 			}
-		), null)
+		), null, expect.stringContaining('')) // obj0
 	})
 
 	test('Atem: handle same state', async () => {

@@ -5,7 +5,7 @@ import {
 	ResolvedStates
 } from 'superfly-timeline'
 
-import { DeviceClassOptions } from './devices/device'
+import { DeviceClassOptions, CommandWithContext } from './devices/device'
 import { CasparCGDevice } from './devices/casparCG'
 import { AbstractDevice } from './devices/abstract'
 import { HttpSendDevice } from './devices/httpSend'
@@ -26,12 +26,13 @@ import { DoOnTime } from './doOnTime'
 import { PharosDevice } from './devices/pharos'
 import { OSCMessageDevice } from './devices/osc'
 import { DeviceContainer } from './devices/deviceContainer'
-
-export { DeviceContainer }
 import { threadedClass, ThreadedClass } from 'threadedclass'
 import { AsyncResolver } from './AsyncResolver'
 import { HttpWatcherDevice } from './devices/httpWatcher'
 import { SisyfosMessageDevice } from './devices/sisyfos'
+
+export { DeviceContainer }
+export { CommandWithContext }
 
 export const LOOKAHEADTIME = 5000 // Will look ahead this far into the future
 export const PREPARETIME = 2000 // Will prepare commands this time before the event is to happen
