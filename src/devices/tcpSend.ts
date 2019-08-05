@@ -1,10 +1,21 @@
 import { Socket } from 'net'
 import * as _ from 'underscore'
-import { DeviceOptions, CommandWithContext, DeviceWithState, DeviceStatus, StatusCode } from './device'
-import { DeviceType } from './mapping'
-import { DoOnTime } from '../doOnTime'
-
-import { TimelineState, TimelineResolvedObject } from 'superfly-timeline'
+import {
+	DeviceWithState,
+	CommandWithContext,
+	DeviceStatus,
+	StatusCode
+} from './device'
+import {
+	DeviceType,
+	DeviceOptions,
+	TCPSendOptions,
+	TcpSendCommandContent
+} from '../types/src'
+import { DoOnTime, SendMode } from '../doOnTime'
+import {
+	TimelineState, ResolvedTimelineObjectInstance
+} from 'superfly-timeline'
 
 const TIMEOUT = 3000 // ms
 const RETRY_TIMEOUT = 5000 // ms
@@ -17,29 +28,16 @@ export interface TCPSendDeviceOptions extends DeviceOptions {
 	}
 }
 interface TCPSendCommand {
-	commandName: 'added' | 'changed' | 'removed',
-	content: CommandContent,
+	commandName: 'added' | 'changed' | 'removed'
+	content: TcpSendCommandContent
 	context: CommandContext
+	timelineObjId: string
 }
-interface CommandContent {
-	message: string
-}
-export interface TCPSendOptions {
-	makeReadyCommands?: CommandContent[]
-
-	host: string
-	port: number
-	bufferEncoding?: string // encoding of messages, ex 'hex', default is 'utf8'
-}
-interface LLayer extends TimelineResolvedObject {
-	content: {
-		message: string
-	}
-}
-type CommandContext = any
+type CommandContext = string
+export type CommandReceiver = (time: number, cmd: TcpSendCommandContent, context: CommandContext, timelineObjId: string) => Promise<any>
 export class TCPSendDevice extends DeviceWithState<TimelineState> {
 
-	private _makeReadyCommands: CommandContent[]
+	private _makeReadyCommands: TcpSendCommandContent[]
 	private _doOnTime: DoOnTime
 	private _tcpClient: Socket | null = null
 	private _connected: boolean = false
@@ -50,7 +48,7 @@ export class TCPSendDevice extends DeviceWithState<TimelineState> {
 	private _retryConnectTimeout: NodeJS.Timer
 	// private _queue: Array<any>
 
-	private _commandReceiver: (time: number, cmd: CommandContent, context: CommandContext) => Promise<any>
+	private _commandReceiver: CommandReceiver
 
 	constructor (deviceId: string, deviceOptions: TCPSendDeviceOptions, options) {
 		super(deviceId, deviceOptions, options)
@@ -60,8 +58,9 @@ export class TCPSendDevice extends DeviceWithState<TimelineState> {
 		}
 		this._doOnTime = new DoOnTime(() => {
 			return this.getCurrentTime()
-		})
-		this._doOnTime.on('error', e => this.emit('error', e))
+		}, SendMode.IN_ORDER, this._deviceOptions)
+		this._doOnTime.on('error', e => this.emit('error', 'HTTPSend.doOnTime', e))
+		this._doOnTime.on('slowCommand', msg => this.emit('slowCommand', this.deviceName + ': ' + msg))
 	}
 	init (options: TCPSendOptions): Promise<boolean> {
 		this._makeReadyCommands = options.makeReadyCommands || []
@@ -78,7 +77,8 @@ export class TCPSendDevice extends DeviceWithState<TimelineState> {
 	handleState (newState: TimelineState) {
 		// Handle this new state, at the point in time specified
 
-		let oldState: TimelineState = (this.getStateBefore(newState.time) || { state: { time: 0, LLayers: {}, GLayers: {} } }).state
+		let previousStateTime = Math.max(this.getCurrentTime(), newState.time)
+		let oldState: TimelineState = (this.getStateBefore(previousStateTime) || { state: { time: 0, layers: {}, nextEvents: [] } }).state
 
 		let oldAbstractState = this.convertStateToTCPSend(oldState)
 		let newAbstractState = this.convertStateToTCPSend(newState)
@@ -86,7 +86,7 @@ export class TCPSendDevice extends DeviceWithState<TimelineState> {
 		let commandsToAchieveState: Array<any> = this._diffStates(oldAbstractState, newAbstractState)
 
 		// clear any queued commands later than this time:
-		this._doOnTime.clearQueueNowAndAfter(newState.time)
+		this._doOnTime.clearQueueNowAndAfter(previousStateTime)
 		// add the new commands to the queue:
 		this._addToQueue(commandsToAchieveState, newState.time)
 
@@ -98,37 +98,28 @@ export class TCPSendDevice extends DeviceWithState<TimelineState> {
 		this._doOnTime.clearQueueAfter(clearAfterTime)
 	}
 
-	makeReady (okToDestroyStuff?: boolean): Promise<void> {
-		if (okToDestroyStuff) {
-			this._disconnectTCPClient()
-			.then(() => {
-				return this._connectTCPClient()
-			})
-			.catch((err) => {
-				this.emit('error', err)
-			})
-		}
+	async makeReady (okToDestroyStuff?: boolean): Promise<void> {
 		if (okToDestroyStuff && this._makeReadyCommands && this._makeReadyCommands.length > 0) {
+			await this._disconnectTCPClient()
+			await this._connectTCPClient()
+
 			const time = this.getCurrentTime()
-			_.each(this._makeReadyCommands, (cmd: CommandContent) => {
+			_.each(this._makeReadyCommands, (cmd: TcpSendCommandContent) => {
 				// add the new commands to the queue:
-				this._doOnTime.queue(time, (cmd: CommandContent) => {
-					return this._commandReceiver(time, cmd, 'makeReady')
+				this._doOnTime.queue(time, cmd.queueId, (cmd: TcpSendCommandContent) => {
+					return this._commandReceiver(time, cmd, 'makeReady', '')
 				}, cmd)
 			})
 		}
-		return Promise.resolve()
 	}
-	terminate () {
+	async terminate () {
 		this._doOnTime.dispose()
 		clearTimeout(this._retryConnectTimeout)
 
-		return this._disconnectTCPClient()
-		.then(() => {
-			return true
-		})
-	}
+		await this._disconnectTCPClient()
 
+		return true
+	}
 	get canConnect (): boolean {
 		return true
 	}
@@ -178,7 +169,7 @@ export class TCPSendDevice extends DeviceWithState<TimelineState> {
 		if (!this.connected && !this._setDisconnected) {
 			this._connectTCPClient()
 			.catch((err) => {
-				this.emit('error', err)
+				this.emit('error', 'reconnect TCP', err)
 			})
 		}
 	}
@@ -186,12 +177,12 @@ export class TCPSendDevice extends DeviceWithState<TimelineState> {
 		_.each(commandsToAchieveState, (cmd: TCPSendCommand) => {
 
 			// add the new commands to the queue:
-			this._doOnTime.queue(time, (cmd: TCPSendCommand) => {
+			this._doOnTime.queue(time, undefined, (cmd: TCPSendCommand) => {
 				if (
 					cmd.commandName === 'added' ||
 					cmd.commandName === 'changed'
 				) {
-					return this._commandReceiver(time, cmd.content, cmd.context)
+					return this._commandReceiver(time, cmd.content, cmd.context, cmd.timelineObjId)
 				} else {
 					return null
 				}
@@ -202,16 +193,17 @@ export class TCPSendDevice extends DeviceWithState<TimelineState> {
 		// in this TCPSend class, let's just cheat:
 		let commands: Array<TCPSendCommand> = []
 
-		_.each(newTCPSendState.LLayers, (newLayer: LLayer, layerKey: string) => {
-			let oldLayer = oldTCPSendState.LLayers[layerKey]
+		_.each(newTCPSendState.layers, (newLayer: ResolvedTimelineObjectInstance, layerKey: string) => {
+			let oldLayer = oldTCPSendState.layers[layerKey]
 			// added/changed
 			if (newLayer.content) {
 				if (!oldLayer) {
 					// added!
 					commands.push({
 						commandName: 'added',
-						content: newLayer.content,
-						context: `added: ${newLayer.id}`
+						content: newLayer.content as TcpSendCommandContent,
+						context: `added: ${newLayer.id}`,
+						timelineObjId: newLayer.id
 					})
 				} else {
 					// changed?
@@ -219,26 +211,31 @@ export class TCPSendDevice extends DeviceWithState<TimelineState> {
 						// changed!
 						commands.push({
 							commandName: 'changed',
-							content: newLayer.content,
-							context: `changed: ${newLayer.id}`
+							content: newLayer.content as TcpSendCommandContent,
+							context: `changed: ${newLayer.id}`,
+							timelineObjId: newLayer.id
 						})
 					}
 				}
 			}
 		})
 		// removed
-		_.each(oldTCPSendState.LLayers, (oldLayer: LLayer, layerKey) => {
-			let newLayer = newTCPSendState.LLayers[layerKey]
+		_.each(oldTCPSendState.layers, (oldLayer: ResolvedTimelineObjectInstance, layerKey) => {
+			let newLayer = newTCPSendState.layers[layerKey]
 			if (!newLayer) {
 				// removed!
 				commands.push({
 					commandName: 'removed',
-					content: oldLayer.content,
-					context: `removed: ${oldLayer.id}`
+					content: oldLayer.content as TcpSendCommandContent,
+					context: `removed: ${oldLayer.id}`,
+					timelineObjId: oldLayer.id
 				})
 			}
 		})
 		return commands
+		.sort((a, b) => {
+			return (a.content.temporalPriority || 0) - (b.content.temporalPriority || 0)
+		})
 	}
 	private _disconnectTCPClient (): Promise<void> {
 		return new Promise((resolve) => {
@@ -319,13 +316,13 @@ export class TCPSendDevice extends DeviceWithState<TimelineState> {
 			} else throw Error('_sendTCPMessage: _tcpClient is falsy!')
 		})
 	}
-	private _defaultCommandReceiver (time: number, cmd: CommandContent, context: CommandContext): Promise<any> {
-		time = time
+	private _defaultCommandReceiver (_time: number, cmd: TcpSendCommandContent, context: CommandContext, timelineObjId: string): Promise<any> {
 		// this.emit('info', 'TCTSend ', cmd)
 
 		let cwc: CommandWithContext = {
 			context: context,
-			command: cmd
+			command: cmd,
+			timelineObjId: timelineObjId
 		}
 		this.emit('debug', cwc)
 

@@ -336,7 +336,7 @@ export class Conductor extends EventEmitter {
 			} else if (deviceOptions.type === DeviceType.TCPSEND) {
 				newDevice = await new DeviceContainer().create<TCPSendDevice>(
 					'../../dist/devices/tcpSend.js',
-					PanasonicPtzDevice,
+					TCPSendDevice,
 					deviceId,
 					deviceOptions,
 					options,

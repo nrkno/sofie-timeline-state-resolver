@@ -6,10 +6,12 @@ export * from './lawo'
 export * from './osc'
 export * from './pharos'
 export * from './ptz'
+export * from './tcpSend'
 import * as Timeline from './superfly-timeline'
 import { TimelineObjAtemAny } from './atem'
 import { TimelineObjCasparCGAny } from './casparcg'
 import { TimelineObjHTTPSendAny } from './http'
+import { TimelineObjTCPSendAny } from './tcpSend'
 import { TimelineObjHyperdeckAny } from './hyperdeck'
 import { TimelineObjLawoAny } from './lawo'
 import { TimelineObjOSCAny } from './osc'
@@ -30,6 +32,7 @@ export enum DeviceType {
 	LAWO = 3,
 	HTTPSEND = 4,
 	PANASONIC_PTZ = 5,
+	TCPSEND = 6,
 	HYPERDECK = 7,
 	PHAROS = 8,
 	OSC = 9,
@@ -61,6 +64,7 @@ export type TSRTimelineObj = (
 	TimelineObjAtemAny |
 	TimelineObjCasparCGAny |
 	TimelineObjHTTPSendAny |
+	TimelineObjTCPSendAny |
 	TimelineObjHyperdeckAny |
 	TimelineObjLawoAny |
 	TimelineObjOSCAny |

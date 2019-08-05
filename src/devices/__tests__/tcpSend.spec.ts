@@ -1,12 +1,14 @@
-// import {Resolver, Enums} from "superfly-timeline"
-// import { Commands, Atem } from 'atem-connection'
-import { TriggerType } from 'superfly-timeline'
-
-import { Mappings, DeviceType, MappingTCPSend } from '../devices/mapping'
-import { Conductor } from '../conductor'
-import { TCPSendDevice } from '../devices/TCPSend'
+import {
+	Mappings,
+	DeviceType,
+	MappingTCPSend
+} from '../../types/src'
+import { Conductor } from '../../conductor'
+import { TCPSendDevice } from '../TCPSend'
 import { Socket as MockSocket } from 'net'
-import { StatusCode } from '../devices/device'
+import { StatusCode } from '../device'
+import { ThreadedClass } from 'threadedclass'
+import { MockTime } from '../../__tests__/mockTime.spec'
 
 jest.mock('net')
 let setTimeoutOrg = setTimeout
@@ -19,40 +21,19 @@ function waitALittleBit () {
 
 // let nowActual = Date.now()
 describe('TCP-Send', () => {
-	let now: number = 10000
+	let mockTime = new MockTime()
 	beforeAll(() => {
-		Date.now = jest.fn(() => {
-			return getCurrentTime()
-		})
-		// Date.now['mockReturnValue'](now)
+		mockTime.mockDateNow()
 	})
-	function getCurrentTime () {
-		return now
-	}
-	function advanceTime (advanceTime: number) {
-		now += advanceTime
-		jest.advanceTimersByTime(advanceTime)
-	}
-	function advanceTimeTo (time: number) {
-		if (time > now) {
-			advanceTime(time - now)
-
-			expect(now).toEqual(time)
-		} else {
-			throw Error('Cant go back in time')
-		}
-	}
 	beforeEach(() => {
-		now = 10000
-		jest.useFakeTimers()
+		mockTime.init()
 	})
 	// afterEach(() => {})
 	test('Send message', async () => {
 
-		let device
-
 		let commandReceiver0 = jest.fn((time, cmd, context) => {
 			// return Promise.resolve()
+			// @ts-ignore
 			device._defaultCommandReceiver(time, cmd, context)
 		})
 
@@ -81,8 +62,10 @@ describe('TCP-Send', () => {
 
 		let myConductor = new Conductor({
 			initializeAsClear: true,
-			getCurrentTime: getCurrentTime
+			getCurrentTime: () => mockTime.now
 		})
+		let onError = jest.fn(console.log)
+		myConductor.on('error', onError)
 		await myConductor.init()
 
 		await myConductor.addDevice('myTCP', {
@@ -108,41 +91,42 @@ describe('TCP-Send', () => {
 		expect(sockets).toHaveLength(1)
 		let socket = sockets[0]
 
-		myConductor.mapping = myLayerMapping
-		advanceTimeTo(10100) // 10100
-		expect(now).toEqual(10100)
+		await myConductor.setMapping(myLayerMapping)
+		await mockTime.advanceTimeToTicks(10100) // 10100
+		expect(mockTime.now).toEqual(10100)
 		expect(onConnection).toHaveBeenCalledTimes(1)
 
-		device = myConductor.getDevice('myTCP') as TCPSendDevice
+		let deviceContainer = myConductor.getDevice('myTCP')
+		let device = deviceContainer.device as ThreadedClass<TCPSendDevice>
 
-		device.on('connectionChanged', onConnectionChanged)
+		await device.on('connectionChanged', onConnectionChanged)
 
-		expect(device.canConnect).toEqual(true)
-		expect(device.deviceName).toMatch(/tcp/i)
+		expect(await device.canConnect).toEqual(true)
+		expect(await device.deviceName).toMatch(/tcp/i)
 
 		// Check that no commands has been scheduled:
-		expect(device.queue).toHaveLength(0)
+		expect(await device.queue).toHaveLength(0)
 
 		// Test Added object:
 		myConductor.timeline = [
 			{
 				id: 'obj0',
-				trigger: {
-					type: TriggerType.TIME_ABSOLUTE,
-					value: 11000
+				enable: {
+					start: 11000,
+					duration: 2000
 				},
-				duration: 2000,
-				LLayer: 'myLayer0',
+				layer: 'myLayer0',
 				content: {
+					deviceType: DeviceType.TCPSEND,
 					message: 'hello world'
 				}
 			}
 		]
 
-		advanceTimeTo(10990)
+		await mockTime.advanceTimeToTicks(10990)
 
 		expect(commandReceiver0).toHaveBeenCalledTimes(0)
-		advanceTimeTo(11100)
+		await mockTime.advanceTimeToTicks(11100)
 
 		expect(commandReceiver0).toHaveBeenCalledTimes(1)
 		expect(commandReceiver0.mock.calls[0][1]).toMatchObject({
@@ -157,19 +141,19 @@ describe('TCP-Send', () => {
 		myConductor.timeline = [
 			{
 				id: 'obj0',
-				trigger: {
-					type: TriggerType.TIME_ABSOLUTE,
-					value: 11000
+				enable: {
+					start: 11000,
+					duration: 2000
 				},
-				duration: 2000,
-				LLayer: 'myLayer0',
+				layer: 'myLayer0',
 				content: {
+					deviceType: DeviceType.TCPSEND,
 					message: 'anyone here'
 				}
 			}
 		]
 
-		advanceTimeTo(12000) // 12000
+		await mockTime.advanceTimeToTicks(12000) // 12000
 		expect(commandReceiver0).toHaveBeenCalledTimes(2)
 		expect(commandReceiver0.mock.calls[1][1]).toMatchObject({
 			message: 'anyone here'
@@ -180,7 +164,7 @@ describe('TCP-Send', () => {
 		expect(onSocketWrite.mock.calls[1][0]).toEqual(Buffer.from('anyone here'))
 
 		// Test Removed object:
-		advanceTimeTo(16000) // 16000
+		await mockTime.advanceTimeToTicks(16000) // 16000
 		expect(commandReceiver0).toHaveBeenCalledTimes(2)
 		expect(onSocketWrite).toHaveBeenCalledTimes(2)
 
@@ -195,7 +179,7 @@ describe('TCP-Send', () => {
 		})
 
 		// test retry
-		jest.advanceTimersByTime(6000) // enough time has passed
+		await mockTime.advanceTimeTicks(6000) // enough time has passed
 
 		// a new connection should have been made
 
@@ -208,7 +192,7 @@ describe('TCP-Send', () => {
 
 		// Test makeReady:
 		await myConductor.devicesMakeReady(true)
-		jest.advanceTimersByTime(10)
+		await mockTime.advanceTimeTicks(10)
 		await waitALittleBit()
 
 		expect(onConnectionChanged).toHaveBeenCalledTimes(4)
@@ -228,7 +212,7 @@ describe('TCP-Send', () => {
 		})
 
 		// dispose
-		device.terminate()
+		await device.terminate()
 
 		expect(onSocketClose).toHaveBeenCalledTimes(2)
 		expect(onConnectionChanged).toHaveBeenCalledTimes(5)
@@ -236,6 +220,7 @@ describe('TCP-Send', () => {
 			statusCode: StatusCode.BAD
 		})
 
+		expect(onError).toHaveBeenCalledTimes(0)
 		// expect(0).toEqual(1)
 	})
 })
