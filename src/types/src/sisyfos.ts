@@ -52,11 +52,8 @@ export interface FaderCommand extends ChannelCommand {
 
 export type SisyfosCommand = BaseCommand | ToggleCommand | FaderCommand
 
-export interface SisyfosChannel {
-	faderLevel: number,
-	pgmOn: boolean,
-	pstOn: boolean,
-	tlObjId?: string
+export interface SisyfosChannel extends SisyfosAPIChannel {
+	tlObjIds: string[]
 }
 
 export interface SisyfosState {
@@ -74,3 +71,17 @@ export interface TimelineObjSisyfosMessage extends TimelineObjSisyfos {
 		deviceType: DeviceType.SISYFOS
 	} & SisyfosCommandContent
 }
+// ------------------------------------------------------
+// Interfaces for the data that comes over OSC:
+export interface SisyfosAPIChannel {
+	faderLevel: number
+	pgmOn: boolean
+	pstOn: boolean
+}
+
+export interface SisyfosAPIState {
+	channels: {
+		[index: string]: SisyfosAPIChannel
+	}
+}
+// ------------------------------------------------------

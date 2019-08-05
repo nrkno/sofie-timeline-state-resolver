@@ -22,9 +22,11 @@ export interface SisyfosDeviceOptions extends DeviceOptions {
 		commandReceiver?: (time: number, cmd) => Promise<any>
 	}
 }
+export type CommandReceiver = (time: number, cmd: SisyfosCommand, context: CommandContext, timelineObjId: string) => Promise<any>
 interface Command {
 	content: SisyfosCommand
 	context: CommandContext
+	timelineObjId: string
 }
 type CommandContext = string
 /**
@@ -35,7 +37,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState> {
 	private _doOnTime: DoOnTime
 	private _sisyfos: SisyfosInterface
 
-	private _commandReceiver: (time: number, cmd: SisyfosCommand, context: CommandContext) => Promise<any>
+	private _commandReceiver: CommandReceiver
 
 	constructor (deviceId: string, deviceOptions: SisyfosDeviceOptions, options) {
 		super(deviceId, deviceOptions, options)
@@ -52,14 +54,12 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState> {
 	init (options: SisfyosOptions): Promise<boolean> {
 		this._sisyfos = new SisyfosInterface()
 		this._sisyfos.once('initialized', () => {
-			this.setState(this._sisyfos.state, this.getCurrentTime())
+			this.setState(this.getDeviceState(), this.getCurrentTime())
 			this.emit('resetResolver')
 		})
 
-		return new Promise((resolve) => {
-			this._sisyfos.connect(options.host, options.port)
-			.then(() => resolve(true), () => resolve(false))
-		})
+		return this._sisyfos.connect(options.host, options.port)
+			.then(() => true)
 	}
 	/**
 	 * Handles a new state such that the device will be in that state at a specific point
@@ -67,7 +67,10 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState> {
 	 * @param newState
 	 */
 	handleState (newState: TimelineState) {
-		if (!this._sisyfos.state) return // no me gusta
+		if (!this._sisyfos.state) {
+			this.emit('warning', 'Sisyfos State not initialized yet')
+			return
+		}
 
 		// Transform timeline states into device states
 		let previousStateTime = Math.max(this.getCurrentTime(), newState.time)
@@ -106,7 +109,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState> {
 	makeReady (okToDestroyStuff?: boolean): Promise<void> {
 		if (okToDestroyStuff) {
 			this._doOnTime.clearQueueNowAndAfter(this.getCurrentTime())
-			this.setState(this._sisyfos.state, this.getCurrentTime())
+			this.setState(this.getDeviceState(), this.getCurrentTime())
 		}
 		return Promise.resolve()
 	}
@@ -117,21 +120,33 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState> {
 	get connected (): boolean {
 		return false
 	}
+	getDeviceState (): SisyfosState {
+		const deviceStateFromAPI = this._sisyfos.state
+		const deviceState: SisyfosState = { channels: {} }
+
+		for (const ch of Object.keys(deviceStateFromAPI.channels)) {
+
+			const channelFromAPI = deviceStateFromAPI.channels[ch]
+
+			const channel: SisyfosChannel = {
+				...channelFromAPI,
+				faderLevel:  0.75,  // 0 dB
+				pgmOn:  false,
+				pstOn:  false,
+				tlObjIds: []
+			}
+
+			deviceState.channels[ch] = channel
+		}
+		return deviceState
+	}
 	/**
 	 * Transform the timeline state into a device state, which is in this case also
 	 * a timeline state.
 	 * @param state
 	 */
 	convertStateToSisyfosState (state: TimelineState) {
-		const deviceState: SisyfosState = JSON.parse(JSON.stringify(this._sisyfos.state))
-
-		for (const ch of Object.keys(deviceState.channels)) {
-			const channel: SisyfosChannel = deviceState.channels[ch]
-
-			channel.faderLevel = 0.75 // 0 dB
-			channel.pgmOn = false
-			channel.pstOn = false
-		}
+		const deviceState: SisyfosState = this.getDeviceState()
 
 		_.each(state.layers, (tlObject, layerName) => {
 			const layer = tlObject as ResolvedTimelineObjectInstance & TimelineObjSisyfosMessage
@@ -163,12 +178,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState> {
 				if (layer.content.faderLevel !== undefined) {
 					channel.faderLevel = layer.content.faderLevel
 				}
-				// for context, set tl obj id:
-				if (channel.tlObjId) {
-					channel.tlObjId += ' & ' + tlObject.id
-				} else {
-					channel.tlObjId = tlObject.id
-				}
+				channel.tlObjIds.push(tlObject.id)
 			}
 		})
 
@@ -191,7 +201,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState> {
 	private _addToQueue (commandsToAchieveState: Array<Command>, time: number) {
 		_.each(commandsToAchieveState, (cmd: Command) => {
 			this._doOnTime.queue(time, undefined, (cmd: Command) => {
-				return this._commandReceiver(time, cmd.content, cmd.context)
+				return this._commandReceiver(time, cmd.content, cmd.context, cmd.timelineObjId)
 			}, cmd)
 		})
 	}
@@ -279,12 +289,19 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState> {
 			[ 'A', 'B' ],
 			[ 'C', 'D' ]
 		]
-		const transitions: Array<{ index: string, from: string, to: string, context: string }> = []
+		interface SisyfosTransition {
+			index: string
+			from: string
+			to: string
+			context: string
+			tlObjId?: string
+		}
+		const transitions: Array<SisyfosTransition> = []
 		let requireTake = false
 
 		const commands: Array<Command> = []
 
-		_.each(newOscSendState.channels, (newChannel, index) => {
+		_.each(newOscSendState.channels, (newChannel: SisyfosChannel, index) => {
 			const oldChannel = oldOscSendState.channels[index]
 
 			const oldState = oldChannel ? stateIdentifier[oldChannel.pgmOn ? 1 : 0][oldChannel.pstOn ? 1 : 0] : 'A'
@@ -295,7 +312,8 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState> {
 				from: oldState,
 				to: newState,
 				context: `Channel ${index} goes from "${oldState}" to "${newState}"` +
-					newChannel.tlObjId ? ` by tlObj: ${newChannel.tlObjId}` : ''
+					newChannel.tlObjIds ? ` by tlObjs: ${newChannel.tlObjIds.join(', ')}` : '',
+				tlObjId: newChannel.tlObjIds[0]
 			})
 
 			if (stateTransition[oldState][newState][1]) {
@@ -309,7 +327,8 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState> {
 						type: Commands.SET_FADER,
 						channel: Number(index),
 						value: newChannel.faderLevel
-					}
+					},
+					timelineObjId: newChannel.tlObjIds[0] || ''
 				})
 			}
 		})
@@ -317,7 +336,8 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState> {
 		if (requireTake) {
 			commands.push({
 				content: { type: Commands.TAKE },
-				context: `generic`
+				context: `generic`,
+				timelineObjId: ''
 			})
 		}
 
@@ -329,24 +349,28 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState> {
 					if (transitionRule[0] === 2) {
 						commands.unshift({
 							content: commandGenerator.pstOn(transition.index),
-							context: transition.context
+							context: transition.context,
+							timelineObjId: transition.tlObjId || ''
 						})
 					} else {
 						commands.unshift({
 							content: commandGenerator.pstOff(transition.index),
-							context: transition.context
+							context: transition.context,
+							timelineObjId: transition.tlObjId || ''
 						})
 					}
 				} else if (requireTake) { // only on take
 					if (transitionRule[0] === 1) {
 						commands.unshift({
 							content: commandGenerator.pstOn(transition.index),
-							context: transition.context
+							context: transition.context,
+							timelineObjId: transition.tlObjId || ''
 						})
 					} else {
 						commands.unshift({
 							content: commandGenerator.pstOff(transition.index),
-							context: transition.context
+							context: transition.context,
+							timelineObjId: transition.tlObjId || ''
 						})
 					}
 				}
@@ -356,24 +380,28 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState> {
 					if (transitionRule[2] === 2) {
 						commands.push({
 							content: commandGenerator.pstOn(transition.index),
-							context: transition.context
+							context: transition.context,
+							timelineObjId: transition.tlObjId || ''
 						})
 					} else {
 						commands.push({
 							content: commandGenerator.pstOff(transition.index),
-							context: transition.context
+							context: transition.context,
+							timelineObjId: transition.tlObjId || ''
 						})
 					}
 				} else if (requireTake) { // only on take
 					if (transitionRule[2] === 1) {
 						commands.push({
 							content: commandGenerator.pstOn(transition.index),
-							context: transition.context
+							context: transition.context,
+							timelineObjId: transition.tlObjId || ''
 						})
 					} else {
 						commands.push({
 							content: commandGenerator.pstOff(transition.index),
-							context: transition.context
+							context: transition.context,
+							timelineObjId: transition.tlObjId || ''
 						})
 					}
 				}
@@ -382,12 +410,12 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState> {
 
 		return commands
 	}
-	private _defaultCommandReceiver (time: number, cmd: SisyfosCommand, context: CommandContext): Promise<any> {
-		time = time
+	private _defaultCommandReceiver (_time: number, cmd: SisyfosCommand, context: CommandContext, timelineObjId: string): Promise<any> {
 
 		let cwc: CommandWithContext = {
 			context: context,
-			command: cmd
+			command: cmd,
+			timelineObjId: timelineObjId
 		}
 		this.emit('debug', cwc)
 
