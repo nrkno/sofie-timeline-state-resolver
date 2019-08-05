@@ -53,13 +53,12 @@
     "installclean": "yarn unlink:all & yarn cleancache && yarn --check-files",
     "buildclean": "yarn installclean && yarn build",
     "build": "trash dist && yarn build:main",
-    "buildtest": "yarn build && jest",
     "build:main": "tsc -p tsconfig.json",
     "lint": "tslint --project tsconfig.jest.json --config tslint.json",
     "unitci": "jest --maxWorkers 2",
     "unit": "jest",
     "testci": "yarn test --maxWorkers 2",
-    "test": "yarn lint && yarn build && yarn unit",
+    "test": "yarn lint && yarn buildall && yarn unit",
     "test:integration": "yarn lint && jest --config=jest-integration.config.js",
     "watch": "jest --watch",
     "cov": "jest --coverage; open-cli coverage/lcov-report/index.html",
@@ -78,8 +77,9 @@
     "license-validate": "node-license-validator -p -d --allow-licenses MIT BSD BSD-2-Clause BSD-3-Clause ISC Apache Unlicense WTFPL --allow-packages cycle",
     "types-build": "cd src/types && trash dist && yarn build:main && cd ../..",
     "types-install": "cd src/types && yarn install && cd ../..",
-    "types-test": "cd src/types && yarn lint && yarn unitci && cd ../..",
-    "types-ci": "cd src/types && yarn lint && yarn unitci && cd ../.."
+    "types-test": "cd src/types && yarn test && cd ../..",
+    "types-ci": "cd src/types && yarn testci && cd ../..",
+    "buildall": "yarn build && yarn types-build"
   },
   "scripts-info": {
     "info": "Display information about the scripts",
@@ -112,6 +112,7 @@
   "devDependencies": {
     "@types/jest": "^24.0.13",
     "@types/node": "^8.0.4",
+    "@types/underscore": "^1.9.2",
     "codecov": "^3.5.0",
     "gh-pages": "^2.0.1",
     "jest": "^24.8.0",
@@ -126,13 +127,10 @@
     "standard-version": "^6.0.1",
     "trash-cli": "^3.0.0",
     "ts-jest": "^24.0.2",
-    "tslint": "^5.17.0",
+    "tslint": "^5.18.0",
     "tslint-config-standard": "^8.0.1",
-    "typedoc": "^0.14.2",
+    "typedoc": "^0.15.0",
     "typescript": "^3.3.3333"
-  },
-  "resolutions": {
-    "typedoc/**/marked": "^0.6.2"
   },
   "keywords": [
     "broadcast",
@@ -149,21 +147,21 @@
     "@types/request": "^2.48.1",
     "@types/sprintf-js": "^1.1.0",
     "@types/ws": "^6.0.1",
-    "atem-connection": "^0.9.0",
-    "atem-state": "^0.6.0",
+    "atem-connection": "^0.10.0",
+    "atem-state": "^0.7.0",
     "casparcg-connection": "^4.7.0",
     "casparcg-state": "^1.8.0",
     "emberplus": "git+https://github.com/nrkno/tv-automation-emberplus-connection#dist10102018",
-    "fast-clone": "^1.5.3",
+    "fast-clone": "^1.5.13",
     "hyperdeck-connection": "^0.1.5",
     "osc": "^2.2.4",
     "request": "^2.88.0",
     "sprintf-js": "^1.1.2",
-    "superfly-timeline": "^7.1.2",
-    "threadedclass": "^0.5.0",
+    "superfly-timeline": "^7.2.1",
+    "threadedclass": "^0.6.3",
     "underscore": "^1.9.1",
     "underscore-deep-extend": "^1.1.5",
-    "ws": "^6.1.2"
+    "ws": "^7.1.1"
   },
   "standard-version": {
     "message": "chore(release): %s [skip ci]",
