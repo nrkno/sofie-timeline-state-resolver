@@ -48,7 +48,6 @@ export interface OSCMessageCommandContent {
 		direction: 'In' | 'Out' | 'InOut' | 'None'
 	}
 	from?: SomeOSCValue[]
-	fromTlObject: string
 }
 export type TimelineObjOSCAny = TimelineObjOSCMessage
 
