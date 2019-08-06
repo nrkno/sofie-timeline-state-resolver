@@ -220,7 +220,7 @@ export class QuantelDevice extends DeviceWithState<QuantelState> {
 				const port: QuantelStatePort = state.port[mapping.portId]
 				if (!port) throw new Error(`Port "${mapping.portId}" not found`)
 
-				if (layer.content && layer.content.title) {
+				if (layer.content && (layer.content.title || layer.content.guid)) {
 					const clip = layer as any as TimelineObjQuantelClip
 
 					port.timelineObjId = layer.id
@@ -687,6 +687,7 @@ class QuantelManager {
 	private async getClipId (clip: QuantelStatePortClip): Promise<number> {
 		let clipId = clip.clipId
 
+		// console.log('try getClipId', clip)
 		if (!clipId && clip.guid) {
 			clipId = await this._cache.getSet(`clip.guid.${clip.guid}.clipId`, async () => {
 
