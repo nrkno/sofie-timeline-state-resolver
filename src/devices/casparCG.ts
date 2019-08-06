@@ -682,8 +682,7 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> {
 	 * @param time deprecated
 	 * @param cmd Command to execute
 	 */
-	private _defaultCommandReceiver (time: number, cmd: CommandNS.IAMCPCommand, context: string, timelineObjId: string): Promise<any> {
-		time = time
+	private _defaultCommandReceiver (_time: number, cmd: CommandNS.IAMCPCommand, context: string, timelineObjId: string): Promise<any> {
 
 		let cwc: CommandWithContext = {
 			context: context,
