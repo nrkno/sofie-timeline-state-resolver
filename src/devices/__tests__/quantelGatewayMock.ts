@@ -246,9 +246,27 @@ function handleRequest (quantelServer: QuantelServerMockOptions, triggerFcn: Fun
 							Owner: '',
 							PoolID: 11,
 							Title: 'myClip0'
+						},
+						{
+							type: 'ClipDataSummary',
+							ClipID: 1338,
+							ClipGUID: 'abcdef872832832a2b932c97d9b2ec1',
+							CloneID: 1338,
+							Completed: '2019-06-12T11:18:37.000Z',
+							Created: '2019-06-12T11:18:37.000Z',
+							Description: '',
+							Frames: '2000',
+							Owner: '',
+							PoolID: 11,
+							Title: 'myClip1'
 						}
 					], (clip) => {
-						return clip.Title === params.title
+						if (params.title) {
+							return clip.Title === decodeURI(params.title).replace(/"/g, '')
+						} else if (params.ClipGUID) {
+							return clip.ClipGUID === decodeURI(params.ClipGUID).replace(/"/g, '')
+						}
+						return false
 					})
 				},
 				// get clip info:
