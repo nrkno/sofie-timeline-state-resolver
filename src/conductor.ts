@@ -30,6 +30,7 @@ import { DeviceContainer } from './devices/deviceContainer'
 import { threadedClass, ThreadedClass } from 'threadedclass'
 import { AsyncResolver } from './AsyncResolver'
 import { HttpWatcherDevice } from './devices/httpWatcher'
+import { QuantelDevice } from './devices/quantel'
 import { SisyfosMessageDevice } from './devices/sisyfos'
 
 export { DeviceContainer }
@@ -380,6 +381,15 @@ export class Conductor extends EventEmitter {
 					options,
 					threadedClassOptions
 				)
+			} else if (deviceOptions.type === DeviceType.QUANTEL) {
+				newDevice = await new DeviceContainer().create<QuantelDevice>(
+					'../../dist/devices/quantel.js',
+					QuantelDevice,
+					deviceId,
+					deviceOptions,
+					options,
+					threadedClassOptions
+				)
 			} else if (deviceOptions.type === DeviceType.SISYFOS) {
 				newDevice = await new DeviceContainer().create<OSCMessageDevice>(
 					'../../dist/devices/sisyfos.js',
@@ -425,6 +435,8 @@ export class Conductor extends EventEmitter {
 			await newDevice.device.setMapping(this.mapping)
 
 			await newDevice.device.init(deviceOptions.options)
+
+			await newDevice.reloadProps() // because the device name might have changed after init
 
 			deviceName = newDevice.deviceName
 			this.emit('info', (DeviceType[deviceOptions.type] + ' initialized!'))
