@@ -532,6 +532,7 @@ export class Conductor extends EventEmitter {
 			}
 		})
 		.catch(e => {
+			this._resolveTimelineRunning = false
 			this.emit('error', 'Caught error in _resolveTimeline.then' + e)
 		})
 	}
