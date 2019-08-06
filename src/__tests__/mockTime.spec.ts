@@ -60,7 +60,7 @@ export class MockTime {
 	}
 	tick = () => {
 		return new Promise(resolve => {
-			process.nextTick(resolve)
+			setImmediate(resolve)
 		})
 	}
 }
