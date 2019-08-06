@@ -73,12 +73,12 @@ interface QueueCallback {
 	callBack: string
 	callBackData: any
 }
-interface StatReport {
+export interface StatReport {
 	reason?: string
 	timelineStartResolve: number
 	timelineResolved: number
-	stateHandled: number,
-	done: number,
+	stateHandled: number
+	done: number
 }
 
 /**
@@ -919,6 +919,7 @@ export class Conductor extends EventEmitter {
 			this._statMeasureReason = ''
 
 			this.emit('info', 'statReport', JSON.stringify(reportDuration))
+			this.emit('statReport', reportDuration)
 		}
 	}
 	/**
