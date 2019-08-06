@@ -190,8 +190,7 @@ export class HttpSendDevice extends DeviceWithState<TimelineState> {
 			return (a.content.temporalPriority || 0) - (b.content.temporalPriority || 0)
 		})
 	}
-	private _defaultCommandReceiver (time: number, cmd: HttpSendCommandContent, context: CommandContext, timelineObjId: string): Promise<any> {
-		time = time
+	private _defaultCommandReceiver (_time: number, cmd: HttpSendCommandContent, context: CommandContext, timelineObjId: string): Promise<any> {
 
 		let cwc: CommandWithContext = {
 			context: context,

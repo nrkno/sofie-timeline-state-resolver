@@ -23,6 +23,7 @@ import { LawoDevice } from './devices/lawo'
 import { PanasonicPtzDevice } from './devices/panasonicPTZ'
 import { HyperdeckDevice } from './devices/hyperdeck'
 import { DoOnTime } from './doOnTime'
+import { TCPSendDevice } from './devices/tcpSend'
 import { PharosDevice } from './devices/pharos'
 import { OSCMessageDevice } from './devices/osc'
 import { DeviceContainer } from './devices/deviceContainer'
@@ -328,6 +329,15 @@ export class Conductor extends EventEmitter {
 				newDevice = await new DeviceContainer().create<LawoDevice>(
 					'../../dist/devices/lawo.js',
 					LawoDevice,
+					deviceId,
+					deviceOptions,
+					options,
+					threadedClassOptions
+				)
+			} else if (deviceOptions.type === DeviceType.TCPSEND) {
+				newDevice = await new DeviceContainer().create<TCPSendDevice>(
+					'../../dist/devices/tcpSend.js',
+					TCPSendDevice,
 					deviceId,
 					deviceOptions,
 					options,
