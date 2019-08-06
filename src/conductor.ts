@@ -562,9 +562,9 @@ export class Conductor extends EventEmitter {
 			if (!this._nextResolveTime) {
 				let estimatedResolveTime = this.estimateResolveTime()
 				resolveTime = now + estimatedResolveTime
-				this.emit('info', 'resolveTimeline ' + resolveTime + ' (+' + estimatedResolveTime + ') -----------------------------')
+				this.emit('debug', `resolveTimeline ${resolveTime} (${resolveTime - now} from now) (${estimatedResolveTime}) ---------`)
 			} else {
-				this.emit('info', 'resolveTimeline ' + resolveTime + ' -----------------------------')
+				this.emit('debug', `resolveTimeline ${resolveTime} (${resolveTime - now} from now) -----------------------------`)
 			}
 
 			if (resolveTime > now + LOOKAHEADTIME) {
@@ -774,7 +774,7 @@ export class Conductor extends EventEmitter {
 			})
 			this._sentCallbacks = sentCallbacksNew
 
-			this.emit('info', 'resolveTimeline at time ' + resolveTime + ' done in ' + (Date.now() - startTime) + 'ms (size: ' + this.timeline.length + ')')
+			this.emit('debug', 'resolveTimeline at time ' + resolveTime + ' done in ' + (Date.now() - startTime) + 'ms (size: ' + this.timeline.length + ')')
 		} catch (e) {
 			this.emit('error', 'resolveTimeline' + e + '\nStack: ' + e.stack)
 		}
