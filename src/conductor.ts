@@ -30,6 +30,7 @@ import { DeviceContainer } from './devices/deviceContainer'
 import { threadedClass, ThreadedClass } from 'threadedclass'
 import { AsyncResolver } from './AsyncResolver'
 import { HttpWatcherDevice } from './devices/httpWatcher'
+import { SisyfosMessageDevice } from './devices/sisyfos'
 
 export { DeviceContainer }
 export { CommandWithContext }
@@ -374,6 +375,15 @@ export class Conductor extends EventEmitter {
 				newDevice = await new DeviceContainer().create<OSCMessageDevice>(
 					'../../dist/devices/osc.js',
 					OSCMessageDevice,
+					deviceId,
+					deviceOptions,
+					options,
+					threadedClassOptions
+				)
+			} else if (deviceOptions.type === DeviceType.SISYFOS) {
+				newDevice = await new DeviceContainer().create<OSCMessageDevice>(
+					'../../dist/devices/sisyfos.js',
+					SisyfosMessageDevice,
 					deviceId,
 					deviceOptions,
 					options,

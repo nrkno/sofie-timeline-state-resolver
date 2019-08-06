@@ -19,6 +19,7 @@ import { TimelineObjPharosAny } from './pharos'
 import { TimelineObjPanasonicPtzAny } from './ptz'
 import { TimelineObjAbstractAny } from './abstract'
 import { TSRTimelineObjProps } from './mapping'
+import { TimelineObjSisyfosAny } from './sisyfos'
 
 export { Timeline }
 export * from './mapping'
@@ -36,7 +37,8 @@ export enum DeviceType {
 	HYPERDECK = 7,
 	PHAROS = 8,
 	OSC = 9,
-	HTTPWATCHER = 10
+	HTTPWATCHER = 10,
+	SISYFOS = 11
 }
 
 export interface TSRTimelineKeyframe<T> extends Timeline.TimelineKeyframe {
@@ -69,7 +71,8 @@ export type TSRTimelineObj = (
 	TimelineObjLawoAny |
 	TimelineObjOSCAny |
 	TimelineObjPharosAny |
-	TimelineObjPanasonicPtzAny
+	TimelineObjPanasonicPtzAny |
+	TimelineObjSisyfosAny
 )
 
 export type TSRTimeline = Array<TSRTimelineObj>
