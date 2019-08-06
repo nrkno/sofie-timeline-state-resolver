@@ -226,6 +226,7 @@ export class QuantelDevice extends DeviceWithState<QuantelState> {
 					port.timelineObjId = layer.id
 					port.clip = {
 						title: clip.content.title,
+						guid: clip.content.guid,
 						// clipId // set later
 
 						pauseTime: clip.content.pauseTime,
@@ -428,7 +429,6 @@ export class QuantelDevice extends DeviceWithState<QuantelState> {
 }
 class QuantelManager {
 	private _quantelState: QuantelTrackedState = {
-		clipId: {},
 		port: {}
 	}
 	private _cache = new Cache()
@@ -687,15 +687,14 @@ class QuantelManager {
 	private async getClipId (clip: QuantelStatePortClip): Promise<number> {
 		let clipId = clip.clipId
 
-		if (!clipId && clip.title) {
-
-			clipId = await this._cache.getSet(`clip.${clip.title}.clipId`, async () => {
+		if (!clipId && clip.guid) {
+			clipId = await this._cache.getSet(`clip.guid.${clip.guid}.clipId`, async () => {
 
 				const server = await this.getServer()
 
 				// Look up the clip:
 				const foundClips = await this._quantel.searchClip({
-					Title: clip.title
+					ClipGUID: `"${clip.guid}"`
 				})
 				const foundClip = _.find(foundClips, (clip) => {
 					return (
@@ -703,15 +702,29 @@ class QuantelManager {
 						(server.pools || []).indexOf(clip.PoolID) !== -1
 					)
 				})
-				if (!foundClip) throw new Error(`Clip "${clip.title}" not found on server (${server.ident})`)
+				if (!foundClip) throw new Error(`Clip with GUID "${clip.guid}" not found on server (${server.ident})`)
+				return foundClip.ClipID
+			})
+		} else if (!clipId && clip.title) {
+			clipId = await this._cache.getSet(`clip.title.${clip.title}.clipId`, async () => {
 
-				// Store to tracked state:
-				this._quantelState.clipId[clip.title] = foundClip.ClipID
+				const server = await this.getServer()
 
+				// Look up the clip:
+				const foundClips = await this._quantel.searchClip({
+					Title: `"${clip.title}"`
+				})
+				const foundClip = _.find(foundClips, (clip) => {
+					return (
+						clip.PoolID &&
+						(server.pools || []).indexOf(clip.PoolID) !== -1
+					)
+				})
+				if (!foundClip) throw new Error(`Clip with Title "${clip.title}" not found on server (${server.ident})`)
 				return foundClip.ClipID
 			})
 		}
-		if (!clipId) throw new Error(`Unable to determine clipId for clip '${clip.title}'`)
+		if (!clipId) throw new Error(`Unable to determine clipId for clip "${clip.title || clip.guid}"`)
 
 		return clipId
 	}
@@ -790,7 +803,9 @@ interface QuantelStatePort {
 	channels: number[]
 }
 interface QuantelStatePortClip {
-	title: string
+	title?: string
+	guid?: string
+
 	clipId?: number
 
 	playing: boolean
@@ -852,9 +867,6 @@ type QuantelCommand = QuantelCommandSetupPort |
 
 /** Tracked state of an ISA-Zone-Server entity */
 interface QuantelTrackedState {
-	clipId: {
-		[title: string]: number
-	}
 	port: {
 		[portId: string]: QuantelTrackedStatePort
 	}
