@@ -4,9 +4,6 @@ import { TSRTimelineObjBase, DeviceType } from '.'
 export interface MappingTCPSend extends Mapping {
 	device: DeviceType.TCPSEND
 }
-export interface MappingTCPWatcher extends Mapping {
-	device: DeviceType.TCPSEND
-}
 
 export interface TcpSendCommandContent {
 	message: string
