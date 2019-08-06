@@ -136,7 +136,7 @@ export class QuantelGateway extends EventEmitter {
 	/** Create a port and connect it to a channel */
 	public async getPort (portId: string): Promise<Q.PortStatus | null> {
 		try {
-			return this.sendServer('get', `port/${portId}`)
+			return await this.sendServer('get', `port/${portId}`)
 		} catch (e) {
 			if (e.status === 404) return null
 			throw e
@@ -152,7 +152,7 @@ export class QuantelGateway extends EventEmitter {
 	/** Get info about a clip */
 	public async getClip (clipId: number): Promise<Q.ClipData | null> {
 		try {
-			return this.sendZone('get', `clip/${clipId}`) as Promise<Q.ClipData>
+			return await this.sendZone('get', `clip/${clipId}`) as Promise<Q.ClipData>
 		} catch (e) {
 			if (e.status === 404) return null
 			throw e
