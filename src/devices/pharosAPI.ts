@@ -259,9 +259,7 @@ export class Pharos extends EventEmitter {
 	 * @param params Example: { num: '1,2,5-9' }
 	 */
 	public getTimelineInfo (num?: string | number): Promise<TimelineInfo> {
-		let params: any = {}
-		if (num) params.num = num + ''
-		return this.request('timeline', params)
+		return this.getThingInfo('timeline', num)
 	}
 	/**
 	 * @param params Example: { num: '1,2,5-9' }
@@ -269,15 +267,18 @@ export class Pharos extends EventEmitter {
 	public getSceneInfo (num?: string | number): Promise<SceneInfo> {
 		let params: any = {}
 		if (num) params.num = num + ''
-		return this.request('scene', params)
+		return this.getThingInfo('scene', num)
 	}
 	/**
 	 * @param params Example: { num: '1,2,5-9' }
 	 */
 	public getGroupInfo (num?: string | number): Promise<GroupInfo> {
+		return this.getThingInfo('group', num)
+	}
+	private getThingInfo (thing: string, num?: string | number): Promise<any> {
 		let params: any = {}
 		if (num) params.num = num + ''
-		return this.request('group', params)
+		return this.request(thing, params)
 	}
 	public getContentTargetInfo (): Promise<ContentTargetInfo> {
 		return this.request('content_target')

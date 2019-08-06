@@ -385,8 +385,7 @@ export class QuantelDevice extends DeviceWithState<QuantelState> {
 	 * @param time deprecated
 	 * @param cmd Command to execute
 	 */
-	private async _defaultCommandReceiver (time: number, cmd: QuantelCommand, context: string, timelineObjId: string): Promise<any> {
-		time = time
+	private async _defaultCommandReceiver (_time: number, cmd: QuantelCommand, context: string, timelineObjId: string): Promise<any> {
 
 		let cwc: CommandWithContext = {
 			context: context,
@@ -531,7 +530,7 @@ class QuantelManager {
 		) {
 			// Reuse the already loaded fragment:
 			portInPoint = loadedFragments.portInPoint
-			portOutPoint = loadedFragments.portOutPoint
+			// portOutPoint = loadedFragments.portOutPoint
 		} else {
 			// Fetch fragments of clip:
 			const fragmentsInfo = await (

@@ -345,8 +345,7 @@ export class PharosDevice extends DeviceWithState<TimelineState> {
 
 		return commands
 	}
-	private async _defaultCommandReceiver (time: number, cmd: Command, context: CommandContext, timelineObjId: string): Promise<any> {
-		time = time
+	private async _defaultCommandReceiver (_time: number, cmd: Command, context: CommandContext, timelineObjId: string): Promise<any> {
 
 		// emit the command to debug:
 		let cwc: CommandWithContext = {

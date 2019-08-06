@@ -133,8 +133,6 @@ export class Conductor extends EventEmitter {
 		super()
 		this._options = options
 
-		this._options = this._options // ts-lint fix: not used
-
 		this._multiThreadedResolver = !!options.multiThreadedResolver
 
 		if (options.getCurrentTime) this._getCurrentTime = options.getCurrentTime
