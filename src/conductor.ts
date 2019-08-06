@@ -608,7 +608,7 @@ export class Conductor extends EventEmitter {
 				let o = await this._resolver.resolveTimeline(
 					resolveTime,
 					this.timeline,
-					RESOLVE_LIMIT_TIME
+					now + RESOLVE_LIMIT_TIME
 				)
 				resolvedStates = o.resolvedStates
 				objectsFixed = o.objectsFixed
@@ -681,12 +681,16 @@ export class Conductor extends EventEmitter {
 			const nowPostExec = this.getCurrentTime()
 			if (nextEventTime) {
 
-				timeUntilNextResolve = Math.max(MINTRIGGERTIME,
-					Math.min(LOOKAHEADTIME,
-						(nextEventTime - nowPostExec) - PREPARETIME
+				timeUntilNextResolve = (
+					Math.max(
+						MINTRIGGERTIME, // At minimum, we should wait this time
+						Math.min(
+							LOOKAHEADTIME, // We should wait maximum this time, because we might have deferred a resolving this far ahead
+							RESOLVE_LIMIT_TIME, // We should wait maximum this time, because we've only resolved repeating objects this far
+							(nextEventTime - nowPostExec) - PREPARETIME
+						)
 					)
 				)
-
 				// resolve at nextEventTime next time:
 				nextResolveTime = Math.min(tlState.time + LOOKAHEADTIME, nextEventTime)
 
