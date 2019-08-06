@@ -291,8 +291,8 @@ export class QuantelDevice extends DeviceWithState<QuantelState> {
 				!oldPort ||
 				!_.isEqual(newPort.channels, oldPort.channels)
 			) {
-				const channel: number = newPort.channels[0]
-				if (channel) { // todo: support for multiple channels
+				const channel = newPort.channels[0] as number | undefined
+				if (channel !== undefined) { // todo: support for multiple channels
 					commands.push({
 						type: QuantelCommandType.SETUPPORT,
 						time: prepareTime,
