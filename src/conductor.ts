@@ -38,6 +38,7 @@ export const PREPARETIME = 2000 // Will prepare commands this time before the ev
 export const MINTRIGGERTIME = 10 // Minimum time between triggers
 export const MINTIMEUNIT = 1 // Minimum unit of time
 
+/** When resolving and the timeline has repeating objects, only resolve this far into the future */
 const RESOLVE_LIMIT_TIME = 10000
 
 export const DEFAULT_PREPARATION_TIME = 20 // When resolving "now", move this far into the future, to account for computation times
@@ -534,7 +535,7 @@ export class Conductor extends EventEmitter {
 			this.emit('error', 'Caught error in _resolveTimeline.then' + e)
 		})
 	}
-	private async _resolveTimelineInner () {
+	private async _resolveTimelineInner (): Promise<number | undefined> {
 		if (!this._isInitialized) {
 			this.emit('warning', 'TSR is not initialized yet')
 			return
@@ -567,18 +568,19 @@ export class Conductor extends EventEmitter {
 			}
 
 			if (resolveTime > now + LOOKAHEADTIME) {
+				// If the resolveTime is too far ahead, we'd rather wait and resolve it later.
 				this.emit('debug', 'Too far ahead (' + resolveTime + ')')
 				this._triggerResolveTimeline(LOOKAHEADTIME)
 				return
 			}
 
-			const fixObject = (o) => {
+			const fixTimelineObject = (o: any) => {
 				if (nowIds[o.id]) o.enable.start = nowIds[o.id]
 				delete o['parent']
 				if (o.isGroup) {
 					if (o.content.objects) {
 						_.each(o.content.objects, (child) => {
-							fixObject(child)
+							fixTimelineObject(child)
 						})
 					}
 				}
@@ -588,10 +590,10 @@ export class Conductor extends EventEmitter {
 			const nowIds: {[id: string]: number} = {}
 			let timeline: TSRTimeline = this.timeline
 
-			// To prevent trying to transfer multithreaded objects over IPC we remove
+			// To prevent trying to transfer circular references over IPC we remove
 			// any references to the parent property:
 			_.each(timeline, (o) => {
-				fixObject(o)
+				fixTimelineObject(o)
 			})
 
 			let resolvedStates: ResolvedStates
@@ -622,7 +624,7 @@ export class Conductor extends EventEmitter {
 				nowIds[o.id] = o.time
 			})
 			_.each(timeline, (o) => {
-				fixObject(o)
+				fixTimelineObject(o)
 			})
 
 			statTimeTimelineResolved = Date.now()
@@ -631,37 +633,13 @@ export class Conductor extends EventEmitter {
 				this.emit('warn', `Resolver is ${this.getCurrentTime() - resolveTime} ms late`)
 			}
 
-			// Split the state into substates that are relevant for each device
-			let getFilteredLayers = async (layers: TimelineState['layers'], device: DeviceContainer) => {
-				let filteredState = {}
-				const deviceId = device.deviceId
-				const deviceType = device.deviceType
-				_.each(layers, async (o: ResolvedTimelineObjectInstance, layerId: string) => {
-					const oExt: ResolvedTimelineObjectInstanceExtended = o
-
-					let mapping: Mapping = this._mapping[o.layer + '']
-					if (!mapping && oExt.isLookahead && oExt.lookaheadForLayer) {
-						mapping = this._mapping[oExt.lookaheadForLayer]
-					}
-					if (mapping) {
-						if (
-							mapping.deviceId === deviceId &&
-							mapping.device === deviceType
-						) {
-							filteredState[layerId] = o
-						}
-					}
-				})
-				return filteredState
-			}
-
-			// push state to the right device
+			// Push state to the right device:
 			let ps: Promise<any>[] = []
 			ps = _.map(this.devices, async (device: DeviceContainer) => {
-				// The subState contains only the parts of the state relevant to that device
+				// The subState contains only the parts of the state relevant to that device:
 				let subState: TimelineState = {
 					time: tlState.time,
-					layers: await getFilteredLayers(tlState.layers, device),
+					layers: this.getFilteredLayers(tlState.layers, device),
 					nextEvents: []
 				}
 				let removeParent = o => {
@@ -937,5 +915,29 @@ export class Conductor extends EventEmitter {
 
 			this.emit('info', 'statReport', JSON.stringify(reportDuration))
 		}
+	}
+	/**
+	 * Split the state into substates that are relevant for each device
+	 */
+	private getFilteredLayers (layers: TimelineState['layers'], device: DeviceContainer) {
+		let filteredState = {}
+		const deviceId = device.deviceId
+		const deviceType = device.deviceType
+		_.each(layers, (o: ResolvedTimelineObjectInstance, layerId: string) => {
+			const oExt: ResolvedTimelineObjectInstanceExtended = o
+			let mapping: Mapping = this._mapping[o.layer + '']
+			if (!mapping && oExt.isLookahead && oExt.lookaheadForLayer) {
+				mapping = this._mapping[oExt.lookaheadForLayer]
+			}
+			if (mapping) {
+				if (
+					mapping.deviceId === deviceId &&
+					mapping.device === deviceType
+				) {
+					filteredState[layerId] = o
+				}
+			}
+		})
+		return filteredState
 	}
 }
