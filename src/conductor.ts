@@ -32,6 +32,7 @@ import { AsyncResolver } from './AsyncResolver'
 import { HttpWatcherDevice } from './devices/httpWatcher'
 import { QuantelDevice } from './devices/quantel'
 import { SisyfosMessageDevice } from './devices/sisyfos'
+import { VMixDevice } from './devices/vmix'
 
 export { DeviceContainer }
 export { CommandWithContext }
@@ -395,6 +396,15 @@ export class Conductor extends EventEmitter {
 				newDevice = await new DeviceContainer().create<OSCMessageDevice>(
 					'../../dist/devices/sisyfos.js',
 					SisyfosMessageDevice,
+					deviceId,
+					deviceOptions,
+					options,
+					threadedClassOptions
+				)
+			} else if (deviceOptions.type === DeviceType.VMIX) {
+				newDevice = await new DeviceContainer().create<VMixDevice>(
+					'../../dist/devices/vmix.js',
+					VMixDevice,
 					deviceId,
 					deviceOptions,
 					options,
