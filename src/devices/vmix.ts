@@ -18,7 +18,7 @@ import {
 	TimelineState
 } from 'superfly-timeline'
 import { VMix } from './vmixAPI'
-import { MappingVMix, TimelineContentTypeVMix, TimelineObjVMixInput, VMixCommand } from '../types/src/vmix'
+import { MappingVMix, TimelineContentTypeVMix, TimelineObjVMixInput, VMixCommand, VMixTransitionType } from '../types/src/vmix'
 
 export interface VMixStateCommand {
 	command: VMixCommand
@@ -350,7 +350,7 @@ interface VMixOverlays {
 
 interface VMixTransition {
 	number: number
-	effect: string // TODO: enum of effects
+	effect: VMixTransitionType
 	duration: number
 }
 

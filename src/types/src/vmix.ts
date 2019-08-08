@@ -43,6 +43,26 @@ export interface TimelineObjVMixInput extends TimelineObjVMixBase {
 }
 
 export interface VMixTransition {
-	type: string // TODO: Enum
+	type: VMixTransitionType
 	duration: number
+}
+
+export enum VMixTransitionType {
+	Cut = 'Cut',
+	Fade = 'Fade',
+	Zoom = 'Zoom',
+	Wipe = 'Wipe',
+	Slide = 'Slide',
+	Fly = 'Fly',
+	CrossZoom = 'CrossZoom',
+	FlyRotate = 'FlyRotate',
+	Cube = 'Cube',
+	CubeZoom = 'CubeZoom',
+	VerticalWipe = 'VerticalWipe',
+	VerticalSlide = 'VerticalSlide',
+	Merge = 'Merge',
+	WipeReverse = 'WipeReverse',
+	SlideReverse = 'SlideReverse',
+	VerticalWipeReverse = 'VerticalWipeReverse',
+	VerticalSlideReverse = 'VerticalSlideReverse' // TODO: Add stingers
 }
