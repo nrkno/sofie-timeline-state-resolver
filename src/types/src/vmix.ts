@@ -22,15 +22,23 @@ export enum VMixCommand {
 	TRANSITION_EFFECT = 'TRANSITION_EFFECT',
 	TRANSITION_DURATION = 'TRANSITION_DURATION',
 	AUDIO = 'AUDIO',
-	FADER = 'FADER'
+	FADER = 'FADER',
+	START_STREAMING = 'START_STREAMING',
+	STOP_STREAMING = 'STOP_STREAMING',
+	START_RECORDING = 'START_RECORDING',
+	STOP_RECORDING = 'STOP_RECORDING'
 }
 
-export type TimelineObjVMixAny = TimelineObjVMixInput | TimelineObjVMixPreview | TimelineObjVMixAudio | TimelineObjVMixFader
+export type TimelineObjVMixAny = TimelineObjVMixInput | TimelineObjVMixPreview | TimelineObjVMixAudio | TimelineObjVMixFader | TimelineObjVmixStartRecording | TimelineObjVMixStopRecording | TimelineObjVMixStartStreaming | TimelineObjVMixStopStreaming
 export enum TimelineContentTypeVMix {
 	INPUT,
 	PREVIEW,
 	AUDIO,
-	FADER
+	FADER,
+	START_STREAMING,
+	STOP_STREAMING,
+	START_RECORDING,
+	STOP_RECORDING
 }
 export interface TimelineObjVMixBase extends TSRTimelineObjBase {
 	content: {
@@ -69,6 +77,34 @@ export interface TimelineObjVMixFader extends TimelineObjVMixBase {
 		deviceType: DeviceType.VMIX,
 		type: TimelineContentTypeVMix.FADER,
 		position: number
+	}
+}
+
+export interface TimelineObjVMixStartStreaming extends TimelineObjVMixBase {
+	content: {
+		deviceType: DeviceType.VMIX,
+		type: TimelineContentTypeVMix.START_STREAMING
+	}
+}
+
+export interface TimelineObjVMixStopStreaming extends TimelineObjVMixBase {
+	content: {
+		deviceType: DeviceType.VMIX,
+		type: TimelineContentTypeVMix.STOP_STREAMING
+	}
+}
+
+export interface TimelineObjVmixStartRecording extends TimelineObjVMixBase {
+	content: {
+		deviceType: DeviceType.VMIX,
+		type: TimelineContentTypeVMix.START_RECORDING
+	}
+}
+
+export interface TimelineObjVMixStopRecording extends TimelineObjVMixBase {
+	content: {
+		deviceType: DeviceType.VMIX,
+		type: TimelineContentTypeVMix.STOP_RECORDING
 	}
 }
 

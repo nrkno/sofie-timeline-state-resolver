@@ -119,6 +119,18 @@ export class VMix extends EventEmitter {
 					this.setFader(command.value)
 				}
 				break
+			case VMixCommand.START_RECORDING:
+				this.startRecording()
+				break
+			case VMixCommand.STOP_RECORDING:
+				this.stopRecording()
+				break
+			case VMixCommand.START_STREAMING:
+				this.startStreaming()
+				break
+			case VMixCommand.STOP_STREAMING:
+				this.stopStreaming()
+				break
 			default:
 				return Promise.reject(`Command ${command.command} not implemented`)
 		}
@@ -166,6 +178,22 @@ export class VMix extends EventEmitter {
 
 	public setFader (position: string) {
 		this.sendCommandFunction(`SetFader`, { value: position })
+	}
+
+	public startRecording () {
+		this.sendCommandFunction(`StartRecording`, {})
+	}
+
+	public stopRecording () {
+		this.sendCommandFunction(`StopRecording`, {})
+	}
+
+	public startStreaming () {
+		this.sendCommandFunction(`StartStreaming`, {})
+	}
+
+	public stopStreaming () {
+		this.sendCommandFunction(`StopStreaming`, {})
 	}
 
 	public sendCommandFunction (func: string, args: { input?: string | number, value?: string | number, extra?: string }) {

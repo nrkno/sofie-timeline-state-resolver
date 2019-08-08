@@ -139,7 +139,7 @@ export class VMixDevice extends DeviceWithState<VMixState> {
 		let previousStateTime = Math.max(this.getCurrentTime(), newState.time)
 		let oldState: VMixState = (this.getStateBefore(previousStateTime) || { state: this._getDefaultState() }).state
 
-		let newAbstractState = this.convertStateToVMix(newState)
+		let newAbstractState = this.convertStateToVMix(newState, oldState)
 
 		let commandsToAchieveState: Array<any> = this._diffStates(oldState, newAbstractState)
 
@@ -184,10 +184,10 @@ export class VMixDevice extends DeviceWithState<VMixState> {
 	get connected (): boolean {
 		return false
 	}
-	convertStateToVMix (state: TimelineState): VMixState {
+	convertStateToVMix (state: TimelineState, oldState: VMixState): VMixState {
 		if (!this._initialized) throw Error('convertStateToVMix cannot be used before inititialized')
-		// Start out with default state:
-		const deviceState = this._getDefaultState()
+
+		let deviceState = _.clone(oldState)
 
 		// Sort layer based on Layer name
 		const sortedLayers = _.map(state.layers, (tlObject, layerName) => ({ layerName, tlObject }))
@@ -229,6 +229,18 @@ export class VMixDevice extends DeviceWithState<VMixState> {
 					case TimelineContentTypeVMix.FADER:
 						let vmixTlFader = tlObject as any as TimelineObjVMixFader
 						deviceState.faderPosition = vmixTlFader.content.position
+						break
+					case TimelineContentTypeVMix.START_RECORDING:
+						deviceState.recording = true
+						break
+					case TimelineContentTypeVMix.STOP_RECORDING:
+						deviceState.recording = false
+						break
+					case TimelineContentTypeVMix.START_STREAMING:
+						deviceState.streaming = true
+						break
+					case TimelineContentTypeVMix.STOP_STREAMING:
+						deviceState.streaming = false
 						break
 				}
 			}
@@ -340,6 +352,38 @@ export class VMixDevice extends DeviceWithState<VMixState> {
 				})
 				newVMixState.active = undefined
 				newVMixState.preview = undefined
+			}
+		}
+
+		if (oldVMixState.recording !== newVMixState.recording) {
+			if (newVMixState.recording) {
+				commands.push({
+					command: VMixCommand.START_RECORDING,
+					context: null,
+					timelineId: ''
+				})
+			} else {
+				commands.push({
+					command: VMixCommand.STOP_RECORDING,
+					context: null,
+					timelineId: ''
+				})
+			}
+		}
+
+		if (oldVMixState.streaming !== newVMixState.streaming) {
+			if (newVMixState.streaming) {
+				commands.push({
+					command: VMixCommand.START_STREAMING,
+					context: null,
+					timelineId: ''
+				})
+			} else {
+				commands.push({
+					command: VMixCommand.STOP_STREAMING,
+					context: null,
+					timelineId: ''
+				})
 			}
 		}
 
