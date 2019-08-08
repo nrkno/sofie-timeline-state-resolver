@@ -18,7 +18,7 @@ import {
 	TimelineState
 } from 'superfly-timeline'
 import { VMix } from './vmixAPI'
-import { MappingVMix, TimelineContentTypeVMix, TimelineObjVMixInput, VMixCommand, VMixTransitionType, TimelineObjVMixPreview } from '../types/src/vmix'
+import { MappingVMix, TimelineContentTypeVMix, TimelineObjVMixInput, VMixCommand, VMixTransitionType, TimelineObjVMixPreview, TimelineObjVMixAudio } from '../types/src/vmix'
 
 export interface VMixStateCommand {
 	command: VMixCommand
@@ -217,6 +217,14 @@ export class VMixDevice extends DeviceWithState<VMixState> {
 						let vmixTlPreview = tlObject as any as TimelineObjVMixPreview
 						if (vmixTlPreview.content.input) deviceState.preview = vmixTlPreview.content.input
 						break
+					case TimelineContentTypeVMix.AUDIO:
+						let vmixTlAudio = tlObject as any as TimelineObjVMixAudio
+						deviceState.inputs = []
+						deviceState.inputs.push({
+							number: Number(vmixTlAudio.content.input),
+							volume: vmixTlAudio.content.volume
+						})
+						break
 				}
 			}
 		})
@@ -301,6 +309,21 @@ export class VMixDevice extends DeviceWithState<VMixState> {
 			}
 		}
 
+		if (!_.isEqual(oldVMixState.inputs, newVMixState.inputs)) {
+			_.difference(newVMixState.inputs, oldVMixState.inputs)
+			.forEach(input => {
+				if (input.volume && input.number) {
+					commands.push({
+						command: VMixCommand.AUDIO,
+						input: input.number.toString(),
+						value: Math.min(Math.max(input.volume, 0), 100).toString(),
+						context: null,
+						timelineId: ''
+					})
+				}
+			})
+		}
+
 		return commands
 	}
 	private _defaultCommandReceiver (time: number, cmd: VMixStateCommand, context: CommandContext, timelineObjId: string): Promise<any> {
@@ -339,23 +362,23 @@ export class VMixState {
 }
 
 interface VMixInput {
-	key: string
-	number: number
-	type: string // TODO: enum of input types, as they may need different treatement in future
-	title: string
-	name: string
-	state: string // TODO: enum of states
-	position: number
-	duration: number
-	loop: boolean
-	muted: boolean
-	volume: number // 0 - 100
-	balance: number
-	solo: boolean
-	audiobusses: string
-	meterF1: number
-	meterF2: number
-	content: string
+	key?: string
+	number?: number
+	type?: string // TODO: enum of input types, as they may need different treatement in future
+	title?: string
+	name?: string
+	state?: string // TODO: enum of states
+	position?: number
+	duration?: number
+	loop?: boolean
+	muted?: boolean
+	volume?: number // 0 - 100
+	balance?: number
+	solo?: boolean
+	audiobusses?: string
+	meterF1?: number
+	meterF2?: number
+	content?: string
 }
 
 interface VMixOverlays {

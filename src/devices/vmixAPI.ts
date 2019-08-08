@@ -108,6 +108,11 @@ export class VMix extends EventEmitter {
 			case VMixCommand.TRANSITION:
 				this.transition('4')
 				break
+			case VMixCommand.AUDIO:
+				if (command.input && command.value) {
+					this.setAudioLevel(command.input, command.value)
+				}
+				break
 			default:
 				return Promise.reject(`Command ${command.command} not implemented`)
 		}
@@ -147,6 +152,10 @@ export class VMix extends EventEmitter {
 
 	public transition (transitionNumber: string) {
 		this.sendCommandFunction(`Transition${transitionNumber}`, {})
+	}
+
+	public setAudioLevel (input: string, volume: string) {
+		this.sendCommandFunction(`SetVolume`, { input: input, value: volume })
 	}
 
 	public sendCommandFunction (func: string, args: { input?: string | number, value?: string | number, extra?: string }) {
