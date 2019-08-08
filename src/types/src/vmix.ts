@@ -21,14 +21,16 @@ export enum VMixCommand {
 	TRANSITION = 'TRANSITION',
 	TRANSITION_EFFECT = 'TRANSITION_EFFECT',
 	TRANSITION_DURATION = 'TRANSITION_DURATION',
-	AUDIO = 'AUDIO'
+	AUDIO = 'AUDIO',
+	FADER = 'FADER'
 }
 
-export type TimelineObjVMixAny = TimelineObjVMixInput | TimelineObjVMixPreview | TimelineObjVMixAudio
+export type TimelineObjVMixAny = TimelineObjVMixInput | TimelineObjVMixPreview | TimelineObjVMixAudio | TimelineObjVMixFader
 export enum TimelineContentTypeVMix {
 	INPUT,
 	PREVIEW,
-	AUDIO
+	AUDIO,
+	FADER
 }
 export interface TimelineObjVMixBase extends TSRTimelineObjBase {
 	content: {
@@ -59,6 +61,14 @@ export interface TimelineObjVMixAudio extends TimelineObjVMixBase {
 		type: TimelineContentTypeVMix.AUDIO
 		input: string
 		volume: number
+	}
+}
+
+export interface TimelineObjVMixFader extends TimelineObjVMixBase {
+	content: {
+		deviceType: DeviceType.VMIX,
+		type: TimelineContentTypeVMix.FADER,
+		position: number
 	}
 }
 

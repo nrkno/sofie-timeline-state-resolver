@@ -18,7 +18,7 @@ import {
 	TimelineState
 } from 'superfly-timeline'
 import { VMix } from './vmixAPI'
-import { MappingVMix, TimelineContentTypeVMix, TimelineObjVMixInput, VMixCommand, VMixTransitionType, TimelineObjVMixPreview, TimelineObjVMixAudio } from '../types/src/vmix'
+import { MappingVMix, TimelineContentTypeVMix, TimelineObjVMixInput, VMixCommand, VMixTransitionType, TimelineObjVMixPreview, TimelineObjVMixAudio, TimelineObjVMixFader } from '../types/src/vmix'
 
 export interface VMixStateCommand {
 	command: VMixCommand
@@ -118,6 +118,7 @@ export class VMixDevice extends DeviceWithState<VMixState> {
 			preview: undefined,
 			active: undefined,
 			fadeToBlack: false,
+			faderPosition: undefined,
 			transitions: [],
 			recording: false,
 			external: false,
@@ -225,6 +226,10 @@ export class VMixDevice extends DeviceWithState<VMixState> {
 							volume: vmixTlAudio.content.volume
 						})
 						break
+					case TimelineContentTypeVMix.FADER:
+						let vmixTlFader = tlObject as any as TimelineObjVMixFader
+						deviceState.faderPosition = vmixTlFader.content.position
+						break
 				}
 			}
 		})
@@ -324,6 +329,20 @@ export class VMixDevice extends DeviceWithState<VMixState> {
 			})
 		}
 
+		// Only set fader bar position if no other transitions are happening
+		if (newVMixState.preview === undefined && newVMixState.active === undefined) {
+			if (newVMixState.faderPosition !== undefined) {
+				commands.push({
+					command: VMixCommand.FADER,
+					value: Math.min(Math.max(newVMixState.faderPosition, 0), 255).toString(),
+					context: null,
+					timelineId: ''
+				})
+				newVMixState.active = undefined
+				newVMixState.preview = undefined
+			}
+		}
+
 		return commands
 	}
 	private _defaultCommandReceiver (time: number, cmd: VMixStateCommand, context: CommandContext, timelineObjId: string): Promise<any> {
@@ -351,6 +370,7 @@ export class VMixState {
 	preview: string | undefined
 	active: string | undefined
 	fadeToBlack: boolean
+	faderPosition: number | undefined
 	transitions: VMixTransition[]
 	recording: boolean
 	external: boolean

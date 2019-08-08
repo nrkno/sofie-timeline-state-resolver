@@ -23,6 +23,7 @@ export class VMix extends EventEmitter {
 			preview: undefined,
 			active: undefined,
 			fadeToBlack: false,
+			faderPosition: undefined,
 			transitions: [],
 			recording: false,
 			external: false,
@@ -113,6 +114,11 @@ export class VMix extends EventEmitter {
 					this.setAudioLevel(command.input, command.value)
 				}
 				break
+			case VMixCommand.FADER:
+				if (command.value) {
+					this.setFader(command.value)
+				}
+				break
 			default:
 				return Promise.reject(`Command ${command.command} not implemented`)
 		}
@@ -156,6 +162,10 @@ export class VMix extends EventEmitter {
 
 	public setAudioLevel (input: string, volume: string) {
 		this.sendCommandFunction(`SetVolume`, { input: input, value: volume })
+	}
+
+	public setFader (position: string) {
+		this.sendCommandFunction(`SetFader`, { value: position })
 	}
 
 	public sendCommandFunction (func: string, args: { input?: string | number, value?: string | number, extra?: string }) {
