@@ -23,8 +23,8 @@ import { MappingVMix, TimelineContentTypeVMix, TimelineObjVMixInput, VMixCommand
 export interface VMixStateCommand {
 	command: VMixCommand
 	context: CommandContext
-	input?: string
-	value?: string
+	input?: string | number
+	value?: string | number
 	timelineId: string
 }
 
@@ -275,7 +275,7 @@ export class VMixDevice extends DeviceWithState<VMixState> {
 					if (oldVMixState.active !== newVMixState.active) {
 						commands.push({
 							command: VMixCommand.PREVIEW_INPUT,
-							input: newVMixState.active ? newVMixState.active.toString() : '1',
+							input: newVMixState.active ? newVMixState.active : '1',
 							context: null,
 							timelineId: ''
 						})
@@ -290,7 +290,7 @@ export class VMixDevice extends DeviceWithState<VMixState> {
 
 					commands.push({
 						command: VMixCommand.TRANSITION_DURATION,
-						value: transition.duration.toString(),
+						value: transition.duration,
 						context: null,
 						timelineId: ''
 					})
@@ -307,7 +307,7 @@ export class VMixDevice extends DeviceWithState<VMixState> {
 				if (oldVMixState.active !== newVMixState.active) {
 					commands.push({
 						command: VMixCommand.ACTIVE_INPUT,
-						input: newVMixState.active.toString(),
+						input: newVMixState.active,
 						context: null,
 						timelineId: ''
 					})
@@ -333,7 +333,7 @@ export class VMixDevice extends DeviceWithState<VMixState> {
 					commands.push({
 						command: VMixCommand.AUDIO,
 						input: input.number.toString(),
-						value: Math.min(Math.max(input.volume, 0), 100).toString(),
+						value: input.volume,
 						context: null,
 						timelineId: ''
 					})
@@ -346,7 +346,7 @@ export class VMixDevice extends DeviceWithState<VMixState> {
 			if (newVMixState.faderPosition !== undefined) {
 				commands.push({
 					command: VMixCommand.FADER,
-					value: Math.min(Math.max(newVMixState.faderPosition, 0), 255).toString(),
+					value: newVMixState.faderPosition,
 					context: null,
 					timelineId: ''
 				})

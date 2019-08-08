@@ -88,35 +88,35 @@ export class VMix extends EventEmitter {
 		switch (command.command) {
 			case VMixCommand.PREVIEW_INPUT:
 				if (command.input) {
-					this.setPreviewInput(command.input)
+					this.setPreviewInput(command.input.toString())
 				}
 				break
 			case VMixCommand.ACTIVE_INPUT:
 				if (command.input) {
-					this.setActiveInput(command.input)
+					this.setActiveInput(command.input.toString())
 				}
 				break
 			case VMixCommand.TRANSITION_EFFECT:
 				if (command.value) {
-					this.setTransition('4', command.value)
+					this.setTransition(4, command.value.toString())
 				}
 				break
 			case VMixCommand.TRANSITION_DURATION:
 				if (command.value) {
-					this.setTransitionDuration('4', Number(command.value))
+					this.setTransitionDuration(4, Number(command.value))
 				}
 				break
 			case VMixCommand.TRANSITION:
-				this.transition('4')
+				this.transition(4)
 				break
 			case VMixCommand.AUDIO:
 				if (command.input && command.value) {
-					this.setAudioLevel(command.input, command.value)
+					this.setAudioLevel(command.input.toString(), Number(command.value))
 				}
 				break
 			case VMixCommand.FADER:
 				if (command.value) {
-					this.setFader(command.value)
+					this.setFader(Number(command.value))
 				}
 				break
 			case VMixCommand.START_RECORDING:
@@ -160,24 +160,24 @@ export class VMix extends EventEmitter {
 		this.sendCommandFunction('ActiveInput', { input: input })
 	}
 
-	public setTransition (transitionNumber: string, transition: string) {
+	public setTransition (transitionNumber: number, transition: string) {
 		this.sendCommandFunction(`SetTransitionEffect${transitionNumber}`, { value: transition })
 	}
 
-	public setTransitionDuration (transitionNumber: string, duration: number) {
+	public setTransitionDuration (transitionNumber: number, duration: number) {
 		this.sendCommandFunction(`SetTransitionDuration${transitionNumber}`, { value: duration })
 	}
 
-	public transition (transitionNumber: string) {
+	public transition (transitionNumber: number) {
 		this.sendCommandFunction(`Transition${transitionNumber}`, {})
 	}
 
-	public setAudioLevel (input: string, volume: string) {
-		this.sendCommandFunction(`SetVolume`, { input: input, value: volume })
+	public setAudioLevel (input: string, volume: number) {
+		this.sendCommandFunction(`SetVolume`, { input: input, value: Math.min(Math.max(Number(volume), 0), 100) })
 	}
 
-	public setFader (position: string) {
-		this.sendCommandFunction(`SetFader`, { value: position })
+	public setFader (position: number) {
+		this.sendCommandFunction(`SetFader`, { value: Math.min(Math.max(position, 0), 255) })
 	}
 
 	public startRecording () {
