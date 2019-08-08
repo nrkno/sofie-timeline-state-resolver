@@ -9,7 +9,6 @@ export class VMix extends EventEmitter {
 	public state: VMixState
 
 	private _options: VMixOptions
-	private _isConnecting: boolean = false
 	private _connected: boolean = false
 
 	private _socketKeepAliveTimeout: NodeJS.Timer | null = null
@@ -33,13 +32,10 @@ export class VMix extends EventEmitter {
 			fullscreen: false,
 			audio: []
 		}
-		console.log('VMIX CONNECT CALLED')
-		this._isConnecting = true
 		return this._connectHTTP(options)
 		.then(() => {
-			this._isConnecting = false
+			this._connected = true
 		})
-		console.log(this._isConnecting)
 	}
 
 	public get connected (): boolean {
@@ -77,13 +73,40 @@ export class VMix extends EventEmitter {
 		})
 	}
 
+	private _stillAlive() {
+		if (this._socketKeepAliveTimeout) {
+			this._socketKeepAliveTimeout = null
+		}
+
+		this._socketKeepAliveTimeout = setTimeout(() => {
+			this.sendCommandVersion()
+		}, PING_TIMEOUT)
+	}
+
 	public sendCommand (command: VMixStateCommand): Promise<any> {
-		console.log(command)
 		switch (command.command) {
+			case VMixCommand.PREVIEW_INPUT:
+				if (command.input) {
+					this.setPreviewInput(command.input)
+				}
+				break
 			case VMixCommand.ACTIVE_INPUT:
 				if (command.input) {
 					this.setActiveInput(command.input)
 				}
+				break
+			case VMixCommand.TRANSITION_EFFECT:
+				if (command.value) {
+					this.setTransition('4', command.value)
+				}
+				break
+			case VMixCommand.TRANSITION_DURATION:
+				if (command.value) {
+					this.setTransitionDuration('4', Number(command.value))
+				}
+				break
+			case VMixCommand.TRANSITION:
+				this.transition('4')
 				break
 			default:
 				return Promise.reject(`Command ${command.command} not implemented`)
@@ -93,9 +116,6 @@ export class VMix extends EventEmitter {
 	}
 
 	public sendCommandVersion () {
-		if (this._socketKeepAliveTimeout) {
-			this._socketKeepAliveTimeout = null
-		}
 		request.get(`${this._options.host}:${this._options.port}/api`)
 		.then((res) => {
 			this._connected = true
@@ -105,9 +125,7 @@ export class VMix extends EventEmitter {
 			this._connected = false
 			throw new Error(e)
 		}).finally(() => {
-			this._socketKeepAliveTimeout = setTimeout(() => {
-				this.sendCommandVersion()
-			}, PING_TIMEOUT)
+			this._stillAlive()
 		})
 	}
 
@@ -123,17 +141,32 @@ export class VMix extends EventEmitter {
 		this.sendCommandFunction(`SetTransitionEffect${transitionNumber}`, { value: transition })
 	}
 
-	public sendCommandFunction (func: string, args: { input?: string, value?: string, extra?: string }) {
+	public setTransitionDuration (transitionNumber: string, duration: number) {
+		this.sendCommandFunction(`SetTransitionDuration${transitionNumber}`, { value: duration })
+	}
+
+	public transition (transitionNumber: string) {
+		this.sendCommandFunction(`Transition${transitionNumber}`, {})
+	}
+
+	public sendCommandFunction (func: string, args: { input?: string | number, value?: string | number, extra?: string }) {
 		const inp = args.input ? `&Input=${args.input}` : ''
 		const val = args.value ? `&Value=${args.value}` : ''
 		const ext = args.extra ? args.extra : ''
 
-		request.get(`${this._options.host}:${this._options.port}/api/?Function=${func}${inp}${val}${ext}`)
+		const command = `${this._options.host}:${this._options.port}/api/?Function=${func}${inp}${val}${ext}`
+
+		console.log(`Sending command: ${command}`)
+
+		request.get(command)
 		.then((res) => {
 			console.log(res)
 		})
 		.catch((e) => {
 			throw new Error(e)
+		})
+		.finally(() => {
+			this._stillAlive()
 		})
 	}
 }

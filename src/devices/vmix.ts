@@ -130,23 +130,17 @@ export class VMixDevice extends DeviceWithState<VMixState> {
 	}
 
 	handleState (newState: TimelineState) {
-		console.log(this._initialized)
-		/*console.log(newState)
 		if (!this._initialized) { // before it's initialized don't do anything
 			this.emit('info', 'VMix not initialized yet')
 			return
-		}*/
+		}
 
 		let previousStateTime = Math.max(this.getCurrentTime(), newState.time)
 		let oldState: VMixState = (this.getStateBefore(previousStateTime) || { state: this._getDefaultState() }).state
 
 		let newAbstractState = this.convertStateToVMix(newState)
 
-		console.log(`Old state: ${oldState}`)
-		console.log(`New State: ${newAbstractState}`)
-
 		let commandsToAchieveState: Array<any> = this._diffStates(oldState, newAbstractState)
-		console.log(commandsToAchieveState)
 
 		// clear any queued commands later than this time:
 		this._doOnTime.clearQueueNowAndAfter(previousStateTime)
@@ -172,10 +166,7 @@ export class VMixDevice extends DeviceWithState<VMixState> {
 		}
 	}
 	async makeReady (okToDestroyStuff?: boolean): Promise<void> {
-		console.log('MAKE READY')
 		if (okToDestroyStuff && this._makeReadyCommands && this._makeReadyCommands.length > 0) {
-			const time = this.getCurrentTime()
-			console.log(time)
 			_.each(this._makeReadyCommands, (cmd: VMixCommandContent) => {
 				console.log(cmd)
 				// add the new commands to the queue:
@@ -193,7 +184,7 @@ export class VMixDevice extends DeviceWithState<VMixState> {
 		return false
 	}
 	convertStateToVMix (state: TimelineState): VMixState {
-		// if (!this._initialized) throw Error('convertStateToVMix cannot be used before inititialized')
+		if (!this._initialized) throw Error('convertStateToVMix cannot be used before inititialized')
 		// Start out with default state:
 		const deviceState = this._getDefaultState()
 
@@ -213,6 +204,14 @@ export class VMixDevice extends DeviceWithState<VMixState> {
 						// TODO: Verify input is available
 						// deviceState.active = Number(vmixTl.content.input) || deviceState.active
 						if (vmixTl.content.input) deviceState.active = vmixTl.content.input
+						if (vmixTl.content.transition) {
+							deviceState.transitions = [] // TODO: Preserve transitions
+							deviceState.transitions.push({
+								number: 4,
+								effect: vmixTl.content.transition.type,
+								duration: vmixTl.content.transition.duration
+							})
+						}
 						break
 				}
 			}
@@ -241,13 +240,49 @@ export class VMixDevice extends DeviceWithState<VMixState> {
 		let commands: Array<VMixStateCommand> = []
 
 		if (newVMixState.active !== undefined) {
-			if (oldVMixState.active !== newVMixState.active) {
-				commands.push({
-					command: VMixCommand.ACTIVE_INPUT,
-					input: newVMixState.active.toString(),
-					context: null,
-					timelineId: ''
+			if (!_.isEqual(oldVMixState.transitions, newVMixState.transitions)) {
+				_.difference(newVMixState.transitions, oldVMixState.transitions)
+				.forEach(transition => {
+					if (oldVMixState.active !== newVMixState.active) {
+						commands.push({
+							command: VMixCommand.PREVIEW_INPUT,
+							input: newVMixState.active ? newVMixState.active.toString() : '1',
+							context: null,
+							timelineId: ''
+						})
+					}
+
+					commands.push({
+						command: VMixCommand.TRANSITION_EFFECT,
+						value: transition.effect,
+						context: null,
+						timelineId: ''
+					})
+
+					commands.push({
+						command: VMixCommand.TRANSITION_DURATION,
+						value: transition.duration.toString(),
+						context: null,
+						timelineId: ''
+					})
+
+					if (oldVMixState.active !== newVMixState.active) {
+						commands.push({
+							command: VMixCommand.TRANSITION,
+							context: null,
+							timelineId: ''
+						})
+					}
 				})
+			} else {
+				if (oldVMixState.active !== newVMixState.active) {
+					commands.push({
+						command: VMixCommand.ACTIVE_INPUT,
+						input: newVMixState.active.toString(),
+						context: null,
+						timelineId: ''
+					})
+				}
 			}
 		}
 
