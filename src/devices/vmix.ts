@@ -18,7 +18,7 @@ import {
 	TimelineState
 } from 'superfly-timeline'
 import { VMix } from './vmixAPI'
-import { MappingVMix, TimelineContentTypeVMix, TimelineObjVMixInput, VMixCommand, VMixTransitionType } from '../types/src/vmix'
+import { MappingVMix, TimelineContentTypeVMix, TimelineObjVMixInput, VMixCommand, VMixTransitionType, TimelineObjVMixPreview } from '../types/src/vmix'
 
 export interface VMixStateCommand {
 	command: VMixCommand
@@ -200,18 +200,22 @@ export class VMixDevice extends DeviceWithState<VMixState> {
 			if (tlObject.content) {
 				switch (tlObject.content.type) {
 					case TimelineContentTypeVMix.INPUT:
-						let vmixTl = tlObject as any as TimelineObjVMixInput
+						let vmixTlInput = tlObject as any as TimelineObjVMixInput
 						// TODO: Verify input is available
 						// deviceState.active = Number(vmixTl.content.input) || deviceState.active
-						if (vmixTl.content.input) deviceState.active = vmixTl.content.input
-						if (vmixTl.content.transition) {
+						if (vmixTlInput.content.input) deviceState.active = vmixTlInput.content.input
+						if (vmixTlInput.content.transition) {
 							deviceState.transitions = [] // TODO: Preserve transitions
 							deviceState.transitions.push({
 								number: 4,
-								effect: vmixTl.content.transition.type,
-								duration: vmixTl.content.transition.duration
+								effect: vmixTlInput.content.transition.type,
+								duration: vmixTlInput.content.transition.duration
 							})
 						}
+						break
+					case TimelineContentTypeVMix.PREVIEW:
+						let vmixTlPreview = tlObject as any as TimelineObjVMixPreview
+						if (vmixTlPreview.content.input) deviceState.preview = vmixTlPreview.content.input
 						break
 				}
 			}
@@ -283,6 +287,17 @@ export class VMixDevice extends DeviceWithState<VMixState> {
 						timelineId: ''
 					})
 				}
+			}
+		}
+
+		if (newVMixState.preview !== undefined) {
+			if (oldVMixState.preview !== newVMixState.preview) {
+				commands.push({
+					command: VMixCommand.PREVIEW_INPUT,
+					input: newVMixState.preview,
+					context: null,
+					timelineId: ''
+				})
 			}
 		}
 

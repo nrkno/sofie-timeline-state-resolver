@@ -23,9 +23,10 @@ export enum VMixCommand {
 	TRANSITION_DURATION = 'TRANSITION_DURATION'
 }
 
-export type TimelineObjVMixAny = TimelineObjVMixInput
+export type TimelineObjVMixAny = TimelineObjVMixInput | TimelineObjVMixPreview
 export enum TimelineContentTypeVMix {
-	INPUT
+	INPUT,
+	PREVIEW
 }
 export interface TimelineObjVMixBase extends TSRTimelineObjBase {
 	content: {
@@ -36,9 +37,17 @@ export interface TimelineObjVMixBase extends TSRTimelineObjBase {
 export interface TimelineObjVMixInput extends TimelineObjVMixBase {
 	content: {
 		deviceType: DeviceType.VMIX
-		type: TimelineContentTypeVMix.INPUT,
-		input: string,
+		type: TimelineContentTypeVMix.INPUT
+		input: string
 		transition?: VMixTransition
+	}
+}
+
+export interface TimelineObjVMixPreview extends TimelineObjVMixBase {
+	content: {
+		deviceType: DeviceType.VMIX
+		type: TimelineContentTypeVMix.PREVIEW
+		input: string
 	}
 }
 
