@@ -131,6 +131,9 @@ export class VMix extends EventEmitter {
 			case VMixCommand.STOP_STREAMING:
 				this.stopStreaming()
 				break
+			case VMixCommand.FADE_TO_BLACK:
+				this.fadeToBlack()
+				break
 			default:
 				return Promise.reject(`Command ${command.command} not implemented`)
 		}
@@ -194,6 +197,10 @@ export class VMix extends EventEmitter {
 
 	public stopStreaming () {
 		this.sendCommandFunction(`StopStreaming`, {})
+	}
+
+	public fadeToBlack () {
+		this.sendCommandFunction(`FadeToBlack`, {})
 	}
 
 	public sendCommandFunction (func: string, args: { input?: string | number, value?: string | number, extra?: string }) {

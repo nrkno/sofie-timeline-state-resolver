@@ -242,6 +242,9 @@ export class VMixDevice extends DeviceWithState<VMixState> {
 					case TimelineContentTypeVMix.STOP_STREAMING:
 						deviceState.streaming = false
 						break
+					case TimelineContentTypeVMix.FADE_TO_BLACK:
+						deviceState.fadeToBlack = true
+						break
 				}
 			}
 		})
@@ -279,6 +282,7 @@ export class VMixDevice extends DeviceWithState<VMixState> {
 							context: null,
 							timelineId: ''
 						})
+						newVMixState.fadeToBlack = false
 					}
 
 					commands.push({
@@ -311,6 +315,7 @@ export class VMixDevice extends DeviceWithState<VMixState> {
 						context: null,
 						timelineId: ''
 					})
+					newVMixState.fadeToBlack = false
 				}
 			}
 		}
@@ -323,6 +328,7 @@ export class VMixDevice extends DeviceWithState<VMixState> {
 					context: null,
 					timelineId: ''
 				})
+				newVMixState.fadeToBlack = false
 			}
 		}
 
@@ -352,6 +358,7 @@ export class VMixDevice extends DeviceWithState<VMixState> {
 				})
 				newVMixState.active = undefined
 				newVMixState.preview = undefined
+				newVMixState.fadeToBlack = false
 			}
 		}
 
@@ -381,6 +388,16 @@ export class VMixDevice extends DeviceWithState<VMixState> {
 			} else {
 				commands.push({
 					command: VMixCommand.STOP_STREAMING,
+					context: null,
+					timelineId: ''
+				})
+			}
+		}
+
+		if (oldVMixState.fadeToBlack !== newVMixState.fadeToBlack) {
+			if (newVMixState.fadeToBlack) {
+				commands.push({
+					command: VMixCommand.FADE_TO_BLACK,
 					context: null,
 					timelineId: ''
 				})

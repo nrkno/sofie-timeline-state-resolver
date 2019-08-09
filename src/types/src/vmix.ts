@@ -26,10 +26,11 @@ export enum VMixCommand {
 	START_STREAMING = 'START_STREAMING',
 	STOP_STREAMING = 'STOP_STREAMING',
 	START_RECORDING = 'START_RECORDING',
-	STOP_RECORDING = 'STOP_RECORDING'
+	STOP_RECORDING = 'STOP_RECORDING',
+	FADE_TO_BLACK = 'FADE_TO_BLACK'
 }
 
-export type TimelineObjVMixAny = TimelineObjVMixInput | TimelineObjVMixPreview | TimelineObjVMixAudio | TimelineObjVMixFader | TimelineObjVmixStartRecording | TimelineObjVMixStopRecording | TimelineObjVMixStartStreaming | TimelineObjVMixStopStreaming
+export type TimelineObjVMixAny = TimelineObjVMixInput | TimelineObjVMixPreview | TimelineObjVMixAudio | TimelineObjVMixFader | TimelineObjVmixStartRecording | TimelineObjVMixStopRecording | TimelineObjVMixStartStreaming | TimelineObjVMixStopStreaming | TimelineObjVMixFadeToBlack
 export enum TimelineContentTypeVMix {
 	INPUT,
 	PREVIEW,
@@ -38,7 +39,8 @@ export enum TimelineContentTypeVMix {
 	START_STREAMING,
 	STOP_STREAMING,
 	START_RECORDING,
-	STOP_RECORDING
+	STOP_RECORDING,
+	FADE_TO_BLACK
 }
 export interface TimelineObjVMixBase extends TSRTimelineObjBase {
 	content: {
@@ -105,6 +107,13 @@ export interface TimelineObjVMixStopRecording extends TimelineObjVMixBase {
 	content: {
 		deviceType: DeviceType.VMIX,
 		type: TimelineContentTypeVMix.STOP_RECORDING
+	}
+}
+
+export interface TimelineObjVMixFadeToBlack extends TimelineObjVMixBase {
+	content: {
+		deviceType: DeviceType.VMIX
+		type: TimelineContentTypeVMix.FADE_TO_BLACK
 	}
 }
 
