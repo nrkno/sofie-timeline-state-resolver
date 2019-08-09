@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.1.2](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/3.1.1...3.1.2) (2019-08-09)
+
+
+### Bug Fixes
+
+* update timelne dependency, fixing bugs related to children in groups and keyframes ([b6a8d99](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/b6a8d99))
+
+
+
 ### [3.1.1](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/3.1.0...3.1.1) (2019-08-01)
 
 
