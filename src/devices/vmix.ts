@@ -18,7 +18,7 @@ import {
 	TimelineState
 } from 'superfly-timeline'
 import { VMix } from './vmixAPI'
-import { MappingVMix, TimelineContentTypeVMix, TimelineObjVMixInput, VMixCommand, VMixTransitionType, TimelineObjVMixPreview, TimelineObjVMixAudio, TimelineObjVMixFader, TimelineObjVMixQuickPlay } from '../types/src/vmix'
+import { MappingVMix, TimelineContentTypeVMix, TimelineObjVMixInput, VMixCommand, VMixTransitionType, TimelineObjVMixPreview, TimelineObjVMixAudio, TimelineObjVMixFader, TimelineObjVMixQuickPlay, TimelineObjVMixAddInput } from '../types/src/vmix'
 
 export interface VMixStateCommand {
 	command: VMixCommand
@@ -106,7 +106,7 @@ export class VMixDevice extends DeviceWithState<VMixState> {
 	}
 
 	private _onVMixStateChanged (newState: VMixState) {
-		console.log(newState)
+		this.setState(newState, Date.now())
 	}
 
 	private _getDefaultState (): VMixState {
@@ -204,15 +204,13 @@ export class VMixDevice extends DeviceWithState<VMixState> {
 					case TimelineContentTypeVMix.INPUT:
 						let vmixTlInput = tlObject as any as TimelineObjVMixInput
 						// TODO: Verify input is available
-						// deviceState.active = Number(vmixTl.content.input) || deviceState.active
 						if (vmixTlInput.content.input) deviceState.active = vmixTlInput.content.input
 						if (vmixTlInput.content.transition) {
 							deviceState.transitions = [] // TODO: Preserve transitions
 							deviceState.transitions.push({
-								number: 4,
 								effect: vmixTlInput.content.transition.type,
 								duration: vmixTlInput.content.transition.duration,
-								button: vmixTlInput.content.transition.button
+								number: vmixTlInput.content.transition.button
 							})
 						}
 						break
@@ -222,8 +220,7 @@ export class VMixDevice extends DeviceWithState<VMixState> {
 						break
 					case TimelineContentTypeVMix.AUDIO:
 						let vmixTlAudio = tlObject as any as TimelineObjVMixAudio
-						deviceState.inputs = []
-						deviceState.inputs.push({
+						this.modifyInput(deviceState.inputs, {
 							number: Number(vmixTlAudio.content.input),
 							volume: vmixTlAudio.content.volume
 						})
@@ -247,13 +244,32 @@ export class VMixDevice extends DeviceWithState<VMixState> {
 					case TimelineContentTypeVMix.FADE_TO_BLACK:
 						deviceState.fadeToBlack = true
 						break
-					default:
-						if (tlObject.content.type === TimelineContentTypeVMix.QUICK_PLAY) deviceState.momentary.push(tlObject as any as TimelineObjVMixQuickPlay)
+					case TimelineContentTypeVMix.ADD_INPUT:
+						let tlObjectAddInput = tlObject as any as TimelineObjVMixAddInput
+						let exists = deviceState.inputs.filter(input =>
+							input.title &&
+							tlObjectAddInput.content.filePath.indexOf(input.title) !== -1 &&
+							input.type &&
+							input.type === tlObjectAddInput.content.mediaType
+						).length !== 0
+						if (!exists) deviceState.momentary.push(tlObject as any as TimelineObjVMixAddInput)
+						break
+					case TimelineContentTypeVMix.QUICK_PLAY:
+						deviceState.momentary.push(tlObject as any as TimelineObjVMixQuickPlay)
 						break
 				}
 			}
 		})
 		return deviceState
+	}
+	modifyInput (inputs: VMixInput[], newInput: VMixInput) {
+		let input = inputs.filter(input => input.number === newInput)
+
+		if (input) {
+			input[0] = { ...input[0], ...newInput }
+		} else {
+			inputs.push(newInput)
+		}
 	}
 	get deviceType () {
 		return DeviceType.VMIX
@@ -293,7 +309,7 @@ export class VMixDevice extends DeviceWithState<VMixState> {
 					commands.push({
 						command: VMixCommand.TRANSITION_EFFECT,
 						value: transition.effect,
-						input: transition.button,
+						input: transition.number,
 						context: null,
 						timelineId: ''
 					})
@@ -301,7 +317,7 @@ export class VMixDevice extends DeviceWithState<VMixState> {
 					commands.push({
 						command: VMixCommand.TRANSITION_DURATION,
 						value: transition.duration,
-						input: transition.button,
+						input: transition.number,
 						context: null,
 						timelineId: ''
 					})
@@ -309,7 +325,7 @@ export class VMixDevice extends DeviceWithState<VMixState> {
 					if (oldVMixState.active !== newVMixState.active) {
 						commands.push({
 							command: VMixCommand.TRANSITION,
-							input: transition.button,
+							input: transition.number,
 							context: null,
 							timelineId: ''
 						})
@@ -423,6 +439,14 @@ export class VMixDevice extends DeviceWithState<VMixState> {
 							timelineId: ''
 						})
 						break
+					case TimelineContentTypeVMix.ADD_INPUT:
+						commands.push({
+							command: VMixCommand.ADD_INPUT,
+							value: `${command.content.mediaType}|${command.content.filePath}`,
+							context: null,
+							timelineId: ''
+						})
+						break
 				}
 			})
 		}
@@ -454,7 +478,7 @@ export class VMixState {
 	preview: string | undefined
 	active: string | undefined
 	fadeToBlack: boolean
-	faderPosition: number | undefined
+	faderPosition?: number
 	transitions: VMixTransition[]
 	recording: boolean
 	external: boolean
@@ -466,7 +490,7 @@ export class VMixState {
 	momentary?: VMixMomentaryCommands[]
 }
 
-interface VMixInput {
+export interface VMixInput {
 	key?: string
 	number?: number
 	type?: string // TODO: enum of input types, as they may need different treatement in future
@@ -486,19 +510,18 @@ interface VMixInput {
 	content?: string
 }
 
-interface VMixOverlays {
+export interface VMixOverlays {
 	number: string
 	key: string
 }
 
-interface VMixTransition {
-	number: number
+export interface VMixTransition {
+	number: 1 | 2 | 3 | 4
 	effect: VMixTransitionType
 	duration: number
-	button: 1 | 2 | 3 | 4
 }
 
-interface VMixAudioChannel {
+export interface VMixAudioChannel {
 	volume: number
 	muted: Boolean
 	meterF1: number
@@ -506,4 +529,4 @@ interface VMixAudioChannel {
 	headphonesVolume: number
 }
 
-type VMixMomentaryCommands = TimelineObjVMixQuickPlay
+type VMixMomentaryCommands = TimelineObjVMixQuickPlay | TimelineObjVMixAddInput

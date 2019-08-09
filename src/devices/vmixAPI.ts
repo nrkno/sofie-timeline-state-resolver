@@ -1,7 +1,8 @@
 import { EventEmitter } from 'events'
 import * as request from 'request-promise'
+import * as xml from 'xml-js'
 import { VMixOptions, VMixCommand } from '../../src/types/src/vmix'
-import { VMixState, VMixStateCommand } from './vmix'
+import { VMixState, VMixStateCommand, VMixInput, VMixTransition, VMixAudioChannel } from './vmix'
 
 const PING_TIMEOUT = 10 * 1000
 
@@ -36,6 +37,7 @@ export class VMix extends EventEmitter {
 		return this._connectHTTP(options)
 		.then(() => {
 			this._connected = true
+			this.getVMixState()
 		})
 	}
 
@@ -63,7 +65,7 @@ export class VMix extends EventEmitter {
 			.then(() => {
 				this._connected = true
 				this._socketKeepAliveTimeout = setTimeout(() => {
-					this.sendCommandVersion()
+					this.getVMixState()
 				}, PING_TIMEOUT)
 				this.emit('connected')
 				resolve()
@@ -80,7 +82,7 @@ export class VMix extends EventEmitter {
 		}
 
 		this._socketKeepAliveTimeout = setTimeout(() => {
-			this.sendCommandVersion()
+			this.getVMixState()
 		}, PING_TIMEOUT)
 	}
 
@@ -137,6 +139,9 @@ export class VMix extends EventEmitter {
 			case VMixCommand.QUICK_PLAY:
 				if (command.input) this.quickPlay(command.input.toString())
 				break
+			case VMixCommand.ADD_INPUT:
+				if (command.value) this.addInput(command.value.toString())
+				break
 			default:
 				return Promise.reject(`Command ${command.command} not implemented`)
 		}
@@ -144,11 +149,12 @@ export class VMix extends EventEmitter {
 		return Promise.resolve()
 	}
 
-	public sendCommandVersion () {
+	public getVMixState () {
 		request.get(`${this._options.host}:${this._options.port}/api`)
 		.then((res) => {
 			this._connected = true
-			console.log(res)
+			const state = xml.xml2json(res, { compact: true, spaces: 4 })
+			this.parseVMixState(JSON.parse(state))
 		})
 		.catch((e) => {
 			this._connected = false
@@ -156,6 +162,69 @@ export class VMix extends EventEmitter {
 		}).finally(() => {
 			this._stillAlive()
 		})
+	}
+
+	public parseVMixState (xml: any) {
+		// For what lies ahead I apologise - Tom
+		let state: VMixState = {
+			version: xml['vmix']['version']['_text'],
+			edition: xml['vmix']['edition']['_text'],
+			inputs: (xml['vmix']['inputs']['input'] as Array<any>)
+			.map(input => {
+				return {
+					key: input['_attributes']['key'],
+					number: Number(input['_attributes']['number']),
+					type: input['_attributes']['type'], // TODO: Parse this to enum
+					title: input['_attributes']['title'],
+					state: input['_attributes']['state'],
+					position: Number(input['_attributes']['position']),
+					duration: Number(input['_attributes']['duration']),
+					loop: (input['_attributes']['loop'] === 'True') ? true : false,
+					muted: (input['_attributes']['muted'] === 'True') ? true : false,
+					volume: Number(input['_attributes']['volume']),
+					balance: Number(input['_attributes']['balance']),
+					solo: (input['_attributes']['solo'] === 'True') ? true : false,
+					audiobusses: input['_attributes']['audiobusses'],
+					meterF1: Number(input['_attributes']['meterF1']),
+					meterF2: Number(input['_attributes']['meterF2']),
+					content: input['_text']
+				} as VMixInput
+			}),
+			overlays: [], // TODO: Need some examples from vmix
+			preview: xml['vmix']['preview']['_text'],
+			active: xml['vmix']['active']['_text'],
+			fadeToBlack: (xml['vmix']['fadeToBlack']['_text'] === 'True') ? true : false,
+			transitions: (xml['vmix']['transitions']['transition'] as Array<any>)
+			.map(transition => {
+				return {
+					number: Number(transition['_attributes']['number']),
+					effect: transition['_attributes']['effect'],
+					duration: Number(transition['_attributes']['duration'])
+				} as VMixTransition
+			}),
+			recording: (xml['vmix']['recording']['_text'] === 'True') ? true : false,
+			external: (xml['vmix']['external']['_text'] === 'True') ? true : false,
+			streaming: (xml['vmix']['streaming']['_text'] === 'True') ? true : false,
+			playlist: (xml['vmix']['playList']['_text'] === 'True') ? true : false,
+			multiCorder: (xml['vmix']['multiCorder']['_text'] === 'True') ? true : false,
+			fullscreen: (xml['vmix']['fullscreen']['_text'] === 'True') ? true : false,
+			audio: [
+				{
+					volume: Number(xml['vmix']['audio']['master']['_attributes']['volume']),
+					muted: (xml['vmix']['audio']['master']['_attributes']['muted'] === 'True') ? true : false,
+					meterF1: Number(xml['vmix']['audio']['master']['_attributes']['meterF1']),
+					meterF2: Number(xml['vmix']['audio']['master']['_attributes']['meterF2']),
+					headphonesVolume: Number(xml['vmix']['audio']['master']['_attributes']['headphonesVolume'])
+				} as VMixAudioChannel
+			]
+		}
+
+		this.setState(state)
+	}
+
+	public setState (state: VMixState) {
+		this.state = state
+		this.emit('stateChanged', this.state)
 	}
 
 	public setPreviewInput (input: string) {
@@ -210,6 +279,11 @@ export class VMix extends EventEmitter {
 		this.sendCommandFunction(`QuickPlay`, { input: input })
 	}
 
+	public addInput (file: string) {
+		console.log(file)
+		this.sendCommandFunction(`AddInput`, { value: file })
+	}
+
 	public sendCommandFunction (func: string, args: { input?: string | number, value?: string | number, extra?: string }) {
 		const inp = args.input ? `&Input=${args.input}` : ''
 		const val = args.value ? `&Value=${args.value}` : ''
@@ -222,6 +296,7 @@ export class VMix extends EventEmitter {
 		request.get(command)
 		.then((res) => {
 			console.log(res)
+			this.getVMixState()
 		})
 		.catch((e) => {
 			throw new Error(e)

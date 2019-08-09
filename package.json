@@ -149,6 +149,7 @@
     "@types/request-promise": "^4.1.44",
     "@types/sprintf-js": "^1.1.0",
     "@types/ws": "^6.0.1",
+    "@types/xml-js": "^1.0.0",
     "atem-connection": "^0.10.0",
     "atem-state": "^0.7.1",
     "casparcg-connection": "^4.7.0",
@@ -164,7 +165,8 @@
     "threadedclass": "^0.6.6",
     "underscore": "^1.9.1",
     "underscore-deep-extend": "^1.1.5",
-    "ws": "^7.1.1"
+    "ws": "^7.1.1",
+    "xml-js": "^1.6.11"
   },
   "standard-version": {
     "message": "chore(release): %s [skip ci]",

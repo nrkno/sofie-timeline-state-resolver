@@ -28,10 +28,11 @@ export enum VMixCommand {
 	START_RECORDING = 'START_RECORDING',
 	STOP_RECORDING = 'STOP_RECORDING',
 	FADE_TO_BLACK = 'FADE_TO_BLACK',
-	QUICK_PLAY = 'QUICK_PLAY'
+	QUICK_PLAY = 'QUICK_PLAY',
+	ADD_INPUT = 'ADD_INPUT'
 }
 
-export type TimelineObjVMixAny = TimelineObjVMixInput | TimelineObjVMixPreview | TimelineObjVMixAudio | TimelineObjVMixFader | TimelineObjVmixStartRecording | TimelineObjVMixStopRecording | TimelineObjVMixStartStreaming | TimelineObjVMixStopStreaming | TimelineObjVMixFadeToBlack | TimelineObjVMixQuickPlay
+export type TimelineObjVMixAny = TimelineObjVMixInput | TimelineObjVMixPreview | TimelineObjVMixAudio | TimelineObjVMixFader | TimelineObjVmixStartRecording | TimelineObjVMixStopRecording | TimelineObjVMixStartStreaming | TimelineObjVMixStopStreaming | TimelineObjVMixFadeToBlack | TimelineObjVMixQuickPlay | TimelineObjVMixAddInput
 export enum TimelineContentTypeVMix {
 	INPUT,
 	PREVIEW,
@@ -42,7 +43,8 @@ export enum TimelineContentTypeVMix {
 	START_RECORDING,
 	STOP_RECORDING,
 	FADE_TO_BLACK,
-	QUICK_PLAY
+	QUICK_PLAY,
+	ADD_INPUT
 }
 export interface TimelineObjVMixBase extends TSRTimelineObjBase {
 	content: {
@@ -124,6 +126,15 @@ export interface TimelineObjVMixQuickPlay extends TimelineObjVMixBase {
 		deviceType: DeviceType.VMIX
 		type: TimelineContentTypeVMix.QUICK_PLAY
 		input: string
+	}
+}
+
+export interface TimelineObjVMixAddInput extends TimelineObjVMixBase {
+	content: {
+		deviceType: DeviceType.VMIX
+		type: TimelineContentTypeVMix.ADD_INPUT
+		mediaType: 'Video' | 'Image' | 'Photos' | 'Xaml' | 'VideoList' | 'Colour' | 'AudioFile' | 'Flash' | 'PowerPoint'
+		filePath: string
 	}
 }
 
