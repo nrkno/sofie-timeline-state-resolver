@@ -5607,10 +5607,10 @@ strip-url-auth@^1.0.0:
   resolved "https://registry.yarnpkg.com/strip-url-auth/-/strip-url-auth-1.0.1.tgz#22b0fa3a41385b33be3f331551bbb837fa0cd7ae"
   integrity sha1-IrD6OkE4WzO+PzMVUbu4N/oM164=
 
-superfly-timeline@^7.2.1:
-  version "7.2.1"
-  resolved "https://registry.yarnpkg.com/superfly-timeline/-/superfly-timeline-7.2.1.tgz#5c739e6034a9955e8c088064040b7ee0a3fec12d"
-  integrity sha512-QibNARRJvJM+Xwp1GhnaugRU1gMMJehu9K2OQf7T2DmNTweoh0dYkvBVsaKCM+58ANcvbnrsjep6iKa8p/AA9A==
+superfly-timeline@^7.2.2:
+  version "7.2.2"
+  resolved "https://registry.yarnpkg.com/superfly-timeline/-/superfly-timeline-7.2.2.tgz#b2f7ca95cfcc94af13f84a17fc6be4c5246d4829"
+  integrity sha512-dcV+/rcAKIWS8LdLfC4nVP2Uvu/TtNIV2shQjwlopbC5/ZwKTAED8IHZfHIE7XZfmhMz//kLa3H7UthxEiJyxg==
   dependencies:
     underscore "^1.9.1"
 
