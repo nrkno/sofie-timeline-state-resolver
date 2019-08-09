@@ -18,7 +18,7 @@ import {
 	TimelineState
 } from 'superfly-timeline'
 import { VMix } from './vmixAPI'
-import { MappingVMix, TimelineContentTypeVMix, TimelineObjVMixInput, VMixCommand, VMixTransitionType, TimelineObjVMixPreview, TimelineObjVMixAudio, TimelineObjVMixFader } from '../types/src/vmix'
+import { MappingVMix, TimelineContentTypeVMix, TimelineObjVMixInput, VMixCommand, VMixTransitionType, TimelineObjVMixPreview, TimelineObjVMixAudio, TimelineObjVMixFader, TimelineObjVMixQuickPlay } from '../types/src/vmix'
 
 export interface VMixStateCommand {
 	command: VMixCommand
@@ -199,6 +199,7 @@ export class VMixDevice extends DeviceWithState<VMixState> {
 			console.log(mapping) // TODO: Use this later
 
 			if (tlObject.content) {
+				deviceState.momentary = []
 				switch (tlObject.content.type) {
 					case TimelineContentTypeVMix.INPUT:
 						let vmixTlInput = tlObject as any as TimelineObjVMixInput
@@ -244,6 +245,9 @@ export class VMixDevice extends DeviceWithState<VMixState> {
 						break
 					case TimelineContentTypeVMix.FADE_TO_BLACK:
 						deviceState.fadeToBlack = true
+						break
+					default:
+						if (tlObject.content.type === TimelineContentTypeVMix.QUICK_PLAY) deviceState.momentary.push(tlObject as any as TimelineObjVMixQuickPlay)
 						break
 				}
 			}
@@ -404,6 +408,21 @@ export class VMixDevice extends DeviceWithState<VMixState> {
 			}
 		}
 
+		if (newVMixState.momentary) {
+			newVMixState.momentary.forEach(command => {
+				switch (command.content.type) {
+					case TimelineContentTypeVMix.QUICK_PLAY:
+						commands.push({
+							command: VMixCommand.QUICK_PLAY,
+							input: command.content.input,
+							context: null,
+							timelineId: ''
+						})
+						break
+				}
+			})
+		}
+
 		return commands
 	}
 	private _defaultCommandReceiver (time: number, cmd: VMixStateCommand, context: CommandContext, timelineObjId: string): Promise<any> {
@@ -440,6 +459,7 @@ export class VMixState {
 	multiCorder: boolean
 	fullscreen: boolean
 	audio: VMixAudioChannel[]
+	momentary?: VMixMomentaryCommands[]
 }
 
 interface VMixInput {
@@ -480,3 +500,5 @@ interface VMixAudioChannel {
 	meterF2: number
 	headphonesVolume: number
 }
+
+type VMixMomentaryCommands = TimelineObjVMixQuickPlay

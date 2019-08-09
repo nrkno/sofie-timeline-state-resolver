@@ -134,6 +134,9 @@ export class VMix extends EventEmitter {
 			case VMixCommand.FADE_TO_BLACK:
 				this.fadeToBlack()
 				break
+			case VMixCommand.QUICK_PLAY:
+				if (command.input) this.quickPlay(command.input.toString())
+				break
 			default:
 				return Promise.reject(`Command ${command.command} not implemented`)
 		}
@@ -201,6 +204,10 @@ export class VMix extends EventEmitter {
 
 	public fadeToBlack () {
 		this.sendCommandFunction(`FadeToBlack`, {})
+	}
+
+	public quickPlay (input: string) {
+		this.sendCommandFunction(`QuickPlay`, { input: input })
 	}
 
 	public sendCommandFunction (func: string, args: { input?: string | number, value?: string | number, extra?: string }) {
