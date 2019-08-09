@@ -130,6 +130,7 @@ export interface TimelineObjVMixQuickPlay extends TimelineObjVMixBase {
 export interface VMixTransition {
 	type: VMixTransitionType
 	duration: number
+	button: 1 | 2 | 3 | 4
 }
 
 export enum VMixTransitionType {

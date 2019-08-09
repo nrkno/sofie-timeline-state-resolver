@@ -97,17 +97,17 @@ export class VMix extends EventEmitter {
 				}
 				break
 			case VMixCommand.TRANSITION_EFFECT:
-				if (command.value) {
-					this.setTransition(4, command.value.toString())
+				if (command.value && command.input) {
+					this.setTransition(Number(command.input), command.value.toString())
 				}
 				break
 			case VMixCommand.TRANSITION_DURATION:
-				if (command.value) {
-					this.setTransitionDuration(4, Number(command.value))
+				if (command.value && command.input) {
+					this.setTransitionDuration(Number(command.input), Number(command.value))
 				}
 				break
 			case VMixCommand.TRANSITION:
-				this.transition(4)
+				if (command.input) this.transition(Number(command.input))
 				break
 			case VMixCommand.AUDIO:
 				if (command.input && command.value) {

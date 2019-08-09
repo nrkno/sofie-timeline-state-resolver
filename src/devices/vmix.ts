@@ -211,7 +211,8 @@ export class VMixDevice extends DeviceWithState<VMixState> {
 							deviceState.transitions.push({
 								number: 4,
 								effect: vmixTlInput.content.transition.type,
-								duration: vmixTlInput.content.transition.duration
+								duration: vmixTlInput.content.transition.duration,
+								button: vmixTlInput.content.transition.button
 							})
 						}
 						break
@@ -292,6 +293,7 @@ export class VMixDevice extends DeviceWithState<VMixState> {
 					commands.push({
 						command: VMixCommand.TRANSITION_EFFECT,
 						value: transition.effect,
+						input: transition.button,
 						context: null,
 						timelineId: ''
 					})
@@ -299,6 +301,7 @@ export class VMixDevice extends DeviceWithState<VMixState> {
 					commands.push({
 						command: VMixCommand.TRANSITION_DURATION,
 						value: transition.duration,
+						input: transition.button,
 						context: null,
 						timelineId: ''
 					})
@@ -306,6 +309,7 @@ export class VMixDevice extends DeviceWithState<VMixState> {
 					if (oldVMixState.active !== newVMixState.active) {
 						commands.push({
 							command: VMixCommand.TRANSITION,
+							input: transition.button,
 							context: null,
 							timelineId: ''
 						})
@@ -491,6 +495,7 @@ interface VMixTransition {
 	number: number
 	effect: VMixTransitionType
 	duration: number
+	button: 1 | 2 | 3 | 4
 }
 
 interface VMixAudioChannel {
