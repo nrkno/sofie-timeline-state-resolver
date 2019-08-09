@@ -208,7 +208,6 @@ export class VMixDevice extends DeviceWithState<VMixState> {
 								input.number === Number(vmixTlInput.content.input) ||
 								input.key === vmixTlInput.content.input
 							).length !== 0
-							console.log(`AVIALBLE: ${available}`)
 							if (available) deviceState.active = vmixTlInput.content.input
 							deviceState.active = vmixTlInput.content.input
 						}
