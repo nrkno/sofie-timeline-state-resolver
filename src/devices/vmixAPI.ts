@@ -74,7 +74,7 @@ export class VMix extends EventEmitter {
 		})
 	}
 
-	private _stillAlive() {
+	private _stillAlive () {
 		if (this._socketKeepAliveTimeout) {
 			this._socketKeepAliveTimeout = null
 		}
