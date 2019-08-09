@@ -15,7 +15,6 @@ export class VMix extends EventEmitter {
 	private _socketKeepAliveTimeout: NodeJS.Timer | null = null
 
 	connect (options: VMixOptions): Promise<void> {
-		// TODO: Populate from VMix
 		this.state = {
 			version: '22.0.0.67',
 			edition: 'Trial',
@@ -174,7 +173,7 @@ export class VMix extends EventEmitter {
 				return {
 					key: input['_attributes']['key'],
 					number: Number(input['_attributes']['number']),
-					type: input['_attributes']['type'], // TODO: Parse this to enum
+					type: input['_attributes']['type'],
 					title: input['_attributes']['title'],
 					state: input['_attributes']['state'],
 					position: Number(input['_attributes']['position']),

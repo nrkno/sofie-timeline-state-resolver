@@ -1,5 +1,6 @@
 import { Mapping } from './mapping'
 import { TSRTimelineObjBase, DeviceType } from '.'
+import { VMixInputType } from '../../../src/devices/vmix'
 
 export interface MappingVMix extends Mapping {
 	device: DeviceType.VMIX
@@ -133,7 +134,7 @@ export interface TimelineObjVMixAddInput extends TimelineObjVMixBase {
 	content: {
 		deviceType: DeviceType.VMIX
 		type: TimelineContentTypeVMix.ADD_INPUT
-		mediaType: 'Video' | 'Image' | 'Photos' | 'Xaml' | 'VideoList' | 'Colour' | 'AudioFile' | 'Flash' | 'PowerPoint'
+		mediaType: VMixInputType
 		filePath: string
 	}
 }

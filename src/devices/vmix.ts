@@ -203,8 +203,15 @@ export class VMixDevice extends DeviceWithState<VMixState> {
 				switch (tlObject.content.type) {
 					case TimelineContentTypeVMix.INPUT:
 						let vmixTlInput = tlObject as any as TimelineObjVMixInput
-						// TODO: Verify input is available
-						if (vmixTlInput.content.input) deviceState.active = vmixTlInput.content.input
+						if (vmixTlInput.content.input) {
+							let available = deviceState.inputs.filter(input =>
+								input.number === Number(vmixTlInput.content.input) ||
+								input.key === vmixTlInput.content.input
+							).length !== 0
+							console.log(`AVIALBLE: ${available}`)
+							if (available) deviceState.active = vmixTlInput.content.input
+							deviceState.active = vmixTlInput.content.input
+						}
 						if (vmixTlInput.content.transition) {
 							deviceState.transitions = [] // TODO: Preserve transitions
 							deviceState.transitions.push({
@@ -220,7 +227,7 @@ export class VMixDevice extends DeviceWithState<VMixState> {
 						break
 					case TimelineContentTypeVMix.AUDIO:
 						let vmixTlAudio = tlObject as any as TimelineObjVMixAudio
-						this.modifyInput(deviceState.inputs, {
+						deviceState.inputs = this.modifyInput(deviceState.inputs, {
 							number: Number(vmixTlAudio.content.input),
 							volume: vmixTlAudio.content.volume
 						})
@@ -262,14 +269,16 @@ export class VMixDevice extends DeviceWithState<VMixState> {
 		})
 		return deviceState
 	}
-	modifyInput (inputs: VMixInput[], newInput: VMixInput) {
-		let input = inputs.filter(input => input.number === newInput)
+	modifyInput (inputs: VMixInput[], newInput: VMixInput): VMixInput[] {
+		let index = inputs.findIndex(input => input.number === newInput)
 
-		if (input) {
-			input[0] = { ...input[0], ...newInput }
+		if (index !== -1) {
+			inputs[index] = { ...inputs[index], ...newInput }
 		} else {
 			inputs.push(newInput)
 		}
+
+		return inputs
 	}
 	get deviceType () {
 		return DeviceType.VMIX
@@ -493,7 +502,7 @@ export class VMixState {
 export interface VMixInput {
 	key?: string
 	number?: number
-	type?: string // TODO: enum of input types, as they may need different treatement in future
+	type?: VMixInputType
 	title?: string
 	name?: string
 	state?: string // TODO: enum of states
@@ -530,3 +539,4 @@ export interface VMixAudioChannel {
 }
 
 type VMixMomentaryCommands = TimelineObjVMixQuickPlay | TimelineObjVMixAddInput
+export type VMixInputType = 'Video' | 'Image' | 'Photos' | 'Xaml' | 'VideoList' | 'Colour' | 'AudioFile' | 'Flash' | 'PowerPoint'
