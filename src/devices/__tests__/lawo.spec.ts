@@ -71,8 +71,6 @@ describe('Lawo', () => {
 
 					'Fader/Motor dB Value': {
 						value: -6
-						// transitionDuration?: number,
-						// triggerValue: string // only used for trigging new command sent
 					}
 				}
 			},
@@ -177,5 +175,114 @@ describe('Lawo', () => {
 		await mockTime.advanceTimeToTicks(14500)
 		expect(commandReceiver0).toHaveBeenCalledTimes(3)
 		// no new commands should be sent, nothing is sent on object end
+	})
+	test('Lawo: Set delay om main/pgm', async () => {
+
+		let commandReceiver0 = jest.fn(() => {
+			return Promise.resolve()
+		})
+		let lawoMainDelayOnMapping: MappingLawo = {
+			device: DeviceType.LAWO,
+			deviceId: 'myLawo',
+			mappingType: MappingLawoType.FULL_PATH,
+			identifier: '001.Sums.MAIN.DSP.Delay.On'
+		}
+		let lawoMainDelayTimeMapping: MappingLawo = {
+			device: DeviceType.LAWO,
+			deviceId: 'myLawo',
+			mappingType: MappingLawoType.FULL_PATH,
+			identifier: '001.Sums.MAIN.DSP.Delay.Time'
+		}
+
+		let myChannelMapping: Mappings = {
+			'lawo_delay_on': lawoMainDelayOnMapping,
+			'lawo_delay_time': lawoMainDelayTimeMapping
+
+		}
+
+		let myConductor = new Conductor({
+			initializeAsClear: true,
+			getCurrentTime: mockTime.getCurrentTime
+		})
+		await myConductor.setMapping(myChannelMapping)
+		await myConductor.init() // we cannot do an await, because setTimeout will never call without jest moving on.
+		await myConductor.addDevice('myLawo', {
+			type: DeviceType.LAWO,
+			options: {
+				host: '160.67.96.51',
+				port: 9000,
+				commandReceiver: commandReceiver0
+			}
+		})
+		await mockTime.advanceTimeToTicks(10100)
+
+		let deviceContainer = myConductor.getDevice('myLawo')
+		let device = deviceContainer.device as ThreadedClass<LawoDevice>
+
+		// Check that no commands has been scheduled:
+		expect(await device.queue).toHaveLength(0)
+		myConductor.timeline = [
+			{
+				id: 'obj0',
+				enable: {
+					start: mockTime.now - 1000, // 0.5 seconds in the future
+					duration: 2000
+				},
+				layer: 'lawo_delay_on',
+				content: {
+					deviceType: DeviceType.LAWO,
+					type: TimelineContentTypeLawo.EMBER_PROPERTY,
+
+					property: {
+						value: true
+					}
+				}
+			},
+			{
+				id: 'obj1',
+				enable: {
+					start: mockTime.now + 500, // 0.5 seconds in the future
+					duration: 2000
+				},
+				layer: 'lawo_delay_time',
+				content: {
+					deviceType: DeviceType.LAWO,
+					type: TimelineContentTypeLawo.EMBER_PROPERTY,
+
+					property: {
+						value: 80
+					}
+				}
+			}
+		]
+
+		await mockTime.advanceTimeToTicks(10200)
+
+		expect(commandReceiver0).toHaveBeenCalledTimes(1)
+		expect(getMockCall(commandReceiver0, 0, 1)).toMatchObject(
+			{
+				// attribute: 'Motor dB Value',
+				type: TimelineContentTypeLawo.EMBER_PROPERTY,
+				value: true,
+				path: '001.Sums.MAIN.DSP.Delay.On'
+			}
+		)
+		expect(getMockCall(commandReceiver0, 0, 2)).toBeTruthy()
+
+		await mockTime.advanceTimeToTicks(11000)
+
+		expect(commandReceiver0).toHaveBeenCalledTimes(2)
+		expect(getMockCall(commandReceiver0, 1, 1)).toMatchObject(
+			{
+				// attribute: 'Motor dB Value',
+				type: TimelineContentTypeLawo.EMBER_PROPERTY,
+				value: 80,
+				path: '001.Sums.MAIN.DSP.Delay.Time'
+			}
+		)
+		expect(getMockCall(commandReceiver0, 1, 2)).toBeTruthy() // context
+
+		await mockTime.advanceTimeToTicks(11500)
+		expect(commandReceiver0).toHaveBeenCalledTimes(2)
 	})
 })
