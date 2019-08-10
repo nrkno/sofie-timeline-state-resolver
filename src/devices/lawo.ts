@@ -250,8 +250,8 @@ export class LawoDevice extends DeviceWithState<TimelineState> {
 						type: tlObjectSource.content.type,
 						key: '',
 						identifier: mapping.identifier,
-						value: tlObjectSource.content.property.value,
-						valueType: mapping.emberType,
+						value: tlObjectSource.content.value,
+						valueType: mapping.emberType || EmberTypes.REAL,
 						triggerValue: '',
 						timelineObjId: tlObject.id
 					}

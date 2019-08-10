@@ -5,7 +5,7 @@ export interface MappingLawo extends Mapping {
 	device: DeviceType.LAWO,
 	mappingType: MappingLawoType,
 	identifier: string,
-	emberType: EmberTypes
+	emberType?: EmberTypes
 }
 export enum MappingLawoType {
 	SOURCE = 'source',
@@ -48,9 +48,6 @@ export interface TimelineObjLawoEmberProperty extends TimelineObjLawoBase {
 	content: {
 		deviceType: DeviceType.LAWO,
 		type: TimelineContentTypeLawo.EMBER_PROPERTY,
-		property: {
-			type: EmberTypes
-			value: EmberValueTypes
-		}
+		value: EmberValueTypes
 	}
 }
