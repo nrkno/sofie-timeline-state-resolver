@@ -4,7 +4,8 @@ import { TSRTimelineObjBase, DeviceType } from '.'
 export interface MappingLawo extends Mapping {
 	device: DeviceType.LAWO,
 	mappingType: MappingLawoType,
-	identifier: string
+	identifier: string,
+	emberType: EmberTypes
 }
 export enum MappingLawoType {
 	SOURCE = 'source',
@@ -17,7 +18,13 @@ export enum TimelineContentTypeLawo { //  Lawo-state
 }
 
 export type TimelineObjLawoAny = TimelineObjLawoSource | TimelineObjLawoEmberProperty
-export type EmberTypes = string | number | boolean // @todo: move to ember library?
+export enum EmberTypes {
+	STRING = 'string',
+	INTEGER = 'integer',
+	REAL = 'real',
+	BOOLEAN = 'bool'
+}
+export type EmberValueTypes = string | number | boolean // @todo: move to ember library?
 
 export interface TimelineObjLawoBase extends TSRTimelineObjBase {
 	content: {
@@ -42,7 +49,8 @@ export interface TimelineObjLawoEmberProperty extends TimelineObjLawoBase {
 		deviceType: DeviceType.LAWO,
 		type: TimelineContentTypeLawo.EMBER_PROPERTY,
 		property: {
-			value: EmberTypes
+			type: EmberTypes
+			value: EmberValueTypes
 		}
 	}
 }
