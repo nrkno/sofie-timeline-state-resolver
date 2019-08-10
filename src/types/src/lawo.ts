@@ -7,14 +7,17 @@ export interface MappingLawo extends Mapping {
 	identifier: string
 }
 export enum MappingLawoType {
-	SOURCE = 'source'
+	SOURCE = 'source',
+	FULL_PATH = 'fullpath'
 }
 
 export enum TimelineContentTypeLawo { //  Lawo-state
-	SOURCE = 'lawosource' // a general content type, possibly to be replaced by specific ones later?
+	SOURCE = 'lawosource', // a general content type, possibly to be replaced by specific ones later?
+	EMBER_PROPERTY = 'lawofullpathemberproperty'
 }
 
-export type TimelineObjLawoAny = TimelineObjLawoSource
+export type TimelineObjLawoAny = TimelineObjLawoSource | TimelineObjLawoEmberProperty
+export type EmberTypes = string | number | boolean // @todo: move to ember library?
 
 export interface TimelineObjLawoBase extends TSRTimelineObjBase {
 	content: {
@@ -31,6 +34,15 @@ export interface TimelineObjLawoSource extends TimelineObjLawoBase {
 			value: number,
 			transitionDuration?: number,
 			triggerValue?: string // only used for trigging new command sent
+		}
+	}
+}
+export interface TimelineObjLawoEmberProperty extends TimelineObjLawoBase {
+	content: {
+		deviceType: DeviceType.LAWO,
+		type: TimelineContentTypeLawo.EMBER_PROPERTY,
+		property: {
+			value: EmberTypes
 		}
 	}
 }

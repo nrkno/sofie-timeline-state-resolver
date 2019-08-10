@@ -12,7 +12,8 @@ import {
 	TimelineContentTypeLawo,
 	MappingLawo,
 	TimelineObjLawoSource,
-	TimelineObjLawoAny
+	TimelineObjLawoAny,
+	TimelineObjLawoEmberProperty
 } from '../types/src'
 import {
 	TimelineState, ResolvedTimelineObjectInstance
@@ -223,7 +224,7 @@ export class LawoDevice extends DeviceWithState<TimelineState> {
 			if (mapping && mapping.identifier && mapping.device === DeviceType.LAWO) {
 
 				if (lawoObj.content.type === TimelineContentTypeLawo.SOURCE) {
-					let tlObjectSource: TimelineObjLawoSource = lawoObj
+					let tlObjectSource: TimelineObjLawoSource = lawoObj as TimelineObjLawoSource
 
 					const fader: TimelineObjLawoSource['content']['Fader/Motor dB Value'] = tlObjectSource.content['Fader/Motor dB Value']
 
@@ -234,6 +235,18 @@ export class LawoDevice extends DeviceWithState<TimelineState> {
 						value: fader.value,
 						transitionDuration: fader.transitionDuration,
 						triggerValue: fader.triggerValue || '',
+						timelineObjId: tlObject.id
+					}
+
+				} else if (lawoObj.content.type === TimelineContentTypeLawo.EMBER_PROPERTY) {
+					let tlObjectSource: TimelineObjLawoEmberProperty = lawoObj as TimelineObjLawoEmberProperty
+
+					lawoState[mapping.identifier] = {				// 1) don't know what the key here is supposed to be?
+						type: tlObjectSource.content.type,
+						key: mapping.identifier,					// 2) don't know what this is
+						identifier: mapping.identifier,
+						value: tlObjectSource.content.property.value,
+						triggerValue: '',							// 3) leave blank?
 						timelineObjId: tlObject.id
 					}
 
