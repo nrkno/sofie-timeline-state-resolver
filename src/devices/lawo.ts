@@ -241,12 +241,12 @@ export class LawoDevice extends DeviceWithState<TimelineState> {
 				} else if (lawoObj.content.type === TimelineContentTypeLawo.EMBER_PROPERTY) {
 					let tlObjectSource: TimelineObjLawoEmberProperty = lawoObj as TimelineObjLawoEmberProperty
 
-					lawoState[mapping.identifier] = {				// 1) don't know what the key here is supposed to be?
+					lawoState[mapping.identifier] = {
 						type: tlObjectSource.content.type,
-						key: mapping.identifier,					// 2) don't know what this is
+						key: '',
 						identifier: mapping.identifier,
 						value: tlObjectSource.content.property.value,
-						triggerValue: '',							// 3) leave blank?
+						triggerValue: '',
 						timelineObjId: tlObject.id
 					}
 
