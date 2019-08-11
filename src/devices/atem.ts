@@ -19,7 +19,8 @@ import {
 	TimelineObjAtemAudioChannel,
 	TimelineObjAtemSsrc,
 	TimelineObjAtemAUX,
-	TimelineObjAtemSsrcProps
+	TimelineObjAtemSsrcProps,
+	TimelineObjAtemMacroPlayer
 } from '../types/src'
 import { TimelineState } from 'superfly-timeline'
 import {
@@ -268,6 +269,7 @@ export class AtemDevice extends DeviceWithState<DeviceState> {
 									}
 								}
 							}
+							break
 					}
 				}
 
@@ -276,6 +278,12 @@ export class AtemDevice extends DeviceWithState<DeviceState> {
 						let ssrc = deviceState.video.superSourceProperties
 						let atemObj = tlObject as any as TimelineObjAtemSsrcProps
 						if (ssrc) deepExtend(ssrc, atemObj.content.ssrcProps)
+					}
+				} else if (mapping.mappingType === MappingAtemType.MacroPlayer) {
+					if (tlObject.content.type === TimelineContentTypeAtem.MACROPLAYER) {
+						let ms = deviceState.macro.macroPlayer
+						let atemObj = tlObject as any as TimelineObjAtemMacroPlayer
+						if (ms) deepExtend(ms, atemObj.content.macroPlayer)
 					}
 				}
 			}
@@ -390,6 +398,8 @@ export class AtemDevice extends DeviceWithState<DeviceState> {
 		for (const i of Object.keys(this._atem.state.audio.channels)) {
 			deviceState.audio.channels[i] = JSON.parse(JSON.stringify(StateDefault.Audio.Channel))
 		}
+
+		deviceState.macro.macroPlayer = JSON.parse(JSON.stringify(StateDefault.Video.MacroPlayer))
 
 		return deviceState
 	}
