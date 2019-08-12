@@ -32,12 +32,14 @@ import {
 	TimelineObjVMixPauseInput,
 	TimelineObjVMixRestartInput,
 	TimelineObjVMixSetPosition,
-	TimelineObjVMixSetInputName
+	TimelineObjVMixSetInputName,
+	TimelineObjVMixSetOutput
 } from '../types/src/vmix'
 
 export interface VMixStateCommand {
 	command: VMixCommand
 	context: CommandContext
+	name?: string
 	input?: string | number
 	value?: string | number
 	timelineId: string
@@ -61,7 +63,7 @@ type CommandContext = any
 /**
  * This is a VMixDevice, it sends commands when it feels like it
  */
-export class VMixDevice extends DeviceWithState<VMixState> {
+export class VMixDevice extends DeviceWithState<VMixStateExtended> {
 
 	private _makeReadyCommands: VMixCommandContent[]
 	private _doOnTime: DoOnTime
@@ -97,7 +99,7 @@ export class VMixDevice extends DeviceWithState<VMixState> {
 			})
 			this._vmix.on('connected', () => {
 				let time = this.getCurrentTime()
-				this.setState(this._vmix.state, time)
+				this.setState({ ...this._getDefaultState(), ...{ reportedState: this._vmix.state } }, time)
 				this._connected = true
 				this._initialized = true
 				this._connectionChanged()
@@ -121,27 +123,57 @@ export class VMixDevice extends DeviceWithState<VMixState> {
 	}
 
 	private _onVMixStateChanged (newState: VMixState) {
-		this.setState(newState, Date.now())
+		let oldState: VMixStateExtended = (this.getStateBefore(this.getCurrentTime()) || { state: this._getDefaultState() }).state
+		oldState.reportedState = newState
+		this.setState(oldState, Date.now())
 	}
 
-	private _getDefaultState (): VMixState {
+	private _getDefaultState (): VMixStateExtended {
 		return {
-			version: '22.0.0.67',
-			edition: 'Trial',
-			inputs: [],
-			overlays: [],
-			preview: undefined,
-			active: undefined,
-			fadeToBlack: false,
-			faderPosition: undefined,
-			transitions: [],
-			recording: false,
-			external: false,
-			streaming: false,
-			playlist: false,
-			multiCorder: false,
-			fullscreen: false,
-			audio: []
+			reportedState: {
+				version: '22.0.0.67',
+				edition: 'Trial',
+				inputs: [],
+				overlays: [],
+				preview: undefined,
+				active: undefined,
+				fadeToBlack: false,
+				faderPosition: undefined,
+				transitions: [],
+				recording: false,
+				external: false,
+				streaming: false,
+				playlist: false,
+				multiCorder: false,
+				fullscreen: false,
+				audio: []
+			},
+			outputs: [
+				{
+					name: '2',
+					output: ''
+				},
+				{
+					name: '3',
+					output: ''
+				},
+				{
+					name: '4',
+					output: ''
+				},
+				{
+					name: 'External2',
+					output: ''
+				},
+				{
+					name: 'Fullscreen',
+					output: ''
+				},
+				{
+					name: 'Fullscreen2',
+					output: ''
+				}
+			]
 		}
 	}
 
@@ -152,7 +184,7 @@ export class VMixDevice extends DeviceWithState<VMixState> {
 		}
 
 		let previousStateTime = Math.max(this.getCurrentTime(), newState.time)
-		let oldState: VMixState = (this.getStateBefore(previousStateTime) || { state: this._getDefaultState() }).state
+		let oldState: VMixStateExtended = (this.getStateBefore(previousStateTime) || { state: this._getDefaultState() }).state
 
 		let newAbstractState = this.convertStateToVMix(newState, oldState)
 
@@ -199,10 +231,10 @@ export class VMixDevice extends DeviceWithState<VMixState> {
 	get connected (): boolean {
 		return false
 	}
-	convertStateToVMix (state: TimelineState, oldState: VMixState): VMixState {
+	convertStateToVMix (state: TimelineState, oldState: VMixStateExtended): VMixStateExtended {
 		if (!this._initialized) throw Error('convertStateToVMix cannot be used before inititialized')
 
-		let deviceState = JSON.parse(JSON.stringify(oldState))
+		let deviceState = JSON.parse(JSON.stringify(oldState)) as VMixStateExtended
 
 		// Sort layer based on Layer name
 		const sortedLayers = _.map(state.layers, (tlObject, layerName) => ({ layerName, tlObject }))
@@ -214,21 +246,21 @@ export class VMixDevice extends DeviceWithState<VMixState> {
 			console.log(mapping) // TODO: Use this later
 
 			if (tlObject.content) {
-				deviceState.momentary = []
+				deviceState.reportedState.momentary = []
 				switch (tlObject.content.type) {
 					case TimelineContentTypeVMix.INPUT:
 						let vmixTlInput = tlObject as any as TimelineObjVMixInput
 						if (vmixTlInput.content.input) {
-							let available = deviceState.inputs.filter(input =>
+							let available = deviceState.reportedState.inputs.filter(input =>
 								input.number === Number(vmixTlInput.content.input) ||
 								input.key === vmixTlInput.content.input
 							).length !== 0
-							if (available) deviceState.active = vmixTlInput.content.input
-							deviceState.active = vmixTlInput.content.input
+							if (available) deviceState.reportedState.active = vmixTlInput.content.input
+							deviceState.reportedState.active = vmixTlInput.content.input
 						}
 						if (vmixTlInput.content.transition) {
-							deviceState.transitions = [] // TODO: Preserve transitions
-							deviceState.transitions.push({
+							deviceState.reportedState.transitions = [] // TODO: Preserve transitions
+							deviceState.reportedState.transitions.push({
 								effect: vmixTlInput.content.transition.type,
 								duration: vmixTlInput.content.transition.duration,
 								number: vmixTlInput.content.transition.button
@@ -237,78 +269,85 @@ export class VMixDevice extends DeviceWithState<VMixState> {
 						break
 					case TimelineContentTypeVMix.PREVIEW:
 						let vmixTlPreview = tlObject as any as TimelineObjVMixPreview
-						if (vmixTlPreview.content.input) deviceState.preview = vmixTlPreview.content.input
+						if (vmixTlPreview.content.input) deviceState.reportedState.preview = vmixTlPreview.content.input
 						break
 					case TimelineContentTypeVMix.AUDIO:
 						let vmixTlAudio = tlObject as any as TimelineObjVMixAudio
-						deviceState.inputs = this.modifyInput(deviceState.inputs, {
+						deviceState.reportedState.inputs = this.modifyInput(deviceState.reportedState.inputs, {
 							number: Number(vmixTlAudio.content.input),
 							volume: vmixTlAudio.content.volume
 						})
 						break
 					case TimelineContentTypeVMix.FADER:
 						let vmixTlFader = tlObject as any as TimelineObjVMixFader
-						deviceState.faderPosition = vmixTlFader.content.position
+						deviceState.reportedState.faderPosition = vmixTlFader.content.position
 						break
 					case TimelineContentTypeVMix.START_RECORDING:
-						deviceState.recording = true
+						deviceState.reportedState.recording = true
 						break
 					case TimelineContentTypeVMix.STOP_RECORDING:
-						deviceState.recording = false
+						deviceState.reportedState.recording = false
 						break
 					case TimelineContentTypeVMix.START_STREAMING:
-						deviceState.streaming = true
+						deviceState.reportedState.streaming = true
 						break
 					case TimelineContentTypeVMix.STOP_STREAMING:
-						deviceState.streaming = false
+						deviceState.reportedState.streaming = false
 						break
 					case TimelineContentTypeVMix.FADE_TO_BLACK:
-						deviceState.fadeToBlack = true
+						deviceState.reportedState.fadeToBlack = true
 						break
 					case TimelineContentTypeVMix.ADD_INPUT:
 						let tlObjectAddInput = tlObject as any as TimelineObjVMixAddInput
-						let exists = deviceState.inputs.filter(input =>
+						let exists = deviceState.reportedState.inputs.filter(input =>
 							input.title &&
 							tlObjectAddInput.content.filePath.indexOf(input.title) !== -1 &&
 							input.type &&
 							input.type === tlObjectAddInput.content.mediaType
 						).length !== 0
-						if (!exists) deviceState.momentary.push(tlObject as any as TimelineObjVMixAddInput)
+						if (!exists) deviceState.reportedState.momentary.push(tlObject as any as TimelineObjVMixAddInput)
 						break
 					case TimelineContentTypeVMix.PLAY_INPUT:
 						let tlObjectPlayInput = tlObject as any as TimelineObjVMixPlayInput
-						deviceState.inputs = this.modifyInput(deviceState.inputs, {
+						deviceState.reportedState.inputs = this.modifyInput(deviceState.reportedState.inputs, {
 							number: Number(tlObjectPlayInput.content.input),
 							state: 'Running'
 						})
 						break
 					case TimelineContentTypeVMix.PAUSE_INPUT:
 						let tlObjectPauseInput = tlObject as any as TimelineObjVMixPauseInput
-						deviceState.inputs = this.modifyInput(deviceState.inputs, {
+						deviceState.reportedState.inputs = this.modifyInput(deviceState.reportedState.inputs, {
 							number: Number(tlObjectPauseInput.content.input),
 							state: 'Paused'
 						})
 						break
 					case TimelineContentTypeVMix.RESTART_INPUT:
 						let tlObjectRestartInput = tlObject as any as TimelineObjVMixRestartInput
-						deviceState.inputs = this.modifyInput(deviceState.inputs, {
+						deviceState.reportedState.inputs = this.modifyInput(deviceState.reportedState.inputs, {
 							number: Number(tlObjectRestartInput.content.input),
 							position: 0
 						})
 						break
 					case TimelineContentTypeVMix.SET_POSITION:
 						let tlObjSetPosition = tlObject as any as TimelineObjVMixSetPosition
-						deviceState.inputs = this.modifyInput(deviceState.inputs, {
+						deviceState.reportedState.inputs = this.modifyInput(deviceState.reportedState.inputs, {
 							number: Number(tlObjSetPosition.content.input),
 							position: tlObjSetPosition.content.position
 						})
 						break
 					case TimelineContentTypeVMix.SET_INPUT_NAME:
 						let tlObjSetInputName = tlObject as any as TimelineObjVMixSetInputName
-						deviceState.inputs = this.modifyInput(deviceState.inputs, {
+						deviceState.reportedState.inputs = this.modifyInput(deviceState.reportedState.inputs, {
 							number: Number(tlObjSetInputName.content.input),
 							name: tlObjSetInputName.content.name
 						})
+						break
+					case TimelineContentTypeVMix.SET_OUTPUT:
+						let tlObjSetOutput = tlObject as any as TimelineObjVMixSetOutput
+						let outputIndex = deviceState.outputs.findIndex(output => output.name === tlObjSetOutput.content.name)
+						if (outputIndex !== -1) {
+							deviceState.outputs[outputIndex].output = tlObjSetOutput.content.output
+						}
 						break
 				}
 			}
@@ -344,21 +383,21 @@ export class VMixDevice extends DeviceWithState<VMixState> {
 			}, cmd)
 		})
 	}
-	private _diffStates (oldVMixState: VMixState, newVMixState: VMixState): Array<VMixStateCommand> {
+	private _diffStates (oldVMixState: VMixStateExtended, newVMixState: VMixStateExtended): Array<VMixStateCommand> {
 		let commands: Array<VMixStateCommand> = []
 
-		if (newVMixState.active !== undefined) {
-			if (!_.isEqual(oldVMixState.transitions, newVMixState.transitions)) {
-				_.difference(newVMixState.transitions, oldVMixState.transitions)
+		if (newVMixState.reportedState.active !== undefined) {
+			if (!_.isEqual(oldVMixState.reportedState.transitions, newVMixState.reportedState.transitions)) {
+				_.difference(newVMixState.reportedState.transitions, oldVMixState.reportedState.transitions)
 				.forEach(transition => {
-					if (oldVMixState.active !== newVMixState.active) {
+					if (oldVMixState.reportedState.active !== newVMixState.reportedState.active) {
 						commands.push({
 							command: VMixCommand.PREVIEW_INPUT,
-							input: newVMixState.active ? newVMixState.active : '1',
+							input: newVMixState.reportedState.active ? newVMixState.reportedState.active : '1',
 							context: null,
 							timelineId: ''
 						})
-						newVMixState.fadeToBlack = false
+						newVMixState.reportedState.fadeToBlack = false
 					}
 
 					commands.push({
@@ -377,7 +416,7 @@ export class VMixDevice extends DeviceWithState<VMixState> {
 						timelineId: ''
 					})
 
-					if (oldVMixState.active !== newVMixState.active) {
+					if (oldVMixState.reportedState.active !== newVMixState.reportedState.active) {
 						commands.push({
 							command: VMixCommand.TRANSITION,
 							input: transition.number,
@@ -387,35 +426,35 @@ export class VMixDevice extends DeviceWithState<VMixState> {
 					}
 				})
 			} else {
-				if (oldVMixState.active !== newVMixState.active) {
+				if (oldVMixState.reportedState.active !== newVMixState.reportedState.active) {
 					commands.push({
 						command: VMixCommand.ACTIVE_INPUT,
-						input: newVMixState.active,
+						input: newVMixState.reportedState.active,
 						context: null,
 						timelineId: ''
 					})
-					newVMixState.fadeToBlack = false
+					newVMixState.reportedState.fadeToBlack = false
 				}
 			}
 		}
 
-		if (newVMixState.preview !== undefined) {
-			if (oldVMixState.preview !== newVMixState.preview) {
+		if (newVMixState.reportedState.preview !== undefined) {
+			if (oldVMixState.reportedState.preview !== newVMixState.reportedState.preview) {
 				commands.push({
 					command: VMixCommand.PREVIEW_INPUT,
-					input: newVMixState.preview,
+					input: newVMixState.reportedState.preview,
 					context: null,
 					timelineId: ''
 				})
-				newVMixState.fadeToBlack = false
+				newVMixState.reportedState.fadeToBlack = false
 			}
 		}
 
-		if (!_.isEqual(oldVMixState.inputs, newVMixState.inputs)) {
-			_.difference(newVMixState.inputs, oldVMixState.inputs)
+		if (!_.isEqual(oldVMixState.reportedState.inputs, newVMixState.reportedState.inputs)) {
+			_.difference(newVMixState.reportedState.inputs, oldVMixState.reportedState.inputs)
 			.forEach(input => {
 				if (input.number) {
-					let oldInput = oldVMixState.inputs.filter(inp => inp.number === input.number)[0]
+					let oldInput = oldVMixState.reportedState.inputs.filter(inp => inp.number === input.number)[0]
 					if (oldInput) {
 						if (oldInput.position !== input.position) {
 							commands.push({
@@ -470,22 +509,22 @@ export class VMixDevice extends DeviceWithState<VMixState> {
 		}
 
 		// Only set fader bar position if no other transitions are happening
-		if (newVMixState.preview === undefined && newVMixState.active === undefined) {
-			if (newVMixState.faderPosition !== undefined) {
+		if (newVMixState.reportedState.preview === undefined && newVMixState.reportedState.active === undefined) {
+			if (newVMixState.reportedState.faderPosition !== undefined) {
 				commands.push({
 					command: VMixCommand.FADER,
-					value: newVMixState.faderPosition,
+					value: newVMixState.reportedState.faderPosition,
 					context: null,
 					timelineId: ''
 				})
-				newVMixState.active = undefined
-				newVMixState.preview = undefined
-				newVMixState.fadeToBlack = false
+				newVMixState.reportedState.active = undefined
+				newVMixState.reportedState.preview = undefined
+				newVMixState.reportedState.fadeToBlack = false
 			}
 		}
 
-		if (oldVMixState.recording !== newVMixState.recording) {
-			if (newVMixState.recording) {
+		if (oldVMixState.reportedState.recording !== newVMixState.reportedState.recording) {
+			if (newVMixState.reportedState.recording) {
 				commands.push({
 					command: VMixCommand.START_RECORDING,
 					context: null,
@@ -500,8 +539,8 @@ export class VMixDevice extends DeviceWithState<VMixState> {
 			}
 		}
 
-		if (oldVMixState.streaming !== newVMixState.streaming) {
-			if (newVMixState.streaming) {
+		if (oldVMixState.reportedState.streaming !== newVMixState.reportedState.streaming) {
+			if (newVMixState.reportedState.streaming) {
 				commands.push({
 					command: VMixCommand.START_STREAMING,
 					context: null,
@@ -516,8 +555,8 @@ export class VMixDevice extends DeviceWithState<VMixState> {
 			}
 		}
 
-		if (oldVMixState.fadeToBlack !== newVMixState.fadeToBlack) {
-			if (newVMixState.fadeToBlack) {
+		if (oldVMixState.reportedState.fadeToBlack !== newVMixState.reportedState.fadeToBlack) {
+			if (newVMixState.reportedState.fadeToBlack) {
 				commands.push({
 					command: VMixCommand.FADE_TO_BLACK,
 					context: null,
@@ -526,8 +565,8 @@ export class VMixDevice extends DeviceWithState<VMixState> {
 			}
 		}
 
-		if (newVMixState.momentary) {
-			newVMixState.momentary.forEach(command => {
+		if (newVMixState.reportedState.momentary) {
+			newVMixState.reportedState.momentary.forEach(command => {
 				switch (command.content.type) {
 					case TimelineContentTypeVMix.ADD_INPUT:
 						commands.push({
@@ -538,6 +577,20 @@ export class VMixDevice extends DeviceWithState<VMixState> {
 						})
 						break
 				}
+			})
+		}
+
+		if (!_.isEqual(oldVMixState.outputs, newVMixState.outputs)) {
+			_.difference(newVMixState.outputs, oldVMixState.outputs)
+			.forEach(output => {
+				commands.push({
+					command: VMixCommand.SET_OUPUT,
+					name: output.name,
+					value: 'Input',
+					input: output.output,
+					context: null,
+					timelineId: ''
+				})
 			})
 		}
 
@@ -558,6 +611,11 @@ export class VMixDevice extends DeviceWithState<VMixState> {
 			this.emit('commandError', error, cwc)
 		})
 	}
+}
+
+export class VMixStateExtended {
+	reportedState: VMixState
+	outputs: VMixOutput[]
 }
 
 export class VMixState {
@@ -617,6 +675,11 @@ export interface VMixAudioChannel {
 	meterF1: number
 	meterF2: number
 	headphonesVolume: number
+}
+
+export interface VMixOutput {
+	name: '2' | '3' | '4' | 'External2' | 'Fullscreen' | 'Fullscreen2'
+	output: string
 }
 
 type VMixMomentaryCommands = TimelineObjVMixAddInput

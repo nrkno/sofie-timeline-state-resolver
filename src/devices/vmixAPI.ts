@@ -150,6 +150,9 @@ export class VMix extends EventEmitter {
 			case VMixCommand.SET_INPUT_NAME:
 				if (command.input && command.value) this.setInputName(command.input.toString(), command.value.toString())
 				break
+			case VMixCommand.SET_OUPUT:
+				if (command.input && command.value && command.name) this.setOutput(command.name, command.value.toString(), command.input.toString())
+				break
 			default:
 				return Promise.reject(`Command ${command.command} not implemented`)
 		}
@@ -305,6 +308,10 @@ export class VMix extends EventEmitter {
 
 	public setInputName (input: string, value: string) {
 		this.sendCommandFunction(`SetInputName`, { input: input, value: value })
+	}
+
+	public setOutput (name: string, value: string, input?: string) {
+		this.sendCommandFunction(`SetOutput${name}`, { value: value, input: (input ? input : '') })
 	}
 
 	public sendCommandFunction (func: string, args: { input?: string | number, value?: string | number, extra?: string }) {

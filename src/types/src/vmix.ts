@@ -33,7 +33,8 @@ export enum VMixCommand {
 	PLAY_INPUT = 'PLAY_INPUT',
 	PAUSE_INPUT = 'PAUSE_INPUT',
 	SET_POSITION = 'SET_POSITION',
-	SET_INPUT_NAME = 'SET_INPUT_NAME'
+	SET_INPUT_NAME = 'SET_INPUT_NAME',
+	SET_OUPUT = 'SET_OUTPUT'
 }
 
 export type TimelineObjVMixAny =
@@ -51,7 +52,8 @@ export type TimelineObjVMixAny =
 	TimelineObjVMixPauseInput |
 	TimelineObjVMixRestartInput |
 	TimelineObjVMixSetPosition |
-	TimelineObjVMixSetInputName
+	TimelineObjVMixSetInputName |
+	TimelineObjVMixSetOutput
 
 export enum TimelineContentTypeVMix {
 	INPUT,
@@ -68,7 +70,8 @@ export enum TimelineContentTypeVMix {
 	PAUSE_INPUT,
 	RESTART_INPUT,
 	SET_POSITION,
-	SET_INPUT_NAME
+	SET_INPUT_NAME,
+	SET_OUTPUT
 }
 export interface TimelineObjVMixBase extends TSRTimelineObjBase {
 	content: {
@@ -193,6 +196,15 @@ export interface TimelineObjVMixSetInputName extends TimelineObjVMixBase {
 		type: TimelineContentTypeVMix.SET_INPUT_NAME
 		input: string
 		name: string
+	}
+}
+
+export interface TimelineObjVMixSetOutput extends TimelineObjVMixBase {
+	content: {
+		deviceType: DeviceType.VMIX
+		type: TimelineContentTypeVMix.SET_OUTPUT
+		name: '2' | '3' | '4' | 'External2' | 'Fullscreen' | 'Fullscreen2'
+		output: string
 	}
 }
 
