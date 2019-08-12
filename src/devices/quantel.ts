@@ -13,7 +13,8 @@ import {
 	MappingQuantel,
 	QuantelOptions,
 	TimelineObjQuantelClip,
-	QuantelControlMode
+	QuantelControlMode,
+	ResolvedTimelineObjectInstanceExtended
 } from '../types/src'
 
 import {
@@ -206,7 +207,14 @@ export class QuantelDevice extends DeviceWithState<QuantelState> {
 
 		_.each(timelineState.layers, (layer: ResolvedTimelineObjectInstance, layerName: string) => {
 
+			const layerExt = layer as ResolvedTimelineObjectInstanceExtended
 			let foundMapping: Mapping = mappings[layerName]
+
+			let isLookahead = false
+			if (!foundMapping && layerExt.isLookahead && layerExt.lookaheadForLayer) {
+				foundMapping = mappings[layerExt.lookaheadForLayer]
+				isLookahead = true
+			}
 
 			if (
 				foundMapping &&
@@ -230,7 +238,10 @@ export class QuantelDevice extends DeviceWithState<QuantelState> {
 						// clipId // set later
 
 						pauseTime: clip.content.pauseTime,
-						playing: clip.content.playing !== undefined ? clip.content.playing : true,
+						playing: (
+							isLookahead ? false :
+							clip.content.playing !== undefined ? clip.content.playing : true
+						),
 
 						inPoint: clip.content.inPoint,
 						length: clip.content.length,
