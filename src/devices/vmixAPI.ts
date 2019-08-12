@@ -153,6 +153,12 @@ export class VMix extends EventEmitter {
 			case VMixCommand.SET_OUPUT:
 				if (command.input && command.value && command.name) this.setOutput(command.name, command.value.toString(), command.input.toString())
 				break
+			case VMixCommand.START_EXTERNAL:
+				this.startExternal()
+				break
+			case VMixCommand.STOP_EXTERNAL:
+				this.stopExternal()
+				break
 			default:
 				return Promise.reject(`Command ${command.command} not implemented`)
 		}
@@ -312,6 +318,14 @@ export class VMix extends EventEmitter {
 
 	public setOutput (name: string, value: string, input?: string) {
 		this.sendCommandFunction(`SetOutput${name}`, { value: value, input: (input ? input : '') })
+	}
+
+	public startExternal () {
+		this.sendCommandFunction(`StartExternal`, {})
+	}
+
+	public stopExternal () {
+		this.sendCommandFunction(`StopExternal`, {})
 	}
 
 	public sendCommandFunction (func: string, args: { input?: string | number, value?: string | number, extra?: string }) {

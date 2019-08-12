@@ -349,6 +349,12 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended> {
 							deviceState.outputs[outputIndex].output = tlObjSetOutput.content.output
 						}
 						break
+					case TimelineContentTypeVMix.START_EXTERNAL:
+						deviceState.reportedState.external = true
+						break
+					case TimelineContentTypeVMix.STOP_EXTERNAL:
+						deviceState.reportedState.external = false
+						break
 				}
 			}
 		})
@@ -559,6 +565,22 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended> {
 			if (newVMixState.reportedState.fadeToBlack) {
 				commands.push({
 					command: VMixCommand.FADE_TO_BLACK,
+					context: null,
+					timelineId: ''
+				})
+			}
+		}
+
+		if (oldVMixState.reportedState.external !== newVMixState.reportedState.external) {
+			if (newVMixState.reportedState.external) {
+				commands.push({
+					command: VMixCommand.START_EXTERNAL,
+					context: null,
+					timelineId: ''
+				})
+			} else {
+				commands.push({
+					command: VMixCommand.STOP_EXTERNAL,
 					context: null,
 					timelineId: ''
 				})
