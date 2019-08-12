@@ -33,7 +33,10 @@ export class DoOnTime extends EventEmitter {
 
 	private _checkQueueTimeout: any = 0
 	private _sendMode: SendMode
-	private _commandsToSendNow: (() => Promise<any>)[] = []
+	private _commandsToSendNow: {
+		[queueId: string]: (() => Promise<any>)[]
+	} = {}
+
 	private _sendingCommands: {
 		[queueId: string]: boolean
 	} = {}
@@ -139,7 +142,8 @@ export class DoOnTime extends EventEmitter {
 			_.each(queue, (o: DoOrder, id: string) => {
 				if (o.time <= now) {
 					o.prepareTime = this.getCurrentTime()
-					this._commandsToSendNow.push(() => {
+					if (!this._commandsToSendNow[queueId]) this._commandsToSendNow[queueId] = []
+					this._commandsToSendNow[queueId].push(() => {
 						try {
 							let startSend = this.getCurrentTime()
 							let endSend: number = 0
@@ -179,7 +183,7 @@ export class DoOnTime extends EventEmitter {
 		this._sendingCommands[queueId] = true
 
 		try {
-			const commandToSend = this._commandsToSendNow.shift()
+			const commandToSend = this._commandsToSendNow[queueId].shift()
 			if (commandToSend) {
 				if (this._sendMode === SendMode.BURST) {
 					// send all at once:
