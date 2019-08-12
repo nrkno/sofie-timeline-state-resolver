@@ -183,6 +183,8 @@ export class DoOnTime extends EventEmitter {
 		this._sendingCommands[queueId] = true
 
 		try {
+			if (!this._commandsToSendNow[queueId]) this._commandsToSendNow[queueId] = []
+
 			const commandToSend = this._commandsToSendNow[queueId].shift()
 			if (commandToSend) {
 				if (this._sendMode === SendMode.BURST) {
