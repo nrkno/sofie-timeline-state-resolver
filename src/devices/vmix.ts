@@ -31,7 +31,8 @@ import {
 	TimelineObjVMixPlayInput,
 	TimelineObjVMixPauseInput,
 	TimelineObjVMixRestartInput,
-	TimelineObjVMixSetPosition
+	TimelineObjVMixSetPosition,
+	TimelineObjVMixSetInputName
 } from '../types/src/vmix'
 
 export interface VMixStateCommand {
@@ -302,6 +303,13 @@ export class VMixDevice extends DeviceWithState<VMixState> {
 							position: tlObjSetPosition.content.position
 						})
 						break
+					case TimelineContentTypeVMix.SET_INPUT_NAME:
+						let tlObjSetInputName = tlObject as any as TimelineObjVMixSetInputName
+						deviceState.inputs = this.modifyInput(deviceState.inputs, {
+							number: Number(tlObjSetInputName.content.input),
+							name: tlObjSetInputName.content.name
+						})
+						break
 				}
 			}
 		})
@@ -442,6 +450,16 @@ export class VMixDevice extends DeviceWithState<VMixState> {
 								command: VMixCommand.AUDIO,
 								input: input.number.toString(),
 								value: input.volume,
+								context: null,
+								timelineId: ''
+							})
+						}
+
+						if (oldInput.name !== input.name) {
+							commands.push({
+								command: VMixCommand.SET_INPUT_NAME,
+								input: input.number.toString(),
+								value: input.name,
 								context: null,
 								timelineId: ''
 							})
