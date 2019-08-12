@@ -29,11 +29,28 @@ export enum VMixCommand {
 	START_RECORDING = 'START_RECORDING',
 	STOP_RECORDING = 'STOP_RECORDING',
 	FADE_TO_BLACK = 'FADE_TO_BLACK',
-	QUICK_PLAY = 'QUICK_PLAY',
-	ADD_INPUT = 'ADD_INPUT'
+	ADD_INPUT = 'ADD_INPUT',
+	PLAY_INPUT = 'PLAY_INPUT',
+	PAUSE_INPUT = 'PAUSE_INPUT',
+	SET_POSITION = 'SET_POSITION'
 }
 
-export type TimelineObjVMixAny = TimelineObjVMixInput | TimelineObjVMixPreview | TimelineObjVMixAudio | TimelineObjVMixFader | TimelineObjVmixStartRecording | TimelineObjVMixStopRecording | TimelineObjVMixStartStreaming | TimelineObjVMixStopStreaming | TimelineObjVMixFadeToBlack | TimelineObjVMixQuickPlay | TimelineObjVMixAddInput
+export type TimelineObjVMixAny =
+	TimelineObjVMixInput |
+	TimelineObjVMixPreview |
+	TimelineObjVMixAudio |
+	TimelineObjVMixFader |
+	TimelineObjVmixStartRecording |
+	TimelineObjVMixStopRecording |
+	TimelineObjVMixStartStreaming |
+	TimelineObjVMixStopStreaming |
+	TimelineObjVMixFadeToBlack |
+	TimelineObjVMixAddInput |
+	TimelineObjVMixPlayInput |
+	TimelineObjVMixPauseInput |
+	TimelineObjVMixRestartInput |
+	TimelineObjVMixSetPosition
+
 export enum TimelineContentTypeVMix {
 	INPUT,
 	PREVIEW,
@@ -44,8 +61,11 @@ export enum TimelineContentTypeVMix {
 	START_RECORDING,
 	STOP_RECORDING,
 	FADE_TO_BLACK,
-	QUICK_PLAY,
-	ADD_INPUT
+	ADD_INPUT,
+	PLAY_INPUT,
+	PAUSE_INPUT,
+	RESTART_INPUT,
+	SET_POSITION
 }
 export interface TimelineObjVMixBase extends TSRTimelineObjBase {
 	content: {
@@ -122,20 +142,45 @@ export interface TimelineObjVMixFadeToBlack extends TimelineObjVMixBase {
 	}
 }
 
-export interface TimelineObjVMixQuickPlay extends TimelineObjVMixBase {
-	content: {
-		deviceType: DeviceType.VMIX
-		type: TimelineContentTypeVMix.QUICK_PLAY
-		input: string
-	}
-}
-
 export interface TimelineObjVMixAddInput extends TimelineObjVMixBase {
 	content: {
 		deviceType: DeviceType.VMIX
 		type: TimelineContentTypeVMix.ADD_INPUT
 		mediaType: VMixInputType
 		filePath: string
+	}
+}
+
+export interface TimelineObjVMixPlayInput extends TimelineObjVMixBase {
+	content: {
+		deviceType: DeviceType.VMIX
+		type: TimelineContentTypeVMix.PLAY_INPUT
+		input: string
+	}
+}
+
+export interface TimelineObjVMixPauseInput extends TimelineObjVMixBase {
+	content: {
+		deviceType: DeviceType.VMIX
+		type: TimelineContentTypeVMix.PAUSE_INPUT
+		input: string
+	}
+}
+
+export interface TimelineObjVMixRestartInput extends TimelineObjVMixBase {
+	content: {
+		deviceType: DeviceType.VMIX
+		type: TimelineContentTypeVMix.RESTART_INPUT
+		input: string
+	}
+}
+
+export interface TimelineObjVMixSetPosition extends TimelineObjVMixBase {
+	content: {
+		deviceType: DeviceType.VMIX
+		type: TimelineContentTypeVMix.SET_POSITION
+		input: string,
+		position: number
 	}
 }
 

@@ -135,11 +135,17 @@ export class VMix extends EventEmitter {
 			case VMixCommand.FADE_TO_BLACK:
 				this.fadeToBlack()
 				break
-			case VMixCommand.QUICK_PLAY:
-				if (command.input) this.quickPlay(command.input.toString())
-				break
 			case VMixCommand.ADD_INPUT:
 				if (command.value) this.addInput(command.value.toString())
+				break
+			case VMixCommand.PLAY_INPUT:
+				if (command.input) this.playInput(command.input.toString())
+				break
+			case VMixCommand.PAUSE_INPUT:
+				if (command.input) this.pauseInput(command.input.toString())
+				break
+			case VMixCommand.SET_POSITION:
+				if (command.input && command.value) this.setPosition(command.input.toString(), command.value.toString())
 				break
 			default:
 				return Promise.reject(`Command ${command.command} not implemented`)
@@ -247,7 +253,7 @@ export class VMix extends EventEmitter {
 	}
 
 	public setAudioLevel (input: string, volume: number) {
-		this.sendCommandFunction(`SetVolume`, { input: input, value: Math.min(Math.max(Number(volume), 0), 100) })
+		this.sendCommandFunction(`SetVolume`, { input: input, value: Math.min(Math.max(volume, 0), 100) })
 	}
 
 	public setFader (position: number) {
@@ -279,8 +285,19 @@ export class VMix extends EventEmitter {
 	}
 
 	public addInput (file: string) {
-		console.log(file)
 		this.sendCommandFunction(`AddInput`, { value: file })
+	}
+
+	public playInput (input: string) {
+		this.sendCommandFunction(`Play`, { input: input })
+	}
+
+	public pauseInput (input: string) {
+		this.sendCommandFunction(`Pause`, { input: input })
+	}
+
+	public setPosition (input: string, value: string) {
+		this.sendCommandFunction(`SetPosition`, { input: input, value: value })
 	}
 
 	public sendCommandFunction (func: string, args: { input?: string | number, value?: string | number, extra?: string }) {
