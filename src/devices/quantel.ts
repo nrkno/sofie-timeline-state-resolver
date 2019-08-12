@@ -604,53 +604,65 @@ class QuantelManager {
 				0
 			)
 		)
+
 		if (
-			trackedPort.jumpOffset &&
-			Math.abs(trackedPort.jumpOffset - jumpToOffset) > JUMP_ERROR_MARGIN
+			alsoDoAction === 'play' &&
+			// trackedPort.offset &&
+			jumpToOffset > trackedPort.offset &&
+			jumpToOffset - trackedPort.offset < JUMP_ERROR_MARGIN
 		) {
-			// It looks like the stored jump is no longer valid
-			// Invalidate stored jump:
-			trackedPort.jumpOffset = null
-		}
-		// Jump the port playhead to the correct place
-		if (trackedPort.jumpOffset !== null) {
-			// Good, there is a prepared jump
-			if (alsoDoAction === 'pause') {
-				// Pause the playback:
-				await this._quantel.portStop(cmd.portId)
-				trackedPort.scheduledStop = null
-				trackedPort.playing = false
-			}
-			// Trigger the jump:
-			await this._quantel.portTriggerJump(cmd.portId)
-			trackedPort.offset = trackedPort.jumpOffset
+			// We're probably a bit late, just start playing
 		} else {
-			// No jump has been prepared
-			if (cmd.mode === QuantelControlMode.QUALITY) {
-				// Prepare a soft jump:
-				await this._quantel.portPrepareJump(cmd.portId, jumpToOffset)
-				trackedPort.jumpOffset = jumpToOffset
 
-				// Allow the server some time to load the clip:
-				await this.wait(SOFT_JUMP_WAIT_TIME) // This is going to
-
+			if (
+				trackedPort.jumpOffset !== null &&
+				Math.abs(trackedPort.jumpOffset - jumpToOffset) > JUMP_ERROR_MARGIN
+			) {
+				// It looks like the stored jump is no longer valid
+				// Invalidate stored jump:
+				trackedPort.jumpOffset = null
+			}
+			// Jump the port playhead to the correct place
+			if (trackedPort.jumpOffset !== null) {
+				// Good, there is a prepared jump
 				if (alsoDoAction === 'pause') {
 					// Pause the playback:
 					await this._quantel.portStop(cmd.portId)
 					trackedPort.scheduledStop = null
 					trackedPort.playing = false
 				}
-
 				// Trigger the jump:
 				await this._quantel.portTriggerJump(cmd.portId)
 				trackedPort.offset = trackedPort.jumpOffset
+			} else {
+				// No jump has been prepared
+				if (cmd.mode === QuantelControlMode.QUALITY) {
 
-			} else { // cmd.mode === QuantelControlMode.SPEED
-				// Just do a hard jump:
-				await this._quantel.portHardJump(cmd.portId, jumpToOffset)
+					// Prepare a soft jump:
+					await this._quantel.portPrepareJump(cmd.portId, jumpToOffset)
+					trackedPort.jumpOffset = jumpToOffset
 
-				trackedPort.offset = jumpToOffset
-				trackedPort.playing = false
+					// Allow the server some time to load the clip:
+					await this.wait(SOFT_JUMP_WAIT_TIME) // This is going to
+
+					if (alsoDoAction === 'pause') {
+						// Pause the playback:
+						await this._quantel.portStop(cmd.portId)
+						trackedPort.scheduledStop = null
+						trackedPort.playing = false
+					}
+
+					// Trigger the jump:
+					await this._quantel.portTriggerJump(cmd.portId)
+					trackedPort.offset = trackedPort.jumpOffset
+
+				} else { // cmd.mode === QuantelControlMode.SPEED
+					// Just do a hard jump:
+					await this._quantel.portHardJump(cmd.portId, jumpToOffset)
+
+					trackedPort.offset = jumpToOffset
+					trackedPort.playing = false
+				}
 			}
 		}
 
