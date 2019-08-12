@@ -194,7 +194,8 @@ export class QuantelDevice extends DeviceWithState<QuantelState> {
 					state.port[qMapping.portId] = {
 						channels: [],
 						timelineObjId: '',
-						mode: qMapping.mode || QuantelControlMode.QUALITY
+						mode: qMapping.mode || QuantelControlMode.QUALITY,
+						lowPriority: false
 					}
 				}
 				const port: QuantelStatePort = state.port[qMapping.portId]
@@ -253,6 +254,7 @@ export class QuantelDevice extends DeviceWithState<QuantelState> {
 							layer.instance.start
 						) || null
 					}
+					if (isLookahead) port.lowPriority = true
 				}
 			}
 		})
@@ -284,7 +286,12 @@ export class QuantelDevice extends DeviceWithState<QuantelState> {
 	}
 
 	private _diffStates (oldState: QuantelState, newState: QuantelState, time: number): Array<QuantelCommand> {
-		const commands: QuantelCommand[] = []
+		const highPrioCommands: QuantelCommand[] = []
+		const lowPrioCommands: QuantelCommand[] = []
+
+		const addCommand = (command: QuantelCommand, lowPriority: boolean) => {
+			(lowPriority ? lowPrioCommands : highPrioCommands).push(command)
+		}
 
 		/** The time of when to run "preparation" commands */
 		const prepareTime = Math.min(
@@ -304,13 +311,14 @@ export class QuantelDevice extends DeviceWithState<QuantelState> {
 			) {
 				const channel = newPort.channels[0] as number | undefined
 				if (channel !== undefined) { // todo: support for multiple channels
-					commands.push({
+					addCommand({
 						type: QuantelCommandType.SETUPPORT,
 						time: prepareTime,
 						portId: portId,
 						timelineObjId: newPort.timelineObjId,
 						channel: channel
-					})
+					}, newPort.lowPriority)
+
 				}
 			}
 
@@ -321,40 +329,40 @@ export class QuantelDevice extends DeviceWithState<QuantelState> {
 				if (newPort.clip) {
 					// Load (and play) the clip:
 
-					commands.push({
+					addCommand({
 						type: QuantelCommandType.LOADCLIPFRAGMENTS,
 						time: prepareTime,
 						portId: portId,
 						timelineObjId: newPort.timelineObjId,
 						clip: newPort.clip,
 						timeOfPlay: time
-					})
+					}, newPort.lowPriority)
 					if (newPort.clip.playing) {
-						commands.push({
+						addCommand({
 							type: QuantelCommandType.PLAYCLIP,
 							time: time,
 							portId: portId,
 							timelineObjId: newPort.timelineObjId,
 							clip: newPort.clip,
 							mode: newPort.mode
-						})
+						}, newPort.lowPriority)
 					} else {
-						commands.push({
+						addCommand({
 							type: QuantelCommandType.PAUSECLIP,
 							time: time,
 							portId: portId,
 							timelineObjId: newPort.timelineObjId,
 							clip: newPort.clip,
 							mode: newPort.mode
-						})
+						}, newPort.lowPriority)
 					}
 				} else {
-					commands.push({
+					addCommand({
 						type: QuantelCommandType.CLEARCLIP,
 						time: time,
 						portId: portId,
 						timelineObjId: newPort.timelineObjId
-					})
+					}, newPort.lowPriority)
 				}
 			}
 		})
@@ -363,16 +371,16 @@ export class QuantelDevice extends DeviceWithState<QuantelState> {
 			const newPort = newState.port[portId]
 			if (!newPort) {
 				// removed port
-				commands.push({
+				addCommand({
 					type: QuantelCommandType.RELEASEPORT,
 					time: prepareTime,
 					portId: portId,
 					timelineObjId: oldPort.timelineObjId
-				})
+				}, oldPort.lowPriority)
 			}
 		})
 
-		return commands
+		return highPrioCommands.concat(lowPrioCommands)
 	}
 	private _doCommand (command: QuantelCommand, context: string, timlineObjId: string): Promise<void> {
 		let time = this.getCurrentTime()
@@ -823,6 +831,8 @@ interface QuantelStatePort {
 	timelineObjId: string
 	clip?: QuantelStatePortClip
 	mode: QuantelControlMode
+
+	lowPriority: boolean
 
 	channels: number[]
 }
