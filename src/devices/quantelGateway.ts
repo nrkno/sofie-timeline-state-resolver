@@ -286,7 +286,8 @@ export class QuantelGateway extends EventEmitter {
 
 		if (
 			this._isAnErrorResponse(response) &&
-			response.status === 599 // toto: determine 5xx code need to call connect first
+			response.status === 502 && //
+			(response.message + '').match(/first provide a quantel isa/i) // First provide a Quantel ISA connection URL (e.g. POST to /connect)
 		) {
 			await this.connectToISA()
 			 // Then try again:
@@ -358,9 +359,9 @@ export class QuantelGateway extends EventEmitter {
 	/**
 	 * If the response is an error, instead throw the error instead of returning it
 	 */
-	private async _ensureGoodResponse<T extends Promise<any>> (pResponse: T): Promise<T>
-	private async _ensureGoodResponse<T extends Promise<any>> (pResponse: T, if404ThenNull: true): Promise<T | null>
-	private async _ensureGoodResponse<T extends Promise<any>> (pResponse: T, if404ThenNull?: boolean): Promise<T | null> {
+	private async _ensureGoodResponse<T extends Promise<any>> (pResponse: T): Promise<T | QuantelErrorResponse>
+	private async _ensureGoodResponse<T extends Promise<any>> (pResponse: T, if404ThenNull: true): Promise<T | QuantelErrorResponse | null>
+	private async _ensureGoodResponse<T extends Promise<any>> (pResponse: T, if404ThenNull?: boolean): Promise<T | QuantelErrorResponse | null> {
 		const response = await Promise.resolve(pResponse) // Wrapped in Promise.resolve due to for some reason, tslint doen't understand that pResponse is a Promise
 		if (
 			this._isAnErrorResponse(response)
@@ -380,8 +381,8 @@ export class QuantelGateway extends EventEmitter {
 		}
 		return response
 	}
-	private _isAnErrorResponse (response: any): boolean {
-		return (
+	private _isAnErrorResponse (response: any): response is QuantelErrorResponse {
+		return !!(
 			response &&
 			_.isObject(response) &&
 			response.status &&
@@ -392,6 +393,11 @@ export class QuantelGateway extends EventEmitter {
 		)
 	}
 }
+export interface QuantelErrorResponse {
+	status: number
+	message: string
+	stack: string
+}
 type QueryParameters = {[key: string]: string | number | undefined}
 type Methods = 'post' | 'get' | 'put' | 'delete'
 
@@ -399,7 +405,7 @@ export type Optional<T> = {
 	[K in keyof T]?: T[K]
 }
 export type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>
-interface ClipSearchQuery {
+export interface ClipSearchQuery {
 	/** Limit the maximum number of clips returned */
 	limit?: number
 	// clip properties
@@ -449,7 +455,7 @@ interface ClipSearchQuery {
 }
 // Note: These typings are a copied from https://github.com/nrkno/tv-automation-quantel-gateway
 export namespace Q {
-	type DateString = string // it's a string with an ISO-date in it
+	export type DateString = string // it's a string with an ISO-date in it
 
 	export interface ZoneInfo {
 		type: 'ZonePortal'
@@ -587,7 +593,7 @@ export namespace Q {
 		NoteFragment |
 		EffectFragment
 
-	interface PositionData extends ServerFragment {
+	export interface PositionData extends ServerFragment {
 		rushID: string
 		format: number
 		poolID: number
