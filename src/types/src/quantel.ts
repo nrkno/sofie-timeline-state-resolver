@@ -65,5 +65,21 @@ export interface TimelineObjQuantelClip extends TSRTimelineObjBase {
 		/** If true, the startTime won't be used to SEEK to the correct place in the media */
 		noStarttime?: boolean
 
+		// inTransition?: QuantelTransition
+		outTransition?: QuantelOutTransition
+
 	}
+}
+export type QuantelOutTransition = QuantelTransitionDelay
+export interface QuantelTransitionBase {
+	type: QuantelTransitionType
+}
+export enum QuantelTransitionType {
+	DELAY = 0
+}
+export interface QuantelTransitionDelay {
+	type: QuantelTransitionType.DELAY
+
+	// For how long to delay the stop (ms)
+	delay: number
 }
