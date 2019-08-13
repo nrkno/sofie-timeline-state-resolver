@@ -13,7 +13,8 @@ import {
 	MappingQuantel,
 	QuantelOptions,
 	TimelineObjQuantelClip,
-	QuantelControlMode
+	QuantelControlMode,
+	ResolvedTimelineObjectInstanceExtended
 } from '../types/src'
 
 import {
@@ -193,7 +194,8 @@ export class QuantelDevice extends DeviceWithState<QuantelState> {
 					state.port[qMapping.portId] = {
 						channels: [],
 						timelineObjId: '',
-						mode: qMapping.mode || QuantelControlMode.QUALITY
+						mode: qMapping.mode || QuantelControlMode.QUALITY,
+						lowPriority: false
 					}
 				}
 				const port: QuantelStatePort = state.port[qMapping.portId]
@@ -206,7 +208,14 @@ export class QuantelDevice extends DeviceWithState<QuantelState> {
 
 		_.each(timelineState.layers, (layer: ResolvedTimelineObjectInstance, layerName: string) => {
 
+			const layerExt = layer as ResolvedTimelineObjectInstanceExtended
 			let foundMapping: Mapping = mappings[layerName]
+
+			let isLookahead = false
+			if (!foundMapping && layerExt.isLookahead && layerExt.lookaheadForLayer) {
+				foundMapping = mappings[layerExt.lookaheadForLayer]
+				isLookahead = true
+			}
 
 			if (
 				foundMapping &&
@@ -220,16 +229,20 @@ export class QuantelDevice extends DeviceWithState<QuantelState> {
 				const port: QuantelStatePort = state.port[mapping.portId]
 				if (!port) throw new Error(`Port "${mapping.portId}" not found`)
 
-				if (layer.content && layer.content.title) {
+				if (layer.content && (layer.content.title || layer.content.guid)) {
 					const clip = layer as any as TimelineObjQuantelClip
 
 					port.timelineObjId = layer.id
 					port.clip = {
 						title: clip.content.title,
+						guid: clip.content.guid,
 						// clipId // set later
 
 						pauseTime: clip.content.pauseTime,
-						playing: clip.content.playing !== undefined ? clip.content.playing : true,
+						playing: (
+							isLookahead ? false :
+							clip.content.playing !== undefined ? clip.content.playing : true
+						),
 
 						inPoint: clip.content.inPoint,
 						length: clip.content.length,
@@ -241,6 +254,7 @@ export class QuantelDevice extends DeviceWithState<QuantelState> {
 							layer.instance.start
 						) || null
 					}
+					if (isLookahead) port.lowPriority = true
 				}
 			}
 		})
@@ -272,7 +286,12 @@ export class QuantelDevice extends DeviceWithState<QuantelState> {
 	}
 
 	private _diffStates (oldState: QuantelState, newState: QuantelState, time: number): Array<QuantelCommand> {
-		const commands: QuantelCommand[] = []
+		const highPrioCommands: QuantelCommand[] = []
+		const lowPrioCommands: QuantelCommand[] = []
+
+		const addCommand = (command: QuantelCommand, lowPriority: boolean) => {
+			(lowPriority ? lowPrioCommands : highPrioCommands).push(command)
+		}
 
 		/** The time of when to run "preparation" commands */
 		const prepareTime = Math.min(
@@ -290,15 +309,16 @@ export class QuantelDevice extends DeviceWithState<QuantelState> {
 				!oldPort ||
 				!_.isEqual(newPort.channels, oldPort.channels)
 			) {
-				const channel: number = newPort.channels[0]
-				if (channel) { // todo: support for multiple channels
-					commands.push({
+				const channel = newPort.channels[0] as number | undefined
+				if (channel !== undefined) { // todo: support for multiple channels
+					addCommand({
 						type: QuantelCommandType.SETUPPORT,
 						time: prepareTime,
 						portId: portId,
 						timelineObjId: newPort.timelineObjId,
 						channel: channel
-					})
+					}, newPort.lowPriority)
+
 				}
 			}
 
@@ -309,40 +329,40 @@ export class QuantelDevice extends DeviceWithState<QuantelState> {
 				if (newPort.clip) {
 					// Load (and play) the clip:
 
-					commands.push({
+					addCommand({
 						type: QuantelCommandType.LOADCLIPFRAGMENTS,
 						time: prepareTime,
 						portId: portId,
 						timelineObjId: newPort.timelineObjId,
 						clip: newPort.clip,
 						timeOfPlay: time
-					})
+					}, newPort.lowPriority)
 					if (newPort.clip.playing) {
-						commands.push({
+						addCommand({
 							type: QuantelCommandType.PLAYCLIP,
 							time: time,
 							portId: portId,
 							timelineObjId: newPort.timelineObjId,
 							clip: newPort.clip,
 							mode: newPort.mode
-						})
+						}, newPort.lowPriority)
 					} else {
-						commands.push({
+						addCommand({
 							type: QuantelCommandType.PAUSECLIP,
 							time: time,
 							portId: portId,
 							timelineObjId: newPort.timelineObjId,
 							clip: newPort.clip,
 							mode: newPort.mode
-						})
+						}, newPort.lowPriority)
 					}
 				} else {
-					commands.push({
+					addCommand({
 						type: QuantelCommandType.CLEARCLIP,
 						time: time,
 						portId: portId,
 						timelineObjId: newPort.timelineObjId
-					})
+					}, newPort.lowPriority)
 				}
 			}
 		})
@@ -351,16 +371,16 @@ export class QuantelDevice extends DeviceWithState<QuantelState> {
 			const newPort = newState.port[portId]
 			if (!newPort) {
 				// removed port
-				commands.push({
+				addCommand({
 					type: QuantelCommandType.RELEASEPORT,
 					time: prepareTime,
 					portId: portId,
 					timelineObjId: oldPort.timelineObjId
-				})
+				}, oldPort.lowPriority)
 			}
 		})
 
-		return commands
+		return highPrioCommands.concat(lowPrioCommands)
 	}
 	private _doCommand (command: QuantelCommand, context: string, timlineObjId: string): Promise<void> {
 		let time = this.getCurrentTime()
@@ -428,7 +448,6 @@ export class QuantelDevice extends DeviceWithState<QuantelState> {
 }
 class QuantelManager {
 	private _quantelState: QuantelTrackedState = {
-		clipId: {},
 		port: {}
 	}
 	private _cache = new Cache()
@@ -604,53 +623,65 @@ class QuantelManager {
 				0
 			)
 		)
+
 		if (
-			trackedPort.jumpOffset &&
-			Math.abs(trackedPort.jumpOffset - jumpToOffset) > JUMP_ERROR_MARGIN
+			alsoDoAction === 'play' &&
+			// trackedPort.offset &&
+			jumpToOffset > trackedPort.offset &&
+			jumpToOffset - trackedPort.offset < JUMP_ERROR_MARGIN
 		) {
-			// It looks like the stored jump is no longer valid
-			// Invalidate stored jump:
-			trackedPort.jumpOffset = null
-		}
-		// Jump the port playhead to the correct place
-		if (trackedPort.jumpOffset !== null) {
-			// Good, there is a prepared jump
-			if (alsoDoAction === 'pause') {
-				// Pause the playback:
-				await this._quantel.portStop(cmd.portId)
-				trackedPort.scheduledStop = null
-				trackedPort.playing = false
-			}
-			// Trigger the jump:
-			await this._quantel.portTriggerJump(cmd.portId)
-			trackedPort.offset = trackedPort.jumpOffset
+			// We're probably a bit late, just start playing
 		} else {
-			// No jump has been prepared
-			if (cmd.mode === QuantelControlMode.QUALITY) {
-				// Prepare a soft jump:
-				await this._quantel.portPrepareJump(cmd.portId, jumpToOffset)
-				trackedPort.jumpOffset = jumpToOffset
 
-				// Allow the server some time to load the clip:
-				await this.wait(SOFT_JUMP_WAIT_TIME) // This is going to
-
+			if (
+				trackedPort.jumpOffset !== null &&
+				Math.abs(trackedPort.jumpOffset - jumpToOffset) > JUMP_ERROR_MARGIN
+			) {
+				// It looks like the stored jump is no longer valid
+				// Invalidate stored jump:
+				trackedPort.jumpOffset = null
+			}
+			// Jump the port playhead to the correct place
+			if (trackedPort.jumpOffset !== null) {
+				// Good, there is a prepared jump
 				if (alsoDoAction === 'pause') {
 					// Pause the playback:
 					await this._quantel.portStop(cmd.portId)
 					trackedPort.scheduledStop = null
 					trackedPort.playing = false
 				}
-
 				// Trigger the jump:
 				await this._quantel.portTriggerJump(cmd.portId)
 				trackedPort.offset = trackedPort.jumpOffset
+			} else {
+				// No jump has been prepared
+				if (cmd.mode === QuantelControlMode.QUALITY) {
 
-			} else { // cmd.mode === QuantelControlMode.SPEED
-				// Just do a hard jump:
-				await this._quantel.portHardJump(cmd.portId, jumpToOffset)
+					// Prepare a soft jump:
+					await this._quantel.portPrepareJump(cmd.portId, jumpToOffset)
+					trackedPort.jumpOffset = jumpToOffset
 
-				trackedPort.offset = jumpToOffset
-				trackedPort.playing = false
+					// Allow the server some time to load the clip:
+					await this.wait(SOFT_JUMP_WAIT_TIME) // This is going to
+
+					if (alsoDoAction === 'pause') {
+						// Pause the playback:
+						await this._quantel.portStop(cmd.portId)
+						trackedPort.scheduledStop = null
+						trackedPort.playing = false
+					}
+
+					// Trigger the jump:
+					await this._quantel.portTriggerJump(cmd.portId)
+					trackedPort.offset = trackedPort.jumpOffset
+
+				} else { // cmd.mode === QuantelControlMode.SPEED
+					// Just do a hard jump:
+					await this._quantel.portHardJump(cmd.portId, jumpToOffset)
+
+					trackedPort.offset = jumpToOffset
+					trackedPort.playing = false
+				}
 			}
 		}
 
@@ -687,15 +718,15 @@ class QuantelManager {
 	private async getClipId (clip: QuantelStatePortClip): Promise<number> {
 		let clipId = clip.clipId
 
-		if (!clipId && clip.title) {
-
-			clipId = await this._cache.getSet(`clip.${clip.title}.clipId`, async () => {
+		// console.log('try getClipId', clip)
+		if (!clipId && clip.guid) {
+			clipId = await this._cache.getSet(`clip.guid.${clip.guid}.clipId`, async () => {
 
 				const server = await this.getServer()
 
 				// Look up the clip:
 				const foundClips = await this._quantel.searchClip({
-					Title: clip.title
+					ClipGUID: `"${clip.guid}"`
 				})
 				const foundClip = _.find(foundClips, (clip) => {
 					return (
@@ -703,15 +734,29 @@ class QuantelManager {
 						(server.pools || []).indexOf(clip.PoolID) !== -1
 					)
 				})
-				if (!foundClip) throw new Error(`Clip "${clip.title}" not found on server (${server.ident})`)
+				if (!foundClip) throw new Error(`Clip with GUID "${clip.guid}" not found on server (${server.ident})`)
+				return foundClip.ClipID
+			})
+		} else if (!clipId && clip.title) {
+			clipId = await this._cache.getSet(`clip.title.${clip.title}.clipId`, async () => {
 
-				// Store to tracked state:
-				this._quantelState.clipId[clip.title] = foundClip.ClipID
+				const server = await this.getServer()
 
+				// Look up the clip:
+				const foundClips = await this._quantel.searchClip({
+					Title: `"${clip.title}"`
+				})
+				const foundClip = _.find(foundClips, (clip) => {
+					return (
+						clip.PoolID &&
+						(server.pools || []).indexOf(clip.PoolID) !== -1
+					)
+				})
+				if (!foundClip) throw new Error(`Clip with Title "${clip.title}" not found on server (${server.ident})`)
 				return foundClip.ClipID
 			})
 		}
-		if (!clipId) throw new Error(`Unable to determine clipId for clip '${clip.title}'`)
+		if (!clipId) throw new Error(`Unable to determine clipId for clip "${clip.title || clip.guid}"`)
 
 		return clipId
 	}
@@ -787,10 +832,14 @@ interface QuantelStatePort {
 	clip?: QuantelStatePortClip
 	mode: QuantelControlMode
 
+	lowPriority: boolean
+
 	channels: number[]
 }
 interface QuantelStatePortClip {
-	title: string
+	title?: string
+	guid?: string
+
 	clipId?: number
 
 	playing: boolean
@@ -852,9 +901,6 @@ type QuantelCommand = QuantelCommandSetupPort |
 
 /** Tracked state of an ISA-Zone-Server entity */
 interface QuantelTrackedState {
-	clipId: {
-		[title: string]: number
-	}
 	port: {
 		[portId: string]: QuantelTrackedStatePort
 	}

@@ -50,8 +50,11 @@ export class QuantelGateway extends EventEmitter {
 
 		this._initialized = true
 	}
-	public async connectToISA (ISAUrl: string) {
-		this._ISAUrl = ISAUrl.replace(/^https?:\/\//, '') // trim any https://
+	public async connectToISA (ISAUrl?: string) {
+		if (ISAUrl) {
+			this._ISAUrl = ISAUrl.replace(/^https?:\/\//, '') // trim any https://
+		}
+		if (!this._ISAUrl) throw new Error('Quantel connectToIsa: ISAUrl not set!')
 		return this._ensureGoodResponse(this.sendRaw('post', `connect/${encodeURIComponent(this._ISAUrl) }`))
 	}
 	public dispose () {
@@ -267,7 +270,37 @@ export class QuantelGateway extends EventEmitter {
 	// 		)
 	// 	})
 	// }
-	private sendRaw (
+	private async sendRaw (
+		method: Methods,
+		resource: string,
+		queryParameters?: QueryParameters,
+		bodyData?: object
+	): Promise<any> {
+
+		const response = await this.sendRawInner(
+			method,
+			resource,
+			queryParameters,
+			bodyData
+		)
+
+		if (
+			this._isAnErrorResponse(response) &&
+			response.status === 599 // toto: determine 5xx code need to call connect first
+		) {
+			await this.connectToISA()
+			 // Then try again:
+			return this.sendRawInner(
+				method,
+				resource,
+				queryParameters,
+				bodyData
+			)
+		} else {
+			return response
+		}
+	}
+	private sendRawInner (
 		method: Methods,
 		resource: string,
 		queryParameters?: QueryParameters,
@@ -330,13 +363,7 @@ export class QuantelGateway extends EventEmitter {
 	private async _ensureGoodResponse<T extends Promise<any>> (pResponse: T, if404ThenNull?: boolean): Promise<T | null> {
 		const response = await Promise.resolve(pResponse) // Wrapped in Promise.resolve due to for some reason, tslint doen't understand that pResponse is a Promise
 		if (
-			response &&
-			_.isObject(response) &&
-			response.status &&
-			_.isNumber(response.status) &&
-			_.isString(response.message) &&
-			_.isString(response.stack) &&
-			response.status !== 200
+			this._isAnErrorResponse(response)
 		) {
 			if (response.status === 404) {
 				if (if404ThenNull) {
@@ -352,6 +379,17 @@ export class QuantelGateway extends EventEmitter {
 			}
 		}
 		return response
+	}
+	private _isAnErrorResponse (response: any): boolean {
+		return (
+			response &&
+			_.isObject(response) &&
+			response.status &&
+			_.isNumber(response.status) &&
+			_.isString(response.message) &&
+			_.isString(response.stack) &&
+			response.status !== 200
+		)
 	}
 }
 type QueryParameters = {[key: string]: string | number | undefined}
