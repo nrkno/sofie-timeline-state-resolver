@@ -399,7 +399,7 @@ export type Optional<T> = {
 	[K in keyof T]?: T[K]
 }
 export type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>
-interface ClipSearchQuery {
+export interface ClipSearchQuery {
 	/** Limit the maximum number of clips returned */
 	limit?: number
 	// clip properties
@@ -449,7 +449,7 @@ interface ClipSearchQuery {
 }
 // Note: These typings are a copied from https://github.com/nrkno/tv-automation-quantel-gateway
 export namespace Q {
-	type DateString = string // it's a string with an ISO-date in it
+	export type DateString = string // it's a string with an ISO-date in it
 
 	export interface ZoneInfo {
 		type: 'ZonePortal'
@@ -587,7 +587,7 @@ export namespace Q {
 		NoteFragment |
 		EffectFragment
 
-	interface PositionData extends ServerFragment {
+	export interface PositionData extends ServerFragment {
 		rushID: string
 		format: number
 		poolID: number
