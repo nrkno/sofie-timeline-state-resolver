@@ -159,6 +159,15 @@ export class VMix extends EventEmitter {
 			case VMixCommand.STOP_EXTERNAL:
 				this.stopExternal()
 				break
+			case VMixCommand.OVERLAY_INPUT_IN:
+				if (command.input && command.value) this.overlayInputIn(command.value.toString(), command.input.toString())
+				break
+			case VMixCommand.OVERLAY_INPUT_OUT:
+				if (command.value) this.overlayInputOut(command.value.toString())
+				break
+			case VMixCommand.OVERLAY_INPUT_OFF:
+				if (command.value) this.overlayInputOff(command.value.toString())
+				break
 			default:
 				return Promise.reject(`Command ${command.command} not implemented`)
 		}
@@ -207,7 +216,12 @@ export class VMix extends EventEmitter {
 					content: input['_text']
 				} as VMixInput
 			}),
-			overlays: [], // TODO: Need some examples from vmix
+			overlays: (xml['vmix']['overlays']['overlay'] as Array<any>).map(overlay => {
+				return {
+					number: Number(overlay['_attributes']['number']),
+					input: overlay['_text'] ? overlay['_text'] : ''
+				}
+			}),
 			preview: xml['vmix']['preview']['_text'],
 			active: xml['vmix']['active']['_text'],
 			fadeToBlack: (xml['vmix']['fadeToBlack']['_text'] === 'True') ? true : false,
@@ -326,6 +340,18 @@ export class VMix extends EventEmitter {
 
 	public stopExternal () {
 		this.sendCommandFunction(`StopExternal`, {})
+	}
+
+	public overlayInputIn (name: string, input: string) {
+		this.sendCommandFunction(`OverlayInput${name}In`, { input: input })
+	}
+
+	public overlayInputOut (name: string) {
+		this.sendCommandFunction(`OverlayInput${name}Out`, {})
+	}
+
+	public overlayInputOff (name: string) {
+		this.sendCommandFunction(`OverlayInput${name}Off`, {})
 	}
 
 	public sendCommandFunction (func: string, args: { input?: string | number, value?: string | number, extra?: string }) {

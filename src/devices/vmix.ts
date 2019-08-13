@@ -33,7 +33,8 @@ import {
 	TimelineObjVMixRestartInput,
 	TimelineObjVMixSetPosition,
 	TimelineObjVMixSetInputName,
-	TimelineObjVMixSetOutput
+	TimelineObjVMixSetOutput,
+	TimelineObjVMixOverlayInputIn
 } from '../types/src/vmix'
 
 export interface VMixStateCommand {
@@ -355,6 +356,27 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended> {
 					case TimelineContentTypeVMix.STOP_EXTERNAL:
 						deviceState.reportedState.external = false
 						break
+					case TimelineContentTypeVMix.OVERLAY_INPUT_IN:
+						let tlObjOverlayInputIn = tlObject as any as TimelineObjVMixOverlayInputIn
+						let overlayInIndex = deviceState.reportedState.overlays.findIndex(overlay => overlay.number === tlObjOverlayInputIn.content.overlay)
+						if (overlayInIndex !== -1) {
+							deviceState.reportedState.overlays[overlayInIndex].input = tlObjOverlayInputIn.content.input
+						}
+						break
+					case TimelineContentTypeVMix.OVERLAY_INPUT_OUT:
+						let tlObjOverlayInputOut = tlObject as any as TimelineObjVMixOverlayInputIn
+						let overlayOutIndex = deviceState.reportedState.overlays.findIndex(overlay => overlay.number === tlObjOverlayInputOut.content.overlay)
+						if (overlayOutIndex !== -1) {
+							deviceState.reportedState.overlays[overlayOutIndex].input = '__OUT__'
+						}
+						break
+					case TimelineContentTypeVMix.OVERLAY_INPUT_OFF:
+						let tlObjOverlayInputOff = tlObject as any as TimelineObjVMixOverlayInputIn
+						let overlayOffIndex = deviceState.reportedState.overlays.findIndex(overlay => overlay.number === tlObjOverlayInputOff.content.overlay)
+						if (overlayOffIndex !== -1) {
+							deviceState.reportedState.overlays[overlayOffIndex].input = '__OFF__'
+						}
+						break
 				}
 			}
 		})
@@ -505,6 +527,40 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended> {
 								command: VMixCommand.SET_INPUT_NAME,
 								input: input.number.toString(),
 								value: input.name,
+								context: null,
+								timelineId: ''
+							})
+						}
+					}
+				}
+			})
+		}
+
+		if (!_.isEqual(oldVMixState.reportedState.overlays, newVMixState.reportedState.overlays)) {
+			_.difference(newVMixState.reportedState.overlays, oldVMixState.reportedState.overlays)
+			.forEach(overlay => {
+				let oldOverlay = oldVMixState.reportedState.overlays.findIndex(ovr => ovr.number === overlay.number)
+				if (oldOverlay !== -1) {
+					if (oldVMixState.reportedState.overlays[oldOverlay].input !== overlay.input) {
+						if (overlay.input === '__OUT__') {
+							commands.push({
+								command: VMixCommand.OVERLAY_INPUT_OUT,
+								value: overlay.number,
+								context: null,
+								timelineId: ''
+							})
+						} else if (overlay.input === '__OFF__') {
+							commands.push({
+								command: VMixCommand.OVERLAY_INPUT_OFF,
+								value: overlay.number,
+								context: null,
+								timelineId: ''
+							})
+						} else {
+							commands.push({
+								command: VMixCommand.OVERLAY_INPUT_IN,
+								value: overlay.number,
+								input: overlay.input,
 								context: null,
 								timelineId: ''
 							})
@@ -681,8 +737,8 @@ export interface VMixInput {
 }
 
 export interface VMixOverlays {
-	number: string
-	key: string
+	number: number
+	input: string
 }
 
 export interface VMixTransition {

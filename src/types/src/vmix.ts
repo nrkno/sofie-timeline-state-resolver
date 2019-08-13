@@ -36,7 +36,10 @@ export enum VMixCommand {
 	SET_INPUT_NAME = 'SET_INPUT_NAME',
 	SET_OUPUT = 'SET_OUTPUT',
 	START_EXTERNAL = 'START_EXTERNAL',
-	STOP_EXTERNAL = 'STOP_EXTERNAL'
+	STOP_EXTERNAL = 'STOP_EXTERNAL',
+	OVERLAY_INPUT_IN = 'OVERLAY_INPUT_IN',
+	OVERLAY_INPUT_OUT = 'OVERLAY_INPUT_OUT',
+	OVERLAY_INPUT_OFF = 'OVERLAY_INPUT_OFF'
 }
 
 export type TimelineObjVMixAny =
@@ -57,7 +60,10 @@ export type TimelineObjVMixAny =
 	TimelineObjVMixSetInputName |
 	TimelineObjVMixSetOutput |
 	TimelineObjVMixStartExternal |
-	TimelineObjVMixStopExternal
+	TimelineObjVMixStopExternal |
+	TimelineObjVMixOverlayInputIn |
+	TimelineObjVMixOverlayInputOut |
+	TimelineObjVMixOverlayInputOFF
 
 export enum TimelineContentTypeVMix {
 	INPUT,
@@ -77,7 +83,10 @@ export enum TimelineContentTypeVMix {
 	SET_INPUT_NAME,
 	SET_OUTPUT,
 	START_EXTERNAL,
-	STOP_EXTERNAL
+	STOP_EXTERNAL,
+	OVERLAY_INPUT_IN,
+	OVERLAY_INPUT_OUT,
+	OVERLAY_INPUT_OFF
 }
 export interface TimelineObjVMixBase extends TSRTimelineObjBase {
 	content: {
@@ -225,6 +234,31 @@ export interface TimelineObjVMixStopExternal extends TimelineObjVMixBase {
 	content: {
 		deviceType: DeviceType.VMIX,
 		type: TimelineContentTypeVMix.STOP_EXTERNAL
+	}
+}
+
+export interface TimelineObjVMixOverlayInputIn extends TimelineObjVMixBase {
+	content: {
+		deviceType: DeviceType.VMIX,
+		type: TimelineContentTypeVMix.OVERLAY_INPUT_IN
+		overlay: 1 | 2 | 3 | 4 | 5 | 6
+		input: string
+	}
+}
+
+export interface TimelineObjVMixOverlayInputOut extends TimelineObjVMixBase {
+	content: {
+		deviceType: DeviceType.VMIX,
+		type: TimelineContentTypeVMix.OVERLAY_INPUT_OUT
+		overlay: 1 | 2 | 3 | 4 | 5 | 6
+	}
+}
+
+export interface TimelineObjVMixOverlayInputOFF extends TimelineObjVMixBase {
+	content: {
+		deviceType: DeviceType.VMIX,
+		type: TimelineContentTypeVMix.OVERLAY_INPUT_OFF
+		overlay: 1 | 2 | 3 | 4 | 5 | 6
 	}
 }
 
