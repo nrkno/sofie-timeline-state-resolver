@@ -34,7 +34,9 @@ import {
 	TimelineObjVMixSetPosition,
 	TimelineObjVMixSetInputName,
 	TimelineObjVMixSetOutput,
-	TimelineObjVMixOverlayInputIn
+	TimelineObjVMixOverlayInputIn,
+	TimelineObjVMixPlayClip,
+	TimelineObjVMixStopClip
 } from '../types/src/vmix'
 
 export interface VMixStateCommand {
@@ -375,6 +377,22 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended> {
 						let overlayOffIndex = deviceState.reportedState.overlays.findIndex(overlay => overlay.number === tlObjOverlayInputOff.content.overlay)
 						if (overlayOffIndex !== -1) {
 							deviceState.reportedState.overlays[overlayOffIndex].input = '__OFF__'
+						}
+						break
+					case TimelineContentTypeVMix.PLAY_CLIP:
+						let tlObjPlayClip = tlObject as any as TimelineObjVMixPlayClip
+						let inputIndexPlayClip = deviceState.reportedState.inputs.findIndex(input => input.title === tlObjPlayClip.content.clipName)
+						if (inputIndexPlayClip !== -1) {
+							deviceState.reportedState.inputs[inputIndexPlayClip].state = 'Running'
+							deviceState.reportedState.inputs[inputIndexPlayClip].position = 0
+						}
+						break
+					case TimelineContentTypeVMix.STOP_CLIP:
+						let tlObjStopClip = tlObject as any as TimelineObjVMixStopClip
+						let inputIndexStopClip = deviceState.reportedState.inputs.findIndex(input => input.title === tlObjStopClip.content.clipName)
+						if (inputIndexStopClip !== -1) {
+							deviceState.reportedState.inputs[inputIndexStopClip].state = 'Paused'
+							deviceState.reportedState.inputs[inputIndexStopClip].position = 0
 						}
 						break
 				}

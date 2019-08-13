@@ -39,7 +39,9 @@ export enum VMixCommand {
 	STOP_EXTERNAL = 'STOP_EXTERNAL',
 	OVERLAY_INPUT_IN = 'OVERLAY_INPUT_IN',
 	OVERLAY_INPUT_OUT = 'OVERLAY_INPUT_OUT',
-	OVERLAY_INPUT_OFF = 'OVERLAY_INPUT_OFF'
+	OVERLAY_INPUT_OFF = 'OVERLAY_INPUT_OFF',
+	PLAY_CLIP = 'PLAY_CLIP',
+	STOP_CLIP = 'STOP_CLIP'
 }
 
 export type TimelineObjVMixAny =
@@ -63,7 +65,9 @@ export type TimelineObjVMixAny =
 	TimelineObjVMixStopExternal |
 	TimelineObjVMixOverlayInputIn |
 	TimelineObjVMixOverlayInputOut |
-	TimelineObjVMixOverlayInputOFF
+	TimelineObjVMixOverlayInputOFF |
+	TimelineObjVMixPlayClip |
+	TimelineObjVMixStopClip
 
 export enum TimelineContentTypeVMix {
 	INPUT,
@@ -86,7 +90,9 @@ export enum TimelineContentTypeVMix {
 	STOP_EXTERNAL,
 	OVERLAY_INPUT_IN,
 	OVERLAY_INPUT_OUT,
-	OVERLAY_INPUT_OFF
+	OVERLAY_INPUT_OFF,
+	PLAY_CLIP,
+	STOP_CLIP
 }
 export interface TimelineObjVMixBase extends TSRTimelineObjBase {
 	content: {
@@ -259,6 +265,22 @@ export interface TimelineObjVMixOverlayInputOFF extends TimelineObjVMixBase {
 		deviceType: DeviceType.VMIX,
 		type: TimelineContentTypeVMix.OVERLAY_INPUT_OFF
 		overlay: 1 | 2 | 3 | 4 | 5 | 6
+	}
+}
+
+export interface TimelineObjVMixPlayClip extends TimelineObjVMixBase {
+	content: {
+		deviceType: DeviceType.VMIX
+		type: TimelineContentTypeVMix.PLAY_CLIP
+		clipName: string
+	}
+}
+
+export interface TimelineObjVMixStopClip extends TimelineObjVMixBase {
+	content: {
+		deviceType: DeviceType.VMIX,
+		type: TimelineContentTypeVMix.STOP_CLIP
+		clipName: string
 	}
 }
 
