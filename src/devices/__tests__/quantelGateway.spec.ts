@@ -127,7 +127,7 @@ describe('QuantelGateway', () => {
 		})
 		const portId = portInfo.portName
 
-		const clipsSummary = await quantel.searchClip({ Title: 'Test0' })
+		const clipsSummary = await quantel.searchClip({ Title: '"Test0"' })
 		expect(clipsSummary).toHaveLength(1)
 		const clipSummary = clipsSummary[0]
 

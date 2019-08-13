@@ -42,8 +42,11 @@ export interface TimelineObjQuantelClip extends TSRTimelineObjBase {
 	content: {
 		deviceType: DeviceType.QUANTEL
 
-		/** The title of the clip to be played (example: 'AMB') */
-		title: string
+		/** The title of the clip to be played (example: 'AMB'), either this or guid must be provided */
+		title?: string
+
+		/** The GUID of the clip to be played, either this or title must be provided */
+		guid?: string
 
 		/** The point where the file starts playing [milliseconds from start of file] */
 		seek?: number
