@@ -36,7 +36,8 @@ import {
 	TimelineObjVMixSetOutput,
 	TimelineObjVMixOverlayInputIn,
 	TimelineObjVMixPlayClip,
-	TimelineObjVMixStopClip
+	TimelineObjVMixStopClip,
+	VMixInputType
 } from '../types/src/vmix'
 
 export interface VMixStateCommand {
@@ -779,4 +780,3 @@ export interface VMixOutput {
 }
 
 type VMixMomentaryCommands = TimelineObjVMixAddInput
-export type VMixInputType = 'Video' | 'Image' | 'Photos' | 'Xaml' | 'VideoList' | 'Colour' | 'AudioFile' | 'Flash' | 'PowerPoint'

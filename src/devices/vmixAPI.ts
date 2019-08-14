@@ -1,7 +1,7 @@
 import { EventEmitter } from 'events'
 import * as request from 'request-promise'
 import * as xml from 'xml-js'
-import { VMixOptions, VMixCommand } from '../../src/types/src/vmix'
+import { VMixOptions, VMixCommand } from '../types/src'
 import { VMixState, VMixStateCommand, VMixInput, VMixTransition, VMixAudioChannel } from './vmix'
 
 const PING_TIMEOUT = 10 * 1000

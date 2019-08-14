@@ -1,6 +1,5 @@
 import { Mapping } from './mapping'
 import { TSRTimelineObjBase, DeviceType } from '.'
-import { VMixInputType } from '../../../src/devices/vmix'
 
 export interface MappingVMix extends Mapping {
 	device: DeviceType.VMIX
@@ -309,3 +308,5 @@ export enum VMixTransitionType {
 	VerticalWipeReverse = 'VerticalWipeReverse',
 	VerticalSlideReverse = 'VerticalSlideReverse' // TODO: Add stingers
 }
+
+export type VMixInputType = 'Video' | 'Image' | 'Photos' | 'Xaml' | 'VideoList' | 'Colour' | 'AudioFile' | 'Flash' | 'PowerPoint'
