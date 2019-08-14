@@ -303,12 +303,18 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended> {
 						break
 					case TimelineContentTypeVMix.ADD_INPUT:
 						let tlObjectAddInput = tlObject as any as TimelineObjVMixAddInput
-						let exists = deviceState.reportedState.inputs.filter(input =>
-							input.title &&
-							tlObjectAddInput.content.filePath.indexOf(input.title) !== -1 &&
-							input.type &&
-							input.type === tlObjectAddInput.content.mediaType
-						).length !== 0
+						let exists = deviceState.reportedState.inputs.filter(input => {
+							if (input.title) {
+								let match = tlObjectAddInput.content.filePath.match(/[ \w-]+?(?=\.).(\w)+(?:$|\n)/g)
+								if (match) {
+									if (match[0] === input.title && input.type && input.type === tlObjectAddInput.content.mediaType) {
+										return true
+									}
+								}
+							}
+
+							return false
+						}).length !== 0
 						if (!exists) deviceState.reportedState.momentary.push(tlObject as any as TimelineObjVMixAddInput)
 						break
 					case TimelineContentTypeVMix.PLAY_INPUT:
