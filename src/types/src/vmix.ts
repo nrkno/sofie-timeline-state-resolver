@@ -99,6 +99,15 @@ export interface TimelineObjVMixBase extends TSRTimelineObjBase {
 		type: TimelineContentTypeVMix
 	}
 }
+
+export interface TimlineObjVMixMedia extends TimelineObjVMixBase {
+	content: {
+		deviceType: DeviceType.VMIX
+		type: TimelineContentTypeVMix
+		mediaDirectory: string
+	}
+}
+
 export interface TimelineObjVMixInput extends TimelineObjVMixBase {
 	content: {
 		deviceType: DeviceType.VMIX
@@ -267,10 +276,11 @@ export interface TimelineObjVMixOverlayInputOFF extends TimelineObjVMixBase {
 	}
 }
 
-export interface TimelineObjVMixPlayClip extends TimelineObjVMixBase {
+export interface TimelineObjVMixPlayClip extends TimlineObjVMixMedia {
 	content: {
 		deviceType: DeviceType.VMIX
 		type: TimelineContentTypeVMix.PLAY_CLIP
+		mediaDirectory: string
 		clipName: string
 	}
 }

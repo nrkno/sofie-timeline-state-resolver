@@ -303,19 +303,9 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended> {
 						break
 					case TimelineContentTypeVMix.ADD_INPUT:
 						let tlObjectAddInput = tlObject as any as TimelineObjVMixAddInput
-						let exists = deviceState.reportedState.inputs.filter(input => {
-							if (input.title) {
-								let match = tlObjectAddInput.content.filePath.match(/[ \w-]+?(?=\.).(\w)+(?:$|\n)/g)
-								if (match) {
-									if (match[0] === input.title && input.type && input.type === tlObjectAddInput.content.mediaType) {
-										return true
-									}
-								}
-							}
-
-							return false
-						}).length !== 0
-						if (!exists) deviceState.reportedState.momentary.push(tlObject as any as TimelineObjVMixAddInput)
+						if (!this.inputExists(tlObjectAddInput.content.filePath, tlObjectAddInput.content.mediaType, deviceState)) {
+							deviceState.reportedState.momentary.push(tlObject as any as TimelineObjVMixAddInput)
+						}
 						break
 					case TimelineContentTypeVMix.PLAY_INPUT:
 						let tlObjectPlayInput = tlObject as any as TimelineObjVMixPlayInput
@@ -388,10 +378,17 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended> {
 						break
 					case TimelineContentTypeVMix.PLAY_CLIP:
 						let tlObjPlayClip = tlObject as any as TimelineObjVMixPlayClip
-						let inputIndexPlayClip = deviceState.reportedState.inputs.findIndex(input => input.title === tlObjPlayClip.content.clipName)
-						if (inputIndexPlayClip !== -1) {
-							deviceState.reportedState.inputs[inputIndexPlayClip].state = 'Running'
-							deviceState.reportedState.inputs[inputIndexPlayClip].position = 0
+						if (this.inputExists(tlObjPlayClip.content.clipName, 'Video', deviceState)) {
+							let inputIndexPlayClip = deviceState.reportedState.inputs.findIndex(input => input.title === tlObjPlayClip.content.clipName)
+							if (inputIndexPlayClip !== -1) {
+								deviceState.reportedState.inputs[inputIndexPlayClip].state = 'Running'
+								deviceState.reportedState.inputs[inputIndexPlayClip].position = 0
+							}
+						} else {
+							let combinedInput = (tlObjPlayClip.content.mediaDirectory.indexOf('\\') !== -1) ?
+								`Video|${tlObjPlayClip.content.mediaDirectory}\\${tlObjPlayClip.content.clipName}` :
+								`Video|${tlObjPlayClip.content.mediaDirectory}/${tlObjPlayClip.content.clipName}`
+							this._vmix.addInput(combinedInput)
 						}
 						break
 					case TimelineContentTypeVMix.STOP_CLIP:
@@ -407,13 +404,25 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended> {
 		})
 		return deviceState
 	}
+	inputExists (name: string, mediaType: VMixInputType, deviceState: VMixStateExtended) {
+		return deviceState.reportedState.inputs.filter(input => {
+			if (input.title) {
+				let match = name.match(/[ \w-]+?(?=\.).(\w)+(?:$|\n)/g)
+				if (match) {
+					if (match[0] === input.title && input.type && input.type === mediaType) {
+						return true
+					}
+				}
+			}
+
+			return false
+		}).length !== 0
+	}
 	modifyInput (inputs: VMixInput[], newInput: VMixInput): VMixInput[] {
 		let index = inputs.findIndex(input => input.number === newInput.number)
 
 		if (index !== -1) {
 			inputs[index] = { ...inputs[index], ...newInput }
-		} else {
-			inputs.push(newInput)
 		}
 
 		return inputs
