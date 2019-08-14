@@ -250,7 +250,6 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended> {
 			console.log(mapping) // TODO: Use this later
 
 			if (tlObject.content) {
-				deviceState.reportedState.momentary = []
 				switch (tlObject.content.type) {
 					case TimelineContentTypeVMix.INPUT:
 						let vmixTlInput = tlObject as any as TimelineObjVMixInput
@@ -304,7 +303,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended> {
 					case TimelineContentTypeVMix.ADD_INPUT:
 						let tlObjectAddInput = tlObject as any as TimelineObjVMixAddInput
 						if (!this.inputExists(tlObjectAddInput.content.filePath, tlObjectAddInput.content.mediaType, deviceState)) {
-							deviceState.reportedState.momentary.push(tlObject as any as TimelineObjVMixAddInput)
+							this._vmix.addInput(`${tlObjectAddInput.content.mediaType}|${tlObjectAddInput.content.filePath}`)
 						}
 						break
 					case TimelineContentTypeVMix.PLAY_INPUT:
@@ -677,21 +676,6 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended> {
 			}
 		}
 
-		if (newVMixState.reportedState.momentary) {
-			newVMixState.reportedState.momentary.forEach(command => {
-				switch (command.content.type) {
-					case TimelineContentTypeVMix.ADD_INPUT:
-						commands.push({
-							command: VMixCommand.ADD_INPUT,
-							value: `${command.content.mediaType}|${command.content.filePath}`,
-							context: null,
-							timelineId: ''
-						})
-						break
-				}
-			})
-		}
-
 		if (!_.isEqual(oldVMixState.outputs, newVMixState.outputs)) {
 			_.difference(newVMixState.outputs, oldVMixState.outputs)
 			.forEach(output => {
@@ -747,7 +731,6 @@ export class VMixState {
 	multiCorder: boolean
 	fullscreen: boolean
 	audio: VMixAudioChannel[]
-	momentary?: VMixMomentaryCommands[]
 }
 
 export interface VMixInput {
@@ -793,5 +776,3 @@ export interface VMixOutput {
 	name: '2' | '3' | '4' | 'External2' | 'Fullscreen' | 'Fullscreen2'
 	output: string
 }
-
-type VMixMomentaryCommands = TimelineObjVMixAddInput
