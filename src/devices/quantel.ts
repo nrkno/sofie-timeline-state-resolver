@@ -505,7 +505,7 @@ class QuantelManager {
 			// Store to the local tracking state:
 			this._quantelState.port[cmd.portId] = {
 				loadedFragments: {},
-				offset: 0,
+				offset: -1,
 				playing: false,
 				jumpOffset: null,
 				scheduledStop: null,
@@ -632,10 +632,12 @@ class QuantelManager {
 			if (await this.waitWithPort(cmd.portId, cmd.outTransition.delay)) return
 		}
 		const trackedPort = this.getTrackedPort(cmd.portId)
-		await this._quantel.portClear(cmd.portId)
+		await this._quantel.resetPort(cmd.portId)
 
-		trackedPort.jumpOffset = null
 		trackedPort.loadedFragments = {}
+		trackedPort.offset = -1
+		trackedPort.playing = false
+		trackedPort.jumpOffset = null
 		trackedPort.scheduledStop = null
 	}
 	private async prepareClipJump (cmd: QuantelCommandClip, alsoDoAction?: 'play' | 'pause'): Promise<void> {
