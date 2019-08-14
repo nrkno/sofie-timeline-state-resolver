@@ -500,11 +500,17 @@ export namespace Q {
 		framesUnused: number
 		outputTime: string
 		channels: number[]
+		videoFormat: string
 	}
 
-	export interface ReleaseStatus extends PortRef {
+	export interface ReleaseRef extends PortRef {
+		resetOnly?: boolean
+	}
+
+	export interface ReleaseStatus extends ReleaseRef {
 		type: 'ReleaseStatus'
 		released: boolean
+		resetOnly: boolean
 	}
 
 	export interface ClipRef {
@@ -523,18 +529,18 @@ export namespace Q {
 
 	export interface ClipPropertyList {
 		// Use property 'limit' of type number to set the maximum number of values to return
-		[ name: string ]: string
+		[ name: string ]: string | number
 	}
 
 	export interface ClipDataSummary {
 		type: 'ClipDataSummary' | 'ClipData'
 		ClipID: number
 		ClipGUID: string
-		CloneID: number | null
+		CloneId: number | null
 		Completed: DateString | null
-		Created: DateString, // ISO-formatted date
+		Created: DateString // ISO-formatted date
 		Description: string
-		Frames: string, // TODO ISA type is None ... not sure whether to convert to number
+		Frames: string // TODO ISA type is None ... not sure whether to convert to number
 		Owner: string
 		PoolID: number | null
 		Title: string
@@ -545,7 +551,7 @@ export namespace Q {
 		Category: string
 		CloneZone: number | null
 		Destination: number | null
-		Expiry: DateString | null, // ISO-formatted date
+		Expiry: DateString | null // ISO-formatted date
 	 	HasEditData: number | null
 		Inpoint: number | null
 		JobID: number | null
@@ -568,7 +574,7 @@ export namespace Q {
 		VideoFormats: string
 		Protection: string
 		VDCPID: string
-		PublishCompleted: DateString | null, // ISO-formatted date
+		PublishCompleted: DateString | null // ISO-formatted date
 	}
 
 	export interface ServerFragment {
@@ -702,6 +708,11 @@ export namespace Q {
 		STOP = 'STOP', // quantel.STOP
 		JUMP = 'JUMP', // quantel.JUMP
 		TRANSITION = 'TRANSITION' // quantel.TRANSITION
+	}
+
+	export enum Priority {
+		STANDARD = 'STANDARD', // quantel.STANDARD
+		HIGH = 'HIGH' // quantel.HIGH
 	}
 
 	export interface TriggerInfo extends PortRef {
