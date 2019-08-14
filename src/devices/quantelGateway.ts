@@ -145,11 +145,23 @@ export class QuantelGateway extends EventEmitter {
 			throw e
 		}
 	}
+	/**
+	 * Create (allocate) a new port
+	 */
 	public async createPort (portId: string, channelId: number): Promise<Q.PortInfo> {
 		return this.sendServer('put', `port/${portId}/channel/${channelId}`)
 	}
+	/**
+	 * Release (remove) an allocated port
+	 */
 	public async releasePort (portId: string): Promise<Q.ReleaseStatus> {
 		return this.sendServer('delete', `port/${portId}`)
+	}
+	/**
+	 * Reset a port, this removes all fragments and resets the playhead of the port
+	 */
+	public async resetPort (portId: string): Promise<Q.ReleaseStatus> {
+		return this.sendServer('post', `port/${portId}/reset`)
 	}
 
 	/** Get info about a clip */
@@ -224,9 +236,10 @@ export class QuantelGateway extends EventEmitter {
 		return response
 	}
 	/** Clear all fragments from a port.
-	 * If offsetIn and offsetOut is provided, will clear the fragments for that time range
+	 * If rangeStart and rangeEnd is provided, will clear the fragments for that time range,
+	 * if not, the fragments up until (but not including) the playhead, will be cleared
 	 */
-	public async portClear (portId: string, rangeStart?: number, rangeEnd?: number): Promise<Q.WipeResult> {
+	public async portClearFragments (portId: string, rangeStart?: number, rangeEnd?: number): Promise<Q.WipeResult> {
 		const response = await this.sendServer('delete', `port/${portId}/fragments`, {
 			start: rangeStart,
 			finish: rangeEnd
