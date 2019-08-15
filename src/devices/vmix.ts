@@ -563,7 +563,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended> {
 							}
 						}
 
-						if (oldInput.volume !== input.volume) {
+						if (oldInput.volume !== input.volume && input.volume && !isNaN(input.volume)) {
 							commands.push({
 								command: VMixCommand.AUDIO,
 								input: input.number.toString(),

@@ -88,35 +88,35 @@ export class VMix extends EventEmitter {
 	public sendCommand (command: VMixStateCommand): Promise<any> {
 		switch (command.command) {
 			case VMixCommand.PREVIEW_INPUT:
-				if (command.input) {
+				if (command.input !== undefined) {
 					this.setPreviewInput(command.input.toString())
 				}
 				break
 			case VMixCommand.ACTIVE_INPUT:
-				if (command.input) {
+				if (command.input !== undefined) {
 					this.setActiveInput(command.input.toString())
 				}
 				break
 			case VMixCommand.TRANSITION_EFFECT:
-				if (command.value && command.input) {
+				if (command.value !== undefined && command.input !== undefined) {
 					this.setTransition(Number(command.input), command.value.toString())
 				}
 				break
 			case VMixCommand.TRANSITION_DURATION:
-				if (command.value && command.input) {
+				if (command.value !== undefined && command.input !== undefined) {
 					this.setTransitionDuration(Number(command.input), Number(command.value))
 				}
 				break
 			case VMixCommand.TRANSITION:
-				if (command.input) this.transition(Number(command.input))
+				if (command.input !== undefined) this.transition(Number(command.input))
 				break
 			case VMixCommand.AUDIO:
-				if (command.input && command.value) {
+				if (command.input !== undefined && command.value !== undefined) {
 					this.setAudioLevel(command.input.toString(), Number(command.value))
 				}
 				break
 			case VMixCommand.FADER:
-				if (command.value) {
+				if (command.value !== undefined) {
 					this.setFader(Number(command.value))
 				}
 				break
@@ -136,22 +136,22 @@ export class VMix extends EventEmitter {
 				this.fadeToBlack()
 				break
 			case VMixCommand.ADD_INPUT:
-				if (command.value) this.addInput(command.value.toString())
+				if (command.value !== undefined) this.addInput(command.value.toString())
 				break
 			case VMixCommand.PLAY_INPUT:
-				if (command.input) this.playInput(command.input.toString())
+				if (command.input !== undefined) this.playInput(command.input.toString())
 				break
 			case VMixCommand.PAUSE_INPUT:
-				if (command.input) this.pauseInput(command.input.toString())
+				if (command.input !== undefined) this.pauseInput(command.input.toString())
 				break
 			case VMixCommand.SET_POSITION:
-				if (command.input && command.value) this.setPosition(command.input.toString(), command.value.toString())
+				if (command.input !== undefined && command.value !== undefined) this.setPosition(command.input.toString(), command.value.toString())
 				break
 			case VMixCommand.SET_INPUT_NAME:
-				if (command.input && command.value) this.setInputName(command.input.toString(), command.value.toString())
+				if (command.input !== undefined && command.value !== undefined) this.setInputName(command.input.toString(), command.value.toString())
 				break
 			case VMixCommand.SET_OUPUT:
-				if (command.input && command.value && command.name) this.setOutput(command.name, command.value.toString(), command.input.toString())
+				if (command.input !== undefined && command.value !== undefined && command.name !== undefined) this.setOutput(command.name, command.value.toString(), command.input.toString())
 				break
 			case VMixCommand.START_EXTERNAL:
 				this.startExternal()
@@ -160,13 +160,13 @@ export class VMix extends EventEmitter {
 				this.stopExternal()
 				break
 			case VMixCommand.OVERLAY_INPUT_IN:
-				if (command.input && command.value) this.overlayInputIn(command.value.toString(), command.input.toString())
+				if (command.input !== undefined && command.value !== undefined) this.overlayInputIn(command.value.toString(), command.input.toString())
 				break
 			case VMixCommand.OVERLAY_INPUT_OUT:
-				if (command.value) this.overlayInputOut(command.value.toString())
+				if (command.value !== undefined) this.overlayInputOut(command.value.toString())
 				break
 			case VMixCommand.OVERLAY_INPUT_OFF:
-				if (command.value) this.overlayInputOff(command.value.toString())
+				if (command.value !== undefined) this.overlayInputOff(command.value.toString())
 				break
 			default:
 				return Promise.reject(`Command ${command.command} not implemented`)
@@ -207,7 +207,7 @@ export class VMix extends EventEmitter {
 					duration: Number(input['_attributes']['duration']),
 					loop: (input['_attributes']['loop'] === 'True') ? true : false,
 					muted: (input['_attributes']['muted'] === 'True') ? true : false,
-					volume: Number(input['_attributes']['volume']),
+					volume: Number(input['_attributes']['volume']) || 100,
 					balance: Number(input['_attributes']['balance']),
 					solo: (input['_attributes']['solo'] === 'True') ? true : false,
 					audiobusses: input['_attributes']['audiobusses'],
@@ -355,9 +355,9 @@ export class VMix extends EventEmitter {
 	}
 
 	public sendCommandFunction (func: string, args: { input?: string | number, value?: string | number, extra?: string }) {
-		const inp = args.input ? `&Input=${args.input}` : ''
-		const val = args.value ? `&Value=${args.value}` : ''
-		const ext = args.extra ? args.extra : ''
+		const inp = args.input !== undefined ? `&Input=${args.input}` : ''
+		const val = args.value !== undefined ? `&Value=${args.value}` : ''
+		const ext = args.extra !== undefined ? args.extra : ''
 
 		const command = `${this._options.host}:${this._options.port}/api/?Function=${func}${inp}${val}${ext}`
 
