@@ -37,7 +37,8 @@ import {
 	TimelineObjVMixOverlayInputIn,
 	TimelineObjVMixPlayClip,
 	TimelineObjVMixStopClip,
-	VMixInputType
+	VMixInputType,
+	TimelineObjVMixClipToProgram
 } from '../types/src/vmix'
 
 export interface VMixStateCommand {
@@ -253,22 +254,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended> {
 				switch (tlObject.content.type) {
 					case TimelineContentTypeVMix.INPUT:
 						let vmixTlInput = tlObject as any as TimelineObjVMixInput
-						if (vmixTlInput.content.input) {
-							let available = deviceState.reportedState.inputs.filter(input =>
-								input.number === Number(vmixTlInput.content.input) ||
-								input.key === vmixTlInput.content.input
-							).length !== 0
-							if (available) deviceState.reportedState.active = vmixTlInput.content.input
-							deviceState.reportedState.active = vmixTlInput.content.input
-						}
-						if (vmixTlInput.content.transition) {
-							deviceState.reportedState.transitions = [] // TODO: Preserve transitions
-							deviceState.reportedState.transitions.push({
-								effect: vmixTlInput.content.transition.type,
-								duration: vmixTlInput.content.transition.duration,
-								number: vmixTlInput.content.transition.button
-							})
-						}
+						this.switchToInput(Number(vmixTlInput.content.input), deviceState, vmixTlInput.content.transition)
 						break
 					case TimelineContentTypeVMix.PREVIEW:
 						let vmixTlPreview = tlObject as any as TimelineObjVMixPreview
@@ -398,6 +384,17 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended> {
 							deviceState.reportedState.inputs[inputIndexStopClip].position = 0
 						}
 						break
+					case TimelineContentTypeVMix.CLIP_TO_PROGRAM:
+						let tlObjClipToProgram = tlObject as any as TimelineObjVMixClipToProgram
+						if (this.inputExists(tlObjClipToProgram.content.clipName, 'Video', deviceState)) {
+							let inputIndex = deviceState.reportedState.inputs.findIndex(input => input.title === tlObjPlayClip.content.clipName)
+							if (inputIndex !== -1) {
+								let inputNumber = deviceState.reportedState.inputs[inputIndex].number
+								if (inputNumber) {
+									this.switchToInput(inputNumber, deviceState, tlObjClipToProgram.content.transition)
+								}
+							}
+						}
 				}
 			}
 		})
@@ -425,6 +422,22 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended> {
 		}
 
 		return inputs
+	}
+	switchToInput (input: number, deviceState: VMixStateExtended, transition?: VMixTransition) {
+		let available = deviceState.reportedState.inputs.filter(inp =>
+			inp.number === input
+		).length !== 0
+		if (available) {
+			deviceState.reportedState.active = input.toString()
+			if (transition) {
+				deviceState.reportedState.transitions = [] // TODO: Preserve transitions
+				deviceState.reportedState.transitions.push({
+					effect: transition.effect,
+					duration: transition.duration,
+					number: transition.number
+				})
+			}
+		}
 	}
 	get deviceType () {
 		return DeviceType.VMIX
