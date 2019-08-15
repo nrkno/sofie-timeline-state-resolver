@@ -409,12 +409,12 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended> {
 				let match = name.match(/[ \w-]+?(?=\.).(\w)+(?:$|\n)/g)
 				if (match) {
 					if (match[0] === input.title && input.type && input.type === mediaType) {
-						return true
+						return input
 					}
 				}
 			}
 
-			return false
+			return
 		}).length !== 0
 	}
 	modifyInput (inputs: VMixInput[], newInput: VMixInput): VMixInput[] {
