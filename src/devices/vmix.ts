@@ -466,37 +466,32 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended> {
 		let commands: Array<VMixStateCommand> = []
 
 		if (newVMixState.reportedState.active !== undefined) {
-			if (!_.isEqual(oldVMixState.reportedState.transitions, newVMixState.reportedState.transitions)) {
-				_.difference(newVMixState.reportedState.transitions, oldVMixState.reportedState.transitions)
-				.forEach(transition => {
-					if (oldVMixState.reportedState.active !== newVMixState.reportedState.active) {
-						commands.push({
-							command: VMixCommand.PREVIEW_INPUT,
-							input: newVMixState.reportedState.active ? newVMixState.reportedState.active : '1',
-							context: null,
-							timelineId: ''
-						})
-						newVMixState.reportedState.fadeToBlack = false
-					}
+			if (oldVMixState.reportedState.active !== newVMixState.reportedState.active) {
+				if (newVMixState.sendTransition !== -1) {
+					commands.push({
+						command: VMixCommand.PREVIEW_INPUT,
+						input: newVMixState.reportedState.active ? newVMixState.reportedState.active : '1',
+						context: null,
+						timelineId: ''
+					})
+					newVMixState.reportedState.fadeToBlack = false
 
 					commands.push({
 						command: VMixCommand.TRANSITION_EFFECT,
-						value: transition.effect,
-						input: transition.number,
+						value: newVMixState.reportedState.transitions[0].effect,
+						input: newVMixState.reportedState.transitions[0].number,
 						context: null,
 						timelineId: ''
 					})
 
 					commands.push({
 						command: VMixCommand.TRANSITION_DURATION,
-						value: transition.duration,
-						input: transition.number,
+						value: newVMixState.reportedState.transitions[0].duration,
+						input: newVMixState.reportedState.transitions[0].number,
 						context: null,
 						timelineId: ''
 					})
-				})
-			} else {
-				if (oldVMixState.reportedState.active !== newVMixState.reportedState.active) {
+				} else {
 					commands.push({
 						command: VMixCommand.ACTIVE_INPUT,
 						input: newVMixState.reportedState.active,
@@ -515,18 +510,6 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended> {
 				context: null,
 				timelineId: ''
 			})
-		}
-
-		if (newVMixState.reportedState.preview !== undefined) {
-			if (oldVMixState.reportedState.preview !== newVMixState.reportedState.preview) {
-				commands.push({
-					command: VMixCommand.PREVIEW_INPUT,
-					input: newVMixState.reportedState.preview,
-					context: null,
-					timelineId: ''
-				})
-				newVMixState.reportedState.fadeToBlack = false
-			}
 		}
 
 		if (!_.isEqual(oldVMixState.reportedState.inputs, newVMixState.reportedState.inputs)) {
