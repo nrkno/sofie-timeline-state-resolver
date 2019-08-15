@@ -430,7 +430,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended> {
 		let available = deviceState.reportedState.inputs.filter(inp =>
 			inp.number === input
 		).length !== 0
-		if (available) {
+		if (available && (!deviceState.reportedState.active || deviceState.reportedState.active !== input.toString())) {
 			deviceState.reportedState.active = input.toString()
 			deviceState.reportedState.preview = input.toString()
 			if (transition) {
