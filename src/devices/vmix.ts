@@ -38,7 +38,8 @@ import {
 	TimelineObjVMixPlayClip,
 	TimelineObjVMixStopClip,
 	VMixInputType,
-	TimelineObjVMixClipToProgram
+	TimelineObjVMixClipToProgram,
+	TimelineObjVMixCameraActive
 } from '../types/src/vmix'
 
 export interface VMixStateCommand {
@@ -390,25 +391,32 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended> {
 					case TimelineContentTypeVMix.CLIP_TO_PROGRAM:
 						let tlObjClipToProgram = tlObject as any as TimelineObjVMixClipToProgram
 						if (this.inputExists(tlObjClipToProgram.content.clipName, 'Video', deviceState)) {
-							let inputIndex = deviceState.reportedState.inputs.findIndex(input => input.title === tlObjClipToProgram.content.clipName)
-							if (inputIndex !== -1) {
-								let inputNumber = deviceState.reportedState.inputs[inputIndex].number
-								if (inputNumber) {
-									this.switchToInput(inputNumber, deviceState, tlObjClipToProgram.content.transition)
-								}
-							}
+							this.switchToSource(tlObjClipToProgram.content.clipName, deviceState, tlObjClipToProgram.content.transition)
 						}
+						break
+					case TimelineContentTypeVMix.CAMERA_ACTIVE:
+						let tlObjCameraActive = tlObject as any as TimelineObjVMixCameraActive
+						if (this.inputExists(tlObjCameraActive.content.camera, 'Capture', deviceState)) {
+							this.switchToSource(tlObjCameraActive.content.camera, deviceState, tlObjCameraActive.content.transition)
+						}
+						break
 				}
 			}
 		})
 		return deviceState
 	}
-	inputExists (name: string, mediaType: VMixInputType, deviceState: VMixStateExtended) {
+	inputExists (name: string, mediaType: VMixInputType, deviceState: VMixStateExtended, file?: boolean) {
 		return deviceState.reportedState.inputs.filter(input => {
 			if (input.title) {
-				let match = name.match(/[ \w-]+?(?=\.).(\w)+(?:$|\n)/g)
-				if (match) {
-					if (match[0] === input.title && input.type && input.type === mediaType) {
+				if (file) {
+					let match = name.match(/[ \w-]+?(?=\.).(\w)+(?:$|\n)/g)
+					if (match) {
+						if (match[0] === input.title && input.type && input.type === mediaType) {
+							return input
+						}
+					}
+				} else {
+					if (name === input.title && input.type && input.type === mediaType) {
 						return input
 					}
 				}
@@ -425,6 +433,15 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended> {
 		}
 
 		return inputs
+	}
+	switchToSource (inputName: string, deviceState: VMixStateExtended, transition?: VMixTransition) {
+		let inputIndex = deviceState.reportedState.inputs.findIndex(input => input.title === inputName)
+		if (inputIndex !== -1) {
+			let inputNumber = deviceState.reportedState.inputs[inputIndex].number
+			if (inputNumber) {
+				this.switchToInput(inputNumber, deviceState, transition)
+			}
+		}
 	}
 	switchToInput (input: number, deviceState: VMixStateExtended, transition?: VMixTransition) {
 		let available = deviceState.reportedState.inputs.filter(inp =>

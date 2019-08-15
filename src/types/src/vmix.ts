@@ -41,7 +41,8 @@ export enum VMixCommand {
 	OVERLAY_INPUT_OFF = 'OVERLAY_INPUT_OFF',
 	PLAY_CLIP = 'PLAY_CLIP',
 	STOP_CLIP = 'STOP_CLIP',
-	CLIP_TO_PROGRAM = 'CLIP_TO_PROGRAM'
+	CLIP_TO_PROGRAM = 'CLIP_TO_PROGRAM',
+	CAMERA_ACTIVE = 'CAMERA_ACTIVE'
 }
 
 export type TimelineObjVMixAny =
@@ -68,7 +69,8 @@ export type TimelineObjVMixAny =
 	TimelineObjVMixOverlayInputOFF |
 	TimelineObjVMixPlayClip |
 	TimelineObjVMixStopClip |
-	TimelineObjVMixClipToProgram
+	TimelineObjVMixClipToProgram |
+	TimelineObjVMixCameraActive
 
 export enum TimelineContentTypeVMix {
 	INPUT,
@@ -94,7 +96,8 @@ export enum TimelineContentTypeVMix {
 	OVERLAY_INPUT_OFF,
 	PLAY_CLIP,
 	STOP_CLIP,
-	CLIP_TO_PROGRAM
+	CLIP_TO_PROGRAM,
+	CAMERA_ACTIVE
 }
 export interface TimelineObjVMixBase extends TSRTimelineObjBase {
 	content: {
@@ -305,6 +308,15 @@ export interface TimelineObjVMixClipToProgram extends TimelineObjVMixBase {
 	}
 }
 
+export interface TimelineObjVMixCameraActive extends TimelineObjVMixBase {
+	content: {
+		deviceType: DeviceType.VMIX
+		type: TimelineContentTypeVMix.CAMERA_ACTIVE
+		camera: string
+		transition?: VMixTransition
+	}
+}
+
 export interface VMixTransition {
 	number: 1 | 2 | 3 | 4
 	effect: VMixTransitionType
@@ -331,4 +343,4 @@ export enum VMixTransitionType {
 	VerticalSlideReverse = 'VerticalSlideReverse' // TODO: Add stingers
 }
 
-export type VMixInputType = 'Video' | 'Image' | 'Photos' | 'Xaml' | 'VideoList' | 'Colour' | 'AudioFile' | 'Flash' | 'PowerPoint'
+export type VMixInputType = 'Video' | 'Image' | 'Photos' | 'Xaml' | 'VideoList' | 'Colour' | 'AudioFile' | 'Flash' | 'PowerPoint' | 'Capture'
