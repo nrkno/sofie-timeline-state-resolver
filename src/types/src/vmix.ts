@@ -67,7 +67,8 @@ export type TimelineObjVMixAny =
 	TimelineObjVMixOverlayInputOut |
 	TimelineObjVMixOverlayInputOFF |
 	TimelineObjVMixPlayClip |
-	TimelineObjVMixStopClip
+	TimelineObjVMixStopClip |
+	TimelineObjVMixClipToProgram
 
 export enum TimelineContentTypeVMix {
 	INPUT,

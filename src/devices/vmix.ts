@@ -387,7 +387,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended> {
 					case TimelineContentTypeVMix.CLIP_TO_PROGRAM:
 						let tlObjClipToProgram = tlObject as any as TimelineObjVMixClipToProgram
 						if (this.inputExists(tlObjClipToProgram.content.clipName, 'Video', deviceState)) {
-							let inputIndex = deviceState.reportedState.inputs.findIndex(input => input.title === tlObjPlayClip.content.clipName)
+							let inputIndex = deviceState.reportedState.inputs.findIndex(input => input.title === tlObjClipToProgram.content.clipName)
 							if (inputIndex !== -1) {
 								let inputNumber = deviceState.reportedState.inputs[inputIndex].number
 								if (inputNumber) {
