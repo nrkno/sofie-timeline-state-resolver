@@ -178,7 +178,8 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended> {
 					name: 'Fullscreen2',
 					output: ''
 				}
-			]
+			],
+			sendTransition: -1
 		}
 	}
 
@@ -200,6 +201,8 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended> {
 
 		// add the new commands to the queue:
 		this._addToQueue(commandsToAchieveState, newState.time)
+
+		newAbstractState.sendTransition = -1
 
 		// store the new state, for later use:
 		this.setState(newAbstractState, newState.time)
@@ -429,6 +432,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended> {
 		).length !== 0
 		if (available) {
 			deviceState.reportedState.active = input.toString()
+			deviceState.reportedState.preview = input.toString()
 			if (transition) {
 				deviceState.reportedState.transitions = [] // TODO: Preserve transitions
 				deviceState.reportedState.transitions.push({
@@ -436,6 +440,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended> {
 					duration: transition.duration,
 					number: transition.number
 				})
+				deviceState.sendTransition = transition.number
 			}
 		}
 	}
@@ -489,15 +494,6 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended> {
 						context: null,
 						timelineId: ''
 					})
-
-					if (oldVMixState.reportedState.active !== newVMixState.reportedState.active) {
-						commands.push({
-							command: VMixCommand.TRANSITION,
-							input: transition.number,
-							context: null,
-							timelineId: ''
-						})
-					}
 				})
 			} else {
 				if (oldVMixState.reportedState.active !== newVMixState.reportedState.active) {
@@ -510,6 +506,15 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended> {
 					newVMixState.reportedState.fadeToBlack = false
 				}
 			}
+		}
+
+		if (newVMixState.sendTransition !== -1) {
+			commands.push({
+				command: VMixCommand.TRANSITION,
+				input: newVMixState.sendTransition,
+				context: null,
+				timelineId: ''
+			})
 		}
 
 		if (newVMixState.reportedState.preview !== undefined) {
@@ -725,6 +730,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended> {
 export class VMixStateExtended {
 	reportedState: VMixState
 	outputs: VMixOutput[]
+	sendTransition: -1 | 1 | 2 | 3 | 4
 }
 
 export class VMixState {
