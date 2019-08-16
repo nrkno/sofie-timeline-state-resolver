@@ -389,6 +389,12 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended> {
 								`Video|${tlObjPlayClip.content.mediaDirectory}\\${tlObjPlayClip.content.clipName}` :
 								`Video|${tlObjPlayClip.content.mediaDirectory}/${tlObjPlayClip.content.clipName}`
 							this._vmix.addInput(combinedInput)
+
+							deviceState.reportedState.inputs.push({
+								title: tlObjPlayClip.content.clipName,
+								state: 'Running',
+								position: 0
+							})
 						}
 						break
 					case TimelineContentTypeVMix.STOP_CLIP:
