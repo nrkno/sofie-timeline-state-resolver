@@ -42,7 +42,8 @@ export enum VMixCommand {
 	PLAY_CLIP = 'PLAY_CLIP',
 	STOP_CLIP = 'STOP_CLIP',
 	CLIP_TO_PROGRAM = 'CLIP_TO_PROGRAM',
-	CAMERA_ACTIVE = 'CAMERA_ACTIVE'
+	CAMERA_ACTIVE = 'CAMERA_ACTIVE',
+	OVERLAY_INPUT_BY_NAME_IN = 'OVERLAY_INPUT_BY_NAME_IN'
 }
 
 export type TimelineObjVMixAny =
@@ -70,7 +71,8 @@ export type TimelineObjVMixAny =
 	TimelineObjVMixPlayClip |
 	TimelineObjVMixStopClip |
 	TimelineObjVMixClipToProgram |
-	TimelineObjVMixCameraActive
+	TimelineObjVMixCameraActive |
+	TimelineObjVMixOverlayInputByNameIn
 
 export enum TimelineContentTypeVMix {
 	INPUT,
@@ -97,7 +99,8 @@ export enum TimelineContentTypeVMix {
 	PLAY_CLIP,
 	STOP_CLIP,
 	CLIP_TO_PROGRAM,
-	CAMERA_ACTIVE
+	CAMERA_ACTIVE,
+	OVERLAY_INPUT_BY_NAME_IN
 }
 export interface TimelineObjVMixBase extends TSRTimelineObjBase {
 	content: {
@@ -314,6 +317,15 @@ export interface TimelineObjVMixCameraActive extends TimelineObjVMixBase {
 		type: TimelineContentTypeVMix.CAMERA_ACTIVE
 		camera: string
 		transition?: VMixTransition
+	}
+}
+
+export interface TimelineObjVMixOverlayInputByNameIn extends TimelineObjVMixBase {
+	content: {
+		deviceType: DeviceType.VMIX
+		type: TimelineContentTypeVMix
+		inputName: string
+		overlay: 1 | 2 | 3 | 4 | 5 | 6
 	}
 }
 

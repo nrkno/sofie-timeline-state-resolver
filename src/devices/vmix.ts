@@ -39,7 +39,8 @@ import {
 	TimelineObjVMixStopClip,
 	VMixInputType,
 	TimelineObjVMixClipToProgram,
-	TimelineObjVMixCameraActive
+	TimelineObjVMixCameraActive,
+	TimelineObjVMixOverlayInputByNameIn
 } from '../types/src/vmix'
 
 export interface VMixStateCommand {
@@ -398,6 +399,17 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended> {
 						let tlObjCameraActive = tlObject as any as TimelineObjVMixCameraActive
 						if (this.inputExists(tlObjCameraActive.content.camera, 'Capture', deviceState)) {
 							this.switchToSource(tlObjCameraActive.content.camera, deviceState, tlObjCameraActive.content.transition)
+						}
+						break
+					case TimelineContentTypeVMix.OVERLAY_INPUT_BY_NAME_IN:
+						let tlObjOverlayInputByNameIn = tlObject as any as TimelineObjVMixOverlayInputByNameIn
+						let overlayByNameInIndex = deviceState.reportedState.inputs.findIndex(input => input.title === tlObjOverlayInputByNameIn.content.inputName)
+						if (overlayByNameInIndex !== -1) {
+							let overlayIndex = deviceState.reportedState.overlays.findIndex(overlay => overlay.number === tlObjOverlayInputByNameIn.content.overlay)
+							if (overlayIndex !== -1) {
+								let input = deviceState.reportedState.inputs[overlayByNameInIndex].number
+								if (input !== undefined) deviceState.reportedState.overlays[overlayIndex].input = input.toString()
+							}
 						}
 						break
 				}
