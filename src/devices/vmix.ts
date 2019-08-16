@@ -40,7 +40,9 @@ import {
 	VMixInputType,
 	TimelineObjVMixClipToProgram,
 	TimelineObjVMixCameraActive,
-	TimelineObjVMixOverlayInputByNameIn
+	TimelineObjVMixOverlayInputByNameIn,
+	TimelineObjVMixOverlayInputOut,
+	TimelineObjVMixOverlayInputOFF
 } from '../types/src/vmix'
 
 export interface VMixStateCommand {
@@ -206,6 +208,14 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended> {
 
 		newAbstractState.sendTransition = -1
 
+		newAbstractState.reportedState.overlays.map(overlay => {
+			if (overlay.input === '__OFF__' || overlay.input === '__OUT__') {
+				overlay.input = ''
+			}
+
+			return overlay
+		})
+
 		// store the new state, for later use:
 		this.setState(newAbstractState, newState.time)
 	}
@@ -353,14 +363,14 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended> {
 						}
 						break
 					case TimelineContentTypeVMix.OVERLAY_INPUT_OUT:
-						let tlObjOverlayInputOut = tlObject as any as TimelineObjVMixOverlayInputIn
+						let tlObjOverlayInputOut = tlObject as any as TimelineObjVMixOverlayInputOut
 						let overlayOutIndex = deviceState.reportedState.overlays.findIndex(overlay => overlay.number === tlObjOverlayInputOut.content.overlay)
 						if (overlayOutIndex !== -1) {
 							deviceState.reportedState.overlays[overlayOutIndex].input = '__OUT__'
 						}
 						break
 					case TimelineContentTypeVMix.OVERLAY_INPUT_OFF:
-						let tlObjOverlayInputOff = tlObject as any as TimelineObjVMixOverlayInputIn
+						let tlObjOverlayInputOff = tlObject as any as TimelineObjVMixOverlayInputOFF
 						let overlayOffIndex = deviceState.reportedState.overlays.findIndex(overlay => overlay.number === tlObjOverlayInputOff.content.overlay)
 						if (overlayOffIndex !== -1) {
 							deviceState.reportedState.overlays[overlayOffIndex].input = '__OFF__'

@@ -323,7 +323,7 @@ export interface TimelineObjVMixCameraActive extends TimelineObjVMixBase {
 export interface TimelineObjVMixOverlayInputByNameIn extends TimelineObjVMixBase {
 	content: {
 		deviceType: DeviceType.VMIX
-		type: TimelineContentTypeVMix
+		type: TimelineContentTypeVMix.OVERLAY_INPUT_BY_NAME_IN
 		inputName: string
 		overlay: 1 | 2 | 3 | 4 | 5 | 6
 	}
