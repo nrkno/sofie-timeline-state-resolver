@@ -109,7 +109,7 @@ export interface TimelineObjVMixBase extends TSRTimelineObjBase {
 	}
 }
 
-export interface TimlineObjVMixMedia extends TimelineObjVMixBase {
+export interface TimelineObjVMixMedia extends TimelineObjVMixBase {
 	content: {
 		deviceType: DeviceType.VMIX
 		type: TimelineContentTypeVMix
@@ -285,7 +285,7 @@ export interface TimelineObjVMixOverlayInputOFF extends TimelineObjVMixBase {
 	}
 }
 
-export interface TimelineObjVMixPlayClip extends TimlineObjVMixMedia {
+export interface TimelineObjVMixPlayClip extends TimelineObjVMixMedia {
 	content: {
 		deviceType: DeviceType.VMIX
 		type: TimelineContentTypeVMix.PLAY_CLIP
@@ -320,11 +320,12 @@ export interface TimelineObjVMixCameraActive extends TimelineObjVMixBase {
 	}
 }
 
-export interface TimelineObjVMixOverlayInputByNameIn extends TimelineObjVMixBase {
+export interface TimelineObjVMixOverlayInputByNameIn extends TimelineObjVMixMedia {
 	content: {
 		deviceType: DeviceType.VMIX
 		type: TimelineContentTypeVMix.OVERLAY_INPUT_BY_NAME_IN
 		inputName: string
+		mediaDirectory: string
 		overlay: 1 | 2 | 3 | 4 | 5 | 6
 	}
 }

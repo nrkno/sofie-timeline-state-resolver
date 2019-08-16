@@ -420,6 +420,19 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended> {
 								let input = deviceState.reportedState.inputs[overlayByNameInIndex].number
 								if (input !== undefined) deviceState.reportedState.overlays[overlayIndex].input = input.toString()
 							}
+						} else {
+							let combinedInput = (tlObjOverlayInputByNameIn.content.mediaDirectory.indexOf('\\') !== -1) ?
+							`Video|${tlObjOverlayInputByNameIn.content.mediaDirectory}\\${tlObjOverlayInputByNameIn.content.inputName}` :
+							`Video|${tlObjOverlayInputByNameIn.content.mediaDirectory}/${tlObjOverlayInputByNameIn.content.inputName}`
+							this._vmix.addInput(combinedInput)
+
+							deviceState.reportedState.inputs.push({
+								title: tlObjOverlayInputByNameIn.content.inputName
+							})
+							let overlayIndex = deviceState.reportedState.overlays.findIndex(overlay => overlay.number === tlObjOverlayInputByNameIn.content.overlay)
+							if (overlayIndex !== -1) {
+								deviceState.reportedState.overlays[overlayIndex].input = deviceState.reportedState.inputs.length.toString()
+							}
 						}
 						break
 				}
