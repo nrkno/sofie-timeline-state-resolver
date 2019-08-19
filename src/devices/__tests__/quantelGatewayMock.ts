@@ -136,7 +136,7 @@ function handleRequest (quantelServer: QuantelServerMockOptions, triggerFcn: Fun
 						type: 'ClipDataSummary',
 						ClipID: 2,
 						ClipGUID: '0b124a741fa84c3eb7a707d13cc1f5aa',
-						CloneID: 2,
+						CloneId: 2,
 						Completed: '2019-06-12T11:18:37.000Z',
 						Created: '2019-06-12T11:18:37.000Z',
 						Description: '',
@@ -149,7 +149,7 @@ function handleRequest (quantelServer: QuantelServerMockOptions, triggerFcn: Fun
 						type: 'ClipDataSummary',
 						ClipID: 1337,
 						ClipGUID: 'abcdef872832832a2b932c97d9b2eb9',
-						CloneID: 1337,
+						CloneId: 1337,
 						Completed: '2019-06-12T11:18:37.000Z',
 						Created: '2019-06-12T11:18:37.000Z',
 						Description: '',
@@ -162,7 +162,7 @@ function handleRequest (quantelServer: QuantelServerMockOptions, triggerFcn: Fun
 						type: 'ClipDataSummary',
 						ClipID: 1338,
 						ClipGUID: 'abcdef872832832a2b932c97d9b2ec1',
-						CloneID: 1338,
+						CloneId: 1338,
 						Completed: '2019-06-12T11:18:37.000Z',
 						Created: '2019-06-12T11:18:37.000Z',
 						Description: '',
@@ -240,7 +240,8 @@ function handleRequest (quantelServer: QuantelServerMockOptions, triggerFcn: Fun
 						type: 'ReleaseStatus',
 						serverID: params.serverID,
 						portName:  params.portID,
-						released: true
+						released: true,
+						resetOnly: false // ?
 					}
 				},
 				// Port info:
@@ -259,7 +260,8 @@ function handleRequest (quantelServer: QuantelServerMockOptions, triggerFcn: Fun
 							endOfData: quantelServer[params.portID].endOfData || 0,
 							framesUnused: 0,
 							channels: [ 1 ],
-							outputTime: '00:00:00:00'
+							outputTime: '00:00:00:00',
+							videoFormat: '' // ?
 						}
 					} else {
 						return {
@@ -279,7 +281,7 @@ function handleRequest (quantelServer: QuantelServerMockOptions, triggerFcn: Fun
 							type: 'ClipData',
 							Category: '',
 							ClipID: 2,
-							CloneID: 2,
+							CloneId: 2,
 							CloneZone: 1000,
 							Completed: '2019-06-12T11:18:37.000Z',
 							Created: '2019-06-12T11:18:37.000Z',
@@ -319,7 +321,7 @@ function handleRequest (quantelServer: QuantelServerMockOptions, triggerFcn: Fun
 							type: 'ClipData',
 							Category: '',
 							ClipID: 1337,
-							CloneID: 1337,
+							CloneId: 1337,
 							CloneZone: 1000,
 							Completed: '2019-06-12T11:18:37.000Z',
 							Created: '2019-06-12T11:18:37.000Z',
@@ -478,7 +480,26 @@ function handleRequest (quantelServer: QuantelServerMockOptions, triggerFcn: Fun
 						stack: ''
 					}
 				},
-				// Clear fragments from port (wipe):
+				// Reset port (remove all fragments and reset playhead)
+				'post /:zoneID/server/:serverID/port/:portID/reset': (params): Q.ReleaseStatus | ErrorResponse => {
+					// (?start=:start&finish=:finish)
+					if (params.portID === 'my_port') {
+						quantelServer[params.portID].endOfData = 0
+						return {
+							type: 'ReleaseStatus',
+							serverID: params.serverID,
+							portName: 'my_port',
+							released: false,
+							resetOnly: true
+						}
+					}
+					return {
+						status: 404,
+						message: `Wrong port id '${params.portID}'`,
+						stack: ''
+					}
+				},
+				// Clear fragments from port (wipe, clear all fragments behind playhead):
 				'delete /:zoneID/server/:serverID/port/:portID/fragments': (params): Q.WipeResult | ErrorResponse => {
 					// (?start=:start&finish=:finish)
 					if (params.portID === 'my_port') {

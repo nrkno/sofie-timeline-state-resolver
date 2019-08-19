@@ -14,7 +14,8 @@ import {
 	QuantelOptions,
 	TimelineObjQuantelClip,
 	QuantelControlMode,
-	ResolvedTimelineObjectInstanceExtended
+	ResolvedTimelineObjectInstanceExtended,
+	QuantelOutTransition
 } from '../types/src'
 
 import {
@@ -57,6 +58,7 @@ export class QuantelDevice extends DeviceWithState<QuantelState> {
 	private _commandReceiver: CommandReceiver
 
 	private _doOnTime: DoOnTime
+	private _doOnTimeBurst: DoOnTime
 	private _connectionOptions?: QuantelOptions
 
 	constructor (deviceId: string, deviceOptions: QuantelDeviceOptions, options) {
@@ -79,6 +81,12 @@ export class QuantelDevice extends DeviceWithState<QuantelState> {
 		}, SendMode.IN_ORDER, this._deviceOptions)
 		this._doOnTime.on('error', e => this.emit('error', 'Quantel.doOnTime', e))
 		this._doOnTime.on('slowCommand', msg => this.emit('slowCommand', this.deviceName + ': ' + msg))
+
+		this._doOnTimeBurst = new DoOnTime(() => {
+			return this.getCurrentTime()
+		}, SendMode.BURST, this._deviceOptions)
+		this._doOnTimeBurst.on('error', e => this.emit('error', 'Quantel.doOnTimeBurst', e))
+		this._doOnTimeBurst.on('slowCommand', msg => this.emit('slowCommand', this.deviceName + ': ' + msg))
 	}
 
 	async init (connectionOptions: QuantelOptions): Promise<boolean> {
@@ -195,7 +203,7 @@ export class QuantelDevice extends DeviceWithState<QuantelState> {
 						channels: [],
 						timelineObjId: '',
 						mode: qMapping.mode || QuantelControlMode.QUALITY,
-						lowPriority: false
+						lookahead: false
 					}
 				}
 				const port: QuantelStatePort = state.port[qMapping.portId]
@@ -254,7 +262,7 @@ export class QuantelDevice extends DeviceWithState<QuantelState> {
 							layer.instance.start
 						) || null
 					}
-					if (isLookahead) port.lowPriority = true
+					if (isLookahead) port.lookahead = true
 				}
 			}
 		})
@@ -317,7 +325,7 @@ export class QuantelDevice extends DeviceWithState<QuantelState> {
 						portId: portId,
 						timelineObjId: newPort.timelineObjId,
 						channel: channel
-					}, newPort.lowPriority)
+					}, newPort.lookahead)
 
 				}
 			}
@@ -334,35 +342,40 @@ export class QuantelDevice extends DeviceWithState<QuantelState> {
 						time: prepareTime,
 						portId: portId,
 						timelineObjId: newPort.timelineObjId,
+						fromLookahead: newPort.lookahead,
 						clip: newPort.clip,
 						timeOfPlay: time
-					}, newPort.lowPriority)
+					}, newPort.lookahead)
 					if (newPort.clip.playing) {
 						addCommand({
 							type: QuantelCommandType.PLAYCLIP,
 							time: time,
 							portId: portId,
 							timelineObjId: newPort.timelineObjId,
+							fromLookahead: newPort.lookahead,
 							clip: newPort.clip,
 							mode: newPort.mode
-						}, newPort.lowPriority)
+						}, newPort.lookahead)
 					} else {
 						addCommand({
 							type: QuantelCommandType.PAUSECLIP,
 							time: time,
 							portId: portId,
 							timelineObjId: newPort.timelineObjId,
+							fromLookahead: newPort.lookahead,
 							clip: newPort.clip,
 							mode: newPort.mode
-						}, newPort.lowPriority)
+						}, newPort.lookahead)
 					}
 				} else {
 					addCommand({
 						type: QuantelCommandType.CLEARCLIP,
 						time: time,
 						portId: portId,
-						timelineObjId: newPort.timelineObjId
-					}, newPort.lowPriority)
+						timelineObjId: newPort.timelineObjId,
+						fromLookahead: newPort.lookahead,
+						outTransition: oldPort && oldPort.outTransition
+					}, newPort.lookahead)
 				}
 			}
 		})
@@ -375,8 +388,9 @@ export class QuantelDevice extends DeviceWithState<QuantelState> {
 					type: QuantelCommandType.RELEASEPORT,
 					time: prepareTime,
 					portId: portId,
-					timelineObjId: oldPort.timelineObjId
-				}, oldPort.lowPriority)
+					timelineObjId: oldPort.timelineObjId,
+					fromLookahead: oldPort.lookahead
+				}, oldPort.lookahead)
 			}
 		})
 
@@ -396,6 +410,19 @@ export class QuantelDevice extends DeviceWithState<QuantelState> {
 		_.each(commandsToAchieveState, (cmd: QuantelCommand) => {
 			this._doOnTime.queue(cmd.time, cmd.portId, (c: {cmd: QuantelCommand}) => {
 				return this._doCommand(c.cmd, c.cmd.type + '_' + c.cmd.timelineObjId, c.cmd.timelineObjId)
+			}, { cmd: cmd })
+
+			this._doOnTimeBurst.queue(cmd.time, undefined, (c: {cmd: QuantelCommand}) => {
+				if (
+					(
+						c.cmd.type === QuantelCommandType.PLAYCLIP ||
+						c.cmd.type === QuantelCommandType.PAUSECLIP
+					) &&
+					!c.cmd.fromLookahead
+				) {
+					this._quantelManager.clearAllWaitWithPort(c.cmd.portId)
+				}
+				return Promise.resolve()
 			}, { cmd: cmd })
 		})
 
@@ -451,6 +478,9 @@ class QuantelManager {
 		port: {}
 	}
 	private _cache = new Cache()
+	private _waitWithPorts: {
+		[portId: string]: Function[]
+	} = {}
 	constructor (
 		private _quantel: QuantelGateway,
 		private getCurrentTime: () => number
@@ -475,7 +505,7 @@ class QuantelManager {
 			// Store to the local tracking state:
 			this._quantelState.port[cmd.portId] = {
 				loadedFragments: {},
-				offset: 0,
+				offset: -1,
 				playing: false,
 				jumpOffset: null,
 				scheduledStop: null,
@@ -597,11 +627,17 @@ class QuantelManager {
 		await this.prepareClipJump(cmd, 'pause')
 	}
 	public async clearClip (cmd: QuantelCommandClearClip): Promise<void> {
-		const trackedPort = this.getTrackedPort(cmd.portId)
-		await this._quantel.portClear(cmd.portId)
 
-		trackedPort.jumpOffset = null
+		if (cmd.outTransition) {
+			if (await this.waitWithPort(cmd.portId, cmd.outTransition.delay)) return
+		}
+		const trackedPort = this.getTrackedPort(cmd.portId)
+		await this._quantel.resetPort(cmd.portId)
+
 		trackedPort.loadedFragments = {}
+		trackedPort.offset = -1
+		trackedPort.playing = false
+		trackedPort.jumpOffset = null
 		trackedPort.scheduledStop = null
 	}
 	private async prepareClipJump (cmd: QuantelCommandClip, alsoDoAction?: 'play' | 'pause'): Promise<void> {
@@ -765,6 +801,26 @@ class QuantelManager {
 			setTimeout(resolve, time)
 		})
 	}
+	public clearAllWaitWithPort (portId: string) {
+		if (!this._waitWithPorts[portId]) {
+			_.each(this._waitWithPorts[portId], fcn => {
+				fcn(true)
+			})
+		}
+	}
+	/**
+	 * Returns true if the wait was cleared from someone else
+	 */
+	private waitWithPort (portId: string, delay: number): Promise<boolean> {
+
+		return new Promise(resolve => {
+			if (!this._waitWithPorts[portId]) this._waitWithPorts[portId] = []
+			this._waitWithPorts[portId].push(resolve)
+			setTimeout(() => {
+				resolve(false)
+			}, delay || 0)
+		})
+	}
 }
 class Cache {
 	private data: {[key: string]: {
@@ -832,9 +888,11 @@ interface QuantelStatePort {
 	clip?: QuantelStatePortClip
 	mode: QuantelControlMode
 
-	lowPriority: boolean
+	lookahead: boolean
 
 	channels: number[]
+
+	outTransition?: QuantelOutTransition
 }
 interface QuantelStatePortClip {
 	title?: string
@@ -855,6 +913,7 @@ interface QuantelCommandBase {
 	type: QuantelCommandType
 	portId: string
 	timelineObjId: string
+	fromLookahead?: boolean
 }
 export enum QuantelCommandType {
 	SETUPPORT = 'setupPort',
@@ -886,6 +945,7 @@ interface QuantelCommandPauseClip extends QuantelCommandClip {
 }
 interface QuantelCommandClearClip extends QuantelCommandBase {
 	type: QuantelCommandType.CLEARCLIP
+	outTransition?: QuantelOutTransition
 }
 interface QuantelCommandReleasePort extends QuantelCommandBase {
 	type: QuantelCommandType.RELEASEPORT

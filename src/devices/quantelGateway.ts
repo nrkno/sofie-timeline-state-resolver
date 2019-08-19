@@ -145,11 +145,23 @@ export class QuantelGateway extends EventEmitter {
 			throw e
 		}
 	}
+	/**
+	 * Create (allocate) a new port
+	 */
 	public async createPort (portId: string, channelId: number): Promise<Q.PortInfo> {
 		return this.sendServer('put', `port/${portId}/channel/${channelId}`)
 	}
+	/**
+	 * Release (remove) an allocated port
+	 */
 	public async releasePort (portId: string): Promise<Q.ReleaseStatus> {
 		return this.sendServer('delete', `port/${portId}`)
+	}
+	/**
+	 * Reset a port, this removes all fragments and resets the playhead of the port
+	 */
+	public async resetPort (portId: string): Promise<Q.ReleaseStatus> {
+		return this.sendServer('post', `port/${portId}/reset`)
 	}
 
 	/** Get info about a clip */
@@ -224,9 +236,10 @@ export class QuantelGateway extends EventEmitter {
 		return response
 	}
 	/** Clear all fragments from a port.
-	 * If offsetIn and offsetOut is provided, will clear the fragments for that time range
+	 * If rangeStart and rangeEnd is provided, will clear the fragments for that time range,
+	 * if not, the fragments up until (but not including) the playhead, will be cleared
 	 */
-	public async portClear (portId: string, rangeStart?: number, rangeEnd?: number): Promise<Q.WipeResult> {
+	public async portClearFragments (portId: string, rangeStart?: number, rangeEnd?: number): Promise<Q.WipeResult> {
 		const response = await this.sendServer('delete', `port/${portId}/fragments`, {
 			start: rangeStart,
 			finish: rangeEnd
@@ -286,7 +299,8 @@ export class QuantelGateway extends EventEmitter {
 
 		if (
 			this._isAnErrorResponse(response) &&
-			response.status === 599 // toto: determine 5xx code need to call connect first
+			response.status === 502 && //
+			(response.message + '').match(/first provide a quantel isa/i) // First provide a Quantel ISA connection URL (e.g. POST to /connect)
 		) {
 			await this.connectToISA()
 			 // Then try again:
@@ -358,9 +372,9 @@ export class QuantelGateway extends EventEmitter {
 	/**
 	 * If the response is an error, instead throw the error instead of returning it
 	 */
-	private async _ensureGoodResponse<T extends Promise<any>> (pResponse: T): Promise<T>
-	private async _ensureGoodResponse<T extends Promise<any>> (pResponse: T, if404ThenNull: true): Promise<T | null>
-	private async _ensureGoodResponse<T extends Promise<any>> (pResponse: T, if404ThenNull?: boolean): Promise<T | null> {
+	private async _ensureGoodResponse<T extends Promise<any>> (pResponse: T): Promise<T | QuantelErrorResponse>
+	private async _ensureGoodResponse<T extends Promise<any>> (pResponse: T, if404ThenNull: true): Promise<T | QuantelErrorResponse | null>
+	private async _ensureGoodResponse<T extends Promise<any>> (pResponse: T, if404ThenNull?: boolean): Promise<T | QuantelErrorResponse | null> {
 		const response = await Promise.resolve(pResponse) // Wrapped in Promise.resolve due to for some reason, tslint doen't understand that pResponse is a Promise
 		if (
 			this._isAnErrorResponse(response)
@@ -380,8 +394,8 @@ export class QuantelGateway extends EventEmitter {
 		}
 		return response
 	}
-	private _isAnErrorResponse (response: any): boolean {
-		return (
+	private _isAnErrorResponse (response: any): response is QuantelErrorResponse {
+		return !!(
 			response &&
 			_.isObject(response) &&
 			response.status &&
@@ -392,6 +406,11 @@ export class QuantelGateway extends EventEmitter {
 		)
 	}
 }
+export interface QuantelErrorResponse {
+	status: number
+	message: string
+	stack: string
+}
 type QueryParameters = {[key: string]: string | number | undefined}
 type Methods = 'post' | 'get' | 'put' | 'delete'
 
@@ -399,7 +418,7 @@ export type Optional<T> = {
 	[K in keyof T]?: T[K]
 }
 export type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>
-interface ClipSearchQuery {
+export interface ClipSearchQuery {
 	/** Limit the maximum number of clips returned */
 	limit?: number
 	// clip properties
@@ -449,7 +468,7 @@ interface ClipSearchQuery {
 }
 // Note: These typings are a copied from https://github.com/nrkno/tv-automation-quantel-gateway
 export namespace Q {
-	type DateString = string // it's a string with an ISO-date in it
+	export type DateString = string // it's a string with an ISO-date in it
 
 	export interface ZoneInfo {
 		type: 'ZonePortal'
@@ -494,11 +513,17 @@ export namespace Q {
 		framesUnused: number
 		outputTime: string
 		channels: number[]
+		videoFormat: string
 	}
 
-	export interface ReleaseStatus extends PortRef {
+	export interface ReleaseRef extends PortRef {
+		resetOnly?: boolean
+	}
+
+	export interface ReleaseStatus extends ReleaseRef {
 		type: 'ReleaseStatus'
 		released: boolean
+		resetOnly: boolean
 	}
 
 	export interface ClipRef {
@@ -517,18 +542,18 @@ export namespace Q {
 
 	export interface ClipPropertyList {
 		// Use property 'limit' of type number to set the maximum number of values to return
-		[ name: string ]: string
+		[ name: string ]: string | number
 	}
 
 	export interface ClipDataSummary {
 		type: 'ClipDataSummary' | 'ClipData'
 		ClipID: number
 		ClipGUID: string
-		CloneID: number | null
+		CloneId: number | null
 		Completed: DateString | null
-		Created: DateString, // ISO-formatted date
+		Created: DateString // ISO-formatted date
 		Description: string
-		Frames: string, // TODO ISA type is None ... not sure whether to convert to number
+		Frames: string // TODO ISA type is None ... not sure whether to convert to number
 		Owner: string
 		PoolID: number | null
 		Title: string
@@ -539,7 +564,7 @@ export namespace Q {
 		Category: string
 		CloneZone: number | null
 		Destination: number | null
-		Expiry: DateString | null, // ISO-formatted date
+		Expiry: DateString | null // ISO-formatted date
 	 	HasEditData: number | null
 		Inpoint: number | null
 		JobID: number | null
@@ -562,7 +587,7 @@ export namespace Q {
 		VideoFormats: string
 		Protection: string
 		VDCPID: string
-		PublishCompleted: DateString | null, // ISO-formatted date
+		PublishCompleted: DateString | null // ISO-formatted date
 	}
 
 	export interface ServerFragment {
@@ -587,7 +612,7 @@ export namespace Q {
 		NoteFragment |
 		EffectFragment
 
-	interface PositionData extends ServerFragment {
+	export interface PositionData extends ServerFragment {
 		rushID: string
 		format: number
 		poolID: number
@@ -696,6 +721,11 @@ export namespace Q {
 		STOP = 'STOP', // quantel.STOP
 		JUMP = 'JUMP', // quantel.JUMP
 		TRANSITION = 'TRANSITION' // quantel.TRANSITION
+	}
+
+	export enum Priority {
+		STANDARD = 'STANDARD', // quantel.STANDARD
+		HIGH = 'HIGH' // quantel.HIGH
 	}
 
 	export interface TriggerInfo extends PortRef {
