@@ -20,7 +20,9 @@ import {
 import {
 	Hyperdeck,
 	Commands as HyperdeckCommands,
-	TransportStatus
+	TransportStatus,
+	FilesystemFormat,
+	SlotStatus
 } from 'hyperdeck-connection'
 import { DoOnTime, SendMode } from '../doOnTime'
 
@@ -65,6 +67,11 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> {
 	private _initialized: boolean = false
 	private _connected: boolean = false
 
+	private _recordingTime: number
+	private _minRecordingTime: number // 15 minutes
+	private _recTimePollTimer: NodeJS.Timer
+	private _slots = 0
+
 	private _commandReceiver: CommandReceiver
 
 	constructor (deviceId: string, deviceOptions: HyperdeckDeviceOptions, options) {
@@ -97,6 +104,7 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> {
 					if (firstConnect) {
 						firstConnect = false
 						this._initialized = true
+						this._slots = await this._querySlotNumber()
 						resolve(true)
 					}
 					this._connected = true
@@ -104,6 +112,12 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> {
 					this.emit('resetResolver')
 				})
 				.catch(e => this.emit('error', 'Hyperdeck.on("connected")', e))
+
+				if (options.minRecordingTime) {
+					this._minRecordingTime = options.minRecordingTime
+					if (this._recTimePollTimer) clearTimeout(this._recTimePollTimer)
+					this._queryRecordingTime().catch(e => this.emit('error', 'HyperDeck.queryRecordingTime', e))
+				}
 			})
 			this._hyperdeck.on('disconnected', () => {
 				this._connected = false
@@ -117,6 +131,7 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> {
 	 */
 	terminate (): Promise<boolean> {
 		this._doOnTime.dispose()
+		if (this._recTimePollTimer) clearTimeout(this._recTimePollTimer)
 
 		return new Promise((resolve) => {
 			// TODO: implement dispose function in hyperdeck-connection
@@ -141,6 +156,41 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> {
 
 			this.setState(state, time)
 		}
+	}
+
+	/**
+	 * Sends commands to the HyperDeck to format disks. Afterwards,
+	 * calls this._queryRecordingTime
+	 */
+	async formatDisks () {
+		const wait = t => new Promise(resolve => setTimeout(() => resolve(), t))
+
+		for (let i = 1; i <= this._slots; i++) {
+			// select slot
+			const slotSel = new HyperdeckCommands.SlotSelectCommand()
+			slotSel.slotId = i + ''
+			try {
+				await this._hyperdeck.sendCommand(slotSel)
+			} catch (e) {
+				continue
+			}
+			// get code:
+			const prepare = new HyperdeckCommands.FormatCommand()
+			prepare.filesystem = FilesystemFormat.exFAT
+			const res = await this._hyperdeck.sendCommand(prepare)
+
+			const format = new HyperdeckCommands.FormatConfirmCommand()
+			format.code = res.code
+			await this._hyperdeck.sendCommand(format)
+
+			// now actualy await until finished:
+			let slotInfo = new HyperdeckCommands.SlotInfoCommand(i)
+			while ((await this._hyperdeck.sendCommand(slotInfo)).status === SlotStatus.EMPTY) {
+				await wait(500)
+			}
+		}
+
+		await this._queryRecordingTime()
 	}
 
 	/**
@@ -236,8 +286,24 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> {
 	}
 	getStatus (): DeviceStatus {
 		// TODO: add status check here, to set warning if we've set it to record, but it's not
+		let statusCode = StatusCode.GOOD
+		let messages: Array<string> = []
+
+		if (!this._connected) statusCode = StatusCode.BAD
+
+		if (this._recordingTime < this._minRecordingTime && this._connected && this._minRecordingTime) {
+			if (this._recordingTime === 0) {
+				statusCode = StatusCode.BAD
+			} else {
+				statusCode = StatusCode.WARNING_MAJOR
+			}
+			let t = `${Math.floor(this._recordingTime / 60)} minutes and ${this._recordingTime % 60} seconds`
+			messages.push('Recording time left is less than ' + t)
+		}
+
 		return {
-			statusCode: this._connected ? StatusCode.GOOD : StatusCode.BAD
+			statusCode,
+			messages
 		}
 	}
 	private _addToQueue (commandsToAchieveState: Array<HyperdeckCommandWithContext>, time: number) {
@@ -365,6 +431,56 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> {
 			timelineObjId: 'currentState'
 		}
 		return res
+	}
+
+	/**
+	 * Queries the recording time left in seconds of the device and mutates
+	 * this._recordingTime
+	 */
+	private async _queryRecordingTime (): Promise<void> {
+		if (this._recTimePollTimer) {
+			clearTimeout(this._recTimePollTimer)
+		}
+		let time = 0
+
+		for (let slot = 1; true; slot++) {
+			try {
+				const res = await this._hyperdeck.sendCommand(new HyperdeckCommands.SlotInfoCommand(slot))
+				time += res.recordingTime
+			} catch (e) {
+				break
+			}
+		}
+
+		this._recordingTime = time
+		this.emit('connectionChanged', this.getStatus())
+
+		let timeTillNextUpdate = 10
+		if (time > 10) {
+			if (time - this._minRecordingTime > 10) {
+				timeTillNextUpdate = (time - this._minRecordingTime) / 2
+			} else if (time - this._minRecordingTime < 0) {
+				timeTillNextUpdate = time / 2
+			}
+		}
+		this._recTimePollTimer = setTimeout(() => {
+			this._queryRecordingTime().catch(e => this.emit('error', 'HyperDeck.queryRecordingTime', e))
+		}, timeTillNextUpdate * 1000)
+	}
+
+	private async _querySlotNumber (): Promise<number> {
+		let slots = 0
+
+		for (let slot = 1; true; slot++) {
+			try {
+				await this._hyperdeck.sendCommand(new HyperdeckCommands.SlotInfoCommand(slot))
+				slots++
+			} catch (e) {
+				break
+			}
+		}
+
+		return slots
 	}
 
 	/**
