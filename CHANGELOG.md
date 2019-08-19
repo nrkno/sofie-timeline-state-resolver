@@ -2,6 +2,25 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [3.6.0](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/3.5.0...3.6.0) (2019-08-19)
+
+
+### Bug Fixes
+
+* ssrc box enabled is optional ([17c84ac](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/17c84ac))
+* tidy lawo commands ([3497bce](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/3497bce))
+* update atem-state and fix tests ([98ad55d](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/98ad55d))
+
+
+### Features
+
+* **emberProperty:** fixes and adds support for typed values for direct emberplus properties ([52e2bca](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/52e2bca))
+* **emberProperty:** started adding support for lawo objects setting values directly on absolute ember paths ([8375f44](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/8375f44))
+* basic atem macro player ([32457eb](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/32457eb))
+* lawo fullpath & atem macros ([#96](https://github.com/nrkno/tv-automation-state-timeline-resolver/issues/96)) ([5bcff58](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/5bcff58))
+
+
+
 ## [3.5.0](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/3.4.0...3.5.0) (2019-08-19)
 
 
