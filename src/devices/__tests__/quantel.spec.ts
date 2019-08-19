@@ -115,8 +115,8 @@ describe('Quantel', () => {
 		expect(onRequest).toHaveBeenNthCalledWith(5, 'delete', 'http://localhost:3000/default/server/1100/port/my_port')
 		// create new port and assign to channel
 		expect(onRequest).toHaveBeenNthCalledWith(6, 'put', 'http://localhost:3000/default/server/1100/port/my_port/channel/2')
-		// wipe the port
-		expect(onRequest).toHaveBeenNthCalledWith(7, 'delete', 'http://localhost:3000/default/server/1100/port/my_port/fragments')
+		// Reset the port
+		expect(onRequest).toHaveBeenNthCalledWith(7, 'post', 'http://localhost:3000/default/server/1100/port/my_port/reset')
 
 		clearMocks()
 		commandReceiver0.mockClear()
@@ -181,14 +181,14 @@ describe('Quantel', () => {
 			type: QuantelCommandType.PLAYCLIP
 		}), expect.any(String), expect.any(String))
 
-		expect(onRequest).toHaveBeenCalledTimes(3)
+		expect(onRequest).toHaveBeenCalledTimes(2)
 
 		// Trigger Jump
-		expect(onRequest).toHaveBeenNthCalledWith(1, 'post', expect.stringContaining('/default/server/1100/port/my_port/trigger/JUMP'))
+		// expect(onRequest).toHaveBeenNthCalledWith(1, 'post', expect.stringContaining('/default/server/1100/port/my_port/trigger/JUMP'))
 		// Trigger play
-		expect(onRequest).toHaveBeenNthCalledWith(2, 'post', expect.stringContaining('/default/server/1100/port/my_port/trigger/START'))
+		expect(onRequest).toHaveBeenNthCalledWith(1, 'post', expect.stringContaining('/default/server/1100/port/my_port/trigger/START'))
 		// Plan to stop at end of clip
-		expect(onRequest).toHaveBeenNthCalledWith(3, 'post', expect.stringContaining('/default/server/1100/port/my_port/trigger/STOP?offset=1999'))
+		expect(onRequest).toHaveBeenNthCalledWith(2, 'post', expect.stringContaining('/default/server/1100/port/my_port/trigger/STOP?offset=1999'))
 
 		clearMocks()
 		commandReceiver0.mockClear()
@@ -201,8 +201,8 @@ describe('Quantel', () => {
 		}), expect.any(String), expect.any(String))
 
 		expect(onRequest).toHaveBeenCalledTimes(1)
-		// Clear port from clip
-		expect(onRequest).toHaveBeenNthCalledWith(1, 'delete', expect.stringContaining('port/my_port/fragments'))
+		// Clear port from clip (reset port)
+		expect(onRequest).toHaveBeenNthCalledWith(1, 'post', expect.stringContaining('port/my_port/reset'))
 
 		await myConductor.destroy()
 	})
@@ -281,8 +281,8 @@ describe('Quantel', () => {
 		expect(onRequest).toHaveBeenNthCalledWith(5, 'delete', 'http://localhost:3000/default/server/1100/port/my_port')
 		// create new port and assign to channel
 		expect(onRequest).toHaveBeenNthCalledWith(6, 'put', 'http://localhost:3000/default/server/1100/port/my_port/channel/2')
-		// wipe the port
-		expect(onRequest).toHaveBeenNthCalledWith(7, 'delete', 'http://localhost:3000/default/server/1100/port/my_port/fragments')
+		// Reset the port
+		expect(onRequest).toHaveBeenNthCalledWith(7, 'post', 'http://localhost:3000/default/server/1100/port/my_port/reset')
 
 		clearMocks()
 		commandReceiver0.mockClear()
@@ -347,14 +347,14 @@ describe('Quantel', () => {
 			type: QuantelCommandType.PLAYCLIP
 		}), expect.any(String), expect.any(String))
 
-		expect(onRequest).toHaveBeenCalledTimes(3)
+		expect(onRequest).toHaveBeenCalledTimes(2)
 
 		// Trigger Jump
-		expect(onRequest).toHaveBeenNthCalledWith(1, 'post', expect.stringContaining('/default/server/1100/port/my_port/trigger/JUMP'))
+		// expect(onRequest).toHaveBeenNthCalledWith(1, 'post', expect.stringContaining('/default/server/1100/port/my_port/trigger/JUMP'))
 		// Trigger play
-		expect(onRequest).toHaveBeenNthCalledWith(2, 'post', expect.stringContaining('/default/server/1100/port/my_port/trigger/START'))
+		expect(onRequest).toHaveBeenNthCalledWith(1, 'post', expect.stringContaining('/default/server/1100/port/my_port/trigger/START'))
 		// Plan to stop at end of clip
-		expect(onRequest).toHaveBeenNthCalledWith(3, 'post', expect.stringContaining('/default/server/1100/port/my_port/trigger/STOP?offset=1999'))
+		expect(onRequest).toHaveBeenNthCalledWith(2, 'post', expect.stringContaining('/default/server/1100/port/my_port/trigger/STOP?offset=1999'))
 
 		clearMocks()
 		commandReceiver0.mockClear()
@@ -367,8 +367,8 @@ describe('Quantel', () => {
 		}), expect.any(String), expect.any(String))
 
 		expect(onRequest).toHaveBeenCalledTimes(1)
-		// Clear port from clip
-		expect(onRequest).toHaveBeenNthCalledWith(1, 'delete', expect.stringContaining('port/my_port/fragments'))
+		// Clear port from clip (reset port)
+		expect(onRequest).toHaveBeenNthCalledWith(1, 'post', expect.stringContaining('port/my_port/reset'))
 
 		await myConductor.destroy()
 	})
@@ -485,7 +485,7 @@ describe('Quantel', () => {
 		// 16000: port is cleared
 
 		await mockTime.advanceTimeToTicks(15050)
-		expect(commandReceiver0).toHaveBeenCalledTimes(2)
+		expect(commandReceiver0).toHaveBeenCalledTimes(3)
 		expect(commandReceiver0).toHaveBeenNthCalledWith(1, 15005, expect.objectContaining({
 			type: QuantelCommandType.LOADCLIPFRAGMENTS,
 			time: 15000
@@ -494,8 +494,12 @@ describe('Quantel', () => {
 			type: QuantelCommandType.PLAYCLIP,
 			time: 15000
 		}), expect.any(String), expect.any(String))
+		expect(commandReceiver0).toHaveBeenNthCalledWith(3, 15050, expect.objectContaining({
+			type: QuantelCommandType.LOADCLIPFRAGMENTS,
+			time: 15050
+		}), expect.any(String), expect.any(String))
 
-		expect(onRequest).toHaveBeenCalledTimes(6)
+		expect(onRequest).toHaveBeenCalledTimes(13)
 		// Search for and get clip info:
 		expect(onRequest).toHaveBeenNthCalledWith(1, 'get', expect.stringContaining('/default/clip?Title=%22Test0%22'))
 		expect(onRequest).toHaveBeenNthCalledWith(2, 'get', expect.stringContaining('/default/clip/2'))
@@ -505,42 +509,31 @@ describe('Quantel', () => {
 		expect(onRequest).toHaveBeenNthCalledWith(4, 'get', expect.stringContaining('default/server/1100/port/my_port'))
 		// Load fragments
 		expect(onRequest).toHaveBeenNthCalledWith(5, 'post', expect.stringContaining('port/my_port/fragments'))
+
+		// Note: These are skipped since the playhead is already there:
+		/*
 		// Prepare jump
 		expect(onRequest).toHaveBeenNthCalledWith(6, 'put', expect.stringContaining('port/my_port/jump?offset=0'))
-
-		clearMocks()
-		commandReceiver0.mockClear()
-
-		// wait for SOFT_JUMP_WAIT_TIME and Time to preload next
-		await mockTime.advanceTimeToTicks(15190)
-
-		expect(commandReceiver0).toHaveBeenCalledTimes(1)
-		expect(commandReceiver0).toHaveBeenNthCalledWith(1, 15110, expect.objectContaining({
-			type: QuantelCommandType.LOADCLIPFRAGMENTS,
-			time: 15050
-		}), expect.any(String), expect.any(String))
-
-		expect(onRequest).toHaveBeenCalledTimes(9)
-		// onRequest.mock.calls.forEach(e => console.log(e))
-
 		// Trigger Jump
-		expect(onRequest).toHaveBeenNthCalledWith(1, 'post', expect.stringContaining('/default/server/1100/port/my_port/trigger/JUMP'))
+		expect(onRequest).toHaveBeenNthCalledWith(6, 'post', expect.stringContaining('/default/server/1100/port/my_port/trigger/JUMP'))
+		*/
+
 		// Trigger play
-		expect(onRequest).toHaveBeenNthCalledWith(2, 'post', expect.stringContaining('/default/server/1100/port/my_port/trigger/START'))
+		expect(onRequest).toHaveBeenNthCalledWith(6, 'post', expect.stringContaining('/default/server/1100/port/my_port/trigger/START'))
 		// Plan to stop at end of clip
-		expect(onRequest).toHaveBeenNthCalledWith(3, 'post', expect.stringContaining('/default/server/1100/port/my_port/trigger/STOP?offset=999'))
+		expect(onRequest).toHaveBeenNthCalledWith(7, 'post', expect.stringContaining('/default/server/1100/port/my_port/trigger/STOP?offset=999'))
 
 		// Search for and get clip info:
-		expect(onRequest).toHaveBeenNthCalledWith(4, 'get', expect.stringContaining('/default/clip?Title=%22myClip0%22'))
-		expect(onRequest).toHaveBeenNthCalledWith(5, 'get', expect.stringContaining('/default/clip/1337'))
+		expect(onRequest).toHaveBeenNthCalledWith(8, 'get', expect.stringContaining('/default/clip?Title=%22myClip0%22'))
+		expect(onRequest).toHaveBeenNthCalledWith(9, 'get', expect.stringContaining('/default/clip/1337'))
 		// Fetch fragments:
-		expect(onRequest).toHaveBeenNthCalledWith(6, 'get', expect.stringContaining('clip/1337/fragments'))
+		expect(onRequest).toHaveBeenNthCalledWith(10, 'get', expect.stringContaining('clip/1337/fragments'))
 		// get port info
-		expect(onRequest).toHaveBeenNthCalledWith(7, 'get', expect.stringContaining('default/server/1100/port/my_port'))
+		expect(onRequest).toHaveBeenNthCalledWith(11, 'get', expect.stringContaining('default/server/1100/port/my_port'))
 		// Load fragments
-		expect(onRequest).toHaveBeenNthCalledWith(8, 'post', expect.stringContaining('port/my_port/fragments?offset=1000'))
+		expect(onRequest).toHaveBeenNthCalledWith(12, 'post', expect.stringContaining('port/my_port/fragments?offset=1000'))
 		// Prepare jump
-		expect(onRequest).toHaveBeenNthCalledWith(9, 'put', expect.stringContaining('port/my_port/jump?offset=1000'))
+		expect(onRequest).toHaveBeenNthCalledWith(13, 'put', expect.stringContaining('port/my_port/jump?offset=1000'))
 
 		clearMocks()
 		commandReceiver0.mockClear()
@@ -603,8 +596,8 @@ describe('Quantel', () => {
 		}), expect.any(String), expect.any(String))
 
 		expect(onRequest).toHaveBeenCalledTimes(1)
-		// Clear port from clip
-		expect(onRequest).toHaveBeenNthCalledWith(1, 'delete', expect.stringContaining('port/my_port/fragments'))
+		// Clear port from clip (reset port)
+		expect(onRequest).toHaveBeenNthCalledWith(1, 'post', expect.stringContaining('port/my_port/reset'))
 
 		// onRequest.mock.calls.forEach(e => console.log(e))
 
