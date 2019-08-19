@@ -30,6 +30,8 @@ jobs:
           at: ~/project
       - run: yarn install
       - run: yarn validate:dependencies
+      - run: yarn types-install
+      - run: yarn types-validate:dependencies
   Test node-8:
     <<: *defaults
     steps:

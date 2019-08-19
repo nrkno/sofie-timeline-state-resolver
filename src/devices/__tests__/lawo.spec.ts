@@ -197,7 +197,6 @@ describe('Lawo', () => {
 		let myChannelMapping: Mappings = {
 			'lawo_delay_on': lawoMainDelayOnMapping,
 			'lawo_delay_time': lawoMainDelayTimeMapping
-
 		}
 
 		let myConductor = new Conductor({
@@ -232,10 +231,7 @@ describe('Lawo', () => {
 				content: {
 					deviceType: DeviceType.LAWO,
 					type: TimelineContentTypeLawo.EMBER_PROPERTY,
-
-					property: {
-						value: true
-					}
+					value: true
 				}
 			},
 			{
@@ -248,10 +244,7 @@ describe('Lawo', () => {
 				content: {
 					deviceType: DeviceType.LAWO,
 					type: TimelineContentTypeLawo.EMBER_PROPERTY,
-
-					property: {
-						value: 80
-					}
+					value: 80
 				}
 			}
 		]

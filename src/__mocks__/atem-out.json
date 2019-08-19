@@ -21,6 +21,14 @@
 		},
 		"superSourceBoxes": 4
 	},
+	"macro": {
+		"macroPlayer": {
+			"isRunning": false,
+			"isWaiting": false,
+			"loop": false,
+			"macroIndex": 0
+		}
+	},
 	"video": {
 		"ME": [
 			{
