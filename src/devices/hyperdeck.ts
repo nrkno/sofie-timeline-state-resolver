@@ -190,7 +190,7 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> {
 			}
 		}
 
-		this._queryRecordingTime()
+		await this._queryRecordingTime()
 	}
 
 	/**
