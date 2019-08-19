@@ -12,7 +12,10 @@ import {
 	TimelineContentTypeLawo,
 	MappingLawo,
 	TimelineObjLawoSource,
-	TimelineObjLawoAny
+	TimelineObjLawoAny,
+	TimelineObjLawoEmberProperty,
+	EmberValueTypes,
+	EmberTypes
 } from '../types/src'
 import {
 	TimelineState, ResolvedTimelineObjectInstance
@@ -34,7 +37,7 @@ export interface LawoOptions extends DeviceOptions { // TODO - this doesnt match
 	}
 }
 export type CommandReceiver = (time: number, cmd: LawoCommand, context: CommandContext, timelineObjId: string) => Promise<any>
-export type EmberPlusValue = boolean | number | string
+// export type EmberPlusValue = boolean | number | string | {type: EmberTypes, value: EmberValueTypes}
 
 export interface LawoState {
 	[path: string]: LawoStateNode
@@ -42,7 +45,8 @@ export interface LawoState {
 
 export interface LawoStateNode {
 	type: TimelineContentTypeLawo
-	value: EmberPlusValue,
+	value: EmberValueTypes,
+	valueType: EmberTypes,
 	key: string,
 	identifier: string,
 	transitionDuration?: number,
@@ -52,7 +56,8 @@ export interface LawoStateNode {
 }
 export interface LawoCommand {
 	path: string,
-	value: EmberPlusValue,
+	value: EmberValueTypes,
+	valueType: EmberTypes,
 	key: string,
 	identifier: string,
 	type: TimelineContentTypeLawo,
@@ -223,7 +228,7 @@ export class LawoDevice extends DeviceWithState<TimelineState> {
 			if (mapping && mapping.identifier && mapping.device === DeviceType.LAWO) {
 
 				if (lawoObj.content.type === TimelineContentTypeLawo.SOURCE) {
-					let tlObjectSource: TimelineObjLawoSource = lawoObj
+					let tlObjectSource: TimelineObjLawoSource = lawoObj as TimelineObjLawoSource
 
 					const fader: TimelineObjLawoSource['content']['Fader/Motor dB Value'] = tlObjectSource.content['Fader/Motor dB Value']
 
@@ -232,8 +237,22 @@ export class LawoDevice extends DeviceWithState<TimelineState> {
 						key: 'Fader/Motor dB Value',
 						identifier: mapping.identifier,
 						value: fader.value,
+						valueType: EmberTypes.REAL,
 						transitionDuration: fader.transitionDuration,
 						triggerValue: fader.triggerValue || '',
+						timelineObjId: tlObject.id
+					}
+
+				} else if (lawoObj.content.type === TimelineContentTypeLawo.EMBER_PROPERTY) {
+					let tlObjectSource: TimelineObjLawoEmberProperty = lawoObj as TimelineObjLawoEmberProperty
+
+					lawoState[mapping.identifier] = {
+						type: tlObjectSource.content.type,
+						key: '',
+						identifier: mapping.identifier,
+						value: tlObjectSource.content.value,
+						valueType: mapping.emberType || EmberTypes.REAL,
+						triggerValue: '',
 						timelineObjId: tlObject.id
 					}
 
@@ -297,6 +316,7 @@ export class LawoDevice extends DeviceWithState<TimelineState> {
 						key: newNode.key,
 						identifier: newNode.identifier,
 						value: newNode.value,
+						valueType: newNode.valueType,
 						transitionDuration: newNode.transitionDuration
 					},
 					context: diff,
@@ -392,7 +412,21 @@ export class LawoDevice extends DeviceWithState<TimelineState> {
 					}
 				}
 			} else {
-				throw new Error(`Lawo: Unsupported command.key: "${command.key}"`)
+				try {
+					const node: any = await this._getNodeByPath(command.path)
+
+					const res = await this._lawo.setValue(node, new Ember.ParameterContents(command.value, command.valueType))
+
+					try {
+						this.emit('debug', `Ember result: ${JSON.stringify(res)}`)
+					} catch (e) {
+						this.emit('error', 'Lawo: Error in setValue', e)
+						throw e
+					}
+				} catch (e) {
+					this.emit('error', 'Lawo: Ember command error', e)
+					throw e
+				}
 			}
 		} catch (error) {
 			this.emit('commandError', error, cwc)
