@@ -23,12 +23,15 @@ import { LawoDevice } from './devices/lawo'
 import { PanasonicPtzDevice } from './devices/panasonicPTZ'
 import { HyperdeckDevice } from './devices/hyperdeck'
 import { DoOnTime } from './doOnTime'
+import { TCPSendDevice } from './devices/tcpSend'
 import { PharosDevice } from './devices/pharos'
 import { OSCMessageDevice } from './devices/osc'
 import { DeviceContainer } from './devices/deviceContainer'
 import { threadedClass, ThreadedClass } from 'threadedclass'
 import { AsyncResolver } from './AsyncResolver'
 import { HttpWatcherDevice } from './devices/httpWatcher'
+import { QuantelDevice } from './devices/quantel'
+import { SisyfosMessageDevice } from './devices/sisyfos'
 
 export { DeviceContainer }
 export { CommandWithContext }
@@ -38,6 +41,7 @@ export const PREPARETIME = 2000 // Will prepare commands this time before the ev
 export const MINTRIGGERTIME = 10 // Minimum time between triggers
 export const MINTIMEUNIT = 1 // Minimum unit of time
 
+/** When resolving and the timeline has repeating objects, only resolve this far into the future */
 const RESOLVE_LIMIT_TIME = 10000
 
 export const DEFAULT_PREPARATION_TIME = 20 // When resolving "now", move this far into the future, to account for computation times
@@ -72,12 +76,12 @@ interface QueueCallback {
 	callBack: string
 	callBackData: any
 }
-interface StatReport {
+export interface StatReport {
 	reason?: string
 	timelineStartResolve: number
 	timelineResolved: number
-	stateHandled: number,
-	done: number,
+	stateHandled: number
+	done: number
 }
 
 /**
@@ -128,8 +132,6 @@ export class Conductor extends EventEmitter {
 	constructor (options: ConductorOptions = {}) {
 		super()
 		this._options = options
-
-		this._options = this._options // ts-lint fix: not used
 
 		this._multiThreadedResolver = !!options.multiThreadedResolver
 
@@ -332,6 +334,15 @@ export class Conductor extends EventEmitter {
 					options,
 					threadedClassOptions
 				)
+			} else if (deviceOptions.type === DeviceType.TCPSEND) {
+				newDevice = await new DeviceContainer().create<TCPSendDevice>(
+					'../../dist/devices/tcpSend.js',
+					TCPSendDevice,
+					deviceId,
+					deviceOptions,
+					options,
+					threadedClassOptions
+				)
 			} else if (deviceOptions.type === DeviceType.PANASONIC_PTZ) {
 				newDevice = await new DeviceContainer().create<PanasonicPtzDevice>(
 					'../../dist/devices/panasonicPTZ.js',
@@ -363,6 +374,24 @@ export class Conductor extends EventEmitter {
 				newDevice = await new DeviceContainer().create<OSCMessageDevice>(
 					'../../dist/devices/osc.js',
 					OSCMessageDevice,
+					deviceId,
+					deviceOptions,
+					options,
+					threadedClassOptions
+				)
+			} else if (deviceOptions.type === DeviceType.QUANTEL) {
+				newDevice = await new DeviceContainer().create<QuantelDevice>(
+					'../../dist/devices/quantel.js',
+					QuantelDevice,
+					deviceId,
+					deviceOptions,
+					options,
+					threadedClassOptions
+				)
+			} else if (deviceOptions.type === DeviceType.SISYFOS) {
+				newDevice = await new DeviceContainer().create<OSCMessageDevice>(
+					'../../dist/devices/sisyfos.js',
+					SisyfosMessageDevice,
 					deviceId,
 					deviceOptions,
 					options,
@@ -404,6 +433,8 @@ export class Conductor extends EventEmitter {
 			await newDevice.device.setMapping(this.mapping)
 
 			await newDevice.device.init(deviceOptions.options)
+
+			await newDevice.reloadProps() // because the device name might have changed after init
 
 			deviceName = newDevice.deviceName
 			this.emit('info', (DeviceType[deviceOptions.type] + ' initialized!'))
@@ -531,10 +562,11 @@ export class Conductor extends EventEmitter {
 			}
 		})
 		.catch(e => {
+			this._resolveTimelineRunning = false
 			this.emit('error', 'Caught error in _resolveTimeline.then' + e)
 		})
 	}
-	private async _resolveTimelineInner () {
+	private async _resolveTimelineInner (): Promise<number | undefined> {
 		if (!this._isInitialized) {
 			this.emit('warning', 'TSR is not initialized yet')
 			return
@@ -561,24 +593,25 @@ export class Conductor extends EventEmitter {
 			if (!this._nextResolveTime) {
 				let estimatedResolveTime = this.estimateResolveTime()
 				resolveTime = now + estimatedResolveTime
-				this.emit('info', 'resolveTimeline ' + resolveTime + ' (+' + estimatedResolveTime + ') -----------------------------')
+				this.emit('debug', `resolveTimeline ${resolveTime} (${resolveTime - now} from now) (${estimatedResolveTime}) ---------`)
 			} else {
-				this.emit('info', 'resolveTimeline ' + resolveTime + ' -----------------------------')
+				this.emit('debug', `resolveTimeline ${resolveTime} (${resolveTime - now} from now) -----------------------------`)
 			}
 
 			if (resolveTime > now + LOOKAHEADTIME) {
+				// If the resolveTime is too far ahead, we'd rather wait and resolve it later.
 				this.emit('debug', 'Too far ahead (' + resolveTime + ')')
 				this._triggerResolveTimeline(LOOKAHEADTIME)
 				return
 			}
 
-			const fixObject = (o) => {
+			const fixTimelineObject = (o: any) => {
 				if (nowIds[o.id]) o.enable.start = nowIds[o.id]
 				delete o['parent']
 				if (o.isGroup) {
 					if (o.content.objects) {
 						_.each(o.content.objects, (child) => {
-							fixObject(child)
+							fixTimelineObject(child)
 						})
 					}
 				}
@@ -588,10 +621,10 @@ export class Conductor extends EventEmitter {
 			const nowIds: {[id: string]: number} = {}
 			let timeline: TSRTimeline = this.timeline
 
-			// To prevent trying to transfer multithreaded objects over IPC we remove
+			// To prevent trying to transfer circular references over IPC we remove
 			// any references to the parent property:
 			_.each(timeline, (o) => {
-				fixObject(o)
+				fixTimelineObject(o)
 			})
 
 			let resolvedStates: ResolvedStates
@@ -606,7 +639,7 @@ export class Conductor extends EventEmitter {
 				let o = await this._resolver.resolveTimeline(
 					resolveTime,
 					this.timeline,
-					RESOLVE_LIMIT_TIME
+					now + RESOLVE_LIMIT_TIME
 				)
 				resolvedStates = o.resolvedStates
 				objectsFixed = o.objectsFixed
@@ -622,7 +655,7 @@ export class Conductor extends EventEmitter {
 				nowIds[o.id] = o.time
 			})
 			_.each(timeline, (o) => {
-				fixObject(o)
+				fixTimelineObject(o)
 			})
 
 			statTimeTimelineResolved = Date.now()
@@ -631,37 +664,13 @@ export class Conductor extends EventEmitter {
 				this.emit('warn', `Resolver is ${this.getCurrentTime() - resolveTime} ms late`)
 			}
 
-			// Split the state into substates that are relevant for each device
-			let getFilteredLayers = async (layers: TimelineState['layers'], device: DeviceContainer) => {
-				let filteredState = {}
-				const deviceId = device.deviceId
-				const deviceType = device.deviceType
-				_.each(layers, async (o: ResolvedTimelineObjectInstance, layerId: string) => {
-					const oExt: ResolvedTimelineObjectInstanceExtended = o
-
-					let mapping: Mapping = this._mapping[o.layer + '']
-					if (!mapping && oExt.isLookahead && oExt.lookaheadForLayer) {
-						mapping = this._mapping[oExt.lookaheadForLayer]
-					}
-					if (mapping) {
-						if (
-							mapping.deviceId === deviceId &&
-							mapping.device === deviceType
-						) {
-							filteredState[layerId] = o
-						}
-					}
-				})
-				return filteredState
-			}
-
-			// push state to the right device
+			// Push state to the right device:
 			let ps: Promise<any>[] = []
 			ps = _.map(this.devices, async (device: DeviceContainer) => {
-				// The subState contains only the parts of the state relevant to that device
+				// The subState contains only the parts of the state relevant to that device:
 				let subState: TimelineState = {
 					time: tlState.time,
-					layers: await getFilteredLayers(tlState.layers, device),
+					layers: this.getFilteredLayers(tlState.layers, device),
 					nextEvents: []
 				}
 				let removeParent = o => {
@@ -703,12 +712,16 @@ export class Conductor extends EventEmitter {
 			const nowPostExec = this.getCurrentTime()
 			if (nextEventTime) {
 
-				timeUntilNextResolve = Math.max(MINTRIGGERTIME,
-					Math.min(LOOKAHEADTIME,
-						(nextEventTime - nowPostExec) - PREPARETIME
+				timeUntilNextResolve = (
+					Math.max(
+						MINTRIGGERTIME, // At minimum, we should wait this time
+						Math.min(
+							LOOKAHEADTIME, // We should wait maximum this time, because we might have deferred a resolving this far ahead
+							RESOLVE_LIMIT_TIME, // We should wait maximum this time, because we've only resolved repeating objects this far
+							(nextEventTime - nowPostExec) - PREPARETIME
+						)
 					)
 				)
-
 				// resolve at nextEventTime next time:
 				nextResolveTime = Math.min(tlState.time + LOOKAHEADTIME, nextEventTime)
 
@@ -792,7 +805,7 @@ export class Conductor extends EventEmitter {
 			})
 			this._sentCallbacks = sentCallbacksNew
 
-			this.emit('info', 'resolveTimeline at time ' + resolveTime + ' done in ' + (Date.now() - startTime) + 'ms (size: ' + this.timeline.length + ')')
+			this.emit('debug', 'resolveTimeline at time ' + resolveTime + ' done in ' + (Date.now() - startTime) + 'ms (size: ' + this.timeline.length + ')')
 		} catch (e) {
 			this.emit('error', 'resolveTimeline' + e + '\nStack: ' + e.stack)
 		}
@@ -936,6 +949,31 @@ export class Conductor extends EventEmitter {
 			this._statMeasureReason = ''
 
 			this.emit('info', 'statReport', JSON.stringify(reportDuration))
+			this.emit('statReport', reportDuration)
 		}
+	}
+	/**
+	 * Split the state into substates that are relevant for each device
+	 */
+	private getFilteredLayers (layers: TimelineState['layers'], device: DeviceContainer) {
+		let filteredState = {}
+		const deviceId = device.deviceId
+		const deviceType = device.deviceType
+		_.each(layers, (o: ResolvedTimelineObjectInstance, layerId: string) => {
+			const oExt: ResolvedTimelineObjectInstanceExtended = o
+			let mapping: Mapping = this._mapping[o.layer + '']
+			if (!mapping && oExt.isLookahead && oExt.lookaheadForLayer) {
+				mapping = this._mapping[oExt.lookaheadForLayer]
+			}
+			if (mapping) {
+				if (
+					mapping.deviceId === deviceId &&
+					mapping.device === deviceType
+				) {
+					filteredState[layerId] = o
+				}
+			}
+		})
+		return filteredState
 	}
 }

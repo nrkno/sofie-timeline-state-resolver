@@ -7,8 +7,8 @@ export interface Mappings {
 export interface Mapping {
 	device: DeviceType,
 	deviceId: string,
-	channel?: number,
-	layer?: number
+	// channel?: number,
+	// layer?: number
 	// [key: string]: any
 }
 export interface MappingAbstract extends Mapping {

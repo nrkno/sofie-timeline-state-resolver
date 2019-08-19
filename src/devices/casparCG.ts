@@ -250,12 +250,9 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> {
 				_.has(foundMapping,'layer')
 			) {
 
-				const mapping: MappingCasparCG = {
-					device: DeviceType.CASPARCG,
-					deviceId: foundMapping.deviceId,
-					channel: foundMapping.channel || 0,
-					layer: foundMapping.layer || 0
-				}
+				const mapping = foundMapping as MappingCasparCG
+				mapping.channel = mapping.channel || 0
+				mapping.layer = mapping.layer || 0
 
 				// create a channel in state if necessary, or reuse existing channel
 				const channel = caspar.channels[mapping.channel] ? caspar.channels[mapping.channel] : new StateNS.Channel()
@@ -685,8 +682,7 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> {
 	 * @param time deprecated
 	 * @param cmd Command to execute
 	 */
-	private _defaultCommandReceiver (time: number, cmd: CommandNS.IAMCPCommand, context: string, timelineObjId: string): Promise<any> {
-		time = time
+	private _defaultCommandReceiver (_time: number, cmd: CommandNS.IAMCPCommand, context: string, timelineObjId: string): Promise<any> {
 
 		let cwc: CommandWithContext = {
 			context: context,

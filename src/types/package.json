@@ -48,6 +48,8 @@
 		"info": "npm-scripts-info",
 		"installclean": "yarn unlink:all & yarn cleancache && yarn --check-files",
 		"buildclean": "yarn installclean && yarn build",
+		"test": "yarn lint && yarn build && yarn unit",
+		"testci": "yarn lint && yarn build && yarn unitci",
 		"unitci": "jest --maxWorkers 2",
 		"unit": "jest",
 		"build": "trash dist && yarn build:main",

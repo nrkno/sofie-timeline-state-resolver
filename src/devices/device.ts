@@ -117,9 +117,8 @@ export abstract class Device extends EventEmitter {
 	 * The exact implementation differ between different devices
 	 * @param okToDestroyStuff If true, the device may do things that might affect the output (temporarily)
 	 */
-	makeReady (okToDestroyStuff?: boolean): Promise<void> {
+	makeReady (_okToDestroyStuff?: boolean): Promise<void> {
 		// This method should be overwritten by child
-		okToDestroyStuff = okToDestroyStuff
 		return Promise.resolve()
 	}
 	/**
@@ -127,9 +126,8 @@ export abstract class Device extends EventEmitter {
 	 * The exact implementation differ between different devices
 	 * @param okToDestroyStuff If true, the device may do things that might affect the output (temporarily)
 	 */
-	standDown (okToDestroyStuff?: boolean): Promise<void> {
+	standDown (_okToDestroyStuff?: boolean): Promise<void> {
 		// This method should be overwritten by child
-		okToDestroyStuff = okToDestroyStuff
 		return Promise.resolve()
 	}
 	abstract getStatus (): DeviceStatus

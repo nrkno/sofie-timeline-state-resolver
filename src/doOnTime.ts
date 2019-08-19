@@ -6,6 +6,7 @@ export type DoOrderFunction = (...args: any[]) => void | Promise<any> | any
 export type DoOrderFunctionNothing = () => void | Promise<any> | any
 export type DoOrderFunction0<A> = (arg0: A) => void | Promise<any> | any
 export type DoOrderFunction1<A, B> = (arg0: A, arg1: B) => void | Promise<any> | any
+export type DoOrderFunction2<A, B, C> = (arg0: A, arg1: B, arg2: C) => void | Promise<any> | any
 
 interface DoOrder {
 	time: number
@@ -32,7 +33,10 @@ export class DoOnTime extends EventEmitter {
 
 	private _checkQueueTimeout: any = 0
 	private _sendMode: SendMode
-	private _commandsToSendNow: (() => Promise<any>)[] = []
+	private _commandsToSendNow: {
+		[queueId: string]: (() => Promise<any>)[]
+	} = {}
+
 	private _sendingCommands: {
 		[queueId: string]: boolean
 	} = {}
@@ -63,6 +67,7 @@ export class DoOnTime extends EventEmitter {
 	public queue (time: number, queueId: string | undefined, fcn: DoOrderFunctionNothing): string
 	public queue<A> (time: number, queueId: string | undefined, fcn: DoOrderFunction0<A>, arg0: A): string
 	public queue<A, B> (time: number, queueId: string | undefined, fcn: DoOrderFunction1<A, B>, arg0: A, arg1: B): string
+	public queue<A, B, C> (time: number, queueId: string | undefined, fcn: DoOrderFunction2<A, B, C>, arg0: A, arg1: B, arg2: C): string
 	public queue (time: number, queueId: string | undefined, fcn: DoOrderFunction, ...args: any[]): string {
 		if (!(time >= 0)) throw Error(`DoOnTime: time argument must be >= 0 (${time})`)
 		if (!_.isFunction(fcn)) throw Error(`DoOnTime: fcn argument must be a function! (${typeof fcn})`)
@@ -107,14 +112,17 @@ export class DoOnTime extends EventEmitter {
 			})
 		})
 	}
-	public clearQueueNowAndAfter (time: number) {
+	public clearQueueNowAndAfter (time: number): number {
+		let removed: number = 0
 		_.each(this._queues, (queue, queueId: string) => {
 			_.each(queue, (q: DoOrder, id: string) => {
 				if (q.time >= time) {
 					this._remove(queueId, id)
+					removed++
 				}
 			})
 		})
+		return removed
 	}
 	dispose (): void {
 		this.clearQueueAfter(0) // clear all
@@ -134,7 +142,8 @@ export class DoOnTime extends EventEmitter {
 			_.each(queue, (o: DoOrder, id: string) => {
 				if (o.time <= now) {
 					o.prepareTime = this.getCurrentTime()
-					this._commandsToSendNow.push(() => {
+					if (!this._commandsToSendNow[queueId]) this._commandsToSendNow[queueId] = []
+					this._commandsToSendNow[queueId].push(() => {
 						try {
 							let startSend = this.getCurrentTime()
 							let endSend: number = 0
@@ -174,7 +183,9 @@ export class DoOnTime extends EventEmitter {
 		this._sendingCommands[queueId] = true
 
 		try {
-			const commandToSend = this._commandsToSendNow.shift()
+			if (!this._commandsToSendNow[queueId]) this._commandsToSendNow[queueId] = []
+
+			const commandToSend = this._commandsToSendNow[queueId].shift()
 			if (commandToSend) {
 				if (this._sendMode === SendMode.BURST) {
 					// send all at once:

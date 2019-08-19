@@ -36,7 +36,10 @@ interface Command {
 }
 type CommandContext = string
 interface OSCDeviceState {
-	[address: string]: OSCMessageCommandContent
+	[address: string]: OSCDeviceStateContent
+}
+interface OSCDeviceStateContent extends OSCMessageCommandContent {
+	fromTlObject: string
 }
 /**
  * This is a generic wrapper for any osc-enabled device.
@@ -122,8 +125,7 @@ export class OSCMessageDevice extends DeviceWithState<TimelineState> {
 			statusCode: StatusCode.GOOD
 		}
 	}
-	makeReady (okToDestroyStuff?: boolean): Promise<void> {
-		okToDestroyStuff = okToDestroyStuff
+	makeReady (_okToDestroyStuff?: boolean): Promise<void> {
 		return Promise.resolve()
 	}
 
@@ -143,11 +145,17 @@ export class OSCMessageDevice extends DeviceWithState<TimelineState> {
 		const addrToPriority: { [address: string]: number } = {}
 
 		_.each(state.layers, (layer) => {
-			const content = layer.content as OSCMessageCommandContent
-			content.fromTlObject = layer.id
-			if ((addrToOSCMessage[content.path]
-				&& addrToPriority[content.path] <= (layer.priority || 0))
-				|| !addrToOSCMessage[content.path]) {
+			const content: OSCDeviceStateContent = {
+				...layer.content as OSCMessageCommandContent,
+				fromTlObject: layer.id
+			}
+			if (
+				(
+					addrToOSCMessage[content.path] &&
+					addrToPriority[content.path] <= (layer.priority || 0)
+				) ||
+				!addrToOSCMessage[content.path]
+			) {
 				addrToOSCMessage[content.path] = content
 				addrToPriority[content.path] = layer.priority || 0
 			}
@@ -193,7 +201,7 @@ export class OSCMessageDevice extends DeviceWithState<TimelineState> {
 
 		let commands: Array<Command> = []
 
-		_.each(newOscSendState, (newCommandContent: OSCMessageCommandContent, address: string) => {
+		_.each(newOscSendState, (newCommandContent: OSCDeviceStateContent, address: string) => {
 			let oldLayer = oldOscSendState[address]
 			if (!oldLayer) {
 				// added!
@@ -217,7 +225,7 @@ export class OSCMessageDevice extends DeviceWithState<TimelineState> {
 			}
 		})
 		// removed
-		_.each(oldOscSendState, (oldCommandContent: OSCMessageCommandContent, address) => {
+		_.each(oldOscSendState, (oldCommandContent: OSCDeviceStateContent, address) => {
 			let newLayer = newOscSendState[address]
 			if (!newLayer) {
 				// removed!
@@ -232,7 +240,6 @@ export class OSCMessageDevice extends DeviceWithState<TimelineState> {
 		return commands
 	}
 	private _defaultCommandReceiver (time: number, cmd: OSCMessageCommandContent, context: CommandContext, timelineObjId: string): Promise<any> {
-		time = time
 
 		let cwc: CommandWithContext = {
 			context: context,
