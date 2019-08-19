@@ -1,4 +1,5 @@
 import { EventEmitter } from 'events'
+import { EmberTypes } from '../types/src/lawo'
 // @ts-ignore import json file
 const mockData = require('./lawo-out.json')
 
@@ -38,7 +39,7 @@ export class DeviceTree extends EventEmitter {
 		return new Promise((resolve) => resolve(new Node(path)))
 	}
 
-	setValue (node: Node, value: boolean | number | string) {
+	setValue (node: Node, value: EmberTypes) {
 		node = node // not used
 		value = value // not used
 		return new Promise((resolve) => resolve())

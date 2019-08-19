@@ -13,7 +13,8 @@ export enum MappingAtemType {
 	Auxilliary,
 	MediaPlayer,
 	SuperSourceProperties,
-	AudioChannel
+	AudioChannel,
+	MacroPlayer
 }
 
 export interface AtemOptions {
@@ -28,7 +29,8 @@ export enum TimelineContentTypeAtem { //  Atem-state
 	SSRC = 'ssrc',
 	SSRCPROPS = 'ssrcProps',
 	MEDIAPLAYER = 'mp',
-	AUDIOCHANNEL = 'audioChan'
+	AUDIOCHANNEL = 'audioChan',
+	MACROPLAYER = 'macroPlayer'
 }
 
 export enum AtemTransitionStyle { // Note: copied from atem-state
@@ -37,7 +39,8 @@ export enum AtemTransitionStyle { // Note: copied from atem-state
 	WIPE,
 	DVE,
 	STING,
-	CUT
+	CUT,
+	DUMMY
 }
 
 export type SuperSourceBox = {
@@ -78,7 +81,8 @@ export type TimelineObjAtemAny = (
 	TimelineObjAtemDSK |
 	TimelineObjAtemAUX |
 	TimelineObjAtemSsrc |
-	TimelineObjAtemSsrcProps
+	TimelineObjAtemSsrcProps |
+	TimelineObjAtemMacroPlayer
 )
 export interface TimelineObjAtemBase extends TSRTimelineObjBase {
 	content: {
@@ -230,6 +234,17 @@ export interface TimelineObjAtemAudioChannel extends TimelineObjAtemBase {
 			gain?: number
 			balance?: number
 			mixOption?: number
+		}
+	}
+}
+export interface TimelineObjAtemMacroPlayer extends TimelineObjAtemBase {
+	content: {
+		deviceType: DeviceType.ATEM
+		type: TimelineContentTypeAtem.MACROPLAYER
+		macroPlayer: {
+			macroIndex: number
+			isRunning: boolean
+			loop?: boolean
 		}
 	}
 }

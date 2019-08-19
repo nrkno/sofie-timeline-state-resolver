@@ -79,6 +79,7 @@
     "types-install": "cd src/types && yarn install && cd ../..",
     "types-test": "cd src/types && yarn test && cd ../..",
     "types-ci": "cd src/types && yarn testci && cd ../..",
+    "types-validate:dependencies": "cd src/types && yarn validate:dependencies",
     "buildall": "yarn build && yarn types-build"
   },
   "scripts-info": {
@@ -148,7 +149,7 @@
     "@types/sprintf-js": "^1.1.0",
     "@types/ws": "^6.0.1",
     "atem-connection": "^0.10.0",
-    "atem-state": "^0.7.0",
+    "atem-state": "^0.7.1",
     "casparcg-connection": "^4.7.0",
     "casparcg-state": "^1.8.1",
     "emberplus": "git+https://github.com/nrkno/tv-automation-emberplus-connection#dist10102018",

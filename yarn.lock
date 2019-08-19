@@ -773,10 +773,10 @@ atem-connection@^0.10.0:
     tslib "^1.9.0"
     wavefile "^8.4.4"
 
-atem-state@^0.7.0:
-  version "0.7.0"
-  resolved "https://registry.yarnpkg.com/atem-state/-/atem-state-0.7.0.tgz#44fff1723484ca998b46ab503f50797538c29c07"
-  integrity sha512-mOmLG38rLTc2HvOOSS5gkQw/SQKsTBsqhjV60keOYjlXQHq7wJhermgephmLELvB6icBLaBHd5ihVrZogv1TSg==
+atem-state@^0.7.1:
+  version "0.7.1"
+  resolved "https://registry.yarnpkg.com/atem-state/-/atem-state-0.7.1.tgz#266e1c4fce5ee8e97557402a5177d4b1ad1260ca"
+  integrity sha512-BJJPGLH8Vnnvg/xCI8MwOrJiRr0US33ZZLVfGJEUWOrwIfdRj48VlzewVY7mWna3zrb7FJC0YBYHpzTDCeCwKw==
   dependencies:
     atem-connection "^0.10.0"
     tslib "^1.9.2"
