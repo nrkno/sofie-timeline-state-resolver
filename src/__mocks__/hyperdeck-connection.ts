@@ -2,7 +2,8 @@ import { EventEmitter } from 'events'
 
 import {
 	TransportStatus,
-	Commands
+	Commands,
+	SynchronousCode
 } from '../../node_modules/hyperdeck-connection'
 
 let setTimeoutOrg = setTimeout
@@ -71,6 +72,9 @@ export class Hyperdeck extends EventEmitter {
 	sendCommand (command: Commands.AbstractCommand): Promise<any> {
 		if (this._mockCommandReceiver) {
 			return this._mockCommandReceiver(command)
+		}
+		if ((command instanceof Commands.SlotSelectCommand || command instanceof Commands.SlotInfoCommand) && command.slotId > 2) {
+			return Promise.reject()
 		}
 		return Promise.resolve()
 	}

@@ -13,6 +13,7 @@ export enum MappingHyperdeckType {
 export interface HyperdeckOptions {
 	host: string
 	port?: number
+	minRecordingTime?: number
 }
 
 export enum TimelineContentTypeHyperdeck {
