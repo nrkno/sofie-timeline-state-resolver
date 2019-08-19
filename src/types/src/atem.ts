@@ -44,7 +44,7 @@ export enum AtemTransitionStyle { // Note: copied from atem-state
 }
 
 export type SuperSourceBox = {
-	enabled: boolean,
+	enabled?: boolean,
 	source?: number,
 	x?: number,
 	y?: number,
