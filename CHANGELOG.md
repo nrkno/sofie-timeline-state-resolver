@@ -2,6 +2,24 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [3.7.0](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/3.6.0...3.7.0) (2019-08-24)
+
+
+### Bug Fixes
+
+* don't re-emit info, warnings or errors from devices, let the library consumer handle that. ([40048d2](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/40048d2))
+* quantel: don't send jumps twice (first was after fragment load, second before playing) ([4dbe824](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/4dbe824))
+* threadedClass dep. fixes a fatal bug that caused main process to quit. ([47dc740](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/47dc740))
+
+
+### Features
+
+* all devices: refactor how to handle doOnTime events, and add commandReport listener ([5360e4f](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/5360e4f))
+* doOnTime: emit commandReports on every command ([7ea4cbd](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/7ea4cbd))
+* properly terminate child processes when removing devices ([15fb922](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/15fb922))
+
+
+
 ## [3.6.0](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/3.5.0...3.6.0) (2019-08-19)
 
 
