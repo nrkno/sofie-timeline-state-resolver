@@ -19,6 +19,7 @@ export interface DeviceOptions extends SlowReportOptions {
 	type: DeviceType
 	isMultiThreaded?: boolean
 	threadUsage?: number
+	disable?: boolean
 	options?: {}
 }
 
