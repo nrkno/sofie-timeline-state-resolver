@@ -52,6 +52,11 @@ export class DeviceContainer {
 		this._deviceName = await this.device.deviceName
 	}
 
+	public async terminate() {
+		console.error('Deviceconainter.terminate')
+		await ThreadedClassManager.destroy(this._device)
+	}
+
 	public get device (): ThreadedClass<Device> 				{ return this._device }
 	public get deviceId (): string 								{ return this._deviceId }
 	public get deviceType (): DeviceType 						{ return this._deviceType }

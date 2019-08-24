@@ -453,16 +453,18 @@ export class Conductor extends EventEmitter {
 	 * Safely remove a device
 	 * @param deviceId The id of the device to be removed
 	 */
-	public removeDevice (deviceId: string): Promise<void> {
+	public async removeDevice (deviceId: string): Promise<void> {
 		let device = this.devices[deviceId]
-
 		if (device) {
-			return device.device.terminate()
-			.then((res) => {
-				if (res) {
-					delete this.devices[deviceId]
-				}
-			})
+			try {
+				await device.device.terminate()
+			} catch (e) {
+				// An error while terminating is probably not that important, since we'll kill the instance anyway
+				this.emit('warning', 'Error when terminating device', e)
+			}
+			await device.terminate()
+
+			delete this.devices[deviceId]
 		} else {
 			return Promise.reject('No device found')
 		}
