@@ -24,7 +24,7 @@ import {
 
 import { DoOnTime, SendMode } from '../doOnTime'
 import {
-	QuantelGateway
+	QuantelGateway, Q
 } from './quantelGateway'
 
 const IDEAL_PREPARE_TIME = 1000
@@ -492,8 +492,21 @@ class QuantelManager {
 			!trackedPort ||
 			trackedPort.channel !== cmd.channel
 		) {
-			// setup a port and connect it to a channel
-			const port = await this._quantel.getPort(cmd.portId)
+			let port: Q.PortStatus | null = null
+			// Setup a port and connect it to a channel
+			try {
+				port = await this._quantel.getPort(cmd.portId)
+			} catch (e) {
+				// If the GET fails, it might be something unknown wrong.
+				// A temporary workaround is to send a delete on that port and try again, it might work.
+				try {
+					await this._quantel.releasePort(cmd.portId)
+				} catch {
+					// ignore any errors
+				}
+				// Try again:
+				port = await this._quantel.getPort(cmd.portId)
+			}
 			if (port) {
 				// port already exists, release it first:
 				await this._quantel.releasePort(cmd.portId)
@@ -700,7 +713,7 @@ class QuantelManager {
 					trackedPort.jumpOffset = jumpToOffset
 
 					// Allow the server some time to load the clip:
-					await this.wait(SOFT_JUMP_WAIT_TIME) // This is going to
+					await this.wait(SOFT_JUMP_WAIT_TIME) // This is going to give the
 
 					if (alsoDoAction === 'pause') {
 						// Pause the playback:
@@ -989,11 +1002,16 @@ interface QuantelTrackedStatePort {
 			/** The outpoint used when loading the fragments */
 			outPoint: number
 		}
-	},
+	}
+	/** The (SDI)-output channel the port is using */
 	channel: number
 
+	/** The current offset of the playhead (only valid when not playing) */
 	offset: number
+	/** If the playhead is playing or not */
 	playing: boolean
+	/** When preparing a jump, this is the frame the cursor is set to  */
 	jumpOffset: number | null
+	/** When preparing a stop, this is the frame the playhead will stop at */
 	scheduledStop: number | null
 }

@@ -213,9 +213,17 @@ export class QuantelGateway extends EventEmitter {
 		if (!response.success) throw Error(`Quantel trigger stop: Server returned success=${response.success}`)
 		return response
 	}
+	/** Schedule a jump. When the playhead reaches the frame, it'll jump */
+	public async portScheduleJump (portId: string, jumpToFrame: number): Promise<Q.JumpResult> {
+		const response = await this.sendServer('post', `port/${portId}/trigger/JUMP`, {
+			offset: jumpToFrame
+		}) as Q.JumpResult
+		if (!response.success) throw Error(`Quantel scheduled jump: Server returned success=${response.success}`)
+		return response
+	}
 	/** Jump directly to a frame, note that this might cause flicker on the output, as the frames haven't been preloaded  */
 	public async portHardJump (portId: string, jumpToFrame?: number): Promise<Q.JumpResult> {
-		const response = await this.sendServer('post', `port/${portId}/trigger/JUMP`, {
+		const response = await this.sendServer('post', `port/${portId}/jump`, {
 			offset: jumpToFrame
 		}) as Q.JumpResult
 		if (!response.success) throw Error(`Quantel hard jump: Server returned success=${response.success}`)
