@@ -79,14 +79,12 @@ export class QuantelDevice extends DeviceWithState<QuantelState> {
 		this._doOnTime = new DoOnTime(() => {
 			return this.getCurrentTime()
 		}, SendMode.IN_ORDER, this._deviceOptions)
-		this._doOnTime.on('error', e => this.emit('error', 'Quantel.doOnTime', e))
-		this._doOnTime.on('slowCommand', msg => this.emit('slowCommand', this.deviceName + ': ' + msg))
+		this.handleDoOnTime(this._doOnTime, 'Quantel')
 
 		this._doOnTimeBurst = new DoOnTime(() => {
 			return this.getCurrentTime()
 		}, SendMode.BURST, this._deviceOptions)
-		this._doOnTimeBurst.on('error', e => this.emit('error', 'Quantel.doOnTimeBurst', e))
-		this._doOnTimeBurst.on('slowCommand', msg => this.emit('slowCommand', this.deviceName + ': ' + msg))
+		this.handleDoOnTime(this._doOnTimeBurst, 'Quantel.burst')
 	}
 
 	async init (connectionOptions: QuantelOptions): Promise<boolean> {

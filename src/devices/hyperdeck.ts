@@ -83,8 +83,7 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> {
 		this._doOnTime = new DoOnTime(() => {
 			return this.getCurrentTime()
 		}, SendMode.BURST, this._deviceOptions)
-		this._doOnTime.on('error', e => this.emit('error', 'Hyperdeck.doOnTime', e))
-		this._doOnTime.on('slowCommand', msg => this.emit('slowCommand', this.deviceName + ': ' + msg))
+		this.handleDoOnTime(this._doOnTime, 'Hyperdeck')
 	}
 
 	/**

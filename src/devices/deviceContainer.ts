@@ -1,7 +1,8 @@
 import {
 	ThreadedClass,
 	threadedClass,
-	ThreadedClassConfig
+	ThreadedClassConfig,
+	ThreadedClassManager
 } from 'threadedclass'
 import { DeviceClassOptions, Device } from './device'
 import { DeviceOptions, DeviceType } from '../types/src'
