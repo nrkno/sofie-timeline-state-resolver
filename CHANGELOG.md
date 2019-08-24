@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.7.1](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/3.7.0...3.7.1) (2019-08-24)
+
+
+### Bug Fixes
+
+* correct quantel API ([5b8023e](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/5b8023e))
+* preliminary workaround, to give the quantel another chance to get going at startup ([fe25898](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/fe25898))
+
+
+
 ## [3.7.0](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/3.6.0...3.7.0) (2019-08-24)
 
 
