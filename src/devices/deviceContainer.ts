@@ -53,7 +53,6 @@ export class DeviceContainer {
 	}
 
 	public async terminate () {
-		console.error('Deviceconainter.terminate')
 		await ThreadedClassManager.destroy(this._device)
 	}
 
