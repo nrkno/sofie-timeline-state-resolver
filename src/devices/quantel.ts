@@ -24,7 +24,7 @@ import {
 
 import { DoOnTime, SendMode } from '../doOnTime'
 import {
-	QuantelGateway
+	QuantelGateway, Q
 } from './quantelGateway'
 
 const IDEAL_PREPARE_TIME = 1000
