@@ -700,7 +700,7 @@ class QuantelManager {
 					trackedPort.jumpOffset = jumpToOffset
 
 					// Allow the server some time to load the clip:
-					await this.wait(SOFT_JUMP_WAIT_TIME) // This is going to
+					await this.wait(SOFT_JUMP_WAIT_TIME) // This is going to give the
 
 					if (alsoDoAction === 'pause') {
 						// Pause the playback:
@@ -989,11 +989,16 @@ interface QuantelTrackedStatePort {
 			/** The outpoint used when loading the fragments */
 			outPoint: number
 		}
-	},
+	}
+	/** The (SDI)-output channel the port is using */
 	channel: number
 
+	/** The current offset of the playhead (only valid when not playing) */
 	offset: number
+	/** If the playhead is playing or not */
 	playing: boolean
+	/** When preparing a jump, this is the frame the cursor is set to  */
 	jumpOffset: number | null
+	/** When preparing a stop, this is the frame the playhead will stop at */
 	scheduledStop: number | null
 }
