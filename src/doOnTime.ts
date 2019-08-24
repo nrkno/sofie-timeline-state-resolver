@@ -47,12 +47,14 @@ export class DoOnTime extends EventEmitter {
 	// Overide EventEmitter.on() for stronger typings:
 	on (event: 'error', listener: (err: Error) => void): this
 	on (event: 'slowCommand', listener: (commandInfo: string) => void): this
+	on (event: 'commandReport', listener: (commandReport: CommandReport) => void): this
 	on (event: string | symbol, listener: (...args: any[]) => void): this {
 		return super.on(event, listener)
 	}
 	// Overide EventEmitter.emit() for stronger typings:
 	emit (event: 'error',	err: Error): boolean
 	emit (event: 'slowCommand', commandInfo: string): boolean // A report that a command was sent too late
+	emit (event: 'commandReport', commandReport: CommandReport): boolean // A report of the command sent, emitted after it has been fulfilled
 	emit (event: string, ...args: any[]): boolean {
 		return super.emit(event, ...args)
 	}
@@ -146,14 +148,14 @@ export class DoOnTime extends EventEmitter {
 					this._commandsToSendNow[queueId].push(() => {
 						try {
 							let startSend = this.getCurrentTime()
-							let endSend: number = 0
 							let sentTooSlow: boolean = false
 							let p = Promise.resolve(o.fcn(...o.args))
 							.then(() => {
-								if (!sentTooSlow) this._verifyFulfillCommand(o, startSend, endSend)
+								if (!sentTooSlow) this._verifyFulfillCommand(o, startSend, queueId)
+
+								this._sendCommandReport(o, startSend, queueId)
 							})
-							endSend = this.getCurrentTime()
-							sentTooSlow = this._verifySendCommand(o, startSend, endSend)
+							sentTooSlow = this._verifySendCommand(o, startSend, queueId)
 							return p
 						} catch (e) {
 							return Promise.reject(e)
@@ -223,47 +225,84 @@ export class DoOnTime extends EventEmitter {
 		}
 	}
 	private representArguments (o: DoOrder) {
-		if (o.args[0] && o.args[0].serialize) {
-			return o.args[0].serialize
+		if (o.args && o.args[0] && o.args[0].serialize && _.isFunction(o.args[0].serialize)) {
+			return o.args[0].serialize()
 		} else {
 			return o.args
 		}
 	}
-	private _verifySendCommand (o: DoOrder, startSend: number, endSend: number): boolean {
+	private _verifySendCommand (o: DoOrder, send: number, queueId: string): boolean {
 		if (this._options.limitSlowSentCommand) {
-			let dt: number = endSend - o.time
-			let beforeTime: number = o.time - o.addedTime
-			if (dt > this._options.limitSlowSentCommand) {
+			let sendDelay: number = send - o.time
+			let addedDelay: number = o.time - o.addedTime
+			if (sendDelay > this._options.limitSlowSentCommand) {
 				let output = {
 					added: o.addedTime,
 					prepareTime: o.prepareTime,
 					plannedSend: o.time,
-					startSend: startSend,
-					endSend: endSend,
+					send: send,
+					queueId: queueId,
 					args: this.representArguments(o)
 				}
-				this.emit('slowCommand', `Slow sent command, should have been sent at ${o.time}, was ${dt} ms slow (was added ${(beforeTime >= 0) ? `${beforeTime} ms before` : `${-beforeTime} ms after` } planned), sendMode: ${SendMode[this._sendMode]}. Command: ${JSON.stringify(output)}`)
+				this.emit('slowCommand', `Slow sent command, should have been sent at ${o.time}, was ${sendDelay} ms slow (was added ${(addedDelay >= 0) ? `${addedDelay} ms before` : `${-addedDelay} ms after` } planned), sendMode: ${SendMode[this._sendMode]}. Command: ${JSON.stringify(output)}`)
 				return true
 			}
 		}
 		return false
 	}
-	private _verifyFulfillCommand (o: DoOrder, startSend: number, endSend: number) {
+	private _verifyFulfillCommand (o: DoOrder, send: number, queueId: string) {
 		if (this._options.limitSlowFulfilledCommand) {
 			let fullfilled = this.getCurrentTime()
-			let dt: number = fullfilled - o.time
-			if (dt > this._options.limitSlowFulfilledCommand) {
-				let output = {
-					added: o.addedTime,
-					prepareTime: o.prepareTime,
-					plannedSend: o.time,
-					startSend: startSend,
-					endSend: endSend,
-					fullfilled: fullfilled,
-					args: this.representArguments(o)
-				}
-				this.emit('slowCommand', `Slow fulfilled command, should have been fulfilled at ${o.time}, was ${dt} ms slow. Command: ${JSON.stringify(output)}`)
+			let fulfilledDelay: number = fullfilled - o.time
+			let output = {
+				added: o.addedTime,
+				prepareTime: o.prepareTime,
+				plannedSend: o.time,
+				send: send,
+				queueId: queueId,
+				fullfilled: fullfilled,
+				args: this.representArguments(o)
+			}
+			if (fulfilledDelay > this._options.limitSlowFulfilledCommand) {
+				this.emit('slowCommand', `Slow fulfilled command, should have been fulfilled at ${o.time}, was ${fulfilledDelay} ms slow. Command: ${JSON.stringify(output)}`)
 			}
 		}
 	}
+	private _sendCommandReport (o: DoOrder, send: number, queueId: string) {
+		let fullfilled = this.getCurrentTime()
+		if (this.listenerCount('commandReport') > 0) {
+
+			// let sendDelay: number = endSend - o.time
+			// let fulfilledDelay: number = fullfilled - o.time
+
+			const output: CommandReport = {
+				added: o.addedTime,
+				prepareTime: o.prepareTime,
+				plannedSend: o.time,
+				send: send,
+				queueId: queueId,
+				fullfilled: fullfilled,
+				args: this.representArguments(o)
+			}
+			this.emit('commandReport', output)
+		}
+
+	}
+}
+
+export interface CommandReport {
+	/** The time the command is planned to execute */
+	plannedSend: number
+	/** The queue the command is put into */
+	queueId: string
+	/** Command is added to list of planned (future) events */
+	added: number
+	/** Command is picked from list of events and put into queue for immediade execution  */
+	prepareTime: number
+	/** Command is starting to exeute */
+	send: number
+	/** Command has finished executing */
+	fullfilled: number
+	/** Arguments of command */
+	args: any
 }

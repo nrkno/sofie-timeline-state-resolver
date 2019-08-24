@@ -6,6 +6,7 @@ import {
 	DeviceOptions
 } from '../types/src'
 import { EventEmitter } from 'events'
+import { CommandReport, DoOnTime } from '../doOnTime'
 /*
 	This is a base class for all the Device wrappers.
 	The Device wrappers will
@@ -193,6 +194,7 @@ export abstract class Device extends EventEmitter {
 	emit (event: 'connectionChanged',	status: DeviceStatus): boolean
 	emit (event: 'resetResolver'): boolean
 	emit (event: 'slowCommand',			commandInfo: string): boolean
+	emit (event: 'commandReport',		commandReport: CommandReport): boolean
 	emit (event: 'commandError',		error: Error, context: CommandWithContext): boolean
 	emit (event: string, ...args: any[]): boolean {
 		return super.emit(event, ...args)
@@ -284,5 +286,10 @@ export abstract class DeviceWithState<T> extends Device {
 		_.each(_.keys(this._states), (time: string) => {
 			delete this._states[time]
 		})
+	}
+	protected handleDoOnTime (doOnTime: DoOnTime, deviceType: string) {
+		doOnTime.on('error', e => this.emit('error', `${deviceType}.doOnTime`, e))
+		doOnTime.on('slowCommand', msg => this.emit('slowCommand', this.deviceName + ': ' + msg))
+		doOnTime.on('commandReport', commandReport => this.emit('commandReport', commandReport))
 	}
 }

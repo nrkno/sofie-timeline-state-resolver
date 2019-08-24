@@ -29,7 +29,7 @@ import {
 
 const IDEAL_PREPARE_TIME = 1000
 const PREPARE_TIME_WAIT = 50
-const SOFT_JUMP_WAIT_TIME = 100
+const SOFT_JUMP_WAIT_TIME = 250
 
 const DEFAULT_FPS = 50 // frames per second
 const JUMP_ERROR_MARGIN = 5 // frames
@@ -79,14 +79,12 @@ export class QuantelDevice extends DeviceWithState<QuantelState> {
 		this._doOnTime = new DoOnTime(() => {
 			return this.getCurrentTime()
 		}, SendMode.IN_ORDER, this._deviceOptions)
-		this._doOnTime.on('error', e => this.emit('error', 'Quantel.doOnTime', e))
-		this._doOnTime.on('slowCommand', msg => this.emit('slowCommand', this.deviceName + ': ' + msg))
+		this.handleDoOnTime(this._doOnTime, 'Quantel')
 
 		this._doOnTimeBurst = new DoOnTime(() => {
 			return this.getCurrentTime()
 		}, SendMode.BURST, this._deviceOptions)
-		this._doOnTimeBurst.on('error', e => this.emit('error', 'Quantel.doOnTimeBurst', e))
-		this._doOnTimeBurst.on('slowCommand', msg => this.emit('slowCommand', this.deviceName + ': ' + msg))
+		this.handleDoOnTime(this._doOnTimeBurst, 'Quantel.burst')
 	}
 
 	async init (connectionOptions: QuantelOptions): Promise<boolean> {
@@ -661,12 +659,16 @@ class QuantelManager {
 		)
 
 		if (
-			alsoDoAction === 'play' &&
-			// trackedPort.offset &&
-			jumpToOffset > trackedPort.offset &&
-			jumpToOffset - trackedPort.offset < JUMP_ERROR_MARGIN
+			jumpToOffset === trackedPort.offset || // We're already there
+			(
+				alsoDoAction === 'play' &&
+				// trackedPort.offset &&
+				jumpToOffset > trackedPort.offset &&
+				jumpToOffset - trackedPort.offset < JUMP_ERROR_MARGIN
+				// We're probably a bit late, just start playing
+			)
 		) {
-			// We're probably a bit late, just start playing
+			// do nothing
 		} else {
 
 			if (
@@ -732,6 +734,14 @@ class QuantelManager {
 				await this._quantel.portStop(cmd.portId, loadedFragments.portOutPoint)
 				trackedPort.scheduledStop = loadedFragments.portOutPoint
 			}
+		} else if (
+			alsoDoAction === 'pause' &&
+			trackedPort.playing
+		) {
+			await this._quantel.portHardJump(cmd.portId, jumpToOffset)
+
+			trackedPort.offset = jumpToOffset
+			trackedPort.playing = false
 		}
 	}
 	private getTrackedPort (portId: string): QuantelTrackedStatePort {

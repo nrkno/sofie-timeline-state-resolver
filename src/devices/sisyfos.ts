@@ -58,8 +58,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState> {
 		this._doOnTime = new DoOnTime(() => {
 			return this.getCurrentTime()
 		}, SendMode.BURST, this._deviceOptions)
-		this._doOnTime.on('error', e => this.emit('error', 'OSC.doOnTime', e))
-		this._doOnTime.on('slowCommand', msg => this.emit('slowCommand', this.deviceName + ': ' + msg))
+		this.handleDoOnTime(this._doOnTime, 'Sisyfos')
 	}
 	init (options: SisfyosOptions): Promise<boolean> {
 

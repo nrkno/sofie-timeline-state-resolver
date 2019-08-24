@@ -62,8 +62,7 @@ export class PharosDevice extends DeviceWithState<TimelineState> {
 		this._doOnTime = new DoOnTime(() => {
 			return this.getCurrentTime()
 		}, SendMode.BURST, this._deviceOptions)
-		this._doOnTime.on('error', e => this.emit('error', 'Pharos.doOnTime', e))
-		this._doOnTime.on('slowCommand', msg => this.emit('slowCommand', this.deviceName + ': ' + msg))
+		this.handleDoOnTime(this._doOnTime, 'Pharos')
 
 		this._pharos = new Pharos()
 

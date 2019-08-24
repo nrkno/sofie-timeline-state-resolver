@@ -408,26 +408,23 @@ export class Conductor extends EventEmitter {
 				}
 			}).catch(console.error)
 
-			let deviceName = newDevice.deviceName
-
-			const fixError = (e) => {
-
-				let name = `Device "${deviceName || deviceId}"`
-				if (e.reason) e.reason = name + ': ' + e.reason
-				if (e.message) e.message = name + ': ' + e.message
-				if (e.stack) {
-					e.stack += '\nAt device' + name
-				}
-				if (_.isString(e)) e = name + ': ' + e
-
-				return e
-			}
-			newDevice.device.on('info',		(e, ...args) => this.emit('info', 		fixError(e), ...args)).catch(console.error)
-			newDevice.device.on('warning',	(e, ...args) => this.emit('warning', 	fixError(e), ...args)).catch(console.error)
-			newDevice.device.on('error',	(e, ...args) => this.emit('error', 		fixError(e), ...args)).catch(console.error)
 			newDevice.device.on('resetResolver', () => this.resetResolver()).catch(console.error)
 
-			this.emit('info', 'Initializing ' + DeviceType[deviceOptions.type] + '...')
+			// Temporary listening to events, these are removed after the devide has been initiated.
+			// Todo: split the addDevice function into two separate functions, so that the device is
+			// first created, then initated by the consumer, allowing for setup of listeners in between...
+
+			const onDeviceInfo = (...args) => this.emit('info', ...args)
+			const onDeviceWarning = (...args) => this.emit('warning', ...args)
+			const onDeviceError = (...args) => this.emit('error', ...args)
+			const onDeviceDebug = (...args) => this.emit('debug', ...args)
+
+			newDevice.device.on('info', 	onDeviceInfo).catch(console.error)
+			newDevice.device.on('warning', 	onDeviceWarning).catch(console.error)
+			newDevice.device.on('error', 	onDeviceError).catch(console.error)
+			newDevice.device.on('debug', 	onDeviceDebug).catch(console.error)
+
+			this.emit('info', 'Initializing device ' + DeviceType[deviceOptions.type] + '...')
 			this.devices[deviceId] = newDevice
 			// @ts-ignore
 			await newDevice.device.setMapping(this.mapping)
@@ -436,8 +433,15 @@ export class Conductor extends EventEmitter {
 
 			await newDevice.reloadProps() // because the device name might have changed after init
 
-			deviceName = newDevice.deviceName
 			this.emit('info', (DeviceType[deviceOptions.type] + ' initialized!'))
+
+			// Remove listeners, expect consumer to subscribe to them now.
+
+			newDevice.device.removeListener('info', 	onDeviceInfo).catch(console.error)
+			newDevice.device.removeListener('warning', 	onDeviceWarning).catch(console.error)
+			newDevice.device.removeListener('error', 	onDeviceError).catch(console.error)
+			newDevice.device.removeListener('debug', 	onDeviceDebug).catch(console.error)
+
 			return newDevice
 
 		} catch (e) {
@@ -449,16 +453,18 @@ export class Conductor extends EventEmitter {
 	 * Safely remove a device
 	 * @param deviceId The id of the device to be removed
 	 */
-	public removeDevice (deviceId: string): Promise<void> {
+	public async removeDevice (deviceId: string): Promise<void> {
 		let device = this.devices[deviceId]
-
 		if (device) {
-			return device.device.terminate()
-			.then((res) => {
-				if (res) {
-					delete this.devices[deviceId]
-				}
-			})
+			try {
+				await device.device.terminate()
+			} catch (e) {
+				// An error while terminating is probably not that important, since we'll kill the instance anyway
+				this.emit('warning', 'Error when terminating device', e)
+			}
+			await device.terminate()
+
+			delete this.devices[deviceId]
 		} else {
 			return Promise.reject('No device found')
 		}

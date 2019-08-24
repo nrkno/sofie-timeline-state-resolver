@@ -1032,12 +1032,7 @@ caching-transform@^3.0.2:
     package-hash "^3.0.0"
     write-file-atomic "^2.4.2"
 
-callsites@^2.0.0:
-  version "2.0.0"
-  resolved "https://registry.yarnpkg.com/callsites/-/callsites-2.0.0.tgz#06eb84f00eea413da86affefacbffb36093b3c50"
-  integrity sha1-BuuE8A7qQT2oav/vrL/7Ngk7PFA=
-
-callsites@^3.0.0:
+callsites@^3.0.0, callsites@^3.1.0:
   version "3.1.0"
   resolved "https://registry.yarnpkg.com/callsites/-/callsites-3.1.0.tgz#b3630abd8943432f54b3f0519238e33cd7df2f73"
   integrity sha512-P8BjAsXvZS+VIDUI11hHCQEv74YT67YUi5JJFNWIqL235sBmjX4+qx9Muvls5ivyNENctx46xQLQ3aTuE7ssaQ==
@@ -5716,12 +5711,12 @@ text-extensions@^2.0.0:
   resolved "https://registry.yarnpkg.com/text-extensions/-/text-extensions-2.0.0.tgz#43eabd1b495482fae4a2bf65e5f56c29f69220f6"
   integrity sha512-F91ZqLgvi1E0PdvmxMgp+gcf6q8fMH7mhdwWfzXnl1k+GbpQDmi8l7DzLC5JTASKbwpY3TfxajAUzAXcv2NmsQ==
 
-threadedclass@^0.6.3:
-  version "0.6.3"
-  resolved "https://registry.yarnpkg.com/threadedclass/-/threadedclass-0.6.3.tgz#8bf6cbd0522c1a557b243848a823439db0a610b9"
-  integrity sha512-thTKgVNwtozM3G8NKYEUQut5oxkSfQrft6PB79d4ZrfmjQHTkoCKsvC5G+qc8gtnz22Icewgmm7tTd0vAYDNnQ==
+threadedclass@^0.6.4:
+  version "0.6.4"
+  resolved "https://registry.yarnpkg.com/threadedclass/-/threadedclass-0.6.4.tgz#674dcc987ad58f41a6a26ab2d08ca402fe12a55f"
+  integrity sha512-/AaKcZAp4TapCKXKsxIL2ezte9k2NBd+f5ZBbA2wSCDQXGq2r0CZRYwuNuQNHItSOjp3sLGiHNLi5rEE+cozZQ==
   dependencies:
-    callsites "^2.0.0"
+    callsites "^3.1.0"
     tslib "^1.9.3"
 
 throat@^4.0.0:

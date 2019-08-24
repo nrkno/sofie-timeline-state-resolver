@@ -1,7 +1,8 @@
 import {
 	ThreadedClass,
 	threadedClass,
-	ThreadedClassConfig
+	ThreadedClassConfig,
+	ThreadedClassManager
 } from 'threadedclass'
 import { DeviceClassOptions, Device } from './device'
 import { DeviceOptions, DeviceType } from '../types/src'
@@ -49,6 +50,10 @@ export class DeviceContainer {
 		this._deviceId = await this.device.deviceId
 		this._deviceType = await this.device.deviceType
 		this._deviceName = await this.device.deviceName
+	}
+
+	public async terminate () {
+		await ThreadedClassManager.destroy(this._device)
 	}
 
 	public get device (): ThreadedClass<Device> 				{ return this._device }
