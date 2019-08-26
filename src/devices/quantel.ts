@@ -1,4 +1,5 @@
 import * as _ from 'underscore'
+import { EventEmitter } from 'events'
 import {
 	DeviceWithState,
 	CommandWithContext,
@@ -75,6 +76,10 @@ export class QuantelDevice extends DeviceWithState<QuantelState> {
 			this._quantel,
 			() => this.getCurrentTime()
 		)
+		this._quantelManager.on('info', str => this.emit('info', 'Quantel: ' + str))
+		this._quantelManager.on('warning', str => this.emit('warning', 'Quantel' + str))
+		this._quantelManager.on('error', e => this.emit('error', 'Quantel', e))
+		this._quantelManager.on('debug', (...args) => this.emit('debug', ...args))
 
 		this._doOnTime = new DoOnTime(() => {
 			return this.getCurrentTime()
@@ -471,7 +476,7 @@ export class QuantelDevice extends DeviceWithState<QuantelState> {
 		this.emit('connectionChanged', this.getStatus())
 	}
 }
-class QuantelManager {
+class QuantelManager extends EventEmitter {
 	private _quantelState: QuantelTrackedState = {
 		port: {}
 	}
@@ -482,7 +487,9 @@ class QuantelManager {
 	constructor (
 		private _quantel: QuantelGateway,
 		private getCurrentTime: () => number
-	) {}
+	) {
+		super()
+	}
 
 	public async setupPort (cmd: QuantelCommandSetupPort): Promise<void> {
 		const trackedPort = this._quantelState.port[cmd.portId]
@@ -739,6 +746,34 @@ class QuantelManager {
 		if (alsoDoAction === 'play') {
 			// Start playing:
 			await this._quantel.portPlay(cmd.portId)
+
+			// Check if the play actually succeeded:
+			const portStatus = await this._quantel.getPort(cmd.portId)
+
+			if (!portStatus) {
+				// oh, something's gone very wrong
+				throw new Error(`Quantel: After play, port doesn't exist anymore`)
+			} else if (!portStatus.status.match(/playing/i)) {
+				// The port didn't seem to have started playing, let's retry a few more times:
+
+				this.emit('warn', `quantelRecovery: port didn't play`)
+
+				for (let i = 0; i < 3; i++) {
+					await this.wait(20 + i * 20) // Wait progressively longer times before trying again:
+
+					await this._quantel.portPlay(cmd.portId)
+
+					await this.wait(20)
+
+					const portStatus = await this._quantel.getPort(cmd.portId)
+
+					if (portStatus && portStatus.status.match(/playing/i)) {
+						// it has started playing, all good!
+						this.emit('warn', `quantelRecovery: port started playing again, on try ${i}`)
+						break
+					}
+				}
+			}
 			trackedPort.scheduledStop = null
 			trackedPort.playing = true
 
@@ -777,7 +812,6 @@ class QuantelManager {
 	private async getClipId (clip: QuantelStatePortClip): Promise<number> {
 		let clipId = clip.clipId
 
-		// console.log('try getClipId', clip)
 		if (!clipId && clip.guid) {
 			clipId = await this._cache.getSet(`clip.guid.${clip.guid}.clipId`, async () => {
 
