@@ -13,7 +13,13 @@ export function setupQuantelGatewayMock () {
 		ISAServerIsUp: true,
 		requestReturnsOK: true,
 		ignoreConnectivityCheck: false,
-		port: {}
+		ISAOptionHasBeenProvided: false,
+		port: {
+			'my_port': {
+				endOfData: 0,
+				offset: -1
+			}
+		}
 	}
 
 	// @ts-ignore: not logging
@@ -64,7 +70,16 @@ interface QuantelServerMockOptions {
 	ISAServerIsUp: boolean
 	requestReturnsOK: boolean
 	ignoreConnectivityCheck: boolean
-	port: any
+	ISAOptionHasBeenProvided: boolean
+	port: {
+		[port: string]: QuantelServerMockOptionsPort
+	}
+}
+interface QuantelServerMockOptionsPort {
+	playing?: boolean
+	endOfData: number
+	offset: number
+	jumpOffset?: number
 }
 interface ErrorResponse {
 	status: number
@@ -130,7 +145,8 @@ function handleRequest (quantelServer: QuantelServerMockOptions, triggerFcn: Fun
 			let body: object = {}
 			// let m: any
 
-			const searchClip = (params): Q.ClipDataSummary[] => {
+			const searchClip = (params): Q.ClipDataSummary[] | ErrorResponse => {
+				if (!quantelServer.ISAOptionHasBeenProvided) return noIsaSetupResponse
 				return _.filter([
 					{
 						type: 'ClipDataSummary',
@@ -181,15 +197,25 @@ function handleRequest (quantelServer: QuantelServerMockOptions, triggerFcn: Fun
 				})
 			}
 
+			const noIsaSetupResponse: ErrorResponse = {
+				status: 502,
+				message: `ISA URL not provided`,
+				stack: ''
+			}
+			// console.log(type, resource)
+
 			body = urlRoute(type, resource, {
 				// @ts-ignore: no need for params
 				'post /connect/:isaURL': (params) => {
+					quantelServer.ISAOptionHasBeenProvided = true
 					return {
 						something: 1234
 					}
 				},
 				// @ts-ignore: no need for params
-				'get /:zoneID/server': (params): Q.ServerInfo[] => {
+				'get /:zoneID/server': (params): Q.ServerInfo[] | ErrorResponse => {
+					if (!quantelServer.ISAOptionHasBeenProvided) return noIsaSetupResponse
+
 					return [{
 						type: 'Server',
 						ident: 1100,
@@ -220,9 +246,12 @@ function handleRequest (quantelServer: QuantelServerMockOptions, triggerFcn: Fun
 					}]
 				},
 				// Create Port:
-				'put /:zoneID/server/:serverID/port/:portID/channel/:channelID': (params): Q.PortInfo => {
-					quantelServer[params.portID] = {
-						endOfData: 0
+				'put /:zoneID/server/:serverID/port/:portID/channel/:channelID': (params): Q.PortInfo | ErrorResponse => {
+					if (!quantelServer.ISAOptionHasBeenProvided) return noIsaSetupResponse
+					quantelServer.port[params.portID] = {
+						endOfData: 0,
+						offset: -1,
+						playing: false
 					}
 					return {
 						type: 'PortInfo',
@@ -235,7 +264,9 @@ function handleRequest (quantelServer: QuantelServerMockOptions, triggerFcn: Fun
 					}
 				},
 				// Release Port
-				'delete /:zoneID/server/:serverID/port/:portID': (params): Q.ReleaseStatus => {
+				'delete /:zoneID/server/:serverID/port/:portID': (params): Q.ReleaseStatus | ErrorResponse => {
+					if (!quantelServer.ISAOptionHasBeenProvided) return noIsaSetupResponse
+					delete quantelServer.port[params.portID]
 					return {
 						type: 'ReleaseStatus',
 						serverID: params.serverID,
@@ -246,7 +277,15 @@ function handleRequest (quantelServer: QuantelServerMockOptions, triggerFcn: Fun
 				},
 				// Port info:
 				'get /:zoneID/server/:serverID/port/:portID': (params): Q.PortStatus | ErrorResponse => {
-					if (quantelServer[params.portID]) {
+					if (!quantelServer.ISAOptionHasBeenProvided) return noIsaSetupResponse
+					const port = quantelServer.port[params.portID]
+					if (port) {
+						const statuses: string[] = []
+
+						if (port.playing) statuses.push('playing')
+
+						statuses.push('readyToPlay')
+
 						return {
 							type: 'PortStatus',
 							serverID: params.serverID,
@@ -255,9 +294,9 @@ function handleRequest (quantelServer: QuantelServerMockOptions, triggerFcn: Fun
 							portTime: '10:00:15:03',
 							portID: params.portID,
 							speed: 1,
-							offset: 0,
-							status: 'unknown',
-							endOfData: quantelServer[params.portID].endOfData || 0,
+							offset: port.offset,
+							status: statuses.join('&'),
+							endOfData: port.endOfData || 0,
 							framesUnused: 0,
 							channels: [ 1 ],
 							outputTime: '00:00:00:00',
@@ -276,6 +315,7 @@ function handleRequest (quantelServer: QuantelServerMockOptions, triggerFcn: Fun
 				'get /:zoneID/clip?ClipGUID=:guid': searchClip,
 				// get clip info:
 				'get /:zoneID/clip/:clipID': (params): Q.ClipData | ErrorResponse => {
+					if (!quantelServer.ISAOptionHasBeenProvided) return noIsaSetupResponse
 					const clips = _.filter<Q.ClipData>([
 						{
 							type: 'ClipData',
@@ -370,9 +410,11 @@ function handleRequest (quantelServer: QuantelServerMockOptions, triggerFcn: Fun
 				},
 				// get clip fragments:
 				'get /:zoneID/clip/:clipID/fragments/:inOutPoints': () => {
+					if (!quantelServer.ISAOptionHasBeenProvided) return noIsaSetupResponse
 					return { __reroute: true }
 				},
 				'get /:zoneID/clip/:clipID/fragments': (params): Q.ServerFragments | ErrorResponse => {
+					if (!quantelServer.ISAOptionHasBeenProvided) return noIsaSetupResponse
 					const finish = (
 						params.clipID === '2' ?
 						1000 :
@@ -449,9 +491,11 @@ function handleRequest (quantelServer: QuantelServerMockOptions, triggerFcn: Fun
 				},
 				// Load fragments onto port:
 				'post /:zoneID/server/:serverID/port/:portID/fragments?offset=:offset': () => {
+					if (!quantelServer.ISAOptionHasBeenProvided) return noIsaSetupResponse
 					return { __reroute: true }
 				},
 				'post /:zoneID/server/:serverID/port/:portID/fragments': (params): Q.PortLoadStatus | ErrorResponse => {
+					if (!quantelServer.ISAOptionHasBeenProvided) return noIsaSetupResponse
 					if (params.portID === 'my_port') {
 
 						if (!_.isArray(bodyData)) throw new Error('Bad body data')
@@ -463,7 +507,7 @@ function handleRequest (quantelServer: QuantelServerMockOptions, triggerFcn: Fun
 						})
 						endOfData += parseInt(params.offset, 10) || 0
 
-						quantelServer[params.portID].endOfData = endOfData
+						quantelServer.port[params.portID].endOfData = endOfData
 
 						return {
 							type: 'PortLoadStatus',
@@ -482,9 +526,12 @@ function handleRequest (quantelServer: QuantelServerMockOptions, triggerFcn: Fun
 				},
 				// Reset port (remove all fragments and reset playhead)
 				'post /:zoneID/server/:serverID/port/:portID/reset': (params): Q.ReleaseStatus | ErrorResponse => {
+					if (!quantelServer.ISAOptionHasBeenProvided) return noIsaSetupResponse
 					// (?start=:start&finish=:finish)
 					if (params.portID === 'my_port') {
-						quantelServer[params.portID].endOfData = 0
+						quantelServer.port[params.portID].endOfData = 0
+						quantelServer.port[params.portID].offset = -1
+						quantelServer.port[params.portID].playing = false
 						return {
 							type: 'ReleaseStatus',
 							serverID: params.serverID,
@@ -501,9 +548,10 @@ function handleRequest (quantelServer: QuantelServerMockOptions, triggerFcn: Fun
 				},
 				// Clear fragments from port (wipe, clear all fragments behind playhead):
 				'delete /:zoneID/server/:serverID/port/:portID/fragments': (params): Q.WipeResult | ErrorResponse => {
+					if (!quantelServer.ISAOptionHasBeenProvided) return noIsaSetupResponse
 					// (?start=:start&finish=:finish)
 					if (params.portID === 'my_port') {
-						quantelServer[params.portID].endOfData = 0
+						quantelServer.port[params.portID].endOfData = 0
 						return {
 							type: 'WipeResult',
 							wiped: true,
@@ -519,6 +567,9 @@ function handleRequest (quantelServer: QuantelServerMockOptions, triggerFcn: Fun
 				},
 				// Prepare jump
 				'put /:zoneID/server/:serverID/port/:portID/jump?offset=:offset': (params): Q.JumpResult | ErrorResponse => {
+					if (!quantelServer.ISAOptionHasBeenProvided) return noIsaSetupResponse
+
+					quantelServer.port[params.portID].jumpOffset = params.offset
 					if (params.portID === 'my_port') {
 
 						return {
@@ -536,19 +587,20 @@ function handleRequest (quantelServer: QuantelServerMockOptions, triggerFcn: Fun
 						stack: ''
 					}
 				},
-				// Trigger (start, stop, jump)
-				'post /:zoneID/server/:serverID/port/:portID/trigger/:trigger': (params): Q.JumpResult | ErrorResponse => {
+				'post /:zoneID/server/:serverID/port/:portID/trigger/:trigger?offset=:offset': (params): Q.JumpResult | ErrorResponse => {
+					if (!quantelServer.ISAOptionHasBeenProvided) return noIsaSetupResponse
 					if (
-						params.trigger.match(/start/i) ||
-						params.trigger.match(/stop/i) ||
-						params.trigger.match(/jump/i)
+						params.trigger.match(/START/) ||
+						params.trigger.match(/STOP/) ||
+						params.trigger.match(/JUMP/)
 					) {
+						quantelServer.port[params.portID].offset = params.offset
 						if (params.portID === 'my_port') {
 
 							return {
 								type: 'TriggeredJumpResult',
 								success: true,
-								offset: 1337,
+								offset: quantelServer.port[params.portID].offset,
 								serverID: params.serverID,
 								portName: params.portID
 							}
@@ -566,7 +618,50 @@ function handleRequest (quantelServer: QuantelServerMockOptions, triggerFcn: Fun
 						stack: ''
 					}
 				},
-				'get /': (): Q.ZoneInfo[] => {
+				// Trigger (start, stop, jump)
+				'post /:zoneID/server/:serverID/port/:portID/trigger/:trigger': (params): Q.JumpResult | ErrorResponse => {
+					if (!quantelServer.ISAOptionHasBeenProvided) return noIsaSetupResponse
+					if (
+						params.trigger.match(/START/) ||
+						params.trigger.match(/STOP/) ||
+						params.trigger.match(/JUMP/)
+					) {
+						if (params.trigger.match(/JUMP/)) {
+							const jumpOffset = quantelServer.port[params.portID].jumpOffset
+							if (jumpOffset) {
+								quantelServer.port[params.portID].offset = jumpOffset
+								delete quantelServer.port[params.portID].jumpOffset
+							}
+						} else if (params.trigger.match(/START/)) {
+							quantelServer.port[params.portID].playing = true
+						} else if (params.trigger.match(/STOP/)) {
+							quantelServer.port[params.portID].playing = false
+						}
+						if (params.portID === 'my_port') {
+
+							return {
+								type: 'TriggeredJumpResult',
+								success: true,
+								offset: quantelServer.port[params.portID].offset,
+								serverID: params.serverID,
+								portName: params.portID
+							}
+						}
+
+						return {
+							status: 404,
+							message: `Wrong port id '${params.portID}'`,
+							stack: ''
+						}
+					}
+					return {
+						status: 404,
+						message: `Unknown trigger '${params.trigger}'`,
+						stack: ''
+					}
+				},
+				'get /': (): Q.ZoneInfo[] | ErrorResponse => {
+					if (!quantelServer.ISAOptionHasBeenProvided) return noIsaSetupResponse
 					return [
 						{
 							type: 'ZonePortal',
