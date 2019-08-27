@@ -756,7 +756,8 @@ class QuantelManager extends EventEmitter {
 			} else if (!portStatus.status.match(/playing/i)) {
 				// The port didn't seem to have started playing, let's retry a few more times:
 
-				this.emit('warn', `quantelRecovery: port didn't play`)
+				this.emit('warning', `quantelRecovery: port didn't play`)
+				this.emit('warning', portStatus)
 
 				for (let i = 0; i < 3; i++) {
 					await this.wait(20 + i * 20) // Wait progressively longer times before trying again:
@@ -769,8 +770,11 @@ class QuantelManager extends EventEmitter {
 
 					if (portStatus && portStatus.status.match(/playing/i)) {
 						// it has started playing, all good!
-						this.emit('warn', `quantelRecovery: port started playing again, on try ${i}`)
+						this.emit('warning', `quantelRecovery: port started playing again, on try ${i}`)
 						break
+					} else {
+						this.emit('warning', `quantelRecovery: try ${i}, no luck trying again..`)
+						this.emit('warning', portStatus)
 					}
 				}
 			}
