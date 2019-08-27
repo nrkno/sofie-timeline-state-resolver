@@ -32,8 +32,8 @@ const IDEAL_PREPARE_TIME = 1000
 const PREPARE_TIME_WAIT = 50
 const SOFT_JUMP_WAIT_TIME = 250
 
-const JUMP_ERROR_MARGIN = 5 // frames
 const DEFAULT_FPS = 25 // frames per second
+const JUMP_ERROR_MARGIN = 10 // frames
 
 export interface QuantelDeviceOptions extends DeviceOptions {
 	options?: {
