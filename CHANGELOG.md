@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.7.5](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/3.7.4...3.7.5) (2019-08-27)
+
+
+### Bug Fixes
+
+* quantel: a try to get the quantel player to behave nicely when jumping to a new clip ([424f1f7](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/424f1f7))
+
+
+
 ### [3.7.4](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/3.7.3...3.7.4) (2019-08-27)
 
 
