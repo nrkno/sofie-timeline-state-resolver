@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.7.3](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/3.7.2...3.7.3) (2019-08-27)
+
+
+### Bug Fixes
+
+* hyperdeck: not conencted status message ([d88530b](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/d88530b))
+* quantel: typo in warning emit on recovery operation. also add emit debugging info ([3745177](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/3745177))
+
+
+
 ### [3.7.2](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/3.7.1...3.7.2) (2019-08-26)
 
 
