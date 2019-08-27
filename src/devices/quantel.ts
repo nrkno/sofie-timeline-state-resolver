@@ -764,6 +764,8 @@ class QuantelManager extends EventEmitter {
 			// Start playing:
 			await this._quantel.portPlay(cmd.portId)
 
+			await this.wait(60)
+
 			// Check if the play actually succeeded:
 			const portStatus = await this._quantel.getPort(cmd.portId)
 
@@ -777,11 +779,11 @@ class QuantelManager extends EventEmitter {
 				this.emit('warning', portStatus)
 
 				for (let i = 0; i < 3; i++) {
-					await this.wait(20 + i * 20) // Wait progressively longer times before trying again:
+					await this.wait(20)
 
 					await this._quantel.portPlay(cmd.portId)
 
-					await this.wait(20)
+					await this.wait(60 + i * 200) // Wait progressively longer times before trying again:
 
 					const portStatus = await this._quantel.getPort(cmd.portId)
 
