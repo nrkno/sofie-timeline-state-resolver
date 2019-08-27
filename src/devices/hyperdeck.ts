@@ -288,16 +288,24 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> {
 		let statusCode = StatusCode.GOOD
 		let messages: Array<string> = []
 
-		if (!this._connected) statusCode = StatusCode.BAD
+		if (!this._connected) {
+			statusCode = StatusCode.BAD
+			messages.push('Not connected')
+		}
 
-		if (this._recordingTime < this._minRecordingTime && this._connected && this._minRecordingTime) {
+		if (
+			this._connected &&
+			this._minRecordingTime &&
+			this._recordingTime < this._minRecordingTime
+		) {
 			if (this._recordingTime === 0) {
 				statusCode = StatusCode.BAD
 			} else {
 				statusCode = StatusCode.WARNING_MAJOR
 			}
-			let t = `${Math.floor(this._recordingTime / 60)} minutes and ${this._recordingTime % 60} seconds`
-			messages.push('Recording time left is less than ' + t)
+			messages.push(
+				`Recording time left is less than ${Math.floor(this._recordingTime / 60)} minutes and ${this._recordingTime % 60} seconds`
+			)
 		}
 
 		return {
