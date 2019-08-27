@@ -726,6 +726,7 @@ class QuantelManager extends EventEmitter {
 				// Trigger the jump:
 				await this._quantel.portTriggerJump(cmd.portId)
 				trackedPort.offset = trackedPort.jumpOffset
+				trackedPort.jumpOffset = null
 			} else {
 				// No jump has been prepared
 				if (cmd.mode === QuantelControlMode.QUALITY) {
@@ -747,6 +748,7 @@ class QuantelManager extends EventEmitter {
 					// Trigger the jump:
 					await this._quantel.portTriggerJump(cmd.portId)
 					trackedPort.offset = trackedPort.jumpOffset
+					trackedPort.jumpOffset = null
 
 				} else { // cmd.mode === QuantelControlMode.SPEED
 					// Just do a hard jump:
