@@ -305,13 +305,19 @@ export class QuantelDevice extends DeviceWithState<QuantelState> {
 		}
 
 		/** The time of when to run "preparation" commands */
-		const prepareTime = Math.min(
+		let prepareTime = Math.min(
 			time,
 			Math.max(
 				time - IDEAL_PREPARE_TIME,
 				oldState.time + PREPARE_TIME_WAIT // earliset possible prepareTime
 			)
 		)
+		if (prepareTime < this.getCurrentTime()) { // Only to not emit an unnessesary slowCommand event
+			prepareTime = this.getCurrentTime()
+		}
+		if (time < prepareTime) {
+			prepareTime = time - 10
+		}
 
 		_.each(newState.port, (newPort: QuantelStatePort, portId: string) => {
 			const oldPort = oldState.port[portId]
