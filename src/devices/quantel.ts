@@ -735,14 +735,17 @@ class QuantelManager extends EventEmitter {
 					await this._quantel.portPrepareJump(cmd.portId, jumpToOffset)
 					trackedPort.jumpOffset = jumpToOffset
 
-					// Allow the server some time to load the clip:
-					await this.wait(SOFT_JUMP_WAIT_TIME) // This is going to give the
-
 					if (alsoDoAction === 'pause') {
 						// Pause the playback:
 						await this._quantel.portStop(cmd.portId)
 						trackedPort.scheduledStop = null
 						trackedPort.playing = false
+
+						// Allow the server some time to load the clip:
+						await this.wait(SOFT_JUMP_WAIT_TIME) // This is going to give the
+					} else {
+						// Allow the server some time to load the clip:
+						await this.wait(SOFT_JUMP_WAIT_TIME) // This is going to give the
 					}
 
 					// Trigger the jump:
