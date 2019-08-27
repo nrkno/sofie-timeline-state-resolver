@@ -73,6 +73,7 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> {
 	private _slots = 0
 
 	private _commandReceiver: CommandReceiver
+	private _currentStatus: DeviceStatus = { statusCode: StatusCode.UNKNOWN }
 
 	constructor (deviceId: string, deviceOptions: HyperdeckDeviceOptions, options) {
 		super(deviceId, deviceOptions, options)
@@ -460,7 +461,7 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> {
 		}
 
 		this._recordingTime = time
-		this.emit('connectionChanged', this.getStatus())
+		this._connectionChanged()
 
 		let timeTillNextUpdate = 10
 		if (time > 10) {
@@ -525,6 +526,10 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> {
 		})
 	}
 	private _connectionChanged () {
-		this.emit('connectionChanged', this.getStatus())
+		const newStatus = this.getStatus()
+		if (!_.isEqual(this._currentStatus, newStatus)) { // Check if status actually has changed before emitting
+			this._currentStatus = newStatus
+			this.emit('connectionChanged', newStatus)
+		}
 	}
 }
