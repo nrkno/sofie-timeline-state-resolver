@@ -619,7 +619,16 @@ class QuantelManager extends EventEmitter {
 			portInPoint = portStatus.endOfData || 0
 			const newPortStatus = await this._quantel.loadFragmentsOntoPort(cmd.portId, fragmentsInfo.fragments, portInPoint)
 			if (!newPortStatus) throw new Error(`Port ${cmd.portId} not found after loading fragments`)
-			portOutPoint = portInPoint + fragmentsInfo.fragments.reduce((x, y) => x > y.finish ? x : y.finish, 0) - 1 // newPortStatus.endOfData - 1
+
+			// Calculate the end of data of the fragments:
+			portOutPoint = portInPoint + (
+				fragmentsInfo.fragments
+				.filter(fragment => (
+					fragment.type === 'VideoFragment' && // Only use video, so that we don't risk ending at a black frame
+					fragment.trackNum === 0 // < 0 are historic data (not used for automation), 0 is the normal, playable video track, > 0 are extra channels, such as keys
+				))
+				.reduce((prev, current) => prev > current.finish ? prev : current.finish, 0) - 1 // newPortStatus.endOfData - 1
+			)
 
 			// Store a reference to the beginning of the fragments:
 			trackedPort.loadedFragments[clipId] = {
