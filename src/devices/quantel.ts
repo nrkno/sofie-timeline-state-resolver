@@ -32,8 +32,8 @@ const IDEAL_PREPARE_TIME = 1000
 const PREPARE_TIME_WAIT = 50
 const SOFT_JUMP_WAIT_TIME = 250
 
-const DEFAULT_FPS = 50 // frames per second
-const JUMP_ERROR_MARGIN = 5 // frames
+const DEFAULT_FPS = 25 // frames per second
+const JUMP_ERROR_MARGIN = 10 // frames
 
 export interface QuantelDeviceOptions extends DeviceOptions {
 	options?: {
@@ -305,13 +305,19 @@ export class QuantelDevice extends DeviceWithState<QuantelState> {
 		}
 
 		/** The time of when to run "preparation" commands */
-		const prepareTime = Math.min(
+		let prepareTime = Math.min(
 			time,
 			Math.max(
 				time - IDEAL_PREPARE_TIME,
 				oldState.time + PREPARE_TIME_WAIT // earliset possible prepareTime
 			)
 		)
+		if (prepareTime < this.getCurrentTime()) { // Only to not emit an unnessesary slowCommand event
+			prepareTime = this.getCurrentTime()
+		}
+		if (time < prepareTime) {
+			prepareTime = time - 10
+		}
 
 		_.each(newState.port, (newPort: QuantelStatePort, portId: string) => {
 			const oldPort = oldState.port[portId]
@@ -613,7 +619,16 @@ class QuantelManager extends EventEmitter {
 			portInPoint = portStatus.endOfData || 0
 			const newPortStatus = await this._quantel.loadFragmentsOntoPort(cmd.portId, fragmentsInfo.fragments, portInPoint)
 			if (!newPortStatus) throw new Error(`Port ${cmd.portId} not found after loading fragments`)
-			portOutPoint = portInPoint + fragmentsInfo.fragments.reduce((x, y) => x > y.finish ? x : y.finish, 0) - 1 // newPortStatus.endOfData - 1
+
+			// Calculate the end of data of the fragments:
+			portOutPoint = portInPoint + (
+				fragmentsInfo.fragments
+				.filter(fragment => (
+					fragment.type === 'VideoFragment' && // Only use video, so that we don't risk ending at a black frame
+					fragment.trackNum === 0 // < 0 are historic data (not used for automation), 0 is the normal, playable video track, > 0 are extra channels, such as keys
+				))
+				.reduce((prev, current) => prev > current.finish ? prev : current.finish, 0) - 1 // newPortStatus.endOfData - 1
+			)
 
 			// Store a reference to the beginning of the fragments:
 			trackedPort.loadedFragments[clipId] = {
@@ -711,6 +726,7 @@ class QuantelManager extends EventEmitter {
 				// Trigger the jump:
 				await this._quantel.portTriggerJump(cmd.portId)
 				trackedPort.offset = trackedPort.jumpOffset
+				trackedPort.jumpOffset = null
 			} else {
 				// No jump has been prepared
 				if (cmd.mode === QuantelControlMode.QUALITY) {
@@ -732,6 +748,7 @@ class QuantelManager extends EventEmitter {
 					// Trigger the jump:
 					await this._quantel.portTriggerJump(cmd.portId)
 					trackedPort.offset = trackedPort.jumpOffset
+					trackedPort.jumpOffset = null
 
 				} else { // cmd.mode === QuantelControlMode.SPEED
 					// Just do a hard jump:
@@ -747,6 +764,8 @@ class QuantelManager extends EventEmitter {
 			// Start playing:
 			await this._quantel.portPlay(cmd.portId)
 
+			await this.wait(60)
+
 			// Check if the play actually succeeded:
 			const portStatus = await this._quantel.getPort(cmd.portId)
 
@@ -760,11 +779,11 @@ class QuantelManager extends EventEmitter {
 				this.emit('warning', portStatus)
 
 				for (let i = 0; i < 3; i++) {
-					await this.wait(20 + i * 20) // Wait progressively longer times before trying again:
+					await this.wait(20)
 
 					await this._quantel.portPlay(cmd.portId)
 
-					await this.wait(20)
+					await this.wait(60 + i * 200) // Wait progressively longer times before trying again:
 
 					const portStatus = await this._quantel.getPort(cmd.portId)
 

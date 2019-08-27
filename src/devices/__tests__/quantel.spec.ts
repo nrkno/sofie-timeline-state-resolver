@@ -91,12 +91,13 @@ describe('Quantel', () => {
 
 		await myConductor.setMapping(myLayerMapping)
 
+		expect(mockTime.getCurrentTime()).toEqual(10000)
 		await mockTime.advanceTimeToTicks(10100)
 
 		expect(commandReceiver0).toHaveBeenCalledTimes(2)
 		expect(commandReceiver0).toHaveBeenNthCalledWith(1, expect.anything(), expect.objectContaining({
 			type: QuantelCommandType.SETUPPORT,
-			time: 9000
+			time: 9990 // Because it was so close to currentTime, otherwise 9000
 		}), expect.any(String), expect.any(String))
 		expect(commandReceiver0).toHaveBeenNthCalledWith(2, expect.anything(), expect.objectContaining({
 			type: QuantelCommandType.CLEARCLIP,
@@ -178,7 +179,7 @@ describe('Quantel', () => {
 		commandReceiver0.mockClear()
 
 		// Time to start playing
-		await mockTime.advanceTimeToTicks(11010)
+		await mockTime.advanceTimeToTicks(11300)
 
 		expect(commandReceiver0).toHaveBeenCalledTimes(1)
 		expect(commandReceiver0).toHaveBeenNthCalledWith(1, 11000, expect.objectContaining({
@@ -264,15 +265,15 @@ describe('Quantel', () => {
 		device.on('commandError', deviceErrorHandler)
 
 		await myConductor.setMapping(myLayerMapping)
-
+		expect(mockTime.getCurrentTime()).toEqual(10000)
 		await mockTime.advanceTimeToTicks(10100)
 
 		expect(commandReceiver0).toHaveBeenCalledTimes(2)
-		expect(commandReceiver0).toHaveBeenNthCalledWith(1, 10010, expect.objectContaining({
+		expect(commandReceiver0).toHaveBeenNthCalledWith(1, expect.anything(), expect.objectContaining({
 			type: QuantelCommandType.SETUPPORT,
-			time: 9000
+			time: 9990 // Because it was so close to currentTime, otherwise 9000
 		}), expect.any(String), expect.any(String))
-		expect(commandReceiver0).toHaveBeenNthCalledWith(2, 10020, expect.objectContaining({
+		expect(commandReceiver0).toHaveBeenNthCalledWith(2, expect.anything(), expect.objectContaining({
 			type: QuantelCommandType.CLEARCLIP,
 			time: 10000
 		}), expect.any(String), expect.any(String))
@@ -352,7 +353,7 @@ describe('Quantel', () => {
 		commandReceiver0.mockClear()
 
 		// Time to start playing
-		await mockTime.advanceTimeToTicks(11010)
+		await mockTime.advanceTimeToTicks(11300)
 
 		expect(commandReceiver0).toHaveBeenCalledTimes(1)
 		expect(commandReceiver0).toHaveBeenNthCalledWith(1, 11000, expect.objectContaining({
@@ -388,7 +389,7 @@ describe('Quantel', () => {
 		expect(errorHandler).toHaveBeenCalledTimes(0)
 		expect(deviceErrorHandler).toHaveBeenCalledTimes(0)
 	})
-	test('Play, seek and re-use clip', async () => {
+	test.only('Play, seek and re-use clip', async () => {
 		let device
 		let commandReceiver0 = jest.fn((...args) => {
 			// pipe through the command
@@ -503,17 +504,17 @@ describe('Quantel', () => {
 		// 15500: clip Test0 resumes playing
 		// 16000: port is cleared
 
-		await mockTime.advanceTimeToTicks(15050)
+		await mockTime.advanceTimeToTicks(15150)
 		expect(commandReceiver0).toHaveBeenCalledTimes(3)
 		expect(commandReceiver0).toHaveBeenNthCalledWith(1, 15005, expect.objectContaining({
 			type: QuantelCommandType.LOADCLIPFRAGMENTS,
-			time: 15000
+			time: 14990 // Because it was so close to currentTime, otherwise 15000
 		}), expect.any(String), expect.any(String))
 		expect(commandReceiver0).toHaveBeenNthCalledWith(2, 15010, expect.objectContaining({
 			type: QuantelCommandType.PLAYCLIP,
 			time: 15000
 		}), expect.any(String), expect.any(String))
-		expect(commandReceiver0).toHaveBeenNthCalledWith(3, 15050, expect.objectContaining({
+		expect(commandReceiver0).toHaveBeenNthCalledWith(3, 15070, expect.objectContaining({
 			type: QuantelCommandType.LOADCLIPFRAGMENTS,
 			time: 15050
 		}), expect.any(String), expect.any(String))
@@ -565,12 +566,11 @@ describe('Quantel', () => {
 		expect(commandReceiver0).toHaveBeenNthCalledWith(1, 15200, expect.objectContaining({
 			type: QuantelCommandType.PLAYCLIP
 		}), expect.any(String), expect.any(String))
-		expect(commandReceiver0).toHaveBeenNthCalledWith(2, 15250, expect.objectContaining({
+		expect(commandReceiver0).toHaveBeenNthCalledWith(2, 15265, expect.objectContaining({
 			type: QuantelCommandType.LOADCLIPFRAGMENTS
 		}), expect.any(String), expect.any(String))
 
 		expect(onRequest).toHaveBeenCalledTimes(9)
-
 		// Trigger Jump
 		expect(onRequest).toHaveBeenNthCalledWith(1, 'post', expect.stringContaining('/default/server/1100/port/my_port/trigger/JUMP'))
 		// Trigger play
@@ -586,7 +586,7 @@ describe('Quantel', () => {
 		// expect(onRequest).toHaveBeenNthCalledWith(4, 'get', expect.stringContaining('/default/clip?Title=%22myClip0%22')) // already have this info
 		expect(onRequest).toHaveBeenNthCalledWith(5, 'get', expect.stringContaining('/default/clip/2'))
 		// Fetch fragments:
-		expect(onRequest).toHaveBeenNthCalledWith(6, 'get', expect.stringContaining('clip/2/fragments/25-1000'))
+		expect(onRequest).toHaveBeenNthCalledWith(6, 'get', expect.stringContaining('clip/2/fragments/13-1000'))
 		// get port info
 		expect(onRequest).toHaveBeenNthCalledWith(7, 'get', expect.stringContaining('default/server/1100/port/my_port'))
 		// Load fragments
@@ -597,7 +597,7 @@ describe('Quantel', () => {
 		clearMocks()
 		commandReceiver0.mockClear()
 		// Time to start playing
-		await mockTime.advanceTimeToTicks(15510)
+		await mockTime.advanceTimeToTicks(15700)
 
 		expect(onRequest).toHaveBeenCalledTimes(4)
 
@@ -608,7 +608,7 @@ describe('Quantel', () => {
 		// Check that play worked
 		expect(onRequest).toHaveBeenNthCalledWith(3, 'get', expect.stringContaining('default/server/1100/port/my_port'))
 		// Plan to stop at end of clip
-		expect(onRequest).toHaveBeenNthCalledWith(4, 'post', expect.stringContaining('/default/server/1100/port/my_port/trigger/STOP?offset=3974'))
+		expect(onRequest).toHaveBeenNthCalledWith(4, 'post', expect.stringContaining('/default/server/1100/port/my_port/trigger/STOP?offset=3986'))
 
 		clearMocks()
 		commandReceiver0.mockClear()
