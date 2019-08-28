@@ -15,12 +15,13 @@ import { DeviceOptions, DeviceType } from '../types/src'
 export class DeviceContainer {
 
 	public _device: ThreadedClass<Device>
-	public _deviceId: string
+	public _deviceId: string = 'N/A'
 	public _deviceType: DeviceType
-	public _deviceName: string
+	public _deviceName: string = 'N/A'
 	public _deviceOptions: DeviceOptions
 	public _options: DeviceClassOptions
 	public _threadConfig: ThreadedClassConfig | undefined
+	private _instanceId: number = -1
 
 	async create<T extends Device> (
 		orgModule: string,
@@ -50,6 +51,7 @@ export class DeviceContainer {
 		this._deviceId = await this.device.deviceId
 		this._deviceType = await this.device.deviceType
 		this._deviceName = await this.device.deviceName
+		this._instanceId = await this.device.instanceId
 	}
 
 	public async terminate () {
@@ -63,4 +65,5 @@ export class DeviceContainer {
 	public get deviceOptions (): DeviceOptions 					{ return this._deviceOptions }
 	public get options (): DeviceClassOptions 					{ return this._options }
 	public get threadConfig (): ThreadedClassConfig | undefined { return this._threadConfig }
+	public get instanceId (): number							{ return this._instanceId }
 }
