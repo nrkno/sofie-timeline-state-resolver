@@ -512,6 +512,8 @@ class QuantelManager extends EventEmitter {
 		private getCurrentTime: () => number
 	) {
 		super()
+		this._quantel.on('error', (...args) => this.emit('error', ...args))
+		this._quantel.on('debug', (...args) => this.emit('debug', ...args))
 	}
 
 	public async setupPort (cmd: QuantelCommandSetupPort): Promise<void> {

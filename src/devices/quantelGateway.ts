@@ -332,6 +332,7 @@ export class QuantelGateway extends EventEmitter {
 			let requestMethod = request[method]
 			if (requestMethod) {
 				const url = this.urlQuery(this._gatewayUrl + '/' + resource, queryParameters)
+				this.emit('debug', `QuantelGateway send ${method} ${url} ${queryParameters ? JSON.stringify(queryParameters) : ''}`)
 
 				requestMethod(
 					url,

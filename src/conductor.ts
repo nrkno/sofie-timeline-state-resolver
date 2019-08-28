@@ -267,7 +267,7 @@ export class Conductor extends EventEmitter {
 			let newDevice: DeviceContainer
 			let threadedClassOptions = {
 				threadUsage: deviceOptions.threadUsage || 1,
-				autoRestart: true,
+				autoRestart: false,
 				disableMultithreading: !deviceOptions.isMultiThreaded
 			}
 
@@ -284,7 +284,7 @@ export class Conductor extends EventEmitter {
 					options,
 					{
 						threadUsage: deviceOptions.isMultiThreaded ? .1 : 0,
-						autoRestart: true,
+						autoRestart: false,
 						disableMultithreading: !deviceOptions.isMultiThreaded
 					}
 				)
@@ -424,7 +424,7 @@ export class Conductor extends EventEmitter {
 			newDevice.device.on('error', 	onDeviceError).catch(console.error)
 			newDevice.device.on('debug', 	onDeviceDebug).catch(console.error)
 
-			this.emit('info', 'Initializing device ' + DeviceType[deviceOptions.type] + '...')
+			this.emit('info', `Initializing device ${newDevice.deviceId} (${newDevice.instanceId}) of type ${DeviceType[deviceOptions.type]}...`)
 			this.devices[deviceId] = newDevice
 			// @ts-ignore
 			await newDevice.device.setMapping(this.mapping)
@@ -433,7 +433,7 @@ export class Conductor extends EventEmitter {
 
 			await newDevice.reloadProps() // because the device name might have changed after init
 
-			this.emit('info', (DeviceType[deviceOptions.type] + ' initialized!'))
+			this.emit('info', `Device ${newDevice.deviceId} (${newDevice.instanceId}) initialized!`)
 
 			// Remove listeners, expect consumer to subscribe to them now.
 

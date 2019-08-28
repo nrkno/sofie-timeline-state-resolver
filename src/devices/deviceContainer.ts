@@ -21,6 +21,7 @@ export class DeviceContainer {
 	public _deviceOptions: DeviceOptions
 	public _options: DeviceClassOptions
 	public _threadConfig: ThreadedClassConfig | undefined
+	public onChildClose: () => void | undefined
 	private _instanceId: number = -1
 	private _startTime: number = -1
 
@@ -43,6 +44,14 @@ export class DeviceContainer {
 			[ deviceId, deviceOptions, options ],
 			threadConfig
 		)
+
+		if (deviceOptions.isMultiThreaded) {
+			ThreadedClassManager.onEvent(this._device, 'thread_closed', () => {
+				// This is called if a child crashes
+				if (this.onChildClose) this.onChildClose()
+			})
+		}
+
 		await this.reloadProps()
 
 		return this
