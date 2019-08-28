@@ -370,7 +370,11 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended> {
 						break
 					case TimelineContentTypeVMix.PLAY_CLIP:
 						let tlObjPlayClip = tlObject as any as TimelineObjVMixPlayClip
-						if (this.inputExists(tlObjPlayClip.content.clipName, 'Video', deviceState)) {
+						let fileTypePlay: VMixInputType = 'Video'
+						if (tlObjPlayClip.content.clipName.match(/.*\.(tif|tiff|gif|jpeg|jpg|jif|jfif|jp2|jpx|jk2|j2c|png)/g)) {
+							fileTypePlay = 'Image'
+						}
+						if (this.inputExists(tlObjPlayClip.content.clipName, fileTypePlay, deviceState)) {
 							let inputIndexPlayClip = deviceState.reportedState.inputs.findIndex(input => input.title === tlObjPlayClip.content.clipName)
 							if (inputIndexPlayClip !== -1) {
 								deviceState.reportedState.inputs[inputIndexPlayClip].state = 'Running'
@@ -378,8 +382,8 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended> {
 							}
 						} else {
 							let combinedInput = (tlObjPlayClip.content.mediaDirectory.indexOf('\\') !== -1) ?
-								`Video|${tlObjPlayClip.content.mediaDirectory}\\${tlObjPlayClip.content.clipName}` :
-								`Video|${tlObjPlayClip.content.mediaDirectory}/${tlObjPlayClip.content.clipName}`
+								`${fileTypePlay}|${tlObjPlayClip.content.mediaDirectory}\\${tlObjPlayClip.content.clipName}` :
+								`${fileTypePlay}|${tlObjPlayClip.content.mediaDirectory}/${tlObjPlayClip.content.clipName}`
 							this._vmix.addInput(combinedInput)
 
 							deviceState.reportedState.inputs.push({
@@ -399,7 +403,11 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended> {
 						break
 					case TimelineContentTypeVMix.CLIP_TO_PROGRAM:
 						let tlObjClipToProgram = tlObject as any as TimelineObjVMixClipToProgram
-						if (this.inputExists(tlObjClipToProgram.content.clipName, 'Video', deviceState)) {
+						let fileTypeProgram: VMixInputType = 'Video'
+						if (tlObjClipToProgram.content.clipName.match(/.*\.(tif|tiff|gif|jpeg|jpg|jif|jfif|jp2|jpx|jk2|j2c|png)/g)) {
+							fileTypeProgram = 'Image'
+						}
+						if (this.inputExists(tlObjClipToProgram.content.clipName, fileTypeProgram, deviceState)) {
 							this.switchToSource(tlObjClipToProgram.content.clipName, deviceState, tlObjClipToProgram.content.transition)
 						}
 						break
