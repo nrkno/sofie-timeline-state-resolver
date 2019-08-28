@@ -267,7 +267,7 @@ export class Conductor extends EventEmitter {
 			let newDevice: DeviceContainer
 			let threadedClassOptions = {
 				threadUsage: deviceOptions.threadUsage || 1,
-				autoRestart: true,
+				autoRestart: false,
 				disableMultithreading: !deviceOptions.isMultiThreaded
 			}
 
@@ -284,7 +284,7 @@ export class Conductor extends EventEmitter {
 					options,
 					{
 						threadUsage: deviceOptions.isMultiThreaded ? .1 : 0,
-						autoRestart: true,
+						autoRestart: false,
 						disableMultithreading: !deviceOptions.isMultiThreaded
 					}
 				)
