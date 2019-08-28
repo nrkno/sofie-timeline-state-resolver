@@ -208,14 +208,6 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended> {
 
 		newAbstractState.sendTransition = -1
 
-		newAbstractState.reportedState.overlays.map(overlay => {
-			if (overlay.input === '__OFF__' || overlay.input === '__OUT__') {
-				overlay.input = ''
-			}
-
-			return overlay
-		})
-
 		// store the new state, for later use:
 		this.setState(newAbstractState, newState.time)
 	}
