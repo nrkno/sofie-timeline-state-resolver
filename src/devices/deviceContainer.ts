@@ -22,6 +22,7 @@ export class DeviceContainer {
 	public _options: DeviceClassOptions
 	public _threadConfig: ThreadedClassConfig | undefined
 	private _instanceId: number = -1
+	private _startTime: number = -1
 
 	async create<T extends Device> (
 		orgModule: string,
@@ -52,6 +53,7 @@ export class DeviceContainer {
 		this._deviceType = await this.device.deviceType
 		this._deviceName = await this.device.deviceName
 		this._instanceId = await this.device.instanceId
+		this._startTime = await this.device.startTime
 	}
 
 	public async terminate () {
@@ -66,4 +68,5 @@ export class DeviceContainer {
 	public get options (): DeviceClassOptions 					{ return this._options }
 	public get threadConfig (): ThreadedClassConfig | undefined { return this._threadConfig }
 	public get instanceId (): number							{ return this._instanceId }
+	public get startTime (): number								{ return this._startTime }
 }
