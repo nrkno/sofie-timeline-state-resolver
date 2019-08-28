@@ -162,7 +162,7 @@ export class AtemDevice extends DeviceWithState<DeviceState> {
 	 */
 	handleState (newState: TimelineState) {
 		if (!this._initialized) { // before it's initialized don't do anything
-			this.emit('info', 'Atem not initialized yet')
+			this.emit('warning', 'Atem not initialized yet')
 			return
 		}
 
@@ -321,6 +321,10 @@ export class AtemDevice extends DeviceWithState<DeviceState> {
 					messages.push(`Atem PSU ${i + 1} is faulty. The device has ${psus.length} PSU(s) in total.`)
 				}
 			})
+		}
+		if (!this._initialized) {
+			statusCode = StatusCode.BAD
+			messages.push(`ATEM device connection not initialized (restart required)`)
 		}
 
 		let deviceStatus: DeviceStatus = {

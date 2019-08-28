@@ -290,9 +290,26 @@ export class QuantelDevice extends DeviceWithState<QuantelState> {
 		}
 	}
 	getStatus (): DeviceStatus {
+		let statusCode = StatusCode.GOOD
+		let messages: Array<string> = []
+
+		if (!this._quantel.connected) {
+			statusCode = StatusCode.BAD
+			messages.push('Not connected')
+		}
+		if (this._quantel.statusMessage) {
+			statusCode = StatusCode.BAD
+			messages.push(this._quantel.statusMessage)
+		}
+
+		if (!this._quantel.initialized) {
+			statusCode = StatusCode.BAD
+			messages.push(`Quantel device connection not initialized (restart required)`)
+		}
+
 		return {
-			statusCode: this._quantel.connected ? StatusCode.GOOD : StatusCode.BAD,
-			messages: this._quantel.statusMessage ? [this._quantel.statusMessage] : []
+			statusCode: statusCode,
+			messages: messages
 		}
 	}
 

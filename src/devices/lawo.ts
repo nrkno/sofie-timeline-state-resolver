@@ -272,8 +272,17 @@ export class LawoDevice extends DeviceWithState<TimelineState> {
 	}
 
 	getStatus (): DeviceStatus {
+		let statusCode = StatusCode.GOOD
+		let messages: Array<string> = []
+
+		if (!this._connected) {
+			statusCode = StatusCode.BAD
+			messages.push('Not connected')
+		}
+
 		return {
-			statusCode: this._connected ? StatusCode.GOOD : StatusCode.BAD
+			statusCode: statusCode,
+			messages: messages
 		}
 	}
 	private _setConnected (connected: boolean) {

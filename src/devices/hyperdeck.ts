@@ -307,6 +307,10 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> {
 				`Recording time left is less than ${Math.floor(this._recordingTime / 60)} minutes and ${this._recordingTime % 60} seconds`
 			)
 		}
+		if (!this._initialized) {
+			statusCode = StatusCode.BAD
+			messages.push(`Hyperdeck device connection not initialized (restart required)`)
+		}
 
 		return {
 			statusCode,
