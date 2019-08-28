@@ -59,6 +59,8 @@ export abstract class Device extends EventEmitter {
 	private _mappings: Mappings = {}
 	private _currentTimeDiff: number = 0
 	private _currentTimeUpdated: number = 0
+	private _instanceId: number
+	private _startTime: number
 
 	public useDirectTime: boolean = false
 	protected _deviceOptions: DeviceOptions
@@ -67,6 +69,9 @@ export abstract class Device extends EventEmitter {
 		super()
 		this._deviceId = deviceId
 		this._deviceOptions = deviceOptions
+
+		this._instanceId = Math.floor(Math.random() * 10000)
+		this._startTime = Date.now()
 
 		// this._deviceOptions = this._deviceOptions // ts-lint fix
 
@@ -201,6 +206,12 @@ export abstract class Device extends EventEmitter {
 	}
 
 	/* tslint:enable:unified-signatures */
+	public get instanceId (): number {
+		return this._instanceId
+	}
+	public get startTime (): number {
+		return this._startTime
+	}
 }
 
 /**

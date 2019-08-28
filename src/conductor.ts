@@ -414,10 +414,10 @@ export class Conductor extends EventEmitter {
 			// Todo: split the addDevice function into two separate functions, so that the device is
 			// first created, then initated by the consumer, allowing for setup of listeners in between...
 
-			const onDeviceInfo = (...args) => this.emit('info', ...args)
-			const onDeviceWarning = (...args) => this.emit('warning', ...args)
-			const onDeviceError = (...args) => this.emit('error', ...args)
-			const onDeviceDebug = (...args) => this.emit('debug', ...args)
+			const onDeviceInfo = (...args) 		=> this.emit('info', 	newDevice.instanceId, ...args)
+			const onDeviceWarning = (...args) 	=> this.emit('warning', newDevice.instanceId, ...args)
+			const onDeviceError = (...args) 	=> this.emit('error', 	newDevice.instanceId, ...args)
+			const onDeviceDebug = (...args) 	=> this.emit('debug', 	newDevice.instanceId, ...args)
 
 			newDevice.device.on('info', 	onDeviceInfo).catch(console.error)
 			newDevice.device.on('warning', 	onDeviceWarning).catch(console.error)

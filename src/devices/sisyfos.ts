@@ -110,15 +110,21 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState> {
 		return Promise.resolve(true)
 	}
 	getStatus (): DeviceStatus {
+		let statusCode = StatusCode.GOOD
+		let messages: Array<string> = []
+
 		if (!this._sisyfos.connected) {
-			return {
-				statusCode: StatusCode.BAD,
-				messages: ['Sisyfos discunnected']
-			}
-		} else {
-			return {
-				statusCode: StatusCode.GOOD
-			}
+			statusCode = StatusCode.BAD
+			messages.push('Not connected')
+		}
+
+		if (!this._sisyfos.state) {
+			statusCode = StatusCode.BAD
+			messages.push(`Sisyfos device connection not initialized (restart required)`)
+		}
+		return {
+			statusCode: statusCode,
+			messages: messages
 		}
 	}
 	makeReady (okToDestroyStuff?: boolean): Promise<void> {

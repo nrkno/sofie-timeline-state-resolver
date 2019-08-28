@@ -570,8 +570,24 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> {
 		})
 	}
 	getStatus (): DeviceStatus {
+		let statusCode = StatusCode.GOOD
+		let messages: Array<string> = []
+
+		if (statusCode === StatusCode.GOOD) {
+			if (!this._connected) {
+				statusCode = StatusCode.BAD
+				messages.push(`CasparCG disconnected`)
+			}
+		}
+
+		if (!this._ccgState.isInitialised) {
+			statusCode = StatusCode.BAD
+			messages.push(`CasparCG device connection not initialized (restart required)`)
+		}
+
 		return {
-			statusCode: this._connected ? StatusCode.GOOD : StatusCode.BAD
+			statusCode: statusCode,
+			messages: messages
 		}
 	}
 
