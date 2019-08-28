@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.7.6](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/3.7.5...3.7.6) (2019-08-28)
+
+
+### Bug Fixes
+
+* Every TSR device now stores a random instanceId, to be used in logging/troubleshooting ([bb6e607](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/bb6e607))
+* Every TSR device now stores its start time (for uptime calculation) ([e065c09](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/e065c09))
+* fixes in all devices status reporting. Especially: when not initialized, status should not be GOOD. ([fb625a9](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/fb625a9))
+
+
+
 ### [3.7.5](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/3.7.4...3.7.5) (2019-08-27)
 
 
