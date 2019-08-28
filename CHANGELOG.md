@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.7.7](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/3.7.6...3.7.7) (2019-08-28)
+
+
+### Bug Fixes
+
+* allow the consumer to monitor and restart devices manually. Don't automatically restart them anymore ([5e51629](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/5e51629))
+* make quantel-gw emit ell commands, for debugging ([befcd80](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/befcd80))
+
+
+
 ### [3.7.6](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/3.7.5...3.7.6) (2019-08-28)
 
 
