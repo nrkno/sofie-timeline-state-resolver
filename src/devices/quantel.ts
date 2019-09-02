@@ -26,7 +26,7 @@ import {
 
 import { DoOnTime, SendMode } from '../doOnTime'
 import {
-	QuantelGateway, Q
+	QuantelGateway, Q, MonitorPorts
 } from './quantelGateway'
 
 const IDEAL_PREPARE_TIME = 1000
@@ -138,6 +138,8 @@ export class QuantelDevice extends DeviceWithState<QuantelState> {
 			return
 		}
 
+		this._quantel.setMonitoredPorts(this._getMappedPorts())
+
 		let previousStateTime = Math.max(this.getCurrentTime(), newState.time)
 
 		let oldQuantelState: QuantelState = (
@@ -184,6 +186,35 @@ export class QuantelDevice extends DeviceWithState<QuantelState> {
 	get queue () {
 		return this._doOnTime.getQueue()
 	}
+	private _getMappedPorts (): MappedPorts {
+
+		const ports: MappedPorts = {}
+
+		const mappings = this.getMapping()
+		_.each(mappings, (mapping) => {
+			if (
+				mapping &&
+				mapping.device === DeviceType.QUANTEL &&
+				_.has(mapping,'portId') &&
+				_.has(mapping,'channelId')
+			) {
+
+				const qMapping: MappingQuantel = mapping as MappingQuantel
+
+				if (!ports[qMapping.portId]) {
+					ports[qMapping.portId] = {
+						mode: qMapping.mode || QuantelControlMode.QUALITY,
+						channels: []
+					}
+				}
+
+				ports[qMapping.portId].channels = _.sortBy(_.uniq(
+					ports[qMapping.portId].channels.concat([qMapping.channelId])
+				))
+			}
+		})
+		return ports
+	}
 
 	/**
 	 * Takes a timeline state and returns a Quantel State that will work with the state lib.
@@ -196,30 +227,14 @@ export class QuantelDevice extends DeviceWithState<QuantelState> {
 			port: {}
 		}
 		// create ports from mappings:
+
 		const mappings = this.getMapping()
-		_.each(mappings, (mapping) => {
-			if (
-				mapping &&
-				mapping.device === DeviceType.QUANTEL &&
-				_.has(mapping,'portId') &&
-				_.has(mapping,'channelId')
-			) {
-
-				const qMapping: MappingQuantel = mapping as MappingQuantel
-
-				if (!state.port[qMapping.portId]) {
-					state.port[qMapping.portId] = {
-						channels: [],
-						timelineObjId: '',
-						mode: qMapping.mode || QuantelControlMode.QUALITY,
-						lookahead: false
-					}
-				}
-				const port: QuantelStatePort = state.port[qMapping.portId]
-
-				port.channels = _.sortBy(_.uniq(
-					port.channels.concat([qMapping.channelId])
-				))
+		_.each(this._getMappedPorts(), (port, portId: string) => {
+			state.port[portId] = {
+				channels: port.channels,
+				timelineObjId: '',
+				mode: port.mode,
+				lookahead: false
 			}
 		})
 
@@ -1129,4 +1144,10 @@ interface QuantelTrackedStatePort {
 	jumpOffset: number | null
 	/** When preparing a stop, this is the frame the playhead will stop at */
 	scheduledStop: number | null
+}
+interface MappedPorts extends MonitorPorts {
+	[portId: string]: {
+		mode: QuantelControlMode,
+		channels: number[]
+	}
 }

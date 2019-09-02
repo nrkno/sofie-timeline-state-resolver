@@ -18,6 +18,8 @@ export class QuantelGateway extends EventEmitter {
 
 	private _statusMessage: string | null = 'Initializing...' // null = all good
 	private _cachedServer?: Q.ServerInfo | null
+	private _monitorPorts: MonitorPorts = {}
+	private _connected: boolean = false
 
 	constructor () {
 		super()
@@ -64,6 +66,7 @@ export class QuantelGateway extends EventEmitter {
 
 		const getServerStatus = async (): Promise<string | null> => {
 			try {
+				this._connected = false
 				if (!this._gatewayUrl) return `Gateway URL not set`
 
 				if (!this._serverId) return `Server id not set`
@@ -73,6 +76,35 @@ export class QuantelGateway extends EventEmitter {
 
 				if (!server) return `Server ${this._serverId} not present on ISA`
 				if (server.down) return `Server ${this._serverId} is down`
+
+				this._connected = true
+
+				const serverErrors: string[] = []
+
+				_.each(this._monitorPorts, (monitorPort, monitorPortId: string) => {
+
+					const portExists = _.find(server.portNames || [], portName => portName === monitorPortId)
+
+					if (
+						!portExists && // our port is NOT set up on server
+						_.compact(server.portNames).length === (server.numChannels || 0) // There is no more room on server
+					) {
+						serverErrors.push(`Not able to assign port "${monitorPortId}", due to all ports being already used`)
+					} else {
+						_.each(monitorPort.channels, (monitorChannel) => {
+							const channelPort = (server.chanPorts || [])[monitorChannel]
+
+							if (
+								channelPort && // The channel is assigned to a port
+								channelPort !== monitorPortId // The channel is NOT assigned to our port!
+							) {
+								serverErrors.push(`Not able to assign channel to port "${monitorPortId}", the channel ${monitorChannel} is already assigned to another port "${channelPort}"!`)
+							}
+						})
+					}
+
+				})
+				if (serverErrors.length) return serverErrors.join(', ')
 
 				if (!this._initialized) return `Not initialized`
 
@@ -97,7 +129,7 @@ export class QuantelGateway extends EventEmitter {
 		checkServerStatus() // also run one right away
 	}
 	public get connected (): boolean {
-		return this._statusMessage === null
+		return this._connected
 	}
 	public get statusMessage (): string | null {
 		return this._statusMessage
@@ -254,6 +286,9 @@ export class QuantelGateway extends EventEmitter {
 		}) as Q.WipeResult
 		if (!response.wiped) throw Error(`Quantel clear port: Server returned wiped=${response.wiped}`)
 		return response
+	}
+	public setMonitoredPorts (monitorPorts: MonitorPorts) {
+		this._monitorPorts = monitorPorts
 	}
 
 	private async sendServer (method: Methods, resource: string, queryParameters?: QueryParameters, bodyData?: object) {
@@ -414,6 +449,12 @@ export class QuantelGateway extends EventEmitter {
 			response.status !== 200
 		)
 	}
+}
+export interface MonitorPorts {
+	[portId: string]: {
+		channels: number[]
+	}
+
 }
 export interface QuantelErrorResponse {
 	status: number
