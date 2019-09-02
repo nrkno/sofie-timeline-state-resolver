@@ -188,7 +188,12 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> {
 
 		await this._queryRecordingTime()
 	}
-
+	/** Called by the Conductor a bit before a .handleState is called */
+	prepareForHandleState (newStateTime: number) {
+		// clear any queued commands later than this time:
+		this._doOnTime.clearQueueNowAndAfter(newStateTime)
+		this.cleanUpStates(0, newStateTime)
+	}
 	/**
 	 * Saves and handles state at specified point in time such that the device will be in
 	 * that state at that time.

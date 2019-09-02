@@ -73,6 +73,12 @@ export class TCPSendDevice extends DeviceWithState<TimelineState> {
 			return true
 		})
 	}
+	/** Called by the Conductor a bit before a .handleState is called */
+	prepareForHandleState (newStateTime: number) {
+		// clear any queued commands later than this time:
+		this._doOnTime.clearQueueNowAndAfter(newStateTime)
+		this.cleanUpStates(0, newStateTime)
+	}
 	handleState (newState: TimelineState) {
 		// Handle this new state, at the point in time specified
 

@@ -146,7 +146,17 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> {
 			}
 		})
 	}
-
+	/** Called by the Conductor a bit before a .handleState is called */
+	prepareForHandleState (newStateTime: number) {
+		// Clear any queued commands later than this time:
+		if (this._useScheduling) {
+			// Can't do it
+			// this._clearScheduledFutureCommands(newStateTime, commandsToAchieveState)
+		} else {
+			this._doOnTime.clearQueueNowAndAfter(newStateTime)
+			this.cleanUpStates(0, newStateTime)
+		}
+	}
 	/**
 	 * Generates an array of CasparCG commands by comparing the newState against the oldState, or the current device state.
 	 */

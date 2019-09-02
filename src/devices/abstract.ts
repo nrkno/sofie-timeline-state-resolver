@@ -56,6 +56,12 @@ export class AbstractDevice extends DeviceWithState<TimelineState> {
 			resolve(true)
 		})
 	}
+	/** Called by the Conductor a bit before a .handleState is called */
+	prepareForHandleState (newStateTime: number) {
+		// clear any queued commands later than this time:
+		this._doOnTime.clearQueueNowAndAfter(newStateTime)
+		this.cleanUpStates(0, newStateTime)
+	}
 	/**
 	 * Handle a new state, at the point in time specified
 	 * @param newState

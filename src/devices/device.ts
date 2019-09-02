@@ -108,6 +108,9 @@ export abstract class Device extends EventEmitter {
 		return Date.now() - this._currentTimeDiff
 	}
 
+	/** Called from Conductor when a new state is about to be handled soon */
+	abstract prepareForHandleState (newStateTime: number)
+	/** Called from Conductor when a new state is to be handled */
 	abstract handleState (newState: TimelineState)
 	/**
 	 * Clear any scheduled commands after this time
@@ -254,9 +257,10 @@ export abstract class DeviceWithState<T> extends Device {
 	 */
 	setState (state: T, time: number) {
 		if (!time) throw new Error('setState: falsy time')
+		this.cleanUpStates(0, time) // remove states after this time, as they are not relevant anymore
+
 		this._states[time + ''] = state
 
-		this.cleanUpStates(0, time) // remove states after this time, as they are not relevant anymore
 		this._setStateCount++
 		if (this._setStateCount > 10) {
 			this._setStateCount = 0
@@ -279,13 +283,14 @@ export abstract class DeviceWithState<T> extends Device {
 			if (
 				(
 					removeBeforeTime &&
-					stateTime < removeBeforeTime
+					stateTime <= removeBeforeTime
 				) ||
 				(
 					removeAfterTime &&
-					stateTime > removeAfterTime
+					stateTime >= removeAfterTime
 				) ||
-				!stateTime) {
+				!stateTime
+			) {
 				delete this._states[stateTime]
 			}
 		})

@@ -158,6 +158,12 @@ export class LawoDevice extends DeviceWithState<TimelineState> {
 			}
 		})
 	}
+	/** Called by the Conductor a bit before a .handleState is called */
+	prepareForHandleState (newStateTime: number) {
+		// clear any queued commands later than this time:
+		this._doOnTime.clearQueueNowAndAfter(newStateTime)
+		this.cleanUpStates(0, newStateTime)
+	}
 	/**
 	 * Handles a state such that the device will reflect that state at the given time.
 	 * @param newState

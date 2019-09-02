@@ -70,6 +70,12 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState> {
 		return this._sisyfos.connect(options.host, options.port)
 			.then(() => true)
 	}
+	/** Called by the Conductor a bit before a .handleState is called */
+	prepareForHandleState (newStateTime: number) {
+		// clear any queued commands later than this time:
+		this._doOnTime.clearQueueNowAndAfter(newStateTime)
+		this.cleanUpStates(0, newStateTime)
+	}
 	/**
 	 * Handles a new state such that the device will be in that state at a specific point
 	 * in time.

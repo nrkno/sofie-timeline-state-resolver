@@ -122,7 +122,12 @@ export class QuantelDevice extends DeviceWithState<QuantelState> {
 
 		return true
 	}
-
+	/** Called by the Conductor a bit before a .handleState is called */
+	prepareForHandleState (newStateTime: number) {
+		// clear any queued commands later than this time:
+		this._doOnTime.clearQueueNowAndAfter(newStateTime)
+		this.cleanUpStates(0, newStateTime)
+	}
 	/**
 	 * Generates an array of Quantel commands by comparing the newState against the oldState, or the current device state.
 	 */
@@ -148,7 +153,7 @@ export class QuantelDevice extends DeviceWithState<QuantelState> {
 		// clear any queued commands later than this time:
 		this._doOnTime.clearQueueNowAndAfter(previousStateTime)
 
-		// add the new commands to the queue:
+		// add the new commands to the queue
 		this._addToQueue(commandsToAchieveState)
 
 		// store the new state, for later use:
