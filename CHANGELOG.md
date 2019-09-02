@@ -2,6 +2,25 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [3.8.0](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/3.7.7...3.8.0) (2019-09-02)
+
+
+### Bug Fixes
+
+* add a method to clear the future (invalid) states earlier ([e6ad98f](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/e6ad98f))
+* disconnect hyperdeck-connection before termination ([e6bd395](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/e6bd395))
+* prevent unnecessary hyperdeck status updates ([7f1f6de](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/7f1f6de))
+* quantel: make lookahead clips not care about seeking ([6f39b9e](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/6f39b9e))
+
+
+### Features
+
+* add notOnAir propery on timelineObjects. Quantel: make outTransition when next object is notOnAir. ([687e54c](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/687e54c))
+* add outTransition together with notOnAir support for quantel device ([b752bf9](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/b752bf9))
+* quantel: monitor ports and channels, update status if the ports/channels we need are not available ([fb674d6](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/fb674d6))
+
+
+
 ### [3.7.7](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/3.7.6...3.7.7) (2019-08-28)
 
 
