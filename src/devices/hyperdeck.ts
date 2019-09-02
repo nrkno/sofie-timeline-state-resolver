@@ -460,8 +460,10 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> {
 			}
 		}
 
-		this._recordingTime = time
-		this.emit('connectionChanged', this.getStatus())
+		if (time !== this._recordingTime) {
+			this._recordingTime = time
+			this._connectionChanged()
+		}
 
 		let timeTillNextUpdate = 10
 		if (time > 10) {
