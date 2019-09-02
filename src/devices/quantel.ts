@@ -246,6 +246,8 @@ export class QuantelDevice extends DeviceWithState<QuantelState> {
 
 					port.timelineObjId = layer.id
 					port.notOnAir = layer.content.notOnAir
+					port.outTransition = layer.content.outTransition
+
 					port.clip = {
 						title: clip.content.title,
 						guid: clip.content.guid,
@@ -739,7 +741,6 @@ class QuantelManager extends EventEmitter {
 				0
 			)
 		)
-
 		if (
 			jumpToOffset === trackedPort.offset || // We're already there
 			(
