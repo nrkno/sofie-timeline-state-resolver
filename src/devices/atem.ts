@@ -154,7 +154,12 @@ export class AtemDevice extends DeviceWithState<DeviceState> {
 			this.setState(this._atem.state, this.getCurrentTime())
 		}
 	}
-
+	/** Called by the Conductor a bit before a .handleState is called */
+	prepareForHandleState (newStateTime: number) {
+		// clear any queued commands later than this time:
+		this._doOnTime.clearQueueNowAndAfter(newStateTime)
+		this.cleanUpStates(0, newStateTime)
+	}
 	/**
 	 * Process a state, diff against previous state and generate commands to
 	 * be executed at the state's time.

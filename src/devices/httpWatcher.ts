@@ -115,6 +115,10 @@ export class HttpWatcherDevice extends Device {
 
 		return Promise.resolve(true)
 	}
+	/** Called by the Conductor a bit before a .handleState is called */
+	prepareForHandleState (_newStateTime: number) {
+		// NOP
+	}
 	handleState (_newState: TimelineState) {
 		// NOP
 	}

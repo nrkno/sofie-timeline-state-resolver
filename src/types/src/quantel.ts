@@ -1,5 +1,5 @@
 import { Mapping } from './mapping'
-import { TSRTimelineObjBase, DeviceType } from '.'
+import { DeviceType, TSRTimelineObjBaseWithOnAir } from '.'
 
 export interface MappingQuantel extends Mapping {
 	device: DeviceType.QUANTEL
@@ -38,9 +38,10 @@ export interface QuantelOptions {
 export type TimelineObjQuantelAny = (
 	TimelineObjQuantelClip
 )
-export interface TimelineObjQuantelClip extends TSRTimelineObjBase {
+export interface TimelineObjQuantelClip extends TSRTimelineObjBaseWithOnAir {
 	content: {
 		deviceType: DeviceType.QUANTEL
+		notOnAir?: boolean
 
 		/** The title of the clip to be played (example: 'AMB'), either this or guid must be provided */
 		title?: string

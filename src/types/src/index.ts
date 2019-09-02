@@ -56,6 +56,16 @@ export interface TSRTimelineObjBase extends Omit<Timeline.TimelineObject, 'conte
 	keyframes?: Array<TSRTimelineKeyframe<this['content']>>
 }
 
+export interface TSRTimelineObjBaseWithOnAir extends TSRTimelineObjBase {
+	content: {
+		deviceType: DeviceType
+		/** If the object in question is intended to NOT be on air.
+		 * The exact result depends on the device, but it could affect things like making in-transitions quicker, faster camera movements, etc..
+		 */
+		notOnAir?: boolean
+	}
+}
+
 export interface TimelineObjEmpty extends TSRTimelineObjBase {
 	content: {
 		deviceType: DeviceType.ABSTRACT

@@ -132,12 +132,9 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> {
 		this._doOnTime.dispose()
 		if (this._recTimePollTimer) clearTimeout(this._recTimePollTimer)
 
-		return new Promise((resolve) => {
-			// TODO: implement dispose function in hyperdeck-connection
-			// this._hyperdeck.dispose()
-			// .then(() => {
-			// resolve(true)
-			// })
+		return new Promise(async (resolve) => {
+			await this._hyperdeck.disconnect()
+			this._hyperdeck.removeAllListeners()
 			resolve(true)
 		})
 	}
@@ -191,7 +188,12 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> {
 
 		await this._queryRecordingTime()
 	}
-
+	/** Called by the Conductor a bit before a .handleState is called */
+	prepareForHandleState (newStateTime: number) {
+		// clear any queued commands later than this time:
+		this._doOnTime.clearQueueNowAndAfter(newStateTime)
+		this.cleanUpStates(0, newStateTime)
+	}
 	/**
 	 * Saves and handles state at specified point in time such that the device will be in
 	 * that state at that time.
@@ -463,8 +465,10 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> {
 			}
 		}
 
-		this._recordingTime = time
-		this.emit('connectionChanged', this.getStatus())
+		if (time !== this._recordingTime) {
+			this._recordingTime = time
+			this._connectionChanged()
+		}
 
 		let timeTillNextUpdate = 10
 		if (time > 10) {

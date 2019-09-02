@@ -611,6 +611,12 @@ export class Conductor extends EventEmitter {
 				return
 			}
 
+			// Let all devices know that a new state is about to come in.
+			// This is done so that they can clear future commands a bit earlier, possibly avoiding double or conflicting commands
+			const pPrepareForHandleStates: Promise<any>[] = _.map(this.devices, async (device: DeviceContainer): Promise<any> => {
+				await device.device.prepareForHandleState(resolveTime)
+			})
+
 			const fixTimelineObject = (o: any) => {
 				if (nowIds[o.id]) o.enable.start = nowIds[o.id]
 				delete o['parent']
@@ -655,6 +661,7 @@ export class Conductor extends EventEmitter {
 				resolvedStates,
 				resolveTime
 			)
+			await Promise.all(pPrepareForHandleStates)
 
 			// Apply changes to fixed objects (set "now" triggers to an actual time):
 			_.each(objectsFixed, (o) => {
@@ -671,15 +678,15 @@ export class Conductor extends EventEmitter {
 			}
 
 			// Push state to the right device:
-			let ps: Promise<any>[] = []
-			ps = _.map(this.devices, async (device: DeviceContainer) => {
+			let pHandleStates: Promise<any>[] = []
+			pHandleStates = _.map(this.devices, async (device: DeviceContainer): Promise<any> => {
 				// The subState contains only the parts of the state relevant to that device:
 				let subState: TimelineState = {
 					time: tlState.time,
 					layers: this.getFilteredLayers(tlState.layers, device),
 					nextEvents: []
 				}
-				let removeParent = o => {
+				const removeParent = (o: TimelineState) => {
 					for (let key in o) {
 						if (key === 'parent') {
 							delete o['parent']
@@ -690,12 +697,13 @@ export class Conductor extends EventEmitter {
 					return o
 				}
 				// Pass along the state to the device, it will generate its commands and execute them:
-				await device.device.handleState(removeParent(subState))
-				.catch(e => {
+				try {
+					await device.device.handleState(removeParent(subState))
+				} catch (e) {
 					this.emit('error', 'Error in device "' + device.deviceId + '"' + e + ' ' + e.stack)
-				})
+				}
 			})
-			await Promise.all(ps)
+			await Promise.all(pHandleStates)
 
 			statTimeStateHandled = Date.now()
 
@@ -734,13 +742,14 @@ export class Conductor extends EventEmitter {
 			} else {
 				// there's nothing ahead in the timeline,
 				// Tell the devices that the future is clear:
-				ps = _.map(this.devices, (device: DeviceContainer) => {
-					return device.device.clearFuture(tlState.time)
-					.catch((e) => {
+				const pClearFutures = _.map(this.devices, async (device: DeviceContainer) => {
+					try {
+						await device.device.clearFuture(tlState.time)
+					} catch (e) {
 						this.emit('error', 'Error in device "' + device.deviceId + '", clearFuture: ' + e + ' ' + e.stack)
-					})
+					}
 				})
-				await Promise.all(ps)
+				await Promise.all(pClearFutures)
 
 				// resolve at this time then next time (or later):
 				nextResolveTime = Math.min(tlState.time)

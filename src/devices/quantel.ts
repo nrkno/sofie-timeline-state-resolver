@@ -16,7 +16,8 @@ import {
 	TimelineObjQuantelClip,
 	QuantelControlMode,
 	ResolvedTimelineObjectInstanceExtended,
-	QuantelOutTransition
+	QuantelOutTransition,
+	QuantelTransitionType
 } from '../types/src'
 
 import {
@@ -25,7 +26,7 @@ import {
 
 import { DoOnTime, SendMode } from '../doOnTime'
 import {
-	QuantelGateway, Q
+	QuantelGateway, Q, MonitorPorts
 } from './quantelGateway'
 
 const IDEAL_PREPARE_TIME = 1000
@@ -121,7 +122,12 @@ export class QuantelDevice extends DeviceWithState<QuantelState> {
 
 		return true
 	}
-
+	/** Called by the Conductor a bit before a .handleState is called */
+	prepareForHandleState (newStateTime: number) {
+		// clear any queued commands later than this time:
+		this._doOnTime.clearQueueNowAndAfter(newStateTime)
+		this.cleanUpStates(0, newStateTime)
+	}
 	/**
 	 * Generates an array of Quantel commands by comparing the newState against the oldState, or the current device state.
 	 */
@@ -131,6 +137,8 @@ export class QuantelDevice extends DeviceWithState<QuantelState> {
 			this.emit('warning', 'Quantel not initialized yet')
 			return
 		}
+
+		this._quantel.setMonitoredPorts(this._getMappedPorts())
 
 		let previousStateTime = Math.max(this.getCurrentTime(), newState.time)
 
@@ -147,7 +155,7 @@ export class QuantelDevice extends DeviceWithState<QuantelState> {
 		// clear any queued commands later than this time:
 		this._doOnTime.clearQueueNowAndAfter(previousStateTime)
 
-		// add the new commands to the queue:
+		// add the new commands to the queue
 		this._addToQueue(commandsToAchieveState)
 
 		// store the new state, for later use:
@@ -178,6 +186,35 @@ export class QuantelDevice extends DeviceWithState<QuantelState> {
 	get queue () {
 		return this._doOnTime.getQueue()
 	}
+	private _getMappedPorts (): MappedPorts {
+
+		const ports: MappedPorts = {}
+
+		const mappings = this.getMapping()
+		_.each(mappings, (mapping) => {
+			if (
+				mapping &&
+				mapping.device === DeviceType.QUANTEL &&
+				_.has(mapping,'portId') &&
+				_.has(mapping,'channelId')
+			) {
+
+				const qMapping: MappingQuantel = mapping as MappingQuantel
+
+				if (!ports[qMapping.portId]) {
+					ports[qMapping.portId] = {
+						mode: qMapping.mode || QuantelControlMode.QUALITY,
+						channels: []
+					}
+				}
+
+				ports[qMapping.portId].channels = _.sortBy(_.uniq(
+					ports[qMapping.portId].channels.concat([qMapping.channelId])
+				))
+			}
+		})
+		return ports
+	}
 
 	/**
 	 * Takes a timeline state and returns a Quantel State that will work with the state lib.
@@ -190,30 +227,14 @@ export class QuantelDevice extends DeviceWithState<QuantelState> {
 			port: {}
 		}
 		// create ports from mappings:
+
 		const mappings = this.getMapping()
-		_.each(mappings, (mapping) => {
-			if (
-				mapping &&
-				mapping.device === DeviceType.QUANTEL &&
-				_.has(mapping,'portId') &&
-				_.has(mapping,'channelId')
-			) {
-
-				const qMapping: MappingQuantel = mapping as MappingQuantel
-
-				if (!state.port[qMapping.portId]) {
-					state.port[qMapping.portId] = {
-						channels: [],
-						timelineObjId: '',
-						mode: qMapping.mode || QuantelControlMode.QUALITY,
-						lookahead: false
-					}
-				}
-				const port: QuantelStatePort = state.port[qMapping.portId]
-
-				port.channels = _.sortBy(_.uniq(
-					port.channels.concat([qMapping.channelId])
-				))
+		_.each(this._getMappedPorts(), (port, portId: string) => {
+			state.port[portId] = {
+				channels: port.channels,
+				timelineObjId: '',
+				mode: port.mode,
+				lookahead: false
 			}
 		})
 
@@ -244,6 +265,9 @@ export class QuantelDevice extends DeviceWithState<QuantelState> {
 					const clip = layer as any as TimelineObjQuantelClip
 
 					port.timelineObjId = layer.id
+					port.notOnAir = layer.content.notOnAir
+					port.outTransition = layer.content.outTransition
+
 					port.clip = {
 						title: clip.content.title,
 						guid: clip.content.guid,
@@ -259,7 +283,7 @@ export class QuantelDevice extends DeviceWithState<QuantelState> {
 						length: clip.content.length,
 
 						playTime:		(
-							clip.content.noStarttime
+							clip.content.noStarttime || isLookahead
 							?
 							null :
 							layer.instance.start
@@ -363,6 +387,14 @@ export class QuantelDevice extends DeviceWithState<QuantelState> {
 				if (newPort.clip) {
 					// Load (and play) the clip:
 
+					let transition: QuantelOutTransition | undefined
+
+					if (oldPort && newPort.notOnAir) {
+						// The thing that's going to be played is not intended to be on air
+						// We can let the outTransition of the oldCLip run then!
+						transition = oldPort.outTransition
+					}
+
 					addCommand({
 						type: QuantelCommandType.LOADCLIPFRAGMENTS,
 						time: prepareTime,
@@ -380,7 +412,8 @@ export class QuantelDevice extends DeviceWithState<QuantelState> {
 							timelineObjId: newPort.timelineObjId,
 							fromLookahead: newPort.lookahead,
 							clip: newPort.clip,
-							mode: newPort.mode
+							mode: newPort.mode,
+							transition: transition
 						}, newPort.lookahead)
 					} else {
 						addCommand({
@@ -390,7 +423,8 @@ export class QuantelDevice extends DeviceWithState<QuantelState> {
 							timelineObjId: newPort.timelineObjId,
 							fromLookahead: newPort.lookahead,
 							clip: newPort.clip,
-							mode: newPort.mode
+							mode: newPort.mode,
+							transition: transition
 						}, newPort.lookahead)
 					}
 				} else {
@@ -400,7 +434,7 @@ export class QuantelDevice extends DeviceWithState<QuantelState> {
 						portId: portId,
 						timelineObjId: newPort.timelineObjId,
 						fromLookahead: newPort.lookahead,
-						outTransition: oldPort && oldPort.outTransition
+						transition: oldPort && oldPort.outTransition
 					}, newPort.lookahead)
 				}
 			}
@@ -680,10 +714,17 @@ class QuantelManager extends EventEmitter {
 	}
 	public async clearClip (cmd: QuantelCommandClearClip): Promise<void> {
 
-		if (cmd.outTransition) {
-			if (await this.waitWithPort(cmd.portId, cmd.outTransition.delay)) return
-		}
+		// Fetch tracked reference to the loaded clip:
 		const trackedPort = this.getTrackedPort(cmd.portId)
+		if (cmd.transition) {
+			if (cmd.transition.type === QuantelTransitionType.DELAY) {
+				if (await this.waitWithPort(cmd.portId, cmd.transition.delay)) {
+					// at this point, the wait aws aborted by someone else. Do nothing then.
+					return
+				}
+			}
+		}
+		// Reset the port (this will clear all fragments and reset playhead)
 		await this._quantel.resetPort(cmd.portId)
 
 		trackedPort.loadedFragments = {}
@@ -693,8 +734,17 @@ class QuantelManager extends EventEmitter {
 		trackedPort.scheduledStop = null
 	}
 	private async prepareClipJump (cmd: QuantelCommandClip, alsoDoAction?: 'play' | 'pause'): Promise<void> {
-		// fetch tracked reference to the loaded clip:
+
+		// Fetch tracked reference to the loaded clip:
 		const trackedPort = this.getTrackedPort(cmd.portId)
+		if (cmd.transition) {
+			if (cmd.transition.type === QuantelTransitionType.DELAY) {
+				if (await this.waitWithPort(cmd.portId, cmd.transition.delay)) {
+					// at this point, the wait aws aborted by someone else. Do nothing then.
+					return
+				}
+			}
+		}
 
 		const clipId = await this.getClipId(cmd.clip)
 		const loadedFragments = trackedPort.loadedFragments[clipId]
@@ -711,7 +761,6 @@ class QuantelManager extends EventEmitter {
 				0
 			)
 		)
-
 		if (
 			jumpToOffset === trackedPort.offset || // We're already there
 			(
@@ -994,6 +1043,7 @@ interface QuantelStatePort {
 
 	channels: number[]
 
+	notOnAir?: boolean
 	outTransition?: QuantelOutTransition
 }
 interface QuantelStatePortClip {
@@ -1038,6 +1088,7 @@ interface QuantelCommandLoadClipFragments extends QuantelCommandBase {
 interface QuantelCommandClip extends QuantelCommandBase {
 	clip: QuantelStatePortClip
 	mode: QuantelControlMode
+	transition?: QuantelOutTransition
 }
 interface QuantelCommandPlayClip extends QuantelCommandClip {
 	type: QuantelCommandType.PLAYCLIP
@@ -1047,7 +1098,7 @@ interface QuantelCommandPauseClip extends QuantelCommandClip {
 }
 interface QuantelCommandClearClip extends QuantelCommandBase {
 	type: QuantelCommandType.CLEARCLIP
-	outTransition?: QuantelOutTransition
+	transition?: QuantelOutTransition
 }
 interface QuantelCommandReleasePort extends QuantelCommandBase {
 	type: QuantelCommandType.RELEASEPORT
@@ -1093,4 +1144,10 @@ interface QuantelTrackedStatePort {
 	jumpOffset: number | null
 	/** When preparing a stop, this is the frame the playhead will stop at */
 	scheduledStop: number | null
+}
+interface MappedPorts extends MonitorPorts {
+	[portId: string]: {
+		mode: QuantelControlMode,
+		channels: number[]
+	}
 }
