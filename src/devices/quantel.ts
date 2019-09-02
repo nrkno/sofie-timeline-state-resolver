@@ -263,7 +263,7 @@ export class QuantelDevice extends DeviceWithState<QuantelState> {
 						length: clip.content.length,
 
 						playTime:		(
-							clip.content.noStarttime
+							clip.content.noStarttime || isLookahead
 							?
 							null :
 							layer.instance.start
