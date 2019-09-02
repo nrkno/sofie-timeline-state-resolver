@@ -16,7 +16,8 @@ import {
 	TimelineObjQuantelClip,
 	QuantelControlMode,
 	ResolvedTimelineObjectInstanceExtended,
-	QuantelOutTransition
+	QuantelOutTransition,
+	QuantelTransitionType
 } from '../types/src'
 
 import {
@@ -244,6 +245,7 @@ export class QuantelDevice extends DeviceWithState<QuantelState> {
 					const clip = layer as any as TimelineObjQuantelClip
 
 					port.timelineObjId = layer.id
+					port.notOnAir = layer.content.notOnAir
 					port.clip = {
 						title: clip.content.title,
 						guid: clip.content.guid,
@@ -363,6 +365,14 @@ export class QuantelDevice extends DeviceWithState<QuantelState> {
 				if (newPort.clip) {
 					// Load (and play) the clip:
 
+					let transition: QuantelOutTransition | undefined
+
+					if (oldPort && newPort.notOnAir) {
+						// The thing that's going to be played is not intended to be on air
+						// We can let the outTransition of the oldCLip run then!
+						transition = oldPort.outTransition
+					}
+
 					addCommand({
 						type: QuantelCommandType.LOADCLIPFRAGMENTS,
 						time: prepareTime,
@@ -380,7 +390,8 @@ export class QuantelDevice extends DeviceWithState<QuantelState> {
 							timelineObjId: newPort.timelineObjId,
 							fromLookahead: newPort.lookahead,
 							clip: newPort.clip,
-							mode: newPort.mode
+							mode: newPort.mode,
+							transition: transition
 						}, newPort.lookahead)
 					} else {
 						addCommand({
@@ -390,7 +401,8 @@ export class QuantelDevice extends DeviceWithState<QuantelState> {
 							timelineObjId: newPort.timelineObjId,
 							fromLookahead: newPort.lookahead,
 							clip: newPort.clip,
-							mode: newPort.mode
+							mode: newPort.mode,
+							transition: transition
 						}, newPort.lookahead)
 					}
 				} else {
@@ -400,7 +412,7 @@ export class QuantelDevice extends DeviceWithState<QuantelState> {
 						portId: portId,
 						timelineObjId: newPort.timelineObjId,
 						fromLookahead: newPort.lookahead,
-						outTransition: oldPort && oldPort.outTransition
+						transition: oldPort && oldPort.outTransition
 					}, newPort.lookahead)
 				}
 			}
@@ -680,10 +692,17 @@ class QuantelManager extends EventEmitter {
 	}
 	public async clearClip (cmd: QuantelCommandClearClip): Promise<void> {
 
-		if (cmd.outTransition) {
-			if (await this.waitWithPort(cmd.portId, cmd.outTransition.delay)) return
-		}
+		// Fetch tracked reference to the loaded clip:
 		const trackedPort = this.getTrackedPort(cmd.portId)
+		if (cmd.transition) {
+			if (cmd.transition.type === QuantelTransitionType.DELAY) {
+				if (await this.waitWithPort(cmd.portId, cmd.transition.delay)) {
+					// at this point, the wait aws aborted by someone else. Do nothing then.
+					return
+				}
+			}
+		}
+		// Reset the port (this will clear all fragments and reset playhead)
 		await this._quantel.resetPort(cmd.portId)
 
 		trackedPort.loadedFragments = {}
@@ -693,8 +712,17 @@ class QuantelManager extends EventEmitter {
 		trackedPort.scheduledStop = null
 	}
 	private async prepareClipJump (cmd: QuantelCommandClip, alsoDoAction?: 'play' | 'pause'): Promise<void> {
-		// fetch tracked reference to the loaded clip:
+
+		// Fetch tracked reference to the loaded clip:
 		const trackedPort = this.getTrackedPort(cmd.portId)
+		if (cmd.transition) {
+			if (cmd.transition.type === QuantelTransitionType.DELAY) {
+				if (await this.waitWithPort(cmd.portId, cmd.transition.delay)) {
+					// at this point, the wait aws aborted by someone else. Do nothing then.
+					return
+				}
+			}
+		}
 
 		const clipId = await this.getClipId(cmd.clip)
 		const loadedFragments = trackedPort.loadedFragments[clipId]
@@ -994,6 +1022,7 @@ interface QuantelStatePort {
 
 	channels: number[]
 
+	notOnAir?: boolean
 	outTransition?: QuantelOutTransition
 }
 interface QuantelStatePortClip {
@@ -1038,6 +1067,7 @@ interface QuantelCommandLoadClipFragments extends QuantelCommandBase {
 interface QuantelCommandClip extends QuantelCommandBase {
 	clip: QuantelStatePortClip
 	mode: QuantelControlMode
+	transition?: QuantelOutTransition
 }
 interface QuantelCommandPlayClip extends QuantelCommandClip {
 	type: QuantelCommandType.PLAYCLIP
@@ -1047,7 +1077,7 @@ interface QuantelCommandPauseClip extends QuantelCommandClip {
 }
 interface QuantelCommandClearClip extends QuantelCommandBase {
 	type: QuantelCommandType.CLEARCLIP
-	outTransition?: QuantelOutTransition
+	transition?: QuantelOutTransition
 }
 interface QuantelCommandReleasePort extends QuantelCommandBase {
 	type: QuantelCommandType.RELEASEPORT
