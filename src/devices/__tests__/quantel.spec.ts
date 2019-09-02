@@ -9,6 +9,7 @@ import {
 import { MockTime } from '../../__tests__/mockTime.spec'
 import { ThreadedClass } from 'threadedclass'
 import { QuantelDevice, QuantelCommandType } from '../quantel'
+require('../../__tests__/lib.spec')
 
 const orgSetTimeout = setTimeout
 
@@ -19,6 +20,9 @@ async function t<A> (p: Promise<A>, mockTime, advanceTime: number = 50): Promise
 	},1)
 	return p
 }
+
+/** Accepted deviance, accepted deviance in command timing during testing */
+const ADEV = 30
 
 describe('Quantel', () => {
 	const {
@@ -96,11 +100,11 @@ describe('Quantel', () => {
 		await mockTime.advanceTimeToTicks(10100)
 
 		expect(commandReceiver0).toHaveBeenCalledTimes(2)
-		expect(commandReceiver0).toHaveBeenNthCalledWith(1, expect.anything(), expect.objectContaining({
+		expect(commandReceiver0).toHaveBeenNthCalledWith(1, expect.toBeCloseTo(10000, ADEV), expect.objectContaining({
 			type: QuantelCommandType.SETUPPORT,
 			time: 9990 // Because it was so close to currentTime, otherwise 9000
 		}), expect.any(String), expect.any(String))
-		expect(commandReceiver0).toHaveBeenNthCalledWith(2, expect.anything(), expect.objectContaining({
+		expect(commandReceiver0).toHaveBeenNthCalledWith(2, expect.toBeCloseTo(10000, ADEV), expect.objectContaining({
 			type: QuantelCommandType.CLEARCLIP,
 			time: 10000
 		}), expect.any(String), expect.any(String))
@@ -270,11 +274,11 @@ describe('Quantel', () => {
 		await mockTime.advanceTimeToTicks(10100)
 
 		expect(commandReceiver0).toHaveBeenCalledTimes(2)
-		expect(commandReceiver0).toHaveBeenNthCalledWith(1, expect.anything(), expect.objectContaining({
+		expect(commandReceiver0).toHaveBeenNthCalledWith(1, expect.toBeCloseTo(10000, ADEV), expect.objectContaining({
 			type: QuantelCommandType.SETUPPORT,
 			time: 9990 // Because it was so close to currentTime, otherwise 9000
 		}), expect.any(String), expect.any(String))
-		expect(commandReceiver0).toHaveBeenNthCalledWith(2, expect.anything(), expect.objectContaining({
+		expect(commandReceiver0).toHaveBeenNthCalledWith(2, expect.toBeCloseTo(10000, ADEV), expect.objectContaining({
 			type: QuantelCommandType.CLEARCLIP,
 			time: 10000
 		}), expect.any(String), expect.any(String))
@@ -686,11 +690,11 @@ describe('Quantel', () => {
 		await mockTime.advanceTimeToTicks(10100)
 
 		expect(commandReceiver0).toHaveBeenCalledTimes(2)
-		expect(commandReceiver0).toHaveBeenNthCalledWith(1, expect.anything(), expect.objectContaining({
+		expect(commandReceiver0).toHaveBeenNthCalledWith(1, expect.toBeCloseTo(10000, ADEV), expect.objectContaining({
 			type: QuantelCommandType.SETUPPORT,
 			time: 9990 // Because it was so close to currentTime, otherwise 9000
 		}), expect.any(String), expect.any(String))
-		expect(commandReceiver0).toHaveBeenNthCalledWith(2, expect.anything(), expect.objectContaining({
+		expect(commandReceiver0).toHaveBeenNthCalledWith(2, expect.toBeCloseTo(10000, ADEV), expect.objectContaining({
 			type: QuantelCommandType.CLEARCLIP,
 			time: 10000
 		}), expect.any(String), expect.any(String))
@@ -867,11 +871,11 @@ describe('Quantel', () => {
 		await mockTime.advanceTimeToTicks(10100)
 
 		expect(commandReceiver0).toHaveBeenCalledTimes(2)
-		expect(commandReceiver0).toHaveBeenNthCalledWith(1, expect.anything(), expect.objectContaining({
+		expect(commandReceiver0).toHaveBeenNthCalledWith(1, expect.toBeCloseTo(10000, ADEV), expect.objectContaining({
 			type: QuantelCommandType.SETUPPORT,
 			time: 9990 // Because it was so close to currentTime, otherwise 9000
 		}), expect.any(String), expect.any(String))
-		expect(commandReceiver0).toHaveBeenNthCalledWith(2, expect.anything(), expect.objectContaining({
+		expect(commandReceiver0).toHaveBeenNthCalledWith(2, expect.toBeCloseTo(10000, ADEV), expect.objectContaining({
 			type: QuantelCommandType.CLEARCLIP,
 			time: 10000
 		}), expect.any(String), expect.any(String))
@@ -1027,9 +1031,9 @@ describe('Quantel', () => {
 		clearMocks()
 		commandReceiver0.mockClear()
 
-		await mockTime.advanceTimeToTicks(15050)
+		await mockTime.advanceTimeToTicks(16050)
 		expect(commandReceiver0).toHaveBeenCalledTimes(1)
-		expect(commandReceiver0).toHaveBeenNthCalledWith(1, 15000, expect.objectContaining({
+		expect(commandReceiver0).toHaveBeenNthCalledWith(1, expect.toBeCloseTo(15000, 5), expect.objectContaining({
 			type: QuantelCommandType.CLEARCLIP
 		}), expect.any(String), expect.any(String))
 		expect(onRequest).toHaveBeenCalledTimes(1)
