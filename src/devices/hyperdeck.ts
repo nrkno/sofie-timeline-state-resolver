@@ -132,12 +132,9 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> {
 		this._doOnTime.dispose()
 		if (this._recTimePollTimer) clearTimeout(this._recTimePollTimer)
 
-		return new Promise((resolve) => {
-			// TODO: implement dispose function in hyperdeck-connection
-			// this._hyperdeck.dispose()
-			// .then(() => {
-			// resolve(true)
-			// })
+		return new Promise(async (resolve) => {
+			await this._hyperdeck.disconnect()
+			this._hyperdeck.removeAllListeners()
 			resolve(true)
 		})
 	}

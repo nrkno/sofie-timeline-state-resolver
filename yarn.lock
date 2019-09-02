@@ -2605,10 +2605,10 @@ humanize-url@^1.0.0:
     normalize-url "^1.0.0"
     strip-url-auth "^1.0.0"
 
-hyperdeck-connection@^0.2.0:
-  version "0.2.0"
-  resolved "https://registry.yarnpkg.com/hyperdeck-connection/-/hyperdeck-connection-0.2.0.tgz#cfc51723dad68ce7c64b19a5c17a168a529a82fe"
-  integrity sha512-tRN4PLna48kcrc3qRwEwjkdaWjEyWdlgz4x7P5/KL1MGShz4ZkXtn4Wx0nL/h6/ienhlgaLE7kGvaBNRu20fdQ==
+hyperdeck-connection@^0.3.0:
+  version "0.3.0"
+  resolved "https://registry.yarnpkg.com/hyperdeck-connection/-/hyperdeck-connection-0.3.0.tgz#b9a7bb57cdd21a5b0203f39d95fdefc57c9d0354"
+  integrity sha512-yKxtu9op1PugwiwdrWdXTqMzk7iXdXUwUw/o9z1CEngW/9ZdOLqFysjL9siG2oL6vjPUUWLEIiCKx6p5BldBug==
   dependencies:
     underscore "^1.9.1"
     underscore-deep-extend "^1.1.5"
