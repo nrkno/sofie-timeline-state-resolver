@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.8.2](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/3.8.1...3.8.2) (2019-09-03)
+
+
+### Bug Fixes
+
+* add device option.reportAllCommands, to be able to deactivate the sending of command-reports over the wire. ([1729a06](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/1729a06))
+* set the instanceName of multithreaded instances, to help during debugging ([17f6779](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/17f6779))
+* timeline dep with bug fixes ([d3860c6](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/d3860c6))
+
+
+
 ### [3.8.1](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/3.8.0...3.8.1) (2019-09-03)
 
 
