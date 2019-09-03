@@ -64,6 +64,7 @@ export abstract class Device extends EventEmitter {
 
 	public useDirectTime: boolean = false
 	protected _deviceOptions: DeviceOptions
+	protected _reportAllCommands: boolean = false
 
 	constructor (deviceId: string, deviceOptions: DeviceOptions, options: DeviceClassOptions) {
 		super()
@@ -72,6 +73,8 @@ export abstract class Device extends EventEmitter {
 
 		this._instanceId = Math.floor(Math.random() * 10000)
 		this._startTime = Date.now()
+
+		this._reportAllCommands = !!deviceOptions.reportAllCommands
 
 		// this._deviceOptions = this._deviceOptions // ts-lint fix
 
@@ -215,6 +218,15 @@ export abstract class Device extends EventEmitter {
 	public get startTime (): number {
 		return this._startTime
 	}
+	protected handleDoOnTime (doOnTime: DoOnTime, deviceType: string) {
+		doOnTime.on('error', e => this.emit('error', `${deviceType}.doOnTime`, e))
+		doOnTime.on('slowCommand', msg => this.emit('slowCommand', this.deviceName + ': ' + msg))
+		doOnTime.on('commandReport', commandReport => {
+			if (this._reportAllCommands) {
+				this.emit('commandReport', commandReport)
+			}
+		})
+	}
 }
 
 /**
@@ -302,10 +314,5 @@ export abstract class DeviceWithState<T> extends Device {
 		_.each(_.keys(this._states), (time: string) => {
 			delete this._states[time]
 		})
-	}
-	protected handleDoOnTime (doOnTime: DoOnTime, deviceType: string) {
-		doOnTime.on('error', e => this.emit('error', `${deviceType}.doOnTime`, e))
-		doOnTime.on('slowCommand', msg => this.emit('slowCommand', this.deviceName + ': ' + msg))
-		doOnTime.on('commandReport', commandReport => this.emit('commandReport', commandReport))
 	}
 }
