@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.8.1](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/3.8.0...3.8.1) (2019-09-03)
+
+
+### Bug Fixes
+
+* threaddedClass dep and properly close event listener on quit ([63dd1e6](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/63dd1e6))
+
+
+
 ## [3.8.0](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/3.7.7...3.8.0) (2019-09-02)
 
 
