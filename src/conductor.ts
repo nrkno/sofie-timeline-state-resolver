@@ -268,7 +268,8 @@ export class Conductor extends EventEmitter {
 			let threadedClassOptions = {
 				threadUsage: deviceOptions.threadUsage || 1,
 				autoRestart: false,
-				disableMultithreading: !deviceOptions.isMultiThreaded
+				disableMultithreading: !deviceOptions.isMultiThreaded,
+				instanceName: deviceId
 			}
 
 			let options: DeviceClassOptions = {
@@ -285,7 +286,8 @@ export class Conductor extends EventEmitter {
 					{
 						threadUsage: deviceOptions.isMultiThreaded ? .1 : 0,
 						autoRestart: false,
-						disableMultithreading: !deviceOptions.isMultiThreaded
+						disableMultithreading: !deviceOptions.isMultiThreaded,
+						instanceName: deviceId
 					}
 				)
 			} else if (deviceOptions.type === DeviceType.CASPARCG) {

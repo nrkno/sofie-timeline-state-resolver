@@ -18,6 +18,7 @@ export interface MappingAbstract extends Mapping {
 export interface DeviceOptions extends SlowReportOptions {
 	type: DeviceType
 	isMultiThreaded?: boolean
+	reportAllCommands?: boolean
 	threadUsage?: number
 	disable?: boolean
 	options?: {}
