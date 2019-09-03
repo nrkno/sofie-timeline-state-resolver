@@ -24,6 +24,7 @@ export class DeviceContainer {
 	public onChildClose: () => void | undefined
 	private _instanceId: number = -1
 	private _startTime: number = -1
+	private _onEventListener: { stop: () => void } | undefined
 
 	async create<T extends Device> (
 		orgModule: string,
@@ -46,7 +47,7 @@ export class DeviceContainer {
 		)
 
 		if (deviceOptions.isMultiThreaded) {
-			ThreadedClassManager.onEvent(this._device, 'thread_closed', () => {
+			this._onEventListener = ThreadedClassManager.onEvent(this._device, 'thread_closed', () => {
 				// This is called if a child crashes
 				if (this.onChildClose) this.onChildClose()
 			})
@@ -66,6 +67,9 @@ export class DeviceContainer {
 	}
 
 	public async terminate () {
+		if (this._onEventListener) {
+			this._onEventListener.stop()
+		}
 		await ThreadedClassManager.destroy(this._device)
 	}
 
