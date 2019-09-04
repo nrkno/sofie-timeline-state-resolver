@@ -187,6 +187,13 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended> {
 		}
 	}
 
+	/** Called by the Conductor a bit before a .handleState is called */
+	prepareForHandleState (newStateTime: number) {
+		// clear any queued commands later than this time:
+		this._doOnTime.clearQueueNowAndAfter(newStateTime)
+		this.cleanUpStates(0, newStateTime)
+	}
+
 	handleState (newState: TimelineState) {
 		if (!this._initialized) { // before it's initialized don't do anything
 			this.emit('info', 'VMix not initialized yet')
