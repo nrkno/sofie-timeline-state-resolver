@@ -616,8 +616,12 @@ export class Conductor extends EventEmitter {
 
 			// Let all devices know that a new state is about to come in.
 			// This is done so that they can clear future commands a bit earlier, possibly avoiding double or conflicting commands
-			const pPrepareForHandleStates: Promise<any>[] = _.map(this.devices, async (device: DeviceContainer): Promise<any> => {
-				await device.device.prepareForHandleState(resolveTime)
+			const pPrepareForHandleStates: Promise<any> = Promise.all(
+				_.map(this.devices, async (device: DeviceContainer): Promise<any> => {
+					await device.device.prepareForHandleState(resolveTime)
+				})
+			).catch(error => {
+				this.emit('error', error)
 			})
 
 			const fixTimelineObject = (o: any) => {
@@ -664,7 +668,7 @@ export class Conductor extends EventEmitter {
 				resolvedStates,
 				resolveTime
 			)
-			await Promise.all(pPrepareForHandleStates)
+			await pPrepareForHandleStates
 
 			// Apply changes to fixed objects (set "now" triggers to an actual time):
 			_.each(objectsFixed, (o) => {
