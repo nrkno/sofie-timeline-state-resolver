@@ -169,7 +169,8 @@ export class Conductor extends EventEmitter {
 			{
 				threadUsage: this._multiThreadedResolver ? 1 : 0,
 				autoRestart: true,
-				disableMultithreading: !this._multiThreadedResolver
+				disableMultithreading: !this._multiThreadedResolver,
+				instanceName: 'resolver'
 			}
 		)
 		await this._resolver.on('setTimelineTriggerTime', (r) => {
