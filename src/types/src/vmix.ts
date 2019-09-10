@@ -12,7 +12,7 @@ export interface VMixCommandContent {
 export interface VMixOptions {
 	makeReadyCommands?: VMixCommandContent[],
 	host: string,
-	port: string
+	port: number
 }
 
 export enum VMixCommand {
@@ -121,7 +121,7 @@ export interface TimelineObjVMixInput extends TimelineObjVMixBase {
 	content: {
 		deviceType: DeviceType.VMIX
 		type: TimelineContentTypeVMix.INPUT
-		input: string
+		input: number
 		transition?: VMixTransition
 	}
 }
@@ -130,7 +130,7 @@ export interface TimelineObjVMixPreview extends TimelineObjVMixBase {
 	content: {
 		deviceType: DeviceType.VMIX
 		type: TimelineContentTypeVMix.PREVIEW
-		input: string
+		input: number
 	}
 }
 
@@ -138,7 +138,7 @@ export interface TimelineObjVMixAudio extends TimelineObjVMixBase {
 	content: {
 		deviceType: DeviceType.VMIX,
 		type: TimelineContentTypeVMix.AUDIO
-		input: string
+		input: number
 		volume: number
 	}
 }

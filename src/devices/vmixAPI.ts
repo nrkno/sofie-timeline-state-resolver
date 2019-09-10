@@ -2,7 +2,8 @@ import { EventEmitter } from 'events'
 import * as request from 'request'
 import * as xml from 'xml-js'
 import { VMixOptions, VMixCommand } from '../types/src'
-import { VMixState, VMixStateCommand, VMixInput, VMixTransition, VMixAudioChannel } from './vmix'
+import { VMixState, VMixInput, VMixTransition, VMixAudioChannel } from './vmix'
+import * as _ from 'underscore'
 
 const PING_TIMEOUT = 10 * 1000
 
@@ -85,94 +86,57 @@ export class VMix extends EventEmitter {
 		}, PING_TIMEOUT)
 	}
 
-	public sendCommand (command: VMixStateCommand): Promise<any> {
+	public async sendCommand (command: VMixStateCommand): Promise<any> {
 		switch (command.command) {
 			case VMixCommand.PREVIEW_INPUT:
-				if (command.input !== undefined) {
-					this.setPreviewInput(command.input.toString())
-				}
-				break
+				return this.setPreviewInput(command.input)
 			case VMixCommand.ACTIVE_INPUT:
-				if (command.input !== undefined) {
-					this.setActiveInput(command.input.toString())
-				}
-				break
+				return this.setActiveInput(command.input)
 			case VMixCommand.TRANSITION_EFFECT:
-				if (command.value !== undefined && command.input !== undefined) {
-					this.setTransition(Number(command.input), command.value.toString())
-				}
-				break
+				return this.setTransition(command.input, command.value)
 			case VMixCommand.TRANSITION_DURATION:
-				if (command.value !== undefined && command.input !== undefined) {
-					this.setTransitionDuration(Number(command.input), Number(command.value))
-				}
-				break
+				return this.setTransitionDuration(command.input, command.value)
 			case VMixCommand.TRANSITION:
-				if (command.input !== undefined) this.transition(Number(command.input))
-				break
+				return this.transition(command.input)
 			case VMixCommand.AUDIO:
-				if (command.input !== undefined && command.value !== undefined) {
-					this.setAudioLevel(command.input.toString(), Number(command.value))
-				}
-				break
+				return this.setAudioLevel(command.input, command.value)
 			case VMixCommand.FADER:
-				if (command.value !== undefined) {
-					this.setFader(Number(command.value))
-				}
-				break
+				return this.setFader(command.value)
 			case VMixCommand.START_RECORDING:
-				this.startRecording()
-				break
+				return this.startRecording()
 			case VMixCommand.STOP_RECORDING:
-				this.stopRecording()
-				break
+				return this.stopRecording()
 			case VMixCommand.START_STREAMING:
-				this.startStreaming()
-				break
+				return this.startStreaming()
 			case VMixCommand.STOP_STREAMING:
-				this.stopStreaming()
-				break
+				return this.stopStreaming()
 			case VMixCommand.FADE_TO_BLACK:
-				this.fadeToBlack()
-				break
+				return this.fadeToBlack()
 			case VMixCommand.ADD_INPUT:
-				if (command.value !== undefined) this.addInput(command.value.toString())
-				break
+				return this.addInput(command.value)
 			case VMixCommand.PLAY_INPUT:
-				if (command.input !== undefined) this.playInput(command.input.toString())
-				break
+				return this.playInput(command.input)
 			case VMixCommand.PAUSE_INPUT:
-				if (command.input !== undefined) this.pauseInput(command.input.toString())
-				break
+				return this.pauseInput(command.input)
 			case VMixCommand.SET_POSITION:
-				if (command.input !== undefined && command.value !== undefined) this.setPosition(command.input.toString(), command.value.toString())
-				break
+				return this.setPosition(command.input, command.value)
 			case VMixCommand.SET_INPUT_NAME:
-				if (command.input !== undefined && command.value !== undefined) this.setInputName(command.input.toString(), command.value.toString())
-				break
+				return this.setInputName(command.input, command.value)
 			case VMixCommand.SET_OUPUT:
-				if (command.input !== undefined && command.value !== undefined && command.name !== undefined) this.setOutput(command.name, command.value.toString(), command.input.toString())
-				break
+				return this.setOutput(command.name, command.value)
 			case VMixCommand.START_EXTERNAL:
-				this.startExternal()
-				break
+				return this.startExternal()
 			case VMixCommand.STOP_EXTERNAL:
-				this.stopExternal()
-				break
+				return this.stopExternal()
 			case VMixCommand.OVERLAY_INPUT_IN:
-				if (command.input !== undefined && command.value !== undefined) this.overlayInputIn(command.value.toString(), command.input.toString())
-				break
+				return this.overlayInputIn(command.value, command.input)
 			case VMixCommand.OVERLAY_INPUT_OUT:
-				if (command.value !== undefined) this.overlayInputOut(command.value.toString())
-				break
+				return this.overlayInputOut(command.value)
 			case VMixCommand.OVERLAY_INPUT_OFF:
-				if (command.value !== undefined) this.overlayInputOff(command.value.toString())
-				break
+				return this.overlayInputOff(command.value)
 			default:
-				return Promise.reject(`Command ${command.command} not implemented`)
+				throw new Error(`vmixAPI: Command ${((command || {}) as any).command} not implemented`)
 		}
-
-		return Promise.resolve()
 	}
 
 	public getVMixState () {
@@ -221,8 +185,8 @@ export class VMix extends EventEmitter {
 					input: overlay['_text'] ? overlay['_text'] : ''
 				}
 			}),
-			preview: xml['vmix']['preview']['_text'],
-			active: xml['vmix']['active']['_text'],
+			preview: Number(xml['vmix']['preview']['_text']),
+			active: Number(xml['vmix']['active']['_text']),
 			fadeToBlack: (xml['vmix']['fadeToBlack']['_text'] === 'True') ? true : false,
 			transitions: (xml['vmix']['transitions']['transition'] as Array<any>)
 			.map(transition => {
@@ -252,108 +216,108 @@ export class VMix extends EventEmitter {
 		this.setState(state)
 	}
 
-	public setState (state: VMixState) {
+	public setState (state: VMixState): void {
 		this.state = state
 		this.emit('stateChanged', this.state)
 	}
 
-	public setPreviewInput (input: string) {
-		this.sendCommandFunction('PreviewInput', { input: input })
+	public setPreviewInput (input: number): Promise<any> {
+		return this.sendCommandFunction('PreviewInput', { input: input })
 	}
 
-	public setActiveInput (input: string) {
-		this.sendCommandFunction('ActiveInput', { input: input })
+	public setActiveInput (input: number): Promise<any> {
+		return this.sendCommandFunction('ActiveInput', { input: input })
 	}
 
-	public setTransition (transitionNumber: number, transition: string) {
-		this.sendCommandFunction(`SetTransitionEffect${transitionNumber}`, { value: transition })
+	public setTransition (transitionNumber: number, transition: string): Promise<any> {
+		return this.sendCommandFunction(`SetTransitionEffect${transitionNumber}`, { value: transition })
 	}
 
-	public setTransitionDuration (transitionNumber: number, duration: number) {
-		this.sendCommandFunction(`SetTransitionDuration${transitionNumber}`, { value: duration })
+	public setTransitionDuration (transitionNumber: number, duration: number): Promise<any> {
+		return this.sendCommandFunction(`SetTransitionDuration${transitionNumber}`, { value: duration })
 	}
 
-	public transition (transitionNumber: number) {
-		this.sendCommandFunction(`Transition${transitionNumber}`, {})
+	public transition (transitionNumber: number): Promise<any> {
+		return this.sendCommandFunction(`Transition${transitionNumber}`, {})
 	}
 
-	public setAudioLevel (input: string, volume: number) {
-		this.sendCommandFunction(`SetVolume`, { input: input, value: Math.min(Math.max(volume, 0), 100) })
+	public setAudioLevel (input: number, volume: number): Promise<any> {
+		return this.sendCommandFunction(`SetVolume`, { input: input, value: Math.min(Math.max(volume, 0), 100) })
 	}
 
-	public setFader (position: number) {
-		this.sendCommandFunction(`SetFader`, { value: Math.min(Math.max(position, 0), 255) })
+	public setFader (position: number): Promise<any> {
+		return this.sendCommandFunction(`SetFader`, { value: Math.min(Math.max(position, 0), 255) })
 	}
 
-	public startRecording () {
-		this.sendCommandFunction(`StartRecording`, {})
+	public startRecording (): Promise<any> {
+		return this.sendCommandFunction(`StartRecording`, {})
 	}
 
-	public stopRecording () {
-		this.sendCommandFunction(`StopRecording`, {})
+	public stopRecording (): Promise<any> {
+		return this.sendCommandFunction(`StopRecording`, {})
 	}
 
-	public startStreaming () {
-		this.sendCommandFunction(`StartStreaming`, {})
+	public startStreaming (): Promise<any> {
+		return this.sendCommandFunction(`StartStreaming`, {})
 	}
 
-	public stopStreaming () {
-		this.sendCommandFunction(`StopStreaming`, {})
+	public stopStreaming (): Promise<any> {
+		return this.sendCommandFunction(`StopStreaming`, {})
 	}
 
-	public fadeToBlack () {
-		this.sendCommandFunction(`FadeToBlack`, {})
+	public fadeToBlack (): Promise<any> {
+		return this.sendCommandFunction(`FadeToBlack`, {})
 	}
 
-	public quickPlay (input: string) {
-		this.sendCommandFunction(`QuickPlay`, { input: input })
+	public quickPlay (input: number): Promise<any> {
+		return this.sendCommandFunction(`QuickPlay`, { input: input })
 	}
 
-	public addInput (file: string) {
-		this.sendCommandFunction(`AddInput`, { value: file })
+	public addInput (file: string): Promise<any> {
+		return this.sendCommandFunction(`AddInput`, { value: file })
 	}
 
-	public playInput (input: string) {
-		this.sendCommandFunction(`Play`, { input: input })
+	public playInput (input: number): Promise<any> {
+		return this.sendCommandFunction(`Play`, { input: input })
 	}
 
-	public pauseInput (input: string) {
-		this.sendCommandFunction(`Pause`, { input: input })
+	public pauseInput (input: number): Promise<any> {
+		return this.sendCommandFunction(`Pause`, { input: input })
 	}
 
-	public setPosition (input: string, value: string) {
-		this.sendCommandFunction(`SetPosition`, { input: input, value: value })
+	public setPosition (input: number, value: number): Promise<any> {
+		return this.sendCommandFunction(`SetPosition`, { input: input, value: value })
 	}
 
-	public setInputName (input: string, value: string) {
-		this.sendCommandFunction(`SetInputName`, { input: input, value: value })
+	public setInputName (input: number, value: string): Promise<any> {
+		return this.sendCommandFunction(`SetInputName`, { input: input, value: value })
 	}
 
-	public setOutput (name: string, value: string, input?: string) {
-		this.sendCommandFunction(`SetOutput${name}`, { value: value, input: (input ? input : '') })
+	public setOutput (name: string, value: string): Promise<any> {
+		return this.sendCommandFunction(`SetOutput${name}`, { value: value })
 	}
 
-	public startExternal () {
-		this.sendCommandFunction(`StartExternal`, {})
+	public startExternal (): Promise<any> {
+		return this.sendCommandFunction(`StartExternal`, {})
 	}
 
-	public stopExternal () {
-		this.sendCommandFunction(`StopExternal`, {})
+	public stopExternal (): Promise<any> {
+		return this.sendCommandFunction(`StopExternal`, {})
 	}
 
-	public overlayInputIn (name: string, input: string) {
-		this.sendCommandFunction(`OverlayInput${name}In`, { input: input })
+	public overlayInputIn (name: string | number, input: number): Promise<any> {
+		return this.sendCommandFunction(`OverlayInput${name}In`, { input: input })
 	}
 
-	public overlayInputOut (name: string) {
-		this.sendCommandFunction(`OverlayInput${name}Out`, {})
+	public overlayInputOut (name: string | number): Promise<any> {
+		return this.sendCommandFunction(`OverlayInput${name}Out`, {})
 	}
 
-	public overlayInputOff (name: string) {
-		this.sendCommandFunction(`OverlayInput${name}Off`, {})
+	public overlayInputOff (name: string | number): Promise<any> {
+		return this.sendCommandFunction(`OverlayInput${name}Off`, {})
 	}
 
-	public sendCommandFunction (func: string, args: { input?: string | number, value?: string | number, extra?: string }) {
+	public sendCommandFunction (func: string, args: { input?: string | number, value?: string | number, extra?: string }): Promise<any> {
 		const inp = args.input !== undefined ? `&Input=${args.input}` : ''
 		const val = args.value !== undefined ? `&Value=${args.value}` : ''
 		const ext = args.extra !== undefined ? args.extra : ''
@@ -362,13 +326,135 @@ export class VMix extends EventEmitter {
 
 		console.log(`Sending command: ${command}`)
 
-		request.get(command, {}, (error) => {
-			if (error) {
-				throw new Error(error)
-			} else {
-				this.getVMixState()
-			}
-			this._stillAlive()
+		return new Promise((resolve, reject) => {
+			request.get(command, {}, (error) => {
+				if (error) {
+					reject(error)
+				} else {
+					this.getVMixState()
+					this._stillAlive()
+					resolve()
+				}
+			})
 		})
 	}
 }
+
+export interface VMixStateCommandBase {
+	command: VMixCommand
+}
+export interface VMixStateCommandPreviewInput extends VMixStateCommandBase {
+	command: VMixCommand.PREVIEW_INPUT
+	input: number
+}
+export interface VMixStateCommandActiveInput extends VMixStateCommandBase {
+	command: VMixCommand.ACTIVE_INPUT
+	input: number
+}
+export interface VMixStateCommandTransition extends VMixStateCommandBase {
+	command: VMixCommand.TRANSITION
+	input: number
+}
+export interface VMixStateCommandTransitionEffect extends VMixStateCommandBase {
+	command: VMixCommand.TRANSITION_EFFECT
+	input: number
+	value: string
+}
+export interface VMixStateCommandTransitionDuration extends VMixStateCommandBase {
+	command: VMixCommand.TRANSITION_DURATION
+	input: number
+	value: number
+}
+export interface VMixStateCommandAudio extends VMixStateCommandBase {
+	command: VMixCommand.AUDIO
+	input: number
+	value: number
+}
+export interface VMixStateCommandFader extends VMixStateCommandBase {
+	command: VMixCommand.FADER
+	value: number
+}
+export interface VMixStateCommandStartStreaming extends VMixStateCommandBase {
+	command: VMixCommand.START_STREAMING
+}
+export interface VMixStateCommandStopStreaming extends VMixStateCommandBase {
+	command: VMixCommand.STOP_STREAMING
+}
+export interface VMixStateCommandStartRecording extends VMixStateCommandBase {
+	command: VMixCommand.START_RECORDING
+}
+export interface VMixStateCommandStopRecording extends VMixStateCommandBase {
+	command: VMixCommand.STOP_RECORDING
+}
+export interface VMixStateCommandFadeToBlack extends VMixStateCommandBase {
+	command: VMixCommand.FADE_TO_BLACK
+}
+export interface VMixStateCommandAddInput extends VMixStateCommandBase {
+	command: VMixCommand.ADD_INPUT
+	value: string
+}
+export interface VMixStateCommandPlayInput extends VMixStateCommandBase {
+	command: VMixCommand.PLAY_INPUT
+	input: number
+}
+export interface VMixStateCommandPauseInput extends VMixStateCommandBase {
+	command: VMixCommand.PAUSE_INPUT
+	input: number
+}
+export interface VMixStateCommandSetPosition extends VMixStateCommandBase {
+	command: VMixCommand.SET_POSITION
+	input: number
+	value: number
+}
+export interface VMixStateCommandSetInputName extends VMixStateCommandBase {
+	command: VMixCommand.SET_INPUT_NAME
+	input: number
+	value: string
+}
+export interface VMixStateCommandSetOuput extends VMixStateCommandBase {
+	command: VMixCommand.SET_OUPUT
+	name: string
+	value: string
+}
+export interface VMixStateCommandStartExternal extends VMixStateCommandBase {
+	command: VMixCommand.START_EXTERNAL
+}
+export interface VMixStateCommandStopExternal extends VMixStateCommandBase {
+	command: VMixCommand.STOP_EXTERNAL
+}
+export interface VMixStateCommandOverlayInputIn extends VMixStateCommandBase {
+	command: VMixCommand.OVERLAY_INPUT_IN
+	value: string | number
+	input: number
+}
+export interface VMixStateCommandOverlayInputOut extends VMixStateCommandBase {
+	command: VMixCommand.OVERLAY_INPUT_OUT
+	value: string | number
+}
+export interface VMixStateCommandOverlayInputOff extends VMixStateCommandBase {
+	command: VMixCommand.OVERLAY_INPUT_OFF
+	value: string | number
+}
+export type VMixStateCommand = VMixStateCommandPreviewInput |
+	VMixStateCommandActiveInput |
+	VMixStateCommandTransition |
+	VMixStateCommandTransitionEffect |
+	VMixStateCommandTransitionDuration |
+	VMixStateCommandAudio |
+	VMixStateCommandFader |
+	VMixStateCommandStartStreaming |
+	VMixStateCommandStopStreaming |
+	VMixStateCommandStartRecording |
+	VMixStateCommandStopRecording |
+	VMixStateCommandFadeToBlack |
+	VMixStateCommandAddInput |
+	VMixStateCommandPlayInput |
+	VMixStateCommandPauseInput |
+	VMixStateCommandSetPosition |
+	VMixStateCommandSetInputName |
+	VMixStateCommandSetOuput |
+	VMixStateCommandStartExternal |
+	VMixStateCommandStopExternal |
+	VMixStateCommandOverlayInputIn |
+	VMixStateCommandOverlayInputOut |
+	VMixStateCommandOverlayInputOff
