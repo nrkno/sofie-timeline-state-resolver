@@ -875,3 +875,109 @@ export interface VMixAudioChannel {
 	meterF2: number
 	headphonesVolume: number
 }
+/*
+
+
+Sources
+    Output (Program)
+    preview
+    multiview
+    ~inputs available~
+    ~clips available~
+    ~other things available~
+
+
+
+External outputs
+	**not able to control in API, only switch on/off**
+    External
+
+    **able to assign sources, switch on/off**
+	External2
+	2
+	3
+	4
+	Fullscreen
+	Fullscreen2
+
+Overlays
+        // fixed, not able to change number
+        // any source can be assigned to an overlay
+	Overlay 1
+	Overlay 2
+	Overlay 3
+	Overlay 4
+	Stinger 1
+	Stinger 2
+
+
+
+Mapping: "map a timeline layer to something physical"
+
+Mapping: {
+    type: 'source' | 'input' | 'output'
+
+    id: "program" | "overlay",
+}
+MappingSource extends Mapping {
+    type: 'source'
+    id: "program" | "overlay",
+}
+MappingOutput extends Mapping {
+    type: 'output'
+    id: 'External2', '2', '3', '4', 'Fullscreen', 'Fullscreen2'
+}
+
+
+{
+    sourceType: "video" | "camera" | others...
+
+    source: "cam1"
+    source: "timeline_layer_34"
+}
+
+{
+    type: "input",
+
+    type: video,
+    fileName: "sofie1.mp4"
+}
+
+{
+    type: "output",
+    source: 'output' | 'preview' | 'multiview'...
+}
+
+// "I want to play and display a video on Program"
+mapping: {
+    'program0': {
+        type: 'source',
+        'id': 'program'
+    },
+    'media_player0': {
+        type: 'input'
+    }
+},
+timeline: [{
+    layer: 'media_player0',
+    content: {
+        type: "input",
+        inputType: 'video',
+        fileName: "sofie1.mp4"
+    }
+}, {
+    layer: 'program0',
+    content: {
+        type: "source",
+        sourceType: "video",
+        sourceLayer: 'media_player0'
+
+    }
+}]
+
+
+// "I want to play and display a video on Program, then cut to the same video again"
+
+
+// "I want to play and display a camera on Program"
+*/
