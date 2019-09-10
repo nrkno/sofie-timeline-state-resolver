@@ -409,11 +409,6 @@
   dependencies:
     "@babel/types" "^7.3.0"
 
-"@types/bluebird@*":
-  version "3.5.27"
-  resolved "https://registry.yarnpkg.com/@types/bluebird/-/bluebird-3.5.27.tgz#61eb4d75dc6bfbce51cf49ee9bbebe941b2cb5d0"
-  integrity sha512-6BmYWSBea18+tSjjSC3QIyV93ZKAeNWGM7R6aYt1ryTZXrlHF+QLV0G2yV0viEGVyRkyQsWfMoJ0k/YghBX5sQ==
-
 "@types/caseless@*":
   version "0.12.2"
   resolved "https://registry.yarnpkg.com/@types/caseless/-/caseless-0.12.2.tgz#f65d3d6389e01eeb458bd54dc8f52b95a9463bc8"
@@ -476,15 +471,7 @@
   resolved "https://registry.yarnpkg.com/@types/node/-/node-8.10.51.tgz#80600857c0a47a8e8bafc2dae6daed6db58e3627"
   integrity sha512-cArrlJp3Yv6IyFT/DYe+rlO8o3SIHraALbBW/+CcCYW/a9QucpLI+n2p4sRxAvl2O35TiecpX2heSZtJjvEO+Q==
 
-"@types/request-promise@^4.1.44":
-  version "4.1.44"
-  resolved "https://registry.yarnpkg.com/@types/request-promise/-/request-promise-4.1.44.tgz#05b59cd18445832fae16b68d5bb3d4621b549485"
-  integrity sha512-RId7eFsUKxfal1LirDDIcOp9u3MM3NXFDBcC3sqIMcmu7f4U6DsCEMD8RbLZtnPrQlN5Jc79di/WPsIEDO4keg==
-  dependencies:
-    "@types/bluebird" "*"
-    "@types/request" "*"
-
-"@types/request@*", "@types/request@^2.48.1":
+"@types/request@^2.48.1":
   version "2.48.2"
   resolved "https://registry.yarnpkg.com/@types/request/-/request-2.48.2.tgz#936374cbe1179d7ed529fc02543deb4597450fed"
   integrity sha512-gP+PSFXAXMrd5PcD7SqHeUjdGshAI8vKQ3+AvpQr3ht9iQea+59LOKvKITcQI+Lg+1EIkDP6AFSBUJPWG8GDyA==
@@ -910,11 +897,6 @@ bl@^1.0.0:
   dependencies:
     readable-stream "^2.3.5"
     safe-buffer "^5.1.1"
-
-bluebird@^3.5.0:
-  version "3.5.5"
-  resolved "https://registry.yarnpkg.com/bluebird/-/bluebird-3.5.5.tgz#a8d0afd73251effbbd5fe384a77d73003c17a71f"
-  integrity sha512-5am6HnnfN+urzt4yfg7IgTbotDjIT/u8AJpEt0sIU9FtXfVeezXAPKswrG+xKUCOYAINpSdgZVDU6QFh+cuH3w==
 
 boxen@^3.0.0:
   version "3.2.0"
@@ -4981,16 +4963,6 @@ request-promise-native@^1.0.5:
   resolved "https://registry.yarnpkg.com/request-promise-native/-/request-promise-native-1.0.7.tgz#a49868a624bdea5069f1251d0a836e0d89aa2c59"
   integrity sha512-rIMnbBdgNViL37nZ1b3L/VfPOpSi0TqVDQPAvO6U14lMzOLrt5nilxCQqtDKhZeDiW0/hkCXGoQjhgJd/tCh6w==
   dependencies:
-    request-promise-core "1.1.2"
-    stealthy-require "^1.1.1"
-    tough-cookie "^2.3.3"
-
-request-promise@^4.2.4:
-  version "4.2.4"
-  resolved "https://registry.yarnpkg.com/request-promise/-/request-promise-4.2.4.tgz#1c5ed0d71441e38ad58c7ce4ea4ea5b06d54b310"
-  integrity sha512-8wgMrvE546PzbR5WbYxUQogUnUDfM0S7QIFZMID+J73vdFARkFy+HElj4T+MWYhpXwlLp0EQ8Zoj8xUA0he4Vg==
-  dependencies:
-    bluebird "^3.5.0"
     request-promise-core "1.1.2"
     stealthy-require "^1.1.1"
     tough-cookie "^2.3.3"

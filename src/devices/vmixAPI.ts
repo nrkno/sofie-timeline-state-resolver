@@ -1,5 +1,5 @@
 import { EventEmitter } from 'events'
-import * as request from 'request-promise'
+import * as request from 'request'
 import * as xml from 'xml-js'
 import { VMixOptions, VMixCommand } from '../types/src'
 import { VMixState, VMixStateCommand, VMixInput, VMixTransition, VMixAudioChannel } from './vmix'
@@ -60,17 +60,17 @@ export class VMix extends EventEmitter {
 		}
 
 		return new Promise((resolve, reject) => {
-			request.get(`${this._options.host}:${this._options.port}`)
-			.then(() => {
-				this._connected = true
-				this._socketKeepAliveTimeout = setTimeout(() => {
-					this.getVMixState()
-				}, PING_TIMEOUT)
-				this.emit('connected')
-				resolve()
-			})
-			.catch((e) => {
-				reject(e)
+			request.get(`${this._options.host}:${this._options.port}`, {}, (error) => {
+				if (error) {
+					reject(error)
+				} else {
+					this._connected = true
+					this._socketKeepAliveTimeout = setTimeout(() => {
+						this.getVMixState()
+					}, PING_TIMEOUT)
+					this.emit('connected')
+					resolve()
+				}
 			})
 		})
 	}
@@ -176,17 +176,16 @@ export class VMix extends EventEmitter {
 	}
 
 	public getVMixState () {
-		request.get(`${this._options.host}:${this._options.port}/api`)
-		.then((res) => {
-			this._connected = true
-			const state = xml.xml2json(res, { compact: true, spaces: 4 })
-			this.parseVMixState(JSON.parse(state))
-		})
-		.catch((e) => {
-			this._connected = false
-			throw new Error(e)
-		}).finally(() => {
-			this._stillAlive()
+		request.get(`${this._options.host}:${this._options.port}/api`, {}, (error, res) => {
+			if (error) {
+				this._connected = false
+				// throw new Error(error)
+			} else {
+				this._connected = true
+				const state = xml.xml2json(res.body, { compact: true, spaces: 4 })
+				this.parseVMixState(JSON.parse(state))
+				this._stillAlive()
+			}
 		})
 	}
 
@@ -363,15 +362,12 @@ export class VMix extends EventEmitter {
 
 		console.log(`Sending command: ${command}`)
 
-		request.get(command)
-		.then((res) => {
-			console.log(res)
-			this.getVMixState()
-		})
-		.catch((e) => {
-			throw new Error(e)
-		})
-		.finally(() => {
+		request.get(command, {}, (error) => {
+			if (error) {
+				throw new Error(error)
+			} else {
+				this.getVMixState()
+			}
 			this._stillAlive()
 		})
 	}

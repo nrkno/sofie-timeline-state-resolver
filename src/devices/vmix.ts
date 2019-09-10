@@ -12,7 +12,7 @@ import {
 	VMixCommandContent
 } from '../types/src'
 import { DoOnTime, SendMode } from '../doOnTime'
-// import * as request from 'request'
+import * as request from 'request'
 
 import {
 	TimelineState

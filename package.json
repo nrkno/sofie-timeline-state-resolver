@@ -146,7 +146,6 @@
   ],
   "dependencies": {
     "@types/request": "^2.48.1",
-    "@types/request-promise": "^4.1.44",
     "@types/sprintf-js": "^1.1.0",
     "@types/ws": "^6.0.1",
     "@types/xml-js": "^1.0.0",
@@ -159,7 +158,6 @@
     "hyperdeck-connection": "^0.3.0",
     "osc": "^2.2.4",
     "request": "^2.88.0",
-    "request-promise": "^4.2.4",
     "sprintf-js": "^1.1.2",
     "superfly-timeline": "^7.2.4",
     "threadedclass": "^0.6.6",
