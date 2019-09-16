@@ -3,16 +3,16 @@ import {
 	DeviceWithState,
 	CommandWithContext,
 	DeviceStatus,
-	StatusCode
+	StatusCode,
+	literal
 } from './device'
 import {
 	DeviceType,
 	DeviceOptions,
-	SingularLiveCommandContent,
 	SingularLiveOptions,
 	TimelineContentTypeSingularLive,
-	SingularLiveUpdateShowDataCommandContent,
-	SingularLiveControlAnimationCommandContent
+	MappingSingularLive,
+	TimelineObjSingularLiveAny
 } from '../types/src'
 import { DoOnTime, SendMode } from '../doOnTime'
 import * as request from 'request'
@@ -25,6 +25,24 @@ export interface SingularLiveDeviceOptions extends DeviceOptions {
 		commandReceiver?: CommandReceiver
 	}
 }
+
+export interface SingularLiveAnimationCommandContent extends SingularLiveCommandContent {
+	animation: {
+		action: 'play' | 'jump',
+		to: 'In' | 'Out'
+	}
+}
+
+export interface SingularLiveControlNodeCommandContent extends SingularLiveCommandContent {
+	controlNode: {
+		payload: { [key: string]: string }
+	}
+}
+
+export interface SingularLiveCommandContent {
+	compositionName: string
+}
+
 export type CommandReceiver = (time: number, cmd: SingularLiveCommandContent, context: CommandContext, timelineObjId: string) => Promise<any>
 interface Command {
 	commandName: 'added' | 'changed' | 'removed'
@@ -35,6 +53,23 @@ interface Command {
 }
 export type CommandContext = string
 
+export interface SingularComposition {
+	timelineObjId: string
+	animation: {
+		stage: string
+		action: 'jump' | 'play'
+	}
+	controlNode: {
+		payload: { [key: string]: string }
+	}
+}
+
+export interface SingularLiveState {
+	compositions: {
+		[ key: string ]: SingularComposition
+	}
+}
+
 const SINGULAR_LIVE_API = 'https://app.singular.live/apiv1/control/'
 
 /**
@@ -42,7 +77,7 @@ const SINGULAR_LIVE_API = 'https://app.singular.live/apiv1/control/'
  */
 export class SingularLiveDevice extends DeviceWithState<TimelineState> {
 
-	private _makeReadyCommands: SingularLiveCommandContent[]
+	// private _makeReadyCommands: SingularLiveCommandContent[]
 	private _accessToken: string
 	private _doOnTime: DoOnTime
 	private _deviceStatus: DeviceStatus = {
@@ -63,7 +98,7 @@ export class SingularLiveDevice extends DeviceWithState<TimelineState> {
 		this.handleDoOnTime(this._doOnTime, 'SingularLive')
 	}
 	init (options: SingularLiveOptions): Promise<boolean> {
-		this._makeReadyCommands = options.makeReadyCommands || []
+		// this._makeReadyCommands = options.makeReadyCommands || []
 		this._accessToken = options.accessToken || ''
 
 		if (!this._accessToken) throw new Error('Singular.Live bad connection option: accessToken. An accessToken is required.')
@@ -107,16 +142,16 @@ export class SingularLiveDevice extends DeviceWithState<TimelineState> {
 		// Good, since this device has no status, really
 		return this._deviceStatus
 	}
-	async makeReady (okToDestroyStuff?: boolean): Promise<void> {
-		if (okToDestroyStuff && this._makeReadyCommands && this._makeReadyCommands.length > 0) {
-			const time = this.getCurrentTime()
-			_.each(this._makeReadyCommands, (cmd: SingularLiveCommandContent) => {
-				// add the new commands to the queue:
-				this._doOnTime.queue(time, cmd.queueId, (cmd: SingularLiveCommandContent) => {
-					return this._commandReceiver(time, cmd, 'makeReady', '')
-				}, cmd)
-			})
-		}
+	async makeReady (_okToDestroyStuff?: boolean): Promise<void> {
+		// if (okToDestroyStuff && this._makeReadyCommands && this._makeReadyCommands.length > 0) {
+		// 	const time = this.getCurrentTime()
+		// 	_.each(this._makeReadyCommands, (cmd: SingularLiveCommandContent) => {
+		// 		// add the new commands to the queue:
+		// 		this._doOnTime.queue(time, undefined, (cmd: SingularLiveCommandContent) => {
+		// 			return this._commandReceiver(time, cmd, 'makeReady', '')
+		// 		}, cmd)
+		// 	})
+		// }
 	}
 
 	get canConnect (): boolean {
@@ -125,10 +160,32 @@ export class SingularLiveDevice extends DeviceWithState<TimelineState> {
 	get connected (): boolean {
 		return false
 	}
+	private _getDefaultState (): SingularLiveState {
+		return {
+			compositions: {
+			}
+		}
+	}
 	convertStateToSingularLive (state: TimelineState) {
 		// convert the timeline state into something we can use
 		// (won't even use this.mapping)
-		return state
+		const singularState: SingularLiveState = this._getDefaultState()
+
+		_.each(state.layers, (tlObject: ResolvedTimelineObjectInstance, layerName: string) => {
+			const mapping: MappingSingularLive | undefined = this.getMapping()[layerName] as MappingSingularLive
+			if (mapping && mapping.device === DeviceType.SINGULAR_LIVE) {
+				let tlObjectSource = tlObject as any as TimelineObjSingularLiveAny
+
+				if (tlObjectSource.content.type === TimelineContentTypeSingularLive.COMPOSITION) {
+					singularState.compositions[mapping.compositionName] = Object.assign(singularState.compositions[mapping.compositionName] || {}, {
+						timelineObjId: tlObject.id,
+						controlNode: tlObjectSource.content.controlNode
+					})
+				}
+			}
+		})
+
+		return singularState
 	}
 	get deviceType () {
 		return DeviceType.SINGULAR_LIVE
@@ -143,67 +200,89 @@ export class SingularLiveDevice extends DeviceWithState<TimelineState> {
 		_.each(commandsToAchieveState, (cmd: Command) => {
 
 			// add the new commands to the queue:
-			this._doOnTime.queue(time, cmd.content.queueId, (cmd: Command) => {
-				if (
-					cmd.commandName === 'added' ||
-					cmd.commandName === 'changed'
-				) {
-					return this._commandReceiver(time, cmd.content, cmd.context, cmd.timelineObjId)
-				} else {
-					return null
-				}
+			this._doOnTime.queue(time, undefined, (cmd: Command) => {
+				return this._commandReceiver(time, cmd.content, cmd.context, cmd.timelineObjId)
 			}, cmd)
 		})
 	}
-	private _diffStates (oldSingularLiveState: TimelineState, newSingularLiveState: TimelineState): Array<Command> {
-		// in this httpSend class, let's just cheat:
-
+	private _diffStates (oldSingularLiveState: SingularLiveState, newSingularLiveState: SingularLiveState): Array<Command> {
 		let commands: Array<Command> = []
 
-		_.each(newSingularLiveState.layers, (newLayer: ResolvedTimelineObjectInstance, layerKey: string) => {
-			let oldLayer = oldSingularLiveState.layers[layerKey]
-			if (!oldLayer) {
+		_.each(newSingularLiveState.compositions, (composition: SingularComposition, compositionName: string) => {
+			let oldComposition = oldSingularLiveState.compositions[compositionName]
+			if (!oldComposition) {
 				// added!
 				commands.push({
-					timelineObjId:	newLayer.id,
-					commandName:	'added',
-					content:		newLayer.content as SingularLiveCommandContent,
-					context:		`added: ${newLayer.id}`,
-					layer:			layerKey
+					timelineObjId:	composition.timelineObjId,
+					commandName: 'added',
+					content: literal<SingularLiveAnimationCommandContent>({
+						compositionName: compositionName,
+						animation: {
+							action: composition.animation.action,
+							to: 'In'
+						}
+					}),
+					context: `added: ${composition.timelineObjId}`,
+					layer: compositionName
+				})
+				commands.push({
+					timelineObjId: composition.timelineObjId,
+					commandName: 'added',
+					content: literal<SingularLiveControlNodeCommandContent>({
+						compositionName: compositionName,
+						controlNode: {
+							payload: composition.controlNode.payload
+						}
+					}),
+					context: `added: ${composition.timelineObjId}`,
+					layer: compositionName
 				})
 			} else {
 				// changed?
-				if (!_.isEqual(oldLayer.content, newLayer.content)) {
+				if (!_.isEqual(oldComposition.controlNode, composition.controlNode)) {
 					// changed!
 					commands.push({
-						timelineObjId:	newLayer.id,
-						commandName:	'changed',
-						content:		newLayer.content as SingularLiveCommandContent,
-						context:		`changed: ${newLayer.id} (previously: ${oldLayer.id})`,
-						layer:			layerKey
+						timelineObjId: composition.timelineObjId,
+						commandName: 'changed',
+						content: literal<SingularLiveControlNodeCommandContent>({
+							compositionName: compositionName,
+							controlNode: {
+								payload: composition.controlNode.payload
+							}
+						}),
+						context: `changed: ${composition.timelineObjId}  (previously: ${oldComposition.timelineObjId})`,
+						layer: compositionName
 					})
 				}
 			}
 		})
 		// removed
-		_.each(oldSingularLiveState.layers, (oldLayer: ResolvedTimelineObjectInstance, layerKey) => {
-			let newLayer = newSingularLiveState.layers[layerKey]
-			if (!newLayer) {
+		_.each(oldSingularLiveState.compositions, (composition: SingularComposition, compositionName) => {
+			let newComposition = newSingularLiveState.compositions[compositionName]
+			if (!newComposition) {
 				// removed!
 				commands.push({
-					timelineObjId:	oldLayer.id,
-					commandName:	'removed',
-					content:		oldLayer.content as SingularLiveCommandContent,
-					context:		`removed: ${oldLayer.id}`,
-					layer:			 layerKey
+					timelineObjId: composition.timelineObjId,
+					commandName: 'removed',
+					content: literal<SingularLiveAnimationCommandContent>({
+						compositionName: compositionName,
+						animation: {
+							action: composition.animation.action,
+							to: 'Out'
+						}
+					}),
+					context: `removed: ${composition.timelineObjId}`,
+					layer: compositionName
 				})
 			}
 		})
 		return commands
+		.sort((a, b) =>
+			(a.content as any).controlNode && !(b.content as any).controlNode ? 1 :
+			!(a.content as any).controlNode && (b.content as any).controlNode ? -1 :
+			0
+		)
 		.sort((a, b) => a.layer.localeCompare(b.layer))
-		.sort((a, b) => {
-			return (a.content.temporalPriority || 0) - (b.content.temporalPriority || 0)
-		})
 	}
 	private _defaultCommandReceiver (_time: number, cmd: SingularLiveCommandContent, context: CommandContext, timelineObjId: string): Promise<any> {
 
@@ -219,39 +298,24 @@ export class SingularLiveDevice extends DeviceWithState<TimelineState> {
 		return new Promise((resolve, reject) => {
 			let handleResponse = (error, response) => {
 				if (error) {
-					this.emit('error', `SingularLive.response error ${cmd.type} (${context}`, error)
+					this.emit('error', `SingularLive.response error ${cmd.compositionName} (${context}`, error)
 					reject(error)
 				} else if (response.statusCode === 200) {
-					this.emit('debug', `SingularLive: ${cmd.type}: Good statuscode response on url "${url}": ${response.statusCode} (${context})`)
+					this.emit('debug', `SingularLive: ${cmd.compositionName}: Good statuscode response on url "${url}": ${response.statusCode} (${context})`)
 					resolve()
 				} else {
-					this.emit('warning', `SingularLive: ${cmd.type}: Bad statuscode response on url "${url}": ${response.statusCode} (${context})`)
+					this.emit('warning', `SingularLive: ${cmd.compositionName}: Bad statuscode response on url "${url}": ${response.statusCode} (${context})`)
 					resolve()
 				}
 			}
 
-			switch (cmd.type) {
-				case TimelineContentTypeSingularLive.UPDATE_SHOW_DATA:
-					const c0 = cmd as SingularLiveUpdateShowDataCommandContent
-					request.put(
-						url,
-						{ json: {
-							compositionName: cmd.compositionName,
-							controlNode: c0.controlNode
-						} },
-						handleResponse
-					)
-					break;
-				case TimelineContentTypeSingularLive.CONTROL_ANIMATION:
-					const c1 = cmd as SingularLiveControlAnimationCommandContent
-					request.put(
-						url,
-						{ json: {
-							compositionName: cmd.compositionName,
-							animation: c1.animation
-						}}
-					)
-			}
+			request.put(
+				url,
+				{ json: [
+					cmd
+				] },
+				handleResponse
+			)
 		})
 		.catch(error => {
 			this.emit('commandError', error, cwc)

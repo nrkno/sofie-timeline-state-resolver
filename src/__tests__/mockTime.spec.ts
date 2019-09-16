@@ -1,4 +1,3 @@
-const setTimeoutOrg = setTimeout
 export class MockTime {
 	private _now: number = 10000
 	private _hasBeeninit: boolean = false
@@ -89,7 +88,7 @@ test('mockTimeAsync', async done => {
 	await mockTime.advanceTimeToTicks(12000)
 	expect(mockTime.now).toEqual(12000)
 	mockTime.advanceTimeToTicks(11000).catch((e) => {
-		done()
+		done(e)
 	})
 	// expect(() => {
 	// 	return

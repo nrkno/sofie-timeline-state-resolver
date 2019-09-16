@@ -3,49 +3,40 @@ import { TSRTimelineObjBase, DeviceType } from '.'
 
 export interface MappingSingularLive extends Mapping {
 	device: DeviceType.SINGULAR_LIVE
+	compositionName: string
 }
 
-export interface SingularLiveUpdateShowDataCommandContent extends SingularLiveCommandContent {
-	type: TimelineContentTypeSingularLive.UPDATE_SHOW_DATA,
+export interface SingularLiveCompositionContent extends SingularLiveContent {
+	type: TimelineContentTypeSingularLive.COMPOSITION,
 	controlNode: {
 		payload: { [key: string]: string }
 	}
 }
-
-export interface SingularLiveControlAnimationCommandContent extends SingularLiveCommandContent {
-	type: TimelineContentTypeSingularLive.CONTROL_ANIMATION,
-	animation: {
-		action: 'play' | 'jump'
-		to: string
-	}
-}
-
-export interface SingularLiveCommandContent {
+export interface SingularLiveContent {
 	type: TimelineContentTypeSingularLive
-	compositionName: string
 	temporalPriority?: number // default: 0
 	/** Commands in the same queue will be sent in order (will wait for the previous to finish before sending next */
 	queueId?: string
 }
 export interface SingularLiveOptions {
 	accessToken: string
-	makeReadyCommands?: SingularLiveCommandContent[]
+	// makeReadyCommands?: SingularLiveContent[]
 }
 
 export enum TimelineContentTypeSingularLive {
-	CONTROL_ANIMATION = 'control_animation',
-	UPDATE_SHOW_DATA = 'update_show_data'
+	COMPOSITION = 'composition'
 }
 
-export type TimelineObjSingularLiveAny = TimelineObjSingularLive
+export type TimelineObjSingularLiveAny = TimelineObjSingularLiveComposition
 export interface TimelineObjSingularLiveBase extends TSRTimelineObjBase {
 	content: {
 		deviceType: DeviceType.SINGULAR_LIVE
 		// type: TimelineContentTypeCasparCg
 	}
 }
-export interface TimelineObjSingularLive extends TimelineObjSingularLiveBase {
+
+export interface TimelineObjSingularLiveComposition extends TimelineObjSingularLiveBase {
 	content: {
 		deviceType: DeviceType.SINGULAR_LIVE
-	} & SingularLiveCommandContent
+	} & SingularLiveCompositionContent
 }
