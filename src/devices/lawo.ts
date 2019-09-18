@@ -400,12 +400,12 @@ export class LawoDevice extends DeviceWithState<TimelineState> {
 								new Ember.ParameterContents(command.transitionDuration / 1000, 'real')
 							]
 						)
-						this.emit('debug', `Ember function result: ${JSON.stringify(res)}`)
+						this.emit('debug', `Ember function result (${timelineObjId}): ${JSON.stringify(res)}`)
 					} catch (e) {
 						if (e.success === false) { // @todo: QualifiedFunction Fader/Motor cannot handle too short durations or small value changes
-							this.emit('info', `Ember function result: ${JSON.stringify(e)}`)
+							this.emit('info', `Ember function result (${timelineObjId}): ${JSON.stringify(e)}`)
 						}
-						this.emit('error', 'Lawo: Ember function command error', e)
+						this.emit('error', `Lawo: Ember function command error (${timelineObjId})`, e)
 						throw e
 					}
 
@@ -415,14 +415,9 @@ export class LawoDevice extends DeviceWithState<TimelineState> {
 
 						const res = await this._lawo.setValue(node, new Ember.ParameterContents(command.value, 'real'))
 
-						try {
-							this.emit('debug', `Ember result: ${JSON.stringify(res)}`)
-						} catch (e) {
-							this.emit('error', 'Lawo: Error in setValue', e)
-							throw e
-						}
+						this.emit('debug', `Ember result (${timelineObjId}): ${JSON.stringify(res)}`)
 					} catch (e) {
-						this.emit('error', 'Lawo: Ember command error', e)
+						this.emit('error', `Lawo: Ember setvalue error (${timelineObjId})`, e)
 						throw e
 					}
 				}
@@ -432,14 +427,9 @@ export class LawoDevice extends DeviceWithState<TimelineState> {
 
 					const res = await this._lawo.setValue(node, new Ember.ParameterContents(command.value, command.valueType))
 
-					try {
-						this.emit('debug', `Ember result: ${JSON.stringify(res)}`)
-					} catch (e) {
-						this.emit('error', 'Lawo: Error in setValue', e)
-						throw e
-					}
+					this.emit('debug', `Ember result (${timelineObjId}): ${JSON.stringify(res)}`)
 				} catch (e) {
-					this.emit('error', 'Lawo: Ember command error', e)
+					this.emit('error', `Lawo: Ember setvalue error (${timelineObjId})`, e)
 					throw e
 				}
 			}
