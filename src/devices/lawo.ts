@@ -385,9 +385,10 @@ export class LawoDevice extends DeviceWithState<TimelineState> {
 			command: command,
 			timelineObjId: timelineObjId
 		}
+		this.emit('debug', cwc)
+
 		try {
 			if (command.key === 'Fader/Motor dB Value') {	// fader level
-				// this.emit('debug', cwc)
 
 				if (command.transitionDuration && command.transitionDuration > 0) {	// with timed fader movement
 					try {
