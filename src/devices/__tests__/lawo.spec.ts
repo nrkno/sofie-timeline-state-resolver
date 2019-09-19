@@ -278,4 +278,84 @@ describe('Lawo', () => {
 		await mockTime.advanceTimeToTicks(11500)
 		expect(commandReceiver0).toHaveBeenCalledTimes(2)
 	})
+	test('Lawo: manual fade', async () => {
+
+		let commandReceiver0 = jest.fn(() => {
+			return Promise.resolve()
+		})
+		let myChannelMapping0: MappingLawo = {
+			device: DeviceType.LAWO,
+			deviceId: 'myLawo',
+			mappingType: MappingLawoType.SOURCE,
+			identifier: 'BASE'
+		}
+		let myChannelMapping: Mappings = {
+			'lawo_c1_fader': myChannelMapping0
+		}
+
+		let myConductor = new Conductor({
+			initializeAsClear: true,
+			getCurrentTime: mockTime.getCurrentTime
+		})
+		await myConductor.setMapping(myChannelMapping)
+		await myConductor.init() // we cannot do an await, because setTimeout will never call without jest moving on.
+		await myConductor.addDevice('myLawo', {
+			type: DeviceType.LAWO,
+			options: {
+				host: '160.67.96.51',
+				port: 9000,
+				// commandReceiver: commandReceiver0,
+				setValueFn: commandReceiver0
+			}
+		})
+		await mockTime.advanceTimeToTicks(10100)
+
+		let deviceContainer = myConductor.getDevice('myLawo')
+		let device = deviceContainer.device as ThreadedClass<LawoDevice>
+
+		// Check that no commands has been scheduled:
+		expect(await device.queue).toHaveLength(0)
+		myConductor.timeline = [
+			{
+				id: 'obj0',
+				enable: {
+					start: mockTime.now - 1000, // 1 seconds in the past
+					duration: 2000
+				},
+				layer: 'lawo_c1_fader',
+				content: {
+					deviceType: DeviceType.LAWO,
+					type: TimelineContentTypeLawo.SOURCE,
+
+					'Fader/Motor dB Value': {
+						value: 0,
+						transitionDuration: 400
+					}
+				}
+			},
+			{
+				id: 'obj1',
+				enable: {
+					start: mockTime.now + 500, // 0.5 seconds in the future
+					duration: 2000
+				},
+				layer: 'lawo_c1_fader',
+				content: {
+					deviceType: DeviceType.LAWO,
+					type: TimelineContentTypeLawo.SOURCE,
+
+					'Fader/Motor dB Value': {
+						value: -191,
+						transitionDuration: 400
+						// triggerValue: string // only used for trigging new command sent
+					}
+				}
+			}
+		]
+
+		await mockTime.advanceTimeToTicks(10200)
+
+		console.log(commandReceiver0.mock.calls)
+		
+	})
 })

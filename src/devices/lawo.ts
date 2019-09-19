@@ -30,13 +30,16 @@ import { getDiff } from '../lib'
 export interface LawoOptions extends DeviceOptions { // TODO - this doesnt match what the other ones do
 	options?: {
 		commandReceiver?: CommandReceiver
+		setValueFn?: SetValueFn
 		host?: string
 		port?: number
 		sourcesPath?: string
 		rampMotorFunctionPath?: string
+		dbPropertyName?: string
 	}
 }
 export type CommandReceiver = (time: number, cmd: LawoCommand, context: CommandContext, timelineObjId: string) => Promise<any>
+export type SetValueFn = (path: string, valueType: EmberTypes, value: EmberValueTypes) => Promise<any>
 // export type EmberPlusValue = boolean | number | string | {type: EmberTypes, value: EmberValueTypes}
 
 export interface LawoState {
@@ -62,6 +65,7 @@ export interface LawoCommand {
 	identifier: string,
 	type: TimelineContentTypeLawo,
 	transitionDuration?: number
+	from?: EmberValueTypes
 }
 export interface LawoCommandWithContext {
 	cmd: LawoCommand
@@ -69,6 +73,7 @@ export interface LawoCommandWithContext {
 	timelineObjId: string
 }
 type CommandContext = string
+const FADER_THRESHOLD = -90 // below this value the channel is considered muted
 /**
  * This is a wrapper for a Lawo sound mixer
  *
@@ -85,6 +90,13 @@ export class LawoDevice extends DeviceWithState<TimelineState> {
 	private _commandReceiver: CommandReceiver
 	private _sourcesPath: string
 	private _rampMotorFunctionPath: string
+	private _dbPropertyName: string
+	private _setValueFn: SetValueFn
+
+	private transitions: { [address: string]: {
+		started: number
+	} & LawoCommand } = {}
+	private transitionInterval: NodeJS.Timer | undefined
 
 	constructor (deviceId: string, deviceOptions: LawoOptions, options) {
 		super(deviceId, deviceOptions, options)
@@ -94,11 +106,19 @@ export class LawoDevice extends DeviceWithState<TimelineState> {
 			} else {
 				this._commandReceiver = this._defaultCommandReceiver
 			}
+			if (deviceOptions.options.setValueFn) {
+				this._setValueFn = deviceOptions.options.setValueFn
+			} else {
+				this._setValueFn = this._setValue
+			}
 			if (deviceOptions.options.sourcesPath) {
 				this._sourcesPath = deviceOptions.options.sourcesPath
 			}
 			if (deviceOptions.options.rampMotorFunctionPath) {
 				this._rampMotorFunctionPath = deviceOptions.options.rampMotorFunctionPath
+			}
+			if (deviceOptions.options.dbPropertyName) {
+				this._dbPropertyName = deviceOptions.options.dbPropertyName
 			}
 		}
 		let host = (
@@ -200,6 +220,7 @@ export class LawoDevice extends DeviceWithState<TimelineState> {
 	 */
 	terminate () {
 		this._doOnTime.dispose()
+		if (this.transitionInterval) clearInterval(this.transitionInterval)
 
 		// @todo: Implement lawo dispose function upstream
 		try {
@@ -236,8 +257,9 @@ export class LawoDevice extends DeviceWithState<TimelineState> {
 					let tlObjectSource: TimelineObjLawoSource = lawoObj as TimelineObjLawoSource
 
 					const fader: TimelineObjLawoSource['content']['Fader/Motor dB Value'] = tlObjectSource.content['Fader/Motor dB Value']
+					const attrName = this._rampMotorFunctionPath ? 'Ramp Function' : this._dbPropertyName || 'Motor dB Value'
 
-					lawoState[this._sourceNodeAttributePath(mapping.identifier, 'Fader/Motor dB Value')] = {
+					lawoState[this._sourceNodeAttributePath(mapping.identifier, attrName)] = {
 						type: tlObjectSource.content.type,
 						key: 'Fader/Motor dB Value',
 						identifier: mapping.identifier,
@@ -331,6 +353,7 @@ export class LawoDevice extends DeviceWithState<TimelineState> {
 						identifier: newNode.identifier,
 						value: newNode.value,
 						valueType: newNode.valueType,
+						from: oldValue ? oldValue.value : undefined,
 						transitionDuration: newNode.transitionDuration
 					},
 					context: diff,
@@ -386,68 +409,117 @@ export class LawoDevice extends DeviceWithState<TimelineState> {
 			timelineObjId: timelineObjId
 		}
 		try {
-			if (command.key === 'Fader/Motor dB Value') {	// fader level
+			if (command.key === 'Fader/Motor dB Value' && command.transitionDuration && command.transitionDuration >= 500) {	// fader level
 				// this.emit('debug', cwc)
 
 				if (command.transitionDuration && command.transitionDuration > 0) {	// with timed fader movement
-					try {
-						const res = await this._lawo.invokeFunction(
-							new Ember.QualifiedFunction(this._rampMotorFunctionPath),
-							[
-								command.identifier,
-								new Ember.ParameterContents(command.value, 'real'),
-								new Ember.ParameterContents(command.transitionDuration / 1000, 'real')
-							]
-						)
-						this.emit('debug', `Ember function result: ${JSON.stringify(res)}`)
-					} catch (e) {
-						if (e.success === false) { // @todo: QualifiedFunction Fader/Motor cannot handle too short durations or small value changes
-							this.emit('info', `Ember function result: ${JSON.stringify(e)}`)
+					if (!this._rampMotorFunctionPath) {
+						// add the fade to the fade object, such that we can fade the signal using the fader
+						if (!command.from) { // @todo: see if we can query the lawo first
+							const node = await this._lawo.getNodeByPath(command.path)
+							if (node) {
+								if (node.contents.value === command.value) return
+								command.from = node.contents.value
+							} else {
+								await this._setValueFn(command.path, EmberTypes.REAL, command.value)
+								return
+							}
 						}
-						this.emit('error', 'Lawo: Ember function command error', e)
-						throw e
+
+						this.transitions[command.path] = {
+							...command,
+							started: this.getCurrentTime()
+						}
+
+						this._setValueFn(command.path, EmberTypes.REAL, command.from!)
+
+						if (!this.transitionInterval) this.transitionInterval = setInterval(() => this.runAnimation(), 40)
+					} else {
+						try {
+							const res = await this._lawo.invokeFunction(
+								new Ember.QualifiedFunction(this._rampMotorFunctionPath),
+								[
+									command.identifier,
+									new Ember.ParameterContents(command.value, 'real'),
+									new Ember.ParameterContents(command.transitionDuration / 1000, 'real')
+								]
+							)
+							this.emit('debug', `Ember function result: ${JSON.stringify(res)}`)
+						} catch (e) {
+							if (e.success === false && e.result && e.result[0] === 6) { // @todo: QualifiedFunction Fader/Motor cannot handle too short durations or small value changes
+								this.emit('info', `Ember function result: ${JSON.stringify(e)}`)
+							} else {
+								this.emit('error', 'Lawo: Ember function command error', e)
+								throw e
+							}
+						}
+
 					}
 
 				} else { // withouth timed fader movement
-					try {
-						const node: any = await this._getNodeByPath(command.path)
-
-						const res = await this._lawo.setValue(node, new Ember.ParameterContents(command.value, 'real'))
-
-						try {
-							this.emit('debug', `Ember result: ${JSON.stringify(res)}`)
-						} catch (e) {
-							this.emit('error', 'Lawo: Error in setValue', e)
-							throw e
-						}
-					} catch (e) {
-						this.emit('error', 'Lawo: Ember command error', e)
-						throw e
-					}
+					await this._setValueFn(command.path, EmberTypes.REAL, command.value)
 				}
 			} else {
-				try {
-					const node: any = await this._getNodeByPath(command.path)
-
-					const res = await this._lawo.setValue(node, new Ember.ParameterContents(command.value, command.valueType))
-
-					try {
-						this.emit('debug', `Ember result: ${JSON.stringify(res)}`)
-					} catch (e) {
-						this.emit('error', 'Lawo: Error in setValue', e)
-						throw e
-					}
-				} catch (e) {
-					this.emit('error', 'Lawo: Ember command error', e)
-					throw e
-				}
+				await this._setValueFn(command.path, command.valueType, command.value)
 			}
 		} catch (error) {
 			this.emit('commandError', error, cwc)
 		}
 
 	}
+	private async _setValue (path: string, valueType: EmberTypes, value: EmberValueTypes) {
+		try {
+			const node: any = await this._getNodeByPath(path)
+
+			if (node && node.contents && node.contents.value === value) {
+				this.emit('debug', `Ember+ Value for ${path} is already at "${value}"".`)
+				return
+			}
+
+			const res = await this._lawo.setValue(node, new Ember.ParameterContents(value, valueType))
+
+			try {
+				this.emit('debug', `Ember result: ${JSON.stringify(res)}`)
+			} catch (e) {
+				this.emit('error', 'Lawo: Error in setValue', e)
+				throw e
+			}
+		} catch (e) {
+			this.emit('error', 'Lawo: Ember command error', e)
+			throw e
+		}
+	}
 	private _connectionChanged () {
 		this.emit('connectionChanged', this.getStatus())
+	}
+	private runAnimation (): void {
+		for (const addr in this.transitions) {
+			const transition = this.transitions[addr]
+			// delete old transitions
+			if (transition.started + transition.transitionDuration! < this.getCurrentTime()) {
+				delete this.transitions[addr]
+
+				// assert correct finished value:
+				this._setValueFn(transition.path, EmberTypes.REAL, transition.value)
+			}
+		}
+
+		for (const addr in this.transitions) {
+			const transition = this.transitions[addr]
+
+			const from = Math.max(FADER_THRESHOLD, transition.from! as number)
+			const to = Math.max(FADER_THRESHOLD, transition.value! as number)
+
+			const p = (this.getCurrentTime() - transition.started) / transition.transitionDuration!
+
+			const v = from + p * (to - from) // should this have easing?
+
+			this._setValueFn(transition.path, EmberTypes.REAL, v)
+		}
+
+		if (Object.keys(this.transitions).length === 0) {
+			clearInterval(this.transitionInterval!)
+			this.transitionInterval = undefined
+		}
 	}
 }
