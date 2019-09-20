@@ -441,7 +441,11 @@ export class LawoDevice extends DeviceWithState<TimelineState> {
 		try {
 			const node: any = await this._getNodeByPath(command.path)
 
-			const res = await this._lawo.setValue(node, new Ember.ParameterContents(command.value, valueType || command.valueType))
+			if (typeof command.value === 'number' && command.value % 1 === 0) {
+				command.value += 0.01
+			}
+
+			const res = await this._lawo.setValueWithHacksaw(node, new Ember.ParameterContents(command.value, valueType || command.valueType))
 
 			this.emit('debug', `Ember result (${timelineObjId}): ${JSON.stringify(res)}`)
 		} catch (e) {
