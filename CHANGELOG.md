@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.8.5](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/3.8.4...3.8.5) (2019-09-20)
+
+
+### Bug Fixes
+
+* Quantel: set all lookahead objects as notOnAir ([be96d3c](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/be96d3c))
+
+
+
 ### [3.8.4](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/3.8.3...3.8.4) (2019-09-20)
 
 
