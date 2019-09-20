@@ -416,6 +416,7 @@ export class LawoDevice extends DeviceWithState<TimelineState> {
 					} catch (e) {
 						if (e.result && e.result.indexOf(6) > -1) {
 							// Lawo rejected the command, so ensure the value gets set
+							this.emit('info', `Ember function result (${timelineObjId}) was 6, running a direct setValue now`)
 							await this.setValueWrapper(command, timelineObjId, EmberTypes.REAL)
 						} else {
 							if (e.success === false) { // @todo: QualifiedFunction Fader/Motor cannot handle too short durations or small value changes
