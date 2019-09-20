@@ -414,7 +414,7 @@ export class LawoDevice extends DeviceWithState<TimelineState> {
 						)
 						this.emit('debug', `Ember function result (${timelineObjId}): ${JSON.stringify(res)}`)
 					} catch (e) {
-						if (e.result === [6]) {
+						if (e.result && e.result.indexOf(6) > -1) {
 							// Lawo rejected the command, so ensure the value gets set
 							await this.setValueWrapper(command, timelineObjId, EmberTypes.REAL)
 						} else {
