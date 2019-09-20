@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.8.4](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/3.8.3...3.8.4) (2019-09-20)
+
+
+### Bug Fixes
+
+* add Lawo mapping.priority, as a workaround to an issue with the Lawo processing commands too slowly ([42c8f47](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/42c8f47))
+* callback on stopped was sent too early, send callback through doOnTime queue ([dd188f4](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/dd188f4))
+* improve lawo command logging ([91859cd](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/91859cd))
+* log lawo commands being sent ([3114c31](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/3114c31))
+
+
+
 ### [3.8.3](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/3.8.2...3.8.3) (2019-09-04)
 
 
