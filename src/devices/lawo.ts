@@ -45,23 +45,25 @@ export interface LawoState {
 
 export interface LawoStateNode {
 	type: TimelineContentTypeLawo
-	value: EmberValueTypes,
-	valueType: EmberTypes,
-	key: string,
-	identifier: string,
-	transitionDuration?: number,
+	value: EmberValueTypes
+	valueType: EmberTypes
+	key: string
+	identifier: string
+	transitionDuration?: number
 	triggerValue: string
+	priority: number
 	/** Reference to the original timeline object: */
 	timelineObjId: string
 }
 export interface LawoCommand {
-	path: string,
-	value: EmberValueTypes,
-	valueType: EmberTypes,
-	key: string,
-	identifier: string,
-	type: TimelineContentTypeLawo,
+	path: string
+	value: EmberValueTypes
+	valueType: EmberTypes
+	key: string
+	identifier: string
+	type: TimelineContentTypeLawo
 	transitionDuration?: number
+	priority: number
 }
 export interface LawoCommandWithContext {
 	cmd: LawoCommand
@@ -245,6 +247,7 @@ export class LawoDevice extends DeviceWithState<TimelineState> {
 						valueType: EmberTypes.REAL,
 						transitionDuration: fader.transitionDuration,
 						triggerValue: fader.triggerValue || '',
+						priority: mapping.priority || 0,
 						timelineObjId: tlObject.id
 					}
 
@@ -258,6 +261,7 @@ export class LawoDevice extends DeviceWithState<TimelineState> {
 						value: tlObjectSource.content.value,
 						valueType: mapping.emberType || EmberTypes.REAL,
 						triggerValue: '',
+						priority: mapping.priority || 0,
 						timelineObjId: tlObject.id
 					}
 
@@ -331,12 +335,22 @@ export class LawoDevice extends DeviceWithState<TimelineState> {
 						identifier: newNode.identifier,
 						value: newNode.value,
 						valueType: newNode.valueType,
-						transitionDuration: newNode.transitionDuration
+						transitionDuration: newNode.transitionDuration,
+						priority: newNode.priority
 					},
 					context: diff,
 					timelineObjId: newNode.timelineObjId
 				})
 			}
+		})
+		commands.sort((a, b) => {
+			if (a.cmd.priority < b.cmd.priority) return 1
+			if (a.cmd.priority > b.cmd.priority) return -1
+
+			if (a.cmd.path > b.cmd.path) return 1
+			if (a.cmd.path < b.cmd.path) return -1
+
+			return 0
 		})
 		return commands
 	}
@@ -385,9 +399,10 @@ export class LawoDevice extends DeviceWithState<TimelineState> {
 			command: command,
 			timelineObjId: timelineObjId
 		}
+		this.emit('debug', cwc)
+
 		try {
 			if (command.key === 'Fader/Motor dB Value') {	// fader level
-				// this.emit('debug', cwc)
 
 				if (command.transitionDuration && command.transitionDuration > 0) {	// with timed fader movement
 					try {
@@ -399,12 +414,12 @@ export class LawoDevice extends DeviceWithState<TimelineState> {
 								new Ember.ParameterContents(command.transitionDuration / 1000, 'real')
 							]
 						)
-						this.emit('debug', `Ember function result: ${JSON.stringify(res)}`)
+						this.emit('debug', `Ember function result (${timelineObjId}): ${JSON.stringify(res)}`)
 					} catch (e) {
 						if (e.success === false) { // @todo: QualifiedFunction Fader/Motor cannot handle too short durations or small value changes
-							this.emit('info', `Ember function result: ${JSON.stringify(e)}`)
+							this.emit('info', `Ember function result (${timelineObjId}): ${JSON.stringify(e)}`)
 						}
-						this.emit('error', 'Lawo: Ember function command error', e)
+						this.emit('error', `Lawo: Ember function command error (${timelineObjId})`, e)
 						throw e
 					}
 
@@ -414,14 +429,9 @@ export class LawoDevice extends DeviceWithState<TimelineState> {
 
 						const res = await this._lawo.setValue(node, new Ember.ParameterContents(command.value, 'real'))
 
-						try {
-							this.emit('debug', `Ember result: ${JSON.stringify(res)}`)
-						} catch (e) {
-							this.emit('error', 'Lawo: Error in setValue', e)
-							throw e
-						}
+						this.emit('debug', `Ember result (${timelineObjId}): ${JSON.stringify(res)}`)
 					} catch (e) {
-						this.emit('error', 'Lawo: Ember command error', e)
+						this.emit('error', `Lawo: Ember setvalue error (${timelineObjId})`, e)
 						throw e
 					}
 				}
@@ -431,14 +441,9 @@ export class LawoDevice extends DeviceWithState<TimelineState> {
 
 					const res = await this._lawo.setValue(node, new Ember.ParameterContents(command.value, command.valueType))
 
-					try {
-						this.emit('debug', `Ember result: ${JSON.stringify(res)}`)
-					} catch (e) {
-						this.emit('error', 'Lawo: Error in setValue', e)
-						throw e
-					}
+					this.emit('debug', `Ember result (${timelineObjId}): ${JSON.stringify(res)}`)
 				} catch (e) {
-					this.emit('error', 'Lawo: Ember command error', e)
+					this.emit('error', `Lawo: Ember setvalue error (${timelineObjId})`, e)
 					throw e
 				}
 			}
