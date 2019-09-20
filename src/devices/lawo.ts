@@ -45,23 +45,25 @@ export interface LawoState {
 
 export interface LawoStateNode {
 	type: TimelineContentTypeLawo
-	value: EmberValueTypes,
-	valueType: EmberTypes,
-	key: string,
-	identifier: string,
-	transitionDuration?: number,
+	value: EmberValueTypes
+	valueType: EmberTypes
+	key: string
+	identifier: string
+	transitionDuration?: number
 	triggerValue: string
+	priority: number
 	/** Reference to the original timeline object: */
 	timelineObjId: string
 }
 export interface LawoCommand {
-	path: string,
-	value: EmberValueTypes,
-	valueType: EmberTypes,
-	key: string,
-	identifier: string,
-	type: TimelineContentTypeLawo,
+	path: string
+	value: EmberValueTypes
+	valueType: EmberTypes
+	key: string
+	identifier: string
+	type: TimelineContentTypeLawo
 	transitionDuration?: number
+	priority: number
 }
 export interface LawoCommandWithContext {
 	cmd: LawoCommand
@@ -245,6 +247,7 @@ export class LawoDevice extends DeviceWithState<TimelineState> {
 						valueType: EmberTypes.REAL,
 						transitionDuration: fader.transitionDuration,
 						triggerValue: fader.triggerValue || '',
+						priority: mapping.priority || 0,
 						timelineObjId: tlObject.id
 					}
 
@@ -258,6 +261,7 @@ export class LawoDevice extends DeviceWithState<TimelineState> {
 						value: tlObjectSource.content.value,
 						valueType: mapping.emberType || EmberTypes.REAL,
 						triggerValue: '',
+						priority: mapping.priority || 0,
 						timelineObjId: tlObject.id
 					}
 
@@ -331,12 +335,22 @@ export class LawoDevice extends DeviceWithState<TimelineState> {
 						identifier: newNode.identifier,
 						value: newNode.value,
 						valueType: newNode.valueType,
-						transitionDuration: newNode.transitionDuration
+						transitionDuration: newNode.transitionDuration,
+						priority: newNode.priority
 					},
 					context: diff,
 					timelineObjId: newNode.timelineObjId
 				})
 			}
+		})
+		commands.sort((a, b) => {
+			if (a.cmd.priority < b.cmd.priority) return 1
+			if (a.cmd.priority > b.cmd.priority) return -1
+
+			if (a.cmd.path > b.cmd.path) return 1
+			if (a.cmd.path < b.cmd.path) return -1
+
+			return 0
 		})
 		return commands
 	}
