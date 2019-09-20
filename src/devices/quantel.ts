@@ -265,7 +265,7 @@ export class QuantelDevice extends DeviceWithState<QuantelState> {
 					const clip = layer as any as TimelineObjQuantelClip
 
 					port.timelineObjId = layer.id
-					port.notOnAir = layer.content.notOnAir
+					port.notOnAir = layer.content.notOnAir || isLookahead
 					port.outTransition = layer.content.outTransition
 
 					port.clip = {
