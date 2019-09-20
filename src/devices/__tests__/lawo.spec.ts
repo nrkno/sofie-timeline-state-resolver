@@ -396,7 +396,7 @@ describe('Lawo', () => {
 					type: TimelineContentTypeLawo.SOURCE,
 					'Fader/Motor dB Value': { value: 41 }
 				}
-			},
+			}
 		]
 
 		await mockTime.advanceTimeToTicks(10200)
