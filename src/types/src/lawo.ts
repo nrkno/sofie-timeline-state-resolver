@@ -2,10 +2,11 @@ import { Mapping } from './mapping'
 import { TSRTimelineObjBase, DeviceType } from '.'
 
 export interface MappingLawo extends Mapping {
-	device: DeviceType.LAWO,
-	mappingType: MappingLawoType,
-	identifier: string,
+	device: DeviceType.LAWO
+	mappingType: MappingLawoType
+	identifier: string
 	emberType?: EmberTypes
+	priority?: number
 }
 export enum MappingLawoType {
 	SOURCE = 'source',
@@ -35,19 +36,19 @@ export interface TimelineObjLawoBase extends TSRTimelineObjBase {
 export interface TimelineObjLawoSource extends TimelineObjLawoBase {
 	content: {
 		deviceType: DeviceType.LAWO
-		type: TimelineContentTypeLawo.SOURCE,
+		type: TimelineContentTypeLawo.SOURCE
 
 		'Fader/Motor dB Value': {
-			value: number,
-			transitionDuration?: number,
+			value: number
+			transitionDuration?: number
 			triggerValue?: string // only used for trigging new command sent
 		}
 	}
 }
 export interface TimelineObjLawoEmberProperty extends TimelineObjLawoBase {
 	content: {
-		deviceType: DeviceType.LAWO,
-		type: TimelineContentTypeLawo.EMBER_PROPERTY,
+		deviceType: DeviceType.LAWO
+		type: TimelineContentTypeLawo.EMBER_PROPERTY
 		value: EmberValueTypes
 	}
 }
