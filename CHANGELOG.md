@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.9.1](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/3.9.0...3.9.1) (2019-09-23)
+
+
+### Bug Fixes
+
+* **lawo:** prevent conflicting setValue after result 6 ([b615121](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/b615121))
+
+
+
 ## [3.9.0](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/3.8.5...3.9.0) (2019-09-23)
 
 
