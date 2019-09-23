@@ -713,7 +713,7 @@ asap@^2.0.0:
   resolved "https://registry.yarnpkg.com/asap/-/asap-2.0.6.tgz#e50347611d7e690943208bbdafebcbc2fb866d46"
   integrity sha1-5QNHYR1+aQlDIIu9r+vLwvuGbUY=
 
-asn1@evs-broadcast/node-asn1:
+asn1@evs-broadcast/node-asn1#date_2018_01_02:
   version "0.5.1"
   resolved "https://codeload.github.com/evs-broadcast/node-asn1/tar.gz/2fc158464a92e1465523f108295abd54e7ce86db"
 
@@ -1783,14 +1783,26 @@ email-addresses@^3.0.1:
   resolved "https://registry.yarnpkg.com/email-addresses/-/email-addresses-3.0.3.tgz#fc3c6952f68da24239914e982c8a7783bc2ed96d"
   integrity sha512-kUlSC06PVvvjlMRpNIl3kR1NRXLEe86VQ7N0bQeaCZb2g+InShCeHQp/JvyYNTugMnRN2NvJhHlc3q12MWbbpg==
 
-"emberplus@git+https://github.com/nrkno/tv-automation-emberplus-connection#dist10102018":
-  version "1.7.10"
-  resolved "git+https://github.com/nrkno/tv-automation-emberplus-connection#7c8abd9459f376117963023d82f4bc01100b0c24"
+"emberplus@git+https://github.com/nrkno/tv-automation-emberplus-connection#dist200919":
+  version "1.7.17"
+  resolved "git+https://github.com/nrkno/tv-automation-emberplus-connection#51a8798b4391d91e5b5e4c37a971452a8d2bc7e7"
   dependencies:
-    asn1 evs-broadcast/node-asn1
+    asn1 evs-broadcast/node-asn1#date_2018_01_02
     enum "^2.4.0"
     long "^3.2.0"
     smart-buffer "^3.0.3"
+    winston "^2.1.1"
+    winston-color "^1.0.0"
+
+"emberplus@git+https://github.com/nrkno/tv-automation-emberplus-connection#dist200919_1":
+  version "1.7.17"
+  resolved "git+https://github.com/nrkno/tv-automation-emberplus-connection#7ffdca688bcc8f762757773360b7caeecf39cbc6"
+  dependencies:
+    asn1 evs-broadcast/node-asn1#date_2018_01_02
+    enum "^2.4.0"
+    long "^3.2.0"
+    smart-buffer "^3.0.3"
+    winston "^2.1.1"
     winston-color "^1.0.0"
 
 emoji-regex@^7.0.1:
