@@ -391,9 +391,7 @@ export class LawoDevice extends DeviceWithState<TimelineState> {
 		]).join('.')
 	}
 
-	// @ts-ignore no-unused-vars
-	private async _defaultCommandReceiver (time: number, command: LawoCommand, context: CommandContext, timelineObjId: string): Promise<any> {
-
+	private async _defaultCommandReceiver (_time: number, command: LawoCommand, context: CommandContext, timelineObjId: string): Promise<any> {
 		const cwc: CommandWithContext = {
 			context: context,
 			command: command,
@@ -404,7 +402,7 @@ export class LawoDevice extends DeviceWithState<TimelineState> {
 		try {
 			if (command.key === 'Fader/Motor dB Value') {	// fader level
 
-				if (command.transitionDuration && command.transitionDuration > 0) {	// with timed fader movement
+				if (command.transitionDuration && command.transitionDuration >= 500) {	// with timed fader movement
 					try {
 						const res = await this._lawo.invokeFunction(
 							new Ember.QualifiedFunction(this._rampMotorFunctionPath),
@@ -416,42 +414,47 @@ export class LawoDevice extends DeviceWithState<TimelineState> {
 						)
 						this.emit('debug', `Ember function result (${timelineObjId}): ${JSON.stringify(res)}`)
 					} catch (e) {
-						if (e.success === false) { // @todo: QualifiedFunction Fader/Motor cannot handle too short durations or small value changes
-							this.emit('info', `Ember function result (${timelineObjId}): ${JSON.stringify(e)}`)
+						if (e.result && e.result.indexOf(6) > -1) {
+							// Lawo rejected the command, so ensure the value gets set
+							this.emit('info', `Ember function result (${timelineObjId}) was 6, running a direct setValue now`)
+							await this.setValueWrapper(command, timelineObjId, EmberTypes.REAL)
+						} else {
+							if (e.success === false) { // @todo: QualifiedFunction Fader/Motor cannot handle too short durations or small value changes
+								this.emit('info', `Ember function result (${timelineObjId}): ${JSON.stringify(e)}`)
+							}
+							this.emit('error', `Lawo: Ember function command error (${timelineObjId})`, e)
+							throw e
 						}
-						this.emit('error', `Lawo: Ember function command error (${timelineObjId})`, e)
-						throw e
 					}
 
 				} else { // withouth timed fader movement
-					try {
-						const node: any = await this._getNodeByPath(command.path)
-
-						const res = await this._lawo.setValue(node, new Ember.ParameterContents(command.value, 'real'))
-
-						this.emit('debug', `Ember result (${timelineObjId}): ${JSON.stringify(res)}`)
-					} catch (e) {
-						this.emit('error', `Lawo: Ember setvalue error (${timelineObjId})`, e)
-						throw e
-					}
+					await this.setValueWrapper(command, timelineObjId, EmberTypes.REAL)
 				}
 			} else {
-				try {
-					const node: any = await this._getNodeByPath(command.path)
-
-					const res = await this._lawo.setValue(node, new Ember.ParameterContents(command.value, command.valueType))
-
-					this.emit('debug', `Ember result (${timelineObjId}): ${JSON.stringify(res)}`)
-				} catch (e) {
-					this.emit('error', `Lawo: Ember setvalue error (${timelineObjId})`, e)
-					throw e
-				}
+				await this.setValueWrapper(command, timelineObjId)
 			}
 		} catch (error) {
 			this.emit('commandError', error, cwc)
 		}
 
 	}
+	private async setValueWrapper (command: LawoCommand, timelineObjId: string, valueType?: EmberTypes) {
+		try {
+			const node: any = await this._getNodeByPath(command.path)
+
+			if (typeof command.value === 'number' && command.value % 1 === 0) {
+				command.value += 0.01
+			}
+
+			const res = await this._lawo.setValueWithHacksaw(node, new Ember.ParameterContents(command.value, valueType || command.valueType))
+
+			this.emit('debug', `Ember result (${timelineObjId}): ${JSON.stringify(res)}`)
+		} catch (e) {
+			this.emit('error', `Lawo: Ember setvalue error (${timelineObjId})`, e)
+			throw e
+		}
+	}
+
 	private _connectionChanged () {
 		this.emit('connectionChanged', this.getStatus())
 	}
