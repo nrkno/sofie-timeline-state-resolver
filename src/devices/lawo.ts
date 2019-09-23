@@ -81,6 +81,7 @@ export class LawoDevice extends DeviceWithState<TimelineState> {
 	private _lawo: DeviceTree
 
 	private _savedNodes = []
+	private _lastSentValue: { [path: string]: number } = {}
 
 	private _connected: boolean = false
 
@@ -399,6 +400,9 @@ export class LawoDevice extends DeviceWithState<TimelineState> {
 		}
 		this.emit('debug', cwc)
 
+		const startSend = this.getCurrentTime()
+		this._lastSentValue[command.path] = startSend
+
 		try {
 			if (command.key === 'Fader/Motor dB Value') {	// fader level
 
@@ -414,7 +418,7 @@ export class LawoDevice extends DeviceWithState<TimelineState> {
 						)
 						this.emit('debug', `Ember function result (${timelineObjId}): ${JSON.stringify(res)}`)
 					} catch (e) {
-						if (e.result && e.result.indexOf(6) > -1) {
+						if (e.result && e.result.indexOf(6) > -1 && this._lastSentValue[command.path] < startSend) {
 							// Lawo rejected the command, so ensure the value gets set
 							this.emit('info', `Ember function result (${timelineObjId}) was 6, running a direct setValue now`)
 							await this.setValueWrapper(command, timelineObjId, EmberTypes.REAL)
