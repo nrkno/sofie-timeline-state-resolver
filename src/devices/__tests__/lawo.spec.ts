@@ -314,10 +314,6 @@ describe('Lawo', () => {
 		let deviceContainer = myConductor.getDevice('myLawo')
 		let device = deviceContainer.device as ThreadedClass<LawoDevice>
 
-		device.on('info', console.log)
-		device.on('error', console.log)
-		device.on('debug', console.log)
-
 		// Check that no commands has been scheduled:
 		expect(await device.queue).toHaveLength(0)
 		myConductor.timeline = [
@@ -347,10 +343,10 @@ describe('Lawo', () => {
 
 		let last = 0
 		for (let i = 0; i < 9; i++) {
-			const mockCall = getMockCall(commandReceiver0, i, 2)
-			expect(mockCall).toBeLessThan(last)
-			expect(mockCall).toBeGreaterThanOrEqual(-191)
-			last = mockCall
+			const mockCall = getMockCall(commandReceiver0, i, 0)
+			expect(mockCall.value).toBeLessThan(last)
+			expect(mockCall.value).toBeGreaterThanOrEqual(-191)
+			last = mockCall.value
 		}
 	})
 })
