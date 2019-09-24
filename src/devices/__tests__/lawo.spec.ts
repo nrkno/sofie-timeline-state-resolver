@@ -287,7 +287,7 @@ describe('Lawo', () => {
 			device: DeviceType.LAWO,
 			deviceId: 'myLawo',
 			mappingType: MappingLawoType.SOURCE,
-			identifier: 'BASE'
+			identifier: 'RM1'
 		}
 		let myChannelMapping: Mappings = {
 			'lawo_c1_fader': myChannelMapping0
@@ -305,13 +305,18 @@ describe('Lawo', () => {
 				host: '160.67.96.51',
 				port: 9000,
 				// commandReceiver: commandReceiver0,
-				setValueFn: commandReceiver0
+				setValueFn: commandReceiver0,
+				sourcesPath: 'Sapphire.Sources'
 			}
 		})
 		await mockTime.advanceTimeToTicks(10100)
 
 		let deviceContainer = myConductor.getDevice('myLawo')
 		let device = deviceContainer.device as ThreadedClass<LawoDevice>
+
+		device.on('info', console.log)
+		device.on('error', console.log)
+		device.on('debug', console.log)
 
 		// Check that no commands has been scheduled:
 		expect(await device.queue).toHaveLength(0)
@@ -328,34 +333,24 @@ describe('Lawo', () => {
 					type: TimelineContentTypeLawo.SOURCE,
 
 					'Fader/Motor dB Value': {
-						value: 0,
-						transitionDuration: 400
-					}
-				}
-			},
-			{
-				id: 'obj1',
-				enable: {
-					start: mockTime.now + 500, // 0.5 seconds in the future
-					duration: 2000
-				},
-				layer: 'lawo_c1_fader',
-				content: {
-					deviceType: DeviceType.LAWO,
-					type: TimelineContentTypeLawo.SOURCE,
-
-					'Fader/Motor dB Value': {
 						value: -191,
 						transitionDuration: 400
-						// triggerValue: string // only used for trigging new command sent
 					}
 				}
 			}
 		]
 
-		await mockTime.advanceTimeToTicks(10200)
+		expect(await device.queue).toHaveLength(0)
+		await mockTime.advanceTimeToTicks(10500)
 
-		console.log(commandReceiver0.mock.calls)
-		
+		expect(commandReceiver0.mock.calls).toHaveLength(9)
+
+		let last = 0
+		for (let i = 0; i < 9; i++) {
+			const mockCall = getMockCall(commandReceiver0, i, 2)
+			expect(mockCall).toBeLessThan(last)
+			expect(mockCall).toBeGreaterThanOrEqual(-191)
+			last = mockCall
+		}
 	})
 })
