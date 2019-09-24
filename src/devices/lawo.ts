@@ -36,6 +36,7 @@ export interface LawoOptions extends DeviceOptions { // TODO - this doesnt match
 		sourcesPath?: string
 		rampMotorFunctionPath?: string
 		dbPropertyName?: string
+		faderInterval?: number
 	}
 }
 export type CommandReceiver = (time: number, cmd: LawoCommand, context: CommandContext, timelineObjId: string) => Promise<any>
@@ -92,6 +93,7 @@ export class LawoDevice extends DeviceWithState<TimelineState> {
 	private _rampMotorFunctionPath: string
 	private _dbPropertyName: string
 	private _setValueFn: SetValueFn
+	private _faderIntervalTime: number
 
 	private transitions: { [address: string]: {
 		started: number
@@ -119,6 +121,9 @@ export class LawoDevice extends DeviceWithState<TimelineState> {
 			}
 			if (deviceOptions.options.dbPropertyName) {
 				this._dbPropertyName = deviceOptions.options.dbPropertyName
+			}
+			if (deviceOptions.options.faderInterval) {
+				this._faderIntervalTime = deviceOptions.options.faderInterval
 			}
 		}
 		let host = (
@@ -430,7 +435,7 @@ export class LawoDevice extends DeviceWithState<TimelineState> {
 						started: this.getCurrentTime()
 					}
 
-					if (!this.transitionInterval) this.transitionInterval = setInterval(() => this.runAnimation(), 40)
+					if (!this.transitionInterval) this.transitionInterval = setInterval(() => this.runAnimation(), this._faderIntervalTime || 75)
 				} else if (command.transitionDuration >= 500) { // Motor Ramp in Lawo cannot handle too short durations
 					try {
 						const res = await this._lawo.invokeFunction(
