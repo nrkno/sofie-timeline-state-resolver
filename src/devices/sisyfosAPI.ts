@@ -35,9 +35,6 @@ export class SisyfosInterface extends EventEmitter {
 		this.port = port
 
 		this._oscClient = new osc.UDPPort({
-			localAddress: '0.0.0.0',
-			localPort: 0,
-
 			remoteAddress: this.host,
 			remotePort: this.port,
 			metadata: true
