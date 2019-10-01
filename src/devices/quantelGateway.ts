@@ -292,7 +292,7 @@ export class QuantelGateway extends EventEmitter {
 	}
 
 	public async kill () {
-		return this.sendServer('post', 'kill/me/if/you/are/sure')
+		return this.sendBase('post', 'kill/me/if/you/are/sure')
 	}
 
 	private async sendServer (method: Methods, resource: string, queryParameters?: QueryParameters, bodyData?: object) {
