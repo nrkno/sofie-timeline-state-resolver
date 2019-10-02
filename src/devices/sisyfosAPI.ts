@@ -36,7 +36,7 @@ export class SisyfosInterface extends EventEmitter {
 
 		this._oscClient = new osc.UDPPort({
 			localAddress: '0.0.0.0',
-			localPort: 5255,
+			localPort: 5256, // To avoid not using the same port both ways on local installs, this port is one higher
 			remoteAddress: this.host,
 			remotePort: this.port,
 			metadata: true
@@ -78,12 +78,12 @@ export class SisyfosInterface extends EventEmitter {
 		} else if (command.type === Commands.TOGGLE_PGM) {
 			this._oscClient.send({ address: `/ch/${(command as ToggleCommand).channel + 1}/pgm`, args: [{
 				type: 'i',
-				value: (command as ToggleCommand).value ? 1 : 0
+				value: (command as ToggleCommand).value
 			}] })
 		} else if (command.type === Commands.TOGGLE_PST) {
 			this._oscClient.send({ address: `/ch/${(command as ToggleCommand).channel + 1}/pst`, args: [{
 				type: 'i',
-				value: (command as ToggleCommand).value ? 1 : 0
+				value: (command as ToggleCommand).value
 			}] })
 		} else if (command.type === Commands.SET_FADER) {
 			this._oscClient.send({ address: `/ch/${(command as FaderCommand).channel + 1}/faderlevel`, args: [{
@@ -172,11 +172,10 @@ export class SisyfosInterface extends EventEmitter {
 	}
 
 	private parseChannelCommand (message: osc.OscMessage, address: Array<string>) {
-		const boolVal = message.args[0].value === 1 || message.args[0].value === true
 		if (address[0] === 'pgm') {
-			return { pgmOn: boolVal }
+			return { pgmOn: message.args[0].value }
 		} else if (address[0] === 'pst') {
-			return { pstOn: boolVal }
+			return { pstOn: message.args[0].value }
 		} else if (address[0] === 'faderlevel') {
 			return { faderLevel: message.args[0].value }
 		}

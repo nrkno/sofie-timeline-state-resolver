@@ -158,8 +158,8 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState> {
 			const channel: SisyfosChannel = {
 				...channelFromAPI,
 				faderLevel:  0.75,  // 0 dB
-				pgmOn:  false,
-				pstOn:  false,
+				pgmOn:  0,
+				pstOn:  0,
 				tlObjIds: []
 			}
 
@@ -188,18 +188,23 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState> {
 				const channel = deviceState.channels[foundMapping.channel]
 
 				if (layer.isLookahead) {
-					if (layer.content.isPgm) {
-						channel.pstOn = true
+					if (layer.content.isPgm === 1) {
+						channel.pstOn = 1
+					} else if (layer.content.isPgm === 2) {
+						channel.pstOn = 2
 					} else {
-						channel.pstOn = false
+						channel.pstOn = 0
 					}
 				} else {
 					if (layer.content.isPst) {
-						channel.pstOn = true
+						channel.pstOn = 0
 					}
-					if (layer.content.isPgm) {
-						channel.pgmOn = true
+					if (layer.content.isPgm === 1) {
+						channel.pgmOn = 1
+					} else if (layer.content.isPgm === 2) {
+						channel.pgmOn = 2
 					}
+
 				}
 
 				if (layer.content.faderLevel !== undefined) {
@@ -274,14 +279,14 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState> {
 				return {
 					type: Commands.TOGGLE_PST,
 					channel: Number(channel),
-					value: true
+					value: 1
 				}
 			},
 			pstOff: (channel: string): ToggleCommand => {
 				return {
 					type: Commands.TOGGLE_PST,
 					channel: Number(channel),
-					value: false
+					value: 0
 				}
 			}
 		}
