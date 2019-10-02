@@ -163,6 +163,17 @@ export class QuantelDevice extends DeviceWithState<QuantelState> {
 	}
 
 	/**
+	 * Attempts to restart the gateway
+	 */
+	async restartGateway () {
+		if (this._quantel.connected) {
+			return this._quantel.kill()
+		} else {
+			throw new Error('Quantel Gateway not connected')
+		}
+	}
+
+	/**
 	 * Clear any scheduled commands after this time
 	 * @param clearAfterTime
 	 */

@@ -89,7 +89,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState> {
 
 		// Transform timeline states into device states
 		let previousStateTime = Math.max(this.getCurrentTime(), newState.time)
-		let oldState: SisyfosState = (this.getStateBefore(previousStateTime) || { state: { groups: {}, channels: {} } }).state
+		let oldState: SisyfosState = (this.getStateBefore(previousStateTime) || { state: { channels: {} } }).state
 
 		let newAbstractState = this.convertStateToSisyfosState(newState)
 
