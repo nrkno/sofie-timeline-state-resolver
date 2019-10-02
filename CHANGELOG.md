@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [3.10.0](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/3.9.1...3.10.0) (2019-10-02)
+
+
+### Bug Fixes
+
+* quantel: kill path ([0d3999e](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/0d3999e))
+* revert dependency update of typescript, which caused lots of strange linting errors ([e91f4a3](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/e91f4a3))
+
+
+### Features
+
+* quantel restart mechanism ([ce93586](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/ce93586))
+
+
+
 ### [3.9.1](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/3.9.0...3.9.1) (2019-09-23)
 
 
