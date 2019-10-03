@@ -159,7 +159,7 @@
     "request": "^2.88.0",
     "sprintf-js": "^1.1.2",
     "superfly-timeline": "^7.2.4",
-    "threadedclass": "^0.6.6",
+    "threadedclass": "^0.6.8",
     "underscore": "^1.9.1",
     "underscore-deep-extend": "^1.1.5",
     "ws": "^7.1.1"
