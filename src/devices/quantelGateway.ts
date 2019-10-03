@@ -291,6 +291,10 @@ export class QuantelGateway extends EventEmitter {
 		this._monitorPorts = monitorPorts
 	}
 
+	public async kill () {
+		return this.sendBase('post', 'kill/me/if/you/are/sure')
+	}
+
 	private async sendServer (method: Methods, resource: string, queryParameters?: QueryParameters, bodyData?: object) {
 		return this.sendZone(method, `server/${this._serverId}/${resource}`, queryParameters, bodyData)
 	}

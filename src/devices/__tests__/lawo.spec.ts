@@ -349,4 +349,159 @@ describe('Lawo', () => {
 			last = mockCall.value
 		}
 	})
+	test('Lawo: Command priority', async () => {
+
+		let commandReceiver0 = jest.fn(() => {
+			return Promise.resolve()
+		})
+		let mapping0: MappingLawo = {
+			device: DeviceType.LAWO,
+			deviceId: 'myLawo',
+			mappingType: MappingLawoType.FULL_PATH,
+			identifier: '001.Sums.MAIN.DSP0'
+		}
+		let mapping1: MappingLawo = {
+			device: DeviceType.LAWO,
+			deviceId: 'myLawo',
+			mappingType: MappingLawoType.FULL_PATH,
+			identifier: '001.Sums.MAIN.DSP1',
+			priority: 1
+		}
+		let mapping2: MappingLawo = {
+			device: DeviceType.LAWO,
+			deviceId: 'myLawo',
+			mappingType: MappingLawoType.FULL_PATH,
+			identifier: '001.Sums.MAIN.DSP2',
+			priority: 3
+		}
+		let mapping3: MappingLawo = {
+			device: DeviceType.LAWO,
+			deviceId: 'myLawo',
+			mappingType: MappingLawoType.FULL_PATH,
+			identifier: '001.Sums.MAIN.DSP3',
+			priority: 2
+		}
+		let mapping4: MappingLawo = {
+			device: DeviceType.LAWO,
+			deviceId: 'myLawo',
+			mappingType: MappingLawoType.FULL_PATH,
+			identifier: '001.Sums.MAIN.DSP4'
+		}
+
+		let myChannelMapping: Mappings = {
+			'mapping0': mapping0,
+			'mapping1': mapping1,
+			'mapping2': mapping2,
+			'mapping3': mapping3,
+			'mapping4': mapping4
+		}
+
+		let myConductor = new Conductor({
+			initializeAsClear: true,
+			getCurrentTime: mockTime.getCurrentTime
+		})
+		await myConductor.setMapping(myChannelMapping)
+		await myConductor.init() // we cannot do an await, because setTimeout will never call without jest moving on.
+		await myConductor.addDevice('myLawo', {
+			type: DeviceType.LAWO,
+			options: {
+				host: '160.67.96.51',
+				port: 9000,
+				commandReceiver: commandReceiver0
+			}
+		})
+		await mockTime.advanceTimeToTicks(10100)
+
+		let deviceContainer = myConductor.getDevice('myLawo')
+		let device = deviceContainer.device as ThreadedClass<LawoDevice>
+
+		// Check that no commands has been scheduled:
+		expect(await device.queue).toHaveLength(0)
+		myConductor.timeline = [
+			{
+				id: 'obj0',
+				enable: { start: mockTime.now - 1000 },
+				layer: 'mapping0',
+				content: {
+					deviceType: DeviceType.LAWO,
+					type: TimelineContentTypeLawo.SOURCE,
+					'Fader/Motor dB Value': { value: 41 }
+				}
+			},
+			{
+				id: 'obj1',
+				enable: { start: mockTime.now - 1000 },
+				layer: 'mapping1',
+				content: {
+					deviceType: DeviceType.LAWO,
+					type: TimelineContentTypeLawo.SOURCE,
+					'Fader/Motor dB Value': { value: 41 }
+				}
+			},
+			{
+				id: 'obj2',
+				enable: { start: mockTime.now - 1000 },
+				layer: 'mapping2',
+				content: {
+					deviceType: DeviceType.LAWO,
+					type: TimelineContentTypeLawo.SOURCE,
+					'Fader/Motor dB Value': { value: 41 }
+				}
+			},
+			{
+				id: 'obj3',
+				enable: { start: mockTime.now - 1000 },
+				layer: 'mapping3',
+				content: {
+					deviceType: DeviceType.LAWO,
+					type: TimelineContentTypeLawo.SOURCE,
+					'Fader/Motor dB Value': { value: 41 }
+				}
+			},
+			{
+				id: 'obj4',
+				enable: { start: mockTime.now - 1000 },
+				layer: 'mapping4',
+				content: {
+					deviceType: DeviceType.LAWO,
+					type: TimelineContentTypeLawo.SOURCE,
+					'Fader/Motor dB Value': { value: 41 }
+				}
+			}
+		]
+
+		await mockTime.advanceTimeToTicks(10200)
+
+		expect(commandReceiver0).toHaveBeenCalledTimes(5)
+		expect(getMockCall(commandReceiver0, 0, 1)).toMatchObject(
+			{
+				type: TimelineContentTypeLawo.SOURCE,
+				path: '001.Sums.MAIN.DSP2.Fader.Motor dB Value' // Highest priority
+			}
+		)
+		expect(getMockCall(commandReceiver0, 1, 1)).toMatchObject(
+			{
+				type: TimelineContentTypeLawo.SOURCE,
+				path: '001.Sums.MAIN.DSP3.Fader.Motor dB Value'
+			}
+		)
+		expect(getMockCall(commandReceiver0, 2, 1)).toMatchObject(
+			{
+				type: TimelineContentTypeLawo.SOURCE,
+				path: '001.Sums.MAIN.DSP1.Fader.Motor dB Value'
+			}
+		)
+		expect(getMockCall(commandReceiver0, 3, 1)).toMatchObject(
+			{
+				type: TimelineContentTypeLawo.SOURCE,
+				path: '001.Sums.MAIN.DSP0.Fader.Motor dB Value'  // no prority, but sorted by path
+			}
+		)
+		expect(getMockCall(commandReceiver0, 4, 1)).toMatchObject(
+			{
+				type: TimelineContentTypeLawo.SOURCE,
+				path: '001.Sums.MAIN.DSP4.Fader.Motor dB Value'
+			}
+		)
+	})
 })
