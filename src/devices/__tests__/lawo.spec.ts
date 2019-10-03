@@ -306,7 +306,8 @@ describe('Lawo', () => {
 				port: 9000,
 				// commandReceiver: commandReceiver0,
 				setValueFn: commandReceiver0,
-				sourcesPath: 'Sapphire.Sources'
+				sourcesPath: 'Sapphire.Sources',
+				faderInterval: 40
 			}
 		})
 		await mockTime.advanceTimeToTicks(10100)
