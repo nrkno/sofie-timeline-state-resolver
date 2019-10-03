@@ -89,7 +89,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState> {
 
 		// Transform timeline states into device states
 		let previousStateTime = Math.max(this.getCurrentTime(), newState.time)
-		let oldState: SisyfosState = (this.getStateBefore(previousStateTime) || { state: { groups: {}, channels: {} } }).state
+		let oldState: SisyfosState = (this.getStateBefore(previousStateTime) || { state: { channels: {} } }).state
 
 		let newAbstractState = this.convertStateToSisyfosState(newState)
 
@@ -183,37 +183,20 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState> {
 			if (!foundMapping && layer.isLookahead && layer.lookaheadForLayer) {
 				foundMapping = this.getMapping()[layer.lookaheadForLayer] as any
 			}
-
 			if (foundMapping) {
-				const channel = deviceState.channels[foundMapping.channel]
 
 				if (layer.isLookahead) {
-					if (layer.content.isPgm === 1) {
-						channel.pstOn = 1
-					} else if (layer.content.isPgm === 2) {
-						channel.pstOn = 2
-					} else {
-						channel.pstOn = 0
-					}
+					deviceState.channels[foundMapping.channel].pstOn = layer.content.isPgm || 0
 				} else {
-					if (layer.content.isPst) {
-						channel.pstOn = 0
-					}
-					if (layer.content.isPgm === 1) {
-						channel.pgmOn = 1
-					} else if (layer.content.isPgm === 2) {
-						channel.pgmOn = 2
-					}
-
+					deviceState.channels[foundMapping.channel].pgmOn = layer.content.isPgm || 0
 				}
 
 				if (layer.content.faderLevel !== undefined) {
-					channel.faderLevel = layer.content.faderLevel
+					deviceState.channels[foundMapping.channel].faderLevel = layer.content.faderLevel
 				}
-				channel.tlObjIds.push(tlObject.id)
+				deviceState.channels[foundMapping.channel].tlObjIds.push(tlObject.id)
 			}
 		})
-
 		return deviceState
 	}
 	get deviceType () {

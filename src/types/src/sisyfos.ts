@@ -18,7 +18,6 @@ export enum TimelineContentTypeSisyfos {
 export interface SisyfosCommandContent {
 	type: TimelineContentTypeSisyfos.SISYFOS
 	isPgm?: number // 0=off 1=PGM 2=VO
-	isPst?: number // 0=off 1=PGM 2=VO
 	faderLevel?: number
 }
 export type TimelineObjSisyfosAny = TimelineObjSisyfosMessage
