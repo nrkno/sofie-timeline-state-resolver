@@ -1784,6 +1784,17 @@ email-addresses@^3.0.1:
     winston "^2.1.1"
     winston-color "^1.0.0"
 
+"emberplus@git+https://github.com/nrkno/tv-automation-emberplus-connection#dist200919_1":
+  version "1.7.17"
+  resolved "git+https://github.com/nrkno/tv-automation-emberplus-connection#7ffdca688bcc8f762757773360b7caeecf39cbc6"
+  dependencies:
+    asn1 evs-broadcast/node-asn1#date_2018_01_02
+    enum "^2.4.0"
+    long "^3.2.0"
+    smart-buffer "^3.0.3"
+    winston "^2.1.1"
+    winston-color "^1.0.0"
+
 emoji-regex@^7.0.1:
   version "7.0.3"
   resolved "https://registry.yarnpkg.com/emoji-regex/-/emoji-regex-7.0.3.tgz#933a04052860c85e83c122479c4748a8e4c72156"
