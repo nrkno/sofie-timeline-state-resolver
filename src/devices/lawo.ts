@@ -30,13 +30,17 @@ import { getDiff } from '../lib'
 export interface LawoOptions extends DeviceOptions { // TODO - this doesnt match what the other ones do
 	options?: {
 		commandReceiver?: CommandReceiver
+		setValueFn?: SetValueFn
 		host?: string
 		port?: number
 		sourcesPath?: string
 		rampMotorFunctionPath?: string
+		dbPropertyName?: string
+		faderInterval?: number
 	}
 }
 export type CommandReceiver = (time: number, cmd: LawoCommand, context: CommandContext, timelineObjId: string) => Promise<any>
+export type SetValueFn = (command: LawoCommand, timelineObjId: string, valueType?: EmberTypes) => Promise<any>
 // export type EmberPlusValue = boolean | number | string | {type: EmberTypes, value: EmberValueTypes}
 
 export interface LawoState {
@@ -63,6 +67,7 @@ export interface LawoCommand {
 	identifier: string
 	type: TimelineContentTypeLawo
 	transitionDuration?: number
+	from?: EmberValueTypes
 	priority: number
 }
 export interface LawoCommandWithContext {
@@ -71,6 +76,7 @@ export interface LawoCommandWithContext {
 	timelineObjId: string
 }
 type CommandContext = string
+const FADER_THRESHOLD = -90 // below this value the channel is considered muted
 /**
  * This is a wrapper for a Lawo sound mixer
  *
@@ -88,6 +94,14 @@ export class LawoDevice extends DeviceWithState<TimelineState> {
 	private _commandReceiver: CommandReceiver
 	private _sourcesPath: string
 	private _rampMotorFunctionPath: string
+	private _dbPropertyName: string
+	private _setValueFn: SetValueFn
+	private _faderIntervalTime: number
+
+	private transitions: { [address: string]: {
+		started: number
+	} & LawoCommand } = {}
+	private transitionInterval: NodeJS.Timer | undefined
 
 	constructor (deviceId: string, deviceOptions: LawoOptions, options) {
 		super(deviceId, deviceOptions, options)
@@ -97,11 +111,22 @@ export class LawoDevice extends DeviceWithState<TimelineState> {
 			} else {
 				this._commandReceiver = this._defaultCommandReceiver
 			}
+			if (deviceOptions.options.setValueFn) {
+				this._setValueFn = deviceOptions.options.setValueFn
+			} else {
+				this._setValueFn = this.setValueWrapper
+			}
 			if (deviceOptions.options.sourcesPath) {
 				this._sourcesPath = deviceOptions.options.sourcesPath
 			}
 			if (deviceOptions.options.rampMotorFunctionPath) {
 				this._rampMotorFunctionPath = deviceOptions.options.rampMotorFunctionPath
+			}
+			if (deviceOptions.options.dbPropertyName) {
+				this._dbPropertyName = deviceOptions.options.dbPropertyName
+			}
+			if (deviceOptions.options.faderInterval) {
+				this._faderIntervalTime = deviceOptions.options.faderInterval
 			}
 		}
 		let host = (
@@ -203,6 +228,7 @@ export class LawoDevice extends DeviceWithState<TimelineState> {
 	 */
 	terminate () {
 		this._doOnTime.dispose()
+		if (this.transitionInterval) clearInterval(this.transitionInterval)
 
 		// @todo: Implement lawo dispose function upstream
 		try {
@@ -239,8 +265,9 @@ export class LawoDevice extends DeviceWithState<TimelineState> {
 					let tlObjectSource: TimelineObjLawoSource = lawoObj as TimelineObjLawoSource
 
 					const fader: TimelineObjLawoSource['content']['Fader/Motor dB Value'] = tlObjectSource.content['Fader/Motor dB Value']
+					const attrName = this._rampMotorFunctionPath || !this._dbPropertyName ? 'Fader/Motor dB Value' : this._dbPropertyName
 
-					lawoState[this._sourceNodeAttributePath(mapping.identifier, 'Fader/Motor dB Value')] = {
+					lawoState[this._sourceNodeAttributePath(mapping.identifier, attrName)] = {
 						type: tlObjectSource.content.type,
 						key: 'Fader/Motor dB Value',
 						identifier: mapping.identifier,
@@ -404,9 +431,29 @@ export class LawoDevice extends DeviceWithState<TimelineState> {
 		this._lastSentValue[command.path] = startSend
 
 		try {
-			if (command.key === 'Fader/Motor dB Value') {	// fader level
+			if (command.key === 'Fader/Motor dB Value' && command.transitionDuration && command.transitionDuration >= 0) {	// fader level
+				// this.emit('debug', cwc)
 
-				if (command.transitionDuration && command.transitionDuration >= 500) {	// with timed fader movement
+				if (!this._rampMotorFunctionPath) {
+					// add the fade to the fade object, such that we can fade the signal using the fader
+					if (!command.from) { // @todo: see if we can query the lawo first
+						const node = await this._getNodeByPath(command.path)
+						if (node) {
+							if (node.contents.value === command.value) return
+							command.from = node.contents.value
+						} else {
+							await this._setValueFn(command, timelineObjId)
+							return
+						}
+					}
+
+					this.transitions[command.path] = {
+						...command,
+						started: this.getCurrentTime()
+					}
+
+					if (!this.transitionInterval) this.transitionInterval = setInterval(() => this.runAnimation(), this._faderIntervalTime || 75)
+				} else if (command.transitionDuration >= 500) { // Motor Ramp in Lawo cannot handle too short durations
 					try {
 						const res = await this._lawo.invokeFunction(
 							new Ember.QualifiedFunction(this._rampMotorFunctionPath),
@@ -421,7 +468,7 @@ export class LawoDevice extends DeviceWithState<TimelineState> {
 						if (e.result && e.result.indexOf(6) > -1 && this._lastSentValue[command.path] < startSend) {
 							// Lawo rejected the command, so ensure the value gets set
 							this.emit('info', `Ember function result (${timelineObjId}) was 6, running a direct setValue now`)
-							await this.setValueWrapper(command, timelineObjId, EmberTypes.REAL)
+							await this._setValueFn(command, timelineObjId, EmberTypes.REAL)
 						} else {
 							if (e.success === false) { // @todo: QualifiedFunction Fader/Motor cannot handle too short durations or small value changes
 								this.emit('info', `Ember function result (${timelineObjId}): ${JSON.stringify(e)}`)
@@ -432,10 +479,10 @@ export class LawoDevice extends DeviceWithState<TimelineState> {
 					}
 
 				} else { // withouth timed fader movement
-					await this.setValueWrapper(command, timelineObjId, EmberTypes.REAL)
+					await this._setValueFn(command, timelineObjId, EmberTypes.REAL)
 				}
 			} else {
-				await this.setValueWrapper(command, timelineObjId)
+				await this._setValueFn(command, timelineObjId)
 			}
 		} catch (error) {
 			this.emit('commandError', error, cwc)
@@ -446,20 +493,49 @@ export class LawoDevice extends DeviceWithState<TimelineState> {
 		try {
 			const node: any = await this._getNodeByPath(command.path)
 
-			if (typeof command.value === 'number' && command.value % 1 === 0) {
-				command.value += 0.01
+			if (valueType === EmberTypes.REAL && command.value as number % 1 === 0) {
+				(command.value as number) += .01
 			}
 
 			const res = await this._lawo.setValueWithHacksaw(node, new Ember.ParameterContents(command.value, valueType || command.valueType))
 
 			this.emit('debug', `Ember result (${timelineObjId}): ${JSON.stringify(res)}`)
 		} catch (e) {
-			this.emit('error', `Lawo: Ember setvalue error (${timelineObjId})`, e)
+			this.emit('error', `Lawo: Error in setValue (${timelineObjId})`, e)
 			throw e
 		}
 	}
-
 	private _connectionChanged () {
 		this.emit('connectionChanged', this.getStatus())
+	}
+	private runAnimation (): void {
+		for (const addr in this.transitions) {
+			const transition = this.transitions[addr]
+			// delete old transitions
+			if (transition.started + transition.transitionDuration! < this.getCurrentTime()) {
+				delete this.transitions[addr]
+
+				// assert correct finished value:
+				this._setValueFn(transition, '').catch(() => null)
+			}
+		}
+
+		for (const addr in this.transitions) {
+			const transition = this.transitions[addr]
+
+			const from = Math.max(FADER_THRESHOLD, transition.from as number)
+			const to = Math.max(FADER_THRESHOLD, transition.value as number)
+
+			const p = (this.getCurrentTime() - transition.started) / transition.transitionDuration!
+
+			const v = from + p * (to - from) // should this have easing?
+
+			this._setValueFn({ ...transition, value: v }, '').catch(() => null)
+		}
+
+		if (Object.keys(this.transitions).length === 0) {
+			clearInterval(this.transitionInterval!)
+			this.transitionInterval = undefined
+		}
 	}
 }

@@ -278,6 +278,78 @@ describe('Lawo', () => {
 		await mockTime.advanceTimeToTicks(11500)
 		expect(commandReceiver0).toHaveBeenCalledTimes(2)
 	})
+	test('Lawo: manual fade', async () => {
+
+		let commandReceiver0 = jest.fn(() => {
+			return Promise.resolve()
+		})
+		let myChannelMapping0: MappingLawo = {
+			device: DeviceType.LAWO,
+			deviceId: 'myLawo',
+			mappingType: MappingLawoType.SOURCE,
+			identifier: 'RM1'
+		}
+		let myChannelMapping: Mappings = {
+			'lawo_c1_fader': myChannelMapping0
+		}
+
+		let myConductor = new Conductor({
+			initializeAsClear: true,
+			getCurrentTime: mockTime.getCurrentTime
+		})
+		await myConductor.setMapping(myChannelMapping)
+		await myConductor.init() // we cannot do an await, because setTimeout will never call without jest moving on.
+		await myConductor.addDevice('myLawo', {
+			type: DeviceType.LAWO,
+			options: {
+				host: '160.67.96.51',
+				port: 9000,
+				// commandReceiver: commandReceiver0,
+				setValueFn: commandReceiver0,
+				sourcesPath: 'Sapphire.Sources',
+				faderInterval: 40
+			}
+		})
+		await mockTime.advanceTimeToTicks(10100)
+
+		let deviceContainer = myConductor.getDevice('myLawo')
+		let device = deviceContainer.device as ThreadedClass<LawoDevice>
+
+		// Check that no commands has been scheduled:
+		expect(await device.queue).toHaveLength(0)
+		myConductor.timeline = [
+			{
+				id: 'obj0',
+				enable: {
+					start: mockTime.now - 1000, // 1 seconds in the past
+					duration: 2000
+				},
+				layer: 'lawo_c1_fader',
+				content: {
+					deviceType: DeviceType.LAWO,
+					type: TimelineContentTypeLawo.SOURCE,
+
+					'Fader/Motor dB Value': {
+						value: -191,
+						transitionDuration: 400
+					}
+				}
+			}
+		]
+
+		expect(await device.queue).toHaveLength(0)
+		await mockTime.advanceTimeToTicks(10500)
+
+		expect(commandReceiver0.mock.calls).toHaveLength(9)
+
+		let last = 0
+		for (let i = 0; i < 9; i++) {
+			const mockCall = getMockCall(commandReceiver0, i, 0)
+			expect(mockCall.value).toBeLessThan(last)
+			expect(mockCall.value).toBeGreaterThanOrEqual(-191)
+			last = mockCall.value
+		}
+	})
 	test('Lawo: Command priority', async () => {
 
 		let commandReceiver0 = jest.fn(() => {
