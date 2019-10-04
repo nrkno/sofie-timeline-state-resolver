@@ -155,7 +155,7 @@
     "emberplus": "git+https://github.com/nrkno/tv-automation-emberplus-connection#dist10102018",
     "fast-clone": "^1.5.13",
     "hyperdeck-connection": "^0.3.0",
-    "osc": "^2.2.4",
+    "osc": "https://github.com/olzzon/tv2-osc.js-no-serialport.git",
     "request": "^2.88.0",
     "sprintf-js": "^1.1.2",
     "superfly-timeline": "^7.2.4",
