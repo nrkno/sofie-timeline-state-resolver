@@ -92,7 +92,7 @@ export class AsyncResolver extends EventEmitter {
 						let parentInstance = resolvedParent.resolved.instances[0]
 						if (resolvedParent.resolved.resolved && parentInstance) {
 							dontIterateAgain = false
-							setObjectTime(o, now - parentInstance.start)
+							setObjectTime(o, now - (parentInstance.originalStart || parentInstance.start))
 						} else {
 							// the parent isn't found, it's probably not resolved (yet), try iterating once more:
 							wouldLikeToIterateAgain = true
