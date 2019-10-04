@@ -26,7 +26,7 @@ export enum Commands {
 	TOGGLE_PGM = 'togglePgm',
 	TOGGLE_PST = 'togglePst',
 	SET_FADER = 'setFader',
-	CLEAR_PST = 'clearPst',
+	CLEAR_PST_ROW = 'clearPstRow',
 	TAKE = 'take'
 }
 
