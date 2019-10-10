@@ -97,7 +97,9 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> {
 
 			this._hyperdeck = new Hyperdeck({ pingPeriod: 1000 })
 			this._hyperdeck.connect(options.host, options.port)
-			this._hyperdeck.on('connected', () => {
+			this._hyperdeck.on('connected', async () => {
+				await this._hyperdeck.sendCommand(new HyperdeckCommands.RemoteCommand(true))
+
 				this._queryCurrentState()
 				.then(async (state) => {
 
