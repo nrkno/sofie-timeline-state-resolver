@@ -194,6 +194,11 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState> {
 				if (layer.content.faderLevel !== undefined) {
 					deviceState.channels[foundMapping.channel].faderLevel = layer.content.faderLevel
 				}
+
+				if (layer.content.fadeToBlack !== undefined) {
+					deviceState.channels[foundMapping.channel].fadeToBlack = layer.content.fadeToBlack
+				}
+
 				deviceState.channels[foundMapping.channel].tlObjIds.push(tlObject.id)
 			}
 		})
@@ -263,6 +268,18 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState> {
 						type: Commands.SET_FADER,
 						channel: Number(index),
 						value: newChannel.faderLevel
+					},
+					timelineObjId: newChannel.tlObjIds[0] || ''
+				})
+			}
+
+			if (oldChannel && oldChannel.fadeToBlack !== newChannel.fadeToBlack) {
+				commands.push({
+					context: 'fade all pgm to black',
+					content: {
+						type: Commands.FADE_TO_BLACK,
+						channel: 0,
+						value: newChannel.fadeToBlack
 					},
 					timelineObjId: newChannel.tlObjIds[0] || ''
 				})
