@@ -20,6 +20,7 @@ export interface SisyfosCommandContent {
 	isPgm?: number // 0=off 1=PGM 2=VO
 	faderLevel?: number
 	fadeToBlack?: boolean
+	label?: string
 }
 export type TimelineObjSisyfosAny = TimelineObjSisyfosMessage
 
@@ -29,6 +30,7 @@ export enum Commands {
 	SET_FADER = 'setFader',
 	FADE_TO_BLACK = 'fadeToBlack',
 	CLEAR_PST_ROW = 'clearPstRow',
+	LABEL = 'label',
 	TAKE = 'take'
 }
 
@@ -37,9 +39,9 @@ export interface BaseCommand {
 }
 
 export interface ChannelCommand {
-	type: Commands.SET_FADER | Commands.TOGGLE_PGM | Commands.TOGGLE_PST | Commands.FADE_TO_BLACK
+	type: Commands.SET_FADER | Commands.TOGGLE_PGM | Commands.TOGGLE_PST | Commands.FADE_TO_BLACK | Commands.LABEL
 	channel: number
-	value: boolean | number
+	value: boolean | number | string
 }
 
 export interface BoolCommand extends ChannelCommand {
@@ -51,7 +53,12 @@ export interface ValueCommand extends ChannelCommand {
 	value: number
 }
 
-export type SisyfosCommand = BaseCommand | ValueCommand | BoolCommand
+export interface StringCommand extends ChannelCommand {
+	type: Commands.LABEL
+	value: string
+}
+
+export type SisyfosCommand = BaseCommand | ValueCommand | BoolCommand | StringCommand
 
 export interface SisyfosChannel extends SisyfosAPIChannel {
 	tlObjIds: string[]
@@ -79,6 +86,7 @@ export interface SisyfosAPIChannel {
 	pgmOn: number
 	pstOn: number
 	fadeToBlack: boolean
+	label: string
 }
 
 export interface SisyfosAPIState {

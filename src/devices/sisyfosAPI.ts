@@ -4,6 +4,7 @@ import {
 	SisyfosCommand,
 	Commands,
 	ValueCommand,
+	StringCommand,
 	SisyfosAPIState
 } from '../types/src/sisyfos'
 import { EventEmitter } from 'events'
@@ -78,6 +79,11 @@ export class SisyfosInterface extends EventEmitter {
 			this._oscClient.send({ address: '/fadetoblack', args: [] })
 		} else if (command.type === Commands.CLEAR_PST_ROW) {
 			this._oscClient.send({ address: '/clearpst', args: [] })
+		} else if (command.type === Commands.LABEL) {
+			this._oscClient.send({ address: `/ch/${(command as StringCommand).channel + 1}/label`, args: [{
+				type: 's',
+				value: (command as StringCommand).value
+			}] })
 		} else if (command.type === Commands.TOGGLE_PGM) {
 			this._oscClient.send({ address: `/ch/${(command as ValueCommand).channel + 1}/pgm`, args: [{
 				type: 'i',
