@@ -39,7 +39,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState> {
 
 	private _commandReceiver: CommandReceiver
 
-	constructor (deviceId: string, deviceOptions: SisyfosDeviceOptions, options) {
+	constructor(deviceId: string, deviceOptions: SisyfosDeviceOptions, options) {
 		super(deviceId, deviceOptions, options)
 		if (deviceOptions.options) {
 			if (deviceOptions.options.commandReceiver) this._commandReceiver = deviceOptions.options.commandReceiver
@@ -60,7 +60,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState> {
 		}, SendMode.BURST, this._deviceOptions)
 		this.handleDoOnTime(this._doOnTime, 'Sisyfos')
 	}
-	init (options: SisfyosOptions): Promise<boolean> {
+	init(options: SisfyosOptions): Promise<boolean> {
 
 		this._sisyfos.once('initialized', () => {
 			this.setState(this.getDeviceState(), this.getCurrentTime())
@@ -71,7 +71,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState> {
 			.then(() => true)
 	}
 	/** Called by the Conductor a bit before a .handleState is called */
-	prepareForHandleState (newStateTime: number) {
+	prepareForHandleState(newStateTime: number) {
 		// clear any queued commands later than this time:
 		this._doOnTime.clearQueueNowAndAfter(newStateTime)
 		this.cleanUpStates(0, newStateTime)
@@ -81,7 +81,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState> {
 	 * in time.
 	 * @param newState
 	 */
-	handleState (newState: TimelineState) {
+	handleState(newState: TimelineState) {
 		if (!this._sisyfos.state) {
 			this.emit('warning', 'Sisyfos State not initialized yet')
 			return
@@ -108,14 +108,14 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState> {
 	 * Clear any scheduled commands after this time
 	 * @param clearAfterTime
 	 */
-	clearFuture (clearAfterTime: number) {
+	clearFuture(clearAfterTime: number) {
 		this._doOnTime.clearQueueAfter(clearAfterTime)
 	}
-	terminate () {
+	terminate() {
 		this._doOnTime.dispose()
 		return Promise.resolve(true)
 	}
-	getStatus (): DeviceStatus {
+	getStatus(): DeviceStatus {
 		let statusCode = StatusCode.GOOD
 		let messages: Array<string> = []
 
@@ -133,7 +133,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState> {
 			messages: messages
 		}
 	}
-	makeReady (okToDestroyStuff?: boolean): Promise<void> {
+	makeReady(okToDestroyStuff?: boolean): Promise<void> {
 		if (okToDestroyStuff) {
 			this._doOnTime.clearQueueNowAndAfter(this.getCurrentTime())
 			this.setState(this.getDeviceState(), this.getCurrentTime())
@@ -141,13 +141,13 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState> {
 		return Promise.resolve()
 	}
 
-	get canConnect (): boolean {
+	get canConnect(): boolean {
 		return true
 	}
-	get connected (): boolean {
+	get connected(): boolean {
 		return this._sisyfos.connected
 	}
-	getDeviceState (): SisyfosState {
+	getDeviceState(): SisyfosState {
 		const deviceStateFromAPI = this._sisyfos.state
 		const deviceState: SisyfosState = { channels: {} }
 
@@ -157,9 +157,10 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState> {
 
 			const channel: SisyfosChannel = {
 				...channelFromAPI,
-				faderLevel:  0.75,  // 0 dB
-				pgmOn:  0,
-				pstOn:  0,
+				faderLevel: 0.75,  // 0 dB
+				pgmOn: 0,
+				pstOn: 0,
+				label: '',
 				tlObjIds: []
 			}
 
@@ -172,7 +173,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState> {
 	 * a timeline state.
 	 * @param state
 	 */
-	convertStateToSisyfosState (state: TimelineState) {
+	convertStateToSisyfosState(state: TimelineState) {
 		const deviceState: SisyfosState = this.getDeviceState()
 
 		_.each(state.layers, (tlObject, layerName) => {
@@ -199,18 +200,22 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState> {
 					deviceState.channels[foundMapping.channel].fadeToBlack = layer.content.fadeToBlack
 				}
 
+				if (layer.content.label !== undefined) {
+					deviceState.channels[foundMapping.channel].label = layer.content.label
+				}
+
 				deviceState.channels[foundMapping.channel].tlObjIds.push(tlObject.id)
 			}
 		})
 		return deviceState
 	}
-	get deviceType () {
+	get deviceType() {
 		return DeviceType.SISYFOS
 	}
-	get deviceName (): string {
+	get deviceName(): string {
 		return 'Sisyfos ' + this.deviceId
 	}
-	get queue () {
+	get queue() {
 		return this._doOnTime.getQueue()
 	}
 	/**
@@ -218,7 +223,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState> {
 	 * @param commandsToAchieveState
 	 * @param time
 	 */
-	private _addToQueue (commandsToAchieveState: Array<Command>, time: number) {
+	private _addToQueue(commandsToAchieveState: Array<Command>, time: number) {
 		_.each(commandsToAchieveState, (cmd: Command) => {
 			this._doOnTime.queue(time, undefined, (cmd: Command) => {
 				return this._commandReceiver(time, cmd.content, cmd.context, cmd.timelineObjId)
@@ -230,7 +235,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState> {
 	 * @param oldOscSendState The assumed current state
 	 * @param newOscSendState The desired state of the device
 	 */
-	private _diffStates (oldOscSendState: SisyfosState, newOscSendState: SisyfosState): Array<Command> {
+	private _diffStates(oldOscSendState: SisyfosState, newOscSendState: SisyfosState): Array<Command> {
 
 		const commands: Array<Command> = []
 
@@ -284,11 +289,23 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState> {
 					timelineObjId: newChannel.tlObjIds[0] || ''
 				})
 			}
+
+			if (newChannel.label !== '' && oldChannel.label !== newChannel.label) {
+				commands.push({
+					context: 'set label on fader',
+					content: {
+						type: Commands.LABEL,
+						channel: Number(index),
+						value: newChannel.label
+					},
+					timelineObjId: newChannel.tlObjIds[0] || ''
+				})
+			}
 		})
 
 		return commands
 	}
-	private _defaultCommandReceiver (_time: number, cmd: SisyfosCommand, context: CommandContext, timelineObjId: string): Promise<any> {
+	private _defaultCommandReceiver(_time: number, cmd: SisyfosCommand, context: CommandContext, timelineObjId: string): Promise<any> {
 
 		let cwc: CommandWithContext = {
 			context: context,
@@ -305,7 +322,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState> {
 			return Promise.reject(e)
 		}
 	}
-	private _connectionChanged () {
+	private _connectionChanged() {
 		this.emit('connectionChanged', this.getStatus())
 	}
 }
