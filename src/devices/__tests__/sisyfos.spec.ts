@@ -141,6 +141,20 @@ describe('Sisyfos', () => {
 
 					isPgm: 1
 				}
+			},
+			{
+				id: 'obj4',
+				enable: {
+					start: mockTime.now + 4000, // 3 seconds in the future
+					duration: 2000
+				},
+				layer: 'sisyfos_channel_1',
+				content: {
+					deviceType: DeviceType.SISYFOS,
+					type: TimelineContentTypeSisyfos.SISYFOS,
+
+					fadeToBlack: true
+				}
 			}
 		]
 
@@ -172,7 +186,7 @@ describe('Sisyfos', () => {
 		})
 
 		await mockTime.advanceTimeTicks(2000) // 5 seconds into the future
-		expect(commandReceiver0.mock.calls.length).toEqual(7)
+		expect(commandReceiver0.mock.calls.length).toEqual(8)
 		// set pst off
 		expect(getMockCall(commandReceiver0, 4, 1)).toMatchObject({
 			type: 'togglePst',
@@ -184,6 +198,12 @@ describe('Sisyfos', () => {
 			type: 'togglePgm',
 			channel: 0,
 			value: 0
+		})
+		// fadeToBlack
+		expect(getMockCall(commandReceiver0, 6, 1)).toMatchObject({
+			type: 'fadeToBlack',
+			channel: 0,
+			value: true
 		})
 	})
 
