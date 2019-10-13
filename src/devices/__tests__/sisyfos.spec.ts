@@ -145,7 +145,7 @@ describe('Sisyfos', () => {
 			{
 				id: 'obj4',
 				enable: {
-					start: mockTime.now + 4000, // 3 seconds in the future
+					start: mockTime.now + 4000, // 4 seconds in the future
 					duration: 2000
 				},
 				layer: 'sisyfos_channel_1',
@@ -154,6 +154,20 @@ describe('Sisyfos', () => {
 					type: TimelineContentTypeSisyfos.SISYFOS,
 
 					fadeToBlack: true
+				}
+			},
+			{
+				id: 'obj5',
+				enable: {
+					start: mockTime.now + 5000, // 4.1 seconds in the future
+					duration: 2000
+				},
+				layer: 'sisyfos_channel_1',
+				content: {
+					deviceType: DeviceType.SISYFOS,
+					type: TimelineContentTypeSisyfos.SISYFOS,
+
+					label: 'MY TIME'
 				}
 			}
 		]
@@ -185,8 +199,8 @@ describe('Sisyfos', () => {
 			value: 1
 		})
 
-		await mockTime.advanceTimeTicks(2000) // 5 seconds into the future
-		expect(commandReceiver0.mock.calls.length).toEqual(8)
+		await mockTime.advanceTimeTicks(3000) // 6 seconds into the future
+		expect(commandReceiver0.mock.calls.length).toEqual(10)
 		// set pst off
 		expect(getMockCall(commandReceiver0, 4, 1)).toMatchObject({
 			type: 'togglePst',
@@ -204,6 +218,12 @@ describe('Sisyfos', () => {
 			type: 'fadeToBlack',
 			channel: 0,
 			value: true
+		})
+		// set new label
+		expect(getMockCall(commandReceiver0, 8, 1)).toMatchObject({
+			type: 'label',
+			channel: 0,
+			value: 'MY TIME'
 		})
 	})
 
