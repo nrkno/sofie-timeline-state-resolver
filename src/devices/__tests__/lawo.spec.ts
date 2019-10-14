@@ -32,8 +32,14 @@ describe('Lawo', () => {
 			mappingType: MappingLawoType.SOURCE,
 			identifier: 'BASE'
 		}
+		let myRetriggerMapping: MappingLawo = {
+			device: DeviceType.LAWO,
+			deviceId: 'myLawo',
+			mappingType: MappingLawoType.TRIGGER_VALUE
+		}
 		let myChannelMapping: Mappings = {
-			'lawo_c1_fader': myChannelMapping0
+			'lawo_c1_fader': myChannelMapping0,
+			'lawo_trigger': myRetriggerMapping
 		}
 
 		let myConductor = new Conductor({
@@ -116,16 +122,12 @@ describe('Lawo', () => {
 					start: mockTime.now + 2000, // 2 seconds in the future
 					duration: 2000
 				},
-				layer: 'lawo_c1_fader',
+				layer: 'lawo_trigger',
 				content: {
 					deviceType: DeviceType.LAWO,
-					type: TimelineContentTypeLawo.SOURCE,
+					type: TimelineContentTypeLawo.TRIGGER_VALUE,
 
-					'Fader/Motor dB Value': {
-						value: -4,
-						transitionDuration: 400,
-						triggerValue: 'asdf' // only used for trigging new command sent
-					}
+					triggerValue: 'asdf' // only used for trigging new command sent
 				}
 			}
 		]

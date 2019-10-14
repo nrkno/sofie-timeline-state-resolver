@@ -15,7 +15,8 @@ import {
 	TimelineObjLawoAny,
 	TimelineObjLawoEmberProperty,
 	EmberValueTypes,
-	EmberTypes
+	EmberTypes,
+	TimelineObjLawoEmberRetrigger
 } from '../types/src'
 import {
 	TimelineState, ResolvedTimelineObjectInstance
@@ -44,7 +45,10 @@ export type SetValueFn = (command: LawoCommand, timelineObjId: string, valueType
 // export type EmberPlusValue = boolean | number | string | {type: EmberTypes, value: EmberValueTypes}
 
 export interface LawoState {
-	[path: string]: LawoStateNode
+	nodes: {
+		[path: string]: LawoStateNode
+	},
+	triggerValue?: string
 }
 
 export interface LawoStateNode {
@@ -54,7 +58,6 @@ export interface LawoStateNode {
 	key: string
 	identifier: string
 	transitionDuration?: number
-	triggerValue: string
 	priority: number
 	/** Reference to the original timeline object: */
 	timelineObjId: string
@@ -253,46 +256,50 @@ export class LawoDevice extends DeviceWithState<TimelineState> {
 	 * @param state
 	 */
 	convertStateToLawo (state: TimelineState): LawoState {
-		const lawoState: LawoState = {}
+		const lawoState: LawoState = {
+			nodes: {}
+		}
 
 		_.each(state.layers, (tlObject: ResolvedTimelineObjectInstance, layerName: string) => {
 			const lawoObj = tlObject as any as TimelineObjLawoAny
 
 			const mapping: MappingLawo | undefined = this.getMapping()[layerName] as MappingLawo
-			if (mapping && mapping.identifier && mapping.device === DeviceType.LAWO) {
+			if (mapping && mapping.device === DeviceType.LAWO) {
 
-				if (lawoObj.content.type === TimelineContentTypeLawo.SOURCE) {
+				if (mapping.identifier && lawoObj.content.type === TimelineContentTypeLawo.SOURCE) {
 					let tlObjectSource: TimelineObjLawoSource = lawoObj as TimelineObjLawoSource
 
 					const fader: TimelineObjLawoSource['content']['Fader/Motor dB Value'] = tlObjectSource.content['Fader/Motor dB Value']
 					const attrName = this._rampMotorFunctionPath || !this._dbPropertyName ? 'Fader/Motor dB Value' : this._dbPropertyName
 
-					lawoState[this._sourceNodeAttributePath(mapping.identifier, attrName)] = {
+					lawoState.nodes[this._sourceNodeAttributePath(mapping.identifier, attrName)] = {
 						type: tlObjectSource.content.type,
 						key: 'Fader/Motor dB Value',
 						identifier: mapping.identifier,
 						value: fader.value,
 						valueType: EmberTypes.REAL,
 						transitionDuration: fader.transitionDuration,
-						triggerValue: fader.triggerValue || '',
 						priority: mapping.priority || 0,
 						timelineObjId: tlObject.id
 					}
 
-				} else if (lawoObj.content.type === TimelineContentTypeLawo.EMBER_PROPERTY) {
+				} else if (mapping.identifier && lawoObj.content.type === TimelineContentTypeLawo.EMBER_PROPERTY) {
 					let tlObjectSource: TimelineObjLawoEmberProperty = lawoObj as TimelineObjLawoEmberProperty
 
-					lawoState[mapping.identifier] = {
+					lawoState.nodes[mapping.identifier] = {
 						type: tlObjectSource.content.type,
 						key: '',
 						identifier: mapping.identifier,
 						value: tlObjectSource.content.value,
 						valueType: mapping.emberType || EmberTypes.REAL,
-						triggerValue: '',
 						priority: mapping.priority || 0,
 						timelineObjId: tlObject.id
 					}
 
+				} else if (lawoObj.content.type === TimelineContentTypeLawo.TRIGGER_VALUE) {
+					let tlObjectSource: TimelineObjLawoEmberRetrigger = lawoObj as TimelineObjLawoEmberRetrigger
+
+					lawoState.triggerValue = tlObjectSource.content.triggerValue
 				}
 			}
 		})
@@ -346,14 +353,15 @@ export class LawoDevice extends DeviceWithState<TimelineState> {
 	private _diffStates (oldLawoState: LawoState, newLawoState: LawoState): Array<LawoCommandWithContext> {
 
 		let commands: Array<LawoCommandWithContext> = []
+		let isRetrigger = newLawoState.triggerValue && newLawoState.triggerValue !== oldLawoState.triggerValue
 
-		_.each(newLawoState, (newNode: LawoStateNode, path: string) => {
-			let oldValue: LawoStateNode = oldLawoState[path] || null
+		_.each(newLawoState.nodes, (newNode: LawoStateNode, path: string) => {
+			let oldValue: LawoStateNode = oldLawoState.nodes[path] || null
 			let diff = getDiff(
 				_.omit(newNode, 'timelineObjId'),
 				_.omit(oldValue, 'timelineObjId')
 			)
-			if (diff) {
+			if (diff || (newNode.key === 'Fader/Motor dB Value' && isRetrigger)) {
 				// It's a plain value:
 				commands.push({
 					cmd: {
@@ -366,7 +374,7 @@ export class LawoDevice extends DeviceWithState<TimelineState> {
 						transitionDuration: newNode.transitionDuration,
 						priority: newNode.priority
 					},
-					context: diff,
+					context: diff || `triggerValue: "${newLawoState.triggerValue}"`,
 					timelineObjId: newNode.timelineObjId
 				})
 			}
