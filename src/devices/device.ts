@@ -264,9 +264,9 @@ export abstract class DeviceWithState<T> extends Device {
 	/**
 	 * Get the last known state at a point in time. Useful for creating device
 	 * diffs.
-	 * 
+	 *
 	 * @todo is this literally the same as "getStateBefore(time + 1)"?
-	 * 
+	 *
 	 * @param time
 	 */
 	getState (time?: number): {state: T, time: number} | null {

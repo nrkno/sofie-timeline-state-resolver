@@ -82,6 +82,11 @@ export class Hyperdeck extends EventEmitter {
 				slots: 2
 			}
 			return Promise.resolve(res)
+		} else if (command instanceof Commands.TransportInfoCommand) {
+			let res = {
+				status: TransportStatus.PREVIEW
+			}
+			return Promise.resolve(res)
 		}
 		return Promise.resolve()
 	}
