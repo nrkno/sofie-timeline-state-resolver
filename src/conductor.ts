@@ -278,7 +278,7 @@ export class Conductor extends EventEmitter {
 			}
 
 			if (deviceOptions.type === DeviceType.ABSTRACT) {
-				newDevice = await new DeviceContainer().create<CasparCGDevice>(
+				newDevice = await new DeviceContainer().create<AbstractDevice>(
 					'../../dist/devices/abstract.js',
 					AbstractDevice,
 					deviceId,
