@@ -269,7 +269,7 @@ export class AtemDevice extends DeviceWithState<DeviceState> {
 								if (chan) {
 									deviceState.audio.channels[mapping.index] = {
 										...chan,
-										...atemObj.content
+										...atemObj.content.audioChannel
 									}
 								}
 							}
