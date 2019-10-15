@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.12.1](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/3.12.0...3.12.1) (2019-10-15)
+
+
+### Bug Fixes
+
+* **atem:** audio channel tsr objects are correctly merged ([e3a8e8b](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/e3a8e8b))
+
+
+
 ## [3.12.0](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/3.11.1...3.12.0) (2019-10-14)
 
 
