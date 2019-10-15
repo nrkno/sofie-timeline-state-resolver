@@ -73,6 +73,7 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> {
 	private _recTimePollTimer: NodeJS.Timer
 	private _slots = 0
 	private _slotStatus = {}
+	private _transportStatus: TransportStatus
 
 	private _commandReceiver: CommandReceiver
 
@@ -124,7 +125,13 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> {
 
 				const notifyCmd = new HyperdeckCommands.NotifySetCommand()
 				notifyCmd.slot = true
+				notifyCmd.transport = true
 				this._hyperdeck.sendCommand(notifyCmd).catch(e => this.emit('error', 'HyperDeck.on("connected")', e))
+
+				const tsCmd = new HyperdeckCommands.TransportInfoCommand()
+				this._hyperdeck.sendCommand(tsCmd)
+				.then(r => this._transportStatus = r.status)
+				.catch(e => this.emit('error', 'HyperDeck.on("connected")', e))
 			})
 			this._hyperdeck.on('disconnected', () => {
 				this._connected = false
@@ -135,6 +142,16 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> {
 			this._hyperdeck.on('notify.slot', async (res: SlotInfoCommandResponse) => {
 				await this._queryRecordingTime().catch(e => this.emit('error', 'HyperDeck.queryRecordingTime', e))
 				if (res.status) this._connectionChanged()
+			})
+			this._hyperdeck.on('notify.transport', async (res: TransportInfoCommandResponseExt) => {
+				if (res.status) {
+					this._transportStatus = res.status
+
+					const state = this.getState()
+					if (state && state.state.transport.status !== res.status) {
+						this._connectionChanged()
+					}
+				}
 			})
 		})
 	}
@@ -299,7 +316,6 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> {
 		return this._doOnTime.getQueue()
 	}
 	getStatus (): DeviceStatus {
-		// TODO: add status check here, to set warning if we've set it to record, but it's not
 		let statusCode = StatusCode.GOOD
 		let messages: Array<string> = []
 
@@ -309,6 +325,7 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> {
 		}
 
 		if (this._connected) {
+			// check recording time left
 			if (this._minRecordingTime &&
 				this._recordingTime < this._minRecordingTime) {
 				if (this._recordingTime === 0) {
@@ -321,6 +338,7 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> {
 				)
 			}
 
+			// check for available slots
 			let noAvailableSlots = true
 			for (let slot = 1; slot <= this._slots; slot++) {
 				if (this._slotStatus[slot] && this._slotStatus[slot].status !== SlotStatus.MOUNTED) {
@@ -332,6 +350,16 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> {
 			}
 			if (noAvailableSlots) {
 				statusCode = StatusCode.BAD
+			}
+
+			// check if transport status is correct
+			const state = this.getState()
+			if (state) {
+				const supposedState = state.state.transport.status
+				if (supposedState === TransportStatus.RECORD && this._transportStatus !== supposedState) {
+					if (statusCode < StatusCode.WARNING_MAJOR) statusCode = StatusCode.WARNING_MAJOR
+					messages.push('Hyperdeck not recording')
+				}
 			}
 		}
 		if (!this._initialized) {
