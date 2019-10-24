@@ -163,6 +163,17 @@ export class QuantelDevice extends DeviceWithState<QuantelState> {
 	}
 
 	/**
+	 * Attempts to restart the gateway
+	 */
+	async restartGateway () {
+		if (this._quantel.connected) {
+			return this._quantel.kill()
+		} else {
+			throw new Error('Quantel Gateway not connected')
+		}
+	}
+
+	/**
 	 * Clear any scheduled commands after this time
 	 * @param clearAfterTime
 	 */
@@ -264,6 +275,8 @@ export class QuantelDevice extends DeviceWithState<QuantelState> {
 				if (layer.content && (layer.content.title || layer.content.guid)) {
 					const clip = layer as any as TimelineObjQuantelClip
 
+					const startTime = layer.instance.originalStart || layer.instance.start
+
 					port.timelineObjId = layer.id
 					port.notOnAir = layer.content.notOnAir || isLookahead
 					port.outTransition = layer.content.outTransition
@@ -286,7 +299,7 @@ export class QuantelDevice extends DeviceWithState<QuantelState> {
 							clip.content.noStarttime || isLookahead
 							?
 							null :
-							layer.instance.start
+							startTime
 						) || null
 					}
 					if (isLookahead) port.lookahead = true

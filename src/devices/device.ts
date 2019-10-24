@@ -262,6 +262,35 @@ export abstract class DeviceWithState<T> extends Device {
 		return null
 	}
 	/**
+	 * Get the last known state at a point in time. Useful for creating device
+	 * diffs.
+	 *
+	 * @todo is this literally the same as "getStateBefore(time + 1)"?
+	 *
+	 * @param time
+	 */
+	getState (time?: number): {state: T, time: number} | null {
+		if (time === undefined) {
+			time = this.getCurrentTime()
+		}
+		let foundTime = 0
+		let foundState: T | null = null
+		_.each(this._states, (state: T, stateTimeStr: string) => {
+			let stateTime = parseFloat(stateTimeStr)
+			if (stateTime > foundTime && stateTime <= time!) {
+				foundState = state
+				foundTime = stateTime
+			}
+		})
+		if (foundState) {
+			return {
+				state: foundState,
+				time: foundTime
+			}
+		}
+		return null
+	}
+	/**
 	 * Saves a state on a certain time point. Overwrites any previous state
 	 * saved at the same time. Removes any state after this time point.
 	 * @param state
