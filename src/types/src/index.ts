@@ -45,7 +45,7 @@ export enum DeviceType {
 	HTTPWATCHER = 10,
 	SISYFOS = 11,
 	QUANTEL = 12,
-	SINGULAR_LIVE = 13
+	SINGULAR_LIVE = 14
 }
 
 export interface TSRTimelineKeyframe<T> extends Timeline.TimelineKeyframe {
