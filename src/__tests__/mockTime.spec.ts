@@ -25,7 +25,7 @@ describe('mockTime', () => {
 		expect(mockTime.now).toEqual(10100)
 		await mockTime.advanceTimeToTicks(12000)
 		expect(mockTime.now).toEqual(12000)
-		mockTime.advanceTimeToTicks(11000).catch((e) => {
+		mockTime.advanceTimeToTicks(11000).catch(() => {
 			done()
 		})
 	})

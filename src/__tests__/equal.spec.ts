@@ -19,10 +19,12 @@ describe('equal', () => {
 	}
 
 	function First () {
+		// @ts-ignore
 		this.value = 1
 	}
 	First.prototype.value = 1
 	function Second () {
+		// @ts-ignore
 		this.value = 1
 	}
 	Second.prototype.value = 2
@@ -250,7 +252,7 @@ describe('equal', () => {
 		testEqual(Array(3), Array(3)) // Sparse arrays of identical lengths are equal
 		testEqual(Array(3), Array(6)) // Sparse arrays of different lengths are not equal when both are empty
 
-		let sparse = []
+		let sparse: any[] = []
 		sparse[1] = 5
 		testEqual(sparse, [void 0, 5]) // Handles sparse arrays as dense
 	})
@@ -304,9 +306,9 @@ describe('equal', () => {
 	})
 
 	test('Circular Arrays.', () => {
-		let a = []
+		let a: any[] = []
 		a.push(a)
-		let b = []
+		let b: any[] = []
 		b.push(b)
 
 		testEqual(a, b) // Arrays containing circular references are equal
@@ -390,6 +392,7 @@ describe('equal', () => {
 		}
 
 		function Foo () {
+			/// @ts-ignore
 			this.a = 1
 		}
 		Foo.prototype.constructor = null
