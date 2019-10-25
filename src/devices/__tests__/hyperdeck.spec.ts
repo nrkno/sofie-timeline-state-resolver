@@ -15,7 +15,7 @@ import {
 } from '../../types/src'
 import { MockTime } from '../../__tests__/mockTime'
 import { ThreadedClass } from 'threadedclass'
-import { getMockCall } from '../../__tests__/lib.spec'
+import { getMockCall } from '../../__tests__/lib'
 
 let myChannelMapping0: MappingHyperdeck = {
 	device: DeviceType.HYPERDECK,

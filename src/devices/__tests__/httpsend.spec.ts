@@ -8,7 +8,7 @@ import {
 import { MockTime } from '../../__tests__/mockTime'
 import { ThreadedClass } from 'threadedclass'
 import { TimelineObjHTTPRequest, TimelineContentTypeHttp } from '../../types/src/http'
-import { getMockCall } from '../../__tests__/lib.spec'
+import { getMockCall } from '../../__tests__/lib'
 
 // let nowActual = Date.now()
 describe('HTTP-Send', () => {

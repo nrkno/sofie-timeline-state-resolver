@@ -12,7 +12,7 @@ import {
 } from '../../types/src'
 import { MockTime } from '../../__tests__/mockTime'
 import { ThreadedClass } from 'threadedclass'
-import { getMockCall } from '../../__tests__/lib.spec'
+import { getMockCall } from '../../__tests__/lib'
 const request = require('../../__mocks__/request')
 
 const orgSetTimeout = setTimeout

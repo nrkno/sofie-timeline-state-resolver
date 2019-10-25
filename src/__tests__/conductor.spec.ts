@@ -10,7 +10,7 @@ import * as _ from 'underscore'
 import { MockTime } from './mockTime'
 import { ThreadedClass } from 'threadedclass'
 import { AbstractDevice } from '../devices/abstract'
-import { getMockCall } from './lib.spec'
+import { getMockCall } from './lib'
 
 describe('Conductor', () => {
 	let mockTime = new MockTime()
