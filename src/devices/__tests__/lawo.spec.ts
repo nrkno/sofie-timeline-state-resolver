@@ -7,7 +7,7 @@ import {
 	MappingLawo,
 	MappingLawoType
 } from '../../types/src'
-import { MockTime } from '../../__tests__/mockTime.spec'
+import { MockTime } from '../../__tests__/mockTime'
 import { ThreadedClass } from 'threadedclass'
 import { getMockCall } from '../../__tests__/lib.spec'
 

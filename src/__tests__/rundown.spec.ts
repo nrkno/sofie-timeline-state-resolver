@@ -7,7 +7,7 @@ import {
 	Transition
 } from '../types/src'
 import { Conductor } from '../conductor'
-import { MockTime } from './mockTime.spec'
+import { MockTime } from './mockTime'
 import * as _ from 'underscore'
 import { getMockCall } from './lib.spec'
 

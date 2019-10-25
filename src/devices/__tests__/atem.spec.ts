@@ -2,7 +2,7 @@ import { Enums, MixEffect } from 'atem-state'
 import { ResolvedTimelineObjectInstance } from 'superfly-timeline'
 import { Conductor } from '../../conductor'
 import { AtemDevice, AtemDeviceOptions } from '../atem'
-import { MockTime } from '../../__tests__/mockTime.spec'
+import { MockTime } from '../../__tests__/mockTime'
 import {
 	Mappings,
 	DeviceType ,

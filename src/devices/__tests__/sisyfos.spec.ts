@@ -5,7 +5,7 @@ import {
 	DeviceType
 } from '../../types/src'
 import { MockOSC } from '../../__mocks__/osc'
-import { MockTime } from '../../__tests__/mockTime.spec'
+import { MockTime } from '../../__tests__/mockTime'
 import { ThreadedClass } from 'threadedclass'
 import { MappingSisyfos, TimelineContentTypeSisyfos } from '../../types/src/sisyfos'
 import { SisyfosMessageDevice } from '../sisyfos'

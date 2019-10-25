@@ -5,7 +5,7 @@ import {
 	Mappings,
 	DeviceType
 } from '../../types/src'
-import { MockTime } from '../../__tests__/mockTime.spec'
+import { MockTime } from '../../__tests__/mockTime'
 import { ThreadedClass } from 'threadedclass'
 import { TimelineObjHTTPRequest, TimelineContentTypeHttp } from '../../types/src/http'
 import { getMockCall } from '../../__tests__/lib.spec'

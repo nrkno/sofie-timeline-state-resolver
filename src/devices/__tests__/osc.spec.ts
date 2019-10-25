@@ -8,7 +8,7 @@ import {
 	OSCValueType,
 	TimelineObjOSCMessage
 } from '../../types/src'
-import { MockTime } from '../../__tests__/mockTime.spec'
+import { MockTime } from '../../__tests__/mockTime'
 import { literal } from '../device'
 import { ThreadedClass } from 'threadedclass'
 import { getMockCall } from '../../__tests__/lib.spec'
