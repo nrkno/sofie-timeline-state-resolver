@@ -279,7 +279,7 @@ export class Conductor extends EventEmitter {
 			}
 
 			if (deviceOptions.type === DeviceType.ABSTRACT) {
-				newDevice = await new DeviceContainer().create<CasparCGDevice>(
+				newDevice = await new DeviceContainer().create<AbstractDevice>(
 					'../../dist/devices/abstract.js',
 					AbstractDevice,
 					deviceId,
@@ -822,17 +822,19 @@ export class Conductor extends EventEmitter {
 				}
 			})
 			_.each(sentCallbacksOld, (cb, callBackId: string) => {
-				if (cb.callBackStopped) {
-					if (!sentCallbacksNew[callBackId]) {
+				if (cb.callBackStopped && !sentCallbacksNew[callBackId]) {
+					const callBackStopped = cb.callBackStopped
+					const callBackData = cb.callBackData
+					this._doOnTime.queue(tlState.time, undefined, () => {
 						// Object has stopped playing
 						this._queueCallback({
 							type: 'stop',
 							time: tlState.time,
 							id: cb.id,
-							callBack: cb.callBackStopped,
-							callBackData: cb.callBackData
+							callBack: callBackStopped,
+							callBackData: callBackData
 						})
-					}
+					})
 				}
 			})
 			this._sentCallbacks = sentCallbacksNew

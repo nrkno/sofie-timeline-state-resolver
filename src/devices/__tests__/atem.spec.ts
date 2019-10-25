@@ -2,7 +2,7 @@ import { Enums, MixEffect } from 'atem-state'
 import { ResolvedTimelineObjectInstance } from 'superfly-timeline'
 import { Conductor } from '../../conductor'
 import { AtemDevice, AtemDeviceOptions } from '../atem'
-import { MockTime } from '../../__tests__/mockTime.spec'
+import { MockTime } from '../../__tests__/mockTime'
 import {
 	Mappings,
 	DeviceType ,
@@ -130,7 +130,7 @@ describe('Atem', () => {
 		expect(commandReceiver0).toBeCalledWith(expect.anything(), expect.objectContaining(
 			{
 				flag: 0,
-				rawName: 'PrvI',
+				rawName: 'CPvI',
 				mixEffect: 0,
 				properties: {
 					source: 2
@@ -152,7 +152,7 @@ describe('Atem', () => {
 		expect(commandReceiver0).toBeCalledWith(expect.anything(), expect.objectContaining(
 			{
 				flag: 0,
-				rawName: 'PrvI',
+				rawName: 'CPvI',
 				mixEffect: 0,
 				properties: {
 					source: 3
@@ -234,7 +234,7 @@ describe('Atem', () => {
 		expect(commandReceiver0).toBeCalledWith(expect.anything(), expect.objectContaining(
 			{
 				flag: 53,
-				rawName: 'KePt',
+				rawName: 'CKPt',
 				mixEffect: 0,
 				upstreamKeyerId: 0,
 				properties: {

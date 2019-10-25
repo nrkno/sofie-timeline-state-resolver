@@ -8,7 +8,7 @@ import { TCPSendDevice } from '../TCPSend'
 import { Socket as MockSocket } from 'net'
 import { StatusCode } from '../device'
 import { ThreadedClass } from 'threadedclass'
-import { MockTime } from '../../__tests__/mockTime.spec'
+import { MockTime } from '../../__tests__/mockTime'
 
 jest.mock('net')
 let setTimeoutOrg = setTimeout
