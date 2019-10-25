@@ -477,6 +477,11 @@
     "@types/tough-cookie" "*"
     form-data "^2.5.0"
 
+"@types/retry@^0.12.0":
+  version "0.12.0"
+  resolved "https://registry.yarnpkg.com/@types/retry/-/retry-0.12.0.tgz#2b35eccfcee7d38cd72ad99232fbd58bffb3c84d"
+  integrity sha512-wWKOClTTiizcZhXnPY4wikVAwmdYHp8q6DmC+EJUzAMsycb7HB32Kh9RN4+0gExjmPmZSAQjgURXIGATPegAvA==
+
 "@types/sprintf-js@^1.1.0":
   version "1.1.2"
   resolved "https://registry.yarnpkg.com/@types/sprintf-js/-/sprintf-js-1.1.2.tgz#a4fcb84c7344f39f70dc4eec0e1e7f10a48597a3"
@@ -763,24 +768,23 @@ asynckit@^0.4.0:
   resolved "https://registry.yarnpkg.com/asynckit/-/asynckit-0.4.0.tgz#c79ed97f7f34cb8f2ba1bc9790bcc366474b4b79"
   integrity sha1-x57Zf380y48robyXkLzDZkdLS3k=
 
-atem-connection@^0.10.0:
-  version "0.10.0"
-  resolved "https://registry.yarnpkg.com/atem-connection/-/atem-connection-0.10.0.tgz#2ce82cdf3415a4a2f7a0638e2c7eaa7e937f9f03"
-  integrity sha512-WhQ4bzKzCMBEb0T/+yo/Dzkz4dtwTdcX1y1ej1M/VctnRIkX4QESXZaToTp+6lCxUIRReZ2jKHrRZBEDpAwwBw==
+atem-connection@1.1.0:
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/atem-connection/-/atem-connection-1.1.0.tgz#cfe073164d5b46b3014bdb6ade829925b15f0c9c"
+  integrity sha512-P0h09N3BZ0XETyjbfPjn/MwrtZi8F9fFupjAKcEgPtvnYr0CG505UE1iRhrMG3zXARcC5gFI40JnvFsOF5EpcA==
   dependencies:
     exit-hook "^2.0.0"
     nanotimer "^0.3.15"
-    p-queue "^2.4.2"
-    p-retry "^2.0.0"
+    p-retry "^4.1.0"
     tslib "^1.9.0"
     wavefile "^8.4.4"
 
-atem-state@^0.7.1:
-  version "0.7.1"
-  resolved "https://registry.yarnpkg.com/atem-state/-/atem-state-0.7.1.tgz#266e1c4fce5ee8e97557402a5177d4b1ad1260ca"
-  integrity sha512-BJJPGLH8Vnnvg/xCI8MwOrJiRr0US33ZZLVfGJEUWOrwIfdRj48VlzewVY7mWna3zrb7FJC0YBYHpzTDCeCwKw==
+atem-state@0.8.0:
+  version "0.8.0"
+  resolved "https://registry.yarnpkg.com/atem-state/-/atem-state-0.8.0.tgz#6d8e4015ee6875a507dcae60fc54e7cc23cacf3f"
+  integrity sha512-vpJwmtP49xpe7xe9rScpemLMBPGOuavtZY/egx0DpfrdzzjeF/1Ef75eHLGXLKhLRjYaHgyAqneObvT1IIYk2w==
   dependencies:
-    atem-connection "^0.10.0"
+    atem-connection "1.1.0"
     tslib "^1.9.2"
 
 atob@^2.1.1:
@@ -1160,7 +1164,7 @@ code-point-at@^1.0.0:
   resolved "https://registry.yarnpkg.com/code-point-at/-/code-point-at-1.1.0.tgz#0d070b4d043a5bea33a2f1a40e2edb3d9a4ccf77"
   integrity sha1-DQcLTQQ6W+ozovGkDi7bPZpMz3c=
 
-codecov@^3.5.0:
+codecov@^3.6.1:
   version "3.6.1"
   resolved "https://registry.yarnpkg.com/codecov/-/codecov-3.6.1.tgz#f39fc49413445555f81f8e3ca5730992843b4517"
   integrity sha512-IUJB6WG47nWK7o50etF8jBadxdMw7DmoQg05yIljstXFBGB6clOZsIj6iD4P82T2YaIU3qq+FFu8K9pxgkCJDQ==
@@ -2580,9 +2584,9 @@ http-signature@~1.2.0:
     sshpk "^1.7.0"
 
 https-proxy-agent@^2.2.1:
-  version "2.2.2"
-  resolved "https://registry.yarnpkg.com/https-proxy-agent/-/https-proxy-agent-2.2.2.tgz#271ea8e90f836ac9f119daccd39c19ff7dfb0793"
-  integrity sha512-c8Ndjc9Bkpfx/vCJueCPy0jlP4ccCCSNDp8xwCZzPjKJUm+B+u9WX2x98Qx4n1PiMNTWo3D7KK5ifNV/yJyRzg==
+  version "2.2.3"
+  resolved "https://registry.yarnpkg.com/https-proxy-agent/-/https-proxy-agent-2.2.3.tgz#fb6cd98ed5b9c35056b5a73cd01a8a721d7193d1"
+  integrity sha512-Ytgnz23gm2DVftnzqRRz2dOXZbGd2uiajSw/95bPp6v53zPRspQjLm/AfBgqbJ2qfeRXWIOMVLpp86+/5yX39Q==
   dependencies:
     agent-base "^4.3.0"
     debug "^3.1.0"
@@ -2595,10 +2599,10 @@ humanize-url@^1.0.0:
     normalize-url "^1.0.0"
     strip-url-auth "^1.0.0"
 
-hyperdeck-connection@^0.3.0:
-  version "0.3.0"
-  resolved "https://registry.yarnpkg.com/hyperdeck-connection/-/hyperdeck-connection-0.3.0.tgz#b9a7bb57cdd21a5b0203f39d95fdefc57c9d0354"
-  integrity sha512-yKxtu9op1PugwiwdrWdXTqMzk7iXdXUwUw/o9z1CEngW/9ZdOLqFysjL9siG2oL6vjPUUWLEIiCKx6p5BldBug==
+hyperdeck-connection@^0.4.0:
+  version "0.4.0"
+  resolved "https://registry.yarnpkg.com/hyperdeck-connection/-/hyperdeck-connection-0.4.0.tgz#47546aa1fc37e335adaed0d06637857d455e797e"
+  integrity sha512-W2fmnaWoRAwEtHAvUTM7saaPlE6keHA7PwD4kAvd4EPwrjO6Q/FR5uK8oCVSPz8dzLiIU0DIfbQf32iJEIuDgA==
   dependencies:
     underscore "^1.9.1"
     underscore-deep-extend "^1.1.5"
@@ -4434,21 +4438,17 @@ p-map@^2.0.0:
   resolved "https://registry.yarnpkg.com/p-map/-/p-map-2.1.0.tgz#310928feef9c9ecc65b68b17693018a665cea175"
   integrity sha512-y3b8Kpd8OAN444hxfBbFfj1FY/RjtTd8tzYwhUqNYXx0fXx2iX4maP4Qr6qhIKbQXI02wTLAda4fYUbDagTUFw==
 
-p-queue@^2.4.2:
-  version "2.4.2"
-  resolved "https://registry.yarnpkg.com/p-queue/-/p-queue-2.4.2.tgz#03609826682b743be9a22dba25051bd46724fc34"
-  integrity sha512-n8/y+yDJwBjoLQe1GSJbbaYQLTI7QHNZI2+rpmCDbe++WLf9HC3gf6iqj5yfPAV71W4UF3ql5W1+UBPXoXTxng==
-
 p-reduce@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/p-reduce/-/p-reduce-1.0.0.tgz#18c2b0dd936a4690a529f8231f58a0fdb6a47dfa"
   integrity sha1-GMKw3ZNqRpClKfgjH1ig/bakffo=
 
-p-retry@^2.0.0:
-  version "2.0.0"
-  resolved "https://registry.yarnpkg.com/p-retry/-/p-retry-2.0.0.tgz#b97f1f4d6d81a3c065b2b40107b811e995c1bfba"
-  integrity sha512-ZbCuzAmiwJ45q4evp/IG9D+5MUllGSUeCWwPt3j/tdYSi1KPkSD+46uqmAA1LhccDhOXv8kYZKNb8x78VflzfA==
+p-retry@^4.1.0:
+  version "4.1.0"
+  resolved "https://registry.yarnpkg.com/p-retry/-/p-retry-4.1.0.tgz#9ce7cef2069e84bf590df3b8ec18d740109338d6"
+  integrity sha512-oepllyG9gX1qH4Sm20YAKxg1GA7L7puhvGnTfimi31P07zSIj7SDV6YtuAx9nbJF51DES+2CIIRkXs8GKqWJxA==
   dependencies:
+    "@types/retry" "^0.12.0"
     retry "^0.12.0"
 
 p-try@^1.0.0:

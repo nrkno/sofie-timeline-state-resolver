@@ -275,6 +275,8 @@ export class QuantelDevice extends DeviceWithState<QuantelState> {
 				if (layer.content && (layer.content.title || layer.content.guid)) {
 					const clip = layer as any as TimelineObjQuantelClip
 
+					const startTime = layer.instance.originalStart || layer.instance.start
+
 					port.timelineObjId = layer.id
 					port.notOnAir = layer.content.notOnAir || isLookahead
 					port.outTransition = layer.content.outTransition
@@ -297,7 +299,7 @@ export class QuantelDevice extends DeviceWithState<QuantelState> {
 							clip.content.noStarttime || isLookahead
 							?
 							null :
-							layer.instance.start
+							startTime
 						) || null
 					}
 					if (isLookahead) port.lookahead = true

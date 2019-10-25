@@ -6,10 +6,10 @@ import {
 	MappingQuantel,
 	QuantelTransitionType
 } from '../../types/src'
-import { MockTime } from '../../__tests__/mockTime.spec'
+import { MockTime } from '../../__tests__/mockTime'
 import { ThreadedClass } from 'threadedclass'
 import { QuantelDevice, QuantelCommandType } from '../quantel'
-require('../../__tests__/lib.spec')
+import '../../__tests__/lib'
 
 const orgSetTimeout = setTimeout
 

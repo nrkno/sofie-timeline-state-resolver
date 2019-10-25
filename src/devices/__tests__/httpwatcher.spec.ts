@@ -5,7 +5,7 @@ import {
 	DeviceType,
 	MappingHTTPWatcher
 } from '../../types/src'
-import { MockTime } from '../../__tests__/mockTime.spec'
+import { MockTime } from '../../__tests__/mockTime'
 import { StatusCode } from '../device'
 
 const request = require('../../__mocks__/request')
