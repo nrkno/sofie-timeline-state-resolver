@@ -6,7 +6,7 @@ describe('mockTime', () => {
 		mockTime.init()
 		expect(mockTime.now).toEqual(10000)
 		expect(mockTime.now).toEqual(10000)
-	
+
 		mockTime.advanceTime(100)
 		expect(mockTime.now).toEqual(10100)
 		mockTime.advanceTimeTo(12000)
@@ -20,7 +20,7 @@ describe('mockTime', () => {
 		mockTime.init()
 		expect(mockTime.now).toEqual(10000)
 		expect(mockTime.now).toEqual(10000)
-	
+
 		await mockTime.advanceTimeTicks(100)
 		expect(mockTime.now).toEqual(10100)
 		await mockTime.advanceTimeToTicks(12000)
@@ -29,4 +29,4 @@ describe('mockTime', () => {
 			done()
 		})
 	})
-}) 
+})
