@@ -3,8 +3,8 @@ import {
 	SisyfosState,
 	SisyfosCommand,
 	Commands,
-	ToggleCommand,
-	FaderCommand,
+	ValueCommand,
+	StringCommand,
 	SisyfosAPIState
 } from '../types/src/sisyfos'
 import { EventEmitter } from 'events'
@@ -75,22 +75,29 @@ export class SisyfosInterface extends EventEmitter {
 	send (command: SisyfosCommand) {
 		if (command.type === Commands.TAKE) {
 			this._oscClient.send({ address: '/take', args: [] })
+		} else if (command.type === Commands.FADE_TO_BLACK) {
+			this._oscClient.send({ address: '/fadetoblack', args: [] })
 		} else if (command.type === Commands.CLEAR_PST_ROW) {
 			this._oscClient.send({ address: '/clearpst', args: [] })
+		} else if (command.type === Commands.LABEL) {
+			this._oscClient.send({ address: `/ch/${(command as StringCommand).channel + 1}/label`, args: [{
+				type: 's',
+				value: (command as StringCommand).value
+			}] })
 		} else if (command.type === Commands.TOGGLE_PGM) {
-			this._oscClient.send({ address: `/ch/${(command as ToggleCommand).channel + 1}/pgm`, args: [{
+			this._oscClient.send({ address: `/ch/${(command as ValueCommand).channel + 1}/pgm`, args: [{
 				type: 'i',
-				value: (command as ToggleCommand).value
+				value: (command as ValueCommand).value
 			}] })
 		} else if (command.type === Commands.TOGGLE_PST) {
-			this._oscClient.send({ address: `/ch/${(command as ToggleCommand).channel + 1}/pst`, args: [{
+			this._oscClient.send({ address: `/ch/${(command as ValueCommand).channel + 1}/pst`, args: [{
 				type: 'i',
-				value: (command as ToggleCommand).value
+				value: (command as ValueCommand).value
 			}] })
 		} else if (command.type === Commands.SET_FADER) {
-			this._oscClient.send({ address: `/ch/${(command as FaderCommand).channel + 1}/faderlevel`, args: [{
+			this._oscClient.send({ address: `/ch/${(command as ValueCommand).channel + 1}/faderlevel`, args: [{
 				type: 'f',
-				value: (command as FaderCommand).value
+				value: (command as ValueCommand).value
 			}] })
 		}
 	}

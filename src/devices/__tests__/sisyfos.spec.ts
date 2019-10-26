@@ -5,11 +5,11 @@ import {
 	DeviceType
 } from '../../types/src'
 import { MockOSC } from '../../__mocks__/osc'
-import { MockTime } from '../../__tests__/mockTime.spec'
+import { MockTime } from '../../__tests__/mockTime'
 import { ThreadedClass } from 'threadedclass'
 import { MappingSisyfos, TimelineContentTypeSisyfos } from '../../types/src/sisyfos'
 import { SisyfosMessageDevice } from '../sisyfos'
-import { getMockCall } from '../../__tests__/lib.spec'
+import { getMockCall } from '../../__tests__/lib'
 
 describe('Sisyfos', () => {
 	let mockTime = new MockTime()
@@ -141,6 +141,34 @@ describe('Sisyfos', () => {
 
 					isPgm: 1
 				}
+			},
+			{
+				id: 'obj4',
+				enable: {
+					start: mockTime.now + 4000, // 4 seconds in the future
+					duration: 2000
+				},
+				layer: 'sisyfos_channel_1',
+				content: {
+					deviceType: DeviceType.SISYFOS,
+					type: TimelineContentTypeSisyfos.SISYFOS,
+
+					fadeToBlack: true
+				}
+			},
+			{
+				id: 'obj5',
+				enable: {
+					start: mockTime.now + 5000, // 4.1 seconds in the future
+					duration: 2000
+				},
+				layer: 'sisyfos_channel_1',
+				content: {
+					deviceType: DeviceType.SISYFOS,
+					type: TimelineContentTypeSisyfos.SISYFOS,
+
+					label: 'MY TIME'
+				}
 			}
 		]
 
@@ -171,8 +199,8 @@ describe('Sisyfos', () => {
 			value: 1
 		})
 
-		await mockTime.advanceTimeTicks(2000) // 5 seconds into the future
-		expect(commandReceiver0.mock.calls.length).toEqual(7)
+		await mockTime.advanceTimeTicks(3000) // 6 seconds into the future
+		expect(commandReceiver0.mock.calls.length).toEqual(10)
 		// set pst off
 		expect(getMockCall(commandReceiver0, 4, 1)).toMatchObject({
 			type: 'togglePst',
@@ -184,6 +212,18 @@ describe('Sisyfos', () => {
 			type: 'togglePgm',
 			channel: 0,
 			value: 0
+		})
+		// fadeToBlack
+		expect(getMockCall(commandReceiver0, 6, 1)).toMatchObject({
+			type: 'fadeToBlack',
+			channel: 0,
+			value: true
+		})
+		// set new label
+		expect(getMockCall(commandReceiver0, 8, 1)).toMatchObject({
+			type: 'label',
+			channel: 0,
+			value: 'MY TIME'
 		})
 	})
 

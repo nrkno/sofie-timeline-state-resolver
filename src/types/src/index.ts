@@ -10,6 +10,7 @@ export * from './sisyfos'
 export * from './quantel'
 export * from './tcpSend'
 export * from './vizMSE'
+export * from './singularLive'
 import * as Timeline from './superfly-timeline'
 import { TimelineObjAtemAny } from './atem'
 import { TimelineObjCasparCGAny } from './casparcg'
@@ -25,6 +26,7 @@ import { TSRTimelineObjProps } from './mapping'
 import { TimelineObjQuantelAny } from './quantel'
 import { TimelineObjSisyfosAny } from './sisyfos'
 import { TimelineObjVIZMSEAny } from './vizMSE'
+import { TimelineObjSingularLiveAny } from './singularLive'
 
 export { Timeline }
 export * from './mapping'
@@ -46,7 +48,8 @@ export enum DeviceType {
 	HTTPWATCHER = 10,
 	SISYFOS = 11,
 	QUANTEL = 12,
-	VIZMSE = 13
+	VIZMSE = 13,
+	SINGULAR_LIVE = 14
 }
 
 export interface TSRTimelineKeyframe<T> extends Timeline.TimelineKeyframe {
@@ -92,7 +95,8 @@ export type TSRTimelineObj = (
 	TimelineObjPanasonicPtzAny |
 	TimelineObjQuantelAny |
 	TimelineObjSisyfosAny |
-	TimelineObjVIZMSEAny
+	TimelineObjVIZMSEAny |
+	TimelineObjSingularLiveAny
 )
 
 export type TSRTimeline = Array<TSRTimelineObj>

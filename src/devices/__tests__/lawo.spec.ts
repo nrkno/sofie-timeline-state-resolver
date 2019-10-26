@@ -7,9 +7,9 @@ import {
 	MappingLawo,
 	MappingLawoType
 } from '../../types/src'
-import { MockTime } from '../../__tests__/mockTime.spec'
+import { MockTime } from '../../__tests__/mockTime'
 import { ThreadedClass } from 'threadedclass'
-import { getMockCall } from '../../__tests__/lib.spec'
+import { getMockCall } from '../../__tests__/lib'
 
 describe('Lawo', () => {
 	let mockTime = new MockTime()
@@ -32,8 +32,14 @@ describe('Lawo', () => {
 			mappingType: MappingLawoType.SOURCE,
 			identifier: 'BASE'
 		}
+		let myRetriggerMapping: MappingLawo = {
+			device: DeviceType.LAWO,
+			deviceId: 'myLawo',
+			mappingType: MappingLawoType.TRIGGER_VALUE
+		}
 		let myChannelMapping: Mappings = {
-			'lawo_c1_fader': myChannelMapping0
+			'lawo_c1_fader': myChannelMapping0,
+			'lawo_trigger': myRetriggerMapping
 		}
 
 		let myConductor = new Conductor({
@@ -116,16 +122,12 @@ describe('Lawo', () => {
 					start: mockTime.now + 2000, // 2 seconds in the future
 					duration: 2000
 				},
-				layer: 'lawo_c1_fader',
+				layer: 'lawo_trigger',
 				content: {
 					deviceType: DeviceType.LAWO,
-					type: TimelineContentTypeLawo.SOURCE,
+					type: TimelineContentTypeLawo.TRIGGER_VALUE,
 
-					'Fader/Motor dB Value': {
-						value: -4,
-						transitionDuration: 400,
-						triggerValue: 'asdf' // only used for trigging new command sent
-					}
+					triggerValue: 'asdf' // only used for trigging new command sent
 				}
 			}
 		]
@@ -277,6 +279,78 @@ describe('Lawo', () => {
 
 		await mockTime.advanceTimeToTicks(11500)
 		expect(commandReceiver0).toHaveBeenCalledTimes(2)
+	})
+	test('Lawo: manual fade', async () => {
+
+		let commandReceiver0 = jest.fn(() => {
+			return Promise.resolve()
+		})
+		let myChannelMapping0: MappingLawo = {
+			device: DeviceType.LAWO,
+			deviceId: 'myLawo',
+			mappingType: MappingLawoType.SOURCE,
+			identifier: 'RM1'
+		}
+		let myChannelMapping: Mappings = {
+			'lawo_c1_fader': myChannelMapping0
+		}
+
+		let myConductor = new Conductor({
+			initializeAsClear: true,
+			getCurrentTime: mockTime.getCurrentTime
+		})
+		await myConductor.setMapping(myChannelMapping)
+		await myConductor.init() // we cannot do an await, because setTimeout will never call without jest moving on.
+		await myConductor.addDevice('myLawo', {
+			type: DeviceType.LAWO,
+			options: {
+				host: '160.67.96.51',
+				port: 9000,
+				// commandReceiver: commandReceiver0,
+				setValueFn: commandReceiver0,
+				sourcesPath: 'Sapphire.Sources',
+				faderInterval: 40
+			}
+		})
+		await mockTime.advanceTimeToTicks(10100)
+
+		let deviceContainer = myConductor.getDevice('myLawo')
+		let device = deviceContainer.device as ThreadedClass<LawoDevice>
+
+		// Check that no commands has been scheduled:
+		expect(await device.queue).toHaveLength(0)
+		myConductor.timeline = [
+			{
+				id: 'obj0',
+				enable: {
+					start: mockTime.now - 1000, // 1 seconds in the past
+					duration: 2000
+				},
+				layer: 'lawo_c1_fader',
+				content: {
+					deviceType: DeviceType.LAWO,
+					type: TimelineContentTypeLawo.SOURCE,
+
+					'Fader/Motor dB Value': {
+						value: -191,
+						transitionDuration: 400
+					}
+				}
+			}
+		]
+
+		expect(await device.queue).toHaveLength(0)
+		await mockTime.advanceTimeToTicks(10500)
+
+		expect(commandReceiver0.mock.calls).toHaveLength(9)
+
+		let last = 0
+		for (let i = 0; i < 9; i++) {
+			const mockCall = getMockCall(commandReceiver0, i, 0)
+			expect(mockCall.value).toBeLessThan(last)
+			expect(mockCall.value).toBeGreaterThanOrEqual(-191)
+			last = mockCall.value
+		}
 	})
 	test('Lawo: Command priority', async () => {
 

@@ -157,9 +157,10 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState> {
 
 			const channel: SisyfosChannel = {
 				...channelFromAPI,
-				faderLevel:  0.75,  // 0 dB
-				pgmOn:  0,
-				pstOn:  0,
+				faderLevel: 0.75,  // 0 dB
+				pgmOn: 0,
+				pstOn: 0,
+				label: '',
 				tlObjIds: []
 			}
 
@@ -194,6 +195,15 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState> {
 				if (layer.content.faderLevel !== undefined) {
 					deviceState.channels[foundMapping.channel].faderLevel = layer.content.faderLevel
 				}
+
+				if (layer.content.fadeToBlack !== undefined) {
+					deviceState.channels[foundMapping.channel].fadeToBlack = layer.content.fadeToBlack
+				}
+
+				if (layer.content.label !== undefined) {
+					deviceState.channels[foundMapping.channel].label = layer.content.label
+				}
+
 				deviceState.channels[foundMapping.channel].tlObjIds.push(tlObject.id)
 			}
 		})
@@ -263,6 +273,30 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState> {
 						type: Commands.SET_FADER,
 						channel: Number(index),
 						value: newChannel.faderLevel
+					},
+					timelineObjId: newChannel.tlObjIds[0] || ''
+				})
+			}
+
+			if (oldChannel && oldChannel.fadeToBlack !== newChannel.fadeToBlack) {
+				commands.push({
+					context: 'fade all pgm to black',
+					content: {
+						type: Commands.FADE_TO_BLACK,
+						channel: 0,
+						value: newChannel.fadeToBlack
+					},
+					timelineObjId: newChannel.tlObjIds[0] || ''
+				})
+			}
+
+			if (newChannel.label !== '' && oldChannel.label !== newChannel.label) {
+				commands.push({
+					context: 'set label on fader',
+					content: {
+						type: Commands.LABEL,
+						channel: Number(index),
+						value: newChannel.label
 					},
 					timelineObjId: newChannel.tlObjIds[0] || ''
 				})
