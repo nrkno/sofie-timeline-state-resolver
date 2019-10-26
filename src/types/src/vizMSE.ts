@@ -16,7 +16,10 @@ export interface VizMSEOptions {
 	showID: string
 	/** Identifier of the "profile" to send commands to */
 	profile: string
-	profileName
+
+	/** Whether all elements should be preloaded or not */
+	preloadAllElements: boolean
+	// profileName
 }
 export enum TimelineContentTypeVizMSE {
 	ELEMENT_INTERNAL = 'element_internal',

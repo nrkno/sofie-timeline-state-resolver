@@ -28,6 +28,7 @@ import { TimelineObjVIZMSEAny } from './vizMSE'
 
 export { Timeline }
 export * from './mapping'
+export * from './expectedPlayoutItems'
 
 export type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>
 

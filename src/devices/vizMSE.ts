@@ -11,20 +11,20 @@ import {
 	DeviceType,
 	DeviceOptions,
 	Mapping,
-	MappingVizMSE,
 	VizMSEOptions,
 	ResolvedTimelineObjectInstanceExtended,
-	TimelineContentTypeVizMSE,
-	TimelineObjVIZMSEBase,
 	TimelineObjVIZMSEElementInternal,
-	TimelineObjVIZMSEElementPilot
+	TimelineContentTypeVizMSE,
+	TimelineObjVIZMSEElementPilot,
+	ExpectedPlayoutItemContent,
+	ExpectedPlayoutItemContentVizMSE
 } from '../types/src'
 
 import {
 	TimelineState, ResolvedTimelineObjectInstance
 } from 'superfly-timeline'
 
-import { createMSE, MSE, VRundown } from 'v-connection'
+import { createMSE, MSE, VRundown, InternalElement, ExternalElement } from 'v-connection'
 
 import { DoOnTime, SendMode } from '../doOnTime'
 
@@ -39,7 +39,6 @@ const PREPARE_TIME_WAIT = 50
 export interface VizMSEDeviceOptions extends DeviceOptions {
 	options?: {
 		commandReceiver?: CommandReceiver
-
 	}
 }
 export type CommandReceiver = (time: number, cmd: VizMSECommand, context: string, timelineObjId: string) => Promise<any>
@@ -84,23 +83,21 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState> {
 
 		this._vizmseManager = new VizMSEManager(
 			this._vizMSE,
-			() => this.getCurrentTime()
+			this._connectionOptions.preloadAllElements
 		)
 
 		this._vizmseManager.on('connectionChanged', (connected) => this._connectionChanged(connected))
 
-		await this._vizmseManager.initialize(
+		await this._vizmseManager.initializeRundown(
 			connectionOptions.showID,
 			connectionOptions.profile
 		)
 
-		
-
 		// this._vizmse.on('error', e => this.emit('error', 'VizMSE.v-connection', e))
-		// this._vizmseManager.on('info', str => this.emit('info', 'VizMSE: ' + str))
-		// this._vizmseManager.on('warning', str => this.emit('warning', 'VizMSE' + str))
-		// this._vizmseManager.on('error', e => this.emit('error', 'VizMSE', e))
-		// this._vizmseManager.on('debug', (...args) => this.emit('debug', ...args))
+		this._vizmseManager.on('info', str => this.emit('info', 'VizMSE: ' + str))
+		this._vizmseManager.on('warning', str => this.emit('warning', 'VizMSE' + str))
+		this._vizmseManager.on('error', e => this.emit('error', 'VizMSE', e))
+		this._vizmseManager.on('debug', (...args) => this.emit('debug', ...args))
 
 		// this._initialized = true
 
@@ -181,6 +178,12 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState> {
 		return this._doOnTime.getQueue()
 	}
 
+	public handleExpectedPlayoutItems (expectedPlayoutItems: Array<ExpectedPlayoutItemContent>): void {
+		if (this._vizmseManager) {
+			this._vizmseManager.setExpectedPlayoutItems(expectedPlayoutItems)
+		}
+	}
+
 	/**
 	 * Takes a timeline state and returns a VizMSE State that will work with the state lib.
 	 * @param timelineState The timeline state to generate from.
@@ -247,8 +250,9 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState> {
 	 * @param okToDestroyStuff Whether it is OK to do things that affects playout visibly
 	 */
 	async makeReady (okToDestroyStuff?: boolean): Promise<void> {
-
-		await this._vizmseManager.activate()
+		if (this._vizmseManager) {
+			await this._vizmseManager.activate()
+		}
 
 		if (okToDestroyStuff) {
 			// reset our own state(s):
@@ -261,7 +265,9 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState> {
 	 */
 	async standDown (okToDestroyStuff?: boolean): Promise<void> {
 		if (okToDestroyStuff) {
-			await this._vizmseManager.deactivate()
+			if (this._vizmseManager) {
+				await this._vizmseManager.deactivate()
+			}
 		}
 	}
 	getStatus (): DeviceStatus {
@@ -350,7 +356,7 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState> {
 
 						elementName: this._getElementName(newLayer),
 						templateName: this._getTemplateName(newLayer),
-						textFields: this._getTemplateData(newLayer)
+						dataFields: this._getTemplateData(newLayer)
 					}, newLayer.lookahead)
 
 					// Start playing
@@ -362,7 +368,7 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState> {
 
 						elementName: this._getElementName(newLayer),
 						templateName: this._getTemplateName(newLayer),
-						textFields: this._getTemplateData(newLayer)
+						dataFields: this._getTemplateData(newLayer)
 
 					}, newLayer.lookahead)
 				}
@@ -433,20 +439,24 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState> {
 		this.emit('debug', cwc)
 
 		try {
+			if (this._vizmseManager) {
 
-			if (cmd.type === VizMSECommandType.PREPARE_ELEMENT) {
-				await this._vizmseManager.prepareElement()
-			} else if (cmd.type === VizMSECommandType.CUE_ELEMENT) {
-				await this._vizmseManager.cueElement()
-			} else if (cmd.type === VizMSECommandType.TAKE_ELEMENT) {
-				await this._vizmseManager.takeElement()
-			} else if (cmd.type === VizMSECommandType.TAKEOUT_ELEMENT) {
-				await this._vizmseManager.takeoutElement()
-			} else if (cmd.type === VizMSECommandType.CONTINUE_ELEMENT) {
-				await this._vizmseManager.continueElement()
+				if (cmd.type === VizMSECommandType.PREPARE_ELEMENT) {
+					await this._vizmseManager.prepareElement(cmd)
+				} else if (cmd.type === VizMSECommandType.CUE_ELEMENT) {
+					await this._vizmseManager.cueElement(cmd)
+				} else if (cmd.type === VizMSECommandType.TAKE_ELEMENT) {
+					await this._vizmseManager.takeElement(cmd)
+				} else if (cmd.type === VizMSECommandType.TAKEOUT_ELEMENT) {
+					await this._vizmseManager.takeoutElement(cmd)
+				} else if (cmd.type === VizMSECommandType.CONTINUE_ELEMENT) {
+					await this._vizmseManager.continueElement(cmd)
+				} else {
+					// @ts-ignore never
+					throw new Error(`Unsupported command type "${cmd.type}"`)
+				}
 			} else {
-				// @ts-ignore never
-				throw new Error(`Unsupported command type "${cmd.type}"`)
+				throw new Error(`Not initialized yet`)
 			}
 		} catch (error) {
 			let errorString = (
@@ -481,23 +491,24 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState> {
 }
 class VizMSEManager extends EventEmitter {
 	public initialized: boolean = false
-	private _vizmseState: VizMSETrackedState = {
-		elements: {}
-	}
+	// private _vizmseState: VizMSETrackedState = {
+	// 	elements: {}
+	// }
 	private _rundown: VRundown | undefined
 
-	private _cache = new Cache()
+	private _elementCache: {[hash: string]: (InternalElement | ExternalElement) } = {}
+	private _expectedPlayoutItems: Array<ExpectedPlayoutItemContent> = []
 
 	constructor (
 		private _vizMSE: MSE,
-		private getCurrentTime: () => number
+		public preloadAllElements: boolean
 	) {
 		super()
 		// this._vizmse.on('error', (...args) => this.emit('error', ...args))
 		// this._vizmse.on('debug', (...args) => this.emit('debug', ...args))
 	}
 
-	public async initialize (
+	public async initializeRundown (
 		showID: string,
 		profile: string
 	): Promise<void> {
@@ -526,6 +537,9 @@ class VizMSEManager extends EventEmitter {
 		if (!this._rundown) throw new Error(`VizMSEManager: unable to create rundown!`)
 
 		// const profile = await this._vizMSE.getProfile('sofie') // TODO: Figure out if this is needed
+
+		this._updateExpectedPlayoutItems().catch(e => this.emit('error', e))
+
 		this.initialized = true
 	}
 	public async terminate () {
@@ -534,488 +548,145 @@ class VizMSEManager extends EventEmitter {
 			delete this._vizMSE
 		}
 	}
+	public setExpectedPlayoutItems (expectedPlayoutItems: Array<ExpectedPlayoutItemContent>) {
+		if (this.preloadAllElements) {
+			this._expectedPlayoutItems = expectedPlayoutItems
+		}
+		this._updateExpectedPlayoutItems().catch(e => this.emit('error', e))
+	}
 	public async activate (): Promise<void> {
-		if (!this._rundown) throw new Error(`Not initialized!`)
+		if (!this._rundown) throw new Error(`Viz Rundown not initialized!`)
 		await this._rundown.activate()
 	}
 	public async deactivate (): Promise<void> {
-		if (!this._rundown) throw new Error(`Not initialized!`)
+		if (!this._rundown) throw new Error(`Viz Rundown not initialized!`)
 		await this._rundown.deactivate()
+		this._clearCache()
 	}
 	public async prepareElement (cmd: VizMSECommandPrepare): Promise<void> {
-		if (!this._rundown) throw new Error(`Not initialized!`)
+		if (!this._rundown) throw new Error(`Viz Rundown not initialized!`)
 
+		const elementHash = this.getElementHash(cmd)
+		this.emit('debug', `VizMSE: prepare "${elementHash}"`)
+		await this._checkPrepareElement(cmd, true)
 	}
 	public async cueElement (cmd: VizMSECommandCue): Promise<void> {
-		if (!this._rundown) throw new Error(`Not initialized!`)
+		if (!this._rundown) throw new Error(`Viz Rundown not initialized!`)
 
+		const elementRef = await this._checkPrepareElement(cmd)
+
+		this.emit('debug', `VizMSE: cue "${elementRef}"`)
+		await this._rundown.cue(elementRef)
 	}
 	public async takeElement (cmd: VizMSECommandTake): Promise<void> {
-		if (!this._rundown) throw new Error(`Not initialized!`)
+		if (!this._rundown) throw new Error(`Viz Rundown not initialized!`)
 
+		const elementRef = await this._checkPrepareElement(cmd)
+
+		this.emit('debug', `VizMSE: take "${elementRef}"`)
+		await this._rundown.take(elementRef)
 	}
 	public async takeoutElement (cmd: VizMSECommandTakeOut): Promise<void> {
-		if (!this._rundown) throw new Error(`Not initialized!`)
+		if (!this._rundown) throw new Error(`Viz Rundown not initialized!`)
 
+		this.emit('debug', `VizMSE: out "${cmd.elementName}"`)
+		await this._rundown.out(cmd.elementName)
 	}
 	public async continueElement (cmd: VizMSECommandContinue): Promise<void> {
-		if (!this._rundown) throw new Error(`Not initialized!`)
+		if (!this._rundown) throw new Error(`Viz Rundown not initialized!`)
 
+		this.emit('debug', `VizMSE: continue "${cmd.elementName}"`)
+		await this._rundown.continue(cmd.elementName)
 	}
 
-	public async setupPort (cmd: VizMSECommandSetupPort): Promise<void> {
-		const trackedPort = this._vizmseState.port[cmd.portId]
-
-		// Check if the port is already set up
-		if (
-			!trackedPort ||
-			trackedPort.channel !== cmd.channel
-		) {
-			let port: Q.PortStatus | null = null
-			// Setup a port and connect it to a channel
-			try {
-				port = await this._vizmse.getPort(cmd.portId)
-			} catch (e) {
-				// If the GET fails, it might be something unknown wrong.
-				// A temporary workaround is to send a delete on that port and try again, it might work.
-				try {
-					await this._vizmse.releasePort(cmd.portId)
-				} catch {
-					// ignore any errors
-				}
-				// Try again:
-				port = await this._vizmse.getPort(cmd.portId)
-			}
-			if (port) {
-				// port already exists, release it first:
-				await this._vizmse.releasePort(cmd.portId)
-			}
-			await this._vizmse.createPort(cmd.portId, cmd.channel)
-
-			// Store to the local tracking state:
-			this._vizmseState.port[cmd.portId] = {
-				loadedFragments: {},
-				offset: -1,
-				playing: false,
-				jumpOffset: null,
-				scheduledStop: null,
-				channel: cmd.channel
-			}
-		}
-	}
-	public async releasePort (cmd: VizMSECommandReleasePort): Promise<void> {
-		try {
-			await this._vizmse.releasePort(cmd.portId)
-		} catch (e) {
-			if (e.status !== 404) { // releasing a non-existent port is OK
-				throw e
-			}
-		}
-		// Store to the local tracking state:
-		delete this._vizmseState.port[cmd.portId]
-	}
-	public async loadClipFragments (cmd: VizMSECommandLoadClipFragments): Promise<void> {
-
-		const trackedPort = this.getTrackedPort(cmd.portId)
-
-		const server = await this.getServer()
-
-		let clipId = await this.getClipId(cmd.clip)
-		const clipData = await this._vizmse.getClip(clipId)
-		if (!clipData) throw new Error(`Clip ${clipId} not found`)
-		if (!clipData.PoolID) throw new Error(`Clip ${clipData.ClipID} missing PoolID`)
-
-		// Check that the clip is present on the server:
-		if ((server.pools || []).indexOf(clipData.PoolID) === -1) {
-			throw new Error(`Clip "${clipData.ClipID}" PoolID ${clipData.PoolID} not found on server (${server.ident})`)
-		}
-
-		let useInOutPoints: boolean = !!(
-			cmd.clip.inPoint ||
-			cmd.clip.length
-		)
-
-		let inPoint = cmd.clip.inPoint
-		let length = cmd.clip.length
-
-		/** In point [frames] */
-		const inPointFrames: number = (
-			inPoint ?
-			Math.round(inPoint * DEFAULT_FPS / 1000) : // todo: handle fps, get it from clip?
-			0
-		) || 0
-
-		/** Duration [frames] */
-		let lengthFrames: number = (
-			length ?
-			Math.round(length * DEFAULT_FPS / 1000) : // todo: handle fps, get it from clip?
-			0
-		) || parseInt(clipData.Frames, 10) || 0
-
-		if (inPoint && !length) {
-			lengthFrames -= inPointFrames
-		}
-
-		const outPointFrames = inPointFrames + lengthFrames
-
-		let portInPoint: number
-		let portOutPoint: number
-		// Check if the fragments are already loaded on the port?
-		const loadedFragments = trackedPort.loadedFragments[clipId]
-		if (
-			loadedFragments &&
-			loadedFragments.inPoint === inPointFrames &&
-			loadedFragments.outPoint === outPointFrames
-		) {
-			// Reuse the already loaded fragment:
-			portInPoint = loadedFragments.portInPoint
-			// portOutPoint = loadedFragments.portOutPoint
+	private getElementHash (cmd: ExpectedPlayoutItemContentVizMSE): string {
+		if (_.isNumber(cmd.elementName)) {
+			return 'pilot_' + cmd.elementName
 		} else {
-			// Fetch fragments of clip:
-			const fragmentsInfo = await (
-				useInOutPoints ?
-				this._vizmse.getClipFragments(clipId, inPointFrames, outPointFrames) :
-				this._vizmse.getClipFragments(clipId)
+			return (
+				'el_' +
+				cmd.elementName + '_' +
+				cmd.templateName + '_' +
+				cmd.dataFields // TODO: make unique on this as well??
 			)
-
-			// Check what the end-frame of the port is:
-			const portStatus = await this._vizmse.getPort(cmd.portId)
-			if (!portStatus) throw new Error(`Port ${cmd.portId} not found`)
-			// Load the fragments onto Port:
-			portInPoint = portStatus.endOfData || 0
-			const newPortStatus = await this._vizmse.loadFragmentsOntoPort(cmd.portId, fragmentsInfo.fragments, portInPoint)
-			if (!newPortStatus) throw new Error(`Port ${cmd.portId} not found after loading fragments`)
-
-			// Calculate the end of data of the fragments:
-			portOutPoint = portInPoint + (
-				fragmentsInfo.fragments
-				.filter(fragment => (
-					fragment.type === 'VideoFragment' && // Only use video, so that we don't risk ending at a black frame
-					fragment.trackNum === 0 // < 0 are historic data (not used for automation), 0 is the normal, playable video track, > 0 are extra channels, such as keys
-				))
-				.reduce((prev, current) => prev > current.finish ? prev : current.finish, 0) - 1 // newPortStatus.endOfData - 1
-			)
-
-			// Store a reference to the beginning of the fragments:
-			trackedPort.loadedFragments[clipId] = {
-				portInPoint: portInPoint,
-				portOutPoint: portOutPoint,
-				inPoint: inPointFrames,
-				outPoint: outPointFrames
-			}
-		}
-		// Prepare the jump?
-		let timeLeftToPlay = cmd.timeOfPlay - this.getCurrentTime()
-		if (timeLeftToPlay > 0) { // We have time to prepare the jump
-
-			if (portInPoint > 0 && trackedPort.scheduledStop === null) {
-				// Since we've now added fragments to the end of the port timeline, we should make sure it'll stop at the previous end
-				await this._vizmse.portStop(cmd.portId, portInPoint - 1)
-				trackedPort.scheduledStop = portInPoint - 1
-			}
-
-			await this._vizmse.portPrepareJump(cmd.portId, portInPoint)
-			// Store the jump in the tracked state:
-			trackedPort.jumpOffset = portInPoint
 		}
 	}
-	public async playClip (cmd: VizMSECommandPlayClip): Promise<void> {
-		await this.prepareClipJump(cmd, 'play')
+	private _getCachedElement (hash: string): InternalElement | ExternalElement | undefined {
+		return this._elementCache[hash]
 	}
-	public async pauseClip (cmd: VizMSECommandPauseClip): Promise<void> {
-		await this.prepareClipJump(cmd, 'pause')
+	private _cacheElement (hash: string, element: InternalElement | ExternalElement) {
+		if (this._elementCache[hash]) {
+			this.emit('error', `There is already an element with hash "${hash}" in cache`)
+		}
+		this._elementCache[hash] = element
 	}
-	public async clearClip (cmd: VizMSECommandClearClip): Promise<void> {
-
-		// Fetch tracked reference to the loaded clip:
-		const trackedPort = this.getTrackedPort(cmd.portId)
-		if (cmd.transition) {
-			if (cmd.transition.type === VizMSETransitionType.DELAY) {
-				if (await this.waitWithPort(cmd.portId, cmd.transition.delay)) {
-					// at this point, the wait aws aborted by someone else. Do nothing then.
-					return
-				}
-			}
-		}
-		// Reset the port (this will clear all fragments and reset playhead)
-		await this._vizmse.resetPort(cmd.portId)
-
-		trackedPort.loadedFragments = {}
-		trackedPort.offset = -1
-		trackedPort.playing = false
-		trackedPort.jumpOffset = null
-		trackedPort.scheduledStop = null
+	private _clearCache () {
+		_.each(_.keys(this._elementCache), hash => {
+			delete this._elementCache[hash]
+		})
 	}
-	private async prepareClipJump (cmd: VizMSECommandClip, alsoDoAction?: 'play' | 'pause'): Promise<void> {
+	private _getElementReference (el: InternalElement | ExternalElement): string | number {
+		if (this._isInternalElement(el)) return el.name
+		if (this._isExternalElement(el)) return el.vcpid
+		throw Error('Unknown element type, neither internal nor external')
+	}
+	private _isInternalElement (el: any): el is InternalElement {
+		return (el && el.name && !el.vcpid)
+	}
+	private _isExternalElement (el: any): el is ExternalElement {
+		return (el && !el.name && el.vcpid)
+	}
+	private async _checkPrepareElement (cmd: ExpectedPlayoutItemContentVizMSE, fromPrepare?: boolean): Promise<string | number> {
+		// check if element is prepared
+		const elementHash = this.getElementHash(cmd)
+		let element = this._getCachedElement(elementHash)
 
-		// Fetch tracked reference to the loaded clip:
-		const trackedPort = this.getTrackedPort(cmd.portId)
-		if (cmd.transition) {
-			if (cmd.transition.type === VizMSETransitionType.DELAY) {
-				if (await this.waitWithPort(cmd.portId, cmd.transition.delay)) {
-					// at this point, the wait aws aborted by someone else. Do nothing then.
-					return
-				}
-			}
-		}
-
-		const clipId = await this.getClipId(cmd.clip)
-		const loadedFragments = trackedPort.loadedFragments[clipId]
-
-		if (!loadedFragments) {
-			// huh, the fragments hasn't been loaded
-			throw new Error(`Fragments of clip ${clipId} wasn't loaded`)
-		}
-		const clipFps = DEFAULT_FPS // todo: handle fps, get it from clip?
-		const jumpToOffset = Math.floor(
-			loadedFragments.portInPoint + (
-				cmd.clip.playTime ?
-				Math.max(0, (cmd.clip.pauseTime || this.getCurrentTime()) - cmd.clip.playTime) * clipFps / 1000 :
-				0
-			)
-		)
-		if (
-			jumpToOffset === trackedPort.offset || // We're already there
-			(
-				alsoDoAction === 'play' &&
-				// trackedPort.offset &&
-				jumpToOffset > trackedPort.offset &&
-				jumpToOffset - trackedPort.offset < JUMP_ERROR_MARGIN
-				// We're probably a bit late, just start playing
-			)
-		) {
-			// do nothing
-		} else {
-
-			if (
-				trackedPort.jumpOffset !== null &&
-				Math.abs(trackedPort.jumpOffset - jumpToOffset) > JUMP_ERROR_MARGIN
-			) {
-				// It looks like the stored jump is no longer valid
-				// Invalidate stored jump:
-				trackedPort.jumpOffset = null
-			}
-			// Jump the port playhead to the correct place
-			if (trackedPort.jumpOffset !== null) {
-				// Good, there is a prepared jump
-				if (alsoDoAction === 'pause') {
-					// Pause the playback:
-					await this._vizmse.portStop(cmd.portId)
-					trackedPort.scheduledStop = null
-					trackedPort.playing = false
-				}
-				// Trigger the jump:
-				await this._vizmse.portTriggerJump(cmd.portId)
-				trackedPort.offset = trackedPort.jumpOffset
-				trackedPort.jumpOffset = null
+		if (!element) {
+			if (!fromPrepare) {
+				this.emit('warning', `Late preparation of element "${elementHash}"`)
 			} else {
-				// No jump has been prepared
-				if (cmd.mode === VizMSEControlMode.QUALITY) {
-
-					// Prepare a soft jump:
-					await this._vizmse.portPrepareJump(cmd.portId, jumpToOffset)
-					trackedPort.jumpOffset = jumpToOffset
-
-					if (alsoDoAction === 'pause') {
-						// Pause the playback:
-						await this._vizmse.portStop(cmd.portId)
-						trackedPort.scheduledStop = null
-						trackedPort.playing = false
-
-						// Allow the server some time to load the clip:
-						await this.wait(SOFT_JUMP_WAIT_TIME) // This is going to give the
-					} else {
-						// Allow the server some time to load the clip:
-						await this.wait(SOFT_JUMP_WAIT_TIME) // This is going to give the
-					}
-
-					// Trigger the jump:
-					await this._vizmse.portTriggerJump(cmd.portId)
-					trackedPort.offset = trackedPort.jumpOffset
-					trackedPort.jumpOffset = null
-
-				} else { // cmd.mode === VizMSEControlMode.SPEED
-					// Just do a hard jump:
-					await this._vizmse.portHardJump(cmd.portId, jumpToOffset)
-
-					trackedPort.offset = jumpToOffset
-					trackedPort.playing = false
-				}
+				this.emit('debug', `VizMSE: preparing new "${elementHash}"`)
 			}
+			element = await this._prepareNewElement(cmd)
 		}
 
-		if (alsoDoAction === 'play') {
-			// Start playing:
-			await this._vizmse.portPlay(cmd.portId)
+		return this._getElementReference(element)
+	}
+	private async _prepareNewElement (cmd: ExpectedPlayoutItemContentVizMSE): Promise<InternalElement | ExternalElement> {
+		if (!this._rundown) throw new Error(`Viz Rundown not initialized!`)
 
-			await this.wait(60)
+		const elementHash = this.getElementHash(cmd)
 
-			// Check if the play actually succeeded:
-			const portStatus = await this._vizmse.getPort(cmd.portId)
+		if (_.isNumber(cmd.elementName)) {
+			// Prepare a pilot element
+			const pilotEl = await this._rundown.createElement(cmd.elementName)
 
-			if (!portStatus) {
-				// oh, something's gone very wrong
-				throw new Error(`VizMSE: After play, port doesn't exist anymore`)
-			} else if (!portStatus.status.match(/playing/i)) {
-				// The port didn't seem to have started playing, let's retry a few more times:
+			this._cacheElement(elementHash, pilotEl)
+			return pilotEl
+		} else {
+			// Prepare an internal element
+			const internalEl = await this._rundown.createElement(
+				cmd.templateName,
+				cmd.elementName,
+				cmd.dataFields
+			)
 
-				this.emit('warning', `vizmseRecovery: port didn't play`)
-				this.emit('warning', portStatus)
-
-				for (let i = 0; i < 3; i++) {
-					await this.wait(20)
-
-					await this._vizmse.portPlay(cmd.portId)
-
-					await this.wait(60 + i * 200) // Wait progressively longer times before trying again:
-
-					const portStatus = await this._vizmse.getPort(cmd.portId)
-
-					if (portStatus && portStatus.status.match(/playing/i)) {
-						// it has started playing, all good!
-						this.emit('warning', `vizmseRecovery: port started playing again, on try ${i}`)
-						break
-					} else {
-						this.emit('warning', `vizmseRecovery: try ${i}, no luck trying again..`)
-						this.emit('warning', portStatus)
-					}
-				}
-			}
-			trackedPort.scheduledStop = null
-			trackedPort.playing = true
-
-			// Schedule the port to stop at the last frame of the clip
-			if (loadedFragments.portOutPoint) {
-				await this._vizmse.portStop(cmd.portId, loadedFragments.portOutPoint)
-				trackedPort.scheduledStop = loadedFragments.portOutPoint
-			}
-		} else if (
-			alsoDoAction === 'pause' &&
-			trackedPort.playing
-		) {
-			await this._vizmse.portHardJump(cmd.portId, jumpToOffset)
-
-			trackedPort.offset = jumpToOffset
-			trackedPort.playing = false
+			this._cacheElement(elementHash, internalEl)
+			return internalEl
 		}
 	}
-	private getTrackedPort (portId: string): VizMSETrackedStatePort {
-		const trackedPort = this._vizmseState.port[portId]
-		if (!trackedPort) {
-			// huh, it looks like the port hasn't been created yet.
-			// This is strange, it should have been created by a previously run SETUPPORT
-			throw new Error(`Port ${portId} missing in tracked vizmse state`)
+	private async _updateExpectedPlayoutItems (): Promise<void> {
+		if (this.preloadAllElements) {
+			this.emit('debug', `VISMSE: _updateExpectedPlayoutItems (${this._expectedPlayoutItems.length})`)
+
+			await Promise.all(
+				_.map(this._expectedPlayoutItems, async expectedPlayoutItem => {
+					await this._checkPrepareElement(expectedPlayoutItem, true)
+				})
+			)
 		}
-		return trackedPort
-	}
-	private async getServer () {
-		const server = await this._vizmse.getServer()
-		if (!server) throw new Error(`VizMSE server ${this._vizmse.serverId} not found`)
-		if (!server.pools) throw new Error(`Server ${server.ident} has no .pools`)
-		if (!server.pools.length) throw new Error(`Server ${server.ident} has an empty .pools array`)
-
-		return server
-	}
-	private async getClipId (clip: VizMSEStatePortClip): Promise<number> {
-		let clipId = clip.clipId
-
-		if (!clipId && clip.guid) {
-			clipId = await this._cache.getSet(`clip.guid.${clip.guid}.clipId`, async () => {
-
-				const server = await this.getServer()
-
-				// Look up the clip:
-				const foundClips = await this._vizmse.searchClip({
-					ClipGUID: `"${clip.guid}"`
-				})
-				const foundClip = _.find(foundClips, (clip) => {
-					return (
-						clip.PoolID &&
-						(server.pools || []).indexOf(clip.PoolID) !== -1
-					)
-				})
-				if (!foundClip) throw new Error(`Clip with GUID "${clip.guid}" not found on server (${server.ident})`)
-				return foundClip.ClipID
-			})
-		} else if (!clipId && clip.title) {
-			clipId = await this._cache.getSet(`clip.title.${clip.title}.clipId`, async () => {
-
-				const server = await this.getServer()
-
-				// Look up the clip:
-				const foundClips = await this._vizmse.searchClip({
-					Title: `"${clip.title}"`
-				})
-				const foundClip = _.find(foundClips, (clip) => {
-					return (
-						clip.PoolID &&
-						(server.pools || []).indexOf(clip.PoolID) !== -1
-					)
-				})
-				if (!foundClip) throw new Error(`Clip with Title "${clip.title}" not found on server (${server.ident})`)
-				return foundClip.ClipID
-			})
-		}
-		if (!clipId) throw new Error(`Unable to determine clipId for clip "${clip.title || clip.guid}"`)
-
-		return clipId
 	}
 }
-class Cache {
-	private data: {[key: string]: {
-		endTime: number
-		value: any
-	}} = {}
-	private callCount: number = 0
-	set (key: string, value: any, ttl: number = 30000): any {
-		this.data[key] = {
-			endTime: Date.now() + ttl,
-			value: value
-		}
-		this.callCount++
-		if (this.callCount > 100) {
-			this.callCount = 0
-			this._triggerClean()
-		}
-		return value
-	}
-	get (key: string): any | undefined {
-		const o = this.data[key]
-		if (o && (o.endTime || 0) >= Date.now()) return o.value
-	}
-	exists (key: string): boolean {
-		const o = this.data[key]
-		return (o && (o.endTime || 0) >= Date.now())
-	}
-	getSet<T extends any> (key, fcn: () => T, ttl?: number): T {
-		if (this.exists(key)) {
-			return this.get(key)
-		} else {
-			let value = fcn()
-			if (value && _.isObject(value) && _.isFunction(value.then)) {
-				// value is a promise
-				return (
-					Promise.resolve(value)
-					.then((value) => {
-						return this.set(key, value, ttl)
-					})
-				) as any as T
-			} else {
-				return this.set(key, value, ttl)
-			}
-		}
-	}
-	private _triggerClean () {
-		setTimeout(() => {
-			_.each(this.data, (o, key) => {
-				if ((o.endTime || 0) < Date.now()) {
-					delete this.data[key]
-				}
-			})
-		}, 1)
-	}
-}
-
 
 interface VizMSEState {
 	time: number
@@ -1067,10 +738,7 @@ export enum VizMSECommandType {
 // interface VizMSECommandDeactivate extends VizMSECommandBase {
 // 	type: VizMSECommandType.DEACTIVATE
 // }
-interface VizMSECommandElementBase extends VizMSECommandBase {
-	templateName: string
-	elementName: string | number // if number, it's a vizPilot element
-	textFields: string[]
+interface VizMSECommandElementBase extends VizMSECommandBase, ExpectedPlayoutItemContentVizMSE {
 }
 interface VizMSECommandPrepare extends VizMSECommandElementBase {
 	type: VizMSECommandType.PREPARE_ELEMENT
@@ -1099,44 +767,11 @@ type VizMSECommand = VizMSECommandPrepare |
 	VizMSECommandContinue
 
 /** Tracked state of the vizMSE */
-interface VizMSETrackedState {
-	elements: {
-		[elementName: string]: vizMSEElement
-	}
-}
-interface vizMSEElement {
-	// todo
-}
-// interface VizMSETrackedStatePort {
-// 	/** Reference to the latest loaded fragments of a clip  */
-// 	loadedFragments: {
-// 		[clipId: number]: {
-// 			/** The point (in a port) where the fragments starts [frames] */
-// 			portInPoint: number
-// 			/** The point (in a port) where the fragments ends [frames] */
-// 			portOutPoint: number
-
-// 			/** The inpoint used when loading the fragments */
-// 			inPoint: number
-// 			/** The outpoint used when loading the fragments */
-// 			outPoint: number
-// 		}
+// interface VizMSETrackedState {
+// 	elements: {
+// 		[elementName: string]: VizMSEElement
 // 	}
-// 	/** The (SDI)-output channel the port is using */
-// 	channel: number
-
-// 	/** The current offset of the playhead (only valid when not playing) */
-// 	offset: number
-// 	/** If the playhead is playing or not */
-// 	playing: boolean
-// 	/** When preparing a jump, this is the frame the cursor is set to  */
-// 	jumpOffset: number | null
-// 	/** When preparing a stop, this is the frame the playhead will stop at */
-// 	scheduledStop: number | null
 // }
-// interface MappedPorts extends MonitorPorts {
-// 	[portId: string]: {
-// 		mode: VizMSEControlMode,
-// 		channels: number[]
-// 	}
+// interface VizMSEElement {
+// 	// todo
 // }
