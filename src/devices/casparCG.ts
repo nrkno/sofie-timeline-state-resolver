@@ -270,6 +270,8 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> {
 				channel.fps = 25 / 1000 // 25 fps over 1000ms
 				caspar.channels[channel.channelNo] = channel
 
+				const startTime = layer.instance.originalStart || layer.instance.start
+
 				// create layer of appropriate type
 				let stateLayer: StateNS.ILayerBase | null = null
 				if (
@@ -292,7 +294,7 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> {
 							)
 							?
 							null :
-							layer.instance.start
+							startTime
 						) || null,
 
 						pauseTime:		mediaObj.content.pauseTime || null,
@@ -343,7 +345,7 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> {
 						content:		StateNS.LayerContentType.TEMPLATE,
 						media:			recordObj.content.name,
 
-						playTime:		layer.instance.start || null,
+						playTime:		startTime || null,
 						playing:		true,
 
 						templateType:	recordObj.content.templateType || 'html',
@@ -359,7 +361,7 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> {
 						content:	StateNS.LayerContentType.HTMLPAGE,
 						media:		htmlObj.content.url,
 
-						playTime:	layer.instance.start || null,
+						playTime:	startTime || null,
 						playing:	true
 					})
 				} else if (layer.content.type === TimelineContentTypeCasparCg.ROUTE) {
@@ -389,7 +391,7 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> {
 				} else if (layer.content.type === TimelineContentTypeCasparCg.RECORD) {
 					const recordObj = layer as any as TimelineObjCCGRecord
 
-					if (layer.instance.start) {
+					if (startTime) {
 						stateLayer = literal<StateNS.IRecordLayer>({
 							id: 				layer.id,
 							layerNo:			mapping.layer,
@@ -397,7 +399,7 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> {
 							media:				recordObj.content.file,
 							encoderOptions:		recordObj.content.encoderOptions,
 							playing:			true,
-							playTime:			layer.instance.start || 0
+							playTime:			startTime || 0
 						})
 					}
 				}

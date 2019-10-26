@@ -5,11 +5,11 @@ import {
 	DeviceType
 } from '../../types/src'
 import { MockOSC } from '../../__mocks__/osc'
-import { MockTime } from '../../__tests__/mockTime.spec'
+import { MockTime } from '../../__tests__/mockTime'
 import { ThreadedClass } from 'threadedclass'
 import { MappingSisyfos, TimelineContentTypeSisyfos } from '../../types/src/sisyfos'
 import { SisyfosMessageDevice } from '../sisyfos'
-import { getMockCall } from '../../__tests__/lib.spec'
+import { getMockCall } from '../../__tests__/lib'
 
 describe('Sisyfos', () => {
 	let mockTime = new MockTime()

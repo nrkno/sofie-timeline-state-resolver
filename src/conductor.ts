@@ -32,6 +32,7 @@ import { AsyncResolver } from './AsyncResolver'
 import { HttpWatcherDevice } from './devices/httpWatcher'
 import { QuantelDevice } from './devices/quantel'
 import { SisyfosMessageDevice } from './devices/sisyfos'
+import { SingularLiveDevice } from './devices/singularLive'
 
 export { DeviceContainer }
 export { CommandWithContext }
@@ -395,6 +396,15 @@ export class Conductor extends EventEmitter {
 				newDevice = await new DeviceContainer().create<OSCMessageDevice>(
 					'../../dist/devices/sisyfos.js',
 					SisyfosMessageDevice,
+					deviceId,
+					deviceOptions,
+					options,
+					threadedClassOptions
+				)
+			} else if (deviceOptions.type === DeviceType.SINGULAR_LIVE) {
+				newDevice = await new DeviceContainer().create<SingularLiveDevice>(
+					'../../dist/devices/singularLive.js',
+					SingularLiveDevice,
 					deviceId,
 					deviceOptions,
 					options,

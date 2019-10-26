@@ -20,7 +20,7 @@ import {
 	Triggers,
 	Protocol
 } from '../pharosAPI'
-import { getMockCall } from '../../__tests__/lib.spec'
+import { getMockCall } from '../../__tests__/lib'
 const WebSocket = require('../../__mocks__/ws')
 const request = require('../../__mocks__/request')
 

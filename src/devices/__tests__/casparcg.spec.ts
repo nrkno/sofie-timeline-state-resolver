@@ -10,8 +10,8 @@ import {
 	Ease,
 	Direction
 } from '../../types/src'
-import { MockTime } from '../../__tests__/mockTime.spec'
-import { getMockCall } from '../../__tests__/lib.spec'
+import { MockTime } from '../../__tests__/mockTime'
+import { getMockCall } from '../../__tests__/lib'
 
 // usage logCalls(commandReceiver0)
 function logCalls (fcn) {

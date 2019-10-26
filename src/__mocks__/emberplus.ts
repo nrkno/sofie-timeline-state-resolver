@@ -40,7 +40,7 @@ export class DeviceTree extends EventEmitter {
 	}
 
 	getNodeByPath (path: string) {
-		console.log('get node', path)
+		// console.log('get node', path)
 		return new Promise((resolve) => resolve(new Node(path)))
 	}
 

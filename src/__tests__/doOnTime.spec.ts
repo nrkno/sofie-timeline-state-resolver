@@ -1,4 +1,4 @@
-import { MockTime } from './mockTime.spec'
+import { MockTime } from './mockTime'
 import { DoOnTime, SendMode } from '../doOnTime'
 
 describe('DoOnTime', () => {
