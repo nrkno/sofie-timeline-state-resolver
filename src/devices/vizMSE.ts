@@ -376,9 +376,22 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState> {
 			} else if (
 				(newLayer.continueStep || 0) > (oldLayer.continueStep || 0)
 			) {
-				// A change in continueStep should result in triggering a continue:
+				// An increase in continueStep should result in triggering a continue:
 				addCommand({
 					type: VizMSECommandType.CONTINUE_ELEMENT,
+					time: prepareTime,
+					timelineObjId: newLayer.timelineObjId,
+					fromLookahead: newLayer.lookahead,
+
+					elementName: this._getElementName(newLayer)
+
+				}, newLayer.lookahead)
+			} else if (
+				(newLayer.continueStep || 0) < (oldLayer.continueStep || 0)
+			) {
+				// A decrease in continueStep should result in triggering a continue:
+				addCommand({
+					type: VizMSECommandType.CONTINUE_ELEMENT_REVERSE,
 					time: prepareTime,
 					timelineObjId: newLayer.timelineObjId,
 					fromLookahead: newLayer.lookahead,
@@ -603,6 +616,12 @@ class VizMSEManager extends EventEmitter {
 		this.emit('debug', `VizMSE: continue "${cmd.elementName}"`)
 		await this._rundown.continue(cmd.elementName)
 	}
+	public async continueElementReverse (cmd: VizMSECommandContinueReverse): Promise<void> {
+		if (!this._rundown) throw new Error(`Viz Rundown not initialized!`)
+
+		this.emit('debug', `VizMSE: continue reverse "${cmd.elementName}"`)
+		await this._rundown.continueReverse(cmd.elementName)
+	}
 
 	private getElementHash (cmd: ExpectedPlayoutItemContentVizMSE): string {
 		if (_.isNumber(cmd.elementName)) {
@@ -735,7 +754,8 @@ export enum VizMSECommandType {
 	CUE_ELEMENT = 'cue',
 	TAKE_ELEMENT = 'take',
 	TAKEOUT_ELEMENT = 'out',
-	CONTINUE_ELEMENT = 'continue'
+	CONTINUE_ELEMENT = 'continue',
+	CONTINUE_ELEMENT_REVERSE = 'continuereverse'
 }
 // interface VizMSECommandActivate extends VizMSECommandBase {
 // 	type: VizMSECommandType.ACTIVATE
@@ -764,12 +784,18 @@ interface VizMSECommandContinue extends VizMSECommandBase {
 
 	elementName: string | number
 }
+interface VizMSECommandContinueReverse extends VizMSECommandBase {
+	type: VizMSECommandType.CONTINUE_ELEMENT_REVERSE
+
+	elementName: string | number
+}
 
 type VizMSECommand = VizMSECommandPrepare |
 	VizMSECommandCue |
 	VizMSECommandTake |
 	VizMSECommandTakeOut |
-	VizMSECommandContinue
+	VizMSECommandContinue |
+	VizMSECommandContinueReverse
 
 /** Tracked state of the vizMSE */
 // interface VizMSETrackedState {
