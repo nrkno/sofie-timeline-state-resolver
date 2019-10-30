@@ -33,6 +33,7 @@ import { HttpWatcherDevice } from './devices/httpWatcher'
 import { QuantelDevice } from './devices/quantel'
 import { SisyfosMessageDevice } from './devices/sisyfos'
 import { SingularLiveDevice } from './devices/singularLive'
+import { VizMSEDevice } from './devices/vizMSE'
 
 export { DeviceContainer }
 export { CommandWithContext }
@@ -396,6 +397,15 @@ export class Conductor extends EventEmitter {
 				newDevice = await new DeviceContainer().create<OSCMessageDevice>(
 					'../../dist/devices/sisyfos.js',
 					SisyfosMessageDevice,
+					deviceId,
+					deviceOptions,
+					options,
+					threadedClassOptions
+				)
+			} else if (deviceOptions.type === DeviceType.VIZMSE) {
+				newDevice = await new DeviceContainer().create<VizMSEDevice>(
+					'../../dist/devices/vizMSE.js',
+					VizMSEDevice,
 					deviceId,
 					deviceOptions,
 					options,
