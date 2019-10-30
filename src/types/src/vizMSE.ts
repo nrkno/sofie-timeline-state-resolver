@@ -16,6 +16,8 @@ export interface VizMSEOptions {
 	showID: string
 	/** Identifier of the "profile" to send commands to */
 	profile: string
+	/** Identifier of the "playlist" to send commands to */
+	playlistID?: string
 
 	/** Whether all elements should be preloaded or not */
 	preloadAllElements: boolean

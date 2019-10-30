@@ -90,7 +90,8 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState> {
 
 		await this._vizmseManager.initializeRundown(
 			connectionOptions.showID,
-			connectionOptions.profile
+			connectionOptions.profile,
+			connectionOptions.playlistID
 		)
 
 		// this._vizmse.on('error', e => this.emit('error', 'VizMSE.v-connection', e))
@@ -451,6 +452,8 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState> {
 					await this._vizmseManager.takeoutElement(cmd)
 				} else if (cmd.type === VizMSECommandType.CONTINUE_ELEMENT) {
 					await this._vizmseManager.continueElement(cmd)
+				} else if (cmd.type === VizMSECommandType.CONTINUE_ELEMENT_REVERSE) {
+					await this._vizmseManager.continueElementReverse(cmd)
 				} else {
 					// @ts-ignore never
 					throw new Error(`Unsupported command type "${cmd.type}"`)
@@ -510,7 +513,8 @@ class VizMSEManager extends EventEmitter {
 
 	public async initializeRundown (
 		showID: string,
-		profile: string
+		profile: string,
+		playlistID?: string
 	): Promise<void> {
 		this._vizMSE.on('connected', () => this.emit('connectionChanged', true))
 		this._vizMSE.on('disconnected', () => this.emit('connectionChanged', false))
@@ -530,7 +534,8 @@ class VizMSEManager extends EventEmitter {
 		if (!this._rundown) {
 			this._rundown = await this._vizMSE.createRundown(
 				showID,
-				profile
+				profile,
+				playlistID
 			)
 		}
 
