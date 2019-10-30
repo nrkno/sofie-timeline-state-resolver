@@ -43,7 +43,7 @@ export class TCPSendDevice extends DeviceWithState<TimelineState> {
 	private _connected: boolean = false
 	private _host: string
 	private _port: number
-	private _bufferEncoding?: string
+	private _bufferEncoding?: BufferEncoding
 	private _setDisconnected: boolean = false // set to true if disconnect() has been called (then do not trye to reconnect)
 	private _retryConnectTimeout: NodeJS.Timer
 	// private _queue: Array<any>
