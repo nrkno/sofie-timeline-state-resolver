@@ -1,7 +1,7 @@
 module.exports = {
 	globals: {
 		'ts-jest': {
-			tsConfig: 'tsconfig.jest.json',
+			tsConfig: 'tsconfig.json',
 			diagnostics: false
 		}
 	},
@@ -30,6 +30,9 @@ module.exports = {
 	collectCoverageFrom: [
 		"**/src/**/*.{ts,js}",
 		"!**/node_modules/**",
+		"!**/__tests__/**",
+		"!**/__mocks__/**",
+		"!**/src/devices/copy/**",
 		"!**/dist/**",
 		"!**/src/types/**"
 	],
