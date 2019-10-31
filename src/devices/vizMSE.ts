@@ -224,7 +224,7 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState> {
 			) {
 				if (layer.content) {
 
-					const stateLayer = content2StateLayer (
+					const stateLayer = content2StateLayer(
 						layer.id,
 						layer.content as any
 					)
@@ -481,7 +481,7 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState> {
 		if (connected === true || connected === false) this._vizMSEConnected = connected
 		this.emit('connectionChanged', this.getStatus())
 	}
-	
+
 }
 class VizMSEManager extends EventEmitter {
 	public initialized: boolean = false
@@ -682,7 +682,7 @@ class VizMSEManager extends EventEmitter {
 			if (_.isNumber(cmd.templateName)) {
 				// Prepare a pilot element
 				const pilotEl = await this._rundown.createElement(cmd.templateName)
-	
+
 				this._cacheElement(elementHash, pilotEl)
 				return pilotEl
 			} else {
@@ -692,7 +692,7 @@ class VizMSEManager extends EventEmitter {
 					cmd.templateInstance,
 					cmd.templateData || []
 				)
-	
+
 				this._cacheElement(elementHash, internalEl)
 				return internalEl
 			}
@@ -701,7 +701,7 @@ class VizMSEManager extends EventEmitter {
 				// If the object already exists, it's not an error, fetch and use the element instead
 
 				const element = await this._rundown.getElement(cmd.templateInstance)
-	
+
 				this._cacheElement(elementHash, element)
 				return element
 			} else {
@@ -716,19 +716,18 @@ class VizMSEManager extends EventEmitter {
 
 			await Promise.all(
 				_.map(this._expectedPlayoutItems, async expectedPlayoutItem => {
-					
 
 					const stateLayer: VizMSEStateLayer | undefined = (
 						_.isNumber(expectedPlayoutItem.templateName) ?
-						content2StateLayer (
+						content2StateLayer(
 							'',
 							{
 								deviceType: DeviceType.VIZMSE,
 								type: TimelineContentTypeVizMSE.ELEMENT_PILOT,
-								templateVcpId: expectedPlayoutItem.templateName,
+								templateVcpId: expectedPlayoutItem.templateName
 							} as TimelineObjVIZMSEElementPilot['content']
 						) :
-						content2StateLayer (
+						content2StateLayer(
 							'',
 							{
 								deviceType: DeviceType.VIZMSE,
@@ -746,7 +745,7 @@ class VizMSEManager extends EventEmitter {
 						}
 						await this._checkPrepareElement(item, true)
 					}
-					
+
 				})
 			)
 		}
