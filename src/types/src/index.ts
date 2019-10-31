@@ -9,6 +9,7 @@ export * from './ptz'
 export * from './sisyfos'
 export * from './quantel'
 export * from './tcpSend'
+export * from './vizMSE'
 export * from './singularLive'
 import * as Timeline from './superfly-timeline'
 import { TimelineObjAtemAny } from './atem'
@@ -24,10 +25,12 @@ import { TimelineObjAbstractAny } from './abstract'
 import { TSRTimelineObjProps } from './mapping'
 import { TimelineObjQuantelAny } from './quantel'
 import { TimelineObjSisyfosAny } from './sisyfos'
+import { TimelineObjVIZMSEAny } from './vizMSE'
 import { TimelineObjSingularLiveAny } from './singularLive'
 
 export { Timeline }
 export * from './mapping'
+export * from './expectedPlayoutItems'
 
 export type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>
 
@@ -45,6 +48,7 @@ export enum DeviceType {
 	HTTPWATCHER = 10,
 	SISYFOS = 11,
 	QUANTEL = 12,
+	VIZMSE = 13,
 	SINGULAR_LIVE = 14
 }
 
@@ -91,6 +95,7 @@ export type TSRTimelineObj = (
 	TimelineObjPanasonicPtzAny |
 	TimelineObjQuantelAny |
 	TimelineObjSisyfosAny |
+	TimelineObjVIZMSEAny |
 	TimelineObjSingularLiveAny
 )
 

@@ -162,6 +162,7 @@
     "threadedclass": "^0.6.8",
     "underscore": "^1.9.1",
     "underscore-deep-extend": "^1.1.5",
+    "v-connection": "git+https://github.com/olzzon/v-connection/#dist",
     "ws": "^7.1.1"
   },
   "standard-version": {

@@ -3,7 +3,8 @@ import { TimelineState } from 'superfly-timeline'
 import {
 	Mappings,
 	DeviceType,
-	DeviceOptions
+	DeviceOptions,
+	ExpectedPlayoutItemContent
 } from '../types/src'
 import { EventEmitter } from 'events'
 import { CommandReport, DoOnTime } from '../doOnTime'
@@ -162,6 +163,14 @@ export abstract class Device extends EventEmitter {
 	get deviceOptions (): DeviceOptions {
 		return this._deviceOptions
 	}
+	get supportsExpectedPlayoutItems (): boolean {
+		return false
+	}
+	public handleExpectedPlayoutItems (_expectedPlayoutItems: Array<ExpectedPlayoutItemContent>): void {
+		// When receiving a new list of playoutItems.
+		// by default, do nothing
+	}
+
 	private _updateCurrentTime () {
 		if (this._getCurrentTime) {
 			const startTime = Date.now()
