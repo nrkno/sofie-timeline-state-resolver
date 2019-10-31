@@ -465,10 +465,7 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> {
 
 				if (!layerExt.isLookahead) { // foreground layer
 					const prev = channel.layers[mapping.layer] || {}
-					channel.layers[mapping.layer] = {
-						...stateLayer,
-						nextUp: prev.nextUp
-					}
+					channel.layers[mapping.layer] = _.extend(stateLayer, _.pick(prev, 'nextUp'))
 				} else { // background layer
 					let s = stateLayer as StateNS.NextUp
 					s.auto = false
@@ -489,20 +486,6 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> {
 					}
 				}
 			}
-		})
-
-		_.each(caspar.channels, channel => {
-			_.each(channel.layers, (layer, i) => {
-				if (layer.content === StateNS.LayerContentType.NOTHING && layer.nextUp) {
-					// If nextUp is defined, and not foreground, then promote nextUp to be a paused foreground
-					// TODO - this needs to be driven by an option on the mapping/object
-					channel.layers[i] = {
-						...layer.nextUp,
-						playing: false, // Paused (LOAD)
-						playTime: null // Freeze at start
-					}
-				}
-			})
 		})
 
 		return caspar
