@@ -13,7 +13,9 @@ import {
 	TimelineContentTypeSingularLive,
 	MappingSingularLive,
 	TimelineObjSingularLiveAny,
-	DeviceOptionsSingularLive
+	DeviceOptionsSingularLive,
+	SingularCompositionAnimation,
+	SingularCompositionControlNode
 } from '../types/src'
 import { DoOnTime, SendMode } from '../doOnTime'
 import * as request from 'request'
@@ -57,14 +59,10 @@ export type CommandContext = string
 
 export interface SingularComposition {
 	timelineObjId: string
-	animation: {
-		stage: string
-		action: 'jump' | 'play'
-	}
-	controlNode: {
-		payload: { [key: string]: string }
-	}
+	animation: SingularCompositionAnimation
+	controlNode: SingularCompositionControlNode
 }
+
 
 export interface SingularLiveState {
 	compositions: {
@@ -178,21 +176,13 @@ export class SingularLiveDevice extends DeviceWithState<TimelineState> implement
 				let tlObjectSource = tlObject as any as TimelineObjSingularLiveAny
 
 				if (tlObjectSource.content.type === TimelineContentTypeSingularLive.COMPOSITION) {
-					// const content = tlObjectSource.content
 
-					// if (!singularState.compositions[mapping.compositionName]) {
-					// 	 = {
-					// 		animation: 
-					// 	}
-					// }
-					
-					singularState.compositions[mapping.compositionName] = Object.assign(
-						singularState.compositions[mapping.compositionName] || {},
-						{
-							timelineObjId: tlObject.id,
-							controlNode: tlObjectSource.content.controlNode
-						}
-					)
+					singularState.compositions[mapping.compositionName] = {
+						timelineObjId: tlObject.id,
+
+						controlNode: tlObjectSource.content.controlNode,
+						animation: tlObjectSource.content.animation || { action: 'play' }
+					}
 				}
 			}
 		})
