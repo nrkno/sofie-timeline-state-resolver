@@ -428,20 +428,10 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> {
 							let media = stateLayer.media
 							let transitions = {} as any
 							if (baseContent.transitions.inTransition) {
-								transitions.inTransition = new StateNS.Transition(
-									baseContent.transitions.inTransition.type,
-									baseContent.transitions.inTransition.duration || baseContent.transitions.inTransition.maskFile,
-									baseContent.transitions.inTransition.easing || baseContent.transitions.inTransition.delay,
-									baseContent.transitions.inTransition.direction || baseContent.transitions.inTransition.overlayFile
-								)
+								transitions.inTransition = new StateNS.Transition(baseContent.transitions.inTransition)
 							}
 							if (baseContent.transitions.outTransition) {
-								transitions.outTransition = new StateNS.Transition(
-									baseContent.transitions.outTransition.type,
-									baseContent.transitions.outTransition.duration || baseContent.transitions.outTransition.maskFile,
-									baseContent.transitions.outTransition.easing || baseContent.transitions.outTransition.delay,
-									baseContent.transitions.outTransition.direction || baseContent.transitions.outTransition.overlayFile
-								)
+								transitions.outTransition = new StateNS.Transition(baseContent.transitions.outTransition)
 							}
 							stateLayer.media = new StateNS.TransitionObject(media, {
 								inTransition: transitions.inTransition,
