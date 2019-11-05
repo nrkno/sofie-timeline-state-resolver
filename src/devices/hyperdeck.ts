@@ -542,6 +542,9 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> {
 	private async _querySlotNumber (): Promise<number> {
 		const { slots } = await this._hyperdeck.sendCommand(new HyperdeckCommands.DeviceInfoCommand())
 
+		// before protocol version 1.9 we do not get slot info, so we assume 2 slots.
+		if (!slots) return 2
+
 		return slots
 	}
 
