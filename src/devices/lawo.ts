@@ -4,11 +4,11 @@ import {
 	DeviceWithState,
 	CommandWithContext,
 	DeviceStatus,
-	StatusCode
+	StatusCode,
+	IDevice
 } from './device'
 import {
 	DeviceType,
-	DeviceOptions,
 	TimelineContentTypeLawo,
 	MappingLawo,
 	TimelineObjLawoSource,
@@ -16,7 +16,11 @@ import {
 	TimelineObjLawoEmberProperty,
 	EmberValueTypes,
 	EmberTypes,
-	TimelineObjLawoEmberRetrigger
+	TimelineObjLawoEmberRetrigger,
+	DeviceOptionsLawo,
+	LawoCommand,
+	SetLawoValueFn,
+	LawoOptions
 } from '../types/src'
 import {
 	TimelineState, ResolvedTimelineObjectInstance
@@ -28,20 +32,14 @@ import {
 import { DoOnTime, SendMode } from '../doOnTime'
 import { getDiff } from '../lib'
 
-export interface LawoOptions extends DeviceOptions { // TODO - this doesnt match what the other ones do
-	options?: {
-		commandReceiver?: CommandReceiver
-		setValueFn?: SetValueFn
-		host?: string
-		port?: number
-		sourcesPath?: string
-		rampMotorFunctionPath?: string
-		dbPropertyName?: string
-		faderInterval?: number
-	}
+export interface DeviceOptionsLawoInternal extends DeviceOptionsLawo {
+	options: (
+		DeviceOptionsLawo['options'] &
+		{ commandReceiver?: CommandReceiver }
+	)
 }
 export type CommandReceiver = (time: number, cmd: LawoCommand, context: CommandContext, timelineObjId: string) => Promise<any>
-export type SetValueFn = (command: LawoCommand, timelineObjId: string, valueType?: EmberTypes) => Promise<any>
+
 // export type EmberPlusValue = boolean | number | string | {type: EmberTypes, value: EmberValueTypes}
 
 export interface LawoState {
@@ -62,17 +60,7 @@ export interface LawoStateNode {
 	/** Reference to the original timeline object: */
 	timelineObjId: string
 }
-export interface LawoCommand {
-	path: string
-	value: EmberValueTypes
-	valueType: EmberTypes
-	key: string
-	identifier: string
-	type: TimelineContentTypeLawo
-	transitionDuration?: number
-	from?: EmberValueTypes
-	priority: number
-}
+
 export interface LawoCommandWithContext {
 	cmd: LawoCommand
 	context: CommandContext
@@ -85,7 +73,7 @@ const FADER_THRESHOLD = -90 // below this value the channel is considered muted
  *
  * It controls mutes and fades over Ember Plus.
  */
-export class LawoDevice extends DeviceWithState<TimelineState> {
+export class LawoDevice extends DeviceWithState<TimelineState> implements IDevice {
 	private _doOnTime: DoOnTime
 	private _lawo: DeviceTree
 
@@ -98,7 +86,7 @@ export class LawoDevice extends DeviceWithState<TimelineState> {
 	private _sourcesPath: string
 	private _rampMotorFunctionPath: string
 	private _dbPropertyName: string
-	private _setValueFn: SetValueFn
+	private _setValueFn: SetLawoValueFn
 	private _faderIntervalTime: number
 
 	private transitions: { [address: string]: {
@@ -106,7 +94,7 @@ export class LawoDevice extends DeviceWithState<TimelineState> {
 	} & LawoCommand } = {}
 	private transitionInterval: NodeJS.Timer | undefined
 
-	constructor (deviceId: string, deviceOptions: LawoOptions, options) {
+	constructor (deviceId: string, deviceOptions: DeviceOptionsLawoInternal, options) {
 		super(deviceId, deviceOptions, options)
 		if (deviceOptions.options) {
 			if (deviceOptions.options.commandReceiver) {
@@ -169,7 +157,7 @@ export class LawoDevice extends DeviceWithState<TimelineState> {
 	/**
 	 * Initiates the connection with Lawo
 	 */
-	init (): Promise<boolean> {
+	init (_initOptions: LawoOptions): Promise<boolean> {
 		return new Promise((resolve, reject) => {
 			let fail = (e) => reject(e)
 			try {

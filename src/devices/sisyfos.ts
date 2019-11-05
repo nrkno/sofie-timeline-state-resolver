@@ -3,24 +3,26 @@ import {
 	DeviceWithState,
 	CommandWithContext,
 	DeviceStatus,
-	StatusCode
+	StatusCode,
+	IDevice
 } from './device'
 import {
 	DeviceType,
-	DeviceOptions
+	DeviceOptionsSisyfos
 } from '../types/src'
 import { DoOnTime, SendMode } from '../doOnTime'
 
 import {
 	TimelineState, ResolvedTimelineObjectInstance
 } from 'superfly-timeline'
-import { SisfyosOptions, SisyfosState, SisyfosChannel, TimelineObjSisyfosMessage, MappingSisyfos, ToggleCommand, Commands, SisyfosCommand } from '../types/src/sisyfos'
+import { SisyfosOptions, SisyfosState, SisyfosChannel, TimelineObjSisyfosMessage, MappingSisyfos, ToggleCommand, Commands, SisyfosCommand } from '../types/src/sisyfos'
 import { SisyfosInterface } from './sisyfosAPI'
 
-export interface SisyfosDeviceOptions extends DeviceOptions {
-	options?: {
-		commandReceiver?: (time: number, cmd) => Promise<any>
-	}
+export interface DeviceOptionsSisyfosInternal extends DeviceOptionsSisyfos {
+	options: (
+		DeviceOptionsSisyfos['options'] &
+		{ commandReceiver?: CommandReceiver }
+	)
 }
 export type CommandReceiver = (time: number, cmd: SisyfosCommand, context: CommandContext, timelineObjId: string) => Promise<any>
 interface Command {
@@ -32,14 +34,14 @@ type CommandContext = string
 /**
  * This is a generic wrapper for any osc-enabled device.
  */
-export class SisyfosMessageDevice extends DeviceWithState<SisyfosState> {
+export class SisyfosMessageDevice extends DeviceWithState<SisyfosState> implements IDevice {
 
 	private _doOnTime: DoOnTime
 	private _sisyfos: SisyfosInterface
 
 	private _commandReceiver: CommandReceiver
 
-	constructor (deviceId: string, deviceOptions: SisyfosDeviceOptions, options) {
+	constructor (deviceId: string, deviceOptions: DeviceOptionsSisyfosInternal, options) {
 		super(deviceId, deviceOptions, options)
 		if (deviceOptions.options) {
 			if (deviceOptions.options.commandReceiver) this._commandReceiver = deviceOptions.options.commandReceiver
@@ -60,14 +62,14 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState> {
 		}, SendMode.BURST, this._deviceOptions)
 		this.handleDoOnTime(this._doOnTime, 'Sisyfos')
 	}
-	init (options: SisfyosOptions): Promise<boolean> {
+	init (initOptions: SisyfosOptions): Promise<boolean> {
 
 		this._sisyfos.once('initialized', () => {
 			this.setState(this.getDeviceState(), this.getCurrentTime())
 			this.emit('resetResolver')
 		})
 
-		return this._sisyfos.connect(options.host, options.port)
+		return this._sisyfos.connect(initOptions.host, initOptions.port)
 			.then(() => true)
 	}
 	/** Called by the Conductor a bit before a .handleState is called */

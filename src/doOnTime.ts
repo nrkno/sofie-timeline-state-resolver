@@ -1,6 +1,6 @@
 import { EventEmitter } from 'events'
 import * as _ from 'underscore'
-import { SlowReportOptions } from './types/src/mapping'
+import { SlowReportOptions } from './types/src/device'
 
 export type DoOrderFunction = (...args: any[]) => void | Promise<any> | any
 export type DoOrderFunctionNothing = () => void | Promise<any> | any

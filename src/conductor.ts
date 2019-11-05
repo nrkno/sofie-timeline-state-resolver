@@ -6,33 +6,32 @@ import {
 } from 'superfly-timeline'
 
 import { DeviceClassOptions, CommandWithContext } from './devices/device'
-import { CasparCGDevice } from './devices/casparCG'
-import { AbstractDevice } from './devices/abstract'
-import { HttpSendDevice } from './devices/httpSend'
+import { CasparCGDevice, DeviceOptionsCasparCGInternal } from './devices/casparCG'
+import { AbstractDevice, DeviceOptionsAbstractInternal } from './devices/abstract'
+import { HTTPSendDevice, DeviceOptionsHTTPSendInternal } from './devices/httpSend'
 import {
 	Mappings,
 	Mapping,
 	DeviceType,
-	DeviceOptions,
 	ResolvedTimelineObjectInstanceExtended,
 	TSRTimeline
 } from './types/src'
-import { AtemDevice } from './devices/atem'
+import { AtemDevice, DeviceOptionsAtemInternal } from './devices/atem'
 import { EventEmitter } from 'events'
-import { LawoDevice } from './devices/lawo'
-import { PanasonicPtzDevice } from './devices/panasonicPTZ'
-import { HyperdeckDevice } from './devices/hyperdeck'
+import { LawoDevice, DeviceOptionsLawoInternal } from './devices/lawo'
+import { PanasonicPtzDevice, DeviceOptionsPanasonicPTZInternal } from './devices/panasonicPTZ'
+import { HyperdeckDevice, DeviceOptionsHyperdeckInternal } from './devices/hyperdeck'
 import { DoOnTime } from './doOnTime'
-import { TCPSendDevice } from './devices/tcpSend'
-import { PharosDevice } from './devices/pharos'
-import { OSCMessageDevice } from './devices/osc'
+import { TCPSendDevice, DeviceOptionsTCPSendInternal } from './devices/tcpSend'
+import { PharosDevice, DeviceOptionsPharosInternal } from './devices/pharos'
+import { OSCMessageDevice, DeviceOptionsOSCInternal } from './devices/osc'
 import { DeviceContainer } from './devices/deviceContainer'
 import { threadedClass, ThreadedClass } from 'threadedclass'
 import { AsyncResolver } from './AsyncResolver'
-import { HttpWatcherDevice } from './devices/httpWatcher'
-import { QuantelDevice } from './devices/quantel'
-import { SisyfosMessageDevice } from './devices/sisyfos'
-import { SingularLiveDevice } from './devices/singularLive'
+import { HTTPWatcherDevice, DeviceOptionsHTTPWatcherInternal } from './devices/httpWatcher'
+import { QuantelDevice, DeviceOptionsQuantelInternal } from './devices/quantel'
+import { SisyfosMessageDevice, DeviceOptionsSisyfosInternal } from './devices/sisyfos'
+import { SingularLiveDevice, DeviceOptionsSingularLiveInternal } from './devices/singularLive'
 
 export { DeviceContainer }
 export { CommandWithContext }
@@ -264,7 +263,7 @@ export class Conductor extends EventEmitter {
 	 * @param deviceOptions The options used to initalize the device
 	 * @returns A promise that resolves with the created device, or rejects with an error message.
 	 */
-	public async addDevice (deviceId, deviceOptions: DeviceOptions): Promise<DeviceContainer> {
+	public async addDevice (deviceId, deviceOptions: DeviceOptionsAnyInternal): Promise<DeviceContainer> {
 		try {
 			let newDevice: DeviceContainer
 			let threadedClassOptions = {
@@ -312,18 +311,18 @@ export class Conductor extends EventEmitter {
 					threadedClassOptions
 				)
 			} else if (deviceOptions.type === DeviceType.HTTPSEND) {
-				newDevice = await new DeviceContainer().create<HttpSendDevice>(
+				newDevice = await new DeviceContainer().create<HTTPSendDevice>(
 					'../../dist/devices/httpSend.js',
-					HttpSendDevice,
+					HTTPSendDevice,
 					deviceId,
 					deviceOptions,
 					options,
 					threadedClassOptions
 				)
 			} else if (deviceOptions.type === DeviceType.HTTPWATCHER) {
-				newDevice = await new DeviceContainer().create<HttpWatcherDevice>(
+				newDevice = await new DeviceContainer().create<HTTPWatcherDevice>(
 					'../../dist/devices/httpWatcher.js',
-					HttpWatcherDevice,
+					HTTPWatcherDevice,
 					deviceId,
 					deviceOptions,
 					options,
@@ -411,8 +410,9 @@ export class Conductor extends EventEmitter {
 					threadedClassOptions
 				)
 			} else {
-				return Promise.reject('No matching multithreaded device type for "' +
-				deviceOptions.type + '" ("' + DeviceType[deviceOptions.type] + '") found')
+				// @ts-ignore deviceOptions.type is of type "never"
+				const type: any = deviceOptions.type
+				return Promise.reject(`No matching device type for "${type}" ("${DeviceType[type]}") found in conductor`)
 			}
 
 			newDevice.device.on('debug', (...e) => {
@@ -1011,3 +1011,19 @@ export class Conductor extends EventEmitter {
 		return filteredState
 	}
 }
+export type DeviceOptionsAnyInternal = (
+	DeviceOptionsAbstractInternal |
+	DeviceOptionsCasparCGInternal |
+	DeviceOptionsAtemInternal |
+	DeviceOptionsLawoInternal |
+	DeviceOptionsHTTPSendInternal |
+	DeviceOptionsHTTPWatcherInternal |
+	DeviceOptionsPanasonicPTZInternal |
+	DeviceOptionsTCPSendInternal |
+	DeviceOptionsHyperdeckInternal |
+	DeviceOptionsPharosInternal |
+	DeviceOptionsOSCInternal |
+	DeviceOptionsSisyfosInternal |
+	DeviceOptionsQuantelInternal |
+	DeviceOptionsSingularLiveInternal
+)

@@ -6,12 +6,6 @@ export interface MappingSingularLive extends Mapping {
 	compositionName: string
 }
 
-export interface SingularLiveCompositionContent extends SingularLiveContent {
-	type: TimelineContentTypeSingularLive.COMPOSITION,
-	controlNode: {
-		payload: { [key: string]: string }
-	}
-}
 export interface SingularLiveContent {
 	type: TimelineContentTypeSingularLive
 	temporalPriority?: number // default: 0
@@ -31,12 +25,16 @@ export type TimelineObjSingularLiveAny = TimelineObjSingularLiveComposition
 export interface TimelineObjSingularLiveBase extends TSRTimelineObjBase {
 	content: {
 		deviceType: DeviceType.SINGULAR_LIVE
-		// type: TimelineContentTypeCasparCg
+		type: TimelineContentTypeSingularLive
 	}
 }
 
 export interface TimelineObjSingularLiveComposition extends TimelineObjSingularLiveBase {
 	content: {
 		deviceType: DeviceType.SINGULAR_LIVE
-	} & SingularLiveCompositionContent
+		type: TimelineContentTypeSingularLive.COMPOSITION
+		controlNode: {
+			payload: { [key: string]: string }
+		}
+	}
 }

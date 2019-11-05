@@ -4,15 +4,16 @@ import {
 	CommandWithContext,
 	DeviceStatus,
 	StatusCode,
-	literal
+	literal,
+	IDevice
 } from './device'
 import {
 	DeviceType,
-	DeviceOptions,
 	SingularLiveOptions,
 	TimelineContentTypeSingularLive,
 	MappingSingularLive,
-	TimelineObjSingularLiveAny
+	TimelineObjSingularLiveAny,
+	DeviceOptionsSingularLive
 } from '../types/src'
 import { DoOnTime, SendMode } from '../doOnTime'
 import * as request from 'request'
@@ -20,11 +21,13 @@ import * as request from 'request'
 import {
 	TimelineState, ResolvedTimelineObjectInstance
 } from 'superfly-timeline'
-export interface SingularLiveDeviceOptions extends DeviceOptions {
-	options?: {
-		commandReceiver?: CommandReceiver
-	}
+export interface DeviceOptionsSingularLiveInternal extends DeviceOptionsSingularLive {
+	options: (
+		DeviceOptionsSingularLive['options'] &
+		{ commandReceiver?: CommandReceiver }
+	)
 }
+export type CommandReceiver = (time: number, cmd: SingularLiveCommandContent, context: CommandContext, timelineObjId: string) => Promise<any>
 
 export interface SingularLiveAnimationCommandContent extends SingularLiveCommandContent {
 	animation: {
@@ -43,7 +46,6 @@ export interface SingularLiveCommandContent {
 	compositionName: string
 }
 
-export type CommandReceiver = (time: number, cmd: SingularLiveCommandContent, context: CommandContext, timelineObjId: string) => Promise<any>
 interface Command {
 	commandName: 'added' | 'changed' | 'removed'
 	content: SingularLiveCommandContent
@@ -75,7 +77,7 @@ const SINGULAR_LIVE_API = 'https://app.singular.live/apiv1/control/'
 /**
  * This is a Singular.Live device, it talks to a Singular.Live App Instance using an Access Token
  */
-export class SingularLiveDevice extends DeviceWithState<TimelineState> {
+export class SingularLiveDevice extends DeviceWithState<TimelineState> implements IDevice {
 
 	// private _makeReadyCommands: SingularLiveCommandContent[]
 	private _accessToken: string
@@ -86,7 +88,7 @@ export class SingularLiveDevice extends DeviceWithState<TimelineState> {
 
 	private _commandReceiver: CommandReceiver
 
-	constructor (deviceId: string, deviceOptions: SingularLiveDeviceOptions, options) {
+	constructor (deviceId: string, deviceOptions: DeviceOptionsSingularLiveInternal, options) {
 		super(deviceId, deviceOptions, options)
 		if (deviceOptions.options) {
 			if (deviceOptions.options.commandReceiver) this._commandReceiver = deviceOptions.options.commandReceiver
@@ -97,9 +99,9 @@ export class SingularLiveDevice extends DeviceWithState<TimelineState> {
 		}, SendMode.IN_ORDER, this._deviceOptions)
 		this.handleDoOnTime(this._doOnTime, 'SingularLive')
 	}
-	init (options: SingularLiveOptions): Promise<boolean> {
+	init (initOptions: SingularLiveOptions): Promise<boolean> {
 		// this._makeReadyCommands = options.makeReadyCommands || []
-		this._accessToken = options.accessToken || ''
+		this._accessToken = initOptions.accessToken || ''
 
 		if (!this._accessToken) throw new Error('Singular.Live bad connection option: accessToken. An accessToken is required.')
 
@@ -162,8 +164,7 @@ export class SingularLiveDevice extends DeviceWithState<TimelineState> {
 	}
 	private _getDefaultState (): SingularLiveState {
 		return {
-			compositions: {
-			}
+			compositions: {}
 		}
 	}
 	convertStateToSingularLive (state: TimelineState) {
@@ -177,10 +178,21 @@ export class SingularLiveDevice extends DeviceWithState<TimelineState> {
 				let tlObjectSource = tlObject as any as TimelineObjSingularLiveAny
 
 				if (tlObjectSource.content.type === TimelineContentTypeSingularLive.COMPOSITION) {
-					singularState.compositions[mapping.compositionName] = Object.assign(singularState.compositions[mapping.compositionName] || {}, {
-						timelineObjId: tlObject.id,
-						controlNode: tlObjectSource.content.controlNode
-					})
+					// const content = tlObjectSource.content
+
+					// if (!singularState.compositions[mapping.compositionName]) {
+					// 	 = {
+					// 		animation: 
+					// 	}
+					// }
+					
+					singularState.compositions[mapping.compositionName] = Object.assign(
+						singularState.compositions[mapping.compositionName] || {},
+						{
+							timelineObjId: tlObject.id,
+							controlNode: tlObjectSource.content.controlNode
+						}
+					)
 				}
 			}
 		})

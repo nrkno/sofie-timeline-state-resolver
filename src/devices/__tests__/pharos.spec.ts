@@ -1,5 +1,5 @@
 jest.mock('ws')
-import { Conductor, DeviceContainer } from '../../conductor'
+import { Conductor } from '../../conductor'
 import { PharosDevice } from '../pharos'
 import {
 	Mappings,
@@ -10,7 +10,7 @@ import {
 import { MockTime } from '../../__tests__/mockTime'
 import { ThreadedClass } from 'threadedclass'
 import { getMockCall } from '../../__tests__/lib'
-const WebSocket = require('../../__mocks__/ws')
+import * as WebSocket from '../../__mocks__/ws'
 
 describe('Pharos', () => {
 	let mockTime = new MockTime()
@@ -22,7 +22,7 @@ describe('Pharos', () => {
 	})
 	test('Scene', async () => {
 		let device
-		let commandReceiver0 = jest.fn((...args) => {
+		const commandReceiver0: any = jest.fn((...args) => {
 			// pipe through the command
 			return device._defaultCommandReceiver(...args)
 			// return Promise.resolve()

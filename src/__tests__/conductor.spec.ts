@@ -22,10 +22,10 @@ describe('Conductor', () => {
 	})
 	test('Test Abstract-device functionality', async () => {
 
-		let commandReceiver0 = jest.fn(() => {
+		const commandReceiver0: any = jest.fn(() => {
 			return Promise.resolve()
 		})
-		let commandReceiver1 = jest.fn(() => {
+		const commandReceiver1: any = jest.fn(() => {
 			return Promise.resolve()
 		})
 
@@ -187,7 +187,7 @@ describe('Conductor', () => {
 
 	test('Test the "Now" and "Callback-functionality', async () => {
 
-		let commandReceiver0 = jest.fn(() => {
+		const commandReceiver0: any = jest.fn(() => {
 			return Promise.resolve()
 		})
 
@@ -312,19 +312,19 @@ describe('Conductor', () => {
 	})
 
 	test('devicesMakeReady', async () => {
-		let commandReceiver0 = jest.fn(() => {
+		const commandReceiver0 = jest.fn(() => {
 			return Promise.resolve()
 		})
-		let commandReceiver1 = jest.fn(() => {
+		const commandReceiver1 = jest.fn(() => {
 			return Promise.resolve()
 		})
-		let commandReceiver2 = jest.fn(() => {
+		const commandReceiver2 = jest.fn(() => {
 			return Promise.resolve()
 		})
-		let commandReceiver3 = jest.fn(() => {
+		const commandReceiver3 = jest.fn(() => {
 			return Promise.resolve()
 		})
-		let commandReceiver4 = jest.fn(() => {
+		const commandReceiver4 = jest.fn(() => {
 			return Promise.resolve()
 		})
 
@@ -343,13 +343,15 @@ describe('Conductor', () => {
 		await conductor.addDevice('device1', {
 			type: DeviceType.CASPARCG,
 			options: {
-				commandReceiver: commandReceiver1
+				commandReceiver: commandReceiver1,
+				host: '127.0.0.1'
 			}
 		})
 		await conductor.addDevice('device2', {
 			type: DeviceType.ATEM,
 			options: {
-				commandReceiver: commandReceiver2
+				commandReceiver: commandReceiver2,
+				host: '127.0.0.1'
 			}
 		})
 		await conductor.addDevice('device3', {

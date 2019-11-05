@@ -1,7 +1,7 @@
 import { Enums, MixEffect } from 'atem-state'
 import { ResolvedTimelineObjectInstance } from 'superfly-timeline'
 import { Conductor } from '../../conductor'
-import { AtemDevice, AtemDeviceOptions } from '../atem'
+import { AtemDevice, DeviceOptionsAtemInternal } from '../atem'
 import { MockTime } from '../../__tests__/mockTime'
 import {
 	Mappings,
@@ -26,7 +26,7 @@ describe('Atem', () => {
 	})
 
 	test('Atem: Ensure clean initial state', async () => {
-		const commandReceiver0 = jest.fn(() => {
+		const commandReceiver0: any = jest.fn(() => {
 			return Promise.resolve()
 		})
 		const mockState: TimelineState = {
@@ -35,10 +35,11 @@ describe('Atem', () => {
 			nextEvents: []
 		}
 
-		let device = new AtemDevice('mock', literal<AtemDeviceOptions>({
+		let device = new AtemDevice('mock', literal<DeviceOptionsAtemInternal>({
 			type: DeviceType.ATEM,
 			options: {
-				commandReceiver: commandReceiver0
+				commandReceiver: commandReceiver0,
+				host: '127.0.0.1'
 			}
 		}), {
 			getCurrentTime: mockTime.getCurrentTime
@@ -54,7 +55,7 @@ describe('Atem', () => {
 
 	test('Atem: switch input', async () => {
 
-		let commandReceiver0 = jest.fn(() => {
+		const commandReceiver0: any = jest.fn(() => {
 			return Promise.resolve()
 		})
 		let myLayerMapping0: MappingAtem = {
@@ -72,14 +73,14 @@ describe('Atem', () => {
 			getCurrentTime: mockTime.getCurrentTime
 		})
 		await myConductor.init()
-		await myConductor.addDevice('myAtem', {
+		await myConductor.addDevice('myAtem', literal<DeviceOptionsAtemInternal>({
 			type: DeviceType.ATEM,
 			options: {
 				commandReceiver: commandReceiver0,
 				host: '127.0.0.1',
 				port: 9910
 			}
-		})
+		}))
 		await myConductor.setMapping(myLayerMapping)
 		await mockTime.advanceTimeToTicks(10100)
 
@@ -170,7 +171,7 @@ describe('Atem', () => {
 
 	test('Atem: upstream keyer', async () => {
 
-		let commandReceiver0 = jest.fn(() => {
+		const commandReceiver0: any = jest.fn(() => {
 			// nothing
 		})
 		let myLayerMapping0: MappingAtem = {
@@ -188,14 +189,15 @@ describe('Atem', () => {
 			getCurrentTime: mockTime.getCurrentTime
 		})
 		await myConductor.init()
-		await myConductor.addDevice('myAtem', {
+		await myConductor.addDevice('myAtem', literal<DeviceOptionsAtemInternal>({
 			type: DeviceType.ATEM,
 			options: {
 				commandReceiver: commandReceiver0,
 				host: '127.0.0.1',
 				port: 9910
 			}
-		})
+		}))
+
 		await myConductor.setMapping(myLayerMapping)
 		await mockTime.advanceTimeToTicks(10100)
 
@@ -290,12 +292,13 @@ describe('Atem', () => {
 			nextEvents: []
 		}
 
-		let device = new AtemDevice('mock', literal<AtemDeviceOptions>({
+		let device = new AtemDevice('mock', {
 			type: DeviceType.ATEM,
 			options: {
-				commandReceiver: commandReceiver0
+				commandReceiver: commandReceiver0,
+				host: '127.0.0.1'
 			}
-		}), {
+		}, {
 			getCurrentTime: mockTime.getCurrentTime
 		})
 		device.setMapping(myLayerMapping)

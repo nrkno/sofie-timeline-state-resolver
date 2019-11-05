@@ -1,5 +1,5 @@
 import { setupQuantelGatewayMock } from './quantelGatewayMock'
-import { Conductor, DeviceContainer } from '../../conductor'
+import { Conductor } from '../../conductor'
 import {
 	Mappings,
 	DeviceType,
@@ -47,7 +47,7 @@ describe('Quantel', () => {
 	})
 	test('Play and stop', async () => {
 		let device
-		let commandReceiver0 = jest.fn((...args) => {
+		const commandReceiver0: any = jest.fn((...args) => {
 			// pipe through the command
 			return device._defaultCommandReceiver(...args)
 		})
@@ -223,7 +223,7 @@ describe('Quantel', () => {
 	})
 	test('Play and stop, using clip guid', async () => {
 		let device
-		let commandReceiver0 = jest.fn((...args) => {
+		const commandReceiver0: any = jest.fn((...args) => {
 			// pipe through the command
 			return device._defaultCommandReceiver(...args)
 		})
@@ -396,7 +396,7 @@ describe('Quantel', () => {
 	})
 	test('Play, seek and re-use clip', async () => {
 		let device
-		let commandReceiver0 = jest.fn((...args) => {
+		const commandReceiver0: any = jest.fn((...args) => {
 			// pipe through the command
 			return device._defaultCommandReceiver(...args)
 		})
@@ -637,7 +637,7 @@ describe('Quantel', () => {
 	})
 	test('outTransition to clear', async () => {
 		let device
-		let commandReceiver0 = jest.fn((...args) => {
+		const commandReceiver0: any = jest.fn((...args) => {
 			// pipe through the command
 			return device._defaultCommandReceiver(...args)
 		})
@@ -818,7 +818,7 @@ describe('Quantel', () => {
 	})
 	test('outTransition to notOnAir', async () => {
 		let device
-		let commandReceiver0 = jest.fn((...args) => {
+		const commandReceiver0: any = jest.fn((...args) => {
 			// pipe through the command
 			return device._defaultCommandReceiver(...args)
 		})
