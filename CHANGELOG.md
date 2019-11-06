@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.13.1](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/3.13.0...3.13.1) (2019-11-06)
+
+
+### Bug Fixes
+
+* **hyperdeck:** support pre 6.0 firmware ([0ab52cc](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/0ab52cc))
+
+
+
 ## [3.13.0](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/3.12.1...3.13.0) (2019-10-25)
 
 
