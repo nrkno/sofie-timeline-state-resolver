@@ -15,7 +15,7 @@ import { DoOnTime, SendMode } from '../doOnTime'
 import {
 	TimelineState, ResolvedTimelineObjectInstance
 } from 'superfly-timeline'
-import { SisyfosOptions, SisyfosState, SisyfosChannel, TimelineObjSisyfosMessage, MappingSisyfos, ToggleCommand, Commands, SisyfosCommand } from '../types/src/sisyfos'
+import { SisyfosOptions, SisyfosState, SisyfosChannel, TimelineObjSisyfosMessage, MappingSisyfos, Commands, SisyfosCommand } from '../types/src/sisyfos'
 import { SisyfosInterface } from './sisyfosAPI'
 
 export interface DeviceOptionsSisyfosInternal extends DeviceOptionsSisyfos {

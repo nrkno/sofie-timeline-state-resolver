@@ -3,7 +3,6 @@ import { TimelineState } from 'superfly-timeline'
 import {
 	Mappings,
 	DeviceType,
-	DeviceType,
 	ExpectedPlayoutItemContent
 } from '../types/src'
 import { EventEmitter } from 'events'

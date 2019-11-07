@@ -1034,5 +1034,6 @@ export type DeviceOptionsAnyInternal = (
 	DeviceOptionsOSCInternal |
 	DeviceOptionsSisyfosInternal |
 	DeviceOptionsQuantelInternal |
+	DeviceOptionsVizMSEInternal |
 	DeviceOptionsSingularLiveInternal
 )
