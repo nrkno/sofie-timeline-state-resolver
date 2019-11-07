@@ -37,6 +37,9 @@ export interface TimelineObjVIZMSEBase extends TSRTimelineObjBase {
 
 		/** When this changes, a continue-function will be triggered */
 		continueStep?: number
+
+		/** What channel to output to */
+		channelName?: string
 	}
 }
 export interface TimelineObjVIZMSEElementInternal extends TimelineObjVIZMSEBase {
@@ -46,6 +49,9 @@ export interface TimelineObjVIZMSEElementInternal extends TimelineObjVIZMSEBase 
 
 		/** When this changes, a continue-function will be triggered */
 		continueStep?: number
+
+		/** What channel to output to */
+		channelName?: string
 
 		/** Name of the template to be played */
 		templateName: string
@@ -60,6 +66,9 @@ export interface TimelineObjVIZMSEElementPilot extends TimelineObjVIZMSEBase {
 
 		/** When this changes, a continue-function will be triggered */
 		continueStep?: number
+
+		/** What channel to output to */
+		channelName?: string
 
 		/** Viz-Pilot id of the template to be played */
 		templateVcpId: number

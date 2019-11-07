@@ -24,7 +24,14 @@ import {
 	TimelineState, ResolvedTimelineObjectInstance
 } from 'superfly-timeline'
 
-import { createMSE, MSE, VRundown, InternalElement, ExternalElement, VElement } from 'v-connection'
+import {
+	createMSE,
+	MSE,
+	VRundown,
+	InternalElement,
+	ExternalElement,
+	VElement
+} from 'v-connection'
 
 import { DoOnTime, SendMode } from '../doOnTime'
 
@@ -352,7 +359,8 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState> {
 
 						templateInstance: VizMSEManager.getTemplateInstance(newLayer),
 						templateName: VizMSEManager.getTemplateName(newLayer),
-						templateData: VizMSEManager.getTemplateData(newLayer)
+						templateData: VizMSEManager.getTemplateData(newLayer),
+						channelName: newLayer.channelName
 					}, newLayer.lookahead)
 
 					// Start playing
@@ -364,7 +372,8 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState> {
 
 						templateInstance: VizMSEManager.getTemplateInstance(newLayer),
 						templateName: VizMSEManager.getTemplateName(newLayer),
-						templateData: VizMSEManager.getTemplateData(newLayer)
+						templateData: VizMSEManager.getTemplateData(newLayer),
+						channelName: newLayer.channelName
 
 					}, newLayer.lookahead)
 				}
@@ -516,7 +525,7 @@ class VizMSEManager extends EventEmitter {
 		// Setup the rundown used by this device
 
 		// check if it already exists:
-		this._rundown = _.find(this._vizMSE.getRundowns(), (rundown) => {
+		this._rundown = _.find(await this._vizMSE.getRundowns(), (rundown) => {
 			return (
 				rundown.show === showID &&
 				rundown.profile === profile &&
@@ -681,7 +690,10 @@ class VizMSEManager extends EventEmitter {
 		try {
 			if (_.isNumber(cmd.templateName)) {
 				// Prepare a pilot element
-				const pilotEl = await this._rundown.createElement(cmd.templateName)
+				const pilotEl = await this._rundown.createElement(
+					cmd.templateName,
+					cmd.channelName
+				)
 
 				this._cacheElement(elementHash, pilotEl)
 				return pilotEl
@@ -690,7 +702,8 @@ class VizMSEManager extends EventEmitter {
 				const internalEl = await this._rundown.createElement(
 					cmd.templateName,
 					cmd.templateInstance,
-					cmd.templateData || []
+					cmd.templateData || [],
+					cmd.channelName
 				)
 
 				this._cacheElement(elementHash, internalEl)
@@ -772,11 +785,13 @@ interface VizMSEStateLayerInternal extends VizMSEStateLayerBase {
 
 	templateName: string
 	templateData: Array<string>
+	channelName?: string
 }
 interface VizMSEStateLayerPilot extends VizMSEStateLayerBase {
 	contentType: TimelineContentTypeVizMSE.ELEMENT_PILOT
 
 	templateVcpId: number
+	channelName?: string
 }
 
 interface VizMSECommandBase {
@@ -861,24 +876,28 @@ function content2StateLayer (
 ): VizMSEStateLayer | undefined {
 	if (content.type === TimelineContentTypeVizMSE.ELEMENT_INTERNAL) {
 
-		return {
+		const o: VizMSEStateLayerInternal = {
 			timelineObjId: timelineObjId,
 			contentType: TimelineContentTypeVizMSE.ELEMENT_INTERNAL,
 			continueStep: content.continueStep,
 
 			templateName: content.templateName,
-			templateData: content.templateData
-		} as VizMSEStateLayerInternal
+			templateData: content.templateData,
+			channelName: content.channelName
+		}
+		return o
 	} else if (content.type === TimelineContentTypeVizMSE.ELEMENT_PILOT) {
 
-		return {
+		const o: VizMSEStateLayerPilot = {
 			timelineObjId: timelineObjId,
 			contentType: TimelineContentTypeVizMSE.ELEMENT_PILOT,
 			continueStep: content.continueStep,
 
-			templateVcpId: content.templateVcpId
+			templateVcpId: content.templateVcpId,
+			channelName: content.channelName
 
-		} as VizMSEStateLayerPilot
+		}
+		return o
 	}
 	return
 }
