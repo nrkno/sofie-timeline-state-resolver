@@ -699,8 +699,9 @@ class VizMSEManager extends EventEmitter {
 				this.emit('debug', `VizMSE: preparing new "${elementHash}"`)
 			}
 			element = await this._prepareNewElement(cmd)
-		}
 
+			if (!fromPrepare) await this._wait(100) // wait a bit, because taking isn't possible right away anyway at this point
+		}
 		return this._getElementReference(element)
 		// })
 
@@ -786,6 +787,9 @@ class VizMSEManager extends EventEmitter {
 				})
 			)
 		}
+	}
+	private _wait (time: number): Promise<void> {
+		return new Promise(resolve => setTimeout(resolve, time))
 	}
 }
 
