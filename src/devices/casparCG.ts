@@ -4,7 +4,8 @@ import {
 	CommandWithContext,
 	DeviceStatus,
 	StatusCode,
-	literal
+	literal,
+	IDevice
 } from './device'
 import {
 	CasparCG,
@@ -15,7 +16,6 @@ import {
 } from 'casparcg-connection'
 import {
 	DeviceType,
-	DeviceOptions,
 	Mapping,
 	TimelineContentTypeCasparCg,
 	MappingCasparCG,
@@ -28,7 +28,8 @@ import {
 	TimelineObjCCGTemplate,
 	TimelineObjCCGProducerContentBase,
 	ResolvedTimelineObjectInstanceExtended,
-	TimelineObjCCGIP
+	TimelineObjCCGIP,
+	DeviceOptionsCasparCG
 } from '../types/src'
 
 import {
@@ -44,12 +45,12 @@ import * as request from 'request'
 
 const MAX_TIMESYNC_TRIES = 5
 const MAX_TIMESYNC_DURATION = 40
-export interface CasparCGDeviceOptions extends DeviceOptions {
-	options?: {
-		commandReceiver?: CommandReceiver
-		/* Timecode base of channel */
-		timeBase?: {[channel: string]: number} | number
-	}
+
+export interface DeviceOptionsCasparCGInternal extends DeviceOptionsCasparCG {
+	options: (
+		DeviceOptionsCasparCG['options'] &
+		{ commandReceiver?: CommandReceiver }
+	)
 }
 export type CommandReceiver = (time: number, cmd: CommandNS.IAMCPCommand, context: string, timelineObjId: string) => Promise<any>
 /**
@@ -58,7 +59,7 @@ export type CommandReceiver = (time: number, cmd: CommandNS.IAMCPCommand, contex
  * commands. It depends on the DoOnTime class to execute the commands timely or,
  * optionally, uses the CasparCG command scheduling features.
  */
-export class CasparCGDevice extends DeviceWithState<TimelineState> {
+export class CasparCGDevice extends DeviceWithState<TimelineState> implements IDevice {
 
 	private _ccg: CasparCG
 	private _ccgState: CasparCGState
@@ -68,10 +69,10 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> {
 	private _timeBase: {[channel: string]: number} | number = {}
 	private _useScheduling?: boolean
 	private _doOnTime: DoOnTime
-	private _connectionOptions?: CasparCGOptions
+	private initOptions?: CasparCGOptions
 	private _connected: boolean = false
 
-	constructor (deviceId: string, deviceOptions: CasparCGDeviceOptions, options) {
+	constructor (deviceId: string, deviceOptions: DeviceOptionsCasparCGInternal, options) {
 		super(deviceId, deviceOptions, options)
 
 		if (deviceOptions.options) {
@@ -95,12 +96,12 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> {
 	 * Initiates the connection with CasparCG through the ccg-connection lib and
 	 * initializes CasparCG State library.
 	 */
-	async init (connectionOptions: CasparCGOptions): Promise<boolean> {
-		this._connectionOptions = connectionOptions
-		this._useScheduling = connectionOptions.useScheduling
+	async init (initOptions: CasparCGOptions): Promise<boolean> {
+		this.initOptions = initOptions
+		this._useScheduling = initOptions.useScheduling
 		this._ccg = new CasparCG({
-			host: connectionOptions.host,
-			port: connectionOptions.port,
+			host: initOptions.host,
+			port: initOptions.port,
 			autoConnect: true,
 			virginServerCheck: true,
 			onConnectionChanged: (connected: boolean) => {
@@ -561,11 +562,11 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> {
 	restartCasparCG (): Promise<any> {
 		return new Promise((resolve, reject) => {
 
-			if (!this._connectionOptions) throw new Error('CasparCGDevice._connectionOptions is not set!')
-			if (!this._connectionOptions.launcherHost) throw new Error('CasparCGDevice: config.launcherHost is not set!')
-			if (!this._connectionOptions.launcherPort) throw new Error('CasparCGDevice: config.launcherPort is not set!')
+			if (!this.initOptions) throw new Error('CasparCGDevice._connectionOptions is not set!')
+			if (!this.initOptions.launcherHost) throw new Error('CasparCGDevice: config.launcherHost is not set!')
+			if (!this.initOptions.launcherPort) throw new Error('CasparCGDevice: config.launcherPort is not set!')
 
-			let url = `http://${this._connectionOptions.launcherHost}:${this._connectionOptions.launcherPort}/processes/casparcg/restart`
+			let url = `http://${this.initOptions.launcherHost}:${this.initOptions.launcherPort}/processes/casparcg/restart`
 			request.post(
 				url,
 				{}, // json: cmd.params

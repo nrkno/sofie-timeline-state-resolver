@@ -5,17 +5,18 @@ import {
 	DeviceWithState,
 	CommandWithContext,
 	DeviceStatus,
-	StatusCode
+	StatusCode,
+	IDevice
 } from './device'
 import {
 	DeviceType,
-	DeviceOptions,
 	TimelineContentTypeHyperdeck,
 	MappingHyperdeck,
 	MappingHyperdeckType,
 	HyperdeckOptions,
 	TimelineObjHyperdeckTransport,
-	TimelineObjHyperdeckAny
+	TimelineObjHyperdeckAny,
+	DeviceOptionsHyperdeck
 } from '../types/src'
 import {
 	Hyperdeck,
@@ -27,15 +28,11 @@ import {
 import { DoOnTime, SendMode } from '../doOnTime'
 import { SlotInfoCommandResponse } from 'hyperdeck-connection/dist/commands'
 
-// _.mixin({ deepExtend: underScoreDeepExtend(_) })
-// function deepExtend<T> (destination: T, ...sources: any[]) {
-// 	// @ts-ignore (mixin)
-// 	return _.deepExtend(destination, ...sources)
-// }
-export interface HyperdeckDeviceOptions extends DeviceOptions {
-	options?: {
-		commandReceiver?: CommandReceiver
-	}
+export interface DeviceOptionsHyperdeckInternal extends DeviceOptionsHyperdeck {
+	options: (
+		DeviceOptionsHyperdeck['options'] &
+		{ commandReceiver?: CommandReceiver }
+	)
 }
 export type CommandReceiver = (time: number, command: HyperdeckCommands.AbstractCommand, context: CommandContext, timelineObjId: string) => Promise<any>
 export interface HyperdeckCommandWithContext {
@@ -60,7 +57,7 @@ type CommandContext = any
 /**
  * This is a wrapper for the Hyperdeck Device. Commands to any and all hyperdeck devices will be sent through here.
  */
-export class HyperdeckDevice extends DeviceWithState<DeviceState> {
+export class HyperdeckDevice extends DeviceWithState<DeviceState> implements IDevice {
 
 	private _doOnTime: DoOnTime
 
@@ -77,7 +74,7 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> {
 
 	private _commandReceiver: CommandReceiver
 
-	constructor (deviceId: string, deviceOptions: HyperdeckDeviceOptions, options) {
+	constructor (deviceId: string, deviceOptions: DeviceOptionsHyperdeckInternal, options) {
 		super(deviceId, deviceOptions, options)
 		if (deviceOptions.options) {
 			if (deviceOptions.options.commandReceiver) this._commandReceiver = deviceOptions.options.commandReceiver
@@ -92,12 +89,12 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> {
 	/**
 	 * Initiates the connection with the Hyperdeck through the hyperdeck-connection lib.
 	 */
-	init (options: HyperdeckOptions): Promise<boolean> {
+	init (initOptions: HyperdeckOptions): Promise<boolean> {
 		return new Promise((resolve/*, reject*/) => {
 			let firstConnect = true
 
 			this._hyperdeck = new Hyperdeck({ pingPeriod: 1000 })
-			this._hyperdeck.connect(options.host, options.port)
+			this._hyperdeck.connect(initOptions.host, initOptions.port)
 			this._hyperdeck.on('connected', async () => {
 				await this._hyperdeck.sendCommand(new HyperdeckCommands.RemoteCommand(true))
 
@@ -117,8 +114,8 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> {
 				})
 				.catch(e => this.emit('error', 'Hyperdeck.on("connected")', e))
 
-				if (options.minRecordingTime) {
-					this._minRecordingTime = options.minRecordingTime
+				if (initOptions.minRecordingTime) {
+					this._minRecordingTime = initOptions.minRecordingTime
 					if (this._recTimePollTimer) clearTimeout(this._recTimePollTimer)
 				}
 				this._queryRecordingTime().catch(e => this.emit('error', 'HyperDeck.queryRecordingTime', e))
@@ -541,6 +538,9 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> {
 
 	private async _querySlotNumber (): Promise<number> {
 		const { slots } = await this._hyperdeck.sendCommand(new HyperdeckCommands.DeviceInfoCommand())
+
+		// before protocol version 1.9 we do not get slot info, so we assume 2 slots.
+		if (!slots) return 2
 
 		return slots
 	}

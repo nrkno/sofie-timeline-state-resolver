@@ -23,7 +23,7 @@ describe('Lawo', () => {
 
 	test('Lawo: Change volume', async () => {
 
-		let commandReceiver0 = jest.fn(() => {
+		const commandReceiver0: any = jest.fn(() => {
 			return Promise.resolve()
 		})
 		let myChannelMapping0: MappingLawo = {
@@ -180,7 +180,7 @@ describe('Lawo', () => {
 	})
 	test('Lawo: Set delay om main/pgm', async () => {
 
-		let commandReceiver0 = jest.fn(() => {
+		const commandReceiver0: any = jest.fn(() => {
 			return Promise.resolve()
 		})
 		let lawoMainDelayOnMapping: MappingLawo = {
@@ -282,7 +282,7 @@ describe('Lawo', () => {
 	})
 	test('Lawo: manual fade', async () => {
 
-		let commandReceiver0 = jest.fn(() => {
+		const commandReceiver0: any = jest.fn(() => {
 			return Promise.resolve()
 		})
 		let myChannelMapping0: MappingLawo = {
@@ -354,7 +354,7 @@ describe('Lawo', () => {
 	})
 	test('Lawo: Command priority', async () => {
 
-		let commandReceiver0 = jest.fn(() => {
+		const commandReceiver0: any = jest.fn(() => {
 			return Promise.resolve()
 		})
 		let mapping0: MappingLawo = {
