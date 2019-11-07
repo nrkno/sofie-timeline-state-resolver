@@ -613,9 +613,9 @@ class VizMSEManager extends EventEmitter {
 		await this._rundown.continueReverse(cmd.templateInstance)
 	}
 
-	static getTemplateName (layer: VizMSEStateLayer): string {
+	static getTemplateName (layer: VizMSEStateLayer): string | number {
 		if (layer.contentType === TimelineContentTypeVizMSE.ELEMENT_INTERNAL) return layer.templateName
-		if (layer.contentType === TimelineContentTypeVizMSE.ELEMENT_PILOT) return ''
+		if (layer.contentType === TimelineContentTypeVizMSE.ELEMENT_PILOT) return layer.templateVcpId
 		throw new Error(`Unknown layer.contentType "${layer['contentType']}"`)
 	}
 	static getTemplateData (layer: VizMSEStateLayer): string[] {
