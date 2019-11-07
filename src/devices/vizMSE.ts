@@ -255,7 +255,7 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState> {
 	async makeReady (okToDestroyStuff?: boolean): Promise<void> {
 		if (this._vizmseManager) {
 			await this._vizmseManager.activate()
-		}
+		} else throw new Error(`Unable to activate vizMSE, not initialized yet!`)
 
 		if (okToDestroyStuff) {
 			// reset our own state(s):
