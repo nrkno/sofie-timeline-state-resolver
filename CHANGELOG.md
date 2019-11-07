@@ -1,6 +1,463 @@
-# Change Log
+# Changelog
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
+
+## [3.13.0](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/3.12.1...3.13.0) (2019-10-25)
+
+
+### Bug Fixes
+
+* abstract device trying to be casparcg ([27cee9c](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/27cee9c))
+* change id of singular device, to make way for upcoming vizMSE device ([5c0c8c9](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/5c0c8c9))
+* update atem dependencies ([a06f414](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/a06f414))
+* use Timeline object instance.originalStart instead of .start. ([f110051](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/f110051))
+
+
+### Features
+
+* a better implementation of Singular.Live integration ([7fe543f](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/7fe543f))
+* **hyperdeck:** enforce remote control ([dd40e2b](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/dd40e2b))
+* **hyperdeck:** notification for stopped recordings ([3fe1c58](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/3fe1c58))
+* **hyperdeck:** warn for unoccupied slots ([927df23](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/927df23))
+* casparcg: use timeline contentStart ([bd5f648](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/bd5f648))
+* initial implementation for Singular Live ([f89e4d3](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/f89e4d3))
+* update atem-state to support v8 firmware ([c229d94](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/c229d94))
+
+
+
+### [3.12.1](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/3.12.0...3.12.1) (2019-10-15)
+
+
+### Bug Fixes
+
+* **atem:** audio channel tsr objects are correctly merged ([e3a8e8b](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/e3a8e8b))
+
+
+
+## [3.12.0](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/3.11.1...3.12.0) (2019-10-14)
+
+
+### Features
+
+* use a timeline obj to retrigger lawo commands ([c93c109](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/c93c109))
+
+
+
+### [3.11.1](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/3.11.0...3.11.1) (2019-10-03)
+
+
+### Bug Fixes
+
+* upd threadedclass dep ([460aa3a](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/460aa3a))
+
+
+
+## [3.11.0](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/3.10.0...3.11.0) (2019-10-03)
+
+
+### Features
+
+* **lawo:** optionally set interval time for manual faders ([2c840e5](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/2c840e5))
+
+
+
+## [3.10.0](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/3.9.1...3.10.0) (2019-10-02)
+
+
+### Bug Fixes
+
+* quantel: kill path ([0d3999e](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/0d3999e))
+* revert dependency update of typescript, which caused lots of strange linting errors ([e91f4a3](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/e91f4a3))
+
+
+### Features
+
+* quantel restart mechanism ([ce93586](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/ce93586))
+
+
+
+### [3.9.1](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/3.9.0...3.9.1) (2019-09-23)
+
+
+### Bug Fixes
+
+* **lawo:** prevent conflicting setValue after result 6 ([b615121](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/b615121))
+
+
+
+## [3.9.0](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/3.8.5...3.9.0) (2019-09-23)
+
+
+### Bug Fixes
+
+* **lawo:** append value to integers for setValue ([926073e](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/926073e))
+* **lawo:** check for errors by searching array ([6edbe4f](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/6edbe4f))
+* **lawo:** log when a direct setValue is done after result 6 ([91f535e](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/91f535e))
+
+
+### Features
+
+* Use setValue if the ramp will/has failed ([96ed756](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/96ed756))
+
+
+
+### [3.8.5](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/3.8.4...3.8.5) (2019-09-20)
+
+
+### Bug Fixes
+
+* Quantel: set all lookahead objects as notOnAir ([be96d3c](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/be96d3c))
+
+
+
+### [3.8.4](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/3.8.3...3.8.4) (2019-09-20)
+
+
+### Bug Fixes
+
+* add Lawo mapping.priority, as a workaround to an issue with the Lawo processing commands too slowly ([42c8f47](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/42c8f47))
+* callback on stopped was sent too early, send callback through doOnTime queue ([dd188f4](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/dd188f4))
+* improve lawo command logging ([91859cd](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/91859cd))
+* log lawo commands being sent ([3114c31](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/3114c31))
+
+
+
+### [3.8.3](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/3.8.2...3.8.3) (2019-09-04)
+
+
+### Bug Fixes
+
+* add instanceName to resolve instance ([e9765c4](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/e9765c4))
+* issue with wrongly accusation of unhandling of a Promise. (I most certainly was not!) ([05eee7d](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/05eee7d))
+* updated threadedClass dep, for better error tracing ([c5cdafe](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/c5cdafe))
+
+
+
+### [3.8.2](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/3.8.1...3.8.2) (2019-09-03)
+
+
+### Bug Fixes
+
+* add device option.reportAllCommands, to be able to deactivate the sending of command-reports over the wire. ([1729a06](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/1729a06))
+* set the instanceName of multithreaded instances, to help during debugging ([17f6779](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/17f6779))
+* timeline dep with bug fixes ([d3860c6](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/d3860c6))
+
+
+
+### [3.8.1](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/3.8.0...3.8.1) (2019-09-03)
+
+
+### Bug Fixes
+
+* threaddedClass dep and properly close event listener on quit ([63dd1e6](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/63dd1e6))
+
+
+
+## [3.8.0](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/3.7.7...3.8.0) (2019-09-02)
+
+
+### Bug Fixes
+
+* add a method to clear the future (invalid) states earlier ([e6ad98f](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/e6ad98f))
+* disconnect hyperdeck-connection before termination ([e6bd395](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/e6bd395))
+* prevent unnecessary hyperdeck status updates ([7f1f6de](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/7f1f6de))
+* quantel: make lookahead clips not care about seeking ([6f39b9e](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/6f39b9e))
+
+
+### Features
+
+* add notOnAir propery on timelineObjects. Quantel: make outTransition when next object is notOnAir. ([687e54c](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/687e54c))
+* add outTransition together with notOnAir support for quantel device ([b752bf9](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/b752bf9))
+* quantel: monitor ports and channels, update status if the ports/channels we need are not available ([fb674d6](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/fb674d6))
+
+
+
+### [3.7.7](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/3.7.6...3.7.7) (2019-08-28)
+
+
+### Bug Fixes
+
+* allow the consumer to monitor and restart devices manually. Don't automatically restart them anymore ([5e51629](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/5e51629))
+* make quantel-gw emit ell commands, for debugging ([befcd80](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/befcd80))
+
+
+
+### [3.7.6](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/3.7.5...3.7.6) (2019-08-28)
+
+
+### Bug Fixes
+
+* Every TSR device now stores a random instanceId, to be used in logging/troubleshooting ([bb6e607](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/bb6e607))
+* Every TSR device now stores its start time (for uptime calculation) ([e065c09](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/e065c09))
+* fixes in all devices status reporting. Especially: when not initialized, status should not be GOOD. ([fb625a9](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/fb625a9))
+
+
+
+### [3.7.5](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/3.7.4...3.7.5) (2019-08-27)
+
+
+### Bug Fixes
+
+* quantel: a try to get the quantel player to behave nicely when jumping to a new clip ([424f1f7](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/424f1f7))
+
+
+
+### [3.7.4](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/3.7.3...3.7.4) (2019-08-27)
+
+
+### Bug Fixes
+
+* increase he jump error margin to 10 frames, giving us a little more leeway in case of delayed execution ([5f52352](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/5f52352))
+* make quantel use 25 fps (50i) by default ([549cbca](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/549cbca))
+* quantel: add missing tracking of jumpOfffset. When a jump is triggered, the jumpOffset is cleared ([82a481d](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/82a481d))
+* quantel: don't try to execute preparations in the past, the present should be sufficient ([9b636f3](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/9b636f3))
+* quantel: make the wait times longer when trying to recover from a play failure ([62274c2](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/62274c2))
+* quantel: only use videoFragments when calculating last frame of clip. Also son't use trackNum < 0 because it is historic data (not used for automation), 0 is the normal, playable video track, > 0 are extra channels, such as keys ([44ce171](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/44ce171))
+
+
+
+### [3.7.3](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/3.7.2...3.7.3) (2019-08-27)
+
+
+### Bug Fixes
+
+* hyperdeck: not conencted status message ([d88530b](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/d88530b))
+* quantel: typo in warning emit on recovery operation. also add emit debugging info ([3745177](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/3745177))
+
+
+
+### [3.7.2](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/3.7.1...3.7.2) (2019-08-26)
+
+
+### Bug Fixes
+
+* if, for some unknown reason, the quantel device doesn't start playing; retry a couple of times ([7fb8a4e](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/7fb8a4e))
+
+
+
+### [3.7.1](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/3.7.0...3.7.1) (2019-08-24)
+
+
+### Bug Fixes
+
+* correct quantel API ([5b8023e](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/5b8023e))
+* preliminary workaround, to give the quantel another chance to get going at startup ([fe25898](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/fe25898))
+
+
+
+## [3.7.0](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/3.6.0...3.7.0) (2019-08-24)
+
+
+### Bug Fixes
+
+* don't re-emit info, warnings or errors from devices, let the library consumer handle that. ([40048d2](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/40048d2))
+* quantel: don't send jumps twice (first was after fragment load, second before playing) ([4dbe824](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/4dbe824))
+* threadedClass dep. fixes a fatal bug that caused main process to quit. ([47dc740](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/47dc740))
+
+
+### Features
+
+* all devices: refactor how to handle doOnTime events, and add commandReport listener ([5360e4f](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/5360e4f))
+* doOnTime: emit commandReports on every command ([7ea4cbd](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/7ea4cbd))
+* properly terminate child processes when removing devices ([15fb922](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/15fb922))
+
+
+
+## [3.6.0](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/3.5.0...3.6.0) (2019-08-19)
+
+
+### Bug Fixes
+
+* ssrc box enabled is optional ([17c84ac](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/17c84ac))
+* tidy lawo commands ([3497bce](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/3497bce))
+* update atem-state and fix tests ([98ad55d](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/98ad55d))
+
+
+### Features
+
+* **emberProperty:** fixes and adds support for typed values for direct emberplus properties ([52e2bca](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/52e2bca))
+* **emberProperty:** started adding support for lawo objects setting values directly on absolute ember paths ([8375f44](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/8375f44))
+* basic atem macro player ([32457eb](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/32457eb))
+* lawo fullpath & atem macros ([#96](https://github.com/nrkno/tv-automation-state-timeline-resolver/issues/96)) ([5bcff58](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/5bcff58))
+
+
+
+## [3.5.0](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/3.4.0...3.5.0) (2019-08-19)
+
+
+### Bug Fixes
+
+* **HyperDeck:** format every slot (not just current) ([307103b](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/307103b))
+* **HyperDeck:** improved status reporting ([95587d7](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/95587d7))
+
+
+### Features
+
+* **HyperDeck:** report recording time ([44755d2](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/44755d2))
+* hyperdeck disk formatting ([9716bf2](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/9716bf2))
+* update hyperdeck connection dep ([7c94a8e](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/7c94a8e))
+
+
+
+## [3.4.0](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/3.3.0...3.4.0) (2019-08-19)
+
+
+### Bug Fixes
+
+* quantel typings exports missing ([6e852ee](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/6e852ee))
+* quantel: handle when quantelGateway hasn't connected yet (or has been restarted) ([c39b57a](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/c39b57a))
+
+
+### Features
+
+* quantel gaeway: support for the resetPort endpoint ([fa60faa](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/fa60faa))
+* quantel: reset the port, when clearing the clip on a port, to get a black output. ([3f40430](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/3f40430))
+* quantel: support for outTransition, ie a delayed clear ([45bce79](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/45bce79))
+
+
+
+## [3.3.0](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/3.2.1...3.3.0) (2019-08-13)
+
+
+### Bug Fixes
+
+* add quantel guid support ([194e551](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/194e551))
+* casparcg-state update (bugfixes) ([549315b](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/549315b))
+* doOnTime bug fix ([dbcfa5b](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/dbcfa5b))
+* preliminary implementation of handling quantel-gateway-not-connected-to-ISA situation ([28b4836](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/28b4836))
+* quantel: skip jumping and go straight to play, if the jump is small enough ([9071df4](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/9071df4))
+* quantel: tests ([e05387e](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/e05387e))
+* quantel: unable to assign channel 0 ([48efdb2](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/48efdb2))
+* Quantel:better ordering of commands at creation ([722c758](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/722c758))
+
+
+### Features
+
+* quantel lookahead support ([3d5f54e](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/3d5f54e))
+
+
+
+### [3.2.1](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/3.2.0...3.2.1) (2019-08-06)
+
+
+### Bug Fixes
+
+* add missing sisyfos types ([4bc54a9](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/4bc54a9))
+* quantel: try/catch block didn't catch as intended ([9e91e8a](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/9e91e8a))
+* remove unimplemented interface ([f6b6b52](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/f6b6b52))
+
+
+
+## [3.2.0](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/3.1.1...3.2.0) (2019-08-06)
+
+
+### Bug Fixes
+
+* better support for when the name of a device cannot be determined until after .init() ([a6f1ad0](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/a6f1ad0))
+* Bug when resolving timeline with repeating objects ([9e01dc7](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/9e01dc7))
+* change some emits to debug instead of info ([b84342c](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/b84342c))
+* corrected return type of loadPort and changed calculation of portOutPoint ([e54b74d](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/e54b74d))
+* minor bug ([41d6599](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/41d6599))
+* osc: fix timelineObj content type so that fromTlObject isn't in there ([6b300a0](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/6b300a0))
+* possible bug when throwing error, that might cause resolving to halt ([e1cb023](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/e1cb023))
+* TCPSend: added tests ([6405552](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/6405552))
+* **quantel:** remove command-queueing, this will be handled in quantel-gateway instead ([d43a192](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/d43a192))
+* typescript build errors ([14c2dff](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/14c2dff))
+* **quantel:** better handling of in/out points ([28fefee](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/28fefee))
+* **quantel:** bugfix: stop at correct frame ([04be540](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/04be540))
+* **quantel:** check input options ([76813b3](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/76813b3))
+* **quantel:** handle error responses ([fc8a94f](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/fc8a94f))
+* **sisyfos:** comply with automation protocol ([b9ba380](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/b9ba380))
+* **sisyfos:** do not accept state before initialization ([6ab3dda](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/6ab3dda))
+* **sisyfos:** remove groups ([c9f9e33](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/c9f9e33))
+* **sisyfos:** rename select to isPgm ([52d3b11](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/52d3b11))
+* **sisyfos:** wrong transition function ([b06ec91](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/b06ec91))
+
+
+### Features
+
+* add TCPSend device (wip) ([88618ff](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/88618ff))
+* commandContext for tcpSend device ([71c8221](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/71c8221))
+* emit statReport ([179d016](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/179d016))
+* Implement support for Quantel-Gateway device ([3b38526](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/3b38526))
+* **doOnTime:** return removed count ([dcee1c0](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/dcee1c0))
+* sisyfos device ([cb92701](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/cb92701))
+* sisyfos: add connectivity status monitoring ([c3a868a](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/c3a868a))
+* TCPSend: continued implementation (wip) ([ab84254](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/ab84254))
+* update TCPSend device, getStatus ([551e18b](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/551e18b))
+* updated typings from Quantel Gateway ([04d77e8](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/04d77e8))
+* **quantel:** cache clipId, so it doesn't have to query it again too often ([3b3d43f](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/3b3d43f))
+
+
+
+### [3.1.1](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/3.1.0...3.1.1) (2019-08-01)
+
+
+### Bug Fixes
+
+* export all typings, not just a selection. This allows for consumers to only have to import TSR-types additionally, when importing TSR ([8ee6ec6](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/8ee6ec6))
+* fix issue with typings library, causing it to not be importable by consumers ([8b2452e](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/8b2452e))
+
+
+
+## [3.1.0](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/3.0.1...3.1.0) (2019-07-30)
+
+
+### Bug Fixes
+
+* dispose of atem properly ([46a9055](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/46a9055))
+* stronger typings on the device eventEmitters ([ad145b5](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/ad145b5))
+* typo ([b7a34ee](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/b7a34ee))
+* update dependencies ([2622dfa](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/2622dfa))
+* update of dependencies ([080600c](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/080600c))
+
+
+### Features
+
+* add support for commands with context ([bf20e44](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/bf20e44))
+* devices emit "commandError" events when there is a problem with a comand ([72e8d3b](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/72e8d3b))
+* OSC Tweened properties ([96fa04c](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/96fa04c))
+
+
+
+## [3.0.1](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/0.0.0...3.0.1) (2019-05-21)
+
+
+### Bug Fixes
+
+* Update supertimeline dep ([3c89511](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/3c89511))
+
+
+
+# [3.0.0](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/2.2.0...3.0.0) (2019-05-21)
+
+
+### Bug Fixes
+
+* cunductor: better handling of when future is clear ([471d905](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/471d905))
+* decrease hyperdeck ping for faster connection status ([fb151e9](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/fb151e9))
+* Guard against object being undefined ([d96d398](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/d96d398))
+* handle non-decript looping casparcg-video ([b23a8a8](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/b23a8a8))
+* Linter errors ([27dc142](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/27dc142))
+* Update TimelineObjEmpty. Fix some incorrect import paths ([5e7b66c](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/5e7b66c))
+
+
+### Features
+
+* Add accurate typings for TimelineObject.keyframes ([0a116dc](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/0a116dc))
+* add casparcg-property noStarttime to avoid seeking in certain situations ([e591c0d](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/e591c0d))
+* Expose isLookahead and lookaheadForLayer on TSRTimelineObjBase ([22841a8](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/22841a8))
+* implement Timeline version 2 and various improvements to the timeline resolving & typings ([32574ff](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/32574ff))
+* support for multiple queues in doOnTime, so that IN_ORDER can burst some commands, while run others in order ([8bbc0b8](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/8bbc0b8))
+* update timeline lib ([a499d5f](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/a499d5f))
+* update timeline typings ([127644b](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/127644b))
+
+
+### BREAKING CHANGES
+
+* new timeline interface, slightly changed timeline logic
+
+
 
 # [2.2.0](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/2.1.1...2.2.0) (2019-05-21)
 
