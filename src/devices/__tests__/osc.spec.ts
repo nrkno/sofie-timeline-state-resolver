@@ -23,7 +23,7 @@ describe('OSC-Message', () => {
 		mockTime.init()
 	})
 	test('OSC message', async () => {
-		let commandReceiver0 = jest.fn(() => {
+		const commandReceiver0: any = jest.fn(() => {
 			return Promise.resolve()
 		})
 		let myLayerMapping0: MappingOSC = {
@@ -43,7 +43,9 @@ describe('OSC-Message', () => {
 		await myConductor.addDevice('osc0', {
 			type: DeviceType.OSC,
 			options: {
-				commandReceiver: commandReceiver0
+				commandReceiver: commandReceiver0,
+				host: '127.0.0.1',
+				port: 80
 			}
 		})
 		await myConductor.setMapping(myLayerMapping)
@@ -114,7 +116,7 @@ describe('OSC-Message', () => {
 		expect(commandReceiver0).toHaveBeenCalledTimes(1)
 	})
 	test('OSC transition', async () => {
-		let commandReceiver0 = jest.fn(() => {
+		const commandReceiver0: any = jest.fn(() => {
 			return Promise.resolve()
 		})
 		let myLayerMapping0: MappingOSC = {
@@ -134,7 +136,9 @@ describe('OSC-Message', () => {
 		await myConductor.addDevice('osc0', {
 			type: DeviceType.OSC,
 			options: {
-				oscSender: commandReceiver0
+				oscSender: commandReceiver0,
+				host: '127.0.0.1',
+				port: 80
 			}
 		})
 		await myConductor.setMapping(myLayerMapping)

@@ -2,12 +2,14 @@ import * as _ from 'underscore'
 import {
 	DeviceStatus,
 	StatusCode,
-	Device
+	Device,
+	IDevice
 } from './device'
 import {
 	DeviceType,
-	DeviceOptions,
-	TimelineContentTypeHttp
+	TimelineContentTypeHTTP,
+	HTTPWatcherOptions,
+	DeviceOptionsHTTPpWatcher
 } from '../types/src'
 import * as request from 'request'
 
@@ -15,46 +17,42 @@ import {
 	TimelineState
 } from 'superfly-timeline'
 
-export interface HttpWatcherDeviceOptions extends DeviceOptions {
-	options?: {
-		uri?: string
-		httpMethod?: string
-		expectedHttpResponse?: number
-		keyword?: string
-		interval?: number
-	}
+export interface DeviceOptionsHTTPWatcherInternal extends DeviceOptionsHTTPpWatcher {
+	options: (
+		DeviceOptionsHTTPpWatcher['options']
+	)
 }
 
 /**
  * This is a HTTPWatcherDevice, requests a uri on a regular interval and watches
  * it's response.
  */
-export class HttpWatcherDevice extends Device {
+export class HTTPWatcherDevice extends Device implements IDevice {
 	private uri?: string
-	private httpMethod: TimelineContentTypeHttp
+	private httpMethod: TimelineContentTypeHTTP
 	private expectedHttpResponse: number | undefined
 	private keyword: string | undefined
 	private intervalTime: number
 	private interval: NodeJS.Timer | undefined
 	private status: StatusCode = StatusCode.UNKNOWN
 	private statusReason: string | undefined
-	constructor (deviceId: string, deviceOptions: HttpWatcherDeviceOptions, options) {
+	constructor (deviceId: string, deviceOptions: DeviceOptionsHTTPWatcherInternal, options) {
 		super(deviceId, deviceOptions, options)
 		const opts = deviceOptions.options || {}
 		switch (opts.httpMethod) {
 			case 'post':
-				this.httpMethod = TimelineContentTypeHttp.POST
+				this.httpMethod = TimelineContentTypeHTTP.POST
 				break
 			case 'delete':
-				this.httpMethod = TimelineContentTypeHttp.DELETE
+				this.httpMethod = TimelineContentTypeHTTP.DELETE
 				break
 			case 'put':
-				this.httpMethod = TimelineContentTypeHttp.PUT
+				this.httpMethod = TimelineContentTypeHTTP.PUT
 				break
 			case 'get':
 			case undefined:
 			default:
-				this.httpMethod = TimelineContentTypeHttp.GET
+				this.httpMethod = TimelineContentTypeHTTP.GET
 				break
 		}
 
@@ -110,7 +108,7 @@ export class HttpWatcherDevice extends Device {
 		}
 	}
 
-	init (): Promise<boolean> {
+	init (_initOptions: HTTPWatcherOptions): Promise<boolean> {
 		this.startInterval()
 
 		return Promise.resolve(true)

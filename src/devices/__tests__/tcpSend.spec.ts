@@ -4,11 +4,11 @@ import {
 	MappingTCPSend
 } from '../../types/src'
 import { Conductor } from '../../conductor'
-import { TCPSendDevice } from '../TCPSend'
 import { Socket as MockSocket } from 'net'
 import { StatusCode } from '../device'
 import { ThreadedClass } from 'threadedclass'
 import { MockTime } from '../../__tests__/mockTime'
+import { TCPSendDevice } from '../tcpSend'
 
 jest.mock('net')
 let setTimeoutOrg = setTimeout
@@ -31,7 +31,7 @@ describe('TCP-Send', () => {
 	// afterEach(() => {})
 	test('Send message', async () => {
 
-		let commandReceiver0 = jest.fn((time, cmd, context) => {
+		const commandReceiver0: any = jest.fn((time, cmd, context) => {
 			// return Promise.resolve()
 			// @ts-ignore
 			device._defaultCommandReceiver(time, cmd, context)

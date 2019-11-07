@@ -3,13 +3,14 @@ import {
 	DeviceWithState,
 	CommandWithContext,
 	DeviceStatus,
-	StatusCode
+	StatusCode,
+	IDevice
 } from './device'
 import {
 	DeviceType,
-	DeviceOptions,
-	HttpSendOptions,
-	HttpSendCommandContent
+	HTTPSendOptions,
+	HTTPSendCommandContent,
+	DeviceOptionsHTTPSend
 } from '../types/src'
 import { DoOnTime, SendMode } from '../doOnTime'
 import * as request from 'request'
@@ -17,15 +18,16 @@ import * as request from 'request'
 import {
 	TimelineState, ResolvedTimelineObjectInstance
 } from 'superfly-timeline'
-export interface HttpSendDeviceOptions extends DeviceOptions {
-	options?: {
-		commandReceiver?: CommandReceiver
-	}
+export interface DeviceOptionsHTTPSendInternal extends DeviceOptionsHTTPSend {
+	options: (
+		DeviceOptionsHTTPSend['options'] &
+		{ commandReceiver?: CommandReceiver }
+	)
 }
-export type CommandReceiver = (time: number, cmd: HttpSendCommandContent, context: CommandContext, timelineObjId: string) => Promise<any>
+export type CommandReceiver = (time: number, cmd: HTTPSendCommandContent, context: CommandContext, timelineObjId: string) => Promise<any>
 interface Command {
 	commandName: 'added' | 'changed' | 'removed'
-	content: HttpSendCommandContent
+	content: HTTPSendCommandContent
 	context: CommandContext
 	timelineObjId: string
 	layer: string
@@ -35,14 +37,14 @@ type CommandContext = string
 /**
  * This is a HTTPSendDevice, it sends http commands when it feels like it
  */
-export class HttpSendDevice extends DeviceWithState<TimelineState> {
+export class HTTPSendDevice extends DeviceWithState<TimelineState> implements IDevice {
 
-	private _makeReadyCommands: HttpSendCommandContent[]
+	private _makeReadyCommands: HTTPSendCommandContent[]
 	private _doOnTime: DoOnTime
 
 	private _commandReceiver: CommandReceiver
 
-	constructor (deviceId: string, deviceOptions: HttpSendDeviceOptions, options) {
+	constructor (deviceId: string, deviceOptions: DeviceOptionsHTTPSendInternal, options) {
 		super(deviceId, deviceOptions, options)
 		if (deviceOptions.options) {
 			if (deviceOptions.options.commandReceiver) this._commandReceiver = deviceOptions.options.commandReceiver
@@ -53,8 +55,8 @@ export class HttpSendDevice extends DeviceWithState<TimelineState> {
 		}, SendMode.IN_ORDER, this._deviceOptions)
 		this.handleDoOnTime(this._doOnTime, 'HTTPSend')
 	}
-	init (options: HttpSendOptions): Promise<boolean> {
-		this._makeReadyCommands = options.makeReadyCommands || []
+	init (initOptions: HTTPSendOptions): Promise<boolean> {
+		this._makeReadyCommands = initOptions.makeReadyCommands || []
 
 		return Promise.resolve(true) // This device doesn't have any initialization procedure
 	}
@@ -100,9 +102,9 @@ export class HttpSendDevice extends DeviceWithState<TimelineState> {
 	async makeReady (okToDestroyStuff?: boolean): Promise<void> {
 		if (okToDestroyStuff && this._makeReadyCommands && this._makeReadyCommands.length > 0) {
 			const time = this.getCurrentTime()
-			_.each(this._makeReadyCommands, (cmd: HttpSendCommandContent) => {
+			_.each(this._makeReadyCommands, (cmd: HTTPSendCommandContent) => {
 				// add the new commands to the queue:
-				this._doOnTime.queue(time, cmd.queueId, (cmd: HttpSendCommandContent) => {
+				this._doOnTime.queue(time, cmd.queueId, (cmd: HTTPSendCommandContent) => {
 					return this._commandReceiver(time, cmd, 'makeReady', '')
 				}, cmd)
 			})
@@ -157,7 +159,7 @@ export class HttpSendDevice extends DeviceWithState<TimelineState> {
 				commands.push({
 					timelineObjId:	newLayer.id,
 					commandName:	'added',
-					content:		newLayer.content as HttpSendCommandContent,
+					content:		newLayer.content as HTTPSendCommandContent,
 					context:		`added: ${newLayer.id}`,
 					layer:			layerKey
 				})
@@ -168,7 +170,7 @@ export class HttpSendDevice extends DeviceWithState<TimelineState> {
 					commands.push({
 						timelineObjId:	newLayer.id,
 						commandName:	'changed',
-						content:		newLayer.content as HttpSendCommandContent,
+						content:		newLayer.content as HTTPSendCommandContent,
 						context:		`changed: ${newLayer.id} (previously: ${oldLayer.id})`,
 						layer:			layerKey
 					})
@@ -183,7 +185,7 @@ export class HttpSendDevice extends DeviceWithState<TimelineState> {
 				commands.push({
 					timelineObjId:	oldLayer.id,
 					commandName:	'removed',
-					content:		oldLayer.content as HttpSendCommandContent,
+					content:		oldLayer.content as HTTPSendCommandContent,
 					context:		`removed: ${oldLayer.id}`,
 					layer:			 layerKey
 				})
@@ -195,7 +197,7 @@ export class HttpSendDevice extends DeviceWithState<TimelineState> {
 			return (a.content.temporalPriority || 0) - (b.content.temporalPriority || 0)
 		})
 	}
-	private _defaultCommandReceiver (_time: number, cmd: HttpSendCommandContent, context: CommandContext, timelineObjId: string): Promise<any> {
+	private _defaultCommandReceiver (_time: number, cmd: HTTPSendCommandContent, context: CommandContext, timelineObjId: string): Promise<any> {
 
 		let cwc: CommandWithContext = {
 			context: context,

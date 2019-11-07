@@ -1,25 +1,31 @@
+export * from './abstract'
 export * from './atem'
 export * from './casparcg'
-export * from './http'
+export * from './httpSend'
+export * from './httpWatcher'
 export * from './hyperdeck'
 export * from './lawo'
 export * from './osc'
 export * from './pharos'
-export * from './ptz'
+export * from './panasonicPTZ'
 export * from './sisyfos'
 export * from './quantel'
 export * from './tcpSend'
 export * from './singularLive'
+
+export * from './device'
+export * from './mapping'
+
 import * as Timeline from './superfly-timeline'
 import { TimelineObjAtemAny } from './atem'
 import { TimelineObjCasparCGAny } from './casparcg'
-import { TimelineObjHTTPSendAny } from './http'
+import { TimelineObjHTTPSendAny } from './httpSend'
 import { TimelineObjTCPSendAny } from './tcpSend'
 import { TimelineObjHyperdeckAny } from './hyperdeck'
 import { TimelineObjLawoAny } from './lawo'
 import { TimelineObjOSCAny } from './osc'
 import { TimelineObjPharosAny } from './pharos'
-import { TimelineObjPanasonicPtzAny } from './ptz'
+import { TimelineObjPanasonicPtzAny } from './panasonicPTZ'
 import { TimelineObjAbstractAny } from './abstract'
 import { TSRTimelineObjProps } from './mapping'
 import { TimelineObjQuantelAny } from './quantel'
@@ -27,7 +33,6 @@ import { TimelineObjSisyfosAny } from './sisyfos'
 import { TimelineObjSingularLiveAny } from './singularLive'
 
 export { Timeline }
-export * from './mapping'
 
 export type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>
 
