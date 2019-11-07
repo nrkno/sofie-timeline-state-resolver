@@ -4,12 +4,12 @@ import {
 	DeviceWithState,
 	CommandWithContext,
 	DeviceStatus,
-	StatusCode
+	StatusCode,
+	IDevice
 } from './device'
 
 import {
 	DeviceType,
-	DeviceOptions,
 	Mapping,
 	VizMSEOptions,
 	ResolvedTimelineObjectInstanceExtended,
@@ -17,14 +17,22 @@ import {
 	TimelineContentTypeVizMSE,
 	TimelineObjVIZMSEElementPilot,
 	ExpectedPlayoutItemContent,
-	ExpectedPlayoutItemContentVizMSE
+	ExpectedPlayoutItemContentVizMSE,
+	DeviceOptionsVizMSE
 } from '../types/src'
 
 import {
 	TimelineState, ResolvedTimelineObjectInstance
 } from 'superfly-timeline'
 
-import { createMSE, MSE, VRundown, InternalElement, ExternalElement, VElement } from 'v-connection'
+import {
+	createMSE,
+	MSE,
+	VRundown,
+	InternalElement,
+	ExternalElement,
+	VElement
+} from 'v-connection'
 
 import { DoOnTime, SendMode } from '../doOnTime'
 
@@ -43,16 +51,17 @@ export function getHash (str: string): string {
 	return hash.update(str).digest('base64').replace(/[\+\/\=]/g, '_') // remove +/= from strings, because they cause troubles
 }
 
-export interface VizMSEDeviceOptions extends DeviceOptions {
-	options?: {
-		commandReceiver?: CommandReceiver
-	}
+export interface DeviceOptionsVizMSEInternal extends DeviceOptionsVizMSE {
+	options: (
+		DeviceOptionsVizMSE['options'] &
+		{ commandReceiver?: CommandReceiver }
+	)
 }
 export type CommandReceiver = (time: number, cmd: VizMSECommand, context: string, timelineObjId: string) => Promise<any>
 /**
  * This class is used to interface with a vizRT Media Sequence Editor, through the v-connection library
  */
-export class VizMSEDevice extends DeviceWithState<VizMSEState> {
+export class VizMSEDevice extends DeviceWithState<VizMSEState> implements IDevice {
 
 	private _vizMSE?: MSE
 	private _vizmseManager?: VizMSEManager
@@ -60,11 +69,11 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState> {
 	private _commandReceiver: CommandReceiver
 
 	private _doOnTime: DoOnTime
-	private _connectionOptions?: VizMSEOptions
+	private _initOptions?: VizMSEOptions
 	private _vizMSEConnected: boolean = false
 	// private _initialized: boolean = false
 
-	constructor (deviceId: string, deviceOptions: VizMSEDeviceOptions, options) {
+	constructor (deviceId: string, deviceOptions: DeviceOptionsVizMSEInternal, options) {
 		super(deviceId, deviceOptions, options)
 
 		if (deviceOptions.options) {
@@ -78,27 +87,27 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState> {
 		this.handleDoOnTime(this._doOnTime, 'VizMSE')
 	}
 
-	async init (connectionOptions: VizMSEOptions): Promise<boolean> {
-		this._connectionOptions = connectionOptions
-		if (!this._connectionOptions.host) 	throw new Error('VizMSE bad connection option: host')
+	async init (initOptions: VizMSEOptions): Promise<boolean> {
+		this._initOptions = initOptions
+		if (!this._initOptions.host) 	throw new Error('VizMSE bad option: host')
 
 		this._vizMSE = createMSE(
-			this._connectionOptions.host,
-			this._connectionOptions.restPort,
-			this._connectionOptions.wsPort
+			this._initOptions.host,
+			this._initOptions.restPort,
+			this._initOptions.wsPort
 		)
 
 		this._vizmseManager = new VizMSEManager(
 			this._vizMSE,
-			this._connectionOptions.preloadAllElements
+			this._initOptions.preloadAllElements
 		)
 
 		this._vizmseManager.on('connectionChanged', (connected) => this._connectionChanged(connected))
 
 		await this._vizmseManager.initializeRundown(
-			connectionOptions.showID,
-			connectionOptions.profile,
-			connectionOptions.playlistID
+			initOptions.showID,
+			initOptions.profile,
+			initOptions.playlistID
 		)
 
 		// this._vizmse.on('error', e => this.emit('error', 'VizMSE.v-connection', e))
@@ -248,7 +257,7 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState> {
 	async makeReady (okToDestroyStuff?: boolean): Promise<void> {
 		if (this._vizmseManager) {
 			await this._vizmseManager.activate()
-		}
+		} else throw new Error(`Unable to activate vizMSE, not initialized yet!`)
 
 		if (okToDestroyStuff) {
 			// reset our own state(s):
@@ -352,7 +361,8 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState> {
 
 						templateInstance: VizMSEManager.getTemplateInstance(newLayer),
 						templateName: VizMSEManager.getTemplateName(newLayer),
-						templateData: VizMSEManager.getTemplateData(newLayer)
+						templateData: VizMSEManager.getTemplateData(newLayer),
+						channelName: newLayer.channelName
 					}, newLayer.lookahead)
 
 					// Start playing
@@ -364,7 +374,8 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState> {
 
 						templateInstance: VizMSEManager.getTemplateInstance(newLayer),
 						templateName: VizMSEManager.getTemplateName(newLayer),
-						templateData: VizMSEManager.getTemplateData(newLayer)
+						templateData: VizMSEManager.getTemplateData(newLayer),
+						channelName: newLayer.channelName
 
 					}, newLayer.lookahead)
 				}
@@ -516,7 +527,7 @@ class VizMSEManager extends EventEmitter {
 		// Setup the rundown used by this device
 
 		// check if it already exists:
-		this._rundown = _.find(this._vizMSE.getRundowns(), (rundown) => {
+		this._rundown = _.find(await this._vizMSE.getRundowns(), (rundown) => {
 			return (
 				rundown.show === showID &&
 				rundown.profile === profile &&
@@ -681,7 +692,10 @@ class VizMSEManager extends EventEmitter {
 		try {
 			if (_.isNumber(cmd.templateName)) {
 				// Prepare a pilot element
-				const pilotEl = await this._rundown.createElement(cmd.templateName)
+				const pilotEl = await this._rundown.createElement(
+					cmd.templateName,
+					cmd.channelName
+				)
 
 				this._cacheElement(elementHash, pilotEl)
 				return pilotEl
@@ -690,7 +704,8 @@ class VizMSEManager extends EventEmitter {
 				const internalEl = await this._rundown.createElement(
 					cmd.templateName,
 					cmd.templateInstance,
-					cmd.templateData || []
+					cmd.templateData || [],
+					cmd.channelName
 				)
 
 				this._cacheElement(elementHash, internalEl)
@@ -772,11 +787,13 @@ interface VizMSEStateLayerInternal extends VizMSEStateLayerBase {
 
 	templateName: string
 	templateData: Array<string>
+	channelName?: string
 }
 interface VizMSEStateLayerPilot extends VizMSEStateLayerBase {
 	contentType: TimelineContentTypeVizMSE.ELEMENT_PILOT
 
 	templateVcpId: number
+	channelName?: string
 }
 
 interface VizMSECommandBase {
@@ -861,24 +878,28 @@ function content2StateLayer (
 ): VizMSEStateLayer | undefined {
 	if (content.type === TimelineContentTypeVizMSE.ELEMENT_INTERNAL) {
 
-		return {
+		const o: VizMSEStateLayerInternal = {
 			timelineObjId: timelineObjId,
 			contentType: TimelineContentTypeVizMSE.ELEMENT_INTERNAL,
 			continueStep: content.continueStep,
 
 			templateName: content.templateName,
-			templateData: content.templateData
-		} as VizMSEStateLayerInternal
+			templateData: content.templateData,
+			channelName: content.channelName
+		}
+		return o
 	} else if (content.type === TimelineContentTypeVizMSE.ELEMENT_PILOT) {
 
-		return {
+		const o: VizMSEStateLayerPilot = {
 			timelineObjId: timelineObjId,
 			contentType: TimelineContentTypeVizMSE.ELEMENT_PILOT,
 			continueStep: content.continueStep,
 
-			templateVcpId: content.templateVcpId
+			templateVcpId: content.templateVcpId,
+			channelName: content.channelName
 
-		} as VizMSEStateLayerPilot
+		}
+		return o
 	}
 	return
 }

@@ -1,4 +1,4 @@
-type Callback = (error: Error, result: any) => void
+// type Callback = (error: Error, result: any) => void
 
 let _mockGet: (uri: string, options?: any) => Promise<any>
 let _mockPost: (uri: string, options?: any) => Promise<any>

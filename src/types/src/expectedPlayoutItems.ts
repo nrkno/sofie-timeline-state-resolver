@@ -5,4 +5,6 @@ export interface ExpectedPlayoutItemContentVizMSE { // TODO: This is a temporary
 	templateName: string | number // if number, it's a vizPilot element
 	/** Data fields of the element (for internal elements only) */
 	templateData?: string[]
+	/** What channel to use for the element */
+	channelName?: string
 }
