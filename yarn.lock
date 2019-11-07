@@ -6176,7 +6176,7 @@ uuid@^3.3.2, uuid@^3.3.3:
 
 "v-connection@git+https://github.com/olzzon/v-connection/#dist":
   version "0.0.3"
-  resolved "git+https://github.com/olzzon/v-connection/#67f8c2944836d56d6f4a4ea68ac300c35a985379"
+  resolved "git+https://github.com/olzzon/v-connection/#3ace0d1526d835c18c4afa2ff49046fb40539fc2"
   dependencies:
     "@types/uuid" "^3.4.5"
     koa "^2.8.1"
