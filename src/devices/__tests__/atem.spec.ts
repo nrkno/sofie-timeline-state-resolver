@@ -219,9 +219,13 @@ describe('Atem', () => {
 					me: {
 						upstreamKeyers: [
 							{
-								patternSettings: {
-									style: 5,
-									positionX: 250
+								upstreamKeyerId: 0,
+
+								lumaSettings: {
+									preMultiplied: false,
+									clip: 300,
+									gain: 2,
+									invert: true
 								}
 							}
 						]
@@ -235,15 +239,14 @@ describe('Atem', () => {
 		expect(commandReceiver0).toHaveBeenCalledTimes(1)
 		expect(commandReceiver0).toBeCalledWith(expect.anything(), expect.objectContaining(
 			{
-				flag: 53,
-				rawName: 'CKPt',
+				flag: 14,
+				rawName: 'CKLm',
 				mixEffect: 0,
 				upstreamKeyerId: 0,
 				properties: {
-					positionX: 250,
-					positionY: 500,
-					style: 5,
-					symmetry: 5000
+					clip: 300,
+					gain: 2,
+					invert: true
 				}
 			}
 		), null, expect.stringContaining('')) // obj0
