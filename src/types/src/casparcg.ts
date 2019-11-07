@@ -39,8 +39,8 @@ export interface TimelineStingTransition {
 	maskFile?: string
 	delay?: number
 	overlayFile?: string
-	fadeStart?: number
-	fadeDuration?: number
+	audioFadeStart?: number
+	audioFadeDuration?: number
 }
 
 export interface TimelineObjCCGProducerContentBase {
