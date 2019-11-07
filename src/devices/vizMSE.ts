@@ -256,6 +256,7 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState> implements IDevic
 	 */
 	async makeReady (okToDestroyStuff?: boolean): Promise<void> {
 		if (this._vizmseManager) {
+			console.log('Activating playlist')
 			await this._vizmseManager.activate()
 		} else throw new Error(`Unable to activate vizMSE, not initialized yet!`)
 
@@ -271,6 +272,7 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState> implements IDevic
 	async standDown (okToDestroyStuff?: boolean): Promise<void> {
 		if (okToDestroyStuff) {
 			if (this._vizmseManager) {
+				console.log('Deactivating playlist')
 				await this._vizmseManager.deactivate()
 			}
 		}
@@ -614,6 +616,7 @@ class VizMSEManager extends EventEmitter {
 	}
 
 	static getTemplateName (layer: VizMSEStateLayer): string | number {
+		console.log(`Get template name called for ${layer.contentType}`)
 		if (layer.contentType === TimelineContentTypeVizMSE.ELEMENT_INTERNAL) return layer.templateName
 		if (layer.contentType === TimelineContentTypeVizMSE.ELEMENT_PILOT) return layer.templateVcpId
 		throw new Error(`Unknown layer.contentType "${layer['contentType']}"`)
@@ -690,6 +693,7 @@ class VizMSEManager extends EventEmitter {
 		const elementHash = this.getElementHash(cmd)
 
 		try {
+			console.log(`Creating an element of type ${typeof cmd.templateName}: ${cmd.templateName}`)
 			if (_.isNumber(cmd.templateName)) {
 				// Prepare a pilot element
 				const pilotEl = await this._rundown.createElement(
