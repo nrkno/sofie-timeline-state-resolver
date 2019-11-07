@@ -33,7 +33,8 @@ export interface TimelineObjSingularLiveComposition extends TimelineObjSingularL
 	content: {
 		deviceType: DeviceType.SINGULAR_LIVE
 		type: TimelineContentTypeSingularLive.COMPOSITION
-		animation: SingularCompositionAnimation
+
+		animation?: SingularCompositionAnimation
 		controlNode: SingularCompositionControlNode
 	}
 }

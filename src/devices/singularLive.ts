@@ -63,7 +63,6 @@ export interface SingularComposition {
 	controlNode: SingularCompositionControlNode
 }
 
-
 export interface SingularLiveState {
 	compositions: {
 		[ key: string ]: SingularComposition
