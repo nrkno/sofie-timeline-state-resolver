@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.13.2](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/3.13.1...3.13.2) (2019-11-07)
+
+
+### Bug Fixes
+
+* estimateResolveTime was unused due to avoiding any resolves for times in the past ([a497d6b](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/a497d6b))
+
+
+
 ### [3.13.1](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/3.13.0...3.13.1) (2019-11-06)
 
 
