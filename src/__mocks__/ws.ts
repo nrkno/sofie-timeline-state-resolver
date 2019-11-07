@@ -124,4 +124,7 @@ class WebSocket extends EventEmitter {
 		return connected
 	}
 }
-module.exports = WebSocket
+namespace WebSocket {
+
+}
+export = WebSocket

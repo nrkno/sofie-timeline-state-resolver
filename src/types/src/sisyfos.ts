@@ -1,7 +1,7 @@
 import { Mapping } from './mapping'
 import { DeviceType, TSRTimelineObjBase } from '.'
 
-export interface SisfyosOptions {
+export interface SisyfosOptions {
 	host: string
 	port: number
 }

@@ -1,5 +1,5 @@
 import { Conductor } from '../../conductor'
-import { HttpSendDevice } from '../httpSend'
+import { HTTPSendDevice } from '../httpSend'
 import {
 	MappingHTTPSend,
 	Mappings,
@@ -7,7 +7,7 @@ import {
 } from '../../types/src'
 import { MockTime } from '../../__tests__/mockTime'
 import { ThreadedClass } from 'threadedclass'
-import { TimelineObjHTTPRequest, TimelineContentTypeHttp } from '../../types/src/http'
+import { TimelineObjHTTPRequest, TimelineContentTypeHTTP } from '../../types/src/httpSend'
 import { getMockCall } from '../../__tests__/lib'
 
 // let nowActual = Date.now()
@@ -20,7 +20,7 @@ describe('HTTP-Send', () => {
 		mockTime.init()
 	})
 	test('POST message', async () => {
-		let commandReceiver0 = jest.fn(() => {
+		const commandReceiver0: any = jest.fn(() => {
 			return Promise.resolve()
 		})
 		let myLayerMapping0: MappingHTTPSend = {
@@ -46,7 +46,7 @@ describe('HTTP-Send', () => {
 		await mockTime.advanceTimeToTicks(10100)
 
 		let deviceContainer = myConductor.getDevice('myHTTP')
-		let device = deviceContainer.device as ThreadedClass<HttpSendDevice>
+		let device = deviceContainer.device as ThreadedClass<HTTPSendDevice>
 
 		// Check that no commands has been scheduled:
 		expect(await device.queue).toHaveLength(0)
@@ -61,7 +61,7 @@ describe('HTTP-Send', () => {
 				layer: 'myLayer0',
 				content: {
 					deviceType: DeviceType.HTTPSEND,
-					type: TimelineContentTypeHttp.POST,
+					type: TimelineContentTypeHTTP.POST,
 
 					url: 'http://superfly.tv',
 					params: {
@@ -89,21 +89,21 @@ describe('HTTP-Send', () => {
 		expect(commandReceiver0).toHaveBeenCalledTimes(1)
 	})
 	test('POST message, ordering of commands', async () => {
-		let commandReceiver0 = jest.fn(() => {
+		const commandReceiver0: any = jest.fn(() => {
 			return Promise.resolve()
 		})
 		let myLayerMapping0: MappingHTTPSend = {
 			device: DeviceType.HTTPSEND,
 			deviceId: 'myHTTP'
 		}
-		let myLayerMapping1: MappingHTTPSend = {
-			device: DeviceType.HTTPSEND,
-			deviceId: 'myHTTP'
-		}
-		let myLayerMapping2: MappingHTTPSend = {
-			device: DeviceType.HTTPSEND,
-			deviceId: 'myHTTP'
-		}
+		// let myLayerMapping1: MappingHTTPSend = {
+		// 	device: DeviceType.HTTPSEND,
+		// 	deviceId: 'myHTTP'
+		// }
+		// let myLayerMapping2: MappingHTTPSend = {
+		// 	device: DeviceType.HTTPSEND,
+		// 	deviceId: 'myHTTP'
+		// }
 		let myLayerMapping: Mappings = {
 			'myLayer0': myLayerMapping0,
 			'myLayer1': myLayerMapping0,
@@ -125,7 +125,7 @@ describe('HTTP-Send', () => {
 		await mockTime.advanceTimeToTicks(10100)
 
 		let deviceContainer = myConductor.getDevice('myHTTP')
-		let device = deviceContainer.device as ThreadedClass<HttpSendDevice>
+		let device = deviceContainer.device as ThreadedClass<HTTPSendDevice>
 
 		// Check that no commands has been scheduled:
 		expect(await device.queue).toHaveLength(0)
@@ -140,7 +140,7 @@ describe('HTTP-Send', () => {
 				layer: 'myLayer0',
 				content: {
 					deviceType: DeviceType.HTTPSEND,
-					type: 'POST' as TimelineContentTypeHttp.POST,
+					type: 'POST' as TimelineContentTypeHTTP.POST,
 
 					url: 'http://superfly.tv/1',
 					params: {},
@@ -156,7 +156,7 @@ describe('HTTP-Send', () => {
 				layer: 'myLayer1',
 				content: {
 					deviceType: DeviceType.HTTPSEND,
-					type: 'POST' as TimelineContentTypeHttp.POST,
+					type: 'POST' as TimelineContentTypeHTTP.POST,
 
 					url: 'http://superfly.tv/2',
 					params: {},
@@ -172,7 +172,7 @@ describe('HTTP-Send', () => {
 				layer: 'myLayer2',
 				content: {
 					deviceType: DeviceType.HTTPSEND,
-					type: 'POST' as TimelineContentTypeHttp.POST,
+					type: 'POST' as TimelineContentTypeHTTP.POST,
 
 					url: 'http://superfly.tv/3',
 					params: {},

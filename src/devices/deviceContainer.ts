@@ -5,7 +5,7 @@ import {
 	ThreadedClassManager
 } from 'threadedclass'
 import { DeviceClassOptions, Device } from './device'
-import { DeviceOptions, DeviceType } from '../types/src'
+import { DeviceType, DeviceOptionsAny } from '../types/src'
 
 /**
  * A device container is a wrapper around a device in ThreadedClass class, it
@@ -18,7 +18,7 @@ export class DeviceContainer {
 	public _deviceId: string = 'N/A'
 	public _deviceType: DeviceType
 	public _deviceName: string = 'N/A'
-	public _deviceOptions: DeviceOptions
+	public _deviceOptions: DeviceOptionsAny
 	public _options: DeviceClassOptions
 	public _threadConfig: ThreadedClassConfig | undefined
 	public onChildClose: () => void | undefined
@@ -30,7 +30,7 @@ export class DeviceContainer {
 		orgModule: string,
 		orgClass: Function,
 		deviceId: string,
-		deviceOptions: DeviceOptions,
+		deviceOptions: DeviceOptionsAny,
 		options: DeviceClassOptions,
 		threadConfig?: ThreadedClassConfig
 	) {
@@ -77,7 +77,7 @@ export class DeviceContainer {
 	public get deviceId (): string 								{ return this._deviceId }
 	public get deviceType (): DeviceType 						{ return this._deviceType }
 	public get deviceName (): string	 						{ return this._deviceName }
-	public get deviceOptions (): DeviceOptions 					{ return this._deviceOptions }
+	public get deviceOptions (): DeviceOptionsAny 				{ return this._deviceOptions }
 	public get options (): DeviceClassOptions 					{ return this._options }
 	public get threadConfig (): ThreadedClassConfig | undefined { return this._threadConfig }
 	public get instanceId (): number							{ return this._instanceId }

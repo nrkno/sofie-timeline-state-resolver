@@ -12,6 +12,12 @@ export enum MappingPanasonicPtzType {
 	ZOOM_SPEED = 3
 }
 
+export interface PanasonicPTZOptions {
+	host?: string
+	port?: number
+	https?: boolean
+}
+
 export enum TimelineContentTypePanasonicPtz {
 	PRESET = 'presetMem',
 	SPEED = 'presetSpeed',

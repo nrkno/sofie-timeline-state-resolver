@@ -1,6 +1,6 @@
 import * as _ from 'underscore'
 import { Q } from '../quantelGateway'
-const request = require('../../__mocks__/request')
+import * as request from '../../__mocks__/request'
 // const orgSetTimeout = setTimeout
 
 /*

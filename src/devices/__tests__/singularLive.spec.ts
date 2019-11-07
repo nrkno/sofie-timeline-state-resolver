@@ -5,10 +5,10 @@ import {
 	Mappings,
 	DeviceType
 } from '../../types/src'
-import { MockTime } from '../../__tests__/mockTime.spec'
+import { MockTime } from '../../__tests__/mockTime'
 import { ThreadedClass } from 'threadedclass'
 import { TimelineContentTypeSingularLive } from '../../types/src/singularLive'
-import { getMockCall } from '../../__tests__/lib.spec'
+import { getMockCall } from '../../__tests__/lib'
 
 // let nowActual = Date.now()
 describe('Singular.Live', () => {
@@ -19,8 +19,11 @@ describe('Singular.Live', () => {
 	beforeEach(() => {
 		mockTime.init()
 	})
+	// test('nothing', async () => {
+	// 	expect(1).toEqual(1)
+	// })
 	test('POST message', async () => {
-		let commandReceiver0 = jest.fn(() => {
+		const commandReceiver0: any = jest.fn(() => {
 			return Promise.resolve()
 		})
 		let myLayerMapping0: MappingSingularLive = {

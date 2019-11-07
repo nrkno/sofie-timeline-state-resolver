@@ -4,13 +4,14 @@ import {
 	DeviceWithState,
 	CommandWithContext,
 	DeviceStatus,
-	StatusCode
+	StatusCode,
+	IDevice
 } from './device'
 import {
 	DeviceType,
-	DeviceOptions,
 	TCPSendOptions,
-	TcpSendCommandContent
+	TcpSendCommandContent,
+	DeviceOptionsTCPSend
 } from '../types/src'
 import { DoOnTime, SendMode } from '../doOnTime'
 import {
@@ -19,14 +20,14 @@ import {
 
 const TIMEOUT = 3000 // ms
 const RETRY_TIMEOUT = 5000 // ms
-/*
-	This is a TCPSendDevice, it sends commands over tcp when it feels like it
-*/
-export interface TCPSendDeviceOptions extends DeviceOptions {
-	options?: {
-		commandReceiver?: (time: number, cmd) => Promise<any>
-	}
+export interface DeviceOptionsTCPSendInternal extends DeviceOptionsTCPSend {
+	options: (
+		DeviceOptionsTCPSend['options'] &
+		{ commandReceiver?: CommandReceiver }
+	)
 }
+export type CommandReceiver = (time: number, cmd: TcpSendCommandContent, context: CommandContext, timelineObjId: string) => Promise<any>
+
 interface TCPSendCommand {
 	commandName: 'added' | 'changed' | 'removed'
 	content: TcpSendCommandContent
@@ -34,8 +35,11 @@ interface TCPSendCommand {
 	timelineObjId: string
 }
 type CommandContext = string
-export type CommandReceiver = (time: number, cmd: TcpSendCommandContent, context: CommandContext, timelineObjId: string) => Promise<any>
-export class TCPSendDevice extends DeviceWithState<TimelineState> {
+
+/**
+ * This is a TCPSendDevice, it sends commands over tcp when it feels like it
+ */
+export class TCPSendDevice extends DeviceWithState<TimelineState> implements IDevice {
 
 	private _makeReadyCommands: TcpSendCommandContent[]
 	private _doOnTime: DoOnTime
@@ -43,14 +47,14 @@ export class TCPSendDevice extends DeviceWithState<TimelineState> {
 	private _connected: boolean = false
 	private _host: string
 	private _port: number
-	private _bufferEncoding?: string
+	private _bufferEncoding?: BufferEncoding
 	private _setDisconnected: boolean = false // set to true if disconnect() has been called (then do not trye to reconnect)
 	private _retryConnectTimeout: NodeJS.Timer
 	// private _queue: Array<any>
 
 	private _commandReceiver: CommandReceiver
 
-	constructor (deviceId: string, deviceOptions: TCPSendDeviceOptions, options) {
+	constructor (deviceId: string, deviceOptions: DeviceOptionsTCPSendInternal, options) {
 		super(deviceId, deviceOptions, options)
 		if (deviceOptions.options) {
 			if (deviceOptions.options.commandReceiver) this._commandReceiver = deviceOptions.options.commandReceiver
@@ -61,12 +65,12 @@ export class TCPSendDevice extends DeviceWithState<TimelineState> {
 		}, SendMode.IN_ORDER, this._deviceOptions)
 		this.handleDoOnTime(this._doOnTime, 'TCPSend')
 	}
-	init (options: TCPSendOptions): Promise<boolean> {
-		this._makeReadyCommands = options.makeReadyCommands || []
+	init (initOptions: TCPSendOptions): Promise<boolean> {
+		this._makeReadyCommands = initOptions.makeReadyCommands || []
 
-		this._host = options.host
-		this._port = options.port
-		this._bufferEncoding = options.bufferEncoding
+		this._host = initOptions.host
+		this._port = initOptions.port
+		this._bufferEncoding = initOptions.bufferEncoding
 
 		return this._connectTCPClient()
 		.then(() => {

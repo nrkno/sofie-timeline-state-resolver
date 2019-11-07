@@ -4,11 +4,11 @@ import {
 	DeviceWithState,
 	CommandWithContext,
 	DeviceStatus,
-	StatusCode
+	StatusCode,
+	IDevice
 } from './device'
 import {
 	DeviceType,
-	DeviceOptions,
 	TimelineContentTypeAtem,
 	MappingAtem,
 	MappingAtemType,
@@ -20,7 +20,8 @@ import {
 	TimelineObjAtemSsrc,
 	TimelineObjAtemAUX,
 	TimelineObjAtemSsrcProps,
-	TimelineObjAtemMacroPlayer
+	TimelineObjAtemMacroPlayer,
+	DeviceOptionsAtem
 } from '../types/src'
 import { TimelineState } from 'superfly-timeline'
 import {
@@ -46,11 +47,6 @@ function deepExtend<T> (destination: T, ...sources: any[]) {
 	// @ts-ignore (mixin)
 	return _.deepExtend(destination, ...sources)
 }
-export interface AtemDeviceOptions extends DeviceOptions {
-	options?: {
-		commandReceiver?: (time: number, cmd) => Promise<any>
-	}
-}
 
 export interface AtemCommandWithContext {
 	command: AtemCommands.AbstractCommand
@@ -59,10 +55,18 @@ export interface AtemCommandWithContext {
 }
 type CommandContext = any
 
+export interface DeviceOptionsAtemInternal extends DeviceOptionsAtem {
+	options: (
+		DeviceOptionsAtem['options'] &
+		{ commandReceiver?: CommandReceiver }
+	)
+}
+export type CommandReceiver = (time: number, command: AtemCommands.AbstractCommand, context: CommandContext, timelineObjId: string) => Promise<any>
+
 /**
  * This is a wrapper for the Atem Device. Commands to any and all atem devices will be sent through here.
  */
-export class AtemDevice extends DeviceWithState<DeviceState> {
+export class AtemDevice extends DeviceWithState<DeviceState> implements IDevice {
 	private _doOnTime: DoOnTime
 
 	private _atem: Atem
@@ -78,9 +82,9 @@ export class AtemDevice extends DeviceWithState<DeviceState> {
 		psus: []
 	}
 
-	private _commandReceiver: (time: number, command: AtemCommands.AbstractCommand, context: CommandContext, timelineObjId: string) => Promise<any>
+	private _commandReceiver: CommandReceiver
 
-	constructor (deviceId: string, deviceOptions: AtemDeviceOptions, options) {
+	constructor (deviceId: string, deviceOptions: DeviceOptionsAtemInternal, options) {
 		super(deviceId, deviceOptions, options)
 		if (deviceOptions.options) {
 			if (deviceOptions.options.commandReceiver) this._commandReceiver = deviceOptions.options.commandReceiver
