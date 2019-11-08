@@ -137,7 +137,7 @@
     "tslint": "^5.18.0",
     "tslint-config-standard": "^8.0.1",
     "typedoc": "^0.15.0",
-    "typescript": "^3.3.3333"
+    "typescript": "3.6.x"
   },
   "keywords": [
     "broadcast",
@@ -153,8 +153,8 @@
   "dependencies": {
     "atem-connection": "1.1.0",
     "atem-state": "0.8.0",
-    "casparcg-connection": "^4.8.0",
-    "casparcg-state": "^1.9.0",
+    "casparcg-connection": "4.8.1",
+    "casparcg-state": "^1.9.1",
     "emberplus": "git+https://github.com/nrkno/tv-automation-emberplus-connection#dist200919_1",
     "fast-clone": "^1.5.13",
     "hyperdeck-connection": "^0.4.0",
