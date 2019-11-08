@@ -246,7 +246,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState> implemen
 
 			if (oldChannel && oldChannel.pgmOn !== newChannel.pgmOn) {
 				commands.push({
-					context: 'Channel ${index} goes from "${oldChannel.pgmOn}" to "${newChannel.pgmOn}"',
+					context: `Channel ${index} goes from "${oldChannel.pgmOn}" to "${newChannel.pgmOn}"`,
 					content: {
 						type: Commands.TOGGLE_PGM,
 						channel: Number(index),
@@ -258,7 +258,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState> implemen
 
 			if (oldChannel && oldChannel.pstOn !== newChannel.pstOn) {
 				commands.push({
-					context: 'Channel ${index} goes from "${oldChannel.pgmOn}" to "${newChannel.pgmOn}"',
+					context: `Channel ${index} goes from "${oldChannel.pgmOn}" to "${newChannel.pgmOn}"`,
 					content: {
 						type: Commands.TOGGLE_PST,
 						channel: Number(index),
