@@ -389,7 +389,10 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState> implements IDevic
 					timelineObjId: newLayer.timelineObjId,
 					fromLookahead: newLayer.lookahead,
 
-					templateInstance: VizMSEManager.getTemplateInstance(newLayer)
+					templateInstance: VizMSEManager.getTemplateInstance(newLayer),
+					templateName: VizMSEManager.getTemplateName(newLayer),
+					templateData: VizMSEManager.getTemplateData(newLayer),
+					channelName: newLayer.channelName
 
 				}, newLayer.lookahead)
 			} else if (
@@ -402,7 +405,10 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState> implements IDevic
 					timelineObjId: newLayer.timelineObjId,
 					fromLookahead: newLayer.lookahead,
 
-					templateInstance: VizMSEManager.getTemplateInstance(newLayer)
+					templateInstance: VizMSEManager.getTemplateInstance(newLayer),
+					templateName: VizMSEManager.getTemplateName(newLayer),
+					templateData: VizMSEManager.getTemplateData(newLayer),
+					channelName: newLayer.channelName
 
 				}, newLayer.lookahead)
 			}
@@ -418,7 +424,10 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState> implements IDevic
 					timelineObjId: oldLayer.timelineObjId,
 					fromLookahead: oldLayer.lookahead,
 
-					elementName: VizMSEManager.getTemplateInstance(oldLayer)
+					templateInstance: VizMSEManager.getTemplateInstance(oldLayer),
+					templateName: VizMSEManager.getTemplateName(oldLayer),
+					templateData: VizMSEManager.getTemplateData(oldLayer),
+					channelName: oldLayer.channelName
 
 				}, oldLayer.lookahead)
 			}
@@ -593,29 +602,37 @@ class VizMSEManager extends EventEmitter {
 
 		this.emit('debug', `VizMSE: take "${elementRef}"`)
 		await this._rundown.take(elementRef)
+
+		// TODO: Handle "PepTalk inexistent error", wait about 300ms, then try again
 	}
 	public async takeoutElement (cmd: VizMSECommandTakeOut): Promise<void> {
 		if (!this._rundown) throw new Error(`Viz Rundown not initialized!`)
 
-		this.emit('debug', `VizMSE: out "${cmd.elementName}"`)
-		await this._rundown.out(cmd.elementName)
+		const elementRef = await this._checkPrepareElement(cmd)
+
+		this.emit('debug', `VizMSE: out "${elementRef}"`)
+		await this._rundown.out(elementRef)
 	}
 	public async continueElement (cmd: VizMSECommandContinue): Promise<void> {
 		if (!this._rundown) throw new Error(`Viz Rundown not initialized!`)
 
-		this.emit('debug', `VizMSE: continue "${cmd.templateInstance}"`)
-		await this._rundown.continue(cmd.templateInstance)
+		const elementRef = await this._checkPrepareElement(cmd)
+
+		this.emit('debug', `VizMSE: continue "${elementRef}"`)
+		await this._rundown.continue(elementRef)
 	}
 	public async continueElementReverse (cmd: VizMSECommandContinueReverse): Promise<void> {
 		if (!this._rundown) throw new Error(`Viz Rundown not initialized!`)
 
-		this.emit('debug', `VizMSE: continue reverse "${cmd.templateInstance}"`)
-		await this._rundown.continueReverse(cmd.templateInstance)
+		const elementRef = await this._checkPrepareElement(cmd)
+
+		this.emit('debug', `VizMSE: continue reverse "${elementRef}"`)
+		await this._rundown.continueReverse(elementRef)
 	}
 
-	static getTemplateName (layer: VizMSEStateLayer): string {
+	static getTemplateName (layer: VizMSEStateLayer): string | number {
 		if (layer.contentType === TimelineContentTypeVizMSE.ELEMENT_INTERNAL) return layer.templateName
-		if (layer.contentType === TimelineContentTypeVizMSE.ELEMENT_PILOT) return ''
+		if (layer.contentType === TimelineContentTypeVizMSE.ELEMENT_PILOT) return layer.templateVcpId
 		throw new Error(`Unknown layer.contentType "${layer['contentType']}"`)
 	}
 	static getTemplateData (layer: VizMSEStateLayer): string[] {
@@ -657,7 +674,8 @@ class VizMSEManager extends EventEmitter {
 	}
 	private _getElementReference (el: VElement): string | number {
 		if (this._isInternalElement(el)) return el.name
-		if (this._isExternalElement(el)) return el.vcpid
+		if (this._isExternalElement(el)) return Number(el.vcpid) // TMP!!
+
 		throw Error('Unknown element type, neither internal nor external')
 	}
 	private _isInternalElement (el: any): el is InternalElement {
@@ -678,8 +696,9 @@ class VizMSEManager extends EventEmitter {
 				this.emit('debug', `VizMSE: preparing new "${elementHash}"`)
 			}
 			element = await this._prepareNewElement(cmd)
-		}
 
+			if (!fromPrepare) await this._wait(100) // wait a bit, because taking isn't possible right away anyway at this point
+		}
 		return this._getElementReference(element)
 		// })
 
@@ -690,6 +709,7 @@ class VizMSEManager extends EventEmitter {
 		const elementHash = this.getElementHash(cmd)
 
 		try {
+			console.log(`Creating an element of type ${typeof cmd.templateName}: ${cmd.templateName}, channel="${cmd.channelName}"`)
 			if (_.isNumber(cmd.templateName)) {
 				// Prepare a pilot element
 				const pilotEl = await this._rundown.createElement(
@@ -765,6 +785,9 @@ class VizMSEManager extends EventEmitter {
 			)
 		}
 	}
+	private _wait (time: number): Promise<void> {
+		return new Promise(resolve => setTimeout(resolve, time))
+	}
 }
 
 interface VizMSEState {
@@ -831,20 +854,14 @@ interface VizMSECommandCue extends VizMSECommandElementBase {
 interface VizMSECommandTake extends VizMSECommandElementBase {
 	type: VizMSECommandType.TAKE_ELEMENT
 }
-interface VizMSECommandTakeOut extends VizMSECommandBase {
+interface VizMSECommandTakeOut extends VizMSECommandElementBase {
 	type: VizMSECommandType.TAKEOUT_ELEMENT
-
-	elementName: string | number
 }
-interface VizMSECommandContinue extends VizMSECommandBase {
+interface VizMSECommandContinue extends VizMSECommandElementBase {
 	type: VizMSECommandType.CONTINUE_ELEMENT
-
-	templateInstance: string | number
 }
-interface VizMSECommandContinueReverse extends VizMSECommandBase {
+interface VizMSECommandContinueReverse extends VizMSECommandElementBase {
 	type: VizMSECommandType.CONTINUE_ELEMENT_REVERSE
-
-	templateInstance: string | number
 }
 
 type VizMSECommand = VizMSECommandPrepare |
