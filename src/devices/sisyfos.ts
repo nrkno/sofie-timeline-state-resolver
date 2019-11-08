@@ -186,7 +186,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState> implemen
 			if (!foundMapping && layer.isLookahead && layer.lookaheadForLayer) {
 				foundMapping = this.getMapping()[layer.lookaheadForLayer] as any
 			}
-			if (foundMapping) {
+			if (foundMapping && foundMapping.channel && deviceState.channels[foundMapping.channel]) {
 
 				if (layer.isLookahead) {
 					deviceState.channels[foundMapping.channel].pstOn = layer.content.isPgm || 0
