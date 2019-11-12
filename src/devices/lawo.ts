@@ -423,6 +423,7 @@ export class LawoDevice extends DeviceWithState<TimelineState> implements IDevic
 		}
 		this.emit('debug', cwc)
 
+		// save start time of command
 		const startSend = this.getCurrentTime()
 		this._lastSentValue[command.path] = startSend
 
@@ -461,7 +462,7 @@ export class LawoDevice extends DeviceWithState<TimelineState> implements IDevic
 						)
 						this.emit('debug', `Ember function result (${timelineObjId}): ${JSON.stringify(res)}`)
 					} catch (e) {
-						if (e.result && e.result.indexOf(6) > -1 && this._lastSentValue[command.path] < startSend) {
+						if (e.result && e.result.indexOf(6) > -1 && this._lastSentValue[command.path] <= startSend) { // result 6 and no new command fired for this path in meantime
 							// Lawo rejected the command, so ensure the value gets set
 							this.emit('info', `Ember function result (${timelineObjId}) was 6, running a direct setValue now`)
 							await this._setValueFn(command, timelineObjId, EmberTypes.REAL)
