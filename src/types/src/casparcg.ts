@@ -2,9 +2,10 @@ import { Mapping } from './mapping'
 import { TSRTimelineObjBase, DeviceType } from '.'
 
 export interface MappingCasparCG extends Mapping {
-	device: DeviceType.CASPARCG,
-	channel: number,
+	device: DeviceType.CASPARCG
+	channel: number
 	layer: number
+	previewWhenNotOnAir?: boolean
 }
 
 export interface CasparCGOptions {
