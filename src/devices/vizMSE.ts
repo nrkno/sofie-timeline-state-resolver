@@ -528,7 +528,7 @@ class VizMSEManager extends EventEmitter {
 	private _elementCache: {[hash: string]: CachedVElement } = {}
 	private _expectedPlayoutItems: Array<ExpectedPlayoutItemContent> = []
 	private _expectedPlayoutItemsItems: { [hash: string]: ExpectedPlayoutItemContentVizMSEInternal } = {}
-	private _monitorAndLoadElementsInterval?: NodeJS.Timeout
+	private _monitorAndLoadElementsInterval?: NodeJS.Timer
 	private _lastTimeCommandSent: number = 0
 	private _hasActiveRundown: boolean = false
 
