@@ -893,6 +893,7 @@ class VizMSEManager extends EventEmitter {
 							this.emit('debug', `VizMSE: cue for preload "${elementRef}"`)
 							return rundown.cue(elementRef)
 						})
+						el.hasBeenCued = true
 					}
 				}
 			} else this._setPreloadStatus(0)
