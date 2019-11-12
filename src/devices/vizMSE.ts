@@ -530,6 +530,7 @@ class VizMSEManager extends EventEmitter {
 	private _expectedPlayoutItemsItems: { [hash: string]: ExpectedPlayoutItemContentVizMSEInternal } = {}
 	private _monitorAndLoadElementsInterval?: NodeJS.Timeout
 	private _lastTimeCommandSent: number = 0
+	private _hasActiveRundown: boolean = false
 
 	constructor (
 		private _parentVizMSEDevice: VizMSEDevice,
@@ -603,6 +604,7 @@ class VizMSEManager extends EventEmitter {
 		this._triggerCommandSent()
 		await this._rundown.activate()
 		this._triggerCommandSent()
+		this._hasActiveRundown = true
 	}
 	public async deactivate (): Promise<void> {
 		if (!this._rundown) throw new Error(`Viz Rundown not initialized!`)
@@ -610,6 +612,7 @@ class VizMSEManager extends EventEmitter {
 		await this._rundown.deactivate()
 		this._triggerCommandSent()
 		this._clearCache()
+		this._hasActiveRundown = false
 	}
 	public async prepareElement (cmd: VizMSECommandPrepare): Promise<void> {
 		if (!this._rundown) throw new Error(`Viz Rundown not initialized!`)
@@ -836,7 +839,7 @@ class VizMSEManager extends EventEmitter {
 	/** Monitor and preload (cue) expectedItems-elements */
 	private async _monitorAndLoadElements (): Promise<void> {
 
-		if (this._rundown && this.preloadAllElements) {
+		if (this._rundown && this._hasActiveRundown && this.preloadAllElements) {
 			const rundown = this._rundown
 
 			// Step 1, figure out which elements needs loading:
