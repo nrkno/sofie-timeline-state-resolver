@@ -838,66 +838,70 @@ class VizMSEManager extends EventEmitter {
 	}
 	/** Monitor and preload (cue) expectedItems-elements */
 	private async _monitorAndLoadElements (): Promise<void> {
+		try {
 
-		if (this._rundown && this._hasActiveRundown && this.preloadAllElements) {
-			const rundown = this._rundown
+			if (this._rundown && this._hasActiveRundown && this.preloadAllElements) {
+				const rundown = this._rundown
 
-			// Step 1, figure out which elements needs loading:
-			const elementsToLoad = _.compact(_.map(this._expectedPlayoutItemsItems, (item, hash) => {
-				const el = this._getCachedElement(hash)
-				if (el && !el.hasBeenCued) {
-					return {
-						...el,
-						item: item
+				// Step 1, figure out which elements needs loading:
+				const elementsToLoad = _.compact(_.map(this._expectedPlayoutItemsItems, (item, hash) => {
+					const el = this._getCachedElement(hash)
+					if (el && !el.hasBeenCued) {
+						return {
+							...el,
+							item: item
+						}
 					}
-				}
-				return undefined
-			}))
+					return undefined
+				}))
 
-			if (elementsToLoad.length > 0) {
+				if (elementsToLoad.length > 0) {
 
-				this._setPreloadStatus(elementsToLoad.length)
+					this._setPreloadStatus(elementsToLoad.length)
 
-				// Step 2, is it safe to cue up (becuse cueueing might cause the viz engine to freeze )
+					// Step 2, is it safe to cue up (becuse cueueing might cause the viz engine to freeze )
 
-				let okToLoad: boolean = true
+					let okToLoad: boolean = true
 
-				if (this._timeSinceLastCommandSent() < SAFE_PRELOAD_TIME) {
-					// Not enough time has passed since something happened. There might be an out-animation on screen
-					okToLoad = false
-				}
-
-				if (okToLoad) {
-					const state = this._parentVizMSEDevice.getCurrentState()
-					if (state) {
-						_.each(state.layer, (_layer, _layerId) => {
-
-							// TODO: make something more clever here?
-
-							okToLoad = false // For now, we just won't preload at all if there's anything playing
-						})
-					} else {
-						// ok
+					if (this._timeSinceLastCommandSent() < SAFE_PRELOAD_TIME) {
+						// Not enough time has passed since something happened. There might be an out-animation on screen
+						okToLoad = false
 					}
-				}
 
-				if (okToLoad) {
-					// Step 3, cue an element, to trigger loading onto the vizEngine:
+					if (okToLoad) {
+						const state = this._parentVizMSEDevice.getCurrentState()
+						if (state) {
+							_.each(state.layer, (_layer, _layerId) => {
 
-					const el = elementsToLoad[0]
-					if (el) {
+								// TODO: make something more clever here?
 
-						const elementRef = await this._checkPrepareElement(el.item)
-
-						await this._handleRetry(() => {
-							this.emit('debug', `VizMSE: cue for preload "${elementRef}"`)
-							return rundown.cue(elementRef)
-						})
-						el.hasBeenCued = true
+								okToLoad = false // For now, we just won't preload at all if there's anything playing
+							})
+						} else {
+							// ok
+						}
 					}
-				}
+
+					if (okToLoad) {
+						// Step 3, cue an element, to trigger loading onto the vizEngine:
+
+						const el = elementsToLoad[0]
+						if (el) {
+
+							const elementRef = await this._checkPrepareElement(el.item)
+
+							await this._handleRetry(() => {
+								this.emit('debug', `VizMSE: cue for preload "${elementRef}"`)
+								return rundown.cue(elementRef)
+							})
+							el.hasBeenCued = true
+						}
+					}
+				} else this._setPreloadStatus(0)
 			} else this._setPreloadStatus(0)
-		} else this._setPreloadStatus(0)
+		} catch (e) {
+			this.emit('error', e)
+		}
 
 	}
 	private _wait (time: number): Promise<void> {
