@@ -589,45 +589,55 @@ class VizMSEManager extends EventEmitter {
 	}
 	public async cueElement (cmd: VizMSECommandCue): Promise<void> {
 		if (!this._rundown) throw new Error(`Viz Rundown not initialized!`)
+		const rundown = this._rundown
 
 		const elementRef = await this._checkPrepareElement(cmd)
 
-		this.emit('debug', `VizMSE: cue "${elementRef}"`)
-		await this._rundown.cue(elementRef)
+		await this._handleRetry(() => {
+			this.emit('debug', `VizMSE: cue "${elementRef}"`)
+			return rundown.cue(elementRef)
+		})
 	}
 	public async takeElement (cmd: VizMSECommandTake): Promise<void> {
 		if (!this._rundown) throw new Error(`Viz Rundown not initialized!`)
+		const rundown = this._rundown
 
 		const elementRef = await this._checkPrepareElement(cmd)
 
-		this.emit('debug', `VizMSE: take "${elementRef}"`)
-		await this._rundown.take(elementRef)
-
-		// TODO: Handle "PepTalk inexistent error", wait about 300ms, then try again
+		await this._handleRetry(() => {
+			this.emit('debug', `VizMSE: take "${elementRef}"`)
+			return rundown.take(elementRef)
+		})
 	}
 	public async takeoutElement (cmd: VizMSECommandTakeOut): Promise<void> {
 		if (!this._rundown) throw new Error(`Viz Rundown not initialized!`)
+		const rundown = this._rundown
 
 		const elementRef = await this._checkPrepareElement(cmd)
-
-		this.emit('debug', `VizMSE: out "${elementRef}"`)
-		await this._rundown.out(elementRef)
+		await this._handleRetry(() => {
+			this.emit('debug', `VizMSE: out "${elementRef}"`)
+			return rundown.out(elementRef)
+		})
 	}
 	public async continueElement (cmd: VizMSECommandContinue): Promise<void> {
 		if (!this._rundown) throw new Error(`Viz Rundown not initialized!`)
+		const rundown = this._rundown
 
 		const elementRef = await this._checkPrepareElement(cmd)
-
-		this.emit('debug', `VizMSE: continue "${elementRef}"`)
-		await this._rundown.continue(elementRef)
+		await this._handleRetry(() => {
+			this.emit('debug', `VizMSE: continue "${elementRef}"`)
+			return rundown.continue(elementRef)
+		})
 	}
 	public async continueElementReverse (cmd: VizMSECommandContinueReverse): Promise<void> {
 		if (!this._rundown) throw new Error(`Viz Rundown not initialized!`)
+		const rundown = this._rundown
 
 		const elementRef = await this._checkPrepareElement(cmd)
-
-		this.emit('debug', `VizMSE: continue reverse "${elementRef}"`)
-		await this._rundown.continueReverse(elementRef)
+		await this._handleRetry(() => {
+			this.emit('debug', `VizMSE: continue reverse "${elementRef}"`)
+			return rundown.continueReverse(elementRef)
+		})
 	}
 
 	static getTemplateName (layer: VizMSEStateLayer): string | number {
@@ -787,6 +797,32 @@ class VizMSEManager extends EventEmitter {
 	}
 	private _wait (time: number): Promise<void> {
 		return new Promise(resolve => setTimeout(resolve, time))
+	}
+	/** Execute fcn an retry a couple of times until */
+	private async _handleRetry<T> (fcn: () => Promise<T>): Promise<T> {
+		let i: number = 0
+		const maxNumberOfTries = 5
+
+		while (true) {
+			try {
+				return fcn()
+			} catch (e) {
+				if (i++ < maxNumberOfTries) {
+					if (e && e.toString && e.toString().match(/inexistent/i)) { // "PepTalk inexistent error"
+						this.emit('debug', `VizMSE: _handleRetry got "inexistent" error, trying again...`)
+
+						// Wait and try again:
+						await this._wait(300)
+					} else {
+						// Unhandled error, give up:
+						throw e
+					}
+				} else {
+					// Give up, we've tried enough times already
+					throw e
+				}
+			}
+		}
 	}
 }
 
