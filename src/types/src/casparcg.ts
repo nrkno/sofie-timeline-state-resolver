@@ -32,14 +32,22 @@ export enum TimelineContentTypeCasparCg { //  CasparCG-state
 	RECORD = 'record'
 }
 
-export interface TimelineTransition { // TODO split into transition and sting
+export type TimelineTransition = RegularTimelineTransition | TimelineStingTransition
+
+export interface RegularTimelineTransition {
 	type: Transition
 	duration?: number,
 	easing?: Ease,
 	direction?: Direction
+}
+
+export interface TimelineStingTransition {
+	type: Transition.STING
 	maskFile?: string
 	delay?: number
 	overlayFile?: string
+	audioFadeStart?: number
+	audioFadeDuration?: number
 }
 
 export interface TimelineObjCCGProducerContentBase {

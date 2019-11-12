@@ -1046,6 +1046,15 @@ caseless@~0.12.0:
   resolved "https://registry.yarnpkg.com/caseless/-/caseless-0.12.0.tgz#1b681c21ff84033c826543090689420d187151dc"
   integrity sha1-G2gcIf+EAzyCZUMJBolCDRhxUdw=
 
+casparcg-connection@4.8.1:
+  version "4.8.1"
+  resolved "https://registry.yarnpkg.com/casparcg-connection/-/casparcg-connection-4.8.1.tgz#9cbb54e1575cb7757679f3e1821ecb958b64ba6a"
+  integrity sha512-r+axV6pZj/LWbkm97+SFvx/k4AWD90ug3dvyw7CxeTma1qzoAWeSBKoOrF9xWvkwXViu/vqUkWbLHsqvNl2VCA==
+  dependencies:
+    highland "^3.0.0-beta.6"
+    xml2js "^0.4.19"
+    xmlbuilder "^9.0.7"
+
 casparcg-connection@^4.7.0:
   version "4.7.0"
   resolved "https://registry.yarnpkg.com/casparcg-connection/-/casparcg-connection-4.7.0.tgz#c2aa4b5b5a89b17bffac77f592627aca8ec3537e"
@@ -1055,10 +1064,10 @@ casparcg-connection@^4.7.0:
     xml2js "^0.4.19"
     xmlbuilder "^9.0.7"
 
-casparcg-state@^1.8.1:
-  version "1.8.1"
-  resolved "https://registry.yarnpkg.com/casparcg-state/-/casparcg-state-1.8.1.tgz#845b2ef51426ef9af7888146426eb31d9d7dffa3"
-  integrity sha512-kUBd91fOznkuV38RqmVx7XMU/ZQdlchQmQeZpdrz5W7tnywHUj/oxhG+6dmlOj7VB0XXJRET6QRFwYpWWCJemw==
+casparcg-state@^1.9.1:
+  version "1.9.1"
+  resolved "https://registry.yarnpkg.com/casparcg-state/-/casparcg-state-1.9.1.tgz#09702adbb68269c57b8cb154caff92eadb1b0369"
+  integrity sha512-cwAiczngF72eyQs42OZg55OlWJ5dsEdse01yKGX14i5scfnaDW5HOnF4lt/jIO4+3tjKyhRMxcj8tnR/c9nZ1Q==
   dependencies:
     casparcg-connection "^4.7.0"
     fast-clone "^1.5.13"
@@ -5799,7 +5808,7 @@ typescript@3.5.x:
   resolved "https://registry.yarnpkg.com/typescript/-/typescript-3.5.3.tgz#c830f657f93f1ea846819e929092f5fe5983e977"
   integrity sha512-ACzBtm/PhXBDId6a6sDJfroT2pOWt/oOnk4/dElG5G33ZL776N3Y6/6bKZJBFpd+b05F3Ct9qDjMeJmRWtE2/g==
 
-typescript@^3.3.3333:
+typescript@3.6.x:
   version "3.6.4"
   resolved "https://registry.yarnpkg.com/typescript/-/typescript-3.6.4.tgz#b18752bb3792bc1a0281335f7f6ebf1bbfc5b91d"
   integrity sha512-unoCll1+l+YK4i4F8f22TaNVPRHcD9PA3yCuZ8g5e0qGqlVlJ/8FSateOLLSagn+Yg5+ZwuPkL8LFUc0Jcvksg==
