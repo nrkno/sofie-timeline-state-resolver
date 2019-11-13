@@ -43,6 +43,9 @@ export interface TimelineObjVIZMSEBase extends TSRTimelineObjBase {
 
 		/** Don't play, only cue the element  */
 		cue?: boolean
+
+		/** If true, won't be preloaded automatically */
+		noAutoPreloading?: boolean
 	}
 }
 export interface TimelineObjVIZMSEElementInternal extends TimelineObjVIZMSEBase {
@@ -58,6 +61,9 @@ export interface TimelineObjVIZMSEElementInternal extends TimelineObjVIZMSEBase 
 
 		/** Don't play, only cue the element  */
 		cue?: boolean
+
+		/** If true, won't be preloaded (cued) automatically */
+		noAutoPreloading?: boolean
 
 		/** Name of the template to be played */
 		templateName: string
@@ -78,6 +84,9 @@ export interface TimelineObjVIZMSEElementPilot extends TimelineObjVIZMSEBase {
 
 		/** Don't play, only cue the element  */
 		cue?: boolean
+
+		/** If true, won't be preloaded (cued) automatically */
+		noAutoPreloading?: boolean
 
 		/** Viz-Pilot id of the template to be played */
 		templateVcpId: number

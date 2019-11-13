@@ -810,7 +810,7 @@ class VizMSEManager extends EventEmitter {
 				// Step 1, figure out which elements needs loading:
 				const elementsToLoad = _.compact(_.map(this._expectedPlayoutItemsItems, (item, hash) => {
 					const el = this._getCachedElement(hash)
-					if (el && !el.hasBeenCued) {
+					if (!item.noAutoPreloading && el && !el.hasBeenCued) {
 						return {
 							...el,
 							item: item
