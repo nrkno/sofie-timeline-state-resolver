@@ -364,12 +364,21 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState> implements IDevic
 						time: prepareTime
 					}), newLayer.lookahead)
 
-					// Start playing element
-					addCommand(literal<VizMSECommandTake>({
-						...props,
-						type: VizMSECommandType.TAKE_ELEMENT,
-						time: time
-					}), newLayer.lookahead)
+					if (newLayer.cue) {
+						// Cue the element
+						addCommand(literal<VizMSECommandCue>({
+							...props,
+							type: VizMSECommandType.CUE_ELEMENT,
+							time: time
+						}), newLayer.lookahead)
+					} else {
+						// Start playing element
+						addCommand(literal<VizMSECommandTake>({
+							...props,
+							type: VizMSECommandType.TAKE_ELEMENT,
+							time: time
+						}), newLayer.lookahead)
+					}
 				}
 			} else if (
 				(newLayer.continueStep || 0) > (oldLayer.continueStep || 0)
@@ -917,6 +926,7 @@ interface VizMSEStateLayerBase {
 
 	contentType: TimelineContentTypeVizMSE
 	continueStep?: number
+	cue?: boolean
 
 	lookahead?: boolean
 }
@@ -1002,6 +1012,7 @@ function content2StateLayer (
 			timelineObjId: timelineObjId,
 			contentType: TimelineContentTypeVizMSE.ELEMENT_INTERNAL,
 			continueStep: content.continueStep,
+			cue: content.cue,
 
 			templateName: content.templateName,
 			templateData: content.templateData,
@@ -1014,6 +1025,7 @@ function content2StateLayer (
 			timelineObjId: timelineObjId,
 			contentType: TimelineContentTypeVizMSE.ELEMENT_PILOT,
 			continueStep: content.continueStep,
+			cue: content.cue,
 
 			templateVcpId: content.templateVcpId,
 			channelName: content.channelName

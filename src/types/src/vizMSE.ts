@@ -40,6 +40,9 @@ export interface TimelineObjVIZMSEBase extends TSRTimelineObjBase {
 
 		/** What channel to output to */
 		channelName?: string
+
+		/** Don't play, only cue the element  */
+		cue?: boolean
 	}
 }
 export interface TimelineObjVIZMSEElementInternal extends TimelineObjVIZMSEBase {
@@ -52,6 +55,9 @@ export interface TimelineObjVIZMSEElementInternal extends TimelineObjVIZMSEBase 
 
 		/** What channel to output to */
 		channelName?: string
+
+		/** Don't play, only cue the element  */
+		cue?: boolean
 
 		/** Name of the template to be played */
 		templateName: string
@@ -69,6 +75,9 @@ export interface TimelineObjVIZMSEElementPilot extends TimelineObjVIZMSEBase {
 
 		/** What channel to output to */
 		channelName?: string
+
+		/** Don't play, only cue the element  */
+		cue?: boolean
 
 		/** Viz-Pilot id of the template to be played */
 		templateVcpId: number
