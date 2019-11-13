@@ -404,9 +404,9 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState> implements IDevic
 				// An increase in continueStep should result in triggering a continue:
 				addCommand({
 					type: VizMSECommandType.CONTINUE_ELEMENT,
-					time: prepareTime,
 					timelineObjId: newLayer.timelineObjId,
 					fromLookahead: newLayer.lookahead,
+					time: time
 
 					templateInstance: VizMSEManager.getTemplateInstance(newLayer),
 					templateName: VizMSEManager.getTemplateName(newLayer),
@@ -439,7 +439,7 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState> implements IDevic
 				// Stopped playing
 				addCommand({
 					type: VizMSECommandType.TAKEOUT_ELEMENT,
-					time: prepareTime,
+					time: time,
 					timelineObjId: oldLayer.timelineObjId,
 					fromLookahead: oldLayer.lookahead,
 
