@@ -19,7 +19,7 @@ export interface CasparCGOptions {
 	timeBase?: {[channel: string]: number} | number
 
 	launcherHost?: string,
-	launcherPort?: string
+	launcherPort?: number
 }
 
 export enum TimelineContentTypeCasparCg { //  CasparCG-state
