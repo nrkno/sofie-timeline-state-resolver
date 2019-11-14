@@ -4,23 +4,20 @@ import { TSRTimelineObjBase, DeviceType } from '.'
 export interface MappingHTTPSend extends Mapping {
 	device: DeviceType.HTTPSEND
 }
-export interface MappingHTTPWatcher extends Mapping {
-	device: DeviceType.HTTPWATCHER
-}
 
-export interface HttpSendCommandContent {
-	type: TimelineContentTypeHttp
+export interface HTTPSendCommandContent {
+	type: TimelineContentTypeHTTP
 	url: string
 	params: {[key: string]: number | string | any}
 	temporalPriority?: number // default: 0
 	/** Commands in the same queue will be sent in order (will wait for the previous to finish before sending next */
 	queueId?: string
 }
-export interface HttpSendOptions {
-	makeReadyCommands?: HttpSendCommandContent[]
+export interface HTTPSendOptions {
+	makeReadyCommands?: HTTPSendCommandContent[]
 }
 
-export enum TimelineContentTypeHttp {
+export enum TimelineContentTypeHTTP {
 	GET = 'get',
 	POST = 'post',
 	PUT = 'put',
@@ -37,5 +34,5 @@ export interface TimelineObjHTTPSendBase extends TSRTimelineObjBase {
 export interface TimelineObjHTTPRequest extends TimelineObjHTTPSendBase {
 	content: {
 		deviceType: DeviceType.HTTPSEND
-	} & HttpSendCommandContent
+	} & HTTPSendCommandContent
 }

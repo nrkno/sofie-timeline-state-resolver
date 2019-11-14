@@ -20,7 +20,7 @@ describe('Abstract device', () => {
 	})
 	test('Abstract device methods', async () => {
 
-		let commandReceiver0 = jest.fn(() => {
+		const commandReceiver0: any = jest.fn(() => {
 			return Promise.resolve()
 		})
 		let myLayerMapping0: MappingAbstract = {

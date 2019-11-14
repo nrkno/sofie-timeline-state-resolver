@@ -31,7 +31,7 @@ describe('Sisyfos', () => {
 
 	test('Sisyfos: set pst & lookahead and take to pgm', async () => {
 
-		let commandReceiver0 = jest.fn(() => {
+		const commandReceiver0: any = jest.fn(() => {
 			return Promise.resolve()
 		})
 		let myChannelMapping0: MappingSisyfos = {
@@ -207,7 +207,7 @@ describe('Sisyfos', () => {
 
 	test('Sisyfos: set lookahead and take to pgm, with lookahead still on', async () => {
 
-		let commandReceiver0 = jest.fn(() => {
+		const commandReceiver0: any = jest.fn(() => {
 			return Promise.resolve()
 		})
 		let myChannelMapping0: MappingSisyfos = {
@@ -338,7 +338,7 @@ describe('Sisyfos', () => {
 		})
 	})
 	test('Connection status', async () => {
-		let commandReceiver0 = jest.fn(() => {
+		const commandReceiver0: any = jest.fn(() => {
 			return Promise.resolve()
 		})
 

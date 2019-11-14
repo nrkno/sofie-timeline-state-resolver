@@ -5,7 +5,6 @@ import {
 	Mappings,
 	DeviceType,
 	ChannelFormat,
-	TimelineObjCasparCGAny,
 	Transition,
 	Ease,
 	Direction
@@ -14,12 +13,12 @@ import { MockTime } from '../../__tests__/mockTime'
 import { getMockCall } from '../../__tests__/lib'
 
 // usage logCalls(commandReceiver0)
-function logCalls (fcn) {
-	console.log('calls')
-	fcn.mock.calls.forEach((call) => {
-		console.log(call[0], call[1])
-	})
-}
+// function logCalls (fcn) {
+// 	console.log('calls')
+// 	fcn.mock.calls.forEach((call) => {
+// 		console.log(call[0], call[1])
+// 	})
+// }
 
 describe('CasparCG', () => {
 	let mockTime = new MockTime()
@@ -31,7 +30,7 @@ describe('CasparCG', () => {
 	})
 	test('CasparCG: Play AMB for 60s', async () => {
 
-		let commandReceiver0 = jest.fn(() => {
+		const commandReceiver0: any = jest.fn(() => {
 			return Promise.resolve()
 		})
 		let myLayerMapping0: MappingCasparCG = {
@@ -53,6 +52,7 @@ describe('CasparCG', () => {
 			type: DeviceType.CASPARCG,
 			options: {
 				commandReceiver: commandReceiver0,
+				host: '127.0.0.1',
 				useScheduling: true
 			}
 		})
@@ -116,7 +116,7 @@ describe('CasparCG', () => {
 	})
 	test('CasparCG: Play AMB for 60s, start at 10s', async () => {
 
-		let commandReceiver0 = jest.fn(() => {
+		const commandReceiver0: any = jest.fn(() => {
 			return Promise.resolve()
 		})
 		let myLayerMapping0: MappingCasparCG = {
@@ -138,6 +138,7 @@ describe('CasparCG', () => {
 			type: DeviceType.CASPARCG,
 			options: {
 				commandReceiver: commandReceiver0,
+				host: '127.0.0.1',
 				useScheduling: true
 			}
 		})
@@ -190,7 +191,7 @@ describe('CasparCG', () => {
 
 	test('CasparCG: Play IP input for 60s', async () => {
 
-		let commandReceiver0 = jest.fn(() => {
+		const commandReceiver0: any = jest.fn(() => {
 			return Promise.resolve()
 		})
 		let myLayerMapping0: MappingCasparCG = {
@@ -212,6 +213,7 @@ describe('CasparCG', () => {
 			type: DeviceType.CASPARCG,
 			options: {
 				commandReceiver: commandReceiver0,
+				host: '127.0.0.1',
 				useScheduling: false
 			}
 		})
@@ -263,7 +265,7 @@ describe('CasparCG', () => {
 
 	test('CasparCG: Play decklink input for 60s', async () => {
 
-		let commandReceiver0 = jest.fn(() => {
+		const commandReceiver0: any = jest.fn(() => {
 			return Promise.resolve()
 		})
 		let myLayerMapping0: MappingCasparCG = {
@@ -285,6 +287,7 @@ describe('CasparCG', () => {
 			type: DeviceType.CASPARCG,
 			options: {
 				commandReceiver: commandReceiver0,
+				host: '127.0.0.1',
 				useScheduling: true
 			}
 		})
@@ -350,7 +353,7 @@ describe('CasparCG', () => {
 
 	test('CasparCG: Play template for 60s', async () => {
 
-		let commandReceiver0 = jest.fn(() => {
+		const commandReceiver0: any = jest.fn(() => {
 			return Promise.resolve()
 		})
 		let myLayerMapping0: MappingCasparCG = {
@@ -372,6 +375,7 @@ describe('CasparCG', () => {
 			type: DeviceType.CASPARCG,
 			options: {
 				commandReceiver: commandReceiver0,
+				host: '127.0.0.1',
 				useScheduling: true
 			}
 		})
@@ -434,7 +438,7 @@ describe('CasparCG', () => {
 
 	test('CasparCG: Play template for 60s', async () => {
 
-		let commandReceiver0 = jest.fn(() => {
+		const commandReceiver0: any = jest.fn(() => {
 			return Promise.resolve()
 		})
 		let myLayerMapping0: MappingCasparCG = {
@@ -456,6 +460,7 @@ describe('CasparCG', () => {
 			type: DeviceType.CASPARCG,
 			options: {
 				commandReceiver: commandReceiver0,
+				host: '127.0.0.1',
 				useScheduling: true
 			}
 		})
@@ -512,7 +517,7 @@ describe('CasparCG', () => {
 
 	test('CasparCG: Play 2 routes for 60s', async () => {
 
-		let commandReceiver0 = jest.fn(() => {
+		const commandReceiver0: any = jest.fn(() => {
 			return Promise.resolve()
 		})
 		let myLayerMapping0: MappingCasparCG = {
@@ -541,6 +546,7 @@ describe('CasparCG', () => {
 			type: DeviceType.CASPARCG,
 			options: {
 				commandReceiver: commandReceiver0,
+				host: '127.0.0.1',
 				useScheduling: true
 			}
 		})
@@ -629,7 +635,7 @@ describe('CasparCG', () => {
 
 	test('CasparCG: AMB with transitions', async () => {
 
-		let commandReceiver0 = jest.fn(() => {
+		const commandReceiver0: any = jest.fn(() => {
 			return Promise.resolve()
 		})
 		let myLayerMapping0: MappingCasparCG = {
@@ -651,6 +657,7 @@ describe('CasparCG', () => {
 			type: DeviceType.CASPARCG,
 			options: {
 				commandReceiver: commandReceiver0,
+				host: '127.0.0.1',
 				useScheduling: true
 			}
 		})
@@ -734,7 +741,7 @@ describe('CasparCG', () => {
 
 	test('CasparCG: Mixer commands', async () => {
 
-		let commandReceiver0 = jest.fn(() => {
+		const commandReceiver0: any = jest.fn(() => {
 			return Promise.resolve()
 		})
 		let myLayerMapping0: MappingCasparCG = {
@@ -758,6 +765,7 @@ describe('CasparCG', () => {
 			type: DeviceType.CASPARCG,
 			options: {
 				commandReceiver: commandReceiver0,
+				host: '127.0.0.1',
 				useScheduling: true
 			}
 		})
@@ -871,7 +879,7 @@ describe('CasparCG', () => {
 
 	test('CasparCG: loadbg command', async () => {
 
-		let commandReceiver0 = jest.fn(() => {
+		const commandReceiver0: any = jest.fn(() => {
 			return Promise.resolve()
 		})
 		let myLayerMapping0: MappingCasparCG = {
@@ -893,6 +901,7 @@ describe('CasparCG', () => {
 			type: DeviceType.CASPARCG,
 			options: {
 				commandReceiver: commandReceiver0,
+				host: '127.0.0.1',
 				timeBase: 50,
 				useScheduling: true
 			}
@@ -977,7 +986,7 @@ describe('CasparCG', () => {
 
 	test('CasparCG: Schedule Play, then change my mind', async () => {
 
-		let commandReceiver0 = jest.fn(() => {
+		const commandReceiver0: any = jest.fn(() => {
 			return Promise.resolve()
 		})
 		let myLayerMapping0: MappingCasparCG = {
@@ -999,6 +1008,7 @@ describe('CasparCG', () => {
 			type: DeviceType.CASPARCG,
 			options: {
 				commandReceiver: commandReceiver0,
+				host: '127.0.0.1',
 				timeBase: 50,
 				useScheduling: true
 			}
@@ -1091,7 +1101,7 @@ describe('CasparCG', () => {
 	})
 	test('CasparCG: Play a looping video, then continue looping', async () => {
 
-		let commandReceiver0 = jest.fn(() => {
+		const commandReceiver0: any = jest.fn(() => {
 			return Promise.resolve()
 		})
 		let myLayerMapping0: MappingCasparCG = {
@@ -1113,6 +1123,7 @@ describe('CasparCG', () => {
 			type: DeviceType.CASPARCG,
 			options: {
 				commandReceiver: commandReceiver0,
+				host: '127.0.0.1',
 				timeBase: 50,
 				useScheduling: true
 			}

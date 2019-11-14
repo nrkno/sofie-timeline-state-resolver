@@ -242,7 +242,7 @@ describe('HTTP-Watcher', () => {
 		await generatedDevice.terminate()
 	})
 	test('Un-Successful get returns BAD state', async () => {
-		let onGetLocal = jest.fn((url, _options, callback) => {
+		let onGetLocal = jest.fn((_url, _options, callback) => {
 			callback(new Error('Bad Gateway'), null)
 		})
 		request.setMockGet(onGetLocal)

@@ -3,26 +3,28 @@ import {
 	DeviceWithState,
 	CommandWithContext,
 	DeviceStatus,
-	StatusCode
+	StatusCode,
+	IDevice
 } from './device'
 import {
 	DeviceType,
-	DeviceOptions,
 	PharosOptions,
 	TimelineContentTypePharos,
 	TimelineObjPharos,
 	TimelineObjPharosScene,
-	TimelineObjPharosTimeline
+	TimelineObjPharosTimeline,
+	DeviceOptionsPharos
 } from '../types/src'
 
 import { TimelineState, ResolvedTimelineObjectInstance } from 'superfly-timeline'
 import { DoOnTime, SendMode } from '../doOnTime'
 import { Pharos, ProjectInfo } from './pharosAPI'
 
-export interface PharosDeviceOptions extends DeviceOptions {
-	options?: {
-		commandReceiver?: CommandReceiver
-	}
+export interface DeviceOptionsPharosInternal extends DeviceOptionsPharos {
+	options: (
+		DeviceOptionsPharos['options'] &
+		{ commandReceiver?: CommandReceiver }
+	)
 }
 export type CommandReceiver = (time: number, cmd: Command, context: CommandContext, timelineObjId: string) => Promise<any>
 export interface Command {
@@ -45,7 +47,7 @@ type CommandContext = string
  * This is a wrapper for a Pharos-devices,
  * https://www.pharoscontrols.com/downloads/documentation/application-notes/
  */
-export class PharosDevice extends DeviceWithState<TimelineState> {
+export class PharosDevice extends DeviceWithState<TimelineState> implements IDevice {
 	private _doOnTime: DoOnTime
 
 	private _pharos: Pharos
@@ -53,7 +55,7 @@ export class PharosDevice extends DeviceWithState<TimelineState> {
 
 	private _commandReceiver: CommandReceiver
 
-	constructor (deviceId: string, deviceOptions: PharosDeviceOptions, options) {
+	constructor (deviceId: string, deviceOptions: DeviceOptionsPharosInternal, options) {
 		super(deviceId, deviceOptions, options)
 		if (deviceOptions.options) {
 			if (deviceOptions.options.commandReceiver) this._commandReceiver = deviceOptions.options.commandReceiver
@@ -78,10 +80,10 @@ export class PharosDevice extends DeviceWithState<TimelineState> {
 	/**
 	 * Initiates the connection with Pharos through the PharosAPI.
 	 */
-	init (connectionOptions: PharosOptions): Promise<boolean> {
+	init (initOptions: PharosOptions): Promise<boolean> {
 		return new Promise((resolve, reject) => {
 			// This is where we would do initialization, like connecting to the devices, etc
-			this._pharos.connect(connectionOptions)
+			this._pharos.connect(initOptions)
 			.then(() => {
 				return this._pharos.getProjectInfo()
 			})

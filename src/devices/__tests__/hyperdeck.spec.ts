@@ -36,7 +36,7 @@ describe('Hyperdeck', () => {
 	test('Hyperdeck: Record', async () => {
 		let device: ThreadedClass<HyperdeckDevice>
 
-		let commandReceiver0 = jest.fn((...args: any[]) => {
+		const commandReceiver0: any = jest.fn((...args: any[]) => {
 			// Just forward the command:
 
 			// @ts-ignore private function
