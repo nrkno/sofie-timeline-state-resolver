@@ -2,6 +2,24 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [3.14.0](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/3.13.2...3.14.0) (2019-11-14)
+
+
+### Features
+
+* **casparcg:** sting transition fade parameters ([2a82d50](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/2a82d503abff990a5e88f33aeaded6d5d5011af4))
+* update ci to run for node 8,10,12 ([fd9798b](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/fd9798bbf29a412e3a613f5cacb5a684634c9e92))
+
+
+### Bug Fixes
+
+* lawo result 6 mitigation ([7ad7f53](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/7ad7f536ac5c09d87b6e0498ba7be1b36d429a18))
+* **casparcg:** sting parameter typings ([112816a](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/112816a2b31e64b49354df8a5787e3d8ae89963b))
+* estimateResolveTime was unused due to avoiding any resolves for times in the past ([2f89140](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/2f89140398cd7425cb46e11abc3d91d45e6ec401))
+* fix typings issue in singularLive device ([fb93a74](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/fb93a74708e2755fefd2e6145b2d5f17ac5b0914))
+* node12 typings ([49dfaba](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/49dfaba59af8c4b9c9c87d4e5777859a1836d2ef))
+* refactor and fix: unify types & interfaces of all devices. ([e990811](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/e990811617a8798c77be8c1415e4d4daf53ed008))
+
 ### [3.13.2](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/3.13.1...3.13.2) (2019-11-07)
 
 
