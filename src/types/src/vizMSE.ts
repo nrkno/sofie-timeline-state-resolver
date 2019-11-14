@@ -25,10 +25,11 @@ export interface VizMSEOptions {
 }
 export enum TimelineContentTypeVizMSE {
 	ELEMENT_INTERNAL = 'element_internal',
-	ELEMENT_PILOT = 'element_pilot'
+	ELEMENT_PILOT = 'element_pilot',
+	CONTINUE = 'continue'
 }
 
-export type TimelineObjVIZMSEAny = TimelineObjVIZMSEElementInternal | TimelineObjVIZMSEElementPilot
+export type TimelineObjVIZMSEAny = TimelineObjVIZMSEElementInternal | TimelineObjVIZMSEElementPilot | TimelineObjVIZMSEElementContinue
 
 export interface TimelineObjVIZMSEBase extends TSRTimelineObjBase {
 	content: {
@@ -90,5 +91,17 @@ export interface TimelineObjVIZMSEElementPilot extends TimelineObjVIZMSEBase {
 
 		/** Viz-Pilot id of the template to be played */
 		templateVcpId: number
+	}
+}
+export interface TimelineObjVIZMSEElementContinue extends TSRTimelineObjBase {
+	content: {
+		deviceType: DeviceType.VIZMSE
+		type: TimelineContentTypeVizMSE.CONTINUE
+
+		/** Whether to continue or reverse (defaults to 1) */
+		direction?: 1 | -1
+
+		/** What other layer to continue */
+		reference: string
 	}
 }

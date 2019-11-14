@@ -19,7 +19,8 @@ import {
 	TimelineObjVIZMSEElementPilot,
 	ExpectedPlayoutItemContent,
 	ExpectedPlayoutItemContentVizMSE,
-	DeviceOptionsVizMSE
+	DeviceOptionsVizMSE,
+	TimelineObjVIZMSEAny
 } from '../types/src'
 
 import {
@@ -248,14 +249,42 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState> implements IDevic
 			) {
 				if (layer.content) {
 
-					const stateLayer = content2StateLayer(
-						layer.id,
-						layer.content as any
-					)
-					if (stateLayer) {
-						if (isLookahead) stateLayer.lookahead = true
+					let l = layer as any as TimelineObjVIZMSEAny
 
-						state.layer[layerName] = stateLayer
+					if (l.content.type === TimelineContentTypeVizMSE.CONTINUE) {
+						state.layer[layerName] = literal<VizMSEStateLayerContinue>({
+							timelineObjId: l.id,
+							contentType: TimelineContentTypeVizMSE.CONTINUE,
+							direction: l.content.direction,
+							reference: l.content.reference
+						})
+
+					} else {
+						const stateLayer = content2StateLayer(
+							l.id,
+							l.content as any
+						)
+						if (stateLayer) {
+							if (isLookahead) stateLayer.lookahead = true
+
+							state.layer[layerName] = stateLayer
+						}
+					}
+
+				}
+			}
+		})
+
+		// Fix references:
+		_.each(state.layer, (layer) => {
+			if (layer.contentType === TimelineContentTypeVizMSE.CONTINUE) {
+				const otherLayer = state.layer[layer.reference]
+				if (otherLayer) {
+					if (otherLayer.contentType === TimelineContentTypeVizMSE.CONTINUE) {
+						// it's not possible to reference another continue-object
+						this.emit('warning', `object "${layer.timelineObjId}" of type="continue" is referencing another continue on layer "${layer.reference}"`)
+					} else {
+						layer.referenceContent = otherLayer
 					}
 				}
 			}
@@ -336,88 +365,131 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState> implements IDevic
 		_.each(newState.layer, (newLayer: VizMSEStateLayer, layerId: string) => {
 			const oldLayer: VizMSEStateLayer | undefined = oldState.layer[layerId]
 
-			const props = {
-				timelineObjId: newLayer.timelineObjId,
-				fromLookahead: newLayer.lookahead,
-
-				templateInstance: VizMSEManager.getTemplateInstance(newLayer),
-				templateName: VizMSEManager.getTemplateName(newLayer),
-				templateData: VizMSEManager.getTemplateData(newLayer),
-				channelName: newLayer.channelName
-			}
-
 			if (
-				!oldLayer ||
-				!_.isEqual(
-					_.omit(newLayer, ['continueStep']),
-					_.omit(oldLayer, ['continueStep'])
-				)
+				newLayer.contentType === TimelineContentTypeVizMSE.CONTINUE
 			) {
 				if (
-					newLayer.contentType === TimelineContentTypeVizMSE.ELEMENT_INTERNAL ||
-					newLayer.contentType === TimelineContentTypeVizMSE.ELEMENT_PILOT
+					(
+						!oldLayer ||
+						!_.isEqual(newLayer, oldLayer)
+					) &&
+					newLayer.referenceContent
 				) {
-					// Maybe prepare the element first:
-					addCommand(literal<VizMSECommandPrepare>({
-						...props,
-						type: VizMSECommandType.PREPARE_ELEMENT,
-						time: prepareTime
-					}), newLayer.lookahead)
+					const props = {
+						timelineObjId: newLayer.timelineObjId,
+						fromLookahead: newLayer.lookahead,
 
-					if (newLayer.cue) {
-						// Cue the element
-						addCommand(literal<VizMSECommandCue>({
+						templateInstance: VizMSEManager.getTemplateInstance(newLayer.referenceContent),
+						templateName: VizMSEManager.getTemplateName(newLayer.referenceContent),
+						templateData: VizMSEManager.getTemplateData(newLayer.referenceContent),
+						channelName: newLayer.referenceContent.channelName
+					}
+					if ((newLayer.direction || 1) === 1) {
+						addCommand(literal<VizMSECommandContinue>({
 							...props,
-							type: VizMSECommandType.CUE_ELEMENT,
+							type: VizMSECommandType.CONTINUE_ELEMENT,
 							time: time
+
 						}), newLayer.lookahead)
 					} else {
-						// Start playing element
-						addCommand(literal<VizMSECommandTake>({
+						addCommand(literal<VizMSECommandContinueReverse>({
 							...props,
-							type: VizMSECommandType.TAKE_ELEMENT,
+							type: VizMSECommandType.CONTINUE_ELEMENT_REVERSE,
 							time: time
+
 						}), newLayer.lookahead)
 					}
 				}
-			} else if (
-				(newLayer.continueStep || 0) > (oldLayer.continueStep || 0)
-			) {
-				// An increase in continueStep should result in triggering a continue:
-				addCommand(literal<VizMSECommandContinue>({
-					...props,
-					type: VizMSECommandType.CONTINUE_ELEMENT,
-					time: time
+			} else {
 
-				}), newLayer.lookahead)
-			} else if (
-				(newLayer.continueStep || 0) < (oldLayer.continueStep || 0)
-			) {
-				// A decrease in continueStep should result in triggering a continue:
-				addCommand(literal<VizMSECommandContinueReverse>({
-					...props,
-					type: VizMSECommandType.CONTINUE_ELEMENT_REVERSE,
-					time: time
-				}), newLayer.lookahead)
+				const props = {
+					timelineObjId: newLayer.timelineObjId,
+					fromLookahead: newLayer.lookahead,
+
+					templateInstance: VizMSEManager.getTemplateInstance(newLayer),
+					templateName: VizMSEManager.getTemplateName(newLayer),
+					templateData: VizMSEManager.getTemplateData(newLayer),
+					channelName: newLayer.channelName
+				}
+
+				if (
+					!oldLayer ||
+					!_.isEqual(
+						_.omit(newLayer, ['continueStep']),
+						_.omit(oldLayer, ['continueStep'])
+					)
+				) {
+					if (
+						newLayer.contentType === TimelineContentTypeVizMSE.ELEMENT_INTERNAL ||
+						newLayer.contentType === TimelineContentTypeVizMSE.ELEMENT_PILOT
+					) {
+						// Maybe prepare the element first:
+						addCommand(literal<VizMSECommandPrepare>({
+							...props,
+							type: VizMSECommandType.PREPARE_ELEMENT,
+							time: prepareTime
+						}), newLayer.lookahead)
+
+						if (newLayer.cue) {
+							// Cue the element
+							addCommand(literal<VizMSECommandCue>({
+								...props,
+								type: VizMSECommandType.CUE_ELEMENT,
+								time: time
+							}), newLayer.lookahead)
+						} else {
+							// Start playing element
+							addCommand(literal<VizMSECommandTake>({
+								...props,
+								type: VizMSECommandType.TAKE_ELEMENT,
+								time: time
+							}), newLayer.lookahead)
+						}
+					}
+				} else if (
+					oldLayer.contentType !== TimelineContentTypeVizMSE.CONTINUE &&
+					(newLayer.continueStep || 0) > (oldLayer.continueStep || 0)
+				) {
+					// An increase in continueStep should result in triggering a continue:
+					addCommand(literal<VizMSECommandContinue>({
+						...props,
+						type: VizMSECommandType.CONTINUE_ELEMENT,
+						time: time
+
+					}), newLayer.lookahead)
+				} else if (
+					oldLayer.contentType !== TimelineContentTypeVizMSE.CONTINUE &&
+					(newLayer.continueStep || 0) < (oldLayer.continueStep || 0)
+				) {
+					// A decrease in continueStep should result in triggering a continue:
+					addCommand(literal<VizMSECommandContinueReverse>({
+						...props,
+						type: VizMSECommandType.CONTINUE_ELEMENT_REVERSE,
+						time: time
+					}), newLayer.lookahead)
+				}
 			}
 		})
 
 		_.each(oldState.layer, (oldLayer: VizMSEStateLayer, layerId: string) => {
 			const newLayer = newState.layer[layerId]
 			if (!newLayer) {
-				// Stopped playing
-				addCommand(literal<VizMSECommandTakeOut>({
-					type: VizMSECommandType.TAKEOUT_ELEMENT,
-					time: time,
-					timelineObjId: oldLayer.timelineObjId,
-					fromLookahead: oldLayer.lookahead,
 
-					templateInstance: VizMSEManager.getTemplateInstance(oldLayer),
-					templateName: VizMSEManager.getTemplateName(oldLayer),
-					templateData: VizMSEManager.getTemplateData(oldLayer),
-					channelName: oldLayer.channelName
+				if (oldLayer.contentType !== TimelineContentTypeVizMSE.CONTINUE) {
+					// Stopped playing
+					addCommand(literal<VizMSECommandTakeOut>({
+						type: VizMSECommandType.TAKEOUT_ELEMENT,
+						time: time,
+						timelineObjId: oldLayer.timelineObjId,
+						fromLookahead: oldLayer.lookahead,
 
-				}), oldLayer.lookahead)
+						templateInstance: VizMSEManager.getTemplateInstance(oldLayer),
+						templateName: VizMSEManager.getTemplateName(oldLayer),
+						templateData: VizMSEManager.getTemplateData(oldLayer),
+						channelName: oldLayer.channelName
+
+					}), oldLayer.lookahead)
+				}
 			}
 		})
 
@@ -920,28 +992,36 @@ interface VizMSEState {
 		[layerId: string]: VizMSEStateLayer
 	}
 }
-type VizMSEStateLayer = VizMSEStateLayerInternal | VizMSEStateLayerPilot
+type VizMSEStateLayer = VizMSEStateLayerInternal | VizMSEStateLayerPilot | VizMSEStateLayerContinue
 interface VizMSEStateLayerBase {
 	timelineObjId: string
-
+	lookahead?: boolean
+}
+interface VizMSEStateLayerElementBase extends VizMSEStateLayerBase {
 	contentType: TimelineContentTypeVizMSE
 	continueStep?: number
 	cue?: boolean
-
-	lookahead?: boolean
 }
-interface VizMSEStateLayerInternal extends VizMSEStateLayerBase {
+interface VizMSEStateLayerInternal extends VizMSEStateLayerElementBase {
 	contentType: TimelineContentTypeVizMSE.ELEMENT_INTERNAL
 
 	templateName: string
 	templateData: Array<string>
 	channelName?: string
 }
-interface VizMSEStateLayerPilot extends VizMSEStateLayerBase {
+interface VizMSEStateLayerPilot extends VizMSEStateLayerElementBase {
 	contentType: TimelineContentTypeVizMSE.ELEMENT_PILOT
 
 	templateVcpId: number
 	channelName?: string
+}
+interface VizMSEStateLayerContinue extends VizMSEStateLayerBase {
+	contentType: TimelineContentTypeVizMSE.CONTINUE
+
+	direction?: 1 | -1
+
+	reference: string
+	referenceContent?: VizMSEStateLayerInternal | VizMSEStateLayerPilot
 }
 
 interface VizMSECommandBase {
