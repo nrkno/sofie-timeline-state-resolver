@@ -159,7 +159,7 @@ describe('Sisyfos', () => {
 			{
 				id: 'obj5',
 				enable: {
-					start: mockTime.now + 5000, // 4.1 seconds in the future
+					start: mockTime.now + 5000, // 5 seconds in the future
 					duration: 2000
 				},
 				layer: 'sisyfos_channel_1',
@@ -168,6 +168,32 @@ describe('Sisyfos', () => {
 					type: TimelineContentTypeSisyfos.SISYFOS,
 
 					label: 'MY TIME'
+				}
+			},
+			{
+				id: 'obj6',
+				enable: {
+					start: mockTime.now + 6000, // 6 seconds in the future
+					duration: 900
+				},
+				layer: 'sisyfos_channel_1',
+				content: {
+					deviceType: DeviceType.SISYFOS,
+					type: TimelineContentTypeSisyfos.SISYFOS,
+					visible: false
+				}
+			},
+			{
+				id: 'obj7',
+				enable: {
+					start: mockTime.now + 7000, // 7 seconds in the future
+					duration: 900
+				},
+				layer: 'sisyfos_channel_1',
+				content: {
+					deviceType: DeviceType.SISYFOS,
+					type: TimelineContentTypeSisyfos.SISYFOS,
+					visible: true
 				}
 			}
 		]
@@ -200,7 +226,7 @@ describe('Sisyfos', () => {
 		})
 
 		await mockTime.advanceTimeTicks(3000) // 6 seconds into the future
-		expect(commandReceiver0.mock.calls.length).toEqual(10)
+		expect(commandReceiver0.mock.calls.length).toEqual(11)
 		// set pst off
 		expect(getMockCall(commandReceiver0, 4, 1)).toMatchObject({
 			type: 'togglePst',
@@ -224,6 +250,12 @@ describe('Sisyfos', () => {
 			type: 'label',
 			channel: 0,
 			value: 'MY TIME'
+		})
+		// set visible false
+		expect(getMockCall(commandReceiver0, 10, 1)).toMatchObject({
+			type: 'visible',
+			channel: 0,
+			value: false
 		})
 	})
 
