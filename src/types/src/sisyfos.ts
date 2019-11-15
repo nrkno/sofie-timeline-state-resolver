@@ -21,6 +21,7 @@ export interface SisyfosCommandContent {
 	faderLevel?: number
 	fadeToBlack?: boolean
 	label?: string
+	visible?: boolean
 }
 export type TimelineObjSisyfosAny = TimelineObjSisyfosMessage
 

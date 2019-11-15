@@ -207,6 +207,10 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState> implemen
 					deviceState.channels[foundMapping.channel].label = layer.content.label
 				}
 
+				if (layer.content.visible !== undefined) {
+					deviceState.channels[foundMapping.channel].visible = layer.content.visible
+				}
+
 				deviceState.channels[foundMapping.channel].tlObjIds.push(tlObject.id)
 			}
 		})
