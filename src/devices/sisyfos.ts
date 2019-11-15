@@ -163,6 +163,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState> implemen
 				pgmOn: 0,
 				pstOn: 0,
 				label: '',
+				visible: true,
 				tlObjIds: []
 			}
 
@@ -299,6 +300,18 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState> implemen
 						type: Commands.LABEL,
 						channel: Number(index),
 						value: newChannel.label
+					},
+					timelineObjId: newChannel.tlObjIds[0] || ''
+				})
+			}
+
+			if (oldChannel && oldChannel.visible !== newChannel.visible) {
+				commands.push({
+					context: `Channel ${index} Visibility goes from "${oldChannel.visible}" to "${newChannel.visible}"`,
+					content: {
+						type: Commands.VISIBLE,
+						channel: Number(index),
+						value: newChannel.visible
 					},
 					timelineObjId: newChannel.tlObjIds[0] || ''
 				})

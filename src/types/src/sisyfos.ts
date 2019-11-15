@@ -31,7 +31,8 @@ export enum Commands {
 	FADE_TO_BLACK = 'fadeToBlack',
 	CLEAR_PST_ROW = 'clearPstRow',
 	LABEL = 'label',
-	TAKE = 'take'
+	TAKE = 'take',
+	VISIBLE = 'visible'
 }
 
 export interface BaseCommand {
@@ -39,13 +40,13 @@ export interface BaseCommand {
 }
 
 export interface ChannelCommand {
-	type: Commands.SET_FADER | Commands.TOGGLE_PGM | Commands.TOGGLE_PST | Commands.FADE_TO_BLACK | Commands.LABEL
+	type: Commands.SET_FADER | Commands.TOGGLE_PGM | Commands.TOGGLE_PST | Commands.FADE_TO_BLACK | Commands.LABEL | Commands.VISIBLE
 	channel: number
 	value: boolean | number | string
 }
 
 export interface BoolCommand extends ChannelCommand {
-	type: Commands.FADE_TO_BLACK
+	type: Commands.FADE_TO_BLACK | Commands.VISIBLE
 	value: boolean
 }
 export interface ValueCommand extends ChannelCommand {
@@ -87,6 +88,7 @@ export interface SisyfosAPIChannel {
 	pstOn: number
 	fadeToBlack: boolean
 	label: string
+	visible: boolean
 }
 
 export interface SisyfosAPIState {

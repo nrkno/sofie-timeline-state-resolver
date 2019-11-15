@@ -99,6 +99,11 @@ export class SisyfosInterface extends EventEmitter {
 				type: 'f',
 				value: (command as ValueCommand).value
 			}] })
+		} else if (command.type === Commands.VISIBLE) {
+			this._oscClient.send({ address: `/ch/${(command as ValueCommand).channel + 1}/visible`, args: [{
+				type: 'i',
+				value: (command as ValueCommand).value
+			}] })
 		}
 	}
 
