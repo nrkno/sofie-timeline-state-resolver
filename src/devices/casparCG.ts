@@ -235,7 +235,7 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> implements ID
 		}
 	}
 
-	private convertObjectToCasparState (layer: ResolvedTimelineObjectInstance, mapping: MappingCasparCG): StateNS.ILayerBase {
+	private convertObjectToCasparState (layer: ResolvedTimelineObjectInstance, mapping: MappingCasparCG, isForeground: boolean): StateNS.ILayerBase {
 		const startTime = layer.instance.originalStart || layer.instance.start
 
 		let stateLayer: StateNS.ILayerBase | null = null
@@ -262,8 +262,8 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> implements ID
 					startTime
 				) || null,
 
-				pauseTime:		mediaObj.isLookahead ? startTime : (mediaObj.content.pauseTime || null),
-				playing:		!mediaObj.isLookahead && (mediaObj.content.playing !== undefined ? mediaObj.content.playing : true),
+				pauseTime:		mediaObj.isLookahead && isForeground ? startTime : (mediaObj.content.pauseTime || null),
+				playing:		!mediaObj.isLookahead && (mediaObj.content.playing !== undefined ? mediaObj.content.playing : isForeground),
 
 				looping:		mediaObj.content.loop,
 				seek:			mediaObj.content.seek,
@@ -448,12 +448,18 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> implements ID
 				_.has(foundMapping,'layer')
 				) {
 
-				const primaryObj = timelineState.layers[layerName] as ResolvedTimelineObjectInstance | undefined
-				const lookaheadObj = _.last(_.filter(timelineState.layers, obj => {
+				let foregroundObj = timelineState.layers[layerName] as ResolvedTimelineObjectInstance | undefined
+				let backgroundObj = _.last(_.filter(timelineState.layers, obj => {
 					// Takes the last one, to be consistent with previous behaviour
 					const objExt = obj as ResolvedTimelineObjectInstanceExtended
 					return !!objExt.isLookahead && objExt.lookaheadForLayer === layerName
 				}))
+
+				// If lookahead is on the same layer, then ensure objects are treated as such
+				if (foregroundObj && (foregroundObj as ResolvedTimelineObjectInstanceExtended).isLookahead) {
+					backgroundObj = foregroundObj
+					foregroundObj = undefined
+				}
 
 				const mapping = foundMapping as MappingCasparCG
 				mapping.channel = mapping.channel || 0
@@ -467,32 +473,32 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> implements ID
 				caspar.channels[channel.channelNo] = channel
 
 				// create layer of appropriate type
-				const primaryStateLayer = primaryObj ? this.convertObjectToCasparState(primaryObj, mapping) : undefined
-				const lookaheadStateLayer = lookaheadObj ? this.convertObjectToCasparState(lookaheadObj, mapping) : undefined
+				const foregroundStateLayer = foregroundObj ? this.convertObjectToCasparState(foregroundObj, mapping, true) : undefined
+				const backgroundStateLayer = backgroundObj ? this.convertObjectToCasparState(backgroundObj, mapping, false) : undefined
 
-				if (primaryStateLayer) {
+				if (foregroundStateLayer) {
 					channel.layers[mapping.layer] = {
-						...primaryStateLayer,
-						nextUp: lookaheadStateLayer ? literal<StateNS.NextUp>({
-							...lookaheadStateLayer as StateNS.NextUp,
+						...foregroundStateLayer,
+						nextUp: backgroundStateLayer ? literal<StateNS.NextUp>({
+							...backgroundStateLayer as StateNS.NextUp,
 							auto: false
 						}) : undefined
 					}
-				} else if (lookaheadStateLayer) {
+				} else if (backgroundStateLayer) {
 					if (mapping.previewWhenNotOnAir) {
 						channel.layers[mapping.layer] = {
-							...lookaheadStateLayer,
+							...backgroundStateLayer,
 							playing: false
 						}
 					} else {
 						channel.layers[mapping.layer] = literal<StateNS.IEmptyLayer>({
-							id: `${lookaheadStateLayer.id}_empty_base`,
+							id: `${backgroundStateLayer.id}_empty_base`,
 							layerNo: mapping.layer,
 							content: StateNS.LayerContentType.NOTHING,
 							playing: false,
 							pauseTime: 0,
 							nextUp: literal<StateNS.NextUp>({
-								...lookaheadStateLayer as StateNS.NextUp,
+								...backgroundStateLayer as StateNS.NextUp,
 								auto: false
 							})
 						})
