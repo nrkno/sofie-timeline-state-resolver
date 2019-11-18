@@ -72,7 +72,7 @@ type TimelineCallbacks = {[key: string]: TimelineCallback}
 interface QueueCallback {
 	type: 'start' | 'stop'
 	time: number | null | undefined
-	id: string
+	instanceId: string
 	callBack: string
 	callBackData: any
 }
@@ -806,7 +806,7 @@ export class Conductor extends EventEmitter {
 									this._queueCallback({
 										type: 'start',
 										time: instance.instance.start,
-										id: instance.id,
+										instanceId: instance.id,
 										callBack: instance.content.callBack,
 										callBackData: instance.content.callBackData
 									})
@@ -829,7 +829,7 @@ export class Conductor extends EventEmitter {
 						this._queueCallback({
 							type: 'stop',
 							time: tlState.time,
-							id: cb.id,
+							instanceId: cb.id,
 							callBack: callBackStopped,
 							callBackData: callBackData
 						})
@@ -903,28 +903,28 @@ export class Conductor extends EventEmitter {
 
 		const callbacks: {[id: string]: QueueCallback} = {}
 		_.each(this._queuedCallbacks, cb => {
-			callbacks[cb.id] = cb
+			callbacks[cb.instanceId] = cb
 
 			if (cb.time) {
 
 				if (cb.type === 'start') {
-					let prevTime = stopTimes[cb.id]
+					let prevTime = stopTimes[cb.instanceId]
 					if (prevTime) {
 						if (Math.abs(prevTime - cb.time) < 50) {
 							// Too little time has passed, remove that stop/start
-							delete callbacks[cb.id]
+							delete callbacks[cb.instanceId]
 						}
 					}
-					startTimes[cb.id] = cb.time
+					startTimes[cb.instanceId] = cb.time
 				} else if (cb.type === 'stop') {
-					let prevTime = startTimes[cb.id]
+					let prevTime = startTimes[cb.instanceId]
 					if (prevTime) {
 						if (Math.abs(prevTime - cb.time) < 50) {
 							// Too little time has passed, remove that stop/start
-							delete callbacks[cb.id]
+							delete callbacks[cb.instanceId]
 						}
 					}
-					stopTimes[cb.id] = cb.time
+					stopTimes[cb.instanceId] = cb.time
 				}
 			}
 		})
@@ -945,7 +945,7 @@ export class Conductor extends EventEmitter {
 		_.each(callbacksArray, cb => {
 			this.emit('timelineCallback',
 				cb.time,
-				cb.id,
+				cb.instanceId,
 				cb.callBack,
 				cb.callBackData
 			)
