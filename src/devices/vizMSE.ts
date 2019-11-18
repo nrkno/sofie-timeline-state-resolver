@@ -5,7 +5,8 @@ import {
 	CommandWithContext,
 	DeviceStatus,
 	StatusCode,
-	IDevice
+	IDevice,
+	literal
 } from './device'
 
 import {
@@ -18,7 +19,8 @@ import {
 	TimelineObjVIZMSEElementPilot,
 	ExpectedPlayoutItemContent,
 	ExpectedPlayoutItemContentVizMSE,
-	DeviceOptionsVizMSE
+	DeviceOptionsVizMSE,
+	TimelineObjVIZMSEAny
 } from '../types/src'
 
 import {
@@ -42,6 +44,12 @@ import * as crypto from 'crypto'
 const IDEAL_PREPARE_TIME = 1000
 /** Minimum time to wait after preparing elements */
 const PREPARE_TIME_WAIT = 50
+
+// How often to check / preload elements
+const MONITOR_INTERVAL = 1000
+
+// How long to wait after any action (takes, cues, etc) before trying to cue for preloading
+const SAFE_PRELOAD_TIME = 2000
 
 // const DEFAULT_FPS = 25 // frames per second
 // const JUMP_ERROR_MARGIN = 10 // frames
@@ -98,11 +106,12 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState> implements IDevic
 		)
 
 		this._vizmseManager = new VizMSEManager(
+			this,
 			this._vizMSE,
 			this._initOptions.preloadAllElements
 		)
 
-		this._vizmseManager.on('connectionChanged', (connected) => this._connectionChanged(connected))
+		this._vizmseManager.on('connectionChanged', (connected) => this.connectionChanged(connected))
 
 		await this._vizmseManager.initializeRundown(
 			initOptions.showID,
@@ -204,6 +213,13 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState> implements IDevic
 		}
 	}
 
+	public getCurrentState (): VizMSEState | undefined {
+		return (this.getState() || {}).state
+	}
+	public connectionChanged (connected?: boolean) {
+		if (connected === true || connected === false) this._vizMSEConnected = connected
+		this.emit('connectionChanged', this.getStatus())
+	}
 	/**
 	 * Takes a timeline state and returns a VizMSE State that will work with the state lib.
 	 * @param timelineState The timeline state to generate from.
@@ -233,14 +249,42 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState> implements IDevic
 			) {
 				if (layer.content) {
 
-					const stateLayer = content2StateLayer(
-						layer.id,
-						layer.content as any
-					)
-					if (stateLayer) {
-						if (isLookahead) stateLayer.lookahead = true
+					let l = layer as any as TimelineObjVIZMSEAny
 
-						state.layer[layerName] = stateLayer
+					if (l.content.type === TimelineContentTypeVizMSE.CONTINUE) {
+						state.layer[layerName] = literal<VizMSEStateLayerContinue>({
+							timelineObjId: l.id,
+							contentType: TimelineContentTypeVizMSE.CONTINUE,
+							direction: l.content.direction,
+							reference: l.content.reference
+						})
+
+					} else {
+						const stateLayer = content2StateLayer(
+							l.id,
+							l.content as any
+						)
+						if (stateLayer) {
+							if (isLookahead) stateLayer.lookahead = true
+
+							state.layer[layerName] = stateLayer
+						}
+					}
+
+				}
+			}
+		})
+
+		// Fix references:
+		_.each(state.layer, (layer) => {
+			if (layer.contentType === TimelineContentTypeVizMSE.CONTINUE) {
+				const otherLayer = state.layer[layer.reference]
+				if (otherLayer) {
+					if (otherLayer.contentType === TimelineContentTypeVizMSE.CONTINUE) {
+						// it's not possible to reference another continue-object
+						this.emit('warning', `object "${layer.timelineObjId}" of type="continue" is referencing another continue on layer "${layer.reference}"`)
+					} else {
+						layer.referenceContent = otherLayer
 					}
 				}
 			}
@@ -283,15 +327,11 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState> implements IDevic
 			statusCode = StatusCode.BAD
 			messages.push('Not connected')
 		}
-		// if (this._vizMSE.statusMessage) {
-		// 	statusCode = StatusCode.BAD
-		// 	messages.push(this._vizMSE.statusMessage)
-		// }
 
-		// if (!this._vizMSE.initialized) {
-		// 	statusCode = StatusCode.BAD
-		// 	messages.push(`VizMSE device connection not initialized (restart required)`)
-		// }
+		if (this._vizmseManager && this._vizmseManager.queueLength > 0) {
+			statusCode = StatusCode.WARNING_MINOR
+			messages.push(`Got ${this._vizmseManager.queueLength} elements not yet preloaded`)
+		}
 
 		return {
 			statusCode: statusCode,
@@ -325,67 +365,44 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState> implements IDevic
 		_.each(newState.layer, (newLayer: VizMSEStateLayer, layerId: string) => {
 			const oldLayer: VizMSEStateLayer | undefined = oldState.layer[layerId]
 
-			// if (
-			// 	!oldLayer ||
-			// 	!_.isEqual(newLayer.channels, oldLayer.channels)
-			// ) {
-			// 	const channel = newLayer.channels[0] as number | undefined
-			// 	if (channel !== undefined) { // todo: support for multiple channels
-			// 		addCommand({
-			// 			type: VizMSECommandType.SETUPPORT,
-			// 			time: prepareTime,
-			// 			portId: portId,
-			// 			timelineObjId: newLayer.timelineObjId,
-			// 			channel: channel
-			// 		}, newLayer.lookahead)
-			// 	}
-			// }
-
 			if (
-				!oldLayer ||
-				!_.isEqual(
-					_.omit(newLayer, ['continueStep']),
-					_.omit(oldLayer, ['continueStep'])
-				)
+				newLayer.contentType === TimelineContentTypeVizMSE.CONTINUE
 			) {
 				if (
-					newLayer.contentType === TimelineContentTypeVizMSE.ELEMENT_INTERNAL ||
-					newLayer.contentType === TimelineContentTypeVizMSE.ELEMENT_PILOT
+					(
+						!oldLayer ||
+						!_.isEqual(newLayer, oldLayer)
+					) &&
+					newLayer.referenceContent
 				) {
-					// Maybe prepare the element first:
-					addCommand({
-						type: VizMSECommandType.PREPARE_ELEMENT,
-						time: prepareTime,
+					const props = {
 						timelineObjId: newLayer.timelineObjId,
 						fromLookahead: newLayer.lookahead,
 
-						templateInstance: VizMSEManager.getTemplateInstance(newLayer),
-						templateName: VizMSEManager.getTemplateName(newLayer),
-						templateData: VizMSEManager.getTemplateData(newLayer),
-						channelName: newLayer.channelName
-					}, newLayer.lookahead)
+						templateInstance: VizMSEManager.getTemplateInstance(newLayer.referenceContent),
+						templateName: VizMSEManager.getTemplateName(newLayer.referenceContent),
+						templateData: VizMSEManager.getTemplateData(newLayer.referenceContent),
+						channelName: newLayer.referenceContent.channelName
+					}
+					if ((newLayer.direction || 1) === 1) {
+						addCommand(literal<VizMSECommandContinue>({
+							...props,
+							type: VizMSECommandType.CONTINUE_ELEMENT,
+							time: time
 
-					// Start playing
-					addCommand({
-						type: VizMSECommandType.TAKE_ELEMENT,
-						time: time,
-						timelineObjId: newLayer.timelineObjId,
-						fromLookahead: newLayer.lookahead,
+						}), newLayer.lookahead)
+					} else {
+						addCommand(literal<VizMSECommandContinueReverse>({
+							...props,
+							type: VizMSECommandType.CONTINUE_ELEMENT_REVERSE,
+							time: time
 
-						templateInstance: VizMSEManager.getTemplateInstance(newLayer),
-						templateName: VizMSEManager.getTemplateName(newLayer),
-						templateData: VizMSEManager.getTemplateData(newLayer),
-						channelName: newLayer.channelName
-
-					}, newLayer.lookahead)
+						}), newLayer.lookahead)
+					}
 				}
-			} else if (
-				(newLayer.continueStep || 0) > (oldLayer.continueStep || 0)
-			) {
-				// An increase in continueStep should result in triggering a continue:
-				addCommand({
-					type: VizMSECommandType.CONTINUE_ELEMENT,
-					time: prepareTime,
+			} else {
+
+				const props = {
 					timelineObjId: newLayer.timelineObjId,
 					fromLookahead: newLayer.lookahead,
 
@@ -393,43 +410,86 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState> implements IDevic
 					templateName: VizMSEManager.getTemplateName(newLayer),
 					templateData: VizMSEManager.getTemplateData(newLayer),
 					channelName: newLayer.channelName
+				}
 
-				}, newLayer.lookahead)
-			} else if (
-				(newLayer.continueStep || 0) < (oldLayer.continueStep || 0)
-			) {
-				// A decrease in continueStep should result in triggering a continue:
-				addCommand({
-					type: VizMSECommandType.CONTINUE_ELEMENT_REVERSE,
-					time: prepareTime,
-					timelineObjId: newLayer.timelineObjId,
-					fromLookahead: newLayer.lookahead,
+				if (
+					!oldLayer ||
+					!_.isEqual(
+						_.omit(newLayer, ['continueStep']),
+						_.omit(oldLayer, ['continueStep'])
+					)
+				) {
+					if (
+						newLayer.contentType === TimelineContentTypeVizMSE.ELEMENT_INTERNAL ||
+						newLayer.contentType === TimelineContentTypeVizMSE.ELEMENT_PILOT
+					) {
+						// Maybe prepare the element first:
+						addCommand(literal<VizMSECommandPrepare>({
+							...props,
+							type: VizMSECommandType.PREPARE_ELEMENT,
+							time: prepareTime
+						}), newLayer.lookahead)
 
-					templateInstance: VizMSEManager.getTemplateInstance(newLayer),
-					templateName: VizMSEManager.getTemplateName(newLayer),
-					templateData: VizMSEManager.getTemplateData(newLayer),
-					channelName: newLayer.channelName
+						if (newLayer.cue) {
+							// Cue the element
+							addCommand(literal<VizMSECommandCue>({
+								...props,
+								type: VizMSECommandType.CUE_ELEMENT,
+								time: time
+							}), newLayer.lookahead)
+						} else {
+							// Start playing element
+							addCommand(literal<VizMSECommandTake>({
+								...props,
+								type: VizMSECommandType.TAKE_ELEMENT,
+								time: time
+							}), newLayer.lookahead)
+						}
+					}
+				} else if (
+					oldLayer.contentType !== TimelineContentTypeVizMSE.CONTINUE &&
+					(newLayer.continueStep || 0) > (oldLayer.continueStep || 0)
+				) {
+					// An increase in continueStep should result in triggering a continue:
+					addCommand(literal<VizMSECommandContinue>({
+						...props,
+						type: VizMSECommandType.CONTINUE_ELEMENT,
+						time: time
 
-				}, newLayer.lookahead)
+					}), newLayer.lookahead)
+				} else if (
+					oldLayer.contentType !== TimelineContentTypeVizMSE.CONTINUE &&
+					(newLayer.continueStep || 0) < (oldLayer.continueStep || 0)
+				) {
+					// A decrease in continueStep should result in triggering a continue:
+					addCommand(literal<VizMSECommandContinueReverse>({
+						...props,
+						type: VizMSECommandType.CONTINUE_ELEMENT_REVERSE,
+						time: time
+					}), newLayer.lookahead)
+				}
 			}
 		})
 
 		_.each(oldState.layer, (oldLayer: VizMSEStateLayer, layerId: string) => {
 			const newLayer = newState.layer[layerId]
 			if (!newLayer) {
-				// Stopped playing
-				addCommand({
-					type: VizMSECommandType.TAKEOUT_ELEMENT,
-					time: prepareTime,
-					timelineObjId: oldLayer.timelineObjId,
-					fromLookahead: oldLayer.lookahead,
 
-					templateInstance: VizMSEManager.getTemplateInstance(oldLayer),
-					templateName: VizMSEManager.getTemplateName(oldLayer),
-					templateData: VizMSEManager.getTemplateData(oldLayer),
-					channelName: oldLayer.channelName
+				if (oldLayer.contentType !== TimelineContentTypeVizMSE.CONTINUE) {
+					// Stopped playing
+					addCommand(literal<VizMSECommandTakeOut>({
+						type: VizMSECommandType.TAKEOUT_ELEMENT,
+						time: time,
+						timelineObjId: oldLayer.timelineObjId,
+						fromLookahead: oldLayer.lookahead,
 
-				}, oldLayer.lookahead)
+						templateInstance: VizMSEManager.getTemplateInstance(oldLayer),
+						templateName: VizMSEManager.getTemplateName(oldLayer),
+						templateData: VizMSEManager.getTemplateData(oldLayer),
+						channelName: oldLayer.channelName
+
+					}), oldLayer.lookahead)
+				}
 			}
 		})
 
@@ -497,29 +557,25 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState> implements IDevic
 			this.emit('commandError', new Error(errorString), cwc)
 		}
 	}
-	private _connectionChanged (connected?: boolean) {
-		if (connected === true || connected === false) this._vizMSEConnected = connected
-		this.emit('connectionChanged', this.getStatus())
-	}
-
 }
 class VizMSEManager extends EventEmitter {
 	public initialized: boolean = false
-	// private _vizmseState: VizMSETrackedState = {
-	// 	elements: {}
-	// }
-	private _rundown: VRundown | undefined
+	public queueLength: number = 0
 
-	private _elementCache: {[hash: string]: VElement } = {}
+	private _rundown: VRundown | undefined
+	private _elementCache: {[hash: string]: CachedVElement } = {}
 	private _expectedPlayoutItems: Array<ExpectedPlayoutItemContent> = []
+	private _expectedPlayoutItemsItems: { [hash: string]: ExpectedPlayoutItemContentVizMSEInternal } = {}
+	private _monitorAndLoadElementsInterval?: NodeJS.Timer
+	private _lastTimeCommandSent: number = 0
+	private _hasActiveRundown: boolean = false
 
 	constructor (
+		private _parentVizMSEDevice: VizMSEDevice,
 		private _vizMSE: MSE,
 		public preloadAllElements: boolean
 	) {
 		super()
-		// this._vizmse.on('error', (...args) => this.emit('error', ...args))
-		// this._vizmse.on('debug', (...args) => this.emit('debug', ...args))
 	}
 
 	public async initializeRundown (
@@ -557,9 +613,17 @@ class VizMSEManager extends EventEmitter {
 
 		this._updateExpectedPlayoutItems().catch(e => this.emit('error', e))
 
+		if (this._monitorAndLoadElementsInterval) {
+			clearInterval(this._monitorAndLoadElementsInterval)
+		}
+		this._monitorAndLoadElementsInterval = setInterval(() => this._monitorAndLoadElements(), MONITOR_INTERVAL)
+
 		this.initialized = true
 	}
 	public async terminate () {
+		if (this._monitorAndLoadElementsInterval) {
+			clearInterval(this._monitorAndLoadElementsInterval)
+		}
 		if (this._vizMSE) {
 			await this._vizMSE.close()
 			delete this._vizMSE
@@ -573,61 +637,79 @@ class VizMSEManager extends EventEmitter {
 	}
 	public async activate (): Promise<void> {
 		if (!this._rundown) throw new Error(`Viz Rundown not initialized!`)
+		this._triggerCommandSent()
 		await this._rundown.activate()
+		this._triggerCommandSent()
+		this._hasActiveRundown = true
 	}
 	public async deactivate (): Promise<void> {
 		if (!this._rundown) throw new Error(`Viz Rundown not initialized!`)
+		this._triggerCommandSent()
 		await this._rundown.deactivate()
+		this._triggerCommandSent()
 		this._clearCache()
+		this._hasActiveRundown = false
 	}
 	public async prepareElement (cmd: VizMSECommandPrepare): Promise<void> {
 		if (!this._rundown) throw new Error(`Viz Rundown not initialized!`)
 
 		const elementHash = this.getElementHash(cmd)
 		this.emit('debug', `VizMSE: prepare "${elementHash}"`)
+		this._triggerCommandSent()
 		await this._checkPrepareElement(cmd, true)
+		this._triggerCommandSent()
 	}
 	public async cueElement (cmd: VizMSECommandCue): Promise<void> {
 		if (!this._rundown) throw new Error(`Viz Rundown not initialized!`)
+		const rundown = this._rundown
 
 		const elementRef = await this._checkPrepareElement(cmd)
 
-		this.emit('debug', `VizMSE: cue "${elementRef}"`)
-		await this._rundown.cue(elementRef)
+		await this._handleRetry(() => {
+			this.emit('debug', `VizMSE: cue "${elementRef}"`)
+			return rundown.cue(elementRef)
+		})
 	}
 	public async takeElement (cmd: VizMSECommandTake): Promise<void> {
 		if (!this._rundown) throw new Error(`Viz Rundown not initialized!`)
+		const rundown = this._rundown
 
 		const elementRef = await this._checkPrepareElement(cmd)
 
-		this.emit('debug', `VizMSE: take "${elementRef}"`)
-		await this._rundown.take(elementRef)
-
-		// TODO: Handle "PepTalk inexistent error", wait about 300ms, then try again
+		await this._handleRetry(() => {
+			this.emit('debug', `VizMSE: take "${elementRef}"`)
+			return rundown.take(elementRef)
+		})
 	}
 	public async takeoutElement (cmd: VizMSECommandTakeOut): Promise<void> {
 		if (!this._rundown) throw new Error(`Viz Rundown not initialized!`)
+		const rundown = this._rundown
 
 		const elementRef = await this._checkPrepareElement(cmd)
-
-		this.emit('debug', `VizMSE: out "${elementRef}"`)
-		await this._rundown.out(elementRef)
+		await this._handleRetry(() => {
+			this.emit('debug', `VizMSE: out "${elementRef}"`)
+			return rundown.out(elementRef)
+		})
 	}
 	public async continueElement (cmd: VizMSECommandContinue): Promise<void> {
 		if (!this._rundown) throw new Error(`Viz Rundown not initialized!`)
+		const rundown = this._rundown
 
 		const elementRef = await this._checkPrepareElement(cmd)
-
-		this.emit('debug', `VizMSE: continue "${elementRef}"`)
-		await this._rundown.continue(elementRef)
+		await this._handleRetry(() => {
+			this.emit('debug', `VizMSE: continue "${elementRef}"`)
+			return rundown.continue(elementRef)
+		})
 	}
 	public async continueElementReverse (cmd: VizMSECommandContinueReverse): Promise<void> {
 		if (!this._rundown) throw new Error(`Viz Rundown not initialized!`)
+		const rundown = this._rundown
 
 		const elementRef = await this._checkPrepareElement(cmd)
-
-		this.emit('debug', `VizMSE: continue reverse "${elementRef}"`)
-		await this._rundown.continueReverse(elementRef)
+		await this._handleRetry(() => {
+			this.emit('debug', `VizMSE: continue reverse "${elementRef}"`)
+			return rundown.continueReverse(elementRef)
+		})
 	}
 
 	static getTemplateName (layer: VizMSEStateLayer): string | number {
@@ -658,14 +740,14 @@ class VizMSEManager extends EventEmitter {
 			)
 		}
 	}
-	private _getCachedElement (hash: string): VElement | undefined {
+	private _getCachedElement (hash: string): CachedVElement | undefined {
 		return this._elementCache[hash]
 	}
 	private _cacheElement (hash: string, element: VElement) {
 		if (this._elementCache[hash]) {
 			this.emit('error', `There is already an element with hash "${hash}" in cache`)
 		}
-		this._elementCache[hash] = element
+		this._elementCache[hash] = { hash, element }
 	}
 	private _clearCache () {
 		_.each(_.keys(this._elementCache), hash => {
@@ -688,7 +770,7 @@ class VizMSEManager extends EventEmitter {
 		// check if element is prepared
 		const elementHash = this.getElementHash(cmd)
 
-		let element = this._getCachedElement(elementHash)
+		let element = (this._getCachedElement(elementHash) || {}).element
 		if (!element) {
 			if (!fromPrepare) {
 				this.emit('warning', `Late preparation of element "${elementHash}"`)
@@ -749,6 +831,8 @@ class VizMSEManager extends EventEmitter {
 		if (this.preloadAllElements) {
 			this.emit('debug', `VISMSE: _updateExpectedPlayoutItems (${this._expectedPlayoutItems.length})`)
 
+			const hashesAndItems: {[hash: string]: ExpectedPlayoutItemContentVizMSEInternal} = {}
+
 			await Promise.all(
 				_.map(this._expectedPlayoutItems, async expectedPlayoutItem => {
 
@@ -778,15 +862,127 @@ class VizMSEManager extends EventEmitter {
 							...expectedPlayoutItem,
 							templateInstance: VizMSEManager.getTemplateInstance(stateLayer)
 						}
+						hashesAndItems[this.getElementHash(item)] = item
 						await this._checkPrepareElement(item, true)
 					}
 
 				})
 			)
+
+			this._expectedPlayoutItemsItems = hashesAndItems
 		}
+	}
+	/** Monitor and preload (cue) expectedItems-elements */
+	private async _monitorAndLoadElements (): Promise<void> {
+		try {
+
+			if (this._rundown && this._hasActiveRundown && this.preloadAllElements) {
+				const rundown = this._rundown
+
+				// Step 1, figure out which elements needs loading:
+				const elementsToLoad = _.compact(_.map(this._expectedPlayoutItemsItems, (item, hash) => {
+					const el = this._getCachedElement(hash)
+					if (!item.noAutoPreloading && el && !el.hasBeenCued) {
+						return {
+							...el,
+							item: item
+						}
+					}
+					return undefined
+				}))
+
+				if (elementsToLoad.length > 0) {
+
+					this._setPreloadStatus(elementsToLoad.length)
+
+					// Step 2, is it safe to cue up (becuse cueueing might cause the viz engine to freeze )
+
+					let okToLoad: boolean = true
+
+					if (this._timeSinceLastCommandSent() < SAFE_PRELOAD_TIME) {
+						// Not enough time has passed since something happened. There might be an out-animation on screen
+						okToLoad = false
+					}
+
+					if (okToLoad) {
+						const state = this._parentVizMSEDevice.getCurrentState()
+						if (state) {
+							_.each(state.layer, (_layer, _layerId) => {
+
+								// TODO: make something more clever here?
+
+								okToLoad = false // For now, we just won't preload at all if there's anything playing
+							})
+						} else {
+							// ok
+						}
+					}
+
+					if (okToLoad) {
+						// Step 3, cue an element, to trigger loading onto the vizEngine:
+
+						const el = elementsToLoad[0]
+						if (el) {
+
+							const elementRef = await this._checkPrepareElement(el.item)
+
+							await this._handleRetry(() => {
+								this.emit('debug', `VizMSE: cue for preload "${elementRef}"`)
+								return rundown.cue(elementRef)
+							})
+							el.hasBeenCued = true
+						}
+					}
+				} else this._setPreloadStatus(0)
+			} else this._setPreloadStatus(0)
+		} catch (e) {
+			this.emit('error', e)
+		}
+
 	}
 	private _wait (time: number): Promise<void> {
 		return new Promise(resolve => setTimeout(resolve, time))
+	}
+	/** Execute fcn an retry a couple of times until */
+	private async _handleRetry<T> (fcn: () => Promise<T>): Promise<T> {
+		let i: number = 0
+		const maxNumberOfTries = 5
+
+		while (true) {
+			try {
+				this._triggerCommandSent()
+				const result = fcn()
+				this._triggerCommandSent()
+				return result
+			} catch (e) {
+				if (i++ < maxNumberOfTries) {
+					if (e && e.toString && e.toString().match(/inexistent/i)) { // "PepTalk inexistent error"
+						this.emit('debug', `VizMSE: _handleRetry got "inexistent" error, trying again...`)
+
+						// Wait and try again:
+						await this._wait(300)
+					} else {
+						// Unhandled error, give up:
+						throw e
+					}
+				} else {
+					// Give up, we've tried enough times already
+					throw e
+				}
+			}
+		}
+	}
+	private _triggerCommandSent (): void {
+		this._lastTimeCommandSent = Date.now()
+	}
+	private _timeSinceLastCommandSent (): number {
+		return Date.now() - this._lastTimeCommandSent
+	}
+	private _setPreloadStatus (queueLength: number) {
+		if (queueLength !== this.queueLength) {
+			this.queueLength = queueLength
+			this._parentVizMSEDevice.connectionChanged()
+		}
 	}
 }
 
@@ -796,27 +992,36 @@ interface VizMSEState {
 		[layerId: string]: VizMSEStateLayer
 	}
 }
-type VizMSEStateLayer = VizMSEStateLayerInternal | VizMSEStateLayerPilot
+type VizMSEStateLayer = VizMSEStateLayerInternal | VizMSEStateLayerPilot | VizMSEStateLayerContinue
 interface VizMSEStateLayerBase {
 	timelineObjId: string
-
-	contentType: TimelineContentTypeVizMSE
-	continueStep?: number
-
 	lookahead?: boolean
 }
-interface VizMSEStateLayerInternal extends VizMSEStateLayerBase {
+interface VizMSEStateLayerElementBase extends VizMSEStateLayerBase {
+	contentType: TimelineContentTypeVizMSE
+	continueStep?: number
+	cue?: boolean
+}
+interface VizMSEStateLayerInternal extends VizMSEStateLayerElementBase {
 	contentType: TimelineContentTypeVizMSE.ELEMENT_INTERNAL
 
 	templateName: string
 	templateData: Array<string>
 	channelName?: string
 }
-interface VizMSEStateLayerPilot extends VizMSEStateLayerBase {
+interface VizMSEStateLayerPilot extends VizMSEStateLayerElementBase {
 	contentType: TimelineContentTypeVizMSE.ELEMENT_PILOT
 
 	templateVcpId: number
 	channelName?: string
+}
+interface VizMSEStateLayerContinue extends VizMSEStateLayerBase {
+	contentType: TimelineContentTypeVizMSE.CONTINUE
+
+	direction?: 1 | -1
+
+	reference: string
+	referenceContent?: VizMSEStateLayerInternal | VizMSEStateLayerPilot
 }
 
 interface VizMSECommandBase {
@@ -827,9 +1032,6 @@ interface VizMSECommandBase {
 	layerId?: string
 }
 export enum VizMSECommandType {
-	// ACTIVATE = 'activate', // something to be done before starting to use the viz engine
-	// DEACTIVATE = 'deactivate', // something to be done when done with a viz engine
-
 	PREPARE_ELEMENT = 'prepare',
 	CUE_ELEMENT = 'cue',
 	TAKE_ELEMENT = 'take',
@@ -837,12 +1039,7 @@ export enum VizMSECommandType {
 	CONTINUE_ELEMENT = 'continue',
 	CONTINUE_ELEMENT_REVERSE = 'continuereverse'
 }
-// interface VizMSECommandActivate extends VizMSECommandBase {
-// 	type: VizMSECommandType.ACTIVATE
-// }
-// interface VizMSECommandDeactivate extends VizMSECommandBase {
-// 	type: VizMSECommandType.DEACTIVATE
-// }
+
 interface VizMSECommandElementBase extends VizMSECommandBase, ExpectedPlayoutItemContentVizMSEInternal {
 }
 interface VizMSECommandPrepare extends VizMSECommandElementBase {
@@ -871,19 +1068,15 @@ type VizMSECommand = VizMSECommandPrepare |
 	VizMSECommandContinue |
 	VizMSECommandContinueReverse
 
-/** Tracked state of the vizMSE */
-// interface VizMSETrackedState {
-// 	elements: {
-// 		[elementName: string]: VizMSEElement
-// 	}
-// }
-// interface VizMSEElement {
-// 	// todo
-// }
-
 interface ExpectedPlayoutItemContentVizMSEInternal extends ExpectedPlayoutItemContentVizMSE {
 	/** Name of the instance of the element in MSE, generated by us */
 	templateInstance: string
+}
+
+interface CachedVElement {
+	readonly hash: string
+	readonly element: VElement
+	hasBeenCued?: boolean
 }
 
 function content2StateLayer (
@@ -899,6 +1092,7 @@ function content2StateLayer (
 			timelineObjId: timelineObjId,
 			contentType: TimelineContentTypeVizMSE.ELEMENT_INTERNAL,
 			continueStep: content.continueStep,
+			cue: content.cue,
 
 			templateName: content.templateName,
 			templateData: content.templateData,
@@ -911,6 +1105,7 @@ function content2StateLayer (
 			timelineObjId: timelineObjId,
 			contentType: TimelineContentTypeVizMSE.ELEMENT_PILOT,
 			continueStep: content.continueStep,
+			cue: content.cue,
 
 			templateVcpId: content.templateVcpId,
 			channelName: content.channelName
