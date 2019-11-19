@@ -809,7 +809,7 @@ class VizMSEManager extends EventEmitter {
 		return (el && el.name && !el.vcpid)
 	}
 	private _isExternalElement (el: any): el is ExternalElement {
-		return (el && !el.name && el.vcpid)
+		return (el && el.vcpid)
 	}
 	private async _checkPrepareElement (cmd: ExpectedPlayoutItemContentVizMSEInternal, fromPrepare?: boolean): Promise<string | number> {
 		// check if element is prepared
