@@ -436,6 +436,6 @@ describe('Sisyfos', () => {
 		await(wait(1))
 
 		expect(await device.connected).toEqual(true)
-		expect(onConnectionChanged).toHaveBeenCalledTimes(2)
+		expect(onConnectionChanged).toHaveBeenCalledTimes(4)
 	})
 })
