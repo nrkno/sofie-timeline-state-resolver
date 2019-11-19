@@ -171,7 +171,6 @@ export class SisyfosInterface extends EventEmitter {
 			}
 		} else if (address[0] === 'pong') { // a reply to "/ping"
 			let pingValue = parseInt(message.args[0].value, 10)
-			debugger
 			if (pingValue && this._pingCounter === pingValue) {
 				if (this._connectivityTimeout) {
 					clearTimeout(this._connectivityTimeout)
