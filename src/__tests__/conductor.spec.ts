@@ -8,7 +8,7 @@ import {
 import { Conductor, TimelineTriggerTimeResult } from '../conductor'
 import * as _ from 'underscore'
 import { MockTime } from './mockTime'
-import { ThreadedClass } from 'threadedclass'
+import { ThreadedClass, Promisify } from 'threadedclass'
 import { AbstractDevice } from '../devices/abstract'
 import { getMockCall } from './lib'
 
@@ -401,5 +401,32 @@ describe('Conductor', () => {
 		expect(getMockCall(commandReceiver1, 2, 1)._objectParams).toMatchObject({
 			channel: 3
 		})
+	})
+
+	test.only('Construction of multithreaded device', async () => {
+		const myLayerMapping0: MappingAbstract = {
+			device: DeviceType.ABSTRACT,
+			deviceId: 'device0'
+		}
+		const myLayerMapping: Mappings = {
+			'myLayer0': myLayerMapping0
+		}
+
+		const conductor = new Conductor({
+			initializeAsClear: true,
+			getCurrentTime: mockTime.getCurrentTime
+		})
+		// conductor.on('error', console.error)
+
+		await conductor.init()
+		await conductor.addDevice('device0', {
+			type: DeviceType.ABSTRACT,
+			options: {},
+			isMultiThreaded: true
+		})
+		await conductor.setMapping(myLayerMapping)
+
+		const device = conductor.getDevice('device0').device
+		expect(await device.getCurrentTime()).toBeTruthy()
 	})
 })
