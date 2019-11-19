@@ -24,6 +24,7 @@ export class SisyfosInterface extends EventEmitter {
 	private _pingCounter: number = Math.round(Math.random() * 10000)
 	private _connectivityTimeout: NodeJS.Timer | null = null
 	private _connected: boolean = false
+	private _mixerOnline: boolean = true
 
 	/**
 	 * Connnects to the OSC server.
@@ -121,6 +122,14 @@ export class SisyfosInterface extends EventEmitter {
 		return this._state
 	}
 
+	get mixerOnline (): boolean {
+		return this._mixerOnline
+	}
+
+	setMixerOnline (state: boolean) {
+		this._mixerOnline = state
+	}
+
 	private _monitorConnectivity () {
 		const pingSisyfos = () => {
 			this._oscClient.send({ address: `/ping/${this._pingCounter}`, args: [] })
@@ -162,6 +171,7 @@ export class SisyfosInterface extends EventEmitter {
 			}
 		} else if (address[0] === 'pong') { // a reply to "/ping"
 			let pingValue = parseInt(message.args[0].value, 10)
+			debugger
 			if (pingValue && this._pingCounter === pingValue) {
 				if (this._connectivityTimeout) {
 					clearTimeout(this._connectivityTimeout)
@@ -169,9 +179,19 @@ export class SisyfosInterface extends EventEmitter {
 				}
 				this.updateIsConnected(true)
 				this._pingCounter++
+				this.emit('mixerOnline', true)
+			} else if (message.args[0].value === 'offline') {
+				if (this._connectivityTimeout) {
+					clearTimeout(this._connectivityTimeout)
+					this._connectivityTimeout = null
+				}
+				this.updateIsConnected(true)
+				this._pingCounter++
+				this.emit('mixerOnline', false)
 			}
 		}
 	}
+
 	private updateIsConnected (connected: boolean) {
 		if (this._connected !== connected) {
 			this._connected = connected
@@ -182,7 +202,6 @@ export class SisyfosInterface extends EventEmitter {
 				this.emit('disconnected')
 			}
 		}
-
 	}
 
 	private parseChannelCommand (message: osc.OscMessage, address: Array<string>) {

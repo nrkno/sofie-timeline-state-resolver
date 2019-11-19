@@ -56,6 +56,10 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState> implemen
 		this._sisyfos.on('disconnected', () => {
 			this._connectionChanged()
 		})
+		this._sisyfos.on('mixerOnline', (onlineStatus) => {
+			this._sisyfos.setMixerOnline(onlineStatus)
+			this._connectionChanged()
+		})
 
 		this._doOnTime = new DoOnTime(() => {
 			return this.getCurrentTime()
@@ -129,6 +133,11 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState> implemen
 		if (!this._sisyfos.state) {
 			statusCode = StatusCode.BAD
 			messages.push(`Sisyfos device connection not initialized (restart required)`)
+		}
+
+		if (!this._sisyfos.mixerOnline) {
+			statusCode = StatusCode.BAD
+			messages.push(`Sisyfos has no connection to Audiomixer`)
 		}
 		return {
 			statusCode: statusCode,
