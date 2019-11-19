@@ -26,10 +26,11 @@ export interface VizMSEOptions {
 export enum TimelineContentTypeVizMSE {
 	ELEMENT_INTERNAL = 'element_internal',
 	ELEMENT_PILOT = 'element_pilot',
-	CONTINUE = 'continue'
+	CONTINUE = 'continue',
+	LOAD_ALL_ELEMENTS = 'load_all_elements'
 }
 
-export type TimelineObjVIZMSEAny = TimelineObjVIZMSEElementInternal | TimelineObjVIZMSEElementPilot | TimelineObjVIZMSEElementContinue
+export type TimelineObjVIZMSEAny = TimelineObjVIZMSEElementInternal | TimelineObjVIZMSEElementPilot | TimelineObjVIZMSEElementContinue | TimelineObjVIZMSELoadAllElements
 
 export interface TimelineObjVIZMSEBase extends TSRTimelineObjBase {
 	content: {
@@ -103,5 +104,11 @@ export interface TimelineObjVIZMSEElementContinue extends TSRTimelineObjBase {
 
 		/** What other layer to continue */
 		reference: string
+	}
+}
+export interface TimelineObjVIZMSELoadAllElements extends TSRTimelineObjBase {
+	content: {
+		deviceType: DeviceType.VIZMSE
+		type: TimelineContentTypeVizMSE.LOAD_ALL_ELEMENTS
 	}
 }
