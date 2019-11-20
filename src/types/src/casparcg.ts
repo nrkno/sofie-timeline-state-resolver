@@ -19,7 +19,7 @@ export interface CasparCGOptions {
 	timeBase?: {[channel: string]: number} | number
 
 	launcherHost?: string,
-	launcherPort?: string
+	launcherPort?: number
 }
 
 export enum TimelineContentTypeCasparCg { //  CasparCG-state
@@ -32,18 +32,22 @@ export enum TimelineContentTypeCasparCg { //  CasparCG-state
 	RECORD = 'record'
 }
 
-export type TimelineTransition = RegularTimelineTransition | TimelineStingTransition
+export type TimelineTransition = TimelineTransitionBase & (RegularTimelineTransition | TimelineStingTransition)
 
-export interface RegularTimelineTransition {
+export interface TimelineTransitionBase {
 	type: Transition
+}
+
+export interface RegularTimelineTransition extends TimelineTransitionBase {
+	type: Exclude<Transition, Transition.STING>
 	duration?: number,
 	easing?: Ease,
 	direction?: Direction
 }
 
-export interface TimelineStingTransition {
+export interface TimelineStingTransition extends TimelineTransitionBase {
 	type: Transition.STING
-	maskFile?: string
+	maskFile: string
 	delay?: number
 	overlayFile?: string
 	audioFadeStart?: number
