@@ -136,9 +136,8 @@ export class SisyfosInterface extends EventEmitter {
 
 			const waitingForPingCounter = this._pingCounter
 			// Expect a reply within a certain time:
-			if (this._connectivityTimeout) {
-				clearTimeout(this._connectivityTimeout)
-			}
+			this._clearPingTimer()
+
 			this._connectivityTimeout = setTimeout(() => {
 				if (waitingForPingCounter === this._pingCounter) {
 					// this._pingCounter hasn't changed, ie no response has been received
@@ -151,6 +150,13 @@ export class SisyfosInterface extends EventEmitter {
 		this._connectivityCheckInterval = setInterval(() => {
 			pingSisyfos()
 		}, CONNECTIVITY_INTERVAL)
+	}
+
+	private _clearPingTimer () {
+		if (this._connectivityTimeout) {
+			clearTimeout(this._connectivityTimeout)
+			this._connectivityTimeout = null
+		}
 	}
 
 	private receiver (message: osc.OscMessage) {
@@ -172,18 +178,12 @@ export class SisyfosInterface extends EventEmitter {
 		} else if (address[0] === 'pong') { // a reply to "/ping"
 			let pingValue = parseInt(message.args[0].value, 10)
 			if (pingValue && this._pingCounter === pingValue) {
-				if (this._connectivityTimeout) {
-					clearTimeout(this._connectivityTimeout)
-					this._connectivityTimeout = null
-				}
+				this._clearPingTimer()
 				this.updateIsConnected(true)
 				this._pingCounter++
 				this.emit('mixerOnline', true)
 			} else if (message.args[0].value === 'offline') {
-				if (this._connectivityTimeout) {
-					clearTimeout(this._connectivityTimeout)
-					this._connectivityTimeout = null
-				}
+				this._clearPingTimer()
 				this.updateIsConnected(true)
 				this._pingCounter++
 				this.emit('mixerOnline', false)
