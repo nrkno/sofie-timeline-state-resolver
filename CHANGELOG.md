@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [3.15.0](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/3.14.0...3.15.0) (2019-11-20)
+
+
+### Features
+
+* new try on timelineCallbacks ([87bf290](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/87bf2903cc4dbf530b2167cb840cf5987fea3880))
+
+
+### Bug Fixes
+
+* CasparCG transition types ([3a0bb18](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/3a0bb1899eaacf21aa51320ba34933b141ea7f97))
+* CasparCGOptions.launcherPort type incorrect (string vs port) ([20d29e5](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/20d29e5bd7cc714e5701e911f09ff6d34354e68d))
+
 ## [3.14.0](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/3.13.2...3.14.0) (2019-11-14)
 
 
