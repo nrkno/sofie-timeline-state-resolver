@@ -3,7 +3,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<title>ConductorOptions | timeline-state-resolver-types</title>
+	<title>TimelineTransitionBase | timeline-state-resolver-types</title>
 	<meta name="description" content="">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<style type="text/css">/*! normalize.css v1.1.3 | MIT License | git.io/normalize */
@@ -2378,22 +2378,10 @@ img {
 <nav class="tsd-navigation secondary">
 	<ul>
 		<li class="current tsd-kind-interface tsd-is-external">
-			<a href="conductoroptions.html" class="tsd-kind-icon">Conductor<wbr>Options</a>
+			<a href="timelinetransitionbase.html" class="tsd-kind-icon">Timeline<wbr>Transition<wbr>Base</a>
 			<ul>
 				<li class=" tsd-kind-property tsd-parent-kind-interface tsd-is-external">
-					<a href="conductoroptions.html#autoinit" class="tsd-kind-icon">auto<wbr>Init</a>
-				</li>
-				<li class=" tsd-kind-property tsd-parent-kind-interface tsd-is-external">
-					<a href="conductoroptions.html#getcurrenttime" class="tsd-kind-icon">get<wbr>Current<wbr>Time</a>
-				</li>
-				<li class=" tsd-kind-property tsd-parent-kind-interface tsd-is-external">
-					<a href="conductoroptions.html#initializeasclear" class="tsd-kind-icon">initialize<wbr>AsClear</a>
-				</li>
-				<li class=" tsd-kind-property tsd-parent-kind-interface tsd-is-external">
-					<a href="conductoroptions.html#multithreadedresolver" class="tsd-kind-icon">multi<wbr>Threaded<wbr>Resolver</a>
-				</li>
-				<li class=" tsd-kind-property tsd-parent-kind-interface tsd-is-external">
-					<a href="conductoroptions.html#proactiveresolve" class="tsd-kind-icon">pro<wbr>Active<wbr>Resolve</a>
+					<a href="timelinetransitionbase.html#type" class="tsd-kind-icon">type</a>
 				</li>
 			</ul>
 		</li>
@@ -2405,7 +2393,15 @@ img {
 			<h3>Hierarchy</h3>
 			<ul class="tsd-hierarchy">
 				<li>
-					<span class="target">ConductorOptions</span>
+					<span class="target">TimelineTransitionBase</span>
+					<ul class="tsd-hierarchy">
+						<li>
+							<a href="regulartimelinetransition.html" class="tsd-signature-type">RegularTimelineTransition</a>
+						</li>
+						<li>
+							<a href="timelinestingtransition.html" class="tsd-signature-type">TimelineStingTransition</a>
+						</li>
+					</ul>
 				</li>
 			</ul>
 		</section>
@@ -2416,11 +2412,7 @@ img {
 					<section class="tsd-index-section tsd-is-external">
 						<h3>Properties</h3>
 						<ul class="tsd-index-list">
-							<li class="tsd-kind-property tsd-parent-kind-interface tsd-is-external"><a href="conductoroptions.html#autoinit" class="tsd-kind-icon">auto<wbr>Init</a></li>
-							<li class="tsd-kind-property tsd-parent-kind-interface tsd-is-external"><a href="conductoroptions.html#getcurrenttime" class="tsd-kind-icon">get<wbr>Current<wbr>Time</a></li>
-							<li class="tsd-kind-property tsd-parent-kind-interface tsd-is-external"><a href="conductoroptions.html#initializeasclear" class="tsd-kind-icon">initialize<wbr>AsClear</a></li>
-							<li class="tsd-kind-property tsd-parent-kind-interface tsd-is-external"><a href="conductoroptions.html#multithreadedresolver" class="tsd-kind-icon">multi<wbr>Threaded<wbr>Resolver</a></li>
-							<li class="tsd-kind-property tsd-parent-kind-interface tsd-is-external"><a href="conductoroptions.html#proactiveresolve" class="tsd-kind-icon">pro<wbr>Active<wbr>Resolve</a></li>
+							<li class="tsd-kind-property tsd-parent-kind-interface tsd-is-external"><a href="timelinetransitionbase.html#type" class="tsd-kind-icon">type</a></li>
 						</ul>
 					</section>
 				</div>
@@ -2429,52 +2421,12 @@ img {
 		<section class="tsd-panel-group tsd-member-group tsd-is-external">
 			<h2>Properties</h2>
 			<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface tsd-is-external">
-				<a name="autoinit" class="tsd-anchor"></a>
-				<h3><span class="tsd-flag ts-flagOptional">Optional</span> auto<wbr>Init</h3>
-				<div class="tsd-signature tsd-kind-icon">auto<wbr>Init<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">false</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">true</span></div>
+				<a name="type" class="tsd-anchor"></a>
+				<h3>type</h3>
+				<div class="tsd-signature tsd-kind-icon">type<span class="tsd-signature-symbol">:</span> <a href="../enums/transition.html" class="tsd-signature-type">Transition</a></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/dac35093/src/conductor.ts#L60">conductor.ts:60</a></li>
-					</ul>
-				</aside>
-			</section>
-			<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface tsd-is-external">
-				<a name="getcurrenttime" class="tsd-anchor"></a>
-				<h3><span class="tsd-flag ts-flagOptional">Optional</span> get<wbr>Current<wbr>Time</h3>
-				<div class="tsd-signature tsd-kind-icon">get<wbr>Current<wbr>Time<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">function</span></div>
-				<aside class="tsd-sources">
-					<ul>
-						<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/dac35093/src/conductor.ts#L59">conductor.ts:59</a></li>
-					</ul>
-				</aside>
-			</section>
-			<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface tsd-is-external">
-				<a name="initializeasclear" class="tsd-anchor"></a>
-				<h3><span class="tsd-flag ts-flagOptional">Optional</span> initialize<wbr>AsClear</h3>
-				<div class="tsd-signature tsd-kind-icon">initialize<wbr>AsClear<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">false</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">true</span></div>
-				<aside class="tsd-sources">
-					<ul>
-						<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/dac35093/src/conductor.ts#L58">conductor.ts:58</a></li>
-					</ul>
-				</aside>
-			</section>
-			<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface tsd-is-external">
-				<a name="multithreadedresolver" class="tsd-anchor"></a>
-				<h3><span class="tsd-flag ts-flagOptional">Optional</span> multi<wbr>Threaded<wbr>Resolver</h3>
-				<div class="tsd-signature tsd-kind-icon">multi<wbr>Threaded<wbr>Resolver<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">false</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">true</span></div>
-				<aside class="tsd-sources">
-					<ul>
-						<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/dac35093/src/conductor.ts#L61">conductor.ts:61</a></li>
-					</ul>
-				</aside>
-			</section>
-			<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface tsd-is-external">
-				<a name="proactiveresolve" class="tsd-anchor"></a>
-				<h3><span class="tsd-flag ts-flagOptional">Optional</span> pro<wbr>Active<wbr>Resolve</h3>
-				<div class="tsd-signature tsd-kind-icon">pro<wbr>Active<wbr>Resolve<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">false</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">true</span></div>
-				<aside class="tsd-sources">
-					<ul>
-						<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/dac35093/src/conductor.ts#L62">conductor.ts:62</a></li>
+						<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/dac35093/src/types/src/casparcg.ts#L38">types/src/casparcg.ts:38</a></li>
 					</ul>
 				</aside>
 			</section>
