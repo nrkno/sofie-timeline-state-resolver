@@ -310,19 +310,6 @@ Activate channel 3 on sisyfos pgm output
 		visible: false // false: hide - true: show
 	}
 }
-//FADE TO BLACK: (fade out all channels)
-{
-	id: 'channel3',
-	enable: {
-		start: 'now'	
-	},
-	layer: 'myLayerSisyfosScene1',
-	content: {
-		deviceType: DeviceType.SISYFOS,
-		type: TimelineContentTypeSisyfos.SISYFOS,
-		fadeToBlack: true
-	}
-}
 ```
 
 ## Quantel video server

@@ -77,8 +77,6 @@ export class SisyfosInterface extends EventEmitter {
 	send (command: SisyfosCommand) {
 		if (command.type === Commands.TAKE) {
 			this._oscClient.send({ address: '/take', args: [] })
-		} else if (command.type === Commands.FADE_TO_BLACK) {
-			this._oscClient.send({ address: '/fadetoblack', args: [] })
 		} else if (command.type === Commands.CLEAR_PST_ROW) {
 			this._oscClient.send({ address: '/clearpst', args: [] })
 		} else if (command.type === Commands.LABEL) {
