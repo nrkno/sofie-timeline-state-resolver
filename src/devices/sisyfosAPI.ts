@@ -5,7 +5,8 @@ import {
 	Commands,
 	ValueCommand,
 	StringCommand,
-	SisyfosAPIState
+	SisyfosAPIState,
+	SisyfosChannel
 } from '../types/src/sisyfos'
 import { EventEmitter } from 'events'
 
@@ -163,10 +164,7 @@ export class SisyfosInterface extends EventEmitter {
 		const address = message.address.substr(1).split('/')
 		if (address[0] === 'state') {
 			if (address[1] === 'full') {
-				const extState = JSON.parse(message.args[0].value)
-				this._state = {
-					channels: extState.channel
-				}
+				this._state = this.parseSisyfosState(message)
 				this.emit('initialized')
 			} else if (address[1] === 'ch') {
 				const ch = address[2]
@@ -212,5 +210,30 @@ export class SisyfosInterface extends EventEmitter {
 			return { faderLevel: message.args[0].value }
 		}
 		return {}
+	}
+
+	private parseSisyfosState (message: osc.OscMessage): SisyfosState {
+		const extState = JSON.parse(message.args[0].value)
+		const deviceState: SisyfosState = { channels: {} }
+
+		Object.keys(extState.channel).forEach((ch: any, index) => {
+			let pgmOn: number = 0
+			if (ch.pgmOn === true) {
+				pgmOn = 1
+			} else if (ch.voOn === true) {
+				pgmOn = 2
+			}
+			const channel: SisyfosChannel = {
+				faderLevel: ch.faderLevel || 0.75,
+				pgmOn: pgmOn,
+				pstOn: ch.pstOn === true ? 1 : 0,
+				label: ch.label || '',
+				visible: ch.showFader || true,
+				tlObjIds: []
+			}
+
+			deviceState.channels[index] = channel
+		})
+		return deviceState
 	}
 }

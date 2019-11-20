@@ -87,7 +87,6 @@ export interface SisyfosAPIChannel {
 	faderLevel: number
 	pgmOn: number
 	pstOn: number
-	fadeToBlack: boolean
 	label: string
 	visible: boolean
 }
