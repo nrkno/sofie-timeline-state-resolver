@@ -226,7 +226,7 @@ export class SisyfosInterface extends EventEmitter {
 				pgmOn: pgmOn,
 				pstOn: ch.pstOn === true ? 1 : 0,
 				label: ch.label || '',
-				visible: ch.showChannel || true,
+				visible: ch.showChannel ? true : false,
 				tlObjIds: []
 			}
 
