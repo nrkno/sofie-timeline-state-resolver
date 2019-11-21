@@ -2,6 +2,8 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.15.1](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/3.15.0...3.15.1) (2019-11-21)
+
 ## [3.15.0](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/3.14.0...3.15.0) (2019-11-20)
 
 
