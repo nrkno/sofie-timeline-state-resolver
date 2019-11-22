@@ -1055,21 +1055,21 @@ casparcg-connection@4.8.1:
     xml2js "^0.4.19"
     xmlbuilder "^9.0.7"
 
-casparcg-connection@^4.7.0:
-  version "4.7.0"
-  resolved "https://registry.yarnpkg.com/casparcg-connection/-/casparcg-connection-4.7.0.tgz#c2aa4b5b5a89b17bffac77f592627aca8ec3537e"
-  integrity sha512-SQW7eiDRKiI2X/6bJACupX8TBt79JGPxCzmcIc+K3EPv/DU1uV6gmKM2pjwvQvBkXrtX+6ruijS6QbtFVzVt3w==
+casparcg-connection@^4.9.0:
+  version "4.9.0"
+  resolved "https://registry.yarnpkg.com/casparcg-connection/-/casparcg-connection-4.9.0.tgz#1fb19e091ff785d312f52ed065c4077dbe55196c"
+  integrity sha512-K2c38+6RB4Agb116q4WapmZQSDAz95nlijgndpG2sYEX9lxHRJmBrJ+uysxrgJT/dXYlPGrEx++pEqwRpXPtLA==
   dependencies:
     highland "^3.0.0-beta.6"
     xml2js "^0.4.19"
     xmlbuilder "^9.0.7"
 
-casparcg-state@^1.9.1:
-  version "1.9.1"
-  resolved "https://registry.yarnpkg.com/casparcg-state/-/casparcg-state-1.9.1.tgz#09702adbb68269c57b8cb154caff92eadb1b0369"
-  integrity sha512-cwAiczngF72eyQs42OZg55OlWJ5dsEdse01yKGX14i5scfnaDW5HOnF4lt/jIO4+3tjKyhRMxcj8tnR/c9nZ1Q==
+casparcg-state@^1.11.0:
+  version "1.11.0"
+  resolved "https://registry.yarnpkg.com/casparcg-state/-/casparcg-state-1.11.0.tgz#f13e9357ce31ae061a2e45df9ae7609d243f80d0"
+  integrity sha512-0LIExVGfXZPFjjXT0wScRZGdZImg9/rrFSB+S8nDyo++MFm5TBP0GE7lSK6Tsf7Q8CGmdbuaQiJmS3gZvReeqw==
   dependencies:
-    casparcg-connection "^4.7.0"
+    casparcg-connection "^4.9.0"
     fast-clone "^1.5.13"
     underscore "^1.9.1"
 
