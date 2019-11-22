@@ -152,7 +152,7 @@
   ],
   "dependencies": {
     "atem-connection": "1.1.0",
-    "atem-state": "0.8.0",
+    "atem-state": "0.8.1",
     "casparcg-connection": "^4.9.0",
     "casparcg-state": "^1.10.0",
     "emberplus": "git+https://github.com/nrkno/tv-automation-emberplus-connection#dist200919_1",
