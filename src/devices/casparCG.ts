@@ -594,7 +594,9 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> implements ID
 			messages: messages
 		}
 	}
-
+	/**
+	 * Compares the new timeline-state with the old one, and generates commands to account for the difference
+	 */
 	private _diffStates (oldState, newState, time: number): Array<IAMCPCommandVOWithContext> {
 		// @todo: this is a tmp fix for the command order. should be removed when ccg-state has been refactored.
 		return this._ccgState.diffStatesOrderedCommands(oldState, newState, time)

@@ -197,6 +197,9 @@ export class SingularLiveDevice extends DeviceWithState<TimelineState> implement
 	get queue () {
 		return this._doOnTime.getQueue()
 	}
+	/**
+	 * Add commands to queue, to be executed at the right time
+	 */
 	private _addToQueue (commandsToAchieveState: Array<Command>, time: number) {
 		_.each(commandsToAchieveState, (cmd: Command) => {
 
@@ -206,6 +209,9 @@ export class SingularLiveDevice extends DeviceWithState<TimelineState> implement
 			}, cmd)
 		})
 	}
+	/**
+	 * Compares the new timeline-state with the old one, and generates commands to account for the difference
+	 */
 	private _diffStates (oldSingularLiveState: SingularLiveState, newSingularLiveState: SingularLiveState): Array<Command> {
 		let commands: Array<Command> = []
 

@@ -131,6 +131,9 @@ export class HTTPSendDevice extends DeviceWithState<TimelineState> implements ID
 	get queue () {
 		return this._doOnTime.getQueue()
 	}
+	/**
+	 * Add commands to queue, to be executed at the right time
+	 */
 	private _addToQueue (commandsToAchieveState: Array<Command>, time: number) {
 		_.each(commandsToAchieveState, (cmd: Command) => {
 
@@ -147,6 +150,9 @@ export class HTTPSendDevice extends DeviceWithState<TimelineState> implements ID
 			}, cmd)
 		})
 	}
+	/**
+	 * Compares the new timeline-state with the old one, and generates commands to account for the difference
+	 */
 	private _diffStates (oldhttpSendState: TimelineState, newhttpSendState: TimelineState): Array<Command> {
 		// in this httpSend class, let's just cheat:
 
