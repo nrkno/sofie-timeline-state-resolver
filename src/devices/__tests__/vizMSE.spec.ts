@@ -9,7 +9,7 @@ import { ThreadedClass } from 'threadedclass'
 import { MappingVizMSE, TimelineContentTypeVizMSE } from '../../types/src/vizMSE'
 import { getMockCall } from '../../__tests__/lib'
 import { VizMSEDevice } from '../vizMSE'
-import { getMockMSEs, MSEMock, VRundownMock, VRundownMocked } from '../../__mocks__/v-connection'
+import { getMockMSEs, MSEMock, VRundownMocked } from '../../__mocks__/v-connection'
 import _ = require('underscore')
 import { StatusCode } from '../device'
 
@@ -17,12 +17,6 @@ describe('vizMSE', () => {
 	let mockTime = new MockTime()
 
 	const orgSetTimeout = setTimeout
-
-	function wait (time: number = 1) {
-		return new Promise((resolve) => {
-			orgSetTimeout(resolve, time)
-		})
-	}
 
 	beforeAll(() => {
 		mockTime.mockDateNow()
@@ -37,11 +31,11 @@ describe('vizMSE', () => {
 		})
 		let myChannelMapping0: MappingVizMSE = {
 			device: DeviceType.VIZMSE,
-			deviceId: 'myViz',
+			deviceId: 'myViz'
 		}
 		let myChannelMapping1: MappingVizMSE = {
 			device: DeviceType.VIZMSE,
-			deviceId: 'myViz',
+			deviceId: 'myViz'
 		}
 		let myChannelMapping: Mappings = {
 			'viz0': myChannelMapping0,
@@ -77,7 +71,7 @@ describe('vizMSE', () => {
 			{
 				id: 'obj0',
 				enable: {
-					start: mockTime.now  + 5000, // 15100
+					start: mockTime.now + 5000, // 15100
 					duration: 5000 // 20100
 				},
 				layer: 'viz0',
@@ -96,7 +90,7 @@ describe('vizMSE', () => {
 			{
 				id: 'obj1',
 				enable: {
-					start: mockTime.now  + 7000, // 17100
+					start: mockTime.now + 7000, // 17100
 					duration: 5000 // 22100
 				},
 				layer: 'viz0',
@@ -111,7 +105,7 @@ describe('vizMSE', () => {
 			{
 				id: 'obj2',
 				enable: {
-					start: mockTime.now  + 9000, // 19100
+					start: mockTime.now + 9000, // 19100
 					duration: 500
 				},
 				layer: 'viz_continue',
@@ -120,12 +114,12 @@ describe('vizMSE', () => {
 					type: TimelineContentTypeVizMSE.CONTINUE,
 					reference: 'viz0'
 				}
-			},
+			}
 		]
 
 		await mockTime.advanceTimeTicks(500) // 10500
 		expect(commandReceiver0.mock.calls.length).toEqual(0)
-		
+
 		commandReceiver0.mockClear()
 		await mockTime.advanceTimeToTicks(14500)
 		expect(commandReceiver0.mock.calls.length).toEqual(1)
@@ -209,14 +203,13 @@ describe('vizMSE', () => {
 			return device._defaultCommandReceiver(...args)
 		})
 
-		
 		let myChannelMapping0: MappingVizMSE = {
 			device: DeviceType.VIZMSE,
-			deviceId: 'myViz',
+			deviceId: 'myViz'
 		}
 		let myChannelMapping1: MappingVizMSE = {
 			device: DeviceType.VIZMSE,
-			deviceId: 'myViz',
+			deviceId: 'myViz'
 		}
 		let myChannelMapping: Mappings = {
 			'viz0': myChannelMapping0,
@@ -255,7 +248,7 @@ describe('vizMSE', () => {
 			{
 				id: 'obj0',
 				enable: {
-					start: mockTime.now  + 5000, // 15100
+					start: mockTime.now + 5000, // 15100
 					duration: 5000 // 20100
 				},
 				layer: 'viz0',
@@ -273,7 +266,7 @@ describe('vizMSE', () => {
 			{
 				id: 'obj1',
 				enable: {
-					start: mockTime.now  + 7000, // 17100
+					start: mockTime.now + 7000, // 17100
 					duration: 5000 // 22100
 				},
 				layer: 'viz0',
@@ -288,7 +281,7 @@ describe('vizMSE', () => {
 			{
 				id: 'obj2',
 				enable: {
-					start: mockTime.now  + 9000, // 19100
+					start: mockTime.now + 9000, // 19100
 					duration: 500
 				},
 				layer: 'viz_continue',
@@ -297,12 +290,11 @@ describe('vizMSE', () => {
 					type: TimelineContentTypeVizMSE.CONTINUE,
 					reference: 'viz0'
 				}
-			},
+			}
 		]
 
 		await mockTime.advanceTimeTicks(500) // 10500
 		expect(commandReceiver0.mock.calls.length).toEqual(0)
-
 
 		const mse = _.last(getMockMSEs()) as MSEMock
 		expect(mse).toBeTruthy()
@@ -315,13 +307,13 @@ describe('vizMSE', () => {
 			{
 				templateName: 1337,
 				// templateData?: string[]
-				channelName: 'FULL1',
+				channelName: 'FULL1'
 				// noAutoPreloading?: boolean
 			},
 			{
 				templateName: 1336,
 				// templateData?: string[]
-				channelName: 'FULL1',
+				channelName: 'FULL1'
 				// noAutoPreloading?: boolean
 			}
 		])
@@ -426,15 +418,15 @@ describe('vizMSE', () => {
 		await device.handleExpectedPlayoutItems([
 			{
 				templateName: 1337,
-				channelName: 'FULL1',
+				channelName: 'FULL1'
 			},
 			{
 				templateName: 1336,
-				channelName: 'FULL1',
+				channelName: 'FULL1'
 			},
 			{
 				templateName: 9999,
-				channelName: 'FULL1',
+				channelName: 'FULL1'
 			}
 		])
 
@@ -448,9 +440,9 @@ describe('vizMSE', () => {
 				layer: 'viz0',
 				content: {
 					deviceType: DeviceType.VIZMSE,
-					type: TimelineContentTypeVizMSE.LOAD_ALL_ELEMENTS,
+					type: TimelineContentTypeVizMSE.LOAD_ALL_ELEMENTS
 				}
-			},
+			}
 		]
 
 		await mockTime.advanceTimeToTicks(24900)
@@ -468,17 +460,14 @@ describe('vizMSE', () => {
 		expect(getMockCall(commandReceiver0, 0, 1)).toMatchObject({
 			timelineObjId: 'loadAll',
 			time: 25000,
-			type: 'load_all_elements',
+			type: 'load_all_elements'
 		})
 
 		expect(rundown.initialize).toHaveBeenCalledTimes(1)
 		expect(rundown.initialize).nthCalledWith(1, 9999)
 
-
-
 		expect(rundown.deactivate).toHaveBeenCalledTimes(0)
 		await myConductor.devicesStandDown(true)
-		
 		expect(rundown.deactivate).toHaveBeenCalledTimes(1)
 
 		expect(onError).toHaveBeenCalledTimes(0)
@@ -525,7 +514,7 @@ describe('vizMSE', () => {
 				type: DeviceType.VIZMSE,
 				options: {
 					host: '127.0.0.1',
-					showID: 'show1234',
+					showID: 'show1234'
 					// profile: 'myProfile'
 				}
 			})
@@ -544,12 +533,12 @@ describe('vizMSE', () => {
 		})
 		const device = deviceContainer.device
 		const connectionChanged = jest.fn()
-		device.on('connectionChanged', connectionChanged)
+		await device.on('connectionChanged', connectionChanged)
 
 		const mse = _.last(getMockMSEs()) as MSEMock
 		expect(mse).toBeTruthy()
 		expect(mse.getMockRundowns()).toHaveLength(1)
-		
+
 		expect(connectionChanged).toHaveBeenCalledTimes(0)
 		expect(await device.getStatus()).toMatchObject({
 			statusCode: StatusCode.GOOD
@@ -580,6 +569,5 @@ describe('vizMSE', () => {
 		expect(onError).toHaveBeenCalledTimes(0)
 		expect(onWarning).toHaveBeenCalledTimes(0)
 
-		
 	})
 })
