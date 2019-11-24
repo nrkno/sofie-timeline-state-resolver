@@ -5969,8 +5969,8 @@ uuid@^3.3.2, uuid@^3.3.3:
   integrity sha512-pW0No1RGHgzlpHJO1nsVrHKpOEIxkGg1xB+v0ZmdNH5OAeAwzAVrCnI2/6Mtx+Uys6iaylxa+D3g4j63IKKjSQ==
 
 "v-connection@git+https://github.com/olzzon/v-connection/#dist":
-  version "0.0.3"
-  resolved "git+https://github.com/olzzon/v-connection/#b023815097b2501cc0e5d86c310d8b22278558ca"
+  version "0.0.5"
+  resolved "git+https://github.com/olzzon/v-connection/#78b2d00a4c7e9ece921f883b05b894e197f4c0d7"
   dependencies:
     koa "^2.11.0"
     request "^2.88.0"
