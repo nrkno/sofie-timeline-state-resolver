@@ -94,6 +94,8 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState> implements IDevic
 	async init (initOptions: VizMSEOptions): Promise<boolean> {
 		this._initOptions = initOptions
 		if (!this._initOptions.host) 	throw new Error('VizMSE bad option: host')
+		if (!this._initOptions.showID) 	throw new Error('VizMSE bad option: showID')
+		if (!this._initOptions.profile) 	throw new Error('VizMSE bad option: profile')
 
 		this._vizMSE = createMSE(
 			this._initOptions.host,
@@ -608,7 +610,7 @@ class VizMSEManager extends EventEmitter {
 	constructor (
 		private _parentVizMSEDevice: VizMSEDevice,
 		private _vizMSE: MSE,
-		public preloadAllElements: boolean
+		public preloadAllElements: boolean = false
 	) {
 		super()
 	}
@@ -786,6 +788,8 @@ class VizMSEManager extends EventEmitter {
 		return this._elementCache[hash]
 	}
 	private _cacheElement (hash: string, element: VElement) {
+		if (!hash) throw new Error('_cacheElement: hash not set')
+		if (!element) throw new Error('_cacheElement: element not set (with hash ' + hash + ')')
 		if (this._elementCache[hash]) {
 			this.emit('error', `There is already an element with hash "${hash}" in cache`)
 		}
@@ -832,11 +836,9 @@ class VizMSEManager extends EventEmitter {
 	}
 	private async _prepareNewElement (cmd: ExpectedPlayoutItemContentVizMSEInternal): Promise<VElement> {
 		if (!this._rundown) throw new Error(`Viz Rundown not initialized!`)
-
 		const elementHash = this.getElementHash(cmd)
 
 		try {
-			console.log(`Creating an element of type ${typeof cmd.templateName}: ${cmd.templateName}, channel="${cmd.channelName}"`)
 			if (_.isNumber(cmd.templateName)) {
 				// Prepare a pilot element
 				const pilotEl = await this._rundown.createElement(

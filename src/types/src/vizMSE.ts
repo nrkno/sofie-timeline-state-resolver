@@ -20,7 +20,7 @@ export interface VizMSEOptions {
 	playlistID?: string
 
 	/** Whether all elements should be preloaded or not */
-	preloadAllElements: boolean
+	preloadAllElements?: boolean
 	// profileName
 }
 export enum TimelineContentTypeVizMSE {
