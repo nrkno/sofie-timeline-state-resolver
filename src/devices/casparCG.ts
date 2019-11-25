@@ -244,11 +244,7 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> implements ID
 		) {
 			const mediaObj = layer as any as TimelineObjCCGMedia
 
-			const holdOnFirst = !isForeground || mediaObj.isLookahead
-			if (holdOnFirst) {
-				startTime = 10 // Some value to keep it on the first frame. 0 would be ideal, but doesnt work
-			}
-
+			const holdOnFirstFrame = !isForeground || mediaObj.isLookahead
 			const loopingPlayTime = mediaObj.content.loop && !mediaObj.content.seek && !mediaObj.content.inPoint && !mediaObj.content.length
 
 			stateLayer = literal<StateNS.IMediaLayer>({
@@ -257,12 +253,12 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> implements ID
 				content:		StateNS.LayerContentType.MEDIA,
 				media:			mediaObj.content.file,
 				playTime:		(
-					!holdOnFirst && (mediaObj.content.noStarttime || loopingPlayTime) ?
+					!holdOnFirstFrame && (mediaObj.content.noStarttime || loopingPlayTime) ?
 					null :
 					startTime
 				) || null,
 
-				pauseTime:		holdOnFirst ? startTime : (mediaObj.content.pauseTime || null),
+				pauseTime:		holdOnFirstFrame ? startTime : (mediaObj.content.pauseTime || null),
 				playing:		!mediaObj.isLookahead && (mediaObj.content.playing !== undefined ? mediaObj.content.playing : isForeground),
 
 				looping:		mediaObj.content.loop,
