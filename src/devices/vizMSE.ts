@@ -732,6 +732,7 @@ class VizMSEManager extends EventEmitter {
 
 		const elementRef = await this._checkPrepareElement(cmd)
 
+		await this._checkElementExists(cmd)
 		await this._handleRetry(() => {
 			this.emit('debug', `VizMSE: cue "${elementRef}"`)
 			return rundown.cue(elementRef)
@@ -746,8 +747,10 @@ class VizMSEManager extends EventEmitter {
 
 		const elementRef = await this._checkPrepareElement(cmd)
 
+		await this._checkElementExists(cmd)
 		await this._handleRetry(() => {
 			this.emit('debug', `VizMSE: take "${elementRef}"`)
+
 			return rundown.take(elementRef)
 		})
 	}
@@ -759,6 +762,8 @@ class VizMSEManager extends EventEmitter {
 		const rundown = this._rundown
 
 		const elementRef = await this._checkPrepareElement(cmd)
+
+		await this._checkElementExists(cmd)
 		await this._handleRetry(() => {
 			this.emit('debug', `VizMSE: out "${elementRef}"`)
 			return rundown.out(elementRef)
@@ -772,6 +777,8 @@ class VizMSEManager extends EventEmitter {
 		const rundown = this._rundown
 
 		const elementRef = await this._checkPrepareElement(cmd)
+
+		await this._checkElementExists(cmd)
 		await this._handleRetry(() => {
 			this.emit('debug', `VizMSE: continue "${elementRef}"`)
 			return rundown.continue(elementRef)
@@ -785,6 +792,8 @@ class VizMSEManager extends EventEmitter {
 		const rundown = this._rundown
 
 		const elementRef = await this._checkPrepareElement(cmd)
+
+		await this._checkElementExists(cmd)
 		await this._handleRetry(() => {
 			this.emit('debug', `VizMSE: continue reverse "${elementRef}"`)
 			return rundown.continueReverse(elementRef)
@@ -855,10 +864,12 @@ class VizMSEManager extends EventEmitter {
 
 		throw Error('Unknown element type, neither internal nor external')
 	}
-	private _isInternalElement (el: any): el is InternalElement {
+	private _isInternalElement (element: VElement): element is InternalElement {
+		const el = element as any
 		return (el && el.name && !el.vcpid)
 	}
-	private _isExternalElement (el: any): el is ExternalElement {
+	private _isExternalElement (element: VElement): element is ExternalElement {
+		const el = element as any
 		return (el && el.vcpid)
 	}
 	/**
@@ -882,6 +893,26 @@ class VizMSEManager extends EventEmitter {
 		return this._getElementReference(element)
 		// })
 
+	}
+	/** Check that the element exists and if not, throw error */
+	private async _checkElementExists (cmd: ExpectedPlayoutItemContentVizMSEInternal): Promise<void> {
+		if (!this._rundown) throw new Error(`Viz Rundown not initialized!`)
+
+		const elementHash = this.getElementHash(cmd)
+		const cachedElement = this._getCachedElement(elementHash)
+		if (!cachedElement) throw new Error(`_checkElementExists: cachedElement falsy`)
+		const elementRef = this._getElementReference(cachedElement.element)
+		const elementIsExternal = cachedElement && this._isExternalElement(cachedElement.element)
+
+		if (elementIsExternal) {
+			const element = await this._rundown.getElement(elementRef)
+			if (
+				this._isExternalElement(element) &&
+				element.exists === 'no'
+			) {
+				throw new Error(`Can't take the element "${elementRef}" while it has the property exists="no"`)
+			}
+		}
 	}
 	/**
 	 * Create a new element in MSE
