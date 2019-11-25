@@ -488,6 +488,7 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> implements ID
 					if (mapping.previewWhenNotOnAir) {
 						channel.layers[mapping.layer] = {
 							...backgroundStateLayer,
+							playTime: null,
 							playing: false
 						}
 					} else {
