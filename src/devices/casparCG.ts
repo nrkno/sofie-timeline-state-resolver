@@ -236,7 +236,7 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> implements ID
 	}
 
 	private convertObjectToCasparState (layer: ResolvedTimelineObjectInstance, mapping: MappingCasparCG, isForeground: boolean): StateNS.ILayerBase {
-		const startTime = layer.instance.originalStart || layer.instance.start
+		let startTime = layer.instance.originalStart || layer.instance.start
 
 		let stateLayer: StateNS.ILayerBase | null = null
 		if (
@@ -244,25 +244,25 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> implements ID
 		) {
 			const mediaObj = layer as any as TimelineObjCCGMedia
 
+			const holdOnFirst = !isForeground || mediaObj.isLookahead
+			if (holdOnFirst) {
+				startTime = 10 // Some value to keep it on the first frame. 0 would be ideal, but doesnt work
+			}
+
+			const loopingPlayTime = mediaObj.content.loop && !mediaObj.content.seek && !mediaObj.content.inPoint && !mediaObj.content.length
+
 			stateLayer = literal<StateNS.IMediaLayer>({
 				id: 			layer.id,
 				layerNo:		mapping.layer,
 				content:		StateNS.LayerContentType.MEDIA,
 				media:			mediaObj.content.file,
 				playTime:		(
-					mediaObj.content.noStarttime ||
-					(
-						mediaObj.content.loop &&
-						!mediaObj.content.seek &&
-						!mediaObj.content.inPoint &&
-						!mediaObj.content.length
-					)
-					?
+					!holdOnFirst && (mediaObj.content.noStarttime || loopingPlayTime) ?
 					null :
 					startTime
 				) || null,
 
-				pauseTime:		mediaObj.isLookahead && isForeground ? startTime : (mediaObj.content.pauseTime || null),
+				pauseTime:		holdOnFirst ? startTime : (mediaObj.content.pauseTime || null),
 				playing:		!mediaObj.isLookahead && (mediaObj.content.playing !== undefined ? mediaObj.content.playing : isForeground),
 
 				looping:		mediaObj.content.loop,
@@ -488,7 +488,6 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> implements ID
 					if (mapping.previewWhenNotOnAir) {
 						channel.layers[mapping.layer] = {
 							...backgroundStateLayer,
-							playTime: null,
 							playing: false
 						}
 					} else {
