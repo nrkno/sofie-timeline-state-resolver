@@ -199,7 +199,9 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState> implements IDevic
 		return true
 	}
 	public handleExpectedPlayoutItems (expectedPlayoutItems: Array<ExpectedPlayoutItemContent>): void {
+		this.emit('debug', 'VIZDEBUG: handleExpectedPlayoutItems called')
 		if (this._vizmseManager) {
+			this.emit('debug', 'VIZDEBUG: manager exists')
 			this._vizmseManager.setExpectedPlayoutItems(expectedPlayoutItems)
 		}
 	}
@@ -566,7 +568,9 @@ class VizMSEManager extends EventEmitter {
 		}
 	}
 	public setExpectedPlayoutItems (expectedPlayoutItems: Array<ExpectedPlayoutItemContent>) {
+		this.emit('debug', 'VIZDEBUG: setExpectedPlayoutItems called')
 		if (this.preloadAllElements) {
+			this.emit('debug', 'VIZDEBUG: preload elements allowed')
 			this._expectedPlayoutItems = expectedPlayoutItems
 		}
 		this._updateExpectedPlayoutItems().catch(e => this.emit('error', e))
@@ -746,8 +750,9 @@ class VizMSEManager extends EventEmitter {
 		}
 	}
 	private async _updateExpectedPlayoutItems (): Promise<void> {
+		this.emit('debug', 'VIZDEBUG: _updateExpectedPlayoutItems called')
 		if (this.preloadAllElements) {
-			this.emit('debug', `VISMSE: _updateExpectedPlayoutItems (${this._expectedPlayoutItems.length})`)
+			this.emit('debug', `VIZMSE: _updateExpectedPlayoutItems (${this._expectedPlayoutItems.length})`)
 
 			await Promise.all(
 				_.map(this._expectedPlayoutItems, async expectedPlayoutItem => {
