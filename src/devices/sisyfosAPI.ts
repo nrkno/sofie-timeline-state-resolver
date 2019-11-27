@@ -5,7 +5,8 @@ import {
 	Commands,
 	ValueCommand,
 	StringCommand,
-	SisyfosAPIState
+	SisyfosAPIState,
+	SisyfosChannel
 } from '../types/src/sisyfos'
 import { EventEmitter } from 'events'
 
@@ -24,6 +25,7 @@ export class SisyfosInterface extends EventEmitter {
 	private _pingCounter: number = Math.round(Math.random() * 10000)
 	private _connectivityTimeout: NodeJS.Timer | null = null
 	private _connected: boolean = false
+	private _mixerOnline: boolean = true
 
 	/**
 	 * Connnects to the OSC server.
@@ -75,8 +77,6 @@ export class SisyfosInterface extends EventEmitter {
 	send (command: SisyfosCommand) {
 		if (command.type === Commands.TAKE) {
 			this._oscClient.send({ address: '/take', args: [] })
-		} else if (command.type === Commands.FADE_TO_BLACK) {
-			this._oscClient.send({ address: '/fadetoblack', args: [] })
 		} else if (command.type === Commands.CLEAR_PST_ROW) {
 			this._oscClient.send({ address: '/clearpst', args: [] })
 		} else if (command.type === Commands.LABEL) {
@@ -99,6 +99,11 @@ export class SisyfosInterface extends EventEmitter {
 				type: 'f',
 				value: (command as ValueCommand).value
 			}] })
+		} else if (command.type === Commands.VISIBLE) {
+			this._oscClient.send({ address: `/ch/${(command as ValueCommand).channel + 1}/visible`, args: [{
+				type: 'i',
+				value: (command as ValueCommand).value
+			}] })
 		}
 	}
 
@@ -116,15 +121,22 @@ export class SisyfosInterface extends EventEmitter {
 		return this._state
 	}
 
+	get mixerOnline (): boolean {
+		return this._mixerOnline
+	}
+
+	setMixerOnline (state: boolean) {
+		this._mixerOnline = state
+	}
+
 	private _monitorConnectivity () {
 		const pingSisyfos = () => {
 			this._oscClient.send({ address: `/ping/${this._pingCounter}`, args: [] })
 
 			const waitingForPingCounter = this._pingCounter
 			// Expect a reply within a certain time:
-			if (this._connectivityTimeout) {
-				clearTimeout(this._connectivityTimeout)
-			}
+			this._clearPingTimer()
+
 			this._connectivityTimeout = setTimeout(() => {
 				if (waitingForPingCounter === this._pingCounter) {
 					// this._pingCounter hasn't changed, ie no response has been received
@@ -139,14 +151,18 @@ export class SisyfosInterface extends EventEmitter {
 		}, CONNECTIVITY_INTERVAL)
 	}
 
+	private _clearPingTimer () {
+		if (this._connectivityTimeout) {
+			clearTimeout(this._connectivityTimeout)
+			this._connectivityTimeout = null
+		}
+	}
+
 	private receiver (message: osc.OscMessage) {
 		const address = message.address.substr(1).split('/')
 		if (address[0] === 'state') {
 			if (address[1] === 'full') {
-				const extState = JSON.parse(message.args[0].value)
-				this._state = {
-					channels: extState.channel
-				}
+				this._state = this.parseSisyfosState(message)
 				this.emit('initialized')
 			} else if (address[1] === 'ch') {
 				const ch = address[2]
@@ -158,15 +174,19 @@ export class SisyfosInterface extends EventEmitter {
 		} else if (address[0] === 'pong') { // a reply to "/ping"
 			let pingValue = parseInt(message.args[0].value, 10)
 			if (pingValue && this._pingCounter === pingValue) {
-				if (this._connectivityTimeout) {
-					clearTimeout(this._connectivityTimeout)
-					this._connectivityTimeout = null
-				}
+				this._clearPingTimer()
 				this.updateIsConnected(true)
 				this._pingCounter++
+				this.emit('mixerOnline', true)
+			} else if (message.args[0].value === 'offline') {
+				this._clearPingTimer()
+				this.updateIsConnected(true)
+				this._pingCounter++
+				this.emit('mixerOnline', false)
 			}
 		}
 	}
+
 	private updateIsConnected (connected: boolean) {
 		if (this._connected !== connected) {
 			this._connected = connected
@@ -177,7 +197,6 @@ export class SisyfosInterface extends EventEmitter {
 				this.emit('disconnected')
 			}
 		}
-
 	}
 
 	private parseChannelCommand (message: osc.OscMessage, address: Array<string>) {
@@ -189,5 +208,30 @@ export class SisyfosInterface extends EventEmitter {
 			return { faderLevel: message.args[0].value }
 		}
 		return {}
+	}
+
+	private parseSisyfosState (message: osc.OscMessage): SisyfosState {
+		const extState = JSON.parse(message.args[0].value)
+		const deviceState: SisyfosState = { channels: {} }
+
+		Object.keys(extState.channel).forEach((ch: any, index) => {
+			let pgmOn: number = 0
+			if (ch.pgmOn === true) {
+				pgmOn = 1
+			} else if (ch.voOn === true) {
+				pgmOn = 2
+			}
+			const channel: SisyfosChannel = {
+				faderLevel: ch.faderLevel || 0.75,
+				pgmOn: pgmOn,
+				pstOn: ch.pstOn === true ? 1 : 0,
+				label: ch.label || '',
+				visible: ch.showChannel ? true : false,
+				tlObjIds: []
+			}
+
+			deviceState.channels[index] = channel
+		})
+		return deviceState
 	}
 }

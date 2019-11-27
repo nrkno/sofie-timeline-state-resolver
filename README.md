@@ -284,6 +284,32 @@ Activate channel 3 on sisyfos pgm output
 		faderLevel: 0.75
 	}
 }
+//LABEL:
+{
+	id: 'channel3',
+	enable: {
+		start: 'now'	
+	},
+	layer: 'myLayerSisyfosScene1',
+	content: {
+		deviceType: DeviceType.SISYFOS,
+		type: TimelineContentTypeSisyfos.SISYFOS,
+		label: 'SERVER B'
+	}
+}
+//VISIBLE: (shows or hide a fader)
+{
+	id: 'channel3',
+	enable: {
+		start: 'now'	
+	},
+	layer: 'myLayerSisyfosScene1',
+	content: {
+		deviceType: DeviceType.SISYFOS,
+		type: TimelineContentTypeSisyfos.SISYFOS,
+		visible: false // false: hide - true: show
+	}
+}
 ```
 
 ## Quantel video server

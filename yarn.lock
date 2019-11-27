@@ -430,13 +430,6 @@
   resolved "https://registry.yarnpkg.com/@types/underscore/-/underscore-1.9.3.tgz#d7d9dc5a5ff76fa3d001b29bc7cc95ab0ccfe85e"
   integrity sha512-SwbHKB2DPIDlvYqtK5O+0LFtZAyrUSw4c0q+HWwmH1Ve3KMQ0/5PlV3RX97+3dP7yMrnNQ8/bCWWvQpPl03Mug==
 
-"@types/uuid@^3.4.5":
-  version "3.4.6"
-  resolved "https://registry.yarnpkg.com/@types/uuid/-/uuid-3.4.6.tgz#d2c4c48eb85a757bf2927f75f939942d521e3016"
-  integrity sha512-cCdlC/1kGEZdEglzOieLDYBxHsvEOIg7kp/2FYyVR9Pxakq+Qf/inL3RKQ+PA8gOlI/NnL+fXmQH12nwcGzsHw==
-  dependencies:
-    "@types/node" "*"
-
 "@types/ws@^6.0.1":
   version "6.0.3"
   resolved "https://registry.yarnpkg.com/@types/ws/-/ws-6.0.3.tgz#b772375ba59d79066561c8d87500144d674ba6b3"
@@ -720,10 +713,10 @@ atem-connection@1.1.0:
     tslib "^1.9.0"
     wavefile "^8.4.4"
 
-atem-state@0.8.0:
-  version "0.8.0"
-  resolved "https://registry.yarnpkg.com/atem-state/-/atem-state-0.8.0.tgz#6d8e4015ee6875a507dcae60fc54e7cc23cacf3f"
-  integrity sha512-vpJwmtP49xpe7xe9rScpemLMBPGOuavtZY/egx0DpfrdzzjeF/1Ef75eHLGXLKhLRjYaHgyAqneObvT1IIYk2w==
+atem-state@0.8.1:
+  version "0.8.1"
+  resolved "https://registry.yarnpkg.com/atem-state/-/atem-state-0.8.1.tgz#ad05688a344f49689fb05d419222023c1778f27b"
+  integrity sha512-smQPHXEuN1y7tV1M3tUgZYITmGgqchrfYD0fTjiZD+4Vy7Rz6RpveBDK+iZZJ6CtumBK6b5O8FxIdTLs0+PjFg==
   dependencies:
     atem-connection "1.1.0"
     tslib "^1.9.2"
@@ -993,21 +986,21 @@ caseless@~0.12.0:
   resolved "https://registry.yarnpkg.com/caseless/-/caseless-0.12.0.tgz#1b681c21ff84033c826543090689420d187151dc"
   integrity sha1-G2gcIf+EAzyCZUMJBolCDRhxUdw=
 
-casparcg-connection@^4.7.0:
-  version "4.7.0"
-  resolved "https://registry.yarnpkg.com/casparcg-connection/-/casparcg-connection-4.7.0.tgz#c2aa4b5b5a89b17bffac77f592627aca8ec3537e"
-  integrity sha512-SQW7eiDRKiI2X/6bJACupX8TBt79JGPxCzmcIc+K3EPv/DU1uV6gmKM2pjwvQvBkXrtX+6ruijS6QbtFVzVt3w==
+casparcg-connection@^4.9.0:
+  version "4.9.0"
+  resolved "https://registry.yarnpkg.com/casparcg-connection/-/casparcg-connection-4.9.0.tgz#1fb19e091ff785d312f52ed065c4077dbe55196c"
+  integrity sha512-K2c38+6RB4Agb116q4WapmZQSDAz95nlijgndpG2sYEX9lxHRJmBrJ+uysxrgJT/dXYlPGrEx++pEqwRpXPtLA==
   dependencies:
     highland "^3.0.0-beta.6"
     xml2js "^0.4.19"
     xmlbuilder "^9.0.7"
 
-casparcg-state@^1.8.1:
-  version "1.8.1"
-  resolved "https://registry.yarnpkg.com/casparcg-state/-/casparcg-state-1.8.1.tgz#845b2ef51426ef9af7888146426eb31d9d7dffa3"
-  integrity sha512-kUBd91fOznkuV38RqmVx7XMU/ZQdlchQmQeZpdrz5W7tnywHUj/oxhG+6dmlOj7VB0XXJRET6QRFwYpWWCJemw==
+casparcg-state@^1.10.0:
+  version "1.10.0"
+  resolved "https://registry.yarnpkg.com/casparcg-state/-/casparcg-state-1.10.0.tgz#eb0bf98ada8123e7756faa6b6f899b201964194c"
+  integrity sha512-dtqkPZQGInrJQ1QrsG97JSRmr0qf5j1wIoK6f5JMeM8neIdITOUfAEAONs34Va6xiir9d+h519fefuc84WVAKg==
   dependencies:
-    casparcg-connection "^4.7.0"
+    casparcg-connection "^4.9.0"
     fast-clone "^1.5.13"
     underscore "^1.9.1"
 
@@ -3470,15 +3463,10 @@ koa-convert@^1.2.0:
     co "^4.6.0"
     koa-compose "^3.0.0"
 
-koa-is-json@^1.0.0:
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/koa-is-json/-/koa-is-json-1.0.0.tgz#273c07edcdcb8df6a2c1ab7d59ee76491451ec14"
-  integrity sha1-JzwH7c3Ljfaiwat9We52SRRR7BQ=
-
-koa@^2.8.1:
-  version "2.10.0"
-  resolved "https://registry.yarnpkg.com/koa/-/koa-2.10.0.tgz#86a583ff280896dce3a36b0b6dae80f9559240d3"
-  integrity sha512-vcZopGEWHDokchYtjU6jF1BCy+2MA2hnvGP7xPi26qWoIS0OiAUb4+lCqkqf05qG5ULnGYUFTvFnSK9RyOoiKw==
+koa@^2.11.0:
+  version "2.11.0"
+  resolved "https://registry.yarnpkg.com/koa/-/koa-2.11.0.tgz#fe5a51c46f566d27632dd5dc8fd5d7dd44f935a4"
+  integrity sha512-EpR9dElBTDlaDgyhDMiLkXrPwp6ZqgAIBvhhmxQ9XN4TFgW+gEz6tkcsNI6BnUbUftrKDjVFj4lW2/J2aNBMMA==
   dependencies:
     accepts "^1.3.5"
     cache-content-type "^1.0.0"
@@ -3498,7 +3486,6 @@ koa@^2.8.1:
     is-generator-function "^1.0.7"
     koa-compose "^4.1.0"
     koa-convert "^1.2.0"
-    koa-is-json "^1.0.0"
     on-finished "^2.3.0"
     only "~0.0.2"
     parseurl "^1.3.2"
@@ -5982,11 +5969,10 @@ uuid@^3.3.2, uuid@^3.3.3:
   integrity sha512-pW0No1RGHgzlpHJO1nsVrHKpOEIxkGg1xB+v0ZmdNH5OAeAwzAVrCnI2/6Mtx+Uys6iaylxa+D3g4j63IKKjSQ==
 
 "v-connection@git+https://github.com/olzzon/v-connection/#dist":
-  version "0.0.3"
-  resolved "git+https://github.com/olzzon/v-connection/#3ace0d1526d835c18c4afa2ff49046fb40539fc2"
+  version "0.0.5"
+  resolved "git+https://github.com/olzzon/v-connection/#78b2d00a4c7e9ece921f883b05b894e197f4c0d7"
   dependencies:
-    "@types/uuid" "^3.4.5"
-    koa "^2.8.1"
+    koa "^2.11.0"
     request "^2.88.0"
     request-promise-native "^1.0.7"
     uuid "^3.3.3"

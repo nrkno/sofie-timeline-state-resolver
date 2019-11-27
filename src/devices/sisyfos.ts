@@ -56,6 +56,10 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState> implemen
 		this._sisyfos.on('disconnected', () => {
 			this._connectionChanged()
 		})
+		this._sisyfos.on('mixerOnline', (onlineStatus) => {
+			this._sisyfos.setMixerOnline(onlineStatus)
+			this._connectionChanged()
+		})
 
 		this._doOnTime = new DoOnTime(() => {
 			return this.getCurrentTime()
@@ -130,6 +134,11 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState> implemen
 			statusCode = StatusCode.BAD
 			messages.push(`Sisyfos device connection not initialized (restart required)`)
 		}
+
+		if (!this._sisyfos.mixerOnline) {
+			statusCode = StatusCode.BAD
+			messages.push(`Sisyfos has no connection to Audiomixer`)
+		}
 		return {
 			statusCode: statusCode,
 			messages: messages
@@ -163,6 +172,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState> implemen
 				pgmOn: 0,
 				pstOn: 0,
 				label: '',
+				visible: true,
 				tlObjIds: []
 			}
 
@@ -186,7 +196,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState> implemen
 			if (!foundMapping && layer.isLookahead && layer.lookaheadForLayer) {
 				foundMapping = this.getMapping()[layer.lookaheadForLayer] as any
 			}
-			if (foundMapping && foundMapping.channel && deviceState.channels[foundMapping.channel]) {
+			if (foundMapping && _.has(foundMapping, 'channel') && deviceState.channels[foundMapping.channel]) {
 
 				if (layer.isLookahead) {
 					deviceState.channels[foundMapping.channel].pstOn = layer.content.isPgm || 0
@@ -198,12 +208,12 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState> implemen
 					deviceState.channels[foundMapping.channel].faderLevel = layer.content.faderLevel
 				}
 
-				if (layer.content.fadeToBlack !== undefined) {
-					deviceState.channels[foundMapping.channel].fadeToBlack = layer.content.fadeToBlack
-				}
-
 				if (layer.content.label !== undefined) {
 					deviceState.channels[foundMapping.channel].label = layer.content.label
+				}
+
+				if (layer.content.visible !== undefined) {
+					deviceState.channels[foundMapping.channel].visible = layer.content.visible
 				}
 
 				deviceState.channels[foundMapping.channel].tlObjIds.push(tlObject.id)
@@ -280,18 +290,6 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState> implemen
 				})
 			}
 
-			if (oldChannel && oldChannel.fadeToBlack !== newChannel.fadeToBlack) {
-				commands.push({
-					context: 'fade all pgm to black',
-					content: {
-						type: Commands.FADE_TO_BLACK,
-						channel: 0,
-						value: newChannel.fadeToBlack
-					},
-					timelineObjId: newChannel.tlObjIds[0] || ''
-				})
-			}
-
 			if (newChannel.label !== '' && oldChannel.label !== newChannel.label) {
 				commands.push({
 					context: 'set label on fader',
@@ -299,6 +297,18 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState> implemen
 						type: Commands.LABEL,
 						channel: Number(index),
 						value: newChannel.label
+					},
+					timelineObjId: newChannel.tlObjIds[0] || ''
+				})
+			}
+
+			if (oldChannel && oldChannel.visible !== newChannel.visible) {
+				commands.push({
+					context: `Channel ${index} Visibility goes from "${oldChannel.visible}" to "${newChannel.visible}"`,
+					content: {
+						type: Commands.VISIBLE,
+						channel: Number(index),
+						value: newChannel.visible
 					},
 					timelineObjId: newChannel.tlObjIds[0] || ''
 				})

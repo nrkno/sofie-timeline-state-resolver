@@ -611,26 +611,25 @@ export class Conductor extends EventEmitter {
 
 		try {
 			const now = this.getCurrentTime()
-
-			if (this._nextResolveTime < now) {
-				this._nextResolveTime = now
-			}
-
 			let resolveTime: number = this._nextResolveTime
 
-			if (!this._nextResolveTime) {
-				let estimatedResolveTime = this.estimateResolveTime()
+			const estimatedResolveTime = this.estimateResolveTime()
+
+			if (
+				resolveTime === 0 || // About to be resolved ASAP
+				resolveTime < now + estimatedResolveTime // We're late
+			) {
 				resolveTime = now + estimatedResolveTime
 				this.emit('debug', `resolveTimeline ${resolveTime} (${resolveTime - now} from now) (${estimatedResolveTime}) ---------`)
 			} else {
 				this.emit('debug', `resolveTimeline ${resolveTime} (${resolveTime - now} from now) -----------------------------`)
-			}
 
-			if (resolveTime > now + LOOKAHEADTIME) {
-				// If the resolveTime is too far ahead, we'd rather wait and resolve it later.
-				this.emit('debug', 'Too far ahead (' + resolveTime + ')')
-				this._triggerResolveTimeline(LOOKAHEADTIME)
-				return
+				if (resolveTime > now + LOOKAHEADTIME) {
+					// If the resolveTime is too far ahead, we'd rather wait and resolve it later.
+					this.emit('debug', 'Too far ahead (' + resolveTime + ')')
+					this._triggerResolveTimeline(LOOKAHEADTIME)
+					return
+				}
 			}
 
 			// Let all devices know that a new state is about to come in.

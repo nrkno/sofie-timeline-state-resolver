@@ -7,4 +7,7 @@ export interface ExpectedPlayoutItemContentVizMSE { // TODO: This is a temporary
 	templateData?: string[]
 	/** What channel to use for the element */
 	channelName?: string
+
+	/** If true, won't be preloaded (cued) automatically */
+	noAutoPreloading?: boolean
 }
