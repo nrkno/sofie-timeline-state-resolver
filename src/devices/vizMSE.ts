@@ -649,10 +649,13 @@ class VizMSEManager extends EventEmitter {
 	private _elementCache: {[hash: string]: CachedVElement } = {}
 	private _expectedPlayoutItems: Array<ExpectedPlayoutItemContent> = []
 	private _monitorAndLoadElementsInterval?: NodeJS.Timer
+	private _monitorMSEConnection?: NodeJS.Timer
 	private _lastTimeCommandSent: number = 0
 	private _hasActiveRundown: boolean = false
 	private _elementsLoaded: {[hash: string]: { element: VElement, isLoaded: boolean, isNotLoaded: boolean}} = {}
 	private _getRundownPromise?: Promise<VRundown>
+	private _mseConnected: boolean = false
+	private _msePingConnected: boolean = false
 
 	constructor (
 		private _parentVizMSEDevice: VizMSEDevice,
@@ -669,12 +672,13 @@ class VizMSEManager extends EventEmitter {
 	 * Our approach is to create a single rundown on initialization, and then use only that for later control.
 	 */
 	public async initializeRundown (): Promise<void> {
-		this._vizMSE.on('connected', () => this.emit('connectionChanged', true))
-		this._vizMSE.on('disconnected', () => this.emit('connectionChanged', false))
+		this._vizMSE.on('connected', () => this.mseConnectionChanged(true))
+		this._vizMSE.on('disconnected', () => this.mseConnectionChanged(false))
 
 		// Perform a ping, to ensure we are connected properly
 		await this._vizMSE.ping()
-		this.emit('connectionChanged', true)
+		this._msePingConnected = true
+		this.mseConnectionChanged(true)
 
 		// Setup the rundown used by this device:
 		const rundown = await this._getRundown()
@@ -686,7 +690,17 @@ class VizMSEManager extends EventEmitter {
 		if (this._monitorAndLoadElementsInterval) {
 			clearInterval(this._monitorAndLoadElementsInterval)
 		}
-		this._monitorAndLoadElementsInterval = setInterval(() => this._monitorLoadedElements(), MONITOR_INTERVAL)
+		this._monitorAndLoadElementsInterval = setInterval(() => {
+			this._monitorLoadedElements()
+			.catch((...args) => {
+				this.emit('error', ...args)
+			})
+		}, MONITOR_INTERVAL)
+
+		if (this._monitorMSEConnection) {
+			clearInterval(this._monitorMSEConnection)
+		}
+		this._monitorMSEConnection = setInterval(() => this._monitorConnection(), MONITOR_INTERVAL)
 
 		this.initialized = true
 	}
@@ -696,6 +710,9 @@ class VizMSEManager extends EventEmitter {
 	public async terminate () {
 		if (this._monitorAndLoadElementsInterval) {
 			clearInterval(this._monitorAndLoadElementsInterval)
+		}
+		if (this._monitorMSEConnection) {
+			clearInterval(this._monitorMSEConnection)
 		}
 		if (this._vizMSE) {
 			await this._vizMSE.close()
@@ -1149,6 +1166,25 @@ class VizMSEManager extends EventEmitter {
 
 		this.emit('debug', '_triggerLoadAllElements done')
 	}
+	private _monitorConnection (): void {
+		// (the ping will throuw on a timeout if ping doesn't return in time)
+		if (this.initialized) {
+			this._vizMSE.ping()
+			.then(() => {
+				// ok!
+				if (!this._msePingConnected) {
+					this._msePingConnected = true
+					this.onConnectionChanged()
+				}
+			}, () => {
+				// not ok!
+				if (this._msePingConnected) {
+					this._msePingConnected = false
+					this.onConnectionChanged()
+				}
+			})
+		}
+	}
 	/** Monitor loading status of expected elements */
 	private async _monitorLoadedElements (): Promise<void> {
 		try {
@@ -1302,6 +1338,18 @@ class VizMSEManager extends EventEmitter {
 		} else {
 			return this._rundown
 		}
+	}
+	private mseConnectionChanged (connected: boolean) {
+		if (connected !== this._mseConnected) {
+			this._mseConnected = connected
+			this.onConnectionChanged()
+		}
+	}
+	private onConnectionChanged () {
+		this.emit('connectionChanged', (
+			this._mseConnected &&
+			this._msePingConnected
+		))
 	}
 }
 
