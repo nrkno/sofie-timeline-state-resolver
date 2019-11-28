@@ -107,16 +107,15 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState> implements IDevic
 		this._vizmseManager = new VizMSEManager(
 			this,
 			this._vizMSE,
-			this._initOptions.preloadAllElements
-		)
-
-		this._vizmseManager.on('connectionChanged', (connected) => this.connectionChanged(connected))
-
-		await this._vizmseManager.initializeRundown(
+			this._initOptions.preloadAllElements,
 			initOptions.showID,
 			initOptions.profile,
 			initOptions.playlistID
 		)
+
+		this._vizmseManager.on('connectionChanged', (connected) => this.connectionChanged(connected))
+
+		await this._vizmseManager.initializeRundown()
 
 		this._vizmseManager.on('info', str => this.emit('info', 'VizMSE: ' + str))
 		this._vizmseManager.on('warning', str => this.emit('warning', 'VizMSE' + str))
@@ -649,16 +648,19 @@ class VizMSEManager extends EventEmitter {
 	private _rundown: VRundown | undefined
 	private _elementCache: {[hash: string]: CachedVElement } = {}
 	private _expectedPlayoutItems: Array<ExpectedPlayoutItemContent> = []
-	private _expectedPlayoutItemsItems: { [hash: string]: ExpectedPlayoutItemContentVizMSEInternal } = {}
 	private _monitorAndLoadElementsInterval?: NodeJS.Timer
 	private _lastTimeCommandSent: number = 0
 	private _hasActiveRundown: boolean = false
 	private _elementsLoaded: {[hash: string]: { element: VElement, isLoaded: boolean, isNotLoaded: boolean}} = {}
+	private _getRundownPromise?: Promise<VRundown>
 
 	constructor (
 		private _parentVizMSEDevice: VizMSEDevice,
 		private _vizMSE: MSE,
-		public preloadAllElements: boolean = false
+		public preloadAllElements: boolean = false,
+		private _showID: string,
+		private _profile: string,
+		private _playlistID?: string
 	) {
 		super()
 	}
@@ -666,11 +668,7 @@ class VizMSEManager extends EventEmitter {
 	 * Initialize the Rundown in MSE.
 	 * Our approach is to create a single rundown on initialization, and then use only that for later control.
 	 */
-	public async initializeRundown (
-		showID: string,
-		profile: string,
-		playlistID?: string
-	): Promise<void> {
+	public async initializeRundown (): Promise<void> {
 		this._vizMSE.on('connected', () => this.emit('connectionChanged', true))
 		this._vizMSE.on('disconnected', () => this.emit('connectionChanged', false))
 
@@ -679,29 +677,11 @@ class VizMSEManager extends EventEmitter {
 		this.emit('connectionChanged', true)
 
 		// Setup the rundown used by this device:
+		const rundown = await this._getRundown()
 
-		// Check if the rundown already exists:
-		this._rundown = _.find(await this._vizMSE.getRundowns(), (rundown) => {
-			return (
-				rundown.show === showID &&
-				rundown.profile === profile &&
-				rundown.playlist === playlistID
-			)
-		})
-
-		if (!this._rundown) {
-			this._rundown = await this._vizMSE.createRundown(
-				showID,
-				profile,
-				playlistID
-			)
-		}
-
-		if (!this._rundown) throw new Error(`VizMSEManager: Unable to create rundown!`)
+		if (!rundown) throw new Error(`VizMSEManager: Unable to create rundown!`)
 
 		// const profile = await this._vizMSE.getProfile('sofie') // TODO: Figure out if this is needed
-
-		this._updateExpectedPlayoutItems().catch(e => this.emit('error', e))
 
 		if (this._monitorAndLoadElementsInterval) {
 			clearInterval(this._monitorAndLoadElementsInterval)
@@ -729,8 +709,9 @@ class VizMSEManager extends EventEmitter {
 	public setExpectedPlayoutItems (expectedPlayoutItems: Array<ExpectedPlayoutItemContent>) {
 		if (this.preloadAllElements) {
 			this._expectedPlayoutItems = expectedPlayoutItems
+
+			this._getExpectedPlayoutItems().catch((...args) => this.emit('error', ...args))
 		}
-		this._updateExpectedPlayoutItems().catch(e => this.emit('error', e))
 	}
 	/**
 	 * Activate the rundown.
@@ -738,13 +719,15 @@ class VizMSEManager extends EventEmitter {
 	 * Doing this will make MSE start loading things onto the vizEngine etc.
 	 */
 	public async activate (): Promise<void> {
-		if (!this._rundown) throw new Error(`Viz Rundown not initialized!`)
 		this._triggerCommandSent()
-		await this._rundown.activate()
+		const rundown = await this._getRundown()
+
 		// clear any existing elements from the existing rundown
 		await rundown.purge()
 		this._clearCache()
 
+		this._triggerCommandSent()
+		await rundown.activate()
 		this._triggerCommandSent()
 		await this._triggerLoadAllElements()
 		this._triggerCommandSent()
@@ -755,11 +738,10 @@ class VizMSEManager extends EventEmitter {
 	 * This causes the MSE to stand down and clear the vizEngines of any loaded graphics.
 	 */
 	public async deactivate (): Promise<void> {
-		if (!this._rundown) throw new Error(`Viz Rundown not initialized!`)
+		const rundown = await this._getRundown()
 		this._triggerCommandSent()
-		await this._rundown.deactivate()
+		await rundown.deactivate()
 		this._triggerCommandSent()
-		this._clearCache()
 		this._hasActiveRundown = false
 	}
 	/**
@@ -767,7 +749,6 @@ class VizMSEManager extends EventEmitter {
 	 * This creates the element and is intended to be called a little time ahead of Takeing the element.
 	 */
 	public async prepareElement (cmd: VizMSECommandPrepare): Promise<void> {
-		if (!this._rundown) throw new Error(`Viz Rundown not initialized!`)
 
 		const elementHash = this.getElementHash(cmd)
 		this.emit('debug', `VizMSE: prepare "${elementHash}"`)
@@ -779,8 +760,7 @@ class VizMSEManager extends EventEmitter {
 	 * Cue:ing an element: Load and play the first frame of a graphic
 	 */
 	public async cueElement (cmd: VizMSECommandCue): Promise<void> {
-		if (!this._rundown) throw new Error(`Viz Rundown not initialized!`)
-		const rundown = this._rundown
+		const rundown = await this._getRundown()
 
 		const elementRef = await this._checkPrepareElement(cmd)
 
@@ -794,8 +774,7 @@ class VizMSEManager extends EventEmitter {
 	 * Take an element: Load and Play a graphic element, run in-animatinos etc
 	 */
 	public async takeElement (cmd: VizMSECommandTake): Promise<void> {
-		if (!this._rundown) throw new Error(`Viz Rundown not initialized!`)
-		const rundown = this._rundown
+		const rundown = await this._getRundown()
 
 		const elementRef = await this._checkPrepareElement(cmd)
 
@@ -810,8 +789,7 @@ class VizMSEManager extends EventEmitter {
 	 * Take out: Animate out a graphic element
 	 */
 	public async takeoutElement (cmd: VizMSECommandTakeOut): Promise<void> {
-		if (!this._rundown) throw new Error(`Viz Rundown not initialized!`)
-		const rundown = this._rundown
+		const rundown = await this._getRundown()
 
 		const elementRef = await this._checkPrepareElement(cmd)
 
@@ -825,8 +803,7 @@ class VizMSEManager extends EventEmitter {
 	 * Continue: Cause the graphic element to step forward, if it has multiple states
 	 */
 	public async continueElement (cmd: VizMSECommandContinue): Promise<void> {
-		if (!this._rundown) throw new Error(`Viz Rundown not initialized!`)
-		const rundown = this._rundown
+		const rundown = await this._getRundown()
 
 		const elementRef = await this._checkPrepareElement(cmd)
 
@@ -840,8 +817,7 @@ class VizMSEManager extends EventEmitter {
 	 * Continue-reverse: Cause the graphic element to step backwards, if it has multiple states
 	 */
 	public async continueElementReverse (cmd: VizMSECommandContinueReverse): Promise<void> {
-		if (!this._rundown) throw new Error(`Viz Rundown not initialized!`)
-		const rundown = this._rundown
+		const rundown = await this._getRundown()
 
 		const elementRef = await this._checkPrepareElement(cmd)
 
@@ -855,8 +831,7 @@ class VizMSEManager extends EventEmitter {
 	 * Special: trigger a template which clears all templates on the output
 	 */
 	public async clearAll (cmd: VizMSECommandClearAllElements): Promise<void> {
-		if (!this._rundown) throw new Error(`Viz Rundown not initialized!`)
-		const rundown = this._rundown
+		const rundown = await this._getRundown()
 
 		const template: VizMSEStateLayerInternal = {
 			timelineObjId: cmd.timelineObjId,
@@ -978,7 +953,7 @@ class VizMSEManager extends EventEmitter {
 	}
 	/** Check that the element exists and if not, throw error */
 	private async _checkElementExists (cmd: ExpectedPlayoutItemContentVizMSEInternal): Promise<void> {
-		if (!this._rundown) throw new Error(`Viz Rundown not initialized!`)
+		const rundown = await this._getRundown()
 
 		const elementHash = this.getElementHash(cmd)
 		const cachedElement = this._getCachedElement(elementHash)
@@ -987,7 +962,7 @@ class VizMSEManager extends EventEmitter {
 		const elementIsExternal = cachedElement && this._isExternalElement(cachedElement.element)
 
 		if (elementIsExternal) {
-			const element = await this._rundown.getElement(elementRef)
+			const element = await rundown.getElement(elementRef)
 			if (
 				this._isExternalElement(element) &&
 				element.exists === 'no'
@@ -1000,13 +975,13 @@ class VizMSEManager extends EventEmitter {
 	 * Create a new element in MSE
 	 */
 	private async _prepareNewElement (cmd: ExpectedPlayoutItemContentVizMSEInternal): Promise<VElement> {
-		if (!this._rundown) throw new Error(`Viz Rundown not initialized!`)
+		const rundown = await this._getRundown()
 		const elementHash = this.getElementHash(cmd)
 
 		try {
 			if (_.isNumber(cmd.templateName)) {
 				// Prepare a pilot element
-				const pilotEl = await this._rundown.createElement(
+				const pilotEl = await rundown.createElement(
 					cmd.templateName,
 					cmd.channelName
 				)
@@ -1015,7 +990,7 @@ class VizMSEManager extends EventEmitter {
 				return pilotEl
 			} else {
 				// Prepare an internal element
-				const internalEl = await this._rundown.createElement(
+				const internalEl = await rundown.createElement(
 					cmd.templateName,
 					cmd.templateInstance,
 					cmd.templateData || [],
@@ -1029,7 +1004,7 @@ class VizMSEManager extends EventEmitter {
 			if (e.toString().match(/already exist/i)) { // "An internal graphics element with name 'xxxxxxxxxxxxxxx' already exists."
 				// If the object already exists, it's not an error, fetch and use the element instead
 
-				const element = await this._rundown.getElement(cmd.templateInstance)
+				const element = await rundown.getElement(cmd.templateInstance)
 
 				this._cacheElement(elementHash, element)
 				return element
@@ -1039,56 +1014,56 @@ class VizMSEManager extends EventEmitter {
 
 		}
 	}
-	private async _updateExpectedPlayoutItems (): Promise<void> {
-		if (this.preloadAllElements) {
-			this.emit('debug', `VISMSE: _updateExpectedPlayoutItems (${this._expectedPlayoutItems.length})`)
+	private async _getExpectedPlayoutItems (): Promise<{ [hash: string]: ExpectedPlayoutItemContentVizMSEInternal }> {
+		this.emit('debug', `VISMSE: _getExpectedPlayoutItems (${this._expectedPlayoutItems.length})`)
 
-			const hashesAndItems: {[hash: string]: ExpectedPlayoutItemContentVizMSEInternal} = {}
+		const hashesAndItems: {[hash: string]: ExpectedPlayoutItemContentVizMSEInternal} = {}
 
-			await Promise.all(
-				_.map(this._expectedPlayoutItems, async expectedPlayoutItem => {
+		await Promise.all(
+			_.map(this._expectedPlayoutItems, async expectedPlayoutItem => {
 
-					const stateLayer: VizMSEStateLayer | undefined = (
-						_.isNumber(expectedPlayoutItem.templateName) ?
-						content2StateLayer(
-							'',
-							{
-								deviceType: DeviceType.VIZMSE,
-								type: TimelineContentTypeVizMSE.ELEMENT_PILOT,
-								templateVcpId: expectedPlayoutItem.templateName
-							} as TimelineObjVIZMSEElementPilot['content']
-						) :
-						content2StateLayer(
-							'',
-							{
-								deviceType: DeviceType.VIZMSE,
-								type: TimelineContentTypeVizMSE.ELEMENT_INTERNAL,
-								templateName: expectedPlayoutItem.templateName,
-								templateData: expectedPlayoutItem.templateData
-							} as TimelineObjVIZMSEElementInternal['content']
-						)
+				const stateLayer: VizMSEStateLayer | undefined = (
+					_.isNumber(expectedPlayoutItem.templateName) ?
+					content2StateLayer(
+						'',
+						{
+							deviceType: DeviceType.VIZMSE,
+							type: TimelineContentTypeVizMSE.ELEMENT_PILOT,
+							templateVcpId: expectedPlayoutItem.templateName
+						} as TimelineObjVIZMSEElementPilot['content']
+					) :
+					content2StateLayer(
+						'',
+						{
+							deviceType: DeviceType.VIZMSE,
+							type: TimelineContentTypeVizMSE.ELEMENT_INTERNAL,
+							templateName: expectedPlayoutItem.templateName,
+							templateData: expectedPlayoutItem.templateData
+						} as TimelineObjVIZMSEElementInternal['content']
 					)
+				)
 
-					if (stateLayer) {
-						const item: ExpectedPlayoutItemContentVizMSEInternal = {
-							...expectedPlayoutItem,
-							templateInstance: VizMSEManager.getTemplateInstance(stateLayer)
-						}
-						hashesAndItems[this.getElementHash(item)] = item
-						await this._checkPrepareElement(item, true)
+				if (stateLayer) {
+					const item: ExpectedPlayoutItemContentVizMSEInternal = {
+						...expectedPlayoutItem,
+						templateInstance: VizMSEManager.getTemplateInstance(stateLayer)
 					}
+					hashesAndItems[this.getElementHash(item)] = item
+					await this._checkPrepareElement(item, true)
+				}
 
-				})
-			)
-
-			this._expectedPlayoutItemsItems = hashesAndItems
-		}
+			})
+		)
+		return hashesAndItems
 	}
+
 	/**
 	 * Update the load-statuses of the expectedPlayoutItems -elements from MSE, where needed
 	 */
 	private async updateElementsLoadedStatus (forceReloadAll?: boolean) {
-		const elementsToLoad = _.compact(_.map(this._expectedPlayoutItemsItems, (item, hash) => {
+
+		const hashesAndItems = await this._getExpectedPlayoutItems()
+		const elementsToLoad = _.compact(_.map(hashesAndItems, (item, hash) => {
 			const el = this._getCachedElement(hash)
 			if (!item.noAutoPreloading && el) {
 				return {
@@ -1100,7 +1075,10 @@ class VizMSEManager extends EventEmitter {
 			return undefined
 		}))
 		if (this._rundown) {
-			const rundown = this._rundown
+
+			this.emit('debug', `Updating status of elements starting, elementsToLoad.length=${elementsToLoad.length} (${_.keys(hashesAndItems).length})`)
+
+			const rundown = await this._getRundown()
 
 			if (forceReloadAll) {
 				this._elementsLoaded = {}
@@ -1111,8 +1089,9 @@ class VizMSEManager extends EventEmitter {
 					const cachedEl = this._elementsLoaded[e.hash]
 
 					if (!cachedEl || !cachedEl.isLoaded) {
-
 						const elementRef = await this._checkPrepareElement(e.item)
+
+						this.emit('debug', `Updating status of element ${elementRef}`)
 
 						// Update cached status of the element:
 						const newEl = await rundown.getElement(elementRef)
@@ -1126,6 +1105,8 @@ class VizMSEManager extends EventEmitter {
 				})
 			)
 
+			this.emit('debug', `Updating status of elements done, this._elementsLoaded.length=${_.keys(this._elementsLoaded).length}`)
+
 		} else {
 			throw Error('VizMSE.v-connection not initialized yet')
 		}
@@ -1134,8 +1115,9 @@ class VizMSEManager extends EventEmitter {
 	 * Trigger a load of all elements that are not yet loaded onto the vizEngine.
 	 */
 	private async _triggerLoadAllElements (): Promise<void> {
-		if (!this._rundown) throw Error('VizMSE.v-connection not initialized yet')
-		const rundown = this._rundown
+		const rundown = await this._getRundown()
+
+		this.emit('debug', '_triggerLoadAllElements starting')
 		// First, update the loading-status of all elements:
 		await this.updateElementsLoadedStatus(true)
 
@@ -1159,9 +1141,13 @@ class VizMSEManager extends EventEmitter {
 						// The element is currently loading, do nothing
 						this.emit('debug', `Element "${this._getElementReference(e.element)}" is loading`)
 					}
+				} else {
+					this.emit('error', `Element "${this._getElementReference(e.element)}" type `)
 				}
 			})
 		)
+
+		this.emit('debug', '_triggerLoadAllElements done')
 	}
 	/** Monitor loading status of expected elements */
 	private async _monitorLoadedElements (): Promise<void> {
@@ -1271,6 +1257,50 @@ class VizMSEManager extends EventEmitter {
 			)
 		} else {
 			throw new Error(`vizMSE: _isLoaded: unknown element type: ${el && JSON.stringify(el)}`)
+		}
+	}
+	/**
+	 * Return the current MSE rundown, create it if it doesn't exists
+	 */
+	private async _getRundown (): Promise<VRundown> {
+
+		if (!this._rundown) {
+			// Only allow for one rundown fetch at the same time:
+			if (this._getRundownPromise) {
+				return this._getRundownPromise
+			}
+
+			const getRundownPromise = (async () => {
+				// Check if the rundown already exists:
+				// let rundown: VRundown | undefined = _.find(await this._vizMSE.getRundowns(), (rundown) => {
+				// 	return (
+				// 		rundown.show === this._showID &&
+				// 		rundown.profile === this._profile &&
+				// 		rundown.playlist === this._playlistID
+				// 	)
+				// })
+
+				this.emit('debug', `Creating new rundown ${[this._showID, this._profile, this._playlistID]}`)
+
+				let rundown = await this._vizMSE.createRundown(
+					this._showID,
+					this._profile,
+					this._playlistID
+				)
+
+				this._rundown = rundown
+				if (!this._rundown) throw new Error(`_getRundown: this._rundown is not set!`)
+				return this._rundown
+			})()
+
+			this._getRundownPromise = getRundownPromise
+
+			const rundown = await this._getRundownPromise
+
+			this._rundown = rundown
+			return rundown
+		} else {
+			return this._rundown
 		}
 	}
 }

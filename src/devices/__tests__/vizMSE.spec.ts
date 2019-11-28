@@ -318,6 +318,12 @@ describe('vizMSE', () => {
 			}
 		])
 		await mockTime.advanceTimeTicks(100)
+
+		expect(rundown.createElement).toHaveBeenCalledTimes(2)
+		expect(rundown.createElement).toHaveBeenNthCalledWith(1, 1337, 'FULL1')
+		expect(rundown.createElement).toHaveBeenNthCalledWith(2, 1336, 'FULL1')
+		rundown.createElement.mockClear()
+
 		await myConductor.devicesMakeReady(true)
 
 		expect(rundown.activate).toHaveBeenCalledTimes(1)
