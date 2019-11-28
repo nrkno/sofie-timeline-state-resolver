@@ -1042,37 +1042,39 @@ class VizMSEManager extends EventEmitter {
 
 		await Promise.all(
 			_.map(this._expectedPlayoutItems, async expectedPlayoutItem => {
-
-				const stateLayer: VizMSEStateLayer | undefined = (
-					_.isNumber(expectedPlayoutItem.templateName) ?
-					content2StateLayer(
-						'',
-						{
-							deviceType: DeviceType.VIZMSE,
-							type: TimelineContentTypeVizMSE.ELEMENT_PILOT,
-							templateVcpId: expectedPlayoutItem.templateName
-						} as TimelineObjVIZMSEElementPilot['content']
-					) :
-					content2StateLayer(
-						'',
-						{
-							deviceType: DeviceType.VIZMSE,
-							type: TimelineContentTypeVizMSE.ELEMENT_INTERNAL,
-							templateName: expectedPlayoutItem.templateName,
-							templateData: expectedPlayoutItem.templateData
-						} as TimelineObjVIZMSEElementInternal['content']
+				try {
+					const stateLayer: VizMSEStateLayer | undefined = (
+						_.isNumber(expectedPlayoutItem.templateName) ?
+						content2StateLayer(
+							'',
+							{
+								deviceType: DeviceType.VIZMSE,
+								type: TimelineContentTypeVizMSE.ELEMENT_PILOT,
+								templateVcpId: expectedPlayoutItem.templateName
+							} as TimelineObjVIZMSEElementPilot['content']
+						) :
+						content2StateLayer(
+							'',
+							{
+								deviceType: DeviceType.VIZMSE,
+								type: TimelineContentTypeVizMSE.ELEMENT_INTERNAL,
+								templateName: expectedPlayoutItem.templateName,
+								templateData: expectedPlayoutItem.templateData
+							} as TimelineObjVIZMSEElementInternal['content']
+						)
 					)
-				)
 
-				if (stateLayer) {
-					const item: ExpectedPlayoutItemContentVizMSEInternal = {
-						...expectedPlayoutItem,
-						templateInstance: VizMSEManager.getTemplateInstance(stateLayer)
+					if (stateLayer) {
+						const item: ExpectedPlayoutItemContentVizMSEInternal = {
+							...expectedPlayoutItem,
+							templateInstance: VizMSEManager.getTemplateInstance(stateLayer)
+						}
+						await this._checkPrepareElement(item, true)
+						hashesAndItems[this.getElementHash(item)] = item
 					}
-					hashesAndItems[this.getElementHash(item)] = item
-					await this._checkPrepareElement(item, true)
+				} catch (e) {
+					this.emit('error', `Error in _getExpectedPlayoutItems: ${e.toString()}`)
 				}
-
 			})
 		)
 		return hashesAndItems
@@ -1110,17 +1112,21 @@ class VizMSEManager extends EventEmitter {
 					const cachedEl = this._elementsLoaded[e.hash]
 
 					if (!cachedEl || !cachedEl.isLoaded) {
-						const elementRef = await this._checkPrepareElement(e.item)
+						try {
+							const elementRef = await this._checkPrepareElement(e.item)
 
-						this.emit('debug', `Updating status of element ${elementRef}`)
+							this.emit('debug', `Updating status of element ${elementRef}`)
 
-						// Update cached status of the element:
-						const newEl = await rundown.getElement(elementRef)
+							// Update cached status of the element:
+							const newEl = await rundown.getElement(elementRef)
 
-						this._elementsLoaded[e.hash] = {
-							element: newEl,
-							isLoaded: this._isElementLoaded(newEl),
-							isNotLoaded: this._isElementNotLoaded(newEl)
+							this._elementsLoaded[e.hash] = {
+								element: newEl,
+								isLoaded: this._isElementLoaded(newEl),
+								isNotLoaded: this._isElementNotLoaded(newEl)
+							}
+						} catch (e) {
+							this.emit('error', `Error in updateElementsLoadedStatus: ${e.toString()}`)
 						}
 					}
 				})
