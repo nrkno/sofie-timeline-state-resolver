@@ -9,7 +9,7 @@ import { ThreadedClass } from 'threadedclass'
 import { MappingVizMSE, TimelineContentTypeVizMSE } from '../../types/src/vizMSE'
 import { getMockCall } from '../../__tests__/lib'
 import { VizMSEDevice } from '../vizMSE'
-import { getMockMSEs, MSEMock, VRundownMock, VRundownMocked } from '../../__mocks__/v-connection'
+import { getMockMSEs, MSEMock, VRundownMocked } from '../../__mocks__/v-connection'
 import _ = require('underscore')
 import { StatusCode } from '../device'
 
@@ -17,12 +17,6 @@ describe('vizMSE', () => {
 	let mockTime = new MockTime()
 
 	const orgSetTimeout = setTimeout
-
-	function wait (time: number = 1) {
-		return new Promise((resolve) => {
-			orgSetTimeout(resolve, time)
-		})
-	}
 
 	beforeAll(() => {
 		mockTime.mockDateNow()
@@ -37,11 +31,11 @@ describe('vizMSE', () => {
 		})
 		let myChannelMapping0: MappingVizMSE = {
 			device: DeviceType.VIZMSE,
-			deviceId: 'myViz',
+			deviceId: 'myViz'
 		}
 		let myChannelMapping1: MappingVizMSE = {
 			device: DeviceType.VIZMSE,
-			deviceId: 'myViz',
+			deviceId: 'myViz'
 		}
 		let myChannelMapping: Mappings = {
 			'viz0': myChannelMapping0,
@@ -77,7 +71,7 @@ describe('vizMSE', () => {
 			{
 				id: 'obj0',
 				enable: {
-					start: mockTime.now  + 5000, // 15100
+					start: mockTime.now + 5000, // 15100
 					duration: 5000 // 20100
 				},
 				layer: 'viz0',
@@ -96,7 +90,7 @@ describe('vizMSE', () => {
 			{
 				id: 'obj1',
 				enable: {
-					start: mockTime.now  + 7000, // 17100
+					start: mockTime.now + 7000, // 17100
 					duration: 5000 // 22100
 				},
 				layer: 'viz0',
@@ -111,7 +105,7 @@ describe('vizMSE', () => {
 			{
 				id: 'obj2',
 				enable: {
-					start: mockTime.now  + 9000, // 19100
+					start: mockTime.now + 9000, // 19100
 					duration: 500
 				},
 				layer: 'viz_continue',
@@ -120,12 +114,12 @@ describe('vizMSE', () => {
 					type: TimelineContentTypeVizMSE.CONTINUE,
 					reference: 'viz0'
 				}
-			},
+			}
 		]
 
 		await mockTime.advanceTimeTicks(500) // 10500
 		expect(commandReceiver0.mock.calls.length).toEqual(0)
-		
+
 		commandReceiver0.mockClear()
 		await mockTime.advanceTimeToTicks(14500)
 		expect(commandReceiver0.mock.calls.length).toEqual(1)
@@ -209,14 +203,13 @@ describe('vizMSE', () => {
 			return device._defaultCommandReceiver(...args)
 		})
 
-		
 		let myChannelMapping0: MappingVizMSE = {
 			device: DeviceType.VIZMSE,
-			deviceId: 'myViz',
+			deviceId: 'myViz'
 		}
 		let myChannelMapping1: MappingVizMSE = {
 			device: DeviceType.VIZMSE,
-			deviceId: 'myViz',
+			deviceId: 'myViz'
 		}
 		let myChannelMapping: Mappings = {
 			'viz0': myChannelMapping0,
@@ -255,7 +248,7 @@ describe('vizMSE', () => {
 			{
 				id: 'obj0',
 				enable: {
-					start: mockTime.now  + 5000, // 15100
+					start: mockTime.now + 5000, // 15100
 					duration: 5000 // 20100
 				},
 				layer: 'viz0',
@@ -273,7 +266,7 @@ describe('vizMSE', () => {
 			{
 				id: 'obj1',
 				enable: {
-					start: mockTime.now  + 7000, // 17100
+					start: mockTime.now + 7000, // 17100
 					duration: 5000 // 22100
 				},
 				layer: 'viz0',
@@ -288,7 +281,7 @@ describe('vizMSE', () => {
 			{
 				id: 'obj2',
 				enable: {
-					start: mockTime.now  + 9000, // 19100
+					start: mockTime.now + 9000, // 19100
 					duration: 500
 				},
 				layer: 'viz_continue',
@@ -297,12 +290,11 @@ describe('vizMSE', () => {
 					type: TimelineContentTypeVizMSE.CONTINUE,
 					reference: 'viz0'
 				}
-			},
+			}
 		]
 
 		await mockTime.advanceTimeTicks(500) // 10500
 		expect(commandReceiver0.mock.calls.length).toEqual(0)
-
 
 		const mse = _.last(getMockMSEs()) as MSEMock
 		expect(mse).toBeTruthy()
@@ -315,17 +307,23 @@ describe('vizMSE', () => {
 			{
 				templateName: 1337,
 				// templateData?: string[]
-				channelName: 'FULL1',
+				channelName: 'FULL1'
 				// noAutoPreloading?: boolean
 			},
 			{
 				templateName: 1336,
 				// templateData?: string[]
-				channelName: 'FULL1',
+				channelName: 'FULL1'
 				// noAutoPreloading?: boolean
 			}
 		])
 		await mockTime.advanceTimeTicks(100)
+
+		expect(rundown.createElement).toHaveBeenCalledTimes(2)
+		expect(rundown.createElement).toHaveBeenNthCalledWith(1, 1337, 'FULL1')
+		expect(rundown.createElement).toHaveBeenNthCalledWith(2, 1336, 'FULL1')
+		rundown.createElement.mockClear()
+
 		await myConductor.devicesMakeReady(true)
 
 		expect(rundown.activate).toHaveBeenCalledTimes(1)
@@ -426,15 +424,15 @@ describe('vizMSE', () => {
 		await device.handleExpectedPlayoutItems([
 			{
 				templateName: 1337,
-				channelName: 'FULL1',
+				channelName: 'FULL1'
 			},
 			{
 				templateName: 1336,
-				channelName: 'FULL1',
+				channelName: 'FULL1'
 			},
 			{
 				templateName: 9999,
-				channelName: 'FULL1',
+				channelName: 'FULL1'
 			}
 		])
 
@@ -448,9 +446,9 @@ describe('vizMSE', () => {
 				layer: 'viz0',
 				content: {
 					deviceType: DeviceType.VIZMSE,
-					type: TimelineContentTypeVizMSE.LOAD_ALL_ELEMENTS,
+					type: TimelineContentTypeVizMSE.LOAD_ALL_ELEMENTS
 				}
-			},
+			}
 		]
 
 		await mockTime.advanceTimeToTicks(24900)
@@ -468,17 +466,14 @@ describe('vizMSE', () => {
 		expect(getMockCall(commandReceiver0, 0, 1)).toMatchObject({
 			timelineObjId: 'loadAll',
 			time: 25000,
-			type: 'load_all_elements',
+			type: 'load_all_elements'
 		})
 
 		expect(rundown.initialize).toHaveBeenCalledTimes(1)
 		expect(rundown.initialize).nthCalledWith(1, 9999)
 
-
-
 		expect(rundown.deactivate).toHaveBeenCalledTimes(0)
 		await myConductor.devicesStandDown(true)
-		
 		expect(rundown.deactivate).toHaveBeenCalledTimes(1)
 
 		expect(onError).toHaveBeenCalledTimes(0)
@@ -525,7 +520,7 @@ describe('vizMSE', () => {
 				type: DeviceType.VIZMSE,
 				options: {
 					host: '127.0.0.1',
-					showID: 'show1234',
+					showID: 'show1234'
 					// profile: 'myProfile'
 				}
 			})
@@ -544,12 +539,12 @@ describe('vizMSE', () => {
 		})
 		const device = deviceContainer.device
 		const connectionChanged = jest.fn()
-		device.on('connectionChanged', connectionChanged)
+		await device.on('connectionChanged', connectionChanged)
 
 		const mse = _.last(getMockMSEs()) as MSEMock
 		expect(mse).toBeTruthy()
 		expect(mse.getMockRundowns()).toHaveLength(1)
-		
+
 		expect(connectionChanged).toHaveBeenCalledTimes(0)
 		expect(await device.getStatus()).toMatchObject({
 			statusCode: StatusCode.GOOD
@@ -580,6 +575,159 @@ describe('vizMSE', () => {
 		expect(onError).toHaveBeenCalledTimes(0)
 		expect(onWarning).toHaveBeenCalledTimes(0)
 
-		
+	})
+
+	test('vizMSE: clear all elements', async () => {
+
+		const commandReceiver0 = jest.fn(() => {
+			return Promise.resolve()
+		})
+		let myChannelMapping0: MappingVizMSE = {
+			device: DeviceType.VIZMSE,
+			deviceId: 'myViz'
+		}
+		let myChannelMapping1: MappingVizMSE = {
+			device: DeviceType.VIZMSE,
+			deviceId: 'myViz'
+		}
+		let myChannelMapping: Mappings = {
+			'viz0': myChannelMapping0,
+			'viz_continue': myChannelMapping1
+		}
+
+		let myConductor = new Conductor({
+			initializeAsClear: true,
+			getCurrentTime: mockTime.getCurrentTime
+		})
+		await myConductor.setMapping(myChannelMapping)
+		await myConductor.init()
+		await myConductor.addDevice('myViz', {
+			type: DeviceType.VIZMSE,
+			options: {
+				commandReceiver: commandReceiver0,
+				host: '127.0.0.1',
+				preloadAllElements: true,
+				playlistID: 'my-super-playlist-id',
+				showID: 'show1234',
+				profile: 'profile9999',
+				clearAllTemplateName: 'clear_all_of_them'
+			}
+		})
+		await mockTime.advanceTimeToTicks(10100)
+
+		let deviceContainer = myConductor.getDevice('myViz')
+		let device = deviceContainer.device as ThreadedClass<VizMSEDevice>
+
+		// Check that no commands has been scheduled:
+		expect(await device.queue).toHaveLength(0)
+
+		myConductor.timeline = [
+			{
+				id: 'obj0',
+				enable: {
+					start: mockTime.now, // 10100
+					duration: 10 * 1000 // 20100
+				},
+				layer: 'viz0',
+				content: {
+					deviceType: DeviceType.VIZMSE,
+					type: TimelineContentTypeVizMSE.ELEMENT_INTERNAL,
+					templateName: 'myInternalElement',
+					templateData: []
+				}
+			},
+			{
+				id: 'clearAll',
+				enable: {
+					start: mockTime.now + 5000, // 15100
+					duration: 1000 // 16100
+				},
+				layer: 'viz0',
+				content: {
+					deviceType: DeviceType.VIZMSE,
+					type: TimelineContentTypeVizMSE.CLEAR_ALL_ELEMENTS
+				}
+			}
+		]
+
+		// await mockTime.advanceTimeTicks(500) // 10500
+		// expect(commandReceiver0.mock.calls.length).toEqual(0)
+
+		// commandReceiver0.mockClear()
+		// await mockTime.advanceTimeToTicks(14500)
+		// expect(commandReceiver0.mock.calls.length).toEqual(1)
+		// expect(getMockCall(commandReceiver0, 0, 1)).toMatchObject({
+		// 	timelineObjId: 'obj0',
+		// 	time: 14100,
+		// 	templateInstance: expect.stringContaining('myInternalElement'),
+		// 	type: 'prepare',
+		// 	templateName: 'myInternalElement',
+		// 	templateData: []
+		// })
+
+		// commandReceiver0.mockClear()
+		// await mockTime.advanceTimeToTicks(100)
+		await mockTime.advanceTimeTicks(500) // 10500
+		expect(commandReceiver0.mock.calls.length).toEqual(2)
+
+		expect(getMockCall(commandReceiver0, 0, 1)).toMatchObject({
+			timelineObjId: 'obj0',
+			time: 10090,
+			templateInstance: expect.stringContaining('myInternalElement'),
+			type: 'prepare',
+			templateName: 'myInternalElement',
+			templateData: []
+		})
+		expect(getMockCall(commandReceiver0, 1, 1)).toMatchObject({
+			timelineObjId: 'obj0',
+			time: 10100,
+			templateInstance: expect.stringContaining('myInternalElement'),
+			type: 'take',
+			templateName: 'myInternalElement',
+			templateData: []
+		})
+
+		commandReceiver0.mockClear()
+		await mockTime.advanceTimeToTicks(15500)
+		expect(commandReceiver0.mock.calls.length).toEqual(2)
+		expect(getMockCall(commandReceiver0, 0, 1)).toMatchObject({
+			timelineObjId: 'clearAll',
+			time: 15100,
+			type: 'clear_all_elements',
+			templateName: 'clear_all_of_them'
+		})
+		expect(getMockCall(commandReceiver0, 1, 1)).toMatchObject({
+			timelineObjId: 'obj0',
+			time: 15150,
+			templateInstance: expect.stringContaining('myInternalElement'),
+			type: 'prepare',
+			templateName: 'myInternalElement',
+			templateData: []
+		})
+
+		commandReceiver0.mockClear()
+		await mockTime.advanceTimeToTicks(16500)
+		expect(commandReceiver0.mock.calls.length).toEqual(1)
+		expect(getMockCall(commandReceiver0, 0, 1)).toMatchObject({
+			timelineObjId: 'obj0',
+			time: 16100,
+			templateInstance: expect.stringContaining('myInternalElement'),
+			type: 'take',
+			templateName: 'myInternalElement',
+			templateData: []
+		})
+
+		commandReceiver0.mockClear()
+		await mockTime.advanceTimeToTicks(20500)
+		expect(commandReceiver0.mock.calls.length).toEqual(1)
+		expect(getMockCall(commandReceiver0, 0, 1)).toMatchObject({
+			timelineObjId: 'obj0',
+			time: 20100,
+			templateInstance: expect.stringContaining('myInternalElement'),
+			type: 'out',
+			templateName: 'myInternalElement',
+			templateData: []
+		})
+
 	})
 })
