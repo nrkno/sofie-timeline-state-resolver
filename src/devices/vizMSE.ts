@@ -741,6 +741,10 @@ class VizMSEManager extends EventEmitter {
 		if (!this._rundown) throw new Error(`Viz Rundown not initialized!`)
 		this._triggerCommandSent()
 		await this._rundown.activate()
+		// clear any existing elements from the existing rundown
+		await rundown.purge()
+		this._clearCache()
+
 		this._triggerCommandSent()
 		await this._triggerLoadAllElements()
 		this._triggerCommandSent()
