@@ -127,6 +127,9 @@ export class AbstractDevice extends DeviceWithState<TimelineState> implements ID
 			statusCode: StatusCode.GOOD
 		}
 	}
+	/**
+	 * Add commands to queue, to be executed at the right time
+	 */
 	private _addToQueue (commandsToAchieveState: Array<Command>, time: number) {
 		_.each(commandsToAchieveState, (cmd: Command) => {
 
@@ -137,8 +140,7 @@ export class AbstractDevice extends DeviceWithState<TimelineState> implements ID
 		})
 	}
 	/**
-	 * Generates commands based such that we will transition from the old state
-	 * to the new state.
+	 * Compares the new timeline-state with the old one, and generates commands to account for the difference
 	 * @param oldAbstractState
 	 * @param newAbstractState
 	 */

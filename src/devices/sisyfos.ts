@@ -243,9 +243,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState> implemen
 		})
 	}
 	/**
-	 * Generates commands to transition from old to new state.
-	 * @param oldOscSendState The assumed current state
-	 * @param newOscSendState The desired state of the device
+	 * Compares the new timeline-state with the old one, and generates commands to account for the difference
 	 */
 	private _diffStates (oldOscSendState: SisyfosState, newOscSendState: SisyfosState): Array<Command> {
 

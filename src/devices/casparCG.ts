@@ -390,20 +390,10 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> implements ID
 					let media = stateLayer.media
 					let transitions = {} as any
 					if (baseContent.transitions.inTransition) {
-						transitions.inTransition = new StateNS.Transition(
-							baseContent.transitions.inTransition.type,
-							baseContent.transitions.inTransition.duration || baseContent.transitions.inTransition.maskFile,
-							baseContent.transitions.inTransition.easing || baseContent.transitions.inTransition.delay,
-							baseContent.transitions.inTransition.direction || baseContent.transitions.inTransition.overlayFile
-						)
+						transitions.inTransition = new StateNS.Transition(baseContent.transitions.inTransition)
 					}
 					if (baseContent.transitions.outTransition) {
-						transitions.outTransition = new StateNS.Transition(
-							baseContent.transitions.outTransition.type,
-							baseContent.transitions.outTransition.duration || baseContent.transitions.outTransition.maskFile,
-							baseContent.transitions.outTransition.easing || baseContent.transitions.outTransition.delay,
-							baseContent.transitions.outTransition.direction || baseContent.transitions.outTransition.overlayFile
-						)
+						transitions.outTransition = new StateNS.Transition(baseContent.transitions.outTransition)
 					}
 					stateLayer.media = new StateNS.TransitionObject(media, {
 						inTransition: transitions.inTransition,
@@ -616,7 +606,9 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> implements ID
 			messages: messages
 		}
 	}
-
+	/**
+	 * Compares the new timeline-state with the old one, and generates commands to account for the difference
+	 */
 	private _diffStates (oldState, newState, time: number): Array<IAMCPCommandVOWithContext> {
 		// @todo: this is a tmp fix for the command order. should be removed when ccg-state has been refactored.
 		return this._ccgState.diffStatesOrderedCommands(oldState, newState, time)

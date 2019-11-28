@@ -369,6 +369,9 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> implements IDe
 			messages
 		}
 	}
+	/**
+	 * Add commands to queue, to be executed at the right time
+	 */
 	private _addToQueue (commandsToAchieveState: Array<HyperdeckCommandWithContext>, time: number) {
 		_.each(commandsToAchieveState, (cmd: HyperdeckCommandWithContext) => {
 			// add the new commands to the queue:
@@ -379,7 +382,7 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> implements IDe
 	}
 
 	/**
-	 * Generates commands to transition from old to new state.
+	 * Compares the new timeline-state with the old one, and generates commands to account for the difference
 	 * @param oldHyperdeckState The assumed current state
 	 * @param newHyperdeckState The desired state of the device
 	 */

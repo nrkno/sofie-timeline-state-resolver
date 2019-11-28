@@ -324,6 +324,9 @@ export class LawoDevice extends DeviceWithState<TimelineState> implements IDevic
 			this._connectionChanged()
 		}
 	}
+	/**
+	 * Add commands to queue, to be executed at the right time
+	 */
 	private _addToQueue (commandsToAchieveState: Array<LawoCommandWithContext>, time: number) {
 		_.each(commandsToAchieveState, (cmd: LawoCommandWithContext) => {
 
@@ -334,7 +337,7 @@ export class LawoDevice extends DeviceWithState<TimelineState> implements IDevic
 		})
 	}
 	/**
-	 * Generates commands to transition from one device state to another.
+	 * Compares the new timeline-state with the old one, and generates commands to account for the difference
 	 * @param oldLawoState The assumed device state
 	 * @param newLawoState The desired device state
 	 */
@@ -423,6 +426,7 @@ export class LawoDevice extends DeviceWithState<TimelineState> implements IDevic
 		}
 		this.emit('debug', cwc)
 
+		// save start time of command
 		const startSend = this.getCurrentTime()
 		this._lastSentValue[command.path] = startSend
 
@@ -461,7 +465,7 @@ export class LawoDevice extends DeviceWithState<TimelineState> implements IDevic
 						)
 						this.emit('debug', `Ember function result (${timelineObjId}): ${JSON.stringify(res)}`)
 					} catch (e) {
-						if (e.result && e.result.indexOf(6) > -1 && this._lastSentValue[command.path] < startSend) {
+						if (e.result && e.result.indexOf(6) > -1 && this._lastSentValue[command.path] <= startSend) { // result 6 and no new command fired for this path in meantime
 							// Lawo rejected the command, so ensure the value gets set
 							this.emit('info', `Ember function result (${timelineObjId}) was 6, running a direct setValue now`)
 							await this._setValueFn(command, timelineObjId, EmberTypes.REAL)
