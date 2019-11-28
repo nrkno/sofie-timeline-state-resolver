@@ -570,4 +570,158 @@ describe('vizMSE', () => {
 		expect(onWarning).toHaveBeenCalledTimes(0)
 
 	})
+
+	test('vizMSE: clear all elements', async () => {
+
+		const commandReceiver0 = jest.fn(() => {
+			return Promise.resolve()
+		})
+		let myChannelMapping0: MappingVizMSE = {
+			device: DeviceType.VIZMSE,
+			deviceId: 'myViz'
+		}
+		let myChannelMapping1: MappingVizMSE = {
+			device: DeviceType.VIZMSE,
+			deviceId: 'myViz'
+		}
+		let myChannelMapping: Mappings = {
+			'viz0': myChannelMapping0,
+			'viz_continue': myChannelMapping1
+		}
+
+		let myConductor = new Conductor({
+			initializeAsClear: true,
+			getCurrentTime: mockTime.getCurrentTime
+		})
+		await myConductor.setMapping(myChannelMapping)
+		await myConductor.init()
+		await myConductor.addDevice('myViz', {
+			type: DeviceType.VIZMSE,
+			options: {
+				commandReceiver: commandReceiver0,
+				host: '127.0.0.1',
+				preloadAllElements: true,
+				playlistID: 'my-super-playlist-id',
+				showID: 'show1234',
+				profile: 'profile9999',
+				clearAllTemplateName: 'clear_all_of_them'
+			}
+		})
+		await mockTime.advanceTimeToTicks(10100)
+
+		let deviceContainer = myConductor.getDevice('myViz')
+		let device = deviceContainer.device as ThreadedClass<VizMSEDevice>
+
+		// Check that no commands has been scheduled:
+		expect(await device.queue).toHaveLength(0)
+
+		myConductor.timeline = [
+			{
+				id: 'obj0',
+				enable: {
+					start: mockTime.now, // 10100
+					duration: 10 * 1000 // 20100
+				},
+				layer: 'viz0',
+				content: {
+					deviceType: DeviceType.VIZMSE,
+					type: TimelineContentTypeVizMSE.ELEMENT_INTERNAL,
+					templateName: 'myInternalElement',
+					templateData: []
+				}
+			},
+			{
+				id: 'clearAll',
+				enable: {
+					start: mockTime.now + 5000, // 15100
+					duration: 1000 // 16100
+				},
+				layer: 'viz0',
+				content: {
+					deviceType: DeviceType.VIZMSE,
+					type: TimelineContentTypeVizMSE.CLEAR_ALL_ELEMENTS
+				}
+			}
+		]
+
+		// await mockTime.advanceTimeTicks(500) // 10500
+		// expect(commandReceiver0.mock.calls.length).toEqual(0)
+
+		// commandReceiver0.mockClear()
+		// await mockTime.advanceTimeToTicks(14500)
+		// expect(commandReceiver0.mock.calls.length).toEqual(1)
+		// expect(getMockCall(commandReceiver0, 0, 1)).toMatchObject({
+		// 	timelineObjId: 'obj0',
+		// 	time: 14100,
+		// 	templateInstance: expect.stringContaining('myInternalElement'),
+		// 	type: 'prepare',
+		// 	templateName: 'myInternalElement',
+		// 	templateData: []
+		// })
+
+		// commandReceiver0.mockClear()
+		// await mockTime.advanceTimeToTicks(100)
+		await mockTime.advanceTimeTicks(500) // 10500
+		expect(commandReceiver0.mock.calls.length).toEqual(2)
+
+		expect(getMockCall(commandReceiver0, 0, 1)).toMatchObject({
+			timelineObjId: 'obj0',
+			time: 10090,
+			templateInstance: expect.stringContaining('myInternalElement'),
+			type: 'prepare',
+			templateName: 'myInternalElement',
+			templateData: []
+		})
+		expect(getMockCall(commandReceiver0, 1, 1)).toMatchObject({
+			timelineObjId: 'obj0',
+			time: 10100,
+			templateInstance: expect.stringContaining('myInternalElement'),
+			type: 'take',
+			templateName: 'myInternalElement',
+			templateData: []
+		})
+
+		commandReceiver0.mockClear()
+		await mockTime.advanceTimeToTicks(15500)
+		expect(commandReceiver0.mock.calls.length).toEqual(2)
+		expect(getMockCall(commandReceiver0, 0, 1)).toMatchObject({
+			timelineObjId: 'clearAll',
+			time: 15100,
+			type: 'clear_all_elements',
+			templateName: 'clear_all_of_them'
+		})
+		expect(getMockCall(commandReceiver0, 1, 1)).toMatchObject({
+			timelineObjId: 'obj0',
+			time: 15150,
+			templateInstance: expect.stringContaining('myInternalElement'),
+			type: 'prepare',
+			templateName: 'myInternalElement',
+			templateData: []
+		})
+
+		commandReceiver0.mockClear()
+		await mockTime.advanceTimeToTicks(16500)
+		expect(commandReceiver0.mock.calls.length).toEqual(1)
+		expect(getMockCall(commandReceiver0, 0, 1)).toMatchObject({
+			timelineObjId: 'obj0',
+			time: 16100,
+			templateInstance: expect.stringContaining('myInternalElement'),
+			type: 'take',
+			templateName: 'myInternalElement',
+			templateData: []
+		})
+
+		commandReceiver0.mockClear()
+		await mockTime.advanceTimeToTicks(20500)
+		expect(commandReceiver0.mock.calls.length).toEqual(1)
+		expect(getMockCall(commandReceiver0, 0, 1)).toMatchObject({
+			timelineObjId: 'obj0',
+			time: 20100,
+			templateInstance: expect.stringContaining('myInternalElement'),
+			type: 'out',
+			templateName: 'myInternalElement',
+			templateData: []
+		})
+
+	})
 })

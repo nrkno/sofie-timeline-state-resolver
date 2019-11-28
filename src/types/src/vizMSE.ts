@@ -21,16 +21,29 @@ export interface VizMSEOptions {
 
 	/** Whether all elements should be preloaded or not */
 	preloadAllElements?: boolean
+
+	/**
+	 * It is a common practice to have an element which only purpose is to "clear all graphics" on the vizEngine.
+	 * To use this in TSR, set a reference to that here:
+	 */
+	clearAllTemplateName?: string
+	/** Whether to trigger a clear all templates upon makeReady */
+	clearAllOnMakeReady?: boolean
 	// profileName
 }
 export enum TimelineContentTypeVizMSE {
 	ELEMENT_INTERNAL = 'element_internal',
 	ELEMENT_PILOT = 'element_pilot',
 	CONTINUE = 'continue',
-	LOAD_ALL_ELEMENTS = 'load_all_elements'
+	LOAD_ALL_ELEMENTS = 'load_all_elements',
+	CLEAR_ALL_ELEMENTS = 'clear_all_elements'
 }
 
-export type TimelineObjVIZMSEAny = TimelineObjVIZMSEElementInternal | TimelineObjVIZMSEElementPilot | TimelineObjVIZMSEElementContinue | TimelineObjVIZMSELoadAllElements
+export type TimelineObjVIZMSEAny = TimelineObjVIZMSEElementInternal |
+	TimelineObjVIZMSEElementPilot |
+	TimelineObjVIZMSEElementContinue |
+	TimelineObjVIZMSELoadAllElements |
+	TimelineObjVIZMSEClearAllElements
 
 export interface TimelineObjVIZMSEBase extends TSRTimelineObjBase {
 	content: {
@@ -110,5 +123,11 @@ export interface TimelineObjVIZMSELoadAllElements extends TSRTimelineObjBase {
 	content: {
 		deviceType: DeviceType.VIZMSE
 		type: TimelineContentTypeVizMSE.LOAD_ALL_ELEMENTS
+	}
+}
+export interface TimelineObjVIZMSEClearAllElements extends TSRTimelineObjBase {
+	content: {
+		deviceType: DeviceType.VIZMSE
+		type: TimelineContentTypeVizMSE.CLEAR_ALL_ELEMENTS
 	}
 }

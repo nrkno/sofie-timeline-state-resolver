@@ -253,6 +253,12 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState> implements IDevic
 							contentType: TimelineContentTypeVizMSE.LOAD_ALL_ELEMENTS
 						})
 
+					} else if (l.content.type === TimelineContentTypeVizMSE.CLEAR_ALL_ELEMENTS) {
+						// Special case: clear all graphics:
+						state.isClearAll = {
+							timelineObjId: l.id
+						}
+
 					} else if (l.content.type === TimelineContentTypeVizMSE.CONTINUE) {
 						state.layer[layerName] = literal<VizMSEStateLayerContinue>({
 							timelineObjId: l.id,
@@ -276,6 +282,11 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState> implements IDevic
 				}
 			}
 		})
+
+		if (state.isClearAll) {
+			// clear rest of state:
+			state.layer = {}
+		}
 
 		// Fix references:
 		_.each(state.layer, (layer) => {
@@ -306,11 +317,27 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState> implements IDevic
 	async makeReady (okToDestroyStuff?: boolean): Promise<void> {
 		if (this._vizmseManager) {
 			await this._vizmseManager.activate()
+
 		} else throw new Error(`Unable to activate vizMSE, not initialized yet!`)
 
 		if (okToDestroyStuff) {
 			// reset our own state(s):
 			this.clearStates()
+
+			if (this._vizmseManager) {
+				if (
+					this._initOptions &&
+					this._initOptions.clearAllOnMakeReady &&
+					this._initOptions.clearAllTemplateName
+				) {
+					await this._vizmseManager.clearAll({
+						type: VizMSECommandType.CLEAR_ALL_ELEMENTS,
+						time: this.getCurrentTime(),
+						timelineObjId: 'makeReady',
+						templateName: this._initOptions.clearAllTemplateName
+					})
+				}
+			} else throw new Error(`Unable to activate vizMSE, not initialized yet!`)
 		}
 	}
 	/**
@@ -529,6 +556,25 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState> implements IDevic
 			}
 		})
 
+		if (newState.isClearAll) {
+			// Special: clear all graphics
+
+			const templateName = this._initOptions && this._initOptions.clearAllTemplateName
+			if (!templateName) {
+				this.emit('warning', `vizMSE: initOptions.clearAllTemplateName is not set!`)
+			} else {
+
+				// Start playing special element:
+				return [
+					literal<VizMSECommandClearAllElements>({
+						timelineObjId: newState.isClearAll.timelineObjId,
+						time: time,
+						type: VizMSECommandType.CLEAR_ALL_ELEMENTS,
+						templateName: templateName
+					})
+				]
+			}
+		}
 		return highPrioCommands.concat(lowPrioCommands)
 	}
 	private _doCommand (command: VizMSECommand, context: string, timlineObjId: string): Promise<void> {
@@ -576,6 +622,8 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState> implements IDevic
 					await this._vizmseManager.continueElementReverse(cmd)
 				} else if (cmd.type === VizMSECommandType.LOAD_ALL_ELEMENTS) {
 					await this._vizmseManager.loadAllElements(cmd)
+				} else if (cmd.type === VizMSECommandType.CLEAR_ALL_ELEMENTS) {
+					await this._vizmseManager.clearAll(cmd)
 				} else {
 					// @ts-ignore never
 					throw new Error(`Unsupported command type "${cmd.type}"`)
@@ -797,6 +845,36 @@ class VizMSEManager extends EventEmitter {
 		await this._handleRetry(() => {
 			this.emit('debug', `VizMSE: continue reverse "${elementRef}"`)
 			return rundown.continueReverse(elementRef)
+		})
+	}
+	/**
+	 * Special: trigger a template which clears all templates on the output
+	 */
+	public async clearAll (cmd: VizMSECommandClearAllElements): Promise<void> {
+		if (!this._rundown) throw new Error(`Viz Rundown not initialized!`)
+		const rundown = this._rundown
+
+		const template: VizMSEStateLayerInternal = {
+			timelineObjId: cmd.timelineObjId,
+			contentType: TimelineContentTypeVizMSE.ELEMENT_INTERNAL,
+			templateName: cmd.templateName,
+			templateData: []
+		}
+		// Start playing special element:
+		const cmdTake: VizMSECommandTake = {
+			time: cmd.time,
+			type: VizMSECommandType.TAKE_ELEMENT,
+			timelineObjId: template.timelineObjId,
+			templateInstance: VizMSEManager.getTemplateInstance(template),
+			templateName: VizMSEManager.getTemplateName(template)
+		}
+
+		const elementRef = await this._checkPrepareElement(cmdTake)
+
+		await this._checkElementExists(cmdTake)
+		await this._handleRetry(() => {
+			this.emit('debug', `VizMSE: clearAll take "${elementRef}"`)
+			return rundown.take(elementRef)
 		})
 	}
 	/**
@@ -1198,6 +1276,10 @@ interface VizMSEState {
 	layer: {
 		[layerId: string]: VizMSEStateLayer
 	}
+	/** Special: If this is set, all other state will be disregarded and all graphics will be cleared */
+	isClearAll?: {
+		timelineObjId: string
+	}
 }
 type VizMSEStateLayer = VizMSEStateLayerInternal | VizMSEStateLayerPilot | VizMSEStateLayerContinue | VizMSEStateLayerLoadAllElements
 interface VizMSEStateLayerBase {
@@ -1248,7 +1330,8 @@ export enum VizMSECommandType {
 	TAKEOUT_ELEMENT = 'out',
 	CONTINUE_ELEMENT = 'continue',
 	CONTINUE_ELEMENT_REVERSE = 'continuereverse',
-	LOAD_ALL_ELEMENTS = 'load_all_elements'
+	LOAD_ALL_ELEMENTS = 'load_all_elements',
+	CLEAR_ALL_ELEMENTS = 'clear_all_elements'
 }
 
 interface VizMSECommandElementBase extends VizMSECommandBase, ExpectedPlayoutItemContentVizMSEInternal {
@@ -1274,6 +1357,11 @@ interface VizMSECommandContinueReverse extends VizMSECommandElementBase {
 interface VizMSECommandLoadAllElements extends VizMSECommandBase {
 	type: VizMSECommandType.LOAD_ALL_ELEMENTS
 }
+interface VizMSECommandClearAllElements extends VizMSECommandBase {
+	type: VizMSECommandType.CLEAR_ALL_ELEMENTS
+
+	templateName: string
+}
 
 type VizMSECommand = VizMSECommandPrepare |
 	VizMSECommandCue |
@@ -1281,7 +1369,8 @@ type VizMSECommand = VizMSECommandPrepare |
 	VizMSECommandTakeOut |
 	VizMSECommandContinue |
 	VizMSECommandContinueReverse |
-	VizMSECommandLoadAllElements
+	VizMSECommandLoadAllElements |
+	VizMSECommandClearAllElements
 
 interface ExpectedPlayoutItemContentVizMSEInternal extends ExpectedPlayoutItemContentVizMSE {
 	/** Name of the instance of the element in MSE, generated by us */
