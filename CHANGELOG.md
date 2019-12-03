@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [3.16.0](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/3.15.1...3.16.0) (2019-12-03)
+
+
+### Features
+
+* **casparcg:** support delay on Route ([e33b700](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/e33b7006fcf7dbaf087c2b432e0021decd8ef322))
+
+
+### Bug Fixes
+
+* **lawo:** type checks in setValue for command and explicit type ([07a959a](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/07a959afdfd664a559cda588a7ad86afd0b7620f))
+
 ### [3.15.1](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/3.15.0...3.15.1) (2019-11-21)
 
 ## [3.15.0](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/3.14.0...3.15.0) (2019-11-20)
