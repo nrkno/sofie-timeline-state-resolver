@@ -1200,11 +1200,15 @@ class VizMSEManager extends EventEmitter {
 
 				let notLoaded: number = 0
 				let loading: number = 0
+				let loaded: number = 0
 
 				_.each(this._elementsLoaded, (e) => {
-					if (!e.isLoaded && e.isNotLoaded) notLoaded++
+					if (e.isLoaded) loaded++
+					else if (e.isNotLoaded) notLoaded++
 					else loading++
 				})
+
+				loaded = loaded // loaded isn't really used anywhere
 
 				this._setLoadedStatus(notLoaded, loading)
 
