@@ -182,6 +182,9 @@ export class TCPSendDevice extends DeviceWithState<TimelineState> implements IDe
 			})
 		}
 	}
+	/**
+	 * Add commands to queue, to be executed at the right time
+	 */
 	private _addToQueue (commandsToAchieveState: Array<TCPSendCommand>, time: number) {
 		_.each(commandsToAchieveState, (cmd: TCPSendCommand) => {
 
@@ -198,6 +201,9 @@ export class TCPSendDevice extends DeviceWithState<TimelineState> implements IDe
 			}, cmd)
 		})
 	}
+	/**
+	 * Compares the new timeline-state with the old one, and generates commands to account for the difference
+	 */
 	private _diffStates (oldTCPSendState: TimelineState , newTCPSendState: TimelineState): Array<TCPSendCommand> {
 		// in this TCPSend class, let's just cheat:
 		let commands: Array<TCPSendCommand> = []

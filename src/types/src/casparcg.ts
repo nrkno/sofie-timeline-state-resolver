@@ -180,7 +180,8 @@ export interface TimelineObjCCGRoute extends TimelineObjCasparCGBase {
 		mode?: 'BACKGROUND' | 'NEXT'
 		/** Audio channel layout (example 'stereo') */
 		channelLayout?: string
-
+		/** The amount of milliseconds to delay the signal on this route. This value is downsampled to channel frames upon execution. */
+		delay?: number
 	} & TimelineObjCCGProducerContentBase
 }
 export interface TimelineObjCCGRecord extends TimelineObjCasparCGBase {

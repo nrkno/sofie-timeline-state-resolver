@@ -350,7 +350,9 @@ export class QuantelDevice extends DeviceWithState<QuantelState> implements IDev
 			messages: messages
 		}
 	}
-
+	/**
+	 * Compares the new timeline-state with the old one, and generates commands to account for the difference
+	 */
 	private _diffStates (oldState: QuantelState, newState: QuantelState, time: number): Array<QuantelCommand> {
 		const highPrioCommands: QuantelCommand[] = []
 		const lowPrioCommands: QuantelCommand[] = []
@@ -475,10 +477,7 @@ export class QuantelDevice extends DeviceWithState<QuantelState> implements IDev
 		return this._commandReceiver(time, command, context, timlineObjId)
 	}
 	/**
-	 * Use either AMCP Command Scheduling or the doOnTime to execute commands at
-	 * {@code time}.
-	 * @param commandsToAchieveState Commands to be added to queue
-	 * @param time Point in time to send commands at
+	 * Add commands to queue, to be executed at the right time
 	 */
 	private _addToQueue (commandsToAchieveState: Array<QuantelCommand>) {
 		_.each(commandsToAchieveState, (cmd: QuantelCommand) => {

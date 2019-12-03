@@ -287,9 +287,7 @@ export class PanasonicPtzDevice extends DeviceWithState<TimelineState> implement
 	}
 
 	/**
-	 * Queues an array of commands to be executed at `time`
-	 * @param commandsToAchieveState
-	 * @param time
+	 * Add commands to queue, to be executed at the right time
 	 */
 	private _addToQueue (commandsToAchieveState: Array<PanasonicPtzCommandWithContext>, time: number) {
 		_.each(commandsToAchieveState, (cmd: PanasonicPtzCommandWithContext) => {
@@ -301,9 +299,7 @@ export class PanasonicPtzDevice extends DeviceWithState<TimelineState> implement
 		})
 	}
 	/**
-	 * Generates commands to transition from old to new state.
-	 * @param oldOscSendState The assumed current state
-	 * @param newOscSendState The desired state of the device
+	 * Compares the new timeline-state with the old one, and generates commands to account for the difference
 	 */
 	private _diffStates (oldPtzState: PanasonicPtzState, newPtzState: PanasonicPtzState): Array<PanasonicPtzCommandWithContext> {
 

@@ -324,6 +324,9 @@ export class LawoDevice extends DeviceWithState<TimelineState> implements IDevic
 			this._connectionChanged()
 		}
 	}
+	/**
+	 * Add commands to queue, to be executed at the right time
+	 */
 	private _addToQueue (commandsToAchieveState: Array<LawoCommandWithContext>, time: number) {
 		_.each(commandsToAchieveState, (cmd: LawoCommandWithContext) => {
 
@@ -334,7 +337,7 @@ export class LawoDevice extends DeviceWithState<TimelineState> implements IDevic
 		})
 	}
 	/**
-	 * Generates commands to transition from one device state to another.
+	 * Compares the new timeline-state with the old one, and generates commands to account for the difference
 	 * @param oldLawoState The assumed device state
 	 * @param newLawoState The desired device state
 	 */
@@ -490,7 +493,7 @@ export class LawoDevice extends DeviceWithState<TimelineState> implements IDevic
 		try {
 			const node: any = await this._getNodeByPath(command.path)
 
-			if (valueType === EmberTypes.REAL && command.value as number % 1 === 0) {
+			if ((valueType || command.valueType) === EmberTypes.REAL && command.value as number % 1 === 0) {
 				(command.value as number) += .01
 			}
 

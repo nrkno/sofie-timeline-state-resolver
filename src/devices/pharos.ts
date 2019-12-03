@@ -172,6 +172,9 @@ export class PharosDevice extends DeviceWithState<TimelineState> implements IDev
 			messages: messages
 		}
 	}
+	/**
+	 * Add commands to queue, to be executed at the right time
+	 */
 	private _addToQueue (commandsToAchieveState: Array<Command>, time: number) {
 		_.each(commandsToAchieveState, (cmd: Command) => {
 
@@ -182,9 +185,7 @@ export class PharosDevice extends DeviceWithState<TimelineState> implements IDev
 		})
 	}
 	/**
-	 * Generates commands to transition from old to new state.
-	 * @param oldOscSendState The assumed current state
-	 * @param newOscSendState The desired state of the device
+	 * Compares the new timeline-state with the old one, and generates commands to account for the difference
 	 */
 	private _diffStates (oldPharosState: PharosState, newPharosState: PharosState) {
 		let commands: Array<Command> = []

@@ -86,7 +86,7 @@
 		"trash-cli": "^3.0.0",
 		"tslint": "^5.17.0",
 		"tslint-config-standard": "^8.0.1",
-		"typescript": "^3.3.3333",
+		"typescript": "3.6.x",
 		"underscore": "^1.9.1"
 	},
 	"keywords": [
@@ -104,6 +104,6 @@
 		"production"
 	],
 	"dependencies": {
-		"tslib": "^1.9.3"
+		"tslib": "^1.10.0"
 	}
 }
