@@ -167,7 +167,7 @@
     "request": "^2.88.0",
     "sprintf-js": "^1.1.2",
     "superfly-timeline": "^7.3.1",
-    "threadedclass": "0.6.8",
+    "threadedclass": "https://github.com/Julusian/threadedClass.git#dist/feat/node12-types",
     "tslib": "^1.10.0",
     "underscore": "^1.9.1",
     "underscore-deep-extend": "^1.1.5",
