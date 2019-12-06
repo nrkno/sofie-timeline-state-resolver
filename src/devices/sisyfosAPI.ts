@@ -113,6 +113,10 @@ export class SisyfosInterface extends EventEmitter {
 	isInitialized (): boolean {
 		return !!this._state
 	}
+	reInitialize () {
+		delete this._state
+		this._oscClient.send({ address: '/state/full', args: [] })
+	}
 
 	get connected (): boolean {
 		return this._connected
@@ -214,7 +218,9 @@ export class SisyfosInterface extends EventEmitter {
 		const extState = JSON.parse(message.args[0].value)
 		const deviceState: SisyfosState = { channels: {} }
 
-		Object.keys(extState.channel).forEach((ch: any, index) => {
+		Object.keys(extState.channel).forEach((index: string) => {
+			const ch = extState.channel[index]
+
 			let pgmOn: number = 0
 			if (ch.pgmOn === true) {
 				pgmOn = 1
@@ -232,6 +238,7 @@ export class SisyfosInterface extends EventEmitter {
 
 			deviceState.channels[index] = channel
 		})
+
 		return deviceState
 	}
 }

@@ -69,7 +69,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState> implemen
 	init (initOptions: SisyfosOptions): Promise<boolean> {
 
 		this._sisyfos.once('initialized', () => {
-			this.setState(this.getDeviceState(), this.getCurrentTime())
+			this.setState(this.getDeviceState(false), this.getCurrentTime())
 			this.emit('resetResolver')
 		})
 
@@ -147,7 +147,11 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState> implemen
 	makeReady (okToDestroyStuff?: boolean): Promise<void> {
 		if (okToDestroyStuff) {
 			this._doOnTime.clearQueueNowAndAfter(this.getCurrentTime())
-			this.setState(this.getDeviceState(), this.getCurrentTime())
+			this._sisyfos.reInitialize()
+			this._sisyfos.once('initialized', () => {
+				this.setState(this.getDeviceState(false), this.getCurrentTime())
+				this.emit('resetResolver')
+			})
 		}
 		return Promise.resolve()
 	}
@@ -158,7 +162,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState> implemen
 	get connected (): boolean {
 		return this._sisyfos.connected
 	}
-	getDeviceState (): SisyfosState {
+	getDeviceState (isDefaultState = true): SisyfosState {
 		const deviceStateFromAPI = this._sisyfos.state
 		const deviceState: SisyfosState = { channels: {} }
 
@@ -166,14 +170,20 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState> implemen
 
 			const channelFromAPI = deviceStateFromAPI.channels[ch]
 
-			const channel: SisyfosChannel = {
+			let channel: SisyfosChannel = {
 				...channelFromAPI,
-				faderLevel: 0.75,  // 0 dB
-				pgmOn: 0,
-				pstOn: 0,
-				label: '',
-				visible: true,
 				tlObjIds: []
+			}
+
+			if (isDefaultState) { // reset values for default state
+				channel = {
+					...channel,
+					faderLevel: 0.75,  // 0 dB
+					pgmOn: 0,
+					pstOn: 0,
+					label: '',
+					visible: true
+				}
 			}
 
 			deviceState.channels[ch] = channel
@@ -254,7 +264,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState> implemen
 
 			if (oldChannel && oldChannel.pgmOn !== newChannel.pgmOn) {
 				commands.push({
-					context: `Channel ${index} goes from "${oldChannel.pgmOn}" to "${newChannel.pgmOn}"`,
+					context: `Channel ${index} pgm goes from "${oldChannel.pgmOn}" to "${newChannel.pgmOn}"`,
 					content: {
 						type: Commands.TOGGLE_PGM,
 						channel: Number(index),
@@ -266,7 +276,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState> implemen
 
 			if (oldChannel && oldChannel.pstOn !== newChannel.pstOn) {
 				commands.push({
-					context: `Channel ${index} goes from "${oldChannel.pgmOn}" to "${newChannel.pgmOn}"`,
+					context: `Channel ${index} pst goes from "${oldChannel.pstOn}" to "${newChannel.pstOn}"`,
 					content: {
 						type: Commands.TOGGLE_PST,
 						channel: Number(index),
