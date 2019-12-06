@@ -61,6 +61,9 @@ export interface TimelineObjVIZMSEBase extends TSRTimelineObjBase {
 
 		/** If true, won't be preloaded automatically */
 		noAutoPreloading?: boolean
+
+		// inTransition?: VIZMSEOutTransition
+		outTransition?: VIZMSEOutTransition
 	}
 }
 export interface TimelineObjVIZMSEElementInternal extends TimelineObjVIZMSEBase {
@@ -79,6 +82,9 @@ export interface TimelineObjVIZMSEElementInternal extends TimelineObjVIZMSEBase 
 
 		/** If true, won't be preloaded (cued) automatically */
 		noAutoPreloading?: boolean
+
+		// inTransition?: VIZMSEOutTransition
+		outTransition?: VIZMSEOutTransition
 
 		/** Name of the template to be played */
 		templateName: string
@@ -102,6 +108,9 @@ export interface TimelineObjVIZMSEElementPilot extends TimelineObjVIZMSEBase {
 
 		/** If true, won't be preloaded (cued) automatically */
 		noAutoPreloading?: boolean
+
+		// inTransition?: VIZMSEOutTransition
+		outTransition?: VIZMSEOutTransition
 
 		/** Viz-Pilot id of the template to be played */
 		templateVcpId: number
@@ -130,4 +139,18 @@ export interface TimelineObjVIZMSEClearAllElements extends TSRTimelineObjBase {
 		deviceType: DeviceType.VIZMSE
 		type: TimelineContentTypeVizMSE.CLEAR_ALL_ELEMENTS
 	}
+}
+
+export type VIZMSEOutTransition = VIZMSETransitionDelay
+export interface VIZMSETransitionBase {
+	type: VIZMSETransitionType
+}
+export enum VIZMSETransitionType {
+	DELAY = 0
+}
+export interface VIZMSETransitionDelay {
+	type: VIZMSETransitionType.DELAY
+
+	// For how long to delay the take out (ms)
+	delay: number
 }

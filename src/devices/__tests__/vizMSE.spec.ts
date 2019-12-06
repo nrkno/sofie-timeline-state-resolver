@@ -6,7 +6,7 @@ import {
 } from '../../types/src'
 import { MockTime } from '../../__tests__/mockTime'
 import { ThreadedClass } from 'threadedclass'
-import { MappingVizMSE, TimelineContentTypeVizMSE } from '../../types/src/vizMSE'
+import { MappingVizMSE, TimelineContentTypeVizMSE, VIZMSETransitionType } from '../../types/src/vizMSE'
 import { getMockCall } from '../../__tests__/lib'
 import { VizMSEDevice } from '../vizMSE'
 import { getMockMSEs, MSEMock, VRundownMocked } from '../../__mocks__/v-connection'
@@ -576,7 +576,6 @@ describe('vizMSE', () => {
 		expect(onWarning).toHaveBeenCalledTimes(0)
 
 	})
-
 	test('vizMSE: clear all elements', async () => {
 
 		const commandReceiver0 = jest.fn(() => {
@@ -728,6 +727,118 @@ describe('vizMSE', () => {
 			templateName: 'myInternalElement',
 			templateData: []
 		})
+
+	})
+	test('vizMSE: Delayed External/Pilot element', async () => {
+		let device: any
+		const commandReceiver0 = jest.fn((...args) => {
+			return device._defaultCommandReceiver(...args)
+		})
+
+		let myChannelMapping0: MappingVizMSE = {
+			device: DeviceType.VIZMSE,
+			deviceId: 'myViz'
+		}
+		let myChannelMapping1: MappingVizMSE = {
+			device: DeviceType.VIZMSE,
+			deviceId: 'myViz'
+		}
+		let myChannelMapping: Mappings = {
+			'viz0': myChannelMapping0,
+			'viz_continue': myChannelMapping1
+		}
+
+		let myConductor = new Conductor({
+			initializeAsClear: true,
+			getCurrentTime: mockTime.getCurrentTime
+		})
+		const onError = jest.fn()
+		myConductor.on('error', onError)
+
+		await myConductor.setMapping(myChannelMapping)
+		await myConductor.init()
+		await myConductor.addDevice('myViz', {
+			type: DeviceType.VIZMSE,
+			options: {
+				commandReceiver: commandReceiver0,
+				host: '127.0.0.1',
+				preloadAllElements: true,
+				playlistID: 'my-super-playlist-id',
+				showID: 'show1234',
+				profile: 'profile9999'
+			}
+		})
+		await mockTime.advanceTimeToTicks(10100)
+
+		let deviceContainer = myConductor.getDevice('myViz')
+		device = deviceContainer.device as ThreadedClass<VizMSEDevice>
+
+		// Check that no commands has been scheduled:
+		expect(await device.queue).toHaveLength(0)
+
+		const mse = _.last(getMockMSEs()) as MSEMock
+		expect(mse).toBeTruthy()
+		expect(mse.getMockRundowns()).toHaveLength(1)
+		const rundown = _.last(mse.getMockRundowns()) as VRundownMocked
+		expect(rundown).toBeTruthy()
+
+		myConductor.timeline = [
+			{
+				id: 'obj0',
+				enable: {
+					start: mockTime.now + 5000, // 15100
+					duration: 5000 // 20100
+				},
+				layer: 'viz0',
+				content: {
+					deviceType: DeviceType.VIZMSE,
+					type: TimelineContentTypeVizMSE.ELEMENT_PILOT,
+					channelName: 'FULL1',
+					templateVcpId: 1337,
+					outTransition: {
+						type: VIZMSETransitionType.DELAY,
+						delay: 1000
+					}
+
+				}
+			}
+		]
+
+		await mockTime.advanceTimeToTicks(14000)
+		expect(commandReceiver0.mock.calls.length).toEqual(0)
+
+		commandReceiver0.mockClear()
+		await mockTime.advanceTimeToTicks(14500)
+		expect(commandReceiver0.mock.calls.length).toEqual(1)
+		expect(getMockCall(commandReceiver0, 0, 1)).toMatchObject({
+			timelineObjId: 'obj0',
+			time: 14100,
+			type: 'prepare',
+			templateName: 1337,
+			channelName: 'FULL1'
+		})
+
+		commandReceiver0.mockClear()
+		rundown.take.mockClear()
+		await mockTime.advanceTimeToTicks(15500)
+		expect(commandReceiver0.mock.calls.length).toEqual(1)
+		expect(rundown.take).toHaveBeenCalledTimes(1)
+		expect(rundown.take).nthCalledWith(1, 1337)
+		expect(rundown.out).toHaveBeenCalledTimes(0)
+
+		commandReceiver0.mockClear()
+		rundown.out.mockClear()
+		rundown.take.mockClear()
+		await mockTime.advanceTimeToTicks(20500)
+		expect(rundown.out).toHaveBeenCalledTimes(0) // because it's delayed!
+
+		commandReceiver0.mockClear()
+		await mockTime.advanceTimeToTicks(21200)
+		expect(rundown.out).toHaveBeenCalledTimes(1)
+		expect(rundown.out).nthCalledWith(1, 1337)
+		expect(rundown.take).toHaveBeenCalledTimes(0)
+
+		expect(onError).toHaveBeenCalledTimes(0)
 
 	})
 })
