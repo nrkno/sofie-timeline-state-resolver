@@ -354,7 +354,15 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState> implements IDevic
 	async standDown (okToDestroyStuff?: boolean): Promise<void> {
 		if (okToDestroyStuff) {
 			if (this._vizmseManager) {
-				await this._vizmseManager.deactivate()
+
+				if (
+					!this._initOptions ||
+					!this._initOptions.dontDeactivateOnStandDown
+				) {
+					await this._vizmseManager.deactivate()
+				} else {
+					this._vizmseManager.standDownActiveRundown() // because we still want to stop monitoring expectedPlayoutItems
+				}
 			}
 		}
 	}

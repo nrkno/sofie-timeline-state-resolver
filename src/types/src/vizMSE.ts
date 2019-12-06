@@ -30,6 +30,8 @@ export interface VizMSEOptions {
 	/** Whether to trigger a clear all templates upon makeReady */
 	clearAllOnMakeReady?: boolean
 	// profileName
+	/** If true, the rundown won't be deactivated on standdown */
+	dontDeactivateOnStandDown?: boolean
 }
 export enum TimelineContentTypeVizMSE {
 	ELEMENT_INTERNAL = 'element_internal',
