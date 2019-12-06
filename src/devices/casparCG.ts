@@ -237,6 +237,7 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> implements ID
 
 	private convertObjectToCasparState (layer: ResolvedTimelineObjectInstance, mapping: MappingCasparCG, isForeground: boolean): StateNS.ILayerBase {
 		let startTime = layer.instance.originalStart || layer.instance.start
+		if (startTime === 0) startTime = 1 // @todo: startTime === 0 will make ccg-state seek to the current time
 
 		let stateLayer: StateNS.ILayerBase | null = null
 		if (
@@ -256,7 +257,7 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> implements ID
 					!holdOnFirstFrame && (mediaObj.content.noStarttime || loopingPlayTime) ?
 					null :
 					startTime
-				) || null,
+				),
 
 				pauseTime:		holdOnFirstFrame ? startTime : (mediaObj.content.pauseTime || null),
 				playing:		!mediaObj.isLookahead && (mediaObj.content.playing !== undefined ? mediaObj.content.playing : isForeground),
