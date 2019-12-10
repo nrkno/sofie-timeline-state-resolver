@@ -67,6 +67,7 @@ interface TimelineCallback {
 	callBack?: string
 	callBackStopped?: string
 	callBackData: any
+	startTime: number
 }
 type TimelineCallbacks = {[key: string]: TimelineCallback}
 const CALLBACK_WAIT_TIME = 50
@@ -795,15 +796,9 @@ export class Conductor extends EventEmitter {
 			}
 
 			// Special function: send callback to Core
-			let sentCallbacksOld: TimelineCallbacks = this._sentCallbacks
-			let sentCallbacksNew: TimelineCallbacks = {}
 			this._doOnTime.clearQueueNowAndAfter(tlState.time)
 
-			// clear callbacks scheduled after the current tlState
-			_.each(sentCallbacksOld, (o: TimelineCallback, callbackId: string) => {
-				if (o.time >= tlState.time) delete sentCallbacksOld[callbackId]
-			})
-			// schedule callbacks to be executed
+			let activeObjects: TimelineCallbacks = {}
 			_.each(tlState.layers, (instance: ResolvedTimelineObjectInstance) => {
 
 				try {
@@ -815,51 +810,23 @@ export class Conductor extends EventEmitter {
 							instance.instance.start +
 							JSON.stringify(instance.content.callBackData)
 						)
-						sentCallbacksNew[callBackId] = {
+						activeObjects[callBackId] = {
 							time: instance.instance.start || 0,
 							id: instance.id,
 							callBack: instance.content.callBack,
 							callBackStopped: instance.content.callBackStopped,
-							callBackData: instance.content.callBackData
-						}
-						if (instance.content.callBack && instance.instance.start) {
-							this._doOnTime.queue(instance.instance.start, undefined, () => {
-								if (!sentCallbacksOld[callBackId]) {
-									// Object has started playing
-									this._queueCallback(true, {
-										type: 'start',
-										time: instance.instance.start,
-										instanceId: instance.id,
-										callBack: instance.content.callBack,
-										callBackData: instance.content.callBackData
-									})
-								} else {
-									// callback already sent, do nothing
-								}
-							})
+							callBackData: instance.content.callBackData,
+							startTime: instance.instance.start
 						}
 					}
 				} catch (e) {
 					this.emit('error', `callback to core, obj "${instance.id}"`, e)
 				}
 			})
-			_.each(sentCallbacksOld, (cb, callBackId: string) => {
-				if (cb.callBackStopped && !sentCallbacksNew[callBackId]) {
-					const callBackStopped = cb.callBackStopped
-					const callBackData = cb.callBackData
-					this._doOnTime.queue(tlState.time, undefined, () => {
-						// Object has stopped playing
-						this._queueCallback(false, {
-							type: 'stop',
-							time: tlState.time,
-							instanceId: cb.id,
-							callBack: callBackStopped,
-							callBackData: callBackData
-						})
-					})
-				}
-			})
-			this._sentCallbacks = sentCallbacksNew
+
+			this._doOnTime.queue(tlState.time, undefined, (sentCallbacksNew) => {
+				this._diffStateForCallbacks(sentCallbacksNew)
+			}, activeObjects)
 
 			this.emit('debug', 'resolveTimeline at time ' + resolveTime + ' done in ' + (Date.now() - startTime) + 'ms (size: ' + this.timeline.length + ')')
 		} catch (e) {
@@ -906,8 +873,52 @@ export class Conductor extends EventEmitter {
 		}
 	}
 
-	private _queueCallback (playing: boolean, cb: QueueCallback) {
+	private _diffStateForCallbacks (activeObjects: TimelineCallbacks) {
+		let sentCallbacks: TimelineCallbacks = this._sentCallbacks
+		const time = this.getCurrentTime()
 
+		// clear callbacks scheduled after the current tlState
+		_.each(sentCallbacks, (o: TimelineCallback, callbackId: string) => {
+			if (o.time >= time) {
+				delete sentCallbacks[callbackId]
+			}
+		})
+		// Send callbacks for started objects
+		_.each(activeObjects, (cb, callBackId) => {
+
+			if (cb.callBack && cb.startTime) {
+				if (!sentCallbacks[callBackId]) {
+					// Object has started playing
+					this._queueCallback(true, {
+						type: 'start',
+						time: cb.startTime,
+						instanceId: cb.id,
+						callBack: cb.callBack,
+						callBackData: cb.callBackData
+					})
+				} else {
+					// callback already sent, do nothing
+				}
+			}
+		})
+		// Send callbacks for stopped objects
+		_.each(sentCallbacks, (cb, callBackId: string) => {
+			if (cb.callBackStopped && !activeObjects[callBackId]) {
+
+				// Object has stopped playing
+				this._queueCallback(false, {
+					type: 'stop',
+					time: time,
+					instanceId: cb.id,
+					callBack: cb.callBackStopped,
+					callBackData: cb.callBackData
+				})
+
+			}
+		})
+		this._sentCallbacks = activeObjects
+	}
+	private _queueCallback (playing: boolean, cb: QueueCallback) {
 		let o: CallbackInstance
 
 		if (this._callbackInstances[cb.instanceId]) {

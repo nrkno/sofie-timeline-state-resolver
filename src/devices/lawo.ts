@@ -493,7 +493,7 @@ export class LawoDevice extends DeviceWithState<TimelineState> implements IDevic
 		try {
 			const node: any = await this._getNodeByPath(command.path)
 
-			if (valueType === EmberTypes.REAL && command.value as number % 1 === 0) {
+			if ((valueType || command.valueType) === EmberTypes.REAL && command.value as number % 1 === 0) {
 				(command.value as number) += .01
 			}
 
