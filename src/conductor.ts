@@ -178,7 +178,9 @@ export class Conductor extends EventEmitter {
 		this._resolver = await threadedClass<AsyncResolver, typeof AsyncResolver>(
 			'../dist/AsyncResolver.js',
 			AsyncResolver,
-			[],
+			[
+				r => { this.emit('setTimelineTriggerTime', r) }
+			],
 			{
 				threadUsage: this._multiThreadedResolver ? 1 : 0,
 				autoRestart: true,
@@ -186,13 +188,13 @@ export class Conductor extends EventEmitter {
 				instanceName: 'resolver'
 			}
 		)
-		await this._resolver.on('setTimelineTriggerTime', (r) => {
-			this.emit('setTimelineTriggerTime', r)
-		})
-		await this._resolver.on('info', (...args) => this.emit('info', 'Resolver', ...args))
-		await this._resolver.on('debug', (...args) => this.emit('debug', 'Resolver', ...args))
-		await this._resolver.on('error', (...args) => this.emit('error', 'Resolver', ...args))
-		await this._resolver.on('warning', (...args) => this.emit('warning', 'Resolver', ...args))
+		// await this._resolver.on('setTimelineTriggerTime', (r) => {
+		// 	this.emit('setTimelineTriggerTime', r)
+		// })
+		// await this._resolver.on('info', (...args) => this.emit('info', 'Resolver', ...args))
+		// await this._resolver.on('debug', (...args) => this.emit('debug', 'Resolver', ...args))
+		// await this._resolver.on('error', (...args) => this.emit('error', 'Resolver', ...args))
+		// await this._resolver.on('warning', (...args) => this.emit('warning', 'Resolver', ...args))
 
 		this._isInitialized = true
 		this.resetResolver()

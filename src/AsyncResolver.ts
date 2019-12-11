@@ -9,10 +9,15 @@ import _ = require('underscore')
 import {
 	TimelineTriggerTimeResult
 } from './conductor'
-import { EventEmitter } from 'events'
 import { TSRTimeline, TSRTimelineObj } from './types/src'
 
-export class AsyncResolver extends EventEmitter {
+export class AsyncResolver {
+
+	private readonly onSetTimelineTriggerTime: (res: TimelineTriggerTimeResult) => void
+
+	public constructor (onSetTimelineTriggerTime: (res: TimelineTriggerTimeResult) => void) {
+		this.onSetTimelineTriggerTime = onSetTimelineTriggerTime
+	}
 
 	public async resolveTimeline (
 		resolveTime: number,
@@ -122,8 +127,7 @@ export class AsyncResolver extends EventEmitter {
 		}
 
 		if (objectsFixed.length) {
-			let r: TimelineTriggerTimeResult = objectsFixed
-			this.emit('setTimelineTriggerTime', r)
+			this.onSetTimelineTriggerTime(objectsFixed)
 		}
 		return objectsFixed
 	}
