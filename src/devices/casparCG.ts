@@ -710,7 +710,7 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> implements ID
 		let cwc: CommandWithContext = {
 			context: context,
 			timelineObjId: timelineObjId,
-			command: cmd
+			command: JSON.stringify(cmd)
 		}
 		this.emit('debug', cwc)
 
