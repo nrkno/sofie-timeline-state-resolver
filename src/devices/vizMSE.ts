@@ -779,7 +779,13 @@ class VizMSEManager extends EventEmitter {
 		const rundown = await this._getRundown()
 
 		// clear any existing elements from the existing rundown
-		await rundown.purge()
+		try {
+			await rundown.purge()
+		} catch (e) {
+			if (((e && e.toString()) + '').match(/active profile/i)) { // "Cannot purge an active profile."
+				// That's okay
+			} else throw e
+		}
 		this._clearCache()
 
 		this._triggerCommandSent()
@@ -971,7 +977,7 @@ class VizMSEManager extends EventEmitter {
 		if (!hash) throw new Error('_cacheElement: hash not set')
 		if (!element) throw new Error('_cacheElement: element not set (with hash ' + hash + ')')
 		if (this._elementCache[hash]) {
-			this.emit('error', `There is already an element with hash "${hash}" in cache`)
+			this.emit('warning', `There is already an element with hash "${hash}" in cache`)
 		}
 		this._elementCache[hash] = { hash, element }
 	}
