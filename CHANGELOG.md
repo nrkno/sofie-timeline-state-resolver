@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.16.2](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/3.16.1...3.16.2) (2019-12-16)
+
+
+### Bug Fixes
+
+* update deps for a bugfix in casparcg-state ([530975c](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/530975cdfaf0c9e45db9ddc76a37443edf686593))
+
 ### [3.16.1](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/3.16.0...3.16.1) (2019-12-10)
 
 
