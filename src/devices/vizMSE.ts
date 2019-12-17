@@ -690,7 +690,7 @@ class VizMSEManager extends EventEmitter {
 	private _monitorMSEConnection?: NodeJS.Timer
 	private _lastTimeCommandSent: number = 0
 	private _hasActiveRundown: boolean = false
-	private _elementsLoaded: {[hash: string]: { element: VElement, isLoaded: boolean, isNotLoaded: boolean}} = {}
+	private _elementsLoaded: {[hash: string]: { element: VElement, isLoaded: boolean, isLoading: boolean}} = {}
 	private _getRundownPromise?: Promise<VRundown>
 	private _mseConnected: boolean = false
 	private _msePingConnected: boolean = false
@@ -1178,7 +1178,7 @@ class VizMSEManager extends EventEmitter {
 							this._elementsLoaded[e.hash] = {
 								element: newEl,
 								isLoaded: this._isElementLoaded(newEl),
-								isNotLoaded: this._isElementNotLoaded(newEl)
+								isLoading: this._isElementLoading(newEl)
 							}
 						} catch (e) {
 							this.emit('error', `Error in updateElementsLoadedStatus: ${e.toString()}`)
@@ -1214,14 +1214,13 @@ class VizMSEManager extends EventEmitter {
 					if (e.isLoaded) {
 						// The element is loaded fine, no need to do anything
 						this.emit('debug', `Element "${this._getElementReference(e.element)}" is loaded`)
-					} else if (e.isNotLoaded) {
+					} else if (e.isLoading) {
+						// The element is currently loading, do nothing
+						this.emit('debug', `Element "${this._getElementReference(e.element)}" is loading`)
+					} else {
 						// The element has not started loading, load it:
 						this.emit('debug', `Element "${this._getElementReference(e.element)}" is not loaded, initializing`)
 						await rundown.initialize(this._getElementReference(e.element))
-
-					} else {
-						// The element is currently loading, do nothing
-						this.emit('debug', `Element "${this._getElementReference(e.element)}" is loading`)
 					}
 				} else {
 					this.emit('error', `Element "${this._getElementReference(e.element)}" type `)
@@ -1269,8 +1268,8 @@ class VizMSEManager extends EventEmitter {
 
 				_.each(this._elementsLoaded, (e) => {
 					if (e.isLoaded) loaded++
-					else if (e.isNotLoaded) notLoaded++
-					else loading++
+					else if (e.isLoading) loading++
+					else notLoaded++
 				})
 
 				loaded = loaded // loaded isn't really used anywhere
@@ -1351,14 +1350,14 @@ class VizMSEManager extends EventEmitter {
 	/**
 	 * Returns true if the element has NOT started loading (is currently not loading, or finished loaded)
 	 */
-	private _isElementNotLoaded (el: VElement) {
+	private _isElementLoading (el: VElement) {
 		if (this._isInternalElement(el)) {
 			return false // not implemented / unknown
 
 		} else if (this._isExternalElement(el)) {
 			return (
-				(el.loaded === '0.00' || el.loaded === '0' || !el.loaded) &&
-				el.is_loading !== 'yes'
+				(el.loaded !== '1.00' && el.loaded !== '1') &&
+				el.is_loading === 'yes'
 			)
 		} else {
 			throw new Error(`vizMSE: _isLoaded: unknown element type: ${el && JSON.stringify(el)}`)
