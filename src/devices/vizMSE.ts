@@ -770,7 +770,7 @@ class VizMSEManager extends EventEmitter {
 			this.emit('debug', 'VIZDEBUG: preload elements allowed')
 			this._expectedPlayoutItems = expectedPlayoutItems
 
-			this._getExpectedPlayoutItems().catch((...args) => this.emit('error', ...args))
+			this._getExpectedPlayoutItems().catch((error) => this.emit('error', error))
 		}
 	}
 	/**
@@ -786,7 +786,7 @@ class VizMSEManager extends EventEmitter {
 		try {
 			await rundown.purge()
 		} catch (error) {
-			this.emit('error', 'Error in rundown.purge()', error)
+			this.emit('error', error)
 		}
 		this._clearCache()
 
