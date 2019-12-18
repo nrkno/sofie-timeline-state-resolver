@@ -1180,6 +1180,7 @@ class VizMSEManager extends EventEmitter {
 								isLoaded: this._isElementLoaded(newEl),
 								isLoading: this._isElementLoading(newEl)
 							}
+							this.emit('error', `Element ${elementRef}: ${JSON.stringify(newEl)}`)
 						} catch (e) {
 							this.emit('error', `Error in updateElementsLoadedStatus: ${e.toString()}`)
 						}
