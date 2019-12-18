@@ -17,9 +17,20 @@ export enum MappingAtemType {
 	MacroPlayer
 }
 
+export enum AtemMediaPoolType {
+	Still = 'still',
+	Clip = 'clip',
+	Audio = 'audio'
+}
+
 export interface AtemOptions {
 	host: string
 	port?: number
+	mediaPoolAssets?: {
+        type: AtemMediaPoolType,
+        position: number
+        path: string
+    }[]
 }
 
 export enum TimelineContentTypeAtem { //  Atem-state
