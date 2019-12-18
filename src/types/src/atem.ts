@@ -27,10 +27,10 @@ export interface AtemOptions {
 	host: string
 	port?: number
 	mediaPoolAssets?: {
-        type: AtemMediaPoolType,
-        position: number
-        path: string
-    }[]
+		type: AtemMediaPoolType
+		position: number
+		path: string
+	}[]
 }
 
 export enum TimelineContentTypeAtem { //  Atem-state
