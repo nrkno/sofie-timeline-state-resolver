@@ -156,7 +156,7 @@ export abstract class Device extends EventEmitter implements IDevice {
 	 * The exact implementation differ between different devices
 	 * @param okToDestroyStuff If true, the device may do things that might affect the output (temporarily)
 	 */
-	makeReady (_okToDestroyStuff?: boolean): Promise<void> {
+	makeReady (_okToDestroyStuff?: boolean, _activeRundownId?: string): Promise<void> {
 		// This method should be overwritten by child
 		return Promise.resolve()
 	}
