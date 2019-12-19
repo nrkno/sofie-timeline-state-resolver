@@ -519,11 +519,11 @@ export class Conductor extends EventEmitter {
 	/**
 	 * Send a makeReady-trigger to all devices
 	 */
-	public devicesMakeReady (okToDestroyStuff?: boolean): Promise<void> {
+	public devicesMakeReady (okToDestroyStuff?: boolean, activeRundownId?: string): Promise<void> {
 		let p = Promise.resolve()
 		_.each(this.devices, (d: DeviceContainer) => {
 			p = p.then(async () => {
-				return d.device.makeReady(okToDestroyStuff)
+				return d.device.makeReady(okToDestroyStuff, activeRundownId)
 			})
 		})
 		this._resolveTimeline()
