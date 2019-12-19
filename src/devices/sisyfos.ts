@@ -255,9 +255,9 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState> implemen
 	/**
 	 * Compares the new timeline-state with the old one, and generates commands to account for the difference
 	 */
-	private _diffStates (oldOscSendState: SisyfosState, newOscSendState: SisyfosState): Array<Command> {
+	private _diffStates (oldOscSendState: SisyfosState, newOscSendState: SisyfosState): Command[] {
 
-		const commands: Array<Command> = []
+		const commands: Command[] = []
 
 		_.each(newOscSendState.channels, (newChannel: SisyfosChannel, index) => {
 			const oldChannel = oldOscSendState.channels[index]
@@ -298,7 +298,8 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState> implemen
 				})
 			}
 
-			if (newChannel.label !== '' && oldChannel.label !== newChannel.label) {
+			newChannel.label = newChannel.label || (oldChannel ? oldChannel.label : '')
+			if (oldChannel && newChannel.label !== '' && oldChannel.label !== newChannel.label) {
 				commands.push({
 					context: 'set label on fader',
 					content: {
