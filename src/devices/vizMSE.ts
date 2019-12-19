@@ -1100,7 +1100,7 @@ class VizMSEManager extends EventEmitter {
 		const expectedPlayoutItems = _.filter(this._expectedPlayoutItems, expectedPlayoutItem => {
 			return (
 				!this.activeRundownId ||
-				this.activeRundownId !== expectedPlayoutItem.rundownId
+				this.activeRundownId === expectedPlayoutItem.rundownId
 			)
 		})
 
