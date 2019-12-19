@@ -688,7 +688,7 @@ class VizMSEManager extends EventEmitter {
 	private _monitorMSEConnection?: NodeJS.Timer
 	private _lastTimeCommandSent: number = 0
 	private _hasActiveRundown: boolean = false
-	private _elementsLoaded: {[hash: string]: { element: VElement, isLoaded: boolean, isNotLoaded: boolean}} = {}
+	private _elementsLoaded: {[hash: string]: { element: VElement, isLoaded: boolean, isLoading: boolean}} = {}
 	private _getRundownPromise?: Promise<VRundown>
 	private _mseConnected: boolean = false
 	private _msePingConnected: boolean = false
@@ -766,7 +766,7 @@ class VizMSEManager extends EventEmitter {
 		if (this.preloadAllElements) {
 			this._expectedPlayoutItems = expectedPlayoutItems
 
-			this._getExpectedPlayoutItems().catch((...args) => this.emit('error', ...args))
+			this._getExpectedPlayoutItems().catch((error) => this.emit('error', error))
 		}
 	}
 	/**
@@ -781,10 +781,8 @@ class VizMSEManager extends EventEmitter {
 		// clear any existing elements from the existing rundown
 		try {
 			await rundown.purge()
-		} catch (e) {
-			if (((e && e.toString()) + '').match(/active profile/i)) { // "Cannot purge an active profile."
-				// That's okay
-			} else throw e
+		} catch (error) {
+			this.emit('error', error)
 		}
 		this._clearCache()
 
@@ -1095,37 +1093,39 @@ class VizMSEManager extends EventEmitter {
 
 		await Promise.all(
 			_.map(this._expectedPlayoutItems, async expectedPlayoutItem => {
-
-				const stateLayer: VizMSEStateLayer | undefined = (
-					_.isNumber(expectedPlayoutItem.templateName) ?
-					content2StateLayer(
-						'',
-						{
-							deviceType: DeviceType.VIZMSE,
-							type: TimelineContentTypeVizMSE.ELEMENT_PILOT,
-							templateVcpId: expectedPlayoutItem.templateName
-						} as TimelineObjVIZMSEElementPilot['content']
-					) :
-					content2StateLayer(
-						'',
-						{
-							deviceType: DeviceType.VIZMSE,
-							type: TimelineContentTypeVizMSE.ELEMENT_INTERNAL,
-							templateName: expectedPlayoutItem.templateName,
-							templateData: expectedPlayoutItem.templateData
-						} as TimelineObjVIZMSEElementInternal['content']
+				try {
+					const stateLayer: VizMSEStateLayer | undefined = (
+						_.isNumber(expectedPlayoutItem.templateName) ?
+						content2StateLayer(
+							'',
+							{
+								deviceType: DeviceType.VIZMSE,
+								type: TimelineContentTypeVizMSE.ELEMENT_PILOT,
+								templateVcpId: expectedPlayoutItem.templateName
+							} as TimelineObjVIZMSEElementPilot['content']
+						) :
+						content2StateLayer(
+							'',
+							{
+								deviceType: DeviceType.VIZMSE,
+								type: TimelineContentTypeVizMSE.ELEMENT_INTERNAL,
+								templateName: expectedPlayoutItem.templateName,
+								templateData: expectedPlayoutItem.templateData
+							} as TimelineObjVIZMSEElementInternal['content']
+						)
 					)
-				)
 
-				if (stateLayer) {
-					const item: ExpectedPlayoutItemContentVizMSEInternal = {
-						...expectedPlayoutItem,
-						templateInstance: VizMSEManager.getTemplateInstance(stateLayer)
+					if (stateLayer) {
+						const item: ExpectedPlayoutItemContentVizMSEInternal = {
+							...expectedPlayoutItem,
+							templateInstance: VizMSEManager.getTemplateInstance(stateLayer)
+						}
+						await this._checkPrepareElement(item, true)
+						hashesAndItems[this.getElementHash(item)] = item
 					}
-					hashesAndItems[this.getElementHash(item)] = item
-					await this._checkPrepareElement(item, true)
+				} catch (e) {
+					this.emit('error', `Error in _getExpectedPlayoutItems: ${e.toString()}`)
 				}
-
 			})
 		)
 		return hashesAndItems
@@ -1163,17 +1163,22 @@ class VizMSEManager extends EventEmitter {
 					const cachedEl = this._elementsLoaded[e.hash]
 
 					if (!cachedEl || !cachedEl.isLoaded) {
-						const elementRef = await this._checkPrepareElement(e.item)
+						try {
+							const elementRef = await this._checkPrepareElement(e.item)
 
-						this.emit('debug', `Updating status of element ${elementRef}`)
+							this.emit('debug', `Updating status of element ${elementRef}`)
 
-						// Update cached status of the element:
-						const newEl = await rundown.getElement(elementRef)
+							// Update cached status of the element:
+							const newEl = await rundown.getElement(elementRef)
 
-						this._elementsLoaded[e.hash] = {
-							element: newEl,
-							isLoaded: this._isElementLoaded(newEl),
-							isNotLoaded: this._isElementNotLoaded(newEl)
+							this._elementsLoaded[e.hash] = {
+								element: newEl,
+								isLoaded: this._isElementLoaded(newEl),
+								isLoading: this._isElementLoading(newEl)
+							}
+							this.emit('error', `Element ${elementRef}: ${JSON.stringify(newEl)}`)
+						} catch (e) {
+							this.emit('error', `Error in updateElementsLoadedStatus: ${e.toString()}`)
 						}
 					}
 				})
@@ -1206,14 +1211,13 @@ class VizMSEManager extends EventEmitter {
 					if (e.isLoaded) {
 						// The element is loaded fine, no need to do anything
 						this.emit('debug', `Element "${this._getElementReference(e.element)}" is loaded`)
-					} else if (e.isNotLoaded) {
+					} else if (e.isLoading) {
+						// The element is currently loading, do nothing
+						this.emit('debug', `Element "${this._getElementReference(e.element)}" is loading`)
+					} else {
 						// The element has not started loading, load it:
 						this.emit('debug', `Element "${this._getElementReference(e.element)}" is not loaded, initializing`)
 						await rundown.initialize(this._getElementReference(e.element))
-
-					} else {
-						// The element is currently loading, do nothing
-						this.emit('debug', `Element "${this._getElementReference(e.element)}" is loading`)
 					}
 				} else {
 					this.emit('error', `Element "${this._getElementReference(e.element)}" type `)
@@ -1261,8 +1265,8 @@ class VizMSEManager extends EventEmitter {
 
 				_.each(this._elementsLoaded, (e) => {
 					if (e.isLoaded) loaded++
-					else if (e.isNotLoaded) notLoaded++
-					else loading++
+					else if (e.isLoading) loading++
+					else notLoaded++
 				})
 
 				loaded = loaded // loaded isn't really used anywhere
@@ -1343,14 +1347,14 @@ class VizMSEManager extends EventEmitter {
 	/**
 	 * Returns true if the element has NOT started loading (is currently not loading, or finished loaded)
 	 */
-	private _isElementNotLoaded (el: VElement) {
+	private _isElementLoading (el: VElement) {
 		if (this._isInternalElement(el)) {
 			return false // not implemented / unknown
 
 		} else if (this._isExternalElement(el)) {
 			return (
-				(el.loaded === '0.00' || el.loaded === '0' || !el.loaded) &&
-				el.is_loading !== 'yes'
+				(el.loaded !== '1.00' && el.loaded !== '1') &&
+				el.is_loading === 'yes'
 			)
 		} else {
 			throw new Error(`vizMSE: _isLoaded: unknown element type: ${el && JSON.stringify(el)}`)
