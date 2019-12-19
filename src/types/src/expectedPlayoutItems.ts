@@ -1,13 +1,9 @@
+import { VIZMSEPlayoutItemContent } from './vizMSE'
+
 export type ExpectedPlayoutItemContent = ExpectedPlayoutItemContentVizMSE
 
-export interface ExpectedPlayoutItemContentVizMSE { // TODO: This is a temporary implementation, these types are to be moved later on
-	/** Name of the element, or Pilot Element */
-	templateName: string | number // if number, it's a vizPilot element
-	/** Data fields of the element (for internal elements only) */
-	templateData?: string[]
-	/** What channel to use for the element */
-	channelName?: string
-
-	/** If true, won't be preloaded (cued) automatically */
-	noAutoPreloading?: boolean
+export interface ExpectedPlayoutItemContentBase {
+	/** Id of the rundown the items comes from */
+	rundownId: string
 }
+export type ExpectedPlayoutItemContentVizMSE = ExpectedPlayoutItemContentBase & VIZMSEPlayoutItemContent
