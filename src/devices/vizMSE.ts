@@ -18,7 +18,7 @@ import {
 	TimelineContentTypeVizMSE,
 	TimelineObjVIZMSEElementPilot,
 	ExpectedPlayoutItemContent,
-	ExpectedPlayoutItemContentVizMSE,
+	VIZMSEPlayoutItemContent,
 	DeviceOptionsVizMSE,
 	TimelineObjVIZMSEAny,
 	VIZMSEOutTransition,
@@ -321,8 +321,13 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState> implements IDevic
 	 * Prepares the physical device for playout.
 	 * @param okToDestroyStuff Whether it is OK to do things that affects playout visibly
 	 */
-	async makeReady (okToDestroyStuff?: boolean): Promise<void> {
+	async makeReady (okToDestroyStuff?: boolean, activeRundownId?: string): Promise<void> {
 		if (this._vizmseManager) {
+			this._vizmseManager.activeRundownId = (
+				(this._initOptions && this._initOptions.onlyPreloadActiveRundown) ?
+				activeRundownId :
+				undefined
+			)
 			await this._vizmseManager.activate()
 
 		} else throw new Error(`Unable to activate vizMSE, not initialized yet!`)
@@ -680,6 +685,7 @@ class VizMSEManager extends EventEmitter {
 	public initialized: boolean = false
 	public notLoadedCount: number = 0
 	public loadingCount: number = 0
+	public activeRundownId: string | undefined
 
 	private _rundown: VRundown | undefined
 	private _elementCache: {[hash: string]: CachedVElement } = {}
@@ -958,7 +964,7 @@ class VizMSEManager extends EventEmitter {
 		throw new Error(`Unknown layer.contentType "${layer['contentType']}"`)
 	}
 
-	private getElementHash (cmd: ExpectedPlayoutItemContentVizMSEInternal): string {
+	private getElementHash (cmd: VizMSEPlayoutItemContentInternal): string {
 		if (_.isNumber(cmd.templateInstance)) {
 			return 'pilot_' + cmd.templateInstance
 		} else {
@@ -1004,7 +1010,7 @@ class VizMSEManager extends EventEmitter {
 	/**
 	 * Check if element is already created, otherwise create it and return it.
 	 */
-	private async _checkPrepareElement (cmd: ExpectedPlayoutItemContentVizMSEInternal, fromPrepare?: boolean): Promise<string | number> {
+	private async _checkPrepareElement (cmd: VizMSEPlayoutItemContentInternal, fromPrepare?: boolean): Promise<string | number> {
 		// check if element is prepared
 		const elementHash = this.getElementHash(cmd)
 
@@ -1024,7 +1030,7 @@ class VizMSEManager extends EventEmitter {
 
 	}
 	/** Check that the element exists and if not, throw error */
-	private async _checkElementExists (cmd: ExpectedPlayoutItemContentVizMSEInternal): Promise<void> {
+	private async _checkElementExists (cmd: VizMSEPlayoutItemContentInternal): Promise<void> {
 		const rundown = await this._getRundown()
 
 		const elementHash = this.getElementHash(cmd)
@@ -1046,7 +1052,7 @@ class VizMSEManager extends EventEmitter {
 	/**
 	 * Create a new element in MSE
 	 */
-	private async _prepareNewElement (cmd: ExpectedPlayoutItemContentVizMSEInternal): Promise<VElement> {
+	private async _prepareNewElement (cmd: VizMSEPlayoutItemContentInternal): Promise<VElement> {
 		const rundown = await this._getRundown()
 		const elementHash = this.getElementHash(cmd)
 
@@ -1086,13 +1092,20 @@ class VizMSEManager extends EventEmitter {
 
 		}
 	}
-	private async _getExpectedPlayoutItems (): Promise<{ [hash: string]: ExpectedPlayoutItemContentVizMSEInternal }> {
+	private async _getExpectedPlayoutItems (): Promise<{ [hash: string]: VizMSEPlayoutItemContentInternal }> {
 		this.emit('debug', `VISMSE: _getExpectedPlayoutItems (${this._expectedPlayoutItems.length})`)
 
-		const hashesAndItems: {[hash: string]: ExpectedPlayoutItemContentVizMSEInternal} = {}
+		const hashesAndItems: {[hash: string]: VizMSEPlayoutItemContentInternal} = {}
+
+		const expectedPlayoutItems = _.filter(this._expectedPlayoutItems, expectedPlayoutItem => {
+			return (
+				!this.activeRundownId ||
+				this.activeRundownId !== expectedPlayoutItem.rundownId
+			)
+		})
 
 		await Promise.all(
-			_.map(this._expectedPlayoutItems, async expectedPlayoutItem => {
+			_.map(expectedPlayoutItems, async expectedPlayoutItem => {
 				try {
 					const stateLayer: VizMSEStateLayer | undefined = (
 						_.isNumber(expectedPlayoutItem.templateName) ?
@@ -1116,7 +1129,7 @@ class VizMSEManager extends EventEmitter {
 					)
 
 					if (stateLayer) {
-						const item: ExpectedPlayoutItemContentVizMSEInternal = {
+						const item: VizMSEPlayoutItemContentInternal = {
 							...expectedPlayoutItem,
 							templateInstance: VizMSEManager.getTemplateInstance(stateLayer)
 						}
@@ -1150,7 +1163,7 @@ class VizMSEManager extends EventEmitter {
 		}))
 		if (this._rundown) {
 
-			this.emit('debug', `Updating status of elements starting, elementsToLoad.length=${elementsToLoad.length} (${_.keys(hashesAndItems).length})`)
+			this.emit('debug', `Updating status of elements starting, activeRundownId="${this.activeRundownId}", elementsToLoad.length=${elementsToLoad.length} (${_.keys(hashesAndItems).length})`)
 
 			const rundown = await this._getRundown()
 
@@ -1504,7 +1517,7 @@ export enum VizMSECommandType {
 	CLEAR_ALL_ELEMENTS = 'clear_all_elements'
 }
 
-interface VizMSECommandElementBase extends VizMSECommandBase, ExpectedPlayoutItemContentVizMSEInternal {
+interface VizMSECommandElementBase extends VizMSECommandBase, VizMSEPlayoutItemContentInternal {
 }
 interface VizMSECommandPrepare extends VizMSECommandElementBase {
 	type: VizMSECommandType.PREPARE_ELEMENT
@@ -1543,7 +1556,7 @@ type VizMSECommand = VizMSECommandPrepare |
 	VizMSECommandLoadAllElements |
 	VizMSECommandClearAllElements
 
-interface ExpectedPlayoutItemContentVizMSEInternal extends ExpectedPlayoutItemContentVizMSE {
+interface VizMSEPlayoutItemContentInternal extends VIZMSEPlayoutItemContent {
 	/** Name of the instance of the element in MSE, generated by us */
 	templateInstance: string
 }

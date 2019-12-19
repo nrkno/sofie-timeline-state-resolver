@@ -32,6 +32,8 @@ export interface VizMSEOptions {
 	// profileName
 	/** If true, the rundown won't be deactivated on standdown */
 	dontDeactivateOnStandDown?: boolean
+	/** If true, only elements in the currently active rundown will be loaded */
+	onlyPreloadActiveRundown?: boolean
 }
 export enum TimelineContentTypeVizMSE {
 	ELEMENT_INTERNAL = 'element_internal',
@@ -155,4 +157,15 @@ export interface VIZMSETransitionDelay {
 
 	// For how long to delay the take out (ms)
 	delay: number
+}
+export interface VIZMSEPlayoutItemContent {
+	/** Name of the element, or Pilot Element */
+	templateName: string | number // if number, it's a vizPilot element
+	/** Data fields of the element (for internal elements only) */
+	templateData?: string[]
+	/** What channel to use for the element */
+	channelName?: string
+
+	/** If true, won't be preloaded (cued) automatically */
+	noAutoPreloading?: boolean
 }

@@ -58,7 +58,7 @@ export interface IDevice {
 	canConnect: boolean
 	connected: boolean
 
-	makeReady: (_okToDestroyStuff?: boolean) => Promise<void>
+	makeReady: (_okToDestroyStuff?: boolean, activeRundownId?: string) => Promise<void>
 	standDown: (_okToDestroyStuff?: boolean) => Promise<void>
 	getStatus: () => DeviceStatus
 
