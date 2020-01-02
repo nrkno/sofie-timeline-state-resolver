@@ -34,6 +34,8 @@ export interface VizMSEOptions {
 	dontDeactivateOnStandDown?: boolean
 	/** If true, only elements in the currently active rundown will be loaded */
 	onlyPreloadActiveRundown?: boolean
+	/** If true, Will call a second rundown.activate() on loadAll */
+	initializeRundownOnLoadAll?: boolean
 }
 export enum TimelineContentTypeVizMSE {
 	ELEMENT_INTERNAL = 'element_internal',
