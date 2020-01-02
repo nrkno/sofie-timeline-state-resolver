@@ -116,6 +116,7 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState> implements IDevic
 			this,
 			this._vizMSE,
 			this._initOptions.preloadAllElements,
+			this._initOptions.initializeRundownOnLoadAll,
 			initOptions.showID,
 			initOptions.profile,
 			initOptions.playlistID
@@ -708,6 +709,7 @@ class VizMSEManager extends EventEmitter {
 		private _parentVizMSEDevice: VizMSEDevice,
 		private _vizMSE: MSE,
 		public preloadAllElements: boolean = false,
+		private _initializeRundownOnLoadAll: boolean = false,
 		private _showID: string,
 		private _profile: string,
 		private _playlistID?: string
@@ -1216,6 +1218,14 @@ class VizMSEManager extends EventEmitter {
 		this.emit('debug', '_triggerLoadAllElements starting')
 		// First, update the loading-status of all elements:
 		await this.updateElementsLoadedStatus(true)
+
+		if (this._initializeRundownOnLoadAll) {
+			try {
+				await rundown.activate() // Our theory: an extra initialization of the rundown playlist loads all internal elements
+			} catch (error) {
+				this.emit('warning', `Ignored error for rundown.activate(): ${error}`)
+			}
+		}
 
 		// Then, load all elements that needs loading:
 		await Promise.all(
