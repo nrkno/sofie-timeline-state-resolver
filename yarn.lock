@@ -1064,10 +1064,10 @@ casparcg-connection@^4.9.0:
     xml2js "^0.4.19"
     xmlbuilder "^9.0.7"
 
-casparcg-state@^1.11.0:
-  version "1.11.0"
-  resolved "https://registry.yarnpkg.com/casparcg-state/-/casparcg-state-1.11.0.tgz#f13e9357ce31ae061a2e45df9ae7609d243f80d0"
-  integrity sha512-0LIExVGfXZPFjjXT0wScRZGdZImg9/rrFSB+S8nDyo++MFm5TBP0GE7lSK6Tsf7Q8CGmdbuaQiJmS3gZvReeqw==
+casparcg-state@^1.11.2:
+  version "1.11.2"
+  resolved "https://registry.yarnpkg.com/casparcg-state/-/casparcg-state-1.11.2.tgz#3f738a143f9484ef43e3a2ea43611f14f84744bc"
+  integrity sha512-iOn2E7Ut3Vfs71zR7Vqbu2xjDcKomkzIKvNVpK6cRtg4xXTVToWgaGolI3fFB4VR3nAhBC1naLaDnyRMtqgLmA==
   dependencies:
     casparcg-connection "^4.9.0"
     fast-clone "^1.5.13"
@@ -2537,11 +2537,12 @@ humanize-url@^1.0.0:
     normalize-url "^1.0.0"
     strip-url-auth "^1.0.0"
 
-hyperdeck-connection@^0.4.0:
-  version "0.4.0"
-  resolved "https://registry.yarnpkg.com/hyperdeck-connection/-/hyperdeck-connection-0.4.0.tgz#47546aa1fc37e335adaed0d06637857d455e797e"
-  integrity sha512-W2fmnaWoRAwEtHAvUTM7saaPlE6keHA7PwD4kAvd4EPwrjO6Q/FR5uK8oCVSPz8dzLiIU0DIfbQf32iJEIuDgA==
+hyperdeck-connection@^0.4.2:
+  version "0.4.2"
+  resolved "https://registry.yarnpkg.com/hyperdeck-connection/-/hyperdeck-connection-0.4.2.tgz#c5e60f62eeeac3397dd9b9897d345d241894450f"
+  integrity sha512-uluecgZxeywLGMeBOv+256yJEDcghGih/ltV24vBBwaMF7oL0OEphsMbGLKZah5KZfIsDE8vTK5Hy342891JjQ==
   dependencies:
+    tslib "^1.9.0"
     underscore "^1.9.1"
     underscore-deep-extend "^1.1.5"
 
