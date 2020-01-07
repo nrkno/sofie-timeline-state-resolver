@@ -1298,6 +1298,18 @@ class VizMSEManager extends EventEmitter {
 
 				loaded = loaded // loaded isn't really used anywhere
 
+				if (notLoaded > 0 || loading > 0) {
+					// emit debug data
+					this.emit('debug', `Items on queue: notLoaded: ${notLoaded} loading: ${loading}, loaded: ${loaded}`)
+
+					this.emit('debug', `_elementsLoaded: ${_.map(
+						_.filter(this._elementsLoaded, e => !e.isLoaded).slice(0, 10),
+						e => {
+							return JSON.stringify(e.element)
+						}
+					)}`)
+				}
+
 				this._setLoadedStatus(notLoaded, loading)
 
 			} else this._setLoadedStatus(0, 0)
