@@ -1106,9 +1106,13 @@ class VizMSEManager extends EventEmitter {
 		const hashesAndItems: {[hash: string]: VizMSEPlayoutItemContentInternal} = {}
 
 		const expectedPlayoutItems = _.filter(this._expectedPlayoutItems, expectedPlayoutItem => {
+			const templateName = typeof expectedPlayoutItem.templateName as string | number | undefined
 			return (
-				!this.activeRundownId ||
-				this.activeRundownId === expectedPlayoutItem.rundownId
+				(
+					!this.activeRundownId ||
+					this.activeRundownId === expectedPlayoutItem.rundownId
+				) &&
+				typeof templateName !== 'undefined'
 			)
 		})
 
