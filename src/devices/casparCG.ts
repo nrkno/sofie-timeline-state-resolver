@@ -44,6 +44,7 @@ import * as request from 'request'
 
 const MAX_TIMESYNC_TRIES = 5
 const MAX_TIMESYNC_DURATION = 40
+const MEDIA_RETRY_INTERVAL = 10 * 1000 // time in ms between checking whether a file needs to be retried loading
 
 export interface DeviceOptionsCasparCGInternal extends DeviceOptionsCasparCG {
 	options: (
@@ -70,6 +71,7 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> implements ID
 	private _doOnTime: DoOnTime
 	private initOptions?: CasparCGOptions
 	private _connected: boolean = false
+	private _retryInterval: NodeJS.Timeout
 
 	constructor (deviceId: string, deviceOptions: DeviceOptionsCasparCGInternal, options) {
 		super(deviceId, deviceOptions, options)
@@ -131,6 +133,10 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> implements ID
 			}
 		}) as StateNS.ChannelInfo[], this.getCurrentTime())
 
+		if (!initOptions.disableRetries) {
+			this._retryInterval = setInterval(() => this._assertIntendedState(), MEDIA_RETRY_INTERVAL)
+		}
+
 		return true
 	}
 
@@ -139,6 +145,7 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> implements ID
 	 */
 	terminate (): Promise<boolean> {
 		this._doOnTime.dispose()
+		clearInterval(this._retryInterval)
 		return new Promise((resolve) => {
 			this._ccg.disconnect()
 			this._ccg.onDisconnected = () => {
@@ -716,7 +723,7 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> implements ID
 	 * @param time deprecated
 	 * @param cmd Command to execute
 	 */
-	private _defaultCommandReceiver (_time: number, cmd: CommandNS.IAMCPCommand, context: string, timelineObjId: string): Promise<any> {
+	private _defaultCommandReceiver (time: number, cmd: CommandNS.IAMCPCommand, context: string, timelineObjId: string): Promise<any> {
 
 		let cwc: CommandWithContext = {
 			context: context,
@@ -730,6 +737,7 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> implements ID
 			if (this._queue[resCommand.token]) {
 				delete this._queue[resCommand.token]
 			}
+			this._ccgState.applyCommands([{ cmd: resCommand.serialize() }], time)
 		}).catch((error) => {
 			let errorString = ''
 			if (error && error.response && error.response.code === 404) {
@@ -759,6 +767,41 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> implements ID
 				delete this._queue[cmd.token]
 			}
 		})
+	}
+
+	/**
+	 * This function takes the current timeline-state, and diffs it with the known
+	 * CasparCG state. If any media has failed to load, it will create a diff with
+	 * the intended (timeline) state and that command will be executed.
+	 */
+	private _assertIntendedState () {
+		const tlState = this.getState(this.getCurrentTime())
+
+		if (!tlState) return // no state implies any state is correct
+
+		const ccgState = this.convertStateToCaspar(tlState.state)
+
+		const diff = this._ccgState.getDiff(ccgState, this.getCurrentTime())
+
+		const cmd: Array<IAMCPCommandVOWithContext> = []
+		for (const layer of diff) {
+			// filter out media commands
+			for (let i = 0; i < layer.cmds.length; i++) {
+				if (
+					layer.cmds[i]._commandName === 'LoadbgCommand'
+					||
+					(layer.cmds[i]._commandName === 'PlayCommand' && layer.cmds[i]._objectParams.clip)
+					||
+					layer.cmds[i]._commandName === 'LoadCommand'
+				) {
+					cmd.push(layer.cmds[i])
+				}
+			}
+		}
+
+		if (cmd.length > 0) {
+			this._addToQueue(cmd, this.getCurrentTime())
+		}
 	}
 
 	/**

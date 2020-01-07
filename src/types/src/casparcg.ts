@@ -16,6 +16,7 @@ export interface CasparCGOptions {
 
 	/** whether to use the CasparCG-SCHEDULE command to run future commands, or the internal (backwards-compatible) command queue */
 	useScheduling?: boolean
+	disableRetries?: boolean
 	/* Timecode base of channel */
 	timeBase?: {[channel: string]: number} | number
 
