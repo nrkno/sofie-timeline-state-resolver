@@ -78,7 +78,7 @@ describe('Rundown', () => {
 				host: '127.0.0.1',
 				timeBase: 50,
 				useScheduling: true,
-				disableRetries: true
+				retryInterval: false
 			}
 		})
 		await myConductor.setMapping(myLayerMapping)

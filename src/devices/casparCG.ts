@@ -44,7 +44,8 @@ import * as request from 'request'
 
 const MAX_TIMESYNC_TRIES = 5
 const MAX_TIMESYNC_DURATION = 40
-const MEDIA_RETRY_INTERVAL = 10 * 1000 // time in ms between checking whether a file needs to be retried loading
+const MEDIA_RETRY_INTERVAL = 10 * 1000 // default time in ms between checking whether a file needs to be retried loading
+const MEDIA_RETRY_DEBOUNCE = 500 // how long to wait after a command has sent before checking for retries
 
 export interface DeviceOptionsCasparCGInternal extends DeviceOptionsCasparCG {
 	options: (
@@ -71,7 +72,8 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> implements ID
 	private _doOnTime: DoOnTime
 	private initOptions?: CasparCGOptions
 	private _connected: boolean = false
-	private _retryInterval: NodeJS.Timeout
+	private _retryTimeout: NodeJS.Timeout
+	private _retryTime: number = MEDIA_RETRY_INTERVAL
 
 	constructor (deviceId: string, deviceOptions: DeviceOptionsCasparCGInternal, options) {
 		super(deviceId, deviceOptions, options)
@@ -133,8 +135,9 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> implements ID
 			}
 		}) as StateNS.ChannelInfo[], this.getCurrentTime())
 
-		if (!initOptions.disableRetries) {
-			this._retryInterval = setInterval(() => this._assertIntendedState(), MEDIA_RETRY_INTERVAL)
+		if (initOptions.retryInterval !== false) {
+			if (typeof initOptions.retryInterval === 'number') this._retryTime = initOptions.retryInterval || MEDIA_RETRY_INTERVAL
+			this._retryTimeout = setTimeout(() => this._assertIntendedState(), this._retryTime)
 		}
 
 		return true
@@ -145,7 +148,7 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> implements ID
 	 */
 	terminate (): Promise<boolean> {
 		this._doOnTime.dispose()
-		clearInterval(this._retryInterval)
+		clearTimeout(this._retryTimeout)
 		return new Promise((resolve) => {
 			this._ccg.disconnect()
 			this._ccg.onDisconnected = () => {
@@ -724,6 +727,11 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> implements ID
 	 * @param cmd Command to execute
 	 */
 	private _defaultCommandReceiver (time: number, cmd: CommandNS.IAMCPCommand, context: string, timelineObjId: string): Promise<any> {
+		// do no retry while we are sending commands, instead always retry closely after:
+		if (!context.match(/\[RETRY\]/i)) {
+			clearTimeout(this._retryTimeout)
+			this._retryTimeout = setTimeout(() => this._assertIntendedState(), MEDIA_RETRY_DEBOUNCE)
+		}
 
 		let cwc: CommandWithContext = {
 			context: context,
@@ -775,6 +783,8 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> implements ID
 	 * the intended (timeline) state and that command will be executed.
 	 */
 	private _assertIntendedState () {
+		this._retryTimeout = setTimeout(() => this._assertIntendedState(), this._retryTime)
+
 		const tlState = this.getState(this.getCurrentTime())
 
 		if (!tlState) return // no state implies any state is correct
@@ -794,6 +804,7 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> implements ID
 					||
 					layer.cmds[i]._commandName === 'LoadCommand'
 				) {
+					layer.cmds[i].context.context += ' [RETRY]'
 					cmd.push(layer.cmds[i])
 				}
 			}
