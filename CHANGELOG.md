@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [3.17.0](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/3.16.2...3.17.0) (2020-01-08)
+
+
+### Features
+
+* atem media pool config ([#132](https://github.com/nrkno/tv-automation-state-timeline-resolver/issues/132)) ([f9b4a9f](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/f9b4a9fd218675e3fc848ead8ec6c4b811678f6a))
+
 ### [3.16.2](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/3.16.1...3.16.2) (2019-12-16)
 
 
