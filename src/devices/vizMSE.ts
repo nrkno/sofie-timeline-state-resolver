@@ -683,6 +683,10 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState> implements IDevic
 			this.emit('commandError', new Error(errorString), cwc)
 		}
 	}
+	public ignoreWaitsInTests () {
+		if (!this._vizmseManager) throw new Error('_vizmseManager not set')
+		this._vizmseManager.ignoreAllWaits = true
+	}
 }
 class VizMSEManager extends EventEmitter {
 	public initialized: boolean = false
@@ -704,6 +708,7 @@ class VizMSEManager extends EventEmitter {
 	private _waitWithLayers: {
 		[portId: string]: Function[]
 	} = {}
+	public ignoreAllWaits: boolean = false // Only to be used in tests
 
 	constructor (
 		private _parentVizMSEDevice: VizMSEDevice,
@@ -1331,6 +1336,7 @@ class VizMSEManager extends EventEmitter {
 
 	}
 	private _wait (time: number): Promise<void> {
+		if (this.ignoreAllWaits) return Promise.resolve()
 		return new Promise(resolve => setTimeout(resolve, time))
 	}
 	/** Execute fcn an retry a couple of times until it succeeds */

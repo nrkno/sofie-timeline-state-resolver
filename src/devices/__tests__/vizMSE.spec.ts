@@ -63,6 +63,7 @@ describe('vizMSE', () => {
 
 		let deviceContainer = myConductor.getDevice('myViz')
 		let device = deviceContainer.device as ThreadedClass<VizMSEDevice>
+		device.ignoreWaitsInTests()
 
 		// Check that no commands has been scheduled:
 		expect(await device.queue).toHaveLength(0)
@@ -240,7 +241,7 @@ describe('vizMSE', () => {
 
 		let deviceContainer = myConductor.getDevice('myViz')
 		device = deviceContainer.device as ThreadedClass<VizMSEDevice>
-
+		device.ignoreWaitsInTests()
 		// Check that no commands has been scheduled:
 		expect(await device.queue).toHaveLength(0)
 
@@ -328,7 +329,7 @@ describe('vizMSE', () => {
 
 		expect(rundown.activate).toHaveBeenCalledTimes(1)
 
-		expect(rundown.getElement).toHaveBeenCalledTimes(2)
+		expect(rundown.getElement).toHaveBeenCalledTimes(4)
 		expect(rundown.getElement).nthCalledWith(1, 1337)
 		expect(rundown.getElement).nthCalledWith(2, 1336)
 
@@ -616,6 +617,7 @@ describe('vizMSE', () => {
 
 		let deviceContainer = myConductor.getDevice('myViz')
 		let device = deviceContainer.device as ThreadedClass<VizMSEDevice>
+		device.ignoreWaitsInTests()
 
 		// Check that no commands has been scheduled:
 		expect(await device.queue).toHaveLength(0)
@@ -772,6 +774,7 @@ describe('vizMSE', () => {
 
 		let deviceContainer = myConductor.getDevice('myViz')
 		device = deviceContainer.device as ThreadedClass<VizMSEDevice>
+		device.ignoreWaitsInTests()
 
 		// Check that no commands has been scheduled:
 		expect(await device.queue).toHaveLength(0)
