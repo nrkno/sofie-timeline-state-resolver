@@ -116,7 +116,6 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState> implements IDevic
 			this,
 			this._vizMSE,
 			this._initOptions.preloadAllElements,
-			this._initOptions.initializeRundownOnLoadAll,
 			initOptions.showID,
 			initOptions.profile,
 			initOptions.playlistID
@@ -714,7 +713,6 @@ class VizMSEManager extends EventEmitter {
 		private _parentVizMSEDevice: VizMSEDevice,
 		private _vizMSE: MSE,
 		public preloadAllElements: boolean = false,
-		private _initializeRundownOnLoadAll: boolean = false,
 		private _showID: string,
 		private _profile: string,
 		private _playlistID?: string
@@ -804,11 +802,7 @@ class VizMSEManager extends EventEmitter {
 		this._clearCache()
 
 		this._triggerCommandSent()
-		await rundown.activate()
-		this._triggerCommandSent()
-		await this._wait(3000)
-		this._triggerCommandSent()
-		await this._triggerLoadAllElements()
+		await this._triggerLoadAllElements(true)
 		this._triggerCommandSent()
 		this._hasActiveRundown = true
 	}
@@ -1223,22 +1217,27 @@ class VizMSEManager extends EventEmitter {
 	/**
 	 * Trigger a load of all elements that are not yet loaded onto the vizEngine.
 	 */
-	private async _triggerLoadAllElements (): Promise<void> {
+	private async _triggerLoadAllElements (loadTwice: boolean = false): Promise<void> {
 		const rundown = await this._getRundown()
 
 		this.emit('debug', '_triggerLoadAllElements starting')
 		// First, update the loading-status of all elements:
 		await this.updateElementsLoadedStatus(true)
 
-		if (this._initializeRundownOnLoadAll) {
+		// if (this._initializeRundownOnLoadAll) {
+
+		// Then, load all elements that needs loading:
+		const loadAllElementsThatNeedsLoading = async () => {
+			this._triggerCommandSent()
 			try {
+				this.emit('debug', 'rundown.activate triggered')
 				await rundown.activate() // Our theory: an extra initialization of the rundown playlist loads all internal elements
 			} catch (error) {
 				this.emit('warning', `Ignored error for rundown.activate(): ${error}`)
 			}
-		}
-		// Then, load all elements that needs loading:
-		const loadAllElementsThatNeedsLoading = async () => {
+			this._triggerCommandSent()
+			await this._wait(1000)
+			this._triggerCommandSent()
 			await Promise.all(
 				_.map(this._elementsLoaded, async (e) => {
 					if (this._isInternalElement(e.element)) {
@@ -1262,12 +1261,15 @@ class VizMSEManager extends EventEmitter {
 			)
 		}
 
-		// He's making a list, he's checking it twice:
+		// He's making a list:
 		await loadAllElementsThatNeedsLoading()
 		await this._wait(2000)
-		await this.updateElementsLoadedStatus()
-		await loadAllElementsThatNeedsLoading()
-		// ^ Gonna find out what's loaded or nice
+		if (loadTwice) {
+			// He's checking it twice:
+			await this.updateElementsLoadedStatus()
+			// Gonna find out what's loaded and nice:
+			await loadAllElementsThatNeedsLoading()
+		}
 
 		this.emit('debug', '_triggerLoadAllElements done')
 	}
