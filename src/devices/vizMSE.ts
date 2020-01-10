@@ -583,7 +583,7 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState> implements IDevic
 			}
 		})
 
-		if (newState.isClearAll) {
+		if (newState.isClearAll && !oldState.isClearAll) {
 			// Special: clear all graphics
 
 			const templateName = this._initOptions && this._initOptions.clearAllTemplateName
