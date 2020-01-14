@@ -802,12 +802,6 @@ class VizMSEManager extends EventEmitter {
 		this._clearCache()
 
 		this._triggerCommandSent()
-		try {
-			await rundown.activate()
-		} catch (error) {
-			this.emit('warning', `Ignored error for rundown.activate(): ${error}`)
-		}
-		this._triggerCommandSent()
 		await this._triggerLoadAllElements(true)
 		this._triggerCommandSent()
 		this._hasActiveRundown = true
@@ -1235,6 +1229,13 @@ class VizMSEManager extends EventEmitter {
 		// Then, load all elements that needs loading:
 		const loadAllElementsThatNeedsLoading = async () => {
 			this._triggerCommandSent()
+			try {
+				this.emit('debug', 'rundown.activate triggered')
+				await rundown.activate() // Our theory: an extra initialization of the rundown playlist loads all internal elements
+			} catch (error) {
+				this.emit('warning', `Ignored error for rundown.activate(): ${error}`)
+			}
+			this._triggerCommandSent()
 			await this._wait(1000)
 			this._triggerCommandSent()
 			await Promise.all(
@@ -1260,30 +1261,13 @@ class VizMSEManager extends EventEmitter {
 			)
 		}
 
+		// He's making a list:
+		await loadAllElementsThatNeedsLoading()
+		await this._wait(2000)
 		if (loadTwice) {
-			// He's making a list:
-			await loadAllElementsThatNeedsLoading()
-			await this._wait(2000)
 			// He's checking it twice:
-			try {
-				this.emit('debug', 'rundown.activate triggered')
-				await rundown.activate(false, false, true) // Our theory: an extra initialization of the rundown playlist loads all internal elements
-			} catch (error) {
-				this.emit('warning', `Ignored error for rundown.activate(): ${error}`)
-			}
-			await this._wait(1000)
 			await this.updateElementsLoadedStatus()
 			// Gonna find out what's loaded and nice:
-			await loadAllElementsThatNeedsLoading()
-		} else {
-			this._triggerCommandSent()
-			try {
-				this.emit('debug', 'rundown.activate triggered')
-				await rundown.activate(false, false, true) // Our theory: an extra initialization of the rundown playlist loads all internal elements
-			} catch (error) {
-				this.emit('warning', `Ignored error for rundown.activate(): ${error}`)
-			}
-			await this._wait(1000)
 			await loadAllElementsThatNeedsLoading()
 		}
 
