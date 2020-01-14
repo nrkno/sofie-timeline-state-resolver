@@ -1391,7 +1391,11 @@ class VizMSEManager extends EventEmitter {
 	 */
 	private _isElementLoaded (el: VElement): boolean {
 		if (this._isInternalElement(el)) {
-			return true // not implemented / unknown
+			return (
+				(el.available === '1.00' || el.available === '1' || el.available === undefined) &&
+				(el.loaded === '1.00' || el.loaded === '1') &&
+				el.is_loading !== 'yes'
+			)
 
 		} else if (this._isExternalElement(el)) {
 			return (
@@ -1408,8 +1412,10 @@ class VizMSEManager extends EventEmitter {
 	 */
 	private _isElementLoading (el: VElement) {
 		if (this._isInternalElement(el)) {
-			return false // not implemented / unknown
-
+			return (
+				(el.loaded !== '1.00' && el.loaded !== '1') &&
+				el.is_loading === 'yes'
+			)
 		} else if (this._isExternalElement(el)) {
 			return (
 				(el.loaded !== '1.00' && el.loaded !== '1') &&
