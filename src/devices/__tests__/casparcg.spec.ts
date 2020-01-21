@@ -1298,4 +1298,123 @@ describe('CasparCG', () => {
 			layer: 10
 		})
 	})
+
+	test('CasparCG: play missing file with reloads', async () => {
+		const commandReceiver0: any = jest.fn(() => {
+			return Promise.resolve()
+		})
+		let myLayerMapping0: MappingCasparCG = {
+			device: DeviceType.CASPARCG,
+			deviceId: 'myCCG',
+			channel: 2,
+			layer: 42
+		}
+		let myLayerMapping: Mappings = {
+			'myLayer0': myLayerMapping0
+		}
+
+		let myConductor = new Conductor({
+			initializeAsClear: true,
+			getCurrentTime: mockTime.getCurrentTime
+		})
+		await myConductor.init()
+		await myConductor.addDevice('myCCG', {
+			type: DeviceType.CASPARCG,
+			options: {
+				commandReceiver: commandReceiver0,
+				host: '127.0.0.1',
+				useScheduling: false,
+				retryInterval: false // disable retries explicitly, we will manually trigger them
+			}
+		})
+		await myConductor.setMapping(myLayerMapping)
+		await mockTime.advanceTimeToTicks(10100)
+
+		expect(commandReceiver0).toHaveBeenCalledTimes(0)
+
+		commandReceiver0.mockClear()
+
+		let deviceContainer = myConductor.getDevice('myCCG')
+		let device = deviceContainer.device
+
+		// Check that no commands has been scheduled:
+		expect(await device['queue']).toHaveLength(0)
+
+		myConductor.timeline = [
+			{
+				id: 'obj0',
+				enable: {
+					start: mockTime.getCurrentTime() - 1000, // 1 seconds ago
+					duration: 2000
+				},
+				layer: 'myLayer0',
+				content: {
+					deviceType: DeviceType.CASPARCG,
+					type: TimelineContentTypeCasparCg.MEDIA,
+
+					file: 'AMB',
+					loop: true
+				}
+			}
+		]
+
+		await mockTime.advanceTimeToTicks(10200)
+
+		// one command has been sent:
+		expect(commandReceiver0).toHaveBeenCalledTimes(1)
+		expect(getMockCall(commandReceiver0, 0, 1)._objectParams).toMatchObject({
+			channel: 2,
+			layer: 42,
+			noClear: false,
+			clip: 'AMB',
+			loop: true,
+			seek: 0 // looping and seeking nos supported when length not provided
+		})
+
+		// advance before half way
+		await mockTime.advanceTimeToTicks(10500)
+		// no retries issued yet
+		expect(commandReceiver0).toHaveBeenCalledTimes(1)
+
+		// advance to half way
+		await mockTime.advanceTimeToTicks(10700)
+		// call the retry mechanism
+		await (device as any)._assertIntendedState()
+		await mockTime.advanceTimeToTicks(10800)
+
+		expect(commandReceiver0).toHaveBeenCalledTimes(2)
+		expect(getMockCall(commandReceiver0, 1, 1)._objectParams).toMatchObject({
+			channel: 2,
+			layer: 42,
+			noClear: false,
+			clip: 'AMB',
+			loop: true,
+			seek: 0 // looping and seeking nos supported when length not provided
+		})
+
+		// apply command to internal ccg-state
+		;(await (device as any)._ccgState).applyCommands([{ cmd: getMockCall(commandReceiver0, 1, 1).serialize() }], 10800)
+		// trigger retry mechanism
+		await (device as any)._assertIntendedState()
+		await mockTime.advanceTimeToTicks(10900)
+		// no retries done
+		expect(commandReceiver0).toHaveBeenCalledTimes(2)
+
+		// advance time to end of clip:
+		await mockTime.advanceTimeToTicks(11200)
+
+		// 3 commands have been sent:
+		expect(commandReceiver0).toHaveBeenCalledTimes(3)
+		expect(getMockCall(commandReceiver0, 2, 1).name).toEqual('ClearCommand')
+		expect(getMockCall(commandReceiver0, 2, 1).channel).toEqual(2)
+		expect(getMockCall(commandReceiver0, 2, 1).layer).toEqual(42)
+
+		// advance time to after clip:
+		await mockTime.advanceTimeToTicks(11700)
+		// call the retry mechanism
+		await (device as any)._assertIntendedState()
+		await mockTime.advanceTimeToTicks(11800)
+		// no retries issued
+		expect(commandReceiver0).toHaveBeenCalledTimes(3)
+	})
 })
