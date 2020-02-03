@@ -614,6 +614,8 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState> implements IDevic
 		sortCommands(highPrioCommands)
 		sortCommands(lowPrioCommands)
 
+		console.log(`VIZMSE: COMMANDS: ${JSON.stringify(sortCommands(highPrioCommands.concat(lowPrioCommands)))}`)
+
 		return sortCommands(highPrioCommands.concat(lowPrioCommands))
 	}
 	private _doCommand (command: VizMSECommand, context: string, timlineObjId: string): Promise<void> {
