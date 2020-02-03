@@ -603,7 +603,7 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState> implements IDevic
 				]
 			}
 		}
-		const sortCommands = (commands: VizMSECommand[]) => {
+		const sortCommands = (commands: VizMSECommand[]): VizMSECommand[] => {
 			// Sort the commands so that take out:s are run first
 			return commands.sort((a, b) => {
 				if (a.type === VizMSECommandType.TAKEOUT_ELEMENT && b.type !== VizMSECommandType.TAKEOUT_ELEMENT) return -1
@@ -627,14 +627,16 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState> implements IDevic
 			}
 		})
 
-		concatCommands.forEach((command, index) => {
-			if (command.type === VizMSECommandType.TAKE_ELEMENT) {
-				this[index].transition = {
-					type: VIZMSETransitionType.DELAY,
-					delay: highestDelay
+		if (highestDelay > 0) {
+			concatCommands.forEach((command, index) => {
+				if (command.type === VizMSECommandType.TAKE_ELEMENT) {
+					(concatCommands[index] as VizMSECommandTake).transition = {
+						type: VIZMSETransitionType.DELAY,
+						delay: highestDelay
+					}
 				}
-			}
-		}, concatCommands)
+			})
+		}
 
 		console.log(`VIZMSE: COMMANDS: ${JSON.stringify(sortCommands(concatCommands))}`)
 
