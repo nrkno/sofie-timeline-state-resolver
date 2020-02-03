@@ -632,7 +632,7 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState> implements IDevic
 				if (command.type === VizMSECommandType.TAKE_ELEMENT) {
 					(concatCommands[index] as VizMSECommandTake).transition = {
 						type: VIZMSETransitionType.DELAY,
-						delay: highestDelay
+						delay: highestDelay + 0.1
 					}
 				}
 			})
