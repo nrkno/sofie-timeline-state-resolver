@@ -614,7 +614,7 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState> implements IDevic
 		sortCommands(highPrioCommands)
 		sortCommands(lowPrioCommands)
 
-		return highPrioCommands.reverse().concat(lowPrioCommands.reverse())
+		return highPrioCommands.concat(lowPrioCommands)
 	}
 	private _doCommand (command: VizMSECommand, context: string, timlineObjId: string): Promise<void> {
 		let time = this.getCurrentTime()
