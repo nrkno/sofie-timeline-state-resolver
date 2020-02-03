@@ -614,9 +614,31 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState> implements IDevic
 		sortCommands(highPrioCommands)
 		sortCommands(lowPrioCommands)
 
-		console.log(`VIZMSE: COMMANDS: ${JSON.stringify(sortCommands(highPrioCommands.concat(lowPrioCommands)))}`)
+		const concatCommands = sortCommands(highPrioCommands.concat(lowPrioCommands))
 
-		return sortCommands(highPrioCommands.concat(lowPrioCommands))
+		let highestDelay = 0
+		concatCommands.forEach((command) => {
+			if (command.type === VizMSECommandType.TAKEOUT_ELEMENT) {
+				if (command.transition && command.transition.delay) {
+					if (command.transition.delay > highestDelay) {
+						highestDelay = command.transition.delay
+					}
+				}
+			}
+		})
+
+		concatCommands.forEach((command, index) => {
+			if (command.type === VizMSECommandType.TAKE_ELEMENT) {
+				this[index].transition = {
+					type: VIZMSETransitionType.DELAY,
+					delay: highestDelay
+				}
+			}
+		}, concatCommands)
+
+		console.log(`VIZMSE: COMMANDS: ${JSON.stringify(sortCommands(concatCommands))}`)
+
+		return sortCommands(concatCommands)
 	}
 	private _doCommand (command: VizMSECommand, context: string, timlineObjId: string): Promise<void> {
 		let time = this.getCurrentTime()
@@ -894,6 +916,15 @@ class VizMSEManager extends EventEmitter {
 		const rundown = await this._getRundown()
 
 		const elementRef = await this._checkPrepareElement(cmd)
+
+		if (cmd.transition) {
+			if (cmd.transition.type === VIZMSETransitionType.DELAY) {
+				if (await this.waitWithLayer(cmd.layerId || '__default', cmd.transition.delay)) {
+					// at this point, the wait aws aborted by someone else. Do nothing then.
+					return
+				}
+			}
+		}
 
 		await this._checkElementExists(cmd)
 		await this._handleRetry(() => {
@@ -1621,6 +1652,7 @@ interface VizMSECommandCue extends VizMSECommandElementBase {
 }
 interface VizMSECommandTake extends VizMSECommandElementBase {
 	type: VizMSECommandType.TAKE_ELEMENT
+	transition?: VIZMSEOutTransition
 }
 interface VizMSECommandTakeOut extends VizMSECommandElementBase {
 	type: VizMSECommandType.TAKEOUT_ELEMENT
