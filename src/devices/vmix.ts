@@ -7,7 +7,7 @@ import {
 } from './device'
 import {
 	DeviceType,
-	DeviceOptions,
+	DeviceOptionsVMix,
 	VMixOptions,
 	VMixCommandContent
 } from '../types/src'
@@ -44,10 +44,11 @@ import {
 	TimelineObjVMixOverlayInputOFF
 } from '../types/src/vmix'
 
-export interface VMixDeviceOptions extends DeviceOptions {
-	options?: {
-		commandReceiver?: CommandReceiver
-	}
+export interface DeviceOptionsVMixInternal extends DeviceOptionsVMix {
+	options: (
+		DeviceOptionsVMix['options'] &
+		{ commandReceiver?: CommandReceiver }
+	)
 }
 export type CommandReceiver = (time: number, cmd: VMixStateCommandWithContext, context: CommandContext, timelineObjId: string) => Promise<any>
 /*interface Command {
@@ -77,7 +78,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended> {
 	private _connected: boolean = false
 	private _initialized: boolean = false
 
-	constructor (deviceId: string, deviceOptions: VMixDeviceOptions, options) {
+	constructor (deviceId: string, deviceOptions: DeviceOptionsVMixInternal, options) {
 		super(deviceId, deviceOptions, options)
 		console.log(this._connected)
 		if (deviceOptions.options) {
@@ -795,8 +796,8 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended> {
 			timelineObjId: timelineObjId
 		}
 		this.emit('debug', cwc)
-
-		return this._vmix.sendCommand(cwc.command)
+		
+		return this._vmix.sendCommand(cmd.command)
 		.catch(error => {
 			this.emit('commandError', error, cwc)
 		})
