@@ -473,7 +473,7 @@ export class LawoDevice extends DeviceWithState<TimelineState> implements IDevic
 							if (e.success === false) { // @todo: QualifiedFunction Fader/Motor cannot handle too short durations or small value changes
 								this.emit('info', `Ember function result (${timelineObjId}): ${JSON.stringify(e)}`)
 							}
-							this.emit('error', `Lawo: Ember function command error (${timelineObjId})`, e)
+							this.emit('error', `Lawo: Ember function command error (${timelineObjId}, ${command.identifier})`, e)
 							throw e
 						}
 					}
