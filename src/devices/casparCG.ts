@@ -4,7 +4,8 @@ import {
 	CommandWithContext,
 	DeviceStatus,
 	StatusCode,
-	literal
+	literal,
+	IDevice
 } from './device'
 import {
 	CasparCG,
@@ -15,7 +16,6 @@ import {
 } from 'casparcg-connection'
 import {
 	DeviceType,
-	DeviceOptions,
 	Mapping,
 	TimelineContentTypeCasparCg,
 	MappingCasparCG,
@@ -28,7 +28,8 @@ import {
 	TimelineObjCCGTemplate,
 	TimelineObjCCGProducerContentBase,
 	ResolvedTimelineObjectInstanceExtended,
-	TimelineObjCCGIP
+	TimelineObjCCGIP,
+	DeviceOptionsCasparCG
 } from '../types/src'
 
 import {
@@ -44,12 +45,12 @@ import * as request from 'request'
 
 const MAX_TIMESYNC_TRIES = 5
 const MAX_TIMESYNC_DURATION = 40
-export interface CasparCGDeviceOptions extends DeviceOptions {
-	options?: {
-		commandReceiver?: CommandReceiver
-		/* Timecode base of channel */
-		timeBase?: {[channel: string]: number} | number
-	}
+
+export interface DeviceOptionsCasparCGInternal extends DeviceOptionsCasparCG {
+	options: (
+		DeviceOptionsCasparCG['options'] &
+		{ commandReceiver?: CommandReceiver }
+	)
 }
 export type CommandReceiver = (time: number, cmd: CommandNS.IAMCPCommand, context: string, timelineObjId: string) => Promise<any>
 /**
@@ -58,7 +59,7 @@ export type CommandReceiver = (time: number, cmd: CommandNS.IAMCPCommand, contex
  * commands. It depends on the DoOnTime class to execute the commands timely or,
  * optionally, uses the CasparCG command scheduling features.
  */
-export class CasparCGDevice extends DeviceWithState<TimelineState> {
+export class CasparCGDevice extends DeviceWithState<TimelineState> implements IDevice {
 
 	private _ccg: CasparCG
 	private _ccgState: CasparCGState
@@ -68,10 +69,10 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> {
 	private _timeBase: {[channel: string]: number} | number = {}
 	private _useScheduling?: boolean
 	private _doOnTime: DoOnTime
-	private _connectionOptions?: CasparCGOptions
+	private initOptions?: CasparCGOptions
 	private _connected: boolean = false
 
-	constructor (deviceId: string, deviceOptions: CasparCGDeviceOptions, options) {
+	constructor (deviceId: string, deviceOptions: DeviceOptionsCasparCGInternal, options) {
 		super(deviceId, deviceOptions, options)
 
 		if (deviceOptions.options) {
@@ -95,12 +96,12 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> {
 	 * Initiates the connection with CasparCG through the ccg-connection lib and
 	 * initializes CasparCG State library.
 	 */
-	async init (connectionOptions: CasparCGOptions): Promise<boolean> {
-		this._connectionOptions = connectionOptions
-		this._useScheduling = connectionOptions.useScheduling
+	async init (initOptions: CasparCGOptions): Promise<boolean> {
+		this.initOptions = initOptions
+		this._useScheduling = initOptions.useScheduling
 		this._ccg = new CasparCG({
-			host: connectionOptions.host,
-			port: connectionOptions.port,
+			host: initOptions.host,
+			port: initOptions.port,
 			autoConnect: true,
 			virginServerCheck: true,
 			onConnectionChanged: (connected: boolean) => {
@@ -270,6 +271,8 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> {
 				channel.fps = 25 / 1000 // 25 fps over 1000ms
 				caspar.channels[channel.channelNo] = channel
 
+				const startTime = layer.instance.originalStart || layer.instance.start
+
 				// create layer of appropriate type
 				let stateLayer: StateNS.ILayerBase | null = null
 				if (
@@ -292,7 +295,7 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> {
 							)
 							?
 							null :
-							layer.instance.start
+							startTime
 						) || null,
 
 						pauseTime:		mediaObj.content.pauseTime || null,
@@ -343,7 +346,7 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> {
 						content:		StateNS.LayerContentType.TEMPLATE,
 						media:			recordObj.content.name,
 
-						playTime:		layer.instance.start || null,
+						playTime:		startTime || null,
 						playing:		true,
 
 						templateType:	recordObj.content.templateType || 'html',
@@ -359,7 +362,7 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> {
 						content:	StateNS.LayerContentType.HTMLPAGE,
 						media:		htmlObj.content.url,
 
-						playTime:	layer.instance.start || null,
+						playTime:	startTime || null,
 						playing:	true
 					})
 				} else if (layer.content.type === TimelineContentTypeCasparCg.ROUTE) {
@@ -383,13 +386,14 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> {
 							channelLayout:		routeObj.content.channelLayout
 						},
 						mode:			routeObj.content.mode || undefined,
+						delay:			routeObj.content.delay || undefined,
 						playing:		true,
-						playTime:		null // layer.resolved.startTime || null
+						playTime:		null // layer.resolved.startTime || null,
 					})
 				} else if (layer.content.type === TimelineContentTypeCasparCg.RECORD) {
 					const recordObj = layer as any as TimelineObjCCGRecord
 
-					if (layer.instance.start) {
+					if (startTime) {
 						stateLayer = literal<StateNS.IRecordLayer>({
 							id: 				layer.id,
 							layerNo:			mapping.layer,
@@ -397,7 +401,7 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> {
 							media:				recordObj.content.file,
 							encoderOptions:		recordObj.content.encoderOptions,
 							playing:			true,
-							playTime:			layer.instance.start || 0
+							playTime:			startTime || 0
 						})
 					}
 				}
@@ -426,20 +430,10 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> {
 							let media = stateLayer.media
 							let transitions = {} as any
 							if (baseContent.transitions.inTransition) {
-								transitions.inTransition = new StateNS.Transition(
-									baseContent.transitions.inTransition.type,
-									baseContent.transitions.inTransition.duration || baseContent.transitions.inTransition.maskFile,
-									baseContent.transitions.inTransition.easing || baseContent.transitions.inTransition.delay,
-									baseContent.transitions.inTransition.direction || baseContent.transitions.inTransition.overlayFile
-								)
+								transitions.inTransition = new StateNS.Transition(baseContent.transitions.inTransition)
 							}
 							if (baseContent.transitions.outTransition) {
-								transitions.outTransition = new StateNS.Transition(
-									baseContent.transitions.outTransition.type,
-									baseContent.transitions.outTransition.duration || baseContent.transitions.outTransition.maskFile,
-									baseContent.transitions.outTransition.easing || baseContent.transitions.outTransition.delay,
-									baseContent.transitions.outTransition.direction || baseContent.transitions.outTransition.overlayFile
-								)
+								transitions.outTransition = new StateNS.Transition(baseContent.transitions.outTransition)
 							}
 							stateLayer.media = new StateNS.TransitionObject(media, {
 								inTransition: transitions.inTransition,
@@ -559,11 +553,11 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> {
 	restartCasparCG (): Promise<any> {
 		return new Promise((resolve, reject) => {
 
-			if (!this._connectionOptions) throw new Error('CasparCGDevice._connectionOptions is not set!')
-			if (!this._connectionOptions.launcherHost) throw new Error('CasparCGDevice: config.launcherHost is not set!')
-			if (!this._connectionOptions.launcherPort) throw new Error('CasparCGDevice: config.launcherPort is not set!')
+			if (!this.initOptions) throw new Error('CasparCGDevice._connectionOptions is not set!')
+			if (!this.initOptions.launcherHost) throw new Error('CasparCGDevice: config.launcherHost is not set!')
+			if (!this.initOptions.launcherPort) throw new Error('CasparCGDevice: config.launcherPort is not set!')
 
-			let url = `http://${this._connectionOptions.launcherHost}:${this._connectionOptions.launcherPort}/processes/casparcg/restart`
+			let url = `http://${this.initOptions.launcherHost}:${this.initOptions.launcherPort}/processes/casparcg/restart`
 			request.post(
 				url,
 				{}, // json: cmd.params
@@ -600,7 +594,9 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> {
 			messages: messages
 		}
 	}
-
+	/**
+	 * Compares the new timeline-state with the old one, and generates commands to account for the difference
+	 */
 	private _diffStates (oldState, newState, time: number): Array<IAMCPCommandVOWithContext> {
 		// @todo: this is a tmp fix for the command order. should be removed when ccg-state has been refactored.
 		return this._ccgState.diffStatesOrderedCommands(oldState, newState, time)

@@ -1,8 +1,8 @@
 import { Enums, MixEffect } from 'atem-state'
 import { ResolvedTimelineObjectInstance } from 'superfly-timeline'
 import { Conductor } from '../../conductor'
-import { AtemDevice, AtemDeviceOptions } from '../atem'
-import { MockTime } from '../../__tests__/mockTime.spec'
+import { AtemDevice, DeviceOptionsAtemInternal } from '../atem'
+import { MockTime } from '../../__tests__/mockTime'
 import {
 	Mappings,
 	DeviceType ,
@@ -26,7 +26,7 @@ describe('Atem', () => {
 	})
 
 	test('Atem: Ensure clean initial state', async () => {
-		const commandReceiver0 = jest.fn(() => {
+		const commandReceiver0: any = jest.fn(() => {
 			return Promise.resolve()
 		})
 		const mockState: TimelineState = {
@@ -35,10 +35,11 @@ describe('Atem', () => {
 			nextEvents: []
 		}
 
-		let device = new AtemDevice('mock', literal<AtemDeviceOptions>({
+		let device = new AtemDevice('mock', literal<DeviceOptionsAtemInternal>({
 			type: DeviceType.ATEM,
 			options: {
-				commandReceiver: commandReceiver0
+				commandReceiver: commandReceiver0,
+				host: '127.0.0.1'
 			}
 		}), {
 			getCurrentTime: mockTime.getCurrentTime
@@ -54,7 +55,7 @@ describe('Atem', () => {
 
 	test('Atem: switch input', async () => {
 
-		let commandReceiver0 = jest.fn(() => {
+		const commandReceiver0: any = jest.fn(() => {
 			return Promise.resolve()
 		})
 		let myLayerMapping0: MappingAtem = {
@@ -72,14 +73,14 @@ describe('Atem', () => {
 			getCurrentTime: mockTime.getCurrentTime
 		})
 		await myConductor.init()
-		await myConductor.addDevice('myAtem', {
+		await myConductor.addDevice('myAtem', literal<DeviceOptionsAtemInternal>({
 			type: DeviceType.ATEM,
 			options: {
 				commandReceiver: commandReceiver0,
 				host: '127.0.0.1',
 				port: 9910
 			}
-		})
+		}))
 		await myConductor.setMapping(myLayerMapping)
 		await mockTime.advanceTimeToTicks(10100)
 
@@ -130,7 +131,7 @@ describe('Atem', () => {
 		expect(commandReceiver0).toBeCalledWith(expect.anything(), expect.objectContaining(
 			{
 				flag: 0,
-				rawName: 'PrvI',
+				rawName: 'CPvI',
 				mixEffect: 0,
 				properties: {
 					source: 2
@@ -152,7 +153,7 @@ describe('Atem', () => {
 		expect(commandReceiver0).toBeCalledWith(expect.anything(), expect.objectContaining(
 			{
 				flag: 0,
-				rawName: 'PrvI',
+				rawName: 'CPvI',
 				mixEffect: 0,
 				properties: {
 					source: 3
@@ -170,7 +171,7 @@ describe('Atem', () => {
 
 	test('Atem: upstream keyer', async () => {
 
-		let commandReceiver0 = jest.fn(() => {
+		const commandReceiver0: any = jest.fn(() => {
 			// nothing
 		})
 		let myLayerMapping0: MappingAtem = {
@@ -188,14 +189,15 @@ describe('Atem', () => {
 			getCurrentTime: mockTime.getCurrentTime
 		})
 		await myConductor.init()
-		await myConductor.addDevice('myAtem', {
+		await myConductor.addDevice('myAtem', literal<DeviceOptionsAtemInternal>({
 			type: DeviceType.ATEM,
 			options: {
 				commandReceiver: commandReceiver0,
 				host: '127.0.0.1',
 				port: 9910
 			}
-		})
+		}))
+
 		await myConductor.setMapping(myLayerMapping)
 		await mockTime.advanceTimeToTicks(10100)
 
@@ -217,9 +219,13 @@ describe('Atem', () => {
 					me: {
 						upstreamKeyers: [
 							{
-								patternSettings: {
-									style: 5,
-									positionX: 250
+								upstreamKeyerId: 0,
+
+								lumaSettings: {
+									preMultiplied: false,
+									clip: 300,
+									gain: 2,
+									invert: true
 								}
 							}
 						]
@@ -233,15 +239,14 @@ describe('Atem', () => {
 		expect(commandReceiver0).toHaveBeenCalledTimes(1)
 		expect(commandReceiver0).toBeCalledWith(expect.anything(), expect.objectContaining(
 			{
-				flag: 53,
-				rawName: 'KePt',
+				flag: 14,
+				rawName: 'CKLm',
 				mixEffect: 0,
 				upstreamKeyerId: 0,
 				properties: {
-					positionX: 250,
-					positionY: 500,
-					style: 5,
-					symmetry: 5000
+					clip: 300,
+					gain: 2,
+					invert: true
 				}
 			}
 		), null, expect.stringContaining('')) // obj0
@@ -290,12 +295,13 @@ describe('Atem', () => {
 			nextEvents: []
 		}
 
-		let device = new AtemDevice('mock', literal<AtemDeviceOptions>({
+		let device = new AtemDevice('mock', {
 			type: DeviceType.ATEM,
 			options: {
-				commandReceiver: commandReceiver0
+				commandReceiver: commandReceiver0,
+				host: '127.0.0.1'
 			}
-		}), {
+		}, {
 			getCurrentTime: mockTime.getCurrentTime
 		})
 		device.setMapping(myLayerMapping)

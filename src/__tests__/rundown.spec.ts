@@ -7,9 +7,9 @@ import {
 	Transition
 } from '../types/src'
 import { Conductor } from '../conductor'
-import { MockTime } from './mockTime.spec'
+import { MockTime } from './mockTime'
 import * as _ from 'underscore'
-import { getMockCall } from './lib.spec'
+import { getMockCall } from './lib'
 
 // let nowActual: number = Date.now()
 
@@ -24,7 +24,7 @@ describe('Rundown', () => {
 
 	test('Do a full rundown', async () => {
 
-		let commandReceiver0 = jest.fn(() => {
+		const commandReceiver0: any = jest.fn(() => {
 			return Promise.resolve()
 		})
 		let commandReceiver0Calls = 0
@@ -75,6 +75,7 @@ describe('Rundown', () => {
 			type: DeviceType.CASPARCG,
 			options: {
 				commandReceiver: commandReceiver0,
+				host: '127.0.0.1',
 				timeBase: 50,
 				useScheduling: true
 			}

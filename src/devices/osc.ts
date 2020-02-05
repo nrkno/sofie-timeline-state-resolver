@@ -3,15 +3,16 @@ import {
 	DeviceWithState,
 	CommandWithContext,
 	DeviceStatus,
-	StatusCode
+	StatusCode,
+	IDevice
 } from './device'
 import {
 	DeviceType,
-	DeviceOptions,
 	OSCMessageCommandContent,
 	OSCOptions,
 	SomeOSCValue,
-	OSCValueType
+	OSCValueType,
+	DeviceOptionsOSC
 } from '../types/src'
 import { DoOnTime, SendMode } from '../doOnTime'
 
@@ -21,11 +22,14 @@ import {
 import * as osc from 'osc'
 import { Easing } from '../easings'
 
-export interface OSCMessageDeviceOptions extends DeviceOptions {
-	options?: {
-		commandReceiver?: CommandReceiver,
-		oscSender?: (msg: osc.OscMessage, address?: string | undefined, port?: number | undefined) => void
-	}
+export interface DeviceOptionsOSCInternal extends DeviceOptionsOSC {
+	options: (
+		DeviceOptionsOSC['options'] &
+		{
+			commandReceiver?: CommandReceiver
+			oscSender?: (msg: osc.OscMessage, address?: string | undefined, port?: number | undefined) => void
+		}
+	)
 }
 export type CommandReceiver = (time: number, cmd: OSCMessageCommandContent, context: CommandContext, timelineObjId: string) => Promise<any>
 interface Command {
@@ -44,7 +48,7 @@ interface OSCDeviceStateContent extends OSCMessageCommandContent {
 /**
  * This is a generic wrapper for any osc-enabled device.
  */
-export class OSCMessageDevice extends DeviceWithState<TimelineState> {
+export class OSCMessageDevice extends DeviceWithState<TimelineState> implements IDevice {
 
 	private _doOnTime: DoOnTime
 	private _oscClient: osc.UDPPort
@@ -56,7 +60,7 @@ export class OSCMessageDevice extends DeviceWithState<TimelineState> {
 	private _commandReceiver: CommandReceiver
 	private _oscSender: (msg: osc.OscMessage, address?: string | undefined, port?: number | undefined) => void
 
-	constructor (deviceId: string, deviceOptions: OSCMessageDeviceOptions, options) {
+	constructor (deviceId: string, deviceOptions: DeviceOptionsOSCInternal, options) {
 		super(deviceId, deviceOptions, options)
 		if (deviceOptions.options) {
 			if (deviceOptions.options.commandReceiver) this._commandReceiver = deviceOptions.options.commandReceiver
@@ -70,13 +74,13 @@ export class OSCMessageDevice extends DeviceWithState<TimelineState> {
 		}, SendMode.BURST, this._deviceOptions)
 		this.handleDoOnTime(this._doOnTime, 'OSC')
 	}
-	init (options: OSCOptions): Promise<boolean> {
+	init (initOptions: OSCOptions): Promise<boolean> {
 		this._oscClient = new osc.UDPPort({
 			localAddress: '0.0.0.0',
 			localPort: 0,
 
-			remoteAddress: options.host,
-			remotePort: options.port,
+			remoteAddress: initOptions.host,
+			remotePort: initOptions.port,
 			metadata: true
 		})
 		this._oscClient.open()
@@ -178,9 +182,7 @@ export class OSCMessageDevice extends DeviceWithState<TimelineState> {
 		return this._doOnTime.getQueue()
 	}
 	/**
-	 * add the new commands to the queue:
-	 * @param commandsToAchieveState
-	 * @param time
+	 * Add commands to queue, to be executed at the right time
 	 */
 	private _addToQueue (commandsToAchieveState: Array<Command>, time: number) {
 		_.each(commandsToAchieveState, (cmd: Command) => {
@@ -197,7 +199,7 @@ export class OSCMessageDevice extends DeviceWithState<TimelineState> {
 		})
 	}
 	/**
-	 * Generates commands to transition from old to new state.
+	 * Compares the new timeline-state with the old one, and generates commands to account for the difference
 	 * @param oldOscSendState The assumed current state
 	 * @param newOscSendState The desired state of the device
 	 */

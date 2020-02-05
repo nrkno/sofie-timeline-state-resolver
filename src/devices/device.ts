@@ -2,11 +2,11 @@ import * as _ from 'underscore'
 import { TimelineState } from 'superfly-timeline'
 import {
 	Mappings,
-	DeviceType,
-	DeviceOptions
+	DeviceType
 } from '../types/src'
 import { EventEmitter } from 'events'
 import { CommandReport, DoOnTime } from '../doOnTime'
+import { DeviceInitOptions, DeviceOptionsAny } from '../types/src/device'
 /*
 	This is a base class for all the Device wrappers.
 	The Device wrappers will
@@ -46,11 +46,37 @@ export interface DeviceClassOptions {
 	getCurrentTime: () => number
 }
 
+export interface IDevice {
+	init: (initOptions: DeviceInitOptions) => Promise<boolean>
+
+	getCurrentTime: () => number
+
+	prepareForHandleState: (newStateTime: number) => void
+	handleState: (newState: TimelineState) => void
+	clearFuture: (clearAfterTime: number) => void
+	canConnect: boolean
+	connected: boolean
+
+	makeReady: (_okToDestroyStuff?: boolean) => Promise<void>
+	standDown: (_okToDestroyStuff?: boolean) => Promise<void>
+	getStatus: () => DeviceStatus
+
+	getMapping: () => Mappings
+	setMapping: (mappings: Mappings) => void
+
+	deviceId: string
+	deviceName: string
+	deviceType: DeviceType
+	deviceOptions: DeviceOptionsAny
+
+	instanceId: number
+	startTime: number
+}
 /**
  * Base class for all Devices to inherit from. Defines the API that the conductor
  * class will use.
  */
-export abstract class Device extends EventEmitter {
+export abstract class Device extends EventEmitter implements IDevice {
 
 	private _getCurrentTime: () => Promise<number> | number
 
@@ -63,10 +89,10 @@ export abstract class Device extends EventEmitter {
 	private _startTime: number
 
 	public useDirectTime: boolean = false
-	protected _deviceOptions: DeviceOptions
+	protected _deviceOptions: DeviceOptionsAny
 	protected _reportAllCommands: boolean = false
 
-	constructor (deviceId: string, deviceOptions: DeviceOptions, options: DeviceClassOptions) {
+	constructor (deviceId: string, deviceOptions: DeviceOptionsAny, options: DeviceClassOptions) {
 		super()
 		this._deviceId = deviceId
 		this._deviceOptions = deviceOptions
@@ -93,9 +119,9 @@ export abstract class Device extends EventEmitter {
 
 	/**
 	 * Connect to the device, resolve the promise when ready.
-	 * @param connectionOptions Device-specific options
+	 * @param initOptions Device-specific options
 	 */
-	abstract init (connectionOptions: any): Promise<boolean>
+	abstract init (initOptions: DeviceInitOptions): Promise<boolean>
 	terminate (): Promise<boolean> {
 		return Promise.resolve(true)
 	}
@@ -159,7 +185,7 @@ export abstract class Device extends EventEmitter {
 	 */
 	abstract get deviceName (): string
 	abstract get deviceType (): DeviceType
-	get deviceOptions (): DeviceOptions {
+	get deviceOptions (): DeviceOptionsAny {
 		return this._deviceOptions
 	}
 	private _updateCurrentTime () {
@@ -243,7 +269,7 @@ export abstract class DeviceWithState<T> extends Device {
 	 * diffs.
 	 * @param time
 	 */
-	getStateBefore (time: number): {state: T, time: number} | null {
+	protected getStateBefore (time: number): {state: T, time: number} | null {
 		let foundTime = 0
 		let foundState: T | null = null
 		_.each(this._states, (state: T, stateTimeStr: string) => {
@@ -262,12 +288,41 @@ export abstract class DeviceWithState<T> extends Device {
 		return null
 	}
 	/**
+	 * Get the last known state at a point in time. Useful for creating device
+	 * diffs.
+	 *
+	 * @todo is this literally the same as "getStateBefore(time + 1)"?
+	 *
+	 * @param time
+	 */
+	protected getState (time?: number): {state: T, time: number} | null {
+		if (time === undefined) {
+			time = this.getCurrentTime()
+		}
+		let foundTime = 0
+		let foundState: T | null = null
+		_.each(this._states, (state: T, stateTimeStr: string) => {
+			let stateTime = parseFloat(stateTimeStr)
+			if (stateTime > foundTime && stateTime <= time!) {
+				foundState = state
+				foundTime = stateTime
+			}
+		})
+		if (foundState) {
+			return {
+				state: foundState,
+				time: foundTime
+			}
+		}
+		return null
+	}
+	/**
 	 * Saves a state on a certain time point. Overwrites any previous state
 	 * saved at the same time. Removes any state after this time point.
 	 * @param state
 	 * @param time
 	 */
-	setState (state: T, time: number) {
+	protected setState (state: T, time: number) {
 		if (!time) throw new Error('setState: falsy time')
 		this.cleanUpStates(0, time) // remove states after this time, as they are not relevant anymore
 
@@ -289,7 +344,7 @@ export abstract class DeviceWithState<T> extends Device {
 	 * @param removeBeforeTime
 	 * @param removeAfterTime
 	 */
-	cleanUpStates (removeBeforeTime: number, removeAfterTime: number) {
+	protected cleanUpStates (removeBeforeTime: number, removeAfterTime: number) {
 		_.each(_.keys(this._states), (stateTimeStr: string) => {
 			let stateTime = parseFloat(stateTimeStr)
 			if (
@@ -310,7 +365,7 @@ export abstract class DeviceWithState<T> extends Device {
 	/**
 	 * Removes all states
 	 */
-	clearStates () {
+	protected clearStates () {
 		_.each(_.keys(this._states), (time: string) => {
 			delete this._states[time]
 		})

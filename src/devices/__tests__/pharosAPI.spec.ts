@@ -20,9 +20,9 @@ import {
 	Triggers,
 	Protocol
 } from '../pharosAPI'
-import { getMockCall } from '../../__tests__/lib.spec'
-const WebSocket = require('../../__mocks__/ws')
-const request = require('../../__mocks__/request')
+import { getMockCall } from '../../__tests__/lib'
+import * as WebSocket from '../../__mocks__/ws'
+import * as request from '../../__mocks__/request'
 
 const orgSetTimeout = setTimeout
 

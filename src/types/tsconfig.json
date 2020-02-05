@@ -3,7 +3,8 @@
 	"exclude": [
 	  "node_modules/**",
 	  "**/*spec.ts",
-	  "**/__mocks__/*"
+	  "**/__mocks__/*",
+	  "**/__tests__/*"
 	],
 	"include": [
 	  "./**/*.ts"

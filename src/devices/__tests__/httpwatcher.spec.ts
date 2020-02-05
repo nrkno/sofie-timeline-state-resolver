@@ -5,7 +5,7 @@ import {
 	DeviceType,
 	MappingHTTPWatcher
 } from '../../types/src'
-import { MockTime } from '../../__tests__/mockTime.spec'
+import { MockTime } from '../../__tests__/mockTime'
 import { StatusCode } from '../device'
 
 const request = require('../../__mocks__/request')
@@ -242,7 +242,7 @@ describe('HTTP-Watcher', () => {
 		await generatedDevice.terminate()
 	})
 	test('Un-Successful get returns BAD state', async () => {
-		let onGetLocal = jest.fn((url, _options, callback) => {
+		let onGetLocal = jest.fn((_url, _options, callback) => {
 			callback(new Error('Bad Gateway'), null)
 		})
 		request.setMockGet(onGetLocal)

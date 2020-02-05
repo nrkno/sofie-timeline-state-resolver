@@ -17,7 +17,7 @@ export interface TCPSendOptions {
 
 	host: string
 	port: number
-	bufferEncoding?: string // encoding of messages, ex 'hex', default is 'utf8'
+	bufferEncoding?: BufferEncoding // encoding of messages, ex 'hex', default is 'utf8'
 }
 
 export enum TimelineContentTypeTcp {
@@ -31,7 +31,6 @@ export type TimelineObjTCPSendAny = TimelineObjTCPRequest
 export interface TimelineObjTCPSendBase extends TSRTimelineObjBase {
 	content: {
 		deviceType: DeviceType.TCPSEND
-		// type: TimelineContentTypeCasparCg
 	}
 }
 export interface TimelineObjTCPRequest extends TimelineObjTCPSendBase {

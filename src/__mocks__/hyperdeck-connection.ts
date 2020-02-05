@@ -73,8 +73,26 @@ export class Hyperdeck extends EventEmitter {
 		if (this._mockCommandReceiver) {
 			return this._mockCommandReceiver(command)
 		}
-		if ((command instanceof Commands.SlotSelectCommand || command instanceof Commands.SlotInfoCommand) && command.slotId > 2) {
+		if (
+			(
+				command instanceof Commands.SlotSelectCommand ||
+				command instanceof Commands.SlotInfoCommand
+			) &&
+			(command.slotId || 0) > 2
+		) {
 			return Promise.reject()
+		} else if (command instanceof Commands.DeviceInfoCommand) {
+			let res: Commands.DeviceInfoCommandResponse = {
+				protocolVersion: 1.9,
+				model: 'Mock HyperDeck for TSR',
+				slots: '2'
+			}
+			return Promise.resolve(res)
+		} else if (command instanceof Commands.TransportInfoCommand) {
+			let res = {
+				status: TransportStatus.PREVIEW
+			}
+			return Promise.resolve(res)
 		}
 		return Promise.resolve()
 	}

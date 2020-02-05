@@ -1,9 +1,10 @@
 // These imports are pointed to what external libraries will import
-import { Conductor, DeviceOptions, DeviceType, CasparCGDevice } from '../../dist/'
+import { Conductor, DeviceType, CasparCGDevice } from '../../dist/'
 import {
 	DeviceType as Types_DeviceType,
 	TSRTimeline,
-	TimelineObjEmpty
+	TimelineObjEmpty,
+	DeviceOptionsAbstract
 } from '../types/dist'
 
 describe('Usage of library', () => {
@@ -17,10 +18,11 @@ describe('Usage of library', () => {
 		expect(Conductor).toBeTruthy()
 
 		// Expect this type to exist:
-		const o: DeviceOptions = {
-			type: DeviceType.ABSTRACT
+		const options: DeviceOptionsAbstract = {
+			type: DeviceType.ABSTRACT,
+			options: {}
 		}
-		expect(o.type).toEqual(0)
+		expect(options.type).toEqual(0)
 
 	})
 	test('types', () => {

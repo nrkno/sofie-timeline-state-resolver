@@ -10,9 +10,9 @@ import {
 	MappingPanasonicPtz,
 	MappingPanasonicPtzType
 } from '../../types/src'
-import { MockTime } from '../../__tests__/mockTime.spec'
+import { MockTime } from '../../__tests__/mockTime'
 import { ThreadedClass } from 'threadedclass'
-import { getMockCall } from '../../__tests__/lib.spec'
+import { getMockCall } from '../../__tests__/lib'
 const request = require('../../__mocks__/request')
 
 const orgSetTimeout = setTimeout
@@ -43,7 +43,7 @@ describe('Panasonic PTZ', () => {
 
 	test('Panasonic PTZ: change preset', async () => {
 
-		let commandReceiver0 = jest.fn(() => {
+		const commandReceiver0: any = jest.fn(() => {
 			return Promise.resolve()
 		})
 		let myChannelMapping0: MappingPanasonicPtz = {

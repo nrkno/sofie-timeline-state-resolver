@@ -3,30 +3,30 @@ import {
 	DeviceWithState,
 	CommandWithContext,
 	DeviceStatus,
-	StatusCode
+	StatusCode,
+	IDevice
 } from './device'
 import {
 	DeviceType,
-	DeviceOptions,
 	TimelineObjPanasonicPtzPreset,
 	TimelineObjPanasonicPtzPresetSpeed,
 	TimelineObjPanasonicPtzZoomSpeed,
 	TimelineObjPanasonicPtzZoom,
 	TimelineContentTypePanasonicPtz,
 	MappingPanasonicPtz,
-	MappingPanasonicPtzType
+	MappingPanasonicPtzType,
+	PanasonicPTZOptions,
+	DeviceOptionsPanasonicPTZ
 } from '../types/src'
 import { TimelineState, ResolvedTimelineObjectInstance } from 'superfly-timeline'
 import { DoOnTime, SendMode } from '../doOnTime'
 import { PanasonicPtzHttpInterface } from './panasonicPTZAPI'
 
-export interface PanasonicPtzOptions extends DeviceOptions { // TODO - this doesnt match the others
-	options?: {
-		commandReceiver?: CommandReceiver
-		host?: string
-		port?: number
-		https?: boolean
-	}
+export interface DeviceOptionsPanasonicPTZInternal extends DeviceOptionsPanasonicPTZ {
+	options: (
+		DeviceOptionsPanasonicPTZ['options'] &
+		{ commandReceiver?: CommandReceiver }
+	)
 }
 export type CommandReceiver = (time: number, cmd: PanasonicPtzCommand, context: CommandContext, timelineObjId: string) => Promise<any>
 
@@ -69,14 +69,14 @@ const PROBE_INTERVAL = 10 * 1000 // Probe every 10s
  * executes commands to achieve such states. Depends on PanasonicPTZAPI class for
  * connection with the physical device.
  */
-export class PanasonicPtzDevice extends DeviceWithState<TimelineState> {
+export class PanasonicPtzDevice extends DeviceWithState<TimelineState> implements IDevice {
 	private _doOnTime: DoOnTime
 	private _device: PanasonicPtzHttpInterface | undefined
 	private _connected: boolean = false
 
 	private _commandReceiver: CommandReceiver
 
-	constructor (deviceId: string, deviceOptions: PanasonicPtzOptions, options) {
+	constructor (deviceId: string, deviceOptions: DeviceOptionsPanasonicPTZInternal, options) {
 		super(deviceId, deviceOptions, options)
 		if (deviceOptions.options) {
 			if (deviceOptions.options.commandReceiver) {
@@ -111,7 +111,7 @@ export class PanasonicPtzDevice extends DeviceWithState<TimelineState> {
 	/**
 	 * Initiates the device: set up ping for connection logic.
 	 */
-	init (): Promise<boolean> {
+	init (_initOptions: PanasonicPTZOptions): Promise<boolean> {
 		if (this._device) {
 			return new Promise((resolve, reject) => {
 				setInterval(() => {
@@ -287,9 +287,7 @@ export class PanasonicPtzDevice extends DeviceWithState<TimelineState> {
 	}
 
 	/**
-	 * Queues an array of commands to be executed at `time`
-	 * @param commandsToAchieveState
-	 * @param time
+	 * Add commands to queue, to be executed at the right time
 	 */
 	private _addToQueue (commandsToAchieveState: Array<PanasonicPtzCommandWithContext>, time: number) {
 		_.each(commandsToAchieveState, (cmd: PanasonicPtzCommandWithContext) => {
@@ -301,9 +299,7 @@ export class PanasonicPtzDevice extends DeviceWithState<TimelineState> {
 		})
 	}
 	/**
-	 * Generates commands to transition from old to new state.
-	 * @param oldOscSendState The assumed current state
-	 * @param newOscSendState The desired state of the device
+	 * Compares the new timeline-state with the old one, and generates commands to account for the difference
 	 */
 	private _diffStates (oldPtzState: PanasonicPtzState, newPtzState: PanasonicPtzState): Array<PanasonicPtzCommandWithContext> {
 

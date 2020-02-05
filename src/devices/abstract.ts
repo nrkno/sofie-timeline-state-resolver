@@ -3,18 +3,14 @@ import {
 	DeviceWithState,
 	CommandWithContext,
 	DeviceStatus,
-	StatusCode
+	StatusCode,
+	IDevice
 } from './device'
-import { DeviceType, DeviceOptions } from '../types/src'
+import { DeviceType, AbstractOptions, DeviceOptionsAbstract } from '../types/src'
 
 import { TimelineState, ResolvedTimelineObjectInstance } from 'superfly-timeline'
 import { DoOnTime, SendMode } from '../doOnTime'
 
-export interface AbstractDeviceOptions extends DeviceOptions {
-	options?: {
-		commandReceiver?: (time: number, cmd) => Promise<any>
-	}
-}
 export interface Command {
 	commandName: string
 	timelineObjId: string
@@ -24,18 +20,25 @@ export interface Command {
 type CommandContent = any
 type CommandContext = string
 
+export interface DeviceOptionsAbstractInternal extends DeviceOptionsAbstract {
+	options: (
+		DeviceOptionsAbstract['options'] &
+		{ commandReceiver?: CommandReceiver }
+	)
+}
+export type CommandReceiver = (time: number, cmd: Command, context: CommandContext, timelineObjId: string) => Promise<any>
 /*
 	This is a wrapper for an "Abstract" device
 
 	An abstract device is just a test-device that doesn't really do anything, but can be used
 	as a preliminary mock
 */
-export class AbstractDevice extends DeviceWithState<TimelineState> {
+export class AbstractDevice extends DeviceWithState<TimelineState> implements IDevice {
 	private _doOnTime: DoOnTime
 
-	private _commandReceiver: (time: number, cmd: Command, context: CommandContext, timelineObjId: string) => Promise<any>
+	private _commandReceiver: CommandReceiver
 
-	constructor (deviceId: string, deviceOptions: AbstractDeviceOptions, options) {
+	constructor (deviceId: string, deviceOptions: DeviceOptionsAbstractInternal, options) {
 		super(deviceId, deviceOptions, options)
 		if (deviceOptions.options) {
 			if (deviceOptions.options.commandReceiver) this._commandReceiver = deviceOptions.options.commandReceiver
@@ -50,7 +53,7 @@ export class AbstractDevice extends DeviceWithState<TimelineState> {
 	/**
 	 * Initiates the connection with CasparCG through the ccg-connection lib.
 	 */
-	init (): Promise<boolean> {
+	init (_initOptions: AbstractOptions): Promise<boolean> {
 		return new Promise((resolve/*, reject*/) => {
 			// This is where we would do initialization, like connecting to the devices, etc
 			resolve(true)
@@ -124,6 +127,9 @@ export class AbstractDevice extends DeviceWithState<TimelineState> {
 			statusCode: StatusCode.GOOD
 		}
 	}
+	/**
+	 * Add commands to queue, to be executed at the right time
+	 */
 	private _addToQueue (commandsToAchieveState: Array<Command>, time: number) {
 		_.each(commandsToAchieveState, (cmd: Command) => {
 
@@ -134,8 +140,7 @@ export class AbstractDevice extends DeviceWithState<TimelineState> {
 		})
 	}
 	/**
-	 * Generates commands based such that we will transition from the old state
-	 * to the new state.
+	 * Compares the new timeline-state with the old one, and generates commands to account for the difference
 	 * @param oldAbstractState
 	 * @param newAbstractState
 	 */

@@ -13,9 +13,9 @@ import {
 	MappingHyperdeckType,
 	TransportStatus
 } from '../../types/src'
-import { MockTime } from '../../__tests__/mockTime.spec'
+import { MockTime } from '../../__tests__/mockTime'
 import { ThreadedClass } from 'threadedclass'
-import { getMockCall } from '../../__tests__/lib.spec'
+import { getMockCall } from '../../__tests__/lib'
 
 let myChannelMapping0: MappingHyperdeck = {
 	device: DeviceType.HYPERDECK,
@@ -36,7 +36,7 @@ describe('Hyperdeck', () => {
 	test('Hyperdeck: Record', async () => {
 		let device: ThreadedClass<HyperdeckDevice>
 
-		let commandReceiver0 = jest.fn((...args: any[]) => {
+		const commandReceiver0: any = jest.fn((...args: any[]) => {
 			// Just forward the command:
 
 			// @ts-ignore private function

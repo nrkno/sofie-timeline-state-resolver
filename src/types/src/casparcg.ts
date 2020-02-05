@@ -8,11 +8,18 @@ export interface MappingCasparCG extends Mapping {
 }
 
 export interface CasparCGOptions {
-	host: string,
-	port: number,
-	useScheduling?: boolean, // whether to use the CasparCG-SCHEDULE command to run future commands, or the internal (backwards-compatible) command queue
-	launcherHost: string,
-	launcherPort: string
+	/** Host of CasparCG server */
+	host: string
+	/** Port of CasparCG Server */
+	port?: number
+
+	/** whether to use the CasparCG-SCHEDULE command to run future commands, or the internal (backwards-compatible) command queue */
+	useScheduling?: boolean
+	/* Timecode base of channel */
+	timeBase?: {[channel: string]: number} | number
+
+	launcherHost?: string,
+	launcherPort?: number
 }
 
 export enum TimelineContentTypeCasparCg { //  CasparCG-state
@@ -25,14 +32,26 @@ export enum TimelineContentTypeCasparCg { //  CasparCG-state
 	RECORD = 'record'
 }
 
-export interface TimelineTransition { // TODO split into transition and sting
+export type TimelineTransition = TimelineTransitionBase & (RegularTimelineTransition | TimelineStingTransition)
+
+export interface TimelineTransitionBase {
 	type: Transition
+}
+
+export interface RegularTimelineTransition extends TimelineTransitionBase {
+	type: Exclude<Transition, Transition.STING>
 	duration?: number,
 	easing?: Ease,
 	direction?: Direction
-	maskFile?: string
+}
+
+export interface TimelineStingTransition extends TimelineTransitionBase {
+	type: Transition.STING
+	maskFile: string
 	delay?: number
 	overlayFile?: string
+	audioFadeStart?: number
+	audioFadeDuration?: number
 }
 
 export interface TimelineObjCCGProducerContentBase {
@@ -161,7 +180,8 @@ export interface TimelineObjCCGRoute extends TimelineObjCasparCGBase {
 		mode?: 'BACKGROUND' | 'NEXT'
 		/** Audio channel layout (example 'stereo') */
 		channelLayout?: string
-
+		/** The amount of milliseconds to delay the signal on this route. This value is downsampled to channel frames upon execution. */
+		delay?: number
 	} & TimelineObjCCGProducerContentBase
 }
 export interface TimelineObjCCGRecord extends TimelineObjCasparCGBase {

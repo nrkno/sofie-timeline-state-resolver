@@ -4,11 +4,11 @@ import {
 	DeviceWithState,
 	CommandWithContext,
 	DeviceStatus,
-	StatusCode
+	StatusCode,
+	IDevice
 } from './device'
 import {
 	DeviceType,
-	DeviceOptions,
 	TimelineContentTypeAtem,
 	MappingAtem,
 	MappingAtemType,
@@ -20,7 +20,8 @@ import {
 	TimelineObjAtemSsrc,
 	TimelineObjAtemAUX,
 	TimelineObjAtemSsrcProps,
-	TimelineObjAtemMacroPlayer
+	TimelineObjAtemMacroPlayer,
+	DeviceOptionsAtem
 } from '../types/src'
 import { TimelineState } from 'superfly-timeline'
 import {
@@ -35,17 +36,16 @@ import {
 	Defaults as StateDefault
 } from 'atem-state'
 import { DoOnTime, SendMode } from '../doOnTime'
+import { SuperSourceInfo } from 'atem-connection/dist/state/info'
 
 _.mixin({ deepExtend: underScoreDeepExtend(_) })
 
+function jsonClone<T> (src: T): T {
+	return JSON.parse(JSON.stringify(src))
+}
 function deepExtend<T> (destination: T, ...sources: any[]) {
 	// @ts-ignore (mixin)
 	return _.deepExtend(destination, ...sources)
-}
-export interface AtemDeviceOptions extends DeviceOptions {
-	options?: {
-		commandReceiver?: (time: number, cmd) => Promise<any>
-	}
 }
 
 export interface AtemCommandWithContext {
@@ -55,10 +55,18 @@ export interface AtemCommandWithContext {
 }
 type CommandContext = any
 
+export interface DeviceOptionsAtemInternal extends DeviceOptionsAtem {
+	options: (
+		DeviceOptionsAtem['options'] &
+		{ commandReceiver?: CommandReceiver }
+	)
+}
+export type CommandReceiver = (time: number, command: AtemCommands.AbstractCommand, context: CommandContext, timelineObjId: string) => Promise<any>
+
 /**
  * This is a wrapper for the Atem Device. Commands to any and all atem devices will be sent through here.
  */
-export class AtemDevice extends DeviceWithState<DeviceState> {
+export class AtemDevice extends DeviceWithState<DeviceState> implements IDevice {
 	private _doOnTime: DoOnTime
 
 	private _atem: Atem
@@ -74,9 +82,9 @@ export class AtemDevice extends DeviceWithState<DeviceState> {
 		psus: []
 	}
 
-	private _commandReceiver: (time: number, command: AtemCommands.AbstractCommand, context: CommandContext, timelineObjId: string) => Promise<any>
+	private _commandReceiver: CommandReceiver
 
-	constructor (deviceId: string, deviceOptions: AtemDeviceOptions, options) {
+	constructor (deviceId: string, deviceOptions: DeviceOptionsAtemInternal, options) {
 		super(deviceId, deviceOptions, options)
 		if (deviceOptions.options) {
 			if (deviceOptions.options.commandReceiver) this._commandReceiver = deviceOptions.options.commandReceiver
@@ -223,7 +231,7 @@ export class AtemDevice extends DeviceWithState<DeviceState> {
 		_.each(sortedLayers, ({ tlObject, layerName }) => {
 			// const content = tlObject.content
 
-			let mapping = this.getMapping()[layerName] as MappingAtem
+			let mapping = this.getMapping()[layerName] as MappingAtem | undefined
 
 			if (mapping) {
 				if (mapping.index !== undefined && mapping.index >= 0) { // index must be 0 or higher
@@ -244,9 +252,16 @@ export class AtemDevice extends DeviceWithState<DeviceState> {
 							break
 						case MappingAtemType.SuperSourceBox:
 							if (tlObject.content.type === TimelineContentTypeAtem.SSRC) {
-								let ssrc = deviceState.video.superSourceBoxes
+								let ssrc = deviceState.video.superSources[mapping.index]
 								let atemObj = tlObject as any as TimelineObjAtemSsrc
-								if (ssrc) deepExtend(ssrc, atemObj.content.ssrc.boxes)
+								if (ssrc) deepExtend(ssrc.boxes, atemObj.content.ssrc.boxes)
+							}
+							break
+						case MappingAtemType.SuperSourceProperties:
+							if (tlObject.content.type === TimelineContentTypeAtem.SSRCPROPS) {
+								let ssrc = deviceState.video.superSources[mapping.index]
+								let atemObj = tlObject as any as TimelineObjAtemSsrcProps
+								if (ssrc) deepExtend(ssrc.properties, atemObj.content.ssrcProps)
 							}
 							break
 						case MappingAtemType.Auxilliary:
@@ -269,7 +284,7 @@ export class AtemDevice extends DeviceWithState<DeviceState> {
 								if (chan) {
 									deviceState.audio.channels[mapping.index] = {
 										...chan,
-										...atemObj.content
+										...atemObj.content.audioChannel
 									}
 								}
 							}
@@ -277,13 +292,7 @@ export class AtemDevice extends DeviceWithState<DeviceState> {
 					}
 				}
 
-				if (mapping.mappingType === MappingAtemType.SuperSourceProperties) {
-					if (tlObject.content.type === TimelineContentTypeAtem.SSRCPROPS) {
-						let ssrc = deviceState.video.superSourceProperties
-						let atemObj = tlObject as any as TimelineObjAtemSsrcProps
-						if (ssrc) deepExtend(ssrc, atemObj.content.ssrcProps)
-					}
-				} else if (mapping.mappingType === MappingAtemType.MacroPlayer) {
+				if (mapping.mappingType === MappingAtemType.MacroPlayer) {
 					if (tlObject.content.type === TimelineContentTypeAtem.MACROPLAYER) {
 						let ms = deviceState.macro.macroPlayer
 						let atemObj = tlObject as any as TimelineObjAtemMacroPlayer
@@ -339,9 +348,7 @@ export class AtemDevice extends DeviceWithState<DeviceState> {
 		return deviceStatus
 	}
 	/**
-	 * Execute `commandsToAchieveState` at `time` using the doOnTime class
-	 * @param commandsToAchieveState
-	 * @param time
+	 * Add commands to queue, to be executed at the right time
 	 */
 	private _addToQueue (commandsToAchieveState: Array<AtemCommandWithContext>, time: number) {
 		_.each(commandsToAchieveState, (cmd: AtemCommandWithContext) => {
@@ -353,11 +360,14 @@ export class AtemDevice extends DeviceWithState<DeviceState> {
 		})
 	}
 	/**
-	 * Diffs two states and generate commands based on the diff.
+	 * Compares the new timeline-state with the old one, and generates commands to account for the difference
 	 * @param oldAtemState
 	 * @param newAtemState
 	 */
 	private _diffStates (oldAtemState: DeviceState, newAtemState: DeviceState): Array<AtemCommandWithContext> {
+		// Ensure the state diffs the correct version
+		this._state.version = this._atem.state.info.apiVersion
+
 		return _.map(
 			this._state.diffStates(oldAtemState, newAtemState),
 			(cmd: any) => {
@@ -383,31 +393,38 @@ export class AtemDevice extends DeviceWithState<DeviceState> {
 		let deviceState = new DeviceState()
 
 		for (let i = 0; i < this._atem.state.info.capabilities.MEs; i++) {
-			deviceState.video.ME[i] = JSON.parse(JSON.stringify(StateDefault.Video.MixEffect)) as VideoState.MixEffect
+			deviceState.video.ME[i] = Object.assign(new VideoState.MixEffect(i), jsonClone(StateDefault.Video.MixEffect))
 			for (const usk in this._atem.state.video.ME[i].upstreamKeyers) {
-				deviceState.video.ME[i].upstreamKeyers[usk] = JSON.parse(JSON.stringify(StateDefault.Video.UpstreamKeyer(Number(usk))))
+				deviceState.video.ME[i].upstreamKeyers[usk] = jsonClone(StateDefault.Video.UpstreamKeyer(Number(usk)))
 				for (const flyKf in this._atem.state.video.ME[i].upstreamKeyers[usk].flyKeyframes) {
-					deviceState.video.ME[i].upstreamKeyers[usk].flyKeyframes[flyKf] = JSON.parse(JSON.stringify(StateDefault.Video.flyKeyframe(Number(flyKf))))
+					deviceState.video.ME[i].upstreamKeyers[usk].flyKeyframes[flyKf] = jsonClone(StateDefault.Video.flyKeyframe(Number(flyKf)))
 				}
 			}
 		}
 		for (let i = 0; i < Object.keys(this._atem.state.video.downstreamKeyers).length; i++) {
-			deviceState.video.downstreamKeyers[i] = JSON.parse(JSON.stringify(StateDefault.Video.DownStreamKeyer))
+			deviceState.video.downstreamKeyers[i] = jsonClone(StateDefault.Video.DownStreamKeyer)
 		}
 		for (let i = 0; i < this._atem.state.info.capabilities.auxilliaries; i++) {
-			deviceState.video.auxilliaries[i] = JSON.parse(JSON.stringify(StateDefault.Video.defaultInput))
+			deviceState.video.auxilliaries[i] = jsonClone(StateDefault.Video.defaultInput)
 		}
-		for (let i = 0; i < this._atem.state.info.superSourceBoxes; i++) {
-			deviceState.video.superSourceBoxes[i] = JSON.parse(JSON.stringify(StateDefault.Video.SuperSourceBox))
-		}
-		if (this._atem.state.video.superSourceProperties) {
-			deviceState.video.superSourceProperties = JSON.parse(JSON.stringify(StateDefault.Video.SuperSourceProperties))
+		for (let i = 0; i < this._atem.state.info.capabilities.superSources; i++) {
+			const ssrc = new VideoState.SuperSource(i)
+			ssrc.properties = jsonClone(StateDefault.Video.SuperSourceProperties)
+			ssrc.border = jsonClone(StateDefault.Video.SuperSourceBorder)
+
+			const ssrcInfo = this._atem.state.info.superSources[i] as SuperSourceInfo | undefined
+			const boxCount = ssrcInfo ? ssrcInfo.boxCount : 4
+			for (let i = 0; i < boxCount; i++) {
+				ssrc.boxes[i] = jsonClone(StateDefault.Video.SuperSourceBox)
+			}
+
+			deviceState.video.superSources[i] = ssrc
 		}
 		for (const i of Object.keys(this._atem.state.audio.channels)) {
-			deviceState.audio.channels[i] = JSON.parse(JSON.stringify(StateDefault.Audio.Channel))
+			deviceState.audio.channels[i] = jsonClone(StateDefault.Audio.Channel)
 		}
 
-		deviceState.macro.macroPlayer = JSON.parse(JSON.stringify(StateDefault.Video.MacroPlayer))
+		deviceState.macro.macroPlayer = jsonClone(StateDefault.Video.MacroPlayer)
 
 		return deviceState
 	}

@@ -1,8 +1,6 @@
 jest.mock('osc')
 import { SisyfosInterface } from '../sisyfosAPI'
-import { Commands } from '../../types/src/sisyfos'
 import { MockOSC } from '../../__mocks__/osc'
-import { getMockCall } from '../../__tests__/lib.spec'
 
 const orgSetTimeout = setTimeout
 

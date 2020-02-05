@@ -6,33 +6,34 @@ import {
 } from 'superfly-timeline'
 
 import { DeviceClassOptions, CommandWithContext } from './devices/device'
-import { CasparCGDevice } from './devices/casparCG'
-import { AbstractDevice } from './devices/abstract'
-import { HttpSendDevice } from './devices/httpSend'
+import { CasparCGDevice, DeviceOptionsCasparCGInternal } from './devices/casparCG'
+import { AbstractDevice, DeviceOptionsAbstractInternal } from './devices/abstract'
+import { HTTPSendDevice, DeviceOptionsHTTPSendInternal } from './devices/httpSend'
 import {
 	Mappings,
 	Mapping,
 	DeviceType,
-	DeviceOptions,
 	ResolvedTimelineObjectInstanceExtended,
 	TSRTimeline
 } from './types/src'
-import { AtemDevice } from './devices/atem'
+import { AtemDevice, DeviceOptionsAtemInternal } from './devices/atem'
 import { EventEmitter } from 'events'
-import { LawoDevice } from './devices/lawo'
-import { PanasonicPtzDevice } from './devices/panasonicPTZ'
-import { HyperdeckDevice } from './devices/hyperdeck'
+import { LawoDevice, DeviceOptionsLawoInternal } from './devices/lawo'
+import { PanasonicPtzDevice, DeviceOptionsPanasonicPTZInternal } from './devices/panasonicPTZ'
+import { HyperdeckDevice, DeviceOptionsHyperdeckInternal } from './devices/hyperdeck'
 import { DoOnTime } from './doOnTime'
-import { TCPSendDevice } from './devices/tcpSend'
-import { PharosDevice } from './devices/pharos'
-import { OSCMessageDevice } from './devices/osc'
+import { TCPSendDevice, DeviceOptionsTCPSendInternal } from './devices/tcpSend'
+import { PharosDevice, DeviceOptionsPharosInternal } from './devices/pharos'
+import { OSCMessageDevice, DeviceOptionsOSCInternal } from './devices/osc'
 import { DeviceContainer } from './devices/deviceContainer'
 import { threadedClass, ThreadedClass } from 'threadedclass'
 import { AsyncResolver } from './AsyncResolver'
-import { HttpWatcherDevice } from './devices/httpWatcher'
-import { QuantelDevice } from './devices/quantel'
-import { SisyfosMessageDevice } from './devices/sisyfos'
-import { VMixDevice } from './devices/vmix'
+import { HTTPWatcherDevice, DeviceOptionsHTTPWatcherInternal } from './devices/httpWatcher'
+import { QuantelDevice, DeviceOptionsQuantelInternal } from './devices/quantel'
+import { SisyfosMessageDevice, DeviceOptionsSisyfosInternal } from './devices/sisyfos'
+import { SingularLiveDevice, DeviceOptionsSingularLiveInternal } from './devices/singularLive'
+import { VMixDevice, DeviceOptionsVMixInternal } from './devices/vmix'
+
 
 
 export { DeviceContainer }
@@ -69,12 +70,25 @@ interface TimelineCallback {
 	callBack?: string
 	callBackStopped?: string
 	callBackData: any
+	startTime: number
 }
 type TimelineCallbacks = {[key: string]: TimelineCallback}
+const CALLBACK_WAIT_TIME = 50
+interface CallbackInstance {
+	playing: boolean | undefined
+
+	playChanged: boolean
+	playTime?: number | null | undefined
+	playCallback?: QueueCallback
+
+	endChanged: boolean
+	endTime?: number | null | undefined
+	endCallback?: QueueCallback
+}
 interface QueueCallback {
 	type: 'start' | 'stop'
-	time: number | null | undefined
-	id: string
+	time: number
+	instanceId: string
 	callBack: string
 	callBackData: any
 }
@@ -116,7 +130,7 @@ export class Conductor extends EventEmitter {
 	private _doOnTime: DoOnTime
 	private _multiThreadedResolver: boolean = false
 
-	private _queuedCallbacks: QueueCallback[] = []
+	private _callbackInstances: {[instanceId: number]: CallbackInstance} = {}
 	private _triggerSendStartStopCallbacksTimeout: NodeJS.Timer | null = null
 	private _sentCallbacks: TimelineCallbacks = {}
 
@@ -265,7 +279,7 @@ export class Conductor extends EventEmitter {
 	 * @param deviceOptions The options used to initalize the device
 	 * @returns A promise that resolves with the created device, or rejects with an error message.
 	 */
-	public async addDevice (deviceId, deviceOptions: DeviceOptions): Promise<DeviceContainer> {
+	public async addDevice (deviceId, deviceOptions: DeviceOptionsAnyInternal): Promise<DeviceContainer> {
 		try {
 			let newDevice: DeviceContainer
 			let threadedClassOptions = {
@@ -280,7 +294,7 @@ export class Conductor extends EventEmitter {
 			}
 
 			if (deviceOptions.type === DeviceType.ABSTRACT) {
-				newDevice = await new DeviceContainer().create<CasparCGDevice>(
+				newDevice = await new DeviceContainer().create<AbstractDevice>(
 					'../../dist/devices/abstract.js',
 					AbstractDevice,
 					deviceId,
@@ -313,18 +327,18 @@ export class Conductor extends EventEmitter {
 					threadedClassOptions
 				)
 			} else if (deviceOptions.type === DeviceType.HTTPSEND) {
-				newDevice = await new DeviceContainer().create<HttpSendDevice>(
+				newDevice = await new DeviceContainer().create<HTTPSendDevice>(
 					'../../dist/devices/httpSend.js',
-					HttpSendDevice,
+					HTTPSendDevice,
 					deviceId,
 					deviceOptions,
 					options,
 					threadedClassOptions
 				)
 			} else if (deviceOptions.type === DeviceType.HTTPWATCHER) {
-				newDevice = await new DeviceContainer().create<HttpWatcherDevice>(
+				newDevice = await new DeviceContainer().create<HTTPWatcherDevice>(
 					'../../dist/devices/httpWatcher.js',
-					HttpWatcherDevice,
+					HTTPWatcherDevice,
 					deviceId,
 					deviceOptions,
 					options,
@@ -402,6 +416,15 @@ export class Conductor extends EventEmitter {
 					options,
 					threadedClassOptions
 				)
+			} else if (deviceOptions.type === DeviceType.SINGULAR_LIVE) {
+				newDevice = await new DeviceContainer().create<SingularLiveDevice>(
+					'../../dist/devices/singularLive.js',
+					SingularLiveDevice,
+					deviceId,
+					deviceOptions,
+					options,
+					threadedClassOptions
+				)
 			} else if (deviceOptions.type === DeviceType.VMIX) {
 				newDevice = await new DeviceContainer().create<VMixDevice>(
 					'../../dist/devices/vmix.js',
@@ -412,8 +435,9 @@ export class Conductor extends EventEmitter {
 					threadedClassOptions
 				)
 			} else {
-				return Promise.reject('No matching multithreaded device type for "' +
-				deviceOptions.type + '" ("' + DeviceType[deviceOptions.type] + '") found')
+				// @ts-ignore deviceOptions.type is of type "never"
+				const type: any = deviceOptions.type
+				return Promise.reject(`No matching device type for "${type}" ("${DeviceType[type]}") found in conductor`)
 			}
 
 			newDevice.device.on('debug', (...e) => {
@@ -489,6 +513,8 @@ export class Conductor extends EventEmitter {
 	public async destroy (): Promise<void> {
 
 		clearTimeout(this._interval)
+
+		if (this._triggerSendStartStopCallbacksTimeout) clearTimeout(this._triggerSendStartStopCallbacksTimeout)
 
 		await Promise.all(_.map(_.keys(this.devices), (deviceId: string) => {
 			return this.removeDevice(deviceId)
@@ -603,26 +629,25 @@ export class Conductor extends EventEmitter {
 
 		try {
 			const now = this.getCurrentTime()
-
-			if (this._nextResolveTime < now) {
-				this._nextResolveTime = now
-			}
-
 			let resolveTime: number = this._nextResolveTime
 
-			if (!this._nextResolveTime) {
-				let estimatedResolveTime = this.estimateResolveTime()
+			const estimatedResolveTime = this.estimateResolveTime()
+
+			if (
+				resolveTime === 0 || // About to be resolved ASAP
+				resolveTime < now + estimatedResolveTime // We're late
+			) {
 				resolveTime = now + estimatedResolveTime
 				this.emit('debug', `resolveTimeline ${resolveTime} (${resolveTime - now} from now) (${estimatedResolveTime}) ---------`)
 			} else {
 				this.emit('debug', `resolveTimeline ${resolveTime} (${resolveTime - now} from now) -----------------------------`)
-			}
 
-			if (resolveTime > now + LOOKAHEADTIME) {
-				// If the resolveTime is too far ahead, we'd rather wait and resolve it later.
-				this.emit('debug', 'Too far ahead (' + resolveTime + ')')
-				this._triggerResolveTimeline(LOOKAHEADTIME)
-				return
+				if (resolveTime > now + LOOKAHEADTIME) {
+					// If the resolveTime is too far ahead, we'd rather wait and resolve it later.
+					this.emit('debug', 'Too far ahead (' + resolveTime + ')')
+					this._triggerResolveTimeline(LOOKAHEADTIME)
+					return
+				}
 			}
 
 			// Let all devices know that a new state is about to come in.
@@ -774,15 +799,9 @@ export class Conductor extends EventEmitter {
 			}
 
 			// Special function: send callback to Core
-			let sentCallbacksOld: TimelineCallbacks = this._sentCallbacks
-			let sentCallbacksNew: TimelineCallbacks = {}
 			this._doOnTime.clearQueueNowAndAfter(tlState.time)
 
-			// clear callbacks scheduled after the current tlState
-			_.each(sentCallbacksOld, (o: TimelineCallback, callbackId: string) => {
-				if (o.time >= tlState.time) delete sentCallbacksOld[callbackId]
-			})
-			// schedule callbacks to be executed
+			let activeObjects: TimelineCallbacks = {}
 			_.each(tlState.layers, (instance: ResolvedTimelineObjectInstance) => {
 
 				try {
@@ -794,49 +813,23 @@ export class Conductor extends EventEmitter {
 							instance.instance.start +
 							JSON.stringify(instance.content.callBackData)
 						)
-						sentCallbacksNew[callBackId] = {
+						activeObjects[callBackId] = {
 							time: instance.instance.start || 0,
 							id: instance.id,
 							callBack: instance.content.callBack,
 							callBackStopped: instance.content.callBackStopped,
-							callBackData: instance.content.callBackData
-						}
-						if (instance.content.callBack && instance.instance.start) {
-							this._doOnTime.queue(instance.instance.start, undefined, () => {
-								if (!sentCallbacksOld[callBackId]) {
-									// Object has started playing
-									this._queueCallback({
-										type: 'start',
-										time: instance.instance.start,
-										id: instance.id,
-										callBack: instance.content.callBack,
-										callBackData: instance.content.callBackData
-									})
-								} else {
-									// callback already sent, do nothing
-								}
-							})
+							callBackData: instance.content.callBackData,
+							startTime: instance.instance.start
 						}
 					}
 				} catch (e) {
 					this.emit('error', `callback to core, obj "${instance.id}"`, e)
 				}
 			})
-			_.each(sentCallbacksOld, (cb, callBackId: string) => {
-				if (cb.callBackStopped) {
-					if (!sentCallbacksNew[callBackId]) {
-						// Object has stopped playing
-						this._queueCallback({
-							type: 'stop',
-							time: tlState.time,
-							id: cb.id,
-							callBack: cb.callBackStopped,
-							callBackData: cb.callBackData
-						})
-					}
-				}
-			})
-			this._sentCallbacks = sentCallbacksNew
+
+			this._doOnTime.queue(tlState.time, undefined, (sentCallbacksNew) => {
+				this._diffStateForCallbacks(sentCallbacksNew)
+			}, activeObjects)
 
 			this.emit('debug', 'resolveTimeline at time ' + resolveTime + ' done in ' + (Date.now() - startTime) + 'ms (size: ' + this.timeline.length + ')')
 		} catch (e) {
@@ -883,54 +876,170 @@ export class Conductor extends EventEmitter {
 		}
 	}
 
-	private _queueCallback (cb: QueueCallback) {
-		this._queuedCallbacks.push(cb)
-		this._triggerSendStartStopCallbacks()
-	}
-	private _triggerSendStartStopCallbacks () {
-		if (this._triggerSendStartStopCallbacksTimeout) {
-			clearTimeout(this._triggerSendStartStopCallbacksTimeout)
-		}
-		this._triggerSendStartStopCallbacksTimeout = setTimeout(() => {
-			this._triggerSendStartStopCallbacksTimeout = null
-			this._sendStartStopCallbacks()
-		}, 100)
-	}
-	private _sendStartStopCallbacks () {
-		// Go through the queue and filter out any stops that are immediately followed by a start:
-		const startTimes: {[id: string]: number} = {}
-		const stopTimes: {[id: string]: number} = {}
+	private _diffStateForCallbacks (activeObjects: TimelineCallbacks) {
+		let sentCallbacks: TimelineCallbacks = this._sentCallbacks
+		const time = this.getCurrentTime()
 
-		const callbacks: {[id: string]: QueueCallback} = {}
-		_.each(this._queuedCallbacks, cb => {
-			callbacks[cb.id] = cb
+		// clear callbacks scheduled after the current tlState
+		_.each(sentCallbacks, (o: TimelineCallback, callbackId: string) => {
+			if (o.time >= time) {
+				delete sentCallbacks[callbackId]
+			}
+		})
+		// Send callbacks for started objects
+		_.each(activeObjects, (cb, callBackId) => {
 
-			if (cb.time) {
-
-				if (cb.type === 'start') {
-					let prevTime = stopTimes[cb.id]
-					if (prevTime) {
-						if (Math.abs(prevTime - cb.time) < 50) {
-							// Too little time has passed, remove that stop/start
-							delete callbacks[cb.id]
-						}
-					}
-					startTimes[cb.id] = cb.time
-				} else if (cb.type === 'stop') {
-					let prevTime = startTimes[cb.id]
-					if (prevTime) {
-						if (Math.abs(prevTime - cb.time) < 50) {
-							// Too little time has passed, remove that stop/start
-							delete callbacks[cb.id]
-						}
-					}
-					stopTimes[cb.id] = cb.time
+			if (cb.callBack && cb.startTime) {
+				if (!sentCallbacks[callBackId]) {
+					// Object has started playing
+					this._queueCallback(true, {
+						type: 'start',
+						time: cb.startTime,
+						instanceId: cb.id,
+						callBack: cb.callBack,
+						callBackData: cb.callBackData
+					})
+				} else {
+					// callback already sent, do nothing
 				}
 			}
 		})
-		this._queuedCallbacks = []
+		// Send callbacks for stopped objects
+		_.each(sentCallbacks, (cb, callBackId: string) => {
+			if (cb.callBackStopped && !activeObjects[callBackId]) {
 
-		// sort the callbacks
+				// Object has stopped playing
+				this._queueCallback(false, {
+					type: 'stop',
+					time: time,
+					instanceId: cb.id,
+					callBack: cb.callBackStopped,
+					callBackData: cb.callBackData
+				})
+
+			}
+		})
+		this._sentCallbacks = activeObjects
+	}
+	private _queueCallback (playing: boolean, cb: QueueCallback) {
+		let o: CallbackInstance
+
+		if (this._callbackInstances[cb.instanceId]) {
+			o = this._callbackInstances[cb.instanceId]
+		} else {
+			o = {
+				playing: undefined,
+				playChanged: false,
+				endChanged: false
+			}
+			this._callbackInstances[cb.instanceId] = o
+		}
+
+		if (o.playing !== playing) {
+
+			this.emit('debug', `_queueCallback ${playing ? 'playing' : 'stopping'} instance ${cb.instanceId}`)
+
+			if (playing) {
+
+				if (
+					o.endChanged &&
+					o.endTime &&
+					Math.abs(cb.time - o.endTime) < CALLBACK_WAIT_TIME
+				) {
+					// Too little time has passed since last time. Annihilate that event instead:
+
+					o.playing = playing
+					o.endTime = undefined
+					o.endCallback = undefined
+					o.endChanged = false
+
+				} else {
+					o.playing = playing
+					o.playChanged = true
+
+					o.playTime = cb.time
+					o.playCallback = cb
+				}
+			} else {
+				if (
+					o.playChanged &&
+					o.playTime &&
+					Math.abs(cb.time - o.playTime) < CALLBACK_WAIT_TIME
+				) {
+					// Too little time has passed since last time. Annihilate that event instead:
+
+					o.playing = playing
+					o.playTime = undefined
+					o.playCallback = undefined
+					o.playChanged = false
+
+				} else {
+					o.playing = playing
+					o.endChanged = true
+
+					o.endTime = cb.time
+					o.endCallback = cb
+				}
+			}
+		} else {
+			this.emit('warning', `_queueCallback ${playing ? 'playing' : 'stopping'} instance ${cb.instanceId} already playing/stopped`)
+		}
+
+		this._triggerSendStartStopCallbacks()
+	}
+	private _triggerSendStartStopCallbacks () {
+		if (!this._triggerSendStartStopCallbacksTimeout) {
+			this._triggerSendStartStopCallbacksTimeout = setTimeout(() => {
+				this._triggerSendStartStopCallbacksTimeout = null
+				this._sendStartStopCallbacks()
+			}, CALLBACK_WAIT_TIME)
+		}
+	}
+	private _sendStartStopCallbacks () {
+
+		const now = this.getCurrentTime()
+
+		let haveThingsToSendLater: boolean = false
+
+		const callbacks: QueueCallback[] = []
+
+		_.each(this._callbackInstances, (o: CallbackInstance, instanceId: string) => {
+			if (
+				o.endChanged &&
+				o.endTime &&
+				o.endCallback
+			) {
+				if (o.endTime < now - CALLBACK_WAIT_TIME) {
+					callbacks.push(o.endCallback)
+					o.endChanged = false
+				} else {
+					haveThingsToSendLater = true
+				}
+			}
+
+			if (
+				o.playChanged &&
+				o.playTime &&
+				o.playCallback
+			) {
+				if (o.playTime < now - CALLBACK_WAIT_TIME) {
+					callbacks.push(o.playCallback)
+					o.playChanged = false
+				} else {
+					haveThingsToSendLater = true
+				}
+			}
+
+			if (
+				!haveThingsToSendLater &&
+				!o.playChanged &&
+				!o.endChanged
+			) {
+				delete this._callbackInstances[instanceId]
+			}
+		})
+
+		// Sort the callbacks:
 		let callbacksArray = _.values(callbacks).sort((a, b) => {
 			if (a.type === 'start' && b.type !== 'start') return 1
 			if (a.type !== 'start' && b.type === 'start') return -1
@@ -945,11 +1054,15 @@ export class Conductor extends EventEmitter {
 		_.each(callbacksArray, cb => {
 			this.emit('timelineCallback',
 				cb.time,
-				cb.id,
+				cb.instanceId,
 				cb.callBack,
 				cb.callBackData
 			)
 		})
+
+		if (haveThingsToSendLater) {
+			this._triggerSendStartStopCallbacks()
+		}
 	}
 
 	private statStartMeasure (reason: string) {
@@ -1010,3 +1123,20 @@ export class Conductor extends EventEmitter {
 		return filteredState
 	}
 }
+export type DeviceOptionsAnyInternal = (
+	DeviceOptionsAbstractInternal |
+	DeviceOptionsCasparCGInternal |
+	DeviceOptionsAtemInternal |
+	DeviceOptionsLawoInternal |
+	DeviceOptionsHTTPSendInternal |
+	DeviceOptionsHTTPWatcherInternal |
+	DeviceOptionsPanasonicPTZInternal |
+	DeviceOptionsTCPSendInternal |
+	DeviceOptionsHyperdeckInternal |
+	DeviceOptionsPharosInternal |
+	DeviceOptionsOSCInternal |
+	DeviceOptionsSisyfosInternal |
+	DeviceOptionsQuantelInternal |
+	DeviceOptionsSingularLiveInternal |
+	DeviceOptionsVMixInternal
+)

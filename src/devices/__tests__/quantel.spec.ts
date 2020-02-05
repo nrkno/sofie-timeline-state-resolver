@@ -1,15 +1,15 @@
 import { setupQuantelGatewayMock } from './quantelGatewayMock'
-import { Conductor, DeviceContainer } from '../../conductor'
+import { Conductor } from '../../conductor'
 import {
 	Mappings,
 	DeviceType,
 	MappingQuantel,
 	QuantelTransitionType
 } from '../../types/src'
-import { MockTime } from '../../__tests__/mockTime.spec'
+import { MockTime } from '../../__tests__/mockTime'
 import { ThreadedClass } from 'threadedclass'
 import { QuantelDevice, QuantelCommandType } from '../quantel'
-require('../../__tests__/lib.spec')
+import '../../__tests__/lib'
 
 const orgSetTimeout = setTimeout
 
@@ -47,7 +47,7 @@ describe('Quantel', () => {
 	})
 	test('Play and stop', async () => {
 		let device
-		let commandReceiver0 = jest.fn((...args) => {
+		const commandReceiver0: any = jest.fn((...args) => {
 			// pipe through the command
 			return device._defaultCommandReceiver(...args)
 		})
@@ -223,7 +223,7 @@ describe('Quantel', () => {
 	})
 	test('Play and stop, using clip guid', async () => {
 		let device
-		let commandReceiver0 = jest.fn((...args) => {
+		const commandReceiver0: any = jest.fn((...args) => {
 			// pipe through the command
 			return device._defaultCommandReceiver(...args)
 		})
@@ -396,7 +396,7 @@ describe('Quantel', () => {
 	})
 	test('Play, seek and re-use clip', async () => {
 		let device
-		let commandReceiver0 = jest.fn((...args) => {
+		const commandReceiver0: any = jest.fn((...args) => {
 			// pipe through the command
 			return device._defaultCommandReceiver(...args)
 		})
@@ -637,7 +637,7 @@ describe('Quantel', () => {
 	})
 	test('outTransition to clear', async () => {
 		let device
-		let commandReceiver0 = jest.fn((...args) => {
+		const commandReceiver0: any = jest.fn((...args) => {
 			// pipe through the command
 			return device._defaultCommandReceiver(...args)
 		})
@@ -818,7 +818,7 @@ describe('Quantel', () => {
 	})
 	test('outTransition to notOnAir', async () => {
 		let device
-		let commandReceiver0 = jest.fn((...args) => {
+		const commandReceiver0: any = jest.fn((...args) => {
 			// pipe through the command
 			return device._defaultCommandReceiver(...args)
 		})

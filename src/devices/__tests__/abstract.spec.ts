@@ -6,9 +6,9 @@ import {
 import { Conductor } from '../../conductor'
 import { AbstractDevice } from '../abstract'
 import { StatusCode } from '../device'
-import { MockTime } from '../../__tests__/mockTime.spec'
+import { MockTime } from '../../__tests__/mockTime'
 import { ThreadedClass } from 'threadedclass'
-import { getMockCall } from '../../__tests__/lib.spec'
+import { getMockCall } from '../../__tests__/lib'
 
 describe('Abstract device', () => {
 	let mockTime = new MockTime()
@@ -20,7 +20,7 @@ describe('Abstract device', () => {
 	})
 	test('Abstract device methods', async () => {
 
-		let commandReceiver0 = jest.fn(() => {
+		const commandReceiver0: any = jest.fn(() => {
 			return Promise.resolve()
 		})
 		let myLayerMapping0: MappingAbstract = {
