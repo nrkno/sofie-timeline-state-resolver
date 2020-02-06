@@ -190,6 +190,8 @@ export interface TimelineObjVMixInput extends TimelineObjVMixBase {
 		playing?: boolean
 		seek?: number
 		loop?: boolean
+
+		transform?: VMixTransform
 	}
 }
 
@@ -234,6 +236,20 @@ export interface TimelineObjVMixOverlay extends TimelineObjVMixBase {
 		overlay: 1 | 2 | 3 | 4 | 5 | 6
 		input: number | string
 	}
+}
+
+export interface VMixTransform {
+	/** Scale (0 - 5) */
+	zoom: number
+	
+	/** Horizontal pan (-2 - 2) */
+	panX: number
+
+	/** Vertical pan (-2 - 2) */
+	panY: number
+
+	/** Transparency (0 - 255) */
+	alpha: number
 }
 
 export interface VMixTransition {
