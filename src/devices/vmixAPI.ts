@@ -147,6 +147,10 @@ export class VMix extends EventEmitter {
 				return this.pauseInput(command.input)
 			case VMixCommand.SET_POSITION:
 				return this.setPosition(command.input, command.value)
+			case VMixCommand.LOOP_ON:
+				return this.loopOn(command.input)
+			case VMixCommand.LOOP_OFF:
+				return this.loopOff(command.input)
 			case VMixCommand.SET_INPUT_NAME:
 				return this.setInputName(command.input, command.value)
 			case VMixCommand.SET_OUPUT:
@@ -359,6 +363,14 @@ export class VMix extends EventEmitter {
 		return this.sendCommandFunction(`SetPosition`, { input: input, value: value })
 	}
 
+	public loopOn (input: number | string): Promise<any> {
+		return this.sendCommandFunction(`LoopOn`, { input: input })
+	}
+
+	public loopOff (input: number | string): Promise<any> {
+		return this.sendCommandFunction(`LoopOff`, { input: input })
+	}
+
 	public setInputName (input: number | string, value: string): Promise<any> {
 		return this.sendCommandFunction(`SetInputName`, { input: input, value: value })
 	}
@@ -518,6 +530,14 @@ export interface VMixStateCommandSetPosition extends VMixStateCommandBase {
 	input: number | string
 	value: number
 }
+export interface VMixStateCommandLoopOn extends VMixStateCommandBase {
+	command: VMixCommand.LOOP_ON
+	input: number | string
+}
+export interface VMixStateCommandLoopOff extends VMixStateCommandBase {
+	command: VMixCommand.LOOP_OFF
+	input: number | string
+}
 export interface VMixStateCommandSetInputName extends VMixStateCommandBase {
 	command: VMixCommand.SET_INPUT_NAME
 	input: number | string
@@ -572,6 +592,8 @@ export type VMixStateCommand = VMixStateCommandPreviewInput |
 	VMixStateCommandPlayInput |
 	VMixStateCommandPauseInput |
 	VMixStateCommandSetPosition |
+	VMixStateCommandLoopOn |
+	VMixStateCommandLoopOff |
 	VMixStateCommandSetInputName |
 	VMixStateCommandSetOuput |
 	VMixStateCommandStartExternal |

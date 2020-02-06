@@ -559,7 +559,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended> {
 						timelineId: ''
 					})
 				}
-				if (oldInput.playing !== input.playing) {
+				if (input.playing !== undefined && oldInput.playing !== input.playing) {
 					if (input.playing) {
 						commands.push({
 							command: {
@@ -573,6 +573,27 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended> {
 						commands.push({
 							command: {
 								command: VMixCommand.PAUSE_INPUT,
+								input: input.name
+							},
+							context: null,
+							timelineId: ''
+						})
+					}
+				}
+				if (input.loop !== undefined && oldInput.loop !== input.loop) {
+					if (input.loop) {
+						commands.push({
+							command: {
+								command: VMixCommand.LOOP_ON,
+								input: input.name
+							},
+							context: null,
+							timelineId: ''
+						})
+					} else {
+						commands.push({
+							command: {
+								command: VMixCommand.LOOP_OFF,
 								input: input.name
 							},
 							context: null,

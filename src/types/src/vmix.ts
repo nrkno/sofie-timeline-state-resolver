@@ -39,6 +39,8 @@ export enum VMixCommand {
 	REMOVE_INPUT = 'REMOVE_INPUT',
 	PLAY_INPUT = 'PLAY_INPUT',
 	PAUSE_INPUT = 'PAUSE_INPUT',
+	LOOP_ON = 'LOOP_ON',
+	LOOP_OFF = 'LOOP_OFF',
 	SET_POSITION = 'SET_POSITION',
 	SET_INPUT_NAME = 'SET_INPUT_NAME',
 	SET_OUPUT = 'SET_OUTPUT',
@@ -191,8 +193,14 @@ export interface TimelineObjVMixInput extends TimelineObjVMixBase {
 
 		/** Set only when dealing with media */
 		inputType?: VMixInputType
+
+		/** If media should be playing */
 		playing?: boolean
+
+		/** Starting position in milliseconds */
 		seek?: number
+
+		/** If media should loop */
 		loop?: boolean
 
 		transform?: VMixTransform
