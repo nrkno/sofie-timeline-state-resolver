@@ -22,6 +22,13 @@ export enum VMixCommand {
 	TRANSITION_EFFECT = 'TRANSITION_EFFECT',
 	TRANSITION_DURATION = 'TRANSITION_DURATION',
 	AUDIO_VOLUME = 'AUDIO_VOLUME',
+	AUDIO_BALANCE = 'AUDIO_BALANCE',
+	AUDIO_ON = 'AUDIO_ON',
+	AUDIO_OFF = 'AUDIO_OFF',
+	AUDIO_AUTO_ON = 'AUDIO_AUTO_ON',
+	AUDIO_AUTO_OFF = 'AUDIO_AUTO_OFF',
+	AUDIO_BUS_ON = 'AUDIO_BUS_ON',
+	AUDIO_BUS_OFF = 'AUDIO_BUS_OFF',
 	FADER = 'FADER',
 	START_STREAMING = 'START_STREAMING',
 	STOP_STREAMING = 'STOP_STREAMING',
@@ -112,28 +119,25 @@ export interface TimelineObjVMixAudio extends TimelineObjVMixBase {
 		deviceType: DeviceType.VMIX,
 		type: TimelineContentTypeVMix.AUDIO
 
-		input: number
+		input: number | string // should this be set here or gotten from the mapping
 
 		/** Channel volume (0 - 100) */
 		volume?: number
 
+		/** Volume change fade length in milliseconds */
+		fade?: number
+
 		/** Channel balance (-1 - 1) */
 		balance?: number
-
-		/** If solo is enabled */
-		solo?: boolean
 
 		/** If input is muted */
 		muted?: boolean
 
-		/** Comma separated list of busses (M,A,B,C,D,E,F,G) */
-		audioBusses?: string
+		/** Comma separated list of busses to enable (M,A,B,C,D,E,F,G) */
+		audioBuses?: string
 
-		/** Audio followvideo */
+		/** Audio follow video */
 		audioAuto?: boolean
-
-		/** Fade length in milliseconds */
-		// fade?: number
 	}
 }
 

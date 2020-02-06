@@ -141,8 +141,8 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended> {
 			muted: true,
 			volume: 100,
 			balance: 0,
-			solo: false,
-			audioBusses: 'M',
+			fade: 0,
+			audioBuses: 'M',
 			audioAuto: true
 		}
 	}
@@ -287,7 +287,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended> {
 						break
 					case TimelineContentTypeVMix.AUDIO:
 						let vmixTlAudio = tlObject as any as TimelineObjVMixAudio
-						let vmixTlAudioPicked = _.pick(vmixTlAudio.content, 'input', 'volume', 'balance', 'solo', 'audioAuto', 'audioBusses', 'muted')
+						let vmixTlAudioPicked = _.pick(vmixTlAudio.content, 'input', 'volume', 'balance', 'audioAuto', 'audioBuses', 'muted', 'fade')
 						deviceState.reportedState.inputs = this.modifyInput(deviceState.reportedState.inputs, vmixTlAudioPicked, vmixTlAudio.content.input)
 						break
 					case TimelineContentTypeVMix.FADER:
@@ -457,7 +457,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended> {
 		if (input in inputs) {
 			inputs[input] = { ...inputs[input], ...newInput }
 		} else {
-			inputs[input] = newInput
+			inputs[input] = { ...this._getDefaultInputState(0), ...newInput }
 		}
 		return inputs
 	}
@@ -585,10 +585,90 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended> {
 						command: {
 							command: VMixCommand.AUDIO_VOLUME,
 							input: key,
-							value: input.volume
+							value: input.volume,
+							fade: input.fade
 						},
 						context: null,
 						timelineId: ''
+					})
+				}
+				if (oldInput.balance !== input.balance && input.balance && !isNaN(input.balance)) {
+					commands.push({
+						command: {
+							command: VMixCommand.AUDIO_BALANCE,
+							input: key,
+							value: input.balance
+						},
+						context: null,
+						timelineId: ''
+					})
+				}
+				if (input.muted !== undefined && oldInput.muted !== input.muted) {
+					if (input.muted) {
+						commands.push({
+							command: {
+								command: VMixCommand.AUDIO_OFF,
+								input: key
+							},
+							context: null,
+							timelineId: ''
+						})
+					} else {
+						commands.push({
+							command: {
+								command: VMixCommand.AUDIO_ON,
+								input: key
+							},
+							context: null,
+							timelineId: ''
+						})
+					}
+				}
+				if (input.audioAuto !== undefined && oldInput.audioAuto !== input.audioAuto) {
+					if (!input.audioAuto) {
+						commands.push({
+							command: {
+								command: VMixCommand.AUDIO_AUTO_OFF,
+								input: key
+							},
+							context: null,
+							timelineId: ''
+						})
+					} else {
+						commands.push({
+							command: {
+								command: VMixCommand.AUDIO_AUTO_ON,
+								input: key
+							},
+							context: null,
+							timelineId: ''
+						})
+					}
+				}
+				if (input.audioBuses !== undefined && oldInput.audioBuses !== input.audioBuses) {
+					let oldBuses = (oldInput.audioBuses || '').split(',')
+					let newBuses = input.audioBuses.split(',')
+					_.difference(newBuses, oldBuses).forEach(bus => {
+						commands.push({
+							command: {
+								command: VMixCommand.AUDIO_BUS_ON,
+								input: key,
+								value: bus
+							},
+							context: null,
+							timelineId: ''
+						})
+					})
+					_.difference(oldBuses, newBuses).forEach(bus => {
+						commands.push({
+							command: {
+								command: VMixCommand.AUDIO_BUS_OFF,
+								input: key,
+								value: bus
+							},
+							context: null,
+							timelineId: ''
+						})
 					})
 				}
 			})
@@ -822,8 +902,9 @@ export interface VMixInput {
 	muted?: boolean
 	volume?: number // 0 - 100
 	balance?: number
+	fade?: number
 	solo?: boolean
-	audioBusses?: string
+	audioBuses?: string
 	audioAuto?: boolean
 	// content?: string
 }

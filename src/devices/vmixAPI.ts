@@ -110,7 +110,21 @@ export class VMix extends EventEmitter {
 			case VMixCommand.TRANSITION:
 				return this.transition(command.input, command.effect, command.duration, command.mix)
 			case VMixCommand.AUDIO_VOLUME:
-				return this.setAudioLevel(command.input, command.value)
+				return this.setAudioLevel(command.input, command.value, command.fade)
+			case VMixCommand.AUDIO_BALANCE:
+				return this.setAudioBalance(command.input, command.value)
+			case VMixCommand.AUDIO_ON:
+				return this.setAudioOn(command.input)
+			case VMixCommand.AUDIO_OFF:
+				return this.setAudioOff(command.input)
+			case VMixCommand.AUDIO_AUTO_ON:
+				return this.setAudioAutoOn(command.input)
+			case VMixCommand.AUDIO_AUTO_OFF:
+				return this.setAudioAutoOff(command.input)
+			case VMixCommand.AUDIO_BUS_ON:
+				return this.setAudioBusOn(command.input, command.value)
+			case VMixCommand.AUDIO_BUS_OFF:
+				return this.setAudioBusOff(command.input, command.value)
 			case VMixCommand.FADER:
 				return this.setFader(command.value)
 			case VMixCommand.START_RECORDING:
@@ -261,8 +275,40 @@ export class VMix extends EventEmitter {
 		return this.sendCommandFunction(effect, { input, duration, mix })
 	}
 
-	public setAudioLevel (input: number | string, volume: number): Promise<any> {
-		return this.sendCommandFunction(`SetVolume`, { input: input, value: Math.min(Math.max(volume, 0), 100) })
+	public setAudioLevel (input: number | string, volume: number, fade?: number): Promise<any> {
+		let value: string = Math.min(Math.max(volume, 0), 100).toString()
+		if(fade) {
+			value += ',' + fade.toString()
+		}
+		return this.sendCommandFunction(`SetVolume${fade? 'Fade': ''}`, { input: input, value })
+	}
+
+	public setAudioBalance (input: number | string, balance: number): Promise<any> {
+		return this.sendCommandFunction(`SetBalance`, { input, value: Math.min(Math.max(balance, -1), 1) })
+	}	
+
+	public setAudioOn (input: number | string): Promise<any> {
+		return this.sendCommandFunction(`AudioOn`, { input })
+	}	
+
+	public setAudioOff (input: number | string): Promise<any> {
+		return this.sendCommandFunction(`AudioOff`, { input })
+	}	
+	
+	public setAudioAutoOn (input: number | string): Promise<any> {
+		return this.sendCommandFunction(`AudioAutoOn`, { input })
+	}	
+
+	public setAudioAutoOff (input: number | string): Promise<any> {
+		return this.sendCommandFunction(`AudioAutoOff`, { input })
+	}
+
+	public setAudioBusOn (input: number | string, value: string): Promise<any> {
+		return this.sendCommandFunction(`AudioBusOn`, { input, value })
+	}
+
+	public setAudioBusOff (input: number | string, value: string): Promise<any> {
+		return this.sendCommandFunction(`AudioBusOff`, { input, value })
 	}
 
 	public setFader (position: number): Promise<any> {
@@ -399,6 +445,38 @@ export interface VMixStateCommandAudio extends VMixStateCommandBase {
 	command: VMixCommand.AUDIO_VOLUME
 	input: number | string
 	value: number
+	fade?: number
+}
+export interface VMixStateCommandAudioBalance extends VMixStateCommandBase {
+	command: VMixCommand.AUDIO_BALANCE
+	input: number | string
+	value: number
+}
+export interface VMixStateCommandAudioOn extends VMixStateCommandBase {
+	command: VMixCommand.AUDIO_ON
+	input: number | string
+}
+export interface VMixStateCommandAudioOff extends VMixStateCommandBase {
+	command: VMixCommand.AUDIO_OFF
+	input: number | string
+}
+export interface VMixStateCommandAudioAutoOn extends VMixStateCommandBase {
+	command: VMixCommand.AUDIO_AUTO_ON
+	input: number | string
+}
+export interface VMixStateCommandAudioAutoOff extends VMixStateCommandBase {
+	command: VMixCommand.AUDIO_AUTO_OFF
+	input: number | string
+}
+export interface VMixStateCommandAudioBusOn extends VMixStateCommandBase {
+	command: VMixCommand.AUDIO_BUS_ON
+	input: number | string
+	value: string
+}
+export interface VMixStateCommandAudioBusOff extends VMixStateCommandBase {
+	command: VMixCommand.AUDIO_BUS_OFF
+	input: number | string
+	value: string
 }
 export interface VMixStateCommandFader extends VMixStateCommandBase {
 	command: VMixCommand.FADER
@@ -476,6 +554,13 @@ export type VMixStateCommand = VMixStateCommandPreviewInput |
 	VMixStateCommandTransitionEffect |
 	VMixStateCommandTransitionDuration |
 	VMixStateCommandAudio |
+	VMixStateCommandAudioBalance |
+	VMixStateCommandAudioOn |
+	VMixStateCommandAudioOff |
+	VMixStateCommandAudioAutoOn |
+	VMixStateCommandAudioAutoOff |
+	VMixStateCommandAudioBusOn |
+	VMixStateCommandAudioBusOff |
 	VMixStateCommandFader |
 	VMixStateCommandStartStreaming |
 	VMixStateCommandStopStreaming |
