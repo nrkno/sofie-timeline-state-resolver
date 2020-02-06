@@ -20,7 +20,7 @@ export class VMix extends EventEmitter {
 			version: '22.0.0.67',
 			edition: 'Trial',
 			inputs: {},
-			media: {},
+			// media: {},
 			overlays: _.map([1,2,3,4,5,6], num => {
 				return {
 					number: num,
@@ -174,10 +174,10 @@ export class VMix extends EventEmitter {
 			inputs: _.indexBy((xml['vmix']['inputs']['input'] as Array<any>)
 			.map(input => {
 				return {
-					key: input['_attributes']['key'],
+					// key: input['_attributes']['key'],
 					number: Number(input['_attributes']['number']),
 					type: input['_attributes']['type'],
-					title: input['_attributes']['title'],
+					// title: input['_attributes']['title'],
 					state: input['_attributes']['state'],
 					position: Number(input['_attributes']['position']),
 					duration: Number(input['_attributes']['duration']),
@@ -191,7 +191,6 @@ export class VMix extends EventEmitter {
 					// content: input['_text']
 				} as VMixInput
 			}), 'number'),
-			media: {},
 			overlays: (xml['vmix']['overlays']['overlay'] as Array<any>).map(overlay => {
 				return {
 					number: Number(overlay['_attributes']['number']),
@@ -314,7 +313,7 @@ export class VMix extends EventEmitter {
 		return this.sendCommandFunction(`SetPosition`, { input: input, value: value })
 	}
 
-	public setInputName (input: number, value: string): Promise<any> {
+	public setInputName (input: number | string, value: string): Promise<any> {
 		return this.sendCommandFunction(`SetInputName`, { input: input, value: value })
 	}
 
@@ -443,7 +442,7 @@ export interface VMixStateCommandSetPosition extends VMixStateCommandBase {
 }
 export interface VMixStateCommandSetInputName extends VMixStateCommandBase {
 	command: VMixCommand.SET_INPUT_NAME
-	input: number
+	input: number | string
 	value: string
 }
 export interface VMixStateCommandSetOuput extends VMixStateCommandBase {

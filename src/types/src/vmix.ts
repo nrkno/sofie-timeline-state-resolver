@@ -58,15 +58,7 @@ export type TimelineObjVMixAny =
 	TimelineObjVMixFadeToBlack |
 	TimelineObjVMixOutput |
 	TimelineObjVMixOverlay |
-	TimelineObjVMixMedia
-	// TimelineObjVMixAddInput |
-	// TimelineObjVMixSetInputName |
-	// TimelineObjVMixOverlayInputOFF |
-	// TimelineObjVMixPlayClip |
-	// TimelineObjVMixStopClip |
-	// TimelineObjVMixClipToProgram |
-	// TimelineObjVMixCameraActive |
-	// TimelineObjVMixOverlayInputByNameIn
+	TimelineObjVMixInput
 
 export enum TimelineContentTypeVMix {
 	PROGRAM = 'PROGRAM',
@@ -76,7 +68,7 @@ export enum TimelineContentTypeVMix {
 	STREAMING = 'STREAMING',
 	RECORDING = 'RECORDING',
 	FADE_TO_BLACK = 'FADE_TO_BLACK',
-	MEDIA = 'MEDIA',
+	INPUT = 'INPUT',
 	OUTPUT = 'OUTPUT',
 	EXTERNAL = 'EXTERNAL',
 	OVERLAY = 'OVERLAY'
@@ -88,20 +80,11 @@ export interface TimelineObjVMixBase extends TSRTimelineObjBase {
 	}
 }
 
-/*
-export interface TimelineObjVMixMedia extends TimelineObjVMixBase {
-	content: {
-		deviceType: DeviceType.VMIX
-		type: TimelineContentTypeVMix
-		mediaDirectory: string
-	}
-}
-*/
-
 export interface TimelineObjVMixProgram extends TimelineObjVMixBase {
 	content: {
 		deviceType: DeviceType.VMIX
 		type: TimelineContentTypeVMix.PROGRAM
+
 		input: number | string
 
 		/** Transition effect (Stingers work only for Mix number 1) */
@@ -116,6 +99,7 @@ export interface TimelineObjVMixPreview extends TimelineObjVMixBase {
 	content: {
 		deviceType: DeviceType.VMIX
 		type: TimelineContentTypeVMix.PREVIEW
+
 		input: number | string
 
 		/** Number of the mix (1 is the main mix, 2-4 are optional Mix Inputs) */
@@ -127,12 +111,13 @@ export interface TimelineObjVMixAudio extends TimelineObjVMixBase {
 	content: {
 		deviceType: DeviceType.VMIX,
 		type: TimelineContentTypeVMix.AUDIO
+
 		input: number
 
-		/** Channel volume (0-100) */
+		/** Channel volume (0 - 100) */
 		volume?: number
 
-		/** Channel balance (-1-1) */
+		/** Channel balance (-1 - 1) */
 		balance?: number
 
 		/** If solo is enabled */
@@ -157,7 +142,7 @@ export interface TimelineObjVMixFader extends TimelineObjVMixBase {
 		deviceType: DeviceType.VMIX,
 		type: TimelineContentTypeVMix.FADER,
 
-		/** Position of the transition fader (0-100) */
+		/** Position of the transition fader (0 - 100) */
 		position: number
 	}
 }
@@ -192,27 +177,23 @@ export interface TimelineObjVMixFadeToBlack extends TimelineObjVMixBase {
 	}
 }
 
-export interface TimelineObjVMixMedia extends TimelineObjVMixBase {
+export interface TimelineObjVMixInput extends TimelineObjVMixBase {
 	content: {
 		deviceType: DeviceType.VMIX
-		type: TimelineContentTypeVMix.MEDIA
-		// mediaType: VMixInputType
-		filePath: string
+		type: TimelineContentTypeVMix.INPUT
+
+		/** Input name, number, or file path */
+		input: number | string
+
+		/** Set only when dealing with media */
+		inputType?: VMixInputType
 		playing?: boolean
-		seek?: number // position
+		seek?: number
 		loop?: boolean
 	}
 }
-/*
-export interface TimelineObjVMixAddInput extends TimelineObjVMixBase {
-	content: {
-		deviceType: DeviceType.VMIX
-		type: TimelineContentTypeVMix.ADD_INPUT
-		mediaType: VMixInputType
-		filePath: string
-	}
-}
 
+/*
 export interface TimelineObjVMixRestartInput extends TimelineObjVMixBase {
 	content: {
 		deviceType: DeviceType.VMIX
@@ -252,59 +233,10 @@ export interface TimelineObjVMixOverlay extends TimelineObjVMixBase {
 		type: TimelineContentTypeVMix.OVERLAY
 		overlay: 1 | 2 | 3 | 4 | 5 | 6
 		input: number | string
-		// on: boolean // if that input should be on
 	}
 }
-
-/* 
-export interface TimelineObjVMixPlayClip extends TimelineObjVMixMedia {
-	content: {
-		deviceType: DeviceType.VMIX
-		type: TimelineContentTypeVMix.PLAY_CLIP
-		mediaDirectory: string
-		clipName: string
-	}
-}
-
-export interface TimelineObjVMixStopClip extends TimelineObjVMixBase {
-	content: {
-		deviceType: DeviceType.VMIX,
-		type: TimelineContentTypeVMix.STOP_CLIP
-		clipName: string
-	}
-}
-
-export interface TimelineObjVMixClipToProgram extends TimelineObjVMixBase {
-	content: {
-		deviceType: DeviceType.VMIX
-		type: TimelineContentTypeVMix.CLIP_TO_PROGRAM
-		clipName: string
-		transition?: VMixTransition
-	}
-}
-
-export interface TimelineObjVMixCameraActive extends TimelineObjVMixBase {
-	content: {
-		deviceType: DeviceType.VMIX
-		type: TimelineContentTypeVMix.CAMERA_ACTIVE
-		camera: string
-		transition?: VMixTransition
-	}
-}
-
-export interface TimelineObjVMixOverlayInputByNameIn extends TimelineObjVMixMedia {
-	content: {
-		deviceType: DeviceType.VMIX
-		type: TimelineContentTypeVMix.OVERLAY_INPUT_BY_NAME_IN
-		inputName: string
-		mediaDirectory: string
-		overlay: 1 | 2 | 3 | 4 | 5 | 6
-	}
-} 
-*/
 
 export interface VMixTransition {
-	// number: 1 | 2 | 3 | 4
 	effect: VMixTransitionType
 	duration: number
 }
@@ -331,4 +263,14 @@ export enum VMixTransitionType {
 	Stinger2 = 'Stinger2'
 }
 
-export type VMixInputType = 'Video' | 'Image' | 'Photos' | 'Xaml' | 'VideoList' | 'Colour' | 'AudioFile' | 'Flash' | 'PowerPoint' | 'Capture' | 'NDI' | 'Audio'
+export enum VMixInputType {
+	Video = 'Video',
+	Image = 'Image',
+	Photos = 'Photos',
+	Xaml = 'Xaml',
+	AudioFile = 'AudioFile',
+	Flash = 'Flash',
+	PowerPoint = 'PowerPoint'
+}
+
+// export type VMixInputType = 'Video' | 'Image' | 'Photos' | 'Xaml' | 'VideoList' | 'Colour' | 'AudioFile' | 'Flash' | 'PowerPoint' | 'Capture' | 'NDI' | 'Audio'
