@@ -103,10 +103,6 @@ export class VMix extends EventEmitter {
 				return this.setPreviewInput(command.input, command.mix)
 			case VMixCommand.ACTIVE_INPUT:
 				return this.setActiveInput(command.input)
-			// case VMixCommand.TRANSITION_EFFECT:
-			// 	return this.setTransition(command.input, command.value)
-			// case VMixCommand.TRANSITION_DURATION:
-			// 	return this.setTransitionDuration(command.input, command.value)
 			case VMixCommand.TRANSITION:
 				return this.transition(command.input, command.effect, command.duration, command.mix)
 			case VMixCommand.AUDIO_VOLUME:
@@ -171,8 +167,6 @@ export class VMix extends EventEmitter {
 				return this.overlayInputIn(command.value, command.input)
 			case VMixCommand.OVERLAY_INPUT_OUT:
 				return this.overlayInputOut(command.value)
-			case VMixCommand.OVERLAY_INPUT_OFF:
-				return this.overlayInputOff(command.value)
 			default:
 				throw new Error(`vmixAPI: Command ${((command || {}) as any).command} not implemented`)
 		}
@@ -274,14 +268,6 @@ export class VMix extends EventEmitter {
 	public setActiveInput (input: number | string): Promise<any> {
 		return this.sendCommandFunction('ActiveInput', { input: input })
 	}
-
-	// public setTransition (transitionNumber: number, transition: string): Promise<any> {
-	// 	return this.sendCommandFunction(`SetTransitionEffect${transitionNumber}`, { value: transition })
-	// }
-
-	// public setTransitionDuration (transitionNumber: number, duration: number): Promise<any> {
-	// 	return this.sendCommandFunction(`SetTransitionDuration${transitionNumber}`, { value: duration })
-	// }
 
 	public transition (input: number | string, effect: string, duration: number, mix: number): Promise<any> {
 		return this.sendCommandFunction(effect, { input, duration, mix })
@@ -419,10 +405,6 @@ export class VMix extends EventEmitter {
 		return this.sendCommandFunction(`OverlayInput${name}Out`, {})
 	}
 
-	public overlayInputOff (name: number): Promise<any> {
-		return this.sendCommandFunction(`OverlayInput${name}Off`, {})
-	}
-
 	public sendCommandFunction (func: string, args: { input?: string | number, value?: string | number, extra?: string, duration?: number, mix?: number }): Promise<any> {
 		const inp = args.input !== undefined ? `&Input=${args.input}` : ''
 		const val = args.value !== undefined ? `&Value=${args.value}` : ''
@@ -466,16 +448,6 @@ export interface VMixStateCommandTransition extends VMixStateCommandBase {
 	effect: string
 	duration: number
 	mix: number
-}
-export interface VMixStateCommandTransitionEffect extends VMixStateCommandBase {
-	command: VMixCommand.TRANSITION_EFFECT
-	input: number
-	value: string
-}
-export interface VMixStateCommandTransitionDuration extends VMixStateCommandBase {
-	command: VMixCommand.TRANSITION_DURATION
-	input: number
-	value: number
 }
 export interface VMixStateCommandAudio extends VMixStateCommandBase {
 	command: VMixCommand.AUDIO_VOLUME
@@ -608,15 +580,9 @@ export interface VMixStateCommandOverlayInputOut extends VMixStateCommandBase {
 	command: VMixCommand.OVERLAY_INPUT_OUT
 	value: number
 }
-export interface VMixStateCommandOverlayInputOff extends VMixStateCommandBase {
-	command: VMixCommand.OVERLAY_INPUT_OFF
-	value: number
-}
 export type VMixStateCommand = VMixStateCommandPreviewInput |
 	VMixStateCommandProgram |
 	VMixStateCommandTransition |
-	VMixStateCommandTransitionEffect |
-	VMixStateCommandTransitionDuration |
 	VMixStateCommandAudio |
 	VMixStateCommandAudioBalance |
 	VMixStateCommandAudioOn |
@@ -647,5 +613,4 @@ export type VMixStateCommand = VMixStateCommandPreviewInput |
 	VMixStateCommandStartExternal |
 	VMixStateCommandStopExternal |
 	VMixStateCommandOverlayInputIn |
-	VMixStateCommandOverlayInputOut |
-	VMixStateCommandOverlayInputOff
+	VMixStateCommandOverlayInputOut

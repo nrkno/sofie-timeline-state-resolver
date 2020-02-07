@@ -28,23 +28,14 @@ import {
 	TimelineObjVMixAudio,
 	TimelineObjVMixFader,
 	TimelineObjVMixOutput,
-	// TimelineObjVMixRestartInput,
-	// TimelineObjVMixSetPosition,
-	// TimelineObjVMixSetInputName,
-	// TimelineObjVMixOverlayInputIn,
-	// TimelineObjVMixPlayClip,
-	// TimelineObjVMixStopClip,
-	VMixInputType,
 	TimelineObjVMixRecording,
 	TimelineObjVMixStreaming,
 	TimelineObjVMixExternal,
 	TimelineObjVMixFadeToBlack,
 	TimelineObjVMixOverlay,
 	TimelineObjVMixInput,
+	VMixInputType,
 	VMixTransform
-	// TimelineObjVMixOverlayInputByNameIn,
-	// TimelineObjVMixOverlayInputOut,
-	// TimelineObjVMixOverlayInputOFF
 } from '../types/src/vmix'
 
 export interface DeviceOptionsVMixInternal extends DeviceOptionsVMix {
@@ -335,13 +326,6 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended> {
 							position: 0
 						})
 						break
-					case TimelineContentTypeVMix.SET_INPUT_NAME:
-						let tlObjSetInputName = tlObject as any as TimelineObjVMixSetInputName
-						deviceState.reportedState.inputs = this.modifyInput(deviceState.reportedState.inputs, {
-							number: Number(tlObjSetInputName.content.input),
-							name: tlObjSetInputName.content.name
-						})
-						break
 					*/
 					case TimelineContentTypeVMix.OUTPUT:
 						let tlObjSetOutput = tlObject as any as TimelineObjVMixOutput
@@ -355,81 +339,6 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended> {
 						let overlayIndex = tlObjOverlayInputIn.content.overlay - 1
 						deviceState.reportedState.overlays[overlayIndex].input = tlObjOverlayInputIn.content.input
 						break
-					/*
-					case TimelineContentTypeVMix.PLAY_CLIP:
-						let tlObjPlayClip = tlObject as any as TimelineObjVMixPlayClip
-						let fileTypePlay: VMixInputType = 'Video'
-						if (tlObjPlayClip.content.clipName.match(/.*\.(tif|tiff|gif|jpeg|jpg|jif|jfif|jp2|jpx|jk2|j2c|png)/g)) {
-							fileTypePlay = 'Image'
-						}
-						if (this.inputExists(tlObjPlayClip.content.clipName, fileTypePlay, deviceState)) {
-							let inputIndexPlayClip = deviceState.reportedState.inputs.findIndex(input => input.title === tlObjPlayClip.content.clipName)
-							if (inputIndexPlayClip !== -1) {
-								deviceState.reportedState.inputs[inputIndexPlayClip].state = 'Running'
-								deviceState.reportedState.inputs[inputIndexPlayClip].position = 0
-							}
-						} else {
-							let combinedInput = (tlObjPlayClip.content.mediaDirectory.indexOf('\\') !== -1) ?
-								`${fileTypePlay}|${tlObjPlayClip.content.mediaDirectory}\\${tlObjPlayClip.content.clipName}` :
-								`${fileTypePlay}|${tlObjPlayClip.content.mediaDirectory}/${tlObjPlayClip.content.clipName}`
-							this._vmix.addInput(combinedInput)
-
-							deviceState.reportedState.inputs.push({
-								title: tlObjPlayClip.content.clipName,
-								state: 'Running',
-								position: 0
-							})
-						}
-						break
-					case TimelineContentTypeVMix.STOP_CLIP:
-						let tlObjStopClip = tlObject as any as TimelineObjVMixStopClip
-						let inputIndexStopClip = deviceState.reportedState.inputs.findIndex(input => input.title === tlObjStopClip.content.clipName)
-						if (inputIndexStopClip !== -1) {
-							deviceState.reportedState.inputs[inputIndexStopClip].state = 'Paused'
-							deviceState.reportedState.inputs[inputIndexStopClip].position = 0
-						}
-						break
-					case TimelineContentTypeVMix.CLIP_TO_PROGRAM:
-						let tlObjClipToProgram = tlObject as any as TimelineObjVMixClipToProgram
-						let fileTypeProgram: VMixInputType = 'Video'
-						if (tlObjClipToProgram.content.clipName.match(/.*\.(tif|tiff|gif|jpeg|jpg|jif|jfif|jp2|jpx|jk2|j2c|png)/g)) {
-							fileTypeProgram = 'Image'
-						}
-						if (this.inputExists(tlObjClipToProgram.content.clipName, fileTypeProgram, deviceState)) {
-							this.switchToSource(tlObjClipToProgram.content.clipName, deviceState, tlObjClipToProgram.content.transition)
-						}
-						break
-					case TimelineContentTypeVMix.CAMERA_ACTIVE:
-						let tlObjCameraActive = tlObject as any as TimelineObjVMixCameraActive
-						if (this.inputExists(tlObjCameraActive.content.camera, 'Capture', deviceState)) {
-							this.switchToSource(tlObjCameraActive.content.camera, deviceState, tlObjCameraActive.content.transition)
-						}
-						break
-					case TimelineContentTypeVMix.OVERLAY_INPUT_BY_NAME_IN:
-						let tlObjOverlayInputByNameIn = tlObject as any as TimelineObjVMixOverlayInputByNameIn
-						let overlayByNameInIndex = deviceState.reportedState.inputs.findIndex(input => input.title === tlObjOverlayInputByNameIn.content.inputName)
-						if (overlayByNameInIndex !== -1) {
-							let overlayIndex = deviceState.reportedState.overlays.findIndex(overlay => overlay.number === tlObjOverlayInputByNameIn.content.overlay)
-							if (overlayIndex !== -1) {
-								let input = deviceState.reportedState.inputs[overlayByNameInIndex].number
-								if (input !== undefined) deviceState.reportedState.overlays[overlayIndex].input = input.toString()
-							}
-						} else {
-							let combinedInput = (tlObjOverlayInputByNameIn.content.mediaDirectory.indexOf('\\') !== -1) ?
-							`Video|${tlObjOverlayInputByNameIn.content.mediaDirectory}\\${tlObjOverlayInputByNameIn.content.inputName}` :
-							`Video|${tlObjOverlayInputByNameIn.content.mediaDirectory}/${tlObjOverlayInputByNameIn.content.inputName}`
-							this._vmix.addInput(combinedInput)
-
-							deviceState.reportedState.inputs.push({
-								title: tlObjOverlayInputByNameIn.content.inputName
-							})
-							let overlayIndex = deviceState.reportedState.overlays.findIndex(overlay => overlay.number === tlObjOverlayInputByNameIn.content.overlay)
-							if (overlayIndex !== -1) {
-								deviceState.reportedState.overlays[overlayIndex].input = deviceState.reportedState.inputs.length.toString()
-							}
-						}
-						break
-					*/
 				}
 			}
 		})
@@ -439,27 +348,6 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended> {
 	getFilename (filePath: string) {
 		return path.basename(filePath)
 	}
-
-	/* inputExists (name: string, mediaType: VMixInputType, deviceState: VMixStateExtended, file?: boolean) {
-		return deviceState.reportedState.inputs.filter(input => {
-			if (input.title) {
-				if (file) {
-					let match = name.match(/[ \w-]+?(?=\.).(\w)+(?:$|\n)/g)
-					if (match) {
-						if (match[0] === input.title && input.type && input.type === mediaType) {
-							return input
-						}
-					}
-				} else {
-					if (name === input.title && input.type && input.type === mediaType) {
-						return input
-					}
-				}
-			}
-
-			return
-		}).length !== 0
-	} */
 
 	modifyInput (inputs: { [key: string]: VMixInput }, newInput: VMixInput, input: string | number): { [key: string]: VMixInput } {
 		let newInputPicked = _.pick(newInput, x => !_.isUndefined(x))
@@ -472,12 +360,8 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended> {
 	}
 
 	switchToInput (input: number | string, deviceState: VMixStateExtended, mix: number, transition?: VMixTransition) {
-		// let available = deviceState.reportedState.inputs.filter(inp =>
-		// 	inp.number === input
-		// ).length !== 0
 		let mixState = deviceState.reportedState.mixes[mix]
 		if (
-		// available &&
 			(
 				mixState.program === undefined ||
 				mixState.program !== input // mixing numeric and string input names can be dangerous
