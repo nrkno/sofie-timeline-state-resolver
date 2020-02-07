@@ -45,7 +45,6 @@ import * as request from 'request'
 const MAX_TIMESYNC_TRIES = 5
 const MAX_TIMESYNC_DURATION = 40
 const MEDIA_RETRY_INTERVAL = 10 * 1000 // default time in ms between checking whether a file needs to be retried loading
-const MEDIA_RETRY_DEBOUNCE = 500 // how long to wait after a command has sent before checking for retries
 
 export interface DeviceOptionsCasparCGInternal extends DeviceOptionsCasparCG {
 	options: (
@@ -730,7 +729,7 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> implements ID
 		// do no retry while we are sending commands, instead always retry closely after:
 		if (!context.match(/\[RETRY\]/i)) {
 			clearTimeout(this._retryTimeout)
-			if (!this.initOptions || this.initOptions.retryInterval !== false) this._retryTimeout = setTimeout(() => this._assertIntendedState(), MEDIA_RETRY_DEBOUNCE)
+			if (!this.initOptions || this.initOptions.retryInterval !== false) this._retryTimeout = setTimeout(() => this._assertIntendedState(), this._retryTime)
 		}
 
 		let cwc: CommandWithContext = {
