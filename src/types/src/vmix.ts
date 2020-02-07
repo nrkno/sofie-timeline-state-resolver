@@ -91,7 +91,11 @@ export interface TimelineObjVMixProgram extends TimelineObjVMixBase {
 		deviceType: DeviceType.VMIX
 		type: TimelineContentTypeVMix.PROGRAM
 
-		input: number | string
+		/** Input number or name */
+		input?: number | string
+
+		/** Input layer name */
+		inputLayer?: string
 
 		/** Transition effect (Stingers work only for Mix number 1) */
 		transition?: VMixTransition

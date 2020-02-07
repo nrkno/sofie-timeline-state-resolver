@@ -202,7 +202,8 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended> {
 				'External2': { source: 'Program' },
 				'Fullscreen': { source: 'Program' },
 				'Fullscreen2': { source: 'Program' }
-			}
+			},
+			inputLayers: {}
 		}
 	}
 
@@ -286,7 +287,11 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended> {
 					case TimelineContentTypeVMix.PROGRAM:
 						let vmixTlProgram = tlObject as any as TimelineObjVMixProgram
 						let mixProgram = (vmixTlProgram.content.mix || 1) - 1
-						this.switchToInput(vmixTlProgram.content.input, deviceState, mixProgram, vmixTlProgram.content.transition)
+						if(vmixTlProgram.content.input !== undefined) {
+							this.switchToInput(vmixTlProgram.content.input, deviceState, mixProgram, vmixTlProgram.content.transition)
+						} else if (vmixTlProgram.content.inputLayer) {
+							this.switchToInput(vmixTlProgram.content.inputLayer, deviceState, mixProgram, vmixTlProgram.content.transition, true)
+						}
 						break
 					case TimelineContentTypeVMix.PREVIEW:
 						let vmixTlPreview = tlObject as any as TimelineObjVMixPreview
@@ -296,7 +301,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended> {
 					case TimelineContentTypeVMix.AUDIO:
 						let vmixTlAudio = tlObject as any as TimelineObjVMixAudio
 						let vmixTlAudioPicked = _.pick(vmixTlAudio.content, 'input', 'volume', 'balance', 'audioAuto', 'audioBuses', 'muted', 'fade')
-						deviceState.reportedState.inputs = this.modifyInput(deviceState.reportedState.inputs, vmixTlAudioPicked, vmixTlAudio.content.input)
+						deviceState.reportedState.inputs = this.modifyInput(deviceState, vmixTlAudioPicked, vmixTlAudio.content.input)
 						break
 					case TimelineContentTypeVMix.FADER:
 						let vmixTlFader = tlObject as any as TimelineObjVMixFader
@@ -320,14 +325,14 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended> {
 						break
 					case TimelineContentTypeVMix.INPUT:
 						let vmixTlMedia = tlObject as any as TimelineObjVMixInput
-						deviceState.reportedState.inputs = this.modifyInput(deviceState.reportedState.inputs, {
+						deviceState.reportedState.inputs = this.modifyInput(deviceState, {
 							type: vmixTlMedia.content.inputType,
 							playing: vmixTlMedia.content.playing,
 							loop: vmixTlMedia.content.loop,
 							position: vmixTlMedia.content.seek,
 							transform: vmixTlMedia.content.transform,
 							overlays: vmixTlMedia.content.overlays
-						}, vmixTlMedia.content.input)
+						}, vmixTlMedia.content.input, layerName)
 						break
 					/*
 					case TimelineContentTypeVMix.RESTART_INPUT:
@@ -360,7 +365,8 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended> {
 		return path.basename(filePath)
 	}
 
-	modifyInput (inputs: { [key: string]: VMixInput }, newInput: VMixInput, input: string | number): { [key: string]: VMixInput } {
+	modifyInput (deviceState: VMixStateExtended, newInput: VMixInput, input: string | number, layerName?: string): { [key: string]: VMixInput } {
+		let inputs = deviceState.reportedState.inputs
 		let newInputPicked = _.pick(newInput, x => !_.isUndefined(x))
 		if (input in inputs) {
 			deepExtend(inputs[input], newInputPicked)
@@ -369,21 +375,23 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended> {
 			deepExtend(inputState, newInputPicked)
 			inputs[input] = inputState
 		}
+		if(layerName) {
+			deviceState.inputLayers[layerName] = input as string
+		}
 		return inputs
 	}
 
-	switchToInput (input: number | string, deviceState: VMixStateExtended, mix: number, transition?: VMixTransition) {
+	switchToInput (input: number | string, deviceState: VMixStateExtended, mix: number, transition?: VMixTransition, layerToProgram: boolean = false) {
 		let mixState = deviceState.reportedState.mixes[mix]
 		if (
-			(
-				mixState.program === undefined ||
-				mixState.program !== input // mixing numeric and string input names can be dangerous
-			)
+			mixState.program === undefined ||
+			mixState.program !== input // mixing numeric and string input names can be dangerous
 		) {
 			mixState.preview = mixState.program
 			mixState.program = input
 
 			mixState.transition = transition || { effect: VMixTransitionType.Cut, duration: 0 }
+			mixState.layerToProgram = layerToProgram
 		}
 	}
 	get deviceType () {
@@ -411,12 +419,16 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended> {
 			let oldMixState = oldVMixState.reportedState.mixes[i]
 			let newMixState = newVMixState.reportedState.mixes[i]
 			if (newMixState.program !== undefined) {
+				let nextInput = newMixState.program
+				if (newMixState.layerToProgram) {
+					nextInput = newVMixState.inputLayers[newMixState.program]
+				}
 				if (oldMixState.program !== newMixState.program) {
 					commands.push({
 						command: {
 							command: VMixCommand.TRANSITION,
 							effect: newMixState.transition.effect,
-							input: newMixState.program,
+							input: nextInput,
 							duration: newMixState.transition.duration,
 							mix: i
 						},
@@ -862,7 +874,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended> {
 
 		return commands
 	}
-	
+
 	private _defaultCommandReceiver (_time: number, cmd: VMixStateCommandWithContext, context: CommandContext, timelineObjId: string): Promise<any> {
 
 		let cwc: CommandWithContext = {
@@ -896,6 +908,7 @@ export class VMixStateExtended {
 		'Fullscreen': VMixOutput
 		'Fullscreen2': VMixOutput
 	}
+	inputLayers: { [key: string]: string }
 }
 export class VMixState {
 	version: string
@@ -921,6 +934,7 @@ export interface VMixMix {
 	program: string | number | undefined
 	preview: string | number | undefined
 	transition: VMixTransition
+	layerToProgram?: boolean
 }
 
 export interface VMixInput {
