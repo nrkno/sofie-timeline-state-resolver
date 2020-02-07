@@ -105,7 +105,9 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended> {
 			})
 			this._vmix.on('connected', () => {
 				let time = this.getCurrentTime()
-				this.setState({ ...this._getDefaultState(), ...{ reportedState: this._vmix.state } }, time)
+				let state = this._getDefaultState()
+				deepExtend(state, { reportedState: this._vmix.state })
+				this.setState(state, time)
 				this._connected = true
 				this._initialized = true
 				this._connectionChanged()
@@ -137,6 +139,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended> {
 	private _getDefaultInputState (num: number): VMixInput {
 		return {
 			number: num,
+			position: 0,
 			muted: true,
 			volume: 100,
 			balance: 0,
@@ -162,13 +165,12 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended> {
 	}
 
 	private _getDefaultState (): VMixStateExtended {
-		const defaultInputsCount = 16 // TODO: obtain inputs count from API or from blueprints(?)
-
 		return {
 			reportedState: {
 				version: '',
 				edition: '',
-				inputs: this._getDefaultInputsState(defaultInputsCount),
+				fixedInputsCount: 0,
+				inputs: this._getDefaultInputsState(this._vmix.state.fixedInputsCount),
 				overlays: _.map([1,2,3,4,5,6], num => {
 					return {
 						number: num,
@@ -680,7 +682,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended> {
 					commands.push({
 						command: {
 							command: VMixCommand.REMOVE_INPUT,
-							input: oldVMixState.reportedState.inputs[input].name!
+							input: oldVMixState.reportedState.inputs[input].name || input
 						},
 						context: null,
 						timelineId: ''
@@ -864,6 +866,7 @@ export class VMixStateExtended {
 export class VMixState {
 	version: string
 	edition: string // TODO: Enuum, need list of available editions: Trial
+	fixedInputsCount: number
 	inputs: { [key: string]: VMixInput }
 	overlays: VMixOverlay[]
 	mixes: VMixMix[]

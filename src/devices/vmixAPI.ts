@@ -1,7 +1,7 @@
 import { EventEmitter } from 'events'
 import * as request from 'request'
 import * as xml from 'xml-js'
-import { VMixOptions, VMixCommand, VMixTransitionType } from '../types/src'
+import { VMixOptions, VMixCommand, VMixTransitionType, VMixInputType } from '../types/src'
 import { VMixState, VMixInput, VMixTransition, VMixAudioChannel } from './vmix'
 import * as _ from 'underscore'
 
@@ -16,39 +16,9 @@ export class VMix extends EventEmitter {
 	private _socketKeepAliveTimeout: NodeJS.Timer | null = null
 
 	connect (options: VMixOptions): Promise<void> {
-		this.state = {
-			version: '22.0.0.67',
-			edition: 'Trial',
-			inputs: {},
-			// media: {},
-			overlays: _.map([1,2,3,4,5,6], num => {
-				return {
-					number: num,
-					input: undefined
-				}
-			}),
-			mixes: _.map([1,2,3,4], num => {
-				return {
-					number: num,
-					program: undefined,
-					preview: undefined,
-					transition: { effect: VMixTransitionType.Cut, duration: 0 }}
-			}),
-			fadeToBlack: false,
-			faderPosition: 0,
-			transitions: [],
-			recording: false,
-			external: false,
-			streaming: false,
-			playlist: false,
-			multiCorder: false,
-			fullscreen: false,
-			audio: []
-		}
 		return this._connectHTTP(options)
 		.then(() => {
 			this._connected = true
-			this.getVMixState()
 		})
 	}
 
@@ -72,7 +42,7 @@ export class VMix extends EventEmitter {
 		}
 
 		return new Promise((resolve, reject) => {
-			request.get(`${this._options.host}:${this._options.port}`, {}, (error) => {
+			request.get(`${this._options.host}:${this._options.port}/api`, {}, (error, res) => {
 				if (error) {
 					reject(error)
 				} else {
@@ -80,6 +50,7 @@ export class VMix extends EventEmitter {
 					// this._socketKeepAliveTimeout = setTimeout(() => {
 					// 	this.getVMixState()
 					// }, PING_TIMEOUT)
+					this.parseVMixState(res.body)
 					this.emit('connected')
 					resolve()
 				}
@@ -181,56 +152,70 @@ export class VMix extends EventEmitter {
 				// throw new Error(error)
 			} else {
 				this._connected = true
-				const state = xml.xml2json(res.body, { compact: true, spaces: 4 })
-				this.parseVMixState(JSON.parse(state))
+				this.parseVMixState(res.body)
 				this._stillAlive()
 			}
 		})
 	}
 
-	public parseVMixState (xml: any) {
+	public parseVMixState (responseBody: any) {
+		const preParsed = xml.xml2json(responseBody, { compact: true, spaces: 4 })
+		const xmlState = JSON.parse(preParsed)
+		console.log()
+		let mixes = xmlState['vmix']['mix']
+		mixes = Array.isArray(mixes) ? mixes : ( mixes ? [mixes] : [] )
+		let fixedInputsCount = 0
 		// For what lies ahead I apologise - Tom
 		let state: VMixState = {
-			version: xml['vmix']['version']['_text'],
-			edition: xml['vmix']['edition']['_text'],
-			inputs: _.indexBy((xml['vmix']['inputs']['input'] as Array<any>)
+			version: xmlState['vmix']['version']['_text'],
+			edition: xmlState['vmix']['edition']['_text'],
+			inputs: _.indexBy((xmlState['vmix']['inputs']['input'] as Array<any>)
 			.map(input => {
+				if (!(input['_attributes']['type'] in VMixInputType)) {
+					fixedInputsCount++
+				}
 				return {
-					// key: input['_attributes']['key'],
+					key: input['_attributes']['key'],
 					number: Number(input['_attributes']['number']),
 					type: input['_attributes']['type'],
-					// title: input['_attributes']['title'],
 					state: input['_attributes']['state'],
-					position: Number(input['_attributes']['position']),
-					duration: Number(input['_attributes']['duration']),
-					loop: (input['_attributes']['loop'] === 'True') ? true : false,
-					muted: (input['_attributes']['muted'] === 'True') ? true : false,
-					volume: Number(input['_attributes']['volume']) || 100,
-					balance: Number(input['_attributes']['balance']),
-					solo: (input['_attributes']['solo'] === 'True') ? true : false,
+					position: Number(input['_attributes']['position']) || 0,
+					duration: Number(input['_attributes']['duration']) || 0,
+					loop: ((input['_attributes']['loop'] || 'True') === 'False') ? false : true,
+					muted: ((input['_attributes']['muted'] || 'True') === 'False') ? false : true,
+					volume: Number(input['_attributes']['volume'] || 100),
+					balance: Number(input['_attributes']['balance'] || 0),
 					audioBusses: input['_attributes']['audiobusses'],
-					audioAuto: true
-					// content: input['_text']
+					transform: {
+						panX: Number(input['position'] ? input['position']['_attributes']['panX'] || 0 : 0),
+						panY: Number(input['position'] ? input['position']['_attributes']['panY'] || 0 : 0),
+						alpha: -1, // unavailable
+						zoom: Number(input['position'] ? input['position']['_attributes']['zoomX'] || 1 : 1) // assume that zoomX==zoomY
+					}
 				} as VMixInput
 			}), 'number'),
-			overlays: (xml['vmix']['overlays']['overlay'] as Array<any>).map(overlay => {
+			overlays: (xmlState['vmix']['overlays']['overlay'] as Array<any>).map(overlay => {
 				return {
 					number: Number(overlay['_attributes']['number']),
-					input: overlay['_text'] ? overlay['_text'] : undefined
+					input: overlay['_text']
 				}
 			}),
-			// preview: Number(xml['vmix']['preview']['_text']),
-			// program: Number(xml['vmix']['active']['_text']),
-			// TODO: load real mixes data if that is necessary
-			mixes: _.map([1,2,3,4], num => {
+			mixes: [
+				{
+					number: 1,
+					program: Number(xmlState['vmix']['active']['_text']),
+					preview: Number(xmlState['vmix']['preview']['_text']),
+					transition: { effect: VMixTransitionType.Cut, duration: 0 }
+				},
+				...mixes.map(mix => {
 				return {
-					number: num,
-					program: undefined,
-					preview: undefined,
+					number: Number(mix['_attributes']['number']),
+					program: Number(mix['active']['_text']),
+					preview: Number(mix['preview']['_text']),
 					transition: { effect: VMixTransitionType.Cut, duration: 0 }}
-			}),
-			fadeToBlack: (xml['vmix']['fadeToBlack']['_text'] === 'True') ? true : false,
-			transitions: (xml['vmix']['transitions']['transition'] as Array<any>)
+			})],
+			fadeToBlack: (xmlState['vmix']['fadeToBlack']['_text'] === 'True') ? true : false,
+			transitions: (xmlState['vmix']['transitions']['transition'] as Array<any>)
 			.map(transition => {
 				return {
 					number: Number(transition['_attributes']['number']),
@@ -238,23 +223,23 @@ export class VMix extends EventEmitter {
 					duration: Number(transition['_attributes']['duration'])
 				} as VMixTransition
 			}),
-			recording: (xml['vmix']['recording']['_text'] === 'True') ? true : false,
-			external: (xml['vmix']['external']['_text'] === 'True') ? true : false,
-			streaming: (xml['vmix']['streaming']['_text'] === 'True') ? true : false,
-			playlist: (xml['vmix']['playList']['_text'] === 'True') ? true : false,
-			multiCorder: (xml['vmix']['multiCorder']['_text'] === 'True') ? true : false,
-			fullscreen: (xml['vmix']['fullscreen']['_text'] === 'True') ? true : false,
+			recording: (xmlState['vmix']['recording']['_text'] === 'True') ? true : false,
+			external: (xmlState['vmix']['external']['_text'] === 'True') ? true : false,
+			streaming: (xmlState['vmix']['streaming']['_text'] === 'True') ? true : false,
+			playlist: (xmlState['vmix']['playList']['_text'] === 'True') ? true : false,
+			multiCorder: (xmlState['vmix']['multiCorder']['_text'] === 'True') ? true : false,
+			fullscreen: (xmlState['vmix']['fullscreen']['_text'] === 'True') ? true : false,
 			audio: [
 				{
-					volume: Number(xml['vmix']['audio']['master']['_attributes']['volume']),
-					muted: (xml['vmix']['audio']['master']['_attributes']['muted'] === 'True') ? true : false,
-					meterF1: Number(xml['vmix']['audio']['master']['_attributes']['meterF1']),
-					meterF2: Number(xml['vmix']['audio']['master']['_attributes']['meterF2']),
-					headphonesVolume: Number(xml['vmix']['audio']['master']['_attributes']['headphonesVolume'])
+					volume: Number(xmlState['vmix']['audio']['master']['_attributes']['volume']),
+					muted: (xmlState['vmix']['audio']['master']['_attributes']['muted'] === 'True') ? true : false,
+					meterF1: Number(xmlState['vmix']['audio']['master']['_attributes']['meterF1']),
+					meterF2: Number(xmlState['vmix']['audio']['master']['_attributes']['meterF2']),
+					headphonesVolume: Number(xmlState['vmix']['audio']['master']['_attributes']['headphonesVolume'])
 				} as VMixAudioChannel
-			]
+			],
+			fixedInputsCount
 		}
-
 		this.setState(state)
 	}
 
