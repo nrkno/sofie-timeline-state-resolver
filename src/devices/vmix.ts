@@ -1,4 +1,5 @@
 import * as _ from 'underscore'
+import * as underScoreDeepExtend from 'underscore-deep-extend'
 import * as path from 'path'
 import {
 	DeviceWithState,
@@ -35,9 +36,15 @@ import {
 	TimelineObjVMixOverlay,
 	TimelineObjVMixInput,
 	VMixInputType,
-	VMixTransform
+	VMixTransform,
+	VMixInputOverlays
 } from '../types/src/vmix'
 
+_.mixin({ deepExtend: underScoreDeepExtend(_) })
+function deepExtend<T> (destination: T, ...sources: any[]) {
+	// @ts-ignore (mixin)
+	return _.deepExtend(destination, ...sources)
+}
 export interface DeviceOptionsVMixInternal extends DeviceOptionsVMix {
 	options: (
 		DeviceOptionsVMix['options'] &
@@ -141,7 +148,8 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended> {
 				panX: 0,
 				panY: 0,
 				alpha: 255
-			}
+			},
+			overlays: {}
 		}
 	}
 
@@ -315,7 +323,8 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended> {
 							playing: vmixTlMedia.content.playing,
 							loop: vmixTlMedia.content.loop,
 							position: vmixTlMedia.content.seek,
-							transform: vmixTlMedia.content.transform
+							transform: vmixTlMedia.content.transform,
+							overlays: vmixTlMedia.content.overlays
 						}, vmixTlMedia.content.input)
 						break
 					/*
@@ -352,9 +361,11 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended> {
 	modifyInput (inputs: { [key: string]: VMixInput }, newInput: VMixInput, input: string | number): { [key: string]: VMixInput } {
 		let newInputPicked = _.pick(newInput, x => !_.isUndefined(x))
 		if (input in inputs) {
-			inputs[input] = { ...inputs[input], ...newInputPicked }
+			deepExtend(inputs[input], newInputPicked)
 		} else {
-			inputs[input] = { ...this._getDefaultInputState(0), ...newInputPicked }
+			let inputState = this._getDefaultInputState(0)
+			deepExtend(inputState, newInputPicked)
+			inputs[input] = inputState
 		}
 		return inputs
 	}
@@ -631,6 +642,34 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended> {
 						})
 					}
 				}
+				if (input.overlays !== undefined && !_.isEqual(oldInput.overlays, input.overlays)) {
+					_.difference(Object.keys(input.overlays), Object.keys(oldInput.overlays || {}))
+					.forEach(index => {
+						commands.push({
+							command: {
+								command: VMixCommand.SET_INPUT_OVERLAY,
+								input: key,
+								value: input.overlays![index],
+								index: Number(index)
+							},
+							context: null,
+							timelineId: ''
+						})
+					})
+					_.difference(Object.keys(oldInput.overlays || {}), Object.keys(input.overlays))
+					.forEach(index => {
+						commands.push({
+							command: {
+								command: VMixCommand.SET_INPUT_OVERLAY,
+								input: key,
+								value: '',
+								index: Number(index)
+							},
+							context: null,
+							timelineId: ''
+						})
+					})
+				}
 			})
 
 			_.difference(Object.keys(oldVMixState.reportedState.inputs), Object.keys(newVMixState.reportedState.inputs))
@@ -867,6 +906,7 @@ export interface VMixInput {
 	audioBuses?: string
 	audioAuto?: boolean
 	transform?: VMixTransform
+	overlays?: VMixInputOverlays
 	// content?: string
 }
 

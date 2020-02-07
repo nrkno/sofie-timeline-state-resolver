@@ -50,7 +50,7 @@ export enum VMixCommand {
 	STOP_EXTERNAL = 'STOP_EXTERNAL',
 	OVERLAY_INPUT_IN = 'OVERLAY_INPUT_IN',
 	OVERLAY_INPUT_OUT = 'OVERLAY_INPUT_OUT',
-	OVERLAY_INPUT_BY_NAME_IN = 'OVERLAY_INPUT_BY_NAME_IN'
+	SET_INPUT_OVERLAY = 'SET_INPUT_OVERLAY',
 }
 
 export type TimelineObjVMixAny =
@@ -201,6 +201,9 @@ export interface TimelineObjVMixInput extends TimelineObjVMixBase {
 		loop?: boolean
 
 		transform?: VMixTransform
+
+		/** List of input (Multi View) overlays; indexes start from 1 */
+		overlays?: VMixInputOverlays
 	}
 }
 
@@ -259,6 +262,10 @@ export interface VMixTransform {
 
 	/** Transparency (0 - 255) */
 	alpha: number
+}
+
+export interface VMixInputOverlays {
+	[index: number]: number | string
 }
 
 export interface VMixTransition {

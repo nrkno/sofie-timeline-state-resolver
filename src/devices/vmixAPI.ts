@@ -167,6 +167,8 @@ export class VMix extends EventEmitter {
 				return this.overlayInputIn(command.value, command.input)
 			case VMixCommand.OVERLAY_INPUT_OUT:
 				return this.overlayInputOut(command.value)
+			case VMixCommand.SET_INPUT_OVERLAY:
+				return this.setInputOverlay(command.input, command.index, command.value)
 			default:
 				throw new Error(`vmixAPI: Command ${((command || {}) as any).command} not implemented`)
 		}
@@ -405,6 +407,11 @@ export class VMix extends EventEmitter {
 		return this.sendCommandFunction(`OverlayInput${name}Out`, {})
 	}
 
+	public setInputOverlay (input: string | number, index: number, value:string | number): Promise<any> {
+		let val = `${index},${value}`
+		return this.sendCommandFunction(`SetMultiViewOverlay`, { input, value:val })
+	}
+
 	public sendCommandFunction (func: string, args: { input?: string | number, value?: string | number, extra?: string, duration?: number, mix?: number }): Promise<any> {
 		const inp = args.input !== undefined ? `&Input=${args.input}` : ''
 		const val = args.value !== undefined ? `&Value=${args.value}` : ''
@@ -580,6 +587,12 @@ export interface VMixStateCommandOverlayInputOut extends VMixStateCommandBase {
 	command: VMixCommand.OVERLAY_INPUT_OUT
 	value: number
 }
+export interface VMixStateCommandSetInputOverlay extends VMixStateCommandBase {
+	command: VMixCommand.SET_INPUT_OVERLAY
+	input: string | number
+	index: number
+	value: string | number
+}
 export type VMixStateCommand = VMixStateCommandPreviewInput |
 	VMixStateCommandProgram |
 	VMixStateCommandTransition |
@@ -613,4 +626,5 @@ export type VMixStateCommand = VMixStateCommandPreviewInput |
 	VMixStateCommandStartExternal |
 	VMixStateCommandStopExternal |
 	VMixStateCommandOverlayInputIn |
-	VMixStateCommandOverlayInputOut
+	VMixStateCommandOverlayInputOut |
+	VMixStateCommandSetInputOverlay
