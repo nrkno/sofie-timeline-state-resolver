@@ -40,7 +40,8 @@ import {
 	TimelineObjVMixExternal,
 	TimelineObjVMixFadeToBlack,
 	TimelineObjVMixOverlay,
-	TimelineObjVMixInput
+	TimelineObjVMixInput,
+	VMixTransform
 	// TimelineObjVMixOverlayInputByNameIn,
 	// TimelineObjVMixOverlayInputOut,
 	// TimelineObjVMixOverlayInputOFF
@@ -143,7 +144,13 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended> {
 			balance: 0,
 			fade: 0,
 			audioBuses: 'M',
-			audioAuto: true
+			audioAuto: true,
+			transform: {
+				zoom: 1,
+				panX: 0,
+				panY: 0,
+				alpha: 255
+			}
 		}
 	}
 
@@ -316,7 +323,8 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended> {
 							type: vmixTlMedia.content.inputType,
 							playing: vmixTlMedia.content.playing,
 							loop: vmixTlMedia.content.loop,
-							position: vmixTlMedia.content.seek
+							position: vmixTlMedia.content.seek,
+							transform: vmixTlMedia.content.transform
 						}, vmixTlMedia.content.input)
 						break
 					/*
@@ -454,10 +462,11 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended> {
 	} */
 
 	modifyInput (inputs: { [key: string]: VMixInput }, newInput: VMixInput, input: string | number): { [key: string]: VMixInput } {
+		let newInputPicked = _.pick(newInput, x => !_.isUndefined(x))
 		if (input in inputs) {
-			inputs[input] = { ...inputs[input], ...newInput }
+			inputs[input] = { ...inputs[input], ...newInputPicked }
 		} else {
-			inputs[input] = { ...this._getDefaultInputState(0), ...newInput }
+			inputs[input] = { ...this._getDefaultInputState(0), ...newInputPicked }
 		}
 		return inputs
 	}
@@ -691,6 +700,52 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended> {
 							timelineId: ''
 						})
 					})
+				}
+				if (input.transform !== undefined && !_.isEqual(oldInput.transform, input.transform)) {
+					if (oldInput.transform === undefined || input.transform.zoom !== oldInput.transform.zoom) {
+						commands.push({
+							command: {
+								command: VMixCommand.SET_ZOOM,
+								input: key,
+								value: input.transform.zoom
+							},
+							context: null,
+							timelineId: ''
+						})
+					}
+					if (oldInput.transform === undefined || input.transform.alpha !== oldInput.transform.alpha) {
+						commands.push({
+							command: {
+								command: VMixCommand.SET_ALPHA,
+								input: key,
+								value: input.transform.alpha
+							},
+							context: null,
+							timelineId: ''
+						})
+					}
+					if (oldInput.transform === undefined || input.transform.panX !== oldInput.transform.panX) {
+						commands.push({
+							command: {
+								command: VMixCommand.SET_PAN_X,
+								input: key,
+								value: input.transform.panX
+							},
+							context: null,
+							timelineId: ''
+						})
+					}
+					if (oldInput.transform === undefined || input.transform.panY !== oldInput.transform.panY) {
+						commands.push({
+							command: {
+								command: VMixCommand.SET_PAN_Y,
+								input: key,
+								value: input.transform.panY
+							},
+							context: null,
+							timelineId: ''
+						})
+					}
 				}
 			})
 
@@ -927,6 +982,7 @@ export interface VMixInput {
 	solo?: boolean
 	audioBuses?: string
 	audioAuto?: boolean
+	transform?: VMixTransform
 	// content?: string
 }
 

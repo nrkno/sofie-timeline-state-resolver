@@ -147,6 +147,14 @@ export class VMix extends EventEmitter {
 				return this.pauseInput(command.input)
 			case VMixCommand.SET_POSITION:
 				return this.setPosition(command.input, command.value)
+			case VMixCommand.SET_PAN_X:
+				return this.setPanX(command.input, command.value)
+			case VMixCommand.SET_PAN_Y:
+				return this.setPanY(command.input, command.value)	
+			case VMixCommand.SET_ZOOM:
+				return this.setZoom(command.input, command.value)
+			case VMixCommand.SET_ALPHA:
+				return this.setAlpha(command.input, command.value)
 			case VMixCommand.LOOP_ON:
 				return this.loopOn(command.input)
 			case VMixCommand.LOOP_OFF:
@@ -317,6 +325,22 @@ export class VMix extends EventEmitter {
 
 	public setFader (position: number): Promise<any> {
 		return this.sendCommandFunction(`SetFader`, { value: Math.min(Math.max(position, 0), 255) })
+	}
+	
+	public setPanX (input: number | string, value: number): Promise<any> {
+		return this.sendCommandFunction(`SetPanX`, { input, value: Math.min(Math.max(value, -2), 2) })
+	}
+
+	public setPanY (input: number | string, value: number): Promise<any> {
+		return this.sendCommandFunction(`SetPanY`, { input, value: Math.min(Math.max(value, -2), 2) })
+	}
+
+	public setZoom (input: number | string, value: number): Promise<any> {
+		return this.sendCommandFunction(`SetZoom`, { input, value: Math.min(Math.max(value, 0), 5) })
+	}
+
+	public setAlpha (input: number | string, value: number): Promise<any> {
+		return this.sendCommandFunction(`SetAlpha`, { input, value: Math.min(Math.max(value, 0), 255) })
 	}
 
 	public startRecording (): Promise<any> {
@@ -494,6 +518,26 @@ export interface VMixStateCommandFader extends VMixStateCommandBase {
 	command: VMixCommand.FADER
 	value: number
 }
+export interface VMixStateCommandSetPanX extends VMixStateCommandBase {
+	command: VMixCommand.SET_PAN_X
+	input: number | string
+	value: number
+}
+export interface VMixStateCommandSetPanY extends VMixStateCommandBase {
+	command: VMixCommand.SET_PAN_Y
+	input: number | string
+	value: number
+}
+export interface VMixStateCommandSetZoom extends VMixStateCommandBase {
+	command: VMixCommand.SET_ZOOM
+	input: number | string
+	value: number
+}
+export interface VMixStateCommandSetAlpha extends VMixStateCommandBase {
+	command: VMixCommand.SET_ALPHA
+	input: number | string
+	value: number
+}
 export interface VMixStateCommandStartStreaming extends VMixStateCommandBase {
 	command: VMixCommand.START_STREAMING
 }
@@ -582,6 +626,10 @@ export type VMixStateCommand = VMixStateCommandPreviewInput |
 	VMixStateCommandAudioBusOn |
 	VMixStateCommandAudioBusOff |
 	VMixStateCommandFader |
+	VMixStateCommandSetZoom |
+	VMixStateCommandSetPanX |
+	VMixStateCommandSetPanY |
+	VMixStateCommandSetAlpha |
 	VMixStateCommandStartStreaming |
 	VMixStateCommandStopStreaming |
 	VMixStateCommandStartRecording |
