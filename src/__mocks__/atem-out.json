@@ -768,15 +768,21 @@
 		"clipPool": {},
 		"players": [
 			{
+				"sourceType": 1,
+				"stillIndex": 0,
+				"clipIndex": 0,
 				"playing": false,
 				"loop": false,
-				"atBeginning": true,
+				"atBeginning": false,
 				"clipFrame": 0
 			},
 			{
+				"sourceType": 1,
+				"stillIndex": 1,
+				"clipIndex": 1,
 				"playing": false,
 				"loop": false,
-				"atBeginning": true,
+				"atBeginning": false,
 				"clipFrame": 0
 			}
 		]
