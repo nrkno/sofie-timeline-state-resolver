@@ -404,9 +404,9 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended> {
 			}, cmd)
 		})
 	}
-	private _diffStates (oldVMixState: VMixStateExtended, newVMixState: VMixStateExtended): Array<VMixStateCommandWithContext> {
-		let commands: Array<VMixStateCommandWithContext> = []
 
+	private _resolveMixState (oldVMixState: VMixStateExtended, newVMixState: VMixStateExtended): Array<VMixStateCommandWithContext> {
+		let commands: Array<VMixStateCommandWithContext> = []
 		for (let i = 0; i < 4; i++) {
 			let oldMixState = oldVMixState.reportedState.mixes[i]
 			let newMixState = newVMixState.reportedState.mixes[i]
@@ -442,7 +442,37 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended> {
 				})
 			}
 		}
+		// Only set fader bar position if no other transitions are happening
+		if (oldVMixState.reportedState.mixes[0].program === newVMixState.reportedState.mixes[0].program) {
+			if (newVMixState.reportedState.faderPosition !== oldVMixState.reportedState.faderPosition) {
+				commands.push({
+					command: {
+						command: VMixCommand.FADER,
+						value: newVMixState.reportedState.faderPosition || 0
+					},
+					context: null,
+					timelineId: ''
+				})
+				// newVMixState.reportedState.program = undefined
+				// newVMixState.reportedState.preview = undefined
+				newVMixState.reportedState.fadeToBlack = false
+			}
+		}
+		if (oldVMixState.reportedState.fadeToBlack !== newVMixState.reportedState.fadeToBlack) {
+			// Danger: Fade to black is toggled, we can't explicitly say that we want it on or off
+			commands.push({
+				command: {
+					command: VMixCommand.FADE_TO_BLACK
+				},
+				context: null,
+				timelineId: ''
+			})
+		}
+		return commands
+	}
 
+	private _resolveInputsState (oldVMixState: VMixStateExtended, newVMixState: VMixStateExtended): Array<VMixStateCommandWithContext> {
+		let commands: Array<VMixStateCommandWithContext> = []
 		if (!_.isEqual(oldVMixState.reportedState.inputs, newVMixState.reportedState.inputs)) {
 			_.each(newVMixState.reportedState.inputs, (input, key) => {
 				if	(input.name === undefined) {
@@ -690,7 +720,11 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended> {
 				}
 			})
 		}
+		return commands
+	}
 
+	private _resolveOverlaysState (oldVMixState: VMixStateExtended, newVMixState: VMixStateExtended): Array<VMixStateCommandWithContext> {
+		let commands: Array<VMixStateCommandWithContext> = []
 		if (!_.isEqual(oldVMixState.reportedState.overlays, newVMixState.reportedState.overlays)) {
 			_.each(newVMixState.reportedState.overlays, (overlay, index) => {
 				let oldOverlay = oldVMixState.reportedState.overlays[index]
@@ -714,30 +748,15 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended> {
 							context: null,
 							timelineId: ''
 						})
-					} // else {
-					// 	this.emit('debug', `VMIX: Unknown overlay.input: "${overlay.input}"`)
-					// }
+					}
 				}
 			})
 		}
+		return commands
+	}
 
-		// Only set fader bar position if no other transitions are happening
-		if (oldVMixState.reportedState.mixes[0].program === newVMixState.reportedState.mixes[0].program) {
-			if (newVMixState.reportedState.faderPosition !== oldVMixState.reportedState.faderPosition) {
-				commands.push({
-					command: {
-						command: VMixCommand.FADER,
-						value: newVMixState.reportedState.faderPosition || 0
-					},
-					context: null,
-					timelineId: ''
-				})
-				// newVMixState.reportedState.program = undefined
-				// newVMixState.reportedState.preview = undefined
-				newVMixState.reportedState.fadeToBlack = false
-			}
-		}
-
+	private _resolveRecordingState (oldVMixState: VMixStateExtended, newVMixState: VMixStateExtended): Array<VMixStateCommandWithContext> {
+		let commands: Array<VMixStateCommandWithContext> = []
 		if (oldVMixState.reportedState.recording !== newVMixState.reportedState.recording) {
 			if (newVMixState.reportedState.recording) {
 				commands.push({
@@ -757,7 +776,11 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended> {
 				})
 			}
 		}
+		return commands
+	}
 
+	private _resolveStreamingState (oldVMixState: VMixStateExtended, newVMixState: VMixStateExtended): Array<VMixStateCommandWithContext> {
+		let commands: Array<VMixStateCommandWithContext> = []
 		if (oldVMixState.reportedState.streaming !== newVMixState.reportedState.streaming) {
 			if (newVMixState.reportedState.streaming) {
 				commands.push({
@@ -777,18 +800,11 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended> {
 				})
 			}
 		}
+		return commands
+	}
 
-		if (oldVMixState.reportedState.fadeToBlack !== newVMixState.reportedState.fadeToBlack) {
-			// Danger: Fade to black is toggled, we can't explicitly say that we want it on or off
-			commands.push({
-				command: {
-					command: VMixCommand.FADE_TO_BLACK
-				},
-				context: null,
-				timelineId: ''
-			})
-		}
-
+	private _resolveExternalState (oldVMixState: VMixStateExtended, newVMixState: VMixStateExtended): Array<VMixStateCommandWithContext> {
+		let commands: Array<VMixStateCommandWithContext> = []
 		if (oldVMixState.reportedState.external !== newVMixState.reportedState.external) {
 			if (newVMixState.reportedState.external) {
 				commands.push({
@@ -808,7 +824,11 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended> {
 				})
 			}
 		}
+		return commands
+	}
 
+	private _resolveOutputsState (oldVMixState: VMixStateExtended, newVMixState: VMixStateExtended): Array<VMixStateCommandWithContext> {
+		let commands: Array<VMixStateCommandWithContext> = []
 		if (!_.isEqual(oldVMixState.outputs, newVMixState.outputs)) {
 			_.map(newVMixState.outputs, (output, name) => {
 				if (!_.isEqual(output, oldVMixState.outputs[name])) {
@@ -826,9 +846,23 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended> {
 				}
 			})
 		}
+		return commands
+	}
+
+	private _diffStates (oldVMixState: VMixStateExtended, newVMixState: VMixStateExtended): Array<VMixStateCommandWithContext> {
+		let commands: Array<VMixStateCommandWithContext> = []
+
+		commands = commands.concat(this._resolveMixState(oldVMixState, newVMixState))
+		commands = commands.concat(this._resolveInputsState(oldVMixState, newVMixState))
+		commands = commands.concat(this._resolveOverlaysState(oldVMixState, newVMixState))
+		commands = commands.concat(this._resolveRecordingState(oldVMixState, newVMixState))
+		commands = commands.concat(this._resolveStreamingState(oldVMixState, newVMixState))
+		commands = commands.concat(this._resolveExternalState(oldVMixState, newVMixState))
+		commands = commands.concat(this._resolveOutputsState(oldVMixState, newVMixState))
 
 		return commands
 	}
+	
 	private _defaultCommandReceiver (_time: number, cmd: VMixStateCommandWithContext, context: CommandContext, timelineObjId: string): Promise<any> {
 
 		let cwc: CommandWithContext = {
