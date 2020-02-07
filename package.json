@@ -152,7 +152,7 @@
   ],
   "dependencies": {
     "atem-connection": "1.1.0",
-    "atem-state": "^0.8.1",
+    "atem-state": "^0.8.2-nightly-feat-media-player-source-20200207-132810-3636f30.0",
     "casparcg-connection": "4.8.1",
     "casparcg-state": "^1.11.2",
     "emberplus": "git+https://github.com/nrkno/tv-automation-emberplus-connection#dist200919_1",

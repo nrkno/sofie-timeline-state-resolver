@@ -766,10 +766,10 @@ atem-connection@1.1.0:
     tslib "^1.9.0"
     wavefile "^8.4.4"
 
-atem-state@^0.8.1:
-  version "0.8.1"
-  resolved "https://registry.yarnpkg.com/atem-state/-/atem-state-0.8.1.tgz#ad05688a344f49689fb05d419222023c1778f27b"
-  integrity sha512-smQPHXEuN1y7tV1M3tUgZYITmGgqchrfYD0fTjiZD+4Vy7Rz6RpveBDK+iZZJ6CtumBK6b5O8FxIdTLs0+PjFg==
+atem-state@^0.8.2-nightly-feat-media-player-source-20200207-132810-3636f30.0:
+  version "0.8.2-nightly-feat-media-player-source-20200207-132810-3636f30.0"
+  resolved "https://registry.yarnpkg.com/atem-state/-/atem-state-0.8.2-nightly-feat-media-player-source-20200207-132810-3636f30.0.tgz#cfec10d9b960cc7eba0c092d157d4750cabdb5f6"
+  integrity sha512-fd1yPsjh9+Z06vvUo20BCrd2lkBXEMLRf9UUIUvIUjeXW5pSdP2HJ23x9+Kb3ozelNchNUB2H+y7PGHXIa6ZFQ==
   dependencies:
     atem-connection "1.1.0"
     tslib "^1.9.2"
