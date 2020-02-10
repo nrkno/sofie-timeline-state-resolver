@@ -629,7 +629,11 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState> implements IDevic
 
 		if (highestDelay > 0) {
 			concatCommands.forEach((command, index) => {
-				if (command.type === VizMSECommandType.TAKE_ELEMENT) {
+				if (
+					command.type === VizMSECommandType.TAKE_ELEMENT
+					&& command.layerId
+					&& newState.layer[command.layerId].contentType !== TimelineContentTypeVizMSE.ELEMENT_PILOT
+				) {
 					(concatCommands[index] as VizMSECommandTake).transition = {
 						type: VIZMSETransitionType.DELAY,
 						delay: highestDelay + 20
