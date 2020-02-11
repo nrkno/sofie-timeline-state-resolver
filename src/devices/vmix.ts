@@ -398,7 +398,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended> {
 		return DeviceType.VMIX
 	}
 	get deviceName (): string {
-		return 'VMix-Send ' + this.deviceId
+		return 'VMix ' + this.deviceId
 	}
 	get queue () {
 		return this._doOnTime.getQueue()
