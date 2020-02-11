@@ -43,7 +43,7 @@ export class VMix extends EventEmitter {
 				this.emit('stateChanged', this.state)
 				resolve(true)
 			})
-			
+
 			this.getVMixState()
 		})
 	}
@@ -58,7 +58,6 @@ export class VMix extends EventEmitter {
 			}
 		}
 	}
-
 
 	private _stillAlive () {
 		if (this._socketKeepAliveTimeout) {
@@ -120,7 +119,7 @@ export class VMix extends EventEmitter {
 			case VMixCommand.SET_PAN_X:
 				return this.setPanX(command.input, command.value)
 			case VMixCommand.SET_PAN_Y:
-				return this.setPanY(command.input, command.value)	
+				return this.setPanY(command.input, command.value)
 			case VMixCommand.SET_ZOOM:
 				return this.setZoom(command.input, command.value)
 			case VMixCommand.SET_ALPHA:
@@ -210,11 +209,11 @@ export class VMix extends EventEmitter {
 					transition: { effect: VMixTransitionType.Cut, duration: 0 }
 				},
 				...mixes.map(mix => {
-				return {
-					number: Number(mix['_attributes']['number']),
-					program: Number(mix['active']['_text']),
-					preview: Number(mix['preview']['_text']),
-					transition: { effect: VMixTransitionType.Cut, duration: 0 }}
+					return {
+						number: Number(mix['_attributes']['number']),
+						program: Number(mix['active']['_text']),
+						preview: Number(mix['preview']['_text']),
+						transition: { effect: VMixTransitionType.Cut, duration: 0 }}
 				})
 			],
 			fadeToBlack: (xmlState['vmix']['fadeToBlack']['_text'] === 'True') ? true : false,
@@ -264,19 +263,19 @@ export class VMix extends EventEmitter {
 
 	public setAudioBalance (input: number | string, balance: number): Promise<any> {
 		return this.sendCommandFunction(`SetBalance`, { input, value: Math.min(Math.max(balance, -1), 1) })
-	}	
+	}
 
 	public setAudioOn (input: number | string): Promise<any> {
 		return this.sendCommandFunction(`AudioOn`, { input })
-	}	
+	}
 
 	public setAudioOff (input: number | string): Promise<any> {
 		return this.sendCommandFunction(`AudioOff`, { input })
-	}	
-	
+	}
+
 	public setAudioAutoOn (input: number | string): Promise<any> {
 		return this.sendCommandFunction(`AudioAutoOn`, { input })
-	}	
+	}
 
 	public setAudioAutoOff (input: number | string): Promise<any> {
 		return this.sendCommandFunction(`AudioAutoOff`, { input })
@@ -293,7 +292,7 @@ export class VMix extends EventEmitter {
 	public setFader (position: number): Promise<any> {
 		return this.sendCommandFunction(`SetFader`, { value: Math.min(Math.max(position, 0), 255) })
 	}
-	
+
 	public setPanX (input: number | string, value: number): Promise<any> {
 		return this.sendCommandFunction(`SetPanX`, { input, value: Math.min(Math.max(value, -2), 2) })
 	}

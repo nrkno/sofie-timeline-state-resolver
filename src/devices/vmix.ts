@@ -117,7 +117,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended> {
 	private _connectionChanged () {
 		this.emit('connectionChanged', this.getStatus())
 	}
-	
+
 	private _setConnected (connected: boolean) {
 		if (this._connected !== connected) {
 			this._connected = connected

@@ -34,8 +34,6 @@ import { SisyfosMessageDevice, DeviceOptionsSisyfosInternal } from './devices/si
 import { SingularLiveDevice, DeviceOptionsSingularLiveInternal } from './devices/singularLive'
 import { VMixDevice, DeviceOptionsVMixInternal } from './devices/vmix'
 
-
-
 export { DeviceContainer }
 export { CommandWithContext }
 
