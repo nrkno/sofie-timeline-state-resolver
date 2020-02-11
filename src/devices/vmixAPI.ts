@@ -1,7 +1,7 @@
 import { EventEmitter } from 'events'
 import * as request from 'request'
 import * as xml from 'xml-js'
-import { VMixOptions, VMixCommand, VMixTransition, VMixTransitionType, VMixInputType } from '../types/src'
+import { VMixOptions, VMixCommand, VMixTransitionType, VMixInputType } from '../types/src'
 import { VMixState, VMixInput, VMixAudioChannel } from './vmix'
 import * as _ from 'underscore'
 
@@ -218,14 +218,6 @@ export class VMix extends EventEmitter {
 				})
 			],
 			fadeToBlack: (xmlState['vmix']['fadeToBlack']['_text'] === 'True') ? true : false,
-			transitions: (xmlState['vmix']['transitions']['transition'] as Array<any>)
-			.map(transition => {
-				return {
-					number: Number(transition['_attributes']['number']),
-					effect: transition['_attributes']['effect'],
-					duration: Number(transition['_attributes']['duration'])
-				} as VMixTransition
-			}),
 			recording: (xmlState['vmix']['recording']['_text'] === 'True') ? true : false,
 			external: (xmlState['vmix']['external']['_text'] === 'True') ? true : false,
 			streaming: (xmlState['vmix']['streaming']['_text'] === 'True') ? true : false,

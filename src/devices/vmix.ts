@@ -181,7 +181,6 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended> {
 				}),
 				fadeToBlack: false,
 				faderPosition: 0,
-				transitions: [],
 				recording: false,
 				external: false,
 				streaming: false,
@@ -907,7 +906,6 @@ export class VMixState {
 	mixes: VMixMix[]
 	fadeToBlack: boolean
 	faderPosition?: number
-	transitions: VMixTransition[]
 	recording: boolean
 	external: boolean
 	streaming: boolean
