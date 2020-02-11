@@ -23,6 +23,7 @@ import {
 	MappingVMix,
 	TimelineContentTypeVMix,
 	VMixCommand,
+	VMixTransition,
 	VMixTransitionType,
 	TimelineObjVMixProgram,
 	TimelineObjVMixPreview,
@@ -287,7 +288,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended> {
 					case TimelineContentTypeVMix.PROGRAM:
 						let vmixTlProgram = tlObject as any as TimelineObjVMixProgram
 						let mixProgram = (vmixTlProgram.content.mix || 1) - 1
-						if(vmixTlProgram.content.input !== undefined) {
+						if (vmixTlProgram.content.input !== undefined) {
 							this.switchToInput(vmixTlProgram.content.input, deviceState, mixProgram, vmixTlProgram.content.transition)
 						} else if (vmixTlProgram.content.inputLayer) {
 							this.switchToInput(vmixTlProgram.content.inputLayer, deviceState, mixProgram, vmixTlProgram.content.transition, true)
@@ -334,15 +335,6 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended> {
 							overlays: vmixTlMedia.content.overlays
 						}, vmixTlMedia.content.input, layerName)
 						break
-					/*
-					case TimelineContentTypeVMix.RESTART_INPUT:
-						let tlObjectRestartInput = tlObject as any as TimelineObjVMixRestartInput
-						deviceState.reportedState.inputs = this.modifyInput(deviceState.reportedState.inputs, {
-							number: Number(tlObjectRestartInput.content.input),
-							position: 0
-						})
-						break
-					*/
 					case TimelineContentTypeVMix.OUTPUT:
 						let tlObjSetOutput = tlObject as any as TimelineObjVMixOutput
 						deviceState.outputs[tlObjSetOutput.content.name] = {
@@ -375,7 +367,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended> {
 			deepExtend(inputState, newInputPicked)
 			inputs[input] = inputState
 		}
-		if(layerName) {
+		if (layerName) {
 			deviceState.inputLayers[layerName] = input as string
 		}
 		return inputs
@@ -491,7 +483,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended> {
 			}
 			if (!_.has(oldVMixState.reportedState.inputs, key) && input.type !== undefined) {
 				this._vmix.addInput(`${input.type}|${input.name}`).then(() => {
-					this._vmix.setInputName(this.getFilename(input.name!), input.name!)
+					this._vmix.setInputName(this.getFilename(input.name!), input.name!).then().catch()
 				}).catch()
 			}
 			let oldInput = oldVMixState.reportedState.inputs[key] || {}
@@ -718,7 +710,6 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended> {
 		_.difference(Object.keys(oldVMixState.reportedState.inputs), Object.keys(newVMixState.reportedState.inputs))
 		.forEach(input => {
 			if (oldVMixState.reportedState.inputs[input].type !== undefined) {
-				console.log('remove', input)
 				// TODO: either schedule this command for later or make the timeline object long enough to prevent removing while transitioning
 				commands.push({
 					command: {
@@ -904,6 +895,7 @@ export class VMixStateExtended {
 	}
 	inputLayers: { [key: string]: string }
 }
+
 export class VMixState {
 	version: string
 	edition: string // TODO: Enuum, need list of available editions: Trial
@@ -932,10 +924,8 @@ export interface VMixMix {
 }
 
 export interface VMixInput {
-	// key?: string
 	number?: number
-	type?: VMixInputType
-	// title?: string
+	type?: VMixInputType | string
 	name?: string
 	filePath?: string
 	state?: 'Paused' | 'Running' | 'Completed',
@@ -944,7 +934,7 @@ export interface VMixInput {
 	duration?: number
 	loop?: boolean
 	muted?: boolean
-	volume?: number // 0 - 100
+	volume?: number
 	balance?: number
 	fade?: number
 	solo?: boolean
@@ -952,18 +942,11 @@ export interface VMixInput {
 	audioAuto?: boolean
 	transform?: VMixTransform
 	overlays?: VMixInputOverlays
-	// content?: string
 }
 
 export interface VMixOverlay {
 	number: number
 	input: string | number | undefined
-}
-
-export interface VMixTransition {
-	// number: 1 | 2 | 3 | 4
-	effect: VMixTransitionType
-	duration: number
 }
 
 export interface VMixAudioChannel {

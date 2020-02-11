@@ -50,7 +50,7 @@ export enum VMixCommand {
 	STOP_EXTERNAL = 'STOP_EXTERNAL',
 	OVERLAY_INPUT_IN = 'OVERLAY_INPUT_IN',
 	OVERLAY_INPUT_OUT = 'OVERLAY_INPUT_OUT',
-	SET_INPUT_OVERLAY = 'SET_INPUT_OVERLAY',
+	SET_INPUT_OVERLAY = 'SET_INPUT_OVERLAY'
 }
 
 export type TimelineObjVMixAny =
@@ -257,7 +257,7 @@ export interface TimelineObjVMixOverlay extends TimelineObjVMixBase {
 export interface VMixTransform {
 	/** Scale (0 - 5) */
 	zoom: number
-	
+
 	/** Horizontal pan (-2 - 2) */
 	panX: number
 
@@ -274,6 +274,8 @@ export interface VMixInputOverlays {
 
 export interface VMixTransition {
 	effect: VMixTransitionType
+
+	/** Duration in milliseconds */
 	duration: number
 }
 
@@ -308,5 +310,3 @@ export enum VMixInputType {
 	Flash = 'Flash',
 	PowerPoint = 'PowerPoint'
 }
-
-// export type VMixInputType = 'Video' | 'Image' | 'Photos' | 'Xaml' | 'VideoList' | 'Colour' | 'AudioFile' | 'Flash' | 'PowerPoint' | 'Capture' | 'NDI' | 'Audio'

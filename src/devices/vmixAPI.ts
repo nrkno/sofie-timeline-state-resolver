@@ -1,8 +1,8 @@
 import { EventEmitter } from 'events'
 import * as request from 'request'
 import * as xml from 'xml-js'
-import { VMixOptions, VMixCommand, VMixTransitionType, VMixInputType } from '../types/src'
-import { VMixState, VMixInput, VMixTransition, VMixAudioChannel } from './vmix'
+import { VMixOptions, VMixCommand, VMixTransition, VMixTransitionType, VMixInputType } from '../types/src'
+import { VMixState, VMixInput, VMixAudioChannel } from './vmix'
 import * as _ from 'underscore'
 
 // const PING_TIMEOUT = 10 * 1000
@@ -163,7 +163,7 @@ export class VMix extends EventEmitter {
 		const xmlState = JSON.parse(preParsed)
 		console.log()
 		let mixes = xmlState['vmix']['mix']
-		mixes = Array.isArray(mixes) ? mixes : ( mixes ? [mixes] : [] )
+		mixes = Array.isArray(mixes) ? mixes : (mixes ? [mixes] : [])
 		let fixedInputsCount = 0
 		// For what lies ahead I apologise - Tom
 		let state: VMixState = {
@@ -213,7 +213,8 @@ export class VMix extends EventEmitter {
 					program: Number(mix['active']['_text']),
 					preview: Number(mix['preview']['_text']),
 					transition: { effect: VMixTransitionType.Cut, duration: 0 }}
-			})],
+				})
+			],
 			fadeToBlack: (xmlState['vmix']['fadeToBlack']['_text'] === 'True') ? true : false,
 			transitions: (xmlState['vmix']['transitions']['transition'] as Array<any>)
 			.map(transition => {
@@ -262,10 +263,10 @@ export class VMix extends EventEmitter {
 
 	public setAudioLevel (input: number | string, volume: number, fade?: number): Promise<any> {
 		let value: string = Math.min(Math.max(volume, 0), 100).toString()
-		if(fade) {
+		if (fade) {
 			value += ',' + fade.toString()
 		}
-		return this.sendCommandFunction(`SetVolume${fade? 'Fade': ''}`, { input: input, value })
+		return this.sendCommandFunction(`SetVolume${fade ? 'Fade' : ''}`, { input: input, value })
 	}
 
 	public setAudioBalance (input: number | string, balance: number): Promise<any> {
@@ -392,9 +393,9 @@ export class VMix extends EventEmitter {
 		return this.sendCommandFunction(`OverlayInput${name}Out`, {})
 	}
 
-	public setInputOverlay (input: string | number, index: number, value:string | number): Promise<any> {
+	public setInputOverlay (input: string | number, index: number, value: string | number): Promise<any> {
 		let val = `${index},${value}`
-		return this.sendCommandFunction(`SetMultiViewOverlay`, { input, value:val })
+		return this.sendCommandFunction(`SetMultiViewOverlay`, { input, value: val })
 	}
 
 	public sendCommandFunction (func: string, args: { input?: string | number, value?: string | number, extra?: string, duration?: number, mix?: number }): Promise<any> {
