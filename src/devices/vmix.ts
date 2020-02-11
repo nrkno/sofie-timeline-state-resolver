@@ -485,285 +485,281 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended> {
 
 	private _resolveInputsState (oldVMixState: VMixStateExtended, newVMixState: VMixStateExtended): Array<VMixStateCommandWithContext> {
 		let commands: Array<VMixStateCommandWithContext> = []
-		if (!_.isEqual(oldVMixState.reportedState.inputs, newVMixState.reportedState.inputs)) {
-			_.each(newVMixState.reportedState.inputs, (input, key) => {
-				if	(input.name === undefined) {
-					input.name = key
-				}
-				if (!_.has(oldVMixState.reportedState.inputs, key) && input.type !== undefined) {
-					this._vmix.addInput(`${input.type}|${input.name}`).then(() => {
-						this._vmix.setInputName(this.getFilename(input.name!), input.name!)
-					}).catch()
-				}
-				let oldInput = oldVMixState.reportedState.inputs[key] || {}
-				if (oldInput.position !== input.position) {
+		_.each(newVMixState.reportedState.inputs, (input, key) => {
+			if	(input.name === undefined) {
+				input.name = key
+			}
+			if (!_.has(oldVMixState.reportedState.inputs, key) && input.type !== undefined) {
+				this._vmix.addInput(`${input.type}|${input.name}`).then(() => {
+					this._vmix.setInputName(this.getFilename(input.name!), input.name!)
+				}).catch()
+			}
+			let oldInput = oldVMixState.reportedState.inputs[key] || {}
+			if (oldInput.position !== input.position) {
+				commands.push({
+					command: {
+						command: VMixCommand.SET_POSITION,
+						input: key,
+						value: input.position ? input.position : 0
+					},
+					context: null,
+					timelineId: ''
+				})
+			}
+			if (input.playing !== undefined && oldInput.playing !== input.playing) {
+				if (input.playing) {
 					commands.push({
 						command: {
-							command: VMixCommand.SET_POSITION,
-							input: key,
-							value: input.position ? input.position : 0
+							command: VMixCommand.PLAY_INPUT,
+							input: input.name
+						},
+						context: null,
+						timelineId: ''
+					})
+				} else {
+					commands.push({
+						command: {
+							command: VMixCommand.PAUSE_INPUT,
+							input: input.name
 						},
 						context: null,
 						timelineId: ''
 					})
 				}
-				if (input.playing !== undefined && oldInput.playing !== input.playing) {
-					if (input.playing) {
-						commands.push({
-							command: {
-								command: VMixCommand.PLAY_INPUT,
-								input: input.name
-							},
-							context: null,
-							timelineId: ''
-						})
-					} else {
-						commands.push({
-							command: {
-								command: VMixCommand.PAUSE_INPUT,
-								input: input.name
-							},
-							context: null,
-							timelineId: ''
-						})
-					}
-				}
-				if (input.loop !== undefined && oldInput.loop !== input.loop) {
-					if (input.loop) {
-						commands.push({
-							command: {
-								command: VMixCommand.LOOP_ON,
-								input: input.name
-							},
-							context: null,
-							timelineId: ''
-						})
-					} else {
-						commands.push({
-							command: {
-								command: VMixCommand.LOOP_OFF,
-								input: input.name
-							},
-							context: null,
-							timelineId: ''
-						})
-					}
-				}
-				if (oldInput.volume !== input.volume && input.volume && !isNaN(input.volume)) {
+			}
+			if (input.loop !== undefined && oldInput.loop !== input.loop) {
+				if (input.loop) {
 					commands.push({
 						command: {
-							command: VMixCommand.AUDIO_VOLUME,
-							input: key,
-							value: input.volume,
-							fade: input.fade
+							command: VMixCommand.LOOP_ON,
+							input: input.name
+						},
+						context: null,
+						timelineId: ''
+					})
+				} else {
+					commands.push({
+						command: {
+							command: VMixCommand.LOOP_OFF,
+							input: input.name
 						},
 						context: null,
 						timelineId: ''
 					})
 				}
-				if (oldInput.balance !== input.balance && input.balance && !isNaN(input.balance)) {
+			}
+			if (oldInput.volume !== input.volume && input.volume && !isNaN(input.volume)) {
+				commands.push({
+					command: {
+						command: VMixCommand.AUDIO_VOLUME,
+						input: key,
+						value: input.volume,
+						fade: input.fade
+					},
+					context: null,
+					timelineId: ''
+				})
+			}
+			if (oldInput.balance !== input.balance && input.balance && !isNaN(input.balance)) {
+				commands.push({
+					command: {
+						command: VMixCommand.AUDIO_BALANCE,
+						input: key,
+						value: input.balance
+					},
+					context: null,
+					timelineId: ''
+				})
+			}
+			if (input.muted !== undefined && oldInput.muted !== input.muted) {
+				if (input.muted) {
 					commands.push({
 						command: {
-							command: VMixCommand.AUDIO_BALANCE,
-							input: key,
-							value: input.balance
+							command: VMixCommand.AUDIO_OFF,
+							input: key
+						},
+						context: null,
+						timelineId: ''
+					})
+				} else {
+					commands.push({
+						command: {
+							command: VMixCommand.AUDIO_ON,
+							input: key
 						},
 						context: null,
 						timelineId: ''
 					})
 				}
-				if (input.muted !== undefined && oldInput.muted !== input.muted) {
-					if (input.muted) {
-						commands.push({
-							command: {
-								command: VMixCommand.AUDIO_OFF,
-								input: key
-							},
-							context: null,
-							timelineId: ''
-						})
-					} else {
-						commands.push({
-							command: {
-								command: VMixCommand.AUDIO_ON,
-								input: key
-							},
-							context: null,
-							timelineId: ''
-						})
-					}
-				}
-				if (input.audioAuto !== undefined && oldInput.audioAuto !== input.audioAuto) {
-					if (!input.audioAuto) {
-						commands.push({
-							command: {
-								command: VMixCommand.AUDIO_AUTO_OFF,
-								input: key
-							},
-							context: null,
-							timelineId: ''
-						})
-					} else {
-						commands.push({
-							command: {
-								command: VMixCommand.AUDIO_AUTO_ON,
-								input: key
-							},
-							context: null,
-							timelineId: ''
-						})
-					}
-				}
-				if (input.audioBuses !== undefined && oldInput.audioBuses !== input.audioBuses) {
-					let oldBuses = (oldInput.audioBuses || '').split(',')
-					let newBuses = input.audioBuses.split(',')
-					_.difference(newBuses, oldBuses).forEach(bus => {
-						commands.push({
-							command: {
-								command: VMixCommand.AUDIO_BUS_ON,
-								input: key,
-								value: bus
-							},
-							context: null,
-							timelineId: ''
-						})
+			}
+			if (input.audioAuto !== undefined && oldInput.audioAuto !== input.audioAuto) {
+				if (!input.audioAuto) {
+					commands.push({
+						command: {
+							command: VMixCommand.AUDIO_AUTO_OFF,
+							input: key
+						},
+						context: null,
+						timelineId: ''
 					})
-					_.difference(oldBuses, newBuses).forEach(bus => {
-						commands.push({
-							command: {
-								command: VMixCommand.AUDIO_BUS_OFF,
-								input: key,
-								value: bus
-							},
-							context: null,
-							timelineId: ''
-						})
+				} else {
+					commands.push({
+						command: {
+							command: VMixCommand.AUDIO_AUTO_ON,
+							input: key
+						},
+						context: null,
+						timelineId: ''
 					})
 				}
-				if (input.transform !== undefined && !_.isEqual(oldInput.transform, input.transform)) {
-					if (oldInput.transform === undefined || input.transform.zoom !== oldInput.transform.zoom) {
-						commands.push({
-							command: {
-								command: VMixCommand.SET_ZOOM,
-								input: key,
-								value: input.transform.zoom
-							},
-							context: null,
-							timelineId: ''
-						})
-					}
-					if (oldInput.transform === undefined || input.transform.alpha !== oldInput.transform.alpha) {
-						commands.push({
-							command: {
-								command: VMixCommand.SET_ALPHA,
-								input: key,
-								value: input.transform.alpha
-							},
-							context: null,
-							timelineId: ''
-						})
-					}
-					if (oldInput.transform === undefined || input.transform.panX !== oldInput.transform.panX) {
-						commands.push({
-							command: {
-								command: VMixCommand.SET_PAN_X,
-								input: key,
-								value: input.transform.panX
-							},
-							context: null,
-							timelineId: ''
-						})
-					}
-					if (oldInput.transform === undefined || input.transform.panY !== oldInput.transform.panY) {
-						commands.push({
-							command: {
-								command: VMixCommand.SET_PAN_Y,
-								input: key,
-								value: input.transform.panY
-							},
-							context: null,
-							timelineId: ''
-						})
-					}
-				}
-				if (input.overlays !== undefined && !_.isEqual(oldInput.overlays, input.overlays)) {
-					_.difference(Object.keys(input.overlays), Object.keys(oldInput.overlays || {}))
-					.forEach(index => {
-						commands.push({
-							command: {
-								command: VMixCommand.SET_INPUT_OVERLAY,
-								input: key,
-								value: input.overlays![index],
-								index: Number(index)
-							},
-							context: null,
-							timelineId: ''
-						})
+			}
+			if (input.audioBuses !== undefined && oldInput.audioBuses !== input.audioBuses) {
+				let oldBuses = (oldInput.audioBuses || '').split(',')
+				let newBuses = input.audioBuses.split(',')
+				_.difference(newBuses, oldBuses).forEach(bus => {
+					commands.push({
+						command: {
+							command: VMixCommand.AUDIO_BUS_ON,
+							input: key,
+							value: bus
+						},
+						context: null,
+						timelineId: ''
 					})
-					_.difference(Object.keys(oldInput.overlays || {}), Object.keys(input.overlays))
-					.forEach(index => {
-						commands.push({
-							command: {
-								command: VMixCommand.SET_INPUT_OVERLAY,
-								input: key,
-								value: '',
-								index: Number(index)
-							},
-							context: null,
-							timelineId: ''
-						})
+				})
+				_.difference(oldBuses, newBuses).forEach(bus => {
+					commands.push({
+						command: {
+							command: VMixCommand.AUDIO_BUS_OFF,
+							input: key,
+							value: bus
+						},
+						context: null,
+						timelineId: ''
+					})
+				})
+			}
+			if (input.transform !== undefined && !_.isEqual(oldInput.transform, input.transform)) {
+				if (oldInput.transform === undefined || input.transform.zoom !== oldInput.transform.zoom) {
+					commands.push({
+						command: {
+							command: VMixCommand.SET_ZOOM,
+							input: key,
+							value: input.transform.zoom
+						},
+						context: null,
+						timelineId: ''
 					})
 				}
-			})
+				if (oldInput.transform === undefined || input.transform.alpha !== oldInput.transform.alpha) {
+					commands.push({
+						command: {
+							command: VMixCommand.SET_ALPHA,
+							input: key,
+							value: input.transform.alpha
+						},
+						context: null,
+						timelineId: ''
+					})
+				}
+				if (oldInput.transform === undefined || input.transform.panX !== oldInput.transform.panX) {
+					commands.push({
+						command: {
+							command: VMixCommand.SET_PAN_X,
+							input: key,
+							value: input.transform.panX
+						},
+						context: null,
+						timelineId: ''
+					})
+				}
+				if (oldInput.transform === undefined || input.transform.panY !== oldInput.transform.panY) {
+					commands.push({
+						command: {
+							command: VMixCommand.SET_PAN_Y,
+							input: key,
+							value: input.transform.panY
+						},
+						context: null,
+						timelineId: ''
+					})
+				}
+			}
+			if (input.overlays !== undefined && !_.isEqual(oldInput.overlays, input.overlays)) {
+				_.difference(Object.keys(input.overlays), Object.keys(oldInput.overlays || {}))
+				.forEach(index => {
+					commands.push({
+						command: {
+							command: VMixCommand.SET_INPUT_OVERLAY,
+							input: key,
+							value: input.overlays![index],
+							index: Number(index)
+						},
+						context: null,
+						timelineId: ''
+					})
+				})
+				_.difference(Object.keys(oldInput.overlays || {}), Object.keys(input.overlays))
+				.forEach(index => {
+					commands.push({
+						command: {
+							command: VMixCommand.SET_INPUT_OVERLAY,
+							input: key,
+							value: '',
+							index: Number(index)
+						},
+						context: null,
+						timelineId: ''
+					})
+				})
+			}
+		})
 
-			_.difference(Object.keys(oldVMixState.reportedState.inputs), Object.keys(newVMixState.reportedState.inputs))
-			.forEach(input => {
-				if (oldVMixState.reportedState.inputs[input].type !== undefined) {
-					console.log('remove', input)
-					// TODO: either schedule this command for later or make the timeline object long enough to prevent removing while transitioning
-					commands.push({
-						command: {
-							command: VMixCommand.REMOVE_INPUT,
-							input: oldVMixState.reportedState.inputs[input].name || input
-						},
-						context: null,
-						timelineId: ''
-					})
-				}
-			})
-		}
+		_.difference(Object.keys(oldVMixState.reportedState.inputs), Object.keys(newVMixState.reportedState.inputs))
+		.forEach(input => {
+			if (oldVMixState.reportedState.inputs[input].type !== undefined) {
+				console.log('remove', input)
+				// TODO: either schedule this command for later or make the timeline object long enough to prevent removing while transitioning
+				commands.push({
+					command: {
+						command: VMixCommand.REMOVE_INPUT,
+						input: oldVMixState.reportedState.inputs[input].name || input
+					},
+					context: null,
+					timelineId: ''
+				})
+			}
+		})
 		return commands
 	}
 
 	private _resolveOverlaysState (oldVMixState: VMixStateExtended, newVMixState: VMixStateExtended): Array<VMixStateCommandWithContext> {
 		let commands: Array<VMixStateCommandWithContext> = []
-		if (!_.isEqual(oldVMixState.reportedState.overlays, newVMixState.reportedState.overlays)) {
-			_.each(newVMixState.reportedState.overlays, (overlay, index) => {
-				let oldOverlay = oldVMixState.reportedState.overlays[index]
-				if (oldOverlay.input !== overlay.input) {
-					if (overlay.input === undefined) {
-						commands.push({
-							command: {
-								command: VMixCommand.OVERLAY_INPUT_OUT,
-								value: overlay.number
-							},
-							context: null,
-							timelineId: ''
-						})
-					} else {
-						commands.push({
-							command: {
-								command: VMixCommand.OVERLAY_INPUT_IN,
-								input: overlay.input,
-								value: overlay.number
-							},
-							context: null,
-							timelineId: ''
-						})
-					}
+		_.each(newVMixState.reportedState.overlays, (overlay, index) => {
+			let oldOverlay = oldVMixState.reportedState.overlays[index]
+			if (oldOverlay.input !== overlay.input) {
+				if (overlay.input === undefined) {
+					commands.push({
+						command: {
+							command: VMixCommand.OVERLAY_INPUT_OUT,
+							value: overlay.number
+						},
+						context: null,
+						timelineId: ''
+					})
+				} else {
+					commands.push({
+						command: {
+							command: VMixCommand.OVERLAY_INPUT_IN,
+							input: overlay.input,
+							value: overlay.number
+						},
+						context: null,
+						timelineId: ''
+					})
 				}
-			})
-		}
+			}
+		})
 		return commands
 	}
 
@@ -841,23 +837,21 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended> {
 
 	private _resolveOutputsState (oldVMixState: VMixStateExtended, newVMixState: VMixStateExtended): Array<VMixStateCommandWithContext> {
 		let commands: Array<VMixStateCommandWithContext> = []
-		if (!_.isEqual(oldVMixState.outputs, newVMixState.outputs)) {
-			_.map(newVMixState.outputs, (output, name) => {
-				if (!_.isEqual(output, oldVMixState.outputs[name])) {
-					let value = output.source === 'Program' ? 'Output' : output.source
-					commands.push({
-						command: {
-							command: VMixCommand.SET_OUPUT,
-							value,
-							input: output.input,
-							name
-						},
-						context: null,
-						timelineId: ''
-					})
-				}
-			})
-		}
+		_.map(newVMixState.outputs, (output, name) => {
+			if (!_.isEqual(output, oldVMixState.outputs[name])) {
+				let value = output.source === 'Program' ? 'Output' : output.source
+				commands.push({
+					command: {
+						command: VMixCommand.SET_OUPUT,
+						value,
+						input: output.input,
+						name
+					},
+					context: null,
+					timelineId: ''
+				})
+			}
+		})
 		return commands
 	}
 
