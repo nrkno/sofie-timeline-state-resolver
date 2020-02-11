@@ -5,7 +5,7 @@ import { VMixOptions, VMixCommand, VMixTransition, VMixTransitionType, VMixInput
 import { VMixState, VMixInput, VMixAudioChannel } from './vmix'
 import * as _ from 'underscore'
 
-// const PING_TIMEOUT = 10 * 1000
+const PING_TIMEOUT = 10 * 1000
 
 export class VMix extends EventEmitter {
 	public state: VMixState
@@ -15,11 +15,8 @@ export class VMix extends EventEmitter {
 
 	private _socketKeepAliveTimeout: NodeJS.Timer | null = null
 
-	connect (options: VMixOptions): Promise<void> {
+	connect (options: VMixOptions): Promise<boolean> {
 		return this._connectHTTP(options)
-		.then(() => {
-			this._connected = true
-		})
 	}
 
 	public get connected (): boolean {
@@ -33,7 +30,7 @@ export class VMix extends EventEmitter {
 		})
 	}
 
-	private _connectHTTP (options?: VMixOptions): Promise<void> {
+	private _connectHTTP (options?: VMixOptions): Promise<boolean> {
 		if (options) {
 			if (!(options.host.startsWith('http://') || options.host.startsWith('https://'))) {
 				options.host = `http://${options.host}`
@@ -41,31 +38,37 @@ export class VMix extends EventEmitter {
 			this._options = options
 		}
 
-		return new Promise((resolve, reject) => {
-			request.get(`${this._options.host}:${this._options.port}/api`, {}, (error, res) => {
-				if (error) {
-					reject(error)
-				} else {
-					this._connected = true
-					// this._socketKeepAliveTimeout = setTimeout(() => {
-					// 	this.getVMixState()
-					// }, PING_TIMEOUT)
-					this.parseVMixState(res.body)
-					this.emit('connected')
-					resolve()
-				}
+		return new Promise((resolve) => {
+			this.once('initialized', () => {
+				this.emit('stateChanged', this.state)
+				resolve(true)
 			})
+			
+			this.getVMixState()
 		})
 	}
 
+	private setConnected (connected: boolean) {
+		if (connected !== this._connected) {
+			this._connected = connected
+			if (connected) {
+				this.emit('connected')
+			} else {
+				this.emit('disconnected')
+			}
+		}
+	}
+
+
 	private _stillAlive () {
 		if (this._socketKeepAliveTimeout) {
+			clearTimeout(this._socketKeepAliveTimeout)
 			this._socketKeepAliveTimeout = null
 		}
 
-		// this._socketKeepAliveTimeout = setTimeout(() => {
-		// 	this.getVMixState()
-		// }, PING_TIMEOUT)
+		this._socketKeepAliveTimeout = setTimeout(() => {
+			this.getVMixState()
+		}, PING_TIMEOUT)
 	}
 
 	public async sendCommand (command: VMixStateCommand): Promise<any> {
@@ -148,20 +151,19 @@ export class VMix extends EventEmitter {
 	public getVMixState () {
 		request.get(`${this._options.host}:${this._options.port}/api`, {}, (error, res) => {
 			if (error) {
-				this._connected = false
-				// throw new Error(error)
+				this.setConnected(false)
 			} else {
-				this._connected = true
 				this.parseVMixState(res.body)
-				this._stillAlive()
+				this.emit('initialized')
+				this.setConnected(true)
 			}
+			this._stillAlive()
 		})
 	}
 
 	public parseVMixState (responseBody: any) {
 		const preParsed = xml.xml2json(responseBody, { compact: true, spaces: 4 })
 		const xmlState = JSON.parse(preParsed)
-		console.log()
 		let mixes = xmlState['vmix']['mix']
 		mixes = Array.isArray(mixes) ? mixes : (mixes ? [mixes] : [])
 		let fixedInputsCount = 0
@@ -246,7 +248,6 @@ export class VMix extends EventEmitter {
 
 	public setState (state: VMixState): void {
 		this.state = state
-		this.emit('stateChanged', this.state)
 	}
 
 	public setPreviewInput (input: number | string, mix: number): Promise<any> {
@@ -412,10 +413,11 @@ export class VMix extends EventEmitter {
 		return new Promise((resolve, reject) => {
 			request.get(command, {}, (error) => {
 				if (error) {
+					this.setConnected(false)
 					reject(error)
 				} else {
-					// this.getVMixState()
 					this._stillAlive()
+					this.setConnected(true)
 					resolve()
 				}
 			})

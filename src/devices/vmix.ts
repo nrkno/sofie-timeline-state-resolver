@@ -94,41 +94,35 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended> {
 		this._doOnTime.on('slowCommand', msg => this.emit('slowCommand', this.deviceName + ': ' + msg))
 	}
 	init (options: VMixOptions): Promise<boolean> {
-		return new Promise((resolve, reject) => {
-			this._makeReadyCommands = options.makeReadyCommands || []
+		this._makeReadyCommands = options.makeReadyCommands || []
 
-			this._vmix = new VMix()
-			this._vmix.once('connected', () => {
-				this._connected = true
-				this._initialized = true
-				this._connectionChanged()
-				resolve(true)
-			})
-			this._vmix.on('connected', () => {
-				let time = this.getCurrentTime()
-				let state = this._getDefaultState()
-				deepExtend(state, { reportedState: this._vmix.state })
-				this.setState(state, time)
-				this._connected = true
-				this._initialized = true
-				this._connectionChanged()
-				this.emit('resetResolver')
-			})
-			this._vmix.on('disconnected', () => {
-				this._connected = false
-				this._connectionChanged()
-			})
-			this._vmix.on('error', (e) => this.emit('error', 'VMix', e))
-			this._vmix.on('stateChanged', (state) => this._onVMixStateChanged(state))
-
-			this._vmix.connect(options)
-			.catch(e => {
-				reject(e)
-			})
+		this._vmix = new VMix()
+		this._vmix.on('connected', () => {
+			let time = this.getCurrentTime()
+			let state = this._getDefaultState()
+			deepExtend(state, { reportedState: this._vmix.state })
+			this.setState(state, time)
+			this._initialized = true
+			this._setConnected(true)
+			this.emit('resetResolver')
 		})
+		this._vmix.on('disconnected', () => {
+			this._setConnected(false)
+		})
+		this._vmix.on('error', (e) => this.emit('error', 'VMix', e))
+		this._vmix.on('stateChanged', (state) => this._onVMixStateChanged(state))
+
+		return this._vmix.connect(options)
 	}
 	private _connectionChanged () {
 		this.emit('connectionChanged', this.getStatus())
+	}
+	
+	private _setConnected (connected: boolean) {
+		if (this._connected !== connected) {
+			this._connected = connected
+			this._connectionChanged()
+		}
 	}
 
 	private _onVMixStateChanged (newState: VMixState) {
@@ -217,7 +211,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended> {
 
 	handleState (newState: TimelineState) {
 		if (!this._initialized) { // before it's initialized don't do anything
-			this.emit('info', 'VMix not initialized yet')
+			this.emit('warning', 'VMix not initialized yet')
 			return
 		}
 
@@ -246,9 +240,17 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended> {
 		return Promise.resolve(true)
 	}
 	getStatus (): DeviceStatus {
-		// Good, since this device has no status, really
+		let statusCode = StatusCode.GOOD
+		let messages: Array<string> = []
+
+		if (!this._connected) {
+			statusCode = StatusCode.BAD
+			messages.push('Not connected')
+		}
+
 		return {
-			statusCode: StatusCode.GOOD
+			statusCode: statusCode,
+			messages: messages
 		}
 	}
 	async makeReady (okToDestroyStuff?: boolean): Promise<void> {
