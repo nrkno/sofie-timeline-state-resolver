@@ -579,7 +579,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended> {
 					})
 				}
 			}
-			if (oldInput.volume !== input.volume && input.volume && !isNaN(input.volume)) {
+			if (oldInput.volume !== input.volume && input.volume !== undefined) {
 				commands.push({
 					command: {
 						command: VMixCommand.AUDIO_VOLUME,
@@ -591,7 +591,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended> {
 					timelineId: ''
 				})
 			}
-			if (oldInput.balance !== input.balance && input.balance && !isNaN(input.balance)) {
+			if (oldInput.balance !== input.balance && input.balance !== undefined) {
 				commands.push({
 					command: {
 						command: VMixCommand.AUDIO_BALANCE,
