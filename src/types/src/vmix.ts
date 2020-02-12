@@ -89,17 +89,17 @@ export interface MappingVMixFader extends MappingVMix {
 }
 
 export enum MappingVMixType {
-	Program,
-	Preview,
-	Input,
-	AudioChannel,
-	Output,
-	Overlay,
-	Recording,
-	Streaming,
-	External,
-	FadeToBlack,
-	Fader
+	Program = 0,
+	Preview = 1,
+	Input = 2,
+	AudioChannel = 3,
+	Output = 4,
+	Overlay = 5,
+	Recording = 6,
+	Streaming = 7,
+	External = 8,
+	FadeToBlack = 9,
+	Fader = 10
 }
 
 export interface VMixCommandContent {
