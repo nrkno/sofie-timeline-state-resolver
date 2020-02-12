@@ -91,7 +91,7 @@ export interface MappingVMixFader extends MappingVMix {
 export enum MappingVMixType {
 	Program = 0,
 	Preview = 1,
-	Input = 2,
+	Input = 2, // order of Input and AudioChannel matters because of the way layers are sorted
 	AudioChannel = 3,
 	Output = 4,
 	Overlay = 5,
@@ -204,6 +204,7 @@ export interface TimelineObjVMixPreview extends TimelineObjVMixBase {
 		deviceType: DeviceType.VMIX
 		type: TimelineContentTypeVMix.PREVIEW
 
+		/** Input number or name */
 		input: number | string
 	}
 }
@@ -278,7 +279,7 @@ export interface TimelineObjVMixInput extends TimelineObjVMixBase {
 		deviceType: DeviceType.VMIX
 		type: TimelineContentTypeVMix.INPUT
 
-		/** File path */
+		/** Media file path */
 		filePath?: number | string
 
 		/** Set only when dealing with media */
@@ -287,7 +288,7 @@ export interface TimelineObjVMixInput extends TimelineObjVMixBase {
 		/** If media should be playing */
 		playing?: boolean
 
-		/** Starting position in milliseconds */
+		/** Media starting position in milliseconds */
 		seek?: number
 
 		/** If media should loop */
@@ -299,16 +300,6 @@ export interface TimelineObjVMixInput extends TimelineObjVMixBase {
 		overlays?: VMixInputOverlays
 	}
 }
-
-/*
-export interface TimelineObjVMixRestartInput extends TimelineObjVMixBase {
-	content: {
-		deviceType: DeviceType.VMIX
-		type: TimelineContentTypeVMix.RESTART_INPUT
-		input: string
-	}
-}
-*/
 
 export interface TimelineObjVMixOutput extends TimelineObjVMixBase {
 	content: {
@@ -338,6 +329,7 @@ export interface TimelineObjVMixOverlay extends TimelineObjVMixBase {
 		deviceType: DeviceType.VMIX,
 		type: TimelineContentTypeVMix.OVERLAY
 
+		/** Input number or name */
 		input: number | string
 	}
 }

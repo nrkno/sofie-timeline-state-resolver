@@ -237,14 +237,17 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended> {
 		// store the new state, for later use:
 		this.setState(newVMixState, newState.time)
 	}
+
 	clearFuture (clearAfterTime: number) {
 		// Clear any scheduled commands after this time
 		this._doOnTime.clearQueueAfter(clearAfterTime)
 	}
+
 	terminate () {
 		this._doOnTime.dispose()
 		return Promise.resolve(true)
 	}
+
 	getStatus (): DeviceStatus {
 		let statusCode = StatusCode.GOOD
 		let messages: Array<string> = []
@@ -259,6 +262,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended> {
 			messages: messages
 		}
 	}
+
 	async makeReady (okToDestroyStuff?: boolean): Promise<void> {
 		if (okToDestroyStuff && this._makeReadyCommands && this._makeReadyCommands.length > 0) {
 			_.each(this._makeReadyCommands, (cmd: VMixCommandContent) => {
@@ -274,9 +278,11 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended> {
 	get canConnect (): boolean {
 		return false
 	}
+
 	get connected (): boolean {
 		return false
 	}
+
 	convertStateToVMix (state: TimelineState): VMixStateExtended {
 		if (!this._initialized) throw Error('convertStateToVMix cannot be used before inititialized')
 
@@ -408,7 +414,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended> {
 			if (layerName) {
 				deviceState.inputLayers[layerName] = inputKey as string
 			}
-		} 
+		}
 		return inputs
 	}
 
@@ -425,15 +431,19 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended> {
 			mixState.layerToProgram = layerToProgram
 		}
 	}
+
 	get deviceType () {
 		return DeviceType.VMIX
 	}
+
 	get deviceName (): string {
 		return 'VMix ' + this.deviceId
 	}
+
 	get queue () {
 		return this._doOnTime.getQueue()
 	}
+
 	private _addToQueue (commandsToAchieveState: Array<VMixStateCommandWithContext>, time: number) {
 		_.each(commandsToAchieveState, (cmd: VMixStateCommandWithContext) => {
 
@@ -993,109 +1003,3 @@ export interface VMixAudioChannel {
 	meterF2: number
 	headphonesVolume: number
 }
-/*
-
-
-Sources
-    Output (Program)
-    preview
-    multiview
-    ~inputs available~
-    ~clips available~
-    ~other things available~
-
-
-
-External outputs
-	**not able to control in API, only switch on/off**
-    External
-
-    **able to assign sources, switch on/off**
-	External2
-	2
-	3
-	4
-	Fullscreen
-	Fullscreen2
-
-Overlays
-        // fixed, not able to change number
-        // any source can be assigned to an overlay
-	Overlay 1
-	Overlay 2
-	Overlay 3
-	Overlay 4
-	Stinger 1
-	Stinger 2
-
-
-
-Mapping: "map a timeline layer to something physical"
-
-Mapping: {
-    type: 'source' | 'input' | 'output'
-
-    id: "program" | "overlay",
-}
-MappingSource extends Mapping {
-    type: 'source'
-    id: "program" | "overlay",
-}
-MappingOutput extends Mapping {
-    type: 'output'
-    id: 'External2', '2', '3', '4', 'Fullscreen', 'Fullscreen2'
-}
-
-
-{
-    sourceType: "video" | "camera" | others...
-
-    source: "cam1"
-    source: "timeline_layer_34"
-}
-
-{
-    type: "input",
-
-    type: video,
-    fileName: "sofie1.mp4"
-}
-
-{
-    type: "output",
-    source: 'output' | 'preview' | 'multiview'...
-}
-
-// "I want to play and display a video on Program"
-mapping: {
-    'program0': {
-        type: 'source',
-        'id': 'program'
-    },
-    'media_player0': {
-        type: 'input'
-    }
-},
-timeline: [{
-    layer: 'media_player0',
-    content: {
-        type: "input",
-        inputType: 'video',
-        fileName: "sofie1.mp4"
-    }
-}, {
-    layer: 'program0',
-    content: {
-        type: "source",
-        sourceType: "video",
-        sourceLayer: 'media_player0'
-
-    }
-}]
-
-
-// "I want to play and display a video on Program, then cut to the same video again"
-
-
-// "I want to play and display a camera on Program"
-*/
