@@ -645,8 +645,8 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended> {
 				}
 			}
 			if (input.audioBuses !== undefined && oldInput.audioBuses !== input.audioBuses) {
-				let oldBuses = (oldInput.audioBuses || '').split(',')
-				let newBuses = input.audioBuses.split(',')
+				let oldBuses = (oldInput.audioBuses || '').split(',').filter(x => x)
+				let newBuses = input.audioBuses.split(',').filter(x => x)
 				_.difference(newBuses, oldBuses).forEach(bus => {
 					commands.push({
 						command: {
