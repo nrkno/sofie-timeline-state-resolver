@@ -526,6 +526,16 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended> {
 				}).catch()
 			}
 			let oldInput = oldVMixState.reportedState.inputs[key] || {}
+			if (input.playing !== undefined && oldInput.playing !== input.playing && !input.playing) {
+				commands.push({
+					command: {
+						command: VMixCommand.PAUSE_INPUT,
+						input: input.name
+					},
+					context: null,
+					timelineId: ''
+				})
+			}
 			if (oldInput.position !== input.position) {
 				commands.push({
 					command: {
@@ -536,27 +546,6 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended> {
 					context: null,
 					timelineId: ''
 				})
-			}
-			if (input.playing !== undefined && oldInput.playing !== input.playing) {
-				if (input.playing) {
-					commands.push({
-						command: {
-							command: VMixCommand.PLAY_INPUT,
-							input: input.name
-						},
-						context: null,
-						timelineId: ''
-					})
-				} else {
-					commands.push({
-						command: {
-							command: VMixCommand.PAUSE_INPUT,
-							input: input.name
-						},
-						context: null,
-						timelineId: ''
-					})
-				}
 			}
 			if (input.loop !== undefined && oldInput.loop !== input.loop) {
 				if (input.loop) {
@@ -715,6 +704,16 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended> {
 						timelineId: ''
 					})
 				}
+			}
+			if (input.playing !== undefined && oldInput.playing !== input.playing && input.playing) {
+				commands.push({
+					command: {
+						command: VMixCommand.PLAY_INPUT,
+						input: input.name
+					},
+					context: null,
+					timelineId: ''
+				})
 			}
 			if (input.overlays !== undefined && !_.isEqual(oldInput.overlays, input.overlays)) {
 				_.difference(Object.keys(input.overlays), Object.keys(oldInput.overlays || {}))
@@ -888,8 +887,8 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended> {
 	private _diffStates (oldVMixState: VMixStateExtended, newVMixState: VMixStateExtended): Array<VMixStateCommandWithContext> {
 		let commands: Array<VMixStateCommandWithContext> = []
 
-		commands = commands.concat(this._resolveMixState(oldVMixState, newVMixState))
 		commands = commands.concat(this._resolveInputsState(oldVMixState, newVMixState))
+		commands = commands.concat(this._resolveMixState(oldVMixState, newVMixState))
 		commands = commands.concat(this._resolveOverlaysState(oldVMixState, newVMixState))
 		commands = commands.concat(this._resolveRecordingState(oldVMixState, newVMixState))
 		commands = commands.concat(this._resolveStreamingState(oldVMixState, newVMixState))
