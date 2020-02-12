@@ -745,7 +745,38 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> implements ID
 			if (this._queue[resCommand.token]) {
 				delete this._queue[resCommand.token]
 			}
-			this._ccgState.applyCommands([{ cmd: resCommand.serialize() }], time)
+			// If the command was performed successfully, copy the state from the current state into the tracked caspar-state:
+			// This is later used in _assertIntendedState
+			if (
+				(
+					resCommand.name === 'LoadbgCommand' ||
+					resCommand.name === 'PlayCommand' ||
+					resCommand.name === 'LoadCommand'
+				) &&
+				resCommand.channel &&
+				resCommand.layer
+			) {
+				const currentState = this.getState(time)
+				if (currentState) {
+					const currentCasparState = this.convertStateToCaspar(currentState.state)
+	
+					const trackedState = this._ccgState.getState()
+
+					const channel = currentCasparState.channels[resCommand.channel]
+
+					if (!trackedState.channels[resCommand.channel]) {
+						trackedState.channels[resCommand.channel] = {
+							channelNo: channel.channelNo,
+							fps: channel.fps || 0,
+							videoMode: channel.videoMode || null,
+							layers: {}
+						}
+					}
+					// Copy the tracked from current state:
+					trackedState.channels[resCommand.channel].layers[resCommand.layer] = currentCasparState.channels[resCommand.channel].layers[resCommand.layer]
+					this._ccgState.setState(trackedState)
+				}
+			}
 		}).catch((error) => {
 			let errorString = ''
 			if (error && error.response && error.response.code === 404) {
