@@ -491,12 +491,11 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState> implements IDevic
 					templateData: VizMSEManager.getTemplateData(newLayer),
 					channelName: newLayer.channelName
 				}
-
 				if (
 					!oldLayer ||
 					!_.isEqual(
-						_.omit(newLayer, ['continueStep']),
-						_.omit(oldLayer, ['continueStep'])
+						_.omit(newLayer, ['continueStep', 'timelineObjId', 'outTransition']),
+						_.omit(oldLayer, ['continueStep', 'timelineObjId', 'outTransition'])
 					)
 				) {
 					if (
