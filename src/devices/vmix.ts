@@ -531,9 +531,25 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended> {
 				input.name = key
 			}
 			if (!_.has(oldVMixState.reportedState.inputs, key) && input.type !== undefined) {
-				this._vmix.addInput(`${input.type}|${input.name}`).then(() => {
-					this._vmix.setInputName(this.getFilename(input.name!), input.name!).then().catch()
-				}).catch()
+				let addCommands: Array<VMixStateCommandWithContext> = []
+				addCommands.push({
+					command: {
+						command: VMixCommand.ADD_INPUT,
+						value: `${input.type}|${input.name}`
+					},
+					context: null,
+					timelineId: ''
+				})
+				addCommands.push({
+					command: {
+						command: VMixCommand.SET_INPUT_NAME,
+						input: this.getFilename(input.name),
+						value: input.name
+					},
+					context: null,
+					timelineId: ''
+				})
+				this._addToQueue(addCommands, Date.now())
 			}
 			let oldInput = oldVMixState.reportedState.inputs[key] || {}
 			if (input.playing !== undefined && oldInput.playing !== input.playing && !input.playing) {
