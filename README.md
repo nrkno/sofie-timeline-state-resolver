@@ -256,6 +256,7 @@ Activate channel 3 on sisyfos pgm output
 	}
 }
 // Timeline:
+//ON:
 {
 	id: 'channel3',
 	enable: {
@@ -266,7 +267,47 @@ Activate channel 3 on sisyfos pgm output
 		deviceType: DeviceType.SISYFOS,
 		type: TimelineContentTypeSisyfos.SISYFOS,
 
-		isPgm: true
+		isPgm: 1 // 0 = OFF, 1 = Pgm level, 2 = VoiceOver level
+	}
+}
+//FADERLEVEL:
+{
+	id: 'channel3',
+	enable: {
+		start: 'now'	
+	},
+	layer: 'myLayerSisyfosScene1',
+	content: {
+		deviceType: DeviceType.SISYFOS,
+		type: TimelineContentTypeSisyfos.SISYFOS,
+
+		faderLevel: 0.75
+	}
+}
+//LABEL:
+{
+	id: 'channel3',
+	enable: {
+		start: 'now'	
+	},
+	layer: 'myLayerSisyfosScene1',
+	content: {
+		deviceType: DeviceType.SISYFOS,
+		type: TimelineContentTypeSisyfos.SISYFOS,
+		label: 'SERVER B'
+	}
+}
+//VISIBLE: (shows or hide a fader)
+{
+	id: 'channel3',
+	enable: {
+		start: 'now'	
+	},
+	layer: 'myLayerSisyfosScene1',
+	content: {
+		deviceType: DeviceType.SISYFOS,
+		type: TimelineContentTypeSisyfos.SISYFOS,
+		visible: false // false: hide - true: show
 	}
 }
 ```

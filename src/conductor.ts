@@ -32,7 +32,7 @@ import { HTTPWatcherDevice, DeviceOptionsHTTPWatcherInternal } from './devices/h
 import { QuantelDevice, DeviceOptionsQuantelInternal } from './devices/quantel'
 import { SisyfosMessageDevice, DeviceOptionsSisyfosInternal } from './devices/sisyfos'
 import { SingularLiveDevice, DeviceOptionsSingularLiveInternal } from './devices/singularLive'
-
+import { VizMSEDevice, DeviceOptionsVizMSEInternal } from './devices/vizMSE'
 export { DeviceContainer }
 export { CommandWithContext }
 
@@ -413,6 +413,15 @@ export class Conductor extends EventEmitter {
 					options,
 					threadedClassOptions
 				)
+			} else if (deviceOptions.type === DeviceType.VIZMSE) {
+				newDevice = await new DeviceContainer().create<VizMSEDevice>(
+					'../../dist/devices/vizMSE.js',
+					VizMSEDevice,
+					deviceId,
+					deviceOptions,
+					options,
+					threadedClassOptions
+				)
 			} else if (deviceOptions.type === DeviceType.SINGULAR_LIVE) {
 				newDevice = await new DeviceContainer().create<SingularLiveDevice>(
 					'../../dist/devices/singularLive.js',
@@ -525,11 +534,11 @@ export class Conductor extends EventEmitter {
 	/**
 	 * Send a makeReady-trigger to all devices
 	 */
-	public devicesMakeReady (okToDestroyStuff?: boolean): Promise<void> {
+	public devicesMakeReady (okToDestroyStuff?: boolean, activeRundownId?: string): Promise<void> {
 		let p = Promise.resolve()
 		_.each(this.devices, (d: DeviceContainer) => {
 			p = p.then(async () => {
-				return d.device.makeReady(okToDestroyStuff)
+				return d.device.makeReady(okToDestroyStuff, activeRundownId)
 			})
 		})
 		this._resolveTimeline()
@@ -1125,5 +1134,6 @@ export type DeviceOptionsAnyInternal = (
 	DeviceOptionsOSCInternal |
 	DeviceOptionsSisyfosInternal |
 	DeviceOptionsQuantelInternal |
+	DeviceOptionsVizMSEInternal |
 	DeviceOptionsSingularLiveInternal
 )
