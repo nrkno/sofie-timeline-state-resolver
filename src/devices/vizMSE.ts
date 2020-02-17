@@ -220,7 +220,7 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState> implements IDevic
 	}
 
 	public getCurrentState (): VizMSEState | undefined {
-		return (this.getState() || { state: undefined}).state
+		return (this.getState() || { state: undefined }).state
 	}
 	public connectionChanged (connected?: boolean) {
 		if (connected === true || connected === false) this._vizMSEConnected = connected
@@ -1096,7 +1096,7 @@ class VizMSEManager extends EventEmitter {
 		// check if element is prepared
 		const elementHash = this.getElementHash(cmd)
 
-		let element = (this._getCachedElement(elementHash) || { element: undefined}).element
+		let element = (this._getCachedElement(elementHash) || { element: undefined }).element
 		if (!element) {
 			if (!fromPrepare) {
 				this.emit('warning', `Late preparation of element "${elementHash}"`)
