@@ -9,7 +9,7 @@ This is a part of the [**Sofie** TV News Studio Automation System](https://githu
 ## Abstract
 This library orchestrates and controls different devices.
 Its input is a [timeline](https://github.com/SuperFlyTV/supertimeline) data structure and a layer-to-device-map.
-Using the input, it resolves the expected state, diffs the state against current state and sends commands where necessary. 
+Using the input, it resolves the expected state, diffs the state against current state and sends commands where necessary.
 
 ## Supported devices
 * [CasparCG](http://casparcg.com/) - using the [casparcg-connection](https://github.com/SuperFlyTV/casparcg-connection) library
@@ -23,7 +23,8 @@ Using the input, it resolves the expected state, diffs the state against current
 * Arbitrary HTTP-interfaces
 * Arbitrary TCP-interfaces
 
-## Used in 
+
+## Used in
 
 TSR is primarily developed to be used in the [Playout Gateway](https://github.com/nrkno/tv-automation-playout-gateway) of the [Sofie project](https://github.com/nrkno/Sofie-TV-automation).
 
@@ -260,7 +261,7 @@ Activate channel 3 on sisyfos pgm output
 {
 	id: 'channel3',
 	enable: {
-		start: 'now'	
+		start: 'now'
 	},
 	layer: 'myLayerSisyfosScene1',
 	content: {
@@ -274,7 +275,7 @@ Activate channel 3 on sisyfos pgm output
 {
 	id: 'channel3',
 	enable: {
-		start: 'now'	
+		start: 'now'
 	},
 	layer: 'myLayerSisyfosScene1',
 	content: {
@@ -288,7 +289,7 @@ Activate channel 3 on sisyfos pgm output
 {
 	id: 'channel3',
 	enable: {
-		start: 'now'	
+		start: 'now'
 	},
 	layer: 'myLayerSisyfosScene1',
 	content: {
@@ -301,7 +302,7 @@ Activate channel 3 on sisyfos pgm output
 {
 	id: 'channel3',
 	enable: {
-		start: 'now'	
+		start: 'now'
 	},
 	layer: 'myLayerSisyfosScene1',
 	content: {
