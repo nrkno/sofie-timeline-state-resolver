@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [3.18.0](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/3.17.0...3.18.0) (2020-02-19)
+
+
+### Features
+
+* atem media player sources ([95f897a](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/95f897a0572ce0c21a2fa95f062cce20c885dfc8))
+
+
+### Bug Fixes
+
+* update osc dep to latest version, fixing an issue with an optional dependency of serialport ([812b225](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/812b2250827d90cc8e10bf35a9fc69c4fbea3b83))
+
 ## [3.17.0](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/3.16.2...3.17.0) (2020-01-08)
 
 
