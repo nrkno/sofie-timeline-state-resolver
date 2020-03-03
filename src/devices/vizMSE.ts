@@ -381,9 +381,7 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState> implements IDevic
 		if (!this._vizMSEConnected) {
 			statusCode = StatusCode.BAD
 			messages.push('Not connected')
-		}
-
-		if (
+		} else if (
 			this._vizmseManager &&
 			(
 				this._vizmseManager.notLoadedCount > 0 ||
