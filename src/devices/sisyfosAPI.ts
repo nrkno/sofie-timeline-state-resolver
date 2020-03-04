@@ -216,7 +216,7 @@ export class SisyfosInterface extends EventEmitter {
 
 	private parseSisyfosState (message: osc.OscMessage): SisyfosState {
 		const extState = JSON.parse(message.args[0].value)
-		const deviceState: SisyfosState = { channels: {} }
+		const deviceState: SisyfosState = { channels: {}, resync: false }
 
 		Object.keys(extState.channel).forEach((index: string) => {
 			const ch = extState.channel[index]

@@ -21,6 +21,7 @@ export interface SisyfosCommandContent {
 	faderLevel?: number
 	label?: string
 	visible?: boolean
+	resync?: boolean
 }
 export type TimelineObjSisyfosAny = TimelineObjSisyfosMessage
 
@@ -66,6 +67,7 @@ export interface SisyfosChannel extends SisyfosAPIChannel {
 
 export interface SisyfosState {
 	channels: { [index: string]: SisyfosChannel }
+	resync: boolean
 }
 
 export interface TimelineObjSisyfos extends TSRTimelineObjBase {

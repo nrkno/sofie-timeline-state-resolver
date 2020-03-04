@@ -95,7 +95,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState> implemen
 
 		// Transform timeline states into device states
 		let previousStateTime = Math.max(this.getCurrentTime(), newState.time)
-		let oldState: SisyfosState = (this.getStateBefore(previousStateTime) || { state: { channels: {} } }).state
+		let oldState: SisyfosState = (this.getStateBefore(previousStateTime) || { state: { channels: {}, resync: false } }).state
 
 		let newAbstractState = this.convertStateToSisyfosState(newState)
 
@@ -148,7 +148,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState> implemen
 		if (okToDestroyStuff) {
 			this._doOnTime.clearQueueNowAndAfter(this.getCurrentTime())
 			this._sisyfos.reInitialize()
-			this._sisyfos.once('initialized', () => {
+			this._sisyfos.on('initialized', () => {
 				this.setState(this.getDeviceState(false), this.getCurrentTime())
 				this.emit('resetResolver')
 			})
@@ -164,7 +164,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState> implemen
 	}
 	getDeviceState (isDefaultState = true): SisyfosState {
 		const deviceStateFromAPI = this._sisyfos.state
-		const deviceState: SisyfosState = { channels: {} }
+		const deviceState: SisyfosState = { channels: {}, resync: false }
 
 		for (const ch of Object.keys(deviceStateFromAPI.channels)) {
 
@@ -201,6 +201,11 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState> implemen
 		_.each(state.layers, (tlObject, layerName) => {
 			const layer = tlObject as ResolvedTimelineObjectInstance & TimelineObjSisyfosMessage
 			let foundMapping: MappingSisyfos = this.getMapping()[layerName] as any // @todo: make ts understand this
+
+			// Allow resync without valid channel mapping
+			if (layer.content.resync !== undefined) {
+				deviceState.resync = deviceState.resync || layer.content.resync
+			}
 
 			// if the tlObj is specifies to load to PST the original Layer is used to resolve the mapping
 			if (!foundMapping && layer.isLookahead && layer.lookaheadForLayer) {
@@ -256,6 +261,11 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState> implemen
 	 * Compares the new timeline-state with the old one, and generates commands to account for the difference
 	 */
 	private _diffStates (oldOscSendState: SisyfosState, newOscSendState: SisyfosState): Command[] {
+
+		if (newOscSendState.resync) {
+			this.makeReady(true)
+			this.emit('info', 'Sisyfos resync command recieved')
+		}
 
 		const commands: Command[] = []
 
