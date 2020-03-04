@@ -748,9 +748,12 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> implements ID
 			// This is later used in _assertIntendedState
 			if (
 				(
-					resCommand.name !== 'Clear' &&
-					resCommand.name !== 'Stop' && 
-					resCommand.name !== 'Pause'
+					resCommand.name === 'LoadbgCommand' ||
+					resCommand.name === 'PlayCommand' ||
+					resCommand.name === 'LoadCommand' ||
+					resCommand.name === 'ClearCommand' ||
+					resCommand.name === 'StopCommand' ||
+					resCommand.name === 'ResumeCommand' ||
 				) &&
 				resCommand.channel &&
 				resCommand.layer
