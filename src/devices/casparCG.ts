@@ -753,7 +753,7 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> implements ID
 					resCommand.name === 'LoadCommand' ||
 					resCommand.name === 'ClearCommand' ||
 					resCommand.name === 'StopCommand' ||
-					resCommand.name === 'ResumeCommand' ||
+					resCommand.name === 'ResumeCommand'
 				) &&
 				resCommand.channel &&
 				resCommand.layer
