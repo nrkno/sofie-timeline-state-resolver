@@ -19,7 +19,7 @@ export class SisyfosInterface extends EventEmitter {
 	port: number
 
 	private _oscClient: osc.UDPPort
-	private _state: SisyfosState
+	private _state?: SisyfosState
 
 	private _connectivityCheckInterval: NodeJS.Timer
 	private _pingCounter: number = Math.round(Math.random() * 10000)
@@ -114,14 +114,14 @@ export class SisyfosInterface extends EventEmitter {
 		return !!this._state
 	}
 	reInitialize () {
-		delete this._state
+		this._state = undefined
 		this._oscClient.send({ address: '/state/full', args: [] })
 	}
 
 	get connected (): boolean {
 		return this._connected
 	}
-	get state (): SisyfosAPIState {
+	get state (): SisyfosAPIState | undefined {
 		return this._state
 	}
 
@@ -168,7 +168,7 @@ export class SisyfosInterface extends EventEmitter {
 			if (address[1] === 'full') {
 				this._state = this.parseSisyfosState(message)
 				this.emit('initialized')
-			} else if (address[1] === 'ch') {
+			} else if (address[1] === 'ch' && this._state) {
 				const ch = address[2]
 				this._state.channels[ch] = {
 					...this._state.channels[ch],
@@ -216,7 +216,7 @@ export class SisyfosInterface extends EventEmitter {
 
 	private parseSisyfosState (message: osc.OscMessage): SisyfosState {
 		const extState = JSON.parse(message.args[0].value)
-		const deviceState: SisyfosState = { channels: {} }
+		const deviceState: SisyfosState = { channels: {}, resync: false }
 
 		Object.keys(extState.channel).forEach((index: string) => {
 			const ch = extState.channel[index]
