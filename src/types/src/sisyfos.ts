@@ -21,6 +21,7 @@ export interface SisyfosCommandContent {
 	faderLevel?: number
 	label?: string
 	visible?: boolean
+	resync?: boolean
 }
 export type TimelineObjSisyfosAny = TimelineObjSisyfosMessage
 
@@ -31,7 +32,8 @@ export enum Commands {
 	CLEAR_PST_ROW = 'clearPstRow',
 	LABEL = 'label',
 	TAKE = 'take',
-	VISIBLE = 'visible'
+	VISIBLE = 'visible',
+	RESYNC = 'resync'
 }
 
 export interface BaseCommand {
@@ -58,7 +60,11 @@ export interface StringCommand extends ChannelCommand {
 	value: string
 }
 
-export type SisyfosCommand = BaseCommand | ValueCommand | BoolCommand | StringCommand
+export interface ResyncCommand extends BaseCommand {
+	type: Commands.RESYNC
+}
+
+export type SisyfosCommand = BaseCommand | ValueCommand | BoolCommand | StringCommand | ResyncCommand
 
 export interface SisyfosChannel extends SisyfosAPIChannel {
 	tlObjIds: string[]
@@ -66,6 +72,7 @@ export interface SisyfosChannel extends SisyfosAPIChannel {
 
 export interface SisyfosState {
 	channels: { [index: string]: SisyfosChannel }
+	resync: boolean
 }
 
 export interface TimelineObjSisyfos extends TSRTimelineObjBase {

@@ -6082,9 +6082,9 @@ uuid@^3.3.2, uuid@^3.3.3:
   resolved "https://registry.yarnpkg.com/uuid/-/uuid-3.3.3.tgz#4568f0216e78760ee1dbf3a4d2cf53e224112866"
   integrity sha512-pW0No1RGHgzlpHJO1nsVrHKpOEIxkGg1xB+v0ZmdNH5OAeAwzAVrCnI2/6Mtx+Uys6iaylxa+D3g4j63IKKjSQ==
 
-"v-connection@git+https://github.com/olzzon/v-connection#fullControl":
+"v-connection@git+https://github.com/olzzon/v-connection#v20200304_1":
   version "0.0.11"
-  resolved "git+https://github.com/olzzon/v-connection#c99319cd1ee466ac1a43e7f25aa0b7819177f3e7"
+  resolved "git+https://github.com/olzzon/v-connection#c39f290f11b58102b4262f0a9f2ae095013350b2"
   dependencies:
     koa "^2.11.0"
     request "^2.88.0"
