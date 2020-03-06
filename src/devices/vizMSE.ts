@@ -381,9 +381,7 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState> implements IDevic
 		if (!this._vizMSEConnected) {
 			statusCode = StatusCode.BAD
 			messages.push('Not connected')
-		}
-
-		if (
+		} else if (
 			this._vizmseManager &&
 			(
 				this._vizmseManager.notLoadedCount > 0 ||
@@ -491,12 +489,11 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState> implements IDevic
 					templateData: VizMSEManager.getTemplateData(newLayer),
 					channelName: newLayer.channelName
 				}
-
 				if (
 					!oldLayer ||
 					!_.isEqual(
-						_.omit(newLayer, ['continueStep']),
-						_.omit(oldLayer, ['continueStep'])
+						_.omit(newLayer, ['continueStep', 'timelineObjId', 'outTransition']),
+						_.omit(oldLayer, ['continueStep', 'timelineObjId', 'outTransition'])
 					)
 				) {
 					if (
@@ -629,7 +626,11 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState> implements IDevic
 
 		if (highestDelay > 0) {
 			concatCommands.forEach((command, index) => {
-				if (command.type === VizMSECommandType.TAKE_ELEMENT) {
+				if (
+					command.type === VizMSECommandType.TAKE_ELEMENT
+					&& command.layerId
+					&& newState.layer[command.layerId].contentType === TimelineContentTypeVizMSE.ELEMENT_INTERNAL
+				) {
 					(concatCommands[index] as VizMSECommandTake).transition = {
 						type: VIZMSETransitionType.DELAY,
 						delay: highestDelay + 20
