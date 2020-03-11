@@ -335,6 +335,7 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> implements ID
 							channelLayout:	inputObj.content.channelLayout,
 							format:			inputObj.content.deviceFormat
 						},
+						filter: 		inputObj.content.filter,
 						playing:		true,
 						playTime:		null
 					})
