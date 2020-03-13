@@ -337,7 +337,8 @@ describe('CasparCG', () => {
 		expect(getMockCall(commandReceiver0, 3, 1)._objectParams).toMatchObject({
 			channel: 2,
 			layer: 42,
-			device: 1
+			device: 1,
+			format: ChannelFormat.HD_720P5000
 		})
 
 		expect(getMockCall(commandReceiver0, 4, 1).name).toEqual('ScheduleSetCommand')
@@ -1188,5 +1189,96 @@ describe('CasparCG', () => {
 			channel: 1,
 			layer: 10
 		})
+	})
+
+	test('CasparCG: Play a filtered decklink in PAL for 60s', async () => {
+
+		const commandReceiver0: any = jest.fn(() => {
+			return Promise.resolve()
+		})
+		let myLayerMapping0: MappingCasparCG = {
+			device: DeviceType.CASPARCG,
+			deviceId: 'myCCG',
+			channel: 2,
+			layer: 42
+		}
+		let myLayerMapping: Mappings = {
+			'myLayer0': myLayerMapping0
+		}
+
+		let myConductor = new Conductor({
+			initializeAsClear: true,
+			getCurrentTime: mockTime.getCurrentTime
+		})
+		await myConductor.init() // we cannot do an await, because setTimeout will never call without jest moving on.
+		await myConductor.addDevice('myCCG', {
+			type: DeviceType.CASPARCG,
+			options: {
+				commandReceiver: commandReceiver0,
+				host: '127.0.0.1',
+				useScheduling: true
+			}
+		})
+		await myConductor.setMapping(myLayerMapping)
+		await mockTime.advanceTimeToTicks(10100)
+
+		expect(commandReceiver0).toHaveBeenCalledTimes(3)
+
+		expect(getMockCall(commandReceiver0, 0, 1)._objectParams).toMatchObject({ channel: 1, timecode: '00:00:10:00' })
+		expect(getMockCall(commandReceiver0, 1, 1)._objectParams).toMatchObject({ channel: 2, timecode: '00:00:10:00' })
+		expect(getMockCall(commandReceiver0, 2, 1)._objectParams).toMatchObject({ channel: 3, timecode: '00:00:10:00' })
+
+		commandReceiver0.mockClear()
+
+		let deviceContainer = myConductor.getDevice('myCCG')
+		let device = deviceContainer.device
+
+		// Check that no commands has been scheduled:
+		expect(await device['queue']).toHaveLength(0)
+
+		myConductor.timeline = [
+			{
+				id: 'obj0',
+				enable: {
+					start: mockTime.getCurrentTime() - 1000, // 1 seconds ago
+					duration: 2000
+				},
+				layer: 'myLayer0',
+				content: {
+					deviceType: DeviceType.CASPARCG,
+					type: TimelineContentTypeCasparCg.INPUT,
+
+					device: 1,
+					inputType: 'decklink',
+					deviceFormat: ChannelFormat.HD_720P5000,
+
+					format: ChannelFormat.PAL,
+					filter: 'yadif=0:-1'
+				}
+			}
+		]
+
+		await mockTime.advanceTimeToTicks(10200)
+
+		// one command has been sent:
+		expect(commandReceiver0).toHaveBeenCalledTimes(2)
+		expect(getMockCall(commandReceiver0, 0, 1)._objectParams).toMatchObject({
+			channel: 2,
+			layer: 42,
+			noClear: false,
+			device: 1,
+			filter: 'yadif=0:-1',
+			format: ChannelFormat.HD_720P5000
+		})
+
+		// advance time to end of clip:
+		await mockTime.advanceTimeToTicks(11200)
+
+		// two commands have been sent:
+		expect(commandReceiver0).toHaveBeenCalledTimes(2)
+		expect(getMockCall(commandReceiver0, 1, 1).name).toEqual('ScheduleSetCommand')
+		expect(getMockCall(commandReceiver0, 1, 1)._objectParams.command.name).toEqual('ClearCommand')
+		expect(getMockCall(commandReceiver0, 1, 1)._objectParams.command.channel).toEqual(2)
+		expect(getMockCall(commandReceiver0, 1, 1)._objectParams.command.layer).toEqual(42)
 	})
 })

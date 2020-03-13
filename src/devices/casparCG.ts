@@ -332,8 +332,10 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> implements ID
 						media:			'decklink',
 						input: {
 							device:			inputObj.content.device,
-							channelLayout:	inputObj.content.channelLayout
+							channelLayout:	inputObj.content.channelLayout,
+							format:			inputObj.content.deviceFormat
 						},
+						filter: 		inputObj.content.filter,
 						playing:		true,
 						playTime:		null
 					})

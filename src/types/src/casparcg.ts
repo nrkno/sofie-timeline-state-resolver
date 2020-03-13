@@ -138,6 +138,8 @@ export interface TimelineObjCCGInput extends TimelineObjCasparCGBase {
 
 		// videoFilter?: string
 		// audioFilter?: string
+		filter?: string // should this be separate for audio and video?
+
 		/** Audio channel layout (example 'stereo') */
 		channelLayout?: string
 	} & TimelineObjCCGProducerContentBase
