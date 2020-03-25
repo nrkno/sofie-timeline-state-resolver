@@ -152,19 +152,22 @@
     "rundown",
     "production"
   ],
+  "resolutions": {
+    "osc/serialport/@serialport/bindings/**/mkdirp": "^0.5.3"
+  },
   "dependencies": {
     "atem-connection": "1.1.0",
     "atem-state": "^0.9.0",
-    "casparcg-connection": "4.8.1",
+    "casparcg-connection": "^4.9.0",
     "casparcg-state": "^1.12.0",
     "emberplus": "git+https://github.com/nrkno/tv-automation-emberplus-connection#dist200919_1",
     "fast-clone": "^1.5.13",
-    "hyperdeck-connection": "^0.4.2",
+    "hyperdeck-connection": "^0.4.3",
     "osc": "^2.4.0",
     "request": "^2.88.0",
     "sprintf-js": "^1.1.2",
-    "superfly-timeline": "^7.2.4",
-    "threadedclass": "^0.6.8",
+    "superfly-timeline": "^7.3.1",
+    "threadedclass": "0.6.8",
     "tslib": "^1.10.0",
     "underscore": "^1.9.1",
     "underscore-deep-extend": "^1.1.5",
