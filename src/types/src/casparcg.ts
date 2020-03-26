@@ -294,7 +294,7 @@ export enum Ease {
 	OUT_QUART = 'OUT_QUART',
 	OUT_QUINT = 'OUT_QUINT',
 
-	INTERNAL_PHYSICAL = 'INTERNAL_PHYSICAL', // Handled by TSR on its own
+	INTERNAL_PHYSICAL = 'INTERNAL_PHYSICAL' // Handled by TSR on its own
 }
 
 export enum Direction {

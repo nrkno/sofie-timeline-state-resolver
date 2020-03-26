@@ -640,7 +640,7 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> implements ID
 			) {
 				this._transitionHandler.snapTransition(
 					`FILL_${command.channel}_${command.layer}`,
-					objectParams,
+					objectParams
 				)
 			} else if (
 				objectParams.keyword === 'CLEAR' &&
@@ -902,7 +902,7 @@ class InternalTransitionHandler {
 			yTarget: objectParams.y,
 
 			activeIterator: null,
-			lastUpdate: 0,
+			lastUpdate: 0
 		}
 	}
 	public activateTransition (
