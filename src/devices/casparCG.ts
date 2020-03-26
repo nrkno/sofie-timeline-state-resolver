@@ -29,7 +29,8 @@ import {
 	TimelineObjCCGProducerContentBase,
 	ResolvedTimelineObjectInstanceExtended,
 	TimelineObjCCGIP,
-	DeviceOptionsCasparCG
+	DeviceOptionsCasparCG,
+	Transition
 } from '../types/src'
 
 import {
@@ -42,6 +43,7 @@ import {
 } from 'casparcg-state'
 import { DoOnTime, SendMode } from '../doOnTime'
 import * as request from 'request'
+import { PhysicalAcceleration } from '../animate'
 
 const MAX_TIMESYNC_TRIES = 5
 const MAX_TIMESYNC_DURATION = 40
@@ -71,6 +73,7 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> implements ID
 	private _doOnTime: DoOnTime
 	private initOptions?: CasparCGOptions
 	private _connected: boolean = false
+	private _transitionHandler: InternalTransitionHandler = new InternalTransitionHandler()
 
 	constructor (deviceId: string, deviceOptions: DeviceOptionsCasparCGInternal, options) {
 		super(deviceId, deviceOptions, options)
@@ -140,6 +143,7 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> implements ID
 	 */
 	terminate (): Promise<boolean> {
 		this._doOnTime.dispose()
+		this._transitionHandler.terminate()
 		return new Promise((resolve) => {
 			this._ccg.disconnect()
 			this._ccg.onDisconnected = () => {
@@ -605,6 +609,59 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> implements ID
 	}
 	private _doCommand (command: CommandNS.IAMCPCommand, context: string, timlineObjId: string): Promise<void> {
 		let time = this.getCurrentTime()
+		// Intercept internal commands:
+		const objectParams: any = command['_objectParams']
+		if (objectParams) {
+			if (
+				objectParams.transition === Transition.INTERNAL &&
+				objectParams.keyword === 'FILL'
+			) {
+				// Handle tranitions internally:
+				this._transitionHandler.activateTransition(
+					`FILL_${command.channel}_${command.layer}`,
+					objectParams,
+					(x, y, xScale, yScale) => {
+						const c = new AMCP.MixerFillCommand({
+							channel: command.channel,
+							layer: command.layer,
+							x: x,
+							y: y,
+							xScale: xScale,
+							yScale: yScale
+						})
+						this._commandReceiver(time, c, context, timlineObjId + '_internalTransition')
+						.catch((e => this.emit('error', 'CasparCG.InternalTransition', e)))
+					}
+				)
+				// Abort: don't send the original command
+				return Promise.resolve()
+			} else if (
+				objectParams.keyword === 'FILL'
+			) {
+				this._transitionHandler.snapTransition(
+					`FILL_${command.channel}_${command.layer}`,
+					objectParams,
+				)
+			} else if (
+				objectParams.keyword === 'CLEAR' &&
+				command.layer
+			) {
+				this._transitionHandler.clearTransition(
+					`FILL_${command.channel}_${command.layer}`
+				)
+			} else if (
+				objectParams.keyword === 'CLEAR' &&
+				!command.layer
+			) {
+				// clearing the whole channel:
+				this._transitionHandler.getIdentifiers()
+					.filter(i => i.match(new RegExp(`FILL_${command.channel}`)))
+					.forEach(identifier => {
+						this._transitionHandler.clearTransition(identifier)
+					})
+			}
+		}
+
 		return this._commandReceiver(time, command, context, timlineObjId)
 	}
 	/**
@@ -776,5 +833,150 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> implements ID
 	}
 	private _connectionChanged () {
 		this.emit('connectionChanged', this.getStatus())
+	}
+}
+
+interface TransitionHandler {
+	// TODO: this is a specific implementation for x & y, this should be refactored to be generic
+	x: number
+	y: number
+	xScale: number
+	yScale: number
+
+	xTarget: number
+	yTarget: number
+
+	activeIterator: NodeJS.Timeout | null
+	lastUpdate: number
+	updateCallback?: (x: number, y: number, xScale: number, yScale: number) => void
+}
+class InternalTransitionHandler {
+	private _transitions: {[identifier: string]: TransitionHandler} = {}
+
+	public terminate () {
+		// clearInterval(this._interval)
+		_.each(this._transitions, (_transition, identifier) => {
+			this.clearTransition(identifier)
+		})
+	}
+	public getIdentifiers () {
+		return Object.keys(this._transitions)
+	}
+
+	public clearTransition (identifier: string) {
+		const t = this._transitions[identifier]
+		if (t) {
+			this._stopTransition(t)
+			delete this._transitions[identifier]
+		}
+	}
+	public snapTransition (
+		identifier: string,
+		objectParams: any
+	) {
+		if (!this._transitions[identifier]) {
+			this.initTransition(identifier, objectParams)
+		}
+		const t = this._transitions[identifier]
+
+		this._stopTransition(t)
+
+		t.x = objectParams.x
+		t.y = objectParams.y
+
+		t.xScale = objectParams.xScale
+		t.yScale = objectParams.yScale
+	}
+	public initTransition (
+		identifier: string,
+		objectParams: any
+	) {
+		// Set initial values:
+		this._transitions[identifier] = {
+			x: 0, // TODO: fetch this from caspar?
+			y: 0,
+			xScale: objectParams.xScale,
+			yScale: objectParams.yScale,
+
+			xTarget: objectParams.x,
+			yTarget: objectParams.y,
+
+			activeIterator: null,
+			lastUpdate: 0,
+		}
+	}
+	public activateTransition (
+		identifier: string,
+		objectParams: any,
+		updateCallback: (x: number, y: number, xScale: number, yScale: number) => void
+	) {
+
+		// Note: this is a preliminary implemenation, that animates x & y, and snaps xScale & yScale
+
+		if (!this._transitions[identifier]) {
+			this.initTransition(identifier, objectParams)
+		}
+		const t = this._transitions[identifier]
+
+		t.updateCallback = updateCallback
+		t.xTarget = objectParams.x
+		t.yTarget = objectParams.y
+
+		t.xScale = objectParams.xScale // tmp: snap to target
+		t.yScale = objectParams.yScale // tmp: snap to target
+
+		let hackOptions: any = {}
+		try {
+			// tmp: use the direction as a hack to be able to squeeze in other parameters
+			hackOptions = JSON.parse(objectParams.transitionDirection)
+		} catch {
+			// nothing
+		}
+		const anim = new PhysicalAcceleration(
+			[t.x, t.y],
+			hackOptions.acceleration || 0.0001,
+			hackOptions.maxSpeed || 0.05,
+			hackOptions.snapDistance || 1 / 1920
+		)
+		const updateInterval = hackOptions.updateInterval || 1000 / 25
+
+		if (!t.activeIterator) {
+
+			const update = () => {
+				let dt = 0
+				if (t.lastUpdate) {
+					dt = Date.now() - t.lastUpdate
+				} else {
+					dt = updateInterval
+				}
+				t.lastUpdate = Date.now()
+
+				const newValues = anim.update([t.xTarget, t.yTarget], dt)
+				const newX = newValues[0]
+				const newY = newValues[1]
+				if (
+					newX === t.x &&
+					newY === t.y
+				) {
+					// nothing changed
+					this._stopTransition(t)
+				} else {
+					t.x = newX
+					t.y = newY
+					// Send updateCommand:
+					if (t.updateCallback) t.updateCallback(t.x, t.y, t.xScale, t.yScale)
+				}
+			}
+
+			// Start iterating:
+			t.lastUpdate = 0
+			t.activeIterator = setInterval(update, updateInterval)
+		}
+	}
+	private _stopTransition (t: TransitionHandler) {
+		if (t.activeIterator) {
+			clearInterval(t.activeIterator)
+			t.activeIterator = null
+		}
 	}
 }

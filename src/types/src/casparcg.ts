@@ -204,7 +204,9 @@ export enum Transition {
 	PUSH = 'PUSH',
 	WIPE = 'WIPE',
 	SLIDE = 'SLIDE',
-	STING = 'STING'
+	STING = 'STING',
+
+	INTERNAL = 'INTERNAL' // handled by tsr on its own
 }
 
 export enum Ease {
@@ -290,7 +292,9 @@ export enum Ease {
 	OUT_IN_SINE = 'OUT_IN_SINE',
 	OUT_QUAD = 'OUT_QUAD',
 	OUT_QUART = 'OUT_QUART',
-	OUT_QUINT = 'OUT_QUINT'
+	OUT_QUINT = 'OUT_QUINT',
+
+	INTERNAL_PHYSICAL = 'INTERNAL_PHYSICAL', // Handled by TSR on its own
 }
 
 export enum Direction {
@@ -433,14 +437,14 @@ export interface TransitionObject {
 	outTransition: Transition0
 }
 export interface ITransition {
-	type?: string
+	type?: Transition
 	duration: number
-	easing?: string
-	direction?: string
+	easing?: Ease
+	direction?: Direction | string
 }
 export interface Transition0 extends ITransition {
-	type: string
+	type: Transition
 	duration: number
-	easing: string
-	direction: string
+	easing: Ease
+	direction: Direction | string
 }
