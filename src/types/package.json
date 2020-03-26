@@ -55,7 +55,8 @@
 		"build": "trash dist && yarn build:main",
 		"build:main": "tsc -p tsconfig.json -outDir dist",
 		"lint": "tslint --project ../../tsconfig.json --config ../../tslint.json",
-		"validate:dependencies": "yarn audit && yarn license-validate",
+		"validate:dependencies": "yarn audit --groups dependencies && yarn license-validate",
+		"validate:dev-dependencies": "yarn audit --groups devDependencies",
 		"license-validate": "node-license-validator -p -d --allow-licenses MIT BSD BSD-3-Clause ISC Apache Unlicense --allow-packages cycle"
 	},
 	"scripts-info": {
@@ -66,6 +67,7 @@
 		"lint": "Lint all typescript source files",
 		"ci": "Test script for running by the CI (CircleCI)",
 		"validate:dependencies": "Scan dependencies for vulnerabilities and check licenses",
+		"validate:dev-dependencies": "Scan development dependencies for vulnerabilities",
 		"license-validate": "Validate licenses for dependencies."
 	},
 	"engines": {

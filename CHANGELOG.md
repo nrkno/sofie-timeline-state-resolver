@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [3.19.0](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/3.18.0...3.19.0) (2020-03-25)
+
+
+### Features
+
+* **ci:** optionally skip audit ([aef36e8](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/aef36e80a29d2bf1d4500118844900626e711fdf))
+
+
+### Bug Fixes
+
+* **quantel:** catch error on missing ISA after restart ([#135](https://github.com/nrkno/tv-automation-state-timeline-resolver/issues/135)) ([e1f7979](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/e1f79797d366dada142138d6803d01ffa3b03726))
+
 ## [3.18.0](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/3.17.0...3.18.0) (2020-02-19)
 
 
