@@ -1,14 +1,16 @@
-abstract class Animator {
+export abstract class Animator {
 	protected positions: number[]
 
 	constructor (startPositions: number[]) {
 		this.positions = startPositions
 	}
-	public jump (target: number[]) {
+	public jump (target: number[]): number[] {
 		if (target.length !== this.positions.length) throw new Error(`Error in Animator.update: target has the wrong length (${target.length}), compared to internal positions (${this.positions.length})`)
+		return []
 	}
-	public update (target: number[], _timeSinceLastUpdate: number) {
+	public update (target: number[], _timeSinceLastUpdate: number): number[] {
 		if (target.length !== this.positions.length) throw new Error(`Error in Animator.update: target has the wrong length (${target.length}), compared to internal positions (${this.positions.length})`)
+		return []
 	}
 	protected arrayValue<T> (value: T | T[], index: number): T {
 		if (Array.isArray(value)) return value[index]
@@ -33,6 +35,7 @@ abstract class Animator {
 		)
 	}
 }
+
 /** Linear movement towards the target */
 export class LinearMovement extends Animator {
 	constructor (
@@ -162,12 +165,21 @@ export class PhysicalAcceleration extends Animator {
 					// And decelerate, to prevent wobbling:
 					this.speed[index] *= 0.8
 				} else {
-					if (minimumDistanceToStop > distanceToTarget && Math.sign(this.speed[index]) === directionToTarget) {
+					if (
+						minimumDistanceToStop > distanceToTarget &&
+						Math.sign(this.speed[index]) === directionToTarget
+					) {
 						// Decelerate:
+						const speedSign = Math.sign(this.speed[index])
 						this.speed[index] -= stepAcceleration
-					} else if (minimumDistanceToStopAfterNextTick < distanceToTarget || Math.sign(this.speed[index]) !== directionToTarget) {
+						if (Math.sign(this.speed[index]) !== speedSign) this.speed[index] = 0
+					} else if (
+						minimumDistanceToStopAfterNextTick < distanceToTarget ||
+						Math.sign(this.speed[index]) !== directionToTarget
+					) {
 						// Accelerate:
-						this.speed[index] += stepAcceleration
+						// Apply cap, so that we don't accelerate past the target
+						this.speed[index] += this.cap(distanceToTarget / timeSinceLastUpdate, stepAcceleration)
 					} else {
 						// Neither decelerate or accelerate
 					}
