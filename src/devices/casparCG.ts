@@ -467,7 +467,7 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> implements ID
 				const channel = caspar.channels[mapping.channel] ? caspar.channels[mapping.channel] : new StateNS.Channel()
 				channel.channelNo = Number(mapping.channel) || 1
 				// @todo: check if we need to get fps.
-				channel.fps = 1 / 25 // 25 / 1000 // 25 fps over 1000ms
+				channel.fps = 25 / 1000 // 25 fps over 1000ms
 				caspar.channels[channel.channelNo] = channel
 
 				// create layer of appropriate type

@@ -399,7 +399,7 @@ describe('Rundown', () => {
 			'channel': 1,
 			'layer': 11,
 			'transition': 'mix',
-			'transitionDuration': 12,
+			'transitionDuration': 13,
 			'transitionEasing': 'linear',
 			'transitionDirection': 'right',
 			'opacity': 0,
