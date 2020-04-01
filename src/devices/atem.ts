@@ -426,6 +426,15 @@ export class AtemDevice extends DeviceWithState<DeviceState> implements IDevice 
 
 		deviceState.macro.macroPlayer = jsonClone(StateDefault.Video.MacroPlayer)
 
+		for (let i = 0; i < this._atem.state.info.capabilities.mediaPlayers; i++) {
+			deviceState.media.players[i] = {
+				...jsonClone(StateDefault.Video.MediaPlayer),
+				// default to matching index
+				clipIndex: i,
+				stillIndex: i
+			}
+		}
+
 		return deviceState
 	}
 

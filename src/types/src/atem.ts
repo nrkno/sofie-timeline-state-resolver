@@ -23,14 +23,16 @@ export enum AtemMediaPoolType {
 	Audio = 'audio'
 }
 
+export interface AtemMediaPoolAsset {
+	type: AtemMediaPoolType
+	position: number
+	path: string
+}
+
 export interface AtemOptions {
 	host: string
 	port?: number
-	mediaPoolAssets?: {
-		type: AtemMediaPoolType
-		position: number
-		path: string
-	}[]
+	mediaPoolAssets?: AtemMediaPoolAsset[]
 }
 
 export enum TimelineContentTypeAtem { //  Atem-state
@@ -52,6 +54,10 @@ export enum AtemTransitionStyle { // Note: copied from atem-state
 	STING,
 	CUT,
 	DUMMY
+}
+export enum MediaSourceType { // Note: copied from atem-state
+	Still = 1,
+	Clip = 2
 }
 
 export type SuperSourceBox = {
@@ -93,7 +99,8 @@ export type TimelineObjAtemAny = (
 	TimelineObjAtemAUX |
 	TimelineObjAtemSsrc |
 	TimelineObjAtemSsrcProps |
-	TimelineObjAtemMacroPlayer
+	TimelineObjAtemMacroPlayer |
+	TimelineObjAtemMediaPlayer
 )
 export interface TimelineObjAtemBase extends TSRTimelineObjBase {
 	content: {
@@ -230,6 +237,11 @@ export interface TimelineObjAtemMediaPlayer extends TimelineObjAtemBase {
 		type: TimelineContentTypeAtem.MEDIAPLAYER
 
 		mediaPlayer: {
+			sourceType: MediaSourceType
+			clipIndex: number
+			stillIndex: number
+
+			// TODO - these need wrapping up to something that makes more sense for a timeline
 			playing: boolean
 			loop: boolean
 			atBeginning: boolean

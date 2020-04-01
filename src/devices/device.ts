@@ -43,10 +43,6 @@ export interface DeviceStatus {
 
 export function literal<T> (o: T) { return o }
 
-export interface DeviceClassOptions {
-	getCurrentTime: () => number
-}
-
 export interface IDevice {
 	init: (initOptions: DeviceInitOptions) => Promise<boolean>
 
@@ -93,7 +89,7 @@ export abstract class Device extends EventEmitter implements IDevice {
 	protected _deviceOptions: DeviceOptionsAny
 	protected _reportAllCommands: boolean = false
 
-	constructor (deviceId: string, deviceOptions: DeviceOptionsAny, options: DeviceClassOptions) {
+	constructor (deviceId: string, deviceOptions: DeviceOptionsAny, getCurrentTime: () => Promise<number>) {
 		super()
 		this._deviceId = deviceId
 		this._deviceOptions = deviceOptions
@@ -103,16 +99,20 @@ export abstract class Device extends EventEmitter implements IDevice {
 
 		this._reportAllCommands = !!deviceOptions.reportAllCommands
 
-		// this._deviceOptions = this._deviceOptions // ts-lint fix
-
 		if (process.env.JEST_WORKER_ID !== undefined) {
 			// running in Jest test environment.
 			// Because Jest does a lot of funky stuff with the timing, we have to pull the time directly.
 			this.useDirectTime = true
+
+			// Hack around the function mangling done by threadedClass
+			const getCurrentTimeTmp = getCurrentTime as any
+			if (getCurrentTimeTmp && getCurrentTimeTmp.inner) {
+				getCurrentTime = getCurrentTimeTmp.inner
+			}
 		}
 
-		if (options.getCurrentTime) {
-			this._getCurrentTime = () => options.getCurrentTime()
+		if (getCurrentTime) {
+			this._getCurrentTime = getCurrentTime
 		}
 
 		this._updateCurrentTime()
@@ -214,39 +214,32 @@ export abstract class Device extends EventEmitter implements IDevice {
 			})
 		}
 	}
-	/* tslint:disable:unified-signatures */
 
 	// Overide EventEmitter.on() for stronger typings:
-	on (event: 'info',				listener: (info: string) => void): this
-	on (event: 'warning',			listener: (warning: string) => void): this
-	on (event: 'error',				listener: (context: string, err: Error) => void): this
-	on (event: 'debug',				listener: (...debug: any[]) => void): this
-	/** The connection status has changed */
-	on (event: 'connectionChanged', listener: (status: DeviceStatus) => void): this
-	/** A message to the resolver that something has happened that warrants a reset of the resolver (to re-run it again) */
-	on (event: 'resetResolver',		listener: () => void): this
-	/** A report that a command was sent too late */
-	on (event: 'slowCommand',		listener: (commandInfo: string) => void): this
-	/** Something went wrong when executing a command  */
-	on (event: 'commandError', listener: (error: Error, context: CommandWithContext) => void): this
-	on (event: string | symbol, listener: (...args: any[]) => void): this {
-		return super.on(event, listener)
-	}
-	// Overide EventEmitter.emit() for stronger typings:
-	emit (event: 'info',				info: string): boolean
-	emit (event: 'warning',				warning: string): boolean // ts
-	emit (event: 'error',				context: string, err: Error): boolean
-	emit (event: 'debug',				...debug: any[]): boolean
-	emit (event: 'connectionChanged',	status: DeviceStatus): boolean
-	emit (event: 'resetResolver'): boolean
-	emit (event: 'slowCommand',			commandInfo: string): boolean
-	emit (event: 'commandReport',		commandReport: CommandReport): boolean
-	emit (event: 'commandError',		error: Error, context: CommandWithContext): boolean
-	emit (event: string, ...args: any[]): boolean {
-		return super.emit(event, ...args)
-	}
+	on: ((event: 'info',				listener: (info: string) => void) => this) &
+		((event: 'warning',				listener: (warning: string) => void) => this) &
+		((event: 'error',				listener: (context: string, err: Error) => void) => this) &
+		((event: 'debug',				listener: (...debug: any[]) => void) => this) &
+		/** The connection status has changed */
+		((event: 'connectionChanged', 	listener: (status: DeviceStatus) => void) => this) &
+		/** A message to the resolver that something has happened that warrants a reset of the resolver (to re-run it again) */
+		((event: 'resetResolver',		listener: () => void) => this) &
+		/** A report that a command was sent too late */
+		((event: 'slowCommand',			listener: (commandInfo: string) => void) => this) &
+		/** Something went wrong when executing a command  */
+		((event: 'commandError', 		listener: (error: Error, context: CommandWithContext) => void) => this)
 
-	/* tslint:enable:unified-signatures */
+		// Overide EventEmitter.emit() for stronger typings:
+	emit: ((event: 'info',				info: string) => boolean) &
+		((event: 'warning',				warning: string) => boolean) &
+		((event: 'error',				context: string, err: Error) => boolean) &
+		((event: 'debug',				...debug: any[]) => boolean) &
+		((event: 'connectionChanged',	status: DeviceStatus) => boolean) &
+		((event: 'resetResolver') => boolean) &
+		((event: 'slowCommand',			commandInfo: string) => boolean) &
+		((event: 'commandReport',		commandReport: CommandReport) => boolean) &
+		((event: 'commandError',		error: Error, context: CommandWithContext) => boolean)
+
 	public get instanceId (): number {
 		return this._instanceId
 	}

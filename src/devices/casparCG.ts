@@ -303,8 +303,10 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> implements ID
 				media:			'decklink',
 				input: {
 					device:			inputObj.content.device,
-					channelLayout:	inputObj.content.channelLayout
+					channelLayout:	inputObj.content.channelLayout,
+					format:			inputObj.content.deviceFormat
 				},
+				filter: 		inputObj.content.filter,
 				playing:		true,
 				playTime:		null
 			})
@@ -735,7 +737,7 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> implements ID
 		let cwc: CommandWithContext = {
 			context: context,
 			timelineObjId: timelineObjId,
-			command: cmd
+			command: JSON.stringify(cmd)
 		}
 		this.emit('debug', cwc)
 
@@ -761,7 +763,7 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> implements ID
 				const currentState = this.getState(time)
 				if (currentState) {
 					const currentCasparState = this.convertStateToCaspar(currentState.state)
-	
+
 					const trackedState = this._ccgState.getState()
 
 					const channel = currentCasparState.channels[resCommand.channel]

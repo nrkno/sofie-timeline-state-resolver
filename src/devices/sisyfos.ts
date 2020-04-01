@@ -171,7 +171,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState> implemen
 					const targetState = this.getState(this.getCurrentTime())
 
 					if (targetState) {
-						this._handleStateInner(this.getDeviceState(false), targetState.state, targetState.time, this.getCurrentTime())	
+						this._handleStateInner(this.getDeviceState(false), targetState.state, targetState.time, this.getCurrentTime())
 					}
 				} else {
 					this.setState(this.getDeviceState(false), this.getCurrentTime())
@@ -380,12 +380,11 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState> implemen
 		this.emit('debug', cwc)
 
 		if (cmd.type === Commands.RESYNC) {
-			this._makeReadyInner(true, true)
-			return Promise.resolve()
+			return this._makeReadyInner(true, true)
 		} else {
 			try {
 				this._sisyfos.send(cmd)
-	
+
 				return Promise.resolve()
 			} catch (e) {
 				return Promise.reject(e)

@@ -4,7 +4,7 @@ import {
 	ThreadedClassConfig,
 	ThreadedClassManager
 } from 'threadedclass'
-import { DeviceClassOptions, Device } from './device'
+import { Device } from './device'
 import { DeviceType, DeviceOptionsAny } from '../types/src'
 
 /**
@@ -19,30 +19,35 @@ export class DeviceContainer {
 	public _deviceType: DeviceType
 	public _deviceName: string = 'N/A'
 	public _deviceOptions: DeviceOptionsAny
-	public _options: DeviceClassOptions
 	public _threadConfig: ThreadedClassConfig | undefined
 	public onChildClose: () => void | undefined
 	private _instanceId: number = -1
 	private _startTime: number = -1
 	private _onEventListener: { stop: () => void } | undefined
 
-	async create<T extends Device> (
+	async create<T extends Device, TCtor extends new (...args: any) => T> (
 		orgModule: string,
-		orgClass: Function,
+		orgClass: TCtor,
 		deviceId: string,
 		deviceOptions: DeviceOptionsAny,
-		options: DeviceClassOptions,
+		getCurrentTime: () => number,
 		threadConfig?: ThreadedClassConfig
 	) {
 
 		this._deviceOptions = deviceOptions
-		this._options = options
+		// this._options = options
 		this._threadConfig = threadConfig
 
-		this._device = await threadedClass<T>(
+		if (process.env.JEST_WORKER_ID !== undefined && threadConfig && threadConfig.disableMultithreading) {
+			// running in Jest test environment.
+			// hack: we need to work around the mangling performed by threadedClass, as getCurrentTime needs to not return a promise
+			getCurrentTime = { inner: getCurrentTime } as any
+		}
+
+		this._device = await threadedClass<T, TCtor>(
 			orgModule,
 			orgClass,
-			[ deviceId, deviceOptions, options ],
+			[ deviceId, deviceOptions, getCurrentTime ] as any, // TODO types
 			threadConfig
 		)
 
@@ -78,7 +83,6 @@ export class DeviceContainer {
 	public get deviceType (): DeviceType 						{ return this._deviceType }
 	public get deviceName (): string	 						{ return this._deviceName }
 	public get deviceOptions (): DeviceOptionsAny 				{ return this._deviceOptions }
-	public get options (): DeviceClassOptions 					{ return this._options }
 	public get threadConfig (): ThreadedClassConfig | undefined { return this._threadConfig }
 	public get instanceId (): number							{ return this._instanceId }
 	public get startTime (): number								{ return this._startTime }
