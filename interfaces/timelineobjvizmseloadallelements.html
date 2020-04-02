@@ -3,7 +3,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<title>FaderCommand | timeline-state-resolver-types - v1.3.0</title>
+	<title>TimelineObjVIZMSELoadAllElements | timeline-state-resolver-types - v1.3.0</title>
 	<meta name="description" content="">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<style type="text/css">/*! normalize.css v1.1.3 | MIT License | git.io/normalize */
@@ -2366,16 +2366,19 @@ img {
 <nav class="tsd-navigation secondary">
 	<ul>
 		<li class="current tsd-kind-interface tsd-is-external">
-			<a href="fadercommand.html" class="tsd-kind-icon">Fader<wbr>Command</a>
+			<a href="timelineobjvizmseloadallelements.html" class="tsd-kind-icon">Timeline<wbr>ObjVIZMSELoad<wbr>All<wbr>Elements</a>
 			<ul>
+				<li class=" tsd-kind-property tsd-parent-kind-interface tsd-is-overwrite tsd-is-external">
+					<a href="timelineobjvizmseloadallelements.html#content" class="tsd-kind-icon">content</a>
+				</li>
 				<li class=" tsd-kind-property tsd-parent-kind-interface tsd-is-inherited tsd-is-external">
-					<a href="fadercommand.html#channel" class="tsd-kind-icon">channel</a>
+					<a href="timelineobjvizmseloadallelements.html#islookahead" class="tsd-kind-icon">is<wbr>Lookahead</a>
 				</li>
-				<li class=" tsd-kind-property tsd-parent-kind-interface tsd-is-overwrite tsd-is-external">
-					<a href="fadercommand.html#type" class="tsd-kind-icon">type</a>
+				<li class=" tsd-kind-property tsd-parent-kind-interface tsd-is-inherited tsd-is-external">
+					<a href="timelineobjvizmseloadallelements.html#keyframes" class="tsd-kind-icon">keyframes</a>
 				</li>
-				<li class=" tsd-kind-property tsd-parent-kind-interface tsd-is-overwrite tsd-is-external">
-					<a href="fadercommand.html#value" class="tsd-kind-icon">value</a>
+				<li class=" tsd-kind-property tsd-parent-kind-interface tsd-is-inherited tsd-is-external">
+					<a href="timelineobjvizmseloadallelements.html#lookaheadforlayer" class="tsd-kind-icon">lookahead<wbr>For<wbr>Layer</a>
 				</li>
 			</ul>
 		</li>
@@ -2387,10 +2390,10 @@ img {
 			<h3>Hierarchy</h3>
 			<ul class="tsd-hierarchy">
 				<li>
-					<a href="channelcommand.html" class="tsd-signature-type">ChannelCommand</a>
+					<a href="tsrtimelineobjbase.html" class="tsd-signature-type">TSRTimelineObjBase</a>
 					<ul class="tsd-hierarchy">
 						<li>
-							<span class="target">FaderCommand</span>
+							<span class="target">TimelineObjVIZMSELoadAllElements</span>
 						</li>
 					</ul>
 				</li>
@@ -2403,9 +2406,10 @@ img {
 					<section class="tsd-index-section tsd-is-external">
 						<h3>Properties</h3>
 						<ul class="tsd-index-list">
-							<li class="tsd-kind-property tsd-parent-kind-interface tsd-is-inherited tsd-is-external"><a href="fadercommand.html#channel" class="tsd-kind-icon">channel</a></li>
-							<li class="tsd-kind-property tsd-parent-kind-interface tsd-is-overwrite tsd-is-external"><a href="fadercommand.html#type" class="tsd-kind-icon">type</a></li>
-							<li class="tsd-kind-property tsd-parent-kind-interface tsd-is-overwrite tsd-is-external"><a href="fadercommand.html#value" class="tsd-kind-icon">value</a></li>
+							<li class="tsd-kind-property tsd-parent-kind-interface tsd-is-overwrite tsd-is-external"><a href="timelineobjvizmseloadallelements.html#content" class="tsd-kind-icon">content</a></li>
+							<li class="tsd-kind-property tsd-parent-kind-interface tsd-is-inherited tsd-is-external"><a href="timelineobjvizmseloadallelements.html#islookahead" class="tsd-kind-icon">is<wbr>Lookahead</a></li>
+							<li class="tsd-kind-property tsd-parent-kind-interface tsd-is-inherited tsd-is-external"><a href="timelineobjvizmseloadallelements.html#keyframes" class="tsd-kind-icon">keyframes</a></li>
+							<li class="tsd-kind-property tsd-parent-kind-interface tsd-is-inherited tsd-is-external"><a href="timelineobjvizmseloadallelements.html#lookaheadforlayer" class="tsd-kind-icon">lookahead<wbr>For<wbr>Layer</a></li>
 						</ul>
 					</section>
 				</div>
@@ -2413,38 +2417,70 @@ img {
 		</section>
 		<section class="tsd-panel-group tsd-member-group tsd-is-external">
 			<h2>Properties</h2>
+			<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface tsd-is-overwrite tsd-is-external">
+				<a name="content" class="tsd-anchor"></a>
+				<h3>content</h3>
+				<div class="tsd-signature tsd-kind-icon">content<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">object</span></div>
+				<aside class="tsd-sources">
+					<p>Overrides <a href="tsrtimelineobjbase.html">TSRTimelineObjBase</a>.<a href="tsrtimelineobjbase.html#content">content</a></p>
+					<ul>
+						<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/e5498a89/src/types/src/vizMSE.ts#L139">src/types/src/vizMSE.ts:139</a></li>
+					</ul>
+				</aside>
+				<div class="tsd-type-declaration">
+					<h4>Type declaration</h4>
+					<ul class="tsd-parameters">
+						<li class="tsd-parameter">
+							<h5>device<wbr>Type<span class="tsd-signature-symbol">: </span><a href="../enums/devicetype.html#vizmse" class="tsd-signature-type">VIZMSE</a></h5>
+						</li>
+						<li class="tsd-parameter">
+							<h5>type<span class="tsd-signature-symbol">: </span><a href="../enums/timelinecontenttypevizmse.html#load_all_elements" class="tsd-signature-type">LOAD_ALL_ELEMENTS</a></h5>
+						</li>
+					</ul>
+				</div>
+			</section>
 			<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface tsd-is-inherited tsd-is-external">
-				<a name="channel" class="tsd-anchor"></a>
-				<h3>channel</h3>
-				<div class="tsd-signature tsd-kind-icon">channel<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span></div>
+				<a name="islookahead" class="tsd-anchor"></a>
+				<h3><span class="tsd-flag ts-flagOptional">Optional</span> is<wbr>Lookahead</h3>
+				<div class="tsd-signature tsd-kind-icon">is<wbr>Lookahead<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">false</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">true</span></div>
 				<aside class="tsd-sources">
-					<p>Inherited from <a href="channelcommand.html">ChannelCommand</a>.<a href="channelcommand.html#channel">channel</a></p>
+					<p>Inherited from <a href="tsrtimelineobjprops.html">TSRTimelineObjProps</a>.<a href="tsrtimelineobjprops.html#islookahead">isLookahead</a></p>
 					<ul>
-						<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/c424637b/src/types/src/sisyfos.ts#L39">src/types/src/sisyfos.ts:39</a></li>
+						<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/e5498a89/src/types/src/mapping.ts#L17">src/types/src/mapping.ts:17</a></li>
+					</ul>
+				</aside>
+				<div class="tsd-comment tsd-typography">
+					<div class="lead">
+						<p>Only set to true when an object is inserted by lookahead</p>
+					</div>
+				</div>
+			</section>
+			<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface tsd-is-inherited tsd-is-external">
+				<a name="keyframes" class="tsd-anchor"></a>
+				<h3><span class="tsd-flag ts-flagOptional">Optional</span> keyframes</h3>
+				<div class="tsd-signature tsd-kind-icon">keyframes<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Array</span><span class="tsd-signature-symbol">&lt;</span><a href="tsrtimelinekeyframe.html" class="tsd-signature-type">TSRTimelineKeyframe</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">this[&quot;content&quot;]</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">&gt;</span></div>
+				<aside class="tsd-sources">
+					<p>Inherited from <a href="tsrtimelineobjbase.html">TSRTimelineObjBase</a>.<a href="tsrtimelineobjbase.html#keyframes">keyframes</a></p>
+					<ul>
+						<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/e5498a89/src/types/src/index.ts#L69">src/types/src/index.ts:69</a></li>
 					</ul>
 				</aside>
 			</section>
-			<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface tsd-is-overwrite tsd-is-external">
-				<a name="type" class="tsd-anchor"></a>
-				<h3>type</h3>
-				<div class="tsd-signature tsd-kind-icon">type<span class="tsd-signature-symbol">:</span> <a href="../enums/commands.html#set_fader" class="tsd-signature-type">SET_FADER</a></div>
+			<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface tsd-is-inherited tsd-is-external">
+				<a name="lookaheadforlayer" class="tsd-anchor"></a>
+				<h3><span class="tsd-flag ts-flagOptional">Optional</span> lookahead<wbr>For<wbr>Layer</h3>
+				<div class="tsd-signature tsd-kind-icon">lookahead<wbr>For<wbr>Layer<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">number</span></div>
 				<aside class="tsd-sources">
-					<p>Overrides <a href="channelcommand.html">ChannelCommand</a>.<a href="channelcommand.html#type">type</a></p>
+					<p>Inherited from <a href="tsrtimelineobjprops.html">TSRTimelineObjProps</a>.<a href="tsrtimelineobjprops.html#lookaheadforlayer">lookaheadForLayer</a></p>
 					<ul>
-						<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/c424637b/src/types/src/sisyfos.ts#L49">src/types/src/sisyfos.ts:49</a></li>
+						<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/e5498a89/src/types/src/mapping.ts#L19">src/types/src/mapping.ts:19</a></li>
 					</ul>
 				</aside>
-			</section>
-			<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface tsd-is-overwrite tsd-is-external">
-				<a name="value" class="tsd-anchor"></a>
-				<h3>value</h3>
-				<div class="tsd-signature tsd-kind-icon">value<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span></div>
-				<aside class="tsd-sources">
-					<p>Overrides <a href="channelcommand.html">ChannelCommand</a>.<a href="channelcommand.html#value">value</a></p>
-					<ul>
-						<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/c424637b/src/types/src/sisyfos.ts#L50">src/types/src/sisyfos.ts:50</a></li>
-					</ul>
-				</aside>
+				<div class="tsd-comment tsd-typography">
+					<div class="lead">
+						<p>Only valid when isLookahead is true. Set so that a lookahead object knows what layer it belongs to</p>
+					</div>
+				</div>
 			</section>
 		</section>
 		<footer class="with-border-bottom">
