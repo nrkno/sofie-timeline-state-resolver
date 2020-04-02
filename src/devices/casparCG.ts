@@ -838,8 +838,6 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> implements ID
 					(layer.cmds[i]._commandName === 'PlayCommand' && layer.cmds[i]._objectParams.clip)
 					||
 					layer.cmds[i]._commandName === 'LoadCommand'
-					||
-					layer.cmds[i]._commandName === 'ResumeCommand'
 				) {
 					layer.cmds[i].context.context += ' [RETRY]'
 					cmd.push(layer.cmds[i])
