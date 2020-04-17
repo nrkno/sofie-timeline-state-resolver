@@ -461,16 +461,18 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended> {
 			let newMixState = newVMixState.reportedState.mixes[i]
 			if (newMixState.program !== undefined) {
 				let nextInput = newMixState.program
+				let changeOnLayer: boolean = false
 				if (newMixState.layerToProgram) {
 					nextInput = newVMixState.inputLayers[newMixState.program]
+					changeOnLayer = newVMixState.inputLayers[newMixState.program] !== oldVMixState.inputLayers[newMixState.program]
 				}
-				if (oldMixState.program !== newMixState.program) {
+				if (oldMixState.program !== newMixState.program || changeOnLayer) {
 					commands.push({
 						command: {
 							command: VMixCommand.TRANSITION,
-							effect: newMixState.transition.effect,
+							effect: changeOnLayer ? VMixTransitionType.Cut : newMixState.transition.effect,
 							input: nextInput,
-							duration: newMixState.transition.duration,
+							duration: changeOnLayer ? 0 : newMixState.transition.duration,
 							mix: i
 						},
 						context: null,
@@ -551,7 +553,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended> {
 				})
 				this._addToQueue(addCommands, Date.now())
 			}
-			let oldInput = oldVMixState.reportedState.inputs[key] || {}
+			let oldInput = oldVMixState.reportedState.inputs[key] || this._getDefaultInputState(0) // or {} but we assume that a new input has all parameters default
 			if (input.playing !== undefined && oldInput.playing !== input.playing && !input.playing) {
 				commands.push({
 					command: {
@@ -770,7 +772,11 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended> {
 				})
 			}
 		})
+		return commands
+	}
 
+	private _resolveInputsRemovalState (oldVMixState: VMixStateExtended, newVMixState: VMixStateExtended): Array<VMixStateCommandWithContext> {
+		let commands: Array<VMixStateCommandWithContext> = []
 		_.difference(Object.keys(oldVMixState.reportedState.inputs), Object.keys(newVMixState.reportedState.inputs))
 		.forEach(input => {
 			if (oldVMixState.reportedState.inputs[input].type !== undefined) {
@@ -920,6 +926,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended> {
 		commands = commands.concat(this._resolveStreamingState(oldVMixState, newVMixState))
 		commands = commands.concat(this._resolveExternalState(oldVMixState, newVMixState))
 		commands = commands.concat(this._resolveOutputsState(oldVMixState, newVMixState))
+		commands = commands.concat(this._resolveInputsRemovalState(oldVMixState, newVMixState))
 
 		return commands
 	}
