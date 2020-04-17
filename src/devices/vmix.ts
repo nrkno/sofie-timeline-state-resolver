@@ -306,7 +306,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended> {
 							}
 						}
 						break
-					case MappingVMixType.Program:
+					case MappingVMixType.Preview:
 						if (tlObject.content.type === TimelineContentTypeVMix.PREVIEW) {
 							let vmixTlPreview = tlObject as any as TimelineObjVMixPreview
 							let mixPreview = ((mapping as MappingVMixPreview).index || 1) - 1
