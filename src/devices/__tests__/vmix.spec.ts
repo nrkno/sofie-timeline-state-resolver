@@ -682,9 +682,7 @@ describe('vMix', () => {
 				}
 			}
 		]
-		// Time to preload the clip
 		await mockTime.advanceTimeToTicks(11300)
-		await mockTime.advanceTimeToTicks(11400)
 
 		expect(commandReceiver0).toHaveBeenCalledTimes(6)
 		expect(commandReceiver0).toHaveBeenNthCalledWith(1, 11000, expect.objectContaining({
@@ -738,6 +736,218 @@ describe('vMix', () => {
 		expect(onRequest).toHaveBeenNthCalledWith(4, 'get', expect.stringContaining('/api/?Function=AudioBusOn&Input=2&Value=A'))
 		expect(onRequest).toHaveBeenNthCalledWith(5, 'get', expect.stringContaining('/api/?Function=AudioBusOn&Input=2&Value=F'))
 		expect(onRequest).toHaveBeenNthCalledWith(6, 'get', expect.stringContaining('/api/?Function=AudioBusOff&Input=2&Value=M'))
+
+		clearMocks()
+		commandReceiver0.mockClear()
+
+		await myConductor.destroy()
+
+		expect(errorHandler).toHaveBeenCalledTimes(0)
+		expect(deviceErrorHandler).toHaveBeenCalledTimes(0)
+	})
+
+	test('Mix buses', async () => {
+		let device
+		let commandReceiver0 = jest.fn((...args) => {
+			// pipe through the command
+			return device._defaultCommandReceiver(...args)
+		})
+
+		let myLayerMapping0: MappingVMixAny = {
+			device: DeviceType.VMIX,
+			mappingType: MappingVMixType.Program,
+			deviceId: 'myvmix'
+		}
+		let myLayerMapping1: MappingVMixAny = {
+			device: DeviceType.VMIX,
+			mappingType: MappingVMixType.Program,
+			index: 2,
+			deviceId: 'myvmix'
+		}
+		let myLayerMapping2: MappingVMixAny = {
+			device: DeviceType.VMIX,
+			mappingType: MappingVMixType.Preview,
+			deviceId: 'myvmix'
+		}
+		let myLayerMapping3: MappingVMixAny = {
+			device: DeviceType.VMIX,
+			mappingType: MappingVMixType.Preview,
+			index: 2,
+			deviceId: 'myvmix'
+		}
+		let myLayerMapping: Mappings = {
+			'vmix_program0': myLayerMapping0,
+			'vmix_program1': myLayerMapping1,
+			'vmix_preview0': myLayerMapping2,
+			'vmix_preview1': myLayerMapping3
+		}
+
+		let myConductor = new Conductor({
+			initializeAsClear: true,
+			getCurrentTime: mockTime.getCurrentTime
+		})
+		let errorHandler = jest.fn((...args) => console.log('Error in device', ...args))
+		myConductor.on('error', errorHandler)
+		myConductor.on('commandError', errorHandler)
+
+		await myConductor.init()
+
+		await t(myConductor.addDevice('myvmix', {
+			type: DeviceType.VMIX,
+			options: {
+				commandReceiver: commandReceiver0,
+				host: '127.0.0.1',
+				port: 9999
+			}
+		}), mockTime)
+
+		let deviceContainer = myConductor.getDevice('myvmix')
+		device = deviceContainer.device as ThreadedClass<VMixDevice>
+		let deviceErrorHandler = jest.fn((...args) => console.log('Error in device', ...args))
+		device.on('error', deviceErrorHandler)
+		device.on('commandError', deviceErrorHandler)
+
+		await myConductor.setMapping(myLayerMapping)
+
+		expect(mockTime.getCurrentTime()).toEqual(10000)
+		await mockTime.advanceTimeToTicks(10100)
+
+		// get initial info
+		expect(onRequest).toHaveBeenNthCalledWith(1, 'get', 'http://127.0.0.1:9999/api')
+
+		clearMocks()
+		commandReceiver0.mockClear()
+
+		// Check that no commands has been scheduled:
+		expect(await device.queue).toHaveLength(0)
+
+		myConductor.timeline = [
+			{
+				id: 'program0',
+				enable: {
+					start: 11000,
+					duration: 5000
+				},
+				layer: 'vmix_program0',
+				content: {
+					deviceType: DeviceType.VMIX,
+					type: TimelineContentTypeVMix.PROGRAM,
+					input: 'Cam 1',
+					transition: {
+						effect: VMixTransitionType.VerticalSlideReverse,
+						duration: 1337
+					}
+				}
+			},
+			// this one should fail:
+			{
+				id: 'preview0',
+				enable: {
+					start: 11000,
+					duration: 5000
+				},
+				layer: 'vmix_preview0',
+				content: {
+					deviceType: DeviceType.VMIX,
+					type: TimelineContentTypeVMix.PREVIEW,
+					input: 3
+				}
+			},{
+				id: 'program1',
+				enable: {
+					start: 11000,
+					duration: 5000
+				},
+				layer: 'vmix_program1',
+				content: {
+					deviceType: DeviceType.VMIX,
+					type: TimelineContentTypeVMix.PROGRAM,
+					input: 5
+				}
+			},
+			{
+				id: 'preview1',
+				enable: {
+					start: 11005,
+					duration: 5000
+				},
+				layer: 'vmix_preview0',
+				content: {
+					deviceType: DeviceType.VMIX,
+					type: TimelineContentTypeVMix.PREVIEW,
+					input: 'Cam 4'
+				}
+			},
+			{
+				id: 'preview2',
+				enable: {
+					start: 11005,
+					duration: 5000
+				},
+				layer: 'vmix_preview1',
+				content: {
+					deviceType: DeviceType.VMIX,
+					type: TimelineContentTypeVMix.PREVIEW,
+					input: 3
+				}
+			},
+			{
+				id: 'preview3',
+				enable: {
+					start: 16000,
+					duration: 5000
+				},
+				layer: 'vmix_program1',
+				content: {
+					deviceType: DeviceType.VMIX,
+					type: TimelineContentTypeVMix.PROGRAM,
+					input: 4
+				}
+			}
+		]
+
+		await mockTime.advanceTimeToTicks(11300)
+
+		expect(commandReceiver0).toHaveBeenCalledTimes(4)
+		expect(commandReceiver0).toHaveBeenNthCalledWith(1, 11000, expect.objectContaining({
+			command: {
+				command: VMixCommand.TRANSITION,
+				input: 'Cam 1',
+				duration: 1337,
+				effect: VMixTransitionType.VerticalSlideReverse,
+				mix: 0
+			}
+		}), null, expect.any(String))
+		expect(commandReceiver0).toHaveBeenNthCalledWith(2, 11000, expect.objectContaining({
+			command: {
+				command: VMixCommand.TRANSITION,
+				input: 5,
+				duration: 0,
+				effect: VMixTransitionType.Cut,
+				mix: 1
+			}
+		}), null, expect.any(String))
+		expect(commandReceiver0).toHaveBeenNthCalledWith(3, 11005, expect.objectContaining({
+			command: {
+				command: VMixCommand.PREVIEW_INPUT,
+				input: 'Cam 4',
+				mix: 0
+			}
+		}), null, expect.any(String))
+		expect(commandReceiver0).toHaveBeenNthCalledWith(4, 11005, expect.objectContaining({
+			command: {
+				command: VMixCommand.PREVIEW_INPUT,
+				input: 3,
+				mix: 1
+			}
+		}), null, expect.any(String))
+
+		expect(onRequest).toHaveBeenCalledTimes(4)
+
+		expect(onRequest).toHaveBeenNthCalledWith(1, 'get', expect.stringContaining('/api/?Function=VerticalSlideReverse&Input=Cam 1&Duration=1337&Mix=0'))
+		expect(onRequest).toHaveBeenNthCalledWith(2, 'get', expect.stringContaining('/api/?Function=Cut&Input=5&Duration=0&Mix=1'))
+		expect(onRequest).toHaveBeenNthCalledWith(3, 'get', expect.stringContaining('/api/?Function=PreviewInput&Input=Cam 4&Mix=0'))
+		expect(onRequest).toHaveBeenNthCalledWith(4, 'get', expect.stringContaining('/api/?Function=PreviewInput&Input=3&Mix=1'))
 
 		clearMocks()
 		commandReceiver0.mockClear()
