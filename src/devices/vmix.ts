@@ -161,7 +161,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended> {
 	private _getDefaultInputsState (count: number): { [key: string]: VMixInput } {
 		const defaultInputs: { [key: string]: VMixInput } = {}
 		for (let i = 1; i <= count; i++) {
-			defaultInputs[i] = this._getDefaultInputState(i + 1)
+			defaultInputs[i] = this._getDefaultInputState(i)
 		}
 		return defaultInputs
 	}
