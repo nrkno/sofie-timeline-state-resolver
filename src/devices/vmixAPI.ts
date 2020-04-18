@@ -2,7 +2,7 @@ import { EventEmitter } from 'events'
 import * as request from 'request'
 import * as xml from 'xml-js'
 import { VMixOptions, VMixCommand, VMixTransitionType, VMixInputType } from '../types/src'
-import { VMixState, VMixInput, VMixAudioChannel } from './vmix'
+import { VMixState, VMixInput, VMixMix } from './vmix'
 import * as _ from 'underscore'
 
 const PING_TIMEOUT = 10 * 1000
@@ -171,12 +171,11 @@ export class VMix extends EventEmitter {
 			version: xmlState['vmix']['version']['_text'],
 			edition: xmlState['vmix']['edition']['_text'],
 			inputs: _.indexBy((xmlState['vmix']['inputs']['input'] as Array<any>)
-			.map(input => {
+			.map((input): VMixInput => {
 				if (!(input['_attributes']['type'] in VMixInputType)) {
 					fixedInputsCount++
 				}
 				return {
-					key: input['_attributes']['key'],
 					number: Number(input['_attributes']['number']),
 					type: input['_attributes']['type'],
 					state: input['_attributes']['state'],
@@ -186,14 +185,14 @@ export class VMix extends EventEmitter {
 					muted: (input['_attributes']['muted'] === 'False') ? false : true,
 					volume: Number(input['_attributes']['volume'] || 100),
 					balance: Number(input['_attributes']['balance'] || 0),
-					audioBusses: input['_attributes']['audiobusses'],
+					audioBuses: input['_attributes']['audiobusses'],
 					transform: {
 						panX: Number(input['position'] ? input['position']['_attributes']['panX'] || 0 : 0),
 						panY: Number(input['position'] ? input['position']['_attributes']['panY'] || 0 : 0),
 						alpha: -1, // unavailable
 						zoom: Number(input['position'] ? input['position']['_attributes']['zoomX'] || 1 : 1) // assume that zoomX==zoomY
 					}
-				} as VMixInput
+				}
 			}), 'number'),
 			overlays: (xmlState['vmix']['overlays']['overlay'] as Array<any>).map(overlay => {
 				return {
@@ -208,7 +207,7 @@ export class VMix extends EventEmitter {
 					preview: Number(xmlState['vmix']['preview']['_text']),
 					transition: { effect: VMixTransitionType.Cut, duration: 0 }
 				},
-				...mixes.map(mix => {
+				...mixes.map((mix): VMixMix => {
 					return {
 						number: Number(mix['_attributes']['number']),
 						program: Number(mix['active']['_text']),
@@ -230,7 +229,7 @@ export class VMix extends EventEmitter {
 					meterF1: Number(xmlState['vmix']['audio']['master']['_attributes']['meterF1']),
 					meterF2: Number(xmlState['vmix']['audio']['master']['_attributes']['meterF2']),
 					headphonesVolume: Number(xmlState['vmix']['audio']['master']['_attributes']['headphonesVolume'])
-				} as VMixAudioChannel
+				}
 			],
 			fixedInputsCount
 		}
