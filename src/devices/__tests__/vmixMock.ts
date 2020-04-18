@@ -6,6 +6,42 @@ const request = require('../../__mocks__/request')
 	This file mocks the server-side part of VMIX
 */
 
+const vmixMockState = `<vmix>
+<version>21.0.0.55</version>
+<edition>HD</edition>
+<preset>C:\\Users\\server\\AppData\\Roaming\\last.vmix</preset>
+<inputs>
+<input key="ca9bc59f-f698-41fe-b17d-1e1743cfee88" number="1" type="Capture" title="Cam 1" state="Running" position="0" duration="0" loop="False" muted="False" volume="100" balance="0" solo="False" audiobusses="M" meterF1="0.03034842" meterF2="0.03034842"></input>
+<input key="1a50938d-c653-4eae-bc4c-24d9c12fa773" number="2" type="Capture" title="Cam 2" state="Running" position="0" duration="0" loop="False" muted="True" volume="100" balance="0" solo="False" audiobusses="M,C" meterF1="0.0007324442" meterF2="0.0007629627"></input>
+</inputs>
+<overlays>
+<overlay number="1"/>
+<overlay number="2"/>
+<overlay number="3"/>
+<overlay number="4"/>
+<overlay number="5"/>
+<overlay number="6"/>
+</overlays>
+<preview>2</preview>
+<active>1</active>
+<fadeToBlack>False</fadeToBlack>
+<transitions>
+<transition number="1" effect="Fade" duration="500"/>
+<transition number="2" effect="Merge" duration="1000"/>
+<transition number="3" effect="Wipe" duration="1000"/>
+<transition number="4" effect="CubeZoom" duration="1000"/>
+</transitions>
+<recording duration="25519">True</recording>
+<external>True</external>
+<streaming>True</streaming>
+<playList>False</playList>
+<multiCorder>False</multiCorder>
+<fullscreen>False</fullscreen>
+<audio>
+<master volume="100" muted="False" meterF1="0.04211706" meterF2="0.04211706" headphonesVolume="74.80521"/>
+</audio>
+</vmix>`
+
 export function setupVmixMock () {
 	const vmixServer: VmixServerMockOptions = {
 		// add any vmix mocking of server-state here
@@ -120,16 +156,16 @@ function handleRequest (vmixServer: VmixServerMockOptions, triggerFcn: Function,
 
 			body = urlRoute(type, resource, {
 
-				'post /my/little/path/:param0': (params) => {
+				'get /api': () => {
 					return {
-						something: params.param0
+						response: vmixMockState
 					}
 				}
 			})
 
 			callback(null, {
 				statusCode: 200,
-				body: JSON.stringify(body)
+				body: body['response']
 			})
 		} catch (e) {
 			callback(null, {
