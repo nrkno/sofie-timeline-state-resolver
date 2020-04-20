@@ -41,9 +41,7 @@ describe('Atem', () => {
 				commandReceiver: commandReceiver0,
 				host: '127.0.0.1'
 			}
-		}), {
-			getCurrentTime: mockTime.getCurrentTime
-		})
+		}), mockTime.getCurrentTime)
 
 		await device.init(literal<AtemOptions>({
 			host: '127.0.0.1'
@@ -301,9 +299,7 @@ describe('Atem', () => {
 				commandReceiver: commandReceiver0,
 				host: '127.0.0.1'
 			}
-		}, {
-			getCurrentTime: mockTime.getCurrentTime
-		})
+		}, mockTime.getCurrentTime)
 		device.setMapping(myLayerMapping)
 
 		await device.init(literal<AtemOptions>({

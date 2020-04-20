@@ -5,7 +5,7 @@ import {
 	ResolvedStates
 } from 'superfly-timeline'
 
-import { DeviceClassOptions, CommandWithContext } from './devices/device'
+import { CommandWithContext } from './devices/device'
 import { CasparCGDevice, DeviceOptionsCasparCGInternal } from './devices/casparCG'
 import { AbstractDevice, DeviceOptionsAbstractInternal } from './devices/abstract'
 import { HTTPSendDevice, DeviceOptionsHTTPSendInternal } from './devices/httpSend'
@@ -175,10 +175,12 @@ export class Conductor extends EventEmitter {
 	 * Initializates the resolver, with optional multithreading
 	 */
 	public async init (): Promise<void> {
-		this._resolver = await threadedClass<AsyncResolver>(
+		this._resolver = await threadedClass<AsyncResolver, typeof AsyncResolver>(
 			'../dist/AsyncResolver.js',
 			AsyncResolver,
-			[],
+			[
+				r => { this.emit('setTimelineTriggerTime', r) }
+			],
 			{
 				threadUsage: this._multiThreadedResolver ? 1 : 0,
 				autoRestart: true,
@@ -186,13 +188,13 @@ export class Conductor extends EventEmitter {
 				instanceName: 'resolver'
 			}
 		)
-		await this._resolver.on('setTimelineTriggerTime', (r) => {
-			this.emit('setTimelineTriggerTime', r)
-		})
-		await this._resolver.on('info', (...args) => this.emit('info', 'Resolver', ...args))
-		await this._resolver.on('debug', (...args) => this.emit('debug', 'Resolver', ...args))
-		await this._resolver.on('error', (...args) => this.emit('error', 'Resolver', ...args))
-		await this._resolver.on('warning', (...args) => this.emit('warning', 'Resolver', ...args))
+		// await this._resolver.on('setTimelineTriggerTime', (r) => {
+		// 	this.emit('setTimelineTriggerTime', r)
+		// })
+		// await this._resolver.on('info', (...args) => this.emit('info', 'Resolver', ...args))
+		// await this._resolver.on('debug', (...args) => this.emit('debug', 'Resolver', ...args))
+		// await this._resolver.on('error', (...args) => this.emit('error', 'Resolver', ...args))
+		// await this._resolver.on('warning', (...args) => this.emit('warning', 'Resolver', ...args))
 
 		this._isInitialized = true
 		this.resetResolver()
@@ -286,17 +288,15 @@ export class Conductor extends EventEmitter {
 				instanceName: deviceId
 			}
 
-			let options: DeviceClassOptions = {
-				getCurrentTime: () => { return this.getCurrentTime() }
-			}
+			let getCurrentTime = () => { return this.getCurrentTime() }
 
 			if (deviceOptions.type === DeviceType.ABSTRACT) {
-				newDevice = await new DeviceContainer().create<AbstractDevice>(
+				newDevice = await new DeviceContainer().create<AbstractDevice, typeof AbstractDevice>(
 					'../../dist/devices/abstract.js',
 					AbstractDevice,
 					deviceId,
 					deviceOptions,
-					options,
+					getCurrentTime,
 					{
 						threadUsage: deviceOptions.isMultiThreaded ? .1 : 0,
 						autoRestart: false,
@@ -306,120 +306,120 @@ export class Conductor extends EventEmitter {
 				)
 			} else if (deviceOptions.type === DeviceType.CASPARCG) {
 				// Add CasparCG device:
-				newDevice = await new DeviceContainer().create<CasparCGDevice>(
+				newDevice = await new DeviceContainer().create<CasparCGDevice, typeof CasparCGDevice>(
 					'../../dist/devices/casparCG.js',
 					CasparCGDevice,
 					deviceId,
 					deviceOptions,
-					options,
+					getCurrentTime,
 					threadedClassOptions
 				)
 			} else if (deviceOptions.type === DeviceType.ATEM) {
-				newDevice = await new DeviceContainer().create<AtemDevice>(
+				newDevice = await new DeviceContainer().create<AtemDevice, typeof AtemDevice>(
 					'../../dist/devices/atem.js',
 					AtemDevice,
 					deviceId,
 					deviceOptions,
-					options,
+					getCurrentTime,
 					threadedClassOptions
 				)
 			} else if (deviceOptions.type === DeviceType.HTTPSEND) {
-				newDevice = await new DeviceContainer().create<HTTPSendDevice>(
+				newDevice = await new DeviceContainer().create<HTTPSendDevice, typeof HTTPSendDevice>(
 					'../../dist/devices/httpSend.js',
 					HTTPSendDevice,
 					deviceId,
 					deviceOptions,
-					options,
+					getCurrentTime,
 					threadedClassOptions
 				)
 			} else if (deviceOptions.type === DeviceType.HTTPWATCHER) {
-				newDevice = await new DeviceContainer().create<HTTPWatcherDevice>(
+				newDevice = await new DeviceContainer().create<HTTPWatcherDevice, typeof HTTPWatcherDevice>(
 					'../../dist/devices/httpWatcher.js',
 					HTTPWatcherDevice,
 					deviceId,
 					deviceOptions,
-					options,
+					getCurrentTime,
 					threadedClassOptions
 				)
 			} else if (deviceOptions.type === DeviceType.LAWO) {
-				newDevice = await new DeviceContainer().create<LawoDevice>(
+				newDevice = await new DeviceContainer().create<LawoDevice, typeof LawoDevice>(
 					'../../dist/devices/lawo.js',
 					LawoDevice,
 					deviceId,
 					deviceOptions,
-					options,
+					getCurrentTime,
 					threadedClassOptions
 				)
 			} else if (deviceOptions.type === DeviceType.TCPSEND) {
-				newDevice = await new DeviceContainer().create<TCPSendDevice>(
+				newDevice = await new DeviceContainer().create<TCPSendDevice, typeof TCPSendDevice>(
 					'../../dist/devices/tcpSend.js',
 					TCPSendDevice,
 					deviceId,
 					deviceOptions,
-					options,
+					getCurrentTime,
 					threadedClassOptions
 				)
 			} else if (deviceOptions.type === DeviceType.PANASONIC_PTZ) {
-				newDevice = await new DeviceContainer().create<PanasonicPtzDevice>(
-					'../../dist/devices/panasonicPTZ.js',
+				newDevice = await new DeviceContainer().create<PanasonicPtzDevice, typeof PanasonicPtzDevice>(
+					'./panasonicPTZ',
 					PanasonicPtzDevice,
 					deviceId,
 					deviceOptions,
-					options,
+					getCurrentTime,
 					threadedClassOptions
 				)
 			} else if (deviceOptions.type === DeviceType.HYPERDECK) {
-				newDevice = await new DeviceContainer().create<HyperdeckDevice>(
+				newDevice = await new DeviceContainer().create<HyperdeckDevice, typeof HyperdeckDevice>(
 					'../../dist/devices/hyperdeck.js',
 					HyperdeckDevice,
 					deviceId,
 					deviceOptions,
-					options,
+					getCurrentTime,
 					threadedClassOptions
 				)
 			} else if (deviceOptions.type === DeviceType.PHAROS) {
-				newDevice = await new DeviceContainer().create<PharosDevice>(
-					'../../dist/devices/pharos.js',
+				newDevice = await new DeviceContainer().create<PharosDevice, typeof PharosDevice>(
+					'./pharos',
 					PharosDevice,
 					deviceId,
 					deviceOptions,
-					options,
+					getCurrentTime,
 					threadedClassOptions
 				)
 			} else if (deviceOptions.type === DeviceType.OSC) {
-				newDevice = await new DeviceContainer().create<OSCMessageDevice>(
+				newDevice = await new DeviceContainer().create<OSCMessageDevice, typeof OSCMessageDevice>(
 					'../../dist/devices/osc.js',
 					OSCMessageDevice,
 					deviceId,
 					deviceOptions,
-					options,
+					getCurrentTime,
 					threadedClassOptions
 				)
 			} else if (deviceOptions.type === DeviceType.QUANTEL) {
-				newDevice = await new DeviceContainer().create<QuantelDevice>(
+				newDevice = await new DeviceContainer().create<QuantelDevice, typeof QuantelDevice>(
 					'../../dist/devices/quantel.js',
 					QuantelDevice,
 					deviceId,
 					deviceOptions,
-					options,
+					getCurrentTime,
 					threadedClassOptions
 				)
 			} else if (deviceOptions.type === DeviceType.SISYFOS) {
-				newDevice = await new DeviceContainer().create<OSCMessageDevice>(
+				newDevice = await new DeviceContainer().create<SisyfosMessageDevice, typeof SisyfosMessageDevice>(
 					'../../dist/devices/sisyfos.js',
 					SisyfosMessageDevice,
 					deviceId,
 					deviceOptions,
-					options,
+					getCurrentTime,
 					threadedClassOptions
 				)
 			} else if (deviceOptions.type === DeviceType.SINGULAR_LIVE) {
-				newDevice = await new DeviceContainer().create<SingularLiveDevice>(
+				newDevice = await new DeviceContainer().create<SingularLiveDevice, typeof SingularLiveDevice>(
 					'../../dist/devices/singularLive.js',
 					SingularLiveDevice,
 					deviceId,
 					deviceOptions,
-					options,
+					getCurrentTime,
 					threadedClassOptions
 				)
 			} else {
