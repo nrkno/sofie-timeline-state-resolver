@@ -516,7 +516,7 @@ describe('CasparCG', () => {
 		expect(getMockCall(commandReceiver0, 4, 1)._objectParams.command.name).toEqual('CustomCommand')
 	})
 
-	test.only('CasparCG: Play 2 routes for 60s', async () => {
+	test('CasparCG: Play 2 routes for 60s', async () => {
 
 		const commandReceiver0: any = jest.fn(() => {
 			return Promise.resolve()
