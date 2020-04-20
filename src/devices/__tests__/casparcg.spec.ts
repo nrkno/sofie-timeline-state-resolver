@@ -605,7 +605,6 @@ describe('CasparCG', () => {
 
 		// one command has been sent:
 		expect(commandReceiver0).toHaveBeenCalledTimes(7)
-		console.log(getMockCall(commandReceiver0, 3, 1)._objectParams)
 		expect(getMockCall(commandReceiver0, 3, 1)._objectParams).toMatchObject({
 			channel: 2,
 			layer: 42,

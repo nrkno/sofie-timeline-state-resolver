@@ -271,7 +271,7 @@ export class Conductor extends EventEmitter {
 	 * @param deviceOptions The options used to initalize the device
 	 * @returns A promise that resolves with the created device, or rejects with an error message.
 	 */
-	public async addDevice (deviceId, deviceOptions: DeviceOptionsAnyInternal): Promise<DeviceContainer> {
+	public async addDevice (deviceId: string, deviceOptions: DeviceOptionsAnyInternal): Promise<DeviceContainer> {
 		try {
 			let newDevice: DeviceContainer
 			let threadedClassOptions = {
@@ -1128,5 +1128,6 @@ export type DeviceOptionsAnyInternal = (
 	DeviceOptionsSisyfosInternal |
 	DeviceOptionsQuantelInternal |
 	DeviceOptionsVizMSEInternal |
-	DeviceOptionsSingularLiveInternal
+	DeviceOptionsSingularLiveInternal |
+	DeviceOptionsVizMSEInternal
 )

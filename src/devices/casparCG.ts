@@ -359,8 +359,9 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> implements ID
 					channelLayout:		routeObj.content.channelLayout
 				},
 				mode:			routeObj.content.mode || undefined,
+				delay:			routeObj.content.delay || undefined,
 				playing:		true,
-				playTime:		null // layer.resolved.startTime || null
+				playTime:		null // layer.resolved.startTime || null,
 			})
 		} else if (layer.content.type === TimelineContentTypeCasparCg.RECORD) {
 			const recordObj = layer as any as TimelineObjCCGRecord
