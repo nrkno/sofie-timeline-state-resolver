@@ -188,13 +188,6 @@ export class Conductor extends EventEmitter {
 				instanceName: 'resolver'
 			}
 		)
-		// await this._resolver.on('setTimelineTriggerTime', (r) => {
-		// 	this.emit('setTimelineTriggerTime', r)
-		// })
-		// await this._resolver.on('info', (...args) => this.emit('info', 'Resolver', ...args))
-		// await this._resolver.on('debug', (...args) => this.emit('debug', 'Resolver', ...args))
-		// await this._resolver.on('error', (...args) => this.emit('error', 'Resolver', ...args))
-		// await this._resolver.on('warning', (...args) => this.emit('warning', 'Resolver', ...args))
 
 		this._isInitialized = true
 		this.resetResolver()
@@ -361,7 +354,7 @@ export class Conductor extends EventEmitter {
 				)
 			} else if (deviceOptions.type === DeviceType.PANASONIC_PTZ) {
 				newDevice = await new DeviceContainer().create<PanasonicPtzDevice, typeof PanasonicPtzDevice>(
-					'./panasonicPTZ',
+					'../../dist/devices/panasonicPTZ.js',
 					PanasonicPtzDevice,
 					deviceId,
 					deviceOptions,
@@ -379,7 +372,7 @@ export class Conductor extends EventEmitter {
 				)
 			} else if (deviceOptions.type === DeviceType.PHAROS) {
 				newDevice = await new DeviceContainer().create<PharosDevice, typeof PharosDevice>(
-					'./pharos',
+					'../../dist/devices/pharos.js',
 					PharosDevice,
 					deviceId,
 					deviceOptions,

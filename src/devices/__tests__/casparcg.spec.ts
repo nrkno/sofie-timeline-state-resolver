@@ -555,6 +555,7 @@ describe('CasparCG', () => {
 
 		let deviceContainer = myConductor.getDevice('myCCG')
 		let device = deviceContainer.device
+		await device['_ccgState']
 
 		// Check that no commands has been scheduled:
 		expect(await device['queue']).toHaveLength(0)
@@ -577,7 +578,9 @@ describe('CasparCG', () => {
 					deviceType: DeviceType.CASPARCG,
 					type: TimelineContentTypeCasparCg.ROUTE,
 
-					mappedLayer: 'myLayer1'
+					mappedLayer: 'myLayer1',
+					delay: 80 * 1000, // @todo: because reasons, TSR uses fps of 0.025, which breaks all calculations in CasparCG-state
+					mode: 'BACKGROUND'
 				}
 			},
 			{
@@ -592,7 +595,8 @@ describe('CasparCG', () => {
 					type: TimelineContentTypeCasparCg.ROUTE,
 
 					channel: 2,
-					layer: 23
+					layer: 23,
+					delay: 320 * 1000
 				}
 			}
 		]
@@ -601,13 +605,14 @@ describe('CasparCG', () => {
 
 		// one command has been sent:
 		expect(commandReceiver0).toHaveBeenCalledTimes(7)
+		console.log(getMockCall(commandReceiver0, 3, 1)._objectParams)
 		expect(getMockCall(commandReceiver0, 3, 1)._objectParams).toMatchObject({
 			channel: 2,
 			layer: 42,
 			noClear: false,
 			routeChannel: 1,
 			routeLayer: 42,
-			command: 'PLAY 2-42 route://1-42',
+			command: 'PLAY 2-42 route://1-42 BACKGROUND FRAMES_DELAY 2',
 			customCommand: 'route'
 		})
 
@@ -620,7 +625,7 @@ describe('CasparCG', () => {
 			noClear: false,
 			routeChannel: 2,
 			routeLayer: 23,
-			command: 'PLAY 1-42 route://2-23',
+			command: 'PLAY 1-42 route://2-23 FRAMES_DELAY 8',
 			customCommand: 'route'
 		})
 
