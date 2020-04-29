@@ -2,9 +2,10 @@ import { Mapping } from './mapping'
 import { TSRTimelineObjBase, DeviceType } from '.'
 
 export interface MappingCasparCG extends Mapping {
-	device: DeviceType.CASPARCG,
-	channel: number,
+	device: DeviceType.CASPARCG
+	channel: number
 	layer: number
+	previewWhenNotOnAir?: boolean
 }
 
 export interface CasparCGOptions {
@@ -15,6 +16,7 @@ export interface CasparCGOptions {
 
 	/** whether to use the CasparCG-SCHEDULE command to run future commands, or the internal (backwards-compatible) command queue */
 	useScheduling?: boolean
+	retryInterval?: number | boolean // set to false to disable, 0 or true will set to default value
 	/* Timecode base of channel */
 	timeBase?: {[channel: string]: number} | number
 

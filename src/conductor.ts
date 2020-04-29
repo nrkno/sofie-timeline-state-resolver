@@ -32,7 +32,7 @@ import { HTTPWatcherDevice, DeviceOptionsHTTPWatcherInternal } from './devices/h
 import { QuantelDevice, DeviceOptionsQuantelInternal } from './devices/quantel'
 import { SisyfosMessageDevice, DeviceOptionsSisyfosInternal } from './devices/sisyfos'
 import { SingularLiveDevice, DeviceOptionsSingularLiveInternal } from './devices/singularLive'
-
+import { VizMSEDevice, DeviceOptionsVizMSEInternal } from './devices/vizMSE'
 export { DeviceContainer }
 export { CommandWithContext }
 
@@ -271,7 +271,7 @@ export class Conductor extends EventEmitter {
 	 * @param deviceOptions The options used to initalize the device
 	 * @returns A promise that resolves with the created device, or rejects with an error message.
 	 */
-	public async addDevice (deviceId, deviceOptions: DeviceOptionsAnyInternal): Promise<DeviceContainer> {
+	public async addDevice (deviceId: string, deviceOptions: DeviceOptionsAnyInternal): Promise<DeviceContainer> {
 		try {
 			let newDevice: DeviceContainer
 			let threadedClassOptions = {
@@ -406,6 +406,15 @@ export class Conductor extends EventEmitter {
 					getCurrentTime,
 					threadedClassOptions
 				)
+			} else if (deviceOptions.type === DeviceType.VIZMSE) {
+				newDevice = await new DeviceContainer().create<VizMSEDevice, typeof VizMSEDevice>(
+					'../../dist/devices/vizMSE.js',
+					VizMSEDevice,
+					deviceId,
+					deviceOptions,
+					getCurrentTime,
+					threadedClassOptions
+				)
 			} else if (deviceOptions.type === DeviceType.SINGULAR_LIVE) {
 				newDevice = await new DeviceContainer().create<SingularLiveDevice, typeof SingularLiveDevice>(
 					'../../dist/devices/singularLive.js',
@@ -518,11 +527,11 @@ export class Conductor extends EventEmitter {
 	/**
 	 * Send a makeReady-trigger to all devices
 	 */
-	public devicesMakeReady (okToDestroyStuff?: boolean): Promise<void> {
+	public devicesMakeReady (okToDestroyStuff?: boolean, activeRundownId?: string): Promise<void> {
 		let p = Promise.resolve()
 		_.each(this.devices, (d: DeviceContainer) => {
 			p = p.then(async () => {
-				return d.device.makeReady(okToDestroyStuff)
+				return d.device.makeReady(okToDestroyStuff, activeRundownId)
 			})
 		})
 		this._resolveTimeline()
@@ -1118,5 +1127,7 @@ export type DeviceOptionsAnyInternal = (
 	DeviceOptionsOSCInternal |
 	DeviceOptionsSisyfosInternal |
 	DeviceOptionsQuantelInternal |
-	DeviceOptionsSingularLiveInternal
+	DeviceOptionsVizMSEInternal |
+	DeviceOptionsSingularLiveInternal |
+	DeviceOptionsVizMSEInternal
 )
