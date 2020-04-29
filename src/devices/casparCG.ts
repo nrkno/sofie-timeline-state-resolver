@@ -72,7 +72,7 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> implements ID
 	private initOptions?: CasparCGOptions
 	private _connected: boolean = false
 	private _retryTimeout: NodeJS.Timeout
-	private _retryTime: number = MEDIA_RETRY_INTERVAL
+	private _retryTime: number | null = null
 
 	constructor (deviceId: string, deviceOptions: DeviceOptionsCasparCGInternal, options) {
 		super(deviceId, deviceOptions, options)
@@ -134,8 +134,8 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> implements ID
 			}
 		}) as StateNS.ChannelInfo[], this.getCurrentTime())
 
-		if (initOptions.retryInterval !== false) {
-			if (typeof initOptions.retryInterval === 'number') this._retryTime = initOptions.retryInterval || MEDIA_RETRY_INTERVAL
+		if (typeof initOptions.retryInterval === 'number') {
+			this._retryTime = initOptions.retryInterval || MEDIA_RETRY_INTERVAL
 			this._retryTimeout = setTimeout(() => this._assertIntendedState(), this._retryTime)
 		}
 
@@ -732,7 +732,7 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> implements ID
 		// do no retry while we are sending commands, instead always retry closely after:
 		if (!context.match(/\[RETRY\]/i)) {
 			clearTimeout(this._retryTimeout)
-			if (!this.initOptions || this.initOptions.retryInterval !== false) this._retryTimeout = setTimeout(() => this._assertIntendedState(), this._retryTime)
+			if (this._retryTime) this._retryTimeout = setTimeout(() => this._assertIntendedState(), this._retryTime)
 		}
 
 		let cwc: CommandWithContext = {
@@ -819,7 +819,9 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> implements ID
 	 * the intended (timeline) state and that command will be executed.
 	 */
 	private _assertIntendedState () {
-		this._retryTimeout = setTimeout(() => this._assertIntendedState(), this._retryTime)
+		if (this._retryTime) {
+			this._retryTimeout = setTimeout(() => this._assertIntendedState(), this._retryTime)
+		}
 
 		const tlState = this.getState(this.getCurrentTime())
 
