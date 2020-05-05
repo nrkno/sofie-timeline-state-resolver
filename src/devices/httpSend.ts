@@ -40,6 +40,7 @@ type CommandContext = string
 export class HTTPSendDevice extends DeviceWithState<TimelineState> implements IDevice {
 
 	private _makeReadyCommands: HTTPSendCommandContent[]
+	private _makeReadyDoesReset: boolean
 	private _doOnTime: DoOnTime
 
 	private _commandReceiver: CommandReceiver
@@ -57,6 +58,7 @@ export class HTTPSendDevice extends DeviceWithState<TimelineState> implements ID
 	}
 	init (initOptions: HTTPSendOptions): Promise<boolean> {
 		this._makeReadyCommands = initOptions.makeReadyCommands || []
+		this._makeReadyDoesReset = initOptions.makeReadyDoesReset || false
 
 		return Promise.resolve(true) // This device doesn't have any initialization procedure
 	}
@@ -76,6 +78,8 @@ export class HTTPSendDevice extends DeviceWithState<TimelineState> implements ID
 		let newAbstractState = this.convertStateToHttpSend(newState)
 
 		let commandsToAchieveState: Array<any> = this._diffStates(oldAbstractState, newAbstractState)
+
+		console.log('http state gave', commandsToAchieveState.length)
 
 		// clear any queued commands later than this time:
 		this._doOnTime.clearQueueNowAndAfter(previousStateTime)
@@ -100,14 +104,17 @@ export class HTTPSendDevice extends DeviceWithState<TimelineState> implements ID
 		}
 	}
 	async makeReady (okToDestroyStuff?: boolean): Promise<void> {
-		if (okToDestroyStuff && this._makeReadyCommands && this._makeReadyCommands.length > 0) {
+		if (okToDestroyStuff) {
 			const time = this.getCurrentTime()
-			_.each(this._makeReadyCommands, (cmd: HTTPSendCommandContent) => {
-				// add the new commands to the queue:
-				this._doOnTime.queue(time, cmd.queueId, (cmd: HTTPSendCommandContent) => {
-					return this._commandReceiver(time, cmd, 'makeReady', '')
-				}, cmd)
-			})
+
+			if (this._makeReadyDoesReset) {
+				this.clearStates()
+				this._doOnTime.clearQueueAfter(0)
+			}
+
+			for (const cmd of this._makeReadyCommands || []) {
+				await this._commandReceiver(time, cmd, 'makeReady', '')
+			}
 		}
 	}
 
