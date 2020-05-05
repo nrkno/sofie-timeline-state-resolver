@@ -142,6 +142,8 @@ export class Conductor extends EventEmitter {
 
 	private _interval: NodeJS.Timer
 
+	private _pendingDevicesAction: Promise<unknown> | null = null
+
 	constructor (options: ConductorOptions = {}) {
 		super()
 		this._options = options
@@ -457,6 +459,8 @@ export class Conductor extends EventEmitter {
 			// @ts-ignore
 			await newDevice.device.setMapping(this.mapping)
 
+			// TODO - should the device be on this.devices yet? sounds like we could instruct it to do things before it has initialised?
+
 			await newDevice.device.init(deviceOptions.options)
 
 			await newDevice.reloadProps() // because the device name might have changed after init
@@ -527,27 +531,35 @@ export class Conductor extends EventEmitter {
 	/**
 	 * Send a makeReady-trigger to all devices
 	 */
-	public devicesMakeReady (okToDestroyStuff?: boolean, activeRundownId?: string): Promise<void> {
+	public async devicesMakeReady (okToDestroyStuff?: boolean, activeRundownId?: string): Promise<void> {
+		if (this._pendingDevicesAction) await this._pendingDevicesAction
+
 		let p = Promise.resolve()
 		_.each(this.devices, (d: DeviceContainer) => {
 			p = p.then(async () => {
 				return d.device.makeReady(okToDestroyStuff, activeRundownId)
 			})
 		})
+		this._pendingDevicesAction = p
 		this._resolveTimeline()
-		return p
+		await p
+		this._pendingDevicesAction = null
 	}
 	/**
 	 * Send a standDown-trigger to all devices
 	 */
-	public devicesStandDown (okToDestroyStuff?: boolean): Promise<void> {
+	public async devicesStandDown (okToDestroyStuff?: boolean): Promise<void> {
+		if (this._pendingDevicesAction) await this._pendingDevicesAction
+
 		let p = Promise.resolve()
 		_.each(this.devices, (d: DeviceContainer) => {
 			p = p.then(async () => {
 				return d.device.standDown(okToDestroyStuff)
 			})
 		})
-		return p
+		this._pendingDevicesAction = p
+		await p
+		this._pendingDevicesAction = null
 	}
 	/**
 	 * This is the main resolve-loop.
@@ -696,6 +708,8 @@ export class Conductor extends EventEmitter {
 			)
 			await pPrepareForHandleStates
 
+			if (this._pendingDevicesAction) await this._pendingDevicesAction // TODO - should this block pPrepareForHandleStates from starting too?
+
 			// Apply changes to fixed objects (set "now" triggers to an actual time):
 			_.each(objectsFixed, (o) => {
 				nowIds[o.id] = o.time
@@ -736,7 +750,9 @@ export class Conductor extends EventEmitter {
 					this.emit('error', 'Error in device "' + device.deviceId + '"' + e + ' ' + e.stack)
 				}
 			})
-			await Promise.all(pHandleStates)
+			this._pendingDevicesAction = Promise.all(pHandleStates)
+			await this._pendingDevicesAction
+			this._pendingDevicesAction = null
 
 			statTimeStateHandled = Date.now()
 
