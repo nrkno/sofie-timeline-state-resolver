@@ -74,7 +74,7 @@
     "reset": "git clean -dfx && git reset --hard && yarn",
     "validate:dependencies": "yarn audit --groups dependencies && yarn license-validate",
     "validate:dev-dependencies": "yarn audit --groups devDependencies",
-    "license-validate": "node-license-validator -p -d --allow-licenses MIT BSD BSD-2-Clause BSD-3-Clause ISC Apache Unlicense WTFPL --allow-packages cycle",
+    "license-validate": "node-license-validator -p -d --allow-licenses MIT BSD BSD-2-Clause BSD-3-Clause 0BSD ISC Apache Unlicense WTFPL --allow-packages cycle",
     "types-build": "cd src/types && trash dist && yarn build:main && cd ../..",
     "types-install": "cd src/types && yarn install && cd ../..",
     "types-test": "cd src/types && yarn test && cd ../..",
