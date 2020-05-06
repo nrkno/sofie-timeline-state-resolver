@@ -33,6 +33,9 @@ import { QuantelDevice, DeviceOptionsQuantelInternal } from './devices/quantel'
 import { SisyfosMessageDevice, DeviceOptionsSisyfosInternal } from './devices/sisyfos'
 import { SingularLiveDevice, DeviceOptionsSingularLiveInternal } from './devices/singularLive'
 import { VizMSEDevice, DeviceOptionsVizMSEInternal } from './devices/vizMSE'
+import PQueue from 'p-queue'
+import * as PAll from 'p-all'
+import PTimeout from 'p-timeout'
 export { DeviceContainer }
 export { CommandWithContext }
 
@@ -131,6 +134,10 @@ export class Conductor extends EventEmitter {
 	private _triggerSendStartStopCallbacksTimeout: NodeJS.Timer | null = null
 	private _sentCallbacks: TimelineCallbacks = {}
 
+	private _actionQueue: PQueue = new PQueue({
+		concurrency: 1
+	})
+
 	private _statMeasureStart: number = 0
 	private _statMeasureReason: string = ''
 	private _statReports: StatReport[] = []
@@ -141,8 +148,6 @@ export class Conductor extends EventEmitter {
 	private _resolver: ThreadedClass<AsyncResolver>
 
 	private _interval: NodeJS.Timer
-
-	private _pendingDevicesAction: Promise<unknown> | null = null
 
 	constructor (options: ConductorOptions = {}) {
 		super()
@@ -222,12 +227,7 @@ export class Conductor extends EventEmitter {
 		// re-resolve timeline
 		this._mapping = mapping
 
-		let ps: Promise<any>[] = []
-		_.each(this.devices, (d: DeviceContainer) => {
-			// @ts-ignore
-			ps.push(d.device.setMapping(mapping))
-		})
-		await Promise.all(ps)
+		await this._mapAllDevices(d => d.device.setMapping(mapping))
 
 		if (this._timeline) {
 			this._resolveTimeline()
@@ -510,9 +510,7 @@ export class Conductor extends EventEmitter {
 
 		if (this._triggerSendStartStopCallbacksTimeout) clearTimeout(this._triggerSendStartStopCallbacksTimeout)
 
-		await Promise.all(_.map(_.keys(this.devices), (deviceId: string) => {
-			return this.removeDevice(deviceId)
-		}))
+		await this._mapAllDevices(d => this.removeDevice(d.deviceId))
 	}
 	/**
 	 * Resets the resolve-time, so that the resolving will happen for the point-in time NOW
@@ -532,35 +530,29 @@ export class Conductor extends EventEmitter {
 	 * Send a makeReady-trigger to all devices
 	 */
 	public async devicesMakeReady (okToDestroyStuff?: boolean, activeRundownId?: string): Promise<void> {
-		if (this._pendingDevicesAction) await this._pendingDevicesAction
+		await this._actionQueue.add(async () => {
+			const p = this._mapAllDevices((d) => d.device.makeReady(okToDestroyStuff, activeRundownId))
+			await PTimeout(p, 20000)
 
-		let p = Promise.resolve()
-		_.each(this.devices, (d: DeviceContainer) => {
-			p = p.then(async () => {
-				return d.device.makeReady(okToDestroyStuff, activeRundownId)
-			})
+			this._triggerResolveTimeline()
 		})
-		this._pendingDevicesAction = p
-		this._resolveTimeline()
-		await p
-		this._pendingDevicesAction = null
 	}
 	/**
 	 * Send a standDown-trigger to all devices
 	 */
 	public async devicesStandDown (okToDestroyStuff?: boolean): Promise<void> {
-		if (this._pendingDevicesAction) await this._pendingDevicesAction
-
-		let p = Promise.resolve()
-		_.each(this.devices, (d: DeviceContainer) => {
-			p = p.then(async () => {
-				return d.device.standDown(okToDestroyStuff)
-			})
+		await this._actionQueue.add(async () => {
+			const p = this._mapAllDevices((d) => d.device.standDown(okToDestroyStuff))
+			await PTimeout(p, 20000)
 		})
-		this._pendingDevicesAction = p
-		await p
-		this._pendingDevicesAction = null
 	}
+
+	private _mapAllDevices<T> (fcn: (d: DeviceContainer) => Promise<T>): Promise<T[]> {
+		return PAll(_.map(_.values(this.devices), d => () => fcn(d)), {
+			stopOnError: false
+		})
+	}
+
 	/**
 	 * This is the main resolve-loop.
 	 */
@@ -594,9 +586,12 @@ export class Conductor extends EventEmitter {
 		}
 
 		this._resolveTimelineRunning = true
-		this._resolveTimelineInner()
-		.catch(e => {
-			this.emit('error', 'Caught error in _resolveTimelineInner' + e)
+
+		this._actionQueue.add(() => {
+			return this._resolveTimelineInner()
+			.catch(e => {
+				this.emit('error', 'Caught error in _resolveTimelineInner' + e)
+			})
 		})
 		.then((nextResolveTime) => {
 			this._resolveTimelineRunning = false
@@ -654,11 +649,9 @@ export class Conductor extends EventEmitter {
 
 			// Let all devices know that a new state is about to come in.
 			// This is done so that they can clear future commands a bit earlier, possibly avoiding double or conflicting commands
-			const pPrepareForHandleStates: Promise<any> = Promise.all(
-				_.map(this.devices, async (device: DeviceContainer): Promise<any> => {
-					await device.device.prepareForHandleState(resolveTime)
-				})
-			).catch(error => {
+			const pPrepareForHandleStates = this._mapAllDevices(async (device: DeviceContainer) => {
+				await device.device.prepareForHandleState(resolveTime)
+			}).catch(error => {
 				this.emit('error', error)
 			})
 
@@ -708,8 +701,6 @@ export class Conductor extends EventEmitter {
 			)
 			await pPrepareForHandleStates
 
-			if (this._pendingDevicesAction) await this._pendingDevicesAction // TODO - should this block pPrepareForHandleStates from starting too?
-
 			// Apply changes to fixed objects (set "now" triggers to an actual time):
 			_.each(objectsFixed, (o) => {
 				nowIds[o.id] = o.time
@@ -725,8 +716,7 @@ export class Conductor extends EventEmitter {
 			}
 
 			// Push state to the right device:
-			let pHandleStates: Promise<any>[] = []
-			pHandleStates = _.map(this.devices, async (device: DeviceContainer): Promise<any> => {
+			await this._mapAllDevices(async (device: DeviceContainer): Promise<void> => {
 				// The subState contains only the parts of the state relevant to that device:
 				let subState: TimelineState = {
 					time: tlState.time,
@@ -743,6 +733,7 @@ export class Conductor extends EventEmitter {
 					}
 					return o
 				}
+
 				// Pass along the state to the device, it will generate its commands and execute them:
 				try {
 					await device.device.handleState(removeParent(subState))
@@ -750,9 +741,6 @@ export class Conductor extends EventEmitter {
 					this.emit('error', 'Error in device "' + device.deviceId + '"' + e + ' ' + e.stack)
 				}
 			})
-			this._pendingDevicesAction = Promise.all(pHandleStates)
-			await this._pendingDevicesAction
-			this._pendingDevicesAction = null
 
 			statTimeStateHandled = Date.now()
 
@@ -791,14 +779,13 @@ export class Conductor extends EventEmitter {
 			} else {
 				// there's nothing ahead in the timeline,
 				// Tell the devices that the future is clear:
-				const pClearFutures = _.map(this.devices, async (device: DeviceContainer) => {
+				await this._mapAllDevices(async (device: DeviceContainer) => {
 					try {
 						await device.device.clearFuture(tlState.time)
 					} catch (e) {
 						this.emit('error', 'Error in device "' + device.deviceId + '", clearFuture: ' + e + ' ' + e.stack)
 					}
 				})
-				await Promise.all(pClearFutures)
 
 				// resolve at this time then next time (or later):
 				nextResolveTime = Math.min(tlState.time)
