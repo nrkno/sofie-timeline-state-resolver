@@ -42,6 +42,8 @@ type CommandContext = string
 export class TCPSendDevice extends DeviceWithState<TimelineState> implements IDevice {
 
 	private _makeReadyCommands: TcpSendCommandContent[]
+	private _makeReadyDoesReset: boolean
+
 	private _doOnTime: DoOnTime
 	private _tcpClient: Socket | null = null
 	private _connected: boolean = false
@@ -67,6 +69,7 @@ export class TCPSendDevice extends DeviceWithState<TimelineState> implements IDe
 	}
 	init (initOptions: TCPSendOptions): Promise<boolean> {
 		this._makeReadyCommands = initOptions.makeReadyCommands || []
+		this._makeReadyDoesReset = initOptions.makeReadyDoesReset || false
 
 		this._host = initOptions.host
 		this._port = initOptions.port
@@ -108,17 +111,20 @@ export class TCPSendDevice extends DeviceWithState<TimelineState> implements IDe
 	}
 
 	async makeReady (okToDestroyStuff?: boolean): Promise<void> {
-		if (okToDestroyStuff && this._makeReadyCommands && this._makeReadyCommands.length > 0) {
+		if (okToDestroyStuff) {
 			await this._disconnectTCPClient()
 			await this._connectTCPClient()
 
 			const time = this.getCurrentTime()
-			_.each(this._makeReadyCommands, (cmd: TcpSendCommandContent) => {
-				// add the new commands to the queue:
-				this._doOnTime.queue(time, cmd.queueId, (cmd: TcpSendCommandContent) => {
-					return this._commandReceiver(time, cmd, 'makeReady', '')
-				}, cmd)
-			})
+
+			if (this._makeReadyDoesReset) {
+				this.clearStates()
+				this._doOnTime.clearQueueAfter(0)
+			}
+
+			for (const cmd of this._makeReadyCommands || []) {
+				await this._commandReceiver(time, cmd, 'makeReady', '')
+			}
 		}
 	}
 	async terminate () {

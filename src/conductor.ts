@@ -647,9 +647,18 @@ export class Conductor extends EventEmitter {
 
 			// Let all devices know that a new state is about to come in.
 			// This is done so that they can clear future commands a bit earlier, possibly avoiding double or conflicting commands
-			const pPrepareForHandleStates = this._mapAllDevices(async (device: DeviceContainer) => {
-				await device.device.prepareForHandleState(resolveTime)
-			}).catch(error => {
+			// const pPrepareForHandleStates = this._mapAllDevices(async (device: DeviceContainer) => {
+			// 	await device.device.prepareForHandleState(resolveTime)
+			// }).catch(error => {
+			// 	this.emit('error', error)
+			// })
+			// TODO - the PAll way of doing this provokes https://github.com/nrkno/tv-automation-state-timeline-resolver/pull/139
+			// The doOnTime calls fire before this, meaning we cleanup the state for a time we have already sent commands for
+			const pPrepareForHandleStates: Promise<any> = Promise.all(
+				_.map(this.devices, async (device: DeviceContainer): Promise<any> => {
+					await device.device.prepareForHandleState(resolveTime)
+				})
+			).catch(error => {
 				this.emit('error', error)
 			})
 
