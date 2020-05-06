@@ -79,8 +79,6 @@ export class HTTPSendDevice extends DeviceWithState<TimelineState> implements ID
 
 		let commandsToAchieveState: Array<any> = this._diffStates(oldAbstractState, newAbstractState)
 
-		console.log('http state gave', commandsToAchieveState.length)
-
 		// clear any queued commands later than this time:
 		this._doOnTime.clearQueueNowAndAfter(previousStateTime)
 		// add the new commands to the queue:
