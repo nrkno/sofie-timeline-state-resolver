@@ -1,6 +1,6 @@
 {
   "name": "timeline-state-resolver",
-  "version": "3.20.0-0",
+  "version": "3.20.0",
   "description": "Have timeline, control stuff",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
@@ -151,8 +151,8 @@
     "production"
   ],
   "resolutions": {
-	"osc/serialport/@serialport/bindings/**/mkdirp": "^0.5.3",
-	"minimist": "^1.2.3"
+    "osc/serialport/@serialport/bindings/**/mkdirp": "^0.5.3",
+    "minimist": "^1.2.3"
   },
   "dependencies": {
     "atem-connection": "1.1.0",
