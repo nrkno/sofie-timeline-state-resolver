@@ -531,8 +531,7 @@ export class Conductor extends EventEmitter {
 	 */
 	public async devicesMakeReady (okToDestroyStuff?: boolean, activeRundownId?: string): Promise<void> {
 		await this._actionQueue.add(async () => {
-			const p = this._mapAllDevices((d) => d.device.makeReady(okToDestroyStuff, activeRundownId))
-			await PTimeout(p, 20000)
+			await this._mapAllDevices((d) => PTimeout(d.device.makeReady(okToDestroyStuff, activeRundownId), 10000, `makeReady for "${d.deviceId}" timed out`))
 
 			this._triggerResolveTimeline()
 		})
@@ -542,8 +541,7 @@ export class Conductor extends EventEmitter {
 	 */
 	public async devicesStandDown (okToDestroyStuff?: boolean): Promise<void> {
 		await this._actionQueue.add(async () => {
-			const p = this._mapAllDevices((d) => d.device.standDown(okToDestroyStuff))
-			await PTimeout(p, 20000)
+			await this._mapAllDevices((d) => PTimeout(d.device.standDown(okToDestroyStuff), 10000, `standDown for "${d.deviceId}" timed out`))
 		})
 	}
 
