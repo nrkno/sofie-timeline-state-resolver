@@ -151,7 +151,8 @@
     "production"
   ],
   "resolutions": {
-    "osc/serialport/@serialport/bindings/**/mkdirp": "^0.5.3"
+	"osc/serialport/@serialport/bindings/**/mkdirp": "^0.5.3",
+	"minimist": "^1.2.3"
   },
   "dependencies": {
     "atem-connection": "1.1.0",
