@@ -35,6 +35,7 @@ import { SisyfosMessageDevice, DeviceOptionsSisyfosInternal } from './devices/si
 import { SingularLiveDevice, DeviceOptionsSingularLiveInternal } from './devices/singularLive'
 import { VizMSEDevice, DeviceOptionsVizMSEInternal } from './devices/vizMSE'
 import PQueue from 'p-queue'
+import * as PAll from 'p-all'
 import PTimeout from 'p-timeout'
 export { DeviceContainer }
 export { CommandWithContext }
@@ -546,7 +547,9 @@ export class Conductor extends EventEmitter {
 	}
 
 	private _mapAllDevices<T> (fcn: (d: DeviceContainer) => Promise<T>): Promise<T[]> {
-		return Promise.all(_.map(_.values(this.devices), d => fcn(d)))
+		return PAll(_.map(_.values(this.devices), d => () => fcn(d)), {
+			stopOnError: false
+		})
 	}
 
 	/**

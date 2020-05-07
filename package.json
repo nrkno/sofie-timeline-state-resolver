@@ -162,6 +162,7 @@
     "emberplus": "git+https://github.com/nrkno/tv-automation-emberplus-connection#dist200919_1",
     "hyperdeck-connection": "^0.4.3",
     "osc": "^2.4.0",
+    "p-all": "^3.0.0",
     "p-queue": "^6.4.0",
     "p-timeout": "^3.2.0",
     "request": "^2.88.0",
