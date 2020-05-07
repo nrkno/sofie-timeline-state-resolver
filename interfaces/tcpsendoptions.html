@@ -2378,6 +2378,9 @@ img {
 					<a href="tcpsendoptions.html#makereadycommands" class="tsd-kind-icon">make<wbr>Ready<wbr>Commands</a>
 				</li>
 				<li class=" tsd-kind-property tsd-parent-kind-interface tsd-is-external">
+					<a href="tcpsendoptions.html#makereadydoesreset" class="tsd-kind-icon">make<wbr>Ready<wbr>Does<wbr>Reset</a>
+				</li>
+				<li class=" tsd-kind-property tsd-parent-kind-interface tsd-is-external">
 					<a href="tcpsendoptions.html#port" class="tsd-kind-icon">port</a>
 				</li>
 			</ul>
@@ -2404,6 +2407,7 @@ img {
 							<li class="tsd-kind-property tsd-parent-kind-interface tsd-is-external"><a href="tcpsendoptions.html#bufferencoding" class="tsd-kind-icon">buffer<wbr>Encoding</a></li>
 							<li class="tsd-kind-property tsd-parent-kind-interface tsd-is-external"><a href="tcpsendoptions.html#host" class="tsd-kind-icon">host</a></li>
 							<li class="tsd-kind-property tsd-parent-kind-interface tsd-is-external"><a href="tcpsendoptions.html#makereadycommands" class="tsd-kind-icon">make<wbr>Ready<wbr>Commands</a></li>
+							<li class="tsd-kind-property tsd-parent-kind-interface tsd-is-external"><a href="tcpsendoptions.html#makereadydoesreset" class="tsd-kind-icon">make<wbr>Ready<wbr>Does<wbr>Reset</a></li>
 							<li class="tsd-kind-property tsd-parent-kind-interface tsd-is-external"><a href="tcpsendoptions.html#port" class="tsd-kind-icon">port</a></li>
 						</ul>
 					</section>
@@ -2418,7 +2422,7 @@ img {
 				<div class="tsd-signature tsd-kind-icon">buffer<wbr>Encoding<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">BufferEncoding</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/9b8f045b/src/types/src/tcpSend.ts#L20">src/types/src/tcpSend.ts:20</a></li>
+						<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/96d04107/src/types/src/tcpSend.ts#L22">src/types/src/tcpSend.ts:22</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -2428,7 +2432,7 @@ img {
 				<div class="tsd-signature tsd-kind-icon">host<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/9b8f045b/src/types/src/tcpSend.ts#L18">src/types/src/tcpSend.ts:18</a></li>
+						<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/96d04107/src/types/src/tcpSend.ts#L20">src/types/src/tcpSend.ts:20</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -2438,9 +2442,24 @@ img {
 				<div class="tsd-signature tsd-kind-icon">make<wbr>Ready<wbr>Commands<span class="tsd-signature-symbol">:</span> <a href="tcpsendcommandcontent.html" class="tsd-signature-type">TcpSendCommandContent</a><span class="tsd-signature-symbol">[]</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/9b8f045b/src/types/src/tcpSend.ts#L16">src/types/src/tcpSend.ts:16</a></li>
+						<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/96d04107/src/types/src/tcpSend.ts#L16">src/types/src/tcpSend.ts:16</a></li>
 					</ul>
 				</aside>
+			</section>
+			<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface tsd-is-external">
+				<a name="makereadydoesreset" class="tsd-anchor"></a>
+				<h3><span class="tsd-flag ts-flagOptional">Optional</span> make<wbr>Ready<wbr>Does<wbr>Reset</h3>
+				<div class="tsd-signature tsd-kind-icon">make<wbr>Ready<wbr>Does<wbr>Reset<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">false</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">true</span></div>
+				<aside class="tsd-sources">
+					<ul>
+						<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/96d04107/src/types/src/tcpSend.ts#L18">src/types/src/tcpSend.ts:18</a></li>
+					</ul>
+				</aside>
+				<div class="tsd-comment tsd-typography">
+					<div class="lead">
+						<p>Whether a makeReady should be treated as a reset of the device. It should be assumed clean, with the queue discarded, and state reapplied from empty</p>
+					</div>
+				</div>
 			</section>
 			<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface tsd-is-external">
 				<a name="port" class="tsd-anchor"></a>
@@ -2448,7 +2467,7 @@ img {
 				<div class="tsd-signature tsd-kind-icon">port<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/9b8f045b/src/types/src/tcpSend.ts#L19">src/types/src/tcpSend.ts:19</a></li>
+						<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/96d04107/src/types/src/tcpSend.ts#L21">src/types/src/tcpSend.ts:21</a></li>
 					</ul>
 				</aside>
 			</section>
