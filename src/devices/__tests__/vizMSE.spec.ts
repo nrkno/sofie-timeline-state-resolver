@@ -610,7 +610,8 @@ describe('vizMSE', () => {
 				playlistID: 'my-super-playlist-id',
 				showID: 'show1234',
 				profile: 'profile9999',
-				clearAllTemplateName: 'clear_all_of_them'
+				clearAllTemplateName: 'clear_all_of_them',
+				clearAllCommands: ['RENDERER*FRONT_LAYER SET_OBJECT ', 'RENDERER SET_OBJECT ']
 			}
 		})
 		await mockTime.advanceTimeToTicks(10100)
@@ -646,7 +647,9 @@ describe('vizMSE', () => {
 				layer: 'viz0',
 				content: {
 					deviceType: DeviceType.VIZMSE,
-					type: TimelineContentTypeVizMSE.CLEAR_ALL_ELEMENTS
+					type: TimelineContentTypeVizMSE.CLEAR_ALL_ELEMENTS,
+					channelsToSendCommands: ['OVL', 'FULL'],
+					commands: ['RENDERER*FRONT_LAYER SET_OBJECT ', 'RENDERER SET_OBJECT ']
 				}
 			}
 		]
@@ -690,7 +693,7 @@ describe('vizMSE', () => {
 
 		commandReceiver0.mockClear()
 		await mockTime.advanceTimeToTicks(15500)
-		expect(commandReceiver0.mock.calls.length).toEqual(2)
+		expect(commandReceiver0.mock.calls.length).toEqual(3)
 		expect(getMockCall(commandReceiver0, 0, 1)).toMatchObject({
 			timelineObjId: 'clearAll',
 			time: 15100,
@@ -698,6 +701,13 @@ describe('vizMSE', () => {
 			templateName: 'clear_all_of_them'
 		})
 		expect(getMockCall(commandReceiver0, 1, 1)).toMatchObject({
+			timelineObjId: 'clearAll',
+			time: 15100,
+			type: 'clear_all_engines',
+			channels: ['OVL', 'FULL'],
+			commands: ['RENDERER*FRONT_LAYER SET_OBJECT ', 'RENDERER SET_OBJECT ']
+		})
+		expect(getMockCall(commandReceiver0, 2, 1)).toMatchObject({
 			timelineObjId: 'obj0',
 			time: 15150,
 			templateInstance: expect.stringContaining('myInternalElement'),
