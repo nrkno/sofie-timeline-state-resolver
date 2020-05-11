@@ -35,7 +35,9 @@ import {
 	VRundown,
 	InternalElement,
 	ExternalElement,
-	VElement
+	VElement,
+	VProfile,
+	VizEngine
 } from 'v-connection'
 
 import { DoOnTime, SendMode } from '../doOnTime'
@@ -1049,36 +1051,44 @@ class VizMSEManager extends EventEmitter {
 		try {
 			const profile = await this._vizMSE.getProfile(this._profile)
 			const engines = await this._vizMSE.getEngines()
-			const outputs = new Map<string, string>() // engine name : channel name
-			_.each(profile.execution_groups, (group, groupName) => {
-				_.each(group, entry => {
-					if (typeof entry === 'object' && entry.viz) {
-						if (typeof entry.viz === 'object' && entry.viz.value) {
-							outputs.set(entry.viz.value as string, groupName)
-						}
-					}
-				})
-			})
-			const outputEngines = engines.filter(engine => {
-				return outputs.has(engine.name)
-			})
-			outputEngines.forEach(engine => {
-				_.each(_.keys(engine.renderer), host => {
-					const channelName = outputs.get(engine.name)
-					if (cmd.channels === 'all' || _.contains(cmd.channels, channelName)) {
-						const match = host.match(/([^:]+):?(\d*)?/)
-						const port = (match && match[2]) ? parseInt(match[2], 10) : 6100
-						const hostname = (match && match[1]) ? match[1] : host
-						const sender = new VizEngineTcpSender(port, hostname)
-						sender.on('warning', w => this.emit('warning', `clearEngines: ${w}`))
-						sender.on('error', e => this.emit('error', `clearEngines: ${e}`))
-						sender.send(cmd.commands)
-					}
-				})
+			const enginesToClear = this._prepareEnginesToClear(profile, engines, cmd.channels)
+			enginesToClear.forEach(engine => {
+				const sender = new VizEngineTcpSender(engine.port, engine.host)
+				sender.on('warning', w => this.emit('warning', `clearEngines: ${w}`))
+				sender.on('error', e => this.emit('error', `clearEngines: ${e}`))
+				sender.send(cmd.commands)
 			})
 		} catch (e) {
-			this.emit('warning', `Sending command failed`, e)
+			this.emit('warning', `Sending Clear-all command failed ${e}`)
 		}
+	}
+	private _prepareEnginesToClear (profile: VProfile, engines: VizEngine[], channels: string[] | 'all'): Array<{host: string, port: number}> {
+		const enginesToClear: Array<{host: string, port: number}> = []
+		const outputs = new Map<string, string>() // engine name : channel name
+		_.each(profile.execution_groups, (group, groupName) => {
+			_.each(group, entry => {
+				if (typeof entry === 'object' && entry.viz) {
+					if (typeof entry.viz === 'object' && entry.viz.value) {
+						outputs.set(entry.viz.value as string, groupName)
+					}
+				}
+			})
+		})
+		const outputEngines = engines.filter(engine => {
+			return outputs.has(engine.name)
+		})
+		outputEngines.forEach(engine => {
+			_.each(_.keys(engine.renderer), fullHost => {
+				const channelName = outputs.get(engine.name)
+				if (channels === 'all' || _.contains(channels, channelName)) {
+					const match = fullHost.match(/([^:]+):?(\d*)?/)
+					const port = (match && match[2]) ? parseInt(match[2], 10) : 6100
+					const host = (match && match[1]) ? match[1] : fullHost
+					enginesToClear.push({ host, port })
+				}
+			})
+		})
+		return enginesToClear
 	}
 	/**
 	 * Load all elements: Trigger a loading of all pilot elements onto the vizEngine.
