@@ -1827,6 +1827,7 @@ class VizEngineTcpSender extends EventEmitter {
 	private _sendQueue: string[] = []
 	private _waitQueue: Set<number> = new Set()
 	private _incomingData: string = ''
+	private _responseTimeoutMs: number = 6000
 
 	constructor (port: number, host: string) {
 		super()
@@ -1849,10 +1850,13 @@ class VizEngineTcpSender extends EventEmitter {
 		this._socket = net.createConnection(this._port, this._host)
 		this._socket.on('connect', () => {
 			this._connected = true
-			this._flushQueue()
+			if (this._sendQueue.length) {
+				this._flushQueue()
+			}
 		})
 		this._socket.on('error', e => {
 			this.emit('error', e)
+			this._destroy()
 		})
 		this._socket.on('lookup', () => {
 			// this handles a dns exception, but the error is handled on 'error' event
@@ -1865,6 +1869,12 @@ class VizEngineTcpSender extends EventEmitter {
 			this._socket.write(`${++this._commandCount} ${command}\x00`)
 			this._waitQueue.add(this._commandCount)
 		})
+		setTimeout(() => {
+			if (this._waitQueue.size) {
+				this.emit('warning', `Response from ${this._host}:${this._port} not received on time`)
+				this._destroy()
+			}
+		}, this._responseTimeoutMs)
 	}
 
 	private _processData (data: Buffer) {
@@ -1886,7 +1896,12 @@ class VizEngineTcpSender extends EventEmitter {
 			this._waitQueue.delete(parseInt(id, 10))
 		})
 		if (this._waitQueue.size === 0) {
-			this._socket.destroy()
+			this._destroy()
 		}
+	}
+
+	private _destroy () {
+		this._socket.destroy()
+		this.removeAllListeners()
 	}
 }
