@@ -166,7 +166,7 @@
     "tslib": "^1.10.0",
     "underscore": "^1.9.1",
     "underscore-deep-extend": "^1.1.5",
-    "v-connection": "git+https://github.com/olzzon/v-connection#v20200514_1",
+    "v-connection": "git+https://github.com/olzzon/v-connection#v20200515_1",
     "ws": "^7.1.1"
   },
   "standard-version": {
