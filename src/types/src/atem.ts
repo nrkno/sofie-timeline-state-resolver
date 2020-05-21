@@ -117,7 +117,8 @@ export interface TimelineObjAtemME extends TimelineObjAtemBase {
 			input?: number,
 			transition?: AtemTransitionStyle,
 
-			// programInput?: number; // programInput exists, bu I don't think we should use it /Nyman
+			/** Cut directly to program */
+			programInput?: number;
 			previewInput?: number;
 			inTransition?: boolean;
 			transitionPreview?: boolean;
