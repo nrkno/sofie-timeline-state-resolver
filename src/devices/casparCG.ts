@@ -768,18 +768,20 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> implements ID
 					const trackedState = this._ccgState.getState()
 
 					const channel = currentCasparState.channels[resCommand.channel]
+					if (channel) {
 
-					if (!trackedState.channels[resCommand.channel]) {
-						trackedState.channels[resCommand.channel] = {
-							channelNo: channel.channelNo,
-							fps: channel.fps || 0,
-							videoMode: channel.videoMode || null,
-							layers: {}
+						if (!trackedState.channels[resCommand.channel]) {
+							trackedState.channels[resCommand.channel] = {
+								channelNo: channel.channelNo,
+								fps: channel.fps || 0,
+								videoMode: channel.videoMode || null,
+								layers: {}
+							}
 						}
+						// Copy the tracked from current state:
+						trackedState.channels[resCommand.channel].layers[resCommand.layer] = channel.layers[resCommand.layer]
+						this._ccgState.setState(trackedState)
 					}
-					// Copy the tracked from current state:
-					trackedState.channels[resCommand.channel].layers[resCommand.layer] = currentCasparState.channels[resCommand.channel].layers[resCommand.layer]
-					this._ccgState.setState(trackedState)
 				}
 			}
 		}).catch((error) => {
@@ -804,7 +806,6 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> implements ID
 			} else if (cmd.payload && !_.isEmpty(cmd.payload)) {
 				errorString += ', payload: ' + JSON.stringify(cmd.payload)
 			}
-			console.log('commandError', errorString)
 			this.emit('commandError', new Error(errorString), cwc)
 			if (cmd.name === 'ScheduleSetCommand') {
 				// delete this._queue[cmd.getParam('command').token]
