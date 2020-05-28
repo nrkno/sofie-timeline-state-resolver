@@ -2,6 +2,26 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.20.1](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/3.20.0...3.20.1) (2020-05-28)
+
+
+### Bug Fixes
+
+* implement for tcpSend and fix tests ([5a070e1](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/5a070e1404c3065735ba5b43e2857154192240f3))
+* implement for tcpSend and fix tests ([5a070e1](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/5a070e1404c3065735ba5b43e2857154192240f3))
+* improve timeout logging ([595e076](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/595e0766d912a1b875a0a5228a7318de8efe88c7))
+* improve timeout logging ([595e076](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/595e0766d912a1b875a0a5228a7318de8efe88c7))
+* node8 [publish] ([96d0410](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/96d041079576a38fca926437d26362bdba1e96bb))
+* node8 [publish] ([96d0410](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/96d041079576a38fca926437d26362bdba1e96bb))
+* remove unused quantel seek property ([9b8f045](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/9b8f045b4ce1bb4eddaabab0d4536d9bada82a3c))
+* route atem connection logging through logging system ([81ef70c](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/81ef70c0b115ffaa6d7d60648980adb3b7890851))
+* route atem connection logging through logging system ([81ef70c](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/81ef70c0b115ffaa6d7d60648980adb3b7890851))
+* some device errors ([e185c14](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/e185c145399307388c2c73a5fbe22a6be856b41b))
+* **http:** add makeReadyDoesReset property ([b2e2ad5](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/b2e2ad5f8c699ea847fefef2b440292e421e9e0c))
+* some device errors ([e185c14](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/e185c145399307388c2c73a5fbe22a6be856b41b))
+* **http:** add makeReadyDoesReset property ([b2e2ad5](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/b2e2ad5f8c699ea847fefef2b440292e421e9e0c))
+* remove unused quantel seek property ([9b8f045](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/9b8f045b4ce1bb4eddaabab0d4536d9bada82a3c))
+
 ## [3.20.0](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/3.19.0...3.20.0) (2020-05-06)
 
 
