@@ -121,6 +121,7 @@ export class LawoDevice extends DeviceWithState<TimelineState> implements IDevic
 				case LawoDeviceMode.RubyManualRamp:
 					this._sourcesPath = 'Ruby.Sources'
 					this._dbPropertyName = 'Fader.Motor dB Value'
+					this._faderThreshold = -60
 					break
 				case LawoDeviceMode.MC2:
 					this._sourcesPath = 'Channels.Inputs'
@@ -451,9 +452,8 @@ export class LawoDevice extends DeviceWithState<TimelineState> implements IDevic
 
 		try {
 			if (command.key === 'Fader/Motor dB Value' && command.transitionDuration && command.transitionDuration >= 0) {	// fader level
-				// this.emit('debug', cwc)
-
-				if (!this._rampMotorFunctionPath) {
+				// TODO - Lawo result 6 code is based on time - difference ratio, certain ratios we may want to run a manual fade?
+				if (!this._rampMotorFunctionPath || (command.transitionDuration < 500 && this._faderIntervalTime < 250)) {
 					// add the fade to the fade object, such that we can fade the signal using the fader
 					if (!command.from) { // @todo: see if we can query the lawo first
 						const node = await this._getNodeByPath(command.path) as EmberModel.NumberedTreeNode<EmberModel.Parameter>
@@ -477,16 +477,18 @@ export class LawoDevice extends DeviceWithState<TimelineState> implements IDevic
 
 					if (!this.transitionInterval) this.transitionInterval = setInterval(() => this.runAnimation(), this._faderIntervalTime || 75)
 				} else if (command.transitionDuration >= 500) { // Motor Ramp in Lawo cannot handle too short durations
-					const fn = new EmberModel.QualifiedElementImpl(this._rampMotorFunctionPath, new EmberModel.EmberFunctionImpl())
+					const fn = await this._lawo.getElementByPath(this._rampMotorFunctionPath)
+					if (!fn) throw new Error('Function path not found')
+					if (fn.contents.type !== EmberModel.ElementType.Function) throw new Error('Node at specified path for function is not a function')
 					const req = await this._lawo.invoke(
-						fn,
+						fn as EmberModel.NumberedTreeNode<EmberModel.EmberFunction>,
 						{ type: EmberModel.ParameterType.String, value: command.identifier },
 						{ type: EmberModel.ParameterType.Real, value: command.value },
 						{ type: EmberModel.ParameterType.Real, value: command.transitionDuration / 1000 }
 					)
 					this.emit('debug', `Ember function invoked (${timelineObjId})`)
 					const res = await req.response
-					this.emit('debug', `Ember function result (${timelineObjId}): ${(res)}`)
+					this.emit('debug', `Ember function result (${timelineObjId}): ${(JSON.stringify(res))}`, res)
 					if (res && res.success === false) {
 						if (res.result && res.result[0].value === 6 && this._lastSentValue[command.path] <= startSend) { // result 6 and no new command fired for this path in meantime
 							// Lawo rejected the command, so ensure the value gets set
@@ -516,12 +518,12 @@ export class LawoDevice extends DeviceWithState<TimelineState> implements IDevic
 			const req = await this._lawo.setValue(node, value, logResult)
 			if (logResult) {
 				const res = await req.response
-				// this.emit('debug', `Ember result (${timelineObjId}): ${JSON.stringify(res)}`)
-				this.emit('debug', `Ember result (${timelineObjId}): ${(res)}`, res)
+				this.emit('debug', `Ember result (${timelineObjId}): ${(res && res.contents.value)}`, { command, res: res && res.contents })
+			} else if (req.sentOk) {
+				this.emit('debug', `Ember req (${timelineObjId}) for "${command.path}" to "${value}" sent`)
 			} else {
-				this.emit('debug', `Ember req (${timelineObjId}) sent: ${req.sentOk}`)
+				this.emit('error', 'SetValue no logResult', new Error(`Ember req (${timelineObjId}) for "${command.path}" to "${value}" failed`))
 			}
-
 		} catch (e) {
 			this.emit('error', `Lawo: Error in setValue (${timelineObjId})`, e)
 			throw e
@@ -545,8 +547,8 @@ export class LawoDevice extends DeviceWithState<TimelineState> implements IDevic
 		for (const addr in this.transitions) {
 			const transition = this.transitions[addr]
 
-			const from = Math.max(this._faderThreshold, transition.from as number)
-			const to = Math.max(this._faderThreshold, transition.value as number)
+			const from = this._faderThreshold ? Math.max(this._faderThreshold, transition.from as number) : transition.from as number
+			const to = this._faderThreshold ? Math.max(this._faderThreshold, transition.value as number) : transition.value as number
 
 			const p = (this.getCurrentTime() - transition.started) / transition.transitionDuration!
 
