@@ -621,7 +621,9 @@ export class Conductor extends EventEmitter {
 		let statTimeTimelineResolved: number = 0
 
 		try {
+			/** The point in time this function is run. ( ie "right now") */
 			const now = this.getCurrentTime()
+			/** The point in time we're targeting. (This can be in the future) */
 			let resolveTime: number = this._nextResolveTime
 
 			const estimatedResolveTime = this.estimateResolveTime()
@@ -678,15 +680,17 @@ export class Conductor extends EventEmitter {
 			const deleteParent = (o: TimelineObject) => { delete o['parent'] }
 			_.each(timeline, (o) => applyRecursively(o, deleteParent))
 
+			// Determine if we can use the pre-resolved timeline:
 			let resolvedStates: ResolvedStates
 			if (
 				this._resolvedStates.resolvedStates &&
 				resolveTime >= this._resolvedStates.resolveTime &&
 				resolveTime < this._resolvedStates.resolveTime + RESOLVE_LIMIT_TIME
 			) {
+				// Yes, we can use the previously resolved timeline:
 				resolvedStates = this._resolvedStates.resolvedStates
-
 			} else {
+				// No, we need to resolve the timeline again:
 				let o = await this._resolver.resolveTimeline(
 					resolveTime,
 					timeline,
