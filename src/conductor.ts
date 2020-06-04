@@ -2,7 +2,8 @@ import * as _ from 'underscore'
 import {
 	TimelineState,
 	ResolvedTimelineObjectInstance,
-	ResolvedStates
+	ResolvedStates,
+	TimelineObject
 } from 'superfly-timeline'
 
 import { CommandWithContext } from './devices/device'
@@ -620,7 +621,9 @@ export class Conductor extends EventEmitter {
 		let statTimeTimelineResolved: number = 0
 
 		try {
+			/** The point in time this function is run. ( ie "right now") */
 			const now = this.getCurrentTime()
+			/** The point in time we're targeting. (This can be in the future) */
 			let resolveTime: number = this._nextResolveTime
 
 			const estimatedResolveTime = this.estimateResolveTime()
@@ -659,44 +662,52 @@ export class Conductor extends EventEmitter {
 				this.emit('error', error)
 			})
 
-			const fixTimelineObject = (o: any) => {
-				if (nowIds[o.id]) o.enable.start = nowIds[o.id]
-				delete o['parent']
+			const applyRecursively = (o: TimelineObject, func: (o: TimelineObject) => void) => {
+				func(o)
+
 				if (o.isGroup) {
-					if (o.content.objects) {
-						_.each(o.content.objects, (child) => {
-							fixTimelineObject(child)
-						})
-					}
+					_.each(o.children || [], (child: TimelineObject) => {
+						applyRecursively(child, func)
+					})
 				}
 			}
 
 			statTimeTimelineStartResolve = Date.now()
-			const nowIds: {[id: string]: number} = {}
 			let timeline: TSRTimeline = this.timeline
 
 			// To prevent trying to transfer circular references over IPC we remove
 			// any references to the parent property:
-			_.each(timeline, (o) => {
-				fixTimelineObject(o)
-			})
+			const deleteParent = (o: TimelineObject) => { delete o['parent'] }
+			_.each(timeline, (o) => applyRecursively(o, deleteParent))
 
+			// Determine if we can use the pre-resolved timeline:
 			let resolvedStates: ResolvedStates
-			let objectsFixed: { id: string, time: number}[] = []
 			if (
 				this._resolvedStates.resolvedStates &&
-				this._resolvedStates.resolveTime >= now &&
-				this._resolvedStates.resolveTime < now + RESOLVE_LIMIT_TIME
+				resolveTime >= this._resolvedStates.resolveTime &&
+				resolveTime < this._resolvedStates.resolveTime + RESOLVE_LIMIT_TIME
 			) {
+				// Yes, we can use the previously resolved timeline:
 				resolvedStates = this._resolvedStates.resolvedStates
 			} else {
+				// No, we need to resolve the timeline again:
 				let o = await this._resolver.resolveTimeline(
 					resolveTime,
-					this.timeline,
-					now + RESOLVE_LIMIT_TIME
+					timeline,
+					resolveTime + RESOLVE_LIMIT_TIME
 				)
 				resolvedStates = o.resolvedStates
-				objectsFixed = o.objectsFixed
+
+				this._resolvedStates.resolvedStates = resolvedStates
+				this._resolvedStates.resolveTime = resolveTime
+
+				// Apply changes to fixed objects (set "now" triggers to an actual time):
+				// This gets persisted on this.timeline, so we only have to do this once
+				const nowIds: {[id: string]: number} = {}
+				_.each(o.objectsFixed, (o) => nowIds[o.id] = o.time)
+				const fixNow = (o: TimelineObject) => { if (nowIds[o.id]) o.enable.start = nowIds[o.id] }
+				_.each(timeline, (o) => applyRecursively(o, fixNow))
+
 			}
 
 			let tlState = await this._resolver.getState(
@@ -704,14 +715,6 @@ export class Conductor extends EventEmitter {
 				resolveTime
 			)
 			await pPrepareForHandleStates
-
-			// Apply changes to fixed objects (set "now" triggers to an actual time):
-			_.each(objectsFixed, (o) => {
-				nowIds[o.id] = o.time
-			})
-			_.each(timeline, (o) => {
-				fixTimelineObject(o)
-			})
 
 			statTimeTimelineResolved = Date.now()
 
@@ -828,7 +831,7 @@ export class Conductor extends EventEmitter {
 				this._diffStateForCallbacks(sentCallbacksNew)
 			}, activeObjects)
 
-			this.emit('debug', 'resolveTimeline at time ' + resolveTime + ' done in ' + (Date.now() - startTime) + 'ms (size: ' + this.timeline.length + ')')
+			this.emit('debug', 'resolveTimeline at time ' + resolveTime + ' done in ' + (Date.now() - startTime) + 'ms (size: ' + timeline.length + ')')
 		} catch (e) {
 			this.emit('error', 'resolveTimeline' + e + '\nStack: ' + e.stack)
 		}
