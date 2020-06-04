@@ -3,7 +3,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<title>PanasonicPtzHttpInterface | timeline-state-resolver-types</title>
+	<title>PanasonicPtzHttpInterface | timeline-state-resolver-types - v1.3.0</title>
 	<meta name="description" content="">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<style type="text/css">/*! normalize.css v1.1.3 | MIT License | git.io/normalize */
@@ -2335,7 +2335,7 @@ img {
 		<div class="container">
 			<div class="table-wrap">
 				<div class="table-cell">
-					<strong><a href="../index.html">timeline-state-resolver-types</a></strong>
+					<strong><a href="../index.html">timeline-state-resolver-types - v1.3.0</a></strong>
 				</div>
 				<div class="table-cell" id="tsd-widgets">
 					<div id="tsd-filter">
@@ -2541,7 +2541,7 @@ img {
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/727558bf/src/devices/panasonicPTZAPI.ts#L131">src/devices/panasonicPTZAPI.ts:131</a></li>
+								<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/652ef36d/src/devices/panasonicPTZAPI.ts#L131">src/devices/panasonicPTZAPI.ts:131</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -2568,7 +2568,7 @@ img {
 				<h3><span class="tsd-flag ts-flagStatic">Static</span> default<wbr>Max<wbr>Listeners</h3>
 				<div class="tsd-signature tsd-kind-icon">default<wbr>Max<wbr>Listeners<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span></div>
 				<aside class="tsd-sources">
-					<p>Inherited from <a href="doontime.html">DoOnTime</a>.<a href="doontime.html#defaultmaxlisteners">defaultMaxListeners</a></p>
+					<p>Inherited from EventEmitter.defaultMaxListeners</p>
 					<ul>
 						<li>Defined in node_modules/@types/node/events.d.ts:18</li>
 					</ul>
@@ -2581,12 +2581,12 @@ img {
 				<a name="addlistener" class="tsd-anchor"></a>
 				<h3>add<wbr>Listener</h3>
 				<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-overwrite tsd-is-inherited tsd-is-external">
-					<li class="tsd-signature tsd-kind-icon">add<wbr>Listener<span class="tsd-signature-symbol">(</span>event<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">symbol</span>, listener<span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">...</span>args<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">this</span></li>
+					<li class="tsd-signature tsd-kind-icon">add<wbr>Listener<span class="tsd-signature-symbol">(</span>event<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">symbol</span>, listener<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">function</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">this</span></li>
 				</ul>
 				<ul class="tsd-descriptions">
 					<li class="tsd-description">
 						<aside class="tsd-sources">
-							<p>Inherited from <a href="doontime.html">DoOnTime</a>.<a href="doontime.html#addlistener">addListener</a></p>
+							<p>Inherited from EventEmitter.addListener</p>
 							<p>Overrides EventEmitter.addListener</p>
 							<ul>
 								<li>Defined in node_modules/@types/node/events.d.ts:20</li>
@@ -2598,10 +2598,10 @@ img {
 								<h5>event: <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">symbol</span></h5>
 							</li>
 							<li>
-								<h5>listener: <span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">...</span>args<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">void</span></h5>
+								<h5>listener: <span class="tsd-signature-type">function</span></h5>
 								<ul class="tsd-parameters">
 									<li class="tsd-parameter-siganture">
-										<ul class="tsd-signatures tsd-kind-type-literal">
+										<ul class="tsd-signatures tsd-kind-type-literal tsd-is-not-exported">
 											<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">...</span>args<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
 										</ul>
 										<ul class="tsd-descriptions">
@@ -2633,7 +2633,7 @@ img {
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/727558bf/src/devices/panasonicPTZAPI.ts#L156">src/devices/panasonicPTZAPI.ts:156</a></li>
+								<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/652ef36d/src/devices/panasonicPTZAPI.ts#L156">src/devices/panasonicPTZAPI.ts:156</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
@@ -2649,7 +2649,7 @@ img {
 				<ul class="tsd-descriptions">
 					<li class="tsd-description">
 						<aside class="tsd-sources">
-							<p>Inherited from <a href="panasonicptzcamera.html">PanasonicPtzCamera</a>.<a href="panasonicptzcamera.html#emit">emit</a></p>
+							<p>Inherited from EventEmitter.emit</p>
 							<p>Overrides EventEmitter.emit</p>
 							<ul>
 								<li>Defined in node_modules/@types/node/events.d.ts:32</li>
@@ -2677,7 +2677,7 @@ img {
 				<ul class="tsd-descriptions">
 					<li class="tsd-description">
 						<aside class="tsd-sources">
-							<p>Inherited from <a href="doontime.html">DoOnTime</a>.<a href="doontime.html#eventnames">eventNames</a></p>
+							<p>Inherited from EventEmitter.eventNames</p>
 							<p>Overrides EventEmitter.eventNames</p>
 							<ul>
 								<li>Defined in node_modules/@types/node/events.d.ts:33</li>
@@ -2696,7 +2696,7 @@ img {
 				<ul class="tsd-descriptions">
 					<li class="tsd-description">
 						<aside class="tsd-sources">
-							<p>Inherited from <a href="doontime.html">DoOnTime</a>.<a href="doontime.html#getmaxlisteners">getMaxListeners</a></p>
+							<p>Inherited from EventEmitter.getMaxListeners</p>
 							<p>Overrides EventEmitter.getMaxListeners</p>
 							<ul>
 								<li>Defined in node_modules/@types/node/events.d.ts:29</li>
@@ -2716,7 +2716,7 @@ img {
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/727558bf/src/devices/panasonicPTZAPI.ts#L164">src/devices/panasonicPTZAPI.ts:164</a></li>
+								<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/652ef36d/src/devices/panasonicPTZAPI.ts#L164">src/devices/panasonicPTZAPI.ts:164</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -2743,7 +2743,7 @@ img {
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/727558bf/src/devices/panasonicPTZAPI.ts#L218">src/devices/panasonicPTZAPI.ts:218</a></li>
+								<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/652ef36d/src/devices/panasonicPTZAPI.ts#L218">src/devices/panasonicPTZAPI.ts:218</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -2771,7 +2771,7 @@ img {
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/727558bf/src/devices/panasonicPTZAPI.ts#L326">src/devices/panasonicPTZAPI.ts:326</a></li>
+								<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/652ef36d/src/devices/panasonicPTZAPI.ts#L326">src/devices/panasonicPTZAPI.ts:326</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -2799,7 +2799,7 @@ img {
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/727558bf/src/devices/panasonicPTZAPI.ts#L272">src/devices/panasonicPTZAPI.ts:272</a></li>
+								<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/652ef36d/src/devices/panasonicPTZAPI.ts#L272">src/devices/panasonicPTZAPI.ts:272</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -2826,7 +2826,7 @@ img {
 				<ul class="tsd-descriptions">
 					<li class="tsd-description">
 						<aside class="tsd-sources">
-							<p>Inherited from <a href="doontime.html">DoOnTime</a>.<a href="doontime.html#listenercount-1">listenerCount</a></p>
+							<p>Inherited from EventEmitter.listenerCount</p>
 							<p>Overrides EventEmitter.listenerCount</p>
 							<ul>
 								<li>Defined in node_modules/@types/node/events.d.ts:34</li>
@@ -2851,7 +2851,7 @@ img {
 				<ul class="tsd-descriptions">
 					<li class="tsd-description">
 						<aside class="tsd-sources">
-							<p>Inherited from <a href="doontime.html">DoOnTime</a>.<a href="doontime.html#listeners">listeners</a></p>
+							<p>Inherited from EventEmitter.listeners</p>
 							<p>Overrides EventEmitter.listeners</p>
 							<ul>
 								<li>Defined in node_modules/@types/node/events.d.ts:30</li>
@@ -2871,12 +2871,12 @@ img {
 				<a name="off" class="tsd-anchor"></a>
 				<h3>off</h3>
 				<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-overwrite tsd-is-inherited tsd-is-external">
-					<li class="tsd-signature tsd-kind-icon">off<span class="tsd-signature-symbol">(</span>event<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">symbol</span>, listener<span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">...</span>args<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">this</span></li>
+					<li class="tsd-signature tsd-kind-icon">off<span class="tsd-signature-symbol">(</span>event<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">symbol</span>, listener<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">function</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">this</span></li>
 				</ul>
 				<ul class="tsd-descriptions">
 					<li class="tsd-description">
 						<aside class="tsd-sources">
-							<p>Inherited from <a href="doontime.html">DoOnTime</a>.<a href="doontime.html#off">off</a></p>
+							<p>Inherited from EventEmitter.off</p>
 							<p>Overrides EventEmitter.off</p>
 							<ul>
 								<li>Defined in node_modules/@types/node/events.d.ts:26</li>
@@ -2888,10 +2888,10 @@ img {
 								<h5>event: <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">symbol</span></h5>
 							</li>
 							<li>
-								<h5>listener: <span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">...</span>args<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">void</span></h5>
+								<h5>listener: <span class="tsd-signature-type">function</span></h5>
 								<ul class="tsd-parameters">
 									<li class="tsd-parameter-siganture">
-										<ul class="tsd-signatures tsd-kind-type-literal">
+										<ul class="tsd-signatures tsd-kind-type-literal tsd-is-not-exported">
 											<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">...</span>args<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
 										</ul>
 										<ul class="tsd-descriptions">
@@ -2917,12 +2917,12 @@ img {
 				<a name="on" class="tsd-anchor"></a>
 				<h3>on</h3>
 				<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-overwrite tsd-is-inherited tsd-is-external">
-					<li class="tsd-signature tsd-kind-icon">on<span class="tsd-signature-symbol">(</span>event<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">symbol</span>, listener<span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">...</span>args<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">this</span></li>
+					<li class="tsd-signature tsd-kind-icon">on<span class="tsd-signature-symbol">(</span>event<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">symbol</span>, listener<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">function</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">this</span></li>
 				</ul>
 				<ul class="tsd-descriptions">
 					<li class="tsd-description">
 						<aside class="tsd-sources">
-							<p>Inherited from <a href="panasonicptzcamera.html">PanasonicPtzCamera</a>.<a href="panasonicptzcamera.html#on">on</a></p>
+							<p>Inherited from EventEmitter.on</p>
 							<p>Overrides EventEmitter.on</p>
 							<ul>
 								<li>Defined in node_modules/@types/node/events.d.ts:21</li>
@@ -2934,10 +2934,10 @@ img {
 								<h5>event: <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">symbol</span></h5>
 							</li>
 							<li>
-								<h5>listener: <span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">...</span>args<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">void</span></h5>
+								<h5>listener: <span class="tsd-signature-type">function</span></h5>
 								<ul class="tsd-parameters">
 									<li class="tsd-parameter-siganture">
-										<ul class="tsd-signatures tsd-kind-type-literal">
+										<ul class="tsd-signatures tsd-kind-type-literal tsd-is-not-exported">
 											<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">...</span>args<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
 										</ul>
 										<ul class="tsd-descriptions">
@@ -2963,12 +2963,12 @@ img {
 				<a name="once" class="tsd-anchor"></a>
 				<h3>once</h3>
 				<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-overwrite tsd-is-inherited tsd-is-external">
-					<li class="tsd-signature tsd-kind-icon">once<span class="tsd-signature-symbol">(</span>event<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">symbol</span>, listener<span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">...</span>args<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">this</span></li>
+					<li class="tsd-signature tsd-kind-icon">once<span class="tsd-signature-symbol">(</span>event<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">symbol</span>, listener<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">function</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">this</span></li>
 				</ul>
 				<ul class="tsd-descriptions">
 					<li class="tsd-description">
 						<aside class="tsd-sources">
-							<p>Inherited from <a href="doontime.html">DoOnTime</a>.<a href="doontime.html#once">once</a></p>
+							<p>Inherited from EventEmitter.once</p>
 							<p>Overrides EventEmitter.once</p>
 							<ul>
 								<li>Defined in node_modules/@types/node/events.d.ts:22</li>
@@ -2980,10 +2980,10 @@ img {
 								<h5>event: <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">symbol</span></h5>
 							</li>
 							<li>
-								<h5>listener: <span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">...</span>args<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">void</span></h5>
+								<h5>listener: <span class="tsd-signature-type">function</span></h5>
 								<ul class="tsd-parameters">
 									<li class="tsd-parameter-siganture">
-										<ul class="tsd-signatures tsd-kind-type-literal">
+										<ul class="tsd-signatures tsd-kind-type-literal tsd-is-not-exported">
 											<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">...</span>args<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
 										</ul>
 										<ul class="tsd-descriptions">
@@ -3015,7 +3015,7 @@ img {
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/727558bf/src/devices/panasonicPTZAPI.ts#L380">src/devices/panasonicPTZAPI.ts:380</a></li>
+								<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/652ef36d/src/devices/panasonicPTZAPI.ts#L380">src/devices/panasonicPTZAPI.ts:380</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -3037,12 +3037,12 @@ img {
 				<a name="prependlistener" class="tsd-anchor"></a>
 				<h3>prepend<wbr>Listener</h3>
 				<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-overwrite tsd-is-inherited tsd-is-external">
-					<li class="tsd-signature tsd-kind-icon">prepend<wbr>Listener<span class="tsd-signature-symbol">(</span>event<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">symbol</span>, listener<span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">...</span>args<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">this</span></li>
+					<li class="tsd-signature tsd-kind-icon">prepend<wbr>Listener<span class="tsd-signature-symbol">(</span>event<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">symbol</span>, listener<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">function</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">this</span></li>
 				</ul>
 				<ul class="tsd-descriptions">
 					<li class="tsd-description">
 						<aside class="tsd-sources">
-							<p>Inherited from <a href="doontime.html">DoOnTime</a>.<a href="doontime.html#prependlistener">prependListener</a></p>
+							<p>Inherited from EventEmitter.prependListener</p>
 							<p>Overrides EventEmitter.prependListener</p>
 							<ul>
 								<li>Defined in node_modules/@types/node/events.d.ts:23</li>
@@ -3054,10 +3054,10 @@ img {
 								<h5>event: <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">symbol</span></h5>
 							</li>
 							<li>
-								<h5>listener: <span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">...</span>args<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">void</span></h5>
+								<h5>listener: <span class="tsd-signature-type">function</span></h5>
 								<ul class="tsd-parameters">
 									<li class="tsd-parameter-siganture">
-										<ul class="tsd-signatures tsd-kind-type-literal">
+										<ul class="tsd-signatures tsd-kind-type-literal tsd-is-not-exported">
 											<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">...</span>args<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
 										</ul>
 										<ul class="tsd-descriptions">
@@ -3083,12 +3083,12 @@ img {
 				<a name="prependoncelistener" class="tsd-anchor"></a>
 				<h3>prepend<wbr>Once<wbr>Listener</h3>
 				<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-overwrite tsd-is-inherited tsd-is-external">
-					<li class="tsd-signature tsd-kind-icon">prepend<wbr>Once<wbr>Listener<span class="tsd-signature-symbol">(</span>event<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">symbol</span>, listener<span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">...</span>args<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">this</span></li>
+					<li class="tsd-signature tsd-kind-icon">prepend<wbr>Once<wbr>Listener<span class="tsd-signature-symbol">(</span>event<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">symbol</span>, listener<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">function</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">this</span></li>
 				</ul>
 				<ul class="tsd-descriptions">
 					<li class="tsd-description">
 						<aside class="tsd-sources">
-							<p>Inherited from <a href="doontime.html">DoOnTime</a>.<a href="doontime.html#prependoncelistener">prependOnceListener</a></p>
+							<p>Inherited from EventEmitter.prependOnceListener</p>
 							<p>Overrides EventEmitter.prependOnceListener</p>
 							<ul>
 								<li>Defined in node_modules/@types/node/events.d.ts:24</li>
@@ -3100,10 +3100,10 @@ img {
 								<h5>event: <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">symbol</span></h5>
 							</li>
 							<li>
-								<h5>listener: <span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">...</span>args<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">void</span></h5>
+								<h5>listener: <span class="tsd-signature-type">function</span></h5>
 								<ul class="tsd-parameters">
 									<li class="tsd-parameter-siganture">
-										<ul class="tsd-signatures tsd-kind-type-literal">
+										<ul class="tsd-signatures tsd-kind-type-literal tsd-is-not-exported">
 											<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">...</span>args<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
 										</ul>
 										<ul class="tsd-descriptions">
@@ -3134,7 +3134,7 @@ img {
 				<ul class="tsd-descriptions">
 					<li class="tsd-description">
 						<aside class="tsd-sources">
-							<p>Inherited from <a href="doontime.html">DoOnTime</a>.<a href="doontime.html#rawlisteners">rawListeners</a></p>
+							<p>Inherited from EventEmitter.rawListeners</p>
 							<p>Overrides EventEmitter.rawListeners</p>
 							<ul>
 								<li>Defined in node_modules/@types/node/events.d.ts:31</li>
@@ -3160,7 +3160,7 @@ img {
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/727558bf/src/devices/panasonicPTZAPI.ts#L190">src/devices/panasonicPTZAPI.ts:190</a></li>
+								<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/652ef36d/src/devices/panasonicPTZAPI.ts#L190">src/devices/panasonicPTZAPI.ts:190</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -3196,7 +3196,7 @@ img {
 				<ul class="tsd-descriptions">
 					<li class="tsd-description">
 						<aside class="tsd-sources">
-							<p>Inherited from <a href="doontime.html">DoOnTime</a>.<a href="doontime.html#removealllisteners">removeAllListeners</a></p>
+							<p>Inherited from EventEmitter.removeAllListeners</p>
 							<p>Overrides EventEmitter.removeAllListeners</p>
 							<ul>
 								<li>Defined in node_modules/@types/node/events.d.ts:27</li>
@@ -3216,12 +3216,12 @@ img {
 				<a name="removelistener" class="tsd-anchor"></a>
 				<h3>remove<wbr>Listener</h3>
 				<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-overwrite tsd-is-inherited tsd-is-external">
-					<li class="tsd-signature tsd-kind-icon">remove<wbr>Listener<span class="tsd-signature-symbol">(</span>event<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">symbol</span>, listener<span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">...</span>args<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">this</span></li>
+					<li class="tsd-signature tsd-kind-icon">remove<wbr>Listener<span class="tsd-signature-symbol">(</span>event<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">symbol</span>, listener<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">function</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">this</span></li>
 				</ul>
 				<ul class="tsd-descriptions">
 					<li class="tsd-description">
 						<aside class="tsd-sources">
-							<p>Inherited from <a href="doontime.html">DoOnTime</a>.<a href="doontime.html#removelistener">removeListener</a></p>
+							<p>Inherited from EventEmitter.removeListener</p>
 							<p>Overrides EventEmitter.removeListener</p>
 							<ul>
 								<li>Defined in node_modules/@types/node/events.d.ts:25</li>
@@ -3233,10 +3233,10 @@ img {
 								<h5>event: <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">symbol</span></h5>
 							</li>
 							<li>
-								<h5>listener: <span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">...</span>args<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">void</span></h5>
+								<h5>listener: <span class="tsd-signature-type">function</span></h5>
 								<ul class="tsd-parameters">
 									<li class="tsd-parameter-siganture">
-										<ul class="tsd-signatures tsd-kind-type-literal">
+										<ul class="tsd-signatures tsd-kind-type-literal tsd-is-not-exported">
 											<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">...</span>args<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
 										</ul>
 										<ul class="tsd-descriptions">
@@ -3267,7 +3267,7 @@ img {
 				<ul class="tsd-descriptions">
 					<li class="tsd-description">
 						<aside class="tsd-sources">
-							<p>Inherited from <a href="doontime.html">DoOnTime</a>.<a href="doontime.html#setmaxlisteners">setMaxListeners</a></p>
+							<p>Inherited from EventEmitter.setMaxListeners</p>
 							<p>Overrides EventEmitter.setMaxListeners</p>
 							<ul>
 								<li>Defined in node_modules/@types/node/events.d.ts:28</li>
@@ -3293,7 +3293,7 @@ img {
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/727558bf/src/devices/panasonicPTZAPI.ts#L244">src/devices/panasonicPTZAPI.ts:244</a></li>
+								<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/652ef36d/src/devices/panasonicPTZAPI.ts#L244">src/devices/panasonicPTZAPI.ts:244</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -3330,7 +3330,7 @@ img {
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/727558bf/src/devices/panasonicPTZAPI.ts#L352">src/devices/panasonicPTZAPI.ts:352</a></li>
+								<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/652ef36d/src/devices/panasonicPTZAPI.ts#L352">src/devices/panasonicPTZAPI.ts:352</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -3367,7 +3367,7 @@ img {
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/727558bf/src/devices/panasonicPTZAPI.ts#L298">src/devices/panasonicPTZAPI.ts:298</a></li>
+								<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/652ef36d/src/devices/panasonicPTZAPI.ts#L298">src/devices/panasonicPTZAPI.ts:298</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -3403,7 +3403,7 @@ img {
 				<ul class="tsd-descriptions">
 					<li class="tsd-description">
 						<aside class="tsd-sources">
-							<p>Inherited from <a href="doontime.html">DoOnTime</a>.<a href="doontime.html#listenercount-1">listenerCount</a></p>
+							<p>Inherited from EventEmitter.listenerCount</p>
 							<ul>
 								<li>Defined in node_modules/@types/node/events.d.ts:17</li>
 							</ul>
