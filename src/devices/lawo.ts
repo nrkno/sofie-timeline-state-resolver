@@ -171,13 +171,16 @@ export class LawoDevice extends DeviceWithState<TimelineState> implements IDevic
 		// 	this.emit('debug', 'Warning: Lawo.Emberplus', w)
 		// })
 		let firstConnection = true
-		this._lawo.on('connected', () => {
+		this._lawo.on('connected', async () => {
 			this._setConnected(true)
 
 			if (firstConnection) {
-				this._lawo.expand(this._lawo.tree).catch(e => {
+				try {
+					const req = await this._lawo.getDirectory(this._lawo.tree)
+					await req.response
+				} catch (e) {
 					this.emit('error', 'Error while expanding root', e)
-				})
+				}
 			}
 			firstConnection = false
 		})
@@ -189,25 +192,10 @@ export class LawoDevice extends DeviceWithState<TimelineState> implements IDevic
 	/**
 	 * Initiates the connection with Lawo
 	 */
-	init (_initOptions: LawoOptions): Promise<boolean> {
-		return new Promise((resolve, reject) => {
-			let fail = (e) => reject(e)
-			try {
-				this._lawo.once('error', fail)
-				this._lawo.connect()	// default timeout = 2
-				.then(() => {
-					this._lawo.removeListener('error', fail)
-					resolve(true)
-				})
-				.catch((e) => {
-					this._lawo.removeListener('error', fail)
-					reject(e)
-				})
-			} catch (e) {
-				this._lawo.removeListener('error', fail)
-				reject(e)
-			}
-		})
+	async init (_initOptions: LawoOptions): Promise<boolean> {
+		const err = await this._lawo.connect()
+		if (err) this.emit('error', 'Lawo initialization', err)
+		return true // device is usable, lib will handle connection
 	}
 	/** Called by the Conductor a bit before a .handleState is called */
 	prepareForHandleState (newStateTime: number) {

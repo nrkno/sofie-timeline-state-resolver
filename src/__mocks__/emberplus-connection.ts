@@ -33,6 +33,9 @@ export class EmberClient extends EventEmitter {
 		// empty block
 	}
 
+	async getDirectory () {
+		return { response: Promise.resolve() }
+	}
 	async expand () {
 		return {
 			result: Promise.resolve()
