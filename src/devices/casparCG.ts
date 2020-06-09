@@ -893,17 +893,17 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> implements ID
 		this.emit('connectionChanged', this.getStatus())
 	}
 	/**
-	 * Intercept commands, for internal transitions
+	 * Intercept the casparcg-connection commands, for internal transitions
 	 * Returns the command if it's not intercepted along the way
 	 */
 	_interceptCommand (command: CommandNS.IAMCPCommand): CommandNS.IAMCPCommand | undefined {
 		// Intercept internal commands:
 		const objectParams: any = command['_objectParams']
 		if (objectParams) {
-			let hackOptions: any = {}
+			let hackOptions: HackOptions = {}
 			try {
 				// tmp: use the direction as a hack to be able to squeeze in other parameters
-				hackOptions = JSON.parse(objectParams.transitionDirection)
+				hackOptions = JSON.parse(objectParams.transitionDirection) as HackOptions
 			} catch {
 				// ignore errors
 			}
