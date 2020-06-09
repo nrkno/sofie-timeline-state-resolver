@@ -2185,10 +2185,10 @@ email-addresses@^3.0.1:
   resolved "https://registry.yarnpkg.com/email-addresses/-/email-addresses-3.1.0.tgz#cabf7e085cbdb63008a70319a74e6136188812fb"
   integrity sha512-k0/r7GrWVL32kZlGwfPNgB2Y/mMXVTq/decgLczm/j34whdaspNrZO8CnXPf1laaHxI6ptUlsnAxN+UAPw+fzg==
 
-emberplus-connection@^0.0.2-nightly-next-20200604-105628-46d0ba3.0:
-  version "0.0.2-nightly-next-20200604-105628-46d0ba3.0"
-  resolved "https://registry.yarnpkg.com/emberplus-connection/-/emberplus-connection-0.0.2-nightly-next-20200604-105628-46d0ba3.0.tgz#a2f6044a959283240972d76e22a9cc126b8fc9c4"
-  integrity sha512-NIB3w3F48i+st4LoBlXJh7b6OH8QwhL1GU3ECZfO+X8KgscOy6YcqLMqRt4KIfO/sXeMrX4fmaeTFus2T9TjgQ==
+emberplus-connection@^0.0.2:
+  version "0.0.2"
+  resolved "https://registry.yarnpkg.com/emberplus-connection/-/emberplus-connection-0.0.2.tgz#191761640bdfce1a23a4f216d3dbaa9dfa1830e8"
+  integrity sha512-Kl19gJBKEhAaMKH8xx+Ezk85BKUFFtik36qmG/aigIq7SAs9NVPriDTuXdtnr4pFAuQB8OwylWwSrwIz+ktRIg==
   dependencies:
     asn1 evs-broadcast/node-asn1
     enum "^2.4.0"
@@ -2196,7 +2196,6 @@ emberplus-connection@^0.0.2-nightly-next-20200604-105628-46d0ba3.0:
     smart-buffer "^3.0.3"
     winston "^2.1.1"
     winston-color "^1.0.0"
-    yargs "^15.1.0"
 
 emoji-regex@^7.0.1:
   version "7.0.3"
@@ -7112,23 +7111,6 @@ yargs@^14.2.0:
     which-module "^2.0.0"
     y18n "^4.0.0"
     yargs-parser "^15.0.1"
-
-yargs@^15.1.0:
-  version "15.3.1"
-  resolved "https://registry.yarnpkg.com/yargs/-/yargs-15.3.1.tgz#9505b472763963e54afe60148ad27a330818e98b"
-  integrity sha512-92O1HWEjw27sBfgmXiixJWT5hRBp2eobqXicLtPBIDBhYB+1HpwZlXmbW2luivBJHBzki+7VyCLRtAkScbTBQA==
-  dependencies:
-    cliui "^6.0.0"
-    decamelize "^1.2.0"
-    find-up "^4.1.0"
-    get-caller-file "^2.0.1"
-    require-directory "^2.1.1"
-    require-main-filename "^2.0.0"
-    set-blocking "^2.0.0"
-    string-width "^4.2.0"
-    which-module "^2.0.0"
-    y18n "^4.0.0"
-    yargs-parser "^18.1.1"
 
 yargs@^3.32.0:
   version "3.32.0"
