@@ -132,10 +132,13 @@ export interface TimelineObjAtemME extends TimelineObjAtemBase {
 			input?: number,
 			transition?: AtemTransitionStyle,
 
-			/** To change previewInput you must use programInput to set program directly */
 			/** Cut directly to program */
 			programInput?: number;
-			/** Set preview input (cut) */
+			/**
+			 * Set preview input.
+			 * Cannot be used in conjunction with `input`;
+			 * `programInput` must be used instead if control of program and preview are both needed.
+			 */
 			previewInput?: number;
 			/** Is ME in transition state */
 			inTransition?: boolean;
