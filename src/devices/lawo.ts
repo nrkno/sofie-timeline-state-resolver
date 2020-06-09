@@ -507,9 +507,7 @@ export class LawoDevice extends DeviceWithState<TimelineState> implements IDevic
 			if (logResult) {
 				const res = await req.response
 				this.emit('debug', `Ember result (${timelineObjId}): ${(res && res.contents.value)}`, { command, res: res && res.contents })
-			} else if (req.sentOk) {
-				this.emit('debug', `Ember req (${timelineObjId}) for "${command.path}" to "${value}" sent`)
-			} else {
+			} else if (!req.sentOk) {
 				this.emit('error', 'SetValue no logResult', new Error(`Ember req (${timelineObjId}) for "${command.path}" to "${value}" failed`))
 			}
 		} catch (e) {
