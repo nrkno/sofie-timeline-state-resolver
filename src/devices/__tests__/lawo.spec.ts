@@ -5,7 +5,8 @@ import {
 	DeviceType,
 	TimelineContentTypeLawo,
 	MappingLawo,
-	MappingLawoType
+	MappingLawoType,
+	LawoDeviceMode
 } from '../../types/src'
 import { MockTime } from '../../__tests__/mockTime'
 import { ThreadedClass } from 'threadedclass'
@@ -53,7 +54,9 @@ describe('Lawo', () => {
 			options: {
 				host: '160.67.96.51',
 				port: 9000,
-				commandReceiver: commandReceiver0
+				commandReceiver: commandReceiver0,
+
+				deviceMode: LawoDeviceMode.Ruby
 			}
 		})
 		await mockTime.advanceTimeToTicks(10100)
@@ -140,7 +143,7 @@ describe('Lawo', () => {
 				// attribute: 'Motor dB Value',
 				type: TimelineContentTypeLawo.SOURCE,
 				value: -6,
-				path: 'BASE.Fader.Motor dB Value'
+				path: 'Ruby.Sources.BASE.Fader.Motor dB Value'
 			}
 		)
 		expect(getMockCall(commandReceiver0, 0, 2)).toBeTruthy()
@@ -154,7 +157,7 @@ describe('Lawo', () => {
 				type: TimelineContentTypeLawo.SOURCE,
 				value: -4,
 				transitionDuration: 400,
-				path: 'BASE.Fader.Motor dB Value'
+				path: 'Ruby.Sources.BASE.Fader.Motor dB Value'
 			}
 		)
 		expect(getMockCall(commandReceiver0, 1, 2)).toBeTruthy() // context
@@ -170,7 +173,7 @@ describe('Lawo', () => {
 				// attribute: 'Motor dB Value',
 				type: TimelineContentTypeLawo.SOURCE,
 				value: -4,
-				path: 'BASE.Fader.Motor dB Value'
+				path: 'Ruby.Sources.BASE.Fader.Motor dB Value'
 			}
 		)
 		expect(getMockCall(commandReceiver0, 2, 2)).toMatch(/triggerValue/i) // context
@@ -212,7 +215,9 @@ describe('Lawo', () => {
 			options: {
 				host: '160.67.96.51',
 				port: 9000,
-				commandReceiver: commandReceiver0
+				commandReceiver: commandReceiver0,
+
+				deviceMode: LawoDeviceMode.Ruby
 			}
 		})
 		await mockTime.advanceTimeToTicks(10100)
@@ -299,6 +304,7 @@ describe('Lawo', () => {
 			initializeAsClear: true,
 			getCurrentTime: mockTime.getCurrentTime
 		})
+		myConductor.on('error', (...args) => console.log(...args))
 		await myConductor.setMapping(myChannelMapping)
 		await myConductor.init() // we cannot do an await, because setTimeout will never call without jest moving on.
 		await myConductor.addDevice('myLawo', {
@@ -306,9 +312,9 @@ describe('Lawo', () => {
 			options: {
 				host: '160.67.96.51',
 				port: 9000,
-				// commandReceiver: commandReceiver0,
 				setValueFn: commandReceiver0,
-				sourcesPath: 'Sapphire.Sources',
+
+				deviceMode: LawoDeviceMode.R3lay,
 				faderInterval: 40
 			}
 		})
@@ -361,34 +367,34 @@ describe('Lawo', () => {
 			device: DeviceType.LAWO,
 			deviceId: 'myLawo',
 			mappingType: MappingLawoType.FULL_PATH,
-			identifier: '001.Sums.MAIN.DSP0'
+			identifier: 'MAIN.DSP0'
 		}
 		let mapping1: MappingLawo = {
 			device: DeviceType.LAWO,
 			deviceId: 'myLawo',
 			mappingType: MappingLawoType.FULL_PATH,
-			identifier: '001.Sums.MAIN.DSP1',
+			identifier: 'MAIN.DSP1',
 			priority: 1
 		}
 		let mapping2: MappingLawo = {
 			device: DeviceType.LAWO,
 			deviceId: 'myLawo',
 			mappingType: MappingLawoType.FULL_PATH,
-			identifier: '001.Sums.MAIN.DSP2',
+			identifier: 'MAIN.DSP2',
 			priority: 3
 		}
 		let mapping3: MappingLawo = {
 			device: DeviceType.LAWO,
 			deviceId: 'myLawo',
 			mappingType: MappingLawoType.FULL_PATH,
-			identifier: '001.Sums.MAIN.DSP3',
+			identifier: 'MAIN.DSP3',
 			priority: 2
 		}
 		let mapping4: MappingLawo = {
 			device: DeviceType.LAWO,
 			deviceId: 'myLawo',
 			mappingType: MappingLawoType.FULL_PATH,
-			identifier: '001.Sums.MAIN.DSP4'
+			identifier: 'MAIN.DSP4'
 		}
 
 		let myChannelMapping: Mappings = {
@@ -410,7 +416,9 @@ describe('Lawo', () => {
 			options: {
 				host: '160.67.96.51',
 				port: 9000,
-				commandReceiver: commandReceiver0
+				commandReceiver: commandReceiver0,
+
+				deviceMode: LawoDeviceMode.Ruby
 			}
 		})
 		await mockTime.advanceTimeToTicks(10100)
@@ -479,31 +487,31 @@ describe('Lawo', () => {
 		expect(getMockCall(commandReceiver0, 0, 1)).toMatchObject(
 			{
 				type: TimelineContentTypeLawo.SOURCE,
-				path: '001.Sums.MAIN.DSP2.Fader.Motor dB Value' // Highest priority
+				path: 'Ruby.Sources.MAIN.DSP2.Fader.Motor dB Value' // Highest priority
 			}
 		)
 		expect(getMockCall(commandReceiver0, 1, 1)).toMatchObject(
 			{
 				type: TimelineContentTypeLawo.SOURCE,
-				path: '001.Sums.MAIN.DSP3.Fader.Motor dB Value'
+				path: 'Ruby.Sources.MAIN.DSP3.Fader.Motor dB Value'
 			}
 		)
 		expect(getMockCall(commandReceiver0, 2, 1)).toMatchObject(
 			{
 				type: TimelineContentTypeLawo.SOURCE,
-				path: '001.Sums.MAIN.DSP1.Fader.Motor dB Value'
+				path: 'Ruby.Sources.MAIN.DSP1.Fader.Motor dB Value'
 			}
 		)
 		expect(getMockCall(commandReceiver0, 3, 1)).toMatchObject(
 			{
 				type: TimelineContentTypeLawo.SOURCE,
-				path: '001.Sums.MAIN.DSP0.Fader.Motor dB Value'  // no prority, but sorted by path
+				path: 'Ruby.Sources.MAIN.DSP0.Fader.Motor dB Value'  // no prority, but sorted by path
 			}
 		)
 		expect(getMockCall(commandReceiver0, 4, 1)).toMatchObject(
 			{
 				type: TimelineContentTypeLawo.SOURCE,
-				path: '001.Sums.MAIN.DSP4.Fader.Motor dB Value'
+				path: 'Ruby.Sources.MAIN.DSP4.Fader.Motor dB Value'
 			}
 		)
 	})

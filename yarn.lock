@@ -709,6 +709,13 @@
   resolved "https://registry.yarnpkg.com/@types/retry/-/retry-0.12.0.tgz#2b35eccfcee7d38cd72ad99232fbd58bffb3c84d"
   integrity sha512-wWKOClTTiizcZhXnPY4wikVAwmdYHp8q6DmC+EJUzAMsycb7HB32Kh9RN4+0gExjmPmZSAQjgURXIGATPegAvA==
 
+"@types/safer-buffer@^2.1.0":
+  version "2.1.0"
+  resolved "https://registry.yarnpkg.com/@types/safer-buffer/-/safer-buffer-2.1.0.tgz#8c498815fe00af8f8b23d63eb3fd6fae6ae2ab7a"
+  integrity sha512-04WlrCdOLy1Ejpwc3A7qyZzsH6uqeWoH+XO80V8S8NRubGg+E4FMMM3VAS6jZZ8w+dXki1/5FI5upmMDQlaQsQ==
+  dependencies:
+    "@types/node" "*"
+
 "@types/sprintf-js@^1.1.0":
   version "1.1.2"
   resolved "https://registry.yarnpkg.com/@types/sprintf-js/-/sprintf-js-1.1.2.tgz#a4fcb84c7344f39f70dc4eec0e1e7f10a48597a3"
@@ -984,9 +991,12 @@ asap@^2.0.0:
   resolved "https://registry.yarnpkg.com/asap/-/asap-2.0.6.tgz#e50347611d7e690943208bbdafebcbc2fb866d46"
   integrity sha1-5QNHYR1+aQlDIIu9r+vLwvuGbUY=
 
-asn1@evs-broadcast/node-asn1#date_2018_01_02:
-  version "0.5.1"
-  resolved "https://codeload.github.com/evs-broadcast/node-asn1/tar.gz/2fc158464a92e1465523f108295abd54e7ce86db"
+asn1@evs-broadcast/node-asn1:
+  version "0.5.4"
+  resolved "https://codeload.github.com/evs-broadcast/node-asn1/tar.gz/0146823069e479e90595480dc90c72cafa161ba1"
+  dependencies:
+    "@types/safer-buffer" "^2.1.0"
+    safer-buffer "~2.1.0"
 
 asn1@~0.2.3:
   version "0.2.4"
@@ -2175,11 +2185,12 @@ email-addresses@^3.0.1:
   resolved "https://registry.yarnpkg.com/email-addresses/-/email-addresses-3.1.0.tgz#cabf7e085cbdb63008a70319a74e6136188812fb"
   integrity sha512-k0/r7GrWVL32kZlGwfPNgB2Y/mMXVTq/decgLczm/j34whdaspNrZO8CnXPf1laaHxI6ptUlsnAxN+UAPw+fzg==
 
-"emberplus@git+https://github.com/nrkno/tv-automation-emberplus-connection#dist200919_1":
-  version "1.7.17"
-  resolved "git+https://github.com/nrkno/tv-automation-emberplus-connection#7ffdca688bcc8f762757773360b7caeecf39cbc6"
+emberplus-connection@^0.0.2:
+  version "0.0.2"
+  resolved "https://registry.yarnpkg.com/emberplus-connection/-/emberplus-connection-0.0.2.tgz#191761640bdfce1a23a4f216d3dbaa9dfa1830e8"
+  integrity sha512-Kl19gJBKEhAaMKH8xx+Ezk85BKUFFtik36qmG/aigIq7SAs9NVPriDTuXdtnr4pFAuQB8OwylWwSrwIz+ktRIg==
   dependencies:
-    asn1 evs-broadcast/node-asn1#date_2018_01_02
+    asn1 evs-broadcast/node-asn1
     enum "^2.4.0"
     long "^3.2.0"
     smart-buffer "^3.0.3"
