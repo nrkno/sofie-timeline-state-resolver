@@ -369,7 +369,7 @@ export class QuantelGateway extends EventEmitter {
 			if (isErrorFromISA(e)) {
 				return retryAfterConnect()
 			} else {
-				throw new Error(e) // handle upstream
+				throw e // handle upstream
 			}
 		}
 	}

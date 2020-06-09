@@ -42,23 +42,15 @@ export class DoOnTime extends EventEmitter {
 	} = {}
 	private _options: DoOnTimeOptions
 
-	/* tslint:disable:unified-signatures */
-
 	// Overide EventEmitter.on() for stronger typings:
-	on (event: 'error', listener: (err: Error) => void): this
-	on (event: 'slowCommand', listener: (commandInfo: string) => void): this
-	on (event: 'commandReport', listener: (commandReport: CommandReport) => void): this
-	on (event: string | symbol, listener: (...args: any[]) => void): this {
-		return super.on(event, listener)
-	}
+	on: ((event: 'error', listener: (err: Error) => void) => this) &
+		((event: 'slowCommand', listener: (commandInfo: string) => void) => this) &
+		((event: 'commandReport', listener: (commandReport: CommandReport) => void) => this)
+
 	// Overide EventEmitter.emit() for stronger typings:
-	emit (event: 'error',	err: Error): boolean
-	emit (event: 'slowCommand', commandInfo: string): boolean // A report that a command was sent too late
-	emit (event: 'commandReport', commandReport: CommandReport): boolean // A report of the command sent, emitted after it has been fulfilled
-	emit (event: string, ...args: any[]): boolean {
-		return super.emit(event, ...args)
-	}
-	/* tslint:enable:unified-signatures */
+	emit: ((event: 'error',	err: Error) => boolean) &
+		((event: 'slowCommand', commandInfo: string) => boolean) & // A report that a command was sent too late
+		((event: 'commandReport', commandReport: CommandReport) => boolean) // A report of the command sent, emitted after it has been fulfilled
 
 	constructor (getCurrentTime: () => number, sendMode: SendMode = SendMode.BURST, options?: DoOnTimeOptions) {
 		super()

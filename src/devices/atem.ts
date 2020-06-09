@@ -104,7 +104,7 @@ export class AtemDevice extends DeviceWithState<DeviceState> implements IDevice 
 		return new Promise((resolve, reject) => {
 			// This is where we would do initialization, like connecting to the devices, etc
 			this._state = new AtemState()
-			this._atem = new Atem({ externalLog: console.log })
+			this._atem = new Atem({ externalLog: (...args) => this.emit('info', JSON.stringify(args)) })
 			this._atem.once('connected', () => {
 				// check if state has been initialized:
 				this._connected = true

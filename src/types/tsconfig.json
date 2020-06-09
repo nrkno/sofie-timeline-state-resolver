@@ -1,5 +1,8 @@
 {
 	"extends": "../../config/tsconfig.base",
+	"compilerOptions": {
+		"target": "es6", // Still needed by core for now
+	},
 	"exclude": [
 	  "node_modules/**",
 	  "**/*spec.ts",

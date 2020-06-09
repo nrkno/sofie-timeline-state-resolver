@@ -402,4 +402,31 @@ describe('Conductor', () => {
 			channel: 3
 		})
 	})
+
+	test('Construction of multithreaded device', async () => {
+		const myLayerMapping0: MappingAbstract = {
+			device: DeviceType.ABSTRACT,
+			deviceId: 'device0'
+		}
+		const myLayerMapping: Mappings = {
+			'myLayer0': myLayerMapping0
+		}
+
+		const conductor = new Conductor({
+			initializeAsClear: true,
+			getCurrentTime: mockTime.getCurrentTime
+		})
+		conductor.on('error', console.error)
+
+		await conductor.init()
+		await conductor.addDevice('device0', {
+			type: DeviceType.ABSTRACT,
+			options: {},
+			isMultiThreaded: true
+		})
+		await conductor.setMapping(myLayerMapping)
+
+		const device = conductor.getDevice('device0').device
+		expect(await device.getCurrentTime()).toBeTruthy()
+	}, 1500)
 })

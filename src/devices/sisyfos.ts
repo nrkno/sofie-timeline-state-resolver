@@ -15,7 +15,7 @@ import { DoOnTime, SendMode } from '../doOnTime'
 import {
 	TimelineState, ResolvedTimelineObjectInstance
 } from 'superfly-timeline'
-import { SisyfosOptions, SisyfosState, SisyfosChannel, TimelineObjSisyfosMessage, MappingSisyfos, ToggleCommand, Commands, SisyfosCommand } from '../types/src/sisyfos'
+import { SisyfosOptions, SisyfosState, SisyfosChannel, TimelineObjSisyfosMessage, MappingSisyfos, Commands, SisyfosCommand } from '../types/src/sisyfos'
 import { SisyfosInterface } from './sisyfosAPI'
 
 export interface DeviceOptionsSisyfosInternal extends DeviceOptionsSisyfos {
@@ -41,6 +41,8 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState> implemen
 
 	private _commandReceiver: CommandReceiver
 
+	private _resyncing: boolean = false
+
 	constructor (deviceId: string, deviceOptions: DeviceOptionsSisyfosInternal, options) {
 		super(deviceId, deviceOptions, options)
 		if (deviceOptions.options) {
@@ -56,6 +58,10 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState> implemen
 		this._sisyfos.on('disconnected', () => {
 			this._connectionChanged()
 		})
+		this._sisyfos.on('mixerOnline', (onlineStatus) => {
+			this._sisyfos.setMixerOnline(onlineStatus)
+			this._connectionChanged()
+		})
 
 		this._doOnTime = new DoOnTime(() => {
 			return this.getCurrentTime()
@@ -65,7 +71,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState> implemen
 	init (initOptions: SisyfosOptions): Promise<boolean> {
 
 		this._sisyfos.once('initialized', () => {
-			this.setState(this.getDeviceState(), this.getCurrentTime())
+			this.setState(this.getDeviceState(false), this.getCurrentTime())
 			this.emit('resetResolver')
 		})
 
@@ -91,21 +97,26 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState> implemen
 
 		// Transform timeline states into device states
 		let previousStateTime = Math.max(this.getCurrentTime(), newState.time)
-		let oldState: SisyfosState = (this.getStateBefore(previousStateTime) || { state: { channels: {} } }).state
+		let oldState: SisyfosState = (this.getStateBefore(previousStateTime) || { state: { channels: {}, resync: false } }).state
 
 		let newAbstractState = this.convertStateToSisyfosState(newState)
 
+		this._handleStateInner(oldState, newAbstractState, previousStateTime, newState.time)
+	}
+
+	private _handleStateInner (oldState: SisyfosState, newAbstractState: SisyfosState, previousStateTime: number, newTime: number) {
 		// Generate commands necessary to transition to the new state
 		let commandsToAchieveState: Array<Command> = this._diffStates(oldState, newAbstractState)
 
 		// clear any queued commands later than this time:
 		this._doOnTime.clearQueueNowAndAfter(previousStateTime)
 		// add the new commands to the queue:
-		this._addToQueue(commandsToAchieveState, newState.time)
+		this._addToQueue(commandsToAchieveState, newTime)
 
 		// store the new state, for later use:
-		this.setState(newAbstractState, newState.time)
+		this.setState(newAbstractState, newTime)
 	}
+
 	/**
 	 * Clear any scheduled commands after this time
 	 * @param clearAfterTime
@@ -126,9 +137,14 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState> implemen
 			messages.push('Not connected')
 		}
 
-		if (!this._sisyfos.state) {
+		if (!this._sisyfos.state && !this._resyncing) {
 			statusCode = StatusCode.BAD
 			messages.push(`Sisyfos device connection not initialized (restart required)`)
+		}
+
+		if (!this._sisyfos.mixerOnline) {
+			statusCode = StatusCode.BAD
+			messages.push(`Sisyfos has no connection to Audiomixer`)
 		}
 		return {
 			statusCode: statusCode,
@@ -136,9 +152,32 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState> implemen
 		}
 	}
 	makeReady (okToDestroyStuff?: boolean): Promise<void> {
+		return this._makeReadyInner(okToDestroyStuff)
+	}
+
+	private _makeReadyInner (okToDestroyStuff?: boolean, resync?: boolean): Promise<void> {
 		if (okToDestroyStuff) {
+			if (resync) {
+				this._resyncing = true
+				// If state is still not reinitialised afer 5 seconds, we may have a problem.
+				setTimeout(() => this._resyncing = false, 5000)
+			}
+
 			this._doOnTime.clearQueueNowAndAfter(this.getCurrentTime())
-			this.setState(this.getDeviceState(), this.getCurrentTime())
+			this._sisyfos.reInitialize()
+			this._sisyfos.on('initialized', () => {
+				if (resync) {
+					this._resyncing = false
+					const targetState = this.getState(this.getCurrentTime())
+
+					if (targetState) {
+						this._handleStateInner(this.getDeviceState(false), targetState.state, targetState.time, this.getCurrentTime())
+					}
+				} else {
+					this.setState(this.getDeviceState(false), this.getCurrentTime())
+					this.emit('resetResolver')
+				}
+			})
 		}
 		return Promise.resolve()
 	}
@@ -149,20 +188,30 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState> implemen
 	get connected (): boolean {
 		return this._sisyfos.connected
 	}
-	getDeviceState (): SisyfosState {
-		const deviceStateFromAPI = this._sisyfos.state
-		const deviceState: SisyfosState = { channels: {} }
+	getDeviceState (isDefaultState = true): SisyfosState {
+		let deviceStateFromAPI = this._sisyfos.state
+		const deviceState: SisyfosState = { channels: {}, resync: false }
+
+		if (!deviceStateFromAPI) deviceStateFromAPI = deviceState
 
 		for (const ch of Object.keys(deviceStateFromAPI.channels)) {
 
 			const channelFromAPI = deviceStateFromAPI.channels[ch]
 
-			const channel: SisyfosChannel = {
+			let channel: SisyfosChannel = {
 				...channelFromAPI,
-				faderLevel:  0.75,  // 0 dB
-				pgmOn:  false,
-				pstOn:  false,
 				tlObjIds: []
+			}
+
+			if (isDefaultState) { // reset values for default state
+				channel = {
+					...channel,
+					faderLevel: 0.75,  // 0 dB
+					pgmOn: 0,
+					pstOn: 0,
+					label: '',
+					visible: true
+				}
 			}
 
 			deviceState.channels[ch] = channel
@@ -181,36 +230,38 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState> implemen
 			const layer = tlObject as ResolvedTimelineObjectInstance & TimelineObjSisyfosMessage
 			let foundMapping: MappingSisyfos = this.getMapping()[layerName] as any // @todo: make ts understand this
 
+			// Allow resync without valid channel mapping
+			if (layer.content.resync !== undefined) {
+				deviceState.resync = deviceState.resync || layer.content.resync
+			}
+
 			// if the tlObj is specifies to load to PST the original Layer is used to resolve the mapping
 			if (!foundMapping && layer.isLookahead && layer.lookaheadForLayer) {
 				foundMapping = this.getMapping()[layer.lookaheadForLayer] as any
 			}
-
-			if (foundMapping) {
-				const channel = deviceState.channels[foundMapping.channel]
+			if (foundMapping && _.has(foundMapping, 'channel') && deviceState.channels[foundMapping.channel]) {
 
 				if (layer.isLookahead) {
-					if (layer.content.isPgm) {
-						channel.pstOn = true
-					} else {
-						channel.pstOn = false
-					}
+					deviceState.channels[foundMapping.channel].pstOn = layer.content.isPgm || 0
 				} else {
-					if (layer.content.isPst) {
-						channel.pstOn = true
-					}
-					if (layer.content.isPgm) {
-						channel.pgmOn = true
-					}
+					deviceState.channels[foundMapping.channel].pgmOn = layer.content.isPgm || 0
 				}
 
 				if (layer.content.faderLevel !== undefined) {
-					channel.faderLevel = layer.content.faderLevel
+					deviceState.channels[foundMapping.channel].faderLevel = layer.content.faderLevel
 				}
-				channel.tlObjIds.push(tlObject.id)
+
+				if (layer.content.label !== undefined) {
+					deviceState.channels[foundMapping.channel].label = layer.content.label
+				}
+
+				if (layer.content.visible !== undefined) {
+					deviceState.channels[foundMapping.channel].visible = layer.content.visible
+				}
+
+				deviceState.channels[foundMapping.channel].tlObjIds.push(tlObject.id)
 			}
 		})
-
 		return deviceState
 	}
 	get deviceType () {
@@ -237,114 +288,46 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState> implemen
 	/**
 	 * Compares the new timeline-state with the old one, and generates commands to account for the difference
 	 */
-	private _diffStates (oldOscSendState: SisyfosState, newOscSendState: SisyfosState): Array<Command> {
-		/**
-		 * States:
-		 * 		PGM	PST
-		 * A	0	0
-		 * B	0	1
-		 * C	1	0
-		 * D	1	1
-		 *
-		 * Transitions:
-		 * From:	To:		Actions:
-		 * A		A		None
-		 * A		B		(take), PST on
-		 * A		C		PST on, take
-		 * A		D		PST on, take, PST on
-		 * B		A		PST off
-		 * B		B		(pst off, take, pst on)
-		 * B		C		take
-		 * B		D		take, pst on
-		 * C		A		take, pst off
-		 * C		B		take
-		 * C		C		(pst on, take, pst on)
-		 * C		D		pst on
-		 * D		A		pst off, take, pst off
-		 * D		B		pst off, take
-		 * D		C		(take), pst off
-		 * D		D		none
-		 *
-		 * Things in brackets are done only when some other channel requires a
-		 * take operation.
-		 */
+	private _diffStates (oldOscSendState: SisyfosState, newOscSendState: SisyfosState): Command[] {
+		const commands: Command[] = []
 
-		const commandGenerator = {
-			pstOn: (channel: string): ToggleCommand => {
-				return {
-					type: Commands.TOGGLE_PST,
-					channel: Number(channel),
-					value: true
+		if (newOscSendState.resync && !oldOscSendState.resync) {
+			commands.push(
+				{
+					context: `Resyncing with Sisyfos`,
+					content: {
+						type: Commands.RESYNC
+					},
+					timelineObjId: ''
 				}
-			},
-			pstOff: (channel: string): ToggleCommand => {
-				return {
-					type: Commands.TOGGLE_PST,
-					channel: Number(channel),
-					value: false
-				}
-			}
+			)
 		}
-		const stateTransition = { // stateTransition[from][to] = [ preTake, take, postTake ]
-			// 0: no, 1: take => on, 2: on, 3: take => off, 4: off (where => means implies)
-			A: {
-				A: [ 0, 0, 0 ],
-				B: [ 0, 0, 2 ],
-				C: [ 2, 2, 0 ],
-				D: [ 2, 2, 2 ]
-			},
-			B: {
-				A: [ 4, 0, 0 ],
-				B: [ 3, 0, 1 ],
-				C: [ 0, 2, 0 ],
-				D: [ 0, 2, 2 ]
-			},
-			C: {
-				A: [ 0, 2, 4 ],
-				B: [ 0, 2, 0 ],
-				C: [ 1, 0, 3 ],
-				D: [ 2, 0, 0 ]
-			},
-			D: {
-				A: [ 4, 2, 4 ],
-				B: [ 4, 2, 0 ],
-				C: [ 0, 0, 4 ],
-				D: [ 0, 0, 0 ]
-			}
-		}
-		const stateIdentifier = [
-			[ 'A', 'B' ],
-			[ 'C', 'D' ]
-		]
-		interface SisyfosTransition {
-			index: string
-			from: string
-			to: string
-			context: string
-			tlObjId?: string
-		}
-		const transitions: Array<SisyfosTransition> = []
-		let requireTake = false
-
-		const commands: Array<Command> = []
 
 		_.each(newOscSendState.channels, (newChannel: SisyfosChannel, index) => {
 			const oldChannel = oldOscSendState.channels[index]
 
-			const oldState = oldChannel ? stateIdentifier[oldChannel.pgmOn ? 1 : 0][oldChannel.pstOn ? 1 : 0] : 'A'
-			const newState = stateIdentifier[newChannel.pgmOn ? 1 : 0][newChannel.pstOn ? 1 : 0]
+			if (oldChannel && oldChannel.pgmOn !== newChannel.pgmOn) {
+				commands.push({
+					context: `Channel ${index} pgm goes from "${oldChannel.pgmOn}" to "${newChannel.pgmOn}"`,
+					content: {
+						type: Commands.TOGGLE_PGM,
+						channel: Number(index),
+						value: newChannel.pgmOn
+					},
+					timelineObjId: newChannel.tlObjIds[0] || ''
+				})
+			}
 
-			transitions.push({
-				index,
-				from: oldState,
-				to: newState,
-				context: `Channel ${index} goes from "${oldState}" to "${newState}"` +
-					newChannel.tlObjIds ? ` by tlObjs: ${newChannel.tlObjIds.join(', ')}` : '',
-				tlObjId: newChannel.tlObjIds[0]
-			})
-
-			if (stateTransition[oldState][newState][1]) {
-				requireTake = true
+			if (oldChannel && oldChannel.pstOn !== newChannel.pstOn) {
+				commands.push({
+					context: `Channel ${index} pst goes from "${oldChannel.pstOn}" to "${newChannel.pstOn}"`,
+					content: {
+						type: Commands.TOGGLE_PST,
+						channel: Number(index),
+						value: newChannel.pstOn
+					},
+					timelineObjId: newChannel.tlObjIds[0] || ''
+				})
 			}
 
 			if (oldChannel && oldChannel.faderLevel !== newChannel.faderLevel) {
@@ -358,82 +341,32 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState> implemen
 					timelineObjId: newChannel.tlObjIds[0] || ''
 				})
 			}
+
+			newChannel.label = newChannel.label || (oldChannel ? oldChannel.label : '')
+			if (oldChannel && newChannel.label !== '' && oldChannel.label !== newChannel.label) {
+				commands.push({
+					context: 'set label on fader',
+					content: {
+						type: Commands.LABEL,
+						channel: Number(index),
+						value: newChannel.label
+					},
+					timelineObjId: newChannel.tlObjIds[0] || ''
+				})
+			}
+
+			if (oldChannel && oldChannel.visible !== newChannel.visible) {
+				commands.push({
+					context: `Channel ${index} Visibility goes from "${oldChannel.visible}" to "${newChannel.visible}"`,
+					content: {
+						type: Commands.VISIBLE,
+						channel: Number(index),
+						value: newChannel.visible
+					},
+					timelineObjId: newChannel.tlObjIds[0] || ''
+				})
+			}
 		})
-
-		if (requireTake) {
-			commands.push({
-				content: { type: Commands.TAKE },
-				context: `generic`,
-				timelineObjId: ''
-			})
-		}
-
-		for (const transition of transitions) {
-			const transitionRule = stateTransition[transition.from][transition.to]
-
-			if (transitionRule[0] !== 0) {
-				if (transitionRule[0] % 2 === 0) { // always
-					if (transitionRule[0] === 2) {
-						commands.unshift({
-							content: commandGenerator.pstOn(transition.index),
-							context: transition.context,
-							timelineObjId: transition.tlObjId || ''
-						})
-					} else {
-						commands.unshift({
-							content: commandGenerator.pstOff(transition.index),
-							context: transition.context,
-							timelineObjId: transition.tlObjId || ''
-						})
-					}
-				} else if (requireTake) { // only on take
-					if (transitionRule[0] === 1) {
-						commands.unshift({
-							content: commandGenerator.pstOn(transition.index),
-							context: transition.context,
-							timelineObjId: transition.tlObjId || ''
-						})
-					} else {
-						commands.unshift({
-							content: commandGenerator.pstOff(transition.index),
-							context: transition.context,
-							timelineObjId: transition.tlObjId || ''
-						})
-					}
-				}
-			}
-			if (transitionRule[2] !== 0) {
-				if (transitionRule[2] % 2 === 0) { // always
-					if (transitionRule[2] === 2) {
-						commands.push({
-							content: commandGenerator.pstOn(transition.index),
-							context: transition.context,
-							timelineObjId: transition.tlObjId || ''
-						})
-					} else {
-						commands.push({
-							content: commandGenerator.pstOff(transition.index),
-							context: transition.context,
-							timelineObjId: transition.tlObjId || ''
-						})
-					}
-				} else if (requireTake) { // only on take
-					if (transitionRule[2] === 1) {
-						commands.push({
-							content: commandGenerator.pstOn(transition.index),
-							context: transition.context,
-							timelineObjId: transition.tlObjId || ''
-						})
-					} else {
-						commands.push({
-							content: commandGenerator.pstOff(transition.index),
-							context: transition.context,
-							timelineObjId: transition.tlObjId || ''
-						})
-					}
-				}
-			}
-		}
 
 		return commands
 	}
@@ -446,12 +379,16 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState> implemen
 		}
 		this.emit('debug', cwc)
 
-		try {
-			this._sisyfos.send(cmd)
+		if (cmd.type === Commands.RESYNC) {
+			return this._makeReadyInner(true, true)
+		} else {
+			try {
+				this._sisyfos.send(cmd)
 
-			return Promise.resolve()
-		} catch (e) {
-			return Promise.reject(e)
+				return Promise.resolve()
+			} catch (e) {
+				return Promise.reject(e)
+			}
 		}
 	}
 	private _connectionChanged () {
