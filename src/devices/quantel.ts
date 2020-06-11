@@ -27,8 +27,10 @@ import {
 
 import { DoOnTime, SendMode } from '../doOnTime'
 import {
-	QuantelGateway, Q, MonitorPorts
-} from './quantelGateway'
+	QuantelGateway,
+	Q,
+	MonitorPorts
+} from 'tv-automation-quantel-gateway-client'
 
 const IDEAL_PREPARE_TIME = 1000
 const PREPARE_TIME_WAIT = 50
@@ -96,13 +98,15 @@ export class QuantelDevice extends DeviceWithState<QuantelState> implements IDev
 
 	async init (initOptions: QuantelOptions): Promise<boolean> {
 		this._initOptions = initOptions
-		if (!this._initOptions.gatewayUrl) 	throw new Error('Quantel bad connection option: gatewayUrl')
-		if (!this._initOptions.ISAUrl)		throw new Error('Quantel bad connection option: ISAUrl')
-		if (!this._initOptions.serverId)		throw new Error('Quantel bad connection option: serverId')
+		const ISAUrlMaster = this._initOptions.ISAUrlMaster || this._initOptions['ISAUrl'] // tmp: ISAUrl for backwards compatibility, to be removed later
+		if (!this._initOptions.gatewayUrl) throw new Error('Quantel bad connection option: gatewayUrl')
+		if (!ISAUrlMaster) throw new Error('Quantel bad connection option: ISAUrlMaster')
+		if (!this._initOptions.serverId) throw new Error('Quantel bad connection option: serverId')
 
 		await this._quantel.init(
 			this._initOptions.gatewayUrl,
-			this._initOptions.ISAUrl,
+			ISAUrlMaster,
+			this._initOptions.ISAUrlBackup,
 			this._initOptions.zoneId,
 			this._initOptions.serverId
 		)
@@ -1017,7 +1021,7 @@ class Cache {
 			return this.get(key)
 		} else {
 			let value = fcn()
-			if (value && _.isObject(value) && _.isFunction(value.then)) {
+			if (value && _.isObject(value) && _.isFunction(value['then'])) {
 				// value is a promise
 				return (
 					Promise.resolve(value)

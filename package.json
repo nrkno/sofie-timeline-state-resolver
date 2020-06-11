@@ -170,6 +170,7 @@
     "superfly-timeline": "^7.3.1",
     "threadedclass": "^0.7.0",
     "tslib": "^1.10.0",
+    "tv-automation-quantel-gateway-client": "^1.0.8",
     "underscore": "^1.10.2",
     "underscore-deep-extend": "^1.1.5",
     "v-connection": "git+https://github.com/olzzon/v-connection#v20200304_1",

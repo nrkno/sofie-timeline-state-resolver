@@ -24,12 +24,14 @@ export interface QuantelOptions {
 	/** Url to the quantel gateway  */
 	gatewayUrl: string
 
-	/** Address to the ISA, for the gateway to connect to */
-	ISAUrl: string
+	/** Location of the ISA manager to be connected to first of all. */
+	ISAUrlMaster: string
+	/** Optional backup ISA manager for the gateway to switch to in the event of failure of the master. */
+	ISAUrlBackup?: string
 
 	/** The ID of the zone to use. If omitted, will be using "default" */
 	zoneId?: string
-	/** The id of the server to control. An Ingeter */
+	/** The id of the server to control. An integer */
 	serverId: number
 
 	// doAutomaticCloningIfNeeded?: bool // not implemented yet
