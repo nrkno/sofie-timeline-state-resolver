@@ -25,55 +25,6 @@ export interface SisyfosCommandContent {
 }
 export type TimelineObjSisyfosAny = TimelineObjSisyfosMessage
 
-export enum Commands {
-	TOGGLE_PGM = 'togglePgm',
-	TOGGLE_PST = 'togglePst',
-	SET_FADER = 'setFader',
-	CLEAR_PST_ROW = 'clearPstRow',
-	LABEL = 'label',
-	TAKE = 'take',
-	VISIBLE = 'visible',
-	RESYNC = 'resync'
-}
-
-export interface BaseCommand {
-	type: Commands
-}
-
-export interface ChannelCommand {
-	type: Commands.SET_FADER | Commands.TOGGLE_PGM | Commands.TOGGLE_PST | Commands.LABEL | Commands.VISIBLE
-	channel: number
-	value: boolean | number | string
-}
-
-export interface BoolCommand extends ChannelCommand {
-	type: Commands.VISIBLE
-	value: boolean
-}
-export interface ValueCommand extends ChannelCommand {
-	type: Commands.TOGGLE_PGM | Commands.TOGGLE_PST | Commands.SET_FADER
-	value: number
-}
-
-export interface StringCommand extends ChannelCommand {
-	type: Commands.LABEL
-	value: string
-}
-
-export interface ResyncCommand extends BaseCommand {
-	type: Commands.RESYNC
-}
-
-export type SisyfosCommand = BaseCommand | ValueCommand | BoolCommand | StringCommand | ResyncCommand
-
-export interface SisyfosChannel extends SisyfosAPIChannel {
-	tlObjIds: string[]
-}
-
-export interface SisyfosState {
-	channels: { [index: string]: SisyfosChannel }
-	resync: boolean
-}
 
 export interface TimelineObjSisyfos extends TSRTimelineObjBase {
 	content: {
@@ -86,19 +37,3 @@ export interface TimelineObjSisyfosMessage extends TimelineObjSisyfos {
 		deviceType: DeviceType.SISYFOS
 	} & SisyfosCommandContent
 }
-// ------------------------------------------------------
-// Interfaces for the data that comes over OSC:
-export interface SisyfosAPIChannel {
-	faderLevel: number
-	pgmOn: number
-	pstOn: number
-	label: string
-	visible: boolean
-}
-
-export interface SisyfosAPIState {
-	channels: {
-		[index: string]: SisyfosAPIChannel
-	}
-}
-// ------------------------------------------------------

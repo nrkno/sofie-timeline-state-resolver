@@ -15,8 +15,18 @@ import { DoOnTime, SendMode } from '../doOnTime'
 import {
 	TimelineState, ResolvedTimelineObjectInstance
 } from 'superfly-timeline'
-import { SisyfosOptions, SisyfosState, SisyfosChannel, TimelineObjSisyfosMessage, MappingSisyfos, Commands, SisyfosCommand } from '../types/src/sisyfos'
-import { SisyfosInterface } from './sisyfosAPI'
+import {
+	SisyfosOptions,
+	TimelineObjSisyfosMessage,
+	MappingSisyfos
+} from '../types/src/sisyfos'
+import {
+	SisyfosApi,
+	SisyfosCommand,
+	SisyfosState,
+	SisyfosChannel,
+	SisyfosCommandType
+} from './sisyfosAPI'
 
 export interface DeviceOptionsSisyfosInternal extends DeviceOptionsSisyfos {
 	options: (
@@ -37,7 +47,7 @@ type CommandContext = string
 export class SisyfosMessageDevice extends DeviceWithState<SisyfosState> implements IDevice {
 
 	private _doOnTime: DoOnTime
-	private _sisyfos: SisyfosInterface
+	private _sisyfos: SisyfosApi
 
 	private _commandReceiver: CommandReceiver
 
@@ -50,7 +60,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState> implemen
 			else this._commandReceiver = this._defaultCommandReceiver
 		}
 
-		this._sisyfos = new SisyfosInterface()
+		this._sisyfos = new SisyfosApi()
 		this._sisyfos.on('error', e => this.emit('error', 'Sisyfos', e))
 		this._sisyfos.on('connected', () => {
 			this._connectionChanged()
@@ -296,7 +306,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState> implemen
 				{
 					context: `Resyncing with Sisyfos`,
 					content: {
-						type: Commands.RESYNC
+						type: SisyfosCommandType.RESYNC
 					},
 					timelineObjId: ''
 				}
@@ -310,7 +320,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState> implemen
 				commands.push({
 					context: `Channel ${index} pgm goes from "${oldChannel.pgmOn}" to "${newChannel.pgmOn}"`,
 					content: {
-						type: Commands.TOGGLE_PGM,
+						type: SisyfosCommandType.TOGGLE_PGM,
 						channel: Number(index),
 						value: newChannel.pgmOn
 					},
@@ -322,7 +332,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState> implemen
 				commands.push({
 					context: `Channel ${index} pst goes from "${oldChannel.pstOn}" to "${newChannel.pstOn}"`,
 					content: {
-						type: Commands.TOGGLE_PST,
+						type: SisyfosCommandType.TOGGLE_PST,
 						channel: Number(index),
 						value: newChannel.pstOn
 					},
@@ -334,7 +344,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState> implemen
 				commands.push({
 					context: 'faderLevel change',
 					content: {
-						type: Commands.SET_FADER,
+						type: SisyfosCommandType.SET_FADER,
 						channel: Number(index),
 						value: newChannel.faderLevel
 					},
@@ -347,7 +357,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState> implemen
 				commands.push({
 					context: 'set label on fader',
 					content: {
-						type: Commands.LABEL,
+						type: SisyfosCommandType.LABEL,
 						channel: Number(index),
 						value: newChannel.label
 					},
@@ -359,7 +369,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState> implemen
 				commands.push({
 					context: `Channel ${index} Visibility goes from "${oldChannel.visible}" to "${newChannel.visible}"`,
 					content: {
-						type: Commands.VISIBLE,
+						type: SisyfosCommandType.VISIBLE,
 						channel: Number(index),
 						value: newChannel.visible
 					},
@@ -379,7 +389,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState> implemen
 		}
 		this.emit('debug', cwc)
 
-		if (cmd.type === Commands.RESYNC) {
+		if (cmd.type === SisyfosCommandType.RESYNC) {
 			return this._makeReadyInner(true, true)
 		} else {
 			try {
