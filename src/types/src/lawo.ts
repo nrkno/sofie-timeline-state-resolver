@@ -1,12 +1,23 @@
 import { Mapping } from './mapping'
 import { TSRTimelineObjBase, DeviceType } from '.'
-import { Types as EmberTypes, Model as EmberModel, Model } from 'emberplus-connection'
+
+type EmberValue = number | string | boolean | Buffer | null
+enum ParameterType {
+	Null = 'NULL',
+	Integer = 'INTEGER',
+	Real = 'REAL',
+	String = 'STRING',
+	Boolean = 'BOOLEAN',
+	Trigger = 'TRIGGER',
+	Enum = 'ENUM',
+	Octets = 'OCTETS'
+}
 
 export interface MappingLawo extends Mapping {
 	device: DeviceType.LAWO
 	mappingType: MappingLawoType
 	identifier?: string
-	emberType?: Model.ParameterType
+	emberType?: ParameterType
 	priority?: number
 }
 export enum MappingLawoType {
@@ -39,13 +50,13 @@ export interface LawoOptions {
 export type SetLawoValueFn = (command: LawoCommand, timelineObjId: string, logCommand?: boolean) => Promise<any>
 export interface LawoCommand {
 	path: string
-	value: EmberTypes.EmberValue
-	valueType: EmberModel.ParameterType
+	value: EmberValue
+	valueType: ParameterType
 	key: string
 	identifier: string
 	type: TimelineContentTypeLawo
 	transitionDuration?: number
-	from?: EmberTypes.EmberValue
+	from?: EmberValue
 	priority: number
 }
 
@@ -78,7 +89,7 @@ export interface TimelineObjLawoEmberProperty extends TimelineObjLawoBase {
 	content: {
 		deviceType: DeviceType.LAWO
 		type: TimelineContentTypeLawo.EMBER_PROPERTY
-		value: EmberTypes.EmberValue
+		value: EmberValue
 	}
 }
 export interface TimelineObjLawoEmberRetrigger extends TimelineObjLawoBase {

@@ -54,6 +54,10 @@ To quickly getting started with development of new devices, there is also the [Q
 * View code coverage (after having run test)
 	`yarn cov-open`
 
+### Notes
+
+This repository is a monorepo containg both the TSR library and a typings package to be used by integrations. Contrary to what your editor might say, the types package cannot use dependencies from the main package.
+
 
 # Examples of timeline objects
 
