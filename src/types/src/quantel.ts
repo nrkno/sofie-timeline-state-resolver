@@ -34,6 +34,9 @@ export interface QuantelOptions {
 	/** The id of the server to control. An integer */
 	serverId: number
 
+	/** If set: If a clip turns out to be on the wrong server, an attempt to copy the clip will be done. */
+	allowCloneClips?: boolean
+
 	// doAutomaticCloningIfNeeded?: bool // not implemented yet
 }
 

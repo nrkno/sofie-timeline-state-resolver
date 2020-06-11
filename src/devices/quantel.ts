@@ -75,10 +75,12 @@ export class QuantelDevice extends DeviceWithState<QuantelState> implements IDev
 		}
 		this._quantel = new QuantelGateway()
 		this._quantel.on('error', e => this.emit('error', 'Quantel.QuantelGateway', e))
-
 		this._quantelManager = new QuantelManager(
 			this._quantel,
-			() => this.getCurrentTime()
+			() => this.getCurrentTime(),
+			{
+				allowCloneClips: deviceOptions.options.allowCloneClips
+			}
 		)
 		this._quantelManager.on('info', str => this.emit('info', 'Quantel: ' + str))
 		this._quantelManager.on('warning', str => this.emit('warning', 'Quantel' + str))
@@ -550,6 +552,10 @@ export class QuantelDevice extends DeviceWithState<QuantelState> implements IDev
 		this.emit('connectionChanged', this.getStatus())
 	}
 }
+interface QuantelManagerOptions {
+	/** If set: If a clip turns out to be on the wrong server, an attempt to copy the clip will be done. */
+	allowCloneClips?: boolean
+}
 class QuantelManager extends EventEmitter {
 	private _quantelState: QuantelTrackedState = {
 		port: {}
@@ -560,7 +566,8 @@ class QuantelManager extends EventEmitter {
 	} = {}
 	constructor (
 		private _quantel: QuantelGateway,
-		private getCurrentTime: () => number
+		private getCurrentTime: () => number,
+		private options: QuantelManagerOptions
 	) {
 		super()
 		this._quantel.on('error', (...args) => this.emit('error', ...args))
@@ -625,13 +632,36 @@ class QuantelManager extends EventEmitter {
 		const server = await this.getServer()
 
 		let clipId = await this.getClipId(cmd.clip)
-		const clipData = await this._quantel.getClip(clipId)
+		let clipData = await this._quantel.getClip(clipId)
 		if (!clipData) throw new Error(`Clip ${clipId} not found`)
 		if (!clipData.PoolID) throw new Error(`Clip ${clipData.ClipID} missing PoolID`)
 
 		// Check that the clip is present on the server:
-		if ((server.pools || []).indexOf(clipData.PoolID) === -1) {
-			throw new Error(`Clip "${clipData.ClipID}" PoolID ${clipData.PoolID} not found on server (${server.ident})`)
+		if (!(server.pools || []).includes(clipData.PoolID)) {
+			// It looks like the clip is not present on any of the pools on the server.
+
+			if (this.options.allowCloneClips) {
+				if (!server.pools) throw new Error(`server.pools not set!`)
+
+				// Try to copy the clip:
+				const cloneResult: Q.CloneResult = await this._quantel.copyClip(
+					undefined, // source zoneId. inter-zone copying not supported atm.
+					clipData.ClipID,
+					server.pools[0] // pending discussion, which to choose
+				)
+				// Check that the new clip is valid:
+				clipData = await this._quantel.getClip(
+					cloneResult.copyID // new clip id
+				)
+				if (!clipData) throw new Error(`Copied Clip ${cloneResult.copyID} not found`)
+				if (!clipData.PoolID) throw new Error(`Copied Clip ${clipData.ClipID} missing PoolID`)
+				// Check that the copied clip is present on the server:
+				if (!(server.pools || []).includes(clipData.PoolID)) {
+					throw new Error(`Copied Clip "${clipData.ClipID}" PoolID ${clipData.PoolID} not found on right server (${server.ident})`)
+				}
+			} else {
+				throw new Error(`Clip "${clipData.ClipID}" PoolID ${clipData.PoolID} not found on right server (${server.ident})`)
+			}
 		}
 
 		let useInOutPoints: boolean = !!(
