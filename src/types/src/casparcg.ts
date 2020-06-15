@@ -436,14 +436,14 @@ export interface TransitionObject {
 	outTransition: Transition0
 }
 export interface ITransition {
-	type?: string
+	type?: Transition
 	duration: number
-	easing?: string
-	direction?: string
+	easing?: Ease
+	direction?: Direction | string
 }
 export interface Transition0 extends ITransition {
-	type: string
+	type: Transition
 	duration: number
-	easing: string
-	direction: string
+	easing: Ease
+	direction: Direction | string
 }
