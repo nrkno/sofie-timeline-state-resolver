@@ -276,7 +276,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState> implemen
 				// @ts-ignore backwards-compatibility:
 				if (!foundMapping.mappingType) foundMapping.mappingType = MappingSisyfosType.CHANNEL
 				// @ts-ignore backwards-compatibility:
-				if (!content.type === 'sisyfos') content.type = TimelineContentTypeSisyfos.CHANNEL
+				if (content.type === 'sisyfos') content.type = TimelineContentTypeSisyfos.CHANNEL
 
 				if (
 					foundMapping.mappingType === MappingSisyfosType.CHANNEL &&
