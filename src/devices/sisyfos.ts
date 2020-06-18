@@ -249,9 +249,10 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState> implemen
 	convertStateToSisyfosState (state: TimelineState) {
 		const deviceState: SisyfosState = this.getDeviceState()
 
+		const mappings = this.getMapping()
 		_.each(state.layers, (tlObject, layerName) => {
 			const layer = tlObject as ResolvedTimelineObjectInstance & TimelineObjSisyfosAny
-			let foundMapping: MappingSisyfos = this.getMapping()[layerName] as any // @todo: make ts understand this
+			let foundMapping: MappingSisyfos = mappings[layerName] as any // @todo: make ts understand this
 
 			const content = tlObject.content as TimelineObjSisyfosAny['content']
 
@@ -262,7 +263,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState> implemen
 
 			// if the tlObj is specifies to load to PST the original Layer is used to resolve the mapping
 			if (!foundMapping && layer.isLookahead && layer.lookaheadForLayer) {
-				foundMapping = this.getMapping()[layer.lookaheadForLayer] as any
+				foundMapping = mappings[layer.lookaheadForLayer] as any
 			}
 
 			// Preparation: put all channels that comes from the state in an array:
@@ -294,12 +295,17 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState> implemen
 					content.type === TimelineContentTypeSisyfos.CHANNELS
 				) {
 					_.each(content.channels, channel => {
-						newChannels.push({
-							...channel,
-							overridePriority: content.overridePriority || 0,
-							isLookahead: layer.isLookahead || false,
-							tlObjId: layer.id
-						})
+
+						const referencedMapping = mappings[channel.mappedLayer] as MappingSisyfos | undefined
+						if (referencedMapping && referencedMapping.mappingType === MappingSisyfosType.CHANNEL) {
+							newChannels.push({
+								...channel,
+								channel: referencedMapping.channel,
+								overridePriority: content.overridePriority || 0,
+								isLookahead: layer.isLookahead || false,
+								tlObjId: layer.id
+							})
+						}
 					})
 				}
 				deviceState.resync = deviceState.resync || content.resync || false

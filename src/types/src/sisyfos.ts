@@ -60,7 +60,8 @@ export interface TimelineObjSisyfosChannels extends TimelineObjSisyfos {
 		type: TimelineContentTypeSisyfos.CHANNELS
 		channels: (
 			{
-				channel: number
+				/** The mapping layer to look up the channel from */
+				mappedLayer: string
 			} & SisyfosChannelOptions
 		)[],
 		resync?: boolean

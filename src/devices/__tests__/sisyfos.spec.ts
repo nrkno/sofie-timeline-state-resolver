@@ -657,12 +657,12 @@ describe('Sisyfos', () => {
 
 					channels: [
 						{
-							channel: 1,
+							mappedLayer: 'sisyfos_channel_1',
 							faderLevel: 0.1,
 							isPgm: 0
 						},
 						{
-							channel: 2,
+							mappedLayer: 'sisyfos_channel_2',
 							faderLevel: 0.2,
 							isPgm: 0
 						}
@@ -709,11 +709,11 @@ describe('Sisyfos', () => {
 
 					channels: [
 						{
-							channel: 1,
+							mappedLayer: 'sisyfos_channel_1',
 							faderLevel: 0.75
 						},
 						{
-							channel: 2,
+							mappedLayer: 'sisyfos_channel_2',
 							faderLevel: 0.74
 						}
 					],
