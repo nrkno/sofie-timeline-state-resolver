@@ -223,7 +223,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState> implemen
 			if (isDefaultState) { // reset values for default state
 				channel = {
 					...channel,
-					...this.getDefaultStatChannel()
+					...this.getDefaultStateChannel()
 				}
 			}
 
@@ -231,7 +231,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState> implemen
 		}
 		return deviceState
 	}
-	getDefaultStatChannel (): SisyfosChannel {
+	getDefaultStateChannel (): SisyfosChannel {
 		return {
 			faderLevel: 0.75,  // 0 dB
 			pgmOn: 0,
@@ -316,7 +316,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState> implemen
 				_.sortBy(newChannels, channel => channel.overridePriority),
 				newChannel => {
 					if (!deviceState.channels[newChannel.channel]) {
-						deviceState.channels[newChannel.channel] = this.getDefaultStatChannel()
+						deviceState.channels[newChannel.channel] = this.getDefaultStateChannel()
 					}
 					const channel = deviceState.channels[newChannel.channel]
 
