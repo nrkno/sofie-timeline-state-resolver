@@ -6,25 +6,31 @@ export interface SisyfosOptions {
 	port: number
 }
 
-export interface MappingSisyfos extends Mapping {
+export enum MappingSisyfosType {
+	CHANNEL = 'channel',
+	CHANNELS = 'channels'
+}
+export type MappingSisyfos = MappingSisyfosChannel | MappingSisyfosChannels
+interface MappingSisyfosBase extends Mapping {
 	device: DeviceType.SISYFOS
+	mappingType: MappingSisyfosType  // defaults to MappingSisyfosType.CHANNEL if not set
+}
+export interface MappingSisyfosChannel extends MappingSisyfosBase {
+	mappingType: MappingSisyfosType.CHANNEL
 	channel: number
+}
+export interface MappingSisyfosChannels extends MappingSisyfosBase {
+	mappingType: MappingSisyfosType.CHANNELS
 }
 
 export enum TimelineContentTypeSisyfos {
-	SISYFOS = 'sisyfos'
+	/** @deprecated use CHANNEL instead */
+	SISYFOS = 'sisyfos',
+	CHANNEL = 'channel',
+	CHANNELS = 'channels'
 }
 
-export interface SisyfosCommandContent {
-	type: TimelineContentTypeSisyfos.SISYFOS
-	isPgm?: number // 0=off 1=PGM 2=VO
-	faderLevel?: number
-	label?: string
-	visible?: boolean
-	resync?: boolean
-}
-export type TimelineObjSisyfosAny = TimelineObjSisyfosMessage
-
+export type TimelineObjSisyfosAny = TimelineObjSisyfosChannel | TimelineObjSisyfosChannels
 
 export interface TimelineObjSisyfos extends TSRTimelineObjBase {
 	content: {
@@ -32,8 +38,35 @@ export interface TimelineObjSisyfos extends TSRTimelineObjBase {
 		type: TimelineContentTypeSisyfos
 	}
 }
-export interface TimelineObjSisyfosMessage extends TimelineObjSisyfos {
+
+export interface SisyfosChannelOptions {
+	isPgm?: 0 | 1 | 2 // 0=off 1=PGM 2=VO
+	faderLevel?: number
+	label?: string
+	visible?: boolean
+}
+
+export interface TimelineObjSisyfosChannel extends TimelineObjSisyfos {
 	content: {
 		deviceType: DeviceType.SISYFOS
-	} & SisyfosCommandContent
+		type: TimelineContentTypeSisyfos.CHANNEL
+		resync?: boolean
+		overridePriority?: number // defaults to 0
+	} & SisyfosChannelOptions
 }
+export interface TimelineObjSisyfosChannels extends TimelineObjSisyfos {
+	content: {
+		deviceType: DeviceType.SISYFOS
+		type: TimelineContentTypeSisyfos.CHANNELS
+		channels: (
+			{
+				channel: number
+			} & SisyfosChannelOptions
+		)[],
+		resync?: boolean
+		overridePriority?: number // defaults to 0
+	}
+}
+// Backwards compatibility:
+/** @deprecated use TimelineObjSisyfosChannel instead */
+export type TimelineObjSisyfosMessage = TimelineObjSisyfosChannel

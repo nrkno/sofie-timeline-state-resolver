@@ -13,12 +13,16 @@ import {
 import { DoOnTime, SendMode } from '../doOnTime'
 
 import {
-	TimelineState, ResolvedTimelineObjectInstance
+	TimelineState,
+	ResolvedTimelineObjectInstance
 } from 'superfly-timeline'
 import {
 	SisyfosOptions,
-	TimelineObjSisyfosMessage,
-	MappingSisyfos
+	MappingSisyfos,
+	MappingSisyfosType,
+	TimelineObjSisyfosAny,
+	TimelineContentTypeSisyfos,
+	SisyfosChannelOptions
 } from '../types/src/sisyfos'
 import {
 	SisyfosApi,
@@ -200,7 +204,10 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState> implemen
 	}
 	getDeviceState (isDefaultState = true): SisyfosState {
 		let deviceStateFromAPI = this._sisyfos.state
-		const deviceState: SisyfosState = { channels: {}, resync: false }
+		const deviceState: SisyfosState = {
+			channels: {},
+			resync: false
+		}
 
 		if (!deviceStateFromAPI) deviceStateFromAPI = deviceState
 
@@ -216,17 +223,23 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState> implemen
 			if (isDefaultState) { // reset values for default state
 				channel = {
 					...channel,
-					faderLevel: 0.75,  // 0 dB
-					pgmOn: 0,
-					pstOn: 0,
-					label: '',
-					visible: true
+					...this.getDefaultStatChannel()
 				}
 			}
 
 			deviceState.channels[ch] = channel
 		}
 		return deviceState
+	}
+	getDefaultStatChannel (): SisyfosChannel {
+		return {
+			faderLevel: 0.75,  // 0 dB
+			pgmOn: 0,
+			pstOn: 0,
+			label: '',
+			visible: true,
+			tlObjIds: []
+		}
 	}
 	/**
 	 * Transform the timeline state into a device state, which is in this case also
@@ -237,8 +250,10 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState> implemen
 		const deviceState: SisyfosState = this.getDeviceState()
 
 		_.each(state.layers, (tlObject, layerName) => {
-			const layer = tlObject as ResolvedTimelineObjectInstance & TimelineObjSisyfosMessage
+			const layer = tlObject as ResolvedTimelineObjectInstance & TimelineObjSisyfosAny
 			let foundMapping: MappingSisyfos = this.getMapping()[layerName] as any // @todo: make ts understand this
+
+			const content = tlObject.content as TimelineObjSisyfosAny['content']
 
 			// Allow resync without valid channel mapping
 			if (layer.content.resync !== undefined) {
@@ -249,28 +264,71 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState> implemen
 			if (!foundMapping && layer.isLookahead && layer.lookaheadForLayer) {
 				foundMapping = this.getMapping()[layer.lookaheadForLayer] as any
 			}
-			if (foundMapping && _.has(foundMapping, 'channel') && deviceState.channels[foundMapping.channel]) {
 
-				if (layer.isLookahead) {
-					deviceState.channels[foundMapping.channel].pstOn = layer.content.isPgm || 0
-				} else {
-					deviceState.channels[foundMapping.channel].pgmOn = layer.content.isPgm || 0
+			// Preparation: put all channels that comes from the state in an array:
+			const newChannels: ({
+				overridePriority: number,
+				channel: number,
+				isLookahead: boolean
+				tlObjId: string
+			} & SisyfosChannelOptions)[] = []
+			if (foundMapping) {
+				// @ts-ignore backwards-compatibility:
+				if (!foundMapping.mappingType) foundMapping.mappingType = MappingSisyfosType.CHANNEL
+				// @ts-ignore backwards-compatibility:
+				if (!content.type === 'sisyfos') content.type = TimelineContentTypeSisyfos.CHANNEL
+
+				if (
+					foundMapping.mappingType === MappingSisyfosType.CHANNEL &&
+					content.type === TimelineContentTypeSisyfos.CHANNEL
+				) {
+					newChannels.push({
+						...content,
+						channel: foundMapping.channel,
+						overridePriority: content.overridePriority || 0,
+						isLookahead: layer.isLookahead || false,
+						tlObjId: layer.id
+					})
+				} else if (
+					foundMapping.mappingType === MappingSisyfosType.CHANNELS &&
+					content.type === TimelineContentTypeSisyfos.CHANNELS
+				) {
+					_.each(content.channels, channel => {
+						newChannels.push({
+							...channel,
+							overridePriority: content.overridePriority || 0,
+							isLookahead: layer.isLookahead || false,
+							tlObjId: layer.id
+						})
+					})
 				}
-
-				if (layer.content.faderLevel !== undefined) {
-					deviceState.channels[foundMapping.channel].faderLevel = layer.content.faderLevel
-				}
-
-				if (layer.content.label !== undefined) {
-					deviceState.channels[foundMapping.channel].label = layer.content.label
-				}
-
-				if (layer.content.visible !== undefined) {
-					deviceState.channels[foundMapping.channel].visible = layer.content.visible
-				}
-
-				deviceState.channels[foundMapping.channel].tlObjIds.push(tlObject.id)
+				deviceState.resync = deviceState.resync || content.resync || false
 			}
+
+			// Sort by overridePriority, so that those with highest overridePriority will be applied last
+			_.each(
+				_.sortBy(newChannels, channel => channel.overridePriority),
+				newChannel => {
+					if (!deviceState.channels[newChannel.channel]) {
+						deviceState.channels[newChannel.channel] = this.getDefaultStatChannel()
+					}
+					const channel = deviceState.channels[newChannel.channel]
+
+					if (newChannel.isPgm !== undefined) {
+						if (newChannel.isLookahead) {
+							channel.pstOn = newChannel.isPgm || 0
+						} else {
+							channel.pgmOn = newChannel.isPgm || 0
+						}
+					}
+
+					if (newChannel.faderLevel !== undefined) channel.faderLevel = newChannel.faderLevel
+					if (newChannel.label !== undefined) channel.label = newChannel.label
+					if (newChannel.visible !== undefined) channel.visible = newChannel.visible
+
+					channel.tlObjIds.push(tlObject.id)
+				}
+			)
 		})
 		return deviceState
 	}
