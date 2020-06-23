@@ -35,12 +35,15 @@ import {
 	VRundown,
 	InternalElement,
 	ExternalElement,
-	VElement
+	VElement,
+	VProfile,
+	VizEngine
 } from 'v-connection'
 
 import { DoOnTime, SendMode } from '../doOnTime'
 
 import * as crypto from 'crypto'
+import * as net from 'net'
 
 /** The ideal time to prepare elements before going on air */
 const IDEAL_PREPARE_TIME = 1000
@@ -52,6 +55,9 @@ const MONITOR_INTERVAL = 5 * 1000
 
 // How long to wait after any action (takes, cues, etc) before trying to cue for preloading
 const SAFE_PRELOAD_TIME = 2000
+
+// How long to wait before retrying to ping the MSE when initializing the rundown, after a failed attempt
+const INIT_RETRY_INTERVAL = 3000
 
 export function getHash (str: string): string {
 	const hash = crypto.createHash('sha1')
@@ -124,12 +130,12 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState> implements IDevic
 
 		this._vizmseManager.on('connectionChanged', (connected) => this.connectionChanged(connected))
 
-		await this._vizmseManager.initializeRundown()
-
 		this._vizmseManager.on('info', str => this.emit('info', 'VizMSE: ' + str))
 		this._vizmseManager.on('warning', str => this.emit('warning', 'VizMSE' + str))
 		this._vizmseManager.on('error', e => this.emit('error', 'VizMSE', e))
 		this._vizmseManager.on('debug', (...args) => this.emit('debug', ...args))
+
+		await this._vizmseManager.initializeRundown()
 
 		return true
 	}
@@ -266,7 +272,8 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState> implements IDevic
 					} else if (l.content.type === TimelineContentTypeVizMSE.CLEAR_ALL_ELEMENTS) {
 						// Special case: clear all graphics:
 						state.isClearAll = {
-							timelineObjId: l.id
+							timelineObjId: l.id,
+							channelsToSendCommands: l.content.channelsToSendCommands
 						}
 
 					} else if (l.content.type === TimelineContentTypeVizMSE.CONTINUE) {
@@ -342,15 +349,25 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState> implements IDevic
 			if (this._vizmseManager) {
 				if (
 					this._initOptions &&
-					this._initOptions.clearAllOnMakeReady &&
-					this._initOptions.clearAllTemplateName
+					this._initOptions.clearAllOnMakeReady
 				) {
-					await this._vizmseManager.clearAll({
-						type: VizMSECommandType.CLEAR_ALL_ELEMENTS,
-						time: this.getCurrentTime(),
-						timelineObjId: 'makeReady',
-						templateName: this._initOptions.clearAllTemplateName
-					})
+					if (this._initOptions.clearAllTemplateName) {
+						await this._vizmseManager.clearAll({
+							type: VizMSECommandType.CLEAR_ALL_ELEMENTS,
+							time: this.getCurrentTime(),
+							timelineObjId: 'makeReady',
+							templateName: this._initOptions.clearAllTemplateName
+						})
+					}
+					if (this._initOptions.clearAllCommands && this._initOptions.clearAllCommands.length) {
+						await this._vizmseManager.clearEngines({
+							type: VizMSECommandType.CLEAR_ALL_ENGINES,
+							time: this.getCurrentTime(),
+							timelineObjId: 'makeReady',
+							channels: 'all',
+							commands: this._initOptions.clearAllCommands
+						})
+					}
 				}
 			} else throw new Error(`Unable to activate vizMSE, not initialized yet!`)
 		}
@@ -584,21 +601,33 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState> implements IDevic
 		if (newState.isClearAll && !oldState.isClearAll) {
 			// Special: clear all graphics
 
+			const clearingCommands: VizMSECommand[] = []
+
 			const templateName = this._initOptions && this._initOptions.clearAllTemplateName
 			if (!templateName) {
 				this.emit('warning', `vizMSE: initOptions.clearAllTemplateName is not set!`)
 			} else {
 
 				// Start playing special element:
-				return [
-					literal<VizMSECommandClearAllElements>({
-						timelineObjId: newState.isClearAll.timelineObjId,
-						time: time,
-						type: VizMSECommandType.CLEAR_ALL_ELEMENTS,
-						templateName: templateName
-					})
-				]
+				clearingCommands.push(literal<VizMSECommandClearAllElements>({
+					timelineObjId: newState.isClearAll.timelineObjId,
+					time: time,
+					type: VizMSECommandType.CLEAR_ALL_ELEMENTS,
+					templateName: templateName
+				}))
 			}
+			if (newState.isClearAll.channelsToSendCommands && this._initOptions && this._initOptions.clearAllCommands && this._initOptions.clearAllCommands.length) {
+
+				// Send special commands to the engines:
+				clearingCommands.push(literal<VizMSECommandClearAllEngines>({
+					timelineObjId: newState.isClearAll.timelineObjId,
+					time: time,
+					type: VizMSECommandType.CLEAR_ALL_ENGINES,
+					channels: newState.isClearAll.channelsToSendCommands,
+					commands: this._initOptions.clearAllCommands
+				}))
+			}
+			return clearingCommands
 		}
 		const sortCommands = (commands: VizMSECommand[]): VizMSECommand[] => {
 			// Sort the commands so that take out:s are run first
@@ -705,6 +734,8 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState> implements IDevic
 					await this._vizmseManager.loadAllElements(cmd)
 				} else if (cmd.type === VizMSECommandType.CLEAR_ALL_ELEMENTS) {
 					await this._vizmseManager.clearAll(cmd)
+				} else if (cmd.type === VizMSECommandType.CLEAR_ALL_ENGINES) {
+					await this._vizmseManager.clearEngines(cmd)
 				} else {
 					// @ts-ignore never
 					throw new Error(`Unsupported command type "${cmd.type}"`)
@@ -768,34 +799,43 @@ class VizMSEManager extends EventEmitter {
 		this._vizMSE.on('connected', () => this.mseConnectionChanged(true))
 		this._vizMSE.on('disconnected', () => this.mseConnectionChanged(false))
 
-		// Perform a ping, to ensure we are connected properly
-		await this._vizMSE.ping()
-		this._msePingConnected = true
-		this.mseConnectionChanged(true)
+		const initializeRundownInner = async () => {
+			try {
+				// Perform a ping, to ensure we are connected properly
+				await this._vizMSE.ping()
+				this._msePingConnected = true
+				this.mseConnectionChanged(true)
 
-		// Setup the rundown used by this device:
-		const rundown = await this._getRundown()
+				// Setup the rundown used by this device:
+				const rundown = await this._getRundown()
 
-		if (!rundown) throw new Error(`VizMSEManager: Unable to create rundown!`)
+				if (!rundown) throw new Error(`VizMSEManager: Unable to create rundown!`)
+			} catch (e) {
+				setTimeout(() => initializeRundownInner(), INIT_RETRY_INTERVAL)
+				return
+			}
 
-		// const profile = await this._vizMSE.getProfile('sofie') // TODO: Figure out if this is needed
+			// const profile = await this._vizMSE.getProfile('sofie') // TODO: Figure out if this is needed
 
-		if (this._monitorAndLoadElementsInterval) {
-			clearInterval(this._monitorAndLoadElementsInterval)
+			if (this._monitorAndLoadElementsInterval) {
+				clearInterval(this._monitorAndLoadElementsInterval)
+			}
+			this._monitorAndLoadElementsInterval = setInterval(() => {
+				this._monitorLoadedElements()
+				.catch((...args) => {
+					this.emit('error', ...args)
+				})
+			}, MONITOR_INTERVAL)
+
+			if (this._monitorMSEConnection) {
+				clearInterval(this._monitorMSEConnection)
+			}
+			this._monitorMSEConnection = setInterval(() => this._monitorConnection(), MONITOR_INTERVAL)
+
+			this.initialized = true
 		}
-		this._monitorAndLoadElementsInterval = setInterval(() => {
-			this._monitorLoadedElements()
-			.catch((...args) => {
-				this.emit('error', ...args)
-			})
-		}, MONITOR_INTERVAL)
 
-		if (this._monitorMSEConnection) {
-			clearInterval(this._monitorMSEConnection)
-		}
-		this._monitorMSEConnection = setInterval(() => this._monitorConnection(), MONITOR_INTERVAL)
-
-		this.initialized = true
+		await initializeRundownInner()
 	}
 	/**
 	 * Close connections and die
@@ -1015,6 +1055,52 @@ class VizMSEManager extends EventEmitter {
 			this.emit('debug', `VizMSE: clearAll take "${elementRef}"`)
 			return rundown.take(elementRef)
 		})
+	}
+	/**
+	 * Special: send commands to Viz Engines in order to clear them
+	 */
+	public async clearEngines (cmd: VizMSECommandClearAllEngines): Promise<void> {
+		try {
+			const profile = await this._vizMSE.getProfile(this._profile)
+			const engines = await this._vizMSE.getEngines()
+			const enginesToClear = this._prepareEnginesToClear(profile, engines, cmd.channels)
+			enginesToClear.forEach(engine => {
+				const sender = new VizEngineTcpSender(engine.port, engine.host)
+				sender.on('warning', w => this.emit('warning', `clearEngines: ${w}`))
+				sender.on('error', e => this.emit('error', `clearEngines: ${e}`))
+				sender.send(cmd.commands)
+			})
+		} catch (e) {
+			this.emit('warning', `Sending Clear-all command failed ${e}`)
+		}
+	}
+	private _prepareEnginesToClear (profile: VProfile, engines: VizEngine[], channels: string[] | 'all'): Array<{host: string, port: number}> {
+		const enginesToClear: Array<{host: string, port: number}> = []
+		const outputs = new Map<string, string>() // engine name : channel name
+		_.each(profile.execution_groups, (group, groupName) => {
+			_.each(group, entry => {
+				if (typeof entry === 'object' && entry.viz) {
+					if (typeof entry.viz === 'object' && entry.viz.value) {
+						outputs.set(entry.viz.value as string, groupName)
+					}
+				}
+			})
+		})
+		const outputEngines = engines.filter(engine => {
+			return outputs.has(engine.name)
+		})
+		outputEngines.forEach(engine => {
+			_.each(_.keys(engine.renderer), fullHost => {
+				const channelName = outputs.get(engine.name)
+				if (channels === 'all' || _.contains(channels, channelName)) {
+					const match = fullHost.match(/([^:]+):?(\d*)?/)
+					const port = (match && match[2]) ? parseInt(match[2], 10) : 6100
+					const host = (match && match[1]) ? match[1] : fullHost
+					enginesToClear.push({ host, port })
+				}
+			})
+		})
+		return enginesToClear
 	}
 	/**
 	 * Load all elements: Trigger a loading of all pilot elements onto the vizEngine.
@@ -1587,7 +1673,8 @@ interface VizMSEState {
 	}
 	/** Special: If this is set, all other state will be disregarded and all graphics will be cleared */
 	isClearAll?: {
-		timelineObjId: string
+		timelineObjId: string,
+		channelsToSendCommands?: string[]
 	}
 }
 type VizMSEStateLayer = VizMSEStateLayerInternal | VizMSEStateLayerPilot | VizMSEStateLayerContinue | VizMSEStateLayerLoadAllElements
@@ -1642,7 +1729,8 @@ export enum VizMSECommandType {
 	CONTINUE_ELEMENT = 'continue',
 	CONTINUE_ELEMENT_REVERSE = 'continuereverse',
 	LOAD_ALL_ELEMENTS = 'load_all_elements',
-	CLEAR_ALL_ELEMENTS = 'clear_all_elements'
+	CLEAR_ALL_ELEMENTS = 'clear_all_elements',
+	CLEAR_ALL_ENGINES = 'clear_all_engines'
 }
 
 interface VizMSECommandElementBase extends VizMSECommandBase, VizMSEPlayoutItemContentInternal {
@@ -1675,6 +1763,12 @@ interface VizMSECommandClearAllElements extends VizMSECommandBase {
 
 	templateName: string
 }
+interface VizMSECommandClearAllEngines extends VizMSECommandBase {
+	type: VizMSECommandType.CLEAR_ALL_ENGINES
+
+	channels: string[] | 'all'
+	commands: string[]
+}
 
 type VizMSECommand = VizMSECommandPrepare |
 	VizMSECommandCue |
@@ -1683,7 +1777,8 @@ type VizMSECommand = VizMSECommandPrepare |
 	VizMSECommandContinue |
 	VizMSECommandContinueReverse |
 	VizMSECommandLoadAllElements |
-	VizMSECommandClearAllElements
+	VizMSECommandClearAllElements |
+	VizMSECommandClearAllEngines
 
 interface VizMSEPlayoutItemContentInternal extends VIZMSEPlayoutItemContent {
 	/** Name of the instance of the element in MSE, generated by us */
@@ -1733,4 +1828,92 @@ function content2StateLayer (
 		return o
 	}
 	return
+}
+
+class VizEngineTcpSender extends EventEmitter {
+	private _socket: net.Socket = new net.Socket()
+	private _port: number
+	private _host: string
+	private _connected: boolean = false
+	private _commandCount: number = 0
+	private _sendQueue: string[] = []
+	private _waitQueue: Set<number> = new Set()
+	private _incomingData: string = ''
+	private _responseTimeoutMs: number = 6000
+
+	constructor (port: number, host: string) {
+		super()
+		this._port = port
+		this._host = host
+	}
+
+	send (commands: string[]) {
+		commands.forEach(command => {
+			this._sendQueue.push(command)
+		})
+		if (this._connected) {
+			this._flushQueue()
+		} else {
+			this._connect()
+		}
+	}
+
+	private _connect () {
+		this._socket = net.createConnection(this._port, this._host)
+		this._socket.on('connect', () => {
+			this._connected = true
+			if (this._sendQueue.length) {
+				this._flushQueue()
+			}
+		})
+		this._socket.on('error', e => {
+			this.emit('error', e)
+			this._destroy()
+		})
+		this._socket.on('lookup', () => {
+			// this handles a dns exception, but the error is handled on 'error' event
+		})
+		this._socket.on('data', this._processData.bind(this))
+	}
+
+	private _flushQueue () {
+		this._sendQueue.forEach(command => {
+			this._socket.write(`${++this._commandCount} ${command}\x00`)
+			this._waitQueue.add(this._commandCount)
+		})
+		setTimeout(() => {
+			if (this._waitQueue.size) {
+				this.emit('warning', `Response from ${this._host}:${this._port} not received on time`)
+				this._destroy()
+			}
+		}, this._responseTimeoutMs)
+	}
+
+	private _processData (data: Buffer) {
+		this._incomingData = this._incomingData.concat(data.toString())
+		let split = this._incomingData.split('\x00')
+		if (split.length === 0 || split.length === 1 && split[0] === '') return
+		if (split[split.length - 1] !== '') {
+			this._incomingData = split.pop()!
+		} else {
+			this._incomingData = ''
+		}
+		split.forEach(message => {
+			const firstSpace = message.indexOf(' ')
+			const id = message.substr(0, firstSpace)
+			const contents = message.substr(firstSpace + 1)
+			if (contents.startsWith('ERROR')) {
+				this.emit('warning', contents)
+			}
+			this._waitQueue.delete(parseInt(id, 10))
+		})
+		if (this._waitQueue.size === 0) {
+			this._destroy()
+		}
+	}
+
+	private _destroy () {
+		this._socket.destroy()
+		this.removeAllListeners()
+	}
 }
