@@ -244,8 +244,9 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended> {
 		this._doOnTime.clearQueueAfter(clearAfterTime)
 	}
 
-	terminate () {
+	async terminate () {
 		this._doOnTime.dispose()
+		await this._vmix.dispose()
 		return Promise.resolve(true)
 	}
 
