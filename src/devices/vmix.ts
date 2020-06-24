@@ -483,7 +483,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended> {
 			}
 
 			if (
-				oldMixState.program === newMixState.program && // if we're not switching what is on program
+				oldMixState.program === newMixState.program && // if we're not switching what is on program, because it could break a transition
 				newMixState.preview !== undefined &&
 				newMixState.preview !== oldMixState.preview
 			) {
