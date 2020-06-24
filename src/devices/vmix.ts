@@ -133,9 +133,10 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended> {
 	}
 
 	private _onVMixStateChanged (newState: VMixState) {
-		let oldState: VMixStateExtended = (this.getStateBefore(this.getCurrentTime()) || { state: this._getDefaultState() }).state
+		const time = this.getCurrentTime()
+		let oldState: VMixStateExtended = (this.getStateBefore(time) || { state: this._getDefaultState() }).state
 		oldState.reportedState = newState
-		this.setState(oldState, this.getCurrentTime())
+		this.setState(oldState, time)
 	}
 
 	private _getDefaultInputState (num: number): VMixInput {
@@ -211,8 +212,8 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended> {
 	/** Called by the Conductor a bit before a .handleState is called */
 	prepareForHandleState (newStateTime: number) {
 		// clear any queued commands later than this time:
-		this._doOnTime.clearQueueNowAndAfter(newStateTime)
-		this.cleanUpStates(0, newStateTime)
+		this._doOnTime.clearQueueNowAndAfter(newStateTime + 0.1)
+		this.cleanUpStates(0, newStateTime + 0.1)
 	}
 
 	handleState (newState: TimelineState) {
@@ -221,7 +222,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended> {
 			return
 		}
 
-		let previousStateTime = Math.max(this.getCurrentTime(), newState.time)
+		let previousStateTime = Math.max(this.getCurrentTime() + 0.1, newState.time)
 		let oldState: VMixStateExtended = (this.getStateBefore(previousStateTime) || { state: this._getDefaultState() }).state
 
 		let newVMixState = this.convertStateToVMix(newState)
