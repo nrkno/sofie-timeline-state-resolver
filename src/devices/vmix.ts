@@ -598,6 +598,16 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended> {
 					})
 				}
 			}
+			if (input.muted !== undefined && oldInput.muted !== input.muted && input.muted) {
+				commands.push({
+					command: {
+						command: VMixCommand.AUDIO_OFF,
+						input: key
+					},
+					context: null,
+					timelineId: ''
+				})
+			}
 			if (oldInput.volume !== input.volume && input.volume !== undefined) {
 				commands.push({
 					command: {
@@ -620,27 +630,6 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended> {
 					context: null,
 					timelineId: ''
 				})
-			}
-			if (input.muted !== undefined && oldInput.muted !== input.muted) {
-				if (input.muted) {
-					commands.push({
-						command: {
-							command: VMixCommand.AUDIO_OFF,
-							input: key
-						},
-						context: null,
-						timelineId: ''
-					})
-				} else {
-					commands.push({
-						command: {
-							command: VMixCommand.AUDIO_ON,
-							input: key
-						},
-						context: null,
-						timelineId: ''
-					})
-				}
 			}
 			if (input.audioAuto !== undefined && oldInput.audioAuto !== input.audioAuto) {
 				if (!input.audioAuto) {
@@ -687,6 +676,16 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended> {
 						context: null,
 						timelineId: ''
 					})
+				})
+			}
+			if (input.muted !== undefined && oldInput.muted !== input.muted && !input.muted) {
+				commands.push({
+					command: {
+						command: VMixCommand.AUDIO_ON,
+						input: key
+					},
+					context: null,
+					timelineId: ''
 				})
 			}
 			if (input.transform !== undefined && !_.isEqual(oldInput.transform, input.transform)) {
