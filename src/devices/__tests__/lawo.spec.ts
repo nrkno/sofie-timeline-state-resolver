@@ -523,7 +523,7 @@ describe('Lawo', () => {
 					value: -12,
 					transitionDuration: 400
 				}
-			},
+			}
 		]
 
 		await mockTime.advanceTimeToTicks(10200)
