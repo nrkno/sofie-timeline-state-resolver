@@ -26,6 +26,10 @@ export class VMix extends EventEmitter {
 	public dispose (): Promise<void> {
 		return new Promise((resolve) => {
 			this._connected = false
+			if (this._socketKeepAliveTimeout) {
+				clearTimeout(this._socketKeepAliveTimeout)
+				this._socketKeepAliveTimeout = null
+			}
 			resolve()
 		})
 	}
