@@ -677,14 +677,14 @@ describe('vMix', () => {
 					fade: 1337,
 					balance: 0.12,
 					audioAuto: false,
-					muted: true,
+					muted: false,
 					audioBuses: 'A,C,F'
 				}
 			}
 		]
 		await mockTime.advanceTimeToTicks(11300)
 
-		expect(commandReceiver0).toHaveBeenCalledTimes(6)
+		expect(commandReceiver0).toHaveBeenCalledTimes(8)
 		expect(commandReceiver0).toHaveBeenNthCalledWith(1, 11000, expect.objectContaining({
 			command: {
 				command: VMixCommand.AUDIO_VOLUME,
@@ -717,25 +717,40 @@ describe('vMix', () => {
 			command: {
 				command: VMixCommand.AUDIO_BUS_ON,
 				input: '2',
-				value: 'F'
+				value: 'C'
 			}
 		}), null, expect.any(String))
 		expect(commandReceiver0).toHaveBeenNthCalledWith(6, 11000, expect.objectContaining({
+			command: {
+				command: VMixCommand.AUDIO_BUS_ON,
+				input: '2',
+				value: 'F'
+			}
+		}), null, expect.any(String))
+		expect(commandReceiver0).toHaveBeenNthCalledWith(7, 11000, expect.objectContaining({
 			command: {
 				command: VMixCommand.AUDIO_BUS_OFF,
 				input: '2',
 				value: 'M'
 			}
 		}), null, expect.any(String))
+		expect(commandReceiver0).toHaveBeenNthCalledWith(8, 11000, expect.objectContaining({
+			command: {
+				command: VMixCommand.AUDIO_ON,
+				input: '2'
+			}
+		}), null, expect.any(String))
 
-		expect(onRequest).toHaveBeenCalledTimes(6)
+		expect(onRequest).toHaveBeenCalledTimes(8)
 
 		expect(onRequest).toHaveBeenNthCalledWith(1, 'get', expect.stringContaining('/api/?Function=SetVolumeFade&Input=2&Value=46,1337'))
 		expect(onRequest).toHaveBeenNthCalledWith(2, 'get', expect.stringContaining('/api/?Function=SetBalance&Input=2&Value=0.12'))
 		expect(onRequest).toHaveBeenNthCalledWith(3, 'get', expect.stringContaining('/api/?Function=AudioAutoOff&Input=2'))
 		expect(onRequest).toHaveBeenNthCalledWith(4, 'get', expect.stringContaining('/api/?Function=AudioBusOn&Input=2&Value=A'))
-		expect(onRequest).toHaveBeenNthCalledWith(5, 'get', expect.stringContaining('/api/?Function=AudioBusOn&Input=2&Value=F'))
-		expect(onRequest).toHaveBeenNthCalledWith(6, 'get', expect.stringContaining('/api/?Function=AudioBusOff&Input=2&Value=M'))
+		expect(onRequest).toHaveBeenNthCalledWith(5, 'get', expect.stringContaining('/api/?Function=AudioBusOn&Input=2&Value=C'))
+		expect(onRequest).toHaveBeenNthCalledWith(6, 'get', expect.stringContaining('/api/?Function=AudioBusOn&Input=2&Value=F'))
+		expect(onRequest).toHaveBeenNthCalledWith(7, 'get', expect.stringContaining('/api/?Function=AudioBusOff&Input=2&Value=M'))
+		expect(onRequest).toHaveBeenNthCalledWith(8, 'get', expect.stringContaining('/api/?Function=AudioOn&Input=2'))
 
 		clearMocks()
 		commandReceiver0.mockClear()
