@@ -71,7 +71,7 @@ export enum TimelineContentTypeLawo { //  Lawo-state
 export type TimelineObjLawoAny = TimelineObjLawoSources | TimelineObjLawoSource | TimelineObjLawoSourceDeprecated | TimelineObjLawoEmberProperty | TimelineObjLawoEmberRetrigger
 
 export interface ContentTimelineObjLawoSource {
-	value: number
+	faderValue: number
 	transitionDuration?: number
 }
 
@@ -98,7 +98,10 @@ export interface TimelineObjLawoSourceDeprecated extends TimelineObjLawoBase {
 		deviceType: DeviceType.LAWO
 		type: TimelineContentTypeLawo.SOURCE
 
-		'Fader/Motor dB Value': ContentTimelineObjLawoSource
+		'Fader/Motor dB Value': {
+			value: number
+			transitionDuration?: number
+		}
 	}
 }
 export interface TimelineObjLawoSource extends TimelineObjLawoBase {

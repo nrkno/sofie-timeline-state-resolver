@@ -252,10 +252,10 @@ describe('Lawo', () => {
 
 					sources: [{
 						mappingName: 'lawo_c1_fader',
-						value: -6
+						faderValue: -6
 					},{
 						mappingName: 'lawo_c2_fader',
-						value: -6
+						faderValue: -6
 					}]
 				}
 			},
@@ -272,11 +272,11 @@ describe('Lawo', () => {
 
 					sources: [{
 						mappingName: 'lawo_c1_fader',
-						value: -4,
+						faderValue: -4,
 						transitionDuration: 400
 					},{
 						mappingName: 'lawo_c2_fader',
-						value: -4,
+						faderValue: -4,
 						transitionDuration: 400
 					}]
 				}
@@ -294,11 +294,11 @@ describe('Lawo', () => {
 
 					sources: [{
 						mappingName: 'lawo_c1_fader',
-						value: -4,
+						faderValue: -4,
 						transitionDuration: 400
 					},{
 						mappingName: 'lawo_c2_fader',
-						value: -4,
+						faderValue: -4,
 						transitionDuration: 400
 					}]
 				}
@@ -464,10 +464,10 @@ describe('Lawo', () => {
 
 					sources: [{
 						mappingName: 'lawo_c1_fader',
-						value: -6
+						faderValue: -6
 					},{
 						mappingName: 'lawo_c2_fader',
-						value: -6
+						faderValue: -6
 					}]
 				}
 			},
@@ -482,7 +482,7 @@ describe('Lawo', () => {
 					deviceType: DeviceType.LAWO,
 					type: TimelineContentTypeLawo.SOURCE,
 
-					value: 0,
+					faderValue: 0,
 					overridePriority: 1
 				}
 			},
@@ -499,11 +499,11 @@ describe('Lawo', () => {
 
 					sources: [{
 						mappingName: 'lawo_c1_fader',
-						value: -4,
+						faderValue: -4,
 						transitionDuration: 400
 					},{
 						mappingName: 'lawo_c2_fader',
-						value: -4,
+						faderValue: -4,
 						transitionDuration: 400
 					}],
 					overridePriority: 1
@@ -520,7 +520,7 @@ describe('Lawo', () => {
 					deviceType: DeviceType.LAWO,
 					type: TimelineContentTypeLawo.SOURCE,
 
-					value: -12,
+					faderValue: -12,
 					transitionDuration: 400
 				}
 			}
