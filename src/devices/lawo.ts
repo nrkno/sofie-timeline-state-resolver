@@ -19,7 +19,9 @@ import {
 	LawoCommand,
 	SetLawoValueFn,
 	LawoOptions,
-	LawoDeviceMode
+	LawoDeviceMode,
+	ContentTimelineObjLawoSource,
+	MappingLawoType
 } from '../types/src'
 import {
 	TimelineState, ResolvedTimelineObjectInstance
@@ -269,31 +271,62 @@ export class LawoDevice extends DeviceWithState<TimelineState> implements IDevic
 		const lawoState: LawoState = {
 			nodes: {}
 		}
+		const attrName = this._rampMotorFunctionPath || !this._dbPropertyName ? 'Fader.Motor dB Value' : this._dbPropertyName
+
+		const newFaders: Array<{ attrPath: string, node: LawoStateNode, priority: number }> = []
+		const pushFader = (identifier: string, fader: ContentTimelineObjLawoSource, mapping: MappingLawo, tlObjId: string, priority = 0) => {
+			newFaders.push({
+				attrPath: this._sourceNodeAttributePath(identifier, attrName),
+				priority,
+				node: {
+					type: TimelineContentTypeLawo.SOURCE,
+					key: 'fader',
+					identifier: identifier,
+					value: fader.faderValue,
+					valueType: EmberModel.ParameterType.Real,
+					transitionDuration: fader.transitionDuration,
+					priority: mapping.priority || 0,
+					timelineObjId: tlObjId
+				}
+			})
+		}
 
 		_.each(state.layers, (tlObject: ResolvedTimelineObjectInstance, layerName: string) => {
+			// for every layer
 			const lawoObj = tlObject as any as TimelineObjLawoAny
 
 			const mapping: MappingLawo | undefined = this.getMapping()[layerName] as MappingLawo
+
 			if (mapping && mapping.device === DeviceType.LAWO) {
+				// Mapping is for Lawo
 
-				if (mapping.identifier && lawoObj.content.type === TimelineContentTypeLawo.SOURCE) {
-					let tlObjectSource: TimelineObjLawoSource = lawoObj as TimelineObjLawoSource
+				if (mapping.mappingType === MappingLawoType.SOURCES && lawoObj.content.type === TimelineContentTypeLawo.SOURCES) {
+					// mapping implies a composite of sources
+					for (const fader of lawoObj.content.sources) {
+						// for every mapping in the composite
+						const sourceMapping: MappingLawo | undefined = this.getMapping()[fader.mappingName] as MappingLawo
 
-					const fader: TimelineObjLawoSource['content']['Fader/Motor dB Value'] = tlObjectSource.content['Fader/Motor dB Value']
-					const attrName = this._rampMotorFunctionPath || !this._dbPropertyName ? 'Fader/Motor dB Value' : this._dbPropertyName
+						if (!sourceMapping || !sourceMapping.identifier || sourceMapping.mappingType !== MappingLawoType.SOURCE) continue
+						// mapped mapping is a source mapping
 
-					lawoState.nodes[this._sourceNodeAttributePath(mapping.identifier, attrName)] = {
-						type: tlObjectSource.content.type,
-						key: 'Fader/Motor dB Value',
-						identifier: mapping.identifier,
-						value: fader.value,
-						valueType: EmberModel.ParameterType.Real,
-						transitionDuration: fader.transitionDuration,
-						priority: mapping.priority || 0,
-						timelineObjId: tlObject.id
+						pushFader(sourceMapping.identifier, fader, sourceMapping, tlObject.id, lawoObj.content.overridePriority)
 					}
+				} else if (mapping.identifier && lawoObj.content.type === TimelineContentTypeLawo.SOURCE) {
+					// mapping is for a source
+					let tlObjectSource: TimelineObjLawoSource = lawoObj as TimelineObjLawoSource
+					let fader: ContentTimelineObjLawoSource = tlObjectSource.content
+					const priority = tlObjectSource.content.overridePriority
+					// TODO - next breaking change, remove deprecated tlObject typings "Fader/Motor dB Value"
+					if ('Fader/Motor dB Value' in tlObjectSource.content) {
+						fader = {
+							faderValue: tlObjectSource.content['Fader/Motor dB Value'].value,
+							transitionDuration: tlObjectSource.content['Fader/Motor dB Value'].transitionDuration
+						}
+					}
+					pushFader(mapping.identifier, fader, mapping, tlObject.id, priority)
 
 				} else if (mapping.identifier && lawoObj.content.type === TimelineContentTypeLawo.EMBER_PROPERTY) {
+					// mapping is a property to set
 					let tlObjectSource: TimelineObjLawoEmberProperty = lawoObj as TimelineObjLawoEmberProperty
 
 					lawoState.nodes[mapping.identifier] = {
@@ -307,12 +340,21 @@ export class LawoDevice extends DeviceWithState<TimelineState> implements IDevic
 					}
 
 				} else if (lawoObj.content.type === TimelineContentTypeLawo.TRIGGER_VALUE) {
+					// mapping is a trigger value (will resend all commands to the Lawo to enforce state when changed)
 					let tlObjectSource: TimelineObjLawoEmberRetrigger = lawoObj as TimelineObjLawoEmberRetrigger
 
 					lawoState.triggerValue = tlObjectSource.content.triggerValue
 				}
 			}
+
 		})
+
+		newFaders.sort((a, b) => a.priority - b.priority)
+		// layers are sorted by priority
+		for (const newFader of newFaders) {
+			lawoState.nodes[newFader.attrPath] = newFader.node
+		}
+		// highest priority source has been written to lawoState
 
 		return lawoState
 	}
@@ -374,7 +416,7 @@ export class LawoDevice extends DeviceWithState<TimelineState> implements IDevic
 				_.omit(newNode, 'timelineObjId'),
 				_.omit(oldValue, 'timelineObjId')
 			)
-			if (diff || (newNode.key === 'Fader/Motor dB Value' && isRetrigger)) {
+			if (diff || (newNode.key === 'fader' && isRetrigger)) {
 				// It's a plain value:
 				commands.push({
 					cmd: {
@@ -422,7 +464,7 @@ export class LawoDevice extends DeviceWithState<TimelineState> implements IDevic
 		return _.compact([
 			this._sourcesPath,
 			identifier,
-			attributePath.replace('/', '.')
+			attributePath
 		]).join('.')
 	}
 
@@ -439,7 +481,7 @@ export class LawoDevice extends DeviceWithState<TimelineState> implements IDevic
 		this._lastSentValue[command.path] = startSend
 
 		try {
-			if (command.key === 'Fader/Motor dB Value' && command.transitionDuration && command.transitionDuration >= 0) {	// fader level
+			if (command.key === 'fader' && command.transitionDuration && command.transitionDuration >= 0) {	// fader level
 				// TODO - Lawo result 6 code is based on time - difference ratio, certain ratios we may want to run a manual fade?
 				if (!this._rampMotorFunctionPath || (command.transitionDuration < 500 && this._faderIntervalTime < 250)) {
 					// add the fade to the fade object, such that we can fade the signal using the fader

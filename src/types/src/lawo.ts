@@ -22,6 +22,7 @@ export interface MappingLawo extends Mapping {
 }
 export enum MappingLawoType {
 	SOURCE = 'source',
+	SOURCES = 'sources', // TODO - naming? can this also be a full path or trigger val?
 	FULL_PATH = 'fullpath',
 	TRIGGER_VALUE = 'triggerValue'
 }
@@ -62,11 +63,17 @@ export interface LawoCommand {
 
 export enum TimelineContentTypeLawo { //  Lawo-state
 	SOURCE = 'lawosource', // a general content type, possibly to be replaced by specific ones later?
+	SOURCES = 'lawosources',
 	EMBER_PROPERTY = 'lawofullpathemberproperty',
 	TRIGGER_VALUE = 'triggervalue'
 }
 
-export type TimelineObjLawoAny = TimelineObjLawoSource | TimelineObjLawoEmberProperty | TimelineObjLawoEmberRetrigger
+export type TimelineObjLawoAny = TimelineObjLawoSources | TimelineObjLawoSource | TimelineObjLawoSourceDeprecated | TimelineObjLawoEmberProperty | TimelineObjLawoEmberRetrigger
+
+export interface ContentTimelineObjLawoSource {
+	faderValue: number
+	transitionDuration?: number
+}
 
 export interface TimelineObjLawoBase extends TSRTimelineObjBase {
 	content: {
@@ -74,7 +81,19 @@ export interface TimelineObjLawoBase extends TSRTimelineObjBase {
 		type: TimelineContentTypeLawo
 	}
 }
-export interface TimelineObjLawoSource extends TimelineObjLawoBase {
+export interface TimelineObjLawoSources extends TimelineObjLawoBase {
+	content: {
+		deviceType: DeviceType.LAWO
+		type: TimelineContentTypeLawo.SOURCES
+
+		sources: Array<{
+			mappingName: string
+		} & ContentTimelineObjLawoSource>
+		overridePriority?: number // defaults to 0
+	}
+}
+// TODO - remove this interface during the next breaking change:
+export interface TimelineObjLawoSourceDeprecated extends TimelineObjLawoBase {
 	content: {
 		deviceType: DeviceType.LAWO
 		type: TimelineContentTypeLawo.SOURCE
@@ -84,6 +103,14 @@ export interface TimelineObjLawoSource extends TimelineObjLawoBase {
 			transitionDuration?: number
 		}
 	}
+}
+export interface TimelineObjLawoSource extends TimelineObjLawoBase {
+	content: {
+		deviceType: DeviceType.LAWO
+		type: TimelineContentTypeLawo.SOURCE
+
+		overridePriority?: number // defaults to 0
+	} & ContentTimelineObjLawoSource
 }
 export interface TimelineObjLawoEmberProperty extends TimelineObjLawoBase {
 	content: {

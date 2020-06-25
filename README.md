@@ -183,9 +183,7 @@ Pull up a fader, and leave it there
 		deviceType: DeviceType.LAWO,
 		type: TimelineContentTypeLawo.SOURCE,
 
-		'Fader/Motor dB Value': {
-			value: 0
-		}
+		faderValue: 0
 	}
 }
 
