@@ -62,7 +62,7 @@ export interface MappingVMixOverlay extends MappingVMix {
 	mappingType: MappingVMixType.Overlay
 
 	/** Overlay number */
-	index: 1 | 2 | 3 | 4 | 5 | 6
+	index: 1 | 2 | 3 | 4
 }
 
 export interface MappingVMixRecording extends MappingVMix {
@@ -73,7 +73,7 @@ export interface MappingVMixStreaming extends MappingVMix {
 	mappingType: MappingVMixType.Streaming
 
 	/** Stream number */
-	index: 1 | 2 | 3 // TODO: implement
+	// index: 1 | 2 | 3 // TODO: implement
 }
 
 export interface MappingVMixExternal extends MappingVMix {
@@ -239,7 +239,7 @@ export interface TimelineObjVMixFader extends TimelineObjVMixBase {
 		deviceType: DeviceType.VMIX,
 		type: TimelineContentTypeVMix.FADER,
 
-		/** Position of the transition fader (0 - 100) */
+		/** Position of the transition fader (0 - 255) */
 		position: number
 	}
 }
