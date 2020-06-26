@@ -9,7 +9,15 @@ import {
 	VMixInputType,
 	VMixCommand,
 	MappingVMixAny,
-	VMixTransitionType
+	VMixTransitionType,
+	MappingVMixOverlay,
+	MappingVMixRecording,
+	MappingVMixExternal,
+	MappingVMixStreaming,
+	MappingVMixOutput,
+	MappingVMixInput,
+	MappingVMixFadeToBlack,
+	MappingVMixFader
 } from '../../types/src'
 import { ThreadedClass } from 'threadedclass'
 import { VMixDevice } from '../vmix'
@@ -191,7 +199,7 @@ describe('vMix', () => {
 			return device._defaultCommandReceiver(...args)
 		})
 
-		let myLayerMapping0: MappingVMix = {
+		let myLayerMapping0: MappingVMixInput = {
 			device: DeviceType.VMIX,
 			mappingType: MappingVMixType.Input,
 			deviceId: 'myvmix'
@@ -370,6 +378,163 @@ describe('vMix', () => {
 		expect(onRequest).toHaveBeenNthCalledWith(7, 'get', expect.stringContaining('/api/?Function=SetMultiViewOverlay&Input=C:/videos/My Clip.mp4&Value=1,G:/videos/My Other Clip.mp4'))
 		expect(onRequest).toHaveBeenNthCalledWith(8, 'get', expect.stringContaining('/api/?Function=SetMultiViewOverlay&Input=C:/videos/My Clip.mp4&Value=3,5'))
 		expect(onRequest).toHaveBeenNthCalledWith(9, 'get', expect.stringContaining('/api/?Function=Play&Input=C:/videos/My Clip.mp4'))
+
+		await myConductor.destroy()
+
+		expect(errorHandler).toHaveBeenCalledTimes(0)
+		expect(deviceErrorHandler).toHaveBeenCalledTimes(0)
+	})
+
+	test('Input properties 2', async () => {
+		let device
+		let commandReceiver0 = jest.fn((...args) => {
+			// pipe through the command
+			return device._defaultCommandReceiver(...args)
+		})
+
+		let myLayerMapping0: MappingVMixInput = {
+			device: DeviceType.VMIX,
+			mappingType: MappingVMixType.Input,
+			deviceId: 'myvmix',
+			index: 2
+		}
+		let myLayerMapping: Mappings = {
+			'vmix_media0': myLayerMapping0
+		}
+
+		let myConductor = new Conductor({
+			initializeAsClear: true,
+			getCurrentTime: mockTime.getCurrentTime
+		})
+		let errorHandler = jest.fn((...args) => console.log('Error in device', ...args))
+		myConductor.on('error', errorHandler)
+		myConductor.on('commandError', errorHandler)
+
+		await myConductor.init()
+
+		await t(myConductor.addDevice('myvmix', {
+			type: DeviceType.VMIX,
+			options: {
+				commandReceiver: commandReceiver0,
+				host: '127.0.0.1',
+				port: 9999
+			}
+		}), mockTime)
+
+		let deviceContainer = myConductor.getDevice('myvmix')
+		device = deviceContainer.device as ThreadedClass<VMixDevice>
+		let deviceErrorHandler = jest.fn((...args) => console.log('Error in device', ...args))
+		device.on('error', deviceErrorHandler)
+		device.on('commandError', deviceErrorHandler)
+
+		await myConductor.setMapping(myLayerMapping)
+
+		expect(mockTime.getCurrentTime()).toEqual(10000)
+		await mockTime.advanceTimeToTicks(10100)
+
+		clearMocks()
+		commandReceiver0.mockClear()
+
+		// Check that no commands has been scheduled:
+		expect(await device.queue).toHaveLength(0)
+
+		myConductor.timeline = [
+			{
+				id: 'media',
+				enable: {
+					start: 11000,
+					duration: 5000
+				},
+				layer: 'vmix_media0',
+				content: {
+					deviceType: DeviceType.VMIX,
+					type: TimelineContentTypeVMix.INPUT,
+					loop: true,
+					playing: true,
+					overlays: {
+						1: 'G:/videos/My Other Clip.mp4',
+						3: 5
+					}
+				}
+			}
+		]
+
+		await mockTime.advanceTimeToTicks(11300)
+		expect(commandReceiver0).toHaveBeenNthCalledWith(1, 11000, expect.objectContaining({
+			command: {
+				command: VMixCommand.LOOP_ON,
+				input: '2'
+			}
+		}), null, expect.any(String))
+		expect(commandReceiver0).toHaveBeenNthCalledWith(2, 11000, expect.objectContaining({
+			command: {
+				command: VMixCommand.SET_INPUT_OVERLAY,
+				input: '2',
+				index: 1,
+				value: 'G:/videos/My Other Clip.mp4'
+			}
+		}), null, expect.any(String))
+		expect(commandReceiver0).toHaveBeenNthCalledWith(3, 11000, expect.objectContaining({
+			command: {
+				command: VMixCommand.SET_INPUT_OVERLAY,
+				input: '2',
+				index: 3,
+				value: 5
+			}
+		}), null, expect.any(String))
+		expect(commandReceiver0).toHaveBeenNthCalledWith(4, 11000, expect.objectContaining({
+			command: {
+				command: VMixCommand.PLAY_INPUT,
+				input: '2'
+			}
+		}), null, expect.any(String))
+
+		expect(onRequest).toHaveBeenCalledTimes(4)
+
+		expect(onRequest).toHaveBeenNthCalledWith(1, 'get', expect.stringContaining('/api/?Function=LoopOn&Input=2'))
+		expect(onRequest).toHaveBeenNthCalledWith(2, 'get', expect.stringContaining('/api/?Function=SetMultiViewOverlay&Input=2&Value=1,G:/videos/My Other Clip.mp4'))
+		expect(onRequest).toHaveBeenNthCalledWith(3, 'get', expect.stringContaining('/api/?Function=SetMultiViewOverlay&Input=2&Value=3,5'))
+		expect(onRequest).toHaveBeenNthCalledWith(4, 'get', expect.stringContaining('/api/?Function=Play&Input=2'))
+
+		clearMocks()
+		commandReceiver0.mockClear()
+
+		await mockTime.advanceTimeToTicks(16300)
+		expect(commandReceiver0).toHaveBeenNthCalledWith(1, 16000, expect.objectContaining({
+			command: {
+				command: VMixCommand.PAUSE_INPUT,
+				input: '2'
+			}
+		}), null, expect.any(String))
+		expect(commandReceiver0).toHaveBeenNthCalledWith(2, 16000, expect.objectContaining({
+			command: {
+				command: VMixCommand.LOOP_OFF,
+				input: '2'
+			}
+		}), null, expect.any(String))
+		expect(commandReceiver0).toHaveBeenNthCalledWith(3, 16000, expect.objectContaining({
+			command: {
+				command: VMixCommand.SET_INPUT_OVERLAY,
+				input: '2',
+				index: 1,
+				value: ''
+			}
+		}), null, expect.any(String))
+		expect(commandReceiver0).toHaveBeenNthCalledWith(4, 16000, expect.objectContaining({
+			command: {
+				command: VMixCommand.SET_INPUT_OVERLAY,
+				input: '2',
+				index: 3,
+				value: ''
+			}
+		}), null, expect.any(String))
+
+		expect(onRequest).toHaveBeenCalledTimes(4)
+
+		expect(onRequest).toHaveBeenNthCalledWith(1, 'get', expect.stringContaining('/api/?Function=Pause&Input=2'))
+		expect(onRequest).toHaveBeenNthCalledWith(2, 'get', expect.stringContaining('/api/?Function=LoopOff&Input=2'))
+		expect(onRequest).toHaveBeenNthCalledWith(3, 'get', expect.stringContaining('/api/?Function=SetMultiViewOverlay&Input=2&Value=1,'))
+		expect(onRequest).toHaveBeenNthCalledWith(4, 'get', expect.stringContaining('/api/?Function=SetMultiViewOverlay&Input=2&Value=3,'))
 
 		await myConductor.destroy()
 
@@ -755,6 +920,79 @@ describe('vMix', () => {
 		clearMocks()
 		commandReceiver0.mockClear()
 
+		await mockTime.advanceTimeToTicks(16300)
+
+		expect(commandReceiver0).toHaveBeenCalledTimes(8)
+		expect(commandReceiver0).toHaveBeenNthCalledWith(1, 16000, expect.objectContaining({
+			command: {
+				command: VMixCommand.AUDIO_OFF,
+				input: '2'
+			}
+		}), null, expect.any(String))
+		expect(commandReceiver0).toHaveBeenNthCalledWith(2, 16000, expect.objectContaining({
+			command: {
+				command: VMixCommand.AUDIO_VOLUME,
+				input: '2',
+				value: 100,
+				fade: 0
+			}
+		}), null, expect.any(String))
+		expect(commandReceiver0).toHaveBeenNthCalledWith(3, 16000, expect.objectContaining({
+			command: {
+				command: VMixCommand.AUDIO_BALANCE,
+				input: '2',
+				value: 0
+			}
+		}), null, expect.any(String))
+		expect(commandReceiver0).toHaveBeenNthCalledWith(4, 16000, expect.objectContaining({
+			command: {
+				command: VMixCommand.AUDIO_AUTO_ON,
+				input: '2'
+			}
+		}), null, expect.any(String))
+		expect(commandReceiver0).toHaveBeenNthCalledWith(5, 16000, expect.objectContaining({
+			command: {
+				command: VMixCommand.AUDIO_BUS_ON,
+				input: '2',
+				value: 'M'
+			}
+		}), null, expect.any(String))
+		expect(commandReceiver0).toHaveBeenNthCalledWith(6, 16000, expect.objectContaining({
+			command: {
+				command: VMixCommand.AUDIO_BUS_OFF,
+				input: '2',
+				value: 'A'
+			}
+		}), null, expect.any(String))
+		expect(commandReceiver0).toHaveBeenNthCalledWith(7, 16000, expect.objectContaining({
+			command: {
+				command: VMixCommand.AUDIO_BUS_OFF,
+				input: '2',
+				value: 'C'
+			}
+		}), null, expect.any(String))
+		expect(commandReceiver0).toHaveBeenNthCalledWith(8, 16000, expect.objectContaining({
+			command: {
+				command: VMixCommand.AUDIO_BUS_OFF,
+				input: '2',
+				value: 'F'
+			}
+		}), null, expect.any(String))
+
+		expect(onRequest).toHaveBeenCalledTimes(8)
+
+		expect(onRequest).toHaveBeenNthCalledWith(1, 'get', expect.stringContaining('/api/?Function=AudioOff&Input=2'))
+		expect(onRequest).toHaveBeenNthCalledWith(2, 'get', expect.stringContaining('/api/?Function=SetVolume&Input=2&Value=100'))
+		expect(onRequest).toHaveBeenNthCalledWith(3, 'get', expect.stringContaining('/api/?Function=SetBalance&Input=2&Value=0'))
+		expect(onRequest).toHaveBeenNthCalledWith(4, 'get', expect.stringContaining('/api/?Function=AudioAutoOn&Input=2'))
+		expect(onRequest).toHaveBeenNthCalledWith(5, 'get', expect.stringContaining('/api/?Function=AudioBusOn&Input=2&Value=M'))
+		expect(onRequest).toHaveBeenNthCalledWith(6, 'get', expect.stringContaining('/api/?Function=AudioBusOff&Input=2&Value=A'))
+		expect(onRequest).toHaveBeenNthCalledWith(7, 'get', expect.stringContaining('/api/?Function=AudioBusOff&Input=2&Value=C'))
+		expect(onRequest).toHaveBeenNthCalledWith(8, 'get', expect.stringContaining('/api/?Function=AudioBusOff&Input=2&Value=F'))
+
+		clearMocks()
+		commandReceiver0.mockClear()
+
 		await myConductor.destroy()
 
 		expect(errorHandler).toHaveBeenCalledTimes(0)
@@ -963,6 +1201,896 @@ describe('vMix', () => {
 		expect(onRequest).toHaveBeenNthCalledWith(2, 'get', expect.stringContaining('/api/?Function=Cut&Input=5&Duration=0&Mix=1'))
 		expect(onRequest).toHaveBeenNthCalledWith(3, 'get', expect.stringContaining('/api/?Function=PreviewInput&Input=Cam 4&Mix=0'))
 		expect(onRequest).toHaveBeenNthCalledWith(4, 'get', expect.stringContaining('/api/?Function=PreviewInput&Input=3&Mix=1'))
+
+		clearMocks()
+		commandReceiver0.mockClear()
+
+		await myConductor.destroy()
+
+		expect(errorHandler).toHaveBeenCalledTimes(0)
+		expect(deviceErrorHandler).toHaveBeenCalledTimes(0)
+	})
+
+	test('Overlay', async () => {
+		let device
+		let commandReceiver0 = jest.fn((...args) => {
+			// pipe through the command
+			return device._defaultCommandReceiver(...args)
+		})
+
+		let myLayerMapping0: MappingVMixOverlay = {
+			device: DeviceType.VMIX,
+			mappingType: MappingVMixType.Overlay,
+			index: 2,
+			deviceId: 'myvmix'
+		}
+		let myLayerMapping: Mappings = {
+			'vmix_overlay2': myLayerMapping0
+		}
+
+		let myConductor = new Conductor({
+			initializeAsClear: true,
+			getCurrentTime: mockTime.getCurrentTime
+		})
+		let errorHandler = jest.fn((...args) => console.log('Error in device', ...args))
+		myConductor.on('error', errorHandler)
+		myConductor.on('commandError', errorHandler)
+
+		await myConductor.init()
+
+		await t(myConductor.addDevice('myvmix', {
+			type: DeviceType.VMIX,
+			options: {
+				commandReceiver: commandReceiver0,
+				host: '127.0.0.1',
+				port: 9999
+			}
+		}), mockTime)
+
+		let deviceContainer = myConductor.getDevice('myvmix')
+		device = deviceContainer.device as ThreadedClass<VMixDevice>
+		let deviceErrorHandler = jest.fn((...args) => console.log('Error in device', ...args))
+		device.on('error', deviceErrorHandler)
+		device.on('commandError', deviceErrorHandler)
+
+		await myConductor.setMapping(myLayerMapping)
+
+		expect(mockTime.getCurrentTime()).toEqual(10000)
+		await mockTime.advanceTimeToTicks(10100)
+
+		// get initial info
+		expect(onRequest).toHaveBeenNthCalledWith(1, 'get', 'http://127.0.0.1:9999/api')
+
+		clearMocks()
+		commandReceiver0.mockClear()
+
+		// Check that no commands has been scheduled:
+		expect(await device.queue).toHaveLength(0)
+
+		myConductor.timeline = [
+			{
+				id: 'lowerthird0',
+				enable: {
+					start: 11000,
+					duration: 5000
+				},
+				layer: 'vmix_overlay2',
+				content: {
+					deviceType: DeviceType.VMIX,
+					type: TimelineContentTypeVMix.OVERLAY,
+					input: 1
+				}
+			}
+		]
+
+		await mockTime.advanceTimeToTicks(11300)
+
+		expect(commandReceiver0).toHaveBeenCalledTimes(1)
+		expect(commandReceiver0).toHaveBeenNthCalledWith(1, 11000, expect.objectContaining({
+			command: {
+				command: VMixCommand.OVERLAY_INPUT_IN,
+				input: 1,
+				value: 2
+			}
+		}), null, expect.any(String))
+
+		expect(onRequest).toHaveBeenCalledTimes(1)
+
+		expect(onRequest).toHaveBeenNthCalledWith(1, 'get', expect.stringContaining('/api/?Function=OverlayInput2In&Input=1'))
+
+		clearMocks()
+		commandReceiver0.mockClear()
+
+		await mockTime.advanceTimeToTicks(16300)
+
+		expect(commandReceiver0).toHaveBeenCalledTimes(1)
+		expect(commandReceiver0).toHaveBeenNthCalledWith(1, 16000, expect.objectContaining({
+			command: {
+				command: VMixCommand.OVERLAY_INPUT_OUT,
+				value: 2
+			}
+		}), null, expect.any(String))
+
+		expect(onRequest).toHaveBeenCalledTimes(1)
+
+		expect(onRequest).toHaveBeenNthCalledWith(1, 'get', expect.stringContaining('/api/?Function=OverlayInput2Out'))
+
+		clearMocks()
+		commandReceiver0.mockClear()
+
+		await myConductor.destroy()
+
+		expect(errorHandler).toHaveBeenCalledTimes(0)
+		expect(deviceErrorHandler).toHaveBeenCalledTimes(0)
+	})
+
+	test('Recording', async () => {
+		let device
+		let commandReceiver0 = jest.fn((...args) => {
+			// pipe through the command
+			return device._defaultCommandReceiver(...args)
+		})
+
+		let myLayerMapping0: MappingVMixRecording = {
+			device: DeviceType.VMIX,
+			mappingType: MappingVMixType.Recording,
+			deviceId: 'myvmix'
+		}
+		let myLayerMapping: Mappings = {
+			'vmix_recording0': myLayerMapping0
+		}
+
+		let myConductor = new Conductor({
+			initializeAsClear: true,
+			getCurrentTime: mockTime.getCurrentTime
+		})
+		let errorHandler = jest.fn((...args) => console.log('Error in device', ...args))
+		myConductor.on('error', errorHandler)
+		myConductor.on('commandError', errorHandler)
+
+		await myConductor.init()
+
+		await t(myConductor.addDevice('myvmix', {
+			type: DeviceType.VMIX,
+			options: {
+				commandReceiver: commandReceiver0,
+				host: '127.0.0.1',
+				port: 9999
+			}
+		}), mockTime)
+
+		let deviceContainer = myConductor.getDevice('myvmix')
+		device = deviceContainer.device as ThreadedClass<VMixDevice>
+		let deviceErrorHandler = jest.fn((...args) => console.log('Error in device', ...args))
+		device.on('error', deviceErrorHandler)
+		device.on('commandError', deviceErrorHandler)
+
+		await myConductor.setMapping(myLayerMapping)
+
+		expect(mockTime.getCurrentTime()).toEqual(10000)
+		await mockTime.advanceTimeToTicks(10100)
+
+		// get initial info
+		expect(onRequest).toHaveBeenNthCalledWith(1, 'get', 'http://127.0.0.1:9999/api')
+
+		clearMocks()
+		commandReceiver0.mockClear()
+
+		// Check that no commands has been scheduled:
+		expect(await device.queue).toHaveLength(0)
+
+		myConductor.timeline = [
+			{
+				id: 'recording0',
+				enable: {
+					start: 11000,
+					duration: 5000
+				},
+				layer: 'vmix_recording0',
+				content: {
+					deviceType: DeviceType.VMIX,
+					type: TimelineContentTypeVMix.RECORDING,
+					on: true
+				}
+			}
+		]
+
+		await mockTime.advanceTimeToTicks(11300)
+
+		expect(commandReceiver0).toHaveBeenCalledTimes(1)
+		expect(commandReceiver0).toHaveBeenNthCalledWith(1, 11000, expect.objectContaining({
+			command: {
+				command: VMixCommand.START_RECORDING
+			}
+		}), null, expect.any(String))
+
+		expect(onRequest).toHaveBeenCalledTimes(1)
+
+		expect(onRequest).toHaveBeenNthCalledWith(1, 'get', expect.stringContaining('/api/?Function=StartRecording'))
+
+		clearMocks()
+		commandReceiver0.mockClear()
+
+		await mockTime.advanceTimeToTicks(16300)
+
+		expect(commandReceiver0).toHaveBeenCalledTimes(1)
+		expect(commandReceiver0).toHaveBeenNthCalledWith(1, 16000, expect.objectContaining({
+			command: {
+				command: VMixCommand.STOP_RECORDING
+			}
+		}), null, expect.any(String))
+
+		expect(onRequest).toHaveBeenCalledTimes(1)
+
+		expect(onRequest).toHaveBeenNthCalledWith(1, 'get', expect.stringContaining('/api/?Function=StopRecording'))
+
+		clearMocks()
+		commandReceiver0.mockClear()
+
+		await myConductor.destroy()
+
+		expect(errorHandler).toHaveBeenCalledTimes(0)
+		expect(deviceErrorHandler).toHaveBeenCalledTimes(0)
+	})
+
+	test('External', async () => {
+		let device
+		let commandReceiver0 = jest.fn((...args) => {
+			// pipe through the command
+			return device._defaultCommandReceiver(...args)
+		})
+
+		let myLayerMapping0: MappingVMixExternal = {
+			device: DeviceType.VMIX,
+			mappingType: MappingVMixType.External,
+			deviceId: 'myvmix'
+		}
+		let myLayerMapping: Mappings = {
+			'vmix_external0': myLayerMapping0
+		}
+
+		let myConductor = new Conductor({
+			initializeAsClear: true,
+			getCurrentTime: mockTime.getCurrentTime
+		})
+		let errorHandler = jest.fn((...args) => console.log('Error in device', ...args))
+		myConductor.on('error', errorHandler)
+		myConductor.on('commandError', errorHandler)
+
+		await myConductor.init()
+
+		await t(myConductor.addDevice('myvmix', {
+			type: DeviceType.VMIX,
+			options: {
+				commandReceiver: commandReceiver0,
+				host: '127.0.0.1',
+				port: 9999
+			}
+		}), mockTime)
+
+		let deviceContainer = myConductor.getDevice('myvmix')
+		device = deviceContainer.device as ThreadedClass<VMixDevice>
+		let deviceErrorHandler = jest.fn((...args) => console.log('Error in device', ...args))
+		device.on('error', deviceErrorHandler)
+		device.on('commandError', deviceErrorHandler)
+
+		await myConductor.setMapping(myLayerMapping)
+
+		expect(mockTime.getCurrentTime()).toEqual(10000)
+		await mockTime.advanceTimeToTicks(10100)
+
+		// get initial info
+		expect(onRequest).toHaveBeenNthCalledWith(1, 'get', 'http://127.0.0.1:9999/api')
+
+		clearMocks()
+		commandReceiver0.mockClear()
+
+		// Check that no commands has been scheduled:
+		expect(await device.queue).toHaveLength(0)
+
+		myConductor.timeline = [
+			{
+				id: 'external0',
+				enable: {
+					start: 11000,
+					duration: 5000
+				},
+				layer: 'vmix_external0',
+				content: {
+					deviceType: DeviceType.VMIX,
+					type: TimelineContentTypeVMix.EXTERNAL,
+					on: true
+				}
+			}
+		]
+
+		await mockTime.advanceTimeToTicks(11300)
+
+		expect(commandReceiver0).toHaveBeenCalledTimes(1)
+		expect(commandReceiver0).toHaveBeenNthCalledWith(1, 11000, expect.objectContaining({
+			command: {
+				command: VMixCommand.START_EXTERNAL
+			}
+		}), null, expect.any(String))
+
+		expect(onRequest).toHaveBeenCalledTimes(1)
+
+		expect(onRequest).toHaveBeenNthCalledWith(1, 'get', expect.stringContaining('/api/?Function=StartExternal'))
+
+		clearMocks()
+		commandReceiver0.mockClear()
+
+		await mockTime.advanceTimeToTicks(16300)
+
+		expect(commandReceiver0).toHaveBeenCalledTimes(1)
+		expect(commandReceiver0).toHaveBeenNthCalledWith(1, 16000, expect.objectContaining({
+			command: {
+				command: VMixCommand.STOP_EXTERNAL
+			}
+		}), null, expect.any(String))
+
+		expect(onRequest).toHaveBeenCalledTimes(1)
+
+		expect(onRequest).toHaveBeenNthCalledWith(1, 'get', expect.stringContaining('/api/?Function=StopExternal'))
+
+		clearMocks()
+		commandReceiver0.mockClear()
+
+		await myConductor.destroy()
+
+		expect(errorHandler).toHaveBeenCalledTimes(0)
+		expect(deviceErrorHandler).toHaveBeenCalledTimes(0)
+	})
+
+	test('Streaming', async () => {
+		let device
+		let commandReceiver0 = jest.fn((...args) => {
+			// pipe through the command
+			return device._defaultCommandReceiver(...args)
+		})
+
+		let myLayerMapping0: MappingVMixStreaming = {
+			device: DeviceType.VMIX,
+			mappingType: MappingVMixType.Streaming,
+			deviceId: 'myvmix'
+		}
+		let myLayerMapping: Mappings = {
+			'vmix_streaming0': myLayerMapping0
+		}
+
+		let myConductor = new Conductor({
+			initializeAsClear: true,
+			getCurrentTime: mockTime.getCurrentTime
+		})
+		let errorHandler = jest.fn((...args) => console.log('Error in device', ...args))
+		myConductor.on('error', errorHandler)
+		myConductor.on('commandError', errorHandler)
+
+		await myConductor.init()
+
+		await t(myConductor.addDevice('myvmix', {
+			type: DeviceType.VMIX,
+			options: {
+				commandReceiver: commandReceiver0,
+				host: '127.0.0.1',
+				port: 9999
+			}
+		}), mockTime)
+
+		let deviceContainer = myConductor.getDevice('myvmix')
+		device = deviceContainer.device as ThreadedClass<VMixDevice>
+		let deviceErrorHandler = jest.fn((...args) => console.log('Error in device', ...args))
+		device.on('error', deviceErrorHandler)
+		device.on('commandError', deviceErrorHandler)
+
+		await myConductor.setMapping(myLayerMapping)
+
+		expect(mockTime.getCurrentTime()).toEqual(10000)
+		await mockTime.advanceTimeToTicks(10100)
+
+		// get initial info
+		expect(onRequest).toHaveBeenNthCalledWith(1, 'get', 'http://127.0.0.1:9999/api')
+
+		clearMocks()
+		commandReceiver0.mockClear()
+
+		// Check that no commands has been scheduled:
+		expect(await device.queue).toHaveLength(0)
+
+		myConductor.timeline = [
+			{
+				id: 'external0',
+				enable: {
+					start: 11000,
+					duration: 5000
+				},
+				layer: 'vmix_streaming0',
+				content: {
+					deviceType: DeviceType.VMIX,
+					type: TimelineContentTypeVMix.STREAMING,
+					on: true
+				}
+			}
+		]
+
+		await mockTime.advanceTimeToTicks(11300)
+
+		expect(commandReceiver0).toHaveBeenCalledTimes(1)
+		expect(commandReceiver0).toHaveBeenNthCalledWith(1, 11000, expect.objectContaining({
+			command: {
+				command: VMixCommand.START_STREAMING
+			}
+		}), null, expect.any(String))
+
+		expect(onRequest).toHaveBeenCalledTimes(1)
+
+		expect(onRequest).toHaveBeenNthCalledWith(1, 'get', expect.stringContaining('/api/?Function=StartStreaming'))
+
+		clearMocks()
+		commandReceiver0.mockClear()
+
+		await mockTime.advanceTimeToTicks(16300)
+
+		expect(commandReceiver0).toHaveBeenCalledTimes(1)
+		expect(commandReceiver0).toHaveBeenNthCalledWith(1, 16000, expect.objectContaining({
+			command: {
+				command: VMixCommand.STOP_STREAMING
+			}
+		}), null, expect.any(String))
+
+		expect(onRequest).toHaveBeenCalledTimes(1)
+
+		expect(onRequest).toHaveBeenNthCalledWith(1, 'get', expect.stringContaining('/api/?Function=StopStreaming'))
+
+		clearMocks()
+		commandReceiver0.mockClear()
+
+		await myConductor.destroy()
+
+		expect(errorHandler).toHaveBeenCalledTimes(0)
+		expect(deviceErrorHandler).toHaveBeenCalledTimes(0)
+	})
+
+	test('Output', async () => {
+		let device
+		let commandReceiver0 = jest.fn((...args) => {
+			// pipe through the command
+			return device._defaultCommandReceiver(...args)
+		})
+
+		let myLayerMapping0: MappingVMixOutput = {
+			device: DeviceType.VMIX,
+			mappingType: MappingVMixType.Output,
+			deviceId: 'myvmix',
+			index: 'Fullscreen'
+		}
+		let myLayerMapping: Mappings = {
+			'vmix_output0': myLayerMapping0
+		}
+
+		let myConductor = new Conductor({
+			initializeAsClear: true,
+			getCurrentTime: mockTime.getCurrentTime
+		})
+		let errorHandler = jest.fn((...args) => console.log('Error in device', ...args))
+		myConductor.on('error', errorHandler)
+		myConductor.on('commandError', errorHandler)
+
+		await myConductor.init()
+
+		await t(myConductor.addDevice('myvmix', {
+			type: DeviceType.VMIX,
+			options: {
+				commandReceiver: commandReceiver0,
+				host: '127.0.0.1',
+				port: 9999
+			}
+		}), mockTime)
+
+		let deviceContainer = myConductor.getDevice('myvmix')
+		device = deviceContainer.device as ThreadedClass<VMixDevice>
+		let deviceErrorHandler = jest.fn((...args) => console.log('Error in device', ...args))
+		device.on('error', deviceErrorHandler)
+		device.on('commandError', deviceErrorHandler)
+
+		await myConductor.setMapping(myLayerMapping)
+
+		expect(mockTime.getCurrentTime()).toEqual(10000)
+		await mockTime.advanceTimeToTicks(10100)
+
+		// get initial info
+		expect(onRequest).toHaveBeenNthCalledWith(1, 'get', 'http://127.0.0.1:9999/api')
+
+		clearMocks()
+		commandReceiver0.mockClear()
+
+		// Check that no commands has been scheduled:
+		expect(await device.queue).toHaveLength(0)
+
+		myConductor.timeline = [
+			{
+				id: 'external0',
+				enable: {
+					start: 11000,
+					duration: 5000
+				},
+				layer: 'vmix_output0',
+				content: {
+					deviceType: DeviceType.VMIX,
+					type: TimelineContentTypeVMix.OUTPUT,
+					source: 'Preview'
+				}
+			}
+		]
+
+		await mockTime.advanceTimeToTicks(11300)
+
+		expect(commandReceiver0).toHaveBeenCalledTimes(1)
+		expect(commandReceiver0).toHaveBeenNthCalledWith(1, 11000, expect.objectContaining({
+			command: {
+				command: VMixCommand.SET_OUPUT,
+				name: 'Fullscreen',
+				value: 'Preview'
+			}
+		}), null, expect.any(String))
+
+		expect(onRequest).toHaveBeenCalledTimes(1)
+
+		expect(onRequest).toHaveBeenNthCalledWith(1, 'get', expect.stringContaining('/api/?Function=SetOutputFullscreen&Value=Preview'))
+
+		clearMocks()
+		commandReceiver0.mockClear()
+
+		await mockTime.advanceTimeToTicks(16300)
+
+		expect(commandReceiver0).toHaveBeenCalledTimes(1)
+		expect(commandReceiver0).toHaveBeenNthCalledWith(1, 16000, expect.objectContaining({
+			command: {
+				command: VMixCommand.SET_OUPUT,
+				name: 'Fullscreen',
+				value: 'Output'
+			}
+		}), null, expect.any(String))
+
+		expect(onRequest).toHaveBeenCalledTimes(1)
+
+		expect(onRequest).toHaveBeenNthCalledWith(1, 'get', expect.stringContaining('/api/?Function=SetOutputFullscreen&Value=Output'))
+
+		clearMocks()
+		commandReceiver0.mockClear()
+
+		await myConductor.destroy()
+
+		expect(errorHandler).toHaveBeenCalledTimes(0)
+		expect(deviceErrorHandler).toHaveBeenCalledTimes(0)
+	})
+
+	test('Output an Input', async () => {
+		let device
+		let commandReceiver0 = jest.fn((...args) => {
+			// pipe through the command
+			return device._defaultCommandReceiver(...args)
+		})
+
+		let myLayerMapping0: MappingVMixOutput = {
+			device: DeviceType.VMIX,
+			mappingType: MappingVMixType.Output,
+			deviceId: 'myvmix',
+			index: 'Fullscreen'
+		}
+		let myLayerMapping: Mappings = {
+			'vmix_output0': myLayerMapping0
+		}
+
+		let myConductor = new Conductor({
+			initializeAsClear: true,
+			getCurrentTime: mockTime.getCurrentTime
+		})
+		let errorHandler = jest.fn((...args) => console.log('Error in device', ...args))
+		myConductor.on('error', errorHandler)
+		myConductor.on('commandError', errorHandler)
+
+		await myConductor.init()
+
+		await t(myConductor.addDevice('myvmix', {
+			type: DeviceType.VMIX,
+			options: {
+				commandReceiver: commandReceiver0,
+				host: '127.0.0.1',
+				port: 9999
+			}
+		}), mockTime)
+
+		let deviceContainer = myConductor.getDevice('myvmix')
+		device = deviceContainer.device as ThreadedClass<VMixDevice>
+		let deviceErrorHandler = jest.fn((...args) => console.log('Error in device', ...args))
+		device.on('error', deviceErrorHandler)
+		device.on('commandError', deviceErrorHandler)
+
+		await myConductor.setMapping(myLayerMapping)
+
+		expect(mockTime.getCurrentTime()).toEqual(10000)
+		await mockTime.advanceTimeToTicks(10100)
+
+		// get initial info
+		expect(onRequest).toHaveBeenNthCalledWith(1, 'get', 'http://127.0.0.1:9999/api')
+
+		clearMocks()
+		commandReceiver0.mockClear()
+
+		// Check that no commands has been scheduled:
+		expect(await device.queue).toHaveLength(0)
+
+		myConductor.timeline = [
+			{
+				id: 'output0',
+				enable: {
+					start: 11000,
+					duration: 5000
+				},
+				layer: 'vmix_output0',
+				content: {
+					deviceType: DeviceType.VMIX,
+					type: TimelineContentTypeVMix.OUTPUT,
+					source: 'Input',
+					input: 2
+				}
+			}
+		]
+
+		await mockTime.advanceTimeToTicks(11300)
+
+		expect(commandReceiver0).toHaveBeenCalledTimes(1)
+		expect(commandReceiver0).toHaveBeenNthCalledWith(1, 11000, expect.objectContaining({
+			command: {
+				command: VMixCommand.SET_OUPUT,
+				name: 'Fullscreen',
+				value: 'Input',
+				input: 2
+			}
+		}), null, expect.any(String))
+
+		expect(onRequest).toHaveBeenCalledTimes(1)
+
+		expect(onRequest).toHaveBeenNthCalledWith(1, 'get', expect.stringContaining('/api/?Function=SetOutputFullscreen&Input=2&Value=Input'))
+
+		clearMocks()
+		commandReceiver0.mockClear()
+
+		await mockTime.advanceTimeToTicks(16300)
+
+		expect(commandReceiver0).toHaveBeenCalledTimes(1)
+		expect(commandReceiver0).toHaveBeenNthCalledWith(1, 16000, expect.objectContaining({
+			command: {
+				command: VMixCommand.SET_OUPUT,
+				name: 'Fullscreen',
+				value: 'Output'
+			}
+		}), null, expect.any(String))
+
+		expect(onRequest).toHaveBeenCalledTimes(1)
+
+		expect(onRequest).toHaveBeenNthCalledWith(1, 'get', expect.stringContaining('/api/?Function=SetOutputFullscreen&Value=Output'))
+
+		clearMocks()
+		commandReceiver0.mockClear()
+
+		await myConductor.destroy()
+
+		expect(errorHandler).toHaveBeenCalledTimes(0)
+		expect(deviceErrorHandler).toHaveBeenCalledTimes(0)
+	})
+
+	test('Fade To Black', async () => {
+		let device
+		let commandReceiver0 = jest.fn((...args) => {
+			// pipe through the command
+			return device._defaultCommandReceiver(...args)
+		})
+
+		let myLayerMapping0: MappingVMixFadeToBlack = {
+			device: DeviceType.VMIX,
+			mappingType: MappingVMixType.FadeToBlack,
+			deviceId: 'myvmix'
+		}
+		let myLayerMapping: Mappings = {
+			'vmix_ftb0': myLayerMapping0
+		}
+
+		let myConductor = new Conductor({
+			initializeAsClear: true,
+			getCurrentTime: mockTime.getCurrentTime
+		})
+		let errorHandler = jest.fn((...args) => console.log('Error in device', ...args))
+		myConductor.on('error', errorHandler)
+		myConductor.on('commandError', errorHandler)
+
+		await myConductor.init()
+
+		await t(myConductor.addDevice('myvmix', {
+			type: DeviceType.VMIX,
+			options: {
+				commandReceiver: commandReceiver0,
+				host: '127.0.0.1',
+				port: 9999
+			}
+		}), mockTime)
+
+		let deviceContainer = myConductor.getDevice('myvmix')
+		device = deviceContainer.device as ThreadedClass<VMixDevice>
+		let deviceErrorHandler = jest.fn((...args) => console.log('Error in device', ...args))
+		device.on('error', deviceErrorHandler)
+		device.on('commandError', deviceErrorHandler)
+
+		await myConductor.setMapping(myLayerMapping)
+
+		expect(mockTime.getCurrentTime()).toEqual(10000)
+		await mockTime.advanceTimeToTicks(10100)
+
+		// get initial info
+		expect(onRequest).toHaveBeenNthCalledWith(1, 'get', 'http://127.0.0.1:9999/api')
+
+		clearMocks()
+		commandReceiver0.mockClear()
+
+		// Check that no commands has been scheduled:
+		expect(await device.queue).toHaveLength(0)
+
+		myConductor.timeline = [
+			{
+				id: 'ftb0',
+				enable: {
+					start: 11000,
+					duration: 5000
+				},
+				layer: 'vmix_ftb0',
+				content: {
+					deviceType: DeviceType.VMIX,
+					type: TimelineContentTypeVMix.FADE_TO_BLACK,
+					on: true
+				}
+			}
+		]
+
+		await mockTime.advanceTimeToTicks(11300)
+
+		expect(commandReceiver0).toHaveBeenCalledTimes(1)
+		expect(commandReceiver0).toHaveBeenNthCalledWith(1, 11000, expect.objectContaining({
+			command: {
+				command: VMixCommand.FADE_TO_BLACK
+			}
+		}), null, expect.any(String))
+
+		expect(onRequest).toHaveBeenCalledTimes(1)
+
+		expect(onRequest).toHaveBeenNthCalledWith(1, 'get', expect.stringContaining('/api/?Function=FadeToBlack'))
+
+		clearMocks()
+		commandReceiver0.mockClear()
+
+		await mockTime.advanceTimeToTicks(16300)
+
+		expect(commandReceiver0).toHaveBeenCalledTimes(1)
+		expect(commandReceiver0).toHaveBeenNthCalledWith(1, 16000, expect.objectContaining({
+			command: {
+				command: VMixCommand.FADE_TO_BLACK
+			}
+		}), null, expect.any(String))
+
+		expect(onRequest).toHaveBeenCalledTimes(1)
+
+		expect(onRequest).toHaveBeenNthCalledWith(1, 'get', expect.stringContaining('/api/?Function=FadeToBlack'))
+
+		clearMocks()
+		commandReceiver0.mockClear()
+
+		await myConductor.destroy()
+
+		expect(errorHandler).toHaveBeenCalledTimes(0)
+		expect(deviceErrorHandler).toHaveBeenCalledTimes(0)
+	})
+
+	test('Fader', async () => {
+		let device
+		let commandReceiver0 = jest.fn((...args) => {
+			// pipe through the command
+			return device._defaultCommandReceiver(...args)
+		})
+
+		let myLayerMapping0: MappingVMixFader = {
+			device: DeviceType.VMIX,
+			mappingType: MappingVMixType.Fader,
+			deviceId: 'myvmix'
+		}
+		let myLayerMapping: Mappings = {
+			'vmix_fader0': myLayerMapping0
+		}
+
+		let myConductor = new Conductor({
+			initializeAsClear: true,
+			getCurrentTime: mockTime.getCurrentTime
+		})
+		let errorHandler = jest.fn((...args) => console.log('Error in device', ...args))
+		myConductor.on('error', errorHandler)
+		myConductor.on('commandError', errorHandler)
+
+		await myConductor.init()
+
+		await t(myConductor.addDevice('myvmix', {
+			type: DeviceType.VMIX,
+			options: {
+				commandReceiver: commandReceiver0,
+				host: '127.0.0.1',
+				port: 9999
+			}
+		}), mockTime)
+
+		let deviceContainer = myConductor.getDevice('myvmix')
+		device = deviceContainer.device as ThreadedClass<VMixDevice>
+		let deviceErrorHandler = jest.fn((...args) => console.log('Error in device', ...args))
+		device.on('error', deviceErrorHandler)
+		device.on('commandError', deviceErrorHandler)
+
+		await myConductor.setMapping(myLayerMapping)
+
+		expect(mockTime.getCurrentTime()).toEqual(10000)
+		await mockTime.advanceTimeToTicks(10100)
+
+		// get initial info
+		expect(onRequest).toHaveBeenNthCalledWith(1, 'get', 'http://127.0.0.1:9999/api')
+
+		clearMocks()
+		commandReceiver0.mockClear()
+
+		// Check that no commands has been scheduled:
+		expect(await device.queue).toHaveLength(0)
+
+		myConductor.timeline = [
+			{
+				id: 'fader0',
+				enable: {
+					start: 11000,
+					duration: 5000
+				},
+				layer: 'vmix_fader0',
+				content: {
+					deviceType: DeviceType.VMIX,
+					type: TimelineContentTypeVMix.FADER,
+					position: 126
+				}
+			}
+		]
+
+		await mockTime.advanceTimeToTicks(11300)
+
+		expect(commandReceiver0).toHaveBeenCalledTimes(1)
+		expect(commandReceiver0).toHaveBeenNthCalledWith(1, 11000, expect.objectContaining({
+			command: {
+				command: VMixCommand.FADER,
+				value: 126
+			}
+		}), null, expect.any(String))
+
+		expect(onRequest).toHaveBeenCalledTimes(1)
+
+		expect(onRequest).toHaveBeenNthCalledWith(1, 'get', expect.stringContaining('/api/?Function=SetFader&Value=126'))
+
+		clearMocks()
+		commandReceiver0.mockClear()
+
+		await mockTime.advanceTimeToTicks(16300)
+
+		expect(commandReceiver0).toHaveBeenCalledTimes(1)
+		expect(commandReceiver0).toHaveBeenNthCalledWith(1, 16000, expect.objectContaining({
+			command: {
+				command: VMixCommand.FADER,
+				value: 0
+			}
+		}), null, expect.any(String))
+
+		expect(onRequest).toHaveBeenCalledTimes(1)
+
+		expect(onRequest).toHaveBeenNthCalledWith(1, 'get', expect.stringContaining('/api/?Function=SetFader&Value=0'))
 
 		clearMocks()
 		commandReceiver0.mockClear()
