@@ -142,10 +142,14 @@ function urlRoute (requestType: string, url: string, routes: {[route: string]: (
 	})
 	return body
 }
-function handleRequest (vmixServer: VmixServerMockOptions, triggerFcn: Function, type: string, url: string, bodyData: any, callback: (err: Error | null, value?: any) => void) {
+function handleRequest (vmixServer: VmixServerMockOptions, triggerFcn: Function, type: string, url: string, _bodyData: any, callback: (err: Error | null, value?: any) => void) {
 	process.nextTick(() => {
 
 		triggerFcn(type, url)
+
+		if (!vmixServer.serverIsUp) {
+			callback(new Error(), null)
+		}
 
 		try {
 			const resource = (url.match(/http:\/\/[^\/]+(.*)/) || [])[1] || ''

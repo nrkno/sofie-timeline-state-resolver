@@ -46,6 +46,8 @@ describe('vMixAPI', () => {
 		vmix.on('disconnected', onDisconnected)
 		vmix.on('stateChanged', onStateChanged)
 
+		expect(!vmix.connected)
+
 		const options: VMixOptions = {
 			host: '127.0.0.1',
 			port: 9999
@@ -54,24 +56,92 @@ describe('vMixAPI', () => {
 
 		await wait(100)
 
-		expect(onPost).toHaveBeenCalledTimes(1)
-		expect(onPost).toHaveBeenCalledWith('http://localhost:3000/connect/myISA%3A8000', undefined, expect.any(Function))
+		expect(vmix.connected)
 
+		expect(onGet).toHaveBeenCalledTimes(1)
+		expect(onGet).toHaveBeenCalledWith('http://127.0.0.1:9999/api', undefined, expect.any(Function))
+
+		console.log(vmix.state)
 		expect(vmix.state).toEqual({
-
+			version: '21.0.0.55',
+			edition: 'HD',
+			inputs: {
+				'1': {
+					number: 1,
+					type: 'Capture',
+					state: 'Running',
+					position: 0,
+					duration: 0,
+					loop: false,
+					muted: false,
+					volume: 100,
+					balance: 0,
+					audioBuses: 'M',
+					transform: {
+						alpha: -1,
+						panX: 0,
+						panY: 0,
+						zoom: 1
+					}
+				},
+				'2': {
+					number: 2,
+					type: 'Capture',
+					state: 'Running',
+					position: 0,
+					duration: 0,
+					loop: false,
+					muted: true,
+					volume: 100,
+					balance: 0,
+					audioBuses: 'M,C',
+					transform: {
+						alpha: -1,
+						panX: 0,
+						panY: 0,
+						zoom: 1
+					}
+				}
+			},
+			overlays: [
+				{ number: 1, input: undefined },
+				{ number: 2, input: undefined },
+				{ number: 3, input: undefined },
+				{ number: 4, input: undefined },
+				{ number: 5, input: undefined },
+				{ number: 6, input: undefined }
+			],
+			mixes: [{ number: 1, program: 1, preview: 2, transition: {
+				duration: 0,
+				effect: 'Cut'
+			}}],
+			fadeToBlack: false,
+			recording: true,
+			external: true,
+			streaming: true,
+			playlist: false,
+			multiCorder: false,
+			fullscreen: false,
+			audio: [
+				{
+					volume: 100,
+					muted: false,
+					meterF1: 0.04211706,
+					meterF2: 0.04211706,
+					headphonesVolume: 74.80521
+				}
+			],
+			fixedInputsCount: 2
 		})
-		// expect(vmix.ISAUrl).toEqual('myISA:8000')
-		// expect(vmix.zoneId).toEqual('default')
-		// expect(vmix.serverId).toEqual(1100)
 
 		expect(onConnected).toHaveBeenCalledTimes(1)
 		expect(onStateChanged).toHaveBeenCalledTimes(1)
 		expect(onDisconnected).toHaveBeenCalledTimes(0)
 		expect(onError).toHaveBeenCalledTimes(0)
 
-		// disconnect?
-		// do something?
-		expect(onDisconnected).toHaveBeenCalledTimes(1)
+		await vmix.dispose()
+
+		expect(!vmix.connected)
 	})
 	test('Connection status', async () => {
 		let vmix = new VMix()
@@ -83,7 +153,7 @@ describe('vMixAPI', () => {
 		vmix.on('connected', onConnected)
 		vmix.on('disconnected', onDisconnected)
 		vmix.on('stateChanged', onStateChanged)
-
+		vmix.pingInterval = 2000
 		const options: VMixOptions = {
 			host: '127.0.0.1',
 			port: 9999
@@ -92,57 +162,24 @@ describe('vMixAPI', () => {
 
 		await wait(100)
 
-		expect(quantel.connected)
-		expect(onStatusChange).toHaveBeenCalledTimes(1)
-		expect(onStatusChange).toHaveBeenCalledWith(true, null)
-		onStatusChange.mockClear()
+		expect(vmix.connected).toEqual(true)
+		expect(onConnected).toHaveBeenCalledTimes(1)
+		onConnected.mockClear()
 
-		quantelServer.serverIsUp = false
-		await wait(quantel.checkStatusInterval)
+		vmixServer.serverIsUp = false
+		await wait(vmix.pingInterval)
 
-		expect(!quantel.connected)
-		expect(onStatusChange).toHaveBeenCalledTimes(1)
-		expect(onStatusChange).toHaveBeenCalledWith(false, 'Server 1100 is down')
-		onStatusChange.mockClear()
+		expect(!vmix.connected)
+		expect(onDisconnected).toHaveBeenCalledTimes(1)
+		onDisconnected.mockClear()
 
-		quantelServer.ISAServerIsUp = true
-		await wait(quantel.checkStatusInterval)
+		vmixServer.serverIsUp = true
+		await wait(vmix.pingInterval)
 
-		expect(quantel.connected)
-		expect(onStatusChange).toHaveBeenCalledTimes(1)
-		expect(onStatusChange).toHaveBeenCalledWith(true, null)
-		onStatusChange.mockClear()
-
+		expect(vmix.connected)
+		expect(onConnected).toHaveBeenCalledTimes(1)
+		onConnected.mockClear()
+		await vmix.dispose()
 	})
-	test('Methods', async () => {
 
-		let vmix = new VMix()
-		let onError = jest.fn()
-		let onConnected = jest.fn()
-		let onDisconnected = jest.fn()
-		let onStateChanged = jest.fn()
-		vmix.on('error', onError)
-		vmix.on('connected', onConnected)
-		vmix.on('disconnected', onDisconnected)
-		vmix.on('stateChanged', onStateChanged)
-
-		const options: VMixOptions = {
-			host: '127.0.0.1',
-			port: 9999
-		}
-		await vmix.connect(options)
-
-		vmix.playInput('blah')
-		expect(onPost).toHaveBeenCalledTimes(1)
-		expect(onPost).toHaveBeenCalledWith('http://localhost:3000/default/server/1100/port/my_port/channel/3', undefined, expect.any(Function))
-
-		vmix.overlayInputIn(1, 1)
-		expect(onPost).toHaveBeenCalledTimes(1)
-		expect(onPost).toHaveBeenCalledWith('http://localhost:3000/default/server/1100/port/my_port/channel/3', undefined, expect.any(Function))
-
-
-
-		expect(onError).toHaveBeenCalledTimes(0)
-
-	})
 })
