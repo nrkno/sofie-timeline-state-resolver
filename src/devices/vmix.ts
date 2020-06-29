@@ -144,6 +144,8 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended> {
 			number: num,
 			position: 0,
 			muted: true,
+			loop: false,
+			playing: false,
 			volume: 100,
 			balance: 0,
 			fade: 0,
