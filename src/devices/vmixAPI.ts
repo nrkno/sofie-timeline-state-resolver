@@ -82,8 +82,6 @@ export class VMix extends EventEmitter {
 		switch (command.command) {
 			case VMixCommand.PREVIEW_INPUT:
 				return this.setPreviewInput(command.input, command.mix)
-			case VMixCommand.ACTIVE_INPUT:
-				return this.setActiveInput(command.input)
 			case VMixCommand.TRANSITION:
 				return this.transition(command.input, command.effect, command.duration, command.mix)
 			case VMixCommand.AUDIO_VOLUME:
@@ -250,10 +248,6 @@ export class VMix extends EventEmitter {
 
 	public setPreviewInput (input: number | string, mix: number): Promise<any> {
 		return this.sendCommandFunction('PreviewInput', { input, mix })
-	}
-
-	public setActiveInput (input: number | string): Promise<any> {
-		return this.sendCommandFunction('ActiveInput', { input: input })
 	}
 
 	public transition (input: number | string, effect: string, duration: number, mix: number): Promise<any> {
@@ -431,10 +425,6 @@ export interface VMixStateCommandPreviewInput extends VMixStateCommandBase {
 	input: number | string
 	mix: number
 }
-export interface VMixStateCommandProgram extends VMixStateCommandBase {
-	command: VMixCommand.ACTIVE_INPUT
-	input: number | string
-}
 export interface VMixStateCommandTransition extends VMixStateCommandBase {
 	command: VMixCommand.TRANSITION
 	input: number | string
@@ -580,7 +570,6 @@ export interface VMixStateCommandSetInputOverlay extends VMixStateCommandBase {
 	value: string | number
 }
 export type VMixStateCommand = VMixStateCommandPreviewInput |
-	VMixStateCommandProgram |
 	VMixStateCommandTransition |
 	VMixStateCommandAudio |
 	VMixStateCommandAudioBalance |

@@ -114,7 +114,6 @@ export interface VMixOptions {
 
 export enum VMixCommand {
 	PREVIEW_INPUT = 'PREVIEW_INPUT',
-	ACTIVE_INPUT = 'ACTIVE_INPUT',
 	TRANSITION = 'TRANSITION',
 	AUDIO_VOLUME = 'AUDIO_VOLUME',
 	AUDIO_BALANCE = 'AUDIO_BALANCE',
@@ -361,6 +360,7 @@ export interface VMixTransition {
 
 export enum VMixTransitionType {
 	Cut = 'Cut',
+	CutDirect = 'CutDirect',
 	Fade = 'Fade',
 	Zoom = 'Zoom',
 	Wipe = 'Wipe',
