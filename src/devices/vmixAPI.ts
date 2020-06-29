@@ -330,10 +330,6 @@ export class VMix extends EventEmitter {
 		return this.sendCommandFunction(`FadeToBlack`, {})
 	}
 
-	public quickPlay (input: number): Promise<any> {
-		return this.sendCommandFunction(`QuickPlay`, { input: input })
-	}
-
 	public addInput (file: string): Promise<any> {
 		return this.sendCommandFunction(`AddInput`, { value: file })
 	}
