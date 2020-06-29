@@ -5,13 +5,15 @@ import { VMixOptions, VMixCommand, VMixTransitionType, VMixInputType } from '../
 import { VMixState, VMixInput, VMixMix } from './vmix'
 import * as _ from 'underscore'
 
-const PING_TIMEOUT = 10 * 1000
+const PING_INTERVAL = 2 * 1000
 
 export class VMix extends EventEmitter {
 	public state: VMixState
+	public pingInterval = PING_INTERVAL
 
 	private _options: VMixOptions
 	private _connected: boolean = false
+	private _disposed: boolean = false
 
 	private _socketKeepAliveTimeout: NodeJS.Timer | null = null
 
@@ -26,6 +28,7 @@ export class VMix extends EventEmitter {
 	public dispose (): Promise<void> {
 		return new Promise((resolve) => {
 			this._connected = false
+			this._disposed = true
 			if (this._socketKeepAliveTimeout) {
 				clearTimeout(this._socketKeepAliveTimeout)
 				this._socketKeepAliveTimeout = null
@@ -68,10 +71,11 @@ export class VMix extends EventEmitter {
 			clearTimeout(this._socketKeepAliveTimeout)
 			this._socketKeepAliveTimeout = null
 		}
-
-		this._socketKeepAliveTimeout = setTimeout(() => {
-			this.getVMixState()
-		}, PING_TIMEOUT)
+		if (!this._disposed) {
+			this._socketKeepAliveTimeout = setTimeout(() => {
+				this.getVMixState()
+			}, this.pingInterval)
+		}
 	}
 
 	public async sendCommand (command: VMixStateCommand): Promise<any> {
