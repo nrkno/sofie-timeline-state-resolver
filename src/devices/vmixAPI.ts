@@ -5,7 +5,7 @@ import { VMixOptions, VMixCommand, VMixTransitionType, VMixInputType } from '../
 import { VMixState, VMixInput, VMixMix } from './vmix'
 import * as _ from 'underscore'
 
-const PING_INTERVAL = 2 * 1000
+const PING_INTERVAL = 10 * 1000
 
 export class VMix extends EventEmitter {
 	public state: VMixState
