@@ -37,6 +37,8 @@ export interface VizMSEOptions {
 	dontDeactivateOnStandDown?: boolean
 	/** If true, only elements in the currently active rundown will be loaded */
 	onlyPreloadActiveRundown?: boolean
+	/** List of commands to be sent to Viz Engines in order to fully clear them */
+	clearAllCommands?: string[]
 }
 export enum TimelineContentTypeVizMSE {
 	ELEMENT_INTERNAL = 'element_internal',
@@ -145,6 +147,9 @@ export interface TimelineObjVIZMSEClearAllElements extends TSRTimelineObjBase {
 	content: {
 		deviceType: DeviceType.VIZMSE
 		type: TimelineContentTypeVizMSE.CLEAR_ALL_ELEMENTS
+
+		/** Names of the channels to send the special clear commands to */
+		channelsToSendCommands?: string[]
 	}
 }
 

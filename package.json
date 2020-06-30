@@ -159,7 +159,7 @@
     "atem-state": "^0.9.0",
     "casparcg-connection": "^4.9.0",
     "casparcg-state": "^1.12.0",
-    "emberplus": "git+https://github.com/nrkno/tv-automation-emberplus-connection#dist200919_1",
+    "emberplus-connection": "^0.0.3-nightly-20200622-114815-88534e2.0",
     "hyperdeck-connection": "^0.4.3",
     "osc": "^2.4.0",
     "p-all": "^3.0.0",
@@ -173,7 +173,7 @@
     "tv-automation-quantel-gateway-client": "^1.0.8",
     "underscore": "^1.10.2",
     "underscore-deep-extend": "^1.1.5",
-    "v-connection": "git+https://github.com/olzzon/v-connection#v20200304_1",
+    "v-connection": "git+https://github.com/olzzon/v-connection#v20200515_1",
     "ws": "^7.1.1"
   },
   "standard-version": {

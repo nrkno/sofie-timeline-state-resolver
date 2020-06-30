@@ -3,7 +3,8 @@ import {
 	MappingAbstract,
 	DeviceType,
 	TSRTimelineObj,
-	TSRTimeline
+	TSRTimeline,
+	LawoDeviceMode
 } from '../types/src'
 import { Conductor, TimelineTriggerTimeResult } from '../conductor'
 import * as _ from 'underscore'
@@ -363,7 +364,9 @@ describe('Conductor', () => {
 		await conductor.addDevice('device4', {
 			type: DeviceType.LAWO,
 			options: {
-				commandReceiver: commandReceiver4
+				commandReceiver: commandReceiver4,
+
+				deviceMode: LawoDeviceMode.Ruby
 			}
 		})
 

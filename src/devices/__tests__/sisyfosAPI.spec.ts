@@ -1,5 +1,5 @@
 jest.mock('osc')
-import { SisyfosInterface } from '../sisyfosAPI'
+import { SisyfosApi } from '../sisyfosAPI'
 import { MockOSC } from '../../__mocks__/osc'
 
 const orgSetTimeout = setTimeout
@@ -22,7 +22,7 @@ describe('SisyfosAPI', () => {
 		let onConnected = jest.fn()
 		let onDisconnected = jest.fn()
 
-		let sisyfos = new SisyfosInterface()
+		let sisyfos = new SisyfosApi()
 		sisyfos.on('error', onError)
 		sisyfos.on('initialized', onInitialized)
 		sisyfos.on('connected', onConnected)
