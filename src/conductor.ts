@@ -149,6 +149,7 @@ export class Conductor extends EventEmitter {
 	private _resolver: ThreadedClass<AsyncResolver>
 
 	private _interval: NodeJS.Timer
+	private _timelineHash: string | undefined
 
 	constructor (options: ConductorOptions = {}) {
 		super()
@@ -253,6 +254,12 @@ export class Conductor extends EventEmitter {
 
 		this.resetResolver()
 
+	}
+	get timelineHash (): string | undefined {
+		return this._timelineHash
+	}
+	set timelineHash (hash: string | undefined) {
+		this._timelineHash = hash
 	}
 	get logDebug (): boolean {
 		return this._logDebug
@@ -834,7 +841,15 @@ export class Conductor extends EventEmitter {
 				this._diffStateForCallbacks(sentCallbacksNew)
 			}, activeObjects)
 
-			this.emit('debug', 'resolveTimeline at time ' + resolveTime + ' done in ' + (Date.now() - startTime) + 'ms (size: ' + timeline.length + ')')
+			const resolveDuration = (Date.now() - startTime)
+			// Special / hack: report back, for latency statitics:
+			if (
+				this._timelineHash
+			) {
+				this.emit('resolveDone', this._timelineHash, resolveDuration)
+			}
+
+			this.emit('debug', 'resolveTimeline at time ' + resolveTime + ' done in ' + resolveDuration + 'ms (size: ' + timeline.length + ')')
 		} catch (e) {
 			this.emit('error', 'resolveTimeline' + e + '\nStack: ' + e.stack)
 		}
