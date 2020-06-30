@@ -631,37 +631,41 @@ class QuantelManager extends EventEmitter {
 
 		const server = await this.getServer()
 
-		let clipId = await this.getClipId(cmd.clip)
+		let clipId: number = 0
+		try {
+			clipId = await this.getClipId(cmd.clip)
+		} catch (e) {
+			if ((e + '').match(/not found/i)) {
+				// The clip was not found
+				if (this.options.allowCloneClips) {
+					// Try to clone the clip from another server:
+
+					if (!server.pools) throw new Error(`server.pools not set!`)
+
+					// find another clip
+					const clips = await this.searchForClips(cmd.clip)
+					if (clips.length) {
+						const clipToCloneFrom = clips[0]
+
+						const cloneResult: Q.CloneResult = await this._quantel.copyClip(
+							undefined, // source zoneId. inter-zone copying not supported atm.
+							clipToCloneFrom.ClipID,
+							server.pools[0] // pending discussion, which to choose
+						)
+						clipId = cloneResult.copyID // new clip id
+					} else throw e
+				} else throw e
+			} else throw e
+		}
+
+		// let clipId = await this.getClipId(cmd.clip)
 		let clipData = await this._quantel.getClip(clipId)
 		if (!clipData) throw new Error(`Clip ${clipId} not found`)
 		if (!clipData.PoolID) throw new Error(`Clip ${clipData.ClipID} missing PoolID`)
 
 		// Check that the clip is present on the server:
 		if (!(server.pools || []).includes(clipData.PoolID)) {
-			// It looks like the clip is not present on any of the pools on the server.
-
-			if (this.options.allowCloneClips) {
-				if (!server.pools) throw new Error(`server.pools not set!`)
-
-				// Try to copy the clip:
-				const cloneResult: Q.CloneResult = await this._quantel.copyClip(
-					undefined, // source zoneId. inter-zone copying not supported atm.
-					clipData.ClipID,
-					server.pools[0] // pending discussion, which to choose
-				)
-				// Check that the new clip is valid:
-				clipData = await this._quantel.getClip(
-					cloneResult.copyID // new clip id
-				)
-				if (!clipData) throw new Error(`Copied Clip ${cloneResult.copyID} not found`)
-				if (!clipData.PoolID) throw new Error(`Copied Clip ${clipData.ClipID} missing PoolID`)
-				// Check that the copied clip is present on the server:
-				if (!(server.pools || []).includes(clipData.PoolID)) {
-					throw new Error(`Copied Clip "${clipData.ClipID}" PoolID ${clipData.PoolID} not found on right server (${server.ident})`)
-				}
-			} else {
-				throw new Error(`Clip "${clipData.ClipID}" PoolID ${clipData.PoolID} not found on right server (${server.ident})`)
-			}
+			throw new Error(`Clip "${clipData.ClipID}" PoolID ${clipData.PoolID} not found on right server (${server.ident})`)
 		}
 
 		let useInOutPoints: boolean = !!(
@@ -959,9 +963,7 @@ class QuantelManager extends EventEmitter {
 				const server = await this.getServer()
 
 				// Look up the clip:
-				const foundClips = await this._quantel.searchClip({
-					ClipGUID: `"${clip.guid}"`
-				})
+				const foundClips = await this.searchForClips(clip)
 				const foundClip = _.find(foundClips, (clip) => {
 					return (
 						clip.PoolID &&
@@ -977,9 +979,7 @@ class QuantelManager extends EventEmitter {
 				const server = await this.getServer()
 
 				// Look up the clip:
-				const foundClips = await this._quantel.searchClip({
-					Title: `"${clip.title}"`
-				})
+				const foundClips = await this.searchForClips(clip)
 				const foundClip = _.find(foundClips, (clip) => {
 					return (
 						clip.PoolID &&
@@ -993,6 +993,19 @@ class QuantelManager extends EventEmitter {
 		if (!clipId) throw new Error(`Unable to determine clipId for clip "${clip.title || clip.guid}"`)
 
 		return clipId
+	}
+	private async searchForClips (clip: QuantelStatePortClip): Promise<Q.ClipDataSummary[]> {
+		if (clip.guid) {
+			return this._quantel.searchClip({
+				ClipGUID: `"${clip.guid}"`
+			})
+		} else if (clip.title) {
+			return this._quantel.searchClip({
+				Title: `"${clip.title}"`
+			})
+		} else {
+			throw new Error(`Unable to search for clip "${clip.title || clip.guid}"`)
+		}
 	}
 	private wait (time: number) {
 		return new Promise(resolve => {
