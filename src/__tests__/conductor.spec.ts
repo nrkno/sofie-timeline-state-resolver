@@ -3,7 +3,8 @@ import {
 	MappingAbstract,
 	DeviceType,
 	TSRTimelineObj,
-	TSRTimeline
+	TSRTimeline,
+	LawoDeviceMode
 } from '../types/src'
 import { Conductor, TimelineTriggerTimeResult } from '../conductor'
 import * as _ from 'underscore'
@@ -363,7 +364,9 @@ describe('Conductor', () => {
 		await conductor.addDevice('device4', {
 			type: DeviceType.LAWO,
 			options: {
-				commandReceiver: commandReceiver4
+				commandReceiver: commandReceiver4,
+
+				deviceMode: LawoDeviceMode.Ruby
 			}
 		})
 
@@ -402,4 +405,31 @@ describe('Conductor', () => {
 			channel: 3
 		})
 	})
+
+	test('Construction of multithreaded device', async () => {
+		const myLayerMapping0: MappingAbstract = {
+			device: DeviceType.ABSTRACT,
+			deviceId: 'device0'
+		}
+		const myLayerMapping: Mappings = {
+			'myLayer0': myLayerMapping0
+		}
+
+		const conductor = new Conductor({
+			initializeAsClear: true,
+			getCurrentTime: mockTime.getCurrentTime
+		})
+		conductor.on('error', console.error)
+
+		await conductor.init()
+		await conductor.addDevice('device0', {
+			type: DeviceType.ABSTRACT,
+			options: {},
+			isMultiThreaded: true
+		})
+		await conductor.setMapping(myLayerMapping)
+
+		const device = conductor.getDevice('device0').device
+		expect(await device.getCurrentTime()).toBeTruthy()
+	}, 1500)
 })

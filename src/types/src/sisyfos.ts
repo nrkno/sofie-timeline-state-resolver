@@ -6,59 +6,31 @@ export interface SisyfosOptions {
 	port: number
 }
 
-export interface MappingSisyfos extends Mapping {
+export enum MappingSisyfosType {
+	CHANNEL = 'channel',
+	CHANNELS = 'channels'
+}
+export type MappingSisyfos = MappingSisyfosChannel | MappingSisyfosChannels
+interface MappingSisyfosBase extends Mapping {
 	device: DeviceType.SISYFOS
+	mappingType: MappingSisyfosType  // defaults to MappingSisyfosType.CHANNEL if not set
+}
+export interface MappingSisyfosChannel extends MappingSisyfosBase {
+	mappingType: MappingSisyfosType.CHANNEL
 	channel: number
+}
+export interface MappingSisyfosChannels extends MappingSisyfosBase {
+	mappingType: MappingSisyfosType.CHANNELS
 }
 
 export enum TimelineContentTypeSisyfos {
-	SISYFOS = 'sisyfos'
+	/** @deprecated use CHANNEL instead */
+	SISYFOS = 'sisyfos',
+	CHANNEL = 'channel',
+	CHANNELS = 'channels'
 }
 
-export interface SisyfosCommandContent {
-	type: TimelineContentTypeSisyfos.SISYFOS
-	isPgm?: boolean
-	isPst?: boolean
-	faderLevel?: number
-}
-export type TimelineObjSisyfosAny = TimelineObjSisyfosMessage
-
-export enum Commands {
-	TOGGLE_PGM = 'togglePgm',
-	TOGGLE_PST = 'togglePst',
-	SET_FADER = 'setFader',
-	TAKE = 'take'
-}
-
-export interface BaseCommand {
-	type: Commands
-}
-
-export interface ChannelCommand {
-	type: Commands.SET_FADER | Commands.TOGGLE_PGM | Commands.TOGGLE_PST
-	channel: number
-	value: boolean | number
-}
-
-export interface ToggleCommand extends ChannelCommand {
-	type: Commands.TOGGLE_PGM | Commands.TOGGLE_PST
-	value: boolean
-}
-
-export interface FaderCommand extends ChannelCommand {
-	type: Commands.SET_FADER
-	value: number
-}
-
-export type SisyfosCommand = BaseCommand | ToggleCommand | FaderCommand
-
-export interface SisyfosChannel extends SisyfosAPIChannel {
-	tlObjIds: string[]
-}
-
-export interface SisyfosState {
-	channels: { [index: string]: SisyfosChannel }
-}
+export type TimelineObjSisyfosAny = TimelineObjSisyfosChannel | TimelineObjSisyfosChannels
 
 export interface TimelineObjSisyfos extends TSRTimelineObjBase {
 	content: {
@@ -66,22 +38,36 @@ export interface TimelineObjSisyfos extends TSRTimelineObjBase {
 		type: TimelineContentTypeSisyfos
 	}
 }
-export interface TimelineObjSisyfosMessage extends TimelineObjSisyfos {
-	content: {
-		deviceType: DeviceType.SISYFOS
-	} & SisyfosCommandContent
-}
-// ------------------------------------------------------
-// Interfaces for the data that comes over OSC:
-export interface SisyfosAPIChannel {
-	faderLevel: number
-	pgmOn: boolean
-	pstOn: boolean
+
+export interface SisyfosChannelOptions {
+	isPgm?: 0 | 1 | 2 // 0=off 1=PGM 2=VO
+	faderLevel?: number
+	label?: string
+	visible?: boolean
 }
 
-export interface SisyfosAPIState {
-	channels: {
-		[index: string]: SisyfosAPIChannel
+export interface TimelineObjSisyfosChannel extends TimelineObjSisyfos {
+	content: {
+		deviceType: DeviceType.SISYFOS
+		type: TimelineContentTypeSisyfos.CHANNEL
+		resync?: boolean
+		overridePriority?: number // defaults to 0
+	} & SisyfosChannelOptions
+}
+export interface TimelineObjSisyfosChannels extends TimelineObjSisyfos {
+	content: {
+		deviceType: DeviceType.SISYFOS
+		type: TimelineContentTypeSisyfos.CHANNELS
+		channels: (
+			{
+				/** The mapping layer to look up the channel from */
+				mappedLayer: string
+			} & SisyfosChannelOptions
+		)[],
+		resync?: boolean
+		overridePriority?: number // defaults to 0
 	}
 }
-// ------------------------------------------------------
+// Backwards compatibility:
+/** @deprecated use TimelineObjSisyfosChannel instead */
+export type TimelineObjSisyfosMessage = TimelineObjSisyfosChannel

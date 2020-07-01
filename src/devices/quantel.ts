@@ -27,8 +27,10 @@ import {
 
 import { DoOnTime, SendMode } from '../doOnTime'
 import {
-	QuantelGateway, Q, MonitorPorts
-} from './quantelGateway'
+	QuantelGateway,
+	Q,
+	MonitorPorts
+} from 'tv-automation-quantel-gateway-client'
 
 const IDEAL_PREPARE_TIME = 1000
 const PREPARE_TIME_WAIT = 50
@@ -73,10 +75,12 @@ export class QuantelDevice extends DeviceWithState<QuantelState> implements IDev
 		}
 		this._quantel = new QuantelGateway()
 		this._quantel.on('error', e => this.emit('error', 'Quantel.QuantelGateway', e))
-
 		this._quantelManager = new QuantelManager(
 			this._quantel,
-			() => this.getCurrentTime()
+			() => this.getCurrentTime(),
+			{
+				allowCloneClips: deviceOptions.options.allowCloneClips
+			}
 		)
 		this._quantelManager.on('info', str => this.emit('info', 'Quantel: ' + str))
 		this._quantelManager.on('warning', str => this.emit('warning', 'Quantel' + str))
@@ -96,13 +100,15 @@ export class QuantelDevice extends DeviceWithState<QuantelState> implements IDev
 
 	async init (initOptions: QuantelOptions): Promise<boolean> {
 		this._initOptions = initOptions
-		if (!this._initOptions.gatewayUrl) 	throw new Error('Quantel bad connection option: gatewayUrl')
-		if (!this._initOptions.ISAUrl)		throw new Error('Quantel bad connection option: ISAUrl')
-		if (!this._initOptions.serverId)		throw new Error('Quantel bad connection option: serverId')
+		const ISAUrlMaster = this._initOptions.ISAUrlMaster || this._initOptions['ISAUrl'] // tmp: ISAUrl for backwards compatibility, to be removed later
+		if (!this._initOptions.gatewayUrl) throw new Error('Quantel bad connection option: gatewayUrl')
+		if (!ISAUrlMaster) throw new Error('Quantel bad connection option: ISAUrlMaster')
+		if (!this._initOptions.serverId) throw new Error('Quantel bad connection option: serverId')
 
 		await this._quantel.init(
 			this._initOptions.gatewayUrl,
-			this._initOptions.ISAUrl,
+			ISAUrlMaster,
+			this._initOptions.ISAUrlBackup,
 			this._initOptions.zoneId,
 			this._initOptions.serverId
 		)
@@ -546,6 +552,10 @@ export class QuantelDevice extends DeviceWithState<QuantelState> implements IDev
 		this.emit('connectionChanged', this.getStatus())
 	}
 }
+interface QuantelManagerOptions {
+	/** If set: If a clip turns out to be on the wrong server, an attempt to copy the clip will be done. */
+	allowCloneClips?: boolean
+}
 class QuantelManager extends EventEmitter {
 	private _quantelState: QuantelTrackedState = {
 		port: {}
@@ -556,7 +566,8 @@ class QuantelManager extends EventEmitter {
 	} = {}
 	constructor (
 		private _quantel: QuantelGateway,
-		private getCurrentTime: () => number
+		private getCurrentTime: () => number,
+		private options: QuantelManagerOptions
 	) {
 		super()
 		this._quantel.on('error', (...args) => this.emit('error', ...args))
@@ -620,14 +631,41 @@ class QuantelManager extends EventEmitter {
 
 		const server = await this.getServer()
 
-		let clipId = await this.getClipId(cmd.clip)
-		const clipData = await this._quantel.getClip(clipId)
+		let clipId: number = 0
+		try {
+			clipId = await this.getClipId(cmd.clip)
+		} catch (e) {
+			if ((e + '').match(/not found/i)) {
+				// The clip was not found
+				if (this.options.allowCloneClips) {
+					// Try to clone the clip from another server:
+
+					if (!server.pools) throw new Error(`server.pools not set!`)
+
+					// find another clip
+					const clips = await this.searchForClips(cmd.clip)
+					if (clips.length) {
+						const clipToCloneFrom = clips[0]
+
+						const cloneResult: Q.CloneResult = await this._quantel.copyClip(
+							undefined, // source zoneId. inter-zone copying not supported atm.
+							clipToCloneFrom.ClipID,
+							server.pools[0] // pending discussion, which to choose
+						)
+						clipId = cloneResult.copyID // new clip id
+					} else throw e
+				} else throw e
+			} else throw e
+		}
+
+		// let clipId = await this.getClipId(cmd.clip)
+		let clipData = await this._quantel.getClip(clipId)
 		if (!clipData) throw new Error(`Clip ${clipId} not found`)
 		if (!clipData.PoolID) throw new Error(`Clip ${clipData.ClipID} missing PoolID`)
 
 		// Check that the clip is present on the server:
-		if ((server.pools || []).indexOf(clipData.PoolID) === -1) {
-			throw new Error(`Clip "${clipData.ClipID}" PoolID ${clipData.PoolID} not found on server (${server.ident})`)
+		if (!(server.pools || []).includes(clipData.PoolID)) {
+			throw new Error(`Clip "${clipData.ClipID}" PoolID ${clipData.PoolID} not found on right server (${server.ident})`)
 		}
 
 		let useInOutPoints: boolean = !!(
@@ -925,9 +963,7 @@ class QuantelManager extends EventEmitter {
 				const server = await this.getServer()
 
 				// Look up the clip:
-				const foundClips = await this._quantel.searchClip({
-					ClipGUID: `"${clip.guid}"`
-				})
+				const foundClips = await this.searchForClips(clip)
 				const foundClip = _.find(foundClips, (clip) => {
 					return (
 						clip.PoolID &&
@@ -943,9 +979,7 @@ class QuantelManager extends EventEmitter {
 				const server = await this.getServer()
 
 				// Look up the clip:
-				const foundClips = await this._quantel.searchClip({
-					Title: `"${clip.title}"`
-				})
+				const foundClips = await this.searchForClips(clip)
 				const foundClip = _.find(foundClips, (clip) => {
 					return (
 						clip.PoolID &&
@@ -959,6 +993,19 @@ class QuantelManager extends EventEmitter {
 		if (!clipId) throw new Error(`Unable to determine clipId for clip "${clip.title || clip.guid}"`)
 
 		return clipId
+	}
+	private async searchForClips (clip: QuantelStatePortClip): Promise<Q.ClipDataSummary[]> {
+		if (clip.guid) {
+			return this._quantel.searchClip({
+				ClipGUID: `"${clip.guid}"`
+			})
+		} else if (clip.title) {
+			return this._quantel.searchClip({
+				Title: `"${clip.title}"`
+			})
+		} else {
+			throw new Error(`Unable to search for clip "${clip.title || clip.guid}"`)
+		}
 	}
 	private wait (time: number) {
 		return new Promise(resolve => {
@@ -1017,7 +1064,7 @@ class Cache {
 			return this.get(key)
 		} else {
 			let value = fcn()
-			if (value && _.isObject(value) && _.isFunction(value.then)) {
+			if (value && _.isObject(value) && _.isFunction(value['then'])) {
 				// value is a promise
 				return (
 					Promise.resolve(value)

@@ -77,7 +77,8 @@ describe('Rundown', () => {
 				commandReceiver: commandReceiver0,
 				host: '127.0.0.1',
 				timeBase: 50,
-				useScheduling: true
+				useScheduling: true,
+				retryInterval: false
 			}
 		})
 		await myConductor.setMapping(myLayerMapping)
@@ -377,7 +378,7 @@ describe('Rundown', () => {
 			layer: 10,
 			noClear: false,
 			device: 3,
-			format: undefined,
+			format: ChannelFormat.HD_720P5000,
 			channelLayout: undefined
 		})
 		expect(getMockCall(commandReceiver0, commandReceiver0Calls - 3, 1).name).toEqual('PlayDecklinkCommand')
@@ -386,7 +387,7 @@ describe('Rundown', () => {
 			layer: 20,
 			noClear: false,
 			device: 4,
-			format: undefined,
+			format: ChannelFormat.HD_720P5000,
 			channelLayout: undefined
 		})
 

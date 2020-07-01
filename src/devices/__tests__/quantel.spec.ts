@@ -72,7 +72,6 @@ describe('Quantel', () => {
 		let errorHandler = jest.fn((...args) => console.log('Error in device', ...args))
 		myConductor.on('error', errorHandler)
 		myConductor.on('commandError', errorHandler)
-
 		await myConductor.init()
 
 		await t(myConductor.addDevice('myQuantel', {
@@ -82,7 +81,7 @@ describe('Quantel', () => {
 				// host: '127.0.0.1'
 
 				gatewayUrl: 	'localhost:3000',
-				ISAUrl: 		'myISA:8000',
+				ISAUrlMaster: 	'myISA:8000',
 				zoneId: 		undefined, // fallback to 'default'
 				serverId: 		1100
 			}
@@ -109,7 +108,7 @@ describe('Quantel', () => {
 			time: 10000
 		}), expect.any(String), expect.any(String))
 
-		expect(onRequest).toHaveBeenCalledTimes(7)
+		expect(onRequest).toHaveBeenCalledTimes(6)
 
 		// Connect to ISA
 		expect(onRequest).toHaveBeenNthCalledWith(1, 'post', 'http://localhost:3000/connect/myISA%3A8000')
@@ -121,12 +120,10 @@ describe('Quantel', () => {
 		expect(onRequest).toHaveBeenNthCalledWith(3, 'get', 'http://localhost:3000/default/server')
 		// get port info
 		expect(onRequest).toHaveBeenNthCalledWith(4, 'get', 'http://localhost:3000/default/server/1100/port/my_port')
-		// delete the existing port
-		expect(onRequest).toHaveBeenNthCalledWith(5, 'delete', 'http://localhost:3000/default/server/1100/port/my_port')
 		// create new port and assign to channel
-		expect(onRequest).toHaveBeenNthCalledWith(6, 'put', 'http://localhost:3000/default/server/1100/port/my_port/channel/2')
+		expect(onRequest).toHaveBeenNthCalledWith(5, 'put', 'http://localhost:3000/default/server/1100/port/my_port/channel/2')
 		// Reset the port
-		expect(onRequest).toHaveBeenNthCalledWith(7, 'post', 'http://localhost:3000/default/server/1100/port/my_port/reset')
+		expect(onRequest).toHaveBeenNthCalledWith(6, 'post', 'http://localhost:3000/default/server/1100/port/my_port/reset')
 
 		clearMocks()
 		commandReceiver0.mockClear()
@@ -257,7 +254,7 @@ describe('Quantel', () => {
 				// host: '127.0.0.1'
 
 				gatewayUrl: 	'localhost:3000',
-				ISAUrl: 		'myISA:8000',
+				ISAUrlMaster: 	'myISA:8000',
 				zoneId: 		undefined, // fallback to 'default'
 				serverId: 		1100
 			}
@@ -283,7 +280,7 @@ describe('Quantel', () => {
 			time: 10000
 		}), expect.any(String), expect.any(String))
 
-		// expect(onRequest).toHaveBeenCalledTimes(7)
+		expect(onRequest).toHaveBeenCalledTimes(6)
 
 		// Connect to ISA
 		expect(onRequest).toHaveBeenNthCalledWith(1, 'post', 'http://localhost:3000/connect/myISA%3A8000')
@@ -295,12 +292,10 @@ describe('Quantel', () => {
 		expect(onRequest).toHaveBeenNthCalledWith(3, 'get', 'http://localhost:3000/default/server')
 		// get port info
 		expect(onRequest).toHaveBeenNthCalledWith(4, 'get', 'http://localhost:3000/default/server/1100/port/my_port')
-		// delete the existing port
-		expect(onRequest).toHaveBeenNthCalledWith(5, 'delete', 'http://localhost:3000/default/server/1100/port/my_port')
 		// create new port and assign to channel
-		expect(onRequest).toHaveBeenNthCalledWith(6, 'put', 'http://localhost:3000/default/server/1100/port/my_port/channel/2')
+		expect(onRequest).toHaveBeenNthCalledWith(5, 'put', 'http://localhost:3000/default/server/1100/port/my_port/channel/2')
 		// Reset the port
-		expect(onRequest).toHaveBeenNthCalledWith(7, 'post', 'http://localhost:3000/default/server/1100/port/my_port/reset')
+		expect(onRequest).toHaveBeenNthCalledWith(6, 'post', 'http://localhost:3000/default/server/1100/port/my_port/reset')
 
 		clearMocks()
 		commandReceiver0.mockClear()
@@ -428,7 +423,7 @@ describe('Quantel', () => {
 				// host: '127.0.0.1'
 
 				gatewayUrl: 	'localhost:3000',
-				ISAUrl: 		'myISA:8000',
+				ISAUrlMaster: 	'myISA:8000',
 				zoneId: 		undefined, // fallback to 'default'
 				serverId: 		1100
 			}
@@ -672,7 +667,7 @@ describe('Quantel', () => {
 				// host: '127.0.0.1'
 
 				gatewayUrl: 	'localhost:3000',
-				ISAUrl: 		'myISA:8000',
+				ISAUrlMaster: 	'myISA:8000',
 				zoneId: 		undefined, // fallback to 'default'
 				serverId: 		1100
 			}
@@ -699,7 +694,7 @@ describe('Quantel', () => {
 			time: 10000
 		}), expect.any(String), expect.any(String))
 
-		expect(onRequest).toHaveBeenCalledTimes(7)
+		expect(onRequest).toHaveBeenCalledTimes(6)
 
 		// Connect to ISA
 		expect(onRequest).toHaveBeenNthCalledWith(1, 'post', 'http://localhost:3000/connect/myISA%3A8000')
@@ -711,12 +706,10 @@ describe('Quantel', () => {
 		expect(onRequest).toHaveBeenNthCalledWith(3, 'get', 'http://localhost:3000/default/server')
 		// get port info
 		expect(onRequest).toHaveBeenNthCalledWith(4, 'get', 'http://localhost:3000/default/server/1100/port/my_port')
-		// delete the existing port
-		expect(onRequest).toHaveBeenNthCalledWith(5, 'delete', 'http://localhost:3000/default/server/1100/port/my_port')
 		// create new port and assign to channel
-		expect(onRequest).toHaveBeenNthCalledWith(6, 'put', 'http://localhost:3000/default/server/1100/port/my_port/channel/2')
+		expect(onRequest).toHaveBeenNthCalledWith(5, 'put', 'http://localhost:3000/default/server/1100/port/my_port/channel/2')
 		// Reset the port
-		expect(onRequest).toHaveBeenNthCalledWith(7, 'post', 'http://localhost:3000/default/server/1100/port/my_port/reset')
+		expect(onRequest).toHaveBeenNthCalledWith(6, 'post', 'http://localhost:3000/default/server/1100/port/my_port/reset')
 
 		clearMocks()
 		commandReceiver0.mockClear()
@@ -853,7 +846,7 @@ describe('Quantel', () => {
 				// host: '127.0.0.1'
 
 				gatewayUrl: 	'localhost:3000',
-				ISAUrl: 		'myISA:8000',
+				ISAUrlMaster: 	'myISA:8000',
 				zoneId: 		undefined, // fallback to 'default'
 				serverId: 		1100
 			}
@@ -880,7 +873,7 @@ describe('Quantel', () => {
 			time: 10000
 		}), expect.any(String), expect.any(String))
 
-		expect(onRequest).toHaveBeenCalledTimes(7)
+		expect(onRequest).toHaveBeenCalledTimes(6)
 
 		// Connect to ISA
 		expect(onRequest).toHaveBeenNthCalledWith(1, 'post', 'http://localhost:3000/connect/myISA%3A8000')
@@ -892,12 +885,10 @@ describe('Quantel', () => {
 		expect(onRequest).toHaveBeenNthCalledWith(3, 'get', 'http://localhost:3000/default/server')
 		// get port info
 		expect(onRequest).toHaveBeenNthCalledWith(4, 'get', 'http://localhost:3000/default/server/1100/port/my_port')
-		// delete the existing port
-		expect(onRequest).toHaveBeenNthCalledWith(5, 'delete', 'http://localhost:3000/default/server/1100/port/my_port')
 		// create new port and assign to channel
-		expect(onRequest).toHaveBeenNthCalledWith(6, 'put', 'http://localhost:3000/default/server/1100/port/my_port/channel/2')
+		expect(onRequest).toHaveBeenNthCalledWith(5, 'put', 'http://localhost:3000/default/server/1100/port/my_port/channel/2')
 		// Reset the port
-		expect(onRequest).toHaveBeenNthCalledWith(7, 'post', 'http://localhost:3000/default/server/1100/port/my_port/reset')
+		expect(onRequest).toHaveBeenNthCalledWith(6, 'post', 'http://localhost:3000/default/server/1100/port/my_port/reset')
 
 		clearMocks()
 		commandReceiver0.mockClear()

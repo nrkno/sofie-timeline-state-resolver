@@ -11,6 +11,7 @@ export * from './panasonicPTZ'
 export * from './sisyfos'
 export * from './quantel'
 export * from './tcpSend'
+export * from './vizMSE'
 export * from './singularLive'
 export * from './vmix'
 
@@ -31,10 +32,13 @@ import { TimelineObjAbstractAny } from './abstract'
 import { TSRTimelineObjProps } from './mapping'
 import { TimelineObjQuantelAny } from './quantel'
 import { TimelineObjSisyfosAny } from './sisyfos'
+import { TimelineObjVIZMSEAny } from './vizMSE'
 import { TimelineObjSingularLiveAny } from './singularLive'
 import { TimelineObjVMixAny } from './vmix'
 
 export { Timeline }
+export * from './mapping'
+export * from './expectedPlayoutItems'
 
 export type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>
 
@@ -52,6 +56,7 @@ export enum DeviceType {
 	HTTPWATCHER = 10,
 	SISYFOS = 11,
 	QUANTEL = 12,
+	VIZMSE = 13,
 	SINGULAR_LIVE = 14,
 	VMIX = 20
 }
@@ -100,7 +105,9 @@ export type TSRTimelineObj = (
 	TimelineObjQuantelAny |
 	TimelineObjSisyfosAny |
 	TimelineObjSingularLiveAny |
-	TimelineObjVMixAny
+	TimelineObjVMixAny |
+	TimelineObjVIZMSEAny |
+	TimelineObjSingularLiveAny
 )
 
 export type TSRTimeline = Array<TSRTimelineObj>

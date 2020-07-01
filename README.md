@@ -9,7 +9,7 @@ This is a part of the [**Sofie** TV News Studio Automation System](https://githu
 ## Abstract
 This library orchestrates and controls different devices.
 Its input is a [timeline](https://github.com/SuperFlyTV/supertimeline) data structure and a layer-to-device-map.
-Using the input, it resolves the expected state, diffs the state against current state and sends commands where necessary. 
+Using the input, it resolves the expected state, diffs the state against current state and sends commands where necessary.
 
 ## Supported devices
 * [CasparCG](http://casparcg.com/) - using the [casparcg-connection](https://github.com/SuperFlyTV/casparcg-connection) library
@@ -23,7 +23,8 @@ Using the input, it resolves the expected state, diffs the state against current
 * Arbitrary HTTP-interfaces
 * Arbitrary TCP-interfaces
 
-## Used in 
+
+## Used in
 
 TSR is primarily developed to be used in the [Playout Gateway](https://github.com/nrkno/tv-automation-playout-gateway) of the [Sofie project](https://github.com/nrkno/Sofie-TV-automation).
 
@@ -52,6 +53,10 @@ To quickly getting started with development of new devices, there is also the [Q
 
 * View code coverage (after having run test)
 	`yarn cov-open`
+
+### Notes
+
+This repository is a monorepo containg both the TSR library and a typings package to be used by integrations. Contrary to what your editor might say, the types package cannot use dependencies from the main package.
 
 
 # Examples of timeline objects
@@ -178,9 +183,7 @@ Pull up a fader, and leave it there
 		deviceType: DeviceType.LAWO,
 		type: TimelineContentTypeLawo.SOURCE,
 
-		'Fader/Motor dB Value': {
-			value: 0
-		}
+		faderValue: 0
 	}
 }
 
@@ -256,17 +259,58 @@ Activate channel 3 on sisyfos pgm output
 	}
 }
 // Timeline:
+//ON:
 {
 	id: 'channel3',
 	enable: {
-		start: 'now'	
+		start: 'now'
 	},
 	layer: 'myLayerSisyfosScene1',
 	content: {
 		deviceType: DeviceType.SISYFOS,
 		type: TimelineContentTypeSisyfos.SISYFOS,
 
-		isPgm: true
+		isPgm: 1 // 0 = OFF, 1 = Pgm level, 2 = VoiceOver level
+	}
+}
+//FADERLEVEL:
+{
+	id: 'channel3',
+	enable: {
+		start: 'now'
+	},
+	layer: 'myLayerSisyfosScene1',
+	content: {
+		deviceType: DeviceType.SISYFOS,
+		type: TimelineContentTypeSisyfos.SISYFOS,
+
+		faderLevel: 0.75
+	}
+}
+//LABEL:
+{
+	id: 'channel3',
+	enable: {
+		start: 'now'
+	},
+	layer: 'myLayerSisyfosScene1',
+	content: {
+		deviceType: DeviceType.SISYFOS,
+		type: TimelineContentTypeSisyfos.SISYFOS,
+		label: 'SERVER B'
+	}
+}
+//VISIBLE: (shows or hide a fader)
+{
+	id: 'channel3',
+	enable: {
+		start: 'now'
+	},
+	layer: 'myLayerSisyfosScene1',
+	content: {
+		deviceType: DeviceType.SISYFOS,
+		type: TimelineContentTypeSisyfos.SISYFOS,
+		visible: false // false: hide - true: show
 	}
 }
 ```
@@ -336,3 +380,4 @@ Send a POST Request to a URL
 	}
 }
 ```
+

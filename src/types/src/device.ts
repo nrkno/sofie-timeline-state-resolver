@@ -14,6 +14,7 @@ import {
 	LawoOptions,
 	PanasonicPTZOptions,
 	HTTPWatcherOptions,
+	VizMSEOptions,
 	VMixOptions
 } from '.'
 
@@ -47,7 +48,9 @@ export type DeviceOptionsAny = DeviceOptionsAbstract |
 	DeviceOptionsSisyfos |
 	DeviceOptionsQuantel |
 	DeviceOptionsSingularLive |
-	DeviceOptionsVMix
+	DeviceOptionsVMix |
+	DeviceOptionsVizMSE |
+	DeviceOptionsSingularLive
 
 export type DeviceInitOptions = AbstractOptions |
 	CasparCGOptions |
@@ -63,7 +66,9 @@ export type DeviceInitOptions = AbstractOptions |
 	SisyfosOptions |
 	QuantelOptions |
 	SingularLiveOptions |
-	VMixOptions
+	VMixOptions |
+	VizMSEOptions |
+	SingularLiveOptions
 
 export interface DeviceOptionsAbstract extends DeviceOptionsBase {
 	type: DeviceType.ABSTRACT
@@ -116,6 +121,10 @@ export interface DeviceOptionsSisyfos extends DeviceOptionsBase {
 export interface DeviceOptionsQuantel extends DeviceOptionsBase {
 	type: DeviceType.QUANTEL
 	options: QuantelOptions
+}
+export interface DeviceOptionsVizMSE extends DeviceOptionsBase {
+	type: DeviceType.VIZMSE
+	options: VizMSEOptions
 }
 export interface DeviceOptionsSingularLive extends DeviceOptionsBase {
 	type: DeviceType.SINGULAR_LIVE
