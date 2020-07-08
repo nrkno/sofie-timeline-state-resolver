@@ -32,7 +32,7 @@ describe('Shotoku', () => {
 		mockTime.init()
 	})
 	// afterEach(() => {})
-	async function testShots(cmd?: ShotokuTransitionType) {
+	async function testShots (cmd?: ShotokuTransitionType) {
 		const commandReceiver0: any = jest.fn((time, cmd, context) => {
 			// return Promise.resolve()
 			// @ts-ignore
@@ -179,9 +179,8 @@ describe('Shotoku', () => {
 			expect(onSocketWrite.mock.calls[1][0]).toEqual(Buffer.from([0xf9, 0x01, 0x22, 0x00, 0x01, 0xff, 0x00, 0x00, 0x24]))
 		}
 
-		
 		myConductor.timeline = []
-		
+
 		await mockTime.advanceTimeToTicks(12000) // 12000
 		expect(commandReceiver0).toHaveBeenCalledTimes(2) // no new commands
 

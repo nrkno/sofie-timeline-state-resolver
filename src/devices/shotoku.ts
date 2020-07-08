@@ -140,7 +140,7 @@ export class ShotokuDevice extends DeviceWithState<TimelineState> implements IDe
 			const content = layer.content as ShotokuCommandContent
 			const show = content.show || 1
 
-			if (!content.shot) return 
+			if (!content.shot) return
 
 			shots[show + '.' + content.shot] = {
 				...content,
@@ -202,7 +202,7 @@ export class ShotokuDevice extends DeviceWithState<TimelineState> implements IDe
 		// _.each(oldShots, (oldCommandContent: ShotokuDeviceStateContent, address) => {
 		// 	let newLayer = newShots[address]
 		// 	if (!newLayer) {
-				// removed! 
+				// removed!
 				// commands.push({
 				// 	commandName:	'removed',
 				// 	context:		`removed: ${oldCommandContent.fromTlObject}`,
@@ -225,7 +225,9 @@ export class ShotokuDevice extends DeviceWithState<TimelineState> implements IDe
 		try {
 			// TODO - send command
 			if (this._shotoku.connected) {
-				this._shotoku.send(cmd)
+				this._shotoku.send(cmd).catch(e => {
+					throw new Error(e)
+				})
 			}
 
 			return Promise.resolve()

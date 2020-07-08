@@ -21,10 +21,10 @@ export class ShotokuAPI extends EventEmitter {
 		this._host = host
 		this._port = port
 
-		return await this._connectTCPClient()
+		return this._connectTCPClient()
 	}
 	async dispose () {
-		return await this._disconnectTCPClient()
+		return this._disconnectTCPClient()
 	}
 
 	get connected (): boolean {
@@ -34,7 +34,7 @@ export class ShotokuAPI extends EventEmitter {
 	send (command: ShotokuCommand) {
 		const codes = {
 			[ShotokuCommandType.Fade]: 0x01,
-			[ShotokuCommandType.Cut]: 0x02,
+			[ShotokuCommandType.Cut]: 0x02
 		}
 		let commandCode = codes[command.type]
 		const show = command.show || 1
@@ -141,7 +141,7 @@ export class ShotokuAPI extends EventEmitter {
 			})
 			this._tcpClient.on('error', (e) => {
 				if (e.message.match(/econn/i)) {
-					// disconnection 
+					// disconnection
 					this._setConnected(false)
 				} else {
 					this.emit('error', e)
