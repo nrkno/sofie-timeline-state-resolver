@@ -725,12 +725,14 @@ export class Conductor extends EventEmitter {
 				this.emit('warn', `Resolver is ${this.getCurrentTime() - resolveTime} ms late`)
 			}
 
+			const layersPerDevice = this.filterLayersPerDevice(tlState.layers, _.values(this.devices))
+
 			// Push state to the right device:
 			await this._mapAllDevices(async (device: DeviceContainer): Promise<void> => {
 				// The subState contains only the parts of the state relevant to that device:
 				let subState: TimelineState = {
 					time: tlState.time,
-					layers: this.getFilteredLayers(tlState.layers, device),
+					layers: layersPerDevice[device.deviceId] || {},
 					nextEvents: []
 				}
 				const removeParent = (o: TimelineState) => {
@@ -1104,10 +1106,14 @@ export class Conductor extends EventEmitter {
 	/**
 	 * Split the state into substates that are relevant for each device
 	 */
-	private getFilteredLayers (layers: TimelineState['layers'], device: DeviceContainer) {
-		let filteredState = {}
-		const deviceId = device.deviceId
-		const deviceType = device.deviceType
+	private filterLayersPerDevice (layers: TimelineState['layers'], devices: DeviceContainer[]) {
+		const filteredStates: {[deviceId: string]: {[layerId: string]: ResolvedTimelineObjectInstance}} = {}
+
+		const deviceIdAndTypes: {[idAndTyoe: string]: string} = {}
+
+		_.each(devices, device => {
+			deviceIdAndTypes[device.deviceId + '__' + device.deviceType] = device.deviceId
+		})
 		_.each(layers, (o: ResolvedTimelineObjectInstance, layerId: string) => {
 			const oExt: ResolvedTimelineObjectInstanceExtended = o
 			let mapping: Mapping = this._mapping[o.layer + '']
@@ -1115,15 +1121,17 @@ export class Conductor extends EventEmitter {
 				mapping = this._mapping[oExt.lookaheadForLayer]
 			}
 			if (mapping) {
-				if (
-					mapping.deviceId === deviceId &&
-					mapping.device === deviceType
-				) {
-					filteredState[layerId] = o
+				const deviceIdAndType = mapping.deviceId + '__' + mapping.device
+
+				if (deviceIdAndTypes[deviceIdAndType]) {
+					if (!filteredStates[mapping.deviceId]) {
+						filteredStates[mapping.deviceId] = {}
+					}
+					filteredStates[mapping.deviceId][layerId] = o
 				}
 			}
 		})
-		return filteredState
+		return filteredStates
 	}
 }
 export type DeviceOptionsAnyInternal = (
