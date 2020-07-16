@@ -411,7 +411,8 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState> implements IDevic
 
 		return {
 			statusCode: statusCode,
-			messages: messages
+			messages: messages,
+			active: this.isActive
 		}
 	}
 	/**

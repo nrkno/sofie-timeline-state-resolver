@@ -98,7 +98,8 @@ export class HTTPSendDevice extends DeviceWithState<TimelineState> implements ID
 	getStatus (): DeviceStatus {
 		// Good, since this device has no status, really
 		return {
-			statusCode: StatusCode.GOOD
+			statusCode: StatusCode.GOOD,
+			active: this.isActive
 		}
 	}
 	async makeReady (okToDestroyStuff?: boolean): Promise<void> {

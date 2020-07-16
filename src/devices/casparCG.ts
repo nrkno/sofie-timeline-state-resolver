@@ -616,7 +616,8 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> implements ID
 
 		return {
 			statusCode: statusCode,
-			messages: messages
+			messages: messages,
+			active: this.isActive
 		}
 	}
 	/**

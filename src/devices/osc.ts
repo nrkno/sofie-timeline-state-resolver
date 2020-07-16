@@ -131,7 +131,8 @@ export class OSCMessageDevice extends DeviceWithState<TimelineState> implements 
 	getStatus (): DeviceStatus {
 		// Good, since this device has no status, really
 		return {
-			statusCode: StatusCode.GOOD
+			statusCode: StatusCode.GOOD,
+			active: this.isActive
 		}
 	}
 	makeReady (_okToDestroyStuff?: boolean): Promise<void> {

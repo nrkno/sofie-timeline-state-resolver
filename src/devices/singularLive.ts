@@ -80,7 +80,8 @@ export class SingularLiveDevice extends DeviceWithState<TimelineState> implement
 	private _accessToken: string
 	private _doOnTime: DoOnTime
 	private _deviceStatus: DeviceStatus = {
-		statusCode: StatusCode.GOOD
+		statusCode: StatusCode.GOOD,
+		active: this.isActive
 	}
 
 	private _commandReceiver: CommandReceiver

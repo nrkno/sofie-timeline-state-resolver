@@ -343,7 +343,8 @@ export class AtemDevice extends DeviceWithState<DeviceState> implements IDevice 
 
 		let deviceStatus: DeviceStatus = {
 			statusCode: statusCode,
-			messages: messages
+			messages: messages,
+			active: this.isActive
 		}
 		return deviceStatus
 	}

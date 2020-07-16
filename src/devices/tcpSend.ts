@@ -157,7 +157,8 @@ export class TCPSendDevice extends DeviceWithState<TimelineState> implements IDe
 	}
 	getStatus (): DeviceStatus {
 		return {
-			statusCode: this._connected ? StatusCode.GOOD : StatusCode.BAD
+			statusCode: this._connected ? StatusCode.GOOD : StatusCode.BAD,
+			active: this.isActive
 		}
 	}
 	private _setConnected (connected: boolean) {

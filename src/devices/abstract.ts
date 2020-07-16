@@ -124,7 +124,8 @@ export class AbstractDevice extends DeviceWithState<TimelineState> implements ID
 	}
 	getStatus (): DeviceStatus {
 		return {
-			statusCode: StatusCode.GOOD
+			statusCode: StatusCode.GOOD,
+			active: this.isActive
 		}
 	}
 	/**

@@ -162,7 +162,8 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState> implemen
 		}
 		return {
 			statusCode: statusCode,
-			messages: messages
+			messages: messages,
+			active: this.isActive
 		}
 	}
 	makeReady (okToDestroyStuff?: boolean): Promise<void> {
