@@ -74,7 +74,8 @@ describe('easings', () => {
 				expect(easing(1)).toBeCloseTo(1, 4)
 
 				const result = [0, 0.1, 0.2, 0.3, 0.5, 0.75, 0.97, 1].map((v) => {
-					return easing(v)
+					// Rounding because we're not interested in floating-point exact
+					return Math.floor(easing(v) * 10000) / 10000
 				})
 
 				expect(result).toMatchSnapshot()
