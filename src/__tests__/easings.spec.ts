@@ -24,7 +24,7 @@ describe('easings', () => {
 		'Quintic': [
 			'In',
 			'Out',
-			'InOut',
+			'InOut'
 		],
 		'Sinusoidal': [
 			'In',
@@ -80,6 +80,6 @@ describe('easings', () => {
 				expect(result).toMatchSnapshot()
 
 			})
-		});
+		})
 	})
 })
