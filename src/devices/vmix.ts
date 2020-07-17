@@ -263,7 +263,8 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended> {
 
 		return {
 			statusCode: statusCode,
-			messages: messages
+			messages: messages,
+			active: this.isActive
 		}
 	}
 
