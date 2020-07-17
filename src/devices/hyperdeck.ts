@@ -366,7 +366,8 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> implements IDe
 
 		return {
 			statusCode,
-			messages
+			messages,
+			active: this.isActive
 		}
 	}
 	/**

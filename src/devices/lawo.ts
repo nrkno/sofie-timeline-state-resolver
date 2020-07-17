@@ -379,7 +379,8 @@ export class LawoDevice extends DeviceWithState<TimelineState> implements IDevic
 
 		return {
 			statusCode: statusCode,
-			messages: messages
+			messages: messages,
+			active: this.isActive
 		}
 	}
 	private _setConnected (connected: boolean) {

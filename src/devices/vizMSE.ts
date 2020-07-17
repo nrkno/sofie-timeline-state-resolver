@@ -411,7 +411,8 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState> implements IDevic
 
 		return {
 			statusCode: statusCode,
-			messages: messages
+			messages: messages,
+			active: this.isActive
 		}
 	}
 	/**
@@ -668,7 +669,7 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState> implements IDevic
 			})
 		}
 
-		console.log(`VIZMSE: COMMANDS: ${JSON.stringify(sortCommands(concatCommands))}`)
+		this.emit('debug', `VIZMSE: COMMANDS: ${JSON.stringify(sortCommands(concatCommands))}`)
 
 		return sortCommands(concatCommands)
 	}

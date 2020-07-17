@@ -169,7 +169,8 @@ export class PharosDevice extends DeviceWithState<TimelineState> implements IDev
 
 		return {
 			statusCode: statusCode,
-			messages: messages
+			messages: messages,
+			active: this.isActive
 		}
 	}
 	/**
