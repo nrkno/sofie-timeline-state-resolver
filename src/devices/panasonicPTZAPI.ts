@@ -168,7 +168,7 @@ export class PanasonicPtzHttpInterface extends EventEmitter {
 					const preset = Number.parseInt(response.substr(PanasonicHttpResponse.PRESET_NUMBER_TPL.length), 10)
 					resolve(preset)
 				} else {
-					reject(`Unknown response: ${response}`)
+					reject(`Unknown response to getPreset: ${response}`)
 				}
 			}).catch((error) => {
 				this.emit('disconnected', error)
@@ -197,7 +197,7 @@ export class PanasonicPtzHttpInterface extends EventEmitter {
 					const preset = Number.parseInt(response.substr(PanasonicHttpResponse.PRESET_NUMBER_TPL.length), 10)
 					resolve(preset)
 				} else {
-					reject(`Unknown response: ${response}`)
+					reject(`Unknown response to recallPreset: ${response}`)
 				}
 			}).catch((error) => {
 				this.emit('disconnected', error)
@@ -222,7 +222,7 @@ export class PanasonicPtzHttpInterface extends EventEmitter {
 					const speed = Number.parseInt(response.substr(PanasonicHttpResponse.PRESET_SPEED_TPL.length), 10)
 					resolve(speed)
 				} else {
-					reject(`Unknown response: ${response}`)
+					reject(`Unknown response to getSpeed: ${response}`)
 				}
 			}).catch((error) => {
 				this.emit('disconnected', error)
@@ -251,7 +251,7 @@ export class PanasonicPtzHttpInterface extends EventEmitter {
 					const speed = Number.parseInt(response.substr(PanasonicHttpResponse.PRESET_SPEED_TPL.length), 10)
 					resolve(speed)
 				} else {
-					reject(`Unknown response: ${response}`)
+					reject(`Unknown response to setSpeed: ${response}`)
 				}
 			}).catch((error) => {
 				this.emit('disconnected', error)
@@ -276,7 +276,7 @@ export class PanasonicPtzHttpInterface extends EventEmitter {
 					const speed = Number.parseInt(response.substr(PanasonicHttpResponse.ZOOM_SPEED_TPL.length), 10)
 					resolve(speed)
 				} else {
-					reject(`Unknown response: ${response}`)
+					reject(`Unknown response to getZoomSpeed: ${response}`)
 				}
 			}).catch((error) => {
 				this.emit('disconnected', error)
@@ -305,7 +305,7 @@ export class PanasonicPtzHttpInterface extends EventEmitter {
 					const speed = Number.parseInt(response.substr(PanasonicHttpResponse.ZOOM_SPEED_TPL.length), 10)
 					resolve(speed)
 				} else {
-					reject(`Unknown response: ${response}`)
+					reject(`Unknown response to setZoomSpeed: ${response}`)
 				}
 			}).catch((error) => {
 				this.emit('disconnected', error)
@@ -330,7 +330,7 @@ export class PanasonicPtzHttpInterface extends EventEmitter {
 					const zoom = Number.parseInt(response.substr(PanasonicHttpResponse.ZOOM_TPL.length), 16)
 					resolve(zoom)
 				} else {
-					reject(`Unknown response: ${response}`)
+					reject(`Unknown response to getZoom: ${response}`)
 				}
 			}).catch((error) => {
 				this.emit('disconnected', error)
@@ -359,7 +359,7 @@ export class PanasonicPtzHttpInterface extends EventEmitter {
 					const level = Number.parseInt(response.substr(PanasonicHttpResponse.ZOOM_CONTROL_TPL.length), 16)
 					resolve(level)
 				} else {
-					reject(`Unknown response: ${response}`)
+					reject(`Unknown response to setZoom: ${response}`)
 				}
 			}).catch((error) => {
 				this.emit('disconnected', error)
@@ -386,7 +386,7 @@ export class PanasonicPtzHttpInterface extends EventEmitter {
 				} else if (response === PanasonicHttpResponse.POWER_MODE_TURNING_ON) {
 					resolve('turningOn')
 				} else {
-					reject(`Unknown response: ${response}`)
+					reject(`Unknown response to ping: ${response}`)
 				}
 			}).catch((error) => {
 				this.emit('disconnected', error)
