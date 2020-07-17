@@ -114,6 +114,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended> {
 		})
 		this._vmix.on('error', (e) => this.emit('error', 'VMix', e))
 		this._vmix.on('stateChanged', (state) => this._onVMixStateChanged(state))
+		this._vmix.on('debug', (...args) => this.emit('debug', ...args))
 
 		return this._vmix.connect(options)
 	}

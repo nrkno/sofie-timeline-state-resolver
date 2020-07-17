@@ -396,7 +396,7 @@ export class VMix extends EventEmitter {
 
 		const command = `${this._options.host}:${this._options.port}/api/?Function=${func}${inp}${val}${dur}${mix}${ext}`
 
-		console.log(`Sending command: ${command}`)
+		this.emit('debug', `Sending command: ${command}`)
 
 		return new Promise((resolve, reject) => {
 			request.get(command, {}, (error) => {
