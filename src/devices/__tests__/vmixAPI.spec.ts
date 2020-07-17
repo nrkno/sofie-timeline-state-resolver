@@ -61,7 +61,7 @@ describe('vMixAPI', () => {
 		expect(onGet).toHaveBeenCalledTimes(1)
 		expect(onGet).toHaveBeenCalledWith('http://127.0.0.1:9999/api', undefined, expect.any(Function))
 
-		console.log(vmix.state)
+		// console.log(vmix.state)
 		expect(vmix.state).toEqual({
 			version: '21.0.0.55',
 			edition: 'HD',
