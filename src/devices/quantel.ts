@@ -353,7 +353,8 @@ export class QuantelDevice extends DeviceWithState<QuantelState> implements IDev
 
 		return {
 			statusCode: statusCode,
-			messages: messages
+			messages: messages,
+			active: this.isActive
 		}
 	}
 	/**

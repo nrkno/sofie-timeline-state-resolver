@@ -229,7 +229,8 @@ export class PanasonicPtzDevice extends DeviceWithState<TimelineState> implement
 
 		return {
 			statusCode: statusCode,
-			messages: messages
+			messages: messages,
+			active: this.isActive
 		}
 	}
 	private _getDefaultState (): PanasonicPtzState {
