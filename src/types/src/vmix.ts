@@ -102,12 +102,7 @@ export enum MappingVMixType {
 	Fader = 10
 }
 
-export interface VMixCommandContent {
-	// type: TimelineContentType
-
-}
 export interface VMixOptions {
-	makeReadyCommands?: VMixCommandContent[],
 	host: string,
 	port: number
 }

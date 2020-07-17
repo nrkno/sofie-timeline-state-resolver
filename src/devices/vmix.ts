@@ -10,8 +10,7 @@ import {
 import {
 	DeviceType,
 	DeviceOptionsVMix,
-	VMixOptions,
-	VMixCommandContent
+	VMixOptions
 } from '../types/src'
 import { DoOnTime, SendMode } from '../doOnTime'
 
@@ -79,7 +78,6 @@ export interface VMixStateCommandWithContext {
  */
 export class VMixDevice extends DeviceWithState<VMixStateExtended> {
 
-	private _makeReadyCommands: VMixCommandContent[]
 	private _doOnTime: DoOnTime
 
 	private _commandReceiver: CommandReceiver
@@ -89,7 +87,6 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended> {
 
 	constructor (deviceId: string, deviceOptions: DeviceOptionsVMixInternal, options) {
 		super(deviceId, deviceOptions, options)
-		console.log(this._connected)
 		if (deviceOptions.options) {
 			if (deviceOptions.options.commandReceiver) this._commandReceiver = deviceOptions.options.commandReceiver
 			else this._commandReceiver = this._defaultCommandReceiver
@@ -101,7 +98,6 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended> {
 		this._doOnTime.on('slowCommand', msg => this.emit('slowCommand', this.deviceName + ': ' + msg))
 	}
 	init (options: VMixOptions): Promise<boolean> {
-		this._makeReadyCommands = options.makeReadyCommands || []
 
 		this._vmix = new VMix()
 		this._vmix.on('connected', () => {
@@ -269,14 +265,8 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended> {
 	}
 
 	async makeReady (okToDestroyStuff?: boolean): Promise<void> {
-		if (okToDestroyStuff && this._makeReadyCommands && this._makeReadyCommands.length > 0) {
-			_.each(this._makeReadyCommands, (cmd: VMixCommandContent) => {
-				console.log(cmd)
-				// add the new commands to the queue:
-				/*this._doOnTime.queue(time, cmd.queueId, (cmd: VMixCommandContent) => {
-					return this._commandReceiver(time, cmd, 'makeReady', '')
-				}, cmd)*/
-			})
+		if (okToDestroyStuff) {
+			// do something?
 		}
 	}
 
@@ -556,7 +546,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended> {
 					context: null,
 					timelineId: ''
 				})
-				this._addToQueue(addCommands, Date.now())
+				this._addToQueue(addCommands, this.getCurrentTime())
 			}
 			let oldInput = oldVMixState.reportedState.inputs[key] || this._getDefaultInputState(0) // or {} but we assume that a new input has all parameters default
 			if (input.playing !== undefined && oldInput.playing !== input.playing && !input.playing) {
