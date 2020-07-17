@@ -33,6 +33,8 @@ import { HTTPWatcherDevice, DeviceOptionsHTTPWatcherInternal } from './devices/h
 import { QuantelDevice, DeviceOptionsQuantelInternal } from './devices/quantel'
 import { SisyfosMessageDevice, DeviceOptionsSisyfosInternal } from './devices/sisyfos'
 import { SingularLiveDevice, DeviceOptionsSingularLiveInternal } from './devices/singularLive'
+import { VMixDevice, DeviceOptionsVMixInternal } from './devices/vmix'
+
 import { VizMSEDevice, DeviceOptionsVizMSEInternal } from './devices/vizMSE'
 import PQueue from 'p-queue'
 import * as PAll from 'p-all'
@@ -429,6 +431,15 @@ export class Conductor extends EventEmitter {
 				newDevice = await new DeviceContainer().create<SingularLiveDevice, typeof SingularLiveDevice>(
 					'../../dist/devices/singularLive.js',
 					SingularLiveDevice,
+					deviceId,
+					deviceOptions,
+					getCurrentTime,
+					threadedClassOptions
+				)
+			} else if (deviceOptions.type === DeviceType.VMIX) {
+				newDevice = await new DeviceContainer().create<VMixDevice, typeof VMixDevice>(
+					'../../dist/devices/vmix.js',
+					VMixDevice,
 					deviceId,
 					deviceOptions,
 					getCurrentTime,
@@ -1163,6 +1174,8 @@ export type DeviceOptionsAnyInternal = (
 	DeviceOptionsOSCInternal |
 	DeviceOptionsSisyfosInternal |
 	DeviceOptionsQuantelInternal |
+	DeviceOptionsSingularLiveInternal |
+	DeviceOptionsVMixInternal |
 	DeviceOptionsVizMSEInternal |
 	DeviceOptionsSingularLiveInternal |
 	DeviceOptionsVizMSEInternal

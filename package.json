@@ -61,7 +61,7 @@
     "test": "yarn lint && yarn buildall && yarn unit",
     "test:integration": "yarn lint && jest --config=jest-integration.config.js",
     "watch": "jest --watch",
-    "cov": "jest --coverage; open-cli coverage/lcov-report/index.html",
+    "cov": "jest --coverage && yarn cov-opne",
     "cov-open": "open-cli coverage/lcov-report/index.html",
     "send-coverage": "codecov",
     "docs": "yarn docs:html && open docs/index.html",
@@ -155,6 +155,10 @@
     "yargs-parser": "^18.1.2"
   },
   "dependencies": {
+    "@types/request": "^2.48.1",
+    "@types/sprintf-js": "^1.1.0",
+    "@types/ws": "^6.0.1",
+    "@types/xml-js": "^1.0.0",
     "atem-connection": "1.1.0",
     "atem-state": "^0.9.0",
     "casparcg-connection": "^4.9.0",
@@ -173,8 +177,9 @@
     "tv-automation-quantel-gateway-client": "^1.0.8",
     "underscore": "^1.10.2",
     "underscore-deep-extend": "^1.1.5",
-    "v-connection": "git+https://github.com/olzzon/v-connection#v20200515_1",
-    "ws": "^7.1.1"
+    "ws": "^7.1.1",
+    "xml-js": "^1.6.11",
+    "v-connection": "git+https://github.com/olzzon/v-connection#v20200515_1"
   },
   "standard-version": {
     "message": "chore(release): %s [skip ci]",

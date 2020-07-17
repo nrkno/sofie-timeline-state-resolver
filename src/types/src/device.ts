@@ -14,7 +14,8 @@ import {
 	LawoOptions,
 	PanasonicPTZOptions,
 	HTTPWatcherOptions,
-	VizMSEOptions
+	VizMSEOptions,
+	VMixOptions
 } from '.'
 
 export interface DeviceOptionsBase extends SlowReportOptions {
@@ -46,6 +47,8 @@ export type DeviceOptionsAny = DeviceOptionsAbstract |
 	DeviceOptionsHTTPpWatcher |
 	DeviceOptionsSisyfos |
 	DeviceOptionsQuantel |
+	DeviceOptionsSingularLive |
+	DeviceOptionsVMix |
 	DeviceOptionsVizMSE |
 	DeviceOptionsSingularLive
 
@@ -62,6 +65,8 @@ export type DeviceInitOptions = AbstractOptions |
 	HTTPWatcherOptions |
 	SisyfosOptions |
 	QuantelOptions |
+	SingularLiveOptions |
+	VMixOptions |
 	VizMSEOptions |
 	SingularLiveOptions
 
@@ -124,4 +129,9 @@ export interface DeviceOptionsVizMSE extends DeviceOptionsBase {
 export interface DeviceOptionsSingularLive extends DeviceOptionsBase {
 	type: DeviceType.SINGULAR_LIVE
 	options: SingularLiveOptions
+}
+
+export interface DeviceOptionsVMix extends DeviceOptionsBase {
+	type: DeviceType.VMIX
+	options: VMixOptions
 }
