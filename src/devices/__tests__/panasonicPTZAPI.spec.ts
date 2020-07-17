@@ -155,7 +155,7 @@ describe('PanasonicAPI', () => {
 		mockDevice.returnError = null
 
 		expect(onDisconnected).toHaveBeenCalledTimes(0)
-		await panasonicPTZ.dispose()
+		panasonicPTZ.dispose()
 
 		expect(onError).toHaveBeenCalledTimes(0)
 	})
