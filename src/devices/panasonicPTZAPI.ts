@@ -27,10 +27,6 @@ export class PanasonicPtzCamera extends EventEmitter {
 		this._url = url
 	}
 
-	get url () {
-		return this._url
-	}
-
 	sendCommand (command: string): Promise<string> {
 		const p: Promise<string> = new Promise((resolve, reject) => {
 			this._commandQueue.push({ command: command, executing: false, resolve: resolve, reject: reject })
