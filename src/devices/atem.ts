@@ -25,31 +25,22 @@ import {
 } from '../types/src'
 import { TimelineState } from 'superfly-timeline'
 import {
-	Atem,
-	VideoState,
-	AtemState as AtemAtemState,
-	Commands as AtemCommands
-} from 'atem-connection'
-import {
 	AtemState,
 	State as DeviceState,
-	Defaults as StateDefault
+	Defaults as StateDefault,
+	AtemConnection
 } from 'atem-state'
 import { DoOnTime, SendMode } from '../doOnTime'
-import { SuperSourceInfo } from 'atem-connection/dist/state/info'
 
 _.mixin({ deepExtend: underScoreDeepExtend(_) })
 
-function jsonClone<T> (src: T): T {
-	return JSON.parse(JSON.stringify(src))
-}
 function deepExtend<T> (destination: T, ...sources: any[]) {
 	// @ts-ignore (mixin)
 	return _.deepExtend(destination, ...sources)
 }
 
 export interface AtemCommandWithContext {
-	command: AtemCommands.AbstractCommand
+	command: AtemConnection.Commands.ISerializableCommand
 	context: CommandContext
 	timelineObjId: string
 }
@@ -61,7 +52,7 @@ export interface DeviceOptionsAtemInternal extends DeviceOptionsAtem {
 		{ commandReceiver?: CommandReceiver }
 	)
 }
-export type CommandReceiver = (time: number, command: AtemCommands.AbstractCommand, context: CommandContext, timelineObjId: string) => Promise<any>
+export type CommandReceiver = (time: number, command: AtemConnection.Commands.ISerializableCommand, context: CommandContext, timelineObjId: string) => Promise<any>
 
 /**
  * This is a wrapper for the Atem Device. Commands to any and all atem devices will be sent through here.
@@ -69,7 +60,7 @@ export type CommandReceiver = (time: number, command: AtemCommands.AbstractComma
 export class AtemDevice extends DeviceWithState<DeviceState> implements IDevice {
 	private _doOnTime: DoOnTime
 
-	private _atem: Atem
+	private _atem: AtemConnection.BasicAtem
 	private _state: AtemState
 	private _initialized: boolean = false
 	private _connected: boolean = false // note: ideally this should be replaced by this._atem.connected
@@ -104,7 +95,7 @@ export class AtemDevice extends DeviceWithState<DeviceState> implements IDevice 
 		return new Promise((resolve, reject) => {
 			// This is where we would do initialization, like connecting to the devices, etc
 			this._state = new AtemState()
-			this._atem = new Atem({ externalLog: (...args) => this.emit('info', JSON.stringify(args)) })
+			this._atem = new AtemConnection.BasicAtem()
 			this._atem.once('connected', () => {
 				// check if state has been initialized:
 				this._connected = true
@@ -113,7 +104,7 @@ export class AtemDevice extends DeviceWithState<DeviceState> implements IDevice 
 			})
 			this._atem.on('connected', () => {
 				let time = this.getCurrentTime()
-				this.setState(this._atem.state, time)
+				if (this._atem.state) this.setState(this._atem.state, time)
 				this._connected = true
 				this._connectionChanged()
 				this.emit('resetResolver')
@@ -123,7 +114,7 @@ export class AtemDevice extends DeviceWithState<DeviceState> implements IDevice 
 				this._connected = false
 				this._connectionChanged()
 			})
-			this._atem.on('error', (e) => this.emit('error', 'Atem', e))
+			this._atem.on('error', (e) => this.emit('error', 'Atem', new Error(e)))
 			this._atem.on('stateChanged', (state) => this._onAtemStateChanged(state))
 
 			this._atem.connect(options.host, options.port)
@@ -159,7 +150,7 @@ export class AtemDevice extends DeviceWithState<DeviceState> implements IDevice 
 		this.firstStateAfterMakeReady = true
 		if (okToDestroyStuff) {
 			this._doOnTime.clearQueueNowAndAfter(this.getCurrentTime())
-			this.setState(this._atem.state, this.getCurrentTime())
+			if (this._atem.state) this.setState(this._atem.state, this.getCurrentTime())
 		}
 	}
 	/** Called by the Conductor a bit before a .handleState is called */
@@ -180,7 +171,7 @@ export class AtemDevice extends DeviceWithState<DeviceState> implements IDevice 
 		}
 
 		let previousStateTime = Math.max(this.getCurrentTime(), newState.time)
-		let oldState: DeviceState = (this.getStateBefore(previousStateTime) || { state: this._getDefaultState() }).state
+		let oldState: DeviceState = (this.getStateBefore(previousStateTime) || { state: AtemConnection.AtemStateUtil.Create() }).state
 
 		let oldAtemState = oldState
 		let newAtemState = this.convertStateToAtem(newState)
@@ -221,7 +212,7 @@ export class AtemDevice extends DeviceWithState<DeviceState> implements IDevice 
 		if (!this._initialized) throw Error('convertStateToAtem cannot be used before inititialized')
 
 		// Start out with default state:
-		const deviceState = this._getDefaultState()
+		const deviceState = AtemConnection.AtemStateUtil.Create()
 
 		// Sort layer based on Layer name
 		const sortedLayers = _.map(state.layers, (tlObject, layerName) => ({ layerName, tlObject }))
@@ -238,28 +229,48 @@ export class AtemDevice extends DeviceWithState<DeviceState> implements IDevice 
 					switch (mapping.mappingType) {
 						case MappingAtemType.MixEffect:
 							if (tlObject.content.type === TimelineContentTypeAtem.ME) {
-								let me = deviceState.video.ME[mapping.index]
+								let me = AtemConnection.AtemStateUtil.getMixEffect(deviceState, mapping.index)
 								let atemObj = tlObject as any as TimelineObjAtemME
-								if (me) deepExtend(me, atemObj.content.me)
+								let atemObjKeyers = atemObj.content.me.upstreamKeyers
+
+								deepExtend(me, _.omit(atemObj.content.me, 'upstreamKeyers'))
+								if (atemObjKeyers) {
+									_.each(atemObjKeyers, (objKey, i) => {
+										const keyer = AtemConnection.AtemStateUtil.getUpstreamKeyer(me, i)
+										deepExtend(keyer, objKey)
+									})
+								}
 							}
 							break
 						case MappingAtemType.DownStreamKeyer:
 							if (tlObject.content.type === TimelineContentTypeAtem.DSK) {
-								let dsk = deviceState.video.downstreamKeyers[mapping.index]
+								let dsk = AtemConnection.AtemStateUtil.getDownstreamKeyer(deviceState, mapping.index)
 								let atemObj = tlObject as any as TimelineObjAtemDSK
 								if (dsk) deepExtend(dsk, atemObj.content.dsk)
 							}
 							break
 						case MappingAtemType.SuperSourceBox:
 							if (tlObject.content.type === TimelineContentTypeAtem.SSRC) {
-								let ssrc = deviceState.video.superSources[mapping.index]
+								let ssrc = AtemConnection.AtemStateUtil.getSuperSource(deviceState, mapping.index)
 								let atemObj = tlObject as any as TimelineObjAtemSsrc
-								if (ssrc) deepExtend(ssrc.boxes, atemObj.content.ssrc.boxes)
+								if (ssrc) {
+									const objBoxes = atemObj.content.ssrc.boxes
+									_.each(objBoxes, (box, i) => {
+										if (ssrc.boxes[i]) {
+											deepExtend(ssrc.boxes[i], box)
+										} else {
+											ssrc.boxes[i] = {
+												...StateDefault.Video.SuperSourceBox,
+												...box
+											}
+										}
+									})
+								}
 							}
 							break
 						case MappingAtemType.SuperSourceProperties:
 							if (tlObject.content.type === TimelineContentTypeAtem.SSRCPROPS) {
-								let ssrc = deviceState.video.superSources[mapping.index]
+								let ssrc = AtemConnection.AtemStateUtil.getSuperSource(deviceState, mapping.index)
 								let atemObj = tlObject as any as TimelineObjAtemSsrcProps
 								if (ssrc) deepExtend(ssrc.properties, atemObj.content.ssrcProps)
 							}
@@ -272,7 +283,7 @@ export class AtemDevice extends DeviceWithState<DeviceState> implements IDevice 
 							break
 						case MappingAtemType.MediaPlayer:
 							if (tlObject.content.type === TimelineContentTypeAtem.MEDIAPLAYER) {
-								let ms = deviceState.media.players[mapping.index]
+								let ms = AtemConnection.AtemStateUtil.getMediaPlayer(deviceState, mapping.index)
 								let atemObj = tlObject as any as TimelineObjAtemMediaPlayer
 								if (ms) deepExtend(ms, atemObj.content.mediaPlayer)
 							}
@@ -366,7 +377,7 @@ export class AtemDevice extends DeviceWithState<DeviceState> implements IDevice 
 	 */
 	private _diffStates (oldAtemState: DeviceState, newAtemState: DeviceState): Array<AtemCommandWithContext> {
 		// Ensure the state diffs the correct version
-		this._state.version = this._atem.state.info.apiVersion
+		this._state.version = this._atem.state!.info.apiVersion
 
 		return _.map(
 			this._state.diffStates(oldAtemState, newAtemState),
@@ -376,7 +387,7 @@ export class AtemDevice extends DeviceWithState<DeviceState> implements IDevice 
 				} else {
 					// backwards compability, to be removed later:
 					return {
-						command: cmd as AtemCommands.AbstractCommand,
+						command: cmd as AtemConnection.Commands.ISerializableCommand,
 						context: null,
 						timelineObjId: '' // @todo: implement in Atem-state
 					}
@@ -385,60 +396,7 @@ export class AtemDevice extends DeviceWithState<DeviceState> implements IDevice 
 		)
 	}
 
-	/**
-	 * Returns the default state of an atem device, partially base on the topology and partially based on reported
-	 * properties. This can be used to augment with device state info.
-	 */
-	private _getDefaultState (): DeviceState {
-		let deviceState = new DeviceState()
-
-		for (let i = 0; i < this._atem.state.info.capabilities.MEs; i++) {
-			deviceState.video.ME[i] = Object.assign(new VideoState.MixEffect(i), jsonClone(StateDefault.Video.MixEffect))
-			for (const usk in this._atem.state.video.ME[i].upstreamKeyers) {
-				deviceState.video.ME[i].upstreamKeyers[usk] = jsonClone(StateDefault.Video.UpstreamKeyer(Number(usk)))
-				for (const flyKf in this._atem.state.video.ME[i].upstreamKeyers[usk].flyKeyframes) {
-					deviceState.video.ME[i].upstreamKeyers[usk].flyKeyframes[flyKf] = jsonClone(StateDefault.Video.flyKeyframe(Number(flyKf)))
-				}
-			}
-		}
-		for (let i = 0; i < Object.keys(this._atem.state.video.downstreamKeyers).length; i++) {
-			deviceState.video.downstreamKeyers[i] = jsonClone(StateDefault.Video.DownStreamKeyer)
-		}
-		for (let i = 0; i < this._atem.state.info.capabilities.auxilliaries; i++) {
-			deviceState.video.auxilliaries[i] = jsonClone(StateDefault.Video.defaultInput)
-		}
-		for (let i = 0; i < this._atem.state.info.capabilities.superSources; i++) {
-			const ssrc = new VideoState.SuperSource(i)
-			ssrc.properties = jsonClone(StateDefault.Video.SuperSourceProperties)
-			ssrc.border = jsonClone(StateDefault.Video.SuperSourceBorder)
-
-			const ssrcInfo = this._atem.state.info.superSources[i] as SuperSourceInfo | undefined
-			const boxCount = ssrcInfo ? ssrcInfo.boxCount : 4
-			for (let i = 0; i < boxCount; i++) {
-				ssrc.boxes[i] = jsonClone(StateDefault.Video.SuperSourceBox)
-			}
-
-			deviceState.video.superSources[i] = ssrc
-		}
-		for (const i of Object.keys(this._atem.state.audio.channels)) {
-			deviceState.audio.channels[i] = jsonClone(StateDefault.Audio.Channel)
-		}
-
-		deviceState.macro.macroPlayer = jsonClone(StateDefault.Video.MacroPlayer)
-
-		for (let i = 0; i < this._atem.state.info.capabilities.mediaPlayers; i++) {
-			deviceState.media.players[i] = {
-				...jsonClone(StateDefault.Video.MediaPlayer),
-				// default to matching index
-				clipIndex: i,
-				stillIndex: i
-			}
-		}
-
-		return deviceState
-	}
-
-	private _defaultCommandReceiver (_time: number, command: AtemCommands.AbstractCommand, context: CommandContext, timelineObjId: string): Promise<any> {
+	private _defaultCommandReceiver (_time: number, command: AtemConnection.Commands.ISerializableCommand, context: CommandContext, timelineObjId: string): Promise<any> {
 		let cwc: CommandWithContext = {
 			context: context,
 			command: command,
@@ -454,7 +412,7 @@ export class AtemDevice extends DeviceWithState<DeviceState> implements IDevice 
 			this.emit('commandError', error, cwc)
 		})
 	}
-	private _onAtemStateChanged (newState: AtemAtemState) {
+	private _onAtemStateChanged (newState: Readonly<AtemConnection.AtemState>) {
 		let psus = newState.info.power || []
 
 		if (!_.isEqual(this._atemStatus.psus, psus)) {

@@ -1,4 +1,4 @@
-import { Enums, MixEffect } from 'atem-state'
+import { Enums, AtemConnection } from 'atem-state'
 import { ResolvedTimelineObjectInstance } from 'superfly-timeline'
 import { Conductor } from '../../conductor'
 import { AtemDevice, DeviceOptionsAtemInternal } from '../atem'
@@ -15,9 +15,16 @@ import {
 import { ThreadedClass } from 'threadedclass'
 import { TimelineState } from '../../types/src/superfly-timeline'
 import { literal } from '../device'
+import { getMockCall } from '../../__tests__/lib'
 
 describe('Atem', () => {
 	let mockTime = new MockTime()
+
+	function compareAtemCommands (received: AtemConnection.Commands.ISerializableCommand, expected: AtemConnection.Commands.ISerializableCommand) {
+		expect(received.constructor.name).toEqual(expected.constructor.name)
+		expect(received.serialize(AtemConnection.Enums.ProtocolVersion.V8_0)).toEqual(expected.serialize(AtemConnection.Enums.ProtocolVersion.V8_0))
+	}
+
 	beforeAll(() => {
 		mockTime.mockDateNow()
 	})
@@ -34,7 +41,7 @@ describe('Atem', () => {
 			layers: {},
 			nextEvents: []
 		}
-
+ 
 		let device = new AtemDevice('mock', literal<DeviceOptionsAtemInternal>({
 			type: DeviceType.ATEM,
 			options: {
@@ -48,6 +55,10 @@ describe('Atem', () => {
 		}))
 
 		device.handleState(mockState)
+
+		device.queue.forEach((cmd) => {
+			console.log(cmd)
+		})
 		expect(device.queue).toHaveLength(0)
 	})
 
@@ -126,45 +137,15 @@ describe('Atem', () => {
 		commandReceiver0.mockClear()
 		await mockTime.advanceTimeToTicks(10200)
 		expect(commandReceiver0).toHaveBeenCalledTimes(2)
-		expect(commandReceiver0).toBeCalledWith(expect.anything(), expect.objectContaining(
-			{
-				flag: 0,
-				rawName: 'CPvI',
-				mixEffect: 0,
-				properties: {
-					source: 2
-				}
-			}
-		), null, expect.stringContaining(''))
-		expect(commandReceiver0).toBeCalledWith(expect.anything(), expect.objectContaining(
-			{
-				flag: 0,
-				rawName: 'DCut',
-				mixEffect: 0
-			}
-		), null, expect.stringContaining(''))
+		compareAtemCommands(getMockCall(commandReceiver0, 0, 1), new AtemConnection.Commands.PreviewInputCommand(0, 2))
+		compareAtemCommands(getMockCall(commandReceiver0, 1, 1), new AtemConnection.Commands.CutCommand(0))
 
 		commandReceiver0.mockClear()
 		await mockTime.advanceTimeToTicks(12200)
 
 		expect(commandReceiver0).toHaveBeenCalledTimes(2)
-		expect(commandReceiver0).toBeCalledWith(expect.anything(), expect.objectContaining(
-			{
-				flag: 0,
-				rawName: 'CPvI',
-				mixEffect: 0,
-				properties: {
-					source: 3
-				}
-			}
-		), null, expect.stringContaining(''))
-		expect(commandReceiver0).toBeCalledWith(expect.anything(), expect.objectContaining(
-			{
-				flag: 0,
-				rawName: 'DCut',
-				mixEffect: 0
-			}
-		), null, expect.stringContaining(''))
+		compareAtemCommands(getMockCall(commandReceiver0, 0, 1), new AtemConnection.Commands.PreviewInputCommand(0, 3))
+		compareAtemCommands(getMockCall(commandReceiver0, 1, 1), new AtemConnection.Commands.CutCommand(0))
 	})
 
 	test('Atem: upstream keyer', async () => {
@@ -235,19 +216,13 @@ describe('Atem', () => {
 		await mockTime.advanceTimeToTicks(10200)
 
 		expect(commandReceiver0).toHaveBeenCalledTimes(1)
-		expect(commandReceiver0).toBeCalledWith(expect.anything(), expect.objectContaining(
-			{
-				flag: 14,
-				rawName: 'CKLm',
-				mixEffect: 0,
-				upstreamKeyerId: 0,
-				properties: {
-					clip: 300,
-					gain: 2,
-					invert: true
-				}
-			}
-		), null, expect.stringContaining('')) // obj0
+		const cmd = new AtemConnection.Commands.MixEffectKeyLumaCommand(0, 0)
+		cmd.updateProps({
+			clip: 300,
+			gain: 2,
+			invert: true
+		})
+		compareAtemCommands(getMockCall(commandReceiver0, 0, 1), cmd)
 	})
 
 	test('Atem: handle same state', async () => {

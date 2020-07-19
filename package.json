@@ -123,6 +123,7 @@
     "@types/sprintf-js": "^1.1.0",
     "@types/underscore": "^1.9.2",
     "@types/ws": "^7.2.4",
+    "class-transformer": "^0.2.3",
     "codecov": "^3.6.1",
     "gh-pages": "^3.0.0",
     "jest": "^26.0.1",
@@ -155,8 +156,8 @@
     "yargs-parser": "^18.1.2"
   },
   "dependencies": {
-    "atem-connection": "1.1.0",
-    "atem-state": "^0.9.0",
+    "atem-connection": "^2.0.0-nightly-20200626-195656-eb05a5c.0",
+    "atem-state": "^0.10.0-nightly-feat-v8-strict-20200714-134238-b4aa607.0",
     "casparcg-connection": "^4.9.0",
     "casparcg-state": "^1.12.0",
     "emberplus-connection": "^0.0.3-nightly-20200622-114815-88534e2.0",
