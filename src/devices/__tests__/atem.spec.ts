@@ -41,7 +41,7 @@ describe('Atem', () => {
 			layers: {},
 			nextEvents: []
 		}
- 
+
 		let device = new AtemDevice('mock', literal<DeviceOptionsAtemInternal>({
 			type: DeviceType.ATEM,
 			options: {
