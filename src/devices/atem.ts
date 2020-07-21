@@ -271,6 +271,7 @@ export class AtemDevice extends DeviceWithState<DeviceState> implements IDevice 
 						case MappingAtemType.SuperSourceProperties:
 							if (tlObject.content.type === TimelineContentTypeAtem.SSRCPROPS) {
 								let ssrc = AtemConnection.AtemStateUtil.getSuperSource(deviceState, mapping.index)
+								if (!ssrc.properties) ssrc.properties = { ...StateDefault.Video.SuperSourceProperties }
 								let atemObj = tlObject as any as TimelineObjAtemSsrcProps
 								if (ssrc) deepExtend(ssrc.properties, atemObj.content.ssrcProps)
 							}
