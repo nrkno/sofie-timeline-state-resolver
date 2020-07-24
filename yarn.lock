@@ -1441,10 +1441,10 @@ casparcg-connection@^4.9.0:
     xml2js "^0.4.19"
     xmlbuilder "^9.0.7"
 
-casparcg-state@^1.12.0:
-  version "1.12.0"
-  resolved "https://registry.yarnpkg.com/casparcg-state/-/casparcg-state-1.12.0.tgz#cdd1e449d097c01e824995379dc6c9cca3fffd38"
-  integrity sha512-sZv2NYmgw/NQJTDMdIOfs3FcZjLXNVXrdSsL4bhgU49J9YNrGGePOcgjiHNT83ZyOfVprssMjbDegNVfkepCBA==
+casparcg-state@^2.0.0-nightly-feat-refactoring-20200724-120823-2d267cc.0:
+  version "2.0.0-nightly-feat-refactoring-20200724-120823-2d267cc.0"
+  resolved "https://registry.yarnpkg.com/casparcg-state/-/casparcg-state-2.0.0-nightly-feat-refactoring-20200724-120823-2d267cc.0.tgz#f46b7bbaa3007a37bfd25011147fc74e93b7cb45"
+  integrity sha512-XYK/FxGuzAQrqVY5Xhg/M4nH+3u6M15UZ3jmlbRq3E45+y2bXcHtayv3nl5DntDVAnKyBbSpkSXjYn9qUhqlNw==
   dependencies:
     casparcg-connection "^4.9.0"
     fast-clone "^1.5.13"
