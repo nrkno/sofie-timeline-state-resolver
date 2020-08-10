@@ -37,6 +37,7 @@ import { TimelineObjSingularLiveAny } from './singularLive'
 export { Timeline }
 export * from './mapping'
 export * from './expectedPlayoutItems'
+export * from './mediaObject'
 
 export type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>
 
