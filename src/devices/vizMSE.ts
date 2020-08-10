@@ -44,6 +44,7 @@ import { DoOnTime, SendMode } from '../doOnTime'
 
 import * as crypto from 'crypto'
 import * as net from 'net'
+import { MediaObject } from '../types/src/mediaObject'
 
 /** The ideal time to prepare elements before going on air */
 const IDEAL_PREPARE_TIME = 1000
@@ -129,6 +130,8 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState> implements IDevic
 		)
 
 		this._vizmseManager.on('connectionChanged', (connected) => this.connectionChanged(connected))
+		this._vizmseManager.on('updateMediaObject', (collectionId: string, docId: string, doc: MediaObject | null) => this.emit('updateMediaObject', collectionId, docId, doc))
+		this._vizmseManager.on('clearMediaObjects', (collectionId: string) => this.emit('clearMediaObjects', collectionId))
 
 		this._vizmseManager.on('info', str => this.emit('info', 'VizMSE: ' + str))
 		this._vizmseManager.on('warning', str => this.emit('warning', 'VizMSE' + str))
@@ -908,6 +911,7 @@ class VizMSEManager extends EventEmitter {
 			this.emit('error', error)
 		}
 		this._clearCache()
+		this._clearMediaObjects()
 
 		this._triggerCommandSent()
 		await this._triggerLoadAllElements(true)
@@ -924,9 +928,13 @@ class VizMSEManager extends EventEmitter {
 		await rundown.deactivate()
 		this._triggerCommandSent()
 		this.standDownActiveRundown()
+		this._clearMediaObjects()
 	}
 	public standDownActiveRundown (): void {
 		this._hasActiveRundown = false
+	}
+	private _clearMediaObjects (): void {
+		this.emit('clearMediaObjects', this._parentVizMSEDevice.deviceId)
 	}
 	/**
 	 * Prepare an element
@@ -1365,6 +1373,25 @@ class VizMSEManager extends EventEmitter {
 								isLoading: this._isElementLoading(newEl)
 							}
 							this.emit('debug', `Element ${elementRef}: ${JSON.stringify(newEl)}`)
+							if (this._isExternalElement(newEl)) {
+								if (this._elementsLoaded[e.hash].isLoaded) {
+									const mediaObject: MediaObject = {
+										_id: e.hash,
+										mediaId: 'PILOT_' + e.item.templateName.toString().toUpperCase(),
+										mediaPath: e.item.templateInstance,
+										mediaSize: 0,
+										mediaTime: 0,
+										thumbSize: 0,
+										thumbTime: 0,
+										cinf: '',
+										tinf: '',
+										_rev: ''
+									}
+									this.emit('updateMediaObject', this._parentVizMSEDevice.deviceId, e.hash, mediaObject)
+								} else if (!cachedEl) {
+									this.emit('updateMediaObject', this._parentVizMSEDevice.deviceId, e.hash, null)
+								}
+							}
 						} catch (e) {
 							this.emit('error', `Error in updateElementsLoadedStatus: ${e.toString()}`)
 						}
