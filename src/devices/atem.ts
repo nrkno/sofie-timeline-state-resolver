@@ -378,7 +378,7 @@ export class AtemDevice extends DeviceWithState<DeviceState> implements IDevice 
 	 */
 	private _diffStates (oldAtemState: DeviceState, newAtemState: DeviceState): Array<AtemCommandWithContext> {
 		// Ensure the state diffs the correct version
-		this._state.version = this._atem.state!.info.apiVersion
+		this._state.version = this._atem.state?.info.apiVersion || AtemConnection.Enums.ProtocolVersion.V8_0
 
 		return _.map(
 			this._state.diffStates(oldAtemState, newAtemState),
