@@ -252,7 +252,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState> implemen
 		const mappings = this.getMapping()
 		_.each(state.layers, (tlObject, layerName) => {
 			const layer = tlObject as ResolvedTimelineObjectInstance & TimelineObjSisyfosAny
-			let foundMapping: MappingSisyfos = mappings[layerName] as any // @todo: make ts understand this
+			let foundMapping = mappings[layerName] as MappingSisyfos | undefined
 
 			const content = tlObject.content as TimelineObjSisyfosAny['content']
 
@@ -263,7 +263,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState> implemen
 
 			// if the tlObj is specifies to load to PST the original Layer is used to resolve the mapping
 			if (!foundMapping && layer.isLookahead && layer.lookaheadForLayer) {
-				foundMapping = mappings[layer.lookaheadForLayer] as any
+				foundMapping = mappings[layer.lookaheadForLayer] as MappingSisyfos | undefined
 			}
 
 			// Preparation: put all channels that comes from the state in an array:
@@ -273,7 +273,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState> implemen
 				isLookahead: boolean
 				tlObjId: string
 			} & SisyfosChannelOptions)[] = []
-			if (foundMapping) {
+			if (foundMapping && foundMapping.deviceId === this.deviceId) {
 				// @ts-ignore backwards-compatibility:
 				if (!foundMapping.mappingType) foundMapping.mappingType = MappingSisyfosType.CHANNEL
 				// @ts-ignore backwards-compatibility:

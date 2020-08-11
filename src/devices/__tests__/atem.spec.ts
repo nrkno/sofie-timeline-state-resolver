@@ -258,7 +258,7 @@ describe('Atem', () => {
 		const myLayerMapping: Mappings = {
 			'myLayer0': literal<MappingAtem>({
 				device: DeviceType.ATEM,
-				deviceId: 'myAtem',
+				deviceId: 'mock',
 				mappingType: MappingAtemType.MixEffect,
 				index: 0
 			})

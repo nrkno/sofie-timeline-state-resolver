@@ -213,6 +213,7 @@ export class QuantelDevice extends DeviceWithState<QuantelState> implements IDev
 			if (
 				mapping &&
 				mapping.device === DeviceType.QUANTEL &&
+				mapping.deviceId === this.deviceId &&
 				_.has(mapping,'portId') &&
 				_.has(mapping,'channelId')
 			) {
@@ -270,6 +271,7 @@ export class QuantelDevice extends DeviceWithState<QuantelState> implements IDev
 			if (
 				foundMapping &&
 				foundMapping.device === DeviceType.QUANTEL &&
+				foundMapping.deviceId === this.deviceId &&
 				_.has(foundMapping,'portId') &&
 				_.has(foundMapping,'channelId')
 			) {
