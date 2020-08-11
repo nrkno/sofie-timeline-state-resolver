@@ -967,7 +967,7 @@ class QuantelManager extends EventEmitter {
 				// Look up the clip:
 				const foundClips = await this.searchForClips(clip)
 				const foundClip = _.find(foundClips, (clip) => {
-					return (
+					return !!(
 						clip.PoolID &&
 						(server.pools || []).indexOf(clip.PoolID) !== -1
 					)
@@ -983,7 +983,7 @@ class QuantelManager extends EventEmitter {
 				// Look up the clip:
 				const foundClips = await this.searchForClips(clip)
 				const foundClip = _.find(foundClips, (clip) => {
-					return (
+					return !!(
 						clip.PoolID &&
 						(server.pools || []).indexOf(clip.PoolID) !== -1
 					)
