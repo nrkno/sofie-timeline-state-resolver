@@ -1,4 +1,4 @@
-import { Enums, MixEffect } from 'atem-state'
+import { Enums } from 'atem-state'
 import { ResolvedTimelineObjectInstance } from 'superfly-timeline'
 import { Conductor } from '../../conductor'
 import { AtemDevice, DeviceOptionsAtemInternal } from '../atem'
