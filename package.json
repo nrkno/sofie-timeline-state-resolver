@@ -156,7 +156,7 @@
     "yargs-parser": "^18.1.2"
   },
   "dependencies": {
-    "atem-state": "^0.10.0-nightly-feat-v8-strict-20200720-093258-6efd32a.0",
+    "atem-state": "0.10.0-nightly-feat-v8-strict-20200813-134452-5ce4698.0",
     "casparcg-connection": "^4.9.0",
     "casparcg-state": "^1.12.0",
     "emberplus-connection": "^0.0.3-nightly-20200622-114815-88534e2.0",

@@ -1068,10 +1068,10 @@ asynckit@^0.4.0:
   resolved "https://registry.yarnpkg.com/asynckit/-/asynckit-0.4.0.tgz#c79ed97f7f34cb8f2ba1bc9790bcc366474b4b79"
   integrity sha1-x57Zf380y48robyXkLzDZkdLS3k=
 
-atem-connection@2.0.0-nightly-20200720-080906-2fb917b.0:
-  version "2.0.0-nightly-20200720-080906-2fb917b.0"
-  resolved "https://registry.yarnpkg.com/atem-connection/-/atem-connection-2.0.0-nightly-20200720-080906-2fb917b.0.tgz#af469d5f38e8c2068abb0c76790b735dd09a4535"
-  integrity sha512-hirdtvkuGj3wQADKZcA4YOVC2bY0aStGGxycpBZEi05IbW965CKFHzy1gEJYDK8babVom0f3ZCZfzd4O7+R4/g==
+atem-connection@2.0.0-nightly-20200812-123955-e5e57e7.0:
+  version "2.0.0-nightly-20200812-123955-e5e57e7.0"
+  resolved "https://registry.yarnpkg.com/atem-connection/-/atem-connection-2.0.0-nightly-20200812-123955-e5e57e7.0.tgz#ae90a0463baf6c5e54cadd44f6bd28a811ae9aa7"
+  integrity sha512-OAt3H2O651CxFJdtUHXRQjwOdFfUe922OTao5LrPthIcOTddEZ9kdJdBU3otx4KtPuvuNFw+UgGPQIxN6kM0SQ==
   dependencies:
     eventemitter3 "^4.0.4"
     exit-hook "^2.0.0"
@@ -1080,12 +1080,12 @@ atem-connection@2.0.0-nightly-20200720-080906-2fb917b.0:
     tslib "^1.13.0"
     wavefile "^8.4.4"
 
-atem-state@^0.10.0-nightly-feat-v8-strict-20200720-093258-6efd32a.0:
-  version "0.10.0-nightly-feat-v8-strict-20200720-093258-6efd32a.0"
-  resolved "https://registry.yarnpkg.com/atem-state/-/atem-state-0.10.0-nightly-feat-v8-strict-20200720-093258-6efd32a.0.tgz#c3b94e1df9c8e7b1dfc897afe34944f80bf92e85"
-  integrity sha512-xWd/N4EkDcvE4sMayXifhtAZuXR2KXQAcAJcB/U+/E8JXCgIRcouYIBlOE9k2sgSHMNJVjWZbgpSqQC7N4GWew==
+atem-state@0.10.0-nightly-feat-v8-strict-20200813-134452-5ce4698.0:
+  version "0.10.0-nightly-feat-v8-strict-20200813-134452-5ce4698.0"
+  resolved "https://registry.yarnpkg.com/atem-state/-/atem-state-0.10.0-nightly-feat-v8-strict-20200813-134452-5ce4698.0.tgz#3cf869a07b12e28692b67f6d26ea7c3f1b78b4e4"
+  integrity sha512-HgSQKfiLQVqXWyY9aWur6isYdS0i6y95FW/fatQSGLKa47jLzVmdL6aaKl5v8G0RvWH78PgzFJ2WNDic4QL2Sg==
   dependencies:
-    atem-connection "2.0.0-nightly-20200720-080906-2fb917b.0"
+    atem-connection "2.0.0-nightly-20200812-123955-e5e57e7.0"
     tslib "^1.13"
     underscore "^1.9.1"
 
