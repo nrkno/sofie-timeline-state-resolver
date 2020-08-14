@@ -123,6 +123,7 @@
     "@types/sprintf-js": "^1.1.0",
     "@types/underscore": "^1.9.2",
     "@types/ws": "^7.2.4",
+    "@types/xml-js": "^1.0.0",
     "codecov": "^3.6.1",
     "gh-pages": "^3.0.0",
     "jest": "^26.0.1",
@@ -155,10 +156,6 @@
     "yargs-parser": "^18.1.2"
   },
   "dependencies": {
-    "@types/request": "^2.48.1",
-    "@types/sprintf-js": "^1.1.0",
-    "@types/ws": "^6.0.1",
-    "@types/xml-js": "^1.0.0",
     "atem-connection": "1.1.0",
     "atem-state": "^0.9.0",
     "casparcg-connection": "^4.9.0",
