@@ -55,16 +55,18 @@ export class AsyncResolver {
 		const timeLineMap: {[id: string]: TSRTimelineObj} = {}
 
 		let setObjectTime = (o: TSRTimelineObj, time: number) => {
-			o.enable.start = time // set the objects to "now" so that they are resolved correctly temporarily
-			const o2 = timeLineMap[o.id]
-			if (o2) {
-				o2.enable.start = time
-			}
+			if (!_.isArray(o.enable)) {
+				o.enable.start = time // set the objects to "now" so that they are resolved correctly temporarily
+				const o2 = timeLineMap[o.id]
+				if (o2 && !_.isArray(o2.enable)) {
+					o2.enable.start = time
+				}
 
-			objectsFixed.push({
-				id: o.id,
-				time: time
-			})
+				objectsFixed.push({
+					id: o.id,
+					time: time
+				})
+			}
 		}
 
 		_.each(timeline, (obj) => {
@@ -73,8 +75,10 @@ export class AsyncResolver {
 
 		// First: fix the ones on the first level (i e not in groups), because they are easy (this also saves us one iteration time later):
 		_.each(timeLineMap, (o: TSRTimelineObj) => {
-			if (o.enable.start === 'now') {
-				setObjectTime(o, now)
+			if (!_.isArray(o.enable)) {
+				if (o.enable.start === 'now') {
+					setObjectTime(o, now)
+				}
 			}
 		})
 
@@ -87,6 +91,7 @@ export class AsyncResolver {
 
 			_.each(objs, (o: TSRTimelineObj) => {
 				if (
+					!_.isArray(o.enable) &&
 					o.enable.start === 'now'
 				) {
 					// find parent, and set relative to that

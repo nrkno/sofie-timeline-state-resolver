@@ -724,9 +724,15 @@ export class Conductor extends EventEmitter {
 
 				// Apply changes to fixed objects (set "now" triggers to an actual time):
 				// This gets persisted on this.timeline, so we only have to do this once
-				const nowIds: {[id: string]: number} = {}
-				_.each(o.objectsFixed, (o) => nowIds[o.id] = o.time)
-				const fixNow = (o: TimelineObject) => { if (nowIds[o.id]) o.enable.start = nowIds[o.id] }
+				const nowIdsTime: {[id: string]: number} = {}
+				_.each(o.objectsFixed, (o) => nowIdsTime[o.id] = o.time)
+				const fixNow = (o: TimelineObject) => {
+					if (nowIdsTime[o.id]) {
+						if (!_.isArray(o.enable)) {
+							o.enable.start = nowIdsTime[o.id]
+						}
+					}
+				}
 				_.each(timeline, (o) => applyRecursively(o, fixNow))
 
 			}
