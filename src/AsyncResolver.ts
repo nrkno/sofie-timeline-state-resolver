@@ -3,7 +3,8 @@ import {
 	TimelineObject,
 	ResolvedTimeline,
 	ResolvedTimelineObject,
-	ResolvedStates
+	ResolvedStates,
+	ResolverCache
 } from 'superfly-timeline'
 import _ = require('underscore')
 import {
@@ -15,6 +16,8 @@ export class AsyncResolver {
 
 	private readonly onSetTimelineTriggerTime: (res: TimelineTriggerTimeResult) => void
 
+	private cache: ResolverCache = {}
+
 	public constructor (onSetTimelineTriggerTime: (res: TimelineTriggerTimeResult) => void) {
 		this.onSetTimelineTriggerTime = onSetTimelineTriggerTime
 	}
@@ -22,7 +25,8 @@ export class AsyncResolver {
 	public async resolveTimeline (
 		resolveTime: number,
 		timeline: TSRTimeline,
-		limitTime: number
+		limitTime: number,
+		useCache: boolean
 	) {
 
 		let objectsFixed = this._fixNowObjects(timeline, resolveTime)
@@ -30,7 +34,8 @@ export class AsyncResolver {
 		const resolvedTimeline = Resolver.resolveTimeline(timeline, {
 			limitCount: 999,
 			limitTime: limitTime,
-			time: resolveTime
+			time: resolveTime,
+			cache: useCache ? this.cache : undefined
 		})
 
 		const resolvedStates = Resolver.resolveAllStates(resolvedTimeline)

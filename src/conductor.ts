@@ -39,6 +39,7 @@ import { VizMSEDevice, DeviceOptionsVizMSEInternal } from './devices/vizMSE'
 import PQueue from 'p-queue'
 import * as PAll from 'p-all'
 import PTimeout from 'p-timeout'
+
 export { DeviceContainer }
 export { CommandWithContext }
 
@@ -65,6 +66,7 @@ export interface ConductorOptions {
 	getCurrentTime?: () => number
 	autoInit?: boolean
 	multiThreadedResolver?: boolean
+	useCacheWhenResolving?: boolean
 	proActiveResolve?: boolean
 }
 interface TimelineCallback {
@@ -132,6 +134,7 @@ export class Conductor extends EventEmitter {
 	private _isInitialized: boolean = false
 	private _doOnTime: DoOnTime
 	private _multiThreadedResolver: boolean = false
+	private _useCacheWhenResolving: boolean = false
 
 	private _callbackInstances: {[instanceId: number]: CallbackInstance} = {}
 	private _triggerSendStartStopCallbacksTimeout: NodeJS.Timer | null = null
@@ -158,6 +161,7 @@ export class Conductor extends EventEmitter {
 		this._options = options
 
 		this._multiThreadedResolver = !!options.multiThreadedResolver
+		this._useCacheWhenResolving = !!options.useCacheWhenResolving
 
 		if (options.getCurrentTime) this._getCurrentTime = options.getCurrentTime
 
@@ -715,7 +719,8 @@ export class Conductor extends EventEmitter {
 				let o = await this._resolver.resolveTimeline(
 					resolveTime,
 					timeline,
-					resolveTime + RESOLVE_LIMIT_TIME
+					resolveTime + RESOLVE_LIMIT_TIME,
+					this._useCacheWhenResolving
 				)
 				resolvedStates = o.resolvedStates
 
