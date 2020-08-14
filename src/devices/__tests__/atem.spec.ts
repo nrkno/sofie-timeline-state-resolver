@@ -281,7 +281,8 @@ describe('Atem', () => {
 			resolved: {
 				resolved: true,
 				resolving: false,
-				instances: [{ start: mockTime.now - 1000, end: Infinity, id: 'a0', references: [] }]
+				instances: [{ start: mockTime.now - 1000, end: Infinity, id: 'a0', references: [] }],
+				directReferences: []
 			},
 			instance: { start: mockTime.now - 1000, end: Infinity, id: 'a0', references: [] }
 		}
