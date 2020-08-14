@@ -257,7 +257,8 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState> implements IDevic
 			}
 			if (
 				foundMapping &&
-				foundMapping.device === DeviceType.VIZMSE
+				foundMapping.device === DeviceType.VIZMSE &&
+				foundMapping.deviceId === this.deviceId
 			) {
 				if (layer.content) {
 

@@ -233,7 +233,7 @@ export class AtemDevice extends DeviceWithState<DeviceState> implements IDevice 
 
 			let mapping = this.getMapping()[layerName] as MappingAtem | undefined
 
-			if (mapping) {
+			if (mapping && mapping.deviceId === this.deviceId) {
 				if (mapping.index !== undefined && mapping.index >= 0) { // index must be 0 or higher
 					switch (mapping.mappingType) {
 						case MappingAtemType.MixEffect:

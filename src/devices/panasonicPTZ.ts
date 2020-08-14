@@ -145,7 +145,7 @@ export class PanasonicPtzDevice extends DeviceWithState<TimelineState> implement
 
 		_.each(state.layers, (tlObject: ResolvedTimelineObjectInstance, layerName: string) => {
 			const mapping: MappingPanasonicPtz | undefined = this.getMapping()[layerName] as MappingPanasonicPtz
-			if (mapping && mapping.device === DeviceType.PANASONIC_PTZ) {
+			if (mapping && mapping.device === DeviceType.PANASONIC_PTZ && mapping.deviceId === this.deviceId) {
 
 				if (mapping.mappingType === MappingPanasonicPtzType.PRESET) {
 					let tlObjectSource = tlObject as any as TimelineObjPanasonicPtzPreset

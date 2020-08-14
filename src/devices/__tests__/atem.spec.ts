@@ -1,4 +1,4 @@
-import { Enums, MixEffect } from 'atem-state'
+import { Enums } from 'atem-state'
 import { ResolvedTimelineObjectInstance } from 'superfly-timeline'
 import { Conductor } from '../../conductor'
 import { AtemDevice, DeviceOptionsAtemInternal } from '../atem'
@@ -258,7 +258,7 @@ describe('Atem', () => {
 		const myLayerMapping: Mappings = {
 			'myLayer0': literal<MappingAtem>({
 				device: DeviceType.ATEM,
-				deviceId: 'myAtem',
+				deviceId: 'mock',
 				mappingType: MappingAtemType.MixEffect,
 				index: 0
 			})

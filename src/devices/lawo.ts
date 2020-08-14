@@ -297,7 +297,7 @@ export class LawoDevice extends DeviceWithState<TimelineState> implements IDevic
 
 			const mapping: MappingLawo | undefined = this.getMapping()[layerName] as MappingLawo
 
-			if (mapping && mapping.device === DeviceType.LAWO) {
+			if (mapping && mapping.device === DeviceType.LAWO && mapping.deviceId === this.deviceId) {
 				// Mapping is for Lawo
 
 				if (mapping.mappingType === MappingLawoType.SOURCES && lawoObj.content.type === TimelineContentTypeLawo.SOURCES) {
@@ -306,7 +306,7 @@ export class LawoDevice extends DeviceWithState<TimelineState> implements IDevic
 						// for every mapping in the composite
 						const sourceMapping: MappingLawo | undefined = this.getMapping()[fader.mappingName] as MappingLawo
 
-						if (!sourceMapping || !sourceMapping.identifier || sourceMapping.mappingType !== MappingLawoType.SOURCE) continue
+						if (!sourceMapping || !sourceMapping.identifier || sourceMapping.mappingType !== MappingLawoType.SOURCE || mapping.deviceId !== this.deviceId) continue
 						// mapped mapping is a source mapping
 
 						pushFader(sourceMapping.identifier, fader, sourceMapping, tlObject.id, lawoObj.content.overridePriority)
