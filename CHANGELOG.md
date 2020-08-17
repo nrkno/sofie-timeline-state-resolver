@@ -2,6 +2,40 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [4.0.0](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/3.20.1...4.0.0) (2020-08-17)
+
+
+### ⚠ BREAKING CHANGES
+
+* drop support for node 8
+
+### Features
+
+* **lawo:** new mapping and objects to do composites of fader values ([d20751b](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/d20751b011cd87e2d6ec4084a6074ce787f5db4b))
+* drop support for node 8 ([c4b84eb](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/c4b84eb0aabf64434d095f372615e0bd2940cd35))
+* emberplus conn upgrade ([#148](https://github.com/nrkno/tv-automation-state-timeline-resolver/issues/148)) ([2dbd7f3](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/2dbd7f336251ce5871b43a5fea1146abed992f04))
+* new timelineObject for sisyfos: allowing for setting multiple channels in a single timeline-object ([cc7bfa6](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/cc7bfa620388c9537a155d877bb221ed7876cdf8))
+* quantel: be able to copy a clip from another server, if the clips not present on the desired server. ([30069ed](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/30069edc1a54995fc12a5875ed6eed40b486b64a))
+* Send custom clear commands to Viz Engines ([4f713dc](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/4f713dc74a0a9fa3ef19b5e54b7f0fee6495a3c9))
+* use p-all instead of Promise.all for better handling when one rejects ([c6bed2e](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/c6bed2e5319df7789d724a7fa9bbae0cc0ff29c4))
+
+
+### Bug Fixes
+
+* caching of resolved states not working ([#144](https://github.com/nrkno/tv-automation-state-timeline-resolver/issues/144)) ([727558b](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/727558bf170829ef345c745dc90c1be88d37f9fe))
+* change the clone clip logic ([402fe51](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/402fe513a08dc493c3d59b2716208b7aa5d324a3))
+* changed interface to not reference channels directly in tl-objects, instead reference mapped layers ([ece1601](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/ece1601208791a3720d12784c4a925405cc76a7d))
+* negating negation ([bbcba5b](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/bbcba5baf0bc0bb1ef014a6312665f5f45230df8))
+* only iterate mappings belonging to this device. ignore casparcg mappings with an invalid channel ([49646a4](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/49646a44d0ec584df93e04bd4c1fe2044f204d06))
+* re-add programInput ([2af1239](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/2af123950937e4ba3068c63f55bfe71723ce71fb))
+* Remove listeners to prevent memory leak ([3ec3d9f](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/3ec3d9ff5f2b7188d8f9d9f3459f1995cf64c7c7))
+* Retry to initialize the rundown ([aeb1c8e](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/aeb1c8e96f3f48173b8a37467fc20c2448f24a0a))
+* tests ([bc7291e](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/bc7291e27f12faa35753ec614373ff26289a6692))
+* **lawo:** new tlObj structure uses faderValue ([9c143ed](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/9c143edfa8b7a535af89dc900ef11b44e9f7c60f))
+* set interface to stricter typings ([5115f8e](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/5115f8eb52117d7719d24b93f10d3ea0a7bc73f0))
+* typings package cannot use dependencies ([93ae546](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/93ae546a797380e620c752a0fd685b1331ad670a))
+* use library "tv-automation-quantel-gateway-client" instead of internal code ([bf93600](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/bf9360017bc0056235de1a7a264dd8b6d723a8d7))
+
 ### [3.20.1](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/3.20.0...3.20.1) (2020-05-28)
 
 
