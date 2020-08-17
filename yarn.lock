@@ -1068,24 +1068,24 @@ asynckit@^0.4.0:
   resolved "https://registry.yarnpkg.com/asynckit/-/asynckit-0.4.0.tgz#c79ed97f7f34cb8f2ba1bc9790bcc366474b4b79"
   integrity sha1-x57Zf380y48robyXkLzDZkdLS3k=
 
-atem-connection@2.0.0-nightly-20200812-123955-e5e57e7.0:
-  version "2.0.0-nightly-20200812-123955-e5e57e7.0"
-  resolved "https://registry.yarnpkg.com/atem-connection/-/atem-connection-2.0.0-nightly-20200812-123955-e5e57e7.0.tgz#ae90a0463baf6c5e54cadd44f6bd28a811ae9aa7"
-  integrity sha512-OAt3H2O651CxFJdtUHXRQjwOdFfUe922OTao5LrPthIcOTddEZ9kdJdBU3otx4KtPuvuNFw+UgGPQIxN6kM0SQ==
+atem-connection@^2.0.0:
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/atem-connection/-/atem-connection-2.0.0.tgz#026fb17218d4172c5dd473bb4cdef1384d8c261c"
+  integrity sha512-+VbBBS6aSPMGWPxkFkEdXhB77+X/T00rnl2t7VKf9Rts3fLsgxSNLfyNOaP4YroQT5lDkkRPN1rUNNkRT2pYrQ==
   dependencies:
     eventemitter3 "^4.0.4"
     exit-hook "^2.0.0"
     nanotimer "^0.3.15"
-    threadedclass "0.8.0-nightly-20200626-190313-597bdf9.0"
+    threadedclass "^0.8.0"
     tslib "^1.13.0"
     wavefile "^8.4.4"
 
-atem-state@0.10.0-nightly-feat-v8-strict-20200813-134452-5ce4698.0:
-  version "0.10.0-nightly-feat-v8-strict-20200813-134452-5ce4698.0"
-  resolved "https://registry.yarnpkg.com/atem-state/-/atem-state-0.10.0-nightly-feat-v8-strict-20200813-134452-5ce4698.0.tgz#3cf869a07b12e28692b67f6d26ea7c3f1b78b4e4"
-  integrity sha512-HgSQKfiLQVqXWyY9aWur6isYdS0i6y95FW/fatQSGLKa47jLzVmdL6aaKl5v8G0RvWH78PgzFJ2WNDic4QL2Sg==
+atem-state@^0.10.0:
+  version "0.10.0"
+  resolved "https://registry.yarnpkg.com/atem-state/-/atem-state-0.10.0.tgz#0fc0818b4bca8af0a2196c2f533d21841aaeb4c8"
+  integrity sha512-+yJR7hgHss1L/OtD54rCkBtNp5zgxjEmSziQj+xPlz6MfCx5rCAxqKP4i12iuW8aRmMK5/uq3htwQDXtd9qeKg==
   dependencies:
-    atem-connection "2.0.0-nightly-20200812-123955-e5e57e7.0"
+    atem-connection "^2.0.0"
     tslib "^1.13"
     underscore "^1.9.1"
 
@@ -6389,16 +6389,6 @@ text-extensions@^1.0.0:
   resolved "https://registry.yarnpkg.com/text-extensions/-/text-extensions-1.9.0.tgz#1853e45fee39c945ce6f6c36b2d659b5aabc2a26"
   integrity sha512-wiBrwC1EhBelW12Zy26JeOUkQ5mRu+5o8rpsJk5+2t+Y5vE7e842qtZDQ2g1NpX/29HdyFeJ4nSIhI47ENSxlQ==
 
-threadedclass@0.8.0-nightly-20200626-190313-597bdf9.0:
-  version "0.8.0-nightly-20200626-190313-597bdf9.0"
-  resolved "https://registry.yarnpkg.com/threadedclass/-/threadedclass-0.8.0-nightly-20200626-190313-597bdf9.0.tgz#e23d411155479836a1c4de4fff3f6fb30367f5d1"
-  integrity sha512-KZU6T1f6fLeITp3M5IrTT4m50v20igfUpvr3SSSrBjHfSoMiNvxpI0vvc6S9xkx/1nhBqniWHdNnLAFLLVCnZw==
-  dependencies:
-    callsites "^3.1.0"
-    eventemitter3 "^4.0.4"
-    is-running "^2.1.0"
-    tslib "^1.13.0"
-
 threadedclass@^0.7.0:
   version "0.7.0"
   resolved "https://registry.yarnpkg.com/threadedclass/-/threadedclass-0.7.0.tgz#16d970211f930b5759fae83a4cde78563b0b5104"
@@ -6406,6 +6396,16 @@ threadedclass@^0.7.0:
   dependencies:
     callsites "^3.1.0"
     tslib "^1.10.0"
+
+threadedclass@^0.8.0:
+  version "0.8.0"
+  resolved "https://registry.yarnpkg.com/threadedclass/-/threadedclass-0.8.0.tgz#2b3a3f450ccd29579140dcac34a8d8ed159c6313"
+  integrity sha512-bUdYig96HmZKcrG5p5b9cv3xmNPfm5uz1b+wOiKDZPmAOgHMaJmcxiKVZLREB2gNZ6dalRc/rWvYnl6OB4HQqg==
+  dependencies:
+    callsites "^3.1.0"
+    eventemitter3 "^4.0.4"
+    is-running "^2.1.0"
+    tslib "^1.13.0"
 
 throat@^5.0.0:
   version "5.0.0"
