@@ -124,6 +124,7 @@
     "@types/underscore": "^1.9.2",
     "@types/ws": "^7.2.4",
     "@types/xml-js": "^1.0.0",
+    "canvas": "^2.5.0",
     "codecov": "^3.6.1",
     "gh-pages": "^3.0.0",
     "jest": "^26.0.1",
@@ -158,6 +159,7 @@
   "dependencies": {
     "atem-connection": "1.1.0",
     "atem-state": "^0.9.0",
+    "bufferutil": "^4.0.1",
     "casparcg-connection": "^4.9.0",
     "casparcg-state": "^1.12.0",
     "emberplus-connection": "0.0.3-nightly-20200622-114815-88534e2.0",
@@ -174,6 +176,7 @@
     "tv-automation-quantel-gateway-client": "^1.0.8",
     "underscore": "^1.10.2",
     "underscore-deep-extend": "^1.1.5",
+    "utf-8-validate": "^5.0.2",
     "ws": "^7.1.1",
     "xml-js": "^1.6.11",
     "v-connection": "git+https://github.com/olzzon/v-connection#v20200515_1"
