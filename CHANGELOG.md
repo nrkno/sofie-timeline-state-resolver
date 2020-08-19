@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [4.0.1](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/4.0.0...4.0.1) (2020-08-19)
+
+
+### Bug Fixes
+
+* bugfix: update quantel-gw-client dep [release] ([bd3cf49](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/bd3cf49b035aca3c7b77f148c65a572beb6d7700))
+
 ## [4.0.0](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/3.20.1...4.0.0) (2020-08-17)
 
 
