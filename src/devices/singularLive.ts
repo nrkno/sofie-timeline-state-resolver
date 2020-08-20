@@ -80,7 +80,8 @@ export class SingularLiveDevice extends DeviceWithState<TimelineState> implement
 	private _accessToken: string
 	private _doOnTime: DoOnTime
 	private _deviceStatus: DeviceStatus = {
-		statusCode: StatusCode.GOOD
+		statusCode: StatusCode.GOOD,
+		active: this.isActive
 	}
 
 	private _commandReceiver: CommandReceiver
@@ -171,7 +172,7 @@ export class SingularLiveDevice extends DeviceWithState<TimelineState> implement
 
 		_.each(state.layers, (tlObject: ResolvedTimelineObjectInstance, layerName: string) => {
 			const mapping: MappingSingularLive | undefined = this.getMapping()[layerName] as MappingSingularLive
-			if (mapping && mapping.device === DeviceType.SINGULAR_LIVE) {
+			if (mapping && mapping.device === DeviceType.SINGULAR_LIVE && mapping.deviceId === this.deviceId) {
 				let tlObjectSource = tlObject as any as TimelineObjSingularLiveAny
 
 				if (tlObjectSource.content.type === TimelineContentTypeSingularLive.COMPOSITION) {

@@ -343,7 +343,7 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> implements ID
 
 			if (routeObj.content.mappedLayer) {
 				let routeMapping = this.getMapping()[routeObj.content.mappedLayer] as MappingCasparCG
-				if (routeMapping) {
+				if (routeMapping && routeMapping.deviceId === this.deviceId) {
 					routeObj.content.channel	= routeMapping.channel
 					routeObj.content.layer		= routeMapping.layer
 				}
@@ -443,9 +443,24 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> implements ID
 			if (
 				foundMapping &&
 				foundMapping.device === DeviceType.CASPARCG &&
+				foundMapping.deviceId === this.deviceId &&
 				_.has(foundMapping,'channel') &&
 				_.has(foundMapping,'layer')
 				) {
+
+				const mapping = foundMapping as MappingCasparCG
+				mapping.channel = mapping.channel || 0
+				mapping.layer = mapping.layer || 0
+
+				// create a channel in state if necessary, or reuse existing channel
+				const channelId = Number(mapping.channel)
+				if (!channelId || isNaN(channelId)) return
+				const channel = caspar.channels[mapping.channel] ? caspar.channels[mapping.channel] : new StateNS.Channel()
+				channel.channelNo = mapping.channel
+
+				// @todo: check if we need to get fps.
+				channel.fps = 25 / 1000 // 25 fps over 1000ms
+				caspar.channels[mapping.channel] = channel
 
 				let foregroundObj = timelineState.layers[layerName] as ResolvedTimelineObjectInstance | undefined
 				let backgroundObj = _.last(_.filter(timelineState.layers, obj => {
@@ -459,17 +474,6 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> implements ID
 					backgroundObj = foregroundObj
 					foregroundObj = undefined
 				}
-
-				const mapping = foundMapping as MappingCasparCG
-				mapping.channel = mapping.channel || 0
-				mapping.layer = mapping.layer || 0
-
-				// create a channel in state if necessary, or reuse existing channel
-				const channel = caspar.channels[mapping.channel] ? caspar.channels[mapping.channel] : new StateNS.Channel()
-				channel.channelNo = Number(mapping.channel) || 1
-				// @todo: check if we need to get fps.
-				channel.fps = 25 / 1000 // 25 fps over 1000ms
-				caspar.channels[channel.channelNo] = channel
 
 				// create layer of appropriate type
 				const foregroundStateLayer = foregroundObj ? this.convertObjectToCasparState(foregroundObj, mapping, true) : undefined
@@ -616,7 +620,8 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> implements ID
 
 		return {
 			statusCode: statusCode,
-			messages: messages
+			messages: messages,
+			active: this.isActive
 		}
 	}
 	/**

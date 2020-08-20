@@ -282,7 +282,7 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> implements IDe
 
 			const mapping = this.getMapping()[layerName] as MappingHyperdeck
 
-			if (mapping) {
+			if (mapping && mapping.deviceId === this.deviceId) {
 				switch (mapping.mappingType) {
 					case MappingHyperdeckType.TRANSPORT:
 						if (hyperdeckObj.content.type === TimelineContentTypeHyperdeck.TRANSPORT) {
@@ -366,7 +366,8 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> implements IDe
 
 		return {
 			statusCode,
-			messages
+			messages,
+			active: this.isActive
 		}
 	}
 	/**

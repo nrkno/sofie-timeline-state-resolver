@@ -33,6 +33,8 @@ import { HTTPWatcherDevice, DeviceOptionsHTTPWatcherInternal } from './devices/h
 import { QuantelDevice, DeviceOptionsQuantelInternal } from './devices/quantel'
 import { SisyfosMessageDevice, DeviceOptionsSisyfosInternal } from './devices/sisyfos'
 import { SingularLiveDevice, DeviceOptionsSingularLiveInternal } from './devices/singularLive'
+import { VMixDevice, DeviceOptionsVMixInternal } from './devices/vmix'
+
 import { VizMSEDevice, DeviceOptionsVizMSEInternal } from './devices/vizMSE'
 import PQueue from 'p-queue'
 import * as PAll from 'p-all'
@@ -149,6 +151,7 @@ export class Conductor extends EventEmitter {
 	private _resolver: ThreadedClass<AsyncResolver>
 
 	private _interval: NodeJS.Timer
+	private _timelineHash: string | undefined
 
 	constructor (options: ConductorOptions = {}) {
 		super()
@@ -253,6 +256,12 @@ export class Conductor extends EventEmitter {
 
 		this.resetResolver()
 
+	}
+	get timelineHash (): string | undefined {
+		return this._timelineHash
+	}
+	set timelineHash (hash: string | undefined) {
+		this._timelineHash = hash
 	}
 	get logDebug (): boolean {
 		return this._logDebug
@@ -422,6 +431,15 @@ export class Conductor extends EventEmitter {
 				newDevice = await new DeviceContainer().create<SingularLiveDevice, typeof SingularLiveDevice>(
 					'../../dist/devices/singularLive.js',
 					SingularLiveDevice,
+					deviceId,
+					deviceOptions,
+					getCurrentTime,
+					threadedClassOptions
+				)
+			} else if (deviceOptions.type === DeviceType.VMIX) {
+				newDevice = await new DeviceContainer().create<VMixDevice, typeof VMixDevice>(
+					'../../dist/devices/vmix.js',
+					VMixDevice,
 					deviceId,
 					deviceOptions,
 					getCurrentTime,
@@ -725,12 +743,14 @@ export class Conductor extends EventEmitter {
 				this.emit('warn', `Resolver is ${this.getCurrentTime() - resolveTime} ms late`)
 			}
 
+			const layersPerDevice = this.filterLayersPerDevice(tlState.layers, _.values(this.devices))
+
 			// Push state to the right device:
 			await this._mapAllDevices(async (device: DeviceContainer): Promise<void> => {
 				// The subState contains only the parts of the state relevant to that device:
 				let subState: TimelineState = {
 					time: tlState.time,
-					layers: this.getFilteredLayers(tlState.layers, device),
+					layers: layersPerDevice[device.deviceId] || {},
 					nextEvents: []
 				}
 				const removeParent = (o: TimelineState) => {
@@ -834,7 +854,15 @@ export class Conductor extends EventEmitter {
 				this._diffStateForCallbacks(sentCallbacksNew)
 			}, activeObjects)
 
-			this.emit('debug', 'resolveTimeline at time ' + resolveTime + ' done in ' + (Date.now() - startTime) + 'ms (size: ' + timeline.length + ')')
+			const resolveDuration = (Date.now() - startTime)
+			// Special / hack: report back, for latency statitics:
+			if (
+				this._timelineHash
+			) {
+				this.emit('resolveDone', this._timelineHash, resolveDuration)
+			}
+
+			this.emit('debug', 'resolveTimeline at time ' + resolveTime + ' done in ' + resolveDuration + 'ms (size: ' + timeline.length + ')')
 		} catch (e) {
 			this.emit('error', 'resolveTimeline' + e + '\nStack: ' + e.stack)
 		}
@@ -1104,10 +1132,14 @@ export class Conductor extends EventEmitter {
 	/**
 	 * Split the state into substates that are relevant for each device
 	 */
-	private getFilteredLayers (layers: TimelineState['layers'], device: DeviceContainer) {
-		let filteredState = {}
-		const deviceId = device.deviceId
-		const deviceType = device.deviceType
+	private filterLayersPerDevice (layers: TimelineState['layers'], devices: DeviceContainer[]) {
+		const filteredStates: {[deviceId: string]: {[layerId: string]: ResolvedTimelineObjectInstance}} = {}
+
+		const deviceIdAndTypes: {[idAndTyoe: string]: string} = {}
+
+		_.each(devices, device => {
+			deviceIdAndTypes[device.deviceId + '__' + device.deviceType] = device.deviceId
+		})
 		_.each(layers, (o: ResolvedTimelineObjectInstance, layerId: string) => {
 			const oExt: ResolvedTimelineObjectInstanceExtended = o
 			let mapping: Mapping = this._mapping[o.layer + '']
@@ -1115,15 +1147,17 @@ export class Conductor extends EventEmitter {
 				mapping = this._mapping[oExt.lookaheadForLayer]
 			}
 			if (mapping) {
-				if (
-					mapping.deviceId === deviceId &&
-					mapping.device === deviceType
-				) {
-					filteredState[layerId] = o
+				const deviceIdAndType = mapping.deviceId + '__' + mapping.device
+
+				if (deviceIdAndTypes[deviceIdAndType]) {
+					if (!filteredStates[mapping.deviceId]) {
+						filteredStates[mapping.deviceId] = {}
+					}
+					filteredStates[mapping.deviceId][layerId] = o
 				}
 			}
 		})
-		return filteredState
+		return filteredStates
 	}
 }
 export type DeviceOptionsAnyInternal = (
@@ -1140,6 +1174,8 @@ export type DeviceOptionsAnyInternal = (
 	DeviceOptionsOSCInternal |
 	DeviceOptionsSisyfosInternal |
 	DeviceOptionsQuantelInternal |
+	DeviceOptionsSingularLiveInternal |
+	DeviceOptionsVMixInternal |
 	DeviceOptionsVizMSEInternal |
 	DeviceOptionsSingularLiveInternal |
 	DeviceOptionsVizMSEInternal

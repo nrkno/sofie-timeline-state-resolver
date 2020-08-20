@@ -16,7 +16,7 @@ import { StatusCode } from '../device'
 describe('vizMSE', () => {
 	let mockTime = new MockTime()
 
-	const orgSetTimeout = setTimeout
+	// const orgSetTimeout = setTimeout
 
 	beforeAll(() => {
 		mockTime.mockDateNow()

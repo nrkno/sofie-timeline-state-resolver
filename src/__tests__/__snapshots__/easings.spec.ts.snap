@@ -1,0 +1,404 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`easings Easing Back: In 1`] = `
+Array [
+  -0,
+  -0.0144,
+  -0.0465,
+  -0.0802,
+  -0.0877,
+  0.1825,
+  0.8646,
+  0.9999,
+]
+`;
+
+exports[`easings Easing Back: InOut 1`] = `
+Array [
+  -0,
+  -0.0376,
+  -0.0926,
+  -0.0789,
+  0.5,
+  1.0996,
+  1.0042,
+  1,
+]
+`;
+
+exports[`easings Easing Back: Out 1`] = `
+Array [
+  0,
+  0.4088,
+  0.7058,
+  0.9071,
+  1.0876,
+  1.0641,
+  1.0014,
+  1,
+]
+`;
+
+exports[`easings Easing Bounce: In 1`] = `
+Array [
+  0,
+  0.0118,
+  0.06,
+  0.0693,
+  0.2343,
+  0.5273,
+  0.9931,
+  1,
+]
+`;
+
+exports[`easings Easing Bounce: InOut 1`] = `
+Array [
+  0,
+  0.03,
+  0.1137,
+  0.045,
+  0.5,
+  0.8828,
+  0.9929,
+  1,
+]
+`;
+
+exports[`easings Easing Bounce: Out 1`] = `
+Array [
+  0,
+  0.0756,
+  0.3025,
+  0.6806,
+  0.7656,
+  0.9726,
+  0.9861,
+  1,
+]
+`;
+
+exports[`easings Easing Circular: In 1`] = `
+Array [
+  0,
+  0.005,
+  0.0202,
+  0.046,
+  0.1339,
+  0.3385,
+  0.7568,
+  1,
+]
+`;
+
+exports[`easings Easing Circular: InOut 1`] = `
+Array [
+  -0,
+  0.0101,
+  0.0417,
+  0.0999,
+  0.5,
+  0.933,
+  0.999,
+  1,
+]
+`;
+
+exports[`easings Easing Circular: Out 1`] = `
+Array [
+  0,
+  0.4358,
+  0.5999,
+  0.7141,
+  0.866,
+  0.9682,
+  0.9995,
+  1,
+]
+`;
+
+exports[`easings Easing Cubic: In 1`] = `
+Array [
+  0,
+  0.001,
+  0.008,
+  0.027,
+  0.125,
+  0.4218,
+  0.9126,
+  1,
+]
+`;
+
+exports[`easings Easing Cubic: InOut 1`] = `
+Array [
+  0,
+  0.004,
+  0.032,
+  0.108,
+  0.5,
+  0.9375,
+  0.9998,
+  1,
+]
+`;
+
+exports[`easings Easing Cubic: Out 1`] = `
+Array [
+  0,
+  0.2709,
+  0.4879,
+  0.657,
+  0.875,
+  0.9843,
+  0.9999,
+  1,
+]
+`;
+
+exports[`easings Easing Elastic: In 1`] = `
+Array [
+  0,
+  0,
+  0.0039,
+  -0.0001,
+  0,
+  -0.1251,
+  0.7237,
+  1,
+]
+`;
+
+exports[`easings Easing Elastic: InOut 1`] = `
+Array [
+  0,
+  0.0019,
+  -0.0079,
+  0.0312,
+  0.5,
+  1,
+  1.0004,
+  1,
+]
+`;
+
+exports[`easings Easing Elastic: Out 1`] = `
+Array [
+  0,
+  1,
+  1.25,
+  1,
+  1,
+  0.996,
+  1.001,
+  1,
+]
+`;
+
+exports[`easings Easing Exponential: In 1`] = `
+Array [
+  0,
+  0.0019,
+  0.0039,
+  0.0078,
+  0.0312,
+  0.1767,
+  0.8122,
+  1,
+]
+`;
+
+exports[`easings Easing Exponential: InOut 1`] = `
+Array [
+  0,
+  0.0019,
+  0.0078,
+  0.0312,
+  0.5,
+  0.9843,
+  0.9992,
+  1,
+]
+`;
+
+exports[`easings Easing Exponential: Out 1`] = `
+Array [
+  0,
+  0.5,
+  0.75,
+  0.875,
+  0.9687,
+  0.9944,
+  0.9987,
+  1,
+]
+`;
+
+exports[`easings Easing Linear: None 1`] = `
+Array [
+  0,
+  0.1,
+  0.2,
+  0.3,
+  0.5,
+  0.75,
+  0.97,
+  1,
+]
+`;
+
+exports[`easings Easing Quadratic: In 1`] = `
+Array [
+  0,
+  0.01,
+  0.04,
+  0.09,
+  0.25,
+  0.5625,
+  0.9409,
+  1,
+]
+`;
+
+exports[`easings Easing Quadratic: InOut 1`] = `
+Array [
+  0,
+  0.02,
+  0.08,
+  0.18,
+  0.5,
+  0.875,
+  0.9982,
+  1,
+]
+`;
+
+exports[`easings Easing Quadratic: Out 1`] = `
+Array [
+  0,
+  0.19,
+  0.36,
+  0.51,
+  0.75,
+  0.9375,
+  0.9991,
+  1,
+]
+`;
+
+exports[`easings Easing Quartic: In 1`] = `
+Array [
+  0,
+  0.0001,
+  0.0016,
+  0.0081,
+  0.0625,
+  0.3164,
+  0.8852,
+  1,
+]
+`;
+
+exports[`easings Easing Quartic: InOut 1`] = `
+Array [
+  0,
+  0.0008,
+  0.0128,
+  0.0648,
+  0.5,
+  0.9687,
+  0.9999,
+  1,
+]
+`;
+
+exports[`easings Easing Quartic: Out 1`] = `
+Array [
+  0,
+  0.3438,
+  0.5903,
+  0.7599,
+  0.9375,
+  0.996,
+  0.9999,
+  1,
+]
+`;
+
+exports[`easings Easing Quintic: In 1`] = `
+Array [
+  0,
+  0,
+  0.0003,
+  0.0024,
+  0.0312,
+  0.2373,
+  0.8587,
+  1,
+]
+`;
+
+exports[`easings Easing Quintic: InOut 1`] = `
+Array [
+  0,
+  0.0001,
+  0.0051,
+  0.0388,
+  0.5,
+  0.9843,
+  0.9999,
+  1,
+]
+`;
+
+exports[`easings Easing Quintic: Out 1`] = `
+Array [
+  0,
+  0.4095,
+  0.6723,
+  0.8319,
+  0.9687,
+  0.999,
+  0.9999,
+  1,
+]
+`;
+
+exports[`easings Easing Sinusoidal: In 1`] = `
+Array [
+  0,
+  0.0123,
+  0.0489,
+  0.1089,
+  0.2928,
+  0.6173,
+  0.9528,
+  0.9999,
+]
+`;
+
+exports[`easings Easing Sinusoidal: InOut 1`] = `
+Array [
+  0,
+  0.0244,
+  0.0954,
+  0.2061,
+  0.4999,
+  0.8535,
+  0.9977,
+  1,
+]
+`;
+
+exports[`easings Easing Sinusoidal: Out 1`] = `
+Array [
+  0,
+  0.1564,
+  0.309,
+  0.4539,
+  0.7071,
+  0.9238,
+  0.9988,
+  1,
+]
+`;
