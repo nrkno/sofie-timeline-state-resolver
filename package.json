@@ -125,6 +125,7 @@
     "@types/ws": "^7.2.4",
     "@types/xml-js": "^1.0.0",
     "canvas": "^2.5.0",
+    "class-transformer": "^0.2.3",
     "codecov": "^3.6.1",
     "gh-pages": "^3.0.0",
     "jest": "^26.0.1",
@@ -157,8 +158,7 @@
     "yargs-parser": "^18.1.2"
   },
   "dependencies": {
-    "atem-connection": "1.1.0",
-    "atem-state": "^0.9.0",
+    "atem-state": "^0.10.0",
     "bufferutil": "^4.0.1",
     "casparcg-connection": "^4.9.0",
     "casparcg-state": "^1.12.0",
