@@ -21,7 +21,8 @@ import {
 	LawoOptions,
 	LawoDeviceMode,
 	ContentTimelineObjLawoSource,
-	MappingLawoType
+	MappingLawoType,
+	Mappings
 } from '../types/src'
 import {
 	TimelineState, ResolvedTimelineObjectInstance
@@ -74,7 +75,7 @@ type CommandContext = string
  *
  * It controls mutes and fades over Ember Plus.
  */
-export class LawoDevice extends DeviceWithState<TimelineState> implements IDevice {
+export class LawoDevice extends DeviceWithState<LawoState> implements IDevice {
 	private _doOnTime: DoOnTime
 	private _lawo: EmberClient
 
@@ -209,13 +210,13 @@ export class LawoDevice extends DeviceWithState<TimelineState> implements IDevic
 	 * Handles a state such that the device will reflect that state at the given time.
 	 * @param newState
 	 */
-	handleState (newState: TimelineState) {
+	handleState (newState: TimelineState, newMappings: Mappings) {
+		super.onHandleState(newState, newMappings)
 		// Convert timeline states to device states
 		let previousStateTime = Math.max(this.getCurrentTime(), newState.time)
-		let oldState: TimelineState = (this.getStateBefore(previousStateTime) || { state: { time: 0, layers: {}, nextEvents: [] } }).state
+		let oldLawoState: LawoState = (this.getStateBefore(previousStateTime) || { state: { nodes: {} } }).state
 
-		let oldLawoState = this.convertStateToLawo(oldState)
-		let newLawoState = this.convertStateToLawo(newState)
+		let newLawoState = this.convertStateToLawo(newState, newMappings)
 
 		// generate commands to transition to new state
 		let commandsToAchieveState: Array<LawoCommandWithContext> = this._diffStates(oldLawoState, newLawoState)
@@ -226,7 +227,7 @@ export class LawoDevice extends DeviceWithState<TimelineState> implements IDevic
 		this._addToQueue(commandsToAchieveState, newState.time)
 
 		// store the new state, for later use:
-		this.setState(newState, newState.time)
+		this.setState(newLawoState, newState.time)
 	}
 	/**
 	 * Clear any scheduled commands after this time
@@ -267,7 +268,7 @@ export class LawoDevice extends DeviceWithState<TimelineState> implements IDevic
 	 * Converts a timeline state into a device state.
 	 * @param state
 	 */
-	convertStateToLawo (state: TimelineState): LawoState {
+	convertStateToLawo (state: TimelineState, mappings: Mappings): LawoState {
 		const lawoState: LawoState = {
 			nodes: {}
 		}
@@ -295,7 +296,7 @@ export class LawoDevice extends DeviceWithState<TimelineState> implements IDevic
 			// for every layer
 			const lawoObj = tlObject as any as TimelineObjLawoAny
 
-			const mapping: MappingLawo | undefined = this.getMapping()[layerName] as MappingLawo
+			const mapping: MappingLawo | undefined = mappings[layerName] as MappingLawo
 
 			if (mapping && mapping.device === DeviceType.LAWO && mapping.deviceId === this.deviceId) {
 				// Mapping is for Lawo
@@ -304,7 +305,7 @@ export class LawoDevice extends DeviceWithState<TimelineState> implements IDevic
 					// mapping implies a composite of sources
 					for (const fader of lawoObj.content.sources) {
 						// for every mapping in the composite
-						const sourceMapping: MappingLawo | undefined = this.getMapping()[fader.mappingName] as MappingLawo
+						const sourceMapping: MappingLawo | undefined = mappings[fader.mappingName] as MappingLawo
 
 						if (!sourceMapping || !sourceMapping.identifier || sourceMapping.mappingType !== MappingLawoType.SOURCE || mapping.deviceId !== this.deviceId) continue
 						// mapped mapping is a source mapping

@@ -25,18 +25,18 @@ let a = async function () {
 	})
 
 	// Setup mappings from layers to outputs:
-	tsr.setMapping({
+	const mappings = {
 		'layer0': {
 			device: DeviceType.CASPARCG,
 			deviceId: 'casparcg0',
 			channel: 1,
 			layer: 10
 		}
-	})
+	}
 
 	setTimeout(() => {
 		console.log('set timeline')
-		tsr.timeline = [
+		tsr.setTimelineAndMappings([
 			{
 				id: 'video0',
 				enable: {
@@ -53,10 +53,10 @@ let a = async function () {
 
 				}
 			}
-		]
+		], mappings)
 		setTimeout(() => {
 			console.log('set timeline')
-			tsr.timeline = [
+			tsr.setTimelineAndMappings([
 				{
 					id: 'video0',
 					enable: {
@@ -87,7 +87,7 @@ let a = async function () {
 						loop: true
 					}
 				}
-			]
+			])
 		}, 100)
 	}, 1000)
 	/*
