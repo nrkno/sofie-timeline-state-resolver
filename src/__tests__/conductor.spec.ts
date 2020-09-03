@@ -179,11 +179,15 @@ describe('Conductor', () => {
 			expect(res).toBeTruthy()
 		})
 
+		// @ts-ignore
 		abstractThing0.enable.start = mockTime.now
 		conductor.setTimelineAndMappings([ abstractThing0 ], {
 			'myLayer0': myLayerMapping1,
 			'myLayer1': myLayerMapping0
 		})
+		if (_.isArray(abstractThing0.enable)) throw new Error('.enable should not be an array')
+		abstractThing0.enable.start = mockTime.now
+		conductor.setTimelineAndMappings([ abstractThing0 ])
 	})
 
 	test('Test the "Now" and "Callback-functionality', async () => {
@@ -251,6 +255,7 @@ describe('Conductor', () => {
 			_.each(results, (trigger) => {
 				let o = _.findWhere(timeline, { id: trigger.id })
 				if (o) {
+					if (_.isArray(o.enable)) throw new Error('.enable should not be an array')
 					o.enable.start = trigger.time
 				}
 			})
