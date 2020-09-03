@@ -48,7 +48,7 @@ describe('OSC-Message', () => {
 				port: 80
 			}
 		})
-		await myConductor.setMapping(myLayerMapping)
+		myConductor.setTimelineAndMappings([], myLayerMapping)
 		await mockTime.advanceTimeToTicks(10100)
 
 		let deviceContainer = myConductor.getDevice('osc0')
@@ -57,7 +57,7 @@ describe('OSC-Message', () => {
 		// Check that no commands has been scheduled:
 		expect(await device.queue).toHaveLength(0)
 
-		myConductor.timeline = [
+		myConductor.setTimelineAndMappings([
 			literal<TimelineObjOSCMessage>({
 				id: 'obj0',
 				enable: {
@@ -85,7 +85,7 @@ describe('OSC-Message', () => {
 					}]
 				}
 			})
-		]
+		])
 
 		await mockTime.advanceTimeToTicks(10990)
 		expect(commandReceiver0).toHaveBeenCalledTimes(0)
@@ -141,7 +141,7 @@ describe('OSC-Message', () => {
 				port: 80
 			}
 		})
-		await myConductor.setMapping(myLayerMapping)
+		myConductor.setTimelineAndMappings([], myLayerMapping)
 		await mockTime.advanceTimeToTicks(10100)
 
 		let deviceContainer = myConductor.getDevice('osc0')
@@ -150,7 +150,7 @@ describe('OSC-Message', () => {
 		// Check that no commands has been scheduled:
 		expect(await device.queue).toHaveLength(0)
 
-		myConductor.timeline = [
+		myConductor.setTimelineAndMappings([
 			literal<TimelineObjOSCMessage>({
 				id: 'obj0',
 				enable: {
@@ -193,7 +193,7 @@ describe('OSC-Message', () => {
 					}
 				}
 			})
-		]
+		])
 
 		await mockTime.advanceTimeToTicks(10990)
 		expect(commandReceiver0).toHaveBeenCalledTimes(0)

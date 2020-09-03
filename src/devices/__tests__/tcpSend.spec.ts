@@ -91,7 +91,7 @@ describe('TCP-Send', () => {
 		expect(sockets).toHaveLength(1)
 		let socket = sockets[0]
 
-		await myConductor.setMapping(myLayerMapping)
+		myConductor.setTimelineAndMappings([], myLayerMapping)
 		await mockTime.advanceTimeToTicks(10100) // 10100
 		expect(mockTime.now).toEqual(10100)
 		expect(onConnection).toHaveBeenCalledTimes(1)
@@ -108,7 +108,7 @@ describe('TCP-Send', () => {
 		expect(await device.queue).toHaveLength(0)
 
 		// Test Added object:
-		myConductor.timeline = [
+		myConductor.setTimelineAndMappings([
 			{
 				id: 'obj0',
 				enable: {
@@ -121,7 +121,7 @@ describe('TCP-Send', () => {
 					message: 'hello world'
 				}
 			}
-		]
+		])
 
 		await mockTime.advanceTimeToTicks(10990)
 
@@ -138,7 +138,7 @@ describe('TCP-Send', () => {
 		expect(onSocketWrite.mock.calls[0][0]).toEqual(Buffer.from('hello world'))
 
 		// Test Changed object:
-		myConductor.timeline = [
+		myConductor.setTimelineAndMappings([
 			{
 				id: 'obj0',
 				enable: {
@@ -151,7 +151,7 @@ describe('TCP-Send', () => {
 					message: 'anyone here'
 				}
 			}
-		]
+		])
 
 		await mockTime.advanceTimeToTicks(12000) // 12000
 		expect(commandReceiver0).toHaveBeenCalledTimes(2)

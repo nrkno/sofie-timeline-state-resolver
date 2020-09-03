@@ -50,7 +50,7 @@ export interface IDevice {
 	getCurrentTime: () => number
 
 	prepareForHandleState: (newStateTime: number) => void
-	handleState: (newState: TimelineState) => void
+	handleState: (newState: TimelineState, mappings: Mappings) => void
 	clearFuture: (clearAfterTime: number) => void
 	canConnect: boolean
 	connected: boolean
@@ -58,9 +58,6 @@ export interface IDevice {
 	makeReady: (_okToDestroyStuff?: boolean, activeRundownId?: string) => Promise<void>
 	standDown: (_okToDestroyStuff?: boolean) => Promise<void>
 	getStatus: () => DeviceStatus
-
-	getMapping: () => Mappings
-	setMapping: (mappings: Mappings) => void
 
 	deviceId: string
 	deviceName: string
@@ -80,8 +77,6 @@ export abstract class Device extends EventEmitter implements IDevice {
 
 	private _deviceId: string
 
-	private _mappings: Mappings = {}
-	private _ownMappings: Mappings = {}
 	private _currentTimeDiff: number = 0
 	private _currentTimeUpdated: number = 0
 	private _instanceId: number
@@ -144,7 +139,12 @@ export abstract class Device extends EventEmitter implements IDevice {
 	/** Called from Conductor when a new state is about to be handled soon */
 	abstract prepareForHandleState (newStateTime: number)
 	/** Called from Conductor when a new state is to be handled */
-	abstract handleState (newState: TimelineState)
+	abstract handleState (newState: TimelineState, mappings: Mappings)
+
+	/** To be called by children first in .handleState */
+	protected onHandleState (_newState: TimelineState, mappings: Mappings) {
+		this.updateIsActive(mappings)
+	}
 	/**
 	 * Clear any scheduled commands after this time
 	 * @param clearAfterTime
@@ -173,20 +173,6 @@ export abstract class Device extends EventEmitter implements IDevice {
 		return Promise.resolve()
 	}
 	abstract getStatus (): DeviceStatus
-
-	/** Get all mappings */
-	getMapping (): Mappings {
-		return this._mappings
-	}
-	/** Get mappings that are tied to this device */
-	getOwnMapping (): Mappings {
-		return this._ownMappings
-	}
-	setMapping (mappings: Mappings) {
-		this._mappings = mappings
-
-		this.updateIsActive()
-	}
 
 	get deviceId () {
 		return this._deviceId
@@ -268,21 +254,19 @@ export abstract class Device extends EventEmitter implements IDevice {
 			}
 		})
 	}
-	private updateIsActive () {
+	private updateIsActive (mappings: Mappings) {
 		// If there are no mappings assigned to this device, it is considered inactive
 
 		const ownMappings: Mappings = {}
 		let isActive: boolean = false
 
-		_.each(this._mappings, (mapping, layerId) => {
+		_.each(mappings, (mapping, layerId) => {
 			if (mapping.deviceId === this.deviceId) {
 				isActive = true
 				ownMappings[layerId] = mapping
 			}
 		})
 		this._isActive = isActive
-
-		this._ownMappings = ownMappings
 	}
 }
 

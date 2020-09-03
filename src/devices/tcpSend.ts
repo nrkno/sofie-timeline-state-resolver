@@ -11,7 +11,8 @@ import {
 	DeviceType,
 	TCPSendOptions,
 	TcpSendCommandContent,
-	DeviceOptionsTCPSend
+	DeviceOptionsTCPSend,
+	Mappings
 } from '../types/src'
 import { DoOnTime, SendMode } from '../doOnTime'
 import {
@@ -36,10 +37,12 @@ interface TCPSendCommand {
 }
 type CommandContext = string
 
+type TSCSendState = TimelineState
+
 /**
  * This is a TCPSendDevice, it sends commands over tcp when it feels like it
  */
-export class TCPSendDevice extends DeviceWithState<TimelineState> implements IDevice {
+export class TCPSendDevice extends DeviceWithState<TSCSendState> implements IDevice {
 
 	private _makeReadyCommands: TcpSendCommandContent[]
 	private _makeReadyDoesReset: boolean
@@ -86,16 +89,16 @@ export class TCPSendDevice extends DeviceWithState<TimelineState> implements IDe
 		this._doOnTime.clearQueueNowAndAfter(newStateTime)
 		this.cleanUpStates(0, newStateTime)
 	}
-	handleState (newState: TimelineState) {
+	handleState (newState: TimelineState, newMappings: Mappings) {
+		super.onHandleState(newState, newMappings)
 		// Handle this new state, at the point in time specified
 
 		let previousStateTime = Math.max(this.getCurrentTime(), newState.time)
-		let oldState: TimelineState = (this.getStateBefore(previousStateTime) || { state: { time: 0, layers: {}, nextEvents: [] } }).state
+		let oldTCPSendState: TSCSendState = (this.getStateBefore(previousStateTime) || { state: { time: 0, layers: {}, nextEvents: [] } }).state
 
-		let oldAbstractState = this.convertStateToTCPSend(oldState)
-		let newAbstractState = this.convertStateToTCPSend(newState)
+		let newTCPSendState = this.convertStateToTCPSend(newState)
 
-		let commandsToAchieveState: Array<any> = this._diffStates(oldAbstractState, newAbstractState)
+		let commandsToAchieveState: Array<any> = this._diffStates(oldTCPSendState, newTCPSendState)
 
 		// clear any queued commands later than this time:
 		this._doOnTime.clearQueueNowAndAfter(previousStateTime)

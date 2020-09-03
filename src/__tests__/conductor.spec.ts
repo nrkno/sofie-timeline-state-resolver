@@ -4,7 +4,9 @@ import {
 	DeviceType,
 	TSRTimelineObj,
 	TSRTimeline,
-	LawoDeviceMode
+	LawoDeviceMode,
+	MappingCasparCG,
+	TimelineContentTypeCasparCg
 } from '../types/src'
 import { Conductor, TimelineTriggerTimeResult } from '../conductor'
 import * as _ from 'underscore'
@@ -48,7 +50,6 @@ describe('Conductor', () => {
 			getCurrentTime: mockTime.getCurrentTime
 		})
 
-		await conductor.setMapping(myLayerMapping)
 		await conductor.init()
 		await conductor.addDevice('device0', {
 			type: DeviceType.ABSTRACT,
@@ -100,7 +101,7 @@ describe('Conductor', () => {
 		expect(await device0['queue']).toHaveLength(0)
 		expect(await device1['queue']).toHaveLength(0)
 
-		conductor.timeline = [abstractThing0, abstractThing1]
+		conductor.setTimelineAndMappings([abstractThing0, abstractThing1], myLayerMapping)
 
 		// there should now be one command queued:
 		await mockTime.tick()
@@ -178,12 +179,11 @@ describe('Conductor', () => {
 			expect(res).toBeTruthy()
 		})
 
-		await conductor.setMapping({
+		abstractThing0.enable.start = mockTime.now
+		conductor.setTimelineAndMappings([ abstractThing0 ], {
 			'myLayer0': myLayerMapping1,
 			'myLayer1': myLayerMapping0
 		})
-		abstractThing0.enable.start = mockTime.now
-		conductor.timeline = [ abstractThing0 ]
 	})
 
 	test('Test the "Now" and "Callback-functionality', async () => {
@@ -212,7 +212,6 @@ describe('Conductor', () => {
 				commandReceiver: commandReceiver0
 			}
 		})
-		await conductor.setMapping(myLayerMapping)
 
 		// add something that will play "now"
 		let abstractThing0: TSRTimelineObj = { // will be converted from "now" to 10000
@@ -256,7 +255,7 @@ describe('Conductor', () => {
 				}
 			})
 			// update the timeline:
-			conductor.timeline = timeline
+			conductor.setTimelineAndMappings(timeline, myLayerMapping)
 		})
 		conductor.on('setTimelineTriggerTime', setTimelineTriggerTime)
 
@@ -274,7 +273,7 @@ describe('Conductor', () => {
 
 		expect(setTimelineTriggerTime).toHaveBeenCalledTimes(0)
 
-		conductor.timeline = timeline
+		conductor.setTimelineAndMappings(timeline)
 
 		// there should now be commands queued:
 		await mockTime.tick()
@@ -427,9 +426,160 @@ describe('Conductor', () => {
 			options: {},
 			isMultiThreaded: true
 		})
-		await conductor.setMapping(myLayerMapping)
+		conductor.setTimelineAndMappings([], myLayerMapping)
 
 		const device = conductor.getDevice('device0').device
 		expect(await device.getCurrentTime()).toBeTruthy()
 	}, 1500)
+	test('Changing of mappings live', async () => {
+		const commandReceiver0: any = jest.fn(() => {
+			return Promise.resolve()
+		})
+
+		let myLayerMapping0: MappingCasparCG = {
+			device: DeviceType.CASPARCG,
+			deviceId: 'device0',
+			channel: 1,
+			layer: 10
+		}
+		let myLayerMapping: Mappings = {
+			'myLayer0': myLayerMapping0
+		}
+
+		let conductor = new Conductor({
+			initializeAsClear: true,
+			getCurrentTime: mockTime.getCurrentTime
+		})
+
+		await conductor.init()
+		await conductor.addDevice('device0', {
+			type: DeviceType.CASPARCG,
+			options: {
+				commandReceiver: commandReceiver0,
+				host: '127.0.0.1'
+			}
+		})
+		conductor.setTimelineAndMappings([], myLayerMapping)
+
+		await mockTime.advanceTimeTicks(10) // just a little bit
+
+		// add something that will play "now"
+		let video0: TSRTimelineObj = { // will be converted from "now" to 10000
+			id: 'a0',
+			enable: {
+				start: 'now', // 10000
+				duration: 10000 // 20000
+			},
+			layer: 'myLayer0',
+			content: {
+				deviceType: DeviceType.CASPARCG,
+				type: TimelineContentTypeCasparCg.MEDIA,
+
+				file: 'AMB'
+			}
+		}
+
+		let timeline: TSRTimeline = [video0]
+
+		let device0Container = conductor.getDevice('device0')
+		let device0 = device0Container.device as ThreadedClass<AbstractDevice>
+		expect(device0).toBeTruthy()
+
+		// The queues should be empty
+		expect(await device0.queue).toHaveLength(0)
+
+		conductor.setTimelineAndMappings(timeline)
+
+		// there should now be commands queued:
+		// await mockTime.tick()
+
+		await mockTime.advanceTimeToTicks(10500)
+
+		expect(commandReceiver0).toHaveBeenCalledTimes(1)
+		expect(getMockCall(commandReceiver0, 0, 1).name).toEqual('PlayCommand')
+		expect(getMockCall(commandReceiver0, 0, 1)).toMatchObject({
+			_objectParams: {
+				clip: 'AMB',
+				channel: 1,
+				layer: 10
+			}
+		})
+
+		commandReceiver0.mockClear()
+
+		// modify the mapping:
+		myLayerMapping0.layer = 20
+		conductor.setTimelineAndMappings(conductor.timeline, myLayerMapping)
+
+		await mockTime.advanceTimeTicks(100) // just a little bit
+
+		expect(commandReceiver0).toHaveBeenCalledTimes(2)
+		expect(getMockCall(commandReceiver0, 0, 1).name).toEqual('ClearCommand')
+		expect(getMockCall(commandReceiver0, 0, 1)).toMatchObject({
+			_objectParams: {
+				// clip: 'AMB',
+				channel: 1,
+				layer: 10
+			}
+		})
+		expect(getMockCall(commandReceiver0, 1, 1).name).toEqual('PlayCommand')
+		expect(getMockCall(commandReceiver0, 1, 1)).toMatchObject({
+			_objectParams: {
+				clip: 'AMB',
+				channel: 1,
+				layer: 20
+			}
+		})
+
+		commandReceiver0.mockClear()
+
+		// Replace the mapping altogether:
+		delete myLayerMapping['myLayer0']
+		let myLayerMappingNew: MappingCasparCG = {
+			device: DeviceType.CASPARCG,
+			deviceId: 'device0',
+			channel: 2,
+			layer: 10
+		}
+		myLayerMapping['myLayerNew'] = myLayerMappingNew
+		video0.layer = 'myLayerNew'
+		conductor.setTimelineAndMappings(timeline, myLayerMapping)
+
+		await mockTime.advanceTimeTicks(100) // just a little bit
+
+		const nææh = false
+		const DO_IT_RIGHT = nææh
+		if (DO_IT_RIGHT) {
+			// Note: We only expect a play command on the new channel,
+			// The old channel now has no mapping, and should be left alone
+			expect(commandReceiver0).toHaveBeenCalledTimes(1)
+			expect(getMockCall(commandReceiver0, 0, 1).name).toEqual('PlayCommand')
+			expect(getMockCall(commandReceiver0, 0, 1)).toMatchObject({
+				_objectParams: {
+					clip: 'AMB',
+					channel: 2,
+					layer: 10
+				}
+			})
+		} else {
+			expect(commandReceiver0).toHaveBeenCalledTimes(2)
+			expect(getMockCall(commandReceiver0, 0, 1).name).toEqual('ClearCommand')
+			expect(getMockCall(commandReceiver0, 0, 1)).toMatchObject({
+				_objectParams: {
+					channel: 1,
+					layer: 20
+				}
+			})
+
+			expect(getMockCall(commandReceiver0, 1, 1).name).toEqual('PlayCommand')
+			expect(getMockCall(commandReceiver0, 1, 1)).toMatchObject({
+				_objectParams: {
+					clip: 'AMB',
+					channel: 2,
+					layer: 10
+				}
+			})
+
+		}
+	})
 })

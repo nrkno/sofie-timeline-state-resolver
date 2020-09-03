@@ -18,7 +18,8 @@ import {
 	ResolvedTimelineObjectInstanceExtended,
 	QuantelOutTransition,
 	QuantelTransitionType,
-	DeviceOptionsQuantel
+	DeviceOptionsQuantel,
+	Mappings
 } from '../types/src'
 
 import {
@@ -138,14 +139,15 @@ export class QuantelDevice extends DeviceWithState<QuantelState> implements IDev
 	/**
 	 * Generates an array of Quantel commands by comparing the newState against the oldState, or the current device state.
 	 */
-	handleState (newState: TimelineState) {
+	handleState (newState: TimelineState, newMappings: Mappings) {
+		super.onHandleState(newState, newMappings)
 		// check if initialized:
 		if (!this._quantel.initialized) {
 			this.emit('warning', 'Quantel not initialized yet')
 			return
 		}
 
-		this._quantel.setMonitoredPorts(this._getMappedPorts())
+		this._quantel.setMonitoredPorts(this._getMappedPorts(newMappings))
 
 		let previousStateTime = Math.max(this.getCurrentTime(), newState.time)
 
@@ -154,7 +156,7 @@ export class QuantelDevice extends DeviceWithState<QuantelState> implements IDev
 			{ state: { time: 0, port: {} } }
 		).state
 
-		let newQuantelState = this.convertStateToQuantel(newState)
+		let newQuantelState = this.convertStateToQuantel(newState, newMappings)
 		// let oldQuantelState = this.convertStateToQuantel(oldState)
 
 		let commandsToAchieveState = this._diffStates(oldQuantelState, newQuantelState, newState.time)
@@ -204,11 +206,10 @@ export class QuantelDevice extends DeviceWithState<QuantelState> implements IDev
 	get queue () {
 		return this._doOnTime.getQueue()
 	}
-	private _getMappedPorts (): MappedPorts {
+	private _getMappedPorts (mappings: Mappings): MappedPorts {
 
 		const ports: MappedPorts = {}
 
-		const mappings = this.getMapping()
 		_.each(mappings, (mapping) => {
 			if (
 				mapping &&
@@ -239,7 +240,7 @@ export class QuantelDevice extends DeviceWithState<QuantelState> implements IDev
 	 * Takes a timeline state and returns a Quantel State that will work with the state lib.
 	 * @param timelineState The timeline state to generate from.
 	 */
-	convertStateToQuantel (timelineState: TimelineState): QuantelState {
+	convertStateToQuantel (timelineState: TimelineState, mappings: Mappings): QuantelState {
 
 		const state: QuantelState = {
 			time: timelineState.time,
@@ -247,8 +248,7 @@ export class QuantelDevice extends DeviceWithState<QuantelState> implements IDev
 		}
 		// create ports from mappings:
 
-		const mappings = this.getMapping()
-		_.each(this._getMappedPorts(), (port, portId: string) => {
+		_.each(this._getMappedPorts(mappings), (port, portId: string) => {
 			state.port[portId] = {
 				channels: port.channels,
 				timelineObjId: '',

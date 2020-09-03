@@ -92,7 +92,7 @@ describe('HTTP-Watcher', () => {
 		expect(generatedDevice).toBeTruthy()
 		expect(await generatedDevice.getStatus()).toEqual({ statusCode: StatusCode.UNKNOWN, active: true })
 
-		await myConductor.setMapping(myLayerMapping)
+		myConductor.setTimelineAndMappings([], myLayerMapping)
 
 		await mockTime.advanceTimeTicks(10100)
 		expect(onGet).toBeCalledTimes(0)
@@ -139,7 +139,7 @@ describe('HTTP-Watcher', () => {
 		expect(generatedDevice).toBeTruthy()
 		expect(await generatedDevice.getStatus()).toEqual({ statusCode: StatusCode.UNKNOWN, active: true })
 
-		await myConductor.setMapping(myLayerMapping)
+		myConductor.setTimelineAndMappings([], myLayerMapping)
 
 		await mockTime.advanceTimeTicks(10100)
 		expect(onGet).toBeCalledTimes(1)
@@ -189,7 +189,7 @@ describe('HTTP-Watcher', () => {
 		expect(generatedDevice).toBeTruthy()
 		expect(await generatedDevice.getStatus()).toEqual({ statusCode: StatusCode.UNKNOWN, active: true })
 
-		await myConductor.setMapping(myLayerMapping)
+		myConductor.setTimelineAndMappings([], myLayerMapping)
 
 		await mockTime.advanceTimeTicks(10100)
 		expect(onGet).toBeCalledTimes(1)
@@ -234,7 +234,7 @@ describe('HTTP-Watcher', () => {
 		})
 		const generatedDevice = generatedDeviceContainer.device
 		expect(await generatedDevice.getStatus()).toEqual({ statusCode: StatusCode.UNKNOWN, active: true })
-		await myConductor.setMapping(myLayerMapping)
+		myConductor.setTimelineAndMappings([], myLayerMapping)
 		await mockTime.advanceTimeTicks(10100)
 		expect(onGet).toBeCalledTimes(1)
 		expect(await generatedDevice.getStatus()).toEqual({ statusCode: StatusCode.GOOD, active: true })
@@ -260,7 +260,7 @@ describe('HTTP-Watcher', () => {
 		})
 		const generatedDevice = generatedDeviceContainer.device
 		expect(await generatedDevice.getStatus()).toEqual({ statusCode: StatusCode.UNKNOWN, active: true })
-		await myConductor.setMapping(myLayerMapping)
+		myConductor.setTimelineAndMappings([], myLayerMapping)
 
 		await mockTime.advanceTimeTicks(10100)
 		expect(onGetLocal).toBeCalledTimes(1)
@@ -283,7 +283,7 @@ describe('HTTP-Watcher', () => {
 		})
 		const generatedDevice = generatedDeviceContainer.device
 		expect(await generatedDevice.getStatus()).toEqual({ statusCode: StatusCode.UNKNOWN, active: true })
-		await myConductor.setMapping(myLayerMapping)
+		myConductor.setTimelineAndMappings([], myLayerMapping)
 
 		await mockTime.advanceTimeTicks(10100)
 		expect(onGet).toBeCalledTimes(1)
@@ -318,7 +318,7 @@ describe('HTTP-Watcher', () => {
 		})
 		const generatedDevice = generatedDeviceContainer.device
 		expect(await generatedDevice.getStatus()).toEqual({ statusCode: StatusCode.UNKNOWN, active: true })
-		await myConductor.setMapping(myLayerMapping)
+		myConductor.setTimelineAndMappings([], myLayerMapping)
 
 		await mockTime.advanceTimeTicks(10100)
 		expect(onGetLocal).toBeCalledTimes(1)
@@ -352,7 +352,7 @@ describe('HTTP-Watcher', () => {
 		})
 		const generatedDevice = generatedDeviceContainer.device
 		expect(await generatedDevice.getStatus()).toEqual({ statusCode: StatusCode.UNKNOWN, active: true })
-		await myConductor.setMapping(myLayerMapping)
+		myConductor.setTimelineAndMappings([], myLayerMapping)
 
 		await mockTime.advanceTimeTicks(10100)
 		expect(onGet).toBeCalledTimes(0)
@@ -375,7 +375,7 @@ describe('HTTP-Watcher', () => {
 		})
 		const generatedDevice = generatedDeviceContainer.device
 		expect(await generatedDevice.getStatus()).toEqual({ statusCode: StatusCode.UNKNOWN, active: true })
-		await myConductor.setMapping(myLayerMapping)
+		myConductor.setTimelineAndMappings([], myLayerMapping)
 
 		await mockTime.advanceTimeTicks(10100)
 		expect(onGet).toBeCalledTimes(1)

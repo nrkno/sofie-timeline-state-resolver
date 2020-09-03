@@ -112,7 +112,7 @@ export class Conductor extends EventEmitter {
 
 	private _logDebug: boolean = false
 	private _timeline: TSRTimeline = []
-	private _mapping: Mappings = {}
+	private _mappings: Mappings = {}
 
 	private _options: ConductorOptions
 
@@ -219,23 +219,7 @@ export class Conductor extends EventEmitter {
 	 * Returns the mappings
 	 */
 	get mapping (): Mappings {
-		return this._mapping
-	}
-	/**
-	 * Updates the mappings in the Conductor class and all devices and forces
-	 * a resolve timeline.
-	 * @param mapping The new mappings
-	 */
-	async setMapping (mapping: Mappings) {
-		// Set mapping
-		// re-resolve timeline
-		this._mapping = mapping
-
-		await this._mapAllDevices(d => d.device.setMapping(mapping))
-
-		if (this._timeline) {
-			this._resolveTimeline()
-		}
+		return this._mappings
 	}
 	/**
 	 * Returns the current timeline
@@ -246,9 +230,10 @@ export class Conductor extends EventEmitter {
 	/**
 	 * Sets a new timeline and resets the resolver.
 	 */
-	set timeline (timeline: TSRTimeline) {
+	setTimelineAndMappings (timeline: TSRTimeline, mappings?: Mappings) {
 		this.statStartMeasure('timeline received')
 		this._timeline = timeline
+		if (mappings) this._mappings = mappings
 
 		// We've got a new timeline, anything could've happened at this point
 		// Highest priority right now is to determine if any commands have to be sent RIGHT NOW
@@ -475,8 +460,6 @@ export class Conductor extends EventEmitter {
 
 			this.emit('info', `Initializing device ${newDevice.deviceId} (${newDevice.instanceId}) of type ${DeviceType[deviceOptions.type]}...`)
 			this.devices[deviceId] = newDevice
-			// @ts-ignore
-			await newDevice.device.setMapping(this.mapping)
 
 			// TODO - should the device be on this.devices yet? sounds like we could instruct it to do things before it has initialised?
 
@@ -766,7 +749,7 @@ export class Conductor extends EventEmitter {
 
 				// Pass along the state to the device, it will generate its commands and execute them:
 				try {
-					await device.device.handleState(removeParent(subState))
+					await device.device.handleState(removeParent(subState), this._mappings)
 				} catch (e) {
 					this.emit('error', 'Error in device "' + device.deviceId + '"' + e + ' ' + e.stack)
 				}
@@ -1142,9 +1125,9 @@ export class Conductor extends EventEmitter {
 		})
 		_.each(layers, (o: ResolvedTimelineObjectInstance, layerId: string) => {
 			const oExt: ResolvedTimelineObjectInstanceExtended = o
-			let mapping: Mapping = this._mapping[o.layer + '']
+			let mapping: Mapping = this._mappings[o.layer + '']
 			if (!mapping && oExt.isLookahead && oExt.lookaheadForLayer) {
-				mapping = this._mapping[oExt.lookaheadForLayer]
+				mapping = this._mappings[oExt.lookaheadForLayer]
 			}
 			if (mapping) {
 				const deviceIdAndType = mapping.deviceId + '__' + mapping.device
