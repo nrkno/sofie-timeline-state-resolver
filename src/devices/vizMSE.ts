@@ -1281,7 +1281,7 @@ class VizMSEManager extends EventEmitter {
 			return (
 				(
 					!this.activeRundownId ||
-					this.activeRundownId === expectedPlayoutItem.rundownId
+					this.activeRundownId === expectedPlayoutItem.playlistId
 				) &&
 				typeof templateName !== 'undefined'
 			)
