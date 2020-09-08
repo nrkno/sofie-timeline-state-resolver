@@ -81,6 +81,7 @@ export class LawoDevice extends DeviceWithState<TimelineState> implements IDevic
 	private _lastSentValue: { [path: string]: number } = {}
 
 	private _connected: boolean = false
+	private _initialized = false
 
 	private _commandReceiver: CommandReceiver
 	private _sourcesPath: string
@@ -89,6 +90,9 @@ export class LawoDevice extends DeviceWithState<TimelineState> implements IDevic
 	private _setValueFn: SetLawoValueFn
 	private _faderIntervalTime: number
 	private _faderThreshold: number
+	private _sourceNamePath: string | undefined
+
+	private _sourceNameToNodeName = new Map<string, string>()
 
 	private transitions: { [address: string]: {
 		started: number,
@@ -129,6 +133,7 @@ export class LawoDevice extends DeviceWithState<TimelineState> implements IDevic
 					this._sourcesPath = 'Channels.Inputs'
 					this._dbPropertyName = 'Fader.Fader Level'
 					this._faderThreshold = -90
+					this._sourceNamePath = 'General.Inherited Label'
 					break
 				case LawoDeviceMode.R3lay:
 					this._sourcesPath = 'R3LAYVRX4.Ex.Sources'
@@ -180,6 +185,12 @@ export class LawoDevice extends DeviceWithState<TimelineState> implements IDevic
 				try {
 					const req = await this._lawo.getDirectory(this._lawo.tree)
 					await req.response
+
+					await this._mapSourcesToNodeNames()
+
+					this._initialized = true
+					this.emit('info', 'finished device initalization')
+					this.emit('resetResolver')
 				} catch (e) {
 					this.emit('error', 'Error while expanding root', e)
 				}
@@ -210,6 +221,8 @@ export class LawoDevice extends DeviceWithState<TimelineState> implements IDevic
 	 * @param newState
 	 */
 	handleState (newState: TimelineState) {
+		if (!this._initialized) return
+
 		// Convert timeline states to device states
 		let previousStateTime = Math.max(this.getCurrentTime(), newState.time)
 		let oldState: TimelineState = (this.getStateBefore(previousStateTime) || { state: { time: 0, layers: {}, nextEvents: [] } }).state
@@ -455,6 +468,16 @@ export class LawoDevice extends DeviceWithState<TimelineState> implements IDevic
 		return node
 	}
 
+	private _identifierToNodeName (identifier: string): string {
+		if (this._sourceNamePath) {
+			const s = this._sourceNameToNodeName.get(identifier)
+			if (!s) this.emit('warning', `Source identifier "${identifier}" could not be found`)
+			return s || identifier
+		} else {
+			return identifier
+		}
+	}
+
 	/**
 	 * Returns an attribute path
 	 * @param identifier
@@ -463,7 +486,7 @@ export class LawoDevice extends DeviceWithState<TimelineState> implements IDevic
 	private _sourceNodeAttributePath (identifier: string, attributePath: string): string {
 		return _.compact([
 			this._sourcesPath,
-			identifier,
+			this._identifierToNodeName(identifier),
 			attributePath
 		]).join('.')
 	}
@@ -516,17 +539,32 @@ export class LawoDevice extends DeviceWithState<TimelineState> implements IDevic
 						{ type: EmberModel.ParameterType.Real, value: command.value },
 						{ type: EmberModel.ParameterType.Real, value: command.transitionDuration / 1000 }
 					)
-					this.emit('debug', `Ember function invoked (${timelineObjId})`)
+					this.emit('debug', `Ember function invoked (${timelineObjId}, ${command.identifier}, ${command.value})`)
 					const res = await req.response
-					this.emit('debug', `Ember function result (${timelineObjId}): ${(JSON.stringify(res))}`, res)
 					if (res && res.success === false) {
-						if (res.result && res.result[0].value === 6 && this._lastSentValue[command.path] <= startSend) { // result 6 and no new command fired for this path in meantime
-							// Lawo rejected the command, so ensure the value gets set
-							this.emit('info', `Ember function result (${timelineObjId}) was 6, running a direct setValue now`)
-							await this._setValueFn(command, timelineObjId)
-						} else {
-							this.emit('error', `Lawo: Ember function success false (${timelineObjId}, ${command.identifier})`, new Error('Lawo Result ' + res.result![0].value))
+						const reasons = {
+							1: 'Incorrect number of parameters',
+							2: 'Incorrect datatype',
+							3: 'Input value out of range',
+							4: 'Source / sum not found',
+							5: 'Source / sum not assigned to fader',
+							6: 'Combination of values not allowed',
+							7: 'Touch active'
 						}
+						const result = res.result![0].value as number
+
+						if (res.result
+							&& (result === 6 || result === 5)
+							&& this._lastSentValue[command.path] <= startSend) { // result 5 / 6 and no new command fired for this path in meantime
+							// Lawo rejected the command, so ensure the value gets set
+							this.emit('info', `Ember function result (${timelineObjId}, ${command.identifier}) was ${result}, running a direct setValue now`)
+							await this._setValueFn(command, timelineObjId, false) // result 6 is quite likely to cause a timeout
+						} else {
+							this.emit('error', `Lawo: Ember function success false (${timelineObjId}, ${command.identifier}), result ${res.result![0].value}`, new Error('Lawo Result ' + res.result![0].value))
+						}
+						this.emit('debug', `Lawo: Ember fn error ${command.identifier}): result ${result}: ${reasons[result]}`, { ...res, source: command.identifier })
+					} else {
+						this.emit('debug', `Ember function result (${timelineObjId}, ${command.identifier}): ${(JSON.stringify(res))}`, res)
 					}
 				} else { // withouth timed fader movement
 					await this._setValueFn(command, timelineObjId)
@@ -544,6 +582,8 @@ export class LawoDevice extends DeviceWithState<TimelineState> implements IDevic
 			const node = await this._getNodeByPath(command.path) as EmberModel.NumberedTreeNode<EmberModel.Parameter>
 
 			const value = node.contents.factor ? command.value as number * node.contents.factor : command.value
+
+			if (node.contents.value === value) return // no need to do another setValue
 
 			const req = await this._lawo.setValue(node, value, logResult)
 			if (logResult) {
@@ -589,5 +629,64 @@ export class LawoDevice extends DeviceWithState<TimelineState> implements IDevic
 			clearInterval(this.transitionInterval!)
 			this.transitionInterval = undefined
 		}
+	}
+
+	private async _mapSourcesToNodeNames () {
+		if (!this._sourceNamePath) return
+
+		this.emit('info', 'Start mapping source identifiers to channel node identifiers')
+		// get the node that contains the sources
+		const sourceNode = await this._lawo.getElementByPath(this._sourcesPath)
+		if (!sourceNode) {
+			this.emit('warning', 'Could not map source names to node names because source node could not be found!')
+			return
+		}
+
+		// get the sources
+		const req = await (this._lawo.getDirectory(sourceNode))
+		const sources = await req.response! as EmberModel.NumberedTreeNode<EmberModel.EmberNode> | undefined
+		if (!sources) return
+
+		for (const child of Object.values(sources.children || {})) {
+			if (child.contents.type === EmberModel.ElementType.Node) {
+				try { // get the identifier
+					let previousNode: string | undefined = undefined
+					const node = await this._lawo.getElementByPath(this._sourcesPath + '.'
+						+ child.number + '.' + this._sourceNamePath,
+						(node: EmberModel.NumberedTreeNode<EmberModel.Parameter>) => { // identifier changed
+							if (!node) return
+
+							const sourceId = (child.contents as EmberModel.EmberNode).identifier || child.number + ''
+
+							// remove old mapping if it hasn't changed
+							if (previousNode && this._sourceNameToNodeName.get(previousNode) === sourceId) {
+								this.emit('info', `removing mapping ${previousNode}`)
+								this._sourceNameToNodeName.delete(previousNode)
+							}
+
+							// set new mapping
+							this._sourceNameToNodeName.set(
+								node.contents.value as string,
+								sourceId
+							)
+							previousNode = node.contents.value as string
+
+							this.emit('info', `mapping ${node.contents.value} to channel ${sourceId}`)
+						})
+
+					if (!node) continue
+
+					this._sourceNameToNodeName.set(
+						(node.contents as EmberModel.Parameter).value as string,
+						child.contents.identifier || child.number + ''
+					)
+					previousNode = (node.contents as EmberModel.Parameter).value as string
+				} catch (e) {
+					this.emit('error', 'lawo: map sources to node names', e)
+				}
+			}
+		}
+
+		this.emit('info', 'Mapped source identifiers to channel node identifiers')
 	}
 }
