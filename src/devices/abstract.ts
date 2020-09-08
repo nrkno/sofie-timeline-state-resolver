@@ -128,6 +128,11 @@ export class AbstractDevice extends DeviceWithState<TimelineState> implements ID
 			active: this.isActive
 		}
 	}
+	doCustomCommand (commandName: string, args: any[]): Promise<any> {
+		// For debug purposes only :)
+		this.emit('info', 'Abstract doCustomCommand: ' + commandName + ', ' + args)
+		return Promise.resolve('Abstract device says Hello, ' + args)
+	}
 	/**
 	 * Add commands to queue, to be executed at the right time
 	 */
