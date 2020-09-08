@@ -182,7 +182,6 @@ describe('Conductor', () => {
 			'myLayer0': myLayerMapping1,
 			'myLayer1': myLayerMapping0
 		})
-		if (_.isArray(abstractThing0.enable)) throw new Error('.enable should not be an array')
 		abstractThing0.enable.start = mockTime.now
 		conductor.timeline = [ abstractThing0 ]
 	})
@@ -253,7 +252,6 @@ describe('Conductor', () => {
 			_.each(results, (trigger) => {
 				let o = _.findWhere(timeline, { id: trigger.id })
 				if (o) {
-					if (_.isArray(o.enable)) throw new Error('.enable should not be an array')
 					o.enable.start = trigger.time
 				}
 			})

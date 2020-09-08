@@ -3,8 +3,7 @@ import {
 	TimelineObject,
 	ResolvedTimeline,
 	ResolvedTimelineObject,
-	ResolvedStates,
-	ResolverCache
+	ResolvedStates
 } from 'superfly-timeline'
 import _ = require('underscore')
 import {
@@ -16,8 +15,6 @@ export class AsyncResolver {
 
 	private readonly onSetTimelineTriggerTime: (res: TimelineTriggerTimeResult) => void
 
-	private cache: ResolverCache = {}
-
 	public constructor (onSetTimelineTriggerTime: (res: TimelineTriggerTimeResult) => void) {
 		this.onSetTimelineTriggerTime = onSetTimelineTriggerTime
 	}
@@ -25,8 +22,7 @@ export class AsyncResolver {
 	public async resolveTimeline (
 		resolveTime: number,
 		timeline: TSRTimeline,
-		limitTime: number,
-		useCache: boolean
+		limitTime: number
 	) {
 
 		let objectsFixed = this._fixNowObjects(timeline, resolveTime)
@@ -34,8 +30,7 @@ export class AsyncResolver {
 		const resolvedTimeline = Resolver.resolveTimeline(timeline, {
 			limitCount: 999,
 			limitTime: limitTime,
-			time: resolveTime,
-			cache: useCache ? this.cache : undefined
+			time: resolveTime
 		})
 
 		const resolvedStates = Resolver.resolveAllStates(resolvedTimeline)
@@ -60,18 +55,16 @@ export class AsyncResolver {
 		const timeLineMap: {[id: string]: TSRTimelineObj} = {}
 
 		let setObjectTime = (o: TSRTimelineObj, time: number) => {
-			if (!_.isArray(o.enable)) {
-				o.enable.start = time // set the objects to "now" so that they are resolved correctly temporarily
-				const o2 = timeLineMap[o.id]
-				if (o2 && !_.isArray(o2.enable)) {
-					o2.enable.start = time
-				}
-
-				objectsFixed.push({
-					id: o.id,
-					time: time
-				})
+			o.enable.start = time // set the objects to "now" so that they are resolved correctly temporarily
+			const o2 = timeLineMap[o.id]
+			if (o2) {
+				o2.enable.start = time
 			}
+
+			objectsFixed.push({
+				id: o.id,
+				time: time
+			})
 		}
 
 		_.each(timeline, (obj) => {
@@ -80,10 +73,8 @@ export class AsyncResolver {
 
 		// First: fix the ones on the first level (i e not in groups), because they are easy (this also saves us one iteration time later):
 		_.each(timeLineMap, (o: TSRTimelineObj) => {
-			if (!_.isArray(o.enable)) {
-				if (o.enable.start === 'now') {
-					setObjectTime(o, now)
-				}
+			if (o.enable.start === 'now') {
+				setObjectTime(o, now)
 			}
 		})
 
@@ -96,7 +87,6 @@ export class AsyncResolver {
 
 			_.each(objs, (o: TSRTimelineObj) => {
 				if (
-					!_.isArray(o.enable) &&
 					o.enable.start === 'now'
 				) {
 					// find parent, and set relative to that

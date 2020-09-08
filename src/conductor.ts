@@ -39,7 +39,6 @@ import { VizMSEDevice, DeviceOptionsVizMSEInternal } from './devices/vizMSE'
 import PQueue from 'p-queue'
 import * as PAll from 'p-all'
 import PTimeout from 'p-timeout'
-
 export { DeviceContainer }
 export { CommandWithContext }
 
@@ -66,7 +65,6 @@ export interface ConductorOptions {
 	getCurrentTime?: () => number
 	autoInit?: boolean
 	multiThreadedResolver?: boolean
-	useCacheWhenResolving?: boolean
 	proActiveResolve?: boolean
 }
 interface TimelineCallback {
@@ -134,7 +132,6 @@ export class Conductor extends EventEmitter {
 	private _isInitialized: boolean = false
 	private _doOnTime: DoOnTime
 	private _multiThreadedResolver: boolean = false
-	private _useCacheWhenResolving: boolean = false
 
 	private _callbackInstances: {[instanceId: number]: CallbackInstance} = {}
 	private _triggerSendStartStopCallbacksTimeout: NodeJS.Timer | null = null
@@ -161,7 +158,6 @@ export class Conductor extends EventEmitter {
 		this._options = options
 
 		this._multiThreadedResolver = !!options.multiThreadedResolver
-		this._useCacheWhenResolving = !!options.useCacheWhenResolving
 
 		if (options.getCurrentTime) this._getCurrentTime = options.getCurrentTime
 
@@ -719,8 +715,7 @@ export class Conductor extends EventEmitter {
 				let o = await this._resolver.resolveTimeline(
 					resolveTime,
 					timeline,
-					resolveTime + RESOLVE_LIMIT_TIME,
-					this._useCacheWhenResolving
+					resolveTime + RESOLVE_LIMIT_TIME
 				)
 				resolvedStates = o.resolvedStates
 
@@ -729,15 +724,9 @@ export class Conductor extends EventEmitter {
 
 				// Apply changes to fixed objects (set "now" triggers to an actual time):
 				// This gets persisted on this.timeline, so we only have to do this once
-				const nowIdsTime: {[id: string]: number} = {}
-				_.each(o.objectsFixed, (o) => nowIdsTime[o.id] = o.time)
-				const fixNow = (o: TimelineObject) => {
-					if (nowIdsTime[o.id]) {
-						if (!_.isArray(o.enable)) {
-							o.enable.start = nowIdsTime[o.id]
-						}
-					}
-				}
+				const nowIds: {[id: string]: number} = {}
+				_.each(o.objectsFixed, (o) => nowIds[o.id] = o.time)
+				const fixNow = (o: TimelineObject) => { if (nowIds[o.id]) o.enable.start = nowIds[o.id] }
 				_.each(timeline, (o) => applyRecursively(o, fixNow))
 
 			}
