@@ -646,7 +646,7 @@ class QuantelManager extends EventEmitter {
 					if (!server.pools) throw new Error(`server.pools not set!`)
 
 					// find another clip
-					const clips = await this.searchForClips(cmd.clip)
+					const clips = this.prioritizeClips(await this.searchForClips(cmd.clip))
 					if (clips.length) {
 						const clipToCloneFrom = clips[0]
 
@@ -966,13 +966,8 @@ class QuantelManager extends EventEmitter {
 				const server = await this.getServer()
 
 				// Look up the clip:
-				const foundClips = await this.searchForClips(clip)
-				const foundClip = _.find(foundClips, (clip) => {
-					return !!(
-						clip.PoolID &&
-						(server.pools || []).indexOf(clip.PoolID) !== -1
-					)
-				})
+				const foundClips = this.filterClips(server, await this.searchForClips(clip))
+				const foundClip = _.first(this.prioritizeClips(foundClips))
 				if (!foundClip) throw new Error(`Clip with GUID "${clip.guid}" not found on server (${server.ident})`)
 				return foundClip.ClipID
 			})
@@ -982,13 +977,9 @@ class QuantelManager extends EventEmitter {
 				const server = await this.getServer()
 
 				// Look up the clip:
-				const foundClips = await this.searchForClips(clip)
-				const foundClip = _.find(foundClips, (clip) => {
-					return !!(
-						clip.PoolID &&
-						(server.pools || []).indexOf(clip.PoolID) !== -1
-					)
-				})
+				const foundClips = this.filterClips(server, await this.searchForClips(clip))
+				const foundClip = _.first(this.prioritizeClips(foundClips))
+
 				if (!foundClip) throw new Error(`Clip with Title "${clip.title}" not found on server (${server.ident})`)
 				return foundClip.ClipID
 			})
@@ -996,6 +987,28 @@ class QuantelManager extends EventEmitter {
 		if (!clipId) throw new Error(`Unable to determine clipId for clip "${clip.title || clip.guid}"`)
 
 		return clipId
+	}
+	private filterClips (server: Q.ServerInfo, clips: Q.ClipDataSummary[]): Q.ClipDataSummary[] {
+		return _.filter(clips, (clip) =>
+			(
+				typeof clip.PoolID === 'number' &&
+				(server.pools || []).indexOf(clip.PoolID) !== -1 // If present in any of the pools of the server
+				// From Media-Manager:
+				// parseInt(clip.Frames, 10) > 0 &&
+				// clip.Completed !== null &&
+				// clip.Completed.length > 0 // Note from Richard: Completed might not necessarily mean that it's completed on the right server
+			)
+		)
+	}
+	private prioritizeClips (clips: Q.ClipDataSummary[]): Q.ClipDataSummary[] {
+		// Sort the clips, so that the most likely to use is first.
+
+		return clips.sort(
+			(
+				a,
+				b // Sort Created dates into reverse order
+			) => new Date(b.Created).getTime() - new Date(a.Created).getTime()
+		)
 	}
 	private async searchForClips (clip: QuantelStatePortClip): Promise<Q.ClipDataSummary[]> {
 		if (clip.guid) {
