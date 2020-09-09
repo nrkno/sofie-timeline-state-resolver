@@ -21,7 +21,8 @@ import {
 	TimelineObjAtemAUX,
 	TimelineObjAtemSsrcProps,
 	TimelineObjAtemMacroPlayer,
-	DeviceOptionsAtem
+	DeviceOptionsAtem,
+	Mappings
 } from '../types/src'
 import { TimelineState } from 'superfly-timeline'
 import {
@@ -164,7 +165,8 @@ export class AtemDevice extends DeviceWithState<DeviceState> implements IDevice 
 	 * be executed at the state's time.
 	 * @param newState The state to handle
 	 */
-	handleState (newState: TimelineState) {
+	handleState (newState: TimelineState, newMappings: Mappings) {
+		super.onHandleState(newState, newMappings)
 		if (!this._initialized) { // before it's initialized don't do anything
 			this.emit('warning', 'Atem not initialized yet')
 			return
@@ -174,7 +176,7 @@ export class AtemDevice extends DeviceWithState<DeviceState> implements IDevice 
 		let oldState: DeviceState = (this.getStateBefore(previousStateTime) || { state: AtemConnection.AtemStateUtil.Create() }).state
 
 		let oldAtemState = oldState
-		let newAtemState = this.convertStateToAtem(newState)
+		let newAtemState = this.convertStateToAtem(newState, newMappings)
 
 		if (this.firstStateAfterMakeReady) { // emit a debug message with the states:
 			this.firstStateAfterMakeReady = false
@@ -208,7 +210,7 @@ export class AtemDevice extends DeviceWithState<DeviceState> implements IDevice 
 	 * Convert a timeline state into an Atem state.
 	 * @param state The state to be converted
 	 */
-	convertStateToAtem (state: TimelineState): DeviceState {
+	convertStateToAtem (state: TimelineState, newMappings: Mappings): DeviceState {
 		if (!this._initialized) throw Error('convertStateToAtem cannot be used before inititialized')
 
 		// Start out with default state:
@@ -222,7 +224,7 @@ export class AtemDevice extends DeviceWithState<DeviceState> implements IDevice 
 		_.each(sortedLayers, ({ tlObject, layerName }) => {
 			// const content = tlObject.content
 
-			let mapping = this.getMapping()[layerName] as MappingAtem | undefined
+			let mapping = newMappings[layerName] as MappingAtem | undefined
 
 			if (mapping && mapping.deviceId === this.deviceId) {
 				if (mapping.index !== undefined && mapping.index >= 0) { // index must be 0 or higher

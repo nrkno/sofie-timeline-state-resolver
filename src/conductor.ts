@@ -39,6 +39,7 @@ import { VizMSEDevice, DeviceOptionsVizMSEInternal } from './devices/vizMSE'
 import PQueue from 'p-queue'
 import * as PAll from 'p-all'
 import PTimeout from 'p-timeout'
+
 export { DeviceContainer }
 export { CommandWithContext }
 
@@ -65,6 +66,7 @@ export interface ConductorOptions {
 	getCurrentTime?: () => number
 	autoInit?: boolean
 	multiThreadedResolver?: boolean
+	useCacheWhenResolving?: boolean
 	proActiveResolve?: boolean
 }
 interface TimelineCallback {
@@ -112,7 +114,7 @@ export class Conductor extends EventEmitter {
 
 	private _logDebug: boolean = false
 	private _timeline: TSRTimeline = []
-	private _mapping: Mappings = {}
+	private _mappings: Mappings = {}
 
 	private _options: ConductorOptions
 
@@ -132,6 +134,7 @@ export class Conductor extends EventEmitter {
 	private _isInitialized: boolean = false
 	private _doOnTime: DoOnTime
 	private _multiThreadedResolver: boolean = false
+	private _useCacheWhenResolving: boolean = false
 
 	private _callbackInstances: {[instanceId: number]: CallbackInstance} = {}
 	private _triggerSendStartStopCallbacksTimeout: NodeJS.Timer | null = null
@@ -158,6 +161,7 @@ export class Conductor extends EventEmitter {
 		this._options = options
 
 		this._multiThreadedResolver = !!options.multiThreadedResolver
+		this._useCacheWhenResolving = !!options.useCacheWhenResolving
 
 		if (options.getCurrentTime) this._getCurrentTime = options.getCurrentTime
 
@@ -219,23 +223,7 @@ export class Conductor extends EventEmitter {
 	 * Returns the mappings
 	 */
 	get mapping (): Mappings {
-		return this._mapping
-	}
-	/**
-	 * Updates the mappings in the Conductor class and all devices and forces
-	 * a resolve timeline.
-	 * @param mapping The new mappings
-	 */
-	async setMapping (mapping: Mappings) {
-		// Set mapping
-		// re-resolve timeline
-		this._mapping = mapping
-
-		await this._mapAllDevices(d => d.device.setMapping(mapping))
-
-		if (this._timeline) {
-			this._resolveTimeline()
-		}
+		return this._mappings
 	}
 	/**
 	 * Returns the current timeline
@@ -246,9 +234,10 @@ export class Conductor extends EventEmitter {
 	/**
 	 * Sets a new timeline and resets the resolver.
 	 */
-	set timeline (timeline: TSRTimeline) {
+	setTimelineAndMappings (timeline: TSRTimeline, mappings?: Mappings) {
 		this.statStartMeasure('timeline received')
 		this._timeline = timeline
+		if (mappings) this._mappings = mappings
 
 		// We've got a new timeline, anything could've happened at this point
 		// Highest priority right now is to determine if any commands have to be sent RIGHT NOW
@@ -475,8 +464,6 @@ export class Conductor extends EventEmitter {
 
 			this.emit('info', `Initializing device ${newDevice.deviceId} (${newDevice.instanceId}) of type ${DeviceType[deviceOptions.type]}...`)
 			this.devices[deviceId] = newDevice
-			// @ts-ignore
-			await newDevice.device.setMapping(this.mapping)
 
 			// TODO - should the device be on this.devices yet? sounds like we could instruct it to do things before it has initialised?
 
@@ -715,7 +702,8 @@ export class Conductor extends EventEmitter {
 				let o = await this._resolver.resolveTimeline(
 					resolveTime,
 					timeline,
-					resolveTime + RESOLVE_LIMIT_TIME
+					resolveTime + RESOLVE_LIMIT_TIME,
+					this._useCacheWhenResolving
 				)
 				resolvedStates = o.resolvedStates
 
@@ -724,9 +712,15 @@ export class Conductor extends EventEmitter {
 
 				// Apply changes to fixed objects (set "now" triggers to an actual time):
 				// This gets persisted on this.timeline, so we only have to do this once
-				const nowIds: {[id: string]: number} = {}
-				_.each(o.objectsFixed, (o) => nowIds[o.id] = o.time)
-				const fixNow = (o: TimelineObject) => { if (nowIds[o.id]) o.enable.start = nowIds[o.id] }
+				const nowIdsTime: {[id: string]: number} = {}
+				_.each(o.objectsFixed, (o) => nowIdsTime[o.id] = o.time)
+				const fixNow = (o: TimelineObject) => {
+					if (nowIdsTime[o.id]) {
+						if (!_.isArray(o.enable)) {
+							o.enable.start = nowIdsTime[o.id]
+						}
+					}
+				}
 				_.each(timeline, (o) => applyRecursively(o, fixNow))
 
 			}
@@ -766,7 +760,7 @@ export class Conductor extends EventEmitter {
 
 				// Pass along the state to the device, it will generate its commands and execute them:
 				try {
-					await device.device.handleState(removeParent(subState))
+					await device.device.handleState(removeParent(subState), this._mappings)
 				} catch (e) {
 					this.emit('error', 'Error in device "' + device.deviceId + '"' + e + ' ' + e.stack)
 				}
@@ -1142,9 +1136,9 @@ export class Conductor extends EventEmitter {
 		})
 		_.each(layers, (o: ResolvedTimelineObjectInstance, layerId: string) => {
 			const oExt: ResolvedTimelineObjectInstanceExtended = o
-			let mapping: Mapping = this._mapping[o.layer + '']
+			let mapping: Mapping = this._mappings[o.layer + '']
 			if (!mapping && oExt.isLookahead && oExt.lookaheadForLayer) {
-				mapping = this._mapping[oExt.lookaheadForLayer]
+				mapping = this._mappings[oExt.lookaheadForLayer]
 			}
 			if (mapping) {
 				const deviceIdAndType = mapping.deviceId + '__' + mapping.device

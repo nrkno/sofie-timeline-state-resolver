@@ -54,7 +54,7 @@ describe('Atem', () => {
 			host: '127.0.0.1'
 		}))
 
-		device.handleState(mockState)
+		device.handleState(mockState, {})
 
 		device.queue.forEach((cmd) => {
 			console.log(cmd)
@@ -90,7 +90,7 @@ describe('Atem', () => {
 				port: 9910
 			}
 		}))
-		await myConductor.setMapping(myLayerMapping)
+
 		await mockTime.advanceTimeToTicks(10100)
 
 		let deviceContainer = myConductor.getDevice('myAtem')
@@ -99,7 +99,7 @@ describe('Atem', () => {
 		// Check that no commands has been scheduled:
 		expect(await device.queue).toHaveLength(0)
 
-		myConductor.timeline = [
+		myConductor.setTimelineAndMappings([
 			{
 				id: 'obj0',
 				enable: {
@@ -132,7 +132,7 @@ describe('Atem', () => {
 					}
 				}
 			}
-		]
+		], myLayerMapping)
 
 		commandReceiver0.mockClear()
 		await mockTime.advanceTimeToTicks(10200)
@@ -177,14 +177,13 @@ describe('Atem', () => {
 			}
 		}))
 
-		await myConductor.setMapping(myLayerMapping)
 		await mockTime.advanceTimeToTicks(10100)
 
 		let deviceContainer = myConductor.getDevice('myAtem')
 		let device = deviceContainer.device as ThreadedClass<AtemDevice>
 		// Check that no commands has been scheduled:
 		expect(await device.queue).toHaveLength(0)
-		myConductor.timeline = [
+		myConductor.setTimelineAndMappings([
 			{
 				id: 'obj0',
 				enable: {
@@ -211,7 +210,7 @@ describe('Atem', () => {
 					}
 				}
 			}
-		]
+		], myLayerMapping)
 
 		await mockTime.advanceTimeToTicks(10200)
 
@@ -256,7 +255,8 @@ describe('Atem', () => {
 			resolved: {
 				resolved: true,
 				resolving: false,
-				instances: [{ start: mockTime.now - 1000, end: Infinity, id: 'a0', references: [] }]
+				instances: [{ start: mockTime.now - 1000, end: Infinity, id: 'a0', references: [] }],
+				directReferences: []
 			},
 			instance: { start: mockTime.now - 1000, end: Infinity, id: 'a0', references: [] }
 		}
@@ -275,7 +275,6 @@ describe('Atem', () => {
 				host: '127.0.0.1'
 			}
 		}, mockTime.getCurrentTime)
-		device.setMapping(myLayerMapping)
 
 		await device.init(literal<AtemOptions>({
 			host: '127.0.0.1'
@@ -286,12 +285,12 @@ describe('Atem', () => {
 		expect(commandReceiver0).toHaveBeenCalledTimes(0)
 
 		// Expect that a command has been scheduled
-		device.handleState(mockState)
+		device.handleState(mockState, myLayerMapping)
 		expect(device.queue).toHaveLength(2)
 
 		// Handle the same state, before the commands have been sent
 		mockTime.advanceTimeTo(mockTime.now + 30)
-		device.handleState(mockState)
+		device.handleState(mockState, myLayerMapping)
 		expect(commandReceiver0).toHaveBeenCalledTimes(0)
 		expect(device.queue).toHaveLength(2)
 
@@ -300,7 +299,7 @@ describe('Atem', () => {
 		expect(commandReceiver0).toHaveBeenCalledTimes(2)
 
 		// Handle the same state, after the commands have been sent
-		device.handleState(mockState)
+		device.handleState(mockState, myLayerMapping)
 		expect(device.queue).toHaveLength(0)
 	})
 })
