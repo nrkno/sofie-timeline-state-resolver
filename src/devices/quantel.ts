@@ -646,16 +646,30 @@ class QuantelManager extends EventEmitter {
 					if (!server.pools) throw new Error(`server.pools not set!`)
 
 					// find another clip
-					const clips = this.prioritizeClips(await this.searchForClips(cmd.clip))
-					if (clips.length) {
-						const clipToCloneFrom = clips[0]
 
-						const cloneResult: Q.CloneResult = await this._quantel.copyClip(
-							undefined, // source zoneId. inter-zone copying not supported atm.
-							clipToCloneFrom.ClipID,
-							server.pools[0] // pending discussion, which to choose
-						)
-						clipId = cloneResult.copyID // new clip id
+					const foundClips = this.filterClips(await this.searchForClips(cmd.clip), undefined)
+					const clipToCloneFrom = _.first(this.prioritizeClips(foundClips))
+					if (clipToCloneFrom) {
+
+						// Try to copy to each of the server pools, break on first succeeded
+						let copyCreated = false
+						let lastError: any
+						for (let pool of server.pools) {
+							try {
+								const cloneResult = await this._quantel.copyClip(undefined, clipToCloneFrom.ClipID, pool, 8, true)
+
+								clipId = cloneResult.copyID // new clip id
+
+								copyCreated = true
+								break
+							} catch (e) {
+								lastError = e
+								continue
+							}
+						}
+						if (!copyCreated) {
+							throw lastError || new Error(`Unable to copy clip ${clipToCloneFrom.ClipID} for unknown reasons`)
+						}
 					} else throw e
 				} else throw e
 			} else throw e
@@ -966,7 +980,7 @@ class QuantelManager extends EventEmitter {
 				const server = await this.getServer()
 
 				// Look up the clip:
-				const foundClips = this.filterClips(server, await this.searchForClips(clip))
+				const foundClips = this.filterClips(await this.searchForClips(clip), server)
 				const foundClip = _.first(this.prioritizeClips(foundClips))
 				if (!foundClip) throw new Error(`Clip with GUID "${clip.guid}" not found on server (${server.ident})`)
 				return foundClip.ClipID
@@ -977,7 +991,7 @@ class QuantelManager extends EventEmitter {
 				const server = await this.getServer()
 
 				// Look up the clip:
-				const foundClips = this.filterClips(server, await this.searchForClips(clip))
+				const foundClips = this.filterClips(await this.searchForClips(clip), server)
 				const foundClip = _.first(this.prioritizeClips(foundClips))
 
 				if (!foundClip) throw new Error(`Clip with Title "${clip.title}" not found on server (${server.ident})`)
@@ -988,13 +1002,16 @@ class QuantelManager extends EventEmitter {
 
 		return clipId
 	}
-	private filterClips (server: Q.ServerInfo, clips: Q.ClipDataSummary[]): Q.ClipDataSummary[] {
+	private filterClips (clips: Q.ClipDataSummary[], server?: Q.ServerInfo): Q.ClipDataSummary[] {
 		return _.filter(clips, (clip) =>
 			(
 				typeof clip.PoolID === 'number' &&
-				(server.pools || []).indexOf(clip.PoolID) !== -1 // If present in any of the pools of the server
+				parseInt(clip.Frames, 10) > 0 && // "Placeholder clips" does not have any Frames
+				(
+					!server ||
+					(server.pools || []).indexOf(clip.PoolID) !== -1 // If present in any of the pools of the server
+				)
 				// From Media-Manager:
-				// parseInt(clip.Frames, 10) > 0 &&
 				// clip.Completed !== null &&
 				// clip.Completed.length > 0 // Note from Richard: Completed might not necessarily mean that it's completed on the right server
 			)
