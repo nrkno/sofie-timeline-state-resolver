@@ -314,10 +314,10 @@ export class AtemDevice extends DeviceWithState<DeviceState> implements IDevice 
 		return this._doOnTime.getQueue()
 	}
 	doCustomCommand (commandName: string, args: any[]): Promise<any> {
-		const fcn = this._atem[commandName]
+		const fcn: Function = this._atem[commandName]
 		if (!fcn) throw new Error(`Method Atem.${commandName} not found!`)
 
-		return Promise.resolve(fcn(...args))
+		return Promise.resolve(fcn.apply(this._atem, args))
 	}
 	/**
 	 * Check status and return it with useful messages appended.
