@@ -12,7 +12,8 @@ import {
 	OSCOptions,
 	SomeOSCValue,
 	OSCValueType,
-	DeviceOptionsOSC
+	DeviceOptionsOSC,
+	Mappings
 } from '../types/src'
 import { DoOnTime, SendMode } from '../doOnTime'
 
@@ -48,7 +49,7 @@ interface OSCDeviceStateContent extends OSCMessageCommandContent {
 /**
  * This is a generic wrapper for any osc-enabled device.
  */
-export class OSCMessageDevice extends DeviceWithState<TimelineState> implements IDevice {
+export class OSCMessageDevice extends DeviceWithState<OSCDeviceState> implements IDevice {
 
 	private _doOnTime: DoOnTime
 	private _oscClient: osc.UDPPort
@@ -98,16 +99,16 @@ export class OSCMessageDevice extends DeviceWithState<TimelineState> implements 
 	 * in time.
 	 * @param newState
 	 */
-	handleState (newState: TimelineState) {
+	handleState (newState: TimelineState, newMappings: Mappings) {
+		super.onHandleState(newState, newMappings)
 		// Transform timeline states into device states
 		let previousStateTime = Math.max(this.getCurrentTime(), newState.time)
-		let oldState: TimelineState = (this.getStateBefore(previousStateTime) || { state: { time: 0, layers: {}, nextEvents: [] } }).state
+		let oldOSCState: OSCDeviceState = (this.getStateBefore(previousStateTime) || { state: { } }).state
 
-		let oldAbstractState = this.convertStateToOSCMessage(oldState)
-		let newAbstractState = this.convertStateToOSCMessage(newState)
+		let newOSCState = this.convertStateToOSCMessage(newState)
 
 		// Generate commands necessary to transition to the new state
-		let commandsToAchieveState: Array<any> = this._diffStates(oldAbstractState, newAbstractState)
+		let commandsToAchieveState: Array<any> = this._diffStates(oldOSCState, newOSCState)
 
 		// clear any queued commands later than this time:
 		this._doOnTime.clearQueueNowAndAfter(previousStateTime)
@@ -115,7 +116,7 @@ export class OSCMessageDevice extends DeviceWithState<TimelineState> implements 
 		this._addToQueue(commandsToAchieveState, newState.time)
 
 		// store the new state, for later use:
-		this.setState(newState, newState.time)
+		this.setState(newOSCState, newState.time)
 	}
 	/**
 	 * Clear any scheduled commands after this time
@@ -131,7 +132,8 @@ export class OSCMessageDevice extends DeviceWithState<TimelineState> implements 
 	getStatus (): DeviceStatus {
 		// Good, since this device has no status, really
 		return {
-			statusCode: StatusCode.GOOD
+			statusCode: StatusCode.GOOD,
+			active: this.isActive
 		}
 	}
 	makeReady (_okToDestroyStuff?: boolean): Promise<void> {

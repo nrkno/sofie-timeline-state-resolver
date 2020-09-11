@@ -50,7 +50,7 @@ describe('Hyperdeck', () => {
 			initializeAsClear: true,
 			getCurrentTime: mockTime.getCurrentTime
 		})
-		await myConductor.setMapping(myChannelMapping)
+		myConductor.setTimelineAndMappings([], myChannelMapping)
 
 		await myConductor.init()
 		await myConductor.addDevice('hyperdeck0', {
@@ -80,7 +80,7 @@ describe('Hyperdeck', () => {
 
 		// Check that no commands has been scheduled:
 		expect(await device.queue).toHaveLength(0)
-		myConductor.timeline = [
+		myConductor.setTimelineAndMappings([
 			{
 				id: 'obj0',
 				enable: {
@@ -111,7 +111,7 @@ describe('Hyperdeck', () => {
 					status: TransportStatus.PREVIEW
 				}
 			}
-		]
+		])
 
 		await mockTime.advanceTimeToTicks(10200)
 
@@ -127,7 +127,7 @@ describe('Hyperdeck', () => {
 			filename: 'sofie_dev'
 		})
 
-		myConductor.timeline = myConductor.timeline // Same timeline
+		myConductor.setTimelineAndMappings(myConductor.timeline) // Same timeline
 		await mockTime.advanceTimeToTicks(10400)
 		expect(hyperdeckMockCommand).toHaveBeenCalledTimes(1) // nothing has changed, so it should not be called again
 

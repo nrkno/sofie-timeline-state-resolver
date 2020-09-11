@@ -18,7 +18,8 @@ import {
 	ResolvedTimelineObjectInstanceExtended,
 	QuantelOutTransition,
 	QuantelTransitionType,
-	DeviceOptionsQuantel
+	DeviceOptionsQuantel,
+	Mappings
 } from '../types/src'
 
 import {
@@ -138,14 +139,15 @@ export class QuantelDevice extends DeviceWithState<QuantelState> implements IDev
 	/**
 	 * Generates an array of Quantel commands by comparing the newState against the oldState, or the current device state.
 	 */
-	handleState (newState: TimelineState) {
+	handleState (newState: TimelineState, newMappings: Mappings) {
+		super.onHandleState(newState, newMappings)
 		// check if initialized:
 		if (!this._quantel.initialized) {
 			this.emit('warning', 'Quantel not initialized yet')
 			return
 		}
 
-		this._quantel.setMonitoredPorts(this._getMappedPorts())
+		this._quantel.setMonitoredPorts(this._getMappedPorts(newMappings))
 
 		let previousStateTime = Math.max(this.getCurrentTime(), newState.time)
 
@@ -154,7 +156,7 @@ export class QuantelDevice extends DeviceWithState<QuantelState> implements IDev
 			{ state: { time: 0, port: {} } }
 		).state
 
-		let newQuantelState = this.convertStateToQuantel(newState)
+		let newQuantelState = this.convertStateToQuantel(newState, newMappings)
 		// let oldQuantelState = this.convertStateToQuantel(oldState)
 
 		let commandsToAchieveState = this._diffStates(oldQuantelState, newQuantelState, newState.time)
@@ -204,15 +206,15 @@ export class QuantelDevice extends DeviceWithState<QuantelState> implements IDev
 	get queue () {
 		return this._doOnTime.getQueue()
 	}
-	private _getMappedPorts (): MappedPorts {
+	private _getMappedPorts (mappings: Mappings): MappedPorts {
 
 		const ports: MappedPorts = {}
 
-		const mappings = this.getMapping()
 		_.each(mappings, (mapping) => {
 			if (
 				mapping &&
 				mapping.device === DeviceType.QUANTEL &&
+				mapping.deviceId === this.deviceId &&
 				_.has(mapping,'portId') &&
 				_.has(mapping,'channelId')
 			) {
@@ -238,7 +240,7 @@ export class QuantelDevice extends DeviceWithState<QuantelState> implements IDev
 	 * Takes a timeline state and returns a Quantel State that will work with the state lib.
 	 * @param timelineState The timeline state to generate from.
 	 */
-	convertStateToQuantel (timelineState: TimelineState): QuantelState {
+	convertStateToQuantel (timelineState: TimelineState, mappings: Mappings): QuantelState {
 
 		const state: QuantelState = {
 			time: timelineState.time,
@@ -246,8 +248,7 @@ export class QuantelDevice extends DeviceWithState<QuantelState> implements IDev
 		}
 		// create ports from mappings:
 
-		const mappings = this.getMapping()
-		_.each(this._getMappedPorts(), (port, portId: string) => {
+		_.each(this._getMappedPorts(mappings), (port, portId: string) => {
 			state.port[portId] = {
 				channels: port.channels,
 				timelineObjId: '',
@@ -270,6 +271,7 @@ export class QuantelDevice extends DeviceWithState<QuantelState> implements IDev
 			if (
 				foundMapping &&
 				foundMapping.device === DeviceType.QUANTEL &&
+				foundMapping.deviceId === this.deviceId &&
 				_.has(foundMapping,'portId') &&
 				_.has(foundMapping,'channelId')
 			) {
@@ -353,7 +355,8 @@ export class QuantelDevice extends DeviceWithState<QuantelState> implements IDev
 
 		return {
 			statusCode: statusCode,
-			messages: messages
+			messages: messages,
+			active: this.isActive
 		}
 	}
 	/**
@@ -631,37 +634,55 @@ class QuantelManager extends EventEmitter {
 
 		const server = await this.getServer()
 
-		let clipId = await this.getClipId(cmd.clip)
+		let clipId: number = 0
+		try {
+			clipId = await this.getClipId(cmd.clip)
+		} catch (e) {
+			if ((e + '').match(/not found/i)) {
+				// The clip was not found
+				if (this.options.allowCloneClips) {
+					// Try to clone the clip from another server:
+
+					if (!server.pools) throw new Error(`server.pools not set!`)
+
+					// find another clip
+
+					const foundClips = this.filterClips(await this.searchForClips(cmd.clip), undefined)
+					const clipToCloneFrom = _.first(this.prioritizeClips(foundClips))
+					if (clipToCloneFrom) {
+
+						// Try to copy to each of the server pools, break on first succeeded
+						let copyCreated = false
+						let lastError: any
+						for (let pool of server.pools) {
+							try {
+								const cloneResult = await this._quantel.copyClip(undefined, clipToCloneFrom.ClipID, pool, 8, true)
+
+								clipId = cloneResult.copyID // new clip id
+
+								copyCreated = true
+								break
+							} catch (e) {
+								lastError = e
+								continue
+							}
+						}
+						if (!copyCreated) {
+							throw lastError || new Error(`Unable to copy clip ${clipToCloneFrom.ClipID} for unknown reasons`)
+						}
+					} else throw e
+				} else throw e
+			} else throw e
+		}
+
+		// let clipId = await this.getClipId(cmd.clip)
 		let clipData = await this._quantel.getClip(clipId)
 		if (!clipData) throw new Error(`Clip ${clipId} not found`)
 		if (!clipData.PoolID) throw new Error(`Clip ${clipData.ClipID} missing PoolID`)
 
 		// Check that the clip is present on the server:
 		if (!(server.pools || []).includes(clipData.PoolID)) {
-			// It looks like the clip is not present on any of the pools on the server.
-
-			if (this.options.allowCloneClips) {
-				if (!server.pools) throw new Error(`server.pools not set!`)
-
-				// Try to copy the clip:
-				const cloneResult: Q.CloneResult = await this._quantel.copyClip(
-					undefined, // source zoneId. inter-zone copying not supported atm.
-					clipData.ClipID,
-					server.pools[0] // pending discussion, which to choose
-				)
-				// Check that the new clip is valid:
-				clipData = await this._quantel.getClip(
-					cloneResult.copyID // new clip id
-				)
-				if (!clipData) throw new Error(`Copied Clip ${cloneResult.copyID} not found`)
-				if (!clipData.PoolID) throw new Error(`Copied Clip ${clipData.ClipID} missing PoolID`)
-				// Check that the copied clip is present on the server:
-				if (!(server.pools || []).includes(clipData.PoolID)) {
-					throw new Error(`Copied Clip "${clipData.ClipID}" PoolID ${clipData.PoolID} not found on right server (${server.ident})`)
-				}
-			} else {
-				throw new Error(`Clip "${clipData.ClipID}" PoolID ${clipData.PoolID} not found on right server (${server.ident})`)
-			}
+			throw new Error(`Clip "${clipData.ClipID}" PoolID ${clipData.PoolID} not found on right server (${server.ident})`)
 		}
 
 		let useInOutPoints: boolean = !!(
@@ -959,15 +980,8 @@ class QuantelManager extends EventEmitter {
 				const server = await this.getServer()
 
 				// Look up the clip:
-				const foundClips = await this._quantel.searchClip({
-					ClipGUID: `"${clip.guid}"`
-				})
-				const foundClip = _.find(foundClips, (clip) => {
-					return (
-						clip.PoolID &&
-						(server.pools || []).indexOf(clip.PoolID) !== -1
-					)
-				})
+				const foundClips = this.filterClips(await this.searchForClips(clip), server)
+				const foundClip = _.first(this.prioritizeClips(foundClips))
 				if (!foundClip) throw new Error(`Clip with GUID "${clip.guid}" not found on server (${server.ident})`)
 				return foundClip.ClipID
 			})
@@ -977,15 +991,9 @@ class QuantelManager extends EventEmitter {
 				const server = await this.getServer()
 
 				// Look up the clip:
-				const foundClips = await this._quantel.searchClip({
-					Title: `"${clip.title}"`
-				})
-				const foundClip = _.find(foundClips, (clip) => {
-					return (
-						clip.PoolID &&
-						(server.pools || []).indexOf(clip.PoolID) !== -1
-					)
-				})
+				const foundClips = this.filterClips(await this.searchForClips(clip), server)
+				const foundClip = _.first(this.prioritizeClips(foundClips))
+
 				if (!foundClip) throw new Error(`Clip with Title "${clip.title}" not found on server (${server.ident})`)
 				return foundClip.ClipID
 			})
@@ -993,6 +1001,44 @@ class QuantelManager extends EventEmitter {
 		if (!clipId) throw new Error(`Unable to determine clipId for clip "${clip.title || clip.guid}"`)
 
 		return clipId
+	}
+	private filterClips (clips: Q.ClipDataSummary[], server?: Q.ServerInfo): Q.ClipDataSummary[] {
+		return _.filter(clips, (clip) =>
+			(
+				typeof clip.PoolID === 'number' &&
+				parseInt(clip.Frames, 10) > 0 && // "Placeholder clips" does not have any Frames
+				(
+					!server ||
+					(server.pools || []).indexOf(clip.PoolID) !== -1 // If present in any of the pools of the server
+				)
+				// From Media-Manager:
+				// clip.Completed !== null &&
+				// clip.Completed.length > 0 // Note from Richard: Completed might not necessarily mean that it's completed on the right server
+			)
+		)
+	}
+	private prioritizeClips (clips: Q.ClipDataSummary[]): Q.ClipDataSummary[] {
+		// Sort the clips, so that the most likely to use is first.
+
+		return clips.sort(
+			(
+				a,
+				b // Sort Created dates into reverse order
+			) => new Date(b.Created).getTime() - new Date(a.Created).getTime()
+		)
+	}
+	private async searchForClips (clip: QuantelStatePortClip): Promise<Q.ClipDataSummary[]> {
+		if (clip.guid) {
+			return this._quantel.searchClip({
+				ClipGUID: `"${clip.guid}"`
+			})
+		} else if (clip.title) {
+			return this._quantel.searchClip({
+				Title: `"${clip.title}"`
+			})
+		} else {
+			throw new Error(`Unable to search for clip "${clip.title || clip.guid}"`)
+		}
 	}
 	private wait (time: number) {
 		return new Promise(resolve => {

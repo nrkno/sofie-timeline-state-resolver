@@ -7,7 +7,8 @@ import {
 	ChannelFormat,
 	Transition,
 	Ease,
-	Direction
+	Direction,
+	TSRTimeline
 } from '../../types/src'
 import { MockTime } from '../../__tests__/mockTime'
 import { getMockCall } from '../../__tests__/lib'
@@ -56,7 +57,6 @@ describe('CasparCG', () => {
 				useScheduling: true
 			}
 		})
-		await myConductor.setMapping(myLayerMapping)
 		await mockTime.advanceTimeToTicks(10100)
 
 		expect(commandReceiver0).toHaveBeenCalledTimes(3)
@@ -73,7 +73,7 @@ describe('CasparCG', () => {
 		// Check that no commands has been scheduled:
 		expect(await device['queue']).toHaveLength(0)
 
-		myConductor.timeline = [
+		myConductor.setTimelineAndMappings([
 			{
 				id: 'obj0',
 				enable: {
@@ -89,7 +89,7 @@ describe('CasparCG', () => {
 					loop: true
 				}
 			}
-		]
+		], myLayerMapping)
 
 		await mockTime.advanceTimeToTicks(10200)
 
@@ -142,7 +142,6 @@ describe('CasparCG', () => {
 				useScheduling: true
 			}
 		})
-		await myConductor.setMapping(myLayerMapping)
 		await mockTime.advanceTimeToTicks(10100)
 
 		expect(commandReceiver0).toHaveBeenCalledTimes(3)
@@ -159,7 +158,7 @@ describe('CasparCG', () => {
 		// Check that no commands has been scheduled:
 		expect(await device['queue']).toHaveLength(0)
 
-		myConductor.timeline = [
+		myConductor.setTimelineAndMappings([
 			{
 				id: 'obj0',
 				enable: {
@@ -174,7 +173,7 @@ describe('CasparCG', () => {
 					file: 'AMB'
 				}
 			}
-		]
+		], myLayerMapping)
 
 		await mockTime.advanceTimeToTicks(10200)
 
@@ -217,14 +216,13 @@ describe('CasparCG', () => {
 				useScheduling: false
 			}
 		})
-		await myConductor.setMapping(myLayerMapping)
 
 		let deviceContainer = myConductor.getDevice('myCCG')
 		let device = deviceContainer.device
 
 		// Check that no commands has been scheduled:
 		expect(await device['queue']).toHaveLength(0)
-		myConductor.timeline = [
+		myConductor.setTimelineAndMappings([
 			{
 				id: 'obj0',
 				enable: {
@@ -239,7 +237,7 @@ describe('CasparCG', () => {
 					uri: 'rtsp://127.0.0.1:5004'
 				}
 			}
-		]
+		], myLayerMapping)
 		await mockTime.advanceTimeTicks(100)
 
 		// one command has been sent:
@@ -291,7 +289,6 @@ describe('CasparCG', () => {
 				useScheduling: true
 			}
 		})
-		await myConductor.setMapping(myLayerMapping)
 
 		let deviceContainer = myConductor.getDevice('myCCG')
 		let device = deviceContainer.device
@@ -310,7 +307,7 @@ describe('CasparCG', () => {
 		expect(getMockCall(commandReceiver0, 1, 1).name).toEqual('TimeCommand')
 		expect(getMockCall(commandReceiver0, 2, 1).name).toEqual('TimeCommand')
 
-		myConductor.timeline = [
+		myConductor.setTimelineAndMappings([
 			{
 				id: 'obj0',
 				enable: {
@@ -327,7 +324,7 @@ describe('CasparCG', () => {
 					deviceFormat: ChannelFormat.HD_720P5000
 				}
 			}
-		]
+		], myLayerMapping)
 		await mockTime.advanceTimeToTicks(10100)
 
 		// one command has been sent:
@@ -380,7 +377,6 @@ describe('CasparCG', () => {
 				useScheduling: true
 			}
 		})
-		await myConductor.setMapping(myLayerMapping)
 
 		let deviceContainer = myConductor.getDevice('myCCG')
 		let device = deviceContainer.device
@@ -394,7 +390,7 @@ describe('CasparCG', () => {
 		expect(getMockCall(commandReceiver0, 1, 1).name).toEqual('TimeCommand')
 		expect(getMockCall(commandReceiver0, 2, 1).name).toEqual('TimeCommand')
 
-		myConductor.timeline = [
+		myConductor.setTimelineAndMappings([
 			{
 				id: 'obj0',
 				enable: {
@@ -414,7 +410,7 @@ describe('CasparCG', () => {
 					useStopCommand: true
 				}
 			}
-		]
+		], myLayerMapping)
 
 		await mockTime.advanceTimeToTicks(10100)
 
@@ -465,7 +461,6 @@ describe('CasparCG', () => {
 				useScheduling: true
 			}
 		})
-		await myConductor.setMapping(myLayerMapping)
 
 		let deviceContainer = myConductor.getDevice('myCCG')
 		let device = deviceContainer.device
@@ -479,7 +474,7 @@ describe('CasparCG', () => {
 		expect(getMockCall(commandReceiver0, 1, 1).name).toEqual('TimeCommand')
 		expect(getMockCall(commandReceiver0, 2, 1).name).toEqual('TimeCommand')
 
-		myConductor.timeline = [
+		myConductor.setTimelineAndMappings([
 			{
 				id: 'obj0',
 				enable: {
@@ -495,7 +490,7 @@ describe('CasparCG', () => {
 					encoderOptions: '-format mkv -c:v libx264 -crf 22'
 				}
 			}
-		]
+		], myLayerMapping)
 
 		await mockTime.advanceTimeToTicks(10100)
 
@@ -551,7 +546,6 @@ describe('CasparCG', () => {
 				useScheduling: true
 			}
 		})
-		await myConductor.setMapping(myLayerMapping)
 
 		let deviceContainer = myConductor.getDevice('myCCG')
 		let device = deviceContainer.device
@@ -566,7 +560,7 @@ describe('CasparCG', () => {
 		expect(getMockCall(commandReceiver0, 1, 1).name).toEqual('TimeCommand')
 		expect(getMockCall(commandReceiver0, 2, 1).name).toEqual('TimeCommand')
 
-		myConductor.timeline = [
+		myConductor.setTimelineAndMappings([
 			{
 				id: 'obj0',
 				enable: {
@@ -599,7 +593,7 @@ describe('CasparCG', () => {
 					delay: 320 * 1000
 				}
 			}
-		]
+		], myLayerMapping)
 
 		await mockTime.advanceTimeToTicks(10100)
 
@@ -666,7 +660,6 @@ describe('CasparCG', () => {
 				useScheduling: true
 			}
 		})
-		await myConductor.setMapping(myLayerMapping)
 
 		// Check that no commands has been sent:
 		expect(commandReceiver0).toHaveBeenCalledTimes(0)
@@ -677,7 +670,7 @@ describe('CasparCG', () => {
 		expect(getMockCall(commandReceiver0, 1, 1).name).toEqual('TimeCommand')
 		expect(getMockCall(commandReceiver0, 2, 1).name).toEqual('TimeCommand')
 
-		myConductor.timeline = [
+		myConductor.setTimelineAndMappings([
 			{
 				id: 'obj0',
 				enable: {
@@ -707,7 +700,7 @@ describe('CasparCG', () => {
 					}
 				}
 			}
-		]
+		], myLayerMapping)
 
 		// fast-forward:
 		await mockTime.advanceTimeTicks(100)
@@ -774,12 +767,11 @@ describe('CasparCG', () => {
 				useScheduling: true
 			}
 		})
-		await myConductor.setMapping(myLayerMapping)
 
 		// Check that no commands has been sent:
 		expect(commandReceiver0).toHaveBeenCalledTimes(0)
 
-		myConductor.timeline = [
+		myConductor.setTimelineAndMappings([
 			{
 				id: 'obj0',
 				enable: {
@@ -837,7 +829,7 @@ describe('CasparCG', () => {
 					}
 				}]
 			}
-		]
+		], myLayerMapping)
 
 		// fast-forward:
 		await mockTime.advanceTimeTicks(100)
@@ -911,7 +903,6 @@ describe('CasparCG', () => {
 				useScheduling: true
 			}
 		})
-		await myConductor.setMapping(myLayerMapping)
 
 		expect(mockTime.getCurrentTime()).toEqual(10000)
 
@@ -921,7 +912,7 @@ describe('CasparCG', () => {
 		expect(getMockCall(commandReceiver0, 1, 1).name).toEqual('TimeCommand')
 		expect(getMockCall(commandReceiver0, 2, 1).name).toEqual('TimeCommand')
 
-		myConductor.timeline = [
+		myConductor.setTimelineAndMappings([
 			{
 				id: 'obj0_bg',
 				enable: {
@@ -954,7 +945,7 @@ describe('CasparCG', () => {
 					loop: true
 				}
 			}
-		]
+		], myLayerMapping)
 
 		await mockTime.advanceTimeTicks(100)
 		expect(commandReceiver0).toHaveBeenCalledTimes(5)
@@ -1020,7 +1011,6 @@ describe('CasparCG', () => {
 				useScheduling: true
 			}
 		})
-		await myConductor.setMapping(myLayerMapping)
 
 		expect(mockTime.getCurrentTime()).toEqual(10000)
 
@@ -1030,7 +1020,7 @@ describe('CasparCG', () => {
 		expect(getMockCall(commandReceiver0, 1, 1).name).toEqual('TimeCommand')
 		expect(getMockCall(commandReceiver0, 2, 1).name).toEqual('TimeCommand')
 
-		myConductor.timeline = [
+		myConductor.setTimelineAndMappings([
 			{
 				id: 'obj0_bg',
 				enable: {
@@ -1063,7 +1053,7 @@ describe('CasparCG', () => {
 					loop: true
 				}
 			}
-		]
+		], myLayerMapping)
 
 		await mockTime.advanceTimeTicks(100)
 		expect(commandReceiver0).toHaveBeenCalledTimes(5)
@@ -1127,7 +1117,6 @@ describe('CasparCG', () => {
 				useScheduling: true
 			}
 		})
-		await myConductor.setMapping(myLayerMapping)
 
 		await mockTime.advanceTimeToTicks(10050)
 		expect(commandReceiver0).toHaveBeenCalledTimes(3)
@@ -1135,7 +1124,7 @@ describe('CasparCG', () => {
 		expect(getMockCall(commandReceiver0, 1, 1).name).toEqual('TimeCommand')
 		expect(getMockCall(commandReceiver0, 2, 1).name).toEqual('TimeCommand')
 
-		myConductor.timeline = [
+		myConductor.setTimelineAndMappings([
 			{
 				id: 'obj0_bg',
 				enable: {
@@ -1168,7 +1157,7 @@ describe('CasparCG', () => {
 					loop: true
 				}
 			}
-		]
+		], myLayerMapping)
 
 		await mockTime.advanceTimeToTicks(10100)
 		expect(commandReceiver0).toHaveBeenCalledTimes(5)
@@ -1195,7 +1184,7 @@ describe('CasparCG', () => {
 		let tokenPlay = getMockCall(commandReceiver0, 4, 1)._objectParams.token
 
 		// then change my mind:
-		myConductor.timeline = []
+		myConductor.setTimelineAndMappings([])
 		await mockTime.advanceTimeToTicks(10200)
 
 		expect(commandReceiver0).toHaveBeenCalledTimes(7)
@@ -1242,7 +1231,6 @@ describe('CasparCG', () => {
 				useScheduling: true
 			}
 		})
-		await myConductor.setMapping(myLayerMapping)
 
 		await mockTime.advanceTimeToTicks(10050)
 		expect(commandReceiver0).toHaveBeenCalledTimes(3)
@@ -1250,7 +1238,7 @@ describe('CasparCG', () => {
 		expect(getMockCall(commandReceiver0, 1, 1).name).toEqual('TimeCommand')
 		expect(getMockCall(commandReceiver0, 2, 1).name).toEqual('TimeCommand')
 
-		myConductor.timeline = [
+		myConductor.setTimelineAndMappings([
 			{
 				id: 'obj0',
 				enable: {
@@ -1281,7 +1269,7 @@ describe('CasparCG', () => {
 					loop: true
 				}
 			}
-		]
+		], myLayerMapping)
 
 		await mockTime.advanceTimeToTicks(30000)
 		expect(commandReceiver0).toHaveBeenCalledTimes(5)
@@ -1332,7 +1320,6 @@ describe('CasparCG', () => {
 				useScheduling: true
 			}
 		})
-		await myConductor.setMapping(myLayerMapping)
 		await mockTime.advanceTimeToTicks(10100)
 
 		expect(commandReceiver0).toHaveBeenCalledTimes(3)
@@ -1349,7 +1336,7 @@ describe('CasparCG', () => {
 		// Check that no commands has been scheduled:
 		expect(await device['queue']).toHaveLength(0)
 
-		myConductor.timeline = [
+		myConductor.setTimelineAndMappings([
 			{
 				id: 'obj0',
 				enable: {
@@ -1369,7 +1356,7 @@ describe('CasparCG', () => {
 					filter: 'yadif=0:-1'
 				}
 			}
-		]
+		] as TSRTimeline, myLayerMapping)
 
 		await mockTime.advanceTimeToTicks(10200)
 
@@ -1423,7 +1410,7 @@ describe('CasparCG', () => {
 				retryInterval: false // disable retries explicitly, we will manually trigger them
 			}
 		})
-		await myConductor.setMapping(myLayerMapping)
+		myConductor.setTimelineAndMappings([], myLayerMapping)
 		await mockTime.advanceTimeToTicks(10100)
 
 		expect(commandReceiver0).toHaveBeenCalledTimes(0)
@@ -1436,7 +1423,7 @@ describe('CasparCG', () => {
 		// Check that no commands has been scheduled:
 		expect(await device['queue']).toHaveLength(0)
 
-		myConductor.timeline = [
+		myConductor.setTimelineAndMappings([
 			{
 				id: 'obj0',
 				enable: {
@@ -1452,7 +1439,7 @@ describe('CasparCG', () => {
 					loop: true
 				}
 			}
-		]
+		])
 
 		await mockTime.advanceTimeToTicks(10200)
 

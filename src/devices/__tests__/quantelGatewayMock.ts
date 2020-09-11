@@ -153,7 +153,7 @@ function handleRequest (
 
 			const searchClip = (params): Q.ClipDataSummary[] | ErrorResponse => {
 				if (!quantelServer.ISAOptionHasBeenProvided) return noIsaSetupResponse
-				return _.filter([
+				return _.filter<Q.ClipDataSummary[]>([
 					{
 						type: 'ClipDataSummary',
 						ClipID: 2,
@@ -326,7 +326,7 @@ function handleRequest (
 				// get clip info:
 				'get /:zoneID/clip/:clipID': (params): Q.ClipData | ErrorResponse => {
 					if (!quantelServer.ISAOptionHasBeenProvided) return noIsaSetupResponse
-					const clips = _.filter<Q.ClipData>([
+					const clips = _.filter<Q.ClipData[]>([
 						{
 							type: 'ClipData',
 							Category: '',

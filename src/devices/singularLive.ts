@@ -15,7 +15,8 @@ import {
 	TimelineObjSingularLiveAny,
 	DeviceOptionsSingularLive,
 	SingularCompositionAnimation,
-	SingularCompositionControlNode
+	SingularCompositionControlNode,
+	Mappings
 } from '../types/src'
 import { DoOnTime, SendMode } from '../doOnTime'
 import * as request from 'request'
@@ -74,13 +75,14 @@ const SINGULAR_LIVE_API = 'https://app.singular.live/apiv1/control/'
 /**
  * This is a Singular.Live device, it talks to a Singular.Live App Instance using an Access Token
  */
-export class SingularLiveDevice extends DeviceWithState<TimelineState> implements IDevice {
+export class SingularLiveDevice extends DeviceWithState<SingularLiveState> implements IDevice {
 
 	// private _makeReadyCommands: SingularLiveCommandContent[]
 	private _accessToken: string
 	private _doOnTime: DoOnTime
 	private _deviceStatus: DeviceStatus = {
-		statusCode: StatusCode.GOOD
+		statusCode: StatusCode.GOOD,
+		active: this.isActive
 	}
 
 	private _commandReceiver: CommandReceiver
@@ -110,16 +112,16 @@ export class SingularLiveDevice extends DeviceWithState<TimelineState> implement
 		this._doOnTime.clearQueueNowAndAfter(newStateTime)
 		this.cleanUpStates(0, newStateTime)
 	}
-	handleState (newState: TimelineState) {
+	handleState (newState: TimelineState, newMappings: Mappings) {
+		super.onHandleState(newState, newMappings)
 		// Handle this new state, at the point in time specified
 
 		let previousStateTime = Math.max(this.getCurrentTime(), newState.time)
-		let oldState: TimelineState = (this.getStateBefore(previousStateTime) || { state: { time: 0, layers: {}, nextEvents: [] } }).state
+		let oldSingularState: SingularLiveState = (this.getStateBefore(previousStateTime) || { state: { compositions: {} } }).state
 
-		let oldAbstractState = this.convertStateToSingularLive(oldState)
-		let newAbstractState = this.convertStateToSingularLive(newState)
+		let newSingularState = this.convertStateToSingularLive(newState, newMappings)
 
-		let commandsToAchieveState: Array<any> = this._diffStates(oldAbstractState, newAbstractState)
+		let commandsToAchieveState: Array<any> = this._diffStates(oldSingularState, newSingularState)
 
 		// clear any queued commands later than this time:
 		this._doOnTime.clearQueueNowAndAfter(previousStateTime)
@@ -127,7 +129,7 @@ export class SingularLiveDevice extends DeviceWithState<TimelineState> implement
 		this._addToQueue(commandsToAchieveState, newState.time)
 
 		// store the new state, for later use:
-		this.setState(newState, newState.time)
+		this.setState(newSingularState, newState.time)
 	}
 	clearFuture (clearAfterTime: number) {
 		// Clear any scheduled commands after this time
@@ -164,14 +166,14 @@ export class SingularLiveDevice extends DeviceWithState<TimelineState> implement
 			compositions: {}
 		}
 	}
-	convertStateToSingularLive (state: TimelineState) {
+	convertStateToSingularLive (state: TimelineState, newMappings: Mappings) {
 		// convert the timeline state into something we can use
 		// (won't even use this.mapping)
 		const singularState: SingularLiveState = this._getDefaultState()
 
 		_.each(state.layers, (tlObject: ResolvedTimelineObjectInstance, layerName: string) => {
-			const mapping: MappingSingularLive | undefined = this.getMapping()[layerName] as MappingSingularLive
-			if (mapping && mapping.device === DeviceType.SINGULAR_LIVE) {
+			const mapping: MappingSingularLive | undefined = newMappings[layerName] as MappingSingularLive
+			if (mapping && mapping.device === DeviceType.SINGULAR_LIVE && mapping.deviceId === this.deviceId) {
 				let tlObjectSource = tlObject as any as TimelineObjSingularLiveAny
 
 				if (tlObjectSource.content.type === TimelineContentTypeSingularLive.COMPOSITION) {

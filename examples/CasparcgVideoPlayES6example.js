@@ -52,11 +52,11 @@ tsrConductor.init()
 
 			// playing: false, // Set to true to pause the clip
 			// pauseTime: Date.now() // the time at which the clip was paused
-		} 
+		}
 	});
 	console.log('set timeline');
-	tsrConductor.timeline = [
+	tsrConductor.setTimelineAndMappings([
 		video0
-	];
+	]);
 	// After the timeline has been set, the TSR Conductor will make sure it starts playing
 });

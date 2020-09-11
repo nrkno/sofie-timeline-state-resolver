@@ -2,7 +2,8 @@ jest.mock('osc')
 import { Conductor } from '../../conductor'
 import {
 	Mappings,
-	DeviceType
+	DeviceType,
+	TSRTimeline
 } from '../../types/src'
 import { MockOSC } from '../../__mocks__/osc'
 import { MockTime } from '../../__tests__/mockTime'
@@ -69,7 +70,7 @@ describe('Sisyfos', () => {
 			initializeAsClear: true,
 			getCurrentTime: mockTime.getCurrentTime
 		})
-		await myConductor.setMapping(myChannelMapping)
+		myConductor.setTimelineAndMappings([], myChannelMapping)
 		await myConductor.init() // we cannot do an await, because setTimeout will never call without jest moving on.
 		await myConductor.addDevice('mySisyfos', {
 			type: DeviceType.SISYFOS,
@@ -87,7 +88,7 @@ describe('Sisyfos', () => {
 		// Check that no commands has been scheduled:
 		expect(await device.queue).toHaveLength(0)
 
-		myConductor.timeline = [
+		myConductor.setTimelineAndMappings([
 			{
 				id: 'obj0',
 				enable: {
@@ -188,7 +189,7 @@ describe('Sisyfos', () => {
 					visible: true
 				}
 			}
-		]
+		] as TSRTimeline)
 
 		await mockTime.advanceTimeTicks(100) // now-ish
 		expect(commandReceiver0.mock.calls.length).toEqual(1)
@@ -284,7 +285,7 @@ describe('Sisyfos', () => {
 			initializeAsClear: true,
 			getCurrentTime: mockTime.getCurrentTime
 		})
-		await myConductor.setMapping(myChannelMapping)
+		myConductor.setTimelineAndMappings([], myChannelMapping)
 		await myConductor.init() // we cannot do an await, because setTimeout will never call without jest moving on.
 		await myConductor.addDevice('mySisyfos', {
 			type: DeviceType.SISYFOS,
@@ -302,7 +303,7 @@ describe('Sisyfos', () => {
 		// Check that no commands has been scheduled:
 		expect(await device.queue).toHaveLength(0)
 
-		myConductor.timeline = [
+		myConductor.setTimelineAndMappings([
 			{
 				id: 'obj0',
 				enable: {
@@ -401,7 +402,7 @@ describe('Sisyfos', () => {
 					visible: true
 				}
 			}
-		]
+		])
 
 		await mockTime.advanceTimeTicks(100) // now-ish
 		expect(commandReceiver0.mock.calls.length).toEqual(1)
@@ -498,7 +499,7 @@ describe('Sisyfos', () => {
 			initializeAsClear: true,
 			getCurrentTime: mockTime.getCurrentTime
 		})
-		await myConductor.setMapping(myChannelMapping)
+		myConductor.setTimelineAndMappings([], myChannelMapping)
 		await myConductor.init() // we cannot do an await, because setTimeout will never call without jest moving on.
 		await myConductor.addDevice('mySisyfos', {
 			type: DeviceType.SISYFOS,
@@ -516,7 +517,7 @@ describe('Sisyfos', () => {
 		// Check that no commands has been scheduled:
 		expect(await device.queue).toHaveLength(0)
 
-		myConductor.timeline = [
+		myConductor.setTimelineAndMappings([
 			{
 				id: 'obj0',
 				enable: {
@@ -563,7 +564,7 @@ describe('Sisyfos', () => {
 				isLookahead: true,
 				lookaheadForLayer: 'sisyfos_channel_2'
 			}
-		]
+		])
 
 		await mockTime.advanceTimeTicks(100) // now-ish
 		expect(commandReceiver0.mock.calls.length).toEqual(1)
@@ -626,7 +627,7 @@ describe('Sisyfos', () => {
 			initializeAsClear: true,
 			getCurrentTime: mockTime.getCurrentTime
 		})
-		await myConductor.setMapping(myChannelMapping)
+		myConductor.setTimelineAndMappings([], myChannelMapping)
 		await myConductor.init() // we cannot do an await, because setTimeout will never call without jest moving on.
 		await myConductor.addDevice('mySisyfos', {
 			type: DeviceType.SISYFOS,
@@ -644,7 +645,7 @@ describe('Sisyfos', () => {
 		// Check that no commands has been scheduled:
 		expect(await device.queue).toHaveLength(0)
 
-		myConductor.timeline = [
+		myConductor.setTimelineAndMappings([
 			{
 				id: 'baseline',
 				enable: {
@@ -720,7 +721,7 @@ describe('Sisyfos', () => {
 					overridePriority: -999
 				}
 			}
-		]
+		])
 
 		// baseline:
 		await mockTime.advanceTimeTicks(100) // 100
@@ -798,7 +799,7 @@ describe('Sisyfos', () => {
 			initializeAsClear: true,
 			getCurrentTime: mockTime.getCurrentTime
 		})
-		// await myConductor.setMapping(myChannelMapping)
+		// myConductor.setTimelineAndMappings([], myChannelMapping)
 		await myConductor.init()
 		await myConductor.addDevice('mySisyfos', {
 			type: DeviceType.SISYFOS,

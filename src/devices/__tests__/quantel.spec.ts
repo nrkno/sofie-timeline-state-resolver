@@ -93,7 +93,7 @@ describe('Quantel', () => {
 		device.on('error', deviceErrorHandler)
 		device.on('commandError', deviceErrorHandler)
 
-		await myConductor.setMapping(myLayerMapping)
+		myConductor.setTimelineAndMappings([], myLayerMapping)
 
 		expect(mockTime.getCurrentTime()).toEqual(10000)
 		await mockTime.advanceTimeToTicks(10100)
@@ -133,7 +133,7 @@ describe('Quantel', () => {
 		// Check that no commands has been scheduled:
 		expect(await device.queue).toHaveLength(0)
 
-		myConductor.timeline = [
+		myConductor.setTimelineAndMappings([
 			{
 				id: 'video0',
 				enable: {
@@ -154,7 +154,7 @@ describe('Quantel', () => {
 					// noStarttime?: boolean
 				}
 			}
-		]
+		])
 		// Time to preload the clip
 		await mockTime.advanceTimeToTicks(10990)
 
@@ -266,7 +266,7 @@ describe('Quantel', () => {
 		device.on('error', deviceErrorHandler)
 		device.on('commandError', deviceErrorHandler)
 
-		await myConductor.setMapping(myLayerMapping)
+		myConductor.setTimelineAndMappings([], myLayerMapping)
 		expect(mockTime.getCurrentTime()).toEqual(10000)
 		await mockTime.advanceTimeToTicks(10100)
 
@@ -305,7 +305,7 @@ describe('Quantel', () => {
 		// Check that no commands has been scheduled:
 		expect(await device.queue).toHaveLength(0)
 
-		myConductor.timeline = [
+		myConductor.setTimelineAndMappings([
 			{
 				id: 'video0',
 				enable: {
@@ -326,7 +326,7 @@ describe('Quantel', () => {
 					// noStarttime?: boolean
 				}
 			}
-		]
+		])
 		// Time to preload the clip
 		await mockTime.advanceTimeToTicks(10990)
 
@@ -438,7 +438,7 @@ describe('Quantel', () => {
 		device.on('error', console.log)
 		device.on('commandError', console.log)
 
-		await myConductor.setMapping(myLayerMapping)
+		myConductor.setTimelineAndMappings([], myLayerMapping)
 
 		await mockTime.advanceTimeToTicks(15000)
 		clearMocks()
@@ -448,7 +448,7 @@ describe('Quantel', () => {
 		// Check that no commands has been scheduled:
 		expect(await device.queue).toHaveLength(0)
 
-		myConductor.timeline = [
+		myConductor.setTimelineAndMappings([
 			{
 				id: 'video0',
 				enable: {
@@ -497,7 +497,7 @@ describe('Quantel', () => {
 					inPoint: 500
 				}
 			}
-		]
+		])
 		// What's going to happen:
 		// 15000: clip Test0 starts playing
 		// 15200: clip myClip starts playing (replaces old clip)
@@ -679,7 +679,7 @@ describe('Quantel', () => {
 		device.on('error', deviceErrorHandler)
 		device.on('commandError', deviceErrorHandler)
 
-		await myConductor.setMapping(myLayerMapping)
+		myConductor.setTimelineAndMappings([], myLayerMapping)
 
 		expect(mockTime.getCurrentTime()).toEqual(10000)
 		await mockTime.advanceTimeToTicks(10100)
@@ -719,7 +719,7 @@ describe('Quantel', () => {
 		// Check that no commands has been scheduled:
 		expect(await device.queue).toHaveLength(0)
 
-		myConductor.timeline = [
+		myConductor.setTimelineAndMappings([
 			{
 				id: 'video0',
 				enable: {
@@ -737,7 +737,7 @@ describe('Quantel', () => {
 					}
 				}
 			}
-		]
+		])
 		// Time to preload the clip
 		await mockTime.advanceTimeToTicks(10990)
 
@@ -858,7 +858,7 @@ describe('Quantel', () => {
 		device.on('error', deviceErrorHandler)
 		device.on('commandError', deviceErrorHandler)
 
-		await myConductor.setMapping(myLayerMapping)
+		myConductor.setTimelineAndMappings([], myLayerMapping)
 
 		expect(mockTime.getCurrentTime()).toEqual(10000)
 		await mockTime.advanceTimeToTicks(10100)
@@ -898,7 +898,7 @@ describe('Quantel', () => {
 		// Check that no commands has been scheduled:
 		expect(await device.queue).toHaveLength(0)
 
-		myConductor.timeline = [
+		myConductor.setTimelineAndMappings([
 			{
 				id: 'video0',
 				enable: {
@@ -932,7 +932,7 @@ describe('Quantel', () => {
 					playing: false
 				}
 			}
-		]
+		])
 		// Time to preload the clip
 		await mockTime.advanceTimeToTicks(10990)
 

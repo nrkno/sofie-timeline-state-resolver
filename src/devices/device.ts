@@ -38,7 +38,8 @@ export enum StatusCode {
 }
 export interface DeviceStatus {
 	statusCode: StatusCode,
-	messages?: Array<string>
+	messages?: Array<string>,
+	active: boolean
 }
 
 export function literal<T> (o: T) { return o }
@@ -49,7 +50,7 @@ export interface IDevice {
 	getCurrentTime: () => number
 
 	prepareForHandleState: (newStateTime: number) => void
-	handleState: (newState: TimelineState) => void
+	handleState: (newState: TimelineState, mappings: Mappings) => void
 	clearFuture: (clearAfterTime: number) => void
 	canConnect: boolean
 	connected: boolean
@@ -57,9 +58,6 @@ export interface IDevice {
 	makeReady: (_okToDestroyStuff?: boolean, activeRundownId?: string) => Promise<void>
 	standDown: (_okToDestroyStuff?: boolean) => Promise<void>
 	getStatus: () => DeviceStatus
-
-	getMapping: () => Mappings
-	setMapping: (mappings: Mappings) => void
 
 	deviceId: string
 	deviceName: string
@@ -79,7 +77,6 @@ export abstract class Device extends EventEmitter implements IDevice {
 
 	private _deviceId: string
 
-	private _mappings: Mappings = {}
 	private _currentTimeDiff: number = 0
 	private _currentTimeUpdated: number = 0
 	private _instanceId: number
@@ -88,6 +85,7 @@ export abstract class Device extends EventEmitter implements IDevice {
 	public useDirectTime: boolean = false
 	protected _deviceOptions: DeviceOptionsAny
 	protected _reportAllCommands: boolean = false
+	protected _isActive: boolean = true
 
 	constructor (deviceId: string, deviceOptions: DeviceOptionsAny, getCurrentTime: () => Promise<number>) {
 		super()
@@ -141,7 +139,12 @@ export abstract class Device extends EventEmitter implements IDevice {
 	/** Called from Conductor when a new state is about to be handled soon */
 	abstract prepareForHandleState (newStateTime: number)
 	/** Called from Conductor when a new state is to be handled */
-	abstract handleState (newState: TimelineState)
+	abstract handleState (newState: TimelineState, mappings: Mappings)
+
+	/** To be called by children first in .handleState */
+	protected onHandleState (_newState: TimelineState, mappings: Mappings) {
+		this.updateIsActive(mappings)
+	}
 	/**
 	 * Clear any scheduled commands after this time
 	 * @param clearAfterTime
@@ -171,13 +174,6 @@ export abstract class Device extends EventEmitter implements IDevice {
 	}
 	abstract getStatus (): DeviceStatus
 
-	getMapping (): Mappings {
-		return this._mappings
-	}
-	setMapping (mappings: Mappings) {
-		this._mappings = mappings
-	}
-
 	get deviceId () {
 		return this._deviceId
 	}
@@ -195,6 +191,9 @@ export abstract class Device extends EventEmitter implements IDevice {
 	public handleExpectedPlayoutItems (_expectedPlayoutItems: Array<ExpectedPlayoutItemContent>): void {
 		// When receiving a new list of playoutItems.
 		// by default, do nothing
+	}
+	get isActive (): boolean {
+		return this._isActive
 	}
 
 	private _updateCurrentTime () {
@@ -254,6 +253,20 @@ export abstract class Device extends EventEmitter implements IDevice {
 				this.emit('commandReport', commandReport)
 			}
 		})
+	}
+	private updateIsActive (mappings: Mappings) {
+		// If there are no mappings assigned to this device, it is considered inactive
+
+		const ownMappings: Mappings = {}
+		let isActive: boolean = false
+
+		_.each(mappings, (mapping, layerId) => {
+			if (mapping.deviceId === this.deviceId) {
+				isActive = true
+				ownMappings[layerId] = mapping
+			}
+		})
+		this._isActive = isActive
 	}
 }
 

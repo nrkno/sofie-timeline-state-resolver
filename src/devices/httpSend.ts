@@ -10,7 +10,8 @@ import {
 	DeviceType,
 	HTTPSendOptions,
 	HTTPSendCommandContent,
-	DeviceOptionsHTTPSend
+	DeviceOptionsHTTPSend,
+	Mappings
 } from '../types/src'
 import { DoOnTime, SendMode } from '../doOnTime'
 import * as request from 'request'
@@ -34,10 +35,12 @@ interface Command {
 }
 type CommandContext = string
 
+type HTTPSendState = TimelineState
+
 /**
  * This is a HTTPSendDevice, it sends http commands when it feels like it
  */
-export class HTTPSendDevice extends DeviceWithState<TimelineState> implements IDevice {
+export class HTTPSendDevice extends DeviceWithState<HTTPSendState> implements IDevice {
 
 	private _makeReadyCommands: HTTPSendCommandContent[]
 	private _makeReadyDoesReset: boolean
@@ -68,16 +71,17 @@ export class HTTPSendDevice extends DeviceWithState<TimelineState> implements ID
 		this._doOnTime.clearQueueNowAndAfter(newStateTime)
 		this.cleanUpStates(0, newStateTime)
 	}
-	handleState (newState: TimelineState) {
+	handleState (newState: TimelineState, newMappings: Mappings) {
+		super.onHandleState(newState, newMappings)
 		// Handle this new state, at the point in time specified
 
 		let previousStateTime = Math.max(this.getCurrentTime(), newState.time)
 		let oldState: TimelineState = (this.getStateBefore(previousStateTime) || { state: { time: 0, layers: {}, nextEvents: [] } }).state
 
-		let oldAbstractState = this.convertStateToHttpSend(oldState)
-		let newAbstractState = this.convertStateToHttpSend(newState)
+		let oldHttpSendState = oldState
+		let newHttpSendState = this.convertStateToHttpSend(newState)
 
-		let commandsToAchieveState: Array<any> = this._diffStates(oldAbstractState, newAbstractState)
+		let commandsToAchieveState: Array<any> = this._diffStates(oldHttpSendState, newHttpSendState)
 
 		// clear any queued commands later than this time:
 		this._doOnTime.clearQueueNowAndAfter(previousStateTime)
@@ -98,7 +102,8 @@ export class HTTPSendDevice extends DeviceWithState<TimelineState> implements ID
 	getStatus (): DeviceStatus {
 		// Good, since this device has no status, really
 		return {
-			statusCode: StatusCode.GOOD
+			statusCode: StatusCode.GOOD,
+			active: this.isActive
 		}
 	}
 	async makeReady (okToDestroyStuff?: boolean): Promise<void> {

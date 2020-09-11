@@ -14,7 +14,8 @@ import {
 	LawoOptions,
 	PanasonicPTZOptions,
 	HTTPWatcherOptions,
-	VizMSEOptions
+	VizMSEOptions,
+	VMixOptions
 } from '.'
 import { ShotokuOptions } from './shotoku'
 
@@ -47,6 +48,8 @@ export type DeviceOptionsAny = DeviceOptionsAbstract |
 	DeviceOptionsHTTPpWatcher |
 	DeviceOptionsSisyfos |
 	DeviceOptionsQuantel |
+	DeviceOptionsSingularLive |
+	DeviceOptionsVMix |
 	DeviceOptionsVizMSE |
 	DeviceOptionsSingularLive |
 	DeviceOptionsShotoku
@@ -64,6 +67,8 @@ export type DeviceInitOptions = AbstractOptions |
 	HTTPWatcherOptions |
 	SisyfosOptions |
 	QuantelOptions |
+	SingularLiveOptions |
+	VMixOptions |
 	VizMSEOptions |
 	SingularLiveOptions
 
@@ -130,4 +135,9 @@ export interface DeviceOptionsSingularLive extends DeviceOptionsBase {
 export interface DeviceOptionsShotoku extends DeviceOptionsBase {
 	type: DeviceType.SHOTOKU
 	options: ShotokuOptions
+}
+
+export interface DeviceOptionsVMix extends DeviceOptionsBase {
+	type: DeviceType.VMIX
+	options: VMixOptions
 }

@@ -76,7 +76,7 @@ describe('Pharos', () => {
 				host: '127.0.0.1'
 			}
 		})
-		await myConductor.setMapping(myLayerMapping)
+		myConductor.setTimelineAndMappings([], myLayerMapping)
 
 		let wsInstances = WebSocket.getMockInstances()
 		expect(wsInstances).toHaveLength(1)
@@ -93,7 +93,7 @@ describe('Pharos', () => {
 		// Check that no commands has been scheduled:
 		expect(await device.queue).toHaveLength(0)
 
-		myConductor.timeline = [
+		myConductor.setTimelineAndMappings([
 			{
 				id: 'scene0',
 				enable: {
@@ -137,7 +137,7 @@ describe('Pharos', () => {
 					stopped: true
 				}
 			}
-		]
+		])
 
 		await mockTime.advanceTimeToTicks(10990)
 		expect(commandReceiver0).toHaveBeenCalledTimes(0)

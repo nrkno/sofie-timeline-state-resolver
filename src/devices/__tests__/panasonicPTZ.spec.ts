@@ -77,7 +77,7 @@ describe('Panasonic PTZ', () => {
 			initializeAsClear: true,
 			getCurrentTime: mockTime.getCurrentTime
 		})
-		await myConductor.setMapping(myChannelMapping)
+		myConductor.setTimelineAndMappings([], myChannelMapping)
 		await myConductor.init() // we cannot do an await, because setTimeout will never call without jest moving on.
 		await myConductor.addDevice('myPtz', {
 			type: DeviceType.PANASONIC_PTZ,
@@ -94,7 +94,7 @@ describe('Panasonic PTZ', () => {
 		// Check that no commands has been scheduled:
 		expect(await device.queue).toHaveLength(0)
 
-		myConductor.timeline = [
+		myConductor.setTimelineAndMappings([
 			{
 				id: 'obj0',
 				enable: {
@@ -199,7 +199,7 @@ describe('Panasonic PTZ', () => {
 					zoomSpeed: 1
 				}
 			}
-		]
+		])
 
 		await mockTime.advanceTimeToTicks(10200)
 

@@ -6,7 +6,7 @@ import {
 	StatusCode,
 	IDevice
 } from './device'
-import { DeviceType, AbstractOptions, DeviceOptionsAbstract } from '../types/src'
+import { DeviceType, AbstractOptions, DeviceOptionsAbstract, Mappings } from '../types/src'
 
 import { TimelineState, ResolvedTimelineObjectInstance } from 'superfly-timeline'
 import { DoOnTime, SendMode } from '../doOnTime'
@@ -27,13 +27,14 @@ export interface DeviceOptionsAbstractInternal extends DeviceOptionsAbstract {
 	)
 }
 export type CommandReceiver = (time: number, cmd: Command, context: CommandContext, timelineObjId: string) => Promise<any>
+type AbstractState = TimelineState
 /*
 	This is a wrapper for an "Abstract" device
 
 	An abstract device is just a test-device that doesn't really do anything, but can be used
 	as a preliminary mock
 */
-export class AbstractDevice extends DeviceWithState<TimelineState> implements IDevice {
+export class AbstractDevice extends DeviceWithState<AbstractState> implements IDevice {
 	private _doOnTime: DoOnTime
 
 	private _commandReceiver: CommandReceiver
@@ -69,7 +70,8 @@ export class AbstractDevice extends DeviceWithState<TimelineState> implements ID
 	 * Handle a new state, at the point in time specified
 	 * @param newState
 	 */
-	handleState (newState: TimelineState) {
+	handleState (newState: TimelineState, newMappings: Mappings) {
+		super.onHandleState(newState, newMappings)
 		let previousStateTime = Math.max(this.getCurrentTime(), newState.time)
 		let oldState: TimelineState = (this.getStateBefore(previousStateTime) || { state: { time: 0, layers: {}, nextEvents: [] } }).state
 
@@ -124,7 +126,8 @@ export class AbstractDevice extends DeviceWithState<TimelineState> implements ID
 	}
 	getStatus (): DeviceStatus {
 		return {
-			statusCode: StatusCode.GOOD
+			statusCode: StatusCode.GOOD,
+			active: this.isActive
 		}
 	}
 	/**
