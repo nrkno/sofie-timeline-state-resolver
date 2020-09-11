@@ -663,7 +663,10 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState> implements IDevic
 				if (
 					command.type === VizMSECommandType.TAKE_ELEMENT
 					&& command.layerId
-					&& newState.layer[command.layerId].contentType === TimelineContentTypeVizMSE.ELEMENT_INTERNAL
+					&& (
+						newState.layer[command.layerId].contentType === TimelineContentTypeVizMSE.ELEMENT_INTERNAL ||
+						!!newState.layer[command.layerId].delayTakeAfterOutTransition
+					)
 				) {
 					(concatCommands[index] as VizMSECommandTake).transition = {
 						type: VIZMSETransitionType.DELAY,
@@ -1710,6 +1713,8 @@ type VizMSEStateLayer = VizMSEStateLayerInternal | VizMSEStateLayerPilot | VizMS
 interface VizMSEStateLayerBase {
 	timelineObjId: string
 	lookahead?: boolean
+	/** Whether this element should have its take delayed until after an out transition has finished */
+	delayTakeAfterOutTransition?: boolean
 }
 interface VizMSEStateLayerElementBase extends VizMSEStateLayerBase {
 	contentType: TimelineContentTypeVizMSE
@@ -1838,7 +1843,8 @@ function content2StateLayer (
 
 			templateName: content.templateName,
 			templateData: content.templateData,
-			channelName: content.channelName
+			channelName: content.channelName,
+			delayTakeAfterOutTransition: content.delayTakeAfterOutTransition
 		}
 		return o
 	} else if (content.type === TimelineContentTypeVizMSE.ELEMENT_PILOT) {
@@ -1851,7 +1857,8 @@ function content2StateLayer (
 			outTransition: content.outTransition,
 
 			templateVcpId: content.templateVcpId,
-			channelName: content.channelName
+			channelName: content.channelName,
+			delayTakeAfterOutTransition: content.delayTakeAfterOutTransition
 
 		}
 		return o
