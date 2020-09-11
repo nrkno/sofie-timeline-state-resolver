@@ -1365,10 +1365,10 @@ strtok3@^6.0.3:
     "@types/debug" "^4.1.5"
     peek-readable "^3.1.0"
 
-superfly-timeline@^8.1.0:
-  version "8.1.0"
-  resolved "https://registry.yarnpkg.com/superfly-timeline/-/superfly-timeline-8.1.0.tgz#40666fc1a1f65d7df5184046be5b1f626154c64e"
-  integrity sha512-Bt8QZdz30khJ+dka6fBgfVPptx2iVW/qbNuaePs3iNO0B+vP8lsjt4Fq+yIhSWldSRfI3trwDXN8UYpQ1jDy/w==
+superfly-timeline@^8.1.1:
+  version "8.1.1"
+  resolved "https://registry.yarnpkg.com/superfly-timeline/-/superfly-timeline-8.1.1.tgz#8b0896bba6fcf495cdc831b21f9ddd815009d5cb"
+  integrity sha512-ahLJz2/udclXVXJllNJbirx/5f+/oMMwbvQCPcoMrUM55hS7bJBDg8k6Yik7+FO5GJCfes/ly/GL9dxSaQS5Gg==
   dependencies:
     tslib "^1.13.0"
     underscore "^1.9.1"
@@ -1447,7 +1447,7 @@ tslib@1.9.0:
   resolved "https://registry.yarnpkg.com/tslib/-/tslib-1.9.0.tgz#e37a86fda8cbbaf23a057f473c9f4dc64e5fc2e8"
   integrity sha512-f/qGG2tUkrISBlQZEjEqoZ3B2+npJjIf04H1wuAv9iA8i04Icp+61KRXxFdha22670NJopsZCIjhC3SnjPRKrQ==
 
-tslib@^1.10.0, tslib@^1.13.0, tslib@^1.8.1:
+tslib@^1.13.0, tslib@^1.8.1:
   version "1.13.0"
   resolved "https://registry.yarnpkg.com/tslib/-/tslib-1.13.0.tgz#c881e13cc7015894ed914862d276436fa9a47043"
   integrity sha512-i/6DQjL8Xf3be4K/E6Wgpekn5Qasl1usyw++dAA35Ue5orEn65VIxOA+YvNNl9HV3qv70T7CNwjODHZrLwvd1Q==
