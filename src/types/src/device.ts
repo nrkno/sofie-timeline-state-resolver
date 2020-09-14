@@ -17,6 +17,7 @@ import {
 	VizMSEOptions,
 	VMixOptions
 } from '.'
+import { ShotokuOptions } from './shotoku'
 
 export interface DeviceOptionsBase extends SlowReportOptions {
 	type: DeviceType
@@ -50,7 +51,8 @@ export type DeviceOptionsAny = DeviceOptionsAbstract |
 	DeviceOptionsSingularLive |
 	DeviceOptionsVMix |
 	DeviceOptionsVizMSE |
-	DeviceOptionsSingularLive
+	DeviceOptionsSingularLive |
+	DeviceOptionsShotoku
 
 export type DeviceInitOptions = AbstractOptions |
 	CasparCGOptions |
@@ -129,6 +131,10 @@ export interface DeviceOptionsVizMSE extends DeviceOptionsBase {
 export interface DeviceOptionsSingularLive extends DeviceOptionsBase {
 	type: DeviceType.SINGULAR_LIVE
 	options: SingularLiveOptions
+}
+export interface DeviceOptionsShotoku extends DeviceOptionsBase {
+	type: DeviceType.SHOTOKU
+	options: ShotokuOptions
 }
 
 export interface DeviceOptionsVMix extends DeviceOptionsBase {

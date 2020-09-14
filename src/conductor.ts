@@ -39,6 +39,7 @@ import { VizMSEDevice, DeviceOptionsVizMSEInternal } from './devices/vizMSE'
 import PQueue from 'p-queue'
 import * as PAll from 'p-all'
 import PTimeout from 'p-timeout'
+import { ShotokuDevice, DeviceOptionsShotokuInternal } from './devices/shotoku'
 
 export { DeviceContainer }
 export { CommandWithContext }
@@ -393,6 +394,15 @@ export class Conductor extends EventEmitter {
 				newDevice = await new DeviceContainer().create<QuantelDevice, typeof QuantelDevice>(
 					'../../dist/devices/quantel.js',
 					QuantelDevice,
+					deviceId,
+					deviceOptions,
+					getCurrentTime,
+					threadedClassOptions
+				)
+			} else if (deviceOptions.type === DeviceType.SHOTOKU) {
+				newDevice = await new DeviceContainer().create<ShotokuDevice, typeof ShotokuDevice>(
+					'../../dist/devices/shotoku.js',
+					ShotokuDevice,
 					deviceId,
 					deviceOptions,
 					getCurrentTime,
@@ -1170,6 +1180,7 @@ export type DeviceOptionsAnyInternal = (
 	DeviceOptionsQuantelInternal |
 	DeviceOptionsSingularLiveInternal |
 	DeviceOptionsVMixInternal |
+	DeviceOptionsShotokuInternal |
 	DeviceOptionsVizMSEInternal |
 	DeviceOptionsSingularLiveInternal |
 	DeviceOptionsVizMSEInternal
