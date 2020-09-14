@@ -11,7 +11,8 @@ import {
 	ShotokuCommandContent,
 	ShotokuOptions,
 	DeviceOptionsShotoku,
-	ShotokuTransitionType
+	ShotokuTransitionType,
+	Mappings
 } from '../types/src'
 import { DoOnTime, SendMode } from '../doOnTime'
 
@@ -82,7 +83,8 @@ export class ShotokuDevice extends DeviceWithState<TimelineState> implements IDe
 	 * in time.
 	 * @param newState
 	 */
-	handleState (newState: TimelineState) {
+	handleState (newState: TimelineState, newMappings: Mappings) {
+		super.onHandleState(newState, newMappings)
 		// Transform timeline states into device states
 		let previousStateTime = Math.max(this.getCurrentTime(), newState.time)
 		let oldState: TimelineState = (this.getStateBefore(previousStateTime) || { state: { time: 0, layers: {}, nextEvents: [] } }).state

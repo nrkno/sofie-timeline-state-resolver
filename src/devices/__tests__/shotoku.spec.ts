@@ -1,14 +1,12 @@
 import {
 	Mappings,
 	DeviceType,
-	MappingTCPSend,
 	MappingShotoku,
 	TimelineContentTypeShotoku,
 	ShotokuTransitionType
 } from '../../types/src'
 import { Conductor } from '../../conductor'
 import { Socket as MockSocket } from 'net'
-import { StatusCode } from '../device'
 import { ThreadedClass } from 'threadedclass'
 import { MockTime } from '../../__tests__/mockTime'
 import { ShotokuDevice } from '../shotoku'
@@ -87,7 +85,7 @@ describe('Shotoku', () => {
 		// expect(sockets).toHaveLength(1)
 		// let socket = sockets[0]
 
-		await myConductor.setMapping(myLayerMapping)
+		myConductor.setTimelineAndMappings([], myLayerMapping)
 		await mockTime.advanceTimeToTicks(10100) // 10100
 		expect(mockTime.now).toEqual(10100)
 		expect(onConnection).toHaveBeenCalledTimes(1)
@@ -104,7 +102,7 @@ describe('Shotoku', () => {
 		expect(await device.queue).toHaveLength(0)
 
 		// Test Added object:
-		myConductor.timeline = [
+		myConductor.setTimelineAndMappings([
 			{
 				id: 'obj0',
 				enable: {
@@ -120,7 +118,7 @@ describe('Shotoku', () => {
 					transitionType: cmd
 				}
 			}
-		]
+		])
 
 		await mockTime.advanceTimeToTicks(10990)
 
@@ -143,7 +141,7 @@ describe('Shotoku', () => {
 			expect(onSocketWrite.mock.calls[0][0]).toEqual(Buffer.from([0xf9, 0x01, 0x02, 0x00, 0x01, 0x01, 0x00, 0x00, 0x42]))
 		}
 		// Test Changed object:
-		myConductor.timeline = [
+		myConductor.setTimelineAndMappings([
 			{
 				id: 'obj0',
 				enable: {
@@ -160,7 +158,7 @@ describe('Shotoku', () => {
 					transitionType: cmd
 				}
 			}
-		]
+		])
 
 		await mockTime.advanceTimeToTicks(12000) // 12000
 		expect(commandReceiver0).toHaveBeenCalledTimes(2)
@@ -179,7 +177,7 @@ describe('Shotoku', () => {
 			expect(onSocketWrite.mock.calls[1][0]).toEqual(Buffer.from([0xf9, 0x01, 0x22, 0x00, 0x01, 0xff, 0x00, 0x00, 0x24]))
 		}
 
-		myConductor.timeline = []
+		myConductor.setTimelineAndMappings([])
 
 		await mockTime.advanceTimeToTicks(12000) // 12000
 		expect(commandReceiver0).toHaveBeenCalledTimes(2) // no new commands
