@@ -113,9 +113,9 @@ export class ShotokuDevice extends DeviceWithState<TimelineState> implements IDe
 		return Promise.resolve(true)
 	}
 	getStatus (): DeviceStatus {
-		// TODO
 		return {
-			statusCode: StatusCode.GOOD
+			statusCode: this._shotoku.connected ? StatusCode.GOOD : StatusCode.BAD,
+			active: this.isActive
 		}
 	}
 	makeReady (_okToDestroyStuff?: boolean): Promise<void> {
@@ -223,7 +223,6 @@ export class ShotokuDevice extends DeviceWithState<TimelineState> implements IDe
 		this.emit('debug', cwc)
 
 		try {
-			// TODO - send command
 			if (this._shotoku.connected) {
 				this._shotoku.send(cmd).catch(e => {
 					throw new Error(e)

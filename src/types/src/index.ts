@@ -60,7 +60,7 @@ export enum DeviceType {
 	QUANTEL = 12,
 	VIZMSE = 13,
 	SINGULAR_LIVE = 14,
-	SHOTOKU = 15
+	SHOTOKU = 15,
 	VMIX = 20
 }
 
