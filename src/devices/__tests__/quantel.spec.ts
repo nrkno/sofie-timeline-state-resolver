@@ -159,7 +159,7 @@ describe('Quantel', () => {
 		await mockTime.advanceTimeToTicks(10990)
 
 		expect(commandReceiver0).toHaveBeenCalledTimes(1)
-		expect(commandReceiver0).toHaveBeenNthCalledWith(1, 10150, expect.objectContaining({
+		expect(commandReceiver0).toHaveBeenNthCalledWith(1, 10155, expect.objectContaining({
 			type: QuantelCommandType.LOADCLIPFRAGMENTS
 		}), expect.any(String), expect.any(String))
 
@@ -331,7 +331,7 @@ describe('Quantel', () => {
 		await mockTime.advanceTimeToTicks(10990)
 
 		expect(commandReceiver0).toHaveBeenCalledTimes(1)
-		expect(commandReceiver0).toHaveBeenNthCalledWith(1, 10150, expect.objectContaining({
+		expect(commandReceiver0).toHaveBeenNthCalledWith(1, 10155, expect.objectContaining({
 			type: QuantelCommandType.LOADCLIPFRAGMENTS
 		}), expect.any(String), expect.any(String))
 
@@ -508,15 +508,15 @@ describe('Quantel', () => {
 		expect(commandReceiver0).toHaveBeenCalledTimes(3)
 		expect(commandReceiver0).toHaveBeenNthCalledWith(1, 15005, expect.objectContaining({
 			type: QuantelCommandType.LOADCLIPFRAGMENTS,
-			time: 14990 // Because it was so close to currentTime, otherwise 15000
+			time: 15005
 		}), expect.any(String), expect.any(String))
 		expect(commandReceiver0).toHaveBeenNthCalledWith(2, 15010, expect.objectContaining({
 			type: QuantelCommandType.PLAYCLIP,
-			time: 15000
+			time: 15005
 		}), expect.any(String), expect.any(String))
 		expect(commandReceiver0).toHaveBeenNthCalledWith(3, 15070, expect.objectContaining({
 			type: QuantelCommandType.LOADCLIPFRAGMENTS,
-			time: 15050
+			time: 15055
 		}), expect.any(String), expect.any(String))
 
 		expect(onRequest).toHaveBeenCalledTimes(14)
@@ -742,7 +742,7 @@ describe('Quantel', () => {
 		await mockTime.advanceTimeToTicks(10990)
 
 		expect(commandReceiver0).toHaveBeenCalledTimes(1)
-		expect(commandReceiver0).toHaveBeenNthCalledWith(1, 10150, expect.objectContaining({
+		expect(commandReceiver0).toHaveBeenNthCalledWith(1, 10155, expect.objectContaining({
 			type: QuantelCommandType.LOADCLIPFRAGMENTS
 		}), expect.any(String), expect.any(String))
 
@@ -937,7 +937,7 @@ describe('Quantel', () => {
 		await mockTime.advanceTimeToTicks(10990)
 
 		expect(commandReceiver0).toHaveBeenCalledTimes(1)
-		expect(commandReceiver0).toHaveBeenNthCalledWith(1, 10150, expect.objectContaining({
+		expect(commandReceiver0).toHaveBeenNthCalledWith(1, 10155, expect.objectContaining({
 			type: QuantelCommandType.LOADCLIPFRAGMENTS
 		}), expect.any(String), expect.any(String))
 

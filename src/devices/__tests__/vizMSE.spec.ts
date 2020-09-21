@@ -676,7 +676,7 @@ describe('vizMSE', () => {
 
 		expect(getMockCall(commandReceiver0, 0, 1)).toMatchObject({
 			timelineObjId: 'obj0',
-			time: 10090,
+			time: 10105,
 			templateInstance: expect.stringContaining('myInternalElement'),
 			type: 'prepare',
 			templateName: 'myInternalElement',
@@ -684,7 +684,7 @@ describe('vizMSE', () => {
 		})
 		expect(getMockCall(commandReceiver0, 1, 1)).toMatchObject({
 			timelineObjId: 'obj0',
-			time: 10100,
+			time: 10105,
 			templateInstance: expect.stringContaining('myInternalElement'),
 			type: 'take',
 			templateName: 'myInternalElement',
