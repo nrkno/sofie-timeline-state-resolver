@@ -582,12 +582,12 @@ export class Conductor extends EventEmitter {
 		// this adds it to a queue, make sure it never runs more than once at a time:
 		this._actionQueue.add(() => {
 			return this._resolveTimelineInner()
+			.then((nextResolveTime) => {
+				this._nextResolveTime = nextResolveTime || 0
+			})
 			.catch(e => {
 				this.emit('error', 'Caught error in _resolveTimelineInner' + e)
 			})
-		})
-		.then((nextResolveTime) => {
-			this._nextResolveTime = nextResolveTime || 0
 		})
 		.catch(e => {
 			this.emit('error', 'Caught error in _resolveTimeline.then' + e)
