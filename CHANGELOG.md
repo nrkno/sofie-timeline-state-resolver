@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [4.0.4](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/4.0.3...4.0.4) (2020-09-21)
+
+
+### Bug Fixes
+
+* reset cached states after resolveTimeline has finished ([3237798](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/3237798a526c7434a26b19b98f15b6adc7b05fe4))
+
 ### [4.0.3](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/4.0.2...4.0.3) (2020-08-26)
 
 
