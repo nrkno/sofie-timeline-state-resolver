@@ -508,7 +508,7 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState> implements IDevic
 
 					templateInstance: VizMSEManager.getTemplateInstance(newLayer),
 					templateName: VizMSEManager.getTemplateName(newLayer),
-					templateData: VizMSEManager.getTemplateData(newLayer),
+					templateData: VizMSEManager.getTemplateData(newLayer).map((x) => _.escape(x)),
 					channelName: newLayer.channelName
 				}
 				if (
@@ -1309,7 +1309,7 @@ class VizMSEManager extends EventEmitter {
 								deviceType: DeviceType.VIZMSE,
 								type: TimelineContentTypeVizMSE.ELEMENT_INTERNAL,
 								templateName: expectedPlayoutItem.templateName,
-								templateData: expectedPlayoutItem.templateData
+								templateData: expectedPlayoutItem.templateData ? expectedPlayoutItem.templateData.map((x) => _.escape(x)) : undefined
 							} as TimelineObjVIZMSEElementInternal['content']
 						)
 					)
