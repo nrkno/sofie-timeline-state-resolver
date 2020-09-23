@@ -74,7 +74,7 @@ export type CommandReceiver = (time: number, cmd: CommandNS.IAMCPCommand, contex
  * commands. It depends on the DoOnTime class to execute the commands timely or,
  * optionally, uses the CasparCG command scheduling features.
  */
-export class CasparCGDevice extends DeviceWithState<StateNS.State> implements IDevice {
+export class CasparCGDevice extends DeviceWithState<State> implements IDevice {
 
 	private _ccg: CasparCG
 	private _ccgState: CasparCGState
@@ -190,7 +190,7 @@ export class CasparCGDevice extends DeviceWithState<StateNS.State> implements ID
 
 		let previousStateTime = Math.max(this.getCurrentTime(), newState.time)
 
-		let oldCasparState = (this.getStateBefore(previousStateTime) || { state: new StateNS.State() }).state
+		let oldCasparState = (this.getStateBefore(previousStateTime) || { state: { channels: {} } }).state
 
 		let newCasparState = this.convertStateToCaspar(newState, newMappings)
 
