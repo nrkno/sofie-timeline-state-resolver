@@ -149,9 +149,6 @@ export class Conductor extends EventEmitter {
 	private _statMeasureReason: string = ''
 	private _statReports: StatReport[] = []
 
-	private _resolveTimelineRunning: boolean = false
-	private _resolveTimelineOnQueue: boolean = false
-
 	private _resolver: ThreadedClass<AsyncResolver>
 
 	private _interval: NodeJS.Timer
@@ -533,12 +530,16 @@ export class Conductor extends EventEmitter {
 	 * next time
 	 */
 	public resetResolver () {
-
-		this._nextResolveTime = 0 // This will cause _resolveTimeline() to generate the state for NOW
-		this._resolvedStates = {
-			resolvedStates: null,
-			resolveTime: 0
-		}
+		// reset the resolver through the action queue to make sure it is reset after any currently running timelineResolves
+		this._actionQueue.add(async () => {
+			this._nextResolveTime = 0 // This will cause _resolveTimeline() to generate the state for NOW
+			this._resolvedStates = {
+				resolvedStates: null,
+				resolveTime: 0
+			}
+		}).catch(() => {
+			this.emit('error', 'Failed to reset the resolvedStates, timeline may not be updated appropriately!')
+		})
 
 		this._triggerResolveTimeline()
 	}
@@ -593,33 +594,17 @@ export class Conductor extends EventEmitter {
 	 * Resolves the timeline for the next resolve-time, generates the commands and passes on the commands.
 	 */
 	private _resolveTimeline () {
-		if (this._resolveTimelineRunning) {
-			// If a resolve is already running, put in queue to run later:
-			this._resolveTimelineOnQueue = true
-			return
-		}
-
-		this._resolveTimelineRunning = true
-
+		// this adds it to a queue, make sure it never runs more than once at a time:
 		this._actionQueue.add(() => {
 			return this._resolveTimelineInner()
+			.then((nextResolveTime) => {
+				this._nextResolveTime = nextResolveTime || 0
+			})
 			.catch(e => {
 				this.emit('error', 'Caught error in _resolveTimelineInner' + e)
 			})
 		})
-		.then((nextResolveTime) => {
-			this._resolveTimelineRunning = false
-			if (this._resolveTimelineOnQueue) {
-				// re-run the resolver right away, again
-
-				this._resolveTimelineOnQueue = false
-				this._triggerResolveTimeline(0)
-			} else {
-				this._nextResolveTime = nextResolveTime || 0
-			}
-		})
 		.catch(e => {
-			this._resolveTimelineRunning = false
 			this.emit('error', 'Caught error in _resolveTimeline.then' + e)
 		})
 	}
