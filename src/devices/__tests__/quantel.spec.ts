@@ -101,11 +101,11 @@ describe('Quantel', () => {
 		expect(commandReceiver0).toHaveBeenCalledTimes(2)
 		expect(commandReceiver0).toHaveBeenNthCalledWith(1, expect.toBeCloseTo(10000, ADEV), expect.objectContaining({
 			type: QuantelCommandType.SETUPPORT,
-			time: 9990 // Because it was so close to currentTime, otherwise 9000
+			time: 10005 // Because it was so close to currentTime, otherwise 9000
 		}), expect.any(String), expect.any(String))
 		expect(commandReceiver0).toHaveBeenNthCalledWith(2, expect.toBeCloseTo(10000, ADEV), expect.objectContaining({
 			type: QuantelCommandType.CLEARCLIP,
-			time: 10000
+			time: 10005
 		}), expect.any(String), expect.any(String))
 
 		expect(onRequest).toHaveBeenCalledTimes(6)
@@ -273,11 +273,11 @@ describe('Quantel', () => {
 		expect(commandReceiver0).toHaveBeenCalledTimes(2)
 		expect(commandReceiver0).toHaveBeenNthCalledWith(1, expect.toBeCloseTo(10000, ADEV), expect.objectContaining({
 			type: QuantelCommandType.SETUPPORT,
-			time: 9990 // Because it was so close to currentTime, otherwise 9000
+			time: 10005 // Because it was so close to currentTime, otherwise 9000
 		}), expect.any(String), expect.any(String))
 		expect(commandReceiver0).toHaveBeenNthCalledWith(2, expect.toBeCloseTo(10000, ADEV), expect.objectContaining({
 			type: QuantelCommandType.CLEARCLIP,
-			time: 10000
+			time: 10005
 		}), expect.any(String), expect.any(String))
 
 		expect(onRequest).toHaveBeenCalledTimes(6)
@@ -687,11 +687,11 @@ describe('Quantel', () => {
 		expect(commandReceiver0).toHaveBeenCalledTimes(2)
 		expect(commandReceiver0).toHaveBeenNthCalledWith(1, expect.toBeCloseTo(10000, ADEV), expect.objectContaining({
 			type: QuantelCommandType.SETUPPORT,
-			time: 9990 // Because it was so close to currentTime, otherwise 9000
+			time: 10005 // Because it was so close to currentTime, otherwise 9000
 		}), expect.any(String), expect.any(String))
 		expect(commandReceiver0).toHaveBeenNthCalledWith(2, expect.toBeCloseTo(10000, ADEV), expect.objectContaining({
 			type: QuantelCommandType.CLEARCLIP,
-			time: 10000
+			time: 10005
 		}), expect.any(String), expect.any(String))
 
 		expect(onRequest).toHaveBeenCalledTimes(6)
@@ -866,11 +866,11 @@ describe('Quantel', () => {
 		expect(commandReceiver0).toHaveBeenCalledTimes(2)
 		expect(commandReceiver0).toHaveBeenNthCalledWith(1, expect.toBeCloseTo(10000, ADEV), expect.objectContaining({
 			type: QuantelCommandType.SETUPPORT,
-			time: 9990 // Because it was so close to currentTime, otherwise 9000
+			time: 10005 // Because it was so close to currentTime, otherwise 9000
 		}), expect.any(String), expect.any(String))
 		expect(commandReceiver0).toHaveBeenNthCalledWith(2, expect.toBeCloseTo(10000, ADEV), expect.objectContaining({
 			type: QuantelCommandType.CLEARCLIP,
-			time: 10000
+			time: 10005
 		}), expect.any(String), expect.any(String))
 
 		expect(onRequest).toHaveBeenCalledTimes(6)
