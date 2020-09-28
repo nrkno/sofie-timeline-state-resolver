@@ -9,26 +9,29 @@ This is a part of the [**Sofie** TV News Studio Automation System](https://githu
 ## Abstract
 This library orchestrates and controls different devices.
 Its input is a [timeline](https://github.com/SuperFlyTV/supertimeline) data structure and a layer-to-device-map.
-Using the input, it resolves the expected state, diffs the state against current state and sends commands where necessary.
+Using the input, it resolves the expected state, diffs the state against current state and sends commands to devices where necessary.
 
 ## Supported devices
-* [CasparCG](http://casparcg.com/) - using the [casparcg-connection](https://github.com/SuperFlyTV/casparcg-connection) library
+* **[CasparCG](http://casparcg.com/)** - using the [casparcg-connection](https://github.com/SuperFlyTV/casparcg-connection) library
 * **Blackmagic Design ATEM** vision mixers - using the [atem-connection](https://github.com/nrkno/tv-automation-atem-connection) library
 * **Blackmagic Design Hyperdeck** record/playback devices - using the [hyperdeck-connection](https://github.com/nrkno/tv-automation-hyperdeck-connection) library
 * **Lawo** audio mixers - using the [emberplus](https://github.com/nrkno/tv-automation-emberplus-connection) library
 * **Panasoniz PTZ** cameras
 * **Pharos** light control devices
-* **Sisyfos** audio controller
+* **[Sisyfos](https://github.com/olzzon/sisyfos-audio-controller)** audio controller
 * **Quantel** video server
-* Arbitrary HTTP-interfaces
-* Arbitrary TCP-interfaces
+* **[vMix](https://www.vmix.com/)** software vision mixer
+* **VizRT MediaSequencer** graphics system - using the [v-connection](https://github.com/olzzon/v-connection) library
+* Arbitrary [OSC](https://en.wikipedia.org/wiki/Open_Sound_Control) compatible devices
+* Arbitrary HTTP (REST) compatible devices
+* Arbitrary TCP-socket compatible devices
 
 
-## Used in
+## Development
 
 TSR is primarily developed to be used in the [Playout Gateway](https://github.com/nrkno/tv-automation-playout-gateway) of the [Sofie project](https://github.com/nrkno/Sofie-TV-automation).
 
-To quickly getting started with development of new devices, there is also the [Quick-TSR repo](https://github.com/nytamin/quickTSR).
+When developing support for new devices, a helpful tool for quickly trying out new functionality is the [Quick-TSR repo](https://github.com/nytamin/quickTSR).
 
 ## Installation instructions (for developers)
 
@@ -48,15 +51,12 @@ To quickly getting started with development of new devices, there is also the [Q
 * Build:
 	`yarn build`
 
-* Run test
-	`jest`
-
-* View code coverage (after having run test)
-	`yarn cov-open`
+* Run test & view coverage
+	`yarn cov`
 
 ### Notes
 
-This repository is a monorepo containg both the TSR library and a typings package to be used by integrations. Contrary to what your editor might say, the types package cannot use dependencies from the main package.
+This repository is a monorepo containg both the TSR library and a separate typings-only library (located at `./src/types`) to be used by integrations. Contrary to what your editor might say, the typings-only library cannot use dependencies from the main library.
 
 
 # Examples of timeline objects

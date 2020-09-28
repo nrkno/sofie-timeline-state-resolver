@@ -8,7 +8,8 @@ import {
 } from './device'
 import {
 	DeviceType,
-	DeviceOptionsSisyfos
+	DeviceOptionsSisyfos,
+	Mappings
 } from '../types/src'
 import { DoOnTime, SendMode } from '../doOnTime'
 
@@ -103,7 +104,8 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState> implemen
 	 * in time.
 	 * @param newState
 	 */
-	handleState (newState: TimelineState) {
+	handleState (newState: TimelineState, newMappings: Mappings) {
+		super.onHandleState(newState, newMappings)
 		if (!this._sisyfos.state) {
 			this.emit('warning', 'Sisyfos State not initialized yet')
 			return
@@ -111,16 +113,16 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState> implemen
 
 		// Transform timeline states into device states
 		let previousStateTime = Math.max(this.getCurrentTime(), newState.time)
-		let oldState: SisyfosState = (this.getStateBefore(previousStateTime) || { state: { channels: {}, resync: false } }).state
+		let oldSisyfosState: SisyfosState = (this.getStateBefore(previousStateTime) || { state: { channels: {}, resync: false } }).state
 
-		let newAbstractState = this.convertStateToSisyfosState(newState)
+		let newSisyfosState = this.convertStateToSisyfosState(newState, newMappings)
 
-		this._handleStateInner(oldState, newAbstractState, previousStateTime, newState.time)
+		this._handleStateInner(oldSisyfosState, newSisyfosState, previousStateTime, newState.time)
 	}
 
-	private _handleStateInner (oldState: SisyfosState, newAbstractState: SisyfosState, previousStateTime: number, newTime: number) {
+	private _handleStateInner (oldSisyfosState: SisyfosState, newSisyfosState: SisyfosState, previousStateTime: number, newTime: number) {
 		// Generate commands necessary to transition to the new state
-		let commandsToAchieveState: Array<Command> = this._diffStates(oldState, newAbstractState)
+		let commandsToAchieveState: Array<Command> = this._diffStates(oldSisyfosState, newSisyfosState)
 
 		// clear any queued commands later than this time:
 		this._doOnTime.clearQueueNowAndAfter(previousStateTime)
@@ -128,7 +130,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState> implemen
 		this._addToQueue(commandsToAchieveState, newTime)
 
 		// store the new state, for later use:
-		this.setState(newAbstractState, newTime)
+		this.setState(newSisyfosState, newTime)
 	}
 
 	/**
@@ -162,7 +164,8 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState> implemen
 		}
 		return {
 			statusCode: statusCode,
-			messages: messages
+			messages: messages,
+			active: this.isActive
 		}
 	}
 	makeReady (okToDestroyStuff?: boolean): Promise<void> {
@@ -246,10 +249,9 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState> implemen
 	 * a timeline state.
 	 * @param state
 	 */
-	convertStateToSisyfosState (state: TimelineState) {
+	convertStateToSisyfosState (state: TimelineState, mappings: Mappings) {
 		const deviceState: SisyfosState = this.getDeviceState()
 
-		const mappings = this.getMapping()
 		_.each(state.layers, (tlObject, layerName) => {
 			const layer = tlObject as ResolvedTimelineObjectInstance & TimelineObjSisyfosAny
 			let foundMapping = mappings[layerName] as MappingSisyfos | undefined

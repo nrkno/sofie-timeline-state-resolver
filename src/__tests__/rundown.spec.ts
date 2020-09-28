@@ -81,7 +81,6 @@ describe('Rundown', () => {
 				retryInterval: false
 			}
 		})
-		await myConductor.setMapping(myLayerMapping)
 		await mockTime.advanceTimeToTicks(10001)
 
 		let deviceContainer = myConductor.getDevice('myCCG')
@@ -105,7 +104,7 @@ describe('Rundown', () => {
 		// 00:05 - pgm - stinger
 		// 00:05 - aux - bg_item2
 		// 00:08 - pgm - full opener
-		myConductor.timeline = [
+		myConductor.setTimelineAndMappings([
 			{
 				id: 'cam1',
 				content: {
@@ -339,7 +338,7 @@ describe('Rundown', () => {
 				},
 				layer: 'gfx'
 			}
-		]
+		], myLayerMapping)
 		await mockTime.advanceTimeToTicks(10101)
 
 		expect(mockTime.getCurrentTime()).toEqual(10101)

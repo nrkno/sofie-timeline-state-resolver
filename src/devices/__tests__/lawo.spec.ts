@@ -47,7 +47,7 @@ describe('Lawo', () => {
 			initializeAsClear: true,
 			getCurrentTime: mockTime.getCurrentTime
 		})
-		await myConductor.setMapping(myChannelMapping)
+		myConductor.setTimelineAndMappings([], myChannelMapping)
 		await myConductor.init() // we cannot do an await, because setTimeout will never call without jest moving on.
 		await myConductor.addDevice('myLawo', {
 			type: DeviceType.LAWO,
@@ -66,7 +66,7 @@ describe('Lawo', () => {
 
 		// Check that no commands has been scheduled:
 		expect(await device.queue).toHaveLength(0)
-		myConductor.timeline = [
+		myConductor.setTimelineAndMappings([
 			{
 				id: 'obj0',
 				enable: {
@@ -133,8 +133,7 @@ describe('Lawo', () => {
 					triggerValue: 'asdf' // only used for trigging new command sent
 				}
 			}
-		]
-
+		])
 		await mockTime.advanceTimeToTicks(10200)
 
 		expect(commandReceiver0).toHaveBeenCalledTimes(1)
@@ -219,7 +218,7 @@ describe('Lawo', () => {
 			initializeAsClear: true,
 			getCurrentTime: mockTime.getCurrentTime
 		})
-		await myConductor.setMapping(myChannelMapping)
+		myConductor.setTimelineAndMappings([], myChannelMapping)
 		await myConductor.init() // we cannot do an await, because setTimeout will never call without jest moving on.
 		await myConductor.addDevice('myLawo', {
 			type: DeviceType.LAWO,
@@ -238,7 +237,7 @@ describe('Lawo', () => {
 
 		// Check that no commands has been scheduled:
 		expect(await device.queue).toHaveLength(0)
-		myConductor.timeline = [
+		myConductor.setTimelineAndMappings([
 			{
 				id: 'obj0',
 				enable: {
@@ -317,7 +316,7 @@ describe('Lawo', () => {
 					triggerValue: 'asdf' // only used for trigging new command sent
 				}
 			}
-		]
+		])
 
 		await mockTime.advanceTimeToTicks(10200)
 
@@ -431,7 +430,7 @@ describe('Lawo', () => {
 			initializeAsClear: true,
 			getCurrentTime: mockTime.getCurrentTime
 		})
-		await myConductor.setMapping(myChannelMapping)
+		myConductor.setTimelineAndMappings([], myChannelMapping)
 		await myConductor.init() // we cannot do an await, because setTimeout will never call without jest moving on.
 		await myConductor.addDevice('myLawo', {
 			type: DeviceType.LAWO,
@@ -450,7 +449,7 @@ describe('Lawo', () => {
 
 		// Check that no commands has been scheduled:
 		expect(await device.queue).toHaveLength(0)
-		myConductor.timeline = [
+		myConductor.setTimelineAndMappings([
 			{
 				id: 'obj0',
 				enable: {
@@ -524,7 +523,7 @@ describe('Lawo', () => {
 					transitionDuration: 400
 				}
 			}
-		]
+		])
 
 		await mockTime.advanceTimeToTicks(10200)
 
@@ -603,7 +602,7 @@ describe('Lawo', () => {
 			initializeAsClear: true,
 			getCurrentTime: mockTime.getCurrentTime
 		})
-		await myConductor.setMapping(myChannelMapping)
+		myConductor.setTimelineAndMappings([], myChannelMapping)
 		await myConductor.init() // we cannot do an await, because setTimeout will never call without jest moving on.
 		await myConductor.addDevice('myLawo', {
 			type: DeviceType.LAWO,
@@ -622,7 +621,7 @@ describe('Lawo', () => {
 
 		// Check that no commands has been scheduled:
 		expect(await device.queue).toHaveLength(0)
-		myConductor.timeline = [
+		myConductor.setTimelineAndMappings([
 			{
 				id: 'obj0',
 				enable: {
@@ -649,7 +648,7 @@ describe('Lawo', () => {
 					value: 80
 				}
 			}
-		]
+		])
 
 		await mockTime.advanceTimeToTicks(10200)
 
@@ -700,7 +699,7 @@ describe('Lawo', () => {
 			getCurrentTime: mockTime.getCurrentTime
 		})
 		myConductor.on('error', (...args) => console.log(...args))
-		await myConductor.setMapping(myChannelMapping)
+		myConductor.setTimelineAndMappings([], myChannelMapping)
 		await myConductor.init() // we cannot do an await, because setTimeout will never call without jest moving on.
 		await myConductor.addDevice('myLawo', {
 			type: DeviceType.LAWO,
@@ -720,7 +719,7 @@ describe('Lawo', () => {
 
 		// Check that no commands has been scheduled:
 		expect(await device.queue).toHaveLength(0)
-		myConductor.timeline = [
+		myConductor.setTimelineAndMappings([
 			{
 				id: 'obj0',
 				enable: {
@@ -738,7 +737,7 @@ describe('Lawo', () => {
 					}
 				}
 			}
-		]
+		])
 
 		expect(await device.queue).toHaveLength(0)
 		await mockTime.advanceTimeToTicks(10500)
@@ -804,7 +803,7 @@ describe('Lawo', () => {
 			initializeAsClear: true,
 			getCurrentTime: mockTime.getCurrentTime
 		})
-		await myConductor.setMapping(myChannelMapping)
+		myConductor.setTimelineAndMappings([], myChannelMapping)
 		await myConductor.init() // we cannot do an await, because setTimeout will never call without jest moving on.
 		await myConductor.addDevice('myLawo', {
 			type: DeviceType.LAWO,
@@ -823,7 +822,7 @@ describe('Lawo', () => {
 
 		// Check that no commands has been scheduled:
 		expect(await device.queue).toHaveLength(0)
-		myConductor.timeline = [
+		myConductor.setTimelineAndMappings([
 			{
 				id: 'obj0',
 				enable: { start: mockTime.now - 1000 },
@@ -874,7 +873,7 @@ describe('Lawo', () => {
 					'Fader/Motor dB Value': { value: 41 }
 				}
 			}
-		]
+		])
 
 		await mockTime.advanceTimeToTicks(10200)
 

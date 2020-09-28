@@ -16,7 +16,8 @@ import {
 	MappingPanasonicPtz,
 	MappingPanasonicPtzType,
 	PanasonicPTZOptions,
-	DeviceOptionsPanasonicPTZ
+	DeviceOptionsPanasonicPTZ,
+	Mappings
 } from '../types/src'
 import { TimelineState, ResolvedTimelineObjectInstance } from 'superfly-timeline'
 import { DoOnTime, SendMode } from '../doOnTime'
@@ -69,7 +70,7 @@ const PROBE_INTERVAL = 10 * 1000 // Probe every 10s
  * executes commands to achieve such states. Depends on PanasonicPTZAPI class for
  * connection with the physical device.
  */
-export class PanasonicPtzDevice extends DeviceWithState<TimelineState> implements IDevice {
+export class PanasonicPtzDevice extends DeviceWithState<PanasonicPtzState> implements IDevice {
 	private _doOnTime: DoOnTime
 	private _device: PanasonicPtzHttpInterface | undefined
 	private _connected: boolean = false
@@ -139,12 +140,12 @@ export class PanasonicPtzDevice extends DeviceWithState<TimelineState> implement
 	 * Converts a timeline state into a device state.
 	 * @param state
 	 */
-	convertStateToPtz (state: TimelineState): PanasonicPtzState {
+	convertStateToPtz (state: TimelineState, mappings: Mappings): PanasonicPtzState {
 		// convert the timeline state into something we can use
 		const ptzState: PanasonicPtzState = this._getDefaultState()
 
 		_.each(state.layers, (tlObject: ResolvedTimelineObjectInstance, layerName: string) => {
-			const mapping: MappingPanasonicPtz | undefined = this.getMapping()[layerName] as MappingPanasonicPtz
+			const mapping: MappingPanasonicPtz | undefined = mappings[layerName] as MappingPanasonicPtz
 			if (mapping && mapping.device === DeviceType.PANASONIC_PTZ && mapping.deviceId === this.deviceId) {
 
 				if (mapping.mappingType === MappingPanasonicPtzType.PRESET) {
@@ -188,13 +189,13 @@ export class PanasonicPtzDevice extends DeviceWithState<TimelineState> implement
 	 * in time.
 	 * @param newState
 	 */
-	handleState (newState: TimelineState) {
+	handleState (newState: TimelineState, newMappings: Mappings) {
+		super.onHandleState(newState, newMappings)
 		// Create device states
 		let previousStateTime = Math.max(this.getCurrentTime(), newState.time)
-		let oldState: TimelineState = (this.getStateBefore(previousStateTime) || { state: { time: 0, layers: {}, nextEvents: [] } }).state
+		let oldPtzState: PanasonicPtzState = (this.getStateBefore(previousStateTime) || { state: this._getDefaultState() }).state
 
-		let oldPtzState = this.convertStateToPtz(oldState)
-		let newPtzState = this.convertStateToPtz(newState)
+		let newPtzState = this.convertStateToPtz(newState, newMappings)
 
 		// Generate commands needed to reach new state
 		let commandsToAchieveState: Array<PanasonicPtzCommandWithContext> = this._diffStates(oldPtzState, newPtzState)
@@ -205,7 +206,7 @@ export class PanasonicPtzDevice extends DeviceWithState<TimelineState> implement
 		this._addToQueue(commandsToAchieveState, newState.time)
 
 		// store the new state, for later use:
-		this.setState(newState, newState.time)
+		this.setState(newPtzState, newState.time)
 	}
 
 	clearFuture (clearAfterTime: number) {
@@ -229,7 +230,8 @@ export class PanasonicPtzDevice extends DeviceWithState<TimelineState> implement
 
 		return {
 			statusCode: statusCode,
-			messages: messages
+			messages: messages,
+			active: this.isActive
 		}
 	}
 	private _getDefaultState (): PanasonicPtzState {

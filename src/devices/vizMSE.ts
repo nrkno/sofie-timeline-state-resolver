@@ -22,7 +22,8 @@ import {
 	DeviceOptionsVizMSE,
 	TimelineObjVIZMSEAny,
 	VIZMSEOutTransition,
-	VIZMSETransitionType
+	VIZMSETransitionType,
+	Mappings
 } from '../types/src'
 
 import {
@@ -161,7 +162,8 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState> implements IDevic
 	/**
 	 * Generates an array of VizMSE commands by comparing the newState against the oldState, or the current device state.
 	 */
-	handleState (newState: TimelineState) {
+	handleState (newState: TimelineState, newMappings: Mappings) {
+		super.onHandleState(newState, newMappings)
 		// check if initialized:
 		if (!this._vizmseManager || !this._vizmseManager.initialized) {
 			this.emit('warning', 'VizMSE.v-connection not initialized yet')
@@ -175,7 +177,7 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState> implements IDevic
 			{ state: { time: 0, layer: {} } }
 		).state
 
-		let newVizMSEState = this.convertStateToVizMSE(newState)
+		let newVizMSEState = this.convertStateToVizMSE(newState, newMappings)
 
 		let commandsToAchieveState = this._diffStates(oldVizMSEState, newVizMSEState, newState.time)
 
@@ -236,14 +238,12 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState> implements IDevic
 	 * Takes a timeline state and returns a VizMSE State that will work with the state lib.
 	 * @param timelineState The timeline state to generate from.
 	 */
-	convertStateToVizMSE (timelineState: TimelineState): VizMSEState {
+	convertStateToVizMSE (timelineState: TimelineState, mappings: Mappings): VizMSEState {
 
 		const state: VizMSEState = {
 			time: timelineState.time,
 			layer: {}
 		}
-
-		const mappings = this.getMapping()
 
 		_.each(timelineState.layers, (layer: ResolvedTimelineObjectInstance, layerName: string) => {
 
@@ -412,7 +412,8 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState> implements IDevic
 
 		return {
 			statusCode: statusCode,
-			messages: messages
+			messages: messages,
+			active: this.isActive
 		}
 	}
 	/**
@@ -669,7 +670,7 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState> implements IDevic
 			})
 		}
 
-		console.log(`VIZMSE: COMMANDS: ${JSON.stringify(sortCommands(concatCommands))}`)
+		this.emit('debug', `VIZMSE: COMMANDS: ${JSON.stringify(sortCommands(concatCommands))}`)
 
 		return sortCommands(concatCommands)
 	}
