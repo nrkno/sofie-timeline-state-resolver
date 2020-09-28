@@ -2375,6 +2375,9 @@ img {
 					<a href="tcpsenddevice.html#_deviceoptions" class="tsd-kind-icon">_device<wbr>Options</a>
 				</li>
 				<li class=" tsd-kind-property tsd-parent-kind-class tsd-is-inherited tsd-is-protected tsd-is-external">
+					<a href="tcpsenddevice.html#_isactive" class="tsd-kind-icon">_is<wbr>Active</a>
+				</li>
+				<li class=" tsd-kind-property tsd-parent-kind-class tsd-is-inherited tsd-is-protected tsd-is-external">
 					<a href="tcpsenddevice.html#_reportallcommands" class="tsd-kind-icon">_report<wbr>All<wbr>Commands</a>
 				</li>
 				<li class=" tsd-kind-property tsd-parent-kind-class tsd-is-overwrite tsd-is-inherited tsd-is-external">
@@ -2410,6 +2413,9 @@ img {
 				<li class=" tsd-kind-get-signature tsd-parent-kind-class tsd-is-inherited tsd-is-external">
 					<a href="tcpsenddevice.html#instanceid" class="tsd-kind-icon">instance<wbr>Id</a>
 				</li>
+				<li class=" tsd-kind-get-signature tsd-parent-kind-class tsd-is-inherited tsd-is-external">
+					<a href="tcpsenddevice.html#isactive" class="tsd-kind-icon">is<wbr>Active</a>
+				</li>
 				<li class=" tsd-kind-get-signature tsd-parent-kind-class tsd-is-external">
 					<a href="tcpsenddevice.html#queue" class="tsd-kind-icon">queue</a>
 				</li>
@@ -2439,9 +2445,6 @@ img {
 				</li>
 				<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-inherited tsd-is-external">
 					<a href="tcpsenddevice.html#getcurrenttime" class="tsd-kind-icon">get<wbr>Current<wbr>Time</a>
-				</li>
-				<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-inherited tsd-is-external">
-					<a href="tcpsenddevice.html#getmapping" class="tsd-kind-icon">get<wbr>Mapping</a>
 				</li>
 				<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-overwrite tsd-is-inherited tsd-is-external">
 					<a href="tcpsenddevice.html#getmaxlisteners" class="tsd-kind-icon">get<wbr>Max<wbr>Listeners</a>
@@ -2479,6 +2482,9 @@ img {
 				<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-overwrite tsd-is-inherited tsd-is-external">
 					<a href="tcpsenddevice.html#off" class="tsd-kind-icon">off</a>
 				</li>
+				<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-inherited tsd-is-protected tsd-is-external">
+					<a href="tcpsenddevice.html#onhandlestate" class="tsd-kind-icon">on<wbr>Handle<wbr>State</a>
+				</li>
 				<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-overwrite tsd-is-inherited tsd-is-external">
 					<a href="tcpsenddevice.html#once" class="tsd-kind-icon">once</a>
 				</li>
@@ -2499,9 +2505,6 @@ img {
 				</li>
 				<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-overwrite tsd-is-inherited tsd-is-external">
 					<a href="tcpsenddevice.html#removelistener" class="tsd-kind-icon">remove<wbr>Listener</a>
-				</li>
-				<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-inherited tsd-is-external">
-					<a href="tcpsenddevice.html#setmapping" class="tsd-kind-icon">set<wbr>Mapping</a>
 				</li>
 				<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-overwrite tsd-is-inherited tsd-is-external">
 					<a href="tcpsenddevice.html#setmaxlisteners" class="tsd-kind-icon">set<wbr>Max<wbr>Listeners</a>
@@ -2535,7 +2538,7 @@ img {
 			<h3>Hierarchy</h3>
 			<ul class="tsd-hierarchy">
 				<li>
-					<a href="devicewithstate.html" class="tsd-signature-type">DeviceWithState</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">TimelineState</span><span class="tsd-signature-symbol">&gt;</span>
+					<a href="devicewithstate.html" class="tsd-signature-type">DeviceWithState</a><span class="tsd-signature-symbol">&lt;</span><a href="../globals.html#tscsendstate" class="tsd-signature-type">TSCSendState</a><span class="tsd-signature-symbol">&gt;</span>
 					<ul class="tsd-hierarchy">
 						<li>
 							<span class="target">TCPSendDevice</span>
@@ -2565,6 +2568,7 @@ img {
 						<h3>Properties</h3>
 						<ul class="tsd-index-list">
 							<li class="tsd-kind-property tsd-parent-kind-class tsd-is-inherited tsd-is-protected tsd-is-external"><a href="tcpsenddevice.html#_deviceoptions" class="tsd-kind-icon">_device<wbr>Options</a></li>
+							<li class="tsd-kind-property tsd-parent-kind-class tsd-is-inherited tsd-is-protected tsd-is-external"><a href="tcpsenddevice.html#_isactive" class="tsd-kind-icon">_is<wbr>Active</a></li>
 							<li class="tsd-kind-property tsd-parent-kind-class tsd-is-inherited tsd-is-protected tsd-is-external"><a href="tcpsenddevice.html#_reportallcommands" class="tsd-kind-icon">_report<wbr>All<wbr>Commands</a></li>
 							<li class="tsd-kind-property tsd-parent-kind-class tsd-is-overwrite tsd-is-inherited tsd-is-external"><a href="tcpsenddevice.html#emit" class="tsd-kind-icon">emit</a></li>
 							<li class="tsd-kind-property tsd-parent-kind-class tsd-is-overwrite tsd-is-inherited tsd-is-external"><a href="tcpsenddevice.html#on" class="tsd-kind-icon">on</a></li>
@@ -2582,6 +2586,7 @@ img {
 							<li class="tsd-kind-get-signature tsd-parent-kind-class tsd-is-inherited tsd-is-external"><a href="tcpsenddevice.html#deviceoptions" class="tsd-kind-icon">device<wbr>Options</a></li>
 							<li class="tsd-kind-get-signature tsd-parent-kind-class tsd-is-overwrite tsd-is-external"><a href="tcpsenddevice.html#devicetype" class="tsd-kind-icon">device<wbr>Type</a></li>
 							<li class="tsd-kind-get-signature tsd-parent-kind-class tsd-is-inherited tsd-is-external"><a href="tcpsenddevice.html#instanceid" class="tsd-kind-icon">instance<wbr>Id</a></li>
+							<li class="tsd-kind-get-signature tsd-parent-kind-class tsd-is-inherited tsd-is-external"><a href="tcpsenddevice.html#isactive" class="tsd-kind-icon">is<wbr>Active</a></li>
 							<li class="tsd-kind-get-signature tsd-parent-kind-class tsd-is-external"><a href="tcpsenddevice.html#queue" class="tsd-kind-icon">queue</a></li>
 							<li class="tsd-kind-get-signature tsd-parent-kind-class tsd-is-inherited tsd-is-external"><a href="tcpsenddevice.html#starttime" class="tsd-kind-icon">start<wbr>Time</a></li>
 							<li class="tsd-kind-get-signature tsd-parent-kind-class tsd-is-inherited tsd-is-external"><a href="tcpsenddevice.html#supportsexpectedplayoutitems" class="tsd-kind-icon">supports<wbr>Expected<wbr>Playout<wbr>Items</a></li>
@@ -2597,7 +2602,6 @@ img {
 							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-external"><a href="tcpsenddevice.html#convertstatetotcpsend" class="tsd-kind-icon">convert<wbr>State<wbr>ToTCPSend</a></li>
 							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-overwrite tsd-is-inherited tsd-is-external"><a href="tcpsenddevice.html#eventnames" class="tsd-kind-icon">event<wbr>Names</a></li>
 							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited tsd-is-external"><a href="tcpsenddevice.html#getcurrenttime" class="tsd-kind-icon">get<wbr>Current<wbr>Time</a></li>
-							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited tsd-is-external"><a href="tcpsenddevice.html#getmapping" class="tsd-kind-icon">get<wbr>Mapping</a></li>
 							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-overwrite tsd-is-inherited tsd-is-external"><a href="tcpsenddevice.html#getmaxlisteners" class="tsd-kind-icon">get<wbr>Max<wbr>Listeners</a></li>
 							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited tsd-is-protected tsd-is-external"><a href="tcpsenddevice.html#getstate" class="tsd-kind-icon">get<wbr>State</a></li>
 							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited tsd-is-protected tsd-is-external"><a href="tcpsenddevice.html#getstatebefore" class="tsd-kind-icon">get<wbr>State<wbr>Before</a></li>
@@ -2610,6 +2614,7 @@ img {
 							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-overwrite tsd-is-inherited tsd-is-external"><a href="tcpsenddevice.html#listeners" class="tsd-kind-icon">listeners</a></li>
 							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-overwrite tsd-is-external"><a href="tcpsenddevice.html#makeready" class="tsd-kind-icon">make<wbr>Ready</a></li>
 							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-overwrite tsd-is-inherited tsd-is-external"><a href="tcpsenddevice.html#off" class="tsd-kind-icon">off</a></li>
+							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited tsd-is-protected tsd-is-external"><a href="tcpsenddevice.html#onhandlestate" class="tsd-kind-icon">on<wbr>Handle<wbr>State</a></li>
 							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-overwrite tsd-is-inherited tsd-is-external"><a href="tcpsenddevice.html#once" class="tsd-kind-icon">once</a></li>
 							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-overwrite tsd-is-external"><a href="tcpsenddevice.html#prepareforhandlestate" class="tsd-kind-icon">prepare<wbr>For<wbr>Handle<wbr>State</a></li>
 							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-overwrite tsd-is-inherited tsd-is-external"><a href="tcpsenddevice.html#prependlistener" class="tsd-kind-icon">prepend<wbr>Listener</a></li>
@@ -2617,7 +2622,6 @@ img {
 							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-overwrite tsd-is-inherited tsd-is-external"><a href="tcpsenddevice.html#rawlisteners" class="tsd-kind-icon">raw<wbr>Listeners</a></li>
 							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-overwrite tsd-is-inherited tsd-is-external"><a href="tcpsenddevice.html#removealllisteners" class="tsd-kind-icon">remove<wbr>All<wbr>Listeners</a></li>
 							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-overwrite tsd-is-inherited tsd-is-external"><a href="tcpsenddevice.html#removelistener" class="tsd-kind-icon">remove<wbr>Listener</a></li>
-							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited tsd-is-external"><a href="tcpsenddevice.html#setmapping" class="tsd-kind-icon">set<wbr>Mapping</a></li>
 							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-overwrite tsd-is-inherited tsd-is-external"><a href="tcpsenddevice.html#setmaxlisteners" class="tsd-kind-icon">set<wbr>Max<wbr>Listeners</a></li>
 							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited tsd-is-protected tsd-is-external"><a href="tcpsenddevice.html#setstate" class="tsd-kind-icon">set<wbr>State</a></li>
 							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited tsd-is-external"><a href="tcpsenddevice.html#standdown" class="tsd-kind-icon">stand<wbr>Down</a></li>
@@ -2641,7 +2645,7 @@ img {
 						<aside class="tsd-sources">
 							<p>Overrides <a href="device.html">Device</a>.<a href="device.html#constructor">constructor</a></p>
 							<ul>
-								<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/881306cc/src/devices/tcpSend.ts#L57">src/devices/tcpSend.ts:57</a></li>
+								<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/f31ced0f/src/devices/tcpSend.ts#L60">src/devices/tcpSend.ts:60</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -2670,7 +2674,18 @@ img {
 				<aside class="tsd-sources">
 					<p>Inherited from <a href="device.html">Device</a>.<a href="device.html#_deviceoptions">_deviceOptions</a></p>
 					<ul>
-						<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/881306cc/src/devices/device.ts#L89">src/devices/device.ts:89</a></li>
+						<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/f31ced0f/src/devices/device.ts#L86">src/devices/device.ts:86</a></li>
+					</ul>
+				</aside>
+			</section>
+			<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-inherited tsd-is-protected tsd-is-external">
+				<a name="_isactive" class="tsd-anchor"></a>
+				<h3><span class="tsd-flag ts-flagProtected">Protected</span> _is<wbr>Active</h3>
+				<div class="tsd-signature tsd-kind-icon">_is<wbr>Active<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol"> = true</span></div>
+				<aside class="tsd-sources">
+					<p>Inherited from <a href="device.html">Device</a>.<a href="device.html#_isactive">_isActive</a></p>
+					<ul>
+						<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/f31ced0f/src/devices/device.ts#L88">src/devices/device.ts:88</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -2681,7 +2696,7 @@ img {
 				<aside class="tsd-sources">
 					<p>Inherited from <a href="device.html">Device</a>.<a href="device.html#_reportallcommands">_reportAllCommands</a></p>
 					<ul>
-						<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/881306cc/src/devices/device.ts#L90">src/devices/device.ts:90</a></li>
+						<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/f31ced0f/src/devices/device.ts#L87">src/devices/device.ts:87</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -2693,7 +2708,7 @@ img {
 					<p>Inherited from <a href="device.html">Device</a>.<a href="device.html#emit">emit</a></p>
 					<p>Overrides <a href="panasonicptzcamera.html">PanasonicPtzCamera</a>.<a href="panasonicptzcamera.html#emit">emit</a></p>
 					<ul>
-						<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/881306cc/src/devices/device.ts#L233">src/devices/device.ts:233</a></li>
+						<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/f31ced0f/src/devices/device.ts#L232">src/devices/device.ts:232</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -2705,7 +2720,7 @@ img {
 					<p>Inherited from <a href="device.html">Device</a>.<a href="device.html#on">on</a></p>
 					<p>Overrides <a href="panasonicptzcamera.html">PanasonicPtzCamera</a>.<a href="panasonicptzcamera.html#on">on</a></p>
 					<ul>
-						<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/881306cc/src/devices/device.ts#L219">src/devices/device.ts:219</a></li>
+						<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/f31ced0f/src/devices/device.ts#L218">src/devices/device.ts:218</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -2716,7 +2731,7 @@ img {
 				<aside class="tsd-sources">
 					<p>Inherited from <a href="device.html">Device</a>.<a href="device.html#usedirecttime">useDirectTime</a></p>
 					<ul>
-						<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/881306cc/src/devices/device.ts#L88">src/devices/device.ts:88</a></li>
+						<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/f31ced0f/src/devices/device.ts#L85">src/devices/device.ts:85</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -2745,7 +2760,7 @@ img {
 						<aside class="tsd-sources">
 							<p>Overrides <a href="device.html">Device</a>.<a href="device.html#canconnect">canConnect</a></p>
 							<ul>
-								<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/881306cc/src/devices/tcpSend.ts#L138">src/devices/tcpSend.ts:138</a></li>
+								<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/f31ced0f/src/devices/tcpSend.ts#L141">src/devices/tcpSend.ts:141</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4>
@@ -2763,7 +2778,7 @@ img {
 						<aside class="tsd-sources">
 							<p>Overrides <a href="device.html">Device</a>.<a href="device.html#connected">connected</a></p>
 							<ul>
-								<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/881306cc/src/devices/tcpSend.ts#L141">src/devices/tcpSend.ts:141</a></li>
+								<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/f31ced0f/src/devices/tcpSend.ts#L144">src/devices/tcpSend.ts:144</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4>
@@ -2781,7 +2796,7 @@ img {
 						<aside class="tsd-sources">
 							<p>Inherited from <a href="device.html">Device</a>.<a href="device.html#deviceid">deviceId</a></p>
 							<ul>
-								<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/881306cc/src/devices/device.ts#L181">src/devices/device.ts:181</a></li>
+								<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/f31ced0f/src/devices/device.ts#L177">src/devices/device.ts:177</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span></h4>
@@ -2799,7 +2814,7 @@ img {
 						<aside class="tsd-sources">
 							<p>Overrides <a href="device.html">Device</a>.<a href="device.html#devicename">deviceName</a></p>
 							<ul>
-								<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/881306cc/src/devices/tcpSend.ts#L152">src/devices/tcpSend.ts:152</a></li>
+								<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/f31ced0f/src/devices/tcpSend.ts#L155">src/devices/tcpSend.ts:155</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span></h4>
@@ -2817,7 +2832,7 @@ img {
 						<aside class="tsd-sources">
 							<p>Inherited from <a href="device.html">Device</a>.<a href="device.html#deviceoptions">deviceOptions</a></p>
 							<ul>
-								<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/881306cc/src/devices/device.ts#L189">src/devices/device.ts:189</a></li>
+								<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/f31ced0f/src/devices/device.ts#L185">src/devices/device.ts:185</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-returns-title">Returns <a href="../globals.html#deviceoptionsany" class="tsd-signature-type">DeviceOptionsAny</a></h4>
@@ -2835,7 +2850,7 @@ img {
 						<aside class="tsd-sources">
 							<p>Overrides <a href="device.html">Device</a>.<a href="device.html#devicetype">deviceType</a></p>
 							<ul>
-								<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/881306cc/src/devices/tcpSend.ts#L149">src/devices/tcpSend.ts:149</a></li>
+								<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/f31ced0f/src/devices/tcpSend.ts#L152">src/devices/tcpSend.ts:152</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-returns-title">Returns <a href="../enums/devicetype.html" class="tsd-signature-type">DeviceType</a></h4>
@@ -2853,10 +2868,28 @@ img {
 						<aside class="tsd-sources">
 							<p>Inherited from <a href="device.html">Device</a>.<a href="device.html#instanceid">instanceId</a></p>
 							<ul>
-								<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/881306cc/src/devices/device.ts#L243">src/devices/device.ts:243</a></li>
+								<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/f31ced0f/src/devices/device.ts#L242">src/devices/device.ts:242</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">number</span></h4>
+					</li>
+				</ul>
+			</section>
+			<section class="tsd-panel tsd-member tsd-kind-get-signature tsd-parent-kind-class tsd-is-inherited tsd-is-external">
+				<a name="isactive" class="tsd-anchor"></a>
+				<h3>is<wbr>Active</h3>
+				<ul class="tsd-signatures tsd-kind-get-signature tsd-parent-kind-class tsd-is-inherited tsd-is-external">
+					<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">get</span> isActive<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">boolean</span></li>
+				</ul>
+				<ul class="tsd-descriptions">
+					<li class="tsd-description">
+						<aside class="tsd-sources">
+							<p>Inherited from <a href="device.html">Device</a>.<a href="device.html#isactive">isActive</a></p>
+							<ul>
+								<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/f31ced0f/src/devices/device.ts#L195">src/devices/device.ts:195</a></li>
+							</ul>
+						</aside>
+						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4>
 					</li>
 				</ul>
 			</section>
@@ -2870,7 +2903,7 @@ img {
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/881306cc/src/devices/tcpSend.ts#L155">src/devices/tcpSend.ts:155</a></li>
+								<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/f31ced0f/src/devices/tcpSend.ts#L158">src/devices/tcpSend.ts:158</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-symbol">{ </span>args<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">; </span>id<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">; </span>queueId<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">; </span>time<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> }</span><span class="tsd-signature-symbol">[]</span></h4>
@@ -2888,7 +2921,7 @@ img {
 						<aside class="tsd-sources">
 							<p>Inherited from <a href="device.html">Device</a>.<a href="device.html#starttime">startTime</a></p>
 							<ul>
-								<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/881306cc/src/devices/device.ts#L246">src/devices/device.ts:246</a></li>
+								<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/f31ced0f/src/devices/device.ts#L245">src/devices/device.ts:245</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">number</span></h4>
@@ -2906,7 +2939,7 @@ img {
 						<aside class="tsd-sources">
 							<p>Inherited from <a href="device.html">Device</a>.<a href="device.html#supportsexpectedplayoutitems">supportsExpectedPlayoutItems</a></p>
 							<ul>
-								<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/881306cc/src/devices/device.ts#L192">src/devices/device.ts:192</a></li>
+								<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/f31ced0f/src/devices/device.ts#L188">src/devices/device.ts:188</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4>
@@ -2973,7 +3006,7 @@ img {
 						<aside class="tsd-sources">
 							<p>Inherited from <a href="devicewithstate.html">DeviceWithState</a>.<a href="devicewithstate.html#cleanupstates">cleanUpStates</a></p>
 							<ul>
-								<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/881306cc/src/devices/device.ts#L349">src/devices/device.ts:349</a></li>
+								<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/f31ced0f/src/devices/device.ts#L362">src/devices/device.ts:362</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -3007,7 +3040,7 @@ img {
 						<aside class="tsd-sources">
 							<p>Overrides <a href="device.html">Device</a>.<a href="device.html#clearfuture">clearFuture</a></p>
 							<ul>
-								<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/881306cc/src/devices/tcpSend.ts#L108">src/devices/tcpSend.ts:108</a></li>
+								<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/f31ced0f/src/devices/tcpSend.ts#L111">src/devices/tcpSend.ts:111</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -3031,7 +3064,7 @@ img {
 						<aside class="tsd-sources">
 							<p>Inherited from <a href="devicewithstate.html">DeviceWithState</a>.<a href="devicewithstate.html#clearstates">clearStates</a></p>
 							<ul>
-								<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/881306cc/src/devices/device.ts#L370">src/devices/device.ts:370</a></li>
+								<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/f31ced0f/src/devices/device.ts#L383">src/devices/device.ts:383</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -3053,7 +3086,7 @@ img {
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/881306cc/src/devices/tcpSend.ts#L144">src/devices/tcpSend.ts:144</a></li>
+								<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/f31ced0f/src/devices/tcpSend.ts#L147">src/devices/tcpSend.ts:147</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -3096,28 +3129,10 @@ img {
 						<aside class="tsd-sources">
 							<p>Inherited from <a href="device.html">Device</a>.<a href="device.html#getcurrenttime">getCurrentTime</a></p>
 							<ul>
-								<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/881306cc/src/devices/device.ts#L129">src/devices/device.ts:129</a></li>
+								<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/f31ced0f/src/devices/device.ts#L127">src/devices/device.ts:127</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">number</span></h4>
-					</li>
-				</ul>
-			</section>
-			<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-inherited tsd-is-external">
-				<a name="getmapping" class="tsd-anchor"></a>
-				<h3>get<wbr>Mapping</h3>
-				<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-inherited tsd-is-external">
-					<li class="tsd-signature tsd-kind-icon">get<wbr>Mapping<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="../interfaces/mappings.html" class="tsd-signature-type">Mappings</a></li>
-				</ul>
-				<ul class="tsd-descriptions">
-					<li class="tsd-description">
-						<aside class="tsd-sources">
-							<p>Inherited from <a href="device.html">Device</a>.<a href="device.html#getmapping">getMapping</a></p>
-							<ul>
-								<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/881306cc/src/devices/device.ts#L174">src/devices/device.ts:174</a></li>
-							</ul>
-						</aside>
-						<h4 class="tsd-returns-title">Returns <a href="../interfaces/mappings.html" class="tsd-signature-type">Mappings</a></h4>
 					</li>
 				</ul>
 			</section>
@@ -3144,14 +3159,14 @@ img {
 				<a name="getstate" class="tsd-anchor"></a>
 				<h3><span class="tsd-flag ts-flagProtected">Protected</span> get<wbr>State</h3>
 				<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-inherited tsd-is-protected tsd-is-external">
-					<li class="tsd-signature tsd-kind-icon">get<wbr>State<span class="tsd-signature-symbol">(</span>time<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">{ </span>state<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">TimelineState</span><span class="tsd-signature-symbol">; </span>time<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> }</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">null</span></li>
+					<li class="tsd-signature tsd-kind-icon">get<wbr>State<span class="tsd-signature-symbol">(</span>time<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">{ </span>state<span class="tsd-signature-symbol">: </span><a href="../globals.html#tscsendstate" class="tsd-signature-type">TSCSendState</a><span class="tsd-signature-symbol">; </span>time<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> }</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">null</span></li>
 				</ul>
 				<ul class="tsd-descriptions">
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<p>Inherited from <a href="devicewithstate.html">DeviceWithState</a>.<a href="devicewithstate.html#getstate">getState</a></p>
 							<ul>
-								<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/881306cc/src/devices/device.ts#L300">src/devices/device.ts:300</a></li>
+								<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/f31ced0f/src/devices/device.ts#L313">src/devices/device.ts:313</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -3173,7 +3188,7 @@ img {
 								</div>
 							</li>
 						</ul>
-						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-symbol">{ </span>state<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">TimelineState</span><span class="tsd-signature-symbol">; </span>time<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> }</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">null</span></h4>
+						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-symbol">{ </span>state<span class="tsd-signature-symbol">: </span><a href="../globals.html#tscsendstate" class="tsd-signature-type">TSCSendState</a><span class="tsd-signature-symbol">; </span>time<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> }</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">null</span></h4>
 					</li>
 				</ul>
 			</section>
@@ -3181,14 +3196,14 @@ img {
 				<a name="getstatebefore" class="tsd-anchor"></a>
 				<h3><span class="tsd-flag ts-flagProtected">Protected</span> get<wbr>State<wbr>Before</h3>
 				<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-inherited tsd-is-protected tsd-is-external">
-					<li class="tsd-signature tsd-kind-icon">get<wbr>State<wbr>Before<span class="tsd-signature-symbol">(</span>time<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">{ </span>state<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">TimelineState</span><span class="tsd-signature-symbol">; </span>time<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> }</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">null</span></li>
+					<li class="tsd-signature tsd-kind-icon">get<wbr>State<wbr>Before<span class="tsd-signature-symbol">(</span>time<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">{ </span>state<span class="tsd-signature-symbol">: </span><a href="../globals.html#tscsendstate" class="tsd-signature-type">TSCSendState</a><span class="tsd-signature-symbol">; </span>time<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> }</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">null</span></li>
 				</ul>
 				<ul class="tsd-descriptions">
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<p>Inherited from <a href="devicewithstate.html">DeviceWithState</a>.<a href="devicewithstate.html#getstatebefore">getStateBefore</a></p>
 							<ul>
-								<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/881306cc/src/devices/device.ts#L274">src/devices/device.ts:274</a></li>
+								<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/f31ced0f/src/devices/device.ts#L287">src/devices/device.ts:287</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -3205,7 +3220,7 @@ img {
 								</div>
 							</li>
 						</ul>
-						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-symbol">{ </span>state<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">TimelineState</span><span class="tsd-signature-symbol">; </span>time<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> }</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">null</span></h4>
+						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-symbol">{ </span>state<span class="tsd-signature-symbol">: </span><a href="../globals.html#tscsendstate" class="tsd-signature-type">TSCSendState</a><span class="tsd-signature-symbol">; </span>time<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> }</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">null</span></h4>
 					</li>
 				</ul>
 			</section>
@@ -3220,7 +3235,7 @@ img {
 						<aside class="tsd-sources">
 							<p>Overrides <a href="device.html">Device</a>.<a href="device.html#getstatus">getStatus</a></p>
 							<ul>
-								<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/881306cc/src/devices/tcpSend.ts#L158">src/devices/tcpSend.ts:158</a></li>
+								<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/f31ced0f/src/devices/tcpSend.ts#L161">src/devices/tcpSend.ts:161</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-returns-title">Returns <a href="../interfaces/devicestatus.html" class="tsd-signature-type">DeviceStatus</a></h4>
@@ -3238,7 +3253,7 @@ img {
 						<aside class="tsd-sources">
 							<p>Inherited from <a href="device.html">Device</a>.<a href="device.html#handledoontime">handleDoOnTime</a></p>
 							<ul>
-								<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/881306cc/src/devices/device.ts#L249">src/devices/device.ts:249</a></li>
+								<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/f31ced0f/src/devices/device.ts#L248">src/devices/device.ts:248</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -3265,7 +3280,7 @@ img {
 						<aside class="tsd-sources">
 							<p>Inherited from <a href="device.html">Device</a>.<a href="device.html#handleexpectedplayoutitems">handleExpectedPlayoutItems</a></p>
 							<ul>
-								<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/881306cc/src/devices/device.ts#L195">src/devices/device.ts:195</a></li>
+								<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/f31ced0f/src/devices/device.ts#L191">src/devices/device.ts:191</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -3282,20 +3297,23 @@ img {
 				<a name="handlestate" class="tsd-anchor"></a>
 				<h3>handle<wbr>State</h3>
 				<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-overwrite tsd-is-external">
-					<li class="tsd-signature tsd-kind-icon">handle<wbr>State<span class="tsd-signature-symbol">(</span>newState<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">TimelineState</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					<li class="tsd-signature tsd-kind-icon">handle<wbr>State<span class="tsd-signature-symbol">(</span>newState<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">TimelineState</span>, newMappings<span class="tsd-signature-symbol">: </span><a href="../interfaces/mappings.html" class="tsd-signature-type">Mappings</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
 				</ul>
 				<ul class="tsd-descriptions">
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<p>Overrides <a href="device.html">Device</a>.<a href="device.html#handlestate">handleState</a></p>
 							<ul>
-								<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/881306cc/src/devices/tcpSend.ts#L89">src/devices/tcpSend.ts:89</a></li>
+								<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/f31ced0f/src/devices/tcpSend.ts#L92">src/devices/tcpSend.ts:92</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
 						<ul class="tsd-parameters">
 							<li>
 								<h5>newState: <span class="tsd-signature-type">TimelineState</span></h5>
+							</li>
+							<li>
+								<h5>newMappings: <a href="../interfaces/mappings.html" class="tsd-signature-type">Mappings</a></h5>
 							</li>
 						</ul>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
@@ -3313,7 +3331,7 @@ img {
 						<aside class="tsd-sources">
 							<p>Overrides <a href="device.html">Device</a>.<a href="device.html#init">init</a></p>
 							<ul>
-								<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/881306cc/src/devices/tcpSend.ts#L70">src/devices/tcpSend.ts:70</a></li>
+								<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/f31ced0f/src/devices/tcpSend.ts#L73">src/devices/tcpSend.ts:73</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -3387,7 +3405,7 @@ img {
 						<aside class="tsd-sources">
 							<p>Overrides <a href="device.html">Device</a>.<a href="device.html#makeready">makeReady</a></p>
 							<ul>
-								<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/881306cc/src/devices/tcpSend.ts#L113">src/devices/tcpSend.ts:113</a></li>
+								<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/f31ced0f/src/devices/tcpSend.ts#L116">src/devices/tcpSend.ts:116</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -3443,6 +3461,38 @@ img {
 							</li>
 						</ul>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">this</span></h4>
+					</li>
+				</ul>
+			</section>
+			<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-inherited tsd-is-protected tsd-is-external">
+				<a name="onhandlestate" class="tsd-anchor"></a>
+				<h3><span class="tsd-flag ts-flagProtected">Protected</span> on<wbr>Handle<wbr>State</h3>
+				<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-inherited tsd-is-protected tsd-is-external">
+					<li class="tsd-signature tsd-kind-icon">on<wbr>Handle<wbr>State<span class="tsd-signature-symbol">(</span>_newState<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">TimelineState</span>, mappings<span class="tsd-signature-symbol">: </span><a href="../interfaces/mappings.html" class="tsd-signature-type">Mappings</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+				</ul>
+				<ul class="tsd-descriptions">
+					<li class="tsd-description">
+						<aside class="tsd-sources">
+							<p>Inherited from <a href="device.html">Device</a>.<a href="device.html#onhandlestate">onHandleState</a></p>
+							<ul>
+								<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/f31ced0f/src/devices/device.ts#L145">src/devices/device.ts:145</a></li>
+							</ul>
+						</aside>
+						<div class="tsd-comment tsd-typography">
+							<div class="lead">
+								<p>To be called by children first in .handleState</p>
+							</div>
+						</div>
+						<h4 class="tsd-parameters-title">Parameters</h4>
+						<ul class="tsd-parameters">
+							<li>
+								<h5>_newState: <span class="tsd-signature-type">TimelineState</span></h5>
+							</li>
+							<li>
+								<h5>mappings: <a href="../interfaces/mappings.html" class="tsd-signature-type">Mappings</a></h5>
+							</li>
+						</ul>
+						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
 					</li>
 				</ul>
 			</section>
@@ -3503,7 +3553,7 @@ img {
 						<aside class="tsd-sources">
 							<p>Overrides <a href="device.html">Device</a>.<a href="device.html#prepareforhandlestate">prepareForHandleState</a></p>
 							<ul>
-								<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/881306cc/src/devices/tcpSend.ts#L84">src/devices/tcpSend.ts:84</a></li>
+								<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/f31ced0f/src/devices/tcpSend.ts#L87">src/devices/tcpSend.ts:87</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -3709,30 +3759,6 @@ img {
 					</li>
 				</ul>
 			</section>
-			<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-inherited tsd-is-external">
-				<a name="setmapping" class="tsd-anchor"></a>
-				<h3>set<wbr>Mapping</h3>
-				<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-inherited tsd-is-external">
-					<li class="tsd-signature tsd-kind-icon">set<wbr>Mapping<span class="tsd-signature-symbol">(</span>mappings<span class="tsd-signature-symbol">: </span><a href="../interfaces/mappings.html" class="tsd-signature-type">Mappings</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
-				</ul>
-				<ul class="tsd-descriptions">
-					<li class="tsd-description">
-						<aside class="tsd-sources">
-							<p>Inherited from <a href="device.html">Device</a>.<a href="device.html#setmapping">setMapping</a></p>
-							<ul>
-								<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/881306cc/src/devices/device.ts#L177">src/devices/device.ts:177</a></li>
-							</ul>
-						</aside>
-						<h4 class="tsd-parameters-title">Parameters</h4>
-						<ul class="tsd-parameters">
-							<li>
-								<h5>mappings: <a href="../interfaces/mappings.html" class="tsd-signature-type">Mappings</a></h5>
-							</li>
-						</ul>
-						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
-					</li>
-				</ul>
-			</section>
 			<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-overwrite tsd-is-inherited tsd-is-external">
 				<a name="setmaxlisteners" class="tsd-anchor"></a>
 				<h3>set<wbr>Max<wbr>Listeners</h3>
@@ -3762,14 +3788,14 @@ img {
 				<a name="setstate" class="tsd-anchor"></a>
 				<h3><span class="tsd-flag ts-flagProtected">Protected</span> set<wbr>State</h3>
 				<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-inherited tsd-is-protected tsd-is-external">
-					<li class="tsd-signature tsd-kind-icon">set<wbr>State<span class="tsd-signature-symbol">(</span>state<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">TimelineState</span>, time<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					<li class="tsd-signature tsd-kind-icon">set<wbr>State<span class="tsd-signature-symbol">(</span>state<span class="tsd-signature-symbol">: </span><a href="../globals.html#tscsendstate" class="tsd-signature-type">TSCSendState</a>, time<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
 				</ul>
 				<ul class="tsd-descriptions">
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<p>Inherited from <a href="devicewithstate.html">DeviceWithState</a>.<a href="devicewithstate.html#setstate">setState</a></p>
 							<ul>
-								<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/881306cc/src/devices/device.ts#L327">src/devices/device.ts:327</a></li>
+								<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/f31ced0f/src/devices/device.ts#L340">src/devices/device.ts:340</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -3781,7 +3807,7 @@ img {
 						<h4 class="tsd-parameters-title">Parameters</h4>
 						<ul class="tsd-parameters">
 							<li>
-								<h5>state: <span class="tsd-signature-type">TimelineState</span></h5>
+								<h5>state: <a href="../globals.html#tscsendstate" class="tsd-signature-type">TSCSendState</a></h5>
 							</li>
 							<li>
 								<h5>time: <span class="tsd-signature-type">number</span></h5>
@@ -3804,7 +3830,7 @@ img {
 						<aside class="tsd-sources">
 							<p>Inherited from <a href="device.html">Device</a>.<a href="device.html#standdown">standDown</a></p>
 							<ul>
-								<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/881306cc/src/devices/device.ts#L168">src/devices/device.ts:168</a></li>
+								<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/f31ced0f/src/devices/device.ts#L171">src/devices/device.ts:171</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -3834,7 +3860,7 @@ img {
 						<aside class="tsd-sources">
 							<p>Overrides <a href="device.html">Device</a>.<a href="device.html#terminate">terminate</a></p>
 							<ul>
-								<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/881306cc/src/devices/tcpSend.ts#L130">src/devices/tcpSend.ts:130</a></li>
+								<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/f31ced0f/src/devices/tcpSend.ts#L133">src/devices/tcpSend.ts:133</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">&gt;</span></h4>
