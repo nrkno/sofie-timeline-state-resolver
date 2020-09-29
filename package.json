@@ -161,7 +161,7 @@
     "atem-state": "^0.10.0",
     "bufferutil": "^4.0.1",
     "casparcg-connection": "^4.9.0",
-    "casparcg-state": "^1.12.0",
+    "casparcg-state": "^2.0.0",
     "emberplus-connection": "^0.0.3",
     "hyperdeck-connection": "^0.4.3",
     "osc": "^2.4.0",
