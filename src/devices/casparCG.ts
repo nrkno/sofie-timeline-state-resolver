@@ -471,7 +471,7 @@ export class CasparCGDevice extends DeviceWithState<State> implements IDevice {
 				caspar.channels[channel.channelNo] = channel
 
 				// @todo: check if we need to get fps.
-				channel.fps = 25 / 1000 // 25 fps over 1000ms
+				channel.fps = 25
 				caspar.channels[mapping.channel] = channel
 
 				let foregroundObj = timelineState.layers[layerName] as ResolvedTimelineObjectInstance | undefined

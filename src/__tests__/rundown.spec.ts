@@ -341,7 +341,7 @@ describe('Rundown', () => {
 		], myLayerMapping)
 		await mockTime.advanceTimeToTicks(10101)
 
-		expect(mockTime.getCurrentTime()).toEqual(10100)
+		expect(mockTime.getCurrentTime()).toEqual(10101)
 
 		// PLAY 1-10 ROUTE://3-10
 		// PLAY 1-11 OPENER_SHORT

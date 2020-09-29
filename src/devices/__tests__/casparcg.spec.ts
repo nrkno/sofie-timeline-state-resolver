@@ -1481,7 +1481,7 @@ describe('CasparCG', () => {
 		const resCommand = getMockCall(commandReceiver0, 1, 1)._objectParams
 		if (currentState) {
 			// @ts-ignore
-			const currentCasparState = await device.convertStateToCaspar(currentState.state)
+			const currentCasparState = currentState.state
 
 			// @ts-ignore
 			const trackedState = await (await device._ccgState).getState()
@@ -1555,7 +1555,7 @@ describe('CasparCG', () => {
 				retryInterval: false // disable retries explicitly, we will manually trigger them
 			}
 		})
-		await myConductor.setMapping(myLayerMapping)
+		await myConductor.setTimelineAndMappings([], myLayerMapping)
 		await mockTime.advanceTimeToTicks(10100)
 
 		expect(commandReceiver0).toHaveBeenCalledTimes(0)
@@ -1568,7 +1568,7 @@ describe('CasparCG', () => {
 		// Check that no commands has been scheduled:
 		expect(await device['queue']).toHaveLength(0)
 
-		myConductor.timeline = [
+		myConductor.setTimelineAndMappings([
 			{
 				id: 'group0',
 				enable: {
@@ -1600,7 +1600,7 @@ describe('CasparCG', () => {
 					}
 				}]
 			}
-		]
+		])
 
 		await mockTime.advanceTimeToTicks(10200)
 
@@ -1624,7 +1624,7 @@ describe('CasparCG', () => {
 		const resCommand = getMockCall(commandReceiver0, 0, 1)._objectParams
 		if (currentState) {
 			// @ts-ignore
-			const currentCasparState = await device.convertStateToCaspar(currentState.state)
+			const currentCasparState = currentState.state
 
 			// @ts-ignore
 			const trackedState = await (await device._ccgState).getState()
