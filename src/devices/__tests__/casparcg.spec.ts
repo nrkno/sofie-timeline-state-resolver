@@ -1555,7 +1555,7 @@ describe('CasparCG', () => {
 				retryInterval: false // disable retries explicitly, we will manually trigger them
 			}
 		})
-		await myConductor.setTimelineAndMappings([], myLayerMapping)
+		myConductor.setTimelineAndMappings([], myLayerMapping)
 		await mockTime.advanceTimeToTicks(10100)
 
 		expect(commandReceiver0).toHaveBeenCalledTimes(0)
