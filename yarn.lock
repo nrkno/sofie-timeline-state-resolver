@@ -6287,14 +6287,6 @@ text-extensions@^1.0.0:
   resolved "https://registry.yarnpkg.com/text-extensions/-/text-extensions-1.9.0.tgz#1853e45fee39c945ce6f6c36b2d659b5aabc2a26"
   integrity sha512-wiBrwC1EhBelW12Zy26JeOUkQ5mRu+5o8rpsJk5+2t+Y5vE7e842qtZDQ2g1NpX/29HdyFeJ4nSIhI47ENSxlQ==
 
-threadedclass@^0.7.0:
-  version "0.7.0"
-  resolved "https://registry.yarnpkg.com/threadedclass/-/threadedclass-0.7.0.tgz#16d970211f930b5759fae83a4cde78563b0b5104"
-  integrity sha512-at4Ouv4JSbFz5hX5XnhjkukqOz+J086BHPXT3P6lD64rhYgzbOdWruyj8AgE7xfeh3Wd8nl9yUJiZ4ryoD9IFA==
-  dependencies:
-    callsites "^3.1.0"
-    tslib "^1.10.0"
-
 threadedclass@^0.8.0:
   version "0.8.0"
   resolved "https://registry.yarnpkg.com/threadedclass/-/threadedclass-0.8.0.tgz#2b3a3f450ccd29579140dcac34a8d8ed159c6313"

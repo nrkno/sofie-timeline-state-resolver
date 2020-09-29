@@ -190,7 +190,7 @@ export class Conductor extends EventEmitter {
 	public async init (): Promise<void> {
 		this._resolver = await threadedClass<AsyncResolver, typeof AsyncResolver>(
 			'../dist/AsyncResolver.js',
-			AsyncResolver,
+			'AsyncResolver',
 			[
 				r => { this.emit('setTimelineTriggerTime', r) }
 			],
@@ -285,7 +285,7 @@ export class Conductor extends EventEmitter {
 			if (deviceOptions.type === DeviceType.ABSTRACT) {
 				newDevice = await new DeviceContainer().create<AbstractDevice, typeof AbstractDevice>(
 					'../../dist/devices/abstract.js',
-					AbstractDevice,
+					'AbstractDevice',
 					deviceId,
 					deviceOptions,
 					getCurrentTime,
@@ -300,7 +300,7 @@ export class Conductor extends EventEmitter {
 				// Add CasparCG device:
 				newDevice = await new DeviceContainer().create<CasparCGDevice, typeof CasparCGDevice>(
 					'../../dist/devices/casparCG.js',
-					CasparCGDevice,
+					'CasparCGDevice',
 					deviceId,
 					deviceOptions,
 					getCurrentTime,
@@ -309,7 +309,7 @@ export class Conductor extends EventEmitter {
 			} else if (deviceOptions.type === DeviceType.ATEM) {
 				newDevice = await new DeviceContainer().create<AtemDevice, typeof AtemDevice>(
 					'../../dist/devices/atem.js',
-					AtemDevice,
+					'AtemDevice',
 					deviceId,
 					deviceOptions,
 					getCurrentTime,
@@ -318,7 +318,7 @@ export class Conductor extends EventEmitter {
 			} else if (deviceOptions.type === DeviceType.HTTPSEND) {
 				newDevice = await new DeviceContainer().create<HTTPSendDevice, typeof HTTPSendDevice>(
 					'../../dist/devices/httpSend.js',
-					HTTPSendDevice,
+					'HTTPSendDevice',
 					deviceId,
 					deviceOptions,
 					getCurrentTime,
@@ -327,7 +327,7 @@ export class Conductor extends EventEmitter {
 			} else if (deviceOptions.type === DeviceType.HTTPWATCHER) {
 				newDevice = await new DeviceContainer().create<HTTPWatcherDevice, typeof HTTPWatcherDevice>(
 					'../../dist/devices/httpWatcher.js',
-					HTTPWatcherDevice,
+					'HTTPWatcherDevice',
 					deviceId,
 					deviceOptions,
 					getCurrentTime,
@@ -336,7 +336,7 @@ export class Conductor extends EventEmitter {
 			} else if (deviceOptions.type === DeviceType.LAWO) {
 				newDevice = await new DeviceContainer().create<LawoDevice, typeof LawoDevice>(
 					'../../dist/devices/lawo.js',
-					LawoDevice,
+					'LawoDevice',
 					deviceId,
 					deviceOptions,
 					getCurrentTime,
@@ -345,7 +345,7 @@ export class Conductor extends EventEmitter {
 			} else if (deviceOptions.type === DeviceType.TCPSEND) {
 				newDevice = await new DeviceContainer().create<TCPSendDevice, typeof TCPSendDevice>(
 					'../../dist/devices/tcpSend.js',
-					TCPSendDevice,
+					'TCPSendDevice',
 					deviceId,
 					deviceOptions,
 					getCurrentTime,
@@ -354,7 +354,7 @@ export class Conductor extends EventEmitter {
 			} else if (deviceOptions.type === DeviceType.PANASONIC_PTZ) {
 				newDevice = await new DeviceContainer().create<PanasonicPtzDevice, typeof PanasonicPtzDevice>(
 					'../../dist/devices/panasonicPTZ.js',
-					PanasonicPtzDevice,
+					'PanasonicPtzDevice',
 					deviceId,
 					deviceOptions,
 					getCurrentTime,
@@ -363,7 +363,7 @@ export class Conductor extends EventEmitter {
 			} else if (deviceOptions.type === DeviceType.HYPERDECK) {
 				newDevice = await new DeviceContainer().create<HyperdeckDevice, typeof HyperdeckDevice>(
 					'../../dist/devices/hyperdeck.js',
-					HyperdeckDevice,
+					'HyperdeckDevice',
 					deviceId,
 					deviceOptions,
 					getCurrentTime,
@@ -372,7 +372,7 @@ export class Conductor extends EventEmitter {
 			} else if (deviceOptions.type === DeviceType.PHAROS) {
 				newDevice = await new DeviceContainer().create<PharosDevice, typeof PharosDevice>(
 					'../../dist/devices/pharos.js',
-					PharosDevice,
+					'PharosDevice',
 					deviceId,
 					deviceOptions,
 					getCurrentTime,
@@ -381,7 +381,7 @@ export class Conductor extends EventEmitter {
 			} else if (deviceOptions.type === DeviceType.OSC) {
 				newDevice = await new DeviceContainer().create<OSCMessageDevice, typeof OSCMessageDevice>(
 					'../../dist/devices/osc.js',
-					OSCMessageDevice,
+					'OSCMessageDevice',
 					deviceId,
 					deviceOptions,
 					getCurrentTime,
@@ -390,7 +390,7 @@ export class Conductor extends EventEmitter {
 			} else if (deviceOptions.type === DeviceType.QUANTEL) {
 				newDevice = await new DeviceContainer().create<QuantelDevice, typeof QuantelDevice>(
 					'../../dist/devices/quantel.js',
-					QuantelDevice,
+					'QuantelDevice',
 					deviceId,
 					deviceOptions,
 					getCurrentTime,
@@ -399,7 +399,7 @@ export class Conductor extends EventEmitter {
 			} else if (deviceOptions.type === DeviceType.SHOTOKU) {
 				newDevice = await new DeviceContainer().create<ShotokuDevice, typeof ShotokuDevice>(
 					'../../dist/devices/shotoku.js',
-					ShotokuDevice,
+					'ShotokuDevice',
 					deviceId,
 					deviceOptions,
 					getCurrentTime,
@@ -408,7 +408,7 @@ export class Conductor extends EventEmitter {
 			} else if (deviceOptions.type === DeviceType.SISYFOS) {
 				newDevice = await new DeviceContainer().create<SisyfosMessageDevice, typeof SisyfosMessageDevice>(
 					'../../dist/devices/sisyfos.js',
-					SisyfosMessageDevice,
+					'SisyfosMessageDevice',
 					deviceId,
 					deviceOptions,
 					getCurrentTime,
@@ -417,7 +417,7 @@ export class Conductor extends EventEmitter {
 			} else if (deviceOptions.type === DeviceType.VIZMSE) {
 				newDevice = await new DeviceContainer().create<VizMSEDevice, typeof VizMSEDevice>(
 					'../../dist/devices/vizMSE.js',
-					VizMSEDevice,
+					'VizMSEDevice',
 					deviceId,
 					deviceOptions,
 					getCurrentTime,
@@ -426,7 +426,7 @@ export class Conductor extends EventEmitter {
 			} else if (deviceOptions.type === DeviceType.SINGULAR_LIVE) {
 				newDevice = await new DeviceContainer().create<SingularLiveDevice, typeof SingularLiveDevice>(
 					'../../dist/devices/singularLive.js',
-					SingularLiveDevice,
+					'SingularLiveDevice',
 					deviceId,
 					deviceOptions,
 					getCurrentTime,
@@ -435,7 +435,7 @@ export class Conductor extends EventEmitter {
 			} else if (deviceOptions.type === DeviceType.VMIX) {
 				newDevice = await new DeviceContainer().create<VMixDevice, typeof VMixDevice>(
 					'../../dist/devices/vmix.js',
-					VMixDevice,
+					'VMixDevice',
 					deviceId,
 					deviceOptions,
 					getCurrentTime,

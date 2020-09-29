@@ -27,7 +27,7 @@ export class DeviceContainer {
 
 	async create<T extends Device, TCtor extends new (...args: any) => T> (
 		orgModule: string,
-		orgClass: TCtor,
+		orgClassExport: string,
 		deviceId: string,
 		deviceOptions: DeviceOptionsAny,
 		getCurrentTime: () => number,
@@ -46,7 +46,7 @@ export class DeviceContainer {
 
 		this._device = await threadedClass<T, TCtor>(
 			orgModule,
-			orgClass,
+			orgClassExport,
 			[ deviceId, deviceOptions, getCurrentTime ] as any, // TODO types
 			threadConfig
 		)
