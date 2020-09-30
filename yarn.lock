@@ -1432,21 +1432,21 @@ caseless@~0.12.0:
   resolved "https://registry.yarnpkg.com/caseless/-/caseless-0.12.0.tgz#1b681c21ff84033c826543090689420d187151dc"
   integrity sha1-G2gcIf+EAzyCZUMJBolCDRhxUdw=
 
-casparcg-connection@^4.9.0:
-  version "4.9.0"
-  resolved "https://registry.yarnpkg.com/casparcg-connection/-/casparcg-connection-4.9.0.tgz#1fb19e091ff785d312f52ed065c4077dbe55196c"
-  integrity sha512-K2c38+6RB4Agb116q4WapmZQSDAz95nlijgndpG2sYEX9lxHRJmBrJ+uysxrgJT/dXYlPGrEx++pEqwRpXPtLA==
+casparcg-connection@^5.0.1:
+  version "5.0.1"
+  resolved "https://registry.yarnpkg.com/casparcg-connection/-/casparcg-connection-5.0.1.tgz#5144f43664586ec2b73fc380f893b63704fc46e0"
+  integrity sha512-gurGsJozCeBVuW2rPnttBj3WS4HJxW3RXC4x2OINdcs+rwAJRKy5tBg2MilsRp2Hh+wQL/e/16ZTjpCkvvkG5A==
   dependencies:
     highland "^3.0.0-beta.6"
     xml2js "^0.4.19"
     xmlbuilder "^9.0.7"
 
-casparcg-state@^1.12.0:
-  version "1.12.0"
-  resolved "https://registry.yarnpkg.com/casparcg-state/-/casparcg-state-1.12.0.tgz#cdd1e449d097c01e824995379dc6c9cca3fffd38"
-  integrity sha512-sZv2NYmgw/NQJTDMdIOfs3FcZjLXNVXrdSsL4bhgU49J9YNrGGePOcgjiHNT83ZyOfVprssMjbDegNVfkepCBA==
+casparcg-state@^2.0.0:
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/casparcg-state/-/casparcg-state-2.0.0.tgz#1ce38ff1846a259de4bc4fe706a312849539b34e"
+  integrity sha512-eZ0f8PWkxk3t/xgUaE1i4wqpHFNEeMBPs8L4mCoTFg3MdfqPVUg/bW6XZPFcPFOruQ93UekaTUpKKDafsASYsg==
   dependencies:
-    casparcg-connection "^4.9.0"
+    casparcg-connection "^5.0.1"
     fast-clone "^1.5.13"
     underscore "^1.9.1"
 
