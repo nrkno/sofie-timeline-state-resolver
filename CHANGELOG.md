@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [5.1.0](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/5.0.0...5.1.0) (2020-09-30)
+
+
+### Features
+
+* update to casparcg-state v2 ([e3a063f](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/e3a063f15e29645a96cc8a9cd72c9e6d760df2d7))
+
+
+### Bug Fixes
+
+* **casparcg:** use 25 as channel framerate ([6463ffc](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/6463ffcb875882e22edad0ede620346b9054cf59))
+
 ## [5.0.0](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/4.0.4...5.0.0) (2020-09-28)
 
 
