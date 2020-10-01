@@ -47,7 +47,7 @@ describe('Singular.Live', () => {
 				accessToken: 'DUMMY_TOKEN'
 			}
 		})
-		await myConductor.setMapping(myLayerMapping)
+		myConductor.setTimelineAndMappings([], myLayerMapping)
 		await mockTime.advanceTimeToTicks(10100)
 
 		let deviceContainer = myConductor.getDevice('mySingular')
@@ -56,7 +56,7 @@ describe('Singular.Live', () => {
 		// Check that no commands has been scheduled:
 		expect(await device.queue).toHaveLength(0)
 
-		myConductor.timeline = [
+		myConductor.setTimelineAndMappings([
 			{
 				id: 'obj0',
 				enable: {
@@ -75,7 +75,7 @@ describe('Singular.Live', () => {
 					}
 				}
 			}
-		]
+		])
 		await mockTime.advanceTimeToTicks(10990)
 		expect(commandReceiver0).toHaveBeenCalledTimes(0)
 		await mockTime.advanceTimeToTicks(11100)

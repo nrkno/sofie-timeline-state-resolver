@@ -2,7 +2,8 @@ jest.mock('v-connection')
 import { Conductor } from '../../conductor'
 import {
 	Mappings,
-	DeviceType
+	DeviceType,
+	TSRTimeline
 } from '../../types/src'
 import { MockTime } from '../../__tests__/mockTime'
 import { ThreadedClass } from 'threadedclass'
@@ -46,7 +47,7 @@ describe('vizMSE', () => {
 			initializeAsClear: true,
 			getCurrentTime: mockTime.getCurrentTime
 		})
-		await myConductor.setMapping(myChannelMapping)
+		myConductor.setTimelineAndMappings([], myChannelMapping)
 		await myConductor.init()
 		await myConductor.addDevice('myViz', {
 			type: DeviceType.VIZMSE,
@@ -68,7 +69,7 @@ describe('vizMSE', () => {
 		// Check that no commands has been scheduled:
 		expect(await device.queue).toHaveLength(0)
 
-		myConductor.timeline = [
+		myConductor.setTimelineAndMappings([
 			{
 				id: 'obj0',
 				enable: {
@@ -116,7 +117,7 @@ describe('vizMSE', () => {
 					reference: 'viz0'
 				}
 			}
-		]
+		])
 
 		await mockTime.advanceTimeTicks(500) // 10500
 		expect(commandReceiver0.mock.calls.length).toEqual(0)
@@ -224,7 +225,7 @@ describe('vizMSE', () => {
 		const onError = jest.fn()
 		myConductor.on('error', onError)
 
-		await myConductor.setMapping(myChannelMapping)
+		myConductor.setTimelineAndMappings([], myChannelMapping)
 		await myConductor.init()
 		await myConductor.addDevice('myViz', {
 			type: DeviceType.VIZMSE,
@@ -245,7 +246,7 @@ describe('vizMSE', () => {
 		// Check that no commands has been scheduled:
 		expect(await device.queue).toHaveLength(0)
 
-		myConductor.timeline = [
+		myConductor.setTimelineAndMappings([
 			{
 				id: 'obj0',
 				enable: {
@@ -292,7 +293,7 @@ describe('vizMSE', () => {
 					reference: 'viz0'
 				}
 			}
-		]
+		])
 
 		await mockTime.advanceTimeTicks(500) // 10500
 		expect(commandReceiver0.mock.calls.length).toEqual(0)
@@ -437,7 +438,7 @@ describe('vizMSE', () => {
 			}
 		])
 
-		myConductor.timeline = [
+		myConductor.setTimelineAndMappings([
 			{
 				id: 'loadAll',
 				enable: {
@@ -450,7 +451,7 @@ describe('vizMSE', () => {
 					type: TimelineContentTypeVizMSE.LOAD_ALL_ELEMENTS
 				}
 			}
-		]
+		])
 
 		await mockTime.advanceTimeToTicks(24900)
 
@@ -599,7 +600,7 @@ describe('vizMSE', () => {
 			initializeAsClear: true,
 			getCurrentTime: mockTime.getCurrentTime
 		})
-		await myConductor.setMapping(myChannelMapping)
+		myConductor.setTimelineAndMappings([], myChannelMapping)
 		await myConductor.init()
 		await myConductor.addDevice('myViz', {
 			type: DeviceType.VIZMSE,
@@ -623,7 +624,7 @@ describe('vizMSE', () => {
 		// Check that no commands has been scheduled:
 		expect(await device.queue).toHaveLength(0)
 
-		myConductor.timeline = [
+		myConductor.setTimelineAndMappings([
 			{
 				id: 'obj0',
 				enable: {
@@ -652,7 +653,7 @@ describe('vizMSE', () => {
 					commands: ['RENDERER*FRONT_LAYER SET_OBJECT ', 'RENDERER SET_OBJECT ']
 				}
 			}
-		]
+		] as TSRTimeline)
 
 		// await mockTime.advanceTimeTicks(500) // 10500
 		// expect(commandReceiver0.mock.calls.length).toEqual(0)
@@ -676,7 +677,7 @@ describe('vizMSE', () => {
 
 		expect(getMockCall(commandReceiver0, 0, 1)).toMatchObject({
 			timelineObjId: 'obj0',
-			time: 10090,
+			time: 10105,
 			templateInstance: expect.stringContaining('myInternalElement'),
 			type: 'prepare',
 			templateName: 'myInternalElement',
@@ -684,7 +685,7 @@ describe('vizMSE', () => {
 		})
 		expect(getMockCall(commandReceiver0, 1, 1)).toMatchObject({
 			timelineObjId: 'obj0',
-			time: 10100,
+			time: 10105,
 			templateInstance: expect.stringContaining('myInternalElement'),
 			type: 'take',
 			templateName: 'myInternalElement',
@@ -767,7 +768,7 @@ describe('vizMSE', () => {
 		const onError = jest.fn()
 		myConductor.on('error', onError)
 
-		await myConductor.setMapping(myChannelMapping)
+		myConductor.setTimelineAndMappings([], myChannelMapping)
 		await myConductor.init()
 		await myConductor.addDevice('myViz', {
 			type: DeviceType.VIZMSE,
@@ -795,7 +796,7 @@ describe('vizMSE', () => {
 		const rundown = _.last(mse.getMockRundowns()) as VRundownMocked
 		expect(rundown).toBeTruthy()
 
-		myConductor.timeline = [
+		myConductor.setTimelineAndMappings([
 			{
 				id: 'obj0',
 				enable: {
@@ -815,7 +816,7 @@ describe('vizMSE', () => {
 
 				}
 			}
-		]
+		])
 
 		await mockTime.advanceTimeToTicks(14000)
 		expect(commandReceiver0.mock.calls.length).toEqual(0)

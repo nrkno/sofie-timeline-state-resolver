@@ -1,14 +1,15 @@
 import {
 	Mappings,
 	DeviceType,
-	MappingTCPSend
+	MappingShotoku,
+	TimelineContentTypeShotoku,
+	ShotokuTransitionType
 } from '../../types/src'
 import { Conductor } from '../../conductor'
 import { Socket as MockSocket } from 'net'
-import { StatusCode } from '../device'
 import { ThreadedClass } from 'threadedclass'
 import { MockTime } from '../../__tests__/mockTime'
-import { TCPSendDevice } from '../tcpSend'
+import { ShotokuDevice } from '../shotoku'
 
 jest.mock('net')
 let setTimeoutOrg = setTimeout
@@ -20,7 +21,7 @@ function waitALittleBit () {
 }
 
 // let nowActual = Date.now()
-describe('TCP-Send', () => {
+describe('Shotoku', () => {
 	let mockTime = new MockTime()
 	beforeAll(() => {
 		mockTime.mockDateNow()
@@ -29,8 +30,7 @@ describe('TCP-Send', () => {
 		mockTime.init()
 	})
 	// afterEach(() => {})
-	test('Send message', async () => {
-
+	async function testShots (cmd?: ShotokuTransitionType) {
 		const commandReceiver0: any = jest.fn((time, cmd, context) => {
 			// return Promise.resolve()
 			// @ts-ignore
@@ -52,9 +52,9 @@ describe('TCP-Send', () => {
 			socket.onClose = onSocketClose
 		})
 
-		let myLayerMapping0: MappingTCPSend = {
-			device: DeviceType.TCPSEND,
-			deviceId: 'myTCP'
+		let myLayerMapping0: MappingShotoku = {
+			device: DeviceType.SHOTOKU,
+			deviceId: 'myShotoku'
 		}
 		let myLayerMapping: Mappings = {
 			'myLayer0': myLayerMapping0
@@ -68,41 +68,35 @@ describe('TCP-Send', () => {
 		myConductor.on('error', onError)
 		await myConductor.init()
 
-		await myConductor.addDevice('myTCP', {
-			type: DeviceType.TCPSEND,
+		await myConductor.addDevice('myShotoku', {
+			type: DeviceType.SHOTOKU,
 
 			options: {
 				commandReceiver: commandReceiver0,
 				host: '192.168.0.1',
-				port: 1234,
-				makeReadyCommands: [{
-					message: 'makeReady0'
-				},{
-					message: 'makeReady1'
-				}]
-				// bufferEncoding: 'hex',
+				port: 1234
 			}
 		})
 
 		expect(onSocketCreate).toHaveBeenCalledTimes(1)
 
 		// @ts-ignore
-		let sockets = MockSocket.mockSockets()
-		expect(sockets).toHaveLength(1)
-		let socket = sockets[0]
+		// let sockets = MockSocket.mockSockets()
+		// expect(sockets).toHaveLength(1)
+		// let socket = sockets[0]
 
 		myConductor.setTimelineAndMappings([], myLayerMapping)
 		await mockTime.advanceTimeToTicks(10100) // 10100
 		expect(mockTime.now).toEqual(10100)
 		expect(onConnection).toHaveBeenCalledTimes(1)
 
-		let deviceContainer = myConductor.getDevice('myTCP')
-		let device = deviceContainer.device as ThreadedClass<TCPSendDevice>
+		let deviceContainer = myConductor.getDevice('myShotoku')
+		let device = deviceContainer.device as ThreadedClass<ShotokuDevice>
 
 		await device.on('connectionChanged', onConnectionChanged)
 
 		expect(await device.canConnect).toEqual(true)
-		expect(await device.deviceName).toMatch(/tcp/i)
+		expect(await device.deviceName).toMatch(/myShotoku/i)
 
 		// Check that no commands has been scheduled:
 		expect(await device.queue).toHaveLength(0)
@@ -117,8 +111,11 @@ describe('TCP-Send', () => {
 				},
 				layer: 'myLayer0',
 				content: {
-					deviceType: DeviceType.TCPSEND,
-					message: 'hello world'
+					deviceType: DeviceType.SHOTOKU,
+					type: TimelineContentTypeShotoku.SHOT,
+
+					shot: 1,
+					transitionType: cmd
 				}
 			}
 		])
@@ -130,13 +127,19 @@ describe('TCP-Send', () => {
 
 		expect(commandReceiver0).toHaveBeenCalledTimes(1)
 		expect(commandReceiver0.mock.calls[0][1]).toMatchObject({
-			message: 'hello world'
+			show: undefined,
+			shot: 1,
+			type: cmd || 'cut',
+			changeOperatorScreen: undefined
 		})
 		expect(commandReceiver0.mock.calls[0][2]).toMatch(/added: obj0/)
 		await waitALittleBit()
 		expect(onSocketWrite).toHaveBeenCalledTimes(1)
-		expect(onSocketWrite.mock.calls[0][0]).toEqual(Buffer.from('hello world'))
-
+		if (cmd === ShotokuTransitionType.Fade) {
+			expect(onSocketWrite.mock.calls[0][0]).toEqual(Buffer.from([0xf9, 0x01, 0x01, 0x00, 0x01, 0x01, 0x00, 0x00, 0x43]))
+		} else {
+			expect(onSocketWrite.mock.calls[0][0]).toEqual(Buffer.from([0xf9, 0x01, 0x02, 0x00, 0x01, 0x01, 0x00, 0x00, 0x42]))
+		}
 		// Test Changed object:
 		myConductor.setTimelineAndMappings([
 			{
@@ -147,8 +150,12 @@ describe('TCP-Send', () => {
 				},
 				layer: 'myLayer0',
 				content: {
-					deviceType: DeviceType.TCPSEND,
-					message: 'anyone here'
+					deviceType: DeviceType.SHOTOKU,
+					type: TimelineContentTypeShotoku.SHOT,
+
+					shot: 255, // max
+					changeOperatorScreen: true,
+					transitionType: cmd
 				}
 			}
 		])
@@ -156,71 +163,35 @@ describe('TCP-Send', () => {
 		await mockTime.advanceTimeToTicks(12000) // 12000
 		expect(commandReceiver0).toHaveBeenCalledTimes(2)
 		expect(commandReceiver0.mock.calls[1][1]).toMatchObject({
-			message: 'anyone here'
+			show: undefined,
+			shot: 255,
+			type: cmd || 'cut',
+			changeOperatorScreen: true
 		})
-		expect(commandReceiver0.mock.calls[1][2]).toMatch(/changed: obj0/)
+		expect(commandReceiver0.mock.calls[1][2]).toMatch(/added: obj0/)
 		await waitALittleBit() // allow for async socket events to fire
 		expect(onSocketWrite).toHaveBeenCalledTimes(2)
-		expect(onSocketWrite.mock.calls[1][0]).toEqual(Buffer.from('anyone here'))
+		if (cmd === ShotokuTransitionType.Fade) {
+			expect(onSocketWrite.mock.calls[1][0]).toEqual(Buffer.from([0xf9, 0x01, 0x21, 0x00, 0x01, 0xff, 0x00, 0x00, 0x25]))
+		} else {
+			expect(onSocketWrite.mock.calls[1][0]).toEqual(Buffer.from([0xf9, 0x01, 0x22, 0x00, 0x01, 0xff, 0x00, 0x00, 0x24]))
+		}
 
-		// Test Removed object:
-		await mockTime.advanceTimeToTicks(16000) // 16000
-		expect(commandReceiver0).toHaveBeenCalledTimes(2)
-		expect(onSocketWrite).toHaveBeenCalledTimes(2)
+		myConductor.setTimelineAndMappings([])
 
-		// test disconnected
-		// @ts-ignore
-		socket.mockClose()
-		expect(onSocketClose).toHaveBeenCalledTimes(1)
-		await waitALittleBit()
-		expect(onConnectionChanged).toHaveBeenCalledTimes(1)
-		expect(onConnectionChanged.mock.calls[0][0]).toMatchObject({
-			statusCode: StatusCode.BAD
-		})
+		await mockTime.advanceTimeToTicks(12000) // 12000
+		expect(commandReceiver0).toHaveBeenCalledTimes(2) // no new commands
 
-		// test retry
-		await mockTime.advanceTimeTicks(6000) // enough time has passed
-
-		// a new connection should have been made
-
-		expect(onConnection).toHaveBeenCalledTimes(2)
-		await waitALittleBit()
-		expect(onConnectionChanged).toHaveBeenCalledTimes(2)
-		expect(onConnectionChanged.mock.calls[1][0]).toMatchObject({
-			statusCode: StatusCode.GOOD
-		})
-
-		// Test makeReady:
-		await myConductor.devicesMakeReady(true)
-		await mockTime.advanceTimeTicks(10)
-		await waitALittleBit()
-
-		expect(onConnectionChanged).toHaveBeenCalledTimes(4)
-		expect(onConnectionChanged.mock.calls[2][0]).toMatchObject({
-			statusCode: StatusCode.BAD
-		})
-		expect(onConnectionChanged.mock.calls[3][0]).toMatchObject({
-			statusCode: StatusCode.GOOD
-		})
-
-		expect(commandReceiver0).toHaveBeenCalledTimes(4)
-		expect(commandReceiver0.mock.calls[2][1]).toMatchObject({
-			message: 'makeReady0'
-		})
-		expect(commandReceiver0.mock.calls[3][1]).toMatchObject({
-			message: 'makeReady1'
-		})
-
-		// dispose
 		await device.terminate()
+	}
 
-		expect(onSocketClose).toHaveBeenCalledTimes(2)
-		expect(onConnectionChanged).toHaveBeenCalledTimes(5)
-		expect(onConnectionChanged.mock.calls[4][0]).toMatchObject({
-			statusCode: StatusCode.BAD
-		})
-
-		expect(onError).toHaveBeenCalledTimes(0)
-		// expect(0).toEqual(1)
+	test('Default transition to shot', async () => {
+		await testShots()
+	})
+	test('Cut to shot', async () => {
+		await testShots(ShotokuTransitionType.Cut)
+	})
+	test('Fade to shot', async () => {
+		await testShots(ShotokuTransitionType.Fade)
 	})
 })

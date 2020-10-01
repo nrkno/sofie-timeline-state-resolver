@@ -42,7 +42,7 @@ describe('HTTP-Send', () => {
 				commandReceiver: commandReceiver0
 			}
 		})
-		await myConductor.setMapping(myLayerMapping)
+		myConductor.setTimelineAndMappings([], myLayerMapping)
 		await mockTime.advanceTimeToTicks(10100)
 
 		let deviceContainer = myConductor.getDevice('myHTTP')
@@ -51,7 +51,7 @@ describe('HTTP-Send', () => {
 		// Check that no commands has been scheduled:
 		expect(await device.queue).toHaveLength(0)
 
-		myConductor.timeline = [
+		myConductor.setTimelineAndMappings([
 			{
 				id: 'obj0',
 				enable: {
@@ -70,7 +70,7 @@ describe('HTTP-Send', () => {
 					}
 				}
 			}
-		]
+		])
 		await mockTime.advanceTimeToTicks(10990)
 		expect(commandReceiver0).toHaveBeenCalledTimes(0)
 		await mockTime.advanceTimeToTicks(11100)
@@ -121,7 +121,7 @@ describe('HTTP-Send', () => {
 				commandReceiver: commandReceiver0
 			}
 		})
-		await myConductor.setMapping(myLayerMapping)
+		myConductor.setTimelineAndMappings([], myLayerMapping)
 		await mockTime.advanceTimeToTicks(10100)
 
 		let deviceContainer = myConductor.getDevice('myHTTP')
@@ -180,7 +180,7 @@ describe('HTTP-Send', () => {
 				}
 			}
 		]
-		myConductor.timeline = timeline
+		myConductor.setTimelineAndMappings(timeline)
 
 		await mockTime.advanceTimeToTicks(10990)
 		expect(commandReceiver0).toHaveBeenCalledTimes(0)

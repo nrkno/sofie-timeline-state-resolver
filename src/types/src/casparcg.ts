@@ -193,7 +193,7 @@ export interface TimelineObjCCGRecord extends TimelineObjCasparCGBase {
 		deviceType: DeviceType.CASPARCG
 		type: TimelineContentTypeCasparCg.RECORD
 		/** The filename to output to (will be in the media folder) */
-		file?: string,
+		file: string,
 		/** ffmpeg encoder options (example '-vcodec libx264 -preset ultrafast') */
 		encoderOptions: string
 	}

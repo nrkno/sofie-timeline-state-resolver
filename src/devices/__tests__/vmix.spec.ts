@@ -99,7 +99,7 @@ describe('vMix', () => {
 		device.on('error', deviceErrorHandler)
 		device.on('commandError', deviceErrorHandler)
 
-		await myConductor.setMapping(myLayerMapping)
+		myConductor.setTimelineAndMappings([], myLayerMapping)
 
 		expect(mockTime.getCurrentTime()).toEqual(10000)
 		await mockTime.advanceTimeToTicks(10100)
@@ -113,7 +113,7 @@ describe('vMix', () => {
 		// Check that no commands has been scheduled:
 		expect(await device.queue).toHaveLength(0)
 
-		myConductor.timeline = [
+		myConductor.setTimelineAndMappings([
 			{
 				id: 'media',
 				enable: {
@@ -129,7 +129,7 @@ describe('vMix', () => {
 					playing: true
 				}
 			}
-		]
+		])
 		// Time to preload the clip
 		await mockTime.advanceTimeToTicks(10990)
 
@@ -233,7 +233,7 @@ describe('vMix', () => {
 		device.on('error', deviceErrorHandler)
 		device.on('commandError', deviceErrorHandler)
 
-		await myConductor.setMapping(myLayerMapping)
+		myConductor.setTimelineAndMappings([], myLayerMapping)
 
 		expect(mockTime.getCurrentTime()).toEqual(10000)
 		await mockTime.advanceTimeToTicks(10100)
@@ -244,7 +244,7 @@ describe('vMix', () => {
 		// Check that no commands has been scheduled:
 		expect(await device.queue).toHaveLength(0)
 
-		myConductor.timeline = [
+		myConductor.setTimelineAndMappings([
 			{
 				id: 'media',
 				enable: {
@@ -272,7 +272,7 @@ describe('vMix', () => {
 					}
 				}
 			}
-		]
+		])
 		// Time to preload the clip
 		await mockTime.advanceTimeToTicks(10990)
 
@@ -427,7 +427,7 @@ describe('vMix', () => {
 		device.on('error', deviceErrorHandler)
 		device.on('commandError', deviceErrorHandler)
 
-		await myConductor.setMapping(myLayerMapping)
+		myConductor.setTimelineAndMappings([], myLayerMapping)
 
 		expect(mockTime.getCurrentTime()).toEqual(10000)
 		await mockTime.advanceTimeToTicks(10100)
@@ -438,7 +438,7 @@ describe('vMix', () => {
 		// Check that no commands has been scheduled:
 		expect(await device.queue).toHaveLength(0)
 
-		myConductor.timeline = [
+		myConductor.setTimelineAndMappings([
 			{
 				id: 'media',
 				enable: {
@@ -457,7 +457,7 @@ describe('vMix', () => {
 					}
 				}
 			}
-		]
+		])
 
 		await mockTime.advanceTimeToTicks(11300)
 		expect(commandReceiver0).toHaveBeenNthCalledWith(1, 11000, expect.objectContaining({
@@ -596,7 +596,7 @@ describe('vMix', () => {
 		device.on('error', deviceErrorHandler)
 		device.on('commandError', deviceErrorHandler)
 
-		await myConductor.setMapping(myLayerMapping)
+		myConductor.setTimelineAndMappings([], myLayerMapping)
 
 		expect(mockTime.getCurrentTime()).toEqual(10000)
 		await mockTime.advanceTimeToTicks(10100)
@@ -607,7 +607,7 @@ describe('vMix', () => {
 		// Check that no commands has been scheduled:
 		expect(await device.queue).toHaveLength(0)
 
-		myConductor.timeline = [
+		myConductor.setTimelineAndMappings([
 			{
 				id: 'media0',
 				enable: {
@@ -662,7 +662,7 @@ describe('vMix', () => {
 					filePath: 'G:/videos/My Other Clip.mp4'
 				}
 			}
-		]
+		])
 		// Time to preload the clip
 		await mockTime.advanceTimeToTicks(10990)
 
@@ -816,7 +816,7 @@ describe('vMix', () => {
 		device.on('error', deviceErrorHandler)
 		device.on('commandError', deviceErrorHandler)
 
-		await myConductor.setMapping(myLayerMapping)
+		myConductor.setTimelineAndMappings([], myLayerMapping)
 
 		expect(mockTime.getCurrentTime()).toEqual(10000)
 		await mockTime.advanceTimeToTicks(10100)
@@ -827,7 +827,7 @@ describe('vMix', () => {
 		// Check that no commands has been scheduled:
 		expect(await device.queue).toHaveLength(0)
 
-		myConductor.timeline = [
+		myConductor.setTimelineAndMappings([
 			{
 				id: 'audio',
 				enable: {
@@ -846,7 +846,7 @@ describe('vMix', () => {
 					audioBuses: 'A,C,F'
 				}
 			}
-		]
+		])
 		await mockTime.advanceTimeToTicks(11300)
 
 		expect(commandReceiver0).toHaveBeenCalledTimes(8)
@@ -1060,7 +1060,7 @@ describe('vMix', () => {
 		device.on('error', deviceErrorHandler)
 		device.on('commandError', deviceErrorHandler)
 
-		await myConductor.setMapping(myLayerMapping)
+		myConductor.setTimelineAndMappings([], myLayerMapping)
 
 		expect(mockTime.getCurrentTime()).toEqual(10000)
 		await mockTime.advanceTimeToTicks(10100)
@@ -1074,7 +1074,7 @@ describe('vMix', () => {
 		// Check that no commands has been scheduled:
 		expect(await device.queue).toHaveLength(0)
 
-		myConductor.timeline = [
+		myConductor.setTimelineAndMappings([
 			{
 				id: 'program0',
 				enable: {
@@ -1157,7 +1157,7 @@ describe('vMix', () => {
 					input: 4
 				}
 			}
-		]
+		])
 
 		await mockTime.advanceTimeToTicks(11300)
 
@@ -1253,7 +1253,7 @@ describe('vMix', () => {
 		device.on('error', deviceErrorHandler)
 		device.on('commandError', deviceErrorHandler)
 
-		await myConductor.setMapping(myLayerMapping)
+		myConductor.setTimelineAndMappings([], myLayerMapping)
 
 		expect(mockTime.getCurrentTime()).toEqual(10000)
 		await mockTime.advanceTimeToTicks(10100)
@@ -1267,7 +1267,7 @@ describe('vMix', () => {
 		// Check that no commands has been scheduled:
 		expect(await device.queue).toHaveLength(0)
 
-		myConductor.timeline = [
+		myConductor.setTimelineAndMappings([
 			{
 				id: 'lowerthird0',
 				enable: {
@@ -1281,7 +1281,7 @@ describe('vMix', () => {
 					input: 1
 				}
 			}
-		]
+		])
 
 		await mockTime.advanceTimeToTicks(11300)
 
@@ -1365,7 +1365,7 @@ describe('vMix', () => {
 		device.on('error', deviceErrorHandler)
 		device.on('commandError', deviceErrorHandler)
 
-		await myConductor.setMapping(myLayerMapping)
+		myConductor.setTimelineAndMappings([], myLayerMapping)
 
 		expect(mockTime.getCurrentTime()).toEqual(10000)
 		await mockTime.advanceTimeToTicks(10100)
@@ -1379,7 +1379,7 @@ describe('vMix', () => {
 		// Check that no commands has been scheduled:
 		expect(await device.queue).toHaveLength(0)
 
-		myConductor.timeline = [
+		myConductor.setTimelineAndMappings([
 			{
 				id: 'recording0',
 				enable: {
@@ -1393,7 +1393,7 @@ describe('vMix', () => {
 					on: true
 				}
 			}
-		]
+		])
 
 		await mockTime.advanceTimeToTicks(11300)
 
@@ -1474,7 +1474,7 @@ describe('vMix', () => {
 		device.on('error', deviceErrorHandler)
 		device.on('commandError', deviceErrorHandler)
 
-		await myConductor.setMapping(myLayerMapping)
+		myConductor.setTimelineAndMappings([], myLayerMapping)
 
 		expect(mockTime.getCurrentTime()).toEqual(10000)
 		await mockTime.advanceTimeToTicks(10100)
@@ -1488,7 +1488,7 @@ describe('vMix', () => {
 		// Check that no commands has been scheduled:
 		expect(await device.queue).toHaveLength(0)
 
-		myConductor.timeline = [
+		myConductor.setTimelineAndMappings([
 			{
 				id: 'external0',
 				enable: {
@@ -1502,7 +1502,7 @@ describe('vMix', () => {
 					on: true
 				}
 			}
-		]
+		])
 
 		await mockTime.advanceTimeToTicks(11300)
 
@@ -1583,7 +1583,7 @@ describe('vMix', () => {
 		device.on('error', deviceErrorHandler)
 		device.on('commandError', deviceErrorHandler)
 
-		await myConductor.setMapping(myLayerMapping)
+		myConductor.setTimelineAndMappings([], myLayerMapping)
 
 		expect(mockTime.getCurrentTime()).toEqual(10000)
 		await mockTime.advanceTimeToTicks(10100)
@@ -1597,7 +1597,7 @@ describe('vMix', () => {
 		// Check that no commands has been scheduled:
 		expect(await device.queue).toHaveLength(0)
 
-		myConductor.timeline = [
+		myConductor.setTimelineAndMappings([
 			{
 				id: 'external0',
 				enable: {
@@ -1611,7 +1611,7 @@ describe('vMix', () => {
 					on: true
 				}
 			}
-		]
+		])
 
 		await mockTime.advanceTimeToTicks(11300)
 
@@ -1693,7 +1693,7 @@ describe('vMix', () => {
 		device.on('error', deviceErrorHandler)
 		device.on('commandError', deviceErrorHandler)
 
-		await myConductor.setMapping(myLayerMapping)
+		myConductor.setTimelineAndMappings([], myLayerMapping)
 
 		expect(mockTime.getCurrentTime()).toEqual(10000)
 		await mockTime.advanceTimeToTicks(10100)
@@ -1707,7 +1707,7 @@ describe('vMix', () => {
 		// Check that no commands has been scheduled:
 		expect(await device.queue).toHaveLength(0)
 
-		myConductor.timeline = [
+		myConductor.setTimelineAndMappings([
 			{
 				id: 'external0',
 				enable: {
@@ -1721,7 +1721,7 @@ describe('vMix', () => {
 					source: 'Preview'
 				}
 			}
-		]
+		])
 
 		await mockTime.advanceTimeToTicks(11300)
 
@@ -1807,7 +1807,7 @@ describe('vMix', () => {
 		device.on('error', deviceErrorHandler)
 		device.on('commandError', deviceErrorHandler)
 
-		await myConductor.setMapping(myLayerMapping)
+		myConductor.setTimelineAndMappings([], myLayerMapping)
 
 		expect(mockTime.getCurrentTime()).toEqual(10000)
 		await mockTime.advanceTimeToTicks(10100)
@@ -1821,7 +1821,7 @@ describe('vMix', () => {
 		// Check that no commands has been scheduled:
 		expect(await device.queue).toHaveLength(0)
 
-		myConductor.timeline = [
+		myConductor.setTimelineAndMappings([
 			{
 				id: 'output0',
 				enable: {
@@ -1836,7 +1836,7 @@ describe('vMix', () => {
 					input: 2
 				}
 			}
-		]
+		])
 
 		await mockTime.advanceTimeToTicks(11300)
 
@@ -1922,7 +1922,7 @@ describe('vMix', () => {
 		device.on('error', deviceErrorHandler)
 		device.on('commandError', deviceErrorHandler)
 
-		await myConductor.setMapping(myLayerMapping)
+		myConductor.setTimelineAndMappings([], myLayerMapping)
 
 		expect(mockTime.getCurrentTime()).toEqual(10000)
 		await mockTime.advanceTimeToTicks(10100)
@@ -1936,7 +1936,7 @@ describe('vMix', () => {
 		// Check that no commands has been scheduled:
 		expect(await device.queue).toHaveLength(0)
 
-		myConductor.timeline = [
+		myConductor.setTimelineAndMappings([
 			{
 				id: 'ftb0',
 				enable: {
@@ -1950,7 +1950,7 @@ describe('vMix', () => {
 					on: true
 				}
 			}
-		]
+		])
 
 		await mockTime.advanceTimeToTicks(11300)
 
@@ -2031,7 +2031,7 @@ describe('vMix', () => {
 		device.on('error', deviceErrorHandler)
 		device.on('commandError', deviceErrorHandler)
 
-		await myConductor.setMapping(myLayerMapping)
+		myConductor.setTimelineAndMappings([], myLayerMapping)
 
 		expect(mockTime.getCurrentTime()).toEqual(10000)
 		await mockTime.advanceTimeToTicks(10100)
@@ -2045,7 +2045,7 @@ describe('vMix', () => {
 		// Check that no commands has been scheduled:
 		expect(await device.queue).toHaveLength(0)
 
-		myConductor.timeline = [
+		myConductor.setTimelineAndMappings([
 			{
 				id: 'fader0',
 				enable: {
@@ -2059,7 +2059,7 @@ describe('vMix', () => {
 					position: 126
 				}
 			}
-		]
+		])
 
 		await mockTime.advanceTimeToTicks(11300)
 

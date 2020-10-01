@@ -17,7 +17,7 @@ module.exports = {
 	],
 	testPathIgnorePatterns: [
 		'integrationTests'
-	],	
+	],
 	testEnvironment: 'node',
 	coverageThreshold: {
 		global: {
@@ -37,5 +37,4 @@ module.exports = {
 		"!**/src/types/**"
 	],
 	coverageDirectory: "./coverage/",
-	collectCoverage: true
 }
