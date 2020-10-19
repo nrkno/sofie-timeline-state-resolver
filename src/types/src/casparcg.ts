@@ -19,6 +19,8 @@ export interface CasparCGOptions {
 	retryInterval?: number | boolean // set to false to disable, 0 or true will set to default value
 	/* Timecode base of channel */
 	timeBase?: {[channel: string]: number} | number
+	/* fps used for all channels */
+	fps?: number
 
 	launcherHost?: string,
 	launcherPort?: number

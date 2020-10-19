@@ -467,11 +467,11 @@ export class CasparCGDevice extends DeviceWithState<State> implements IDevice {
 				// create a channel in state if necessary, or reuse existing channel
 				const channel = caspar.channels[mapping.channel] || { channelNo: mapping.channel, layers: {} }
 				channel.channelNo = Number(mapping.channel) || 1
-				channel.fps = 25
+				channel.fps = this.initOptions ? this.initOptions.fps || 25 : 25
 				caspar.channels[channel.channelNo] = channel
 
 				// @todo: check if we need to get fps.
-				channel.fps = 25
+				channel.fps = this.initOptions ? this.initOptions.fps || 25 : 25
 				caspar.channels[mapping.channel] = channel
 
 				let foregroundObj = timelineState.layers[layerName] as ResolvedTimelineObjectInstance | undefined
@@ -883,7 +883,7 @@ export class CasparCGDevice extends DeviceWithState<State> implements IDevice {
 			typeof this._timeBase === 'object' ?
 			this._timeBase[channel + ''] :
 			this._timeBase
-		) || 25
+		) || (this.initOptions ? this.initOptions.fps || 25 : 25)
 
 		let timecode = [
 			('0' + (Math.floor(timecodeTime / 3.6e6) % 24)).substr(-2),
