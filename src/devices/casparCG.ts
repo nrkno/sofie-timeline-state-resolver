@@ -288,8 +288,12 @@ export class CasparCGDevice extends DeviceWithState<State> implements IDevice {
 				length:			mediaObj.content.length,
 
 				channelLayout:	mediaObj.content.channelLayout,
-				clearOn404: 	true
+				clearOn404: 	true,
+
+				vfilter:		mediaObj.content.videoFilter,
+				afilter:		mediaObj.content.audioFilter
 			})
+			// this.emit('debug', stateLayer)
 		} else if (layer.content.type === TimelineContentTypeCasparCg.IP) {
 
 			const ipObj = layer as any as TimelineObjCCGIP
@@ -302,7 +306,10 @@ export class CasparCGDevice extends DeviceWithState<State> implements IDevice {
 				channelLayout:	ipObj.content.channelLayout,
 				playTime:		null, // ip inputs can't be seeked // layer.resolved.startTime || null,
 				playing:		true,
-				seek:			0 // ip inputs can't be seeked
+				seek:			0, // ip inputs can't be seeked
+
+				vfilter:		ipObj.content.videoFilter,
+				afilter:		ipObj.content.audioFilter
 			})
 		} else if (layer.content.type === TimelineContentTypeCasparCg.INPUT) {
 			const inputObj = layer as any as TimelineObjCCGInput
@@ -319,7 +326,10 @@ export class CasparCGDevice extends DeviceWithState<State> implements IDevice {
 				},
 				filter: 		inputObj.content.filter,
 				playing:		true,
-				playTime:		null
+				playTime:		null,
+
+				vfilter:		inputObj.content.videoFilter,
+				afilter:		inputObj.content.audioFilter
 			})
 		} else if (layer.content.type === TimelineContentTypeCasparCg.TEMPLATE) {
 			const recordObj = layer as any as TimelineObjCCGTemplate
@@ -372,7 +382,10 @@ export class CasparCGDevice extends DeviceWithState<State> implements IDevice {
 				mode:			routeObj.content.mode || undefined,
 				delay:			routeObj.content.delay || undefined,
 				playing:		true,
-				playTime:		null // layer.resolved.startTime || null,
+				playTime:		null, // layer.resolved.startTime || null,
+
+				vfilter:		routeObj.content.videoFilter,
+				afilter:		routeObj.content.audioFilter
 			})
 		} else if (layer.content.type === TimelineContentTypeCasparCg.RECORD) {
 			const recordObj = layer as any as TimelineObjCCGRecord

@@ -114,6 +114,10 @@ export interface TimelineObjCCGMedia extends TimelineObjCasparCGBase {
 
 		/** If true, the startTime won't be used to SEEK to the correct place in the media */
 		noStarttime?: boolean
+
+		/* ffmpeg filter strings for 2.3+ */
+		videoFilter?: string
+		audioFilter?: string
 	} & TimelineObjCCGProducerContentBase
 }
 export interface TimelineObjCCGIP extends TimelineObjCasparCGBase {
@@ -127,6 +131,10 @@ export interface TimelineObjCCGIP extends TimelineObjCasparCGBase {
 		// audioFilter?: string
 		/** Audio channel layout (example 'stereo') */
 		channelLayout?: string
+
+		/* ffmpeg filter strings for 2.3+ */
+		videoFilter?: string
+		audioFilter?: string
 	} & TimelineObjCCGProducerContentBase
 }
 export interface TimelineObjCCGInput extends TimelineObjCasparCGBase {
@@ -146,6 +154,10 @@ export interface TimelineObjCCGInput extends TimelineObjCasparCGBase {
 
 		/** Audio channel layout (example 'stereo') */
 		channelLayout?: string
+
+		/* ffmpeg filter strings for 2.3+ */
+		videoFilter?: string
+		audioFilter?: string
 	} & TimelineObjCCGProducerContentBase
 }
 export interface TimelineObjCCGHTMLPage extends TimelineObjCasparCGBase {
@@ -188,6 +200,10 @@ export interface TimelineObjCCGRoute extends TimelineObjCasparCGBase {
 		channelLayout?: string
 		/** The amount of milliseconds to delay the signal on this route. This value is downsampled to channel frames upon execution. */
 		delay?: number
+
+		/* ffmpeg filter strings for 2.3+ */
+		videoFilter?: string
+		audioFilter?: string
 	} & TimelineObjCCGProducerContentBase
 }
 export interface TimelineObjCCGRecord extends TimelineObjCasparCGBase {
