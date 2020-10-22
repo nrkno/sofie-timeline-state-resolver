@@ -16,7 +16,8 @@ import {
 	HyperdeckOptions,
 	TimelineObjHyperdeckTransport,
 	TimelineObjHyperdeckAny,
-	DeviceOptionsHyperdeck
+	DeviceOptionsHyperdeck,
+	Mappings
 } from '../types/src'
 import {
 	Hyperdeck,
@@ -226,7 +227,8 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> implements IDe
 	 * that state at that time.
 	 * @param newState
 	 */
-	handleState (newState: TimelineState) {
+	handleState (newState: TimelineState, newMappings: Mappings) {
+		super.onHandleState(newState, newMappings)
 		if (!this._initialized) {
 			// before it's initialized don't do anything
 			this.emit('info', 'Hyperdeck not initialized yet')
@@ -238,7 +240,7 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> implements IDe
 		let oldState: DeviceState = (this.getStateBefore(previousStateTime) || { state: this._getDefaultState() }).state
 
 		let oldHyperdeckState = oldState
-		let newHyperdeckState = this.convertStateToHyperdeck(newState)
+		let newHyperdeckState = this.convertStateToHyperdeck(newState, newMappings)
 
 		// Generate commands to transition to new state
 		let commandsToAchieveState: Array<HyperdeckCommandWithContext> = this._diffStates(oldHyperdeckState, newHyperdeckState)
@@ -268,7 +270,7 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> implements IDe
 	 * Converts a timeline state to a device state.
 	 * @param state
 	 */
-	convertStateToHyperdeck (state: TimelineState): DeviceState {
+	convertStateToHyperdeck (state: TimelineState, mappings: Mappings): DeviceState {
 		if (!this._initialized) throw Error('convertStateToHyperdeck cannot be used before inititialized')
 
 		// Convert the timeline state into something we can use easier:
@@ -280,9 +282,9 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> implements IDe
 
 			const hyperdeckObj = tlObject as any as TimelineObjHyperdeckAny
 
-			const mapping = this.getMapping()[layerName] as MappingHyperdeck
+			const mapping = mappings[layerName] as MappingHyperdeck
 
-			if (mapping) {
+			if (mapping && mapping.deviceId === this.deviceId) {
 				switch (mapping.mappingType) {
 					case MappingHyperdeckType.TRANSPORT:
 						if (hyperdeckObj.content.type === TimelineContentTypeHyperdeck.TRANSPORT) {
@@ -366,7 +368,8 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> implements IDe
 
 		return {
 			statusCode,
-			messages
+			messages,
+			active: this.isActive
 		}
 	}
 	/**

@@ -14,23 +14,26 @@ import {
 	TimelineObjLawoSource,
 	TimelineObjLawoAny,
 	TimelineObjLawoEmberProperty,
-	EmberValueTypes,
-	EmberTypes,
 	TimelineObjLawoEmberRetrigger,
 	DeviceOptionsLawo,
 	LawoCommand,
 	SetLawoValueFn,
-	LawoOptions
+	LawoOptions,
+	LawoDeviceMode,
+	ContentTimelineObjLawoSource,
+	MappingLawoType,
+	Mappings
 } from '../types/src'
 import {
 	TimelineState, ResolvedTimelineObjectInstance
 } from 'superfly-timeline'
-import {
-	DeviceTree,
-	Ember
-} from 'emberplus'
 import { DoOnTime, SendMode } from '../doOnTime'
 import { getDiff } from '../lib'
+import {
+	EmberClient,
+	Types as EmberTypes,
+	Model as EmberModel
+} from 'emberplus-connection'
 
 export interface DeviceOptionsLawoInternal extends DeviceOptionsLawo {
 	options: (
@@ -51,8 +54,8 @@ export interface LawoState {
 
 export interface LawoStateNode {
 	type: TimelineContentTypeLawo
-	value: EmberValueTypes
-	valueType: EmberTypes
+	value: EmberTypes.EmberValue
+	valueType: EmberModel.ParameterType
 	key: string
 	identifier: string
 	transitionDuration?: number
@@ -67,20 +70,19 @@ export interface LawoCommandWithContext {
 	timelineObjId: string
 }
 type CommandContext = string
-const FADER_THRESHOLD = -90 // below this value the channel is considered muted
 /**
  * This is a wrapper for a Lawo sound mixer
  *
  * It controls mutes and fades over Ember Plus.
  */
-export class LawoDevice extends DeviceWithState<TimelineState> implements IDevice {
+export class LawoDevice extends DeviceWithState<LawoState> implements IDevice {
 	private _doOnTime: DoOnTime
-	private _lawo: DeviceTree
+	private _lawo: EmberClient
 
-	private _savedNodes = []
 	private _lastSentValue: { [path: string]: number } = {}
 
 	private _connected: boolean = false
+	private _initialized = false
 
 	private _commandReceiver: CommandReceiver
 	private _sourcesPath: string
@@ -88,9 +90,14 @@ export class LawoDevice extends DeviceWithState<TimelineState> implements IDevic
 	private _dbPropertyName: string
 	private _setValueFn: SetLawoValueFn
 	private _faderIntervalTime: number
+	private _faderThreshold: number
+	private _sourceNamePath: string | undefined
+
+	private _sourceNameToNodeName = new Map<string, string>()
 
 	private transitions: { [address: string]: {
-		started: number
+		started: number,
+		tlObjId: string
 	} & LawoCommand } = {}
 	private transitionInterval: NodeJS.Timer | undefined
 
@@ -107,35 +114,57 @@ export class LawoDevice extends DeviceWithState<TimelineState> implements IDevic
 			} else {
 				this._setValueFn = this.setValueWrapper
 			}
-			if (deviceOptions.options.sourcesPath) {
-				this._sourcesPath = deviceOptions.options.sourcesPath
-			}
-			if (deviceOptions.options.rampMotorFunctionPath) {
-				this._rampMotorFunctionPath = deviceOptions.options.rampMotorFunctionPath
-			}
-			if (deviceOptions.options.dbPropertyName) {
-				this._dbPropertyName = deviceOptions.options.dbPropertyName
-			}
+
 			if (deviceOptions.options.faderInterval) {
 				this._faderIntervalTime = deviceOptions.options.faderInterval
+			}
+
+			switch (deviceOptions.options.deviceMode) {
+				case LawoDeviceMode.Ruby:
+					this._sourcesPath = 'Ruby.Sources'
+					this._dbPropertyName = 'Fader.Motor dB Value'
+					this._rampMotorFunctionPath = 'Ruby.Functions.RampMotorFader'
+					break
+				case LawoDeviceMode.RubyManualRamp:
+					this._sourcesPath = 'Ruby.Sources'
+					this._dbPropertyName = 'Fader.Motor dB Value'
+					this._faderThreshold = -60
+					break
+				case LawoDeviceMode.MC2:
+					this._sourcesPath = 'Channels.Inputs'
+					this._dbPropertyName = 'Fader.Fader Level'
+					this._faderThreshold = -90
+					this._sourceNamePath = 'General.Inherited Label'
+					break
+				case LawoDeviceMode.R3lay:
+					this._sourcesPath = 'R3LAYVRX4.Ex.Sources'
+					this._dbPropertyName = 'Active.Amplification'
+					this._faderThreshold = -60
+					break
+				case LawoDeviceMode.Manual:
+				default:
+					this._sourcesPath = deviceOptions.options.sourcesPath || ''
+					this._dbPropertyName = deviceOptions.options.dbPropertyName || ''
+					this._rampMotorFunctionPath = deviceOptions.options.dbPropertyName || ''
+					this._faderThreshold = deviceOptions.options.faderThreshold || -60
 			}
 		}
 		let host = (
 			deviceOptions.options && deviceOptions.options.host
 			? deviceOptions.options.host :
-			null
+			undefined
 		)
 		let port = (
 			deviceOptions.options && deviceOptions.options.port ?
 			deviceOptions.options.port :
-			null
+			undefined
 		)
 		this._doOnTime = new DoOnTime(() => {
 			return this.getCurrentTime()
 		}, SendMode.BURST, this._deviceOptions)
 		this.handleDoOnTime(this._doOnTime, 'Lawo')
 
-		this._lawo = new DeviceTree(host, port)
+		this._lawo = new EmberClient(host || '', port)
 		this._lawo.on('error', (e) => {
 			if (
 				(e.message + '').match(/econnrefused/i) ||
@@ -146,8 +175,28 @@ export class LawoDevice extends DeviceWithState<TimelineState> implements IDevic
 				this.emit('error', 'Lawo.Emberplus', e)
 			}
 		})
-		this._lawo.on('connected', () => {
+		// this._lawo.on('warn', (w) => {
+		// 	this.emit('debug', 'Warning: Lawo.Emberplus', w)
+		// })
+		let firstConnection = true
+		this._lawo.on('connected', async () => {
 			this._setConnected(true)
+
+			if (firstConnection) {
+				try {
+					const req = await this._lawo.getDirectory(this._lawo.tree)
+					await req.response
+
+					await this._mapSourcesToNodeNames()
+
+					this._initialized = true
+					this.emit('info', 'finished device initalization')
+					this.emit('resetResolver')
+				} catch (e) {
+					this.emit('error', 'Error while expanding root', e)
+				}
+			}
+			firstConnection = false
 		})
 		this._lawo.on('disconnected', () => {
 			this._setConnected(false)
@@ -157,25 +206,10 @@ export class LawoDevice extends DeviceWithState<TimelineState> implements IDevic
 	/**
 	 * Initiates the connection with Lawo
 	 */
-	init (_initOptions: LawoOptions): Promise<boolean> {
-		return new Promise((resolve, reject) => {
-			let fail = (e) => reject(e)
-			try {
-				this._lawo.once('error', fail)
-				this._lawo.connect()	// default timeout = 2
-				.then(() => {
-					this._lawo.removeListener('error', fail)
-					resolve(true)
-				})
-				.catch((e) => {
-					this._lawo.removeListener('error', fail)
-					reject(e)
-				})
-			} catch (e) {
-				this._lawo.removeListener('error', fail)
-				reject(e)
-			}
-		})
+	async init (_initOptions: LawoOptions): Promise<boolean> {
+		const err = await this._lawo.connect()
+		if (err) this.emit('error', 'Lawo initialization', err)
+		return true // device is usable, lib will handle connection
 	}
 	/** Called by the Conductor a bit before a .handleState is called */
 	prepareForHandleState (newStateTime: number) {
@@ -187,13 +221,15 @@ export class LawoDevice extends DeviceWithState<TimelineState> implements IDevic
 	 * Handles a state such that the device will reflect that state at the given time.
 	 * @param newState
 	 */
-	handleState (newState: TimelineState) {
+	handleState (newState: TimelineState, newMappings: Mappings) {
+		super.onHandleState(newState, newMappings)
+		if (!this._initialized) return
+
 		// Convert timeline states to device states
 		let previousStateTime = Math.max(this.getCurrentTime(), newState.time)
-		let oldState: TimelineState = (this.getStateBefore(previousStateTime) || { state: { time: 0, layers: {}, nextEvents: [] } }).state
+		let oldLawoState: LawoState = (this.getStateBefore(previousStateTime) || { state: { nodes: {} } }).state
 
-		let oldLawoState = this.convertStateToLawo(oldState)
-		let newLawoState = this.convertStateToLawo(newState)
+		let newLawoState = this.convertStateToLawo(newState, newMappings)
 
 		// generate commands to transition to new state
 		let commandsToAchieveState: Array<LawoCommandWithContext> = this._diffStates(oldLawoState, newLawoState)
@@ -204,7 +240,7 @@ export class LawoDevice extends DeviceWithState<TimelineState> implements IDevic
 		this._addToQueue(commandsToAchieveState, newState.time)
 
 		// store the new state, for later use:
-		this.setState(newState, newState.time)
+		this.setState(newLawoState, newState.time)
 	}
 	/**
 	 * Clear any scheduled commands after this time
@@ -223,7 +259,9 @@ export class LawoDevice extends DeviceWithState<TimelineState> implements IDevic
 
 		// @todo: Implement lawo dispose function upstream
 		try {
-			this._lawo.disconnect()
+			this._lawo.disconnect().then(() => {
+				this._lawo.discard()
+			}).catch(() => null) // fail silently
 			this._lawo.removeAllListeners('error')
 			this._lawo.removeAllListeners('connected')
 			this._lawo.removeAllListeners('disconnected')
@@ -243,35 +281,66 @@ export class LawoDevice extends DeviceWithState<TimelineState> implements IDevic
 	 * Converts a timeline state into a device state.
 	 * @param state
 	 */
-	convertStateToLawo (state: TimelineState): LawoState {
+	convertStateToLawo (state: TimelineState, mappings: Mappings): LawoState {
 		const lawoState: LawoState = {
 			nodes: {}
 		}
+		const attrName = this._rampMotorFunctionPath || !this._dbPropertyName ? 'Fader.Motor dB Value' : this._dbPropertyName
+
+		const newFaders: Array<{ attrPath: string, node: LawoStateNode, priority: number }> = []
+		const pushFader = (identifier: string, fader: ContentTimelineObjLawoSource, mapping: MappingLawo, tlObjId: string, priority = 0) => {
+			newFaders.push({
+				attrPath: this._sourceNodeAttributePath(identifier, attrName),
+				priority,
+				node: {
+					type: TimelineContentTypeLawo.SOURCE,
+					key: 'fader',
+					identifier: identifier,
+					value: fader.faderValue,
+					valueType: EmberModel.ParameterType.Real,
+					transitionDuration: fader.transitionDuration,
+					priority: mapping.priority || 0,
+					timelineObjId: tlObjId
+				}
+			})
+		}
 
 		_.each(state.layers, (tlObject: ResolvedTimelineObjectInstance, layerName: string) => {
+			// for every layer
 			const lawoObj = tlObject as any as TimelineObjLawoAny
 
-			const mapping: MappingLawo | undefined = this.getMapping()[layerName] as MappingLawo
-			if (mapping && mapping.device === DeviceType.LAWO) {
+			const mapping: MappingLawo | undefined = mappings[layerName] as MappingLawo
 
-				if (mapping.identifier && lawoObj.content.type === TimelineContentTypeLawo.SOURCE) {
-					let tlObjectSource: TimelineObjLawoSource = lawoObj as TimelineObjLawoSource
+			if (mapping && mapping.device === DeviceType.LAWO && mapping.deviceId === this.deviceId) {
+				// Mapping is for Lawo
 
-					const fader: TimelineObjLawoSource['content']['Fader/Motor dB Value'] = tlObjectSource.content['Fader/Motor dB Value']
-					const attrName = this._rampMotorFunctionPath || !this._dbPropertyName ? 'Fader/Motor dB Value' : this._dbPropertyName
+				if (mapping.mappingType === MappingLawoType.SOURCES && lawoObj.content.type === TimelineContentTypeLawo.SOURCES) {
+					// mapping implies a composite of sources
+					for (const fader of lawoObj.content.sources) {
+						// for every mapping in the composite
+						const sourceMapping: MappingLawo | undefined = mappings[fader.mappingName] as MappingLawo
 
-					lawoState.nodes[this._sourceNodeAttributePath(mapping.identifier, attrName)] = {
-						type: tlObjectSource.content.type,
-						key: 'Fader/Motor dB Value',
-						identifier: mapping.identifier,
-						value: fader.value,
-						valueType: EmberTypes.REAL,
-						transitionDuration: fader.transitionDuration,
-						priority: mapping.priority || 0,
-						timelineObjId: tlObject.id
+						if (!sourceMapping || !sourceMapping.identifier || sourceMapping.mappingType !== MappingLawoType.SOURCE || mapping.deviceId !== this.deviceId) continue
+						// mapped mapping is a source mapping
+
+						pushFader(sourceMapping.identifier, fader, sourceMapping, tlObject.id, lawoObj.content.overridePriority)
 					}
+				} else if (mapping.identifier && lawoObj.content.type === TimelineContentTypeLawo.SOURCE) {
+					// mapping is for a source
+					let tlObjectSource: TimelineObjLawoSource = lawoObj as TimelineObjLawoSource
+					let fader: ContentTimelineObjLawoSource = tlObjectSource.content
+					const priority = tlObjectSource.content.overridePriority
+					// TODO - next breaking change, remove deprecated tlObject typings "Fader/Motor dB Value"
+					if ('Fader/Motor dB Value' in tlObjectSource.content) {
+						fader = {
+							faderValue: tlObjectSource.content['Fader/Motor dB Value'].value,
+							transitionDuration: tlObjectSource.content['Fader/Motor dB Value'].transitionDuration
+						}
+					}
+					pushFader(mapping.identifier, fader, mapping, tlObject.id, priority)
 
 				} else if (mapping.identifier && lawoObj.content.type === TimelineContentTypeLawo.EMBER_PROPERTY) {
+					// mapping is a property to set
 					let tlObjectSource: TimelineObjLawoEmberProperty = lawoObj as TimelineObjLawoEmberProperty
 
 					lawoState.nodes[mapping.identifier] = {
@@ -279,18 +348,27 @@ export class LawoDevice extends DeviceWithState<TimelineState> implements IDevic
 						key: '',
 						identifier: mapping.identifier,
 						value: tlObjectSource.content.value,
-						valueType: mapping.emberType || EmberTypes.REAL,
+						valueType: mapping.emberType || EmberModel.ParameterType.Real,
 						priority: mapping.priority || 0,
 						timelineObjId: tlObject.id
 					}
 
 				} else if (lawoObj.content.type === TimelineContentTypeLawo.TRIGGER_VALUE) {
+					// mapping is a trigger value (will resend all commands to the Lawo to enforce state when changed)
 					let tlObjectSource: TimelineObjLawoEmberRetrigger = lawoObj as TimelineObjLawoEmberRetrigger
 
 					lawoState.triggerValue = tlObjectSource.content.triggerValue
 				}
 			}
+
 		})
+
+		newFaders.sort((a, b) => a.priority - b.priority)
+		// layers are sorted by priority
+		for (const newFader of newFaders) {
+			lawoState.nodes[newFader.attrPath] = newFader.node
+		}
+		// highest priority source has been written to lawoState
 
 		return lawoState
 	}
@@ -315,7 +393,8 @@ export class LawoDevice extends DeviceWithState<TimelineState> implements IDevic
 
 		return {
 			statusCode: statusCode,
-			messages: messages
+			messages: messages,
+			active: this.isActive
 		}
 	}
 	private _setConnected (connected: boolean) {
@@ -352,7 +431,7 @@ export class LawoDevice extends DeviceWithState<TimelineState> implements IDevic
 				_.omit(newNode, 'timelineObjId'),
 				_.omit(oldValue, 'timelineObjId')
 			)
-			if (diff || (newNode.key === 'Fader/Motor dB Value' && isRetrigger)) {
+			if (diff || (newNode.key === 'fader' && isRetrigger)) {
 				// It's a plain value:
 				commands.push({
 					cmd: {
@@ -386,23 +465,19 @@ export class LawoDevice extends DeviceWithState<TimelineState> implements IDevic
 	 * Gets an ember node based on its path
 	 * @param path
 	 */
-	private async _getNodeByPath (path: string): Promise<Ember.Node> {
-		return new Promise((resolve, reject) => {
-			if (this._savedNodes[path] !== undefined) {
-				resolve(this._savedNodes[path])
-			} else {
-				this._lawo.getNodeByPath(path)
-				.then((node) => {
-					this._savedNodes[path] = node
-					resolve(node)
-				})
-				.catch((e) => {
-					this.emit('error', 'Lawo path error', e)
-					reject(e)
-				})
+	private async _getNodeByPath (path: string): Promise<EmberModel.NumberedTreeNode<EmberModel.EmberElement>> {
+		const node = await this._lawo.getElementByPath(path) as EmberModel.NumberedTreeNode<EmberModel.EmberElement>
+		return node
+	}
 
-			}
-		})
+	private _identifierToNodeName (identifier: string): string {
+		if (this._sourceNamePath) {
+			const s = this._sourceNameToNodeName.get(identifier)
+			if (!s) this.emit('warning', `Source identifier "${identifier}" could not be found`)
+			return s || identifier
+		} else {
+			return identifier
+		}
 	}
 
 	/**
@@ -413,8 +488,8 @@ export class LawoDevice extends DeviceWithState<TimelineState> implements IDevic
 	private _sourceNodeAttributePath (identifier: string, attributePath: string): string {
 		return _.compact([
 			this._sourcesPath,
-			identifier,
-			attributePath.replace('/', '.')
+			this._identifierToNodeName(identifier),
+			attributePath
 		]).join('.')
 	}
 
@@ -431,55 +506,70 @@ export class LawoDevice extends DeviceWithState<TimelineState> implements IDevic
 		this._lastSentValue[command.path] = startSend
 
 		try {
-			if (command.key === 'Fader/Motor dB Value' && command.transitionDuration && command.transitionDuration >= 0) {	// fader level
-				// this.emit('debug', cwc)
-
-				if (!this._rampMotorFunctionPath) {
+			if (command.key === 'fader' && command.transitionDuration && command.transitionDuration >= 0) {	// fader level
+				// TODO - Lawo result 6 code is based on time - difference ratio, certain ratios we may want to run a manual fade?
+				if (!this._rampMotorFunctionPath || (command.transitionDuration < 500 && this._faderIntervalTime < 250)) {
 					// add the fade to the fade object, such that we can fade the signal using the fader
 					if (!command.from) { // @todo: see if we can query the lawo first
-						const node = await this._getNodeByPath(command.path)
+						const node = await this._getNodeByPath(command.path) as EmberModel.NumberedTreeNode<EmberModel.Parameter>
 						if (node) {
-							if (node.contents.value === command.value) return
-							command.from = node.contents.value
+							if (node.contents.factor) {
+								command.from = (node.contents.value as number) / (node.contents.factor || 1)
+							} else {
+								command.from = node.contents.value
+							}
+							if (command.from === command.value) return
 						} else {
-							await this._setValueFn(command, timelineObjId)
-							return
+							throw new Error('Node ' + command.path + ' was not found')
 						}
 					}
 
 					this.transitions[command.path] = {
 						...command,
+						tlObjId: timelineObjId,
 						started: this.getCurrentTime()
 					}
 
 					if (!this.transitionInterval) this.transitionInterval = setInterval(() => this.runAnimation(), this._faderIntervalTime || 75)
 				} else if (command.transitionDuration >= 500) { // Motor Ramp in Lawo cannot handle too short durations
-					try {
-						const res = await this._lawo.invokeFunction(
-							new Ember.QualifiedFunction(this._rampMotorFunctionPath),
-							[
-								command.identifier,
-								new Ember.ParameterContents(command.value, 'real'),
-								new Ember.ParameterContents(command.transitionDuration / 1000, 'real')
-							]
-						)
-						this.emit('debug', `Ember function result (${timelineObjId}): ${JSON.stringify(res)}`)
-					} catch (e) {
-						if (e.result && e.result.indexOf(6) > -1 && this._lastSentValue[command.path] <= startSend) { // result 6 and no new command fired for this path in meantime
-							// Lawo rejected the command, so ensure the value gets set
-							this.emit('info', `Ember function result (${timelineObjId}) was 6, running a direct setValue now`)
-							await this._setValueFn(command, timelineObjId, EmberTypes.REAL)
-						} else {
-							if (e.success === false) { // @todo: QualifiedFunction Fader/Motor cannot handle too short durations or small value changes
-								this.emit('info', `Ember function result (${timelineObjId}): ${JSON.stringify(e)}`)
-							}
-							this.emit('error', `Lawo: Ember function command error (${timelineObjId}, ${command.identifier})`, e)
-							throw e
+					const fn = await this._lawo.getElementByPath(this._rampMotorFunctionPath)
+					if (!fn) throw new Error('Function path not found')
+					if (fn.contents.type !== EmberModel.ElementType.Function) throw new Error('Node at specified path for function is not a function')
+					const req = await this._lawo.invoke(
+						fn as EmberModel.NumberedTreeNode<EmberModel.EmberFunction>,
+						{ type: EmberModel.ParameterType.String, value: command.identifier },
+						{ type: EmberModel.ParameterType.Real, value: command.value },
+						{ type: EmberModel.ParameterType.Real, value: command.transitionDuration / 1000 }
+					)
+					this.emit('debug', `Ember function invoked (${timelineObjId}, ${command.identifier}, ${command.value})`)
+					const res = await req.response
+					if (res && res.success === false) {
+						const reasons = {
+							1: 'Incorrect number of parameters',
+							2: 'Incorrect datatype',
+							3: 'Input value out of range',
+							4: 'Source / sum not found',
+							5: 'Source / sum not assigned to fader',
+							6: 'Combination of values not allowed',
+							7: 'Touch active'
 						}
-					}
+						const result = res.result![0].value as number
 
+						if (res.result
+							&& (result === 6 || result === 5)
+							&& this._lastSentValue[command.path] <= startSend) { // result 5 / 6 and no new command fired for this path in meantime
+							// Lawo rejected the command, so ensure the value gets set
+							this.emit('info', `Ember function result (${timelineObjId}, ${command.identifier}) was ${result}, running a direct setValue now`)
+							await this._setValueFn(command, timelineObjId, false) // result 6 is quite likely to cause a timeout
+						} else {
+							this.emit('error', `Lawo: Ember function success false (${timelineObjId}, ${command.identifier}), result ${res.result![0].value}`, new Error('Lawo Result ' + res.result![0].value))
+						}
+						this.emit('debug', `Lawo: Ember fn error ${command.identifier}): result ${result}: ${reasons[result]}`, { ...res, source: command.identifier })
+					} else {
+						this.emit('debug', `Ember function result (${timelineObjId}, ${command.identifier}): ${(JSON.stringify(res))}`, res)
+					}
 				} else { // withouth timed fader movement
-					await this._setValueFn(command, timelineObjId, EmberTypes.REAL)
+					await this._setValueFn(command, timelineObjId)
 				}
 			} else {
 				await this._setValueFn(command, timelineObjId)
@@ -489,17 +579,21 @@ export class LawoDevice extends DeviceWithState<TimelineState> implements IDevic
 		}
 
 	}
-	private async setValueWrapper (command: LawoCommand, timelineObjId: string, valueType?: EmberTypes) {
+	private async setValueWrapper (command: LawoCommand, timelineObjId: string, logResult = true) {
 		try {
-			const node: any = await this._getNodeByPath(command.path)
+			const node = await this._getNodeByPath(command.path) as EmberModel.NumberedTreeNode<EmberModel.Parameter>
 
-			if ((valueType || command.valueType) === EmberTypes.REAL && command.value as number % 1 === 0) {
-				(command.value as number) += .01
+			const value = node.contents.factor ? command.value as number * node.contents.factor : command.value
+
+			if (node.contents.value === value) return // no need to do another setValue
+
+			const req = await this._lawo.setValue(node, value, logResult)
+			if (logResult) {
+				const res = await req.response
+				this.emit('debug', `Ember result (${timelineObjId}): ${(res && res.contents.value)}`, { command, res: res && res.contents })
+			} else if (!req.sentOk) {
+				this.emit('error', 'SetValue no logResult', new Error(`Ember req (${timelineObjId}) for "${command.path}" to "${value}" failed`))
 			}
-
-			const res = await this._lawo.setValueWithHacksaw(node, new Ember.ParameterContents(command.value, valueType || command.valueType))
-
-			this.emit('debug', `Ember result (${timelineObjId}): ${JSON.stringify(res)}`)
 		} catch (e) {
 			this.emit('error', `Lawo: Error in setValue (${timelineObjId})`, e)
 			throw e
@@ -516,26 +610,85 @@ export class LawoDevice extends DeviceWithState<TimelineState> implements IDevic
 				delete this.transitions[addr]
 
 				// assert correct finished value:
-				this._setValueFn(transition, '').catch(() => null)
+				this._setValueFn(transition, transition.tlObjId).catch(() => null)
 			}
 		}
 
 		for (const addr in this.transitions) {
 			const transition = this.transitions[addr]
 
-			const from = Math.max(FADER_THRESHOLD, transition.from as number)
-			const to = Math.max(FADER_THRESHOLD, transition.value as number)
+			const from = this._faderThreshold ? Math.max(this._faderThreshold, transition.from as number) : transition.from as number
+			const to = this._faderThreshold ? Math.max(this._faderThreshold, transition.value as number) : transition.value as number
 
 			const p = (this.getCurrentTime() - transition.started) / transition.transitionDuration!
 
 			const v = from + p * (to - from) // should this have easing?
 
-			this._setValueFn({ ...transition, value: v }, '').catch(() => null)
+			this._setValueFn({ ...transition, value: v }, transition.tlObjId, false).catch(() => null)
 		}
 
 		if (Object.keys(this.transitions).length === 0) {
 			clearInterval(this.transitionInterval!)
 			this.transitionInterval = undefined
 		}
+	}
+
+	private async _mapSourcesToNodeNames () {
+		if (!this._sourceNamePath) return
+
+		this.emit('info', 'Start mapping source identifiers to channel node identifiers')
+		// get the node that contains the sources
+		const sourceNode = await this._lawo.getElementByPath(this._sourcesPath)
+		if (!sourceNode) {
+			this.emit('warning', 'Could not map source names to node names because source node could not be found!')
+			return
+		}
+
+		// get the sources
+		const req = await (this._lawo.getDirectory(sourceNode))
+		const sources = await req.response! as EmberModel.NumberedTreeNode<EmberModel.EmberNode> | undefined
+		if (!sources) return
+
+		for (const child of Object.values(sources.children || {})) {
+			if (child.contents.type === EmberModel.ElementType.Node) {
+				try { // get the identifier
+					let previousNode: string | undefined = undefined
+					const node = await this._lawo.getElementByPath(this._sourcesPath + '.'
+						+ child.number + '.' + this._sourceNamePath,
+						(node: EmberModel.NumberedTreeNode<EmberModel.Parameter>) => { // identifier changed
+							if (!node) return
+
+							const sourceId = (child.contents as EmberModel.EmberNode).identifier || child.number + ''
+
+							// remove old mapping if it hasn't changed
+							if (previousNode && this._sourceNameToNodeName.get(previousNode) === sourceId) {
+								this.emit('info', `removing mapping ${previousNode}`)
+								this._sourceNameToNodeName.delete(previousNode)
+							}
+
+							// set new mapping
+							this._sourceNameToNodeName.set(
+								node.contents.value as string,
+								sourceId
+							)
+							previousNode = node.contents.value as string
+
+							this.emit('info', `mapping ${node.contents.value} to channel ${sourceId}`)
+						})
+
+					if (!node) continue
+
+					this._sourceNameToNodeName.set(
+						(node.contents as EmberModel.Parameter).value as string,
+						child.contents.identifier || child.number + ''
+					)
+					previousNode = (node.contents as EmberModel.Parameter).value as string
+				} catch (e) {
+					this.emit('error', 'lawo: map sources to node names', e)
+				}
+			}
+		}
+
+		this.emit('info', 'Mapped source identifiers to channel node identifiers')
 	}
 }

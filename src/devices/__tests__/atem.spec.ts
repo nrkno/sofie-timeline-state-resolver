@@ -1,4 +1,4 @@
-import { Enums, MixEffect } from 'atem-state'
+import { Enums, AtemConnection } from 'atem-state'
 import { ResolvedTimelineObjectInstance } from 'superfly-timeline'
 import { Conductor } from '../../conductor'
 import { AtemDevice, DeviceOptionsAtemInternal } from '../atem'
@@ -15,9 +15,16 @@ import {
 import { ThreadedClass } from 'threadedclass'
 import { TimelineState } from '../../types/src/superfly-timeline'
 import { literal } from '../device'
+import { getMockCall } from '../../__tests__/lib'
 
 describe('Atem', () => {
 	let mockTime = new MockTime()
+
+	function compareAtemCommands (received: AtemConnection.Commands.ISerializableCommand, expected: AtemConnection.Commands.ISerializableCommand) {
+		expect(received.constructor.name).toEqual(expected.constructor.name)
+		expect(received.serialize(AtemConnection.Enums.ProtocolVersion.V8_0)).toEqual(expected.serialize(AtemConnection.Enums.ProtocolVersion.V8_0))
+	}
+
 	beforeAll(() => {
 		mockTime.mockDateNow()
 	})
@@ -47,7 +54,11 @@ describe('Atem', () => {
 			host: '127.0.0.1'
 		}))
 
-		device.handleState(mockState)
+		device.handleState(mockState, {})
+
+		device.queue.forEach((cmd) => {
+			console.log(cmd)
+		})
 		expect(device.queue).toHaveLength(0)
 	})
 
@@ -79,7 +90,7 @@ describe('Atem', () => {
 				port: 9910
 			}
 		}))
-		await myConductor.setMapping(myLayerMapping)
+
 		await mockTime.advanceTimeToTicks(10100)
 
 		let deviceContainer = myConductor.getDevice('myAtem')
@@ -88,7 +99,7 @@ describe('Atem', () => {
 		// Check that no commands has been scheduled:
 		expect(await device.queue).toHaveLength(0)
 
-		myConductor.timeline = [
+		myConductor.setTimelineAndMappings([
 			{
 				id: 'obj0',
 				enable: {
@@ -121,50 +132,20 @@ describe('Atem', () => {
 					}
 				}
 			}
-		]
+		], myLayerMapping)
 
 		commandReceiver0.mockClear()
 		await mockTime.advanceTimeToTicks(10200)
 		expect(commandReceiver0).toHaveBeenCalledTimes(2)
-		expect(commandReceiver0).toBeCalledWith(expect.anything(), expect.objectContaining(
-			{
-				flag: 0,
-				rawName: 'CPvI',
-				mixEffect: 0,
-				properties: {
-					source: 2
-				}
-			}
-		), null, expect.stringContaining(''))
-		expect(commandReceiver0).toBeCalledWith(expect.anything(), expect.objectContaining(
-			{
-				flag: 0,
-				rawName: 'DCut',
-				mixEffect: 0
-			}
-		), null, expect.stringContaining(''))
+		compareAtemCommands(getMockCall(commandReceiver0, 0, 1), new AtemConnection.Commands.PreviewInputCommand(0, 2))
+		compareAtemCommands(getMockCall(commandReceiver0, 1, 1), new AtemConnection.Commands.CutCommand(0))
 
 		commandReceiver0.mockClear()
 		await mockTime.advanceTimeToTicks(12200)
 
 		expect(commandReceiver0).toHaveBeenCalledTimes(2)
-		expect(commandReceiver0).toBeCalledWith(expect.anything(), expect.objectContaining(
-			{
-				flag: 0,
-				rawName: 'CPvI',
-				mixEffect: 0,
-				properties: {
-					source: 3
-				}
-			}
-		), null, expect.stringContaining(''))
-		expect(commandReceiver0).toBeCalledWith(expect.anything(), expect.objectContaining(
-			{
-				flag: 0,
-				rawName: 'DCut',
-				mixEffect: 0
-			}
-		), null, expect.stringContaining(''))
+		compareAtemCommands(getMockCall(commandReceiver0, 0, 1), new AtemConnection.Commands.PreviewInputCommand(0, 3))
+		compareAtemCommands(getMockCall(commandReceiver0, 1, 1), new AtemConnection.Commands.CutCommand(0))
 	})
 
 	test('Atem: upstream keyer', async () => {
@@ -196,14 +177,13 @@ describe('Atem', () => {
 			}
 		}))
 
-		await myConductor.setMapping(myLayerMapping)
 		await mockTime.advanceTimeToTicks(10100)
 
 		let deviceContainer = myConductor.getDevice('myAtem')
 		let device = deviceContainer.device as ThreadedClass<AtemDevice>
 		// Check that no commands has been scheduled:
 		expect(await device.queue).toHaveLength(0)
-		myConductor.timeline = [
+		myConductor.setTimelineAndMappings([
 			{
 				id: 'obj0',
 				enable: {
@@ -230,24 +210,18 @@ describe('Atem', () => {
 					}
 				}
 			}
-		]
+		], myLayerMapping)
 
 		await mockTime.advanceTimeToTicks(10200)
 
 		expect(commandReceiver0).toHaveBeenCalledTimes(1)
-		expect(commandReceiver0).toBeCalledWith(expect.anything(), expect.objectContaining(
-			{
-				flag: 14,
-				rawName: 'CKLm',
-				mixEffect: 0,
-				upstreamKeyerId: 0,
-				properties: {
-					clip: 300,
-					gain: 2,
-					invert: true
-				}
-			}
-		), null, expect.stringContaining('')) // obj0
+		const cmd = new AtemConnection.Commands.MixEffectKeyLumaCommand(0, 0)
+		cmd.updateProps({
+			clip: 300,
+			gain: 2,
+			invert: true
+		})
+		compareAtemCommands(getMockCall(commandReceiver0, 0, 1), cmd)
 	})
 
 	test('Atem: handle same state', async () => {
@@ -258,7 +232,7 @@ describe('Atem', () => {
 		const myLayerMapping: Mappings = {
 			'myLayer0': literal<MappingAtem>({
 				device: DeviceType.ATEM,
-				deviceId: 'myAtem',
+				deviceId: 'mock',
 				mappingType: MappingAtemType.MixEffect,
 				index: 0
 			})
@@ -281,7 +255,8 @@ describe('Atem', () => {
 			resolved: {
 				resolved: true,
 				resolving: false,
-				instances: [{ start: mockTime.now - 1000, end: Infinity, id: 'a0', references: [] }]
+				instances: [{ start: mockTime.now - 1000, end: Infinity, id: 'a0', references: [] }],
+				directReferences: []
 			},
 			instance: { start: mockTime.now - 1000, end: Infinity, id: 'a0', references: [] }
 		}
@@ -300,7 +275,6 @@ describe('Atem', () => {
 				host: '127.0.0.1'
 			}
 		}, mockTime.getCurrentTime)
-		device.setMapping(myLayerMapping)
 
 		await device.init(literal<AtemOptions>({
 			host: '127.0.0.1'
@@ -311,12 +285,12 @@ describe('Atem', () => {
 		expect(commandReceiver0).toHaveBeenCalledTimes(0)
 
 		// Expect that a command has been scheduled
-		device.handleState(mockState)
+		device.handleState(mockState, myLayerMapping)
 		expect(device.queue).toHaveLength(2)
 
 		// Handle the same state, before the commands have been sent
 		mockTime.advanceTimeTo(mockTime.now + 30)
-		device.handleState(mockState)
+		device.handleState(mockState, myLayerMapping)
 		expect(commandReceiver0).toHaveBeenCalledTimes(0)
 		expect(device.queue).toHaveLength(2)
 
@@ -325,7 +299,7 @@ describe('Atem', () => {
 		expect(commandReceiver0).toHaveBeenCalledTimes(2)
 
 		// Handle the same state, after the commands have been sent
-		device.handleState(mockState)
+		device.handleState(mockState, myLayerMapping)
 		expect(device.queue).toHaveLength(0)
 	})
 })

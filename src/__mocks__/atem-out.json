@@ -1,9 +1,6 @@
 {
 	"info": {
-		"apiVersion": {
-			"major": 2,
-			"minor": 25
-		},
+		"apiVersion": 131094,
 		"productIdentifier": "ATEM 2 M/E Production Switcher",
 		"model": 3,
 		"capabilities": {
@@ -17,9 +14,13 @@
 			"maxHyperdecks": 4,
 			"DVEs": 1,
 			"stingers": 1,
-			"hasSuperSource": true
+			"superSources": 1
 		},
-		"superSourceBoxes": 4
+		"superSources": [
+			{
+				"boxCount": 4
+			}
+		]
 	},
 	"macro": {
 		"macroPlayer": {
@@ -30,7 +31,7 @@
 		}
 	},
 	"video": {
-		"ME": [
+		"mixEffects": [
 			{
 				"transitionProperties": {
 					"style": 0,
@@ -201,11 +202,13 @@
 						"flyEnabled": false,
 						"fillSource": 0,
 						"cutSource": 0,
-						"maskEnabled": false,
-						"maskTop": 0,
-						"maskBottom": 0,
-						"maskLeft": 0,
-						"maskRight": 0
+						"maskSettings": {
+							"maskEnabled": false,
+							"maskTop": 0,
+							"maskBottom": 0,
+							"maskLeft": 0,
+							"maskRight": 0
+						}
 					},
 					{
 						"dveSettings": {
@@ -323,11 +326,13 @@
 						"flyEnabled": false,
 						"fillSource": 0,
 						"cutSource": 0,
-						"maskEnabled": false,
-						"maskTop": 0,
-						"maskBottom": 0,
-						"maskLeft": 0,
-						"maskRight": 0
+						"maskSettings": {
+							"maskEnabled": false,
+							"maskTop": 0,
+							"maskBottom": 0,
+							"maskLeft": 0,
+							"maskRight": 0
+						}
 					}
 				],
 				"index": 0,
@@ -508,11 +513,13 @@
 						"flyEnabled": false,
 						"fillSource": 0,
 						"cutSource": 0,
-						"maskEnabled": false,
-						"maskTop": 0,
-						"maskBottom": 0,
-						"maskLeft": 0,
-						"maskRight": 0
+						"maskSettings": {
+							"maskEnabled": false,
+							"maskTop": 0,
+							"maskBottom": 0,
+							"maskLeft": 0,
+							"maskRight": 0
+						}
 					},
 					{
 						"dveSettings": {
@@ -630,11 +637,13 @@
 						"flyEnabled": false,
 						"fillSource": 0,
 						"cutSource": 0,
-						"maskEnabled": false,
-						"maskTop": 0,
-						"maskBottom": 0,
-						"maskLeft": 0,
-						"maskRight": 0
+						"maskSettings": {
+							"maskEnabled": false,
+							"maskTop": 0,
+							"maskBottom": 0,
+							"maskLeft": 0,
+							"maskRight": 0
+						}
 					}
 				],
 				"index": 1,
@@ -706,54 +715,83 @@
 			0,
 			0
 		],
-		"superSourceBoxes": [
+		"superSources": [
 			{
-				"enabled": false,
-				"source": 0,
-				"x": 0,
-				"y": 0,
-				"size": 1000,
-				"cropped": false,
-				"cropTop": 0,
-				"cropBottom": 0,
-				"cropLeft": 0,
-				"cropRight": 0
-			},
-			{
-				"enabled": false,
-				"source": 0,
-				"x": 0,
-				"y": 0,
-				"size": 1000,
-				"cropped": false,
-				"cropTop": 0,
-				"cropBottom": 0,
-				"cropLeft": 0,
-				"cropRight": 0
-			},
-			{
-				"enabled": false,
-				"source": 0,
-				"x": 0,
-				"y": 0,
-				"size": 1000,
-				"cropped": false,
-				"cropTop": 0,
-				"cropBottom": 0,
-				"cropLeft": 0,
-				"cropRight": 0
-			},
-			{
-				"enabled": false,
-				"source": 0,
-				"x": 0,
-				"y": 0,
-				"size": 1000,
-				"cropped": false,
-				"cropTop": 0,
-				"cropBottom": 0,
-				"cropLeft": 0,
-				"cropRight": 0
+				"boxes": [
+					{
+						"enabled": false,
+						"source": 0,
+						"x": 0,
+						"y": 0,
+						"size": 1000,
+						"cropped": false,
+						"cropTop": 0,
+						"cropBottom": 0,
+						"cropLeft": 0,
+						"cropRight": 0
+					},
+					{
+						"enabled": false,
+						"source": 0,
+						"x": 0,
+						"y": 0,
+						"size": 1000,
+						"cropped": false,
+						"cropTop": 0,
+						"cropBottom": 0,
+						"cropLeft": 0,
+						"cropRight": 0
+					},
+					{
+						"enabled": false,
+						"source": 0,
+						"x": 0,
+						"y": 0,
+						"size": 1000,
+						"cropped": false,
+						"cropTop": 0,
+						"cropBottom": 0,
+						"cropLeft": 0,
+						"cropRight": 0
+					},
+					{
+						"enabled": false,
+						"source": 0,
+						"x": 0,
+						"y": 0,
+						"size": 1000,
+						"cropped": false,
+						"cropTop": 0,
+						"cropBottom": 0,
+						"cropLeft": 0,
+						"cropRight": 0
+					}
+				],
+				"index": 0,
+				"properties": {
+					"artFillSource": 0,
+					"artCutSource": 0,
+					"artOption": 0,
+					"artPreMultiplied": false,
+					"artClip": 0,
+					"artGain": 0,
+					"artInvertKey": false
+				},
+				"border": {
+					"borderEnabled": false,
+					"borderBevel": 0,
+					"borderOuterWidth": 0,
+					"borderInnerWidth": 0,
+					"borderOuterSoftness": 0,
+					"borderInnerSoftness": 0,
+					"borderBevelSoftness": 0,
+					"borderBevelPosition": 0,
+					"borderHue": 0,
+					"borderSaturation": 0,
+					"borderLuma": 0,
+					"borderLightSourceDirection": 0,
+					"borderLightSourceAltitude": 0
+				}
 			}
 		]
 	},
@@ -761,29 +799,33 @@
 	"tallies": [],
 	"audio": {
 		"channels": [],
-		"master": {}
+		"master": {
+			"gain": 0,
+			"balance": 0,
+			"followFadeToBlack": false
+		}
 	},
 	"media": {
 		"stillPool": {},
 		"clipPool": {},
 		"players": [
 			{
-				"sourceType": 1,
-				"stillIndex": 0,
-				"clipIndex": 0,
 				"playing": false,
 				"loop": false,
-				"atBeginning": false,
-				"clipFrame": 0
+				"atBeginning": true,
+				"clipFrame": 0,
+				"sourceType": 1,
+				"clipIndex": 0,
+				"stillIndex": 0
 			},
 			{
-				"sourceType": 1,
-				"stillIndex": 1,
-				"clipIndex": 1,
 				"playing": false,
 				"loop": false,
-				"atBeginning": false,
-				"clipFrame": 0
+				"atBeginning": true,
+				"clipFrame": 0,
+				"sourceType": 1,
+				"clipIndex": 0,
+				"stillIndex": 0
 			}
 		]
 	},

@@ -29,16 +29,31 @@ import {
 	ResolvedTimelineObjectInstanceExtended,
 	TimelineObjCCGIP,
 	DeviceOptionsCasparCG,
-	Transition
+	Transition,
+	Mappings
 } from '../types/src'
 
 import {
 	TimelineState, ResolvedTimelineObjectInstance
 } from 'superfly-timeline'
 import {
-	CasparCG as StateNS,
 	CasparCGState,
-	IAMCPCommandVOWithContext
+	AMCPCommandVOWithContext,
+	ChannelInfo,
+	LayerBase,
+	MediaLayer,
+	InputLayer,
+	TemplateLayer,
+	HtmlPageLayer,
+	RouteLayer,
+	RecordLayer,
+	EmptyLayer,
+	LayerContentType,
+	TransitionObject,
+	State,
+	NextUp,
+	Transition as StateTransition,
+	Mixer
 } from 'casparcg-state'
 import { DoOnTime, SendMode } from '../doOnTime'
 import * as request from 'request'
@@ -61,7 +76,7 @@ export type CommandReceiver = (time: number, cmd: CommandNS.IAMCPCommand, contex
  * commands. It depends on the DoOnTime class to execute the commands timely or,
  * optionally, uses the CasparCG command scheduling features.
  */
-export class CasparCGDevice extends DeviceWithState<TimelineState> implements IDevice {
+export class CasparCGDevice extends DeviceWithState<State> implements IDevice {
 
 	private _ccg: CasparCG
 	private _ccgState: CasparCGState
@@ -86,11 +101,7 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> implements ID
 			if (deviceOptions.options.timeBase) this._timeBase = deviceOptions.options.timeBase
 		}
 
-		this._ccgState = new CasparCGState({
-			externalLog: (...args) => {
-				this.emit('debug', ...args)
-			}
-		})
+		this._ccgState = new CasparCGState()
 		this._doOnTime = new DoOnTime(() => {
 			return this.getCurrentTime()
 		}, SendMode.BURST, this._deviceOptions)
@@ -135,7 +146,7 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> implements ID
 				videoMode: obj.format.toUpperCase(),
 				fps: obj.frameRate
 			}
-		}) as StateNS.ChannelInfo[], this.getCurrentTime())
+		}) as ChannelInfo[], this.getCurrentTime())
 
 		if (typeof initOptions.retryInterval === 'number') {
 			this._retryTime = initOptions.retryInterval || MEDIA_RETRY_INTERVAL
@@ -173,7 +184,8 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> implements ID
 	/**
 	 * Generates an array of CasparCG commands by comparing the newState against the oldState, or the current device state.
 	 */
-	handleState (newState: TimelineState) {
+	handleState (newState: TimelineState, newMappings: Mappings) {
+		super.onHandleState(newState, newMappings)
 		// check if initialized:
 		if (!this._ccgState.isInitialised) {
 			this.emit('warning', 'CasparCG State not initialized yet')
@@ -182,10 +194,9 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> implements ID
 
 		let previousStateTime = Math.max(this.getCurrentTime(), newState.time)
 
-		let oldState: TimelineState = (this.getStateBefore(previousStateTime) || ({ state: { time: 0, layers: {}, nextEvents: [] } })).state
+		let oldCasparState = (this.getStateBefore(previousStateTime) || { state: { channels: {} } }).state
 
-		let newCasparState = this.convertStateToCaspar(newState)
-		let oldCasparState = this.convertStateToCaspar(oldState)
+		let newCasparState = this.convertStateToCaspar(newState, newMappings)
 
 		let commandsToAchieveState = this._diffStates(oldCasparState, newCasparState, newState.time)
 
@@ -199,7 +210,7 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> implements ID
 		this._addToQueue(commandsToAchieveState, newState.time)
 
 		// store the new state, for later use:
-		this.setState(newState, newState.time)
+		this.setState(newCasparState, newState.time)
 	}
 
 	/**
@@ -248,11 +259,11 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> implements ID
 		}
 	}
 
-	private convertObjectToCasparState (layer: ResolvedTimelineObjectInstance, mapping: MappingCasparCG, isForeground: boolean): StateNS.ILayerBase {
+	private convertObjectToCasparState (mappings: Mappings, layer: ResolvedTimelineObjectInstance, mapping: MappingCasparCG, isForeground: boolean): LayerBase {
 		let startTime = layer.instance.originalStart || layer.instance.start
 		if (startTime === 0) startTime = 1 // @todo: startTime === 0 will make ccg-state seek to the current time
 
-		let stateLayer: StateNS.ILayerBase | null = null
+		let stateLayer: LayerBase | null = null
 		if (
 			layer.content.type === TimelineContentTypeCasparCg.MEDIA
 		) {
@@ -261,10 +272,10 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> implements ID
 			const holdOnFirstFrame = !isForeground || mediaObj.isLookahead
 			const loopingPlayTime = mediaObj.content.loop && !mediaObj.content.seek && !mediaObj.content.inPoint && !mediaObj.content.length
 
-			stateLayer = literal<StateNS.IMediaLayer>({
+			stateLayer = literal<MediaLayer>({
 				id: 			layer.id,
 				layerNo:		mapping.layer,
-				content:		StateNS.LayerContentType.MEDIA,
+				content:		LayerContentType.MEDIA,
 				media:			mediaObj.content.file,
 				playTime:		(
 					!holdOnFirstFrame && (mediaObj.content.noStarttime || loopingPlayTime) ?
@@ -287,10 +298,10 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> implements ID
 
 			const ipObj = layer as any as TimelineObjCCGIP
 
-			stateLayer = literal<StateNS.IMediaLayer>({
+			stateLayer = literal<MediaLayer>({
 				id: 			layer.id,
 				layerNo:		mapping.layer,
-				content:		StateNS.LayerContentType.MEDIA,
+				content:		LayerContentType.MEDIA,
 				media:			ipObj.content.uri,
 				channelLayout:	ipObj.content.channelLayout,
 				playTime:		null, // ip inputs can't be seeked // layer.resolved.startTime || null,
@@ -300,10 +311,10 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> implements ID
 		} else if (layer.content.type === TimelineContentTypeCasparCg.INPUT) {
 			const inputObj = layer as any as TimelineObjCCGInput
 
-			stateLayer = literal<StateNS.IInputLayer>({
+			stateLayer = literal<InputLayer>({
 				id: 			layer.id,
 				layerNo:		mapping.layer,
-				content:		StateNS.LayerContentType.INPUT,
+				content:		LayerContentType.INPUT,
 				media:			'decklink',
 				input: {
 					device:			inputObj.content.device,
@@ -317,10 +328,10 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> implements ID
 		} else if (layer.content.type === TimelineContentTypeCasparCg.TEMPLATE) {
 			const recordObj = layer as any as TimelineObjCCGTemplate
 
-			stateLayer = literal<StateNS.ITemplateLayer>({
+			stateLayer = literal<TemplateLayer>({
 				id: 			layer.id,
 				layerNo:		mapping.layer,
-				content:		StateNS.LayerContentType.TEMPLATE,
+				content:		LayerContentType.TEMPLATE,
 				media:			recordObj.content.name,
 
 				playTime:		startTime || null,
@@ -333,10 +344,10 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> implements ID
 		} else if (layer.content.type === TimelineContentTypeCasparCg.HTMLPAGE) {
 			const htmlObj = layer as any as TimelineObjCCGHTMLPage
 
-			stateLayer = literal<StateNS.IHtmlPageLayer>({
+			stateLayer = literal<HtmlPageLayer>({
 				id: 			layer.id,
 				layerNo:	mapping.layer,
-				content:	StateNS.LayerContentType.HTMLPAGE,
+				content:	LayerContentType.HTMLPAGE,
 				media:		htmlObj.content.url,
 
 				playTime:	startTime || null,
@@ -346,16 +357,16 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> implements ID
 			const routeObj = layer as any as TimelineObjCCGRoute
 
 			if (routeObj.content.mappedLayer) {
-				let routeMapping = this.getMapping()[routeObj.content.mappedLayer] as MappingCasparCG
-				if (routeMapping) {
+				let routeMapping = mappings[routeObj.content.mappedLayer] as MappingCasparCG
+				if (routeMapping && routeMapping.deviceId === this.deviceId) {
 					routeObj.content.channel	= routeMapping.channel
 					routeObj.content.layer		= routeMapping.layer
 				}
 			}
-			stateLayer = literal<StateNS.IRouteLayer>({
+			stateLayer = literal<RouteLayer>({
 				id: 			layer.id,
 				layerNo:		mapping.layer,
-				content:		StateNS.LayerContentType.ROUTE,
+				content:		LayerContentType.ROUTE,
 				media:			'route',
 				route: {
 					channel:			routeObj.content.channel || 0,
@@ -371,10 +382,10 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> implements ID
 			const recordObj = layer as any as TimelineObjCCGRecord
 
 			if (startTime) {
-				stateLayer = literal<StateNS.IRecordLayer>({
+				stateLayer = literal<RecordLayer>({
 					id: 				layer.id,
 					layerNo:			mapping.layer,
-					content:			StateNS.LayerContentType.RECORD,
+					content:			LayerContentType.RECORD,
 					media:				recordObj.content.file,
 					encoderOptions:		recordObj.content.encoderOptions,
 					playing:			true,
@@ -385,12 +396,11 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> implements ID
 
 		// if no appropriate layer could be created, make it an empty layer
 		if (!stateLayer) {
-			let l: StateNS.IEmptyLayer = {
+			let l: EmptyLayer = {
 				id: layer.id,
 				layerNo: mapping.layer,
-				content: StateNS.LayerContentType.NOTHING,
-				playing: false,
-				pauseTime: 0
+				content: LayerContentType.NOTHING,
+				playing: false
 			}
 			stateLayer = l
 		} // now it holds that stateLayer is truthy
@@ -407,12 +417,12 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> implements ID
 					let media = stateLayer.media
 					let transitions = {} as any
 					if (baseContent.transitions.inTransition) {
-						transitions.inTransition = new StateNS.Transition(baseContent.transitions.inTransition)
+						transitions.inTransition = new StateTransition(baseContent.transitions.inTransition)
 					}
 					if (baseContent.transitions.outTransition) {
-						transitions.outTransition = new StateNS.Transition(baseContent.transitions.outTransition)
+						transitions.outTransition = new StateTransition(baseContent.transitions.outTransition)
 					}
-					stateLayer.media = new StateNS.TransitionObject(media, {
+					stateLayer.media = new TransitionObject(media, {
 						inTransition: transitions.inTransition,
 						outTransition: transitions.outTransition
 					})
@@ -424,7 +434,7 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> implements ID
 		}
 		if (layer.content.mixer) { // add mixer properties
 			// just pass through values here:
-			let mixer: StateNS.Mixer = {}
+			let mixer: Mixer = {}
 			_.each(layer.content.mixer, (value, property) => {
 				mixer[property] = value
 			})
@@ -439,17 +449,34 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> implements ID
 	 * Takes a timeline state and returns a CasparCG State that will work with the state lib.
 	 * @param timelineState The timeline state to generate from.
 	 */
-	convertStateToCaspar (timelineState: TimelineState): StateNS.State {
+	convertStateToCaspar (timelineState: TimelineState, mappings: Mappings): State {
 
-		const caspar = new StateNS.State()
+		const caspar: State = {
+			channels: {}
+		}
 
-		_.each(this.getMapping(), (foundMapping, layerName) => {
+		_.each(mappings, (foundMapping, layerName) => {
 			if (
 				foundMapping &&
 				foundMapping.device === DeviceType.CASPARCG &&
+				foundMapping.deviceId === this.deviceId &&
 				_.has(foundMapping,'channel') &&
 				_.has(foundMapping,'layer')
 				) {
+
+				const mapping = foundMapping as MappingCasparCG
+				mapping.channel = mapping.channel || 0
+				mapping.layer = mapping.layer || 0
+
+				// create a channel in state if necessary, or reuse existing channel
+				const channel = caspar.channels[mapping.channel] || { channelNo: mapping.channel, layers: {} }
+				channel.channelNo = Number(mapping.channel) || 1
+				channel.fps = 25
+				caspar.channels[channel.channelNo] = channel
+
+				// @todo: check if we need to get fps.
+				channel.fps = 25
+				caspar.channels[mapping.channel] = channel
 
 				let foregroundObj = timelineState.layers[layerName] as ResolvedTimelineObjectInstance | undefined
 				let backgroundObj = _.last(_.filter(timelineState.layers, obj => {
@@ -464,26 +491,15 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> implements ID
 					foregroundObj = undefined
 				}
 
-				const mapping = foundMapping as MappingCasparCG
-				mapping.channel = mapping.channel || 0
-				mapping.layer = mapping.layer || 0
-
-				// create a channel in state if necessary, or reuse existing channel
-				const channel = caspar.channels[mapping.channel] ? caspar.channels[mapping.channel] : new StateNS.Channel()
-				channel.channelNo = Number(mapping.channel) || 1
-				// @todo: check if we need to get fps.
-				channel.fps = 25 / 1000 // 25 fps over 1000ms
-				caspar.channels[channel.channelNo] = channel
-
 				// create layer of appropriate type
-				const foregroundStateLayer = foregroundObj ? this.convertObjectToCasparState(foregroundObj, mapping, true) : undefined
-				const backgroundStateLayer = backgroundObj ? this.convertObjectToCasparState(backgroundObj, mapping, false) : undefined
+				const foregroundStateLayer = foregroundObj ? this.convertObjectToCasparState(mappings, foregroundObj, mapping, true) : undefined
+				const backgroundStateLayer = backgroundObj ? this.convertObjectToCasparState(mappings, backgroundObj, mapping, false) : undefined
 
 				if (foregroundStateLayer) {
 					channel.layers[mapping.layer] = {
 						...foregroundStateLayer,
-						nextUp: backgroundStateLayer ? literal<StateNS.NextUp>({
-							...backgroundStateLayer as StateNS.NextUp,
+						nextUp: backgroundStateLayer ? literal<NextUp>({
+							...backgroundStateLayer as NextUp,
 							auto: false
 						}) : undefined
 					}
@@ -494,14 +510,13 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> implements ID
 							playing: false
 						}
 					} else {
-						channel.layers[mapping.layer] = literal<StateNS.IEmptyLayer>({
+						channel.layers[mapping.layer] = literal<EmptyLayer>({
 							id: `${backgroundStateLayer.id}_empty_base`,
 							layerNo: mapping.layer,
-							content: StateNS.LayerContentType.NOTHING,
+							content: LayerContentType.NOTHING,
 							playing: false,
-							pauseTime: 0,
-							nextUp: literal<StateNS.NextUp>({
-								...backgroundStateLayer as StateNS.NextUp,
+							nextUp: literal<NextUp>({
+								...backgroundStateLayer as NextUp,
 								auto: false
 							})
 						})
@@ -620,15 +635,16 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> implements ID
 
 		return {
 			statusCode: statusCode,
-			messages: messages
+			messages: messages,
+			active: this.isActive
 		}
 	}
 	/**
 	 * Compares the new timeline-state with the old one, and generates commands to account for the difference
 	 */
-	private _diffStates (oldState, newState, time: number): Array<IAMCPCommandVOWithContext> {
+	private _diffStates (oldState, newState, time: number): Array<AMCPCommandVOWithContext> {
 		// @todo: this is a tmp fix for the command order. should be removed when ccg-state has been refactored.
-		return this._ccgState.diffStatesOrderedCommands(oldState, newState, time)
+		return CasparCGState.diffStatesOrderedCommands(oldState, newState, time)
 	}
 	private _doCommand (command: CommandNS.IAMCPCommand, context: string, timlineObjId: string): Promise<void> {
 		let time = this.getCurrentTime()
@@ -644,7 +660,7 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> implements ID
 	/**
 	 * Clear future commands after {@code time} if they are not in {@code commandsToSendNow}.
 	 */
-	private _clearScheduledFutureCommands (time: number, commandsToSendNow: Array<IAMCPCommandVOWithContext>) {
+	private _clearScheduledFutureCommands (time: number, commandsToSendNow: Array<AMCPCommandVOWithContext>) {
 		// clear any queued commands later than this time:
 		let now = this.getCurrentTime()
 
@@ -700,11 +716,11 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> implements ID
 	 * @param commandsToAchieveState Commands to be added to queue
 	 * @param time Point in time to send commands at
 	 */
-	private _addToQueue (commandsToAchieveState: Array<IAMCPCommandVOWithContext>, time: number) {
+	private _addToQueue (commandsToAchieveState: Array<AMCPCommandVOWithContext>, time: number) {
 		let i = 0
 		let now = this.getCurrentTime()
 
-		_.each(commandsToAchieveState, (cmd: IAMCPCommandVOWithContext) => {
+		_.each(commandsToAchieveState, (cmd: AMCPCommandVOWithContext) => {
 
 			let command = AMCPUtil.deSerialize(cmd, 'id')
 
@@ -727,7 +743,7 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> implements ID
 					}
 				}
 			} else {
-				this._doOnTime.queue(time, undefined, (c: {command: CommandNS.IAMCPCommand, cmd: IAMCPCommandVOWithContext}) => {
+				this._doOnTime.queue(time, undefined, (c: {command: CommandNS.IAMCPCommand, cmd: AMCPCommandVOWithContext}) => {
 					return this._doCommand(c.command, c.cmd.context.context, c.cmd.context.layerId)
 				}, { command: command, cmd: cmd })
 			}
@@ -774,7 +790,7 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> implements ID
 			) {
 				const currentState = this.getState(time)
 				if (currentState) {
-					const currentCasparState = this.convertStateToCaspar(currentState.state)
+					const currentCasparState = currentState.state
 
 					const trackedState = this._ccgState.getState()
 
@@ -839,11 +855,11 @@ export class CasparCGDevice extends DeviceWithState<TimelineState> implements ID
 
 		if (!tlState) return // no state implies any state is correct
 
-		const ccgState = this.convertStateToCaspar(tlState.state)
+		const ccgState = tlState.state
 
 		const diff = this._ccgState.getDiff(ccgState, this.getCurrentTime())
 
-		const cmd: Array<IAMCPCommandVOWithContext> = []
+		const cmd: Array<AMCPCommandVOWithContext> = []
 		for (const layer of diff) {
 			// filter out media commands
 			for (let i = 0; i < layer.cmds.length; i++) {

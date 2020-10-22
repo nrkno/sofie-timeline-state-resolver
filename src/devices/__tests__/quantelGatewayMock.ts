@@ -1,6 +1,6 @@
 import * as _ from 'underscore'
-import { Q } from '../quantelGateway'
-import * as request from '../../__mocks__/request'
+import { Q } from 'tv-automation-quantel-gateway-client'
+import * as got from '../../__mocks__/got'
 // const orgSetTimeout = setTimeout
 
 /*
@@ -35,21 +35,21 @@ export function setupQuantelGatewayMock () {
 		}
 	})
 
-	const onGet		= jest.fn((url, options, cb) => handleRequest(quantelServer, onRequestRaw, 'get',	url, options, cb))
-	const onPost	= jest.fn((url, options, cb) => handleRequest(quantelServer, onRequestRaw, 'post',	url, options, cb))
-	const onPut		= jest.fn((url, options, cb) => handleRequest(quantelServer, onRequestRaw, 'put',	url, options, cb))
-	const onHead	= jest.fn((url, options, cb) => handleRequest(quantelServer, onRequestRaw, 'head',	url, options, cb))
-	const onPatch	= jest.fn((url, options, cb) => handleRequest(quantelServer, onRequestRaw, 'patch',	url, options, cb))
-	const onDel		= jest.fn((url, options, cb) => handleRequest(quantelServer, onRequestRaw, 'del',	url, options, cb))
-	const onDelete	= jest.fn((url, options, cb) => handleRequest(quantelServer, onRequestRaw, 'delete',	url, options, cb))
+	const onGet		= jest.fn((options) => handleRequest(quantelServer, onRequestRaw, 'get',	options))
+	const onPost	= jest.fn((options) => handleRequest(quantelServer, onRequestRaw, 'post',	options))
+	const onPut		= jest.fn((options) => handleRequest(quantelServer, onRequestRaw, 'put',	options))
+	const onHead	= jest.fn((options) => handleRequest(quantelServer, onRequestRaw, 'head',	options))
+	const onPatch	= jest.fn((options) => handleRequest(quantelServer, onRequestRaw, 'patch',	options))
+	const onDel		= jest.fn((options) => handleRequest(quantelServer, onRequestRaw, 'del',	options))
+	const onDelete	= jest.fn((options) => handleRequest(quantelServer, onRequestRaw, 'delete',	options))
 
-	request.setMockGet(onGet)
-	request.setMockPost(onPost)
-	request.setMockPut(onPut)
-	request.setMockHead(onHead)
-	request.setMockPatch(onPatch)
-	request.setMockDel(onDel)
-	request.setMockDelete(onDelete)
+	got.setMockGet(onGet)
+	got.setMockPost(onPost)
+	got.setMockPut(onPut)
+	got.setMockHead(onHead)
+	got.setMockPatch(onPatch)
+	got.setMockDel(onDel)
+	got.setMockDelete(onDelete)
 
 	return {
 		quantelServer,
@@ -134,9 +134,15 @@ function urlRoute (requestType: string, url: string, routes: {[route: string]: (
 	})
 	return body
 }
-function handleRequest (quantelServer: QuantelServerMockOptions, triggerFcn: Function, type: string, url: string, bodyData: any, callback: (err: Error | null, value?: any) => void) {
-	process.nextTick(() => {
-
+function handleRequest (
+	quantelServer: QuantelServerMockOptions,
+	triggerFcn: Function,
+	type: string,
+	options: any
+) {
+	const url = options.url
+	const bodyData = options.json
+	return new Promise((resolve) => {
 		triggerFcn(type, url)
 
 		try {
@@ -147,7 +153,7 @@ function handleRequest (quantelServer: QuantelServerMockOptions, triggerFcn: Fun
 
 			const searchClip = (params): Q.ClipDataSummary[] | ErrorResponse => {
 				if (!quantelServer.ISAOptionHasBeenProvided) return noIsaSetupResponse
-				return _.filter([
+				return _.filter<Q.ClipDataSummary[]>([
 					{
 						type: 'ClipDataSummary',
 						ClipID: 2,
@@ -280,13 +286,16 @@ function handleRequest (quantelServer: QuantelServerMockOptions, triggerFcn: Fun
 					if (!quantelServer.ISAOptionHasBeenProvided) return noIsaSetupResponse
 					const port = quantelServer.port[params.portID]
 					if (port) {
-						const statuses: string[] = []
+						let status: Q.PortStatus['status'] = 'unknown'
 
-						if (port.playing) statuses.push('playing')
+						if (port.playing) {
+							// statuses.push('playing')
+							status = 'playing&readyToPlay'
+						} else {
+							status = 'readyToPlay'
+						}
 
-						statuses.push('readyToPlay')
-
-						return {
+						const portStatus: Q.PortStatus = {
 							type: 'PortStatus',
 							serverID: params.serverID,
 							portName: 'fred',
@@ -295,13 +304,14 @@ function handleRequest (quantelServer: QuantelServerMockOptions, triggerFcn: Fun
 							portID: params.portID,
 							speed: 1,
 							offset: port.offset,
-							status: statuses.join('&'),
+							status: status,
 							endOfData: port.endOfData || 0,
 							framesUnused: 0,
 							channels: [ 1 ],
 							outputTime: '00:00:00:00',
 							videoFormat: '' // ?
 						}
+						return portStatus
 					} else {
 						return {
 							status: 404,
@@ -316,7 +326,7 @@ function handleRequest (quantelServer: QuantelServerMockOptions, triggerFcn: Fun
 				// get clip info:
 				'get /:zoneID/clip/:clipID': (params): Q.ClipData | ErrorResponse => {
 					if (!quantelServer.ISAOptionHasBeenProvided) return noIsaSetupResponse
-					const clips = _.filter<Q.ClipData>([
+					const clips = _.filter<Q.ClipData[]>([
 						{
 							type: 'ClipData',
 							Category: '',
@@ -672,13 +682,15 @@ function handleRequest (quantelServer: QuantelServerMockOptions, triggerFcn: Fun
 					]
 				}
 			})
+			// console.log('got responding:', type, resource, body)
 
-			callback(null, {
+			resolve({
 				statusCode: (quantelServer.requestReturnsOK ? 200 : 500),
-				body: JSON.stringify(body)
+				// body: JSON.stringify(body)
+				body: body
 			})
 		} catch (e) {
-			callback(null, {
+			resolve({
 				statusCode: 500,
 				body: JSON.stringify({
 					status: 500,

@@ -79,7 +79,8 @@ export class MSEMock extends EventEmitter implements MSE {
 	}
 	async getProfile (profileName: string): Promise<VProfile> {
 		return {
-			name: profileName
+			name: profileName,
+			execution_groups: {}
 		}
 	}
 	async listShows (): Promise<string[]> {
@@ -125,7 +126,8 @@ export class MSEMock extends EventEmitter implements MSE {
 	}
 	async createProfile (profileName: string, _profileDetailsTbc: any): Promise<VProfile> {
 		const profile: VProfile = {
-			name: profileName
+			name: profileName,
+			execution_groups: {}
 		}
 		this.profiles[profileName] = profile
 

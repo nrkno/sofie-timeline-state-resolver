@@ -26,14 +26,14 @@ let a = async function () {
 	})
 
 	// Setup mappings from layers to outputs:
-	tsr.setMapping({
+	const mappings = {
 		'layer0': {
 			device: DeviceType.CASPARCG,
 			deviceId: 'casparcg0',
 			channel: 1,
 			layer: 10
 		}
-	})
+	}
 	// Set a new timeline:
 	let video0: TSRTimelineObj = {
 		id: 'video0',
@@ -54,9 +54,9 @@ let a = async function () {
 		}
 	}
 	console.log('set timeline')
-	tsr.timeline = [
+	tsr.setTimelineAndMappings([
 		video0
-	]
+	], mappings)
 
 }
 a().catch(e => console.log(e))
