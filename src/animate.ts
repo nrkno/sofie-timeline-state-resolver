@@ -1,33 +1,45 @@
+/**
+ * This file contains various classes that handles animations
+ * The animators handle arrays of values, so both single magnitudes [opacity] and vectors (coordinates [x, y] or [x, y, z]) are supported
+ */
+
+/** Abstract class for Animators */
 export abstract class Animator {
 	protected positions: number[]
 
 	constructor (startPositions: number[]) {
 		this.positions = startPositions
 	}
+	protected clonePositions () {
+		return [...this.positions] // clone
+	}
+	/** Cause the value to jump to the target value  */
 	public jump (target: number[]): number[] {
 		if (target.length !== this.positions.length) throw new Error(`Error in Animator.update: target has the wrong length (${target.length}), compared to internal positions (${this.positions.length})`)
 		return []
 	}
+	/** This function is called on every iteraton (frame)
+	 * @param target The target value the Animator is aiming towards
+	 * @param _timeSinceLastUpdate The delta time since last call to .update()
+	 */
 	public update (target: number[], _timeSinceLastUpdate: number): number[] {
 		if (target.length !== this.positions.length) throw new Error(`Error in Animator.update: target has the wrong length (${target.length}), compared to internal positions (${this.positions.length})`)
 		return []
 	}
-	protected arrayValue<T> (value: T | T[], index: number): T {
-		if (Array.isArray(value)) return value[index]
-		return value
-	}
-	protected getTotalDistanceToTarget (target: number[], positions: number[]): number {
+	/** Calculate multi-dimensional distance between values */
+	protected getTotalDistanceToTarget (toValue: number[], fromValue: number[]): number {
 		return this.hypotenuse(
-			positions.map((value, index) => {
-				const targetPosition = target[index]
+			fromValue.map((value, index) => {
+				const targetPosition = toValue[index]
 				return targetPosition - value
 			})
 		)
 	}
-	protected hypotenuse (values: number[]): number {
+	/** Calculate multi-dimensional hypotenuse of a vector */
+	protected hypotenuse (vector: number[]): number {
 		// Calculate hypotenuse in n dimensions:
 		return Math.sqrt(
-			values.map((value) => {
+			vector.map((value) => {
 				return Math.pow(value, 2)
 			}).reduce((mem, value) => {
 				return (mem || 0) + value
@@ -48,7 +60,7 @@ export class LinearMovement extends Animator {
 	public jump (target: number[]): number[] {
 		super.jump(target)
 		this.positions = target
-		return this.positions
+		return this.clonePositions()
 	}
 	public update (target: number[], timeSinceLastUpdate: number): number[] {
 		super.update(target, timeSinceLastUpdate)
@@ -72,8 +84,7 @@ export class LinearMovement extends Animator {
 				}
 			})
 		}
-
-		return this.positions
+		return this.clonePositions()
 	}
 }
 /** Simulate physical movement: Accelerate towards target until reaching max speed. Then decelerate in time to stop at target. */
@@ -81,9 +92,13 @@ export class PhysicalAcceleration extends Animator {
 	private speed: number[]
 	private directionChanges: number[]
 	constructor (
+		/** The starting positions */
 		startPositions: number[],
+		/** Accelerate towards target with this acceleration. [unit per ] */
 		private acceleration: number,
+		/** Maximal speed */
 		private maxSpeed: number = 2147483648,
+		/** Snap to target when distance is less than this value */
 		private snapDistance: number = 0
 	) {
 		super(startPositions)
@@ -94,7 +109,7 @@ export class PhysicalAcceleration extends Animator {
 		super.jump(target)
 		this.positions = target
 		this.speed = this.speed.map(() => 0)
-		return this.positions
+		return this.clonePositions()
 	}
 	/**
 	 * Update the iteration
@@ -104,6 +119,7 @@ export class PhysicalAcceleration extends Animator {
 	public update (target: number[], timeSinceLastUpdate: number): number[] {
 		super.update(target, timeSinceLastUpdate)
 
+		/** Position at next step, given current speed */
 		const extrapolatedPositions = this.positions.map((position, index) => position + this.speed[index] * timeSinceLastUpdate * 1)
 
 		const totalDistanceToTarget = this.getTotalDistanceToTarget(target, extrapolatedPositions)
@@ -179,7 +195,7 @@ export class PhysicalAcceleration extends Animator {
 					) {
 						// Accelerate:
 						// Apply cap, so that we don't accelerate past the target
-						this.speed[index] += this.cap(distanceToTarget / timeSinceLastUpdate, stepAcceleration)
+						this.speed[index] += this._cap(distanceToTarget / timeSinceLastUpdate, stepAcceleration)
 					} else {
 						// Neither decelerate or accelerate
 					}
@@ -192,7 +208,7 @@ export class PhysicalAcceleration extends Animator {
 				}
 
 				// Cap speed at maxSpeed and apply friction:
-				this.speed[index] = this.cap(maxSpeed, this.speed[index])
+				this.speed[index] = this._cap(maxSpeed, this.speed[index])
 				this.positions[index] += this.speed[index] * timeSinceLastUpdate
 
 				if (
@@ -231,9 +247,9 @@ export class PhysicalAcceleration extends Animator {
 				})
 			}
 		}
-		return this.positions
+		return this.clonePositions()
 	}
-	private cap (maxValue: number, value: number): number {
+	private _cap (maxValue: number, value: number): number {
 		return Math.min(maxValue,
 			Math.max(-maxValue,
 				value
