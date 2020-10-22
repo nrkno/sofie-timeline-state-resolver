@@ -3,84 +3,80 @@ import { LinearMovement, PhysicalAcceleration } from '../animate'
 
 describe('Animate', () => {
 
+	test('LinearMovement', () => {
+		{
+			// Single
+			const animator = new LinearMovement([0], 1)
 
+			let target = [1000]
 
-    test('LinearMovement', () => {
-        {
-            // Single
-            const animator = new LinearMovement([0], 1)
+			const vs: number[][] = []
+			const deltaT = 100
+			for (let time = 0; time < 1000; time += deltaT) {
+				vs.push(animator.update(target, deltaT))
+			}
+			expect(_.last(vs)).toEqual([1000])
+			expect(vs).toMatchSnapshot()
 
-            let target = [1000]
+			expect(animator.jump([42])).toEqual([42])
+		}
+		{
+			// x, y
+			const animator = new LinearMovement([10, 10], 1)
 
-            const vs: number[][] = []
-            const deltaT = 100
-            for (let time = 0; time < 1000; time += deltaT) {
-                vs.push(animator.update(target, deltaT))
-            }
-            expect(_.last(vs)).toEqual([1000])
-            expect(vs).toMatchSnapshot()
+			let target = [414, 382]
 
-            expect(animator.jump([42])).toEqual([42])
-        }
-        {
-            // x, y
-            const animator = new LinearMovement([10, 10], 1)
+			const vs: number[][] = []
+			const deltaT = 25
+			for (let i = 0; i < 100; i++) {
+				let v = animator.update(target, deltaT)
+				vs.push(v)
+				if (v[0] === 414) break
+			}
+			expect(_.last(vs)).toEqual([414, 382])
+			expect(vs).toMatchSnapshot()
 
-            let target = [414, 382]
+		}
 
-            const vs: number[][] = []
-            const deltaT = 25
-            for (let i = 0; i < 100; i++) {
-                let v = animator.update(target, deltaT)
-                vs.push(v)
-                if (v[0] === 414) break
-            }
-            expect(_.last(vs)).toEqual([414, 382])
-            expect(vs).toMatchSnapshot()
+	})
+	test('PhysicalAcceleration', () => {
+		{
+			// Single
+			const animator = new PhysicalAcceleration([0], 0.001, 10000, 1)
 
-        }
+			let target = [1000]
 
-    })
-    test('PhysicalAcceleration', () => {
-        {
-            // Single
-            const animator = new PhysicalAcceleration([0], 0.001, 10000, 1)
+			const vs: number[] = []
+			const deltaT = 25
+			for (let i = 0; i < 300; i++) {
+				let v = animator.update(target, deltaT)[0]
+				vs.push(v)
+				if (v === 1000) break
+			}
+			expect(vs).toMatchSnapshot()
+			expect(_.last(vs)).toEqual(1000)
 
-            let target = [1000]
+			expect(animator.jump([42])).toEqual([42])
+		}
+		{
+			// x, y
+			const animator = new PhysicalAcceleration([10, 10], 0.001, 1000, 1)
 
-            const vs: number[] = []
-            const deltaT = 25
-            for (let i = 0; i < 300; i++) {
-                let v = animator.update(target, deltaT)[0]
-                vs.push(v)
-                if (v === 1000) break
-            }
-            expect(vs).toMatchSnapshot()
-            expect(_.last(vs)).toEqual(1000)
+			let target0 = [414, 382]
+			let target1 = [-414, 401]
 
-            expect(animator.jump([42])).toEqual([42])
-        }
-        {
-            // x, y
-            const animator = new PhysicalAcceleration([10, 10], 0.001, 1000, 1)
+			const vs: number[][] = []
+			const deltaT = 25
+			for (let i = 0; i < 100; i++) {
+				let target = i < 8 ? target0 : target1
+				let v = animator.update(target, deltaT)
+				vs.push(v)
+				if (v[0] === -414 && v[1] === 401) break
+			}
+			expect(_.last(vs)).toEqual([-414, 401])
+			expect(vs).toMatchSnapshot()
 
-            let target0 = [414, 382]
-            let target1 = [-414, 401]
+		}
 
-            const vs: number[][] = []
-            const deltaT = 25
-            for (let i = 0; i < 100; i++) {
-                let target = i < 8 ? target0 : target1
-                let v = animator.update(target, deltaT)
-                vs.push(v)
-                if (v[0] === -414 && v[1] === 401) break
-            }
-            expect(_.last(vs)).toEqual([-414, 401])
-            expect(vs).toMatchSnapshot()
-
-        }
-
-    })
-
-
+	})
 })
