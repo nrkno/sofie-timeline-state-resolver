@@ -1,6 +1,6 @@
-jest.mock('osc')
 import { SisyfosApi } from '../sisyfosAPI'
 import { MockOSC } from '../../__mocks__/osc'
+import * as OSC from '../../__mocks__/osc'
 
 const orgSetTimeout = setTimeout
 
@@ -11,7 +11,7 @@ function wait (time: number = 1) {
 }
 
 describe('SisyfosAPI', () => {
-
+	jest.mock('osc', () => OSC)
 	beforeEach(() => {
 		jest.useFakeTimers()
 	})

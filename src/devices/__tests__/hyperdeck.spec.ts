@@ -1,10 +1,11 @@
-jest.mock('hyperdeck-connection')
+
 import { Conductor } from '../../conductor'
 import {
 	HyperdeckDevice
 } from '../hyperdeck'
 import { RecordCommand, StopCommand } from 'hyperdeck-connection/dist/commands'
 import { Hyperdeck } from '../../__mocks__/hyperdeck-connection'
+import * as HyperdeckConnection from '../../__mocks__/hyperdeck-connection'
 import {
 	Mappings,
 	DeviceType,
@@ -24,6 +25,9 @@ let myChannelMapping0: MappingHyperdeck = {
 }
 
 describe('Hyperdeck', () => {
+
+	jest.mock('hyperdeck-connection', () => HyperdeckConnection)
+
 	let mockTime = new MockTime()
 
 	beforeAll(() => {
