@@ -2,6 +2,127 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [5.1.1](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/5.1.0...5.1.1) (2020-10-19)
+
+
+### Bug Fixes
+
+* update timeline dependency (bug fix) ([bcdd34c](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/bcdd34c8803215d53fd97e1a179761d5ea9a657c))
+
+## [5.1.0](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/5.0.0...5.1.0) (2020-09-30)
+
+
+### Features
+
+* update to casparcg-state v2 ([e3a063f](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/e3a063f15e29645a96cc8a9cd72c9e6d760df2d7))
+
+
+### Bug Fixes
+
+* **casparcg:** use 25 as channel framerate ([6463ffc](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/6463ffcb875882e22edad0ede620346b9054cf59))
+
+## [5.0.0](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/4.0.4...5.0.0) (2020-09-28)
+
+
+### ⚠ BREAKING CHANGES
+
+* Treat Mappings as dynamic data, the same way we do with timeline.
+
+### Features
+
+* **lawo:** source identifier node ([70be8bc](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/70be8bc76384e18ca118800cb14b965205efa616))
+* Add audio ([b5d6ea0](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/b5d6ea01607b0001ad6f6a190de7c6bf0ea61b5d))
+* Add commands to play/pause/restart inputs ([9183b34](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/9183b3453f62dc2d2c7add74339cc5e3417259fd))
+* Add Fade To Black ([b085afa](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/b085afaf200ba43f3f4c2d9965b97b5dcc4d9b1f))
+* Add helper to send an input to program by clip name ([18144f5](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/18144f52325098ec68284ee202e9139a3a12ec17))
+* Add helpers to start / stop clips by name ([1177d55](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/1177d551465c333d2e7f8834781944e694bcdb2c))
+* Add output mapping ([0a366d9](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/0a366d95c236c488ce96d73403a0ea4545a28b34))
+* Add overlays ([a3c3641](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/a3c3641ee20c84c15884b0f6d805583d7f86dd66))
+* Add preview timeline object ([bf42d78](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/bf42d788ccaa0e19346354e8d26f724b1806760e))
+* Add quick play ([88fd701](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/88fd701822e2fac05459a9192c2ac7e5c284b86d))
+* Add SetInputName ([9525c40](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/9525c40c4f1f22cfa49094d1d13f188eac550312))
+* Add streaming / recording ([5fadd58](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/5fadd581ced195881976ff1820d823c0d6be2235))
+* Add transition enum ([f10c11d](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/f10c11d30b3bda7ebde28a6cd6cf0c3f4b3b31ee))
+* Add transitions ([98c4302](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/98c4302a74afb00996ff1c433141137561d06d7b))
+* Auto load + play images ([de0e9b5](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/de0e9b5bdebb4b7bbb126af6eb3a069035dc6c8a))
+* Clean up various TODOs ([f1c0e45](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/f1c0e452324acf5028e6795436561a978b8bed05))
+* Create overlay if it doesn't already exist ([2739f7f](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/2739f7f8f7764740b2a74d98d222f87e61f186b4))
+* devices emit "active"-status, so that an external monitor can choose to ignore non-good statuses of inactive devices ([4fc1ccf](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/4fc1ccf3d064d402a4f281bcac8c739e1be669b5))
+* input (Multi View) overlays ([6dbebf1](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/6dbebf1d92a88fdaf448480e4f6c0696d6031ab0))
+* input looping ([31b5eec](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/31b5eec74957e3f8d371dfd463985ffd2f93141d))
+* Input switching ([0f71bf1](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/0f71bf12f3d3b507addc68715096df88cba1159f))
+* input transform ([564acff](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/564acffdd3d39e975ec1339d748c116c57e4f66e))
+* input transform interface ([13c4af2](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/13c4af2e259ecd6ab259636a28db49ee4c603e77))
+* let the conductor emit an event at the end of resolving (used for reporting of latency downstream) ([debd5e1](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/debd5e1d37f4e2199ba26ea492b926ce6320d243))
+* mappings ([f45584d](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/f45584d5a87f7f25030a469a8eac73831cee73dd))
+* Move type changing to API ([0d47fee](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/0d47fee775bdd8f20f3277a7ade3dccef02b732b))
+* new timeline interface for vMix device ([08fbdfb](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/08fbdfb35cd41566658f0c034225c267e5547602))
+* Overlay input by clip name ([5ee8904](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/5ee89049f4f33fbcebc09b29a6042fe9f8121bd1))
+* Play clip immediately after creation ([64c0a68](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/64c0a68efdb59936c8505966b92423139108848c))
+* Remove 'momentary' commands ([b00da7c](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/b00da7c76950e0d69fd3998b2fab8d34bfe7b2fd))
+* Send camera to program ([ce85854](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/ce858544131a1ea1a1873abcdaf1e8b4e4be71a9))
+* Set fader position ([b616e98](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/b616e98300729fdd54e0c0e2af0f000a4eac3cde))
+* shotoku support ([d7278f4](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/d7278f482cb8e963777a22b44922576283d208b6))
+* Specify transition button ([b26f0c8](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/b26f0c83387db1a69dd2feb516f8674b67be1360))
+* Start/Stop external output ([9dcc0b6](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/9dcc0b6ce69c4ed68da9beb93aeb8964734bd7a6))
+* switching to program by layer name ([9b1611d](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/9b1611d7409e66174f1e78d5e988b2dc7fb282d4))
+* Track vMix state to allow inputs to be added ([cfe428e](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/cfe428ea6e3d38071794cf28d6e2c377ae945575))
+* Treat Mappings as dynamic data, the same way we do with timeline. ([9eccf6d](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/9eccf6da2db5affe4a3d6a7f593f4df9a21b5f4b))
+* upgrade atem-connection to 2.0 ([998f4e8](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/998f4e8153e97137b1bae6e6a142807b937b8260))
+* When playing a clip by name, add clip if it doesn't exist ([184c04f](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/184c04f97ea3b7e92d21a42135102bbad07d20cd))
+
+
+### Bug Fixes
+
+* Add missing params in default input state ([76b4bf2](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/76b4bf209bcbfc58f61c968bff3fdbc83f20e341))
+* Add prepareForHandleState ([ed0c099](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/ed0c09925d3b192df6682c4e7d9dcc6cce721f92))
+* Add set values to enum ([598fced](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/598fcedee838cf78caf01d6564b61db35507005c))
+* assign explicit values to enum ([ace77d3](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/ace77d3b1bf95e9d6e36e3cd981d9f0d2ca299bd))
+* change VIZMSE console.log into emit('debug' ([7100157](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/7100157f794c1e2bb6f3dde1730d5e462f3e7507))
+* Check for existing input ([3228afc](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/3228afcf7d21e0ca1a5b08c2d4763370ab1160ad))
+* Clear keepalive timeout on dispose ([ce8da47](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/ce8da47a3556115b6f952a7c73d8e6165229703e))
+* connection and status ([36d977c](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/36d977c76628711dcad08bfa5a12280a80728dc9))
+* Dispose vMix connection ([7c608fe](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/7c608feb260897e9fd54256e288a9293cd69a1ab))
+* Disposing vMix connection ([c567651](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/c56765116858417a3c1bba39fd83aaeb8522fcbb))
+* empty string in audio buses ([59e173d](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/59e173d7fc421e69fbc1c621be414962d9e8d904))
+* Falsey vs undefined checks ([1df0175](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/1df0175c61606fbd54551eaced9a00fe6803ffa7))
+* fix tests after timeline dep update ([7c793ef](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/7c793ef6e6e397d6493020e54be5b3eb298c927f))
+* implement all audio properties ([f78b00e](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/f78b00ee8a17451a9b0eba9d14e641db69f1e8c2))
+* Import paths ([82bd382](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/82bd38294af23ec919cdf9b48bd14f819cf09630))
+* improve input & transition props typings [publish] ([6044ac5](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/6044ac559e43ddeb990b91e94cae25c6e9406329))
+* Input numbering ([99b856c](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/99b856c575f68e71d901b230bb74f15c991068c4))
+* Make PLAY_INPUT the last command ([081a2ea](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/081a2eaf805a7c78712423e365dc8dc5177f9ed9))
+* obtaining initial state of the device ([63c2950](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/63c2950bed9ab0b789a0231d376a3ce7fe45f540))
+* Only switch input if input is not already active ([c9c63cc](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/c9c63cce2091cd011ca9e57c2b0681f2102662c9))
+* Overlay ([34b1f0b](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/34b1f0be0fa64649bb5c7a50e9de11f2b16aae49))
+* Overlays ([d1676f7](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/d1676f73dc0881b1dbfe8f6393ff0298c5b46349))
+* play and switch after all parameters are set ([4c73be4](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/4c73be46330dc37be717e8a389cbe55b22c7e04b))
+* Preview mapping ([9aa4e32](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/9aa4e32e412309193663a124aa89d5520ee37039))
+* quantel prioritize clips ([d98626f](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/d98626f6c5a56cb8e3d19841fd8a18cdf1e533bc))
+* quantel prioritize clips; add check for placeholder clip, and improve copying of clips. ([850b2e4](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/850b2e4f3c489fad9e7ab7460b250cf920f50605))
+* support for using a cache when resolving the timeline, enabling partial-resolving for higher performance ([3ec3eba](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/3ec3eba20b8e12387123fff7a1bb2469e47a54e1))
+* TSR bug fix ([aa7d535](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/aa7d535ca8a73e71f447e620188a2d535fd0f1cb))
+* update timeline dependency ([b28e9ad](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/b28e9ad66fa50c9d3b24f1593625dd7b30d175e2))
+* **atem:** add ssrc properties in tl to atem state conversion [publish] ([156896c](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/156896c33f0e9e01ea89fa38da7835d4b229b1f8))
+* **atem:** device state is unavailable when disconnected [publish] ([e53999f](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/e53999f0c654431ee653a630c8f6c32fe70430f6))
+* **atem:** device state is unavailable when disconnected [publish] ([ad32986](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/ad32986fcf3c5cd07767c5fc9193037d41430d61))
+* Program by name ([3bbc982](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/3bbc982b8da7f64278bdb39025060899805ced71))
+* Removal order and change on layer ([9e67fbe](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/9e67fbe834fe8b2b33938ab1758f06e4ef522b86))
+* remove Media content type ([f4bd6cb](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/f4bd6cbaa14c1da93ae844e35652c3b2e31299f3))
+* remove redundant expression ([2e1651f](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/2e1651f297d68cd6689508a07a602b24620a7c40))
+* remove request-promise and refactor ([bc0c520](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/bc0c520304ecb1f9c84826992da17cb2b18b8ad3))
+* remove unnecessary comparisons ([33a5903](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/33a5903b2ad8750148261797ba628f77941778c9))
+* Reorder audio on/off commands ([660ba26](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/660ba26ab01508f725bda075bd303c6e279968c8))
+* Send multiple transitions of the same type ([a2e47b8](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/a2e47b8e4b1f28ec29c5dd45b964bcfdc3b80456))
+* Support matching input names to file paths ([775adfd](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/775adfd27caca5dcaf9cbd1bd4790f462e7796ac))
+* Switch to input ([abdcfd2](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/abdcfd2d775fc69bcd56c9280593eb522abaf224))
+* Timing overlap issues ([813104f](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/813104fbb15b19aee22d7a0e4697f149f2de3c78))
+* Types ([2cc1b51](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/2cc1b5162eed52be0caa7df73ac9221da9d09f3a))
+* undefined checks on volume and balance ([426b3e6](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/426b3e6c30eecd7a1f3002693f4a713a59b47c40))
+* Update interfaces and types ([14e065d](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/14e065d883096f12e4a6bfad08df7977e9400c22))
+* use queue when adding an input ([ea9b43c](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/ea9b43c59ebbedd79743ffbdd8af2a265d013865))
+* vmix: refactoring and prepare for tests ([68794a8](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/68794a8371aa5773dd14ff483fb65974e47252d2))
+
 ### [4.0.4](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/4.0.3...4.0.4) (2020-09-21)
 
 

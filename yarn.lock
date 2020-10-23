@@ -6169,10 +6169,10 @@ stubs@^3.0.0:
   resolved "https://registry.yarnpkg.com/stubs/-/stubs-3.0.0.tgz#e8d2ba1fa9c90570303c030b6900f7d5f89abe5b"
   integrity sha1-6NK6H6nJBXAwPAMLaQD31fiavls=
 
-superfly-timeline@^8.1.1:
-  version "8.1.1"
-  resolved "https://registry.yarnpkg.com/superfly-timeline/-/superfly-timeline-8.1.1.tgz#8b0896bba6fcf495cdc831b21f9ddd815009d5cb"
-  integrity sha512-ahLJz2/udclXVXJllNJbirx/5f+/oMMwbvQCPcoMrUM55hS7bJBDg8k6Yik7+FO5GJCfes/ly/GL9dxSaQS5Gg==
+superfly-timeline@^8.1.2:
+  version "8.1.2"
+  resolved "https://registry.yarnpkg.com/superfly-timeline/-/superfly-timeline-8.1.2.tgz#42ad3cac49991e12621c1fb34b4d71b345651152"
+  integrity sha512-hjkrE85YHsCLtFdorjtEc4psrtDlWmYk8sTQJdaw/c/gveWSJ3jcABDMYolX2jB+VFNTQO5Sw7O4k6S3hV+g6g==
   dependencies:
     tslib "^1.13.0"
     underscore "^1.9.1"
