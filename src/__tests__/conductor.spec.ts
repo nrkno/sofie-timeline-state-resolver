@@ -14,10 +14,12 @@ import { MockTime } from './mockTime'
 import { ThreadedClass } from 'threadedclass'
 import { AbstractDevice } from '../devices/abstract'
 import { getMockCall } from './lib'
+import { setupAllMocks } from '../__mocks__/_setup-all-mocks'
 
 describe('Conductor', () => {
 	let mockTime = new MockTime()
 	beforeAll(() => {
+		setupAllMocks()
 		mockTime.mockDateNow()
 	})
 	beforeEach(() => {
@@ -332,7 +334,6 @@ describe('Conductor', () => {
 		const commandReceiver4 = jest.fn(() => {
 			return Promise.resolve()
 		})
-
 		let conductor = new Conductor({
 			initializeAsClear: true,
 			getCurrentTime: mockTime.getCurrentTime
