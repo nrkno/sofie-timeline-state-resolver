@@ -4,8 +4,8 @@ import {
 	DeviceType,
 	TSRTimeline
 } from '../../types/src'
-import { MockOSC } from '../../__mocks__/osc'
 import * as OSC from '../../__mocks__/osc'
+const MockOSC = OSC.MockOSC
 import { MockTime } from '../../__tests__/mockTime'
 import { ThreadedClass } from 'threadedclass'
 import { MappingSisyfos, TimelineContentTypeSisyfos, MappingSisyfosType } from '../../types/src/sisyfos'

@@ -1,6 +1,6 @@
 import { SisyfosApi } from '../sisyfosAPI'
-import { MockOSC } from '../../__mocks__/osc'
 import * as OSC from '../../__mocks__/osc'
+const MockOSC = OSC.MockOSC
 
 const orgSetTimeout = setTimeout
 

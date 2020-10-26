@@ -17,16 +17,16 @@ import * as ws from './ws'
 // does not work properly and need to be set up like this..
 
 export function setupAllMocks () {
-    jest.mock('atem-state', () => atemState)
-    jest.mock('casparcg-connection', () => casparcgConnection)
-    jest.mock('emberplus-connection', () => emberplusConnection)
-    jest.mock('emberplus', () => emberplus)
-    jest.mock('got', () => got)
-    jest.mock('hyperdeck-connection', () => hyperdeckConnection)
-    jest.mock('net', () => net)
-    jest.mock('osc', () => osc)
-    jest.mock('request', () => request)
-    jest.mock('request-promise-native', () => requestPromiseNative)
-    jest.mock('v-connection', () => vConnection)
-    jest.mock('ws', () => ws)
+	jest.mock('atem-state', () => atemState)
+	jest.mock('casparcg-connection', () => casparcgConnection)
+	jest.mock('emberplus-connection', () => emberplusConnection)
+	jest.mock('emberplus', () => emberplus)
+	jest.mock('got', () => got)
+	jest.mock('hyperdeck-connection', () => hyperdeckConnection)
+	jest.mock('net', () => net)
+	jest.mock('osc', () => osc)
+	jest.mock('request', () => request)
+	jest.mock('request-promise-native', () => requestPromiseNative)
+	jest.mock('v-connection', () => vConnection)
+	jest.mock('ws', () => ws)
 }

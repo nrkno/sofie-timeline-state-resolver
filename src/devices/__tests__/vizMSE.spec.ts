@@ -9,8 +9,10 @@ import { ThreadedClass } from 'threadedclass'
 import { MappingVizMSE, TimelineContentTypeVizMSE, VIZMSETransitionType } from '../../types/src/vizMSE'
 import { getMockCall } from '../../__tests__/lib'
 import { VizMSEDevice } from '../vizMSE'
-import { getMockMSEs, MSEMock, VRundownMocked } from '../../__mocks__/v-connection'
 import * as vConnection from '../../__mocks__/v-connection'
+const getMockMSEs = vConnection.getMockMSEs
+type MSEMock = vConnection.MSEMock
+type VRundownMocked = vConnection.VRundownMocked
 import _ = require('underscore')
 import { StatusCode } from '../device'
 
