@@ -1,5 +1,3 @@
-jest.mock('ws')
-jest.mock('request')
 import {
 	Pharos,
 	SystemInfo,
@@ -235,6 +233,8 @@ function wait (time: number = 1) {
 	})
 }
 describe('PharosAPI', () => {
+	jest.mock('ws', () => WebSocket)
+	jest.mock('request', () => request)
 
 	let requestReturnsOK = true
 	function handleRequest (url, _options, callback) {

@@ -1,4 +1,3 @@
-jest.mock('request')
 import { Conductor } from '../../conductor'
 import {
 	Mappings,
@@ -19,6 +18,9 @@ let myLayerMapping: Mappings = {
 }
 
 describe('HTTP-Watcher', () => {
+
+	jest.mock('request', () => request)
+
 	let mockTime = new MockTime()
 
 	let onGet: jest.Mock<void, any[]>
