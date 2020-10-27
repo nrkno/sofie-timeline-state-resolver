@@ -6297,6 +6297,16 @@ threadedclass@^0.8.0:
     is-running "^2.1.0"
     tslib "^1.13.0"
 
+threadedclass@^0.8.1:
+  version "0.8.1"
+  resolved "https://registry.yarnpkg.com/threadedclass/-/threadedclass-0.8.1.tgz#19274b72eb7c13ad3b920565dfebe1535665f2c5"
+  integrity sha512-M3XcklB48YBe6epNtW/mkfHkpo0qd8unBejna3Zx5KBnaiUmxGUH6fuc3kkmIFfKrSA/7wwcO9zSQcV2izbzOA==
+  dependencies:
+    callsites "^3.1.0"
+    eventemitter3 "^4.0.4"
+    is-running "^2.1.0"
+    tslib "^1.13.0"
+
 throat@^5.0.0:
   version "5.0.0"
   resolved "https://registry.yarnpkg.com/throat/-/throat-5.0.0.tgz#c5199235803aad18754a667d659b5e72ce16764b"
