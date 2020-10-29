@@ -1,5 +1,5 @@
 import * as _ from 'underscore'
-import { LinearMovement, PhysicalAcceleration } from '../animate'
+import { LinearMovement, PhysicalAcceleration } from '../devices/transitions/animate'
 
 describe('Animate', () => {
 

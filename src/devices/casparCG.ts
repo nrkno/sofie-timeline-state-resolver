@@ -57,7 +57,7 @@ import {
 } from 'casparcg-state'
 import { DoOnTime, SendMode } from '../doOnTime'
 import * as request from 'request'
-import { PhysicalAcceleration, Animator, LinearMovement } from '../animate'
+import { PhysicalAcceleration, Animator, LinearMovement } from './transitions/animate'
 
 const MAX_TIMESYNC_TRIES = 5
 const MAX_TIMESYNC_DURATION = 40
