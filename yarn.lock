@@ -6287,20 +6287,20 @@ text-extensions@^1.0.0:
   resolved "https://registry.yarnpkg.com/text-extensions/-/text-extensions-1.9.0.tgz#1853e45fee39c945ce6f6c36b2d659b5aabc2a26"
   integrity sha512-wiBrwC1EhBelW12Zy26JeOUkQ5mRu+5o8rpsJk5+2t+Y5vE7e842qtZDQ2g1NpX/29HdyFeJ4nSIhI47ENSxlQ==
 
-threadedclass@^0.8.0:
-  version "0.8.0"
-  resolved "https://registry.yarnpkg.com/threadedclass/-/threadedclass-0.8.0.tgz#2b3a3f450ccd29579140dcac34a8d8ed159c6313"
-  integrity sha512-bUdYig96HmZKcrG5p5b9cv3xmNPfm5uz1b+wOiKDZPmAOgHMaJmcxiKVZLREB2gNZ6dalRc/rWvYnl6OB4HQqg==
+threadedclass@0.8.2-nightly-20201029-124653-0bbe357.0:
+  version "0.8.2-nightly-20201029-124653-0bbe357.0"
+  resolved "https://registry.yarnpkg.com/threadedclass/-/threadedclass-0.8.2-nightly-20201029-124653-0bbe357.0.tgz#8537ece936b7977e8c53726cc5ac639b62bb421b"
+  integrity sha512-OV2mGW4YW4Uz9SJGAzZ/qvDtqwKhNpXMyp9Q3Dn0a5RHb2XBLHP60seiX3qQq6sQTB3M7fB23b0P3MxKgM8wuA==
   dependencies:
     callsites "^3.1.0"
     eventemitter3 "^4.0.4"
     is-running "^2.1.0"
     tslib "^1.13.0"
 
-threadedclass@^0.8.1:
-  version "0.8.1"
-  resolved "https://registry.yarnpkg.com/threadedclass/-/threadedclass-0.8.1.tgz#19274b72eb7c13ad3b920565dfebe1535665f2c5"
-  integrity sha512-M3XcklB48YBe6epNtW/mkfHkpo0qd8unBejna3Zx5KBnaiUmxGUH6fuc3kkmIFfKrSA/7wwcO9zSQcV2izbzOA==
+threadedclass@^0.8.0:
+  version "0.8.0"
+  resolved "https://registry.yarnpkg.com/threadedclass/-/threadedclass-0.8.0.tgz#2b3a3f450ccd29579140dcac34a8d8ed159c6313"
+  integrity sha512-bUdYig96HmZKcrG5p5b9cv3xmNPfm5uz1b+wOiKDZPmAOgHMaJmcxiKVZLREB2gNZ6dalRc/rWvYnl6OB4HQqg==
   dependencies:
     callsites "^3.1.0"
     eventemitter3 "^4.0.4"

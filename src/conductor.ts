@@ -27,7 +27,7 @@ import { TCPSendDevice, DeviceOptionsTCPSendInternal } from './devices/tcpSend'
 import { PharosDevice, DeviceOptionsPharosInternal } from './devices/pharos'
 import { OSCMessageDevice, DeviceOptionsOSCInternal } from './devices/osc'
 import { DeviceContainer } from './devices/deviceContainer'
-import { threadedClass, ThreadedClass } from 'threadedclass'
+import { MemUsageReport, threadedClass, ThreadedClass, ThreadedClassManager } from 'threadedclass'
 import { AsyncResolver } from './AsyncResolver'
 import { HTTPWatcherDevice, DeviceOptionsHTTPWatcherInternal } from './devices/httpWatcher'
 import { QuantelDevice, DeviceOptionsQuantelInternal } from './devices/quantel'
@@ -560,6 +560,10 @@ export class Conductor extends EventEmitter {
 		await this._actionQueue.add(async () => {
 			await this._mapAllDevices((d) => PTimeout(d.device.standDown(okToDestroyStuff), 10000, `standDown for "${d.deviceId}" timed out`))
 		})
+	}
+
+	public async getThreadsMemoryUsage (): Promise<{ [childId: string]: MemUsageReport }> {
+		return ThreadedClassManager.getThreadsMemoryUsage()
 	}
 
 	private _mapAllDevices<T> (fcn: (d: DeviceContainer) => Promise<T>): Promise<T[]> {
