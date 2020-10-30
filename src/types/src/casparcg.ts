@@ -208,7 +208,7 @@ export enum Transition {
 	SLIDE = 'SLIDE',
 	STING = 'STING',
 
-	INTERNAL = 'INTERNAL' // handled by tsr on its own
+	TSR_TRANSITION = 'TSR_TRANSITION' // handled by tsr on its own
 }
 
 export enum Ease {
@@ -390,9 +390,9 @@ export enum Chroma {
 // Note: types copied from casparcg-state
 export interface Mixer {
 
-	inTransition?: ITransition
-	changeTransition?: ITransition
-	outTransition?: ITransition
+	inTransition?: Transition0
+	changeTransition?: Transition0
+	outTransition?: Transition0
 
 	anchor?: {x: number, y: number } | TransitionObject
 	blend?: BlendMode | TransitionObject
@@ -433,21 +433,38 @@ export interface Mixer {
 	bundleWithCommands?: number // special function: bundle and DEFER with other mixer-commands
 
 }
+
+/** Options for internal TSR Transitions */
+export interface TSRTransitionOptions {
+	// type: 'linear' | 'physical'
+
+	/** How often to send updates for the transition. [ms] */
+	updateInterval?: number
+
+	linearSpeed?: number
+
+	acceleration?: number
+	maxSpeed?: number
+	snapDistance?: number
+}
+
+
 export interface TransitionObject {
 	_value: string | number | boolean
 	inTransition: Transition0
 	changeTransition: Transition0
 	outTransition: Transition0
 }
-export interface ITransition {
-	type?: Transition
-	duration: number
-	easing?: Ease
-	direction?: Direction | string
-}
-export interface Transition0 extends ITransition {
-	type: Transition
+
+export interface CasparCGTransition {
+	type: Transition.MIX | Transition.CUT | Transition.PUSH | Transition.WIPE | Transition.SLIDE | Transition.STING
 	duration: number
 	easing: Ease
-	direction: Direction | string
+	direction: Direction
 }
+export interface TSRTansition {
+	type: Transition.TSR_TRANSITION
+	customOptions: TSRTransitionOptions
+}
+
+export type Transition0 = CasparCGTransition | TSRTansition

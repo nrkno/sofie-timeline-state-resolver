@@ -30,7 +30,8 @@ import {
 	TimelineObjCCGIP,
 	DeviceOptionsCasparCG,
 	Transition,
-	Mappings
+	Mappings,
+	TSRTransitionOptions
 } from '../types/src'
 
 import {
@@ -57,7 +58,7 @@ import {
 } from 'casparcg-state'
 import { DoOnTime, SendMode } from '../doOnTime'
 import * as request from 'request'
-import { PhysicalAcceleration, Animator, LinearMovement } from './transitions/animate'
+import { InternalTransitionHandler } from './transitions/transitionHandler'
 
 const MAX_TIMESYNC_TRIES = 5
 const MAX_TIMESYNC_DURATION = 40
@@ -916,175 +917,171 @@ export class CasparCGDevice extends DeviceWithState<State> implements IDevice {
 		// Intercept internal commands:
 		const objectParams: any = command['_objectParams']
 		if (objectParams) {
-			let hackOptions: HackOptions = {}
-			try {
-				// tmp: use the direction as a hack to be able to squeeze in other parameters
-				hackOptions = JSON.parse(objectParams.transitionDirection) as HackOptions
-			} catch {
-				// ignore errors
-			}
+			let transitionOptions: TSRTransitionOptions = objectParams.customOptions as TSRTransitionOptions
 
-			if (objectParams.keyword === 'FILL') {
-				if (objectParams.transition === Transition.INTERNAL) {
-					// Handle transitions internally:
+			if (transitionOptions) {
+				if (objectParams.keyword === 'FILL') {
+					if (objectParams.transition === Transition.TSR_TRANSITION) {
+						// Handle transitions internally:
 
-					this._transitionHandler.activateTransition(
-						this._getTransitionId('FILL', command.channel, command.layer),
-						[0, 0, 1, 1],
-						[objectParams.x, objectParams.y, objectParams.xScale, objectParams.yScale],
-						['position', 'position', 'scale', 'scale'],
-						hackOptions,
-						{
-							'position': {
-								type: 'physical'
-							},
-							'scale': {
-								type: 'linear',
-								options: {
-									linearSpeed: 0.0003 // tmp: todo: remove hard-coding of this
+						this._transitionHandler.activateTransition(
+							this._getTransitionId('FILL', command.channel, command.layer),
+							[0, 0, 1, 1],
+							[objectParams.x, objectParams.y, objectParams.xScale, objectParams.yScale],
+							['position', 'position', 'scale', 'scale'],
+							transitionOptions,
+							{
+								'position': {
+									type: 'physical'
+								},
+								'scale': {
+									type: 'linear',
+									options: {
+										linearSpeed: 0.0003 // tmp: todo: remove hard-coding of this
+									}
 								}
+							},
+							(newValues) => {
+								const c = new AMCP.MixerFillCommand({
+									channel: command.channel,
+									layer: command.layer,
+									x: newValues[0],
+									y: newValues[1],
+									xScale: newValues[2],
+									yScale: newValues[3]
+								})
+								this._commandReceiver(this.getCurrentTime(), c, 'Internal transition', 'internalTransition')
+								.catch((e => this.emit('error', 'CasparCG.InternalTransition', e)))
 							}
-						},
-						(newValues) => {
-							const c = new AMCP.MixerFillCommand({
-								channel: command.channel,
-								layer: command.layer,
-								x: newValues[0],
-								y: newValues[1],
-								xScale: newValues[2],
-								yScale: newValues[3]
-							})
-							this._commandReceiver(this.getCurrentTime(), c, 'Internal transition', 'internalTransition')
-							.catch((e => this.emit('error', 'CasparCG.InternalTransition', e)))
-						}
-					)
-					// Abort: don't send the original command
-					return undefined
-				} else {
-					this._transitionHandler.snapTransition(
-						this._getTransitionId('FILL', command.channel, command.layer),
-						[objectParams.x, objectParams.y, objectParams.xScale, objectParams.yScale]
-					)
-				}
-			} else if (objectParams.keyword === 'PERSPECTIVE') {
-				if (objectParams.transition === Transition.INTERNAL) {
-					// Handle transitions internally:
-
-					this._transitionHandler.activateTransition(
-						this._getTransitionId('PERSPECTIVE', command.channel, command.layer),
-						[0, 0, 1, 0, 1, 1, 0, 1],
-						[
-							objectParams.topLeftX,
-							objectParams.topLeftY,
-							objectParams.topRightX,
-							objectParams.topRightY,
-							objectParams.bottomRightX,
-							objectParams.bottomRightY,
-							objectParams.bottomLeftX,
-							objectParams.bottomLeftY
-						],
-						['tl', 'tl', 'tr', 'tr', 'br', 'br', 'bl', 'bl'],
-						hackOptions,
-						{
-							'tl': { type: 'physical' }, // top left corner
-							'tr': { type: 'physical' }, // top right corner
-							'bl': { type: 'physical' }, // bottom right corner
-							'br': { type: 'physical' }  // bottom left corner
-						},
-						(newValues) => {
-							const c = new AMCP.MixerPerspectiveCommand({
-								channel: command.channel,
-								layer: command.layer,
-								topLeftX: newValues[0],
-								topLeftY: newValues[1],
-								topRightX: newValues[2],
-								topRightY: newValues[3],
-								bottomRightX: newValues[4],
-								bottomRightY: newValues[5],
-								bottomLeftX: newValues[6],
-								bottomLeftY: newValues[7]
-							})
-							this._commandReceiver(this.getCurrentTime(), c, 'Internal transition', 'internalTransition')
-							.catch((e => this.emit('error', 'CasparCG.InternalTransition', e)))
-						}
-					)
-					// Abort: don't send the original command
-					return undefined
-				} else {
-					this._transitionHandler.snapTransition(
-						this._getTransitionId('PERSPECTIVE', command.channel, command.layer),
-						[
-							objectParams.topLeftX,
-							objectParams.topLeftY,
-							objectParams.topRightX,
-							objectParams.topRightY,
-							objectParams.bottomRightX,
-							objectParams.bottomRightY,
-							objectParams.bottomLeftX,
-							objectParams.bottomLeftY
-						]
-					)
-				}
-			} else if (
-				objectParams.keyword === 'OPACITY' ||
-				objectParams.keyword === 'VOLUME'
-			) {
-				const opt: { initial: number, prop: string } = (
-					objectParams.keyword === 'OPACITY' ?
-					{
-						initial: 1,
-						prop: 'opacity'
-					} :
-					objectParams.keyword === 'VOLUME' ?
-					{
-						initial: 1,
-						prop: 'opacity'
-					} :
-					{
-						initial: 0,
-						prop: 'N/A'
+						)
+						// Abort: don't send the original command
+						return undefined
+					} else {
+						this._transitionHandler.snapTransition(
+							this._getTransitionId('FILL', command.channel, command.layer),
+							[objectParams.x, objectParams.y, objectParams.xScale, objectParams.yScale]
+						)
 					}
-				)
+				} else if (objectParams.keyword === 'PERSPECTIVE') {
+					if (objectParams.transition === Transition.TSR_TRANSITION) {
+						// Handle transitions internally:
 
-				if (objectParams.transition === Transition.INTERNAL) {
-					// Handle transitions internally:
-
-					this._transitionHandler.activateTransition(
-						this._getTransitionId(objectParams.keyword, command.channel, command.layer),
-						[opt.initial],
-						[objectParams[opt.prop]],
-						['v'],
-						hackOptions,
-						{
-							'v': { type: 'linear' } // tmp hack: for these, a linear would be better that physical
-						},
-						(newValues) => {
-							const properties = {
-								channel: command.channel,
-								layer: command.layer
+						this._transitionHandler.activateTransition(
+							this._getTransitionId('PERSPECTIVE', command.channel, command.layer),
+							[0, 0, 1, 0, 1, 1, 0, 1],
+							[
+								objectParams.topLeftX,
+								objectParams.topLeftY,
+								objectParams.topRightX,
+								objectParams.topRightY,
+								objectParams.bottomRightX,
+								objectParams.bottomRightY,
+								objectParams.bottomLeftX,
+								objectParams.bottomLeftY
+							],
+							['tl', 'tl', 'tr', 'tr', 'br', 'br', 'bl', 'bl'],
+							transitionOptions,
+							{
+								'tl': { type: 'physical' }, // top left corner
+								'tr': { type: 'physical' }, // top right corner
+								'bl': { type: 'physical' }, // bottom right corner
+								'br': { type: 'physical' }  // bottom left corner
+							},
+							(newValues) => {
+								const c = new AMCP.MixerPerspectiveCommand({
+									channel: command.channel,
+									layer: command.layer,
+									topLeftX: newValues[0],
+									topLeftY: newValues[1],
+									topRightX: newValues[2],
+									topRightY: newValues[3],
+									bottomRightX: newValues[4],
+									bottomRightY: newValues[5],
+									bottomLeftX: newValues[6],
+									bottomLeftY: newValues[7]
+								})
+								this._commandReceiver(this.getCurrentTime(), c, 'Internal transition', 'internalTransition')
+								.catch((e => this.emit('error', 'CasparCG.InternalTransition', e)))
 							}
-							properties[opt.prop] = newValues[0]
-							const c = new AMCP[command.name](properties)
-							this._commandReceiver(this.getCurrentTime(), c, 'Internal transition', 'internalTransition')
-							.catch((e => this.emit('error', 'CasparCG.InternalTransition', e)))
+						)
+						// Abort: don't send the original command
+						return undefined
+					} else {
+						this._transitionHandler.snapTransition(
+							this._getTransitionId('PERSPECTIVE', command.channel, command.layer),
+							[
+								objectParams.topLeftX,
+								objectParams.topLeftY,
+								objectParams.topRightX,
+								objectParams.topRightY,
+								objectParams.bottomRightX,
+								objectParams.bottomRightY,
+								objectParams.bottomLeftX,
+								objectParams.bottomLeftY
+							]
+						)
+					}
+				} else if (
+					objectParams.keyword === 'OPACITY' ||
+					objectParams.keyword === 'VOLUME'
+				) {
+					const opt: { initial: number, prop: string } = (
+						objectParams.keyword === 'OPACITY' ?
+						{
+							initial: 1,
+							prop: 'opacity'
+						} :
+						objectParams.keyword === 'VOLUME' ?
+						{
+							initial: 1,
+							prop: 'opacity'
+						} :
+						{
+							initial: 0,
+							prop: 'N/A'
 						}
 					)
-					// Abort: don't send the original command
-					return undefined
-				} else {
-					this._transitionHandler.snapTransition(
-						this._getTransitionId(objectParams.keyword, command.channel, command.layer),
-						[objectParams[opt.prop]]
-					)
-				}
-			} else if (objectParams.keyword === 'CLEAR') {
-				if (command.layer) {
-					this._getTransitions(undefined, command.channel, command.layer)
-						.forEach(identifier => this._transitionHandler.clearTransition(identifier))
-				} else {
-					// Clear the whole channel:
-					this._getTransitions(undefined, command.channel)
-						.forEach(identifier => this._transitionHandler.clearTransition(identifier))
+
+					if (objectParams.transition === Transition.TSR_TRANSITION) {
+						// Handle transitions internally:
+
+						this._transitionHandler.activateTransition(
+							this._getTransitionId(objectParams.keyword, command.channel, command.layer),
+							[opt.initial],
+							[objectParams[opt.prop]],
+							['v'],
+							transitionOptions,
+							{
+								'v': { type: 'linear' } // tmp hack: for these, a linear would be better that physical
+							},
+							(newValues) => {
+								const properties = {
+									channel: command.channel,
+									layer: command.layer
+								}
+								properties[opt.prop] = newValues[0]
+								const c = new AMCP[command.name](properties)
+								this._commandReceiver(this.getCurrentTime(), c, 'Internal transition', 'internalTransition')
+								.catch((e => this.emit('error', 'CasparCG.InternalTransition', e)))
+							}
+						)
+						// Abort: don't send the original command
+						return undefined
+					} else {
+						this._transitionHandler.snapTransition(
+							this._getTransitionId(objectParams.keyword, command.channel, command.layer),
+							[objectParams[opt.prop]]
+						)
+					}
+				} else if (objectParams.keyword === 'CLEAR') {
+					if (command.layer) {
+						this._getTransitions(undefined, command.channel, command.layer)
+							.forEach(identifier => this._transitionHandler.clearTransition(identifier))
+					} else {
+						// Clear the whole channel:
+						this._getTransitions(undefined, command.channel)
+							.forEach(identifier => this._transitionHandler.clearTransition(identifier))
+					}
 				}
 			}
 		}
@@ -1111,186 +1108,4 @@ export class CasparCGDevice extends DeviceWithState<State> implements IDevice {
 		return this._transitionHandler.getIdentifiers()
 			.filter(i => i.match(new RegExp(regex)))
 	}
-}
-
-interface TransitionHandler {
-	values: number[]
-	target: number[]
-	groups: string[]
-
-	calculatingGroups: {[groupId: string]: {
-		animator: Animator
-	}}
-
-	activeIterator: NodeJS.Timeout | null
-	lastUpdate: number
-	updateCallback?: (newValues: number[]) => void
-}
-class InternalTransitionHandler {
-	private _transitions: {[identifier: string]: TransitionHandler} = {}
-
-	public terminate () {
-		// clearInterval(this._interval)
-		_.each(this._transitions, (_transition, identifier) => {
-			this.clearTransition(identifier)
-		})
-	}
-	public getIdentifiers () {
-		return Object.keys(this._transitions)
-	}
-
-	public clearTransition (identifier: string) {
-		const t = this._transitions[identifier]
-		if (t) {
-			this._stopTransition(t)
-			delete this._transitions[identifier]
-		}
-	}
-	public snapTransition (
-		identifier: string,
-		targetValues: number[]
-	) {
-		if (!this._transitions[identifier]) {
-			this.initTransition(identifier, targetValues)
-		}
-		const t = this._transitions[identifier]
-
-		this._stopTransition(t)
-
-		t.values = targetValues
-	}
-	private initTransition (
-		identifier: string,
-		initialValues: number[]
-	) {
-		// Set initial values:
-		this._transitions[identifier] = {
-
-			values: initialValues,
-			target: [], // filled in later
-			groups: [], // filled in later
-
-			activeIterator: null,
-			lastUpdate: 0,
-
-			calculatingGroups: {}
-		}
-	}
-	public activateTransition (
-		identifier: string,
-		initialValues: number[],
-		targetValues: number[],
-		groups: string[],
-		options: HackOptions,
-		animatorTypes: {[groupId: string]:
-			{
-				type: 'linear' | 'physical',
-				options?: HackOptions
-			}
-		},
-		updateCallback: (newValues: number[]) => void
-	) {
-		// Note: this is a preliminary implemenation, that animates x & y, and snaps xScale & yScale
-
-		if (!this._transitions[identifier]) {
-			this.initTransition(identifier, initialValues)
-		}
-		const t = this._transitions[identifier]
-
-		t.updateCallback = updateCallback
-		t.groups = groups
-		t.target = targetValues
-
-		const getGroupValues = (values: number[], groups: string[], groupId: string) => {
-			const vs: number[] = []
-			_.each(groups, (g, i) => {
-				if (g === groupId) vs.push(values[i])
-			})
-			return vs
-		}
-		const setGroupValues = (values: number[], groups: string[], groupId: string, newValues: number[]) => {
-			let i2 = 0
-			_.each(groups, (g, i) => {
-				if (g === groupId) {
-					values[i] = newValues[i2]
-					i2++
-				}
-			})
-		}
-
-		if (!t.activeIterator) {
-			_.each(_.uniq(t.groups), groupId => {
-				if (!animatorTypes) animatorTypes = {}
-				const animatorType = animatorTypes[groupId + ''] || {}
-				const options2 = animatorType.options || options
-				t.calculatingGroups[groupId + ''] = {
-					animator: (
-						animatorType.type === 'physical' ?
-						new PhysicalAcceleration(
-							getGroupValues(t.values, groups, groupId),
-							options2.acceleration || 0.0001,
-							options2.maxSpeed || 0.05,
-							options2.snapDistance || 1 / 1920
-						) :
-						new LinearMovement(
-							getGroupValues(t.values, groups, groupId),
-							options2.linearSpeed || 1 / 1000
-						)
-					)
-				}
-			})
-			const updateInterval = options.updateInterval || 1000 / 25
-
-			const update = () => {
-				let dt = 0
-				if (t.lastUpdate) {
-					dt = Date.now() - t.lastUpdate
-				} else {
-					dt = updateInterval
-				}
-				t.lastUpdate = Date.now()
-
-				let somethingChanged = false
-				_.each(_.uniq(t.groups), groupId => {
-
-					const calculatingGroup = t.calculatingGroups[groupId + '']
-
-					const values = getGroupValues(t.values, t.groups, groupId)
-					const targetValues = getGroupValues(t.target, t.groups, groupId)
-					const newValues = calculatingGroup.animator.update(targetValues, dt)
-
-					if (!_.isEqual(newValues, values)) {
-						somethingChanged = true
-						setGroupValues(t.values, t.groups, groupId, newValues)
-					}
-				})
-				if (somethingChanged) {
-					// Send updateCommand:
-					if (t.updateCallback) t.updateCallback(t.values)
-				} else {
-					// nothing changed
-					this._stopTransition(t)
-				}
-			}
-
-			// Start iterating:
-			t.lastUpdate = 0
-			t.activeIterator = setInterval(update, updateInterval)
-		}
-	}
-	private _stopTransition (t: TransitionHandler) {
-		if (t.activeIterator) {
-			clearInterval(t.activeIterator)
-			t.activeIterator = null
-		}
-	}
-}
-interface HackOptions {
-	updateInterval?: number
-
-	linearSpeed?: number
-
-	acceleration?: number
-	maxSpeed?: number
-	snapDistance?: number
 }
