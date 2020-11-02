@@ -3,6 +3,9 @@ jobs:
   test-node-10:
     docker:
       - image: circleci/node:10
+        auth:
+          username: $DOCKERHUB_USERNAME
+          password: $DOCKERHUB_PASS
     working_directory: ~/project
     steps:
       - checkout
@@ -22,6 +25,9 @@ jobs:
   test-node-12:
     docker:
       - image: circleci/node:12
+        auth:
+          username: $DOCKERHUB_USERNAME
+          password: $DOCKERHUB_PASS
     working_directory: ~/project
     steps:
       - checkout
@@ -60,6 +66,9 @@ jobs:
   test-node-latest:
     docker:
       - image: circleci/node
+        auth:
+          username: $DOCKERHUB_USERNAME
+          password: $DOCKERHUB_PASS
     working_directory: ~/project
     steps:
       - checkout
@@ -79,6 +88,9 @@ jobs:
   validate-dependencies:
     docker:
       - image: circleci/node:12
+        auth:
+          username: $DOCKERHUB_USERNAME
+          password: $DOCKERHUB_PASS
     working_directory: ~/project
     steps:
       - checkout
@@ -110,6 +122,9 @@ jobs:
   validate-all-dependencies:
     docker:
       - image: circleci/node:12
+        auth:
+          username: $DOCKERHUB_USERNAME
+          password: $DOCKERHUB_PASS
     working_directory: ~/project
     steps:
       - checkout
@@ -129,6 +144,9 @@ jobs:
   release:
     docker:
       - image: circleci/node:12
+        auth:
+          username: $DOCKERHUB_USERNAME
+          password: $DOCKERHUB_PASS
     working_directory: ~/project
     steps:
       - attach_workspace:
@@ -183,6 +201,9 @@ jobs:
   prerelease:
     docker:
       - image: circleci/node:12
+        auth:
+          username: $DOCKERHUB_USERNAME
+          password: $DOCKERHUB_PASS
     working_directory: ~/project
     steps:
       - attach_workspace:
