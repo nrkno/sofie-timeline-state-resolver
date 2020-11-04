@@ -160,8 +160,8 @@
   "dependencies": {
     "atem-state": "^0.10.0",
     "bufferutil": "^4.0.1",
-    "casparcg-connection": "^5.0.1",
-    "casparcg-state": "^2.0.0",
+    "casparcg-connection": "5.1.0-nightly-feat-ffmpeg-filters-20201021-124046-7bc1e6ea.0",
+    "casparcg-state": "2.1.0-nightly-feat-filters-20201021-125451-f737f4b.0",
     "emberplus-connection": "^0.0.3",
     "hyperdeck-connection": "^0.4.3",
     "osc": "^2.4.0",

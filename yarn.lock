@@ -1432,21 +1432,21 @@ caseless@~0.12.0:
   resolved "https://registry.yarnpkg.com/caseless/-/caseless-0.12.0.tgz#1b681c21ff84033c826543090689420d187151dc"
   integrity sha1-G2gcIf+EAzyCZUMJBolCDRhxUdw=
 
-casparcg-connection@^5.0.1:
-  version "5.0.1"
-  resolved "https://registry.yarnpkg.com/casparcg-connection/-/casparcg-connection-5.0.1.tgz#5144f43664586ec2b73fc380f893b63704fc46e0"
-  integrity sha512-gurGsJozCeBVuW2rPnttBj3WS4HJxW3RXC4x2OINdcs+rwAJRKy5tBg2MilsRp2Hh+wQL/e/16ZTjpCkvvkG5A==
+casparcg-connection@5.1.0-nightly-feat-ffmpeg-filters-20201021-124046-7bc1e6ea.0:
+  version "5.1.0-nightly-feat-ffmpeg-filters-20201021-124046-7bc1e6ea.0"
+  resolved "https://registry.yarnpkg.com/casparcg-connection/-/casparcg-connection-5.1.0-nightly-feat-ffmpeg-filters-20201021-124046-7bc1e6ea.0.tgz#c0368eb0302b6896df0853437753aa79d440d31c"
+  integrity sha512-39TuQ/AgSGMiwAZvdTj2Kj/Zy/Qbej+73JZccVcBexDwsOrdd6T0ke7WDdwARfZZVI27fx/nl7nWL/Gc+2UJXg==
   dependencies:
     highland "^3.0.0-beta.6"
     xml2js "^0.4.19"
     xmlbuilder "^9.0.7"
 
-casparcg-state@^2.0.0:
-  version "2.0.0"
-  resolved "https://registry.yarnpkg.com/casparcg-state/-/casparcg-state-2.0.0.tgz#1ce38ff1846a259de4bc4fe706a312849539b34e"
-  integrity sha512-eZ0f8PWkxk3t/xgUaE1i4wqpHFNEeMBPs8L4mCoTFg3MdfqPVUg/bW6XZPFcPFOruQ93UekaTUpKKDafsASYsg==
+casparcg-state@2.1.0-nightly-feat-filters-20201021-125451-f737f4b.0:
+  version "2.1.0-nightly-feat-filters-20201021-125451-f737f4b.0"
+  resolved "https://registry.yarnpkg.com/casparcg-state/-/casparcg-state-2.1.0-nightly-feat-filters-20201021-125451-f737f4b.0.tgz#9d6b490c37e32b6c4b9cfd084927c65acaeada4b"
+  integrity sha512-JynIj9BFSqf9j6l2uHjGuoejhEQdD9UU+zvR2Vo/r8eqC3k7/kOi3U+PbOoYnJq2U6nIk3jkuC94CJlCKtGveQ==
   dependencies:
-    casparcg-connection "^5.0.1"
+    casparcg-connection "5.1.0-nightly-feat-ffmpeg-filters-20201021-124046-7bc1e6ea.0"
     fast-clone "^1.5.13"
     underscore "^1.9.1"
 
