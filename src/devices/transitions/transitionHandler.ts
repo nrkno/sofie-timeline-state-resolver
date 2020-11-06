@@ -37,7 +37,7 @@ export class InternalTransitionHandler {
 			delete this._transitions[identifier]
 		}
 	}
-	public snapTransition (
+	public stopAndSnapTransition (
 		identifier: string,
 		targetValues: number[]
 	) {

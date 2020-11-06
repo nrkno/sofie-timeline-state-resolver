@@ -957,7 +957,7 @@ export class CasparCGDevice extends DeviceWithState<State> implements IDevice {
 						// Abort: don't send the original command
 						return undefined
 					} else {
-						this._transitionHandler.snapTransition(
+						this._transitionHandler.stopAndSnapTransition(
 							this._getTransitionId('FILL', command.channel, command.layer),
 							[objectParams.x, objectParams.y, objectParams.xScale, objectParams.yScale]
 						)
@@ -1007,7 +1007,7 @@ export class CasparCGDevice extends DeviceWithState<State> implements IDevice {
 						// Abort: don't send the original command
 						return undefined
 					} else {
-						this._transitionHandler.snapTransition(
+						this._transitionHandler.stopAndSnapTransition(
 							this._getTransitionId('PERSPECTIVE', command.channel, command.layer),
 							[
 								objectParams.topLeftX,
@@ -1068,7 +1068,7 @@ export class CasparCGDevice extends DeviceWithState<State> implements IDevice {
 						// Abort: don't send the original command
 						return undefined
 					} else {
-						this._transitionHandler.snapTransition(
+						this._transitionHandler.stopAndSnapTransition(
 							this._getTransitionId(objectParams.keyword, command.channel, command.layer),
 							[objectParams[opt.prop]]
 						)
