@@ -1034,7 +1034,7 @@ export class CasparCGDevice extends DeviceWithState<State> implements IDevice {
 						objectParams.keyword === 'VOLUME' ?
 						{
 							initial: 1,
-							prop: 'opacity'
+							prop: 'volume'
 						} :
 						{
 							initial: 0,
