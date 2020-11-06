@@ -81,7 +81,6 @@ export class InternalTransitionHandler {
 		},
 		updateCallback: (newValues: number[]) => void
 	) {
-		// Note: this is a preliminary implemenation, that animates x & y, and snaps xScale & yScale
 
 		if (!this._transitions[identifier]) {
 			this.initTransition(identifier, initialValues)
