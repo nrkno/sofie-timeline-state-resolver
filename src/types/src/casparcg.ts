@@ -390,9 +390,9 @@ export enum Chroma {
 // Note: types copied from casparcg-state
 export interface Mixer {
 
-	inTransition?: Transition0
-	changeTransition?: Transition0
-	outTransition?: Transition0
+	inTransition?: CasparCGTransition
+	changeTransition?: CasparCGTransition
+	outTransition?: CasparCGTransition
 
 	anchor?: {x: number, y: number } | TransitionObject
 	blend?: BlendMode | TransitionObject
@@ -451,12 +451,12 @@ export interface TSRTransitionOptions {
 
 export interface TransitionObject {
 	_value: string | number | boolean
-	inTransition: Transition0
-	changeTransition: Transition0
-	outTransition: Transition0
+	inTransition: CasparCGTransition
+	changeTransition: CasparCGTransition
+	outTransition: CasparCGTransition
 }
 
-export interface CasparCGTransition {
+export interface CasparCGTransitionInner {
 	type: Transition.MIX | Transition.CUT | Transition.PUSH | Transition.WIPE | Transition.SLIDE | Transition.STING
 	duration: number
 	easing: Ease
@@ -467,4 +467,4 @@ export interface TSRTansition {
 	customOptions: TSRTransitionOptions
 }
 
-export type Transition0 = CasparCGTransition | TSRTansition
+export type CasparCGTransition = CasparCGTransitionInner | TSRTansition
