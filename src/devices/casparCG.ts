@@ -422,6 +422,7 @@ export class CasparCGDevice extends DeviceWithState<State> implements IDevice {
 				case TimelineContentTypeCasparCg.TEMPLATE:
 				case TimelineContentTypeCasparCg.INPUT:
 				case TimelineContentTypeCasparCg.ROUTE:
+				case TimelineContentTypeCasparCg.HTMLPAGE:
 					// create transition object
 					let media = stateLayer.media
 					let transitions = {} as any
