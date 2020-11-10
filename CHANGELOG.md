@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [5.1.2](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/5.1.1...5.1.2) (2020-11-10)
+
+
+### Bug Fixes
+
+* **casparcg:** allow transitions to be defined on html pages [publish] ([492901b](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/492901be44d37e117788e8caf7ec8a09f744986a))
+
 ### [5.1.1](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/5.1.0...5.1.1) (2020-10-19)
 
 
