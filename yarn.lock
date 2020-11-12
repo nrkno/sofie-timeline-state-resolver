@@ -1432,21 +1432,21 @@ caseless@~0.12.0:
   resolved "https://registry.yarnpkg.com/caseless/-/caseless-0.12.0.tgz#1b681c21ff84033c826543090689420d187151dc"
   integrity sha1-G2gcIf+EAzyCZUMJBolCDRhxUdw=
 
-casparcg-connection@5.1.0-nightly-feat-ffmpeg-filters-20201021-124046-7bc1e6ea.0:
-  version "5.1.0-nightly-feat-ffmpeg-filters-20201021-124046-7bc1e6ea.0"
-  resolved "https://registry.yarnpkg.com/casparcg-connection/-/casparcg-connection-5.1.0-nightly-feat-ffmpeg-filters-20201021-124046-7bc1e6ea.0.tgz#c0368eb0302b6896df0853437753aa79d440d31c"
-  integrity sha512-39TuQ/AgSGMiwAZvdTj2Kj/Zy/Qbej+73JZccVcBexDwsOrdd6T0ke7WDdwARfZZVI27fx/nl7nWL/Gc+2UJXg==
+casparcg-connection@5.1.0-nightly-20201112-112403-bd82a6f1.0:
+  version "5.1.0-nightly-20201112-112403-bd82a6f1.0"
+  resolved "https://registry.yarnpkg.com/casparcg-connection/-/casparcg-connection-5.1.0-nightly-20201112-112403-bd82a6f1.0.tgz#5bacd2dadbeaab141f2f199cd3027d5fe99c467e"
+  integrity sha512-dDIxmY8WcnGgZu0U+rH9qGVoLmafqrAkfJ8ja2Q9tw7SkVCmPugeP7nChvndyh3o/VBt9FmVrdTGDjqH1mVk/A==
   dependencies:
     highland "^3.0.0-beta.6"
     xml2js "^0.4.19"
     xmlbuilder "^9.0.7"
 
-casparcg-state@2.1.0-nightly-feat-filters-20201021-125451-f737f4b.0:
-  version "2.1.0-nightly-feat-filters-20201021-125451-f737f4b.0"
-  resolved "https://registry.yarnpkg.com/casparcg-state/-/casparcg-state-2.1.0-nightly-feat-filters-20201021-125451-f737f4b.0.tgz#9d6b490c37e32b6c4b9cfd084927c65acaeada4b"
-  integrity sha512-JynIj9BFSqf9j6l2uHjGuoejhEQdD9UU+zvR2Vo/r8eqC3k7/kOi3U+PbOoYnJq2U6nIk3jkuC94CJlCKtGveQ==
+casparcg-state@2.1.0-nightly-20201112-113005-83bae24.0:
+  version "2.1.0-nightly-20201112-113005-83bae24.0"
+  resolved "https://registry.yarnpkg.com/casparcg-state/-/casparcg-state-2.1.0-nightly-20201112-113005-83bae24.0.tgz#67b3a87e92837b62a2a3ce0098d9119ad5b44d9a"
+  integrity sha512-HkaqMdZTus9Yv0vB8DtawEVEaearFCJzqIlFXVXEpzWcsxoguUnUmiYmTnhVmhGw2HEZNw2XHtwApoXiJSjtmQ==
   dependencies:
-    casparcg-connection "5.1.0-nightly-feat-ffmpeg-filters-20201021-124046-7bc1e6ea.0"
+    casparcg-connection "5.1.0-nightly-20201112-112403-bd82a6f1.0"
     fast-clone "^1.5.13"
     underscore "^1.9.1"
 
