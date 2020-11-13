@@ -1432,6 +1432,15 @@ caseless@~0.12.0:
   resolved "https://registry.yarnpkg.com/caseless/-/caseless-0.12.0.tgz#1b681c21ff84033c826543090689420d187151dc"
   integrity sha1-G2gcIf+EAzyCZUMJBolCDRhxUdw=
 
+casparcg-connection@5.1.0-nightly-20201112-112403-bd82a6f1.0:
+  version "5.1.0-nightly-20201112-112403-bd82a6f1.0"
+  resolved "https://registry.yarnpkg.com/casparcg-connection/-/casparcg-connection-5.1.0-nightly-20201112-112403-bd82a6f1.0.tgz#5bacd2dadbeaab141f2f199cd3027d5fe99c467e"
+  integrity sha512-dDIxmY8WcnGgZu0U+rH9qGVoLmafqrAkfJ8ja2Q9tw7SkVCmPugeP7nChvndyh3o/VBt9FmVrdTGDjqH1mVk/A==
+  dependencies:
+    highland "^3.0.0-beta.6"
+    xml2js "^0.4.19"
+    xmlbuilder "^9.0.7"
+
 casparcg-connection@^5.0.1:
   version "5.0.1"
   resolved "https://registry.yarnpkg.com/casparcg-connection/-/casparcg-connection-5.0.1.tgz#5144f43664586ec2b73fc380f893b63704fc46e0"
@@ -1441,12 +1450,12 @@ casparcg-connection@^5.0.1:
     xml2js "^0.4.19"
     xmlbuilder "^9.0.7"
 
-casparcg-state@^2.0.0:
-  version "2.0.0"
-  resolved "https://registry.yarnpkg.com/casparcg-state/-/casparcg-state-2.0.0.tgz#1ce38ff1846a259de4bc4fe706a312849539b34e"
-  integrity sha512-eZ0f8PWkxk3t/xgUaE1i4wqpHFNEeMBPs8L4mCoTFg3MdfqPVUg/bW6XZPFcPFOruQ93UekaTUpKKDafsASYsg==
+casparcg-state@2.1.0-nightly-20201113-083835-076828a.0:
+  version "2.1.0-nightly-20201113-083835-076828a.0"
+  resolved "https://registry.yarnpkg.com/casparcg-state/-/casparcg-state-2.1.0-nightly-20201113-083835-076828a.0.tgz#372154af7d50077011eca3fec38e1d6fed5d7995"
+  integrity sha512-KWvuNAgZHDjtVEl1IwLzOUJNzJ70jpRtpPdhsVdKBHX8kwdlZHlvYEdQAqvYK46g48LteqY1uCWHS18wljqeRg==
   dependencies:
-    casparcg-connection "^5.0.1"
+    casparcg-connection "5.1.0-nightly-20201112-112403-bd82a6f1.0"
     fast-clone "^1.5.13"
     underscore "^1.9.1"
 
