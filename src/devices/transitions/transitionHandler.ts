@@ -2,8 +2,6 @@ import { TSRTransitionOptions } from '../../types/src/casparcg'
 import * as _ from 'underscore'
 import { Animator, LinearMovement, PhysicalAcceleration } from './animate'
 
-
-
 interface TransitionHandler {
 	values: number[]
 	target: number[]

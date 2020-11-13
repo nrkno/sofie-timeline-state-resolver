@@ -448,7 +448,6 @@ export interface TSRTransitionOptions {
 	snapDistance?: number
 }
 
-
 export interface TransitionObject {
 	_value: string | number | boolean
 	inTransition: CasparCGTransition
@@ -456,11 +455,11 @@ export interface TransitionObject {
 	outTransition: CasparCGTransition
 }
 
+/** Transition of mixer properties */
 export interface CasparCGTransitionInner {
-	type: Transition.MIX | Transition.CUT | Transition.PUSH | Transition.WIPE | Transition.SLIDE | Transition.STING
-	duration: number
-	easing: Ease
-	direction: Direction
+	duration?: number
+	easing?: Ease
+	direction?: Direction
 }
 export interface TSRTansition {
 	type: Transition.TSR_TRANSITION
