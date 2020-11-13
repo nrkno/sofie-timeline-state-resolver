@@ -29,7 +29,9 @@ import {
 	ResolvedTimelineObjectInstanceExtended,
 	TimelineObjCCGIP,
 	DeviceOptionsCasparCG,
-	Mappings
+	Transition,
+	Mappings,
+	TSRTransitionOptions
 } from '../types/src'
 
 import {
@@ -51,11 +53,12 @@ import {
 	TransitionObject,
 	State,
 	NextUp,
-	Transition,
+	Transition as StateTransition,
 	Mixer
 } from 'casparcg-state'
 import { DoOnTime, SendMode } from '../doOnTime'
 import * as request from 'request'
+import { InternalTransitionHandler } from './transitions/transitionHandler'
 
 const MAX_TIMESYNC_TRIES = 5
 const MAX_TIMESYNC_DURATION = 40
@@ -86,6 +89,7 @@ export class CasparCGDevice extends DeviceWithState<State> implements IDevice {
 	private _doOnTime: DoOnTime
 	private initOptions?: CasparCGOptions
 	private _connected: boolean = false
+	private _transitionHandler: InternalTransitionHandler = new InternalTransitionHandler()
 	private _retryTimeout: NodeJS.Timeout
 	private _retryTime: number | null = null
 
@@ -158,6 +162,7 @@ export class CasparCGDevice extends DeviceWithState<State> implements IDevice {
 	 */
 	terminate (): Promise<boolean> {
 		this._doOnTime.dispose()
+		this._transitionHandler.terminate()
 		clearTimeout(this._retryTimeout)
 		return new Promise((resolve) => {
 			this._ccg.disconnect()
@@ -427,10 +432,10 @@ export class CasparCGDevice extends DeviceWithState<State> implements IDevice {
 					let media = stateLayer.media
 					let transitions = {} as any
 					if (baseContent.transitions.inTransition) {
-						transitions.inTransition = new Transition(baseContent.transitions.inTransition)
+						transitions.inTransition = new StateTransition(baseContent.transitions.inTransition)
 					}
 					if (baseContent.transitions.outTransition) {
-						transitions.outTransition = new Transition(baseContent.transitions.outTransition)
+						transitions.outTransition = new StateTransition(baseContent.transitions.outTransition)
 					}
 					stateLayer.media = new TransitionObject(media, {
 						inTransition: transitions.inTransition,
@@ -658,7 +663,14 @@ export class CasparCGDevice extends DeviceWithState<State> implements IDevice {
 	}
 	private _doCommand (command: CommandNS.IAMCPCommand, context: string, timlineObjId: string): Promise<void> {
 		let time = this.getCurrentTime()
-		return this._commandReceiver(time, command, context, timlineObjId)
+
+		const interceptedCommand = this._interceptCommand(command)
+
+		if (interceptedCommand) {
+			return this._commandReceiver(time, interceptedCommand, context, timlineObjId)
+		} else {
+			return Promise.resolve()
+		}
 	}
 	/**
 	 * Clear future commands after {@code time} if they are not in {@code commandsToSendNow}.
@@ -910,5 +922,204 @@ export class CasparCGDevice extends DeviceWithState<State> implements IDevice {
 	}
 	private _connectionChanged () {
 		this.emit('connectionChanged', this.getStatus())
+	}
+	/**
+	 * Intercept the casparcg-connection commands, for internal transitions
+	 * Returns the command if it's not intercepted along the way
+	 */
+	_interceptCommand (command: CommandNS.IAMCPCommand): CommandNS.IAMCPCommand | undefined {
+		// Intercept internal commands:
+		const objectParams: any = command['_objectParams']
+		if (objectParams) {
+			let transitionOptions: TSRTransitionOptions = objectParams.customOptions as TSRTransitionOptions
+
+			if (transitionOptions) {
+				if (objectParams.keyword === 'FILL') {
+					if (objectParams.transition === Transition.TSR_TRANSITION) {
+						// Handle transitions internally:
+
+						this._transitionHandler.activateTransition(
+							this._getTransitionId('FILL', command.channel, command.layer),
+							[0, 0, 1, 1],
+							[objectParams.x, objectParams.y, objectParams.xScale, objectParams.yScale],
+							['position', 'position', 'scale', 'scale'],
+							transitionOptions,
+							{
+								'position': {
+									type: 'physical'
+								},
+								'scale': {
+									type: 'linear',
+									options: {
+										linearSpeed: 0.0003 // tmp: todo: remove hard-coding of this
+									}
+								}
+							},
+							(newValues) => {
+								const c = new AMCP.MixerFillCommand({
+									channel: command.channel,
+									layer: command.layer,
+									x: newValues[0],
+									y: newValues[1],
+									xScale: newValues[2],
+									yScale: newValues[3]
+								})
+								this._commandReceiver(this.getCurrentTime(), c, 'Internal transition', 'internalTransition')
+								.catch((e => this.emit('error', 'CasparCG.InternalTransition', e)))
+							}
+						)
+						// Abort: don't send the original command
+						return undefined
+					} else {
+						this._transitionHandler.stopAndSnapTransition(
+							this._getTransitionId('FILL', command.channel, command.layer),
+							[objectParams.x, objectParams.y, objectParams.xScale, objectParams.yScale]
+						)
+					}
+				} else if (objectParams.keyword === 'PERSPECTIVE') {
+					if (objectParams.transition === Transition.TSR_TRANSITION) {
+						// Handle transitions internally:
+
+						this._transitionHandler.activateTransition(
+							this._getTransitionId('PERSPECTIVE', command.channel, command.layer),
+							[0, 0, 1, 0, 1, 1, 0, 1],
+							[
+								objectParams.topLeftX,
+								objectParams.topLeftY,
+								objectParams.topRightX,
+								objectParams.topRightY,
+								objectParams.bottomRightX,
+								objectParams.bottomRightY,
+								objectParams.bottomLeftX,
+								objectParams.bottomLeftY
+							],
+							['tl', 'tl', 'tr', 'tr', 'br', 'br', 'bl', 'bl'],
+							transitionOptions,
+							{
+								'tl': { type: 'physical' }, // top left corner
+								'tr': { type: 'physical' }, // top right corner
+								'bl': { type: 'physical' }, // bottom right corner
+								'br': { type: 'physical' }  // bottom left corner
+							},
+							(newValues) => {
+								const c = new AMCP.MixerPerspectiveCommand({
+									channel: command.channel,
+									layer: command.layer,
+									topLeftX: newValues[0],
+									topLeftY: newValues[1],
+									topRightX: newValues[2],
+									topRightY: newValues[3],
+									bottomRightX: newValues[4],
+									bottomRightY: newValues[5],
+									bottomLeftX: newValues[6],
+									bottomLeftY: newValues[7]
+								})
+								this._commandReceiver(this.getCurrentTime(), c, 'Internal transition', 'internalTransition')
+								.catch((e => this.emit('error', 'CasparCG.InternalTransition', e)))
+							}
+						)
+						// Abort: don't send the original command
+						return undefined
+					} else {
+						this._transitionHandler.stopAndSnapTransition(
+							this._getTransitionId('PERSPECTIVE', command.channel, command.layer),
+							[
+								objectParams.topLeftX,
+								objectParams.topLeftY,
+								objectParams.topRightX,
+								objectParams.topRightY,
+								objectParams.bottomRightX,
+								objectParams.bottomRightY,
+								objectParams.bottomLeftX,
+								objectParams.bottomLeftY
+							]
+						)
+					}
+				} else if (
+					objectParams.keyword === 'OPACITY' ||
+					objectParams.keyword === 'VOLUME'
+				) {
+					const opt: { initial: number, prop: string } = (
+						objectParams.keyword === 'OPACITY' ?
+						{
+							initial: 1,
+							prop: 'opacity'
+						} :
+						objectParams.keyword === 'VOLUME' ?
+						{
+							initial: 1,
+							prop: 'volume'
+						} :
+						{
+							initial: 0,
+							prop: 'N/A'
+						}
+					)
+
+					if (objectParams.transition === Transition.TSR_TRANSITION) {
+						// Handle transitions internally:
+
+						this._transitionHandler.activateTransition(
+							this._getTransitionId(objectParams.keyword, command.channel, command.layer),
+							[opt.initial],
+							[objectParams[opt.prop]],
+							['v'],
+							transitionOptions,
+							{
+								'v': { type: 'linear' } // tmp hack: for these, a linear would be better that physical
+							},
+							(newValues) => {
+								const properties = {
+									channel: command.channel,
+									layer: command.layer
+								}
+								properties[opt.prop] = newValues[0]
+								const c = new AMCP[command.name](properties)
+								this._commandReceiver(this.getCurrentTime(), c, 'Internal transition', 'internalTransition')
+								.catch((e => this.emit('error', 'CasparCG.InternalTransition', e)))
+							}
+						)
+						// Abort: don't send the original command
+						return undefined
+					} else {
+						this._transitionHandler.stopAndSnapTransition(
+							this._getTransitionId(objectParams.keyword, command.channel, command.layer),
+							[objectParams[opt.prop]]
+						)
+					}
+				} else if (objectParams.keyword === 'CLEAR') {
+					if (command.layer) {
+						this._getTransitions(undefined, command.channel, command.layer)
+							.forEach(identifier => this._transitionHandler.clearTransition(identifier))
+					} else {
+						// Clear the whole channel:
+						this._getTransitions(undefined, command.channel)
+							.forEach(identifier => this._transitionHandler.clearTransition(identifier))
+					}
+				}
+			}
+		}
+		return command
+	}
+	private _getTransitionId (keyword: string, channel: number, layer?: number) {
+		return `${keyword}_${channel}-${layer || ''}`
+	}
+	private _getTransitions (keyword?: string, channel?: number, layer?: number): string[] {
+		let regex = ''
+		if (keyword) {
+			regex = `^${keyword}_`
+		}
+		if (channel) {
+			regex += `_${channel}-`
+		}
+		if (layer) {
+			regex += `-${layer}$`
+		}
+		regex = regex
+			.replace(/__/, '_')
+			.replace(/--/, '--')
+
+		return this._transitionHandler.getIdentifiers()
+			.filter(i => i.match(new RegExp(regex)))
 	}
 }

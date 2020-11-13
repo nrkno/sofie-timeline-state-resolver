@@ -1,4 +1,4 @@
-import { Easing } from '../easings'
+import { Easing } from '../devices/transitions/easings'
 
 describe('easings', () => {
 
