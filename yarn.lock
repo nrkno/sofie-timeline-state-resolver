@@ -1432,21 +1432,21 @@ caseless@~0.12.0:
   resolved "https://registry.yarnpkg.com/caseless/-/caseless-0.12.0.tgz#1b681c21ff84033c826543090689420d187151dc"
   integrity sha1-G2gcIf+EAzyCZUMJBolCDRhxUdw=
 
-casparcg-connection@5.1.0-nightly-20201112-112403-bd82a6f1.0:
-  version "5.1.0-nightly-20201112-112403-bd82a6f1.0"
-  resolved "https://registry.yarnpkg.com/casparcg-connection/-/casparcg-connection-5.1.0-nightly-20201112-112403-bd82a6f1.0.tgz#5bacd2dadbeaab141f2f199cd3027d5fe99c467e"
-  integrity sha512-dDIxmY8WcnGgZu0U+rH9qGVoLmafqrAkfJ8ja2Q9tw7SkVCmPugeP7nChvndyh3o/VBt9FmVrdTGDjqH1mVk/A==
+casparcg-connection@^5.1.0:
+  version "5.1.0"
+  resolved "https://registry.yarnpkg.com/casparcg-connection/-/casparcg-connection-5.1.0.tgz#6ea23c2895b5a28e2cd362a0ab0cd19c6ce68805"
+  integrity sha512-efYJG3jO2HPNJ0RUCvwmVlesXSbPfTxSoMuiUoOO86C7H5mTte4O8jGa6it7YShyBr8NTpUfPqiPEb7bKTAW3w==
   dependencies:
     highland "^3.0.0-beta.6"
     xml2js "^0.4.19"
     xmlbuilder "^9.0.7"
 
-casparcg-state@2.1.0-nightly-20201113-083835-076828a.0:
-  version "2.1.0-nightly-20201113-083835-076828a.0"
-  resolved "https://registry.yarnpkg.com/casparcg-state/-/casparcg-state-2.1.0-nightly-20201113-083835-076828a.0.tgz#372154af7d50077011eca3fec38e1d6fed5d7995"
-  integrity sha512-KWvuNAgZHDjtVEl1IwLzOUJNzJ70jpRtpPdhsVdKBHX8kwdlZHlvYEdQAqvYK46g48LteqY1uCWHS18wljqeRg==
+casparcg-state@^2.1.0:
+  version "2.1.0"
+  resolved "https://registry.yarnpkg.com/casparcg-state/-/casparcg-state-2.1.0.tgz#7697bb9a20b857db8cf3e107e77eccd1b7857b0f"
+  integrity sha512-dyKwgjqROLp//EL39aDKiv6BSKN3KeF+3g3ugP8+87D+NKfdnqsMY4J494Uhkh+m5DG6iUHqmR4IlRZKysQJoA==
   dependencies:
-    casparcg-connection "5.1.0-nightly-20201112-112403-bd82a6f1.0"
+    casparcg-connection "^5.1.0"
     fast-clone "^1.5.13"
     underscore "^1.9.1"
 
@@ -6287,20 +6287,20 @@ text-extensions@^1.0.0:
   resolved "https://registry.yarnpkg.com/text-extensions/-/text-extensions-1.9.0.tgz#1853e45fee39c945ce6f6c36b2d659b5aabc2a26"
   integrity sha512-wiBrwC1EhBelW12Zy26JeOUkQ5mRu+5o8rpsJk5+2t+Y5vE7e842qtZDQ2g1NpX/29HdyFeJ4nSIhI47ENSxlQ==
 
-threadedclass@0.8.2-nightly-20201029-124653-0bbe357.0:
-  version "0.8.2-nightly-20201029-124653-0bbe357.0"
-  resolved "https://registry.yarnpkg.com/threadedclass/-/threadedclass-0.8.2-nightly-20201029-124653-0bbe357.0.tgz#8537ece936b7977e8c53726cc5ac639b62bb421b"
-  integrity sha512-OV2mGW4YW4Uz9SJGAzZ/qvDtqwKhNpXMyp9Q3Dn0a5RHb2XBLHP60seiX3qQq6sQTB3M7fB23b0P3MxKgM8wuA==
+threadedclass@^0.8.0:
+  version "0.8.0"
+  resolved "https://registry.yarnpkg.com/threadedclass/-/threadedclass-0.8.0.tgz#2b3a3f450ccd29579140dcac34a8d8ed159c6313"
+  integrity sha512-bUdYig96HmZKcrG5p5b9cv3xmNPfm5uz1b+wOiKDZPmAOgHMaJmcxiKVZLREB2gNZ6dalRc/rWvYnl6OB4HQqg==
   dependencies:
     callsites "^3.1.0"
     eventemitter3 "^4.0.4"
     is-running "^2.1.0"
     tslib "^1.13.0"
 
-threadedclass@^0.8.0:
-  version "0.8.0"
-  resolved "https://registry.yarnpkg.com/threadedclass/-/threadedclass-0.8.0.tgz#2b3a3f450ccd29579140dcac34a8d8ed159c6313"
-  integrity sha512-bUdYig96HmZKcrG5p5b9cv3xmNPfm5uz1b+wOiKDZPmAOgHMaJmcxiKVZLREB2gNZ6dalRc/rWvYnl6OB4HQqg==
+threadedclass@^0.8.2:
+  version "0.8.2"
+  resolved "https://registry.yarnpkg.com/threadedclass/-/threadedclass-0.8.2.tgz#14a06090f218a9fce1be40eb076295a34ae7619c"
+  integrity sha512-IrUygxK3Vl4PsZLNJ/qiJQqWWpXNGM9V+7iKFa86+mI9aY7QfM6t+s2HIe2vy+l7f8e7LVFF7f/wenIOpj3KwQ==
   dependencies:
     callsites "^3.1.0"
     eventemitter3 "^4.0.4"
