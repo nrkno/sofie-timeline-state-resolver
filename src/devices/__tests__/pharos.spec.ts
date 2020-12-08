@@ -1,4 +1,3 @@
-jest.mock('ws')
 import { Conductor } from '../../conductor'
 import { PharosDevice } from '../pharos'
 import {
@@ -13,6 +12,7 @@ import { getMockCall } from '../../__tests__/lib'
 import * as WebSocket from '../../__mocks__/ws'
 
 describe('Pharos', () => {
+	jest.mock('ws', () => WebSocket)
 	let mockTime = new MockTime()
 	beforeAll(() => {
 		mockTime.mockDateNow()

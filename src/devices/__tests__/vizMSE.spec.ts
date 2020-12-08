@@ -1,4 +1,3 @@
-jest.mock('v-connection')
 import { Conductor } from '../../conductor'
 import {
 	Mappings,
@@ -10,12 +9,17 @@ import { ThreadedClass } from 'threadedclass'
 import { MappingVizMSE, TimelineContentTypeVizMSE, VIZMSETransitionType } from '../../types/src/vizMSE'
 import { getMockCall } from '../../__tests__/lib'
 import { VizMSEDevice } from '../vizMSE'
-import { getMockMSEs, MSEMock, VRundownMocked } from '../../__mocks__/v-connection'
+import * as vConnection from '../../__mocks__/v-connection'
+const getMockMSEs = vConnection.getMockMSEs
+type MSEMock = vConnection.MSEMock
+type VRundownMocked = vConnection.VRundownMocked
 import _ = require('underscore')
 import { StatusCode } from '../device'
 
 describe('vizMSE', () => {
 	let mockTime = new MockTime()
+
+	jest.mock('v-connection', () => vConnection)
 
 	// const orgSetTimeout = setTimeout
 
@@ -44,12 +48,14 @@ describe('vizMSE', () => {
 		}
 
 		let myConductor = new Conductor({
+			multiThreadedResolver: false,
 			initializeAsClear: true,
 			getCurrentTime: mockTime.getCurrentTime
 		})
 		myConductor.setTimelineAndMappings([], myChannelMapping)
 		await myConductor.init()
 		await myConductor.addDevice('myViz', {
+			isMultiThreaded: false,
 			type: DeviceType.VIZMSE,
 			options: {
 				commandReceiver: commandReceiver0,

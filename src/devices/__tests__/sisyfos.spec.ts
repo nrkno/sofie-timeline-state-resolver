@@ -1,11 +1,11 @@
-jest.mock('osc')
 import { Conductor } from '../../conductor'
 import {
 	Mappings,
 	DeviceType,
 	TSRTimeline
 } from '../../types/src'
-import { MockOSC } from '../../__mocks__/osc'
+import * as OSC from '../../__mocks__/osc'
+const MockOSC = OSC.MockOSC
 import { MockTime } from '../../__tests__/mockTime'
 import { ThreadedClass } from 'threadedclass'
 import { MappingSisyfos, TimelineContentTypeSisyfos, MappingSisyfosType } from '../../types/src/sisyfos'
@@ -13,6 +13,7 @@ import { SisyfosMessageDevice } from '../sisyfos'
 import { getMockCall } from '../../__tests__/lib'
 
 describe('Sisyfos', () => {
+	jest.mock('osc', () => OSC)
 	let mockTime = new MockTime()
 
 	const orgSetTimeout = setTimeout

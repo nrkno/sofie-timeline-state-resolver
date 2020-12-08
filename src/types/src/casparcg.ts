@@ -19,6 +19,8 @@ export interface CasparCGOptions {
 	retryInterval?: number | boolean // set to false to disable, 0 or true will set to default value
 	/* Timecode base of channel */
 	timeBase?: {[channel: string]: number} | number
+	/* fps used for all channels */
+	fps?: number
 
 	launcherHost?: string,
 	launcherPort?: number
@@ -112,6 +114,10 @@ export interface TimelineObjCCGMedia extends TimelineObjCasparCGBase {
 
 		/** If true, the startTime won't be used to SEEK to the correct place in the media */
 		noStarttime?: boolean
+
+		/* ffmpeg filter strings for 2.3+ */
+		videoFilter?: string
+		audioFilter?: string
 	} & TimelineObjCCGProducerContentBase
 }
 export interface TimelineObjCCGIP extends TimelineObjCasparCGBase {
@@ -125,6 +131,10 @@ export interface TimelineObjCCGIP extends TimelineObjCasparCGBase {
 		// audioFilter?: string
 		/** Audio channel layout (example 'stereo') */
 		channelLayout?: string
+
+		/* ffmpeg filter strings for 2.3+ */
+		videoFilter?: string
+		audioFilter?: string
 	} & TimelineObjCCGProducerContentBase
 }
 export interface TimelineObjCCGInput extends TimelineObjCasparCGBase {
@@ -144,6 +154,10 @@ export interface TimelineObjCCGInput extends TimelineObjCasparCGBase {
 
 		/** Audio channel layout (example 'stereo') */
 		channelLayout?: string
+
+		/* ffmpeg filter strings for 2.3+ */
+		videoFilter?: string
+		audioFilter?: string
 	} & TimelineObjCCGProducerContentBase
 }
 export interface TimelineObjCCGHTMLPage extends TimelineObjCasparCGBase {
@@ -186,6 +200,10 @@ export interface TimelineObjCCGRoute extends TimelineObjCasparCGBase {
 		channelLayout?: string
 		/** The amount of milliseconds to delay the signal on this route. This value is downsampled to channel frames upon execution. */
 		delay?: number
+
+		/* ffmpeg filter strings for 2.3+ */
+		videoFilter?: string
+		audioFilter?: string
 	} & TimelineObjCCGProducerContentBase
 }
 export interface TimelineObjCCGRecord extends TimelineObjCasparCGBase {
@@ -206,7 +224,9 @@ export enum Transition {
 	PUSH = 'PUSH',
 	WIPE = 'WIPE',
 	SLIDE = 'SLIDE',
-	STING = 'STING'
+	STING = 'STING',
+
+	TSR_TRANSITION = 'TSR_TRANSITION' // handled by tsr on its own
 }
 
 export enum Ease {
@@ -292,7 +312,9 @@ export enum Ease {
 	OUT_IN_SINE = 'OUT_IN_SINE',
 	OUT_QUAD = 'OUT_QUAD',
 	OUT_QUART = 'OUT_QUART',
-	OUT_QUINT = 'OUT_QUINT'
+	OUT_QUINT = 'OUT_QUINT',
+
+	INTERNAL_PHYSICAL = 'INTERNAL_PHYSICAL' // Handled by TSR on its own
 }
 
 export enum Direction {
@@ -386,9 +408,9 @@ export enum Chroma {
 // Note: types copied from casparcg-state
 export interface Mixer {
 
-	inTransition?: ITransition
-	changeTransition?: ITransition
-	outTransition?: ITransition
+	inTransition?: CasparCGTransition
+	changeTransition?: CasparCGTransition
+	outTransition?: CasparCGTransition
 
 	anchor?: {x: number, y: number } | TransitionObject
 	blend?: BlendMode | TransitionObject
@@ -429,21 +451,37 @@ export interface Mixer {
 	bundleWithCommands?: number // special function: bundle and DEFER with other mixer-commands
 
 }
+
+/** Options for internal TSR Transitions */
+export interface TSRTransitionOptions {
+	// type: 'linear' | 'physical'
+
+	/** How often to send updates for the transition. [ms] */
+	updateInterval?: number
+
+	linearSpeed?: number
+
+	acceleration?: number
+	maxSpeed?: number
+	snapDistance?: number
+}
+
 export interface TransitionObject {
 	_value: string | number | boolean
-	inTransition: Transition0
-	changeTransition: Transition0
-	outTransition: Transition0
+	inTransition: CasparCGTransition
+	changeTransition: CasparCGTransition
+	outTransition: CasparCGTransition
 }
-export interface ITransition {
-	type?: Transition
-	duration: number
+
+/** Transition of mixer properties */
+export interface CasparCGTransitionInner {
+	duration?: number
 	easing?: Ease
-	direction?: Direction | string
+	direction?: Direction
 }
-export interface Transition0 extends ITransition {
-	type: Transition
-	duration: number
-	easing: Ease
-	direction: Direction | string
+export interface TSRTansition {
+	type: Transition.TSR_TRANSITION
+	customOptions: TSRTransitionOptions
 }
+
+export type CasparCGTransition = CasparCGTransitionInner | TSRTansition

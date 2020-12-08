@@ -1432,21 +1432,21 @@ caseless@~0.12.0:
   resolved "https://registry.yarnpkg.com/caseless/-/caseless-0.12.0.tgz#1b681c21ff84033c826543090689420d187151dc"
   integrity sha1-G2gcIf+EAzyCZUMJBolCDRhxUdw=
 
-casparcg-connection@^5.0.1:
-  version "5.0.1"
-  resolved "https://registry.yarnpkg.com/casparcg-connection/-/casparcg-connection-5.0.1.tgz#5144f43664586ec2b73fc380f893b63704fc46e0"
-  integrity sha512-gurGsJozCeBVuW2rPnttBj3WS4HJxW3RXC4x2OINdcs+rwAJRKy5tBg2MilsRp2Hh+wQL/e/16ZTjpCkvvkG5A==
+casparcg-connection@^5.1.0:
+  version "5.1.0"
+  resolved "https://registry.yarnpkg.com/casparcg-connection/-/casparcg-connection-5.1.0.tgz#6ea23c2895b5a28e2cd362a0ab0cd19c6ce68805"
+  integrity sha512-efYJG3jO2HPNJ0RUCvwmVlesXSbPfTxSoMuiUoOO86C7H5mTte4O8jGa6it7YShyBr8NTpUfPqiPEb7bKTAW3w==
   dependencies:
     highland "^3.0.0-beta.6"
     xml2js "^0.4.19"
     xmlbuilder "^9.0.7"
 
-casparcg-state@^2.0.0:
-  version "2.0.0"
-  resolved "https://registry.yarnpkg.com/casparcg-state/-/casparcg-state-2.0.0.tgz#1ce38ff1846a259de4bc4fe706a312849539b34e"
-  integrity sha512-eZ0f8PWkxk3t/xgUaE1i4wqpHFNEeMBPs8L4mCoTFg3MdfqPVUg/bW6XZPFcPFOruQ93UekaTUpKKDafsASYsg==
+casparcg-state@^2.1.0:
+  version "2.1.0"
+  resolved "https://registry.yarnpkg.com/casparcg-state/-/casparcg-state-2.1.0.tgz#7697bb9a20b857db8cf3e107e77eccd1b7857b0f"
+  integrity sha512-dyKwgjqROLp//EL39aDKiv6BSKN3KeF+3g3ugP8+87D+NKfdnqsMY4J494Uhkh+m5DG6iUHqmR4IlRZKysQJoA==
   dependencies:
-    casparcg-connection "^5.0.1"
+    casparcg-connection "^5.1.0"
     fast-clone "^1.5.13"
     underscore "^1.9.1"
 
@@ -6287,18 +6287,20 @@ text-extensions@^1.0.0:
   resolved "https://registry.yarnpkg.com/text-extensions/-/text-extensions-1.9.0.tgz#1853e45fee39c945ce6f6c36b2d659b5aabc2a26"
   integrity sha512-wiBrwC1EhBelW12Zy26JeOUkQ5mRu+5o8rpsJk5+2t+Y5vE7e842qtZDQ2g1NpX/29HdyFeJ4nSIhI47ENSxlQ==
 
-threadedclass@^0.7.0:
-  version "0.7.0"
-  resolved "https://registry.yarnpkg.com/threadedclass/-/threadedclass-0.7.0.tgz#16d970211f930b5759fae83a4cde78563b0b5104"
-  integrity sha512-at4Ouv4JSbFz5hX5XnhjkukqOz+J086BHPXT3P6lD64rhYgzbOdWruyj8AgE7xfeh3Wd8nl9yUJiZ4ryoD9IFA==
-  dependencies:
-    callsites "^3.1.0"
-    tslib "^1.10.0"
-
 threadedclass@^0.8.0:
   version "0.8.0"
   resolved "https://registry.yarnpkg.com/threadedclass/-/threadedclass-0.8.0.tgz#2b3a3f450ccd29579140dcac34a8d8ed159c6313"
   integrity sha512-bUdYig96HmZKcrG5p5b9cv3xmNPfm5uz1b+wOiKDZPmAOgHMaJmcxiKVZLREB2gNZ6dalRc/rWvYnl6OB4HQqg==
+  dependencies:
+    callsites "^3.1.0"
+    eventemitter3 "^4.0.4"
+    is-running "^2.1.0"
+    tslib "^1.13.0"
+
+threadedclass@^0.8.2:
+  version "0.8.2"
+  resolved "https://registry.yarnpkg.com/threadedclass/-/threadedclass-0.8.2.tgz#14a06090f218a9fce1be40eb076295a34ae7619c"
+  integrity sha512-IrUygxK3Vl4PsZLNJ/qiJQqWWpXNGM9V+7iKFa86+mI9aY7QfM6t+s2HIe2vy+l7f8e7LVFF7f/wenIOpj3KwQ==
   dependencies:
     callsites "^3.1.0"
     eventemitter3 "^4.0.4"

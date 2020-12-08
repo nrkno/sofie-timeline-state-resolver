@@ -851,7 +851,6 @@ class VizMSEManager extends EventEmitter {
 		}
 		if (this._vizMSE) {
 			await this._vizMSE.close()
-			delete this._vizMSE
 		}
 	}
 	/**

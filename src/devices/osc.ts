@@ -21,7 +21,7 @@ import {
 	TimelineState
 } from 'superfly-timeline'
 import * as osc from 'osc'
-import { Easing } from '../easings'
+import { Easing } from './transitions/easings'
 
 export interface DeviceOptionsOSCInternal extends DeviceOptionsOSC {
 	options: (
