@@ -171,7 +171,7 @@
     "request": "^2.88.0",
     "sprintf-js": "^1.1.2",
     "superfly-timeline": "^8.1.2",
-    "threadedclass": "0.8.3-nightly-fix-debug-logging-20201202-154829-7f00042.0",
+    "threadedclass": "0.8.3",
     "tslib": "^1.10.0",
     "tv-automation-quantel-gateway-client": "^1.0.12",
     "underscore": "^1.10.2",
