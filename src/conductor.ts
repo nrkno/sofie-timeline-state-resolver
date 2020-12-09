@@ -255,6 +255,8 @@ export class Conductor extends EventEmitter {
 	}
 	set logDebug (val: boolean) {
 		this._logDebug = val
+
+		ThreadedClassManager.debug = this._logDebug
 	}
 
 	public getDevices (): Array<DeviceContainer> {
