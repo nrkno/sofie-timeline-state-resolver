@@ -104,6 +104,25 @@ declare module "osc" {
 
     }
 
+    export interface TcpOptions {
+        /**
+         * The remote port to send messages to
+         */
+        port?: number;
+        /**
+         * The remote address to send messages to
+         */
+        address?: string;
+        socket?: any;
+
+        /**
+         * should message arguments be wrapped with type?
+         */
+        metadata?: boolean;
+        unpackSingleArgs?: boolean;
+
+    }
+
     export interface OscSender {
         send(msg: OscMessage, address?: string, port?: number): void;
     }
@@ -135,5 +154,22 @@ declare module "osc" {
 
         listen(): void;
 
+    }
+
+    export class TCPSocketPort extends Port {
+
+        options: TcpOptions;
+
+        socket: import('net').Socket
+
+        constructor(options: TcpOptions);
+
+        open(): void;
+
+        close(): void;
+
+        listen(): void;
+
+        sendRaw(encoded: Array<number>): void;
     }
 }
