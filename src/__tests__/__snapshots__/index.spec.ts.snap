@@ -28,6 +28,7 @@ Array [
   "MappingSisyfosType",
   "MappingVMixType",
   "MediaSourceType",
+  "OSCDeviceType",
   "OSCValueType",
   "PREPARETIME",
   "QuantelControlMode",
