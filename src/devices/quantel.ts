@@ -83,7 +83,7 @@ export class QuantelDevice extends DeviceWithState<QuantelState> implements IDev
 				allowCloneClips: deviceOptions.options.allowCloneClips
 			}
 		)
-		this._quantelManager.on('info', str => this.emit('info', 'Quantel: ' + str))
+		this._quantelManager.on('info', x => this.emit('info',`Quantel: ${typeof x === 'string' ? x : JSON.stringify(x)}`))
 		this._quantelManager.on('warning', x => this.emit('warning', `Quantel: ${typeof x === 'string' ? x : JSON.stringify(x)}`))
 		this._quantelManager.on('error', e => this.emit('error', 'Quantel: ', e))
 		this._quantelManager.on('debug', (...args) => this.emit('debug', ...args))
