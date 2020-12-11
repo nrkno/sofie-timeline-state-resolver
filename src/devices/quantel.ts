@@ -84,8 +84,8 @@ export class QuantelDevice extends DeviceWithState<QuantelState> implements IDev
 			}
 		)
 		this._quantelManager.on('info', str => this.emit('info', 'Quantel: ' + str))
-		this._quantelManager.on('warning', str => this.emit('warning', 'Quantel' + str))
-		this._quantelManager.on('error', e => this.emit('error', 'Quantel', e))
+		this._quantelManager.on('warning', x => this.emit('warning', `Quantel: ${typeof x === 'string' ? x : JSON.stringify(x)}`))
+		this._quantelManager.on('error', e => this.emit('error', 'Quantel: ', e))
 		this._quantelManager.on('debug', (...args) => this.emit('debug', ...args))
 
 		this._doOnTime = new DoOnTime(() => {
