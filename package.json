@@ -124,7 +124,6 @@
     "@types/underscore": "^1.9.2",
     "@types/ws": "^7.2.4",
     "@types/xml-js": "^1.0.0",
-    "canvas": "^2.5.0",
     "class-transformer": "^0.2.3",
     "codecov": "^3.6.1",
     "gh-pages": "^3.0.0",
