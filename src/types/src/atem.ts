@@ -262,30 +262,47 @@ export interface TimelineObjAtemSsrcProps extends TimelineObjAtemBase {
 		deviceType: DeviceType.ATEM
 		type: TimelineContentTypeAtem.SSRCPROPS
 		ssrcProps: {
-			/** Fill */
+			/** Fill source */
 			artFillSource: number
-			/** Key */
+			/** Key source */
 			artCutSource: number
-			/** Foreground */
+			/** 0: Art Source in background, 1: Art Source in foreground */
 			artOption: number
-			/** Premultiply key */
+			/** Premultiply key for Art Source */
 			artPreMultiplied: boolean
-			// artClip: number
-			// artGain: number
-			// artInvertKey: number
-			// borderEnabled: number
-			// borderBevel: number
-			// borderOuterWidth: number
-			// borderInnerWidth: number
-			// borderOuterSoftness: number
-			// borderInnerSoftness: number
-			// borderBevelSoftness: number
-			// borderBevelPosition: number
-			// borderHue: number
-			// borderSaturation: number
-			// borderLuma: number
-			// borderLightSourceDirection: number
-			// borderLightSourceAltitude: number
+			/** Linear keyer Clip value for Art Source, 0-1000 */
+			artClip: number
+			/** Linear keyer Gain value for Art Source, 0-1000  */
+			artGain: number
+			/** Invert keyer Key input */
+			artInvertKey: boolean
+			/** Enable borders on boxes */
+			borderEnabled: boolean
+			/** Border Bevel mode:
+			 * 0: no bevel, 1: in/out, 2: in, 3: out */
+			borderBevel: number
+			/** Width of the outer side of the bevel, 0-1600 */
+			borderOuterWidth: number
+			/** Width of the inner side of the bevel, 0-1600 */
+			borderInnerWidth: number
+			/** Softness of the outer side of the bevel, 0-100 */
+			borderOuterSoftness: number
+			/** Softness of the inner side of the bevel, 0-100 */
+			borderInnerSoftness: number
+			/** Softness of the bevel, 0-100 */
+			borderBevelSoftness: number
+			/** Position of the bevel, 0-100 */
+			borderBevelPosition: number
+			/** Hue of the border color, 0-3599 */
+			borderHue: number
+			/** Saturation of the border color, 0-1000 */
+			borderSaturation: number
+			/** Luminance of the border color, 0-1000 */
+			borderLuma: number
+			/** Light source direction for rendering the bevel, 0-3590 */
+			borderLightSourceDirection: number
+			/** Light source altitude for rendering the bevel, 10-100 */
+			borderLightSourceAltitude: number
 		}
 	}
 }
