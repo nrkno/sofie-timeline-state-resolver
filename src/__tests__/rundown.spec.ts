@@ -81,7 +81,6 @@ describe('Rundown', () => {
 				retryInterval: false
 			}
 		})
-		await myConductor.setMapping(myLayerMapping)
 		await mockTime.advanceTimeToTicks(10001)
 
 		let deviceContainer = myConductor.getDevice('myCCG')
@@ -105,7 +104,7 @@ describe('Rundown', () => {
 		// 00:05 - pgm - stinger
 		// 00:05 - aux - bg_item2
 		// 00:08 - pgm - full opener
-		myConductor.timeline = [
+		myConductor.setTimelineAndMappings([
 			{
 				id: 'cam1',
 				content: {
@@ -339,7 +338,7 @@ describe('Rundown', () => {
 				},
 				layer: 'gfx'
 			}
-		]
+		], myLayerMapping)
 		await mockTime.advanceTimeToTicks(10101)
 
 		expect(mockTime.getCurrentTime()).toEqual(10101)
@@ -349,22 +348,22 @@ describe('Rundown', () => {
 		// PLAY 2-10 BG1
 		// PLAY 3-10 DECKLINK 3
 		// PLAY 3-20 DECKLINK 4
-		commandReceiver0Calls += 7
+		commandReceiver0Calls += 8
 		expect(commandReceiver0).toHaveBeenCalledTimes(commandReceiver0Calls)
-		expect(getMockCall(commandReceiver0, commandReceiver0Calls - 7, 1).name).toEqual('PlayRouteCommand')
-		expect(getMockCall(commandReceiver0, commandReceiver0Calls - 7, 1)._objectParams.command).toEqual('PLAY 1-10 route://3-10')
+		expect(getMockCall(commandReceiver0, commandReceiver0Calls - 8, 1).name).toEqual('PlayRouteCommand')
+		expect(getMockCall(commandReceiver0, commandReceiver0Calls - 8, 1)._objectParams.command).toEqual('PLAY 1-10 route://3-10')
 
-		expect(getMockCall(commandReceiver0, commandReceiver0Calls - 6, 1).name).toEqual('PlayCommand')
-		expect(getMockCall(commandReceiver0, commandReceiver0Calls - 6, 1)._objectParams).toMatchObject({
+		expect(getMockCall(commandReceiver0, commandReceiver0Calls - 7, 1).name).toEqual('PlayCommand')
+		expect(getMockCall(commandReceiver0, commandReceiver0Calls - 7, 1)._objectParams).toMatchObject({
 			channel: 1,
 			layer: 11,
 			noClear: false,
 			clip: 'opener_short',
 			loop: false,
-			seek: 0
+			seek: 1 // start at 10000 - 50 ms passed => seek 2
 		})
-		expect(getMockCall(commandReceiver0, commandReceiver0Calls - 5, 1).name).toEqual('PlayCommand')
-		expect(getMockCall(commandReceiver0, commandReceiver0Calls - 5, 1)._objectParams).toMatchObject({
+		expect(getMockCall(commandReceiver0, commandReceiver0Calls - 6, 1).name).toEqual('PlayCommand')
+		expect(getMockCall(commandReceiver0, commandReceiver0Calls - 6, 1)._objectParams).toMatchObject({
 			channel: 2,
 			layer: 10,
 			noClear: false,
@@ -372,8 +371,8 @@ describe('Rundown', () => {
 			loop: true,
 			seek: 0
 		})
-		expect(getMockCall(commandReceiver0, commandReceiver0Calls - 4, 1).name).toEqual('PlayDecklinkCommand')
-		expect(getMockCall(commandReceiver0, commandReceiver0Calls - 4, 1)._objectParams).toMatchObject({
+		expect(getMockCall(commandReceiver0, commandReceiver0Calls - 5, 1).name).toEqual('PlayDecklinkCommand')
+		expect(getMockCall(commandReceiver0, commandReceiver0Calls - 5, 1)._objectParams).toMatchObject({
 			channel: 3,
 			layer: 10,
 			noClear: false,
@@ -381,8 +380,8 @@ describe('Rundown', () => {
 			format: ChannelFormat.HD_720P5000,
 			channelLayout: undefined
 		})
-		expect(getMockCall(commandReceiver0, commandReceiver0Calls - 3, 1).name).toEqual('PlayDecklinkCommand')
-		expect(getMockCall(commandReceiver0, commandReceiver0Calls - 3, 1)._objectParams).toMatchObject({
+		expect(getMockCall(commandReceiver0, commandReceiver0Calls - 4, 1).name).toEqual('PlayDecklinkCommand')
+		expect(getMockCall(commandReceiver0, commandReceiver0Calls - 4, 1)._objectParams).toMatchObject({
 			channel: 3,
 			layer: 20,
 			noClear: false,
@@ -392,22 +391,29 @@ describe('Rundown', () => {
 		})
 
 		// SCHEDULE SET 1.5s MIXER OPACITY 25
-		expect(getMockCall(commandReceiver0, commandReceiver0Calls - 2, 1).name).toEqual('ScheduleSetCommand')
-		expect(getMockCall(commandReceiver0, commandReceiver0Calls - 2, 1)._objectParams.command.name).toEqual('MixerOpacityCommand')
-		expect(getMockCall(commandReceiver0, commandReceiver0Calls - 2, 1)._objectParams.timecode).toEqual('00:00:11:25')
-		expect(getMockCall(commandReceiver0, commandReceiver0Calls - 2, 1)._objectParams.command._objectParams).toMatchObject({
+		expect(getMockCall(commandReceiver0, commandReceiver0Calls - 3, 1).name).toEqual('ScheduleSetCommand')
+		expect(getMockCall(commandReceiver0, commandReceiver0Calls - 3, 1)._objectParams.command.name).toEqual('MixerOpacityCommand')
+		expect(getMockCall(commandReceiver0, commandReceiver0Calls - 3, 1)._objectParams.timecode).toEqual('00:00:11:25')
+		expect(getMockCall(commandReceiver0, commandReceiver0Calls - 3, 1)._objectParams.command._objectParams).toMatchObject({
 			'channel': 1,
 			'layer': 11,
 			'transition': 'mix',
-			'transitionDuration': 13,
+			'transitionDuration': 12,
 			'transitionEasing': 'linear',
 			'transitionDirection': 'right',
 			'opacity': 0,
 			'keyword': 'OPACITY'
 		})
+		expect(getMockCall(commandReceiver0, commandReceiver0Calls - 2, 1).name).toEqual('ScheduleSetCommand')
+		expect(getMockCall(commandReceiver0, commandReceiver0Calls - 2, 1)._objectParams.timecode).toEqual('00:00:12:00')
+		expect(getMockCall(commandReceiver0, commandReceiver0Calls - 2, 1)._objectParams.command.name).toEqual('ClearCommand')
+		expect(getMockCall(commandReceiver0, commandReceiver0Calls - 2, 1)._objectParams.command._objectParams).toMatchObject({
+			'channel': 1,
+			'layer': 11
+		})
 		expect(getMockCall(commandReceiver0, commandReceiver0Calls - 1, 1).name).toEqual('ScheduleSetCommand')
 		expect(getMockCall(commandReceiver0, commandReceiver0Calls - 1, 1)._objectParams.timecode).toEqual('00:00:12:00')
-		expect(getMockCall(commandReceiver0, commandReceiver0Calls - 1, 1)._objectParams.command.name).toEqual('ClearCommand')
+		expect(getMockCall(commandReceiver0, commandReceiver0Calls - 1, 1)._objectParams.command.name).toEqual('MixerClearCommand')
 		expect(getMockCall(commandReceiver0, commandReceiver0Calls - 1, 1)._objectParams.command._objectParams).toMatchObject({
 			'channel': 1,
 			'layer': 11

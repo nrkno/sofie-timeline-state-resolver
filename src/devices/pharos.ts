@@ -13,7 +13,8 @@ import {
 	TimelineObjPharos,
 	TimelineObjPharosScene,
 	TimelineObjPharosTimeline,
-	DeviceOptionsPharos
+	DeviceOptionsPharos,
+	Mappings
 } from '../types/src'
 
 import { TimelineState, ResolvedTimelineObjectInstance } from 'superfly-timeline'
@@ -47,7 +48,7 @@ type CommandContext = string
  * This is a wrapper for a Pharos-devices,
  * https://www.pharoscontrols.com/downloads/documentation/application-notes/
  */
-export class PharosDevice extends DeviceWithState<TimelineState> implements IDevice {
+export class PharosDevice extends DeviceWithState<PharosState> implements IDevice {
 	private _doOnTime: DoOnTime
 
 	private _pharos: Pharos
@@ -105,13 +106,13 @@ export class PharosDevice extends DeviceWithState<TimelineState> implements IDev
 	 * in time.
 	 * @param newState
 	 */
-	handleState (newState: TimelineState) {
+	handleState (newState: TimelineState, newMappings: Mappings) {
+		super.onHandleState(newState, newMappings)
 		// Handle this new state, at the point in time specified
 
 		let previousStateTime = Math.max(this.getCurrentTime(), newState.time)
-		let oldState: TimelineState = (this.getStateBefore(previousStateTime) || { state: { time: 0, layers: {}, nextEvents: [] } }).state
+		let oldPharosState: PharosState = (this.getStateBefore(previousStateTime) || { state: { Layers: {}, time: 0, layers: {}, nextEvents: [] } }).state
 
-		let oldPharosState = this.convertStateToPharos(oldState)
 		let newPharosState = this.convertStateToPharos(newState)
 
 		let commandsToAchieveState: Array<Command> = this._diffStates(oldPharosState, newPharosState)
@@ -122,7 +123,7 @@ export class PharosDevice extends DeviceWithState<TimelineState> implements IDev
 		this._addToQueue(commandsToAchieveState, newState.time)
 
 		// store the new state, for later use:
-		this.setState(newState, newState.time)
+		this.setState(newPharosState, newState.time)
 	}
 	clearFuture (clearAfterTime: number) {
 		// Clear any scheduled commands after this time

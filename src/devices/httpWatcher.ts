@@ -9,7 +9,8 @@ import {
 	DeviceType,
 	TimelineContentTypeHTTP,
 	HTTPWatcherOptions,
-	DeviceOptionsHTTPpWatcher
+	DeviceOptionsHTTPpWatcher,
+	Mappings
 } from '../types/src'
 import * as request from 'request'
 
@@ -117,7 +118,8 @@ export class HTTPWatcherDevice extends Device implements IDevice {
 	prepareForHandleState (_newStateTime: number) {
 		// NOP
 	}
-	handleState (_newState: TimelineState) {
+	handleState (newState: TimelineState, newMappings: Mappings) {
+		super.onHandleState(newState, newMappings)
 		// NOP
 	}
 	clearFuture (_clearAfterTime: number) {

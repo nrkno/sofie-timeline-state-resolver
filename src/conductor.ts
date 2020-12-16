@@ -39,6 +39,7 @@ import { VizMSEDevice, DeviceOptionsVizMSEInternal } from './devices/vizMSE'
 import PQueue from 'p-queue'
 import * as PAll from 'p-all'
 import PTimeout from 'p-timeout'
+import { ShotokuDevice, DeviceOptionsShotokuInternal } from './devices/shotoku'
 
 export { DeviceContainer }
 export { CommandWithContext }
@@ -114,7 +115,7 @@ export class Conductor extends EventEmitter {
 
 	private _logDebug: boolean = false
 	private _timeline: TSRTimeline = []
-	private _mapping: Mappings = {}
+	private _mappings: Mappings = {}
 
 	private _options: ConductorOptions
 
@@ -147,9 +148,6 @@ export class Conductor extends EventEmitter {
 	private _statMeasureStart: number = 0
 	private _statMeasureReason: string = ''
 	private _statReports: StatReport[] = []
-
-	private _resolveTimelineRunning: boolean = false
-	private _resolveTimelineOnQueue: boolean = false
 
 	private _resolver: ThreadedClass<AsyncResolver>
 
@@ -223,23 +221,7 @@ export class Conductor extends EventEmitter {
 	 * Returns the mappings
 	 */
 	get mapping (): Mappings {
-		return this._mapping
-	}
-	/**
-	 * Updates the mappings in the Conductor class and all devices and forces
-	 * a resolve timeline.
-	 * @param mapping The new mappings
-	 */
-	async setMapping (mapping: Mappings) {
-		// Set mapping
-		// re-resolve timeline
-		this._mapping = mapping
-
-		await this._mapAllDevices(d => d.device.setMapping(mapping))
-
-		if (this._timeline) {
-			this._resolveTimeline()
-		}
+		return this._mappings
 	}
 	/**
 	 * Returns the current timeline
@@ -250,9 +232,10 @@ export class Conductor extends EventEmitter {
 	/**
 	 * Sets a new timeline and resets the resolver.
 	 */
-	set timeline (timeline: TSRTimeline) {
+	setTimelineAndMappings (timeline: TSRTimeline, mappings?: Mappings) {
 		this.statStartMeasure('timeline received')
 		this._timeline = timeline
+		if (mappings) this._mappings = mappings
 
 		// We've got a new timeline, anything could've happened at this point
 		// Highest priority right now is to determine if any commands have to be sent RIGHT NOW
@@ -413,6 +396,15 @@ export class Conductor extends EventEmitter {
 					getCurrentTime,
 					threadedClassOptions
 				)
+			} else if (deviceOptions.type === DeviceType.SHOTOKU) {
+				newDevice = await new DeviceContainer().create<ShotokuDevice, typeof ShotokuDevice>(
+					'../../dist/devices/shotoku.js',
+					ShotokuDevice,
+					deviceId,
+					deviceOptions,
+					getCurrentTime,
+					threadedClassOptions
+				)
 			} else if (deviceOptions.type === DeviceType.SISYFOS) {
 				newDevice = await new DeviceContainer().create<SisyfosMessageDevice, typeof SisyfosMessageDevice>(
 					'../../dist/devices/sisyfos.js',
@@ -479,8 +471,6 @@ export class Conductor extends EventEmitter {
 
 			this.emit('info', `Initializing device ${newDevice.deviceId} (${newDevice.instanceId}) of type ${DeviceType[deviceOptions.type]}...`)
 			this.devices[deviceId] = newDevice
-			// @ts-ignore
-			await newDevice.device.setMapping(this.mapping)
 
 			// TODO - should the device be on this.devices yet? sounds like we could instruct it to do things before it has initialised?
 
@@ -540,12 +530,16 @@ export class Conductor extends EventEmitter {
 	 * next time
 	 */
 	public resetResolver () {
-
-		this._nextResolveTime = 0 // This will cause _resolveTimeline() to generate the state for NOW
-		this._resolvedStates = {
-			resolvedStates: null,
-			resolveTime: 0
-		}
+		// reset the resolver through the action queue to make sure it is reset after any currently running timelineResolves
+		this._actionQueue.add(async () => {
+			this._nextResolveTime = 0 // This will cause _resolveTimeline() to generate the state for NOW
+			this._resolvedStates = {
+				resolvedStates: null,
+				resolveTime: 0
+			}
+		}).catch(() => {
+			this.emit('error', 'Failed to reset the resolvedStates, timeline may not be updated appropriately!')
+		})
 
 		this._triggerResolveTimeline()
 	}
@@ -600,33 +594,17 @@ export class Conductor extends EventEmitter {
 	 * Resolves the timeline for the next resolve-time, generates the commands and passes on the commands.
 	 */
 	private _resolveTimeline () {
-		if (this._resolveTimelineRunning) {
-			// If a resolve is already running, put in queue to run later:
-			this._resolveTimelineOnQueue = true
-			return
-		}
-
-		this._resolveTimelineRunning = true
-
+		// this adds it to a queue, make sure it never runs more than once at a time:
 		this._actionQueue.add(() => {
 			return this._resolveTimelineInner()
+			.then((nextResolveTime) => {
+				this._nextResolveTime = nextResolveTime || 0
+			})
 			.catch(e => {
 				this.emit('error', 'Caught error in _resolveTimelineInner' + e)
 			})
 		})
-		.then((nextResolveTime) => {
-			this._resolveTimelineRunning = false
-			if (this._resolveTimelineOnQueue) {
-				// re-run the resolver right away, again
-
-				this._resolveTimelineOnQueue = false
-				this._triggerResolveTimeline(0)
-			} else {
-				this._nextResolveTime = nextResolveTime || 0
-			}
-		})
 		.catch(e => {
-			this._resolveTimelineRunning = false
 			this.emit('error', 'Caught error in _resolveTimeline.then' + e)
 		})
 	}
@@ -777,7 +755,7 @@ export class Conductor extends EventEmitter {
 
 				// Pass along the state to the device, it will generate its commands and execute them:
 				try {
-					await device.device.handleState(removeParent(subState))
+					await device.device.handleState(removeParent(subState), this._mappings)
 				} catch (e) {
 					this.emit('error', 'Error in device "' + device.deviceId + '"' + e + ' ' + e.stack)
 				}
@@ -1153,9 +1131,9 @@ export class Conductor extends EventEmitter {
 		})
 		_.each(layers, (o: ResolvedTimelineObjectInstance, layerId: string) => {
 			const oExt: ResolvedTimelineObjectInstanceExtended = o
-			let mapping: Mapping = this._mapping[o.layer + '']
+			let mapping: Mapping = this._mappings[o.layer + '']
 			if (!mapping && oExt.isLookahead && oExt.lookaheadForLayer) {
-				mapping = this._mapping[oExt.lookaheadForLayer]
+				mapping = this._mappings[oExt.lookaheadForLayer]
 			}
 			if (mapping) {
 				const deviceIdAndType = mapping.deviceId + '__' + mapping.device
@@ -1187,6 +1165,7 @@ export type DeviceOptionsAnyInternal = (
 	DeviceOptionsQuantelInternal |
 	DeviceOptionsSingularLiveInternal |
 	DeviceOptionsVMixInternal |
+	DeviceOptionsShotokuInternal |
 	DeviceOptionsVizMSEInternal |
 	DeviceOptionsSingularLiveInternal |
 	DeviceOptionsVizMSEInternal

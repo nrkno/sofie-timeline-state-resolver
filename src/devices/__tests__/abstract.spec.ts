@@ -42,7 +42,6 @@ describe('Abstract device', () => {
 				commandReceiver: commandReceiver0
 			}
 		})
-		await myConductor.setMapping(myLayerMapping)
 		await mockTime.advanceTimeToTicks(10100)
 
 		let deviceContainer = myConductor.getDevice('myAbstract')
@@ -62,7 +61,7 @@ describe('Abstract device', () => {
 		// Check that no commands has been scheduled:
 		expect(await device.queue).toHaveLength(0)
 
-		myConductor.timeline = [
+		myConductor.setTimelineAndMappings([
 			{
 				id: 'obj0',
 				enable: {
@@ -87,7 +86,7 @@ describe('Abstract device', () => {
 					tmp0: 'abcde'
 				}
 			}
-		]
+		], myLayerMapping)
 
 		await mockTime.advanceTimeToTicks(10200)
 		expect(commandReceiver0).toHaveBeenCalledTimes(1)
@@ -153,7 +152,6 @@ describe('Abstract device', () => {
 			type: DeviceType.ABSTRACT,
 			options: {}
 		})
-		await myConductor.setMapping(myLayerMapping)
 		await mockTime.advanceTimeToTicks(10100)
 
 		let deviceContainer = myConductor.getDevice('myAbstract')
@@ -168,7 +166,7 @@ describe('Abstract device', () => {
 		// Check that no commands has been scheduled:
 		expect(await device.queue).toHaveLength(0)
 
-		myConductor.timeline = [
+		myConductor.setTimelineAndMappings([
 			{
 				id: 'obj0',
 				enable: {
@@ -180,7 +178,7 @@ describe('Abstract device', () => {
 					deviceType: DeviceType.ABSTRACT
 				}
 			}
-		]
+		], myLayerMapping)
 
 		await mockTime.advanceTimeToTicks(10200)
 		expect(onDebug).toHaveBeenCalledTimes(1)
