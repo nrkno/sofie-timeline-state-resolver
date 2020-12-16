@@ -257,55 +257,75 @@ export interface TimelineObjAtemSsrc extends TimelineObjAtemBase {
 		}
 	}
 }
+
+interface AtemSSrcPropsBase {
+	/** Fill source */
+	artFillSource: number
+	/** Key source */
+	artCutSource: number
+	/** 0: Art Source in background, 1: Art Source in foreground */
+	artOption: number
+}
+
+interface AtemSSrcPropsPreMultiplied extends AtemSSrcPropsBase {
+	/** Premultiply key for Art Source */
+	artPreMultiplied: true
+}
+
+interface AtemSSrcPropsStraight extends AtemSSrcPropsBase {
+	/** Premultiply key for Art Source */
+	artPreMultiplied: false
+	/** Linear keyer Clip value for Art Source, 0-1000 */
+	artClip: number
+	/** Linear keyer Gain value for Art Source, 0-1000  */
+	artGain: number
+	/** Invert keyer Key input */
+	artInvertKey: boolean
+}
+
+interface AtemSSrcPropsNoBorder {
+	/** Enable borders on boxes */
+	borderEnabled?: false
+}
+
+interface AtemSSrcPropsBorder {
+	/** Enable borders on boxes */
+	borderEnabled?: true
+	/** Border Bevel mode:
+	 * 0: no bevel, 1: in/out, 2: in, 3: out */
+	borderBevel: number
+	/** Width of the outer side of the bevel, 0-1600 */
+	borderOuterWidth: number
+	/** Width of the inner side of the bevel, 0-1600 */
+	borderInnerWidth: number
+	/** Softness of the outer side of the bevel, 0-100 */
+	borderOuterSoftness: number
+	/** Softness of the inner side of the bevel, 0-100 */
+	borderInnerSoftness: number
+	/** Softness of the bevel, 0-100 */
+	borderBevelSoftness: number
+	/** Position of the bevel, 0-100 */
+	borderBevelPosition: number
+	/** Hue of the border color, 0-3599 */
+	borderHue: number
+	/** Saturation of the border color, 0-1000 */
+	borderSaturation: number
+	/** Luminance of the border color, 0-1000 */
+	borderLuma: number
+	/** Light source direction for rendering the bevel, 0-3590 */
+	borderLightSourceDirection: number
+	/** Light source altitude for rendering the bevel, 10-100 */
+	borderLightSourceAltitude: number
+}
+
 export interface TimelineObjAtemSsrcProps extends TimelineObjAtemBase {
 	content: {
 		deviceType: DeviceType.ATEM
 		type: TimelineContentTypeAtem.SSRCPROPS
-		ssrcProps: {
-			/** Fill source */
-			artFillSource: number
-			/** Key source */
-			artCutSource: number
-			/** 0: Art Source in background, 1: Art Source in foreground */
-			artOption: number
-			/** Premultiply key for Art Source */
-			artPreMultiplied: boolean
-			/** Linear keyer Clip value for Art Source, 0-1000 */
-			artClip: number
-			/** Linear keyer Gain value for Art Source, 0-1000  */
-			artGain: number
-			/** Invert keyer Key input */
-			artInvertKey: boolean
-			/** Enable borders on boxes */
-			borderEnabled: boolean
-			/** Border Bevel mode:
-			 * 0: no bevel, 1: in/out, 2: in, 3: out */
-			borderBevel: number
-			/** Width of the outer side of the bevel, 0-1600 */
-			borderOuterWidth: number
-			/** Width of the inner side of the bevel, 0-1600 */
-			borderInnerWidth: number
-			/** Softness of the outer side of the bevel, 0-100 */
-			borderOuterSoftness: number
-			/** Softness of the inner side of the bevel, 0-100 */
-			borderInnerSoftness: number
-			/** Softness of the bevel, 0-100 */
-			borderBevelSoftness: number
-			/** Position of the bevel, 0-100 */
-			borderBevelPosition: number
-			/** Hue of the border color, 0-3599 */
-			borderHue: number
-			/** Saturation of the border color, 0-1000 */
-			borderSaturation: number
-			/** Luminance of the border color, 0-1000 */
-			borderLuma: number
-			/** Light source direction for rendering the bevel, 0-3590 */
-			borderLightSourceDirection: number
-			/** Light source altitude for rendering the bevel, 10-100 */
-			borderLightSourceAltitude: number
-		}
+		ssrcProps: (AtemSSrcPropsPreMultiplied | AtemSSrcPropsStraight) & (AtemSSrcPropsNoBorder | AtemSSrcPropsBorder)
 	}
 }
+
 export interface TimelineObjAtemMediaPlayer extends TimelineObjAtemBase {
 	content: {
 		deviceType: DeviceType.ATEM
