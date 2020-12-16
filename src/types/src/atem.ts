@@ -292,7 +292,7 @@ interface AtemSSrcPropsBorder {
 	/** Enable borders on boxes */
 	borderEnabled?: true
 	/** Border Bevel mode:
-	 * 0: no bevel, 1: in/out, 2: in, 3: out */
+	  * 0: no bevel, 1: in/out, 2: in, 3: out */
 	borderBevel: number
 	/** Width of the outer side of the bevel, 0-1600 */
 	borderOuterWidth: number
