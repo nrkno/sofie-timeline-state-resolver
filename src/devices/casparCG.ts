@@ -492,7 +492,7 @@ export class CasparCGDevice extends DeviceWithState<State> implements IDevice {
 				const backgroundStateLayer = backgroundObj ? this.convertObjectToCasparState(mappings, backgroundObj, mapping, false) : undefined
 
 				if (foregroundStateLayer) {
-					channel.layers[mapping.layer] = {
+					channel.layers[layerName] = {
 						...foregroundStateLayer,
 						nextUp: backgroundStateLayer ? literal<NextUp>({
 							...backgroundStateLayer as NextUp,
@@ -501,12 +501,12 @@ export class CasparCGDevice extends DeviceWithState<State> implements IDevice {
 					}
 				} else if (backgroundStateLayer) {
 					if (mapping.previewWhenNotOnAir) {
-						channel.layers[mapping.layer] = {
+						channel.layers[layerName] = {
 							...backgroundStateLayer,
 							playing: false
 						}
 					} else {
-						channel.layers[mapping.layer] = literal<EmptyLayer>({
+						channel.layers[layerName] = literal<EmptyLayer>({
 							id: `${backgroundStateLayer.id}_empty_base`,
 							layerNo: mapping.layer,
 							content: LayerContentType.NOTHING,
