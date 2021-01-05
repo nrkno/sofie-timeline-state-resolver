@@ -44,7 +44,7 @@ type ShotokuDeviceState = {
 	sequences: Record<string, {
 		fromTlObject: string,
 		shots: TimelineObjShotokuSequence['content']['shots']
-	}>,
+	}>
 }
 interface ShotokuDeviceStateContent extends ShotokuCommandContent {
 	fromTlObject: string
@@ -97,12 +97,12 @@ export class ShotokuDevice extends DeviceWithState<ShotokuDeviceState> implement
 		// Transform timeline states into device states
 		let previousStateTime = Math.max(this.getCurrentTime(), newState.time)
 		let oldState: ShotokuDeviceState = (this.getStateBefore(previousStateTime) || { state: { shots: {}, sequences: {} } }).state
-		
+
 		let newShotokuState = this.convertStateToShotokuShots(newState)
-		
+
 		// Generate commands necessary to transition to the new state
 		let commandsToAchieveState = this._diffStates(oldState, newShotokuState)
-		
+
 		// clear any queued commands later than this time:
 		this._doOnTime.clearQueueNowAndAfter(previousStateTime)
 		// add the new commands to the queue:
