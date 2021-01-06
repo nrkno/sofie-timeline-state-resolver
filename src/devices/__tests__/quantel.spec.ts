@@ -1036,7 +1036,7 @@ describe('Quantel', () => {
 		expect(errorHandler).toHaveBeenCalledTimes(0)
 		expect(deviceErrorHandler).toHaveBeenCalledTimes(0)
 	})
-	test.only('Play, then pause', async () => {
+	test.skip('Play, then pause', async () => {
 		let device
 		const commandReceiver0: any = jest.fn((...args) => {
 			// pipe through the command
