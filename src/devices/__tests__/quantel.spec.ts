@@ -1036,4 +1036,236 @@ describe('Quantel', () => {
 		expect(errorHandler).toHaveBeenCalledTimes(0)
 		expect(deviceErrorHandler).toHaveBeenCalledTimes(0)
 	})
+	test.only('Play, then pause', async () => {
+		let device
+		const commandReceiver0: any = jest.fn((...args) => {
+			// pipe through the command
+			return device._defaultCommandReceiver(...args)
+		})
+
+		let myLayerMapping0: MappingQuantel = {
+			device: DeviceType.QUANTEL,
+			deviceId: 'myQuantel',
+
+			portId: 'my_port',
+			channelId: 2
+			// keyChannelID: number
+			// mode?: QuantelControlMode
+		}
+		let myLayerMapping: Mappings = {
+			'myLayer0': myLayerMapping0
+		}
+
+		let myConductor = new Conductor({
+			initializeAsClear: true,
+			getCurrentTime: mockTime.getCurrentTime
+		})
+		let errorHandler = jest.fn((...args) => console.log('Error in device', ...args))
+		myConductor.on('error', errorHandler)
+		myConductor.on('commandError', errorHandler)
+		await myConductor.init()
+
+		await t(myConductor.addDevice('myQuantel', {
+			type: DeviceType.QUANTEL,
+			options: {
+				commandReceiver: commandReceiver0,
+				// host: '127.0.0.1'
+
+				gatewayUrl: 	'localhost:3000',
+				ISAUrlMaster: 	'myISA:8000',
+				zoneId: 		undefined, // fallback to 'default'
+				serverId: 		1100
+			}
+		}), mockTime)
+
+		let deviceContainer = myConductor.getDevice('myQuantel')
+		device = deviceContainer.device as ThreadedClass<QuantelDevice>
+		let deviceErrorHandler = jest.fn((...args) => console.log('Error in device', ...args))
+		device.on('error', deviceErrorHandler)
+		device.on('commandError', deviceErrorHandler)
+
+		myConductor.setTimelineAndMappings([], myLayerMapping)
+
+		expect(mockTime.getCurrentTime()).toEqual(10000)
+		await mockTime.advanceTimeToTicks(10100)
+
+		expect(commandReceiver0).toHaveBeenCalledTimes(2)
+		expect(commandReceiver0).toHaveBeenNthCalledWith(1, expect.toBeCloseTo(10000, ADEV), expect.objectContaining({
+			type: QuantelCommandType.SETUPPORT,
+			time: 10005 // Because it was so close to currentTime, otherwise 9000
+		}), expect.any(String), expect.any(String))
+		expect(commandReceiver0).toHaveBeenNthCalledWith(2, expect.toBeCloseTo(10000, ADEV), expect.objectContaining({
+			type: QuantelCommandType.CLEARCLIP,
+			time: 10005
+		}), expect.any(String), expect.any(String))
+
+		// expect(onRequest).toHaveBeenCalledTimes(6)
+
+		// Connect to ISA
+		// expect(onRequest).toHaveBeenNthCalledWith(1, 'post', 'http://localhost:3000/connect/myISA%3A8000')
+		// // get initial server info
+		// expect(onRequest).toHaveBeenNthCalledWith(2, 'get', 'http://localhost:3000/default/server')
+
+		// // Set up port:
+		// // get server info
+		// expect(onRequest).toHaveBeenNthCalledWith(3, 'get', 'http://localhost:3000/default/server')
+		// // get port info
+		// expect(onRequest).toHaveBeenNthCalledWith(4, 'get', 'http://localhost:3000/default/server/1100/port/my_port')
+		// // create new port and assign to channel
+		// expect(onRequest).toHaveBeenNthCalledWith(5, 'put', 'http://localhost:3000/default/server/1100/port/my_port/channel/2')
+		// // Reset the port
+		// expect(onRequest).toHaveBeenNthCalledWith(6, 'post', 'http://localhost:3000/default/server/1100/port/my_port/reset')
+
+		clearMocks()
+		commandReceiver0.mockClear()
+
+		quantelServer.ignoreConnectivityCheck = true
+
+		// Check that no commands has been scheduled:
+		expect(await device.queue).toHaveLength(0)
+
+		myConductor.setTimelineAndMappings([
+			{
+				id: 'video0',
+				enable: {
+					start: 11000,
+					duration: 5000
+				},
+				layer: 'myLayer0',
+				content: {
+					deviceType: DeviceType.QUANTEL,
+
+					title: 'myClip0'
+
+					// seek?: number
+					// inPoint?: number
+					// length?: number
+					// pauseTime?: number
+					// playing?: boolean
+					// noStarttime?: boolean
+				}
+			}
+		])
+		// Time to preload the clip
+		await mockTime.advanceTimeToTicks(10990)
+
+		expect(commandReceiver0).toHaveBeenCalledTimes(1)
+		expect(commandReceiver0).toHaveBeenNthCalledWith(1, 10155, expect.objectContaining({
+			type: QuantelCommandType.LOADCLIPFRAGMENTS
+		}), expect.any(String), expect.any(String))
+
+		expect(onRequest).toHaveBeenCalledTimes(6)
+
+		// Search for and get clip info:
+		expect(onRequest).toHaveBeenNthCalledWith(1, 'get', expect.stringContaining('/default/clip?Title=%22myClip0%22'))
+		expect(onRequest).toHaveBeenNthCalledWith(2, 'get', expect.stringContaining('/default/clip/1337'))
+		// Fetch fragments:
+		expect(onRequest).toHaveBeenNthCalledWith(3, 'get', expect.stringContaining('clip/1337/fragments'))
+		// get port info
+		expect(onRequest).toHaveBeenNthCalledWith(4, 'get', expect.stringContaining('default/server/1100/port/my_port'))
+		// Load fragments
+		expect(onRequest).toHaveBeenNthCalledWith(5, 'post',expect.stringContaining('port/my_port/fragments'))
+		// Prepare jump:
+		expect(onRequest).toHaveBeenNthCalledWith(6, 'put',expect.stringContaining('port/my_port/jump?offset=0'))
+
+		clearMocks()
+		commandReceiver0.mockClear()
+
+		// Time to start playing
+		await mockTime.advanceTimeToTicks(11300)
+
+		expect(commandReceiver0).toHaveBeenCalledTimes(1)
+		expect(commandReceiver0).toHaveBeenNthCalledWith(1, 11000, expect.objectContaining({
+			type: QuantelCommandType.PLAYCLIP
+		}), expect.any(String), expect.any(String))
+
+		expect(onRequest).toHaveBeenCalledTimes(3)
+
+		// Trigger Jump
+		// expect(onRequest).toHaveBeenNthCalledWith(1, 'post', expect.stringContaining('/default/server/1100/port/my_port/trigger/JUMP'))
+		// Trigger play
+		expect(onRequest).toHaveBeenNthCalledWith(1, 'post', expect.stringContaining('/default/server/1100/port/my_port/trigger/START'))
+		// Check that play worked
+		expect(onRequest).toHaveBeenNthCalledWith(2, 'get', expect.stringContaining('default/server/1100/port/my_port'))
+		// Plan to stop at end of clip
+		expect(onRequest).toHaveBeenNthCalledWith(3, 'post', expect.stringContaining('/default/server/1100/port/my_port/trigger/STOP?offset=1999'))
+
+		clearMocks()
+		commandReceiver0.mockClear()
+
+		await mockTime.advanceTimeToTicks(14000)
+
+		// Add a lookahead
+		myConductor.setTimelineAndMappings([
+			{
+				id: 'video0',
+				enable: {
+					start: 11000,
+					duration: 5000
+				},
+				layer: 'myLayer0',
+				content: {
+					deviceType: DeviceType.QUANTEL,
+
+					title: 'myClip0'
+				}
+			},
+			{
+				id: 'lookahead_video0',
+				enable: {
+					while: 1
+				},
+				content: {
+					deviceType: DeviceType.QUANTEL,
+					title: 'myClip0'
+				},
+				layer: 'lookahead_myLayer0',
+				isLookahead: true,
+				lookaheadForLayer: 'myLayer0'
+			}
+		])
+
+		// Should seek to the beginning
+		await mockTime.advanceTimeTicks(1000)
+		expect(commandReceiver0).toHaveBeenCalledTimes(2)
+		expect(commandReceiver0).toHaveBeenNthCalledWith(1, 14005, expect.objectContaining({
+			type: QuantelCommandType.LOADCLIPFRAGMENTS
+		}), expect.any(String), expect.any(String))
+		expect(commandReceiver0).toHaveBeenNthCalledWith(2, 14010, expect.objectContaining({
+			type: QuantelCommandType.PAUSECLIP
+		}), expect.any(String), expect.any(String))
+
+		console.log('onRequest', onRequest.mock.calls)
+		expect(onRequest).toHaveBeenCalledTimes(4)
+		// Clear port from clip (reset port)
+		expect(onRequest).toHaveBeenNthCalledWith(1, 'get', expect.stringContaining('default/clip/1337'))
+		// Prepare jump:
+		expect(onRequest).toHaveBeenNthCalledWith(2, 'put', expect.stringContaining('port/my_port/jump?offset=0'))
+		// Stop playing:
+		expect(onRequest).toHaveBeenNthCalledWith(3, 'post', expect.stringContaining('port/my_port/trigger/STOP'))
+		// Trigger jump:
+		expect(onRequest).toHaveBeenNthCalledWith(4, 'post', expect.stringContaining('port/my_port/trigger/JUMP'))
+
+		// Only have the lookahead
+		myConductor.setTimelineAndMappings([
+			{
+				id: 'lookahead_video0',
+				enable: {
+					while: 1
+				},
+				content: {
+					deviceType: DeviceType.QUANTEL,
+					title: 'myClip0'
+				},
+				layer: 'lookahead_myLayer0',
+				isLookahead: true,
+				lookaheadForLayer: 'myLayer0'
+			}
+		])
+
+		await myConductor.destroy()
+
+		expect(errorHandler).toHaveBeenCalledTimes(0)
+		expect(deviceErrorHandler).toHaveBeenCalledTimes(0)
+	})
 })

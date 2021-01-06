@@ -281,6 +281,12 @@ export class QuantelDevice extends DeviceWithState<QuantelState> implements IDev
 				const port: QuantelStatePort = state.port[mapping.portId]
 				if (!port) throw new Error(`Port "${mapping.portId}" not found`)
 
+				if (isLookahead && port.clip) {
+					// there is already a non-lookahead on the port
+					// TODO: add something for lookahead, so that loadFragments is stil performed
+					return // skip
+				}
+
 				if (layer.content && (layer.content.title || layer.content.guid)) {
 					const clip = layer as any as TimelineObjQuantelClip
 
@@ -801,7 +807,7 @@ class QuantelManager extends EventEmitter {
 		trackedPort.jumpOffset = null
 		trackedPort.scheduledStop = null
 	}
-	private async prepareClipJump (cmd: QuantelCommandClip, alsoDoAction?: 'play' | 'pause'): Promise<void> {
+	private async prepareClipJump (cmd: QuantelCommandClip, alsoDoAction: 'play' | 'pause'): Promise<void> {
 
 		// Fetch tracked reference to the loaded clip:
 		const trackedPort = this.getTrackedPort(cmd.portId)
@@ -831,10 +837,15 @@ class QuantelManager extends EventEmitter {
 		)
 		this.emit('warning', `prepareClipJump: cmd=${JSON.stringify(cmd)}: ${alsoDoAction}: clipId=${clipId}: jumpToOffset=${jumpToOffset}: trackedPort=${JSON.stringify(trackedPort)}`)
 		if (
-			jumpToOffset === trackedPort.offset || // We're already there
 			(
+				jumpToOffset === trackedPort.offset &&
+				trackedPort.playing === false // On request to play clip again, prepare jump
+			) || // We're already there
+			(
+				// TODO: what situation is this for??
 				alsoDoAction === 'play' &&
 				// trackedPort.offset &&
+				trackedPort.playing === false &&
 				jumpToOffset > trackedPort.offset &&
 				jumpToOffset - trackedPort.offset < JUMP_ERROR_MARGIN
 				// We're probably a bit late, just start playing
@@ -842,10 +853,14 @@ class QuantelManager extends EventEmitter {
 		) {
 			// do nothing
 		} else {
+			// We've determined that we're not on the correct frame
 
 			if (
 				trackedPort.jumpOffset !== null &&
-				Math.abs(trackedPort.jumpOffset - jumpToOffset) > JUMP_ERROR_MARGIN
+				(
+					Math.abs(trackedPort.jumpOffset - jumpToOffset) > JUMP_ERROR_MARGIN // "the prepared jump is still valid"
+					// || trackedPort.playing === true // Likely request to play clip again
+				)
 			) {
 				// It looks like the stored jump is no longer valid
 				// Invalidate stored jump:
@@ -896,6 +911,7 @@ class QuantelManager extends EventEmitter {
 
 					trackedPort.offset = jumpToOffset
 					trackedPort.playing = false
+					// trackedPort.jumpOffset = null TODO:
 				}
 			}
 		}
@@ -939,6 +955,7 @@ class QuantelManager extends EventEmitter {
 			}
 			trackedPort.scheduledStop = null
 			trackedPort.playing = true
+			// trackedPort.jumpOffset = null
 
 			// Schedule the port to stop at the last frame of the clip
 			if (loadedFragments.portOutPoint) {
@@ -1238,6 +1255,8 @@ interface QuantelTrackedStatePort {
 	jumpOffset: number | null
 	/** When preparing a stop, this is the frame the playhead will stop at */
 	scheduledStop: number | null
+	// /** When a clip is playing and becomes the lookahead, soft jump is prepared but must be made before play. */
+	// jumpBeforePlay: boolean
 }
 interface MappedPorts extends MonitorPorts {
 	[portId: string]: {
