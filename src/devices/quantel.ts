@@ -284,10 +284,21 @@ export class QuantelDevice extends DeviceWithState<QuantelState> implements IDev
 				if (layer.content && (layer.content.title || layer.content.guid)) {
 					const clip = layer as any as TimelineObjQuantelClip
 
-					if (isLookahead && port.clip) {
-						// there is already a non-lookahead on the port
-						// TODO: add something for lookahead, so that loadFragments is stil performed
+					// Note on lookaheads:
+					// If there is ONLY a lookahead on a port, it'll be treated as a "paused (real) clip"
+					// If there is a lookahead alongside the a real clip, its fragments will be preloaded
 
+					if (isLookahead) {
+						port.lookaheadClip = {
+							title: clip.content.title,
+							guid: clip.content.guid,
+							timelineObjId: layer.id
+						}
+					}
+
+					if (isLookahead && port.clip) {
+						// There is already a non-lookahead on the port
+						// Do nothing more with this then
 					} else {
 
 						const startTime = layer.instance.originalStart || layer.instance.start
@@ -376,6 +387,30 @@ export class QuantelDevice extends DeviceWithState<QuantelState> implements IDev
 		const addCommand = (command: QuantelCommand, lowPriority: boolean) => {
 			(lowPriority ? lowPrioCommands : highPrioCommands).push(command)
 		}
+		const seenClips: {[identifier: string]: true} = {}
+		const loadFragments = (
+			portId: string,
+			port: QuantelStatePort,
+			clip: QuantelStatePortClip,
+			timelineObjId: string,
+			isPreloading: boolean
+		) => {
+			// Only load identical fragments once:
+			const clipIdentifier = `${portId}:${clip.clipId}_${clip.guid}_${clip.title}`
+			if (!seenClips[clipIdentifier]) {
+				seenClips[clipIdentifier] = true
+				addCommand({
+					type: QuantelCommandType.LOADCLIPFRAGMENTS,
+					time: prepareTime,
+					portId: portId,
+					timelineObjId: timelineObjId,
+					fromLookahead: isPreloading || port.lookahead,
+					clip: clip,
+					timeOfPlay: time,
+					allowedToPrepareJump: !isPreloading
+				}, isPreloading || port.lookahead)
+			}
+		}
 
 		/** The time of when to run "preparation" commands */
 		let prepareTime = Math.min(
@@ -391,6 +426,13 @@ export class QuantelDevice extends DeviceWithState<QuantelState> implements IDev
 		if (time < prepareTime) {
 			prepareTime = time - 10
 		}
+
+		const lookaheadPreloadClips: {
+			portId: string
+			port: QuantelStatePort
+			clip: QuantelStatePortClip
+			timelineObjId: string
+		}[] = []
 
 		_.each(newState.port, (newPort: QuantelStatePort, portId: string) => {
 			const oldPort = oldState.port[portId]
@@ -427,15 +469,7 @@ export class QuantelDevice extends DeviceWithState<QuantelState> implements IDev
 						transition = oldPort.outTransition
 					}
 
-					addCommand({
-						type: QuantelCommandType.LOADCLIPFRAGMENTS,
-						time: prepareTime,
-						portId: portId,
-						timelineObjId: newPort.timelineObjId,
-						fromLookahead: newPort.lookahead,
-						clip: newPort.clip,
-						timeOfPlay: time
-					}, newPort.lookahead)
+					loadFragments(portId, newPort, newPort.clip, newPort.timelineObjId, false)
 					if (newPort.clip.playing) {
 						addCommand({
 							type: QuantelCommandType.PLAYCLIP,
@@ -470,6 +504,34 @@ export class QuantelDevice extends DeviceWithState<QuantelState> implements IDev
 					}, newPort.lookahead)
 				}
 			}
+			if (
+				!oldPort ||
+				!_.isEqual(newPort.lookaheadClip, oldPort.lookaheadClip)
+			) {
+				if (
+					newPort.lookaheadClip &&
+					(
+						!newPort.clip ||
+						newPort.lookaheadClip.clipId !== newPort.clip.clipId ||
+						newPort.lookaheadClip.title !== newPort.clip.title ||
+						newPort.lookaheadClip.guid !== newPort.clip.guid
+					)
+
+				) {
+					// Also preload lookaheads later:
+					lookaheadPreloadClips.push({
+						portId: portId,
+						port: newPort,
+						clip: {
+							...newPort.lookaheadClip,
+							playTime: 0,
+							playing: false
+						},
+						timelineObjId: newPort.lookaheadClip.timelineObjId
+					})
+				}
+
+			}
 		})
 
 		_.each(oldState.port, (oldPort: QuantelStatePort, portId: string) => {
@@ -484,6 +546,18 @@ export class QuantelDevice extends DeviceWithState<QuantelState> implements IDev
 					fromLookahead: oldPort.lookahead
 				}, oldPort.lookahead)
 			}
+		})
+		// console.log('lookaheadPreloadClips', lookaheadPreloadClips)
+		// Lookaheads to preload:
+		_.each(lookaheadPreloadClips, (lookaheadPreloadClip) => {
+			// Preloads of lookaheads are handled last, to ensure that any load-fragments of high-prio clips are done first.
+			loadFragments(
+				lookaheadPreloadClip.portId,
+				lookaheadPreloadClip.port,
+				lookaheadPreloadClip.clip,
+				lookaheadPreloadClip.timelineObjId,
+				true
+			)
 		})
 
 		return highPrioCommands.concat(lowPrioCommands)
@@ -768,7 +842,7 @@ class QuantelManager extends EventEmitter {
 		}
 		// Prepare the jump?
 		let timeLeftToPlay = cmd.timeOfPlay - this.getCurrentTime()
-		if (timeLeftToPlay > 0) { // We have time to prepare the jump
+		if (cmd.allowedToPrepareJump && timeLeftToPlay > 0) { // We have time to prepare the jump
 
 			if (portInPoint > 0 && trackedPort.scheduledStop === null) {
 				// Since we've now added fragments to the end of the port timeline, we should make sure it'll stop at the previous end
@@ -1047,7 +1121,7 @@ class QuantelManager extends EventEmitter {
 			) => new Date(b.Created).getTime() - new Date(a.Created).getTime()
 		)
 	}
-	private async searchForClips (clip: QuantelStatePortClip): Promise<Q.ClipDataSummary[]> {
+	private async searchForClips (clip: QuantelStatePortClipContent): Promise<Q.ClipDataSummary[]> {
 		if (clip.guid) {
 			return this._quantel.searchClip({
 				ClipGUID: `"${clip.guid}"`
@@ -1158,19 +1232,26 @@ interface QuantelStatePort {
 
 	notOnAir?: boolean
 	outTransition?: QuantelOutTransition
+
+	/** Future clips, that should be preloaded */
+	lookaheadClip?: QuantelStatePortClipLookahead
 }
-interface QuantelStatePortClip {
+interface QuantelStatePortClipContent {
 	title?: string
 	guid?: string
 
 	clipId?: number
-
+}
+interface QuantelStatePortClip extends QuantelStatePortClipContent {
 	playing: boolean
 	playTime: number | null
 	pauseTime?: number
 
 	inPoint?: number
 	length?: number
+}
+interface QuantelStatePortClipLookahead extends QuantelStatePortClipContent {
+	timelineObjId: string
 }
 
 interface QuantelCommandBase {
@@ -1197,6 +1278,8 @@ interface QuantelCommandLoadClipFragments extends QuantelCommandBase {
 	clip: QuantelStatePortClip
 	/** The time the clip is scheduled to play */
 	timeOfPlay: number
+	/** If allowed to prepare a jump to the fragments */
+	allowedToPrepareJump: boolean
 }
 interface QuantelCommandClip extends QuantelCommandBase {
 	clip: QuantelStatePortClip
