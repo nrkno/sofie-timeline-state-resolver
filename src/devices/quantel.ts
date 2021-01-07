@@ -281,43 +281,44 @@ export class QuantelDevice extends DeviceWithState<QuantelState> implements IDev
 				const port: QuantelStatePort = state.port[mapping.portId]
 				if (!port) throw new Error(`Port "${mapping.portId}" not found`)
 
-				if (isLookahead && port.clip) {
-					// there is already a non-lookahead on the port
-					// TODO: add something for lookahead, so that loadFragments is stil performed
-					return // skip
-				}
-
 				if (layer.content && (layer.content.title || layer.content.guid)) {
 					const clip = layer as any as TimelineObjQuantelClip
 
-					const startTime = layer.instance.originalStart || layer.instance.start
+					if (isLookahead && port.clip) {
+						// there is already a non-lookahead on the port
+						// TODO: add something for lookahead, so that loadFragments is stil performed
 
-					port.timelineObjId = layer.id
-					port.notOnAir = layer.content.notOnAir || isLookahead
-					port.outTransition = layer.content.outTransition
+					} else {
 
-					port.clip = {
-						title: clip.content.title,
-						guid: clip.content.guid,
-						// clipId // set later
+						const startTime = layer.instance.originalStart || layer.instance.start
 
-						pauseTime: clip.content.pauseTime,
-						playing: (
-							isLookahead ? false :
-							clip.content.playing !== undefined ? clip.content.playing : true
-						),
+						port.timelineObjId = layer.id
+						port.notOnAir = layer.content.notOnAir || isLookahead
+						port.outTransition = layer.content.outTransition
+						port.lookahead = isLookahead
 
-						inPoint: clip.content.inPoint,
-						length: clip.content.length,
+						port.clip = {
+							title: clip.content.title,
+							guid: clip.content.guid,
+							// clipId // set later
 
-						playTime:		(
-							clip.content.noStarttime || isLookahead
-							?
-							null :
-							startTime
-						) || null
+							pauseTime: clip.content.pauseTime,
+							playing: (
+								isLookahead ? false :
+								clip.content.playing !== undefined ? clip.content.playing : true
+							),
+
+							inPoint: clip.content.inPoint,
+							length: clip.content.length,
+
+							playTime:		(
+								clip.content.noStarttime || isLookahead
+								?
+								null :
+								startTime
+							) || null
+						}
 					}
-					if (isLookahead) port.lookahead = true
 				}
 			}
 		})
@@ -955,7 +956,7 @@ class QuantelManager extends EventEmitter {
 			}
 			trackedPort.scheduledStop = null
 			trackedPort.playing = true
-			// trackedPort.jumpOffset = null
+			trackedPort.jumpOffset = null // As a safety precaution, remove any knowledge of any prepared jump, another preparation will be triggered on any following commands.
 
 			// Schedule the port to stop at the last frame of the clip
 			if (loadedFragments.portOutPoint) {
@@ -970,6 +971,7 @@ class QuantelManager extends EventEmitter {
 
 			trackedPort.offset = jumpToOffset
 			trackedPort.playing = false
+			trackedPort.jumpOffset = null // As a safety precaution, remove any knowledge of any prepared jump, another preparation will be triggered on any following commands.
 		}
 	}
 	private getTrackedPort (portId: string): QuantelTrackedStatePort {
