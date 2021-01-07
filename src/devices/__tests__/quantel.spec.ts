@@ -1190,7 +1190,7 @@ describe('Quantel', () => {
 					deviceType: DeviceType.QUANTEL,
 					title: 'myClip0'
 				}
-			},
+			}
 		])
 
 		await mockTime.advanceTimeTicks(1000)
@@ -1237,7 +1237,7 @@ describe('Quantel', () => {
 					playing: false,
 					pauseTime: 20000 // Pausing now, we're 5 seconds in
 				}
-			},
+			}
 		])
 
 		// Should pause the clip:
@@ -1254,7 +1254,7 @@ describe('Quantel', () => {
 			})
 		}), expect.any(String), expect.any(String))
 		expect(commandReceiver0).toHaveBeenNthCalledWith(2, 20010, expect.objectContaining({
-			type: QuantelCommandType.PAUSECLIP,
+			type: QuantelCommandType.PAUSECLIP
 		}), expect.any(String), expect.any(String))
 
 		expect(onRequest).toHaveBeenCalledTimes(4)
@@ -1290,7 +1290,7 @@ describe('Quantel', () => {
 					playing: true,
 					pauseTime: 20000 // We previously paused at 20000
 				}
-			},
+			}
 		])
 
 		// Should start playing:
@@ -1305,7 +1305,7 @@ describe('Quantel', () => {
 			})
 		}), expect.any(String), expect.any(String))
 		expect(commandReceiver0).toHaveBeenNthCalledWith(2, 25010, expect.objectContaining({
-			type: QuantelCommandType.PLAYCLIP,
+			type: QuantelCommandType.PLAYCLIP
 		}), expect.any(String), expect.any(String))
 
 		// Note: since we're already on the correct frame, no seeking is needed, just start playing right away
@@ -1325,7 +1325,6 @@ describe('Quantel', () => {
 		await mockTime.advanceTimeToTicks(30000)
 		expect(commandReceiver0).toHaveBeenCalledTimes(0)
 		expect(onRequest).toHaveBeenCalledTimes(0)
-
 
 		// Stop playing
 		myConductor.setTimelineAndMappings([
