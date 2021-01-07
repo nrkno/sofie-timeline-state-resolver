@@ -33,19 +33,9 @@ describe('Quantel', () => {
 	function clearMocks () {
 		onRequest.mockClear()
 	}
+	async function setupDefaultQuantelDeviceForTest() {
 
-	let mockTime = new MockTime()
-	beforeAll(() => {
-		mockTime.mockDateNow()
-	})
-	beforeEach(() => {
-		mockTime.init()
 
-		clearMocks()
-		quantelServer.ignoreConnectivityCheck = false
-		quantelServer.port = {}
-	})
-	test('Play and stop', async () => {
 		let device
 		const commandReceiver0: any = jest.fn((...args) => {
 			// pipe through the command
@@ -128,10 +118,38 @@ describe('Quantel', () => {
 		clearMocks()
 		commandReceiver0.mockClear()
 
-		quantelServer.ignoreConnectivityCheck = true
-
 		// Check that no commands has been scheduled:
 		expect(await device.queue).toHaveLength(0)
+
+		quantelServer.ignoreConnectivityCheck = true
+
+		return {
+			commandReceiver0,
+			myConductor,
+			errorHandler,
+			deviceErrorHandler,
+			device
+		}
+	}
+
+	let mockTime = new MockTime()
+	beforeAll(() => {
+		mockTime.mockDateNow()
+	})
+	beforeEach(() => {
+		mockTime.init()
+
+		clearMocks()
+		quantelServer.ignoreConnectivityCheck = false
+		quantelServer.port = {}
+	})
+	test('Play and stop', async () => {
+		const {
+			commandReceiver0,
+			myConductor,
+			errorHandler,
+			deviceErrorHandler
+		} = await setupDefaultQuantelDeviceForTest()
 
 		myConductor.setTimelineAndMappings([
 			{
@@ -219,91 +237,13 @@ describe('Quantel', () => {
 		expect(deviceErrorHandler).toHaveBeenCalledTimes(0)
 	})
 	test('Play and stop, using clip guid', async () => {
-		let device
-		const commandReceiver0: any = jest.fn((...args) => {
-			// pipe through the command
-			return device._defaultCommandReceiver(...args)
-		})
+		const {
+			commandReceiver0,
+			myConductor,
+			errorHandler,
+			deviceErrorHandler
+		} = await setupDefaultQuantelDeviceForTest()
 
-		let myLayerMapping0: MappingQuantel = {
-			device: DeviceType.QUANTEL,
-			deviceId: 'myQuantel',
-
-			portId: 'my_port',
-			channelId: 2
-			// keyChannelID: number
-			// mode?: QuantelControlMode
-		}
-		let myLayerMapping: Mappings = {
-			'myLayer0': myLayerMapping0
-		}
-
-		let myConductor = new Conductor({
-			initializeAsClear: true,
-			getCurrentTime: mockTime.getCurrentTime
-		})
-		let errorHandler = jest.fn()
-		myConductor.on('error', errorHandler)
-
-		await myConductor.init()
-
-		await t(myConductor.addDevice('myQuantel', {
-			type: DeviceType.QUANTEL,
-			options: {
-				commandReceiver: commandReceiver0,
-				// host: '127.0.0.1'
-
-				gatewayUrl: 	'localhost:3000',
-				ISAUrlMaster: 	'myISA:8000',
-				zoneId: 		undefined, // fallback to 'default'
-				serverId: 		1100
-			}
-		}), mockTime)
-
-		let deviceContainer = myConductor.getDevice('myQuantel')
-		device = deviceContainer.device as ThreadedClass<QuantelDevice>
-		let deviceErrorHandler = jest.fn((...args) => console.log('Error in device', ...args))
-		device.on('error', deviceErrorHandler)
-		device.on('commandError', deviceErrorHandler)
-
-		myConductor.setTimelineAndMappings([], myLayerMapping)
-		expect(mockTime.getCurrentTime()).toEqual(10000)
-		await mockTime.advanceTimeToTicks(10100)
-
-		expect(commandReceiver0).toHaveBeenCalledTimes(2)
-		expect(commandReceiver0).toHaveBeenNthCalledWith(1, expect.toBeCloseTo(10000, ADEV), expect.objectContaining({
-			type: QuantelCommandType.SETUPPORT,
-			time: 10005 // Because it was so close to currentTime, otherwise 9000
-		}), expect.any(String), expect.any(String))
-		expect(commandReceiver0).toHaveBeenNthCalledWith(2, expect.toBeCloseTo(10000, ADEV), expect.objectContaining({
-			type: QuantelCommandType.CLEARCLIP,
-			time: 10005
-		}), expect.any(String), expect.any(String))
-
-		expect(onRequest).toHaveBeenCalledTimes(6)
-
-		// Connect to ISA
-		expect(onRequest).toHaveBeenNthCalledWith(1, 'post', 'http://localhost:3000/connect/myISA%3A8000')
-		// get initial server info
-		expect(onRequest).toHaveBeenNthCalledWith(2, 'get', 'http://localhost:3000/default/server')
-
-		// Set up port:
-		// get server info
-		expect(onRequest).toHaveBeenNthCalledWith(3, 'get', 'http://localhost:3000/default/server')
-		// get port info
-		expect(onRequest).toHaveBeenNthCalledWith(4, 'get', 'http://localhost:3000/default/server/1100/port/my_port')
-		// create new port and assign to channel
-		expect(onRequest).toHaveBeenNthCalledWith(5, 'put', 'http://localhost:3000/default/server/1100/port/my_port/channel/2')
-		// Reset the port
-		expect(onRequest).toHaveBeenNthCalledWith(6, 'post', 'http://localhost:3000/default/server/1100/port/my_port/reset')
-
-		clearMocks()
-		commandReceiver0.mockClear()
-
-		quantelServer.ignoreConnectivityCheck = true
-
-		// Check that no commands has been scheduled:
-		expect(await device.queue).toHaveLength(0)
 
 		myConductor.setTimelineAndMappings([
 			{
@@ -390,60 +330,18 @@ describe('Quantel', () => {
 		expect(deviceErrorHandler).toHaveBeenCalledTimes(0)
 	})
 	test('Play, seek and re-use clip', async () => {
-		let device
-		const commandReceiver0: any = jest.fn((...args) => {
-			// pipe through the command
-			return device._defaultCommandReceiver(...args)
-		})
+		const {
+			commandReceiver0,
+			myConductor,
+			errorHandler,
+			deviceErrorHandler,
+			device
+		} = await setupDefaultQuantelDeviceForTest()
 
-		let myLayerMapping0: MappingQuantel = {
-			device: DeviceType.QUANTEL,
-			deviceId: 'myQuantel',
-
-			portId: 'my_port',
-			channelId: 2
-		}
-		let myLayerMapping: Mappings = {
-			'myLayer0': myLayerMapping0
-		}
-
-		let myConductor = new Conductor({
-			initializeAsClear: true,
-			getCurrentTime: mockTime.getCurrentTime
-		})
-		let errorHandler = jest.fn()
-		myConductor.on('error', errorHandler)
-
-		await myConductor.init()
-
-		await t(myConductor.addDevice('myQuantel', {
-			type: DeviceType.QUANTEL,
-			options: {
-				commandReceiver: commandReceiver0,
-				// host: '127.0.0.1'
-
-				gatewayUrl: 	'localhost:3000',
-				ISAUrlMaster: 	'myISA:8000',
-				zoneId: 		undefined, // fallback to 'default'
-				serverId: 		1100
-			}
-		}), mockTime)
-
-		let deviceContainer = myConductor.getDevice('myQuantel')
-		device = deviceContainer.device as ThreadedClass<QuantelDevice>
-		let deviceErrorHandler = jest.fn((...args) => console.log('Error in device', ...args))
-		device.on('error', deviceErrorHandler)
-		device.on('commandError', deviceErrorHandler)
-
-		device.on('error', console.log)
-		device.on('commandError', console.log)
-
-		myConductor.setTimelineAndMappings([], myLayerMapping)
-
-		await mockTime.advanceTimeToTicks(15000)
 		clearMocks()
 		commandReceiver0.mockClear()
-		quantelServer.ignoreConnectivityCheck = true
+
+		await mockTime.advanceTimeToTicks(15000)
 
 		// Check that no commands has been scheduled:
 		expect(await device.queue).toHaveLength(0)
@@ -631,93 +529,13 @@ describe('Quantel', () => {
 		expect(deviceErrorHandler).toHaveBeenCalledTimes(0)
 	})
 	test('outTransition to clear', async () => {
-		let device
-		const commandReceiver0: any = jest.fn((...args) => {
-			// pipe through the command
-			return device._defaultCommandReceiver(...args)
-		})
+		const {
+			commandReceiver0,
+			myConductor,
+			errorHandler,
+			deviceErrorHandler
+		} = await setupDefaultQuantelDeviceForTest()
 
-		let myLayerMapping0: MappingQuantel = {
-			device: DeviceType.QUANTEL,
-			deviceId: 'myQuantel',
-
-			portId: 'my_port',
-			channelId: 2
-			// keyChannelID: number
-			// mode?: QuantelControlMode
-		}
-		let myLayerMapping: Mappings = {
-			'myLayer0': myLayerMapping0
-		}
-
-		let myConductor = new Conductor({
-			initializeAsClear: true,
-			getCurrentTime: mockTime.getCurrentTime
-		})
-		let errorHandler = jest.fn((...args) => console.log('Error in device', ...args))
-		myConductor.on('error', errorHandler)
-		myConductor.on('commandError', errorHandler)
-
-		await myConductor.init()
-
-		await t(myConductor.addDevice('myQuantel', {
-			type: DeviceType.QUANTEL,
-			options: {
-				commandReceiver: commandReceiver0,
-				// host: '127.0.0.1'
-
-				gatewayUrl: 	'localhost:3000',
-				ISAUrlMaster: 	'myISA:8000',
-				zoneId: 		undefined, // fallback to 'default'
-				serverId: 		1100
-			}
-		}), mockTime)
-
-		let deviceContainer = myConductor.getDevice('myQuantel')
-		device = deviceContainer.device as ThreadedClass<QuantelDevice>
-		let deviceErrorHandler = jest.fn((...args) => console.log('Error in device', ...args))
-		device.on('error', deviceErrorHandler)
-		device.on('commandError', deviceErrorHandler)
-
-		myConductor.setTimelineAndMappings([], myLayerMapping)
-
-		expect(mockTime.getCurrentTime()).toEqual(10000)
-		await mockTime.advanceTimeToTicks(10100)
-
-		expect(commandReceiver0).toHaveBeenCalledTimes(2)
-		expect(commandReceiver0).toHaveBeenNthCalledWith(1, expect.toBeCloseTo(10000, ADEV), expect.objectContaining({
-			type: QuantelCommandType.SETUPPORT,
-			time: 10005 // Because it was so close to currentTime, otherwise 9000
-		}), expect.any(String), expect.any(String))
-		expect(commandReceiver0).toHaveBeenNthCalledWith(2, expect.toBeCloseTo(10000, ADEV), expect.objectContaining({
-			type: QuantelCommandType.CLEARCLIP,
-			time: 10005
-		}), expect.any(String), expect.any(String))
-
-		expect(onRequest).toHaveBeenCalledTimes(6)
-
-		// Connect to ISA
-		expect(onRequest).toHaveBeenNthCalledWith(1, 'post', 'http://localhost:3000/connect/myISA%3A8000')
-		// get initial server info
-		expect(onRequest).toHaveBeenNthCalledWith(2, 'get', 'http://localhost:3000/default/server')
-
-		// Set up port:
-		// get server info
-		expect(onRequest).toHaveBeenNthCalledWith(3, 'get', 'http://localhost:3000/default/server')
-		// get port info
-		expect(onRequest).toHaveBeenNthCalledWith(4, 'get', 'http://localhost:3000/default/server/1100/port/my_port')
-		// create new port and assign to channel
-		expect(onRequest).toHaveBeenNthCalledWith(5, 'put', 'http://localhost:3000/default/server/1100/port/my_port/channel/2')
-		// Reset the port
-		expect(onRequest).toHaveBeenNthCalledWith(6, 'post', 'http://localhost:3000/default/server/1100/port/my_port/reset')
-
-		clearMocks()
-		commandReceiver0.mockClear()
-
-		quantelServer.ignoreConnectivityCheck = true
-
-		// Check that no commands has been scheduled:
-		expect(await device.queue).toHaveLength(0)
 
 		myConductor.setTimelineAndMappings([
 			{
@@ -810,90 +628,15 @@ describe('Quantel', () => {
 		expect(deviceErrorHandler).toHaveBeenCalledTimes(0)
 	})
 	test('outTransition to notOnAir', async () => {
-		let device
-		const commandReceiver0: any = jest.fn((...args) => {
-			// pipe through the command
-			return device._defaultCommandReceiver(...args)
-		})
+		const {
+			commandReceiver0,
+			myConductor,
+			errorHandler,
+			deviceErrorHandler,
+			device
+		} = await setupDefaultQuantelDeviceForTest()
 
-		let myLayerMapping0: MappingQuantel = {
-			device: DeviceType.QUANTEL,
-			deviceId: 'myQuantel',
 
-			portId: 'my_port',
-			channelId: 2
-			// keyChannelID: number
-			// mode?: QuantelControlMode
-		}
-		let myLayerMapping: Mappings = {
-			'myLayer0': myLayerMapping0
-		}
-
-		let myConductor = new Conductor({
-			initializeAsClear: true,
-			getCurrentTime: mockTime.getCurrentTime
-		})
-		let errorHandler = jest.fn((...args) => console.log('Error in device', ...args))
-		myConductor.on('error', errorHandler)
-		myConductor.on('commandError', errorHandler)
-
-		await myConductor.init()
-
-		await t(myConductor.addDevice('myQuantel', {
-			type: DeviceType.QUANTEL,
-			options: {
-				commandReceiver: commandReceiver0,
-				// host: '127.0.0.1'
-
-				gatewayUrl: 	'localhost:3000',
-				ISAUrlMaster: 	'myISA:8000',
-				zoneId: 		undefined, // fallback to 'default'
-				serverId: 		1100
-			}
-		}), mockTime)
-
-		let deviceContainer = myConductor.getDevice('myQuantel')
-		device = deviceContainer.device as ThreadedClass<QuantelDevice>
-		let deviceErrorHandler = jest.fn((...args) => console.log('Error in device', ...args))
-		device.on('error', deviceErrorHandler)
-		device.on('commandError', deviceErrorHandler)
-
-		myConductor.setTimelineAndMappings([], myLayerMapping)
-
-		expect(mockTime.getCurrentTime()).toEqual(10000)
-		await mockTime.advanceTimeToTicks(10100)
-
-		expect(commandReceiver0).toHaveBeenCalledTimes(2)
-		expect(commandReceiver0).toHaveBeenNthCalledWith(1, expect.toBeCloseTo(10000, ADEV), expect.objectContaining({
-			type: QuantelCommandType.SETUPPORT,
-			time: 10005 // Because it was so close to currentTime, otherwise 9000
-		}), expect.any(String), expect.any(String))
-		expect(commandReceiver0).toHaveBeenNthCalledWith(2, expect.toBeCloseTo(10000, ADEV), expect.objectContaining({
-			type: QuantelCommandType.CLEARCLIP,
-			time: 10005
-		}), expect.any(String), expect.any(String))
-
-		expect(onRequest).toHaveBeenCalledTimes(6)
-
-		// Connect to ISA
-		expect(onRequest).toHaveBeenNthCalledWith(1, 'post', 'http://localhost:3000/connect/myISA%3A8000')
-		// get initial server info
-		expect(onRequest).toHaveBeenNthCalledWith(2, 'get', 'http://localhost:3000/default/server')
-
-		// Set up port:
-		// get server info
-		expect(onRequest).toHaveBeenNthCalledWith(3, 'get', 'http://localhost:3000/default/server')
-		// get port info
-		expect(onRequest).toHaveBeenNthCalledWith(4, 'get', 'http://localhost:3000/default/server/1100/port/my_port')
-		// create new port and assign to channel
-		expect(onRequest).toHaveBeenNthCalledWith(5, 'put', 'http://localhost:3000/default/server/1100/port/my_port/channel/2')
-		// Reset the port
-		expect(onRequest).toHaveBeenNthCalledWith(6, 'post', 'http://localhost:3000/default/server/1100/port/my_port/reset')
-
-		clearMocks()
-		commandReceiver0.mockClear()
-
-		quantelServer.ignoreConnectivityCheck = true
 
 		// Check that no commands has been scheduled:
 		expect(await device.queue).toHaveLength(0)
@@ -1037,92 +780,14 @@ describe('Quantel', () => {
 		expect(deviceErrorHandler).toHaveBeenCalledTimes(0)
 	})
 	test.skip('Play, then pause', async () => {
-		let device
-		const commandReceiver0: any = jest.fn((...args) => {
-			// pipe through the command
-			return device._defaultCommandReceiver(...args)
-		})
+		const {
+			commandReceiver0,
+			myConductor,
+			errorHandler,
+			deviceErrorHandler
+		} = await setupDefaultQuantelDeviceForTest()
 
-		let myLayerMapping0: MappingQuantel = {
-			device: DeviceType.QUANTEL,
-			deviceId: 'myQuantel',
 
-			portId: 'my_port',
-			channelId: 2
-			// keyChannelID: number
-			// mode?: QuantelControlMode
-		}
-		let myLayerMapping: Mappings = {
-			'myLayer0': myLayerMapping0
-		}
-
-		let myConductor = new Conductor({
-			initializeAsClear: true,
-			getCurrentTime: mockTime.getCurrentTime
-		})
-		let errorHandler = jest.fn((...args) => console.log('Error in device', ...args))
-		myConductor.on('error', errorHandler)
-		myConductor.on('commandError', errorHandler)
-		await myConductor.init()
-
-		await t(myConductor.addDevice('myQuantel', {
-			type: DeviceType.QUANTEL,
-			options: {
-				commandReceiver: commandReceiver0,
-				// host: '127.0.0.1'
-
-				gatewayUrl: 	'localhost:3000',
-				ISAUrlMaster: 	'myISA:8000',
-				zoneId: 		undefined, // fallback to 'default'
-				serverId: 		1100
-			}
-		}), mockTime)
-
-		let deviceContainer = myConductor.getDevice('myQuantel')
-		device = deviceContainer.device as ThreadedClass<QuantelDevice>
-		let deviceErrorHandler = jest.fn((...args) => console.log('Error in device', ...args))
-		device.on('error', deviceErrorHandler)
-		device.on('commandError', deviceErrorHandler)
-
-		myConductor.setTimelineAndMappings([], myLayerMapping)
-
-		expect(mockTime.getCurrentTime()).toEqual(10000)
-		await mockTime.advanceTimeToTicks(10100)
-
-		expect(commandReceiver0).toHaveBeenCalledTimes(2)
-		expect(commandReceiver0).toHaveBeenNthCalledWith(1, expect.toBeCloseTo(10000, ADEV), expect.objectContaining({
-			type: QuantelCommandType.SETUPPORT,
-			time: 10005 // Because it was so close to currentTime, otherwise 9000
-		}), expect.any(String), expect.any(String))
-		expect(commandReceiver0).toHaveBeenNthCalledWith(2, expect.toBeCloseTo(10000, ADEV), expect.objectContaining({
-			type: QuantelCommandType.CLEARCLIP,
-			time: 10005
-		}), expect.any(String), expect.any(String))
-
-		// expect(onRequest).toHaveBeenCalledTimes(6)
-
-		// Connect to ISA
-		// expect(onRequest).toHaveBeenNthCalledWith(1, 'post', 'http://localhost:3000/connect/myISA%3A8000')
-		// // get initial server info
-		// expect(onRequest).toHaveBeenNthCalledWith(2, 'get', 'http://localhost:3000/default/server')
-
-		// // Set up port:
-		// // get server info
-		// expect(onRequest).toHaveBeenNthCalledWith(3, 'get', 'http://localhost:3000/default/server')
-		// // get port info
-		// expect(onRequest).toHaveBeenNthCalledWith(4, 'get', 'http://localhost:3000/default/server/1100/port/my_port')
-		// // create new port and assign to channel
-		// expect(onRequest).toHaveBeenNthCalledWith(5, 'put', 'http://localhost:3000/default/server/1100/port/my_port/channel/2')
-		// // Reset the port
-		// expect(onRequest).toHaveBeenNthCalledWith(6, 'post', 'http://localhost:3000/default/server/1100/port/my_port/reset')
-
-		clearMocks()
-		commandReceiver0.mockClear()
-
-		quantelServer.ignoreConnectivityCheck = true
-
-		// Check that no commands has been scheduled:
-		expect(await device.queue).toHaveLength(0)
 
 		myConductor.setTimelineAndMappings([
 			{
@@ -1134,15 +799,7 @@ describe('Quantel', () => {
 				layer: 'myLayer0',
 				content: {
 					deviceType: DeviceType.QUANTEL,
-
 					title: 'myClip0'
-
-					// seek?: number
-					// inPoint?: number
-					// length?: number
-					// pauseTime?: number
-					// playing?: boolean
-					// noStarttime?: boolean
 				}
 			}
 		])
