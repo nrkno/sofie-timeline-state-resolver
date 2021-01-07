@@ -1013,17 +1013,6 @@ describe('Quantel', () => {
 		expect(onRequest).toHaveBeenNthCalledWith(4, 'get', expect.stringContaining('default/server/1100/port/my_port'))
 		// Load fragments
 		expect(onRequest).toHaveBeenNthCalledWith(5, 'post',expect.stringContaining('port/my_port/fragments'))
-		// Prepare jump:
-		// expect(onRequest).toHaveBeenNthCalledWith(6, 'put',expect.stringContaining('port/my_port/jump?offset=0'))
-
-		// expect(onRequest).toHaveBeenNthCalledWith(1, 'get', expect.stringContaining('/default/clip?Title=%22myClip1%22'))
-		// expect(onRequest).toHaveBeenNthCalledWith(2, 'get', expect.stringContaining('default/clip/1339'))
-		// // Prepare jump:
-		// expect(onRequest).toHaveBeenNthCalledWith(2, 'put', expect.stringContaining('port/my_port/jump?offset=0'))
-		// // Stop playing:
-		// expect(onRequest).toHaveBeenNthCalledWith(3, 'post', expect.stringContaining('port/my_port/trigger/STOP'))
-		// // Trigger jump:
-		// expect(onRequest).toHaveBeenNthCalledWith(4, 'post', expect.stringContaining('port/my_port/trigger/JUMP'))
 
 		clearMocks()
 		commandReceiver0.mockClear()
@@ -1121,6 +1110,237 @@ describe('Quantel', () => {
 		expect(onRequest).toHaveBeenNthCalledWith(3, 'get', expect.stringContaining('default/server/1100/port/my_port'))
 		// Stop playing at the last frame
 		expect(onRequest).toHaveBeenNthCalledWith(4, 'post', expect.stringContaining('/default/server/1100/port/my_port/trigger/STOP?offset=3233'))
+
+		await myConductor.destroy()
+
+		expect(errorHandler).toHaveBeenCalledTimes(0)
+		expect(deviceErrorHandler).toHaveBeenCalledTimes(0)
+	})
+	test('Lookahead, then play, pause, seek, clear', async () => {
+		const {
+			commandReceiver0,
+			myConductor,
+			errorHandler,
+			deviceErrorHandler
+		} = await setupDefaultQuantelDeviceForTest()
+
+		// Start by having a lookahead
+		myConductor.setTimelineAndMappings([
+			{
+				id: 'lookahead_video0',
+				enable: {
+					while: 1
+				},
+				content: {
+					deviceType: DeviceType.QUANTEL,
+					title: 'myClip0'
+				},
+				layer: 'lookahead_myLayer0',
+				isLookahead: true,
+				lookaheadForLayer: 'myLayer0'
+			}
+		])
+
+		await mockTime.advanceTimeTicks(1000)
+
+		expect(commandReceiver0).toHaveBeenCalledTimes(2)
+		expect(commandReceiver0).toHaveBeenNthCalledWith(1, 10105, expect.objectContaining({
+			type: QuantelCommandType.LOADCLIPFRAGMENTS,
+			clip: expect.objectContaining({
+				title: 'myClip0'
+			})
+		}), expect.any(String), expect.any(String))
+		expect(commandReceiver0).toHaveBeenNthCalledWith(2, 10110, expect.objectContaining({
+			type: QuantelCommandType.PAUSECLIP
+		}), expect.any(String), expect.any(String))
+
+		expect(onRequest).toHaveBeenCalledTimes(8)
+
+		// Search for and get clip info:
+		expect(onRequest).toHaveBeenNthCalledWith(1, 'get', expect.stringContaining('/default/clip?Title=%22myClip0%22'))
+		expect(onRequest).toHaveBeenNthCalledWith(2, 'get', expect.stringContaining('/default/clip/1337'))
+		// Fetch fragments:
+		expect(onRequest).toHaveBeenNthCalledWith(3, 'get', expect.stringContaining('clip/1337/fragments'))
+		// get port info
+		expect(onRequest).toHaveBeenNthCalledWith(4, 'get', expect.stringContaining('default/server/1100/port/my_port'))
+		// Load fragments
+		expect(onRequest).toHaveBeenNthCalledWith(5, 'post',expect.stringContaining('port/my_port/fragments'))
+		// Prepare jump:
+		expect(onRequest).toHaveBeenNthCalledWith(6, 'put',expect.stringContaining('port/my_port/jump?offset=0'))
+		expect(onRequest).toHaveBeenNthCalledWith(7, 'post',expect.stringContaining('port/my_port/trigger/STOP'))
+		expect(onRequest).toHaveBeenNthCalledWith(8, 'post',expect.stringContaining('port/my_port/trigger/JUMP'))
+
+		clearMocks()
+		commandReceiver0.mockClear()
+
+		await mockTime.advanceTimeToTicks(15000)
+		expect(commandReceiver0).toHaveBeenCalledTimes(0)
+		expect(onRequest).toHaveBeenCalledTimes(0)
+
+		// Start playing the former lookahead
+		myConductor.setTimelineAndMappings([
+			{
+				id: 'video0',
+				enable: {
+					start: 15000,
+					duration: 20000
+				},
+				layer: 'myLayer0',
+				content: {
+					deviceType: DeviceType.QUANTEL,
+					title: 'myClip0'
+				}
+			},
+		])
+
+		await mockTime.advanceTimeTicks(1000)
+
+		expect(commandReceiver0).toHaveBeenCalledTimes(2)
+		expect(commandReceiver0).toHaveBeenNthCalledWith(1, 15005, expect.objectContaining({
+			type: QuantelCommandType.LOADCLIPFRAGMENTS
+		}), expect.any(String), expect.any(String))
+		expect(commandReceiver0).toHaveBeenNthCalledWith(2, 15010, expect.objectContaining({
+			type: QuantelCommandType.PLAYCLIP
+		}), expect.any(String), expect.any(String))
+
+		expect(onRequest).toHaveBeenCalledTimes(4)
+
+		expect(onRequest).toHaveBeenNthCalledWith(1, 'get', expect.stringContaining('/default/clip/1337'))
+		// Start playing:
+		expect(onRequest).toHaveBeenNthCalledWith(2, 'post', expect.stringContaining('port/my_port/trigger/START'))
+		// Check that play worked
+		expect(onRequest).toHaveBeenNthCalledWith(3, 'get', expect.stringContaining('default/server/1100/port/my_port'))
+		// Plan to stop at end of clip
+		expect(onRequest).toHaveBeenNthCalledWith(4, 'post', expect.stringContaining('/default/server/1100/port/my_port/trigger/STOP?offset=1999'))
+
+		clearMocks()
+		commandReceiver0.mockClear()
+
+		await mockTime.advanceTimeToTicks(20000)
+		expect(commandReceiver0).toHaveBeenCalledTimes(0)
+		expect(onRequest).toHaveBeenCalledTimes(0)
+
+		// Pause the video:
+		myConductor.setTimelineAndMappings([
+			{
+				id: 'video0',
+				enable: {
+					start: 15000,
+					duration: 20000
+				},
+				layer: 'myLayer0',
+				content: {
+					deviceType: DeviceType.QUANTEL,
+
+					title: 'myClip0',
+
+					playing: false,
+					pauseTime: 20000 // Pausing now, we're 5 seconds in
+				}
+			},
+		])
+
+		// Should pause the clip:
+		// Note: In a future implementation we could be smarter and know that we're
+		// already on the right frame, and just pause the clip. Currently we're always going to seek.
+
+		await mockTime.advanceTimeTicks(1000)
+
+		expect(commandReceiver0).toHaveBeenCalledTimes(2)
+		expect(commandReceiver0).toHaveBeenNthCalledWith(1, 20005, expect.objectContaining({
+			type: QuantelCommandType.LOADCLIPFRAGMENTS,
+			clip: expect.objectContaining({
+				title: 'myClip0'
+			})
+		}), expect.any(String), expect.any(String))
+		expect(commandReceiver0).toHaveBeenNthCalledWith(2, 20010, expect.objectContaining({
+			type: QuantelCommandType.PAUSECLIP,
+		}), expect.any(String), expect.any(String))
+
+		expect(onRequest).toHaveBeenCalledTimes(4)
+		// Lookup clip id
+		expect(onRequest).toHaveBeenNthCalledWith(1, 'get', expect.stringContaining('default/clip/1337'))
+		// Prepare jump:
+		expect(onRequest).toHaveBeenNthCalledWith(2, 'put', expect.stringContaining('port/my_port/jump?offset=125')) // 5 seconds * 25fps = 125
+		// Stop playing:
+		expect(onRequest).toHaveBeenNthCalledWith(3, 'post', expect.stringContaining('port/my_port/trigger/STOP'))
+		// // Trigger jump:
+		expect(onRequest).toHaveBeenNthCalledWith(4, 'post', expect.stringContaining('port/my_port/trigger/JUMP'))
+
+		clearMocks()
+		commandReceiver0.mockClear()
+		await mockTime.advanceTimeToTicks(25000)
+		expect(commandReceiver0).toHaveBeenCalledTimes(0)
+		expect(onRequest).toHaveBeenCalledTimes(0)
+
+		// Start playing the clip again:
+		myConductor.setTimelineAndMappings([
+			{
+				id: 'video0',
+				enable: {
+					start: 15000,
+					duration: 20000
+				},
+				layer: 'myLayer0',
+				content: {
+					deviceType: DeviceType.QUANTEL,
+
+					title: 'myClip0',
+
+					playing: true,
+					pauseTime: 20000 // We previously paused at 20000
+				}
+			},
+		])
+
+		// Should start playing:
+
+		await mockTime.advanceTimeTicks(1000)
+
+		expect(commandReceiver0).toHaveBeenCalledTimes(2)
+		expect(commandReceiver0).toHaveBeenNthCalledWith(1, 25005, expect.objectContaining({
+			type: QuantelCommandType.LOADCLIPFRAGMENTS,
+			clip: expect.objectContaining({
+				title: 'myClip0'
+			})
+		}), expect.any(String), expect.any(String))
+		expect(commandReceiver0).toHaveBeenNthCalledWith(2, 25010, expect.objectContaining({
+			type: QuantelCommandType.PLAYCLIP,
+		}), expect.any(String), expect.any(String))
+
+		// Note: since we're already on the correct frame, no seeking is needed, just start playing right away
+
+		expect(onRequest).toHaveBeenCalledTimes(4)
+		// Lookup clip id
+		expect(onRequest).toHaveBeenNthCalledWith(1, 'get', expect.stringContaining('/default/clip/1337'))
+		// Start playing:
+		expect(onRequest).toHaveBeenNthCalledWith(2, 'post', expect.stringContaining('port/my_port/trigger/START'))
+		// Check that play worked
+		expect(onRequest).toHaveBeenNthCalledWith(3, 'get', expect.stringContaining('default/server/1100/port/my_port'))
+		// Plan to stop at end of clip
+		expect(onRequest).toHaveBeenNthCalledWith(4, 'post', expect.stringContaining('/default/server/1100/port/my_port/trigger/STOP?offset=1999'))
+
+		clearMocks()
+		commandReceiver0.mockClear()
+		await mockTime.advanceTimeToTicks(30000)
+		expect(commandReceiver0).toHaveBeenCalledTimes(0)
+		expect(onRequest).toHaveBeenCalledTimes(0)
+
+
+		// Stop playing
+		myConductor.setTimelineAndMappings([
+		])
+
+		// Time to stop playing
+		await mockTime.advanceTimeTicks(100)
+		expect(commandReceiver0).toHaveBeenCalledTimes(1)
+		expect(commandReceiver0).toHaveBeenNthCalledWith(1, 30005, expect.objectContaining({
+			type: QuantelCommandType.CLEARCLIP
+		}), expect.any(String), expect.any(String))
+
+		expect(onRequest).toHaveBeenCalledTimes(1)
+		// Clear port from clip (reset port)
+		expect(onRequest).toHaveBeenNthCalledWith(1, 'post', expect.stringContaining('port/my_port/reset'))
 
 		await myConductor.destroy()
 
