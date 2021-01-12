@@ -95,6 +95,37 @@ export class SisyfosApi extends EventEmitter {
 				type: 'i',
 				value: (command as ValueCommand).value
 			}] })
+		} else if (command.type === SisyfosCommandType.SET_CHANNEL) {
+			if ((command as SetChannelCommand).values.label) {
+				this._oscClient.send({ address: `/ch/${(command as StringCommand).channel + 1}/label`, args: [{
+					type: 's',
+					value: (command as SetChannelCommand).values.label as string
+				}] })
+			}
+			if ((command as SetChannelCommand).values.pgmOn !== undefined) {
+				this._oscClient.send({ address: `/ch/${(command as ValueCommand).channel + 1}/pgm`, args: [{
+					type: 'i',
+					value: (command as SetChannelCommand).values.pgmOn as number
+				}] })
+			}
+			if ((command as SetChannelCommand).values.pstOn !== undefined) {
+				this._oscClient.send({ address: `/ch/${(command as ValueCommand).channel + 1}/pst`, args: [{
+					type: 'i',
+					value: (command as SetChannelCommand).values.pstOn as number
+				}] })
+			}
+			if ((command as SetChannelCommand).values.faderLevel !== undefined) {
+				this._oscClient.send({ address: `/ch/${(command as ValueCommand).channel + 1}/faderlevel`, args: [{
+					type: 'f',
+					value: (command as SetChannelCommand).values.faderLevel as number
+				}] })
+			}
+			if ((command as SetChannelCommand).values.visible !== undefined) {
+				this._oscClient.send({ address: `/ch/${(command as ValueCommand).channel + 1}/visible`, args: [{
+					type: 'i',
+					value: (command as SetChannelCommand).values.visible as unknown as number
+				}] })
+			}
 		}
 	}
 
@@ -242,11 +273,18 @@ export enum SisyfosCommandType {
 	LABEL = 'label',
 	TAKE = 'take',
 	VISIBLE = 'visible',
-	RESYNC = 'resync'
+	RESYNC = 'resync',
+	SET_CHANNEL = 'setChannel'
 }
 
 export interface BaseCommand {
 	type: SisyfosCommandType
+}
+
+export interface SetChannelCommand {
+	type: SisyfosCommandType.SET_CHANNEL
+	channel: number
+	values: Partial<SisyfosAPIChannel>
 }
 
 export interface ChannelCommand {
@@ -273,7 +311,7 @@ export interface ResyncCommand extends BaseCommand {
 	type: SisyfosCommandType.RESYNC
 }
 
-export type SisyfosCommand = BaseCommand | ValueCommand | BoolCommand | StringCommand | ResyncCommand
+export type SisyfosCommand = BaseCommand | ValueCommand | BoolCommand | StringCommand | ResyncCommand | SetChannelCommand
 
 export interface SisyfosChannel extends SisyfosAPIChannel {
 	tlObjIds: string[]
@@ -281,6 +319,7 @@ export interface SisyfosChannel extends SisyfosAPIChannel {
 export interface SisyfosState {
 	channels: { [index: string]: SisyfosChannel }
 	resync: boolean
+	triggerValue?: string
 }
 
 // ------------------------------------------------------

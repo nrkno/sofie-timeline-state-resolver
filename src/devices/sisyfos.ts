@@ -290,6 +290,11 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState> implemen
 				deviceState.resync = deviceState.resync || layer.content.resync
 			}
 
+			// Allow retrigger without valid channel mapping
+			if (layer.content.triggerValue !== undefined) {
+				deviceState.triggerValue = layer.content.triggerValue
+			}
+
 			// if the tlObj is specifies to load to PST the original Layer is used to resolve the mapping
 			if (!foundMapping && layer.isLookahead && layer.lookaheadForLayer) {
 				foundMapping = mappings[layer.lookaheadForLayer] as MappingSisyfos | undefined
@@ -312,6 +317,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState> implemen
 						isLookahead: layer.isLookahead || false,
 						tlObjId: layer.id
 					})
+					deviceState.resync = deviceState.resync || content.resync || false
 				} else if (
 					foundMapping.mappingType === MappingSisyfosType.CHANNELS &&
 					content.type === TimelineContentTypeSisyfos.CHANNELS
@@ -329,8 +335,8 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState> implemen
 							})
 						}
 					})
+					deviceState.resync = deviceState.resync || content.resync || false
 				}
-				deviceState.resync = deviceState.resync || content.resync || false
 			}
 
 		})
@@ -402,6 +408,20 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState> implemen
 
 		_.each(newOscSendState.channels, (newChannel: SisyfosChannel, index) => {
 			const oldChannel = oldOscSendState.channels[index]
+
+			if ((newOscSendState.triggerValue && newOscSendState.triggerValue !== oldOscSendState.triggerValue)) { // || (!oldChannel && Number(index) >= 0)) {
+				// push commands for everything
+				commands.push({
+					context: `Channel ${index} reset`,
+					content: {
+						type: SisyfosCommandType.SET_CHANNEL,
+						channel: Number(index),
+						values: newChannel
+					},
+					timelineObjId: newChannel.tlObjIds[0] || ''
+				})
+				return
+			}
 
 			if (oldChannel && oldChannel.pgmOn !== newChannel.pgmOn) {
 				commands.push({
