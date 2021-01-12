@@ -97,10 +97,8 @@ describe('Sisyfos', () => {
 					duration: 2000
 				},
 				layer: 'sisyfos_channel_1',
-				// @ts-ignore: for backwards compatibility
 				content: {
 					deviceType: DeviceType.SISYFOS,
-					// @ts-ignore: for backwards compatibility
 					type: 'sisyfos',
 
 					isPgm: 1
@@ -786,6 +784,204 @@ describe('Sisyfos', () => {
 			type: 'setFader',
 			channel: 2,
 			value: 0.2
+		})
+
+		commandReceiver0.mockClear()
+	})
+
+	test('Sisyfos: using triggerValue', async () => {
+
+		const commandReceiver0: any = jest.fn(() => {
+			return Promise.resolve()
+		})
+		let myChannelMapping0: MappingSisyfos = {
+			device: DeviceType.SISYFOS,
+			mappingType: MappingSisyfosType.CHANNELS,
+			deviceId: 'mySisyfos'
+		}
+		let myChannelMapping1: MappingSisyfos = {
+			device: DeviceType.SISYFOS,
+			mappingType: MappingSisyfosType.CHANNEL,
+			deviceId: 'mySisyfos',
+			channel: 1
+		}
+		let myChannelMapping2: MappingSisyfos = {
+			device: DeviceType.SISYFOS,
+			mappingType: MappingSisyfosType.CHANNEL,
+			deviceId: 'mySisyfos',
+			channel: 2
+		}
+		let myChannelMapping3: MappingSisyfos = {
+			device: DeviceType.SISYFOS,
+			mappingType: MappingSisyfosType.CHANNELS,
+			deviceId: 'mySisyfos'
+		}
+		let myChannelMapping: Mappings = {
+			'sisyfos_channels_base': myChannelMapping0,
+			'sisyfos_channel_1': myChannelMapping1,
+			'sisyfos_channel_2': myChannelMapping2,
+			'sisyfos_channels': myChannelMapping3
+		}
+
+		let myConductor = new Conductor({
+			initializeAsClear: true,
+			getCurrentTime: mockTime.getCurrentTime
+		})
+		myConductor.setTimelineAndMappings([], myChannelMapping)
+		await myConductor.init() // we cannot do an await, because setTimeout will never call without jest moving on.
+		await myConductor.addDevice('mySisyfos', {
+			type: DeviceType.SISYFOS,
+			options: {
+				commandReceiver: commandReceiver0,
+				host: '192.168.0.10',
+				port: 8900
+			}
+		})
+		await mockTime.advanceTimeToTicks(10100)
+
+		let deviceContainer = myConductor.getDevice('mySisyfos')
+		let device = deviceContainer.device as ThreadedClass<SisyfosMessageDevice>
+
+		// Check that no commands has been scheduled:
+		expect(await device.queue).toHaveLength(0)
+
+		myConductor.setTimelineAndMappings([
+			{
+				id: 'baseline',
+				enable: {
+					while: 1
+				},
+				layer: 'sisyfos_channels_base',
+				content: {
+					deviceType: DeviceType.SISYFOS,
+					type: TimelineContentTypeSisyfos.CHANNELS,
+
+					channels: [
+						{
+							mappedLayer: 'sisyfos_channel_1',
+							faderLevel: 0.1,
+							isPgm: 0
+						},
+						{
+							mappedLayer: 'sisyfos_channel_2',
+							faderLevel: 0.2,
+							isPgm: 0
+						}
+					],
+					triggerValue: 'a',
+					overridePriority: -999
+				}
+			},
+			{
+				id: 'obj1',
+				enable: {
+					start: mockTime.now + 1000, // 1 seconds in the future
+					duration: 10000
+				},
+				layer: 'sisyfos_channel_1',
+				content: {
+					deviceType: DeviceType.SISYFOS,
+					type: TimelineContentTypeSisyfos.TRIGGERVALUE,
+					triggerValue: 'b'
+				}
+			},
+			{
+				id: 'obj2',
+				enable: {
+					start: mockTime.now + 1000, // 1 seconds in the future
+					duration: 10000
+				},
+				layer: 'sisyfos_channel_2',
+				content: {
+					deviceType: DeviceType.SISYFOS,
+					type: TimelineContentTypeSisyfos.CHANNEL,
+
+					isPgm: 1
+				}
+			}
+		])
+
+		// baseline:
+		await mockTime.advanceTimeTicks(100) // 100
+		expect(commandReceiver0.mock.calls.length).toEqual(3)
+		expect(getMockCall(commandReceiver0, 0, 1)).toMatchObject({
+			type: 'setChannel',
+			channel: 0,
+			values: {
+				faderLevel: 0.75
+			}
+		})
+		expect(getMockCall(commandReceiver0, 1, 1)).toMatchObject({
+			type: 'setChannel',
+			channel: 1,
+			values: {
+				faderLevel: 0.1,
+				pgmOn: 0
+			}
+		})
+		expect(getMockCall(commandReceiver0, 2, 1)).toMatchObject({
+			type: 'setChannel',
+			channel: 2,
+			values: {
+				faderLevel: 0.2,
+				pgmOn: 0
+			}
+		})
+		commandReceiver0.mockClear()
+
+		// obj1 has started
+		await mockTime.advanceTimeTicks(1000) // 1100
+		expect(commandReceiver0.mock.calls.length).toEqual(3)
+		expect(getMockCall(commandReceiver0, 0, 1)).toMatchObject({
+			type: 'setChannel',
+			channel: 0,
+			values: {
+				faderLevel: 0.75
+			}
+		})
+		expect(getMockCall(commandReceiver0, 1, 1)).toMatchObject({
+			type: 'setChannel',
+			channel: 1,
+			values: {
+				faderLevel: 0.1,
+				pgmOn: 0
+			}
+		})
+		expect(getMockCall(commandReceiver0, 2, 1)).toMatchObject({
+			type: 'setChannel',
+			channel: 2,
+			values: {
+				faderLevel: 0.2,
+				pgmOn: 1
+			}
+		})
+		commandReceiver0.mockClear()
+
+		// back to baseline
+		await mockTime.advanceTimeTicks(10000) // 11100
+		expect(commandReceiver0.mock.calls.length).toEqual(3)
+		expect(getMockCall(commandReceiver0, 0, 1)).toMatchObject({
+			type: 'setChannel',
+			channel: 0,
+			values: {
+				faderLevel: 0.75
+			}
+		})
+		expect(getMockCall(commandReceiver0, 1, 1)).toMatchObject({
+			type: 'setChannel',
+			channel: 1,
+			values: {
+				faderLevel: 0.1,
+				pgmOn: 0
+			}
+		})
+		expect(getMockCall(commandReceiver0, 2, 1)).toMatchObject({
+			type: 'setChannel',
+			channel: 2,
+			values: {
+				faderLevel: 0.2,
+				pgmOn: 0
+			}
 		})
 
 		commandReceiver0.mockClear()
