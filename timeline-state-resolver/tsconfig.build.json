@@ -5,5 +5,10 @@
 		"src/**/*spec.ts",
 		"src/**/__mocks__/*",
 		"src/**/__tests__/*"
+	],
+	"references": [
+		{
+			"path": "../timeline-state-resolver-types"
+		}
 	]
 }

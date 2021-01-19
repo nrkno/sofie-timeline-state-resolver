@@ -2,6 +2,8 @@
 	"extends": "../timeline-state-resolver/config/tsconfig.base",
 	"compilerOptions": {
 		"target": "es6", // Still needed by core for now
+		"composite": true,
+		"outDir": "dist"
 	},
 	"exclude": [
 	  "node_modules/**",
@@ -11,6 +13,7 @@
 	],
 	"include": [
 	  "./**/*.ts"
-	]
+	],
+	"references": []
   }
   
