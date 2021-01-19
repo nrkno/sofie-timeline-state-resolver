@@ -2378,6 +2378,9 @@ img {
 					<a href="quantelstateport.html#lookahead" class="tsd-kind-icon">lookahead</a>
 				</li>
 				<li class=" tsd-kind-property tsd-parent-kind-interface tsd-is-external">
+					<a href="quantelstateport.html#lookaheadclip" class="tsd-kind-icon">lookahead<wbr>Clip</a>
+				</li>
+				<li class=" tsd-kind-property tsd-parent-kind-interface tsd-is-external">
 					<a href="quantelstateport.html#mode" class="tsd-kind-icon">mode</a>
 				</li>
 				<li class=" tsd-kind-property tsd-parent-kind-interface tsd-is-external">
@@ -2413,6 +2416,7 @@ img {
 							<li class="tsd-kind-property tsd-parent-kind-interface tsd-is-external"><a href="quantelstateport.html#channels" class="tsd-kind-icon">channels</a></li>
 							<li class="tsd-kind-property tsd-parent-kind-interface tsd-is-external"><a href="quantelstateport.html#clip" class="tsd-kind-icon">clip</a></li>
 							<li class="tsd-kind-property tsd-parent-kind-interface tsd-is-external"><a href="quantelstateport.html#lookahead" class="tsd-kind-icon">lookahead</a></li>
+							<li class="tsd-kind-property tsd-parent-kind-interface tsd-is-external"><a href="quantelstateport.html#lookaheadclip" class="tsd-kind-icon">lookahead<wbr>Clip</a></li>
 							<li class="tsd-kind-property tsd-parent-kind-interface tsd-is-external"><a href="quantelstateport.html#mode" class="tsd-kind-icon">mode</a></li>
 							<li class="tsd-kind-property tsd-parent-kind-interface tsd-is-external"><a href="quantelstateport.html#notonair" class="tsd-kind-icon">not<wbr>OnAir</a></li>
 							<li class="tsd-kind-property tsd-parent-kind-interface tsd-is-external"><a href="quantelstateport.html#outtransition" class="tsd-kind-icon">out<wbr>Transition</a></li>
@@ -2430,7 +2434,7 @@ img {
 				<div class="tsd-signature tsd-kind-icon">channels<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">[]</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/cc6f55a71/src/devices/quantel.ts#L1137">src/devices/quantel.ts:1137</a></li>
+						<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/459bfb156/src/devices/quantel.ts#L1231">src/devices/quantel.ts:1231</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -2440,7 +2444,7 @@ img {
 				<div class="tsd-signature tsd-kind-icon">clip<span class="tsd-signature-symbol">:</span> <a href="quantelstateportclip.html" class="tsd-signature-type">QuantelStatePortClip</a></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/cc6f55a71/src/devices/quantel.ts#L1132">src/devices/quantel.ts:1132</a></li>
+						<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/459bfb156/src/devices/quantel.ts#L1226">src/devices/quantel.ts:1226</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -2450,9 +2454,24 @@ img {
 				<div class="tsd-signature tsd-kind-icon">lookahead<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/cc6f55a71/src/devices/quantel.ts#L1135">src/devices/quantel.ts:1135</a></li>
+						<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/459bfb156/src/devices/quantel.ts#L1229">src/devices/quantel.ts:1229</a></li>
 					</ul>
 				</aside>
+			</section>
+			<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface tsd-is-external">
+				<a name="lookaheadclip" class="tsd-anchor"></a>
+				<h3><span class="tsd-flag ts-flagOptional">Optional</span> lookahead<wbr>Clip</h3>
+				<div class="tsd-signature tsd-kind-icon">lookahead<wbr>Clip<span class="tsd-signature-symbol">:</span> <a href="quantelstateportcliplookahead.html" class="tsd-signature-type">QuantelStatePortClipLookahead</a></div>
+				<aside class="tsd-sources">
+					<ul>
+						<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/459bfb156/src/devices/quantel.ts#L1237">src/devices/quantel.ts:1237</a></li>
+					</ul>
+				</aside>
+				<div class="tsd-comment tsd-typography">
+					<div class="lead">
+						<p>Future clips, that should be preloaded</p>
+					</div>
+				</div>
 			</section>
 			<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface tsd-is-external">
 				<a name="mode" class="tsd-anchor"></a>
@@ -2460,7 +2479,7 @@ img {
 				<div class="tsd-signature tsd-kind-icon">mode<span class="tsd-signature-symbol">:</span> <a href="../enums/quantelcontrolmode.html" class="tsd-signature-type">QuantelControlMode</a></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/cc6f55a71/src/devices/quantel.ts#L1133">src/devices/quantel.ts:1133</a></li>
+						<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/459bfb156/src/devices/quantel.ts#L1227">src/devices/quantel.ts:1227</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -2470,7 +2489,7 @@ img {
 				<div class="tsd-signature tsd-kind-icon">not<wbr>OnAir<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">false</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">true</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/cc6f55a71/src/devices/quantel.ts#L1139">src/devices/quantel.ts:1139</a></li>
+						<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/459bfb156/src/devices/quantel.ts#L1233">src/devices/quantel.ts:1233</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -2480,7 +2499,7 @@ img {
 				<div class="tsd-signature tsd-kind-icon">out<wbr>Transition<span class="tsd-signature-symbol">:</span> <a href="../globals.html#quantelouttransition" class="tsd-signature-type">QuantelOutTransition</a></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/cc6f55a71/src/devices/quantel.ts#L1140">src/devices/quantel.ts:1140</a></li>
+						<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/459bfb156/src/devices/quantel.ts#L1234">src/devices/quantel.ts:1234</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -2490,7 +2509,7 @@ img {
 				<div class="tsd-signature tsd-kind-icon">timeline<wbr>Obj<wbr>Id<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/cc6f55a71/src/devices/quantel.ts#L1131">src/devices/quantel.ts:1131</a></li>
+						<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/459bfb156/src/devices/quantel.ts#L1225">src/devices/quantel.ts:1225</a></li>
 					</ul>
 				</aside>
 			</section>
