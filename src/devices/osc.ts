@@ -150,7 +150,7 @@ export class OSCMessageDevice extends DeviceWithState<OSCDeviceState> implements
 		return Promise.resolve(true)
 	}
 	getStatus (): DeviceStatus {
-		if ((this.deviceOptions.options as OSCOptions).type === OSCDeviceType.UDP) {
+		if ((this.deviceOptions.options as OSCOptions).type === OSCDeviceType.TCP) {
 			return {
 				statusCode: this._oscClientStatus === 'disconnected' ? StatusCode.BAD : StatusCode.GOOD,
 				messages: this._oscClientStatus === 'disconnected' ? [ 'Disconnected' ] : [],
