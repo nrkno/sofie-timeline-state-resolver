@@ -2,12 +2,13 @@
     "private": true,
     "workspaces": {
       "packages": [
-        "timeline-state-resolver"
+        "timeline-state-resolver",
+        "timeline-state-resolver-types"
       ]
     },
     "scripts": {
       "build": "yarn workspaces run build",
-      "watch": "concurrently --prefix \"[{name}]\" --names \"BI,SCI\" -c \"bgBlue.bold,bgGreen.bold\" \"yarn workspace timeline-state-resolver build:main --watch\" \"yarn workspace timeline-state-resolver-types build:main --watch\"",
+      "watch": "concurrently --prefix \"[{name}]\" --names \"TSR,TYPES\" -c \"bgBlue.bold,bgGreen.bold\" \"yarn workspace timeline-state-resolver build:main --watch\" \"yarn workspace timeline-state-resolver-types build:main --watch\"",
       "docs": "yarn typedoc ."
     },
     "devDependencies": {

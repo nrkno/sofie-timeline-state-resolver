@@ -1,5 +1,5 @@
 {
-	"extends": "../../config/tsconfig.base",
+	"extends": "../timeline-state-resolver/config/tsconfig.base",
 	"compilerOptions": {
 		"target": "es6", // Still needed by core for now
 	},
