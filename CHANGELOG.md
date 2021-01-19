@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [5.3.0](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/5.2.0...5.3.0) (2021-01-19)
+
+
+### Features
+
+* osc device tcp mode ([59f66f8](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/59f66f81a35602ba3d5d40bb41d03f42945c2cb4))
+
+
+### Bug Fixes
+
+* better info and warnings for quantel issues ([#170](https://github.com/nrkno/tv-automation-state-timeline-resolver/issues/170)) ([0793a33](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/0793a338e1cdc894b4b95b6d0b67bfd19548d203))
+* OSC Device Status is bad when disconnected ([8a8dd9a](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/8a8dd9aba726476648b279beaf79e529e508ac2e))
+* osc device status only for tcp ([234e83a](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/234e83a129e22da37222c4076ac4ad8102f9d1da))
+* threadedclass dep updated [publish] ([45c2b88](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/45c2b88414da8c45107e10239fd0cf2f972493b7))
+
 ## [5.2.0](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/5.1.2...5.2.0) (2020-12-08)
 
 
