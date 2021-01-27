@@ -4,9 +4,15 @@ import { TSRTimelineObjBase, DeviceType } from '.'
 // Note: This type is a loose referral to (a copy of) keyof typeof Easing in '../../easings', so that Easing structure won't be included in the types package
 export type OSCEasingType = 'Linear' | 'Quadratic' | 'Cubic' | 'Quartic' | 'Quintic' | 'Sinusoidal' | 'Exponential' | 'Circular' | 'Elastic' | 'Back' | 'Bounce'
 
+export enum OSCDeviceType {
+	TCP = 'tcp',
+	UDP = 'udp'
+}
+
 export interface OSCOptions {
 	host: string
 	port: number
+	type: OSCDeviceType
 }
 
 export interface MappingOSC extends Mapping {

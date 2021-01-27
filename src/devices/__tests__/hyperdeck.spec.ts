@@ -1,10 +1,10 @@
-jest.mock('hyperdeck-connection')
+
 import { Conductor } from '../../conductor'
 import {
 	HyperdeckDevice
 } from '../hyperdeck'
 import { RecordCommand, StopCommand } from 'hyperdeck-connection/dist/commands'
-import { Hyperdeck } from '../../__mocks__/hyperdeck-connection'
+import * as HyperdeckConnection from '../../__mocks__/hyperdeck-connection'
 import {
 	Mappings,
 	DeviceType,
@@ -24,6 +24,9 @@ let myChannelMapping0: MappingHyperdeck = {
 }
 
 describe('Hyperdeck', () => {
+
+	jest.mock('hyperdeck-connection', () => HyperdeckConnection)
+
 	let mockTime = new MockTime()
 
 	beforeAll(() => {
@@ -65,10 +68,10 @@ describe('Hyperdeck', () => {
 
 		expect(commandReceiver0).toHaveBeenCalledTimes(0)
 
-		let hyperdeckInstances = Hyperdeck.getMockInstances()
+		let hyperdeckInstances = HyperdeckConnection.Hyperdeck.getMockInstances()
 		expect(hyperdeckInstances).toHaveLength(1)
 
-		let hyperdeckMock: Hyperdeck = hyperdeckInstances[0]
+		let hyperdeckMock: HyperdeckConnection.Hyperdeck = hyperdeckInstances[0]
 
 		let hyperdeckMockCommand = jest.fn(() => {
 			return Promise.resolve()

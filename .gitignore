@@ -14,3 +14,4 @@ wallaby.conf.js
 src/types/coverage/
 .npmrc
 tv-automation-state-timeline-resolver
+.vscode/

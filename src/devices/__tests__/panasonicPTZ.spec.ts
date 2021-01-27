@@ -1,4 +1,3 @@
-jest.mock('request')
 import { Conductor } from '../../conductor'
 import {
 	PanasonicPtzDevice
@@ -18,6 +17,8 @@ const request = require('../../__mocks__/request')
 const orgSetTimeout = setTimeout
 
 describe('Panasonic PTZ', () => {
+	jest.mock('request', () => request)
+
 	let mockTime = new MockTime()
 
 	let onGet = jest.fn((url, _options, callback) => {

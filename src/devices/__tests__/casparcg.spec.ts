@@ -12,6 +12,7 @@ import {
 } from '../../types/src'
 import { MockTime } from '../../__tests__/mockTime'
 import { getMockCall } from '../../__tests__/lib'
+import { AMCP } from 'casparcg-connection'
 
 // usage logCalls(commandReceiver0)
 // function logCalls (fcn) {
@@ -34,17 +35,17 @@ describe('CasparCG', () => {
 		const commandReceiver0: any = jest.fn(() => {
 			return Promise.resolve()
 		})
-		let myLayerMapping0: MappingCasparCG = {
+		const myLayerMapping0: MappingCasparCG = {
 			device: DeviceType.CASPARCG,
 			deviceId: 'myCCG',
 			channel: 2,
 			layer: 42
 		}
-		let myLayerMapping: Mappings = {
+		const myLayerMapping: Mappings = {
 			'myLayer0': myLayerMapping0
 		}
 
-		let myConductor = new Conductor({
+		const myConductor = new Conductor({
 			initializeAsClear: true,
 			getCurrentTime: mockTime.getCurrentTime
 		})
@@ -119,17 +120,17 @@ describe('CasparCG', () => {
 		const commandReceiver0: any = jest.fn(() => {
 			return Promise.resolve()
 		})
-		let myLayerMapping0: MappingCasparCG = {
+		const myLayerMapping0: MappingCasparCG = {
 			device: DeviceType.CASPARCG,
 			deviceId: 'myCCG',
 			channel: 2,
 			layer: 42
 		}
-		let myLayerMapping: Mappings = {
+		const myLayerMapping: Mappings = {
 			'myLayer0': myLayerMapping0
 		}
 
-		let myConductor = new Conductor({
+		const myConductor = new Conductor({
 			initializeAsClear: true,
 			getCurrentTime: mockTime.getCurrentTime
 		})
@@ -187,23 +188,106 @@ describe('CasparCG', () => {
 			seek: 25 * 10
 		})
 	})
+	test('CasparCG: Play AMB for 60s in 50fps', async () => {
+
+		const commandReceiver0: any = jest.fn(() => {
+			return Promise.resolve()
+		})
+		const myLayerMapping0: MappingCasparCG = {
+			device: DeviceType.CASPARCG,
+			deviceId: 'myCCG',
+			channel: 2,
+			layer: 42
+		}
+		const myLayerMapping: Mappings = {
+			'myLayer0': myLayerMapping0
+		}
+
+		const myConductor = new Conductor({
+			initializeAsClear: true,
+			getCurrentTime: mockTime.getCurrentTime
+		})
+		await myConductor.init() // we cannot do an await, because setTimeout will never call without jest moving on.
+		await myConductor.addDevice('myCCG', {
+			type: DeviceType.CASPARCG,
+			options: {
+				commandReceiver: commandReceiver0,
+				host: '127.0.0.1',
+				useScheduling: false,
+				fps: 50
+			}
+		})
+		await mockTime.advanceTimeToTicks(10100)
+
+		commandReceiver0.mockClear()
+
+		let deviceContainer = myConductor.getDevice('myCCG')
+		let device = deviceContainer.device
+
+		// Check that no commands has been scheduled:
+		expect(await device['queue']).toHaveLength(0)
+
+		myConductor.setTimelineAndMappings([
+			{
+				id: 'obj0',
+				enable: {
+					start: mockTime.getCurrentTime() - 1000, // 1 seconds ago
+					duration: 2000
+				},
+				layer: 'myLayer0',
+				content: {
+					deviceType: DeviceType.CASPARCG,
+					type: TimelineContentTypeCasparCg.MEDIA,
+
+					file: 'AMB',
+					loop: true,
+					inPoint: 0,
+					length: 60 * 1000
+				}
+			}
+		], myLayerMapping)
+
+		await mockTime.advanceTimeToTicks(10200)
+
+		// one command has been sent:
+		expect(commandReceiver0).toHaveBeenCalledTimes(1)
+		expect(getMockCall(commandReceiver0, 0, 1)._objectParams).toMatchObject({
+			channel: 2,
+			layer: 42,
+			noClear: false,
+			clip: 'AMB',
+			loop: true,
+			seek: 50,
+			in: 0,
+			length: 60 * 50
+		})
+
+		// advance time to end of clip:
+		await mockTime.advanceTimeToTicks(11200)
+
+		// two commands have been sent:
+		expect(commandReceiver0).toHaveBeenCalledTimes(2)
+		expect(getMockCall(commandReceiver0, 1, 1)).toBeInstanceOf(AMCP.ClearCommand)
+		expect(getMockCall(commandReceiver0, 1, 1)._objectParams.channel).toEqual(2)
+		expect(getMockCall(commandReceiver0, 1, 1)._objectParams.layer).toEqual(42)
+	})
 
 	test('CasparCG: Play IP input for 60s', async () => {
 
 		const commandReceiver0: any = jest.fn(() => {
 			return Promise.resolve()
 		})
-		let myLayerMapping0: MappingCasparCG = {
+		const myLayerMapping0: MappingCasparCG = {
 			device: DeviceType.CASPARCG,
 			deviceId: 'myCCG',
 			channel: 2,
 			layer: 42
 		}
-		let myLayerMapping: Mappings = {
+		const myLayerMapping: Mappings = {
 			'myLayer0': myLayerMapping0
 		}
 
-		let myConductor = new Conductor({
+		const myConductor = new Conductor({
 			initializeAsClear: true,
 			getCurrentTime: mockTime.getCurrentTime
 		})
@@ -266,17 +350,17 @@ describe('CasparCG', () => {
 		const commandReceiver0: any = jest.fn(() => {
 			return Promise.resolve()
 		})
-		let myLayerMapping0: MappingCasparCG = {
+		const myLayerMapping0: MappingCasparCG = {
 			device: DeviceType.CASPARCG,
 			deviceId: 'myCCG',
 			channel: 2,
 			layer: 42
 		}
-		let myLayerMapping: Mappings = {
+		const myLayerMapping: Mappings = {
 			'myLayer0': myLayerMapping0
 		}
 
-		let myConductor = new Conductor({
+		const myConductor = new Conductor({
 			initializeAsClear: true,
 			getCurrentTime: mockTime.getCurrentTime
 		})
@@ -354,17 +438,17 @@ describe('CasparCG', () => {
 		const commandReceiver0: any = jest.fn(() => {
 			return Promise.resolve()
 		})
-		let myLayerMapping0: MappingCasparCG = {
+		const myLayerMapping0: MappingCasparCG = {
 			device: DeviceType.CASPARCG,
 			deviceId: 'myCCG',
 			channel: 2,
 			layer: 42
 		}
-		let myLayerMapping: Mappings = {
+		const myLayerMapping: Mappings = {
 			'myLayer0': myLayerMapping0
 		}
 
-		let myConductor = new Conductor({
+		const myConductor = new Conductor({
 			initializeAsClear: true,
 			getCurrentTime: mockTime.getCurrentTime
 		})
@@ -438,17 +522,17 @@ describe('CasparCG', () => {
 		const commandReceiver0: any = jest.fn(() => {
 			return Promise.resolve()
 		})
-		let myLayerMapping0: MappingCasparCG = {
+		const myLayerMapping0: MappingCasparCG = {
 			device: DeviceType.CASPARCG,
 			deviceId: 'myCCG',
 			channel: 2,
 			layer: 42
 		}
-		let myLayerMapping: Mappings = {
+		const myLayerMapping: Mappings = {
 			'myLayer0': myLayerMapping0
 		}
 
-		let myConductor = new Conductor({
+		const myConductor = new Conductor({
 			initializeAsClear: true,
 			getCurrentTime: mockTime.getCurrentTime
 		})
@@ -516,24 +600,24 @@ describe('CasparCG', () => {
 		const commandReceiver0: any = jest.fn(() => {
 			return Promise.resolve()
 		})
-		let myLayerMapping0: MappingCasparCG = {
+		const myLayerMapping0: MappingCasparCG = {
 			device: DeviceType.CASPARCG,
 			deviceId: 'myCCG',
 			channel: 2,
 			layer: 42
 		}
-		let myLayerMapping1: MappingCasparCG = {
+		const myLayerMapping1: MappingCasparCG = {
 			device: DeviceType.CASPARCG,
 			deviceId: 'myCCG',
 			channel: 1,
 			layer: 42
 		}
-		let myLayerMapping: Mappings = {
+		const myLayerMapping: Mappings = {
 			'myLayer0': myLayerMapping0,
 			'myLayer1': myLayerMapping1
 		}
 
-		let myConductor = new Conductor({
+		const myConductor = new Conductor({
 			initializeAsClear: true,
 			getCurrentTime: mockTime.getCurrentTime
 		})
@@ -637,17 +721,17 @@ describe('CasparCG', () => {
 		const commandReceiver0: any = jest.fn(() => {
 			return Promise.resolve()
 		})
-		let myLayerMapping0: MappingCasparCG = {
+		const myLayerMapping0: MappingCasparCG = {
 			device: DeviceType.CASPARCG,
 			deviceId: 'myCCG',
 			channel: 2,
 			layer: 42
 		}
-		let myLayerMapping: Mappings = {
+		const myLayerMapping: Mappings = {
 			'myLayer0': myLayerMapping0
 		}
 
-		let myConductor = new Conductor({
+		const myConductor = new Conductor({
 			initializeAsClear: true,
 			getCurrentTime: mockTime.getCurrentTime
 		})
@@ -742,17 +826,17 @@ describe('CasparCG', () => {
 		const commandReceiver0: any = jest.fn(() => {
 			return Promise.resolve()
 		})
-		let myLayerMapping0: MappingCasparCG = {
+		const myLayerMapping0: MappingCasparCG = {
 			device: DeviceType.CASPARCG,
 			deviceId: 'myCCG',
 			channel: 2,
 			layer: 42
 		}
-		let myLayerMapping: Mappings = {
+		const myLayerMapping: Mappings = {
 			'myLayer0': myLayerMapping0
 		}
 
-		let myConductor = new Conductor({
+		const myConductor = new Conductor({
 			initializeAsClear: true,
 			getCurrentTime: mockTime.getCurrentTime
 		})
@@ -879,17 +963,17 @@ describe('CasparCG', () => {
 		const commandReceiver0: any = jest.fn(() => {
 			return Promise.resolve()
 		})
-		let myLayerMapping0: MappingCasparCG = {
+		const myLayerMapping0: MappingCasparCG = {
 			device: DeviceType.CASPARCG,
 			deviceId: 'myCCG',
 			channel: 2,
 			layer: 42
 		}
-		let myLayerMapping: Mappings = {
+		const myLayerMapping: Mappings = {
 			'myLayer0': myLayerMapping0
 		}
 
-		let myConductor = new Conductor({
+		const myConductor = new Conductor({
 			initializeAsClear: true,
 			getCurrentTime: mockTime.getCurrentTime
 		})
@@ -986,18 +1070,18 @@ describe('CasparCG', () => {
 		const commandReceiver0: any = jest.fn(() => {
 			return Promise.resolve()
 		})
-		let myLayerMapping0: MappingCasparCG = {
+		const myLayerMapping0: MappingCasparCG = {
 			device: DeviceType.CASPARCG,
 			deviceId: 'myCCG',
 			channel: 2,
 			layer: 42,
 			previewWhenNotOnAir: true
 		}
-		let myLayerMapping: Mappings = {
+		const myLayerMapping: Mappings = {
 			'myLayer0': myLayerMapping0
 		}
 
-		let myConductor = new Conductor({
+		const myConductor = new Conductor({
 			initializeAsClear: true,
 			getCurrentTime: mockTime.getCurrentTime
 		})
@@ -1093,17 +1177,17 @@ describe('CasparCG', () => {
 		const commandReceiver0: any = jest.fn(() => {
 			return Promise.resolve()
 		})
-		let myLayerMapping0: MappingCasparCG = {
+		const myLayerMapping0: MappingCasparCG = {
 			device: DeviceType.CASPARCG,
 			deviceId: 'myCCG',
 			channel: 2,
 			layer: 42
 		}
-		let myLayerMapping: Mappings = {
+		const myLayerMapping: Mappings = {
 			'myLayer0': myLayerMapping0
 		}
 
-		let myConductor = new Conductor({
+		const myConductor = new Conductor({
 			initializeAsClear: true,
 			getCurrentTime: mockTime.getCurrentTime
 		})
@@ -1207,17 +1291,17 @@ describe('CasparCG', () => {
 		const commandReceiver0: any = jest.fn(() => {
 			return Promise.resolve()
 		})
-		let myLayerMapping0: MappingCasparCG = {
+		const myLayerMapping0: MappingCasparCG = {
 			device: DeviceType.CASPARCG,
 			deviceId: 'myCCG',
 			channel: 1,
 			layer: 10
 		}
-		let myLayerMapping: Mappings = {
+		const myLayerMapping: Mappings = {
 			'myLayer0': myLayerMapping0
 		}
 
-		let myConductor = new Conductor({
+		const myConductor = new Conductor({
 			initializeAsClear: true,
 			getCurrentTime: mockTime.getCurrentTime
 		})
@@ -1297,17 +1381,17 @@ describe('CasparCG', () => {
 		const commandReceiver0: any = jest.fn(() => {
 			return Promise.resolve()
 		})
-		let myLayerMapping0: MappingCasparCG = {
+		const myLayerMapping0: MappingCasparCG = {
 			device: DeviceType.CASPARCG,
 			deviceId: 'myCCG',
 			channel: 2,
 			layer: 42
 		}
-		let myLayerMapping: Mappings = {
+		const myLayerMapping: Mappings = {
 			'myLayer0': myLayerMapping0
 		}
 
-		let myConductor = new Conductor({
+		const myConductor = new Conductor({
 			initializeAsClear: true,
 			getCurrentTime: mockTime.getCurrentTime
 		})
@@ -1352,7 +1436,7 @@ describe('CasparCG', () => {
 					inputType: 'decklink',
 					deviceFormat: ChannelFormat.HD_720P5000,
 
-					format: ChannelFormat.PAL,
+					// format: ChannelFormat.PAL,
 					filter: 'yadif=0:-1'
 				}
 			}
@@ -1386,17 +1470,17 @@ describe('CasparCG', () => {
 		const commandReceiver0: any = jest.fn(() => {
 			return Promise.resolve()
 		})
-		let myLayerMapping0: MappingCasparCG = {
+		const myLayerMapping0: MappingCasparCG = {
 			device: DeviceType.CASPARCG,
 			deviceId: 'myCCG',
 			channel: 2,
 			layer: 42
 		}
-		let myLayerMapping: Mappings = {
+		const myLayerMapping: Mappings = {
 			'myLayer0': myLayerMapping0
 		}
 
-		let myConductor = new Conductor({
+		const myConductor = new Conductor({
 			initializeAsClear: true,
 			getCurrentTime: mockTime.getCurrentTime
 		})
@@ -1531,17 +1615,17 @@ describe('CasparCG', () => {
 		const commandReceiver0: any = jest.fn(() => {
 			return Promise.resolve()
 		})
-		let myLayerMapping0: MappingCasparCG = {
+		const myLayerMapping0: MappingCasparCG = {
 			device: DeviceType.CASPARCG,
 			deviceId: 'myCCG',
 			channel: 2,
 			layer: 42
 		}
-		let myLayerMapping: Mappings = {
+		const myLayerMapping: Mappings = {
 			'myLayer0': myLayerMapping0
 		}
 
-		let myConductor = new Conductor({
+		const myConductor = new Conductor({
 			initializeAsClear: true,
 			getCurrentTime: mockTime.getCurrentTime
 		})
@@ -1669,4 +1753,165 @@ describe('CasparCG', () => {
 		// no retries issued
 		expect(commandReceiver0).toHaveBeenCalledTimes(1)
 	})
+})
+
+describe('CasparCG - Custom transitions', () => {
+	let mockTime = new MockTime()
+	beforeAll(() => {
+		mockTime.mockDateNow()
+	})
+	beforeEach(() => {
+		mockTime.init()
+	})
+	test('FILL', async () => {
+		const commandReceiver0: any = jest.fn(() => {
+			return Promise.resolve()
+		})
+		let myLayerMapping0: MappingCasparCG = {
+			device: DeviceType.CASPARCG,
+			deviceId: 'myCCG',
+			channel: 2,
+			layer: 42
+		}
+		let myLayerMapping: Mappings = {
+			'myLayer0': myLayerMapping0
+		}
+
+		let myConductor = new Conductor({
+			initializeAsClear: true,
+			getCurrentTime: mockTime.getCurrentTime
+		})
+		await myConductor.init()
+		await myConductor.addDevice('myCCG', {
+			type: DeviceType.CASPARCG,
+			options: {
+				commandReceiver: commandReceiver0,
+				host: '127.0.0.1',
+				useScheduling: false,
+				retryInterval: false // disable retries explicitly, we will manually trigger them
+			}
+		})
+		myConductor.setTimelineAndMappings([], myLayerMapping)
+		await mockTime.advanceTimeToTicks(10000)
+
+		expect(commandReceiver0).toHaveBeenCalledTimes(0)
+
+		commandReceiver0.mockClear()
+
+		let deviceContainer = myConductor.getDevice('myCCG')
+		let device = deviceContainer.device
+
+		// Check that no commands has been scheduled:
+		expect(await device['queue']).toHaveLength(0)
+
+		myConductor.setTimelineAndMappings([
+			{
+				id: 'video0',
+				enable: {
+					start: mockTime.getCurrentTime() // 10000
+				},
+				layer: 'myLayer0',
+				content: {
+					deviceType: DeviceType.CASPARCG,
+					type: TimelineContentTypeCasparCg.MEDIA,
+
+					file: 'amb',
+					// transitions: {
+					// 	inTransition: {
+					// 		type: Transition.CUT,
+					// 		duration: 56 * 40
+					// 	}
+					// }
+					mixer: {
+						changeTransition: {
+							type: Transition.TSR_TRANSITION,
+							customOptions: {
+								updateInterval: 1000 / 25,
+								acceleration: 0.000002
+							}
+						},
+						fill: {
+							x: 0,
+							y: 0,
+							xScale: 1,
+							yScale: 1
+						}
+					}
+				},
+				keyframes: [
+					{
+						id: 'kf0',
+						enable: {
+							start: 1000 // 11000
+						},
+						content: {
+							mixer: {
+								fill: {
+									x: 0.5,
+									y: 0.5,
+									xScale: 0.5,
+									yScale: 0.5
+								}
+							}
+						}
+					}
+				]
+			}
+		])
+
+		await mockTime.advanceTimeToTicks(10500)
+
+		// // one command has been sent:
+		expect(commandReceiver0).toHaveBeenCalledTimes(2)
+		expect(getMockCall(commandReceiver0, 0, 1)._objectParams).toMatchObject({
+			channel: 2,
+			layer: 42,
+			noClear: false,
+			clip: 'amb',
+			seek: 0
+		})
+		expect(getMockCall(commandReceiver0, 1, 1)._objectParams).toMatchObject({
+			channel: 2,
+			layer: 42,
+			keyword: 'FILL',
+			x: 0,
+			y: 0,
+			xScale: 1,
+			yScale: 1
+		})
+
+		commandReceiver0.mockClear()
+		await mockTime.advanceTimeToTicks(13500)
+
+		expect(
+			commandReceiver0.mock.calls.map((call) => {
+				const o = {
+					...call[1]._objectParams
+				}
+				delete o.layer
+				delete o.channel
+				delete o.keyword
+				return o
+			})
+		).toMatchSnapshot()
+
+		expect(getMockCall(commandReceiver0, 58, 1)._objectParams).toMatchObject({
+			channel: 2,
+			layer: 42,
+			keyword: 'FILL',
+			x: 0.5,
+			y: 0.5,
+			xScale: 0.5,
+			yScale: 0.5
+		})
+
+		expect(commandReceiver0).toHaveBeenCalledTimes(59)
+
+		commandReceiver0.mockClear()
+		await mockTime.advanceTimeToTicks(13500)
+
+		expect(commandReceiver0).toHaveBeenCalledTimes(0)
+
+	})
+
 })

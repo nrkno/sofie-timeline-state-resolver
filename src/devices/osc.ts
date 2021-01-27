@@ -13,7 +13,8 @@ import {
 	SomeOSCValue,
 	OSCValueType,
 	DeviceOptionsOSC,
-	Mappings
+	Mappings,
+	OSCDeviceType
 } from '../types/src'
 import { DoOnTime, SendMode } from '../doOnTime'
 
@@ -21,7 +22,7 @@ import {
 	TimelineState
 } from 'superfly-timeline'
 import * as osc from 'osc'
-import { Easing } from '../easings'
+import { Easing } from './transitions/easings'
 
 export interface DeviceOptionsOSCInternal extends DeviceOptionsOSC {
 	options: (
@@ -52,7 +53,8 @@ interface OSCDeviceStateContent extends OSCMessageCommandContent {
 export class OSCMessageDevice extends DeviceWithState<OSCDeviceState> implements IDevice {
 
 	private _doOnTime: DoOnTime
-	private _oscClient: osc.UDPPort
+	private _oscClient: osc.UDPPort | osc.TCPSocketPort
+	private _oscClientStatus: 'connected' | 'disconnected' = 'disconnected'
 	private transitions: { [address: string]: {
 		started: number
 	} & OSCMessageCommandContent } = {}
@@ -76,15 +78,33 @@ export class OSCMessageDevice extends DeviceWithState<OSCDeviceState> implements
 		this.handleDoOnTime(this._doOnTime, 'OSC')
 	}
 	init (initOptions: OSCOptions): Promise<boolean> {
-		this._oscClient = new osc.UDPPort({
-			localAddress: '0.0.0.0',
-			localPort: 0,
+		if (initOptions.type === OSCDeviceType.TCP) {
+			const client = new osc.TCPSocketPort({
+				address: initOptions.host,
+				port: initOptions.port,
+				metadata: true
+			})
+			this._oscClient = client
+			client.open() // creates client.socket
+			client.socket.on('connect', () => {
+				this._oscClientStatus = 'connected'
+				this.emit('connectionChanged', this.getStatus())
+			})
+			client.socket.on('close', () => {
+				this._oscClientStatus = 'disconnected'
+				this.emit('connectionChanged', this.getStatus())
+			})
+		} else if (initOptions.type === OSCDeviceType.UDP) {
+			this._oscClient = new osc.UDPPort({
+				localAddress: '0.0.0.0',
+				localPort: 0,
 
-			remoteAddress: initOptions.host,
-			remotePort: initOptions.port,
-			metadata: true
-		})
-		this._oscClient.open()
+				remoteAddress: initOptions.host,
+				remotePort: initOptions.port,
+				metadata: true
+			})
+			this._oscClient.open()
+		}
 
 		return Promise.resolve(true) // This device doesn't have any initialization procedure
 	}
@@ -130,9 +150,16 @@ export class OSCMessageDevice extends DeviceWithState<OSCDeviceState> implements
 		return Promise.resolve(true)
 	}
 	getStatus (): DeviceStatus {
-		// Good, since this device has no status, really
+		if ((this.deviceOptions.options as OSCOptions).type === OSCDeviceType.TCP) {
+			return {
+				statusCode: this._oscClientStatus === 'disconnected' ? StatusCode.BAD : StatusCode.GOOD,
+				messages: this._oscClientStatus === 'disconnected' ? [ 'Disconnected' ] : [],
+				active: this.isActive
+			}
+		}
+		// Unknown? since this device has no status, really
 		return {
-			statusCode: StatusCode.GOOD,
+			statusCode: StatusCode.UNKNOWN,
 			active: this.isActive
 		}
 	}
@@ -297,6 +324,7 @@ export class OSCMessageDevice extends DeviceWithState<OSCDeviceState> implements
 		}
 	}
 	private _defaultOscSender (msg: osc.OscMessage, address?: string | undefined, port?: number | undefined): void {
+		this.emit('debug', 'sending ' + msg.address)
 		this._oscClient.send(msg, address, port)
 	}
 	private runAnimation () {

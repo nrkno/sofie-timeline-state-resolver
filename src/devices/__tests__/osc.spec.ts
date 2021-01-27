@@ -6,7 +6,8 @@ import {
 	DeviceType,
 	TimelineContentTypeOSC,
 	OSCValueType,
-	TimelineObjOSCMessage
+	TimelineObjOSCMessage,
+	OSCDeviceType
 } from '../../types/src'
 import { MockTime } from '../../__tests__/mockTime'
 import { literal } from '../device'
@@ -45,7 +46,8 @@ describe('OSC-Message', () => {
 			options: {
 				commandReceiver: commandReceiver0,
 				host: '127.0.0.1',
-				port: 80
+				port: 80,
+				type: OSCDeviceType.UDP
 			}
 		})
 		myConductor.setTimelineAndMappings([], myLayerMapping)
@@ -138,7 +140,8 @@ describe('OSC-Message', () => {
 			options: {
 				oscSender: commandReceiver0,
 				host: '127.0.0.1',
-				port: 80
+				port: 80,
+				type: OSCDeviceType.UDP
 			}
 		})
 		myConductor.setTimelineAndMappings([], myLayerMapping)

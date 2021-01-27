@@ -1,4 +1,3 @@
-jest.mock('request')
 import { PanasonicPtzHttpInterface } from '../panasonicPTZAPI'
 import * as request from '../../__mocks__/request'
 import { URL } from 'url'
@@ -54,6 +53,7 @@ function mockReply (mockDevice: MockDevice, urlString: string) {
 
 }
 describe('PanasonicAPI', () => {
+	jest.mock('request', () => request)
 
 	const mockDevice: MockDevice = {
 		powerMode: 'p1',
