@@ -3,7 +3,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<title>TimelineObjShotokuSequence | timeline-state-resolver-types</title>
+	<title>ShotokuCommand | timeline-state-resolver-types</title>
 	<meta name="description" content="">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<style type="text/css">/*! normalize.css v1.1.3 | MIT License | git.io/normalize */
@@ -2366,19 +2366,19 @@ img {
 <nav class="tsd-navigation secondary">
 	<ul>
 		<li class="current tsd-kind-interface tsd-is-external">
-			<a href="timelineobjshotokusequence.html" class="tsd-kind-icon">Timeline<wbr>Obj<wbr>Shotoku<wbr>Sequence</a>
+			<a href="shotokucommand.html" class="tsd-kind-icon">Shotoku<wbr>Command</a>
 			<ul>
-				<li class=" tsd-kind-property tsd-parent-kind-interface tsd-is-overwrite tsd-is-external">
-					<a href="timelineobjshotokusequence.html#content" class="tsd-kind-icon">content</a>
+				<li class=" tsd-kind-property tsd-parent-kind-interface tsd-is-external">
+					<a href="shotokucommand.html#changeoperatorscreen" class="tsd-kind-icon">change<wbr>Operator<wbr>Screen</a>
 				</li>
-				<li class=" tsd-kind-property tsd-parent-kind-interface tsd-is-inherited tsd-is-external">
-					<a href="timelineobjshotokusequence.html#islookahead" class="tsd-kind-icon">is<wbr>Lookahead</a>
+				<li class=" tsd-kind-property tsd-parent-kind-interface tsd-is-external">
+					<a href="shotokucommand.html#shot" class="tsd-kind-icon">shot</a>
 				</li>
-				<li class=" tsd-kind-property tsd-parent-kind-interface tsd-is-inherited tsd-is-external">
-					<a href="timelineobjshotokusequence.html#keyframes" class="tsd-kind-icon">keyframes</a>
+				<li class=" tsd-kind-property tsd-parent-kind-interface tsd-is-external">
+					<a href="shotokucommand.html#show" class="tsd-kind-icon">show</a>
 				</li>
-				<li class=" tsd-kind-property tsd-parent-kind-interface tsd-is-inherited tsd-is-external">
-					<a href="timelineobjshotokusequence.html#lookaheadforlayer" class="tsd-kind-icon">lookahead<wbr>For<wbr>Layer</a>
+				<li class=" tsd-kind-property tsd-parent-kind-interface tsd-is-external">
+					<a href="shotokucommand.html#type" class="tsd-kind-icon">type</a>
 				</li>
 			</ul>
 		</li>
@@ -2390,12 +2390,7 @@ img {
 			<h3>Hierarchy</h3>
 			<ul class="tsd-hierarchy">
 				<li>
-					<a href="tsrtimelineobjbase.html" class="tsd-signature-type">TSRTimelineObjBase</a>
-					<ul class="tsd-hierarchy">
-						<li>
-							<span class="target">TimelineObjShotokuSequence</span>
-						</li>
-					</ul>
+					<span class="target">ShotokuCommand</span>
 				</li>
 			</ul>
 		</section>
@@ -2406,10 +2401,10 @@ img {
 					<section class="tsd-index-section tsd-is-external">
 						<h3>Properties</h3>
 						<ul class="tsd-index-list">
-							<li class="tsd-kind-property tsd-parent-kind-interface tsd-is-overwrite tsd-is-external"><a href="timelineobjshotokusequence.html#content" class="tsd-kind-icon">content</a></li>
-							<li class="tsd-kind-property tsd-parent-kind-interface tsd-is-inherited tsd-is-external"><a href="timelineobjshotokusequence.html#islookahead" class="tsd-kind-icon">is<wbr>Lookahead</a></li>
-							<li class="tsd-kind-property tsd-parent-kind-interface tsd-is-inherited tsd-is-external"><a href="timelineobjshotokusequence.html#keyframes" class="tsd-kind-icon">keyframes</a></li>
-							<li class="tsd-kind-property tsd-parent-kind-interface tsd-is-inherited tsd-is-external"><a href="timelineobjshotokusequence.html#lookaheadforlayer" class="tsd-kind-icon">lookahead<wbr>For<wbr>Layer</a></li>
+							<li class="tsd-kind-property tsd-parent-kind-interface tsd-is-external"><a href="shotokucommand.html#changeoperatorscreen" class="tsd-kind-icon">change<wbr>Operator<wbr>Screen</a></li>
+							<li class="tsd-kind-property tsd-parent-kind-interface tsd-is-external"><a href="shotokucommand.html#shot" class="tsd-kind-icon">shot</a></li>
+							<li class="tsd-kind-property tsd-parent-kind-interface tsd-is-external"><a href="shotokucommand.html#show" class="tsd-kind-icon">show</a></li>
+							<li class="tsd-kind-property tsd-parent-kind-interface tsd-is-external"><a href="shotokucommand.html#type" class="tsd-kind-icon">type</a></li>
 						</ul>
 					</section>
 				</div>
@@ -2417,76 +2412,45 @@ img {
 		</section>
 		<section class="tsd-panel-group tsd-member-group tsd-is-external">
 			<h2>Properties</h2>
-			<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface tsd-is-overwrite tsd-is-external">
-				<a name="content" class="tsd-anchor"></a>
-				<h3>content</h3>
-				<div class="tsd-signature tsd-kind-icon">content<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">{ </span>deviceType<span class="tsd-signature-symbol">: </span><a href="../enums/devicetype.html#shotoku" class="tsd-signature-type">SHOTOKU</a><span class="tsd-signature-symbol">; </span>sequenceId<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">; </span>shots<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Array</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-symbol">{ </span>offset<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> }</span><span class="tsd-signature-symbol"> &amp; </span><a href="shotokucommandcontent.html" class="tsd-signature-type">ShotokuCommandContent</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">; </span>type<span class="tsd-signature-symbol">: </span><a href="../enums/timelinecontenttypeshotoku.html#sequence" class="tsd-signature-type">SEQUENCE</a><span class="tsd-signature-symbol"> }</span></div>
+			<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface tsd-is-external">
+				<a name="changeoperatorscreen" class="tsd-anchor"></a>
+				<h3><span class="tsd-flag ts-flagOptional">Optional</span> change<wbr>Operator<wbr>Screen</h3>
+				<div class="tsd-signature tsd-kind-icon">change<wbr>Operator<wbr>Screen<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">false</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">true</span></div>
 				<aside class="tsd-sources">
-					<p>Overrides <a href="tsrtimelineobjbase.html">TSRTimelineObjBase</a>.<a href="tsrtimelineobjbase.html#content">content</a></p>
 					<ul>
-						<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/23b7ebd0b/src/types/src/shotoku.ts#L35">src/types/src/shotoku.ts:35</a></li>
-					</ul>
-				</aside>
-				<div class="tsd-type-declaration">
-					<h4>Type declaration</h4>
-					<ul class="tsd-parameters">
-						<li class="tsd-parameter">
-							<h5>device<wbr>Type<span class="tsd-signature-symbol">: </span><a href="../enums/devicetype.html#shotoku" class="tsd-signature-type">SHOTOKU</a></h5>
-						</li>
-						<li class="tsd-parameter">
-							<h5>sequence<wbr>Id<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span></h5>
-						</li>
-						<li class="tsd-parameter">
-							<h5>shots<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Array</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-symbol">{ </span>offset<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> }</span><span class="tsd-signature-symbol"> &amp; </span><a href="shotokucommandcontent.html" class="tsd-signature-type">ShotokuCommandContent</a><span class="tsd-signature-symbol">&gt;</span></h5>
-						</li>
-						<li class="tsd-parameter">
-							<h5>type<span class="tsd-signature-symbol">: </span><a href="../enums/timelinecontenttypeshotoku.html#sequence" class="tsd-signature-type">SEQUENCE</a></h5>
-						</li>
-					</ul>
-				</div>
-			</section>
-			<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface tsd-is-inherited tsd-is-external">
-				<a name="islookahead" class="tsd-anchor"></a>
-				<h3><span class="tsd-flag ts-flagOptional">Optional</span> is<wbr>Lookahead</h3>
-				<div class="tsd-signature tsd-kind-icon">is<wbr>Lookahead<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">false</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">true</span></div>
-				<aside class="tsd-sources">
-					<p>Inherited from <a href="tsrtimelineobjabstract.html">TSRTimelineObjAbstract</a>.<a href="tsrtimelineobjabstract.html#islookahead">isLookahead</a></p>
-					<ul>
-						<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/23b7ebd0b/src/types/src/mapping.ts#L17">src/types/src/mapping.ts:17</a></li>
-					</ul>
-				</aside>
-				<div class="tsd-comment tsd-typography">
-					<div class="lead">
-						<p>Only set to true when an object is inserted by lookahead</p>
-					</div>
-				</div>
-			</section>
-			<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface tsd-is-inherited tsd-is-external">
-				<a name="keyframes" class="tsd-anchor"></a>
-				<h3><span class="tsd-flag ts-flagOptional">Optional</span> keyframes</h3>
-				<div class="tsd-signature tsd-kind-icon">keyframes<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Array</span><span class="tsd-signature-symbol">&lt;</span><a href="tsrtimelinekeyframe.html" class="tsd-signature-type">TSRTimelineKeyframe</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">this</span><span class="tsd-signature-symbol">[</span><span class="tsd-signature-type">"content"</span><span class="tsd-signature-symbol">]</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">&gt;</span></div>
-				<aside class="tsd-sources">
-					<p>Inherited from <a href="tsrtimelineobjabstract.html">TSRTimelineObjAbstract</a>.<a href="tsrtimelineobjabstract.html#keyframes">keyframes</a></p>
-					<ul>
-						<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/23b7ebd0b/src/types/src/index.ts#L75">src/types/src/index.ts:75</a></li>
+						<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/204312be5/src/devices/shotokuAPI.ts#L184">src/devices/shotokuAPI.ts:184</a></li>
 					</ul>
 				</aside>
 			</section>
-			<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface tsd-is-inherited tsd-is-external">
-				<a name="lookaheadforlayer" class="tsd-anchor"></a>
-				<h3><span class="tsd-flag ts-flagOptional">Optional</span> lookahead<wbr>For<wbr>Layer</h3>
-				<div class="tsd-signature tsd-kind-icon">lookahead<wbr>For<wbr>Layer<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">number</span></div>
+			<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface tsd-is-external">
+				<a name="shot" class="tsd-anchor"></a>
+				<h3>shot</h3>
+				<div class="tsd-signature tsd-kind-icon">shot<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span></div>
 				<aside class="tsd-sources">
-					<p>Inherited from <a href="tsrtimelineobjabstract.html">TSRTimelineObjAbstract</a>.<a href="tsrtimelineobjabstract.html#lookaheadforlayer">lookaheadForLayer</a></p>
 					<ul>
-						<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/23b7ebd0b/src/types/src/mapping.ts#L19">src/types/src/mapping.ts:19</a></li>
+						<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/204312be5/src/devices/shotokuAPI.ts#L183">src/devices/shotokuAPI.ts:183</a></li>
 					</ul>
 				</aside>
-				<div class="tsd-comment tsd-typography">
-					<div class="lead">
-						<p>Only valid when isLookahead is true. Set so that a lookahead object knows what layer it belongs to</p>
-					</div>
-				</div>
+			</section>
+			<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface tsd-is-external">
+				<a name="show" class="tsd-anchor"></a>
+				<h3><span class="tsd-flag ts-flagOptional">Optional</span> show</h3>
+				<div class="tsd-signature tsd-kind-icon">show<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">number</span></div>
+				<aside class="tsd-sources">
+					<ul>
+						<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/204312be5/src/devices/shotokuAPI.ts#L182">src/devices/shotokuAPI.ts:182</a></li>
+					</ul>
+				</aside>
+			</section>
+			<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface tsd-is-external">
+				<a name="type" class="tsd-anchor"></a>
+				<h3>type</h3>
+				<div class="tsd-signature tsd-kind-icon">type<span class="tsd-signature-symbol">:</span> <a href="../enums/shotokucommandtype.html" class="tsd-signature-type">ShotokuCommandType</a></div>
+				<aside class="tsd-sources">
+					<ul>
+						<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/204312be5/src/devices/shotokuAPI.ts#L181">src/devices/shotokuAPI.ts:181</a></li>
+					</ul>
+				</aside>
 			</section>
 		</section>
 		<footer class="with-border-bottom">
