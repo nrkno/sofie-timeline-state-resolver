@@ -3,7 +3,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<title>ShotokuSequenceCommand | timeline-state-resolver-types</title>
+	<title>ShotokuCommand | timeline-state-resolver-types</title>
 	<meta name="description" content="">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<style type="text/css">/*! normalize.css v1.1.3 | MIT License | git.io/normalize */
@@ -2366,10 +2366,19 @@ img {
 <nav class="tsd-navigation secondary">
 	<ul>
 		<li class="current tsd-kind-interface tsd-is-external">
-			<a href="shotokusequencecommand.html" class="tsd-kind-icon">Shotoku<wbr>Sequence<wbr>Command</a>
+			<a href="shotokucommand.html" class="tsd-kind-icon">Shotoku<wbr>Command</a>
 			<ul>
 				<li class=" tsd-kind-property tsd-parent-kind-interface tsd-is-external">
-					<a href="shotokusequencecommand.html#shots" class="tsd-kind-icon">shots</a>
+					<a href="shotokucommand.html#changeoperatorscreen" class="tsd-kind-icon">change<wbr>Operator<wbr>Screen</a>
+				</li>
+				<li class=" tsd-kind-property tsd-parent-kind-interface tsd-is-external">
+					<a href="shotokucommand.html#shot" class="tsd-kind-icon">shot</a>
+				</li>
+				<li class=" tsd-kind-property tsd-parent-kind-interface tsd-is-external">
+					<a href="shotokucommand.html#show" class="tsd-kind-icon">show</a>
+				</li>
+				<li class=" tsd-kind-property tsd-parent-kind-interface tsd-is-external">
+					<a href="shotokucommand.html#type" class="tsd-kind-icon">type</a>
 				</li>
 			</ul>
 		</li>
@@ -2381,7 +2390,7 @@ img {
 			<h3>Hierarchy</h3>
 			<ul class="tsd-hierarchy">
 				<li>
-					<span class="target">ShotokuSequenceCommand</span>
+					<span class="target">ShotokuCommand</span>
 				</li>
 			</ul>
 		</section>
@@ -2392,7 +2401,10 @@ img {
 					<section class="tsd-index-section tsd-is-external">
 						<h3>Properties</h3>
 						<ul class="tsd-index-list">
-							<li class="tsd-kind-property tsd-parent-kind-interface tsd-is-external"><a href="shotokusequencecommand.html#shots" class="tsd-kind-icon">shots</a></li>
+							<li class="tsd-kind-property tsd-parent-kind-interface tsd-is-external"><a href="shotokucommand.html#changeoperatorscreen" class="tsd-kind-icon">change<wbr>Operator<wbr>Screen</a></li>
+							<li class="tsd-kind-property tsd-parent-kind-interface tsd-is-external"><a href="shotokucommand.html#shot" class="tsd-kind-icon">shot</a></li>
+							<li class="tsd-kind-property tsd-parent-kind-interface tsd-is-external"><a href="shotokucommand.html#show" class="tsd-kind-icon">show</a></li>
+							<li class="tsd-kind-property tsd-parent-kind-interface tsd-is-external"><a href="shotokucommand.html#type" class="tsd-kind-icon">type</a></li>
 						</ul>
 					</section>
 				</div>
@@ -2401,12 +2413,42 @@ img {
 		<section class="tsd-panel-group tsd-member-group tsd-is-external">
 			<h2>Properties</h2>
 			<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface tsd-is-external">
-				<a name="shots" class="tsd-anchor"></a>
-				<h3>shots</h3>
-				<div class="tsd-signature tsd-kind-icon">shots<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Array</span><span class="tsd-signature-symbol">&lt;</span><a href="shotokubasiccommand.html" class="tsd-signature-type">ShotokuBasicCommand</a><span class="tsd-signature-symbol"> &amp; </span><span class="tsd-signature-symbol">{ </span>offset<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> }</span><span class="tsd-signature-symbol">&gt;</span></div>
+				<a name="changeoperatorscreen" class="tsd-anchor"></a>
+				<h3><span class="tsd-flag ts-flagOptional">Optional</span> change<wbr>Operator<wbr>Screen</h3>
+				<div class="tsd-signature tsd-kind-icon">change<wbr>Operator<wbr>Screen<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">false</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">true</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/e281f2b9b/src/devices/shotokuAPI.ts#L194">src/devices/shotokuAPI.ts:194</a></li>
+						<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/dcab83e99/src/devices/shotokuAPI.ts#L184">src/devices/shotokuAPI.ts:184</a></li>
+					</ul>
+				</aside>
+			</section>
+			<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface tsd-is-external">
+				<a name="shot" class="tsd-anchor"></a>
+				<h3>shot</h3>
+				<div class="tsd-signature tsd-kind-icon">shot<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span></div>
+				<aside class="tsd-sources">
+					<ul>
+						<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/dcab83e99/src/devices/shotokuAPI.ts#L183">src/devices/shotokuAPI.ts:183</a></li>
+					</ul>
+				</aside>
+			</section>
+			<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface tsd-is-external">
+				<a name="show" class="tsd-anchor"></a>
+				<h3><span class="tsd-flag ts-flagOptional">Optional</span> show</h3>
+				<div class="tsd-signature tsd-kind-icon">show<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">number</span></div>
+				<aside class="tsd-sources">
+					<ul>
+						<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/dcab83e99/src/devices/shotokuAPI.ts#L182">src/devices/shotokuAPI.ts:182</a></li>
+					</ul>
+				</aside>
+			</section>
+			<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface tsd-is-external">
+				<a name="type" class="tsd-anchor"></a>
+				<h3>type</h3>
+				<div class="tsd-signature tsd-kind-icon">type<span class="tsd-signature-symbol">:</span> <a href="../enums/shotokucommandtype.html" class="tsd-signature-type">ShotokuCommandType</a></div>
+				<aside class="tsd-sources">
+					<ul>
+						<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/dcab83e99/src/devices/shotokuAPI.ts#L181">src/devices/shotokuAPI.ts:181</a></li>
 					</ul>
 				</aside>
 			</section>
