@@ -5,7 +5,7 @@ const TIMEOUT = 3000 // ms
 const RETRY_TIMEOUT = 5000 // ms
 
 export class ShotokuAPI extends EventEmitter {
-	private _tcpClient: Socket | null = null
+	private _tcpClient: Socket | undefined = undefined
 	private _connected: boolean = false
 	private _host: string
 	private _port: number
@@ -31,7 +31,20 @@ export class ShotokuAPI extends EventEmitter {
 		return this._connected
 	}
 
-	send (command: ShotokuCommand) {
+	executeCommand (command: ShotokuCommand) {
+		if ('shot' in command) {
+			return this.send(command)
+		} else {
+			Object.values(command.shots).forEach((command) => {
+				setTimeout(() => {
+					this.send(command).catch(() => this.emit('warn', 'Command from sequence failed...'))
+				}, command.offset)
+			})
+			return Promise.resolve()
+		}
+	}
+
+	send (command: ShotokuBasicCommand) {
 		const codes = {
 			[ShotokuCommandType.Fade]: 0x01,
 			[ShotokuCommandType.Cut]: 0x02
@@ -83,7 +96,7 @@ export class ShotokuAPI extends EventEmitter {
 	}
 
 	private _disconnectTCPClient (): Promise<void> {
-		return new Promise((resolve) => {
+		return new Promise<void>((resolve) => {
 			this._setDisconnected = true
 			if (this._tcpClient) {
 				if (this.connected) {
@@ -118,7 +131,7 @@ export class ShotokuAPI extends EventEmitter {
 				this._tcpClient.removeAllListeners('end')
 				this._tcpClient.removeAllListeners('error')
 
-				this._tcpClient = null
+				this._tcpClient = undefined
 			}
 			this._setConnected(false)
 		})
@@ -177,12 +190,18 @@ export class ShotokuAPI extends EventEmitter {
 	}
 }
 
-export interface ShotokuCommand {
+export interface ShotokuSequenceCommand {
+	shots: Array<ShotokuBasicCommand & {
+		offset: number
+	}>
+}
+export interface ShotokuBasicCommand {
 	type: ShotokuCommandType
 	show?: number
 	shot: number
 	changeOperatorScreen?: boolean
 }
+export type ShotokuCommand = ShotokuBasicCommand | ShotokuSequenceCommand
 
 export enum ShotokuCommandType {
 	Cut = 'cut',
