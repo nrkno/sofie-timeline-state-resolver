@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [5.4.0](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/5.3.0...5.4.0) (2021-02-05)
+
+
+### Features
+
+* quantel: preload when a lookahead is alongside a playing clip [publish] ([3f0c40f](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/3f0c40f9e0d002c39dddf9ac1ac7c81e457ed468))
+
+
+### Bug Fixes
+
+* [publish] don't process lockaheads on a port when playing ([30d9407](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/30d94074a9f8f073d87503d3dcb7cec2efe1e073))
+* handle simultaneous lookahead with playing clip ([9dcc3e1](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/9dcc3e1dea0202e106a53848a301c39c70e0da07))
+
 ## [5.3.0](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/5.2.0...5.3.0) (2021-01-19)
 
 
