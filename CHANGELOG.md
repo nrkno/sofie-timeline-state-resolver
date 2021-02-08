@@ -2,6 +2,36 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [5.5.0](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/5.4.0...5.5.0) (2021-02-05)
+
+
+### Features
+
+* add support for advanced settings in the TimelineObjAtemSsrcProps ([#171](https://github.com/nrkno/tv-automation-state-timeline-resolver/issues/171)) ([2efd965](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/2efd965e4f8856af086d9052022d1cfa9864a479))
+* quantel: preload when a lookahead is alongside a playing clip [publish] ([b4f8dca](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/b4f8dcadb6b412db7a8e0b5de4d11c23e6ccff04))
+* sisyfos retrigger mechanism ([7ac33e8](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/7ac33e89d98185dd42a751da35a1ceb0695bc597))
+* **shotoku:** simple sequences of shots ([158eb4f](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/158eb4f649fc4cd9f21e0f77bac7d1399a05e9d4))
+
+
+### Bug Fixes
+
+* [publish] don't process lockaheads on a port when playing ([2de7c81](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/2de7c81a06d9b42816e77f2905b35607acc7e813))
+* handle simultaneous lookahead with playing clip ([e8fcff3](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/e8fcff3b85d3fe1ff1019c5ea9b67261317e973a))
+* update supertimeline [publish] ([ceddeeb](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/ceddeeb7684af13a535bc0cb4256d28250a6a4fe))
+
+## [5.4.0](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/5.3.0...5.4.0) (2021-02-05)
+
+
+### Features
+
+* quantel: preload when a lookahead is alongside a playing clip [publish] ([3f0c40f](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/3f0c40f9e0d002c39dddf9ac1ac7c81e457ed468))
+
+
+### Bug Fixes
+
+* [publish] don't process lockaheads on a port when playing ([30d9407](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/30d94074a9f8f073d87503d3dcb7cec2efe1e073))
+* handle simultaneous lookahead with playing clip ([9dcc3e1](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/9dcc3e1dea0202e106a53848a301c39c70e0da07))
+
 ## [5.3.0](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/5.2.0...5.3.0) (2021-01-19)
 
 
