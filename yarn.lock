@@ -773,10 +773,10 @@
   resolved "https://registry.yarnpkg.com/@types/tough-cookie/-/tough-cookie-4.0.0.tgz#fef1904e4668b6e5ecee60c52cc6a078ffa6697d"
   integrity sha512-I99sngh224D0M7XgW1s120zxCt3VYQ3IQsuw3P3jbq5GG4yc79+ZjyKznyOGIQrflfylLgcfekeZW/vk0yng6A==
 
-"@types/underscore@^1.10.24":
-  version "1.10.24"
-  resolved "https://registry.yarnpkg.com/@types/underscore/-/underscore-1.10.24.tgz#dede004deed3b3f99c4db0bdb9ee21cae25befdd"
-  integrity sha512-T3NQD8hXNW2sRsSbLNjF/aBo18MyJlbw0lSpQHB/eZZtScPdexN4HSa8cByYwTw9Wy7KuOFr81mlDQcQQaZ79w==
+"@types/underscore@^1.9.2":
+  version "1.10.23"
+  resolved "https://registry.yarnpkg.com/@types/underscore/-/underscore-1.10.23.tgz#cc672e8864000d288e1e39c609fd9cab84391ff3"
+  integrity sha512-vX1NPekXhrLquFWskH2thcvFAha187F/lM6xYOoEMZWwJ/6alSk0/ttmGP/YRqcqtCv0TMbZjYAdZyHAEcuU4g==
 
 "@types/ws@^7.2.4":
   version "7.2.6"
@@ -6057,13 +6057,13 @@ stubs@^3.0.0:
   resolved "https://registry.yarnpkg.com/stubs/-/stubs-3.0.0.tgz#e8d2ba1fa9c90570303c030b6900f7d5f89abe5b"
   integrity sha1-6NK6H6nJBXAwPAMLaQD31fiavls=
 
-superfly-timeline@^8.2.0:
-  version "8.2.0"
-  resolved "https://registry.yarnpkg.com/superfly-timeline/-/superfly-timeline-8.2.0.tgz#0821e99d31643a31643b72fffe40771b8a61bc89"
-  integrity sha512-fSqWubbUGhoefYDOCPnfBO6BuM61ZtrzMUSnrYStG8M6B4rTsD1Cf0WxsReBbGeqIMBfFcgcBDVm2p+hNS2/Jg==
+superfly-timeline@^8.1.2:
+  version "8.1.2"
+  resolved "https://registry.yarnpkg.com/superfly-timeline/-/superfly-timeline-8.1.2.tgz#42ad3cac49991e12621c1fb34b4d71b345651152"
+  integrity sha512-hjkrE85YHsCLtFdorjtEc4psrtDlWmYk8sTQJdaw/c/gveWSJ3jcABDMYolX2jB+VFNTQO5Sw7O4k6S3hV+g6g==
   dependencies:
-    tslib "^2.1.0"
-    underscore "^1.12.0"
+    tslib "^1.13.0"
+    underscore "^1.9.1"
 
 supports-color@^5.3.0:
   version "5.5.0"
@@ -6162,10 +6162,20 @@ text-extensions@^1.0.0:
   resolved "https://registry.yarnpkg.com/text-extensions/-/text-extensions-1.9.0.tgz#1853e45fee39c945ce6f6c36b2d659b5aabc2a26"
   integrity sha512-wiBrwC1EhBelW12Zy26JeOUkQ5mRu+5o8rpsJk5+2t+Y5vE7e842qtZDQ2g1NpX/29HdyFeJ4nSIhI47ENSxlQ==
 
-threadedclass@0.8.3, threadedclass@^0.8.0:
+threadedclass@0.8.3:
   version "0.8.3"
   resolved "https://registry.yarnpkg.com/threadedclass/-/threadedclass-0.8.3.tgz#ee95a7d2c4fe6ca79e7265bba9baa7c6fff83309"
   integrity sha512-cI6tVYRIIVYxFG7Nykt8NMVflrrdMvyvzAQfgAZdARdU/PaFSGd5Y7wChvJ3DXLsLiFb3datLhfn26K5DTKf+A==
+  dependencies:
+    callsites "^3.1.0"
+    eventemitter3 "^4.0.4"
+    is-running "^2.1.0"
+    tslib "^1.13.0"
+
+threadedclass@^0.8.0:
+  version "0.8.0"
+  resolved "https://registry.yarnpkg.com/threadedclass/-/threadedclass-0.8.0.tgz#2b3a3f450ccd29579140dcac34a8d8ed159c6313"
+  integrity sha512-bUdYig96HmZKcrG5p5b9cv3xmNPfm5uz1b+wOiKDZPmAOgHMaJmcxiKVZLREB2gNZ6dalRc/rWvYnl6OB4HQqg==
   dependencies:
     callsites "^3.1.0"
     eventemitter3 "^4.0.4"
@@ -6354,11 +6364,6 @@ tslib@^1.10.0, tslib@^1.13, tslib@^1.13.0, tslib@^1.8.1, tslib@^1.9.0:
   resolved "https://registry.yarnpkg.com/tslib/-/tslib-1.13.0.tgz#c881e13cc7015894ed914862d276436fa9a47043"
   integrity sha512-i/6DQjL8Xf3be4K/E6Wgpekn5Qasl1usyw++dAA35Ue5orEn65VIxOA+YvNNl9HV3qv70T7CNwjODHZrLwvd1Q==
 
-tslib@^2.1.0:
-  version "2.1.0"
-  resolved "https://registry.yarnpkg.com/tslib/-/tslib-2.1.0.tgz#da60860f1c2ecaa5703ab7d39bc05b6bf988b97a"
-  integrity sha512-hcVC3wYEziELGGmEEXue7D75zbwIIVUMWAVbHItGPx0ziyXxrOMQx4rQEVEV45Ut/1IotuEvwqPopzIOkDMf0A==
-
 tslint-config-standard@^9.0.0:
   version "9.0.0"
   resolved "https://registry.yarnpkg.com/tslint-config-standard/-/tslint-config-standard-9.0.0.tgz#349a94819d93d5f8d803e3c71cb58ef38eff88e0"
@@ -6544,10 +6549,10 @@ underscore-deep-extend@^1.1.5:
   resolved "https://registry.yarnpkg.com/underscore-deep-extend/-/underscore-deep-extend-1.1.5.tgz#962ba1f8b3bb2e2afd182ed86f2e5275543c52bd"
   integrity sha1-liuh+LO7Lir9GC7Yby5SdVQ8Ur0=
 
-underscore@>=1.8.3, underscore@^1.12.0, underscore@^1.9.1:
-  version "1.12.0"
-  resolved "https://registry.yarnpkg.com/underscore/-/underscore-1.12.0.tgz#4814940551fc80587cef7840d1ebb0f16453be97"
-  integrity sha512-21rQzss/XPMjolTiIezSu3JAjgagXKROtNrYFEOWK109qY1Uv2tVjPTZ1ci2HgvQDA16gHYSthQIJfB+XId/rQ==
+underscore@>=1.8.3, underscore@^1.10.2, underscore@^1.9.1:
+  version "1.11.0"
+  resolved "https://registry.yarnpkg.com/underscore/-/underscore-1.11.0.tgz#dd7c23a195db34267186044649870ff1bab5929e"
+  integrity sha512-xY96SsN3NA461qIRKZ/+qox37YXPtSBswMGfiNptr+wrt6ds4HaMw23TP612fEyGekRE6LNRiLYr/aqbHXNedw==
 
 union-value@^1.0.0:
   version "1.0.1"
