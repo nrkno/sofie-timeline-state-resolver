@@ -107,5 +107,8 @@
 	],
 	"dependencies": {
 		"tslib": "^1.13.0"
+	},
+	"resolutions": {
+		"minimist": "^0.2.1"
 	}
 }
