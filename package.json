@@ -138,7 +138,7 @@
     "ts-jest": "^26.1.0",
     "tslint": "^6.1.2",
     "tslint-config-standard": "^9.0.0",
-    "typedoc": "^0.16.0",
+    "typedoc": "^0.18.0",
     "typescript": "3.8.x"
   },
   "keywords": [
