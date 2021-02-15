@@ -33,7 +33,7 @@ import {
 	SisyfosChannel,
 	SisyfosCommandType
 } from './sisyfosAPI'
-import Debug from "debug"
+import Debug from 'debug'
 const debug = Debug('timeline-state-resolver:sisyfos')
 
 export interface DeviceOptionsSisyfosInternal extends DeviceOptionsSisyfos {
