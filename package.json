@@ -161,6 +161,7 @@
     "bufferutil": "^4.0.1",
     "casparcg-connection": "^5.1.0",
     "casparcg-state": "^2.1.0",
+    "debug": "^4.3.1",
     "emberplus-connection": "^0.0.3",
     "hyperdeck-connection": "^0.4.3",
     "osc": "^2.4.0",
