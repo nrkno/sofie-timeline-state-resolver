@@ -1346,4 +1346,81 @@ describe('Quantel', () => {
 		expect(errorHandler).toHaveBeenCalledTimes(0)
 		expect(deviceErrorHandler).toHaveBeenCalledTimes(0)
 	})
+	test('Preload fragments from non-existing clip (retry)', async () => {
+		const {
+			commandReceiver0,
+			myConductor
+		} = await setupDefaultQuantelDeviceForTest()
+
+		quantelServer.noClipsFond = true
+
+		myConductor.setTimelineAndMappings([
+			{
+				id: 'video0',
+				enable: {
+					while: 1
+				},
+				content: {
+					deviceType: DeviceType.QUANTEL,
+					title: 'myClip0'
+				},
+				layer: 'lookahead_myLayer0',
+				isLookahead: true,
+				lookaheadForLayer: 'myLayer0'
+			}
+		])
+		// Time to preload the clip
+		await mockTime.advanceTimeToTicks(10990)
+
+		expect(commandReceiver0).toHaveBeenCalledTimes(2)
+		expect(commandReceiver0).toHaveBeenNthCalledWith(1, 10105, expect.objectContaining({
+			type: QuantelCommandType.LOADCLIPFRAGMENTS,
+			clip: expect.objectContaining({
+				title: 'myClip0'
+			})
+		}), expect.any(String), expect.any(String))
+		expect(commandReceiver0).toHaveBeenNthCalledWith(2, 10110, expect.objectContaining({
+			type: QuantelCommandType.PAUSECLIP
+		}), expect.any(String), expect.any(String))
+
+		expect(onRequest).toHaveBeenCalledTimes(2)
+
+		// Search for and get clip info:
+		expect(onRequest).toHaveBeenNthCalledWith(1, 'get', expect.stringContaining('/default/clip?Title=%22myClip0%22'))
+		expect(onRequest).toHaveBeenNthCalledWith(2, 'get', expect.stringContaining('/default/clip?Title=%22myClip0%22'))
+
+		clearMocks()
+		commandReceiver0.mockClear()
+		await mockTime.advanceTimeTicks(25000)
+
+		// there should have been two more attempts:
+		expect(onRequest).toHaveBeenCalledTimes(2)
+		expect(onRequest).toHaveBeenNthCalledWith(1, 'get', expect.stringContaining('/default/clip?Title=%22myClip0%22'))
+		expect(onRequest).toHaveBeenNthCalledWith(2, 'get', expect.stringContaining('/default/clip?Title=%22myClip0%22'))
+
+		clearMocks()
+		commandReceiver0.mockClear()
+		quantelServer.noClipsFond = false
+		await mockTime.advanceTimeTicks(10000)
+
+		expect(onRequest).toHaveBeenCalledTimes(8)
+
+		// Search for and get clip info:
+		expect(onRequest).toHaveBeenNthCalledWith(1, 'get', expect.stringContaining('/default/clip?Title=%22myClip0%22'))
+		expect(onRequest).toHaveBeenNthCalledWith(2, 'get', expect.stringContaining('/default/clip/1337'))
+		// Fetch fragments:
+		expect(onRequest).toHaveBeenNthCalledWith(3, 'get', expect.stringContaining('clip/1337/fragments'))
+		// get port info
+		expect(onRequest).toHaveBeenNthCalledWith(4, 'get', expect.stringContaining('default/server/1100/port/my_port'))
+		// Load fragments
+		expect(onRequest).toHaveBeenNthCalledWith(5, 'post',expect.stringContaining('port/my_port/fragments'))
+
+		// Jump:
+		expect(onRequest).toHaveBeenNthCalledWith(6, 'put',expect.stringContaining('port/my_port/jump?offset=0'))
+		expect(onRequest).toHaveBeenNthCalledWith(7, 'post',expect.stringContaining('port/my_port/trigger/STOP'))
+		expect(onRequest).toHaveBeenNthCalledWith(8, 'post',expect.stringContaining('port/my_port/trigger/JUMP'))
+
+		clearMocks()
+		commandReceiver0.mockClear()
+	})
 })

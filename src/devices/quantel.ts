@@ -611,7 +611,7 @@ export class QuantelDevice extends DeviceWithState<QuantelState> implements IDev
 			} else if (cmd.type === QuantelCommandType.RELEASEPORT) {
 				await this._quantelManager.releasePort(cmd)
 			} else if (cmd.type === QuantelCommandType.LOADCLIPFRAGMENTS) {
-				await this._quantelManager.loadClipFragments(cmd)
+				await this._quantelManager.tryLoadClipFragments(cmd)
 			} else if (cmd.type === QuantelCommandType.PLAYCLIP) {
 				await this._quantelManager.playClip(cmd)
 			} else if (cmd.type === QuantelCommandType.PAUSECLIP) {
@@ -648,6 +648,11 @@ class QuantelManager extends EventEmitter {
 	private _waitWithPorts: {
 		[portId: string]: Function[]
 	} = {}
+	private _retryLoadFragmentsTimeout: {[portId: string]: NodeJS.Timeout} = {}
+	private _failedAction: {[portId: string]: {
+		action: 'play' | 'pause'
+		cmd: QuantelCommandClip
+	}} = {}
 	constructor (
 		private _quantel: QuantelGateway,
 		private getCurrentTime: () => number,
@@ -709,10 +714,44 @@ class QuantelManager extends EventEmitter {
 		// Store to the local tracking state:
 		delete this._quantelState.port[cmd.portId]
 	}
+	public async tryLoadClipFragments (cmd: QuantelCommandLoadClipFragments, fromRetry?: boolean): Promise<void> {
+		if (this._retryLoadFragmentsTimeout[cmd.portId]) {
+			clearTimeout(this._retryLoadFragmentsTimeout[cmd.portId])
+			delete this._retryLoadFragmentsTimeout[cmd.portId]
+		}
+
+		try {
+			await this.loadClipFragments(cmd)
+
+			if (fromRetry) {
+				// The loading seemed to work now.
+
+				// Check if there also is a queued action for this:
+				const failedAction = this._failedAction[cmd.portId]
+				if (failedAction) {
+					delete this._failedAction[cmd.portId]
+					this.prepareClipJump(failedAction.cmd, failedAction.action)
+					.catch((err) => this.emit('error', err))
+				}
+			}
+		} catch (err) {
+			if ((err + '').match(/not found/i)) {
+				// It seems like the clip doesn't exist.
+				// Try again some time later, maybe it has appeared by then?
+
+				this._retryLoadFragmentsTimeout[cmd.portId] = setTimeout(() => {
+					this.tryLoadClipFragments(cmd, true)
+					.catch((err) => this.emit('error', err))
+				}, 10 * 1000) // 10 seconds
+
+			} else {
+				throw err
+			}
+		}
+	}
 	public async loadClipFragments (cmd: QuantelCommandLoadClipFragments): Promise<void> {
 
 		const trackedPort = this.getTrackedPort(cmd.portId)
-
 		const server = await this.getServer()
 
 		let clipId: number = 0
@@ -856,10 +895,10 @@ class QuantelManager extends EventEmitter {
 		}
 	}
 	public async playClip (cmd: QuantelCommandPlayClip): Promise<void> {
-		await this.prepareClipJump(cmd, 'play')
+		await this.tryPrepareClipJump(cmd, 'play')
 	}
 	public async pauseClip (cmd: QuantelCommandPauseClip): Promise<void> {
-		await this.prepareClipJump(cmd, 'pause')
+		await this.tryPrepareClipJump(cmd, 'pause')
 	}
 	public async clearClip (cmd: QuantelCommandClearClip): Promise<void> {
 
@@ -881,6 +920,28 @@ class QuantelManager extends EventEmitter {
 		trackedPort.playing = false
 		trackedPort.jumpOffset = null
 		trackedPort.scheduledStop = null
+	}
+	private async tryPrepareClipJump (cmd: QuantelCommandClip, alsoDoAction: 'play' | 'pause'): Promise<void> {
+		delete this._failedAction[cmd.portId]
+
+		try {
+			return await this.prepareClipJump(cmd, alsoDoAction)
+		} catch (err) {
+
+			if (this._retryLoadFragmentsTimeout[cmd.portId]) {
+				// It looks like there was an issue with loading fragments,
+				// that's probably why we got an error as well.
+
+				if ((err + '').match(/not found/i)) {
+					// Store the failed action, it'll be run whenever the fragments has been loaded later:
+					this._failedAction[cmd.portId] = {
+						action: alsoDoAction,
+						cmd: cmd
+					}
+
+				} else throw err
+			} else throw err
+		}
 	}
 	private async prepareClipJump (cmd: QuantelCommandClip, alsoDoAction: 'play' | 'pause'): Promise<void> {
 

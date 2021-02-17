@@ -14,6 +14,7 @@ export function setupQuantelGatewayMock () {
 		requestReturnsOK: true,
 		ignoreConnectivityCheck: false,
 		ISAOptionHasBeenProvided: false,
+		noClipsFond: false,
 		port: {
 			'my_port': {
 				endOfData: 0,
@@ -71,6 +72,7 @@ interface QuantelServerMockOptions {
 	requestReturnsOK: boolean
 	ignoreConnectivityCheck: boolean
 	ISAOptionHasBeenProvided: boolean
+	noClipsFond: boolean
 	port: {
 		[port: string]: QuantelServerMockOptionsPort
 	}
@@ -153,6 +155,8 @@ function handleRequest (
 
 			const searchClip = (params): Q.ClipDataSummary[] | ErrorResponse => {
 				if (!quantelServer.ISAOptionHasBeenProvided) return noIsaSetupResponse
+				if (quantelServer.noClipsFond) return []
+
 				return _.filter<Q.ClipDataSummary[]>([
 					{
 						type: 'ClipDataSummary',
