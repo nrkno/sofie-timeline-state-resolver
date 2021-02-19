@@ -1352,7 +1352,7 @@ describe('Quantel', () => {
 			myConductor
 		} = await setupDefaultQuantelDeviceForTest()
 
-		quantelServer.noClipsFond = true
+		quantelServer.noClipsFound = true
 
 		myConductor.setTimelineAndMappings([
 			{
@@ -1400,7 +1400,7 @@ describe('Quantel', () => {
 
 		clearMocks()
 		commandReceiver0.mockClear()
-		quantelServer.noClipsFond = false
+		quantelServer.noClipsFound = false
 		await mockTime.advanceTimeTicks(10000)
 
 		expect(onRequest).toHaveBeenCalledTimes(8)
