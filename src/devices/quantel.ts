@@ -741,7 +741,7 @@ class QuantelManager extends EventEmitter {
 
 				this._retryLoadFragmentsTimeout[cmd.portId] = setTimeout(() => {
 					this.tryLoadClipFragments(cmd, true)
-					.catch((err) => this.emit('error', err))
+					.catch((fragErr) => this.emit('error', fragErr))
 				}, 10 * 1000) // 10 seconds
 
 			} else {
