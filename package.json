@@ -154,7 +154,8 @@
   ],
   "resolutions": {
     "minimist": "^1.2.3",
-    "yargs-parser": "^18.1.2"
+    "yargs-parser": "^18.1.2",
+    "marked": "^2.0.0"
   },
   "dependencies": {
     "atem-state": "^0.10.0",
