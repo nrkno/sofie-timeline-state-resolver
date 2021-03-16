@@ -2,7 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
-## [5.5.2](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/5.5.1...5.5.2) (2021-02-09)
+### [5.5.5](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/5.5.2...5.5.5) (2021-03-16)
+
+
+### Bug Fixes
+
+* **sisyfos:** retrigger only channels that are mapped in Sofie ([d17a0b1](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/d17a0b1af4510d8e5e363e01a4de25bd12db3d3e))
+
+### [5.5.2](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/5.5.1...5.5.2) (2021-02-09)
 
 
 ### Bug Fixes
