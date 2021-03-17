@@ -1,6 +1,6 @@
 {
   "name": "timeline-state-resolver",
-  "version": "5.5.4-release32",
+  "version": "5.7.0-release32",
   "description": "Have timeline, control stuff",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
@@ -158,7 +158,7 @@
     "marked": "^2.0.0"
   },
   "dependencies": {
-    "atem-state": "^0.10.0",
+    "atem-state": "^0.10.1",
     "bufferutil": "^4.0.1",
     "casparcg-connection": "^5.1.0",
     "casparcg-state": "^2.1.0",
