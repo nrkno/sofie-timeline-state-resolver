@@ -54,7 +54,7 @@ export interface TimelineObjQuantelClip extends TSRTimelineObjBaseWithOnAir {
 		/** The GUID of the clip to be played, either this or title must be provided */
 		guid?: string
 
-		/** The point where the file returns to, when looping [milliseconds from start of file] */
+		/** The point in the clip where to start playing. When looping, will return to this point. [milliseconds from start of file] */
 		inPoint?: number
 		/** The duration of the file. The playout will either freeze after this time. */
 		length?: number

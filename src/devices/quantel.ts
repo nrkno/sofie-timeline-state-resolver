@@ -810,7 +810,9 @@ class QuantelManager extends EventEmitter {
 			cmd.clip.length
 		)
 
+		/** milliseconds */
 		let inPoint = cmd.clip.inPoint
+		/** milliseconds */
 		let length = cmd.clip.length
 
 		/** In point [frames] */
