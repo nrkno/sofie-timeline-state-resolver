@@ -821,14 +821,18 @@ class QuantelManager extends EventEmitter {
 		) || 0
 
 		/** Duration [frames] */
-		let lengthFrames: number = (
-			length ?
-			Math.round(length * DEFAULT_FPS / 1000) : // todo: handle fps, get it from clip?
-			0
-		) || parseInt(clipData.Frames, 10) || 0
+		let lengthFrames: number = 0
 
-		if (inPoint && !length) {
-			lengthFrames -= inPointFrames
+		if (length) {
+			lengthFrames = Math.round(length * DEFAULT_FPS / 1000) // todo: handle fps, get it from clip?
+		}
+		if (!lengthFrames) {
+			const clipLength: number = parseInt(clipData.Frames, 10) || 0
+			if (inPoint) {
+				lengthFrames = clipLength - inPointFrames // THe remaining length of the clip
+			} else {
+				lengthFrames = clipLength
+			}
 		}
 
 		const outPointFrames = inPointFrames + lengthFrames
