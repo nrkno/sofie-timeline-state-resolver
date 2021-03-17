@@ -769,6 +769,7 @@ class VizMSEManager extends EventEmitter {
 	public initialized: boolean = false
 	public notLoadedCount: number = 0
 	public loadingCount: number = 0
+	/** Currently active playlist in Sofie Core */
 	public activePlaylistId: string | undefined
 
 	private _rundown: VRundown | undefined
