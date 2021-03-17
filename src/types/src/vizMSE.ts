@@ -38,7 +38,7 @@ export interface VizMSEOptions {
 	/** If true, the rundown won't be deactivated on standdown */
 	dontDeactivateOnStandDown?: boolean
 	/** If true, only elements in the currently active rundown will be loaded */
-	onlyPreloadActiveRundown?: boolean
+	onlyPreloadActivePlaylist?: boolean
 	/** List of commands to be sent to Viz Engines in order to fully clear them */
 	clearAllCommands?: string[]
 }

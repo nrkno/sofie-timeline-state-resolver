@@ -125,7 +125,7 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState> implements IDevic
 			this,
 			this._vizMSE,
 			this._initOptions.preloadAllElements,
-			this._initOptions.onlyPreloadActiveRundown,
+			this._initOptions.onlyPreloadActivePlaylist,
 			this._initOptions.autoLoadInternalElements,
 			this._initOptions.engineRestPort,
 			initOptions.showID,
@@ -774,7 +774,7 @@ class VizMSEManager extends EventEmitter {
 	public notLoadedCount: number = 0
 	public loadingCount: number = 0
 	public enginesDisconnected: Array<string> = []
-	public activeRundownId: string | undefined
+	public activePlaylistId: string | undefined
 
 	private _rundown: VRundown | undefined
 	private _elementCache: {[hash: string]: CachedVElement } = {}
@@ -806,7 +806,7 @@ class VizMSEManager extends EventEmitter {
 		private _parentVizMSEDevice: VizMSEDevice,
 		private _vizMSE: MSE,
 		public preloadAllElements: boolean = false,
-		public onlyPreloadActiveRundown: boolean = false,
+		public onlyPreloadActivePlaylist: boolean = false,
 		public autoLoadInternalElements: boolean = false,
 		public engineRestPort: number | undefined,
 		private _showID: string,
@@ -822,7 +822,7 @@ class VizMSEManager extends EventEmitter {
 	public async initializeRundown (activeRundownPlaylistId: string | undefined): Promise<void> {
 		this._vizMSE.on('connected', () => this.mseConnectionChanged(true))
 		this._vizMSE.on('disconnected', () => this.mseConnectionChanged(false))
-		this._preloadedRundownPlaylistId = this.onlyPreloadActiveRundown ? activeRundownPlaylistId : undefined
+		this._preloadedRundownPlaylistId = this.onlyPreloadActivePlaylist ? activeRundownPlaylistId : undefined
 
 		if (activeRundownPlaylistId) {
 			this.emit('debug', `VizMSE: already active playlist: ${this._preloadedRundownPlaylistId}`)
@@ -914,7 +914,7 @@ class VizMSEManager extends EventEmitter {
 	 * Doing this will make MSE start loading things onto the vizEngine etc.
 	 */
 	public async activate (rundownPlaylistId: string | undefined): Promise<void> {
-		this._preloadedRundownPlaylistId = this.onlyPreloadActiveRundown ? rundownPlaylistId : undefined
+		this._preloadedRundownPlaylistId = this.onlyPreloadActivePlaylist ? rundownPlaylistId : undefined
 		let loadTwice = false
 		if (!rundownPlaylistId || this._activeRundownPlaylistId !== rundownPlaylistId) {
 			this._triggerCommandSent()
@@ -1374,7 +1374,7 @@ class VizMSEManager extends EventEmitter {
 		}))
 		if (this._rundown) {
 
-			this.emit('debug', `Updating status of elements starting, activeRundownId="${this._preloadedRundownPlaylistId}", elementsToLoad.length=${elementsToLoad.length} (${_.keys(hashesAndItems).length})`)
+			this.emit('debug', `Updating status of elements starting, activePlaylistId="${this._preloadedRundownPlaylistId}", elementsToLoad.length=${elementsToLoad.length} (${_.keys(hashesAndItems).length})`)
 
 			const rundown = await this._getRundown()
 
