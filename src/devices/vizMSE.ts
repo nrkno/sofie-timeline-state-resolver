@@ -337,8 +337,8 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState> implements IDevic
 	 */
 	async makeReady (okToDestroyStuff?: boolean, activeRundownId?: string): Promise<void> {
 		if (this._vizmseManager) {
-			this._vizmseManager.activeRundownId = (
-				(this._initOptions && this._initOptions.onlyPreloadActiveRundown) ?
+			this._vizmseManager.activePlaylistId = (
+				(this._initOptions && this._initOptions.onlyPreloadActivePlaylist) ?
 				activeRundownId :
 				undefined
 			)
@@ -769,7 +769,7 @@ class VizMSEManager extends EventEmitter {
 	public initialized: boolean = false
 	public notLoadedCount: number = 0
 	public loadingCount: number = 0
-	public activeRundownId: string | undefined
+	public activePlaylistId: string | undefined
 
 	private _rundown: VRundown | undefined
 	private _elementCache: {[hash: string]: CachedVElement } = {}
@@ -1282,8 +1282,8 @@ class VizMSEManager extends EventEmitter {
 			const templateName = typeof expectedPlayoutItem.templateName as string | number | undefined
 			return (
 				(
-					!this.activeRundownId ||
-					this.activeRundownId === expectedPlayoutItem.playlistId
+					!this.activePlaylistId ||
+					this.activePlaylistId === expectedPlayoutItem.playlistId
 				) &&
 				typeof templateName !== 'undefined'
 			)
@@ -1348,7 +1348,7 @@ class VizMSEManager extends EventEmitter {
 		}))
 		if (this._rundown) {
 
-			this.emit('debug', `Updating status of elements starting, activeRundownId="${this.activeRundownId}", elementsToLoad.length=${elementsToLoad.length} (${_.keys(hashesAndItems).length})`)
+			this.emit('debug', `Updating status of elements starting, activePlaylistId="${this.activePlaylistId}", elementsToLoad.length=${elementsToLoad.length} (${_.keys(hashesAndItems).length})`)
 
 			const rundown = await this._getRundown()
 
