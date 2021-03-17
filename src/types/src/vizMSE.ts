@@ -99,6 +99,8 @@ export interface TimelineObjVIZMSEElementInternal extends TimelineObjVIZMSEBase 
 		templateName: string
 		/** Data to be fed into the template */
 		templateData: Array<string>
+		/** Whether this element should have its take delayed until after an out transition has finished */
+		delayTakeAfterOutTransition?: boolean
 	}
 }
 export interface TimelineObjVIZMSEElementPilot extends TimelineObjVIZMSEBase {
@@ -123,6 +125,8 @@ export interface TimelineObjVIZMSEElementPilot extends TimelineObjVIZMSEBase {
 
 		/** Viz-Pilot id of the template to be played */
 		templateVcpId: number
+		/** Whether this element should have its take delayed until after an out transition has finished */
+		delayTakeAfterOutTransition?: boolean
 	}
 }
 export interface TimelineObjVIZMSEElementContinue extends TSRTimelineObjBase {

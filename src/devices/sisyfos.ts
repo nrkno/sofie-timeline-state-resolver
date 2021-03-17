@@ -259,6 +259,14 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState> implemen
 	convertStateToSisyfosState (state: TimelineState, mappings: Mappings) {
 		const deviceState: SisyfosState = this.getDeviceState(true, mappings)
 
+		// Preparation: put all channels that comes from the state in an array:
+		const newChannels: ({
+			overridePriority: number,
+			channel: number,
+			isLookahead: boolean
+			tlObjId: string
+		} & SisyfosChannelOptions)[] = []
+
 		_.each(state.layers, (tlObject, layerName) => {
 			const layer = tlObject as ResolvedTimelineObjectInstance & TimelineObjSisyfosAny
 			let foundMapping = mappings[layerName] as MappingSisyfos | undefined
@@ -280,13 +288,6 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState> implemen
 				foundMapping = mappings[layer.lookaheadForLayer] as MappingSisyfos | undefined
 			}
 
-			// Preparation: put all channels that comes from the state in an array:
-			const newChannels: ({
-				overridePriority: number,
-				channel: number,
-				isLookahead: boolean
-				tlObjId: string
-			} & SisyfosChannelOptions)[] = []
 			if (foundMapping && foundMapping.deviceId === this.deviceId) {
 				// @ts-ignore backwards-compatibility:
 				if (!foundMapping.mappingType) foundMapping.mappingType = MappingSisyfosType.CHANNEL
@@ -326,31 +327,32 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState> implemen
 				}
 			}
 
-			// Sort by overridePriority, so that those with highest overridePriority will be applied last
-			_.each(
-				_.sortBy(newChannels, channel => channel.overridePriority),
-				newChannel => {
-					if (!deviceState.channels[newChannel.channel]) {
-						deviceState.channels[newChannel.channel] = this.getDefaultStateChannel()
-					}
-					const channel = deviceState.channels[newChannel.channel]
-
-					if (newChannel.isPgm !== undefined) {
-						if (newChannel.isLookahead) {
-							channel.pstOn = newChannel.isPgm || 0
-						} else {
-							channel.pgmOn = newChannel.isPgm || 0
-						}
-					}
-
-					if (newChannel.faderLevel !== undefined) channel.faderLevel = newChannel.faderLevel
-					if (newChannel.label !== undefined) channel.label = newChannel.label
-					if (newChannel.visible !== undefined) channel.visible = newChannel.visible
-
-					channel.tlObjIds.push(tlObject.id)
-				}
-			)
 		})
+
+		// Sort by overridePriority, so that those with highest overridePriority will be applied last
+		_.each(
+			_.sortBy(newChannels, channel => channel.overridePriority),
+			newChannel => {
+				if (!deviceState.channels[newChannel.channel]) {
+					deviceState.channels[newChannel.channel] = this.getDefaultStateChannel()
+				}
+				const channel = deviceState.channels[newChannel.channel]
+
+				if (newChannel.isPgm !== undefined) {
+					if (newChannel.isLookahead) {
+						channel.pstOn = newChannel.isPgm || 0
+					} else {
+						channel.pgmOn = newChannel.isPgm || 0
+					}
+				}
+
+				if (newChannel.faderLevel !== undefined) channel.faderLevel = newChannel.faderLevel
+				if (newChannel.label !== undefined) channel.label = newChannel.label
+				if (newChannel.visible !== undefined) channel.visible = newChannel.visible
+
+				channel.tlObjIds.push(newChannel.tlObjId)
+			}
+		)
 		return deviceState
 	}
 	get deviceType () {

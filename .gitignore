@@ -13,4 +13,5 @@ wallaby.conf.js
 .DS_Store
 src/types/coverage/
 .npmrc
+tv-automation-state-timeline-resolver
 .vscode/
