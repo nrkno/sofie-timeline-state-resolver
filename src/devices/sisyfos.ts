@@ -353,7 +353,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState> implemen
 				}
 
 				if (newChannel.faderLevel !== undefined) channel.faderLevel = newChannel.faderLevel
-				if (newChannel.label !== undefined) channel.label = newChannel.label
+				if (newChannel.label !== undefined && newChannel.label !== '') channel.label = newChannel.label
 				if (newChannel.visible !== undefined) channel.visible = newChannel.visible
 
 				channel.tlObjIds.push(newChannel.tlObjId)
