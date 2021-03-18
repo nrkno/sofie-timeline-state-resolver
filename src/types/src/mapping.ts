@@ -7,6 +7,7 @@ export interface Mappings {
 export interface Mapping {
 	device: DeviceType
 	deviceId: string
+	layerName?: string
 }
 
 export interface ResolvedTimelineObjectInstanceExtended extends ResolvedTimelineObjectInstance, TSRTimelineObjProps {
