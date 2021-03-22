@@ -1850,6 +1850,121 @@ describe('CasparCG', () => {
 		expect(commandReceiver0).toHaveBeenCalledTimes(1)
 		expect(getMockCall(commandReceiver0, 0, 1)).toBeInstanceOf(AMCP.ClearCommand)
 	})
+
+	test('CasparCG: Multiple mappings for 1 layer extend template data', async () => {
+
+		const commandReceiver0: any = jest.fn(() => {
+			return Promise.resolve()
+		})
+		const myLayerMapping0: MappingCasparCG = {
+			device: DeviceType.CASPARCG,
+			deviceId: 'myCCG',
+			channel: 2,
+			layer: 42
+		}
+		const myLayerMapping: Mappings = {
+			'myLayer0': myLayerMapping0,
+			'myLayer1': myLayerMapping0
+		}
+
+		const myConductor = new Conductor({
+			initializeAsClear: true,
+			getCurrentTime: mockTime.getCurrentTime
+		})
+		await myConductor.init() // we cannot do an await, because setTimeout will never call without jest moving on.
+		await myConductor.addDevice('myCCG', {
+			type: DeviceType.CASPARCG,
+			options: {
+				commandReceiver: commandReceiver0,
+				host: '127.0.0.1',
+				useScheduling: false
+			}
+		})
+		await mockTime.advanceTimeToTicks(10100)
+
+		expect(commandReceiver0).toHaveBeenCalledTimes(0)
+
+		commandReceiver0.mockClear()
+
+		let deviceContainer = myConductor.getDevice('myCCG')
+		let device = deviceContainer.device
+
+		// Check that no commands has been scheduled:
+		expect(await device['queue']).toHaveLength(0)
+
+		myConductor.setTimelineAndMappings([
+			{
+				id: 'obj0',
+				enable: {
+					start: mockTime.getCurrentTime() - 1000, // 1 seconds ago
+					duration: 2000
+				},
+				layer: 'myLayer0',
+				content: {
+					deviceType: DeviceType.CASPARCG,
+					type: TimelineContentTypeCasparCg.TEMPLATE,
+
+					name: 'LT',
+					templateType: 'html',
+					data: {
+						f0: 'Hello',
+						f1: 'World',
+						foo: {
+							bar: 'baz'
+						}
+					},
+					useStopCommand: true
+				}
+			},
+			{
+				id: 'obj1',
+				enable: {
+					start: mockTime.getCurrentTime() - 1000, // 1 seconds ago
+					duration: 2000
+				},
+				layer: 'myLayer1',
+				content: {
+					deviceType: DeviceType.CASPARCG,
+					type: TimelineContentTypeCasparCg.TEMPLATE,
+
+					name: 'LT',
+					templateType: 'html',
+					data: {
+						f1: 'Universe',
+						foo: {
+							bar1: 'bazinga'
+						}
+					},
+					useStopCommand: true
+				}
+			}
+		], myLayerMapping)
+
+		await mockTime.advanceTimeToTicks(10200)
+
+		// one command has been sent:
+		expect(commandReceiver0).toHaveBeenCalledTimes(1)
+		console.log(getMockCall(commandReceiver0, 0, 1)._objectParams)
+		expect(getMockCall(commandReceiver0, 0, 1)._objectParams).toMatchObject({
+			channel: 2,
+			layer: 42,
+			noClear: false,
+			templateName: 'LT',
+			flashLayer: 1,
+			playOnLoad: true,
+			data: { f0: 'Hello', f1: 'Universe', foo: { bar: 'baz', bar1: 'bazinga' } },
+			cgStop: true,
+			templateType: 'html'
+		})
+		commandReceiver0.mockClear()
+
+		// advance time to end of clip:
+		await mockTime.advanceTimeToTicks(11200)
+
+		// two commands have been sent:
+		expect(commandReceiver0).toHaveBeenCalledTimes(1)
+		expect(getMockCall(commandReceiver0, 0, 1)).toBeInstanceOf(AMCP.CGStopCommand)
+	})
 })
 
 describe('CasparCG - Custom transitions', () => {
