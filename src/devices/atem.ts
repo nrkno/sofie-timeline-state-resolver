@@ -1,5 +1,4 @@
 import * as _ from 'underscore'
-import * as underScoreDeepExtend from 'underscore-deep-extend'
 import {
 	DeviceWithState,
 	CommandWithContext,
@@ -32,13 +31,7 @@ import {
 	AtemConnection
 } from 'atem-state'
 import { DoOnTime, SendMode } from '../doOnTime'
-
-_.mixin({ deepExtend: underScoreDeepExtend(_) })
-
-function deepExtend<T> (destination: T, ...sources: any[]) {
-	// @ts-ignore (mixin)
-	return _.deepExtend(destination, ...sources)
-}
+import { deepExtend } from '../lib'
 
 export interface AtemCommandWithContext {
 	command: AtemConnection.Commands.ISerializableCommand

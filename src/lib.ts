@@ -1,4 +1,5 @@
 import * as _ from 'underscore'
+import * as underScoreDeepExtend from 'underscore-deep-extend'
 
 /**
  * getDiff is the reverse of underscore:s _.isEqual(): It compares two values and if they differ it returns an explanation of the difference
@@ -180,4 +181,10 @@ function deepDiff (a: any, b: any, aStack: any, bStack: any): string | null {
 	bStack.pop()
 
 	return null
+}
+
+_.mixin({ deepExtend: underScoreDeepExtend(_) })
+export function deepExtend<T> (destination: T, ...sources: any[]) {
+	// @ts-ignore (mixin)
+	return _.deepExtend(destination, ...sources)
 }

@@ -59,6 +59,7 @@ import {
 import { DoOnTime, SendMode } from '../doOnTime'
 import * as request from 'request'
 import { InternalTransitionHandler } from './transitions/transitionHandler'
+import { deepExtend } from '../lib'
 import Debug from 'debug'
 const debug = Debug('timeline-state-resolver:casparcg')
 
@@ -528,8 +529,11 @@ export class CasparCGDevice extends DeviceWithState<State> implements IDevice {
 				}
 
 				if (foregroundStateLayer) {
+					const currentTemplateData = (channel.layers[mapping.layer] as any as TemplateLayer | undefined)?.templateData
+					const foregroundTemplateData = (foregroundStateLayer as any as TemplateLayer | undefined)?.templateData
 					channel.layers[mapping.layer] = merge(channel.layers[mapping.layer], {
 						...foregroundStateLayer,
+						...(currentTemplateData && foregroundTemplateData ? { templateData: deepExtend(currentTemplateData, foregroundTemplateData) } : {}),
 						nextUp: backgroundStateLayer ? merge((channel.layers[mapping.layer] || {}).nextUp!, literal<NextUp>({
 							...backgroundStateLayer as NextUp,
 							auto: false
