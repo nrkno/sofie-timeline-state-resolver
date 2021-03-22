@@ -1,5 +1,4 @@
 import * as _ from 'underscore'
-import * as underScoreDeepExtend from 'underscore-deep-extend'
 import * as path from 'path'
 import {
 	DeviceWithState,
@@ -47,12 +46,7 @@ import {
 	MappingVMixOutput,
 	MappingVMixOverlay
 } from '../types/src/vmix'
-
-_.mixin({ deepExtend: underScoreDeepExtend(_) })
-function deepExtend<T> (destination: T, ...sources: any[]) {
-	// @ts-ignore (mixin)
-	return _.deepExtend(destination, ...sources)
-}
+import { deepExtend } from '../lib'
 export interface DeviceOptionsVMixInternal extends DeviceOptionsVMix {
 	options: (
 		DeviceOptionsVMix['options'] &
