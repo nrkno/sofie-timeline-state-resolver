@@ -11,6 +11,8 @@ export interface VizMSEOptions {
 	restPort?: number
 	/** Port number to the web-sockets interface (optional) */
 	wsPort?: number
+	/** Port number to the REST interfaces of Viz Engines (optional) */
+	engineRestPort?: number
 
 	/** Identifier of the "show" to use */
 	showID: string
