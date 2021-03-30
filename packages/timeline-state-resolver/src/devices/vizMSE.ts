@@ -1367,44 +1367,41 @@ class VizMSEManager extends EventEmitter {
 				_.map(elementsToLoad, async (e) => {
 
 					const cachedEl = this._elementsLoaded[e.hash]
+					try {
+						const elementRef = await this._checkPrepareElement(e.item)
 
-					if (!cachedEl || !cachedEl.isLoaded) {
-						try {
-							const elementRef = await this._checkPrepareElement(e.item)
+						this.emit('debug', `Updating status of element ${elementRef}`)
 
-							this.emit('debug', `Updating status of element ${elementRef}`)
+						// Update cached status of the element:
+						const newEl = await rundown.getElement(elementRef)
 
-							// Update cached status of the element:
-							const newEl = await rundown.getElement(elementRef)
-
-							this._elementsLoaded[e.hash] = {
-								element: newEl,
-								isLoaded: this._isElementLoaded(newEl),
-								isLoading: this._isElementLoading(newEl)
-							}
-							this.emit('debug', `Element ${elementRef}: ${JSON.stringify(newEl)}`)
-							if (this._isExternalElement(newEl)) {
-								if (this._elementsLoaded[e.hash].isLoaded) {
-									const mediaObject: MediaObject = {
-										_id: e.hash,
-										mediaId: 'PILOT_' + e.item.templateName.toString().toUpperCase(),
-										mediaPath: e.item.templateInstance,
-										mediaSize: 0,
-										mediaTime: 0,
-										thumbSize: 0,
-										thumbTime: 0,
-										cinf: '',
-										tinf: '',
-										_rev: ''
-									}
-									this.emit('updateMediaObject', this._parentVizMSEDevice.deviceId, e.hash, mediaObject)
-								} else if (!cachedEl) {
-									this.emit('updateMediaObject', this._parentVizMSEDevice.deviceId, e.hash, null)
-								}
-							}
-						} catch (e) {
-							this.emit('error', `Error in updateElementsLoadedStatus: ${e.toString()}`)
+						this._elementsLoaded[e.hash] = {
+							element: newEl,
+							isLoaded: this._isElementLoaded(newEl),
+							isLoading: this._isElementLoading(newEl)
 						}
+						this.emit('debug', `Element ${elementRef}: ${JSON.stringify(newEl)}`)
+						if (this._isExternalElement(newEl) && cachedEl?.isLoaded !== this._elementsLoaded[e.hash].isLoaded) {
+							if (this._elementsLoaded[e.hash].isLoaded) {
+								const mediaObject: MediaObject = {
+									_id: e.hash,
+									mediaId: 'PILOT_' + e.item.templateName.toString().toUpperCase(),
+									mediaPath: e.item.templateInstance,
+									mediaSize: 0,
+									mediaTime: 0,
+									thumbSize: 0,
+									thumbTime: 0,
+									cinf: '',
+									tinf: '',
+									_rev: ''
+								}
+								this.emit('updateMediaObject', this._parentVizMSEDevice.deviceId, e.hash, mediaObject)
+							} else {
+								this.emit('updateMediaObject', this._parentVizMSEDevice.deviceId, e.hash, null)
+							}
+						}
+					} catch (e) {
+						this.emit('error', `Error in updateElementsLoadedStatus: ${e.toString()}`)
 					}
 				})
 			)
