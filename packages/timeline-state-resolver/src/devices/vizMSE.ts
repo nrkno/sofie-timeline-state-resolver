@@ -788,6 +788,7 @@ class VizMSEManager extends EventEmitter {
 	private _getRundownPromise?: Promise<VRundown>
 	private _mseConnected: boolean = false
 	private _msePingConnected: boolean = false
+	private _loadingAllElements: boolean = false
 	private _waitWithLayers: {
 		[portId: string]: Function[]
 	} = {}
@@ -922,9 +923,12 @@ class VizMSEManager extends EventEmitter {
 		this._clearMediaObjects()
 
 		this._triggerCommandSent()
-		await this._triggerLoadAllElements(true)
-		this._triggerCommandSent()
-		this._hasActiveRundown = true
+		this._triggerLoadAllElements(true).then(() => {
+			this._triggerCommandSent()
+			this._hasActiveRundown = true
+		}).catch((e) => {
+			this.emit('error', e)
+		})
 	}
 	/**
 	 * Deactivate the MSE rundown.
@@ -1416,27 +1420,33 @@ class VizMSEManager extends EventEmitter {
 	 * Trigger a load of all elements that are not yet loaded onto the vizEngine.
 	 */
 	private async _triggerLoadAllElements (loadTwice: boolean = false): Promise<void> {
-		const rundown = await this._getRundown()
+		if (this._loadingAllElements) {
+			this.emit('warning', '_triggerLoadAllElements already running')
+			return
+		}
+		this._loadingAllElements = true
+		try {
+			const rundown = await this._getRundown()
 
-		this.emit('debug', '_triggerLoadAllElements starting')
-		// First, update the loading-status of all elements:
-		await this.updateElementsLoadedStatus(true)
+			this.emit('debug', '_triggerLoadAllElements starting')
+			// First, update the loading-status of all elements:
+			await this.updateElementsLoadedStatus(true)
 
-		// if (this._initializeRundownOnLoadAll) {
+			// if (this._initializeRundownOnLoadAll) {
 
-		// Then, load all elements that needs loading:
-		const loadAllElementsThatNeedsLoading = async () => {
-			this._triggerCommandSent()
-			try {
-				this.emit('debug', 'rundown.activate triggered')
-				await rundown.activate() // Our theory: an extra initialization of the rundown playlist loads all internal elements
-			} catch (error) {
-				this.emit('warning', `Ignored error for rundown.activate(): ${error}`)
-			}
-			this._triggerCommandSent()
-			await this._wait(1000)
-			this._triggerCommandSent()
-			await Promise.all(
+			// Then, load all elements that needs loading:
+			const loadAllElementsThatNeedsLoading = async () => {
+				this._triggerCommandSent()
+				try {
+					this.emit('debug', 'rundown.activate triggered')
+					await rundown.activate() // Our theory: an extra initialization of the rundown playlist loads all internal elements
+				} catch (error) {
+					this.emit('warning', `Ignored error for rundown.activate(): ${error}`)
+				}
+				this._triggerCommandSent()
+				await this._wait(1000)
+				this._triggerCommandSent()
+				await Promise.all(
 				_.map(this._elementsLoaded, async (e) => {
 					if (this._isInternalElement(e.element)) {
 						// Not loading individual internal elements, since a show.initialization loads them good enough
@@ -1457,19 +1467,24 @@ class VizMSEManager extends EventEmitter {
 					}
 				})
 			)
-		}
+			}
 
-		// He's making a list:
-		await loadAllElementsThatNeedsLoading()
-		await this._wait(2000)
-		if (loadTwice) {
-			// He's checking it twice:
-			await this.updateElementsLoadedStatus()
-			// Gonna find out what's loaded and nice:
+			// He's making a list:
 			await loadAllElementsThatNeedsLoading()
-		}
+			await this._wait(2000)
+			if (loadTwice) {
+				// He's checking it twice:
+				await this.updateElementsLoadedStatus()
+				// Gonna find out what's loaded and nice:
+				await loadAllElementsThatNeedsLoading()
+			}
 
-		this.emit('debug', '_triggerLoadAllElements done')
+			this.emit('debug', '_triggerLoadAllElements done')
+		} catch (e) {
+			throw e
+		} finally {
+			this._loadingAllElements = false
+		}
 	}
 	private _setMonitorConnectionTimeout (): void {
 		if (this._monitorMSEConnection) {
