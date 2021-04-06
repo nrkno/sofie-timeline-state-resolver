@@ -1,5 +1,6 @@
 import * as _ from 'underscore'
 import * as path from 'path'
+import * as deepMerge from 'deepmerge'
 import {
 	DeviceWithState,
 	CommandWithContext,
@@ -46,7 +47,6 @@ import {
 	MappingVMixOutput,
 	MappingVMixOverlay
 } from '../types/src/vmix'
-import { deepExtend } from '../lib'
 export interface DeviceOptionsVMixInternal extends DeviceOptionsVMix {
 	options: (
 		DeviceOptionsVMix['options'] &
@@ -98,7 +98,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended> {
 		this._vmix.on('connected', () => {
 			let time = this.getCurrentTime()
 			let state = this._getDefaultState()
-			deepExtend(state, { reportedState: this._vmix.state })
+			state = deepMerge<VMixStateExtended>(state, { reportedState: this._vmix.state })
 			this.setState(state, time)
 			this._initialized = true
 			this._setConnected(true)
@@ -397,11 +397,10 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended> {
 		}
 		if (inputKey) {
 			if (inputKey in inputs) {
-				deepExtend(inputs[inputKey], newInputPicked)
+				inputs[inputKey] = deepMerge(inputs[inputKey], newInputPicked)
 			} else {
 				let inputState = this._getDefaultInputState(0)
-				deepExtend(inputState, newInputPicked)
-				inputs[inputKey] = inputState
+				inputs[inputKey] = deepMerge(inputState, newInputPicked)
 			}
 			if (layerName) {
 				deviceState.inputLayers[layerName] = inputKey as string

@@ -1,4 +1,5 @@
 import * as _ from 'underscore'
+import * as deepMerge from 'deepmerge'
 import {
 	DeviceWithState,
 	CommandWithContext,
@@ -59,7 +60,6 @@ import {
 import { DoOnTime, SendMode } from '../doOnTime'
 import * as request from 'request'
 import { InternalTransitionHandler } from './transitions/transitionHandler'
-import { deepExtend } from '../lib'
 import Debug from 'debug'
 const debug = Debug('timeline-state-resolver:casparcg')
 
@@ -533,7 +533,7 @@ export class CasparCGDevice extends DeviceWithState<State> implements IDevice {
 					const foregroundTemplateData = (foregroundStateLayer as any as TemplateLayer | undefined)?.templateData
 					channel.layers[mapping.layer] = merge(channel.layers[mapping.layer], {
 						...foregroundStateLayer,
-						...(currentTemplateData && foregroundTemplateData ? { templateData: deepExtend(currentTemplateData, foregroundTemplateData) } : {}),
+						...(_.isObject(currentTemplateData) && _.isObject(foregroundTemplateData) ? { templateData: deepMerge(currentTemplateData, foregroundTemplateData) } : {}),
 						nextUp: backgroundStateLayer ? merge((channel.layers[mapping.layer] || {}).nextUp!, literal<NextUp>({
 							...backgroundStateLayer as NextUp,
 							auto: false
