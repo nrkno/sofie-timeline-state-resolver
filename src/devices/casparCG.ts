@@ -1,4 +1,5 @@
 import * as _ from 'underscore'
+import * as deepMerge from 'deepmerge'
 import {
 	DeviceWithState,
 	CommandWithContext,
@@ -528,8 +529,11 @@ export class CasparCGDevice extends DeviceWithState<State> implements IDevice {
 				}
 
 				if (foregroundStateLayer) {
+					const currentTemplateData = (channel.layers[mapping.layer] as any as TemplateLayer | undefined)?.templateData
+					const foregroundTemplateData = (foregroundStateLayer as any as TemplateLayer | undefined)?.templateData
 					channel.layers[mapping.layer] = merge(channel.layers[mapping.layer], {
 						...foregroundStateLayer,
+						...(_.isObject(currentTemplateData) && _.isObject(foregroundTemplateData) ? { templateData: deepMerge(currentTemplateData, foregroundTemplateData) } : {}),
 						nextUp: backgroundStateLayer ? merge((channel.layers[mapping.layer] || {}).nextUp!, literal<NextUp>({
 							...backgroundStateLayer as NextUp,
 							auto: false
