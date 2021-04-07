@@ -337,15 +337,10 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState> implements IDevic
 	 * Prepares the physical device for playout.
 	 * @param okToDestroyStuff Whether it is OK to do things that affects playout visibly
 	 */
-	async makeReady (okToDestroyStuff?: boolean, activeRundownId?: string): Promise<void> {
+	async makeReady (okToDestroyStuff?: boolean, activeRundownPlaylistId?: string): Promise<void> {
 		if (this._vizmseManager) {
-			this._vizmseManager.activePlaylistId = (
-				(this._initOptions && this._initOptions.onlyPreloadActivePlaylist) ?
-				activeRundownId :
-				undefined
-			)
-			await this._vizmseManager.activate()
-
+			const preload = !!(this._initOptions && this._initOptions.onlyPreloadActivePlaylist)
+			await this._vizmseManager.activate(activeRundownPlaylistId, preload)
 		} else throw new Error(`Unable to activate vizMSE, not initialized yet!`)
 
 		if (okToDestroyStuff) {
@@ -773,8 +768,6 @@ class VizMSEManager extends EventEmitter {
 	public initialized: boolean = false
 	public notLoadedCount: number = 0
 	public loadingCount: number = 0
-	/** Currently active playlist in Sofie Core */
-	public activePlaylistId: string | undefined
 	public enginesDisconnected: Array<string> = []
 
 	private _rundown: VRundown | undefined
@@ -795,6 +788,8 @@ class VizMSEManager extends EventEmitter {
 	public ignoreAllWaits: boolean = false // Only to be used in tests
 	private _cacheInternalElementsSentLoaded: {[hash: string]: true} = {}
 	private _terminated: boolean = false
+	private _activeRundownPlaylistId: string | undefined
+	private _preloadedRundownPlaylistId: string | undefined
 
 	constructor (
 		private _parentVizMSEDevice: VizMSEDevice,
@@ -909,21 +904,26 @@ class VizMSEManager extends EventEmitter {
 	 * This causes the MSE rundown to activate, which must be done before using it.
 	 * Doing this will make MSE start loading things onto the vizEngine etc.
 	 */
-	public async activate (): Promise<void> {
-		this._triggerCommandSent()
-		const rundown = await this._getRundown()
+	public async activate (rundownPlaylistId: string | undefined, preload: boolean): Promise<void> {
+		this._preloadedRundownPlaylistId = preload ? rundownPlaylistId : undefined
+		let loadTwice = false
+		if (!rundownPlaylistId || this._activeRundownPlaylistId !== rundownPlaylistId) {
+			this._triggerCommandSent()
+			const rundown = await this._getRundown()
 
-		// clear any existing elements from the existing rundown
-		try {
-			await rundown.purge()
-		} catch (error) {
-			this.emit('error', error)
+			// clear any existing elements from the existing rundown
+			try {
+				await rundown.purge()
+			} catch (error) {
+				this.emit('error', error)
+			}
+			this._clearCache()
+			this._clearMediaObjects()
+			loadTwice = true
 		}
-		this._clearCache()
-		this._clearMediaObjects()
 
 		this._triggerCommandSent()
-		this._triggerLoadAllElements(true).then(() => {
+		this._triggerLoadAllElements(loadTwice).then(() => {
 			this._triggerCommandSent()
 			this._hasActiveRundown = true
 		}).catch((e) => {
@@ -944,6 +944,7 @@ class VizMSEManager extends EventEmitter {
 	}
 	public standDownActiveRundown (): void {
 		this._hasActiveRundown = false
+		this._activeRundownPlaylistId = undefined
 	}
 	private _clearMediaObjects (): void {
 		this.emit('clearMediaObjects', this._parentVizMSEDevice.deviceId)
@@ -1294,8 +1295,8 @@ class VizMSEManager extends EventEmitter {
 			const templateName = typeof expectedPlayoutItem.templateName as string | number | undefined
 			return (
 				(
-					!this.activePlaylistId ||
-					this.activePlaylistId === expectedPlayoutItem.playlistId
+					!this._preloadedRundownPlaylistId ||
+					this._preloadedRundownPlaylistId === expectedPlayoutItem.playlistId
 				) &&
 				typeof templateName !== 'undefined'
 			)
@@ -1360,7 +1361,7 @@ class VizMSEManager extends EventEmitter {
 		}))
 		if (this._rundown) {
 
-			this.emit('debug', `Updating status of elements starting, activePlaylistId="${this.activePlaylistId}", elementsToLoad.length=${elementsToLoad.length} (${_.keys(hashesAndItems).length})`)
+			this.emit('debug', `Updating status of elements starting, activeRundownId="${this._preloadedRundownPlaylistId}", elementsToLoad.length=${elementsToLoad.length} (${_.keys(hashesAndItems).length})`)
 
 			const rundown = await this._getRundown()
 
