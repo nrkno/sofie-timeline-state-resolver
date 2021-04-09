@@ -133,8 +133,8 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState> implements IDevic
 		)
 
 		this._vizmseManager.on('connectionChanged', (connected) => this.connectionChanged(connected))
-		this._vizmseManager.on('updateMediaObject', (collectionId: string, docId: string, doc: MediaObject | null) => this.emit('updateMediaObject', collectionId, docId, doc))
-		this._vizmseManager.on('clearMediaObjects', (collectionId: string) => this.emit('clearMediaObjects', collectionId))
+		this._vizmseManager.on('updateMediaObject', (docId: string, doc: MediaObject | null) => this.emit('updateMediaObject', this.deviceId, docId, doc))
+		this._vizmseManager.on('clearMediaObjects', () => this.emit('clearMediaObjects', this.deviceId))
 
 		this._vizmseManager.on('info', str => this.emit('info', 'VizMSE: ' + str))
 		this._vizmseManager.on('warning', str => this.emit('warning', 'VizMSE' + str))
@@ -404,6 +404,7 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState> implements IDevic
 		if (!this._vizMSEConnected) {
 			statusCode = StatusCode.BAD
 			messages.push('Not connected')
+			this.emit('clearMediaObjects', this.deviceId)
 		} else if (this._vizmseManager) {
 			if (this._vizmseManager.notLoadedCount > 0 || this._vizmseManager.loadingCount > 0) {
 				statusCode = StatusCode.WARNING_MINOR
@@ -941,7 +942,7 @@ class VizMSEManager extends EventEmitter {
 		this._hasActiveRundown = false
 	}
 	private _clearMediaObjects (): void {
-		this.emit('clearMediaObjects', this._parentVizMSEDevice.deviceId)
+		this.emit('clearMediaObjects')
 	}
 	/**
 	 * Prepare an element
@@ -1396,9 +1397,9 @@ class VizMSEManager extends EventEmitter {
 										tinf: '',
 										_rev: ''
 									}
-									this.emit('updateMediaObject', this._parentVizMSEDevice.deviceId, e.hash, mediaObject)
+									this.emit('updateMediaObject', e.hash, mediaObject)
 								} else if (!cachedEl) {
-									this.emit('updateMediaObject', this._parentVizMSEDevice.deviceId, e.hash, null)
+									this.emit('updateMediaObject', e.hash, null)
 								}
 							}
 						} catch (e) {
