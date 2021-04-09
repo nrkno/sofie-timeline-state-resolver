@@ -529,8 +529,8 @@ export class CasparCGDevice extends DeviceWithState<State> implements IDevice {
 				}
 
 				if (foregroundStateLayer) {
-					const currentTemplateData = (channel.layers[mapping.layer] as any as TemplateLayer | undefined)?.templateData
-					const foregroundTemplateData = (foregroundStateLayer as any as TemplateLayer | undefined)?.templateData
+					const currentTemplateData = (channel.layers[mapping.layer] as any as TemplateLayer | undefined) ? (channel.layers[mapping.layer] as any as TemplateLayer).templateData : undefined
+					const foregroundTemplateData = (foregroundStateLayer as any as TemplateLayer | undefined) ? (foregroundStateLayer as any as TemplateLayer).templateData : undefined
 					channel.layers[mapping.layer] = merge(channel.layers[mapping.layer], {
 						...foregroundStateLayer,
 						...(currentTemplateData && foregroundTemplateData ? { templateData: deepExtend(currentTemplateData, foregroundTemplateData) } : {}),
