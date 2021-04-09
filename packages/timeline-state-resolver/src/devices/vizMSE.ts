@@ -1531,7 +1531,7 @@ class VizMSEManager extends EventEmitter {
 		const enginesDisconnected: string[] = []
 		statuses.forEach((status) => {
 			if (!status.alive) {
-				enginesDisconnected.push(`${status.name} (${status.host})`)
+				enginesDisconnected.push(`${status.channel || status.name} (${status.host})`)
 			}
 		})
 		if (!_.isEqual(enginesDisconnected, this.enginesDisconnected)) {
