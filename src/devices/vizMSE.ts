@@ -1528,7 +1528,7 @@ class VizMSEManager extends EventEmitter {
 	private async _pingEngine (engine: Engine): Promise<EngineStatus> {
 		return new Promise((resolve, _reject) => {
 			request.get(`http://${engine.host}:${this.engineRestPort}/#/status`, { timeout: 2000 }, (error, response) => {
-				const alive = !error && response.statusCode === 200
+				const alive = !error && response.statusCode < 400
 				resolve({ ...engine, alive })
 			})
 		})
