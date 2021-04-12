@@ -336,6 +336,7 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState> implements IDevic
 	 * @param okToDestroyStuff Whether it is OK to do things that affects playout visibly
 	 */
 	async makeReady (okToDestroyStuff?: boolean, activeRundownPlaylistId?: string): Promise<void> {
+		const previousPlaylistId = this._vizmseManager?.activeRundownPlaylistId
 		if (this._vizmseManager) {
 			const preload = !!(this._initOptions && this._initOptions.onlyPreloadActiveRundown)
 			await this._vizmseManager.activate(activeRundownPlaylistId, preload)
@@ -348,7 +349,8 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState> implements IDevic
 			if (this._vizmseManager) {
 				if (
 					this._initOptions &&
-					this._initOptions.clearAllOnMakeReady
+					this._initOptions.clearAllOnMakeReady &&
+					activeRundownPlaylistId !== previousPlaylistId
 				) {
 					if (this._initOptions.clearAllTemplateName) {
 						await this._vizmseManager.clearAll({
@@ -783,6 +785,10 @@ class VizMSEManager extends EventEmitter {
 	private _cacheInternalElementsSentLoaded: {[hash: string]: true} = {}
 	private _activeRundownPlaylistId: string | undefined
 	private _preloadedRundownPlaylistId: string | undefined
+
+	public get activeRundownPlaylistId () {
+		return this._activeRundownPlaylistId
+	}
 
 	constructor (
 		private _parentVizMSEDevice: VizMSEDevice,
