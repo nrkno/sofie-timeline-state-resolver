@@ -237,6 +237,9 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState> implements IDevic
 	}
 	public connectionChanged (connected?: boolean) {
 		if (connected === true || connected === false) this._vizMSEConnected = connected
+		if (connected === false) {
+			this.emit('clearMediaObjects', this.deviceId)
+		}
 		this.emit('connectionChanged', this.getStatus())
 	}
 	/**
@@ -401,7 +404,6 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState> implements IDevic
 		if (!this._vizMSEConnected) {
 			statusCode = StatusCode.BAD
 			messages.push('Not connected')
-			this.emit('clearMediaObjects', this.deviceId)
 		} else if (this._vizmseManager) {
 			if (this._vizmseManager.notLoadedCount > 0 || this._vizmseManager.loadingCount > 0) {
 				statusCode = StatusCode.WARNING_MINOR
@@ -793,6 +795,7 @@ class VizMSEManager extends EventEmitter {
 	private _terminated: boolean = false
 	private _activeRundownPlaylistId: string | undefined
 	private _preloadedRundownPlaylistId: string | undefined
+	private _updateAfterReconnect: boolean = false
 
 	public get activeRundownPlaylistId () {
 		return this._activeRundownPlaylistId
@@ -1393,7 +1396,7 @@ class VizMSEManager extends EventEmitter {
 							isLoading: this._isElementLoading(newEl)
 						}
 						this.emit('debug', `Element ${elementRef}: ${JSON.stringify(newEl)}`)
-						if (this._isExternalElement(newEl)) {
+						if (this._isExternalElement(newEl) && (this._updateAfterReconnect || cachedEl?.isLoaded !== this._elementsLoaded[e.hash].isLoaded)) {
 							if (this._elementsLoaded[e.hash].isLoaded) {
 								const mediaObject: MediaObject = {
 									_id: e.hash,
@@ -1417,7 +1420,7 @@ class VizMSEManager extends EventEmitter {
 					}
 				})
 			)
-
+			this._updateAfterReconnect = false
 			this.emit('debug', `Updating status of elements done, this._elementsLoaded.length=${_.keys(this._elementsLoaded).length}`)
 
 		} else {
@@ -1734,6 +1737,9 @@ class VizMSEManager extends EventEmitter {
 	private mseConnectionChanged (connected: boolean) {
 		if (connected !== this._mseConnected) {
 			this._mseConnected = connected
+			if (connected) {
+				this._updateAfterReconnect = true
+			}
 			this.onConnectionChanged()
 		}
 	}
