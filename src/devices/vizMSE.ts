@@ -1268,10 +1268,10 @@ class VizMSEManager extends EventEmitter {
 				return internalEl
 			}
 		} catch (e) {
-			if (e.toString().match(/already exist/i)) { // "An internal graphics element with name 'xxxxxxxxxxxxxxx' already exists."
+			if (e.toString().match(/already exist/i)) { // "An internal/external graphics element with name 'xxxxxxxxxxxxxxx' already exists."
 				// If the object already exists, it's not an error, fetch and use the element instead
 
-				const element = await rundown.getElement(cmd.templateInstance)
+				const element = _.isNumber(cmd.templateName) ? await rundown.getElement(cmd.templateName) : await rundown.getElement(cmd.templateInstance)
 
 				this._cacheElement(elementHash, element)
 				return element
