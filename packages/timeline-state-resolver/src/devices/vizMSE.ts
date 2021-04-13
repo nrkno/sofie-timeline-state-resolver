@@ -782,7 +782,7 @@ class VizMSEManager extends EventEmitter {
 	private _monitorMSEConnection?: NodeJS.Timer
 	private _lastTimeCommandSent: number = 0
 	private _hasActiveRundown: boolean = false
-	private _elementsLoaded: {[hash: string]: { element: VElement, isLoaded: boolean, isLoading: boolean}} = {}
+	private _elementsLoaded: {[hash: string]: { element: VElement, isLoaded: boolean, isLoading: boolean, wasLoaded?: boolean }} = {}
 	private _getRundownPromise?: Promise<VRundown>
 	private _mseConnected: boolean = false
 	private _msePingConnected: boolean = false
@@ -1390,29 +1390,42 @@ class VizMSEManager extends EventEmitter {
 						// Update cached status of the element:
 						const newEl = await rundown.getElement(elementRef)
 
-						this._elementsLoaded[e.hash] = {
+						const newLoadedEl = {
 							element: newEl,
 							isLoaded: this._isElementLoaded(newEl),
-							isLoading: this._isElementLoading(newEl)
+							isLoading: this._isElementLoading(newEl),
+							wasLoaded: cachedEl.wasLoaded
 						}
+						this._elementsLoaded[e.hash] = newLoadedEl
 						this.emit('debug', `Element ${elementRef}: ${JSON.stringify(newEl)}`)
-						if (this._isExternalElement(newEl) && (this._updateAfterReconnect || cachedEl?.isLoaded !== this._elementsLoaded[e.hash].isLoaded)) {
-							if (this._elementsLoaded[e.hash].isLoaded) {
-								const mediaObject: MediaObject = {
-									_id: e.hash,
-									mediaId: 'PILOT_' + e.item.templateName.toString().toUpperCase(),
-									mediaPath: e.item.templateInstance,
-									mediaSize: 0,
-									mediaTime: 0,
-									thumbSize: 0,
-									thumbTime: 0,
-									cinf: '',
-									tinf: '',
-									_rev: ''
+						if (this._isExternalElement(newEl)) {
+							if (this._updateAfterReconnect || cachedEl?.isLoaded !== newLoadedEl.isLoaded) {
+								if (cachedEl?.isLoaded && !newLoadedEl.isLoaded) {
+									newLoadedEl.wasLoaded = true
+								} else if (!cachedEl?.isLoaded && newLoadedEl.isLoaded) {
+									newLoadedEl.wasLoaded = false
 								}
-								this.emit('updateMediaObject', e.hash, mediaObject)
-							} else {
-								this.emit('updateMediaObject', e.hash, null)
+								if (newLoadedEl.isLoaded) {
+									const mediaObject: MediaObject = {
+										_id: e.hash,
+										mediaId: 'PILOT_' + e.item.templateName.toString().toUpperCase(),
+										mediaPath: e.item.templateInstance,
+										mediaSize: 0,
+										mediaTime: 0,
+										thumbSize: 0,
+										thumbTime: 0,
+										cinf: '',
+										tinf: '',
+										_rev: ''
+									}
+									this.emit('updateMediaObject', e.hash, mediaObject)
+								} else {
+									this.emit('updateMediaObject', e.hash, null)
+								}
+							}
+							if (newLoadedEl.wasLoaded && !newLoadedEl.isLoaded && !newLoadedEl.isLoading) {
+								this.emit('debug', `Element "${this._getElementReference(newEl)}" went from loaded to not loaded, initializing`)
+								await rundown.initialize(this._getElementReference(newEl))
 							}
 						}
 					} catch (e) {
