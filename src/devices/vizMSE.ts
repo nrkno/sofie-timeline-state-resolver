@@ -931,7 +931,7 @@ class VizMSEManager extends EventEmitter {
 		}
 
 		this._triggerCommandSent()
-		this._triggerLoadAllElements(true).then(() => {
+		this._triggerLoadAllElements(loadTwice).then(() => {
 			this._triggerCommandSent()
 			this._activeRundownPlaylistId = rundownPlaylistId
 			this._hasActiveRundown = true
@@ -1410,7 +1410,7 @@ class VizMSEManager extends EventEmitter {
 									_rev: ''
 								}
 								this.emit('updateMediaObject', e.hash, mediaObject)
-							} else if (!cachedEl) {
+							} else {
 								this.emit('updateMediaObject', e.hash, null)
 							}
 						}
