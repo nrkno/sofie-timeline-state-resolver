@@ -1408,7 +1408,7 @@ class VizMSEManager extends EventEmitter {
 									_rev: ''
 								}
 								this.emit('updateMediaObject', e.hash, mediaObject)
-							} else if (!cachedEl) {
+							} else {
 								this.emit('updateMediaObject', e.hash, null)
 							}
 						}
