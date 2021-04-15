@@ -3,7 +3,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<title>VMixTransform | timeline-state-resolver-types</title>
+	<title>OSCValueBoolean | timeline-state-resolver-types</title>
 	<meta name="description" content="Documentation for timeline-state-resolver-types">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<style type="text/css">/*! normalize.css v1.1.3 | MIT License | git.io/normalize */
@@ -2723,19 +2723,13 @@ img {
 <nav class="tsd-navigation secondary">
 	<ul>
 		<li class="current tsd-kind-interface tsd-is-external">
-			<a href="vmixtransform.html" class="tsd-kind-icon">VMix<wbr>Transform</a>
+			<a href="oscvalueboolean.html" class="tsd-kind-icon">OSCValue<wbr>Boolean</a>
 			<ul>
 				<li class=" tsd-kind-property tsd-parent-kind-interface tsd-is-external">
-					<a href="vmixtransform.html#alpha" class="tsd-kind-icon">alpha</a>
+					<a href="oscvalueboolean.html#type" class="tsd-kind-icon">type</a>
 				</li>
 				<li class=" tsd-kind-property tsd-parent-kind-interface tsd-is-external">
-					<a href="vmixtransform.html#panx" class="tsd-kind-icon">panX</a>
-				</li>
-				<li class=" tsd-kind-property tsd-parent-kind-interface tsd-is-external">
-					<a href="vmixtransform.html#pany" class="tsd-kind-icon">panY</a>
-				</li>
-				<li class=" tsd-kind-property tsd-parent-kind-interface tsd-is-external">
-					<a href="vmixtransform.html#zoom" class="tsd-kind-icon">zoom</a>
+					<a href="oscvalueboolean.html#value" class="tsd-kind-icon">value</a>
 				</li>
 			</ul>
 		</li>
@@ -2747,7 +2741,7 @@ img {
 			<h3>Hierarchy</h3>
 			<ul class="tsd-hierarchy">
 				<li>
-					<span class="target">VMixTransform</span>
+					<span class="target">OSCValueBoolean</span>
 				</li>
 			</ul>
 		</section>
@@ -2758,10 +2752,8 @@ img {
 					<section class="tsd-index-section tsd-is-external">
 						<h3>Properties</h3>
 						<ul class="tsd-index-list">
-							<li class="tsd-kind-property tsd-parent-kind-interface tsd-is-external"><a href="vmixtransform.html#alpha" class="tsd-kind-icon">alpha</a></li>
-							<li class="tsd-kind-property tsd-parent-kind-interface tsd-is-external"><a href="vmixtransform.html#panx" class="tsd-kind-icon">panX</a></li>
-							<li class="tsd-kind-property tsd-parent-kind-interface tsd-is-external"><a href="vmixtransform.html#pany" class="tsd-kind-icon">panY</a></li>
-							<li class="tsd-kind-property tsd-parent-kind-interface tsd-is-external"><a href="vmixtransform.html#zoom" class="tsd-kind-icon">zoom</a></li>
+							<li class="tsd-kind-property tsd-parent-kind-interface tsd-is-external"><a href="oscvalueboolean.html#type" class="tsd-kind-icon">type</a></li>
+							<li class="tsd-kind-property tsd-parent-kind-interface tsd-is-external"><a href="oscvalueboolean.html#value" class="tsd-kind-icon">value</a></li>
 						</ul>
 					</section>
 				</div>
@@ -2770,64 +2762,24 @@ img {
 		<section class="tsd-panel-group tsd-member-group tsd-is-external">
 			<h2>Properties</h2>
 			<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface tsd-is-external">
-				<a name="alpha" class="tsd-anchor"></a>
-				<h3>alpha</h3>
-				<div class="tsd-signature tsd-kind-icon">alpha<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span></div>
+				<a name="type" class="tsd-anchor"></a>
+				<h3>type</h3>
+				<div class="tsd-signature tsd-kind-icon">type<span class="tsd-signature-symbol">:</span> <a href="../enums/oscvaluetype.html#true" class="tsd-signature-type">TRUE</a><span class="tsd-signature-symbol"> | </span><a href="../enums/oscvaluetype.html#false" class="tsd-signature-type">FALSE</a></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/ecec78b42/src/types/src/vmix.ts#L342">src/types/src/vmix.ts:342</a></li>
+						<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/ecec78b42/src/types/src/osc.ts#L48">src/types/src/osc.ts:48</a></li>
 					</ul>
 				</aside>
-				<div class="tsd-comment tsd-typography">
-					<div class="lead">
-						<p>Transparency (0 - 255)</p>
-					</div>
-				</div>
 			</section>
 			<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface tsd-is-external">
-				<a name="panx" class="tsd-anchor"></a>
-				<h3>panX</h3>
-				<div class="tsd-signature tsd-kind-icon">panX<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span></div>
+				<a name="value" class="tsd-anchor"></a>
+				<h3>value</h3>
+				<div class="tsd-signature tsd-kind-icon">value<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">void</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/ecec78b42/src/types/src/vmix.ts#L336">src/types/src/vmix.ts:336</a></li>
+						<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/ecec78b42/src/types/src/osc.ts#L49">src/types/src/osc.ts:49</a></li>
 					</ul>
 				</aside>
-				<div class="tsd-comment tsd-typography">
-					<div class="lead">
-						<p>Horizontal pan (-2 - 2)</p>
-					</div>
-				</div>
-			</section>
-			<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface tsd-is-external">
-				<a name="pany" class="tsd-anchor"></a>
-				<h3>panY</h3>
-				<div class="tsd-signature tsd-kind-icon">panY<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span></div>
-				<aside class="tsd-sources">
-					<ul>
-						<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/ecec78b42/src/types/src/vmix.ts#L339">src/types/src/vmix.ts:339</a></li>
-					</ul>
-				</aside>
-				<div class="tsd-comment tsd-typography">
-					<div class="lead">
-						<p>Vertical pan (-2 - 2)</p>
-					</div>
-				</div>
-			</section>
-			<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface tsd-is-external">
-				<a name="zoom" class="tsd-anchor"></a>
-				<h3>zoom</h3>
-				<div class="tsd-signature tsd-kind-icon">zoom<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span></div>
-				<aside class="tsd-sources">
-					<ul>
-						<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/ecec78b42/src/types/src/vmix.ts#L333">src/types/src/vmix.ts:333</a></li>
-					</ul>
-				</aside>
-				<div class="tsd-comment tsd-typography">
-					<div class="lead">
-						<p>Scale (0 - 5)</p>
-					</div>
-				</div>
 			</section>
 		</section>
 		<footer class="with-border-bottom">
