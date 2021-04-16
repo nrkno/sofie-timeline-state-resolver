@@ -1396,7 +1396,7 @@ class VizMSEManager extends EventEmitter {
 							element: newEl,
 							isLoaded: this._isElementLoaded(newEl),
 							isLoading: this._isElementLoading(newEl),
-							wasLoaded: cachedEl.wasLoaded
+							wasLoaded: cachedEl?.wasLoaded
 						}
 						this._elementsLoaded[e.hash] = newLoadedEl
 						this.emit('debug', `Element ${elementRef}: ${JSON.stringify(newEl)}`)
