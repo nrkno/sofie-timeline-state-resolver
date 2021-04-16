@@ -966,7 +966,7 @@ class VizMSEManager extends EventEmitter {
 	public async prepareElement (cmd: VizMSECommandPrepare): Promise<void> {
 
 		const elementHash = this.getElementHash(cmd)
-		this.emit('debug', `VizMSE: prepare "${elementHash}"`)
+		this.emit('debug', `VizMSE: prepare "${elementHash}" on channel "${cmd.channelName}"`)
 		this._triggerCommandSent()
 		await this._checkPrepareElement(cmd, true)
 		this._triggerCommandSent()
@@ -981,7 +981,7 @@ class VizMSEManager extends EventEmitter {
 
 		await this._checkElementExists(cmd)
 		await this._handleRetry(() => {
-			this.emit('debug', `VizMSE: cue "${elementRef}"`)
+			this.emit('debug', `VizMSE: cue "${elementRef}" on channel "${cmd.channelName}"`)
 			return rundown.cue(elementRef)
 		})
 	}
@@ -1004,7 +1004,7 @@ class VizMSEManager extends EventEmitter {
 
 		await this._checkElementExists(cmd)
 		await this._handleRetry(() => {
-			this.emit('debug', `VizMSE: take "${elementRef}"`)
+			this.emit('debug', `VizMSE: take "${elementRef}" on channel "${cmd.channelName}"`)
 
 			return rundown.take(elementRef)
 		})
@@ -1028,7 +1028,7 @@ class VizMSEManager extends EventEmitter {
 
 		await this._checkElementExists(cmd)
 		await this._handleRetry(() => {
-			this.emit('debug', `VizMSE: out "${elementRef}"`)
+			this.emit('debug', `VizMSE: out "${elementRef}" on channel "${cmd.channelName}"`)
 			return rundown.out(elementRef)
 		})
 	}
@@ -1042,7 +1042,7 @@ class VizMSEManager extends EventEmitter {
 
 		await this._checkElementExists(cmd)
 		await this._handleRetry(() => {
-			this.emit('debug', `VizMSE: continue "${elementRef}"`)
+			this.emit('debug', `VizMSE: continue "${elementRef}" on channel "${cmd.channelName}"`)
 			return rundown.continue(elementRef)
 		})
 	}
@@ -1056,7 +1056,7 @@ class VizMSEManager extends EventEmitter {
 
 		await this._checkElementExists(cmd)
 		await this._handleRetry(() => {
-			this.emit('debug', `VizMSE: continue reverse "${elementRef}"`)
+			this.emit('debug', `VizMSE: continue reverse "${elementRef}" on channel "${cmd.channelName}"`)
 			return rundown.continueReverse(elementRef)
 		})
 	}
