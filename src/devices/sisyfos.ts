@@ -259,10 +259,13 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState> implemen
 	convertStateToSisyfosState (state: TimelineState, mappings: Mappings) {
 		const deviceState: SisyfosState = this.getDeviceState(true, mappings)
 
+		// Set labels to layer names
 		for (const mapping of Object.values(mappings)) {
 			const sisyfosMapping = mapping as MappingSisyfos
 
 			if (sisyfosMapping.mappingType !== MappingSisyfosType.CHANNEL) continue
+
+			if (!sisyfosMapping.setLabelToLayerName) continue
 
 			if (!sisyfosMapping.layerName) continue
 

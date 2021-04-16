@@ -18,6 +18,7 @@ interface MappingSisyfosBase extends Mapping {
 export interface MappingSisyfosChannel extends MappingSisyfosBase {
 	mappingType: MappingSisyfosType.CHANNEL
 	channel: number
+	setLabelToLayerName: boolean
 }
 export interface MappingSisyfosChannels extends MappingSisyfosBase {
 	mappingType: MappingSisyfosType.CHANNELS
