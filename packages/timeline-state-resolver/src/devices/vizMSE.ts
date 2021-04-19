@@ -833,6 +833,7 @@ class VizMSEManager extends EventEmitter {
 
 				if (!rundown) throw new Error(`VizMSEManager: Unable to create rundown!`)
 			} catch (e) {
+				this.emit('debug', `VizMSE: initializeRundownInner ${e}`)
 				setTimeout(() => initializeRundownInner(), INIT_RETRY_INTERVAL)
 				return
 			}
@@ -1563,9 +1564,13 @@ class VizMSEManager extends EventEmitter {
 		}
 	}
 	private async _pingEngine (engine: Engine): Promise<EngineStatus> {
-		return new Promise((resolve, _reject) => {
-			request.get(`http://${engine.host}:${this.engineRestPort}/#/status`, { timeout: 2000 }, (error, response) => {
-				const alive = !error && response.statusCode < 400
+		return new Promise((resolve) => {
+			const url = `http://${engine.host}:${this.engineRestPort}/#/status`
+			request.get(url, { timeout: 2000 }, (error, response: request.Response | undefined) => {
+				const alive = !error && response !== undefined && response?.statusCode < 400
+				if (!alive) {
+					this.emit('debug', `VizMSE: _pingEngine at "${url}", error ${error}, code ${response?.statusCode}`)
+				}
 				resolve({ ...engine, alive })
 			})
 		})
