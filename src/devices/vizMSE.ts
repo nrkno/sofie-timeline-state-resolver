@@ -779,8 +779,8 @@ class VizMSEManager extends EventEmitter {
 	private _rundown: VRundown | undefined
 	private _elementCache: {[hash: string]: CachedVElement } = {}
 	private _expectedPlayoutItems: Array<ExpectedPlayoutItemContent> = []
-	private _monitorAndLoadElementsInterval?: NodeJS.Timer
-	private _monitorMSEConnection?: NodeJS.Timer
+	private _monitorAndLoadElementsTimeout?: NodeJS.Timer
+	private _monitorMSEConnectionTimeout?: NodeJS.Timer
 	private _lastTimeCommandSent: number = 0
 	private _hasActiveRundown: boolean = false
 	private _elementsLoaded: {[hash: string]: { element: VElement, isLoaded: boolean, isLoading: boolean, wasLoaded?: boolean }} = {}
@@ -841,16 +841,7 @@ class VizMSEManager extends EventEmitter {
 
 			// const profile = await this._vizMSE.getProfile('sofie') // TODO: Figure out if this is needed
 
-			if (this._monitorAndLoadElementsInterval) {
-				clearInterval(this._monitorAndLoadElementsInterval)
-			}
-			this._monitorAndLoadElementsInterval = setInterval(() => {
-				this._monitorLoadedElements()
-				.catch((...args) => {
-					this.emit('error', ...args)
-				})
-			}, MONITOR_INTERVAL)
-
+			this._setMonitorLoadedElementsTimeout()
 			this._setMonitorConnectionTimeout()
 
 			this.initialized = true
@@ -863,11 +854,11 @@ class VizMSEManager extends EventEmitter {
 	 */
 	public async terminate () {
 		this._terminated = true
-		if (this._monitorAndLoadElementsInterval) {
-			clearInterval(this._monitorAndLoadElementsInterval)
+		if (this._monitorAndLoadElementsTimeout) {
+			clearTimeout(this._monitorAndLoadElementsTimeout)
 		}
-		if (this._monitorMSEConnection) {
-			clearTimeout(this._monitorMSEConnection)
+		if (this._monitorMSEConnectionTimeout) {
+			clearTimeout(this._monitorMSEConnectionTimeout)
 		}
 		if (this._vizMSE) {
 			await this._vizMSE.close()
@@ -1513,36 +1504,57 @@ class VizMSEManager extends EventEmitter {
 			this._loadingAllElements = false
 		}
 	}
-	private _setMonitorConnectionTimeout (): void {
-		if (this._monitorMSEConnection) {
-			clearTimeout(this._monitorMSEConnection)
+	private _setMonitorLoadedElementsTimeout (): void {
+		if (this._monitorAndLoadElementsTimeout) {
+			clearTimeout(this._monitorAndLoadElementsTimeout)
 		}
 		if (!this._terminated) {
-			this._monitorMSEConnection = setTimeout(() => this._monitorConnection(), MONITOR_INTERVAL)
+			this._monitorAndLoadElementsTimeout = setTimeout(async () => {
+				await this._monitorLoadedElements()
+				.catch((...args) => {
+					this.emit('error', ...args)
+				})
+				this._setMonitorLoadedElementsTimeout()
+			}, MONITOR_INTERVAL)
 		}
 	}
-	private _monitorConnection (): void {
-		// (the ping will throuw on a timeout if ping doesn't return in time)
+	private _setMonitorConnectionTimeout (): void {
+		if (this._monitorMSEConnectionTimeout) {
+			clearTimeout(this._monitorMSEConnectionTimeout)
+		}
+		if (!this._terminated) {
+			this._monitorMSEConnectionTimeout = setTimeout(async () => {
+				await this._monitorConnection()
+				.catch((...args) => {
+					this.emit('error', ...args)
+				})
+				this._setMonitorConnectionTimeout()
+			}, MONITOR_INTERVAL)
+		}
+	}
+	private _monitorConnection (): Promise<void> {
 		if (this.initialized) {
-			this._vizMSE.ping()
-			.then(async () => {
+			// (the ping will throw on a timeout if ping doesn't return in time)
+			return this._vizMSE.ping()
+			.then(() => {
 				// ok!
 				if (!this._msePingConnected) {
 					this._msePingConnected = true
 					this.onConnectionChanged()
 				}
-				await this._monitorEngines()
-				this._setMonitorConnectionTimeout()
-			}, async () => {
+			})
+			.catch(() => {
 				// not ok!
 				if (this._msePingConnected) {
 					this._msePingConnected = false
 					this.onConnectionChanged()
 				}
-				await this._monitorEngines()
-				this._setMonitorConnectionTimeout()
+			})
+			.then(() => {
+				return this._msePingConnected ? this._monitorEngines() : Promise.resolve()
 			})
 		}
+		return Promise.reject()
 	}
 	private async _monitorEngines () {
 		if (!this.engineRestPort) {
