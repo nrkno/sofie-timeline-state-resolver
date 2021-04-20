@@ -463,7 +463,7 @@ export class QuantelDevice extends DeviceWithState<QuantelState> implements IDev
 
 					let transition: QuantelOutTransition | undefined
 
-					if (oldPort && !oldPort.notOnAir && newPort.notOnAir) {
+					if (oldPort && newPort.notOnAir) {
 						// The thing that's going to be played is not intended to be on air
 						// We can let the outTransition of the oldCLip run then!
 						transition = oldPort.outTransition
