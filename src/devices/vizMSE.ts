@@ -17,7 +17,6 @@ import {
 	TimelineObjVIZMSEElementInternal,
 	TimelineContentTypeVizMSE,
 	TimelineObjVIZMSEElementPilot,
-	ExpectedPlayoutItemContent,
 	VIZMSEPlayoutItemContent,
 	DeviceOptionsVizMSE,
 	TimelineObjVIZMSEAny,
@@ -46,6 +45,7 @@ import { DoOnTime, SendMode } from '../doOnTime'
 import * as crypto from 'crypto'
 import * as net from 'net'
 import { MediaObject } from '../types/src/mediaObject'
+import { ExpectedPlayoutItem } from '../expectedPlayoutItems'
 
 /** The ideal time to prepare elements before going on air */
 const IDEAL_PREPARE_TIME = 1000
@@ -222,7 +222,7 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState> implements IDevic
 	get supportsExpectedPlayoutItems (): boolean {
 		return true
 	}
-	public handleExpectedPlayoutItems (expectedPlayoutItems: Array<ExpectedPlayoutItemContent>): void {
+	public handleExpectedPlayoutItems (expectedPlayoutItems: Array<ExpectedPlayoutItem>): void {
 		this.emit('debug', 'VIZDEBUG: handleExpectedPlayoutItems called')
 		if (this._vizmseManager) {
 			this.emit('debug', 'VIZDEBUG: manager exists')
@@ -774,7 +774,7 @@ class VizMSEManager extends EventEmitter {
 
 	private _rundown: VRundown | undefined
 	private _elementCache: {[hash: string]: CachedVElement } = {}
-	private _expectedPlayoutItems: Array<ExpectedPlayoutItemContent> = []
+	private _expectedPlayoutItems: Array<ExpectedPlayoutItem> = []
 	private _monitorAndLoadElementsInterval?: NodeJS.Timer
 	private _monitorMSEConnection?: NodeJS.Timer
 	private _lastTimeCommandSent: number = 0
@@ -864,7 +864,7 @@ class VizMSEManager extends EventEmitter {
 	 * Set the collection of expectedPlayoutItems.
 	 * These will be monitored and can be triggered to pre-load.
 	 */
-	public setExpectedPlayoutItems (expectedPlayoutItems: Array<ExpectedPlayoutItemContent>) {
+	public setExpectedPlayoutItems (expectedPlayoutItems: Array<ExpectedPlayoutItem>) {
 		this.emit('debug', 'VIZDEBUG: setExpectedPlayoutItems called')
 		if (this.preloadAllElements) {
 			this.emit('debug', 'VIZDEBUG: preload elements allowed')
