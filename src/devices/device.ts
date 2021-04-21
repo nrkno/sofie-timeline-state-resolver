@@ -1,13 +1,12 @@
 import * as _ from 'underscore'
 import { TimelineState } from 'superfly-timeline'
-import {
-	Mappings,
-	DeviceType,
-	ExpectedPlayoutItemContent
-} from '../types/src'
+import { Mappings, DeviceType } from '../types/src'
 import { EventEmitter } from 'events'
 import { CommandReport, DoOnTime } from '../doOnTime'
 import { DeviceInitOptions, DeviceOptionsAny } from '../types/src/device'
+import { MediaObject } from '../types/src/mediaObject'
+import { ExpectedPlayoutItem } from '../expectedPlayoutItems'
+
 /*
 	This is a base class for all the Device wrappers.
 	The Device wrappers will
@@ -188,7 +187,7 @@ export abstract class Device extends EventEmitter implements IDevice {
 	get supportsExpectedPlayoutItems (): boolean {
 		return false
 	}
-	public handleExpectedPlayoutItems (_expectedPlayoutItems: Array<ExpectedPlayoutItemContent>): void {
+	public handleExpectedPlayoutItems (_expectedPlayoutItems: Array<ExpectedPlayoutItem>): void {
 		// When receiving a new list of playoutItems.
 		// by default, do nothing
 	}
@@ -226,7 +225,11 @@ export abstract class Device extends EventEmitter implements IDevice {
 		/** A report that a command was sent too late */
 		((event: 'slowCommand',			listener: (commandInfo: string) => void) => this) &
 		/** Something went wrong when executing a command  */
-		((event: 'commandError', 		listener: (error: Error, context: CommandWithContext) => void) => this)
+		((event: 'commandError', 		listener: (error: Error, context: CommandWithContext) => void) => this) &
+		/** Update a MediaObject  */
+		((event: 'updateMediaObject',	listener: (collectionId: string, docId: string, doc: MediaObject | null) => void) => this) &
+		/** Clear a MediaObjects collection */
+		((event: 'clearMediaObjects',	listener: (collectionId: string) => void) => this)
 
 		// Overide EventEmitter.emit() for stronger typings:
 	emit: ((event: 'info',				info: string) => boolean) &
@@ -237,7 +240,9 @@ export abstract class Device extends EventEmitter implements IDevice {
 		((event: 'resetResolver') => boolean) &
 		((event: 'slowCommand',			commandInfo: string) => boolean) &
 		((event: 'commandReport',		commandReport: CommandReport) => boolean) &
-		((event: 'commandError',		error: Error, context: CommandWithContext) => boolean)
+		((event: 'commandError',		error: Error, context: CommandWithContext) => boolean) &
+		((event: 'updateMediaObject',	collectionId: string, docId: string, doc: MediaObject | null) => boolean) &
+		((event: 'clearMediaObjects',	collectionId: string) => boolean)
 
 	public get instanceId (): number {
 		return this._instanceId
