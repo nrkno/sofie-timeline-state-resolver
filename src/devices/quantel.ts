@@ -464,8 +464,8 @@ export class QuantelDevice extends DeviceWithState<QuantelState> implements IDev
 					let transition: QuantelOutTransition | undefined
 
 					if (oldPort && !oldPort.notOnAir && newPort.notOnAir) {
-						// The thing that's going to be played is not intended to be on air
-						// We can let the outTransition of the oldCLip run then!
+						// When the previous content was on-air, we use the out-transition (so that mix-effects look good).
+						// But when the previous content wasn't on-air, we don't wan't to use the out-transition (for example; when cuing previews)
 						transition = oldPort.outTransition
 					}
 
