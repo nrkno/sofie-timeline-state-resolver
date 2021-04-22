@@ -1,5 +1,5 @@
 import { OSCEasingType } from '..'
-import { Easing } from '../../../devices/transitions/easings'
+import { Easing } from '../../../timeline-state-resolver/src/devices/transitions/easings'
 
 describe('OSC', () => {
 	test('OSC Easing type', () => {

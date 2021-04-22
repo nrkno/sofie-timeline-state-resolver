@@ -3,11 +3,11 @@ import { SingularLiveDevice } from '../singularLive'
 import {
 	MappingSingularLive,
 	Mappings,
-	DeviceType
-} from '../../types/src'
+	DeviceType,
+	TimelineContentTypeSingularLive
+} from 'timeline-state-resolver-types'
 import { MockTime } from '../../__tests__/mockTime'
 import { ThreadedClass } from 'threadedclass'
-import { TimelineContentTypeSingularLive } from '../../types/src/singularLive'
 import { getMockCall } from '../../__tests__/lib'
 
 // let nowActual = Date.now()

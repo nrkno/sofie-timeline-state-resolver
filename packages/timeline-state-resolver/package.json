@@ -58,7 +58,7 @@
     "unitci": "jest --maxWorkers 2",
     "unit": "jest",
     "testci": "yarn test --maxWorkers 2",
-    "test": "yarn lint && yarn buildall && yarn unit",
+    "test": "yarn lint && yarn unit",
     "test:integration": "yarn lint && jest --config=jest-integration.config.js",
     "watch": "jest --watch",
     "cov": "jest --coverage && yarn cov-open",
@@ -74,14 +74,7 @@
     "reset": "git clean -dfx && git reset --hard && yarn",
     "validate:dependencies": "yarn audit --groups dependencies && yarn license-validate",
     "validate:dev-dependencies": "yarn audit --groups devDependencies",
-    "license-validate": "node-license-validator -p -d --allow-licenses MIT BSD BSD-2-Clause BSD-3-Clause 0BSD ISC Apache Unlicense WTFPL --allow-packages cycle",
-    "types-build": "cd src/types && trash dist && yarn build:main && cd ../..",
-    "types-install": "cd src/types && yarn install && cd ../..",
-    "types-test": "cd src/types && yarn test && cd ../..",
-    "types-ci": "cd src/types && yarn testci && cd ../..",
-    "types-validate:dependencies": "cd src/types && yarn validate:dependencies",
-    "types-validate:dev-dependencies": "cd src/types && yarn validate:dev-dependencies",
-    "buildall": "yarn build && yarn types-build"
+    "license-validate": "node-license-validator -p -d --allow-licenses MIT BSD BSD-2-Clause BSD-3-Clause 0BSD ISC Apache Unlicense WTFPL --allow-packages cycle"
   },
   "scripts-info": {
     "info": "Display information about the scripts",

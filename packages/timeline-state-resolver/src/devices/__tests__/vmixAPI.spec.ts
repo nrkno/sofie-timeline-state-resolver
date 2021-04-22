@@ -1,7 +1,7 @@
 import * as _ from 'underscore'
 import { VMix } from '../vmixAPI'
 import { setupVmixMock } from './vmixMock'
-import { VMixOptions } from '../../types/src/vmix'
+import { VMixOptions } from 'timeline-state-resolver-types'
 
 const orgSetTimeout = setTimeout
 

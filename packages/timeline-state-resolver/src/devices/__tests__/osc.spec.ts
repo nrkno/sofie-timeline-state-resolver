@@ -8,7 +8,7 @@ import {
 	OSCValueType,
 	TimelineObjOSCMessage,
 	OSCDeviceType
-} from '../../types/src'
+} from 'timeline-state-resolver-types'
 import { MockTime } from '../../__tests__/mockTime'
 import { literal } from '../device'
 import { ThreadedClass } from 'threadedclass'

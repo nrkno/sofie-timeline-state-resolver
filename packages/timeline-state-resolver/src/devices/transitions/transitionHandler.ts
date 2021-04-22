@@ -1,4 +1,4 @@
-import { TSRTransitionOptions } from '../../types/src/casparcg'
+import { TSRTransitionOptions } from 'timeline-state-resolver-types'
 import * as _ from 'underscore'
 import { Animator, LinearMovement, PhysicalAcceleration } from './animate'
 

@@ -2,11 +2,13 @@ import { Conductor } from '../../conductor'
 import {
 	Mappings,
 	DeviceType,
-	TSRTimeline
-} from '../../types/src'
+	TSRTimeline,
+	MappingVizMSE,
+	TimelineContentTypeVizMSE,
+	VIZMSETransitionType
+} from 'timeline-state-resolver-types'
 import { MockTime } from '../../__tests__/mockTime'
 import { ThreadedClass } from 'threadedclass'
-import { MappingVizMSE, TimelineContentTypeVizMSE, VIZMSETransitionType } from '../../types/src/vizMSE'
 import { getMockCall } from '../../__tests__/lib'
 import { VizMSEDevice } from '../vizMSE'
 import * as vConnection from '../../__mocks__/v-connection'

@@ -2,13 +2,15 @@ import { Conductor } from '../../conductor'
 import {
 	Mappings,
 	DeviceType,
-	TSRTimeline
-} from '../../types/src'
+	TSRTimeline,
+	MappingSisyfos,
+	TimelineContentTypeSisyfos,
+	MappingSisyfosType
+} from 'timeline-state-resolver-types'
 import * as OSC from '../../__mocks__/osc'
 const MockOSC = OSC.MockOSC
 import { MockTime } from '../../__tests__/mockTime'
 import { ThreadedClass } from 'threadedclass'
-import { MappingSisyfos, TimelineContentTypeSisyfos, MappingSisyfosType } from '../../types/src/sisyfos'
 import { SisyfosMessageDevice } from '../sisyfos'
 import { getMockCall } from '../../__tests__/lib'
 

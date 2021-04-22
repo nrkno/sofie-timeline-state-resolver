@@ -2,7 +2,7 @@ import {
 	Mappings,
 	DeviceType,
 	MappingAbstract
-} from '../../types/src'
+} from 'timeline-state-resolver-types'
 import { Conductor } from '../../conductor'
 import { AbstractDevice } from '../abstract'
 import { StatusCode } from '../device'

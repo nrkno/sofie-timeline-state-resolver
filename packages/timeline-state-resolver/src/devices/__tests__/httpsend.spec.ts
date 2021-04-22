@@ -3,11 +3,12 @@ import { HTTPSendDevice } from '../httpSend'
 import {
 	MappingHTTPSend,
 	Mappings,
-	DeviceType
-} from '../../types/src'
+	DeviceType,
+	TimelineObjHTTPRequest,
+	TimelineContentTypeHTTP
+} from 'timeline-state-resolver-types'
 import { MockTime } from '../../__tests__/mockTime'
 import { ThreadedClass } from 'threadedclass'
-import { TimelineObjHTTPRequest, TimelineContentTypeHTTP } from '../../types/src/httpSend'
 import { getMockCall } from '../../__tests__/lib'
 
 // let nowActual = Date.now()

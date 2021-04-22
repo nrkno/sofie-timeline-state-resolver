@@ -5,7 +5,7 @@ import {
 	DeviceType,
 	MappingQuantel,
 	QuantelTransitionType
-} from '../../types/src'
+} from 'timeline-state-resolver-types'
 import { MockTime } from '../../__tests__/mockTime'
 import { ThreadedClass } from 'threadedclass'
 import { QuantelDevice, QuantelCommandType } from '../quantel'

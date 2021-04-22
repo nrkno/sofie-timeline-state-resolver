@@ -1,5 +1,5 @@
 import { Enums, AtemConnection } from 'atem-state'
-import { ResolvedTimelineObjectInstance } from 'superfly-timeline'
+import { ResolvedTimelineObjectInstance, TimelineState } from 'superfly-timeline'
 import { Conductor } from '../../conductor'
 import { AtemDevice, DeviceOptionsAtemInternal } from '../atem'
 import { MockTime } from '../../__tests__/mockTime'
@@ -11,9 +11,8 @@ import {
 	TimelineContentTypeAtem,
 	AtemOptions,
 	AtemTransitionStyle
-} from '../../types/src'
+} from 'timeline-state-resolver-types'
 import { ThreadedClass } from 'threadedclass'
-import { TimelineState } from '../../types/src/superfly-timeline'
 import { literal } from '../device'
 import { getMockCall } from '../../__tests__/lib'
 

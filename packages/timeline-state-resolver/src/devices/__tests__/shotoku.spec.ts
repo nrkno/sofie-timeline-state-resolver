@@ -4,7 +4,7 @@ import {
 	MappingShotoku,
 	TimelineContentTypeShotoku,
 	ShotokuTransitionType
-} from '../../types/src'
+} from 'timeline-state-resolver-types'
 import { Conductor } from '../../conductor'
 import { Socket as MockSocket } from 'net'
 import { ThreadedClass } from 'threadedclass'
