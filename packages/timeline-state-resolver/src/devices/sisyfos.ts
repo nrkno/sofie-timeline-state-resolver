@@ -9,15 +9,7 @@ import {
 import {
 	DeviceType,
 	DeviceOptionsSisyfos,
-	Mappings
-} from 'timeline-state-resolver-types'
-import { DoOnTime, SendMode } from '../doOnTime'
-
-import {
-	TimelineState,
-	ResolvedTimelineObjectInstance
-} from 'superfly-timeline'
-import {
+	Mappings,
 	SisyfosOptions,
 	MappingSisyfos,
 	MappingSisyfosType,
@@ -25,6 +17,12 @@ import {
 	TimelineContentTypeSisyfos,
 	SisyfosChannelOptions
 } from 'timeline-state-resolver-types'
+import { DoOnTime, SendMode } from '../doOnTime'
+
+import {
+	TimelineState,
+	ResolvedTimelineObjectInstance
+} from 'superfly-timeline'
 import {
 	SisyfosApi,
 	SisyfosCommand,

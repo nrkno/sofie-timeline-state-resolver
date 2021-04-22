@@ -7,12 +7,6 @@ import {
 	DeviceStatus,
 	StatusCode
 } from './device'
-import {
-	DeviceType,
-	DeviceOptionsVMix,
-	VMixOptions,
-	Mappings
-} from 'timeline-state-resolver-types'
 import { DoOnTime, SendMode } from '../doOnTime'
 
 import {
@@ -20,6 +14,10 @@ import {
 } from 'superfly-timeline'
 import { VMix, VMixStateCommand } from './vmixAPI'
 import {
+	DeviceType,
+	DeviceOptionsVMix,
+	VMixOptions,
+	Mappings,
 	MappingVMix,
 	TimelineContentTypeVMix,
 	VMixCommand,

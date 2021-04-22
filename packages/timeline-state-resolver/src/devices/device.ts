@@ -3,11 +3,13 @@ import { TimelineState } from 'superfly-timeline'
 import {
 	Mappings,
 	DeviceType,
+	DeviceInitOptions,
+	DeviceOptionsAny,
 	ExpectedPlayoutItemContent
 } from 'timeline-state-resolver-types'
 import { EventEmitter } from 'events'
 import { CommandReport, DoOnTime } from '../doOnTime'
-import { DeviceInitOptions, DeviceOptionsAny } from 'timeline-state-resolver-types'
+
 /*
 	This is a base class for all the Device wrappers.
 	The Device wrappers will
