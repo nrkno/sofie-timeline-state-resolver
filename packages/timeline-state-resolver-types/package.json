@@ -71,7 +71,7 @@
 		"license-validate": "Validate licenses for dependencies."
 	},
 	"engines": {
-		"node": ">=10.10"
+		"node": ">=12.18"
 	},
 	"files": [
 		"/dist",
