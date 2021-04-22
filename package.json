@@ -1,21 +1,24 @@
 {
+  "name": "timeline-state-resolver-packages",
     "private": true,
-    "version": "5.3.0",
+    "version": "6.0.0-0",
     "workspaces": {
       "packages": [
-        "timeline-state-resolver-types",
-        "timeline-state-resolver"
+        "packages/timeline-state-resolver-types",
+        "packages/timeline-state-resolver"
       ]
     },
     "scripts": {
-      "build": "yarn workspaces run build",
-      "watch": "concurrently --prefix \"[{name}]\" --names \"TSR,TYPES\" -c \"bgBlue.bold,bgGreen.bold\" \"yarn workspace timeline-state-resolver build:main --watch\" \"yarn workspace timeline-state-resolver-types build:main --watch\"",
-      "docs": "yarn typedoc ."
-    },
+      "build": "yarn lerna exec yarn build",
+      "watch": "lerna run --parallel build:main -- --watch --preserveWatchOutput",
+      "docs": "yarn typedoc .",
+      "postinstall": "lerna bootstrap"
+  },
     "devDependencies": {
       "@strictsoftware/typedoc-plugin-monorepo": "^0.3.1",
       "concurrently": "^5.3.0",
       "gh-pages": "^3.1.0",
+      "lerna": "^4.0.0",
       "typedoc": "^0.19.2"
     },
     "standard-version": {
