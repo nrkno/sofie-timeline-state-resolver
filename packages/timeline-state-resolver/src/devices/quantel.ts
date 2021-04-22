@@ -20,7 +20,7 @@ import {
 	QuantelTransitionType,
 	DeviceOptionsQuantel,
 	Mappings
-} from '../types/src'
+} from 'timeline-state-resolver-types'
 
 import {
 	TimelineState, ResolvedTimelineObjectInstance

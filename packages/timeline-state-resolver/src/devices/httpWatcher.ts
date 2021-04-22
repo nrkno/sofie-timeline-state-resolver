@@ -11,7 +11,7 @@ import {
 	HTTPWatcherOptions,
 	DeviceOptionsHTTPpWatcher,
 	Mappings
-} from '../types/src'
+} from 'timeline-state-resolver-types'
 import * as request from 'request'
 
 import {

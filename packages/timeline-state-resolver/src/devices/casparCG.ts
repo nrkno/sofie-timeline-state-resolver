@@ -32,7 +32,7 @@ import {
 	Transition,
 	Mappings,
 	TSRTransitionOptions
-} from '../types/src'
+} from 'timeline-state-resolver-types'
 
 import {
 	TimelineState, ResolvedTimelineObjectInstance

@@ -16,7 +16,7 @@ import {
 	TimelineObjShotoku,
 	TimelineContentTypeShotoku,
 	TimelineObjShotokuSequence
-} from '../types/src'
+} from 'timeline-state-resolver-types'
 import { DoOnTime, SendMode } from '../doOnTime'
 
 import {

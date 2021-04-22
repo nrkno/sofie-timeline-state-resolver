@@ -23,7 +23,7 @@ import {
 	ContentTimelineObjLawoSource,
 	MappingLawoType,
 	Mappings
-} from '../types/src'
+} from 'timeline-state-resolver-types'
 import {
 	TimelineState, ResolvedTimelineObjectInstance
 } from 'superfly-timeline'

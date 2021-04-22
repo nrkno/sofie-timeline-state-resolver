@@ -18,7 +18,7 @@ import {
 	TimelineObjHyperdeckAny,
 	DeviceOptionsHyperdeck,
 	Mappings
-} from '../types/src'
+} from 'timeline-state-resolver-types'
 import {
 	Hyperdeck,
 	Commands as HyperdeckCommands,

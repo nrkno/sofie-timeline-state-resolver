@@ -6,7 +6,7 @@ import {
 	StatusCode,
 	IDevice
 } from './device'
-import { DeviceType, AbstractOptions, DeviceOptionsAbstract, Mappings } from '../types/src'
+import { DeviceType, AbstractOptions, DeviceOptionsAbstract, Mappings } from 'timeline-state-resolver-types'
 
 import { TimelineState, ResolvedTimelineObjectInstance } from 'superfly-timeline'
 import { DoOnTime, SendMode } from '../doOnTime'

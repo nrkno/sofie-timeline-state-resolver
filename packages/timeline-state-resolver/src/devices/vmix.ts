@@ -12,7 +12,7 @@ import {
 	DeviceOptionsVMix,
 	VMixOptions,
 	Mappings
-} from '../types/src'
+} from 'timeline-state-resolver-types'
 import { DoOnTime, SendMode } from '../doOnTime'
 
 import {
@@ -46,7 +46,7 @@ import {
 	MappingVMixAudioChannel,
 	MappingVMixOutput,
 	MappingVMixOverlay
-} from '../types/src/vmix'
+} from 'timeline-state-resolver-types'
 
 _.mixin({ deepExtend: underScoreDeepExtend(_) })
 function deepExtend<T> (destination: T, ...sources: any[]) {

@@ -23,7 +23,7 @@ import {
 	TimelineObjAtemMacroPlayer,
 	DeviceOptionsAtem,
 	Mappings
-} from '../types/src'
+} from 'timeline-state-resolver-types'
 import { TimelineState } from 'superfly-timeline'
 import {
 	AtemState,

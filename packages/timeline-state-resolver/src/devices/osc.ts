@@ -15,7 +15,7 @@ import {
 	DeviceOptionsOSC,
 	Mappings,
 	OSCDeviceType
-} from '../types/src'
+} from 'timeline-state-resolver-types'
 import { DoOnTime, SendMode } from '../doOnTime'
 
 import {

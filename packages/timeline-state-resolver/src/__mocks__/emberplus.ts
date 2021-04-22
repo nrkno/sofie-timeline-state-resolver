@@ -1,5 +1,5 @@
 import { EventEmitter } from 'events'
-import { EmberValue } from '../types/src/lawo'
+import { EmberValue } from 'timeline-state-resolver-types'
 
 // @ts-ignore import json file
 const mockData = require('./lawo-out.json')

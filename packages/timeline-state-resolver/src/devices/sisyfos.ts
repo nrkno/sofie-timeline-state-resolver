@@ -10,7 +10,7 @@ import {
 	DeviceType,
 	DeviceOptionsSisyfos,
 	Mappings
-} from '../types/src'
+} from 'timeline-state-resolver-types'
 import { DoOnTime, SendMode } from '../doOnTime'
 
 import {
@@ -24,7 +24,7 @@ import {
 	TimelineObjSisyfosAny,
 	TimelineContentTypeSisyfos,
 	SisyfosChannelOptions
-} from '../types/src/sisyfos'
+} from 'timeline-state-resolver-types'
 import {
 	SisyfosApi,
 	SisyfosCommand,

@@ -10,7 +10,7 @@ import _ = require('underscore')
 import {
 	TimelineTriggerTimeResult
 } from './conductor'
-import { TSRTimeline, TSRTimelineObj } from './types/src'
+import { TSRTimeline, TSRTimelineObj } from 'timeline-state-resolver-types'
 
 export class AsyncResolver {
 

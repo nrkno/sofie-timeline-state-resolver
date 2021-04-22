@@ -1,6 +1,6 @@
 import { EventEmitter } from 'events'
 import * as _ from 'underscore'
-import { SlowReportOptions } from './types/src/device'
+import { SlowReportOptions } from 'timeline-state-resolver-types'
 
 export type DoOrderFunction = (...args: any[]) => void | Promise<any> | any
 export type DoOrderFunctionNothing = () => void | Promise<any> | any

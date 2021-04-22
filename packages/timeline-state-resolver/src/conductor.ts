@@ -16,7 +16,7 @@ import {
 	DeviceType,
 	ResolvedTimelineObjectInstanceExtended,
 	TSRTimeline
-} from './types/src'
+} from 'timeline-state-resolver-types'
 import { AtemDevice, DeviceOptionsAtemInternal } from './devices/atem'
 import { EventEmitter } from 'events'
 import { LawoDevice, DeviceOptionsLawoInternal } from './devices/lawo'

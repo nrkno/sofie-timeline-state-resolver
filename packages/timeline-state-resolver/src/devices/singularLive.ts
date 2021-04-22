@@ -17,7 +17,7 @@ import {
 	SingularCompositionAnimation,
 	SingularCompositionControlNode,
 	Mappings
-} from '../types/src'
+} from 'timeline-state-resolver-types'
 import { DoOnTime, SendMode } from '../doOnTime'
 import * as request from 'request'
 

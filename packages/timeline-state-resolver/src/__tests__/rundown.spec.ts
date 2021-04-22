@@ -5,7 +5,7 @@ import {
 	TimelineContentTypeCasparCg,
 	ChannelFormat,
 	Transition
-} from '../types/src'
+} from 'timeline-state-resolver-types'
 import { Conductor } from '../conductor'
 import { MockTime } from './mockTime'
 import * as _ from 'underscore'
