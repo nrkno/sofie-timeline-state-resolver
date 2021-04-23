@@ -1339,7 +1339,7 @@ class VizMSEManager extends EventEmitter {
 						hashesAndItems[this.getElementHash(item)] = item
 					}
 				} catch (e) {
-					this.emit('error', `Error in _getExpectedPlayoutItems: ${e.toString()}`)
+					this.emit('error', `Error in _getExpectedPlayoutItems for "${expectedPlayoutItem.templateName}": ${e.toString()}`)
 				}
 			})
 		)
