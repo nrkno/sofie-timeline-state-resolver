@@ -1295,7 +1295,7 @@ class VizMSEManager extends EventEmitter {
 
 		const hashesAndItems: {[hash: string]: VizMSEPlayoutItemContentInternal} = {}
 
-		const expectedPlayoutItems = _.filter(this._expectedPlayoutItems, expectedPlayoutItem => {
+		const expectedPlayoutItems = _.uniq(_.filter(this._expectedPlayoutItems, expectedPlayoutItem => {
 			const templateName = typeof expectedPlayoutItem.templateName as string | number | undefined
 			return (
 				(
@@ -1304,7 +1304,7 @@ class VizMSEManager extends EventEmitter {
 				) &&
 				typeof templateName !== 'undefined'
 			)
-		})
+		}), false, (a) => JSON.stringify(_.pick(a, 'templateName', 'templateData', 'channelName')))
 
 		await Promise.all(
 			_.map(expectedPlayoutItems, async expectedPlayoutItem => {
