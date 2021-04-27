@@ -41,6 +41,13 @@ export interface MappingOBSSceneItemRender extends MappingOBS {
 	source: string
 }
 
+export interface MappingOBSSourceSettings extends MappingOBS {
+	mappingType: MappingOBSType.SourceSettings
+
+	/** Source name */
+	source: string
+}
+
 export interface MappingOBSMute extends MappingOBS {
 	mappingType: MappingOBSType.Mute
 
@@ -54,7 +61,8 @@ export enum MappingOBSType {
 	Recording = 2,
 	Streaming = 3,
 	SceneItemRender = 4,
-	Mute = 5
+	Mute = 5,
+	SourceSettings = 6
 }
 
 export interface OBSOptions {
@@ -71,7 +79,8 @@ export enum OBSRequest {
 	START_STREAMING = 'StartStreaming',
 	STOP_STREAMING = 'StopStreaming',
 	SET_SCENE_ITEM_RENDEER = 'SetSceneItemRender',
-	SET_MUTE = 'SetMute'
+	SET_MUTE = 'SetMute',
+	SET_SOURCE_SETTINGS = 'SetSourceSettings'
 }
 
 export type TimelineObjOBSAny =
@@ -88,7 +97,8 @@ export enum TimelineContentTypeOBS {
 	RECORDING = 'RECORDING',
 	STREAMING = 'STREAMING',
 	SCENE_ITEM_RENDER = 'SCENE_ITEM_RENDER',
-	MUTE = 'MUTE'
+	MUTE = 'MUTE',
+	SOURCE_SETTINGS = 'SOURCE_SETTINGS'
 }
 export interface TimelineObjOBSBase extends TSRTimelineObjBase {
 	content: {
@@ -145,6 +155,28 @@ export interface TimelineObjOBSSceneItemRender extends TimelineObjOBSBase {
 		/** Should the scene item be enabled */
 		on: boolean;
 	}
+}
+
+type Without<T, U> = { [P in Exclude<keyof T, keyof U>]?: never }
+type XOR<T, U> = (T | U) extends object ? (Without<T, U> & U) | (Without<U, T> & T) : T | U
+
+export interface TimelineObjOBSSourceSettings extends TimelineObjOBSBase {
+	content: {
+		deviceType: DeviceType.OBS;
+		type: TimelineContentTypeOBS.SOURCE_SETTINGS;
+	} & XOR<{
+		sourceType: 'ffmpeg_source',
+		sourceSettings: {
+			close_when_inactive?: boolean,
+			hw_decode?: boolean
+			input?: string
+			is_local_file?: boolean
+			local_file?: boolean
+			looping?: boolean
+		}
+	}, {
+		sourceType: 'dshow_input' | 'browser_source' | 'window_capture' | 'image_source'
+	}>
 }
 
 export interface TimelineObjOBSMute extends TimelineObjOBSBase {

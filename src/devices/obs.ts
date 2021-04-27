@@ -28,7 +28,9 @@ import {
 	TimelineObjOBSMute,
 	TimelineObjOBSSceneItemRender,
 	MappingOBSMute,
-	MappingOBSSceneItemRender
+	MappingOBSSceneItemRender,
+	TimelineObjOBSSourceSettings,
+	MappingOBSSourceSettings
 } from '../types/src/obs'
 
 interface OBSRequest {
@@ -154,7 +156,8 @@ export class OBSDevice extends DeviceWithState<OBSState> {
 			muted: {},
 			recording: undefined,
 			streaming: undefined,
-			scenes: {}
+			scenes: {},
+			sources: {}
 		}
 	}
 
@@ -333,6 +336,20 @@ export class OBSDevice extends DeviceWithState<OBSState> {
 										render:
 											obsTlSceneItemRender.content.on
 									}
+								}
+							})
+						}
+						break
+					case MappingOBSType.SourceSettings:
+						if (tlObject.content.type === TimelineContentTypeOBS.SOURCE_SETTINGS) {
+							let obsTlSourceSettings = (tlObject as any) as TimelineObjOBSSourceSettings
+							let source = (mapping as MappingOBSSourceSettings)
+								.source
+
+							deepExtend(deviceState.sources, {
+								[source]: {
+									sourceType: obsTlSourceSettings.content.sourceType,
+									sourceSettings: obsTlSourceSettings.content.sourceSettings
 								}
 							})
 						}
@@ -538,6 +555,33 @@ export class OBSDevice extends DeviceWithState<OBSState> {
 		return commands
 	}
 
+	private _resolveSourceSettings (
+		oldState: OBSState,
+		newState: OBSState
+	): Array<OBSCommandWithContext> {
+		let commands: Array<OBSCommandWithContext> = []
+
+		let oldSources = oldState.sources
+		let newSources = newState.sources
+		Object.entries(newSources).forEach(([sourceName, source]) => {
+			if (!_.isEqual(source.sourceSettings, oldSources[sourceName]?.sourceSettings)) {
+				commands.push({
+					command: {
+						requestName: OBSRequestName.SET_SOURCE_SETTINGS,
+						args: {
+							sourceName: sourceName,
+							sourceSettings: source.sourceSettings
+						}
+					},
+					context: null,
+					timelineId: ''
+				})
+			}
+		})
+
+		return commands
+	}
+
 	private _diffStates (
 		oldState: OBSState,
 		newState: OBSState
@@ -555,6 +599,7 @@ export class OBSDevice extends DeviceWithState<OBSState> {
 		)
 		commands = commands.concat(this._resolveMute(oldState, newState))
 		commands = commands.concat(this._resolveScenes(oldState, newState))
+		commands = commands.concat(this._resolveSourceSettings(oldState, newState))
 
 		return commands
 	}
@@ -600,5 +645,11 @@ export class OBSState {
 	}
 	scenes: {
 		[key: string]: OBSScene;
+	}
+	sources: {
+		[key: string]: {
+			sourceType: string;
+			sourceSettings: object;
+		};
 	}
 }
