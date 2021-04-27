@@ -61,9 +61,9 @@ export interface OBSCommandWithContext {
 }
 
 /**
- * This is a VMixDevice, it sends commands when it feels like it
+ * This is a OBSDevice, it sends commands when it feels like it
  */
-export class VMixDevice extends DeviceWithState<OBSState> {
+export class OBSDevice extends DeviceWithState<OBSState> {
 	private _doOnTime: DoOnTime
 
 	private _commandReceiver: CommandReceiver
