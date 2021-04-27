@@ -17,6 +17,7 @@ import {
 	VizMSEOptions,
 	VMixOptions
 } from '.'
+import { OBSOptions } from './obs'
 import { ShotokuOptions } from './shotoku'
 
 export interface DeviceOptionsBase extends SlowReportOptions {
@@ -35,42 +36,46 @@ export interface SlowReportOptions {
 	limitSlowFulfilledCommand?: number
 }
 
-export type DeviceOptionsAny = DeviceOptionsAbstract |
-	DeviceOptionsCasparCG |
-	DeviceOptionsAtem |
-	DeviceOptionsLawo |
-	DeviceOptionsHTTPSend |
-	DeviceOptionsPanasonicPTZ |
-	DeviceOptionsTCPSend |
-	DeviceOptionsHyperdeck |
-	DeviceOptionsPharos |
-	DeviceOptionsOSC |
-	DeviceOptionsHTTPpWatcher |
-	DeviceOptionsSisyfos |
-	DeviceOptionsQuantel |
-	DeviceOptionsSingularLive |
-	DeviceOptionsVMix |
-	DeviceOptionsVizMSE |
-	DeviceOptionsSingularLive |
-	DeviceOptionsShotoku
+export type DeviceOptionsAny =
+	| DeviceOptionsAbstract
+	| DeviceOptionsCasparCG
+	| DeviceOptionsAtem
+	| DeviceOptionsLawo
+	| DeviceOptionsHTTPSend
+	| DeviceOptionsPanasonicPTZ
+	| DeviceOptionsTCPSend
+	| DeviceOptionsHyperdeck
+	| DeviceOptionsPharos
+	| DeviceOptionsOSC
+	| DeviceOptionsHTTPpWatcher
+	| DeviceOptionsSisyfos
+	| DeviceOptionsQuantel
+	| DeviceOptionsSingularLive
+	| DeviceOptionsVMix
+	| DeviceOptionsOBS
+	| DeviceOptionsVizMSE
+	| DeviceOptionsSingularLive
+	| DeviceOptionsShotoku
 
-export type DeviceInitOptions = AbstractOptions |
-	CasparCGOptions |
-	AtemOptions |
-	LawoOptions |
-	HTTPSendOptions |
-	PanasonicPTZOptions |
-	TCPSendOptions |
-	HyperdeckOptions |
-	PharosOptions |
-	OSCOptions |
-	HTTPWatcherOptions |
-	SisyfosOptions |
-	QuantelOptions |
-	SingularLiveOptions |
-	VMixOptions |
-	VizMSEOptions |
-	SingularLiveOptions
+export type DeviceInitOptions =
+	| AbstractOptions
+	| CasparCGOptions
+	| AtemOptions
+	| LawoOptions
+	| HTTPSendOptions
+	| PanasonicPTZOptions
+	| TCPSendOptions
+	| HyperdeckOptions
+	| PharosOptions
+	| OSCOptions
+	| HTTPWatcherOptions
+	| SisyfosOptions
+	| QuantelOptions
+	| SingularLiveOptions
+	| VMixOptions
+	| OBSOptions
+	| VizMSEOptions
+	| SingularLiveOptions
 
 export interface DeviceOptionsAbstract extends DeviceOptionsBase {
 	type: DeviceType.ABSTRACT
@@ -140,4 +145,9 @@ export interface DeviceOptionsShotoku extends DeviceOptionsBase {
 export interface DeviceOptionsVMix extends DeviceOptionsBase {
 	type: DeviceType.VMIX
 	options: VMixOptions
+}
+
+export interface DeviceOptionsOBS extends DeviceOptionsBase {
+	type: DeviceType.OBS
+	options: OBSOptions
 }

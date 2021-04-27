@@ -15,6 +15,7 @@ export * from './tcpSend'
 export * from './vizMSE'
 export * from './singularLive'
 export * from './vmix'
+export * from './obs'
 
 export * from './device'
 export * from './mapping'
@@ -37,6 +38,7 @@ import { TimelineObjSisyfosAny } from './sisyfos'
 import { TimelineObjVIZMSEAny } from './vizMSE'
 import { TimelineObjSingularLiveAny } from './singularLive'
 import { TimelineObjVMixAny } from './vmix'
+import { TimelineObjOBSAny } from './obs'
 
 export { Timeline }
 export * from './mapping'
@@ -61,14 +63,17 @@ export enum DeviceType {
 	VIZMSE = 13,
 	SINGULAR_LIVE = 14,
 	SHOTOKU = 15,
-	VMIX = 20
+	VMIX = 20,
+	OBS = 21
 }
 
 export interface TSRTimelineKeyframe<T> extends Timeline.TimelineKeyframe {
 	content: Partial<T>
 }
 
-export interface TSRTimelineObjBase extends Omit<Timeline.TimelineObject, 'content'>, TSRTimelineObjProps {
+export interface TSRTimelineObjBase
+	extends Omit<Timeline.TimelineObject, 'content'>,
+		TSRTimelineObjProps {
 	content: {
 		deviceType: DeviceType
 	}
@@ -93,25 +98,25 @@ export interface TimelineObjEmpty extends TSRTimelineObjBase {
 	classes: Array<string>
 }
 
-export type TSRTimelineObj = (
-	TimelineObjEmpty |
-	TimelineObjAbstractAny |
-	TimelineObjAtemAny |
-	TimelineObjCasparCGAny |
-	TimelineObjHTTPSendAny |
-	TimelineObjTCPSendAny |
-	TimelineObjHyperdeckAny |
-	TimelineObjLawoAny |
-	TimelineObjOSCAny |
-	TimelineObjPharosAny |
-	TimelineObjPanasonicPtzAny |
-	TimelineObjQuantelAny |
-	TimelineObjShotoku |
-	TimelineObjSisyfosAny |
-	TimelineObjSingularLiveAny |
-	TimelineObjVMixAny |
-	TimelineObjVIZMSEAny |
-	TimelineObjSingularLiveAny
-)
+export type TSRTimelineObj =
+	| TimelineObjEmpty
+	| TimelineObjAbstractAny
+	| TimelineObjAtemAny
+	| TimelineObjCasparCGAny
+	| TimelineObjHTTPSendAny
+	| TimelineObjTCPSendAny
+	| TimelineObjHyperdeckAny
+	| TimelineObjLawoAny
+	| TimelineObjOSCAny
+	| TimelineObjPharosAny
+	| TimelineObjPanasonicPtzAny
+	| TimelineObjQuantelAny
+	| TimelineObjShotoku
+	| TimelineObjSisyfosAny
+	| TimelineObjSingularLiveAny
+	| TimelineObjVMixAny
+	| TimelineObjOBSAny
+	| TimelineObjVIZMSEAny
+	| TimelineObjSingularLiveAny
 
 export type TSRTimeline = Array<TSRTimelineObj>
