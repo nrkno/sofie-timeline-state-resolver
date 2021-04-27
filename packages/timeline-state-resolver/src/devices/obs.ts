@@ -1,22 +1,15 @@
 import * as _ from 'underscore'
 import * as underScoreDeepExtend from 'underscore-deep-extend'
-import {
-	DeviceWithState,
-	CommandWithContext,
-	DeviceStatus,
-	StatusCode
-} from './device'
-import {
-	DeviceType,
-	DeviceOptionsOBS,
-	OBSOptions,
-	Mappings
-} from '../types/src'
+import { DeviceWithState, CommandWithContext, DeviceStatus, StatusCode } from './device'
 import { DoOnTime, SendMode } from '../doOnTime'
 
 import { TimelineState } from 'superfly-timeline'
 import * as OBSWebSocket from 'obs-websocket-js'
 import {
+	DeviceType,
+	DeviceOptionsOBS,
+	OBSOptions,
+	Mappings,
 	MappingOBS,
 	TimelineContentTypeOBS,
 	OBSRequest as OBSRequestName,
@@ -28,8 +21,8 @@ import {
 	TimelineObjOBSMute,
 	TimelineObjOBSSceneItemRender,
 	MappingOBSMute,
-	MappingOBSSceneItemRender
-} from '../types/src/obs'
+	MappingOBSSceneItemRender,
+} from 'timeline-state-resolver-types'
 
 interface OBSRequest {
 	requestName: OBSRequestName
@@ -37,13 +30,13 @@ interface OBSRequest {
 }
 
 _.mixin({ deepExtend: underScoreDeepExtend(_) })
-function deepExtend<T> (destination: T, ...sources: any[]) {
+function deepExtend<T>(destination: T, ...sources: any[]) {
 	// @ts-ignore (mixin)
 	return _.deepExtend(destination, ...sources)
 }
 export interface DeviceOptionsOBSInternal extends DeviceOptionsOBS {
 	options: DeviceOptionsOBS['options'] & {
-		commandReceiver?: CommandReceiver;
+		commandReceiver?: CommandReceiver
 	}
 }
 export type CommandReceiver = (
@@ -61,22 +54,18 @@ export interface OBSCommandWithContext {
 }
 
 /**
- * This is a VMixDevice, it sends commands when it feels like it
+ * This is a OBSDevice, it sends commands when it feels like it
  */
-export class VMixDevice extends DeviceWithState<OBSState> {
+export class OBSDevice extends DeviceWithState<OBSState, DeviceOptionsOBSInternal> {
 	private _doOnTime: DoOnTime
 
 	private _commandReceiver: CommandReceiver
 	private _obs: OBSWebSocket
-	private _connected: boolean = false
-	private _authenticated: boolean = false
-	private _initialized: boolean = false
+	private _connected = false
+	private _authenticated = false
+	private _initialized = false
 
-	constructor (
-		deviceId: string,
-		deviceOptions: DeviceOptionsOBSInternal,
-		options
-	) {
+	constructor(deviceId: string, deviceOptions: DeviceOptionsOBSInternal, options) {
 		super(deviceId, deviceOptions, options)
 		if (deviceOptions.options) {
 			if (deviceOptions.options.commandReceiver) {
@@ -90,14 +79,10 @@ export class VMixDevice extends DeviceWithState<OBSState> {
 			SendMode.IN_ORDER,
 			this._deviceOptions
 		)
-		this._doOnTime.on('error', (e) =>
-			this.emit('error', 'OBS.doOnTime', e)
-		)
-		this._doOnTime.on('slowCommand', (msg) =>
-			this.emit('slowCommand', this.deviceName + ': ' + msg)
-		)
+		this._doOnTime.on('error', (e) => this.emit('error', 'OBS.doOnTime', e))
+		this._doOnTime.on('slowCommand', (msg) => this.emit('slowCommand', this.deviceName + ': ' + msg))
 	}
-	init (options: OBSOptions): Promise<boolean> {
+	init(options: OBSOptions): Promise<boolean> {
 		this._obs = new OBSWebSocket()
 		this._obs.on('AuthenticationFailure', () => {
 			this._setConnected(true, false)
@@ -115,12 +100,12 @@ export class VMixDevice extends DeviceWithState<OBSState> {
 		return this._obs
 			.connect({
 				address: `${options.host}:${options.port}`,
-				password: options.password
+				password: options.password,
 			})
 			.then(() => {
 				// connected
-				let time = this.getCurrentTime()
-				let state = this._getDefaultState()
+				const time = this.getCurrentTime()
+				const state = this._getDefaultState()
 				this.setState(state, time)
 				this._setConnected(true, this._authenticated)
 				return true
@@ -132,40 +117,37 @@ export class VMixDevice extends DeviceWithState<OBSState> {
 				return false
 			})
 	}
-	private _connectionChanged () {
+	private _connectionChanged() {
 		this.emit('connectionChanged', this.getStatus())
 	}
 
-	private _setConnected (connected: boolean, authenticated: boolean = false) {
-		if (
-			this._connected !== connected ||
-			this._authenticated !== authenticated
-		) {
+	private _setConnected(connected: boolean, authenticated = false) {
+		if (this._connected !== connected || this._authenticated !== authenticated) {
 			this._connected = connected
 			this._authenticated = authenticated
 			this._connectionChanged()
 		}
 	}
 
-	private _getDefaultState (): OBSState {
+	private _getDefaultState(): OBSState {
 		return {
 			currentScene: undefined,
 			currentTransition: undefined,
 			muted: {},
 			recording: undefined,
 			streaming: undefined,
-			scenes: {}
+			scenes: {},
 		}
 	}
 
 	/** Called by the Conductor a bit before a .handleState is called */
-	prepareForHandleState (newStateTime: number) {
+	prepareForHandleState(newStateTime: number) {
 		// clear any queued commands later than this time:
 		this._doOnTime.clearQueueNowAndAfter(newStateTime + 0.1)
 		this.cleanUpStates(0, newStateTime + 0.1)
 	}
 
-	handleState (newState: TimelineState, newMappings: Mappings) {
+	handleState(newState: TimelineState, newMappings: Mappings) {
 		super.onHandleState(newState, newMappings)
 		if (!this._initialized) {
 			// before it's initialized don't do anything
@@ -173,22 +155,16 @@ export class VMixDevice extends DeviceWithState<OBSState> {
 			return
 		}
 
-		let previousStateTime = Math.max(
-			this.getCurrentTime() + 0.1,
-			newState.time
-		)
-		let oldState: OBSState = (
+		const previousStateTime = Math.max(this.getCurrentTime() + 0.1, newState.time)
+		const oldState: OBSState = (
 			this.getStateBefore(previousStateTime) || {
-				state: this._getDefaultState()
+				state: this._getDefaultState(),
 			}
 		).state
 
-		let newOBSState = this.convertStateToOBS(newState, newMappings)
+		const newOBSState = this.convertStateToOBS(newState, newMappings)
 
-		let commandsToAchieveState: Array<any> = this._diffStates(
-			oldState,
-			newOBSState
-		)
+		const commandsToAchieveState: Array<any> = this._diffStates(oldState, newOBSState)
 
 		// clear any queued commands later than this time:
 		this._doOnTime.clearQueueNowAndAfter(previousStateTime)
@@ -200,20 +176,20 @@ export class VMixDevice extends DeviceWithState<OBSState> {
 		this.setState(newOBSState, newState.time)
 	}
 
-	clearFuture (clearAfterTime: number) {
+	clearFuture(clearAfterTime: number) {
 		// Clear any scheduled commands after this time
 		this._doOnTime.clearQueueAfter(clearAfterTime)
 	}
 
-	async terminate () {
+	async terminate() {
 		this._doOnTime.dispose()
 		this._obs.disconnect()
 		return Promise.resolve(true)
 	}
 
-	getStatus (): DeviceStatus {
+	getStatus(): DeviceStatus {
 		let statusCode = StatusCode.GOOD
-		let messages: Array<string> = []
+		const messages: Array<string> = []
 
 		if (!this._connected) {
 			statusCode = StatusCode.BAD
@@ -226,39 +202,37 @@ export class VMixDevice extends DeviceWithState<OBSState> {
 		return {
 			statusCode: statusCode,
 			messages: messages,
-			active: this.isActive
+			active: this.isActive,
 		}
 	}
 
-	async makeReady (okToDestroyStuff?: boolean): Promise<void> {
+	async makeReady(okToDestroyStuff?: boolean): Promise<void> {
 		if (okToDestroyStuff) {
 			// do something?
 		}
 	}
 
-	get canConnect (): boolean {
+	get canConnect(): boolean {
 		return false
 	}
 
-	get connected (): boolean {
+	get connected(): boolean {
 		return false
 	}
 
-	convertStateToOBS (state: TimelineState, mappings: Mappings): OBSState {
+	convertStateToOBS(state: TimelineState, mappings: Mappings): OBSState {
 		if (!this._initialized) {
-			throw Error(
-				'convertStateToOBS cannot be used before inititialized'
-			)
+			throw Error('convertStateToOBS cannot be used before inititialized')
 		}
 
-		let deviceState = this._getDefaultState()
+		const deviceState = this._getDefaultState()
 
 		// Sort layer based on Mapping type (to make sure audio is after inputs) and Layer name
 		const sortedLayers = _.sortBy(
 			_.map(state.layers, (tlObject, layerName) => ({
 				layerName,
 				tlObject,
-				mapping: mappings[layerName] as MappingOBS
+				mapping: mappings[layerName] as MappingOBS,
 			})).sort((a, b) => a.layerName.localeCompare(b.layerName)),
 			(o) => o.mapping.mappingType
 		)
@@ -267,73 +241,47 @@ export class VMixDevice extends DeviceWithState<OBSState> {
 			if (mapping) {
 				switch (mapping.mappingType) {
 					case MappingOBSType.CurrentScene:
-						if (
-							tlObject.content.type ===
-							TimelineContentTypeOBS.CURRENT_SCENE
-						) {
-							let obsTlCurrentScene = (tlObject as any) as TimelineObjOBSCurrentScene
-							deviceState.currentScene =
-								obsTlCurrentScene.content.sceneName
+						if (tlObject.content.type === TimelineContentTypeOBS.CURRENT_SCENE) {
+							const obsTlCurrentScene = tlObject as any as TimelineObjOBSCurrentScene
+							deviceState.currentScene = obsTlCurrentScene.content.sceneName
 						}
 						break
 					case MappingOBSType.CurrentTransition:
-						if (
-							tlObject.content.type ===
-							TimelineContentTypeOBS.CURRENT_TRANSITION
-						) {
-							let obsTlCurrentTransition = (tlObject as any) as TimelineObjOBSCurrentTransition
-							deviceState.currentTransition =
-								obsTlCurrentTransition.content.transitionName
+						if (tlObject.content.type === TimelineContentTypeOBS.CURRENT_TRANSITION) {
+							const obsTlCurrentTransition = tlObject as any as TimelineObjOBSCurrentTransition
+							deviceState.currentTransition = obsTlCurrentTransition.content.transitionName
 						}
 						break
 					case MappingOBSType.Recording:
-						if (
-							tlObject.content.type ===
-							TimelineContentTypeOBS.RECORDING
-						) {
-							let obsTlRecording = (tlObject as any) as TimelineObjOBSRecording
-							deviceState.recording =
-								obsTlRecording.content.on
+						if (tlObject.content.type === TimelineContentTypeOBS.RECORDING) {
+							const obsTlRecording = tlObject as any as TimelineObjOBSRecording
+							deviceState.recording = obsTlRecording.content.on
 						}
 						break
 					case MappingOBSType.Streaming:
-						if (
-							tlObject.content.type ===
-							TimelineContentTypeOBS.STREAMING
-						) {
-							let obsTlStreaming = (tlObject as any) as TimelineObjOBSStreaming
-							deviceState.streaming =
-								obsTlStreaming.content.on
+						if (tlObject.content.type === TimelineContentTypeOBS.STREAMING) {
+							const obsTlStreaming = tlObject as any as TimelineObjOBSStreaming
+							deviceState.streaming = obsTlStreaming.content.on
 						}
 						break
 					case MappingOBSType.Mute:
-						if (
-							tlObject.content.type ===
-							TimelineContentTypeOBS.MUTE
-						) {
-							let obsTlMute = (tlObject as any) as TimelineObjOBSMute
-							let source = (mapping as MappingOBSMute).source
-							deviceState.muted[source] =
-								obsTlMute.content.mute
+						if (tlObject.content.type === TimelineContentTypeOBS.MUTE) {
+							const obsTlMute = tlObject as any as TimelineObjOBSMute
+							const source = (mapping as MappingOBSMute).source
+							deviceState.muted[source] = obsTlMute.content.mute
 						}
 						break
 					case MappingOBSType.SceneItemRender:
-						if (
-							tlObject.content.type ===
-							TimelineContentTypeOBS.SCENE_ITEM_RENDER
-						) {
-							let obsTlSceneItemRender = (tlObject as any) as TimelineObjOBSSceneItemRender
-							let source = (mapping as MappingOBSSceneItemRender)
-								.source
-							let sceneName = (mapping as MappingOBSSceneItemRender)
-								.sceneName
+						if (tlObject.content.type === TimelineContentTypeOBS.SCENE_ITEM_RENDER) {
+							const obsTlSceneItemRender = tlObject as any as TimelineObjOBSSceneItemRender
+							const source = (mapping as MappingOBSSceneItemRender).source
+							const sceneName = (mapping as MappingOBSSceneItemRender).sceneName
 							deepExtend(deviceState.scenes[sceneName], {
 								[sceneName]: {
 									[source]: {
-										render:
-											obsTlSceneItemRender.content.on
-									}
-								}
+										render: obsTlSceneItemRender.content.on,
+									},
+								},
 							})
 						}
 						break
@@ -343,58 +291,47 @@ export class VMixDevice extends DeviceWithState<OBSState> {
 		return deviceState
 	}
 
-	get deviceType () {
+	get deviceType() {
 		return DeviceType.OBS
 	}
 
-	get deviceName (): string {
+	get deviceName(): string {
 		return 'OBS ' + this.deviceId
 	}
 
-	get queue () {
+	get queue() {
 		return this._doOnTime.getQueue()
 	}
 
-	private _addToQueue (
-		commandsToAchieveState: Array<OBSCommandWithContext>,
-		time: number
-	) {
+	private _addToQueue(commandsToAchieveState: Array<OBSCommandWithContext>, time: number) {
 		_.each(commandsToAchieveState, (cmd: OBSCommandWithContext) => {
 			// add the new commands to the queue:
 			this._doOnTime.queue(
 				time,
 				undefined,
 				(cmd: OBSCommandWithContext) => {
-					return this._commandReceiver(
-						time,
-						cmd,
-						cmd.context,
-						cmd.timelineId
-					)
+					return this._commandReceiver(time, cmd, cmd.context, cmd.timelineId)
 				},
 				cmd
 			)
 		})
 	}
 
-	private _resolveCurrentSceneState (
-		oldState: OBSState,
-		newState: OBSState
-	): Array<OBSCommandWithContext> {
-		let commands: Array<OBSCommandWithContext> = []
-		let oldCurrentScene = oldState.currentScene
-		let newCurrentScene = newState.currentScene
+	private _resolveCurrentSceneState(oldState: OBSState, newState: OBSState): Array<OBSCommandWithContext> {
+		const commands: Array<OBSCommandWithContext> = []
+		const oldCurrentScene = oldState.currentScene
+		const newCurrentScene = newState.currentScene
 		if (newCurrentScene !== undefined) {
 			if (oldCurrentScene !== newCurrentScene) {
 				commands.push({
 					command: {
 						requestName: OBSRequestName.SET_CURRENT_SCENE,
 						args: {
-							'scene-name': newCurrentScene
-						}
+							'scene-name': newCurrentScene,
+						},
 					},
 					context: null,
-					timelineId: ''
+					timelineId: '',
 				})
 			}
 		}
@@ -402,25 +339,22 @@ export class VMixDevice extends DeviceWithState<OBSState> {
 		return commands
 	}
 
-	private _resolveCurrentTransitionState (
-		oldState: OBSState,
-		newState: OBSState
-	): Array<OBSCommandWithContext> {
-		let commands: Array<OBSCommandWithContext> = []
+	private _resolveCurrentTransitionState(oldState: OBSState, newState: OBSState): Array<OBSCommandWithContext> {
+		const commands: Array<OBSCommandWithContext> = []
 
-		let oldCurrentTransition = oldState.currentTransition
-		let newCurrentTransition = newState.currentTransition
+		const oldCurrentTransition = oldState.currentTransition
+		const newCurrentTransition = newState.currentTransition
 		if (newCurrentTransition !== undefined) {
 			if (oldCurrentTransition !== newCurrentTransition) {
 				commands.push({
 					command: {
 						requestName: OBSRequestName.SET_CURRENT_TRANSITION,
 						args: {
-							'transition-name': newCurrentTransition
-						}
+							'transition-name': newCurrentTransition,
+						},
 					},
 					context: null,
-					timelineId: ''
+					timelineId: '',
 				})
 			}
 		}
@@ -428,42 +362,35 @@ export class VMixDevice extends DeviceWithState<OBSState> {
 		return commands
 	}
 
-	private _resolveRecordingStreaming (
-		oldState: OBSState,
-		newState: OBSState
-	): Array<OBSCommandWithContext> {
-		let commands: Array<OBSCommandWithContext> = []
+	private _resolveRecordingStreaming(oldState: OBSState, newState: OBSState): Array<OBSCommandWithContext> {
+		const commands: Array<OBSCommandWithContext> = []
 
-		let oldRecording = oldState.recording
-		let newRecording = newState.recording
+		const oldRecording = oldState.recording
+		const newRecording = newState.recording
 		if (newRecording !== undefined) {
 			if (oldRecording !== newRecording) {
 				commands.push({
 					command: {
-						requestName: newRecording
-							? OBSRequestName.START_RECORDING
-							: OBSRequestName.STOP_RECORDING,
-						args: {}
+						requestName: newRecording ? OBSRequestName.START_RECORDING : OBSRequestName.STOP_RECORDING,
+						args: {},
 					},
 					context: null,
-					timelineId: ''
+					timelineId: '',
 				})
 			}
 		}
 
-		let oldStreaming = oldState.streaming
-		let newStreaming = newState.streaming
+		const oldStreaming = oldState.streaming
+		const newStreaming = newState.streaming
 		if (newStreaming !== undefined) {
 			if (oldStreaming !== newStreaming) {
 				commands.push({
 					command: {
-						requestName: newStreaming
-							? OBSRequestName.START_STREAMING
-							: OBSRequestName.STOP_STREAMING,
-						args: {}
+						requestName: newStreaming ? OBSRequestName.START_STREAMING : OBSRequestName.STOP_STREAMING,
+						args: {},
 					},
 					context: null,
-					timelineId: ''
+					timelineId: '',
 				})
 			}
 		}
@@ -471,28 +398,23 @@ export class VMixDevice extends DeviceWithState<OBSState> {
 		return commands
 	}
 
-	private _resolveMute (
-		oldState: OBSState,
-		newState: OBSState
-	): Array<OBSCommandWithContext> {
-		let commands: Array<OBSCommandWithContext> = []
+	private _resolveMute(oldState: OBSState, newState: OBSState): Array<OBSCommandWithContext> {
+		const commands: Array<OBSCommandWithContext> = []
 
-		let oldMuted = oldState.muted
-		let newMuted = newState.muted
+		const oldMuted = oldState.muted
+		const newMuted = newState.muted
 		Object.keys(newMuted).forEach((source) => {
-			if (
-				newMuted[source] !== oldMuted[source]
-			) {
+			if (newMuted[source] !== oldMuted[source]) {
 				commands.push({
 					command: {
 						requestName: OBSRequestName.SET_MUTE,
 						args: {
 							source: source,
-							mute: newMuted[source]
-						}
+							mute: newMuted[source],
+						},
 					},
 					context: null,
-					timelineId: ''
+					timelineId: '',
 				})
 			}
 		})
@@ -500,83 +422,65 @@ export class VMixDevice extends DeviceWithState<OBSState> {
 		return commands
 	}
 
-	private _resolveScenes (
-		oldState: OBSState,
-		newState: OBSState
-	): Array<OBSCommandWithContext> {
-		let commands: Array<OBSCommandWithContext> = []
+	private _resolveScenes(oldState: OBSState, newState: OBSState): Array<OBSCommandWithContext> {
+		const commands: Array<OBSCommandWithContext> = []
 
-		let oldScenes = oldState.scenes
-		let newScenes = newState.scenes
+		const oldScenes = oldState.scenes
+		const newScenes = newState.scenes
 		Object.entries(newScenes).forEach(([sceneName, scene]) => {
-			Object.entries(scene.sceneItems).forEach(
-				([source, newSceneItemProperties]) => {
-					let oldSceneItemProperties =
-						oldScenes[sceneName]?.sceneItems[source]
-					if (
-						oldSceneItemProperties as any === undefined ||
-							newSceneItemProperties.render !==
-							oldSceneItemProperties.render
-					) {
-						commands.push({
-							command: {
-								requestName: OBSRequestName.SET_SCENE_ITEM_RENDEER,
-								args: {
-									'scene-name': sceneName,
-									source: source,
-									render: newSceneItemProperties.render
-								}
+			Object.entries(scene.sceneItems).forEach(([source, newSceneItemProperties]) => {
+				const oldSceneItemProperties = oldScenes[sceneName]?.sceneItems[source]
+				if (
+					(oldSceneItemProperties as any) === undefined ||
+					newSceneItemProperties.render !== oldSceneItemProperties.render
+				) {
+					commands.push({
+						command: {
+							requestName: OBSRequestName.SET_SCENE_ITEM_RENDEER,
+							args: {
+								'scene-name': sceneName,
+								source: source,
+								render: newSceneItemProperties.render,
 							},
-							context: null,
-							timelineId: ''
-						})
-					}
+						},
+						context: null,
+						timelineId: '',
+					})
 				}
-			)
+			})
 		})
 
 		return commands
 	}
 
-	private _diffStates (
-		oldState: OBSState,
-		newState: OBSState
-	): Array<OBSCommandWithContext> {
+	private _diffStates(oldState: OBSState, newState: OBSState): Array<OBSCommandWithContext> {
 		let commands: Array<OBSCommandWithContext> = []
 
-		commands = commands.concat(
-			this._resolveCurrentSceneState(oldState, newState)
-		)
-		commands = commands.concat(
-			this._resolveCurrentTransitionState(oldState, newState)
-		)
-		commands = commands.concat(
-			this._resolveRecordingStreaming(oldState, newState)
-		)
+		commands = commands.concat(this._resolveCurrentSceneState(oldState, newState))
+		commands = commands.concat(this._resolveCurrentTransitionState(oldState, newState))
+		commands = commands.concat(this._resolveRecordingStreaming(oldState, newState))
 		commands = commands.concat(this._resolveMute(oldState, newState))
 		commands = commands.concat(this._resolveScenes(oldState, newState))
 
 		return commands
 	}
 
-	private _defaultCommandReceiver (
+	private _defaultCommandReceiver(
 		_time: number,
 		cmd: OBSCommandWithContext,
 		context: CommandContext,
 		timelineObjId: string
 	): Promise<any> {
-		let cwc: CommandWithContext = {
+		const cwc: CommandWithContext = {
 			context: context,
 			command: cmd,
-			timelineObjId: timelineObjId
+			timelineObjId: timelineObjId,
 		}
 		this.emit('debug', cwc)
 
-		return this._obs
-			.send(cmd.command.requestName, cmd.command.args as any)
-			.catch((error) => {
-				this.emit('commandError', error, cwc)
-			})
+		return this._obs.send(cmd.command.requestName, cmd.command.args as any).catch((error) => {
+			this.emit('commandError', error, cwc)
+		})
 	}
 }
 
@@ -586,7 +490,7 @@ interface OBSSceneItem {
 
 interface OBSScene {
 	sceneItems: {
-		[key: string]: OBSSceneItem;
+		[key: string]: OBSSceneItem
 	}
 }
 
@@ -596,9 +500,9 @@ export class OBSState {
 	recording: boolean | undefined
 	streaming: boolean | undefined
 	muted: {
-		[key: string]: boolean;
+		[key: string]: boolean
 	}
 	scenes: {
-		[key: string]: OBSScene;
+		[key: string]: OBSScene
 	}
 }

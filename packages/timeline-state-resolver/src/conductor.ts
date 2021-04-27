@@ -30,6 +30,7 @@ import { QuantelDevice, DeviceOptionsQuantelInternal } from './devices/quantel'
 import { SisyfosMessageDevice, DeviceOptionsSisyfosInternal } from './devices/sisyfos'
 import { SingularLiveDevice, DeviceOptionsSingularLiveInternal } from './devices/singularLive'
 import { VMixDevice, DeviceOptionsVMixInternal } from './devices/vmix'
+import { OBSDevice, DeviceOptionsOBSInternal } from './devices/obs'
 
 import { VizMSEDevice, DeviceOptionsVizMSEInternal } from './devices/vizMSE'
 import PQueue from 'p-queue'
@@ -455,10 +456,24 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 					getCurrentTime,
 					threadedClassOptions
 				)
+			} else if (deviceOptions.type === DeviceType.OBS) {
+				newDevice = await DeviceContainer.create<DeviceOptionsOBSInternal, typeof OBSDevice>(
+					'../../dist/devices/obs.js',
+					'OBSDevice',
+					deviceId,
+					deviceOptions,
+					getCurrentTime,
+					threadedClassOptions
+				)
 			} else {
 				// @ts-ignore deviceOptions.type is of type "never"
 				const type: any = deviceOptions.type
 				return Promise.reject(`No matching device type for "${type}" ("${DeviceType[type]}") found in conductor`)
+			}
+
+			if (!newDevice) {
+				const type: any = deviceOptions.type
+				return Promise.reject(`No device could be created for "${type}" ("${DeviceType[type]}")`)
 			}
 
 			newDevice.device
@@ -1169,6 +1184,7 @@ export type DeviceOptionsAnyInternal =
 	| DeviceOptionsTCPSendInternal
 	| DeviceOptionsHyperdeckInternal
 	| DeviceOptionsPharosInternal
+	| DeviceOptionsOBSInternal
 	| DeviceOptionsOSCInternal
 	| DeviceOptionsSisyfosInternal
 	| DeviceOptionsQuantelInternal
