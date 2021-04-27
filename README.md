@@ -43,3 +43,5 @@ yarn lerna link
 ```
 
 This will link the types package to the main library so that you can use your new type definitions during development.
+
+Note, that your IDE may not pick up your new type definitions until you build the types package.

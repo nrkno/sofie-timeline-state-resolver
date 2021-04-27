@@ -22,6 +22,8 @@ import {
 	TimelineObjOBSSceneItemRender,
 	MappingOBSMute,
 	MappingOBSSceneItemRender,
+	TimelineObjOBSSourceSettings,
+	MappingOBSSourceSettings,
 } from 'timeline-state-resolver-types'
 
 interface OBSRequest {
@@ -137,6 +139,7 @@ export class OBSDevice extends DeviceWithState<OBSState, DeviceOptionsOBSInterna
 			recording: undefined,
 			streaming: undefined,
 			scenes: {},
+			sources: {},
 		}
 	}
 
@@ -281,6 +284,19 @@ export class OBSDevice extends DeviceWithState<OBSState, DeviceOptionsOBSInterna
 									[source]: {
 										render: obsTlSceneItemRender.content.on,
 									},
+								},
+							})
+						}
+						break
+					case MappingOBSType.SourceSettings:
+						if (tlObject.content.type === TimelineContentTypeOBS.SOURCE_SETTINGS) {
+							const obsTlSourceSettings = tlObject as any as TimelineObjOBSSourceSettings
+							const source = (mapping as MappingOBSSourceSettings).source
+
+							deepExtend(deviceState.sources, {
+								[source]: {
+									sourceType: obsTlSourceSettings.content.sourceType,
+									sourceSettings: obsTlSourceSettings.content.sourceSettings,
 								},
 							})
 						}
@@ -453,6 +469,30 @@ export class OBSDevice extends DeviceWithState<OBSState, DeviceOptionsOBSInterna
 		return commands
 	}
 
+	private _resolveSourceSettings(oldState: OBSState, newState: OBSState): Array<OBSCommandWithContext> {
+		const commands: Array<OBSCommandWithContext> = []
+
+		const oldSources = oldState.sources
+		const newSources = newState.sources
+		Object.entries(newSources).forEach(([sourceName, source]) => {
+			if (!_.isEqual(source.sourceSettings, oldSources[sourceName]?.sourceSettings)) {
+				commands.push({
+					command: {
+						requestName: OBSRequestName.SET_SOURCE_SETTINGS,
+						args: {
+							sourceName: sourceName,
+							sourceSettings: source.sourceSettings,
+						},
+					},
+					context: null,
+					timelineId: '',
+				})
+			}
+		})
+
+		return commands
+	}
+
 	private _diffStates(oldState: OBSState, newState: OBSState): Array<OBSCommandWithContext> {
 		let commands: Array<OBSCommandWithContext> = []
 
@@ -461,6 +501,7 @@ export class OBSDevice extends DeviceWithState<OBSState, DeviceOptionsOBSInterna
 		commands = commands.concat(this._resolveRecordingStreaming(oldState, newState))
 		commands = commands.concat(this._resolveMute(oldState, newState))
 		commands = commands.concat(this._resolveScenes(oldState, newState))
+		commands = commands.concat(this._resolveSourceSettings(oldState, newState))
 
 		return commands
 	}
@@ -504,5 +545,11 @@ export class OBSState {
 	}
 	scenes: {
 		[key: string]: OBSScene
+	}
+	sources: {
+		[key: string]: {
+			sourceType: string
+			sourceSettings: object
+		}
 	}
 }
