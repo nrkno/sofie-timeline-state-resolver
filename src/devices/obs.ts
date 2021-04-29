@@ -62,6 +62,8 @@ export interface OBSCommandWithContext {
 	timelineId: string
 }
 
+const RETRY_TIMEOUT = 5000 // ms
+
 /**
  * This is a OBSDevice, it sends commands when it feels like it
  */
@@ -70,9 +72,13 @@ export class OBSDevice extends DeviceWithState<OBSState> {
 
 	private _commandReceiver: CommandReceiver
 	private _obs: OBSWebSocket
+	private _options: OBSOptions
 	private _connected: boolean = false
 	private _authenticated: boolean = false
 	private _initialized: boolean = false
+
+	private _setDisconnected: boolean = false // set to true if disconnect() has been called (then do not trye to reconnect)
+	private _retryConnectTimeout: NodeJS.Timer | undefined
 
 	constructor (
 		deviceId: string,
@@ -100,6 +106,7 @@ export class OBSDevice extends DeviceWithState<OBSState> {
 		)
 	}
 	init (options: OBSOptions): Promise<boolean> {
+		this._options = options
 		this._obs = new OBSWebSocket()
 		this._obs.on('AuthenticationFailure', () => {
 			this._setConnected(true, false)
@@ -111,13 +118,24 @@ export class OBSDevice extends DeviceWithState<OBSState> {
 		})
 		this._obs.on('ConnectionClosed', () => {
 			this._setConnected(false)
+			this._triggerRetryConnection()
 		})
 		this._obs.on('error' as any, (e) => this.emit('error', 'OBS', e))
 
+		return this._connect()
+			.then((connected) => {
+				if (!connected) {
+					this._triggerRetryConnection()
+				}
+				return connected
+			})
+	}
+
+	private _connect() {
 		return this._obs
 			.connect({
-				address: `${options.host}:${options.port}`,
-				password: options.password
+				address: `${this._options.host}:${this._options.port}`,
+				password: this._options.password
 			})
 			.then(() => {
 				// connected
@@ -134,6 +152,7 @@ export class OBSDevice extends DeviceWithState<OBSState> {
 				return false
 			})
 	}
+
 	private _connectionChanged () {
 		this.emit('connectionChanged', this.getStatus())
 	}
@@ -146,6 +165,36 @@ export class OBSDevice extends DeviceWithState<OBSState> {
 			this._connected = connected
 			this._authenticated = authenticated
 			this._connectionChanged()
+
+			if (!this._authenticated) {
+				this._initialized = false
+			}
+		}
+	}
+
+	private _triggerRetryConnection () {
+		if (!this._retryConnectTimeout) {
+			this._retryConnectTimeout = setTimeout(() => {
+				this._retryConnection()
+			}, RETRY_TIMEOUT)
+		}
+	}
+	private _retryConnection () {
+		if (this._retryConnectTimeout) {
+			clearTimeout(this._retryConnectTimeout)
+			this._retryConnectTimeout = undefined
+		}
+
+		if (!this.connected && !this._setDisconnected) {
+			this._connect()
+				.then((connected) => {
+					if (!connected) {
+						this._triggerRetryConnection()
+					}
+				})
+				.catch((err) => {
+					this.emit('error', 'OBS retryConnection', err)
+				})
 		}
 	}
 
@@ -209,6 +258,7 @@ export class OBSDevice extends DeviceWithState<OBSState> {
 	}
 
 	async terminate () {
+		this._setDisconnected = true
 		this._doOnTime.dispose()
 		this._obs.disconnect()
 		return Promise.resolve(true)
@@ -240,11 +290,11 @@ export class OBSDevice extends DeviceWithState<OBSState> {
 	}
 
 	get canConnect (): boolean {
-		return false
+		return !this._connected && !this._retryConnectTimeout && !this._setDisconnected
 	}
 
 	get connected (): boolean {
-		return false
+		return this._connected
 	}
 
 	convertStateToOBS (state: TimelineState, mappings: Mappings): OBSState {

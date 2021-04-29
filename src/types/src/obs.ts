@@ -90,6 +90,7 @@ export type TimelineObjOBSAny =
 	| TimelineObjOBSStreaming
 	| TimelineObjOBSSceneItemRender
 	| TimelineObjOBSMute
+	| TimelineObjOBSSourceSettings
 
 export enum TimelineContentTypeOBS {
 	CURRENT_SCENE = 'CURRENT_SCENE',
@@ -171,7 +172,7 @@ export interface TimelineObjOBSSourceSettings extends TimelineObjOBSBase {
 			hw_decode?: boolean
 			input?: string
 			is_local_file?: boolean
-			local_file?: boolean
+			local_file?: string
 			looping?: boolean
 		}
 	}, {
