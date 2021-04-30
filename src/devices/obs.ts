@@ -10,7 +10,8 @@ import {
 	DeviceType,
 	DeviceOptionsOBS,
 	OBSOptions,
-	Mappings
+	Mappings,
+	ResolvedTimelineObjectInstanceExtended
 } from '../types/src'
 import { DoOnTime, SendMode } from '../doOnTime'
 
@@ -131,7 +132,7 @@ export class OBSDevice extends DeviceWithState<OBSState> {
 			})
 	}
 
-	private _connect() {
+	private _connect () {
 		return this._obs
 			.connect({
 				address: `${this._options.host}:${this._options.port}`,
@@ -201,6 +202,7 @@ export class OBSDevice extends DeviceWithState<OBSState> {
 	private _getDefaultState (): OBSState {
 		return {
 			currentScene: undefined,
+			previewScene: undefined,
 			currentTransition: undefined,
 			muted: {},
 			recording: undefined,
@@ -308,11 +310,18 @@ export class OBSDevice extends DeviceWithState<OBSState> {
 
 		// Sort layer based on Mapping type (to make sure audio is after inputs) and Layer name
 		const sortedLayers = _.sortBy(
-			_.map(state.layers, (tlObject, layerName) => ({
-				layerName,
-				tlObject,
-				mapping: mappings[layerName] as MappingOBS
-			})).sort((a, b) => a.layerName.localeCompare(b.layerName)),
+			_.map(state.layers, (tlObject, layerName) => {
+				const tlObjectExt = tlObject as ResolvedTimelineObjectInstanceExtended
+				let mapping: MappingOBS = mappings[layerName] as MappingOBS
+				if (!mapping && tlObjectExt.isLookahead && tlObjectExt.lookaheadForLayer) {
+					mapping = mappings[tlObjectExt.lookaheadForLayer] as MappingOBS
+				}
+				return {
+					layerName,
+					tlObject,
+					mapping
+				}
+			}).sort((a, b) => a.layerName.localeCompare(b.layerName)),
 			(o) => o.mapping.mappingType
 		)
 
@@ -324,9 +333,15 @@ export class OBSDevice extends DeviceWithState<OBSState> {
 							tlObject.content.type ===
 							TimelineContentTypeOBS.CURRENT_SCENE
 						) {
-							let obsTlCurrentScene = (tlObject as any) as TimelineObjOBSCurrentScene
-							deviceState.currentScene =
-								obsTlCurrentScene.content.sceneName
+							if ((tlObject as ResolvedTimelineObjectInstanceExtended).isLookahead) {
+								let obsTlCurrentScene = (tlObject as any) as TimelineObjOBSCurrentScene
+								deviceState.previewScene =
+									obsTlCurrentScene.content.sceneName
+							} else {
+								let obsTlCurrentScene = (tlObject as any) as TimelineObjOBSCurrentScene
+								deviceState.currentScene =
+									obsTlCurrentScene.content.sceneName
+							}
 						}
 						break
 					case MappingOBSType.CurrentTransition:
@@ -380,11 +395,13 @@ export class OBSDevice extends DeviceWithState<OBSState> {
 								.source
 							let sceneName = (mapping as MappingOBSSceneItemRender)
 								.sceneName
-							deepExtend(deviceState.scenes[sceneName], {
+							deepExtend(deviceState.scenes, {
 								[sceneName]: {
-									[source]: {
-										render:
-											obsTlSceneItemRender.content.on
+									sceneItems: {
+										[source]: {
+											render:
+												obsTlSceneItemRender.content.on
+										}
 									}
 								}
 							})
@@ -460,7 +477,24 @@ export class OBSDevice extends DeviceWithState<OBSState> {
 							'scene-name': newCurrentScene
 						}
 					},
-					context: null,
+					context: `currentScene changed from "${oldCurrentScene}" to "${newCurrentScene}"`,
+					timelineId: ''
+				})
+			}
+		}
+
+		let oldPreviewScene = oldState.previewScene
+		let newPreviewScene = newState.previewScene
+		if (newPreviewScene !== undefined) {
+			if (oldPreviewScene !== newPreviewScene) {
+				commands.push({
+					command: {
+						requestName: OBSRequestName.SET_PREVIEW_SCENE,
+						args: {
+							'scene-name': newPreviewScene
+						}
+					},
+					context: `previewScene changed from "${oldPreviewScene}" to "${newPreviewScene}"`,
 					timelineId: ''
 				})
 			}
@@ -486,7 +520,7 @@ export class OBSDevice extends DeviceWithState<OBSState> {
 							'transition-name': newCurrentTransition
 						}
 					},
-					context: null,
+					context: 'currentTransition changed',
 					timelineId: ''
 				})
 			}
@@ -512,7 +546,7 @@ export class OBSDevice extends DeviceWithState<OBSState> {
 							: OBSRequestName.STOP_RECORDING,
 						args: {}
 					},
-					context: null,
+					context: 'recording changed',
 					timelineId: ''
 				})
 			}
@@ -529,7 +563,7 @@ export class OBSDevice extends DeviceWithState<OBSState> {
 							: OBSRequestName.STOP_STREAMING,
 						args: {}
 					},
-					context: null,
+					context: 'streaming changed',
 					timelineId: ''
 				})
 			}
@@ -558,7 +592,7 @@ export class OBSDevice extends DeviceWithState<OBSState> {
 							mute: newMuted[source]
 						}
 					},
-					context: null,
+					context: `mute ${source} changed`,
 					timelineId: ''
 				})
 			}
@@ -594,7 +628,7 @@ export class OBSDevice extends DeviceWithState<OBSState> {
 									render: newSceneItemProperties.render
 								}
 							},
-							context: null,
+							context: `scene ${sceneName} item ${source} changed render`,
 							timelineId: ''
 						})
 					}
@@ -623,7 +657,7 @@ export class OBSDevice extends DeviceWithState<OBSState> {
 							sourceSettings: source.sourceSettings
 						}
 					},
-					context: null,
+					context: `source ${sourceName} changed settings`,
 					timelineId: ''
 				})
 			}
@@ -687,6 +721,7 @@ interface OBSScene {
 
 export class OBSState {
 	currentScene: string | undefined
+	previewScene: string | undefined
 	currentTransition: string | undefined
 	recording: boolean | undefined
 	streaming: boolean | undefined

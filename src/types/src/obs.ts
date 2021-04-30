@@ -73,6 +73,7 @@ export interface OBSOptions {
 
 export enum OBSRequest {
 	SET_CURRENT_SCENE = 'SetCurrentScene',
+	SET_PREVIEW_SCENE = 'SetPreviewScene',
 	SET_CURRENT_TRANSITION = 'SetCurrentTransition',
 	START_RECORDING = 'StartRecording',
 	STOP_RECORDING = 'StopRecording',

@@ -59,6 +59,7 @@
     "unit": "jest",
     "testci": "yarn test --maxWorkers 2",
     "test": "yarn lint && yarn buildall && yarn unit",
+    "test:debug": "yarn lint && yarn buildall && node --inspect-brk node_modules/jest/bin/jest.js --runInBand",
     "test:integration": "yarn lint && jest --config=jest-integration.config.js",
     "watch": "jest --watch",
     "cov": "jest --coverage && yarn cov-open",
