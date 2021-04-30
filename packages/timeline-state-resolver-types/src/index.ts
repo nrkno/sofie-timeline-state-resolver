@@ -65,16 +65,14 @@ export enum DeviceType {
 	SINGULAR_LIVE = 14,
 	SHOTOKU = 15,
 	VMIX = 20,
-	OBS = 21
+	OBS = 21,
 }
 
 export interface TSRTimelineKeyframe<T> extends Timeline.TimelineKeyframe {
 	content: Partial<T>
 }
 
-export interface TSRTimelineObjBase
-	extends Omit<Timeline.TimelineObject, 'content'>,
-		TSRTimelineObjProps {
+export interface TSRTimelineObjBase extends Omit<Timeline.TimelineObject, 'content'>, TSRTimelineObjProps {
 	content: {
 		deviceType: DeviceType
 	}
