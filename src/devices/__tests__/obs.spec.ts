@@ -24,9 +24,6 @@ import { getMockCall } from '../../__tests__/lib'
 import { OBSDevice } from '../obs'
 import * as WebSocket from '../../__mocks__/ws'
 
-jest.setTimeout(30000)
-
-// let nowActual = Date.now()
 describe('OBS', () => {
 	let mockTime = new MockTime()
 	beforeAll(() => {
@@ -158,7 +155,7 @@ describe('OBS', () => {
 		await mockTime.advanceTimeToTicks(10100)
 
 		let deviceContainer = myConductor.getDevice('obs0')
-		let device = deviceContainer.device as ThreadedClass<OBSDevice>
+		let device: ThreadedClass<OBSDevice> = deviceContainer.device as ThreadedClass<OBSDevice>
 
 		// Check that no commands has been scheduled:
 		expect(await device.queue).toHaveLength(0)
