@@ -109,6 +109,6 @@
 		"tslib": "^1.13.0"
 	},
 	"resolutions": {
-		"minimist": "^0.2.1"
+		"minimist": "^1.2.3"
 	}
 }

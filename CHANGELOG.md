@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [5.7.0](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/5.5.5...5.7.0) (2021-05-04)
+
+
+### Bug Fixes
+
+* don't run out transition when changing clip in preview ([a10da77](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/a10da77cc0a949908206011b4d7d4b4354e6a13d))
+* don't run out transition when changing clip in preview ([9db5f9f](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/9db5f9f690e79efd25b2ba9b60bb92c8b4e97968))
+* quantel: If the loading of fragments fail, retry the fragments reloading ([1428929](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/142892921953245e6e72bd062fa69eee68711882))
+
 ### [5.5.5](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/5.5.2...5.5.5) (2021-03-16)
 
 
