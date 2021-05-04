@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [5.6.0](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/5.5.5...5.6.0) (2021-05-04)
+
+
+### Bug Fixes
+
+* quantel: If the loading of fragments fail, retry the fragments reloading ([1428929](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/142892921953245e6e72bd062fa69eee68711882))
+
 ### [5.5.5](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/5.5.2...5.5.5) (2021-03-16)
 
 
