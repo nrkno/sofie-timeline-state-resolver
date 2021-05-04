@@ -16,7 +16,7 @@ All notable changes to this project will be documented in this file. See [standa
 
 * update supertimeline and expose new property ([731854d](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/731854df946fc0d7174f6a7eb72af5322db61c9e))
 
-### [5.5.1](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/5.5.0...5.5.1) (2021-02-08)
+## [5.5.1](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/5.5.0...5.5.1) (2021-02-08)
 
 ## [5.5.0](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/5.4.0...5.5.0) (2021-02-05)
 
