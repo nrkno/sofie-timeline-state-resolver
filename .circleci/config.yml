@@ -279,6 +279,7 @@ workflows:
             branches:
               only:
                 - master
+                - release31
       - prerelease:
           requires:
             - test-node-12
