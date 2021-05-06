@@ -39,6 +39,8 @@ export interface TimelineObject {
 	disabled?: boolean
 	isGroup?: boolean
 	priority?: number
+	/** If set to true, colliding timeline-instances will be merged into one */
+	seamless?: boolean
 	content: Content
 }
 export declare type Content = {

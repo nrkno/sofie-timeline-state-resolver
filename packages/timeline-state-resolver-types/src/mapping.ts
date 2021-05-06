@@ -7,6 +7,8 @@ export interface Mappings {
 export interface Mapping {
 	device: DeviceType
 	deviceId: string
+	/** Human-readable name given to the layer. Can be used by devices to set the label of e.g. a fader a mapping points to. */
+	layerName?: string
 }
 
 export interface ResolvedTimelineObjectInstanceExtended extends ResolvedTimelineObjectInstance, TSRTimelineObjProps {
