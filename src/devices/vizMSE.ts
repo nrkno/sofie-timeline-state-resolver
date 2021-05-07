@@ -917,7 +917,7 @@ class VizMSEManager extends EventEmitter {
 			// clear any existing elements from the existing rundown
 			try {
 				this.emit('debug', `VizMSE: purging rundown`)
-				const elementsToKeep = (this._expectedPlayoutItems.filter((item) => !item.playlistId && _.isNumber(item.templateName)) as { templateName: number, channelName?: string }[]).map((item => ({ vcpid: item.templateName, channelName: item.channelName })))
+				const elementsToKeep = (this._expectedPlayoutItems.filter((item) => item.baseline && _.isNumber(item.templateName)) as { templateName: number, channelName?: string }[]).map((item => ({ vcpid: item.templateName, channelName: item.channelName })))
 				await rundown.purge(elementsToKeep)
 			} catch (error) {
 				this.emit('error', error)
