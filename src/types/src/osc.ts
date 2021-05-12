@@ -27,7 +27,9 @@ export enum OSCValueType {
 	INT = 'i',
 	FLOAT = 'f',
 	STRING = 's',
-	BLOB = 'b'
+	BLOB = 'b',
+	TRUE = 'T',
+	FALSE = 'F'
 }
 
 export interface OSCValueNumber {
@@ -42,7 +44,11 @@ export interface OSCValueBlob {
 	type: OSCValueType.BLOB,
 	value: Uint8Array
 }
-export type SomeOSCValue = OSCValueNumber | OSCValueString | OSCValueBlob
+export interface OSCValueBoolean {
+	type: OSCValueType.TRUE | OSCValueType.FALSE
+	value: void
+}
+export type SomeOSCValue = OSCValueNumber | OSCValueString | OSCValueBlob | OSCValueBoolean
 
 export interface OSCMessageCommandContent {
 	type: TimelineContentTypeOSC.OSC

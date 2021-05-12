@@ -292,7 +292,7 @@ export class OSCMessageDevice extends DeviceWithState<OSCDeviceState> implements
 				if (!easing) throw new Error(`Easing "${cmd.transition.type}.${cmd.transition.direction}" not found`)
 
 				for (let i = 0; i < Math.max(cmd.from.length, cmd.values.length); i++) {
-					if (cmd.from[i] && cmd.values[i]) {
+					if (cmd.from[i] && cmd.values[i] && 'value' in cmd.from[i] && 'value' in cmd.values[i]) {
 						if (cmd.from[i].value !== cmd.values[i].value && cmd.from[i].type !== cmd.values[i].type) {
 							throw new Error('Cannot interpolate between values of different types')
 						}
