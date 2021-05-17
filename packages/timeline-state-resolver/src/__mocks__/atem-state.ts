@@ -1,5 +1,6 @@
-export * from '../../node_modules/atem-state'
-import { AtemConnection as OrigAtemConnection } from '../../node_modules/atem-state'
+export * from 'atem-state'
+import { DataTransferManager } from 'atem-connection/dist/dataTransfer'
+import { AtemConnection as OrigAtemConnection } from 'atem-state'
 import { EventEmitter } from 'events'
 
 /** Note: This is incomplete, and should be filled in as needed */
@@ -13,6 +14,8 @@ const mockData = parseAtemState(require('./atem-out.json'))
 
 let setTimeoutOrg = setTimeout
 
+// @ts-ignore separate declarations
+export { OrigAtemConnection as AtemConnection }
 export namespace AtemConnection {
 	// @ts-ignore separate declarations
 	export class BasicAtem extends EventEmitter implements OrigAtemConnection.BasicAtem {

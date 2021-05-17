@@ -2,9 +2,8 @@ import { EventEmitter } from 'events'
 
 import {
 	TransportStatus,
-	Commands,
-	SynchronousCode
-} from '../../node_modules/hyperdeck-connection'
+	Commands
+} from 'hyperdeck-connection'
 
 let setTimeoutOrg = setTimeout
 

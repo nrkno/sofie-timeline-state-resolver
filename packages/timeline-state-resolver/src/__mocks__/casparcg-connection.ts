@@ -5,7 +5,7 @@ import {
 	AMCPUtil as orgAMCPUtil,
 	Command as orgCommand,
 	CasparCGSocketStatusEvent as orgCasparCGSocketStatusEvent
-} from '../../node_modules/casparcg-connection'
+} from 'casparcg-connection'
 import { EventEmitter } from 'events'
 
 let mockDo = jest.fn()

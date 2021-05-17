@@ -78,9 +78,7 @@ describe('Lawo', () => {
 					deviceType: DeviceType.LAWO,
 					type: TimelineContentTypeLawo.SOURCE,
 
-					'Fader/Motor dB Value': {
-						value: -6
-					}
+					faderValue: -6
 				}
 			},
 			{
@@ -94,11 +92,9 @@ describe('Lawo', () => {
 					deviceType: DeviceType.LAWO,
 					type: TimelineContentTypeLawo.SOURCE,
 
-					'Fader/Motor dB Value': {
-						value: -4,
-						transitionDuration: 400
-						// triggerValue: string // only used for trigging new command sent
-					}
+					faderValue: -4,
+					transitionDuration: 400
+					// triggerValue: string // only used for trigging new command sent
 				}
 			},
 			{
@@ -112,11 +108,9 @@ describe('Lawo', () => {
 					deviceType: DeviceType.LAWO,
 					type: TimelineContentTypeLawo.SOURCE,
 
-					'Fader/Motor dB Value': {
-						value: -4,
-						transitionDuration: 400
-						// triggerValue: string // only used for trigging new command sent
-					}
+					faderValue: -4,
+					transitionDuration: 400
+					// triggerValue: string // only used for trigging new command sent
 				}
 			},
 			{
@@ -731,10 +725,8 @@ describe('Lawo', () => {
 					deviceType: DeviceType.LAWO,
 					type: TimelineContentTypeLawo.SOURCE,
 
-					'Fader/Motor dB Value': {
-						value: -191,
-						transitionDuration: 400
-					}
+					faderValue: -191,
+					transitionDuration: 400
 				}
 			}
 		])
@@ -830,7 +822,7 @@ describe('Lawo', () => {
 				content: {
 					deviceType: DeviceType.LAWO,
 					type: TimelineContentTypeLawo.SOURCE,
-					'Fader/Motor dB Value': { value: 41 }
+					faderValue: 41
 				}
 			},
 			{
@@ -840,7 +832,7 @@ describe('Lawo', () => {
 				content: {
 					deviceType: DeviceType.LAWO,
 					type: TimelineContentTypeLawo.SOURCE,
-					'Fader/Motor dB Value': { value: 41 }
+					faderValue: 41
 				}
 			},
 			{
@@ -850,7 +842,7 @@ describe('Lawo', () => {
 				content: {
 					deviceType: DeviceType.LAWO,
 					type: TimelineContentTypeLawo.SOURCE,
-					'Fader/Motor dB Value': { value: 41 }
+					faderValue: 41
 				}
 			},
 			{
@@ -860,7 +852,7 @@ describe('Lawo', () => {
 				content: {
 					deviceType: DeviceType.LAWO,
 					type: TimelineContentTypeLawo.SOURCE,
-					'Fader/Motor dB Value': { value: 41 }
+					faderValue: 41
 				}
 			},
 			{
@@ -870,7 +862,7 @@ describe('Lawo', () => {
 				content: {
 					deviceType: DeviceType.LAWO,
 					type: TimelineContentTypeLawo.SOURCE,
-					'Fader/Motor dB Value': { value: 41 }
+					faderValue: 41
 				}
 			}
 		])
