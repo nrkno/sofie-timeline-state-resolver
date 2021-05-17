@@ -16,6 +16,7 @@ jobs:
     timeout-minutes: 15
 
     strategy:
+      fail-fast: false
       matrix:
         lib-name: [timeline-state-resolver, timeline-state-resolver-types]
 
@@ -65,10 +66,10 @@ jobs:
   test:
     name: Test
     runs-on: ubuntu-latest
-    continue-on-error: true
     timeout-minutes: 15
 
     strategy:
+      fail-fast: false
       matrix:
         node-version: [12.x, 14.x, 16.x]
         lib-name: [timeline-state-resolver, timeline-state-resolver-types]
@@ -108,7 +109,6 @@ jobs:
   release:
     name: Release
     runs-on: ubuntu-latest
-    continue-on-error: true
     timeout-minutes: 15
 
     # only run for tags
@@ -184,6 +184,7 @@ jobs:
     timeout-minutes: 15
 
     strategy:
+      fail-fast: false
       matrix:
         lib-name: [timeline-state-resolver, timeline-state-resolver-types]
 
@@ -216,6 +217,7 @@ jobs:
     timeout-minutes: 15
 
     strategy:
+      fail-fast: false
       matrix:
         lib-name: [timeline-state-resolver, timeline-state-resolver-types]
 
