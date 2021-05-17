@@ -162,7 +162,7 @@ export class VMix extends EventEmitter<VMixEvents> {
 		}
 	}
 
-	public getVMixState() {
+	public getVMixState(): void {
 		request.get(`${this._options.host}:${this._options.port}/api`, {}, (error, res) => {
 			if (error) {
 				this.setConnected(false)
@@ -175,7 +175,7 @@ export class VMix extends EventEmitter<VMixEvents> {
 		})
 	}
 
-	public parseVMixState(responseBody: any) {
+	public parseVMixState(responseBody: string): void {
 		const preParsed = xml.xml2json(responseBody, { compact: true, spaces: 4 })
 		const xmlState = JSON.parse(preParsed)
 		let mixes = xmlState['vmix']['mix']

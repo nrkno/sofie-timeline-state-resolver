@@ -82,8 +82,8 @@ export class CasparCGDevice extends DeviceWithState<State> implements IDevice {
 	private _retryTimeout: NodeJS.Timeout
 	private _retryTime: number | null = null
 
-	constructor(deviceId: string, deviceOptions: DeviceOptionsCasparCGInternal, options) {
-		super(deviceId, deviceOptions, options)
+	constructor(deviceId: string, deviceOptions: DeviceOptionsCasparCGInternal, getCurrentTime: () => Promise<number>) {
+		super(deviceId, deviceOptions, getCurrentTime)
 
 		if (deviceOptions.options) {
 			if (deviceOptions.options.commandReceiver) this._commandReceiver = deviceOptions.options.commandReceiver

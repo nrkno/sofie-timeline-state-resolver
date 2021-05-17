@@ -28,8 +28,12 @@ export class HTTPWatcherDevice extends Device implements IDevice {
 	private interval: NodeJS.Timer | undefined
 	private status: StatusCode = StatusCode.UNKNOWN
 	private statusReason: string | undefined
-	constructor(deviceId: string, deviceOptions: DeviceOptionsHTTPWatcherInternal, options) {
-		super(deviceId, deviceOptions, options)
+	constructor(
+		deviceId: string,
+		deviceOptions: DeviceOptionsHTTPWatcherInternal,
+		getCurrentTime: () => Promise<number>
+	) {
+		super(deviceId, deviceOptions, getCurrentTime)
 		const opts = deviceOptions.options || {}
 		switch (opts.httpMethod) {
 			case 'post':

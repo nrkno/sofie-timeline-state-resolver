@@ -108,7 +108,7 @@ export type ConductorEvents = {
 
 	setTimelineTriggerTime: [r: TimelineTriggerTimeResult]
 	timelineCallback: [time: number, instanceId: string, callback: string, callbackData: any]
-	resolveDone: [timelineHash: String, duration: number]
+	resolveDone: [timelineHash: string, duration: number]
 	statReport: [report: StatReport]
 }
 

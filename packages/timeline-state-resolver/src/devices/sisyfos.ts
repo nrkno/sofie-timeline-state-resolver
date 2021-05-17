@@ -46,8 +46,8 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState> implemen
 
 	private _resyncing = false
 
-	constructor(deviceId: string, deviceOptions: DeviceOptionsSisyfosInternal, options) {
-		super(deviceId, deviceOptions, options)
+	constructor(deviceId: string, deviceOptions: DeviceOptionsSisyfosInternal, getCurrentTime: () => Promise<number>) {
+		super(deviceId, deviceOptions, getCurrentTime)
 		if (deviceOptions.options) {
 			if (deviceOptions.options.commandReceiver) this._commandReceiver = deviceOptions.options.commandReceiver
 			else this._commandReceiver = this._defaultCommandReceiver

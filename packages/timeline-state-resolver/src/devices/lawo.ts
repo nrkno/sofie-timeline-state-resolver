@@ -93,8 +93,8 @@ export class LawoDevice extends DeviceWithState<LawoState> implements IDevice {
 	} = {}
 	private transitionInterval: NodeJS.Timer | undefined
 
-	constructor(deviceId: string, deviceOptions: DeviceOptionsLawoInternal, options) {
-		super(deviceId, deviceOptions, options)
+	constructor(deviceId: string, deviceOptions: DeviceOptionsLawoInternal, getCurrentTime: () => Promise<number>) {
+		super(deviceId, deviceOptions, getCurrentTime)
 		if (deviceOptions.options) {
 			if (deviceOptions.options.commandReceiver) {
 				this._commandReceiver = deviceOptions.options.commandReceiver

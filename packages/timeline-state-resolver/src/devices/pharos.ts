@@ -52,8 +52,8 @@ export class PharosDevice extends DeviceWithState<PharosState> implements IDevic
 
 	private _commandReceiver: CommandReceiver
 
-	constructor(deviceId: string, deviceOptions: DeviceOptionsPharosInternal, options) {
-		super(deviceId, deviceOptions, options)
+	constructor(deviceId: string, deviceOptions: DeviceOptionsPharosInternal, getCurrentTime: () => Promise<number>) {
+		super(deviceId, deviceOptions, getCurrentTime)
 		if (deviceOptions.options) {
 			if (deviceOptions.options.commandReceiver) this._commandReceiver = deviceOptions.options.commandReceiver
 			else this._commandReceiver = this._defaultCommandReceiver

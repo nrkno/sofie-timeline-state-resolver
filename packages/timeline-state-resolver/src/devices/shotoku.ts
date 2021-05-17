@@ -55,8 +55,8 @@ export class ShotokuDevice extends DeviceWithState<ShotokuDeviceState> implement
 
 	private _commandReceiver: CommandReceiver
 
-	constructor(deviceId: string, deviceOptions: DeviceOptionsShotokuInternal, options) {
-		super(deviceId, deviceOptions, options)
+	constructor(deviceId: string, deviceOptions: DeviceOptionsShotokuInternal, getCurrentTime: () => Promise<number>) {
+		super(deviceId, deviceOptions, getCurrentTime)
 		if (deviceOptions.options) {
 			if (deviceOptions.options.commandReceiver) this._commandReceiver = deviceOptions.options.commandReceiver
 			else this._commandReceiver = this._defaultCommandReceiver

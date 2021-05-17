@@ -56,8 +56,8 @@ export class QuantelDevice extends DeviceWithState<QuantelState> implements IDev
 	private _doOnTimeBurst: DoOnTime
 	private _initOptions?: QuantelOptions
 
-	constructor(deviceId: string, deviceOptions: DeviceOptionsQuantelInternal, options) {
-		super(deviceId, deviceOptions, options)
+	constructor(deviceId: string, deviceOptions: DeviceOptionsQuantelInternal, getCurrentTime: () => Promise<number>) {
+		super(deviceId, deviceOptions, getCurrentTime)
 
 		if (deviceOptions.options) {
 			if (deviceOptions.options.commandReceiver) this._commandReceiver = deviceOptions.options.commandReceiver
@@ -598,6 +598,7 @@ export class QuantelDevice extends DeviceWithState<QuantelState> implements IDev
 		this.emit('debug', cwc)
 
 		try {
+			const cmdType = cmd.type
 			if (cmd.type === QuantelCommandType.SETUPPORT) {
 				await this._quantelManager.setupPort(cmd)
 			} else if (cmd.type === QuantelCommandType.RELEASEPORT) {
@@ -612,8 +613,7 @@ export class QuantelDevice extends DeviceWithState<QuantelState> implements IDev
 				await this._quantelManager.clearClip(cmd)
 				this.getCurrentTime()
 			} else {
-				// @ts-ignore never
-				throw new Error(`Unsupported command type "${cmd.type}"`)
+				throw new Error(`Unsupported command type "${cmdType}"`)
 			}
 		} catch (error) {
 			const errorString = error && error.message ? error.message : error.toString()

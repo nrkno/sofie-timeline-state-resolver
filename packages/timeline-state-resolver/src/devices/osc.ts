@@ -58,8 +58,8 @@ export class OSCMessageDevice extends DeviceWithState<OSCDeviceState> implements
 	private _commandReceiver: CommandReceiver
 	private _oscSender: (msg: osc.OscMessage, address?: string | undefined, port?: number | undefined) => void
 
-	constructor(deviceId: string, deviceOptions: DeviceOptionsOSCInternal, options) {
-		super(deviceId, deviceOptions, options)
+	constructor(deviceId: string, deviceOptions: DeviceOptionsOSCInternal, getCurrentTime: () => Promise<number>) {
+		super(deviceId, deviceOptions, getCurrentTime)
 		if (deviceOptions.options) {
 			if (deviceOptions.options.commandReceiver) this._commandReceiver = deviceOptions.options.commandReceiver
 			else this._commandReceiver = this._defaultCommandReceiver

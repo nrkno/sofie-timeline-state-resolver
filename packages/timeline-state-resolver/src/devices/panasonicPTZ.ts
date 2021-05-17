@@ -73,8 +73,12 @@ export class PanasonicPtzDevice extends DeviceWithState<PanasonicPtzState> imple
 
 	private _commandReceiver: CommandReceiver
 
-	constructor(deviceId: string, deviceOptions: DeviceOptionsPanasonicPTZInternal, options) {
-		super(deviceId, deviceOptions, options)
+	constructor(
+		deviceId: string,
+		deviceOptions: DeviceOptionsPanasonicPTZInternal,
+		getCurrentTime: () => Promise<number>
+	) {
+		super(deviceId, deviceOptions, getCurrentTime)
 		if (deviceOptions.options) {
 			if (deviceOptions.options.commandReceiver) {
 				this._commandReceiver = deviceOptions.options.commandReceiver

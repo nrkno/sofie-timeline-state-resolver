@@ -67,8 +67,8 @@ export class AtemDevice extends DeviceWithState<DeviceState> implements IDevice 
 
 	private _commandReceiver: CommandReceiver
 
-	constructor(deviceId: string, deviceOptions: DeviceOptionsAtemInternal, options) {
-		super(deviceId, deviceOptions, options)
+	constructor(deviceId: string, deviceOptions: DeviceOptionsAtemInternal, getCurrentTime: () => Promise<number>) {
+		super(deviceId, deviceOptions, getCurrentTime)
 		if (deviceOptions.options) {
 			if (deviceOptions.options.commandReceiver) this._commandReceiver = deviceOptions.options.commandReceiver
 			else this._commandReceiver = this._defaultCommandReceiver

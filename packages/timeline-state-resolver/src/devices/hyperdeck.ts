@@ -70,8 +70,8 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> implements IDe
 
 	private _commandReceiver: CommandReceiver
 
-	constructor(deviceId: string, deviceOptions: DeviceOptionsHyperdeckInternal, options) {
-		super(deviceId, deviceOptions, options)
+	constructor(deviceId: string, deviceOptions: DeviceOptionsHyperdeckInternal, getCurrentTime: () => Promise<number>) {
+		super(deviceId, deviceOptions, getCurrentTime)
 		if (deviceOptions.options) {
 			if (deviceOptions.options.commandReceiver) this._commandReceiver = deviceOptions.options.commandReceiver
 			else this._commandReceiver = this._defaultCommandReceiver

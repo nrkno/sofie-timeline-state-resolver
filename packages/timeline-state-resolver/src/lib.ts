@@ -88,12 +88,13 @@ function deepDiff(a: any, b: any, aStack: any, bStack: any): string | null {
 			if (+a !== +b) {
 				return `Numeric representations (${a}, ${b})`
 			} else return null
-		case '[object Symbol]':
+		case '[object Symbol]': {
 			const aSymbol = SymbolProto!.valueOf.call(a)
 			const bSymbol = SymbolProto!.valueOf.call(b)
 			if (aSymbol !== bSymbol) {
 				return `Symbols are not equal`
 			} else return null
+		}
 	}
 
 	const areArrays = aClassName === '[object Array]'

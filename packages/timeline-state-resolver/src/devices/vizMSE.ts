@@ -70,8 +70,8 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState> implements IDevic
 	private _initOptions?: VizMSEOptions
 	private _vizMSEConnected = false
 
-	constructor(deviceId: string, deviceOptions: DeviceOptionsVizMSEInternal, options) {
-		super(deviceId, deviceOptions, options)
+	constructor(deviceId: string, deviceOptions: DeviceOptionsVizMSEInternal, getCurrentTime: () => Promise<number>) {
+		super(deviceId, deviceOptions, getCurrentTime)
 
 		if (deviceOptions.options) {
 			if (deviceOptions.options.commandReceiver) this._commandReceiver = deviceOptions.options.commandReceiver

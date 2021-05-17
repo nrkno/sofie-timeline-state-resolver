@@ -83,7 +83,7 @@ export class DoOnTime extends EventEmitter<DoOnTimeEvents> {
 		}, 0)
 		return id
 	}
-	public getQueue() {
+	public getQueue(): Array<{ id: string; queueId: string; time: number; args: any[] }> {
 		const fullQueue: Array<{ id: string; queueId: string; time: number; args: any[] }> = []
 
 		_.each(this._queues, (queue, queueId) => {
@@ -99,7 +99,7 @@ export class DoOnTime extends EventEmitter<DoOnTimeEvents> {
 
 		return fullQueue
 	}
-	public clearQueueAfter(time: number) {
+	public clearQueueAfter(time: number): void {
 		_.each(this._queues, (queue, queueId: string) => {
 			_.each(queue, (q: DoOrder, id: string) => {
 				if (q.time > time) {

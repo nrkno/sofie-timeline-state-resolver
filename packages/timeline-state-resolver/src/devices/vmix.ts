@@ -73,8 +73,8 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended> {
 	private _connected = false
 	private _initialized = false
 
-	constructor(deviceId: string, deviceOptions: DeviceOptionsVMixInternal, options) {
-		super(deviceId, deviceOptions, options)
+	constructor(deviceId: string, deviceOptions: DeviceOptionsVMixInternal, getCurrentTime: () => Promise<number>) {
+		super(deviceId, deviceOptions, getCurrentTime)
 		if (deviceOptions.options) {
 			if (deviceOptions.options.commandReceiver) this._commandReceiver = deviceOptions.options.commandReceiver
 			else this._commandReceiver = this._defaultCommandReceiver
