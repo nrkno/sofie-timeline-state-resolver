@@ -47,8 +47,6 @@
 	"scripts": {
 		"info": "npm-scripts-info",
 		"test": "yarn lint && yarn unit",
-		"testci": "yarn lint && yarn unitci",
-		"unitci": "jest --maxWorkers 2",
 		"unit": "jest",
 		"build": "rimraf dist && yarn build:main",
 		"build:main": "tsc -p tsconfig.build.json",
@@ -65,7 +63,6 @@
 		"build": "(Trash and re)build the library",
 		"build:main": "Builds main build command without trash.",
 		"lint": "Lint all typescript source files",
-		"ci": "Test script for running by the CI (CircleCI)",
 		"validate:dependencies": "Scan dependencies for vulnerabilities and check licenses",
 		"validate:dev-dependencies": "Scan development dependencies for vulnerabilities",
 		"license-validate": "Validate licenses for dependencies."
