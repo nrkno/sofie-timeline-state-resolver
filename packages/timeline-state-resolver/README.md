@@ -1,11 +1,6 @@
 
 # Timeline State Resolver
 
-[![CircleCI](https://circleci.com/gh/nrkno/tv-automation-state-timeline-resolver.svg?style=svg)](https://circleci.com/gh/nrkno/tv-automation-state-timeline-resolver)
-[![codecov](https://codecov.io/gh/nrkno/tv-automation-state-timeline-resolver/branch/master/graph/badge.svg)](https://codecov.io/gh/nrkno/tv-automation-state-timeline-resolver)
-
-This is a part of the [**Sofie** TV News Studio Automation System](https://github.com/nrkno/Sofie-TV-automation/).
-
 ## Abstract
 This library orchestrates and controls different devices.
 Its input is a [timeline](https://github.com/SuperFlyTV/supertimeline) data structure and a layer-to-device-map.
@@ -40,9 +35,6 @@ When developing support for new devices, a helpful tool for quickly trying out n
 * Install yarn
 	https://yarnpkg.com
 
-* Install jest
-	`yarn global add jest`
-
 * Install dependencies
 	`yarn`
 
@@ -54,11 +46,6 @@ When developing support for new devices, a helpful tool for quickly trying out n
 * Run test & view coverage
 	`yarn cov`
 
-### Notes
-
-This repository is a monorepo containg both the TSR library and a separate typings-only library (located at `./src/types`) to be used by integrations. Contrary to what your editor might say, the typings-only library cannot use dependencies from the main library.
-
-
 # Examples of timeline objects
 
 Here follows some examples of valid mappings and timeline-objects to control devices with TSR.
@@ -68,7 +55,7 @@ Here follows some examples of valid mappings and timeline-objects to control dev
 ### Playing a video
 Play the video clip "AMB" for 5 seconds
 
-```
+```typescript
 // Mapping:
 {
 	myLayerCaspar: {
@@ -98,7 +85,7 @@ Play the video clip "AMB" for 5 seconds
 
 ### Cut to source
 Cut to source 2 on ME1
-```
+```typescript
 // Mapping:
 {
 	myLayerME1: {
@@ -131,7 +118,7 @@ Cut to source 2 on ME1
 
 ### Record a clip
 Start recording of a clip, and record it for 10 secods
-```
+```typescript
 // Mapping:
 {
 	myLayerRecord: {
@@ -162,7 +149,7 @@ Start recording of a clip, and record it for 10 secods
 
 ### Pull up a fader
 Pull up a fader, and leave it there
-```
+```typescript
 // Mapping:
 {
 	myLayerFader0: {
@@ -192,7 +179,7 @@ Pull up a fader, and leave it there
 ## Panasoniz PTZ
 
 ### Recall a preset
-```
+```typescript
 // Mapping:
 {
 	myLayerCamera1: {
@@ -220,7 +207,7 @@ Pull up a fader, and leave it there
 
 ### Recall a scene
 
-```
+```typescript
 // Mapping:
 {
 	myLayerLights: {
@@ -249,7 +236,7 @@ Pull up a fader, and leave it there
 
 ### Activate channel 3
 Activate channel 3 on sisyfos pgm output
-```
+```typescript
 // Mapping:
 {
 	myLayerSisyfosScene1: {
@@ -320,7 +307,7 @@ Activate channel 3 on sisyfos pgm output
 ### Play a video
 Play a video for 10 seconds
 
-```
+```typescript
 // Mapping:
 {
 	myLayerVideoA: {
@@ -353,7 +340,7 @@ Play a video for 10 seconds
 ### Send a POST request
 Send a POST Request to a URL
 
-```
+```typescript
 // Mapping:
 {
 	myLayerHTTP: {
