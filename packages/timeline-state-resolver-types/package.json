@@ -50,7 +50,7 @@
 		"testci": "yarn lint && yarn unitci",
 		"unitci": "jest --maxWorkers 2",
 		"unit": "jest",
-		"build": "trash dist && yarn build:main",
+		"build": "rimraf dist && yarn build:main",
 		"build:main": "tsc -p tsconfig.build.json",
 		"lint": "tslint --project tsconfig.json --config ../../tslint.json",
 		"validate:dependencies": "yarn audit --groups dependencies && yarn license-validate",

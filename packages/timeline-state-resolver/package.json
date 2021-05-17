@@ -49,7 +49,7 @@
   "scripts": {
     "info": "npm-scripts-info",
     "unlink:all": "yarn unlink atem-connection & yarn unlink atem-state & yarn unlink casparcg-connection & yarn unlink casparcg-state & yarn unlink superfly-timeline",
-    "build": "trash dist && yarn build:main",
+    "build": "rimraf dist && yarn build:main",
     "build:main": "tsc -p tsconfig.build.json",
     "lint": "tslint --project tsconfig.json --config ../../tslint.json",
     "unitci": "jest --maxWorkers 2",
