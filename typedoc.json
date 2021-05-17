@@ -5,12 +5,12 @@
 	"exclude": [
 		"*.spec.ts",
 		"node_modules",
-		"*/node_modules",
+		"**/node_modules",
 		"docs",
-		"*/dist",
-		"*/__mocks__/*",
-		"*/src/types",
-		"*/examples"
+		"**/dist",
+		"**/__mocks__",
+		"**/__tests__",
+		"**/examples"
 	],
 	"external-modulemap": ".*packages/([^/]+)/.*"
 }
