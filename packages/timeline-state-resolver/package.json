@@ -48,10 +48,7 @@
   ],
   "scripts": {
     "info": "npm-scripts-info",
-    "cleancache": "yarn cache clean atem-connection atem-state casparcg-connection casparcg-state superfly-timeline",
     "unlink:all": "yarn unlink atem-connection & yarn unlink atem-state & yarn unlink casparcg-connection & yarn unlink casparcg-state & yarn unlink superfly-timeline",
-    "installclean": "yarn unlink:all & yarn cleancache && yarn --check-files",
-    "buildclean": "yarn installclean && yarn build",
     "build": "trash dist && yarn build:main",
     "build:main": "tsc -p tsconfig.build.json",
     "lint": "tslint --project tsconfig.json --config ../../tslint.json",
@@ -70,7 +67,6 @@
   },
   "scripts-info": {
     "info": "Display information about the scripts",
-    "installclean": "Remove yarn.lock, cleare yarn cache, and reinstall",
     "build": "(Trash and re)build the library",
     "build:main": "Builds main build command without trash.",
     "lint": "Lint all typescript source files",
