@@ -6,7 +6,7 @@ import * as _ from 'underscore'
  * @param a
  * @param b
  */
-export function getDiff (a: any, b: any): string | null {
+export function getDiff(a: any, b: any): string | null {
 	return diff(a, b)
 }
 
@@ -14,7 +14,7 @@ export function getDiff (a: any, b: any): string | null {
 Note: the diff functions are based upon the underscore _.isEqual functions in
 https://github.com/jashkenas/underscore/blob/master/underscore.js
 */
-function diff (a?: any, b?: any, aStack?: any, bStack?: any): string | null {
+function diff(a?: any, b?: any, aStack?: any, bStack?: any): string | null {
 	// Identical objects are equal. `0 === -0`, but they aren't identical.
 	// See the [Harmony `egal` proposal](http://wiki.ecmascript.org/doku.php?id=harmony:egal).
 	if (a === b) {
@@ -36,7 +36,7 @@ function diff (a?: any, b?: any, aStack?: any, bStack?: any): string | null {
 		} else return `first value is NaN, but second value isn't (${a}, ${b})`
 	}
 	// Exhaust primitive checks
-	let type = typeof a
+	const type = typeof a
 	if (type !== 'function' && type !== 'object' && typeof b !== 'object') {
 		return `${a}, ${b}`
 	}
@@ -44,17 +44,17 @@ function diff (a?: any, b?: any, aStack?: any, bStack?: any): string | null {
 }
 
 const ObjProto = Object.prototype
-const SymbolProto = (typeof Symbol) !== 'undefined' ? Symbol.prototype : null
+const SymbolProto = typeof Symbol !== 'undefined' ? Symbol.prototype : null
 const toString = ObjProto.toString
 
 // Internal recursive comparison function for `getDiff`.
-function deepDiff (a: any, b: any, aStack: any, bStack: any): string | null {
+function deepDiff(a: any, b: any, aStack: any, bStack: any): string | null {
 	// Unwrap any wrapped objects.
 	if (a instanceof _) a = (a as any)._wrapped
 	if (b instanceof _) b = (b as any)._wrapped
 	// Compare `[[Class]]` names.
-	let aClassName = toString.call(a)
-	let bClassName = toString.call(b)
+	const aClassName = toString.call(a)
+	const bClassName = toString.call(b)
 	if (aClassName !== bClassName) {
 		return `ClassName differ (${aClassName}, ${bClassName})`
 	}
@@ -89,14 +89,14 @@ function deepDiff (a: any, b: any, aStack: any, bStack: any): string | null {
 				return `Numeric representations (${a}, ${b})`
 			} else return null
 		case '[object Symbol]':
-			let aSymbol = SymbolProto!.valueOf.call(a)
-			let bSymbol = SymbolProto!.valueOf.call(b)
+			const aSymbol = SymbolProto!.valueOf.call(a)
+			const bSymbol = SymbolProto!.valueOf.call(b)
 			if (aSymbol !== bSymbol) {
 				return `Symbols are not equal`
 			} else return null
 	}
 
-	let areArrays = aClassName === '[object Array]'
+	const areArrays = aClassName === '[object Array]'
 	if (!areArrays) {
 		if (typeof a !== 'object' || typeof b !== 'object') {
 			return `One is an object, but not the other (${typeof a}, ${typeof b})`
@@ -105,17 +105,13 @@ function deepDiff (a: any, b: any, aStack: any, bStack: any): string | null {
 		// Objects with different constructors are not equivalent, but `Object`s or `Array`s
 		// from different frames are.
 		// return false // tmp
-		let aCtor = a.constructor
-		let bCtor = b.constructor
-		if (aCtor !== bCtor &&
-			!(
-				_.isFunction(aCtor) &&
-				aCtor instanceof aCtor &&
-				_.isFunction(bCtor) &&
-				bCtor instanceof bCtor
-			) && (
-				'constructor' in a && 'constructor' in b
-			)
+		const aCtor = a.constructor
+		const bCtor = b.constructor
+		if (
+			aCtor !== bCtor &&
+			!(_.isFunction(aCtor) && aCtor instanceof aCtor && _.isFunction(bCtor) && bCtor instanceof bCtor) &&
+			'constructor' in a &&
+			'constructor' in b
 		) {
 			return `Different constructors`
 		}
@@ -149,14 +145,14 @@ function deepDiff (a: any, b: any, aStack: any, bStack: any): string | null {
 		if (length !== b.length) return `length differ (${a.length}, ${b.length})`
 		// Deep compare the contents, ignoring non-numeric properties.
 		while (length--) {
-			let d = diff(a[length], b[length], aStack, bStack)
+			const d = diff(a[length], b[length], aStack, bStack)
 			if (d) {
 				return `array[${length}]: ${d}`
 			}
 		}
 	} else {
 		// Deep compare objects.
-		let keys = _.keys(a)
+		const keys = _.keys(a)
 		let key
 		length = keys.length
 		// Ensure that both objects contain the same number of properties before comparing deep equality.
@@ -168,7 +164,7 @@ function deepDiff (a: any, b: any, aStack: any, bStack: any): string | null {
 			if (!_.has(b, key)) {
 				return `Key "${key}" missing in b`
 			} else {
-				let d = diff(a[key], b[key], aStack, bStack)
+				const d = diff(a[key], b[key], aStack, bStack)
 				if (d) {
 					return `object.${key}: ${d}`
 				}

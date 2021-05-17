@@ -42,11 +42,11 @@ const vmixMockState = `<vmix>
 </audio>
 </vmix>`
 
-export function setupVmixMock () {
+export function setupVmixMock() {
 	const vmixServer: VmixServerMockOptions = {
 		// add any vmix mocking of server-state here
 		repliesAreGood: true,
-		serverIsUp: true
+		serverIsUp: true,
 	}
 
 	// @ts-ignore: not logging
@@ -58,13 +58,13 @@ export function setupVmixMock () {
 		onRequest(type, url)
 	})
 
-	const onGet		= jest.fn((url, options, cb) => handleRequest(vmixServer, onRequestRaw, 'get',	url, options, cb))
-	const onPost	= jest.fn((url, options, cb) => handleRequest(vmixServer, onRequestRaw, 'post',	url, options, cb))
-	const onPut		= jest.fn((url, options, cb) => handleRequest(vmixServer, onRequestRaw, 'put',	url, options, cb))
-	const onHead	= jest.fn((url, options, cb) => handleRequest(vmixServer, onRequestRaw, 'head',	url, options, cb))
-	const onPatch	= jest.fn((url, options, cb) => handleRequest(vmixServer, onRequestRaw, 'patch',url, options, cb))
-	const onDel		= jest.fn((url, options, cb) => handleRequest(vmixServer, onRequestRaw, 'del',	url, options, cb))
-	const onDelete	= jest.fn((url, options, cb) => handleRequest(vmixServer, onRequestRaw, 'delete',url, options, cb))
+	const onGet = jest.fn((url, options, cb) => handleRequest(vmixServer, onRequestRaw, 'get', url, options, cb))
+	const onPost = jest.fn((url, options, cb) => handleRequest(vmixServer, onRequestRaw, 'post', url, options, cb))
+	const onPut = jest.fn((url, options, cb) => handleRequest(vmixServer, onRequestRaw, 'put', url, options, cb))
+	const onHead = jest.fn((url, options, cb) => handleRequest(vmixServer, onRequestRaw, 'head', url, options, cb))
+	const onPatch = jest.fn((url, options, cb) => handleRequest(vmixServer, onRequestRaw, 'patch', url, options, cb))
+	const onDel = jest.fn((url, options, cb) => handleRequest(vmixServer, onRequestRaw, 'del', url, options, cb))
+	const onDelete = jest.fn((url, options, cb) => handleRequest(vmixServer, onRequestRaw, 'delete', url, options, cb))
 
 	request.setMockGet(onGet)
 	request.setMockPost(onPost)
@@ -84,28 +84,28 @@ export function setupVmixMock () {
 		onHead,
 		onPatch,
 		onDel,
-		onDelete
+		onDelete,
 	}
 }
 
-type Params = {[key: string]: any}
+type Params = { [key: string]: any }
 interface VmixServerMockOptions {
 	repliesAreGood: boolean
 	serverIsUp: boolean
 }
 
-function urlRoute (requestType: string, url: string, routes: {[route: string]: (params: Params) => object}): object {
+function urlRoute(requestType: string, url: string, routes: { [route: string]: (params: Params) => object }): object {
 	let body: any = {
 		status: 404,
 		message: `(Mock) Not found. Request ${requestType} ${url}`,
-		stack: ''
+		stack: '',
 	}
 
 	const matchUrl = `${requestType} ${url}`
 	let reroutedParams: any = null
 
 	let found = false
-	let routeKeys = Object.keys(routes).sort((a,b) => {
+	const routeKeys = Object.keys(routes).sort((a, b) => {
 		if (a.length < b.length) return 1
 		if (a.length > b.length) return -1
 		return 0
@@ -142,9 +142,15 @@ function urlRoute (requestType: string, url: string, routes: {[route: string]: (
 	})
 	return body
 }
-function handleRequest (vmixServer: VmixServerMockOptions, triggerFcn: Function, type: string, url: string, _bodyData: any, callback: (err: Error | null, value?: any) => void) {
+function handleRequest(
+	vmixServer: VmixServerMockOptions,
+	triggerFcn: Function,
+	type: string,
+	url: string,
+	_bodyData: any,
+	callback: (err: Error | null, value?: any) => void
+) {
 	process.nextTick(() => {
-
 		triggerFcn(type, url)
 
 		if (!vmixServer.serverIsUp) {
@@ -159,17 +165,16 @@ function handleRequest (vmixServer: VmixServerMockOptions, triggerFcn: Function,
 			if (!vmixServer.repliesAreGood) throw new Error('Bad mock reply')
 
 			body = urlRoute(type, resource, {
-
 				'get /api': () => {
 					return {
-						response: vmixMockState
+						response: vmixMockState,
 					}
-				}
+				},
 			})
 
 			callback(null, {
 				statusCode: 200,
-				body: body['response']
+				body: body['response'],
 			})
 		} catch (e) {
 			callback(null, {
@@ -177,8 +182,8 @@ function handleRequest (vmixServer: VmixServerMockOptions, triggerFcn: Function,
 				body: JSON.stringify({
 					status: 500,
 					message: e.toString(),
-					stack: e.stack || ''
-				})
+					stack: e.stack || '',
+				}),
 			})
 		}
 	})

@@ -11,8 +11,7 @@ export interface Mapping {
 	layerName?: string
 }
 
-export interface ResolvedTimelineObjectInstanceExtended extends ResolvedTimelineObjectInstance, TSRTimelineObjProps {
-}
+export interface ResolvedTimelineObjectInstanceExtended extends ResolvedTimelineObjectInstance, TSRTimelineObjProps {}
 
 export interface TSRTimelineObjProps {
 	/** Only set to true when an object is inserted by lookahead */

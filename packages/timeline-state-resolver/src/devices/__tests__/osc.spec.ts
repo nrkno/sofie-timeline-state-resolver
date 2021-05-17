@@ -7,7 +7,7 @@ import {
 	TimelineContentTypeOSC,
 	OSCValueType,
 	TimelineObjOSCMessage,
-	OSCDeviceType
+	OSCDeviceType,
 } from 'timeline-state-resolver-types'
 import { MockTime } from '../../__tests__/mockTime'
 import { literal } from '../device'
@@ -16,7 +16,7 @@ import { getMockCall } from '../../__tests__/lib'
 
 // let nowActual = Date.now()
 describe('OSC-Message', () => {
-	let mockTime = new MockTime()
+	const mockTime = new MockTime()
 	beforeAll(() => {
 		mockTime.mockDateNow()
 	})
@@ -27,19 +27,19 @@ describe('OSC-Message', () => {
 		const commandReceiver0: any = jest.fn(() => {
 			return Promise.resolve()
 		})
-		let myLayerMapping0: MappingOSC = {
+		const myLayerMapping0: MappingOSC = {
 			device: DeviceType.OSC,
-			deviceId: 'osc0'
+			deviceId: 'osc0',
 		}
-		let myLayerMapping: Mappings = {
-			'myLayer0': myLayerMapping0
+		const myLayerMapping: Mappings = {
+			myLayer0: myLayerMapping0,
 		}
 
-		let myConductor = new Conductor({
+		const myConductor = new Conductor({
 			initializeAsClear: true,
-			getCurrentTime: mockTime.getCurrentTime
+			getCurrentTime: mockTime.getCurrentTime,
 		})
-		myConductor.on('error', e => console.error(e))
+		myConductor.on('error', (e) => console.error(e))
 		await myConductor.init()
 		await myConductor.addDevice('osc0', {
 			type: DeviceType.OSC,
@@ -47,14 +47,14 @@ describe('OSC-Message', () => {
 				commandReceiver: commandReceiver0,
 				host: '127.0.0.1',
 				port: 80,
-				type: OSCDeviceType.UDP
-			}
+				type: OSCDeviceType.UDP,
+			},
 		})
 		myConductor.setTimelineAndMappings([], myLayerMapping)
 		await mockTime.advanceTimeToTicks(10100)
 
-		let deviceContainer = myConductor.getDevice('osc0')
-		let device = deviceContainer.device as ThreadedClass<OSCMessageDevice>
+		const deviceContainer = myConductor.getDevice('osc0')
+		const device = deviceContainer.device as ThreadedClass<OSCMessageDevice>
 
 		// Check that no commands has been scheduled:
 		expect(await device.queue).toHaveLength(0)
@@ -64,7 +64,7 @@ describe('OSC-Message', () => {
 				id: 'obj0',
 				enable: {
 					start: mockTime.now + 1000, // in 1 second
-					duration: 2000
+					duration: 2000,
 				},
 				layer: 'myLayer0',
 				content: {
@@ -72,21 +72,26 @@ describe('OSC-Message', () => {
 					type: TimelineContentTypeOSC.OSC,
 
 					path: '/test-path',
-					values: [{
-						type: OSCValueType.INT,
-						value: 123.
-					}, {
-						type: OSCValueType.FLOAT,
-						value: 123.45
-					}, {
-						type: OSCValueType.STRING,
-						value: 'abc'
-					}, {
-						type: OSCValueType.BLOB,
-						value: new Uint8Array([1, 3, 5])
-					}]
-				}
-			})
+					values: [
+						{
+							type: OSCValueType.INT,
+							value: 123,
+						},
+						{
+							type: OSCValueType.FLOAT,
+							value: 123.45,
+						},
+						{
+							type: OSCValueType.STRING,
+							value: 'abc',
+						},
+						{
+							type: OSCValueType.BLOB,
+							value: new Uint8Array([1, 3, 5]),
+						},
+					],
+				},
+			}),
 		])
 
 		await mockTime.advanceTimeToTicks(10990)
@@ -94,25 +99,28 @@ describe('OSC-Message', () => {
 		await mockTime.advanceTimeToTicks(11100)
 
 		expect(commandReceiver0).toHaveBeenCalledTimes(1)
-		expect(getMockCall(commandReceiver0, 0, 1)).toMatchObject(
-			{
-				type: TimelineContentTypeOSC.OSC,
-				path: '/test-path',
-				values: [{
+		expect(getMockCall(commandReceiver0, 0, 1)).toMatchObject({
+			type: TimelineContentTypeOSC.OSC,
+			path: '/test-path',
+			values: [
+				{
 					type: OSCValueType.INT,
-					value: 123.
-				}, {
+					value: 123,
+				},
+				{
 					type: OSCValueType.FLOAT,
-					value: 123.45
-				}, {
+					value: 123.45,
+				},
+				{
 					type: OSCValueType.STRING,
-					value: 'abc'
-				}, {
+					value: 'abc',
+				},
+				{
 					type: OSCValueType.BLOB,
-					value: new Uint8Array([1, 3, 5])
-				}]
-			}
-		)
+					value: new Uint8Array([1, 3, 5]),
+				},
+			],
+		})
 		expect(getMockCall(commandReceiver0, 0, 2)).toMatch(/added/) // context
 		await mockTime.advanceTimeToTicks(16000)
 		expect(commandReceiver0).toHaveBeenCalledTimes(1)
@@ -121,19 +129,19 @@ describe('OSC-Message', () => {
 		const commandReceiver0: any = jest.fn(() => {
 			return Promise.resolve()
 		})
-		let myLayerMapping0: MappingOSC = {
+		const myLayerMapping0: MappingOSC = {
 			device: DeviceType.OSC,
-			deviceId: 'osc0'
+			deviceId: 'osc0',
 		}
-		let myLayerMapping: Mappings = {
-			'myLayer0': myLayerMapping0
+		const myLayerMapping: Mappings = {
+			myLayer0: myLayerMapping0,
 		}
 
-		let myConductor = new Conductor({
+		const myConductor = new Conductor({
 			initializeAsClear: true,
-			getCurrentTime: mockTime.getCurrentTime
+			getCurrentTime: mockTime.getCurrentTime,
 		})
-		myConductor.on('error', e => console.error(e))
+		myConductor.on('error', (e) => console.error(e))
 		await myConductor.init()
 		await myConductor.addDevice('osc0', {
 			type: DeviceType.OSC,
@@ -141,14 +149,14 @@ describe('OSC-Message', () => {
 				oscSender: commandReceiver0,
 				host: '127.0.0.1',
 				port: 80,
-				type: OSCDeviceType.UDP
-			}
+				type: OSCDeviceType.UDP,
+			},
 		})
 		myConductor.setTimelineAndMappings([], myLayerMapping)
 		await mockTime.advanceTimeToTicks(10100)
 
-		let deviceContainer = myConductor.getDevice('osc0')
-		let device = deviceContainer.device as ThreadedClass<OSCMessageDevice>
+		const deviceContainer = myConductor.getDevice('osc0')
+		const device = deviceContainer.device as ThreadedClass<OSCMessageDevice>
 
 		// Check that no commands has been scheduled:
 		expect(await device.queue).toHaveLength(0)
@@ -158,7 +166,7 @@ describe('OSC-Message', () => {
 				id: 'obj0',
 				enable: {
 					start: mockTime.now + 1000, // in 1 second
-					duration: 2000
+					duration: 2000,
 				},
 				layer: 'myLayer0',
 				content: {
@@ -166,36 +174,45 @@ describe('OSC-Message', () => {
 					type: TimelineContentTypeOSC.OSC,
 
 					path: '/test-path',
-					values: [{
-						type: OSCValueType.INT,
-						value: 123.
-					}, {
-						type: OSCValueType.FLOAT,
-						value: 123.45
-					}, {
-						type: OSCValueType.FLOAT,
-						value: 118.5
-					}, {
-						type: OSCValueType.STRING,
-						value: 'abc'
-					}, {
-						type: OSCValueType.BLOB,
-						value: new Uint8Array([1, 3, 5])
-					}],
-					from: [{
-						type: OSCValueType.INT,
-						value: 100.
-					}, {
-						type: OSCValueType.FLOAT,
-						value: 100
-					}],
+					values: [
+						{
+							type: OSCValueType.INT,
+							value: 123,
+						},
+						{
+							type: OSCValueType.FLOAT,
+							value: 123.45,
+						},
+						{
+							type: OSCValueType.FLOAT,
+							value: 118.5,
+						},
+						{
+							type: OSCValueType.STRING,
+							value: 'abc',
+						},
+						{
+							type: OSCValueType.BLOB,
+							value: new Uint8Array([1, 3, 5]),
+						},
+					],
+					from: [
+						{
+							type: OSCValueType.INT,
+							value: 100,
+						},
+						{
+							type: OSCValueType.FLOAT,
+							value: 100,
+						},
+					],
 					transition: {
 						duration: 1000,
 						type: 'Linear',
-						direction: 'None'
-					}
-				}
-			})
+						direction: 'None',
+					},
+				},
+			}),
 		])
 
 		await mockTime.advanceTimeToTicks(10990)
@@ -205,28 +222,32 @@ describe('OSC-Message', () => {
 		await mockTime.advanceTimeToTicks(12100)
 		expect(commandReceiver0).toHaveBeenCalledTimes(26)
 
-		expect(getMockCall(commandReceiver0, 0, 0)).toMatchObject(
-			{
-				address: '/test-path',
-				args: [{
+		expect(getMockCall(commandReceiver0, 0, 0)).toMatchObject({
+			address: '/test-path',
+			args: [
+				{
 					type: OSCValueType.INT,
-					value: 100
-				}, {
+					value: 100,
+				},
+				{
 					type: OSCValueType.FLOAT,
-					value: 100
-				}, {
+					value: 100,
+				},
+				{
 					type: OSCValueType.FLOAT,
-					value: 118.5
-				}, {
+					value: 118.5,
+				},
+				{
 					type: OSCValueType.STRING,
-					value: 'abc'
-				}, {
+					value: 'abc',
+				},
+				{
 					type: OSCValueType.BLOB,
-					value: new Uint8Array([1, 3, 5])
-				}]
-			}
-		)
-		let last = [ 100, 100 ]
+					value: new Uint8Array([1, 3, 5]),
+				},
+			],
+		})
+		let last = [100, 100]
 
 		for (let i = 0; i < 26; i++) {
 			const call = getMockCall(commandReceiver0, i, 0)
@@ -238,7 +259,7 @@ describe('OSC-Message', () => {
 			expect(call.args[1].value).toBeLessThanOrEqual(123.45)
 			expect(call.args[1].value).toBeGreaterThanOrEqual(last[1])
 
-			last = [ call.args[0].value, call.args[1].value ]
+			last = [call.args[0].value, call.args[1].value]
 		}
 
 		await mockTime.advanceTimeToTicks(16000)

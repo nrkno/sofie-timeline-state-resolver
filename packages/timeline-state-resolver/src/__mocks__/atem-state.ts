@@ -3,7 +3,7 @@ import { AtemConnection as OrigAtemConnection } from 'atem-state'
 import { EventEmitter } from 'events'
 
 /** Note: This is incomplete, and should be filled in as needed */
-function parseAtemState (rawState: any): OrigAtemConnection.AtemState {
+function parseAtemState(rawState: any): OrigAtemConnection.AtemState {
 	const state = rawState
 
 	return state
@@ -11,20 +11,20 @@ function parseAtemState (rawState: any): OrigAtemConnection.AtemState {
 
 const mockData = parseAtemState(require('./atem-out.json'))
 
-let setTimeoutOrg = setTimeout
+const setTimeoutOrg = setTimeout
 
 // @ts-ignore separate declarations
 export { OrigAtemConnection as AtemConnection }
 export namespace AtemConnection {
 	// @ts-ignore separate declarations
 	export class BasicAtem extends EventEmitter implements OrigAtemConnection.BasicAtem {
-		constructor (_options?: OrigAtemConnection.AtemOptions) {
+		constructor(_options?: OrigAtemConnection.AtemOptions) {
 			super()
 		}
-		get state (): OrigAtemConnection.AtemState {
+		get state(): OrigAtemConnection.AtemState {
 			return mockData
 		}
-		connect (): Promise<void> {
+		connect(): Promise<void> {
 			setTimeoutOrg(() => {
 				this.emit('connected', true)
 			}, 10)
@@ -35,7 +35,7 @@ export namespace AtemConnection {
 				}, 5)
 			})
 		}
-		disconnect (): Promise<void> {
+		disconnect(): Promise<void> {
 			return new Promise<void>((resolve) => {
 				setTimeoutOrg(() => {
 					resolve()
@@ -43,7 +43,7 @@ export namespace AtemConnection {
 			})
 		}
 
-		destroy (): Promise<void> {
+		destroy(): Promise<void> {
 			return new Promise<void>((resolve) => {
 				setTimeoutOrg(() => {
 					resolve()
@@ -51,9 +51,8 @@ export namespace AtemConnection {
 			})
 		}
 
-		sendCommand (): Promise<void> {
+		sendCommand(): Promise<void> {
 			return Promise.resolve()
 		}
 	}
-
 }
