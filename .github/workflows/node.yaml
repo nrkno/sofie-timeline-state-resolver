@@ -140,7 +140,6 @@ jobs:
         if: ${{ steps.do-publish.outputs.tag }}
         run: |
           echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" >> ~/.npmrc
-          NEW_VERSION=$(node -p "require('./package.json').version")
           yarn lerna publish from-package --tag-version-prefix='' --dist-tag ${{ steps.do-publish.outputs.tag }} --yes
         env:
           CI: true

@@ -15,8 +15,8 @@
     "watch": "lerna run --parallel build:main -- --watch --preserveWatchOutput",
     "docs": "yarn typedoc .",
     "postinstall": "lerna bootstrap",
-    "release:bump-release": "lerna version --conventional-commits --conventional-graduate --tag-version-prefix='' ",
-    "release:bump-prerelease": "lerna version --conventional-commits --conventional-prerelease --tag-version-prefix='' "
+    "release:bump-release": "lerna version --conventional-commits --conventional-graduate --tag-version-prefix='' --no-push",
+    "release:bump-prerelease": "lerna version --conventional-commits --conventional-prerelease --tag-version-prefix='' --no-push"
   },
   "devDependencies": {
     "@strictsoftware/typedoc-plugin-monorepo": "^0.4.2",
