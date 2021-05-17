@@ -1,5 +1,4 @@
 export * from 'atem-state'
-import { DataTransferManager } from 'atem-connection/dist/dataTransfer'
 import { AtemConnection as OrigAtemConnection } from 'atem-state'
 import { EventEmitter } from 'events'
 

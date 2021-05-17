@@ -38,6 +38,10 @@ export class Socket extends EventEmitter {
 		this._port = port
 		this._host = host
 
+		// hack: "is declared but its value is never read."
+		this._port = this._port
+		this._host = this._host
+
 		if (this.onConnect) this.onConnect(port, host)
 		setTimeoutOrg(() => {
 			cb()
