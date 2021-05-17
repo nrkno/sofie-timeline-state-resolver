@@ -1,4 +1,4 @@
-import { EventEmitter } from 'events'
+import { EventEmitter } from 'eventemitter3'
 import * as request from 'request'
 import * as xml from 'xml-js'
 import { VMixOptions, VMixCommand, VMixTransitionType, VMixInputType } from 'timeline-state-resolver-types'
@@ -7,7 +7,16 @@ import * as _ from 'underscore'
 
 const PING_INTERVAL = 10 * 1000
 
-export class VMix extends EventEmitter {
+export type VMixEvents = {
+	connected: []
+	disconnected: []
+	initialized: []
+	stateChanged: [state: VMixState]
+	debug: [msg: string]
+	error: [err: Error]
+}
+
+export class VMix extends EventEmitter<VMixEvents> {
 	public state: VMixState
 	public pingInterval = PING_INTERVAL
 
@@ -215,7 +224,7 @@ export class VMix extends EventEmitter {
 					preview: Number(xmlState['vmix']['preview']['_text']),
 					transition: { effect: VMixTransitionType.Cut, duration: 0 },
 				},
-				...mixes.map((mix): VMixMix => {
+				...mixes.map((mix: any): VMixMix => {
 					return {
 						number: Number(mix['_attributes']['number']),
 						program: Number(mix['active']['_text']),
@@ -404,7 +413,7 @@ export class VMix extends EventEmitter {
 
 		this.emit('debug', `Sending command: ${command}`)
 
-		return new Promise((resolve, reject) => {
+		return new Promise<void>((resolve, reject) => {
 			request.get(command, {}, (error) => {
 				if (error) {
 					this.setConnected(false)

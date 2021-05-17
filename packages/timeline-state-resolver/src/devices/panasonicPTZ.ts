@@ -255,9 +255,8 @@ export class PanasonicPtzDevice extends DeviceWithState<PanasonicPtzState> imple
 		}
 	}
 
-	// @ts-ignore no-unused-vars
 	private async _defaultCommandReceiver(
-		time: number,
+		_time: number,
 		cmd: PanasonicPtzCommand,
 		context: CommandContext,
 		timelineObjId: string

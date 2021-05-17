@@ -1808,7 +1808,7 @@ function content2StateLayer(
 		}
 		return o
 	}
-	return
+	return undefined
 }
 
 class VizEngineTcpSender extends EventEmitter {

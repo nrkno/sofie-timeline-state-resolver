@@ -1,4 +1,4 @@
-import { EventEmitter } from 'events'
+import { EventEmitter } from 'eventemitter3'
 import * as _ from 'underscore'
 import { SlowReportOptions } from 'timeline-state-resolver-types'
 
@@ -16,6 +16,12 @@ interface DoOrder {
 	prepareTime: number
 }
 
+export type DoOnTimeEvents = {
+	error: [err: Error]
+	slowCommand: [commandInfo: string]
+	commandReport: [commandReport: CommandReport]
+}
+
 export enum SendMode {
 	/** Send messages as quick as possible */
 	BURST = 1,
@@ -23,7 +29,7 @@ export enum SendMode {
 	IN_ORDER = 2,
 }
 export type DoOnTimeOptions = SlowReportOptions
-export class DoOnTime extends EventEmitter {
+export class DoOnTime extends EventEmitter<DoOnTimeEvents> {
 	getCurrentTime: () => number
 	private _i = 0
 	private _queues: {
@@ -40,16 +46,6 @@ export class DoOnTime extends EventEmitter {
 		[queueId: string]: boolean
 	} = {}
 	private _options: DoOnTimeOptions
-
-	// Overide EventEmitter.on() for stronger typings:
-	on: ((event: 'error', listener: (err: Error) => void) => this) &
-		((event: 'slowCommand', listener: (commandInfo: string) => void) => this) &
-		((event: 'commandReport', listener: (commandReport: CommandReport) => void) => this)
-
-	// Overide EventEmitter.emit() for stronger typings:
-	emit: ((event: 'error', err: Error) => boolean) &
-		((event: 'slowCommand', commandInfo: string) => boolean) & // A report that a command was sent too late
-		((event: 'commandReport', commandReport: CommandReport) => boolean) // A report of the command sent, emitted after it has been fulfilled
 
 	constructor(getCurrentTime: () => number, sendMode: SendMode = SendMode.BURST, options?: DoOnTimeOptions) {
 		super()
@@ -276,9 +272,6 @@ export class DoOnTime extends EventEmitter {
 	private _sendCommandReport(o: DoOrder, send: number, queueId: string) {
 		const fullfilled = this.getCurrentTime()
 		if (this.listenerCount('commandReport') > 0) {
-			// let sendDelay: number = endSend - o.time
-			// let fulfilledDelay: number = fullfilled - o.time
-
 			const output: CommandReport = {
 				added: o.addedTime,
 				prepareTime: o.prepareTime,

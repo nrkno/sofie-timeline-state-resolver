@@ -785,7 +785,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended> {
 						command: {
 							command: VMixCommand.SET_INPUT_OVERLAY,
 							input: key,
-							value: input.overlays![index],
+							value: input.overlays![Number(index)],
 							index: Number(index),
 						},
 						context: null,
@@ -963,7 +963,9 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended> {
 	): Array<VMixStateCommandWithContext> {
 		const commands: Array<VMixStateCommandWithContext> = []
 		_.map(newVMixState.outputs, (output, name) => {
-			if (!_.isEqual(output, oldVMixState.outputs[name])) {
+			const nameKey = name as keyof VMixStateExtended['outputs']
+			const oldOutput = nameKey in oldVMixState.outputs ? oldVMixState.outputs[nameKey] : undefined
+			if (!_.isEqual(output, oldOutput)) {
 				const value = output.source === 'Program' ? 'Output' : output.source
 				commands.push({
 					command: {
@@ -1022,7 +1024,7 @@ interface VMixOutput {
 	input?: number | string
 }
 
-export class VMixStateExtended {
+export interface VMixStateExtended {
 	reportedState: VMixState
 	outputs: {
 		External2: VMixOutput
@@ -1037,7 +1039,7 @@ export class VMixStateExtended {
 	inputLayers: { [key: string]: string }
 }
 
-export class VMixState {
+export interface VMixState {
 	version: string
 	edition: string // TODO: Enuum, need list of available editions: Trial
 	fixedInputsCount: number

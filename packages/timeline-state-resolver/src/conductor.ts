@@ -1,7 +1,7 @@
 import * as _ from 'underscore'
 import { TimelineState, ResolvedTimelineObjectInstance, ResolvedStates, TimelineObject } from 'superfly-timeline'
 
-import { CommandWithContext } from './devices/device'
+import { CommandWithContext, DeviceEvents } from './devices/device'
 import { CasparCGDevice, DeviceOptionsCasparCGInternal } from './devices/casparCG'
 import { AbstractDevice, DeviceOptionsAbstractInternal } from './devices/abstract'
 import { HTTPSendDevice, DeviceOptionsHTTPSendInternal } from './devices/httpSend'
@@ -13,7 +13,7 @@ import {
 	TSRTimeline,
 } from 'timeline-state-resolver-types'
 import { AtemDevice, DeviceOptionsAtemInternal } from './devices/atem'
-import { EventEmitter } from 'events'
+import { EventEmitter } from 'eventemitter3'
 import { LawoDevice, DeviceOptionsLawoInternal } from './devices/lawo'
 import { PanasonicPtzDevice, DeviceOptionsPanasonicPTZInternal } from './devices/panasonicPTZ'
 import { HyperdeckDevice, DeviceOptionsHyperdeckInternal } from './devices/hyperdeck'
@@ -52,7 +52,6 @@ export const DEFAULT_PREPARATION_TIME = 20 // When resolving "now", move this fa
 export type TimelineTriggerTimeResult = Array<{ id: string; time: number }>
 
 export { Device } from './devices/device'
-// export interface Device {}
 
 export interface ConductorOptions {
 	// devices: {
@@ -101,12 +100,24 @@ export interface StatReport {
 	done: number
 }
 
+export type ConductorEvents = {
+	error: [...args: any[]]
+	debug: [...args: any[]]
+	info: [...args: any[]]
+	warning: [...args: any[]]
+
+	setTimelineTriggerTime: [r: TimelineTriggerTimeResult]
+	timelineCallback: [time: number, instanceId: string, callback: string, callbackData: any]
+	resolveDone: [timelineHash: String, duration: number]
+	statReport: [report: StatReport]
+}
+
 /**
  * The Conductor class serves as the main class for interacting. It contains
  * methods for setting mappings, timelines and adding/removing devices. It keeps
  * track of when to resolve the timeline and updates the devices with new states.
  */
-export class Conductor extends EventEmitter {
+export class Conductor extends EventEmitter<ConductorEvents> {
 	private _logDebug = false
 	private _timeline: TSRTimeline = []
 	private _mappings: Mappings = {}
@@ -125,13 +136,13 @@ export class Conductor extends EventEmitter {
 		resolvedStates: null,
 		resolveTime: 0,
 	}
-	private _resolveTimelineTrigger: NodeJS.Timer
+	private _resolveTimelineTrigger: NodeJS.Timer | undefined
 	private _isInitialized = false
 	private _doOnTime: DoOnTime
 	private _multiThreadedResolver = false
 	private _useCacheWhenResolving = false
 
-	private _callbackInstances: { [instanceId: number]: CallbackInstance } = {}
+	private _callbackInstances = new Map<string, CallbackInstance>() // key = instanceId
 	private _triggerSendStartStopCallbacksTimeout: NodeJS.Timer | null = null
 	private _sentCallbacks: TimelineCallbacks = {}
 
@@ -143,7 +154,7 @@ export class Conductor extends EventEmitter {
 	private _statMeasureReason = ''
 	private _statReports: StatReport[] = []
 
-	private _resolver: ThreadedClass<AsyncResolver>
+	private _resolver!: ThreadedClass<AsyncResolver>
 
 	private _interval: NodeJS.Timer
 	private _timelineHash: string | undefined
@@ -204,7 +215,6 @@ export class Conductor extends EventEmitter {
 	 */
 	public getCurrentTime() {
 		if (this._getCurrentTime) {
-			// return 0
 			return this._getCurrentTime()
 		} else {
 			return Date.now()
@@ -444,7 +454,7 @@ export class Conductor extends EventEmitter {
 			}
 
 			newDevice.device
-				.on('debug', (...e) => {
+				.on('debug', (...e: any[]) => {
 					if (this.logDebug) {
 						this.emit('debug', newDevice.deviceId, ...e)
 					}
@@ -457,10 +467,10 @@ export class Conductor extends EventEmitter {
 			// Todo: split the addDevice function into two separate functions, so that the device is
 			// first created, then initated by the consumer, allowing for setup of listeners in between...
 
-			const onDeviceInfo = (...args) => this.emit('info', newDevice.instanceId, ...args)
-			const onDeviceWarning = (...args) => this.emit('warning', newDevice.instanceId, ...args)
-			const onDeviceError = (...args) => this.emit('error', newDevice.instanceId, ...args)
-			const onDeviceDebug = (...args) => this.emit('debug', newDevice.instanceId, ...args)
+			const onDeviceInfo = (...args: DeviceEvents['info']) => this.emit('info', newDevice.instanceId, ...args)
+			const onDeviceWarning = (...args: DeviceEvents['warning']) => this.emit('warning', newDevice.instanceId, ...args)
+			const onDeviceError = (...args: DeviceEvents['error']) => this.emit('error', newDevice.instanceId, ...args)
+			const onDeviceDebug = (...args: DeviceEvents['debug']) => this.emit('debug', newDevice.instanceId, ...args)
 
 			newDevice.device.on('info', onDeviceInfo).catch(console.error)
 			newDevice.device.on('warning', onDeviceWarning).catch(console.error)
@@ -594,6 +604,7 @@ export class Conductor extends EventEmitter {
 
 		if (this._resolveTimelineTrigger) {
 			clearTimeout(this._resolveTimelineTrigger)
+			delete this._resolveTimelineTrigger
 		}
 
 		if (timeUntilTrigger) {
@@ -628,7 +639,7 @@ export class Conductor extends EventEmitter {
 	private async _resolveTimelineInner(): Promise<number | undefined> {
 		if (!this._isInitialized) {
 			this.emit('warning', 'TSR is not initialized yet')
-			return
+			return undefined
 		}
 
 		let nextResolveTime = 0
@@ -667,7 +678,7 @@ export class Conductor extends EventEmitter {
 					// If the resolveTime is too far ahead, we'd rather wait and resolve it later.
 					this.emit('debug', 'Too far ahead (' + resolveTime + ')')
 					this._triggerResolveTimeline(LOOKAHEADTIME)
-					return
+					return undefined
 				}
 			}
 
@@ -704,7 +715,9 @@ export class Conductor extends EventEmitter {
 			// To prevent trying to transfer circular references over IPC we remove
 			// any references to the parent property:
 			const deleteParent = (o: TimelineObject) => {
-				delete o['parent']
+				if ('parent' in o) {
+					delete o['parent']
+				}
 			}
 			_.each(timeline, (o) => applyRecursively(o, deleteParent))
 
@@ -750,7 +763,7 @@ export class Conductor extends EventEmitter {
 			statTimeTimelineResolved = Date.now()
 
 			if (this.getCurrentTime() > resolveTime) {
-				this.emit('warn', `Resolver is ${this.getCurrentTime() - resolveTime} ms late`)
+				this.emit('warning', `Resolver is ${this.getCurrentTime() - resolveTime} ms late`)
 			}
 
 			const layersPerDevice = this.filterLayersPerDevice(tlState.layers, _.values(this.devices))
@@ -949,18 +962,18 @@ export class Conductor extends EventEmitter {
 		})
 		this._sentCallbacks = activeObjects
 	}
-	private _queueCallback(playing: boolean, cb: QueueCallback) {
+	private _queueCallback(playing: boolean, cb: QueueCallback): void {
 		let o: CallbackInstance
 
-		if (this._callbackInstances[cb.instanceId]) {
-			o = this._callbackInstances[cb.instanceId]
+		if (this._callbackInstances.has(cb.instanceId)) {
+			o = this._callbackInstances.get(cb.instanceId)!
 		} else {
 			o = {
 				playing: undefined,
 				playChanged: false,
 				endChanged: false,
 			}
-			this._callbackInstances[cb.instanceId] = o
+			this._callbackInstances.set(cb.instanceId, o)
 		}
 
 		if (o.playing !== playing) {
@@ -1021,7 +1034,7 @@ export class Conductor extends EventEmitter {
 
 		const callbacks: QueueCallback[] = []
 
-		_.each(this._callbackInstances, (o: CallbackInstance, instanceId: string) => {
+		for (const [instanceId, o] of this._callbackInstances.entries()) {
 			if (o.endChanged && o.endTime && o.endCallback) {
 				if (o.endTime < now - CALLBACK_WAIT_TIME) {
 					callbacks.push(o.endCallback)
@@ -1041,12 +1054,12 @@ export class Conductor extends EventEmitter {
 			}
 
 			if (!haveThingsToSendLater && !o.playChanged && !o.endChanged) {
-				delete this._callbackInstances[instanceId]
+				this._callbackInstances.delete(instanceId)
 			}
-		})
+		}
 
 		// Sort the callbacks:
-		const callbacksArray = _.values(callbacks).sort((a, b) => {
+		const callbacksArray = Object.values(callbacks).sort((a, b) => {
 			if (a.type === 'start' && b.type !== 'start') return 1
 			if (a.type !== 'start' && b.type === 'start') return -1
 
@@ -1141,6 +1154,4 @@ export type DeviceOptionsAnyInternal =
 	| DeviceOptionsSingularLiveInternal
 	| DeviceOptionsVMixInternal
 	| DeviceOptionsShotokuInternal
-	| DeviceOptionsVizMSEInternal
-	| DeviceOptionsSingularLiveInternal
 	| DeviceOptionsVizMSEInternal

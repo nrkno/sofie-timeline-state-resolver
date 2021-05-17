@@ -107,6 +107,7 @@
 		"debug": "^4.3.1",
 		"deepmerge": "^4.2.2",
 		"emberplus-connection": "^0.0.3",
+		"eventemitter3": "^4.0.7",
 		"hyperdeck-connection": "^0.4.3",
 		"osc": "^2.4.0",
 		"p-all": "^3.0.0",
