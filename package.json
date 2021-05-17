@@ -10,7 +10,7 @@
   },
   "scripts": {
     "build": "yarn lerna exec yarn build",
-    "lint": "yarn lerna exec yarn lint",
+    "lint": "yarn lerna exec yarn lint -- --",
     "test": "yarn lerna exec yarn test",
     "watch": "lerna run --parallel build:main -- --watch --preserveWatchOutput",
     "docs": "yarn typedoc .",

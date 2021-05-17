@@ -25,8 +25,6 @@ export interface MappingSisyfosChannels extends MappingSisyfosBase {
 }
 
 export enum TimelineContentTypeSisyfos {
-	/** @deprecated use CHANNEL instead */
-	SISYFOS = 'sisyfos',
 	CHANNEL = 'channel',
 	CHANNELS = 'channels',
 	TRIGGERVALUE = 'triggerValue'
@@ -79,6 +77,3 @@ export interface TimelineObjSisyfosChannels extends TimelineObjSisyfos {
 		triggerValue?: string
 	}
 }
-// Backwards compatibility:
-/** @deprecated use TimelineObjSisyfosChannel instead */
-export type TimelineObjSisyfosMessage = TimelineObjSisyfosChannel

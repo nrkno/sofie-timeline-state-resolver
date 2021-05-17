@@ -5,7 +5,7 @@ import {
 	DeviceType,
 	DeviceInitOptions,
 	DeviceOptionsAny,
-	MediaObject,
+	MediaObject
 } from 'timeline-state-resolver-types'
 import { EventEmitter } from 'events'
 import { CommandReport, DoOnTime } from '../doOnTime'

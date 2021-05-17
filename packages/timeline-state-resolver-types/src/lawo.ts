@@ -68,7 +68,7 @@ export enum TimelineContentTypeLawo { //  Lawo-state
 	TRIGGER_VALUE = 'triggervalue'
 }
 
-export type TimelineObjLawoAny = TimelineObjLawoSources | TimelineObjLawoSource | TimelineObjLawoSourceDeprecated | TimelineObjLawoEmberProperty | TimelineObjLawoEmberRetrigger
+export type TimelineObjLawoAny = TimelineObjLawoSources | TimelineObjLawoSource | TimelineObjLawoEmberProperty | TimelineObjLawoEmberRetrigger
 
 export interface ContentTimelineObjLawoSource {
 	faderValue: number
@@ -90,18 +90,6 @@ export interface TimelineObjLawoSources extends TimelineObjLawoBase {
 			mappingName: string
 		} & ContentTimelineObjLawoSource>
 		overridePriority?: number // defaults to 0
-	}
-}
-// TODO - remove this interface during the next breaking change:
-export interface TimelineObjLawoSourceDeprecated extends TimelineObjLawoBase {
-	content: {
-		deviceType: DeviceType.LAWO
-		type: TimelineContentTypeLawo.SOURCE
-
-		'Fader/Motor dB Value': {
-			value: number
-			transitionDuration?: number
-		}
 	}
 }
 export interface TimelineObjLawoSource extends TimelineObjLawoBase {

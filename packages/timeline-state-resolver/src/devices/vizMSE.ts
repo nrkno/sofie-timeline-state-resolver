@@ -23,7 +23,7 @@ import {
 	VIZMSEOutTransition,
 	VIZMSETransitionType,
 	Mappings,
-	MediaObject,
+	MediaObject
 } from 'timeline-state-resolver-types'
 
 import {

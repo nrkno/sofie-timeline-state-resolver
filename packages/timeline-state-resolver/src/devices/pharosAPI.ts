@@ -198,7 +198,7 @@ export class Pharos extends EventEmitter {
 	private _keepAlive: boolean = false
 	private _replyReceived: boolean = false
 	private _queryString: string = ''
-	private _serverSessionKey: string | null = null
+	private _serverSessionKey: Int32Array | null = null
 	private _reconnectAttempts: number = 0
 	private _isConnecting: boolean = false
 	private _isReconnecting: boolean = false

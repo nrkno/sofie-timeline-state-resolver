@@ -111,8 +111,7 @@ export type TSRTimelineObj = (
 	TimelineObjSisyfosAny |
 	TimelineObjSingularLiveAny |
 	TimelineObjVMixAny |
-	TimelineObjVIZMSEAny |
-	TimelineObjSingularLiveAny
+	TimelineObjVIZMSEAny
 )
 
 export type TSRTimeline = Array<TSRTimelineObj>

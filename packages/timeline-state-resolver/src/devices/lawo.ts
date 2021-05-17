@@ -327,16 +327,9 @@ export class LawoDevice extends DeviceWithState<LawoState> implements IDevice {
 					}
 				} else if (mapping.identifier && lawoObj.content.type === TimelineContentTypeLawo.SOURCE) {
 					// mapping is for a source
-					let tlObjectSource: TimelineObjLawoSource = lawoObj as TimelineObjLawoSource
-					let fader: ContentTimelineObjLawoSource = tlObjectSource.content
+					const tlObjectSource: TimelineObjLawoSource = lawoObj as TimelineObjLawoSource
+					const fader: ContentTimelineObjLawoSource = tlObjectSource.content
 					const priority = tlObjectSource.content.overridePriority
-					// TODO - next breaking change, remove deprecated tlObject typings "Fader/Motor dB Value"
-					if ('Fader/Motor dB Value' in tlObjectSource.content) {
-						fader = {
-							faderValue: tlObjectSource.content['Fader/Motor dB Value'].value,
-							transitionDuration: tlObjectSource.content['Fader/Motor dB Value'].transitionDuration
-						}
-					}
 					pushFader(mapping.identifier, fader, mapping, tlObject.id, priority)
 
 				} else if (mapping.identifier && lawoObj.content.type === TimelineContentTypeLawo.EMBER_PROPERTY) {
