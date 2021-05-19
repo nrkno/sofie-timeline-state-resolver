@@ -25,7 +25,7 @@ describe('Quantel', () => {
 		onRequest.mockClear()
 	}
 	async function setupDefaultQuantelDeviceForTest() {
-		let device
+		let device: any = undefined
 		const commandReceiver0: any = jest.fn((...args) => {
 			// pipe through the command
 			return device._defaultCommandReceiver(...args)

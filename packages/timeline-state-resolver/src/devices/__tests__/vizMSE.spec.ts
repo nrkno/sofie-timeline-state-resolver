@@ -204,7 +204,8 @@ describe('vizMSE', () => {
 		})
 	})
 	test('vizMSE: External/Pilot element', async () => {
-		let device: any
+		let device: any = undefined
+
 		const commandReceiver0 = jest.fn((...args) => {
 			return device._defaultCommandReceiver(...args)
 		})
@@ -245,7 +246,8 @@ describe('vizMSE', () => {
 		await mockTime.advanceTimeToTicks(10100)
 
 		const deviceContainer = myConductor.getDevice('myViz')
-		device = deviceContainer.device as ThreadedClass<VizMSEDevice>
+		device = deviceContainer!.device as ThreadedClass<VizMSEDevice>
+
 		await device.ignoreWaitsInTests()
 		// Check that no commands has been scheduled:
 		expect(await device.queue).toHaveLength(0)
@@ -740,7 +742,7 @@ describe('vizMSE', () => {
 		})
 	})
 	test('vizMSE: Delayed External/Pilot element', async () => {
-		let device: any
+		let device: any = undefined
 		const commandReceiver0 = jest.fn((...args) => {
 			return device._defaultCommandReceiver(...args)
 		})

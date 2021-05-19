@@ -1,8 +1,9 @@
+import * as fs from 'fs'
 import { EventEmitter } from 'events'
 import { EmberValue } from 'timeline-state-resolver-types'
 
 // @ts-ignore import json file
-const mockData = require('./lawo-out.json')
+const mockData = JSON.parse(fs.readFileSync('./lawo-out.json', 'utf8'))
 
 export class Node {
 	node: any
@@ -33,7 +34,7 @@ export class Node {
 
 export class DeviceTree extends EventEmitter {
 	connect() {
-		return new Promise((resolve) => resolve())
+		return Promise.resolve()
 	}
 
 	isConnected() {
@@ -42,14 +43,12 @@ export class DeviceTree extends EventEmitter {
 
 	getNodeByPath(path: string) {
 		// console.log('get node', path)
-		return new Promise((resolve) => resolve(new Node(path)))
+		return Promise.resolve(new Node(path))
 	}
 
 	setValue(node: Node, value: EmberValue) {
-		node = node // not used
-		value = value // not used
 		node.node.contents.value = value
 		console.log(node.node.contents.value, value)
-		return new Promise((resolve) => resolve())
+		return Promise.resolve()
 	}
 }

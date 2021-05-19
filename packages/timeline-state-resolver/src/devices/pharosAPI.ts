@@ -90,9 +90,7 @@ export interface GroupInfo {
 		num: number // 0-100
 	}>
 }
-export interface ContentTargetInfo {
-	// Data structure unknown
-}
+export type ContentTargetInfo = unknown // Data structure unknown
 export interface ControllerInfo {
 	controllers: Array<{
 		ip_address: string

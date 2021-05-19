@@ -8,8 +8,8 @@ export class Socket extends EventEmitter {
 	public onConnect: (port: number, host: string) => void
 	public onClose: () => void
 
-	private _port: number
-	private _host: string
+	// private _port: number
+	// private _host: string
 	private _connected = false
 
 	constructor() {
@@ -34,12 +34,8 @@ export class Socket extends EventEmitter {
 	// this.emit('end')
 
 	public connect(port, host, cb) {
-		this._port = port
-		this._host = host
-
-		// hack: "is declared but its value is never read."
-		this._port = this._port
-		this._host = this._host
+		// this._port = port
+		// this._host = host
 
 		if (this.onConnect) this.onConnect(port, host)
 		setTimeoutOrg(() => {

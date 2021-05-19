@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-empty-interface */
 // Copied from https://github.com/colinbdclark/osc.js/pull/105
 
 declare module 'osc' {

@@ -1,5 +1,4 @@
-import * as _ from 'underscore'
-const request = require('../../__mocks__/request')
+import request = require('../../__mocks__/request')
 // const orgSetTimeout = setTimeout
 
 /*
@@ -50,7 +49,7 @@ export function setupVmixMock() {
 	}
 
 	// @ts-ignore: not logging
-	const onRequest = jest.fn((type: string, url: string) => {
+	const onRequest = jest.fn((_type: string, _url: string) => {
 		// console.log('onRequest', type, url)
 	})
 
@@ -114,7 +113,7 @@ function urlRoute(requestType: string, url: string, routes: { [route: string]: (
 		if (!found) {
 			const callback = routes[route]
 
-			const paramList = route.match(/(:[^\/]+)/g) || []
+			const paramList = route.match(/(:[^/]+)/g) || []
 
 			route = route.replace(/\?/g, '\\?')
 
@@ -158,7 +157,7 @@ function handleRequest(
 		}
 
 		try {
-			const resource = (url.match(/http:\/\/[^\/]+(.*)/) || [])[1] || ''
+			const resource = (url.match(/http:\/\/[^/]+(.*)/) || [])[1] || ''
 
 			let body: object = {}
 

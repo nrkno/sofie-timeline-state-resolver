@@ -16,7 +16,7 @@ describe('Pharos', () => {
 		mockTime.init()
 	})
 	test('Scene', async () => {
-		let device
+		let device: any = undefined
 		const commandReceiver0: any = jest.fn((...args) => {
 			// pipe through the command
 			return device._defaultCommandReceiver(...args)

@@ -55,7 +55,7 @@ describe('vMix', () => {
 		vmixServer.serverIsUp = true
 	})
 	test('Add and remove input', async () => {
-		let device
+		let device: any = undefined
 		const commandReceiver0 = jest.fn((...args) => {
 			// pipe through the command
 			return device._defaultCommandReceiver(...args)
@@ -232,7 +232,7 @@ describe('vMix', () => {
 	})
 
 	test('Input properties', async () => {
-		let device
+		let device: any = undefined
 		const commandReceiver0 = jest.fn((...args) => {
 			// pipe through the command
 			return device._defaultCommandReceiver(...args)
@@ -540,7 +540,7 @@ describe('vMix', () => {
 	})
 
 	test('Input properties 2', async () => {
-		let device
+		let device: any = undefined
 		const commandReceiver0 = jest.fn((...args) => {
 			// pipe through the command
 			return device._defaultCommandReceiver(...args)
@@ -764,7 +764,7 @@ describe('vMix', () => {
 	})
 
 	test('Address input by its layer', async () => {
-		let device
+		let device: any = undefined
 		const commandReceiver0 = jest.fn((...args) => {
 			// pipe through the command
 			return device._defaultCommandReceiver(...args)
@@ -1089,7 +1089,7 @@ describe('vMix', () => {
 	})
 
 	test('Audio channel', async () => {
-		let device
+		let device: any = undefined
 		const commandReceiver0 = jest.fn((...args) => {
 			// pipe through the command
 			return device._defaultCommandReceiver(...args)
@@ -1461,7 +1461,7 @@ describe('vMix', () => {
 	})
 
 	test('Mix buses', async () => {
-		let device
+		let device: any = undefined
 		const commandReceiver0 = jest.fn((...args) => {
 			// pipe through the command
 			return device._defaultCommandReceiver(...args)
@@ -1717,7 +1717,7 @@ describe('vMix', () => {
 	})
 
 	test('Overlay', async () => {
-		let device
+		let device: any = undefined
 		const commandReceiver0 = jest.fn((...args) => {
 			// pipe through the command
 			return device._defaultCommandReceiver(...args)
@@ -1849,7 +1849,7 @@ describe('vMix', () => {
 	})
 
 	test('Recording', async () => {
-		let device
+		let device: any = undefined
 		const commandReceiver0 = jest.fn((...args) => {
 			// pipe through the command
 			return device._defaultCommandReceiver(...args)
@@ -1973,7 +1973,7 @@ describe('vMix', () => {
 	})
 
 	test('External', async () => {
-		let device
+		let device: any = undefined
 		const commandReceiver0 = jest.fn((...args) => {
 			// pipe through the command
 			return device._defaultCommandReceiver(...args)
@@ -2097,7 +2097,7 @@ describe('vMix', () => {
 	})
 
 	test('Streaming', async () => {
-		let device
+		let device: any = undefined
 		const commandReceiver0 = jest.fn((...args) => {
 			// pipe through the command
 			return device._defaultCommandReceiver(...args)
@@ -2221,7 +2221,7 @@ describe('vMix', () => {
 	})
 
 	test('Output', async () => {
-		let device
+		let device: any = undefined
 		const commandReceiver0 = jest.fn((...args) => {
 			// pipe through the command
 			return device._defaultCommandReceiver(...args)
@@ -2358,7 +2358,7 @@ describe('vMix', () => {
 	})
 
 	test('Output an Input', async () => {
-		let device
+		let device: any = undefined
 		const commandReceiver0 = jest.fn((...args) => {
 			// pipe through the command
 			return device._defaultCommandReceiver(...args)
@@ -2497,7 +2497,7 @@ describe('vMix', () => {
 	})
 
 	test('Fade To Black', async () => {
-		let device
+		let device: any = undefined
 		const commandReceiver0 = jest.fn((...args) => {
 			// pipe through the command
 			return device._defaultCommandReceiver(...args)
@@ -2621,7 +2621,7 @@ describe('vMix', () => {
 	})
 
 	test('Fader', async () => {
-		let device
+		let device: any = undefined
 		const commandReceiver0 = jest.fn((...args) => {
 			// pipe through the command
 			return device._defaultCommandReceiver(...args)

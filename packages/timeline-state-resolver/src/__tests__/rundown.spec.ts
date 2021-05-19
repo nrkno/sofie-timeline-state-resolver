@@ -8,7 +8,6 @@ import {
 } from 'timeline-state-resolver-types'
 import { Conductor } from '../conductor'
 import { MockTime } from './mockTime'
-import * as _ from 'underscore'
 import { getMockCall } from './lib'
 
 // let nowActual: number = Date.now()

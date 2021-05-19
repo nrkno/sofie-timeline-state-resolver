@@ -31,8 +31,9 @@ export class CasparCG extends EventEmitter {
 		instances.push(this)
 	}
 
-	do(cmd) {
-		mockDo.apply(this, arguments)
+	do(...args: unknown[]) {
+		mockDo.apply(this, args)
+		const cmd = args[0]
 		return Promise.resolve(cmd)
 	}
 

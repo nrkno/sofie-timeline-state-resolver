@@ -155,15 +155,14 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> implements IDe
 	/**
 	 * Makes this device ready for garbage collection.
 	 */
-	terminate(): Promise<boolean> {
+	async terminate(): Promise<boolean> {
 		this._doOnTime.dispose()
 		if (this._recTimePollTimer) clearTimeout(this._recTimePollTimer)
 
-		return new Promise(async (resolve) => {
-			await this._hyperdeck.disconnect()
-			this._hyperdeck.removeAllListeners()
-			resolve(true)
-		})
+		await this._hyperdeck.disconnect()
+		this._hyperdeck.removeAllListeners()
+
+		return true
 	}
 
 	/**
@@ -186,7 +185,7 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> implements IDe
 	 * calls this._queryRecordingTime
 	 */
 	async formatDisks() {
-		const wait = (t) => new Promise((resolve) => setTimeout(() => resolve(), t))
+		const wait = (t: number) => new Promise<void>((resolve) => setTimeout(() => resolve(), t))
 
 		for (let i = 1; i <= this._slots; i++) {
 			// select slot
@@ -443,7 +442,7 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> implements IDe
 
 		if (oldHyperdeckState.transport && newHyperdeckState.transport) {
 			switch (newHyperdeckState.transport.status) {
-				case TransportStatus.RECORD:
+				case TransportStatus.RECORD: {
 					// TODO - sometimes we can loose track of the filename (eg on reconnect).
 					// should we split the record when recovering from that? (it might loose some frames)
 					const filenameChanged =
@@ -481,6 +480,7 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> implements IDe
 					} // else continue recording
 
 					break
+				}
 				default:
 					// TODO - warn
 					// for now we are assuming they want a stop. that could be conditional later on

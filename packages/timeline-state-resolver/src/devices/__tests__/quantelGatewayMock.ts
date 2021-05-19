@@ -24,7 +24,7 @@ export function setupQuantelGatewayMock() {
 	}
 
 	// @ts-ignore: not logging
-	const onRequest = jest.fn((type: string, url: string) => {
+	const onRequest = jest.fn((_type: string, _url: string) => {
 		// console.log('onRequest', type, url)
 	})
 
@@ -108,7 +108,7 @@ function urlRoute(requestType: string, url: string, routes: { [route: string]: (
 		if (!found) {
 			const callback = routes[route]
 
-			const paramList = route.match(/(:[^\/]+)/g) || []
+			const paramList = route.match(/(:[^/]+)/g) || []
 
 			route = route.replace(/\?/g, '\\?')
 
@@ -143,7 +143,7 @@ function handleRequest(quantelServer: QuantelServerMockOptions, triggerFcn: Func
 		triggerFcn(type, url)
 
 		try {
-			const resource = (url.match(/http:\/\/[^\/]+(.*)/) || [])[1] || ''
+			const resource = (url.match(/http:\/\/[^/]+(.*)/) || [])[1] || ''
 
 			let body: object = {}
 			// let m: any
@@ -214,14 +214,14 @@ function handleRequest(quantelServer: QuantelServerMockOptions, triggerFcn: Func
 
 			body = urlRoute(type, resource, {
 				// @ts-ignore: no need for params
-				'post /connect/:isaURL': (params) => {
+				'post /connect/:isaURL': (_params) => {
 					quantelServer.ISAOptionHasBeenProvided = true
 					return {
 						something: 1234,
 					}
 				},
 				// @ts-ignore: no need for params
-				'get /:zoneID/server': (params): Q.ServerInfo[] | ErrorResponse => {
+				'get /:zoneID/server': (_params): Q.ServerInfo[] | ErrorResponse => {
 					if (!quantelServer.ISAOptionHasBeenProvided) return noIsaSetupResponse
 
 					return [

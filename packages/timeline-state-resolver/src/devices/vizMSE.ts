@@ -45,10 +45,7 @@ const INIT_RETRY_INTERVAL = 3000
 
 export function getHash(str: string): string {
 	const hash = crypto.createHash('sha1')
-	return hash
-		.update(str)
-		.digest('base64')
-		.replace(/[\+\/\=]/g, '_') // remove +/= from strings, because they cause troubles
+	return hash.update(str).digest('base64').replace(/[+/=]/g, '_') // remove +/= from strings, because they cause troubles
 }
 
 export interface DeviceOptionsVizMSEInternal extends DeviceOptionsVizMSE {
@@ -1476,8 +1473,6 @@ class VizMSEManager extends EventEmitter {
 					else notLoaded++
 				})
 
-				loaded = loaded // loaded isn't really used anywhere
-
 				if (notLoaded > 0 || loading > 0) {
 					// emit debug data
 					this.emit('debug', `Items on queue: notLoaded: ${notLoaded} loading: ${loading}, loaded: ${loaded}`)
@@ -1505,6 +1500,7 @@ class VizMSEManager extends EventEmitter {
 		let i = 0
 		const maxNumberOfTries = 5
 
+		// eslint-disable-next-line no-constant-condition
 		while (true) {
 			try {
 				this._triggerCommandSent()

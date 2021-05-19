@@ -3,7 +3,7 @@ import { Mappings, DeviceType, MappingHTTPWatcher } from 'timeline-state-resolve
 import { MockTime } from '../../__tests__/mockTime'
 import { StatusCode } from '../device'
 
-const request = require('../../__mocks__/request')
+import request = require('../../__mocks__/request')
 
 const myLayerMapping0: MappingHTTPWatcher = {
 	device: DeviceType.HTTPWATCHER,

@@ -33,7 +33,7 @@ describe('Hyperdeck', () => {
 	})
 
 	test('Hyperdeck: Record', async () => {
-		let device: ThreadedClass<HyperdeckDevice>
+		let device: ThreadedClass<HyperdeckDevice> | undefined = undefined
 
 		const commandReceiver0: any = jest.fn((...args: any[]) => {
 			// Just forward the command:
@@ -75,7 +75,7 @@ describe('Hyperdeck', () => {
 		hyperdeckMock.setMockCommandReceiver(hyperdeckMockCommand)
 
 		const deviceContainer = myConductor.getDevice('hyperdeck0')
-		device = deviceContainer.device as ThreadedClass<HyperdeckDevice>
+		device = deviceContainer!.device as ThreadedClass<HyperdeckDevice>
 
 		// Check that no commands has been scheduled:
 		expect(await device.queue).toHaveLength(0)

@@ -197,13 +197,11 @@ export class AbstractDevice extends DeviceWithState<AbstractState> implements ID
 		return commands
 	}
 	private _defaultCommandReceiver(
-		time: number,
+		_time: number,
 		cmd: Command,
 		context: CommandContext,
 		timelineObjId: string
 	): Promise<any> {
-		time = time
-
 		// emit the command to debug:
 		const cwc: CommandWithContext = {
 			timelineObjId: timelineObjId,

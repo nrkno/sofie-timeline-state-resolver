@@ -1,4 +1,3 @@
-import * as _ from 'underscore'
 import { DeviceStatus, StatusCode, Device, IDevice } from './device'
 import {
 	DeviceType,

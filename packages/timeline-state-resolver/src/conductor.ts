@@ -124,7 +124,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 
 	private _options: ConductorOptions
 
-	private devices: { [deviceId: string]: DeviceContainer } = {}
+	private devices = new Map<string, DeviceContainer>()
 
 	private _getCurrentTime?: () => number
 
@@ -262,10 +262,10 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 	}
 
 	public getDevices(): Array<DeviceContainer> {
-		return _.values(this.devices)
+		return Array.from(this.devices.values())
 	}
-	public getDevice(deviceId: string): DeviceContainer {
-		return this.devices[deviceId]
+	public getDevice(deviceId: string): DeviceContainer | undefined {
+		return this.devices.get(deviceId)
 	}
 
 	/**
@@ -483,7 +483,11 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 					DeviceType[deviceOptions.type]
 				}...`
 			)
-			this.devices[deviceId] = newDevice
+			if (this.devices.has(deviceId)) {
+				throw new Error(`Device "${deviceId}" already exists when creating device`)
+			}
+
+			this.devices.set(deviceId, newDevice)
 
 			// TODO - should the device be on this.devices yet? sounds like we could instruct it to do things before it has initialised?
 
@@ -511,7 +515,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 	 * @param deviceId The id of the device to be removed
 	 */
 	public async removeDevice(deviceId: string): Promise<void> {
-		const device = this.devices[deviceId]
+		const device = this.devices.get(deviceId)
 		if (device) {
 			try {
 				await device.device.terminate()
@@ -521,7 +525,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 			}
 			await device.terminate()
 
-			delete this.devices[deviceId]
+			this.devices.delete(deviceId)
 		} else {
 			return Promise.reject('No device found')
 		}
@@ -589,7 +593,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 
 	private _mapAllDevices<T>(fcn: (d: DeviceContainer) => Promise<T>): Promise<T[]> {
 		return PAll(
-			_.map(_.values(this.devices), (d) => () => fcn(d)),
+			Array.from(this.devices.values()).map((d) => () => fcn(d)),
 			{
 				stopOnError: false,
 			}
@@ -691,8 +695,8 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 			// })
 			// TODO - the PAll way of doing this provokes https://github.com/nrkno/tv-automation-state-timeline-resolver/pull/139
 			// The doOnTime calls fire before this, meaning we cleanup the state for a time we have already sent commands for
-			const pPrepareForHandleStates: Promise<any> = Promise.all(
-				_.map(this.devices, async (device: DeviceContainer): Promise<any> => {
+			const pPrepareForHandleStates: Promise<unknown> = Promise.all(
+				Array.from(this.devices.values()).map(async (device: DeviceContainer): Promise<void> => {
 					await device.device.prepareForHandleState(resolveTime)
 				})
 			).catch((error) => {
@@ -766,7 +770,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 				this.emit('warning', `Resolver is ${this.getCurrentTime() - resolveTime} ms late`)
 			}
 
-			const layersPerDevice = this.filterLayersPerDevice(tlState.layers, _.values(this.devices))
+			const layersPerDevice = this.filterLayersPerDevice(tlState.layers, Array.from(this.devices.values()))
 
 			// Push state to the right device:
 			await this._mapAllDevices(async (device: DeviceContainer): Promise<void> => {

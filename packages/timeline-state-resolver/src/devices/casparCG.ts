@@ -397,7 +397,7 @@ export class CasparCGDevice extends DeviceWithState<State> implements IDevice {
 					media: recordObj.content.file,
 					encoderOptions: recordObj.content.encoderOptions,
 					playing: true,
-					playTime: startTime || 0,
+					playTime: startTime,
 				})
 			}
 		}
@@ -422,7 +422,7 @@ export class CasparCGDevice extends DeviceWithState<State> implements IDevice {
 				case TimelineContentTypeCasparCg.TEMPLATE:
 				case TimelineContentTypeCasparCg.INPUT:
 				case TimelineContentTypeCasparCg.ROUTE:
-				case TimelineContentTypeCasparCg.HTMLPAGE:
+				case TimelineContentTypeCasparCg.HTMLPAGE: {
 					// create transition object
 					const media = stateLayer.media
 					const transitions = {} as any
@@ -437,6 +437,7 @@ export class CasparCGDevice extends DeviceWithState<State> implements IDevice {
 						outTransition: transitions.outTransition,
 					})
 					break
+				}
 				default:
 					// create transition using mixer
 					break
@@ -615,7 +616,7 @@ export class CasparCGDevice extends DeviceWithState<State> implements IDevice {
 					)
 					return Promise.resolve()
 				}
-				await new Promise((resolve) => {
+				await new Promise<void>((resolve) => {
 					setTimeout(() => resolve(), MAX_TIMESYNC_DURATION)
 				})
 				await attemptSync(channelNo, tries + 1)
@@ -654,8 +655,8 @@ export class CasparCGDevice extends DeviceWithState<State> implements IDevice {
 	/**
 	 * Attemps to restart casparcg over the HTTP API provided by CasparCG launcher.
 	 */
-	restartCasparCG(): Promise<any> {
-		return new Promise((resolve, reject) => {
+	restartCasparCG(): Promise<void> {
+		return new Promise<void>((resolve, reject) => {
 			if (!this.initOptions) throw new Error('CasparCGDevice._connectionOptions is not set!')
 			if (!this.initOptions.launcherHost) throw new Error('CasparCGDevice: config.launcherHost is not set!')
 			if (!this.initOptions.launcherPort) throw new Error('CasparCGDevice: config.launcherPort is not set!')
