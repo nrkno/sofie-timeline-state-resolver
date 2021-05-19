@@ -54,7 +54,7 @@ describe('OSC-Message', () => {
 		await mockTime.advanceTimeToTicks(10100)
 
 		const deviceContainer = myConductor.getDevice('osc0')
-		const device = deviceContainer.device as ThreadedClass<OSCMessageDevice>
+		const device = deviceContainer!.device as ThreadedClass<OSCMessageDevice>
 
 		// Check that no commands has been scheduled:
 		expect(await device.queue).toHaveLength(0)
@@ -156,7 +156,7 @@ describe('OSC-Message', () => {
 		await mockTime.advanceTimeToTicks(10100)
 
 		const deviceContainer = myConductor.getDevice('osc0')
-		const device = deviceContainer.device as ThreadedClass<OSCMessageDevice>
+		const device = deviceContainer!.device as ThreadedClass<OSCMessageDevice>
 
 		// Check that no commands has been scheduled:
 		expect(await device.queue).toHaveLength(0)

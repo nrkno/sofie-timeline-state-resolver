@@ -79,7 +79,7 @@ describe('Pharos', () => {
 		await mockTime.advanceTimeToTicks(10100)
 
 		const deviceContainer = myConductor.getDevice('myPharos')
-		device = deviceContainer.device as ThreadedClass<PharosDevice>
+		device = deviceContainer!.device as ThreadedClass<PharosDevice>
 
 		expect(mockReply).toHaveBeenCalledTimes(1)
 		expect(getMockCall(mockReply, 0, 1)).toMatch(/project/) // get project info

@@ -76,7 +76,6 @@ describe('vMix', () => {
 		})
 		const errorHandler = jest.fn((...args) => console.log('Error in device', ...args))
 		myConductor.on('error', errorHandler)
-		myConductor.on('commandError', errorHandler)
 
 		await myConductor.init()
 
@@ -93,7 +92,7 @@ describe('vMix', () => {
 		)
 
 		const deviceContainer = myConductor.getDevice('myvmix')
-		device = deviceContainer.device as ThreadedClass<VMixDevice>
+		device = deviceContainer!.device as ThreadedClass<VMixDevice>
 		const deviceErrorHandler = jest.fn((...args) => console.log('Error in device', ...args))
 		device.on('error', deviceErrorHandler)
 		device.on('commandError', deviceErrorHandler)
@@ -253,7 +252,6 @@ describe('vMix', () => {
 		})
 		const errorHandler = jest.fn((...args) => console.log('Error in device', ...args))
 		myConductor.on('error', errorHandler)
-		myConductor.on('commandError', errorHandler)
 
 		await myConductor.init()
 
@@ -270,7 +268,7 @@ describe('vMix', () => {
 		)
 
 		const deviceContainer = myConductor.getDevice('myvmix')
-		device = deviceContainer.device as ThreadedClass<VMixDevice>
+		device = deviceContainer!.device as ThreadedClass<VMixDevice>
 		const deviceErrorHandler = jest.fn((...args) => console.log('Error in device', ...args))
 		device.on('error', deviceErrorHandler)
 		device.on('commandError', deviceErrorHandler)
@@ -562,7 +560,6 @@ describe('vMix', () => {
 		})
 		const errorHandler = jest.fn((...args) => console.log('Error in device', ...args))
 		myConductor.on('error', errorHandler)
-		myConductor.on('commandError', errorHandler)
 
 		await myConductor.init()
 
@@ -579,7 +576,7 @@ describe('vMix', () => {
 		)
 
 		const deviceContainer = myConductor.getDevice('myvmix')
-		device = deviceContainer.device as ThreadedClass<VMixDevice>
+		device = deviceContainer!.device as ThreadedClass<VMixDevice>
 		const deviceErrorHandler = jest.fn((...args) => console.log('Error in device', ...args))
 		device.on('error', deviceErrorHandler)
 		device.on('commandError', deviceErrorHandler)
@@ -798,7 +795,6 @@ describe('vMix', () => {
 		})
 		const errorHandler = jest.fn((...args) => console.log('Error in device', ...args))
 		myConductor.on('error', errorHandler)
-		myConductor.on('commandError', errorHandler)
 
 		await myConductor.init()
 
@@ -815,7 +811,7 @@ describe('vMix', () => {
 		)
 
 		const deviceContainer = myConductor.getDevice('myvmix')
-		device = deviceContainer.device as ThreadedClass<VMixDevice>
+		device = deviceContainer!.device as ThreadedClass<VMixDevice>
 		const deviceErrorHandler = jest.fn((...args) => console.log('Error in device', ...args))
 		device.on('error', deviceErrorHandler)
 		device.on('commandError', deviceErrorHandler)
@@ -1111,7 +1107,6 @@ describe('vMix', () => {
 		})
 		const errorHandler = jest.fn((...args) => console.log('Error in device', ...args))
 		myConductor.on('error', errorHandler)
-		myConductor.on('commandError', errorHandler)
 
 		await myConductor.init()
 
@@ -1128,7 +1123,7 @@ describe('vMix', () => {
 		)
 
 		const deviceContainer = myConductor.getDevice('myvmix')
-		device = deviceContainer.device as ThreadedClass<VMixDevice>
+		device = deviceContainer!.device as ThreadedClass<VMixDevice>
 		const deviceErrorHandler = jest.fn((...args) => console.log('Error in device', ...args))
 		device.on('error', deviceErrorHandler)
 		device.on('commandError', deviceErrorHandler)
@@ -1502,7 +1497,6 @@ describe('vMix', () => {
 		})
 		const errorHandler = jest.fn((...args) => console.log('Error in device', ...args))
 		myConductor.on('error', errorHandler)
-		myConductor.on('commandError', errorHandler)
 
 		await myConductor.init()
 
@@ -1519,7 +1513,7 @@ describe('vMix', () => {
 		)
 
 		const deviceContainer = myConductor.getDevice('myvmix')
-		device = deviceContainer.device as ThreadedClass<VMixDevice>
+		device = deviceContainer!.device as ThreadedClass<VMixDevice>
 		const deviceErrorHandler = jest.fn((...args) => console.log('Error in device', ...args))
 		device.on('error', deviceErrorHandler)
 		device.on('commandError', deviceErrorHandler)
@@ -1739,7 +1733,6 @@ describe('vMix', () => {
 		})
 		const errorHandler = jest.fn((...args) => console.log('Error in device', ...args))
 		myConductor.on('error', errorHandler)
-		myConductor.on('commandError', errorHandler)
 
 		await myConductor.init()
 
@@ -1756,7 +1749,7 @@ describe('vMix', () => {
 		)
 
 		const deviceContainer = myConductor.getDevice('myvmix')
-		device = deviceContainer.device as ThreadedClass<VMixDevice>
+		device = deviceContainer!.device as ThreadedClass<VMixDevice>
 		const deviceErrorHandler = jest.fn((...args) => console.log('Error in device', ...args))
 		device.on('error', deviceErrorHandler)
 		device.on('commandError', deviceErrorHandler)
@@ -1870,7 +1863,6 @@ describe('vMix', () => {
 		})
 		const errorHandler = jest.fn((...args) => console.log('Error in device', ...args))
 		myConductor.on('error', errorHandler)
-		myConductor.on('commandError', errorHandler)
 
 		await myConductor.init()
 
@@ -1887,7 +1879,7 @@ describe('vMix', () => {
 		)
 
 		const deviceContainer = myConductor.getDevice('myvmix')
-		device = deviceContainer.device as ThreadedClass<VMixDevice>
+		device = deviceContainer!.device as ThreadedClass<VMixDevice>
 		const deviceErrorHandler = jest.fn((...args) => console.log('Error in device', ...args))
 		device.on('error', deviceErrorHandler)
 		device.on('commandError', deviceErrorHandler)
@@ -1994,7 +1986,6 @@ describe('vMix', () => {
 		})
 		const errorHandler = jest.fn((...args) => console.log('Error in device', ...args))
 		myConductor.on('error', errorHandler)
-		myConductor.on('commandError', errorHandler)
 
 		await myConductor.init()
 
@@ -2011,7 +2002,7 @@ describe('vMix', () => {
 		)
 
 		const deviceContainer = myConductor.getDevice('myvmix')
-		device = deviceContainer.device as ThreadedClass<VMixDevice>
+		device = deviceContainer!.device as ThreadedClass<VMixDevice>
 		const deviceErrorHandler = jest.fn((...args) => console.log('Error in device', ...args))
 		device.on('error', deviceErrorHandler)
 		device.on('commandError', deviceErrorHandler)
@@ -2118,7 +2109,6 @@ describe('vMix', () => {
 		})
 		const errorHandler = jest.fn((...args) => console.log('Error in device', ...args))
 		myConductor.on('error', errorHandler)
-		myConductor.on('commandError', errorHandler)
 
 		await myConductor.init()
 
@@ -2135,7 +2125,7 @@ describe('vMix', () => {
 		)
 
 		const deviceContainer = myConductor.getDevice('myvmix')
-		device = deviceContainer.device as ThreadedClass<VMixDevice>
+		device = deviceContainer!.device as ThreadedClass<VMixDevice>
 		const deviceErrorHandler = jest.fn((...args) => console.log('Error in device', ...args))
 		device.on('error', deviceErrorHandler)
 		device.on('commandError', deviceErrorHandler)
@@ -2243,7 +2233,6 @@ describe('vMix', () => {
 		})
 		const errorHandler = jest.fn((...args) => console.log('Error in device', ...args))
 		myConductor.on('error', errorHandler)
-		myConductor.on('commandError', errorHandler)
 
 		await myConductor.init()
 
@@ -2260,7 +2249,7 @@ describe('vMix', () => {
 		)
 
 		const deviceContainer = myConductor.getDevice('myvmix')
-		device = deviceContainer.device as ThreadedClass<VMixDevice>
+		device = deviceContainer!.device as ThreadedClass<VMixDevice>
 		const deviceErrorHandler = jest.fn((...args) => console.log('Error in device', ...args))
 		device.on('error', deviceErrorHandler)
 		device.on('commandError', deviceErrorHandler)
@@ -2380,7 +2369,6 @@ describe('vMix', () => {
 		})
 		const errorHandler = jest.fn((...args) => console.log('Error in device', ...args))
 		myConductor.on('error', errorHandler)
-		myConductor.on('commandError', errorHandler)
 
 		await myConductor.init()
 
@@ -2397,7 +2385,7 @@ describe('vMix', () => {
 		)
 
 		const deviceContainer = myConductor.getDevice('myvmix')
-		device = deviceContainer.device as ThreadedClass<VMixDevice>
+		device = deviceContainer!.device as ThreadedClass<VMixDevice>
 		const deviceErrorHandler = jest.fn((...args) => console.log('Error in device', ...args))
 		device.on('error', deviceErrorHandler)
 		device.on('commandError', deviceErrorHandler)
@@ -2518,7 +2506,6 @@ describe('vMix', () => {
 		})
 		const errorHandler = jest.fn((...args) => console.log('Error in device', ...args))
 		myConductor.on('error', errorHandler)
-		myConductor.on('commandError', errorHandler)
 
 		await myConductor.init()
 
@@ -2535,7 +2522,7 @@ describe('vMix', () => {
 		)
 
 		const deviceContainer = myConductor.getDevice('myvmix')
-		device = deviceContainer.device as ThreadedClass<VMixDevice>
+		device = deviceContainer!.device as ThreadedClass<VMixDevice>
 		const deviceErrorHandler = jest.fn((...args) => console.log('Error in device', ...args))
 		device.on('error', deviceErrorHandler)
 		device.on('commandError', deviceErrorHandler)
@@ -2642,7 +2629,6 @@ describe('vMix', () => {
 		})
 		const errorHandler = jest.fn((...args) => console.log('Error in device', ...args))
 		myConductor.on('error', errorHandler)
-		myConductor.on('commandError', errorHandler)
 
 		await myConductor.init()
 
@@ -2659,7 +2645,7 @@ describe('vMix', () => {
 		)
 
 		const deviceContainer = myConductor.getDevice('myvmix')
-		device = deviceContainer.device as ThreadedClass<VMixDevice>
+		device = deviceContainer!.device as ThreadedClass<VMixDevice>
 		const deviceErrorHandler = jest.fn((...args) => console.log('Error in device', ...args))
 		device.on('error', deviceErrorHandler)
 		device.on('commandError', deviceErrorHandler)

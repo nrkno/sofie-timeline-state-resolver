@@ -55,7 +55,7 @@ describe('Atem', () => {
 					host: '127.0.0.1',
 				},
 			}),
-			mockTime.getCurrentTime
+			mockTime.getCurrentTime2
 		)
 
 		await device.init(
@@ -106,7 +106,7 @@ describe('Atem', () => {
 		await mockTime.advanceTimeToTicks(10100)
 
 		const deviceContainer = myConductor.getDevice('myAtem')
-		const device = deviceContainer.device as ThreadedClass<AtemDevice>
+		const device = deviceContainer!.device as ThreadedClass<AtemDevice>
 
 		// Check that no commands has been scheduled:
 		expect(await device.queue).toHaveLength(0)
@@ -197,7 +197,7 @@ describe('Atem', () => {
 		await mockTime.advanceTimeToTicks(10100)
 
 		const deviceContainer = myConductor.getDevice('myAtem')
-		const device = deviceContainer.device as ThreadedClass<AtemDevice>
+		const device = deviceContainer!.device as ThreadedClass<AtemDevice>
 		// Check that no commands has been scheduled:
 		expect(await device.queue).toHaveLength(0)
 		myConductor.setTimelineAndMappings(
@@ -296,7 +296,7 @@ describe('Atem', () => {
 					host: '127.0.0.1',
 				},
 			},
-			mockTime.getCurrentTime
+			mockTime.getCurrentTime2
 		)
 
 		await device.init(

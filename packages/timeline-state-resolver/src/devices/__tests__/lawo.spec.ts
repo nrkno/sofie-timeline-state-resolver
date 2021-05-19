@@ -61,7 +61,7 @@ describe('Lawo', () => {
 		await mockTime.advanceTimeToTicks(10100)
 
 		const deviceContainer = myConductor.getDevice('myLawo')
-		const device = deviceContainer.device as ThreadedClass<LawoDevice>
+		const device = deviceContainer!.device as ThreadedClass<LawoDevice>
 
 		// Check that no commands has been scheduled:
 		expect(await device.queue).toHaveLength(0)
@@ -219,7 +219,7 @@ describe('Lawo', () => {
 		await mockTime.advanceTimeToTicks(10100)
 
 		const deviceContainer = myConductor.getDevice('myLawo')
-		const device = deviceContainer.device as ThreadedClass<LawoDevice>
+		const device = deviceContainer!.device as ThreadedClass<LawoDevice>
 
 		// Check that no commands has been scheduled:
 		expect(await device.queue).toHaveLength(0)
@@ -427,7 +427,7 @@ describe('Lawo', () => {
 		await mockTime.advanceTimeToTicks(10100)
 
 		const deviceContainer = myConductor.getDevice('myLawo')
-		const device = deviceContainer.device as ThreadedClass<LawoDevice>
+		const device = deviceContainer!.device as ThreadedClass<LawoDevice>
 
 		// Check that no commands has been scheduled:
 		expect(await device.queue).toHaveLength(0)
@@ -596,7 +596,7 @@ describe('Lawo', () => {
 		await mockTime.advanceTimeToTicks(10100)
 
 		const deviceContainer = myConductor.getDevice('myLawo')
-		const device = deviceContainer.device as ThreadedClass<LawoDevice>
+		const device = deviceContainer!.device as ThreadedClass<LawoDevice>
 
 		// Check that no commands has been scheduled:
 		expect(await device.queue).toHaveLength(0)
@@ -689,7 +689,7 @@ describe('Lawo', () => {
 		await mockTime.advanceTimeToTicks(10100)
 
 		const deviceContainer = myConductor.getDevice('myLawo')
-		const device = deviceContainer.device as ThreadedClass<LawoDevice>
+		const device = deviceContainer!.device as ThreadedClass<LawoDevice>
 
 		// Check that no commands has been scheduled:
 		expect(await device.queue).toHaveLength(0)
@@ -789,7 +789,7 @@ describe('Lawo', () => {
 		await mockTime.advanceTimeToTicks(10100)
 
 		const deviceContainer = myConductor.getDevice('myLawo')
-		const device = deviceContainer.device as ThreadedClass<LawoDevice>
+		const device = deviceContainer!.device as ThreadedClass<LawoDevice>
 
 		// Check that no commands has been scheduled:
 		expect(await device.queue).toHaveLength(0)

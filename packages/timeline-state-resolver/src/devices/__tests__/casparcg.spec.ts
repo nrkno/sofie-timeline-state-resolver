@@ -68,7 +68,7 @@ describe('CasparCG', () => {
 		commandReceiver0.mockClear()
 
 		const deviceContainer = myConductor.getDevice('myCCG')
-		const device = deviceContainer.device
+		const device = deviceContainer!.device
 
 		// Check that no commands has been scheduled:
 		expect(await device['queue']).toHaveLength(0)
@@ -155,7 +155,7 @@ describe('CasparCG', () => {
 		commandReceiver0.mockClear()
 
 		const deviceContainer = myConductor.getDevice('myCCG')
-		const device = deviceContainer.device
+		const device = deviceContainer!.device
 
 		// Check that no commands has been scheduled:
 		expect(await device['queue']).toHaveLength(0)
@@ -225,7 +225,7 @@ describe('CasparCG', () => {
 		commandReceiver0.mockClear()
 
 		const deviceContainer = myConductor.getDevice('myCCG')
-		const device = deviceContainer.device
+		const device = deviceContainer!.device
 
 		// Check that no commands has been scheduled:
 		expect(await device['queue']).toHaveLength(0)
@@ -307,7 +307,7 @@ describe('CasparCG', () => {
 		})
 
 		const deviceContainer = myConductor.getDevice('myCCG')
-		const device = deviceContainer.device
+		const device = deviceContainer!.device
 
 		// Check that no commands has been scheduled:
 		expect(await device['queue']).toHaveLength(0)
@@ -382,7 +382,7 @@ describe('CasparCG', () => {
 		})
 
 		const deviceContainer = myConductor.getDevice('myCCG')
-		const device = deviceContainer.device
+		const device = deviceContainer!.device
 
 		// Check that no commands has been scheduled:
 		expect(await device['queue']).toHaveLength(0)
@@ -475,7 +475,7 @@ describe('CasparCG', () => {
 		})
 
 		const deviceContainer = myConductor.getDevice('myCCG')
-		const device = deviceContainer.device
+		const device = deviceContainer!.device
 
 		// Check that no commands has been scheduled:
 		expect(await device['queue']).toHaveLength(0)
@@ -561,7 +561,7 @@ describe('CasparCG', () => {
 		})
 
 		const deviceContainer = myConductor.getDevice('myCCG')
-		const device = deviceContainer.device
+		const device = deviceContainer!.device
 
 		// Check that no commands has been scheduled:
 		expect(await device['queue']).toHaveLength(0)
@@ -648,7 +648,7 @@ describe('CasparCG', () => {
 		})
 
 		const deviceContainer = myConductor.getDevice('myCCG')
-		const device = deviceContainer.device
+		const device = deviceContainer!.device
 		await device['_ccgState']
 
 		// Check that no commands has been scheduled:
@@ -1446,7 +1446,7 @@ describe('CasparCG', () => {
 		commandReceiver0.mockClear()
 
 		const deviceContainer = myConductor.getDevice('myCCG')
-		const device = deviceContainer.device
+		const device = deviceContainer!.device
 
 		// Check that no commands has been scheduled:
 		expect(await device['queue']).toHaveLength(0)
@@ -1536,7 +1536,7 @@ describe('CasparCG', () => {
 		commandReceiver0.mockClear()
 
 		const deviceContainer = myConductor.getDevice('myCCG')
-		const device = deviceContainer.device
+		const device = deviceContainer!.device
 
 		// Check that no commands has been scheduled:
 		expect(await device['queue']).toHaveLength(0)
@@ -1680,7 +1680,7 @@ describe('CasparCG', () => {
 		commandReceiver0.mockClear()
 
 		const deviceContainer = myConductor.getDevice('myCCG')
-		const device = deviceContainer.device
+		const device = deviceContainer!.device
 
 		// Check that no commands has been scheduled:
 		expect(await device['queue']).toHaveLength(0)
@@ -1823,7 +1823,7 @@ describe('CasparCG', () => {
 		commandReceiver0.mockClear()
 
 		const deviceContainer = myConductor.getDevice('myCCG')
-		const device = deviceContainer.device
+		const device = deviceContainer!.device
 
 		// Check that no commands has been scheduled:
 		expect(await device['queue']).toHaveLength(0)
@@ -1922,7 +1922,7 @@ describe('CasparCG', () => {
 		commandReceiver0.mockClear()
 
 		const deviceContainer = myConductor.getDevice('myCCG')
-		const device = deviceContainer.device
+		const device = deviceContainer!.device
 
 		// Check that no commands has been scheduled:
 		expect(await device['queue']).toHaveLength(0)
@@ -2049,7 +2049,7 @@ describe('CasparCG - Custom transitions', () => {
 		commandReceiver0.mockClear()
 
 		const deviceContainer = myConductor.getDevice('myCCG')
-		const device = deviceContainer.device
+		const device = deviceContainer!.device
 
 		// Check that no commands has been scheduled:
 		expect(await device['queue']).toHaveLength(0)

@@ -91,7 +91,7 @@ describe('Shotoku', () => {
 		expect(onConnection).toHaveBeenCalledTimes(1)
 
 		const deviceContainer = myConductor.getDevice('myShotoku')
-		const device = deviceContainer.device as ThreadedClass<ShotokuDevice>
+		const device = deviceContainer!.device as ThreadedClass<ShotokuDevice>
 
 		await device.on('connectionChanged', onConnectionChanged)
 
@@ -259,7 +259,7 @@ describe('Shotoku', () => {
 		expect(onConnection).toHaveBeenCalledTimes(1)
 
 		const deviceContainer = myConductor.getDevice('myShotoku')
-		const device = deviceContainer.device as ThreadedClass<ShotokuDevice>
+		const device = deviceContainer!.device as ThreadedClass<ShotokuDevice>
 
 		await device.on('connectionChanged', onConnectionChanged)
 

@@ -13,6 +13,9 @@ export class MockTime {
 	getCurrentTime = () => {
 		return this._now
 	}
+	getCurrentTime2 = (): Promise<number> => {
+		return this._now as any
+	}
 	setNow = (t: number) => {
 		this._now = t
 	}

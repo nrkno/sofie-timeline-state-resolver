@@ -10,7 +10,7 @@ function parseAtemState(rawState: any): OrigAtemConnection.AtemState {
 	return state
 }
 
-const mockData = parseAtemState(JSON.parse(fs.readFileSync('./atem-out.json', 'utf8')))
+const mockData = parseAtemState(JSON.parse(fs.readFileSync(__dirname + '/atem-out.json', 'utf8')))
 
 const setTimeoutOrg = setTimeout
 

@@ -40,7 +40,7 @@ describe('Abstract device', () => {
 		await mockTime.advanceTimeToTicks(10100)
 
 		const deviceContainer = myConductor.getDevice('myAbstract')
-		const device = deviceContainer.device as ThreadedClass<AbstractDevice>
+		const device = deviceContainer!.device as ThreadedClass<AbstractDevice>
 
 		device.terminate = jest.fn(device.terminate)
 		const onError = jest.fn()
@@ -146,7 +146,7 @@ describe('Abstract device', () => {
 		await mockTime.advanceTimeToTicks(10100)
 
 		const deviceContainer = myConductor.getDevice('myAbstract')
-		const device = deviceContainer.device as ThreadedClass<AbstractDevice>
+		const device = deviceContainer!.device as ThreadedClass<AbstractDevice>
 
 		device.terminate = jest.fn(device.terminate)
 		const onError = jest.fn()

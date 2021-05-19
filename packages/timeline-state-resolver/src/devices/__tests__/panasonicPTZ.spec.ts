@@ -87,7 +87,7 @@ describe('Panasonic PTZ', () => {
 		await mockTime.advanceTimeToTicks(10100)
 
 		const deviceContainer = myConductor.getDevice('myPtz')
-		const device = deviceContainer.device as ThreadedClass<PanasonicPtzDevice>
+		const device = deviceContainer!.device as ThreadedClass<PanasonicPtzDevice>
 
 		// Check that no commands has been scheduled:
 		expect(await device.queue).toHaveLength(0)

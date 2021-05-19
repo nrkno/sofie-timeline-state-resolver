@@ -88,7 +88,7 @@ describe('Sisyfos', () => {
 		await mockTime.advanceTimeToTicks(10100)
 
 		const deviceContainer = myConductor.getDevice('mySisyfos')
-		const device = deviceContainer.device as ThreadedClass<SisyfosMessageDevice>
+		const device = deviceContainer!.device as ThreadedClass<SisyfosMessageDevice>
 
 		// Check that no commands has been scheduled:
 		expect(await device.queue).toHaveLength(0)
@@ -304,7 +304,7 @@ describe('Sisyfos', () => {
 		await mockTime.advanceTimeToTicks(10100)
 
 		const deviceContainer = myConductor.getDevice('mySisyfos')
-		const device = deviceContainer.device as ThreadedClass<SisyfosMessageDevice>
+		const device = deviceContainer!.device as ThreadedClass<SisyfosMessageDevice>
 
 		// Check that no commands has been scheduled:
 		expect(await device.queue).toHaveLength(0)
@@ -521,7 +521,7 @@ describe('Sisyfos', () => {
 		await mockTime.advanceTimeToTicks(10100)
 
 		const deviceContainer = myConductor.getDevice('mySisyfos')
-		const device = deviceContainer.device as ThreadedClass<SisyfosMessageDevice>
+		const device = deviceContainer!.device as ThreadedClass<SisyfosMessageDevice>
 
 		// Check that no commands has been scheduled:
 		expect(await device.queue).toHaveLength(0)
@@ -650,7 +650,7 @@ describe('Sisyfos', () => {
 		await mockTime.advanceTimeToTicks(10100)
 
 		const deviceContainer = myConductor.getDevice('mySisyfos')
-		const device = deviceContainer.device as ThreadedClass<SisyfosMessageDevice>
+		const device = deviceContainer!.device as ThreadedClass<SisyfosMessageDevice>
 
 		// Check that no commands has been scheduled:
 		expect(await device.queue).toHaveLength(0)
@@ -857,7 +857,7 @@ describe('Sisyfos', () => {
 		await mockTime.advanceTimeToTicks(10100)
 
 		const deviceContainer = myConductor.getDevice('mySisyfos')
-		const device = deviceContainer.device as ThreadedClass<SisyfosMessageDevice>
+		const device = deviceContainer!.device as ThreadedClass<SisyfosMessageDevice>
 
 		// Check that no commands has been scheduled:
 		expect(await device.queue).toHaveLength(0)
@@ -1005,7 +1005,7 @@ describe('Sisyfos', () => {
 		await mockTime.advanceTimeToTicks(10100)
 
 		const deviceContainer = myConductor.getDevice('mySisyfos')
-		const device = deviceContainer.device as ThreadedClass<SisyfosMessageDevice>
+		const device = deviceContainer!.device as ThreadedClass<SisyfosMessageDevice>
 
 		const onConnectionChanged = jest.fn()
 		await device.on('connectionChanged', onConnectionChanged)

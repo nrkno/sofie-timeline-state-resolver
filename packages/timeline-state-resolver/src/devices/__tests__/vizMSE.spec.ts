@@ -6,6 +6,7 @@ import {
 	MappingVizMSE,
 	TimelineContentTypeVizMSE,
 	VIZMSETransitionType,
+	VizMSEOptions,
 } from 'timeline-state-resolver-types'
 import { MockTime } from '../../__tests__/mockTime'
 import { ThreadedClass } from 'threadedclass'
@@ -16,7 +17,7 @@ const getMockMSEs = vConnection.getMockMSEs
 type MSEMock = vConnection.MSEMock
 type VRundownMocked = vConnection.VRundownMocked
 import _ = require('underscore')
-import { StatusCode } from '../device'
+import { literal, StatusCode } from '../device'
 
 describe('vizMSE', () => {
 	const mockTime = new MockTime()
@@ -70,7 +71,7 @@ describe('vizMSE', () => {
 		await mockTime.advanceTimeToTicks(10100)
 
 		const deviceContainer = myConductor.getDevice('myViz')
-		const device = deviceContainer.device as ThreadedClass<VizMSEDevice>
+		const device = deviceContainer!.device as ThreadedClass<VizMSEDevice>
 		await device.ignoreWaitsInTests()
 
 		// Check that no commands has been scheduled:
@@ -497,14 +498,13 @@ describe('vizMSE', () => {
 		await myConductor.init()
 
 		await expect(
-			// @ts-ignore
 			myConductor.addDevice('myViz', {
 				type: DeviceType.VIZMSE,
-				options: {
+				options: literal<Omit<VizMSEOptions, 'host'>>({
 					// host: '127.0.0.1',
 					showID: 'show1234',
 					profile: 'myProfile',
-				},
+				}) as any,
 			})
 		).rejects.toMatch(/bad option/)
 		await expect(
@@ -541,7 +541,7 @@ describe('vizMSE', () => {
 				profile: 'myProfile',
 			},
 		})
-		const device = deviceContainer.device
+		const device = deviceContainer!.device
 		const connectionChanged = jest.fn()
 		await device.on('connectionChanged', connectionChanged)
 
@@ -618,7 +618,7 @@ describe('vizMSE', () => {
 		await mockTime.advanceTimeToTicks(10100)
 
 		const deviceContainer = myConductor.getDevice('myViz')
-		const device = deviceContainer.device as ThreadedClass<VizMSEDevice>
+		const device = deviceContainer!.device as ThreadedClass<VizMSEDevice>
 		await device.ignoreWaitsInTests()
 
 		// Check that no commands has been scheduled:
@@ -783,7 +783,7 @@ describe('vizMSE', () => {
 		await mockTime.advanceTimeToTicks(10100)
 
 		const deviceContainer = myConductor.getDevice('myViz')
-		device = deviceContainer.device as ThreadedClass<VizMSEDevice>
+		device = deviceContainer!.device as ThreadedClass<VizMSEDevice>
 		await device.ignoreWaitsInTests()
 
 		// Check that no commands has been scheduled:

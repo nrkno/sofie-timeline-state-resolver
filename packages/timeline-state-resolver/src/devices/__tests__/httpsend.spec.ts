@@ -47,7 +47,7 @@ describe('HTTP-Send', () => {
 		await mockTime.advanceTimeToTicks(10100)
 
 		const deviceContainer = myConductor.getDevice('myHTTP')
-		const device = deviceContainer.device as ThreadedClass<HTTPSendDevice>
+		const device = deviceContainer!.device as ThreadedClass<HTTPSendDevice>
 
 		// Check that no commands has been scheduled:
 		expect(await device.queue).toHaveLength(0)
@@ -131,7 +131,7 @@ describe('HTTP-Send', () => {
 		await mockTime.advanceTimeToTicks(10100)
 
 		const deviceContainer = myConductor.getDevice('myHTTP')
-		const device = deviceContainer.device as ThreadedClass<HTTPSendDevice>
+		const device = deviceContainer!.device as ThreadedClass<HTTPSendDevice>
 
 		// Check that no commands has been scheduled:
 		expect(await device.queue).toHaveLength(0)

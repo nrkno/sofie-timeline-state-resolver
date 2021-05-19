@@ -50,7 +50,6 @@ describe('Quantel', () => {
 		})
 		const errorHandler = jest.fn((...args) => console.log('Error in device', ...args))
 		myConductor.on('error', errorHandler)
-		myConductor.on('commandError', errorHandler)
 		await myConductor.init()
 
 		await t(
@@ -70,7 +69,7 @@ describe('Quantel', () => {
 		)
 
 		const deviceContainer = myConductor.getDevice('myQuantel')
-		device = deviceContainer.device as ThreadedClass<QuantelDevice>
+		device = deviceContainer!.device as ThreadedClass<QuantelDevice>
 		const deviceErrorHandler = jest.fn((...args) => console.log('Error in device', ...args))
 		device.on('error', deviceErrorHandler)
 		device.on('commandError', deviceErrorHandler)

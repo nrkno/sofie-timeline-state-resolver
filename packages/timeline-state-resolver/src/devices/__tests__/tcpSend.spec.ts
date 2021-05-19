@@ -95,7 +95,7 @@ describe('TCP-Send', () => {
 		expect(onConnection).toHaveBeenCalledTimes(1)
 
 		const deviceContainer = myConductor.getDevice('myTCP')
-		const device = deviceContainer.device as ThreadedClass<TCPSendDevice>
+		const device = deviceContainer!.device as ThreadedClass<TCPSendDevice>
 
 		await device.on('connectionChanged', onConnectionChanged)
 

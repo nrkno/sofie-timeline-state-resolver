@@ -51,7 +51,7 @@ describe('Singular.Live', () => {
 		await mockTime.advanceTimeToTicks(10100)
 
 		const deviceContainer = myConductor.getDevice('mySingular')
-		const device = deviceContainer.device as ThreadedClass<SingularLiveDevice>
+		const device = deviceContainer!.device as ThreadedClass<SingularLiveDevice>
 
 		// Check that no commands has been scheduled:
 		expect(await device.queue).toHaveLength(0)

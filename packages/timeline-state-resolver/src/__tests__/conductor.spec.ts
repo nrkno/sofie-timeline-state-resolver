@@ -94,9 +94,9 @@ describe('Conductor', () => {
 		}
 
 		const device0Container = conductor.getDevice('device0')
-		const device0 = device0Container.device
+		const device0 = device0Container!.device
 		const device1Container = conductor.getDevice('device1')
-		const device1 = device1Container.device
+		const device1 = device1Container!.device
 
 		// The queues should be empty
 		expect(await device0['queue']).toHaveLength(0)
@@ -268,7 +268,7 @@ describe('Conductor', () => {
 		conductor.on('timelineCallback', timelineCallback)
 
 		const device0Container = conductor.getDevice('device0')
-		const device0 = device0Container.device as ThreadedClass<AbstractDevice>
+		const device0 = device0Container!.device as ThreadedClass<AbstractDevice>
 		expect(device0).toBeTruthy()
 		// let device1 = conductor.getDevice('device1')
 
@@ -432,7 +432,7 @@ describe('Conductor', () => {
 		})
 		conductor.setTimelineAndMappings([], myLayerMapping)
 
-		const device = conductor.getDevice('device0').device
+		const device = conductor.getDevice('device0')!.device
 		expect(await device.getCurrentTime()).toBeTruthy()
 	}, 1500)
 	test('Changing of mappings live', async () => {
@@ -487,7 +487,7 @@ describe('Conductor', () => {
 		const timeline: TSRTimeline = [video0]
 
 		const device0Container = conductor.getDevice('device0')
-		const device0 = device0Container.device as ThreadedClass<AbstractDevice>
+		const device0 = device0Container!.device as ThreadedClass<AbstractDevice>
 		expect(device0).toBeTruthy()
 
 		// The queues should be empty

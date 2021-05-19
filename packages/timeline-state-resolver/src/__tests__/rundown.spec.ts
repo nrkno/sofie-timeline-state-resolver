@@ -82,7 +82,7 @@ describe('Rundown', () => {
 		await mockTime.advanceTimeToTicks(10001)
 
 		const deviceContainer = myConductor.getDevice('myCCG')
-		const device = deviceContainer.device
+		const device = deviceContainer!.device
 
 		// Check that no commands has been scheduled:
 		expect(await device['queue']).toHaveLength(0)
