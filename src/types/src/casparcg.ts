@@ -16,7 +16,8 @@ export interface CasparCGOptions {
 
 	/** whether to use the CasparCG-SCHEDULE command to run future commands, or the internal (backwards-compatible) command queue */
 	useScheduling?: boolean
-	retryInterval?: number | boolean // set to false to disable, 0 or true will set to default value
+	/** Interval (ms) for retrying to load media that previously failed. (-1 disables, 0 uses the default interval) */
+	retryInterval?: number
 	/* Timecode base of channel */
 	timeBase?: {[channel: string]: number} | number
 	/* fps used for all channels */
