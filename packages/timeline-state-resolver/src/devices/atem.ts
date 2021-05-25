@@ -1,6 +1,6 @@
 import * as _ from 'underscore'
 import * as underScoreDeepExtend from 'underscore-deep-extend'
-import { DeviceWithState, CommandWithContext, DeviceStatus, StatusCode, IDevice } from './device'
+import { DeviceWithState, CommandWithContext, DeviceStatus, StatusCode } from './device'
 import {
 	DeviceType,
 	TimelineContentTypeAtem,
@@ -49,7 +49,7 @@ export type CommandReceiver = (
 /**
  * This is a wrapper for the Atem Device. Commands to any and all atem devices will be sent through here.
  */
-export class AtemDevice extends DeviceWithState<DeviceState> implements IDevice {
+export class AtemDevice extends DeviceWithState<DeviceState, DeviceOptionsAtemInternal> {
 	private _doOnTime: DoOnTime
 
 	private _atem: AtemConnection.BasicAtem

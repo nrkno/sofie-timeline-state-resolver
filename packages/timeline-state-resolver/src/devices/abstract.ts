@@ -1,5 +1,5 @@
 import * as _ from 'underscore'
-import { DeviceWithState, CommandWithContext, DeviceStatus, StatusCode, IDevice } from './device'
+import { DeviceWithState, CommandWithContext, DeviceStatus, StatusCode } from './device'
 import { DeviceType, AbstractOptions, DeviceOptionsAbstract, Mappings } from 'timeline-state-resolver-types'
 
 import { TimelineState, ResolvedTimelineObjectInstance } from 'superfly-timeline'
@@ -30,7 +30,7 @@ type AbstractState = TimelineState
 	An abstract device is just a test-device that doesn't really do anything, but can be used
 	as a preliminary mock
 */
-export class AbstractDevice extends DeviceWithState<AbstractState> implements IDevice {
+export class AbstractDevice extends DeviceWithState<AbstractState, DeviceOptionsAbstractInternal> {
 	private _doOnTime: DoOnTime
 
 	private _commandReceiver: CommandReceiver

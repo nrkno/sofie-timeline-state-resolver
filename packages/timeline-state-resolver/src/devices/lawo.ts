@@ -1,6 +1,6 @@
 import * as _ from 'underscore'
 
-import { DeviceWithState, CommandWithContext, DeviceStatus, StatusCode, IDevice } from './device'
+import { DeviceWithState, CommandWithContext, DeviceStatus, StatusCode } from './device'
 import {
 	DeviceType,
 	TimelineContentTypeLawo,
@@ -65,7 +65,7 @@ type CommandContext = string
  *
  * It controls mutes and fades over Ember Plus.
  */
-export class LawoDevice extends DeviceWithState<LawoState> implements IDevice {
+export class LawoDevice extends DeviceWithState<LawoState, DeviceOptionsLawoInternal> {
 	private _doOnTime: DoOnTime
 	private _lawo: EmberClient
 

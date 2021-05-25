@@ -1,6 +1,6 @@
 import * as _ from 'underscore'
 import { TimelineState } from 'superfly-timeline'
-import { Mappings, DeviceType, DeviceInitOptions, DeviceOptionsAny, MediaObject } from 'timeline-state-resolver-types'
+import { Mappings, DeviceType, MediaObject, DeviceOptionsBase } from 'timeline-state-resolver-types'
 import { EventEmitter } from 'eventemitter3'
 import { CommandReport, DoOnTime } from '../doOnTime'
 import { ExpectedPlayoutItem } from '../expectedPlayoutItems'
@@ -64,8 +64,8 @@ export type DeviceEvents = {
 	commandReport: [commandReport: CommandReport]
 }
 
-export interface IDevice {
-	init: (initOptions: DeviceInitOptions) => Promise<boolean>
+export interface IDevice<TOptions extends DeviceOptionsBase<any>> {
+	init: (initOptions: TOptions['options']) => Promise<boolean>
 
 	getCurrentTime: () => number
 
@@ -82,7 +82,7 @@ export interface IDevice {
 	deviceId: string
 	deviceName: string
 	deviceType: DeviceType
-	deviceOptions: DeviceOptionsAny
+	deviceOptions: TOptions
 
 	instanceId: number
 	startTime: number
@@ -91,7 +91,10 @@ export interface IDevice {
  * Base class for all Devices to inherit from. Defines the API that the conductor
  * class will use.
  */
-export abstract class Device extends EventEmitter<DeviceEvents> implements IDevice {
+export abstract class Device<TOptions extends DeviceOptionsBase<any>>
+	extends EventEmitter<DeviceEvents>
+	implements IDevice<TOptions>
+{
 	private _getCurrentTime: (() => Promise<number> | number) | undefined
 
 	private _deviceId: string
@@ -102,11 +105,11 @@ export abstract class Device extends EventEmitter<DeviceEvents> implements IDevi
 	private _startTime: number
 
 	public useDirectTime = false
-	protected _deviceOptions: DeviceOptionsAny
+	protected _deviceOptions: TOptions
 	protected _reportAllCommands = false
 	protected _isActive = true
 
-	constructor(deviceId: string, deviceOptions: DeviceOptionsAny, getCurrentTime: () => Promise<number>) {
+	constructor(deviceId: string, deviceOptions: TOptions, getCurrentTime: () => Promise<number>) {
 		super()
 		this._deviceId = deviceId
 		this._deviceOptions = deviceOptions
@@ -139,7 +142,7 @@ export abstract class Device extends EventEmitter<DeviceEvents> implements IDevi
 	 * Connect to the device, resolve the promise when ready.
 	 * @param initOptions Device-specific options
 	 */
-	abstract init(initOptions: DeviceInitOptions): Promise<boolean>
+	abstract init(initOptions: TOptions['options']): Promise<boolean>
 	terminate(): Promise<boolean> {
 		return Promise.resolve(true)
 	}
@@ -201,7 +204,7 @@ export abstract class Device extends EventEmitter<DeviceEvents> implements IDevi
 	 */
 	abstract get deviceName(): string
 	abstract get deviceType(): DeviceType
-	get deviceOptions(): DeviceOptionsAny {
+	get deviceOptions(): TOptions {
 		return this._deviceOptions
 	}
 	get supportsExpectedPlayoutItems(): boolean {
@@ -268,7 +271,7 @@ export abstract class Device extends EventEmitter<DeviceEvents> implements IDevi
  * extra convenience methods for tracking state while inheriting all other methods
  * from the Device class.
  */
-export abstract class DeviceWithState<TState> extends Device {
+export abstract class DeviceWithState<TState, TOptions extends DeviceOptionsBase<any>> extends Device<TOptions> {
 	private _states: { [time: string]: TState } = {}
 	private _setStateCount = 0
 

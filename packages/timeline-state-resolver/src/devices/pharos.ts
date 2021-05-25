@@ -1,5 +1,5 @@
 import * as _ from 'underscore'
-import { DeviceWithState, CommandWithContext, DeviceStatus, StatusCode, IDevice } from './device'
+import { DeviceWithState, CommandWithContext, DeviceStatus, StatusCode } from './device'
 import {
 	DeviceType,
 	PharosOptions,
@@ -44,7 +44,7 @@ type CommandContext = string
  * This is a wrapper for a Pharos-devices,
  * https://www.pharoscontrols.com/downloads/documentation/application-notes/
  */
-export class PharosDevice extends DeviceWithState<PharosState> implements IDevice {
+export class PharosDevice extends DeviceWithState<PharosState, DeviceOptionsPharosInternal> {
 	private _doOnTime: DoOnTime
 
 	private _pharos: Pharos

@@ -1,6 +1,6 @@
 import { ThreadedClass, threadedClass, ThreadedClassConfig, ThreadedClassManager } from 'threadedclass'
 import { Device } from './device'
-import { DeviceType, DeviceOptionsAny } from 'timeline-state-resolver-types'
+import { DeviceType, DeviceOptionsAny, DeviceOptionsBase } from 'timeline-state-resolver-types'
 
 /**
  * A device container is a wrapper around a device in ThreadedClass class, it
@@ -8,7 +8,7 @@ import { DeviceType, DeviceOptionsAny } from 'timeline-state-resolver-types'
  * names and id's) to prevent a costly round trip over IPC.
  */
 export class DeviceContainer {
-	public _device: ThreadedClass<Device>
+	public _device: ThreadedClass<Device<DeviceOptionsBase<unknown>>>
 	public _deviceId = 'N/A'
 	public _deviceType: DeviceType
 	public _deviceName = 'N/A'
@@ -19,7 +19,7 @@ export class DeviceContainer {
 	private _startTime = -1
 	private _onEventListener: { stop: () => void } | undefined
 
-	async create<T extends Device, TCtor extends new (...args: any) => T>(
+	async create<T extends Device<DeviceOptionsBase<unknown>>, TCtor extends new (...args: any[]) => T>(
 		orgModule: string,
 		orgClassExport: string,
 		deviceId: string,
@@ -71,7 +71,7 @@ export class DeviceContainer {
 		await ThreadedClassManager.destroy(this._device)
 	}
 
-	public get device(): ThreadedClass<Device> {
+	public get device(): ThreadedClass<Device<DeviceOptionsBase<unknown>>> {
 		return this._device
 	}
 	public get deviceId(): string {

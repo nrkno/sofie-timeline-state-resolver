@@ -1,5 +1,5 @@
 import * as _ from 'underscore'
-import { DeviceWithState, CommandWithContext, DeviceStatus, StatusCode, IDevice } from './device'
+import { DeviceWithState, CommandWithContext, DeviceStatus, StatusCode } from './device'
 import {
 	DeviceType,
 	HTTPSendOptions,
@@ -34,7 +34,7 @@ type HTTPSendState = TimelineState
 /**
  * This is a HTTPSendDevice, it sends http commands when it feels like it
  */
-export class HTTPSendDevice extends DeviceWithState<HTTPSendState> implements IDevice {
+export class HTTPSendDevice extends DeviceWithState<HTTPSendState, DeviceOptionsHTTPSendInternal> {
 	private _makeReadyCommands: HTTPSendCommandContent[]
 	private _makeReadyDoesReset: boolean
 	private _doOnTime: DoOnTime

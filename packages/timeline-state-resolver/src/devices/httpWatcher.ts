@@ -1,22 +1,22 @@
-import { DeviceStatus, StatusCode, Device, IDevice } from './device'
+import { DeviceStatus, StatusCode, Device } from './device'
 import {
 	DeviceType,
 	TimelineContentTypeHTTP,
 	HTTPWatcherOptions,
-	DeviceOptionsHTTPpWatcher,
+	DeviceOptionsHTTPWatcher,
 	Mappings,
 } from 'timeline-state-resolver-types'
 import * as request from 'request'
 
 import { TimelineState } from 'superfly-timeline'
 
-export interface DeviceOptionsHTTPWatcherInternal extends DeviceOptionsHTTPpWatcher {}
+export type DeviceOptionsHTTPWatcherInternal = DeviceOptionsHTTPWatcher
 
 /**
  * This is a HTTPWatcherDevice, requests a uri on a regular interval and watches
  * it's response.
  */
-export class HTTPWatcherDevice extends Device implements IDevice {
+export class HTTPWatcherDevice extends Device<DeviceOptionsHTTPWatcherInternal> {
 	private uri?: string
 	private httpMethod: TimelineContentTypeHTTP
 	private expectedHttpResponse: number | undefined

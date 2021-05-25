@@ -1,5 +1,5 @@
 import * as _ from 'underscore'
-import { DeviceWithState, CommandWithContext, DeviceStatus, StatusCode, IDevice } from './device'
+import { DeviceWithState, CommandWithContext, DeviceStatus, StatusCode } from './device'
 import {
 	DeviceType,
 	OSCMessageCommandContent,
@@ -42,7 +42,7 @@ interface OSCDeviceStateContent extends OSCMessageCommandContent {
 /**
  * This is a generic wrapper for any osc-enabled device.
  */
-export class OSCMessageDevice extends DeviceWithState<OSCDeviceState> implements IDevice {
+export class OSCMessageDevice extends DeviceWithState<OSCDeviceState, DeviceOptionsOSCInternal> {
 	private _doOnTime: DoOnTime
 	private _oscClient: osc.UDPPort | osc.TCPSocketPort
 	private _oscClientStatus: 'connected' | 'disconnected' = 'disconnected'

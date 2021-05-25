@@ -1,6 +1,6 @@
 import * as _ from 'underscore'
 import { EventEmitter } from 'events'
-import { DeviceWithState, CommandWithContext, DeviceStatus, StatusCode, IDevice, literal } from './device'
+import { DeviceWithState, CommandWithContext, DeviceStatus, StatusCode, literal } from './device'
 
 import {
 	DeviceType,
@@ -56,7 +56,7 @@ export type CommandReceiver = (time: number, cmd: VizMSECommand, context: string
  * This class is used to interface with a vizRT Media Sequence Editor, through the v-connection library.
  * It features playing both "internal" graphics element and vizPilot elements.
  */
-export class VizMSEDevice extends DeviceWithState<VizMSEState> implements IDevice {
+export class VizMSEDevice extends DeviceWithState<VizMSEState, DeviceOptionsVizMSEInternal> {
 	private _vizMSE?: MSE
 	private _vizmseManager?: VizMSEManager
 

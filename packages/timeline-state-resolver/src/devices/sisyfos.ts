@@ -1,5 +1,5 @@
 import * as _ from 'underscore'
-import { DeviceWithState, CommandWithContext, DeviceStatus, StatusCode, IDevice } from './device'
+import { DeviceWithState, CommandWithContext, DeviceStatus, StatusCode } from './device'
 import {
 	DeviceType,
 	DeviceOptionsSisyfos,
@@ -38,7 +38,7 @@ type CommandContext = string
 /**
  * This is a generic wrapper for any osc-enabled device.
  */
-export class SisyfosMessageDevice extends DeviceWithState<SisyfosState> implements IDevice {
+export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOptionsSisyfosInternal> {
 	private _doOnTime: DoOnTime
 	private _sisyfos: SisyfosApi
 

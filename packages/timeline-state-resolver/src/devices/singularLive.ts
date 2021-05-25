@@ -1,5 +1,5 @@
 import * as _ from 'underscore'
-import { DeviceWithState, CommandWithContext, DeviceStatus, StatusCode, literal, IDevice } from './device'
+import { DeviceWithState, CommandWithContext, DeviceStatus, StatusCode, literal } from './device'
 import {
 	DeviceType,
 	SingularLiveOptions,
@@ -68,7 +68,7 @@ const SINGULAR_LIVE_API = 'https://app.singular.live/apiv1/control/'
 /**
  * This is a Singular.Live device, it talks to a Singular.Live App Instance using an Access Token
  */
-export class SingularLiveDevice extends DeviceWithState<SingularLiveState> implements IDevice {
+export class SingularLiveDevice extends DeviceWithState<SingularLiveState, DeviceOptionsSingularLiveInternal> {
 	// private _makeReadyCommands: SingularLiveCommandContent[]
 	private _accessToken: string
 	private _doOnTime: DoOnTime
@@ -319,7 +319,7 @@ export class SingularLiveDevice extends DeviceWithState<SingularLiveState> imple
 
 		const url = SINGULAR_LIVE_API + this._accessToken
 
-		return new Promise((resolve, reject) => {
+		return new Promise<void>((resolve, reject) => {
 			const handleResponse = (error, response) => {
 				if (error) {
 					this.emit('error', `SingularLive.response error ${cmd.compositionName} (${context}`, error)

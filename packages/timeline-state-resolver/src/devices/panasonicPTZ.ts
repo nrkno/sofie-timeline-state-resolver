@@ -1,5 +1,5 @@
 import * as _ from 'underscore'
-import { DeviceWithState, CommandWithContext, DeviceStatus, StatusCode, IDevice } from './device'
+import { DeviceWithState, CommandWithContext, DeviceStatus, StatusCode } from './device'
 import {
 	DeviceType,
 	TimelineObjPanasonicPtzPreset,
@@ -66,7 +66,7 @@ const PROBE_INTERVAL = 10 * 1000 // Probe every 10s
  * executes commands to achieve such states. Depends on PanasonicPTZAPI class for
  * connection with the physical device.
  */
-export class PanasonicPtzDevice extends DeviceWithState<PanasonicPtzState> implements IDevice {
+export class PanasonicPtzDevice extends DeviceWithState<PanasonicPtzState, DeviceOptionsPanasonicPTZInternal> {
 	private _doOnTime: DoOnTime
 	private _device: PanasonicPtzHttpInterface | undefined
 	private _connected = false

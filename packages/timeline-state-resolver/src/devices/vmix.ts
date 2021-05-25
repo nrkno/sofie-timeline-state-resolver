@@ -65,7 +65,7 @@ export interface VMixStateCommandWithContext {
 /**
  * This is a VMixDevice, it sends commands when it feels like it
  */
-export class VMixDevice extends DeviceWithState<VMixStateExtended> {
+export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptionsVMixInternal> {
 	private _doOnTime: DoOnTime
 
 	private _commandReceiver: CommandReceiver

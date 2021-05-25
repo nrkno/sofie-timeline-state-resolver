@@ -1,6 +1,6 @@
 import { Socket } from 'net'
 import * as _ from 'underscore'
-import { DeviceWithState, CommandWithContext, DeviceStatus, StatusCode, IDevice } from './device'
+import { DeviceWithState, CommandWithContext, DeviceStatus, StatusCode } from './device'
 import {
 	DeviceType,
 	TCPSendOptions,
@@ -36,7 +36,7 @@ type TSCSendState = TimelineState
 /**
  * This is a TCPSendDevice, it sends commands over tcp when it feels like it
  */
-export class TCPSendDevice extends DeviceWithState<TSCSendState> implements IDevice {
+export class TCPSendDevice extends DeviceWithState<TSCSendState, DeviceOptionsTCPSendInternal> {
 	private _makeReadyCommands: TcpSendCommandContent[]
 	private _makeReadyDoesReset: boolean
 

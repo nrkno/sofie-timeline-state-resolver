@@ -1,7 +1,7 @@
 import * as _ from 'underscore'
 // import * as underScoreDeepExtend from 'underscore-deep-extend'
 import { TimelineState } from 'superfly-timeline'
-import { DeviceWithState, CommandWithContext, DeviceStatus, StatusCode, IDevice } from './device'
+import { DeviceWithState, CommandWithContext, DeviceStatus, StatusCode } from './device'
 import {
 	DeviceType,
 	TimelineContentTypeHyperdeck,
@@ -54,7 +54,7 @@ type CommandContext = any
 /**
  * This is a wrapper for the Hyperdeck Device. Commands to any and all hyperdeck devices will be sent through here.
  */
-export class HyperdeckDevice extends DeviceWithState<DeviceState> implements IDevice {
+export class HyperdeckDevice extends DeviceWithState<DeviceState, DeviceOptionsHyperdeckInternal> {
 	private _doOnTime: DoOnTime
 
 	private _hyperdeck: Hyperdeck

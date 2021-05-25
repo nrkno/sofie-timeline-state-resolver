@@ -1,5 +1,5 @@
 import * as _ from 'underscore'
-import { DeviceWithState, CommandWithContext, DeviceStatus, StatusCode, IDevice } from './device'
+import { DeviceWithState, CommandWithContext, DeviceStatus, StatusCode } from './device'
 import {
 	DeviceType,
 	ShotokuCommandContent,
@@ -47,7 +47,7 @@ interface ShotokuDeviceStateContent extends ShotokuCommandContent {
 /**
  * This is a generic wrapper for any osc-enabled device.
  */
-export class ShotokuDevice extends DeviceWithState<ShotokuDeviceState> implements IDevice {
+export class ShotokuDevice extends DeviceWithState<ShotokuDeviceState, DeviceOptionsShotokuInternal> {
 	private _doOnTime: DoOnTime
 	private _shotoku: ShotokuAPI
 

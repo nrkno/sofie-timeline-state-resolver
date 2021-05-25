@@ -1,6 +1,6 @@
 import * as _ from 'underscore'
 import * as deepMerge from 'deepmerge'
-import { DeviceWithState, CommandWithContext, DeviceStatus, StatusCode, literal, IDevice } from './device'
+import { DeviceWithState, CommandWithContext, DeviceStatus, StatusCode, literal } from './device'
 import { CasparCG, Command as CommandNS, AMCPUtil, AMCP, CasparCGSocketStatusEvent } from 'casparcg-connection'
 import {
 	DeviceType,
@@ -67,7 +67,7 @@ export type CommandReceiver = (
  * commands. It depends on the DoOnTime class to execute the commands timely or,
  * optionally, uses the CasparCG command scheduling features.
  */
-export class CasparCGDevice extends DeviceWithState<State> implements IDevice {
+export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCGInternal> {
 	private _ccg: CasparCG
 	private _ccgState: CasparCGState
 	private _queue: { [token: string]: { time: number; command: CommandNS.IAMCPCommand } } = {}
