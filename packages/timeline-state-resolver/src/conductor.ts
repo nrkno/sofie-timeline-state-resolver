@@ -495,13 +495,13 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 
 			await newDevice.device.init(deviceOptions.options)
 
-			await newDevice.reloadProps() // because the device name might have changed after init
-
 			// Double check that it hasnt been created while we were busy waiting
 			if (this.devices.has(deviceId)) {
 				throw new Error(`Device "${deviceId}" already exists when creating device`)
 			}
 			this.devices.set(deviceId, newDevice)
+
+			await newDevice.reloadProps() // because the device name might have changed after init
 
 			this.emit('info', `Device ${newDevice.deviceId} (${newDevice.instanceId}) initialized!`)
 

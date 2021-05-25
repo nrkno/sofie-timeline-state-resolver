@@ -106,17 +106,17 @@ export class InternalTransitionHandler {
 			_.each(_.uniq(t.groups), (groupId) => {
 				if (!animatorTypes) animatorTypes = {}
 				const animatorType: AnimatorType | undefined = animatorTypes[groupId + '']
-				const options2 = animatorType?.options
+				const options2 = animatorType?.options ?? options
 				t.calculatingGroups[groupId + ''] = {
 					animator:
 						animatorType?.type === 'physical'
 							? new PhysicalAcceleration(
 									getGroupValues(t.values, groups, groupId),
-									options2?.acceleration || 0.0001,
-									options2?.maxSpeed || 0.05,
-									options2?.snapDistance || 1 / 1920
+									options2.acceleration || 0.0001,
+									options2.maxSpeed || 0.05,
+									options2.snapDistance || 1 / 1920
 							  )
-							: new LinearMovement(getGroupValues(t.values, groups, groupId), options2?.linearSpeed || 1 / 1000),
+							: new LinearMovement(getGroupValues(t.values, groups, groupId), options2.linearSpeed || 1 / 1000),
 				}
 			})
 			const updateInterval = options.updateInterval || 1000 / 25

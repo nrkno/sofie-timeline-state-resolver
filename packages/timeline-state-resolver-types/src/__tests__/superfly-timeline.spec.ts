@@ -13,7 +13,7 @@ const OriginalEnums = {
 describe('superfly-timeline', () => {
 	test('Enums', () => {
 		_.each(LocalEnums as any, (e: any, enumName: string) => {
-			const originalEnum = OriginalEnums[enumName]
+			const originalEnum = (OriginalEnums as any)[enumName]
 
 			expect(e).toBeTruthy()
 			expect(originalEnum).toBeTruthy()
@@ -25,10 +25,12 @@ describe('superfly-timeline', () => {
 	})
 	test('Enumarable types', () => {
 		_.each(Local, (type: any, typeName: string) => {
-			const originalType = Original[typeName]
+			const originalType = (Original as any)[typeName]
 			if (_.isFunction(type)) {
+				// eslint-disable-next-line jest/no-conditional-expect
 				expect(_.isFunction(originalType)).toBeTruthy()
 			} else {
+				// eslint-disable-next-line jest/no-conditional-expect
 				expect(type).toMatchObject(originalType)
 			}
 		})
