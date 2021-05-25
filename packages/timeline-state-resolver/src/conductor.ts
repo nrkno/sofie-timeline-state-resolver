@@ -279,8 +279,12 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 		deviceId: string,
 		deviceOptions: DeviceOptionsAnyInternal
 	): Promise<DeviceContainer<DeviceOptionsBase<any>>> {
+		let newDevice: DeviceContainer<DeviceOptionsBase<any>> | undefined
 		try {
-			let newDevice: DeviceContainer<DeviceOptionsBase<any>>
+			if (this.devices.has(deviceId)) {
+				throw new Error(`Device "${deviceId}" already exists when creating device`)
+			}
+
 			const threadedClassOptions = {
 				threadUsage: deviceOptions.threadUsage || 1,
 				autoRestart: false,
@@ -460,7 +464,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 			newDevice.device
 				.on('debug', (...e: any[]) => {
 					if (this.logDebug) {
-						this.emit('debug', newDevice.deviceId, ...e)
+						this.emit('debug', deviceId, ...e)
 					}
 				})
 				.catch(console.error)
@@ -471,10 +475,11 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 			// Todo: split the addDevice function into two separate functions, so that the device is
 			// first created, then initated by the consumer, allowing for setup of listeners in between...
 
-			const onDeviceInfo = (...args: DeviceEvents['info']) => this.emit('info', newDevice.instanceId, ...args)
-			const onDeviceWarning = (...args: DeviceEvents['warning']) => this.emit('warning', newDevice.instanceId, ...args)
-			const onDeviceError = (...args: DeviceEvents['error']) => this.emit('error', newDevice.instanceId, ...args)
-			const onDeviceDebug = (...args: DeviceEvents['debug']) => this.emit('debug', newDevice.instanceId, ...args)
+			const instanceId = newDevice.instanceId
+			const onDeviceInfo = (...args: DeviceEvents['info']) => this.emit('info', instanceId, ...args)
+			const onDeviceWarning = (...args: DeviceEvents['warning']) => this.emit('warning', instanceId, ...args)
+			const onDeviceError = (...args: DeviceEvents['error']) => this.emit('error', instanceId, ...args)
+			const onDeviceDebug = (...args: DeviceEvents['debug']) => this.emit('debug', instanceId, ...args)
 
 			newDevice.device.on('info', onDeviceInfo).catch(console.error)
 			newDevice.device.on('warning', onDeviceWarning).catch(console.error)
@@ -487,17 +492,16 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 					DeviceType[deviceOptions.type]
 				}...`
 			)
-			if (this.devices.has(deviceId)) {
-				throw new Error(`Device "${deviceId}" already exists when creating device`)
-			}
-
-			this.devices.set(deviceId, newDevice)
-
-			// TODO - should the device be on this.devices yet? sounds like we could instruct it to do things before it has initialised?
 
 			await newDevice.device.init(deviceOptions.options)
 
 			await newDevice.reloadProps() // because the device name might have changed after init
+
+			// Double check that it hasnt been created while we were busy waiting
+			if (this.devices.has(deviceId)) {
+				throw new Error(`Device "${deviceId}" already exists when creating device`)
+			}
+			this.devices.set(deviceId, newDevice)
 
 			this.emit('info', `Device ${newDevice.deviceId} (${newDevice.instanceId}) initialized!`)
 
@@ -510,6 +514,13 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 
 			return newDevice
 		} catch (e) {
+			if (newDevice) {
+				try {
+					await newDevice.terminate()
+				} catch (e) {
+					this.emit('error', `Cleanup failed of aborted device "${newDevice.deviceId}": ${e}`)
+				}
+			}
 			this.emit('error', 'conductor.addDevice', e)
 			return Promise.reject(e)
 		}
