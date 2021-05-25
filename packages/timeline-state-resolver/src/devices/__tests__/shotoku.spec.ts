@@ -72,10 +72,10 @@ describe('Shotoku', () => {
 			type: DeviceType.SHOTOKU,
 
 			options: {
-				commandReceiver: commandReceiver0,
 				host: '192.168.0.1',
 				port: 1234,
 			},
+			commandReceiver: commandReceiver0,
 		})
 
 		expect(onSocketCreate).toHaveBeenCalledTimes(1)
@@ -245,10 +245,10 @@ describe('Shotoku', () => {
 			type: DeviceType.SHOTOKU,
 
 			options: {
-				commandReceiver: commandReceiver0,
 				host: '192.168.0.1',
 				port: 1234,
 			},
+			commandReceiver: commandReceiver0,
 		})
 
 		expect(onSocketCreate).toHaveBeenCalledTimes(1)

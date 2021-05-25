@@ -67,7 +67,6 @@ describe('TCP-Send', () => {
 			type: DeviceType.TCPSEND,
 
 			options: {
-				commandReceiver: commandReceiver0,
 				host: '192.168.0.1',
 				port: 1234,
 				makeReadyCommands: [
@@ -80,6 +79,7 @@ describe('TCP-Send', () => {
 				],
 				// bufferEncoding: 'hex',
 			},
+			commandReceiver: commandReceiver0,
 		})
 
 		expect(onSocketCreate).toHaveBeenCalledTimes(1)

@@ -12,7 +12,7 @@ import * as request from 'request'
 
 import { TimelineState, ResolvedTimelineObjectInstance } from 'superfly-timeline'
 export interface DeviceOptionsHTTPSendInternal extends DeviceOptionsHTTPSend {
-	options: DeviceOptionsHTTPSend['options'] & { commandReceiver?: CommandReceiver }
+	commandReceiver?: CommandReceiver
 }
 export type CommandReceiver = (
 	time: number,
@@ -44,7 +44,7 @@ export class HTTPSendDevice extends DeviceWithState<HTTPSendState> implements ID
 	constructor(deviceId: string, deviceOptions: DeviceOptionsHTTPSendInternal, getCurrentTime: () => Promise<number>) {
 		super(deviceId, deviceOptions, getCurrentTime)
 		if (deviceOptions.options) {
-			if (deviceOptions.options.commandReceiver) this._commandReceiver = deviceOptions.options.commandReceiver
+			if (deviceOptions.commandReceiver) this._commandReceiver = deviceOptions.commandReceiver
 			else this._commandReceiver = this._defaultCommandReceiver
 		}
 		this._doOnTime = new DoOnTime(

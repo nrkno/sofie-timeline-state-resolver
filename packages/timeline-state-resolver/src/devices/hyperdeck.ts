@@ -24,7 +24,7 @@ import { DoOnTime, SendMode } from '../doOnTime'
 import { SlotInfoCommandResponse } from 'hyperdeck-connection/dist/commands'
 
 export interface DeviceOptionsHyperdeckInternal extends DeviceOptionsHyperdeck {
-	options: DeviceOptionsHyperdeck['options'] & { commandReceiver?: CommandReceiver }
+	commandReceiver?: CommandReceiver
 }
 export type CommandReceiver = (
 	time: number,
@@ -73,7 +73,7 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState> implements IDe
 	constructor(deviceId: string, deviceOptions: DeviceOptionsHyperdeckInternal, getCurrentTime: () => Promise<number>) {
 		super(deviceId, deviceOptions, getCurrentTime)
 		if (deviceOptions.options) {
-			if (deviceOptions.options.commandReceiver) this._commandReceiver = deviceOptions.options.commandReceiver
+			if (deviceOptions.commandReceiver) this._commandReceiver = deviceOptions.commandReceiver
 			else this._commandReceiver = this._defaultCommandReceiver
 		}
 		this._doOnTime = new DoOnTime(

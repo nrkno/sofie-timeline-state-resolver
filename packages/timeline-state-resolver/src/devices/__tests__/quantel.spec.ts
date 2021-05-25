@@ -56,7 +56,6 @@ describe('Quantel', () => {
 			myConductor.addDevice('myQuantel', {
 				type: DeviceType.QUANTEL,
 				options: {
-					commandReceiver: commandReceiver0,
 					// host: '127.0.0.1'
 
 					gatewayUrl: 'localhost:3000',
@@ -64,6 +63,7 @@ describe('Quantel', () => {
 					zoneId: undefined, // fallback to 'default'
 					serverId: 1100,
 				},
+				commandReceiver: commandReceiver0,
 			}),
 			mockTime
 		)

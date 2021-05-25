@@ -1,5 +1,5 @@
 import { Conductor, DeviceType } from '../src/' // from 'timeline-state-resolver
-import { TimelineContentTypeCasparCg } from '../src/types/src' // from 'timeline-state-resolver-types'
+import { TimelineContentTypeCasparCg } from '../../timeline-state-resolver-types/src' // from 'timeline-state-resolver-types'
 
 // Initialize TSR:
 const tsr = new Conductor()

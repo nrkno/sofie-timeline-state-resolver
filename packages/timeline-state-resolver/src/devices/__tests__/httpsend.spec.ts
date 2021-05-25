@@ -39,9 +39,8 @@ describe('HTTP-Send', () => {
 		await myConductor.init()
 		await myConductor.addDevice('myHTTP', {
 			type: DeviceType.HTTPSEND,
-			options: {
-				commandReceiver: commandReceiver0,
-			},
+			options: {},
+			commandReceiver: commandReceiver0,
 		})
 		myConductor.setTimelineAndMappings([], myLayerMapping)
 		await mockTime.advanceTimeToTicks(10100)
@@ -102,14 +101,6 @@ describe('HTTP-Send', () => {
 			device: DeviceType.HTTPSEND,
 			deviceId: 'myHTTP',
 		}
-		// let myLayerMapping1: MappingHTTPSend = {
-		// 	device: DeviceType.HTTPSEND,
-		// 	deviceId: 'myHTTP'
-		// }
-		// let myLayerMapping2: MappingHTTPSend = {
-		// 	device: DeviceType.HTTPSEND,
-		// 	deviceId: 'myHTTP'
-		// }
 		const myLayerMapping: Mappings = {
 			myLayer0: myLayerMapping0,
 			myLayer1: myLayerMapping0,
@@ -123,9 +114,8 @@ describe('HTTP-Send', () => {
 		await myConductor.init()
 		await myConductor.addDevice('myHTTP', {
 			type: DeviceType.HTTPSEND,
-			options: {
-				commandReceiver: commandReceiver0,
-			},
+			options: {},
+			commandReceiver: commandReceiver0,
 		})
 		myConductor.setTimelineAndMappings([], myLayerMapping)
 		await mockTime.advanceTimeToTicks(10100)

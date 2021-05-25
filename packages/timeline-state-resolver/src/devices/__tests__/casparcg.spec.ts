@@ -52,10 +52,10 @@ describe('CasparCG', () => {
 		await myConductor.addDevice('myCCG', {
 			type: DeviceType.CASPARCG,
 			options: {
-				commandReceiver: commandReceiver0,
 				host: '127.0.0.1',
 				useScheduling: true,
 			},
+			commandReceiver: commandReceiver0,
 		})
 		await mockTime.advanceTimeToTicks(10100)
 
@@ -139,10 +139,10 @@ describe('CasparCG', () => {
 		await myConductor.addDevice('myCCG', {
 			type: DeviceType.CASPARCG,
 			options: {
-				commandReceiver: commandReceiver0,
 				host: '127.0.0.1',
 				useScheduling: true,
 			},
+			commandReceiver: commandReceiver0,
 		})
 		await mockTime.advanceTimeToTicks(10100)
 
@@ -214,11 +214,11 @@ describe('CasparCG', () => {
 		await myConductor.addDevice('myCCG', {
 			type: DeviceType.CASPARCG,
 			options: {
-				commandReceiver: commandReceiver0,
 				host: '127.0.0.1',
 				useScheduling: false,
 				fps: 50,
 			},
+			commandReceiver: commandReceiver0,
 		})
 		await mockTime.advanceTimeToTicks(10100)
 
@@ -300,10 +300,10 @@ describe('CasparCG', () => {
 		await myConductor.addDevice('myCCG', {
 			type: DeviceType.CASPARCG,
 			options: {
-				commandReceiver: commandReceiver0,
 				host: '127.0.0.1',
 				useScheduling: false,
 			},
+			commandReceiver: commandReceiver0,
 		})
 
 		const deviceContainer = myConductor.getDevice('myCCG')
@@ -375,10 +375,10 @@ describe('CasparCG', () => {
 		await myConductor.addDevice('myCCG', {
 			type: DeviceType.CASPARCG,
 			options: {
-				commandReceiver: commandReceiver0,
 				host: '127.0.0.1',
 				useScheduling: true,
 			},
+			commandReceiver: commandReceiver0,
 		})
 
 		const deviceContainer = myConductor.getDevice('myCCG')
@@ -468,10 +468,10 @@ describe('CasparCG', () => {
 		await myConductor.addDevice('myCCG', {
 			type: DeviceType.CASPARCG,
 			options: {
-				commandReceiver: commandReceiver0,
 				host: '127.0.0.1',
 				useScheduling: true,
 			},
+			commandReceiver: commandReceiver0,
 		})
 
 		const deviceContainer = myConductor.getDevice('myCCG')
@@ -554,10 +554,10 @@ describe('CasparCG', () => {
 		await myConductor.addDevice('myCCG', {
 			type: DeviceType.CASPARCG,
 			options: {
-				commandReceiver: commandReceiver0,
 				host: '127.0.0.1',
 				useScheduling: true,
 			},
+			commandReceiver: commandReceiver0,
 		})
 
 		const deviceContainer = myConductor.getDevice('myCCG')
@@ -641,10 +641,10 @@ describe('CasparCG', () => {
 		await myConductor.addDevice('myCCG', {
 			type: DeviceType.CASPARCG,
 			options: {
-				commandReceiver: commandReceiver0,
 				host: '127.0.0.1',
 				useScheduling: true,
 			},
+			commandReceiver: commandReceiver0,
 		})
 
 		const deviceContainer = myConductor.getDevice('myCCG')
@@ -757,10 +757,10 @@ describe('CasparCG', () => {
 		await myConductor.addDevice('myCCG', {
 			type: DeviceType.CASPARCG,
 			options: {
-				commandReceiver: commandReceiver0,
 				host: '127.0.0.1',
 				useScheduling: true,
 			},
+			commandReceiver: commandReceiver0,
 		})
 
 		// Check that no commands has been sent:
@@ -870,10 +870,10 @@ describe('CasparCG', () => {
 		await myConductor.addDevice('myCCG', {
 			type: DeviceType.CASPARCG,
 			options: {
-				commandReceiver: commandReceiver0,
 				host: '127.0.0.1',
 				useScheduling: true,
 			},
+			commandReceiver: commandReceiver0,
 		})
 
 		// Check that no commands has been sent:
@@ -1007,11 +1007,11 @@ describe('CasparCG', () => {
 		await myConductor.addDevice('myCCG', {
 			type: DeviceType.CASPARCG,
 			options: {
-				commandReceiver: commandReceiver0,
 				host: '127.0.0.1',
 				timeBase: 50,
 				useScheduling: true,
 			},
+			commandReceiver: commandReceiver0,
 		})
 
 		expect(mockTime.getCurrentTime()).toEqual(10000)
@@ -1116,11 +1116,11 @@ describe('CasparCG', () => {
 		await myConductor.addDevice('myCCG', {
 			type: DeviceType.CASPARCG,
 			options: {
-				commandReceiver: commandReceiver0,
 				host: '127.0.0.1',
 				timeBase: 50,
 				useScheduling: true,
 			},
+			commandReceiver: commandReceiver0,
 		})
 
 		expect(mockTime.getCurrentTime()).toEqual(10000)
@@ -1223,11 +1223,11 @@ describe('CasparCG', () => {
 		await myConductor.addDevice('myCCG', {
 			type: DeviceType.CASPARCG,
 			options: {
-				commandReceiver: commandReceiver0,
 				host: '127.0.0.1',
 				timeBase: 50,
 				useScheduling: true,
 			},
+			commandReceiver: commandReceiver0,
 		})
 
 		await mockTime.advanceTimeToTicks(10050)
@@ -1338,11 +1338,11 @@ describe('CasparCG', () => {
 		await myConductor.addDevice('myCCG', {
 			type: DeviceType.CASPARCG,
 			options: {
-				commandReceiver: commandReceiver0,
 				host: '127.0.0.1',
 				timeBase: 50,
 				useScheduling: true,
 			},
+			commandReceiver: commandReceiver0,
 		})
 
 		await mockTime.advanceTimeToTicks(10050)
@@ -1430,10 +1430,10 @@ describe('CasparCG', () => {
 		await myConductor.addDevice('myCCG', {
 			type: DeviceType.CASPARCG,
 			options: {
-				commandReceiver: commandReceiver0,
 				host: '127.0.0.1',
 				useScheduling: true,
 			},
+			commandReceiver: commandReceiver0,
 		})
 		await mockTime.advanceTimeToTicks(10100)
 
@@ -1522,11 +1522,11 @@ describe('CasparCG', () => {
 		await myConductor.addDevice('myCCG', {
 			type: DeviceType.CASPARCG,
 			options: {
-				commandReceiver: commandReceiver0,
 				host: '127.0.0.1',
 				useScheduling: false,
 				retryInterval: false, // disable retries explicitly, we will manually trigger them
 			},
+			commandReceiver: commandReceiver0,
 		})
 		myConductor.setTimelineAndMappings([], myLayerMapping)
 		await mockTime.advanceTimeToTicks(10100)
@@ -1666,11 +1666,11 @@ describe('CasparCG', () => {
 		await myConductor.addDevice('myCCG', {
 			type: DeviceType.CASPARCG,
 			options: {
-				commandReceiver: commandReceiver0,
 				host: '127.0.0.1',
 				useScheduling: false,
 				retryInterval: false, // disable retries explicitly, we will manually trigger them
 			},
+			commandReceiver: commandReceiver0,
 		})
 		myConductor.setTimelineAndMappings([], myLayerMapping)
 		await mockTime.advanceTimeToTicks(10100)
@@ -1811,10 +1811,10 @@ describe('CasparCG', () => {
 		await myConductor.addDevice('myCCG', {
 			type: DeviceType.CASPARCG,
 			options: {
-				commandReceiver: commandReceiver0,
 				host: '127.0.0.1',
 				useScheduling: false,
 			},
+			commandReceiver: commandReceiver0,
 		})
 		await mockTime.advanceTimeToTicks(10100)
 
@@ -1910,10 +1910,10 @@ describe('CasparCG', () => {
 		await myConductor.addDevice('myCCG', {
 			type: DeviceType.CASPARCG,
 			options: {
-				commandReceiver: commandReceiver0,
 				host: '127.0.0.1',
 				useScheduling: false,
 			},
+			commandReceiver: commandReceiver0,
 		})
 		await mockTime.advanceTimeToTicks(10100)
 
@@ -2035,11 +2035,11 @@ describe('CasparCG - Custom transitions', () => {
 		await myConductor.addDevice('myCCG', {
 			type: DeviceType.CASPARCG,
 			options: {
-				commandReceiver: commandReceiver0,
 				host: '127.0.0.1',
 				useScheduling: false,
 				retryInterval: false, // disable retries explicitly, we will manually trigger them
 			},
+			commandReceiver: commandReceiver0,
 		})
 		myConductor.setTimelineAndMappings([], myLayerMapping)
 		await mockTime.advanceTimeToTicks(10000)

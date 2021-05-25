@@ -43,9 +43,9 @@ describe('Singular.Live', () => {
 		await myConductor.addDevice('mySingular', {
 			type: DeviceType.SINGULAR_LIVE,
 			options: {
-				commandReceiver: commandReceiver0,
 				accessToken: 'DUMMY_TOKEN',
 			},
+			commandReceiver: commandReceiver0,
 		})
 		myConductor.setTimelineAndMappings([], myLayerMapping)
 		await mockTime.advanceTimeToTicks(10100)

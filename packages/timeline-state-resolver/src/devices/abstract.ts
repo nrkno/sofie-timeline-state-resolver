@@ -15,7 +15,7 @@ type CommandContent = any
 type CommandContext = string
 
 export interface DeviceOptionsAbstractInternal extends DeviceOptionsAbstract {
-	options: DeviceOptionsAbstract['options'] & { commandReceiver?: CommandReceiver }
+	commandReceiver?: CommandReceiver
 }
 export type CommandReceiver = (
 	time: number,
@@ -38,7 +38,7 @@ export class AbstractDevice extends DeviceWithState<AbstractState> implements ID
 	constructor(deviceId: string, deviceOptions: DeviceOptionsAbstractInternal, getCurrentTime: () => Promise<number>) {
 		super(deviceId, deviceOptions, getCurrentTime)
 		if (deviceOptions.options) {
-			if (deviceOptions.options.commandReceiver) this._commandReceiver = deviceOptions.options.commandReceiver
+			if (deviceOptions.commandReceiver) this._commandReceiver = deviceOptions.commandReceiver
 			else this._commandReceiver = this._defaultCommandReceiver
 		}
 		this._doOnTime = new DoOnTime(

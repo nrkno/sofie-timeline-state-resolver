@@ -17,9 +17,7 @@ import { TimelineState } from 'superfly-timeline'
 import { ShotokuAPI, ShotokuCommand, ShotokuCommandType } from './shotokuAPI'
 
 export interface DeviceOptionsShotokuInternal extends DeviceOptionsShotoku {
-	options: DeviceOptionsShotoku['options'] & {
-		commandReceiver?: CommandReceiver
-	}
+	commandReceiver?: CommandReceiver
 }
 export type CommandReceiver = (
 	time: number,
@@ -58,7 +56,7 @@ export class ShotokuDevice extends DeviceWithState<ShotokuDeviceState> implement
 	constructor(deviceId: string, deviceOptions: DeviceOptionsShotokuInternal, getCurrentTime: () => Promise<number>) {
 		super(deviceId, deviceOptions, getCurrentTime)
 		if (deviceOptions.options) {
-			if (deviceOptions.options.commandReceiver) this._commandReceiver = deviceOptions.options.commandReceiver
+			if (deviceOptions.commandReceiver) this._commandReceiver = deviceOptions.commandReceiver
 			else this._commandReceiver = this._defaultCommandReceiver
 		}
 		this._doOnTime = new DoOnTime(

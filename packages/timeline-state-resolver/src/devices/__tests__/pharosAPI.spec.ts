@@ -14,7 +14,6 @@ import {
 	Output,
 	LuaVariables,
 	FanSpeed,
-	ContentTargetInfo,
 	Triggers,
 	Protocol,
 } from '../pharosAPI'
@@ -608,7 +607,7 @@ describe('PharosAPI', () => {
 		} as FanSpeed)
 		expect(await pharos.getContentTargetInfo()).toMatchObject({
 			unknown_data_structure: 1,
-		} as ContentTargetInfo)
+		})
 		expect(await pharos.getTriggers()).toMatchObject({
 			triggers: [
 				{

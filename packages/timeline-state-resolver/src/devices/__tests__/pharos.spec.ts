@@ -66,9 +66,9 @@ describe('Pharos', () => {
 		await myConductor.addDevice('myPharos', {
 			type: DeviceType.PHAROS,
 			options: {
-				commandReceiver: commandReceiver0,
 				host: '127.0.0.1',
 			},
+			commandReceiver: commandReceiver0,
 		})
 		myConductor.setTimelineAndMappings([], myLayerMapping)
 

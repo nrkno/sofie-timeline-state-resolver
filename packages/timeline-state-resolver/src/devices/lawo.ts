@@ -24,7 +24,7 @@ import { getDiff } from '../lib'
 import { EmberClient, Types as EmberTypes, Model as EmberModel } from 'emberplus-connection'
 
 export interface DeviceOptionsLawoInternal extends DeviceOptionsLawo {
-	options: DeviceOptionsLawo['options'] & { commandReceiver?: CommandReceiver }
+	commandReceiver?: CommandReceiver
 }
 export type CommandReceiver = (
 	time: number,
@@ -96,8 +96,8 @@ export class LawoDevice extends DeviceWithState<LawoState> implements IDevice {
 	constructor(deviceId: string, deviceOptions: DeviceOptionsLawoInternal, getCurrentTime: () => Promise<number>) {
 		super(deviceId, deviceOptions, getCurrentTime)
 		if (deviceOptions.options) {
-			if (deviceOptions.options.commandReceiver) {
-				this._commandReceiver = deviceOptions.options.commandReceiver
+			if (deviceOptions.commandReceiver) {
+				this._commandReceiver = deviceOptions.commandReceiver
 			} else {
 				this._commandReceiver = this._defaultCommandReceiver
 			}

@@ -51,9 +51,9 @@ describe('Atem', () => {
 			literal<DeviceOptionsAtemInternal>({
 				type: DeviceType.ATEM,
 				options: {
-					commandReceiver: commandReceiver0,
 					host: '127.0.0.1',
 				},
+				commandReceiver: commandReceiver0,
 			}),
 			mockTime.getCurrentTime2
 		)
@@ -96,10 +96,10 @@ describe('Atem', () => {
 			literal<DeviceOptionsAtemInternal>({
 				type: DeviceType.ATEM,
 				options: {
-					commandReceiver: commandReceiver0,
 					host: '127.0.0.1',
 					port: 9910,
 				},
+				commandReceiver: commandReceiver0,
 			})
 		)
 
@@ -187,10 +187,10 @@ describe('Atem', () => {
 			literal<DeviceOptionsAtemInternal>({
 				type: DeviceType.ATEM,
 				options: {
-					commandReceiver: commandReceiver0,
 					host: '127.0.0.1',
 					port: 9910,
 				},
+				commandReceiver: commandReceiver0,
 			})
 		)
 
@@ -292,9 +292,9 @@ describe('Atem', () => {
 			{
 				type: DeviceType.ATEM,
 				options: {
-					commandReceiver: commandReceiver0,
 					host: '127.0.0.1',
 				},
+				commandReceiver: commandReceiver0,
 			},
 			mockTime.getCurrentTime2
 		)

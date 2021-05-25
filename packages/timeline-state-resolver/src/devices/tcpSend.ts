@@ -14,7 +14,7 @@ import { TimelineState, ResolvedTimelineObjectInstance } from 'superfly-timeline
 const TIMEOUT = 3000 // ms
 const RETRY_TIMEOUT = 5000 // ms
 export interface DeviceOptionsTCPSendInternal extends DeviceOptionsTCPSend {
-	options: DeviceOptionsTCPSend['options'] & { commandReceiver?: CommandReceiver }
+	commandReceiver?: CommandReceiver
 }
 export type CommandReceiver = (
 	time: number,
@@ -55,7 +55,7 @@ export class TCPSendDevice extends DeviceWithState<TSCSendState> implements IDev
 	constructor(deviceId: string, deviceOptions: DeviceOptionsTCPSendInternal, getCurrentTime: () => Promise<number>) {
 		super(deviceId, deviceOptions, getCurrentTime)
 		if (deviceOptions.options) {
-			if (deviceOptions.options.commandReceiver) this._commandReceiver = deviceOptions.options.commandReceiver
+			if (deviceOptions.commandReceiver) this._commandReceiver = deviceOptions.commandReceiver
 			else this._commandReceiver = this._defaultCommandReceiver
 		}
 		this._doOnTime = new DoOnTime(

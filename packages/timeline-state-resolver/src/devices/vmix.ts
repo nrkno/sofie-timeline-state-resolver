@@ -40,7 +40,7 @@ import {
 } from 'timeline-state-resolver-types'
 
 export interface DeviceOptionsVMixInternal extends DeviceOptionsVMix {
-	options: DeviceOptionsVMix['options'] & { commandReceiver?: CommandReceiver }
+	commandReceiver?: CommandReceiver
 }
 export type CommandReceiver = (
 	time: number,
@@ -76,7 +76,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended> {
 	constructor(deviceId: string, deviceOptions: DeviceOptionsVMixInternal, getCurrentTime: () => Promise<number>) {
 		super(deviceId, deviceOptions, getCurrentTime)
 		if (deviceOptions.options) {
-			if (deviceOptions.options.commandReceiver) this._commandReceiver = deviceOptions.options.commandReceiver
+			if (deviceOptions.commandReceiver) this._commandReceiver = deviceOptions.commandReceiver
 			else this._commandReceiver = this._defaultCommandReceiver
 		}
 		this._doOnTime = new DoOnTime(

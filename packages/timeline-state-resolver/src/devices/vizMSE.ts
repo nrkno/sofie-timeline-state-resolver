@@ -49,7 +49,7 @@ export function getHash(str: string): string {
 }
 
 export interface DeviceOptionsVizMSEInternal extends DeviceOptionsVizMSE {
-	options: DeviceOptionsVizMSE['options'] & { commandReceiver?: CommandReceiver }
+	commandReceiver?: CommandReceiver
 }
 export type CommandReceiver = (time: number, cmd: VizMSECommand, context: string, timelineObjId: string) => Promise<any>
 /**
@@ -71,7 +71,7 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState> implements IDevic
 		super(deviceId, deviceOptions, getCurrentTime)
 
 		if (deviceOptions.options) {
-			if (deviceOptions.options.commandReceiver) this._commandReceiver = deviceOptions.options.commandReceiver
+			if (deviceOptions.commandReceiver) this._commandReceiver = deviceOptions.commandReceiver
 			else this._commandReceiver = this._defaultCommandReceiver
 		}
 

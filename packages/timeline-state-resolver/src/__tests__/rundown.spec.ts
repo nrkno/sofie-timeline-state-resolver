@@ -72,12 +72,12 @@ describe('Rundown', () => {
 		await myConductor.addDevice('myCCG', {
 			type: DeviceType.CASPARCG,
 			options: {
-				commandReceiver: commandReceiver0,
 				host: '127.0.0.1',
 				timeBase: 50,
 				useScheduling: true,
 				retryInterval: false,
 			},
+			commandReceiver: commandReceiver0,
 		})
 		await mockTime.advanceTimeToTicks(10001)
 

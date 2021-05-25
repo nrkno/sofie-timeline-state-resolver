@@ -80,10 +80,10 @@ describe('Sisyfos', () => {
 		await myConductor.addDevice('mySisyfos', {
 			type: DeviceType.SISYFOS,
 			options: {
-				commandReceiver: commandReceiver0,
 				host: '192.168.0.10',
 				port: 8900,
 			},
+			commandReceiver: commandReceiver0,
 		})
 		await mockTime.advanceTimeToTicks(10100)
 
@@ -296,10 +296,10 @@ describe('Sisyfos', () => {
 		await myConductor.addDevice('mySisyfos', {
 			type: DeviceType.SISYFOS,
 			options: {
-				commandReceiver: commandReceiver0,
 				host: '192.168.0.10',
 				port: 8900,
 			},
+			commandReceiver: commandReceiver0,
 		})
 		await mockTime.advanceTimeToTicks(10100)
 
@@ -513,10 +513,10 @@ describe('Sisyfos', () => {
 		await myConductor.addDevice('mySisyfos', {
 			type: DeviceType.SISYFOS,
 			options: {
-				commandReceiver: commandReceiver0,
 				host: '192.168.0.10',
 				port: 8900,
 			},
+			commandReceiver: commandReceiver0,
 		})
 		await mockTime.advanceTimeToTicks(10100)
 
@@ -642,10 +642,10 @@ describe('Sisyfos', () => {
 		await myConductor.addDevice('mySisyfos', {
 			type: DeviceType.SISYFOS,
 			options: {
-				commandReceiver: commandReceiver0,
 				host: '192.168.0.10',
 				port: 8900,
 			},
+			commandReceiver: commandReceiver0,
 		})
 		await mockTime.advanceTimeToTicks(10100)
 
@@ -849,10 +849,10 @@ describe('Sisyfos', () => {
 		await myConductor.addDevice('mySisyfos', {
 			type: DeviceType.SISYFOS,
 			options: {
-				commandReceiver: commandReceiver0,
 				host: '192.168.0.10',
 				port: 8900,
 			},
+			commandReceiver: commandReceiver0,
 		})
 		await mockTime.advanceTimeToTicks(10100)
 
@@ -997,10 +997,10 @@ describe('Sisyfos', () => {
 		await myConductor.addDevice('mySisyfos', {
 			type: DeviceType.SISYFOS,
 			options: {
-				commandReceiver: commandReceiver0,
 				host: '127.0.0.1',
 				port: 1234,
 			},
+			commandReceiver: commandReceiver0,
 		})
 		await mockTime.advanceTimeToTicks(10100)
 

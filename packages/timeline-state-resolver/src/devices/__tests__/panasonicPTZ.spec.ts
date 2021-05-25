@@ -80,9 +80,9 @@ describe('Panasonic PTZ', () => {
 		await myConductor.addDevice('myPtz', {
 			type: DeviceType.PANASONIC_PTZ,
 			options: {
-				commandReceiver: commandReceiver0,
 				host: '192.168.0.10',
 			},
+			commandReceiver: commandReceiver0,
 		})
 		await mockTime.advanceTimeToTicks(10100)
 

@@ -54,15 +54,13 @@ describe('Conductor', () => {
 		await conductor.init()
 		await conductor.addDevice('device0', {
 			type: DeviceType.ABSTRACT,
-			options: {
-				commandReceiver: commandReceiver0,
-			},
+			options: {},
+			commandReceiver: commandReceiver0,
 		})
 		await conductor.addDevice('device1', {
 			type: DeviceType.ABSTRACT,
-			options: {
-				commandReceiver: commandReceiver1,
-			},
+			options: {},
+			commandReceiver: commandReceiver1,
 		})
 
 		// add something that will play in a seconds time
@@ -173,7 +171,7 @@ describe('Conductor', () => {
 		expect(conductor.getDevice('device1')).toBeFalsy()
 
 		await conductor
-			.addDevice('device1', { type: DeviceType.ABSTRACT, options: { commandReceiver: commandReceiver1 } })
+			.addDevice('device1', { type: DeviceType.ABSTRACT, options: {}, commandReceiver: commandReceiver1 })
 			.then((res) => {
 				expect(res).toBeTruthy()
 			})
@@ -210,9 +208,8 @@ describe('Conductor', () => {
 		await conductor.init()
 		await conductor.addDevice('device0', {
 			type: DeviceType.ABSTRACT,
-			options: {
-				commandReceiver: commandReceiver0,
-			},
+			options: {},
+			commandReceiver: commandReceiver0,
 		})
 
 		// add something that will play "now"
@@ -340,37 +337,34 @@ describe('Conductor', () => {
 		await conductor.init()
 		await conductor.addDevice('device0', {
 			type: DeviceType.ABSTRACT,
-			options: {
-				commandReceiver: commandReceiver0,
-			},
+			options: {},
+			commandReceiver: commandReceiver0,
 		})
 		await conductor.addDevice('device1', {
 			type: DeviceType.CASPARCG,
 			options: {
-				commandReceiver: commandReceiver1,
 				host: '127.0.0.1',
 			},
+			commandReceiver: commandReceiver1,
 		})
 		await conductor.addDevice('device2', {
 			type: DeviceType.ATEM,
 			options: {
-				commandReceiver: commandReceiver2,
 				host: '127.0.0.1',
 			},
+			commandReceiver: commandReceiver2,
 		})
 		await conductor.addDevice('device3', {
 			type: DeviceType.HTTPSEND,
-			options: {
-				commandReceiver: commandReceiver3,
-			},
+			options: {},
+			commandReceiver: commandReceiver3,
 		})
 		await conductor.addDevice('device4', {
 			type: DeviceType.LAWO,
 			options: {
-				commandReceiver: commandReceiver4,
-
 				deviceMode: LawoDeviceMode.Ruby,
 			},
+			commandReceiver: commandReceiver4,
 		})
 
 		await conductor.devicesMakeReady(true)
@@ -459,9 +453,9 @@ describe('Conductor', () => {
 		await conductor.addDevice('device0', {
 			type: DeviceType.CASPARCG,
 			options: {
-				commandReceiver: commandReceiver0,
 				host: '127.0.0.1',
 			},
+			commandReceiver: commandReceiver0,
 		})
 		conductor.setTimelineAndMappings([], myLayerMapping)
 

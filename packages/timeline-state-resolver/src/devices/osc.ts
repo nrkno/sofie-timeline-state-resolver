@@ -17,10 +17,8 @@ import * as osc from 'osc'
 import { Easing } from './transitions/easings'
 
 export interface DeviceOptionsOSCInternal extends DeviceOptionsOSC {
-	options: DeviceOptionsOSC['options'] & {
-		commandReceiver?: CommandReceiver
-		oscSender?: (msg: osc.OscMessage, address?: string | undefined, port?: number | undefined) => void
-	}
+	commandReceiver?: CommandReceiver
+	oscSender?: (msg: osc.OscMessage, address?: string | undefined, port?: number | undefined) => void
 }
 export type CommandReceiver = (
 	time: number,
@@ -61,11 +59,9 @@ export class OSCMessageDevice extends DeviceWithState<OSCDeviceState> implements
 	constructor(deviceId: string, deviceOptions: DeviceOptionsOSCInternal, getCurrentTime: () => Promise<number>) {
 		super(deviceId, deviceOptions, getCurrentTime)
 		if (deviceOptions.options) {
-			if (deviceOptions.options.commandReceiver) this._commandReceiver = deviceOptions.options.commandReceiver
-			else this._commandReceiver = this._defaultCommandReceiver
+			this._commandReceiver = deviceOptions.commandReceiver ?? this._defaultCommandReceiver
 
-			if (deviceOptions.options.oscSender) this._oscSender = deviceOptions.options.oscSender
-			else this._oscSender = this._defaultOscSender
+			this._oscSender = deviceOptions.oscSender ?? this._defaultOscSender
 		}
 		this._doOnTime = new DoOnTime(
 			() => {

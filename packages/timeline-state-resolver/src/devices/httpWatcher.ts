@@ -10,9 +10,7 @@ import * as request from 'request'
 
 import { TimelineState } from 'superfly-timeline'
 
-export interface DeviceOptionsHTTPWatcherInternal extends DeviceOptionsHTTPpWatcher {
-	options: DeviceOptionsHTTPpWatcher['options']
-}
+export interface DeviceOptionsHTTPWatcherInternal extends DeviceOptionsHTTPpWatcher {}
 
 /**
  * This is a HTTPWatcherDevice, requests a uri on a regular interval and watches

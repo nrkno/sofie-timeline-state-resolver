@@ -37,7 +37,7 @@ export interface AtemCommandWithContext {
 type CommandContext = any
 
 export interface DeviceOptionsAtemInternal extends DeviceOptionsAtem {
-	options: DeviceOptionsAtem['options'] & { commandReceiver?: CommandReceiver }
+	commandReceiver?: CommandReceiver
 }
 export type CommandReceiver = (
 	time: number,
@@ -70,7 +70,7 @@ export class AtemDevice extends DeviceWithState<DeviceState> implements IDevice 
 	constructor(deviceId: string, deviceOptions: DeviceOptionsAtemInternal, getCurrentTime: () => Promise<number>) {
 		super(deviceId, deviceOptions, getCurrentTime)
 		if (deviceOptions.options) {
-			if (deviceOptions.options.commandReceiver) this._commandReceiver = deviceOptions.options.commandReceiver
+			if (deviceOptions.commandReceiver) this._commandReceiver = deviceOptions.commandReceiver
 			else this._commandReceiver = this._defaultCommandReceiver
 		}
 		this._doOnTime = new DoOnTime(

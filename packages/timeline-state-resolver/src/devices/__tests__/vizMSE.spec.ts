@@ -60,13 +60,13 @@ describe('vizMSE', () => {
 			isMultiThreaded: false,
 			type: DeviceType.VIZMSE,
 			options: {
-				commandReceiver: commandReceiver0,
 				host: '127.0.0.1',
 				preloadAllElements: true,
 				playlistID: 'my-super-playlist-id',
 				showID: 'show1234',
 				profile: 'profile9999',
 			},
+			commandReceiver: commandReceiver0,
 		})
 		await mockTime.advanceTimeToTicks(10100)
 
@@ -236,13 +236,13 @@ describe('vizMSE', () => {
 		await myConductor.addDevice('myViz', {
 			type: DeviceType.VIZMSE,
 			options: {
-				commandReceiver: commandReceiver0,
 				host: '127.0.0.1',
 				preloadAllElements: true,
 				playlistID: 'my-super-playlist-id',
 				showID: 'show1234',
 				profile: 'profile9999',
 			},
+			commandReceiver: commandReceiver0,
 		})
 		await mockTime.advanceTimeToTicks(10100)
 
@@ -605,7 +605,6 @@ describe('vizMSE', () => {
 		await myConductor.addDevice('myViz', {
 			type: DeviceType.VIZMSE,
 			options: {
-				commandReceiver: commandReceiver0,
 				host: '127.0.0.1',
 				preloadAllElements: true,
 				playlistID: 'my-super-playlist-id',
@@ -614,6 +613,7 @@ describe('vizMSE', () => {
 				clearAllTemplateName: 'clear_all_of_them',
 				clearAllCommands: ['RENDERER*FRONT_LAYER SET_OBJECT ', 'RENDERER SET_OBJECT '],
 			},
+			commandReceiver: commandReceiver0,
 		})
 		await mockTime.advanceTimeToTicks(10100)
 
@@ -772,13 +772,13 @@ describe('vizMSE', () => {
 		await myConductor.addDevice('myViz', {
 			type: DeviceType.VIZMSE,
 			options: {
-				commandReceiver: commandReceiver0,
 				host: '127.0.0.1',
 				preloadAllElements: true,
 				playlistID: 'my-super-playlist-id',
 				showID: 'show1234',
 				profile: 'profile9999',
 			},
+			commandReceiver: commandReceiver0,
 		})
 		await mockTime.advanceTimeToTicks(10100)
 

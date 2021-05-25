@@ -19,13 +19,13 @@ import {
 } from '.'
 import { ShotokuOptions } from './shotoku'
 
-export interface DeviceOptionsBase extends SlowReportOptions {
+export interface DeviceOptionsBase<T> extends SlowReportOptions {
 	type: DeviceType
 	isMultiThreaded?: boolean
 	reportAllCommands?: boolean
 	threadUsage?: number
 	disable?: boolean
-	options?: DeviceInitOptions
+	options?: T
 }
 
 export interface SlowReportOptions {
@@ -46,13 +46,12 @@ export type DeviceOptionsAny =
 	| DeviceOptionsHyperdeck
 	| DeviceOptionsPharos
 	| DeviceOptionsOSC
-	| DeviceOptionsHTTPpWatcher
+	| DeviceOptionsHTTPWatcher
 	| DeviceOptionsSisyfos
 	| DeviceOptionsQuantel
 	| DeviceOptionsSingularLive
 	| DeviceOptionsVMix
 	| DeviceOptionsVizMSE
-	| DeviceOptionsSingularLive
 	| DeviceOptionsShotoku
 
 export type DeviceInitOptions =
@@ -72,74 +71,56 @@ export type DeviceInitOptions =
 	| SingularLiveOptions
 	| VMixOptions
 	| VizMSEOptions
-	| SingularLiveOptions
 
-export interface DeviceOptionsAbstract extends DeviceOptionsBase {
+export interface DeviceOptionsAbstract extends DeviceOptionsBase<AbstractOptions> {
 	type: DeviceType.ABSTRACT
-	options: AbstractOptions
 }
-export interface DeviceOptionsCasparCG extends DeviceOptionsBase {
+export interface DeviceOptionsCasparCG extends DeviceOptionsBase<CasparCGOptions> {
 	type: DeviceType.CASPARCG
-	options: CasparCGOptions
 }
-export interface DeviceOptionsAtem extends DeviceOptionsBase {
+export interface DeviceOptionsAtem extends DeviceOptionsBase<AtemOptions> {
 	type: DeviceType.ATEM
-	options: AtemOptions
 }
-export interface DeviceOptionsLawo extends DeviceOptionsBase {
+export interface DeviceOptionsLawo extends DeviceOptionsBase<LawoOptions> {
 	type: DeviceType.LAWO
-	options: LawoOptions
 }
-export interface DeviceOptionsHTTPSend extends DeviceOptionsBase {
+export interface DeviceOptionsHTTPSend extends DeviceOptionsBase<HTTPSendOptions> {
 	type: DeviceType.HTTPSEND
-	options: HTTPSendOptions
 }
-export interface DeviceOptionsPanasonicPTZ extends DeviceOptionsBase {
+export interface DeviceOptionsPanasonicPTZ extends DeviceOptionsBase<PanasonicPTZOptions> {
 	type: DeviceType.PANASONIC_PTZ
-	options: PanasonicPTZOptions
 }
-export interface DeviceOptionsTCPSend extends DeviceOptionsBase {
+export interface DeviceOptionsTCPSend extends DeviceOptionsBase<TCPSendOptions> {
 	type: DeviceType.TCPSEND
-	options: TCPSendOptions
 }
-export interface DeviceOptionsHyperdeck extends DeviceOptionsBase {
+export interface DeviceOptionsHyperdeck extends DeviceOptionsBase<HyperdeckOptions> {
 	type: DeviceType.HYPERDECK
-	options: HyperdeckOptions
 }
-export interface DeviceOptionsPharos extends DeviceOptionsBase {
+export interface DeviceOptionsPharos extends DeviceOptionsBase<PharosOptions> {
 	type: DeviceType.PHAROS
-	options: PharosOptions
 }
-export interface DeviceOptionsOSC extends DeviceOptionsBase {
+export interface DeviceOptionsOSC extends DeviceOptionsBase<OSCOptions> {
 	type: DeviceType.OSC
-	options: OSCOptions
 }
-export interface DeviceOptionsHTTPpWatcher extends DeviceOptionsBase {
+export interface DeviceOptionsHTTPWatcher extends DeviceOptionsBase<HTTPWatcherOptions> {
 	type: DeviceType.HTTPWATCHER
-	options: HTTPWatcherOptions
 }
-export interface DeviceOptionsSisyfos extends DeviceOptionsBase {
+export interface DeviceOptionsSisyfos extends DeviceOptionsBase<SisyfosOptions> {
 	type: DeviceType.SISYFOS
-	options: SisyfosOptions
 }
-export interface DeviceOptionsQuantel extends DeviceOptionsBase {
+export interface DeviceOptionsQuantel extends DeviceOptionsBase<QuantelOptions> {
 	type: DeviceType.QUANTEL
-	options: QuantelOptions
 }
-export interface DeviceOptionsVizMSE extends DeviceOptionsBase {
+export interface DeviceOptionsVizMSE extends DeviceOptionsBase<VizMSEOptions> {
 	type: DeviceType.VIZMSE
-	options: VizMSEOptions
 }
-export interface DeviceOptionsSingularLive extends DeviceOptionsBase {
+export interface DeviceOptionsSingularLive extends DeviceOptionsBase<SingularLiveOptions> {
 	type: DeviceType.SINGULAR_LIVE
-	options: SingularLiveOptions
 }
-export interface DeviceOptionsShotoku extends DeviceOptionsBase {
+export interface DeviceOptionsShotoku extends DeviceOptionsBase<ShotokuOptions> {
 	type: DeviceType.SHOTOKU
-	options: ShotokuOptions
 }
 
-export interface DeviceOptionsVMix extends DeviceOptionsBase {
+export interface DeviceOptionsVMix extends DeviceOptionsBase<VMixOptions> {
 	type: DeviceType.VMIX
-	options: VMixOptions
 }

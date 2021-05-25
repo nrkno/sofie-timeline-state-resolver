@@ -29,7 +29,7 @@ const DEFAULT_FPS = 25 // frames per second
 const JUMP_ERROR_MARGIN = 10 // frames
 
 export interface DeviceOptionsQuantelInternal extends DeviceOptionsQuantel {
-	options: DeviceOptionsQuantel['options'] & { commandReceiver?: CommandReceiver }
+	commandReceiver?: CommandReceiver
 }
 export type CommandReceiver = (
 	time: number,
@@ -60,7 +60,7 @@ export class QuantelDevice extends DeviceWithState<QuantelState> implements IDev
 		super(deviceId, deviceOptions, getCurrentTime)
 
 		if (deviceOptions.options) {
-			if (deviceOptions.options.commandReceiver) this._commandReceiver = deviceOptions.options.commandReceiver
+			if (deviceOptions.commandReceiver) this._commandReceiver = deviceOptions.commandReceiver
 			else this._commandReceiver = this._defaultCommandReceiver
 		}
 		this._quantel = new QuantelGateway()

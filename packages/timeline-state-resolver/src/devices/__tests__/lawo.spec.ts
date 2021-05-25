@@ -53,10 +53,10 @@ describe('Lawo', () => {
 			options: {
 				host: '160.67.96.51',
 				port: 9000,
-				commandReceiver: commandReceiver0,
 
 				deviceMode: LawoDeviceMode.Ruby,
 			},
+			commandReceiver: commandReceiver0,
 		})
 		await mockTime.advanceTimeToTicks(10100)
 
@@ -211,10 +211,10 @@ describe('Lawo', () => {
 			options: {
 				host: '160.67.96.51',
 				port: 9000,
-				commandReceiver: commandReceiver0,
 
 				deviceMode: LawoDeviceMode.Ruby,
 			},
+			commandReceiver: commandReceiver0,
 		})
 		await mockTime.advanceTimeToTicks(10100)
 
@@ -419,10 +419,10 @@ describe('Lawo', () => {
 			options: {
 				host: '160.67.96.51',
 				port: 9000,
-				commandReceiver: commandReceiver0,
 
 				deviceMode: LawoDeviceMode.Ruby,
 			},
+			commandReceiver: commandReceiver0,
 		})
 		await mockTime.advanceTimeToTicks(10100)
 
@@ -588,10 +588,10 @@ describe('Lawo', () => {
 			options: {
 				host: '160.67.96.51',
 				port: 9000,
-				commandReceiver: commandReceiver0,
 
 				deviceMode: LawoDeviceMode.Ruby,
 			},
+			commandReceiver: commandReceiver0,
 		})
 		await mockTime.advanceTimeToTicks(10100)
 
@@ -781,10 +781,10 @@ describe('Lawo', () => {
 			options: {
 				host: '160.67.96.51',
 				port: 9000,
-				commandReceiver: commandReceiver0,
 
 				deviceMode: LawoDeviceMode.Ruby,
 			},
+			commandReceiver: commandReceiver0,
 		})
 		await mockTime.advanceTimeToTicks(10100)
 

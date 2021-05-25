@@ -34,8 +34,8 @@ describe('Abstract device', () => {
 		await myConductor.addDevice('myAbstract', {
 			type: DeviceType.ABSTRACT,
 			options: {
-				commandReceiver: commandReceiver0,
 			},
+			commandReceiver: commandReceiver0 ,
 		})
 		await mockTime.advanceTimeToTicks(10100)
 

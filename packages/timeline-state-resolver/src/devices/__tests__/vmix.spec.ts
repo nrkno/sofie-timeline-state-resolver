@@ -83,10 +83,10 @@ describe('vMix', () => {
 			myConductor.addDevice('myvmix', {
 				type: DeviceType.VMIX,
 				options: {
-					commandReceiver: commandReceiver0,
 					host: '127.0.0.1',
 					port: 9999,
 				},
+				commandReceiver: commandReceiver0,
 			}),
 			mockTime
 		)
@@ -259,10 +259,10 @@ describe('vMix', () => {
 			myConductor.addDevice('myvmix', {
 				type: DeviceType.VMIX,
 				options: {
-					commandReceiver: commandReceiver0,
 					host: '127.0.0.1',
 					port: 9999,
 				},
+				commandReceiver: commandReceiver0,
 			}),
 			mockTime
 		)
@@ -567,10 +567,10 @@ describe('vMix', () => {
 			myConductor.addDevice('myvmix', {
 				type: DeviceType.VMIX,
 				options: {
-					commandReceiver: commandReceiver0,
 					host: '127.0.0.1',
 					port: 9999,
 				},
+				commandReceiver: commandReceiver0,
 			}),
 			mockTime
 		)
@@ -802,10 +802,10 @@ describe('vMix', () => {
 			myConductor.addDevice('myvmix', {
 				type: DeviceType.VMIX,
 				options: {
-					commandReceiver: commandReceiver0,
 					host: '127.0.0.1',
 					port: 9999,
 				},
+				commandReceiver: commandReceiver0,
 			}),
 			mockTime
 		)
@@ -1114,10 +1114,10 @@ describe('vMix', () => {
 			myConductor.addDevice('myvmix', {
 				type: DeviceType.VMIX,
 				options: {
-					commandReceiver: commandReceiver0,
 					host: '127.0.0.1',
 					port: 9999,
 				},
+				commandReceiver: commandReceiver0,
 			}),
 			mockTime
 		)
@@ -1504,10 +1504,10 @@ describe('vMix', () => {
 			myConductor.addDevice('myvmix', {
 				type: DeviceType.VMIX,
 				options: {
-					commandReceiver: commandReceiver0,
 					host: '127.0.0.1',
 					port: 9999,
 				},
+				commandReceiver: commandReceiver0,
 			}),
 			mockTime
 		)
@@ -1740,10 +1740,10 @@ describe('vMix', () => {
 			myConductor.addDevice('myvmix', {
 				type: DeviceType.VMIX,
 				options: {
-					commandReceiver: commandReceiver0,
 					host: '127.0.0.1',
 					port: 9999,
 				},
+				commandReceiver: commandReceiver0,
 			}),
 			mockTime
 		)
@@ -1870,10 +1870,10 @@ describe('vMix', () => {
 			myConductor.addDevice('myvmix', {
 				type: DeviceType.VMIX,
 				options: {
-					commandReceiver: commandReceiver0,
 					host: '127.0.0.1',
 					port: 9999,
 				},
+				commandReceiver: commandReceiver0,
 			}),
 			mockTime
 		)
@@ -1993,10 +1993,10 @@ describe('vMix', () => {
 			myConductor.addDevice('myvmix', {
 				type: DeviceType.VMIX,
 				options: {
-					commandReceiver: commandReceiver0,
 					host: '127.0.0.1',
 					port: 9999,
 				},
+				commandReceiver: commandReceiver0,
 			}),
 			mockTime
 		)
@@ -2116,10 +2116,10 @@ describe('vMix', () => {
 			myConductor.addDevice('myvmix', {
 				type: DeviceType.VMIX,
 				options: {
-					commandReceiver: commandReceiver0,
 					host: '127.0.0.1',
 					port: 9999,
 				},
+				commandReceiver: commandReceiver0,
 			}),
 			mockTime
 		)
@@ -2240,10 +2240,10 @@ describe('vMix', () => {
 			myConductor.addDevice('myvmix', {
 				type: DeviceType.VMIX,
 				options: {
-					commandReceiver: commandReceiver0,
 					host: '127.0.0.1',
 					port: 9999,
 				},
+				commandReceiver: commandReceiver0,
 			}),
 			mockTime
 		)
@@ -2376,10 +2376,10 @@ describe('vMix', () => {
 			myConductor.addDevice('myvmix', {
 				type: DeviceType.VMIX,
 				options: {
-					commandReceiver: commandReceiver0,
 					host: '127.0.0.1',
 					port: 9999,
 				},
+				commandReceiver: commandReceiver0,
 			}),
 			mockTime
 		)
@@ -2513,10 +2513,10 @@ describe('vMix', () => {
 			myConductor.addDevice('myvmix', {
 				type: DeviceType.VMIX,
 				options: {
-					commandReceiver: commandReceiver0,
 					host: '127.0.0.1',
 					port: 9999,
 				},
+				commandReceiver: commandReceiver0,
 			}),
 			mockTime
 		)
@@ -2636,10 +2636,10 @@ describe('vMix', () => {
 			myConductor.addDevice('myvmix', {
 				type: DeviceType.VMIX,
 				options: {
-					commandReceiver: commandReceiver0,
 					host: '127.0.0.1',
 					port: 9999,
 				},
+				commandReceiver: commandReceiver0,
 			}),
 			mockTime
 		)

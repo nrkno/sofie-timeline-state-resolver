@@ -53,7 +53,7 @@ const MAX_TIMESYNC_DURATION = 40
 const MEDIA_RETRY_INTERVAL = 10 * 1000 // default time in ms between checking whether a file needs to be retried loading
 
 export interface DeviceOptionsCasparCGInternal extends DeviceOptionsCasparCG {
-	options: DeviceOptionsCasparCG['options'] & { commandReceiver?: CommandReceiver }
+	commandReceiver?: CommandReceiver
 }
 export type CommandReceiver = (
 	time: number,
@@ -86,7 +86,7 @@ export class CasparCGDevice extends DeviceWithState<State> implements IDevice {
 		super(deviceId, deviceOptions, getCurrentTime)
 
 		if (deviceOptions.options) {
-			if (deviceOptions.options.commandReceiver) this._commandReceiver = deviceOptions.options.commandReceiver
+			if (deviceOptions.commandReceiver) this._commandReceiver = deviceOptions.commandReceiver
 			else this._commandReceiver = this._defaultCommandReceiver
 			if (deviceOptions.options.timeBase) this._timeBase = deviceOptions.options.timeBase
 		}

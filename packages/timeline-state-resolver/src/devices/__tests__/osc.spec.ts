@@ -44,11 +44,11 @@ describe('OSC-Message', () => {
 		await myConductor.addDevice('osc0', {
 			type: DeviceType.OSC,
 			options: {
-				commandReceiver: commandReceiver0,
 				host: '127.0.0.1',
 				port: 80,
 				type: OSCDeviceType.UDP,
 			},
+			commandReceiver: commandReceiver0,
 		})
 		myConductor.setTimelineAndMappings([], myLayerMapping)
 		await mockTime.advanceTimeToTicks(10100)
@@ -146,11 +146,11 @@ describe('OSC-Message', () => {
 		await myConductor.addDevice('osc0', {
 			type: DeviceType.OSC,
 			options: {
-				oscSender: commandReceiver0,
 				host: '127.0.0.1',
 				port: 80,
 				type: OSCDeviceType.UDP,
 			},
+			oscSender: commandReceiver0,
 		})
 		myConductor.setTimelineAndMappings([], myLayerMapping)
 		await mockTime.advanceTimeToTicks(10100)

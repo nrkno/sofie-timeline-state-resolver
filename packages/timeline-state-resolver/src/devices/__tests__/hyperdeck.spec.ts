@@ -57,8 +57,8 @@ describe('Hyperdeck', () => {
 			options: {
 				host: '127.0.0.1',
 				port: 9993,
-				commandReceiver: commandReceiver0,
 			},
+			commandReceiver: commandReceiver0,
 		})
 		await mockTime.advanceTimeToTicks(10100)
 

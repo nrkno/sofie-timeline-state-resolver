@@ -16,7 +16,7 @@ import { DoOnTime, SendMode } from '../doOnTime'
 import { Pharos, ProjectInfo } from './pharosAPI'
 
 export interface DeviceOptionsPharosInternal extends DeviceOptionsPharos {
-	options: DeviceOptionsPharos['options'] & { commandReceiver?: CommandReceiver }
+	commandReceiver?: CommandReceiver
 }
 export type CommandReceiver = (
 	time: number,
@@ -55,7 +55,7 @@ export class PharosDevice extends DeviceWithState<PharosState> implements IDevic
 	constructor(deviceId: string, deviceOptions: DeviceOptionsPharosInternal, getCurrentTime: () => Promise<number>) {
 		super(deviceId, deviceOptions, getCurrentTime)
 		if (deviceOptions.options) {
-			if (deviceOptions.options.commandReceiver) this._commandReceiver = deviceOptions.options.commandReceiver
+			if (deviceOptions.commandReceiver) this._commandReceiver = deviceOptions.commandReceiver
 			else this._commandReceiver = this._defaultCommandReceiver
 		}
 		this._doOnTime = new DoOnTime(
