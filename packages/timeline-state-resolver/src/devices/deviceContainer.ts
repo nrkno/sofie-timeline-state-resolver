@@ -1,43 +1,49 @@
 import { ThreadedClass, threadedClass, ThreadedClassConfig, ThreadedClassManager } from 'threadedclass'
 import { Device } from './device'
-import { DeviceType, DeviceOptionsAny, DeviceOptionsBase } from 'timeline-state-resolver-types'
+import { DeviceType, DeviceOptionsBase } from 'timeline-state-resolver-types'
 
 /**
  * A device container is a wrapper around a device in ThreadedClass class, it
  * keeps a local property of some basic information about the device (like
  * names and id's) to prevent a costly round trip over IPC.
  */
-export class DeviceContainer {
-	public _device: ThreadedClass<Device<DeviceOptionsBase<unknown>>>
-	public _deviceId = 'N/A'
-	public _deviceType: DeviceType
-	public _deviceName = 'N/A'
-	public _deviceOptions: DeviceOptionsAny
-	public _threadConfig: ThreadedClassConfig | undefined
+export class DeviceContainer<TOptions extends DeviceOptionsBase<any>> {
+	private _device: ThreadedClass<Device<TOptions>>
+	private _deviceId = 'N/A'
+	private _deviceType: DeviceType
+	private _deviceName = 'N/A'
+	private readonly _deviceOptions: TOptions
+	private readonly _threadConfig: ThreadedClassConfig | undefined
 	public onChildClose: () => void | undefined
 	private _instanceId = -1
 	private _startTime = -1
 	private _onEventListener: { stop: () => void } | undefined
 
-	async create<T extends Device<DeviceOptionsBase<unknown>>, TCtor extends new (...args: any[]) => T>(
+	private constructor(deviceOptions: TOptions, threadConfig?: ThreadedClassConfig) {
+		this._deviceOptions = deviceOptions
+		this._threadConfig = threadConfig
+	}
+
+	static async create<
+		TOptions extends DeviceOptionsBase<unknown>,
+		TCtor extends new (...args: any[]) => Device<TOptions>
+	>(
 		orgModule: string,
 		orgClassExport: string,
 		deviceId: string,
-		deviceOptions: DeviceOptionsAny,
+		deviceOptions: TOptions,
 		getCurrentTime: () => number,
 		threadConfig?: ThreadedClassConfig
-	) {
-		this._deviceOptions = deviceOptions
-		// this._options = options
-		this._threadConfig = threadConfig
-
+	): Promise<DeviceContainer<TOptions>> {
 		if (process.env.JEST_WORKER_ID !== undefined && threadConfig && threadConfig.disableMultithreading) {
 			// running in Jest test environment.
 			// hack: we need to work around the mangling performed by threadedClass, as getCurrentTime needs to not return a promise
 			getCurrentTime = { inner: getCurrentTime } as any
 		}
 
-		this._device = await threadedClass<T, TCtor>(
+		const container = new DeviceContainer(deviceOptions, threadConfig)
+
+		container._device = await threadedClass<Device<TOptions>, TCtor>(
 			orgModule,
 			orgClassExport,
 			[deviceId, deviceOptions, getCurrentTime] as any, // TODO types
@@ -45,15 +51,15 @@ export class DeviceContainer {
 		)
 
 		if (deviceOptions.isMultiThreaded) {
-			this._onEventListener = ThreadedClassManager.onEvent(this._device, 'thread_closed', () => {
+			container._onEventListener = ThreadedClassManager.onEvent(container._device, 'thread_closed', () => {
 				// This is called if a child crashes
-				if (this.onChildClose) this.onChildClose()
+				if (container.onChildClose) container.onChildClose()
 			})
 		}
 
-		await this.reloadProps()
+		await container.reloadProps()
 
-		return this
+		return container
 	}
 
 	public async reloadProps(): Promise<void> {
@@ -71,7 +77,7 @@ export class DeviceContainer {
 		await ThreadedClassManager.destroy(this._device)
 	}
 
-	public get device(): ThreadedClass<Device<DeviceOptionsBase<unknown>>> {
+	public get device(): ThreadedClass<Device<TOptions>> {
 		return this._device
 	}
 	public get deviceId(): string {
@@ -83,7 +89,7 @@ export class DeviceContainer {
 	public get deviceName(): string {
 		return this._deviceName
 	}
-	public get deviceOptions(): DeviceOptionsAny {
+	public get deviceOptions(): TOptions {
 		return this._deviceOptions
 	}
 	public get threadConfig(): ThreadedClassConfig | undefined {

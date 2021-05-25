@@ -54,24 +54,6 @@ export type DeviceOptionsAny =
 	| DeviceOptionsVizMSE
 	| DeviceOptionsShotoku
 
-export type DeviceInitOptions =
-	| AbstractOptions
-	| CasparCGOptions
-	| AtemOptions
-	| LawoOptions
-	| HTTPSendOptions
-	| PanasonicPTZOptions
-	| TCPSendOptions
-	| HyperdeckOptions
-	| PharosOptions
-	| OSCOptions
-	| HTTPWatcherOptions
-	| SisyfosOptions
-	| QuantelOptions
-	| SingularLiveOptions
-	| VMixOptions
-	| VizMSEOptions
-
 export interface DeviceOptionsAbstract extends DeviceOptionsBase<AbstractOptions> {
 	type: DeviceType.ABSTRACT
 }

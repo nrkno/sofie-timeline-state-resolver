@@ -3,7 +3,7 @@ import { EventEmitter } from 'events'
 import { EmberValue } from 'timeline-state-resolver-types'
 
 // @ts-ignore import json file
-const mockData = JSON.parse(fs.readFileSync('./lawo-out.json', 'utf8'))
+const mockData = JSON.parse(fs.readFileSync(__dirname + '/lawo-out.json', 'utf8'))
 
 export class Node {
 	node: any

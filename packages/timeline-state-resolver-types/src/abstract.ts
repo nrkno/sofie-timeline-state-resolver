@@ -4,7 +4,7 @@ export interface MappingAbstract extends Mapping {
 	device: DeviceType.ABSTRACT
 }
 
-export interface AbstractOptions {}
+export type AbstractOptions = Record<string, never>
 
 export type TimelineObjAbstractAny = TSRTimelineObjAbstract
 export interface TSRTimelineObjAbstract extends TSRTimelineObjBase {

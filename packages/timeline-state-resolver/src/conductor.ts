@@ -11,6 +11,7 @@ import {
 	DeviceType,
 	ResolvedTimelineObjectInstanceExtended,
 	TSRTimeline,
+	DeviceOptionsBase,
 } from 'timeline-state-resolver-types'
 import { AtemDevice, DeviceOptionsAtemInternal } from './devices/atem'
 import { EventEmitter } from 'eventemitter3'
@@ -124,7 +125,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 
 	private _options: ConductorOptions
 
-	private devices = new Map<string, DeviceContainer>()
+	private devices = new Map<string, DeviceContainer<DeviceOptionsBase<any>>>()
 
 	private _getCurrentTime?: () => number
 
@@ -261,10 +262,10 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 		ThreadedClassManager.debug = this._logDebug
 	}
 
-	public getDevices(): Array<DeviceContainer> {
+	public getDevices(): Array<DeviceContainer<DeviceOptionsBase<any>>> {
 		return Array.from(this.devices.values())
 	}
-	public getDevice(deviceId: string): DeviceContainer | undefined {
+	public getDevice(deviceId: string): DeviceContainer<DeviceOptionsBase<any>> | undefined {
 		return this.devices.get(deviceId)
 	}
 
@@ -274,9 +275,12 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 	 * @param deviceOptions The options used to initalize the device
 	 * @returns A promise that resolves with the created device, or rejects with an error message.
 	 */
-	public async addDevice(deviceId: string, deviceOptions: DeviceOptionsAnyInternal): Promise<DeviceContainer> {
+	public async addDevice(
+		deviceId: string,
+		deviceOptions: DeviceOptionsAnyInternal
+	): Promise<DeviceContainer<DeviceOptionsBase<any>>> {
 		try {
-			let newDevice: DeviceContainer
+			let newDevice: DeviceContainer<DeviceOptionsBase<any>>
 			const threadedClassOptions = {
 				threadUsage: deviceOptions.threadUsage || 1,
 				autoRestart: false,
@@ -289,7 +293,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 			}
 
 			if (deviceOptions.type === DeviceType.ABSTRACT) {
-				newDevice = await new DeviceContainer().create<AbstractDevice, typeof AbstractDevice>(
+				newDevice = await DeviceContainer.create<DeviceOptionsAbstractInternal, typeof AbstractDevice>(
 					'../../dist/devices/abstract.js',
 					'AbstractDevice',
 					deviceId,
@@ -304,7 +308,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 				)
 			} else if (deviceOptions.type === DeviceType.CASPARCG) {
 				// Add CasparCG device:
-				newDevice = await new DeviceContainer().create<CasparCGDevice, typeof CasparCGDevice>(
+				newDevice = await DeviceContainer.create<DeviceOptionsCasparCGInternal, typeof CasparCGDevice>(
 					'../../dist/devices/casparCG.js',
 					'CasparCGDevice',
 					deviceId,
@@ -313,7 +317,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 					threadedClassOptions
 				)
 			} else if (deviceOptions.type === DeviceType.ATEM) {
-				newDevice = await new DeviceContainer().create<AtemDevice, typeof AtemDevice>(
+				newDevice = await DeviceContainer.create<DeviceOptionsAtemInternal, typeof AtemDevice>(
 					'../../dist/devices/atem.js',
 					'AtemDevice',
 					deviceId,
@@ -322,7 +326,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 					threadedClassOptions
 				)
 			} else if (deviceOptions.type === DeviceType.HTTPSEND) {
-				newDevice = await new DeviceContainer().create<HTTPSendDevice, typeof HTTPSendDevice>(
+				newDevice = await DeviceContainer.create<DeviceOptionsHTTPSendInternal, typeof HTTPSendDevice>(
 					'../../dist/devices/httpSend.js',
 					'HTTPSendDevice',
 					deviceId,
@@ -331,7 +335,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 					threadedClassOptions
 				)
 			} else if (deviceOptions.type === DeviceType.HTTPWATCHER) {
-				newDevice = await new DeviceContainer().create<HTTPWatcherDevice, typeof HTTPWatcherDevice>(
+				newDevice = await DeviceContainer.create<DeviceOptionsHTTPWatcherInternal, typeof HTTPWatcherDevice>(
 					'../../dist/devices/httpWatcher.js',
 					'HTTPWatcherDevice',
 					deviceId,
@@ -340,7 +344,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 					threadedClassOptions
 				)
 			} else if (deviceOptions.type === DeviceType.LAWO) {
-				newDevice = await new DeviceContainer().create<LawoDevice, typeof LawoDevice>(
+				newDevice = await DeviceContainer.create<DeviceOptionsLawoInternal, typeof LawoDevice>(
 					'../../dist/devices/lawo.js',
 					'LawoDevice',
 					deviceId,
@@ -349,7 +353,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 					threadedClassOptions
 				)
 			} else if (deviceOptions.type === DeviceType.TCPSEND) {
-				newDevice = await new DeviceContainer().create<TCPSendDevice, typeof TCPSendDevice>(
+				newDevice = await DeviceContainer.create<DeviceOptionsTCPSendInternal, typeof TCPSendDevice>(
 					'../../dist/devices/tcpSend.js',
 					'TCPSendDevice',
 					deviceId,
@@ -358,7 +362,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 					threadedClassOptions
 				)
 			} else if (deviceOptions.type === DeviceType.PANASONIC_PTZ) {
-				newDevice = await new DeviceContainer().create<PanasonicPtzDevice, typeof PanasonicPtzDevice>(
+				newDevice = await DeviceContainer.create<DeviceOptionsPanasonicPTZInternal, typeof PanasonicPtzDevice>(
 					'../../dist/devices/panasonicPTZ.js',
 					'PanasonicPtzDevice',
 					deviceId,
@@ -367,7 +371,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 					threadedClassOptions
 				)
 			} else if (deviceOptions.type === DeviceType.HYPERDECK) {
-				newDevice = await new DeviceContainer().create<HyperdeckDevice, typeof HyperdeckDevice>(
+				newDevice = await DeviceContainer.create<DeviceOptionsHyperdeckInternal, typeof HyperdeckDevice>(
 					'../../dist/devices/hyperdeck.js',
 					'HyperdeckDevice',
 					deviceId,
@@ -376,7 +380,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 					threadedClassOptions
 				)
 			} else if (deviceOptions.type === DeviceType.PHAROS) {
-				newDevice = await new DeviceContainer().create<PharosDevice, typeof PharosDevice>(
+				newDevice = await DeviceContainer.create<DeviceOptionsPharosInternal, typeof PharosDevice>(
 					'../../dist/devices/pharos.js',
 					'PharosDevice',
 					deviceId,
@@ -385,7 +389,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 					threadedClassOptions
 				)
 			} else if (deviceOptions.type === DeviceType.OSC) {
-				newDevice = await new DeviceContainer().create<OSCMessageDevice, typeof OSCMessageDevice>(
+				newDevice = await DeviceContainer.create<DeviceOptionsOSCInternal, typeof OSCMessageDevice>(
 					'../../dist/devices/osc.js',
 					'OSCMessageDevice',
 					deviceId,
@@ -394,7 +398,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 					threadedClassOptions
 				)
 			} else if (deviceOptions.type === DeviceType.QUANTEL) {
-				newDevice = await new DeviceContainer().create<QuantelDevice, typeof QuantelDevice>(
+				newDevice = await DeviceContainer.create<DeviceOptionsQuantelInternal, typeof QuantelDevice>(
 					'../../dist/devices/quantel.js',
 					'QuantelDevice',
 					deviceId,
@@ -403,7 +407,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 					threadedClassOptions
 				)
 			} else if (deviceOptions.type === DeviceType.SHOTOKU) {
-				newDevice = await new DeviceContainer().create<ShotokuDevice, typeof ShotokuDevice>(
+				newDevice = await DeviceContainer.create<DeviceOptionsShotokuInternal, typeof ShotokuDevice>(
 					'../../dist/devices/shotoku.js',
 					'ShotokuDevice',
 					deviceId,
@@ -412,7 +416,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 					threadedClassOptions
 				)
 			} else if (deviceOptions.type === DeviceType.SISYFOS) {
-				newDevice = await new DeviceContainer().create<SisyfosMessageDevice, typeof SisyfosMessageDevice>(
+				newDevice = await DeviceContainer.create<DeviceOptionsSisyfosInternal, typeof SisyfosMessageDevice>(
 					'../../dist/devices/sisyfos.js',
 					'SisyfosMessageDevice',
 					deviceId,
@@ -421,7 +425,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 					threadedClassOptions
 				)
 			} else if (deviceOptions.type === DeviceType.VIZMSE) {
-				newDevice = await new DeviceContainer().create<VizMSEDevice, typeof VizMSEDevice>(
+				newDevice = await DeviceContainer.create<DeviceOptionsVizMSEInternal, typeof VizMSEDevice>(
 					'../../dist/devices/vizMSE.js',
 					'VizMSEDevice',
 					deviceId,
@@ -430,7 +434,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 					threadedClassOptions
 				)
 			} else if (deviceOptions.type === DeviceType.SINGULAR_LIVE) {
-				newDevice = await new DeviceContainer().create<SingularLiveDevice, typeof SingularLiveDevice>(
+				newDevice = await DeviceContainer.create<DeviceOptionsSingularLiveInternal, typeof SingularLiveDevice>(
 					'../../dist/devices/singularLive.js',
 					'SingularLiveDevice',
 					deviceId,
@@ -439,7 +443,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 					threadedClassOptions
 				)
 			} else if (deviceOptions.type === DeviceType.VMIX) {
-				newDevice = await new DeviceContainer().create<VMixDevice, typeof VMixDevice>(
+				newDevice = await DeviceContainer.create<DeviceOptionsVMixInternal, typeof VMixDevice>(
 					'../../dist/devices/vmix.js',
 					'VMixDevice',
 					deviceId,
@@ -591,7 +595,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 		return ThreadedClassManager.getThreadsMemoryUsage()
 	}
 
-	private _mapAllDevices<T>(fcn: (d: DeviceContainer) => Promise<T>): Promise<T[]> {
+	private _mapAllDevices<T>(fcn: (d: DeviceContainer<DeviceOptionsBase<any>>) => Promise<T>): Promise<T[]> {
 		return PAll(
 			Array.from(this.devices.values()).map((d) => () => fcn(d)),
 			{
@@ -696,9 +700,11 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 			// TODO - the PAll way of doing this provokes https://github.com/nrkno/tv-automation-state-timeline-resolver/pull/139
 			// The doOnTime calls fire before this, meaning we cleanup the state for a time we have already sent commands for
 			const pPrepareForHandleStates: Promise<unknown> = Promise.all(
-				Array.from(this.devices.values()).map(async (device: DeviceContainer): Promise<void> => {
-					await device.device.prepareForHandleState(resolveTime)
-				})
+				Array.from(this.devices.values()).map(
+					async (device: DeviceContainer<DeviceOptionsBase<any>>): Promise<void> => {
+						await device.device.prepareForHandleState(resolveTime)
+					}
+				)
 			).catch((error) => {
 				this.emit('error', error)
 			})
@@ -773,7 +779,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 			const layersPerDevice = this.filterLayersPerDevice(tlState.layers, Array.from(this.devices.values()))
 
 			// Push state to the right device:
-			await this._mapAllDevices(async (device: DeviceContainer): Promise<void> => {
+			await this._mapAllDevices(async (device: DeviceContainer<DeviceOptionsBase<any>>): Promise<void> => {
 				// The subState contains only the parts of the state relevant to that device:
 				const subState: TimelineState = {
 					time: tlState.time,
@@ -825,7 +831,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 			} else {
 				// there's nothing ahead in the timeline,
 				// Tell the devices that the future is clear:
-				await this._mapAllDevices(async (device: DeviceContainer) => {
+				await this._mapAllDevices(async (device: DeviceContainer<DeviceOptionsBase<any>>) => {
 					try {
 						await device.device.clearFuture(tlState.time)
 					} catch (e) {
@@ -1113,7 +1119,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 	/**
 	 * Split the state into substates that are relevant for each device
 	 */
-	private filterLayersPerDevice(layers: TimelineState['layers'], devices: DeviceContainer[]) {
+	private filterLayersPerDevice(layers: TimelineState['layers'], devices: DeviceContainer<DeviceOptionsBase<any>>[]) {
 		const filteredStates: { [deviceId: string]: { [layerId: string]: ResolvedTimelineObjectInstance } } = {}
 
 		const deviceIdAndTypes: { [idAndTyoe: string]: string } = {}
