@@ -58,7 +58,7 @@
     "watch": "jest --watch",
     "cov": "jest --coverage && yarn cov-open",
     "cov-open": "open-cli coverage/lcov-report/index.html",
-		"send-coverage": "codecov -p ../..",
+    "send-coverage": "codecov -p ../..",
     "validate:dependencies": "yarn audit --groups dependencies && yarn license-validate",
     "validate:dev-dependencies": "yarn audit --groups devDependencies",
     "license-validate": "node-license-validator -p -d --allow-licenses MIT BSD BSD-2-Clause BSD-3-Clause 0BSD ISC Apache Unlicense WTFPL --allow-packages cycle"
@@ -99,7 +99,8 @@
     "production"
   ],
   "dependencies": {
-    "atem-state": "^0.10.1",
+    "atem-connection": "2.3.0-nightly-v2-x-20210602-074504-fb9c3f4.0",
+    "atem-state": "0.12.0-nightly-latest-20210602-094426-6fea863.0",
     "casparcg-connection": "^5.1.0",
     "casparcg-state": "^2.1.0",
     "debug": "^4.3.1",

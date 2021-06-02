@@ -1,5 +1,5 @@
 export * from 'atem-state'
-import { AtemConnection as OrigAtemConnection } from 'atem-state'
+import * as OrigAtemConnection from 'atem-connection'
 import { EventEmitter } from 'events'
 
 /** Note: This is incomplete, and should be filled in as needed */
