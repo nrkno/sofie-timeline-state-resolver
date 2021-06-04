@@ -121,7 +121,7 @@
     "underscore": "^1.12.0",
     "underscore-deep-extend": "^1.1.5",
     "utf-8-validate": "^5.0.2",
-    "v-connection": "git+https://github.com/olzzon/v-connection#v20200515_1",
+    "v-connection": "git+https://github.com/olzzon/v-connection#v20210604_1",
     "ws": "^7.1.1",
     "xml-js": "^1.6.11"
   },
