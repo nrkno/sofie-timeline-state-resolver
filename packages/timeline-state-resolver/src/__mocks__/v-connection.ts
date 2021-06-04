@@ -175,7 +175,7 @@ type MockClass<T> = {
 export type VRundownMocked = MockClass<VRundown>
 export class VRundownMock implements VRundown {
 	private elements: {[key: string]: VElement} = {}
-	private _isActive: Boolean = false
+	private _isActive: boolean = false
 	constructor (
 		public readonly show: string,
 		public readonly profile: string,
@@ -304,7 +304,7 @@ export class VRundownMock implements VRundown {
 	async purge (): Promise<PepResponse> {
 		return { id: '*', status: 'ok', body: 'mock' }
 	}
-	async isActive (): Promise<Boolean> {
+	async isActive (): Promise<boolean> {
 		return this._isActive
 	}
 }
