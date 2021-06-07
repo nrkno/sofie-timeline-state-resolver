@@ -335,6 +335,7 @@ describe('vizMSE', () => {
 		rundown.createElement.mockClear()
 
 		await myConductor.devicesMakeReady(true)
+		await mockTime.advanceTimeTicks(10)
 
 		expect(rundown.activate).toHaveBeenCalledTimes(2)
 
