@@ -1,13 +1,7 @@
 import * as _ from 'underscore'
 import { TimelineState } from 'superfly-timeline'
-import {
-	Mappings,
-	DeviceType,
-	DeviceInitOptions,
-	DeviceOptionsAny,
-	MediaObject
-} from 'timeline-state-resolver-types'
-import { EventEmitter } from 'events'
+import { Mappings, DeviceType, MediaObject, DeviceOptionsBase } from 'timeline-state-resolver-types'
+import { EventEmitter } from 'eventemitter3'
 import { CommandReport, DoOnTime } from '../doOnTime'
 import { ExpectedPlayoutItem } from '../expectedPlayoutItems'
 
@@ -17,13 +11,13 @@ import { ExpectedPlayoutItem } from '../expectedPlayoutItems'
 */
 
 export interface DeviceCommand {
-	time: number,
-	deviceId: string,
+	time: number
+	deviceId: string
 	command: any
 }
 
 export interface DeviceCommandContainer {
-	deviceId: string,
+	deviceId: string
 	commands: Array<DeviceCommand>
 }
 export interface CommandWithContext {
@@ -32,23 +26,46 @@ export interface CommandWithContext {
 	command: any
 }
 export enum StatusCode {
-	UNKNOWN = 0, 		// Status unknown
-	GOOD = 1, 			// All good and green
-	WARNING_MINOR = 2,	// Everything is not OK, operation is not affected
-	WARNING_MAJOR = 3, 	// Everything is not OK, operation might be affected
-	BAD = 4, 			// Operation affected, possible to recover
-	FATAL = 5			// Operation affected, not possible to recover without manual interference
+	UNKNOWN = 0, // Status unknown
+	GOOD = 1, // All good and green
+	WARNING_MINOR = 2, // Everything is not OK, operation is not affected
+	WARNING_MAJOR = 3, // Everything is not OK, operation might be affected
+	BAD = 4, // Operation affected, possible to recover
+	FATAL = 5, // Operation affected, not possible to recover without manual interference
 }
 export interface DeviceStatus {
-	statusCode: StatusCode,
-	messages?: Array<string>,
+	statusCode: StatusCode
+	messages?: Array<string>
 	active: boolean
 }
 
-export function literal<T> (o: T) { return o }
+export function literal<T>(o: T) {
+	return o
+}
 
-export interface IDevice {
-	init: (initOptions: DeviceInitOptions) => Promise<boolean>
+export type DeviceEvents = {
+	info: [info: string]
+	warning: [warning: string]
+	error: [context: string, err: Error]
+	debug: [...debug: any[]]
+	/** The connection status has changed */
+	connectionChanged: [status: DeviceStatus]
+	/** A message to the resolver that something has happened that warrants a reset of the resolver (to re-run it again) */
+	resetResolver: []
+	/** A report that a command was sent too late */
+	slowCommand: [commandInfo: string]
+	/** Something went wrong when executing a command  */
+	commandError: [error: Error, context: CommandWithContext]
+	/** Update a MediaObject  */
+	updateMediaObject: [collectionId: string, docId: string, doc: MediaObject | null]
+	/** Clear a MediaObjects collection */
+	clearMediaObjects: [collectionId: string]
+
+	commandReport: [commandReport: CommandReport]
+}
+
+export interface IDevice<TOptions extends DeviceOptionsBase<any>> {
+	init: (initOptions: TOptions['options']) => Promise<boolean>
 
 	getCurrentTime: () => number
 
@@ -65,7 +82,7 @@ export interface IDevice {
 	deviceId: string
 	deviceName: string
 	deviceType: DeviceType
-	deviceOptions: DeviceOptionsAny
+	deviceOptions: TOptions
 
 	instanceId: number
 	startTime: number
@@ -74,23 +91,25 @@ export interface IDevice {
  * Base class for all Devices to inherit from. Defines the API that the conductor
  * class will use.
  */
-export abstract class Device extends EventEmitter implements IDevice {
-
-	private _getCurrentTime: () => Promise<number> | number
+export abstract class Device<TOptions extends DeviceOptionsBase<any>>
+	extends EventEmitter<DeviceEvents>
+	implements IDevice<TOptions>
+{
+	private _getCurrentTime: (() => Promise<number> | number) | undefined
 
 	private _deviceId: string
 
-	private _currentTimeDiff: number = 0
-	private _currentTimeUpdated: number = 0
+	private _currentTimeDiff = 0
+	private _currentTimeUpdated = 0
 	private _instanceId: number
 	private _startTime: number
 
-	public useDirectTime: boolean = false
-	protected _deviceOptions: DeviceOptionsAny
-	protected _reportAllCommands: boolean = false
-	protected _isActive: boolean = true
+	public useDirectTime = false
+	protected _deviceOptions: TOptions
+	protected _reportAllCommands = false
+	protected _isActive = true
 
-	constructor (deviceId: string, deviceOptions: DeviceOptionsAny, getCurrentTime: () => Promise<number>) {
+	constructor(deviceId: string, deviceOptions: TOptions, getCurrentTime: () => Promise<number>) {
 		super()
 		this._deviceId = deviceId
 		this._deviceOptions = deviceOptions
@@ -123,38 +142,38 @@ export abstract class Device extends EventEmitter implements IDevice {
 	 * Connect to the device, resolve the promise when ready.
 	 * @param initOptions Device-specific options
 	 */
-	abstract init (initOptions: DeviceInitOptions): Promise<boolean>
-	terminate (): Promise<boolean> {
+	abstract init(initOptions: TOptions['options']): Promise<boolean>
+	terminate(): Promise<boolean> {
 		return Promise.resolve(true)
 	}
-	getCurrentTime (): number {
+	getCurrentTime(): number {
 		if (this.useDirectTime) {
 			// Used when running in test
 			// @ts-ignore
 			return this._getCurrentTime()
 		}
-		if ((Date.now() - this._currentTimeUpdated) > 5 * 60 * 1000) {
+		if (Date.now() - this._currentTimeUpdated > 5 * 60 * 1000) {
 			this._updateCurrentTime()
 		}
 		return Date.now() - this._currentTimeDiff
 	}
 
 	/** Called from Conductor when a new state is about to be handled soon */
-	abstract prepareForHandleState (newStateTime: number)
+	abstract prepareForHandleState(newStateTime: number): void
 	/** Called from Conductor when a new state is to be handled */
-	abstract handleState (newState: TimelineState, mappings: Mappings)
+	abstract handleState(newState: TimelineState, mappings: Mappings): void
 
 	/** To be called by children first in .handleState */
-	protected onHandleState (_newState: TimelineState, mappings: Mappings) {
+	protected onHandleState(_newState: TimelineState, mappings: Mappings) {
 		this.updateIsActive(mappings)
 	}
 	/**
 	 * Clear any scheduled commands after this time
 	 * @param clearAfterTime
 	 */
-	abstract clearFuture (clearAfterTime: number)
-	abstract get canConnect (): boolean
-	abstract get connected (): boolean
+	abstract clearFuture(clearAfterTime: number): void
+	abstract get canConnect(): boolean
+	abstract get connected(): boolean
 
 	/**
 	 * The makeReady method could be triggered at a time before broadcast
@@ -162,7 +181,7 @@ export abstract class Device extends EventEmitter implements IDevice {
 	 * The exact implementation differ between different devices
 	 * @param okToDestroyStuff If true, the device may do things that might affect the output (temporarily)
 	 */
-	makeReady (_okToDestroyStuff?: boolean, _activeRundownId?: string): Promise<void> {
+	makeReady(_okToDestroyStuff?: boolean, _activeRundownId?: string): Promise<void> {
 		// This method should be overwritten by child
 		return Promise.resolve()
 	}
@@ -171,103 +190,71 @@ export abstract class Device extends EventEmitter implements IDevice {
 	 * The exact implementation differ between different devices
 	 * @param okToDestroyStuff If true, the device may do things that might affect the output (temporarily)
 	 */
-	standDown (_okToDestroyStuff?: boolean): Promise<void> {
+	standDown(_okToDestroyStuff?: boolean): Promise<void> {
 		// This method should be overwritten by child
 		return Promise.resolve()
 	}
-	abstract getStatus (): DeviceStatus
+	abstract getStatus(): DeviceStatus
 
-	get deviceId () {
+	get deviceId() {
 		return this._deviceId
 	}
 	/**
 	 * A human-readable name for this device
 	 */
-	abstract get deviceName (): string
-	abstract get deviceType (): DeviceType
-	get deviceOptions (): DeviceOptionsAny {
+	abstract get deviceName(): string
+	abstract get deviceType(): DeviceType
+	get deviceOptions(): TOptions {
 		return this._deviceOptions
 	}
-	get supportsExpectedPlayoutItems (): boolean {
+	get supportsExpectedPlayoutItems(): boolean {
 		return false
 	}
-	public handleExpectedPlayoutItems (_expectedPlayoutItems: Array<ExpectedPlayoutItem>): void {
+	public handleExpectedPlayoutItems(_expectedPlayoutItems: Array<ExpectedPlayoutItem>): void {
 		// When receiving a new list of playoutItems.
 		// by default, do nothing
 	}
-	get isActive (): boolean {
+	get isActive(): boolean {
 		return this._isActive
 	}
 
-	private _updateCurrentTime () {
+	private _updateCurrentTime() {
 		if (this._getCurrentTime) {
 			const startTime = Date.now()
 			Promise.resolve(this._getCurrentTime())
-			.then((parentTime) => {
-				const endTime = Date.now()
-				const clientTime = Math.round((startTime + endTime) / 2)
+				.then((parentTime) => {
+					const endTime = Date.now()
+					const clientTime = Math.round((startTime + endTime) / 2)
 
-				this._currentTimeDiff = clientTime - parentTime
-				this._currentTimeUpdated = endTime
-
-			})
-			.catch((err) => {
-				this.emit('error', 'device._updateCurrentTime', err)
-			})
+					this._currentTimeDiff = clientTime - parentTime
+					this._currentTimeUpdated = endTime
+				})
+				.catch((err) => {
+					this.emit('error', 'device._updateCurrentTime', err)
+				})
 		}
 	}
 
-	// Overide EventEmitter.on() for stronger typings:
-	on: ((event: 'info',				listener: (info: string) => void) => this) &
-		((event: 'warning',				listener: (warning: string) => void) => this) &
-		((event: 'error',				listener: (context: string, err: Error) => void) => this) &
-		((event: 'debug',				listener: (...debug: any[]) => void) => this) &
-		/** The connection status has changed */
-		((event: 'connectionChanged', 	listener: (status: DeviceStatus) => void) => this) &
-		/** A message to the resolver that something has happened that warrants a reset of the resolver (to re-run it again) */
-		((event: 'resetResolver',		listener: () => void) => this) &
-		/** A report that a command was sent too late */
-		((event: 'slowCommand',			listener: (commandInfo: string) => void) => this) &
-		/** Something went wrong when executing a command  */
-		((event: 'commandError', 		listener: (error: Error, context: CommandWithContext) => void) => this) &
-		/** Update a MediaObject  */
-		((event: 'updateMediaObject',	listener: (collectionId: string, docId: string, doc: MediaObject | null) => void) => this) &
-		/** Clear a MediaObjects collection */
-		((event: 'clearMediaObjects',	listener: (collectionId: string) => void) => this)
-
-		// Overide EventEmitter.emit() for stronger typings:
-	emit: ((event: 'info',				info: string) => boolean) &
-		((event: 'warning',				warning: string) => boolean) &
-		((event: 'error',				context: string, err: Error) => boolean) &
-		((event: 'debug',				...debug: any[]) => boolean) &
-		((event: 'connectionChanged',	status: DeviceStatus) => boolean) &
-		((event: 'resetResolver') => boolean) &
-		((event: 'slowCommand',			commandInfo: string) => boolean) &
-		((event: 'commandReport',		commandReport: CommandReport) => boolean) &
-		((event: 'commandError',		error: Error, context: CommandWithContext) => boolean) &
-		((event: 'updateMediaObject',	collectionId: string, docId: string, doc: MediaObject | null) => boolean) &
-		((event: 'clearMediaObjects',	collectionId: string) => boolean)
-
-	public get instanceId (): number {
+	public get instanceId(): number {
 		return this._instanceId
 	}
-	public get startTime (): number {
+	public get startTime(): number {
 		return this._startTime
 	}
-	protected handleDoOnTime (doOnTime: DoOnTime, deviceType: string) {
-		doOnTime.on('error', e => this.emit('error', `${deviceType}.doOnTime`, e))
-		doOnTime.on('slowCommand', msg => this.emit('slowCommand', this.deviceName + ': ' + msg))
-		doOnTime.on('commandReport', commandReport => {
+	protected handleDoOnTime(doOnTime: DoOnTime, deviceType: string) {
+		doOnTime.on('error', (e) => this.emit('error', `${deviceType}.doOnTime`, e))
+		doOnTime.on('slowCommand', (msg) => this.emit('slowCommand', this.deviceName + ': ' + msg))
+		doOnTime.on('commandReport', (commandReport) => {
 			if (this._reportAllCommands) {
 				this.emit('commandReport', commandReport)
 			}
 		})
 	}
-	private updateIsActive (mappings: Mappings) {
+	private updateIsActive(mappings: Mappings) {
 		// If there are no mappings assigned to this device, it is considered inactive
 
 		const ownMappings: Mappings = {}
-		let isActive: boolean = false
+		let isActive = false
 
 		_.each(mappings, (mapping, layerId) => {
 			if (mapping.deviceId === this.deviceId) {
@@ -284,20 +271,20 @@ export abstract class Device extends EventEmitter implements IDevice {
  * extra convenience methods for tracking state while inheriting all other methods
  * from the Device class.
  */
-export abstract class DeviceWithState<T> extends Device {
-	private _states: {[time: string]: T} = {}
-	private _setStateCount: number = 0
+export abstract class DeviceWithState<TState, TOptions extends DeviceOptionsBase<any>> extends Device<TOptions> {
+	private _states: { [time: string]: TState } = {}
+	private _setStateCount = 0
 
 	/**
 	 * Get the last known state before a point time. Useful for creating device
 	 * diffs.
 	 * @param time
 	 */
-	protected getStateBefore (time: number): {state: T, time: number} | null {
+	protected getStateBefore(time: number): { state: TState; time: number } | null {
 		let foundTime = 0
-		let foundState: T | null = null
-		_.each(this._states, (state: T, stateTimeStr: string) => {
-			let stateTime = parseFloat(stateTimeStr)
+		let foundState: TState | null = null
+		_.each(this._states, (state: TState, stateTimeStr: string) => {
+			const stateTime = parseFloat(stateTimeStr)
 			if (stateTime > foundTime && stateTime < time) {
 				foundState = state
 				foundTime = stateTime
@@ -306,7 +293,7 @@ export abstract class DeviceWithState<T> extends Device {
 		if (foundState) {
 			return {
 				state: foundState,
-				time: foundTime
+				time: foundTime,
 			}
 		}
 		return null
@@ -319,14 +306,14 @@ export abstract class DeviceWithState<T> extends Device {
 	 *
 	 * @param time
 	 */
-	protected getState (time?: number): {state: T, time: number} | null {
+	protected getState(time?: number): { state: TState; time: number } | null {
 		if (time === undefined) {
 			time = this.getCurrentTime()
 		}
 		let foundTime = 0
-		let foundState: T | null = null
-		_.each(this._states, (state: T, stateTimeStr: string) => {
-			let stateTime = parseFloat(stateTimeStr)
+		let foundState: TState | null = null
+		_.each(this._states, (state: TState, stateTimeStr: string) => {
+			const stateTime = parseFloat(stateTimeStr)
 			if (stateTime > foundTime && stateTime <= time!) {
 				foundState = state
 				foundTime = stateTime
@@ -335,7 +322,7 @@ export abstract class DeviceWithState<T> extends Device {
 		if (foundState) {
 			return {
 				state: foundState,
-				time: foundTime
+				time: foundTime,
 			}
 		}
 		return null
@@ -346,7 +333,7 @@ export abstract class DeviceWithState<T> extends Device {
 	 * @param state
 	 * @param time
 	 */
-	protected setState (state: T, time: number) {
+	protected setState(state: TState, time: number) {
 		if (!time) throw new Error('setState: falsy time')
 		this.cleanUpStates(0, time) // remove states after this time, as they are not relevant anymore
 
@@ -357,7 +344,7 @@ export abstract class DeviceWithState<T> extends Device {
 			this._setStateCount = 0
 
 			// Clean up old states:
-			let stateBeforeNow = this.getStateBefore(this.getCurrentTime())
+			const stateBeforeNow = this.getStateBefore(this.getCurrentTime())
 			if (stateBeforeNow && stateBeforeNow.time) {
 				this.cleanUpStates(stateBeforeNow.time - 1, 0)
 			}
@@ -368,18 +355,12 @@ export abstract class DeviceWithState<T> extends Device {
 	 * @param removeBeforeTime
 	 * @param removeAfterTime
 	 */
-	protected cleanUpStates (removeBeforeTime: number, removeAfterTime: number) {
+	protected cleanUpStates(removeBeforeTime: number, removeAfterTime: number) {
 		_.each(_.keys(this._states), (stateTimeStr: string) => {
-			let stateTime = parseFloat(stateTimeStr)
+			const stateTime = parseFloat(stateTimeStr)
 			if (
-				(
-					removeBeforeTime &&
-					stateTime <= removeBeforeTime
-				) ||
-				(
-					removeAfterTime &&
-					stateTime >= removeAfterTime
-				) ||
+				(removeBeforeTime && stateTime <= removeBeforeTime) ||
+				(removeAfterTime && stateTime >= removeAfterTime) ||
 				!stateTime
 			) {
 				delete this._states[stateTime]
@@ -389,7 +370,7 @@ export abstract class DeviceWithState<T> extends Device {
 	/**
 	 * Removes all states
 	 */
-	protected clearStates () {
+	protected clearStates() {
 		_.each(_.keys(this._states), (time: string) => {
 			delete this._states[time]
 		})
