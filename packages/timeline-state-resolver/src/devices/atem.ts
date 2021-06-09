@@ -168,8 +168,8 @@ export class AtemDevice extends DeviceWithState<DeviceState, DeviceOptionsAtemIn
 			return
 		}
 
-		let previousStateTime = Math.max(this.getCurrentTime(), newState.time)
-		let oldState: DeviceState = (this.getStateBefore(previousStateTime) || { state: AtemStateUtil.Create() }).state
+		const previousStateTime = Math.max(this.getCurrentTime(), newState.time)
+		const oldState: DeviceState = (this.getStateBefore(previousStateTime) || { state: AtemStateUtil.Create() }).state
 
 		const oldAtemState = oldState
 		const newAtemState = this.convertStateToAtem(newState, newMappings)
@@ -237,9 +237,9 @@ export class AtemDevice extends DeviceWithState<DeviceState, DeviceOptionsAtemIn
 					switch (mapping.mappingType) {
 						case MappingAtemType.MixEffect:
 							if (tlObject.content.type === TimelineContentTypeAtem.ME) {
-								let me = AtemStateUtil.getMixEffect(deviceState, mapping.index)
-								let atemObj = tlObject as any as TimelineObjAtemME
-								let atemObjKeyers = atemObj.content.me.upstreamKeyers
+								const me = AtemStateUtil.getMixEffect(deviceState, mapping.index)
+								const atemObj = tlObject as any as TimelineObjAtemME
+								const atemObjKeyers = atemObj.content.me.upstreamKeyers
 
 								deepExtend(me, _.omit(atemObj.content.me, 'upstreamKeyers'))
 								if (atemObjKeyers) {
@@ -252,15 +252,15 @@ export class AtemDevice extends DeviceWithState<DeviceState, DeviceOptionsAtemIn
 							break
 						case MappingAtemType.DownStreamKeyer:
 							if (tlObject.content.type === TimelineContentTypeAtem.DSK) {
-								let dsk = AtemStateUtil.getDownstreamKeyer(deviceState, mapping.index)
-								let atemObj = tlObject as any as TimelineObjAtemDSK
+								const dsk = AtemStateUtil.getDownstreamKeyer(deviceState, mapping.index)
+								const atemObj = tlObject as any as TimelineObjAtemDSK
 								if (dsk) deepExtend(dsk, atemObj.content.dsk)
 							}
 							break
 						case MappingAtemType.SuperSourceBox:
 							if (tlObject.content.type === TimelineContentTypeAtem.SSRC) {
-								let ssrc = AtemStateUtil.getSuperSource(deviceState, mapping.index)
-								let atemObj = tlObject as any as TimelineObjAtemSsrc
+								const ssrc = AtemStateUtil.getSuperSource(deviceState, mapping.index)
+								const atemObj = tlObject as any as TimelineObjAtemSsrc
 								if (ssrc) {
 									const objBoxes = atemObj.content.ssrc.boxes
 									_.each(objBoxes, (box, i) => {
@@ -278,7 +278,7 @@ export class AtemDevice extends DeviceWithState<DeviceState, DeviceOptionsAtemIn
 							break
 						case MappingAtemType.SuperSourceProperties:
 							if (tlObject.content.type === TimelineContentTypeAtem.SSRCPROPS) {
-								let ssrc = AtemStateUtil.getSuperSource(deviceState, mapping.index)
+								const ssrc = AtemStateUtil.getSuperSource(deviceState, mapping.index)
 								if (!ssrc.properties) ssrc.properties = { ...StateDefault.Video.SuperSourceProperties }
 								const atemObj = tlObject as any as TimelineObjAtemSsrcProps
 								if (ssrc) deepExtend(ssrc.properties, atemObj.content.ssrcProps)
@@ -292,8 +292,8 @@ export class AtemDevice extends DeviceWithState<DeviceState, DeviceOptionsAtemIn
 							break
 						case MappingAtemType.MediaPlayer:
 							if (tlObject.content.type === TimelineContentTypeAtem.MEDIAPLAYER) {
-								let ms = AtemStateUtil.getMediaPlayer(deviceState, mapping.index)
-								let atemObj = tlObject as any as TimelineObjAtemMediaPlayer
+								const ms = AtemStateUtil.getMediaPlayer(deviceState, mapping.index)
+								const atemObj = tlObject as any as TimelineObjAtemMediaPlayer
 								if (ms) deepExtend(ms, atemObj.content.mediaPlayer)
 							}
 							break
@@ -390,7 +390,6 @@ export class AtemDevice extends DeviceWithState<DeviceState, DeviceOptionsAtemIn
 	 * @param newAtemState
 	 */
 	private _diffStates(oldAtemState: DeviceState, newAtemState: DeviceState): Array<AtemCommandWithContext> {
-		console.log(oldAtemState.media, newAtemState.media)
 		// Ensure the state diffs the correct version
 		if (this._atem.state) {
 			this._state.version = this._atem.state.info.apiVersion
@@ -416,7 +415,7 @@ export class AtemDevice extends DeviceWithState<DeviceState, DeviceOptionsAtemIn
 		context: CommandContext,
 		timelineObjId: string
 	): Promise<any> {
-		let cwc: CommandWithContext = {
+		const cwc: CommandWithContext = {
 			context: context,
 			command: command,
 			timelineObjId: timelineObjId,
@@ -433,7 +432,7 @@ export class AtemDevice extends DeviceWithState<DeviceState, DeviceOptionsAtemIn
 			})
 	}
 	private _onAtemStateChanged(newState: Readonly<NativeAtemState>) {
-		let psus = newState.info.power || []
+		const psus = newState.info.power || []
 
 		if (!_.isEqual(this._atemStatus.psus, psus)) {
 			this._atemStatus.psus = _.clone(psus)

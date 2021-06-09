@@ -754,9 +754,9 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState, DeviceOptionsVizM
 	}
 }
 class VizMSEManager extends EventEmitter {
-	public initialized: boolean = false
-	public notLoadedCount: number = 0
-	public loadingCount: number = 0
+	public initialized = false
+	public notLoadedCount = 0
+	public loadingCount = 0
 	public enginesDisconnected: Array<string> = []
 
 	private _rundown: VRundown | undefined
@@ -764,24 +764,24 @@ class VizMSEManager extends EventEmitter {
 	private _expectedPlayoutItems: Array<ExpectedPlayoutItem> = []
 	private _monitorAndLoadElementsTimeout?: NodeJS.Timer
 	private _monitorMSEConnectionTimeout?: NodeJS.Timer
-	private _lastTimeCommandSent: number = 0
-	private _hasActiveRundown: boolean = false
+	private _lastTimeCommandSent = 0
+	private _hasActiveRundown = false
 	private _elementsLoaded: {
 		[hash: string]: { element: VElement; isLoaded: boolean; isLoading: boolean; wasLoaded?: boolean }
 	} = {}
 	private _getRundownPromise?: Promise<VRundown>
-	private _mseConnected: boolean = false
-	private _msePingConnected: boolean = false
-	private _loadingAllElements: boolean = false
+	private _mseConnected = false
+	private _msePingConnected = false
+	private _loadingAllElements = false
 	private _waitWithLayers: {
 		[portId: string]: Function[]
 	} = {}
-	public ignoreAllWaits: boolean = false // Only to be used in tests
+	public ignoreAllWaits = false // Only to be used in tests
 	private _cacheInternalElementsSentLoaded: { [hash: string]: true } = {}
-	private _terminated: boolean = false
+	private _terminated = false
 	private _activeRundownPlaylistId: string | undefined
 	private _preloadedRundownPlaylistId: string | undefined
-	private _updateAfterReconnect: boolean = false
+	private _updateAfterReconnect = false
 
 	public get activeRundownPlaylistId() {
 		return this._activeRundownPlaylistId
@@ -1433,7 +1433,7 @@ class VizMSEManager extends EventEmitter {
 	/**
 	 * Trigger a load of all elements that are not yet loaded onto the vizEngine.
 	 */
-	private async _triggerLoadAllElements(loadTwice: boolean = false): Promise<void> {
+	private async _triggerLoadAllElements(loadTwice = false): Promise<void> {
 		if (this._loadingAllElements) {
 			this.emit('warning', '_triggerLoadAllElements already running')
 			return
@@ -1494,8 +1494,6 @@ class VizMSEManager extends EventEmitter {
 			}
 
 			this.emit('debug', '_triggerLoadAllElements done')
-		} catch (e) {
-			throw e
 		} finally {
 			this._loadingAllElements = false
 		}
