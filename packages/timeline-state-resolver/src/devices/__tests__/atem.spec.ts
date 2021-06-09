@@ -1,4 +1,5 @@
-import { Enums, AtemConnection } from 'atem-state'
+import { Enums } from 'atem-state'
+import * as AtemConnection from 'atem-connection'
 import { ResolvedTimelineObjectInstance, TimelineState } from 'superfly-timeline'
 import { Conductor } from '../../conductor'
 import { AtemDevice, DeviceOptionsAtemInternal } from '../atem'

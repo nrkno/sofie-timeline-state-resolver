@@ -1,7 +1,7 @@
 {
   "name": "timeline-state-resolver-packages",
   "private": true,
-  "version": "6.0.0-0",
+  "version": "6.0.1-release36",
   "workspaces": {
     "packages": [
       "packages/timeline-state-resolver-types",
@@ -26,7 +26,7 @@
     "@types/request": "^2.48.1",
     "@types/sprintf-js": "^1.1.0",
     "@types/underscore": "^1.10.24",
-    "@types/ws": "^7.2.4",
+    "@types/ws": "^7.4.4",
     "@types/xml-js": "^1.0.0",
     "codecov": "^3.6.1",
     "jest": "^26.0.1",
@@ -45,5 +45,9 @@
     "hooks": {
 			"pre-commit": "lerna run --concurrency 1 --stream precommit --since HEAD --exclude-dependents"
     }
+  },
+  "resolutions": {
+    "node-license-validator/**/minimist": "^1.2.3",
+    "ws": "^7.4.6"
   }
 }
