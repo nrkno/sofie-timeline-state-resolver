@@ -115,7 +115,7 @@
     "sprintf-js": "^1.1.2",
     "superfly-timeline": "^8.2.1",
     "threadedclass": "0.8.3",
-    "timeline-state-resolver-types": "6.0.0-0",
+    "timeline-state-resolver-types": "6.0.1-release36",
     "tslib": "^2.1.0",
     "tv-automation-quantel-gateway-client": "^1.0.12",
     "underscore": "^1.12.0",
