@@ -161,6 +161,7 @@ describe('vMixAPI', () => {
 
 		expect(vmix.connected).toEqual(true)
 		expect(onConnected).toHaveBeenCalledTimes(1)
+		expect(onDisconnected).toHaveBeenCalledTimes(0)
 		onConnected.mockClear()
 
 		vmixServer.serverIsUp = false
@@ -168,6 +169,7 @@ describe('vMixAPI', () => {
 
 		expect(vmix.connected).toBeFalsy()
 		expect(onDisconnected).toHaveBeenCalledTimes(1)
+		expect(onConnected).toHaveBeenCalledTimes(0)
 		onDisconnected.mockClear()
 
 		vmixServer.serverIsUp = true

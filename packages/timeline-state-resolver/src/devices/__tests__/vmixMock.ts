@@ -154,6 +154,7 @@ function handleRequest(
 
 		if (!vmixServer.serverIsUp) {
 			callback(new Error(), null)
+			return
 		}
 
 		try {
