@@ -36,7 +36,7 @@ describe('vMixAPI', () => {
 		vmix.on('disconnected', onDisconnected)
 		vmix.on('stateChanged', onStateChanged)
 
-		expect(!vmix.connected)
+		expect(vmix.connected).toBeFalsy()
 
 		const options: VMixOptions = {
 			host: '127.0.0.1',
@@ -46,7 +46,7 @@ describe('vMixAPI', () => {
 
 		await wait(100)
 
-		expect(vmix.connected)
+		expect(vmix.connected).toBeTruthy()
 
 		expect(onGet).toHaveBeenCalledTimes(1)
 		expect(onGet).toHaveBeenCalledWith('http://127.0.0.1:9999/api', undefined, expect.any(Function))
@@ -138,7 +138,7 @@ describe('vMixAPI', () => {
 
 		await vmix.dispose()
 
-		expect(!vmix.connected)
+		expect(vmix.connected).toBeFalsy()
 	})
 	test('Connection status', async () => {
 		const vmix = new VMix()
@@ -166,14 +166,14 @@ describe('vMixAPI', () => {
 		vmixServer.serverIsUp = false
 		await wait(vmix.pingInterval)
 
-		expect(!vmix.connected)
+		expect(vmix.connected).toBeFalsy()
 		expect(onDisconnected).toHaveBeenCalledTimes(1)
 		onDisconnected.mockClear()
 
 		vmixServer.serverIsUp = true
 		await wait(vmix.pingInterval)
 
-		expect(vmix.connected)
+		expect(vmix.connected).toBeTruthy()
 		expect(onConnected).toHaveBeenCalledTimes(1)
 		onConnected.mockClear()
 		await vmix.dispose()

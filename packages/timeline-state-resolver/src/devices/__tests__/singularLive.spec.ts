@@ -19,9 +19,7 @@ describe('Singular.Live', () => {
 	beforeEach(() => {
 		mockTime.init()
 	})
-	// test('nothing', async () => {
-	// 	expect(1).toEqual(1)
-	// })
+
 	test('POST message', async () => {
 		const commandReceiver0: any = jest.fn(() => {
 			return Promise.resolve()

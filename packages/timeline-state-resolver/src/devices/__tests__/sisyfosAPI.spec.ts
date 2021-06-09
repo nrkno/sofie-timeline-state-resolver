@@ -61,7 +61,7 @@ describe('SisyfosAPI', () => {
 		expect(onDisconnected).toHaveBeenCalledTimes(2)
 		expect(onError).toHaveBeenCalledTimes(0)
 	})
-	// test('Functionality', async () => {
+	// testtodo('Functionality', async () => {
 	// todo:
 
 	// Commands.TOGGLE_PGM

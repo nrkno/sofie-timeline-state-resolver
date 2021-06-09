@@ -19,7 +19,7 @@
     "release:bump-prerelease": "lerna version --conventional-commits --conventional-prerelease --tag-version-prefix='' --no-push"
   },
   "devDependencies": {
-    "@sofie-automation/code-standard-preset": "^0.3.0",
+    "@sofie-automation/code-standard-preset": "^0.4.1",
     "@strictsoftware/typedoc-plugin-monorepo": "^0.4.2",
     "@types/jest": "^26.0.9",
     "@types/node": "^12.12.2",

@@ -33,7 +33,7 @@ describe('Sisyfos', () => {
 		mockTime.init()
 	})
 
-	test('Sisyfos: set ch1: pgm & ch2: lookahead and then ch1: vo, ch2: pgm', async () => {
+	test('Sisyfos: set ch1: pgm & ch2: lookahead and then ch1: vo, ch2: pgm (old api)', async () => {
 		const commandReceiver0: any = jest.fn(() => {
 			return Promise.resolve()
 		})

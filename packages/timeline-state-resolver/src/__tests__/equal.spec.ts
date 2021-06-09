@@ -1,3 +1,4 @@
+/* eslint-disable jest/expect-expect */
 import * as _ from 'underscore'
 import { getDiff } from '../lib'
 

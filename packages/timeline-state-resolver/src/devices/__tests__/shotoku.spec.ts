@@ -193,12 +193,15 @@ describe('Shotoku', () => {
 		await device.terminate()
 	}
 
+	// eslint-disable-next-line jest/expect-expect
 	test('Default transition to shot', async () => {
 		await testShots()
 	})
+	// eslint-disable-next-line jest/expect-expect
 	test('Cut to shot', async () => {
 		await testShots(ShotokuTransitionType.Cut)
 	})
+	// eslint-disable-next-line jest/expect-expect
 	test('Fade to shot', async () => {
 		await testShots(ShotokuTransitionType.Fade)
 	})

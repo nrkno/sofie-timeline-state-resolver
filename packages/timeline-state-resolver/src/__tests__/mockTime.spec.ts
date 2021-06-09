@@ -15,7 +15,7 @@ describe('mockTime', () => {
 			mockTime.advanceTimeTo(11000)
 		}).toThrowError()
 	})
-	test('mockTimeAsync', async (done) => {
+	test('mockTimeAsync', async () => {
 		const mockTime = new MockTime()
 		mockTime.init()
 		expect(mockTime.now).toEqual(10000)
@@ -25,8 +25,7 @@ describe('mockTime', () => {
 		expect(mockTime.now).toEqual(10100)
 		await mockTime.advanceTimeToTicks(12000)
 		expect(mockTime.now).toEqual(12000)
-		mockTime.advanceTimeToTicks(11000).catch(() => {
-			done()
-		})
+
+		await expect(mockTime.advanceTimeToTicks(11000)).rejects.toEqual(new Error('advanceTime must be positive (-1000)!'))
 	})
 })

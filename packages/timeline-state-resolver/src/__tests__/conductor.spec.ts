@@ -25,7 +25,7 @@ describe('Conductor', () => {
 	beforeEach(() => {
 		mockTime.init()
 	})
-	test('Test Abstract-device functionality', async () => {
+	test('Abstract-device functionality', async () => {
 		const commandReceiver0: any = jest.fn(() => {
 			return Promise.resolve()
 		})
@@ -187,7 +187,7 @@ describe('Conductor', () => {
 		conductor.setTimelineAndMappings([abstractThing0])
 	})
 
-	test('Test the "Now" and "Callback-functionality', async () => {
+	test('the "Now" and "Callback-functionality', async () => {
 		const commandReceiver0: any = jest.fn(() => {
 			return Promise.resolve()
 		})
@@ -546,38 +546,38 @@ describe('Conductor', () => {
 
 		await mockTime.advanceTimeTicks(100) // just a little bit
 
-		const nææh = false
-		const DO_IT_RIGHT = nææh
-		if (DO_IT_RIGHT) {
-			// Note: We only expect a play command on the new channel,
-			// The old channel now has no mapping, and should be left alone
-			expect(commandReceiver0).toHaveBeenCalledTimes(1)
-			expect(getMockCall(commandReceiver0, 0, 1).name).toEqual('PlayCommand')
-			expect(getMockCall(commandReceiver0, 0, 1)).toMatchObject({
-				_objectParams: {
-					clip: 'AMB',
-					channel: 2,
-					layer: 10,
-				},
-			})
-		} else {
-			expect(commandReceiver0).toHaveBeenCalledTimes(2)
-			expect(getMockCall(commandReceiver0, 0, 1).name).toEqual('ClearCommand')
-			expect(getMockCall(commandReceiver0, 0, 1)).toMatchObject({
-				_objectParams: {
-					channel: 1,
-					layer: 20,
-				},
-			})
+		// const nææh = false
+		// const DO_IT_RIGHT = nææh
+		// if (DO_IT_RIGHT) {
+		// 	// Note: We only expect a play command on the new channel,
+		// 	// The old channel now has no mapping, and should be left alone
+		// 	expect(commandReceiver0).toHaveBeenCalledTimes(1)
+		// 	expect(getMockCall(commandReceiver0, 0, 1).name).toEqual('PlayCommand')
+		// 	expect(getMockCall(commandReceiver0, 0, 1)).toMatchObject({
+		// 		_objectParams: {
+		// 			clip: 'AMB',
+		// 			channel: 2,
+		// 			layer: 10,
+		// 		},
+		// 	})
+		// } else {
+		expect(commandReceiver0).toHaveBeenCalledTimes(2)
+		expect(getMockCall(commandReceiver0, 0, 1).name).toEqual('ClearCommand')
+		expect(getMockCall(commandReceiver0, 0, 1)).toMatchObject({
+			_objectParams: {
+				channel: 1,
+				layer: 20,
+			},
+		})
 
-			expect(getMockCall(commandReceiver0, 1, 1).name).toEqual('PlayCommand')
-			expect(getMockCall(commandReceiver0, 1, 1)).toMatchObject({
-				_objectParams: {
-					clip: 'AMB',
-					channel: 2,
-					layer: 10,
-				},
-			})
-		}
+		expect(getMockCall(commandReceiver0, 1, 1).name).toEqual('PlayCommand')
+		expect(getMockCall(commandReceiver0, 1, 1)).toMatchObject({
+			_objectParams: {
+				clip: 'AMB',
+				channel: 2,
+				layer: 10,
+			},
+		})
+		// }
 	})
 })

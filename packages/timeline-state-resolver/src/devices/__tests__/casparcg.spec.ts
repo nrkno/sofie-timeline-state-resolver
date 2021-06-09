@@ -532,7 +532,7 @@ describe('CasparCG', () => {
 		expect(getMockCall(commandReceiver0, 4, 1)._objectParams.command.name).toEqual('CGStopCommand')
 	})
 
-	test('CasparCG: Play template for 60s', async () => {
+	test('CasparCG: Schedule recording', async () => {
 		const commandReceiver0: any = jest.fn(() => {
 			return Promise.resolve()
 		})
