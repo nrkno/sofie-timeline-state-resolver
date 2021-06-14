@@ -17,6 +17,9 @@ export interface HTTPSendOptions {
 	makeReadyCommands?: HTTPSendCommandContent[]
 	/** Whether a makeReady should be treated as a reset of the device. It should be assumed clean, with the queue discarded, and state reapplied from empty */
 	makeReadyDoesReset?: boolean
+
+	/** */
+	resendTime?: number
 }
 
 export enum TimelineContentTypeHTTP {
