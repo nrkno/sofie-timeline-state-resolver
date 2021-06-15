@@ -16,7 +16,9 @@
     "docs": "yarn typedoc .",
     "postinstall": "lerna bootstrap",
     "release:bump-release": "lerna version --conventional-commits --conventional-graduate --tag-version-prefix='' --no-push",
-    "release:bump-prerelease": "lerna version --conventional-commits --conventional-prerelease --tag-version-prefix='' --no-push"
+    "release:bump-prerelease": "lerna version --conventional-commits --conventional-prerelease --tag-version-prefix='' --no-push",
+    "validate:dependencies": "yarn lerna exec --parallel yarn validate:dependencies",
+    "validate:dev-dependencies": "yarn lerna exec --parallel yarn validate:dev-dependencies"
   },
   "devDependencies": {
     "@strictsoftware/typedoc-plugin-monorepo": "^0.4.2",
