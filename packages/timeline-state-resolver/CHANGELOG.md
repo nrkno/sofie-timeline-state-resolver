@@ -2,6 +2,35 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [5.8.0](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/5.7.0...5.8.0) (2021-06-15)
+
+
+### Features
+
+* Add external elements status reporting using Media Objects ([37212fd](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/37212fd0576a8f6bc14e571e401ecfc9be0ce4ea))
+* Add layerName property to mappings ([20cc428](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/20cc428865b5fa1cbae08b4537c32e81e8346778))
+* add support for advanced settings in the TimelineObjAtemSsrcProps ([#171](https://github.com/nrkno/tv-automation-state-timeline-resolver/issues/171)) ([d25520f](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/d25520fc2dbb00583e18f6b68dd7acdcc5274f75))
+* Allow multiple layer mappings affecting one CasparCG layer ([cb4bfdd](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/cb4bfdd6eede8f80e775c22bd43e12c09d1f491a))
+* rename activeRundown -> activePlaylist. ([27a6a82](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/27a6a82fd058eaac23548208962b41bec8dc1cc4))
+* Use layerName as default label for sisyfos faders ([a9ee674](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/a9ee6740c0ef24c4aaa6c461da27b3c8cf5d0ef3))
+
+
+### Bug Fixes
+
+* allow multiple mappings to reference 1 casparcg layer ([49d313b](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/49d313ba55086c367142efe1f180d6ea7d7c493a))
+* Allow the take of overlay pilot elements to be delayed ([79670b4](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/79670b45c41490a10c4cb9de7c3b8b7033a8a9c4))
+* escape template data ([ac7efc6](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/ac7efc65696f9b8a6db1f344c157ca4298e54690))
+* extend templateData when allowing multiple mappings to reference 1 casparcg layer ([6656ced](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/6656ceda6f8f3a86e3976128c7f704e93f557001))
+* filtering expected items for rundown playlist ([7e608b6](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/7e608b68d19336d150539e6859070d44f71e7e38))
+* Only set sisyfos channel name if setLabelToLayerName is set ([0439419](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/043941953b06f26dc3fd861aecbb290b31a7a36b))
+* Pass context to ATEM custom command function ([70b71d1](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/70b71d19b580622395ac77cc3c499f77e452eff4))
+* Remove ExpectedPlayoutItemContentBase from tsr-types [publish] ([a478e01](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/a478e019238cec51a002c53e8c537b4cafde5890))
+* Set fader label ([9d2ac05](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/9d2ac05df4373ff116426beaa1c3bfc029b59204))
+* Sisyfos tests ([1d7debb](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/1d7debbdcddba3a42eebf37ebb9c87a67ac11354))
+* **sisyfos:** Sorting all channels by overridePriority ([44f0462](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/44f0462354664411f8882a156a2e91f100d92b6f))
+* support for using a cache when resolving the timeline, enabling partial-resolving for higher performance ([9e3ac97](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/9e3ac970bf302ea54887c129a7c83e059632ccee))
+* update timeline dependency ([8f93464](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/8f93464fbb6b0b48b1193783060663e5b763aa9c))
+
 ## [5.7.0](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/5.5.5...5.7.0) (2021-05-04)
 
 
