@@ -6250,15 +6250,15 @@ typedoc@^0.16.0:
     typedoc-default-themes "^0.7.2"
     typescript "3.7.x"
 
-typescript@3.6.x:
-  version "3.6.5"
-  resolved "https://registry.yarnpkg.com/typescript/-/typescript-3.6.5.tgz#dae20114a7b4ff4bd642db9c8c699f2953e8bbdb"
-  integrity sha512-BEjlc0Z06ORZKbtcxGrIvvwYs5hAnuo6TKdNFL55frVDlB+na3z5bsLhFaIxmT+dPWgBIjMo6aNnTOgHHmHgiQ==
-
 typescript@3.7.x:
   version "3.7.5"
   resolved "https://registry.yarnpkg.com/typescript/-/typescript-3.7.5.tgz#0692e21f65fd4108b9330238aac11dd2e177a1ae"
   integrity sha512-/P5lkRXkWHNAbcJIiHPfRoKqyd7bsyCma1hZNUGfn20qm64T6ZBlrzprymeu918H+mB/0rIg2gGK/BXkhhYgBw==
+
+typescript@3.8.x:
+  version "3.8.3"
+  resolved "https://registry.yarnpkg.com/typescript/-/typescript-3.8.3.tgz#409eb8544ea0335711205869ec458ab109ee1061"
+  integrity sha512-MYlEfn5VrLNsgudQTVJeNaQFUAI7DkhnOjdpAp4T+ku1TfQClewlbSuTVHiA+8skNBgaf02TL/kLOvig4y3G8w==
 
 uglify-js@^3.1.4:
   version "3.10.4"
@@ -6374,14 +6374,14 @@ uuid@^8.3.2:
   resolved "https://registry.yarnpkg.com/uuid/-/uuid-8.3.2.tgz#80d5b5ced271bb9af6c445f21a1a04c606cefbe2"
   integrity sha512-+NYs2QeMWy+GWFOEm9xnn6HCDp0l7QBD7ml8zLUmJ+93Q5NF0NocErnwkTkXVFNiX3/fpC6afS8Dhb/gz7R7eg==
 
-"v-connection@git+https://github.com/olzzon/v-connection#vtest20210413_1":
+"v-connection@git+https://github.com/olzzon/v-connection#v20210604_1":
   version "0.0.1"
-  resolved "git+https://github.com/olzzon/v-connection#56cd7f01bab7d38786ccba900f8c63842d3b9f57"
+  resolved "git+https://github.com/olzzon/v-connection#fce072ef2e8df663cea64eefa85c3d4c5e27c329"
   dependencies:
     request "^2.88.2"
     request-promise-native "^1.0.9"
     uuid "^8.3.2"
-    ws "^7.4.2"
+    ws "^7.4.6"
     xml2js "^0.4.23"
 
 v8-to-istanbul@^5.0.1:
@@ -6585,10 +6585,10 @@ ws@^7.1.1, ws@^7.2.3:
   resolved "https://registry.yarnpkg.com/ws/-/ws-7.3.1.tgz#d0547bf67f7ce4f12a72dfe31262c68d7dc551c8"
   integrity sha512-D3RuNkynyHmEJIpD2qrgVkc9DQ23OrN/moAwZX4L8DfvszsJxpjQuUq3LMx6HoYji9fbIOBY18XWBsAux1ZZUA==
 
-ws@^7.4.2:
-  version "7.4.4"
-  resolved "https://registry.yarnpkg.com/ws/-/ws-7.4.4.tgz#383bc9742cb202292c9077ceab6f6047b17f2d59"
-  integrity sha512-Qm8k8ojNQIMx7S+Zp8u/uHOx7Qazv3Yv4q68MiWWWOJhiwG5W3x7iqmRtJo8xxrciZUY4vRxUTJCKuRnF28ZZw==
+ws@^7.4.6:
+  version "7.4.6"
+  resolved "https://registry.yarnpkg.com/ws/-/ws-7.4.6.tgz#5654ca8ecdeee47c33a9a4bf6d28e2be2980377c"
+  integrity sha512-YmhHDO4MzaDLB+M9ym/mDA5z0naX8j7SIlT8f8z+I0VtzsRbekxEutHSme7NPS2qE8StCYQNUnfWdXta/Yu85A==
 
 xdg-basedir@^2.0.0:
   version "2.0.0"
