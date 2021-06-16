@@ -9,7 +9,8 @@ import {
 	VTemplate,
 	InternalElement,
 	ExternalElement,
-	VElement
+	VElement,
+	ExternalElementId
 } from 'v-connection'
 import { EventEmitter } from 'events'
 import { CommandResult } from 'v-connection/dist/msehttp'
@@ -175,7 +176,7 @@ type MockClass<T> = {
 export type VRundownMocked = MockClass<VRundown>
 export class VRundownMock implements VRundown {
 	private elements: {[key: string]: VElement} = {}
-	private _isActive: Boolean = false
+	private _isActive: boolean = false
 	constructor (
 		public readonly show: string,
 		public readonly profile: string,
@@ -301,10 +302,10 @@ export class VRundownMock implements VRundown {
 	async cleanup (): Promise<CommandResult> {
 		return { path: '', status: 200, response: 'mock' }
 	}
-	async purge (): Promise<PepResponse> {
+	async purge (_elementsToKeep?: ExternalElementId[]): Promise<PepResponse> {
 		return { id: '*', status: 'ok', body: 'mock' }
 	}
-	async isActive (): Promise<Boolean> {
+	async isActive (): Promise<boolean> {
 		return this._isActive
 	}
 }

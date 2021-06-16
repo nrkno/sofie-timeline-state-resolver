@@ -48,7 +48,7 @@ export interface DeviceStatus {
 export function literal<T> (o: T) { return o }
 
 export interface IDevice {
-	init: (initOptions: DeviceInitOptions) => Promise<boolean>
+	init: (initOptions: DeviceInitOptions, activeRundownPlaylistId: string | undefined) => Promise<boolean>
 
 	getCurrentTime: () => number
 
