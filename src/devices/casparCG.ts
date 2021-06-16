@@ -59,6 +59,9 @@ import {
 import { DoOnTime, SendMode } from '../doOnTime'
 import * as request from 'request'
 import { InternalTransitionHandler } from './transitions/transitionHandler'
+import { deepExtend } from '../lib'
+import Debug from 'debug'
+const debug = Debug('timeline-state-resolver:casparcg')
 
 const MAX_TIMESYNC_TRIES = 5
 const MAX_TIMESYNC_DURATION = 40
@@ -510,22 +513,41 @@ export class CasparCGDevice extends DeviceWithState<State> implements IDevice {
 				const foregroundStateLayer = foregroundObj ? this.convertObjectToCasparState(mappings, foregroundObj, mapping, true) : undefined
 				const backgroundStateLayer = backgroundObj ? this.convertObjectToCasparState(mappings, backgroundObj, mapping, false) : undefined
 
+				debug(`${layerName} (${mapping.channel}-${mapping.layer}): FG keys: ${Object.entries(foregroundStateLayer || {}).map(e => e[0] + ': ' + e[1]).join(', ')}`)
+				debug(`${layerName} (${mapping.channel}-${mapping.layer}): BG keys: ${Object.entries(backgroundStateLayer || {}).map(e => e[0] + ': ' + e[1]).join(', ')}`)
+
+				const merge = <T extends Record<string, any>>(o1: T, o2: T) => {
+					const o = {
+						...o1
+					}
+					Object.entries(o2).forEach(([ key, value ]) => {
+						if (value !== undefined) {
+							o[key as keyof T] = value
+						}
+					})
+					return o
+				}
+
 				if (foregroundStateLayer) {
-					channel.layers[layerName] = {
+					const currentTemplateData = (channel.layers[mapping.layer] as any as TemplateLayer | undefined) ? (channel.layers[mapping.layer] as any as TemplateLayer).templateData : undefined
+					const foregroundTemplateData = (foregroundStateLayer as any as TemplateLayer | undefined) ? (foregroundStateLayer as any as TemplateLayer).templateData : undefined
+					channel.layers[mapping.layer] = merge(channel.layers[mapping.layer], {
 						...foregroundStateLayer,
-						nextUp: backgroundStateLayer ? literal<NextUp>({
+						...(currentTemplateData && foregroundTemplateData ? { templateData: deepExtend(currentTemplateData, foregroundTemplateData) } : {}),
+						nextUp: backgroundStateLayer ? merge((channel.layers[mapping.layer] || {}).nextUp!, literal<NextUp>({
 							...backgroundStateLayer as NextUp,
 							auto: false
-						}) : undefined
-					}
+						})) : undefined
+					})
 				} else if (backgroundStateLayer) {
 					if (mapping.previewWhenNotOnAir) {
-						channel.layers[layerName] = {
+						channel.layers[mapping.layer] = merge(channel.layers[mapping.layer], {
+							...channel.layers[mapping.layer],
 							...backgroundStateLayer,
 							playing: false
-						}
+						})
 					} else {
-						channel.layers[layerName] = literal<EmptyLayer>({
+						channel.layers[mapping.layer] = merge(channel.layers[mapping.layer], literal<EmptyLayer>({
 							id: `${backgroundStateLayer.id}_empty_base`,
 							layerNo: mapping.layer,
 							content: LayerContentType.NOTHING,
@@ -534,7 +556,7 @@ export class CasparCGDevice extends DeviceWithState<State> implements IDevice {
 								...backgroundStateLayer as NextUp,
 								auto: false
 							})
-						})
+						}))
 					}
 				}
 			}
