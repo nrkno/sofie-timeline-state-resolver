@@ -263,7 +263,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState> implemen
 
 			if (!channel) {
 				channel = this.getDefaultStateChannel()
-				
+
 			}
 
 			channel.label = sisyfosMapping.layerName
