@@ -272,7 +272,7 @@ export class Conductor extends EventEmitter {
 	 * @param deviceOptions The options used to initalize the device
 	 * @returns A promise that resolves with the created device, or rejects with an error message.
 	 */
-	public async addDevice (deviceId: string, deviceOptions: DeviceOptionsAnyInternal): Promise<DeviceContainer> {
+	public async addDevice (deviceId: string, deviceOptions: DeviceOptionsAnyInternal, activeRundownPlaylistId?: string): Promise<DeviceContainer> {
 		try {
 			let newDevice: DeviceContainer
 			let threadedClassOptions = {
@@ -476,7 +476,7 @@ export class Conductor extends EventEmitter {
 
 			// TODO - should the device be on this.devices yet? sounds like we could instruct it to do things before it has initialised?
 
-			await newDevice.device.init(deviceOptions.options)
+			await newDevice.device.init(deviceOptions.options, activeRundownPlaylistId)
 
 			await newDevice.reloadProps() // because the device name might have changed after init
 

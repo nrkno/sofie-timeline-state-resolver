@@ -139,7 +139,7 @@
     "tslint": "^6.1.2",
     "tslint-config-standard": "^9.0.0",
     "typedoc": "^0.16.0",
-    "typescript": "3.6.x"
+    "typescript": "3.8.x"
   },
   "keywords": [
     "broadcast",
@@ -176,7 +176,7 @@
     "underscore": "^1.10.2",
     "underscore-deep-extend": "^1.1.5",
     "utf-8-validate": "^5.0.2",
-    "v-connection": "git+https://github.com/olzzon/v-connection#v20200515_1",
+    "v-connection": "git+https://github.com/olzzon/v-connection#v20210604_1",
     "ws": "^7.1.1",
     "xml-js": "^1.6.11"
   },
