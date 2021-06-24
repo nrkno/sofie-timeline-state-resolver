@@ -1766,10 +1766,15 @@ class VizMSEManager extends EventEmitter {
 
 			this._getRundownPromise = getRundownPromise
 
-			const rundown = await this._getRundownPromise
+			try {
+				const rundown = await this._getRundownPromise
+				this._rundown = rundown
+				return rundown
+			} catch (e) {
+				this._getRundownPromise = undefined
+				throw e
+			}
 
-			this._rundown = rundown
-			return rundown
 		} else {
 			return this._rundown
 		}
