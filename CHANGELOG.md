@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [5.9.0](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/5.8.0...5.9.0) (2021-06-25)
+
+
+### Bug Fixes
+
+* update supertimeline ([f13129d](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/f13129dcfbc8a6dd3418c6372a2a17891c072be1))
+
 ## [5.8.0](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/5.7.0...5.8.0) (2021-06-15)
 
 
