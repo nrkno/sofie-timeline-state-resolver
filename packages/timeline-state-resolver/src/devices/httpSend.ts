@@ -62,7 +62,7 @@ export class HTTPSendDevice extends DeviceWithState<HTTPSendState, DeviceOptions
 	init(initOptions: HTTPSendOptions): Promise<boolean> {
 		this._makeReadyCommands = initOptions.makeReadyCommands || []
 		this._makeReadyDoesReset = initOptions.makeReadyDoesReset || false
-		this._resendTime = initOptions.resendTime && initOptions.resendTime > 999 ? initOptions.resendTime : undefined
+		this._resendTime = initOptions.resendTime && initOptions.resendTime > 1 ? initOptions.resendTime : undefined
 
 		return Promise.resolve(true) // This device doesn't have any initialization procedure
 	}
@@ -261,7 +261,6 @@ export class HTTPSendDevice extends DeviceWithState<HTTPSendState, DeviceOptions
 			this.emit('commandError', error, cwc)
 
 			if (this._resendTime) {
-				console.log('cmd error', Date.now())
 				const timeLeft = Math.max(this._resendTime - (Date.now() - t), 0)
 				await new Promise<void>((resolve) => setTimeout(() => resolve(), timeLeft))
 				this._defaultCommandReceiver(_time, cmd, context, timelineObjId, layer).catch(() => null) // errors will be emitted
