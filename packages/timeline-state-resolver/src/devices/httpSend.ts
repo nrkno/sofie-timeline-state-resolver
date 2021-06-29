@@ -8,7 +8,7 @@ import {
 	Mappings,
 } from 'timeline-state-resolver-types'
 import { DoOnTime, SendMode } from '../doOnTime'
-import * as request from 'request'
+import got from 'got'
 
 import { TimelineState, ResolvedTimelineObjectInstance } from 'superfly-timeline'
 export interface DeviceOptionsHTTPSendInternal extends DeviceOptionsHTTPSend {
@@ -18,7 +18,8 @@ export type CommandReceiver = (
 	time: number,
 	cmd: HTTPSendCommandContent,
 	context: CommandContext,
-	timelineObjId: string
+	timelineObjId: string,
+	layer?: string
 ) => Promise<any>
 interface Command {
 	commandName: 'added' | 'changed' | 'removed'
@@ -37,9 +38,11 @@ type HTTPSendState = TimelineState
 export class HTTPSendDevice extends DeviceWithState<HTTPSendState, DeviceOptionsHTTPSendInternal> {
 	private _makeReadyCommands: HTTPSendCommandContent[]
 	private _makeReadyDoesReset: boolean
+	private _resendTime?: number
 	private _doOnTime: DoOnTime
 
 	private _commandReceiver: CommandReceiver
+	private activeLayers = new Map<string, string>()
 
 	constructor(deviceId: string, deviceOptions: DeviceOptionsHTTPSendInternal, getCurrentTime: () => Promise<number>) {
 		super(deviceId, deviceOptions, getCurrentTime)
@@ -59,6 +62,7 @@ export class HTTPSendDevice extends DeviceWithState<HTTPSendState, DeviceOptions
 	init(initOptions: HTTPSendOptions): Promise<boolean> {
 		this._makeReadyCommands = initOptions.makeReadyCommands || []
 		this._makeReadyDoesReset = initOptions.makeReadyDoesReset || false
+		this._resendTime = initOptions.resendTime && initOptions.resendTime > 1 ? initOptions.resendTime : undefined
 
 		return Promise.resolve(true) // This device doesn't have any initialization procedure
 	}
@@ -151,8 +155,10 @@ export class HTTPSendDevice extends DeviceWithState<HTTPSendState, DeviceOptions
 				cmd.content.queueId,
 				(cmd: Command) => {
 					if (cmd.commandName === 'added' || cmd.commandName === 'changed') {
-						return this._commandReceiver(time, cmd.content, cmd.context, cmd.timelineObjId)
+						this.activeLayers.set(cmd.layer, JSON.stringify(cmd.content))
+						return this._commandReceiver(time, cmd.content, cmd.context, cmd.timelineObjId, cmd.layer)
 					} else {
+						this.activeLayers.delete(cmd.layer)
 						return null
 					}
 				},
@@ -213,12 +219,17 @@ export class HTTPSendDevice extends DeviceWithState<HTTPSendState, DeviceOptions
 				return (a.content.temporalPriority || 0) - (b.content.temporalPriority || 0)
 			})
 	}
-	private _defaultCommandReceiver(
+	private async _defaultCommandReceiver(
 		_time: number,
 		cmd: HTTPSendCommandContent,
 		context: CommandContext,
-		timelineObjId: string
-	): Promise<any> {
+		timelineObjId: string,
+		layer?: string
+	): Promise<void> {
+		if (layer) {
+			const hash = this.activeLayers.get(layer)
+			if (JSON.stringify(cmd) !== hash) return Promise.resolve() // command is no longer relevant to state
+		}
 		const cwc: CommandWithContext = {
 			context: context,
 			command: cmd,
@@ -226,35 +237,34 @@ export class HTTPSendDevice extends DeviceWithState<HTTPSendState, DeviceOptions
 		}
 		this.emit('debug', cwc)
 
-		return new Promise((resolve, reject) => {
-			const handleResponse = (error, response) => {
-				if (error) {
-					this.emit('error', `HTTPSend.response error ${cmd.type} (${context}`, error)
-					reject(error)
-				} else if (response.statusCode === 200) {
-					this.emit(
-						'debug',
-						`HTTPSend: ${cmd.type}: Good statuscode response on url "${cmd.url}": ${response.statusCode} (${context})`
-					)
-					resolve()
-				} else {
-					this.emit(
-						'warning',
-						`HTTPSend: ${cmd.type}: Bad statuscode response on url "${cmd.url}": ${response.statusCode} (${context})`
-					)
-					resolve()
-				}
-			}
+		const t = Date.now()
 
-			// send the http request:
-			const requestMethod = request[cmd.type]
-			if (requestMethod) {
-				requestMethod(cmd.url, { json: cmd.params }, handleResponse)
+		const httpReq = got[cmd.type]
+		try {
+			const response = await httpReq(cmd.url, {
+				json: cmd.type === 'post' ? cmd.params : undefined,
+			})
+
+			if (response.statusCode === 200) {
+				this.emit(
+					'debug',
+					`HTTPSend: ${cmd.type}: Good statuscode response on url "${cmd.url}": ${response.statusCode} (${context})`
+				)
 			} else {
-				reject(`Unknown HTTP-send type: "${cmd.type}"`)
+				this.emit(
+					'warning',
+					`HTTPSend: ${cmd.type}: Bad statuscode response on url "${cmd.url}": ${response.statusCode} (${context})`
+				)
 			}
-		}).catch((error) => {
+		} catch (error) {
+			this.emit('error', `HTTPSend.response error ${cmd.type} (${context}`, error)
 			this.emit('commandError', error, cwc)
-		})
+
+			if (this._resendTime) {
+				const timeLeft = Math.max(this._resendTime - (Date.now() - t), 0)
+				await new Promise<void>((resolve) => setTimeout(() => resolve(), timeLeft))
+				this._defaultCommandReceiver(_time, cmd, context, timelineObjId, layer).catch(() => null) // errors will be emitted
+			}
+		}
 	}
 }
