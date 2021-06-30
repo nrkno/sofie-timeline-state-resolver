@@ -215,8 +215,8 @@ export class OBSDevice extends DeviceWithState<OBSState> {
 	/** Called by the Conductor a bit before a .handleState is called */
 	prepareForHandleState (newStateTime: number) {
 		// clear any queued commands later than this time:
-		this._doOnTime.clearQueueNowAndAfter(newStateTime + 0.1)
-		this.cleanUpStates(0, newStateTime + 0.1)
+		this._doOnTime.clearQueueNowAndAfter(newStateTime)
+		this.cleanUpStates(0, newStateTime)
 	}
 
 	handleState (newState: TimelineState, newMappings: Mappings) {
@@ -228,7 +228,7 @@ export class OBSDevice extends DeviceWithState<OBSState> {
 		}
 
 		let previousStateTime = Math.max(
-			this.getCurrentTime() + 0.1,
+			this.getCurrentTime(),
 			newState.time
 		)
 		let oldState: OBSState = (
@@ -263,7 +263,7 @@ export class OBSDevice extends DeviceWithState<OBSState> {
 		this._setDisconnected = true
 		this._doOnTime.dispose()
 		this._obs.disconnect()
-		return Promise.resolve(true)
+		return true
 	}
 
 	getStatus (): DeviceStatus {
@@ -349,6 +349,11 @@ export class OBSDevice extends DeviceWithState<OBSState> {
 							tlObject.content.type ===
 							TimelineContentTypeOBS.CURRENT_TRANSITION
 						) {
+							if ((tlObject as ResolvedTimelineObjectInstanceExtended).isLookahead) {
+								// CurrentTransiton can't be looked ahead, same below
+								break
+							}
+
 							let obsTlCurrentTransition = (tlObject as any) as TimelineObjOBSCurrentTransition
 							deviceState.currentTransition =
 								obsTlCurrentTransition.content.transitionName
@@ -359,6 +364,11 @@ export class OBSDevice extends DeviceWithState<OBSState> {
 							tlObject.content.type ===
 							TimelineContentTypeOBS.RECORDING
 						) {
+							if ((tlObject as ResolvedTimelineObjectInstanceExtended).isLookahead) {
+								// CurrentTransiton can't be looked ahead, same below
+								break
+							}
+
 							let obsTlRecording = (tlObject as any) as TimelineObjOBSRecording
 							deviceState.recording =
 								obsTlRecording.content.on
@@ -369,6 +379,11 @@ export class OBSDevice extends DeviceWithState<OBSState> {
 							tlObject.content.type ===
 							TimelineContentTypeOBS.STREAMING
 						) {
+							if ((tlObject as ResolvedTimelineObjectInstanceExtended).isLookahead) {
+								// CurrentTransiton can't be looked ahead, same below
+								break
+							}
+
 							let obsTlStreaming = (tlObject as any) as TimelineObjOBSStreaming
 							deviceState.streaming =
 								obsTlStreaming.content.on
@@ -379,6 +394,11 @@ export class OBSDevice extends DeviceWithState<OBSState> {
 							tlObject.content.type ===
 							TimelineContentTypeOBS.MUTE
 						) {
+							if ((tlObject as ResolvedTimelineObjectInstanceExtended).isLookahead) {
+								// CurrentTransiton can't be looked ahead, same below
+								break
+							}
+
 							let obsTlMute = (tlObject as any) as TimelineObjOBSMute
 							let source = (mapping as MappingOBSMute).source
 							deviceState.muted[source] =
@@ -390,6 +410,11 @@ export class OBSDevice extends DeviceWithState<OBSState> {
 							tlObject.content.type ===
 							TimelineContentTypeOBS.SCENE_ITEM_RENDER
 						) {
+							if ((tlObject as ResolvedTimelineObjectInstanceExtended).isLookahead) {
+								// CurrentTransiton can't be looked ahead, same below
+								break
+							}
+
 							let obsTlSceneItemRender = (tlObject as any) as TimelineObjOBSSceneItemRender
 							let source = (mapping as MappingOBSSceneItemRender)
 								.source
@@ -409,6 +434,11 @@ export class OBSDevice extends DeviceWithState<OBSState> {
 						break
 					case MappingOBSType.SourceSettings:
 						if (tlObject.content.type === TimelineContentTypeOBS.SOURCE_SETTINGS) {
+							if ((tlObject as ResolvedTimelineObjectInstanceExtended).isLookahead) {
+								// CurrentTransiton can't be looked ahead, same below
+								break
+							}
+
 							let obsTlSourceSettings = (tlObject as any) as TimelineObjOBSSourceSettings
 							let source = (mapping as MappingOBSSourceSettings)
 								.source
@@ -465,7 +495,8 @@ export class OBSDevice extends DeviceWithState<OBSState> {
 		oldState: OBSState,
 		newState: OBSState
 	): Array<OBSCommandWithContext> {
-		let commands: Array<OBSCommandWithContext> = []
+		const commands: Array<OBSCommandWithContext> = []
+
 		let oldCurrentScene = oldState.currentScene
 		let newCurrentScene = newState.currentScene
 		if (newCurrentScene !== undefined) {
@@ -507,7 +538,7 @@ export class OBSDevice extends DeviceWithState<OBSState> {
 		oldState: OBSState,
 		newState: OBSState
 	): Array<OBSCommandWithContext> {
-		let commands: Array<OBSCommandWithContext> = []
+		const commands: Array<OBSCommandWithContext> = []
 
 		let oldCurrentTransition = oldState.currentTransition
 		let newCurrentTransition = newState.currentTransition
@@ -533,7 +564,7 @@ export class OBSDevice extends DeviceWithState<OBSState> {
 		oldState: OBSState,
 		newState: OBSState
 	): Array<OBSCommandWithContext> {
-		let commands: Array<OBSCommandWithContext> = []
+		const commands: Array<OBSCommandWithContext> = []
 
 		let oldRecording = oldState.recording
 		let newRecording = newState.recording
@@ -576,7 +607,7 @@ export class OBSDevice extends DeviceWithState<OBSState> {
 		oldState: OBSState,
 		newState: OBSState
 	): Array<OBSCommandWithContext> {
-		let commands: Array<OBSCommandWithContext> = []
+		const commands: Array<OBSCommandWithContext> = []
 
 		let oldMuted = oldState.muted
 		let newMuted = newState.muted
@@ -605,7 +636,7 @@ export class OBSDevice extends DeviceWithState<OBSState> {
 		oldState: OBSState,
 		newState: OBSState
 	): Array<OBSCommandWithContext> {
-		let commands: Array<OBSCommandWithContext> = []
+		const commands: Array<OBSCommandWithContext> = []
 
 		let oldScenes = oldState.scenes
 		let newScenes = newState.scenes
@@ -643,7 +674,7 @@ export class OBSDevice extends DeviceWithState<OBSState> {
 		oldState: OBSState,
 		newState: OBSState
 	): Array<OBSCommandWithContext> {
-		let commands: Array<OBSCommandWithContext> = []
+		const commands: Array<OBSCommandWithContext> = []
 
 		let oldSources = oldState.sources
 		let newSources = newState.sources
@@ -670,20 +701,14 @@ export class OBSDevice extends DeviceWithState<OBSState> {
 		oldState: OBSState,
 		newState: OBSState
 	): Array<OBSCommandWithContext> {
-		let commands: Array<OBSCommandWithContext> = []
-
-		commands = commands.concat(
-			this._resolveCurrentSceneState(oldState, newState)
-		)
-		commands = commands.concat(
-			this._resolveCurrentTransitionState(oldState, newState)
-		)
-		commands = commands.concat(
-			this._resolveRecordingStreaming(oldState, newState)
-		)
-		commands = commands.concat(this._resolveMute(oldState, newState))
-		commands = commands.concat(this._resolveScenes(oldState, newState))
-		commands = commands.concat(this._resolveSourceSettings(oldState, newState))
+		const commands: Array<OBSCommandWithContext> = [
+			...this._resolveCurrentSceneState(oldState, newState),
+			...this._resolveCurrentTransitionState(oldState, newState),
+			...this._resolveRecordingStreaming(oldState, newState),
+			...this._resolveMute(oldState, newState),
+			...this._resolveScenes(oldState, newState),
+			...this._resolveSourceSettings(oldState, newState)
+		]
 
 		return commands
 	}
