@@ -17,7 +17,6 @@ import {
 	TimelineObjVIZMSEElementInternal,
 	TimelineContentTypeVizMSE,
 	TimelineObjVIZMSEElementPilot,
-	ExpectedPlayoutItemContent,
 	VIZMSEPlayoutItemContent,
 	DeviceOptionsVizMSE,
 	TimelineObjVIZMSEAny,
@@ -45,6 +44,8 @@ import { DoOnTime, SendMode } from '../doOnTime'
 
 import * as crypto from 'crypto'
 import * as net from 'net'
+import { MediaObject } from '../types/src/mediaObject'
+import { ExpectedPlayoutItem } from '../expectedPlayoutItems'
 
 /** The ideal time to prepare elements before going on air */
 const IDEAL_PREPARE_TIME = 1000
@@ -130,6 +131,8 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState> implements IDevic
 		)
 
 		this._vizmseManager.on('connectionChanged', (connected) => this.connectionChanged(connected))
+		this._vizmseManager.on('updateMediaObject', (collectionId: string, docId: string, doc: MediaObject | null) => this.emit('updateMediaObject', collectionId, docId, doc))
+		this._vizmseManager.on('clearMediaObjects', (collectionId: string) => this.emit('clearMediaObjects', collectionId))
 
 		this._vizmseManager.on('info', str => this.emit('info', 'VizMSE: ' + str))
 		this._vizmseManager.on('warning', str => this.emit('warning', 'VizMSE' + str))
@@ -219,7 +222,7 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState> implements IDevic
 	get supportsExpectedPlayoutItems (): boolean {
 		return true
 	}
-	public handleExpectedPlayoutItems (expectedPlayoutItems: Array<ExpectedPlayoutItemContent>): void {
+	public handleExpectedPlayoutItems (expectedPlayoutItems: Array<ExpectedPlayoutItem>): void {
 		this.emit('debug', 'VIZDEBUG: handleExpectedPlayoutItems called')
 		if (this._vizmseManager) {
 			this.emit('debug', 'VIZDEBUG: manager exists')
@@ -334,8 +337,8 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState> implements IDevic
 	 */
 	async makeReady (okToDestroyStuff?: boolean, activeRundownId?: string): Promise<void> {
 		if (this._vizmseManager) {
-			this._vizmseManager.activeRundownId = (
-				(this._initOptions && this._initOptions.onlyPreloadActiveRundown) ?
+			this._vizmseManager.activePlaylistId = (
+				(this._initOptions && this._initOptions.onlyPreloadActivePlaylist) ?
 				activeRundownId :
 				undefined
 			)
@@ -505,7 +508,7 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState> implements IDevic
 
 					templateInstance: VizMSEManager.getTemplateInstance(newLayer),
 					templateName: VizMSEManager.getTemplateName(newLayer),
-					templateData: VizMSEManager.getTemplateData(newLayer),
+					templateData: VizMSEManager.getTemplateData(newLayer).map((x) => _.escape(x)),
 					channelName: newLayer.channelName
 				}
 				if (
@@ -660,7 +663,10 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState> implements IDevic
 				if (
 					command.type === VizMSECommandType.TAKE_ELEMENT
 					&& command.layerId
-					&& newState.layer[command.layerId].contentType === TimelineContentTypeVizMSE.ELEMENT_INTERNAL
+					&& (
+						newState.layer[command.layerId].contentType === TimelineContentTypeVizMSE.ELEMENT_INTERNAL ||
+						!!newState.layer[command.layerId].delayTakeAfterOutTransition
+					)
 				) {
 					(concatCommands[index] as VizMSECommandTake).transition = {
 						type: VIZMSETransitionType.DELAY,
@@ -763,11 +769,12 @@ class VizMSEManager extends EventEmitter {
 	public initialized: boolean = false
 	public notLoadedCount: number = 0
 	public loadingCount: number = 0
-	public activeRundownId: string | undefined
+	/** Currently active playlist in Sofie Core */
+	public activePlaylistId: string | undefined
 
 	private _rundown: VRundown | undefined
 	private _elementCache: {[hash: string]: CachedVElement } = {}
-	private _expectedPlayoutItems: Array<ExpectedPlayoutItemContent> = []
+	private _expectedPlayoutItems: Array<ExpectedPlayoutItem> = []
 	private _monitorAndLoadElementsInterval?: NodeJS.Timer
 	private _monitorMSEConnection?: NodeJS.Timer
 	private _lastTimeCommandSent: number = 0
@@ -857,7 +864,7 @@ class VizMSEManager extends EventEmitter {
 	 * Set the collection of expectedPlayoutItems.
 	 * These will be monitored and can be triggered to pre-load.
 	 */
-	public setExpectedPlayoutItems (expectedPlayoutItems: Array<ExpectedPlayoutItemContent>) {
+	public setExpectedPlayoutItems (expectedPlayoutItems: Array<ExpectedPlayoutItem>) {
 		this.emit('debug', 'VIZDEBUG: setExpectedPlayoutItems called')
 		if (this.preloadAllElements) {
 			this.emit('debug', 'VIZDEBUG: preload elements allowed')
@@ -907,6 +914,7 @@ class VizMSEManager extends EventEmitter {
 			this.emit('error', error)
 		}
 		this._clearCache()
+		this._clearMediaObjects()
 
 		this._triggerCommandSent()
 		await this._triggerLoadAllElements(true)
@@ -923,9 +931,13 @@ class VizMSEManager extends EventEmitter {
 		await rundown.deactivate()
 		this._triggerCommandSent()
 		this.standDownActiveRundown()
+		this._clearMediaObjects()
 	}
 	public standDownActiveRundown (): void {
 		this._hasActiveRundown = false
+	}
+	private _clearMediaObjects (): void {
+		this.emit('clearMediaObjects', this._parentVizMSEDevice.deviceId)
 	}
 	/**
 	 * Prepare an element
@@ -1271,8 +1283,8 @@ class VizMSEManager extends EventEmitter {
 			const templateName = typeof expectedPlayoutItem.templateName as string | number | undefined
 			return (
 				(
-					!this.activeRundownId ||
-					this.activeRundownId === expectedPlayoutItem.rundownId
+					!this.activePlaylistId ||
+					this.activePlaylistId === expectedPlayoutItem.playlistId
 				) &&
 				typeof templateName !== 'undefined'
 			)
@@ -1297,7 +1309,7 @@ class VizMSEManager extends EventEmitter {
 								deviceType: DeviceType.VIZMSE,
 								type: TimelineContentTypeVizMSE.ELEMENT_INTERNAL,
 								templateName: expectedPlayoutItem.templateName,
-								templateData: expectedPlayoutItem.templateData
+								templateData: expectedPlayoutItem.templateData ? expectedPlayoutItem.templateData.map((x) => _.escape(x)) : undefined
 							} as TimelineObjVIZMSEElementInternal['content']
 						)
 					)
@@ -1337,7 +1349,7 @@ class VizMSEManager extends EventEmitter {
 		}))
 		if (this._rundown) {
 
-			this.emit('debug', `Updating status of elements starting, activeRundownId="${this.activeRundownId}", elementsToLoad.length=${elementsToLoad.length} (${_.keys(hashesAndItems).length})`)
+			this.emit('debug', `Updating status of elements starting, activePlaylistId="${this.activePlaylistId}", elementsToLoad.length=${elementsToLoad.length} (${_.keys(hashesAndItems).length})`)
 
 			const rundown = await this._getRundown()
 
@@ -1364,6 +1376,25 @@ class VizMSEManager extends EventEmitter {
 								isLoading: this._isElementLoading(newEl)
 							}
 							this.emit('debug', `Element ${elementRef}: ${JSON.stringify(newEl)}`)
+							if (this._isExternalElement(newEl)) {
+								if (this._elementsLoaded[e.hash].isLoaded) {
+									const mediaObject: MediaObject = {
+										_id: e.hash,
+										mediaId: 'PILOT_' + e.item.templateName.toString().toUpperCase(),
+										mediaPath: e.item.templateInstance,
+										mediaSize: 0,
+										mediaTime: 0,
+										thumbSize: 0,
+										thumbTime: 0,
+										cinf: '',
+										tinf: '',
+										_rev: ''
+									}
+									this.emit('updateMediaObject', this._parentVizMSEDevice.deviceId, e.hash, mediaObject)
+								} else if (!cachedEl) {
+									this.emit('updateMediaObject', this._parentVizMSEDevice.deviceId, e.hash, null)
+								}
+							}
 						} catch (e) {
 							this.emit('error', `Error in updateElementsLoadedStatus: ${e.toString()}`)
 						}
@@ -1682,6 +1713,8 @@ type VizMSEStateLayer = VizMSEStateLayerInternal | VizMSEStateLayerPilot | VizMS
 interface VizMSEStateLayerBase {
 	timelineObjId: string
 	lookahead?: boolean
+	/** Whether this element should have its take delayed until after an out transition has finished */
+	delayTakeAfterOutTransition?: boolean
 }
 interface VizMSEStateLayerElementBase extends VizMSEStateLayerBase {
 	contentType: TimelineContentTypeVizMSE
@@ -1810,7 +1843,8 @@ function content2StateLayer (
 
 			templateName: content.templateName,
 			templateData: content.templateData,
-			channelName: content.channelName
+			channelName: content.channelName,
+			delayTakeAfterOutTransition: content.delayTakeAfterOutTransition
 		}
 		return o
 	} else if (content.type === TimelineContentTypeVizMSE.ELEMENT_PILOT) {
@@ -1823,7 +1857,8 @@ function content2StateLayer (
 			outTransition: content.outTransition,
 
 			templateVcpId: content.templateVcpId,
-			channelName: content.channelName
+			channelName: content.channelName,
+			delayTakeAfterOutTransition: content.delayTakeAfterOutTransition
 
 		}
 		return o
