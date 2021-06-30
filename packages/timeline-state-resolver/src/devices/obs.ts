@@ -116,7 +116,7 @@ export class OBSDevice extends DeviceWithState<OBSState, DeviceOptionsOBSInterna
 		})
 	}
 
-	private _connect () {
+	private _connect() {
 		return this._obs
 			.connect({
 				address: `${this._options.host}:${this._options.port}`,
@@ -196,8 +196,8 @@ export class OBSDevice extends DeviceWithState<OBSState, DeviceOptionsOBSInterna
 	/** Called by the Conductor a bit before a .handleState is called */
 	prepareForHandleState(newStateTime: number) {
 		// clear any queued commands later than this time:
-		this._doOnTime.clearQueueNowAndAfter(newStateTime + 0.1)
-		this.cleanUpStates(0, newStateTime + 0.1)
+		this._doOnTime.clearQueueNowAndAfter(newStateTime)
+		this.cleanUpStates(0, newStateTime)
 	}
 
 	handleState(newState: TimelineState, newMappings: Mappings) {
@@ -208,7 +208,7 @@ export class OBSDevice extends DeviceWithState<OBSState, DeviceOptionsOBSInterna
 			return
 		}
 
-		const previousStateTime = Math.max(this.getCurrentTime() + 0.1, newState.time)
+		const previousStateTime = Math.max(this.getCurrentTime(), newState.time)
 		const oldState: OBSState = (
 			this.getStateBefore(previousStateTime) || {
 				state: this._getDefaultState(),
@@ -238,7 +238,7 @@ export class OBSDevice extends DeviceWithState<OBSState, DeviceOptionsOBSInterna
 		this._setDisconnected = true
 		this._doOnTime.dispose()
 		this._obs.disconnect()
-		return Promise.resolve(true)
+		return true
 	}
 
 	getStatus(): DeviceStatus {
@@ -292,7 +292,7 @@ export class OBSDevice extends DeviceWithState<OBSState, DeviceOptionsOBSInterna
 				return {
 					layerName,
 					tlObject,
-					mapping
+					mapping,
 				}
 			}).sort((a, b) => a.layerName.localeCompare(b.layerName)),
 			(o) => o.mapping.mappingType
@@ -302,70 +302,89 @@ export class OBSDevice extends DeviceWithState<OBSState, DeviceOptionsOBSInterna
 			if (mapping) {
 				switch (mapping.mappingType) {
 					case MappingOBSType.CurrentScene:
-						if (
-							tlObject.content.type ===
-							TimelineContentTypeOBS.CURRENT_SCENE
-						) {
+						if (tlObject.content.type === TimelineContentTypeOBS.CURRENT_SCENE) {
 							if ((tlObject as ResolvedTimelineObjectInstanceExtended).isLookahead) {
-								let obsTlCurrentScene = (tlObject as any) as TimelineObjOBSCurrentScene
-								deviceState.previewScene =
-									obsTlCurrentScene.content.sceneName
+								const obsTlCurrentScene = tlObject as any as TimelineObjOBSCurrentScene
+								deviceState.previewScene = obsTlCurrentScene.content.sceneName
 							} else {
-								let obsTlCurrentScene = (tlObject as any) as TimelineObjOBSCurrentScene
-								deviceState.currentScene =
-									obsTlCurrentScene.content.sceneName
+								const obsTlCurrentScene = tlObject as any as TimelineObjOBSCurrentScene
+								deviceState.currentScene = obsTlCurrentScene.content.sceneName
 							}
 						}
 						break
 					case MappingOBSType.CurrentTransition:
 						if (tlObject.content.type === TimelineContentTypeOBS.CURRENT_TRANSITION) {
+							if ((tlObject as ResolvedTimelineObjectInstanceExtended).isLookahead) {
+								// CurrentTransiton can't be looked ahead, same below
+								break
+							}
+
 							const obsTlCurrentTransition = tlObject as any as TimelineObjOBSCurrentTransition
 							deviceState.currentTransition = obsTlCurrentTransition.content.transitionName
 						}
 						break
 					case MappingOBSType.Recording:
 						if (tlObject.content.type === TimelineContentTypeOBS.RECORDING) {
+							if ((tlObject as ResolvedTimelineObjectInstanceExtended).isLookahead) {
+								// CurrentTransiton can't be looked ahead, same below
+								break
+							}
+
 							const obsTlRecording = tlObject as any as TimelineObjOBSRecording
 							deviceState.recording = obsTlRecording.content.on
 						}
 						break
 					case MappingOBSType.Streaming:
 						if (tlObject.content.type === TimelineContentTypeOBS.STREAMING) {
+							if ((tlObject as ResolvedTimelineObjectInstanceExtended).isLookahead) {
+								// CurrentTransiton can't be looked ahead, same below
+								break
+							}
+
 							const obsTlStreaming = tlObject as any as TimelineObjOBSStreaming
 							deviceState.streaming = obsTlStreaming.content.on
 						}
 						break
 					case MappingOBSType.Mute:
 						if (tlObject.content.type === TimelineContentTypeOBS.MUTE) {
+							if ((tlObject as ResolvedTimelineObjectInstanceExtended).isLookahead) {
+								// CurrentTransiton can't be looked ahead, same below
+								break
+							}
+
 							const obsTlMute = tlObject as any as TimelineObjOBSMute
 							const source = (mapping as MappingOBSMute).source
 							deviceState.muted[source] = obsTlMute.content.mute
 						}
 						break
 					case MappingOBSType.SceneItemRender:
-						if (
-							tlObject.content.type ===
-							TimelineContentTypeOBS.SCENE_ITEM_RENDER
-						) {
-							let obsTlSceneItemRender = (tlObject as any) as TimelineObjOBSSceneItemRender
-							let source = (mapping as MappingOBSSceneItemRender)
-								.source
-							let sceneName = (mapping as MappingOBSSceneItemRender)
-								.sceneName
+						if (tlObject.content.type === TimelineContentTypeOBS.SCENE_ITEM_RENDER) {
+							if ((tlObject as ResolvedTimelineObjectInstanceExtended).isLookahead) {
+								// CurrentTransiton can't be looked ahead, same below
+								break
+							}
+
+							const obsTlSceneItemRender = tlObject as any as TimelineObjOBSSceneItemRender
+							const source = (mapping as MappingOBSSceneItemRender).source
+							const sceneName = (mapping as MappingOBSSceneItemRender).sceneName
 							deepExtend(deviceState.scenes, {
 								[sceneName]: {
 									sceneItems: {
 										[source]: {
-											render:
-												obsTlSceneItemRender.content.on
-										}
-									}
-								}
+											render: obsTlSceneItemRender.content.on,
+										},
+									},
+								},
 							})
 						}
 						break
 					case MappingOBSType.SourceSettings:
 						if (tlObject.content.type === TimelineContentTypeOBS.SOURCE_SETTINGS) {
+							if ((tlObject as ResolvedTimelineObjectInstanceExtended).isLookahead) {
+								// CurrentTransiton can't be looked ahead, same below
+								break
+							}
+
 							const obsTlSourceSettings = tlObject as any as TimelineObjOBSSourceSettings
 							const source = (mapping as MappingOBSSourceSettings).source
 
@@ -411,6 +430,7 @@ export class OBSDevice extends DeviceWithState<OBSState, DeviceOptionsOBSInterna
 
 	private _resolveCurrentSceneState(oldState: OBSState, newState: OBSState): Array<OBSCommandWithContext> {
 		const commands: Array<OBSCommandWithContext> = []
+
 		const oldCurrentScene = oldState.currentScene
 		const newCurrentScene = newState.currentScene
 		if (newCurrentScene !== undefined) {
@@ -423,24 +443,24 @@ export class OBSDevice extends DeviceWithState<OBSState, DeviceOptionsOBSInterna
 						},
 					},
 					context: `currentScene changed from "${oldCurrentScene}" to "${newCurrentScene}"`,
-					timelineId: ''
+					timelineId: '',
 				})
 			}
 		}
 
-		let oldPreviewScene = oldState.previewScene
-		let newPreviewScene = newState.previewScene
+		const oldPreviewScene = oldState.previewScene
+		const newPreviewScene = newState.previewScene
 		if (newPreviewScene !== undefined) {
 			if (oldPreviewScene !== newPreviewScene) {
 				commands.push({
 					command: {
 						requestName: OBSRequestName.SET_PREVIEW_SCENE,
 						args: {
-							'scene-name': newPreviewScene
-						}
+							'scene-name': newPreviewScene,
+						},
 					},
 					context: `previewScene changed from "${oldPreviewScene}" to "${newPreviewScene}"`,
-					timelineId: ''
+					timelineId: '',
 				})
 			}
 		}
@@ -463,7 +483,7 @@ export class OBSDevice extends DeviceWithState<OBSState, DeviceOptionsOBSInterna
 						},
 					},
 					context: 'currentTransition changed',
-					timelineId: ''
+					timelineId: '',
 				})
 			}
 		}
@@ -484,7 +504,7 @@ export class OBSDevice extends DeviceWithState<OBSState, DeviceOptionsOBSInterna
 						args: {},
 					},
 					context: 'recording changed',
-					timelineId: ''
+					timelineId: '',
 				})
 			}
 		}
@@ -499,7 +519,7 @@ export class OBSDevice extends DeviceWithState<OBSState, DeviceOptionsOBSInterna
 						args: {},
 					},
 					context: 'streaming changed',
-					timelineId: ''
+					timelineId: '',
 				})
 			}
 		}
@@ -523,7 +543,7 @@ export class OBSDevice extends DeviceWithState<OBSState, DeviceOptionsOBSInterna
 						},
 					},
 					context: `mute ${source} changed`,
-					timelineId: ''
+					timelineId: '',
 				})
 			}
 		})
@@ -552,8 +572,8 @@ export class OBSDevice extends DeviceWithState<OBSState, DeviceOptionsOBSInterna
 								render: newSceneItemProperties.render,
 							},
 						},
-							context: `scene ${sceneName} item ${source} changed render`,
-							timelineId: ''
+						context: `scene ${sceneName} item ${source} changed render`,
+						timelineId: '',
 					})
 				}
 			})
@@ -578,7 +598,7 @@ export class OBSDevice extends DeviceWithState<OBSState, DeviceOptionsOBSInterna
 						},
 					},
 					context: `source ${sourceName} changed settings`,
-					timelineId: ''
+					timelineId: '',
 				})
 			}
 		})
@@ -587,14 +607,14 @@ export class OBSDevice extends DeviceWithState<OBSState, DeviceOptionsOBSInterna
 	}
 
 	private _diffStates(oldState: OBSState, newState: OBSState): Array<OBSCommandWithContext> {
-		let commands: Array<OBSCommandWithContext> = []
-
-		commands = commands.concat(this._resolveCurrentSceneState(oldState, newState))
-		commands = commands.concat(this._resolveCurrentTransitionState(oldState, newState))
-		commands = commands.concat(this._resolveRecordingStreaming(oldState, newState))
-		commands = commands.concat(this._resolveMute(oldState, newState))
-		commands = commands.concat(this._resolveScenes(oldState, newState))
-		commands = commands.concat(this._resolveSourceSettings(oldState, newState))
+		const commands: Array<OBSCommandWithContext> = [
+			...this._resolveCurrentSceneState(oldState, newState),
+			...this._resolveCurrentTransitionState(oldState, newState),
+			...this._resolveRecordingStreaming(oldState, newState),
+			...this._resolveMute(oldState, newState),
+			...this._resolveScenes(oldState, newState),
+			...this._resolveSourceSettings(oldState, newState),
+		]
 
 		return commands
 	}
