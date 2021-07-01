@@ -1360,9 +1360,14 @@ class VizMSEManager extends EventEmitter {
 	private async updateElementsLoadedStatus (forceReloadAll?: boolean) {
 
 		const hashesAndItems = await this._getExpectedPlayoutItems()
+		let someUnloaded = false
 		const elementsToLoad = _.compact(_.map(hashesAndItems, (item, hash) => {
 			const el = this._getCachedElement(hash)
 			if (!item.noAutoPreloading && el) {
+				const cachedEl = this._elementsLoaded[hash]
+				if (cachedEl && cachedEl.wasLoaded && !cachedEl.isLoaded && !cachedEl.isLoading) {
+					someUnloaded = true
+				}
 				return {
 					...el,
 					item: item,
@@ -1380,6 +1385,15 @@ class VizMSEManager extends EventEmitter {
 			if (forceReloadAll) {
 				this._elementsLoaded = {}
 			}
+			if (someUnloaded) {
+				try {
+					this.emit('debug', 'rundown.activate triggered')
+					await rundown.activate()
+				} catch (error) {
+					this.emit('warning', `Ignored error for rundown.activate(): ${error}`)
+				}
+			}
+			
 			await Promise.all(
 				_.map(elementsToLoad, async (e) => {
 
