@@ -1386,12 +1386,7 @@ class VizMSEManager extends EventEmitter {
 				this._elementsLoaded = {}
 			}
 			if (someUnloaded) {
-				try {
-					this.emit('debug', 'rundown.activate triggered')
-					await rundown.activate()
-				} catch (error) {
-					this.emit('warning', `Ignored error for rundown.activate(): ${error}`)
-				}
+				await this._triggerRundownActivate(rundown)
 			}
 			
 			await Promise.all(
@@ -1456,6 +1451,17 @@ class VizMSEManager extends EventEmitter {
 			throw Error('VizMSE.v-connection not initialized yet')
 		}
 	}
+	private async _triggerRundownActivate(rundown: VRundown): Promise<void> {
+		try {
+			this.emit('debug', 'rundown.activate triggered')
+			await rundown.activate()
+		} catch (error) {
+			this.emit('warning', `Ignored error for rundown.activate(): ${error}`)
+		}
+		this._triggerCommandSent()
+		await this._wait(1000)
+		this._triggerCommandSent()
+	}
 	/**
 	 * Trigger a load of all elements that are not yet loaded onto the vizEngine.
 	 */
@@ -1477,15 +1483,7 @@ class VizMSEManager extends EventEmitter {
 			// Then, load all elements that needs loading:
 			const loadAllElementsThatNeedsLoading = async () => {
 				this._triggerCommandSent()
-				try {
-					this.emit('debug', 'rundown.activate triggered')
-					await rundown.activate() // Our theory: an extra initialization of the rundown playlist loads all internal elements
-				} catch (error) {
-					this.emit('warning', `Ignored error for rundown.activate(): ${error}`)
-				}
-				this._triggerCommandSent()
-				await this._wait(1000)
-				this._triggerCommandSent()
+				await this._triggerRundownActivate(rundown)
 				await Promise.all(
 				_.map(this._elementsLoaded, async (e) => {
 					if (this._isInternalElement(e.element)) {
