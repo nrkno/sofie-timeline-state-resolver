@@ -16,6 +16,7 @@
     "docs": "yarn typedoc .",
     "postinstall": "lerna bootstrap",
     "release:bump-release": "lerna version --exact --conventional-commits --conventional-graduate --tag-version-prefix='' --no-push",
+    "release:bump-release-force": "lerna version --exact --conventional-commits --tag-version-prefix='' --no-push --force-publish=*",
     "release:bump-prerelease": "lerna version --exact --conventional-commits --conventional-prerelease --tag-version-prefix='' --no-push",
     "validate:dependencies": "yarn lerna exec --parallel yarn validate:dependencies",
     "validate:dev-dependencies": "yarn lerna exec --parallel yarn validate:dev-dependencies"
