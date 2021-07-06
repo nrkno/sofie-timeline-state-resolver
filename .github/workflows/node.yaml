@@ -3,9 +3,9 @@ name: Node CI
 on:
   push:
     branches:
-      - '**'
+      - "**"
     tags:
-      - '[0-9]+.[0-9]+.[0-9]+*'
+      - "[0-9]+.[0-9]+.[0-9]+*"
   pull_request:
 
 jobs:
@@ -135,7 +135,7 @@ jobs:
 
             PACKAGE_NAME=$(yarn info -s . name)
             PUBLISHED_VERSION=$(yarn info -s $PACKAGE_NAME version)
-            THIS_VERSION=$(node -p "require('./package.json').version")
+            THIS_VERSION=$(node -p "require('./lerna.json').version")
             # Simple bash helper to comapre version numbers
             verlte() {
               [  "$1" = "`echo -e "$1\n$2" | sort -V | head -n1`" ]
