@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [6.0.2](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/6.0.1...6.0.2) (2021-07-06)
+
+
+### Bug Fixes
+
+* publish script looking at wrong version number ([b991f88](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/b991f88208925f7bd310afac68372ce0af847792))
+
+
+
+
+
 ## [6.0.1](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/6.0.0...6.0.1) (2021-07-06)
 
 
