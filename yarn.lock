@@ -1922,10 +1922,10 @@ at-least-node@^1.0.0:
   resolved "https://registry.yarnpkg.com/at-least-node/-/at-least-node-1.0.0.tgz#602cd4b46e844ad4effc92a8011a3c46e0238dc2"
   integrity sha512-+q/t7Ekv1EDY2l6Gda6LLiX14rU9TV20Wa3ofeQmwPFZbOMo9DXrLbOjFaaclkXKWidIaopwAObQDqwWtGUjqg==
 
-atem-connection@2.3.0-nightly-v2-x-20210608-120229-97c45a9.0:
-  version "2.3.0-nightly-v2-x-20210608-120229-97c45a9.0"
-  resolved "https://registry.yarnpkg.com/atem-connection/-/atem-connection-2.3.0-nightly-v2-x-20210608-120229-97c45a9.0.tgz#4b73f121815f5cf42c942787a5d9fbc911d18f39"
-  integrity sha512-5CRVP71BLFTNLa1KGfMCa/GrogrVOYtvNFtIFPQCZJvOYz6N8c6QZvM7olwcCj3iJSu31JGR1GxiVXdkXeVV4w==
+atem-connection@^2.3.0:
+  version "2.3.0"
+  resolved "https://registry.yarnpkg.com/atem-connection/-/atem-connection-2.3.0.tgz#388cdbfb2805bd9cd4317dfef22360d00a62d647"
+  integrity sha512-/3x+/yNyyR+IbFL6KraGTnkU/3qPs/KoyGZnvfEhvIKVYu3POHCXbIUyPvjUcs9ytalvHgcxLK5slM6sCoIgoA==
   dependencies:
     big-integer "^1.6.48"
     eventemitter3 "^4.0.4"
@@ -1935,10 +1935,10 @@ atem-connection@2.3.0-nightly-v2-x-20210608-120229-97c45a9.0:
     tslib "^1.13.0"
     wavefile "^8.4.4"
 
-atem-state@0.12.0-nightly-latest-20210608-103549-6217657.0:
-  version "0.12.0-nightly-latest-20210608-103549-6217657.0"
-  resolved "https://registry.yarnpkg.com/atem-state/-/atem-state-0.12.0-nightly-latest-20210608-103549-6217657.0.tgz#63fc0b6455792fff961fdc2ade29240d93320c33"
-  integrity sha512-TtSOyhhphB5yEUdRmQOY6ZXGlMv/YebktmHRDmfHzlxyaoVGYrbjFTdr2+JTS88bBRCPaj7H91AkdKz9Ov9iSQ==
+atem-state@^0.12.1:
+  version "0.12.1"
+  resolved "https://registry.yarnpkg.com/atem-state/-/atem-state-0.12.1.tgz#b8db152ef3e775826e0bb66952366720a68b779e"
+  integrity sha512-MSOUfjK9Qnph8MSO1qpwC3xcn/t/hVeK31fAN/SsErqqvxBeaEXGSKg47QOx5rwVx9kP2zOGk3IeHtkdQw79SQ==
   dependencies:
     deepmerge "^4.2.2"
     tslib "^2.2.0"
