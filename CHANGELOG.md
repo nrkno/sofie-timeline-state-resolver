@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [6.0.3](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/6.0.2...6.0.3) (2021-07-06)
+
+
+### Bug Fixes
+
+* publish script failing to get package name - hardcoding instead ([3371abf](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/3371abff516c8f3e2416ac8c30e60c5b674f5b06))
+
+
+
+
+
 ## [6.0.2](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/6.0.1...6.0.2) (2021-07-06)
 
 
