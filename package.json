@@ -1,7 +1,7 @@
 {
   "name": "timeline-state-resolver-packages",
   "private": true,
-  "version": "6.0.0",
+  "version": "0.0.0",
   "workspaces": {
     "packages": [
       "packages/timeline-state-resolver-types",
