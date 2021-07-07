@@ -166,6 +166,7 @@
 		"deepmerge": "^4.2.2",
 		"emberplus-connection": "^0.0.3",
 		"hyperdeck-connection": "^0.4.3",
+		"obs-websocket-js": "^4.0.2",
 		"osc": "^2.4.0",
 		"p-all": "^3.0.0",
 		"p-queue": "^6.4.0",

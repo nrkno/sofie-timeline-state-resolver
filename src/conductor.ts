@@ -34,6 +34,7 @@ import { QuantelDevice, DeviceOptionsQuantelInternal } from './devices/quantel'
 import { SisyfosMessageDevice, DeviceOptionsSisyfosInternal } from './devices/sisyfos'
 import { SingularLiveDevice, DeviceOptionsSingularLiveInternal } from './devices/singularLive'
 import { VMixDevice, DeviceOptionsVMixInternal } from './devices/vmix'
+import { OBSDevice, DeviceOptionsOBSInternal } from './devices/obs'
 
 import { VizMSEDevice, DeviceOptionsVizMSEInternal } from './devices/vizMSE'
 import PQueue from 'p-queue'
@@ -438,6 +439,15 @@ export class Conductor extends EventEmitter {
 				newDevice = await new DeviceContainer().create<VMixDevice, typeof VMixDevice>(
 					'../../dist/devices/vmix.js',
 					'VMixDevice',
+					deviceId,
+					deviceOptions,
+					getCurrentTime,
+					threadedClassOptions
+				)
+			} else if (deviceOptions.type === DeviceType.OBS) {
+				newDevice = await new DeviceContainer().create<OBSDevice, typeof OBSDevice>(
+					'../../dist/devices/obs.js',
+					'OBSDevice',
 					deviceId,
 					deviceOptions,
 					getCurrentTime,
@@ -1171,6 +1181,7 @@ export type DeviceOptionsAnyInternal = (
 	DeviceOptionsQuantelInternal |
 	DeviceOptionsSingularLiveInternal |
 	DeviceOptionsVMixInternal |
+	DeviceOptionsOBSInternal |
 	DeviceOptionsShotokuInternal |
 	DeviceOptionsVizMSEInternal |
 	DeviceOptionsSingularLiveInternal |
