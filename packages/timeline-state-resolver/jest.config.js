@@ -30,5 +30,4 @@ module.exports = {
 		'!**/src/types/**',
 	],
 	coverageDirectory: './coverage/',
-	collectCoverage: true,
 }
