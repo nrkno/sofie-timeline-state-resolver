@@ -23,11 +23,6 @@ class WebSocket extends EventEmitter {
 
 	private _readyState: number = this.CLOSED
 
-	public onerror: ((err) => void) | undefined = undefined
-	public onopen: (() => void) | undefined = undefined
-	public onclose: (() => void) | undefined = undefined
-	public onmessage: ((msg) => void) | undefined = undefined
-
 	constructor (pathName) {
 		super()
 		this._pathName = pathName
@@ -43,9 +38,7 @@ class WebSocket extends EventEmitter {
 		orgSetTimeout(() => {
 			if (!this._updateConnectionStatus()) {
 				setTimeout(() => {
-					const error = new Error('Unable to Connect')
-					if (typeof this.onerror === 'function') this.onerror(error)
-					this.emit('error', error)
+					this.emit('error', new Error('Unable to Connect'))
 				}, this._failConnectEmitTimeout)
 			}
 		}, 1)
@@ -64,23 +57,22 @@ class WebSocket extends EventEmitter {
 	public static mockConstructor (fcn: (WebSocket) => void) {
 		mockConstructor = fcn
 	}
-	public send (message, callback?: (err?: Error) => void) {
+	public send (message, callback: (err?: Error) => void) {
 		if (!this._emittedConnected) {
-			if (typeof callback === 'function') callback(new Error('Error, not connected'))
+			callback(new Error('Error, not connected'))
 		} else {
 			if (this._replyFunction) {
-				if (typeof callback === 'function') callback()
+				callback()
 
 				Promise.resolve(this._replyFunction(message))
 				.then((reply) => {
 					if (reply) {
-						if (typeof this.onmessage === 'function') this.onmessage(reply)
+						if (typeof reply !== 'string') reply = JSON.stringify(reply)
 						this.emit('message', reply)
 					}
 				})
 				.catch((err) => {
-					console.log(err)
-					if (typeof this.onerror === 'function') this.onerror(err)
+					console.log('err')
 					this.emit('error', err)
 				})
 			} else {
@@ -123,11 +115,9 @@ class WebSocket extends EventEmitter {
 
 			if (connected) {
 				this._readyState = this.OPEN
-				if (typeof this.onopen === 'function') this.onopen()
 				this.emit('open')
 			} else {
 				this._readyState = this.CLOSED
-				if (typeof this.onclose === 'function') this.onclose()
 				this.emit('close')
 			}
 		}

@@ -19,16 +19,6 @@ describe('Pharos', () => {
 	})
 	beforeEach(() => {
 		mockTime.init()
-
-		WebSocket.clearMockInstances()
-
-		jest.useRealTimers()
-		setTimeout(() => {
-			let wsInstances = WebSocket.getMockInstances()
-			expect(wsInstances).toHaveLength(1)
-			WebSocket.getMockInstances()[0].mockSetConnected(true)
-		}, 200)
-		jest.useFakeTimers()
 	})
 	test('Scene', async () => {
 		let device
@@ -55,14 +45,14 @@ describe('Pharos', () => {
 		let mockReply = jest.fn((_ws: WebSocket, message: string) => {
 			let data = JSON.parse(message)
 			if (data.request === 'project') {
-				return JSON.stringify({
+				return {
 					request: data.request,
 					author: 'Jest',
 					filename: 'filename',
 					name: 'Jest test mock',
 					unique_id: 'abcde123',
 					upload_date: '2018-10-22T08:09:02'
-				})
+				}
 			} else {
 				console.log(data)
 			}
