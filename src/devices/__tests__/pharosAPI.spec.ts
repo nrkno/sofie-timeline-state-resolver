@@ -201,10 +201,10 @@ function getStandardPharosMockReply () {
 					throw new Error('Unsupported mock data')
 				}
 			})()
-			return JSON.stringify({
+			return {
 				request: data.request,
 				data: reply
-			})
+			}
 		} else if (data.subscribe) {
 			if (
 				data.subscribe === 'timeline' ||
