@@ -19,8 +19,8 @@ describe('Pharos', () => {
 
 		jest.useRealTimers()
 		setTimeout(() => {
-			let wsInstances = WebSocket.getMockInstances()
-			expect(wsInstances).toHaveLength(1)
+			const wsInstances = WebSocket.getMockInstances()
+			if (wsInstances.length !== 1) throw new Error('WebSocket Mock Instance not created')
 			WebSocket.getMockInstances()[0].mockSetConnected(true)
 		}, 200)
 		jest.useFakeTimers()
@@ -56,7 +56,7 @@ describe('Pharos', () => {
 					filename: 'filename',
 					name: 'Jest test mock',
 					unique_id: 'abcde123',
-					upload_date: '2018-10-22T08:09:02'
+					upload_date: '2018-10-22T08:09:02',
 				})
 			} else {
 				console.log(data)

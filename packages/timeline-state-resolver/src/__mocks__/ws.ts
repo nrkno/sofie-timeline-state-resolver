@@ -28,7 +28,7 @@ class WebSocket extends EventEmitter {
 	public onclose: (() => void) | undefined = undefined
 	public onmessage: ((msg) => void) | undefined = undefined
 
-	constructor (pathName) {
+	constructor(pathName) {
 		super()
 		this._pathName = pathName
 
@@ -64,7 +64,7 @@ class WebSocket extends EventEmitter {
 	public static mockConstructor(fcn: (WebSocket) => void) {
 		mockConstructor = fcn
 	}
-	public send (message, callback?: (err?: Error) => void) {
+	public send(message, callback?: (err?: Error) => void) {
 		if (!this._emittedConnected) {
 			if (typeof callback === 'function') callback(new Error('Error, not connected'))
 		} else {
@@ -72,17 +72,17 @@ class WebSocket extends EventEmitter {
 				if (typeof callback === 'function') callback()
 
 				Promise.resolve(this._replyFunction(message))
-				.then((reply) => {
-					if (reply) {
-						if (typeof this.onmessage === 'function') this.onmessage(reply)
-						this.emit('message', reply)
-					}
-				})
-				.catch((err) => {
-					console.log(err)
-					if (typeof this.onerror === 'function') this.onerror(err)
-					this.emit('error', err)
-				})
+					.then((reply) => {
+						if (reply) {
+							if (typeof this.onmessage === 'function') this.onmessage(reply)
+							this.emit('message', reply)
+						}
+					})
+					.catch((err) => {
+						console.log(err)
+						if (typeof this.onerror === 'function') this.onerror(err)
+						this.emit('error', err)
+					})
 			} else {
 				throw new Error('mock ws._replyFunction not set')
 			}

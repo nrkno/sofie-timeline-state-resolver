@@ -51,8 +51,10 @@
     "unlink:all": "yarn unlink atem-connection & yarn unlink atem-state & yarn unlink casparcg-connection & yarn unlink casparcg-state & yarn unlink superfly-timeline",
     "build": "rimraf dist && yarn build:main",
     "build:main": "tsc -p tsconfig.build.json",
-    "lint": "tslint --project tsconfig.json --config ../../tslint.json",
-    "unit": "jest --forceExit",
+    "lint": "eslint . --ext .ts --ext .js --ext .tsx --ext .jsx --ignore-pattern dist",
+		"lint-fix": "yarn lint --fix",
+		"license-validate": "yarn sofie-licensecheck",
+		"unit": "jest --forceExit",
     "test": "yarn lint && yarn unit",
     "test:integration": "yarn lint && jest --config=jest-integration.config.js",
     "watch": "jest --watch",
@@ -60,8 +62,7 @@
     "cov-open": "open-cli coverage/lcov-report/index.html",
     "send-coverage": "codecov -p ../..",
     "validate:dependencies": "yarn audit --groups dependencies && yarn license-validate",
-    "validate:dev-dependencies": "yarn audit --groups devDependencies",
-    "license-validate": "node-license-validator -p -d --allow-licenses MIT BSD BSD-2-Clause BSD-3-Clause 0BSD ISC Apache Unlicense WTFPL --allow-packages cycle"
+    "validate:dev-dependencies": "yarn audit --groups devDependencies"
   },
   "scripts-info": {
     "info": "Display information about the scripts",
