@@ -16,6 +16,7 @@ Using the input, it resolves the expected state, diffs the state against current
 * **Blackmagic Design ATEM** vision mixers - using the [atem-connection](https://github.com/nrkno/tv-automation-atem-connection) library
 * **Blackmagic Design Hyperdeck** record/playback devices - using the [hyperdeck-connection](https://github.com/nrkno/tv-automation-hyperdeck-connection) library
 * **Lawo** audio mixers - using the [emberplus](https://github.com/nrkno/tv-automation-emberplus-connection) library
+* **[OBS Studio](https://obsproject.com/)** live video production software
 * **Panasoniz PTZ** cameras
 * **Pharos** light control devices
 * **[Sisyfos](https://github.com/olzzon/sisyfos-audio-controller)** audio controller
@@ -43,3 +44,5 @@ yarn lerna link
 ```
 
 This will link the types package to the main library so that you can use your new type definitions during development.
+
+Note, that your IDE may not pick up your new type definitions until you build the types package.

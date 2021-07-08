@@ -4,6 +4,7 @@ import {
 	CasparCGOptions,
 	HTTPSendOptions,
 	HyperdeckOptions,
+	OBSOptions,
 	OSCOptions,
 	PharosOptions,
 	QuantelOptions,
@@ -45,6 +46,7 @@ export type DeviceOptionsAny =
 	| DeviceOptionsTCPSend
 	| DeviceOptionsHyperdeck
 	| DeviceOptionsPharos
+	| DeviceOptionsOBS
 	| DeviceOptionsOSC
 	| DeviceOptionsHTTPWatcher
 	| DeviceOptionsSisyfos
@@ -80,6 +82,9 @@ export interface DeviceOptionsHyperdeck extends DeviceOptionsBase<HyperdeckOptio
 }
 export interface DeviceOptionsPharos extends DeviceOptionsBase<PharosOptions> {
 	type: DeviceType.PHAROS
+}
+export interface DeviceOptionsOBS extends DeviceOptionsBase<OBSOptions> {
+	type: DeviceType.OBS
 }
 export interface DeviceOptionsOSC extends DeviceOptionsBase<OSCOptions> {
 	type: DeviceType.OSC

@@ -15,6 +15,7 @@ export * from './tcpSend'
 export * from './vizMSE'
 export * from './singularLive'
 export * from './vmix'
+export * from './obs'
 
 export * from './device'
 export * from './mapping'
@@ -37,6 +38,7 @@ import { TimelineObjSisyfosAny } from './sisyfos'
 import { TimelineObjVIZMSEAny } from './vizMSE'
 import { TimelineObjSingularLiveAny } from './singularLive'
 import { TimelineObjVMixAny } from './vmix'
+import { TimelineObjOBSAny } from './obs'
 
 export { Timeline }
 export * from './mapping'
@@ -63,6 +65,7 @@ export enum DeviceType {
 	SINGULAR_LIVE = 14,
 	SHOTOKU = 15,
 	VMIX = 20,
+	OBS = 21,
 }
 
 export interface TSRTimelineKeyframe<T> extends Timeline.TimelineKeyframe {
@@ -103,6 +106,7 @@ export type TSRTimelineObj =
 	| TimelineObjTCPSendAny
 	| TimelineObjHyperdeckAny
 	| TimelineObjLawoAny
+	| TimelineObjOBSAny
 	| TimelineObjOSCAny
 	| TimelineObjPharosAny
 	| TimelineObjPanasonicPtzAny
