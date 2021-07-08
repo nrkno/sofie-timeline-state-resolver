@@ -7,27 +7,33 @@
 export abstract class Animator {
 	protected positions: number[]
 
-	constructor (startPositions: number[]) {
+	constructor(startPositions: number[]) {
 		this.positions = startPositions
 	}
-	protected clonePositions () {
+	protected clonePositions() {
 		return [...this.positions] // clone
 	}
 	/** Cause the value to jump to the target value  */
-	public jump (target: number[]): number[] {
-		if (target.length !== this.positions.length) throw new Error(`Error in Animator.update: target has the wrong length (${target.length}), compared to internal positions (${this.positions.length})`)
+	public jump(target: number[]): number[] {
+		if (target.length !== this.positions.length)
+			throw new Error(
+				`Error in Animator.update: target has the wrong length (${target.length}), compared to internal positions (${this.positions.length})`
+			)
 		return []
 	}
 	/** This function is called on every iteraton (frame)
 	 * @param target The target value the Animator is aiming towards
 	 * @param _timeSinceLastUpdate The delta time since last call to .update()
 	 */
-	public update (target: number[], _timeSinceLastUpdate: number): number[] {
-		if (target.length !== this.positions.length) throw new Error(`Error in Animator.update: target has the wrong length (${target.length}), compared to internal positions (${this.positions.length})`)
+	public update(target: number[], _timeSinceLastUpdate: number): number[] {
+		if (target.length !== this.positions.length)
+			throw new Error(
+				`Error in Animator.update: target has the wrong length (${target.length}), compared to internal positions (${this.positions.length})`
+			)
 		return []
 	}
 	/** Calculate multi-dimensional distance between values */
-	protected getTotalDistanceToTarget (toValue: number[], fromValue: number[]): number {
+	protected getTotalDistanceToTarget(toValue: number[], fromValue: number[]): number {
 		return this.hypotenuse(
 			fromValue.map((value, index) => {
 				const targetPosition = toValue[index]
@@ -36,33 +42,35 @@ export abstract class Animator {
 		)
 	}
 	/** Calculate multi-dimensional hypotenuse of a vector */
-	protected hypotenuse (vector: number[]): number {
+	protected hypotenuse(vector: number[]): number {
 		// Calculate hypotenuse in n dimensions:
 		return Math.sqrt(
-			vector.map((value) => {
-				return Math.pow(value, 2)
-			}).reduce((mem, value) => {
-				return (mem || 0) + value
-			})
+			vector
+				.map((value) => {
+					return Math.pow(value, 2)
+				})
+				.reduce((mem, value) => {
+					return (mem || 0) + value
+				})
 		)
 	}
 }
 
 /** Linear movement towards the target */
 export class LinearMovement extends Animator {
-	constructor (
+	constructor(
 		startPositions: number[],
 		/** Speed of linear movement [units/ms] */
 		private speed: number
 	) {
 		super(startPositions)
 	}
-	public jump (target: number[]): number[] {
+	public jump(target: number[]): number[] {
 		super.jump(target)
 		this.positions = target
 		return this.clonePositions()
 	}
-	public update (target: number[], timeSinceLastUpdate: number): number[] {
+	public update(target: number[], timeSinceLastUpdate: number): number[] {
 		super.update(target, timeSinceLastUpdate)
 
 		const totalDistanceToTarget = this.getTotalDistanceToTarget(target, this.positions)
@@ -70,11 +78,7 @@ export class LinearMovement extends Animator {
 			this.positions.forEach((position, index) => {
 				const targetPosition = target[index]
 				const distanceToTarget = Math.abs(targetPosition - position)
-				const step = (
-					this.speed *
-					distanceToTarget / totalDistanceToTarget *
-					timeSinceLastUpdate
-				)
+				const step = ((this.speed * distanceToTarget) / totalDistanceToTarget) * timeSinceLastUpdate
 				if (distanceToTarget < step) {
 					// The distance left is less than the step, just jump to it then:
 					this.positions[index] = targetPosition
@@ -91,7 +95,7 @@ export class LinearMovement extends Animator {
 export class PhysicalAcceleration extends Animator {
 	private speed: number[]
 	private directionChanges: number[]
-	constructor (
+	constructor(
 		/** The starting positions */
 		startPositions: number[],
 		/** Accelerate towards target with this acceleration. [unit per ] */
@@ -105,7 +109,7 @@ export class PhysicalAcceleration extends Animator {
 		this.speed = startPositions.map(() => 0)
 		this.directionChanges = startPositions.map(() => 0)
 	}
-	public jump (target: number[]): number[] {
+	public jump(target: number[]): number[] {
 		super.jump(target)
 		this.positions = target
 		this.speed = this.speed.map(() => 0)
@@ -116,11 +120,13 @@ export class PhysicalAcceleration extends Animator {
 	 * @param target Target position(s)
 	 * @param timeSinceLastUpdate Time since last update
 	 */
-	public update (target: number[], timeSinceLastUpdate: number): number[] {
+	public update(target: number[], timeSinceLastUpdate: number): number[] {
 		super.update(target, timeSinceLastUpdate)
 
 		/** Position at next step, given current speed */
-		const extrapolatedPositions = this.positions.map((position, index) => position + this.speed[index] * timeSinceLastUpdate * 1)
+		const extrapolatedPositions = this.positions.map(
+			(position, index) => position + this.speed[index] * timeSinceLastUpdate * 1
+		)
 
 		const totalDistanceToTarget = this.getTotalDistanceToTarget(target, extrapolatedPositions)
 
@@ -137,19 +143,10 @@ export class PhysicalAcceleration extends Animator {
 
 				// Determine whether to accelerate or decelerate?
 
-				const acceleration = (
-					this.acceleration *
-					distanceToTarget / totalDistanceToTarget
-				)
+				const acceleration = (this.acceleration * distanceToTarget) / totalDistanceToTarget
 
-				const maxSpeed = Math.abs(
-					totalSpeed > 0 ?
-					(
-						this.maxSpeed *
-						this.speed[index] / totalSpeed
-					) :
-					this.maxSpeed
-				) || Infinity
+				const maxSpeed =
+					Math.abs(totalSpeed > 0 ? (this.maxSpeed * this.speed[index]) / totalSpeed : this.maxSpeed) || Infinity
 
 				/** Distance to use as threshold for snapping to position */
 				// const snapDistance = 4 * acceleration * timeSinceLastUpdate
@@ -161,19 +158,15 @@ export class PhysicalAcceleration extends Animator {
 				const timeToStop = speed / acceleration
 
 				/** Mininum distance it takes to decelerate to stop, at the current speed */
-				const minimumDistanceToStop = (
-					  speed * timeToStop
-					- (acceleration * 0.9) * Math.pow(timeToStop, 2) / 2
-				)
+				const minimumDistanceToStop = speed * timeToStop - (acceleration * 0.9 * Math.pow(timeToStop, 2)) / 2
 
 				const stepAcceleration = directionToTarget * acceleration * timeSinceLastUpdate
 
 				/** Mininum distance it takes to decelerate to stop, at the speed after one step of acceleration */
-				const minimumDistanceToStopAfterNextTick = (
-					  speed * timeSinceLastUpdate
-					+ Math.abs(speed + stepAcceleration) * timeToStop
-					- acceleration * Math.pow(timeToStop, 2) / 2
-				)
+				const minimumDistanceToStopAfterNextTick =
+					speed * timeSinceLastUpdate +
+					Math.abs(speed + stepAcceleration) * timeToStop -
+					(acceleration * Math.pow(timeToStop, 2)) / 2
 
 				if (distanceToTarget + Math.max(0, minimumDistanceToStop) <= this.snapDistance) {
 					// Vote to snap to target:
@@ -181,10 +174,7 @@ export class PhysicalAcceleration extends Animator {
 					// And decelerate, to prevent wobbling:
 					this.speed[index] *= 0.8
 				} else {
-					if (
-						minimumDistanceToStop > distanceToTarget &&
-						Math.sign(this.speed[index]) === directionToTarget
-					) {
+					if (minimumDistanceToStop > distanceToTarget && Math.sign(this.speed[index]) === directionToTarget) {
 						// Decelerate:
 						const speedSign = Math.sign(this.speed[index])
 						this.speed[index] -= stepAcceleration
@@ -200,9 +190,7 @@ export class PhysicalAcceleration extends Animator {
 						// Neither decelerate or accelerate
 					}
 				}
-				if (
-					Math.abs(this.positions[index] - target[index]) <= Math.abs(stepAcceleration) * 8
-				) {
+				if (Math.abs(this.positions[index] - target[index]) <= Math.abs(stepAcceleration) * 8) {
 					// Apply extra friction when close, to decrease wobbling
 					this.speed[index] *= 0.8
 				}
@@ -249,11 +237,7 @@ export class PhysicalAcceleration extends Animator {
 		}
 		return this.clonePositions()
 	}
-	private _cap (maxValue: number, value: number): number {
-		return Math.min(maxValue,
-			Math.max(-maxValue,
-				value
-			)
-		)
+	private _cap(maxValue: number, value: number): number {
+		return Math.min(maxValue, Math.max(-maxValue, value))
 	}
 }

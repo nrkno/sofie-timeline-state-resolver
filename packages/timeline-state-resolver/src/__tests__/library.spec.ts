@@ -4,7 +4,7 @@ import {
 	DeviceType as Types_DeviceType,
 	TSRTimeline,
 	TimelineObjEmpty,
-	DeviceOptionsAbstract
+	DeviceOptionsAbstract,
 } from 'timeline-state-resolver-types'
 
 describe('Usage of library', () => {
@@ -13,17 +13,15 @@ describe('Usage of library', () => {
 	// Note that the commands 'yarn build' and 'yarn types-build' must have been run for these tests to pass
 
 	test('main library', () => {
-
 		expect(CasparCGDevice).toBeTruthy()
 		expect(Conductor).toBeTruthy()
 
 		// Expect this type to exist:
 		const options: DeviceOptionsAbstract = {
 			type: DeviceType.ABSTRACT,
-			options: {}
+			options: {},
 		}
 		expect(options.type).toEqual(0)
-
 	})
 	test('types', () => {
 		expect(Types_DeviceType.ATEM).toEqual(2)
@@ -35,14 +33,14 @@ describe('Usage of library', () => {
 			id: 'myId',
 			enable: {
 				start: 0,
-				duration: 42
+				duration: 42,
 			},
 			layer: 'myLayer',
 			content: {
 				deviceType: Types_DeviceType.ABSTRACT,
-				type: 'empty'
+				type: 'empty',
 			},
-			classes: []
+			classes: [],
 		}
 		const tl: TSRTimeline = [obj]
 		expect(tl[0].content.deviceType).toEqual(0)

@@ -8,12 +8,12 @@ export interface SisyfosOptions {
 
 export enum MappingSisyfosType {
 	CHANNEL = 'channel',
-	CHANNELS = 'channels'
+	CHANNELS = 'channels',
 }
 export type MappingSisyfos = MappingSisyfosChannel | MappingSisyfosChannels
 interface MappingSisyfosBase extends Mapping {
 	device: DeviceType.SISYFOS
-	mappingType: MappingSisyfosType  // defaults to MappingSisyfosType.CHANNEL if not set
+	mappingType: MappingSisyfosType // defaults to MappingSisyfosType.CHANNEL if not set
 }
 export interface MappingSisyfosChannel extends MappingSisyfosBase {
 	mappingType: MappingSisyfosType.CHANNEL
@@ -27,10 +27,13 @@ export interface MappingSisyfosChannels extends MappingSisyfosBase {
 export enum TimelineContentTypeSisyfos {
 	CHANNEL = 'channel',
 	CHANNELS = 'channels',
-	TRIGGERVALUE = 'triggerValue'
+	TRIGGERVALUE = 'triggerValue',
 }
 
-export type TimelineObjSisyfosAny = TimelineObjSisyfosChannel | TimelineObjSisyfosChannels | TimelineObjSisyfosTriggerValue
+export type TimelineObjSisyfosAny =
+	| TimelineObjSisyfosChannel
+	| TimelineObjSisyfosChannels
+	| TimelineObjSisyfosTriggerValue
 
 export interface TimelineObjSisyfos extends TSRTimelineObjBase {
 	content: {
@@ -66,12 +69,10 @@ export interface TimelineObjSisyfosChannels extends TimelineObjSisyfos {
 	content: {
 		deviceType: DeviceType.SISYFOS
 		type: TimelineContentTypeSisyfos.CHANNELS
-		channels: (
-			{
-				/** The mapping layer to look up the channel from */
-				mappedLayer: string
-			} & SisyfosChannelOptions
-		)[],
+		channels: ({
+			/** The mapping layer to look up the channel from */
+			mappedLayer: string
+		} & SisyfosChannelOptions)[]
 		resync?: boolean
 		overridePriority?: number // defaults to 0
 		triggerValue?: string

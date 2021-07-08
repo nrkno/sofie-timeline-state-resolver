@@ -50,13 +50,15 @@
 		"unit": "jest",
 		"build": "rimraf dist && yarn build:main",
 		"build:main": "tsc -p tsconfig.build.json",
-		"lint": "tslint --project tsconfig.json --config ../../tslint.json",
 		"cov": "jest --coverage && yarn cov-open",
 		"cov-open": "open-cli coverage/lcov-report/index.html",
 		"send-coverage": "codecov -p ../..",
 		"validate:dependencies": "yarn audit --groups dependencies && yarn license-validate",
 		"validate:dev-dependencies": "yarn audit --groups devDependencies",
-		"license-validate": "node-license-validator -p -d --allow-licenses MIT 0BSD BSD BSD-3-Clause ISC Apache Unlicense"
+		"lint": "eslint . --ext .ts --ext .js --ext .tsx --ext .jsx --ignore-pattern dist",
+		"lint-fix": "yarn lint --fix",
+		"license-validate": "yarn sofie-licensecheck",
+		"precommit": "lint-staged"
 	},
 	"scripts-info": {
 		"info": "Display information about the scripts",
@@ -94,6 +96,14 @@
 		"tslib": "^2.1.0"
 	},
 	"publishConfig": {
-	  "access": "public"
+		"access": "public"
+	},
+	"lint-staged": {
+		"*.{css,json,md,scss}": [
+			"prettier --write"
+		],
+		"*.{ts,tsx,js,jsx}": [
+			"yarn lint-fix"
+		]
 	}
 }

@@ -1,0 +1,22 @@
+{
+	"extends": "../../node_modules/@sofie-automation/code-standard-preset/eslint/main",
+	"overrides": [
+		{
+			"files": ["*.ts"],
+			"rules": {
+				// Temorary disable rules
+				"@typescript-eslint/explicit-module-boundary-types": 0,
+				"@typescript-eslint/no-non-null-assertion": 0,
+				"@typescript-eslint/ban-types": 0,
+				"@typescript-eslint/ban-ts-comment": 0,
+				"@typescript-eslint/no-namespace": 0
+			}
+		},
+		{
+			"files": ["examples/*"],
+			"rules": {
+				"node/no-extraneous-require": 0
+			}
+		}
+	]
+}

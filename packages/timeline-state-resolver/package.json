@@ -1,131 +1,145 @@
 {
-  "name": "timeline-state-resolver",
-  "version": "6.0.1-release36",
-  "description": "Have timeline, control stuff",
-  "main": "dist/index.js",
-  "typings": "dist/index.d.ts",
-  "module": "dist/module/index.js",
-  "browser": "dist/browser/index.js",
-  "license": "MIT",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/nrkno/tv-automation-state-timeline-resolver.git"
-  },
-  "bugs": {
-    "url": "https://github.com/nrkno/tv-automation-state-timeline-resolver/issues"
-  },
-  "homepage": "https://github.com/nrkno/tv-automation-state-timeline-resolver#readme",
-  "contributors": [
-    {
-      "name": "Johan Nyman",
-      "email": "johan@superfly.tv",
-      "url": "http://superfly.tv"
-    },
-    {
-      "name": "Balte de Wit",
-      "email": "balte@superfly.tv",
-      "url": "http://superfly.tv"
-    },
-    {
-      "name": "Jesper Stærkær",
-      "email": "jesper@superfly.tv",
-      "url": "http://superfly.tv"
-    },
-    {
-      "name": "Jan Starzak",
-      "email": "jan@superfly.tv",
-      "url": "http://superfly.tv"
-    },
-    {
-      "name": "Stephan Nordnes Eriksen",
-      "email": "Stephanruler@gmail.com"
-    },
-    {
-      "name": "Julian Waller",
-      "email": "julian@superfly.tv",
-      "url": "http://superfly.tv"
-    }
-  ],
-  "scripts": {
-    "info": "npm-scripts-info",
-    "unlink:all": "yarn unlink atem-connection & yarn unlink atem-state & yarn unlink casparcg-connection & yarn unlink casparcg-state & yarn unlink superfly-timeline",
-    "build": "rimraf dist && yarn build:main",
-    "build:main": "tsc -p tsconfig.build.json",
-    "lint": "tslint --project tsconfig.json --config ../../tslint.json",
-    "unit": "jest --forceExit",
-    "test": "yarn lint && yarn unit",
-    "test:integration": "yarn lint && jest --config=jest-integration.config.js",
-    "watch": "jest --watch",
-    "cov": "jest --coverage && yarn cov-open",
-    "cov-open": "open-cli coverage/lcov-report/index.html",
-    "send-coverage": "codecov -p ../..",
-    "validate:dependencies": "yarn audit --groups dependencies && yarn license-validate",
-    "validate:dev-dependencies": "yarn audit --groups devDependencies",
-    "license-validate": "node-license-validator -p -d --allow-licenses MIT BSD BSD-2-Clause BSD-3-Clause 0BSD ISC Apache Unlicense WTFPL --allow-packages cycle"
-  },
-  "scripts-info": {
-    "info": "Display information about the scripts",
-    "build": "(Trash and re)build the library",
-    "build:main": "Builds main build command without trash.",
-    "lint": "Lint all typescript source files",
-    "unit": "Build the library and run unit tests",
-    "test": "Lint, build, and test the library",
-    "test:integration": "Integration tests. Work in progress",
-    "watch": "Watch source files, rebuild library on changes, rerun relevant tests",
-    "cov": "Run tests, generate the HTML coverage report, and open it in a browser",
-    "cov-open": "Open current test coverage",
-    "send-coverage": "send coverage to codecov",
-    "validate:dependencies": "Scan dependencies for vulnerabilities and check licenses",
-    "license-validate": "Validate licenses for dependencies."
-  },
-  "engines": {
-    "node": ">=12.18"
-  },
-  "files": [
-    "/dist",
-    "/CHANGELOG.md",
-    "/README.md",
-    "/LICENSE"
-  ],
-  "keywords": [
-    "broadcast",
-    "socket",
-    "typescript",
-    "javascript",
-    "open",
-    "source",
-    "automation",
-    "rundown",
-    "production"
-  ],
-  "dependencies": {
-    "atem-connection": "2.3.0-nightly-v2-x-20210608-120229-97c45a9.0",
-    "atem-state": "0.12.0-nightly-latest-20210608-103549-6217657.0",
-    "casparcg-connection": "^5.1.0",
-    "casparcg-state": "^2.1.0",
-    "debug": "^4.3.1",
-    "deepmerge": "^4.2.2",
-    "emberplus-connection": "^0.0.3",
-    "hyperdeck-connection": "^0.4.3",
-    "osc": "^2.4.0",
-    "p-all": "^3.0.0",
-    "p-queue": "^6.4.0",
-    "p-timeout": "^3.2.0",
-    "request": "^2.88.0",
-    "sprintf-js": "^1.1.2",
-    "superfly-timeline": "^8.2.1",
-    "threadedclass": "0.8.3",
-    "timeline-state-resolver-types": "6.0.0-0",
-    "tslib": "^2.1.0",
-    "tv-automation-quantel-gateway-client": "^1.0.12",
-    "underscore": "^1.12.0",
-    "underscore-deep-extend": "^1.1.5",
-    "utf-8-validate": "^5.0.2",
-    "v-connection": "git+https://github.com/olzzon/v-connection#v20210604_1",
-    "ws": "^7.4.6",
-    "xml-js": "^1.6.11"
-  },
-  "publishConfig": {
-    "access": "public"
-  }
+	"name": "timeline-state-resolver",
+	"version": "6.0.1-release36",
+	"description": "Have timeline, control stuff",
+	"main": "dist/index.js",
+	"typings": "dist/index.d.ts",
+	"module": "dist/module/index.js",
+	"browser": "dist/browser/index.js",
+	"license": "MIT",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/nrkno/tv-automation-state-timeline-resolver.git"
+	},
+	"bugs": {
+		"url": "https://github.com/nrkno/tv-automation-state-timeline-resolver/issues"
+	},
+	"homepage": "https://github.com/nrkno/tv-automation-state-timeline-resolver#readme",
+	"contributors": [
+		{
+			"name": "Johan Nyman",
+			"email": "johan@superfly.tv",
+			"url": "http://superfly.tv"
+		},
+		{
+			"name": "Balte de Wit",
+			"email": "balte@superfly.tv",
+			"url": "http://superfly.tv"
+		},
+		{
+			"name": "Jesper Stærkær",
+			"email": "jesper@superfly.tv",
+			"url": "http://superfly.tv"
+		},
+		{
+			"name": "Jan Starzak",
+			"email": "jan@superfly.tv",
+			"url": "http://superfly.tv"
+		},
+		{
+			"name": "Stephan Nordnes Eriksen",
+			"email": "Stephanruler@gmail.com"
+		},
+		{
+			"name": "Julian Waller",
+			"email": "julian@superfly.tv",
+			"url": "http://superfly.tv"
+		}
+	],
+	"scripts": {
+		"info": "npm-scripts-info",
+		"unlink:all": "yarn unlink atem-connection & yarn unlink atem-state & yarn unlink casparcg-connection & yarn unlink casparcg-state & yarn unlink superfly-timeline",
+		"build": "rimraf dist && yarn build:main",
+		"build:main": "tsc -p tsconfig.build.json",
+		"unit": "jest --forceExit",
+		"test": "yarn lint && yarn unit",
+		"test:integration": "yarn lint && jest --config=jest-integration.config.js",
+		"watch": "jest --watch",
+		"cov": "jest --coverage && yarn cov-open",
+		"cov-open": "open-cli coverage/lcov-report/index.html",
+		"send-coverage": "codecov -p ../..",
+		"validate:dependencies": "yarn audit --groups dependencies && yarn license-validate",
+		"validate:dev-dependencies": "yarn audit --groups devDependencies",
+		"license-validate": "node-license-validator -p -d --allow-licenses MIT BSD BSD-2-Clause BSD-3-Clause 0BSD ISC Apache Unlicense WTFPL --allow-packages cycle",
+		"validate:dev-dependencies": "yarn audit --groups devDependencies",
+		"lint": "eslint . --ext .ts --ext .js --ext .tsx --ext .jsx --ignore-pattern dist",
+		"lint-fix": "yarn lint --fix",
+		"license-validate": "yarn sofie-licensecheck",
+		"precommit": "lint-staged"
+	},
+	"scripts-info": {
+		"info": "Display information about the scripts",
+		"build": "(Trash and re)build the library",
+		"build:main": "Builds main build command without trash.",
+		"lint": "Lint all typescript source files",
+		"unit": "Build the library and run unit tests",
+		"test": "Lint, build, and test the library",
+		"test:integration": "Integration tests. Work in progress",
+		"watch": "Watch source files, rebuild library on changes, rerun relevant tests",
+		"cov": "Run tests, generate the HTML coverage report, and open it in a browser",
+		"cov-open": "Open current test coverage",
+		"send-coverage": "send coverage to codecov",
+		"validate:dependencies": "Scan dependencies for vulnerabilities and check licenses",
+		"license-validate": "Validate licenses for dependencies."
+	},
+	"engines": {
+		"node": ">=12.18"
+	},
+	"files": [
+		"/dist",
+		"/CHANGELOG.md",
+		"/README.md",
+		"/LICENSE"
+	],
+	"keywords": [
+		"broadcast",
+		"socket",
+		"typescript",
+		"javascript",
+		"open",
+		"source",
+		"automation",
+		"rundown",
+		"production"
+	],
+	"dependencies": {
+		"atem-connection": "2.3.0-nightly-v2-x-20210608-120229-97c45a9.0",
+		"atem-state": "0.12.0-nightly-latest-20210608-103549-6217657.0",
+		"casparcg-connection": "^5.1.0",
+		"casparcg-state": "^2.1.0",
+		"debug": "^4.3.1",
+		"deepmerge": "^4.2.2",
+		"emberplus-connection": "^0.0.3",
+		"eventemitter3": "^4.0.7",
+		"got": "^11.8.2",
+		"hyperdeck-connection": "^0.4.3",
+		"osc": "^2.4.0",
+		"p-all": "^3.0.0",
+		"p-queue": "^6.4.0",
+		"p-timeout": "^3.2.0",
+		"request": "^2.88.0",
+		"sprintf-js": "^1.1.2",
+		"superfly-timeline": "^8.2.1",
+		"threadedclass": "0.8.3",
+		"timeline-state-resolver-types": "6.0.1-release36",
+		"tslib": "^2.1.0",
+		"tv-automation-quantel-gateway-client": "^1.0.12",
+		"underscore": "^1.12.0",
+		"underscore-deep-extend": "^1.1.5",
+		"utf-8-validate": "^5.0.2",
+		"v-connection": "git+https://github.com/olzzon/v-connection#v20210604_1",
+		"ws": "^7.4.6",
+		"xml-js": "^1.6.11"
+	},
+	"publishConfig": {
+		"access": "public"
+	},
+	"lint-staged": {
+		"*.{css,json,md,scss}": [
+			"prettier --write"
+		],
+		"*.{ts,tsx,js,jsx}": [
+			"yarn lint-fix"
+		]
+	}
 }
