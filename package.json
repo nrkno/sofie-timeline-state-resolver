@@ -1,7 +1,7 @@
 {
   "name": "timeline-state-resolver-packages",
   "private": true,
-  "version": "6.0.1-release36",
+  "version": "0.0.0",
   "workspaces": {
     "packages": [
       "packages/timeline-state-resolver-types",
@@ -16,8 +16,11 @@
     "docs": "yarn typedoc .",
     "postinstall": "lerna bootstrap",
     "release:set-version": "lerna version --no-changelog --no-git-tag-version --no-push --yes",
-    "release:bump-release": "lerna version --conventional-commits --conventional-graduate --tag-version-prefix='' --no-push",
-    "release:bump-prerelease": "lerna version --conventional-commits --conventional-prerelease --tag-version-prefix='' --no-push"
+    "release:bump-release": "lerna version --exact --conventional-commits --conventional-graduate --tag-version-prefix='' --no-push",
+    "release:bump-release-force": "lerna version --exact --conventional-commits --tag-version-prefix='' --no-push --force-publish=*",
+    "release:bump-prerelease": "lerna version --exact --conventional-commits --conventional-prerelease --tag-version-prefix='' --no-push",
+    "validate:dependencies": "yarn lerna exec --parallel yarn validate:dependencies",
+    "validate:dev-dependencies": "yarn lerna exec --parallel yarn validate:dev-dependencies"
   },
   "devDependencies": {
     "@sofie-automation/code-standard-preset": "^0.4.1",
