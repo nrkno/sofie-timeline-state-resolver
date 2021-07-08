@@ -39,7 +39,7 @@ When creating features that span the timeline-state-resolver and timeline-state-
 
 ```
 yarn
-yarn learna link
+yarn lerna link
 ```
 
 This will link the types package to the main library so that you can use your new type definitions during development.
