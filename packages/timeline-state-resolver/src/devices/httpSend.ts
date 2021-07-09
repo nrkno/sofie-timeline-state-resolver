@@ -11,6 +11,10 @@ import { DoOnTime, SendMode } from '../doOnTime'
 import got from 'got'
 
 import { TimelineState, ResolvedTimelineObjectInstance } from 'superfly-timeline'
+
+import Debug from 'debug'
+const debug = Debug('timeline-state-resolver:httpsend')
+
 export interface DeviceOptionsHTTPSendInternal extends DeviceOptionsHTTPSend {
 	commandReceiver?: CommandReceiver
 }
@@ -238,11 +242,12 @@ export class HTTPSendDevice extends DeviceWithState<HTTPSendState, DeviceOptions
 		this.emit('debug', cwc)
 
 		const t = Date.now()
+		debug(`${cmd.type}: ${cmd.url} ${JSON.stringify(cmd.params)} (${timelineObjId})`)
 
 		const httpReq = got[cmd.type]
 		try {
 			const response = await httpReq(cmd.url, {
-				json: cmd.type === 'post' ? cmd.params : undefined,
+				json: 'params' in cmd ? cmd.params : undefined,
 			})
 
 			if (response.statusCode === 200) {
@@ -251,6 +256,7 @@ export class HTTPSendDevice extends DeviceWithState<HTTPSendState, DeviceOptions
 					`HTTPSend: ${cmd.type}: Good statuscode response on url "${cmd.url}": ${response.statusCode} (${context})`
 				)
 			} else {
+				debug(`Bad response for ${cmd.url}: ${response.statusCode}`)
 				this.emit(
 					'warning',
 					`HTTPSend: ${cmd.type}: Bad statuscode response on url "${cmd.url}": ${response.statusCode} (${context})`
@@ -259,6 +265,7 @@ export class HTTPSendDevice extends DeviceWithState<HTTPSendState, DeviceOptions
 		} catch (error) {
 			this.emit('error', `HTTPSend.response error ${cmd.type} (${context}`, error)
 			this.emit('commandError', error, cwc)
+			debug(`Failed ${cmd.url}: ${error} (${timelineObjId})`)
 
 			if (this._resendTime) {
 				const timeLeft = Math.max(this._resendTime - (Date.now() - t), 0)
