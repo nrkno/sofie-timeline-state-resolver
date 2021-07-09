@@ -16,6 +16,9 @@ import { TimelineState } from 'superfly-timeline'
 import * as osc from 'osc'
 import { Easing } from './transitions/easings'
 
+import Debug from 'debug'
+const debug = Debug('timeline-state-resolver:osc')
+
 export interface DeviceOptionsOSCInternal extends DeviceOptionsOSC {
 	commandReceiver?: CommandReceiver
 	oscSender?: (msg: osc.OscMessage, address?: string | undefined, port?: number | undefined) => void
@@ -74,6 +77,7 @@ export class OSCMessageDevice extends DeviceWithState<OSCDeviceState, DeviceOpti
 	}
 	init(initOptions: OSCOptions): Promise<boolean> {
 		if (initOptions.type === OSCDeviceType.TCP) {
+			debug('Creating TCP OSC device')
 			const client = new osc.TCPSocketPort({
 				address: initOptions.host,
 				port: initOptions.port,
@@ -90,6 +94,7 @@ export class OSCMessageDevice extends DeviceWithState<OSCDeviceState, DeviceOpti
 				this.emit('connectionChanged', this.getStatus())
 			})
 		} else if (initOptions.type === OSCDeviceType.UDP) {
+			debug('Creating UDP OSC device')
 			this._oscClient = new osc.UDPPort({
 				localAddress: '0.0.0.0',
 				localPort: 0,
@@ -281,6 +286,7 @@ export class OSCMessageDevice extends DeviceWithState<OSCDeviceState, DeviceOpti
 			timelineObjId: timelineObjId,
 		}
 		this.emit('debug', cwc)
+		debug(cmd)
 
 		try {
 			if (cmd.transition && cmd.from) {
