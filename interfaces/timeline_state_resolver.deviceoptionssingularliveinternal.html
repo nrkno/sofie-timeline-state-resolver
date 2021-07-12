@@ -88,11 +88,12 @@
 						<section class="tsd-index-section ">
 							<h3>Properties</h3>
 							<ul class="tsd-index-list">
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="timeline_state_resolver.deviceoptionssingularliveinternal.html#commandreceiver" class="tsd-kind-icon">command<wbr>Receiver</a></li>
 								<li class="tsd-kind-property tsd-parent-kind-interface tsd-is-inherited"><a href="timeline_state_resolver.deviceoptionssingularliveinternal.html#disable" class="tsd-kind-icon">disable</a></li>
 								<li class="tsd-kind-property tsd-parent-kind-interface tsd-is-inherited"><a href="timeline_state_resolver.deviceoptionssingularliveinternal.html#ismultithreaded" class="tsd-kind-icon">is<wbr>Multi<wbr>Threaded</a></li>
 								<li class="tsd-kind-property tsd-parent-kind-interface tsd-is-inherited"><a href="timeline_state_resolver.deviceoptionssingularliveinternal.html#limitslowfulfilledcommand" class="tsd-kind-icon">limit<wbr>Slow<wbr>Fulfilled<wbr>Command</a></li>
 								<li class="tsd-kind-property tsd-parent-kind-interface tsd-is-inherited"><a href="timeline_state_resolver.deviceoptionssingularliveinternal.html#limitslowsentcommand" class="tsd-kind-icon">limit<wbr>Slow<wbr>Sent<wbr>Command</a></li>
-								<li class="tsd-kind-property tsd-parent-kind-interface tsd-is-overwrite"><a href="timeline_state_resolver.deviceoptionssingularliveinternal.html#options" class="tsd-kind-icon">options</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface tsd-is-inherited"><a href="timeline_state_resolver.deviceoptionssingularliveinternal.html#options" class="tsd-kind-icon">options</a></li>
 								<li class="tsd-kind-property tsd-parent-kind-interface tsd-is-inherited"><a href="timeline_state_resolver.deviceoptionssingularliveinternal.html#reportallcommands" class="tsd-kind-icon">report<wbr>All<wbr>Commands</a></li>
 								<li class="tsd-kind-property tsd-parent-kind-interface tsd-is-inherited"><a href="timeline_state_resolver.deviceoptionssingularliveinternal.html#threadusage" class="tsd-kind-icon">thread<wbr>Usage</a></li>
 								<li class="tsd-kind-property tsd-parent-kind-interface tsd-is-inherited"><a href="timeline_state_resolver.deviceoptionssingularliveinternal.html#type" class="tsd-kind-icon">type</a></li>
@@ -103,6 +104,16 @@
 			</section>
 			<section class="tsd-panel-group tsd-member-group ">
 				<h2>Properties</h2>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
+					<a name="commandreceiver" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagOptional">Optional</span> command<wbr>Receiver</h3>
+					<div class="tsd-signature tsd-kind-icon">command<wbr>Receiver<span class="tsd-signature-symbol">:</span> <a href="" class="tsd-signature-type" data-tsd-kind="Type alias">CommandReceiver</a></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/f50102354/packages/timeline-state-resolver/src/devices/singularLive.ts#L19">packages/timeline-state-resolver/src/devices/singularLive.ts:19</a></li>
+						</ul>
+					</aside>
+				</section>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface tsd-is-inherited">
 					<a name="disable" class="tsd-anchor"></a>
 					<h3><span class="tsd-flag ts-flagOptional">Optional</span> disable</h3>
@@ -157,14 +168,14 @@
 						</div>
 					</div>
 				</section>
-				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface tsd-is-overwrite">
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface tsd-is-inherited">
 					<a name="options" class="tsd-anchor"></a>
-					<h3>options</h3>
-					<div class="tsd-signature tsd-kind-icon">options<span class="tsd-signature-symbol">:</span> <a href="timeline_state_resolver.singularliveoptions.html" class="tsd-signature-type" data-tsd-kind="Interface">SingularLiveOptions</a><span class="tsd-signature-symbol"> &amp; </span><span class="tsd-signature-symbol">{ </span>commandReceiver<span class="tsd-signature-symbol">?: </span><a href="" class="tsd-signature-type" data-tsd-kind="Type alias">CommandReceiver</a><span class="tsd-signature-symbol"> }</span></div>
+					<h3><span class="tsd-flag ts-flagOptional">Optional</span> options</h3>
+					<div class="tsd-signature tsd-kind-icon">options<span class="tsd-signature-symbol">:</span> <a href="timeline_state_resolver.singularliveoptions.html" class="tsd-signature-type" data-tsd-kind="Interface">SingularLiveOptions</a></div>
 					<aside class="tsd-sources">
-						<p>Overrides <a href="timeline_state_resolver.deviceoptionssingularlive.html">DeviceOptionsSingularLive</a>.<a href="timeline_state_resolver.deviceoptionssingularlive.html#options">options</a></p>
+						<p>Inherited from <a href="timeline_state_resolver.deviceoptionssingularlive.html">DeviceOptionsSingularLive</a>.<a href="timeline_state_resolver.deviceoptionssingularlive.html#options">options</a></p>
 						<ul>
-							<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/8833d22cb/packages/timeline-state-resolver/src/devices/singularLive.ts#L28">packages/timeline-state-resolver/src/devices/singularLive.ts:28</a></li>
+							<li>Defined in packages/timeline-state-resolver-types/dist/device.d.ts:9</li>
 						</ul>
 					</aside>
 				</section>
@@ -197,7 +208,7 @@
 					<aside class="tsd-sources">
 						<p>Inherited from <a href="timeline_state_resolver.deviceoptionssingularlive.html">DeviceOptionsSingularLive</a>.<a href="timeline_state_resolver.deviceoptionssingularlive.html#type">type</a></p>
 						<ul>
-							<li>Defined in packages/timeline-state-resolver-types/dist/device.d.ts:76</li>
+							<li>Defined in packages/timeline-state-resolver-types/dist/device.d.ts:64</li>
 						</ul>
 					</aside>
 				</section>
@@ -227,6 +238,9 @@
 							<li class="current tsd-kind-interface tsd-parent-kind-module">
 								<a href="timeline_state_resolver.deviceoptionssingularliveinternal.html" class="tsd-kind-icon">Device<wbr>Options<wbr>Singular<wbr>Live<wbr>Internal</a>
 								<ul>
+									<li class=" tsd-kind-property tsd-parent-kind-interface">
+										<a href="timeline_state_resolver.deviceoptionssingularliveinternal.html#commandreceiver" class="tsd-kind-icon">command<wbr>Receiver</a>
+									</li>
 									<li class=" tsd-kind-property tsd-parent-kind-interface tsd-is-inherited">
 										<a href="timeline_state_resolver.deviceoptionssingularliveinternal.html#disable" class="tsd-kind-icon">disable</a>
 									</li>
@@ -239,7 +253,7 @@
 									<li class=" tsd-kind-property tsd-parent-kind-interface tsd-is-inherited">
 										<a href="timeline_state_resolver.deviceoptionssingularliveinternal.html#limitslowsentcommand" class="tsd-kind-icon">limit<wbr>Slow<wbr>Sent<wbr>Command</a>
 									</li>
-									<li class=" tsd-kind-property tsd-parent-kind-interface tsd-is-overwrite">
+									<li class=" tsd-kind-property tsd-parent-kind-interface tsd-is-inherited">
 										<a href="timeline_state_resolver.deviceoptionssingularliveinternal.html#options" class="tsd-kind-icon">options</a>
 									</li>
 									<li class=" tsd-kind-property tsd-parent-kind-interface tsd-is-inherited">

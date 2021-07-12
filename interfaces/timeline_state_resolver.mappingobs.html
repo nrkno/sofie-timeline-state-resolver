@@ -3,7 +3,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<title>DoOnTimeOptions | Timeline State Resolver</title>
+	<title>MappingOBS | Timeline State Resolver</title>
 	<meta name="description" content="Documentation for Timeline State Resolver">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<link rel="stylesheet" href="../assets/css/main.css">
@@ -58,10 +58,10 @@
 					<a href="../modules/timeline_state_resolver.html">timeline-state-resolver</a>
 				</li>
 				<li>
-					<a href="timeline_state_resolver.doontimeoptions.html">DoOnTimeOptions</a>
+					<a href="timeline_state_resolver.mappingobs.html">MappingOBS</a>
 				</li>
 			</ul>
-			<h1>Interface DoOnTimeOptions</h1>
+			<h1>Interface MappingOBS</h1>
 		</div>
 	</div>
 </header>
@@ -72,10 +72,33 @@
 				<h3>Hierarchy</h3>
 				<ul class="tsd-hierarchy">
 					<li>
-						<a href="timeline_state_resolver.slowreportoptions.html" class="tsd-signature-type" data-tsd-kind="Interface">SlowReportOptions</a>
+						<a href="timeline_state_resolver.mapping.html" class="tsd-signature-type" data-tsd-kind="Interface">Mapping</a>
 						<ul class="tsd-hierarchy">
 							<li>
-								<span class="target">DoOnTimeOptions</span>
+								<span class="target">MappingOBS</span>
+								<ul class="tsd-hierarchy">
+									<li>
+										<a href="timeline_state_resolver.mappingobscurrentscene.html" class="tsd-signature-type" data-tsd-kind="Interface">MappingOBSCurrentScene</a>
+									</li>
+									<li>
+										<a href="timeline_state_resolver.mappingobscurrenttransition.html" class="tsd-signature-type" data-tsd-kind="Interface">MappingOBSCurrentTransition</a>
+									</li>
+									<li>
+										<a href="timeline_state_resolver.mappingobsrecording.html" class="tsd-signature-type" data-tsd-kind="Interface">MappingOBSRecording</a>
+									</li>
+									<li>
+										<a href="timeline_state_resolver.mappingobsstreaming.html" class="tsd-signature-type" data-tsd-kind="Interface">MappingOBSStreaming</a>
+									</li>
+									<li>
+										<a href="timeline_state_resolver.mappingobssceneitemrender.html" class="tsd-signature-type" data-tsd-kind="Interface">MappingOBSSceneItemRender</a>
+									</li>
+									<li>
+										<a href="timeline_state_resolver.mappingobssourcesettings.html" class="tsd-signature-type" data-tsd-kind="Interface">MappingOBSSourceSettings</a>
+									</li>
+									<li>
+										<a href="timeline_state_resolver.mappingobsmute.html" class="tsd-signature-type" data-tsd-kind="Interface">MappingOBSMute</a>
+									</li>
+								</ul>
 							</li>
 						</ul>
 					</li>
@@ -85,49 +108,67 @@
 				<h2>Index</h2>
 				<section class="tsd-panel tsd-index-panel">
 					<div class="tsd-index-content">
-						<section class="tsd-index-section tsd-is-inherited">
+						<section class="tsd-index-section ">
 							<h3>Properties</h3>
 							<ul class="tsd-index-list">
-								<li class="tsd-kind-property tsd-parent-kind-interface tsd-is-inherited"><a href="timeline_state_resolver.doontimeoptions.html#limitslowfulfilledcommand" class="tsd-kind-icon">limit<wbr>Slow<wbr>Fulfilled<wbr>Command</a></li>
-								<li class="tsd-kind-property tsd-parent-kind-interface tsd-is-inherited"><a href="timeline_state_resolver.doontimeoptions.html#limitslowsentcommand" class="tsd-kind-icon">limit<wbr>Slow<wbr>Sent<wbr>Command</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface tsd-is-overwrite"><a href="timeline_state_resolver.mappingobs.html#device" class="tsd-kind-icon">device</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface tsd-is-overwrite"><a href="timeline_state_resolver.mappingobs.html#deviceid" class="tsd-kind-icon">device<wbr>Id</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface tsd-is-inherited"><a href="timeline_state_resolver.mappingobs.html#layername" class="tsd-kind-icon">layer<wbr>Name</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="timeline_state_resolver.mappingobs.html#mappingtype" class="tsd-kind-icon">mapping<wbr>Type</a></li>
 							</ul>
 						</section>
 					</div>
 				</section>
 			</section>
-			<section class="tsd-panel-group tsd-member-group tsd-is-inherited">
+			<section class="tsd-panel-group tsd-member-group ">
 				<h2>Properties</h2>
-				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface tsd-is-inherited">
-					<a name="limitslowfulfilledcommand" class="tsd-anchor"></a>
-					<h3><span class="tsd-flag ts-flagOptional">Optional</span> limit<wbr>Slow<wbr>Fulfilled<wbr>Command</h3>
-					<div class="tsd-signature tsd-kind-icon">limit<wbr>Slow<wbr>Fulfilled<wbr>Command<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span></div>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface tsd-is-overwrite">
+					<a name="device" class="tsd-anchor"></a>
+					<h3>device</h3>
+					<div class="tsd-signature tsd-kind-icon">device<span class="tsd-signature-symbol">:</span> <a href="../enums/timeline_state_resolver.devicetype.html#obs" class="tsd-signature-type" data-tsd-kind="Enumeration member">OBS</a></div>
 					<aside class="tsd-sources">
-						<p>Inherited from <a href="timeline_state_resolver.slowreportoptions.html">SlowReportOptions</a>.<a href="timeline_state_resolver.slowreportoptions.html#limitslowfulfilledcommand">limitSlowFulfilledCommand</a></p>
+						<p>Overrides <a href="timeline_state_resolver.mapping.html">Mapping</a>.<a href="timeline_state_resolver.mapping.html#device">device</a></p>
 						<ul>
-							<li>Defined in packages/timeline-state-resolver-types/dist/device.d.ts:15</li>
+							<li>Defined in packages/timeline-state-resolver-types/dist/obs.d.ts:5</li>
+						</ul>
+					</aside>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface tsd-is-overwrite">
+					<a name="deviceid" class="tsd-anchor"></a>
+					<h3>device<wbr>Id</h3>
+					<div class="tsd-signature tsd-kind-icon">device<wbr>Id<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
+					<aside class="tsd-sources">
+						<p>Overrides <a href="timeline_state_resolver.mapping.html">Mapping</a>.<a href="timeline_state_resolver.mapping.html#deviceid">deviceId</a></p>
+						<ul>
+							<li>Defined in packages/timeline-state-resolver-types/dist/obs.d.ts:7</li>
+						</ul>
+					</aside>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface tsd-is-inherited">
+					<a name="layername" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagOptional">Optional</span> layer<wbr>Name</h3>
+					<div class="tsd-signature tsd-kind-icon">layer<wbr>Name<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
+					<aside class="tsd-sources">
+						<p>Inherited from <a href="timeline_state_resolver.mapping.html">Mapping</a>.<a href="timeline_state_resolver.mapping.html#layername">layerName</a></p>
+						<ul>
+							<li>Defined in packages/timeline-state-resolver-types/dist/mapping.d.ts:10</li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
 						<div class="lead">
-							<p>If set, report back that a command was slow if not fullfilled (sent + ack:ed) at this time</p>
+							<p>Human-readable name given to the layer. Can be used by devices to set the label of e.g. a fader a mapping points to.</p>
 						</div>
 					</div>
 				</section>
-				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface tsd-is-inherited">
-					<a name="limitslowsentcommand" class="tsd-anchor"></a>
-					<h3><span class="tsd-flag ts-flagOptional">Optional</span> limit<wbr>Slow<wbr>Sent<wbr>Command</h3>
-					<div class="tsd-signature tsd-kind-icon">limit<wbr>Slow<wbr>Sent<wbr>Command<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span></div>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
+					<a name="mappingtype" class="tsd-anchor"></a>
+					<h3>mapping<wbr>Type</h3>
+					<div class="tsd-signature tsd-kind-icon">mapping<wbr>Type<span class="tsd-signature-symbol">:</span> <a href="../enums/timeline_state_resolver.mappingobstype.html" class="tsd-signature-type" data-tsd-kind="Enumeration">MappingOBSType</a></div>
 					<aside class="tsd-sources">
-						<p>Inherited from <a href="timeline_state_resolver.slowreportoptions.html">SlowReportOptions</a>.<a href="timeline_state_resolver.slowreportoptions.html#limitslowsentcommand">limitSlowSentCommand</a></p>
 						<ul>
-							<li>Defined in packages/timeline-state-resolver-types/dist/device.d.ts:13</li>
+							<li>Defined in packages/timeline-state-resolver-types/dist/obs.d.ts:6</li>
 						</ul>
 					</aside>
-					<div class="tsd-comment tsd-typography">
-						<div class="lead">
-							<p>If set, report back that a command was slow if not sent at this time</p>
-						</div>
-					</div>
 				</section>
 			</section>
 		</div>
@@ -153,13 +194,19 @@
 						<a href="../modules/timeline_state_resolver.html" class="tsd-kind-icon">timeline-<wbr>state-<wbr>resolver</a>
 						<ul>
 							<li class="current tsd-kind-interface tsd-parent-kind-module">
-								<a href="timeline_state_resolver.doontimeoptions.html" class="tsd-kind-icon">Do<wbr>OnTime<wbr>Options</a>
+								<a href="timeline_state_resolver.mappingobs.html" class="tsd-kind-icon">MappingOBS</a>
 								<ul>
-									<li class=" tsd-kind-property tsd-parent-kind-interface tsd-is-inherited">
-										<a href="timeline_state_resolver.doontimeoptions.html#limitslowfulfilledcommand" class="tsd-kind-icon">limit<wbr>Slow<wbr>Fulfilled<wbr>Command</a>
+									<li class=" tsd-kind-property tsd-parent-kind-interface tsd-is-overwrite">
+										<a href="timeline_state_resolver.mappingobs.html#device" class="tsd-kind-icon">device</a>
+									</li>
+									<li class=" tsd-kind-property tsd-parent-kind-interface tsd-is-overwrite">
+										<a href="timeline_state_resolver.mappingobs.html#deviceid" class="tsd-kind-icon">device<wbr>Id</a>
 									</li>
 									<li class=" tsd-kind-property tsd-parent-kind-interface tsd-is-inherited">
-										<a href="timeline_state_resolver.doontimeoptions.html#limitslowsentcommand" class="tsd-kind-icon">limit<wbr>Slow<wbr>Sent<wbr>Command</a>
+										<a href="timeline_state_resolver.mappingobs.html#layername" class="tsd-kind-icon">layer<wbr>Name</a>
+									</li>
+									<li class=" tsd-kind-property tsd-parent-kind-interface">
+										<a href="timeline_state_resolver.mappingobs.html#mappingtype" class="tsd-kind-icon">mapping<wbr>Type</a>
 									</li>
 								</ul>
 							</li>
@@ -190,6 +237,7 @@
 			<ul class="tsd-legend">
 				<li class="tsd-kind-interface"><span class="tsd-kind-icon">Interface</span></li>
 				<li class="tsd-kind-interface tsd-has-type-parameter"><span class="tsd-kind-icon">Interface with type parameter</span></li>
+				<li class="tsd-kind-property tsd-parent-kind-interface"><span class="tsd-kind-icon">Property</span></li>
 			</ul>
 			<ul class="tsd-legend">
 				<li class="tsd-kind-class"><span class="tsd-kind-icon">Class</span></li>
