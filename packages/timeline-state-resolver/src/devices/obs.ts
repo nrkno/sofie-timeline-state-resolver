@@ -38,9 +38,7 @@ function deepExtend<T>(destination: T, ...sources: any[]) {
 	return _.deepExtend(destination, ...sources)
 }
 export interface DeviceOptionsOBSInternal extends DeviceOptionsOBS {
-	options: DeviceOptionsOBS['options'] & {
-		commandReceiver?: CommandReceiver
-	}
+	commandReceiver?: CommandReceiver
 }
 export type CommandReceiver = (
 	time: number,
@@ -77,9 +75,7 @@ export class OBSDevice extends DeviceWithState<OBSState, DeviceOptionsOBSInterna
 	constructor(deviceId: string, deviceOptions: DeviceOptionsOBSInternal, options) {
 		super(deviceId, deviceOptions, options)
 		if (deviceOptions.options) {
-			if (deviceOptions.options.commandReceiver) {
-				this._commandReceiver = deviceOptions.options.commandReceiver
-			} else this._commandReceiver = this._defaultCommandReceiver
+			this._commandReceiver = deviceOptions.commandReceiver ?? this._defaultCommandReceiver
 		}
 		this._doOnTime = new DoOnTime(
 			() => {
