@@ -100,8 +100,8 @@
     "production"
   ],
   "dependencies": {
-    "atem-connection": "2.3.0-nightly-v2-x-20210608-120229-97c45a9.0",
-    "atem-state": "0.12.0-nightly-latest-20210608-103549-6217657.0",
+    "atem-connection": "^2.3.0",
+    "atem-state": "^0.12.1",
     "casparcg-connection": "^5.1.0",
     "casparcg-state": "^2.1.0",
     "debug": "^4.3.1",
