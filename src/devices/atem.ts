@@ -286,9 +286,9 @@ export class AtemDevice extends DeviceWithState<DeviceState> implements IDevice 
 							break
 						case MappingAtemType.AudioChannel:
 							if (tlObject.content.type === TimelineContentTypeAtem.AUDIOCHANNEL) {
-								const chan = deviceState.audio.channels[mapping.index]
+								const chan = deviceState.audio?.channels[mapping.index]
 								let atemObj = tlObject as any as TimelineObjAtemAudioChannel
-								if (chan) {
+								if (chan && deviceState.audio) {
 									deviceState.audio.channels[mapping.index] = {
 										...chan,
 										...atemObj.content.audioChannel

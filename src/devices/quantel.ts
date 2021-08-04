@@ -83,7 +83,7 @@ export class QuantelDevice extends DeviceWithState<QuantelState> implements IDev
 				allowCloneClips: deviceOptions.options.allowCloneClips
 			}
 		)
-		this._quantelManager.on('info', x => this.emit('info',`Quantel: ${typeof x === 'string' ? x : JSON.stringify(x)}`))
+		this._quantelManager.on('info', x => this.emit('info', `Quantel: ${typeof x === 'string' ? x : JSON.stringify(x)}`))
 		this._quantelManager.on('warning', x => this.emit('warning', `Quantel: ${typeof x === 'string' ? x : JSON.stringify(x)}`))
 		this._quantelManager.on('error', e => this.emit('error', 'Quantel: ', e))
 		this._quantelManager.on('debug', (...args) => this.emit('debug', ...args))
@@ -284,34 +284,52 @@ export class QuantelDevice extends DeviceWithState<QuantelState> implements IDev
 				if (layer.content && (layer.content.title || layer.content.guid)) {
 					const clip = layer as any as TimelineObjQuantelClip
 
-					const startTime = layer.instance.originalStart || layer.instance.start
+					// Note on lookaheads:
+					// If there is ONLY a lookahead on a port, it'll be treated as a "paused (real) clip"
+					// If there is a lookahead alongside the a real clip, its fragments will be preloaded
 
-					port.timelineObjId = layer.id
-					port.notOnAir = layer.content.notOnAir || isLookahead
-					port.outTransition = layer.content.outTransition
-
-					port.clip = {
-						title: clip.content.title,
-						guid: clip.content.guid,
-						// clipId // set later
-
-						pauseTime: clip.content.pauseTime,
-						playing: (
-							isLookahead ? false :
-							clip.content.playing !== undefined ? clip.content.playing : true
-						),
-
-						inPoint: clip.content.inPoint,
-						length: clip.content.length,
-
-						playTime:		(
-							clip.content.noStarttime || isLookahead
-							?
-							null :
-							startTime
-						) || null
+					if (isLookahead) {
+						port.lookaheadClip = {
+							title: clip.content.title,
+							guid: clip.content.guid,
+							timelineObjId: layer.id
+						}
 					}
-					if (isLookahead) port.lookahead = true
+
+					if (isLookahead && port.clip) {
+						// There is already a non-lookahead on the port
+						// Do nothing more with this then
+					} else {
+
+						const startTime = layer.instance.originalStart || layer.instance.start
+
+						port.timelineObjId = layer.id
+						port.notOnAir = layer.content.notOnAir || isLookahead
+						port.outTransition = layer.content.outTransition
+						port.lookahead = isLookahead
+
+						port.clip = {
+							title: clip.content.title,
+							guid: clip.content.guid,
+							// clipId // set later
+
+							pauseTime: clip.content.pauseTime,
+							playing: (
+								isLookahead ? false :
+								clip.content.playing !== undefined ? clip.content.playing : true
+							),
+
+							inPoint: clip.content.inPoint,
+							length: clip.content.length,
+
+							playTime:		(
+								clip.content.noStarttime || isLookahead
+								?
+								null :
+								startTime
+							) || null
+						}
+					}
 				}
 			}
 		})
@@ -369,6 +387,30 @@ export class QuantelDevice extends DeviceWithState<QuantelState> implements IDev
 		const addCommand = (command: QuantelCommand, lowPriority: boolean) => {
 			(lowPriority ? lowPrioCommands : highPrioCommands).push(command)
 		}
+		const seenClips: {[identifier: string]: true} = {}
+		const loadFragments = (
+			portId: string,
+			port: QuantelStatePort,
+			clip: QuantelStatePortClip,
+			timelineObjId: string,
+			isPreloading: boolean
+		) => {
+			// Only load identical fragments once:
+			const clipIdentifier = `${portId}:${clip.clipId}_${clip.guid}_${clip.title}`
+			if (!seenClips[clipIdentifier]) {
+				seenClips[clipIdentifier] = true
+				addCommand({
+					type: QuantelCommandType.LOADCLIPFRAGMENTS,
+					time: prepareTime,
+					portId: portId,
+					timelineObjId: timelineObjId,
+					fromLookahead: isPreloading || port.lookahead,
+					clip: clip,
+					timeOfPlay: time,
+					allowedToPrepareJump: !isPreloading
+				}, isPreloading || port.lookahead)
+			}
+		}
 
 		/** The time of when to run "preparation" commands */
 		let prepareTime = Math.min(
@@ -384,6 +426,13 @@ export class QuantelDevice extends DeviceWithState<QuantelState> implements IDev
 		if (time < prepareTime) {
 			prepareTime = time - 10
 		}
+
+		const lookaheadPreloadClips: {
+			portId: string
+			port: QuantelStatePort
+			clip: QuantelStatePortClip
+			timelineObjId: string
+		}[] = []
 
 		_.each(newState.port, (newPort: QuantelStatePort, portId: string) => {
 			const oldPort = oldState.port[portId]
@@ -414,21 +463,13 @@ export class QuantelDevice extends DeviceWithState<QuantelState> implements IDev
 
 					let transition: QuantelOutTransition | undefined
 
-					if (oldPort && newPort.notOnAir) {
-						// The thing that's going to be played is not intended to be on air
-						// We can let the outTransition of the oldCLip run then!
+					if (oldPort && !oldPort.notOnAir && newPort.notOnAir) {
+						// When the previous content was on-air, we use the out-transition (so that mix-effects look good).
+						// But when the previous content wasn't on-air, we don't wan't to use the out-transition (for example; when cuing previews)
 						transition = oldPort.outTransition
 					}
 
-					addCommand({
-						type: QuantelCommandType.LOADCLIPFRAGMENTS,
-						time: prepareTime,
-						portId: portId,
-						timelineObjId: newPort.timelineObjId,
-						fromLookahead: newPort.lookahead,
-						clip: newPort.clip,
-						timeOfPlay: time
-					}, newPort.lookahead)
+					loadFragments(portId, newPort, newPort.clip, newPort.timelineObjId, false)
 					if (newPort.clip.playing) {
 						addCommand({
 							type: QuantelCommandType.PLAYCLIP,
@@ -463,6 +504,34 @@ export class QuantelDevice extends DeviceWithState<QuantelState> implements IDev
 					}, newPort.lookahead)
 				}
 			}
+			if (
+				!oldPort ||
+				!_.isEqual(newPort.lookaheadClip, oldPort.lookaheadClip)
+			) {
+				if (
+					newPort.lookaheadClip &&
+					(
+						!newPort.clip ||
+						newPort.lookaheadClip.clipId !== newPort.clip.clipId ||
+						newPort.lookaheadClip.title !== newPort.clip.title ||
+						newPort.lookaheadClip.guid !== newPort.clip.guid
+					)
+
+				) {
+					// Also preload lookaheads later:
+					lookaheadPreloadClips.push({
+						portId: portId,
+						port: newPort,
+						clip: {
+							...newPort.lookaheadClip,
+							playTime: 0,
+							playing: false
+						},
+						timelineObjId: newPort.lookaheadClip.timelineObjId
+					})
+				}
+
+			}
 		})
 
 		_.each(oldState.port, (oldPort: QuantelStatePort, portId: string) => {
@@ -477,6 +546,18 @@ export class QuantelDevice extends DeviceWithState<QuantelState> implements IDev
 					fromLookahead: oldPort.lookahead
 				}, oldPort.lookahead)
 			}
+		})
+		// console.log('lookaheadPreloadClips', lookaheadPreloadClips)
+		// Lookaheads to preload:
+		_.each(lookaheadPreloadClips, (lookaheadPreloadClip) => {
+			// Preloads of lookaheads are handled last, to ensure that any load-fragments of high-prio clips are done first.
+			loadFragments(
+				lookaheadPreloadClip.portId,
+				lookaheadPreloadClip.port,
+				lookaheadPreloadClip.clip,
+				lookaheadPreloadClip.timelineObjId,
+				true
+			)
 		})
 
 		return highPrioCommands.concat(lowPrioCommands)
@@ -530,7 +611,7 @@ export class QuantelDevice extends DeviceWithState<QuantelState> implements IDev
 			} else if (cmd.type === QuantelCommandType.RELEASEPORT) {
 				await this._quantelManager.releasePort(cmd)
 			} else if (cmd.type === QuantelCommandType.LOADCLIPFRAGMENTS) {
-				await this._quantelManager.loadClipFragments(cmd)
+				await this._quantelManager.tryLoadClipFragments(cmd)
 			} else if (cmd.type === QuantelCommandType.PLAYCLIP) {
 				await this._quantelManager.playClip(cmd)
 			} else if (cmd.type === QuantelCommandType.PAUSECLIP) {
@@ -567,6 +648,11 @@ class QuantelManager extends EventEmitter {
 	private _waitWithPorts: {
 		[portId: string]: Function[]
 	} = {}
+	private _retryLoadFragmentsTimeout: {[portId: string]: NodeJS.Timeout} = {}
+	private _failedAction: {[portId: string]: {
+		action: 'play' | 'pause'
+		cmd: QuantelCommandClip
+	}} = {}
 	constructor (
 		private _quantel: QuantelGateway,
 		private getCurrentTime: () => number,
@@ -628,10 +714,44 @@ class QuantelManager extends EventEmitter {
 		// Store to the local tracking state:
 		delete this._quantelState.port[cmd.portId]
 	}
+	public async tryLoadClipFragments (cmd: QuantelCommandLoadClipFragments, fromRetry?: boolean): Promise<void> {
+		if (this._retryLoadFragmentsTimeout[cmd.portId]) {
+			clearTimeout(this._retryLoadFragmentsTimeout[cmd.portId])
+			delete this._retryLoadFragmentsTimeout[cmd.portId]
+		}
+
+		try {
+			await this.loadClipFragments(cmd)
+
+			if (fromRetry) {
+				// The loading seemed to work now.
+
+				// Check if there also is a queued action for this:
+				const failedAction = this._failedAction[cmd.portId]
+				if (failedAction) {
+					delete this._failedAction[cmd.portId]
+					this.prepareClipJump(failedAction.cmd, failedAction.action)
+					.catch((err) => this.emit('error', err))
+				}
+			}
+		} catch (err) {
+			if ((err + '').match(/not found/i)) {
+				// It seems like the clip doesn't exist.
+				// Try again some time later, maybe it has appeared by then?
+
+				this._retryLoadFragmentsTimeout[cmd.portId] = setTimeout(() => {
+					this.tryLoadClipFragments(cmd, true)
+					.catch((fragErr) => this.emit('error', fragErr))
+				}, 10 * 1000) // 10 seconds
+
+			} else {
+				throw err
+			}
+		}
+	}
 	public async loadClipFragments (cmd: QuantelCommandLoadClipFragments): Promise<void> {
 
 		const trackedPort = this.getTrackedPort(cmd.portId)
-
 		const server = await this.getServer()
 
 		let clipId: number = 0
@@ -690,7 +810,9 @@ class QuantelManager extends EventEmitter {
 			cmd.clip.length
 		)
 
+		/** milliseconds */
 		let inPoint = cmd.clip.inPoint
+		/** milliseconds */
 		let length = cmd.clip.length
 
 		/** In point [frames] */
@@ -701,14 +823,18 @@ class QuantelManager extends EventEmitter {
 		) || 0
 
 		/** Duration [frames] */
-		let lengthFrames: number = (
-			length ?
-			Math.round(length * DEFAULT_FPS / 1000) : // todo: handle fps, get it from clip?
-			0
-		) || parseInt(clipData.Frames, 10) || 0
+		let lengthFrames: number = 0
 
-		if (inPoint && !length) {
-			lengthFrames -= inPointFrames
+		if (length) {
+			lengthFrames = Math.round(length * DEFAULT_FPS / 1000) // todo: handle fps, get it from clip?
+		}
+		if (!lengthFrames) {
+			const clipLength: number = parseInt(clipData.Frames, 10) || 0
+			if (inPoint) {
+				lengthFrames = clipLength - inPointFrames // THe remaining length of the clip
+			} else {
+				lengthFrames = clipLength
+			}
 		}
 
 		const outPointFrames = inPointFrames + lengthFrames
@@ -761,7 +887,7 @@ class QuantelManager extends EventEmitter {
 		}
 		// Prepare the jump?
 		let timeLeftToPlay = cmd.timeOfPlay - this.getCurrentTime()
-		if (timeLeftToPlay > 0) { // We have time to prepare the jump
+		if (cmd.allowedToPrepareJump && timeLeftToPlay > 0) { // We have time to prepare the jump
 
 			if (portInPoint > 0 && trackedPort.scheduledStop === null) {
 				// Since we've now added fragments to the end of the port timeline, we should make sure it'll stop at the previous end
@@ -775,10 +901,10 @@ class QuantelManager extends EventEmitter {
 		}
 	}
 	public async playClip (cmd: QuantelCommandPlayClip): Promise<void> {
-		await this.prepareClipJump(cmd, 'play')
+		await this.tryPrepareClipJump(cmd, 'play')
 	}
 	public async pauseClip (cmd: QuantelCommandPauseClip): Promise<void> {
-		await this.prepareClipJump(cmd, 'pause')
+		await this.tryPrepareClipJump(cmd, 'pause')
 	}
 	public async clearClip (cmd: QuantelCommandClearClip): Promise<void> {
 
@@ -801,7 +927,29 @@ class QuantelManager extends EventEmitter {
 		trackedPort.jumpOffset = null
 		trackedPort.scheduledStop = null
 	}
-	private async prepareClipJump (cmd: QuantelCommandClip, alsoDoAction?: 'play' | 'pause'): Promise<void> {
+	private async tryPrepareClipJump (cmd: QuantelCommandClip, alsoDoAction: 'play' | 'pause'): Promise<void> {
+		delete this._failedAction[cmd.portId]
+
+		try {
+			return await this.prepareClipJump(cmd, alsoDoAction)
+		} catch (err) {
+
+			if (this._retryLoadFragmentsTimeout[cmd.portId]) {
+				// It looks like there was an issue with loading fragments,
+				// that's probably why we got an error as well.
+
+				if ((err + '').match(/not found/i)) {
+					// Store the failed action, it'll be run whenever the fragments has been loaded later:
+					this._failedAction[cmd.portId] = {
+						action: alsoDoAction,
+						cmd: cmd
+					}
+
+				} else throw err
+			} else throw err
+		}
+	}
+	private async prepareClipJump (cmd: QuantelCommandClip, alsoDoAction: 'play' | 'pause'): Promise<void> {
 
 		// Fetch tracked reference to the loaded clip:
 		const trackedPort = this.getTrackedPort(cmd.portId)
@@ -829,11 +977,17 @@ class QuantelManager extends EventEmitter {
 				0
 			)
 		)
+		this.emit('warning', `prepareClipJump: cmd=${JSON.stringify(cmd)}: ${alsoDoAction}: clipId=${clipId}: jumpToOffset=${jumpToOffset}: trackedPort=${JSON.stringify(trackedPort)}`)
 		if (
-			jumpToOffset === trackedPort.offset || // We're already there
 			(
+				jumpToOffset === trackedPort.offset &&
+				trackedPort.playing === false // On request to play clip again, prepare jump
+			) || // We're already there
+			(
+				// TODO: what situation is this for??
 				alsoDoAction === 'play' &&
 				// trackedPort.offset &&
+				trackedPort.playing === false &&
 				jumpToOffset > trackedPort.offset &&
 				jumpToOffset - trackedPort.offset < JUMP_ERROR_MARGIN
 				// We're probably a bit late, just start playing
@@ -841,10 +995,14 @@ class QuantelManager extends EventEmitter {
 		) {
 			// do nothing
 		} else {
+			// We've determined that we're not on the correct frame
 
 			if (
 				trackedPort.jumpOffset !== null &&
-				Math.abs(trackedPort.jumpOffset - jumpToOffset) > JUMP_ERROR_MARGIN
+				(
+					Math.abs(trackedPort.jumpOffset - jumpToOffset) > JUMP_ERROR_MARGIN // "the prepared jump is still valid"
+					// || trackedPort.playing === true // Likely request to play clip again
+				)
 			) {
 				// It looks like the stored jump is no longer valid
 				// Invalidate stored jump:
@@ -895,6 +1053,7 @@ class QuantelManager extends EventEmitter {
 
 					trackedPort.offset = jumpToOffset
 					trackedPort.playing = false
+					// trackedPort.jumpOffset = null TODO:
 				}
 			}
 		}
@@ -938,6 +1097,7 @@ class QuantelManager extends EventEmitter {
 			}
 			trackedPort.scheduledStop = null
 			trackedPort.playing = true
+			trackedPort.jumpOffset = null // As a safety precaution, remove any knowledge of any prepared jump, another preparation will be triggered on any following commands.
 
 			// Schedule the port to stop at the last frame of the clip
 			if (loadedFragments.portOutPoint) {
@@ -952,6 +1112,7 @@ class QuantelManager extends EventEmitter {
 
 			trackedPort.offset = jumpToOffset
 			trackedPort.playing = false
+			trackedPort.jumpOffset = null // As a safety precaution, remove any knowledge of any prepared jump, another preparation will be triggered on any following commands.
 		}
 	}
 	private getTrackedPort (portId: string): QuantelTrackedStatePort {
@@ -1027,7 +1188,7 @@ class QuantelManager extends EventEmitter {
 			) => new Date(b.Created).getTime() - new Date(a.Created).getTime()
 		)
 	}
-	private async searchForClips (clip: QuantelStatePortClip): Promise<Q.ClipDataSummary[]> {
+	private async searchForClips (clip: QuantelStatePortClipContent): Promise<Q.ClipDataSummary[]> {
 		if (clip.guid) {
 			return this._quantel.searchClip({
 				ClipGUID: `"${clip.guid}"`
@@ -1138,19 +1299,26 @@ interface QuantelStatePort {
 
 	notOnAir?: boolean
 	outTransition?: QuantelOutTransition
+
+	/** Future clips, that should be preloaded */
+	lookaheadClip?: QuantelStatePortClipLookahead
 }
-interface QuantelStatePortClip {
+interface QuantelStatePortClipContent {
 	title?: string
 	guid?: string
 
 	clipId?: number
-
+}
+interface QuantelStatePortClip extends QuantelStatePortClipContent {
 	playing: boolean
 	playTime: number | null
 	pauseTime?: number
 
 	inPoint?: number
 	length?: number
+}
+interface QuantelStatePortClipLookahead extends QuantelStatePortClipContent {
+	timelineObjId: string
 }
 
 interface QuantelCommandBase {
@@ -1177,6 +1345,8 @@ interface QuantelCommandLoadClipFragments extends QuantelCommandBase {
 	clip: QuantelStatePortClip
 	/** The time the clip is scheduled to play */
 	timeOfPlay: number
+	/** If allowed to prepare a jump to the fragments */
+	allowedToPrepareJump: boolean
 }
 interface QuantelCommandClip extends QuantelCommandBase {
 	clip: QuantelStatePortClip
@@ -1237,6 +1407,8 @@ interface QuantelTrackedStatePort {
 	jumpOffset: number | null
 	/** When preparing a stop, this is the frame the playhead will stop at */
 	scheduledStop: number | null
+	// /** When a clip is playing and becomes the lookahead, soft jump is prepared but must be made before play. */
+	// jumpBeforePlay: boolean
 }
 interface MappedPorts extends MonitorPorts {
 	[portId: string]: {

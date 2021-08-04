@@ -88,7 +88,7 @@
 		"trash-cli": "^3.0.0",
 		"tslint": "^6.1.2",
 		"tslint-config-standard": "^9.0.0",
-		"typescript": "3.6.x",
+		"typescript": "3.8.x",
 		"underscore": "^1.9.1"
 	},
 	"keywords": [
@@ -107,5 +107,8 @@
 	],
 	"dependencies": {
 		"tslib": "^1.13.0"
+	},
+	"resolutions": {
+		"minimist": "^1.2.3"
 	}
 }

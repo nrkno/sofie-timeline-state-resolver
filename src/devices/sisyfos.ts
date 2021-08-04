@@ -23,7 +23,8 @@ import {
 	MappingSisyfosType,
 	TimelineObjSisyfosAny,
 	TimelineContentTypeSisyfos,
-	SisyfosChannelOptions
+	SisyfosChannelOptions,
+	MappingSisyfosChannel
 } from '../types/src/sisyfos'
 import {
 	SisyfosApi,
@@ -32,6 +33,8 @@ import {
 	SisyfosChannel,
 	SisyfosCommandType
 } from './sisyfosAPI'
+import Debug from 'debug'
+const debug = Debug('timeline-state-resolver:sisyfos')
 
 export interface DeviceOptionsSisyfosInternal extends DeviceOptionsSisyfos {
 	options: (
@@ -205,7 +208,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState> implemen
 	get connected (): boolean {
 		return this._sisyfos.connected
 	}
-	getDeviceState (isDefaultState = true): SisyfosState {
+	getDeviceState (isDefaultState = true, mappings?: Mappings): SisyfosState {
 		let deviceStateFromAPI = this._sisyfos.state
 		const deviceState: SisyfosState = {
 			channels: {},
@@ -214,7 +217,11 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState> implemen
 
 		if (!deviceStateFromAPI) deviceStateFromAPI = deviceState
 
-		for (const ch of Object.keys(deviceStateFromAPI.channels)) {
+		const channels = mappings ? Object.values(mappings || {})
+			.filter((m: MappingSisyfos) => m.mappingType === MappingSisyfosType.CHANNEL)
+			.map((m: MappingSisyfosChannel) => m.channel) : Object.keys(deviceStateFromAPI.channels)
+
+		for (const ch of channels) {
 
 			const channelFromAPI = deviceStateFromAPI.channels[ch]
 
@@ -250,7 +257,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState> implemen
 	 * @param state
 	 */
 	convertStateToSisyfosState (state: TimelineState, mappings: Mappings) {
-		const deviceState: SisyfosState = this.getDeviceState()
+		const deviceState: SisyfosState = this.getDeviceState(true, mappings)
 
 		for (const mapping of Object.values(mappings)) {
 			const sisyfosMapping = mapping as MappingSisyfos
@@ -411,6 +418,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState> implemen
 
 			if ((newOscSendState.triggerValue && newOscSendState.triggerValue !== oldOscSendState.triggerValue)) { // || (!oldChannel && Number(index) >= 0)) {
 				// push commands for everything
+				debug('reset channel ' + index)
 				commands.push({
 					context: `Channel ${index} reset`,
 					content: {
@@ -424,6 +432,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState> implemen
 			}
 
 			if (oldChannel && oldChannel.pgmOn !== newChannel.pgmOn) {
+				debug(`Channel ${index} pgm goes from "${oldChannel.pgmOn}" to "${newChannel.pgmOn}"`)
 				commands.push({
 					context: `Channel ${index} pgm goes from "${oldChannel.pgmOn}" to "${newChannel.pgmOn}"`,
 					content: {
@@ -436,6 +445,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState> implemen
 			}
 
 			if (oldChannel && oldChannel.pstOn !== newChannel.pstOn) {
+				debug(`Channel ${index} pst goes from "${oldChannel.pstOn}" to "${newChannel.pstOn}"`)
 				commands.push({
 					context: `Channel ${index} pst goes from "${oldChannel.pstOn}" to "${newChannel.pstOn}"`,
 					content: {
@@ -448,6 +458,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState> implemen
 			}
 
 			if (oldChannel && oldChannel.faderLevel !== newChannel.faderLevel) {
+				debug(`change faderLevel ${index}: "${newChannel.faderLevel}"`)
 				commands.push({
 					context: 'faderLevel change',
 					content: {
@@ -461,6 +472,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState> implemen
 
 			newChannel.label = newChannel.label || (oldChannel ? oldChannel.label : '')
 			if (oldChannel && newChannel.label !== '' && oldChannel.label !== newChannel.label) {
+				debug(`set label on fader ${index}: "${newChannel.label}"`)
 				commands.push({
 					context: 'set label on fader',
 					content: {
@@ -473,6 +485,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState> implemen
 			}
 
 			if (oldChannel && oldChannel.visible !== newChannel.visible) {
+				debug(`Channel ${index} Visibility goes from "${oldChannel.visible}" to "${newChannel.visible}"`)
 				commands.push({
 					context: `Channel ${index} Visibility goes from "${oldChannel.visible}" to "${newChannel.visible}"`,
 					content: {

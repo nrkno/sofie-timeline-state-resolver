@@ -14,6 +14,7 @@ export function setupQuantelGatewayMock () {
 		requestReturnsOK: true,
 		ignoreConnectivityCheck: false,
 		ISAOptionHasBeenProvided: false,
+		noClipsFound: false,
 		port: {
 			'my_port': {
 				endOfData: 0,
@@ -71,6 +72,7 @@ interface QuantelServerMockOptions {
 	requestReturnsOK: boolean
 	ignoreConnectivityCheck: boolean
 	ISAOptionHasBeenProvided: boolean
+	noClipsFound: boolean
 	port: {
 		[port: string]: QuantelServerMockOptionsPort
 	}
@@ -153,6 +155,8 @@ function handleRequest (
 
 			const searchClip = (params): Q.ClipDataSummary[] | ErrorResponse => {
 				if (!quantelServer.ISAOptionHasBeenProvided) return noIsaSetupResponse
+				if (quantelServer.noClipsFound) return []
+
 				return _.filter<Q.ClipDataSummary[]>([
 					{
 						type: 'ClipDataSummary',
@@ -406,6 +410,46 @@ function handleRequest (
 							Protection: '',
 							VDCPID: '',
 							PublishCompleted: '2019-06-12T11:18:37.000Z'
+						},
+						{
+							type: 'ClipData',
+							Category: '',
+							ClipID: 1338,
+							CloneId: 1338,
+							CloneZone: 1000,
+							Completed: '2019-06-13T11:18:37.000Z',
+							Created: '2019-06-13T11:18:37.000Z',
+							Description: '',
+							Destination: null,
+							Expiry: null,
+							Frames: '1234',
+							HasEditData: 0,
+							Inpoint: null,
+							JobID: null,
+							Modified: null,
+							NumAudTracks: 1,
+							Number: null,
+							NumVidTracks: 1,
+							Outpoint: null,
+							Owner: '',
+							PlaceHolder: false,
+							PlayAspect: '',
+							PoolID: 11,
+							PublishedBy: '',
+							Register: '0',
+							Tape: '',
+							Template: 0,
+							Title: 'myClip1',
+							UnEdited: 1,
+							PlayMode: '',
+							MosActive: false,
+							Division: '',
+							AudioFormats: '73',
+							VideoFormats: '90',
+							ClipGUID: 'qwertyasdf',
+							Protection: '',
+							VDCPID: '',
+							PublishCompleted: '2019-06-13T11:18:37.000Z'
 						}
 					], (clip) => {
 						return clip.ClipID + '' === params.clipID
@@ -430,6 +474,8 @@ function handleRequest (
 						1000 :
 						params.clipID === '1337' ?
 						2000 :
+						params.clipID === '1338' ?
+						1234 :
 						0
 					)
 					let inPoint = 0

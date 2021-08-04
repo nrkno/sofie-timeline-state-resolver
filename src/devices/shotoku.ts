@@ -12,7 +12,10 @@ import {
 	ShotokuOptions,
 	DeviceOptionsShotoku,
 	ShotokuTransitionType,
-	Mappings
+	Mappings,
+	TimelineObjShotoku,
+	TimelineContentTypeShotoku,
+	TimelineObjShotokuSequence
 } from '../types/src'
 import { DoOnTime, SendMode } from '../doOnTime'
 
@@ -36,14 +39,20 @@ interface Command {
 	timelineObjId: string
 }
 type CommandContext = string
-type ShotokuDeviceState = { [index: string]: ShotokuCommandContent & { fromTlObject: string }}
+type ShotokuDeviceState = {
+	shots: Record<string, ShotokuCommandContent & { fromTlObject: string }>,
+	sequences: Record<string, {
+		fromTlObject: string,
+		shots: TimelineObjShotokuSequence['content']['shots']
+	}>
+}
 interface ShotokuDeviceStateContent extends ShotokuCommandContent {
 	fromTlObject: string
 }
 /**
  * This is a generic wrapper for any osc-enabled device.
  */
-export class ShotokuDevice extends DeviceWithState<TimelineState> implements IDevice {
+export class ShotokuDevice extends DeviceWithState<ShotokuDeviceState> implements IDevice {
 
 	private _doOnTime: DoOnTime
 	private _shotoku: ShotokuAPI
@@ -87,13 +96,12 @@ export class ShotokuDevice extends DeviceWithState<TimelineState> implements IDe
 		super.onHandleState(newState, newMappings)
 		// Transform timeline states into device states
 		let previousStateTime = Math.max(this.getCurrentTime(), newState.time)
-		let oldState: TimelineState = (this.getStateBefore(previousStateTime) || { state: { time: 0, layers: {}, nextEvents: [] } }).state
+		let oldState: ShotokuDeviceState = (this.getStateBefore(previousStateTime) || { state: { shots: {}, sequences: {} } }).state
 
-		let oldAbstractState = this.convertStateToShotokuShots(oldState)
-		let newAbstractState = this.convertStateToShotokuShots(newState)
+		let newShotokuState = this.convertStateToShotokuShots(newState)
 
 		// Generate commands necessary to transition to the new state
-		let commandsToAchieveState = this._diffStates(oldAbstractState, newAbstractState)
+		let commandsToAchieveState = this._diffStates(oldState, newShotokuState)
 
 		// clear any queued commands later than this time:
 		this._doOnTime.clearQueueNowAndAfter(previousStateTime)
@@ -101,7 +109,7 @@ export class ShotokuDevice extends DeviceWithState<TimelineState> implements IDe
 		this._addToQueue(commandsToAchieveState, newState.time)
 
 		// store the new state, for later use:
-		this.setState(newState, newState.time)
+		this.setState(newShotokuState, newState.time)
 	}
 	/**
 	 * Clear any scheduled commands after this time
@@ -136,21 +144,32 @@ export class ShotokuDevice extends DeviceWithState<TimelineState> implements IDe
 	 * @param state
 	 */
 	convertStateToShotokuShots (state: TimelineState) {
-		const shots: ShotokuDeviceState = {}
+		const deviceState: ShotokuDeviceState = {
+			shots: {},
+			sequences: {}
+		}
 
 		_.each(state.layers, (layer) => {
-			const content = layer.content as ShotokuCommandContent
-			const show = content.show || 1
+			const content = layer.content as TimelineObjShotoku['content']
 
-			if (!content.shot) return
+			if (content.type === TimelineContentTypeShotoku.SHOT) {
+				const show = content.show || 1
 
-			shots[show + '.' + content.shot] = {
-				...content,
-				fromTlObject: layer.id
+				if (!content.shot) return
+
+				deviceState.shots[show + '.' + content.shot] = {
+					...content,
+					fromTlObject: layer.id
+				}
+			} else {
+				deviceState.sequences[content.sequenceId] = {
+					shots: content.shots.filter(s => !!s.shot),
+					fromTlObject: layer.id
+				}
 			}
 		})
 
-		return shots
+		return deviceState
 	}
 	get deviceType () {
 		return DeviceType.SHOTOKU
@@ -173,16 +192,16 @@ export class ShotokuDevice extends DeviceWithState<TimelineState> implements IDe
 	}
 	/**
 	 * Compares the new timeline-state with the old one, and generates commands to account for the difference
-	 * @param oldShots The assumed current state
-	 * @param newShots The desired state of the device
+	 * @param oldState The assumed current state
+	 * @param newState The desired state of the device
 	 */
-	private _diffStates (oldShots: ShotokuDeviceState, newShots: ShotokuDeviceState): Array<Command> {
+	private _diffStates (oldState: ShotokuDeviceState, newState: ShotokuDeviceState): Array<Command> {
 		// unfortunately we don't know what shots belong to what camera, so we can't do anything smart
 
 		let commands: Array<Command> = []
 
-		_.each(newShots, (newCommandContent: ShotokuDeviceStateContent, index: string) => {
-			let oldLayer = oldShots[index]
+		_.each(newState.shots, (newCommandContent: ShotokuDeviceStateContent, index: string) => {
+			let oldLayer = oldState.shots[index]
 			if (!oldLayer) {
 				// added!
 				const shotokuCommand: ShotokuCommand = {
@@ -200,19 +219,30 @@ export class ShotokuDevice extends DeviceWithState<TimelineState> implements IDe
 				// since there is nothing but a trigger, we know nothing changed.
 			}
 		})
-		// removed - there is nothing to do here as we don't know what to replace it with
-		// _.each(oldShots, (oldCommandContent: ShotokuDeviceStateContent, address) => {
-		// 	let newLayer = newShots[address]
-		// 	if (!newLayer) {
-				// removed!
-				// commands.push({
-				// 	commandName:	'removed',
-				// 	context:		`removed: ${oldCommandContent.fromTlObject}`,
-				// 	timelineObjId:	oldCommandContent.fromTlObject,
-				// 	content:		oldCommandContent
-				// })
-		// 	}
-		// })
+
+		Object.entries(newState.sequences).forEach(([index, newCommandContent]) => {
+			let oldLayer = oldState.sequences[index]
+			if (!oldLayer) {
+				// added!
+				const shotokuCommand: ShotokuCommand = {
+					shots: newCommandContent.shots.map(s => ({
+						show: s.show,
+						shot: s.shot,
+						type: s.transitionType === ShotokuTransitionType.Fade ? ShotokuCommandType.Fade : ShotokuCommandType.Cut,
+						changeOperatorScreen: s.changeOperatorScreen,
+						offset: s.offset
+					}))
+				}
+				commands.push({
+					context:		`added: ${newCommandContent.fromTlObject}`,
+					timelineObjId:	newCommandContent.fromTlObject,
+					command: 		shotokuCommand
+				})
+			} else {
+				// since there is nothing but a trigger, we know nothing changed.
+			}
+		})
+
 		return commands
 	}
 	private _defaultCommandReceiver (_time: number, cmd: ShotokuCommand, context: CommandContext, timelineObjId: string): Promise<any> {
@@ -226,7 +256,7 @@ export class ShotokuDevice extends DeviceWithState<TimelineState> implements IDe
 
 		try {
 			if (this._shotoku.connected) {
-				this._shotoku.send(cmd).catch(e => {
+				this._shotoku.executeCommand(cmd).catch(e => {
 					throw new Error(e)
 				})
 			}

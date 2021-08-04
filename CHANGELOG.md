@@ -2,6 +2,76 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [5.7.0](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/5.5.5...5.7.0) (2021-05-04)
+
+
+### Bug Fixes
+
+* don't run out transition when changing clip in preview ([a10da77](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/a10da77cc0a949908206011b4d7d4b4354e6a13d))
+* don't run out transition when changing clip in preview ([9db5f9f](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/9db5f9f690e79efd25b2ba9b60bb92c8b4e97968))
+* quantel: If the loading of fragments fail, retry the fragments reloading ([1428929](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/142892921953245e6e72bd062fa69eee68711882))
+
+### [5.5.5](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/5.5.2...5.5.5) (2021-03-16)
+
+
+### Bug Fixes
+
+* **sisyfos:** retrigger only channels that are mapped in Sofie ([d17a0b1](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/d17a0b1af4510d8e5e363e01a4de25bd12db3d3e))
+
+### [5.5.2](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/5.5.1...5.5.2) (2021-02-09)
+
+
+### Bug Fixes
+
+* update supertimeline and expose new property ([731854d](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/731854df946fc0d7174f6a7eb72af5322db61c9e))
+
+## [5.5.1](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/5.5.0...5.5.1) (2021-02-08)
+
+## [5.5.0](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/5.4.0...5.5.0) (2021-02-05)
+
+
+### Features
+
+* add support for advanced settings in the TimelineObjAtemSsrcProps ([#171](https://github.com/nrkno/tv-automation-state-timeline-resolver/issues/171)) ([2efd965](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/2efd965e4f8856af086d9052022d1cfa9864a479))
+* quantel: preload when a lookahead is alongside a playing clip [publish] ([b4f8dca](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/b4f8dcadb6b412db7a8e0b5de4d11c23e6ccff04))
+* sisyfos retrigger mechanism ([7ac33e8](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/7ac33e89d98185dd42a751da35a1ceb0695bc597))
+* **shotoku:** simple sequences of shots ([158eb4f](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/158eb4f649fc4cd9f21e0f77bac7d1399a05e9d4))
+
+
+### Bug Fixes
+
+* [publish] don't process lockaheads on a port when playing ([2de7c81](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/2de7c81a06d9b42816e77f2905b35607acc7e813))
+* handle simultaneous lookahead with playing clip ([e8fcff3](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/e8fcff3b85d3fe1ff1019c5ea9b67261317e973a))
+* update supertimeline [publish] ([ceddeeb](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/ceddeeb7684af13a535bc0cb4256d28250a6a4fe))
+
+## [5.4.0](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/5.3.0...5.4.0) (2021-02-05)
+
+
+### Features
+
+* quantel: preload when a lookahead is alongside a playing clip [publish] ([3f0c40f](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/3f0c40f9e0d002c39dddf9ac1ac7c81e457ed468))
+
+
+### Bug Fixes
+
+* [publish] don't process lockaheads on a port when playing ([30d9407](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/30d94074a9f8f073d87503d3dcb7cec2efe1e073))
+* handle simultaneous lookahead with playing clip ([9dcc3e1](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/9dcc3e1dea0202e106a53848a301c39c70e0da07))
+
+## [5.3.0](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/5.2.0...5.3.0) (2021-01-19)
+
+
+### Features
+
+* osc device tcp mode ([59f66f8](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/59f66f81a35602ba3d5d40bb41d03f42945c2cb4))
+
+
+### Bug Fixes
+
+* better info and warnings for quantel issues ([#170](https://github.com/nrkno/tv-automation-state-timeline-resolver/issues/170)) ([0793a33](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/0793a338e1cdc894b4b95b6d0b67bfd19548d203))
+* OSC Device Status is bad when disconnected ([8a8dd9a](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/8a8dd9aba726476648b279beaf79e529e508ac2e))
+* osc device status only for tcp ([234e83a](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/234e83a129e22da37222c4076ac4ad8102f9d1da))
+* threadedclass dep updated [publish] ([45c2b88](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/45c2b88414da8c45107e10239fd0cf2f972493b7))
+
 ## [5.2.0](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/5.1.2...5.2.0) (2020-12-08)
 
 

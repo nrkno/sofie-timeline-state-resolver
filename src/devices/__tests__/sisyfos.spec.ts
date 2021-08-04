@@ -724,11 +724,16 @@ describe('Sisyfos', () => {
 
 		// baseline:
 		await mockTime.advanceTimeTicks(100) // 100
-		expect(commandReceiver0.mock.calls.length).toEqual(1)
+		expect(commandReceiver0.mock.calls.length).toEqual(2)
 		expect(getMockCall(commandReceiver0, 0, 1)).toMatchObject({
 			type: 'setFader',
 			channel: 1,
 			value: 0.1
+		})
+		expect(getMockCall(commandReceiver0, 1, 1)).toMatchObject({
+			type: 'setFader',
+			channel: 2,
+			value: 0.2
 		})
 		commandReceiver0.mockClear()
 
@@ -903,15 +908,8 @@ describe('Sisyfos', () => {
 
 		// baseline:
 		await mockTime.advanceTimeTicks(100) // 100
-		expect(commandReceiver0.mock.calls.length).toEqual(3)
+		expect(commandReceiver0.mock.calls.length).toEqual(2)
 		expect(getMockCall(commandReceiver0, 0, 1)).toMatchObject({
-			type: 'setChannel',
-			channel: 0,
-			values: {
-				faderLevel: 0.75
-			}
-		})
-		expect(getMockCall(commandReceiver0, 1, 1)).toMatchObject({
 			type: 'setChannel',
 			channel: 1,
 			values: {
@@ -919,7 +917,7 @@ describe('Sisyfos', () => {
 				pgmOn: 0
 			}
 		})
-		expect(getMockCall(commandReceiver0, 2, 1)).toMatchObject({
+		expect(getMockCall(commandReceiver0, 1, 1)).toMatchObject({
 			type: 'setChannel',
 			channel: 2,
 			values: {
@@ -931,15 +929,8 @@ describe('Sisyfos', () => {
 
 		// obj1 has started
 		await mockTime.advanceTimeTicks(1000) // 1100
-		expect(commandReceiver0.mock.calls.length).toEqual(3)
+		expect(commandReceiver0.mock.calls.length).toEqual(2)
 		expect(getMockCall(commandReceiver0, 0, 1)).toMatchObject({
-			type: 'setChannel',
-			channel: 0,
-			values: {
-				faderLevel: 0.75
-			}
-		})
-		expect(getMockCall(commandReceiver0, 1, 1)).toMatchObject({
 			type: 'setChannel',
 			channel: 1,
 			values: {
@@ -947,7 +938,7 @@ describe('Sisyfos', () => {
 				pgmOn: 0
 			}
 		})
-		expect(getMockCall(commandReceiver0, 2, 1)).toMatchObject({
+		expect(getMockCall(commandReceiver0, 1, 1)).toMatchObject({
 			type: 'setChannel',
 			channel: 2,
 			values: {
@@ -959,15 +950,8 @@ describe('Sisyfos', () => {
 
 		// back to baseline
 		await mockTime.advanceTimeTicks(10000) // 11100
-		expect(commandReceiver0.mock.calls.length).toEqual(3)
+		expect(commandReceiver0.mock.calls.length).toEqual(2)
 		expect(getMockCall(commandReceiver0, 0, 1)).toMatchObject({
-			type: 'setChannel',
-			channel: 0,
-			values: {
-				faderLevel: 0.75
-			}
-		})
-		expect(getMockCall(commandReceiver0, 1, 1)).toMatchObject({
 			type: 'setChannel',
 			channel: 1,
 			values: {
@@ -975,7 +959,7 @@ describe('Sisyfos', () => {
 				pgmOn: 0
 			}
 		})
-		expect(getMockCall(commandReceiver0, 2, 1)).toMatchObject({
+		expect(getMockCall(commandReceiver0, 1, 1)).toMatchObject({
 			type: 'setChannel',
 			channel: 2,
 			values: {

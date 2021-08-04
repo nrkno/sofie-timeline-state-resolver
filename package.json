@@ -1,6 +1,6 @@
 {
   "name": "timeline-state-resolver",
-  "version": "5.2.0",
+  "version": "5.7.0",
   "description": "Have timeline, control stuff",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
@@ -121,7 +121,7 @@
     "@types/node": "^12.12.2",
     "@types/request": "^2.48.1",
     "@types/sprintf-js": "^1.1.0",
-    "@types/underscore": "^1.9.2",
+    "@types/underscore": "^1.10.24",
     "@types/ws": "^7.2.4",
     "@types/xml-js": "^1.0.0",
     "class-transformer": "^0.2.3",
@@ -138,7 +138,7 @@
     "ts-jest": "^26.1.0",
     "tslint": "^6.1.2",
     "tslint-config-standard": "^9.0.0",
-    "typedoc": "^0.16.0",
+    "typedoc": "^0.18.0",
     "typescript": "3.8.x"
   },
   "keywords": [
@@ -154,13 +154,14 @@
   ],
   "resolutions": {
     "minimist": "^1.2.3",
-    "yargs-parser": "^18.1.2"
+    "marked": "^2.0.0"
   },
   "dependencies": {
-    "atem-state": "^0.10.0",
+    "atem-state": "^0.10.1",
     "bufferutil": "^4.0.1",
     "casparcg-connection": "^5.1.0",
     "casparcg-state": "^2.1.0",
+    "debug": "^4.3.1",
     "emberplus-connection": "^0.0.3",
     "hyperdeck-connection": "^0.4.3",
     "osc": "^2.4.0",
@@ -169,11 +170,11 @@
     "p-timeout": "^3.2.0",
     "request": "^2.88.0",
     "sprintf-js": "^1.1.2",
-    "superfly-timeline": "^8.1.2",
+    "superfly-timeline": "^8.2.0",
     "threadedclass": "0.8.3",
     "tslib": "^1.10.0",
     "tv-automation-quantel-gateway-client": "^1.0.12",
-    "underscore": "^1.10.2",
+    "underscore": "^1.12.0",
     "underscore-deep-extend": "^1.1.5",
     "utf-8-validate": "^5.0.2",
     "v-connection": "git+https://github.com/olzzon/v-connection#v20210604_1",
