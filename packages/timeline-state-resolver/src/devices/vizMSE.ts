@@ -784,7 +784,7 @@ class VizMSEManager extends EventEmitter {
 	private _hasActiveRundown: boolean = false
 	private _elementsLoaded: {[hash: string]: { element: VElement, isLoaded: boolean, isLoading: boolean, wasLoaded?: boolean }} = {}
 	private _getRundownPromise?: Promise<VRundown>
-	private _mseConnected: boolean = false
+	private _mseConnected: boolean | undefined = undefined // undefined: first connection not established yet
 	private _msePingConnected: boolean = false
 	private _loadingAllElements: boolean = false
 	private _waitWithLayers: {
@@ -1793,10 +1793,13 @@ class VizMSEManager extends EventEmitter {
 	}
 	private mseConnectionChanged (connected: boolean) {
 		if (connected !== this._mseConnected) {
-			this._mseConnected = connected
 			if (connected) {
-				this._updateAfterReconnect = true
+				// not the first connection
+				if (this._mseConnected === false) {
+					this._updateAfterReconnect = true
+				}
 			}
+			this._mseConnected = connected
 			this.onConnectionChanged()
 		}
 	}
