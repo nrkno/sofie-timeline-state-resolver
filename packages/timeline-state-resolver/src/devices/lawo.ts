@@ -423,7 +423,10 @@ export class LawoDevice extends DeviceWithState<LawoState, DeviceOptionsLawoInte
 
 		_.each(newLawoState.nodes, (newNode: LawoStateNode, path: string) => {
 			const oldValue: LawoStateNode = oldLawoState.nodes[path] || null
-			const diff = getDiff(_.omit(newNode, 'timelineObjId'), _.omit(oldValue, 'timelineObjId'))
+			const diff = getDiff(
+				_.omit(newNode, 'timelineObjId', 'transitionDuration'),
+				_.omit(oldValue, 'timelineObjId', 'transitionDuration')
+			)
 			if (diff || (newNode.key === 'fader' && isRetrigger)) {
 				// It's a plain value:
 				commands.push({
