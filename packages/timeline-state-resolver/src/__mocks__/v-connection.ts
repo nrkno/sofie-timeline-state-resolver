@@ -165,7 +165,7 @@ type MockClass<T> = {
 export type VRundownMocked = MockClass<VRundown>
 export class VRundownMock implements VRundown {
 	private elements: { [key: string]: VElement } = {}
-	private _isActive: boolean = false
+	private _isActive = false
 	constructor(
 		public readonly show: string,
 		public readonly profile: string,

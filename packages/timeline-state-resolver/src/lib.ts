@@ -182,7 +182,7 @@ function deepDiff(a: any, b: any, aStack: any, bStack: any): string | null {
 }
 
 _.mixin({ deepExtend: underScoreDeepExtend(_) })
-export function deepExtend<T> (destination: T, ...sources: any[]) {
+export function deepExtend<T>(destination: T, ...sources: any[]) {
 	// @ts-ignore (mixin)
 	return _.deepExtend(destination, ...sources)
 }

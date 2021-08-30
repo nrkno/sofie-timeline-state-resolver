@@ -1502,8 +1502,6 @@ class VizMSEManager extends EventEmitter {
 			}
 
 			this.emit('debug', '_triggerLoadAllElements done')
-		} catch (e) {
-			throw e
 		} finally {
 			this._loadingAllElements = false
 		}
@@ -1603,17 +1601,15 @@ class VizMSEManager extends EventEmitter {
 			) {
 				await this.updateElementsLoadedStatus(false)
 
-				let notLoaded: number = 0
-				let loading: number = 0
-				let loaded: number = 0
+				let notLoaded = 0
+				let loading = 0
+				let loaded = 0
 
 				_.each(this._elementsLoaded, (e) => {
 					if (e.isLoaded) loaded++
 					else if (e.isLoading) loading++
 					else notLoaded++
 				})
-
-				loaded = loaded // loaded isn't really used anywhere
 
 				if (notLoaded > 0 || loading > 0) {
 					// emit debug data
