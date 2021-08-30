@@ -16,6 +16,7 @@ Using the input, it resolves the expected state, diffs the state against current
 * **Blackmagic Design ATEM** vision mixers - using the [atem-connection](https://github.com/nrkno/tv-automation-atem-connection) library
 * **Blackmagic Design Hyperdeck** record/playback devices - using the [hyperdeck-connection](https://github.com/nrkno/tv-automation-hyperdeck-connection) library
 * **Lawo** audio mixers - using the [emberplus](https://github.com/nrkno/tv-automation-emberplus-connection) library
+* **[OBS Studio](https://obsproject.com/)** live video production software
 * **Panasoniz PTZ** cameras
 * **Pharos** light control devices
 * **[Sisyfos](https://github.com/olzzon/sisyfos-audio-controller)** audio controller
@@ -32,3 +33,16 @@ This is a mono-repo containing the TSR library, and a separate typings-only libr
 Contrary to what your editor might say, the typings-only library cannot use dependencies from the main library.
 
 Check the main [timeline-state-resolver](/packages/timeline-state-resolver) package for instructions on using the library and more information
+
+## Development
+
+When creating features that span the timeline-state-resolver and timeline-state-resolver-types packages - such as when creating a PR for supporting a new device - you will need to link the two packages together. To do that, after checking out a branch run:
+
+```
+yarn
+yarn lerna link
+```
+
+This will link the types package to the main library so that you can use your new type definitions during development.
+
+Note, that your IDE may not pick up your new type definitions until you build the types package.

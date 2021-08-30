@@ -15,6 +15,7 @@ export * from './tcpSend'
 export * from './vizMSE'
 export * from './singularLive'
 export * from './vmix'
+export * from './obs'
 
 export * from './device'
 export * from './mapping'
@@ -37,6 +38,7 @@ import { TimelineObjSisyfosAny } from './sisyfos'
 import { TimelineObjVIZMSEAny } from './vizMSE'
 import { TimelineObjSingularLiveAny } from './singularLive'
 import { TimelineObjVMixAny } from './vmix'
+import { TimelineObjOBSAny } from './obs'
 
 export { Timeline }
 export * from './mapping'
@@ -62,7 +64,8 @@ export enum DeviceType {
 	VIZMSE = 13,
 	SINGULAR_LIVE = 14,
 	SHOTOKU = 15,
-	VMIX = 20
+	VMIX = 20,
+	OBS = 21,
 }
 
 export interface TSRTimelineKeyframe<T> extends Timeline.TimelineKeyframe {
@@ -94,24 +97,24 @@ export interface TimelineObjEmpty extends TSRTimelineObjBase {
 	classes: Array<string>
 }
 
-export type TSRTimelineObj = (
-	TimelineObjEmpty |
-	TimelineObjAbstractAny |
-	TimelineObjAtemAny |
-	TimelineObjCasparCGAny |
-	TimelineObjHTTPSendAny |
-	TimelineObjTCPSendAny |
-	TimelineObjHyperdeckAny |
-	TimelineObjLawoAny |
-	TimelineObjOSCAny |
-	TimelineObjPharosAny |
-	TimelineObjPanasonicPtzAny |
-	TimelineObjQuantelAny |
-	TimelineObjShotoku |
-	TimelineObjSisyfosAny |
-	TimelineObjSingularLiveAny |
-	TimelineObjVMixAny |
-	TimelineObjVIZMSEAny
-)
+export type TSRTimelineObj =
+	| TimelineObjEmpty
+	| TimelineObjAbstractAny
+	| TimelineObjAtemAny
+	| TimelineObjCasparCGAny
+	| TimelineObjHTTPSendAny
+	| TimelineObjTCPSendAny
+	| TimelineObjHyperdeckAny
+	| TimelineObjLawoAny
+	| TimelineObjOBSAny
+	| TimelineObjOSCAny
+	| TimelineObjPharosAny
+	| TimelineObjPanasonicPtzAny
+	| TimelineObjQuantelAny
+	| TimelineObjShotoku
+	| TimelineObjSisyfosAny
+	| TimelineObjSingularLiveAny
+	| TimelineObjVMixAny
+	| TimelineObjVIZMSEAny
 
 export type TSRTimeline = Array<TSRTimelineObj>

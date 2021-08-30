@@ -1,6 +1,130 @@
+# Change Log
+
+All notable changes to this project will be documented in this file.
+See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
+
+# [6.1.0-release36.1](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/6.1.0-release36.0...6.1.0-release36.1) (2021-07-12)
+
+**Note:** Version bump only for package timeline-state-resolver
+
+
+
+
+
+# [6.1.0-release36.0](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/6.0.3...6.1.0-release36.0) (2021-07-12)
+
+
+### Bug Fixes
+
+* always send http param data if present ([af326e1](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/af326e1ce7e3ffcf9a3626210563e6fe552553e1))
+* don't create device which already exists ([b00edf3](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/b00edf3e780fc191a1752383e9eae32531c81d44))
+* **OBS:** incompatible/outdated OBS DeviceOptions topology ([c83cd7b](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/c83cd7bde54a18f4f54dcd6ae900cd36c4f683c8))
+
+
+### Features
+
+* **OBS:** Support OBS Live Video Production Software ([#187](https://github.com/nrkno/tv-automation-state-timeline-resolver/issues/187)) ([f2fe81a](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/f2fe81a3ae87ccd3c8db812e88ef9a94b74673d5))
+* resend failing http commands ([cb2ee39](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/cb2ee3967f587520c8dd1e3b6d3543af6fcae687))
+
+
+
+
+
+## [6.0.3](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/6.0.2...6.0.3) (2021-07-06)
+
+**Note:** Version bump only for package timeline-state-resolver
+
+
+
+
+
+## [6.0.2](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/6.0.1...6.0.2) (2021-07-06)
+
+**Note:** Version bump only for package timeline-state-resolver
+
+
+
+
+
+## [6.0.1](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/6.0.0...6.0.1) (2021-07-06)
+
+**Note:** Version bump only for package timeline-state-resolver
+
+
+
+
+
+# [6.0.0](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/5.8.0...6.0.0) (2021-07-06)
+
+
+### Bug Fixes
+
+* bad merge ([1d40684](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/1d406842447da08170f24062a17ecddea7c996a7))
+* do not clear elements and engines when going rehearsal<->active ([b3eca72](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/b3eca72a303f0749fc0c09c468b05b6032574ded))
+* do not purge baseline items ([904e165](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/904e165b15f6bcabe38eddd060db0f86a85d8a87))
+* do not purge elements when going active<->rehearsal ([a8a14d9](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/a8a14d9ce06651ad98f13e9d63b2d09e3f3f1bf4))
+* elements to keep criteria ([2352aa2](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/2352aa2759f6e25abab93063313859ba2ce6cb85))
+* exceptions and timeouts ([937a821](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/937a821f2dd5dd6fd82c2fe94bcc3d980347177d))
+* keep checking status of loaded elements ([c6d6f53](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/c6d6f5309447023fa367eee5eec893d25b7fb06a))
+* make makeReady execute faster ([16bd275](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/16bd2755db4e520b75e7a0866f0a4bac5bd5007b))
+* missing optional chaining ([7a9b97e](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/7a9b97efaf334b9df7a001b23639df22a7aae214))
+* prevent duplicate external elements ([ca5fe2d](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/ca5fe2df430f8705216daa5c8fc10577010c43a8))
+* recreate removed mediaObjects after reconnecting ([fcda605](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/fcda6058adb98793fda79b028b14c23b4f19d2d6))
+* reload external elements that became unloaded ([9ee8423](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/9ee8423a03fa98205407e6efe0cbd9de5595662c))
+* remove duplicates in incoming data ([bf0ca04](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/bf0ca0434c768a60e0508db3a62c3c909fe2d0fc))
+* report channel name instead of engine name ([f65214f](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/f65214ff64b387ac151df2521fec9b1ab87ce5df))
+* treat all status codes below 400 as correct ([6b6ce54](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/6b6ce54f3d5987083bc19462b19f26318cee37c9))
+
+
+### Features
+
+* indicate elements as missing when MSE disconnected ([75db0a1](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/75db0a1a2b92f449ac04e61f182dfe241e879191))
+* monitor viz engines over http ([321fff1](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/321fff112c0d6a8b6fad482a93fa8a69d348dda4))
+* mono repo ([#180](https://github.com/nrkno/tv-automation-state-timeline-resolver/issues/180)) ([7349e20](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/7349e2007dff661329bb44b3407ab4adbd390082))
+
+
+
+
+
 # Changelog
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
+
+## [5.9.0](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/5.8.0...5.9.0) (2021-06-25)
+
+
+### Bug Fixes
+
+* update supertimeline ([f13129d](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/f13129dcfbc8a6dd3418c6372a2a17891c072be1))
+
+## [5.8.0](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/5.7.0...5.8.0) (2021-06-15)
+
+
+### Features
+
+* Add external elements status reporting using Media Objects ([37212fd](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/37212fd0576a8f6bc14e571e401ecfc9be0ce4ea))
+* Add layerName property to mappings ([20cc428](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/20cc428865b5fa1cbae08b4537c32e81e8346778))
+* add support for advanced settings in the TimelineObjAtemSsrcProps ([#171](https://github.com/nrkno/tv-automation-state-timeline-resolver/issues/171)) ([d25520f](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/d25520fc2dbb00583e18f6b68dd7acdcc5274f75))
+* Allow multiple layer mappings affecting one CasparCG layer ([cb4bfdd](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/cb4bfdd6eede8f80e775c22bd43e12c09d1f491a))
+* rename activeRundown -> activePlaylist. ([27a6a82](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/27a6a82fd058eaac23548208962b41bec8dc1cc4))
+* Use layerName as default label for sisyfos faders ([a9ee674](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/a9ee6740c0ef24c4aaa6c461da27b3c8cf5d0ef3))
+
+
+### Bug Fixes
+
+* allow multiple mappings to reference 1 casparcg layer ([49d313b](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/49d313ba55086c367142efe1f180d6ea7d7c493a))
+* Allow the take of overlay pilot elements to be delayed ([79670b4](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/79670b45c41490a10c4cb9de7c3b8b7033a8a9c4))
+* escape template data ([ac7efc6](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/ac7efc65696f9b8a6db1f344c157ca4298e54690))
+* extend templateData when allowing multiple mappings to reference 1 casparcg layer ([6656ced](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/6656ceda6f8f3a86e3976128c7f704e93f557001))
+* filtering expected items for rundown playlist ([7e608b6](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/7e608b68d19336d150539e6859070d44f71e7e38))
+* Only set sisyfos channel name if setLabelToLayerName is set ([0439419](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/043941953b06f26dc3fd861aecbb290b31a7a36b))
+* Pass context to ATEM custom command function ([70b71d1](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/70b71d19b580622395ac77cc3c499f77e452eff4))
+* Remove ExpectedPlayoutItemContentBase from tsr-types [publish] ([a478e01](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/a478e019238cec51a002c53e8c537b4cafde5890))
+* Set fader label ([9d2ac05](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/9d2ac05df4373ff116426beaa1c3bfc029b59204))
+* Sisyfos tests ([1d7debb](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/1d7debbdcddba3a42eebf37ebb9c87a67ac11354))
+* **sisyfos:** Sorting all channels by overridePriority ([44f0462](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/44f0462354664411f8882a156a2e91f100d92b6f))
+* support for using a cache when resolving the timeline, enabling partial-resolving for higher performance ([9e3ac97](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/9e3ac970bf302ea54887c129a7c83e059632ccee))
+* update timeline dependency ([8f93464](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/8f93464fbb6b0b48b1193783060663e5b763aa9c))
 
 ## [5.7.0](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/5.5.5...5.7.0) (2021-05-04)
 

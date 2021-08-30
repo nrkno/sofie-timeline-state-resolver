@@ -1,17 +1,20 @@
 export class MockTime {
-	private _now: number = 10000
-	private _hasBeeninit: boolean = false
-	mockDateNow () {
+	private _now = 10000
+	private _hasBeeninit = false
+	mockDateNow() {
 		Date.now = jest.fn(() => {
 			return this.getCurrentTime()
 		})
 	}
-	get now () {
+	get now() {
 		if (!this._hasBeeninit) throw new Error('Has not been init')
 		return this.getCurrentTime()
 	}
 	getCurrentTime = () => {
 		return this._now
+	}
+	getCurrentTime2 = (): Promise<number> => {
+		return this._now as any
 	}
 	setNow = (t: number) => {
 		this._now = t
@@ -26,7 +29,7 @@ export class MockTime {
 		jest.advanceTimersByTime(advanceTime)
 	}
 	advanceTimeTo = (time: number) => {
-		let advance = time - this._now
+		const advance = time - this._now
 		if (advance < 0) throw new Error('advanceTime must be positive!')
 		this.advanceTime(advance)
 		expect(this._now).toEqual(time)
@@ -34,12 +37,11 @@ export class MockTime {
 	advanceTimeTicks = async (advanceTime: number) => {
 		// this._now += advanceTime
 
-		let endTime = this._now + advanceTime
+		const endTime = this._now + advanceTime
 
 		const chunks = 5 // ms
 
 		while (this._now < endTime) {
-
 			let advanceChunk = chunks
 			if (this._now + advanceChunk > endTime) {
 				advanceChunk = endTime - this._now
@@ -52,13 +54,13 @@ export class MockTime {
 		await this.tick()
 	}
 	advanceTimeToTicks = async (time: number) => {
-		let advance = time - this._now
+		const advance = time - this._now
 		if (advance < 0) throw new Error('advanceTime must be positive (' + advance + ')!')
 		await this.advanceTimeTicks(advance)
 		expect(this._now).toEqual(time)
 	}
 	tick = () => {
-		return new Promise(resolve => {
+		return new Promise((resolve) => {
 			setImmediate(resolve)
 		})
 	}

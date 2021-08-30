@@ -18,11 +18,11 @@ export interface CasparCGOptions {
 	useScheduling?: boolean
 	retryInterval?: number | boolean // set to false to disable, 0 or true will set to default value
 	/* Timecode base of channel */
-	timeBase?: {[channel: string]: number} | number
+	timeBase?: { [channel: string]: number } | number
 	/* fps used for all channels */
 	fps?: number
 
-	launcherHost?: string,
+	launcherHost?: string
 	launcherPort?: number
 }
 
@@ -33,7 +33,7 @@ export enum TimelineContentTypeCasparCg { //  CasparCG-state
 	TEMPLATE = 'template',
 	HTMLPAGE = 'htmlpage',
 	ROUTE = 'route',
-	RECORD = 'record'
+	RECORD = 'record',
 }
 
 export type TimelineTransition = TimelineTransitionBase & (RegularTimelineTransition | TimelineStingTransition)
@@ -44,8 +44,8 @@ export interface TimelineTransitionBase {
 
 export interface RegularTimelineTransition extends TimelineTransitionBase {
 	type: Exclude<Transition, Transition.STING>
-	duration?: number,
-	easing?: Ease,
+	duration?: number
+	easing?: Ease
 	direction?: Direction
 }
 
@@ -67,15 +67,14 @@ export interface TimelineObjCCGProducerContentBase {
 	}
 	mixer?: Mixer
 }
-export type TimelineObjCasparCGAny = (
-	TimelineObjCCGMedia |
-	TimelineObjCCGIP |
-	TimelineObjCCGInput |
-	TimelineObjCCGHTMLPage |
-	TimelineObjCCGRecord |
-	TimelineObjCCGRoute |
-	TimelineObjCCGTemplate
-)
+export type TimelineObjCasparCGAny =
+	| TimelineObjCCGMedia
+	| TimelineObjCCGIP
+	| TimelineObjCCGInput
+	| TimelineObjCCGHTMLPage
+	| TimelineObjCCGRecord
+	| TimelineObjCCGRoute
+	| TimelineObjCCGTemplate
 export interface TimelineObjCasparCGBase extends TSRTimelineObjBase {
 	content: {
 		deviceType: DeviceType.CASPARCG
@@ -144,7 +143,7 @@ export interface TimelineObjCCGInput extends TimelineObjCasparCGBase {
 		/** The type of input (example: 'decklink') */
 		inputType: string
 		/** The inoput device index (to check in CASPARCG, run INFO SYSTEM) */
-		device: number,
+		device: number
 		/** The input format (example: '1080i5000') */
 		deviceFormat: ChannelFormat // ,
 
@@ -175,9 +174,9 @@ export interface TimelineObjCCGTemplate extends TimelineObjCasparCGBase {
 		/** The type of template to load ('html' or 'flash') */
 		templateType?: 'html' | 'flash'
 		/** The name/path of the template */
-		name: string,
+		name: string
 		/** The data to send into the template. Fee to be whatever, as long as the template likes it */
-		data?: any,
+		data?: any
 		/** Whether to use CG stop or CLEAR layer when stopping the template. Defaults to false = CLEAR  */
 		useStopCommand: boolean
 	} & TimelineObjCCGProducerContentBase
@@ -211,7 +210,7 @@ export interface TimelineObjCCGRecord extends TimelineObjCasparCGBase {
 		deviceType: DeviceType.CASPARCG
 		type: TimelineContentTypeCasparCg.RECORD
 		/** The filename to output to (will be in the media folder) */
-		file: string,
+		file: string
 		/** ffmpeg encoder options (example '-vcodec libx264 -preset ultrafast') */
 		encoderOptions: string
 	}
@@ -226,7 +225,7 @@ export enum Transition {
 	SLIDE = 'SLIDE',
 	STING = 'STING',
 
-	TSR_TRANSITION = 'TSR_TRANSITION' // handled by tsr on its own
+	TSR_TRANSITION = 'TSR_TRANSITION', // handled by tsr on its own
 }
 
 export enum Ease {
@@ -314,12 +313,12 @@ export enum Ease {
 	OUT_QUART = 'OUT_QUART',
 	OUT_QUINT = 'OUT_QUINT',
 
-	INTERNAL_PHYSICAL = 'INTERNAL_PHYSICAL' // Handled by TSR on its own
+	INTERNAL_PHYSICAL = 'INTERNAL_PHYSICAL', // Handled by TSR on its own
 }
 
 export enum Direction {
 	LEFT = 'LEFT',
-	RIGHT = 'RIGHT'
+	RIGHT = 'RIGHT',
 }
 export enum BlendMode {
 	ADD = 'ADD',
@@ -350,11 +349,10 @@ export enum BlendMode {
 	SCREEN = 'SCREEN',
 	SOFT_LIGHT = 'SOFT_LIGHT',
 	SUBTRACT = 'SUBTRACT',
-	VIVID_LIGHT = 'VIVID_LIGHT'
+	VIVID_LIGHT = 'VIVID_LIGHT',
 }
 
 export enum ChannelFormat {
-
 	PAL = 'PAL',
 	NTSC = 'NTSC',
 	SD_576P2500 = '576P2500',
@@ -397,51 +395,55 @@ export enum ChannelFormat {
 	UHD_2160P5000 = '2160P5000',
 	UHD_2160P5994 = '2160P5994',
 	UHD_2160P6000 = '2160P6000',
-	INVALID = 'INVALID'
+	INVALID = 'INVALID',
 }
 export enum Chroma {
 	BLUE = 'BLUE',
 	GREEN = 'GREEN',
-	NONE = 'NONE'
+	NONE = 'NONE',
 }
 
 // Note: types copied from casparcg-state
 export interface Mixer {
-
 	inTransition?: CasparCGTransition
 	changeTransition?: CasparCGTransition
 	outTransition?: CasparCGTransition
 
-	anchor?: {x: number, y: number } | TransitionObject
+	anchor?: { x: number; y: number } | TransitionObject
 	blend?: BlendMode | TransitionObject
 	brightness?: number | TransitionObject
-	chroma?: {
-		keyer: Chroma,
-		threshold: number,
-		softness: number,
-		spill: number
-
-	} | TransitionObject
-	clip?: {x: number, y: number, width: number, height: number } | TransitionObject
+	chroma?:
+		| {
+				keyer: Chroma
+				threshold: number
+				softness: number
+				spill: number
+		  }
+		| TransitionObject
+	clip?: { x: number; y: number; width: number; height: number } | TransitionObject
 	contrast?: number | TransitionObject
-	crop?: {left: number, top: number, right: number, bottom: number } | TransitionObject
-	fill?: {x: number, y: number, xScale: number, yScale: number } | TransitionObject
+	crop?: { left: number; top: number; right: number; bottom: number } | TransitionObject
+	fill?: { x: number; y: number; xScale: number; yScale: number } | TransitionObject
 	// grid
 	keyer?: boolean | TransitionObject
-	levels?: {minInput: number, maxInput: number, gamma: number, minOutput: number, maxOutput: number} | TransitionObject
+	levels?:
+		| { minInput: number; maxInput: number; gamma: number; minOutput: number; maxOutput: number }
+		| TransitionObject
 	mastervolume?: number | TransitionObject
 	// mipmap
 	opacity?: number | TransitionObject
-	perspective?: {
-		topLeftX: number,
-		topLeftY: number,
-		topRightX: number,
-		topRightY: number,
-		bottomRightX: number,
-		bottomRightY: number,
-		bottomLeftX: number,
-		bottomLeftY: number
-	} | TransitionObject
+	perspective?:
+		| {
+				topLeftX: number
+				topLeftY: number
+				topRightX: number
+				topRightY: number
+				bottomRightX: number
+				bottomRightY: number
+				bottomLeftX: number
+				bottomLeftY: number
+		  }
+		| TransitionObject
 
 	rotation?: number | TransitionObject
 	saturation?: number | TransitionObject
@@ -449,7 +451,6 @@ export interface Mixer {
 	volume?: number | TransitionObject
 
 	bundleWithCommands?: number // special function: bundle and DEFER with other mixer-commands
-
 }
 
 /** Options for internal TSR Transitions */

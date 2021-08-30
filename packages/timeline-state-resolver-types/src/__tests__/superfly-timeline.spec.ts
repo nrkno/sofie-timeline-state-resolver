@@ -1,17 +1,19 @@
+// eslint-disable-next-line node/no-extraneous-import
 import * as _ from 'underscore'
+// eslint-disable-next-line node/no-extraneous-import
 import * as Original from 'superfly-timeline'
 import * as Local from '../superfly-timeline'
 
 const LocalEnums = {
-	EventType: Local.EventType
+	EventType: Local.EventType,
 }
 const OriginalEnums = {
-	EventType: Original.EventType
+	EventType: Original.EventType,
 }
 describe('superfly-timeline', () => {
 	test('Enums', () => {
 		_.each(LocalEnums as any, (e: any, enumName: string) => {
-			let originalEnum = OriginalEnums[enumName]
+			const originalEnum = (OriginalEnums as any)[enumName]
 
 			expect(e).toBeTruthy()
 			expect(originalEnum).toBeTruthy()
@@ -23,16 +25,18 @@ describe('superfly-timeline', () => {
 	})
 	test('Enumarable types', () => {
 		_.each(Local, (type: any, typeName: string) => {
-			let originalType = Original[typeName]
+			const originalType = (Original as any)[typeName]
 			if (_.isFunction(type)) {
+				// eslint-disable-next-line jest/no-conditional-expect
 				expect(_.isFunction(originalType)).toBeTruthy()
 			} else {
+				// eslint-disable-next-line jest/no-conditional-expect
 				expect(type).toMatchObject(originalType)
 			}
 		})
 	})
 	test('Types', () => {
-		function returnType<A> (): A {
+		function returnType<A>(): A {
 			// nothing
 			let a: any
 			return a
@@ -40,7 +44,7 @@ describe('superfly-timeline', () => {
 		// Note: these checks are not caught by the test, but by the type-check
 
 		// Check that types are the same:
-		let a = [
+		const a = [
 			// Check that local interfaces matches original
 
 			(): Original.Time => returnType<Local.Time>(),
@@ -110,9 +114,9 @@ describe('superfly-timeline', () => {
 			(): Local.AllStates => returnType<Original.AllStates>(),
 			(): Local.StateInTime => returnType<Original.StateInTime>(),
 			(): Local.TimeEvent => returnType<Original.TimeEvent>(),
-			(): Local.Resolver => returnType<Original.Resolver>()
+			(): Local.Resolver => returnType<Original.Resolver>(),
 		]
-		a = a
+		expect(a).toBeTruthy()
 
 		expect(1).toEqual(1)
 	})

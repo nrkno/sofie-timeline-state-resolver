@@ -12,12 +12,12 @@ export interface MappingShotoku extends Mapping {
 
 export enum TimelineContentTypeShotoku {
 	SHOT = 'shot',
-	SEQUENCE = 'sequence'
+	SEQUENCE = 'sequence',
 }
 
 export enum ShotokuTransitionType {
 	Cut = 'cut',
-	Fade = 'fade'
+	Fade = 'fade',
 }
 export interface ShotokuCommandContent {
 	shot: number
@@ -31,15 +31,18 @@ export interface TimelineObjShotokuShot extends TSRTimelineObjBase {
 		deviceType: DeviceType.SHOTOKU
 		type: TimelineContentTypeShotoku.SHOT
 	} & ShotokuCommandContent
-}export interface TimelineObjShotokuSequence extends TSRTimelineObjBase {
+}
+export interface TimelineObjShotokuSequence extends TSRTimelineObjBase {
 	content: {
 		deviceType: DeviceType.SHOTOKU
 		type: TimelineContentTypeShotoku.SEQUENCE
 
 		sequenceId: string
-		shots: Array<{
-			offset: number
-		} & ShotokuCommandContent>
+		shots: Array<
+			{
+				offset: number
+			} & ShotokuCommandContent
+		>
 	}
 }
 
