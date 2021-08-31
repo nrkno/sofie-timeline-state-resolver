@@ -1,18 +1,18 @@
 {
-	"name": "timeline-state-resolver-types",
-	"version": "6.2.0-release37",
+	"name": "@tv2media/timeline-state-resolver-types",
+	"version": "1.0.0-release37",
 	"description": "Have timeline, control stuff",
 	"main": "dist/index.js",
 	"typings": "dist/index.d.ts",
 	"license": "MIT",
 	"repository": {
 		"type": "git",
-		"url": "git+https://github.com/nrkno/tv-automation-state-timeline-resolver.git"
+		"url": "git+https://github.com/tv2/tv-automation-state-timeline-resolver.git"
 	},
 	"bugs": {
-		"url": "https://github.com/nrkno/tv-automation-state-timeline-resolver/issues"
+		"url": "https://github.com/tv2/tv-automation-state-timeline-resolver/issues"
 	},
-	"homepage": "https://github.com/nrkno/tv-automation-state-timeline-resolver#readme",
+	"homepage": "https://github.com/tv2/tv-automation-state-timeline-resolver#readme",
 	"contributors": [
 		{
 			"name": "Johan Nyman",
