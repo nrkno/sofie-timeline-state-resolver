@@ -8397,6 +8397,13 @@ through@2, "through@>=2.2.7 <3", through@^2.3.4, through@^2.3.6, through@^2.3.8:
   resolved "https://registry.yarnpkg.com/through/-/through-2.3.8.tgz#0dd4c9ffaabc357960b1b724115d7e0e86a2e1f5"
   integrity sha1-DdTJ/6q8NXlgsbckEV1+Doai4fU=
 
+timeline-state-resolver-types@^6.1.0-release36.0:
+  version "6.1.0-release36.0"
+  resolved "https://registry.yarnpkg.com/timeline-state-resolver-types/-/timeline-state-resolver-types-6.1.0-release36.0.tgz#64ccf4e10365b8038ff613ed299606744182d40c"
+  integrity sha512-A6pGl6UUO5nyyO1yUkKc6yL0LGmyFA1t6r3z3wX3aD4dY7LW6ivch1C+dvvXEy1ia1D4uFpeISALKlJrTshPEA==
+  dependencies:
+    tslib "^2.1.0"
+
 tmp@^0.0.33:
   version "0.0.33"
   resolved "https://registry.yarnpkg.com/tmp/-/tmp-0.0.33.tgz#6d34335889768d21b2bcda0aa277ced3b1bfadf9"
@@ -8837,9 +8844,9 @@ uuid@^8.3.0, uuid@^8.3.2:
   resolved "https://registry.yarnpkg.com/uuid/-/uuid-8.3.2.tgz#80d5b5ced271bb9af6c445f21a1a04c606cefbe2"
   integrity sha512-+NYs2QeMWy+GWFOEm9xnn6HCDp0l7QBD7ml8zLUmJ+93Q5NF0NocErnwkTkXVFNiX3/fpC6afS8Dhb/gz7R7eg==
 
-"v-connection@git+https://github.com/olzzon/v-connection#v20210604_1":
+"v-connection@git+https://github.com/tv2/v-connection#v20210604_1":
   version "0.0.1"
-  resolved "git+https://github.com/olzzon/v-connection#fce072ef2e8df663cea64eefa85c3d4c5e27c329"
+  resolved "git+https://github.com/tv2/v-connection#fce072ef2e8df663cea64eefa85c3d4c5e27c329"
   dependencies:
     request "^2.88.2"
     request-promise-native "^1.0.9"
