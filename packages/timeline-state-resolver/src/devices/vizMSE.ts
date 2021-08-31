@@ -1357,7 +1357,7 @@ class VizMSEManager extends EventEmitter {
 					return {
 						...el,
 						item: item,
-						hash: hash
+						hash: hash,
 					}
 				}
 				return undefined
@@ -1379,7 +1379,7 @@ class VizMSEManager extends EventEmitter {
 			if (someUnloaded) {
 				await this._triggerRundownActivate(rundown)
 			}
-			
+
 			await Promise.all(
 				_.map(elementsToLoad, async (e) => {
 					const cachedEl = this._elementsLoaded[e.hash]
@@ -1759,7 +1759,6 @@ class VizMSEManager extends EventEmitter {
 				this._getRundownPromise = undefined
 				throw e
 			}
-
 		} else {
 			return this._rundown
 		}
