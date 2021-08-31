@@ -1,8 +1,7 @@
 
 # Timeline State Resolver
 
-[![Node CI](https://github.com/nrkno/tv-automation-state-timeline-resolver/actions/workflows/node.yaml/badge.svg)](https://github.com/nrkno/tv-automation-state-timeline-resolver/actions/workflows/node.yaml)
-[![codecov](https://codecov.io/gh/nrkno/tv-automation-state-timeline-resolver/branch/master/graph/badge.svg)](https://codecov.io/gh/nrkno/tv-automation-state-timeline-resolver)
+[![Node CI](https://github.com/tv2/tv-automation-state-timeline-resolver/actions/workflows/node.yaml/badge.svg)](https://github.com/tv2/tv-automation-state-timeline-resolver/actions/workflows/node.yaml)
 
 This is a part of the [**Sofie** TV News Studio Automation System](https://github.com/nrkno/Sofie-TV-automation/).
 
@@ -22,7 +21,7 @@ Using the input, it resolves the expected state, diffs the state against current
 * **[Sisyfos](https://github.com/olzzon/sisyfos-audio-controller)** audio controller
 * **Quantel** video server
 * **[vMix](https://www.vmix.com/)** software vision mixer
-* **VizRT MediaSequencer** graphics system - using the [v-connection](https://github.com/olzzon/v-connection) library
+* **VizRT MediaSequencer** graphics system - using the [v-connection](https://github.com/tv2/v-connection) library
 * Arbitrary [OSC](https://en.wikipedia.org/wiki/Open_Sound_Control) compatible devices
 * Arbitrary HTTP (REST) compatible devices
 * Arbitrary TCP-socket compatible devices
