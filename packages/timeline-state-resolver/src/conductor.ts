@@ -278,7 +278,8 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 	 */
 	public async addDevice(
 		deviceId: string,
-		deviceOptions: DeviceOptionsAnyInternal
+		deviceOptions: DeviceOptionsAnyInternal,
+		activeRundownPlaylistId?: string
 	): Promise<DeviceContainer<DeviceOptionsBase<any>>> {
 		let newDevice: DeviceContainer<DeviceOptionsBase<any>> | undefined
 		try {
@@ -508,7 +509,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 				}...`
 			)
 
-			await newDevice.device.init(deviceOptions.options)
+			await newDevice.device.init(deviceOptions.options, activeRundownPlaylistId)
 
 			// Double check that it hasnt been created while we were busy waiting
 			if (this.devices.has(deviceId)) {

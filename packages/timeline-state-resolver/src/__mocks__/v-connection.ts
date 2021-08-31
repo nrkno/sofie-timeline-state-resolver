@@ -10,6 +10,7 @@ import {
 	InternalElement,
 	ExternalElement,
 	VElement,
+	ExternalElementId,
 } from 'v-connection'
 import { EventEmitter } from 'events'
 import { CommandResult } from 'v-connection/dist/msehttp'
@@ -298,7 +299,7 @@ export class VRundownMock implements VRundown {
 	async cleanup(): Promise<CommandResult> {
 		return { path: '', status: 200, response: 'mock' }
 	}
-	async purge(): Promise<PepResponse> {
+	async purge(_elementsToKeep?: ExternalElementId[]): Promise<PepResponse> {
 		return { id: '*', status: 'ok', body: 'mock' }
 	}
 	async isActive(): Promise<boolean> {

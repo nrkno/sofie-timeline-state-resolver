@@ -65,7 +65,7 @@ export type DeviceEvents = {
 }
 
 export interface IDevice<TOptions extends DeviceOptionsBase<any>> {
-	init: (initOptions: TOptions['options']) => Promise<boolean>
+	init: (initOptions: TOptions['options'], activeRundownPlaylistId: string | undefined) => Promise<boolean>
 
 	getCurrentTime: () => number
 
