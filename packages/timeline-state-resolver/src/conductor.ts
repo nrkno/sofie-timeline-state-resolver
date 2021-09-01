@@ -476,14 +476,6 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 				return Promise.reject(`No device could be created for "${type}" ("${DeviceType[type]}")`)
 			}
 
-			newDevice.device
-				.on('debug', (...e: any[]) => {
-					if (this.logDebug) {
-						this.emit('debug', deviceId, ...e)
-					}
-				})
-				.catch(console.error)
-
 			newDevice.device.on('resetResolver', () => this.resetResolver()).catch(console.error)
 
 			// Temporary listening to events, these are removed after the devide has been initiated.
