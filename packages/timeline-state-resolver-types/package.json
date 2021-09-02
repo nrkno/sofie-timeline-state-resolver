@@ -1,5 +1,5 @@
 {
-	"name": "timeline-state-resolver-types",
+	"name": "@tv2media/timeline-state-resolver-types",
 	"version": "1.0.0-release37",
 	"description": "Have timeline, control stuff",
 	"main": "dist/index.js",
