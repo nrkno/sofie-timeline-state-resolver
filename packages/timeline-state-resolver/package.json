@@ -1,5 +1,5 @@
 {
-  "name": "@tv2media/timeline-state-resolver",
+  "name": "timeline-state-resolver",
   "version": "1.0.0-release37",
   "description": "Have timeline, control stuff",
   "main": "dist/index.js",
@@ -119,13 +119,13 @@
     "sprintf-js": "^1.1.2",
     "superfly-timeline": "^8.2.1",
     "threadedclass": "0.8.3",
-    "timeline-state-resolver-types": "^6.1.0-release36.0",
+    "timeline-state-resolver-types": "npm:@tv2media/timeline-state-resolver-types@1.0.0-release37",
     "tslib": "^2.1.0",
     "tv-automation-quantel-gateway-client": "^1.0.12",
     "underscore": "^1.12.0",
     "underscore-deep-extend": "^1.1.5",
     "utf-8-validate": "^5.0.2",
-    "v-connection": "git+https://github.com/tv2/v-connection#v20210604_1",
+    "v-connection": "npm:@tv2media/v-connection@5.0.0",
     "ws": "^7.4.6",
     "xml-js": "^1.6.11"
   },
