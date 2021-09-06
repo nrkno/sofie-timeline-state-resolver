@@ -780,29 +780,33 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 				}
 			}
 			if (input.overlays !== undefined && !_.isEqual(oldInput.overlays, input.overlays)) {
-				_.difference(Object.keys(input.overlays), Object.keys(oldInput.overlays || {})).forEach((index) => {
-					commands.push({
-						command: {
-							command: VMixCommand.SET_INPUT_OVERLAY,
-							input: key,
-							value: input.overlays![Number(index)],
-							index: Number(index),
-						},
-						context: null,
-						timelineId: '',
-					})
+				Object.keys(input.overlays).forEach((index) => {
+					if (input.overlays !== oldInput.overlays?.[index]) {
+						commands.push({
+							command: {
+								command: VMixCommand.SET_INPUT_OVERLAY,
+								input: key,
+								value: input.overlays![Number(index)],
+								index: Number(index),
+							},
+							context: null,
+							timelineId: '',
+						})
+					}
 				})
-				_.difference(Object.keys(oldInput.overlays || {}), Object.keys(input.overlays)).forEach((index) => {
-					commands.push({
-						command: {
-							command: VMixCommand.SET_INPUT_OVERLAY,
-							input: key,
-							value: '',
-							index: Number(index),
-						},
-						context: null,
-						timelineId: '',
-					})
+				Object.keys(oldInput?.overlays || {}).forEach((index) => {
+					if (!input.overlays?.[index]) {
+						commands.push({
+							command: {
+								command: VMixCommand.SET_INPUT_OVERLAY,
+								input: key,
+								value: '',
+								index: Number(index),
+							},
+							context: null,
+							timelineId: '',
+						})
+					}
 				})
 			}
 			if (input.playing !== undefined && oldInput.playing !== input.playing && input.playing) {
