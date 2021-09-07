@@ -267,10 +267,14 @@ export class HTTPSendDevice extends DeviceWithState<HTTPSendState, DeviceOptions
 			this.emit('commandError', error, cwc)
 			debug(`Failed ${cmd.url}: ${error} (${timelineObjId})`)
 
-			if (this._resendTime) {
-				const timeLeft = Math.max(this._resendTime - (Date.now() - t), 0)
-				await new Promise<void>((resolve) => setTimeout(() => resolve(), timeLeft))
-				this._defaultCommandReceiver(_time, cmd, context, timelineObjId, layer).catch(() => null) // errors will be emitted
+			if ('code' in error) {
+				const retryCodes = ['ETIMEDOUT', 'ECONNRESET', 'EADDRINUSE', 'ECONNREFUSED', 'EPIPE', 'ENOTFOUND', 'ENETUNREACH', 'EHOSTUNREACH', 'EAI_AGAIN',]
+
+				if (retryCodes.includes(error.code) && this._resendTime) {
+					const timeLeft = Math.max(this._resendTime - (Date.now() - t), 0)
+					await new Promise<void>((resolve) => setTimeout(() => resolve(), timeLeft))
+					this._defaultCommandReceiver(_time, cmd, context, timelineObjId, layer).catch(() => null) // errors will be emitted
+				}
 			}
 		}
 	}
