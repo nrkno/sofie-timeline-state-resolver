@@ -268,7 +268,17 @@ export class HTTPSendDevice extends DeviceWithState<HTTPSendState, DeviceOptions
 			debug(`Failed ${cmd.url}: ${error} (${timelineObjId})`)
 
 			if ('code' in error) {
-				const retryCodes = ['ETIMEDOUT', 'ECONNRESET', 'EADDRINUSE', 'ECONNREFUSED', 'EPIPE', 'ENOTFOUND', 'ENETUNREACH', 'EHOSTUNREACH', 'EAI_AGAIN',]
+				const retryCodes = [
+					'ETIMEDOUT',
+					'ECONNRESET',
+					'EADDRINUSE',
+					'ECONNREFUSED',
+					'EPIPE',
+					'ENOTFOUND',
+					'ENETUNREACH',
+					'EHOSTUNREACH',
+					'EAI_AGAIN',
+				]
 
 				if (retryCodes.includes(error.code) && this._resendTime) {
 					const timeLeft = Math.max(this._resendTime - (Date.now() - t), 0)
