@@ -86,6 +86,8 @@ export class OBSDevice extends DeviceWithState<OBSState, DeviceOptionsOBSInterna
 		)
 		this._doOnTime.on('error', (e) => this.emit('error', 'OBS.doOnTime', e))
 		this._doOnTime.on('slowCommand', (msg) => this.emit('slowCommand', this.deviceName + ': ' + msg))
+		this._doOnTime.on('slowSentCommand', (info) => this.emit('slowSentCommand', info))
+		this._doOnTime.on('slowFulfilledCommand', (info) => this.emit('slowFulfilledCommand', info))
 	}
 	init(options: OBSOptions): Promise<boolean> {
 		this._options = options

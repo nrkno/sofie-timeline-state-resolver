@@ -2,7 +2,7 @@ import * as _ from 'underscore'
 import { TimelineState } from 'superfly-timeline'
 import { Mappings, DeviceType, MediaObject, DeviceOptionsBase } from 'timeline-state-resolver-types'
 import { EventEmitter } from 'eventemitter3'
-import { CommandReport, DoOnTime } from '../doOnTime'
+import { CommandReport, DoOnTime, SlowFulfilledCommandInfo, SlowSentCommandInfo } from '../doOnTime'
 import { ExpectedPlayoutItem } from '../expectedPlayoutItems'
 
 /*
@@ -52,8 +52,14 @@ export type DeviceEvents = {
 	connectionChanged: [status: DeviceStatus]
 	/** A message to the resolver that something has happened that warrants a reset of the resolver (to re-run it again) */
 	resetResolver: []
+
 	/** A report that a command was sent too late */
 	slowCommand: [commandInfo: string]
+	/** A report that a command was sent too late */
+	slowSentCommand: [info: SlowSentCommandInfo]
+	/** A report that a command was fullfilled too late */
+	slowFulfilledCommand: [info: SlowFulfilledCommandInfo]
+
 	/** Something went wrong when executing a command  */
 	commandError: [error: Error, context: CommandWithContext]
 	/** Update a MediaObject  */
@@ -244,6 +250,8 @@ export abstract class Device<TOptions extends DeviceOptionsBase<any>>
 	protected handleDoOnTime(doOnTime: DoOnTime, deviceType: string) {
 		doOnTime.on('error', (e) => this.emit('error', `${deviceType}.doOnTime`, e))
 		doOnTime.on('slowCommand', (msg) => this.emit('slowCommand', this.deviceName + ': ' + msg))
+		doOnTime.on('slowSentCommand', (info) => this.emit('slowSentCommand', info))
+		doOnTime.on('slowFulfilledCommand', (info) => this.emit('slowFulfilledCommand', info))
 		doOnTime.on('commandReport', (commandReport) => {
 			if (this._reportAllCommands) {
 				this.emit('commandReport', commandReport)
