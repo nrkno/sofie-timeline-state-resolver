@@ -26,33 +26,27 @@
     "@sofie-automation/code-standard-preset": "^0.4.1",
     "@strictsoftware/typedoc-plugin-monorepo": "^0.4.2",
     "@types/jest": "^26.0.9",
-    "@types/node": "^12.12.2",
-    "@types/request": "^2.48.1",
+    "@types/node": "^12.20.24",
+    "@types/request": "^2.48.7",
     "@types/sprintf-js": "^1.1.0",
     "@types/underscore": "^1.10.24",
-    "@types/ws": "^7.4.4",
+    "@types/ws": "^7.4.7",
     "@types/xml-js": "^1.0.0",
-    "codecov": "^3.6.1",
+    "codecov": "^3.8.3",
     "jest": "^26.0.1",
     "jest-haste-map": "^26.0.1",
     "jest-resolve": "^26.0.1",
     "lerna": "^4.0.0",
-    "npm-scripts-info": "^0.3.9",
     "open-cli": "^6.0.1",
     "rimraf": "^3.0.2",
     "ts-jest": "^26.1.0",
     "typedoc": "^0.20.33",
-    "typescript": "~4.0"
+    "typescript": "~4.2"
   },
   "prettier": "@sofie-automation/code-standard-preset/.prettierrc.json",
   "husky": {
     "hooks": {
-			"pre-commit": "lerna run --concurrency 1 --stream precommit --since HEAD --exclude-dependents"
+      "pre-commit": "lerna run --concurrency 1 --stream precommit --since HEAD --exclude-dependents"
     }
-  },
-  "resolutions": {
-    "node-license-validator/**/minimist": "^1.2.3",
-    "ws": "^7.4.6",
-    "npm-scripts-info/meow/trim-newlines": "^3.0.1"
   }
 }

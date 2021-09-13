@@ -45,7 +45,6 @@
 		}
 	],
 	"scripts": {
-		"info": "npm-scripts-info",
 		"test": "yarn lint && yarn unit",
 		"unit": "jest",
 		"build": "rimraf dist && yarn build:main",
@@ -59,15 +58,6 @@
 		"lint-fix": "yarn lint --fix",
 		"license-validate": "yarn sofie-licensecheck",
 		"precommit": "lint-staged"
-	},
-	"scripts-info": {
-		"info": "Display information about the scripts",
-		"build": "(Trash and re)build the library",
-		"build:main": "Builds main build command without trash.",
-		"lint": "Lint all typescript source files",
-		"validate:dependencies": "Scan dependencies for vulnerabilities and check licenses",
-		"validate:dev-dependencies": "Scan development dependencies for vulnerabilities",
-		"license-validate": "Validate licenses for dependencies."
 	},
 	"engines": {
 		"node": ">=12.18"
@@ -93,7 +83,7 @@
 		"production"
 	],
 	"dependencies": {
-		"tslib": "^2.1.0"
+		"tslib": "^2.3.1"
 	},
 	"publishConfig": {
 		"access": "public"
