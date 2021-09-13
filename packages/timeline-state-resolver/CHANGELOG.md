@@ -93,13 +93,12 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
 * monitor viz engines over http ([321fff1](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/321fff112c0d6a8b6fad482a93fa8a69d348dda4))
 * mono repo ([#180](https://github.com/nrkno/tv-automation-state-timeline-resolver/issues/180)) ([7349e20](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/7349e2007dff661329bb44b3407ab4adbd390082))
 
+## [5.9.0](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/5.8.0...5.9.0) (2021-06-25)
 
 
+### Bug Fixes
 
-
-# Changelog
-
-All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
+* update supertimeline ([f13129d](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/f13129dcfbc8a6dd3418c6372a2a17891c072be1))
 
 ## [5.9.0](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/5.8.0...5.9.0) (2021-06-25)
 
