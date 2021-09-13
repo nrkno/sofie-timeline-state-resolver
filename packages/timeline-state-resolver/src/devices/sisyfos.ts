@@ -316,6 +316,12 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 				// @ts-ignore backwards-compatibility:
 				if (content.type === 'sisyfos') content.type = TimelineContentTypeSisyfos.CHANNEL
 
+				debug(
+					`Mapping ${foundMapping.layerName}: ${foundMapping.mappingType}, ${
+						(foundMapping as any).channel || (foundMapping as any).label
+					}`
+				)
+
 				if (
 					foundMapping.mappingType === MappingSisyfosType.CHANNEL &&
 					content.type === TimelineContentTypeSisyfos.CHANNEL
@@ -323,6 +329,22 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 					newChannels.push({
 						...content,
 						channel: foundMapping.channel,
+						overridePriority: content.overridePriority || 0,
+						isLookahead: layer.isLookahead || false,
+						tlObjId: layer.id,
+					})
+					deviceState.resync = deviceState.resync || content.resync || false
+				} else if (
+					foundMapping.mappingType === MappingSisyfosType.CHANNEL_BY_LABEL &&
+					content.type === TimelineContentTypeSisyfos.CHANNEL
+				) {
+					const ch = this._sisyfos.getChannelByLabel(foundMapping.label)
+					debug(`Channel by label ${foundMapping.label}(${ch}): ${content.isPgm}`)
+					if (ch === undefined) return
+
+					newChannels.push({
+						...content,
+						channel: ch,
 						overridePriority: content.overridePriority || 0,
 						isLookahead: layer.isLookahead || false,
 						tlObjId: layer.id,
@@ -338,6 +360,18 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 							newChannels.push({
 								...channel,
 								channel: referencedMapping.channel,
+								overridePriority: content.overridePriority || 0,
+								isLookahead: layer.isLookahead || false,
+								tlObjId: layer.id,
+							})
+						} else if (referencedMapping && referencedMapping.mappingType === MappingSisyfosType.CHANNEL_BY_LABEL) {
+							const ch = this._sisyfos.getChannelByLabel(referencedMapping.label)
+							debug(`Channel by label ${referencedMapping.label}(${ch}): ${channel.isPgm}`)
+							if (ch === undefined) return
+
+							newChannels.push({
+								...channel,
+								channel: ch,
 								overridePriority: content.overridePriority || 0,
 								isLookahead: layer.isLookahead || false,
 								tlObjId: layer.id,
