@@ -8170,10 +8170,20 @@ text-table@^0.2.0:
   resolved "https://registry.yarnpkg.com/text-table/-/text-table-0.2.0.tgz#7f5ee823ae805207c00af2df4a84ec3fcfa570b4"
   integrity sha1-f17oI66AUgfACvLfSoTsP8+lcLQ=
 
-threadedclass@0.8.3, threadedclass@^0.8.0:
+threadedclass@^0.8.0:
   version "0.8.3"
   resolved "https://registry.yarnpkg.com/threadedclass/-/threadedclass-0.8.3.tgz#ee95a7d2c4fe6ca79e7265bba9baa7c6fff83309"
   integrity sha512-cI6tVYRIIVYxFG7Nykt8NMVflrrdMvyvzAQfgAZdARdU/PaFSGd5Y7wChvJ3DXLsLiFb3datLhfn26K5DTKf+A==
+  dependencies:
+    callsites "^3.1.0"
+    eventemitter3 "^4.0.4"
+    is-running "^2.1.0"
+    tslib "^1.13.0"
+
+threadedclass@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/threadedclass/-/threadedclass-1.0.0.tgz#6011eba6e0d7be03f933911ba336d928c829cee6"
+  integrity sha512-0r4zVIOWE2Y93rwzfPaidJUBEVikEMs4HjZv+wQEq95xKjMG82Ih/S1GJmKIB4P0pXaiM82hIKs8Z41v06yIOw==
   dependencies:
     callsites "^3.1.0"
     eventemitter3 "^4.0.4"
