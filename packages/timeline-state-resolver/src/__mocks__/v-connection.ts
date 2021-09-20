@@ -11,10 +11,10 @@ import {
 	ExternalElement,
 	VElement,
 	ExternalElementId,
-} from 'v-connection'
+} from '@tv2media/v-connection'
 import { EventEmitter } from 'events'
-import { CommandResult } from 'v-connection/dist/msehttp'
-import { PepResponse } from 'v-connection/dist/peptalk'
+import { CommandResult } from '@tv2media/v-connection/dist/msehttp'
+import { PepResponse } from '@tv2media/v-connection/dist/peptalk'
 import _ = require('underscore')
 
 const mockMSEs: MSEMock[] = []

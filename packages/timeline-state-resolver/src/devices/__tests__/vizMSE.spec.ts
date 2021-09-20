@@ -22,7 +22,7 @@ import { literal, StatusCode } from '../device'
 describe('vizMSE', () => {
 	const mockTime = new MockTime()
 
-	jest.mock('v-connection', () => vConnection)
+	jest.mock('@tv2media/v-connection', () => vConnection)
 
 	// const orgSetTimeout = setTimeout
 
