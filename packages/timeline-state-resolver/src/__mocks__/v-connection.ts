@@ -242,7 +242,7 @@ export class VRundownMock implements VRundown {
 			return el
 		}
 	}
-	async listElements(): Promise<Array<string | number>> {
+	async listElements(): Promise<Array<string | ExternalElementId>> {
 		return []
 	}
 	async getElement(elementName: string | number): Promise<VElement> {
