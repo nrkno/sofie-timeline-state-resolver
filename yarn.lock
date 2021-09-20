@@ -1516,10 +1516,10 @@
   resolved "https://registry.yarnpkg.com/@tootallnate/once/-/once-1.1.2.tgz#ccb91445360179a04e7fe6aff78c00ffc1eeaf82"
   integrity sha512-RbzJvlNzmRq5c3O09UipeuXno4tA1FE6ikOjxZK0tuxVv3412l64l5t1W5pj4+rJq9vpkm/kwiR07aZXnsKPxw==
 
-"@tv2media/v-connection@^5.0.1":
-  version "5.0.1"
-  resolved "https://registry.yarnpkg.com/@tv2media/v-connection/-/v-connection-5.0.1.tgz#15fafcaeb239da092bd703146b397e45ccdfb7a6"
-  integrity sha512-FLZfvuaKrttwHGM9oQzJFBT6h0HDrS/Y6JRVsUvaSlQbjkP7PugXz/OYFp92GLaD+GuKUhVALGWAvRBm4WlFiQ==
+"@tv2media/v-connection@^5.1.0":
+  version "5.1.0"
+  resolved "https://registry.yarnpkg.com/@tv2media/v-connection/-/v-connection-5.1.0.tgz#683b55ca80ed5c076b4af6f580e883c613f05190"
+  integrity sha512-Kg9drmAllMtzoJ6dgXxSCKjSzQyp6jUOxvwkP4PxAZE9Ifa2KHV/IhjPfwG7QXSTOrUFDRac15HQMMO6tFIltA==
   dependencies:
     request "^2.88.2"
     request-promise-native "^1.0.9"
