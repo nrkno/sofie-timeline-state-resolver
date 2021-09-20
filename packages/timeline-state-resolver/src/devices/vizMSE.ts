@@ -21,7 +21,7 @@ import {
 
 import { TimelineState, ResolvedTimelineObjectInstance } from 'superfly-timeline'
 
-import { createMSE, MSE, VRundown, InternalElement, ExternalElement, VElement } from 'v-connection'
+import { createMSE, MSE, VRundown, InternalElement, ExternalElement, VElement } from '@tv2media/v-connection'
 
 import { DoOnTime, SendMode } from '../doOnTime'
 
