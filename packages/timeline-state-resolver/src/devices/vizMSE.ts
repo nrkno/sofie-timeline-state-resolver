@@ -116,9 +116,10 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState, DeviceOptionsVizM
 		this._vizmseManager = new VizMSEManager(
 			this,
 			this._vizMSE,
-			this._initOptions.preloadAllElements,
-			this._initOptions.onlyPreloadActivePlaylist,
-			this._initOptions.autoLoadInternalElements,
+			this._initOptions.preloadAllElements ?? false,
+			this._initOptions.onlyPreloadActivePlaylist ?? false,
+			this._initOptions.purgeUnknownElements ?? false,
+			this._initOptions.autoLoadInternalElements ?? false,
 			this._initOptions.engineRestPort,
 			initOptions.showID,
 			initOptions.profile,
@@ -798,9 +799,10 @@ class VizMSEManager extends EventEmitter {
 	constructor(
 		private _parentVizMSEDevice: VizMSEDevice,
 		private _vizMSE: MSE,
-		public preloadAllElements: boolean = false,
-		public onlyPreloadActivePlaylist: boolean = false,
-		public autoLoadInternalElements: boolean = false,
+		public preloadAllElements: boolean,
+		public onlyPreloadActivePlaylist: boolean,
+		public purgeUnknownElements: boolean,
+		public autoLoadInternalElements: boolean,
 		public engineRestPort: number | undefined,
 		private _showID: string,
 		private _profile: string,
@@ -934,9 +936,43 @@ class VizMSEManager extends EventEmitter {
 
 		this._triggerCommandSent()
 		this._triggerLoadAllElements(loadTwice)
-			.then(() => {
+			.then(async () => {
 				this._triggerCommandSent()
 				this._hasActiveRundown = true
+
+				if (this.purgeUnknownElements) {
+					const rundown = await this._getRundown()
+					const elementsInRundown = await rundown.listElements()
+					const hashesAndItems = await this._getExpectedPlayoutItems()
+
+					for (const element of elementsInRundown) {
+						let foundHash: null | string = null
+						// Check if that element is in our expectedPlayoutItems list
+						for (const [hash, item] of Object.entries(hashesAndItems)) {
+							if (
+								(typeof item.templateName === 'string' &&
+									typeof element === 'string' &&
+									item.templateName === element) ||
+								(typeof item.templateName !== 'string' &&
+									typeof element !== 'string' &&
+									item.templateName === element.vcpid &&
+									item.channelName === element.channel)
+							) {
+								foundHash = hash
+								break
+							}
+						}
+
+						if (!foundHash) {
+							// The element in the Viz-rundown seems to be unknown to us
+							if (typeof element === 'string') {
+								await rundown.deleteElement(element)
+							} else {
+								await rundown.deleteElement(element.vcpid, element.channel)
+							}
+						}
+					}
+				}
 			})
 			.catch((e) => {
 				this.emit('error', e)
