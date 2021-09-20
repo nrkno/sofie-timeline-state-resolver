@@ -259,7 +259,7 @@ export class TCPSendDevice extends DeviceWithState<TSCSendState, DeviceOptionsTC
 		})
 	}
 	private _disconnectTCPClient(): Promise<void> {
-		return new Promise((resolve) => {
+		return new Promise<void>((resolve) => {
 			this._setDisconnected = true
 			if (this._tcpClient) {
 				if (this.connected) {

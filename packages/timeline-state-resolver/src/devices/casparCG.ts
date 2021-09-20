@@ -163,7 +163,7 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 		return new Promise((resolve) => {
 			this._ccg.disconnect()
 			this._ccg.onDisconnected = () => {
-				resolve()
+				resolve(true)
 			}
 		})
 	}

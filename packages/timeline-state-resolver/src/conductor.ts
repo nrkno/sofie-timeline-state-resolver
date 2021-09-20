@@ -160,6 +160,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 
 	private _interval: NodeJS.Timer
 	private _timelineHash: string | undefined
+	private activeRundownId: string | undefined
 
 	constructor(options: ConductorOptions = {}) {
 		super()
@@ -477,14 +478,6 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 				return Promise.reject(`No device could be created for "${type}" ("${DeviceType[type]}")`)
 			}
 
-			newDevice.device
-				.on('debug', (...e: any[]) => {
-					if (this.logDebug) {
-						this.emit('debug', deviceId, ...e)
-					}
-				})
-				.catch(console.error)
-
 			newDevice.device.on('resetResolver', () => this.resetResolver()).catch(console.error)
 
 			// Temporary listening to events, these are removed after the devide has been initiated.
@@ -595,6 +588,13 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 	 * Send a makeReady-trigger to all devices
 	 */
 	public async devicesMakeReady(okToDestroyStuff?: boolean, activeRundownId?: string): Promise<void> {
+		this.activeRundownId = activeRundownId
+		this.emit(
+			'debug',
+			`devicesMakeReady, ${okToDestroyStuff ? 'okToDestroyStuff' : 'undefined'}, ${
+				activeRundownId ? activeRundownId : 'undefined'
+			}`
+		)
 		await this._actionQueue.add(async () => {
 			await this._mapAllDevices((d) =>
 				PTimeout(
@@ -611,6 +611,8 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 	 * Send a standDown-trigger to all devices
 	 */
 	public async devicesStandDown(okToDestroyStuff?: boolean): Promise<void> {
+		this.activeRundownId = undefined
+		this.emit('debug', `devicesStandDown, ${okToDestroyStuff ? 'okToDestroyStuff' : 'undefined'}`)
 		await this._actionQueue.add(async () => {
 			await this._mapAllDevices((d) =>
 				PTimeout(d.device.standDown(okToDestroyStuff), 10000, `standDown for "${d.deviceId}" timed out`)
@@ -711,7 +713,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 
 				if (resolveTime > now + LOOKAHEADTIME) {
 					// If the resolveTime is too far ahead, we'd rather wait and resolve it later.
-					this.emit('debug', 'Too far ahead (' + resolveTime + ')')
+					this.emitWhenActive('debug', 'Too far ahead (' + resolveTime + ')')
 					this._triggerResolveTimeline(LOOKAHEADTIME)
 					return undefined
 				}
@@ -912,7 +914,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 				this.emit('resolveDone', this._timelineHash, resolveDuration)
 			}
 
-			this.emit(
+			this.emitWhenActive(
 				'debug',
 				'resolveTimeline at time ' + resolveTime + ' done in ' + resolveDuration + 'ms (size: ' + timeline.length + ')'
 			)
@@ -1014,7 +1016,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 		}
 
 		if (o.playing !== playing) {
-			this.emit('debug', `_queueCallback ${playing ? 'playing' : 'stopping'} instance ${cb.instanceId}`)
+			this.emitWhenActive('debug', `_queueCallback ${playing ? 'playing' : 'stopping'} instance ${cb.instanceId}`)
 
 			if (playing) {
 				if (o.endChanged && o.endTime && Math.abs(cb.time - o.endTime) < CALLBACK_WAIT_TIME) {
@@ -1172,6 +1174,15 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 			}
 		})
 		return filteredStates
+	}
+	/**
+	 * Only emits the event when there is an active rundownPlaylist.
+	 * This is used to reduce unnesessary logging
+	 */
+	private emitWhenActive(eventType: keyof ConductorEvents, ...args: any[]): void {
+		if (this.activeRundownId) {
+			this.emit(eventType, ...args)
+		}
 	}
 }
 export type DeviceOptionsAnyInternal =
