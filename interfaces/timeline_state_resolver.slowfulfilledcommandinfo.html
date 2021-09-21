@@ -3,7 +3,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<title>RGBOptions | Timeline State Resolver</title>
+	<title>SlowFulfilledCommandInfo | Timeline State Resolver</title>
 	<meta name="description" content="Documentation for Timeline State Resolver">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<link rel="stylesheet" href="../assets/css/main.css">
@@ -58,10 +58,10 @@
 					<a href="../modules/timeline_state_resolver.html">timeline-state-resolver</a>
 				</li>
 				<li>
-					<a href="timeline_state_resolver.rgboptions.html">RGBOptions</a>
+					<a href="timeline_state_resolver.slowfulfilledcommandinfo.html">SlowFulfilledCommandInfo</a>
 				</li>
 			</ul>
-			<h1>Interface RGBOptions</h1>
+			<h1>Interface SlowFulfilledCommandInfo</h1>
 		</div>
 	</div>
 </header>
@@ -72,7 +72,7 @@
 				<h3>Hierarchy</h3>
 				<ul class="tsd-hierarchy">
 					<li>
-						<span class="target">RGBOptions</span>
+						<span class="target">SlowFulfilledCommandInfo</span>
 					</li>
 				</ul>
 			</section>
@@ -83,13 +83,14 @@
 						<section class="tsd-index-section ">
 							<h3>Properties</h3>
 							<ul class="tsd-index-list">
-								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="timeline_state_resolver.rgboptions.html#blue" class="tsd-kind-icon">blue</a></li>
-								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="timeline_state_resolver.rgboptions.html#fade" class="tsd-kind-icon">fade</a></li>
-								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="timeline_state_resolver.rgboptions.html#green" class="tsd-kind-icon">green</a></li>
-								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="timeline_state_resolver.rgboptions.html#intensity" class="tsd-kind-icon">intensity</a></li>
-								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="timeline_state_resolver.rgboptions.html#path" class="tsd-kind-icon">path</a></li>
-								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="timeline_state_resolver.rgboptions.html#red" class="tsd-kind-icon">red</a></li>
-								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="timeline_state_resolver.rgboptions.html#temperature" class="tsd-kind-icon">temperature</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="timeline_state_resolver.slowfulfilledcommandinfo.html#added" class="tsd-kind-icon">added</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="timeline_state_resolver.slowfulfilledcommandinfo.html#args" class="tsd-kind-icon">args</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="timeline_state_resolver.slowfulfilledcommandinfo.html#fulfilleddelay" class="tsd-kind-icon">fulfilled<wbr>Delay</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="timeline_state_resolver.slowfulfilledcommandinfo.html#fullfilled" class="tsd-kind-icon">fullfilled</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="timeline_state_resolver.slowfulfilledcommandinfo.html#plannedsend" class="tsd-kind-icon">planned<wbr>Send</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="timeline_state_resolver.slowfulfilledcommandinfo.html#preparetime" class="tsd-kind-icon">prepare<wbr>Time</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="timeline_state_resolver.slowfulfilledcommandinfo.html#queueid" class="tsd-kind-icon">queue<wbr>Id</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="timeline_state_resolver.slowfulfilledcommandinfo.html#send" class="tsd-kind-icon">send</a></li>
 							</ul>
 						</section>
 					</div>
@@ -98,72 +99,82 @@
 			<section class="tsd-panel-group tsd-member-group ">
 				<h2>Properties</h2>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
-					<a name="blue" class="tsd-anchor"></a>
-					<h3><span class="tsd-flag ts-flagOptional">Optional</span> blue</h3>
-					<div class="tsd-signature tsd-kind-icon">blue<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span></div>
+					<a name="added" class="tsd-anchor"></a>
+					<h3>added</h3>
+					<div class="tsd-signature tsd-kind-icon">added<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/fbcab37d1/packages/timeline-state-resolver/src/devices/pharosAPI.ts#L195">packages/timeline-state-resolver/src/devices/pharosAPI.ts:195</a></li>
+							<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/fbcab37d1/packages/timeline-state-resolver/src/doOnTime.ts#L39">packages/timeline-state-resolver/src/doOnTime.ts:39</a></li>
 						</ul>
 					</aside>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
-					<a name="fade" class="tsd-anchor"></a>
-					<h3><span class="tsd-flag ts-flagOptional">Optional</span> fade</h3>
-					<div class="tsd-signature tsd-kind-icon">fade<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span></div>
+					<a name="args" class="tsd-anchor"></a>
+					<h3>args</h3>
+					<div class="tsd-signature tsd-kind-icon">args<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/fbcab37d1/packages/timeline-state-resolver/src/devices/pharosAPI.ts#L197">packages/timeline-state-resolver/src/devices/pharosAPI.ts:197</a></li>
+							<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/fbcab37d1/packages/timeline-state-resolver/src/doOnTime.ts#L46">packages/timeline-state-resolver/src/doOnTime.ts:46</a></li>
 						</ul>
 					</aside>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
-					<a name="green" class="tsd-anchor"></a>
-					<h3><span class="tsd-flag ts-flagOptional">Optional</span> green</h3>
-					<div class="tsd-signature tsd-kind-icon">green<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span></div>
+					<a name="fulfilleddelay" class="tsd-anchor"></a>
+					<h3>fulfilled<wbr>Delay</h3>
+					<div class="tsd-signature tsd-kind-icon">fulfilled<wbr>Delay<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/fbcab37d1/packages/timeline-state-resolver/src/devices/pharosAPI.ts#L194">packages/timeline-state-resolver/src/devices/pharosAPI.ts:194</a></li>
+							<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/fbcab37d1/packages/timeline-state-resolver/src/doOnTime.ts#L45">packages/timeline-state-resolver/src/doOnTime.ts:45</a></li>
 						</ul>
 					</aside>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
-					<a name="intensity" class="tsd-anchor"></a>
-					<h3><span class="tsd-flag ts-flagOptional">Optional</span> intensity</h3>
-					<div class="tsd-signature tsd-kind-icon">intensity<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span></div>
+					<a name="fullfilled" class="tsd-anchor"></a>
+					<h3>fullfilled</h3>
+					<div class="tsd-signature tsd-kind-icon">fullfilled<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/fbcab37d1/packages/timeline-state-resolver/src/devices/pharosAPI.ts#L192">packages/timeline-state-resolver/src/devices/pharosAPI.ts:192</a></li>
+							<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/fbcab37d1/packages/timeline-state-resolver/src/doOnTime.ts#L44">packages/timeline-state-resolver/src/doOnTime.ts:44</a></li>
 						</ul>
 					</aside>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
-					<a name="path" class="tsd-anchor"></a>
-					<h3><span class="tsd-flag ts-flagOptional">Optional</span> path</h3>
-					<div class="tsd-signature tsd-kind-icon">path<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">&quot;Default&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;Linear&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;Start&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;End&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;Braked&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;Accelerated&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;Damped&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;Overshoot&quot;</span></div>
+					<a name="plannedsend" class="tsd-anchor"></a>
+					<h3>planned<wbr>Send</h3>
+					<div class="tsd-signature tsd-kind-icon">planned<wbr>Send<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/fbcab37d1/packages/timeline-state-resolver/src/devices/pharosAPI.ts#L198">packages/timeline-state-resolver/src/devices/pharosAPI.ts:198</a></li>
+							<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/fbcab37d1/packages/timeline-state-resolver/src/doOnTime.ts#L41">packages/timeline-state-resolver/src/doOnTime.ts:41</a></li>
 						</ul>
 					</aside>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
-					<a name="red" class="tsd-anchor"></a>
-					<h3><span class="tsd-flag ts-flagOptional">Optional</span> red</h3>
-					<div class="tsd-signature tsd-kind-icon">red<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span></div>
+					<a name="preparetime" class="tsd-anchor"></a>
+					<h3>prepare<wbr>Time</h3>
+					<div class="tsd-signature tsd-kind-icon">prepare<wbr>Time<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/fbcab37d1/packages/timeline-state-resolver/src/devices/pharosAPI.ts#L193">packages/timeline-state-resolver/src/devices/pharosAPI.ts:193</a></li>
+							<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/fbcab37d1/packages/timeline-state-resolver/src/doOnTime.ts#L40">packages/timeline-state-resolver/src/doOnTime.ts:40</a></li>
 						</ul>
 					</aside>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
-					<a name="temperature" class="tsd-anchor"></a>
-					<h3><span class="tsd-flag ts-flagOptional">Optional</span> temperature</h3>
-					<div class="tsd-signature tsd-kind-icon">temperature<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span></div>
+					<a name="queueid" class="tsd-anchor"></a>
+					<h3>queue<wbr>Id</h3>
+					<div class="tsd-signature tsd-kind-icon">queue<wbr>Id<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/fbcab37d1/packages/timeline-state-resolver/src/devices/pharosAPI.ts#L196">packages/timeline-state-resolver/src/devices/pharosAPI.ts:196</a></li>
+							<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/fbcab37d1/packages/timeline-state-resolver/src/doOnTime.ts#L43">packages/timeline-state-resolver/src/doOnTime.ts:43</a></li>
+						</ul>
+					</aside>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
+					<a name="send" class="tsd-anchor"></a>
+					<h3>send</h3>
+					<div class="tsd-signature tsd-kind-icon">send<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/fbcab37d1/packages/timeline-state-resolver/src/doOnTime.ts#L42">packages/timeline-state-resolver/src/doOnTime.ts:42</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -191,28 +202,31 @@
 						<a href="../modules/timeline_state_resolver.html" class="tsd-kind-icon">timeline-<wbr>state-<wbr>resolver</a>
 						<ul>
 							<li class="current tsd-kind-interface tsd-parent-kind-module">
-								<a href="timeline_state_resolver.rgboptions.html" class="tsd-kind-icon">RGBOptions</a>
+								<a href="timeline_state_resolver.slowfulfilledcommandinfo.html" class="tsd-kind-icon">Slow<wbr>Fulfilled<wbr>Command<wbr>Info</a>
 								<ul>
 									<li class=" tsd-kind-property tsd-parent-kind-interface">
-										<a href="timeline_state_resolver.rgboptions.html#blue" class="tsd-kind-icon">blue</a>
+										<a href="timeline_state_resolver.slowfulfilledcommandinfo.html#added" class="tsd-kind-icon">added</a>
 									</li>
 									<li class=" tsd-kind-property tsd-parent-kind-interface">
-										<a href="timeline_state_resolver.rgboptions.html#fade" class="tsd-kind-icon">fade</a>
+										<a href="timeline_state_resolver.slowfulfilledcommandinfo.html#args" class="tsd-kind-icon">args</a>
 									</li>
 									<li class=" tsd-kind-property tsd-parent-kind-interface">
-										<a href="timeline_state_resolver.rgboptions.html#green" class="tsd-kind-icon">green</a>
+										<a href="timeline_state_resolver.slowfulfilledcommandinfo.html#fulfilleddelay" class="tsd-kind-icon">fulfilled<wbr>Delay</a>
 									</li>
 									<li class=" tsd-kind-property tsd-parent-kind-interface">
-										<a href="timeline_state_resolver.rgboptions.html#intensity" class="tsd-kind-icon">intensity</a>
+										<a href="timeline_state_resolver.slowfulfilledcommandinfo.html#fullfilled" class="tsd-kind-icon">fullfilled</a>
 									</li>
 									<li class=" tsd-kind-property tsd-parent-kind-interface">
-										<a href="timeline_state_resolver.rgboptions.html#path" class="tsd-kind-icon">path</a>
+										<a href="timeline_state_resolver.slowfulfilledcommandinfo.html#plannedsend" class="tsd-kind-icon">planned<wbr>Send</a>
 									</li>
 									<li class=" tsd-kind-property tsd-parent-kind-interface">
-										<a href="timeline_state_resolver.rgboptions.html#red" class="tsd-kind-icon">red</a>
+										<a href="timeline_state_resolver.slowfulfilledcommandinfo.html#preparetime" class="tsd-kind-icon">prepare<wbr>Time</a>
 									</li>
 									<li class=" tsd-kind-property tsd-parent-kind-interface">
-										<a href="timeline_state_resolver.rgboptions.html#temperature" class="tsd-kind-icon">temperature</a>
+										<a href="timeline_state_resolver.slowfulfilledcommandinfo.html#queueid" class="tsd-kind-icon">queue<wbr>Id</a>
+									</li>
+									<li class=" tsd-kind-property tsd-parent-kind-interface">
+										<a href="timeline_state_resolver.slowfulfilledcommandinfo.html#send" class="tsd-kind-icon">send</a>
 									</li>
 								</ul>
 							</li>
