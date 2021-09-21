@@ -3,7 +3,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<title>TextSlot | Timeline State Resolver</title>
+	<title>MappingSisyfosChannelByLabel | Timeline State Resolver</title>
 	<meta name="description" content="Documentation for Timeline State Resolver">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<link rel="stylesheet" href="../assets/css/main.css">
@@ -58,10 +58,10 @@
 					<a href="../modules/timeline_state_resolver.html">timeline-state-resolver</a>
 				</li>
 				<li>
-					<a href="timeline_state_resolver.textslot.html">TextSlot</a>
+					<a href="timeline_state_resolver.mappingsisyfoschannelbylabel.html">MappingSisyfosChannelByLabel</a>
 				</li>
 			</ul>
-			<h1>Interface TextSlot</h1>
+			<h1>Interface MappingSisyfosChannelByLabel</h1>
 		</div>
 	</div>
 </header>
@@ -72,7 +72,12 @@
 				<h3>Hierarchy</h3>
 				<ul class="tsd-hierarchy">
 					<li>
-						<span class="target">TextSlot</span>
+						<span class="tsd-signature-type">MappingSisyfosBase</span>
+						<ul class="tsd-hierarchy">
+							<li>
+								<span class="target">MappingSisyfosChannelByLabel</span>
+							</li>
+						</ul>
 					</li>
 				</ul>
 			</section>
@@ -83,7 +88,11 @@
 						<section class="tsd-index-section ">
 							<h3>Properties</h3>
 							<ul class="tsd-index-list">
-								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="timeline_state_resolver.textslot.html#text_slots" class="tsd-kind-icon">text_<wbr>slots</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface tsd-is-inherited"><a href="timeline_state_resolver.mappingsisyfoschannelbylabel.html#device" class="tsd-kind-icon">device</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface tsd-is-inherited"><a href="timeline_state_resolver.mappingsisyfoschannelbylabel.html#deviceid" class="tsd-kind-icon">device<wbr>Id</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="timeline_state_resolver.mappingsisyfoschannelbylabel.html#label" class="tsd-kind-icon">label</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface tsd-is-inherited"><a href="timeline_state_resolver.mappingsisyfoschannelbylabel.html#layername" class="tsd-kind-icon">layer<wbr>Name</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface tsd-is-overwrite"><a href="timeline_state_resolver.mappingsisyfoschannelbylabel.html#mappingtype" class="tsd-kind-icon">mapping<wbr>Type</a></li>
 							</ul>
 						</section>
 					</div>
@@ -91,13 +100,62 @@
 			</section>
 			<section class="tsd-panel-group tsd-member-group ">
 				<h2>Properties</h2>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface tsd-is-inherited">
+					<a name="device" class="tsd-anchor"></a>
+					<h3>device</h3>
+					<div class="tsd-signature tsd-kind-icon">device<span class="tsd-signature-symbol">:</span> <a href="../enums/timeline_state_resolver.devicetype.html#sisyfos" class="tsd-signature-type" data-tsd-kind="Enumeration member">SISYFOS</a></div>
+					<aside class="tsd-sources">
+						<p>Inherited from MappingSisyfosBase.device</p>
+						<ul>
+							<li>Defined in packages/timeline-state-resolver-types/dist/sisyfos.d.ts:14</li>
+						</ul>
+					</aside>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface tsd-is-inherited">
+					<a name="deviceid" class="tsd-anchor"></a>
+					<h3>device<wbr>Id</h3>
+					<div class="tsd-signature tsd-kind-icon">device<wbr>Id<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
+					<aside class="tsd-sources">
+						<p>Inherited from MappingSisyfosBase.deviceId</p>
+						<ul>
+							<li>Defined in packages/timeline-state-resolver-types/dist/mapping.d.ts:8</li>
+						</ul>
+					</aside>
+				</section>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
-					<a name="text_slots" class="tsd-anchor"></a>
-					<h3>text_<wbr>slots</h3>
-					<div class="tsd-signature tsd-kind-icon">text_<wbr>slots<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">{ </span>name<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">; </span>value<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> }</span><span class="tsd-signature-symbol">[]</span></div>
+					<a name="label" class="tsd-anchor"></a>
+					<h3>label</h3>
+					<div class="tsd-signature tsd-kind-icon">label<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/nrkno/tv-automation-state-timeline-resolver/blob/95cc94b6f/packages/timeline-state-resolver/src/devices/pharosAPI.ts#L135">packages/timeline-state-resolver/src/devices/pharosAPI.ts:135</a></li>
+							<li>Defined in packages/timeline-state-resolver-types/dist/sisyfos.d.ts:19</li>
+						</ul>
+					</aside>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface tsd-is-inherited">
+					<a name="layername" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagOptional">Optional</span> layer<wbr>Name</h3>
+					<div class="tsd-signature tsd-kind-icon">layer<wbr>Name<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
+					<aside class="tsd-sources">
+						<p>Inherited from MappingSisyfosBase.layerName</p>
+						<ul>
+							<li>Defined in packages/timeline-state-resolver-types/dist/mapping.d.ts:10</li>
+						</ul>
+					</aside>
+					<div class="tsd-comment tsd-typography">
+						<div class="lead">
+							<p>Human-readable name given to the layer. Can be used by devices to set the label of e.g. a fader a mapping points to.</p>
+						</div>
+					</div>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface tsd-is-overwrite">
+					<a name="mappingtype" class="tsd-anchor"></a>
+					<h3>mapping<wbr>Type</h3>
+					<div class="tsd-signature tsd-kind-icon">mapping<wbr>Type<span class="tsd-signature-symbol">:</span> <a href="../enums/timeline_state_resolver.mappingsisyfostype.html#channel_by_label" class="tsd-signature-type" data-tsd-kind="Enumeration member">CHANNEL_BY_LABEL</a></div>
+					<aside class="tsd-sources">
+						<p>Overrides MappingSisyfosBase.mappingType</p>
+						<ul>
+							<li>Defined in packages/timeline-state-resolver-types/dist/sisyfos.d.ts:18</li>
 						</ul>
 					</aside>
 				</section>
@@ -125,10 +183,22 @@
 						<a href="../modules/timeline_state_resolver.html" class="tsd-kind-icon">timeline-<wbr>state-<wbr>resolver</a>
 						<ul>
 							<li class="current tsd-kind-interface tsd-parent-kind-module">
-								<a href="timeline_state_resolver.textslot.html" class="tsd-kind-icon">Text<wbr>Slot</a>
+								<a href="timeline_state_resolver.mappingsisyfoschannelbylabel.html" class="tsd-kind-icon">Mapping<wbr>Sisyfos<wbr>Channel<wbr>ByLabel</a>
 								<ul>
+									<li class=" tsd-kind-property tsd-parent-kind-interface tsd-is-inherited">
+										<a href="timeline_state_resolver.mappingsisyfoschannelbylabel.html#device" class="tsd-kind-icon">device</a>
+									</li>
+									<li class=" tsd-kind-property tsd-parent-kind-interface tsd-is-inherited">
+										<a href="timeline_state_resolver.mappingsisyfoschannelbylabel.html#deviceid" class="tsd-kind-icon">device<wbr>Id</a>
+									</li>
 									<li class=" tsd-kind-property tsd-parent-kind-interface">
-										<a href="timeline_state_resolver.textslot.html#text_slots" class="tsd-kind-icon">text_<wbr>slots</a>
+										<a href="timeline_state_resolver.mappingsisyfoschannelbylabel.html#label" class="tsd-kind-icon">label</a>
+									</li>
+									<li class=" tsd-kind-property tsd-parent-kind-interface tsd-is-inherited">
+										<a href="timeline_state_resolver.mappingsisyfoschannelbylabel.html#layername" class="tsd-kind-icon">layer<wbr>Name</a>
+									</li>
+									<li class=" tsd-kind-property tsd-parent-kind-interface tsd-is-overwrite">
+										<a href="timeline_state_resolver.mappingsisyfoschannelbylabel.html#mappingtype" class="tsd-kind-icon">mapping<wbr>Type</a>
 									</li>
 								</ul>
 							</li>
