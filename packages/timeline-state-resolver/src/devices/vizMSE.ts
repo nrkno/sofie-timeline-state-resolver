@@ -21,7 +21,15 @@ import {
 
 import { TimelineState, ResolvedTimelineObjectInstance } from 'superfly-timeline'
 
-import { createMSE, MSE, VRundown, InternalElement, ExternalElement, VElement } from 'v-connection'
+import {
+	createMSE,
+	MSE,
+	VRundown,
+	InternalElement,
+	ExternalElement,
+	VElement,
+	ExternalElementId,
+} from '@tv2media/v-connection'
 
 import { DoOnTime, SendMode } from '../doOnTime'
 
@@ -97,7 +105,7 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState, DeviceOptionsVizM
 		this.handleDoOnTime(this._doOnTimeBurst, 'VizMSE.burst')
 	}
 
-	async init(initOptions: VizMSEOptions): Promise<boolean> {
+	async init(initOptions: VizMSEOptions, activeRundownPlaylistId?: string): Promise<boolean> {
 		this._initOptions = initOptions
 		if (!this._initOptions.host) throw new Error('VizMSE bad option: host')
 		if (!this._initOptions.showID) throw new Error('VizMSE bad option: showID')
@@ -108,8 +116,10 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState, DeviceOptionsVizM
 		this._vizmseManager = new VizMSEManager(
 			this,
 			this._vizMSE,
-			this._initOptions.preloadAllElements,
-			this._initOptions.autoLoadInternalElements,
+			this._initOptions.preloadAllElements ?? false,
+			this._initOptions.onlyPreloadActivePlaylist ?? false,
+			this._initOptions.purgeUnknownElements ?? false,
+			this._initOptions.autoLoadInternalElements ?? false,
 			this._initOptions.engineRestPort,
 			initOptions.showID,
 			initOptions.profile,
@@ -127,7 +137,7 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState, DeviceOptionsVizM
 		this._vizmseManager.on('error', (e) => this.emit('error', 'VizMSE', e))
 		this._vizmseManager.on('debug', (...args) => this.emit('debug', ...args))
 
-		await this._vizmseManager.initializeRundown()
+		await this._vizmseManager.initializeRundown(activeRundownPlaylistId)
 
 		return true
 	}
@@ -315,8 +325,7 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState, DeviceOptionsVizM
 	async makeReady(okToDestroyStuff?: boolean, activeRundownPlaylistId?: string): Promise<void> {
 		const previousPlaylistId = this._vizmseManager?.activeRundownPlaylistId
 		if (this._vizmseManager) {
-			const preload = !!(this._initOptions && this._initOptions.onlyPreloadActivePlaylist)
-			await this._vizmseManager.activate(activeRundownPlaylistId, preload)
+			await this._vizmseManager.activate(activeRundownPlaylistId)
 		} else throw new Error(`Unable to activate vizMSE, not initialized yet!`)
 
 		if (okToDestroyStuff) {
@@ -770,7 +779,7 @@ class VizMSEManager extends EventEmitter {
 		[hash: string]: { element: VElement; isLoaded: boolean; isLoading: boolean; wasLoaded?: boolean }
 	} = {}
 	private _getRundownPromise?: Promise<VRundown>
-	private _mseConnected = false
+	private _mseConnected: boolean | undefined = undefined // undefined: first connection not established yet
 	private _msePingConnected = false
 	private _loadingAllElements = false
 	private _waitWithLayers: {
@@ -790,8 +799,10 @@ class VizMSEManager extends EventEmitter {
 	constructor(
 		private _parentVizMSEDevice: VizMSEDevice,
 		private _vizMSE: MSE,
-		public preloadAllElements: boolean = false,
-		public autoLoadInternalElements: boolean = false,
+		public preloadAllElements: boolean,
+		public onlyPreloadActivePlaylist: boolean,
+		public purgeUnknownElements: boolean,
+		public autoLoadInternalElements: boolean,
 		public engineRestPort: number | undefined,
 		private _showID: string,
 		private _profile: string,
@@ -803,9 +814,15 @@ class VizMSEManager extends EventEmitter {
 	 * Initialize the Rundown in MSE.
 	 * Our approach is to create a single rundown on initialization, and then use only that for later control.
 	 */
-	public async initializeRundown(): Promise<void> {
+	public async initializeRundown(activeRundownPlaylistId: string | undefined): Promise<void> {
 		this._vizMSE.on('connected', () => this.mseConnectionChanged(true))
 		this._vizMSE.on('disconnected', () => this.mseConnectionChanged(false))
+		this._activeRundownPlaylistId = activeRundownPlaylistId
+		this._preloadedRundownPlaylistId = this.onlyPreloadActivePlaylist ? activeRundownPlaylistId : undefined
+
+		if (activeRundownPlaylistId) {
+			this.emit('debug', `VizMSE: already active playlist: ${this._preloadedRundownPlaylistId}`)
+		}
 
 		const initializeRundownInner = async () => {
 			try {
@@ -892,8 +909,8 @@ class VizMSEManager extends EventEmitter {
 	 * This causes the MSE rundown to activate, which must be done before using it.
 	 * Doing this will make MSE start loading things onto the vizEngine etc.
 	 */
-	public async activate(rundownPlaylistId: string | undefined, preload: boolean): Promise<void> {
-		this._preloadedRundownPlaylistId = preload ? rundownPlaylistId : undefined
+	public async activate(rundownPlaylistId: string | undefined): Promise<void> {
+		this._preloadedRundownPlaylistId = this.onlyPreloadActivePlaylist ? rundownPlaylistId : undefined
 		let loadTwice = false
 		if (!rundownPlaylistId || this._activeRundownPlaylistId !== rundownPlaylistId) {
 			this._triggerCommandSent()
@@ -907,7 +924,7 @@ class VizMSEManager extends EventEmitter {
 						templateName: number
 						channelName?: string
 					}[]
-				).map((item) => ({ vcpid: item.templateName, channelName: item.channelName }))
+				).map((item) => literal<ExternalElementId>({ vcpid: item.templateName, channel: item.channelName }))
 				await rundown.purge(elementsToKeep)
 			} catch (error) {
 				this.emit('error', error)
@@ -919,9 +936,43 @@ class VizMSEManager extends EventEmitter {
 
 		this._triggerCommandSent()
 		this._triggerLoadAllElements(loadTwice)
-			.then(() => {
+			.then(async () => {
 				this._triggerCommandSent()
 				this._hasActiveRundown = true
+
+				if (this.purgeUnknownElements) {
+					const rundown = await this._getRundown()
+					const elementsInRundown = await rundown.listElements()
+					const hashesAndItems = await this._getExpectedPlayoutItems()
+
+					for (const element of elementsInRundown) {
+						let foundHash: null | string = null
+						// Check if that element is in our expectedPlayoutItems list
+						for (const [hash, item] of Object.entries(hashesAndItems)) {
+							if (
+								(typeof item.templateName === 'string' &&
+									typeof element === 'string' &&
+									item.templateName === element) ||
+								(typeof item.templateName !== 'string' &&
+									typeof element !== 'string' &&
+									item.templateName === element.vcpid &&
+									item.channelName === element.channel)
+							) {
+								foundHash = hash
+								break
+							}
+						}
+
+						if (!foundHash) {
+							// The element in the Viz-rundown seems to be unknown to us
+							if (typeof element === 'string') {
+								await rundown.deleteElement(element)
+							} else {
+								await rundown.deleteElement(element.vcpid, element.channel)
+							}
+						}
+					}
+				}
 			})
 			.catch((e) => {
 				this.emit('error', e)
@@ -968,7 +1019,7 @@ class VizMSEManager extends EventEmitter {
 		await this._checkElementExists(cmd)
 		await this._handleRetry(() => {
 			this.emit('debug', `VizMSE: cue "${elementRef}" on channel "${cmd.channelName}"`)
-			return rundown.cue(elementRef)
+			return rundown.cue(elementRef, cmd.channelName)
 		})
 	}
 	/**
@@ -992,7 +1043,7 @@ class VizMSEManager extends EventEmitter {
 		await this._handleRetry(() => {
 			this.emit('debug', `VizMSE: take "${elementRef}" on channel "${cmd.channelName}"`)
 
-			return rundown.take(elementRef)
+			return rundown.take(elementRef, cmd.channelName)
 		})
 	}
 	/**
@@ -1015,7 +1066,7 @@ class VizMSEManager extends EventEmitter {
 		await this._checkElementExists(cmd)
 		await this._handleRetry(() => {
 			this.emit('debug', `VizMSE: out "${elementRef}" on channel "${cmd.channelName}"`)
-			return rundown.out(elementRef)
+			return rundown.out(elementRef, cmd.channelName)
 		})
 	}
 	/**
@@ -1029,7 +1080,7 @@ class VizMSEManager extends EventEmitter {
 		await this._checkElementExists(cmd)
 		await this._handleRetry(() => {
 			this.emit('debug', `VizMSE: continue "${elementRef}" on channel "${cmd.channelName}"`)
-			return rundown.continue(elementRef)
+			return rundown.continue(elementRef, cmd.channelName)
 		})
 	}
 	/**
@@ -1043,7 +1094,7 @@ class VizMSEManager extends EventEmitter {
 		await this._checkElementExists(cmd)
 		await this._handleRetry(() => {
 			this.emit('debug', `VizMSE: continue reverse "${elementRef}" on channel "${cmd.channelName}"`)
-			return rundown.continueReverse(elementRef)
+			return rundown.continueReverse(elementRef, cmd.channelName)
 		})
 	}
 	/**
@@ -1229,7 +1280,7 @@ class VizMSEManager extends EventEmitter {
 		const elementIsExternal = cachedElement && this._isExternalElement(cachedElement.element)
 
 		if (elementIsExternal) {
-			const element = await rundown.getElement(elementRef)
+			const element = await rundown.getElement(elementRef, cachedElement.element.channel)
 			if (this._isExternalElement(element) && element.exists === 'no') {
 				throw new Error(`Can't take the element "${elementRef}" while it has the property exists="no"`)
 			}
@@ -1267,7 +1318,7 @@ class VizMSEManager extends EventEmitter {
 				// If the object already exists, it's not an error, fetch and use the element instead
 
 				const element = _.isNumber(cmd.templateName)
-					? await rundown.getElement(cmd.templateName)
+					? await rundown.getElement(cmd.templateName, cmd.channelName)
 					: await rundown.getElement(cmd.templateInstance)
 
 				this._cacheElement(elementHash, element)
@@ -1338,10 +1389,15 @@ class VizMSEManager extends EventEmitter {
 	 */
 	private async updateElementsLoadedStatus(forceReloadAll?: boolean) {
 		const hashesAndItems = await this._getExpectedPlayoutItems()
+		let someUnloaded = false
 		const elementsToLoad = _.compact(
 			_.map(hashesAndItems, (item, hash) => {
 				const el = this._getCachedElement(hash)
 				if (!item.noAutoPreloading && el) {
+					const cachedEl = this._elementsLoaded[hash]
+					if (cachedEl && cachedEl.wasLoaded && !cachedEl.isLoaded && !cachedEl.isLoading) {
+						someUnloaded = true
+					}
 					return {
 						...el,
 						item: item,
@@ -1364,6 +1420,10 @@ class VizMSEManager extends EventEmitter {
 			if (forceReloadAll) {
 				this._elementsLoaded = {}
 			}
+			if (someUnloaded) {
+				await this._triggerRundownActivate(rundown)
+			}
+
 			await Promise.all(
 				_.map(elementsToLoad, async (e) => {
 					const cachedEl = this._elementsLoaded[e.hash]
@@ -1373,7 +1433,7 @@ class VizMSEManager extends EventEmitter {
 						this.emit('debug', `Updating status of element ${elementRef}`)
 
 						// Update cached status of the element:
-						const newEl = await rundown.getElement(elementRef)
+						const newEl = await rundown.getElement(elementRef, e.element.channel)
 
 						const newLoadedEl = {
 							element: newEl,
@@ -1413,7 +1473,7 @@ class VizMSEManager extends EventEmitter {
 									'debug',
 									`Element "${this._getElementReference(newEl)}" went from loaded to not loaded, initializing`
 								)
-								await rundown.initialize(this._getElementReference(newEl))
+								await rundown.initialize(this._getElementReference(newEl), newEl.channel)
 							}
 						}
 					} catch (e) {
@@ -1429,6 +1489,17 @@ class VizMSEManager extends EventEmitter {
 		} else {
 			throw Error('VizMSE.v-connection not initialized yet')
 		}
+	}
+	private async _triggerRundownActivate(rundown: VRundown): Promise<void> {
+		try {
+			this.emit('debug', 'rundown.activate triggered')
+			await rundown.activate()
+		} catch (error) {
+			this.emit('warning', `Ignored error for rundown.activate(): ${error}`)
+		}
+		this._triggerCommandSent()
+		await this._wait(1000)
+		this._triggerCommandSent()
 	}
 	/**
 	 * Trigger a load of all elements that are not yet loaded onto the vizEngine.
@@ -1451,15 +1522,7 @@ class VizMSEManager extends EventEmitter {
 			// Then, load all elements that needs loading:
 			const loadAllElementsThatNeedsLoading = async () => {
 				this._triggerCommandSent()
-				try {
-					this.emit('debug', 'rundown.activate triggered')
-					await rundown.activate() // Our theory: an extra initialization of the rundown playlist loads all internal elements
-				} catch (error) {
-					this.emit('warning', `Ignored error for rundown.activate(): ${error}`)
-				}
-				this._triggerCommandSent()
-				await this._wait(1000)
-				this._triggerCommandSent()
+				await this._triggerRundownActivate(rundown)
 				await Promise.all(
 					_.map(this._elementsLoaded, async (e) => {
 						if (this._isInternalElement(e.element)) {
@@ -1474,7 +1537,7 @@ class VizMSEManager extends EventEmitter {
 							} else {
 								// The element has not started loading, load it:
 								this.emit('debug', `Element "${this._getElementReference(e.element)}" is not loaded, initializing`)
-								await rundown.initialize(this._getElementReference(e.element))
+								await rundown.initialize(this._getElementReference(e.element), e.element.channel)
 							}
 						} else {
 							this.emit('error', `Element "${this._getElementReference(e.element)}" type `)
@@ -1732,20 +1795,27 @@ class VizMSEManager extends EventEmitter {
 
 			this._getRundownPromise = getRundownPromise
 
-			const rundown = await this._getRundownPromise
-
-			this._rundown = rundown
-			return rundown
+			try {
+				const rundown = await this._getRundownPromise
+				this._rundown = rundown
+				return rundown
+			} catch (e) {
+				this._getRundownPromise = undefined
+				throw e
+			}
 		} else {
 			return this._rundown
 		}
 	}
 	private mseConnectionChanged(connected: boolean) {
 		if (connected !== this._mseConnected) {
-			this._mseConnected = connected
 			if (connected) {
-				this._updateAfterReconnect = true
+				// not the first connection
+				if (this._mseConnected === false) {
+					this._updateAfterReconnect = true
+				}
 			}
+			this._mseConnected = connected
 			this.onConnectionChanged()
 		}
 	}
