@@ -160,7 +160,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 
 	private _interval: NodeJS.Timer
 	private _timelineHash: string | undefined
-	private activeRundownId: string | undefined
+	private activationId: string | undefined
 
 	constructor(options: ConductorOptions = {}) {
 		super()
@@ -587,21 +587,17 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 	/**
 	 * Send a makeReady-trigger to all devices
 	 */
-	public async devicesMakeReady(okToDestroyStuff?: boolean, activeRundownId?: string): Promise<void> {
-		this.activeRundownId = activeRundownId
+	public async devicesMakeReady(okToDestroyStuff?: boolean, activationId?: string): Promise<void> {
+		this.activationId = activationId
 		this.emit(
 			'debug',
 			`devicesMakeReady, ${okToDestroyStuff ? 'okToDestroyStuff' : 'undefined'}, ${
-				activeRundownId ? activeRundownId : 'undefined'
+				activationId ? activationId : 'undefined'
 			}`
 		)
 		await this._actionQueue.add(async () => {
 			await this._mapAllDevices((d) =>
-				PTimeout(
-					d.device.makeReady(okToDestroyStuff, activeRundownId),
-					10000,
-					`makeReady for "${d.deviceId}" timed out`
-				)
+				PTimeout(d.device.makeReady(okToDestroyStuff, activationId), 10000, `makeReady for "${d.deviceId}" timed out`)
 			)
 
 			this._triggerResolveTimeline()
@@ -611,7 +607,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 	 * Send a standDown-trigger to all devices
 	 */
 	public async devicesStandDown(okToDestroyStuff?: boolean): Promise<void> {
-		this.activeRundownId = undefined
+		this.activationId = undefined
 		this.emit('debug', `devicesStandDown, ${okToDestroyStuff ? 'okToDestroyStuff' : 'undefined'}`)
 		await this._actionQueue.add(async () => {
 			await this._mapAllDevices((d) =>
@@ -1180,7 +1176,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 	 * This is used to reduce unnesessary logging
 	 */
 	private emitWhenActive(eventType: keyof ConductorEvents, ...args: any[]): void {
-		if (this.activeRundownId) {
+		if (this.activationId) {
 			this.emit(eventType, ...args)
 		}
 	}
