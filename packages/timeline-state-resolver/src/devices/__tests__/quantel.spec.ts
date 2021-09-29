@@ -101,8 +101,6 @@ describe('Quantel', () => {
 			expect.any(String)
 		)
 
-		expect(onRequest).toHaveBeenCalledTimes(6)
-
 		// Connect to ISA
 		expect(onRequest).toHaveBeenNthCalledWith(1, 'post', 'http://localhost:3000/connect/myISA%3A8000')
 		// get initial server info
@@ -148,7 +146,7 @@ describe('Quantel', () => {
 
 		clearMocks()
 		quantelServer.ignoreConnectivityCheck = false
-		quantelServer.port = {}
+		quantelServer.ports = {}
 	})
 	test('Play and stop', async () => {
 		const { commandReceiver0, myConductor, errorHandler, deviceErrorHandler } = await setupDefaultQuantelDeviceForTest()
@@ -1830,7 +1828,7 @@ describe('Quantel', () => {
 		expect(deviceErrorHandler).toHaveBeenCalledTimes(0)
 	})
 	test('Preload fragments from non-existing clip (retry)', async () => {
-		const { commandReceiver0, myConductor } = await setupDefaultQuantelDeviceForTest()
+		const { commandReceiver0, myConductor, errorHandler, deviceErrorHandler } = await setupDefaultQuantelDeviceForTest()
 
 		quantelServer.noClipsFound = true
 
@@ -1911,6 +1909,84 @@ describe('Quantel', () => {
 		expect(onRequest).toHaveBeenNthCalledWith(6, 'put', expect.stringContaining('port/my_port/jump?offset=0'))
 		expect(onRequest).toHaveBeenNthCalledWith(7, 'post', expect.stringContaining('port/my_port/trigger/STOP'))
 		expect(onRequest).toHaveBeenNthCalledWith(8, 'post', expect.stringContaining('port/my_port/trigger/JUMP'))
+
+		expect(errorHandler).toHaveBeenCalledTimes(0)
+		expect(deviceErrorHandler).toHaveBeenCalledTimes(0)
+
+		clearMocks()
+		commandReceiver0.mockClear()
+	})
+	test('Rename a port', async () => {
+		const { commandReceiver0, myConductor, errorHandler, deviceErrorHandler } = await setupDefaultQuantelDeviceForTest()
+
+		const mappings = myConductor.mapping
+		const mapping = mappings['myLayer0'] as MappingQuantel
+		expect(mapping).toBeTruthy()
+
+		// Rename the port to something else
+		mapping.portId = 'myNewPort'
+
+		myConductor.setTimelineAndMappings([], mappings)
+		await mockTime.advanceTimeTicks(50)
+
+		// console.log('commandReceiver0', commandReceiver0.mock.calls)
+		expect(commandReceiver0).toHaveBeenCalledTimes(2)
+
+		expect(commandReceiver0).toHaveBeenNthCalledWith(
+			1,
+			10105,
+			expect.objectContaining({
+				type: QuantelCommandType.RELEASEPORT,
+				portId: 'my_port',
+			}),
+			expect.any(String),
+			expect.any(String)
+		)
+		expect(commandReceiver0).toHaveBeenNthCalledWith(
+			2,
+			10105,
+			expect.objectContaining({
+				type: QuantelCommandType.SETUPPORT,
+				portId: 'myNewPort',
+			}),
+			expect.any(String),
+			expect.any(String)
+		)
+
+		expect(onRequest).toHaveBeenCalledTimes(1)
+		expect(onRequest).toHaveBeenNthCalledWith(1, 'delete', expect.stringContaining('/default/server/1100/port/my_port'))
+
+		commandReceiver0.mockClear()
+		onRequest.mockClear()
+		await mockTime.advanceTimeTicks(500)
+
+		expect(commandReceiver0).toHaveBeenCalledTimes(1)
+		expect(commandReceiver0).toHaveBeenNthCalledWith(
+			1,
+			10205, // should be ca 100ms after the previous call
+			expect.objectContaining({
+				type: QuantelCommandType.CLEARCLIP,
+				portId: 'myNewPort',
+			}),
+			expect.any(String),
+			expect.any(String)
+		)
+
+		expect(onRequest).toHaveBeenCalledTimes(3)
+		expect(onRequest).toHaveBeenNthCalledWith(1, 'get', expect.stringContaining('/default/server/1100/port/myNewPort'))
+		expect(onRequest).toHaveBeenNthCalledWith(
+			2,
+			'put',
+			expect.stringContaining('/default/server/1100/port/myNewPort/channel/2')
+		)
+		expect(onRequest).toHaveBeenNthCalledWith(
+			3,
+			'post',
+			expect.stringContaining('/default/server/1100/port/myNewPort/reset')
+		)
+
+		expect(errorHandler).toHaveBeenCalledTimes(0)
+		expect(deviceErrorHandler).toHaveBeenCalledTimes(0)
 
 		clearMocks()
 		commandReceiver0.mockClear()
