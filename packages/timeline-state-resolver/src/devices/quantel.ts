@@ -543,7 +543,15 @@ export class QuantelDevice extends DeviceWithState<QuantelState, DeviceOptionsQu
 			)
 		})
 
-		return highPrioCommands.concat(lowPrioCommands)
+		const allCommands = highPrioCommands.concat(lowPrioCommands)
+
+		allCommands.sort((a, b) => {
+			// Release ports should always be done first:
+			if (a.type === QuantelCommandType.RELEASEPORT && b.type !== QuantelCommandType.RELEASEPORT) return -1
+			if (a.type !== QuantelCommandType.RELEASEPORT && b.type === QuantelCommandType.RELEASEPORT) return 1
+			return 0
+		})
+		return allCommands
 	}
 	private _doCommand(command: QuantelCommand, context: string, timlineObjId: string): Promise<void> {
 		const time = this.getCurrentTime()
@@ -643,6 +651,8 @@ class QuantelManager extends EventEmitter {
 			cmd: QuantelCommandClip
 		}
 	} = {}
+	private waitingForReleaseChannel = new Map<number, Promise<any>>() // maps channel to Promise
+
 	constructor(
 		private _quantel: QuantelGateway,
 		private getCurrentTime: () => number,
@@ -658,6 +668,9 @@ class QuantelManager extends EventEmitter {
 
 		// Check if the port is already set up
 		if (!trackedPort || trackedPort.channel !== cmd.channel) {
+			// Before doing anything, wait for any releasePort to finish:
+			await (this.waitingForReleaseChannel.get(cmd.channel) || Promise.resolve())
+
 			let port: Q.PortStatus | null = null
 			// Setup a port and connect it to a channel
 			try {
@@ -692,14 +705,19 @@ class QuantelManager extends EventEmitter {
 	}
 	public async releasePort(cmd: QuantelCommandReleasePort): Promise<void> {
 		try {
-			await this._quantel.releasePort(cmd.portId)
+			const channel = this._quantelState.port[cmd.portId].channel
+
+			const p = this._quantel.releasePort(cmd.portId)
+			this.waitingForReleaseChannel.set(channel, p)
+			await p
+			this.waitingForReleaseChannel.delete(channel)
 		} catch (e) {
 			if (e.status !== 404) {
 				// releasing a non-existent port is OK
 				throw e
 			}
 		}
-		// Store to the local tracking state:
+		// Delete the local tracking state:
 		delete this._quantelState.port[cmd.portId]
 	}
 	public async tryLoadClipFragments(cmd: QuantelCommandLoadClipFragments, fromRetry?: boolean): Promise<void> {
