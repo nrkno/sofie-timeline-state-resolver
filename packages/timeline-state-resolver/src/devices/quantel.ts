@@ -624,7 +624,10 @@ export class QuantelDevice extends DeviceWithState<QuantelState, DeviceOptionsQu
 				throw new Error(`Unsupported command type "${cmdType}"`)
 			}
 		} catch (error) {
-			const errorString = error && error.message ? error.message : error.toString()
+			let errorString = error && error.message ? error.message : error.toString()
+			if (error?.stack) {
+				errorString += error.stack
+			}
 			this.emit('commandError', new Error(errorString), cwc)
 		}
 	}
