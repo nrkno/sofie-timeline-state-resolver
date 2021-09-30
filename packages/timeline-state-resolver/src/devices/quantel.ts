@@ -98,15 +98,18 @@ export class QuantelDevice extends DeviceWithState<QuantelState, DeviceOptionsQu
 
 	async init(initOptions: QuantelOptions): Promise<boolean> {
 		this._initOptions = initOptions
-		const ISAUrlMaster = this._initOptions.ISAUrlMaster || this._initOptions['ISAUrl'] // tmp: ISAUrl for backwards compatibility, to be removed later
+		const ISAUrlMaster: string = this._initOptions.ISAUrlMaster || this._initOptions['ISAUrl'] // tmp: ISAUrl for backwards compatibility, to be removed later
 		if (!this._initOptions.gatewayUrl) throw new Error('Quantel bad connection option: gatewayUrl')
 		if (!ISAUrlMaster) throw new Error('Quantel bad connection option: ISAUrlMaster')
 		if (!this._initOptions.serverId) throw new Error('Quantel bad connection option: serverId')
 
+		const isaURLs: string[] = []
+		if (ISAUrlMaster) isaURLs.push(ISAUrlMaster)
+		if (this._initOptions.ISAUrlBackup) isaURLs.push(this._initOptions.ISAUrlBackup)
+
 		await this._quantel.init(
 			this._initOptions.gatewayUrl,
-			ISAUrlMaster,
-			this._initOptions.ISAUrlBackup,
+			isaURLs,
 			this._initOptions.zoneId,
 			this._initOptions.serverId
 		)
@@ -195,7 +198,11 @@ export class QuantelDevice extends DeviceWithState<QuantelState, DeviceOptionsQu
 		return DeviceType.QUANTEL
 	}
 	get deviceName(): string {
-		return `Quantel ${this._quantel.ISAUrl}/${this._quantel.zoneId}/${this._quantel.serverId}`
+		try {
+			return `Quantel ${this._quantel.ISAUrl}/${this._quantel.zoneId}/${this._quantel.serverId}`
+		} catch (e) {
+			return `Quantel device (uninitialized)`
+		}
 	}
 
 	get queue() {
