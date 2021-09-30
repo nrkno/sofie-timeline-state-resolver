@@ -18,7 +18,7 @@ export class DeviceContainer<TOptions extends DeviceOptionsBase<any>> {
 	private _instanceId = -1
 	private _startTime = -1
 	private _onEventListener: { stop: () => void } | undefined
-	private _debugLogging: boolean = true
+	private _debugLogging = true
 
 	private constructor(deviceOptions: TOptions, threadConfig?: ThreadedClassConfig) {
 		this._deviceOptions = deviceOptions
