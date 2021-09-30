@@ -135,7 +135,7 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState, DeviceOptionsVizM
 		this._vizmseManager.on('info', (str) => this.emit('info', 'VizMSE: ' + str))
 		this._vizmseManager.on('warning', (str) => this.emit('warning', 'VizMSE' + str))
 		this._vizmseManager.on('error', (e) => this.emit('error', 'VizMSE', e))
-		this._vizmseManager.on('debug', (...args) => this.emit('debug', ...args))
+		this._vizmseManager.on('debug', (...args) => this.emitDebug(...args))
 
 		await this._vizmseManager.initializeRundown(activeRundownPlaylistId)
 
@@ -219,9 +219,9 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState, DeviceOptionsVizM
 		return true
 	}
 	public handleExpectedPlayoutItems(expectedPlayoutItems: Array<ExpectedPlayoutItem>): void {
-		this.emit('debug', 'VIZDEBUG: handleExpectedPlayoutItems called')
+		this.emitDebug('VIZDEBUG: handleExpectedPlayoutItems called')
 		if (this._vizmseManager) {
-			this.emit('debug', 'VIZDEBUG: manager exists')
+			this.emitDebug('VIZDEBUG: manager exists')
 			this._vizmseManager.setExpectedPlayoutItems(expectedPlayoutItems)
 		}
 	}
@@ -670,7 +670,7 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState, DeviceOptionsVizM
 			})
 		}
 
-		this.emit('debug', `VIZMSE: COMMANDS: ${JSON.stringify(sortCommands(concatCommands))}`)
+		this.emitDebug(`VIZMSE: COMMANDS: ${JSON.stringify(sortCommands(concatCommands))}`)
 
 		return sortCommands(concatCommands)
 	}
@@ -723,7 +723,7 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState, DeviceOptionsVizM
 			timelineObjId: timelineObjId,
 			command: cmd,
 		}
-		this.emit('debug', cwc)
+		this.emitDebug(cwc)
 
 		try {
 			if (this._vizmseManager) {

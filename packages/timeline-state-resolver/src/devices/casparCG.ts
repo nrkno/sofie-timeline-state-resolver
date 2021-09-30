@@ -293,7 +293,7 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 				vfilter: mediaObj.content.videoFilter,
 				afilter: mediaObj.content.audioFilter,
 			})
-			// this.emit('debug', stateLayer)
+			// this.emitDebug(stateLayer)
 		} else if (layer.content.type === TimelineContentTypeCasparCg.IP) {
 			const ipObj = layer as any as TimelineObjCCGIP
 
@@ -832,7 +832,7 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 			timelineObjId: timelineObjId,
 			command: JSON.stringify(cmd),
 		}
-		this.emit('debug', cwc)
+		this.emitDebug(cwc)
 
 		return this._ccg
 			.do(cmd)

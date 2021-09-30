@@ -348,7 +348,7 @@ export class TCPSendDevice extends DeviceWithState<TSCSendState, DeviceOptionsTC
 			command: cmd,
 			timelineObjId: timelineObjId,
 		}
-		this.emit('debug', cwc)
+		this.emitDebug(cwc)
 
 		if (cmd.message) {
 			return this._sendTCPMessage(cmd.message)

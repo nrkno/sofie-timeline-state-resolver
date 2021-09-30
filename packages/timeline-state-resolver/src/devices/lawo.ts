@@ -161,7 +161,7 @@ export class LawoDevice extends DeviceWithState<LawoState, DeviceOptionsLawoInte
 			}
 		})
 		// this._lawo.on('warn', (w) => {
-		// 	this.emit('debug', 'Warning: Lawo.Emberplus', w)
+		// 	this.emitDebug('Warning: Lawo.Emberplus', w)
 		// })
 		let firstConnection = true
 		this._lawo.on('connected', async () => {
@@ -496,7 +496,7 @@ export class LawoDevice extends DeviceWithState<LawoState, DeviceOptionsLawoInte
 			command: command,
 			timelineObjId: timelineObjId,
 		}
-		this.emit('debug', cwc)
+		this.emitDebug(cwc)
 
 		// save start time of command
 		const startSend = this.getCurrentTime()
@@ -543,7 +543,7 @@ export class LawoDevice extends DeviceWithState<LawoState, DeviceOptionsLawoInte
 						{ type: EmberModel.ParameterType.Real, value: command.value },
 						{ type: EmberModel.ParameterType.Real, value: command.transitionDuration / 1000 }
 					)
-					this.emit('debug', `Ember function invoked (${timelineObjId}, ${command.identifier}, ${command.value})`)
+					this.emitDebug(`Ember function invoked (${timelineObjId}, ${command.identifier}, ${command.value})`)
 					const res = await req.response
 					if (res && res.success === false) {
 						const reasons = {
@@ -574,13 +574,12 @@ export class LawoDevice extends DeviceWithState<LawoState, DeviceOptionsLawoInte
 								new Error('Lawo Result ' + res.result![0].value)
 							)
 						}
-						this.emit('debug', `Lawo: Ember fn error ${command.identifier}): result ${result}: ${reasons[result]}`, {
+						this.emitDebug(`Lawo: Ember fn error ${command.identifier}): result ${result}: ${reasons[result]}`, {
 							...res,
 							source: command.identifier,
 						})
 					} else {
-						this.emit(
-							'debug',
+						this.emitDebug(
 							`Ember function result (${timelineObjId}, ${command.identifier}): ${JSON.stringify(res)}`,
 							res
 						)
@@ -607,7 +606,7 @@ export class LawoDevice extends DeviceWithState<LawoState, DeviceOptionsLawoInte
 			const req = await this._lawo.setValue(node, value, logResult)
 			if (logResult) {
 				const res = await req.response
-				this.emit('debug', `Ember result (${timelineObjId}): ${res && res.contents.value}`, {
+				this.emitDebug(`Ember result (${timelineObjId}): ${res && res.contents.value}`, {
 					command,
 					res: res && res.contents,
 				})

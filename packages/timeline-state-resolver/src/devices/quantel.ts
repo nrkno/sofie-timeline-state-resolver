@@ -75,7 +75,7 @@ export class QuantelDevice extends DeviceWithState<QuantelState, DeviceOptionsQu
 			this.emit('warning', `Quantel: ${typeof x === 'string' ? x : JSON.stringify(x)}`)
 		)
 		this._quantelManager.on('error', (e) => this.emit('error', 'Quantel: ', e))
-		this._quantelManager.on('debug', (...args) => this.emit('debug', ...args))
+		this._quantelManager.on('debug', (...args) => this.emitDebug(...args))
 
 		this._doOnTime = new DoOnTime(
 			() => {
@@ -610,7 +610,7 @@ export class QuantelDevice extends DeviceWithState<QuantelState, DeviceOptionsQu
 			timelineObjId: timelineObjId,
 			command: cmd,
 		}
-		this.emit('debug', cwc)
+		this.emitDebug(cwc)
 
 		try {
 			const cmdType = cmd.type

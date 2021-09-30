@@ -239,7 +239,7 @@ export class HTTPSendDevice extends DeviceWithState<HTTPSendState, DeviceOptions
 			command: cmd,
 			timelineObjId: timelineObjId,
 		}
-		this.emit('debug', cwc)
+		this.emitDebug(cwc)
 
 		const t = Date.now()
 		debug(`${cmd.type}: ${cmd.url} ${JSON.stringify(cmd.params)} (${timelineObjId})`)
@@ -251,8 +251,7 @@ export class HTTPSendDevice extends DeviceWithState<HTTPSendState, DeviceOptions
 			})
 
 			if (response.statusCode === 200) {
-				this.emit(
-					'debug',
+				this.emitDebug(
 					`HTTPSend: ${cmd.type}: Good statuscode response on url "${cmd.url}": ${response.statusCode} (${context})`
 				)
 			} else {

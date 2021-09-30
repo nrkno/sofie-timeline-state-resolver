@@ -264,7 +264,7 @@ export class ShotokuDevice extends DeviceWithState<ShotokuDeviceState, DeviceOpt
 			command: cmd,
 			timelineObjId: timelineObjId,
 		}
-		this.emit('debug', cwc)
+		this.emitDebug(cwc)
 
 		try {
 			if (this._shotoku.connected) {
