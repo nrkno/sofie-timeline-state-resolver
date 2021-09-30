@@ -15,11 +15,17 @@ export function setupQuantelGatewayMock() {
 		ignoreConnectivityCheck: false,
 		ISAOptionHasBeenProvided: false,
 		noClipsFound: false,
-		port: {
-			my_port: {
-				endOfData: 0,
-				offset: -1,
-			},
+		ports: {
+			// my_port: {
+			// 	endOfData: 0,
+			// 	offset: -1,
+			// },
+		},
+		channels: {
+			'0': null,
+			'1': null,
+			'2': null,
+			'3': null,
 		},
 	}
 
@@ -73,11 +79,15 @@ interface QuantelServerMockOptions {
 	ignoreConnectivityCheck: boolean
 	ISAOptionHasBeenProvided: boolean
 	noClipsFound: boolean
-	port: {
+	ports: {
 		[port: string]: QuantelServerMockOptionsPort
+	}
+	channels: {
+		[channel: string]: string | null // maps channels to port
 	}
 }
 interface QuantelServerMockOptionsPort {
+	channel: number
 	playing?: boolean
 	endOfData: number
 	offset: number
@@ -88,8 +98,12 @@ interface ErrorResponse {
 	message: string
 	stack: string
 }
-function urlRoute(requestType: string, url: string, routes: { [route: string]: (params: Params) => object }): object {
-	let body: any = {
+async function urlRoute(
+	requestType: string,
+	url: string,
+	routes: { [route: string]: (params: Params) => object | Promise<object> }
+): Promise<any> {
+	let responseBody: any = {
 		status: 404,
 		message: `(Mock) Not found. Request ${requestType} ${url}`,
 		stack: '',
@@ -98,43 +112,40 @@ function urlRoute(requestType: string, url: string, routes: { [route: string]: (
 	const matchUrl = `${requestType} ${url}`
 	let reroutedParams: any = null
 
-	let found = false
 	const routeKeys = Object.keys(routes).sort((a, b) => {
 		if (a.length < b.length) return 1
 		if (a.length > b.length) return -1
 		return 0
 	})
-	routeKeys.forEach((route) => {
-		if (!found) {
-			const callback = routes[route]
+	for (const routeKey of routeKeys) {
+		const callback = routes[routeKey]
 
-			const paramList = route.match(/(:[^/]+)/g) || []
+		const paramList = routeKey.match(/(:[^/]+)/g) || []
 
-			route = route.replace(/\?/g, '\\?')
+		let route = routeKey.replace(/\?/g, '\\?')
 
-			paramList.forEach((param) => {
-				route = route.replace(param, '([^\\/&]+)')
+		paramList.forEach((param) => {
+			route = route.replace(param, '([^\\/&]+)')
+		})
+		const m = matchUrl.match(new RegExp(route))
+		if (m) {
+			const params: Params = {}
+			paramList.forEach((param, index: number) => {
+				const p = param.slice(1) // remove the prepended ':'
+				params[p] = m[index + 1]
 			})
-			const m = matchUrl.match(new RegExp(route))
-			if (m) {
-				const params: Params = {}
-				paramList.forEach((param, index: number) => {
-					const p = param.slice(1) // remove the prepended ':'
-					params[p] = m[index + 1]
-				})
 
-				body = callback(reroutedParams || params)
+			responseBody = await Promise.resolve(callback(reroutedParams || params))
 
-				if (body.__reroute === true) {
-					// reroute to another other route
-					if (!reroutedParams) reroutedParams = params
-				} else {
-					found = true
-				}
+			if (responseBody.__reroute === true) {
+				// reroute to another other route
+				if (!reroutedParams) reroutedParams = params
+			} else {
+				break
 			}
 		}
-	})
-	return body
+	}
+	return responseBody
 }
 function handleRequest(quantelServer: QuantelServerMockOptions, triggerFcn: Function, type: string, options: any) {
 	const url = options.url
@@ -144,9 +155,6 @@ function handleRequest(quantelServer: QuantelServerMockOptions, triggerFcn: Func
 
 		try {
 			const resource = (url.match(/http:\/\/[^/]+(.*)/) || [])[1] || ''
-
-			let body: object = {}
-			// let m: any
 
 			const searchClip = (params): Q.ClipDataSummary[] | ErrorResponse => {
 				if (!quantelServer.ISAOptionHasBeenProvided) return noIsaSetupResponse
@@ -212,7 +220,7 @@ function handleRequest(quantelServer: QuantelServerMockOptions, triggerFcn: Func
 			}
 			// console.log(type, resource)
 
-			body = urlRoute(type, resource, {
+			urlRoute(type, resource, {
 				// @ts-ignore: no need for params
 				'post /connect/:isaURL': (_params) => {
 					quantelServer.ISAOptionHasBeenProvided = true
@@ -260,7 +268,28 @@ function handleRequest(quantelServer: QuantelServerMockOptions, triggerFcn: Func
 				// Create Port:
 				'put /:zoneID/server/:serverID/port/:portID/channel/:channelID': (params): Q.PortInfo | ErrorResponse => {
 					if (!quantelServer.ISAOptionHasBeenProvided) return noIsaSetupResponse
-					quantelServer.port[params.portID] = {
+
+					if (quantelServer.channels[params.channelID]) {
+						return {
+							status: 400,
+							message: `Bad request. Cannot assign channel '${params.channelID}' to port '${
+								params.portID
+							}' on server '${params.serverID}' as it is already assigned to port '${
+								quantelServer.channels[params.channelID]
+							}'`,
+							stack: '',
+						}
+					}
+					if (quantelServer.ports[params.portID]) {
+						return {
+							status: 400,
+							message: `Port already created`,
+							stack: '',
+						}
+					}
+
+					quantelServer.ports[params.portID] = {
+						channel: parseInt(params.channelID),
 						endOfData: 0,
 						offset: -1,
 						playing: false,
@@ -276,9 +305,27 @@ function handleRequest(quantelServer: QuantelServerMockOptions, triggerFcn: Func
 					}
 				},
 				// Release Port
-				'delete /:zoneID/server/:serverID/port/:portID': (params): Q.ReleaseStatus | ErrorResponse => {
+				'delete /:zoneID/server/:serverID/port/:portID': async (params): Promise<Q.ReleaseStatus | ErrorResponse> => {
 					if (!quantelServer.ISAOptionHasBeenProvided) return noIsaSetupResponse
-					delete quantelServer.port[params.portID]
+
+					await sleep(100)
+
+					const port = quantelServer.ports[params.portID]
+
+					if (!port) {
+						return {
+							status: 500,
+							message: 'Mock releasing unknown port',
+							stack: '',
+						}
+					}
+
+					if (quantelServer.channels[`${port.channel}`] === undefined) {
+						throw new Error(`Mock channel ${port.channel} not found`)
+					}
+
+					quantelServer.channels[`${port.channel}`] = null
+					delete quantelServer.ports[params.portID]
 					return {
 						type: 'ReleaseStatus',
 						serverID: params.serverID,
@@ -290,7 +337,7 @@ function handleRequest(quantelServer: QuantelServerMockOptions, triggerFcn: Func
 				// Port info:
 				'get /:zoneID/server/:serverID/port/:portID': (params): Q.PortStatus | ErrorResponse => {
 					if (!quantelServer.ISAOptionHasBeenProvided) return noIsaSetupResponse
-					const port = quantelServer.port[params.portID]
+					const port = quantelServer.ports[params.portID]
 					if (port) {
 						let status: Q.PortStatus['status'] = 'unknown'
 
@@ -544,12 +591,28 @@ function handleRequest(quantelServer: QuantelServerMockOptions, triggerFcn: Func
 					}
 				},
 				// Load fragments onto port:
-				'post /:zoneID/server/:serverID/port/:portID/fragments?offset=:offset': () => {
+				'post /:zoneID/server/:serverID/port/:portID/fragments?offset=:offset': (params) => {
 					if (!quantelServer.ISAOptionHasBeenProvided) return noIsaSetupResponse
+
+					if (!quantelServer.ports[params.portID]) {
+						return {
+							status: 500,
+							message: `Port '${params.portID}' not found.`,
+							stack: '',
+						}
+					}
 					return { __reroute: true }
 				},
 				'post /:zoneID/server/:serverID/port/:portID/fragments': (params): Q.PortLoadStatus | ErrorResponse => {
 					if (!quantelServer.ISAOptionHasBeenProvided) return noIsaSetupResponse
+					if (!quantelServer.ports[params.portID]) {
+						return {
+							status: 500,
+							message: `Port '${params.portID}' not found.`,
+							stack: '',
+						}
+					}
+
 					if (params.portID === 'my_port') {
 						if (!_.isArray(bodyData)) throw new Error('Bad body data')
 
@@ -560,7 +623,7 @@ function handleRequest(quantelServer: QuantelServerMockOptions, triggerFcn: Func
 						})
 						endOfData += parseInt(params.offset, 10) || 0
 
-						quantelServer.port[params.portID].endOfData = endOfData
+						quantelServer.ports[params.portID].endOfData = endOfData
 
 						return {
 							type: 'PortLoadStatus',
@@ -580,11 +643,30 @@ function handleRequest(quantelServer: QuantelServerMockOptions, triggerFcn: Func
 				// Reset port (remove all fragments and reset playhead)
 				'post /:zoneID/server/:serverID/port/:portID/reset': (params): Q.ReleaseStatus | ErrorResponse => {
 					if (!quantelServer.ISAOptionHasBeenProvided) return noIsaSetupResponse
-					// (?start=:start&finish=:finish)
+
+					if (!quantelServer.ports[params.portID]) {
+						return {
+							status: 500,
+							message: `Port '${params.portID}' not found.`,
+							stack: '',
+						}
+					}
+
 					if (params.portID === 'my_port') {
-						quantelServer.port[params.portID].endOfData = 0
-						quantelServer.port[params.portID].offset = -1
-						quantelServer.port[params.portID].playing = false
+						quantelServer.ports[params.portID].endOfData = 0
+						quantelServer.ports[params.portID].offset = -1
+						quantelServer.ports[params.portID].playing = false
+						return {
+							type: 'ReleaseStatus',
+							serverID: params.serverID,
+							portName: 'my_port',
+							released: false,
+							resetOnly: true,
+						}
+					} else if (params.portID === 'myNewPort') {
+						quantelServer.ports[params.portID].endOfData = 0
+						quantelServer.ports[params.portID].offset = -1
+						quantelServer.ports[params.portID].playing = false
 						return {
 							type: 'ReleaseStatus',
 							serverID: params.serverID,
@@ -593,6 +675,7 @@ function handleRequest(quantelServer: QuantelServerMockOptions, triggerFcn: Func
 							resetOnly: true,
 						}
 					}
+
 					return {
 						status: 404,
 						message: `Wrong port id '${params.portID}'`,
@@ -602,9 +685,17 @@ function handleRequest(quantelServer: QuantelServerMockOptions, triggerFcn: Func
 				// Clear fragments from port (wipe, clear all fragments behind playhead):
 				'delete /:zoneID/server/:serverID/port/:portID/fragments': (params): Q.WipeResult | ErrorResponse => {
 					if (!quantelServer.ISAOptionHasBeenProvided) return noIsaSetupResponse
-					// (?start=:start&finish=:finish)
+
+					if (!quantelServer.ports[params.portID]) {
+						return {
+							status: 500,
+							message: `Port '${params.portID}' not found.`,
+							stack: '',
+						}
+					}
+
 					if (params.portID === 'my_port') {
-						quantelServer.port[params.portID].endOfData = 0
+						quantelServer.ports[params.portID].endOfData = 0
 						return {
 							type: 'WipeResult',
 							wiped: true,
@@ -622,7 +713,15 @@ function handleRequest(quantelServer: QuantelServerMockOptions, triggerFcn: Func
 				'put /:zoneID/server/:serverID/port/:portID/jump?offset=:offset': (params): Q.JumpResult | ErrorResponse => {
 					if (!quantelServer.ISAOptionHasBeenProvided) return noIsaSetupResponse
 
-					quantelServer.port[params.portID].jumpOffset = params.offset
+					if (!quantelServer.ports[params.portID]) {
+						return {
+							status: 500,
+							message: `Port '${params.portID}' not found.`,
+							stack: '',
+						}
+					}
+
+					quantelServer.ports[params.portID].jumpOffset = params.offset
 					if (params.portID === 'my_port') {
 						return {
 							type: 'TriggeredJumpResult',
@@ -643,13 +742,21 @@ function handleRequest(quantelServer: QuantelServerMockOptions, triggerFcn: Func
 					params
 				): Q.JumpResult | ErrorResponse => {
 					if (!quantelServer.ISAOptionHasBeenProvided) return noIsaSetupResponse
+					if (!quantelServer.ports[params.portID]) {
+						return {
+							status: 500,
+							message: `Port '${params.portID}' not found.`,
+							stack: '',
+						}
+					}
+
 					if (params.trigger.match(/START/) || params.trigger.match(/STOP/) || params.trigger.match(/JUMP/)) {
-						quantelServer.port[params.portID].offset = params.offset
+						quantelServer.ports[params.portID].offset = params.offset
 						if (params.portID === 'my_port') {
 							return {
 								type: 'TriggeredJumpResult',
 								success: true,
-								offset: quantelServer.port[params.portID].offset,
+								offset: quantelServer.ports[params.portID].offset,
 								serverID: params.serverID,
 								portName: params.portID,
 							}
@@ -670,23 +777,31 @@ function handleRequest(quantelServer: QuantelServerMockOptions, triggerFcn: Func
 				// Trigger (start, stop, jump)
 				'post /:zoneID/server/:serverID/port/:portID/trigger/:trigger': (params): Q.JumpResult | ErrorResponse => {
 					if (!quantelServer.ISAOptionHasBeenProvided) return noIsaSetupResponse
+					if (!quantelServer.ports[params.portID]) {
+						return {
+							status: 500,
+							message: `Port '${params.portID}' not found.`,
+							stack: '',
+						}
+					}
+
 					if (params.trigger.match(/START/) || params.trigger.match(/STOP/) || params.trigger.match(/JUMP/)) {
 						if (params.trigger.match(/JUMP/)) {
-							const jumpOffset = quantelServer.port[params.portID].jumpOffset
+							const jumpOffset = quantelServer.ports[params.portID].jumpOffset
 							if (jumpOffset) {
-								quantelServer.port[params.portID].offset = jumpOffset
-								delete quantelServer.port[params.portID].jumpOffset
+								quantelServer.ports[params.portID].offset = jumpOffset
+								delete quantelServer.ports[params.portID].jumpOffset
 							}
 						} else if (params.trigger.match(/START/)) {
-							quantelServer.port[params.portID].playing = true
+							quantelServer.ports[params.portID].playing = true
 						} else if (params.trigger.match(/STOP/)) {
-							quantelServer.port[params.portID].playing = false
+							quantelServer.ports[params.portID].playing = false
 						}
 						if (params.portID === 'my_port') {
 							return {
 								type: 'TriggeredJumpResult',
 								success: true,
-								offset: quantelServer.port[params.portID].offset,
+								offset: quantelServer.ports[params.portID].offset,
 								serverID: params.serverID,
 								portName: params.portID,
 							}
@@ -716,13 +831,24 @@ function handleRequest(quantelServer: QuantelServerMockOptions, triggerFcn: Func
 					]
 				},
 			})
-			// console.log('got responding:', type, resource, body)
-
-			resolve({
-				statusCode: quantelServer.requestReturnsOK ? 200 : 500,
-				// body: JSON.stringify(body)
-				body: body,
-			})
+				.then((body) => {
+					// console.log('got responding:', type, resource, body)
+					resolve({
+						statusCode: quantelServer.requestReturnsOK ? 200 : 500,
+						// body: JSON.stringify(body)
+						body: body,
+					})
+				})
+				.catch((err) => {
+					resolve({
+						statusCode: 500,
+						body: JSON.stringify({
+							status: 500,
+							message: err.toString(),
+							stack: err.stack || '',
+						}),
+					})
+				})
 		} catch (e) {
 			resolve({
 				statusCode: 500,
@@ -734,4 +860,7 @@ function handleRequest(quantelServer: QuantelServerMockOptions, triggerFcn: Func
 			})
 		}
 	})
+}
+function sleep(time: number) {
+	return new Promise((resolve) => setTimeout(resolve, time))
 }
