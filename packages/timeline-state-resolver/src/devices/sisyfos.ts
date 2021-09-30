@@ -550,7 +550,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 			command: cmd,
 			timelineObjId: timelineObjId,
 		}
-		this.emit('debug', cwc)
+		this.emitDebug(cwc)
 
 		if (cmd.type === SisyfosCommandType.RESYNC) {
 			return this._makeReadyInner(true, true)

@@ -285,7 +285,7 @@ export class OSCMessageDevice extends DeviceWithState<OSCDeviceState, DeviceOpti
 			command: cmd,
 			timelineObjId: timelineObjId,
 		}
-		this.emit('debug', cwc)
+		this.emitDebug(cwc)
 		debug(cmd)
 
 		try {
@@ -330,7 +330,7 @@ export class OSCMessageDevice extends DeviceWithState<OSCDeviceState, DeviceOpti
 		}
 	}
 	private _defaultOscSender(msg: osc.OscMessage, address?: string | undefined, port?: number | undefined): void {
-		this.emit('debug', 'sending ' + msg.address)
+		this.emitDebug('sending ' + msg.address)
 		this._oscClient.send(msg, address, port)
 	}
 	private runAnimation() {

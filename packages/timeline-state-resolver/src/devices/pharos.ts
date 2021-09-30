@@ -376,7 +376,7 @@ export class PharosDevice extends DeviceWithState<PharosState, DeviceOptionsPhar
 			},
 			timelineObjId: timelineObjId,
 		}
-		this.emit('debug', cwc)
+		this.emitDebug(cwc)
 
 		// execute the command here
 		try {

@@ -177,8 +177,7 @@ export class AtemDevice extends DeviceWithState<DeviceState, DeviceOptionsAtemIn
 		if (this.firstStateAfterMakeReady) {
 			// emit a debug message with the states:
 			this.firstStateAfterMakeReady = false
-			this.emit(
-				'debug',
+			this.emitDebug(
 				JSON.stringify({
 					reason: 'firstStateAfterMakeReady',
 					before: (oldAtemState || {}).video,
@@ -420,7 +419,7 @@ export class AtemDevice extends DeviceWithState<DeviceState, DeviceOptionsAtemIn
 			command: command,
 			timelineObjId: timelineObjId,
 		}
-		this.emit('debug', cwc)
+		this.emitDebug(cwc)
 
 		return this._atem
 			.sendCommand(command)

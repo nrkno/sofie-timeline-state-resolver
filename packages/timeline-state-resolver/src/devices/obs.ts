@@ -628,7 +628,7 @@ export class OBSDevice extends DeviceWithState<OBSState, DeviceOptionsOBSInterna
 			command: cmd,
 			timelineObjId: timelineObjId,
 		}
-		this.emit('debug', cwc)
+		this.emitDebug(cwc)
 
 		return this._obs.send(cmd.command.requestName, cmd.command.args as any).catch((error) => {
 			this.emit('commandError', error, cwc)

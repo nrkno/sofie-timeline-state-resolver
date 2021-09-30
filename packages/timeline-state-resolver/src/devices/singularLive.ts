@@ -315,7 +315,7 @@ export class SingularLiveDevice extends DeviceWithState<SingularLiveState, Devic
 			command: cmd,
 			timelineObjId: timelineObjId,
 		}
-		this.emit('debug', cwc)
+		this.emitDebug(cwc)
 
 		const url = SINGULAR_LIVE_API + this._accessToken
 
@@ -325,8 +325,7 @@ export class SingularLiveDevice extends DeviceWithState<SingularLiveState, Devic
 					this.emit('error', `SingularLive.response error ${cmd.compositionName} (${context}`, error)
 					reject(error)
 				} else if (response.statusCode === 200) {
-					this.emit(
-						'debug',
+					this.emitDebug(
 						`SingularLive: ${cmd.compositionName}: Good statuscode response on url "${url}": ${response.statusCode} (${context})`
 					)
 					resolve()

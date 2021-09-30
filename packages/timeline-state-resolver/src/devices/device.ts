@@ -114,11 +114,13 @@ export abstract class Device<TOptions extends DeviceOptionsBase<any>>
 	protected _deviceOptions: TOptions
 	protected _reportAllCommands = false
 	protected _isActive = true
+	private debugLogging: boolean
 
 	constructor(deviceId: string, deviceOptions: TOptions, getCurrentTime: () => Promise<number>) {
 		super()
 		this._deviceId = deviceId
 		this._deviceOptions = deviceOptions
+		this.debugLogging = deviceOptions.debug ?? true // Default to true to keep backwards compatibility
 
 		this._instanceId = Math.floor(Math.random() * 10000)
 		this._startTime = Date.now()
@@ -201,6 +203,16 @@ export abstract class Device<TOptions extends DeviceOptionsBase<any>>
 		return Promise.resolve()
 	}
 	abstract getStatus(): DeviceStatus
+
+	setDebugLogging(debug: boolean) {
+		this.debugLogging = debug
+	}
+
+	protected emitDebug(...args: any[]) {
+		if (this.debugLogging) {
+			this.emit('debug', ...args)
+		}
+	}
 
 	get deviceId() {
 		return this._deviceId

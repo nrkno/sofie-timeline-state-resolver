@@ -18,10 +18,12 @@ export class DeviceContainer<TOptions extends DeviceOptionsBase<any>> {
 	private _instanceId = -1
 	private _startTime = -1
 	private _onEventListener: { stop: () => void } | undefined
+	private _debugLogging: boolean = true
 
 	private constructor(deviceOptions: TOptions, threadConfig?: ThreadedClassConfig) {
 		this._deviceOptions = deviceOptions
 		this._threadConfig = threadConfig
+		this._debugLogging = deviceOptions.debug || false
 	}
 
 	static async create<
@@ -77,6 +79,11 @@ export class DeviceContainer<TOptions extends DeviceOptionsBase<any>> {
 		await ThreadedClassManager.destroy(this._device)
 	}
 
+	public async setDebugLogging(debug: boolean): Promise<void> {
+		this._debugLogging = debug
+		await this._device.setDebugLogging(debug)
+	}
+
 	public get device(): ThreadedClass<Device<TOptions>> {
 		return this._device
 	}
@@ -100,5 +107,9 @@ export class DeviceContainer<TOptions extends DeviceOptionsBase<any>> {
 	}
 	public get startTime(): number {
 		return this._startTime
+	}
+
+	public get debugLogging(): boolean {
+		return this._debugLogging
 	}
 }

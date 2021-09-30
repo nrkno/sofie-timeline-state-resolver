@@ -615,7 +615,7 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState, DeviceOptionsH
 			timelineObjId: timelineObjId,
 			command: command,
 		}
-		this.emit('debug', cwc)
+		this.emitDebug(cwc)
 
 		return this._hyperdeck.sendCommand(command).catch((error) => {
 			this.emit('commandError', error, cwc)
