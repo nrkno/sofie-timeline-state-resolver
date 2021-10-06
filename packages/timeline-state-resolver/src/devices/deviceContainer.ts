@@ -19,6 +19,7 @@ export class DeviceContainer<TOptions extends DeviceOptionsBase<any>> {
 	private _startTime = -1
 	private _onEventListener: { stop: () => void } | undefined
 	private _debugLogging = true
+	private _initialized = false
 
 	private constructor(deviceOptions: TOptions, threadConfig?: ThreadedClassConfig) {
 		this._deviceOptions = deviceOptions
@@ -62,6 +63,16 @@ export class DeviceContainer<TOptions extends DeviceOptionsBase<any>> {
 		await container.reloadProps()
 
 		return container
+	}
+
+	get initialized() {
+		return this._initialized
+	}
+
+	public async init(initOptions: TOptions['options'], ...args: any[]): Promise<boolean> {
+		const res = await this._device.init(initOptions, ...args)
+		this._initialized = true
+		return res
 	}
 
 	public async reloadProps(): Promise<void> {

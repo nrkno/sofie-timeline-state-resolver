@@ -264,15 +264,32 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 		ThreadedClassManager.debug = this._logDebug
 	}
 
-	public getDevices(): Array<DeviceContainer<DeviceOptionsBase<any>>> {
-		return Array.from(this.devices.values())
+	public getDevices(includeUninitialized = false): Array<DeviceContainer<DeviceOptionsBase<any>>> {
+		if (includeUninitialized) {
+			return Array.from(this.devices.values())
+		} else {
+			return Array.from(this.devices.values()).filter((device) => device.initialized === true)
+		}
 	}
-	public getDevice(deviceId: string): DeviceContainer<DeviceOptionsBase<any>> | undefined {
-		return this.devices.get(deviceId)
+	public getDevice(
+		deviceId: string,
+		includeUninitialized = false
+	): DeviceContainer<DeviceOptionsBase<any>> | undefined {
+		if (includeUninitialized) {
+			return this.devices.get(deviceId)
+		} else {
+			const device = this.devices.get(deviceId)
+			if (device?.initialized) {
+				return device
+			} else {
+				return undefined
+			}
+		}
 	}
 
 	/**
-	 * Adds a a device that can be referenced by the timeline and mappings.
+	 * Adds a device that can be referenced by the timeline and mappings.
+	 * NOTE: use this with caution! if a device fails to initialise (i.e. because the hardware is turned off) this may never resolve. It is preferred to use createDevice and initDevice separately for this reason.
 	 * @param deviceId Id used by the mappings to reference the device.
 	 * @param deviceOptions The options used to initalize the device
 	 * @returns A promise that resolves with the created device, or rejects with an error message.
@@ -281,6 +298,53 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 		deviceId: string,
 		deviceOptions: DeviceOptionsAnyInternal,
 		activeRundownPlaylistId?: string
+	): Promise<DeviceContainer<DeviceOptionsBase<any>>> {
+		const newDevice = await this.createDevice(deviceId, deviceOptions)
+
+		try {
+			// Temporary listening to events, these are removed after the devide has been initiated.
+			const instanceId = newDevice.instanceId
+			const onDeviceInfo = (...args: DeviceEvents['info']) => this.emit('info', instanceId, ...args)
+			const onDeviceWarning = (...args: DeviceEvents['warning']) => this.emit('warning', instanceId, ...args)
+			const onDeviceError = (...args: DeviceEvents['error']) => this.emit('error', instanceId, ...args)
+			const onDeviceDebug = (...args: DeviceEvents['debug']) => this.emit('debug', instanceId, ...args)
+
+			newDevice.device.on('info', onDeviceInfo).catch(console.error)
+			newDevice.device.on('warning', onDeviceWarning).catch(console.error)
+			newDevice.device.on('error', onDeviceError).catch(console.error)
+			newDevice.device.on('debug', onDeviceDebug).catch(console.error)
+
+			const device = await this.initDevice(deviceId, deviceOptions, activeRundownPlaylistId)
+
+			// Remove listeners, expect consumer to subscribe to them now.
+			newDevice.device.removeListener('info', onDeviceInfo).catch(console.error)
+			newDevice.device.removeListener('warning', onDeviceWarning).catch(console.error)
+			newDevice.device.removeListener('error', onDeviceError).catch(console.error)
+			newDevice.device.removeListener('debug', onDeviceDebug).catch(console.error)
+
+			return device
+		} catch (e) {
+			if (newDevice) {
+				try {
+					await newDevice.terminate()
+				} catch (e) {
+					this.emit('error', `Cleanup failed of aborted device "${newDevice.deviceId}": ${e}`)
+				}
+			}
+			this.devices.delete(deviceId)
+			this.emit('error', 'conductor.addDevice', e)
+			return Promise.reject(e)
+		}
+	}
+	/**
+	 * Creates an uninitialised device that can be referenced by the timeline and mappings.
+	 * @param deviceId Id used by the mappings to reference the device.
+	 * @param deviceOptions The options used to initalize the device
+	 * @returns A promise that resolves with the created device, or rejects with an error message.
+	 */
+	public async createDevice(
+		deviceId: string,
+		deviceOptions: DeviceOptionsAnyInternal
 	): Promise<DeviceContainer<DeviceOptionsBase<any>>> {
 		let newDevice: DeviceContainer<DeviceOptionsBase<any>> | undefined
 		try {
@@ -480,46 +544,11 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 
 			newDevice.device.on('resetResolver', () => this.resetResolver()).catch(console.error)
 
-			// Temporary listening to events, these are removed after the devide has been initiated.
-			// Todo: split the addDevice function into two separate functions, so that the device is
-			// first created, then initated by the consumer, allowing for setup of listeners in between...
-
-			const instanceId = newDevice.instanceId
-			const onDeviceInfo = (...args: DeviceEvents['info']) => this.emit('info', instanceId, ...args)
-			const onDeviceWarning = (...args: DeviceEvents['warning']) => this.emit('warning', instanceId, ...args)
-			const onDeviceError = (...args: DeviceEvents['error']) => this.emit('error', instanceId, ...args)
-			const onDeviceDebug = (...args: DeviceEvents['debug']) => this.emit('debug', instanceId, ...args)
-
-			newDevice.device.on('info', onDeviceInfo).catch(console.error)
-			newDevice.device.on('warning', onDeviceWarning).catch(console.error)
-			newDevice.device.on('error', onDeviceError).catch(console.error)
-			newDevice.device.on('debug', onDeviceDebug).catch(console.error)
-
-			this.emit(
-				'info',
-				`Initializing device ${newDevice.deviceId} (${newDevice.instanceId}) of type ${
-					DeviceType[deviceOptions.type]
-				}...`
-			)
-
-			await newDevice.device.init(deviceOptions.options, activeRundownPlaylistId)
-
 			// Double check that it hasnt been created while we were busy waiting
 			if (this.devices.has(deviceId)) {
 				throw new Error(`Device "${deviceId}" already exists when creating device`)
 			}
 			this.devices.set(deviceId, newDevice)
-
-			await newDevice.reloadProps() // because the device name might have changed after init
-
-			this.emit('info', `Device ${newDevice.deviceId} (${newDevice.instanceId}) initialized!`)
-
-			// Remove listeners, expect consumer to subscribe to them now.
-
-			newDevice.device.removeListener('info', onDeviceInfo).catch(console.error)
-			newDevice.device.removeListener('warning', onDeviceWarning).catch(console.error)
-			newDevice.device.removeListener('error', onDeviceError).catch(console.error)
-			newDevice.device.removeListener('debug', onDeviceDebug).catch(console.error)
 
 			return newDevice
 		} catch (e) {
@@ -530,9 +559,44 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 					this.emit('error', `Cleanup failed of aborted device "${newDevice.deviceId}": ${e}`)
 				}
 			}
+			this.devices.delete(deviceId)
 			this.emit('error', 'conductor.addDevice', e)
 			return Promise.reject(e)
 		}
+	}
+	/**
+	 * Initialises an existing device that can be referenced by the timeline and mappings.
+	 * @param deviceId Id used by the mappings to reference the device.
+	 * @param deviceOptions The options used to initalize the device
+	 * @returns A promise that resolves with the initialised device, or rejects with an error message.
+	 */
+	public async initDevice(
+		deviceId: string,
+		deviceOptions: DeviceOptionsAnyInternal,
+		activeRundownPlaylistId?: string
+	): Promise<DeviceContainer<DeviceOptionsBase<any>>> {
+		const newDevice = this.devices.get(deviceId)
+
+		if (!newDevice) {
+			throw new Error('Could not find device ' + deviceId + ', has it been created?')
+		}
+
+		if (newDevice.initialized) {
+			throw new Error('Device ' + deviceId + ' is already initialized!')
+		}
+
+		this.emit(
+			'info',
+			`Initializing device ${newDevice.deviceId} (${newDevice.instanceId}) of type ${DeviceType[deviceOptions.type]}...`
+		)
+
+		await newDevice.init(deviceOptions.options, activeRundownPlaylistId)
+
+		await newDevice.reloadProps() // because the device name might have changed after init
+
+		this.emit('info', `Device ${newDevice.deviceId} (${newDevice.instanceId}) initialized!`)
+
+		return newDevice
 	}
 	/**
 	 * Safely remove a device
@@ -596,7 +660,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 			}`
 		)
 		await this._actionQueue.add(async () => {
-			await this._mapAllDevices((d) =>
+			await this._mapAllInitializedDevices((d) =>
 				PTimeout(d.device.makeReady(okToDestroyStuff, activationId), 10000, `makeReady for "${d.deviceId}" timed out`)
 			)
 
@@ -610,7 +674,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 		this.activationId = undefined
 		this.emit('debug', `devicesStandDown, ${okToDestroyStuff ? 'okToDestroyStuff' : 'undefined'}`)
 		await this._actionQueue.add(async () => {
-			await this._mapAllDevices((d) =>
+			await this._mapAllInitializedDevices((d) =>
 				PTimeout(d.device.standDown(okToDestroyStuff), 10000, `standDown for "${d.deviceId}" timed out`)
 			)
 		})
@@ -623,6 +687,17 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 	private _mapAllDevices<T>(fcn: (d: DeviceContainer<DeviceOptionsBase<any>>) => Promise<T>): Promise<T[]> {
 		return PAll(
 			Array.from(this.devices.values()).map((d) => () => fcn(d)),
+			{
+				stopOnError: false,
+			}
+		)
+	}
+
+	private _mapAllInitializedDevices<T>(fcn: (d: DeviceContainer<DeviceOptionsBase<any>>) => Promise<T>): Promise<T[]> {
+		return PAll(
+			Array.from(this.devices.values())
+				.filter((d) => d.initialized === true)
+				.map((d) => () => fcn(d)),
 			{
 				stopOnError: false,
 			}
@@ -715,7 +790,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 				}
 			}
 
-			// Let all devices know that a new state is about to come in.
+			// Let all initialized devices know that a new state is about to come in.
 			// This is done so that they can clear future commands a bit earlier, possibly avoiding double or conflicting commands
 			// const pPrepareForHandleStates = this._mapAllDevices(async (device: DeviceContainer) => {
 			// 	await device.device.prepareForHandleState(resolveTime)
@@ -725,11 +800,11 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 			// TODO - the PAll way of doing this provokes https://github.com/nrkno/tv-automation-state-timeline-resolver/pull/139
 			// The doOnTime calls fire before this, meaning we cleanup the state for a time we have already sent commands for
 			const pPrepareForHandleStates: Promise<unknown> = Promise.all(
-				Array.from(this.devices.values()).map(
-					async (device: DeviceContainer<DeviceOptionsBase<any>>): Promise<void> => {
+				Array.from(this.devices.values())
+					.filter((d) => d.initialized === true)
+					.map(async (device: DeviceContainer<DeviceOptionsBase<any>>): Promise<void> => {
 						await device.device.prepareForHandleState(resolveTime)
-					}
-				)
+					})
 			).catch((error) => {
 				this.emit('error', error)
 			})
@@ -801,10 +876,13 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 				this.emit('warning', `Resolver is ${this.getCurrentTime() - resolveTime} ms late`)
 			}
 
-			const layersPerDevice = this.filterLayersPerDevice(tlState.layers, Array.from(this.devices.values()))
+			const layersPerDevice = this.filterLayersPerDevice(
+				tlState.layers,
+				Array.from(this.devices.values()).filter((d) => d.initialized === true)
+			)
 
 			// Push state to the right device:
-			await this._mapAllDevices(async (device: DeviceContainer<DeviceOptionsBase<any>>): Promise<void> => {
+			await this._mapAllInitializedDevices(async (device: DeviceContainer<DeviceOptionsBase<any>>): Promise<void> => {
 				// The subState contains only the parts of the state relevant to that device:
 				const subState: TimelineState = {
 					time: tlState.time,
