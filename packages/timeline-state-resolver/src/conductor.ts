@@ -560,7 +560,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 				}
 			}
 			this.devices.delete(deviceId)
-			this.emit('error', 'conductor.addDevice', e)
+			this.emit('error', 'conductor.createDevice', e)
 			return Promise.reject(e)
 		}
 	}

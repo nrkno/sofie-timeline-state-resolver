@@ -70,6 +70,10 @@ export class DeviceContainer<TOptions extends DeviceOptionsBase<any>> {
 	}
 
 	public async init(initOptions: TOptions['options'], ...args: any[]): Promise<boolean> {
+		if (this.initialized === true) {
+			throw new Error(`Device ${this.deviceId} is already initialized`)
+		}
+
 		const res = await this._device.init(initOptions, ...args)
 		this._initialized = true
 		return res
