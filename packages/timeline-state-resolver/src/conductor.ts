@@ -279,7 +279,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 			return this.devices.get(deviceId)
 		} else {
 			const device = this.devices.get(deviceId)
-			if (device?.initialized) {
+			if (device?.initialized === true) {
 				return device
 			} else {
 				return undefined
@@ -581,7 +581,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 			throw new Error('Could not find device ' + deviceId + ', has it been created?')
 		}
 
-		if (newDevice.initialized) {
+		if (newDevice.initialized === true) {
 			throw new Error('Device ' + deviceId + ' is already initialized!')
 		}
 
@@ -626,7 +626,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 
 		if (this._triggerSendStartStopCallbacksTimeout) clearTimeout(this._triggerSendStartStopCallbacksTimeout)
 
-		await this._mapAllDevices((d) => this.removeDevice(d.deviceId))
+		await this._mapAllDevices(true, (d) => this.removeDevice(d.deviceId))
 	}
 	/**
 	 * Resets the resolve-time, so that the resolving will happen for the point-in time NOW
@@ -660,7 +660,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 			}`
 		)
 		await this._actionQueue.add(async () => {
-			await this._mapAllInitializedDevices((d) =>
+			await this._mapAllDevices(false, (d) =>
 				PTimeout(d.device.makeReady(okToDestroyStuff, activationId), 10000, `makeReady for "${d.deviceId}" timed out`)
 			)
 
@@ -674,7 +674,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 		this.activationId = undefined
 		this.emit('debug', `devicesStandDown, ${okToDestroyStuff ? 'okToDestroyStuff' : 'undefined'}`)
 		await this._actionQueue.add(async () => {
-			await this._mapAllInitializedDevices((d) =>
+			await this._mapAllDevices(false, (d) =>
 				PTimeout(d.device.standDown(okToDestroyStuff), 10000, `standDown for "${d.deviceId}" timed out`)
 			)
 		})
@@ -684,19 +684,13 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 		return ThreadedClassManager.getThreadsMemoryUsage()
 	}
 
-	private _mapAllDevices<T>(fcn: (d: DeviceContainer<DeviceOptionsBase<any>>) => Promise<T>): Promise<T[]> {
+	private _mapAllDevices<T>(
+		includeUninitialized: boolean,
+		fcn: (d: DeviceContainer<DeviceOptionsBase<any>>) => Promise<T>
+	): Promise<T[]> {
 		return PAll(
-			Array.from(this.devices.values()).map((d) => () => fcn(d)),
-			{
-				stopOnError: false,
-			}
-		)
-	}
-
-	private _mapAllInitializedDevices<T>(fcn: (d: DeviceContainer<DeviceOptionsBase<any>>) => Promise<T>): Promise<T[]> {
-		return PAll(
-			Array.from(this.devices.values())
-				.filter((d) => d.initialized === true)
+			this.getDevices(true)
+				.filter((d) => includeUninitialized || d.initialized === true)
 				.map((d) => () => fcn(d)),
 			{
 				stopOnError: false,
@@ -882,7 +876,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 			)
 
 			// Push state to the right device:
-			await this._mapAllInitializedDevices(async (device: DeviceContainer<DeviceOptionsBase<any>>): Promise<void> => {
+			await this._mapAllDevices(false, async (device: DeviceContainer<DeviceOptionsBase<any>>): Promise<void> => {
 				// The subState contains only the parts of the state relevant to that device:
 				const subState: TimelineState = {
 					time: tlState.time,
@@ -934,7 +928,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 			} else {
 				// there's nothing ahead in the timeline,
 				// Tell the devices that the future is clear:
-				await this._mapAllDevices(async (device: DeviceContainer<DeviceOptionsBase<any>>) => {
+				await this._mapAllDevices(true, async (device: DeviceContainer<DeviceOptionsBase<any>>) => {
 					try {
 						await device.device.clearFuture(tlState.time)
 					} catch (e) {
