@@ -766,12 +766,12 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 				resolveTime < now + estimatedResolveTime // We're late
 			) {
 				resolveTime = now + estimatedResolveTime
-				this.emit(
+				this.emitWhenActive(
 					'debug',
 					`resolveTimeline ${resolveTime} (${resolveTime - now} from now) (${estimatedResolveTime}) ---------`
 				)
 			} else {
-				this.emit(
+				this.emitWhenActive(
 					'debug',
 					`resolveTimeline ${resolveTime} (${resolveTime - now} from now) -----------------------------`
 				)
