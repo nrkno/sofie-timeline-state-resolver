@@ -247,8 +247,11 @@ export class DoOnTime extends EventEmitter<DoOnTimeEvents> {
 		}
 	}
 	private _verifySendCommand(o: DoOrder, send: number, queueId: string): boolean {
+		// A positive value indicates that the command was sent late, compared to when it was planned to be sent
 		const sendDelay: number = send - o.time
-		const addedDelay: number = o.time - o.addedTime
+		// A positive value indicates that the command was added (to TSR) late.
+		const addedDelay: number = o.addedTime - o.time
+		// A posivite value indicates the time it took to generate the command internally in TSR.
 		const internalDelay = send - o.addedTime
 
 		if (this._options.limitSlowSentCommand) {
