@@ -753,7 +753,10 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState, DeviceOptionsVizM
 				throw new Error(`Not initialized yet`)
 			}
 		} catch (error) {
-			const errorString = error && error.message ? error.message : error.toString()
+			let errorString = error && error.message ? error.message : error.toString()
+			if (error?.stack) {
+				errorString += error.stack
+			}
 			this.emit('commandError', new Error(errorString), cwc)
 		}
 	}
