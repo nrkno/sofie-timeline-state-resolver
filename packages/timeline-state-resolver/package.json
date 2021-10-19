@@ -84,7 +84,7 @@
     "production"
   ],
   "dependencies": {
-    "@tv2media/v-connection": "nrkno/v-connection#ae6d994",
+    "@tv2media/v-connection": "nrkno/v-connection#24c4e88e1c043cc58ce7fda90158f0b3e2ff5ad4",
     "atem-connection": "^2.3.0",
     "atem-state": "0.12.2-nightly-latest-20211007-163338-78e7dca.0",
     "casparcg-connection": "^5.1.0",
