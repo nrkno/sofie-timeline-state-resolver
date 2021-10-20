@@ -179,3 +179,22 @@ function deepDiff(a: any, b: any, aStack: any, bStack: any): string | null {
 
 	return null
 }
+
+export interface ManualPromise<T> extends Promise<T> {
+	manualResolve(res: T): void
+	manualReject(e: Error): void
+}
+export function createManualPromise<T>(): ManualPromise<T> {
+	let resolve: (val: T) => void = () => null
+	let reject: (err: Error) => void = () => null
+	const promise = new Promise<T>((resolve0, reject0) => {
+		resolve = resolve0
+		reject = reject0
+	})
+
+	const manualPromise: ManualPromise<T> = promise as any
+	manualPromise.manualReject = reject
+	manualPromise.manualResolve = resolve
+
+	return manualPromise
+}

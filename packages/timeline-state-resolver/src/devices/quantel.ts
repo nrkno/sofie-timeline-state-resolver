@@ -20,6 +20,7 @@ import { TimelineState, ResolvedTimelineObjectInstance } from 'superfly-timeline
 
 import { DoOnTime, SendMode } from '../doOnTime'
 import { QuantelGateway, Q, MonitorPorts } from 'tv-automation-quantel-gateway-client'
+import { createManualPromise } from '../lib'
 
 const IDEAL_PREPARE_TIME = 1000
 const PREPARE_TIME_WAIT = 50
@@ -678,12 +679,8 @@ class QuantelManager extends EventEmitter {
 
 		// Check if the port is already set up
 		if (!trackedPort || trackedPort.channel !== cmd.channel) {
-			try {
-				// Before doing anything, wait for any releasePort to finish:
-				await (this.waitingForReleaseChannel.get(cmd.channel) || Promise.resolve())
-			} catch {
-				// ignore any error, it was not for us
-			}
+			// Before doing anything, wait for any releasePort to finish:
+			await (this.waitingForReleaseChannel.get(cmd.channel) || Promise.resolve())
 
 			let port: Q.PortStatus | null = null
 			// Setup a port and connect it to a channel
@@ -706,7 +703,7 @@ class QuantelManager extends EventEmitter {
 					await this._quantel.releasePort(cmd.portId)
 				} catch (e) {
 					// we should still try to create the port even if we can't release the old one
-					this.emit('error', e)
+					this.emit('error', `setupPort release failed: ${e.toString()}`)
 				}
 			}
 			await this._quantel.createPort(cmd.portId, cmd.channel)
@@ -723,16 +720,22 @@ class QuantelManager extends EventEmitter {
 		}
 	}
 	public async releasePort(cmd: QuantelCommandReleasePort): Promise<void> {
-		try {
-			const channel = this._quantelState.port[cmd.portId].channel
+		const channel = this._quantelState.port[cmd.portId].channel
 
-			const p = this._quantel.releasePort(cmd.portId)
+		// Before doing anything, wait for an existing releasePort to finish:
+		await (this.waitingForReleaseChannel.get(channel) || Promise.resolve())
+
+		try {
+			// Create a promise that will never reject for others to wait on
+			const p = createManualPromise<void>()
 			this.waitingForReleaseChannel.set(channel, p)
+
 			try {
-				await p
+				await this._quantel.releasePort(cmd.portId)
 			} finally {
 				// Make sure to clear the wait, even when it rejects
 				this.waitingForReleaseChannel.delete(channel)
+				p.manualResolve()
 			}
 		} catch (e) {
 			if (e.status !== 404) {
