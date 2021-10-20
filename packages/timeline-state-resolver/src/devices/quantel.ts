@@ -722,8 +722,11 @@ class QuantelManager extends EventEmitter {
 	public async releasePort(cmd: QuantelCommandReleasePort): Promise<void> {
 		const channel = this._quantelState.port[cmd.portId].channel
 
-		// Before doing anything, wait for an existing releasePort to finish:
-		await (this.waitingForReleaseChannel.get(channel) || Promise.resolve())
+		{
+			// Before doing anything, wait for an existing releasePort to finish:
+			const existingRelease = this.waitingForReleaseChannel.get(channel)
+			if (existingRelease) await existingRelease
+		}
 
 		try {
 			// Create a promise that will never reject for others to wait on
