@@ -703,7 +703,7 @@ class QuantelManager extends EventEmitter {
 					await this._quantel.releasePort(cmd.portId)
 				} catch (e) {
 					// we should still try to create the port even if we can't release the old one
-					this.emit('error', `setupPort release failed: ${e.toString()}`)
+					this.emit('warning', `setupPort release failed: ${e.toString()}`)
 				}
 			}
 			await this._quantel.createPort(cmd.portId, cmd.channel)
