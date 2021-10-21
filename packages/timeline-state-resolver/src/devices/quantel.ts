@@ -20,7 +20,6 @@ import { TimelineState, ResolvedTimelineObjectInstance } from 'superfly-timeline
 
 import { DoOnTime, SendMode } from '../doOnTime'
 import { QuantelGateway, Q, MonitorPorts } from 'tv-automation-quantel-gateway-client'
-import { createManualPromise } from '../lib'
 
 const IDEAL_PREPARE_TIME = 1000
 const PREPARE_TIME_WAIT = 50
@@ -720,26 +719,25 @@ class QuantelManager extends EventEmitter {
 		}
 	}
 	public async releasePort(cmd: QuantelCommandReleasePort): Promise<void> {
-		const channel = this._quantelState.port[cmd.portId].channel
-
-		{
-			// Before doing anything, wait for an existing releasePort to finish:
-			const existingRelease = this.waitingForReleaseChannel.get(channel)
-			if (existingRelease) await existingRelease
-		}
-
 		try {
-			// Create a promise that will never reject for others to wait on
-			const p = createManualPromise<void>()
-			this.waitingForReleaseChannel.set(channel, p)
+			const channel = this._quantelState.port[cmd.portId].channel
 
-			try {
-				await this._quantel.releasePort(cmd.portId)
-			} finally {
-				// Make sure to clear the wait, even when it rejects
-				this.waitingForReleaseChannel.delete(channel)
-				p.manualResolve()
+			{
+				// Before doing anything, wait for an existing releasePort to finish:
+				const existingRelease = this.waitingForReleaseChannel.get(channel)
+				if (existingRelease) await existingRelease
 			}
+
+			const p = this._quantel.releasePort(cmd.portId)
+
+			// Create a promise for others to wait on, that will never reject
+			const waitP = p.catch().then(() => {
+				this.waitingForReleaseChannel.delete(channel)
+			})
+			this.waitingForReleaseChannel.set(channel, waitP)
+
+			// Wait for the release
+			await p
 		} catch (e) {
 			if (e.status !== 404) {
 				// releasing a non-existent port is OK
