@@ -8034,10 +8034,10 @@ stubs@^3.0.0:
   resolved "https://registry.yarnpkg.com/stubs/-/stubs-3.0.0.tgz#e8d2ba1fa9c90570303c030b6900f7d5f89abe5b"
   integrity sha1-6NK6H6nJBXAwPAMLaQD31fiavls=
 
-superfly-timeline@^8.2.1:
-  version "8.2.1"
-  resolved "https://registry.yarnpkg.com/superfly-timeline/-/superfly-timeline-8.2.1.tgz#07c0dfee351ae0597c9dcf0a33794ff53f90829e"
-  integrity sha512-cwd5mGL/2KP8JSBxdxU1bIG4zB3KtWUB/DwhyxBKtTQksAxgplZmWxSqkrE69LfmEQ/8nYBct2NFZ0fCTZzEnQ==
+superfly-timeline@^8.2.2:
+  version "8.2.2"
+  resolved "https://registry.yarnpkg.com/superfly-timeline/-/superfly-timeline-8.2.2.tgz#dede70ff10f2cb600c3eb344c314dcb931ca04b8"
+  integrity sha512-RZz9fULViZJ3lIGf5VW1lsrbWdtU8HFUX/UjAXItFqXaMXBXdS5jrjSPFqMmxV+ep6KMStqFJvjyFNVzy7b6WQ==
   dependencies:
     tslib "^2.2.0"
     underscore "^1.13.1"
