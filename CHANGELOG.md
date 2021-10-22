@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [6.2.0-release37.7](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/6.2.0-release37.6...6.2.0-release37.7) (2021-10-22)
+
+
+### Bug Fixes
+
+* catch some quantel releasePort errors ([#199](https://github.com/nrkno/tv-automation-state-timeline-resolver/issues/199)) ([10007c2](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/10007c2bd52caed401fcf576cfc03b8a9031914f))
+
+
+
+
+
 # [6.2.0-release37.6](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/6.2.0-release37.5...6.2.0-release37.6) (2021-10-20)
 
 
