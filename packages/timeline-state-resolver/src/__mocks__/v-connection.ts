@@ -10,10 +10,11 @@ import {
 	InternalElement,
 	ExternalElement,
 	VElement,
-} from 'v-connection'
+	ExternalElementId,
+} from '@tv2media/v-connection'
 import { EventEmitter } from 'events'
-import { CommandResult } from 'v-connection/dist/msehttp'
-import { PepResponse } from 'v-connection/dist/peptalk'
+import { CommandResult } from '@tv2media/v-connection/dist/msehttp'
+import { PepResponse } from '@tv2media/v-connection/dist/peptalk'
 import _ = require('underscore')
 
 const mockMSEs: MSEMock[] = []
@@ -241,7 +242,7 @@ export class VRundownMock implements VRundown {
 			return el
 		}
 	}
-	async listElements(): Promise<Array<string | number>> {
+	async listElements(): Promise<Array<string | ExternalElementId>> {
 		return []
 	}
 	async getElement(elementName: string | number): Promise<VElement> {
@@ -298,7 +299,7 @@ export class VRundownMock implements VRundown {
 	async cleanup(): Promise<CommandResult> {
 		return { path: '', status: 200, response: 'mock' }
 	}
-	async purge(): Promise<PepResponse> {
+	async purge(_elementsToKeep?: ExternalElementId[]): Promise<PepResponse> {
 		return { id: '*', status: 'ok', body: 'mock' }
 	}
 	async isActive(): Promise<boolean> {

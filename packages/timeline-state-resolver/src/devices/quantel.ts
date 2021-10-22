@@ -75,7 +75,7 @@ export class QuantelDevice extends DeviceWithState<QuantelState, DeviceOptionsQu
 			this.emit('warning', `Quantel: ${typeof x === 'string' ? x : JSON.stringify(x)}`)
 		)
 		this._quantelManager.on('error', (e) => this.emit('error', 'Quantel: ', e))
-		this._quantelManager.on('debug', (...args) => this.emit('debug', ...args))
+		this._quantelManager.on('debug', (...args) => this.emitDebug(...args))
 
 		this._doOnTime = new DoOnTime(
 			() => {
@@ -98,15 +98,18 @@ export class QuantelDevice extends DeviceWithState<QuantelState, DeviceOptionsQu
 
 	async init(initOptions: QuantelOptions): Promise<boolean> {
 		this._initOptions = initOptions
-		const ISAUrlMaster = this._initOptions.ISAUrlMaster || this._initOptions['ISAUrl'] // tmp: ISAUrl for backwards compatibility, to be removed later
+		const ISAUrlMaster: string = this._initOptions.ISAUrlMaster || this._initOptions['ISAUrl'] // tmp: ISAUrl for backwards compatibility, to be removed later
 		if (!this._initOptions.gatewayUrl) throw new Error('Quantel bad connection option: gatewayUrl')
 		if (!ISAUrlMaster) throw new Error('Quantel bad connection option: ISAUrlMaster')
 		if (!this._initOptions.serverId) throw new Error('Quantel bad connection option: serverId')
 
+		const isaURLs: string[] = []
+		if (ISAUrlMaster) isaURLs.push(ISAUrlMaster)
+		if (this._initOptions.ISAUrlBackup) isaURLs.push(this._initOptions.ISAUrlBackup)
+
 		await this._quantel.init(
 			this._initOptions.gatewayUrl,
-			ISAUrlMaster,
-			this._initOptions.ISAUrlBackup,
+			isaURLs,
 			this._initOptions.zoneId,
 			this._initOptions.serverId
 		)
@@ -195,7 +198,11 @@ export class QuantelDevice extends DeviceWithState<QuantelState, DeviceOptionsQu
 		return DeviceType.QUANTEL
 	}
 	get deviceName(): string {
-		return `Quantel ${this._quantel.ISAUrl}/${this._quantel.zoneId}/${this._quantel.serverId}`
+		try {
+			return `Quantel ${this._quantel.ISAUrl}/${this._quantel.zoneId}/${this._quantel.serverId}`
+		} catch (e) {
+			return `Quantel device (uninitialized)`
+		}
 	}
 
 	get queue() {
@@ -543,7 +550,15 @@ export class QuantelDevice extends DeviceWithState<QuantelState, DeviceOptionsQu
 			)
 		})
 
-		return highPrioCommands.concat(lowPrioCommands)
+		const allCommands = highPrioCommands.concat(lowPrioCommands)
+
+		allCommands.sort((a, b) => {
+			// Release ports should always be done first:
+			if (a.type === QuantelCommandType.RELEASEPORT && b.type !== QuantelCommandType.RELEASEPORT) return -1
+			if (a.type !== QuantelCommandType.RELEASEPORT && b.type === QuantelCommandType.RELEASEPORT) return 1
+			return 0
+		})
+		return allCommands
 	}
 	private _doCommand(command: QuantelCommand, context: string, timlineObjId: string): Promise<void> {
 		const time = this.getCurrentTime()
@@ -595,7 +610,7 @@ export class QuantelDevice extends DeviceWithState<QuantelState, DeviceOptionsQu
 			timelineObjId: timelineObjId,
 			command: cmd,
 		}
-		this.emit('debug', cwc)
+		this.emitDebug(cwc)
 
 		try {
 			const cmdType = cmd.type
@@ -616,7 +631,10 @@ export class QuantelDevice extends DeviceWithState<QuantelState, DeviceOptionsQu
 				throw new Error(`Unsupported command type "${cmdType}"`)
 			}
 		} catch (error) {
-			const errorString = error && error.message ? error.message : error.toString()
+			let errorString = error && error.message ? error.message : error.toString()
+			if (error?.stack) {
+				errorString += error.stack
+			}
 			this.emit('commandError', new Error(errorString), cwc)
 		}
 	}
@@ -643,6 +661,8 @@ class QuantelManager extends EventEmitter {
 			cmd: QuantelCommandClip
 		}
 	} = {}
+	private waitingForReleaseChannel = new Map<number, Promise<any>>() // maps channel to Promise
+
 	constructor(
 		private _quantel: QuantelGateway,
 		private getCurrentTime: () => number,
@@ -658,6 +678,9 @@ class QuantelManager extends EventEmitter {
 
 		// Check if the port is already set up
 		if (!trackedPort || trackedPort.channel !== cmd.channel) {
+			// Before doing anything, wait for any releasePort to finish:
+			await (this.waitingForReleaseChannel.get(cmd.channel) || Promise.resolve())
+
 			let port: Q.PortStatus | null = null
 			// Setup a port and connect it to a channel
 			try {
@@ -674,8 +697,13 @@ class QuantelManager extends EventEmitter {
 				port = await this._quantel.getPort(cmd.portId)
 			}
 			if (port) {
-				// port already exists, release it first:
-				await this._quantel.releasePort(cmd.portId)
+				try {
+					// port already exists, release it first:
+					await this._quantel.releasePort(cmd.portId)
+				} catch (e) {
+					// we should still try to create the port even if we can't release the old one
+					this.emit('warning', `setupPort release failed: ${e.toString()}`)
+				}
 			}
 			await this._quantel.createPort(cmd.portId, cmd.channel)
 
@@ -692,14 +720,31 @@ class QuantelManager extends EventEmitter {
 	}
 	public async releasePort(cmd: QuantelCommandReleasePort): Promise<void> {
 		try {
-			await this._quantel.releasePort(cmd.portId)
+			const channel = this._quantelState.port[cmd.portId].channel
+
+			{
+				// Before doing anything, wait for an existing releasePort to finish:
+				const existingRelease = this.waitingForReleaseChannel.get(channel)
+				if (existingRelease) await existingRelease
+			}
+
+			const p = this._quantel.releasePort(cmd.portId)
+
+			// Create a promise for others to wait on, that will never reject
+			const waitP = p.catch().then(() => {
+				this.waitingForReleaseChannel.delete(channel)
+			})
+			this.waitingForReleaseChannel.set(channel, waitP)
+
+			// Wait for the release
+			await p
 		} catch (e) {
 			if (e.status !== 404) {
 				// releasing a non-existent port is OK
 				throw e
 			}
 		}
-		// Store to the local tracking state:
+		// Delete the local tracking state:
 		delete this._quantelState.port[cmd.portId]
 	}
 	public async tryLoadClipFragments(cmd: QuantelCommandLoadClipFragments, fromRetry?: boolean): Promise<void> {

@@ -211,7 +211,7 @@ export class AbstractDevice extends DeviceWithState<AbstractState, DeviceOptions
 				content: cmd.content,
 			},
 		}
-		this.emit('debug', cwc)
+		this.emitDebug(cwc)
 
 		// Note: In the Abstract case, the execution does nothing
 

@@ -84,8 +84,9 @@
     "production"
   ],
   "dependencies": {
+    "@tv2media/v-connection": "^5.1.1",
     "atem-connection": "^2.3.0",
-    "atem-state": "^0.12.1",
+    "atem-state": "0.12.2-nightly-latest-20211007-163338-78e7dca.0",
     "casparcg-connection": "^5.1.0",
     "casparcg-state": "^2.1.0",
     "debug": "^4.3.1",
@@ -105,11 +106,10 @@
     "threadedclass": "^1.0.0",
     "timeline-state-resolver-types": "6.3.0-release38",
     "tslib": "^2.3.1",
-    "tv-automation-quantel-gateway-client": "^1.0.12",
+    "tv-automation-quantel-gateway-client": "^2.0.4",
     "underscore": "^1.12.0",
     "underscore-deep-extend": "^1.1.5",
     "utf-8-validate": "^5.0.2",
-    "v-connection": "git+https://github.com/olzzon/v-connection#v20210604_1",
     "ws": "^7.5.5",
     "xml-js": "^1.6.11"
   },

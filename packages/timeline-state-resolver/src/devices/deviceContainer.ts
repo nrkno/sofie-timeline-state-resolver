@@ -18,10 +18,13 @@ export class DeviceContainer<TOptions extends DeviceOptionsBase<any>> {
 	private _instanceId = -1
 	private _startTime = -1
 	private _onEventListener: { stop: () => void } | undefined
+	private _debugLogging = true
+	private _initialized = false
 
 	private constructor(deviceOptions: TOptions, threadConfig?: ThreadedClassConfig) {
 		this._deviceOptions = deviceOptions
 		this._threadConfig = threadConfig
+		this._debugLogging = deviceOptions.debug || false
 	}
 
 	static async create<
@@ -62,6 +65,20 @@ export class DeviceContainer<TOptions extends DeviceOptionsBase<any>> {
 		return container
 	}
 
+	get initialized() {
+		return this._initialized
+	}
+
+	public async init(initOptions: TOptions['options'], ...args: any[]): Promise<boolean> {
+		if (this.initialized === true) {
+			throw new Error(`Device ${this.deviceId} is already initialized`)
+		}
+
+		const res = await this._device.init(initOptions, ...args)
+		this._initialized = true
+		return res
+	}
+
 	public async reloadProps(): Promise<void> {
 		this._deviceId = await this.device.deviceId
 		this._deviceType = await this.device.deviceType
@@ -75,6 +92,11 @@ export class DeviceContainer<TOptions extends DeviceOptionsBase<any>> {
 			this._onEventListener.stop()
 		}
 		await ThreadedClassManager.destroy(this._device)
+	}
+
+	public async setDebugLogging(debug: boolean): Promise<void> {
+		this._debugLogging = debug
+		await this._device.setDebugLogging(debug)
 	}
 
 	public get device(): ThreadedClass<Device<TOptions>> {
@@ -100,5 +122,9 @@ export class DeviceContainer<TOptions extends DeviceOptionsBase<any>> {
 	}
 	public get startTime(): number {
 		return this._startTime
+	}
+
+	public get debugLogging(): boolean {
+		return this._debugLogging
 	}
 }

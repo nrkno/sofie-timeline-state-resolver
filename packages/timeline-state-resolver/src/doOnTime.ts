@@ -19,7 +19,31 @@ interface DoOrder {
 export type DoOnTimeEvents = {
 	error: [err: Error]
 	slowCommand: [commandInfo: string]
+	slowSentCommand: [info: SlowSentCommandInfo]
+	slowFulfilledCommand: [info: SlowFulfilledCommandInfo]
 	commandReport: [commandReport: CommandReport]
+}
+
+export interface SlowSentCommandInfo {
+	added: number
+	prepareTime: number
+	plannedSend: number
+	send: number
+	queueId: string
+	args: string
+	sendDelay: number
+	addedDelay: number
+	internalDelay: number
+}
+export interface SlowFulfilledCommandInfo {
+	added: number
+	prepareTime: number
+	plannedSend: number
+	send: number
+	queueId: string
+	fullfilled: number
+	fulfilledDelay: number
+	args: string
 }
 
 export enum SendMode {
@@ -223,26 +247,38 @@ export class DoOnTime extends EventEmitter<DoOnTimeEvents> {
 		}
 	}
 	private _verifySendCommand(o: DoOrder, send: number, queueId: string): boolean {
+		// A positive value indicates that the command was sent late, compared to when it was planned to be sent
+		const sendDelay: number = send - o.time
+		// A positive value indicates that the command was added (to TSR) late.
+		const addedDelay: number = o.addedTime - o.time
+		// A posivite value indicates the time it took to generate the command internally in TSR.
+		const internalDelay = send - o.addedTime
+
 		if (this._options.limitSlowSentCommand) {
-			const sendDelay: number = send - o.time
-			const addedDelay: number = o.time - o.addedTime
 			if (sendDelay > this._options.limitSlowSentCommand) {
-				const output = {
+				const output: SlowSentCommandInfo = {
 					added: o.addedTime,
 					prepareTime: o.prepareTime,
 					plannedSend: o.time,
 					send: send,
 					queueId: queueId,
-					args: this.representArguments(o),
+					sendDelay,
+					addedDelay,
+					internalDelay,
+					args: JSON.stringify(this.representArguments(o)),
 				}
+				this.emit('slowSentCommand', output)
+				// Keep the old one, for backwards compatibility:
 				this.emit(
 					'slowCommand',
 					`Slow sent command, should have been sent at ${o.time}, was ${sendDelay} ms slow (was added ${
 						addedDelay >= 0 ? `${addedDelay} ms before` : `${-addedDelay} ms after`
-					} planned), sendMode: ${SendMode[this._sendMode]}. Command: ${JSON.stringify(output)}`
+					} planned), sendMode: ${SendMode[this._sendMode]}. Command: ${output.args}`
 				)
-				return true
 			}
+		}
+		if (this._options.limitSlowSentCommand && sendDelay > this._options.limitSlowSentCommand) {
+			return true
 		}
 		return false
 	}
@@ -250,21 +286,22 @@ export class DoOnTime extends EventEmitter<DoOnTimeEvents> {
 		if (this._options.limitSlowFulfilledCommand) {
 			const fullfilled = this.getCurrentTime()
 			const fulfilledDelay: number = fullfilled - o.time
-			const output = {
-				added: o.addedTime,
-				prepareTime: o.prepareTime,
-				plannedSend: o.time,
-				send: send,
-				queueId: queueId,
-				fullfilled: fullfilled,
-				args: this.representArguments(o),
-			}
 			if (fulfilledDelay > this._options.limitSlowFulfilledCommand) {
+				const output: SlowFulfilledCommandInfo = {
+					added: o.addedTime,
+					prepareTime: o.prepareTime,
+					plannedSend: o.time,
+					send: send,
+					queueId: queueId,
+					fullfilled: fullfilled,
+					fulfilledDelay,
+					args: JSON.stringify(this.representArguments(o)),
+				}
+				this.emit('slowFulfilledCommand', output)
+				// Keep the old one, for backwards compatibility:
 				this.emit(
 					'slowCommand',
-					`Slow fulfilled command, should have been fulfilled at ${
-						o.time
-					}, was ${fulfilledDelay} ms slow. Command: ${JSON.stringify(output)}`
+					`Slow fulfilled command, should have been fulfilled at ${o.time}, was ${fulfilledDelay} ms slow. Command: ${output.args}`
 				)
 			}
 		}

@@ -22,7 +22,7 @@ import { literal, StatusCode } from '../device'
 describe('vizMSE', () => {
 	const mockTime = new MockTime()
 
-	jest.mock('v-connection', () => vConnection)
+	jest.mock('@tv2media/v-connection', () => vConnection)
 
 	// const orgSetTimeout = setTimeout
 
@@ -337,16 +337,16 @@ describe('vizMSE', () => {
 		expect(rundown.activate).toHaveBeenCalledTimes(2)
 
 		expect(rundown.getElement).toHaveBeenCalledTimes(4)
-		expect(rundown.getElement).nthCalledWith(1, 1337)
-		expect(rundown.getElement).nthCalledWith(2, 1336)
+		expect(rundown.getElement).nthCalledWith(1, 1337, 'FULL1')
+		expect(rundown.getElement).nthCalledWith(2, 1336, 'FULL1')
 
 		expect(rundown.createElement).toHaveBeenCalledTimes(2)
 		expect(rundown.createElement).toHaveBeenNthCalledWith(1, 1337, 'FULL1')
 		expect(rundown.createElement).toHaveBeenNthCalledWith(2, 1336, 'FULL1')
 
 		expect(rundown.initialize).toHaveBeenCalledTimes(2)
-		expect(rundown.initialize).nthCalledWith(1, 1337)
-		expect(rundown.initialize).nthCalledWith(2, 1336)
+		expect(rundown.initialize).nthCalledWith(1, 1337, 'FULL1')
+		expect(rundown.initialize).nthCalledWith(2, 1336, 'FULL1')
 
 		commandReceiver0.mockClear()
 		await mockTime.advanceTimeToTicks(14500)
@@ -478,7 +478,7 @@ describe('vizMSE', () => {
 		})
 
 		expect(rundown.initialize).toHaveBeenCalledTimes(1)
-		expect(rundown.initialize).nthCalledWith(1, 9999)
+		expect(rundown.initialize).nthCalledWith(1, 9999, 'FULL1')
 
 		expect(rundown.deactivate).toHaveBeenCalledTimes(0)
 		await myConductor.devicesStandDown(true)
@@ -836,7 +836,7 @@ describe('vizMSE', () => {
 		await mockTime.advanceTimeToTicks(15500)
 		expect(commandReceiver0.mock.calls.length).toEqual(1)
 		expect(rundown.take).toHaveBeenCalledTimes(1)
-		expect(rundown.take).nthCalledWith(1, 1337)
+		expect(rundown.take).nthCalledWith(1, 1337, 'FULL1')
 		expect(rundown.out).toHaveBeenCalledTimes(0)
 
 		commandReceiver0.mockClear()
@@ -848,7 +848,7 @@ describe('vizMSE', () => {
 		commandReceiver0.mockClear()
 		await mockTime.advanceTimeToTicks(21200)
 		expect(rundown.out).toHaveBeenCalledTimes(1)
-		expect(rundown.out).nthCalledWith(1, 1337)
+		expect(rundown.out).nthCalledWith(1, 1337, 'FULL1')
 		expect(rundown.take).toHaveBeenCalledTimes(0)
 
 		expect(onError).toHaveBeenCalledTimes(0)

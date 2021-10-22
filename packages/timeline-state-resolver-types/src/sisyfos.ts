@@ -8,12 +8,17 @@ export interface SisyfosOptions {
 
 export enum MappingSisyfosType {
 	CHANNEL = 'channel',
+	CHANNEL_BY_LABEL = 'channel_by_label',
 	CHANNELS = 'channels',
 }
-export type MappingSisyfos = MappingSisyfosChannel | MappingSisyfosChannels
+export type MappingSisyfos = MappingSisyfosChannel | MappingSisyfosChannelByLabel | MappingSisyfosChannels
 interface MappingSisyfosBase extends Mapping {
 	device: DeviceType.SISYFOS
 	mappingType: MappingSisyfosType // defaults to MappingSisyfosType.CHANNEL if not set
+}
+export interface MappingSisyfosChannelByLabel extends MappingSisyfosBase {
+	mappingType: MappingSisyfosType.CHANNEL_BY_LABEL
+	label: string
 }
 export interface MappingSisyfosChannel extends MappingSisyfosBase {
 	mappingType: MappingSisyfosType.CHANNEL

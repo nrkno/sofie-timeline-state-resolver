@@ -24,6 +24,9 @@ export interface VizMSEOptions {
 	/** Whether all elements should be preloaded or not */
 	preloadAllElements?: boolean
 
+	/** Whether unknown elements should be purged from the rundown upon activation */
+	purgeUnknownElements?: boolean
+
 	/** Whether internal elements should automatically be loaded when added to expectedPlayoutItems */
 	autoLoadInternalElements?: boolean
 
