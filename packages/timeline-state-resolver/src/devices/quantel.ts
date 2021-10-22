@@ -697,8 +697,13 @@ class QuantelManager extends EventEmitter {
 				port = await this._quantel.getPort(cmd.portId)
 			}
 			if (port) {
-				// port already exists, release it first:
-				await this._quantel.releasePort(cmd.portId)
+				try {
+					// port already exists, release it first:
+					await this._quantel.releasePort(cmd.portId)
+				} catch (e) {
+					// we should still try to create the port even if we can't release the old one
+					this.emit('warning', `setupPort release failed: ${e.toString()}`)
+				}
 			}
 			await this._quantel.createPort(cmd.portId, cmd.channel)
 
@@ -717,10 +722,22 @@ class QuantelManager extends EventEmitter {
 		try {
 			const channel = this._quantelState.port[cmd.portId].channel
 
+			{
+				// Before doing anything, wait for an existing releasePort to finish:
+				const existingRelease = this.waitingForReleaseChannel.get(channel)
+				if (existingRelease) await existingRelease
+			}
+
 			const p = this._quantel.releasePort(cmd.portId)
-			this.waitingForReleaseChannel.set(channel, p)
+
+			// Create a promise for others to wait on, that will never reject
+			const waitP = p.catch().then(() => {
+				this.waitingForReleaseChannel.delete(channel)
+			})
+			this.waitingForReleaseChannel.set(channel, waitP)
+
+			// Wait for the release
 			await p
-			this.waitingForReleaseChannel.delete(channel)
 		} catch (e) {
 			if (e.status !== 404) {
 				// releasing a non-existent port is OK
