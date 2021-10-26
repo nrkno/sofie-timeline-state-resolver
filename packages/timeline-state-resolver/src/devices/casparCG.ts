@@ -46,6 +46,7 @@ import { DoOnTime, SendMode } from '../doOnTime'
 import * as request from 'request'
 import { InternalTransitionHandler } from './transitions/transitionHandler'
 import Debug from 'debug'
+import { endTrace, startTrace } from '../lib'
 const debug = Debug('timeline-state-resolver:casparcg')
 
 const MAX_TIMESYNC_TRIES = 5
@@ -193,9 +194,13 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 
 		const oldCasparState = (this.getStateBefore(previousStateTime) || { state: { channels: {} } }).state
 
+		const convertTrace = startTrace(`device:${this.deviceId}:convertState`)
 		const newCasparState = this.convertStateToCaspar(newState, newMappings)
+		this.emit('timeTrace', endTrace(convertTrace))
 
+		const diffTrace = startTrace(`device:${this.deviceId}:diffState`)
 		const commandsToAchieveState = this._diffStates(oldCasparState, newCasparState, newState.time)
+		this.emit('timeTrace', endTrace(diffTrace))
 
 		// clear any queued commands later than this time:
 		if (this._useScheduling) {

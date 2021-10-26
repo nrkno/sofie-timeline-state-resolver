@@ -22,6 +22,7 @@ import {
 } from 'hyperdeck-connection'
 import { DoOnTime, SendMode } from '../doOnTime'
 import { SlotInfoCommandResponse } from 'hyperdeck-connection/dist/commands'
+import { endTrace, startTrace } from '../lib'
 
 export interface DeviceOptionsHyperdeckInternal extends DeviceOptionsHyperdeck {
 	commandReceiver?: CommandReceiver
@@ -237,14 +238,18 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState, DeviceOptionsH
 		const previousStateTime = Math.max(this.getCurrentTime(), newState.time)
 		const oldState: DeviceState = (this.getStateBefore(previousStateTime) || { state: this._getDefaultState() }).state
 
+		const convertTrace = startTrace(`device:${this.deviceId}:convertState`)
 		const oldHyperdeckState = oldState
 		const newHyperdeckState = this.convertStateToHyperdeck(newState, newMappings)
+		this.emit('timeTrace', endTrace(convertTrace))
 
 		// Generate commands to transition to new state
+		const diffTrace = startTrace(`device:${this.deviceId}:diffState`)
 		const commandsToAchieveState: Array<HyperdeckCommandWithContext> = this._diffStates(
 			oldHyperdeckState,
 			newHyperdeckState
 		)
+		this.emit('timeTrace', endTrace(diffTrace))
 
 		// clear any queued commands later than this time:
 		this._doOnTime.clearQueueNowAndAfter(previousStateTime)

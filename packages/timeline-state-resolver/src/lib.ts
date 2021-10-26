@@ -179,3 +179,31 @@ function deepDiff(a: any, b: any, aStack: any, bStack: any): string | null {
 
 	return null
 }
+
+export interface Trace {
+	/** id of this trace, should be formatted as namespace:id */
+	id: string
+	/** timestamp of when trace was started */
+	start: number
+}
+export interface FinishedTrace extends Trace {
+	/** timestamp of when trace was ended */
+	ended: number
+	/** duration of the trace */
+	duration: number
+}
+
+export function startTrace(id: string): Trace {
+	return {
+		id,
+		start: Date.now(),
+	}
+}
+
+export function endTrace(trace: Trace): FinishedTrace {
+	return {
+		...trace,
+		ended: Date.now(),
+		duration: Date.now() - trace.start,
+	}
+}

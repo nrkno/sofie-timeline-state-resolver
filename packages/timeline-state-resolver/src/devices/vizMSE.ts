@@ -37,6 +37,7 @@ import * as crypto from 'crypto'
 import * as net from 'net'
 import { ExpectedPlayoutItem } from '../expectedPlayoutItems'
 import * as request from 'request'
+import { startTrace, endTrace } from '../lib'
 
 /** The ideal time to prepare elements before going on air */
 const IDEAL_PREPARE_TIME = 1000
@@ -176,9 +177,13 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState, DeviceOptionsVizM
 		const oldVizMSEState: VizMSEState = (this.getStateBefore(previousStateTime) || { state: { time: 0, layer: {} } })
 			.state
 
+		const convertTrace = startTrace(`device:${this.deviceId}:convertState`)
 		const newVizMSEState = this.convertStateToVizMSE(newState, newMappings)
+		this.emit('timeTrace', endTrace(convertTrace))
 
+		const diffTrace = startTrace(`device:${this.deviceId}:diffState`)
 		const commandsToAchieveState = this._diffStates(oldVizMSEState, newVizMSEState, newState.time)
+		this.emit('timeTrace', endTrace(diffTrace))
 
 		// clear any queued commands later than this time:
 		this._doOnTime.clearQueueNowAndAfter(previousStateTime)
