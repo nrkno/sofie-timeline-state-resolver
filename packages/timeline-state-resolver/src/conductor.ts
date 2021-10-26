@@ -37,7 +37,7 @@ import PQueue from 'p-queue'
 import * as PAll from 'p-all'
 import PTimeout from 'p-timeout'
 import { ShotokuDevice, DeviceOptionsShotokuInternal } from './devices/shotoku'
-import { endTrace, FinishedTrace, startTrace, Trace } from './lib'
+import { endTrace, FinishedTrace, startTrace } from './lib'
 
 export { DeviceContainer }
 export { CommandWithContext }
