@@ -103,14 +103,14 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 		}
 
 		// Transform timeline states into device states
-		const convertTrace = startTrace(`device:${this.deviceId}:convertState`)
+		const convertTrace = startTrace(`device:convertState`, { deviceId: this.deviceId })
 		const previousStateTime = Math.max(this.getCurrentTime(), newState.time)
 		const oldSisyfosState: SisyfosState = (
 			this.getStateBefore(previousStateTime) || { state: { channels: {}, resync: false } }
 		).state
 		this.emit('timeTrace', endTrace(convertTrace))
 
-		const diffTrace = startTrace(`device:${this.deviceId}:diffState`)
+		const diffTrace = startTrace(`device:diffState`, { deviceId: this.deviceId })
 		const newSisyfosState = this.convertStateToSisyfosState(newState, newMappings)
 		this.emit('timeTrace', endTrace(diffTrace))
 

@@ -4,7 +4,7 @@ import { Mappings, DeviceType, MediaObject, DeviceOptionsBase } from 'timeline-s
 import { EventEmitter } from 'eventemitter3'
 import { CommandReport, DoOnTime, SlowFulfilledCommandInfo, SlowSentCommandInfo } from '../doOnTime'
 import { ExpectedPlayoutItem } from '../expectedPlayoutItems'
-import { FinishedTrace, Trace } from '../lib'
+import { FinishedTrace } from '../lib'
 
 /*
 	This is a base class for all the Device wrappers.

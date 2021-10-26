@@ -177,11 +177,11 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState, DeviceOptionsVizM
 		const oldVizMSEState: VizMSEState = (this.getStateBefore(previousStateTime) || { state: { time: 0, layer: {} } })
 			.state
 
-		const convertTrace = startTrace(`device:${this.deviceId}:convertState`)
+		const convertTrace = startTrace(`device:convertState`, { deviceId: this.deviceId })
 		const newVizMSEState = this.convertStateToVizMSE(newState, newMappings)
 		this.emit('timeTrace', endTrace(convertTrace))
 
-		const diffTrace = startTrace(`device:${this.deviceId}:diffState`)
+		const diffTrace = startTrace(`device:diffState`, { deviceId: this.deviceId })
 		const commandsToAchieveState = this._diffStates(oldVizMSEState, newVizMSEState, newState.time)
 		this.emit('timeTrace', endTrace(diffTrace))
 

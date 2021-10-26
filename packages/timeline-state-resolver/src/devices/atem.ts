@@ -172,7 +172,7 @@ export class AtemDevice extends DeviceWithState<DeviceState, DeviceOptionsAtemIn
 		const previousStateTime = Math.max(this.getCurrentTime(), newState.time)
 		const oldState: DeviceState = (this.getStateBefore(previousStateTime) || { state: AtemStateUtil.Create() }).state
 
-		const convertTrace = startTrace(`device:${this.deviceId}:convertState`)
+		const convertTrace = startTrace(`device:convertState`, { deviceId: this.deviceId })
 		const oldAtemState = oldState
 		const newAtemState = this.convertStateToAtem(newState, newMappings)
 		this.emit('timeTrace', endTrace(convertTrace))
@@ -189,7 +189,7 @@ export class AtemDevice extends DeviceWithState<DeviceState, DeviceOptionsAtemIn
 			)
 		}
 
-		const diffTrace = startTrace(`device:${this.deviceId}:diffState`)
+		const diffTrace = startTrace(`device:diffState`, { deviceId: this.deviceId })
 		const commandsToAchieveState: Array<AtemCommandWithContext> = this._diffStates(oldAtemState, newAtemState)
 		this.emit('timeTrace', endTrace(diffTrace))
 

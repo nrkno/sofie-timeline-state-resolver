@@ -155,12 +155,12 @@ export class QuantelDevice extends DeviceWithState<QuantelState, DeviceOptionsQu
 		const oldQuantelState: QuantelState = (this.getStateBefore(previousStateTime) || { state: { time: 0, port: {} } })
 			.state
 
-		const convertTrace = startTrace(`device:${this.deviceId}:convertState`)
+		const convertTrace = startTrace(`device:convertState`, { deviceId: this.deviceId })
 		const newQuantelState = this.convertStateToQuantel(newState, newMappings)
 		this.emit('timeTrace', endTrace(convertTrace))
 		// let oldQuantelState = this.convertStateToQuantel(oldState)
 
-		const diffTrace = startTrace(`device:${this.deviceId}:diffState`)
+		const diffTrace = startTrace(`device:diffState`, { deviceId: this.deviceId })
 		const commandsToAchieveState = this._diffStates(oldQuantelState, newQuantelState, newState.time)
 		this.emit('timeTrace', endTrace(diffTrace))
 

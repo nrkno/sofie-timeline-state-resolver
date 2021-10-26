@@ -663,11 +663,15 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 		)
 		await this._actionQueue.add(async () => {
 			await this._mapAllDevices(false, (d) =>
-				PTimeout((async () => {
-					const trace = startTrace('conductor:makeReady:' + d.deviceId)
-					await d.device.makeReady(okToDestroyStuff, activationId)
-					this.emit('timeTrace', endTrace(trace))
-				})(), 10000, `makeReady for "${d.deviceId}" timed out`)
+				PTimeout(
+					(async () => {
+						const trace = startTrace('conductor:makeReady:' + d.deviceId)
+						await d.device.makeReady(okToDestroyStuff, activationId)
+						this.emit('timeTrace', endTrace(trace))
+					})(),
+					10000,
+					`makeReady for "${d.deviceId}" timed out`
+				)
 			)
 
 			this._triggerResolveTimeline()
@@ -681,11 +685,15 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 		this.emit('debug', `devicesStandDown, ${okToDestroyStuff ? 'okToDestroyStuff' : 'undefined'}`)
 		await this._actionQueue.add(async () => {
 			await this._mapAllDevices(false, (d) =>
-				PTimeout((async () => {
-					const trace = startTrace('conductor:standDown:' + d.deviceId)
-					await d.device.standDown(okToDestroyStuff)
-					this.emit('timeTrace', endTrace(trace))
-				})(), 10000, `standDown for "${d.deviceId}" timed out`)
+				PTimeout(
+					(async () => {
+						const trace = startTrace('conductor:standDown:' + d.deviceId)
+						await d.device.standDown(okToDestroyStuff)
+						this.emit('timeTrace', endTrace(trace))
+					})(),
+					10000,
+					`standDown for "${d.deviceId}" timed out`
+				)
 			)
 		})
 	}

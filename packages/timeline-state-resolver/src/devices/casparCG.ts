@@ -194,11 +194,11 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 
 		const oldCasparState = (this.getStateBefore(previousStateTime) || { state: { channels: {} } }).state
 
-		const convertTrace = startTrace(`device:${this.deviceId}:convertState`)
+		const convertTrace = startTrace(`device:convertState`, { deviceId: this.deviceId })
 		const newCasparState = this.convertStateToCaspar(newState, newMappings)
 		this.emit('timeTrace', endTrace(convertTrace))
 
-		const diffTrace = startTrace(`device:${this.deviceId}:diffState`)
+		const diffTrace = startTrace(`device:diffState`, { deviceId: this.deviceId })
 		const commandsToAchieveState = this._diffStates(oldCasparState, newCasparState, newState.time)
 		this.emit('timeTrace', endTrace(diffTrace))
 

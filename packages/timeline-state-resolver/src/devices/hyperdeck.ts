@@ -238,13 +238,13 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState, DeviceOptionsH
 		const previousStateTime = Math.max(this.getCurrentTime(), newState.time)
 		const oldState: DeviceState = (this.getStateBefore(previousStateTime) || { state: this._getDefaultState() }).state
 
-		const convertTrace = startTrace(`device:${this.deviceId}:convertState`)
+		const convertTrace = startTrace(`device:convertState`, { deviceId: this.deviceId })
 		const oldHyperdeckState = oldState
 		const newHyperdeckState = this.convertStateToHyperdeck(newState, newMappings)
 		this.emit('timeTrace', endTrace(convertTrace))
 
 		// Generate commands to transition to new state
-		const diffTrace = startTrace(`device:${this.deviceId}:diffState`)
+		const diffTrace = startTrace(`device:diffState`, { deviceId: this.deviceId })
 		const commandsToAchieveState: Array<HyperdeckCommandWithContext> = this._diffStates(
 			oldHyperdeckState,
 			newHyperdeckState

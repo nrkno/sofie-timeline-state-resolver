@@ -86,12 +86,12 @@ export class HTTPSendDevice extends DeviceWithState<HTTPSendState, DeviceOptions
 			this.getStateBefore(previousStateTime) || { state: { time: 0, layers: {}, nextEvents: [] } }
 		).state
 
-		const convertTrace = startTrace(`device:${this.deviceId}:convertState`)
+		const convertTrace = startTrace(`device:convertState`, { deviceId: this.deviceId })
 		const oldHttpSendState = oldState
 		const newHttpSendState = this.convertStateToHttpSend(newState)
 		this.emit('timeTrace', endTrace(convertTrace))
 
-		const diffTrace = startTrace(`device:${this.deviceId}:diffState`)
+		const diffTrace = startTrace(`device:diffState`, { deviceId: this.deviceId })
 		const commandsToAchieveState: Array<any> = this._diffStates(oldHttpSendState, newHttpSendState)
 		this.emit('timeTrace', endTrace(diffTrace))
 

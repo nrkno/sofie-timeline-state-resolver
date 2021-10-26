@@ -182,9 +182,11 @@ function deepDiff(a: any, b: any, aStack: any, bStack: any): string | null {
 
 export interface Trace {
 	/** id of this trace, should be formatted as namespace:id */
-	id: string
+	measurement: string
 	/** timestamp of when trace was started */
 	start: number
+	/** Tags to differentiate data sources */
+	tags?: Record<string, string>
 }
 export interface FinishedTrace extends Trace {
 	/** timestamp of when trace was ended */
@@ -193,9 +195,10 @@ export interface FinishedTrace extends Trace {
 	duration: number
 }
 
-export function startTrace(id: string): Trace {
+export function startTrace(measurement: string, tags?: Record<string, string>): Trace {
 	return {
-		id,
+		measurement,
+		tags,
 		start: Date.now(),
 	}
 }

@@ -99,12 +99,12 @@ export class ShotokuDevice extends DeviceWithState<ShotokuDeviceState, DeviceOpt
 			this.getStateBefore(previousStateTime) || { state: { shots: {}, sequences: {} } }
 		).state
 
-		const convertTrace = startTrace(`device:${this.deviceId}:convertState`)
+		const convertTrace = startTrace(`device:convertState`, { deviceId: this.deviceId })
 		const newShotokuState = this.convertStateToShotokuShots(newState)
 		this.emit('timeTrace', endTrace(convertTrace))
 
 		// Generate commands necessary to transition to the new state
-		const diffTrace = startTrace(`device:${this.deviceId}:diffState`)
+		const diffTrace = startTrace(`device:diffState`, { deviceId: this.deviceId })
 		const commandsToAchieveState = this._diffStates(oldState, newShotokuState)
 		this.emit('timeTrace', endTrace(diffTrace))
 
