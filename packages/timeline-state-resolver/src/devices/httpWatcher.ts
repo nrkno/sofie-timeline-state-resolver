@@ -75,7 +75,9 @@ export class HTTPWatcherDevice extends Device<DeviceOptionsHTTPWatcherInternal> 
 	}
 	startInterval() {
 		this.stopInterval()
-		this.interval = setInterval(this.onInterval.bind(this), this.intervalTime)
+		this.interval = setInterval(() => this.onInterval(), this.intervalTime)
+		// Also do a check right away:
+		setTimeout(() => this.onInterval(), 300)
 	}
 
 	handleResponse(error: any, response: request.Response, body: any) {
