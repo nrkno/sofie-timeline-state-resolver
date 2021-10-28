@@ -270,6 +270,24 @@ export abstract class Device<TOptions extends DeviceOptionsBase<any>>
 			if (this._reportAllCommands) {
 				this.emit('commandReport', commandReport)
 			}
+			this.emit('timeTrace', {
+				measurement: 'device:commandSendDelay',
+				tags: {
+					deviceId: this.deviceId,
+				},
+				start: commandReport.plannedSend,
+				ended: commandReport.send,
+				duration: commandReport.send - commandReport.plannedSend,
+			})
+			this.emit('timeTrace', {
+				measurement: 'device:commandFulfillDelay',
+				tags: {
+					deviceId: this.deviceId,
+				},
+				start: commandReport.send,
+				ended: commandReport.fullfilled,
+				duration: commandReport.fullfilled - commandReport.send,
+			})
 		})
 	}
 	private updateIsActive(mappings: Mappings) {
