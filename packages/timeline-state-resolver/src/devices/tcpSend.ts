@@ -259,7 +259,7 @@ export class TCPSendDevice extends DeviceWithState<TSCSendState, DeviceOptionsTC
 		})
 	}
 	private _disconnectTCPClient(): Promise<void> {
-		return new Promise((resolve) => {
+		return new Promise<void>((resolve) => {
 			this._setDisconnected = true
 			if (this._tcpClient) {
 				if (this.connected) {
@@ -348,7 +348,7 @@ export class TCPSendDevice extends DeviceWithState<TSCSendState, DeviceOptionsTC
 			command: cmd,
 			timelineObjId: timelineObjId,
 		}
-		this.emit('debug', cwc)
+		this.emitDebug(cwc)
 
 		if (cmd.message) {
 			return this._sendTCPMessage(cmd.message)

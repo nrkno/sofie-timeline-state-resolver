@@ -2,8 +2,9 @@ import * as _ from 'underscore'
 import { TimelineState } from 'superfly-timeline'
 import { Mappings, DeviceType, MediaObject, DeviceOptionsBase } from 'timeline-state-resolver-types'
 import { EventEmitter } from 'eventemitter3'
-import { CommandReport, DoOnTime } from '../doOnTime'
+import { CommandReport, DoOnTime, SlowFulfilledCommandInfo, SlowSentCommandInfo } from '../doOnTime'
 import { ExpectedPlayoutItem } from '../expectedPlayoutItems'
+import { FinishedTrace } from '../lib'
 
 /*
 	This is a base class for all the Device wrappers.
@@ -52,8 +53,14 @@ export type DeviceEvents = {
 	connectionChanged: [status: DeviceStatus]
 	/** A message to the resolver that something has happened that warrants a reset of the resolver (to re-run it again) */
 	resetResolver: []
+
 	/** A report that a command was sent too late */
 	slowCommand: [commandInfo: string]
+	/** A report that a command was sent too late */
+	slowSentCommand: [info: SlowSentCommandInfo]
+	/** A report that a command was fullfilled too late */
+	slowFulfilledCommand: [info: SlowFulfilledCommandInfo]
+
 	/** Something went wrong when executing a command  */
 	commandError: [error: Error, context: CommandWithContext]
 	/** Update a MediaObject  */
@@ -62,6 +69,7 @@ export type DeviceEvents = {
 	clearMediaObjects: [collectionId: string]
 
 	commandReport: [commandReport: CommandReport]
+	timeTrace: [trace: FinishedTrace]
 }
 
 export interface IDevice<TOptions extends DeviceOptionsBase<any>> {
@@ -108,11 +116,13 @@ export abstract class Device<TOptions extends DeviceOptionsBase<any>>
 	protected _deviceOptions: TOptions
 	protected _reportAllCommands = false
 	protected _isActive = true
+	private debugLogging: boolean
 
 	constructor(deviceId: string, deviceOptions: TOptions, getCurrentTime: () => Promise<number>) {
 		super()
 		this._deviceId = deviceId
 		this._deviceOptions = deviceOptions
+		this.debugLogging = deviceOptions.debug ?? true // Default to true to keep backwards compatibility
 
 		this._instanceId = Math.floor(Math.random() * 10000)
 		this._startTime = Date.now()
@@ -196,6 +206,16 @@ export abstract class Device<TOptions extends DeviceOptionsBase<any>>
 	}
 	abstract getStatus(): DeviceStatus
 
+	setDebugLogging(debug: boolean) {
+		this.debugLogging = debug
+	}
+
+	protected emitDebug(...args: any[]) {
+		if (this.debugLogging) {
+			this.emit('debug', ...args)
+		}
+	}
+
 	get deviceId() {
 		return this._deviceId
 	}
@@ -244,10 +264,30 @@ export abstract class Device<TOptions extends DeviceOptionsBase<any>>
 	protected handleDoOnTime(doOnTime: DoOnTime, deviceType: string) {
 		doOnTime.on('error', (e) => this.emit('error', `${deviceType}.doOnTime`, e))
 		doOnTime.on('slowCommand', (msg) => this.emit('slowCommand', this.deviceName + ': ' + msg))
+		doOnTime.on('slowSentCommand', (info) => this.emit('slowSentCommand', info))
+		doOnTime.on('slowFulfilledCommand', (info) => this.emit('slowFulfilledCommand', info))
 		doOnTime.on('commandReport', (commandReport) => {
 			if (this._reportAllCommands) {
 				this.emit('commandReport', commandReport)
 			}
+			this.emit('timeTrace', {
+				measurement: 'device:commandSendDelay',
+				tags: {
+					deviceId: this.deviceId,
+				},
+				start: commandReport.plannedSend,
+				ended: commandReport.send,
+				duration: commandReport.send - commandReport.plannedSend,
+			})
+			this.emit('timeTrace', {
+				measurement: 'device:commandFulfillDelay',
+				tags: {
+					deviceId: this.deviceId,
+				},
+				start: commandReport.send,
+				ended: commandReport.fullfilled,
+				duration: commandReport.fullfilled - commandReport.send,
+			})
 		})
 	}
 	private updateIsActive(mappings: Mappings) {

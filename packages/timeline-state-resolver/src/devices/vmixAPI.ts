@@ -1,7 +1,7 @@
 import { EventEmitter } from 'eventemitter3'
 import * as request from 'request'
 import * as xml from 'xml-js'
-import { VMixOptions, VMixCommand, VMixTransitionType, VMixInputType } from 'timeline-state-resolver-types'
+import { VMixOptions, VMixCommand, VMixTransitionType } from 'timeline-state-resolver-types'
 import { VMixState, VMixInput, VMixMix } from './vmix'
 import * as _ from 'underscore'
 
@@ -187,9 +187,7 @@ export class VMix extends EventEmitter<VMixEvents> {
 			edition: xmlState['vmix']['edition']['_text'],
 			inputs: _.indexBy(
 				(xmlState['vmix']['inputs']['input'] as Array<any>).map((input): VMixInput => {
-					if (!(input['_attributes']['type'] in VMixInputType)) {
-						fixedInputsCount++
-					}
+					fixedInputsCount++
 					return {
 						number: Number(input['_attributes']['number']),
 						type: input['_attributes']['type'],

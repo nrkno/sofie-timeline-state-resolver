@@ -186,3 +186,34 @@ export function deepExtend<T>(destination: T, ...sources: any[]) {
 	// @ts-ignore (mixin)
 	return _.deepExtend(destination, ...sources)
 }
+
+export interface Trace {
+	/** id of this trace, should be formatted as namespace:id */
+	measurement: string
+	/** timestamp of when trace was started */
+	start: number
+	/** Tags to differentiate data sources */
+	tags?: Record<string, string>
+}
+export interface FinishedTrace extends Trace {
+	/** timestamp of when trace was ended */
+	ended: number
+	/** duration of the trace */
+	duration: number
+}
+
+export function startTrace(measurement: string, tags?: Record<string, string>): Trace {
+	return {
+		measurement,
+		tags,
+		start: Date.now(),
+	}
+}
+
+export function endTrace(trace: Trace): FinishedTrace {
+	return {
+		...trace,
+		ended: Date.now(),
+		duration: Date.now() - trace.start,
+	}
+}

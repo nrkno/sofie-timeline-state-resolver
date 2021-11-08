@@ -13,6 +13,7 @@ import got from 'got'
 import { TimelineState, ResolvedTimelineObjectInstance } from 'superfly-timeline'
 
 import Debug from 'debug'
+import { endTrace, startTrace } from '../lib'
 const debug = Debug('timeline-state-resolver:httpsend')
 
 export interface DeviceOptionsHTTPSendInternal extends DeviceOptionsHTTPSend {
@@ -85,10 +86,14 @@ export class HTTPSendDevice extends DeviceWithState<HTTPSendState, DeviceOptions
 			this.getStateBefore(previousStateTime) || { state: { time: 0, layers: {}, nextEvents: [] } }
 		).state
 
+		const convertTrace = startTrace(`device:convertState`, { deviceId: this.deviceId })
 		const oldHttpSendState = oldState
 		const newHttpSendState = this.convertStateToHttpSend(newState)
+		this.emit('timeTrace', endTrace(convertTrace))
 
+		const diffTrace = startTrace(`device:diffState`, { deviceId: this.deviceId })
 		const commandsToAchieveState: Array<any> = this._diffStates(oldHttpSendState, newHttpSendState)
+		this.emit('timeTrace', endTrace(diffTrace))
 
 		// clear any queued commands later than this time:
 		this._doOnTime.clearQueueNowAndAfter(previousStateTime)
@@ -239,7 +244,7 @@ export class HTTPSendDevice extends DeviceWithState<HTTPSendState, DeviceOptions
 			command: cmd,
 			timelineObjId: timelineObjId,
 		}
-		this.emit('debug', cwc)
+		this.emitDebug(cwc)
 
 		const t = Date.now()
 		debug(`${cmd.type}: ${cmd.url} ${JSON.stringify(cmd.params)} (${timelineObjId})`)
@@ -251,8 +256,7 @@ export class HTTPSendDevice extends DeviceWithState<HTTPSendState, DeviceOptions
 			})
 
 			if (response.statusCode === 200) {
-				this.emit(
-					'debug',
+				this.emitDebug(
 					`HTTPSend: ${cmd.type}: Good statuscode response on url "${cmd.url}": ${response.statusCode} (${context})`
 				)
 			} else {
@@ -267,10 +271,24 @@ export class HTTPSendDevice extends DeviceWithState<HTTPSendState, DeviceOptions
 			this.emit('commandError', error, cwc)
 			debug(`Failed ${cmd.url}: ${error} (${timelineObjId})`)
 
-			if (this._resendTime) {
-				const timeLeft = Math.max(this._resendTime - (Date.now() - t), 0)
-				await new Promise<void>((resolve) => setTimeout(() => resolve(), timeLeft))
-				this._defaultCommandReceiver(_time, cmd, context, timelineObjId, layer).catch(() => null) // errors will be emitted
+			if ('code' in error) {
+				const retryCodes = [
+					'ETIMEDOUT',
+					'ECONNRESET',
+					'EADDRINUSE',
+					'ECONNREFUSED',
+					'EPIPE',
+					'ENOTFOUND',
+					'ENETUNREACH',
+					'EHOSTUNREACH',
+					'EAI_AGAIN',
+				]
+
+				if (retryCodes.includes(error.code) && this._resendTime) {
+					const timeLeft = Math.max(this._resendTime - (Date.now() - t), 0)
+					await new Promise<void>((resolve) => setTimeout(() => resolve(), timeLeft))
+					this._defaultCommandReceiver(_time, cmd, context, timelineObjId, layer).catch(() => null) // errors will be emitted
+				}
 			}
 		}
 	}

@@ -18,6 +18,7 @@ import { DoOnTime, SendMode } from '../doOnTime'
 import { TimelineState, ResolvedTimelineObjectInstance } from 'superfly-timeline'
 import { SisyfosApi, SisyfosCommand, SisyfosState, SisyfosChannel, SisyfosCommandType } from './sisyfosAPI'
 import Debug from 'debug'
+import { startTrace, endTrace } from '../lib'
 const debug = Debug('timeline-state-resolver:sisyfos')
 
 export interface DeviceOptionsSisyfosInternal extends DeviceOptionsSisyfos {
@@ -102,12 +103,16 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 		}
 
 		// Transform timeline states into device states
+		const convertTrace = startTrace(`device:convertState`, { deviceId: this.deviceId })
 		const previousStateTime = Math.max(this.getCurrentTime(), newState.time)
 		const oldSisyfosState: SisyfosState = (
 			this.getStateBefore(previousStateTime) || { state: { channels: {}, resync: false } }
 		).state
+		this.emit('timeTrace', endTrace(convertTrace))
 
+		const diffTrace = startTrace(`device:diffState`, { deviceId: this.deviceId })
 		const newSisyfosState = this.convertStateToSisyfosState(newState, newMappings)
+		this.emit('timeTrace', endTrace(diffTrace))
 
 		this._handleStateInner(oldSisyfosState, newSisyfosState, previousStateTime, newState.time)
 	}
@@ -316,6 +321,12 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 				// @ts-ignore backwards-compatibility:
 				if (content.type === 'sisyfos') content.type = TimelineContentTypeSisyfos.CHANNEL
 
+				debug(
+					`Mapping ${foundMapping.layerName}: ${foundMapping.mappingType}, ${
+						(foundMapping as any).channel || (foundMapping as any).label
+					}`
+				)
+
 				if (
 					foundMapping.mappingType === MappingSisyfosType.CHANNEL &&
 					content.type === TimelineContentTypeSisyfos.CHANNEL
@@ -323,6 +334,22 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 					newChannels.push({
 						...content,
 						channel: foundMapping.channel,
+						overridePriority: content.overridePriority || 0,
+						isLookahead: layer.isLookahead || false,
+						tlObjId: layer.id,
+					})
+					deviceState.resync = deviceState.resync || content.resync || false
+				} else if (
+					foundMapping.mappingType === MappingSisyfosType.CHANNEL_BY_LABEL &&
+					content.type === TimelineContentTypeSisyfos.CHANNEL
+				) {
+					const ch = this._sisyfos.getChannelByLabel(foundMapping.label)
+					debug(`Channel by label ${foundMapping.label}(${ch}): ${content.isPgm}`)
+					if (ch === undefined) return
+
+					newChannels.push({
+						...content,
+						channel: ch,
 						overridePriority: content.overridePriority || 0,
 						isLookahead: layer.isLookahead || false,
 						tlObjId: layer.id,
@@ -338,6 +365,18 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 							newChannels.push({
 								...channel,
 								channel: referencedMapping.channel,
+								overridePriority: content.overridePriority || 0,
+								isLookahead: layer.isLookahead || false,
+								tlObjId: layer.id,
+							})
+						} else if (referencedMapping && referencedMapping.mappingType === MappingSisyfosType.CHANNEL_BY_LABEL) {
+							const ch = this._sisyfos.getChannelByLabel(referencedMapping.label)
+							debug(`Channel by label ${referencedMapping.label}(${ch}): ${channel.isPgm}`)
+							if (ch === undefined) return
+
+							newChannels.push({
+								...channel,
+								channel: ch,
 								overridePriority: content.overridePriority || 0,
 								isLookahead: layer.isLookahead || false,
 								tlObjId: layer.id,
@@ -516,7 +555,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 			command: cmd,
 			timelineObjId: timelineObjId,
 		}
-		this.emit('debug', cwc)
+		this.emitDebug(cwc)
 
 		if (cmd.type === SisyfosCommandType.RESYNC) {
 			return this._makeReadyInner(true, true)

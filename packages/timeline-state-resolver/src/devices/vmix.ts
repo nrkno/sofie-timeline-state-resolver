@@ -88,6 +88,8 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 		)
 		this._doOnTime.on('error', (e) => this.emit('error', 'VMix.doOnTime', e))
 		this._doOnTime.on('slowCommand', (msg) => this.emit('slowCommand', this.deviceName + ': ' + msg))
+		this._doOnTime.on('slowSentCommand', (info) => this.emit('slowSentCommand', info))
+		this._doOnTime.on('slowFulfilledCommand', (info) => this.emit('slowFulfilledCommand', info))
 	}
 	init(options: VMixOptions): Promise<boolean> {
 		this._vmix = new VMix()
@@ -105,7 +107,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 		})
 		this._vmix.on('error', (e) => this.emit('error', 'VMix', e))
 		this._vmix.on('stateChanged', (state) => this._onVMixStateChanged(state))
-		this._vmix.on('debug', (...args) => this.emit('debug', ...args))
+		this._vmix.on('debug', (...args) => this.emitDebug(...args))
 
 		return this._vmix.connect(options)
 	}
@@ -780,29 +782,33 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 				}
 			}
 			if (input.overlays !== undefined && !_.isEqual(oldInput.overlays, input.overlays)) {
-				_.difference(Object.keys(input.overlays), Object.keys(oldInput.overlays || {})).forEach((index) => {
-					commands.push({
-						command: {
-							command: VMixCommand.SET_INPUT_OVERLAY,
-							input: key,
-							value: input.overlays![Number(index)],
-							index: Number(index),
-						},
-						context: null,
-						timelineId: '',
-					})
+				Object.keys(input.overlays).forEach((index) => {
+					if (input.overlays !== oldInput.overlays?.[index]) {
+						commands.push({
+							command: {
+								command: VMixCommand.SET_INPUT_OVERLAY,
+								input: key,
+								value: input.overlays![Number(index)],
+								index: Number(index),
+							},
+							context: null,
+							timelineId: '',
+						})
+					}
 				})
-				_.difference(Object.keys(oldInput.overlays || {}), Object.keys(input.overlays)).forEach((index) => {
-					commands.push({
-						command: {
-							command: VMixCommand.SET_INPUT_OVERLAY,
-							input: key,
-							value: '',
-							index: Number(index),
-						},
-						context: null,
-						timelineId: '',
-					})
+				Object.keys(oldInput?.overlays || {}).forEach((index) => {
+					if (!input.overlays?.[index]) {
+						commands.push({
+							command: {
+								command: VMixCommand.SET_INPUT_OVERLAY,
+								input: key,
+								value: '',
+								index: Number(index),
+							},
+							context: null,
+							timelineId: '',
+						})
+					}
 				})
 			}
 			if (input.playing !== undefined && oldInput.playing !== input.playing && input.playing) {
@@ -1011,7 +1017,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 			command: cmd,
 			timelineObjId: timelineObjId,
 		}
-		this.emit('debug', cwc)
+		this.emitDebug(cwc)
 
 		return this._vmix.sendCommand(cmd.command).catch((error) => {
 			this.emit('commandError', error, cwc)

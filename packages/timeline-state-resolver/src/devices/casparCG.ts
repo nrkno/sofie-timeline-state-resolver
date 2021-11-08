@@ -46,6 +46,7 @@ import { DoOnTime, SendMode } from '../doOnTime'
 import * as request from 'request'
 import { InternalTransitionHandler } from './transitions/transitionHandler'
 import Debug from 'debug'
+import { endTrace, startTrace } from '../lib'
 const debug = Debug('timeline-state-resolver:casparcg')
 
 const MAX_TIMESYNC_TRIES = 5
@@ -163,7 +164,7 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 		return new Promise((resolve) => {
 			this._ccg.disconnect()
 			this._ccg.onDisconnected = () => {
-				resolve()
+				resolve(true)
 			}
 		})
 	}
@@ -193,9 +194,13 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 
 		const oldCasparState = (this.getStateBefore(previousStateTime) || { state: { channels: {} } }).state
 
+		const convertTrace = startTrace(`device:convertState`, { deviceId: this.deviceId })
 		const newCasparState = this.convertStateToCaspar(newState, newMappings)
+		this.emit('timeTrace', endTrace(convertTrace))
 
+		const diffTrace = startTrace(`device:diffState`, { deviceId: this.deviceId })
 		const commandsToAchieveState = this._diffStates(oldCasparState, newCasparState, newState.time)
+		this.emit('timeTrace', endTrace(diffTrace))
 
 		// clear any queued commands later than this time:
 		if (this._useScheduling) {
@@ -293,7 +298,7 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 				vfilter: mediaObj.content.videoFilter,
 				afilter: mediaObj.content.audioFilter,
 			})
-			// this.emit('debug', stateLayer)
+			// this.emitDebug(stateLayer)
 		} else if (layer.content.type === TimelineContentTypeCasparCg.IP) {
 			const ipObj = layer as any as TimelineObjCCGIP
 
@@ -832,7 +837,7 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 			timelineObjId: timelineObjId,
 			command: JSON.stringify(cmd),
 		}
-		this.emit('debug', cwc)
+		this.emitDebug(cwc)
 
 		return this._ccg
 			.do(cmd)

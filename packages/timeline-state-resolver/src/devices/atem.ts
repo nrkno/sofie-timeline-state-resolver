@@ -22,6 +22,7 @@ import { TimelineState } from 'superfly-timeline'
 import { AtemState, State as DeviceState, Defaults as StateDefault } from 'atem-state'
 import { BasicAtem, Commands as AtemCommands, AtemState as NativeAtemState, AtemStateUtil } from 'atem-connection'
 import { DoOnTime, SendMode } from '../doOnTime'
+import { endTrace, startTrace } from '../lib'
 
 _.mixin({ deepExtend: underScoreDeepExtend(_) })
 
@@ -171,14 +172,15 @@ export class AtemDevice extends DeviceWithState<DeviceState, DeviceOptionsAtemIn
 		const previousStateTime = Math.max(this.getCurrentTime(), newState.time)
 		const oldState: DeviceState = (this.getStateBefore(previousStateTime) || { state: AtemStateUtil.Create() }).state
 
+		const convertTrace = startTrace(`device:convertState`, { deviceId: this.deviceId })
 		const oldAtemState = oldState
 		const newAtemState = this.convertStateToAtem(newState, newMappings)
+		this.emit('timeTrace', endTrace(convertTrace))
 
 		if (this.firstStateAfterMakeReady) {
 			// emit a debug message with the states:
 			this.firstStateAfterMakeReady = false
-			this.emit(
-				'debug',
+			this.emitDebug(
 				JSON.stringify({
 					reason: 'firstStateAfterMakeReady',
 					before: (oldAtemState || {}).video,
@@ -187,7 +189,9 @@ export class AtemDevice extends DeviceWithState<DeviceState, DeviceOptionsAtemIn
 			)
 		}
 
+		const diffTrace = startTrace(`device:diffState`, { deviceId: this.deviceId })
 		const commandsToAchieveState: Array<AtemCommandWithContext> = this._diffStates(oldAtemState, newAtemState)
+		this.emit('timeTrace', endTrace(diffTrace))
 
 		// clear any queued commands later than this time:
 		this._doOnTime.clearQueueNowAndAfter(previousStateTime)
@@ -420,7 +424,7 @@ export class AtemDevice extends DeviceWithState<DeviceState, DeviceOptionsAtemIn
 			command: command,
 			timelineObjId: timelineObjId,
 		}
-		this.emit('debug', cwc)
+		this.emitDebug(cwc)
 
 		return this._atem
 			.sendCommand(command)

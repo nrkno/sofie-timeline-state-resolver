@@ -26,6 +26,6 @@ export function setupAllMocks() {
 	jest.mock('osc', () => osc)
 	jest.mock('request', () => request)
 	jest.mock('request-promise-native', () => requestPromiseNative)
-	jest.mock('v-connection', () => vConnection)
+	jest.mock('@tv2media/v-connection', () => vConnection)
 	jest.mock('ws', () => ws)
 }

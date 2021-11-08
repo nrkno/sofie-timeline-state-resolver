@@ -1982,7 +1982,7 @@ describe('CasparCG', () => {
 
 		// one command has been sent:
 		expect(commandReceiver0).toHaveBeenCalledTimes(1)
-		console.log(getMockCall(commandReceiver0, 0, 1)._objectParams)
+		// console.log(getMockCall(commandReceiver0, 0, 1)._objectParams)
 		expect(getMockCall(commandReceiver0, 0, 1)._objectParams).toMatchObject({
 			channel: 2,
 			layer: 42,

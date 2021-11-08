@@ -11,6 +11,7 @@ export class SisyfosApi extends EventEmitter {
 
 	private _oscClient: osc.UDPPort
 	private _state?: SisyfosState
+	private _labelToChannel: Map<string, number> = new Map()
 
 	private _connectivityCheckInterval: NodeJS.Timer
 	private _pingCounter: number = Math.round(Math.random() * 10000)
@@ -190,6 +191,10 @@ export class SisyfosApi extends EventEmitter {
 		this._oscClient.send({ address: '/state/full', args: [] })
 	}
 
+	getChannelByLabel(label: string): number | undefined {
+		return this._labelToChannel.get(label)
+	}
+
 	get connected(): boolean {
 		return this._connected
 	}
@@ -239,6 +244,7 @@ export class SisyfosApi extends EventEmitter {
 		if (address[0] === 'state') {
 			if (address[1] === 'full') {
 				this._state = this.parseSisyfosState(message)
+				this._labelToChannel = new Map(Object.entries(this._state.channels).map((v) => [v[1].label, Number(v[0])]))
 				this.emit('initialized')
 			} else if (address[1] === 'ch' && this._state) {
 				const ch = address[2]
