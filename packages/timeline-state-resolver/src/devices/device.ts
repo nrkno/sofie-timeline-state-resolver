@@ -4,6 +4,7 @@ import { Mappings, DeviceType, MediaObject, DeviceOptionsBase } from 'timeline-s
 import { EventEmitter } from 'eventemitter3'
 import { CommandReport, DoOnTime, SlowFulfilledCommandInfo, SlowSentCommandInfo } from '../doOnTime'
 import { ExpectedPlayoutItem } from '../expectedPlayoutItems'
+import { FinishedTrace } from '../lib'
 
 /*
 	This is a base class for all the Device wrappers.
@@ -68,6 +69,7 @@ export type DeviceEvents = {
 	clearMediaObjects: [collectionId: string]
 
 	commandReport: [commandReport: CommandReport]
+	timeTrace: [trace: FinishedTrace]
 }
 
 export interface IDevice<TOptions extends DeviceOptionsBase<any>> {
@@ -268,6 +270,24 @@ export abstract class Device<TOptions extends DeviceOptionsBase<any>>
 			if (this._reportAllCommands) {
 				this.emit('commandReport', commandReport)
 			}
+			this.emit('timeTrace', {
+				measurement: 'device:commandSendDelay',
+				tags: {
+					deviceId: this.deviceId,
+				},
+				start: commandReport.plannedSend,
+				ended: commandReport.send,
+				duration: commandReport.send - commandReport.plannedSend,
+			})
+			this.emit('timeTrace', {
+				measurement: 'device:commandFulfillDelay',
+				tags: {
+					deviceId: this.deviceId,
+				},
+				start: commandReport.send,
+				ended: commandReport.fullfilled,
+				duration: commandReport.fullfilled - commandReport.send,
+			})
 		})
 	}
 	private updateIsActive(mappings: Mappings) {

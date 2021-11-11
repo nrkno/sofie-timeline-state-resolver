@@ -13,6 +13,7 @@ import got from 'got'
 import { TimelineState, ResolvedTimelineObjectInstance } from 'superfly-timeline'
 
 import Debug from 'debug'
+import { endTrace, startTrace } from '../lib'
 const debug = Debug('timeline-state-resolver:httpsend')
 
 export interface DeviceOptionsHTTPSendInternal extends DeviceOptionsHTTPSend {
@@ -85,10 +86,14 @@ export class HTTPSendDevice extends DeviceWithState<HTTPSendState, DeviceOptions
 			this.getStateBefore(previousStateTime) || { state: { time: 0, layers: {}, nextEvents: [] } }
 		).state
 
+		const convertTrace = startTrace(`device:convertState`, { deviceId: this.deviceId })
 		const oldHttpSendState = oldState
 		const newHttpSendState = this.convertStateToHttpSend(newState)
+		this.emit('timeTrace', endTrace(convertTrace))
 
+		const diffTrace = startTrace(`device:diffState`, { deviceId: this.deviceId })
 		const commandsToAchieveState: Array<any> = this._diffStates(oldHttpSendState, newHttpSendState)
+		this.emit('timeTrace', endTrace(diffTrace))
 
 		// clear any queued commands later than this time:
 		this._doOnTime.clearQueueNowAndAfter(previousStateTime)

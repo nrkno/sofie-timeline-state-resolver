@@ -20,6 +20,7 @@ import { TimelineState, ResolvedTimelineObjectInstance } from 'superfly-timeline
 
 import { DoOnTime, SendMode } from '../doOnTime'
 import { QuantelGateway, Q, MonitorPorts } from 'tv-automation-quantel-gateway-client'
+import { startTrace, endTrace } from '../lib'
 
 const IDEAL_PREPARE_TIME = 1000
 const PREPARE_TIME_WAIT = 50
@@ -154,10 +155,14 @@ export class QuantelDevice extends DeviceWithState<QuantelState, DeviceOptionsQu
 		const oldQuantelState: QuantelState = (this.getStateBefore(previousStateTime) || { state: { time: 0, port: {} } })
 			.state
 
+		const convertTrace = startTrace(`device:convertState`, { deviceId: this.deviceId })
 		const newQuantelState = this.convertStateToQuantel(newState, newMappings)
+		this.emit('timeTrace', endTrace(convertTrace))
 		// let oldQuantelState = this.convertStateToQuantel(oldState)
 
+		const diffTrace = startTrace(`device:diffState`, { deviceId: this.deviceId })
 		const commandsToAchieveState = this._diffStates(oldQuantelState, newQuantelState, newState.time)
+		this.emit('timeTrace', endTrace(diffTrace))
 
 		// clear any queued commands later than this time:
 		this._doOnTime.clearQueueNowAndAfter(previousStateTime)

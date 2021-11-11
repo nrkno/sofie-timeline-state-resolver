@@ -101,7 +101,7 @@ describe('HTTP-Watcher', () => {
 
 		await mockTime.advanceTimeTicks(10100)
 		expect(onGet).toBeCalledTimes(0)
-		expect(onGetLocal).toBeCalledTimes(1)
+		expect(onGetLocal).toBeCalledTimes(2)
 		expect(await generatedDevice.getStatus()).toEqual({ statusCode: StatusCode.GOOD, active: true })
 
 		mockStatusCode = 500
@@ -155,22 +155,26 @@ describe('HTTP-Watcher', () => {
 		myConductor.setTimelineAndMappings([], myLayerMapping)
 
 		await mockTime.advanceTimeTicks(10100)
-		expect(onGet).toBeCalledTimes(1)
+		expect(onGet).toBeCalledTimes(2)
+		onGet.mockClear()
 		expect(await generatedDevice.getStatus()).toEqual({ statusCode: StatusCode.GOOD, active: true })
 
 		mockStatusCode = 500 // should not matter
 		await mockTime.advanceTimeTicks(10100)
-		expect(onGet).toBeCalledTimes(2)
+		expect(onGet).toBeCalledTimes(1)
+		onGet.mockClear()
 		expect(await generatedDevice.getStatus()).toEqual({ statusCode: StatusCode.GOOD, active: true })
 
 		mockStatusCode = 200
 		await mockTime.advanceTimeTicks(10100)
-		expect(onGet).toBeCalledTimes(3)
+		expect(onGet).toBeCalledTimes(1)
+		onGet.mockClear()
 		expect(await generatedDevice.getStatus()).toEqual({ statusCode: StatusCode.GOOD, active: true })
 
 		mockBody = 'sorry not sorry'
 		await mockTime.advanceTimeTicks(10100)
-		expect(onGet).toBeCalledTimes(4)
+		expect(onGet).toBeCalledTimes(1)
+		onGet.mockClear()
 		expect(await generatedDevice.getStatus()).toMatchObject({
 			statusCode: StatusCode.BAD,
 			messages: [/keyword/i],
@@ -179,7 +183,7 @@ describe('HTTP-Watcher', () => {
 
 		mockBody = 'heres my keyword again'
 		await mockTime.advanceTimeTicks(10100)
-		expect(onGet).toBeCalledTimes(5)
+		expect(onGet).toBeCalledTimes(1)
 		expect(await generatedDevice.getStatus()).toEqual({ statusCode: StatusCode.GOOD, active: true })
 
 		await generatedDevice.terminate()
@@ -209,12 +213,14 @@ describe('HTTP-Watcher', () => {
 		myConductor.setTimelineAndMappings([], myLayerMapping)
 
 		await mockTime.advanceTimeTicks(10100)
-		expect(onGet).toBeCalledTimes(1)
+		expect(onGet).toBeCalledTimes(2)
+		onGet.mockClear()
 		expect(await generatedDevice.getStatus()).toEqual({ statusCode: StatusCode.GOOD, active: true })
 
 		mockStatusCode = 500
 		await mockTime.advanceTimeTicks(10100)
-		expect(onGet).toBeCalledTimes(2)
+		expect(onGet).toBeCalledTimes(1)
+		onGet.mockClear()
 		expect(await generatedDevice.getStatus()).toMatchObject({
 			statusCode: StatusCode.BAD,
 			messages: [/status code/i],
@@ -223,17 +229,20 @@ describe('HTTP-Watcher', () => {
 
 		mockStatusCode = 200
 		await mockTime.advanceTimeTicks(10100)
-		expect(onGet).toBeCalledTimes(3)
+		expect(onGet).toBeCalledTimes(1)
+		onGet.mockClear()
 		expect(await generatedDevice.getStatus()).toEqual({ statusCode: StatusCode.GOOD, active: true })
 
 		mockBody = 'sorry not sorry' // should not matter
 		await mockTime.advanceTimeTicks(10100)
-		expect(onGet).toBeCalledTimes(4)
+		expect(onGet).toBeCalledTimes(1)
+		onGet.mockClear()
 		expect(await generatedDevice.getStatus()).toEqual({ statusCode: StatusCode.GOOD, active: true })
 
 		mockBody = 'heres my keyword again'
 		await mockTime.advanceTimeTicks(10100)
-		expect(onGet).toBeCalledTimes(5)
+		expect(onGet).toBeCalledTimes(1)
+		onGet.mockClear()
 		expect(await generatedDevice.getStatus()).toEqual({ statusCode: StatusCode.GOOD, active: true })
 
 		await generatedDevice.terminate()
@@ -257,7 +266,7 @@ describe('HTTP-Watcher', () => {
 		expect(await generatedDevice.getStatus()).toEqual({ statusCode: StatusCode.UNKNOWN, active: true })
 		myConductor.setTimelineAndMappings([], myLayerMapping)
 		await mockTime.advanceTimeTicks(10100)
-		expect(onGet).toBeCalledTimes(1)
+		expect(onGet).toBeCalledTimes(2)
 		expect(await generatedDevice.getStatus()).toEqual({ statusCode: StatusCode.GOOD, active: true })
 
 		await generatedDevice.terminate()
@@ -284,7 +293,7 @@ describe('HTTP-Watcher', () => {
 		myConductor.setTimelineAndMappings([], myLayerMapping)
 
 		await mockTime.advanceTimeTicks(10100)
-		expect(onGetLocal).toBeCalledTimes(1)
+		expect(onGetLocal).toBeCalledTimes(2)
 		expect(await generatedDevice.getStatus()).toEqual({
 			statusCode: StatusCode.BAD,
 			messages: ['Error: Bad Gateway'],
@@ -311,7 +320,7 @@ describe('HTTP-Watcher', () => {
 		myConductor.setTimelineAndMappings([], myLayerMapping)
 
 		await mockTime.advanceTimeTicks(10100)
-		expect(onGet).toBeCalledTimes(1)
+		expect(onGet).toBeCalledTimes(2)
 		expect(await generatedDevice.getStatus()).toEqual({
 			statusCode: StatusCode.BAD,
 			messages: ['Expected keyword "bad keyword" not found'],
@@ -354,7 +363,7 @@ describe('HTTP-Watcher', () => {
 		myConductor.setTimelineAndMappings([], myLayerMapping)
 
 		await mockTime.advanceTimeTicks(10100)
-		expect(onGetLocal).toBeCalledTimes(1)
+		expect(onGetLocal).toBeCalledTimes(2)
 		expect(await generatedDevice.getStatus()).toEqual({
 			statusCode: StatusCode.BAD,
 			messages: ['Expected status code 200, got 201'],
@@ -395,9 +404,9 @@ describe('HTTP-Watcher', () => {
 		expect(await generatedDevice.getStatus()).toEqual({ statusCode: StatusCode.UNKNOWN, active: true })
 		myConductor.setTimelineAndMappings([], myLayerMapping)
 
-		await mockTime.advanceTimeTicks(10100)
+		await mockTime.advanceTimeTicks(10000)
 		expect(onGet).toBeCalledTimes(0)
-		expect(onPost).toBeCalledTimes(1)
+		expect(onPost).toBeCalledTimes(2)
 		expect(await generatedDevice.getStatus()).toEqual({ statusCode: StatusCode.GOOD, active: true })
 
 		await generatedDevice.terminate()
@@ -419,7 +428,7 @@ describe('HTTP-Watcher', () => {
 		myConductor.setTimelineAndMappings([], myLayerMapping)
 
 		await mockTime.advanceTimeTicks(10100)
-		expect(onGet).toBeCalledTimes(1)
+		expect(onGet).toBeCalledTimes(2)
 		expect(await generatedDevice.getStatus()).toEqual({ statusCode: StatusCode.GOOD, active: true })
 
 		await generatedDevice.terminate()

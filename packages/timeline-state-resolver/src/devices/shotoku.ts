@@ -15,6 +15,7 @@ import { DoOnTime, SendMode } from '../doOnTime'
 
 import { TimelineState } from 'superfly-timeline'
 import { ShotokuAPI, ShotokuCommand, ShotokuCommandType } from './shotokuAPI'
+import { startTrace, endTrace } from '../lib'
 
 export interface DeviceOptionsShotokuInternal extends DeviceOptionsShotoku {
 	commandReceiver?: CommandReceiver
@@ -98,10 +99,14 @@ export class ShotokuDevice extends DeviceWithState<ShotokuDeviceState, DeviceOpt
 			this.getStateBefore(previousStateTime) || { state: { shots: {}, sequences: {} } }
 		).state
 
+		const convertTrace = startTrace(`device:convertState`, { deviceId: this.deviceId })
 		const newShotokuState = this.convertStateToShotokuShots(newState)
+		this.emit('timeTrace', endTrace(convertTrace))
 
 		// Generate commands necessary to transition to the new state
+		const diffTrace = startTrace(`device:diffState`, { deviceId: this.deviceId })
 		const commandsToAchieveState = this._diffStates(oldState, newShotokuState)
+		this.emit('timeTrace', endTrace(diffTrace))
 
 		// clear any queued commands later than this time:
 		this._doOnTime.clearQueueNowAndAfter(previousStateTime)

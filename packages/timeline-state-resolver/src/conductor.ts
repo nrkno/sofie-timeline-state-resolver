@@ -37,6 +37,7 @@ import PQueue from 'p-queue'
 import * as PAll from 'p-all'
 import PTimeout from 'p-timeout'
 import { ShotokuDevice, DeviceOptionsShotokuInternal } from './devices/shotoku'
+import { endTrace, FinishedTrace, startTrace } from './lib'
 
 export { DeviceContainer }
 export { CommandWithContext }
@@ -112,6 +113,7 @@ export type ConductorEvents = {
 	timelineCallback: [time: number, instanceId: string, callback: string, callbackData: any]
 	resolveDone: [timelineHash: string, duration: number]
 	statReport: [report: StatReport]
+	timeTrace: [trace: FinishedTrace]
 }
 
 /**
@@ -661,7 +663,15 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 		)
 		await this._actionQueue.add(async () => {
 			await this._mapAllDevices(false, (d) =>
-				PTimeout(d.device.makeReady(okToDestroyStuff, activationId), 10000, `makeReady for "${d.deviceId}" timed out`)
+				PTimeout(
+					(async () => {
+						const trace = startTrace('conductor:makeReady:' + d.deviceId)
+						await d.device.makeReady(okToDestroyStuff, activationId)
+						this.emit('timeTrace', endTrace(trace))
+					})(),
+					10000,
+					`makeReady for "${d.deviceId}" timed out`
+				)
 			)
 
 			this._triggerResolveTimeline()
@@ -675,7 +685,15 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 		this.emit('debug', `devicesStandDown, ${okToDestroyStuff ? 'okToDestroyStuff' : 'undefined'}`)
 		await this._actionQueue.add(async () => {
 			await this._mapAllDevices(false, (d) =>
-				PTimeout(d.device.standDown(okToDestroyStuff), 10000, `standDown for "${d.deviceId}" timed out`)
+				PTimeout(
+					(async () => {
+						const trace = startTrace('conductor:standDown:' + d.deviceId)
+						await d.device.standDown(okToDestroyStuff)
+						this.emit('timeTrace', endTrace(trace))
+					})(),
+					10000,
+					`standDown for "${d.deviceId}" timed out`
+				)
 			)
 		})
 	}
@@ -739,6 +757,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 			})
 	}
 	private async _resolveTimelineInner(): Promise<number | undefined> {
+		const trace = startTrace('conductor:resolveTimeline')
 		if (!this._isInitialized) {
 			this.emit('warning', 'TSR is not initialized yet')
 			return undefined
@@ -991,6 +1010,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 		}
 
 		// Report time taken to resolve
+		this.emit('timeTrace', endTrace(trace))
 		this.statReport(statMeasureStart, {
 			timelineStartResolve: statTimeTimelineStartResolve,
 			timelineResolved: statTimeTimelineResolved,

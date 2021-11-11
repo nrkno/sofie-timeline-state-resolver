@@ -18,6 +18,7 @@ import { DoOnTime, SendMode } from '../doOnTime'
 import { TimelineState, ResolvedTimelineObjectInstance } from 'superfly-timeline'
 import { SisyfosApi, SisyfosCommand, SisyfosState, SisyfosChannel, SisyfosCommandType } from './sisyfosAPI'
 import Debug from 'debug'
+import { startTrace, endTrace } from '../lib'
 const debug = Debug('timeline-state-resolver:sisyfos')
 
 export interface DeviceOptionsSisyfosInternal extends DeviceOptionsSisyfos {
@@ -102,12 +103,16 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 		}
 
 		// Transform timeline states into device states
+		const convertTrace = startTrace(`device:convertState`, { deviceId: this.deviceId })
 		const previousStateTime = Math.max(this.getCurrentTime(), newState.time)
 		const oldSisyfosState: SisyfosState = (
 			this.getStateBefore(previousStateTime) || { state: { channels: {}, resync: false } }
 		).state
+		this.emit('timeTrace', endTrace(convertTrace))
 
+		const diffTrace = startTrace(`device:diffState`, { deviceId: this.deviceId })
 		const newSisyfosState = this.convertStateToSisyfosState(newState, newMappings)
+		this.emit('timeTrace', endTrace(diffTrace))
 
 		this._handleStateInner(oldSisyfosState, newSisyfosState, previousStateTime, newState.time)
 	}
