@@ -12,4 +12,3 @@ wallaby.conf.js
 .DS_Store
 packages/*/coverage/
 .npmrc
-.vscode/
