@@ -1,5 +1,4 @@
 // These imports are pointed to what external libraries will import
-// eslint-disable-next-line
 import { DeviceType as Types_DeviceType, TSRTimeline, TimelineObjEmpty } from '../../dist'
 
 describe('Usage of library', () => {
