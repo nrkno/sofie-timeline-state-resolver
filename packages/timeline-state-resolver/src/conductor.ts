@@ -920,20 +920,10 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 					layers: layersPerDevice[device.deviceId] || {},
 					nextEvents: [],
 				}
-				const removeParent = (o: TimelineState) => {
-					for (const key in o) {
-						if (key === 'parent') {
-							delete o['parent']
-						} else if (typeof o[key] === 'object') {
-							o[key] = removeParent(o[key])
-						}
-					}
-					return o
-				}
 
 				// Pass along the state to the device, it will generate its commands and execute them:
 				try {
-					await device.device.handleState(removeParent(subState), this._mappings)
+					await device.device.handleState(removeParentFromState(subState), this._mappings)
 				} catch (e) {
 					this.emit('error', 'Error in device "' + device.deviceId + '"' + e + ' ' + e.stack)
 				}
@@ -948,7 +938,6 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 					nextEventTime = event.time
 				}
 			})
-			// let nextEventTime = await this._resolver.getNextTimelineEvent(timeline, tlState.time)
 
 			const nowPostExec = this.getCurrentTime()
 			if (nextEventTime) {
@@ -1310,3 +1299,14 @@ export type DeviceOptionsAnyInternal =
 	| DeviceOptionsVMixInternal
 	| DeviceOptionsShotokuInternal
 	| DeviceOptionsVizMSEInternal
+
+function removeParentFromState(o: TimelineState): TimelineState {
+	for (const key in o) {
+		if (key === 'parent') {
+			delete o['parent']
+		} else if (typeof o[key] === 'object') {
+			o[key] = removeParentFromState(o[key])
+		}
+	}
+	return o
+}
