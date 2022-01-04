@@ -1,5 +1,11 @@
 import * as _ from 'underscore'
-import { TimelineState, ResolvedTimelineObjectInstance, ResolvedStates, TimelineObject } from 'superfly-timeline'
+import {
+	TimelineState,
+	ResolvedTimelineObjectInstance,
+	ResolvedStates,
+	TimelineObject,
+	Resolver,
+} from 'superfly-timeline'
 
 import { CommandWithContext, DeviceEvents } from './devices/device'
 import { CasparCGDevice, DeviceOptionsCasparCGInternal } from './devices/casparCG'
@@ -880,7 +886,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 				_.each(timeline, (o) => applyRecursively(o, fixNow))
 			}
 
-			const tlState = await this._resolver.getState(resolvedStates, resolveTime)
+			const tlState = Resolver.getState(resolvedStates, resolveTime)
 			await pPrepareForHandleStates
 
 			statTimeTimelineResolved = Date.now()
