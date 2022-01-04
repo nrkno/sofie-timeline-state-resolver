@@ -72,6 +72,8 @@ export interface ConductorOptions {
 	multiThreadedResolver?: boolean
 	useCacheWhenResolving?: boolean
 	proActiveResolve?: boolean
+	/** When set, some optimizations are made, intended to only run in production */
+	optimizeForProduction?: boolean
 }
 interface TimelineCallback {
 	time: number
@@ -892,7 +894,12 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 			statTimeTimelineResolved = Date.now()
 
 			if (this.getCurrentTime() > resolveTime) {
-				this.emit('warning', `Resolver is ${this.getCurrentTime() - resolveTime} ms late`)
+				this.emit(
+					'warning',
+					`Resolver is ${
+						this.getCurrentTime() - resolveTime
+					} ms late (estimatedResolveTime was ${estimatedResolveTime})`
+				)
 			}
 
 			const layersPerDevice = this.filterLayersPerDevice(
@@ -902,6 +909,11 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 
 			// Push state to the right device:
 			await this._mapAllDevices(false, async (device: DeviceContainer<DeviceOptionsBase<any>>): Promise<void> => {
+				if (this._options.optimizeForProduction) {
+					// Don't send any state to the abstract device, since it doesn't do anything anyway
+					if (device.deviceType === DeviceType.ABSTRACT) return
+				}
+
 				// The subState contains only the parts of the state relevant to that device:
 				const subState: TimelineState = {
 					time: tlState.time,
