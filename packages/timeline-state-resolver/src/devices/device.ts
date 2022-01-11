@@ -1,7 +1,7 @@
 import * as _ from 'underscore'
 import { TimelineState } from 'superfly-timeline'
 import { Mappings, DeviceType, MediaObject, DeviceOptionsBase } from 'timeline-state-resolver-types'
-import { EventEmitter } from 'eventemitter3'
+import { EventArgs, EventEmitter, EventNames } from 'eventemitter3'
 import { CommandReport, DoOnTime, SlowFulfilledCommandInfo, SlowSentCommandInfo } from '../doOnTime'
 import { ExpectedPlayoutItem } from '../expectedPlayoutItems'
 import { FinishedTrace } from '../lib'
@@ -261,11 +261,21 @@ export abstract class Device<TOptions extends DeviceOptionsBase<any>>
 	public get startTime(): number {
 		return this._startTime
 	}
+	/**
+	 * Waits a bit, then emits.
+	 * This can be useful in situations where we want to emit debug-information about a performance issue,
+	 * but we don't want to flood the output with debug-information.
+	 */
+	protected delayEmit<T extends EventNames<DeviceEvents>>(event: T, ...args: EventArgs<DeviceEvents, T>): void {
+		setTimeout(() => {
+			this.emit(event, ...args)
+		}, 200)
+	}
 	protected handleDoOnTime(doOnTime: DoOnTime, deviceType: string) {
 		doOnTime.on('error', (e) => this.emit('error', `${deviceType}.doOnTime`, e))
-		doOnTime.on('slowCommand', (msg) => this.emit('slowCommand', this.deviceName + ': ' + msg))
-		doOnTime.on('slowSentCommand', (info) => this.emit('slowSentCommand', info))
-		doOnTime.on('slowFulfilledCommand', (info) => this.emit('slowFulfilledCommand', info))
+		doOnTime.on('slowCommand', (msg) => this.delayEmit('slowCommand', this.deviceName + ': ' + msg))
+		doOnTime.on('slowSentCommand', (info) => this.delayEmit('slowSentCommand', info))
+		doOnTime.on('slowFulfilledCommand', (info) => this.delayEmit('slowFulfilledCommand', info))
 		doOnTime.on('commandReport', (commandReport) => {
 			if (this._reportAllCommands) {
 				this.emit('commandReport', commandReport)

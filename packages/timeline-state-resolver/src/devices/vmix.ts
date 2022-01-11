@@ -87,9 +87,9 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 			this._deviceOptions
 		)
 		this._doOnTime.on('error', (e) => this.emit('error', 'VMix.doOnTime', e))
-		this._doOnTime.on('slowCommand', (msg) => this.emit('slowCommand', this.deviceName + ': ' + msg))
-		this._doOnTime.on('slowSentCommand', (info) => this.emit('slowSentCommand', info))
-		this._doOnTime.on('slowFulfilledCommand', (info) => this.emit('slowFulfilledCommand', info))
+		this._doOnTime.on('slowCommand', (msg) => this.delayEmit('slowCommand', this.deviceName + ': ' + msg))
+		this._doOnTime.on('slowSentCommand', (info) => this.delayEmit('slowSentCommand', info))
+		this._doOnTime.on('slowFulfilledCommand', (info) => this.delayEmit('slowFulfilledCommand', info))
 	}
 	init(options: VMixOptions): Promise<boolean> {
 		this._vmix = new VMix()
