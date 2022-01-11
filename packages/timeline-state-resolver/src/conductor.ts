@@ -101,6 +101,9 @@ export interface StatReport {
 	timelineResolved: number
 	stateHandled: number
 	done: number
+	timelineSize: number
+	timelineSizeOld: number
+	estimatedResolveTime: number
 }
 
 export type ConductorEvents = {
@@ -124,6 +127,7 @@ export type ConductorEvents = {
 export class Conductor extends EventEmitter<ConductorEvents> {
 	private _logDebug = false
 	private _timeline: TSRTimeline = []
+	private _timelineSize: number | undefined = undefined
 	private _mappings: Mappings = {}
 
 	private _options: ConductorOptions
@@ -243,6 +247,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 	setTimelineAndMappings(timeline: TSRTimeline, mappings?: Mappings) {
 		this.statStartMeasure('timeline received')
 		this._timeline = timeline
+		this._timelineSize = undefined // reset the cache
 		if (mappings) this._mappings = mappings
 
 		// We've got a new timeline, anything could've happened at this point
@@ -768,9 +773,10 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 		const startTime = Date.now()
 
 		const statMeasureStart: number = this._statMeasureStart
-		let statTimeStateHandled = 0
-		let statTimeTimelineStartResolve = 0
-		let statTimeTimelineResolved = 0
+		let statTimeStateHandled = -1
+		let statTimeTimelineStartResolve = -1
+		let statTimeTimelineResolved = -1
+		let estimatedResolveTime = -1
 
 		try {
 			/** The point in time this function is run. ( ie "right now") */
@@ -778,7 +784,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 			/** The point in time we're targeting. (This can be in the future) */
 			let resolveTime: number = this._nextResolveTime
 
-			const estimatedResolveTime = this.estimateResolveTime()
+			estimatedResolveTime = this.estimateResolveTime()
 
 			if (
 				resolveTime === 0 || // About to be resolved ASAP
@@ -886,7 +892,12 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 			statTimeTimelineResolved = Date.now()
 
 			if (this.getCurrentTime() > resolveTime) {
-				this.emit('warning', `Resolver is ${this.getCurrentTime() - resolveTime} ms late`)
+				this.emit(
+					'warning',
+					`Resolver is ${
+						this.getCurrentTime() - resolveTime
+					} ms late (estimatedResolveTime was ${estimatedResolveTime})`
+				)
 			}
 
 			const layersPerDevice = this.filterLayersPerDevice(
@@ -1013,9 +1024,12 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 		this.emit('timeTrace', endTrace(trace))
 		this.statReport(statMeasureStart, {
 			timelineStartResolve: statTimeTimelineStartResolve,
+			timelineSize: this.getTimelineSize(),
+			timelineSizeOld: this._timeline.length,
 			timelineResolved: statTimeTimelineResolved,
 			stateHandled: statTimeStateHandled,
 			done: Date.now(),
+			estimatedResolveTime: estimatedResolveTime,
 		})
 
 		// Try to trigger the next resolval
@@ -1026,6 +1040,27 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 		}
 		return nextResolveTime
 	}
+	getTimelineSize(): number {
+		if (this._timelineSize === undefined) {
+			// Update the cache:
+
+			this._timelineSize = this.getTimelineSizeInner(this._timeline)
+		}
+		return this._timelineSize
+	}
+	private getTimelineSizeInner(timelineObjects: TimelineObject[]): number {
+		let size = 0
+		size += timelineObjects.length
+		for (const obj of timelineObjects) {
+			if (obj.children) {
+				size += this.getTimelineSizeInner(obj.children)
+			}
+			if (obj.keyframes) {
+				size += obj.keyframes.length
+			}
+		}
+		return size
+	}
 	/**
 	 * Returns a time estimate for the resolval duration based on the amount of
 	 * objects on the timeline. If the proActiveResolve option is falsy this
@@ -1033,7 +1068,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 	 */
 	estimateResolveTime(): any {
 		if (this._options.proActiveResolve) {
-			const objectCount = this.timeline.length
+			const objectCount = this.getTimelineSize()
 
 			const sizeFactor = Math.pow(objectCount / 50, 0.5) * 50 // a pretty nice-looking graph that levels out when objectCount is larger
 			return Math.min(
@@ -1224,6 +1259,9 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 				timelineResolved: report.timelineResolved - startTime,
 				stateHandled: report.stateHandled - startTime,
 				done: report.done - startTime,
+				timelineSize: report.timelineSize,
+				timelineSizeOld: report.timelineSizeOld,
+				estimatedResolveTime: report.estimatedResolveTime,
 			}
 			this._statReports.push(reportDuration)
 			this._statMeasureStart = 0
