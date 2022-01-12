@@ -190,7 +190,11 @@ export class AtemDevice extends DeviceWithState<DeviceState, DeviceOptionsAtemIn
 		}
 
 		const diffTrace = startTrace(`device:diffState`, { deviceId: this.deviceId })
-		const commandsToAchieveState: Array<AtemCommandWithContext> = this._diffStates(oldAtemState, newAtemState)
+		const commandsToAchieveState: Array<AtemCommandWithContext> = this._diffStates(
+			oldAtemState,
+			newAtemState,
+			newMappings
+		)
 		this.emit('timeTrace', endTrace(diffTrace))
 
 		// clear any queued commands later than this time:
@@ -393,10 +397,27 @@ export class AtemDevice extends DeviceWithState<DeviceState, DeviceOptionsAtemIn
 	 * @param oldAtemState
 	 * @param newAtemState
 	 */
-	private _diffStates(oldAtemState: DeviceState, newAtemState: DeviceState): Array<AtemCommandWithContext> {
+	private _diffStates(
+		oldAtemState: DeviceState,
+		newAtemState: DeviceState,
+		mappings: Mappings
+	): Array<AtemCommandWithContext> {
 		// Ensure the state diffs the correct version
 		if (this._atem.state) {
 			this._state.version = this._atem.state.info.apiVersion
+		}
+
+		// bump out any auxes that we don't control as they may be used for CC etc.
+		const noOfAuxes = Math.max(oldAtemState.video.auxilliaries.length, newAtemState.video.auxilliaries.length)
+		const auxMappings = Object.values(mappings)
+			.filter((mapping: MappingAtem) => mapping.mappingType === MappingAtemType.Auxilliary)
+			.map((mapping: MappingAtem) => mapping.index)
+
+		for (let i = 0; i < noOfAuxes; i++) {
+			if (!auxMappings.includes(i)) {
+				oldAtemState.video.auxilliaries[i] = undefined
+				newAtemState.video.auxilliaries[i] = undefined
+			}
 		}
 
 		return _.map(this._state.diffStates(oldAtemState, newAtemState), (cmd: any) => {
