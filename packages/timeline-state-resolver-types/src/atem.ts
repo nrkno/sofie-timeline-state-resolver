@@ -114,6 +114,7 @@ export type TimelineObjAtemAny =
 	| TimelineObjAtemSsrc
 	| TimelineObjAtemSsrcProps
 	| TimelineObjAtemMacroPlayer
+	| TimelineObjAtemAudioChannel
 	| TimelineObjAtemMediaPlayer
 export interface TimelineObjAtemBase extends TSRTimelineObjBase {
 	content: {
