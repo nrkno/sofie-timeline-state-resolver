@@ -1,6 +1,6 @@
 {
   "name": "timeline-state-resolver",
-  "version": "6.4.0-release39",
+  "version": "6.3.0-release38.0",
   "description": "Have timeline, control stuff",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
@@ -103,8 +103,8 @@
     "request": "^2.88.0",
     "sprintf-js": "^1.1.2",
     "superfly-timeline": "8.2.1",
-    "threadedclass": "^1.0.0",
-    "timeline-state-resolver-types": "6.4.0-release39",
+    "threadedclass": "^1.0.1",
+    "timeline-state-resolver-types": "6.2.2-release38.0",
     "tslib": "^2.3.1",
     "tv-automation-quantel-gateway-client": "^2.0.4",
     "underscore": "^1.12.0",
