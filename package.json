@@ -12,6 +12,7 @@
     "build": "yarn lerna exec yarn build",
     "lint": "yarn lerna exec yarn lint -- --",
     "test": "yarn lerna exec yarn test",
+    "unit": "yarn lerna exec yarn unit",
     "watch": "lerna run --parallel build:main -- --watch --preserveWatchOutput",
     "docs": "yarn typedoc .",
     "postinstall": "lerna bootstrap",
