@@ -1,5 +1,11 @@
 import * as _ from 'underscore'
-import { TimelineState, ResolvedTimelineObjectInstance, ResolvedStates, TimelineObject } from 'superfly-timeline'
+import {
+	TimelineState,
+	ResolvedTimelineObjectInstance,
+	ResolvedStates,
+	TimelineObject,
+	Resolver,
+} from 'superfly-timeline'
 
 import { CommandWithContext, DeviceEvents } from './devices/device'
 import { CasparCGDevice, DeviceOptionsCasparCGInternal } from './devices/casparCG'
@@ -66,6 +72,8 @@ export interface ConductorOptions {
 	multiThreadedResolver?: boolean
 	useCacheWhenResolving?: boolean
 	proActiveResolve?: boolean
+	/** When set, some optimizations are made, intended to only run in production */
+	optimizeForProduction?: boolean
 }
 interface TimelineCallback {
 	time: number
@@ -886,7 +894,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 				_.each(timeline, (o) => applyRecursively(o, fixNow))
 			}
 
-			const tlState = await this._resolver.getState(resolvedStates, resolveTime)
+			const tlState = Resolver.getState(resolvedStates, resolveTime)
 			await pPrepareForHandleStates
 
 			statTimeTimelineResolved = Date.now()
@@ -907,26 +915,21 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 
 			// Push state to the right device:
 			await this._mapAllDevices(false, async (device: DeviceContainer<DeviceOptionsBase<any>>): Promise<void> => {
+				if (this._options.optimizeForProduction) {
+					// Don't send any state to the abstract device, since it doesn't do anything anyway
+					if (device.deviceType === DeviceType.ABSTRACT) return
+				}
+
 				// The subState contains only the parts of the state relevant to that device:
 				const subState: TimelineState = {
 					time: tlState.time,
 					layers: layersPerDevice[device.deviceId] || {},
 					nextEvents: [],
 				}
-				const removeParent = (o: TimelineState) => {
-					for (const key in o) {
-						if (key === 'parent') {
-							delete o['parent']
-						} else if (typeof o[key] === 'object') {
-							o[key] = removeParent(o[key])
-						}
-					}
-					return o
-				}
 
 				// Pass along the state to the device, it will generate its commands and execute them:
 				try {
-					await device.device.handleState(removeParent(subState), this._mappings)
+					await device.device.handleState(removeParentFromState(subState), this._mappings)
 				} catch (e) {
 					this.emit('error', 'Error in device "' + device.deviceId + '"' + e + ' ' + e.stack)
 				}
@@ -941,7 +944,6 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 					nextEventTime = event.time
 				}
 			})
-			// let nextEventTime = await this._resolver.getNextTimelineEvent(timeline, tlState.time)
 
 			const nowPostExec = this.getCurrentTime()
 			if (nextEventTime) {
@@ -1330,3 +1332,14 @@ export type DeviceOptionsAnyInternal =
 	| DeviceOptionsVMixInternal
 	| DeviceOptionsShotokuInternal
 	| DeviceOptionsVizMSEInternal
+
+function removeParentFromState(o: TimelineState): TimelineState {
+	for (const key in o) {
+		if (key === 'parent') {
+			delete o['parent']
+		} else if (typeof o[key] === 'object') {
+			o[key] = removeParentFromState(o[key])
+		}
+	}
+	return o
+}
