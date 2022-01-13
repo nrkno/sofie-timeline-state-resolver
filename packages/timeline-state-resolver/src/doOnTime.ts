@@ -9,9 +9,11 @@ export type DoOrderFunction1<A, B> = (arg0: A, arg1: B) => void | Promise<any> |
 export type DoOrderFunction2<A, B, C> = (arg0: A, arg1: B, arg2: C) => void | Promise<any> | any
 
 interface DoOrder {
+	/** The time the command is scheduled to run */
 	time: number
 	fcn: DoOrderFunction
 	args: any[]
+	/** The time at which point the command was added to the queue */
 	addedTime: number
 	prepareTime: number
 }
