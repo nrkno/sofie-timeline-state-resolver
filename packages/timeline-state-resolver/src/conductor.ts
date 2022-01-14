@@ -56,8 +56,6 @@ export const MINTIMEUNIT = 1 // Minimum unit of time
 /** When resolving and the timeline has repeating objects, only resolve this far into the future */
 const RESOLVE_LIMIT_TIME = 10000
 
-export const DEFAULT_PREPARATION_TIME = 20 // When resolving "now", move this far into the future, to account for computation times
-
 export type TimelineTriggerTimeResult = Array<{ id: string; time: number }>
 
 export { Device } from './devices/device'
@@ -1068,20 +1066,33 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 	 * objects on the timeline. If the proActiveResolve option is falsy this
 	 * returns 0.
 	 */
-	estimateResolveTime(): any {
+	estimateResolveTime(): number {
 		if (this._options.proActiveResolve) {
 			const objectCount = this.getTimelineSize()
-
-			const sizeFactor = Math.pow(objectCount / 50, 0.5) * 50 // a pretty nice-looking graph that levels out when objectCount is larger
-			return Math.min(
-				200,
-				Math.floor(
-					DEFAULT_PREPARATION_TIME + sizeFactor * 0.5 // add ms for every object (ish) in timeline
-				)
-			)
+			return Conductor.calculateResolveTime(objectCount)
 		} else {
 			return 0
 		}
+	}
+	/** Calculates the estimated time it'll take to resolve a timeline of a certain size */
+	static calculateResolveTime(timelineSize: number): number {
+		const BASE_VALUE = 20
+		const LEVEL = 50
+		const EXPONENT = 0.5
+
+		const MIN_VALUE = 20
+		const MAX_VALUE = 200
+
+		const sizeFactor = Math.pow(timelineSize / LEVEL, EXPONENT) * LEVEL * 0.5 // a pretty nice-looking graph that levels out when objectCount is larger
+		return Math.max(
+			MIN_VALUE,
+			Math.min(
+				MAX_VALUE,
+				Math.floor(
+					BASE_VALUE + sizeFactor // add ms for every object (ish) in timeline
+				)
+			)
+		)
 	}
 
 	private _diffStateForCallbacks(activeObjects: TimelineCallbacks) {
