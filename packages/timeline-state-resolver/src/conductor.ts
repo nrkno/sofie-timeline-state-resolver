@@ -1076,9 +1076,11 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 	}
 	/** Calculates the estimated time it'll take to resolve a timeline of a certain size */
 	static calculateResolveTime(timelineSize: number): number {
-		const BASE_VALUE = 20
-		const LEVEL = 50
-		const EXPONENT = 0.5
+		// Note: The LEVEL should really be a dynamic value, to reflect the actual performance of the hardware this is running on.
+
+		const BASE_VALUE = 0
+		const LEVEL = 250
+		const EXPONENT = 0.7
 
 		const MIN_VALUE = 20
 		const MAX_VALUE = 200
