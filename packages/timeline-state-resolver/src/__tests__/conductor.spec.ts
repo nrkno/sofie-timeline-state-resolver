@@ -584,14 +584,14 @@ describe('Conductor', () => {
 	test('estimateResolveTime', () => {
 		// Ensure that the resolveTime follows a certain curve:
 		expect([
-			Conductor.calculateResolveTime(0),
-			Conductor.calculateResolveTime(50),
-			Conductor.calculateResolveTime(100),
-			Conductor.calculateResolveTime(150),
-			Conductor.calculateResolveTime(200),
-			Conductor.calculateResolveTime(500),
-			Conductor.calculateResolveTime(1000),
-			Conductor.calculateResolveTime(10000),
+			Conductor.calculateResolveTime(0, 1),
+			Conductor.calculateResolveTime(50, 1),
+			Conductor.calculateResolveTime(100, 1),
+			Conductor.calculateResolveTime(150, 1),
+			Conductor.calculateResolveTime(200, 1),
+			Conductor.calculateResolveTime(500, 1),
+			Conductor.calculateResolveTime(1000, 1),
+			Conductor.calculateResolveTime(10000, 1),
 		]).toEqual([
 			20, // 0
 			40, // 50

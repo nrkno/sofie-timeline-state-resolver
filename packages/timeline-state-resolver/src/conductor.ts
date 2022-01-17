@@ -159,6 +159,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 	private _doOnTime: DoOnTime
 	private _multiThreadedResolver = false
 	private _useCacheWhenResolving = false
+	private _estimateResolveTimeMultiplier = 1
 
 	private _callbackInstances = new Map<string, CallbackInstance>() // key = instanceId
 	private _triggerSendStartStopCallbacksTimeout: NodeJS.Timer | null = null
@@ -184,6 +185,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 
 		this._multiThreadedResolver = !!options.multiThreadedResolver
 		this._useCacheWhenResolving = !!options.useCacheWhenResolving
+		this._estimateResolveTimeMultiplier = options.estimateResolveTimeMultiplier || 1
 
 		if (options.getCurrentTime) this._getCurrentTime = options.getCurrentTime
 
@@ -279,6 +281,12 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 		this._logDebug = val
 
 		ThreadedClassManager.debug = this._logDebug
+	}
+	get estimateResolveTimeMultiplier(): number {
+		return this._estimateResolveTimeMultiplier
+	}
+	set estimateResolveTimeMultiplier(value: number) {
+		this._estimateResolveTimeMultiplier = value
 	}
 
 	public getDevices(includeUninitialized = false): Array<DeviceContainer<DeviceOptionsBase<any>>> {
@@ -1073,13 +1081,13 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 	estimateResolveTime(): number {
 		if (this._options.proActiveResolve) {
 			const objectCount = this.getTimelineSize()
-			return Conductor.calculateResolveTime(objectCount)
+			return Conductor.calculateResolveTime(objectCount, this._estimateResolveTimeMultiplier)
 		} else {
 			return 0
 		}
 	}
 	/** Calculates the estimated time it'll take to resolve a timeline of a certain size */
-	static calculateResolveTime(timelineSize: number, options?: ConductorOptions): number {
+	static calculateResolveTime(timelineSize: number, multiplier: number): number {
 		// Note: The LEVEL should really be a dynamic value, to reflect the actual performance of the hardware this is running on.
 
 		const BASE_VALUE = 0
@@ -1089,11 +1097,9 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 		const MIN_VALUE = 20
 		const MAX_VALUE = 200
 
-		const MULTIPLIER = options?.estimateResolveTimeMultiplier || 1
-
 		const sizeFactor = Math.pow(timelineSize / LEVEL, EXPONENT) * LEVEL * 0.5 // a pretty nice-looking graph that levels out when objectCount is larger
 		return (
-			MULTIPLIER *
+			multiplier *
 			Math.max(
 				MIN_VALUE,
 				Math.min(
