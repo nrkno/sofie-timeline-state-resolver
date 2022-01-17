@@ -69,9 +69,13 @@ export interface ConductorOptions {
 	autoInit?: boolean
 	multiThreadedResolver?: boolean
 	useCacheWhenResolving?: boolean
-	proActiveResolve?: boolean
+
 	/** When set, some optimizations are made, intended to only run in production */
 	optimizeForProduction?: boolean
+	/** When set, resolving is done early, to account for the time it takes to resolve the timeline. */
+	proActiveResolve?: boolean
+	/** If set, multiplies the estimated resolve time (default: 1) */
+	estimateResolveTimeMultiplier?: number
 }
 interface TimelineCallback {
 	time: number
@@ -1075,23 +1079,28 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 		}
 	}
 	/** Calculates the estimated time it'll take to resolve a timeline of a certain size */
-	static calculateResolveTime(timelineSize: number): number {
+	static calculateResolveTime(timelineSize: number, options?: ConductorOptions): number {
 		// Note: The LEVEL should really be a dynamic value, to reflect the actual performance of the hardware this is running on.
 
 		const BASE_VALUE = 0
 		const LEVEL = 250
-		const EXPONENT = 0.7
 
+		const EXPONENT = 0.7
 		const MIN_VALUE = 20
 		const MAX_VALUE = 200
 
+		const MULTIPLIER = options?.estimateResolveTimeMultiplier || 1
+
 		const sizeFactor = Math.pow(timelineSize / LEVEL, EXPONENT) * LEVEL * 0.5 // a pretty nice-looking graph that levels out when objectCount is larger
-		return Math.max(
-			MIN_VALUE,
-			Math.min(
-				MAX_VALUE,
-				Math.floor(
-					BASE_VALUE + sizeFactor // add ms for every object (ish) in timeline
+		return (
+			MULTIPLIER *
+			Math.max(
+				MIN_VALUE,
+				Math.min(
+					MAX_VALUE,
+					Math.floor(
+						BASE_VALUE + sizeFactor // add ms for every object (ish) in timeline
+					)
 				)
 			)
 		)
