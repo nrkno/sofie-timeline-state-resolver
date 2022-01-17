@@ -56,8 +56,6 @@ export const MINTIMEUNIT = 1 // Minimum unit of time
 /** When resolving and the timeline has repeating objects, only resolve this far into the future */
 const RESOLVE_LIMIT_TIME = 10000
 
-export const DEFAULT_PREPARATION_TIME = 20 // When resolving "now", move this far into the future, to account for computation times
-
 export type TimelineTriggerTimeResult = Array<{ id: string; time: number }>
 
 export { Device } from './devices/device'
@@ -71,9 +69,13 @@ export interface ConductorOptions {
 	autoInit?: boolean
 	multiThreadedResolver?: boolean
 	useCacheWhenResolving?: boolean
-	proActiveResolve?: boolean
+
 	/** When set, some optimizations are made, intended to only run in production */
 	optimizeForProduction?: boolean
+	/** When set, resolving is done early, to account for the time it takes to resolve the timeline. */
+	proActiveResolve?: boolean
+	/** If set, multiplies the estimated resolve time (default: 1) */
+	estimateResolveTimeMultiplier?: number
 }
 interface TimelineCallback {
 	time: number
@@ -157,6 +159,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 	private _doOnTime: DoOnTime
 	private _multiThreadedResolver = false
 	private _useCacheWhenResolving = false
+	private _estimateResolveTimeMultiplier = 1
 
 	private _callbackInstances = new Map<string, CallbackInstance>() // key = instanceId
 	private _triggerSendStartStopCallbacksTimeout: NodeJS.Timer | null = null
@@ -182,6 +185,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 
 		this._multiThreadedResolver = !!options.multiThreadedResolver
 		this._useCacheWhenResolving = !!options.useCacheWhenResolving
+		this._estimateResolveTimeMultiplier = options.estimateResolveTimeMultiplier || 1
 
 		if (options.getCurrentTime) this._getCurrentTime = options.getCurrentTime
 
@@ -277,6 +281,12 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 		this._logDebug = val
 
 		ThreadedClassManager.debug = this._logDebug
+	}
+	get estimateResolveTimeMultiplier(): number {
+		return this._estimateResolveTimeMultiplier
+	}
+	set estimateResolveTimeMultiplier(value: number) {
+		this._estimateResolveTimeMultiplier = value
 	}
 
 	public getDevices(includeUninitialized = false): Array<DeviceContainer<DeviceOptionsBase<any>>> {
@@ -1068,20 +1078,38 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 	 * objects on the timeline. If the proActiveResolve option is falsy this
 	 * returns 0.
 	 */
-	estimateResolveTime(): any {
+	estimateResolveTime(): number {
 		if (this._options.proActiveResolve) {
 			const objectCount = this.getTimelineSize()
-
-			const sizeFactor = Math.pow(objectCount / 50, 0.5) * 50 // a pretty nice-looking graph that levels out when objectCount is larger
-			return Math.min(
-				200,
-				Math.floor(
-					DEFAULT_PREPARATION_TIME + sizeFactor * 0.5 // add ms for every object (ish) in timeline
-				)
-			)
+			return Conductor.calculateResolveTime(objectCount, this._estimateResolveTimeMultiplier)
 		} else {
 			return 0
 		}
+	}
+	/** Calculates the estimated time it'll take to resolve a timeline of a certain size */
+	static calculateResolveTime(timelineSize: number, multiplier: number): number {
+		// Note: The LEVEL should really be a dynamic value, to reflect the actual performance of the hardware this is running on.
+
+		const BASE_VALUE = 0
+		const LEVEL = 250
+
+		const EXPONENT = 0.7
+		const MIN_VALUE = 20
+		const MAX_VALUE = 200
+
+		const sizeFactor = Math.pow(timelineSize / LEVEL, EXPONENT) * LEVEL * 0.5 // a pretty nice-looking graph that levels out when objectCount is larger
+		return (
+			multiplier *
+			Math.max(
+				MIN_VALUE,
+				Math.min(
+					MAX_VALUE,
+					Math.floor(
+						BASE_VALUE + sizeFactor // add ms for every object (ish) in timeline
+					)
+				)
+			)
+		)
 	}
 
 	private _diffStateForCallbacks(activeObjects: TimelineCallbacks) {
