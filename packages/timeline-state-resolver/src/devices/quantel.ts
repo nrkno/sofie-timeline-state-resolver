@@ -1264,7 +1264,7 @@ class Cache {
 		const o = this.data[key]
 		return o && (o.endTime || 0) >= Date.now()
 	}
-	getSet<T extends any>(key, fcn: () => T, ttl?: number): T {
+	getSet<T>(key, fcn: () => T, ttl?: number): T {
 		if (this.exists(key)) {
 			return this.get(key)
 		} else {

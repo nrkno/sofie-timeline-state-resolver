@@ -54,7 +54,8 @@
 		"send-coverage": "codecov -p ../..",
 		"validate:dependencies": "yarn audit --groups dependencies && yarn license-validate",
 		"validate:dev-dependencies": "yarn audit --groups devDependencies",
-		"lint": "eslint . --ext .ts --ext .js --ext .tsx --ext .jsx --ignore-pattern dist",
+		"lint:raw": "eslint --ext .ts --ext .js --ext .tsx --ext .jsx --ignore-pattern dist",
+		"lint": "yarn lint:raw .",
 		"lint-fix": "yarn lint --fix",
 		"license-validate": "yarn sofie-licensecheck",
 		"precommit": "lint-staged"
@@ -93,7 +94,7 @@
 			"prettier --write"
 		],
 		"*.{ts,tsx,js,jsx}": [
-			"yarn lint-fix"
+			"yarn lint:raw --fix"
 		]
 	}
 }
