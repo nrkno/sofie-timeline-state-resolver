@@ -9,12 +9,12 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/nrkno/tv-automation-state-timeline-resolver.git"
+    "url": "git+https://github.com/nrkno/sofie-timeline-state-resolver.git"
   },
   "bugs": {
-    "url": "https://github.com/nrkno/tv-automation-state-timeline-resolver/issues"
+    "url": "https://github.com/nrkno/sofie-timeline-state-resolver/issues"
   },
-  "homepage": "https://github.com/nrkno/tv-automation-state-timeline-resolver#readme",
+  "homepage": "https://github.com/nrkno/sofie-timeline-state-resolver#readme",
   "contributors": [
     {
       "name": "Johan Nyman",
