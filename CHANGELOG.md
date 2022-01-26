@@ -3,6 +3,20 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [6.3.0](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/6.2.1...6.3.0) (2022-01-26)
+
+
+### Bug Fixes
+
+* Homogenized the headline with the other Sofie repos ([8325f53](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/8325f533f054f25acd317654f82ed345645f5b60))
+* revert timeline dep, as it caused issues on air. ([71da109](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/71da1092ac99bccc9f947ce7f1c1ee445b83fcff))
+* Updated links to match the changed repo name ([6fe910f](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/6fe910f69a313e1f7b84e88a6550c3e40ac29afa))
+* Updated URLs to reflect the changed repo name ([4436674](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/4436674988ce45a66bafbb2161f9cbf6c850694d))
+
+
+
+
+
 # [6.3.0-release38.0](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/6.2.0...6.3.0-release38.0) (2021-12-17)
 
 

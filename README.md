@@ -1,5 +1,4 @@
-
-# Timeline State Resolver
+# Sofie: The Modern TV News Studio Automation System (Timeline State Resolver TSR library)
 
 [![Node CI](https://github.com/nrkno/tv-automation-state-timeline-resolver/actions/workflows/node.yaml/badge.svg)](https://github.com/nrkno/tv-automation-state-timeline-resolver/actions/workflows/node.yaml)
 [![codecov](https://codecov.io/gh/nrkno/tv-automation-state-timeline-resolver/branch/master/graph/badge.svg)](https://codecov.io/gh/nrkno/tv-automation-state-timeline-resolver)
