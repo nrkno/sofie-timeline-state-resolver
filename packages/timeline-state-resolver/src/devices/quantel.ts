@@ -19,7 +19,7 @@ import {
 import { TimelineState, ResolvedTimelineObjectInstance } from 'superfly-timeline'
 
 import { DoOnTime, SendMode } from '../doOnTime'
-import { QuantelGateway, Q, MonitorPorts } from 'tv-automation-quantel-gateway-client'
+import { QuantelGateway, Q, MonitorPorts, QuantelErrorResponse } from 'tv-automation-quantel-gateway-client'
 import { startTrace, endTrace } from '../lib'
 
 const IDEAL_PREPARE_TIME = 1000
@@ -635,7 +635,8 @@ export class QuantelDevice extends DeviceWithState<QuantelState, DeviceOptionsQu
 			} else {
 				throw new Error(`Unsupported command type "${cmdType}"`)
 			}
-		} catch (error) {
+		} catch (e) {
+			const error = e as Error
 			let errorString = error && error.message ? error.message : error.toString()
 			if (error?.stack) {
 				errorString += error.stack
@@ -707,7 +708,7 @@ class QuantelManager extends EventEmitter {
 					await this._quantel.releasePort(cmd.portId)
 				} catch (e) {
 					// we should still try to create the port even if we can't release the old one
-					this.emit('warning', `setupPort release failed: ${e.toString()}`)
+					this.emit('warning', `setupPort release failed: ${(e as Error).toString()}`)
 				}
 			}
 			await this._quantel.createPort(cmd.portId, cmd.channel)
@@ -744,7 +745,7 @@ class QuantelManager extends EventEmitter {
 			// Wait for the release
 			await p
 		} catch (e) {
-			if (e.status !== 404) {
+			if ((e as QuantelErrorResponse).status !== 404) {
 				// releasing a non-existent port is OK
 				throw e
 			}

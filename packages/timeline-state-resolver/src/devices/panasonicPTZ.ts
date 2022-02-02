@@ -301,7 +301,7 @@ export class PanasonicPtzDevice extends DeviceWithState<PanasonicPtzState, Devic
 				} else throw new Error(`PTZ: Unknown type: "${cmd.type}"`)
 			} else throw new Error(`PTZ device not set up`)
 		} catch (e) {
-			this.emit('commandError', e, cwc)
+			this.emit('commandError', e as Error, cwc)
 		}
 	}
 

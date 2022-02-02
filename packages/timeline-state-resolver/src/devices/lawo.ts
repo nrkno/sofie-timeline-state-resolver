@@ -178,7 +178,9 @@ export class LawoDevice extends DeviceWithState<LawoState, DeviceOptionsLawoInte
 					this.emit('info', 'finished device initalization')
 					this.emit('resetResolver')
 				} catch (e) {
-					this.emit('error', 'Error while expanding root', e)
+					if (e instanceof Error) {
+						this.emit('error', 'Error while expanding root', e)
+					}
 				}
 			}
 			firstConnection = false
@@ -254,7 +256,7 @@ export class LawoDevice extends DeviceWithState<LawoState, DeviceOptionsLawoInte
 			this._lawo.removeAllListeners('connected')
 			this._lawo.removeAllListeners('disconnected')
 		} catch (e) {
-			this.emit('error', 'Lawo.terminate', e)
+			this.emit('error', 'Lawo.terminate', e as Error)
 		}
 		return Promise.resolve(true)
 	}
@@ -592,7 +594,7 @@ export class LawoDevice extends DeviceWithState<LawoState, DeviceOptionsLawoInte
 				await this._setValueFn(command, timelineObjId)
 			}
 		} catch (error) {
-			this.emit('commandError', error, cwc)
+			this.emit('commandError', error as Error, cwc)
 		}
 	}
 	private async setValueWrapper(command: LawoCommand, timelineObjId: string, logResult = true) {
@@ -618,7 +620,7 @@ export class LawoDevice extends DeviceWithState<LawoState, DeviceOptionsLawoInte
 				)
 			}
 		} catch (e) {
-			this.emit('error', `Lawo: Error in setValue (${timelineObjId})`, e)
+			this.emit('error', `Lawo: Error in setValue (${timelineObjId})`, e as Error)
 			throw e
 		}
 	}
@@ -711,7 +713,7 @@ export class LawoDevice extends DeviceWithState<LawoState, DeviceOptionsLawoInte
 					)
 					previousNode = (node.contents as EmberModel.Parameter).value as string
 				} catch (e) {
-					this.emit('error', 'lawo: map sources to node names', e)
+					this.emit('error', 'lawo: map sources to node names', e as Error)
 				}
 			}
 		}

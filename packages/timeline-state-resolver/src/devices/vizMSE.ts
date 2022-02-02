@@ -757,7 +757,8 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState, DeviceOptionsVizM
 			} else {
 				throw new Error(`Not initialized yet`)
 			}
-		} catch (error) {
+		} catch (e) {
+			const error = e as Error
 			let errorString = error && error.message ? error.message : error.toString()
 			if (error?.stack) {
 				errorString += error.stack
@@ -1321,7 +1322,7 @@ class VizMSEManager extends EventEmitter {
 				return internalEl
 			}
 		} catch (e) {
-			if (e.toString().match(/already exist/i)) {
+			if ((e as Error).toString().match(/already exist/i)) {
 				// "An internal/external graphics element with name 'xxxxxxxxxxxxxxx' already exists."
 				// If the object already exists, it's not an error, fetch and use the element instead
 
@@ -1384,7 +1385,7 @@ class VizMSEManager extends EventEmitter {
 				} catch (e) {
 					this.emit(
 						'error',
-						`Error in _getExpectedPlayoutItems for "${expectedPlayoutItem.templateName}": ${e.toString()}`
+						`Error in _getExpectedPlayoutItems for "${expectedPlayoutItem.templateName}": ${(e as Error).toString()}`
 					)
 				}
 			})
@@ -1485,7 +1486,7 @@ class VizMSEManager extends EventEmitter {
 							}
 						}
 					} catch (e) {
-						this.emit('error', `Error in updateElementsLoadedStatus: ${e.toString()}`)
+						this.emit('error', `Error in updateElementsLoadedStatus: ${(e as Error).toString()}`)
 					}
 				})
 			)
@@ -1708,9 +1709,9 @@ class VizMSEManager extends EventEmitter {
 				const result = fcn()
 				this._triggerCommandSent()
 				return result
-			} catch (e) {
+			} catch (e: any) {
 				if (i++ < maxNumberOfTries) {
-					if (e && e.toString && e.toString().match(/inexistent/i)) {
+					if (e?.toString && e?.toString().match(/inexistent/i)) {
 						// "PepTalk inexistent error"
 						this.emit('debug', `VizMSE: _handleRetry got "inexistent" error, trying again...`)
 

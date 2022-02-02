@@ -325,7 +325,7 @@ export class OSCMessageDevice extends DeviceWithState<OSCDeviceState, DeviceOpti
 
 			return Promise.resolve()
 		} catch (e) {
-			this.emit('commandError', e, cwc)
+			this.emit('commandError', e as Error, cwc)
 			return Promise.resolve()
 		}
 	}

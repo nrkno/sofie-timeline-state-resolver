@@ -941,7 +941,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 				try {
 					await device.device.handleState(removeParentFromState(subState), this._mappings)
 				} catch (e) {
-					this.emit('error', 'Error in device "' + device.deviceId + '"' + e + ' ' + e.stack)
+					this.emit('error', 'Error in device "' + device.deviceId + '"' + e + ' ' + (e as Error).stack)
 				}
 			})
 
@@ -974,7 +974,10 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 					try {
 						await device.device.clearFuture(tlState.time)
 					} catch (e) {
-						this.emit('error', 'Error in device "' + device.deviceId + '", clearFuture: ' + e + ' ' + e.stack)
+						this.emit(
+							'error',
+							'Error in device "' + device.deviceId + '", clearFuture: ' + e + ' ' + (e as Error).stack
+						)
 					}
 				})
 
@@ -1029,7 +1032,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 				'resolveTimeline at time ' + resolveTime + ' done in ' + resolveDuration + 'ms (size: ' + timeline.length + ')'
 			)
 		} catch (e) {
-			this.emit('error', 'resolveTimeline' + e + '\nStack: ' + e.stack)
+			this.emit('error', 'resolveTimeline' + e + '\nStack: ' + (e as Error).stack)
 		}
 
 		// Report time taken to resolve

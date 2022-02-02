@@ -382,7 +382,7 @@ export class PharosDevice extends DeviceWithState<PharosState, DeviceOptionsPhar
 		try {
 			await cmd.content.fcn(...cmd.content.args)
 		} catch (e) {
-			this.emit('commandError', e, cwc)
+			this.emit('commandError', e as Error, cwc)
 		}
 	}
 	private _connectionChanged() {
