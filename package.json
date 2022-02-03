@@ -25,7 +25,7 @@
     "validate:dev-dependencies": "yarn lerna exec --parallel yarn validate:dev-dependencies"
   },
   "devDependencies": {
-    "@sofie-automation/code-standard-preset": "^1.0.0",
+    "@sofie-automation/code-standard-preset": "~1.0.0",
     "@types/jest": "^26.0.9",
     "@types/node": "^12.20.42",
     "@types/request": "^2.48.8",
