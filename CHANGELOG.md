@@ -3,6 +3,27 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [6.4.0-release39.1](https://github.com/nrkno/sofie-timeline-state-resolver/compare/6.3.0...6.4.0-release39.1) (2022-02-03)
+
+
+### Bug Fixes
+
+* add a multiplier to the options, to allow for adjusting estimateResolveTime ([3941a71](https://github.com/nrkno/sofie-timeline-state-resolver/commit/3941a710ab32fe3bfab89a9bec5cfb06a04d9b4f))
+* allow for changing estimateResolveTimeMultiplier at runtime ([289a619](https://github.com/nrkno/sofie-timeline-state-resolver/commit/289a6195268998201c23356be03c83b740cacead))
+* errors caught not casted before usage threw TS compiler errors ([167be0e](https://github.com/nrkno/sofie-timeline-state-resolver/commit/167be0e3e484f7a4cd27adc04325a0cf94ebf323))
+* increase the estimateResolveTime values, to reflect measured performance ([1cba2f6](https://github.com/nrkno/sofie-timeline-state-resolver/commit/1cba2f664f4d622c44d56a6c6dae9fbb1849117e))
+* update emberplus-connection ([f32e78a](https://github.com/nrkno/sofie-timeline-state-resolver/commit/f32e78af43e2a3b3d8bc3204c3f062299e1e0259))
+* update emberplus-connection ([a1782db](https://github.com/nrkno/sofie-timeline-state-resolver/commit/a1782db8be17c68ede42fc9733cb6cc67791aa4a))
+
+
+### Features
+
+* disable control of unmapped atem auxes ([550e52d](https://github.com/nrkno/sofie-timeline-state-resolver/commit/550e52d9e417ec24deff6e22773c3e1deb5bfb39))
+
+
+
+
+
 # [6.3.0](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/6.2.1...6.3.0) (2022-01-26)
 
 

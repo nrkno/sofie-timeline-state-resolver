@@ -854,7 +854,7 @@ async function handleRequest(
 						}),
 					})
 				})
-		} catch (e) {
+		} catch (e: any) {
 			resolve({
 				statusCode: 500,
 				body: JSON.stringify({

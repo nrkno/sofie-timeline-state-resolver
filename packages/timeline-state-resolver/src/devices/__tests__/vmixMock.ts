@@ -176,7 +176,7 @@ function handleRequest(
 				statusCode: 200,
 				body: body['response'],
 			})
-		} catch (e) {
+		} catch (e: any) {
 			callback(null, {
 				statusCode: 500,
 				body: JSON.stringify({
