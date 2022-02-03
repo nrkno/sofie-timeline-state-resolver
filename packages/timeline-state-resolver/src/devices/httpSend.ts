@@ -53,7 +53,10 @@ export class HTTPSendDevice extends DeviceWithState<HTTPSendState, DeviceOptions
 		super(deviceId, deviceOptions, getCurrentTime)
 		if (deviceOptions.options) {
 			if (deviceOptions.commandReceiver) this._commandReceiver = deviceOptions.commandReceiver
-			else this._commandReceiver = this._defaultCommandReceiver
+			else
+				this._commandReceiver = async (...args) => {
+					return this._defaultCommandReceiver(...args)
+				}
 		}
 		this._doOnTime = new DoOnTime(
 			() => {
@@ -64,7 +67,7 @@ export class HTTPSendDevice extends DeviceWithState<HTTPSendState, DeviceOptions
 		)
 		this.handleDoOnTime(this._doOnTime, 'HTTPSend')
 	}
-	init(initOptions: HTTPSendOptions): Promise<boolean> {
+	async init(initOptions: HTTPSendOptions): Promise<boolean> {
 		this._makeReadyCommands = initOptions.makeReadyCommands || []
 		this._makeReadyDoesReset = initOptions.makeReadyDoesReset || false
 		this._resendTime = initOptions.resendTime && initOptions.resendTime > 1 ? initOptions.resendTime : undefined
@@ -107,7 +110,7 @@ export class HTTPSendDevice extends DeviceWithState<HTTPSendState, DeviceOptions
 		// Clear any scheduled commands after this time
 		this._doOnTime.clearQueueAfter(clearAfterTime)
 	}
-	terminate() {
+	async terminate() {
 		this._doOnTime.dispose()
 		return Promise.resolve(true)
 	}

@@ -69,7 +69,7 @@ describe('Hyperdeck', () => {
 
 		const hyperdeckMock: HyperdeckConnection.Hyperdeck = hyperdeckInstances[0]
 
-		const hyperdeckMockCommand = jest.fn(() => {
+		const hyperdeckMockCommand = jest.fn(async () => {
 			return Promise.resolve()
 		})
 		hyperdeckMock.setMockCommandReceiver(hyperdeckMockCommand)

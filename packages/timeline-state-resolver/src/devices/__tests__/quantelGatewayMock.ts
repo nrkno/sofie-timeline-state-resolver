@@ -42,13 +42,13 @@ export function setupQuantelGatewayMock() {
 		}
 	})
 
-	const onGet = jest.fn((options) => handleRequest(quantelServer, onRequestRaw, 'get', options))
-	const onPost = jest.fn((options) => handleRequest(quantelServer, onRequestRaw, 'post', options))
-	const onPut = jest.fn((options) => handleRequest(quantelServer, onRequestRaw, 'put', options))
-	const onHead = jest.fn((options) => handleRequest(quantelServer, onRequestRaw, 'head', options))
-	const onPatch = jest.fn((options) => handleRequest(quantelServer, onRequestRaw, 'patch', options))
-	const onDel = jest.fn((options) => handleRequest(quantelServer, onRequestRaw, 'del', options))
-	const onDelete = jest.fn((options) => handleRequest(quantelServer, onRequestRaw, 'delete', options))
+	const onGet = jest.fn(async (options) => handleRequest(quantelServer, onRequestRaw, 'get', options))
+	const onPost = jest.fn(async (options) => handleRequest(quantelServer, onRequestRaw, 'post', options))
+	const onPut = jest.fn(async (options) => handleRequest(quantelServer, onRequestRaw, 'put', options))
+	const onHead = jest.fn(async (options) => handleRequest(quantelServer, onRequestRaw, 'head', options))
+	const onPatch = jest.fn(async (options) => handleRequest(quantelServer, onRequestRaw, 'patch', options))
+	const onDel = jest.fn(async (options) => handleRequest(quantelServer, onRequestRaw, 'del', options))
+	const onDelete = jest.fn(async (options) => handleRequest(quantelServer, onRequestRaw, 'delete', options))
 
 	got.setMockGet(onGet)
 	got.setMockPost(onPost)
@@ -147,7 +147,12 @@ async function urlRoute(
 	}
 	return responseBody
 }
-function handleRequest(quantelServer: QuantelServerMockOptions, triggerFcn: Function, type: string, options: any) {
+async function handleRequest(
+	quantelServer: QuantelServerMockOptions,
+	triggerFcn: Function,
+	type: string,
+	options: any
+) {
 	const url = options.url
 	const bodyData = options.json
 	return new Promise((resolve) => {
@@ -861,6 +866,6 @@ function handleRequest(quantelServer: QuantelServerMockOptions, triggerFcn: Func
 		}
 	})
 }
-function sleep(time: number) {
+async function sleep(time: number) {
 	return new Promise((resolve) => setTimeout(resolve, time))
 }

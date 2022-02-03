@@ -22,7 +22,7 @@ describe('Rundown', () => {
 	})
 
 	test('Do a full rundown', async () => {
-		const commandReceiver0: any = jest.fn(() => {
+		const commandReceiver0: any = jest.fn(async () => {
 			return Promise.resolve()
 		})
 		let commandReceiver0Calls = 0

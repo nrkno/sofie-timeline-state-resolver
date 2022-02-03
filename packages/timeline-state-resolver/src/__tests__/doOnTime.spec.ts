@@ -165,7 +165,7 @@ describe('DoOnTime', () => {
 		d.dispose()
 	})
 })
-function wait(time = 1) {
+async function wait(time = 1) {
 	return new Promise((resolve) => {
 		setTimeout(resolve, time)
 	})

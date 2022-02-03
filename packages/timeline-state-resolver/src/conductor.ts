@@ -651,7 +651,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 
 		if (this._triggerSendStartStopCallbacksTimeout) clearTimeout(this._triggerSendStartStopCallbacksTimeout)
 
-		await this._mapAllDevices(true, (d) => this.removeDevice(d.deviceId))
+		await this._mapAllDevices(true, async (d) => this.removeDevice(d.deviceId))
 	}
 	/**
 	 * Resets the resolve-time, so that the resolving will happen for the point-in time NOW
@@ -685,7 +685,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 			}`
 		)
 		await this._actionQueue.add(async () => {
-			await this._mapAllDevices(false, (d) =>
+			await this._mapAllDevices(false, async (d) =>
 				PTimeout(
 					(async () => {
 						const trace = startTrace('conductor:makeReady:' + d.deviceId)
@@ -707,7 +707,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 		this.activationId = undefined
 		this.emit('debug', `devicesStandDown, ${okToDestroyStuff ? 'okToDestroyStuff' : 'undefined'}`)
 		await this._actionQueue.add(async () => {
-			await this._mapAllDevices(false, (d) =>
+			await this._mapAllDevices(false, async (d) =>
 				PTimeout(
 					(async () => {
 						const trace = startTrace('conductor:standDown:' + d.deviceId)
@@ -725,14 +725,14 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 		return ThreadedClassManager.getThreadsMemoryUsage()
 	}
 
-	private _mapAllDevices<T>(
+	private async _mapAllDevices<T>(
 		includeUninitialized: boolean,
 		fcn: (d: DeviceContainer<DeviceOptionsBase<any>>) => Promise<T>
 	): Promise<T[]> {
 		return PAll(
 			this.getDevices(true)
 				.filter((d) => includeUninitialized || d.initialized === true)
-				.map((d) => () => fcn(d)),
+				.map((d) => async () => fcn(d)),
 			{
 				stopOnError: false,
 			}
@@ -766,7 +766,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 	private _resolveTimeline() {
 		// this adds it to a queue, make sure it never runs more than once at a time:
 		this._actionQueue
-			.add(() => {
+			.add(async () => {
 				return this._resolveTimelineInner()
 					.then((nextResolveTime) => {
 						this._nextResolveTime = nextResolveTime || 0

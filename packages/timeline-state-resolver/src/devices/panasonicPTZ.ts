@@ -83,7 +83,9 @@ export class PanasonicPtzDevice extends DeviceWithState<PanasonicPtzState, Devic
 			if (deviceOptions.commandReceiver) {
 				this._commandReceiver = deviceOptions.commandReceiver
 			} else {
-				this._commandReceiver = this._defaultCommandReceiver
+				this._commandReceiver = async (...args) => {
+					return this._defaultCommandReceiver(...args)
+				}
 			}
 		}
 		this._doOnTime = new DoOnTime(
@@ -120,7 +122,7 @@ export class PanasonicPtzDevice extends DeviceWithState<PanasonicPtzState, Devic
 	/**
 	 * Initiates the device: set up ping for connection logic.
 	 */
-	init(_initOptions: PanasonicPTZOptions): Promise<boolean> {
+	async init(_initOptions: PanasonicPTZOptions): Promise<boolean> {
 		if (this._device) {
 			return new Promise((resolve, reject) => {
 				setInterval(() => {
@@ -226,7 +228,7 @@ export class PanasonicPtzDevice extends DeviceWithState<PanasonicPtzState, Devic
 		// Clear any scheduled commands after this time
 		this._doOnTime.clearQueueAfter(clearAfterTime)
 	}
-	terminate() {
+	async terminate() {
 		if (this._device) {
 			this._device.dispose()
 		}
@@ -314,7 +316,7 @@ export class PanasonicPtzDevice extends DeviceWithState<PanasonicPtzState, Devic
 			this._doOnTime.queue(
 				time,
 				undefined,
-				(cmd: PanasonicPtzCommandWithContext) => {
+				async (cmd: PanasonicPtzCommandWithContext) => {
 					return this._commandReceiver(time, cmd.command, cmd.context, cmd.timelineObjId)
 				},
 				cmd

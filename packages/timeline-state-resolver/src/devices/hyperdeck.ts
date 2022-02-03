@@ -22,7 +22,7 @@ import {
 } from 'hyperdeck-connection'
 import { DoOnTime, SendMode } from '../doOnTime'
 import { SlotInfoCommandResponse } from 'hyperdeck-connection/dist/commands'
-import { endTrace, startTrace } from '../lib'
+import { deferAsync, endTrace, startTrace } from '../lib'
 
 export interface DeviceOptionsHyperdeckInternal extends DeviceOptionsHyperdeck {
 	commandReceiver?: CommandReceiver
@@ -75,7 +75,10 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState, DeviceOptionsH
 		super(deviceId, deviceOptions, getCurrentTime)
 		if (deviceOptions.options) {
 			if (deviceOptions.commandReceiver) this._commandReceiver = deviceOptions.commandReceiver
-			else this._commandReceiver = this._defaultCommandReceiver
+			else
+				this._commandReceiver = async (...args) => {
+					return this._defaultCommandReceiver(...args)
+				}
 		}
 		this._doOnTime = new DoOnTime(
 			() => {
@@ -90,46 +93,53 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState, DeviceOptionsH
 	/**
 	 * Initiates the connection with the Hyperdeck through the hyperdeck-connection lib.
 	 */
-	init(initOptions: HyperdeckOptions): Promise<boolean> {
+	async init(initOptions: HyperdeckOptions): Promise<boolean> {
 		return new Promise((resolve /*, reject*/) => {
 			let firstConnect = true
 
 			this._hyperdeck = new Hyperdeck({ pingPeriod: 1000 })
 			this._hyperdeck.connect(initOptions.host, initOptions.port)
-			this._hyperdeck.on('connected', async () => {
-				await this._hyperdeck.sendCommand(new HyperdeckCommands.RemoteCommand(true))
+			this._hyperdeck.on('connected', () => {
+				deferAsync(
+					async () => {
+						await this._hyperdeck.sendCommand(new HyperdeckCommands.RemoteCommand(true))
 
-				this._queryCurrentState()
-					.then(async (state) => {
-						this.setState(state, this.getCurrentTime())
-						if (firstConnect) {
-							firstConnect = false
-							this._initialized = true
-							this._slots = await this._querySlotNumber()
-							resolve(true)
+						this._queryCurrentState()
+							.then(async (state) => {
+								this.setState(state, this.getCurrentTime())
+								if (firstConnect) {
+									firstConnect = false
+									this._initialized = true
+									this._slots = await this._querySlotNumber()
+									resolve(true)
+								}
+								this._connected = true
+								this._connectionChanged()
+								this.emit('resetResolver')
+							})
+							.catch((e) => this.emit('error', 'Hyperdeck.on("connected")', e))
+
+						if (initOptions.minRecordingTime) {
+							this._minRecordingTime = initOptions.minRecordingTime
+							if (this._recTimePollTimer) clearTimeout(this._recTimePollTimer)
 						}
-						this._connected = true
-						this._connectionChanged()
-						this.emit('resetResolver')
-					})
-					.catch((e) => this.emit('error', 'Hyperdeck.on("connected")', e))
+						this._queryRecordingTime().catch((e) => this.emit('error', 'HyperDeck.queryRecordingTime', e))
 
-				if (initOptions.minRecordingTime) {
-					this._minRecordingTime = initOptions.minRecordingTime
-					if (this._recTimePollTimer) clearTimeout(this._recTimePollTimer)
-				}
-				this._queryRecordingTime().catch((e) => this.emit('error', 'HyperDeck.queryRecordingTime', e))
+						const notifyCmd = new HyperdeckCommands.NotifySetCommand()
+						notifyCmd.slot = true
+						notifyCmd.transport = true
+						this._hyperdeck.sendCommand(notifyCmd).catch((e) => this.emit('error', 'HyperDeck.on("connected")', e))
 
-				const notifyCmd = new HyperdeckCommands.NotifySetCommand()
-				notifyCmd.slot = true
-				notifyCmd.transport = true
-				this._hyperdeck.sendCommand(notifyCmd).catch((e) => this.emit('error', 'HyperDeck.on("connected")', e))
-
-				const tsCmd = new HyperdeckCommands.TransportInfoCommand()
-				this._hyperdeck
-					.sendCommand(tsCmd)
-					.then((r) => (this._transportStatus = r.status))
-					.catch((e) => this.emit('error', 'HyperDeck.on("connected")', e))
+						const tsCmd = new HyperdeckCommands.TransportInfoCommand()
+						this._hyperdeck
+							.sendCommand(tsCmd)
+							.then((r) => (this._transportStatus = r.status))
+							.catch((e) => this.emit('error', 'HyperDeck.on("connected")', e))
+					},
+					(e) => {
+						this.emit('error', 'Failed to send command', e as Error)
+					}
+				)
 			})
 			this._hyperdeck.on('disconnected', () => {
 				this._connected = false
@@ -137,11 +147,18 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState, DeviceOptionsH
 			})
 			this._hyperdeck.on('error', (e) => this.emit('error', 'Hyperdeck', e))
 
-			this._hyperdeck.on('notify.slot', async (res: SlotInfoCommandResponse) => {
-				await this._queryRecordingTime().catch((e) => this.emit('error', 'HyperDeck.queryRecordingTime', e))
-				if (res.status) this._connectionChanged()
+			this._hyperdeck.on('notify.slot', (res: SlotInfoCommandResponse) => {
+				deferAsync(
+					async () => {
+						await this._queryRecordingTime().catch((e) => this.emit('error', 'HyperDeck.queryRecordingTime', e))
+						if (res.status) this._connectionChanged()
+					},
+					(e) => {
+						this.emit('error', 'Failed to send command', e as Error)
+					}
+				)
 			})
-			this._hyperdeck.on('notify.transport', async (res: TransportInfoCommandResponseExt) => {
+			this._hyperdeck.on('notify.transport', (res: TransportInfoCommandResponseExt) => {
 				if (res.status) {
 					this._transportStatus = res.status
 
@@ -186,7 +203,7 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState, DeviceOptionsH
 	 * calls this._queryRecordingTime
 	 */
 	async formatDisks() {
-		const wait = (t: number) => new Promise<void>((resolve) => setTimeout(() => resolve(), t))
+		const wait = async (t: number) => new Promise<void>((resolve) => setTimeout(() => resolve(), t))
 
 		for (let i = 1; i <= this._slots; i++) {
 			// select slot
@@ -388,7 +405,7 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState, DeviceOptionsH
 			this._doOnTime.queue(
 				time,
 				undefined,
-				(cmd: HyperdeckCommandWithContext) => {
+				async (cmd: HyperdeckCommandWithContext) => {
 					return this._commandReceiver(time, cmd.command, cmd.context, cmd.timelineObjId)
 				},
 				cmd
@@ -609,7 +626,7 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState, DeviceOptionsH
 		return res
 	}
 
-	private _defaultCommandReceiver(
+	private async _defaultCommandReceiver(
 		_time: number,
 		command: HyperdeckCommands.AbstractCommand,
 		context: CommandContext,

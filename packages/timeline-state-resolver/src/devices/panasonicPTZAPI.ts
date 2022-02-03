@@ -27,7 +27,7 @@ export class PanasonicPtzCamera extends EventEmitter {
 		this._url = url
 	}
 
-	sendCommand(command: string): Promise<string> {
+	async sendCommand(command: string): Promise<string> {
 		const p: Promise<string> = new Promise((resolve, reject) => {
 			this._commandQueue.push({ command: command, executing: false, resolve: resolve, reject: reject })
 		})
@@ -155,7 +155,7 @@ export class PanasonicPtzHttpInterface extends EventEmitter {
 	 * @returns {Promise<number>}
 	 * @memberof PanasonicPtzHttpInterface
 	 */
-	getPreset(): Promise<number> {
+	async getPreset(): Promise<number> {
 		const device = this._device
 
 		return new Promise((resolve, reject) => {
@@ -184,7 +184,7 @@ export class PanasonicPtzHttpInterface extends EventEmitter {
 	 * @returns {Promise<number>} A promise: the preset the camera will transition to
 	 * @memberof PanasonicPtzHttpInterface
 	 */
-	recallPreset(preset: number): Promise<number> {
+	async recallPreset(preset: number): Promise<number> {
 		const device = this._device
 
 		if (!_.isFinite(preset)) throw new Error('Camera speed preset is not a finite number')
@@ -215,7 +215,7 @@ export class PanasonicPtzHttpInterface extends EventEmitter {
 	 * @returns {Promise<number>} A promise: the speed set in the camera
 	 * @memberof PanasonicPtzHttpInterface
 	 */
-	getSpeed(): Promise<number> {
+	async getSpeed(): Promise<number> {
 		const device = this._device
 
 		return new Promise((resolve, reject) => {
@@ -244,7 +244,7 @@ export class PanasonicPtzHttpInterface extends EventEmitter {
 	 * @returns {Promise<number>} A promise: the speed set in the camera
 	 * @memberof PanasonicPtzHttpInterface
 	 */
-	setSpeed(speed: number): Promise<number> {
+	async setSpeed(speed: number): Promise<number> {
 		const device = this._device
 
 		if (!_.isFinite(speed)) throw new Error('Camera speed preset is not a finite number')
@@ -276,7 +276,7 @@ export class PanasonicPtzHttpInterface extends EventEmitter {
 	 * @returns {Promise<number>} A promise: the speed at which the lens is changing it's zoom
 	 * @memberof PanasonicPtzHttpInterface
 	 */
-	getZoomSpeed(): Promise<number> {
+	async getZoomSpeed(): Promise<number> {
 		const device = this._device
 
 		return new Promise((resolve, reject) => {
@@ -305,7 +305,7 @@ export class PanasonicPtzHttpInterface extends EventEmitter {
 	 * @returns {Promise<number>} A promise: the speed at which the lens is changing it's zoom
 	 * @memberof PanasonicPtzHttpInterface
 	 */
-	setZoomSpeed(speed: number): Promise<number> {
+	async setZoomSpeed(speed: number): Promise<number> {
 		const device = this._device
 
 		if (!_.isFinite(speed)) throw new Error('Camera zoom speed is not a finite number')
@@ -336,7 +336,7 @@ export class PanasonicPtzHttpInterface extends EventEmitter {
 	 * @returns {Promise<number>} A promise: current lens zoom
 	 * @memberof PanasonicPtzHttpInterface
 	 */
-	getZoom(): Promise<number> {
+	async getZoom(): Promise<number> {
 		const device = this._device
 
 		return new Promise((resolve, reject) => {
@@ -365,7 +365,7 @@ export class PanasonicPtzHttpInterface extends EventEmitter {
 	 * @returns {Promise<number>} A promise: current lens zoom
 	 * @memberof PanasonicPtzHttpInterface
 	 */
-	setZoom(level: number): Promise<number> {
+	async setZoom(level: number): Promise<number> {
 		const device = this._device
 
 		if (!_.isFinite(level)) throw new Error('Camera zoom speed is not a finite number')
@@ -396,7 +396,7 @@ export class PanasonicPtzHttpInterface extends EventEmitter {
 	 * @returns {Promose<boolean | string>} A promise: true if the camera is ON, false if the camera is off, 'turningOn' if transitioning from STBY to ON
 	 * @memberof PanasonicPtzHttpInterface
 	 */
-	ping(): Promise<boolean | string> {
+	async ping(): Promise<boolean | string> {
 		const device = this._device
 		return new Promise((resolve, reject) => {
 			device

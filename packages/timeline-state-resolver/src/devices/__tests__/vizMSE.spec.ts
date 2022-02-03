@@ -33,7 +33,7 @@ describe('vizMSE', () => {
 		mockTime.init()
 	})
 	test('vizMSE: Internal element', async () => {
-		const commandReceiver0 = jest.fn(() => {
+		const commandReceiver0 = jest.fn(async () => {
 			return Promise.resolve()
 		})
 		const myChannelMapping0: MappingVizMSE = {
@@ -542,7 +542,7 @@ describe('vizMSE', () => {
 				profile: 'myProfile',
 			},
 		})
-		const device = deviceContainer!.device
+		const device = deviceContainer.device
 		const connectionChanged = jest.fn()
 		await device.on('connectionChanged', connectionChanged)
 
@@ -581,7 +581,7 @@ describe('vizMSE', () => {
 		expect(onWarning).toHaveBeenCalledTimes(0)
 	})
 	test('vizMSE: clear all elements', async () => {
-		const commandReceiver0 = jest.fn(() => {
+		const commandReceiver0 = jest.fn(async () => {
 			return Promise.resolve()
 		})
 		const myChannelMapping0: MappingVizMSE = {

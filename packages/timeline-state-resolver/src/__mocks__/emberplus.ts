@@ -33,7 +33,7 @@ export class Node {
 }
 
 export class DeviceTree extends EventEmitter {
-	connect() {
+	async connect() {
 		return Promise.resolve()
 	}
 
@@ -41,12 +41,12 @@ export class DeviceTree extends EventEmitter {
 		return true
 	}
 
-	getNodeByPath(path: string) {
+	async getNodeByPath(path: string) {
 		// console.log('get node', path)
 		return Promise.resolve(new Node(path))
 	}
 
-	setValue(node: Node, value: EmberValue) {
+	async setValue(node: Node, value: EmberValue) {
 		node.node.contents.value = value
 		console.log(node.node.contents.value, value)
 		return Promise.resolve()

@@ -31,13 +31,13 @@ export class CasparCG extends EventEmitter {
 		instances.push(this)
 	}
 
-	do(...args: unknown[]) {
+	async do(...args: unknown[]) {
 		mockDo.apply(this, args)
 		const cmd = args[0]
 		return Promise.resolve(cmd)
 	}
 
-	info() {
+	async info() {
 		return new Promise((resolve) => {
 			const cmd = new AMCP.InfoCommand()
 			cmd.response = new Command.AMCPResponse()
@@ -69,11 +69,11 @@ export class CasparCG extends EventEmitter {
 			resolve(cmd)
 		})
 	}
-	clear(channel) {
+	async clear(channel) {
 		return this.do(new AMCP.ClearCommand({ channel }))
 	}
 
-	time(channel: number) {
+	async time(channel: number) {
 		return new Promise((resolve) => {
 			const cmd = new AMCP.TimeCommand({ channel })
 			cmd.response = new Command.AMCPResponse()

@@ -165,7 +165,7 @@ export class DoOnTime extends EventEmitter<DoOnTimeEvents> {
 				if (o.time <= now) {
 					o.prepareTime = this.getCurrentTime()
 					if (!this._commandsToSendNow[queueId]) this._commandsToSendNow[queueId] = []
-					this._commandsToSendNow[queueId].push(() => {
+					this._commandsToSendNow[queueId].push(async () => {
 						try {
 							const startSend = this.getCurrentTime()
 							let sentTooSlow = false

@@ -222,7 +222,7 @@ export class Pharos extends EventEmitter {
 	private _webSocketKeepAliveTimeout: NodeJS.Timer | null = null
 
 	// constructor () {}
-	connect(options: Options): Promise<void> {
+	async connect(options: Options): Promise<void> {
 		this._isConnecting = true
 		return this._connectSocket(options).then(() => {
 			this._isConnecting = false
@@ -232,7 +232,7 @@ export class Pharos extends EventEmitter {
 	public get connected(): boolean {
 		return this._connected
 	}
-	public dispose(): Promise<void> {
+	public async dispose(): Promise<void> {
 		return new Promise((resolve) => {
 			_.each(this._requestPromises, (rp, id) => {
 				_.each(rp, (promise) => {
@@ -254,25 +254,25 @@ export class Pharos extends EventEmitter {
 		})
 	}
 
-	public getSystemInfo(): Promise<SystemInfo> {
+	public async getSystemInfo(): Promise<SystemInfo> {
 		return this.request('system')
 	}
-	public getProjectInfo(): Promise<ProjectInfo> {
+	public async getProjectInfo(): Promise<ProjectInfo> {
 		return this.request('project')
 	}
-	public getCurrentTime(): Promise<CurrentTime> {
+	public async getCurrentTime(): Promise<CurrentTime> {
 		return this.request('time')
 	}
 	/**
 	 * @param params Example: { num: '1,2,5-9' }
 	 */
-	public getTimelineInfo(num?: string | number): Promise<TimelineInfo> {
+	public async getTimelineInfo(num?: string | number): Promise<TimelineInfo> {
 		return this.getThingInfo('timeline', num)
 	}
 	/**
 	 * @param params Example: { num: '1,2,5-9' }
 	 */
-	public getSceneInfo(num?: string | number): Promise<SceneInfo> {
+	public async getSceneInfo(num?: string | number): Promise<SceneInfo> {
 		const params: any = {}
 		if (num) params.num = num + ''
 		return this.getThingInfo('scene', num)
@@ -280,30 +280,30 @@ export class Pharos extends EventEmitter {
 	/**
 	 * @param params Example: { num: '1,2,5-9' }
 	 */
-	public getGroupInfo(num?: string | number): Promise<GroupInfo> {
+	public async getGroupInfo(num?: string | number): Promise<GroupInfo> {
 		return this.getThingInfo('group', num)
 	}
-	private getThingInfo(thing: string, num?: string | number): Promise<any> {
+	private async getThingInfo(thing: string, num?: string | number): Promise<any> {
 		const params: any = {}
 		if (num) params.num = num + ''
 		return this.request(thing, params)
 	}
-	public getContentTargetInfo(): Promise<ContentTargetInfo> {
+	public async getContentTargetInfo(): Promise<ContentTargetInfo> {
 		return this.request('content_target')
 	}
-	public getControllerInfo(): Promise<ControllerInfo> {
+	public async getControllerInfo(): Promise<ControllerInfo> {
 		return this.request('controller')
 	}
-	public getRemoteDeviceInfo(): Promise<RemoteDeviceInfo> {
+	public async getRemoteDeviceInfo(): Promise<RemoteDeviceInfo> {
 		return this.request('remote_device')
 	}
-	public getTemperature(): Promise<Temperature> {
+	public async getTemperature(): Promise<Temperature> {
 		return this.request('temperature')
 	}
-	public getFanSpeed(): Promise<FanSpeed> {
+	public async getFanSpeed(): Promise<FanSpeed> {
 		return this.request('fan_speed')
 	}
-	public getTextSlot(names?: string | Array<string>): Promise<TextSlot> {
+	public async getTextSlot(names?: string | Array<string>): Promise<TextSlot> {
 		const params: any = {}
 		if (names) {
 			if (!_.isArray(names)) names = [names]
@@ -311,18 +311,18 @@ export class Pharos extends EventEmitter {
 		}
 		return this.request('text_slot', params)
 	}
-	public getProtocols(): Promise<Protocols> {
+	public async getProtocols(): Promise<Protocols> {
 		return this.request('protocol')
 	}
 	/**
 	 * @param key {universe?: universeKey} Example: "dmx:1", "rio-dmx:rio44:1" // DMX, Pathport, sACN and Art-Net, protocol:kinetPowerSupplyNum:kinetPort for KiNET and protocol:remoteDeviceType:remoteDeviceNum for RIO DMX
 	 */
-	public getOutput(universe?: string): Promise<Output> {
+	public async getOutput(universe?: string): Promise<Output> {
 		const params: any = {}
 		if (universe) params.universe = universe
 		return this.request('output', params)
 	}
-	public getLuaVariables(vars?: string | Array<string>): Promise<LuaVariables> {
+	public async getLuaVariables(vars?: string | Array<string>): Promise<LuaVariables> {
 		const params: any = {}
 		if (vars) {
 			if (!_.isArray(vars)) vars = [vars]
@@ -330,83 +330,83 @@ export class Pharos extends EventEmitter {
 		}
 		return this.request('lua', params)
 	}
-	public getTriggers(): Promise<Triggers> {
+	public async getTriggers(): Promise<Triggers> {
 		return this.request('trigger')
 	}
-	public subscribeTimelineStatus(callback): Promise<void> {
+	public async subscribeTimelineStatus(callback): Promise<void> {
 		return this.subscribe('timeline', callback)
 	}
-	public subscribeSceneStatus(callback): Promise<void> {
+	public async subscribeSceneStatus(callback): Promise<void> {
 		return this.subscribe('scene', callback)
 	}
-	public subscribeGroupStatus(callback): Promise<void> {
+	public async subscribeGroupStatus(callback): Promise<void> {
 		return this.subscribe('group', callback)
 	}
-	public subscribeContentTargetStatus(callback): Promise<void> {
+	public async subscribeContentTargetStatus(callback): Promise<void> {
 		return this.subscribe('content_target', callback)
 	}
-	public subscribeRemoteDeviceStatus(callback): Promise<void> {
+	public async subscribeRemoteDeviceStatus(callback): Promise<void> {
 		return this.subscribe('remote_device', callback)
 	}
-	public subscribeBeacon(callback): Promise<void> {
+	public async subscribeBeacon(callback): Promise<void> {
 		return this.subscribe('beacon', callback)
 	}
-	public subscribeLua(callback): Promise<void> {
+	public async subscribeLua(callback): Promise<void> {
 		return this.subscribe('lua', callback)
 	}
-	public startTimeline(timelineNum: number) {
+	public async startTimeline(timelineNum: number) {
 		return this.command('POST', '/api/timeline', { action: 'start', num: timelineNum })
 	}
-	public startScene(sceneNum: number) {
+	public async startScene(sceneNum: number) {
 		return this.command('POST', '/api/scene', { action: 'start', num: sceneNum })
 	}
-	public releaseTimeline(timelineNum: number, fade?: number) {
+	public async releaseTimeline(timelineNum: number, fade?: number) {
 		return this.command('POST', '/api/timeline', { action: 'release', num: timelineNum, fade: fade })
 	}
-	public releaseScene(sceneNum: number, fade?: number) {
+	public async releaseScene(sceneNum: number, fade?: number) {
 		return this.command('POST', '/api/scene', { action: 'release', num: sceneNum, fade: fade })
 	}
-	public toggleTimeline(timelineNum: number, fade?: number) {
+	public async toggleTimeline(timelineNum: number, fade?: number) {
 		return this.command('POST', '/api/timeline', { action: 'toggle', num: timelineNum, fade: fade })
 	}
-	public toggleScene(sceneNum: number, fade?: number) {
+	public async toggleScene(sceneNum: number, fade?: number) {
 		return this.command('POST', '/api/scene', { action: 'toggle', num: sceneNum, fade: fade })
 	}
-	public pauseTimeline(timelineNum: number) {
+	public async pauseTimeline(timelineNum: number) {
 		return this.command('POST', '/api/timeline', { action: 'pause', num: timelineNum })
 	}
-	public resumeTimeline(timelineNum: number) {
+	public async resumeTimeline(timelineNum: number) {
 		return this.command('POST', '/api/timeline', { action: 'resume', num: timelineNum })
 	}
-	public pauseAll() {
+	public async pauseAll() {
 		return this.command('POST', '/api/timeline', { action: 'pause' })
 	}
-	public resumeAll() {
+	public async resumeAll() {
 		return this.command('POST', '/api/timeline', { action: 'resume' })
 	}
-	public releaseAllTimelines(group?: string | null, fade?: number) {
+	public async releaseAllTimelines(group?: string | null, fade?: number) {
 		return this.command('POST', '/api/timeline', { action: 'release', group: group, fade: fade })
 	}
-	public releaseAllScenes(group?: string, fade?: number) {
+	public async releaseAllScenes(group?: string, fade?: number) {
 		return this.command('POST', '/api/scene', { action: 'release', group: group, fade: fade })
 	}
-	public releaseAll(group?: string, fade?: number) {
+	public async releaseAll(group?: string, fade?: number) {
 		return this.command('POST', '/api/release_all', { group: group, fade: fade })
 	}
-	public setTimelineRate(timelineNum: number, rate: number) {
+	public async setTimelineRate(timelineNum: number, rate: number) {
 		return this.command('POST', '/api/timeline', { action: 'set_rate', num: timelineNum, rate: rate })
 	}
-	public setTimelinePosition(timelineNum: number, position: number) {
+	public async setTimelinePosition(timelineNum: number, position: number) {
 		return this.command('POST', '/api/timeline', { action: 'set_position', num: timelineNum, position: position })
 	}
-	public fireTrigger(triggerNum: number, vars?: Array<any>, testConditions?: boolean) {
+	public async fireTrigger(triggerNum: number, vars?: Array<any>, testConditions?: boolean) {
 		return this.command('POST', '/api/trigger', {
 			num: triggerNum,
 			var: (vars || []).join(','),
 			conditions: !!testConditions,
 		})
 	}
-	public runCommand(input: string) {
+	public async runCommand(input: string) {
 		return this.command('POST', '/api/cmdline', {
 			input: input,
 		})
@@ -418,7 +418,7 @@ export class Pharos extends EventEmitter {
 	 * @param fade float
 	 * @param delay float
 	 */
-	public masterIntensity(groupNum: number, level: number, fade?: number, delay?: number) {
+	public async masterIntensity(groupNum: number, level: number, fade?: number, delay?: number) {
 		return this.command('POST', '/api/group', {
 			action: 'master_intensity',
 			num: groupNum,
@@ -434,7 +434,7 @@ export class Pharos extends EventEmitter {
 	 * @param fade float
 	 * @param delay float
 	 */
-	public masterContentTargetIntensity(type: string, level: number, fade?: number, delay?: number) {
+	public async masterContentTargetIntensity(type: string, level: number, fade?: number, delay?: number) {
 		return this.command('POST', '/api/content_target', {
 			action: 'master_intensity',
 			type: type,
@@ -443,21 +443,21 @@ export class Pharos extends EventEmitter {
 			delay: delay,
 		})
 	}
-	public setGroupOverride(groupNum: number, options: RGBOptions) {
+	public async setGroupOverride(groupNum: number, options: RGBOptions) {
 		const params: any = _.extend({}, options, {
 			num: groupNum,
 			target: 'group',
 		})
 		return this.command('PUT', '/api/override', params)
 	}
-	public setFixtureOverride(fixtureNum: number, options: RGBOptions) {
+	public async setFixtureOverride(fixtureNum: number, options: RGBOptions) {
 		const params: any = _.extend({}, options, {
 			num: fixtureNum,
 			target: 'fixture',
 		})
 		return this.command('PUT', '/api/override', params)
 	}
-	public clearGroupOverrides(groupNum?: number, fade?: number) {
+	public async clearGroupOverrides(groupNum?: number, fade?: number) {
 		const params: any = {
 			target: 'group',
 		}
@@ -465,7 +465,7 @@ export class Pharos extends EventEmitter {
 		if (fade !== undefined) params.fade = fade
 		return this.command('DELETE', '/api/override', params)
 	}
-	public clearFixtureOverrides(fixtureNum?: number, fade?: number) {
+	public async clearFixtureOverrides(fixtureNum?: number, fade?: number) {
 		const params: any = {
 			target: 'fixture',
 		}
@@ -473,56 +473,56 @@ export class Pharos extends EventEmitter {
 		if (fade !== undefined) params.fade = fade
 		return this.command('DELETE', '/api/override', params)
 	}
-	public clearAllOverrides(fade?: number) {
+	public async clearAllOverrides(fade?: number) {
 		const params: any = {}
 		if (fade !== undefined) params.fade = fade
 		return this.command('DELETE', '/api/override', params)
 	}
-	public enableOutput(protocol: Protocol) {
+	public async enableOutput(protocol: Protocol) {
 		return this.command('POST', '/api/output', { action: 'enable', protocol: protocol })
 	}
-	public disableOutput(protocol: Protocol) {
+	public async disableOutput(protocol: Protocol) {
 		return this.command('POST', '/api/output', { action: 'disable', protocol: protocol })
 	}
-	public setTextSlot(slot: string, value: string) {
+	public async setTextSlot(slot: string, value: string) {
 		return this.command('PUT', '/api/text_slot', {
 			name: slot,
 			value: value,
 		})
 	}
-	public flashBeacon() {
+	public async flashBeacon() {
 		return this.command('POST', '/api/beacon')
 	}
-	public parkChannel(universeKey: string, channelList: Array<number | string>, level: number) {
+	public async parkChannel(universeKey: string, channelList: Array<number | string>, level: number) {
 		return this.command('POST', '/api/channel', {
 			universe: universeKey,
 			channels: (channelList || []).join(','),
 			level: level,
 		})
 	}
-	public unparkChannel(universeKey: string, channelList: Array<number | string>) {
+	public async unparkChannel(universeKey: string, channelList: Array<number | string>) {
 		return this.command('DELETE', '/api/channel', {
 			universe: universeKey,
 			channels: (channelList || []).join(','),
 		})
 	}
-	public getLog() {
+	public async getLog() {
 		return this.command('GET', '/api/log')
 	}
-	public clearLog() {
+	public async clearLog() {
 		return this.command('DELETE', '/api/log')
 	}
 	/**
 	 * power reboot
 	 */
-	public resetHardware() {
+	public async resetHardware() {
 		return this.command('POST', '/api/reset')
 	}
 
 	public setInternalPage(isInternal) {
 		this._queryString = isInternal ? '?internal_page' : ''
 	}
-	public request(id: string, params?: { [name: string]: any }): Promise<any> {
+	public async request(id: string, params?: { [name: string]: any }): Promise<any> {
 		const p = new Promise((resolve, reject) => {
 			if (!this._requestPromises[id]) this._requestPromises[id] = []
 			this._requestPromises[id].push({ resolve, reject })
@@ -540,7 +540,7 @@ export class Pharos extends EventEmitter {
 
 		return p
 	}
-	public subscribe(id: string, callback: Function): Promise<void> {
+	public async subscribe(id: string, callback: Function): Promise<void> {
 		if (!this._broadcastCallbacks[id]) this._broadcastCallbacks[id] = []
 		this._broadcastCallbacks[id].push(callback)
 
@@ -549,7 +549,7 @@ export class Pharos extends EventEmitter {
 			return
 		})
 	}
-	public command(method: 'GET' | 'POST' | 'DELETE' | 'PUT', url0: string, data0?: { [key: string]: Primitives }) {
+	public async command(method: 'GET' | 'POST' | 'DELETE' | 'PUT', url0: string, data0?: { [key: string]: Primitives }) {
 		return new Promise((resolve, reject) => {
 			const url = `${this._options.ssl ? 'https' : 'http'}://${this._options.host}${url0}${this._queryString}`
 
@@ -588,7 +588,7 @@ export class Pharos extends EventEmitter {
 		})
 	}
 
-	private _connectSocket(options?: Options): Promise<void> {
+	private async _connectSocket(options?: Options): Promise<void> {
 		if (options) {
 			this._options = options
 		}
@@ -665,7 +665,7 @@ export class Pharos extends EventEmitter {
 			})
 		})
 	}
-	private _sendMessage(msg: string): Promise<void> {
+	private async _sendMessage(msg: string): Promise<void> {
 		return new Promise((resolve, reject) => {
 			if (this._socket && this._socket.readyState === this._socket.OPEN) {
 				this._socket.send(msg, (err) => {

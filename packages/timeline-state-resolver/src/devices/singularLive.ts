@@ -87,7 +87,10 @@ export class SingularLiveDevice extends DeviceWithState<SingularLiveState, Devic
 		super(deviceId, deviceOptions, getCurrentTime)
 		if (deviceOptions.options) {
 			if (deviceOptions.commandReceiver) this._commandReceiver = deviceOptions.commandReceiver
-			else this._commandReceiver = this._defaultCommandReceiver
+			else
+				this._commandReceiver = async (...args) => {
+					return this._defaultCommandReceiver(...args)
+				}
 		}
 		this._doOnTime = new DoOnTime(
 			() => {
@@ -98,7 +101,7 @@ export class SingularLiveDevice extends DeviceWithState<SingularLiveState, Devic
 		)
 		this.handleDoOnTime(this._doOnTime, 'SingularLive')
 	}
-	init(initOptions: SingularLiveOptions): Promise<boolean> {
+	async init(initOptions: SingularLiveOptions): Promise<boolean> {
 		// this._makeReadyCommands = options.makeReadyCommands || []
 		this._accessToken = initOptions.accessToken || ''
 
@@ -138,7 +141,7 @@ export class SingularLiveDevice extends DeviceWithState<SingularLiveState, Devic
 		// Clear any scheduled commands after this time
 		this._doOnTime.clearQueueAfter(clearAfterTime)
 	}
-	terminate() {
+	async terminate() {
 		this._doOnTime.dispose()
 		return Promise.resolve(true)
 	}
@@ -210,7 +213,7 @@ export class SingularLiveDevice extends DeviceWithState<SingularLiveState, Devic
 			this._doOnTime.queue(
 				time,
 				undefined,
-				(cmd: Command) => {
+				async (cmd: Command) => {
 					return this._commandReceiver(time, cmd.content, cmd.context, cmd.timelineObjId)
 				},
 				cmd
@@ -304,7 +307,7 @@ export class SingularLiveDevice extends DeviceWithState<SingularLiveState, Devic
 			)
 			.sort((a, b) => a.layer.localeCompare(b.layer))
 	}
-	private _defaultCommandReceiver(
+	private async _defaultCommandReceiver(
 		_time: number,
 		cmd: SingularLiveCommandContent,
 		context: CommandContext,

@@ -25,7 +25,7 @@ export namespace AtemConnection {
 		get state(): OrigAtemConnection.AtemState {
 			return mockData
 		}
-		connect(): Promise<void> {
+		async connect(): Promise<void> {
 			setTimeoutOrg(() => {
 				this.emit('connected', true)
 			}, 10)
@@ -36,7 +36,7 @@ export namespace AtemConnection {
 				}, 5)
 			})
 		}
-		disconnect(): Promise<void> {
+		async disconnect(): Promise<void> {
 			return new Promise<void>((resolve) => {
 				setTimeoutOrg(() => {
 					resolve()
@@ -44,7 +44,7 @@ export namespace AtemConnection {
 			})
 		}
 
-		destroy(): Promise<void> {
+		async destroy(): Promise<void> {
 			return new Promise<void>((resolve) => {
 				setTimeoutOrg(() => {
 					resolve()
@@ -52,7 +52,7 @@ export namespace AtemConnection {
 			})
 		}
 
-		sendCommand(): Promise<void> {
+		async sendCommand(): Promise<void> {
 			return Promise.resolve()
 		}
 	}

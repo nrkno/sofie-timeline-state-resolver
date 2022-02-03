@@ -26,10 +26,10 @@ describe('Conductor', () => {
 		mockTime.init()
 	})
 	test('Abstract-device functionality', async () => {
-		const commandReceiver0: any = jest.fn(() => {
+		const commandReceiver0: any = jest.fn(async () => {
 			return Promise.resolve()
 		})
-		const commandReceiver1: any = jest.fn(() => {
+		const commandReceiver1: any = jest.fn(async () => {
 			return Promise.resolve()
 		})
 
@@ -188,7 +188,7 @@ describe('Conductor', () => {
 	})
 
 	test('the "Now" and "Callback-functionality', async () => {
-		const commandReceiver0: any = jest.fn(() => {
+		const commandReceiver0: any = jest.fn(async () => {
 			return Promise.resolve()
 		})
 
@@ -314,19 +314,19 @@ describe('Conductor', () => {
 	})
 
 	test('devicesMakeReady', async () => {
-		const commandReceiver0 = jest.fn(() => {
+		const commandReceiver0 = jest.fn(async () => {
 			return Promise.resolve()
 		})
-		const commandReceiver1 = jest.fn(() => {
+		const commandReceiver1 = jest.fn(async () => {
 			return Promise.resolve()
 		})
-		const commandReceiver2 = jest.fn(() => {
+		const commandReceiver2 = jest.fn(async () => {
 			return Promise.resolve()
 		})
-		const commandReceiver3 = jest.fn(() => {
+		const commandReceiver3 = jest.fn(async () => {
 			return Promise.resolve()
 		})
-		const commandReceiver4 = jest.fn(() => {
+		const commandReceiver4 = jest.fn(async () => {
 			return Promise.resolve()
 		})
 		const conductor = new Conductor({
@@ -430,7 +430,7 @@ describe('Conductor', () => {
 		expect(await device.getCurrentTime()).toBeTruthy()
 	}, 1500)
 	test('Changing of mappings live', async () => {
-		const commandReceiver0: any = jest.fn(() => {
+		const commandReceiver0: any = jest.fn(async () => {
 			return Promise.resolve()
 		})
 

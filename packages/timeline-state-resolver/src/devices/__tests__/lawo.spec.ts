@@ -23,7 +23,7 @@ describe('Lawo', () => {
 	})
 
 	test('Lawo: Change volume', async () => {
-		const commandReceiver0: any = jest.fn(() => {
+		const commandReceiver0: any = jest.fn(async () => {
 			return Promise.resolve()
 		})
 		const myChannelMapping0: MappingLawo = {
@@ -168,7 +168,7 @@ describe('Lawo', () => {
 		// no new commands should be sent, nothing is sent on object end
 	})
 	test('Lawo: Change volume on multiple faders', async () => {
-		const commandReceiver0: any = jest.fn(() => {
+		const commandReceiver0: any = jest.fn(async () => {
 			return Promise.resolve()
 		})
 		const myChannelMapping0: MappingLawo = {
@@ -376,7 +376,7 @@ describe('Lawo', () => {
 		// no new commands should be sent, nothing is sent on object end
 	})
 	test('Lawo: Change volume on multiple faders with priorities', async () => {
-		const commandReceiver0: any = jest.fn(() => {
+		const commandReceiver0: any = jest.fn(async () => {
 			return Promise.resolve()
 		})
 		const myChannelMapping0: MappingLawo = {
@@ -556,7 +556,7 @@ describe('Lawo', () => {
 		// no new commands should be sent, nothing is sent on object end
 	})
 	test('Lawo: Set delay om main/pgm', async () => {
-		const commandReceiver0: any = jest.fn(() => {
+		const commandReceiver0: any = jest.fn(async () => {
 			return Promise.resolve()
 		})
 		const lawoMainDelayOnMapping: MappingLawo = {
@@ -655,7 +655,7 @@ describe('Lawo', () => {
 		expect(commandReceiver0).toHaveBeenCalledTimes(2)
 	})
 	test('Lawo: manual fade', async () => {
-		const commandReceiver0: any = jest.fn(() => {
+		const commandReceiver0: any = jest.fn(async () => {
 			return Promise.resolve()
 		})
 		const myChannelMapping0: MappingLawo = {
@@ -725,7 +725,7 @@ describe('Lawo', () => {
 		}
 	})
 	test('Lawo: Command priority', async () => {
-		const commandReceiver0: any = jest.fn(() => {
+		const commandReceiver0: any = jest.fn(async () => {
 			return Promise.resolve()
 		})
 		const mapping0: MappingLawo = {

@@ -43,7 +43,7 @@ describe('OBS', () => {
 	})
 
 	async function setUpOBS() {
-		const commandReceiver0: any = jest.fn(() => {
+		const commandReceiver0: any = jest.fn(async () => {
 			return Promise.resolve()
 		})
 		const currentSceneMapping: MappingOBSCurrentScene = {

@@ -24,7 +24,7 @@ export class SisyfosApi extends EventEmitter {
 	 * @param host ip to connect to
 	 * @param port port the osc server is hosted on
 	 */
-	connect(host: string, port: number): Promise<void> {
+	async connect(host: string, port: number): Promise<void> {
 		this.host = host
 		this.port = port
 

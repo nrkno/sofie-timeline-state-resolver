@@ -62,9 +62,20 @@ export class OSCMessageDevice extends DeviceWithState<OSCDeviceState, DeviceOpti
 	constructor(deviceId: string, deviceOptions: DeviceOptionsOSCInternal, getCurrentTime: () => Promise<number>) {
 		super(deviceId, deviceOptions, getCurrentTime)
 		if (deviceOptions.options) {
-			this._commandReceiver = deviceOptions.commandReceiver ?? this._defaultCommandReceiver
-
-			this._oscSender = deviceOptions.oscSender ?? this._defaultOscSender
+			if (deviceOptions.commandReceiver) {
+				this._commandReceiver = deviceOptions.commandReceiver
+			} else {
+				this._commandReceiver = async (...args) => {
+					return this._defaultCommandReceiver(...args)
+				}
+			}
+			if (deviceOptions.oscSender) {
+				this._oscSender = deviceOptions.oscSender
+			} else {
+				this._oscSender = async (...args) => {
+					return this._defaultOscSender(...args)
+				}
+			}
 		}
 		this._doOnTime = new DoOnTime(
 			() => {
@@ -75,7 +86,7 @@ export class OSCMessageDevice extends DeviceWithState<OSCDeviceState, DeviceOpti
 		)
 		this.handleDoOnTime(this._doOnTime, 'OSC')
 	}
-	init(initOptions: OSCOptions): Promise<boolean> {
+	async init(initOptions: OSCOptions): Promise<boolean> {
 		if (initOptions.type === OSCDeviceType.TCP) {
 			debug('Creating TCP OSC device')
 			const client = new osc.TCPSocketPort({
@@ -145,7 +156,7 @@ export class OSCMessageDevice extends DeviceWithState<OSCDeviceState, DeviceOpti
 	clearFuture(clearAfterTime: number) {
 		this._doOnTime.clearQueueAfter(clearAfterTime)
 	}
-	terminate() {
+	async terminate() {
 		this._doOnTime.dispose()
 		return Promise.resolve(true)
 	}
@@ -163,7 +174,7 @@ export class OSCMessageDevice extends DeviceWithState<OSCDeviceState, DeviceOpti
 			active: this.isActive,
 		}
 	}
-	makeReady(_okToDestroyStuff?: boolean): Promise<void> {
+	async makeReady(_okToDestroyStuff?: boolean): Promise<void> {
 		return Promise.resolve()
 	}
 
@@ -274,7 +285,7 @@ export class OSCMessageDevice extends DeviceWithState<OSCDeviceState, DeviceOpti
 		})
 		return commands
 	}
-	private _defaultCommandReceiver(
+	private async _defaultCommandReceiver(
 		time: number,
 		cmd: OSCMessageCommandContent,
 		context: CommandContext,

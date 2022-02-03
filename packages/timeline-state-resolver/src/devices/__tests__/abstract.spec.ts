@@ -15,7 +15,7 @@ describe('Abstract device', () => {
 		mockTime.init()
 	})
 	test('Abstract device methods', async () => {
-		const commandReceiver0: any = jest.fn(() => {
+		const commandReceiver0: any = jest.fn(async () => {
 			return Promise.resolve()
 		})
 		const myLayerMapping0: MappingAbstract = {

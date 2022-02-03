@@ -20,7 +20,7 @@ import {
 } from 'timeline-state-resolver-types'
 import { TimelineState, ResolvedTimelineObjectInstance } from 'superfly-timeline'
 import { DoOnTime, SendMode } from '../doOnTime'
-import { getDiff } from '../lib'
+import { deferAsync, getDiff } from '../lib'
 import { EmberClient, Types as EmberTypes, Model as EmberModel } from 'emberplus-connection'
 
 export interface DeviceOptionsLawoInternal extends DeviceOptionsLawo {
@@ -99,12 +99,16 @@ export class LawoDevice extends DeviceWithState<LawoState, DeviceOptionsLawoInte
 			if (deviceOptions.commandReceiver) {
 				this._commandReceiver = deviceOptions.commandReceiver
 			} else {
-				this._commandReceiver = this._defaultCommandReceiver
+				this._commandReceiver = async (...args) => {
+					return this._defaultCommandReceiver(...args)
+				}
 			}
 			if (deviceOptions.options.setValueFn) {
 				this._setValueFn = deviceOptions.options.setValueFn
 			} else {
-				this._setValueFn = this.setValueWrapper
+				this._setValueFn = async (...args) => {
+					return this.setValueWrapper(...args)
+				}
 			}
 
 			if (deviceOptions.options.faderInterval) {
@@ -164,24 +168,27 @@ export class LawoDevice extends DeviceWithState<LawoState, DeviceOptionsLawoInte
 		// 	this.emitDebug('Warning: Lawo.Emberplus', w)
 		// })
 		let firstConnection = true
-		this._lawo.on('connected', async () => {
+		this._lawo.on('connected', () => {
 			this._setConnected(true)
 
 			if (firstConnection) {
-				try {
-					const req = await this._lawo.getDirectory(this._lawo.tree)
-					await req.response
+				deferAsync(
+					async () => {
+						const req = await this._lawo.getDirectory(this._lawo.tree)
+						await req.response
 
-					await this._mapSourcesToNodeNames()
+						await this._mapSourcesToNodeNames()
 
-					this._initialized = true
-					this.emit('info', 'finished device initalization')
-					this.emit('resetResolver')
-				} catch (e) {
-					if (e instanceof Error) {
-						this.emit('error', 'Error while expanding root', e)
+						this._initialized = true
+						this.emit('info', 'finished device initalization')
+						this.emit('resetResolver')
+					},
+					(e) => {
+						if (e instanceof Error) {
+							this.emit('error', 'Error while expanding root', e)
+						}
 					}
-				}
+				)
 			}
 			firstConnection = false
 		})
@@ -240,7 +247,7 @@ export class LawoDevice extends DeviceWithState<LawoState, DeviceOptionsLawoInte
 	 * Safely disconnect from physical device such that this instance of the class
 	 * can be garbage collected.
 	 */
-	terminate() {
+	async terminate() {
 		this._doOnTime.dispose()
 		if (this.transitionInterval) clearInterval(this.transitionInterval)
 
@@ -407,7 +414,7 @@ export class LawoDevice extends DeviceWithState<LawoState, DeviceOptionsLawoInte
 			this._doOnTime.queue(
 				time,
 				undefined,
-				(cmd: LawoCommandWithContext) => {
+				async (cmd: LawoCommandWithContext) => {
 					return this._commandReceiver(time, cmd.cmd, cmd.context, cmd.timelineObjId)
 				},
 				cmd

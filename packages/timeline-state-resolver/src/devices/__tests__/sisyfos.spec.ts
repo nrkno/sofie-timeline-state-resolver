@@ -20,7 +20,7 @@ describe('Sisyfos', () => {
 
 	const orgSetTimeout = setTimeout
 
-	function wait(time = 1) {
+	async function wait(time = 1) {
 		return new Promise((resolve) => {
 			orgSetTimeout(resolve, time)
 		})
@@ -34,7 +34,7 @@ describe('Sisyfos', () => {
 	})
 
 	test('Sisyfos: set ch1: pgm & ch2: lookahead and then ch1: vo, ch2: pgm (old api)', async () => {
-		const commandReceiver0: any = jest.fn(() => {
+		const commandReceiver0: any = jest.fn(async () => {
 			return Promise.resolve()
 		})
 		const myChannelMapping0: MappingSisyfos = {
@@ -249,7 +249,7 @@ describe('Sisyfos', () => {
 		})
 	})
 	test('Sisyfos: set ch1: pgm & ch2: lookahead and then ch1: vo, ch2: pgm', async () => {
-		const commandReceiver0: any = jest.fn(() => {
+		const commandReceiver0: any = jest.fn(async () => {
 			return Promise.resolve()
 		})
 		const myChannelMapping0: MappingSisyfos = {
@@ -466,7 +466,7 @@ describe('Sisyfos', () => {
 	})
 
 	test('Sisyfos: set lookahead and take to pgm, with lookahead still on', async () => {
-		const commandReceiver0: any = jest.fn(() => {
+		const commandReceiver0: any = jest.fn(async () => {
 			return Promise.resolve()
 		})
 		const myChannelMapping0: MappingSisyfos = {
@@ -599,7 +599,7 @@ describe('Sisyfos', () => {
 	})
 
 	test('Sisyfos: using CHANNELS', async () => {
-		const commandReceiver0: any = jest.fn(() => {
+		const commandReceiver0: any = jest.fn(async () => {
 			return Promise.resolve()
 		})
 		const myChannelMapping0: MappingSisyfos = {
@@ -806,7 +806,7 @@ describe('Sisyfos', () => {
 	})
 
 	test('Sisyfos: using triggerValue', async () => {
-		const commandReceiver0: any = jest.fn(() => {
+		const commandReceiver0: any = jest.fn(async () => {
 			return Promise.resolve()
 		})
 		const myChannelMapping0: MappingSisyfos = {
@@ -984,7 +984,7 @@ describe('Sisyfos', () => {
 	})
 
 	test('Connection status', async () => {
-		const commandReceiver0: any = jest.fn(() => {
+		const commandReceiver0: any = jest.fn(async () => {
 			return Promise.resolve()
 		})
 

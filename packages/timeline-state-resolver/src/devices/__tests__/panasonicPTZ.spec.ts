@@ -41,7 +41,7 @@ describe('Panasonic PTZ', () => {
 	})
 
 	test('Panasonic PTZ: change preset', async () => {
-		const commandReceiver0: any = jest.fn(() => {
+		const commandReceiver0: any = jest.fn(async () => {
 			return Promise.resolve()
 		})
 		const myChannelMapping0: MappingPanasonicPtz = {

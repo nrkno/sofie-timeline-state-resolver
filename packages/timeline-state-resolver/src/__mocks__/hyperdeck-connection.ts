@@ -48,7 +48,7 @@ export class Hyperdeck extends EventEmitter {
 		}, 1)
 	}
 
-	disconnect(): Promise<void> {
+	async disconnect(): Promise<void> {
 		this._connectionActive = false
 
 		if (!this._connected) return Promise.resolve()
@@ -62,7 +62,7 @@ export class Hyperdeck extends EventEmitter {
 		})
 	}
 
-	sendCommand(command: Commands.AbstractCommand): Promise<any> {
+	async sendCommand(command: Commands.AbstractCommand): Promise<any> {
 		if (this._mockCommandReceiver) {
 			return this._mockCommandReceiver(command)
 		}

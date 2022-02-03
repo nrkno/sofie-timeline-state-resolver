@@ -9,7 +9,7 @@ import { TCPSendDevice } from '../tcpSend'
 jest.mock('net')
 const setTimeoutOrg = setTimeout
 
-function waitALittleBit() {
+async function waitALittleBit() {
 	return new Promise((resolve) => {
 		setTimeoutOrg(resolve, 10)
 	})

@@ -58,7 +58,10 @@ export class ShotokuDevice extends DeviceWithState<ShotokuDeviceState, DeviceOpt
 		super(deviceId, deviceOptions, getCurrentTime)
 		if (deviceOptions.options) {
 			if (deviceOptions.commandReceiver) this._commandReceiver = deviceOptions.commandReceiver
-			else this._commandReceiver = this._defaultCommandReceiver
+			else
+				this._commandReceiver = async (...args) => {
+					return this._defaultCommandReceiver(...args)
+				}
 		}
 		this._doOnTime = new DoOnTime(
 			() => {
@@ -123,7 +126,7 @@ export class ShotokuDevice extends DeviceWithState<ShotokuDeviceState, DeviceOpt
 	clearFuture(clearAfterTime: number) {
 		this._doOnTime.clearQueueAfter(clearAfterTime)
 	}
-	terminate() {
+	async terminate() {
 		this._doOnTime.dispose()
 		return Promise.resolve(true)
 	}
@@ -133,7 +136,7 @@ export class ShotokuDevice extends DeviceWithState<ShotokuDeviceState, DeviceOpt
 			active: this.isActive,
 		}
 	}
-	makeReady(_okToDestroyStuff?: boolean): Promise<void> {
+	async makeReady(_okToDestroyStuff?: boolean): Promise<void> {
 		return Promise.resolve() // TODO - enforce current state?
 	}
 
@@ -193,7 +196,7 @@ export class ShotokuDevice extends DeviceWithState<ShotokuDeviceState, DeviceOpt
 			this._doOnTime.queue(
 				time,
 				undefined,
-				(cmd: Command) => {
+				async (cmd: Command) => {
 					return this._commandReceiver(time, cmd.command, cmd.context, cmd.timelineObjId)
 				},
 				cmd
@@ -258,7 +261,7 @@ export class ShotokuDevice extends DeviceWithState<ShotokuDeviceState, DeviceOpt
 
 		return commands
 	}
-	private _defaultCommandReceiver(
+	private async _defaultCommandReceiver(
 		_time: number,
 		cmd: ShotokuCommand,
 		context: CommandContext,

@@ -13,7 +13,7 @@ export class MockTime {
 	getCurrentTime = () => {
 		return this._now
 	}
-	getCurrentTime2 = (): Promise<number> => {
+	getCurrentTime2 = async (): Promise<number> => {
 		return this._now as any
 	}
 	setNow = (t: number) => {
@@ -59,7 +59,7 @@ export class MockTime {
 		await this.advanceTimeTicks(advance)
 		expect(this._now).toEqual(time)
 	}
-	tick = () => {
+	tick = async () => {
 		return new Promise((resolve) => {
 			setImmediate(resolve)
 		})

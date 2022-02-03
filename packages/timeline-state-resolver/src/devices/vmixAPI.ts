@@ -26,7 +26,7 @@ export class VMix extends EventEmitter<VMixEvents> {
 
 	private _socketKeepAliveTimeout: NodeJS.Timer | null = null
 
-	connect(options: VMixOptions): Promise<boolean> {
+	async connect(options: VMixOptions): Promise<boolean> {
 		return this._connectHTTP(options)
 	}
 
@@ -34,7 +34,7 @@ export class VMix extends EventEmitter<VMixEvents> {
 		return this._connected
 	}
 
-	public dispose(): Promise<void> {
+	public async dispose(): Promise<void> {
 		return new Promise((resolve) => {
 			this._connected = false
 			this._disposed = true
@@ -46,7 +46,7 @@ export class VMix extends EventEmitter<VMixEvents> {
 		})
 	}
 
-	private _connectHTTP(options?: VMixOptions): Promise<boolean> {
+	private async _connectHTTP(options?: VMixOptions): Promise<boolean> {
 		if (options) {
 			if (!(options.host.startsWith('http://') || options.host.startsWith('https://'))) {
 				options.host = `http://${options.host}`
@@ -256,15 +256,15 @@ export class VMix extends EventEmitter<VMixEvents> {
 		this.state = state
 	}
 
-	public setPreviewInput(input: number | string, mix: number): Promise<any> {
+	public async setPreviewInput(input: number | string, mix: number): Promise<any> {
 		return this.sendCommandFunction('PreviewInput', { input, mix })
 	}
 
-	public transition(input: number | string, effect: string, duration: number, mix: number): Promise<any> {
+	public async transition(input: number | string, effect: string, duration: number, mix: number): Promise<any> {
 		return this.sendCommandFunction(effect, { input, duration, mix })
 	}
 
-	public setAudioLevel(input: number | string, volume: number, fade?: number): Promise<any> {
+	public async setAudioLevel(input: number | string, volume: number, fade?: number): Promise<any> {
 		let value: string = Math.min(Math.max(volume, 0), 100).toString()
 		if (fade) {
 			value += ',' + fade.toString()
@@ -272,132 +272,132 @@ export class VMix extends EventEmitter<VMixEvents> {
 		return this.sendCommandFunction(`SetVolume${fade ? 'Fade' : ''}`, { input: input, value })
 	}
 
-	public setAudioBalance(input: number | string, balance: number): Promise<any> {
+	public async setAudioBalance(input: number | string, balance: number): Promise<any> {
 		return this.sendCommandFunction(`SetBalance`, { input, value: Math.min(Math.max(balance, -1), 1) })
 	}
 
-	public setAudioOn(input: number | string): Promise<any> {
+	public async setAudioOn(input: number | string): Promise<any> {
 		return this.sendCommandFunction(`AudioOn`, { input })
 	}
 
-	public setAudioOff(input: number | string): Promise<any> {
+	public async setAudioOff(input: number | string): Promise<any> {
 		return this.sendCommandFunction(`AudioOff`, { input })
 	}
 
-	public setAudioAutoOn(input: number | string): Promise<any> {
+	public async setAudioAutoOn(input: number | string): Promise<any> {
 		return this.sendCommandFunction(`AudioAutoOn`, { input })
 	}
 
-	public setAudioAutoOff(input: number | string): Promise<any> {
+	public async setAudioAutoOff(input: number | string): Promise<any> {
 		return this.sendCommandFunction(`AudioAutoOff`, { input })
 	}
 
-	public setAudioBusOn(input: number | string, value: string): Promise<any> {
+	public async setAudioBusOn(input: number | string, value: string): Promise<any> {
 		return this.sendCommandFunction(`AudioBusOn`, { input, value })
 	}
 
-	public setAudioBusOff(input: number | string, value: string): Promise<any> {
+	public async setAudioBusOff(input: number | string, value: string): Promise<any> {
 		return this.sendCommandFunction(`AudioBusOff`, { input, value })
 	}
 
-	public setFader(position: number): Promise<any> {
+	public async setFader(position: number): Promise<any> {
 		return this.sendCommandFunction(`SetFader`, { value: Math.min(Math.max(position, 0), 255) })
 	}
 
-	public setPanX(input: number | string, value: number): Promise<any> {
+	public async setPanX(input: number | string, value: number): Promise<any> {
 		return this.sendCommandFunction(`SetPanX`, { input, value: Math.min(Math.max(value, -2), 2) })
 	}
 
-	public setPanY(input: number | string, value: number): Promise<any> {
+	public async setPanY(input: number | string, value: number): Promise<any> {
 		return this.sendCommandFunction(`SetPanY`, { input, value: Math.min(Math.max(value, -2), 2) })
 	}
 
-	public setZoom(input: number | string, value: number): Promise<any> {
+	public async setZoom(input: number | string, value: number): Promise<any> {
 		return this.sendCommandFunction(`SetZoom`, { input, value: Math.min(Math.max(value, 0), 5) })
 	}
 
-	public setAlpha(input: number | string, value: number): Promise<any> {
+	public async setAlpha(input: number | string, value: number): Promise<any> {
 		return this.sendCommandFunction(`SetAlpha`, { input, value: Math.min(Math.max(value, 0), 255) })
 	}
 
-	public startRecording(): Promise<any> {
+	public async startRecording(): Promise<any> {
 		return this.sendCommandFunction(`StartRecording`, {})
 	}
 
-	public stopRecording(): Promise<any> {
+	public async stopRecording(): Promise<any> {
 		return this.sendCommandFunction(`StopRecording`, {})
 	}
 
-	public startStreaming(): Promise<any> {
+	public async startStreaming(): Promise<any> {
 		return this.sendCommandFunction(`StartStreaming`, {})
 	}
 
-	public stopStreaming(): Promise<any> {
+	public async stopStreaming(): Promise<any> {
 		return this.sendCommandFunction(`StopStreaming`, {})
 	}
 
-	public fadeToBlack(): Promise<any> {
+	public async fadeToBlack(): Promise<any> {
 		return this.sendCommandFunction(`FadeToBlack`, {})
 	}
 
-	public addInput(file: string): Promise<any> {
+	public async addInput(file: string): Promise<any> {
 		return this.sendCommandFunction(`AddInput`, { value: file })
 	}
 
-	public removeInput(name: string): Promise<any> {
+	public async removeInput(name: string): Promise<any> {
 		return this.sendCommandFunction(`RemoveInput`, { input: name })
 	}
 
-	public playInput(input: number | string): Promise<any> {
+	public async playInput(input: number | string): Promise<any> {
 		return this.sendCommandFunction(`Play`, { input: input })
 	}
 
-	public pauseInput(input: number | string): Promise<any> {
+	public async pauseInput(input: number | string): Promise<any> {
 		return this.sendCommandFunction(`Pause`, { input: input })
 	}
 
-	public setPosition(input: number | string, value: number): Promise<any> {
+	public async setPosition(input: number | string, value: number): Promise<any> {
 		return this.sendCommandFunction(`SetPosition`, { input: input, value: value })
 	}
 
-	public loopOn(input: number | string): Promise<any> {
+	public async loopOn(input: number | string): Promise<any> {
 		return this.sendCommandFunction(`LoopOn`, { input: input })
 	}
 
-	public loopOff(input: number | string): Promise<any> {
+	public async loopOff(input: number | string): Promise<any> {
 		return this.sendCommandFunction(`LoopOff`, { input: input })
 	}
 
-	public setInputName(input: number | string, value: string): Promise<any> {
+	public async setInputName(input: number | string, value: string): Promise<any> {
 		return this.sendCommandFunction(`SetInputName`, { input: input, value: value })
 	}
 
-	public setOutput(name: string, value: string, input?: number | string): Promise<any> {
+	public async setOutput(name: string, value: string, input?: number | string): Promise<any> {
 		return this.sendCommandFunction(`SetOutput${name}`, { value, input })
 	}
 
-	public startExternal(): Promise<any> {
+	public async startExternal(): Promise<any> {
 		return this.sendCommandFunction(`StartExternal`, {})
 	}
 
-	public stopExternal(): Promise<any> {
+	public async stopExternal(): Promise<any> {
 		return this.sendCommandFunction(`StopExternal`, {})
 	}
 
-	public overlayInputIn(name: number, input: string | number): Promise<any> {
+	public async overlayInputIn(name: number, input: string | number): Promise<any> {
 		return this.sendCommandFunction(`OverlayInput${name}In`, { input: input })
 	}
 
-	public overlayInputOut(name: number): Promise<any> {
+	public async overlayInputOut(name: number): Promise<any> {
 		return this.sendCommandFunction(`OverlayInput${name}Out`, {})
 	}
 
-	public setInputOverlay(input: string | number, index: number, value: string | number): Promise<any> {
+	public async setInputOverlay(input: string | number, index: number, value: string | number): Promise<any> {
 		const val = `${index},${value}`
 		return this.sendCommandFunction(`SetMultiViewOverlay`, { input, value: val })
 	}
 
-	public sendCommandFunction(
+	public async sendCommandFunction(
 		func: string,
 		args: { input?: string | number; value?: string | number; extra?: string; duration?: number; mix?: number }
 	): Promise<any> {

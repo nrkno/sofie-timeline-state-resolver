@@ -56,7 +56,10 @@ export class TCPSendDevice extends DeviceWithState<TSCSendState, DeviceOptionsTC
 		super(deviceId, deviceOptions, getCurrentTime)
 		if (deviceOptions.options) {
 			if (deviceOptions.commandReceiver) this._commandReceiver = deviceOptions.commandReceiver
-			else this._commandReceiver = this._defaultCommandReceiver
+			else
+				this._commandReceiver = async (...args) => {
+					return this._defaultCommandReceiver(...args)
+				}
 		}
 		this._doOnTime = new DoOnTime(
 			() => {
@@ -67,7 +70,7 @@ export class TCPSendDevice extends DeviceWithState<TSCSendState, DeviceOptionsTC
 		)
 		this.handleDoOnTime(this._doOnTime, 'TCPSend')
 	}
-	init(initOptions: TCPSendOptions): Promise<boolean> {
+	async init(initOptions: TCPSendOptions): Promise<boolean> {
 		this._makeReadyCommands = initOptions.makeReadyCommands || []
 		this._makeReadyDoesReset = initOptions.makeReadyDoesReset || false
 
@@ -258,7 +261,7 @@ export class TCPSendDevice extends DeviceWithState<TSCSendState, DeviceOptionsTC
 			return (a.content.temporalPriority || 0) - (b.content.temporalPriority || 0)
 		})
 	}
-	private _disconnectTCPClient(): Promise<void> {
+	private async _disconnectTCPClient(): Promise<void> {
 		return new Promise<void>((resolve) => {
 			this._setDisconnected = true
 			if (this._tcpClient) {
@@ -298,7 +301,7 @@ export class TCPSendDevice extends DeviceWithState<TSCSendState, DeviceOptionsTC
 			this._setConnected(false)
 		})
 	}
-	private _connectTCPClient(): Promise<void> {
+	private async _connectTCPClient(): Promise<void> {
 		this._setDisconnected = false
 
 		if (!this._tcpClient) {
@@ -327,7 +330,7 @@ export class TCPSendDevice extends DeviceWithState<TSCSendState, DeviceOptionsTC
 			return Promise.resolve()
 		}
 	}
-	private _sendTCPMessage(message: string): Promise<void> {
+	private async _sendTCPMessage(message: string): Promise<void> {
 		// Do we have a client?
 		return this._connectTCPClient().then(() => {
 			if (this._tcpClient) {
@@ -335,7 +338,7 @@ export class TCPSendDevice extends DeviceWithState<TSCSendState, DeviceOptionsTC
 			} else throw Error('_sendTCPMessage: _tcpClient is falsy!')
 		})
 	}
-	private _defaultCommandReceiver(
+	private async _defaultCommandReceiver(
 		_time: number,
 		cmd: TcpSendCommandContent,
 		context: CommandContext,

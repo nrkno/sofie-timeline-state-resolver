@@ -77,7 +77,10 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 		super(deviceId, deviceOptions, getCurrentTime)
 		if (deviceOptions.options) {
 			if (deviceOptions.commandReceiver) this._commandReceiver = deviceOptions.commandReceiver
-			else this._commandReceiver = this._defaultCommandReceiver
+			else
+				this._commandReceiver = async (...args) => {
+					return this._defaultCommandReceiver(...args)
+				}
 		}
 		this._doOnTime = new DoOnTime(
 			() => {
@@ -91,7 +94,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 		this._doOnTime.on('slowSentCommand', (info) => this.emit('slowSentCommand', info))
 		this._doOnTime.on('slowFulfilledCommand', (info) => this.emit('slowFulfilledCommand', info))
 	}
-	init(options: VMixOptions): Promise<boolean> {
+	async init(options: VMixOptions): Promise<boolean> {
 		this._vmix = new VMix()
 		this._vmix.on('connected', () => {
 			const time = this.getCurrentTime()
@@ -488,7 +491,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 			this._doOnTime.queue(
 				time,
 				undefined,
-				(cmd: VMixStateCommandWithContext) => {
+				async (cmd: VMixStateCommandWithContext) => {
 					return this._commandReceiver(time, cmd, cmd.context, cmd.timelineId)
 				},
 				cmd
@@ -1006,7 +1009,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 		return commands
 	}
 
-	private _defaultCommandReceiver(
+	private async _defaultCommandReceiver(
 		_time: number,
 		cmd: VMixStateCommandWithContext,
 		context: CommandContext,

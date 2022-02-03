@@ -153,7 +153,7 @@ export abstract class Device<TOptions extends DeviceOptionsBase<any>>
 	 * @param initOptions Device-specific options
 	 */
 	abstract init(initOptions: TOptions['options']): Promise<boolean>
-	terminate(): Promise<boolean> {
+	async terminate(): Promise<boolean> {
 		return Promise.resolve(true)
 	}
 	getCurrentTime(): number {
@@ -191,7 +191,7 @@ export abstract class Device<TOptions extends DeviceOptionsBase<any>>
 	 * The exact implementation differ between different devices
 	 * @param okToDestroyStuff If true, the device may do things that might affect the output (temporarily)
 	 */
-	makeReady(_okToDestroyStuff?: boolean, _activeRundownId?: string): Promise<void> {
+	async makeReady(_okToDestroyStuff?: boolean, _activeRundownId?: string): Promise<void> {
 		// This method should be overwritten by child
 		return Promise.resolve()
 	}
@@ -200,7 +200,7 @@ export abstract class Device<TOptions extends DeviceOptionsBase<any>>
 	 * The exact implementation differ between different devices
 	 * @param okToDestroyStuff If true, the device may do things that might affect the output (temporarily)
 	 */
-	standDown(_okToDestroyStuff?: boolean): Promise<void> {
+	async standDown(_okToDestroyStuff?: boolean): Promise<void> {
 		// This method should be overwritten by child
 		return Promise.resolve()
 	}

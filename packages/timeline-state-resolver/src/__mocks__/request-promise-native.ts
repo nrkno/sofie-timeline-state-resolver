@@ -31,25 +31,25 @@ const request = {
 		_mockDelete = fcn
 	},
 	// ------------------
-	get: (uri: string, options: any = {}) => {
+	get: async (uri: string, options: any = {}) => {
 		return _mockGet(uri, options.json)
 	},
-	post: (uri: string, options: any = {}) => {
+	post: async (uri: string, options: any = {}) => {
 		return _mockPost(uri, options.json)
 	},
-	put: (uri: string, options: any = {}) => {
+	put: async (uri: string, options: any = {}) => {
 		return _mockPut(uri, options.json)
 	},
-	head: (uri: string, options: any = {}) => {
+	head: async (uri: string, options: any = {}) => {
 		return _mockHead(uri, options.json)
 	},
-	patch: (uri: string, options: any = {}) => {
+	patch: async (uri: string, options: any = {}) => {
 		return _mockPatch(uri, options.json)
 	},
-	del: (uri: string, options: any = {}) => {
+	del: async (uri: string, options: any = {}) => {
 		return _mockDel(uri, options.json)
 	},
-	delete: (uri: string, options: any = {}) => {
+	delete: async (uri: string, options: any = {}) => {
 		return _mockDelete(uri, options.json)
 	},
 }
