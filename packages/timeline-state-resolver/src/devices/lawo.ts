@@ -461,7 +461,9 @@ export class LawoDevice extends DeviceWithState<LawoState, DeviceOptionsLawoInte
 	 * Gets an ember node based on its path
 	 * @param path
 	 */
-	private async _getNodeByPath(path: string): Promise<EmberModel.NumberedTreeNode<EmberModel.EmberElement> | undefined> {
+	private async _getNodeByPath(
+		path: string
+	): Promise<EmberModel.NumberedTreeNode<EmberModel.EmberElement> | undefined> {
 		return this._lawo.getElementByPath(path)
 	}
 
@@ -509,7 +511,9 @@ export class LawoDevice extends DeviceWithState<LawoState, DeviceOptionsLawoInte
 					// add the fade to the fade object, such that we can fade the signal using the fader
 					if (!command.from) {
 						// @todo: see if we can query the lawo first
-						const node = (await this._getNodeByPath(command.path)) as EmberModel.NumberedTreeNode<EmberModel.Parameter> | undefined
+						const node = (await this._getNodeByPath(command.path)) as
+							| EmberModel.NumberedTreeNode<EmberModel.Parameter>
+							| undefined
 						if (node) {
 							if (node.contents.factor) {
 								command.from = (node.contents.value as number) / (node.contents.factor || 1)
@@ -596,7 +600,9 @@ export class LawoDevice extends DeviceWithState<LawoState, DeviceOptionsLawoInte
 	}
 	private async setValueWrapper(command: LawoCommand, timelineObjId: string, logResult = true) {
 		try {
-			const node = (await this._getNodeByPath(command.path)) as EmberModel.NumberedTreeNode<EmberModel.Parameter> | undefined
+			const node = (await this._getNodeByPath(command.path)) as
+				| EmberModel.NumberedTreeNode<EmberModel.Parameter>
+				| undefined
 
 			if (!node) throw new Error(`Unable to setValue for node "${command.path}", node not found!`)
 
