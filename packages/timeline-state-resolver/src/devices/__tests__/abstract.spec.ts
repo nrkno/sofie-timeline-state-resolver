@@ -1,10 +1,10 @@
 import { Mappings, DeviceType, MappingAbstract } from 'timeline-state-resolver-types'
-import { Conductor } from '../../conductor'
-import { AbstractDevice } from '../abstract'
+import { AbstractDevice, DeviceOptionsAbstractInternal } from '../abstract'
 import { StatusCode } from '../device'
 import { MockTime } from '../../__tests__/mockTime'
-import { ThreadedClass } from 'threadedclass'
 import { getMockCall } from '../../__tests__/lib'
+import { SetRequired } from 'type-fest'
+import { MockConductor } from '../../__mocks__/mockConductor'
 
 describe('Abstract device', () => {
 	const mockTime = new MockTime()
@@ -26,34 +26,39 @@ describe('Abstract device', () => {
 			myLayer0: myLayerMapping0,
 		}
 
-		const myConductor = new Conductor({
-			multiThreadedResolver: false,
-			getCurrentTime: mockTime.getCurrentTime,
-		})
-		await myConductor.init()
-		await myConductor.addDevice('myAbstract', {
+		const deviceOptions: SetRequired<DeviceOptionsAbstractInternal, 'options'> = {
 			type: DeviceType.ABSTRACT,
 			options: {},
 			commandReceiver: commandReceiver0,
-		})
-		await mockTime.advanceTimeToTicks(10100)
+		}
+		const device = new AbstractDevice(
+			'myAbstract',
+			{
+				type: DeviceType.ABSTRACT,
+				options: {},
+				commandReceiver: commandReceiver0,
+			},
+			mockTime.getCurrentTime2
+		)
+		await device.init(deviceOptions.options)
 
-		const deviceContainer = myConductor.getDevice('myAbstract')
-		const device = deviceContainer!.device as ThreadedClass<AbstractDevice>
+		const myConductor = new MockConductor(mockTime)
+		myConductor.addDevice(device)
 
-		device.terminate = jest.fn(device.terminate)
+		await myConductor.runTo(10100)
+
 		const onError = jest.fn()
 		const onDebug = jest.fn()
-		device.on('error', onError).catch(() => null)
-		device.on('debug', onDebug).catch(() => null)
+		device.on('error', onError)
+		device.on('debug', onDebug)
 
-		expect(await device.canConnect).toBeFalsy()
-		expect(await device.connected).toBeFalsy()
-		expect(await device.deviceName).toMatch(/abstract/i)
-		expect(await device.getStatus()).toMatchObject({ statusCode: StatusCode.GOOD })
+		expect(device.canConnect).toBeFalsy()
+		expect(device.connected).toBeFalsy()
+		expect(device.deviceName).toMatch(/abstract/i)
+		expect(device.getStatus()).toMatchObject({ statusCode: StatusCode.GOOD })
 
 		// Check that no commands has been scheduled:
-		expect(await device.queue).toHaveLength(0)
+		expect(device.queue).toHaveLength(0)
 
 		myConductor.setTimelineAndMappings(
 			[
@@ -85,7 +90,7 @@ describe('Abstract device', () => {
 			myLayerMapping
 		)
 
-		await mockTime.advanceTimeToTicks(10200)
+		await myConductor.runTo(10200)
 		expect(commandReceiver0).toHaveBeenCalledTimes(1)
 		expect(getMockCall(commandReceiver0, 0, 1)).toMatchObject({
 			commandName: 'addedAbstract',
@@ -96,7 +101,7 @@ describe('Abstract device', () => {
 			context: 'added: obj0',
 		})
 
-		await mockTime.advanceTimeToTicks(11200)
+		await myConductor.runTo(11200)
 		expect(commandReceiver0).toHaveBeenCalledTimes(2)
 		expect(getMockCall(commandReceiver0, 1, 1)).toMatchObject({
 			commandName: 'changedAbstract',
@@ -107,7 +112,7 @@ describe('Abstract device', () => {
 			context: 'changed: obj1',
 		})
 
-		await mockTime.advanceTimeToTicks(15000)
+		await myConductor.runTo(15000)
 		expect(commandReceiver0).toHaveBeenCalledTimes(3)
 		expect(getMockCall(commandReceiver0, 2, 1)).toMatchObject({
 			commandName: 'removedAbstract',
@@ -117,10 +122,8 @@ describe('Abstract device', () => {
 			},
 			context: 'removed: obj1',
 		})
-		await myConductor.removeDevice(await device.deviceId)
 
-		expect(device.terminate).toHaveBeenCalledTimes(1)
-		expect(myConductor.getDevice('myAbstract')).toBeFalsy()
+		await device.terminate()
 
 		expect(onError).toHaveBeenCalledTimes(0)
 	})
@@ -133,28 +136,25 @@ describe('Abstract device', () => {
 			myLayer0: myLayerMapping0,
 		}
 
-		const myConductor = new Conductor({
-			multiThreadedResolver: false,
-			getCurrentTime: mockTime.getCurrentTime,
-		})
-		await myConductor.init()
-		await myConductor.addDevice('myAbstract', {
+		const deviceOptions: SetRequired<DeviceOptionsAbstractInternal, 'options'> = {
 			type: DeviceType.ABSTRACT,
 			options: {},
-		})
-		await mockTime.advanceTimeToTicks(10100)
+		}
+		const device = new AbstractDevice('myAbstract', deviceOptions, mockTime.getCurrentTime2)
+		await device.init(deviceOptions.options)
 
-		const deviceContainer = myConductor.getDevice('myAbstract')
-		const device = deviceContainer!.device as ThreadedClass<AbstractDevice>
+		const myConductor = new MockConductor(mockTime)
+		myConductor.addDevice(device)
 
-		device.terminate = jest.fn(device.terminate)
+		await myConductor.runTo(10100)
+
 		const onError = jest.fn()
 		const onDebug = jest.fn()
-		device.on('error', onError).catch(() => null)
-		device.on('debug', onDebug).catch(() => null)
+		device.on('error', onError)
+		device.on('debug', onDebug)
 
 		// Check that no commands has been scheduled:
-		expect(await device.queue).toHaveLength(0)
+		expect(device.queue).toHaveLength(0)
 
 		myConductor.setTimelineAndMappings(
 			[
@@ -173,13 +173,10 @@ describe('Abstract device', () => {
 			myLayerMapping
 		)
 
-		await mockTime.advanceTimeToTicks(10200)
+		await myConductor.runTo(10200)
 		expect(onDebug).toHaveBeenCalledTimes(1)
 
-		await myConductor.removeDevice(await device.deviceId)
-
-		expect(device.terminate).toHaveBeenCalledTimes(1)
-		expect(myConductor.getDevice('myAbstract')).toBeFalsy()
+		await device.terminate()
 
 		expect(onError).toHaveBeenCalledTimes(0)
 	})

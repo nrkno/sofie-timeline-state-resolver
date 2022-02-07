@@ -18,17 +18,24 @@ export const CasparCGSocketStatusEvent = orgCasparCGSocketStatusEvent
 
 export class CasparCG extends EventEmitter {
 	onConnected: () => void
+	onDisconnected: () => void
 
 	constructor() {
 		super()
 
-		setTimeout(() => {
+		jest.requireActual('timers').setTimeout(() => {
 			// simulate that we're connected
 			if (this.onConnected) this.onConnected()
 			this.emit(CasparCGSocketStatusEvent.CONNECTED, true)
 		}, 10)
 
 		instances.push(this)
+	}
+
+	disconnect(): void {
+		if (this.onDisconnected) {
+			this.onDisconnected()
+		}
 	}
 
 	async do(...args: unknown[]) {

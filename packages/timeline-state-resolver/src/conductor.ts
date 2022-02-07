@@ -11,14 +11,7 @@ import { CommandWithContext, DeviceEvents } from './devices/device'
 import { CasparCGDevice, DeviceOptionsCasparCGInternal } from './devices/casparCG'
 import { AbstractDevice, DeviceOptionsAbstractInternal } from './devices/abstract'
 import { HTTPSendDevice, DeviceOptionsHTTPSendInternal } from './devices/httpSend'
-import {
-	Mappings,
-	Mapping,
-	DeviceType,
-	ResolvedTimelineObjectInstanceExtended,
-	TSRTimeline,
-	DeviceOptionsBase,
-} from 'timeline-state-resolver-types'
+import { Mappings, DeviceType, TSRTimeline, DeviceOptionsBase } from 'timeline-state-resolver-types'
 import { AtemDevice, DeviceOptionsAtemInternal } from './devices/atem'
 import { EventEmitter } from 'eventemitter3'
 import { LawoDevice, DeviceOptionsLawoInternal } from './devices/lawo'
@@ -43,7 +36,7 @@ import PQueue from 'p-queue'
 import * as PAll from 'p-all'
 import PTimeout from 'p-timeout'
 import { ShotokuDevice, DeviceOptionsShotokuInternal } from './devices/shotoku'
-import { endTrace, FinishedTrace, startTrace } from './lib'
+import { endTrace, filterLayersPerDevice, FinishedTrace, removeParentFromState, startTrace } from './lib'
 
 export { DeviceContainer }
 export { CommandWithContext }
@@ -917,8 +910,9 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 				)
 			}
 
-			const layersPerDevice = this.filterLayersPerDevice(
+			const layersPerDevice = filterLayersPerDevice(
 				tlState.layers,
+				this._mappings,
 				Array.from(this.devices.values()).filter((d) => d.initialized === true)
 			)
 
@@ -1303,36 +1297,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 			this.emit('statReport', reportDuration)
 		}
 	}
-	/**
-	 * Split the state into substates that are relevant for each device
-	 */
-	private filterLayersPerDevice(layers: TimelineState['layers'], devices: DeviceContainer<DeviceOptionsBase<any>>[]) {
-		const filteredStates: { [deviceId: string]: { [layerId: string]: ResolvedTimelineObjectInstance } } = {}
 
-		const deviceIdAndTypes: { [idAndTyoe: string]: string } = {}
-
-		_.each(devices, (device) => {
-			deviceIdAndTypes[device.deviceId + '__' + device.deviceType] = device.deviceId
-		})
-		_.each(layers, (o: ResolvedTimelineObjectInstance, layerId: string) => {
-			const oExt: ResolvedTimelineObjectInstanceExtended = o
-			let mapping: Mapping = this._mappings[o.layer + '']
-			if (!mapping && oExt.isLookahead && oExt.lookaheadForLayer) {
-				mapping = this._mappings[oExt.lookaheadForLayer]
-			}
-			if (mapping) {
-				const deviceIdAndType = mapping.deviceId + '__' + mapping.device
-
-				if (deviceIdAndTypes[deviceIdAndType]) {
-					if (!filteredStates[mapping.deviceId]) {
-						filteredStates[mapping.deviceId] = {}
-					}
-					filteredStates[mapping.deviceId][layerId] = o
-				}
-			}
-		})
-		return filteredStates
-	}
 	/**
 	 * Only emits the event when there is an active rundownPlaylist.
 	 * This is used to reduce unnesessary logging
@@ -1362,14 +1327,3 @@ export type DeviceOptionsAnyInternal =
 	| DeviceOptionsVMixInternal
 	| DeviceOptionsShotokuInternal
 	| DeviceOptionsVizMSEInternal
-
-function removeParentFromState(o: TimelineState): TimelineState {
-	for (const key in o) {
-		if (key === 'parent') {
-			delete o['parent']
-		} else if (typeof o[key] === 'object') {
-			o[key] = removeParentFromState(o[key])
-		}
-	}
-	return o
-}

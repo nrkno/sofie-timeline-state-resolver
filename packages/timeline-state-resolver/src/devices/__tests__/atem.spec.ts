@@ -1,7 +1,6 @@
 import { Enums } from 'atem-state'
 import * as AtemConnection from 'atem-connection'
 import { ResolvedTimelineObjectInstance, TimelineState } from 'superfly-timeline'
-import { Conductor } from '../../conductor'
 import { AtemDevice, DeviceOptionsAtemInternal } from '../atem'
 import { MockTime } from '../../__tests__/mockTime'
 import {
@@ -13,9 +12,10 @@ import {
 	AtemOptions,
 	AtemTransitionStyle,
 } from 'timeline-state-resolver-types'
-import { ThreadedClass } from 'threadedclass'
 import { literal } from '../device'
 import { getMockCall } from '../../__tests__/lib'
+import { MockConductor } from '../../__mocks__/mockConductor'
+import { SetRequired } from 'type-fest'
 
 describe('Atem', () => {
 	const mockTime = new MockTime()
@@ -87,30 +87,24 @@ describe('Atem', () => {
 			myLayer0: myLayerMapping0,
 		}
 
-		const myConductor = new Conductor({
-			multiThreadedResolver: false,
-			getCurrentTime: mockTime.getCurrentTime,
-		})
-		await myConductor.init()
-		await myConductor.addDevice(
-			'myAtem',
-			literal<DeviceOptionsAtemInternal>({
-				type: DeviceType.ATEM,
-				options: {
-					host: '127.0.0.1',
-					port: 9910,
-				},
-				commandReceiver: commandReceiver0,
-			})
-		)
+		const deviceOptions: SetRequired<DeviceOptionsAtemInternal, 'options'> = {
+			type: DeviceType.ATEM,
+			options: {
+				host: '127.0.0.1',
+				port: 9910,
+			},
+			commandReceiver: commandReceiver0,
+		}
+		const device = new AtemDevice('myAtem', deviceOptions, mockTime.getCurrentTime2)
+		await device.init(deviceOptions.options)
 
-		await mockTime.advanceTimeToTicks(10100)
+		const myConductor = new MockConductor(mockTime)
+		myConductor.addDevice(device)
 
-		const deviceContainer = myConductor.getDevice('myAtem')
-		const device = deviceContainer!.device as ThreadedClass<AtemDevice>
+		await myConductor.runTo(10100)
 
 		// Check that no commands has been scheduled:
-		expect(await device.queue).toHaveLength(0)
+		expect(device.queue).toHaveLength(0)
 
 		myConductor.setTimelineAndMappings(
 			[
@@ -151,13 +145,13 @@ describe('Atem', () => {
 		)
 
 		commandReceiver0.mockClear()
-		await mockTime.advanceTimeToTicks(10200)
+		await myConductor.runTo(10200)
 		expect(commandReceiver0).toHaveBeenCalledTimes(2)
 		compareAtemCommands(getMockCall(commandReceiver0, 0, 1), new AtemConnection.Commands.PreviewInputCommand(0, 2))
 		compareAtemCommands(getMockCall(commandReceiver0, 1, 1), new AtemConnection.Commands.CutCommand(0))
 
 		commandReceiver0.mockClear()
-		await mockTime.advanceTimeToTicks(12200)
+		await myConductor.runTo(12200)
 
 		expect(commandReceiver0).toHaveBeenCalledTimes(2)
 		compareAtemCommands(getMockCall(commandReceiver0, 0, 1), new AtemConnection.Commands.PreviewInputCommand(0, 3))
@@ -178,29 +172,24 @@ describe('Atem', () => {
 			myLayer0: myLayerMapping0,
 		}
 
-		const myConductor = new Conductor({
-			multiThreadedResolver: false,
-			getCurrentTime: mockTime.getCurrentTime,
-		})
-		await myConductor.init()
-		await myConductor.addDevice(
-			'myAtem',
-			literal<DeviceOptionsAtemInternal>({
-				type: DeviceType.ATEM,
-				options: {
-					host: '127.0.0.1',
-					port: 9910,
-				},
-				commandReceiver: commandReceiver0,
-			})
-		)
+		const deviceOptions: SetRequired<DeviceOptionsAtemInternal, 'options'> = {
+			type: DeviceType.ATEM,
+			options: {
+				host: '127.0.0.1',
+				port: 9910,
+			},
+			commandReceiver: commandReceiver0,
+		}
+		const device = new AtemDevice('myAtem', deviceOptions, mockTime.getCurrentTime2)
+		await device.init(deviceOptions.options)
 
-		await mockTime.advanceTimeToTicks(10100)
+		const myConductor = new MockConductor(mockTime)
+		myConductor.addDevice(device)
 
-		const deviceContainer = myConductor.getDevice('myAtem')
-		const device = deviceContainer!.device as ThreadedClass<AtemDevice>
+		await myConductor.runTo(10100)
+
 		// Check that no commands has been scheduled:
-		expect(await device.queue).toHaveLength(0)
+		expect(device.queue).toHaveLength(0)
 		myConductor.setTimelineAndMappings(
 			[
 				{
@@ -233,7 +222,7 @@ describe('Atem', () => {
 			myLayerMapping
 		)
 
-		await mockTime.advanceTimeToTicks(10200)
+		await myConductor.runTo(10200)
 
 		expect(commandReceiver0).toHaveBeenCalledTimes(1)
 		const cmd = new AtemConnection.Commands.MixEffectKeyLumaCommand(0, 0)

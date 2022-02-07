@@ -1,4 +1,8 @@
+import { Device } from './devices/device'
+import { ResolvedTimelineObjectInstance, TimelineState } from 'superfly-timeline'
+import { Mapping, Mappings, ResolvedTimelineObjectInstanceExtended } from 'timeline-state-resolver-types'
 import * as _ from 'underscore'
+import { DeviceContainer } from './conductor'
 
 /**
  * getDiff is the reverse of underscore:s _.isEqual(): It compares two values and if they differ it returns an explanation of the difference
@@ -216,4 +220,51 @@ export function endTrace(trace: Trace): FinishedTrace {
  */
 export function deferAsync(fn: () => Promise<void>, catcher: (e: unknown) => void): void {
 	fn().catch(catcher)
+}
+
+/**
+ * Split the state into substates that are relevant for each device
+ */
+export function filterLayersPerDevice(
+	layers: TimelineState['layers'],
+	mappings: Mappings,
+	devices: Array<DeviceContainer<any>> | Array<Device<any>>
+) {
+	const filteredStates: { [deviceId: string]: { [layerId: string]: ResolvedTimelineObjectInstance } } = {}
+
+	const deviceIdAndTypes: { [idAndTyoe: string]: string } = {}
+
+	for (const device of devices) {
+		deviceIdAndTypes[device.deviceId + '__' + device.deviceType] = device.deviceId
+	}
+	for (const [layerId, o] of Object.entries(layers)) {
+		const oExt: ResolvedTimelineObjectInstanceExtended = o
+		let mapping: Mapping = mappings[o.layer + '']
+		if (!mapping && oExt.isLookahead && oExt.lookaheadForLayer) {
+			mapping = mappings[oExt.lookaheadForLayer]
+		}
+		if (mapping) {
+			const deviceIdAndType = mapping.deviceId + '__' + mapping.device
+
+			if (deviceIdAndTypes[deviceIdAndType]) {
+				if (!filteredStates[mapping.deviceId]) {
+					filteredStates[mapping.deviceId] = {}
+				}
+				filteredStates[mapping.deviceId][layerId] = o
+			}
+		}
+	}
+
+	return filteredStates
+}
+
+export function removeParentFromState(o: TimelineState): TimelineState {
+	for (const key in o) {
+		if (key === 'parent') {
+			delete o['parent']
+		} else if (typeof o[key] === 'object') {
+			o[key] = removeParentFromState(o[key])
+		}
+	}
+	return o
 }

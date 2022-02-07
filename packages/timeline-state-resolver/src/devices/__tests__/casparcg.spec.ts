@@ -1,4 +1,3 @@
-import { Conductor } from '../../conductor'
 import {
 	TimelineContentTypeCasparCg,
 	MappingCasparCG,
@@ -13,6 +12,10 @@ import {
 import { MockTime } from '../../__tests__/mockTime'
 import { getMockCall } from '../../__tests__/lib'
 import { AMCP } from 'casparcg-connection'
+import { DeviceOptionsCasparCGInternal, CasparCGDevice } from '../casparCG'
+import { SetRequired } from 'type-fest'
+import { MockConductor } from '../../__mocks__/mockConductor'
+import { CasparCGState } from 'casparcg-state'
 
 // usage logCalls(commandReceiver0)
 // function logCalls (fcn) {
@@ -24,11 +27,15 @@ import { AMCP } from 'casparcg-connection'
 
 describe('CasparCG', () => {
 	const mockTime = new MockTime()
+	let device: CasparCGDevice
 	beforeAll(() => {
 		mockTime.mockDateNow()
 	})
 	beforeEach(() => {
 		mockTime.init()
+	})
+	afterEach(async () => {
+		// await device.terminate()
 	})
 	test('CasparCG: Play AMB for 60s', async () => {
 		const commandReceiver0: any = jest.fn(async () => {
@@ -44,20 +51,21 @@ describe('CasparCG', () => {
 			myLayer0: myLayerMapping0,
 		}
 
-		const myConductor = new Conductor({
-			multiThreadedResolver: false,
-			getCurrentTime: mockTime.getCurrentTime,
-		})
-		await myConductor.init() // we cannot do an await, because setTimeout will never call without jest moving on.
-		await myConductor.addDevice('myCCG', {
+		const deviceOptions: SetRequired<DeviceOptionsCasparCGInternal, 'options'> = {
 			type: DeviceType.CASPARCG,
 			options: {
 				host: '127.0.0.1',
 				useScheduling: true,
 			},
 			commandReceiver: commandReceiver0,
-		})
-		await mockTime.advanceTimeToTicks(10100)
+		}
+		device = new CasparCGDevice('myCCG', deviceOptions, mockTime.getCurrentTime2)
+		await device.init(deviceOptions.options)
+
+		const myConductor = new MockConductor(mockTime)
+		myConductor.addDevice(device)
+
+		await myConductor.runTo(10100)
 
 		expect(commandReceiver0).toHaveBeenCalledTimes(3)
 
@@ -67,11 +75,8 @@ describe('CasparCG', () => {
 
 		commandReceiver0.mockClear()
 
-		const deviceContainer = myConductor.getDevice('myCCG')
-		const device = deviceContainer!.device
-
 		// Check that no commands has been scheduled:
-		expect(await device['queue']).toHaveLength(0)
+		expect(device['queue']).toHaveLength(0)
 
 		myConductor.setTimelineAndMappings(
 			[
@@ -94,9 +99,10 @@ describe('CasparCG', () => {
 			myLayerMapping
 		)
 
-		await mockTime.advanceTimeToTicks(10200)
+		await myConductor.runTo(10200)
 
 		// one command has been sent:
+		console.log(commandReceiver0.mock.calls)
 		expect(commandReceiver0).toHaveBeenCalledTimes(2)
 		expect(getMockCall(commandReceiver0, 0, 1)._objectParams).toMatchObject({
 			channel: 2,
@@ -108,7 +114,7 @@ describe('CasparCG', () => {
 		})
 
 		// advance time to end of clip:
-		await mockTime.advanceTimeToTicks(11200)
+		await myConductor.runTo(11200)
 
 		// two commands have been sent:
 		expect(commandReceiver0).toHaveBeenCalledTimes(2)
@@ -131,20 +137,21 @@ describe('CasparCG', () => {
 			myLayer0: myLayerMapping0,
 		}
 
-		const myConductor = new Conductor({
-			multiThreadedResolver: false,
-			getCurrentTime: mockTime.getCurrentTime,
-		})
-		await myConductor.init() // we cannot do an await, because setTimeout will never call without jest moving on.
-		await myConductor.addDevice('myCCG', {
+		const deviceOptions: SetRequired<DeviceOptionsCasparCGInternal, 'options'> = {
 			type: DeviceType.CASPARCG,
 			options: {
 				host: '127.0.0.1',
 				useScheduling: true,
 			},
 			commandReceiver: commandReceiver0,
-		})
-		await mockTime.advanceTimeToTicks(10100)
+		}
+		device = new CasparCGDevice('myCCG', deviceOptions, mockTime.getCurrentTime2)
+		await device.init(deviceOptions.options)
+
+		const myConductor = new MockConductor(mockTime)
+		myConductor.addDevice(device)
+
+		await myConductor.runTo(10100)
 
 		expect(commandReceiver0).toHaveBeenCalledTimes(3)
 
@@ -154,11 +161,8 @@ describe('CasparCG', () => {
 
 		commandReceiver0.mockClear()
 
-		const deviceContainer = myConductor.getDevice('myCCG')
-		const device = deviceContainer!.device
-
 		// Check that no commands has been scheduled:
-		expect(await device['queue']).toHaveLength(0)
+		expect(device['queue']).toHaveLength(0)
 
 		myConductor.setTimelineAndMappings(
 			[
@@ -180,7 +184,7 @@ describe('CasparCG', () => {
 			myLayerMapping
 		)
 
-		await mockTime.advanceTimeToTicks(10200)
+		await myConductor.runTo(10200)
 
 		// one command has been sent:
 		expect(commandReceiver0).toHaveBeenCalledTimes(1)
@@ -206,12 +210,7 @@ describe('CasparCG', () => {
 			myLayer0: myLayerMapping0,
 		}
 
-		const myConductor = new Conductor({
-			multiThreadedResolver: false,
-			getCurrentTime: mockTime.getCurrentTime,
-		})
-		await myConductor.init() // we cannot do an await, because setTimeout will never call without jest moving on.
-		await myConductor.addDevice('myCCG', {
+		const deviceOptions: SetRequired<DeviceOptionsCasparCGInternal, 'options'> = {
 			type: DeviceType.CASPARCG,
 			options: {
 				host: '127.0.0.1',
@@ -219,16 +218,19 @@ describe('CasparCG', () => {
 				fps: 50,
 			},
 			commandReceiver: commandReceiver0,
-		})
-		await mockTime.advanceTimeToTicks(10100)
+		}
+		device = new CasparCGDevice('myCCG', deviceOptions, mockTime.getCurrentTime2)
+		await device.init(deviceOptions.options)
+
+		const myConductor = new MockConductor(mockTime)
+		myConductor.addDevice(device)
+
+		await myConductor.runTo(10100)
 
 		commandReceiver0.mockClear()
 
-		const deviceContainer = myConductor.getDevice('myCCG')
-		const device = deviceContainer!.device
-
 		// Check that no commands has been scheduled:
-		expect(await device['queue']).toHaveLength(0)
+		expect(device['queue']).toHaveLength(0)
 
 		myConductor.setTimelineAndMappings(
 			[
@@ -253,7 +255,7 @@ describe('CasparCG', () => {
 			myLayerMapping
 		)
 
-		await mockTime.advanceTimeToTicks(10200)
+		await myConductor.runTo(10200)
 
 		// one command has been sent:
 		expect(commandReceiver0).toHaveBeenCalledTimes(1)
@@ -269,7 +271,7 @@ describe('CasparCG', () => {
 		})
 
 		// advance time to end of clip:
-		await mockTime.advanceTimeToTicks(11200)
+		await myConductor.runTo(11200)
 
 		// two commands have been sent:
 		expect(commandReceiver0).toHaveBeenCalledTimes(2)
@@ -292,25 +294,22 @@ describe('CasparCG', () => {
 			myLayer0: myLayerMapping0,
 		}
 
-		const myConductor = new Conductor({
-			multiThreadedResolver: false,
-			getCurrentTime: mockTime.getCurrentTime,
-		})
-		await myConductor.init()
-		await myConductor.addDevice('myCCG', {
+		const deviceOptions: SetRequired<DeviceOptionsCasparCGInternal, 'options'> = {
 			type: DeviceType.CASPARCG,
 			options: {
 				host: '127.0.0.1',
 				useScheduling: false,
 			},
 			commandReceiver: commandReceiver0,
-		})
+		}
+		device = new CasparCGDevice('myCCG', deviceOptions, mockTime.getCurrentTime2)
+		await device.init(deviceOptions.options)
 
-		const deviceContainer = myConductor.getDevice('myCCG')
-		const device = deviceContainer!.device
+		const myConductor = new MockConductor(mockTime)
+		myConductor.addDevice(device)
 
 		// Check that no commands has been scheduled:
-		expect(await device['queue']).toHaveLength(0)
+		expect(device['queue']).toHaveLength(0)
 		myConductor.setTimelineAndMappings(
 			[
 				{
@@ -367,32 +366,29 @@ describe('CasparCG', () => {
 			myLayer0: myLayerMapping0,
 		}
 
-		const myConductor = new Conductor({
-			multiThreadedResolver: false,
-			getCurrentTime: mockTime.getCurrentTime,
-		})
-		await myConductor.init()
-		await myConductor.addDevice('myCCG', {
+		const deviceOptions: SetRequired<DeviceOptionsCasparCGInternal, 'options'> = {
 			type: DeviceType.CASPARCG,
 			options: {
 				host: '127.0.0.1',
 				useScheduling: true,
 			},
 			commandReceiver: commandReceiver0,
-		})
+		}
+		device = new CasparCGDevice('myCCG', deviceOptions, mockTime.getCurrentTime2)
+		await device.init(deviceOptions.options)
 
-		const deviceContainer = myConductor.getDevice('myCCG')
-		const device = deviceContainer!.device
+		const myConductor = new MockConductor(mockTime)
+		myConductor.addDevice(device)
 
 		// Check that no commands has been scheduled:
-		expect(await device['queue']).toHaveLength(0)
+		expect(device['queue']).toHaveLength(0)
 
-		// await mockTime.advanceTimeToTicks(10050)
+		// await myConductor.runTo(10050)
 		// expect(commandReceiver0).toHaveBeenCalledTimes(3)
 
-		// await mockTime.advanceTimeToTicks(10010)
+		// await myConductor.runTo(10010)
 
-		await mockTime.advanceTimeToTicks(10050)
+		await myConductor.runTo(10050)
 		expect(commandReceiver0).toHaveBeenCalledTimes(3)
 		expect(getMockCall(commandReceiver0, 0, 1).name).toEqual('TimeCommand')
 		expect(getMockCall(commandReceiver0, 1, 1).name).toEqual('TimeCommand')
@@ -419,7 +415,7 @@ describe('CasparCG', () => {
 			],
 			myLayerMapping
 		)
-		await mockTime.advanceTimeToTicks(10100)
+		await myConductor.runTo(10100)
 
 		// one command has been sent:
 		expect(commandReceiver0).toHaveBeenCalledTimes(5)
@@ -440,7 +436,7 @@ describe('CasparCG', () => {
 		})
 
 		// advance time to end of clip:
-		// await mockTime.advanceTimeToTicks(11200)
+		// await myConductor.runTo(11200)
 
 		// two commands have been sent:
 		// expect(commandReceiver0).toHaveBeenCalledTimes(5)
@@ -460,27 +456,24 @@ describe('CasparCG', () => {
 			myLayer0: myLayerMapping0,
 		}
 
-		const myConductor = new Conductor({
-			multiThreadedResolver: false,
-			getCurrentTime: mockTime.getCurrentTime,
-		})
-		await myConductor.init()
-		await myConductor.addDevice('myCCG', {
+		const deviceOptions: SetRequired<DeviceOptionsCasparCGInternal, 'options'> = {
 			type: DeviceType.CASPARCG,
 			options: {
 				host: '127.0.0.1',
 				useScheduling: true,
 			},
 			commandReceiver: commandReceiver0,
-		})
+		}
+		device = new CasparCGDevice('myCCG', deviceOptions, mockTime.getCurrentTime2)
+		await device.init(deviceOptions.options)
 
-		const deviceContainer = myConductor.getDevice('myCCG')
-		const device = deviceContainer!.device
+		const myConductor = new MockConductor(mockTime)
+		myConductor.addDevice(device)
 
 		// Check that no commands has been scheduled:
-		expect(await device['queue']).toHaveLength(0)
+		expect(device['queue']).toHaveLength(0)
 
-		await mockTime.advanceTimeToTicks(10050)
+		await myConductor.runTo(10050)
 		expect(commandReceiver0).toHaveBeenCalledTimes(3)
 		expect(getMockCall(commandReceiver0, 0, 1).name).toEqual('TimeCommand')
 		expect(getMockCall(commandReceiver0, 1, 1).name).toEqual('TimeCommand')
@@ -511,7 +504,7 @@ describe('CasparCG', () => {
 			myLayerMapping
 		)
 
-		await mockTime.advanceTimeToTicks(10100)
+		await myConductor.runTo(10100)
 
 		// one command has been sent:
 		expect(commandReceiver0).toHaveBeenCalledTimes(5)
@@ -546,27 +539,24 @@ describe('CasparCG', () => {
 			myLayer0: myLayerMapping0,
 		}
 
-		const myConductor = new Conductor({
-			multiThreadedResolver: false,
-			getCurrentTime: mockTime.getCurrentTime,
-		})
-		await myConductor.init()
-		await myConductor.addDevice('myCCG', {
+		const deviceOptions: SetRequired<DeviceOptionsCasparCGInternal, 'options'> = {
 			type: DeviceType.CASPARCG,
 			options: {
 				host: '127.0.0.1',
 				useScheduling: true,
 			},
 			commandReceiver: commandReceiver0,
-		})
+		}
+		device = new CasparCGDevice('myCCG', deviceOptions, mockTime.getCurrentTime2)
+		await device.init(deviceOptions.options)
 
-		const deviceContainer = myConductor.getDevice('myCCG')
-		const device = deviceContainer!.device
+		const myConductor = new MockConductor(mockTime)
+		myConductor.addDevice(device)
 
 		// Check that no commands has been scheduled:
-		expect(await device['queue']).toHaveLength(0)
+		expect(device['queue']).toHaveLength(0)
 
-		await mockTime.advanceTimeToTicks(10050)
+		await myConductor.runTo(10050)
 		expect(commandReceiver0).toHaveBeenCalledTimes(3)
 		expect(getMockCall(commandReceiver0, 0, 1).name).toEqual('TimeCommand')
 		expect(getMockCall(commandReceiver0, 1, 1).name).toEqual('TimeCommand')
@@ -593,7 +583,7 @@ describe('CasparCG', () => {
 			myLayerMapping
 		)
 
-		await mockTime.advanceTimeToTicks(10100)
+		await myConductor.runTo(10100)
 
 		// one command has been sent:
 		expect(commandReceiver0).toHaveBeenCalledTimes(5)
@@ -633,28 +623,24 @@ describe('CasparCG', () => {
 			myLayer1: myLayerMapping1,
 		}
 
-		const myConductor = new Conductor({
-			multiThreadedResolver: false,
-			getCurrentTime: mockTime.getCurrentTime,
-		})
-		await myConductor.init()
-		await myConductor.addDevice('myCCG', {
+		const deviceOptions: SetRequired<DeviceOptionsCasparCGInternal, 'options'> = {
 			type: DeviceType.CASPARCG,
 			options: {
 				host: '127.0.0.1',
 				useScheduling: true,
 			},
 			commandReceiver: commandReceiver0,
-		})
+		}
+		device = new CasparCGDevice('myCCG', deviceOptions, mockTime.getCurrentTime2)
+		await device.init(deviceOptions.options)
 
-		const deviceContainer = myConductor.getDevice('myCCG')
-		const device = deviceContainer!.device
-		await device['_ccgState']
+		const myConductor = new MockConductor(mockTime)
+		myConductor.addDevice(device)
 
 		// Check that no commands has been scheduled:
-		expect(await device['queue']).toHaveLength(0)
+		expect(device['queue']).toHaveLength(0)
 
-		await mockTime.advanceTimeToTicks(10050)
+		await myConductor.runTo(10050)
 		expect(commandReceiver0).toHaveBeenCalledTimes(3)
 		expect(getMockCall(commandReceiver0, 0, 1).name).toEqual('TimeCommand')
 		expect(getMockCall(commandReceiver0, 1, 1).name).toEqual('TimeCommand')
@@ -698,7 +684,7 @@ describe('CasparCG', () => {
 			myLayerMapping
 		)
 
-		await mockTime.advanceTimeToTicks(10100)
+		await myConductor.runTo(10100)
 
 		// one command has been sent:
 		expect(commandReceiver0).toHaveBeenCalledTimes(7)
@@ -712,7 +698,7 @@ describe('CasparCG', () => {
 			customCommand: 'route',
 		})
 
-		await mockTime.advanceTimeToTicks(11000)
+		await myConductor.runTo(11000)
 
 		// expect(commandReceiver0).toHaveBeenCalledTimes(2)
 		expect(getMockCall(commandReceiver0, 4, 1)._objectParams.command._objectParams).toMatchObject({
@@ -726,7 +712,7 @@ describe('CasparCG', () => {
 		})
 
 		// advance time to end of clip:
-		await mockTime.advanceTimeToTicks(12000)
+		await myConductor.runTo(12000)
 
 		// two more commands have been sent:
 		// expect(commandReceiver0).toHaveBeenCalledTimes(4)
@@ -749,24 +735,24 @@ describe('CasparCG', () => {
 			myLayer0: myLayerMapping0,
 		}
 
-		const myConductor = new Conductor({
-			multiThreadedResolver: false,
-			getCurrentTime: mockTime.getCurrentTime,
-		})
-		await myConductor.init()
-		await myConductor.addDevice('myCCG', {
+		const deviceOptions: SetRequired<DeviceOptionsCasparCGInternal, 'options'> = {
 			type: DeviceType.CASPARCG,
 			options: {
 				host: '127.0.0.1',
 				useScheduling: true,
 			},
 			commandReceiver: commandReceiver0,
-		})
+		}
+		device = new CasparCGDevice('myCCG', deviceOptions, mockTime.getCurrentTime2)
+		await device.init(deviceOptions.options)
+
+		const myConductor = new MockConductor(mockTime)
+		myConductor.addDevice(device)
 
 		// Check that no commands has been sent:
 		expect(commandReceiver0).toHaveBeenCalledTimes(0)
 
-		await mockTime.advanceTimeToTicks(10050)
+		await myConductor.runTo(10050)
 		expect(commandReceiver0).toHaveBeenCalledTimes(3)
 		expect(getMockCall(commandReceiver0, 0, 1).name).toEqual('TimeCommand')
 		expect(getMockCall(commandReceiver0, 1, 1).name).toEqual('TimeCommand')
@@ -837,7 +823,7 @@ describe('CasparCG', () => {
 		})
 
 		// Nothing more should've happened:
-		await mockTime.advanceTimeToTicks(10400)
+		await myConductor.runTo(10400)
 
 		expect(commandReceiver0.mock.calls.length).toBe(5)
 	})
@@ -856,25 +842,19 @@ describe('CasparCG', () => {
 			myLayer0: myLayerMapping0,
 		}
 
-		const myConductor = new Conductor({
-			multiThreadedResolver: false,
-			getCurrentTime: mockTime.getCurrentTime,
-		})
-		myConductor.on('error', (e) => {
-			throw new Error(e)
-		})
-		myConductor.on('warning', (msg) => {
-			console.warn(msg)
-		})
-		await myConductor.init()
-		await myConductor.addDevice('myCCG', {
+		const deviceOptions: SetRequired<DeviceOptionsCasparCGInternal, 'options'> = {
 			type: DeviceType.CASPARCG,
 			options: {
 				host: '127.0.0.1',
 				useScheduling: true,
 			},
 			commandReceiver: commandReceiver0,
-		})
+		}
+		device = new CasparCGDevice('myCCG', deviceOptions, mockTime.getCurrentTime2)
+		await device.init(deviceOptions.options)
+
+		const myConductor = new MockConductor(mockTime)
+		myConductor.addDevice(device)
 
 		// Check that no commands has been sent:
 		expect(commandReceiver0).toHaveBeenCalledTimes(0)
@@ -999,12 +979,7 @@ describe('CasparCG', () => {
 			myLayer0: myLayerMapping0,
 		}
 
-		const myConductor = new Conductor({
-			multiThreadedResolver: false,
-			getCurrentTime: mockTime.getCurrentTime,
-		})
-		await myConductor.init()
-		await myConductor.addDevice('myCCG', {
+		const deviceOptions: SetRequired<DeviceOptionsCasparCGInternal, 'options'> = {
 			type: DeviceType.CASPARCG,
 			options: {
 				host: '127.0.0.1',
@@ -1012,11 +987,16 @@ describe('CasparCG', () => {
 				useScheduling: true,
 			},
 			commandReceiver: commandReceiver0,
-		})
+		}
+		device = new CasparCGDevice('myCCG', deviceOptions, mockTime.getCurrentTime2)
+		await device.init(deviceOptions.options)
+
+		const myConductor = new MockConductor(mockTime)
+		myConductor.addDevice(device)
 
 		expect(mockTime.getCurrentTime()).toEqual(10000)
 
-		await mockTime.advanceTimeToTicks(10050)
+		await myConductor.runTo(10050)
 		expect(commandReceiver0).toHaveBeenCalledTimes(3)
 		expect(getMockCall(commandReceiver0, 0, 1).name).toEqual('TimeCommand')
 		expect(getMockCall(commandReceiver0, 1, 1).name).toEqual('TimeCommand')
@@ -1108,12 +1088,7 @@ describe('CasparCG', () => {
 			myLayer0: myLayerMapping0,
 		}
 
-		const myConductor = new Conductor({
-			multiThreadedResolver: false,
-			getCurrentTime: mockTime.getCurrentTime,
-		})
-		await myConductor.init()
-		await myConductor.addDevice('myCCG', {
+		const deviceOptions: SetRequired<DeviceOptionsCasparCGInternal, 'options'> = {
 			type: DeviceType.CASPARCG,
 			options: {
 				host: '127.0.0.1',
@@ -1121,11 +1096,16 @@ describe('CasparCG', () => {
 				useScheduling: true,
 			},
 			commandReceiver: commandReceiver0,
-		})
+		}
+		device = new CasparCGDevice('myCCG', deviceOptions, mockTime.getCurrentTime2)
+		await device.init(deviceOptions.options)
+
+		const myConductor = new MockConductor(mockTime)
+		myConductor.addDevice(device)
 
 		expect(mockTime.getCurrentTime()).toEqual(10000)
 
-		await mockTime.advanceTimeToTicks(10050)
+		await myConductor.runTo(10050)
 		expect(commandReceiver0).toHaveBeenCalledTimes(3)
 		expect(getMockCall(commandReceiver0, 0, 1).name).toEqual('TimeCommand')
 		expect(getMockCall(commandReceiver0, 1, 1).name).toEqual('TimeCommand')
@@ -1214,13 +1194,7 @@ describe('CasparCG', () => {
 		const myLayerMapping: Mappings = {
 			myLayer0: myLayerMapping0,
 		}
-
-		const myConductor = new Conductor({
-			multiThreadedResolver: false,
-			getCurrentTime: mockTime.getCurrentTime,
-		})
-		await myConductor.init()
-		await myConductor.addDevice('myCCG', {
+		const deviceOptions: SetRequired<DeviceOptionsCasparCGInternal, 'options'> = {
 			type: DeviceType.CASPARCG,
 			options: {
 				host: '127.0.0.1',
@@ -1228,9 +1202,14 @@ describe('CasparCG', () => {
 				useScheduling: true,
 			},
 			commandReceiver: commandReceiver0,
-		})
+		}
+		device = new CasparCGDevice('myCCG', deviceOptions, mockTime.getCurrentTime2)
+		await device.init(deviceOptions.options)
 
-		await mockTime.advanceTimeToTicks(10050)
+		const myConductor = new MockConductor(mockTime)
+		myConductor.addDevice(device)
+
+		await myConductor.runTo(10050)
 		expect(commandReceiver0).toHaveBeenCalledTimes(3)
 		expect(getMockCall(commandReceiver0, 0, 1).name).toEqual('TimeCommand')
 		expect(getMockCall(commandReceiver0, 1, 1).name).toEqual('TimeCommand')
@@ -1274,7 +1253,7 @@ describe('CasparCG', () => {
 			myLayerMapping
 		)
 
-		await mockTime.advanceTimeToTicks(10100)
+		await myConductor.runTo(10100)
 		expect(commandReceiver0).toHaveBeenCalledTimes(5)
 		expect(getMockCall(commandReceiver0, 3, 1).name).toEqual('LoadbgCommand')
 		expect(getMockCall(commandReceiver0, 3, 1)._objectParams).toMatchObject({
@@ -1300,7 +1279,7 @@ describe('CasparCG', () => {
 
 		// then change my mind:
 		myConductor.setTimelineAndMappings([])
-		await mockTime.advanceTimeToTicks(10200)
+		await myConductor.runTo(10200)
 
 		expect(commandReceiver0).toHaveBeenCalledTimes(7)
 		// expect(getMockCall(commandReceiver0, 3, 1).name).toEqual('ClearCommand')
@@ -1313,7 +1292,7 @@ describe('CasparCG', () => {
 			clip: 'EMPTY',
 		})
 
-		await mockTime.advanceTimeToTicks(13000) //  10100
+		await myConductor.runTo(13000) //  10100
 		expect(commandReceiver0).toHaveBeenCalledTimes(7)
 	})
 	test('CasparCG: Play a looping video, then continue looping', async () => {
@@ -1330,12 +1309,7 @@ describe('CasparCG', () => {
 			myLayer0: myLayerMapping0,
 		}
 
-		const myConductor = new Conductor({
-			multiThreadedResolver: false,
-			getCurrentTime: mockTime.getCurrentTime,
-		})
-		await myConductor.init()
-		await myConductor.addDevice('myCCG', {
+		const deviceOptions: SetRequired<DeviceOptionsCasparCGInternal, 'options'> = {
 			type: DeviceType.CASPARCG,
 			options: {
 				host: '127.0.0.1',
@@ -1343,9 +1317,14 @@ describe('CasparCG', () => {
 				useScheduling: true,
 			},
 			commandReceiver: commandReceiver0,
-		})
+		}
+		device = new CasparCGDevice('myCCG', deviceOptions, mockTime.getCurrentTime2)
+		await device.init(deviceOptions.options)
 
-		await mockTime.advanceTimeToTicks(10050)
+		const myConductor = new MockConductor(mockTime)
+		myConductor.addDevice(device)
+
+		await myConductor.runTo(10050)
 		expect(commandReceiver0).toHaveBeenCalledTimes(3)
 		expect(getMockCall(commandReceiver0, 0, 1).name).toEqual('TimeCommand')
 		expect(getMockCall(commandReceiver0, 1, 1).name).toEqual('TimeCommand')
@@ -1387,7 +1366,7 @@ describe('CasparCG', () => {
 			myLayerMapping
 		)
 
-		await mockTime.advanceTimeToTicks(30000)
+		await myConductor.runTo(30000)
 		expect(commandReceiver0).toHaveBeenCalledTimes(5)
 
 		expect(getMockCall(commandReceiver0, 3, 1).name).toEqual('PlayCommand')
@@ -1422,20 +1401,20 @@ describe('CasparCG', () => {
 			myLayer0: myLayerMapping0,
 		}
 
-		const myConductor = new Conductor({
-			multiThreadedResolver: false,
-			getCurrentTime: mockTime.getCurrentTime,
-		})
-		await myConductor.init() // we cannot do an await, because setTimeout will never call without jest moving on.
-		await myConductor.addDevice('myCCG', {
+		const deviceOptions: SetRequired<DeviceOptionsCasparCGInternal, 'options'> = {
 			type: DeviceType.CASPARCG,
 			options: {
 				host: '127.0.0.1',
 				useScheduling: true,
 			},
 			commandReceiver: commandReceiver0,
-		})
-		await mockTime.advanceTimeToTicks(10100)
+		}
+		device = new CasparCGDevice('myCCG', deviceOptions, mockTime.getCurrentTime2)
+		await device.init(deviceOptions.options)
+
+		const myConductor = new MockConductor(mockTime)
+		myConductor.addDevice(device)
+		await myConductor.runTo(10100)
 
 		expect(commandReceiver0).toHaveBeenCalledTimes(3)
 
@@ -1445,11 +1424,8 @@ describe('CasparCG', () => {
 
 		commandReceiver0.mockClear()
 
-		const deviceContainer = myConductor.getDevice('myCCG')
-		const device = deviceContainer!.device
-
 		// Check that no commands has been scheduled:
-		expect(await device['queue']).toHaveLength(0)
+		expect(device['queue']).toHaveLength(0)
 
 		myConductor.setTimelineAndMappings(
 			[
@@ -1476,7 +1452,7 @@ describe('CasparCG', () => {
 			myLayerMapping
 		)
 
-		await mockTime.advanceTimeToTicks(10200)
+		await myConductor.runTo(10200)
 
 		// one command has been sent:
 		expect(commandReceiver0).toHaveBeenCalledTimes(2)
@@ -1490,7 +1466,7 @@ describe('CasparCG', () => {
 		})
 
 		// advance time to end of clip:
-		await mockTime.advanceTimeToTicks(11200)
+		await myConductor.runTo(11200)
 
 		// two commands have been sent:
 		expect(commandReceiver0).toHaveBeenCalledTimes(2)
@@ -1514,32 +1490,30 @@ describe('CasparCG', () => {
 			myLayer0: myLayerMapping0,
 		}
 
-		const myConductor = new Conductor({
-			multiThreadedResolver: false,
-			getCurrentTime: mockTime.getCurrentTime,
-		})
-		await myConductor.init()
-		await myConductor.addDevice('myCCG', {
+		const deviceOptions: SetRequired<DeviceOptionsCasparCGInternal, 'options'> = {
 			type: DeviceType.CASPARCG,
 			options: {
 				host: '127.0.0.1',
-				useScheduling: false,
+				useScheduling: true,
 				retryInterval: false, // disable retries explicitly, we will manually trigger them
 			},
 			commandReceiver: commandReceiver0,
-		})
+		}
+		device = new CasparCGDevice('myCCG', deviceOptions, mockTime.getCurrentTime2)
+		await device.init(deviceOptions.options)
+
+		const myConductor = new MockConductor(mockTime)
+		myConductor.addDevice(device)
+
 		myConductor.setTimelineAndMappings([], myLayerMapping)
-		await mockTime.advanceTimeToTicks(10100)
+		await myConductor.runTo(10100)
 
 		expect(commandReceiver0).toHaveBeenCalledTimes(0)
 
 		commandReceiver0.mockClear()
 
-		const deviceContainer = myConductor.getDevice('myCCG')
-		const device = deviceContainer!.device
-
 		// Check that no commands has been scheduled:
-		expect(await device['queue']).toHaveLength(0)
+		expect(device['queue']).toHaveLength(0)
 
 		myConductor.setTimelineAndMappings([
 			{
@@ -1559,7 +1533,7 @@ describe('CasparCG', () => {
 			},
 		])
 
-		await mockTime.advanceTimeToTicks(10200)
+		await myConductor.runTo(10200)
 
 		// one command has been sent:
 		expect(commandReceiver0).toHaveBeenCalledTimes(1)
@@ -1573,15 +1547,15 @@ describe('CasparCG', () => {
 		})
 
 		// advance before half way
-		await mockTime.advanceTimeToTicks(10500)
+		await myConductor.runTo(10500)
 		// no retries issued yet
 		expect(commandReceiver0).toHaveBeenCalledTimes(1)
 
 		// advance to half way
-		await mockTime.advanceTimeToTicks(10700)
+		await myConductor.runTo(10700)
 		// call the retry mechanism
 		await (device as any)._assertIntendedState()
-		await mockTime.advanceTimeToTicks(10800)
+		await myConductor.runTo(10800)
 
 		expect(commandReceiver0).toHaveBeenCalledTimes(2)
 		expect(getMockCall(commandReceiver0, 1, 1)._objectParams).toMatchObject({
@@ -1595,14 +1569,13 @@ describe('CasparCG', () => {
 
 		// apply command to internal ccg-state
 		// @ts-ignore
-		const currentState = await device.getState(mockTime.getCurrentTime())
+		const currentState = device.getState(mockTime.getCurrentTime())
 		const resCommand = getMockCall(commandReceiver0, 1, 1)._objectParams
 		if (currentState) {
-			// @ts-ignore
+			const _ccgState: CasparCGState = (device as any)._ccgState
 			const currentCasparState = currentState.state
 
-			// @ts-ignore
-			const trackedState = await (await device._ccgState).getState()
+			const trackedState = _ccgState.getState()
 
 			const channel = currentCasparState.channels[resCommand.channel]
 			if (channel) {
@@ -1616,18 +1589,17 @@ describe('CasparCG', () => {
 				}
 				// Copy the tracked from current state:
 				trackedState.channels[resCommand.channel].layers[resCommand.layer] = channel.layers[resCommand.layer]
-				// @ts-ignore
-				await (await device._ccgState).setState(trackedState)
+				_ccgState.setState(trackedState)
 			}
 		}
 		// trigger retry mechanism
 		await (device as any)._assertIntendedState()
-		await mockTime.advanceTimeToTicks(10900)
+		await myConductor.runTo(10900)
 		// no retries done
 		expect(commandReceiver0).toHaveBeenCalledTimes(2)
 
 		// advance time to end of clip:
-		await mockTime.advanceTimeToTicks(11200)
+		await myConductor.runTo(11200)
 
 		// 3 commands have been sent:
 		expect(commandReceiver0).toHaveBeenCalledTimes(3)
@@ -1636,10 +1608,10 @@ describe('CasparCG', () => {
 		expect(getMockCall(commandReceiver0, 2, 1).layer).toEqual(42)
 
 		// advance time to after clip:
-		await mockTime.advanceTimeToTicks(11700)
+		await myConductor.runTo(11700)
 		// call the retry mechanism
 		await (device as any)._assertIntendedState()
-		await mockTime.advanceTimeToTicks(11800)
+		await myConductor.runTo(11800)
 		// no retries issued
 		expect(commandReceiver0).toHaveBeenCalledTimes(3)
 	})
@@ -1658,12 +1630,7 @@ describe('CasparCG', () => {
 			myLayer0: myLayerMapping0,
 		}
 
-		const myConductor = new Conductor({
-			multiThreadedResolver: false,
-			getCurrentTime: mockTime.getCurrentTime,
-		})
-		await myConductor.init()
-		await myConductor.addDevice('myCCG', {
+		const deviceOptions: SetRequired<DeviceOptionsCasparCGInternal, 'options'> = {
 			type: DeviceType.CASPARCG,
 			options: {
 				host: '127.0.0.1',
@@ -1671,19 +1638,22 @@ describe('CasparCG', () => {
 				retryInterval: false, // disable retries explicitly, we will manually trigger them
 			},
 			commandReceiver: commandReceiver0,
-		})
+		}
+		device = new CasparCGDevice('myCCG', deviceOptions, mockTime.getCurrentTime2)
+		await device.init(deviceOptions.options)
+
+		const myConductor = new MockConductor(mockTime)
+		myConductor.addDevice(device)
+
 		myConductor.setTimelineAndMappings([], myLayerMapping)
-		await mockTime.advanceTimeToTicks(10100)
+		await myConductor.runTo(10100)
 
 		expect(commandReceiver0).toHaveBeenCalledTimes(0)
 
 		commandReceiver0.mockClear()
 
-		const deviceContainer = myConductor.getDevice('myCCG')
-		const device = deviceContainer!.device
-
 		// Check that no commands has been scheduled:
-		expect(await device['queue']).toHaveLength(0)
+		expect(device['queue']).toHaveLength(0)
 
 		myConductor.setTimelineAndMappings([
 			{
@@ -1721,7 +1691,7 @@ describe('CasparCG', () => {
 			},
 		])
 
-		await mockTime.advanceTimeToTicks(10200)
+		await myConductor.runTo(10200)
 
 		// one command has been sent:
 		expect(commandReceiver0).toHaveBeenCalledTimes(1)
@@ -1739,14 +1709,13 @@ describe('CasparCG', () => {
 
 		// apply command to internal ccg-state
 		// @ts-ignore
-		const currentState = await device.getState(mockTime.getCurrentTime())
+		const currentState = device.getState(mockTime.getCurrentTime())
 		const resCommand = getMockCall(commandReceiver0, 0, 1)._objectParams
 		if (currentState) {
-			// @ts-ignore
+			const _ccgState: CasparCGState = (device as any)._ccgState
 			const currentCasparState = currentState.state
 
-			// @ts-ignore
-			const trackedState = await (await device._ccgState).getState()
+			const trackedState = _ccgState.getState()
 
 			const channel = currentCasparState.channels[resCommand.channel]
 			if (channel) {
@@ -1760,18 +1729,17 @@ describe('CasparCG', () => {
 				}
 				// Copy the tracked from current state:
 				trackedState.channels[resCommand.channel].layers[resCommand.layer] = channel.layers[resCommand.layer]
-				// @ts-ignore
-				await (await device._ccgState).setState(trackedState)
+				_ccgState.setState(trackedState)
 			}
 		}
 
 		// advance before half way
-		await mockTime.advanceTimeToTicks(10500)
+		await myConductor.runTo(10500)
 		// no retries issued yet
 		expect(commandReceiver0).toHaveBeenCalledTimes(1)
 
 		// advance to half way
-		await mockTime.advanceTimeToTicks(10700)
+		await myConductor.runTo(10700)
 		// call the retry mechanism
 		await (device as any)._assertIntendedState()
 		// still no retries as empty always plays
@@ -1780,10 +1748,10 @@ describe('CasparCG', () => {
 		// note: no clear command is sent because the layer is already empty
 
 		// advance time to after clip:
-		await mockTime.advanceTimeToTicks(20700)
+		await myConductor.runTo(20700)
 		// call the retry mechanism
 		await (device as any)._assertIntendedState()
-		await mockTime.advanceTimeToTicks(20800)
+		await myConductor.runTo(20800)
 		// no retries issued
 		expect(commandReceiver0).toHaveBeenCalledTimes(1)
 	})
@@ -1803,30 +1771,28 @@ describe('CasparCG', () => {
 			myLayer1: myLayerMapping0,
 		}
 
-		const myConductor = new Conductor({
-			multiThreadedResolver: false,
-			getCurrentTime: mockTime.getCurrentTime,
-		})
-		await myConductor.init() // we cannot do an await, because setTimeout will never call without jest moving on.
-		await myConductor.addDevice('myCCG', {
+		const deviceOptions: SetRequired<DeviceOptionsCasparCGInternal, 'options'> = {
 			type: DeviceType.CASPARCG,
 			options: {
 				host: '127.0.0.1',
 				useScheduling: false,
 			},
 			commandReceiver: commandReceiver0,
-		})
-		await mockTime.advanceTimeToTicks(10100)
+		}
+		device = new CasparCGDevice('myCCG', deviceOptions, mockTime.getCurrentTime2)
+		await device.init(deviceOptions.options)
+
+		const myConductor = new MockConductor(mockTime)
+		myConductor.addDevice(device)
+
+		await myConductor.runTo(10100)
 
 		expect(commandReceiver0).toHaveBeenCalledTimes(0)
 
 		commandReceiver0.mockClear()
 
-		const deviceContainer = myConductor.getDevice('myCCG')
-		const device = deviceContainer!.device
-
 		// Check that no commands has been scheduled:
-		expect(await device['queue']).toHaveLength(0)
+		expect(device['queue']).toHaveLength(0)
 
 		myConductor.setTimelineAndMappings(
 			[
@@ -1864,7 +1830,7 @@ describe('CasparCG', () => {
 			myLayerMapping
 		)
 
-		await mockTime.advanceTimeToTicks(10200)
+		await myConductor.runTo(10200)
 
 		// one command has been sent:
 		expect(commandReceiver0).toHaveBeenCalledTimes(1)
@@ -1880,7 +1846,7 @@ describe('CasparCG', () => {
 		commandReceiver0.mockClear()
 
 		// advance time to end of clip:
-		await mockTime.advanceTimeToTicks(11200)
+		await myConductor.runTo(11200)
 
 		// two commands have been sent:
 		expect(commandReceiver0).toHaveBeenCalledTimes(1)
@@ -1902,30 +1868,28 @@ describe('CasparCG', () => {
 			myLayer1: myLayerMapping0,
 		}
 
-		const myConductor = new Conductor({
-			multiThreadedResolver: false,
-			getCurrentTime: mockTime.getCurrentTime,
-		})
-		await myConductor.init() // we cannot do an await, because setTimeout will never call without jest moving on.
-		await myConductor.addDevice('myCCG', {
+		const deviceOptions: SetRequired<DeviceOptionsCasparCGInternal, 'options'> = {
 			type: DeviceType.CASPARCG,
 			options: {
 				host: '127.0.0.1',
 				useScheduling: false,
 			},
 			commandReceiver: commandReceiver0,
-		})
-		await mockTime.advanceTimeToTicks(10100)
+		}
+		device = new CasparCGDevice('myCCG', deviceOptions, mockTime.getCurrentTime2)
+		await device.init(deviceOptions.options)
+
+		const myConductor = new MockConductor(mockTime)
+		myConductor.addDevice(device)
+
+		await myConductor.runTo(10100)
 
 		expect(commandReceiver0).toHaveBeenCalledTimes(0)
 
 		commandReceiver0.mockClear()
 
-		const deviceContainer = myConductor.getDevice('myCCG')
-		const device = deviceContainer!.device
-
 		// Check that no commands has been scheduled:
-		expect(await device['queue']).toHaveLength(0)
+		expect(device['queue']).toHaveLength(0)
 
 		myConductor.setTimelineAndMappings(
 			[
@@ -1978,7 +1942,7 @@ describe('CasparCG', () => {
 			myLayerMapping
 		)
 
-		await mockTime.advanceTimeToTicks(10200)
+		await myConductor.runTo(10200)
 
 		// one command has been sent:
 		expect(commandReceiver0).toHaveBeenCalledTimes(1)
@@ -1997,7 +1961,7 @@ describe('CasparCG', () => {
 		commandReceiver0.mockClear()
 
 		// advance time to end of clip:
-		await mockTime.advanceTimeToTicks(11200)
+		await myConductor.runTo(11200)
 
 		// two commands have been sent:
 		expect(commandReceiver0).toHaveBeenCalledTimes(1)
@@ -2007,11 +1971,15 @@ describe('CasparCG', () => {
 
 describe('CasparCG - Custom transitions', () => {
 	const mockTime = new MockTime()
+	let device: CasparCGDevice
 	beforeAll(() => {
 		mockTime.mockDateNow()
 	})
 	beforeEach(() => {
 		mockTime.init()
+	})
+	afterEach(async () => {
+		// await device.terminate()
 	})
 	test('FILL', async () => {
 		const commandReceiver0: any = jest.fn(async () => {
@@ -2027,12 +1995,7 @@ describe('CasparCG - Custom transitions', () => {
 			myLayer0: myLayerMapping0,
 		}
 
-		const myConductor = new Conductor({
-			multiThreadedResolver: false,
-			getCurrentTime: mockTime.getCurrentTime,
-		})
-		await myConductor.init()
-		await myConductor.addDevice('myCCG', {
+		const deviceOptions: SetRequired<DeviceOptionsCasparCGInternal, 'options'> = {
 			type: DeviceType.CASPARCG,
 			options: {
 				host: '127.0.0.1',
@@ -2040,19 +2003,22 @@ describe('CasparCG - Custom transitions', () => {
 				retryInterval: false, // disable retries explicitly, we will manually trigger them
 			},
 			commandReceiver: commandReceiver0,
-		})
+		}
+		device = new CasparCGDevice('myCCG', deviceOptions, mockTime.getCurrentTime2)
+		await device.init(deviceOptions.options)
+
+		const myConductor = new MockConductor(mockTime)
+		myConductor.addDevice(device)
+
 		myConductor.setTimelineAndMappings([], myLayerMapping)
-		await mockTime.advanceTimeToTicks(10000)
+		await myConductor.runTo(10000)
 
 		expect(commandReceiver0).toHaveBeenCalledTimes(0)
 
 		commandReceiver0.mockClear()
 
-		const deviceContainer = myConductor.getDevice('myCCG')
-		const device = deviceContainer!.device
-
 		// Check that no commands has been scheduled:
-		expect(await device['queue']).toHaveLength(0)
+		expect(device['queue']).toHaveLength(0)
 
 		myConductor.setTimelineAndMappings([
 			{
@@ -2109,7 +2075,7 @@ describe('CasparCG - Custom transitions', () => {
 			},
 		])
 
-		await mockTime.advanceTimeToTicks(10500)
+		await myConductor.runTo(10500)
 
 		// // one command has been sent:
 		expect(commandReceiver0).toHaveBeenCalledTimes(2)
@@ -2131,7 +2097,7 @@ describe('CasparCG - Custom transitions', () => {
 		})
 
 		commandReceiver0.mockClear()
-		await mockTime.advanceTimeToTicks(13500)
+		await myConductor.runTo(13500)
 
 		expect(
 			commandReceiver0.mock.calls.map((call) => {
@@ -2158,7 +2124,7 @@ describe('CasparCG - Custom transitions', () => {
 		expect(commandReceiver0).toHaveBeenCalledTimes(59)
 
 		commandReceiver0.mockClear()
-		await mockTime.advanceTimeToTicks(13500)
+		await myConductor.runTo(13500)
 
 		expect(commandReceiver0).toHaveBeenCalledTimes(0)
 	})

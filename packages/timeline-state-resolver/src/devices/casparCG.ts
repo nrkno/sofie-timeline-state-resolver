@@ -163,10 +163,10 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 		this._transitionHandler.terminate()
 		clearTimeout(this._retryTimeout)
 		return new Promise((resolve) => {
-			this._ccg.disconnect()
 			this._ccg.onDisconnected = () => {
 				resolve(true)
 			}
+			this._ccg.disconnect()
 		})
 	}
 	/** Called by the Conductor a bit before a .handleState is called */
