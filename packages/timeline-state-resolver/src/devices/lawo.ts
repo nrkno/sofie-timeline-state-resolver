@@ -99,7 +99,7 @@ export class LawoDevice extends DeviceWithState<LawoState, DeviceOptionsLawoInte
 			if (deviceOptions.commandReceiver) {
 				this._commandReceiver = deviceOptions.commandReceiver
 			} else {
-				this._defaultCommandReceiver.bind(this)
+				this._commandReceiver = this._defaultCommandReceiver.bind(this)
 			}
 			if (deviceOptions.options.setValueFn) {
 				this._setValueFn = deviceOptions.options.setValueFn

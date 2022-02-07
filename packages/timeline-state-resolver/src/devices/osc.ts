@@ -65,14 +65,12 @@ export class OSCMessageDevice extends DeviceWithState<OSCDeviceState, DeviceOpti
 			if (deviceOptions.commandReceiver) {
 				this._commandReceiver = deviceOptions.commandReceiver
 			} else {
-				this._defaultCommandReceiver.bind(this)
+				this._commandReceiver = this._defaultCommandReceiver.bind(this)
 			}
 			if (deviceOptions.oscSender) {
 				this._oscSender = deviceOptions.oscSender
 			} else {
-				this._oscSender = async (...args) => {
-					return this._defaultOscSender(...args)
-				}
+				this._oscSender = this._defaultOscSender.bind(this)
 			}
 		}
 		this._doOnTime = new DoOnTime(

@@ -75,7 +75,6 @@ describe('Sisyfos', () => {
 			multiThreadedResolver: false,
 			getCurrentTime: mockTime.getCurrentTime,
 		})
-		myConductor.setTimelineAndMappings([], myChannelMapping)
 		await myConductor.init() // we cannot do an await, because setTimeout will never call without jest moving on.
 		await myConductor.addDevice('mySisyfos', {
 			type: DeviceType.SISYFOS,
@@ -85,6 +84,7 @@ describe('Sisyfos', () => {
 			},
 			commandReceiver: commandReceiver0,
 		})
+		myConductor.setTimelineAndMappings([], myChannelMapping)
 		await mockTime.advanceTimeToTicks(10100)
 
 		const deviceContainer = myConductor.getDevice('mySisyfos')
@@ -92,6 +92,7 @@ describe('Sisyfos', () => {
 
 		// Check that no commands has been scheduled:
 		expect(await device.queue).toHaveLength(0)
+		commandReceiver0.mockClear()
 
 		myConductor.setTimelineAndMappings([
 			{
@@ -194,8 +195,10 @@ describe('Sisyfos', () => {
 			},
 		] as TSRTimeline)
 
+		expect(commandReceiver0.mock.calls.length).toEqual(0)
 		await mockTime.advanceTimeTicks(100) // now-ish
 		expect(commandReceiver0.mock.calls.length).toEqual(1)
+
 		// set pgm
 		expect(getMockCall(commandReceiver0, 0, 1)).toMatchObject({
 			type: 'togglePgm',
@@ -291,7 +294,6 @@ describe('Sisyfos', () => {
 			multiThreadedResolver: false,
 			getCurrentTime: mockTime.getCurrentTime,
 		})
-		myConductor.setTimelineAndMappings([], myChannelMapping)
 		await myConductor.init() // we cannot do an await, because setTimeout will never call without jest moving on.
 		await myConductor.addDevice('mySisyfos', {
 			type: DeviceType.SISYFOS,
@@ -301,6 +303,7 @@ describe('Sisyfos', () => {
 			},
 			commandReceiver: commandReceiver0,
 		})
+		myConductor.setTimelineAndMappings([], myChannelMapping)
 		await mockTime.advanceTimeToTicks(10100)
 
 		const deviceContainer = myConductor.getDevice('mySisyfos')
@@ -308,6 +311,7 @@ describe('Sisyfos', () => {
 
 		// Check that no commands has been scheduled:
 		expect(await device.queue).toHaveLength(0)
+		commandReceiver0.mockClear()
 
 		myConductor.setTimelineAndMappings([
 			{
@@ -508,7 +512,6 @@ describe('Sisyfos', () => {
 			multiThreadedResolver: false,
 			getCurrentTime: mockTime.getCurrentTime,
 		})
-		myConductor.setTimelineAndMappings([], myChannelMapping)
 		await myConductor.init() // we cannot do an await, because setTimeout will never call without jest moving on.
 		await myConductor.addDevice('mySisyfos', {
 			type: DeviceType.SISYFOS,
@@ -518,6 +521,7 @@ describe('Sisyfos', () => {
 			},
 			commandReceiver: commandReceiver0,
 		})
+		myConductor.setTimelineAndMappings([], myChannelMapping)
 		await mockTime.advanceTimeToTicks(10100)
 
 		const deviceContainer = myConductor.getDevice('mySisyfos')
@@ -525,6 +529,7 @@ describe('Sisyfos', () => {
 
 		// Check that no commands has been scheduled:
 		expect(await device.queue).toHaveLength(0)
+		commandReceiver0.mockClear()
 
 		myConductor.setTimelineAndMappings([
 			{
@@ -637,7 +642,6 @@ describe('Sisyfos', () => {
 			multiThreadedResolver: false,
 			getCurrentTime: mockTime.getCurrentTime,
 		})
-		myConductor.setTimelineAndMappings([], myChannelMapping)
 		await myConductor.init() // we cannot do an await, because setTimeout will never call without jest moving on.
 		await myConductor.addDevice('mySisyfos', {
 			type: DeviceType.SISYFOS,
@@ -647,6 +651,7 @@ describe('Sisyfos', () => {
 			},
 			commandReceiver: commandReceiver0,
 		})
+		myConductor.setTimelineAndMappings([], myChannelMapping)
 		await mockTime.advanceTimeToTicks(10100)
 
 		const deviceContainer = myConductor.getDevice('mySisyfos')
@@ -654,6 +659,7 @@ describe('Sisyfos', () => {
 
 		// Check that no commands has been scheduled:
 		expect(await device.queue).toHaveLength(0)
+		commandReceiver0.mockClear()
 
 		myConductor.setTimelineAndMappings([
 			{
@@ -844,7 +850,6 @@ describe('Sisyfos', () => {
 			multiThreadedResolver: false,
 			getCurrentTime: mockTime.getCurrentTime,
 		})
-		myConductor.setTimelineAndMappings([], myChannelMapping)
 		await myConductor.init() // we cannot do an await, because setTimeout will never call without jest moving on.
 		await myConductor.addDevice('mySisyfos', {
 			type: DeviceType.SISYFOS,
@@ -854,6 +859,7 @@ describe('Sisyfos', () => {
 			},
 			commandReceiver: commandReceiver0,
 		})
+		myConductor.setTimelineAndMappings([], myChannelMapping)
 		await mockTime.advanceTimeToTicks(10100)
 
 		const deviceContainer = myConductor.getDevice('mySisyfos')
@@ -861,6 +867,7 @@ describe('Sisyfos', () => {
 
 		// Check that no commands has been scheduled:
 		expect(await device.queue).toHaveLength(0)
+		commandReceiver0.mockClear()
 
 		myConductor.setTimelineAndMappings([
 			{

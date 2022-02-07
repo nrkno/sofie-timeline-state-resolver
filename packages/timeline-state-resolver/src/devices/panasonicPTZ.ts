@@ -83,7 +83,7 @@ export class PanasonicPtzDevice extends DeviceWithState<PanasonicPtzState, Devic
 			if (deviceOptions.commandReceiver) {
 				this._commandReceiver = deviceOptions.commandReceiver
 			} else {
-				this._defaultCommandReceiver.bind(this)
+				this._commandReceiver = this._defaultCommandReceiver.bind(this)
 			}
 		}
 		this._doOnTime = new DoOnTime(
