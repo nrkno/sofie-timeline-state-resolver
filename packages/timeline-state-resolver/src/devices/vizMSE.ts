@@ -84,10 +84,7 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState, DeviceOptionsVizM
 
 		if (deviceOptions.options) {
 			if (deviceOptions.commandReceiver) this._commandReceiver = deviceOptions.commandReceiver
-			else
-				this._commandReceiver = async (...args) => {
-					return this._defaultCommandReceiver(...args)
-				}
+			else this._commandReceiver = this._defaultCommandReceiver.bind(this)
 		}
 
 		this._doOnTime = new DoOnTime(

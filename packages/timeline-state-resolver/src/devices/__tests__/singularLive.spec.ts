@@ -34,7 +34,7 @@ describe('Singular.Live', () => {
 		}
 
 		const myConductor = new Conductor({
-			initializeAsClear: true,
+			multiThreadedResolver: false,
 			getCurrentTime: mockTime.getCurrentTime,
 		})
 		await myConductor.init()

@@ -64,7 +64,6 @@ export interface ConductorOptions {
 	// devices: {
 	// 	[deviceName: string]: DeviceOptions
 	// },
-	initializeAsClear?: boolean // don't do any initial checks with devices to determine state, instead assume that everything is clear, black and quiet
 	getCurrentTime?: () => number
 	autoInit?: boolean
 	multiThreadedResolver?: boolean

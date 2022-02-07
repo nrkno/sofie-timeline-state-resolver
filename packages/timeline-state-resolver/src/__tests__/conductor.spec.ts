@@ -47,7 +47,7 @@ describe('Conductor', () => {
 		}
 
 		const conductor = new Conductor({
-			initializeAsClear: true,
+			multiThreadedResolver: false,
 			getCurrentTime: mockTime.getCurrentTime,
 		})
 
@@ -201,7 +201,7 @@ describe('Conductor', () => {
 		}
 
 		const conductor = new Conductor({
-			initializeAsClear: true,
+			multiThreadedResolver: false,
 			getCurrentTime: mockTime.getCurrentTime,
 		})
 
@@ -330,7 +330,7 @@ describe('Conductor', () => {
 			return Promise.resolve()
 		})
 		const conductor = new Conductor({
-			initializeAsClear: true,
+			multiThreadedResolver: false,
 			getCurrentTime: mockTime.getCurrentTime,
 		})
 
@@ -413,7 +413,7 @@ describe('Conductor', () => {
 		}
 
 		const conductor = new Conductor({
-			initializeAsClear: true,
+			multiThreadedResolver: false,
 			getCurrentTime: mockTime.getCurrentTime,
 		})
 		conductor.on('error', console.error)
@@ -445,7 +445,7 @@ describe('Conductor', () => {
 		}
 
 		const conductor = new Conductor({
-			initializeAsClear: true,
+			multiThreadedResolver: false,
 			getCurrentTime: mockTime.getCurrentTime,
 		})
 

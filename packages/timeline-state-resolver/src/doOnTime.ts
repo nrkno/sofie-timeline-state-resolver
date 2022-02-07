@@ -157,6 +157,9 @@ export class DoOnTime extends EventEmitter<DoOnTimeEvents> {
 		clearTimeout(this._checkQueueTimeout)
 
 		const now = this.getCurrentTime()
+		if (isNaN(now)) {
+			throw new Error('DoOnTime.getCurrentTime is broken, and is not returning a number')
+		}
 
 		let nextTime = now + 99999
 

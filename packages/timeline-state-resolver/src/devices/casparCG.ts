@@ -88,10 +88,8 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 
 		if (deviceOptions.options) {
 			if (deviceOptions.commandReceiver) this._commandReceiver = deviceOptions.commandReceiver
-			else
-				this._commandReceiver = async (...args) => {
-					return this._defaultCommandReceiver(...args)
-				}
+			else this._commandReceiver = this._defaultCommandReceiver.bind(this)
+
 			if (deviceOptions.options.timeBase) this._timeBase = deviceOptions.options.timeBase
 		}
 
@@ -632,8 +630,7 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 		}
 
 		if (this._useScheduling) {
-			for (const i of channels) {
-				const channel = channels[i]
+			for (const channel of channels) {
 				const channelNo = channel.channel
 				await attemptSync(channelNo, 1)
 			}

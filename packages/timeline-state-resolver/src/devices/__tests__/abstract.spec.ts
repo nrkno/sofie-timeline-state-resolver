@@ -27,7 +27,7 @@ describe('Abstract device', () => {
 		}
 
 		const myConductor = new Conductor({
-			initializeAsClear: true,
+			multiThreadedResolver: false,
 			getCurrentTime: mockTime.getCurrentTime,
 		})
 		await myConductor.init()
@@ -134,7 +134,7 @@ describe('Abstract device', () => {
 		}
 
 		const myConductor = new Conductor({
-			initializeAsClear: true,
+			multiThreadedResolver: false,
 			getCurrentTime: mockTime.getCurrentTime,
 		})
 		await myConductor.init()

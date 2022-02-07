@@ -56,7 +56,7 @@ describe('TCP-Send', () => {
 		}
 
 		const myConductor = new Conductor({
-			initializeAsClear: true,
+			multiThreadedResolver: false,
 			getCurrentTime: () => mockTime.now,
 		})
 		const onError = jest.fn(console.log)

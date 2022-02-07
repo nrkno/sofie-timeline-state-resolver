@@ -43,7 +43,7 @@ describe('Lawo', () => {
 		}
 
 		const myConductor = new Conductor({
-			initializeAsClear: true,
+			multiThreadedResolver: false,
 			getCurrentTime: mockTime.getCurrentTime,
 		})
 		myConductor.setTimelineAndMappings([], myChannelMapping)
@@ -201,7 +201,7 @@ describe('Lawo', () => {
 		}
 
 		const myConductor = new Conductor({
-			initializeAsClear: true,
+			multiThreadedResolver: false,
 			getCurrentTime: mockTime.getCurrentTime,
 		})
 		myConductor.setTimelineAndMappings([], myChannelMapping)
@@ -409,7 +409,7 @@ describe('Lawo', () => {
 		}
 
 		const myConductor = new Conductor({
-			initializeAsClear: true,
+			multiThreadedResolver: false,
 			getCurrentTime: mockTime.getCurrentTime,
 		})
 		myConductor.setTimelineAndMappings([], myChannelMapping)
@@ -578,7 +578,7 @@ describe('Lawo', () => {
 		}
 
 		const myConductor = new Conductor({
-			initializeAsClear: true,
+			multiThreadedResolver: false,
 			getCurrentTime: mockTime.getCurrentTime,
 		})
 		myConductor.setTimelineAndMappings([], myChannelMapping)
@@ -669,7 +669,7 @@ describe('Lawo', () => {
 		}
 
 		const myConductor = new Conductor({
-			initializeAsClear: true,
+			multiThreadedResolver: false,
 			getCurrentTime: mockTime.getCurrentTime,
 		})
 		myConductor.on('error', (...args) => console.log(...args))
@@ -771,7 +771,7 @@ describe('Lawo', () => {
 		}
 
 		const myConductor = new Conductor({
-			initializeAsClear: true,
+			multiThreadedResolver: false,
 			getCurrentTime: mockTime.getCurrentTime,
 		})
 		myConductor.setTimelineAndMappings([], myChannelMapping)

@@ -36,7 +36,7 @@ describe('OSC-Message', () => {
 		}
 
 		const myConductor = new Conductor({
-			initializeAsClear: true,
+			multiThreadedResolver: false,
 			getCurrentTime: mockTime.getCurrentTime,
 		})
 		myConductor.on('error', (e) => console.error(e))
@@ -138,7 +138,7 @@ describe('OSC-Message', () => {
 		}
 
 		const myConductor = new Conductor({
-			initializeAsClear: true,
+			multiThreadedResolver: false,
 			getCurrentTime: mockTime.getCurrentTime,
 		})
 		myConductor.on('error', (e) => console.error(e))

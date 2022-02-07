@@ -78,9 +78,7 @@ export class OBSDevice extends DeviceWithState<OBSState, DeviceOptionsOBSInterna
 			if (deviceOptions.commandReceiver) {
 				this._commandReceiver = deviceOptions.commandReceiver
 			} else {
-				this._commandReceiver = async (...args) => {
-					return this._defaultCommandReceiver(...args)
-				}
+				this._defaultCommandReceiver.bind(this)
 			}
 		}
 		this._doOnTime = new DoOnTime(

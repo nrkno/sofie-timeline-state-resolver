@@ -51,7 +51,6 @@ describe('vizMSE', () => {
 
 		const myConductor = new Conductor({
 			multiThreadedResolver: false,
-			initializeAsClear: true,
 			getCurrentTime: mockTime.getCurrentTime,
 		})
 		myConductor.setTimelineAndMappings([], myChannelMapping)
@@ -225,7 +224,7 @@ describe('vizMSE', () => {
 		}
 
 		const myConductor = new Conductor({
-			initializeAsClear: true,
+			multiThreadedResolver: false,
 			getCurrentTime: mockTime.getCurrentTime,
 		})
 		const onError = jest.fn()
@@ -488,7 +487,7 @@ describe('vizMSE', () => {
 	})
 	test('vizMSE: bad init options & basic functionality', async () => {
 		const myConductor = new Conductor({
-			initializeAsClear: true,
+			multiThreadedResolver: false,
 			getCurrentTime: mockTime.getCurrentTime,
 		})
 		const onError = jest.fn()
@@ -598,7 +597,7 @@ describe('vizMSE', () => {
 		}
 
 		const myConductor = new Conductor({
-			initializeAsClear: true,
+			multiThreadedResolver: false,
 			getCurrentTime: mockTime.getCurrentTime,
 		})
 		myConductor.setTimelineAndMappings([], myChannelMapping)
@@ -762,7 +761,7 @@ describe('vizMSE', () => {
 		}
 
 		const myConductor = new Conductor({
-			initializeAsClear: true,
+			multiThreadedResolver: false,
 			getCurrentTime: mockTime.getCurrentTime,
 		})
 		const onError = jest.fn()

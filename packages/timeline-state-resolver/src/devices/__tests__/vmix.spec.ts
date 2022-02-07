@@ -71,7 +71,7 @@ describe('vMix', () => {
 		}
 
 		const myConductor = new Conductor({
-			initializeAsClear: true,
+			multiThreadedResolver: false,
 			getCurrentTime: mockTime.getCurrentTime,
 		})
 		const errorHandler = jest.fn((...args) => console.log('Error in device', ...args))
@@ -247,7 +247,7 @@ describe('vMix', () => {
 		}
 
 		const myConductor = new Conductor({
-			initializeAsClear: true,
+			multiThreadedResolver: false,
 			getCurrentTime: mockTime.getCurrentTime,
 		})
 		const errorHandler = jest.fn((...args) => console.log('Error in device', ...args))
@@ -555,7 +555,7 @@ describe('vMix', () => {
 		}
 
 		const myConductor = new Conductor({
-			initializeAsClear: true,
+			multiThreadedResolver: false,
 			getCurrentTime: mockTime.getCurrentTime,
 		})
 		const errorHandler = jest.fn((...args) => console.log('Error in device', ...args))
@@ -790,7 +790,7 @@ describe('vMix', () => {
 		}
 
 		const myConductor = new Conductor({
-			initializeAsClear: true,
+			multiThreadedResolver: false,
 			getCurrentTime: mockTime.getCurrentTime,
 		})
 		const errorHandler = jest.fn((...args) => console.log('Error in device', ...args))
@@ -1102,7 +1102,7 @@ describe('vMix', () => {
 		}
 
 		const myConductor = new Conductor({
-			initializeAsClear: true,
+			multiThreadedResolver: false,
 			getCurrentTime: mockTime.getCurrentTime,
 		})
 		const errorHandler = jest.fn((...args) => console.log('Error in device', ...args))
@@ -1492,7 +1492,7 @@ describe('vMix', () => {
 		}
 
 		const myConductor = new Conductor({
-			initializeAsClear: true,
+			multiThreadedResolver: false,
 			getCurrentTime: mockTime.getCurrentTime,
 		})
 		const errorHandler = jest.fn((...args) => console.log('Error in device', ...args))
@@ -1728,7 +1728,7 @@ describe('vMix', () => {
 		}
 
 		const myConductor = new Conductor({
-			initializeAsClear: true,
+			multiThreadedResolver: false,
 			getCurrentTime: mockTime.getCurrentTime,
 		})
 		const errorHandler = jest.fn((...args) => console.log('Error in device', ...args))
@@ -1858,7 +1858,7 @@ describe('vMix', () => {
 		}
 
 		const myConductor = new Conductor({
-			initializeAsClear: true,
+			multiThreadedResolver: false,
 			getCurrentTime: mockTime.getCurrentTime,
 		})
 		const errorHandler = jest.fn((...args) => console.log('Error in device', ...args))
@@ -1981,7 +1981,7 @@ describe('vMix', () => {
 		}
 
 		const myConductor = new Conductor({
-			initializeAsClear: true,
+			multiThreadedResolver: false,
 			getCurrentTime: mockTime.getCurrentTime,
 		})
 		const errorHandler = jest.fn((...args) => console.log('Error in device', ...args))
@@ -2104,7 +2104,7 @@ describe('vMix', () => {
 		}
 
 		const myConductor = new Conductor({
-			initializeAsClear: true,
+			multiThreadedResolver: false,
 			getCurrentTime: mockTime.getCurrentTime,
 		})
 		const errorHandler = jest.fn((...args) => console.log('Error in device', ...args))
@@ -2228,7 +2228,7 @@ describe('vMix', () => {
 		}
 
 		const myConductor = new Conductor({
-			initializeAsClear: true,
+			multiThreadedResolver: false,
 			getCurrentTime: mockTime.getCurrentTime,
 		})
 		const errorHandler = jest.fn((...args) => console.log('Error in device', ...args))
@@ -2364,7 +2364,7 @@ describe('vMix', () => {
 		}
 
 		const myConductor = new Conductor({
-			initializeAsClear: true,
+			multiThreadedResolver: false,
 			getCurrentTime: mockTime.getCurrentTime,
 		})
 		const errorHandler = jest.fn((...args) => console.log('Error in device', ...args))
@@ -2501,7 +2501,7 @@ describe('vMix', () => {
 		}
 
 		const myConductor = new Conductor({
-			initializeAsClear: true,
+			multiThreadedResolver: false,
 			getCurrentTime: mockTime.getCurrentTime,
 		})
 		const errorHandler = jest.fn((...args) => console.log('Error in device', ...args))
@@ -2624,7 +2624,7 @@ describe('vMix', () => {
 		}
 
 		const myConductor = new Conductor({
-			initializeAsClear: true,
+			multiThreadedResolver: false,
 			getCurrentTime: mockTime.getCurrentTime,
 		})
 		const errorHandler = jest.fn((...args) => console.log('Error in device', ...args))

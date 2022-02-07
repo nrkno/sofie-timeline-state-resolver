@@ -61,7 +61,7 @@ describe('Shotoku', () => {
 		}
 
 		const myConductor = new Conductor({
-			initializeAsClear: true,
+			multiThreadedResolver: false,
 			getCurrentTime: () => mockTime.now,
 		})
 		const onError = jest.fn(console.log)
@@ -237,7 +237,7 @@ describe('Shotoku', () => {
 		}
 
 		const myConductor = new Conductor({
-			initializeAsClear: true,
+			multiThreadedResolver: false,
 			getCurrentTime: () => mockTime.now,
 		})
 		const onError = jest.fn(console.log)

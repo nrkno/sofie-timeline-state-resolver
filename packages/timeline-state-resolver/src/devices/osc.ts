@@ -65,9 +65,7 @@ export class OSCMessageDevice extends DeviceWithState<OSCDeviceState, DeviceOpti
 			if (deviceOptions.commandReceiver) {
 				this._commandReceiver = deviceOptions.commandReceiver
 			} else {
-				this._commandReceiver = async (...args) => {
-					return this._defaultCommandReceiver(...args)
-				}
+				this._defaultCommandReceiver.bind(this)
 			}
 			if (deviceOptions.oscSender) {
 				this._oscSender = deviceOptions.oscSender

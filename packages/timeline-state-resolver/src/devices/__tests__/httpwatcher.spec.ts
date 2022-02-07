@@ -22,7 +22,7 @@ describe('HTTP-Watcher', () => {
 	let mockStatusCode: number
 	let mockBody: string
 	let myConductor: Conductor = new Conductor({
-		initializeAsClear: true,
+		multiThreadedResolver: false,
 		getCurrentTime: mockTime.getCurrentTime,
 	})
 	beforeAll(() => {
@@ -52,7 +52,7 @@ describe('HTTP-Watcher', () => {
 		mockBody = 'this is my keyword and its really nice'
 		request.setMockGet(onGet)
 		myConductor = new Conductor({
-			initializeAsClear: true,
+			multiThreadedResolver: false,
 			getCurrentTime: mockTime.getCurrentTime,
 		})
 	})

@@ -12,7 +12,7 @@ export class AsyncResolver {
 		this.onSetTimelineTriggerTime = onSetTimelineTriggerTime
 	}
 
-	public async resolveTimeline(resolveTime: number, timeline: TSRTimeline, limitTime: number, useCache: boolean) {
+	public resolveTimeline(resolveTime: number, timeline: TSRTimeline, limitTime: number, useCache: boolean) {
 		const objectsFixed = this._fixNowObjects(timeline, resolveTime)
 
 		const resolvedTimeline = Resolver.resolveTimeline(timeline, {

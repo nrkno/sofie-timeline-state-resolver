@@ -89,7 +89,7 @@ describe('OBS', () => {
 		}
 
 		const myConductor = new Conductor({
-			initializeAsClear: true,
+			multiThreadedResolver: false,
 			getCurrentTime: mockTime.getCurrentTime,
 		})
 		myConductor.on('error', (e0, e1, e2) => console.error(e0, e1, e2))

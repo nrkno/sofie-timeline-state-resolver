@@ -13,7 +13,10 @@ export class MockTime {
 	getCurrentTime = () => {
 		return this._now
 	}
-	getCurrentTime2 = async (): Promise<number> => {
+
+	// eslint-disable-next-line @typescript-eslint/promise-function-async
+	getCurrentTime2 = (): Promise<number> => {
+		// Note: this is intentionally not an async, as we are trying to bypass some hackery that threadedClass forces a promise upon us
 		return this._now as any
 	}
 	setNow = (t: number) => {
@@ -61,7 +64,7 @@ export class MockTime {
 	}
 	tick = async () => {
 		return new Promise((resolve) => {
-			setImmediate(resolve)
+			jest.requireActual('timers').setImmediate(resolve)
 		})
 	}
 }

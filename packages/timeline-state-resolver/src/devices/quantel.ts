@@ -62,10 +62,7 @@ export class QuantelDevice extends DeviceWithState<QuantelState, DeviceOptionsQu
 
 		if (deviceOptions.options) {
 			if (deviceOptions.commandReceiver) this._commandReceiver = deviceOptions.commandReceiver
-			else
-				this._commandReceiver = async (...args) => {
-					return this._defaultCommandReceiver(...args)
-				}
+			else this._commandReceiver = this._defaultCommandReceiver.bind(this)
 		}
 		this._quantel = new QuantelGateway()
 		this._quantel.on('error', (e) => this.emit('error', 'Quantel.QuantelGateway', e))
