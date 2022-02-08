@@ -1,34 +1,34 @@
 import * as _ from 'underscore'
 import { EventEmitter } from 'events'
-import { DeviceWithState, CommandWithContext, DeviceStatus, StatusCode, literal } from './device'
+import { CommandWithContext, DeviceStatus, DeviceWithState, literal, StatusCode } from './device'
 
 import {
+	DeviceOptionsVizMSE,
 	DeviceType,
 	Mapping,
-	VizMSEOptions,
-	ResolvedTimelineObjectInstanceExtended,
-	TimelineObjVIZMSEElementInternal,
-	TimelineContentTypeVizMSE,
-	TimelineObjVIZMSEElementPilot,
-	VIZMSEPlayoutItemContent,
-	DeviceOptionsVizMSE,
-	TimelineObjVIZMSEAny,
-	VIZMSEOutTransition,
-	VIZMSETransitionType,
 	Mappings,
 	MediaObject,
+	ResolvedTimelineObjectInstanceExtended,
+	TimelineContentTypeVizMSE,
+	TimelineObjVIZMSEAny,
+	TimelineObjVIZMSEElementInternal,
+	TimelineObjVIZMSEElementPilot,
+	VizMSEOptions,
+	VIZMSEOutTransition,
+	VIZMSEPlayoutItemContent,
+	VIZMSETransitionType,
 } from 'timeline-state-resolver-types'
 
-import { TimelineState, ResolvedTimelineObjectInstance } from 'superfly-timeline'
+import { ResolvedTimelineObjectInstance, TimelineState } from 'superfly-timeline'
 
 import {
 	createMSE,
-	MSE,
-	VRundown,
-	InternalElement,
 	ExternalElement,
-	VElement,
 	ExternalElementId,
+	InternalElement,
+	MSE,
+	VElement,
+	VRundown,
 } from '@tv2media/v-connection'
 
 import { DoOnTime, SendMode } from '../doOnTime'
@@ -37,7 +37,7 @@ import * as crypto from 'crypto'
 import * as net from 'net'
 import { ExpectedPlayoutItem } from '../expectedPlayoutItems'
 import * as request from 'request'
-import { startTrace, endTrace } from '../lib'
+import { endTrace, startTrace } from '../lib'
 
 /** The ideal time to prepare elements before going on air */
 const IDEAL_PREPARE_TIME = 1000
@@ -264,30 +264,47 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState, DeviceOptionsVizM
 				if (layer.content) {
 					const l = layer as any as TimelineObjVIZMSEAny
 
-					if (l.content.type === TimelineContentTypeVizMSE.LOAD_ALL_ELEMENTS) {
-						state.layer[layerName] = literal<VizMSEStateLayerLoadAllElements>({
-							timelineObjId: l.id,
-							contentType: TimelineContentTypeVizMSE.LOAD_ALL_ELEMENTS,
-						})
-					} else if (l.content.type === TimelineContentTypeVizMSE.CLEAR_ALL_ELEMENTS) {
-						// Special case: clear all graphics:
-						state.isClearAll = {
-							timelineObjId: l.id,
-							channelsToSendCommands: l.content.channelsToSendCommands,
+					switch (l.content.type) {
+						case TimelineContentTypeVizMSE.LOAD_ALL_ELEMENTS: {
+							state.layer[layerName] = literal<VizMSEStateLayerLoadAllElements>({
+								timelineObjId: l.id,
+								contentType: TimelineContentTypeVizMSE.LOAD_ALL_ELEMENTS,
+							})
+							break
 						}
-					} else if (l.content.type === TimelineContentTypeVizMSE.CONTINUE) {
-						state.layer[layerName] = literal<VizMSEStateLayerContinue>({
-							timelineObjId: l.id,
-							contentType: TimelineContentTypeVizMSE.CONTINUE,
-							direction: l.content.direction,
-							reference: l.content.reference,
-						})
-					} else {
-						const stateLayer = content2StateLayer(l.id, l.content as any)
-						if (stateLayer) {
-							if (isLookahead) stateLayer.lookahead = true
+						case TimelineContentTypeVizMSE.CLEAR_ALL_ELEMENTS: {
+							// Special case: clear all graphics:
+							state.isClearAll = {
+								timelineObjId: l.id,
+								channelsToSendCommands: l.content.channelsToSendCommands,
+							}
+							break
+						}
+						case TimelineContentTypeVizMSE.CONTINUE: {
+							state.layer[layerName] = literal<VizMSEStateLayerContinue>({
+								timelineObjId: l.id,
+								contentType: TimelineContentTypeVizMSE.CONTINUE,
+								direction: l.content.direction,
+								reference: l.content.reference,
+							})
+							break
+						}
+						case TimelineContentTypeVizMSE.SET_CONCEPT: {
+							state.layer[layerName] = literal<VizMSEStateLayerSetConcept>({
+								timelineObjId: l.id,
+								contentType: TimelineContentTypeVizMSE.SET_CONCEPT,
+								concept: l.content.concept,
+							})
+							break
+						}
+						default: {
+							const stateLayer = content2StateLayer(l.id, l.content as any)
+							if (stateLayer) {
+								if (isLookahead) stateLayer.lookahead = true
 
-							state.layer[layerName] = stateLayer
+								state.layer[layerName] = stateLayer
+							}
+							break
 						}
 					}
 				}
@@ -482,6 +499,17 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState, DeviceOptionsVizM
 							newLayer.lookahead
 						)
 					}
+				}
+			} else if (newLayer.contentType === TimelineContentTypeVizMSE.SET_CONCEPT) {
+				if (!oldLayer || !_.isEqual(newLayer, oldLayer)) {
+					addCommand(
+						literal<VizMSECommandSetConcept>({
+							concept: newLayer.concept,
+							type: VizMSECommandType.SET_CONCEPT,
+							time: time,
+							timelineObjId: newLayer.timelineObjId,
+						})
+					)
 				}
 			} else {
 				const props = {
@@ -732,27 +760,51 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState, DeviceOptionsVizM
 
 		try {
 			if (this._vizmseManager) {
-				if (cmd.type === VizMSECommandType.PREPARE_ELEMENT) {
-					await this._vizmseManager.prepareElement(cmd)
-				} else if (cmd.type === VizMSECommandType.CUE_ELEMENT) {
-					await this._vizmseManager.cueElement(cmd)
-				} else if (cmd.type === VizMSECommandType.TAKE_ELEMENT) {
-					await this._vizmseManager.takeElement(cmd)
-				} else if (cmd.type === VizMSECommandType.TAKEOUT_ELEMENT) {
-					await this._vizmseManager.takeoutElement(cmd)
-				} else if (cmd.type === VizMSECommandType.CONTINUE_ELEMENT) {
-					await this._vizmseManager.continueElement(cmd)
-				} else if (cmd.type === VizMSECommandType.CONTINUE_ELEMENT_REVERSE) {
-					await this._vizmseManager.continueElementReverse(cmd)
-				} else if (cmd.type === VizMSECommandType.LOAD_ALL_ELEMENTS) {
-					await this._vizmseManager.loadAllElements(cmd)
-				} else if (cmd.type === VizMSECommandType.CLEAR_ALL_ELEMENTS) {
-					await this._vizmseManager.clearAll(cmd)
-				} else if (cmd.type === VizMSECommandType.CLEAR_ALL_ENGINES) {
-					await this._vizmseManager.clearEngines(cmd)
-				} else {
-					// @ts-ignore never
-					throw new Error(`Unsupported command type "${cmd.type}"`)
+				switch (cmd.type) {
+					case VizMSECommandType.PREPARE_ELEMENT: {
+						await this._vizmseManager.prepareElement(cmd)
+						break
+					}
+					case VizMSECommandType.CUE_ELEMENT: {
+						await this._vizmseManager.cueElement(cmd)
+						break
+					}
+					case VizMSECommandType.TAKE_ELEMENT: {
+						await this._vizmseManager.takeElement(cmd)
+						break
+					}
+					case VizMSECommandType.TAKEOUT_ELEMENT: {
+						await this._vizmseManager.takeoutElement(cmd)
+						break
+					}
+					case VizMSECommandType.CONTINUE_ELEMENT: {
+						await this._vizmseManager.continueElement(cmd)
+						break
+					}
+					case VizMSECommandType.CONTINUE_ELEMENT_REVERSE: {
+						await this._vizmseManager.continueElementReverse(cmd)
+						break
+					}
+					case VizMSECommandType.LOAD_ALL_ELEMENTS: {
+						await this._vizmseManager.loadAllElements(cmd)
+						break
+					}
+					case VizMSECommandType.CLEAR_ALL_ELEMENTS: {
+						await this._vizmseManager.clearAll(cmd)
+						break
+					}
+					case VizMSECommandType.CLEAR_ALL_ENGINES: {
+						await this._vizmseManager.clearEngines(cmd)
+						break
+					}
+					case VizMSECommandType.SET_CONCEPT: {
+						await this._vizmseManager.setConcept(cmd)
+						break
+					}
+					default: {
+						// @ts-ignore never
+						throw new Error(`Unsupported command type "${cmd.type}"`)
+					}
 				}
 			} else {
 				throw new Error(`Not initialized yet`)
@@ -1183,6 +1235,15 @@ class VizMSEManager extends EventEmitter {
 	private _filterEnginesToClear(engines: Engine[], channels: string[] | 'all'): Array<{ host: string; port: number }> {
 		return engines.filter((engine) => channels === 'all' || (engine.channel && channels.includes(engine.channel)))
 	}
+
+	public async setConcept(cmd: VizMSECommandSetConcept): Promise<void> {
+		if (this._playlistID === undefined) {
+			this.emit('error', 'Unable to set concept since PlaylistId is undefined')
+			return
+		}
+		await this._vizMSE.setAlternativeConcept(this._playlistID, cmd.concept)
+	}
+
 	/**
 	 * Load all elements: Trigger a loading of all pilot elements onto the vizEngine.
 	 * This might cause the vizEngine to freeze during load, so do not to it while on air!
@@ -1869,6 +1930,8 @@ type VizMSEStateLayer =
 	| VizMSEStateLayerPilot
 	| VizMSEStateLayerContinue
 	| VizMSEStateLayerLoadAllElements
+	| VizMSEStateLayerSetConcept
+
 interface VizMSEStateLayerBase {
 	timelineObjId: string
 	lookahead?: boolean
@@ -1906,6 +1969,10 @@ interface VizMSEStateLayerContinue extends VizMSEStateLayerBase {
 interface VizMSEStateLayerLoadAllElements extends VizMSEStateLayerBase {
 	contentType: TimelineContentTypeVizMSE.LOAD_ALL_ELEMENTS
 }
+interface VizMSEStateLayerSetConcept extends VizMSEStateLayerBase {
+	contentType: TimelineContentTypeVizMSE.SET_CONCEPT
+	concept: string
+}
 
 interface VizMSECommandBase {
 	time: number
@@ -1924,6 +1991,7 @@ export enum VizMSECommandType {
 	LOAD_ALL_ELEMENTS = 'load_all_elements',
 	CLEAR_ALL_ELEMENTS = 'clear_all_elements',
 	CLEAR_ALL_ENGINES = 'clear_all_engines',
+	SET_CONCEPT = 'set_concept',
 }
 
 interface VizMSECommandElementBase extends VizMSECommandBase, VizMSEPlayoutItemContentInternal {}
@@ -1962,6 +2030,11 @@ interface VizMSECommandClearAllEngines extends VizMSECommandBase {
 	commands: string[]
 }
 
+interface VizMSECommandSetConcept extends VizMSECommandBase {
+	type: VizMSECommandType.SET_CONCEPT
+	concept: string
+}
+
 type VizMSECommand =
 	| VizMSECommandPrepare
 	| VizMSECommandCue
@@ -1972,6 +2045,7 @@ type VizMSECommand =
 	| VizMSECommandLoadAllElements
 	| VizMSECommandClearAllElements
 	| VizMSECommandClearAllEngines
+	| VizMSECommandSetConcept
 
 interface VizMSEPlayoutItemContentInternal extends VIZMSEPlayoutItemContent {
 	/** Name of the instance of the element in MSE, generated by us */

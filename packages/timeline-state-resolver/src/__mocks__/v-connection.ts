@@ -145,6 +145,11 @@ export class MSEMock extends EventEmitter implements MSE {
 	async close(): Promise<boolean> {
 		return true
 	}
+
+	async setAlternativeConcept(_playlistID: string, _concept: string): Promise<void> {
+		return
+	}
+
 	// on (event: 'connected', listener: () => void): this
 	// on (event: 'disconnected', listener: (err?: Error) => void): this
 
