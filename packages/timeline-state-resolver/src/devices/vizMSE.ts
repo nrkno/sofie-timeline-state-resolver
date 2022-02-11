@@ -1237,11 +1237,7 @@ class VizMSEManager extends EventEmitter {
 	}
 
 	public async setConcept(cmd: VizMSECommandSetConcept): Promise<void> {
-		if (this._playlistID === undefined) {
-			this.emit('error', 'Unable to set concept since PlaylistId is undefined')
-			return
-		}
-		await this._vizMSE.setAlternativeConcept(this._playlistID, cmd.concept)
+		await this._rundown?.setAlternativeConcept(cmd.concept)
 	}
 
 	/**
