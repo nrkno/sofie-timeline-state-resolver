@@ -146,10 +146,6 @@ export class MSEMock extends EventEmitter implements MSE {
 		return true
 	}
 
-	async setAlternativeConcept(_playlistID: string, _concept: string): Promise<void> {
-		return
-	}
-
 	// on (event: 'connected', listener: () => void): this
 	// on (event: 'disconnected', listener: (err?: Error) => void): this
 
@@ -309,5 +305,9 @@ export class VRundownMock implements VRundown {
 	}
 	async isActive(): Promise<boolean> {
 		return this._isActive
+	}
+
+	setAlternativeConcept(_concept: string): Promise<void> {
+		return Promise.resolve(undefined)
 	}
 }
