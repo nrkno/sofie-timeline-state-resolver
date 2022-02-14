@@ -289,14 +289,14 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState, DeviceOptionsVizM
 							})
 							break
 						}
-						case TimelineContentTypeVizMSE.SET_CONCEPT: {
-							state.layer[layerName] = literal<VizMSEStateLayerSetConcept>({
-								timelineObjId: l.id,
-								contentType: TimelineContentTypeVizMSE.SET_CONCEPT,
-								concept: l.content.concept,
-							})
-							break
-						}
+						// case TimelineContentTypeVizMSE.SET_CONCEPT: {
+						// 	state.layer[layerName] = literal<VizMSEStateLayerSetConcept>({
+						// 		timelineObjId: l.id,
+						// 		contentType: TimelineContentTypeVizMSE.SET_CONCEPT,
+						// 		concept: l.content.concept,
+						// 	})
+						// 	break
+						// }
 						default: {
 							const stateLayer = content2StateLayer(l.id, l.content as any)
 							if (stateLayer) {
@@ -500,17 +500,17 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState, DeviceOptionsVizM
 						)
 					}
 				}
-			} else if (newLayer.contentType === TimelineContentTypeVizMSE.SET_CONCEPT) {
-				if (!oldLayer || !_.isEqual(newLayer, oldLayer)) {
-					addCommand(
-						literal<VizMSECommandSetConcept>({
-							concept: newLayer.concept,
-							type: VizMSECommandType.SET_CONCEPT,
-							time: time,
-							timelineObjId: newLayer.timelineObjId,
-						})
-					)
-				}
+				// } else if (newLayer.contentType === TimelineContentTypeVizMSE.SET_CONCEPT) {
+				// 	if (!oldLayer || !_.isEqual(newLayer, oldLayer)) {
+				// 		addCommand(
+				// 			literal<VizMSECommandSetConcept>({
+				// 				concept: newLayer.concept,
+				// 				type: VizMSECommandType.SET_CONCEPT,
+				// 				time: time,
+				// 				timelineObjId: newLayer.timelineObjId,
+				// 			})
+				// 		)
+				// 	}
 			} else {
 				const props = {
 					timelineObjId: newLayer.timelineObjId,
@@ -1926,7 +1926,7 @@ type VizMSEStateLayer =
 	| VizMSEStateLayerPilot
 	| VizMSEStateLayerContinue
 	| VizMSEStateLayerLoadAllElements
-	| VizMSEStateLayerSetConcept
+// | VizMSEStateLayerSetConcept
 
 interface VizMSEStateLayerBase {
 	timelineObjId: string
@@ -1965,10 +1965,10 @@ interface VizMSEStateLayerContinue extends VizMSEStateLayerBase {
 interface VizMSEStateLayerLoadAllElements extends VizMSEStateLayerBase {
 	contentType: TimelineContentTypeVizMSE.LOAD_ALL_ELEMENTS
 }
-interface VizMSEStateLayerSetConcept extends VizMSEStateLayerBase {
-	contentType: TimelineContentTypeVizMSE.SET_CONCEPT
-	concept: string
-}
+// interface VizMSEStateLayerSetConcept extends VizMSEStateLayerBase {
+// 	contentType: TimelineContentTypeVizMSE.SET_CONCEPT
+// 	concept: string
+// }
 
 interface VizMSECommandBase {
 	time: number
