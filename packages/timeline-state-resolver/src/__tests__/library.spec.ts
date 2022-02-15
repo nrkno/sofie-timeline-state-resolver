@@ -5,7 +5,7 @@ import {
 	TSRTimeline,
 	TimelineObjEmpty,
 	DeviceOptionsAbstract,
-} from 'timeline-state-resolver-types'
+} from '@tv2media/timeline-state-resolver-types'
 
 describe('Usage of library', () => {
 	// These tests test that the library can be imported and used by the library consumers.

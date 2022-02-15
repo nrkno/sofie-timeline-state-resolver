@@ -8,7 +8,7 @@ import {
 } from 'superfly-timeline'
 import _ = require('underscore')
 import { TimelineTriggerTimeResult } from './conductor'
-import { TSRTimeline, TSRTimelineObj } from 'timeline-state-resolver-types'
+import { TSRTimeline, TSRTimelineObj } from '@tv2media/timeline-state-resolver-types'
 
 export class AsyncResolver {
 	private readonly onSetTimelineTriggerTime: (res: TimelineTriggerTimeResult) => void

@@ -1,6 +1,6 @@
 import { VMix } from '../vmixAPI'
 import { setupVmixMock } from './vmixMock'
-import { VMixOptions } from 'timeline-state-resolver-types'
+import { VMixOptions } from '@tv2media/timeline-state-resolver-types'
 
 const orgSetTimeout = setTimeout
 

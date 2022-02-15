@@ -12,7 +12,7 @@ import {
 	ResolvedTimelineObjectInstanceExtended,
 	TSRTimeline,
 	DeviceOptionsBase,
-} from 'timeline-state-resolver-types'
+} from '@tv2media/timeline-state-resolver-types'
 import { AtemDevice, DeviceOptionsAtemInternal } from './devices/atem'
 import { EventEmitter } from 'eventemitter3'
 import { LawoDevice, DeviceOptionsLawoInternal } from './devices/lawo'

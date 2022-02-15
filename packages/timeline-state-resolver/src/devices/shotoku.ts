@@ -10,7 +10,7 @@ import {
 	TimelineObjShotoku,
 	TimelineContentTypeShotoku,
 	TimelineObjShotokuSequence,
-} from 'timeline-state-resolver-types'
+} from '@tv2media/timeline-state-resolver-types'
 import { DoOnTime, SendMode } from '../doOnTime'
 
 import { TimelineState } from 'superfly-timeline'

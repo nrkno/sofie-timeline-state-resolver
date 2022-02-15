@@ -25,7 +25,7 @@ import {
 	TimelineObjOBSSourceSettings,
 	MappingOBSSourceSettings,
 	ResolvedTimelineObjectInstanceExtended,
-} from 'timeline-state-resolver-types'
+} from '@tv2media/timeline-state-resolver-types'
 
 interface OBSRequest {
 	requestName: OBSRequestName

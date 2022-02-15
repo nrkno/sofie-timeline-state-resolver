@@ -17,7 +17,7 @@ import {
 	ContentTimelineObjLawoSource,
 	MappingLawoType,
 	Mappings,
-} from 'timeline-state-resolver-types'
+} from '@tv2media/timeline-state-resolver-types'
 import { TimelineState, ResolvedTimelineObjectInstance } from 'superfly-timeline'
 import { DoOnTime, SendMode } from '../doOnTime'
 import { getDiff } from '../lib'

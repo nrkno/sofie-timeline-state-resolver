@@ -1,4 +1,4 @@
-import { Mappings, DeviceType, MappingAbstract } from 'timeline-state-resolver-types'
+import { Mappings, DeviceType, MappingAbstract } from '@tv2media/timeline-state-resolver-types'
 import { Conductor } from '../../conductor'
 import { AbstractDevice } from '../abstract'
 import { StatusCode } from '../device'

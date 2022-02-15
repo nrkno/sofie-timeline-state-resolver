@@ -11,7 +11,7 @@ import {
 	TimelineContentTypeSisyfos,
 	SisyfosChannelOptions,
 	MappingSisyfosChannel,
-} from 'timeline-state-resolver-types'
+} from '@tv2media/timeline-state-resolver-types'
 
 import { DoOnTime, SendMode } from '../doOnTime'
 

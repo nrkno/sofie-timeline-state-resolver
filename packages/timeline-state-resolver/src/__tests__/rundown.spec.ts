@@ -5,7 +5,7 @@ import {
 	TimelineContentTypeCasparCg,
 	ChannelFormat,
 	Transition,
-} from 'timeline-state-resolver-types'
+} from '@tv2media/timeline-state-resolver-types'
 import { Conductor } from '../conductor'
 import { MockTime } from './mockTime'
 import { getMockCall } from './lib'

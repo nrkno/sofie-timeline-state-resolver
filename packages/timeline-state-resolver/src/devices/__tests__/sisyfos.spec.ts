@@ -6,7 +6,7 @@ import {
 	MappingSisyfos,
 	TimelineContentTypeSisyfos,
 	MappingSisyfosType,
-} from 'timeline-state-resolver-types'
+} from '@tv2media/timeline-state-resolver-types'
 import * as OSC from '../../__mocks__/osc'
 const MockOSC = OSC.MockOSC
 import { MockTime } from '../../__tests__/mockTime'

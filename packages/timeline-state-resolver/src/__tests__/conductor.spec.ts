@@ -7,7 +7,7 @@ import {
 	LawoDeviceMode,
 	MappingCasparCG,
 	TimelineContentTypeCasparCg,
-} from 'timeline-state-resolver-types'
+} from '@tv2media/timeline-state-resolver-types'
 import { Conductor, TimelineTriggerTimeResult } from '../conductor'
 import * as _ from 'underscore'
 import { MockTime } from './mockTime'

@@ -1,5 +1,5 @@
 import { Conductor } from '../../conductor'
-import { Mappings, DeviceType, MappingHTTPWatcher } from 'timeline-state-resolver-types'
+import { Mappings, DeviceType, MappingHTTPWatcher } from '@tv2media/timeline-state-resolver-types'
 import { MockTime } from '../../__tests__/mockTime'
 import { StatusCode } from '../device'
 

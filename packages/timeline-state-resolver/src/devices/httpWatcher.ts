@@ -5,7 +5,7 @@ import {
 	HTTPWatcherOptions,
 	DeviceOptionsHTTPWatcher,
 	Mappings,
-} from 'timeline-state-resolver-types'
+} from '@tv2media/timeline-state-resolver-types'
 import * as request from 'request'
 
 import { TimelineState } from 'superfly-timeline'

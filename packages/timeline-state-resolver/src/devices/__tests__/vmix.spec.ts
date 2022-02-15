@@ -18,7 +18,7 @@ import {
 	MappingVMixInput,
 	MappingVMixFadeToBlack,
 	MappingVMixFader,
-} from 'timeline-state-resolver-types'
+} from '@tv2media/timeline-state-resolver-types'
 import { ThreadedClass } from 'threadedclass'
 import { VMixDevice } from '../vmix'
 import { MockTime } from '../../__tests__/mockTime'

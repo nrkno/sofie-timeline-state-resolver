@@ -1,6 +1,6 @@
 import * as fs from 'fs'
 import { EventEmitter } from 'events'
-import { EmberValue } from 'timeline-state-resolver-types'
+import { EmberValue } from '@tv2media/timeline-state-resolver-types'
 
 // @ts-ignore import json file
 const mockData = JSON.parse(fs.readFileSync(__dirname + '/lawo-out.json', 'utf8'))

@@ -10,7 +10,7 @@ import {
 	SingularCompositionAnimation,
 	SingularCompositionControlNode,
 	Mappings,
-} from 'timeline-state-resolver-types'
+} from '@tv2media/timeline-state-resolver-types'
 import { DoOnTime, SendMode } from '../doOnTime'
 import * as request from 'request'
 
