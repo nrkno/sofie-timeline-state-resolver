@@ -289,10 +289,10 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState, DeviceOptionsVizM
 							})
 							break
 						}
-						case TimelineContentTypeVizMSE.SET_CONCEPT: {
-							state.layer[layerName] = literal<VizMSEStateLayerSetConcept>({
+						case TimelineContentTypeVizMSE.CONCEPT: {
+							state.layer[layerName] = literal<VizMSEStateLayerConcept>({
 								timelineObjId: l.id,
-								contentType: TimelineContentTypeVizMSE.SET_CONCEPT,
+								contentType: TimelineContentTypeVizMSE.CONCEPT,
 								concept: l.content.concept,
 							})
 							break
@@ -500,7 +500,7 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState, DeviceOptionsVizM
 						)
 					}
 				}
-			} else if (newLayer.contentType === TimelineContentTypeVizMSE.SET_CONCEPT) {
+			} else if (newLayer.contentType === TimelineContentTypeVizMSE.CONCEPT) {
 				if (!oldLayer || !_.isEqual(newLayer, oldLayer)) {
 					addCommand(
 						literal<VizMSECommandSetConcept>({
@@ -1927,7 +1927,7 @@ type VizMSEStateLayer =
 	| VizMSEStateLayerPilot
 	| VizMSEStateLayerContinue
 	| VizMSEStateLayerLoadAllElements
-	| VizMSEStateLayerSetConcept
+	| VizMSEStateLayerConcept
 
 interface VizMSEStateLayerBase {
 	timelineObjId: string
@@ -1966,8 +1966,8 @@ interface VizMSEStateLayerContinue extends VizMSEStateLayerBase {
 interface VizMSEStateLayerLoadAllElements extends VizMSEStateLayerBase {
 	contentType: TimelineContentTypeVizMSE.LOAD_ALL_ELEMENTS
 }
-interface VizMSEStateLayerSetConcept extends VizMSEStateLayerBase {
-	contentType: TimelineContentTypeVizMSE.SET_CONCEPT
+interface VizMSEStateLayerConcept extends VizMSEStateLayerBase {
+	contentType: TimelineContentTypeVizMSE.CONCEPT
 	concept: string
 }
 
