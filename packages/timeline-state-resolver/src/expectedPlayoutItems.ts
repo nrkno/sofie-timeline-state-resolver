@@ -1,4 +1,4 @@
-import { ExpectedPlayoutItemContent } from '@tv2media/timeline-state-resolver-types'
+import { ExpectedPlayoutItemContent } from 'timeline-state-resolver-types'
 
 export interface ExpectedPlayoutItemContentBase {
 	/** Id of the rundown the items comes from */

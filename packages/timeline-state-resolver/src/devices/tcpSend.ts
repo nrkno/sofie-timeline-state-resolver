@@ -7,7 +7,7 @@ import {
 	TcpSendCommandContent,
 	DeviceOptionsTCPSend,
 	Mappings,
-} from '@tv2media/timeline-state-resolver-types'
+} from 'timeline-state-resolver-types'
 import { DoOnTime, SendMode } from '../doOnTime'
 import { TimelineState, ResolvedTimelineObjectInstance } from 'superfly-timeline'
 

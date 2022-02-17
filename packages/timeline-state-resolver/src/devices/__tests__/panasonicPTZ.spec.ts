@@ -6,7 +6,7 @@ import {
 	TimelineContentTypePanasonicPtz,
 	MappingPanasonicPtz,
 	MappingPanasonicPtzType,
-} from '@tv2media/timeline-state-resolver-types'
+} from 'timeline-state-resolver-types'
 import { MockTime } from '../../__tests__/mockTime'
 import { ThreadedClass } from 'threadedclass'
 import { getMockCall } from '../../__tests__/lib'

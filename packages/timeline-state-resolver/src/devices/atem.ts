@@ -17,7 +17,7 @@ import {
 	TimelineObjAtemMacroPlayer,
 	DeviceOptionsAtem,
 	Mappings,
-} from '@tv2media/timeline-state-resolver-types'
+} from 'timeline-state-resolver-types'
 import { TimelineState } from 'superfly-timeline'
 import { AtemState, State as DeviceState, Defaults as StateDefault } from 'atem-state'
 import { BasicAtem, Commands as AtemCommands, AtemState as NativeAtemState, AtemStateUtil } from 'atem-connection'

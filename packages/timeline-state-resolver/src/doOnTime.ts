@@ -1,6 +1,6 @@
 import { EventEmitter } from 'eventemitter3'
 import * as _ from 'underscore'
-import { SlowReportOptions } from '@tv2media/timeline-state-resolver-types'
+import { SlowReportOptions } from 'timeline-state-resolver-types'
 
 export type DoOrderFunction = (...args: any[]) => void | Promise<any> | any
 export type DoOrderFunctionNothing = () => void | Promise<any> | any

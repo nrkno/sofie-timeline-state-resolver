@@ -1,4 +1,4 @@
-import { Mappings, DeviceType, MappingTCPSend } from '@tv2media/timeline-state-resolver-types'
+import { Mappings, DeviceType, MappingTCPSend } from 'timeline-state-resolver-types'
 import { Conductor } from '../../conductor'
 import { Socket as MockSocket } from 'net'
 import { StatusCode } from '../device'

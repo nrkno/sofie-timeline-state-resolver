@@ -8,7 +8,7 @@ import {
 	OSCValueType,
 	TimelineObjOSCMessage,
 	OSCDeviceType,
-} from '@tv2media/timeline-state-resolver-types'
+} from 'timeline-state-resolver-types'
 import { MockTime } from '../../__tests__/mockTime'
 import { literal } from '../device'
 import { ThreadedClass } from 'threadedclass'

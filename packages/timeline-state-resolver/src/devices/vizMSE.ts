@@ -17,7 +17,7 @@ import {
 	VIZMSEOutTransition,
 	VIZMSEPlayoutItemContent,
 	VIZMSETransitionType,
-} from '@tv2media/timeline-state-resolver-types'
+} from 'timeline-state-resolver-types'
 
 import { ResolvedTimelineObjectInstance, TimelineState } from 'superfly-timeline'
 

@@ -1,7 +1,7 @@
 import { EventEmitter } from 'eventemitter3'
 import * as request from 'request'
 import * as xml from 'xml-js'
-import { VMixOptions, VMixCommand, VMixTransitionType } from '@tv2media/timeline-state-resolver-types'
+import { VMixOptions, VMixCommand, VMixTransitionType } from 'timeline-state-resolver-types'
 import { VMixState, VMixInput, VMixMix } from './vmix'
 import * as _ from 'underscore'
 

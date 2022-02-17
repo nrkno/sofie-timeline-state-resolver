@@ -1,6 +1,6 @@
 import { ThreadedClass, threadedClass, ThreadedClassConfig, ThreadedClassManager } from 'threadedclass'
 import { Device } from './device'
-import { DeviceType, DeviceOptionsBase } from '@tv2media/timeline-state-resolver-types'
+import { DeviceType, DeviceOptionsBase } from 'timeline-state-resolver-types'
 
 /**
  * A device container is a wrapper around a device in ThreadedClass class, it

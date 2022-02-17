@@ -1,6 +1,6 @@
 import { setupQuantelGatewayMock } from './quantelGatewayMock'
 import { Conductor } from '../../conductor'
-import { Mappings, DeviceType, MappingQuantel, QuantelTransitionType } from '@tv2media/timeline-state-resolver-types'
+import { Mappings, DeviceType, MappingQuantel, QuantelTransitionType } from 'timeline-state-resolver-types'
 import { MockTime } from '../../__tests__/mockTime'
 import { ThreadedClass } from 'threadedclass'
 import { QuantelDevice, QuantelCommandType } from '../quantel'

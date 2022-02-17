@@ -12,7 +12,7 @@ import {
 	TimelineContentTypeAtem,
 	AtemOptions,
 	AtemTransitionStyle,
-} from '@tv2media/timeline-state-resolver-types'
+} from 'timeline-state-resolver-types'
 import { ThreadedClass } from 'threadedclass'
 import { literal } from '../device'
 import { getMockCall } from '../../__tests__/lib'

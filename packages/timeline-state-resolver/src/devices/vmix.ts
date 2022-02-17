@@ -37,7 +37,7 @@ import {
 	MappingVMixAudioChannel,
 	MappingVMixOutput,
 	MappingVMixOverlay,
-} from '@tv2media/timeline-state-resolver-types'
+} from 'timeline-state-resolver-types'
 
 export interface DeviceOptionsVMixInternal extends DeviceOptionsVMix {
 	commandReceiver?: CommandReceiver
