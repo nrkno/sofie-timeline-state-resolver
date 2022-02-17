@@ -1237,7 +1237,8 @@ class VizMSEManager extends EventEmitter {
 	}
 
 	public async setConcept(cmd: VizMSECommandSetConcept): Promise<void> {
-		await this._rundown?.setAlternativeConcept(cmd.concept)
+		const rundown: VRundown = await this._getRundown()
+		await rundown.setAlternativeConcept(cmd.concept)
 	}
 
 	/**

@@ -51,7 +51,7 @@ export enum TimelineContentTypeVizMSE {
 	CONTINUE = 'continue',
 	LOAD_ALL_ELEMENTS = 'load_all_elements',
 	CLEAR_ALL_ELEMENTS = 'clear_all_elements',
-	SET_CONCEPT = 'set_concept',
+	CONCEPT = 'concept',
 }
 
 export type TimelineObjVIZMSEAny =
@@ -60,7 +60,7 @@ export type TimelineObjVIZMSEAny =
 	| TimelineObjVIZMSEElementContinue
 	| TimelineObjVIZMSELoadAllElements
 	| TimelineObjVIZMSEClearAllElements
-	| TimelineObjVIZMSESetConcept
+	| TimelineObjVIZMSEConcept
 
 export interface TimelineObjVIZMSEBase extends TSRTimelineObjBase {
 	content: {
@@ -165,10 +165,10 @@ export interface TimelineObjVIZMSEClearAllElements extends TSRTimelineObjBase {
 	}
 }
 
-export interface TimelineObjVIZMSESetConcept extends TimelineObjVIZMSEBase {
+export interface TimelineObjVIZMSEConcept extends TimelineObjVIZMSEBase {
 	content: {
 		deviceType: DeviceType.VIZMSE
-		type: TimelineContentTypeVizMSE.SET_CONCEPT
+		type: TimelineContentTypeVizMSE.CONCEPT
 		concept: string
 	}
 }
