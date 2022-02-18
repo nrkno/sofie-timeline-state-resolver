@@ -1,6 +1,6 @@
 {
 	"name": "timeline-state-resolver-types",
-	"version": "6.5.0-release40",
+	"version": "7.0.0-release41",
 	"description": "Have timeline, control stuff",
 	"main": "dist/index.js",
 	"typings": "dist/index.d.ts",
@@ -61,7 +61,7 @@
 		"precommit": "lint-staged"
 	},
 	"engines": {
-		"node": ">=12.18"
+		"node": "^14.18 || ^16.14"
 	},
 	"files": [
 		"/dist",

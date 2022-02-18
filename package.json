@@ -38,7 +38,7 @@
     "jest-haste-map": "^26.0.1",
     "jest-resolve": "^26.0.1",
     "lerna": "^4.0.0",
-    "open-cli": "^6.0.1",
+    "open-cli": "^7.0.1",
     "rimraf": "^3.0.2",
     "ts-jest": "^26.1.0",
     "type-fest": "^2.11.1",
