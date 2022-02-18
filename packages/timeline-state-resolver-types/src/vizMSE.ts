@@ -51,6 +51,8 @@ export enum TimelineContentTypeVizMSE {
 	CONTINUE = 'continue',
 	LOAD_ALL_ELEMENTS = 'load_all_elements',
 	CLEAR_ALL_ELEMENTS = 'clear_all_elements',
+	ALL_SHOWS = 'all_shows',
+	INITIALIZE_SHOWS = 'initialize_shows',
 }
 
 export type TimelineObjVIZMSEAny =
@@ -59,6 +61,8 @@ export type TimelineObjVIZMSEAny =
 	| TimelineObjVIZMSEElementContinue
 	| TimelineObjVIZMSELoadAllElements
 	| TimelineObjVIZMSEClearAllElements
+	| TimelineObjVIZMSEInitializeShows
+	| TimelineObjVIZMSEAllShows
 
 export interface TimelineObjVIZMSEBase extends TSRTimelineObjBase {
 	content: {
@@ -105,6 +109,8 @@ export interface TimelineObjVIZMSEElementInternal extends TimelineObjVIZMSEBase 
 		templateName: string
 		/** Data to be fed into the template */
 		templateData: Array<string>
+		/** Which Show to place this element in */
+		showId: string
 		/** Whether this element should have its take delayed until after an out transition has finished */
 		delayTakeAfterOutTransition?: boolean
 	}
@@ -160,6 +166,27 @@ export interface TimelineObjVIZMSEClearAllElements extends TSRTimelineObjBase {
 
 		/** Names of the channels to send the special clear commands to */
 		channelsToSendCommands?: string[]
+
+		/** IDs of the Show to use for taking the special template */
+		showId: string
+	}
+}
+export interface TimelineObjVIZMSEInitializeShows extends TSRTimelineObjBase {
+	content: {
+		deviceType: DeviceType.VIZMSE
+		type: TimelineContentTypeVizMSE.INITIALIZE_SHOWS
+
+		/** IDs of the Shows to initialize */
+		showIds?: string[]
+	}
+}
+export interface TimelineObjVIZMSEAllShows extends TSRTimelineObjBase {
+	content: {
+		deviceType: DeviceType.VIZMSE
+		type: TimelineContentTypeVizMSE.ALL_SHOWS
+
+		/** IDs of all the Shows that Sofie manages, that might need to be cleaned up at some point */
+		showIds?: string[]
 	}
 }
 
@@ -176,14 +203,26 @@ export interface VIZMSETransitionDelay {
 	// For how long to delay the take out (ms)
 	delay: number
 }
-export interface VIZMSEPlayoutItemContent {
-	/** Name of the element, or Pilot Element */
-	templateName: string | number // if number, it's a vizPilot element
-	/** Data fields of the element (for internal elements only) */
-	templateData?: string[]
+export interface VIZMSEPlayoutItemContentBase {
 	/** What channel to use for the element */
-	channelName?: string
+	channel?: string
 
 	/** If true, won't be preloaded (cued) automatically */
 	noAutoPreloading?: boolean
 }
+
+export interface VIZMSEPlayoutItemContentInternal extends VIZMSEPlayoutItemContentBase {
+	/** Name of the template that this element uses */
+	templateName: string
+	/** Data fields of the element */
+	templateData?: string[]
+	/** Which Show to place this element in */
+	showId: string
+}
+
+export interface VIZMSEPlayoutItemContentExternal extends VIZMSEPlayoutItemContentBase {
+	/** Id of the Pilot Element */
+	vcpid: number
+}
+
+export type VIZMSEPlayoutItemContent = VIZMSEPlayoutItemContentExternal | VIZMSEPlayoutItemContentInternal

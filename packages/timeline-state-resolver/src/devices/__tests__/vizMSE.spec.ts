@@ -7,6 +7,7 @@ import {
 	TimelineContentTypeVizMSE,
 	VIZMSETransitionType,
 	VizMSEOptions,
+	VIZMSEPlayoutItemContentExternal,
 } from 'timeline-state-resolver-types'
 import { MockTime } from '../../__tests__/mockTime'
 import { ThreadedClass } from 'threadedclass'
@@ -18,6 +19,8 @@ type MSEMock = vConnection.MSEMock
 type VRundownMocked = vConnection.VRundownMocked
 import _ = require('underscore')
 import { literal, StatusCode } from '../device'
+
+const SHOW_ID = '34ea2db4-ad93-42fb-b352-e49f926ed83f'
 
 describe('vizMSE', () => {
 	const mockTime = new MockTime()
@@ -94,6 +97,7 @@ describe('vizMSE', () => {
 					// noAutoPreloading?: boolean
 					templateName: 'myInternalElement',
 					templateData: ['line1', 'line2'],
+					showId: SHOW_ID,
 				},
 			},
 			{
@@ -108,6 +112,7 @@ describe('vizMSE', () => {
 					type: TimelineContentTypeVizMSE.ELEMENT_INTERNAL,
 					templateName: 'myInternalElement2',
 					templateData: ['line1'],
+					showId: SHOW_ID,
 				},
 			},
 			{
@@ -136,10 +141,13 @@ describe('vizMSE', () => {
 			// fromLookahead?: boolean
 			// layerId?: string
 			time: 14100,
-			templateInstance: expect.stringContaining('myInternalElement'),
+			content: {
+				instanceName: expect.stringContaining('myInternalElement'),
+				templateName: 'myInternalElement',
+				templateData: ['line1', 'line2'],
+				showId: SHOW_ID,
+			},
 			type: 'prepare',
-			templateName: 'myInternalElement',
-			templateData: ['line1', 'line2'],
 			// channelName?: string
 			// noAutoPreloading?: boolean
 		})
@@ -150,10 +158,13 @@ describe('vizMSE', () => {
 		expect(getMockCall(commandReceiver0, 0, 1)).toMatchObject({
 			timelineObjId: 'obj0',
 			time: 15100,
-			templateInstance: expect.stringContaining('myInternalElement'),
+			content: {
+				instanceName: expect.stringContaining('myInternalElement'),
+				templateName: 'myInternalElement',
+				templateData: ['line1', 'line2'],
+				showId: SHOW_ID,
+			},
 			type: 'take',
-			templateName: 'myInternalElement',
-			templateData: ['line1', 'line2'],
 		})
 
 		commandReceiver0.mockClear()
@@ -162,10 +173,13 @@ describe('vizMSE', () => {
 		expect(getMockCall(commandReceiver0, 0, 1)).toMatchObject({
 			timelineObjId: 'obj1',
 			time: 16100,
-			templateInstance: expect.stringContaining('myInternalElement2'),
+			content: {
+				instanceName: expect.stringContaining('myInternalElement2'),
+				templateName: 'myInternalElement2',
+				templateData: ['line1'],
+				showId: SHOW_ID,
+			},
 			type: 'prepare',
-			templateName: 'myInternalElement2',
-			templateData: ['line1'],
 		})
 
 		commandReceiver0.mockClear()
@@ -174,10 +188,13 @@ describe('vizMSE', () => {
 		expect(getMockCall(commandReceiver0, 0, 1)).toMatchObject({
 			timelineObjId: 'obj1',
 			time: 17100,
-			templateInstance: expect.stringContaining('myInternalElement2'),
+			content: {
+				instanceName: expect.stringContaining('myInternalElement2'),
+				templateName: 'myInternalElement2',
+				templateData: ['line1'],
+				showId: SHOW_ID,
+			},
 			type: 'take',
-			templateName: 'myInternalElement2',
-			templateData: ['line1'],
 		})
 
 		commandReceiver0.mockClear()
@@ -186,10 +203,13 @@ describe('vizMSE', () => {
 		expect(getMockCall(commandReceiver0, 0, 1)).toMatchObject({
 			timelineObjId: 'obj2',
 			time: 19100,
-			templateInstance: expect.stringContaining('myInternalElement2'),
+			content: {
+				instanceName: expect.stringContaining('myInternalElement2'),
+				templateName: 'myInternalElement2',
+				templateData: ['line1'],
+				showId: SHOW_ID,
+			},
 			type: 'continue',
-			templateName: 'myInternalElement2',
-			templateData: ['line1'],
 		})
 
 		commandReceiver0.mockClear()
@@ -198,10 +218,13 @@ describe('vizMSE', () => {
 		expect(getMockCall(commandReceiver0, 0, 1)).toMatchObject({
 			timelineObjId: 'obj1',
 			time: 22100,
-			templateInstance: expect.stringContaining('myInternalElement2'),
+			content: {
+				instanceName: expect.stringContaining('myInternalElement2'),
+				templateName: 'myInternalElement2',
+				templateData: ['line1'],
+				showId: SHOW_ID,
+			},
 			type: 'out',
-			templateName: 'myInternalElement2',
-			templateData: ['line1'],
 		})
 	})
 	test('vizMSE: External/Pilot element', async () => {
@@ -310,25 +333,20 @@ describe('vizMSE', () => {
 		expect(rundown).toBeTruthy()
 
 		expect(await device.supportsExpectedPlayoutItems).toEqual(true)
-		await device.handleExpectedPlayoutItems([
-			{
-				templateName: 1337,
-				// templateData?: string[]
-				channelName: 'FULL1',
-				// noAutoPreloading?: boolean
-			},
-			{
-				templateName: 1336,
-				// templateData?: string[]
-				channelName: 'FULL1',
-				// noAutoPreloading?: boolean
-			},
-		])
+		const expectedItem1: VIZMSEPlayoutItemContentExternal = {
+			vcpid: 1337,
+			channel: 'FULL1',
+		}
+		const expectedItem2: VIZMSEPlayoutItemContentExternal = {
+			vcpid: 1336,
+			channel: 'FULL1',
+		}
+		await device.handleExpectedPlayoutItems([expectedItem1, expectedItem2])
 		await mockTime.advanceTimeTicks(100)
 
 		expect(rundown.createElement).toHaveBeenCalledTimes(2)
-		expect(rundown.createElement).toHaveBeenNthCalledWith(1, 1337, 'FULL1')
-		expect(rundown.createElement).toHaveBeenNthCalledWith(2, 1336, 'FULL1')
+		expect(rundown.createElement).toHaveBeenNthCalledWith(1, expectedItem1)
+		expect(rundown.createElement).toHaveBeenNthCalledWith(2, expectedItem2)
 		rundown.createElement.mockClear()
 
 		await myConductor.devicesMakeReady(true)
@@ -337,16 +355,16 @@ describe('vizMSE', () => {
 		expect(rundown.activate).toHaveBeenCalledTimes(2)
 
 		expect(rundown.getElement).toHaveBeenCalledTimes(4)
-		expect(rundown.getElement).nthCalledWith(1, 1337, 'FULL1')
-		expect(rundown.getElement).nthCalledWith(2, 1336, 'FULL1')
+		expect(rundown.getElement).nthCalledWith(1, expectedItem1)
+		expect(rundown.getElement).nthCalledWith(2, expectedItem2)
 
 		expect(rundown.createElement).toHaveBeenCalledTimes(2)
-		expect(rundown.createElement).toHaveBeenNthCalledWith(1, 1337, 'FULL1')
-		expect(rundown.createElement).toHaveBeenNthCalledWith(2, 1336, 'FULL1')
+		expect(rundown.createElement).toHaveBeenNthCalledWith(1, expectedItem1)
+		expect(rundown.createElement).toHaveBeenNthCalledWith(2, expectedItem2)
 
 		expect(rundown.initialize).toHaveBeenCalledTimes(2)
-		expect(rundown.initialize).nthCalledWith(1, 1337, 'FULL1')
-		expect(rundown.initialize).nthCalledWith(2, 1336, 'FULL1')
+		expect(rundown.initialize).nthCalledWith(1, expectedItem1)
+		expect(rundown.initialize).nthCalledWith(2, expectedItem2)
 
 		commandReceiver0.mockClear()
 		await mockTime.advanceTimeToTicks(14500)
@@ -356,10 +374,11 @@ describe('vizMSE', () => {
 			// fromLookahead?: boolean
 			// layerId?: string
 			time: 14100,
-			templateInstance: expect.stringContaining('pilot_1337'),
+			content: {
+				vcpid: 1337,
+				channel: 'FULL1',
+			},
 			type: 'prepare',
-			templateName: 1337,
-			channelName: 'FULL1',
 			// noAutoPreloading?: boolean
 		})
 
@@ -369,10 +388,11 @@ describe('vizMSE', () => {
 		expect(getMockCall(commandReceiver0, 0, 1)).toMatchObject({
 			timelineObjId: 'obj0',
 			time: 15100,
-			templateInstance: expect.stringContaining('pilot_1337'),
+			content: {
+				vcpid: 1337,
+				channel: 'FULL1',
+			},
 			type: 'take',
-			templateName: 1337,
-			channelName: 'FULL1',
 		})
 
 		commandReceiver0.mockClear()
@@ -381,10 +401,11 @@ describe('vizMSE', () => {
 		expect(getMockCall(commandReceiver0, 0, 1)).toMatchObject({
 			timelineObjId: 'obj1',
 			time: 16100,
-			templateInstance: expect.stringContaining('pilot_1338'),
+			content: {
+				vcpid: 1338,
+				channel: 'FULL1',
+			},
 			type: 'prepare',
-			templateName: 1338,
-			channelName: 'FULL1',
 		})
 
 		commandReceiver0.mockClear()
@@ -393,10 +414,11 @@ describe('vizMSE', () => {
 		expect(getMockCall(commandReceiver0, 0, 1)).toMatchObject({
 			timelineObjId: 'obj1',
 			time: 17100,
-			templateInstance: expect.stringContaining('pilot_1338'),
+			content: {
+				vcpid: 1338,
+				channel: 'FULL1',
+			},
 			type: 'take',
-			templateName: 1338,
-			channelName: 'FULL1',
 		})
 
 		commandReceiver0.mockClear()
@@ -405,10 +427,11 @@ describe('vizMSE', () => {
 		expect(getMockCall(commandReceiver0, 0, 1)).toMatchObject({
 			timelineObjId: 'obj2',
 			time: 19100,
-			templateInstance: expect.stringContaining('pilot_1338'),
+			content: {
+				vcpid: 1338,
+				channel: 'FULL1',
+			},
 			type: 'continue',
-			templateName: 1338,
-			channelName: 'FULL1',
 		})
 
 		commandReceiver0.mockClear()
@@ -417,10 +440,11 @@ describe('vizMSE', () => {
 		expect(getMockCall(commandReceiver0, 0, 1)).toMatchObject({
 			timelineObjId: 'obj1',
 			time: 22100,
-			templateInstance: expect.stringContaining('pilot_1338'),
+			content: {
+				vcpid: 1338,
+				channel: 'FULL1',
+			},
 			type: 'out',
-			templateName: 1338,
-			channelName: 'FULL1',
 		})
 
 		// manually load elements:
@@ -429,20 +453,12 @@ describe('vizMSE', () => {
 		rundown.createElement.mockClear()
 		rundown.initialize.mockClear()
 
-		await device.handleExpectedPlayoutItems([
-			{
-				templateName: 1337,
-				channelName: 'FULL1',
-			},
-			{
-				templateName: 1336,
-				channelName: 'FULL1',
-			},
-			{
-				templateName: 9999,
-				channelName: 'FULL1',
-			},
-		])
+		const expectedItem3: VIZMSEPlayoutItemContentExternal = {
+			vcpid: 9999,
+			channel: 'FULL1',
+		}
+
+		await device.handleExpectedPlayoutItems([expectedItem1, expectedItem2, expectedItem3])
 
 		myConductor.setTimelineAndMappings([
 			{
@@ -462,7 +478,7 @@ describe('vizMSE', () => {
 		await mockTime.advanceTimeToTicks(24900)
 
 		expect(rundown.createElement).toHaveBeenCalledTimes(1)
-		expect(rundown.createElement).toHaveBeenNthCalledWith(1, 9999, 'FULL1')
+		expect(rundown.createElement).toHaveBeenNthCalledWith(1, expectedItem3)
 		expect(rundown.initialize).toHaveBeenCalledTimes(0)
 
 		rundown.getElement.mockClear()
@@ -478,7 +494,7 @@ describe('vizMSE', () => {
 		})
 
 		expect(rundown.initialize).toHaveBeenCalledTimes(1)
-		expect(rundown.initialize).nthCalledWith(1, 9999, 'FULL1')
+		expect(rundown.initialize).nthCalledWith(1, expectedItem3)
 
 		expect(rundown.deactivate).toHaveBeenCalledTimes(0)
 		await myConductor.devicesStandDown(true)
@@ -638,6 +654,7 @@ describe('vizMSE', () => {
 					type: TimelineContentTypeVizMSE.ELEMENT_INTERNAL,
 					templateName: 'myInternalElement',
 					templateData: [],
+					showId: SHOW_ID,
 				},
 			},
 			{
@@ -651,7 +668,7 @@ describe('vizMSE', () => {
 					deviceType: DeviceType.VIZMSE,
 					type: TimelineContentTypeVizMSE.CLEAR_ALL_ELEMENTS,
 					channelsToSendCommands: ['OVL', 'FULL'],
-					commands: ['RENDERER*FRONT_LAYER SET_OBJECT ', 'RENDERER SET_OBJECT '],
+					showId: SHOW_ID,
 				},
 			},
 		] as TSRTimeline)
@@ -679,18 +696,24 @@ describe('vizMSE', () => {
 		expect(getMockCall(commandReceiver0, 0, 1)).toMatchObject({
 			timelineObjId: 'obj0',
 			time: 10105,
-			templateInstance: expect.stringContaining('myInternalElement'),
+			content: {
+				instanceName: expect.stringContaining('myInternalElement'),
+				templateName: 'myInternalElement',
+				templateData: [],
+				showId: SHOW_ID,
+			},
 			type: 'prepare',
-			templateName: 'myInternalElement',
-			templateData: [],
 		})
 		expect(getMockCall(commandReceiver0, 1, 1)).toMatchObject({
 			timelineObjId: 'obj0',
 			time: 10105,
-			templateInstance: expect.stringContaining('myInternalElement'),
+			content: {
+				instanceName: expect.stringContaining('myInternalElement'),
+				templateName: 'myInternalElement',
+				templateData: [],
+				showId: SHOW_ID,
+			},
 			type: 'take',
-			templateName: 'myInternalElement',
-			templateData: [],
 		})
 
 		commandReceiver0.mockClear()
@@ -712,10 +735,13 @@ describe('vizMSE', () => {
 		expect(getMockCall(commandReceiver0, 2, 1)).toMatchObject({
 			timelineObjId: 'obj0',
 			time: 15150,
-			templateInstance: expect.stringContaining('myInternalElement'),
+			content: {
+				instanceName: expect.stringContaining('myInternalElement'),
+				templateName: 'myInternalElement',
+				templateData: [],
+				showId: SHOW_ID,
+			},
 			type: 'prepare',
-			templateName: 'myInternalElement',
-			templateData: [],
 		})
 
 		commandReceiver0.mockClear()
@@ -724,10 +750,13 @@ describe('vizMSE', () => {
 		expect(getMockCall(commandReceiver0, 0, 1)).toMatchObject({
 			timelineObjId: 'obj0',
 			time: 16100,
-			templateInstance: expect.stringContaining('myInternalElement'),
+			content: {
+				instanceName: expect.stringContaining('myInternalElement'),
+				templateName: 'myInternalElement',
+				templateData: [],
+				showId: SHOW_ID,
+			},
 			type: 'take',
-			templateName: 'myInternalElement',
-			templateData: [],
 		})
 
 		commandReceiver0.mockClear()
@@ -736,10 +765,13 @@ describe('vizMSE', () => {
 		expect(getMockCall(commandReceiver0, 0, 1)).toMatchObject({
 			timelineObjId: 'obj0',
 			time: 20100,
-			templateInstance: expect.stringContaining('myInternalElement'),
+			content: {
+				instanceName: expect.stringContaining('myInternalElement'),
+				templateName: 'myInternalElement',
+				templateData: [],
+				showId: SHOW_ID,
+			},
 			type: 'out',
-			templateName: 'myInternalElement',
-			templateData: [],
 		})
 	})
 	test('vizMSE: Delayed External/Pilot element', async () => {
@@ -826,9 +858,11 @@ describe('vizMSE', () => {
 		expect(getMockCall(commandReceiver0, 0, 1)).toMatchObject({
 			timelineObjId: 'obj0',
 			time: 14100,
+			content: {
+				vcpid: 1337,
+				channel: 'FULL1',
+			},
 			type: 'prepare',
-			templateName: 1337,
-			channelName: 'FULL1',
 		})
 
 		commandReceiver0.mockClear()
@@ -836,7 +870,10 @@ describe('vizMSE', () => {
 		await mockTime.advanceTimeToTicks(15500)
 		expect(commandReceiver0.mock.calls.length).toEqual(1)
 		expect(rundown.take).toHaveBeenCalledTimes(1)
-		expect(rundown.take).nthCalledWith(1, 1337, 'FULL1')
+		expect(rundown.take).nthCalledWith(1, {
+			vcpid: 1337,
+			channel: 'FULL1',
+		})
 		expect(rundown.out).toHaveBeenCalledTimes(0)
 
 		commandReceiver0.mockClear()
@@ -848,7 +885,10 @@ describe('vizMSE', () => {
 		commandReceiver0.mockClear()
 		await mockTime.advanceTimeToTicks(21200)
 		expect(rundown.out).toHaveBeenCalledTimes(1)
-		expect(rundown.out).nthCalledWith(1, 1337, 'FULL1')
+		expect(rundown.out).nthCalledWith(1, {
+			vcpid: 1337,
+			channel: 'FULL1',
+		})
 		expect(rundown.take).toHaveBeenCalledTimes(0)
 
 		expect(onError).toHaveBeenCalledTimes(0)
