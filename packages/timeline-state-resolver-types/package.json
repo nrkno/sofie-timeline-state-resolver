@@ -47,6 +47,7 @@
 	"scripts": {
 		"test": "yarn lint && yarn unit",
 		"unit": "jest",
+		"unitci": "jest --coverage",
 		"build": "rimraf dist && yarn build:main",
 		"build:main": "tsc -p tsconfig.build.json",
 		"cov": "jest --coverage && yarn cov-open",

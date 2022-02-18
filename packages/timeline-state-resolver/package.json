@@ -55,6 +55,7 @@
 		"lint-fix": "yarn lint --fix",
 		"license-validate": "yarn sofie-licensecheck",
 		"unit": "jest --forceExit",
+		"unitci": "jest --forceExit --coverage",
 		"test": "yarn lint && yarn unit",
 		"test:integration": "yarn lint && jest --config=jest-integration.config.js",
 		"watch": "jest --watch",
