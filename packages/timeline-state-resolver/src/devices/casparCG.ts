@@ -79,6 +79,7 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 	private _doOnTime: DoOnTime
 	private initOptions?: CasparCGOptions
 	private _connected = false
+	private _queueOverflow = false
 	private _transitionHandler: InternalTransitionHandler = new InternalTransitionHandler()
 	private _retryTimeout: NodeJS.Timeout
 	private _retryTime: number | null = null
@@ -698,6 +699,11 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 			messages.push(`CasparCG device connection not initialized (restart required)`)
 		}
 
+		if (this._queueOverflow) {
+			statusCode = StatusCode.BAD
+			messages.push('Command queue overflow: CasparCG server has to be restarted')
+		}
+
 		return {
 			statusCode: statusCode,
 			messages: messages,
@@ -879,15 +885,27 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 						}
 					}
 				}
+
+				if (this._queueOverflow) {
+					this._queueOverflow = false
+					this._connectionChanged()
+				}
 			})
 			.catch((error) => {
+				if (error?.response?.code === 504) {
+					if (!this._queueOverflow) {
+						this._queueOverflow = true
+						this._connectionChanged()
+					}
+				}
+
 				let errorString = ''
-				if (error && error.response && error.response.code === 404) {
+				if (error?.response?.code === 404) {
 					errorString = `404: File not found`
 				}
 
 				if (!errorString) {
-					errorString = error && error.response && error.response.raw ? error.response.raw : error.toString()
+					errorString = error?.response?.raw ? error.response.raw : error.toString()
 				}
 
 				if (cmd.name) {
