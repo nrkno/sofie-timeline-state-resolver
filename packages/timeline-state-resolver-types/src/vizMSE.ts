@@ -51,6 +51,7 @@ export enum TimelineContentTypeVizMSE {
 	CONTINUE = 'continue',
 	LOAD_ALL_ELEMENTS = 'load_all_elements',
 	CLEAR_ALL_ELEMENTS = 'clear_all_elements',
+	CONCEPT = 'concept',
 }
 
 export type TimelineObjVIZMSEAny =
@@ -59,6 +60,7 @@ export type TimelineObjVIZMSEAny =
 	| TimelineObjVIZMSEElementContinue
 	| TimelineObjVIZMSELoadAllElements
 	| TimelineObjVIZMSEClearAllElements
+	| TimelineObjVIZMSEConcept
 
 export interface TimelineObjVIZMSEBase extends TSRTimelineObjBase {
 	content: {
@@ -160,6 +162,14 @@ export interface TimelineObjVIZMSEClearAllElements extends TSRTimelineObjBase {
 
 		/** Names of the channels to send the special clear commands to */
 		channelsToSendCommands?: string[]
+	}
+}
+
+export interface TimelineObjVIZMSEConcept extends TimelineObjVIZMSEBase {
+	content: {
+		deviceType: DeviceType.VIZMSE
+		type: TimelineContentTypeVizMSE.CONCEPT
+		concept: string
 	}
 }
 
