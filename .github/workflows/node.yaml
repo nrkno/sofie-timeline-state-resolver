@@ -94,11 +94,10 @@ jobs:
           CI: true
       - name: Send coverage
         if: matrix.node-version == '16.x'
-        run: |
-          cd packages/${{ matrix.lib-name }}
-          yarn send-coverage
-        env:
-          CI: true
+        uses: codecov/codecov-action@v2
+        with:
+          fail_ci_if_error: true
+          # name: codecov-umbrella
       # - name: Check docs generation
       #   if: matrix.node-version == '14.x'
       #   run: |
