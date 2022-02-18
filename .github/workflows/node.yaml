@@ -89,7 +89,7 @@ jobs:
       - name: Run tests
         run: |
           cd packages/${{ matrix.lib-name }}
-          yarn unit
+          yarn unit -- -- -- --coverage=true
         env:
           CI: true
       - name: Send coverage
