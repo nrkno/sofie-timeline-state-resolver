@@ -14,8 +14,6 @@ export interface VizMSEOptions {
 	/** Port number to the REST interfaces of Viz Engines (optional) */
 	engineRestPort?: number
 
-	/** Identifier of the "show" to use */
-	showID: string
 	/** Identifier of the "profile" to send commands to */
 	profile: string
 	/** Identifier of the "playlist" to send commands to */
@@ -51,7 +49,7 @@ export enum TimelineContentTypeVizMSE {
 	CONTINUE = 'continue',
 	LOAD_ALL_ELEMENTS = 'load_all_elements',
 	CLEAR_ALL_ELEMENTS = 'clear_all_elements',
-	ALL_SHOWS = 'all_shows',
+	CLEANUP_SHOWS = 'cleanup_shows',
 	INITIALIZE_SHOWS = 'initialize_shows',
 }
 
@@ -62,7 +60,7 @@ export type TimelineObjVIZMSEAny =
 	| TimelineObjVIZMSELoadAllElements
 	| TimelineObjVIZMSEClearAllElements
 	| TimelineObjVIZMSEInitializeShows
-	| TimelineObjVIZMSEAllShows
+	| TimelineObjVIZMSECleanupShows
 
 export interface TimelineObjVIZMSEBase extends TSRTimelineObjBase {
 	content: {
@@ -177,16 +175,16 @@ export interface TimelineObjVIZMSEInitializeShows extends TSRTimelineObjBase {
 		type: TimelineContentTypeVizMSE.INITIALIZE_SHOWS
 
 		/** IDs of the Shows to initialize */
-		showIds?: string[]
+		showIds: string[]
 	}
 }
-export interface TimelineObjVIZMSEAllShows extends TSRTimelineObjBase {
+export interface TimelineObjVIZMSECleanupShows extends TSRTimelineObjBase {
 	content: {
 		deviceType: DeviceType.VIZMSE
-		type: TimelineContentTypeVizMSE.ALL_SHOWS
+		type: TimelineContentTypeVizMSE.CLEANUP_SHOWS
 
-		/** IDs of all the Shows that Sofie manages, that might need to be cleaned up at some point */
-		showIds?: string[]
+		/** IDs of the Shows to cleanup */
+		showIds: string[]
 	}
 }
 

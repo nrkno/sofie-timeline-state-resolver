@@ -32,12 +32,13 @@ import * as net from 'net'
 import { ExpectedPlayoutItem } from '../expectedPlayoutItems'
 import * as request from 'request'
 import { startTrace, endTrace } from '../lib'
-import { CommandResult } from '@tv2media/v-connection/dist/msehttp'
 
 /** The ideal time to prepare elements before going on air */
 const IDEAL_PREPARE_TIME = 1000
 /** Minimum time to wait after preparing elements */
 const PREPARE_TIME_WAIT = 50
+/** Minimum time to wait before removing an element after an expectedPlayoutItem has been removed */
+const DELETE_TIME_WAIT = 20 * 1000
 
 // How often to check / preload elements
 const MONITOR_INTERVAL = 5 * 1000
@@ -104,7 +105,6 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState, DeviceOptionsVizM
 	async init(initOptions: VizMSEOptions, activeRundownPlaylistId?: string): Promise<boolean> {
 		this._initOptions = initOptions
 		if (!this._initOptions.host) throw new Error('VizMSE bad option: host')
-		if (!this._initOptions.showID) throw new Error('VizMSE bad option: showID')
 		if (!this._initOptions.profile) throw new Error('VizMSE bad option: profile')
 
 		this._vizMSE = createMSE(this._initOptions.host, this._initOptions.restPort, this._initOptions.wsPort)
@@ -117,7 +117,6 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState, DeviceOptionsVizM
 			this._initOptions.purgeUnknownElements ?? false,
 			this._initOptions.autoLoadInternalElements ?? false,
 			this._initOptions.engineRestPort,
-			initOptions.showID,
 			initOptions.profile,
 			initOptions.playlistID
 		)
@@ -277,6 +276,18 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState, DeviceOptionsVizM
 							contentType: TimelineContentTypeVizMSE.CONTINUE,
 							direction: l.content.direction,
 							reference: l.content.reference,
+						})
+					} else if (l.content.type === TimelineContentTypeVizMSE.INITIALIZE_SHOWS) {
+						state.layer[layerName] = literal<VizMSEStateLayerInitializeShows>({
+							timelineObjId: l.id,
+							contentType: TimelineContentTypeVizMSE.INITIALIZE_SHOWS,
+							showIds: l.content.showIds,
+						})
+					} else if (l.content.type === TimelineContentTypeVizMSE.CLEANUP_SHOWS) {
+						state.layer[layerName] = literal<VizMSEStateLayerCleanupShows>({
+							timelineObjId: l.id,
+							contentType: TimelineContentTypeVizMSE.CLEANUP_SHOWS,
+							showIds: l.content.showIds,
 						})
 					} else {
 						const stateLayer = content2StateLayer(l.id, l.content as any)
@@ -464,6 +475,30 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState, DeviceOptionsVizM
 						)
 					}
 				}
+			} else if (newLayer.contentType === TimelineContentTypeVizMSE.INITIALIZE_SHOWS) {
+				if (!oldLayer || !_.isEqual(newLayer, oldLayer)) {
+					addCommand(
+						literal<VizMSECommandInitializeShows>({
+							type: VizMSECommandType.INITIALIZE_SHOWS,
+							timelineObjId: newLayer.timelineObjId,
+							showIds: newLayer.showIds,
+							time: time,
+						}),
+						newLayer.lookahead
+					)
+				}
+			} else if (newLayer.contentType === TimelineContentTypeVizMSE.CLEANUP_SHOWS) {
+				if (!oldLayer || !_.isEqual(newLayer, oldLayer)) {
+					addCommand(
+						literal<VizMSECommandCleanupShows>({
+							type: VizMSECommandType.CLEANUP_SHOWS,
+							timelineObjId: newLayer.timelineObjId,
+							showIds: newLayer.showIds,
+							time: time,
+						}),
+						newLayer.lookahead
+					)
+				}
 			} else {
 				const props: Omit<VizMSECommandElementBase, 'time' | 'type'> = {
 					timelineObjId: newLayer.timelineObjId,
@@ -567,6 +602,16 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState, DeviceOptionsVizM
 						}),
 						oldLayer.lookahead
 					)
+				} else if (oldLayer.contentType === TimelineContentTypeVizMSE.INITIALIZE_SHOWS) {
+					addCommand(
+						literal<VizMSECommandInitializeShows>({
+							type: VizMSECommandType.INITIALIZE_SHOWS,
+							timelineObjId: oldLayer.timelineObjId,
+							showIds: [],
+							time: time,
+						}),
+						oldLayer.lookahead
+					)
 				}
 			}
 		})
@@ -650,7 +695,9 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState, DeviceOptionsVizM
 			})
 		}
 
-		this.emitDebug(`VIZMSE: COMMANDS: ${JSON.stringify(sortCommands(concatCommands))}`)
+		if (concatCommands.length) {
+			this.emitDebug(`VIZMSE: COMMANDS: ${JSON.stringify(sortCommands(concatCommands))}`)
+		}
 
 		return sortCommands(concatCommands)
 	}
@@ -725,8 +772,10 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState, DeviceOptionsVizM
 					await this._vizmseManager.clearAll(cmd)
 				} else if (cmd.type === VizMSECommandType.CLEAR_ALL_ENGINES) {
 					await this._vizmseManager.clearEngines(cmd)
-				} else if (cmd.type === VizMSECommandType.INITIALIZE_SHOW) {
-					await this._vizmseManager.initializeShow(cmd)
+				} else if (cmd.type === VizMSECommandType.INITIALIZE_SHOWS) {
+					await this._vizmseManager.initializeShows(cmd)
+				} else if (cmd.type === VizMSECommandType.CLEANUP_SHOWS) {
+					await this._vizmseManager.cleanupShows(cmd)
 				} else {
 					// @ts-ignore never
 					throw new Error(`Unsupported command type "${cmd.type}"`)
@@ -786,7 +835,6 @@ class VizMSEManager extends EventEmitter {
 		public purgeUnknownElements: boolean,
 		public autoLoadInternalElements: boolean,
 		public engineRestPort: number | undefined,
-		private _showID: string,
 		private _profile: string,
 		private _playlistID?: string
 	) {
@@ -857,30 +905,42 @@ class VizMSEManager extends EventEmitter {
 		if (this.preloadAllElements) {
 			this.emit('debug', 'VIZDEBUG: preload elements allowed')
 			this._expectedPlayoutItems = expectedPlayoutItems
-
-			this._getExpectedPlayoutItems() // Calling this in order to trigger creation of all elements
-				.then(async () => {
-					if (this._rundown && this._hasActiveRundown && this.autoLoadInternalElements) {
+			this._prepareAndGetExpectedPlayoutItems() // Calling this in order to trigger creation of all elements
+				.then(async (hashesAndItems) => {
+					if (this._rundown && this._hasActiveRundown) {
 						this.emit('debug', 'VIZDEBUG: auto load internal elements...')
 						await this.updateElementsLoadedStatus()
 
+						const elementHashesToDelete: string[] = []
 						// When a new element is added, we'll trigger a show init:
-						const triggerInitShowIds = new Set<string>()
-						_.each(this._elementCache, (e) => {
-							if (isVizMSEPlayoutItemContentInternalInstance(e.content)) {
-								if (!e.isLoaded && !e.requestedLoading) {
-									if (this._initializedShows.has(e.content.showId)) {
-										triggerInitShowIds.add(e.content.showId)
-										this.emit('debug', `Element "${this._getElementReference(e.element)}" is not loaded`)
-										e.requestedLoading = true
+						const showIdsToInitialize = new Set<string>()
+						_.each(this._elementCache, (element) => {
+							if (isVizMSEPlayoutItemContentInternalInstance(element.content)) {
+								if (!element.isLoaded && !element.requestedLoading) {
+									this.emit('debug', `Element "${this._getElementReference(element.element)}" is not loaded`)
+									if (this.autoLoadInternalElements || this._initializedShows.has(element.content.showId)) {
+										showIdsToInitialize.add(element.content.showId)
+										element.requestedLoading = true
 									}
 								}
 							}
+							if (!hashesAndItems[element.hash] && !element.toDelete) {
+								elementHashesToDelete.push(element.hash)
+								this._elementCache[element.hash].toDelete = true
+							}
 						})
-						for (const showId of triggerInitShowIds) {
-							this.emit('debug', `Triggering show ${showId} init `)
-							await this._rundown.initializeShow(showId)
-						}
+						const uniqueShowIds = Array.from(showIdsToInitialize)
+						await this._initializeShows(uniqueShowIds)
+
+						setTimeout(async () => {
+							elementHashesToDelete.map(async (elementHash) => {
+								const element = this._elementCache[elementHash]
+								if (element?.toDelete) {
+									await this._deleteElement(element.content)
+									delete this._elementCache[elementHash]
+								}
+							})
+						}, DELETE_TIME_WAIT)
 					}
 				})
 				.catch((error) => this.emit('error', error))
@@ -902,9 +962,11 @@ class VizMSEManager extends EventEmitter {
 			try {
 				this.emit('debug', `VizMSE: purging rundown`)
 				const elementsToKeep = this._expectedPlayoutItems
-					.filter((item) => item.baseline && isVIZMSEPlayoutItemContentExternal(item))
-					.map((element) => VizMSEManager.getPlayoutItemContent(element))
-				await rundown.purge([], elementsToKeep)
+					.filter((item) => !!item.baseline)
+					.map(VizMSEManager.getPlayoutItemContent)
+					.filter(isVizMSEPlayoutItemContentExternalInstance)
+
+				await rundown.purgeExternalElements(elementsToKeep)
 			} catch (error) {
 				this.emit('error', error)
 			}
@@ -923,7 +985,7 @@ class VizMSEManager extends EventEmitter {
 				if (this.purgeUnknownElements) {
 					const rundown = await this._getRundown()
 					const elementsInRundown = await rundown.listExternalElements()
-					const hashesAndItems = await this._getExpectedPlayoutItems()
+					const hashesAndItems = await this._prepareAndGetExpectedPlayoutItems()
 
 					for (const element of elementsInRundown) {
 						// Check if that element is in our expectedPlayoutItems list
@@ -1152,17 +1214,53 @@ class VizMSEManager extends EventEmitter {
 		this._triggerCommandSent()
 	}
 
-	public async initializeShow(cmd: VizMSECommandInitializeShow): Promise<CommandResult> {
+	private async _initializeShows(showIds: string[]) {
 		const rundown = await this._getRundown()
-		return rundown.initializeShow(cmd.showId)
+		this.emit('debug', `Triggering show ${showIds} init `)
+		for (const showId of showIds) {
+			try {
+				await rundown.initializeShow(showId)
+			} catch (e) {
+				this.emit('error', `Error in _initializeShows : ${e.toString()}`)
+			}
+		}
 	}
 
-	/** Convenience function for determining the template name/vcpid */
-	static getTemplateName(layer: VizMSEStateLayer): string | number {
-		if (layer.contentType === TimelineContentTypeVizMSE.ELEMENT_INTERNAL) return layer.templateName
-		if (layer.contentType === TimelineContentTypeVizMSE.ELEMENT_PILOT) return layer.templateVcpId
-		throw new Error(`Unknown layer.contentType "${layer['contentType']}"`)
+	public async initializeShows(cmd: VizMSECommandInitializeShows): Promise<void> {
+		const rundown = await this._getRundown()
+		this._initializedShows = new Set(cmd.showIds)
+		const expectedPlayoutItems = await this._prepareAndGetExpectedPlayoutItems()
+		if (this.purgeUnknownElements) {
+			this.emit('debug', `Purging shows ${cmd.showIds} `)
+			const elementsToKeep = await Object.values(expectedPlayoutItems).filter(
+				isVizMSEPlayoutItemContentInternalInstance
+			)
+			await rundown.purgeInternalElements(cmd.showIds, true, elementsToKeep)
+		}
+		this._triggerCommandSent()
+		await this._initializeShows(cmd.showIds)
+		this._triggerCommandSent()
 	}
+
+	private async _cleanupShows(showIds: string[]) {
+		const rundown = await this._getRundown()
+		this.emit('debug', `Triggering show ${showIds} cleanup `)
+		await rundown.purgeInternalElements(showIds, true)
+		for (const showId of showIds) {
+			try {
+				await rundown.cleanupShow(showId)
+			} catch (e) {
+				this.emit('error', `Error in _cleanupShows : ${e.toString()}`)
+			}
+		}
+	}
+
+	public async cleanupShows(cmd: VizMSECommandCleanupShows): Promise<void> {
+		this._triggerCommandSent()
+		await this._cleanupShows(cmd.showIds)
+		this._triggerCommandSent()
+	}
+
 	/** Convenience function to get the data for an element */
 	static getTemplateData(layer: VizMSEStateLayer): string[] {
 		if (layer.contentType === TimelineContentTypeVizMSE.ELEMENT_INTERNAL) return layer.templateData
@@ -1256,15 +1354,19 @@ class VizMSEManager extends EventEmitter {
 	 * Check if element is already created, otherwise create it and return it.
 	 */
 	private async _checkPrepareElement(content: VizMSEPlayoutItemContentInstance, fromPrepare?: boolean) {
-		let element = (this._getCachedElement(content) || { element: undefined }).element
-		if (!element) {
+		const cachedElement = this._getCachedElement(content)
+		let vElement = cachedElement ? cachedElement.element : undefined
+		if (cachedElement) {
+			cachedElement.toDelete = false
+		}
+		if (!vElement) {
 			const elementHash = VizMSEManager._getElementHash(content)
 			if (!fromPrepare) {
 				this.emit('warning', `Late preparation of element "${elementHash}"`)
 			} else {
 				this.emit('debug', `VizMSE: preparing new "${elementHash}"`)
 			}
-			element = await this._prepareNewElement(content)
+			vElement = await this._prepareNewElement(content)
 
 			if (!fromPrepare) await this._wait(100) // wait a bit, because taking isn't possible right away anyway at this point
 		}
@@ -1324,8 +1426,14 @@ class VizMSEManager extends EventEmitter {
 			}
 		}
 	}
-	private async _getExpectedPlayoutItems(): Promise<{ [hash: string]: VizMSEPlayoutItemContentInstance }> {
-		this.emit('debug', `VISMSE: _getExpectedPlayoutItems (${this._expectedPlayoutItems.length})`)
+	private async _deleteElement(content: VizMSEPlayoutItemContentInstance) {
+		const rundown = await this._getRundown()
+		this._triggerCommandSent()
+		await rundown.deleteElement(content)
+		this._triggerCommandSent()
+	}
+	private async _prepareAndGetExpectedPlayoutItems(): Promise<{ [hash: string]: VizMSEPlayoutItemContentInstance }> {
+		this.emit('debug', `VISMSE: _prepareAndGetExpectedPlayoutItems (${this._expectedPlayoutItems.length})`)
 
 		const hashesAndItems: { [hash: string]: VizMSEPlayoutItemContentInstance } = {}
 
@@ -1351,7 +1459,7 @@ class VizMSEManager extends EventEmitter {
 					await this._checkPrepareElement(content, true)
 					hashesAndItems[hash] = content
 				} catch (e) {
-					this.emit('error', `Error in _getExpectedPlayoutItems for "${hash}": ${e.toString()}`)
+					this.emit('error', `Error in _prepareAndGetExpectedPlayoutItems for "${hash}": ${e.toString()}`)
 				}
 			})
 		)
@@ -1362,7 +1470,7 @@ class VizMSEManager extends EventEmitter {
 	 * Update the load-statuses of the expectedPlayoutItems -elements from MSE, where needed
 	 */
 	private async updateElementsLoadedStatus(forceReloadAll?: boolean) {
-		const hashesAndItems = await this._getExpectedPlayoutItems()
+		const hashesAndItems = await this._prepareAndGetExpectedPlayoutItems()
 		let someUnloaded = false
 		const elementsToLoad = _.compact(
 			_.map(hashesAndItems, (item, hash) => {
@@ -1492,12 +1600,14 @@ class VizMSEManager extends EventEmitter {
 
 			// Then, load all elements that needs loading:
 			const loadAllElementsThatNeedsLoading = async () => {
+				const showIdsToInitialize = new Set<string>()
 				this._triggerCommandSent()
 				await this._triggerRundownActivate(rundown)
 				await Promise.all(
 					_.map(this._elementCache, async (e) => {
 						if (isVizMSEPlayoutItemContentInternalInstance(e.content)) {
-							// Not loading individual internal elements, since a show.initialization loads them good enough
+							showIdsToInitialize.add(e.content.showId)
+							e.requestedLoading = true
 						} else if (isVizMSEPlayoutItemContentExternalInstance(e.content)) {
 							if (e.isLoaded) {
 								// The element is loaded fine, no need to do anything
@@ -1515,6 +1625,7 @@ class VizMSEManager extends EventEmitter {
 						}
 					})
 				)
+				await this._initializeShows(Array.from(showIdsToInitialize))
 			}
 
 			// He's making a list:
@@ -1755,9 +1866,9 @@ class VizMSEManager extends EventEmitter {
 				// 	)
 				// })
 
-				this.emit('debug', `Creating new rundown ${[this._showID, this._profile, this._playlistID]}`)
+				this.emit('debug', `Creating new rundown ${[this._profile, this._playlistID]}`)
 
-				const rundown = await this._vizMSE.createRundown(this._showID, this._profile, this._playlistID)
+				const rundown = await this._vizMSE.createRundown(this._profile, this._playlistID)
 
 				this._rundown = rundown
 				if (!this._rundown) throw new Error(`_getRundown: this._rundown is not set!`)
@@ -1832,6 +1943,8 @@ type VizMSEStateLayer =
 	| VizMSEStateLayerPilot
 	| VizMSEStateLayerContinue
 	| VizMSEStateLayerLoadAllElements
+	| VizMSEStateLayerInitializeShows
+	| VizMSEStateLayerCleanupShows
 interface VizMSEStateLayerBase {
 	timelineObjId: string
 	lookahead?: boolean
@@ -1867,6 +1980,16 @@ interface VizMSEStateLayerContinue extends VizMSEStateLayerBase {
 	reference: string
 	referenceContent?: VizMSEStateLayerInternal | VizMSEStateLayerPilot
 }
+interface VizMSEStateLayerInitializeShows extends VizMSEStateLayerBase {
+	contentType: TimelineContentTypeVizMSE.INITIALIZE_SHOWS
+
+	showIds: string[]
+}
+interface VizMSEStateLayerCleanupShows extends VizMSEStateLayerBase {
+	contentType: TimelineContentTypeVizMSE.CLEANUP_SHOWS
+
+	showIds: string[]
+}
 interface VizMSEStateLayerLoadAllElements extends VizMSEStateLayerBase {
 	contentType: TimelineContentTypeVizMSE.LOAD_ALL_ELEMENTS
 }
@@ -1888,7 +2011,8 @@ export enum VizMSECommandType {
 	LOAD_ALL_ELEMENTS = 'load_all_elements',
 	CLEAR_ALL_ELEMENTS = 'clear_all_elements',
 	CLEAR_ALL_ENGINES = 'clear_all_engines',
-	INITIALIZE_SHOW = 'initialize_show',
+	INITIALIZE_SHOWS = 'initialize_shows',
+	CLEANUP_SHOWS = 'cleanup_shows',
 }
 
 interface VizMSECommandElementBase extends VizMSECommandBase {
@@ -1929,9 +2053,13 @@ interface VizMSECommandClearAllEngines extends VizMSECommandBase {
 	channels: string[] | 'all'
 	commands: string[]
 }
-interface VizMSECommandInitializeShow extends VizMSECommandBase {
-	type: VizMSECommandType.INITIALIZE_SHOW
-	showId: string
+interface VizMSECommandInitializeShows extends VizMSECommandBase {
+	type: VizMSECommandType.INITIALIZE_SHOWS
+	showIds: string[]
+}
+interface VizMSECommandCleanupShows extends VizMSECommandBase {
+	type: VizMSECommandType.CLEANUP_SHOWS
+	showIds: string[]
 }
 
 type VizMSECommand =
@@ -1944,7 +2072,8 @@ type VizMSECommand =
 	| VizMSECommandLoadAllElements
 	| VizMSECommandClearAllElements
 	| VizMSECommandClearAllEngines
-	| VizMSECommandInitializeShow
+	| VizMSECommandInitializeShows
+	| VizMSECommandCleanupShows
 
 interface VizMSEPlayoutItemContentInternalInstance extends VIZMSEPlayoutItemContentInternal {
 	/** Name of the instance of the element in MSE, generated by us */
@@ -1959,13 +2088,13 @@ type VizMSEPlayoutItemContentInstance =
 function isVizMSEPlayoutItemContentExternalInstance(
 	content: VizMSEPlayoutItemContentInstance
 ): content is VizMSEPlayoutItemContentExternalInstance {
-	return isVIZMSEPlayoutItemContentExternal(content)
+	return (content as VizMSEPlayoutItemContentExternalInstance).vcpid !== undefined
 }
 
 function isVizMSEPlayoutItemContentInternalInstance(
 	content: VizMSEPlayoutItemContentInstance
 ): content is VizMSEPlayoutItemContentInternalInstance {
-	return isVIZMSEPlayoutItemContentInternal(content)
+	return (content as VizMSEPlayoutItemContentInternalInstance).templateName !== undefined
 }
 
 function isVIZMSEPlayoutItemContentExternal(
@@ -1990,6 +2119,7 @@ interface CachedVElement {
 	isLoading?: boolean
 	wasLoaded?: boolean
 	requestedLoading?: boolean
+	toDelete?: boolean
 }
 
 function content2StateLayer(

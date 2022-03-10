@@ -306,7 +306,14 @@ export class VRundownMock implements VRundown {
 	async cleanup(): Promise<CommandResult> {
 		return { path: '', status: 200, response: 'mock' }
 	}
-	async purge(_showIds: string[], _elementsToKeep?: ExternalElementId[]): Promise<PepResponse> {
+	async purgeInternalElements(
+		_showIds: string[],
+		_onlyCreatedByUs?: boolean,
+		_elementsToKeep?: InternalElementId[]
+	): Promise<PepResponse> {
+		return { id: '*', status: 'ok', body: 'mock' }
+	}
+	async purgeExternalElements(_elementsToKeep?: ExternalElementId[]): Promise<PepResponse> {
 		return { id: '*', status: 'ok', body: 'mock' }
 	}
 	async isActive(): Promise<boolean> {
