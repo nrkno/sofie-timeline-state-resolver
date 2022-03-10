@@ -51,6 +51,7 @@ export enum TimelineContentTypeVizMSE {
 	CLEAR_ALL_ELEMENTS = 'clear_all_elements',
 	CLEANUP_SHOWS = 'cleanup_shows',
 	INITIALIZE_SHOWS = 'initialize_shows',
+	CONCEPT = 'concept',
 }
 
 export type TimelineObjVIZMSEAny =
@@ -61,6 +62,7 @@ export type TimelineObjVIZMSEAny =
 	| TimelineObjVIZMSEClearAllElements
 	| TimelineObjVIZMSEInitializeShows
 	| TimelineObjVIZMSECleanupShows
+	| TimelineObjVIZMSEConcept
 
 export interface TimelineObjVIZMSEBase extends TSRTimelineObjBase {
 	content: {
@@ -185,6 +187,14 @@ export interface TimelineObjVIZMSECleanupShows extends TSRTimelineObjBase {
 
 		/** IDs of the Shows to cleanup */
 		showIds: string[]
+	}
+}
+
+export interface TimelineObjVIZMSEConcept extends TimelineObjVIZMSEBase {
+	content: {
+		deviceType: DeviceType.VIZMSE
+		type: TimelineContentTypeVizMSE.CONCEPT
+		concept: string
 	}
 }
 

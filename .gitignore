@@ -13,3 +13,6 @@ wallaby.conf.js
 packages/*/coverage/
 .npmrc
 .vscode/
+
+# Ignore JetBrains IDE specific files
+.idea

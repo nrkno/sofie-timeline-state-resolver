@@ -144,6 +144,7 @@ export class MSEMock extends EventEmitter implements MSE {
 	async close(): Promise<boolean> {
 		return true
 	}
+
 	// on (event: 'connected', listener: () => void): this
 	// on (event: 'disconnected', listener: (err?: Error) => void): this
 
@@ -318,5 +319,9 @@ export class VRundownMock implements VRundown {
 	}
 	async isActive(): Promise<boolean> {
 		return this._isActive
+	}
+
+	setAlternativeConcept(_concept: string): Promise<void> {
+		return Promise.resolve(undefined)
 	}
 }
