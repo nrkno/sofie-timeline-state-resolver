@@ -178,11 +178,9 @@ export class VRundownMock implements VRundown {
 	}
 
 	private static getElementHash(elementId: ElementId): string {
-		if (isInternalElement(elementId)) {
-			return `${elementId.instanceName}_${elementId.showId}`
-		} else {
-			return `${elementId.vcpid}_${elementId.channel}`
-		}
+		return isInternalElement(elementId)
+			? `${elementId.instanceName}_${elementId.showId}`
+			: `${elementId.vcpid}_${elementId.channel}`
 	}
 
 	listInternalElements(_showId: string): Promise<InternalElementId[]> {
