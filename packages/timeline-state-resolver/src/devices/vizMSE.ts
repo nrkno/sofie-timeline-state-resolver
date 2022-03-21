@@ -37,7 +37,7 @@ import * as crypto from 'crypto'
 import * as net from 'net'
 import { ExpectedPlayoutItem } from '../expectedPlayoutItems'
 import * as request from 'request'
-import { endTrace, startTrace } from '../lib'
+import { startTrace, endTrace, deferAsync } from '../lib'
 
 /** The ideal time to prepare elements before going on air */
 const IDEAL_PREPARE_TIME = 1000
@@ -84,7 +84,7 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState, DeviceOptionsVizM
 
 		if (deviceOptions.options) {
 			if (deviceOptions.commandReceiver) this._commandReceiver = deviceOptions.commandReceiver
-			else this._commandReceiver = this._defaultCommandReceiver
+			else this._commandReceiver = this._defaultCommandReceiver.bind(this)
 		}
 
 		this._doOnTime = new DoOnTime(
@@ -707,7 +707,7 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState, DeviceOptionsVizM
 
 		return sortCommands(concatCommands)
 	}
-	private _doCommand(command: VizMSECommand, context: string, timlineObjId: string): Promise<void> {
+	private async _doCommand(command: VizMSECommand, context: string, timlineObjId: string): Promise<void> {
 		const time = this.getCurrentTime()
 		return this._commandReceiver(time, command, context, timlineObjId)
 	}
@@ -719,7 +719,7 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState, DeviceOptionsVizM
 			this._doOnTime.queue(
 				cmd.time,
 				cmd.layerId,
-				(c: { cmd: VizMSECommand }) => {
+				async (c: { cmd: VizMSECommand }) => {
 					return this._doCommand(c.cmd, c.cmd.type + '_' + c.cmd.timelineObjId, c.cmd.timelineObjId)
 				},
 				{ cmd: cmd }
@@ -728,7 +728,7 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState, DeviceOptionsVizM
 			this._doOnTimeBurst.queue(
 				cmd.time,
 				undefined,
-				(c: { cmd: VizMSECommand }) => {
+				async (c: { cmd: VizMSECommand }) => {
 					if (c.cmd.type === VizMSECommandType.TAKE_ELEMENT && !c.cmd.fromLookahead) {
 						if (this._vizmseManager && c.cmd.layerId) {
 							this._vizmseManager.clearAllWaitWithLayer(c.cmd.layerId)
@@ -809,7 +809,8 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState, DeviceOptionsVizM
 			} else {
 				throw new Error(`Not initialized yet`)
 			}
-		} catch (error) {
+		} catch (e) {
+			const error = e as Error
 			let errorString = error && error.message ? error.message : error.toString()
 			if (error?.stack) {
 				errorString += error.stack
@@ -897,7 +898,14 @@ class VizMSEManager extends EventEmitter {
 				if (!rundown) throw new Error(`VizMSEManager: Unable to create rundown!`)
 			} catch (e) {
 				this.emit('debug', `VizMSE: initializeRundownInner ${e}`)
-				setTimeout(() => initializeRundownInner(), INIT_RETRY_INTERVAL)
+				setTimeout(() => {
+					deferAsync(
+						async () => initializeRundownInner(),
+						(_e) => {
+							// ignore error
+						}
+					)
+				}, INIT_RETRY_INTERVAL)
 				return
 			}
 
@@ -944,7 +952,7 @@ class VizMSEManager extends EventEmitter {
 
 						// When a new element is added, we'll trigger a show init:
 						let triggerShowInit = false
-						_.each(this._elementsLoaded, async (e, hash: string) => {
+						_.each(this._elementsLoaded, (e, hash: string) => {
 							if (this._isInternalElement(e.element)) {
 								if (!e.isLoaded) {
 									if (!this._cacheInternalElementsSentLoaded[hash]) {
@@ -1078,7 +1086,7 @@ class VizMSEManager extends EventEmitter {
 		const elementRef = await this._checkPrepareElement(cmd)
 
 		await this._checkElementExists(cmd)
-		await this._handleRetry(() => {
+		await this._handleRetry(async () => {
 			this.emit('debug', `VizMSE: cue "${elementRef}" on channel "${cmd.channelName}"`)
 			return rundown.cue(elementRef, cmd.channelName)
 		})
@@ -1101,7 +1109,7 @@ class VizMSEManager extends EventEmitter {
 		}
 
 		await this._checkElementExists(cmd)
-		await this._handleRetry(() => {
+		await this._handleRetry(async () => {
 			this.emit('debug', `VizMSE: take "${elementRef}" on channel "${cmd.channelName}"`)
 
 			return rundown.take(elementRef, cmd.channelName)
@@ -1125,7 +1133,7 @@ class VizMSEManager extends EventEmitter {
 		const elementRef = await this._checkPrepareElement(cmd)
 
 		await this._checkElementExists(cmd)
-		await this._handleRetry(() => {
+		await this._handleRetry(async () => {
 			this.emit('debug', `VizMSE: out "${elementRef}" on channel "${cmd.channelName}"`)
 			return rundown.out(elementRef, cmd.channelName)
 		})
@@ -1139,7 +1147,7 @@ class VizMSEManager extends EventEmitter {
 		const elementRef = await this._checkPrepareElement(cmd)
 
 		await this._checkElementExists(cmd)
-		await this._handleRetry(() => {
+		await this._handleRetry(async () => {
 			this.emit('debug', `VizMSE: continue "${elementRef}" on channel "${cmd.channelName}"`)
 			return rundown.continue(elementRef, cmd.channelName)
 		})
@@ -1153,7 +1161,7 @@ class VizMSEManager extends EventEmitter {
 		const elementRef = await this._checkPrepareElement(cmd)
 
 		await this._checkElementExists(cmd)
-		await this._handleRetry(() => {
+		await this._handleRetry(async () => {
 			this.emit('debug', `VizMSE: continue reverse "${elementRef}" on channel "${cmd.channelName}"`)
 			return rundown.continueReverse(elementRef, cmd.channelName)
 		})
@@ -1182,7 +1190,7 @@ class VizMSEManager extends EventEmitter {
 		const elementRef = await this._checkPrepareElement(cmdTake)
 
 		await this._checkElementExists(cmdTake)
-		await this._handleRetry(() => {
+		await this._handleRetry(async () => {
 			this.emit('debug', `VizMSE: clearAll take "${elementRef}"`)
 			return rundown.take(elementRef)
 		})
@@ -1380,7 +1388,7 @@ class VizMSEManager extends EventEmitter {
 				return internalEl
 			}
 		} catch (e) {
-			if (e.toString().match(/already exist/i)) {
+			if ((e as Error).toString().match(/already exist/i)) {
 				// "An internal/external graphics element with name 'xxxxxxxxxxxxxxx' already exists."
 				// If the object already exists, it's not an error, fetch and use the element instead
 
@@ -1443,7 +1451,7 @@ class VizMSEManager extends EventEmitter {
 				} catch (e) {
 					this.emit(
 						'error',
-						`Error in _getExpectedPlayoutItems for "${expectedPlayoutItem.templateName}": ${e.toString()}`
+						`Error in _getExpectedPlayoutItems for "${expectedPlayoutItem.templateName}": ${(e as Error).toString()}`
 					)
 				}
 			})
@@ -1544,7 +1552,7 @@ class VizMSEManager extends EventEmitter {
 							}
 						}
 					} catch (e) {
-						this.emit('error', `Error in updateElementsLoadedStatus: ${e.toString()}`)
+						this.emit('error', `Error in updateElementsLoadedStatus: ${(e as Error).toString()}`)
 					}
 				})
 			)
@@ -1633,11 +1641,14 @@ class VizMSEManager extends EventEmitter {
 			clearTimeout(this._monitorAndLoadElementsTimeout)
 		}
 		if (!this._terminated) {
-			this._monitorAndLoadElementsTimeout = setTimeout(async () => {
-				await this._monitorLoadedElements().catch((...args) => {
-					this.emit('error', ...args)
-				})
-				this._setMonitorLoadedElementsTimeout()
+			this._monitorAndLoadElementsTimeout = setTimeout(() => {
+				this._monitorLoadedElements()
+					.catch((...args) => {
+						this.emit('error', ...args)
+					})
+					.finally(() => {
+						this._setMonitorLoadedElementsTimeout()
+					})
 			}, MONITOR_INTERVAL)
 		}
 	}
@@ -1646,15 +1657,18 @@ class VizMSEManager extends EventEmitter {
 			clearTimeout(this._monitorMSEConnectionTimeout)
 		}
 		if (!this._terminated) {
-			this._monitorMSEConnectionTimeout = setTimeout(async () => {
-				await this._monitorConnection().catch((...args) => {
-					this.emit('error', ...args)
-				})
-				this._setMonitorConnectionTimeout()
+			this._monitorMSEConnectionTimeout = setTimeout(() => {
+				this._monitorConnection()
+					.catch((...args) => {
+						this.emit('error', ...args)
+					})
+					.finally(() => {
+						this._setMonitorConnectionTimeout()
+					})
 			}, MONITOR_INTERVAL)
 		}
 	}
-	private _monitorConnection(): Promise<void> {
+	private async _monitorConnection(): Promise<void> {
 		if (this.initialized) {
 			// (the ping will throw on a timeout if ping doesn't return in time)
 			return this._vizMSE
@@ -1673,7 +1687,7 @@ class VizMSEManager extends EventEmitter {
 						this.onConnectionChanged()
 					}
 				})
-				.then(() => {
+				.then(async () => {
 					return this._msePingConnected ? this._monitorEngines() : Promise.resolve()
 				})
 		}
@@ -1751,7 +1765,7 @@ class VizMSEManager extends EventEmitter {
 			this.emit('error', e)
 		}
 	}
-	private _wait(time: number): Promise<void> {
+	private async _wait(time: number): Promise<void> {
 		if (this.ignoreAllWaits) return Promise.resolve()
 		return new Promise((resolve) => setTimeout(resolve, time))
 	}
@@ -1767,9 +1781,9 @@ class VizMSEManager extends EventEmitter {
 				const result = fcn()
 				this._triggerCommandSent()
 				return result
-			} catch (e) {
+			} catch (e: any) {
 				if (i++ < maxNumberOfTries) {
-					if (e && e.toString && e.toString().match(/inexistent/i)) {
+					if (e?.toString && e?.toString().match(/inexistent/i)) {
 						// "PepTalk inexistent error"
 						this.emit('debug', `VizMSE: _handleRetry got "inexistent" error, trying again...`)
 
@@ -1900,7 +1914,7 @@ class VizMSEManager extends EventEmitter {
 	/**
 	 * Returns true if the wait was cleared from someone else
 	 */
-	private waitWithLayer(layerId: string, delay: number): Promise<boolean> {
+	private async waitWithLayer(layerId: string, delay: number): Promise<boolean> {
 		return new Promise((resolve) => {
 			if (!this._waitWithLayers[layerId]) this._waitWithLayers[layerId] = []
 			this._waitWithLayers[layerId].push(resolve)

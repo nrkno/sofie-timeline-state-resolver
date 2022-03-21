@@ -26,10 +26,10 @@ describe('Conductor', () => {
 		mockTime.init()
 	})
 	test('Abstract-device functionality', async () => {
-		const commandReceiver0: any = jest.fn(() => {
+		const commandReceiver0: any = jest.fn(async () => {
 			return Promise.resolve()
 		})
-		const commandReceiver1: any = jest.fn(() => {
+		const commandReceiver1: any = jest.fn(async () => {
 			return Promise.resolve()
 		})
 
@@ -47,7 +47,7 @@ describe('Conductor', () => {
 		}
 
 		const conductor = new Conductor({
-			initializeAsClear: true,
+			multiThreadedResolver: false,
 			getCurrentTime: mockTime.getCurrentTime,
 		})
 
@@ -188,7 +188,7 @@ describe('Conductor', () => {
 	})
 
 	test('the "Now" and "Callback-functionality', async () => {
-		const commandReceiver0: any = jest.fn(() => {
+		const commandReceiver0: any = jest.fn(async () => {
 			return Promise.resolve()
 		})
 
@@ -201,7 +201,7 @@ describe('Conductor', () => {
 		}
 
 		const conductor = new Conductor({
-			initializeAsClear: true,
+			multiThreadedResolver: false,
 			getCurrentTime: mockTime.getCurrentTime,
 		})
 
@@ -314,23 +314,23 @@ describe('Conductor', () => {
 	})
 
 	test('devicesMakeReady', async () => {
-		const commandReceiver0 = jest.fn(() => {
+		const commandReceiver0 = jest.fn(async () => {
 			return Promise.resolve()
 		})
-		const commandReceiver1 = jest.fn(() => {
+		const commandReceiver1 = jest.fn(async () => {
 			return Promise.resolve()
 		})
-		const commandReceiver2 = jest.fn(() => {
+		const commandReceiver2 = jest.fn(async () => {
 			return Promise.resolve()
 		})
-		const commandReceiver3 = jest.fn(() => {
+		const commandReceiver3 = jest.fn(async () => {
 			return Promise.resolve()
 		})
-		const commandReceiver4 = jest.fn(() => {
+		const commandReceiver4 = jest.fn(async () => {
 			return Promise.resolve()
 		})
 		const conductor = new Conductor({
-			initializeAsClear: true,
+			multiThreadedResolver: false,
 			getCurrentTime: mockTime.getCurrentTime,
 		})
 
@@ -413,7 +413,7 @@ describe('Conductor', () => {
 		}
 
 		const conductor = new Conductor({
-			initializeAsClear: true,
+			multiThreadedResolver: false,
 			getCurrentTime: mockTime.getCurrentTime,
 		})
 		conductor.on('error', console.error)
@@ -430,7 +430,7 @@ describe('Conductor', () => {
 		expect(await device.getCurrentTime()).toBeTruthy()
 	}, 1500)
 	test('Changing of mappings live', async () => {
-		const commandReceiver0: any = jest.fn(() => {
+		const commandReceiver0: any = jest.fn(async () => {
 			return Promise.resolve()
 		})
 
@@ -445,7 +445,7 @@ describe('Conductor', () => {
 		}
 
 		const conductor = new Conductor({
-			initializeAsClear: true,
+			multiThreadedResolver: false,
 			getCurrentTime: mockTime.getCurrentTime,
 		})
 
@@ -579,5 +579,28 @@ describe('Conductor', () => {
 			},
 		})
 		// }
+	})
+
+	test('estimateResolveTime', () => {
+		// Ensure that the resolveTime follows a certain curve:
+		expect([
+			Conductor.calculateResolveTime(0, 1),
+			Conductor.calculateResolveTime(50, 1),
+			Conductor.calculateResolveTime(100, 1),
+			Conductor.calculateResolveTime(150, 1),
+			Conductor.calculateResolveTime(200, 1),
+			Conductor.calculateResolveTime(500, 1),
+			Conductor.calculateResolveTime(1000, 1),
+			Conductor.calculateResolveTime(10000, 1),
+		]).toEqual([
+			20, // 0
+			40, // 50
+			65, // 100
+			87, // 150
+			106, // 200
+			200, // 500
+			200, // 1000
+			200, // 10000
+		])
 	})
 })

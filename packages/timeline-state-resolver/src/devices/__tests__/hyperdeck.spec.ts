@@ -46,7 +46,7 @@ describe('Hyperdeck', () => {
 		}
 
 		const myConductor = new Conductor({
-			initializeAsClear: true,
+			multiThreadedResolver: false,
 			getCurrentTime: mockTime.getCurrentTime,
 		})
 		myConductor.setTimelineAndMappings([], myChannelMapping)
@@ -69,7 +69,7 @@ describe('Hyperdeck', () => {
 
 		const hyperdeckMock: HyperdeckConnection.Hyperdeck = hyperdeckInstances[0]
 
-		const hyperdeckMockCommand = jest.fn(() => {
+		const hyperdeckMockCommand = jest.fn(async () => {
 			return Promise.resolve()
 		})
 		hyperdeckMock.setMockCommandReceiver(hyperdeckMockCommand)

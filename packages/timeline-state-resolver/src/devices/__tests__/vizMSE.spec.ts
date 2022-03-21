@@ -33,7 +33,7 @@ describe('vizMSE', () => {
 		mockTime.init()
 	})
 	test('vizMSE: Internal element', async () => {
-		const commandReceiver0 = jest.fn(() => {
+		const commandReceiver0 = jest.fn(async () => {
 			return Promise.resolve()
 		})
 		const myChannelMapping0: MappingVizMSE = {
@@ -51,7 +51,6 @@ describe('vizMSE', () => {
 
 		const myConductor = new Conductor({
 			multiThreadedResolver: false,
-			initializeAsClear: true,
 			getCurrentTime: mockTime.getCurrentTime,
 		})
 		myConductor.setTimelineAndMappings([], myChannelMapping)
@@ -225,7 +224,7 @@ describe('vizMSE', () => {
 		}
 
 		const myConductor = new Conductor({
-			initializeAsClear: true,
+			multiThreadedResolver: false,
 			getCurrentTime: mockTime.getCurrentTime,
 		})
 		const onError = jest.fn()
@@ -488,7 +487,7 @@ describe('vizMSE', () => {
 	})
 	test('vizMSE: bad init options & basic functionality', async () => {
 		const myConductor = new Conductor({
-			initializeAsClear: true,
+			multiThreadedResolver: false,
 			getCurrentTime: mockTime.getCurrentTime,
 		})
 		const onError = jest.fn()
@@ -542,7 +541,7 @@ describe('vizMSE', () => {
 				profile: 'myProfile',
 			},
 		})
-		const device = deviceContainer!.device
+		const device = deviceContainer.device
 		const connectionChanged = jest.fn()
 		await device.on('connectionChanged', connectionChanged)
 
@@ -581,7 +580,7 @@ describe('vizMSE', () => {
 		expect(onWarning).toHaveBeenCalledTimes(0)
 	})
 	test('vizMSE: clear all elements', async () => {
-		const commandReceiver0 = jest.fn(() => {
+		const commandReceiver0 = jest.fn(async () => {
 			return Promise.resolve()
 		})
 		const myChannelMapping0: MappingVizMSE = {
@@ -598,7 +597,7 @@ describe('vizMSE', () => {
 		}
 
 		const myConductor = new Conductor({
-			initializeAsClear: true,
+			multiThreadedResolver: false,
 			getCurrentTime: mockTime.getCurrentTime,
 		})
 		myConductor.setTimelineAndMappings([], myChannelMapping)
@@ -762,7 +761,7 @@ describe('vizMSE', () => {
 		}
 
 		const myConductor = new Conductor({
-			initializeAsClear: true,
+			multiThreadedResolver: false,
 			getCurrentTime: mockTime.getCurrentTime,
 		})
 		const onError = jest.fn()

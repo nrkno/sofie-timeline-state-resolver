@@ -22,7 +22,7 @@ describe('HTTP-Watcher', () => {
 	let mockStatusCode: number
 	let mockBody: string
 	let myConductor: Conductor = new Conductor({
-		initializeAsClear: true,
+		multiThreadedResolver: false,
 		getCurrentTime: mockTime.getCurrentTime,
 	})
 	beforeAll(() => {
@@ -52,7 +52,7 @@ describe('HTTP-Watcher', () => {
 		mockBody = 'this is my keyword and its really nice'
 		request.setMockGet(onGet)
 		myConductor = new Conductor({
-			initializeAsClear: true,
+			multiThreadedResolver: false,
 			getCurrentTime: mockTime.getCurrentTime,
 		})
 	})
@@ -92,7 +92,7 @@ describe('HTTP-Watcher', () => {
 				interval: 10 * 1000,
 			},
 		})
-		const generatedDevice = generatedDeviceContainer!.device
+		const generatedDevice = generatedDeviceContainer.device
 
 		expect(generatedDevice).toBeTruthy()
 		expect(await generatedDevice.getStatus()).toEqual({ statusCode: StatusCode.UNKNOWN, active: true })
@@ -147,7 +147,7 @@ describe('HTTP-Watcher', () => {
 				interval: 10 * 1000,
 			},
 		})
-		const generatedDevice = generatedDeviceContainer!.device
+		const generatedDevice = generatedDeviceContainer.device
 
 		expect(generatedDevice).toBeTruthy()
 		expect(await generatedDevice.getStatus()).toEqual({ statusCode: StatusCode.UNKNOWN, active: true })
@@ -205,7 +205,7 @@ describe('HTTP-Watcher', () => {
 				interval: 10 * 1000,
 			},
 		})
-		const generatedDevice = generatedDeviceContainer!.device
+		const generatedDevice = generatedDeviceContainer.device
 
 		expect(generatedDevice).toBeTruthy()
 		expect(await generatedDevice.getStatus()).toEqual({ statusCode: StatusCode.UNKNOWN, active: true })
@@ -262,7 +262,7 @@ describe('HTTP-Watcher', () => {
 				interval: 10 * 1000,
 			},
 		})
-		const generatedDevice = generatedDeviceContainer!.device
+		const generatedDevice = generatedDeviceContainer.device
 		expect(await generatedDevice.getStatus()).toEqual({ statusCode: StatusCode.UNKNOWN, active: true })
 		myConductor.setTimelineAndMappings([], myLayerMapping)
 		await mockTime.advanceTimeTicks(10100)
@@ -288,7 +288,7 @@ describe('HTTP-Watcher', () => {
 				interval: 10 * 1000,
 			},
 		})
-		const generatedDevice = generatedDeviceContainer!.device
+		const generatedDevice = generatedDeviceContainer.device
 		expect(await generatedDevice.getStatus()).toEqual({ statusCode: StatusCode.UNKNOWN, active: true })
 		myConductor.setTimelineAndMappings([], myLayerMapping)
 
@@ -315,7 +315,7 @@ describe('HTTP-Watcher', () => {
 				interval: 10 * 1000,
 			},
 		})
-		const generatedDevice = generatedDeviceContainer!.device
+		const generatedDevice = generatedDeviceContainer.device
 		expect(await generatedDevice.getStatus()).toEqual({ statusCode: StatusCode.UNKNOWN, active: true })
 		myConductor.setTimelineAndMappings([], myLayerMapping)
 
@@ -358,7 +358,7 @@ describe('HTTP-Watcher', () => {
 				interval: 10 * 1000,
 			},
 		})
-		const generatedDevice = generatedDeviceContainer!.device
+		const generatedDevice = generatedDeviceContainer.device
 		expect(await generatedDevice.getStatus()).toEqual({ statusCode: StatusCode.UNKNOWN, active: true })
 		myConductor.setTimelineAndMappings([], myLayerMapping)
 
@@ -400,7 +400,7 @@ describe('HTTP-Watcher', () => {
 				interval: 10 * 1000,
 			},
 		})
-		const generatedDevice = generatedDeviceContainer!.device
+		const generatedDevice = generatedDeviceContainer.device
 		expect(await generatedDevice.getStatus()).toEqual({ statusCode: StatusCode.UNKNOWN, active: true })
 		myConductor.setTimelineAndMappings([], myLayerMapping)
 
@@ -423,7 +423,7 @@ describe('HTTP-Watcher', () => {
 				interval: 10 * 1000,
 			},
 		})
-		const generatedDevice = generatedDeviceContainer!.device
+		const generatedDevice = generatedDeviceContainer.device
 		expect(await generatedDevice.getStatus()).toEqual({ statusCode: StatusCode.UNKNOWN, active: true })
 		myConductor.setTimelineAndMappings([], myLayerMapping)
 

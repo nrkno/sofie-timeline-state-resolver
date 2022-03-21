@@ -24,7 +24,7 @@ describe('OSC-Message', () => {
 		mockTime.init()
 	})
 	test('OSC message', async () => {
-		const commandReceiver0: any = jest.fn(() => {
+		const commandReceiver0: any = jest.fn(async () => {
 			return Promise.resolve()
 		})
 		const myLayerMapping0: MappingOSC = {
@@ -36,7 +36,7 @@ describe('OSC-Message', () => {
 		}
 
 		const myConductor = new Conductor({
-			initializeAsClear: true,
+			multiThreadedResolver: false,
 			getCurrentTime: mockTime.getCurrentTime,
 		})
 		myConductor.on('error', (e) => console.error(e))
@@ -126,7 +126,7 @@ describe('OSC-Message', () => {
 		expect(commandReceiver0).toHaveBeenCalledTimes(1)
 	})
 	test('OSC transition', async () => {
-		const commandReceiver0: any = jest.fn(() => {
+		const commandReceiver0: any = jest.fn(async () => {
 			return Promise.resolve()
 		})
 		const myLayerMapping0: MappingOSC = {
@@ -138,7 +138,7 @@ describe('OSC-Message', () => {
 		}
 
 		const myConductor = new Conductor({
-			initializeAsClear: true,
+			multiThreadedResolver: false,
 			getCurrentTime: mockTime.getCurrentTime,
 		})
 		myConductor.on('error', (e) => console.error(e))

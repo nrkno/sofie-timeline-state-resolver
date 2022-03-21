@@ -73,7 +73,7 @@ export class AtemDevice extends DeviceWithState<DeviceState, DeviceOptionsAtemIn
 		super(deviceId, deviceOptions, getCurrentTime)
 		if (deviceOptions.options) {
 			if (deviceOptions.commandReceiver) this._commandReceiver = deviceOptions.commandReceiver
-			else this._commandReceiver = this._defaultCommandReceiver
+			else this._commandReceiver = this._defaultCommandReceiver.bind(this)
 		}
 		this._doOnTime = new DoOnTime(
 			() => {
@@ -89,7 +89,7 @@ export class AtemDevice extends DeviceWithState<DeviceState, DeviceOptionsAtemIn
 	 * Initiates the connection with the ATEM through the atem-connection lib
 	 * and initiates Atem State lib.
 	 */
-	init(options: AtemOptions): Promise<boolean> {
+	async init(options: AtemOptions): Promise<boolean> {
 		return new Promise((resolve, reject) => {
 			// This is where we would do initialization, like connecting to the devices, etc
 			this._state = new AtemState()
@@ -123,7 +123,7 @@ export class AtemDevice extends DeviceWithState<DeviceState, DeviceOptionsAtemIn
 	 * Safely terminate everything to do with this device such that it can be
 	 * garbage collected.
 	 */
-	terminate(): Promise<boolean> {
+	async terminate(): Promise<boolean> {
 		this._doOnTime.dispose()
 
 		return new Promise((resolve) => {
@@ -190,7 +190,11 @@ export class AtemDevice extends DeviceWithState<DeviceState, DeviceOptionsAtemIn
 		}
 
 		const diffTrace = startTrace(`device:diffState`, { deviceId: this.deviceId })
-		const commandsToAchieveState: Array<AtemCommandWithContext> = this._diffStates(oldAtemState, newAtemState)
+		const commandsToAchieveState: Array<AtemCommandWithContext> = this._diffStates(
+			oldAtemState,
+			newAtemState,
+			newMappings
+		)
 		this.emit('timeTrace', endTrace(diffTrace))
 
 		// clear any queued commands later than this time:
@@ -381,7 +385,7 @@ export class AtemDevice extends DeviceWithState<DeviceState, DeviceOptionsAtemIn
 			this._doOnTime.queue(
 				time,
 				undefined,
-				(cmd: AtemCommandWithContext) => {
+				async (cmd: AtemCommandWithContext) => {
 					return this._commandReceiver(time, cmd.command, cmd.context, cmd.timelineObjId)
 				},
 				cmd
@@ -393,10 +397,27 @@ export class AtemDevice extends DeviceWithState<DeviceState, DeviceOptionsAtemIn
 	 * @param oldAtemState
 	 * @param newAtemState
 	 */
-	private _diffStates(oldAtemState: DeviceState, newAtemState: DeviceState): Array<AtemCommandWithContext> {
+	private _diffStates(
+		oldAtemState: DeviceState,
+		newAtemState: DeviceState,
+		mappings: Mappings
+	): Array<AtemCommandWithContext> {
 		// Ensure the state diffs the correct version
 		if (this._atem.state) {
 			this._state.version = this._atem.state.info.apiVersion
+		}
+
+		// bump out any auxes that we don't control as they may be used for CC etc.
+		const noOfAuxes = Math.max(oldAtemState.video.auxilliaries.length, newAtemState.video.auxilliaries.length)
+		const auxMappings = Object.values(mappings)
+			.filter((mapping: MappingAtem) => mapping.mappingType === MappingAtemType.Auxilliary)
+			.map((mapping: MappingAtem) => mapping.index)
+
+		for (let i = 0; i < noOfAuxes; i++) {
+			if (!auxMappings.includes(i)) {
+				oldAtemState.video.auxilliaries[i] = undefined
+				newAtemState.video.auxilliaries[i] = undefined
+			}
 		}
 
 		return _.map(this._state.diffStates(oldAtemState, newAtemState), (cmd: any) => {
@@ -413,7 +434,7 @@ export class AtemDevice extends DeviceWithState<DeviceState, DeviceOptionsAtemIn
 		})
 	}
 
-	private _defaultCommandReceiver(
+	private async _defaultCommandReceiver(
 		_time: number,
 		command: AtemCommands.ISerializableCommand,
 		context: CommandContext,

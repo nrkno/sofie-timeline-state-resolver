@@ -51,7 +51,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 		super(deviceId, deviceOptions, getCurrentTime)
 		if (deviceOptions.options) {
 			if (deviceOptions.commandReceiver) this._commandReceiver = deviceOptions.commandReceiver
-			else this._commandReceiver = this._defaultCommandReceiver
+			else this._commandReceiver = this._defaultCommandReceiver.bind(this)
 		}
 
 		this._sisyfos = new SisyfosApi()
@@ -76,7 +76,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 		)
 		this.handleDoOnTime(this._doOnTime, 'Sisyfos')
 	}
-	init(initOptions: SisyfosOptions): Promise<boolean> {
+	async init(initOptions: SisyfosOptions): Promise<boolean> {
 		this._sisyfos.once('initialized', () => {
 			this.setState(this.getDeviceState(false), this.getCurrentTime())
 			this.emit('resetResolver')
@@ -142,7 +142,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 	clearFuture(clearAfterTime: number) {
 		this._doOnTime.clearQueueAfter(clearAfterTime)
 	}
-	terminate() {
+	async terminate() {
 		this._doOnTime.dispose()
 		return Promise.resolve(true)
 	}
@@ -170,11 +170,11 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 			active: this.isActive,
 		}
 	}
-	makeReady(okToDestroyStuff?: boolean): Promise<void> {
+	async makeReady(okToDestroyStuff?: boolean): Promise<void> {
 		return this._makeReadyInner(okToDestroyStuff)
 	}
 
-	private _makeReadyInner(okToDestroyStuff?: boolean, resync?: boolean): Promise<void> {
+	private async _makeReadyInner(okToDestroyStuff?: boolean, resync?: boolean): Promise<void> {
 		if (okToDestroyStuff) {
 			if (resync) {
 				this._resyncing = true
@@ -433,7 +433,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 			this._doOnTime.queue(
 				time,
 				undefined,
-				(cmd: Command) => {
+				async (cmd: Command) => {
 					return this._commandReceiver(time, cmd.content, cmd.context, cmd.timelineObjId)
 				},
 				cmd
@@ -544,7 +544,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 
 		return commands
 	}
-	private _defaultCommandReceiver(
+	private async _defaultCommandReceiver(
 		_time: number,
 		cmd: SisyfosCommand,
 		context: CommandContext,

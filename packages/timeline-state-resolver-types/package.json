@@ -47,20 +47,21 @@
 	"scripts": {
 		"test": "yarn lint && yarn unit",
 		"unit": "jest",
+		"unitci": "jest --coverage",
 		"build": "rimraf dist && yarn build:main",
 		"build:main": "tsc -p tsconfig.build.json",
 		"cov": "jest --coverage && yarn cov-open",
 		"cov-open": "open-cli coverage/lcov-report/index.html",
-		"send-coverage": "codecov -p ../..",
 		"validate:dependencies": "yarn audit --groups dependencies && yarn license-validate",
 		"validate:dev-dependencies": "yarn audit --groups devDependencies",
-		"lint": "eslint . --ext .ts --ext .js --ext .tsx --ext .jsx --ignore-pattern dist",
+		"lint:raw": "eslint --ext .ts --ext .js --ext .tsx --ext .jsx --ignore-pattern dist",
+		"lint": "yarn lint:raw .",
 		"lint-fix": "yarn lint --fix",
 		"license-validate": "yarn sofie-licensecheck",
 		"precommit": "lint-staged"
 	},
 	"engines": {
-		"node": ">=12.18"
+		"node": "^14.18 || ^16.14"
 	},
 	"files": [
 		"/dist",
@@ -93,7 +94,7 @@
 			"prettier --write"
 		],
 		"*.{ts,tsx,js,jsx}": [
-			"yarn lint-fix"
+			"yarn lint:raw --fix"
 		]
 	}
 }

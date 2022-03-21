@@ -48,25 +48,25 @@ const gotMethods = {
 	// default: (options: Options) => {
 
 	// },
-	get: (options: Options) => {
+	get: async (options: Options) => {
 		return _mockGet(options)
 	},
-	post: (options: Options) => {
+	post: async (options: Options) => {
 		return _mockPost(options)
 	},
-	put: (options: Options) => {
+	put: async (options: Options) => {
 		return _mockPut(options)
 	},
-	head: (options: Options) => {
+	head: async (options: Options) => {
 		return _mockHead(options)
 	},
-	patch: (options: Options) => {
+	patch: async (options: Options) => {
 		return _mockPatch(options)
 	},
-	del: (options: Options) => {
+	del: async (options: Options) => {
 		return _mockDel(options)
 	},
-	delete: (options: Options) => {
+	delete: async (options: Options) => {
 		return _mockDelete(options)
 	},
 }

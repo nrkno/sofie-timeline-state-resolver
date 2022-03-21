@@ -21,7 +21,7 @@ describe('Singular.Live', () => {
 	})
 
 	test('POST message', async () => {
-		const commandReceiver0: any = jest.fn(() => {
+		const commandReceiver0: any = jest.fn(async () => {
 			return Promise.resolve()
 		})
 		const myLayerMapping0: MappingSingularLive = {
@@ -34,7 +34,7 @@ describe('Singular.Live', () => {
 		}
 
 		const myConductor = new Conductor({
-			initializeAsClear: true,
+			multiThreadedResolver: false,
 			getCurrentTime: mockTime.getCurrentTime,
 		})
 		await myConductor.init()

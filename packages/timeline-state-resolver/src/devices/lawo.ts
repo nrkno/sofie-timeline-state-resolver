@@ -20,7 +20,7 @@ import {
 } from 'timeline-state-resolver-types'
 import { TimelineState, ResolvedTimelineObjectInstance } from 'superfly-timeline'
 import { DoOnTime, SendMode } from '../doOnTime'
-import { getDiff } from '../lib'
+import { deferAsync, getDiff } from '../lib'
 import { EmberClient, Types as EmberTypes, Model as EmberModel } from 'emberplus-connection'
 
 export interface DeviceOptionsLawoInternal extends DeviceOptionsLawo {
@@ -99,12 +99,14 @@ export class LawoDevice extends DeviceWithState<LawoState, DeviceOptionsLawoInte
 			if (deviceOptions.commandReceiver) {
 				this._commandReceiver = deviceOptions.commandReceiver
 			} else {
-				this._commandReceiver = this._defaultCommandReceiver
+				this._commandReceiver = this._defaultCommandReceiver.bind(this)
 			}
 			if (deviceOptions.options.setValueFn) {
 				this._setValueFn = deviceOptions.options.setValueFn
 			} else {
-				this._setValueFn = this.setValueWrapper
+				this._setValueFn = async (...args) => {
+					return this.setValueWrapper(...args)
+				}
 			}
 
 			if (deviceOptions.options.faderInterval) {
@@ -164,22 +166,27 @@ export class LawoDevice extends DeviceWithState<LawoState, DeviceOptionsLawoInte
 		// 	this.emitDebug('Warning: Lawo.Emberplus', w)
 		// })
 		let firstConnection = true
-		this._lawo.on('connected', async () => {
+		this._lawo.on('connected', () => {
 			this._setConnected(true)
 
 			if (firstConnection) {
-				try {
-					const req = await this._lawo.getDirectory(this._lawo.tree)
-					await req.response
+				deferAsync(
+					async () => {
+						const req = await this._lawo.getDirectory(this._lawo.tree)
+						await req.response
 
-					await this._mapSourcesToNodeNames()
+						await this._mapSourcesToNodeNames()
 
-					this._initialized = true
-					this.emit('info', 'finished device initalization')
-					this.emit('resetResolver')
-				} catch (e) {
-					this.emit('error', 'Error while expanding root', e)
-				}
+						this._initialized = true
+						this.emit('info', 'finished device initalization')
+						this.emit('resetResolver')
+					},
+					(e) => {
+						if (e instanceof Error) {
+							this.emit('error', 'Error while expanding root', e)
+						}
+					}
+				)
 			}
 			firstConnection = false
 		})
@@ -238,7 +245,7 @@ export class LawoDevice extends DeviceWithState<LawoState, DeviceOptionsLawoInte
 	 * Safely disconnect from physical device such that this instance of the class
 	 * can be garbage collected.
 	 */
-	terminate() {
+	async terminate() {
 		this._doOnTime.dispose()
 		if (this.transitionInterval) clearInterval(this.transitionInterval)
 
@@ -254,7 +261,7 @@ export class LawoDevice extends DeviceWithState<LawoState, DeviceOptionsLawoInte
 			this._lawo.removeAllListeners('connected')
 			this._lawo.removeAllListeners('disconnected')
 		} catch (e) {
-			this.emit('error', 'Lawo.terminate', e)
+			this.emit('error', 'Lawo.terminate', e as Error)
 		}
 		return Promise.resolve(true)
 	}
@@ -405,7 +412,7 @@ export class LawoDevice extends DeviceWithState<LawoState, DeviceOptionsLawoInte
 			this._doOnTime.queue(
 				time,
 				undefined,
-				(cmd: LawoCommandWithContext) => {
+				async (cmd: LawoCommandWithContext) => {
 					return this._commandReceiver(time, cmd.cmd, cmd.context, cmd.timelineObjId)
 				},
 				cmd
@@ -461,9 +468,10 @@ export class LawoDevice extends DeviceWithState<LawoState, DeviceOptionsLawoInte
 	 * Gets an ember node based on its path
 	 * @param path
 	 */
-	private async _getNodeByPath(path: string): Promise<EmberModel.NumberedTreeNode<EmberModel.EmberElement>> {
-		const node = (await this._lawo.getElementByPath(path)) as EmberModel.NumberedTreeNode<EmberModel.EmberElement>
-		return node
+	private async _getNodeByPath(
+		path: string
+	): Promise<EmberModel.NumberedTreeNode<EmberModel.EmberElement> | undefined> {
+		return this._lawo.getElementByPath(path)
 	}
 
 	private _identifierToNodeName(identifier: string): string {
@@ -510,7 +518,9 @@ export class LawoDevice extends DeviceWithState<LawoState, DeviceOptionsLawoInte
 					// add the fade to the fade object, such that we can fade the signal using the fader
 					if (!command.from) {
 						// @todo: see if we can query the lawo first
-						const node = (await this._getNodeByPath(command.path)) as EmberModel.NumberedTreeNode<EmberModel.Parameter>
+						const node = (await this._getNodeByPath(command.path)) as
+							| EmberModel.NumberedTreeNode<EmberModel.Parameter>
+							| undefined
 						if (node) {
 							if (node.contents.factor) {
 								command.from = (node.contents.value as number) / (node.contents.factor || 1)
@@ -592,12 +602,16 @@ export class LawoDevice extends DeviceWithState<LawoState, DeviceOptionsLawoInte
 				await this._setValueFn(command, timelineObjId)
 			}
 		} catch (error) {
-			this.emit('commandError', error, cwc)
+			this.emit('commandError', error as Error, cwc)
 		}
 	}
 	private async setValueWrapper(command: LawoCommand, timelineObjId: string, logResult = true) {
 		try {
-			const node = (await this._getNodeByPath(command.path)) as EmberModel.NumberedTreeNode<EmberModel.Parameter>
+			const node = (await this._getNodeByPath(command.path)) as
+				| EmberModel.NumberedTreeNode<EmberModel.Parameter>
+				| undefined
+
+			if (!node) throw new Error(`Unable to setValue for node "${command.path}", node not found!`)
 
 			const value = node.contents.factor ? (command.value as number) * node.contents.factor : command.value
 
@@ -618,7 +632,7 @@ export class LawoDevice extends DeviceWithState<LawoState, DeviceOptionsLawoInte
 				)
 			}
 		} catch (e) {
-			this.emit('error', `Lawo: Error in setValue (${timelineObjId})`, e)
+			this.emit('error', `Lawo: Error in setValue (${timelineObjId})`, e as Error)
 			throw e
 		}
 	}
@@ -711,7 +725,7 @@ export class LawoDevice extends DeviceWithState<LawoState, DeviceOptionsLawoInte
 					)
 					previousNode = (node.contents as EmberModel.Parameter).value as string
 				} catch (e) {
-					this.emit('error', 'lawo: map sources to node names', e)
+					this.emit('error', 'lawo: map sources to node names', e as Error)
 				}
 			}
 		}

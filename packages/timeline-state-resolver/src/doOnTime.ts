@@ -9,9 +9,11 @@ export type DoOrderFunction1<A, B> = (arg0: A, arg1: B) => void | Promise<any> |
 export type DoOrderFunction2<A, B, C> = (arg0: A, arg1: B, arg2: C) => void | Promise<any> | any
 
 interface DoOrder {
+	/** The time the command is scheduled to run */
 	time: number
 	fcn: DoOrderFunction
 	args: any[]
+	/** The time at which point the command was added to the queue */
 	addedTime: number
 	prepareTime: number
 }
@@ -155,6 +157,9 @@ export class DoOnTime extends EventEmitter<DoOnTimeEvents> {
 		clearTimeout(this._checkQueueTimeout)
 
 		const now = this.getCurrentTime()
+		if (isNaN(now)) {
+			throw new Error('DoOnTime.getCurrentTime is broken, and is not returning a number')
+		}
 
 		let nextTime = now + 99999
 
@@ -163,7 +168,7 @@ export class DoOnTime extends EventEmitter<DoOnTimeEvents> {
 				if (o.time <= now) {
 					o.prepareTime = this.getCurrentTime()
 					if (!this._commandsToSendNow[queueId]) this._commandsToSendNow[queueId] = []
-					this._commandsToSendNow[queueId].push(() => {
+					this._commandsToSendNow[queueId].push(async () => {
 						try {
 							const startSend = this.getCurrentTime()
 							let sentTooSlow = false

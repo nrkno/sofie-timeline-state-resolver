@@ -1,5 +1,5 @@
 {
-  "name": "@tv2media/timeline-state-resolver-packages",
+  "name": "timeline-state-resolver-packages",
   "private": true,
   "version": "0.0.0",
   "workspaces": {
@@ -9,13 +9,16 @@
     ]
   },
   "scripts": {
+    "prepare": "husky install",
     "build": "yarn lerna exec yarn build",
     "lint": "yarn lerna exec yarn lint -- --",
     "test": "yarn lerna exec yarn test",
+    "unit": "yarn lerna exec yarn unit",
+    "unitci": "yarn lerna exec yarn unitci",
     "watch": "lerna run --parallel build:main -- --watch --preserveWatchOutput",
     "docs": "yarn typedoc .",
     "postinstall": "lerna bootstrap",
-    "release:set-version": "lerna version --no-changelog --no-git-tag-version --no-push --yes",
+    "release:set-version": "lerna version --exact --no-changelog --no-git-tag-version --no-push --yes",
     "release:bump-release": "lerna version --exact --conventional-commits --conventional-graduate --tag-version-prefix='' --no-push",
     "release:bump-release-force": "lerna version --exact --conventional-commits --tag-version-prefix='' --no-push --force-publish=*",
     "release:bump-prerelease": "lerna version --exact --conventional-commits --conventional-prerelease --tag-version-prefix='' --no-push",
@@ -23,30 +26,24 @@
     "validate:dev-dependencies": "yarn lerna exec --parallel yarn validate:dev-dependencies"
   },
   "devDependencies": {
-    "@sofie-automation/code-standard-preset": "^0.4.1",
-    "@strictsoftware/typedoc-plugin-monorepo": "^0.4.2",
+    "@sofie-automation/code-standard-preset": "~2.0.0",
     "@types/jest": "^26.0.9",
-    "@types/node": "^12.20.24",
-    "@types/request": "^2.48.7",
+    "@types/node": "^12.20.42",
+    "@types/request": "^2.48.8",
     "@types/sprintf-js": "^1.1.0",
     "@types/underscore": "^1.10.24",
     "@types/ws": "^7.4.7",
     "@types/xml-js": "^1.0.0",
-    "codecov": "^3.8.3",
     "jest": "^26.0.1",
     "jest-haste-map": "^26.0.1",
     "jest-resolve": "^26.0.1",
     "lerna": "^4.0.0",
-    "open-cli": "^6.0.1",
+    "open-cli": "^7.0.1",
     "rimraf": "^3.0.2",
     "ts-jest": "^26.1.0",
-    "typedoc": "^0.21.10",
-    "typescript": "~4.2"
+    "type-fest": "^2.11.1",
+    "typedoc": "^0.22.10",
+    "typescript": "~4.5"
   },
-  "prettier": "@sofie-automation/code-standard-preset/.prettierrc.json",
-  "husky": {
-    "hooks": {
-      "pre-commit": "lerna run --concurrency 1 --stream precommit --since HEAD --exclude-dependents"
-    }
-  }
+  "prettier": "@sofie-automation/code-standard-preset/.prettierrc.json"
 }

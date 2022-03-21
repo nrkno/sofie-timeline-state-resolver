@@ -56,7 +56,7 @@ export class PharosDevice extends DeviceWithState<PharosState, DeviceOptionsPhar
 		super(deviceId, deviceOptions, getCurrentTime)
 		if (deviceOptions.options) {
 			if (deviceOptions.commandReceiver) this._commandReceiver = deviceOptions.commandReceiver
-			else this._commandReceiver = this._defaultCommandReceiver
+			else this._commandReceiver = this._defaultCommandReceiver.bind(this)
 		}
 		this._doOnTime = new DoOnTime(
 			() => {
@@ -81,12 +81,12 @@ export class PharosDevice extends DeviceWithState<PharosState, DeviceOptionsPhar
 	/**
 	 * Initiates the connection with Pharos through the PharosAPI.
 	 */
-	init(initOptions: PharosOptions): Promise<boolean> {
+	async init(initOptions: PharosOptions): Promise<boolean> {
 		return new Promise((resolve, reject) => {
 			// This is where we would do initialization, like connecting to the devices, etc
 			this._pharos
 				.connect(initOptions)
-				.then(() => {
+				.then(async () => {
 					return this._pharos.getProjectInfo()
 				})
 				.then((systemInfo) => {
@@ -132,7 +132,7 @@ export class PharosDevice extends DeviceWithState<PharosState, DeviceOptionsPhar
 		// Clear any scheduled commands after this time
 		this._doOnTime.clearQueueAfter(clearAfterTime)
 	}
-	terminate() {
+	async terminate() {
 		this._doOnTime.dispose()
 		return this._pharos.dispose().then(() => {
 			return true
@@ -185,7 +185,7 @@ export class PharosDevice extends DeviceWithState<PharosState, DeviceOptionsPhar
 			this._doOnTime.queue(
 				time,
 				undefined,
-				(cmd: Command) => {
+				async (cmd: Command) => {
 					return this._commandReceiver(time, cmd, cmd.context, cmd.timelineObjId)
 				},
 				cmd
@@ -213,7 +213,7 @@ export class PharosDevice extends DeviceWithState<PharosState, DeviceOptionsPhar
 				commands.push({
 					content: {
 						args: [oldScene.content.scene, oldScene.content.fade],
-						fcn: (scene, fade) => this._pharos.releaseScene(scene, fade),
+						fcn: async (scene, fade) => this._pharos.releaseScene(scene, fade),
 					},
 					context: `${reason}: ${oldLayer.id} ${oldScene.content.scene}`,
 					timelineObjId: oldLayer.id,
@@ -225,7 +225,7 @@ export class PharosDevice extends DeviceWithState<PharosState, DeviceOptionsPhar
 				commands.push({
 					content: {
 						args: [oldTimeline.content.timeline, oldTimeline.content.fade],
-						fcn: (timeline, fade) => this._pharos.releaseTimeline(timeline, fade),
+						fcn: async (timeline, fade) => this._pharos.releaseTimeline(timeline, fade),
 					},
 					context: `${reason}: ${oldLayer.id} ${oldTimeline.content.timeline}`,
 					timelineObjId: oldLayer.id,
@@ -242,7 +242,7 @@ export class PharosDevice extends DeviceWithState<PharosState, DeviceOptionsPhar
 						commands.push({
 							content: {
 								args: [newPharosTimeline.content.timeline],
-								fcn: (timeline) => this._pharos.pauseTimeline(timeline),
+								fcn: async (timeline) => this._pharos.pauseTimeline(timeline),
 							},
 							context: `pause timeline: ${newLayer.id} ${newPharosTimeline.content.timeline}`,
 							timelineObjId: newLayer.id,
@@ -251,7 +251,7 @@ export class PharosDevice extends DeviceWithState<PharosState, DeviceOptionsPhar
 						commands.push({
 							content: {
 								args: [newPharosTimeline.content.timeline],
-								fcn: (timeline) => this._pharos.resumeTimeline(timeline),
+								fcn: async (timeline) => this._pharos.resumeTimeline(timeline),
 							},
 							context: `resume timeline: ${newLayer.id} ${newPharosTimeline.content.timeline}`,
 							timelineObjId: newLayer.id,
@@ -262,7 +262,7 @@ export class PharosDevice extends DeviceWithState<PharosState, DeviceOptionsPhar
 					commands.push({
 						content: {
 							args: [newPharosTimeline.content.timeline, newPharosTimeline.content.rate],
-							fcn: (timeline, rate) => this._pharos.setTimelineRate(timeline, rate),
+							fcn: async (timeline, rate) => this._pharos.setTimelineRate(timeline, rate),
 						},
 						context: `pause timeline: ${newLayer.id} ${newPharosTimeline.content.timeline}: ${newPharosTimeline.content.rate}`,
 						timelineObjId: newLayer.id,
@@ -280,7 +280,7 @@ export class PharosDevice extends DeviceWithState<PharosState, DeviceOptionsPhar
 					commands.push({
 						content: {
 							args: [newPharosScene.content.scene],
-							fcn: (scene) => this._pharos.startScene(scene),
+							fcn: async (scene) => this._pharos.startScene(scene),
 						},
 						context: `${reason}: ${newLayer.id} ${newPharosScene.content.scene}`,
 						timelineObjId: newLayer.id,
@@ -291,7 +291,7 @@ export class PharosDevice extends DeviceWithState<PharosState, DeviceOptionsPhar
 					commands.push({
 						content: {
 							args: [newPharosTimeline.content.timeline],
-							fcn: (timeline) => this._pharos.startTimeline(timeline),
+							fcn: async (timeline) => this._pharos.startTimeline(timeline),
 						},
 						context: `${reason}: ${newLayer.id} ${newPharosTimeline.content.timeline}`,
 						timelineObjId: newLayer.id,
@@ -382,7 +382,7 @@ export class PharosDevice extends DeviceWithState<PharosState, DeviceOptionsPhar
 		try {
 			await cmd.content.fcn(...cmd.content.args)
 		} catch (e) {
-			this.emit('commandError', e, cwc)
+			this.emit('commandError', e as Error, cwc)
 		}
 	}
 	private _connectionChanged() {

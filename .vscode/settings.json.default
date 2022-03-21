@@ -1,0 +1,8 @@
+{
+    "eslint.workingDirectories": [
+        "packages/timeline-state-resolver",
+        "packages/timeline-state-resolver-types",
+    ],
+    "prettier.enable": true,
+    "sonarlint.connectedMode.project": { "projectKey": "nrkno_tv-automation-state-timeline-resolver" },
+}

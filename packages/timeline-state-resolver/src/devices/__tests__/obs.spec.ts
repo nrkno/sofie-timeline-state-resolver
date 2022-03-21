@@ -43,7 +43,7 @@ describe('OBS', () => {
 	})
 
 	async function setUpOBS() {
-		const commandReceiver0: any = jest.fn(() => {
+		const commandReceiver0: any = jest.fn(async () => {
 			return Promise.resolve()
 		})
 		const currentSceneMapping: MappingOBSCurrentScene = {
@@ -89,7 +89,7 @@ describe('OBS', () => {
 		}
 
 		const myConductor = new Conductor({
-			initializeAsClear: true,
+			multiThreadedResolver: false,
 			getCurrentTime: mockTime.getCurrentTime,
 		})
 		myConductor.on('error', (e0, e1, e2) => console.error(e0, e1, e2))

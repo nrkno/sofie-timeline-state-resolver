@@ -41,7 +41,7 @@ describe('Panasonic PTZ', () => {
 	})
 
 	test('Panasonic PTZ: change preset', async () => {
-		const commandReceiver0: any = jest.fn(() => {
+		const commandReceiver0: any = jest.fn(async () => {
 			return Promise.resolve()
 		})
 		const myChannelMapping0: MappingPanasonicPtz = {
@@ -72,7 +72,7 @@ describe('Panasonic PTZ', () => {
 		}
 
 		const myConductor = new Conductor({
-			initializeAsClear: true,
+			multiThreadedResolver: false,
 			getCurrentTime: mockTime.getCurrentTime,
 		})
 		myConductor.setTimelineAndMappings([], myChannelMapping)

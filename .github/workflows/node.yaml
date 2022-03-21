@@ -3,9 +3,9 @@ name: Node CI
 on:
   push:
     branches:
-      - "**"
+      - '**'
     tags:
-      - "[0-9]+.[0-9]+.[0-9]+*"
+      - '[0-9]+.[0-9]+.[0-9]+*'
   pull_request:
 
 jobs:
@@ -22,10 +22,10 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      - name: Use Node.js 14.x
-        uses: actions/setup-node@v1
+      - name: Use Node.js
+        uses: actions/setup-node@v2
         with:
-          node-version: 14.x
+          node-version-file: '.node-version'
       - name: Prepare Environment
         run: |
           yarn install
@@ -47,10 +47,10 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      - name: Use Node.js 14.x
-        uses: actions/setup-node@v1
+      - name: Use Node.js
+        uses: actions/setup-node@v2
         with:
-          node-version: 14.x
+          node-version-file: '.node-version'
       - name: Prepare Environment
         run: |
           yarn install
@@ -71,13 +71,13 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node-version: [12.x, 14.x, 16.x]
+        node-version: [14.x, 16.x]
         lib-name: [timeline-state-resolver, timeline-state-resolver-types]
 
     steps:
       - uses: actions/checkout@v2
       - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v2
         with:
           node-version: ${{ matrix.node-version }}
       - name: Prepare Environment
@@ -89,16 +89,15 @@ jobs:
       - name: Run tests
         run: |
           cd packages/${{ matrix.lib-name }}
-          yarn unit
+          yarn unitci
         env:
           CI: true
       - name: Send coverage
-        if: matrix.node-version == '14.x'
-        run: |
-          cd packages/${{ matrix.lib-name }}
-          yarn send-coverage
-        env:
-          CI: true
+        if: matrix.node-version == '16.x'
+        uses: codecov/codecov-action@v2
+        with:
+          fail_ci_if_error: true
+          # name: codecov-umbrella
       # - name: Check docs generation
       #   if: matrix.node-version == '14.x'
       #   run: |
@@ -116,16 +115,16 @@ jobs:
 
     needs:
       - test
-      - validate-dependencies
+      # - validate-dependencies
 
     steps:
       - uses: actions/checkout@v2
         with:
           fetch-depth: 0
-      - name: Use Node.js 14.x
-        uses: actions/setup-node@v1
+      - name: Use Node.js
+        uses: actions/setup-node@v2
         with:
-          node-version: 14.x
+          node-version-file: '.node-version'
       - name: Check release is desired
         id: do-publish
         run: |
@@ -190,10 +189,10 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      - name: Use Node.js 14.x
-        uses: actions/setup-node@v1
+      - name: Use Node.js
+        uses: actions/setup-node@v2
         with:
-          node-version: 14.x
+          node-version-file: '.node-version'
       - name: Prepare Environment
         run: |
           yarn install
@@ -223,10 +222,10 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      - name: Use Node.js 14.x
-        uses: actions/setup-node@v1
+      - name: Use Node.js
+        uses: actions/setup-node@v2
         with:
-          node-version: 14.x
+          node-version-file: '.node-version'
       - name: Prepare Environment
         run: |
           yarn install

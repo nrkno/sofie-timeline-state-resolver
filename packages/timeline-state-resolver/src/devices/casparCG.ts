@@ -79,6 +79,7 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 	private _doOnTime: DoOnTime
 	private initOptions?: CasparCGOptions
 	private _connected = false
+	private _queueOverflow = false
 	private _transitionHandler: InternalTransitionHandler = new InternalTransitionHandler()
 	private _retryTimeout: NodeJS.Timeout
 	private _retryTime: number | null = null
@@ -88,7 +89,8 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 
 		if (deviceOptions.options) {
 			if (deviceOptions.commandReceiver) this._commandReceiver = deviceOptions.commandReceiver
-			else this._commandReceiver = this._defaultCommandReceiver
+			else this._commandReceiver = this._defaultCommandReceiver.bind(this)
+
 			if (deviceOptions.options.timeBase) this._timeBase = deviceOptions.options.timeBase
 		}
 
@@ -157,7 +159,7 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 	/**
 	 * Terminates the device safely such that things can be garbage collected.
 	 */
-	terminate(): Promise<boolean> {
+	async terminate(): Promise<boolean> {
 		this._doOnTime.dispose()
 		this._transitionHandler.terminate()
 		clearTimeout(this._retryTimeout)
@@ -629,8 +631,7 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 		}
 
 		if (this._useScheduling) {
-			for (const i in channels) {
-				const channel = channels[i]
+			for (const channel of channels) {
 				const channelNo = channel.channel
 				await attemptSync(channelNo, 1)
 			}
@@ -660,7 +661,7 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 	/**
 	 * Attemps to restart casparcg over the HTTP API provided by CasparCG launcher.
 	 */
-	restartCasparCG(): Promise<void> {
+	async restartCasparCG(): Promise<void> {
 		return new Promise<void>((resolve, reject) => {
 			if (!this.initOptions) throw new Error('CasparCGDevice._connectionOptions is not set!')
 			if (!this.initOptions.launcherHost) throw new Error('CasparCGDevice: config.launcherHost is not set!')
@@ -698,6 +699,11 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 			messages.push(`CasparCG device connection not initialized (restart required)`)
 		}
 
+		if (this._queueOverflow) {
+			statusCode = StatusCode.BAD
+			messages.push('Command queue overflow: CasparCG server has to be restarted')
+		}
+
 		return {
 			statusCode: statusCode,
 			messages: messages,
@@ -711,7 +717,7 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 		// @todo: this is a tmp fix for the command order. should be removed when ccg-state has been refactored.
 		return CasparCGState.diffStatesOrderedCommands(oldState, newState, time)
 	}
-	private _doCommand(command: CommandNS.IAMCPCommand, context: string, timlineObjId: string): Promise<void> {
+	private async _doCommand(command: CommandNS.IAMCPCommand, context: string, timlineObjId: string): Promise<void> {
 		const time = this.getCurrentTime()
 
 		const interceptedCommand = this._interceptCommand(command)
@@ -807,7 +813,7 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 				this._doOnTime.queue(
 					time,
 					undefined,
-					(c: { command: CommandNS.IAMCPCommand; cmd: AMCPCommandVOWithContext }) => {
+					async (c: { command: CommandNS.IAMCPCommand; cmd: AMCPCommandVOWithContext }) => {
 						return this._doCommand(c.command, c.cmd.context.context, c.cmd.context.layerId)
 					},
 					{ command: command, cmd: cmd }
@@ -820,7 +826,7 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 	 * @param time deprecated
 	 * @param cmd Command to execute
 	 */
-	private _defaultCommandReceiver(
+	private async _defaultCommandReceiver(
 		time: number,
 		cmd: CommandNS.IAMCPCommand,
 		context: string,
@@ -879,15 +885,27 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 						}
 					}
 				}
+
+				if (this._queueOverflow) {
+					this._queueOverflow = false
+					this._connectionChanged()
+				}
 			})
 			.catch((error) => {
+				if (error?.response?.code === 504) {
+					if (!this._queueOverflow) {
+						this._queueOverflow = true
+						this._connectionChanged()
+					}
+				}
+
 				let errorString = ''
-				if (error && error.response && error.response.code === 404) {
+				if (error?.response?.code === 404) {
 					errorString = `404: File not found`
 				}
 
 				if (!errorString) {
-					errorString = error && error.response && error.response.raw ? error.response.raw : error.toString()
+					errorString = error?.response?.raw ? error.response.raw : error.toString()
 				}
 
 				if (cmd.name) {

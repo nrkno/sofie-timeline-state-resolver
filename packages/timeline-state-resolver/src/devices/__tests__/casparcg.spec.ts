@@ -31,7 +31,7 @@ describe('CasparCG', () => {
 		mockTime.init()
 	})
 	test('CasparCG: Play AMB for 60s', async () => {
-		const commandReceiver0: any = jest.fn(() => {
+		const commandReceiver0: any = jest.fn(async () => {
 			return Promise.resolve()
 		})
 		const myLayerMapping0: MappingCasparCG = {
@@ -45,7 +45,7 @@ describe('CasparCG', () => {
 		}
 
 		const myConductor = new Conductor({
-			initializeAsClear: true,
+			multiThreadedResolver: false,
 			getCurrentTime: mockTime.getCurrentTime,
 		})
 		await myConductor.init() // we cannot do an await, because setTimeout will never call without jest moving on.
@@ -118,7 +118,7 @@ describe('CasparCG', () => {
 		expect(getMockCall(commandReceiver0, 1, 1)._objectParams.command.layer).toEqual(42)
 	})
 	test('CasparCG: Play AMB for 60s, start at 10s', async () => {
-		const commandReceiver0: any = jest.fn(() => {
+		const commandReceiver0: any = jest.fn(async () => {
 			return Promise.resolve()
 		})
 		const myLayerMapping0: MappingCasparCG = {
@@ -132,7 +132,7 @@ describe('CasparCG', () => {
 		}
 
 		const myConductor = new Conductor({
-			initializeAsClear: true,
+			multiThreadedResolver: false,
 			getCurrentTime: mockTime.getCurrentTime,
 		})
 		await myConductor.init() // we cannot do an await, because setTimeout will never call without jest moving on.
@@ -193,7 +193,7 @@ describe('CasparCG', () => {
 		})
 	})
 	test('CasparCG: Play AMB for 60s in 50fps', async () => {
-		const commandReceiver0: any = jest.fn(() => {
+		const commandReceiver0: any = jest.fn(async () => {
 			return Promise.resolve()
 		})
 		const myLayerMapping0: MappingCasparCG = {
@@ -207,7 +207,7 @@ describe('CasparCG', () => {
 		}
 
 		const myConductor = new Conductor({
-			initializeAsClear: true,
+			multiThreadedResolver: false,
 			getCurrentTime: mockTime.getCurrentTime,
 		})
 		await myConductor.init() // we cannot do an await, because setTimeout will never call without jest moving on.
@@ -279,7 +279,7 @@ describe('CasparCG', () => {
 	})
 
 	test('CasparCG: Play IP input for 60s', async () => {
-		const commandReceiver0: any = jest.fn(() => {
+		const commandReceiver0: any = jest.fn(async () => {
 			return Promise.resolve()
 		})
 		const myLayerMapping0: MappingCasparCG = {
@@ -293,7 +293,7 @@ describe('CasparCG', () => {
 		}
 
 		const myConductor = new Conductor({
-			initializeAsClear: true,
+			multiThreadedResolver: false,
 			getCurrentTime: mockTime.getCurrentTime,
 		})
 		await myConductor.init()
@@ -354,7 +354,7 @@ describe('CasparCG', () => {
 	})
 
 	test('CasparCG: Play decklink input for 60s', async () => {
-		const commandReceiver0: any = jest.fn(() => {
+		const commandReceiver0: any = jest.fn(async () => {
 			return Promise.resolve()
 		})
 		const myLayerMapping0: MappingCasparCG = {
@@ -368,7 +368,7 @@ describe('CasparCG', () => {
 		}
 
 		const myConductor = new Conductor({
-			initializeAsClear: true,
+			multiThreadedResolver: false,
 			getCurrentTime: mockTime.getCurrentTime,
 		})
 		await myConductor.init()
@@ -447,7 +447,7 @@ describe('CasparCG', () => {
 	})
 
 	test('CasparCG: Play template for 60s', async () => {
-		const commandReceiver0: any = jest.fn(() => {
+		const commandReceiver0: any = jest.fn(async () => {
 			return Promise.resolve()
 		})
 		const myLayerMapping0: MappingCasparCG = {
@@ -461,7 +461,7 @@ describe('CasparCG', () => {
 		}
 
 		const myConductor = new Conductor({
-			initializeAsClear: true,
+			multiThreadedResolver: false,
 			getCurrentTime: mockTime.getCurrentTime,
 		})
 		await myConductor.init()
@@ -533,7 +533,7 @@ describe('CasparCG', () => {
 	})
 
 	test('CasparCG: Schedule recording', async () => {
-		const commandReceiver0: any = jest.fn(() => {
+		const commandReceiver0: any = jest.fn(async () => {
 			return Promise.resolve()
 		})
 		const myLayerMapping0: MappingCasparCG = {
@@ -547,7 +547,7 @@ describe('CasparCG', () => {
 		}
 
 		const myConductor = new Conductor({
-			initializeAsClear: true,
+			multiThreadedResolver: false,
 			getCurrentTime: mockTime.getCurrentTime,
 		})
 		await myConductor.init()
@@ -613,7 +613,7 @@ describe('CasparCG', () => {
 	})
 
 	test('CasparCG: Play 2 routes for 60s', async () => {
-		const commandReceiver0: any = jest.fn(() => {
+		const commandReceiver0: any = jest.fn(async () => {
 			return Promise.resolve()
 		})
 		const myLayerMapping0: MappingCasparCG = {
@@ -634,7 +634,7 @@ describe('CasparCG', () => {
 		}
 
 		const myConductor = new Conductor({
-			initializeAsClear: true,
+			multiThreadedResolver: false,
 			getCurrentTime: mockTime.getCurrentTime,
 		})
 		await myConductor.init()
@@ -736,7 +736,7 @@ describe('CasparCG', () => {
 	})
 
 	test('CasparCG: AMB with transitions', async () => {
-		const commandReceiver0: any = jest.fn(() => {
+		const commandReceiver0: any = jest.fn(async () => {
 			return Promise.resolve()
 		})
 		const myLayerMapping0: MappingCasparCG = {
@@ -750,7 +750,7 @@ describe('CasparCG', () => {
 		}
 
 		const myConductor = new Conductor({
-			initializeAsClear: true,
+			multiThreadedResolver: false,
 			getCurrentTime: mockTime.getCurrentTime,
 		})
 		await myConductor.init()
@@ -843,7 +843,7 @@ describe('CasparCG', () => {
 	})
 
 	test('CasparCG: Mixer commands', async () => {
-		const commandReceiver0: any = jest.fn(() => {
+		const commandReceiver0: any = jest.fn(async () => {
 			return Promise.resolve()
 		})
 		const myLayerMapping0: MappingCasparCG = {
@@ -857,7 +857,7 @@ describe('CasparCG', () => {
 		}
 
 		const myConductor = new Conductor({
-			initializeAsClear: true,
+			multiThreadedResolver: false,
 			getCurrentTime: mockTime.getCurrentTime,
 		})
 		myConductor.on('error', (e) => {
@@ -986,7 +986,7 @@ describe('CasparCG', () => {
 	})
 
 	test('CasparCG: loadbg command', async () => {
-		const commandReceiver0: any = jest.fn(() => {
+		const commandReceiver0: any = jest.fn(async () => {
 			return Promise.resolve()
 		})
 		const myLayerMapping0: MappingCasparCG = {
@@ -1000,7 +1000,7 @@ describe('CasparCG', () => {
 		}
 
 		const myConductor = new Conductor({
-			initializeAsClear: true,
+			multiThreadedResolver: false,
 			getCurrentTime: mockTime.getCurrentTime,
 		})
 		await myConductor.init()
@@ -1094,7 +1094,7 @@ describe('CasparCG', () => {
 	})
 
 	test('CasparCG: load command', async () => {
-		const commandReceiver0: any = jest.fn(() => {
+		const commandReceiver0: any = jest.fn(async () => {
 			return Promise.resolve()
 		})
 		const myLayerMapping0: MappingCasparCG = {
@@ -1109,7 +1109,7 @@ describe('CasparCG', () => {
 		}
 
 		const myConductor = new Conductor({
-			initializeAsClear: true,
+			multiThreadedResolver: false,
 			getCurrentTime: mockTime.getCurrentTime,
 		})
 		await myConductor.init()
@@ -1202,7 +1202,7 @@ describe('CasparCG', () => {
 	})
 
 	test('CasparCG: Schedule Play, then change my mind', async () => {
-		const commandReceiver0: any = jest.fn(() => {
+		const commandReceiver0: any = jest.fn(async () => {
 			return Promise.resolve()
 		})
 		const myLayerMapping0: MappingCasparCG = {
@@ -1216,7 +1216,7 @@ describe('CasparCG', () => {
 		}
 
 		const myConductor = new Conductor({
-			initializeAsClear: true,
+			multiThreadedResolver: false,
 			getCurrentTime: mockTime.getCurrentTime,
 		})
 		await myConductor.init()
@@ -1317,7 +1317,7 @@ describe('CasparCG', () => {
 		expect(commandReceiver0).toHaveBeenCalledTimes(7)
 	})
 	test('CasparCG: Play a looping video, then continue looping', async () => {
-		const commandReceiver0: any = jest.fn(() => {
+		const commandReceiver0: any = jest.fn(async () => {
 			return Promise.resolve()
 		})
 		const myLayerMapping0: MappingCasparCG = {
@@ -1331,7 +1331,7 @@ describe('CasparCG', () => {
 		}
 
 		const myConductor = new Conductor({
-			initializeAsClear: true,
+			multiThreadedResolver: false,
 			getCurrentTime: mockTime.getCurrentTime,
 		})
 		await myConductor.init()
@@ -1409,7 +1409,7 @@ describe('CasparCG', () => {
 	})
 
 	test('CasparCG: Play a filtered decklink in PAL for 60s', async () => {
-		const commandReceiver0: any = jest.fn(() => {
+		const commandReceiver0: any = jest.fn(async () => {
 			return Promise.resolve()
 		})
 		const myLayerMapping0: MappingCasparCG = {
@@ -1423,7 +1423,7 @@ describe('CasparCG', () => {
 		}
 
 		const myConductor = new Conductor({
-			initializeAsClear: true,
+			multiThreadedResolver: false,
 			getCurrentTime: mockTime.getCurrentTime,
 		})
 		await myConductor.init() // we cannot do an await, because setTimeout will never call without jest moving on.
@@ -1501,7 +1501,7 @@ describe('CasparCG', () => {
 	})
 
 	test('CasparCG: play missing file with reloads', async () => {
-		const commandReceiver0: any = jest.fn(() => {
+		const commandReceiver0: any = jest.fn(async () => {
 			return Promise.resolve()
 		})
 		const myLayerMapping0: MappingCasparCG = {
@@ -1515,7 +1515,7 @@ describe('CasparCG', () => {
 		}
 
 		const myConductor = new Conductor({
-			initializeAsClear: true,
+			multiThreadedResolver: false,
 			getCurrentTime: mockTime.getCurrentTime,
 		})
 		await myConductor.init()
@@ -1645,7 +1645,7 @@ describe('CasparCG', () => {
 	})
 
 	test('CasparCG: play empty and expect no reloads', async () => {
-		const commandReceiver0: any = jest.fn(() => {
+		const commandReceiver0: any = jest.fn(async () => {
 			return Promise.resolve()
 		})
 		const myLayerMapping0: MappingCasparCG = {
@@ -1659,7 +1659,7 @@ describe('CasparCG', () => {
 		}
 
 		const myConductor = new Conductor({
-			initializeAsClear: true,
+			multiThreadedResolver: false,
 			getCurrentTime: mockTime.getCurrentTime,
 		})
 		await myConductor.init()
@@ -1789,7 +1789,7 @@ describe('CasparCG', () => {
 	})
 
 	test('CasparCG: Multiple mappings for 1 layer', async () => {
-		const commandReceiver0: any = jest.fn(() => {
+		const commandReceiver0: any = jest.fn(async () => {
 			return Promise.resolve()
 		})
 		const myLayerMapping0: MappingCasparCG = {
@@ -1804,7 +1804,7 @@ describe('CasparCG', () => {
 		}
 
 		const myConductor = new Conductor({
-			initializeAsClear: true,
+			multiThreadedResolver: false,
 			getCurrentTime: mockTime.getCurrentTime,
 		})
 		await myConductor.init() // we cannot do an await, because setTimeout will never call without jest moving on.
@@ -1888,7 +1888,7 @@ describe('CasparCG', () => {
 	})
 
 	test('CasparCG: Multiple mappings for 1 layer extend template data', async () => {
-		const commandReceiver0: any = jest.fn(() => {
+		const commandReceiver0: any = jest.fn(async () => {
 			return Promise.resolve()
 		})
 		const myLayerMapping0: MappingCasparCG = {
@@ -1903,7 +1903,7 @@ describe('CasparCG', () => {
 		}
 
 		const myConductor = new Conductor({
-			initializeAsClear: true,
+			multiThreadedResolver: false,
 			getCurrentTime: mockTime.getCurrentTime,
 		})
 		await myConductor.init() // we cannot do an await, because setTimeout will never call without jest moving on.
@@ -2014,7 +2014,7 @@ describe('CasparCG - Custom transitions', () => {
 		mockTime.init()
 	})
 	test('FILL', async () => {
-		const commandReceiver0: any = jest.fn(() => {
+		const commandReceiver0: any = jest.fn(async () => {
 			return Promise.resolve()
 		})
 		const myLayerMapping0: MappingCasparCG = {
@@ -2028,7 +2028,7 @@ describe('CasparCG - Custom transitions', () => {
 		}
 
 		const myConductor = new Conductor({
-			initializeAsClear: true,
+			multiThreadedResolver: false,
 			getCurrentTime: mockTime.getCurrentTime,
 		})
 		await myConductor.init()

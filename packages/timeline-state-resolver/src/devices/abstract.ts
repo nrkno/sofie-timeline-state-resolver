@@ -39,7 +39,7 @@ export class AbstractDevice extends DeviceWithState<AbstractState, DeviceOptions
 		super(deviceId, deviceOptions, getCurrentTime)
 		if (deviceOptions.options) {
 			if (deviceOptions.commandReceiver) this._commandReceiver = deviceOptions.commandReceiver
-			else this._commandReceiver = this._defaultCommandReceiver
+			else this._commandReceiver = this._defaultCommandReceiver.bind(this)
 		}
 		this._doOnTime = new DoOnTime(
 			() => {
@@ -54,7 +54,7 @@ export class AbstractDevice extends DeviceWithState<AbstractState, DeviceOptions
 	/**
 	 * Initiates the connection with CasparCG through the ccg-connection lib.
 	 */
-	init(_initOptions: AbstractOptions): Promise<boolean> {
+	async init(_initOptions: AbstractOptions): Promise<boolean> {
 		return new Promise((resolve /*, reject*/) => {
 			// This is where we would do initialization, like connecting to the devices, etc
 			resolve(true)
@@ -100,7 +100,7 @@ export class AbstractDevice extends DeviceWithState<AbstractState, DeviceOptions
 	/**
 	 * Dispose of the device so it can be garbage collected.
 	 */
-	terminate() {
+	async terminate() {
 		this._doOnTime.dispose()
 		return Promise.resolve(true)
 	}
@@ -141,7 +141,7 @@ export class AbstractDevice extends DeviceWithState<AbstractState, DeviceOptions
 			this._doOnTime.queue(
 				time,
 				undefined,
-				(cmd: Command) => {
+				async (cmd: Command) => {
 					return this._commandReceiver(time, cmd, cmd.context, cmd.timelineObjId)
 				},
 				cmd
@@ -196,7 +196,7 @@ export class AbstractDevice extends DeviceWithState<AbstractState, DeviceOptions
 		})
 		return commands
 	}
-	private _defaultCommandReceiver(
+	private async _defaultCommandReceiver(
 		_time: number,
 		cmd: Command,
 		context: CommandContext,

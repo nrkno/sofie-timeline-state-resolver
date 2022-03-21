@@ -12,5 +12,5 @@
 		"**/__tests__",
 		"**/examples"
 	],
-	"external-modulemap": ".*packages/([^/]+)/.*"
+	"entryPointStrategy": "packages"
 }

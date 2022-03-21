@@ -31,7 +31,7 @@ export class ShotokuAPI extends EventEmitter {
 		return this._connected
 	}
 
-	executeCommand(command: ShotokuCommand) {
+	async executeCommand(command: ShotokuCommand) {
 		if ('shot' in command) {
 			return this.send(command)
 		} else {
@@ -44,7 +44,7 @@ export class ShotokuAPI extends EventEmitter {
 		}
 	}
 
-	send(command: ShotokuBasicCommand) {
+	async send(command: ShotokuBasicCommand) {
 		const codes = {
 			[ShotokuCommandType.Fade]: 0x01,
 			[ShotokuCommandType.Cut]: 0x02,
@@ -93,7 +93,7 @@ export class ShotokuAPI extends EventEmitter {
 		}
 	}
 
-	private _disconnectTCPClient(): Promise<void> {
+	private async _disconnectTCPClient(): Promise<void> {
 		return new Promise<void>((resolve) => {
 			this._setDisconnected = true
 			if (this._tcpClient) {
@@ -133,7 +133,7 @@ export class ShotokuAPI extends EventEmitter {
 			this._setConnected(false)
 		})
 	}
-	private _connectTCPClient(): Promise<void> {
+	private async _connectTCPClient(): Promise<void> {
 		this._setDisconnected = false
 
 		if (!this._tcpClient) {

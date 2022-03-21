@@ -92,7 +92,7 @@ export class HTTPWatcherDevice extends Device<DeviceOptionsHTTPWatcherInternal> 
 		}
 	}
 
-	init(_initOptions: HTTPWatcherOptions): Promise<boolean> {
+	async init(_initOptions: HTTPWatcherOptions): Promise<boolean> {
 		this.startInterval()
 
 		return Promise.resolve(true)
@@ -116,7 +116,7 @@ export class HTTPWatcherDevice extends Device<DeviceOptionsHTTPWatcherInternal> 
 		if (this.statusReason) s.messages = [this.statusReason]
 		return s
 	}
-	terminate(): Promise<boolean> {
+	async terminate(): Promise<boolean> {
 		this.stopInterval()
 
 		return Promise.resolve(true)

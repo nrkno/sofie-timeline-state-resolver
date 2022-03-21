@@ -4,7 +4,7 @@ const MockOSC = OSC.MockOSC
 
 const orgSetTimeout = setTimeout
 
-function wait(time = 1) {
+async function wait(time = 1) {
 	return new Promise((resolve) => {
 		orgSetTimeout(resolve, time)
 	})

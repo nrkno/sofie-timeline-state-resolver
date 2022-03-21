@@ -38,7 +38,7 @@ describe('Atem', () => {
 	})
 
 	test('Atem: Ensure clean initial state', async () => {
-		const commandReceiver0: any = jest.fn(() => {
+		const commandReceiver0: any = jest.fn(async () => {
 			return Promise.resolve()
 		})
 		const mockState: TimelineState = {
@@ -74,7 +74,7 @@ describe('Atem', () => {
 	})
 
 	test('Atem: switch input', async () => {
-		const commandReceiver0: any = jest.fn(() => {
+		const commandReceiver0: any = jest.fn(async () => {
 			return Promise.resolve()
 		})
 		const myLayerMapping0: MappingAtem = {
@@ -88,7 +88,7 @@ describe('Atem', () => {
 		}
 
 		const myConductor = new Conductor({
-			initializeAsClear: true,
+			multiThreadedResolver: false,
 			getCurrentTime: mockTime.getCurrentTime,
 		})
 		await myConductor.init()
@@ -179,7 +179,7 @@ describe('Atem', () => {
 		}
 
 		const myConductor = new Conductor({
-			initializeAsClear: true,
+			multiThreadedResolver: false,
 			getCurrentTime: mockTime.getCurrentTime,
 		})
 		await myConductor.init()
@@ -246,7 +246,7 @@ describe('Atem', () => {
 	})
 
 	test('Atem: handle same state', async () => {
-		const commandReceiver0 = jest.fn(() => {
+		const commandReceiver0 = jest.fn(async () => {
 			return Promise.resolve()
 		})
 		const myLayerMapping: Mappings = {

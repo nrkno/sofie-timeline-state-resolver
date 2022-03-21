@@ -8,7 +8,7 @@ import {
 	Mappings,
 } from 'timeline-state-resolver-types'
 import { DoOnTime, SendMode } from '../doOnTime'
-import got from 'got'
+import got, { RequestError } from 'got'
 
 import { TimelineState, ResolvedTimelineObjectInstance } from 'superfly-timeline'
 
@@ -53,7 +53,7 @@ export class HTTPSendDevice extends DeviceWithState<HTTPSendState, DeviceOptions
 		super(deviceId, deviceOptions, getCurrentTime)
 		if (deviceOptions.options) {
 			if (deviceOptions.commandReceiver) this._commandReceiver = deviceOptions.commandReceiver
-			else this._commandReceiver = this._defaultCommandReceiver
+			else this._commandReceiver = this._defaultCommandReceiver.bind(this)
 		}
 		this._doOnTime = new DoOnTime(
 			() => {
@@ -64,7 +64,7 @@ export class HTTPSendDevice extends DeviceWithState<HTTPSendState, DeviceOptions
 		)
 		this.handleDoOnTime(this._doOnTime, 'HTTPSend')
 	}
-	init(initOptions: HTTPSendOptions): Promise<boolean> {
+	async init(initOptions: HTTPSendOptions): Promise<boolean> {
 		this._makeReadyCommands = initOptions.makeReadyCommands || []
 		this._makeReadyDoesReset = initOptions.makeReadyDoesReset || false
 		this._resendTime = initOptions.resendTime && initOptions.resendTime > 1 ? initOptions.resendTime : undefined
@@ -107,7 +107,7 @@ export class HTTPSendDevice extends DeviceWithState<HTTPSendState, DeviceOptions
 		// Clear any scheduled commands after this time
 		this._doOnTime.clearQueueAfter(clearAfterTime)
 	}
-	terminate() {
+	async terminate() {
 		this._doOnTime.dispose()
 		return Promise.resolve(true)
 	}
@@ -222,12 +222,15 @@ export class HTTPSendDevice extends DeviceWithState<HTTPSendState, DeviceOptions
 				})
 			}
 		})
+
+		commands.sort((a, b) => a.layer.localeCompare(b.layer))
+		commands.sort((a, b) => {
+			return (a.content.temporalPriority || 0) - (b.content.temporalPriority || 0)
+		})
+
 		return commands
-			.sort((a, b) => a.layer.localeCompare(b.layer))
-			.sort((a, b) => {
-				return (a.content.temporalPriority || 0) - (b.content.temporalPriority || 0)
-			})
 	}
+
 	private async _defaultCommandReceiver(
 		_time: number,
 		cmd: HTTPSendCommandContent,
@@ -267,11 +270,13 @@ export class HTTPSendDevice extends DeviceWithState<HTTPSendState, DeviceOptions
 				)
 			}
 		} catch (error) {
-			this.emit('error', `HTTPSend.response error ${cmd.type} (${context}`, error)
-			this.emit('commandError', error, cwc)
+			const err = error as RequestError // make typescript happy
+
+			this.emit('error', `HTTPSend.response error ${cmd.type} (${context}`, err)
+			this.emit('commandError', err, cwc)
 			debug(`Failed ${cmd.url}: ${error} (${timelineObjId})`)
 
-			if ('code' in error) {
+			if ('code' in err) {
 				const retryCodes = [
 					'ETIMEDOUT',
 					'ECONNRESET',
@@ -284,7 +289,7 @@ export class HTTPSendDevice extends DeviceWithState<HTTPSendState, DeviceOptions
 					'EAI_AGAIN',
 				]
 
-				if (retryCodes.includes(error.code) && this._resendTime) {
+				if (retryCodes.includes(err.code) && this._resendTime) {
 					const timeLeft = Math.max(this._resendTime - (Date.now() - t), 0)
 					await new Promise<void>((resolve) => setTimeout(() => resolve(), timeLeft))
 					this._defaultCommandReceiver(_time, cmd, context, timelineObjId, layer).catch(() => null) // errors will be emitted

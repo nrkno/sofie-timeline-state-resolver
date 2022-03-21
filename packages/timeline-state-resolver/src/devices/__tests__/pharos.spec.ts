@@ -41,7 +41,7 @@ describe('Pharos', () => {
 		}
 
 		const myConductor = new Conductor({
-			initializeAsClear: true,
+			multiThreadedResolver: false,
 			getCurrentTime: mockTime.getCurrentTime,
 		})
 		const errorHandler = jest.fn()

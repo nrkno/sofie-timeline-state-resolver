@@ -1,5 +1,11 @@
 import * as _ from 'underscore'
-import { TimelineState, ResolvedTimelineObjectInstance, ResolvedStates, TimelineObject } from 'superfly-timeline'
+import {
+	TimelineState,
+	ResolvedTimelineObjectInstance,
+	ResolvedStates,
+	TimelineObject,
+	Resolver,
+} from 'superfly-timeline'
 
 import { CommandWithContext, DeviceEvents } from './devices/device'
 import { CasparCGDevice, DeviceOptionsCasparCGInternal } from './devices/casparCG'
@@ -50,8 +56,6 @@ export const MINTIMEUNIT = 1 // Minimum unit of time
 /** When resolving and the timeline has repeating objects, only resolve this far into the future */
 const RESOLVE_LIMIT_TIME = 10000
 
-export const DEFAULT_PREPARATION_TIME = 20 // When resolving "now", move this far into the future, to account for computation times
-
 export type TimelineTriggerTimeResult = Array<{ id: string; time: number }>
 
 export { Device } from './devices/device'
@@ -60,12 +64,17 @@ export interface ConductorOptions {
 	// devices: {
 	// 	[deviceName: string]: DeviceOptions
 	// },
-	initializeAsClear?: boolean // don't do any initial checks with devices to determine state, instead assume that everything is clear, black and quiet
 	getCurrentTime?: () => number
 	autoInit?: boolean
 	multiThreadedResolver?: boolean
 	useCacheWhenResolving?: boolean
+
+	/** When set, some optimizations are made, intended to only run in production */
+	optimizeForProduction?: boolean
+	/** When set, resolving is done early, to account for the time it takes to resolve the timeline. */
 	proActiveResolve?: boolean
+	/** If set, multiplies the estimated resolve time (default: 1) */
+	estimateResolveTimeMultiplier?: number
 }
 interface TimelineCallback {
 	time: number
@@ -101,6 +110,9 @@ export interface StatReport {
 	timelineResolved: number
 	stateHandled: number
 	done: number
+	timelineSize: number
+	timelineSizeOld: number
+	estimatedResolveTime: number
 }
 
 export type ConductorEvents = {
@@ -124,6 +136,7 @@ export type ConductorEvents = {
 export class Conductor extends EventEmitter<ConductorEvents> {
 	private _logDebug = false
 	private _timeline: TSRTimeline = []
+	private _timelineSize: number | undefined = undefined
 	private _mappings: Mappings = {}
 
 	private _options: ConductorOptions
@@ -145,6 +158,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 	private _doOnTime: DoOnTime
 	private _multiThreadedResolver = false
 	private _useCacheWhenResolving = false
+	private _estimateResolveTimeMultiplier = 1
 
 	private _callbackInstances = new Map<string, CallbackInstance>() // key = instanceId
 	private _triggerSendStartStopCallbacksTimeout: NodeJS.Timer | null = null
@@ -170,6 +184,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 
 		this._multiThreadedResolver = !!options.multiThreadedResolver
 		this._useCacheWhenResolving = !!options.useCacheWhenResolving
+		this._estimateResolveTimeMultiplier = options.estimateResolveTimeMultiplier || 1
 
 		if (options.getCurrentTime) this._getCurrentTime = options.getCurrentTime
 
@@ -243,6 +258,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 	setTimelineAndMappings(timeline: TSRTimeline, mappings?: Mappings) {
 		this.statStartMeasure('timeline received')
 		this._timeline = timeline
+		this._timelineSize = undefined // reset the cache
 		if (mappings) this._mappings = mappings
 
 		// We've got a new timeline, anything could've happened at this point
@@ -264,6 +280,12 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 		this._logDebug = val
 
 		ThreadedClassManager.debug = this._logDebug
+	}
+	get estimateResolveTimeMultiplier(): number {
+		return this._estimateResolveTimeMultiplier
+	}
+	set estimateResolveTimeMultiplier(value: number) {
+		this._estimateResolveTimeMultiplier = value
 	}
 
 	public getDevices(includeUninitialized = false): Array<DeviceContainer<DeviceOptionsBase<any>>> {
@@ -628,7 +650,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 
 		if (this._triggerSendStartStopCallbacksTimeout) clearTimeout(this._triggerSendStartStopCallbacksTimeout)
 
-		await this._mapAllDevices(true, (d) => this.removeDevice(d.deviceId))
+		await this._mapAllDevices(true, async (d) => this.removeDevice(d.deviceId))
 	}
 	/**
 	 * Resets the resolve-time, so that the resolving will happen for the point-in time NOW
@@ -662,7 +684,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 			}`
 		)
 		await this._actionQueue.add(async () => {
-			await this._mapAllDevices(false, (d) =>
+			await this._mapAllDevices(false, async (d) =>
 				PTimeout(
 					(async () => {
 						const trace = startTrace('conductor:makeReady:' + d.deviceId)
@@ -684,7 +706,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 		this.activationId = undefined
 		this.emit('debug', `devicesStandDown, ${okToDestroyStuff ? 'okToDestroyStuff' : 'undefined'}`)
 		await this._actionQueue.add(async () => {
-			await this._mapAllDevices(false, (d) =>
+			await this._mapAllDevices(false, async (d) =>
 				PTimeout(
 					(async () => {
 						const trace = startTrace('conductor:standDown:' + d.deviceId)
@@ -702,14 +724,14 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 		return ThreadedClassManager.getThreadsMemoryUsage()
 	}
 
-	private _mapAllDevices<T>(
+	private async _mapAllDevices<T>(
 		includeUninitialized: boolean,
 		fcn: (d: DeviceContainer<DeviceOptionsBase<any>>) => Promise<T>
 	): Promise<T[]> {
 		return PAll(
 			this.getDevices(true)
 				.filter((d) => includeUninitialized || d.initialized === true)
-				.map((d) => () => fcn(d)),
+				.map((d) => async () => fcn(d)),
 			{
 				stopOnError: false,
 			}
@@ -743,7 +765,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 	private _resolveTimeline() {
 		// this adds it to a queue, make sure it never runs more than once at a time:
 		this._actionQueue
-			.add(() => {
+			.add(async () => {
 				return this._resolveTimelineInner()
 					.then((nextResolveTime) => {
 						this._nextResolveTime = nextResolveTime || 0
@@ -768,9 +790,10 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 		const startTime = Date.now()
 
 		const statMeasureStart: number = this._statMeasureStart
-		let statTimeStateHandled = 0
-		let statTimeTimelineStartResolve = 0
-		let statTimeTimelineResolved = 0
+		let statTimeStateHandled = -1
+		let statTimeTimelineStartResolve = -1
+		let statTimeTimelineResolved = -1
+		let estimatedResolveTime = -1
 
 		try {
 			/** The point in time this function is run. ( ie "right now") */
@@ -778,7 +801,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 			/** The point in time we're targeting. (This can be in the future) */
 			let resolveTime: number = this._nextResolveTime
 
-			const estimatedResolveTime = this.estimateResolveTime()
+			estimatedResolveTime = this.estimateResolveTime()
 
 			if (
 				resolveTime === 0 || // About to be resolved ASAP
@@ -880,13 +903,18 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 				_.each(timeline, (o) => applyRecursively(o, fixNow))
 			}
 
-			const tlState = await this._resolver.getState(resolvedStates, resolveTime)
+			const tlState = Resolver.getState(resolvedStates, resolveTime)
 			await pPrepareForHandleStates
 
 			statTimeTimelineResolved = Date.now()
 
 			if (this.getCurrentTime() > resolveTime) {
-				this.emit('warning', `Resolver is ${this.getCurrentTime() - resolveTime} ms late`)
+				this.emit(
+					'warning',
+					`Resolver is ${
+						this.getCurrentTime() - resolveTime
+					} ms late (estimatedResolveTime was ${estimatedResolveTime})`
+				)
 			}
 
 			const layersPerDevice = this.filterLayersPerDevice(
@@ -896,28 +924,23 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 
 			// Push state to the right device:
 			await this._mapAllDevices(false, async (device: DeviceContainer<DeviceOptionsBase<any>>): Promise<void> => {
+				if (this._options.optimizeForProduction) {
+					// Don't send any state to the abstract device, since it doesn't do anything anyway
+					if (device.deviceType === DeviceType.ABSTRACT) return
+				}
+
 				// The subState contains only the parts of the state relevant to that device:
 				const subState: TimelineState = {
 					time: tlState.time,
 					layers: layersPerDevice[device.deviceId] || {},
 					nextEvents: [],
 				}
-				const removeParent = (o: TimelineState) => {
-					for (const key in o) {
-						if (key === 'parent') {
-							delete o['parent']
-						} else if (typeof o[key] === 'object') {
-							o[key] = removeParent(o[key])
-						}
-					}
-					return o
-				}
 
 				// Pass along the state to the device, it will generate its commands and execute them:
 				try {
-					await device.device.handleState(removeParent(subState), this._mappings)
+					await device.device.handleState(removeParentFromState(subState), this._mappings)
 				} catch (e) {
-					this.emit('error', 'Error in device "' + device.deviceId + '"' + e + ' ' + e.stack)
+					this.emit('error', 'Error in device "' + device.deviceId + '"' + e + ' ' + (e as Error).stack)
 				}
 			})
 
@@ -930,7 +953,6 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 					nextEventTime = event.time
 				}
 			})
-			// let nextEventTime = await this._resolver.getNextTimelineEvent(timeline, tlState.time)
 
 			const nowPostExec = this.getCurrentTime()
 			if (nextEventTime) {
@@ -951,7 +973,10 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 					try {
 						await device.device.clearFuture(tlState.time)
 					} catch (e) {
-						this.emit('error', 'Error in device "' + device.deviceId + '", clearFuture: ' + e + ' ' + e.stack)
+						this.emit(
+							'error',
+							'Error in device "' + device.deviceId + '", clearFuture: ' + e + ' ' + (e as Error).stack
+						)
 					}
 				})
 
@@ -1006,16 +1031,19 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 				'resolveTimeline at time ' + resolveTime + ' done in ' + resolveDuration + 'ms (size: ' + timeline.length + ')'
 			)
 		} catch (e) {
-			this.emit('error', 'resolveTimeline' + e + '\nStack: ' + e.stack)
+			this.emit('error', 'resolveTimeline' + e + '\nStack: ' + (e as Error).stack)
 		}
 
 		// Report time taken to resolve
 		this.emit('timeTrace', endTrace(trace))
 		this.statReport(statMeasureStart, {
 			timelineStartResolve: statTimeTimelineStartResolve,
+			timelineSize: this.getTimelineSize(),
+			timelineSizeOld: this._timeline.length,
 			timelineResolved: statTimeTimelineResolved,
 			stateHandled: statTimeStateHandled,
 			done: Date.now(),
+			estimatedResolveTime: estimatedResolveTime,
 		})
 
 		// Try to trigger the next resolval
@@ -1026,25 +1054,64 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 		}
 		return nextResolveTime
 	}
+	getTimelineSize(): number {
+		if (this._timelineSize === undefined) {
+			// Update the cache:
+
+			this._timelineSize = this.getTimelineSizeInner(this._timeline)
+		}
+		return this._timelineSize
+	}
+	private getTimelineSizeInner(timelineObjects: TimelineObject[]): number {
+		let size = 0
+		size += timelineObjects.length
+		for (const obj of timelineObjects) {
+			if (obj.children) {
+				size += this.getTimelineSizeInner(obj.children)
+			}
+			if (obj.keyframes) {
+				size += obj.keyframes.length
+			}
+		}
+		return size
+	}
 	/**
 	 * Returns a time estimate for the resolval duration based on the amount of
 	 * objects on the timeline. If the proActiveResolve option is falsy this
 	 * returns 0.
 	 */
-	estimateResolveTime(): any {
+	estimateResolveTime(): number {
 		if (this._options.proActiveResolve) {
-			const objectCount = this.timeline.length
-
-			const sizeFactor = Math.pow(objectCount / 50, 0.5) * 50 // a pretty nice-looking graph that levels out when objectCount is larger
-			return Math.min(
-				200,
-				Math.floor(
-					DEFAULT_PREPARATION_TIME + sizeFactor * 0.5 // add ms for every object (ish) in timeline
-				)
-			)
+			const objectCount = this.getTimelineSize()
+			return Conductor.calculateResolveTime(objectCount, this._estimateResolveTimeMultiplier)
 		} else {
 			return 0
 		}
+	}
+	/** Calculates the estimated time it'll take to resolve a timeline of a certain size */
+	static calculateResolveTime(timelineSize: number, multiplier: number): number {
+		// Note: The LEVEL should really be a dynamic value, to reflect the actual performance of the hardware this is running on.
+
+		const BASE_VALUE = 0
+		const LEVEL = 250
+
+		const EXPONENT = 0.7
+		const MIN_VALUE = 20
+		const MAX_VALUE = 200
+
+		const sizeFactor = Math.pow(timelineSize / LEVEL, EXPONENT) * LEVEL * 0.5 // a pretty nice-looking graph that levels out when objectCount is larger
+		return (
+			multiplier *
+			Math.max(
+				MIN_VALUE,
+				Math.min(
+					MAX_VALUE,
+					Math.floor(
+						BASE_VALUE + sizeFactor // add ms for every object (ish) in timeline
+					)
+				)
+			)
+		)
 	}
 
 	private _diffStateForCallbacks(activeObjects: TimelineCallbacks) {
@@ -1224,6 +1291,9 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 				timelineResolved: report.timelineResolved - startTime,
 				stateHandled: report.stateHandled - startTime,
 				done: report.done - startTime,
+				timelineSize: report.timelineSize,
+				timelineSizeOld: report.timelineSizeOld,
+				estimatedResolveTime: report.estimatedResolveTime,
 			}
 			this._statReports.push(reportDuration)
 			this._statMeasureStart = 0
@@ -1292,3 +1362,14 @@ export type DeviceOptionsAnyInternal =
 	| DeviceOptionsVMixInternal
 	| DeviceOptionsShotokuInternal
 	| DeviceOptionsVizMSEInternal
+
+function removeParentFromState(o: TimelineState): TimelineState {
+	for (const key in o) {
+		if (key === 'parent') {
+			delete o['parent']
+		} else if (typeof o[key] === 'object') {
+			o[key] = removeParentFromState(o[key])
+		}
+	}
+	return o
+}

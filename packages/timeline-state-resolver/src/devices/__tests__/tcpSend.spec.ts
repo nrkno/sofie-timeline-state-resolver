@@ -9,7 +9,7 @@ import { TCPSendDevice } from '../tcpSend'
 jest.mock('net')
 const setTimeoutOrg = setTimeout
 
-function waitALittleBit() {
+async function waitALittleBit() {
 	return new Promise((resolve) => {
 		setTimeoutOrg(resolve, 10)
 	})
@@ -56,7 +56,7 @@ describe('TCP-Send', () => {
 		}
 
 		const myConductor = new Conductor({
-			initializeAsClear: true,
+			multiThreadedResolver: false,
 			getCurrentTime: () => mockTime.now,
 		})
 		const onError = jest.fn(console.log)

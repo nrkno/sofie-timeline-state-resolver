@@ -19,7 +19,7 @@ import {
 import { TimelineState, ResolvedTimelineObjectInstance } from 'superfly-timeline'
 
 import { DoOnTime, SendMode } from '../doOnTime'
-import { QuantelGateway, Q, MonitorPorts } from 'tv-automation-quantel-gateway-client'
+import { QuantelGateway, Q, MonitorPorts, QuantelErrorResponse } from 'tv-automation-quantel-gateway-client'
 import { startTrace, endTrace } from '../lib'
 
 const IDEAL_PREPARE_TIME = 1000
@@ -62,7 +62,7 @@ export class QuantelDevice extends DeviceWithState<QuantelState, DeviceOptionsQu
 
 		if (deviceOptions.options) {
 			if (deviceOptions.commandReceiver) this._commandReceiver = deviceOptions.commandReceiver
-			else this._commandReceiver = this._defaultCommandReceiver
+			else this._commandReceiver = this._defaultCommandReceiver.bind(this)
 		}
 		this._quantel = new QuantelGateway()
 		this._quantel.on('error', (e) => this.emit('error', 'Quantel.QuantelGateway', e))
@@ -565,7 +565,7 @@ export class QuantelDevice extends DeviceWithState<QuantelState, DeviceOptionsQu
 		})
 		return allCommands
 	}
-	private _doCommand(command: QuantelCommand, context: string, timlineObjId: string): Promise<void> {
+	private async _doCommand(command: QuantelCommand, context: string, timlineObjId: string): Promise<void> {
 		const time = this.getCurrentTime()
 		return this._commandReceiver(time, command, context, timlineObjId)
 	}
@@ -577,7 +577,7 @@ export class QuantelDevice extends DeviceWithState<QuantelState, DeviceOptionsQu
 			this._doOnTime.queue(
 				cmd.time,
 				cmd.portId,
-				(c: { cmd: QuantelCommand }) => {
+				async (c: { cmd: QuantelCommand }) => {
 					return this._doCommand(c.cmd, c.cmd.type + '_' + c.cmd.timelineObjId, c.cmd.timelineObjId)
 				},
 				{ cmd: cmd }
@@ -586,7 +586,7 @@ export class QuantelDevice extends DeviceWithState<QuantelState, DeviceOptionsQu
 			this._doOnTimeBurst.queue(
 				cmd.time,
 				undefined,
-				(c: { cmd: QuantelCommand }) => {
+				async (c: { cmd: QuantelCommand }) => {
 					if (
 						(c.cmd.type === QuantelCommandType.PLAYCLIP || c.cmd.type === QuantelCommandType.PAUSECLIP) &&
 						!c.cmd.fromLookahead
@@ -635,7 +635,8 @@ export class QuantelDevice extends DeviceWithState<QuantelState, DeviceOptionsQu
 			} else {
 				throw new Error(`Unsupported command type "${cmdType}"`)
 			}
-		} catch (error) {
+		} catch (e) {
+			const error = e as Error
 			let errorString = error && error.message ? error.message : error.toString()
 			if (error?.stack) {
 				errorString += error.stack
@@ -707,7 +708,7 @@ class QuantelManager extends EventEmitter {
 					await this._quantel.releasePort(cmd.portId)
 				} catch (e) {
 					// we should still try to create the port even if we can't release the old one
-					this.emit('warning', `setupPort release failed: ${e.toString()}`)
+					this.emit('warning', `setupPort release failed: ${(e as Error).toString()}`)
 				}
 			}
 			await this._quantel.createPort(cmd.portId, cmd.channel)
@@ -744,7 +745,7 @@ class QuantelManager extends EventEmitter {
 			// Wait for the release
 			await p
 		} catch (e) {
-			if (e.status !== 404) {
+			if ((e as QuantelErrorResponse).status !== 404) {
 				// releasing a non-existent port is OK
 				throw e
 			}
@@ -1211,7 +1212,7 @@ class QuantelManager extends EventEmitter {
 			throw new Error(`Unable to search for clip "${clip.title || clip.guid}"`)
 		}
 	}
-	private wait(time: number) {
+	private async wait(time: number) {
 		return new Promise((resolve) => {
 			setTimeout(resolve, time)
 		})
@@ -1226,7 +1227,7 @@ class QuantelManager extends EventEmitter {
 	/**
 	 * Returns true if the wait was cleared from someone else
 	 */
-	private waitWithPort(portId: string, delay: number): Promise<boolean> {
+	private async waitWithPort(portId: string, delay: number): Promise<boolean> {
 		return new Promise((resolve) => {
 			if (!this._waitWithPorts[portId]) this._waitWithPorts[portId] = []
 			this._waitWithPorts[portId].push(resolve)
@@ -1264,7 +1265,7 @@ class Cache {
 		const o = this.data[key]
 		return o && (o.endTime || 0) >= Date.now()
 	}
-	getSet<T extends any>(key, fcn: () => T, ttl?: number): T {
+	getSet<T>(key, fcn: () => T, ttl?: number): T {
 		if (this.exists(key)) {
 			return this.get(key)
 		} else {

@@ -46,7 +46,6 @@ function diff(a?: any, b?: any, aStack?: any, bStack?: any): string | null {
 
 const ObjProto = Object.prototype
 const SymbolProto = typeof Symbol !== 'undefined' ? Symbol.prototype : null
-const toString = ObjProto.toString
 
 // Internal recursive comparison function for `getDiff`.
 function deepDiff(a: any, b: any, aStack: any, bStack: any): string | null {
@@ -54,8 +53,8 @@ function deepDiff(a: any, b: any, aStack: any, bStack: any): string | null {
 	if (a instanceof _) a = (a as any)._wrapped
 	if (b instanceof _) b = (b as any)._wrapped
 	// Compare `[[Class]]` names.
-	const aClassName = toString.call(a)
-	const bClassName = toString.call(b)
+	const aClassName = ObjProto.toString.call(a)
+	const bClassName = ObjProto.toString.call(b)
 	if (aClassName !== bClassName) {
 		return `ClassName differ (${aClassName}, ${bClassName})`
 	}
@@ -216,4 +215,12 @@ export function endTrace(trace: Trace): FinishedTrace {
 		ended: Date.now(),
 		duration: Date.now() - trace.start,
 	}
+}
+
+/**
+ * 'Defer' the execution of an async function.
+ * Pass an async function, and a catch block
+ */
+export function deferAsync(fn: () => Promise<void>, catcher: (e: unknown) => void): void {
+	fn().catch(catcher)
 }

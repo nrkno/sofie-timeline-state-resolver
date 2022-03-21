@@ -75,7 +75,11 @@ export class OBSDevice extends DeviceWithState<OBSState, DeviceOptionsOBSInterna
 	constructor(deviceId: string, deviceOptions: DeviceOptionsOBSInternal, options) {
 		super(deviceId, deviceOptions, options)
 		if (deviceOptions.options) {
-			this._commandReceiver = deviceOptions.commandReceiver ?? this._defaultCommandReceiver
+			if (deviceOptions.commandReceiver) {
+				this._commandReceiver = deviceOptions.commandReceiver
+			} else {
+				this._commandReceiver = this._defaultCommandReceiver.bind(this)
+			}
 		}
 		this._doOnTime = new DoOnTime(
 			() => {
@@ -89,7 +93,7 @@ export class OBSDevice extends DeviceWithState<OBSState, DeviceOptionsOBSInterna
 		this._doOnTime.on('slowSentCommand', (info) => this.emit('slowSentCommand', info))
 		this._doOnTime.on('slowFulfilledCommand', (info) => this.emit('slowFulfilledCommand', info))
 	}
-	init(options: OBSOptions): Promise<boolean> {
+	async init(options: OBSOptions): Promise<boolean> {
 		this._options = options
 		this._obs = new OBSWebSocket()
 		this._obs.on('AuthenticationFailure', () => {
@@ -114,7 +118,7 @@ export class OBSDevice extends DeviceWithState<OBSState, DeviceOptionsOBSInterna
 		})
 	}
 
-	private _connect() {
+	private async _connect() {
 		return this._obs
 			.connect({
 				address: `${this._options.host}:${this._options.port}`,
@@ -418,7 +422,7 @@ export class OBSDevice extends DeviceWithState<OBSState, DeviceOptionsOBSInterna
 			this._doOnTime.queue(
 				time,
 				undefined,
-				(cmd: OBSCommandWithContext) => {
+				async (cmd: OBSCommandWithContext) => {
 					return this._commandReceiver(time, cmd, cmd.context, cmd.timelineId)
 				},
 				cmd
@@ -617,7 +621,7 @@ export class OBSDevice extends DeviceWithState<OBSState, DeviceOptionsOBSInterna
 		return commands
 	}
 
-	private _defaultCommandReceiver(
+	private async _defaultCommandReceiver(
 		_time: number,
 		cmd: OBSCommandWithContext,
 		context: CommandContext,

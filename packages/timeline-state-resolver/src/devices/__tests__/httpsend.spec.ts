@@ -21,7 +21,7 @@ describe('HTTP-Send', () => {
 		mockTime.init()
 	})
 	test('POST message', async () => {
-		const commandReceiver0: any = jest.fn(() => {
+		const commandReceiver0: any = jest.fn(async () => {
 			return Promise.resolve()
 		})
 		const myLayerMapping0: MappingHTTPSend = {
@@ -33,7 +33,7 @@ describe('HTTP-Send', () => {
 		}
 
 		const myConductor = new Conductor({
-			initializeAsClear: true,
+			multiThreadedResolver: false,
 			getCurrentTime: mockTime.getCurrentTime,
 		})
 		await myConductor.init()
@@ -95,7 +95,7 @@ describe('HTTP-Send', () => {
 		expect(commandReceiver0).toHaveBeenCalledTimes(1)
 	})
 	test('POST message, ordering of commands', async () => {
-		const commandReceiver0: any = jest.fn(() => {
+		const commandReceiver0: any = jest.fn(async () => {
 			return Promise.resolve()
 		})
 		const myLayerMapping0: MappingHTTPSend = {
@@ -109,7 +109,7 @@ describe('HTTP-Send', () => {
 		}
 
 		const myConductor = new Conductor({
-			initializeAsClear: true,
+			multiThreadedResolver: false,
 			getCurrentTime: mockTime.getCurrentTime,
 		})
 		await myConductor.init()

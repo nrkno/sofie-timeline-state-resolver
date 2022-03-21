@@ -4,7 +4,7 @@ import { VMixOptions } from 'timeline-state-resolver-types'
 
 const orgSetTimeout = setTimeout
 
-function wait(time = 1) {
+async function wait(time = 1) {
 	return new Promise((resolve) => {
 		orgSetTimeout(resolve, time)
 	})
