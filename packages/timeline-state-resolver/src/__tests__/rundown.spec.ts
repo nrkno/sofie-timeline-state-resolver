@@ -75,7 +75,7 @@ describe('Rundown', () => {
 				host: '127.0.0.1',
 				timeBase: 50,
 				useScheduling: true,
-				retryInterval: false,
+				retryInterval: undefined,
 			},
 			commandReceiver: commandReceiver0,
 		})
