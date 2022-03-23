@@ -151,8 +151,9 @@ export abstract class Device<TOptions extends DeviceOptionsBase<any>>
 	/**
 	 * Connect to the device, resolve the promise when ready.
 	 * @param initOptions Device-specific options
+	 * @param activeRundownPlaylistId ID of active rundown playlist
 	 */
-	abstract init(initOptions: TOptions['options']): Promise<boolean>
+	abstract init(initOptions: TOptions['options'], activeRundownPlaylistId: string | undefined): Promise<boolean>
 	terminate(): Promise<boolean> {
 		return Promise.resolve(true)
 	}

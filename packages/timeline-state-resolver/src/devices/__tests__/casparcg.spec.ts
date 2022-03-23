@@ -1524,7 +1524,7 @@ describe('CasparCG', () => {
 			options: {
 				host: '127.0.0.1',
 				useScheduling: false,
-				retryInterval: false, // disable retries explicitly, we will manually trigger them
+				retryInterval: undefined, // disable retries explicitly, we will manually trigger them
 			},
 			commandReceiver: commandReceiver0,
 		})
@@ -1668,7 +1668,7 @@ describe('CasparCG', () => {
 			options: {
 				host: '127.0.0.1',
 				useScheduling: false,
-				retryInterval: false, // disable retries explicitly, we will manually trigger them
+				retryInterval: undefined, // disable retries explicitly, we will manually trigger them
 			},
 			commandReceiver: commandReceiver0,
 		})
@@ -2037,7 +2037,7 @@ describe('CasparCG - Custom transitions', () => {
 			options: {
 				host: '127.0.0.1',
 				useScheduling: false,
-				retryInterval: false, // disable retries explicitly, we will manually trigger them
+				retryInterval: undefined, // disable retries explicitly, we will manually trigger them
 			},
 			commandReceiver: commandReceiver0,
 		})
