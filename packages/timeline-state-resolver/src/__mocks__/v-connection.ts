@@ -181,6 +181,9 @@ export class VRundownMock implements VRundown {
 			}
 		})
 	}
+	async setAlternativeConcept(_concept: string): Promise<void> {
+		throw new Error('Method not implemented.')
+	}
 
 	async listTemplates(): Promise<string[]> {
 		return []
