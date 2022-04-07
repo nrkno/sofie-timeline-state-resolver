@@ -91,7 +91,7 @@
 		"atem-state": "^0.12.2",
 		"casparcg-connection": "^5.1.0",
 		"casparcg-state": "2.1.1-nightly-20220216-113227-36bcfd5.0",
-		"debug": "^4.3.1",
+		"debug": "^4.3.4",
 		"deepmerge": "^4.2.2",
 		"emberplus-connection": "^0.1.2",
 		"eventemitter3": "^4.0.7",
@@ -111,8 +111,8 @@
 		"tv-automation-quantel-gateway-client": "^2.0.4",
 		"underscore": "^1.12.0",
 		"underscore-deep-extend": "^1.1.5",
-		"utf-8-validate": "^5.0.8",
-		"ws": "^7.5.5",
+		"utf-8-validate": "^5.0.9",
+		"ws": "^7.5.7",
 		"xml-js": "^1.6.11"
 	},
 	"publishConfig": {
