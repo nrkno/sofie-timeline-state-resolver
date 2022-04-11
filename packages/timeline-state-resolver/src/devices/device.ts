@@ -2,7 +2,7 @@ import * as _ from 'underscore'
 import { TimelineState } from 'superfly-timeline'
 import { Mappings, DeviceType, MediaObject, DeviceOptionsBase } from 'timeline-state-resolver-types'
 import { EventEmitter } from 'eventemitter3'
-import { CommandReport, DoOnTime, SlowFulfilledCommandInfo, SlowSentCommandInfo } from '../doOnTime'
+import { CommandReport, DoOnTime, SlowFulfilledCommandInfo, SlowSentCommandInfo } from './doOnTime'
 import { ExpectedPlayoutItem } from '../expectedPlayoutItems'
 import { FinishedTrace } from '../lib'
 

@@ -25,7 +25,7 @@ module.exports = {
 		'!**/node_modules/**',
 		'!**/__tests__/**',
 		'!**/__mocks__/**',
-		'!**/src/devices/copy/**',
+		'!**/src/copy/**',
 		'!**/dist/**',
 		'!**/src/types/**',
 	],
