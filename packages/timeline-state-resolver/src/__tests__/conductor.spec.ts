@@ -12,7 +12,7 @@ import { Conductor, TimelineTriggerTimeResult } from '../conductor'
 import * as _ from 'underscore'
 import { MockTime } from './mockTime'
 import { ThreadedClass } from 'threadedclass'
-import { AbstractDevice } from '../devices/abstract'
+import { AbstractDevice } from '../integrations/abstract'
 import { getMockCall } from './lib'
 import { setupAllMocks } from '../__mocks__/_setup-all-mocks'
 

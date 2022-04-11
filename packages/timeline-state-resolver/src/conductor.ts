@@ -6,11 +6,12 @@ import {
 	TimelineObject,
 	Resolver,
 } from 'superfly-timeline'
+import { EventEmitter } from 'eventemitter3'
+import { MemUsageReport, threadedClass, ThreadedClass, ThreadedClassConfig, ThreadedClassManager } from 'threadedclass'
+import PQueue from 'p-queue'
+import * as PAll from 'p-all'
+import PTimeout from 'p-timeout'
 
-import { CommandWithContext, DeviceEvents } from './devices/device'
-import { CasparCGDevice, DeviceOptionsCasparCGInternal } from './devices/casparCG'
-import { AbstractDevice, DeviceOptionsAbstractInternal } from './devices/abstract'
-import { HTTPSendDevice, DeviceOptionsHTTPSendInternal } from './devices/httpSend'
 import {
 	Mappings,
 	Mapping,
@@ -19,31 +20,32 @@ import {
 	TSRTimeline,
 	DeviceOptionsBase,
 } from 'timeline-state-resolver-types'
-import { AtemDevice, DeviceOptionsAtemInternal } from './devices/atem'
-import { EventEmitter } from 'eventemitter3'
-import { LawoDevice, DeviceOptionsLawoInternal } from './devices/lawo'
-import { PanasonicPtzDevice, DeviceOptionsPanasonicPTZInternal } from './devices/panasonicPTZ'
-import { HyperdeckDevice, DeviceOptionsHyperdeckInternal } from './devices/hyperdeck'
-import { DoOnTime } from './doOnTime'
-import { TCPSendDevice, DeviceOptionsTCPSendInternal } from './devices/tcpSend'
-import { PharosDevice, DeviceOptionsPharosInternal } from './devices/pharos'
-import { OSCMessageDevice, DeviceOptionsOSCInternal } from './devices/osc'
-import { DeviceContainer } from './devices/deviceContainer'
-import { MemUsageReport, threadedClass, ThreadedClass, ThreadedClassConfig, ThreadedClassManager } from 'threadedclass'
-import { AsyncResolver } from './AsyncResolver'
-import { HTTPWatcherDevice, DeviceOptionsHTTPWatcherInternal } from './devices/httpWatcher'
-import { QuantelDevice, DeviceOptionsQuantelInternal } from './devices/quantel'
-import { SisyfosMessageDevice, DeviceOptionsSisyfosInternal } from './devices/sisyfos'
-import { SingularLiveDevice, DeviceOptionsSingularLiveInternal } from './devices/singularLive'
-import { VMixDevice, DeviceOptionsVMixInternal } from './devices/vmix'
-import { OBSDevice, DeviceOptionsOBSInternal } from './devices/obs'
 
-import { VizMSEDevice, DeviceOptionsVizMSEInternal } from './devices/vizMSE'
-import PQueue from 'p-queue'
-import * as PAll from 'p-all'
-import PTimeout from 'p-timeout'
-import { ShotokuDevice, DeviceOptionsShotokuInternal } from './devices/shotoku'
+import { DoOnTime } from './devices/doOnTime'
+import { AsyncResolver } from './AsyncResolver'
 import { endTrace, FinishedTrace, startTrace } from './lib'
+
+import { CommandWithContext, DeviceEvents } from './devices/device'
+import { DeviceContainer } from './devices/deviceContainer'
+
+import { CasparCGDevice, DeviceOptionsCasparCGInternal } from './integrations/casparCG'
+import { AbstractDevice, DeviceOptionsAbstractInternal } from './integrations/abstract'
+import { HTTPSendDevice, DeviceOptionsHTTPSendInternal } from './integrations/httpSend'
+import { AtemDevice, DeviceOptionsAtemInternal } from './integrations/atem'
+import { LawoDevice, DeviceOptionsLawoInternal } from './integrations/lawo'
+import { PanasonicPtzDevice, DeviceOptionsPanasonicPTZInternal } from './integrations/panasonicPTZ'
+import { HyperdeckDevice, DeviceOptionsHyperdeckInternal } from './integrations/hyperdeck'
+import { TCPSendDevice, DeviceOptionsTCPSendInternal } from './integrations/tcpSend'
+import { PharosDevice, DeviceOptionsPharosInternal } from './integrations/pharos'
+import { OSCMessageDevice, DeviceOptionsOSCInternal } from './integrations/osc'
+import { HTTPWatcherDevice, DeviceOptionsHTTPWatcherInternal } from './integrations/httpWatcher'
+import { QuantelDevice, DeviceOptionsQuantelInternal } from './integrations/quantel'
+import { SisyfosMessageDevice, DeviceOptionsSisyfosInternal } from './integrations/sisyfos'
+import { SingularLiveDevice, DeviceOptionsSingularLiveInternal } from './integrations/singularLive'
+import { VMixDevice, DeviceOptionsVMixInternal } from './integrations/vmix'
+import { OBSDevice, DeviceOptionsOBSInternal } from './integrations/obs'
+import { VizMSEDevice, DeviceOptionsVizMSEInternal } from './integrations/vizMSE'
+import { ShotokuDevice, DeviceOptionsShotokuInternal } from './integrations/shotoku'
 
 export { DeviceContainer }
 export { CommandWithContext }
@@ -400,7 +402,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 
 			if (deviceOptions.type === DeviceType.ABSTRACT) {
 				newDevice = await DeviceContainer.create<DeviceOptionsAbstractInternal, typeof AbstractDevice>(
-					'../../dist/devices/abstract.js',
+					'../../dist/integrations/abstract/index.js',
 					'AbstractDevice',
 					deviceId,
 					deviceOptions,
@@ -413,7 +415,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 			} else if (deviceOptions.type === DeviceType.CASPARCG) {
 				// Add CasparCG device:
 				newDevice = await DeviceContainer.create<DeviceOptionsCasparCGInternal, typeof CasparCGDevice>(
-					'../../dist/devices/casparCG.js',
+					'../../dist/integrations/casparCG/index.js',
 					'CasparCGDevice',
 					deviceId,
 					deviceOptions,
@@ -422,7 +424,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 				)
 			} else if (deviceOptions.type === DeviceType.ATEM) {
 				newDevice = await DeviceContainer.create<DeviceOptionsAtemInternal, typeof AtemDevice>(
-					'../../dist/devices/atem.js',
+					'../../dist/integrations/atem/index.js',
 					'AtemDevice',
 					deviceId,
 					deviceOptions,
@@ -431,7 +433,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 				)
 			} else if (deviceOptions.type === DeviceType.HTTPSEND) {
 				newDevice = await DeviceContainer.create<DeviceOptionsHTTPSendInternal, typeof HTTPSendDevice>(
-					'../../dist/devices/httpSend.js',
+					'../../dist/integrations/httpSend/index.js',
 					'HTTPSendDevice',
 					deviceId,
 					deviceOptions,
@@ -440,7 +442,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 				)
 			} else if (deviceOptions.type === DeviceType.HTTPWATCHER) {
 				newDevice = await DeviceContainer.create<DeviceOptionsHTTPWatcherInternal, typeof HTTPWatcherDevice>(
-					'../../dist/devices/httpWatcher.js',
+					'../../dist/integrations/httpWatcher/index.js',
 					'HTTPWatcherDevice',
 					deviceId,
 					deviceOptions,
@@ -449,7 +451,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 				)
 			} else if (deviceOptions.type === DeviceType.LAWO) {
 				newDevice = await DeviceContainer.create<DeviceOptionsLawoInternal, typeof LawoDevice>(
-					'../../dist/devices/lawo.js',
+					'../../dist/integrations/lawo/index.js',
 					'LawoDevice',
 					deviceId,
 					deviceOptions,
@@ -458,7 +460,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 				)
 			} else if (deviceOptions.type === DeviceType.TCPSEND) {
 				newDevice = await DeviceContainer.create<DeviceOptionsTCPSendInternal, typeof TCPSendDevice>(
-					'../../dist/devices/tcpSend.js',
+					'../../dist/integrations/tcpSend/index.js',
 					'TCPSendDevice',
 					deviceId,
 					deviceOptions,
@@ -467,7 +469,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 				)
 			} else if (deviceOptions.type === DeviceType.PANASONIC_PTZ) {
 				newDevice = await DeviceContainer.create<DeviceOptionsPanasonicPTZInternal, typeof PanasonicPtzDevice>(
-					'../../dist/devices/panasonicPTZ.js',
+					'../../dist/integrations/panasonicPTZ/index.js',
 					'PanasonicPtzDevice',
 					deviceId,
 					deviceOptions,
@@ -476,7 +478,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 				)
 			} else if (deviceOptions.type === DeviceType.HYPERDECK) {
 				newDevice = await DeviceContainer.create<DeviceOptionsHyperdeckInternal, typeof HyperdeckDevice>(
-					'../../dist/devices/hyperdeck.js',
+					'../../dist/integrations/hyperdeck/index.js',
 					'HyperdeckDevice',
 					deviceId,
 					deviceOptions,
@@ -485,7 +487,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 				)
 			} else if (deviceOptions.type === DeviceType.PHAROS) {
 				newDevice = await DeviceContainer.create<DeviceOptionsPharosInternal, typeof PharosDevice>(
-					'../../dist/devices/pharos.js',
+					'../../dist/integrations/pharos/index.js',
 					'PharosDevice',
 					deviceId,
 					deviceOptions,
@@ -494,7 +496,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 				)
 			} else if (deviceOptions.type === DeviceType.OSC) {
 				newDevice = await DeviceContainer.create<DeviceOptionsOSCInternal, typeof OSCMessageDevice>(
-					'../../dist/devices/osc.js',
+					'../../dist/integrations/osc/index.js',
 					'OSCMessageDevice',
 					deviceId,
 					deviceOptions,
@@ -503,7 +505,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 				)
 			} else if (deviceOptions.type === DeviceType.QUANTEL) {
 				newDevice = await DeviceContainer.create<DeviceOptionsQuantelInternal, typeof QuantelDevice>(
-					'../../dist/devices/quantel.js',
+					'../../dist/integrations/quantel/index.js',
 					'QuantelDevice',
 					deviceId,
 					deviceOptions,
@@ -512,7 +514,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 				)
 			} else if (deviceOptions.type === DeviceType.SHOTOKU) {
 				newDevice = await DeviceContainer.create<DeviceOptionsShotokuInternal, typeof ShotokuDevice>(
-					'../../dist/devices/shotoku.js',
+					'../../dist/integrations/shotoku/index.js',
 					'ShotokuDevice',
 					deviceId,
 					deviceOptions,
@@ -521,7 +523,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 				)
 			} else if (deviceOptions.type === DeviceType.SISYFOS) {
 				newDevice = await DeviceContainer.create<DeviceOptionsSisyfosInternal, typeof SisyfosMessageDevice>(
-					'../../dist/devices/sisyfos.js',
+					'../../dist/integrations/sisyfos/index.js',
 					'SisyfosMessageDevice',
 					deviceId,
 					deviceOptions,
@@ -530,7 +532,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 				)
 			} else if (deviceOptions.type === DeviceType.VIZMSE) {
 				newDevice = await DeviceContainer.create<DeviceOptionsVizMSEInternal, typeof VizMSEDevice>(
-					'../../dist/devices/vizMSE.js',
+					'../../dist/integrations/vizMSE/index.js',
 					'VizMSEDevice',
 					deviceId,
 					deviceOptions,
@@ -539,7 +541,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 				)
 			} else if (deviceOptions.type === DeviceType.SINGULAR_LIVE) {
 				newDevice = await DeviceContainer.create<DeviceOptionsSingularLiveInternal, typeof SingularLiveDevice>(
-					'../../dist/devices/singularLive.js',
+					'../../dist/integrations/singularLive/index.js',
 					'SingularLiveDevice',
 					deviceId,
 					deviceOptions,
@@ -548,7 +550,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 				)
 			} else if (deviceOptions.type === DeviceType.VMIX) {
 				newDevice = await DeviceContainer.create<DeviceOptionsVMixInternal, typeof VMixDevice>(
-					'../../dist/devices/vmix.js',
+					'../../dist/integrations/vmix/index.js',
 					'VMixDevice',
 					deviceId,
 					deviceOptions,
@@ -557,7 +559,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 				)
 			} else if (deviceOptions.type === DeviceType.OBS) {
 				newDevice = await DeviceContainer.create<DeviceOptionsOBSInternal, typeof OBSDevice>(
-					'../../dist/devices/obs.js',
+					'../../dist/integrations/obs/index.js',
 					'OBSDevice',
 					deviceId,
 					deviceOptions,
