@@ -17,7 +17,7 @@ import {
 	TimelineObjAtemMacroPlayer,
 	DeviceOptionsAtem,
 	Mappings,
-} from 'timeline-state-resolver-types'
+} from '../../types'
 import { TimelineState } from 'superfly-timeline'
 import { AtemState, State as DeviceState, Defaults as StateDefault } from 'atem-state'
 import { BasicAtem, Commands as AtemCommands, AtemState as NativeAtemState, AtemStateUtil } from 'atem-connection'

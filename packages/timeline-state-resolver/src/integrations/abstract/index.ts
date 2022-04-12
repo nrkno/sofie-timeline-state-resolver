@@ -1,6 +1,6 @@
 import * as _ from 'underscore'
 import { DeviceWithState, CommandWithContext, DeviceStatus, StatusCode } from './../../devices/device'
-import { DeviceType, AbstractOptions, DeviceOptionsAbstract, Mappings } from 'timeline-state-resolver-types'
+import { DeviceType, AbstractOptions, DeviceOptionsAbstract, Mappings } from '../../types'
 
 import { TimelineState, ResolvedTimelineObjectInstance } from 'superfly-timeline'
 import { DoOnTime, SendMode } from '../../devices/doOnTime'

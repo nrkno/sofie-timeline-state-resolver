@@ -25,7 +25,7 @@ import {
 	TimelineObjOBSSourceSettings,
 	MappingOBSSourceSettings,
 	ResolvedTimelineObjectInstanceExtended,
-} from 'timeline-state-resolver-types'
+} from '../../types'
 
 interface OBSRequest {
 	requestName: OBSRequestName

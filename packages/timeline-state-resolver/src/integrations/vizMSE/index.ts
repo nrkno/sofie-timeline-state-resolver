@@ -17,7 +17,7 @@ import {
 	VIZMSETransitionType,
 	Mappings,
 	MediaObject,
-} from 'timeline-state-resolver-types'
+} from '../../types'
 
 import { TimelineState, ResolvedTimelineObjectInstance } from 'superfly-timeline'
 

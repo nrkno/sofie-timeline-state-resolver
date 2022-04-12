@@ -1,13 +1,7 @@
 import { Socket } from 'net'
 import * as _ from 'underscore'
 import { DeviceWithState, CommandWithContext, DeviceStatus, StatusCode } from './../../devices/device'
-import {
-	DeviceType,
-	TCPSendOptions,
-	TcpSendCommandContent,
-	DeviceOptionsTCPSend,
-	Mappings,
-} from 'timeline-state-resolver-types'
+import { DeviceType, TCPSendOptions, TcpSendCommandContent, DeviceOptionsTCPSend, Mappings } from '../../types'
 import { DoOnTime, SendMode } from '../../devices/doOnTime'
 import { TimelineState, ResolvedTimelineObjectInstance } from 'superfly-timeline'
 

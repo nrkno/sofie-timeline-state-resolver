@@ -6,4 +6,4 @@ export { HyperdeckDevice } from './integrations/hyperdeck'
 export { QuantelDevice } from './integrations/quantel'
 export { VizMSEDevice } from './integrations/vizMSE'
 
-export * from 'timeline-state-resolver-types'
+// export * from 'timeline-state-resolver-types'

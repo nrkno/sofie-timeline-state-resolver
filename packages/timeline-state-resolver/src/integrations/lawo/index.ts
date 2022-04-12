@@ -17,7 +17,7 @@ import {
 	ContentTimelineObjLawoSource,
 	MappingLawoType,
 	Mappings,
-} from 'timeline-state-resolver-types'
+} from '../../types'
 import { TimelineState, ResolvedTimelineObjectInstance } from 'superfly-timeline'
 import { DoOnTime, SendMode } from '../../devices/doOnTime'
 import { deferAsync, getDiff } from '../../lib'

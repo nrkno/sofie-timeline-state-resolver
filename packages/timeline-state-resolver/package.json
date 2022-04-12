@@ -3,6 +3,11 @@
 	"version": "7.1.0-release42.0",
 	"description": "Have timeline, control stuff",
 	"main": "dist/index.js",
+	"exports": {
+		".": "./dist/index.js",
+		"./types": "./dist/types/index.js",
+		"./integration/*": "./dist/integrations/*/index.js"
+	},
 	"typings": "dist/index.d.ts",
 	"module": "dist/module/index.js",
 	"browser": "dist/browser/index.js",

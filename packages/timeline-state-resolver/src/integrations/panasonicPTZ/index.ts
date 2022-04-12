@@ -12,7 +12,7 @@ import {
 	PanasonicPTZOptions,
 	DeviceOptionsPanasonicPTZ,
 	Mappings,
-} from 'timeline-state-resolver-types'
+} from '../../types'
 import { TimelineState, ResolvedTimelineObjectInstance } from 'superfly-timeline'
 import { DoOnTime, SendMode } from '../../devices/doOnTime'
 import { PanasonicPtzHttpInterface } from './connection'

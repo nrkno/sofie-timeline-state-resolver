@@ -11,7 +11,7 @@ import {
 	TimelineContentTypeSisyfos,
 	SisyfosChannelOptions,
 	MappingSisyfosChannel,
-} from 'timeline-state-resolver-types'
+} from '../../types'
 
 import { DoOnTime, SendMode } from '../../devices/doOnTime'
 

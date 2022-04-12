@@ -1,12 +1,6 @@
 import * as _ from 'underscore'
 import { DeviceWithState, CommandWithContext, DeviceStatus, StatusCode } from './../../devices/device'
-import {
-	DeviceType,
-	HTTPSendOptions,
-	HTTPSendCommandContent,
-	DeviceOptionsHTTPSend,
-	Mappings,
-} from 'timeline-state-resolver-types'
+import { DeviceType, HTTPSendOptions, HTTPSendCommandContent, DeviceOptionsHTTPSend, Mappings } from '../../types'
 import { DoOnTime, SendMode } from '../../devices/doOnTime'
 import got, { RequestError } from 'got'
 
