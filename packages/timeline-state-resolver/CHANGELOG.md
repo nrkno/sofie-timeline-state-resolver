@@ -3,19 +3,22 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
-# [7.0.0-release41.0](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/6.4.0-release39.1...7.0.0-release41.0) (2022-03-21)
-
+# [7.0.0-release41.1](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/7.0.0-release41.0...7.0.0-release41.1) (2022-04-12)
 
 ### Bug Fixes
 
-* **casparcg:** update status on queue overflow ([c2ec5f5](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/c2ec5f58aa09dc357419eeb4ff06fdf9c0791b6e))
-* failing tests ([d521ea4](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/d521ea4c3550b8f817c2495e54f37c4c1851d37b))
-* Lawo: Typings issue, getElementByPath can return undefined. ([3846f3e](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/3846f3ec6b3c98eb0ac7b3dec9d398b74685d7c3))
-* more tests ([031bbd1](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/031bbd1945ac47d3636744c4e6cd3bd302617dc4))
+- event listeners must not return anything ([cb2fe13](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/cb2fe13c965bc3f8e221c1db08e970b454e92f69))
+- move the types DeviceStatus, StatusCode to timeline-state-resolver-types ([4d84179](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/4d84179372ba243fe60d102ec52447ca87f0a8c9))
+- upgrade casparcg-state ([bbeee15](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/bbeee15e895be58100f4ddb88fb4e229a7aeb07b))
 
+# [7.0.0-release41.0](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/6.4.0-release39.1...7.0.0-release41.0) (2022-03-21)
 
+### Bug Fixes
 
-
+- **casparcg:** update status on queue overflow ([c2ec5f5](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/c2ec5f58aa09dc357419eeb4ff06fdf9c0791b6e))
+- failing tests ([d521ea4](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/d521ea4c3550b8f817c2495e54f37c4c1851d37b))
+- Lawo: Typings issue, getElementByPath can return undefined. ([3846f3e](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/3846f3ec6b3c98eb0ac7b3dec9d398b74685d7c3))
+- more tests ([031bbd1](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/031bbd1945ac47d3636744c4e6cd3bd302617dc4))
 
 # [6.4.0-release39.1](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/6.3.0...6.4.0-release39.1) (2022-02-03)
 
