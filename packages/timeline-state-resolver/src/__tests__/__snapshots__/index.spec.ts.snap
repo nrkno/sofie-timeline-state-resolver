@@ -39,6 +39,7 @@ Array [
   "ShotokuTransitionType",
   "SlotId",
   "SlotStatus",
+  "StatusCode",
   "Timeline",
   "TimelineContentTypeAtem",
   "TimelineContentTypeCasparCg",
