@@ -760,6 +760,133 @@ describe('vMix', () => {
 		expect(deviceErrorHandler).toHaveBeenCalledTimes(0)
 	})
 
+	test('Input seeking based on start time', async () => {
+		let device: any = undefined
+		const commandReceiver0 = jest.fn((...args) => {
+			// pipe through the command
+			return device._defaultCommandReceiver(...args)
+		})
+
+		const myLayerMapping0: MappingVMixInput = {
+			device: DeviceType.VMIX,
+			mappingType: MappingVMixType.Input,
+			deviceId: 'myvmix',
+			index: 2,
+		}
+		const myLayerMapping: Mappings = {
+			vmix_media0: myLayerMapping0,
+		}
+
+		const myConductor = new Conductor({
+			multiThreadedResolver: false,
+			getCurrentTime: mockTime.getCurrentTime,
+		})
+		const errorHandler = jest.fn((...args) => console.log('Error in device', ...args))
+		myConductor.on('error', errorHandler)
+
+		await myConductor.init()
+
+		await t(
+			myConductor.addDevice('myvmix', {
+				type: DeviceType.VMIX,
+				options: {
+					host: '127.0.0.1',
+					port: 9999,
+				},
+				commandReceiver: commandReceiver0,
+			}),
+			mockTime
+		)
+
+		const deviceContainer = myConductor.getDevice('myvmix')
+		device = deviceContainer!.device as ThreadedClass<VMixDevice>
+		const deviceErrorHandler = jest.fn((...args) => console.log('Error in device', ...args))
+		device.on('error', deviceErrorHandler)
+		device.on('commandError', deviceErrorHandler)
+
+		myConductor.setTimelineAndMappings([], myLayerMapping)
+
+		// advance to the time 10000:
+		expect(mockTime.getCurrentTime()).toEqual(10000)
+		await mockTime.advanceTimeToTicks(10100)
+
+		clearMocks()
+		commandReceiver0.mockClear()
+
+		// Check that no commands has been scheduled:
+		expect(await device.queue).toHaveLength(0)
+
+		// Play a videoclip, which should have started 5 seconds ago.
+		// i.e. it should seek to 5 seconds in.
+		myConductor.setTimelineAndMappings([
+			{
+				id: 'media',
+				enable: {
+					start: 5000, // 5 seconds ago
+					duration: 20000, // will end at 25000
+				},
+				layer: 'vmix_media0',
+				content: {
+					deviceType: DeviceType.VMIX,
+					type: TimelineContentTypeVMix.INPUT,
+					inputType: VMixInputType.Video,
+					filePath: 'C:/videos/My Clip.mp4',
+					playing: true,
+					loop: true,
+				},
+			},
+		])
+
+		// Wait a little bit, to let the clip start playing:
+		await mockTime.advanceTimeTicks(100)
+		expect(commandReceiver0).toHaveBeenCalledTimes(3)
+		expect(commandReceiver0).toHaveBeenNthCalledWith(
+			1,
+			expect.toBeCloseTo(10100, ADEV),
+			expect.objectContaining({
+				command: {
+					command: VMixCommand.SET_POSITION,
+					input: '2',
+					value: 5105, // ~5 seconds in
+				},
+			}),
+			null,
+			expect.any(String)
+		)
+		expect(commandReceiver0).toHaveBeenNthCalledWith(
+			2,
+			expect.toBeCloseTo(10100, ADEV),
+			expect.objectContaining({
+				command: {
+					command: VMixCommand.LOOP_ON,
+					input: '2',
+				},
+			}),
+			null,
+			expect.any(String)
+		)
+		expect(commandReceiver0).toHaveBeenNthCalledWith(
+			3,
+			expect.toBeCloseTo(10100, ADEV),
+			expect.objectContaining({
+				command: {
+					command: VMixCommand.PLAY_INPUT,
+					input: '2',
+				},
+			}),
+			null,
+			expect.any(String)
+		)
+
+		clearMocks()
+		commandReceiver0.mockClear()
+
+		await myConductor.destroy()
+
+		expect(errorHandler).toHaveBeenCalledTimes(0)
+		expect(deviceErrorHandler).toHaveBeenCalledTimes(0)
+	})
+
 	test('Address input by its layer', async () => {
 		let device: any = undefined
 		const commandReceiver0 = jest.fn((...args) => {

@@ -381,13 +381,16 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 					case MappingVMixType.Input:
 						if (tlObject.content.type === TimelineContentTypeVMix.INPUT) {
 							const vmixTlMedia = tlObject as any as TimelineObjVMixInput
+							const startTime = tlObject.instance.originalStart ?? tlObject.instance.start
+							const delta = state.time - startTime
+							const position = typeof vmixTlMedia.content.seek === 'number' ? vmixTlMedia.content.seek + delta : delta
 							deviceState.reportedState.inputs = this.modifyInput(
 								deviceState,
 								{
 									type: vmixTlMedia.content.inputType,
 									playing: vmixTlMedia.content.playing,
 									loop: vmixTlMedia.content.loop,
-									position: vmixTlMedia.content.seek,
+									position,
 									transform: vmixTlMedia.content.transform,
 									overlays: vmixTlMedia.content.overlays,
 								},
