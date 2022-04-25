@@ -9,12 +9,15 @@
     ]
   },
   "scripts": {
-    "build": "yarn lerna exec yarn build",
+    "build": "yarn build:types && yarn build:main",
+    "build:types": "cd packages/timeline-state-resolver-types && yarn build",
+    "build:main": "cd packages/timeline-state-resolver && yarn build",
     "lint": "yarn lerna exec yarn lint -- --",
+    "link-types": "yarn symlink-dir packages/timeline-state-resolver-types packages/timeline-state-resolver/node_modules/timeline-state-resolver-types",
     "test": "yarn lerna exec yarn test",
     "watch": "lerna run --parallel build:main -- --watch --preserveWatchOutput",
     "docs": "yarn typedoc .",
-    "postinstall": "lerna bootstrap",
+    "postinstall": "lerna bootstrap && yarn link-types",
     "release:set-version": "lerna version --no-changelog --no-git-tag-version --no-push --yes",
     "release:bump-release": "lerna version --exact --conventional-commits --conventional-graduate --tag-version-prefix='' --no-push",
     "release:bump-release-force": "lerna version --exact --conventional-commits --tag-version-prefix='' --no-push --force-publish=*",
@@ -39,6 +42,7 @@
     "lerna": "^4.0.0",
     "open-cli": "^6.0.1",
     "rimraf": "^3.0.2",
+    "symlink-dir": "^5.0.1",
     "ts-jest": "^26.1.0",
     "typedoc": "^0.21.10",
     "typescript": "~4.2"

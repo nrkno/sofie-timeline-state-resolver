@@ -11,6 +11,10 @@ import {
 	ExternalElement,
 	VElement,
 	ExternalElementId,
+	InternalElementId,
+	ElementId,
+	isInternalElement,
+	isExternalElement,
 } from '@tv2media/v-connection'
 import { EventEmitter } from 'events'
 import { CommandResult } from '@tv2media/v-connection/dist/msehttp'
@@ -76,9 +80,9 @@ export class MSEMock extends EventEmitter implements MSE {
 	async listShows(): Promise<string[]> {
 		return []
 	}
-	async getShow(showName: string): Promise<VShow> {
+	async getShow(showID: string): Promise<VShow> {
 		return {
-			id: 'mockshowid_' + showName,
+			id: 'mockshowid_' + showID,
 		}
 	}
 	async listPlaylists(): Promise<string[]> {
@@ -94,14 +98,9 @@ export class MSEMock extends EventEmitter implements MSE {
 			},
 		}
 	}
-	async createRundown(
-		showID: string,
-		profile: string,
-		playlistId?: string,
-		description?: string
-	): Promise<VRundownMock> {
+	async createRundown(profile: string, playlistId?: string, description?: string): Promise<VRundownMock> {
 		if (!playlistId) playlistId = 'mockrandomPlaylist' + Date.now()
-		const rundown = new VRundownMock(showID, profile, playlistId, description)
+		const rundown = new VRundownMock(profile, playlistId, description)
 
 		this.rundowns[playlistId] = rundown
 
@@ -167,12 +166,7 @@ export type VRundownMocked = MockClass<VRundown>
 export class VRundownMock implements VRundown {
 	private elements: { [key: string]: VElement } = {}
 	private _isActive = false
-	constructor(
-		public readonly show: string,
-		public readonly profile: string,
-		public readonly playlist: string,
-		public readonly description?: string
-	) {
+	constructor(public readonly profile: string, public readonly playlist: string, public readonly description?: string) {
 		// Hack: replace methods with jest-ified ones
 		_.each(Object.getOwnPropertyNames(VRundownMock.prototype), (key) => {
 			if (key !== 'prototype') {
@@ -181,6 +175,22 @@ export class VRundownMock implements VRundown {
 				}
 			}
 		})
+	}
+
+	private static getElementHash(elementId: ElementId): string {
+		return isInternalElement(elementId)
+			? `${elementId.instanceName}_${elementId.showId}`
+			: `${elementId.vcpid}_${elementId.channel}`
+	}
+
+	listInternalElements(_showId: string): Promise<InternalElementId[]> {
+		throw new Error('Method not implemented.')
+	}
+	async initializeShow(_showId: string): Promise<CommandResult> {
+		return { path: '', status: 200, response: 'mock' }
+	}
+	async cleanupShow(_showId: string): Promise<CommandResult> {
+		return { path: '', status: 200, response: 'mock' }
 	}
 
 	async listTemplates(): Promise<string[]> {
@@ -192,27 +202,26 @@ export class VRundownMock implements VRundown {
 			defaultAlternatives: {}, // any
 		}
 	}
-	async createElement(vcpid: number, channel?: string, alias?: string): Promise<ExternalElement>
+	async createElement(elementId: ExternalElementId): Promise<ExternalElement>
 	async createElement(
+		elementId: InternalElementId,
 		templateName: string,
-		elementName: string,
 		textFields: string[],
 		channel?: string
 	): Promise<InternalElement>
 	async createElement(
-		templateNameOrVcpid: any,
-		elementNameOrChannel?: any,
-		textFieldsOrAlias?: any,
+		elementId: ElementId,
+		templateName?: string,
+		textFields?: string[],
 		channel?: string
 	): Promise<ExternalElement | InternalElement> {
-		if (typeof templateNameOrVcpid === 'number') {
-			const vcpid = templateNameOrVcpid
-			const channel = elementNameOrChannel
+		const hash = VRundownMock.getElementHash(elementId)
+		if (isExternalElement(elementId)) {
 			// const alias = textFieldsOrAlias
 
 			const el: ExternalElement = {
-				channel: channel,
-				vcpid: '' + vcpid,
+				channel: elementId.channel,
+				vcpid: elementId.vcpid.toString(),
 				// available?: string,
 				// is_loading?: string,
 				// loaded?: string,
@@ -222,35 +231,31 @@ export class VRundownMock implements VRundown {
 				// name?: string
 			}
 
-			this.elements['' + vcpid] = el
+			this.elements[hash] = el
 			return el
 		} else {
-			const templateName = templateNameOrVcpid
-			const elementName = elementNameOrChannel
-			const textFields = textFieldsOrAlias
-
 			const data: any = {}
-			_.each(textFields, (val, key) => {
+			_.each(textFields!, (val, key) => {
 				data['v' + key] = val
 			})
 			const el: InternalElement = {
 				channel: channel,
-				name: elementName,
-				template: templateName,
+				name: elementId.instanceName,
+				template: templateName!,
 				data: data,
 			}
-			this.elements[elementName] = el
+			this.elements[hash] = el
 			return el
 		}
 	}
-	async listElements(): Promise<Array<string | ExternalElementId>> {
+	async listExternalElements(): Promise<Array<ExternalElementId>> {
 		return []
 	}
-	async getElement(elementName: string | number): Promise<VElement> {
-		return this.elements[elementName]
+	async getElement(elementId: ElementId): Promise<VElement> {
+		return this.elements[VRundownMock.getElementHash(elementId)]
 	}
-	async deleteElement(elementName: string | number): Promise<PepResponse> {
-		delete this.elements[elementName]
+	async deleteElement(elementId: ElementId): Promise<PepResponse> {
+		delete this.elements[VRundownMock.getElementHash(elementId)]
 
 		return {
 			id: '*',
@@ -259,23 +264,23 @@ export class VRundownMock implements VRundown {
 			body: 'mock',
 		}
 	}
-	async cue(_elementName: string | number): Promise<CommandResult> {
+	async cue(_elementId: ElementId): Promise<CommandResult> {
 		return { path: '', status: 200, response: 'mock' }
 	}
-	async take(_elementName: string | number): Promise<CommandResult> {
+	async take(_elementId: ElementId): Promise<CommandResult> {
 		return { path: '', status: 200, response: 'mock' }
 	}
-	async continue(_elementName: string | number): Promise<CommandResult> {
+	async continue(_elementId: ElementId): Promise<CommandResult> {
 		return { path: '', status: 200, response: 'mock' }
 	}
-	async continueReverse(_elementName: string | number): Promise<CommandResult> {
+	async continueReverse(_elementId: ElementId): Promise<CommandResult> {
 		return { path: '', status: 200, response: 'mock' }
 	}
-	async out(_elementName: string | number): Promise<CommandResult> {
+	async out(_elementId: ElementId): Promise<CommandResult> {
 		return { path: '', status: 200, response: 'mock' }
 	}
-	async initialize(_elementName: number): Promise<CommandResult> {
-		const el = this.elements[_elementName]
+	async initialize(elementId: ExternalElementId): Promise<CommandResult> {
+		const el = this.elements[VRundownMock.getElementHash(elementId)]
 		if (!el) throw new Error('Element not found')
 
 		// available?: string,
@@ -300,7 +305,14 @@ export class VRundownMock implements VRundown {
 	async cleanup(): Promise<CommandResult> {
 		return { path: '', status: 200, response: 'mock' }
 	}
-	async purge(_elementsToKeep?: ExternalElementId[]): Promise<PepResponse> {
+	async purgeInternalElements(
+		_showIds: string[],
+		_onlyCreatedByUs?: boolean,
+		_elementsToKeep?: InternalElementId[]
+	): Promise<PepResponse> {
+		return { id: '*', status: 'ok', body: 'mock' }
+	}
+	async purgeExternalElements(_elementsToKeep?: ExternalElementId[]): Promise<PepResponse> {
 		return { id: '*', status: 'ok', body: 'mock' }
 	}
 	async isActive(): Promise<boolean> {
