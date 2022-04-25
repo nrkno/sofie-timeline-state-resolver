@@ -307,7 +307,7 @@ export class VRundownMock implements VRundown {
 		return this._isActive
 	}
 
-	setAlternativeConcept(_concept: string): Promise<void> {
+	async setAlternativeConcept(_concept: string): Promise<void> {
 		return Promise.resolve(undefined)
 	}
 }
