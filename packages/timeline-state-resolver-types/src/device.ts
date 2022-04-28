@@ -30,7 +30,7 @@ export enum StatusCode {
 }
 export interface DeviceStatus {
 	statusCode: StatusCode
-	messages?: Array<string>
+	messages: Array<string>
 	active: boolean
 }
 
