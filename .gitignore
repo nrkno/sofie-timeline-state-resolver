@@ -3,7 +3,6 @@ dist
 test
 src/**.js
 
-/coverage
 /docs
 .nyc_output
 *.log
@@ -11,5 +10,8 @@ src/**.js
 wallaby.conf.js
 
 .DS_Store
-src/types/coverage/
+packages/*/coverage/
 .npmrc
+
+# Ignore JetBrains IDE specific files
+.idea
