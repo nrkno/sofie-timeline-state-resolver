@@ -129,6 +129,7 @@ export class AbstractDevice extends DeviceWithState<AbstractState, DeviceOptions
 	getStatus(): DeviceStatus {
 		return {
 			statusCode: StatusCode.GOOD,
+			messages: [],
 			active: this.isActive,
 		}
 	}

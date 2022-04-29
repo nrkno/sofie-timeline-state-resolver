@@ -74,6 +74,7 @@ export class SingularLiveDevice extends DeviceWithState<SingularLiveState, Devic
 	private _doOnTime: DoOnTime
 	private _deviceStatus: DeviceStatus = {
 		statusCode: StatusCode.GOOD,
+		messages: [],
 		active: this.isActive,
 	}
 
