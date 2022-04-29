@@ -96,7 +96,7 @@
 		"emberplus-connection": "^0.1.2",
 		"eventemitter3": "^4.0.7",
 		"got": "^11.8.2",
-		"hyperdeck-connection": "^0.4.3",
+		"hyperdeck-connection": "^0.5.0",
 		"obs-websocket-js": "^4.0.3",
 		"osc": "^2.4.2",
 		"p-all": "^3.0.0",
