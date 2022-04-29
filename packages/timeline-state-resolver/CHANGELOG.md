@@ -3,6 +3,44 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [7.1.0-release42.1](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/7.0.0-release41.1...7.1.0-release42.1) (2022-04-29)
+
+### Bug Fixes
+
+- update hyperdeck dep ([db75cc6](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/db75cc666bdfd8e5133b604ec56699cee50f2d0b))
+- update supertimeline ([251c8b5](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/251c8b5a83d84e8457cabe8badcf2e52cf10d3ba))
+
+### Features
+
+- SOF-752 show init and cleanup ([44264b0](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/44264b08bddccbbe62c6779beb8acba18f438080))
+
+### Reverts
+
+- Revert "7.1.0" ([8ce054c](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/8ce054c6016fc0d23ef37a3ae1d233090a829fb9))
+
+# [1.0.0-release37.6](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/1.0.0-release37.5...1.0.0-release37.6) (2022-02-17)
+
+# [1.0.0-release37.5](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/6.4.0-release39.1...1.0.0-release37.5) (2022-02-15)
+
+## [1.0.2-release37.4](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/6.2.0-release37.7...1.0.2-release37.4) (2021-11-08)
+
+## [1.0.2-release37.3](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/1.0.2-release37.2...1.0.2-release37.3) (2021-10-14)
+
+## [1.0.2-release37.2](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/6.2.0-release37.5...1.0.2-release37.2) (2021-10-14)
+
+### Bug Fixes
+
+- Build errors ([249032d](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/249032d8deb9bfd8568d9fb5275f1dd58e4b4647))
+- Retry if retryInterval >=0 ([3616a03](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/3616a03dd0b138414845b02c5553fac26342e3d9))
+
+### Reverts
+
+- Revert "test: Rename package on publish" ([855f772](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/855f7725d73878d10caea077aec50429e3146b41))
+
+## [1.0.2-release37.1](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/1.0.2-release37...1.0.2-release37.1) (2021-09-02)
+
+# [1.0.0-release37](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/6.1.0-release36.1...1.0.0-release37) (2021-08-31)
+
 # [7.0.0-release41.2](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/7.0.0-release41.0...7.0.0-release41.2) (2022-04-28)
 
 ### Bug Fixes
