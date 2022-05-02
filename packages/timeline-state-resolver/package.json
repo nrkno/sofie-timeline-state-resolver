@@ -62,8 +62,7 @@
 		"cov": "jest --coverage && yarn cov-open",
 		"cov-open": "open-cli coverage/lcov-report/index.html",
 		"validate:dependencies": "yarn audit --groups dependencies && yarn license-validate",
-		"validate:dev-dependencies": "yarn audit --groups devDependencies",
-		"precommit": "lint-staged"
+		"validate:dev-dependencies": "yarn audit --groups devDependencies"
 	},
 	"engines": {
 		"node": "^14.18 || ^16.14"
@@ -86,7 +85,7 @@
 		"production"
 	],
 	"dependencies": {
-		"@tv2media/v-connection": "^5.1.1",
+		"@tv2media/v-connection": "^6.0.0",
 		"atem-connection": "2.4.0",
 		"atem-state": "^0.12.2",
 		"casparcg-connection": "^5.1.0",
@@ -104,7 +103,7 @@
 		"p-timeout": "^3.2.0",
 		"request": "^2.88.0",
 		"sprintf-js": "^1.1.2",
-		"superfly-timeline": "8.2.1",
+		"superfly-timeline": "^8.2.1",
 		"threadedclass": "^1.0.1",
 		"timeline-state-resolver-types": "npm:@tv2media/timeline-state-resolver-types@1.41.1",
 		"tslib": "^2.3.1",
@@ -117,13 +116,5 @@
 	},
 	"publishConfig": {
 		"access": "public"
-	},
-	"lint-staged": {
-		"*.{css,json,md,scss}": [
-			"prettier --write"
-		],
-		"*.{ts,tsx,js,jsx}": [
-			"yarn lint:raw --fix"
-		]
 	}
 }
