@@ -183,7 +183,7 @@ export class VRundownMock implements VRundown {
 			: `${elementId.vcpid}_${elementId.channel}`
 	}
 
-	listInternalElements(_showId: string): Promise<InternalElementId[]> {
+	async listInternalElements(_showId: string): Promise<InternalElementId[]> {
 		throw new Error('Method not implemented.')
 	}
 	async initializeShow(_showId: string): Promise<CommandResult> {

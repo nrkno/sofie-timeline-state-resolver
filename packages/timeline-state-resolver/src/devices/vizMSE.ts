@@ -981,7 +981,7 @@ class VizMSEManager extends EventEmitter {
 						const uniqueShowIds = Array.from(showIdsToInitialize)
 						await this._initializeShows(uniqueShowIds)
 
-						setTimeout(async () => {
+						setTimeout(() => {
 							elementHashesToDelete.map(async (elementHash) => {
 								const element = this._elementCache[elementHash]
 								if (element?.toDelete) {
@@ -1012,7 +1012,7 @@ class VizMSEManager extends EventEmitter {
 				this.emit('debug', `VizMSE: purging rundown`)
 				const elementsToKeep = this._expectedPlayoutItems
 					.filter((item) => !!item.baseline)
-					.map(VizMSEManager.getPlayoutItemContent)
+					.map((playoutItem) => VizMSEManager.getPlayoutItemContent(playoutItem))
 					.filter(isVizMSEPlayoutItemContentExternalInstance)
 
 				await rundown.purgeExternalElements(elementsToKeep)
@@ -1276,7 +1276,7 @@ class VizMSEManager extends EventEmitter {
 			try {
 				await rundown.initializeShow(showId)
 			} catch (e) {
-				this.emit('error', `Error in _initializeShows : ${e.toString()}`)
+				this.emit('error', `Error in _initializeShows : ${e instanceof Error ? e.toString() : e}`)
 			}
 		}
 	}
@@ -1287,9 +1287,7 @@ class VizMSEManager extends EventEmitter {
 		const expectedPlayoutItems = await this._prepareAndGetExpectedPlayoutItems()
 		if (this.purgeUnknownElements) {
 			this.emit('debug', `Purging shows ${cmd.showIds} `)
-			const elementsToKeep = await Object.values(expectedPlayoutItems).filter(
-				isVizMSEPlayoutItemContentInternalInstance
-			)
+			const elementsToKeep = Object.values(expectedPlayoutItems).filter(isVizMSEPlayoutItemContentInternalInstance)
 			await rundown.purgeInternalElements(cmd.showIds, true, elementsToKeep)
 		}
 		this._triggerCommandSent()
@@ -1305,7 +1303,7 @@ class VizMSEManager extends EventEmitter {
 			try {
 				await rundown.cleanupShow(showId)
 			} catch (e) {
-				this.emit('error', `Error in _cleanupShows : ${e.toString()}`)
+				this.emit('error', `Error in _cleanupShows : ${e instanceof Error ? e.toString() : e}`)
 			}
 		}
 	}

@@ -43,7 +43,6 @@ async function setupDevice() {
 	}
 
 	const myConductor = new Conductor({
-		initializeAsClear: true,
 		getCurrentTime: mockTime.getCurrentTime,
 	})
 	const onError = jest.fn()
