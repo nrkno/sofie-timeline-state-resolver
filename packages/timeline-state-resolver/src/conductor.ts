@@ -139,6 +139,16 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 	private _timelineSize: number | undefined = undefined
 	private _mappings: Mappings = {}
 
+	private _datastore: { [key: string]: { value: any; modified: number } } = {}
+	private _deviceStates: {
+		[deviceId: string]: {
+			state: TimelineState
+			mappings: Mappings
+			time: number
+			dependencies: string[]
+		}[]
+	} = {}
+
 	private _options: ConductorOptions
 
 	private devices = new Map<string, DeviceContainer<DeviceOptionsBase<any>>>()
@@ -946,7 +956,8 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 
 				// Pass along the state to the device, it will generate its commands and execute them:
 				try {
-					await device.device.handleState(removeParentFromState(subState), this._mappings)
+					// await device.device.handleState(removeParentFromState(subState), this._mappings)
+					await this._setDeviceState(device.deviceId, tlState.time, removeParentFromState(subState), this._mappings)
 				} catch (e) {
 					this.emit('error', 'Error in device "' + device.deviceId + '"' + e + ' ' + (e as Error).stack)
 				}
@@ -1061,6 +1072,112 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 			this.emit('error', 'triggerResolveTimeline', e)
 		}
 		return nextResolveTime
+	}
+	private _setDeviceState(deviceId: string, time: number, state: TimelineState, mappings: Mappings) {
+		if (!this._deviceStates[deviceId]) this._deviceStates[deviceId] = []
+
+		const dependencies: string[] = []
+		const setDepencencies = (content: Record<string, any>) => {
+			Object.values(content).forEach((val) => {
+				if (typeof val === 'object') {
+					if ('_datastoreKey' in val) {
+						dependencies.push(val._datastoreKey)
+					} else {
+						// todo - can we do a tighter check
+						setDepencencies(val)
+					}
+				}
+			})
+		}
+		Object.values(state.layers).forEach((layer) => {
+			setDepencencies(layer.content)
+		})
+
+		this._deviceStates[deviceId] = [
+			// todo - this will be a memory leak
+			...this._deviceStates[deviceId].filter((s) => s.time < time),
+			{
+				time,
+				state,
+				dependencies,
+				mappings,
+			},
+		]
+
+		const filledState: typeof state = JSON.parse(JSON.stringify(state))
+		const fillState = (content: Record<string, any>) => {
+			Object.entries(content).forEach(([index, val]) => {
+				if (typeof val === 'object') {
+					if ('_datastoreKey' in val) {
+						content[index] = this._datastore[val._datastoreKey] ?? val.default
+					} else {
+						// todo - can we do a tighter check
+						fillState(val)
+					}
+				}
+			})
+		}
+		Object.values(filledState.layers).forEach((layer) => {
+			fillState(layer.content)
+		})
+
+		return this.getDevice(deviceId)?.device.handleState(filledState, mappings)
+	}
+	setDatastore(newStore: Record<string, any>) {
+		const allKeys = new Set([...Object.keys(newStore), ...Object.keys(this._datastore)])
+
+		const changed: string[] = []
+		for (const key of allKeys) {
+			if (this._datastore[key] !== newStore[key]) {
+				// it changed! let's sift through our dependencies to see if we need to do anything
+				Object.entries(this._deviceStates).forEach(([deviceId, states]) => {
+					if (states.find((state) => state.dependencies.find((deps) => deps === 'key'))) {
+						changed.push(deviceId)
+					}
+				})
+			}
+		}
+
+		this._datastore = newStore
+
+		for (const deviceId of changed) {
+			let hasOneBefore = false
+			const toBeFilled = this._deviceStates[deviceId]
+				.reverse()
+				.filter((s) => {
+					if (s.time > this.getCurrentTime()) {
+						return true
+					} else if (hasOneBefore === false) {
+						hasOneBefore = true
+						return true
+					}
+					return false
+				})
+				.reverse()
+
+			for (const s of toBeFilled) {
+				const filledState: typeof s.state = JSON.parse(JSON.stringify(s.state))
+				const fillState = (content: Record<string, any>) => {
+					Object.entries(content).forEach(([index, val]) => {
+						if (typeof val === 'object') {
+							if ('_datastoreKey' in val) {
+								content[index] = this._datastore[val._datastoreKey] ?? val.default
+							} else {
+								// todo - can we do a tighter check
+								fillState(val)
+							}
+						}
+					})
+				}
+				Object.values(filledState.layers).forEach((layer) => {
+					fillState(layer.content)
+				})
+
+				this.getDevice(deviceId)
+					?.device.handleState(filledState, s.mappings)
+					.catch((e) => this.emit('error', 'resolveTimeline' + e + '\nStack: ' + (e as Error).stack))
+			}
+		}
 	}
 	getTimelineSize(): number {
 		if (this._timelineSize === undefined) {

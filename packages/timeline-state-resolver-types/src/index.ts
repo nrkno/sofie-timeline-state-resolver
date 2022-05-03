@@ -68,6 +68,8 @@ export enum DeviceType {
 	OBS = 21,
 }
 
+export type DatastoreValue<T> = T | { _datastoreKey: string; default: T }
+
 export interface TSRTimelineKeyframe<T> extends Timeline.TimelineKeyframe {
 	content: Partial<T>
 }
