@@ -1131,7 +1131,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 			if (this._datastore[key] !== newStore[key]) {
 				// it changed! let's sift through our dependencies to see if we need to do anything
 				Object.entries(this._deviceStates).forEach(([deviceId, states]) => {
-					if (states.find((state) => state.dependencies.find((deps) => deps === 'key'))) {
+					if (states.find((state) => state.dependencies.find((deps) => deps === key))) {
 						changed.push(deviceId)
 					}
 				})
