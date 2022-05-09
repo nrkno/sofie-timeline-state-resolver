@@ -115,6 +115,7 @@ export class HTTPSendDevice extends DeviceWithState<HTTPSendState, DeviceOptions
 		// Good, since this device has no status, really
 		return {
 			statusCode: StatusCode.GOOD,
+			messages: [],
 			active: this.isActive,
 		}
 	}

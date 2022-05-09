@@ -159,6 +159,7 @@ export class TCPSendDevice extends DeviceWithState<TSCSendState, DeviceOptionsTC
 	getStatus(): DeviceStatus {
 		return {
 			statusCode: this._connected ? StatusCode.GOOD : StatusCode.BAD,
+			messages: [],
 			active: this.isActive,
 		}
 	}

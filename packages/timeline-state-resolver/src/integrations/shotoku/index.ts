@@ -130,6 +130,7 @@ export class ShotokuDevice extends DeviceWithState<ShotokuDeviceState, DeviceOpt
 	getStatus(): DeviceStatus {
 		return {
 			statusCode: this._shotoku.connected ? StatusCode.GOOD : StatusCode.BAD,
+			messages: [],
 			active: this.isActive,
 		}
 	}

@@ -167,6 +167,7 @@ export class OSCMessageDevice extends DeviceWithState<OSCDeviceState, DeviceOpti
 		// Unknown? since this device has no status, really
 		return {
 			statusCode: StatusCode.UNKNOWN,
+			messages: [],
 			active: this.isActive,
 		}
 	}
