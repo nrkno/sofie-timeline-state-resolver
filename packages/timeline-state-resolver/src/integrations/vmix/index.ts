@@ -1,7 +1,7 @@
 import * as _ from 'underscore'
 import * as path from 'path'
 import * as deepMerge from 'deepmerge'
-import { DeviceWithState, CommandWithContext, DeviceStatus, StatusCode } from './../../devices/device'
+import { AbstractStateDevice, CommandWithContext, StatusCode } from './../../devices/device'
 import { DoOnTime, SendMode } from '../../devices/doOnTime'
 
 import { TimelineState } from 'superfly-timeline'
@@ -9,7 +9,6 @@ import { VMix, VMixStateCommand } from './connection'
 import {
 	DeviceType,
 	DeviceOptionsVMix,
-	VMixOptions,
 	Mappings,
 	MappingVMix,
 	TimelineContentTypeVMix,
@@ -65,12 +64,12 @@ export interface VMixStateCommandWithContext {
 /**
  * This is a VMixDevice, it sends commands when it feels like it
  */
-export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptionsVMixInternal> {
+export class VMixDevice extends AbstractStateDevice<VMixStateExtended, DeviceOptionsVMixInternal> {
 	private _doOnTime: DoOnTime
 
 	private _commandReceiver: CommandReceiver
 	private _vmix: VMix
-	private _connected = false
+	protected _connected = false
 	private _initialized = false
 
 	constructor(deviceId: string, deviceOptions: DeviceOptionsVMixInternal, getCurrentTime: () => Promise<number>) {
@@ -84,14 +83,15 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 				return this.getCurrentTime()
 			},
 			SendMode.IN_ORDER,
-			this._deviceOptions
+			deviceOptions
 		)
-		this._doOnTime.on('error', (e) => this.emit('error', 'VMix.doOnTime', e))
-		this._doOnTime.on('slowCommand', (msg) => this.emit('slowCommand', this.deviceName + ': ' + msg))
+		this._doOnTime.on('error', (e) => this.emitLog('error', 'VMix.doOnTime', e))
+		this._doOnTime.on('slowCommand', (msg) => this.emit('slowCommand', this._deviceName + ': ' + msg))
 		this._doOnTime.on('slowSentCommand', (info) => this.emit('slowSentCommand', info))
 		this._doOnTime.on('slowFulfilledCommand', (info) => this.emit('slowFulfilledCommand', info))
 	}
-	async init(options: VMixOptions): Promise<boolean> {
+	async init(): Promise<boolean> {
+		const options = this.getOptions()
 		this._vmix = new VMix()
 		this._vmix.on('connected', () => {
 			const time = this.getCurrentTime()
@@ -105,9 +105,9 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 		this._vmix.on('disconnected', () => {
 			this._setConnected(false)
 		})
-		this._vmix.on('error', (e) => this.emit('error', 'VMix', e))
+		this._vmix.on('error', (e) => this.emitLog('error', 'VMix', e))
 		this._vmix.on('stateChanged', (state) => this._onVMixStateChanged(state))
-		this._vmix.on('debug', (...args) => this.emitDebug(...args))
+		this._vmix.on('debug', (...args) => this.emitLog('debug', ...args))
 
 		return this._vmix.connect(options)
 	}
@@ -213,7 +213,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 		super.onHandleState(newState, newMappings)
 		if (!this._initialized) {
 			// before it's initialized don't do anything
-			this.emit('warning', 'VMix not initialized yet')
+			this.emitLog('warning', 'VMix not initialized yet')
 			return
 		}
 
@@ -246,7 +246,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 		return Promise.resolve(true)
 	}
 
-	getStatus(): DeviceStatus {
+	_getStatus() {
 		let statusCode = StatusCode.GOOD
 		const messages: Array<string> = []
 
@@ -258,7 +258,6 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 		return {
 			statusCode: statusCode,
 			messages: messages,
-			active: this.isActive,
 		}
 	}
 
@@ -268,11 +267,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 		}
 	}
 
-	get canConnect(): boolean {
-		return false
-	}
-
-	get connected(): boolean {
+	get _canConnect(): boolean {
 		return false
 	}
 
@@ -470,12 +465,12 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 		}
 	}
 
-	get deviceType() {
+	get _deviceType() {
 		return DeviceType.VMIX
 	}
 
-	get deviceName(): string {
-		return 'VMix ' + this.deviceId
+	get _deviceName(): string {
+		return 'VMix ' + this._deviceId
 	}
 
 	get queue() {
@@ -1017,7 +1012,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 			command: cmd,
 			timelineObjId: timelineObjId,
 		}
-		this.emitDebug(cwc)
+		this.emitLog('debug', cwc)
 
 		return this._vmix.sendCommand(cmd.command).catch((error) => {
 			this.emit('commandError', error, cwc)

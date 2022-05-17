@@ -1019,7 +1019,7 @@ describe('Sisyfos', () => {
 
 		// Check that no commands has been scheduled:
 		expect(await device.queue).toHaveLength(0)
-		expect(await device.connected).toEqual(true)
+		expect((await device.getStatus()).connected).toEqual(true)
 		expect(onConnectionChanged).toHaveBeenCalledTimes(0)
 
 		// Simulate a connection loss:
@@ -1030,7 +1030,7 @@ describe('Sisyfos', () => {
 		await mockTime.advanceTimeTicks(3000)
 		await wait(1)
 
-		expect(await device.connected).toEqual(false)
+		expect((await device.getStatus()).connected).toEqual(false)
 		expect(onConnectionChanged).toHaveBeenCalledTimes(1)
 
 		// Simulate a connection regain:
@@ -1040,7 +1040,7 @@ describe('Sisyfos', () => {
 		await mockTime.advanceTimeTicks(3000)
 		await wait(1)
 
-		expect(await device.connected).toEqual(true)
+		expect((await device.getStatus()).connected).toEqual(true)
 		expect(onConnectionChanged).toHaveBeenCalledTimes(4)
 	})
 })

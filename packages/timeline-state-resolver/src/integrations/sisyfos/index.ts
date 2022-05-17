@@ -1,10 +1,9 @@
 import * as _ from 'underscore'
-import { DeviceWithState, CommandWithContext, DeviceStatus, StatusCode } from './../../devices/device'
+import { AbstractStateDevice, CommandWithContext, StatusCode } from './../../devices/device'
 import {
 	DeviceType,
 	DeviceOptionsSisyfos,
 	Mappings,
-	SisyfosOptions,
 	MappingSisyfos,
 	MappingSisyfosType,
 	TimelineObjSisyfosAny,
@@ -39,7 +38,7 @@ type CommandContext = string
 /**
  * This is a generic wrapper for any osc-enabled device.
  */
-export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOptionsSisyfosInternal> {
+export class SisyfosMessageDevice extends AbstractStateDevice<SisyfosState, DeviceOptionsSisyfosInternal> {
 	private _doOnTime: DoOnTime
 	private _sisyfos: SisyfosApi
 
@@ -55,7 +54,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 		}
 
 		this._sisyfos = new SisyfosApi()
-		this._sisyfos.on('error', (e) => this.emit('error', 'Sisyfos', e))
+		this._sisyfos.on('error', (e) => this.emitLog('error', 'Sisyfos', e))
 		this._sisyfos.on('connected', () => {
 			this._connectionChanged()
 		})
@@ -72,17 +71,18 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 				return this.getCurrentTime()
 			},
 			SendMode.BURST,
-			this._deviceOptions
+			deviceOptions
 		)
 		this.handleDoOnTime(this._doOnTime, 'Sisyfos')
 	}
-	async init(initOptions: SisyfosOptions): Promise<boolean> {
+	async init(): Promise<boolean> {
 		this._sisyfos.once('initialized', () => {
 			this.setState(this.getDeviceState(false), this.getCurrentTime())
 			this.emit('resetResolver')
 		})
 
-		return this._sisyfos.connect(initOptions.host, initOptions.port).then(() => true)
+		const options = this.getOptions()
+		return this._sisyfos.connect(options.host, options.port).then(() => true)
 	}
 	/** Called by the Conductor a bit before a .handleState is called */
 	prepareForHandleState(newStateTime: number) {
@@ -98,19 +98,19 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 	handleState(newState: TimelineState, newMappings: Mappings) {
 		super.onHandleState(newState, newMappings)
 		if (!this._sisyfos.state) {
-			this.emit('warning', 'Sisyfos State not initialized yet')
+			this.emitLog('warning', 'Sisyfos State not initialized yet')
 			return
 		}
 
 		// Transform timeline states into device states
-		const convertTrace = startTrace(`device:convertState`, { deviceId: this.deviceId })
+		const convertTrace = startTrace(`device:convertState`, { deviceId: this.deviceProperties.deviceId })
 		const previousStateTime = Math.max(this.getCurrentTime(), newState.time)
 		const oldSisyfosState: SisyfosState = (
 			this.getStateBefore(previousStateTime) || { state: { channels: {}, resync: false } }
 		).state
 		this.emit('timeTrace', endTrace(convertTrace))
 
-		const diffTrace = startTrace(`device:diffState`, { deviceId: this.deviceId })
+		const diffTrace = startTrace(`device:diffState`, { deviceId: this.deviceProperties.deviceId })
 		const newSisyfosState = this.convertStateToSisyfosState(newState, newMappings)
 		this.emit('timeTrace', endTrace(diffTrace))
 
@@ -146,7 +146,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 		this._doOnTime.dispose()
 		return Promise.resolve(true)
 	}
-	getStatus(): DeviceStatus {
+	_getStatus() {
 		let statusCode = StatusCode.GOOD
 		const messages: Array<string> = []
 
@@ -167,7 +167,6 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 		return {
 			statusCode: statusCode,
 			messages: messages,
-			active: this.isActive,
 		}
 	}
 	async makeReady(okToDestroyStuff?: boolean): Promise<void> {
@@ -206,10 +205,10 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 		return Promise.resolve()
 	}
 
-	get canConnect(): boolean {
+	get _canConnect(): boolean {
 		return true
 	}
-	get connected(): boolean {
+	get _connected(): boolean {
 		return this._sisyfos.connected
 	}
 	getDeviceState(isDefaultState = true, mappings?: Mappings): SisyfosState {
@@ -315,7 +314,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 				foundMapping = mappings[layer.lookaheadForLayer] as MappingSisyfos | undefined
 			}
 
-			if (foundMapping && foundMapping.deviceId === this.deviceId) {
+			if (foundMapping && foundMapping.deviceId === this.deviceProperties.deviceId) {
 				// @ts-ignore backwards-compatibility:
 				if (!foundMapping.mappingType) foundMapping.mappingType = MappingSisyfosType.CHANNEL
 				// @ts-ignore backwards-compatibility:
@@ -414,11 +413,11 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 		)
 		return deviceState
 	}
-	get deviceType() {
+	get _deviceType() {
 		return DeviceType.SISYFOS
 	}
-	get deviceName(): string {
-		return 'Sisyfos ' + this.deviceId
+	get _deviceName(): string {
+		return 'Sisyfos ' + this._deviceId
 	}
 	get queue() {
 		return this._doOnTime.getQueue()
@@ -555,7 +554,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 			command: cmd,
 			timelineObjId: timelineObjId,
 		}
-		this.emitDebug(cwc)
+		this.emitLog('debug', cwc)
 
 		if (cmd.type === SisyfosCommandType.RESYNC) {
 			return this._makeReadyInner(true, true)

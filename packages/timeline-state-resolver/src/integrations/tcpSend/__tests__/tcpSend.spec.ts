@@ -99,8 +99,8 @@ describe('TCP-Send', () => {
 
 		await device.on('connectionChanged', onConnectionChanged)
 
-		expect(await device.canConnect).toEqual(true)
-		expect(await device.deviceName).toMatch(/tcp/i)
+		expect((await device.getStatus()).canConnect).toEqual(true)
+		expect((await device.deviceProperties).deviceName).toMatch(/tcp/i)
 
 		// Check that no commands has been scheduled:
 		expect(await device.queue).toHaveLength(0)
@@ -173,7 +173,9 @@ describe('TCP-Send', () => {
 		await waitALittleBit()
 		expect(onConnectionChanged).toHaveBeenCalledTimes(1)
 		expect(onConnectionChanged.mock.calls[0][0]).toMatchObject({
-			statusCode: StatusCode.BAD,
+			status: {
+				statusCode: StatusCode.BAD,
+			},
 		})
 
 		// test retry
@@ -185,7 +187,9 @@ describe('TCP-Send', () => {
 		await waitALittleBit()
 		expect(onConnectionChanged).toHaveBeenCalledTimes(2)
 		expect(onConnectionChanged.mock.calls[1][0]).toMatchObject({
-			statusCode: StatusCode.GOOD,
+			status: {
+				statusCode: StatusCode.GOOD,
+			},
 		})
 
 		// Test makeReady:
@@ -195,10 +199,14 @@ describe('TCP-Send', () => {
 
 		expect(onConnectionChanged).toHaveBeenCalledTimes(4)
 		expect(onConnectionChanged.mock.calls[2][0]).toMatchObject({
-			statusCode: StatusCode.BAD,
+			status: {
+				statusCode: StatusCode.BAD,
+			},
 		})
 		expect(onConnectionChanged.mock.calls[3][0]).toMatchObject({
-			statusCode: StatusCode.GOOD,
+			status: {
+				statusCode: StatusCode.GOOD,
+			},
 		})
 
 		expect(commandReceiver0).toHaveBeenCalledTimes(4)
@@ -215,7 +223,9 @@ describe('TCP-Send', () => {
 		expect(onSocketClose).toHaveBeenCalledTimes(2)
 		expect(onConnectionChanged).toHaveBeenCalledTimes(5)
 		expect(onConnectionChanged.mock.calls[4][0]).toMatchObject({
-			statusCode: StatusCode.BAD,
+			status: {
+				statusCode: StatusCode.BAD,
+			},
 		})
 
 		expect(onError).toHaveBeenCalledTimes(0)

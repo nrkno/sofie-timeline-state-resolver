@@ -1,6 +1,6 @@
 import * as _ from 'underscore'
 import * as deepMerge from 'deepmerge'
-import { DeviceWithState, CommandWithContext, DeviceStatus, StatusCode, literal } from '../../devices/device'
+import { AbstractStateDevice, CommandWithContext, StatusCode, literal } from '../../devices/device'
 import { CasparCG, Command as CommandNS, AMCPUtil, AMCP, CasparCGSocketStatusEvent } from 'casparcg-connection'
 import {
 	DeviceType,
@@ -68,7 +68,7 @@ export type CommandReceiver = (
  * commands. It depends on the DoOnTime class to execute the commands timely or,
  * optionally, uses the CasparCG command scheduling features.
  */
-export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCGInternal> {
+export class CasparCGDevice extends AbstractStateDevice<State, DeviceOptionsCasparCGInternal> {
 	private _ccg: CasparCG
 	private _ccgState: CasparCGState
 	private _queue: { [token: string]: { time: number; command: CommandNS.IAMCPCommand } } = {}
@@ -78,7 +78,6 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 	private _useScheduling?: boolean
 	private _doOnTime: DoOnTime
 	private initOptions?: CasparCGOptions
-	private _connected = false
 	private _queueOverflow = false
 	private _transitionHandler: InternalTransitionHandler = new InternalTransitionHandler()
 	private _retryTimeout: NodeJS.Timeout
@@ -100,7 +99,7 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 				return this.getCurrentTime()
 			},
 			SendMode.BURST,
-			this._deviceOptions
+			this.deviceProperties.deviceOptions
 		)
 		this.handleDoOnTime(this._doOnTime, 'CasparCG')
 	}
@@ -109,7 +108,8 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 	 * Initiates the connection with CasparCG through the ccg-connection lib and
 	 * initializes CasparCG State library.
 	 */
-	async init(initOptions: CasparCGOptions): Promise<boolean> {
+	async init(): Promise<boolean> {
+		const initOptions = this.getOptions()
 		this.initOptions = initOptions
 		this._useScheduling = initOptions.useScheduling
 		this._ccg = new CasparCG({
@@ -117,15 +117,14 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 			port: initOptions.port,
 			autoConnect: true,
 			virginServerCheck: true,
-			onConnectionChanged: (connected: boolean) => {
-				this._connected = connected
+			onConnectionChanged: () => {
 				this._connectionChanged()
 			},
 		})
 
 		this._ccg.on(CasparCGSocketStatusEvent.CONNECTED, (event: CasparCGSocketStatusEvent) => {
 			this.makeReady(false) // always make sure timecode is correct, setting it can never do bad
-				.catch((e) => this.emit('error', 'casparCG.makeReady', e))
+				.catch((e) => this.emitLog('error', 'casparCG.makeReady', e))
 			if (event.valueOf().virginServer === true) {
 				// a "virgin server" was just restarted (so it is cleared & black).
 				// Otherwise it was probably just a loss of connection
@@ -188,7 +187,7 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 		super.onHandleState(newState, newMappings)
 		// check if initialized:
 		if (!this._ccgState.isInitialised) {
-			this.emit('warning', 'CasparCG State not initialized yet')
+			this.emitLog('warning', 'CasparCG State not initialized yet')
 			return
 		}
 
@@ -196,11 +195,11 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 
 		const oldCasparState = (this.getStateBefore(previousStateTime) || { state: { channels: {} } }).state
 
-		const convertTrace = startTrace(`device:convertState`, { deviceId: this.deviceId })
+		const convertTrace = startTrace(`device:convertState`, { deviceId: this._deviceId })
 		const newCasparState = this.convertStateToCaspar(newState, newMappings)
 		this.emit('timeTrace', endTrace(convertTrace))
 
-		const diffTrace = startTrace(`device:diffState`, { deviceId: this.deviceId })
+		const diffTrace = startTrace(`device:diffState`, { deviceId: this._deviceId })
 		const commandsToAchieveState = this._diffStates(oldCasparState, newCasparState, newState.time)
 		this.emit('timeTrace', endTrace(diffTrace))
 
@@ -226,7 +225,7 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 			for (const token in this._queue) {
 				if (this._queue[token].time > clearAfterTime) {
 					this._doCommand(new AMCP.ScheduleRemoveCommand(token), `clearFuture (${clearAfterTime})`, '').catch((e) =>
-						this.emit('error', 'CasparCG.ScheduleRemoveCommand', e)
+						this.emitLog('error', 'CasparCG.ScheduleRemoveCommand', e)
 					)
 				}
 			}
@@ -234,22 +233,23 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 			this._doOnTime.clearQueueAfter(clearAfterTime)
 		}
 	}
-	get canConnect(): boolean {
+	get _canConnect(): boolean {
 		return true
 	}
-	get connected(): boolean {
+	get _connected(): boolean {
 		// Returns connection status
 		return this._ccg ? this._ccg.connected : false
 	}
 
-	get deviceType() {
+	get _deviceType() {
 		return DeviceType.CASPARCG
 	}
-	get deviceName(): string {
+	get _deviceName(): string {
+		const id = this._deviceId
 		if (this._ccg) {
-			return 'CasparCG ' + this.deviceId + ' ' + this._ccg.host + ':' + this._ccg.port
+			return 'CasparCG ' + id + ' ' + this._ccg.host + ':' + this._ccg.port
 		} else {
-			return 'Uninitialized CasparCG ' + this.deviceId
+			return 'Uninitialized CasparCG ' + id
 		}
 	}
 
@@ -300,7 +300,7 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 				vfilter: mediaObj.content.videoFilter,
 				afilter: mediaObj.content.audioFilter,
 			})
-			// this.emitDebug(stateLayer)
+			// this.emitLog('debug', stateLayer)
 		} else if (layer.content.type === TimelineContentTypeCasparCg.IP) {
 			const ipObj = layer as any as TimelineObjCCGIP
 
@@ -370,7 +370,7 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 
 			if (routeObj.content.mappedLayer) {
 				const routeMapping = mappings[routeObj.content.mappedLayer] as MappingCasparCG
-				if (routeMapping && routeMapping.deviceId === this.deviceId) {
+				if (routeMapping && routeMapping.deviceId === this.deviceProperties.deviceId) {
 					routeObj.content.channel = routeMapping.channel
 					routeObj.content.layer = routeMapping.layer
 				}
@@ -477,7 +477,7 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 			if (
 				foundMapping &&
 				foundMapping.device === DeviceType.CASPARCG &&
-				foundMapping.deviceId === this.deviceId &&
+				foundMapping.deviceId === this.deviceProperties.deviceId &&
 				_.has(foundMapping, 'channel') &&
 				_.has(foundMapping, 'layer')
 			) {
@@ -683,7 +683,7 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 			)
 		})
 	}
-	getStatus(): DeviceStatus {
+	_getStatus() {
 		let statusCode = StatusCode.GOOD
 		const messages: Array<string> = []
 
@@ -707,7 +707,6 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 		return {
 			statusCode: statusCode,
 			messages: messages,
-			active: this.isActive,
 		}
 	}
 	/**
@@ -769,7 +768,7 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 					commandsToSendNow.splice(matchingCommandI, 1)
 				} else {
 					this._doCommand(new AMCP.ScheduleRemoveCommand(token), `_clearScheduledFutureCommands (${time})`, '').catch(
-						(e) => this.emit('error', 'CasparCG.ScheduleRemoveCommand', e)
+						(e) => this.emitLog('error', 'CasparCG.ScheduleRemoveCommand', e)
 					)
 					delete this._queue[token]
 				}
@@ -792,7 +791,7 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 			if (this._useScheduling) {
 				if (time <= now) {
 					this._doCommand(command, cmd.context.context, cmd.context.layerId).catch((e) =>
-						this.emit('error', 'CasparCG._doCommand', e)
+						this.emitLog('error', 'CasparCG._doCommand', e)
 					)
 				} else {
 					const token = `${time.toString(36).substr(-8)}_${('000' + i++).substr(-4)}`
@@ -802,7 +801,7 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 						command,
 					})
 					this._doCommand(scheduleCommand, cmd.context.context, cmd.context.layerId).catch((e) =>
-						this.emit('error', 'CasparCG._doCommand', e)
+						this.emitLog('error', 'CasparCG._doCommand', e)
 					)
 					this._queue[token] = {
 						time: time,
@@ -843,7 +842,7 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 			timelineObjId: timelineObjId,
 			command: JSON.stringify(cmd),
 		}
-		this.emitDebug(cwc)
+		this.emitLog('debug', cwc)
 
 		return this._ccg
 			.do(cmd)
@@ -1029,7 +1028,7 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 									yScale: newValues[3],
 								})
 								this._commandReceiver(this.getCurrentTime(), c, 'Internal transition', 'internalTransition').catch(
-									(e) => this.emit('error', 'CasparCG.InternalTransition', e)
+									(e) => this.emitLog('error', 'CasparCG.InternalTransition', e)
 								)
 							}
 						)
@@ -1080,7 +1079,7 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 									bottomLeftY: newValues[7],
 								})
 								this._commandReceiver(this.getCurrentTime(), c, 'Internal transition', 'internalTransition').catch(
-									(e) => this.emit('error', 'CasparCG.InternalTransition', e)
+									(e) => this.emitLog('error', 'CasparCG.InternalTransition', e)
 								)
 							}
 						)
@@ -1138,7 +1137,7 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 								properties[opt.prop] = newValues[0]
 								const c = new AMCP[command.name](properties)
 								this._commandReceiver(this.getCurrentTime(), c, 'Internal transition', 'internalTransition').catch(
-									(e) => this.emit('error', 'CasparCG.InternalTransition', e)
+									(e) => this.emitLog('error', 'CasparCG.InternalTransition', e)
 								)
 							}
 						)

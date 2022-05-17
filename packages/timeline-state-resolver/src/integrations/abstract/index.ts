@@ -1,6 +1,6 @@
 import * as _ from 'underscore'
-import { DeviceWithState, CommandWithContext, DeviceStatus, StatusCode } from './../../devices/device'
-import { DeviceType, AbstractOptions, DeviceOptionsAbstract, Mappings } from 'timeline-state-resolver-types'
+import { AbstractStateDevice, CommandWithContext, StatusCode } from './../../devices/device'
+import { DeviceType, DeviceOptionsAbstract, Mappings } from 'timeline-state-resolver-types'
 
 import { TimelineState, ResolvedTimelineObjectInstance } from 'superfly-timeline'
 import { DoOnTime, SendMode } from '../../devices/doOnTime'
@@ -30,7 +30,7 @@ type AbstractState = TimelineState
 	An abstract device is just a test-device that doesn't really do anything, but can be used
 	as a preliminary mock
 */
-export class AbstractDevice extends DeviceWithState<AbstractState, DeviceOptionsAbstractInternal> {
+export class AbstractDevice extends AbstractStateDevice<AbstractState, DeviceOptionsAbstractInternal> {
 	private _doOnTime: DoOnTime
 
 	private _commandReceiver: CommandReceiver
@@ -46,7 +46,7 @@ export class AbstractDevice extends DeviceWithState<AbstractState, DeviceOptions
 				return this.getCurrentTime()
 			},
 			SendMode.BURST,
-			this._deviceOptions
+			this.deviceProperties.deviceOptions
 		)
 		this.handleDoOnTime(this._doOnTime, 'Abstract')
 	}
@@ -54,7 +54,7 @@ export class AbstractDevice extends DeviceWithState<AbstractState, DeviceOptions
 	/**
 	 * Initiates the connection with CasparCG through the ccg-connection lib.
 	 */
-	async init(_initOptions: AbstractOptions): Promise<boolean> {
+	async init(): Promise<boolean> {
 		return new Promise((resolve /*, reject*/) => {
 			// This is where we would do initialization, like connecting to the devices, etc
 			resolve(true)
@@ -104,10 +104,10 @@ export class AbstractDevice extends DeviceWithState<AbstractState, DeviceOptions
 		this._doOnTime.dispose()
 		return Promise.resolve(true)
 	}
-	get canConnect(): boolean {
+	get _canConnect(): boolean {
 		return false
 	}
-	get connected(): boolean {
+	get _connected(): boolean {
 		return false
 	}
 	/**
@@ -117,20 +117,22 @@ export class AbstractDevice extends DeviceWithState<AbstractState, DeviceOptions
 	convertStateToAbstract(state: TimelineState) {
 		return state
 	}
+	protected get _supportsExpectedPlayoutItems(): boolean {
+		return false
+	}
 	get deviceType() {
 		return DeviceType.ABSTRACT
 	}
-	get deviceName(): string {
-		return 'Abstract ' + this.deviceId
+	get _deviceName(): string {
+		return 'Abstract ' + this._deviceId
 	}
 	get queue() {
 		return this._doOnTime.getQueue()
 	}
-	getStatus(): DeviceStatus {
+	_getStatus() {
 		return {
 			statusCode: StatusCode.GOOD,
 			messages: [],
-			active: this.isActive,
 		}
 	}
 	/**
@@ -212,7 +214,7 @@ export class AbstractDevice extends DeviceWithState<AbstractState, DeviceOptions
 				content: cmd.content,
 			},
 		}
-		this.emitDebug(cwc)
+		this.emitLog('debug', cwc)
 
 		// Note: In the Abstract case, the execution does nothing
 

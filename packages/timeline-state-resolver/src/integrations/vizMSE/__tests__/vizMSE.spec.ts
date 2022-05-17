@@ -523,7 +523,9 @@ describe('vizMSE', () => {
 
 		expect(connectionChanged).toHaveBeenCalledTimes(0)
 		expect(await device.getStatus()).toMatchObject({
-			statusCode: StatusCode.GOOD,
+			status: {
+				statusCode: StatusCode.GOOD,
+			},
 		})
 		connectionChanged.mockClear()
 
@@ -532,7 +534,9 @@ describe('vizMSE', () => {
 		await mockTime.advanceTimeTicks(100)
 		expect(connectionChanged).toHaveBeenCalledTimes(1)
 		expect(await device.getStatus()).toMatchObject({
-			statusCode: StatusCode.BAD,
+			status: {
+				statusCode: StatusCode.BAD,
+			},
 		})
 		connectionChanged.mockClear()
 
@@ -541,7 +545,9 @@ describe('vizMSE', () => {
 		await mockTime.advanceTimeTicks(100)
 		expect(connectionChanged).toHaveBeenCalledTimes(1)
 		expect(await device.getStatus()).toMatchObject({
-			statusCode: StatusCode.GOOD,
+			status: {
+				statusCode: StatusCode.GOOD,
+			},
 		})
 
 		expect(await device.terminate()).toEqual(true)

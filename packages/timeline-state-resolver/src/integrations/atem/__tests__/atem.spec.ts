@@ -10,7 +10,6 @@ import {
 	MappingAtem,
 	MappingAtemType,
 	TimelineContentTypeAtem,
-	AtemOptions,
 	AtemTransitionStyle,
 } from 'timeline-state-resolver-types'
 import { ThreadedClass } from 'threadedclass'
@@ -59,11 +58,7 @@ describe('Atem', () => {
 			mockTime.getCurrentTime2
 		)
 
-		await device.init(
-			literal<AtemOptions>({
-				host: '127.0.0.1',
-			})
-		)
+		await device.init()
 
 		device.handleState(mockState, {})
 
@@ -300,11 +295,7 @@ describe('Atem', () => {
 			mockTime.getCurrentTime2
 		)
 
-		await device.init(
-			literal<AtemOptions>({
-				host: '127.0.0.1',
-			})
-		)
+		await device.init()
 
 		// Check that no commands has been scheduled
 		expect(device.queue).toHaveLength(0)

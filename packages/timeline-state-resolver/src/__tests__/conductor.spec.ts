@@ -427,7 +427,7 @@ describe('Conductor', () => {
 		conductor.setTimelineAndMappings([], myLayerMapping)
 
 		const device = conductor.getDevice('device0')!.device
-		expect(await device.getCurrentTime()).toBeTruthy()
+		expect(await device.getStatus()).toBeTruthy()
 	}, 1500)
 	test('Changing of mappings live', async () => {
 		const commandReceiver0: any = jest.fn(async () => {

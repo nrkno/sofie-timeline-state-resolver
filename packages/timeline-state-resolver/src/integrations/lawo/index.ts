@@ -1,6 +1,6 @@
 import * as _ from 'underscore'
 
-import { DeviceWithState, CommandWithContext, DeviceStatus, StatusCode } from './../../devices/device'
+import { AbstractStateDevice, CommandWithContext, StatusCode } from './../../devices/device'
 import {
 	DeviceType,
 	TimelineContentTypeLawo,
@@ -12,7 +12,6 @@ import {
 	DeviceOptionsLawo,
 	LawoCommand,
 	SetLawoValueFn,
-	LawoOptions,
 	LawoDeviceMode,
 	ContentTimelineObjLawoSource,
 	MappingLawoType,
@@ -65,13 +64,13 @@ type CommandContext = string
  *
  * It controls mutes and fades over Ember Plus.
  */
-export class LawoDevice extends DeviceWithState<LawoState, DeviceOptionsLawoInternal> {
+export class LawoDevice extends AbstractStateDevice<LawoState, DeviceOptionsLawoInternal> {
 	private _doOnTime: DoOnTime
 	private _lawo: EmberClient
 
 	private _lastSentValue: { [path: string]: number } = {}
 
-	private _connected = false
+	protected _connected = false
 	private _initialized = false
 
 	private _commandReceiver: CommandReceiver
@@ -150,7 +149,7 @@ export class LawoDevice extends DeviceWithState<LawoState, DeviceOptionsLawoInte
 				return this.getCurrentTime()
 			},
 			SendMode.BURST,
-			this._deviceOptions
+			deviceOptions
 		)
 		this.handleDoOnTime(this._doOnTime, 'Lawo')
 
@@ -159,11 +158,11 @@ export class LawoDevice extends DeviceWithState<LawoState, DeviceOptionsLawoInte
 			if ((e.message + '').match(/econnrefused/i) || (e.message + '').match(/disconnected/i)) {
 				this._setConnected(false)
 			} else {
-				this.emit('error', 'Lawo.Emberplus', e)
+				this.emitLog('error', 'Lawo.Emberplus', e)
 			}
 		})
 		// this._lawo.on('warn', (w) => {
-		// 	this.emitDebug('Warning: Lawo.Emberplus', w)
+		// 	this.emitLog('debug', 'Warning: Lawo.Emberplus', w)
 		// })
 		let firstConnection = true
 		this._lawo.on('connected', () => {
@@ -178,12 +177,12 @@ export class LawoDevice extends DeviceWithState<LawoState, DeviceOptionsLawoInte
 						await this._mapSourcesToNodeNames()
 
 						this._initialized = true
-						this.emit('info', 'finished device initalization')
+						this.emitLog('info', 'finished device initalization')
 						this.emit('resetResolver')
 					},
 					(e) => {
 						if (e instanceof Error) {
-							this.emit('error', 'Error while expanding root', e)
+							this.emitLog('error', 'Error while expanding root', e)
 						}
 					}
 				)
@@ -198,9 +197,9 @@ export class LawoDevice extends DeviceWithState<LawoState, DeviceOptionsLawoInte
 	/**
 	 * Initiates the connection with Lawo
 	 */
-	async init(_initOptions: LawoOptions): Promise<boolean> {
+	async init(_): Promise<boolean> {
 		const err = await this._lawo.connect()
-		if (err) this.emit('error', 'Lawo initialization', err)
+		if (err) this.emitLog('error', 'Lawo initialization', err)
 		return true // device is usable, lib will handle connection
 	}
 	/** Called by the Conductor a bit before a .handleState is called */
@@ -261,15 +260,12 @@ export class LawoDevice extends DeviceWithState<LawoState, DeviceOptionsLawoInte
 			this._lawo.removeAllListeners('connected')
 			this._lawo.removeAllListeners('disconnected')
 		} catch (e) {
-			this.emit('error', 'Lawo.terminate', e as Error)
+			this.emitLog('error', 'Lawo.terminate', e as Error)
 		}
 		return Promise.resolve(true)
 	}
-	get canConnect(): boolean {
+	get _canConnect(): boolean {
 		return true
-	}
-	get connected(): boolean {
-		return this._connected
 	}
 	/**
 	 * Converts a timeline state into a device state.
@@ -312,7 +308,7 @@ export class LawoDevice extends DeviceWithState<LawoState, DeviceOptionsLawoInte
 
 			const mapping: MappingLawo | undefined = mappings[layerName] as MappingLawo
 
-			if (mapping && mapping.device === DeviceType.LAWO && mapping.deviceId === this.deviceId) {
+			if (mapping && mapping.device === DeviceType.LAWO && mapping.deviceId === this._deviceId) {
 				// Mapping is for Lawo
 
 				if (
@@ -328,7 +324,7 @@ export class LawoDevice extends DeviceWithState<LawoState, DeviceOptionsLawoInte
 							!sourceMapping ||
 							!sourceMapping.identifier ||
 							sourceMapping.mappingType !== MappingLawoType.SOURCE ||
-							mapping.deviceId !== this.deviceId
+							mapping.deviceId !== this._deviceId
 						)
 							continue
 						// mapped mapping is a source mapping
@@ -372,17 +368,17 @@ export class LawoDevice extends DeviceWithState<LawoState, DeviceOptionsLawoInte
 
 		return lawoState
 	}
-	get deviceType() {
+	get _deviceType() {
 		return DeviceType.LAWO
 	}
-	get deviceName(): string {
-		return 'Lawo ' + this.deviceId
+	get _deviceName(): string {
+		return 'Lawo ' + this._deviceId
 	}
 	get queue() {
 		return this._doOnTime.getQueue()
 	}
 
-	getStatus(): DeviceStatus {
+	_getStatus() {
 		let statusCode = StatusCode.GOOD
 		const messages: Array<string> = []
 
@@ -394,7 +390,6 @@ export class LawoDevice extends DeviceWithState<LawoState, DeviceOptionsLawoInte
 		return {
 			statusCode: statusCode,
 			messages: messages,
-			active: this.isActive,
 		}
 	}
 	private _setConnected(connected: boolean) {
@@ -477,7 +472,7 @@ export class LawoDevice extends DeviceWithState<LawoState, DeviceOptionsLawoInte
 	private _identifierToNodeName(identifier: string): string {
 		if (this._sourceNamePath) {
 			const s = this._sourceNameToNodeName.get(identifier)
-			if (!s) this.emit('warning', `Source identifier "${identifier}" could not be found`)
+			if (!s) this.emitLog('warning', `Source identifier "${identifier}" could not be found`)
 			return s || identifier
 		} else {
 			return identifier
@@ -504,7 +499,7 @@ export class LawoDevice extends DeviceWithState<LawoState, DeviceOptionsLawoInte
 			command: command,
 			timelineObjId: timelineObjId,
 		}
-		this.emitDebug(cwc)
+		this.emitLog('debug', cwc)
 
 		// save start time of command
 		const startSend = this.getCurrentTime()
@@ -553,7 +548,7 @@ export class LawoDevice extends DeviceWithState<LawoState, DeviceOptionsLawoInte
 						{ type: EmberModel.ParameterType.Real, value: command.value },
 						{ type: EmberModel.ParameterType.Real, value: command.transitionDuration / 1000 }
 					)
-					this.emitDebug(`Ember function invoked (${timelineObjId}, ${command.identifier}, ${command.value})`)
+					this.emitLog('debug', `Ember function invoked (${timelineObjId}, ${command.identifier}, ${command.value})`)
 					const res = await req.response
 					if (res && res.success === false) {
 						const reasons = {
@@ -584,12 +579,13 @@ export class LawoDevice extends DeviceWithState<LawoState, DeviceOptionsLawoInte
 								new Error('Lawo Result ' + res.result![0].value)
 							)
 						}
-						this.emitDebug(`Lawo: Ember fn error ${command.identifier}): result ${result}: ${reasons[result]}`, {
+						this.emitLog('debug', `Lawo: Ember fn error ${command.identifier}): result ${result}: ${reasons[result]}`, {
 							...res,
 							source: command.identifier,
 						})
 					} else {
-						this.emitDebug(
+						this.emitLog(
+							'debug',
 							`Ember function result (${timelineObjId}, ${command.identifier}): ${JSON.stringify(res)}`,
 							res
 						)
@@ -620,7 +616,7 @@ export class LawoDevice extends DeviceWithState<LawoState, DeviceOptionsLawoInte
 			const req = await this._lawo.setValue(node, value, logResult)
 			if (logResult) {
 				const res = await req.response
-				this.emitDebug(`Ember result (${timelineObjId}): ${res && res.contents.value}`, {
+				this.emitLog('debug', `Ember result (${timelineObjId}): ${res && res.contents.value}`, {
 					command,
 					res: res && res.contents,
 				})
@@ -632,7 +628,7 @@ export class LawoDevice extends DeviceWithState<LawoState, DeviceOptionsLawoInte
 				)
 			}
 		} catch (e) {
-			this.emit('error', `Lawo: Error in setValue (${timelineObjId})`, e as Error)
+			this.emitLog('error', `Lawo: Error in setValue (${timelineObjId})`, e as Error)
 			throw e
 		}
 	}
@@ -677,11 +673,11 @@ export class LawoDevice extends DeviceWithState<LawoState, DeviceOptionsLawoInte
 	private async _mapSourcesToNodeNames() {
 		if (!this._sourceNamePath) return
 
-		this.emit('info', 'Start mapping source identifiers to channel node identifiers')
+		this.emitLog('info', 'Start mapping source identifiers to channel node identifiers')
 		// get the node that contains the sources
 		const sourceNode = await this._lawo.getElementByPath(this._sourcesPath)
 		if (!sourceNode) {
-			this.emit('warning', 'Could not map source names to node names because source node could not be found!')
+			this.emitLog('warning', 'Could not map source names to node names because source node could not be found!')
 			return
 		}
 
@@ -705,7 +701,7 @@ export class LawoDevice extends DeviceWithState<LawoState, DeviceOptionsLawoInte
 
 							// remove old mapping if it hasn't changed
 							if (previousNode && this._sourceNameToNodeName.get(previousNode) === sourceId) {
-								this.emit('info', `removing mapping ${previousNode}`)
+								this.emitLog('info', `removing mapping ${previousNode}`)
 								this._sourceNameToNodeName.delete(previousNode)
 							}
 
@@ -713,7 +709,7 @@ export class LawoDevice extends DeviceWithState<LawoState, DeviceOptionsLawoInte
 							this._sourceNameToNodeName.set(node.contents.value as string, sourceId)
 							previousNode = node.contents.value as string
 
-							this.emit('info', `mapping ${node.contents.value} to channel ${sourceId}`)
+							this.emitLog('info', `mapping ${node.contents.value} to channel ${sourceId}`)
 						}
 					)
 
@@ -725,11 +721,11 @@ export class LawoDevice extends DeviceWithState<LawoState, DeviceOptionsLawoInte
 					)
 					previousNode = (node.contents as EmberModel.Parameter).value as string
 				} catch (e) {
-					this.emit('error', 'lawo: map sources to node names', e as Error)
+					this.emitLog('error', 'lawo: map sources to node names', e as Error)
 				}
 			}
 		}
 
-		this.emit('info', 'Mapped source identifiers to channel node identifiers')
+		this.emitLog('info', 'Mapped source identifiers to channel node identifiers')
 	}
 }

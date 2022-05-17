@@ -1,9 +1,8 @@
 import * as _ from 'underscore'
-import { DeviceWithState, CommandWithContext, DeviceStatus, StatusCode } from './../../devices/device'
+import { AbstractStateDevice, CommandWithContext, StatusCode } from './../../devices/device'
 import {
 	DeviceType,
 	ShotokuCommandContent,
-	ShotokuOptions,
 	DeviceOptionsShotoku,
 	ShotokuTransitionType,
 	Mappings,
@@ -48,7 +47,7 @@ interface ShotokuDeviceStateContent extends ShotokuCommandContent {
 /**
  * This is a generic wrapper for any osc-enabled device.
  */
-export class ShotokuDevice extends DeviceWithState<ShotokuDeviceState, DeviceOptionsShotokuInternal> {
+export class ShotokuDevice extends AbstractStateDevice<ShotokuDeviceState, DeviceOptionsShotokuInternal> {
 	private _doOnTime: DoOnTime
 	private _shotoku: ShotokuAPI
 
@@ -65,13 +64,14 @@ export class ShotokuDevice extends DeviceWithState<ShotokuDeviceState, DeviceOpt
 				return this.getCurrentTime()
 			},
 			SendMode.BURST,
-			this._deviceOptions
+			deviceOptions
 		)
 		this._shotoku = new ShotokuAPI()
 		this._shotoku.on('error', (info, e) => this.emit(e, info))
 		this.handleDoOnTime(this._doOnTime, 'OSC')
 	}
-	async init(initOptions: ShotokuOptions): Promise<boolean> {
+	async init(): Promise<boolean> {
+		const initOptions = this.getOptions()
 		try {
 			await this._shotoku.connect(initOptions.host, initOptions.port)
 		} catch (e) {
@@ -99,12 +99,12 @@ export class ShotokuDevice extends DeviceWithState<ShotokuDeviceState, DeviceOpt
 			this.getStateBefore(previousStateTime) || { state: { shots: {}, sequences: {} } }
 		).state
 
-		const convertTrace = startTrace(`device:convertState`, { deviceId: this.deviceId })
+		const convertTrace = startTrace(`device:convertState`, { deviceId: this.deviceProperties.deviceId })
 		const newShotokuState = this.convertStateToShotokuShots(newState)
 		this.emit('timeTrace', endTrace(convertTrace))
 
 		// Generate commands necessary to transition to the new state
-		const diffTrace = startTrace(`device:diffState`, { deviceId: this.deviceId })
+		const diffTrace = startTrace(`device:diffState`, { deviceId: this.deviceProperties.deviceId })
 		const commandsToAchieveState = this._diffStates(oldState, newShotokuState)
 		this.emit('timeTrace', endTrace(diffTrace))
 
@@ -127,21 +127,20 @@ export class ShotokuDevice extends DeviceWithState<ShotokuDeviceState, DeviceOpt
 		this._doOnTime.dispose()
 		return Promise.resolve(true)
 	}
-	getStatus(): DeviceStatus {
+	_getStatus() {
 		return {
 			statusCode: this._shotoku.connected ? StatusCode.GOOD : StatusCode.BAD,
 			messages: [],
-			active: this.isActive,
 		}
 	}
 	async makeReady(_okToDestroyStuff?: boolean): Promise<void> {
 		return Promise.resolve() // TODO - enforce current state?
 	}
 
-	get canConnect(): boolean {
+	get _canConnect(): boolean {
 		return true // TODO?
 	}
-	get connected(): boolean {
+	get _connected(): boolean {
 		return this._shotoku.connected
 	}
 	/**
@@ -177,11 +176,11 @@ export class ShotokuDevice extends DeviceWithState<ShotokuDeviceState, DeviceOpt
 
 		return deviceState
 	}
-	get deviceType() {
+	get _deviceType() {
 		return DeviceType.SHOTOKU
 	}
-	get deviceName(): string {
-		return 'Shotoku ' + this.deviceId
+	get _deviceName(): string {
+		return 'Shotoku ' + this._deviceId
 	}
 	get queue() {
 		return this._doOnTime.getQueue()
@@ -270,7 +269,7 @@ export class ShotokuDevice extends DeviceWithState<ShotokuDeviceState, DeviceOpt
 			command: cmd,
 			timelineObjId: timelineObjId,
 		}
-		this.emitDebug(cwc)
+		this.emitLog('debug', cwc)
 
 		try {
 			if (this._shotoku.connected) {

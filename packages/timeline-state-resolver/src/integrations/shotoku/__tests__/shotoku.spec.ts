@@ -95,8 +95,8 @@ describe('Shotoku', () => {
 
 		await device.on('connectionChanged', onConnectionChanged)
 
-		expect(await device.canConnect).toEqual(true)
-		expect(await device.deviceName).toMatch(/myShotoku/i)
+		expect((await device.getStatus()).canConnect).toEqual(true)
+		expect((await device.deviceProperties).deviceName).toMatch(/myShotoku/i)
 
 		// Check that no commands has been scheduled:
 		expect(await device.queue).toHaveLength(0)
@@ -266,8 +266,8 @@ describe('Shotoku', () => {
 
 		await device.on('connectionChanged', onConnectionChanged)
 
-		expect(await device.canConnect).toEqual(true)
-		expect(await device.deviceName).toMatch(/myShotoku/i)
+		expect((await device.getStatus()).canConnect).toEqual(true)
+		expect((await device.deviceProperties).deviceName).toMatch(/myShotoku/i)
 
 		// Check that no commands has been scheduled:
 		expect(await device.queue).toHaveLength(0)

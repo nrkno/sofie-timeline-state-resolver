@@ -60,7 +60,7 @@ const RESOLVE_LIMIT_TIME = 10000
 
 export type TimelineTriggerTimeResult = Array<{ id: string; time: number }>
 
-export { Device } from './devices/device'
+export { AbstractDevice as Device } from './devices/device'
 
 export interface ConductorOptions {
 	// devices: {

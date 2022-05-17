@@ -39,7 +39,7 @@ describe('Abstract device', () => {
 		await mockTime.advanceTimeToTicks(10100)
 
 		const deviceContainer = myConductor.getDevice('myAbstract')
-		const device = deviceContainer!.device as ThreadedClass<AbstractDevice>
+		const device = deviceContainer!.device as unknown as ThreadedClass<AbstractDevice>
 
 		device.terminate = jest.fn(device.terminate)
 		const onError = jest.fn()
@@ -47,10 +47,12 @@ describe('Abstract device', () => {
 		device.on('error', onError).catch(() => null)
 		device.on('debug', onDebug).catch(() => null)
 
-		expect(await device.canConnect).toBeFalsy()
-		expect(await device.connected).toBeFalsy()
-		expect(await device.deviceName).toMatch(/abstract/i)
-		expect(await device.getStatus()).toMatchObject({ statusCode: StatusCode.GOOD })
+		const status = await device.getStatus()
+		const props = await device.deviceProperties
+		expect(status.canConnect).toBeFalsy()
+		expect(status.connected).toBeFalsy()
+		expect(props.deviceName).toMatch(/abstract/i)
+		expect(status.status).toMatchObject({ statusCode: StatusCode.GOOD })
 
 		// Check that no commands has been scheduled:
 		expect(await device.queue).toHaveLength(0)
@@ -117,7 +119,7 @@ describe('Abstract device', () => {
 			},
 			context: 'removed: obj1',
 		})
-		await myConductor.removeDevice(await device.deviceId)
+		await myConductor.removeDevice((await device.deviceProperties).deviceId)
 
 		expect(device.terminate).toHaveBeenCalledTimes(1)
 		expect(myConductor.getDevice('myAbstract')).toBeFalsy()
@@ -145,7 +147,7 @@ describe('Abstract device', () => {
 		await mockTime.advanceTimeToTicks(10100)
 
 		const deviceContainer = myConductor.getDevice('myAbstract')
-		const device = deviceContainer!.device as ThreadedClass<AbstractDevice>
+		const device = deviceContainer!.device as unknown as ThreadedClass<AbstractDevice>
 
 		device.terminate = jest.fn(device.terminate)
 		const onError = jest.fn()
@@ -176,7 +178,7 @@ describe('Abstract device', () => {
 		await mockTime.advanceTimeToTicks(10200)
 		expect(onDebug).toHaveBeenCalledTimes(1)
 
-		await myConductor.removeDevice(await device.deviceId)
+		await myConductor.removeDevice((await device.deviceProperties).deviceId)
 
 		expect(device.terminate).toHaveBeenCalledTimes(1)
 		expect(myConductor.getDevice('myAbstract')).toBeFalsy()

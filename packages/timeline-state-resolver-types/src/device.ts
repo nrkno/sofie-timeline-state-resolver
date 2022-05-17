@@ -40,7 +40,7 @@ export interface DeviceOptionsBase<T> extends SlowReportOptions {
 	reportAllCommands?: boolean
 	threadUsage?: number
 	disable?: boolean
-	options?: T
+	options: T
 	debug?: boolean
 }
 

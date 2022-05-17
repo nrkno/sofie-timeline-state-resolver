@@ -1,8 +1,7 @@
 import * as _ from 'underscore'
-import { DeviceWithState, CommandWithContext, DeviceStatus, StatusCode } from './../../devices/device'
+import { AbstractStateDevice, CommandWithContext, StatusCode } from './../../devices/device'
 import {
 	DeviceType,
-	PharosOptions,
 	TimelineContentTypePharos,
 	TimelineObjPharos,
 	TimelineObjPharosScene,
@@ -44,7 +43,7 @@ type CommandContext = string
  * This is a wrapper for a Pharos-devices,
  * https://www.pharoscontrols.com/downloads/documentation/application-notes/
  */
-export class PharosDevice extends DeviceWithState<PharosState, DeviceOptionsPharosInternal> {
+export class PharosDevice extends AbstractStateDevice<PharosState, DeviceOptionsPharosInternal> {
 	private _doOnTime: DoOnTime
 
 	private _pharos: Pharos
@@ -63,13 +62,13 @@ export class PharosDevice extends DeviceWithState<PharosState, DeviceOptionsPhar
 				return this.getCurrentTime()
 			},
 			SendMode.BURST,
-			this._deviceOptions
+			deviceOptions
 		)
 		this.handleDoOnTime(this._doOnTime, 'Pharos')
 
 		this._pharos = new Pharos()
 
-		this._pharos.on('error', (e) => this.emit('error', 'Pharos', e))
+		this._pharos.on('error', (e) => this.emitLog('error', 'Pharos', e))
 		this._pharos.on('connected', () => {
 			this._connectionChanged()
 		})
@@ -81,11 +80,13 @@ export class PharosDevice extends DeviceWithState<PharosState, DeviceOptionsPhar
 	/**
 	 * Initiates the connection with Pharos through the PharosAPI.
 	 */
-	async init(initOptions: PharosOptions): Promise<boolean> {
+	async init(): Promise<boolean> {
+		const options = this.getOptions()
+		if (!options) return Promise.reject('No options')
 		return new Promise((resolve, reject) => {
 			// This is where we would do initialization, like connecting to the devices, etc
 			this._pharos
-				.connect(initOptions)
+				.connect(options)
 				.then(async () => {
 					return this._pharos.getProjectInfo()
 				})
@@ -138,20 +139,20 @@ export class PharosDevice extends DeviceWithState<PharosState, DeviceOptionsPhar
 			return true
 		})
 	}
-	get canConnect(): boolean {
+	get _canConnect(): boolean {
 		return true
 	}
-	get connected(): boolean {
+	get _connected(): boolean {
 		return this._pharos.connected
 	}
 	convertStateToPharos(state: TimelineState): PharosState {
 		return state as PharosState
 	}
-	get deviceType() {
+	get _deviceType() {
 		return DeviceType.PHAROS
 	}
-	get deviceName(): string {
-		return 'Pharos ' + this.deviceId + (this._pharosProjectInfo ? ', ' + this._pharosProjectInfo.name : '')
+	get _deviceName(): string {
+		return 'Pharos ' + this._deviceId + (this._pharosProjectInfo ? ', ' + this._pharosProjectInfo.name : '')
 	}
 	get queue() {
 		return this._doOnTime.getQueue()
@@ -161,7 +162,7 @@ export class PharosDevice extends DeviceWithState<PharosState, DeviceOptionsPhar
 			this._doOnTime.clearQueueNowAndAfter(this.getCurrentTime())
 		}
 	}
-	getStatus(): DeviceStatus {
+	_getStatus() {
 		let statusCode = StatusCode.GOOD
 		const messages: Array<string> = []
 
@@ -173,7 +174,6 @@ export class PharosDevice extends DeviceWithState<PharosState, DeviceOptionsPhar
 		return {
 			statusCode: statusCode,
 			messages: messages,
-			active: this.isActive,
 		}
 	}
 	/**
@@ -376,7 +376,7 @@ export class PharosDevice extends DeviceWithState<PharosState, DeviceOptionsPhar
 			},
 			timelineObjId: timelineObjId,
 		}
-		this.emitDebug(cwc)
+		this.emitLog('debug', cwc)
 
 		// execute the command here
 		try {

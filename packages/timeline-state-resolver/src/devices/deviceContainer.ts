@@ -1,5 +1,5 @@
 import { ThreadedClass, threadedClass, ThreadedClassConfig, ThreadedClassManager } from 'threadedclass'
-import { Device } from './device'
+import { AbstractDevice } from './device'
 import { DeviceType, DeviceOptionsBase } from 'timeline-state-resolver-types'
 
 /**
@@ -8,7 +8,7 @@ import { DeviceType, DeviceOptionsBase } from 'timeline-state-resolver-types'
  * names and id's) to prevent a costly round trip over IPC.
  */
 export class DeviceContainer<TOptions extends DeviceOptionsBase<any>> {
-	private _device: ThreadedClass<Device<TOptions>>
+	private _device: ThreadedClass<AbstractDevice<TOptions>>
 	private _deviceId = 'N/A'
 	private _deviceType: DeviceType
 	private _deviceName = 'N/A'
@@ -29,7 +29,7 @@ export class DeviceContainer<TOptions extends DeviceOptionsBase<any>> {
 
 	static async create<
 		TOptions extends DeviceOptionsBase<unknown>,
-		TCtor extends new (...args: any[]) => Device<TOptions>
+		TCtor extends new (...args: any[]) => AbstractDevice<TOptions>
 	>(
 		orgModule: string,
 		orgClassExport: string,
@@ -46,7 +46,7 @@ export class DeviceContainer<TOptions extends DeviceOptionsBase<any>> {
 
 		const container = new DeviceContainer(deviceOptions, threadConfig)
 
-		container._device = await threadedClass<Device<TOptions>, TCtor>(
+		container._device = await threadedClass<AbstractDevice<TOptions>, TCtor>(
 			orgModule,
 			orgClassExport,
 			[deviceId, deviceOptions, getCurrentTime] as any, // TODO types
@@ -69,22 +69,23 @@ export class DeviceContainer<TOptions extends DeviceOptionsBase<any>> {
 		return this._initialized
 	}
 
-	public async init(initOptions: TOptions['options'], activeRundownPlaylistId: string | undefined): Promise<boolean> {
+	public async init(_initOptions: TOptions['options'], activeRundownPlaylistId: string | undefined): Promise<boolean> {
 		if (this.initialized === true) {
 			throw new Error(`Device ${this.deviceId} is already initialized`)
 		}
 
-		const res = await this._device.init(initOptions, activeRundownPlaylistId)
+		const res = await this._device.init(activeRundownPlaylistId)
 		this._initialized = true
 		return res
 	}
 
 	public async reloadProps(): Promise<void> {
-		this._deviceId = await this.device.deviceId
-		this._deviceType = await this.device.deviceType
-		this._deviceName = await this.device.deviceName
-		this._instanceId = await this.device.instanceId
-		this._startTime = await this.device.startTime
+		const props = await this.device.deviceProperties
+		this._deviceId = props.deviceId
+		this._deviceType = props.deviceType
+		this._deviceName = props.deviceName
+		this._instanceId = props.instanceId
+		this._startTime = props.startTime
 	}
 
 	public async terminate() {
@@ -96,10 +97,11 @@ export class DeviceContainer<TOptions extends DeviceOptionsBase<any>> {
 
 	public async setDebugLogging(debug: boolean): Promise<void> {
 		this._debugLogging = debug
-		await this._device.setDebugLogging(debug)
+		await this._device.setLogLevel(debug ? 'debug' : 'info')
+		// await this._device.setDebugLogging(debug)
 	}
 
-	public get device(): ThreadedClass<Device<TOptions>> {
+	public get device(): ThreadedClass<AbstractDevice<TOptions>> {
 		return this._device
 	}
 	public get deviceId(): string {

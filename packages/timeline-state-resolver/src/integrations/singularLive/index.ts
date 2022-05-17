@@ -1,8 +1,7 @@
 import * as _ from 'underscore'
-import { DeviceWithState, CommandWithContext, DeviceStatus, StatusCode, literal } from './../../devices/device'
+import { AbstractStateDevice, CommandWithContext, DeviceStatus, StatusCode, literal } from './../../devices/device'
 import {
 	DeviceType,
-	SingularLiveOptions,
 	TimelineContentTypeSingularLive,
 	MappingSingularLive,
 	TimelineObjSingularLiveAny,
@@ -68,14 +67,13 @@ const SINGULAR_LIVE_API = 'https://app.singular.live/apiv1/control/'
 /**
  * This is a Singular.Live device, it talks to a Singular.Live App Instance using an Access Token
  */
-export class SingularLiveDevice extends DeviceWithState<SingularLiveState, DeviceOptionsSingularLiveInternal> {
+export class SingularLiveDevice extends AbstractStateDevice<SingularLiveState, DeviceOptionsSingularLiveInternal> {
 	// private _makeReadyCommands: SingularLiveCommandContent[]
 	private _accessToken: string
 	private _doOnTime: DoOnTime
-	private _deviceStatus: DeviceStatus = {
+	protected _deviceStatus: Pick<DeviceStatus['status'], 'statusCode' | 'messages'> = {
 		statusCode: StatusCode.GOOD,
 		messages: [],
-		active: this.isActive,
 	}
 
 	private _commandReceiver: CommandReceiver
@@ -95,13 +93,13 @@ export class SingularLiveDevice extends DeviceWithState<SingularLiveState, Devic
 				return this.getCurrentTime()
 			},
 			SendMode.IN_ORDER,
-			this._deviceOptions
+			deviceOptions
 		)
 		this.handleDoOnTime(this._doOnTime, 'SingularLive')
 	}
-	async init(initOptions: SingularLiveOptions): Promise<boolean> {
+	async init(): Promise<boolean> {
 		// this._makeReadyCommands = options.makeReadyCommands || []
-		this._accessToken = initOptions.accessToken || ''
+		this._accessToken = this.getOptions().accessToken || ''
 
 		if (!this._accessToken)
 			throw new Error('Singular.Live bad connection option: accessToken. An accessToken is required.')
@@ -143,7 +141,7 @@ export class SingularLiveDevice extends DeviceWithState<SingularLiveState, Devic
 		this._doOnTime.dispose()
 		return Promise.resolve(true)
 	}
-	getStatus(): DeviceStatus {
+	_getStatus() {
 		// Good, since this device has no status, really
 		return this._deviceStatus
 	}
@@ -159,10 +157,10 @@ export class SingularLiveDevice extends DeviceWithState<SingularLiveState, Devic
 		// }
 	}
 
-	get canConnect(): boolean {
+	get _canConnect(): boolean {
 		return false
 	}
-	get connected(): boolean {
+	get _connected(): boolean {
 		return false
 	}
 	private _getDefaultState(): SingularLiveState {
@@ -177,7 +175,11 @@ export class SingularLiveDevice extends DeviceWithState<SingularLiveState, Devic
 
 		_.each(state.layers, (tlObject: ResolvedTimelineObjectInstance, layerName: string) => {
 			const mapping: MappingSingularLive | undefined = newMappings[layerName] as MappingSingularLive
-			if (mapping && mapping.device === DeviceType.SINGULAR_LIVE && mapping.deviceId === this.deviceId) {
+			if (
+				mapping &&
+				mapping.device === DeviceType.SINGULAR_LIVE &&
+				mapping.deviceId === this.deviceProperties.deviceId
+			) {
 				const tlObjectSource = tlObject as any as TimelineObjSingularLiveAny
 
 				if (tlObjectSource.content.type === TimelineContentTypeSingularLive.COMPOSITION) {
@@ -193,11 +195,11 @@ export class SingularLiveDevice extends DeviceWithState<SingularLiveState, Devic
 
 		return singularState
 	}
-	get deviceType() {
+	get _deviceType() {
 		return DeviceType.SINGULAR_LIVE
 	}
-	get deviceName(): string {
-		return 'Singular.Live ' + this.deviceId
+	get _deviceName(): string {
+		return 'Singular.Live ' + this._deviceId
 	}
 	get queue() {
 		return this._doOnTime.getQueue()
@@ -316,17 +318,18 @@ export class SingularLiveDevice extends DeviceWithState<SingularLiveState, Devic
 			command: cmd,
 			timelineObjId: timelineObjId,
 		}
-		this.emitDebug(cwc)
+		this.emitLog('debug', cwc)
 
 		const url = SINGULAR_LIVE_API + this._accessToken
 
 		return new Promise<void>((resolve, reject) => {
 			const handleResponse = (error, response) => {
 				if (error) {
-					this.emit('error', `SingularLive.response error ${cmd.compositionName} (${context}`, error)
+					this.emitLog('error', `SingularLive.response error ${cmd.compositionName} (${context}`, error)
 					reject(error)
 				} else if (response.statusCode === 200) {
-					this.emitDebug(
+					this.emitLog(
+						'debug',
 						`SingularLive: ${cmd.compositionName}: Good statuscode response on url "${url}": ${response.statusCode} (${context})`
 					)
 					resolve()

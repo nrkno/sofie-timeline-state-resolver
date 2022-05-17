@@ -1,12 +1,11 @@
 import * as _ from 'underscore'
 import * as underScoreDeepExtend from 'underscore-deep-extend'
-import { DeviceWithState, CommandWithContext, DeviceStatus, StatusCode } from './../../devices/device'
+import { AbstractStateDevice, CommandWithContext, StatusCode } from './../../devices/device'
 import {
 	DeviceType,
 	TimelineContentTypeAtem,
 	MappingAtem,
 	MappingAtemType,
-	AtemOptions,
 	TimelineObjAtemME,
 	TimelineObjAtemDSK,
 	TimelineObjAtemMediaPlayer,
@@ -51,13 +50,13 @@ export type CommandReceiver = (
 /**
  * This is a wrapper for the Atem Device. Commands to any and all atem devices will be sent through here.
  */
-export class AtemDevice extends DeviceWithState<DeviceState, DeviceOptionsAtemInternal> {
+export class AtemDevice extends AbstractStateDevice<DeviceState, DeviceOptionsAtemInternal> {
 	private _doOnTime: DoOnTime
 
 	private _atem: BasicAtem
 	private _state: AtemState
 	private _initialized = false
-	private _connected = false // note: ideally this should be replaced by this._atem.connected
+	protected _connected = false // note: ideally this should be replaced by this._atem.connected
 
 	private firstStateAfterMakeReady = true // note: temprorary for some improved logging
 
@@ -80,7 +79,7 @@ export class AtemDevice extends DeviceWithState<DeviceState, DeviceOptionsAtemIn
 				return this.getCurrentTime()
 			},
 			SendMode.BURST,
-			this._deviceOptions
+			this.deviceProperties.deviceOptions
 		)
 		this.handleDoOnTime(this._doOnTime, 'Atem')
 	}
@@ -89,7 +88,8 @@ export class AtemDevice extends DeviceWithState<DeviceState, DeviceOptionsAtemIn
 	 * Initiates the connection with the ATEM through the atem-connection lib
 	 * and initiates Atem State lib.
 	 */
-	async init(options: AtemOptions): Promise<boolean> {
+	async init(): Promise<boolean> {
+		const options = this.getOptions() ?? { host: '', port: 9993 }
 		return new Promise((resolve, reject) => {
 			// This is where we would do initialization, like connecting to the devices, etc
 			this._state = new AtemState()
@@ -111,7 +111,7 @@ export class AtemDevice extends DeviceWithState<DeviceState, DeviceOptionsAtemIn
 				this._connected = false
 				this._connectionChanged()
 			})
-			this._atem.on('error', (e) => this.emit('error', 'Atem', new Error(e)))
+			this._atem.on('error', (e) => this.emitLog('error', 'Atem', new Error(e)))
 			this._atem.on('stateChanged', (state) => this._onAtemStateChanged(state))
 
 			this._atem.connect(options.host, options.port).catch((e) => {
@@ -165,14 +165,14 @@ export class AtemDevice extends DeviceWithState<DeviceState, DeviceOptionsAtemIn
 		super.onHandleState(newState, newMappings)
 		if (!this._initialized) {
 			// before it's initialized don't do anything
-			this.emit('warning', 'Atem not initialized yet')
+			this.emitLog('warning', 'Atem not initialized yet')
 			return
 		}
 
 		const previousStateTime = Math.max(this.getCurrentTime(), newState.time)
 		const oldState: DeviceState = (this.getStateBefore(previousStateTime) || { state: AtemStateUtil.Create() }).state
 
-		const convertTrace = startTrace(`device:convertState`, { deviceId: this.deviceId })
+		const convertTrace = startTrace(`device:convertState`, { deviceId: this.deviceProperties.deviceId })
 		const oldAtemState = oldState
 		const newAtemState = this.convertStateToAtem(newState, newMappings)
 		this.emit('timeTrace', endTrace(convertTrace))
@@ -180,7 +180,8 @@ export class AtemDevice extends DeviceWithState<DeviceState, DeviceOptionsAtemIn
 		if (this.firstStateAfterMakeReady) {
 			// emit a debug message with the states:
 			this.firstStateAfterMakeReady = false
-			this.emitDebug(
+			this.emitLog(
+				'debug',
 				JSON.stringify({
 					reason: 'firstStateAfterMakeReady',
 					before: (oldAtemState || {}).video,
@@ -189,7 +190,7 @@ export class AtemDevice extends DeviceWithState<DeviceState, DeviceOptionsAtemIn
 			)
 		}
 
-		const diffTrace = startTrace(`device:diffState`, { deviceId: this.deviceId })
+		const diffTrace = startTrace(`device:diffState`, { deviceId: this.deviceProperties.deviceId })
 		const commandsToAchieveState: Array<AtemCommandWithContext> = this._diffStates(
 			oldAtemState,
 			newAtemState,
@@ -212,11 +213,8 @@ export class AtemDevice extends DeviceWithState<DeviceState, DeviceOptionsAtemIn
 	clearFuture(clearAfterTime: number) {
 		this._doOnTime.clearQueueAfter(clearAfterTime)
 	}
-	get canConnect(): boolean {
+	get _canConnect(): boolean {
 		return true
-	}
-	get connected(): boolean {
-		return this._connected
 	}
 	/**
 	 * Convert a timeline state into an Atem state.
@@ -239,7 +237,7 @@ export class AtemDevice extends DeviceWithState<DeviceState, DeviceOptionsAtemIn
 
 			const mapping = newMappings[layerName] as MappingAtem | undefined
 
-			if (mapping && mapping.deviceId === this.deviceId) {
+			if (mapping && mapping.deviceId === this.deviceProperties.deviceId) {
 				if (mapping.index !== undefined && mapping.index >= 0) {
 					// index must be 0 or higher
 					switch (mapping.mappingType) {
@@ -332,11 +330,11 @@ export class AtemDevice extends DeviceWithState<DeviceState, DeviceOptionsAtemIn
 
 		return deviceState
 	}
-	get deviceType() {
+	get _deviceType() {
 		return DeviceType.ATEM
 	}
-	get deviceName(): string {
-		return 'Atem ' + this.deviceId
+	get _deviceName(): string {
+		return 'Atem ' + this._deviceId
 	}
 	get queue() {
 		return this._doOnTime.getQueue()
@@ -344,7 +342,7 @@ export class AtemDevice extends DeviceWithState<DeviceState, DeviceOptionsAtemIn
 	/**
 	 * Check status and return it with useful messages appended.
 	 */
-	public getStatus(): DeviceStatus {
+	public _getStatus() {
 		let statusCode = StatusCode.GOOD
 		const messages: Array<string> = []
 
@@ -369,12 +367,10 @@ export class AtemDevice extends DeviceWithState<DeviceState, DeviceOptionsAtemIn
 			messages.push(`ATEM device connection not initialized (restart required)`)
 		}
 
-		const deviceStatus: DeviceStatus = {
+		return {
 			statusCode: statusCode,
 			messages: messages,
-			active: this.isActive,
 		}
-		return deviceStatus
 	}
 	/**
 	 * Add commands to queue, to be executed at the right time
@@ -445,7 +441,7 @@ export class AtemDevice extends DeviceWithState<DeviceState, DeviceOptionsAtemIn
 			command: command,
 			timelineObjId: timelineObjId,
 		}
-		this.emitDebug(cwc)
+		this.emitLog('debug', cwc)
 
 		return this._atem
 			.sendCommand(command)

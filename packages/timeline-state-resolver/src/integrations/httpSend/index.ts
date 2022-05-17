@@ -1,12 +1,6 @@
 import * as _ from 'underscore'
-import { DeviceWithState, CommandWithContext, DeviceStatus, StatusCode } from './../../devices/device'
-import {
-	DeviceType,
-	HTTPSendOptions,
-	HTTPSendCommandContent,
-	DeviceOptionsHTTPSend,
-	Mappings,
-} from 'timeline-state-resolver-types'
+import { AbstractStateDevice, CommandWithContext, StatusCode } from './../../devices/device'
+import { DeviceType, HTTPSendCommandContent, DeviceOptionsHTTPSend, Mappings } from 'timeline-state-resolver-types'
 import { DoOnTime, SendMode } from '../../devices/doOnTime'
 import got, { RequestError } from 'got'
 
@@ -40,7 +34,7 @@ type HTTPSendState = TimelineState
 /**
  * This is a HTTPSendDevice, it sends http commands when it feels like it
  */
-export class HTTPSendDevice extends DeviceWithState<HTTPSendState, DeviceOptionsHTTPSendInternal> {
+export class HTTPSendDevice extends AbstractStateDevice<HTTPSendState, DeviceOptionsHTTPSendInternal> {
 	private _makeReadyCommands: HTTPSendCommandContent[]
 	private _makeReadyDoesReset: boolean
 	private _resendTime?: number
@@ -60,11 +54,12 @@ export class HTTPSendDevice extends DeviceWithState<HTTPSendState, DeviceOptions
 				return this.getCurrentTime()
 			},
 			SendMode.IN_ORDER,
-			this._deviceOptions
+			deviceOptions
 		)
 		this.handleDoOnTime(this._doOnTime, 'HTTPSend')
 	}
-	async init(initOptions: HTTPSendOptions): Promise<boolean> {
+	async init(): Promise<boolean> {
+		const initOptions = this.getOptions()
 		this._makeReadyCommands = initOptions.makeReadyCommands || []
 		this._makeReadyDoesReset = initOptions.makeReadyDoesReset || false
 		this._resendTime = initOptions.resendTime && initOptions.resendTime > 1 ? initOptions.resendTime : undefined
@@ -80,18 +75,19 @@ export class HTTPSendDevice extends DeviceWithState<HTTPSendState, DeviceOptions
 	handleState(newState: TimelineState, newMappings: Mappings) {
 		super.onHandleState(newState, newMappings)
 		// Handle this new state, at the point in time specified
+		const deviceId = this.deviceProperties.deviceId
 
 		const previousStateTime = Math.max(this.getCurrentTime(), newState.time)
 		const oldState: TimelineState = (
 			this.getStateBefore(previousStateTime) || { state: { time: 0, layers: {}, nextEvents: [] } }
 		).state
 
-		const convertTrace = startTrace(`device:convertState`, { deviceId: this.deviceId })
+		const convertTrace = startTrace(`device:convertState`, { deviceId: deviceId })
 		const oldHttpSendState = oldState
 		const newHttpSendState = this.convertStateToHttpSend(newState)
 		this.emit('timeTrace', endTrace(convertTrace))
 
-		const diffTrace = startTrace(`device:diffState`, { deviceId: this.deviceId })
+		const diffTrace = startTrace(`device:diffState`, { deviceId: deviceId })
 		const commandsToAchieveState: Array<any> = this._diffStates(oldHttpSendState, newHttpSendState)
 		this.emit('timeTrace', endTrace(diffTrace))
 
@@ -111,12 +107,11 @@ export class HTTPSendDevice extends DeviceWithState<HTTPSendState, DeviceOptions
 		this._doOnTime.dispose()
 		return Promise.resolve(true)
 	}
-	getStatus(): DeviceStatus {
+	_getStatus() {
 		// Good, since this device has no status, really
 		return {
 			statusCode: StatusCode.GOOD,
 			messages: [],
-			active: this.isActive,
 		}
 	}
 	async makeReady(okToDestroyStuff?: boolean): Promise<void> {
@@ -134,10 +129,10 @@ export class HTTPSendDevice extends DeviceWithState<HTTPSendState, DeviceOptions
 		}
 	}
 
-	get canConnect(): boolean {
+	get _canConnect(): boolean {
 		return false
 	}
-	get connected(): boolean {
+	get _connected(): boolean {
 		return false
 	}
 	convertStateToHttpSend(state: TimelineState) {
@@ -145,11 +140,11 @@ export class HTTPSendDevice extends DeviceWithState<HTTPSendState, DeviceOptions
 		// (won't even use this.mapping)
 		return state
 	}
-	get deviceType() {
+	get _deviceType() {
 		return DeviceType.HTTPSEND
 	}
-	get deviceName(): string {
-		return 'HTTP-Send ' + this.deviceId
+	get _deviceName(): string {
+		return 'HTTP-Send ' + this._deviceId
 	}
 	get queue() {
 		return this._doOnTime.getQueue()
@@ -248,7 +243,7 @@ export class HTTPSendDevice extends DeviceWithState<HTTPSendState, DeviceOptions
 			command: cmd,
 			timelineObjId: timelineObjId,
 		}
-		this.emitDebug(cwc)
+		this.emitLog('debug', cwc)
 
 		const t = Date.now()
 		debug(`${cmd.type}: ${cmd.url} ${JSON.stringify(cmd.params)} (${timelineObjId})`)
@@ -260,12 +255,13 @@ export class HTTPSendDevice extends DeviceWithState<HTTPSendState, DeviceOptions
 			})
 
 			if (response.statusCode === 200) {
-				this.emitDebug(
+				this.emitLog(
+					'debug',
 					`HTTPSend: ${cmd.type}: Good statuscode response on url "${cmd.url}": ${response.statusCode} (${context})`
 				)
 			} else {
 				debug(`Bad response for ${cmd.url}: ${response.statusCode}`)
-				this.emit(
+				this.emitLog(
 					'warning',
 					`HTTPSend: ${cmd.type}: Bad statuscode response on url "${cmd.url}": ${response.statusCode} (${context})`
 				)
@@ -273,7 +269,7 @@ export class HTTPSendDevice extends DeviceWithState<HTTPSendState, DeviceOptions
 		} catch (error) {
 			const err = error as RequestError // make typescript happy
 
-			this.emit('error', `HTTPSend.response error ${cmd.type} (${context}`, err)
+			this.emitLog('error', `HTTPSend.response error ${cmd.type} (${context}`, err)
 			this.emit('commandError', err, cwc)
 			debug(`Failed ${cmd.url}: ${error} (${timelineObjId})`)
 

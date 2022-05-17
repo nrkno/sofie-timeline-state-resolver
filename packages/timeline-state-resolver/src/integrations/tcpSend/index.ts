@@ -1,13 +1,7 @@
 import { Socket } from 'net'
 import * as _ from 'underscore'
-import { DeviceWithState, CommandWithContext, DeviceStatus, StatusCode } from './../../devices/device'
-import {
-	DeviceType,
-	TCPSendOptions,
-	TcpSendCommandContent,
-	DeviceOptionsTCPSend,
-	Mappings,
-} from 'timeline-state-resolver-types'
+import { AbstractStateDevice, CommandWithContext, StatusCode } from './../../devices/device'
+import { DeviceType, TcpSendCommandContent, DeviceOptionsTCPSend, Mappings } from 'timeline-state-resolver-types'
 import { DoOnTime, SendMode } from '../../devices/doOnTime'
 import { TimelineState, ResolvedTimelineObjectInstance } from 'superfly-timeline'
 
@@ -36,13 +30,13 @@ type TSCSendState = TimelineState
 /**
  * This is a TCPSendDevice, it sends commands over tcp when it feels like it
  */
-export class TCPSendDevice extends DeviceWithState<TSCSendState, DeviceOptionsTCPSendInternal> {
+export class TCPSendDevice extends AbstractStateDevice<TSCSendState, DeviceOptionsTCPSendInternal> {
 	private _makeReadyCommands: TcpSendCommandContent[]
 	private _makeReadyDoesReset: boolean
 
 	private _doOnTime: DoOnTime
 	private _tcpClient: Socket | null = null
-	private _connected = false
+	protected _connected = false
 	private _host: string
 	private _port: number
 	private _bufferEncoding?: BufferEncoding
@@ -63,11 +57,12 @@ export class TCPSendDevice extends DeviceWithState<TSCSendState, DeviceOptionsTC
 				return this.getCurrentTime()
 			},
 			SendMode.IN_ORDER,
-			this._deviceOptions
+			deviceOptions
 		)
 		this.handleDoOnTime(this._doOnTime, 'TCPSend')
 	}
-	async init(initOptions: TCPSendOptions): Promise<boolean> {
+	async init(): Promise<boolean> {
+		const initOptions = this.getOptions()
 		this._makeReadyCommands = initOptions.makeReadyCommands || []
 		this._makeReadyDoesReset = initOptions.makeReadyDoesReset || false
 
@@ -136,31 +131,27 @@ export class TCPSendDevice extends DeviceWithState<TSCSendState, DeviceOptionsTC
 
 		return true
 	}
-	get canConnect(): boolean {
+	get _canConnect(): boolean {
 		return true
-	}
-	get connected(): boolean {
-		return this._connected
 	}
 	convertStateToTCPSend(state: TimelineState) {
 		// convert the timeline state into something we can use
 		// (won't even use this.mapping)
 		return state
 	}
-	get deviceType() {
+	get _deviceType() {
 		return DeviceType.TCPSEND
 	}
-	get deviceName(): string {
-		return 'TCP-Send ' + this.deviceId
+	get _deviceName(): string {
+		return 'TCP-Send ' + this._deviceId
 	}
 	get queue() {
 		return this._doOnTime.getQueue()
 	}
-	getStatus(): DeviceStatus {
+	_getStatus() {
 		return {
 			statusCode: this._connected ? StatusCode.GOOD : StatusCode.BAD,
 			messages: [],
-			active: this.isActive,
 		}
 	}
 	private _setConnected(connected: boolean) {
@@ -183,9 +174,9 @@ export class TCPSendDevice extends DeviceWithState<TSCSendState, DeviceOptionsTC
 	private _retryConnection() {
 		clearTimeout(this._retryConnectTimeout)
 
-		if (!this.connected && !this._setDisconnected) {
+		if (!this._connected && !this._setDisconnected) {
 			this._connectTCPClient().catch((err) => {
-				this.emit('error', 'reconnect TCP', err)
+				this.emitLog('error', 'reconnect TCP', err)
 			})
 		}
 	}
@@ -263,7 +254,7 @@ export class TCPSendDevice extends DeviceWithState<TSCSendState, DeviceOptionsTC
 		return new Promise<void>((resolve) => {
 			this._setDisconnected = true
 			if (this._tcpClient) {
-				if (this.connected) {
+				if (this._connected) {
 					this._tcpClient.once('close', () => {
 						resolve()
 					})
@@ -276,7 +267,7 @@ export class TCPSendDevice extends DeviceWithState<TSCSendState, DeviceOptionsTC
 						resolve()
 					}, TIMEOUT)
 					setTimeout(() => {
-						if (this._tcpClient && this.connected) {
+						if (this._tcpClient && this._connected) {
 							// Forcefully destroy the connection:
 							this._tcpClient.destroy()
 						}
@@ -314,7 +305,7 @@ export class TCPSendDevice extends DeviceWithState<TSCSendState, DeviceOptionsTC
 				this._setConnected(false)
 			})
 		}
-		if (!this.connected) {
+		if (!this._connected) {
 			return new Promise((resolve, reject) => {
 				this._tcpClient!.connect(this._port, this._host, () => {
 					resolve()
@@ -342,14 +333,14 @@ export class TCPSendDevice extends DeviceWithState<TSCSendState, DeviceOptionsTC
 		context: CommandContext,
 		timelineObjId: string
 	): Promise<any> {
-		// this.emit('info', 'TCTSend ', cmd)
+		// this.emitLog('info', 'TCTSend ', cmd)
 
 		const cwc: CommandWithContext = {
 			context: context,
 			command: cmd,
 			timelineObjId: timelineObjId,
 		}
-		this.emitDebug(cwc)
+		this.emitLog('debug', cwc)
 
 		if (cmd.message) {
 			return this._sendTCPMessage(cmd.message)

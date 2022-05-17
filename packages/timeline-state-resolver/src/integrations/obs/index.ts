@@ -1,6 +1,6 @@
 import * as _ from 'underscore'
 import * as underScoreDeepExtend from 'underscore-deep-extend'
-import { DeviceWithState, CommandWithContext, DeviceStatus, StatusCode } from './../../devices/device'
+import { AbstractStateDevice, CommandWithContext, StatusCode } from './../../devices/device'
 import { DoOnTime, SendMode } from '../../devices/doOnTime'
 
 import { TimelineState } from 'superfly-timeline'
@@ -8,7 +8,6 @@ import * as OBSWebSocket from 'obs-websocket-js'
 import {
 	DeviceType,
 	DeviceOptionsOBS,
-	OBSOptions,
 	Mappings,
 	MappingOBS,
 	TimelineContentTypeOBS,
@@ -59,13 +58,12 @@ const RETRY_TIMEOUT = 5000 // ms
 /**
  * This is a OBSDevice, it sends commands when it feels like it
  */
-export class OBSDevice extends DeviceWithState<OBSState, DeviceOptionsOBSInternal> {
+export class OBSDevice extends AbstractStateDevice<OBSState, DeviceOptionsOBSInternal> {
 	private _doOnTime: DoOnTime
 
+	protected _connected = false
 	private _commandReceiver: CommandReceiver
 	private _obs: OBSWebSocket
-	private _options: OBSOptions
-	private _connected = false
 	private _authenticated = false
 	private _initialized = false
 
@@ -86,15 +84,14 @@ export class OBSDevice extends DeviceWithState<OBSState, DeviceOptionsOBSInterna
 				return this.getCurrentTime()
 			},
 			SendMode.IN_ORDER,
-			this._deviceOptions
+			deviceOptions
 		)
-		this._doOnTime.on('error', (e) => this.emit('error', 'OBS.doOnTime', e))
-		this._doOnTime.on('slowCommand', (msg) => this.emit('slowCommand', this.deviceName + ': ' + msg))
+		this._doOnTime.on('error', (e) => this.emitLog('error', 'OBS.doOnTime', e))
+		this._doOnTime.on('slowCommand', (msg) => this.emit('slowCommand', this.deviceProperties.deviceName + ': ' + msg))
 		this._doOnTime.on('slowSentCommand', (info) => this.emit('slowSentCommand', info))
 		this._doOnTime.on('slowFulfilledCommand', (info) => this.emit('slowFulfilledCommand', info))
 	}
-	async init(options: OBSOptions): Promise<boolean> {
-		this._options = options
+	async init(): Promise<boolean> {
 		this._obs = new OBSWebSocket()
 		this._obs.on('AuthenticationFailure', () => {
 			this._setConnected(true, false)
@@ -108,7 +105,7 @@ export class OBSDevice extends DeviceWithState<OBSState, DeviceOptionsOBSInterna
 			this._setConnected(false)
 			this._triggerRetryConnection()
 		})
-		this._obs.on('error' as any, (e) => this.emit('error', 'OBS', e))
+		this._obs.on('error' as any, (e) => this.emitLog('error', 'OBS', e))
 
 		return this._connect().then((connected) => {
 			if (!connected) {
@@ -119,10 +116,12 @@ export class OBSDevice extends DeviceWithState<OBSState, DeviceOptionsOBSInterna
 	}
 
 	private async _connect() {
+		const options = this.getOptions()
+
 		return this._obs
 			.connect({
-				address: `${this._options.host}:${this._options.port}`,
-				password: this._options.password,
+				address: `${options.host}:${options.port}`,
+				password: options.password,
 			})
 			.then(() => {
 				// connected
@@ -134,7 +133,7 @@ export class OBSDevice extends DeviceWithState<OBSState, DeviceOptionsOBSInterna
 			})
 			.catch((err) => {
 				// connection error
-				this.emit('error', 'OBS', err)
+				this.emitLog('error', 'OBS', err)
 				this._setConnected(false)
 				return false
 			})
@@ -169,7 +168,7 @@ export class OBSDevice extends DeviceWithState<OBSState, DeviceOptionsOBSInterna
 			this._retryConnectTimeout = undefined
 		}
 
-		if (!this.connected && !this._setDisconnected) {
+		if (!this._connected && !this._setDisconnected) {
 			this._connect()
 				.then((connected) => {
 					if (!connected) {
@@ -177,7 +176,7 @@ export class OBSDevice extends DeviceWithState<OBSState, DeviceOptionsOBSInterna
 					}
 				})
 				.catch((err) => {
-					this.emit('error', 'OBS retryConnection', err)
+					this.emitLog('error', 'OBS retryConnection', err)
 				})
 		}
 	}
@@ -206,7 +205,7 @@ export class OBSDevice extends DeviceWithState<OBSState, DeviceOptionsOBSInterna
 		super.onHandleState(newState, newMappings)
 		if (!this._initialized) {
 			// before it's initialized don't do anything
-			this.emit('warning', 'OBS not initialized yet')
+			this.emitLog('warning', 'OBS not initialized yet')
 			return
 		}
 
@@ -243,7 +242,7 @@ export class OBSDevice extends DeviceWithState<OBSState, DeviceOptionsOBSInterna
 		return true
 	}
 
-	getStatus(): DeviceStatus {
+	_getStatus() {
 		let statusCode = StatusCode.GOOD
 		const messages: Array<string> = []
 
@@ -258,7 +257,6 @@ export class OBSDevice extends DeviceWithState<OBSState, DeviceOptionsOBSInterna
 		return {
 			statusCode: statusCode,
 			messages: messages,
-			active: this.isActive,
 		}
 	}
 
@@ -268,12 +266,8 @@ export class OBSDevice extends DeviceWithState<OBSState, DeviceOptionsOBSInterna
 		}
 	}
 
-	get canConnect(): boolean {
+	get _canConnect(): boolean {
 		return !this._connected && !this._retryConnectTimeout && !this._setDisconnected
-	}
-
-	get connected(): boolean {
-		return this._connected
 	}
 
 	convertStateToOBS(state: TimelineState, mappings: Mappings): OBSState {
@@ -404,12 +398,12 @@ export class OBSDevice extends DeviceWithState<OBSState, DeviceOptionsOBSInterna
 		return deviceState
 	}
 
-	get deviceType() {
+	get _deviceType() {
 		return DeviceType.OBS
 	}
 
-	get deviceName(): string {
-		return 'OBS ' + this.deviceId
+	get _deviceName(): string {
+		return 'OBS ' + this._deviceId
 	}
 
 	get queue() {
@@ -632,7 +626,7 @@ export class OBSDevice extends DeviceWithState<OBSState, DeviceOptionsOBSInterna
 			command: cmd,
 			timelineObjId: timelineObjId,
 		}
-		this.emitDebug(cwc)
+		this.emitLog('debug', cwc)
 
 		return this._obs.send(cmd.command.requestName, cmd.command.args as any).catch((error) => {
 			this.emit('commandError', error, cwc)

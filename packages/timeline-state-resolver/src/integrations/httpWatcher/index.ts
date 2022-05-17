@@ -1,11 +1,5 @@
-import { DeviceStatus, StatusCode, Device } from './../../devices/device'
-import {
-	DeviceType,
-	TimelineContentTypeHTTP,
-	HTTPWatcherOptions,
-	DeviceOptionsHTTPWatcher,
-	Mappings,
-} from 'timeline-state-resolver-types'
+import { DeviceStatus, StatusCode, AbstractDevice } from './../../devices/device'
+import { DeviceType, TimelineContentTypeHTTP, DeviceOptionsHTTPWatcher, Mappings } from 'timeline-state-resolver-types'
 import * as request from 'request'
 
 import { TimelineState } from 'superfly-timeline'
@@ -16,7 +10,7 @@ export type DeviceOptionsHTTPWatcherInternal = DeviceOptionsHTTPWatcher
  * This is a HTTPWatcherDevice, requests a uri on a regular interval and watches
  * it's response.
  */
-export class HTTPWatcherDevice extends Device<DeviceOptionsHTTPWatcherInternal> {
+export class HTTPWatcherDevice extends AbstractDevice<DeviceOptionsHTTPWatcherInternal> {
 	private uri?: string
 	private httpMethod: TimelineContentTypeHTTP
 	private expectedHttpResponse: number | undefined
@@ -92,7 +86,7 @@ export class HTTPWatcherDevice extends Device<DeviceOptionsHTTPWatcherInternal> 
 		}
 	}
 
-	async init(_initOptions: HTTPWatcherOptions): Promise<boolean> {
+	async init(): Promise<boolean> {
 		this.startInterval()
 
 		return Promise.resolve(true)
@@ -109,10 +103,20 @@ export class HTTPWatcherDevice extends Device<DeviceOptionsHTTPWatcherInternal> 
 		// NOP
 	}
 	getStatus(): DeviceStatus {
-		const s: DeviceStatus = {
+		// override getStatus to always return active: true
+		return {
+			canConnect: this._canConnect,
+			connected: this._connected,
+			status: {
+				...this._getStatus(),
+				active: true,
+			},
+		}
+	}
+	_getStatus() {
+		const s = {
 			statusCode: this.status,
-			messages: [],
-			active: true, // since this is not using any mappings, it's considered to be always active
+			messages: [] as string[],
 		}
 		if (this.statusReason) s.messages = [this.statusReason]
 		return s
@@ -131,16 +135,16 @@ export class HTTPWatcherDevice extends Device<DeviceOptionsHTTPWatcherInternal> 
 		}
 	}
 
-	get canConnect(): boolean {
+	get _canConnect(): boolean {
 		return false
 	}
-	get connected(): boolean {
+	get _connected(): boolean {
 		return false
 	}
-	get deviceType() {
+	get _deviceType() {
 		return DeviceType.HTTPWATCHER
 	}
-	get deviceName(): string {
-		return 'HTTP-Watch ' + this.deviceId
+	get _deviceName(): string {
+		return 'HTTP-Watch ' + this._deviceId
 	}
 }

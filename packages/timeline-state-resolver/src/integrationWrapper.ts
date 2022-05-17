@@ -1,45 +1,18 @@
-import * as _ from 'underscore'
+import EventEmitter = require('events')
 import { TimelineState } from 'superfly-timeline'
 import {
-	Mappings,
-	DeviceType,
-	MediaObject,
-	DeviceOptionsBase,
-	DeviceStatus as DeviceStatus2,
-	StatusCode,
 	DeviceOptionsAny,
+	DeviceOptionsBase,
+	DeviceStatus as IntegrationStatus,
+	DeviceType,
+	Mappings,
+	MediaObject,
 } from 'timeline-state-resolver-types'
-import { EventEmitter } from 'eventemitter3'
-import { CommandReport, DoOnTime, SlowFulfilledCommandInfo, SlowSentCommandInfo } from './doOnTime'
-import { ExpectedPlayoutItem } from '../expectedPlayoutItems'
-import { FinishedTrace } from '../lib'
-
-/*
-	This is a base class for all the Device wrappers.
-	The Device wrappers will
-*/
-
-export interface DeviceCommand {
-	time: number
-	deviceId: string
-	command: any
-}
-
-export interface DeviceCommandContainer {
-	deviceId: string
-	commands: Array<DeviceCommand>
-}
-export interface CommandWithContext {
-	context: any
-	timelineObjId: string
-	command: any
-}
-
-export function literal<T>(o: T) {
-	return o
-}
-
-export { DeviceStatus2, StatusCode }
+import _ = require('underscore')
+import { CommandWithContext } from './conductor'
+import { SlowSentCommandInfo, SlowFulfilledCommandInfo, CommandReport, DoOnTime } from './devices/doOnTime'
+import { ExpectedPlayoutItem } from './expectedPlayoutItems'
+import { FinishedTrace } from './lib'
 
 export type DeviceEvents = {
 	info: [info: string]
@@ -68,6 +41,7 @@ export type DeviceEvents = {
 	commandReport: [commandReport: CommandReport]
 	timeTrace: [trace: FinishedTrace]
 }
+
 export interface DeviceProperties {
 	deviceId: string
 	deviceName: string
@@ -77,15 +51,19 @@ export interface DeviceProperties {
 	startTime: number
 	supportsExpectedPlayoutItems: boolean
 }
+
 export interface DeviceStatus {
-	status: DeviceStatus2
-	canConnect: boolean
+	status: IntegrationStatus
+	canConnect: boolean // @todo - don't understand what we use this for
 	connected: boolean
 }
 
 export type LogLevel = 'debug' | 'info' | 'warning' | 'error'
 
-export interface DeviceAPI {
+/**
+ * This is the public API that has to implemented by an integration
+ */
+export interface IntegrationAPI {
 	/**
 	 * Sets up the initial connection to
 	 * @param options Contains options such as device ip adresses
@@ -129,32 +107,28 @@ export interface DeviceAPI {
 	executeAction(actionId: string, actionPayload: Record<string, any>): Promise<{ error?: Error; result?: any }>
 
 	getStatus(): DeviceStatus
-	deviceProperties: DeviceProperties
+	getDeviceProperties(): DeviceProperties
 
 	handleExpectedPlayoutItems(expectedPlayoutItems: Array<ExpectedPlayoutItem>): void
 }
+
 /**
- * Base class for all Devices to inherit from. Defines the API that the conductor
- * class will use.
+ * Abstract base class for integrations to inherit from
  */
-export abstract class AbstractDevice<TOptions extends DeviceOptionsBase<any>>
-	extends EventEmitter<DeviceEvents>
-	implements DeviceAPI
+export abstract class AbstractIntegration<TOptions extends DeviceOptionsBase<any>>
+	extends EventEmitter
+	implements IntegrationAPI
 {
 	private _instanceId: number
 	private _startTime: number
-	private _logLevel: LogLevel = 'debug'
+	private _logLevel: LogLevel = 'info'
 	private _isActive = false
 	private _useDirectTime = false
 
 	private _currentTimeDiff: number
 	private _currentTimeLastUpdated: number
 
-	constructor(
-		protected _deviceId: string,
-		private _options: TOptions,
-		private _getCurrentTime?: () => Promise<number>
-	) {
+	constructor(private _deviceId: string, private _options: TOptions, private _getCurrentTime?: () => Promise<number>) {
 		super()
 		this._instanceId = Math.floor(Math.random() * 10000)
 		this._startTime = Date.now()
@@ -176,11 +150,7 @@ export abstract class AbstractDevice<TOptions extends DeviceOptionsBase<any>>
 		this._syncCurrentTime()
 	}
 
-	protected emitLog(logLevel: 'debug', ...args: any[]): void
-	protected emitLog(logLevel: 'info', info: string): void
-	protected emitLog(logLevel: 'warning', warning: string): void
-	protected emitLog(logLevel: 'error', context: string, err: Error): void
-	protected emitLog(logLevel: LogLevel, ...args: any[]): void {
+	protected emitLog(logLevel: LogLevel, ...args: any[]) {
 		const levelOrder: LogLevel[] = ['debug', 'info', 'warning', 'error']
 
 		for (const level of levelOrder) {
@@ -191,7 +161,7 @@ export abstract class AbstractDevice<TOptions extends DeviceOptionsBase<any>>
 			}
 		}
 	}
-	protected getOptions(): TOptions['options'] {
+	protected getOptions() {
 		return this._options.options
 	}
 	/** To be called by children first in .handleState */
@@ -244,10 +214,8 @@ export abstract class AbstractDevice<TOptions extends DeviceOptionsBase<any>>
 	protected abstract get _deviceName(): string
 	protected abstract get _canConnect(): boolean
 	protected abstract get _connected(): boolean
-	protected abstract _getStatus(): Pick<DeviceStatus2, 'statusCode' | 'messages'>
-	protected get _supportsExpectedPlayoutItems(): boolean {
-		return false
-	}
+	protected abstract get _supportsExpectedPlayoutItems(): boolean
+	protected abstract _getStatus(): Pick<IntegrationStatus, 'statusCode' | 'messages'>
 
 	abstract init(activeRundownPlaylistId?: string): Promise<boolean>
 	async terminate(): Promise<boolean> {
@@ -309,7 +277,7 @@ export abstract class AbstractDevice<TOptions extends DeviceOptionsBase<any>>
 			},
 		}
 	}
-	get deviceProperties(): DeviceProperties {
+	getDeviceProperties(): DeviceProperties {
 		return {
 			deviceId: this._deviceId,
 			deviceName: this._deviceName,
@@ -358,15 +326,10 @@ export abstract class AbstractDevice<TOptions extends DeviceOptionsBase<any>>
 	}
 }
 
-/**
- * Basic class that devices with state tracking can inherit from. Defines some
- * extra convenience methods for tracking state while inheriting all other methods
- * from the Device class.
- */
-export abstract class AbstractStateDevice<
+export abstract class AbstractStateBasedIntegration<
 	TState,
 	TOptions extends DeviceOptionsBase<any>
-> extends AbstractDevice<TOptions> {
+> extends AbstractIntegration<TOptions> {
 	private _states: { [time: string]: TState } = {}
 	private _setStateCount = 0
 

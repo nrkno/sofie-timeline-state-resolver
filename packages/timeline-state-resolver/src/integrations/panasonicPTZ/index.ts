@@ -1,5 +1,5 @@
 import * as _ from 'underscore'
-import { DeviceWithState, CommandWithContext, DeviceStatus, StatusCode } from '../../devices/device'
+import { AbstractStateDevice, CommandWithContext, StatusCode } from '../../devices/device'
 import {
 	DeviceType,
 	TimelineObjPanasonicPtzPreset,
@@ -9,7 +9,6 @@ import {
 	TimelineContentTypePanasonicPtz,
 	MappingPanasonicPtz,
 	MappingPanasonicPtzType,
-	PanasonicPTZOptions,
 	DeviceOptionsPanasonicPTZ,
 	Mappings,
 } from 'timeline-state-resolver-types'
@@ -66,10 +65,10 @@ const PROBE_INTERVAL = 10 * 1000 // Probe every 10s
  * executes commands to achieve such states. Depends on PanasonicPTZAPI class for
  * connection with the physical device.
  */
-export class PanasonicPtzDevice extends DeviceWithState<PanasonicPtzState, DeviceOptionsPanasonicPTZInternal> {
+export class PanasonicPtzDevice extends AbstractStateDevice<PanasonicPtzState, DeviceOptionsPanasonicPTZInternal> {
 	private _doOnTime: DoOnTime
 	private _device: PanasonicPtzHttpInterface | undefined
-	private _connected = false
+	protected _connected = false
 
 	private _commandReceiver: CommandReceiver
 
@@ -91,7 +90,7 @@ export class PanasonicPtzDevice extends DeviceWithState<PanasonicPtzState, Devic
 				return this.getCurrentTime()
 			},
 			SendMode.BURST,
-			this._deviceOptions
+			deviceOptions
 		)
 		this.handleDoOnTime(this._doOnTime, 'PanasonicPTZ')
 
@@ -104,13 +103,13 @@ export class PanasonicPtzDevice extends DeviceWithState<PanasonicPtzState, Devic
 			)
 			this._device.on('error', (msg) => {
 				if (msg.code === 'ECONNREFUSED') return // ignore, since we catch this in connection logic
-				this.emit('error', 'PanasonicPtzHttpInterface', msg)
+				this.emitLog('error', 'PanasonicPtzHttpInterface', msg)
 			})
 			this._device.on('disconnected', () => {
 				this._setConnected(false)
 			})
 			this._device.on('debug', (...args) => {
-				this.emitDebug('Panasonic PTZ', ...args)
+				this.emitLog('debug', 'Panasonic PTZ', ...args)
 			})
 		} else {
 			this._device = undefined
@@ -120,7 +119,7 @@ export class PanasonicPtzDevice extends DeviceWithState<PanasonicPtzState, Devic
 	/**
 	 * Initiates the device: set up ping for connection logic.
 	 */
-	async init(_initOptions: PanasonicPTZOptions): Promise<boolean> {
+	async init(): Promise<boolean> {
 		if (this._device) {
 			return new Promise((resolve, reject) => {
 				setInterval(() => {
@@ -158,7 +157,11 @@ export class PanasonicPtzDevice extends DeviceWithState<PanasonicPtzState, Devic
 
 		_.each(state.layers, (tlObject: ResolvedTimelineObjectInstance, layerName: string) => {
 			const mapping: MappingPanasonicPtz | undefined = mappings[layerName] as MappingPanasonicPtz
-			if (mapping && mapping.device === DeviceType.PANASONIC_PTZ && mapping.deviceId === this.deviceId) {
+			if (
+				mapping &&
+				mapping.device === DeviceType.PANASONIC_PTZ &&
+				mapping.deviceId === this.deviceProperties.deviceId
+			) {
 				if (mapping.mappingType === MappingPanasonicPtzType.PRESET) {
 					const tlObjectSource = tlObject as any as TimelineObjPanasonicPtzPreset
 					ptzState.preset = {
@@ -232,7 +235,7 @@ export class PanasonicPtzDevice extends DeviceWithState<PanasonicPtzState, Devic
 		}
 		return Promise.resolve(true)
 	}
-	getStatus(): DeviceStatus {
+	_getStatus() {
 		let statusCode = StatusCode.GOOD
 		const messages: Array<string> = []
 
@@ -244,7 +247,6 @@ export class PanasonicPtzDevice extends DeviceWithState<PanasonicPtzState, Devic
 		return {
 			statusCode: statusCode,
 			messages: messages,
-			active: this.isActive,
 		}
 	}
 	private _getDefaultState(): PanasonicPtzState {
@@ -276,27 +278,27 @@ export class PanasonicPtzDevice extends DeviceWithState<PanasonicPtzState, Devic
 					// recall preset
 					if (cmd.preset !== undefined) {
 						const res = await this._device.recallPreset(cmd.preset)
-						this.emitDebug(`Panasonic PTZ result: ${res}`)
+						this.emitLog('debug', `Panasonic PTZ result: ${res}`)
 					} else throw new Error(`Bad parameter: preset`)
 				} else if (cmd.type === TimelineContentTypePanasonicPtz.SPEED) {
 					// set speed
 					if (cmd.speed !== undefined) {
 						const res = await this._device.setSpeed(cmd.speed)
-						this.emitDebug(`Panasonic PTZ result: ${res}`)
+						this.emitLog('debug', `Panasonic PTZ result: ${res}`)
 					} else throw new Error(`Bad parameter: speed`)
 				} else if (cmd.type === TimelineContentTypePanasonicPtz.ZOOM_SPEED) {
 					// set zoom speed
 					if (cmd.zoomSpeed !== undefined) {
 						// scale -1 - 0 - +1 range to 01 - 50 - 99 range
 						const res = await this._device.setZoomSpeed(cmd.zoomSpeed * 49 + 50)
-						this.emitDebug(`Panasonic PTZ result: ${res}`)
+						this.emitLog('debug', `Panasonic PTZ result: ${res}`)
 					} else throw new Error(`Bad parameter: zoomSpeed`)
 				} else if (cmd.type === TimelineContentTypePanasonicPtz.ZOOM) {
 					// set zoom
 					if (cmd.zoom !== undefined) {
 						// scale 0 - +1 range to 555h - FFFh range
 						const res = await this._device.setZoom(cmd.zoom * 0xaaa + 0x555)
-						this.emitDebug(`Panasonic PTZ result: ${res}`)
+						this.emitLog('debug', `Panasonic PTZ result: ${res}`)
 					} else throw new Error(`Bad parameter: zoom`)
 				} else throw new Error(`PTZ: Unknown type: "${cmd.type}"`)
 			} else throw new Error(`PTZ device not set up`)
@@ -395,17 +397,14 @@ export class PanasonicPtzDevice extends DeviceWithState<PanasonicPtzState, Devic
 		return commands
 	}
 
-	get canConnect(): boolean {
+	get _canConnect(): boolean {
 		return true
 	}
-	get connected(): boolean {
-		return this._connected
-	}
-	get deviceType() {
+	get _deviceType() {
 		return DeviceType.PANASONIC_PTZ
 	}
-	get deviceName(): string {
-		return 'Panasonic PTZ ' + this.deviceId
+	get _deviceName(): string {
+		return 'Panasonic PTZ ' + this._deviceId
 	}
 	get queue() {
 		return this._doOnTime.getQueue()

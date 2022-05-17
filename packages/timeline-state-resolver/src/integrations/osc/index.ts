@@ -1,9 +1,8 @@
 import * as _ from 'underscore'
-import { DeviceWithState, CommandWithContext, DeviceStatus, StatusCode } from './../../devices/device'
+import { AbstractStateDevice, CommandWithContext, StatusCode } from './../../devices/device'
 import {
 	DeviceType,
 	OSCMessageCommandContent,
-	OSCOptions,
 	SomeOSCValue,
 	OSCValueType,
 	DeviceOptionsOSC,
@@ -45,7 +44,7 @@ interface OSCDeviceStateContent extends OSCMessageCommandContent {
 /**
  * This is a generic wrapper for any osc-enabled device.
  */
-export class OSCMessageDevice extends DeviceWithState<OSCDeviceState, DeviceOptionsOSCInternal> {
+export class OSCMessageDevice extends AbstractStateDevice<OSCDeviceState, DeviceOptionsOSCInternal> {
 	private _doOnTime: DoOnTime
 	private _oscClient: osc.UDPPort | osc.TCPSocketPort
 	private _oscClientStatus: 'connected' | 'disconnected' = 'disconnected'
@@ -78,11 +77,12 @@ export class OSCMessageDevice extends DeviceWithState<OSCDeviceState, DeviceOpti
 				return this.getCurrentTime()
 			},
 			SendMode.BURST,
-			this._deviceOptions
+			deviceOptions
 		)
 		this.handleDoOnTime(this._doOnTime, 'OSC')
 	}
-	async init(initOptions: OSCOptions): Promise<boolean> {
+	async init(): Promise<boolean> {
+		const initOptions = this.getOptions()
 		if (initOptions.type === OSCDeviceType.TCP) {
 			debug('Creating TCP OSC device')
 			const client = new osc.TCPSocketPort({
@@ -156,29 +156,34 @@ export class OSCMessageDevice extends DeviceWithState<OSCDeviceState, DeviceOpti
 		this._doOnTime.dispose()
 		return Promise.resolve(true)
 	}
-	getStatus(): DeviceStatus {
-		if ((this.deviceOptions.options as OSCOptions).type === OSCDeviceType.TCP) {
+	_getStatus() {
+		const options = this.getOptions()
+		if (options?.type === OSCDeviceType.TCP) {
 			return {
 				statusCode: this._oscClientStatus === 'disconnected' ? StatusCode.BAD : StatusCode.GOOD,
 				messages: this._oscClientStatus === 'disconnected' ? ['Disconnected'] : [],
-				active: this.isActive,
 			}
 		}
-		// Unknown? since this device has no status, really
+		// Good since this device has no status, really
 		return {
-			statusCode: StatusCode.UNKNOWN,
+			statusCode: StatusCode.GOOD,
 			messages: [],
-			active: this.isActive,
 		}
 	}
 	async makeReady(_okToDestroyStuff?: boolean): Promise<void> {
 		return Promise.resolve()
 	}
 
-	get canConnect(): boolean {
+	get _canConnect(): boolean {
+		if (this.getOptions()?.type === OSCDeviceType.TCP) {
+			return true
+		}
 		return false
 	}
-	get connected(): boolean {
+	get _connected(): boolean {
+		if (this.getOptions()?.type === OSCDeviceType.TCP) {
+			return this._oscClientStatus === 'connected'
+		}
 		return false
 	}
 	/**
@@ -206,11 +211,11 @@ export class OSCMessageDevice extends DeviceWithState<OSCDeviceState, DeviceOpti
 
 		return addrToOSCMessage
 	}
-	get deviceType() {
+	get _deviceType() {
 		return DeviceType.OSC
 	}
-	get deviceName(): string {
-		return 'OSC ' + this.deviceId
+	get _deviceName(): string {
+		return 'OSC ' + this._deviceId
 	}
 	get queue() {
 		return this._doOnTime.getQueue()
@@ -293,7 +298,7 @@ export class OSCMessageDevice extends DeviceWithState<OSCDeviceState, DeviceOpti
 			command: cmd,
 			timelineObjId: timelineObjId,
 		}
-		this.emitDebug(cwc)
+		this.emitLog('debug', cwc)
 		debug(cmd)
 
 		try {
@@ -338,7 +343,7 @@ export class OSCMessageDevice extends DeviceWithState<OSCDeviceState, DeviceOpti
 		}
 	}
 	private _defaultOscSender(msg: osc.OscMessage, address?: string | undefined, port?: number | undefined): void {
-		this.emitDebug('sending ' + msg.address)
+		this.emitLog('debug', 'sending ' + msg.address)
 		this._oscClient.send(msg, address, port)
 	}
 	private runAnimation() {

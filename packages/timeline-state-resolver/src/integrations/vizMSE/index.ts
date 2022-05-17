@@ -1,6 +1,6 @@
 import * as _ from 'underscore'
 import { EventEmitter } from 'events'
-import { CommandWithContext, DeviceStatus, DeviceWithState, literal, StatusCode } from './../../devices/device'
+import { CommandWithContext, AbstractStateDevice, literal, StatusCode } from './../../devices/device'
 
 import {
 	DeviceOptionsVizMSE,
@@ -64,7 +64,7 @@ type EngineStatus = Engine & { alive: boolean }
  * This class is used to interface with a vizRT Media Sequence Editor, through the v-connection library.
  * It features playing both "internal" graphics element and vizPilot elements.
  */
-export class VizMSEDevice extends DeviceWithState<VizMSEState, DeviceOptionsVizMSEInternal> {
+export class VizMSEDevice extends AbstractStateDevice<VizMSEState, DeviceOptionsVizMSEInternal> {
 	private _vizMSE?: MSE
 	private _vizmseManager?: VizMSEManager
 
@@ -88,7 +88,7 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState, DeviceOptionsVizM
 				return this.getCurrentTime()
 			},
 			SendMode.IN_ORDER,
-			this._deviceOptions
+			deviceOptions
 		)
 		this.handleDoOnTime(this._doOnTime, 'VizMSE')
 
@@ -97,12 +97,13 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState, DeviceOptionsVizM
 				return this.getCurrentTime()
 			},
 			SendMode.BURST,
-			this._deviceOptions
+			deviceOptions
 		)
 		this.handleDoOnTime(this._doOnTimeBurst, 'VizMSE.burst')
 	}
 
-	async init(initOptions: VizMSEOptions, activeRundownPlaylistId?: string): Promise<boolean> {
+	async init(activeRundownPlaylistId?: string): Promise<boolean> {
+		const initOptions = this.getOptions()
 		this._initOptions = initOptions
 		if (!this._initOptions.host) throw new Error('VizMSE bad option: host')
 		if (!this._initOptions.profile) throw new Error('VizMSE bad option: profile')
@@ -123,14 +124,14 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState, DeviceOptionsVizM
 
 		this._vizmseManager.on('connectionChanged', (connected) => this.connectionChanged(connected))
 		this._vizmseManager.on('updateMediaObject', (docId: string, doc: MediaObject | null) =>
-			this.emit('updateMediaObject', this.deviceId, docId, doc)
+			this.emit('updateMediaObject', this.deviceProperties.deviceId, docId, doc)
 		)
-		this._vizmseManager.on('clearMediaObjects', () => this.emit('clearMediaObjects', this.deviceId))
+		this._vizmseManager.on('clearMediaObjects', () => this.emit('clearMediaObjects', this.deviceProperties.deviceId))
 
-		this._vizmseManager.on('info', (str) => this.emit('info', 'VizMSE: ' + str))
-		this._vizmseManager.on('warning', (str) => this.emit('warning', 'VizMSE' + str))
-		this._vizmseManager.on('error', (e) => this.emit('error', 'VizMSE', e))
-		this._vizmseManager.on('debug', (...args) => this.emitDebug(...args))
+		this._vizmseManager.on('info', (str) => this.emitLog('info', 'VizMSE: ' + str))
+		this._vizmseManager.on('warning', (str) => this.emitLog('warning', 'VizMSE' + str))
+		this._vizmseManager.on('error', (e) => this.emitLog('error', 'VizMSE', e))
+		this._vizmseManager.on('debug', (...args) => this.emitLog('debug', ...args))
 
 		await this._vizmseManager.initializeRundown(activeRundownPlaylistId)
 
@@ -162,7 +163,7 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState, DeviceOptionsVizM
 		super.onHandleState(newState, newMappings)
 		// check if initialized:
 		if (!this._vizmseManager || !this._vizmseManager.initialized) {
-			this.emit('warning', 'VizMSE.v-connection not initialized yet')
+			this.emitLog('warning', 'VizMSE.v-connection not initialized yet')
 			return
 		}
 
@@ -171,11 +172,11 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState, DeviceOptionsVizM
 		const oldVizMSEState: VizMSEState = (this.getStateBefore(previousStateTime) || { state: { time: 0, layer: {} } })
 			.state
 
-		const convertTrace = startTrace(`device:convertState`, { deviceId: this.deviceId })
+		const convertTrace = startTrace(`device:convertState`, { deviceId: this.deviceProperties.deviceId })
 		const newVizMSEState = this.convertStateToVizMSE(newState, newMappings)
 		this.emit('timeTrace', endTrace(convertTrace))
 
-		const diffTrace = startTrace(`device:diffState`, { deviceId: this.deviceId })
+		const diffTrace = startTrace(`device:diffState`, { deviceId: this.deviceProperties.deviceId })
 		const commandsToAchieveState = this._diffStates(oldVizMSEState, newVizMSEState, newState.time)
 		this.emit('timeTrace', endTrace(diffTrace))
 
@@ -196,17 +197,17 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState, DeviceOptionsVizM
 	clearFuture(clearAfterTime: number) {
 		this._doOnTime.clearQueueAfter(clearAfterTime)
 	}
-	get canConnect(): boolean {
+	get _canConnect(): boolean {
 		return true
 	}
-	get connected(): boolean {
+	get _connected(): boolean {
 		return this._vizMSEConnected
 	}
 
-	get deviceType() {
+	get _deviceType() {
 		return DeviceType.VIZMSE
 	}
-	get deviceName(): string {
+	get _deviceName(): string {
 		return `VizMSE ${this._vizMSE ? this._vizMSE.hostname : 'Uninitialized'}`
 	}
 
@@ -218,9 +219,9 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState, DeviceOptionsVizM
 		return true
 	}
 	public handleExpectedPlayoutItems(expectedPlayoutItems: Array<ExpectedPlayoutItem>): void {
-		this.emitDebug('VIZDEBUG: handleExpectedPlayoutItems called')
+		this.emitLog('debug', 'VIZDEBUG: handleExpectedPlayoutItems called')
 		if (this._vizmseManager) {
-			this.emitDebug('VIZDEBUG: manager exists')
+			this.emitLog('debug', 'VIZDEBUG: manager exists')
 			this._vizmseManager.setExpectedPlayoutItems(expectedPlayoutItems)
 		}
 	}
@@ -231,7 +232,7 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState, DeviceOptionsVizM
 	public connectionChanged(connected?: boolean) {
 		if (connected === true || connected === false) this._vizMSEConnected = connected
 		if (connected === false) {
-			this.emit('clearMediaObjects', this.deviceId)
+			this.emit('clearMediaObjects', this.deviceProperties.deviceId)
 		}
 		this.emit('connectionChanged', this.getStatus())
 	}
@@ -254,7 +255,7 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState, DeviceOptionsVizM
 				foundMapping = mappings[layerExt.lookaheadForLayer]
 				isLookahead = true
 			}
-			if (foundMapping && foundMapping.device === DeviceType.VIZMSE && foundMapping.deviceId === this.deviceId) {
+			if (foundMapping && foundMapping.device === DeviceType.VIZMSE && foundMapping.deviceId === this._deviceId) {
 				if (layer.content) {
 					const l = layer as any as TimelineObjVIZMSEAny
 
@@ -389,7 +390,7 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState, DeviceOptionsVizM
 			}
 		}
 	}
-	getStatus(): DeviceStatus {
+	_getStatus() {
 		let statusCode = StatusCode.GOOD
 		const messages: Array<string> = []
 
@@ -414,7 +415,6 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState, DeviceOptionsVizM
 		return {
 			statusCode: statusCode,
 			messages: messages,
-			active: this.isActive,
 		}
 	}
 	/**
@@ -649,7 +649,7 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState, DeviceOptionsVizM
 
 			const templateName = this._initOptions && this._initOptions.clearAllTemplateName
 			if (!templateName) {
-				this.emit('warning', `vizMSE: initOptions.clearAllTemplateName is not set!`)
+				this.emitLog('warning', `vizMSE: initOptions.clearAllTemplateName is not set!`)
 			} else {
 				// Start playing special element:
 				clearingCommands.push(
@@ -722,7 +722,7 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState, DeviceOptionsVizM
 		}
 
 		if (concatCommands.length) {
-			this.emitDebug(`VIZMSE: COMMANDS: ${JSON.stringify(sortCommands(concatCommands))}`)
+			this.emitLog('debug', `VIZMSE: COMMANDS: ${JSON.stringify(sortCommands(concatCommands))}`)
 		}
 
 		return sortCommands(concatCommands)
@@ -776,7 +776,7 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState, DeviceOptionsVizM
 			timelineObjId: timelineObjId,
 			command: cmd,
 		}
-		this.emitDebug(cwc)
+		this.emitLog('debug', cwc)
 
 		try {
 			if (this._vizmseManager) {
