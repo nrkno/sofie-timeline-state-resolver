@@ -364,7 +364,7 @@ describe('Rundown', () => {
 			noClear: false,
 			clip: 'opener_short',
 			loop: false,
-			seek: 1, // start at 10000 - 50 ms passed => seek 2
+			seek: 0, // One might think that since this started 50ms ago we should seek to 1, however this is less than MIN_TIME_SINCE_PLAY in casparcg-state, so no seeking occurs
 		})
 		expect(getMockCall(commandReceiver0, commandReceiver0Calls - 6, 1).name).toEqual('PlayCommand')
 		expect(getMockCall(commandReceiver0, commandReceiver0Calls - 6, 1)._objectParams).toMatchObject({
