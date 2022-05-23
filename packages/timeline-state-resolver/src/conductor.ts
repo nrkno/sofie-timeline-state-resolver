@@ -5,6 +5,7 @@ import {
 	ResolvedStates,
 	TimelineObject,
 	Resolver,
+	TimelineObjectInstance,
 } from 'superfly-timeline'
 
 import { CommandWithContext, DeviceEvents } from './devices/device'
@@ -1108,20 +1109,30 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 		])
 
 		const filledState: typeof state = JSON.parse(JSON.stringify(state))
-		const fillState = (content: Record<string, any>) => {
+		const fillState = (content: Record<string, any>, instance: TimelineObjectInstance) => {
 			Object.entries(content).forEach(([index, val]) => {
 				if (typeof val === 'object') {
 					if ('_datastoreKey' in val) {
-						content[index] = this._datastore[val._datastoreKey] ?? val.default
+						const datastoreVal = this._datastore[val._datastoreKey]
+
+						if (!datastoreVal) {
+							content[index] = val.default
+						} else if (instance.originalStart && instance.originalStart > datastoreVal.modified) {
+							content[index] = val.default
+						} else if (!instance.originalStart && instance.start > datastoreVal.modified) {
+							content[index] = val.default
+						} else {
+							content[index] = datastoreVal.value
+						}
 					} else {
 						// todo - can we do a tighter check
-						fillState(val)
+						fillState(val, instance)
 					}
 				}
 			})
 		}
 		Object.values(filledState.layers).forEach((layer) => {
-			fillState(layer.content)
+			fillState(layer.content, layer.instance)
 		})
 
 		return this.getDevice(deviceId)?.device.handleState(filledState, mappings)
@@ -1133,7 +1144,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 
 				const changed: string[] = []
 				for (const key of allKeys) {
-					if (this._datastore[key] !== newStore[key]) {
+					if (this._datastore[key]?.value !== newStore[key]?.value) {
 						// it changed! let's sift through our dependencies to see if we need to do anything
 						Object.entries(this._deviceStates).forEach(([deviceId, states]) => {
 							if (states.find((state) => state.dependencies.find((deps) => deps === key))) {
@@ -1153,20 +1164,30 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 
 					for (const s of toBeFilled) {
 						const filledState: typeof s.state = JSON.parse(JSON.stringify(s.state))
-						const fillState = (content: Record<string, any>) => {
+						const fillState = (content: Record<string, any>, instance: TimelineObjectInstance) => {
 							Object.entries(content).forEach(([index, val]) => {
 								if (typeof val === 'object') {
 									if ('_datastoreKey' in val) {
-										content[index] = this._datastore[val._datastoreKey] ?? val.default
+										const datastoreVal = this._datastore[val._datastoreKey]
+
+										if (!datastoreVal) {
+											content[index] = val.default
+										} else if (instance.originalStart && instance.originalStart > datastoreVal.modified) {
+											content[index] = val.default
+										} else if (!instance.originalStart && instance.start > datastoreVal.modified) {
+											content[index] = val.default
+										} else {
+											content[index] = datastoreVal.value
+										}
 									} else {
 										// todo - can we do a tighter check
-										fillState(val)
+										fillState(val, instance)
 									}
 								}
 							})
 						}
 						Object.values(filledState.layers).forEach((layer) => {
-							fillState(layer.content)
+							fillState(layer.content, layer.instance)
 						})
 
 						this.getDevice(deviceId)
