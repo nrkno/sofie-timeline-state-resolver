@@ -1,5 +1,5 @@
 import * as _ from 'underscore'
-import * as underScoreDeepExtend from 'underscore-deep-extend'
+import underScoreDeepExtend from 'underscore-deep-extend'
 import { DeviceWithState, CommandWithContext, DeviceStatus, StatusCode } from './device'
 import {
 	DeviceType,

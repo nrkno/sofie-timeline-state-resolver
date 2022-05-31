@@ -1,5 +1,5 @@
 import * as _ from 'underscore'
-import * as deepMerge from 'deepmerge'
+import deepMerge from 'deepmerge'
 import { DeviceWithState, CommandWithContext, DeviceStatus, StatusCode, literal } from './device'
 import { CasparCG, Command as CommandNS, AMCPUtil, AMCP, CasparCGSocketStatusEvent } from 'casparcg-connection'
 import {

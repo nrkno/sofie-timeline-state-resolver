@@ -40,7 +40,7 @@ import { OBSDevice, DeviceOptionsOBSInternal } from './devices/obs'
 
 import { VizMSEDevice, DeviceOptionsVizMSEInternal } from './devices/vizMSE'
 import PQueue from 'p-queue'
-import * as PAll from 'p-all'
+import PAll from 'p-all'
 import PTimeout from 'p-timeout'
 import { ShotokuDevice, DeviceOptionsShotokuInternal } from './devices/shotoku'
 import { endTrace, FinishedTrace, startTrace } from './lib'

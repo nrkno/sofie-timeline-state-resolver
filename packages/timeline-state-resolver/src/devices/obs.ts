@@ -1,10 +1,10 @@
 import * as _ from 'underscore'
-import * as underScoreDeepExtend from 'underscore-deep-extend'
+// import underScoreDeepExtend from 'underscore-deep-extend'
 import { DeviceWithState, CommandWithContext, DeviceStatus, StatusCode } from './device'
 import { DoOnTime, SendMode } from '../doOnTime'
 
 import { TimelineState } from 'superfly-timeline'
-import * as OBSWebSocket from 'obs-websocket-js'
+import OBSWebSocket, { OBSRequestTypes } from 'obs-websocket-js'
 import {
 	DeviceType,
 	DeviceOptionsOBS,
@@ -12,7 +12,6 @@ import {
 	Mappings,
 	MappingOBS,
 	TimelineContentTypeOBS,
-	OBSRequest as OBSRequestName,
 	TimelineObjOBSCurrentScene,
 	MappingOBSType,
 	TimelineObjOBSCurrentTransition,
@@ -25,18 +24,20 @@ import {
 	TimelineObjOBSSourceSettings,
 	MappingOBSSourceSettings,
 	ResolvedTimelineObjectInstanceExtended,
+	MappingOBSInput,
+	TimelineObjOBSInput,
 } from 'timeline-state-resolver-types'
 
-interface OBSRequest {
-	requestName: OBSRequestName
-	args: object
+interface OBSRequest<T extends keyof OBSRequestTypes> {
+	requestName: T
+	args: OBSRequestTypes[T]
 }
 
-_.mixin({ deepExtend: underScoreDeepExtend(_) })
-function deepExtend<T>(destination: T, ...sources: any[]) {
-	// @ts-ignore (mixin)
-	return _.deepExtend(destination, ...sources)
-}
+// _.mixin({ deepExtend: underScoreDeepExtend(_) })
+// function deepExtend<T>(destination: T, ...sources: any[]) {
+// 	// @ts-ignore (mixin)
+// 	return _.deepExtend(destination, ...sources)
+// }
 export interface DeviceOptionsOBSInternal extends DeviceOptionsOBS {
 	commandReceiver?: CommandReceiver
 }
@@ -49,9 +50,9 @@ export type CommandReceiver = (
 
 type CommandContext = any
 export interface OBSCommandWithContext {
-	command: OBSRequest
+	command: OBSRequest<any>
 	context: CommandContext
-	timelineId: string
+	// timelineId: string
 }
 
 const RETRY_TIMEOUT = 5000 // ms
@@ -96,14 +97,15 @@ export class OBSDevice extends DeviceWithState<OBSState, DeviceOptionsOBSInterna
 	async init(options: OBSOptions): Promise<boolean> {
 		this._options = options
 		this._obs = new OBSWebSocket()
-		this._obs.on('AuthenticationFailure', () => {
-			this._setConnected(true, false)
-		})
-		this._obs.on('AuthenticationSuccess', () => {
-			this._initialized = true
-			this._setConnected(true, true)
-			this.emit('resetResolver')
-		})
+		// TODO - clean this up better
+		// this._obs.on('AuthenticationFailure', () => {
+		// 	this._setConnected(true, false)
+		// })
+		// this._obs.on('AuthenticationSuccess', () => {
+		// 	this._initialized = true
+		// 	this._setConnected(true, true)
+		// 	this.emit('resetResolver')
+		// })
 		this._obs.on('ConnectionClosed', () => {
 			this._setConnected(false)
 			this._triggerRetryConnection()
@@ -120,16 +122,35 @@ export class OBSDevice extends DeviceWithState<OBSState, DeviceOptionsOBSInterna
 
 	private async _connect() {
 		return this._obs
-			.connect({
-				address: `${this._options.host}:${this._options.port}`,
-				password: this._options.password,
-			})
-			.then(() => {
+			.connect(`${this._options.host}:${this._options.port}`, this._options.password)
+			.then(async () => {
+				// Clear current state of obs
+				const scenes = await this._obs.call('GetSceneList')
+				console.trace('obs looks connected', scenes)
+				for (const scene of scenes.scenes) {
+					if (
+						scene &&
+						typeof scene === 'object' &&
+						'sceneName' in scene &&
+						typeof scene.sceneName === 'string' &&
+						scenes.currentPreviewSceneName !== scene.sceneName &&
+						scenes.currentProgramSceneName !== scene.sceneName
+					)
+						await this._obs.call('RemoveScene', { sceneName: scene.sceneName }).catch(() => null)
+				}
+
+				const inputKinds = await this._obs.call('GetInputKindList')
+				console.trace('input kinds', inputKinds)
+
 				// connected
 				const time = this.getCurrentTime()
 				const state = this._getDefaultState()
 				this.setState(state, time)
-				this._setConnected(true, this._authenticated)
+				this._setConnected(true, true)
+
+				this._initialized = true
+				this.emit('resetResolver')
+
 				return true
 			})
 			.catch((err) => {
@@ -232,6 +253,7 @@ export class OBSDevice extends DeviceWithState<OBSState, DeviceOptionsOBSInterna
 	}
 
 	clearFuture(clearAfterTime: number) {
+		console.log('clear time', clearAfterTime)
 		// Clear any scheduled commands after this time
 		this._doOnTime.clearQueueAfter(clearAfterTime)
 	}
@@ -366,18 +388,18 @@ export class OBSDevice extends DeviceWithState<OBSState, DeviceOptionsOBSInterna
 								break
 							}
 
-							const obsTlSceneItemRender = tlObject as any as TimelineObjOBSSceneItemRender
-							const source = (mapping as MappingOBSSceneItemRender).source
-							const sceneName = (mapping as MappingOBSSceneItemRender).sceneName
-							deepExtend(deviceState.scenes, {
-								[sceneName]: {
-									sceneItems: {
-										[source]: {
-											render: obsTlSceneItemRender.content.on,
-										},
-									},
-								},
-							})
+							// const obsTlSceneItemRender = tlObject as any as TimelineObjOBSSceneItemRender
+							// const source = (mapping as MappingOBSSceneItemRender).source
+							// const sceneName = (mapping as MappingOBSSceneItemRender).sceneName
+							// deepExtend(deviceState.scenes, {
+							// 	[sceneName]: {
+							// 		sceneItems: {
+							// 			[source]: {
+							// 				render: obsTlSceneItemRender.content.on,
+							// 			},
+							// 		},
+							// 	},
+							// })
 						}
 						break
 					case MappingOBSType.SourceSettings:
@@ -387,15 +409,51 @@ export class OBSDevice extends DeviceWithState<OBSState, DeviceOptionsOBSInterna
 								break
 							}
 
-							const obsTlSourceSettings = tlObject as any as TimelineObjOBSSourceSettings
-							const source = (mapping as MappingOBSSourceSettings).source
+							// const obsTlSourceSettings = tlObject as any as TimelineObjOBSSourceSettings
+							// const source = (mapping as MappingOBSSourceSettings).source
 
-							deepExtend(deviceState.sources, {
-								[source]: {
-									sourceType: obsTlSourceSettings.content.sourceType,
-									sourceSettings: obsTlSourceSettings.content.sourceSettings,
-								},
-							})
+							// deepExtend(deviceState.sources, {
+							// 	[source]: {
+							// 		sourceType: obsTlSourceSettings.content.sourceType,
+							// 		sourceSettings: obsTlSourceSettings.content.sourceSettings,
+							// 	},
+							// })
+						}
+						break
+					case MappingOBSType.Input:
+						if (tlObject.content.type === TimelineContentTypeOBS.INPUT) {
+							if ((tlObject as ResolvedTimelineObjectInstanceExtended).isLookahead) {
+								// TODO is this wanted?
+								break
+							}
+
+							const sceneName = (mapping as MappingOBSInput).sceneName
+							const obsTlInput = tlObject as any as TimelineObjOBSInput
+
+							let scene = deviceState.scenes[sceneName]
+							if (!scene) {
+								deviceState.scenes[sceneName] = scene = { sceneItems: {} }
+							}
+
+							scene.sceneItems[obsTlInput.content.name] = {
+								...deviceState.scenes[sceneName]?.sceneItems[obsTlInput.content.name],
+								kind: obsTlInput.content.kind,
+								settings: obsTlInput.content.settings,
+								enabled: obsTlInput.content.on,
+							}
+
+							// deepExtend(deviceState.scenes, {
+							// 	[sceneName]: {
+							// 		sceneItems: {
+							// 			[obsTlInput.content.name]: {
+							// 				kind: obsTlInput.content.kind,
+							// 				settings: obsTlInput.content.settings,
+							// 				enabled: obsTlInput.content.on,
+							// 			},
+							// 		},
+							// 	},
+							// })
+							// TODO
 						}
 						break
 				}
@@ -423,7 +481,7 @@ export class OBSDevice extends DeviceWithState<OBSState, DeviceOptionsOBSInterna
 				time,
 				undefined,
 				async (cmd: OBSCommandWithContext) => {
-					return this._commandReceiver(time, cmd, cmd.context, cmd.timelineId)
+					return this._commandReceiver(time, cmd, cmd.context, '')
 				},
 				cmd
 			)
@@ -439,13 +497,12 @@ export class OBSDevice extends DeviceWithState<OBSState, DeviceOptionsOBSInterna
 			if (oldCurrentScene !== newCurrentScene) {
 				commands.push({
 					command: {
-						requestName: OBSRequestName.SET_CURRENT_SCENE,
+						requestName: 'SetCurrentScene',
 						args: {
 							'scene-name': newCurrentScene,
 						},
 					},
 					context: `currentScene changed from "${oldCurrentScene}" to "${newCurrentScene}"`,
-					timelineId: '',
 				})
 			}
 		}
@@ -456,13 +513,12 @@ export class OBSDevice extends DeviceWithState<OBSState, DeviceOptionsOBSInterna
 			if (oldPreviewScene !== newPreviewScene) {
 				commands.push({
 					command: {
-						requestName: OBSRequestName.SET_PREVIEW_SCENE,
+						requestName: 'SetPreviewScene',
 						args: {
 							'scene-name': newPreviewScene,
 						},
 					},
 					context: `previewScene changed from "${oldPreviewScene}" to "${newPreviewScene}"`,
-					timelineId: '',
 				})
 			}
 		}
@@ -479,13 +535,12 @@ export class OBSDevice extends DeviceWithState<OBSState, DeviceOptionsOBSInterna
 			if (oldCurrentTransition !== newCurrentTransition) {
 				commands.push({
 					command: {
-						requestName: OBSRequestName.SET_CURRENT_TRANSITION,
+						requestName: 'SetCurrentTransition',
 						args: {
 							'transition-name': newCurrentTransition,
 						},
 					},
 					context: 'currentTransition changed',
-					timelineId: '',
 				})
 			}
 		}
@@ -502,11 +557,10 @@ export class OBSDevice extends DeviceWithState<OBSState, DeviceOptionsOBSInterna
 			if (oldRecording !== newRecording) {
 				commands.push({
 					command: {
-						requestName: newRecording ? OBSRequestName.START_RECORDING : OBSRequestName.STOP_RECORDING,
+						requestName: newRecording ? 'StartRecord' : 'StopRecord',
 						args: {},
 					},
 					context: 'recording changed',
-					timelineId: '',
 				})
 			}
 		}
@@ -517,11 +571,10 @@ export class OBSDevice extends DeviceWithState<OBSState, DeviceOptionsOBSInterna
 			if (oldStreaming !== newStreaming) {
 				commands.push({
 					command: {
-						requestName: newStreaming ? OBSRequestName.START_STREAMING : OBSRequestName.STOP_STREAMING,
+						requestName: newStreaming ? 'StartStream' : 'StopStream',
 						args: {},
 					},
 					context: 'streaming changed',
-					timelineId: '',
 				})
 			}
 		}
@@ -538,14 +591,13 @@ export class OBSDevice extends DeviceWithState<OBSState, DeviceOptionsOBSInterna
 			if (newMuted[source] !== oldMuted[source]) {
 				commands.push({
 					command: {
-						requestName: OBSRequestName.SET_MUTE,
+						requestName: 'SeTMute',
 						args: {
 							source: source,
 							mute: newMuted[source],
 						},
 					},
 					context: `mute ${source} changed`,
-					timelineId: '',
 				})
 			}
 		})
@@ -553,33 +605,104 @@ export class OBSDevice extends DeviceWithState<OBSState, DeviceOptionsOBSInterna
 		return commands
 	}
 
+	makeCommand<T extends keyof OBSRequestTypes>(
+		requestName: T,
+		args: OBSRequestTypes[T],
+		context: string
+	): OBSCommandWithContext {
+		return {
+			command: {
+				requestName,
+				args,
+			},
+			context,
+		}
+	}
+
 	private _resolveScenes(oldState: OBSState, newState: OBSState): Array<OBSCommandWithContext> {
 		const commands: Array<OBSCommandWithContext> = []
 
-		const oldScenes = oldState.scenes
-		const newScenes = newState.scenes
-		Object.entries(newScenes).forEach(([sceneName, scene]) => {
-			Object.entries(scene.sceneItems).forEach(([source, newSceneItemProperties]) => {
-				const oldSceneItemProperties = oldScenes[sceneName]?.sceneItems[source]
-				if (
-					(oldSceneItemProperties as any) === undefined ||
-					newSceneItemProperties.render !== oldSceneItemProperties.render
-				) {
-					commands.push({
-						command: {
-							requestName: OBSRequestName.SET_SCENE_ITEM_RENDEER,
-							args: {
-								'scene-name': sceneName,
-								source: source,
-								render: newSceneItemProperties.render,
-							},
-						},
-						context: `scene ${sceneName} item ${source} changed render`,
-						timelineId: '',
-					})
+		for (const [sceneName, info] of Object.entries(newState.scenes)) {
+			if (info) {
+				const oldInfo = oldState.scenes[sceneName]
+
+				const newItems = info.sceneItems
+				const oldItems = oldInfo?.sceneItems
+
+				for (const [itemName, itemInfo] of Object.entries(newItems)) {
+					if (itemInfo) {
+						if (!oldItems || oldItems[itemName]) {
+							commands.push(
+								this.makeCommand(
+									'CreateInput',
+									{
+										sceneName,
+										inputName: itemName,
+										inputKind: itemInfo.kind,
+										inputSettings: itemInfo.settings,
+										sceneItemEnabled: itemInfo.enabled,
+									},
+									`scene ${sceneName} item ${itemName} added`
+								)
+							)
+						} else {
+							// TODO - update if needed
+						}
+					}
 				}
-			})
-		})
+
+				for (const itemName of Object.keys(oldItems || {})) {
+					if (itemName && !newItems[itemName]) {
+						// {
+						// 	command: {
+						// 		requestName: OBSRequestName.SET_SCENE_ITEM_RENDEER,
+						// 		args: {
+						// 			'scene-name': sceneName,
+						// 			source: source,
+						// 			render: newSceneItemProperties.render,
+						// 		},
+						// 	},
+						// 	context:
+						commands.push(
+							this.makeCommand(
+								'RemoveInput',
+								{
+									inputName: itemName,
+								},
+								`scene ${sceneName} item ${itemName} removed`
+							)
+						)
+					}
+				}
+			}
+		}
+
+		// TODO - cleanup old scenes (safely)
+
+		// const oldScenes = oldState.scenes
+		// const newScenes = newState.scenes
+		// Object.entries(newScenes).forEach(([sceneName, scene]) => {
+		// 	Object.entries(scene.sceneItems).forEach(([source, newSceneItemProperties]) => {
+		// 		const oldSceneItemProperties = oldScenes[sceneName]?.sceneItems[source]
+		// 		if (
+		// 			(oldSceneItemProperties as any) === undefined ||
+		// 			newSceneItemProperties.render !== oldSceneItemProperties.render
+		// 		) {
+		// 			commands.push({
+		// 				command: {
+		// 					requestName: OBSRequestName.SET_SCENE_ITEM_RENDEER,
+		// 					args: {
+		// 						'scene-name': sceneName,
+		// 						source: source,
+		// 						render: newSceneItemProperties.render,
+		// 					},
+		// 				},
+		// 				context: `scene ${sceneName} item ${source} changed render`,
+		//
+		// 			})
+		// 		}
+		// 	})
+		// })
 
 		return commands
 	}
@@ -590,17 +713,16 @@ export class OBSDevice extends DeviceWithState<OBSState, DeviceOptionsOBSInterna
 		const oldSources = oldState.sources
 		const newSources = newState.sources
 		Object.entries(newSources).forEach(([sourceName, source]) => {
-			if (!_.isEqual(source.sourceSettings, oldSources[sourceName]?.sourceSettings)) {
+			if (source && !_.isEqual(source.sourceSettings, oldSources[sourceName]?.sourceSettings)) {
 				commands.push({
 					command: {
-						requestName: OBSRequestName.SET_SOURCE_SETTINGS,
+						requestName: 'SetSourceSettings',
 						args: {
 							sourceName: sourceName,
 							sourceSettings: source.sourceSettings,
 						},
 					},
 					context: `source ${sourceName} changed settings`,
-					timelineId: '',
 				})
 			}
 		})
@@ -634,19 +756,27 @@ export class OBSDevice extends DeviceWithState<OBSState, DeviceOptionsOBSInterna
 		}
 		this.emitDebug(cwc)
 
-		return this._obs.send(cmd.command.requestName, cmd.command.args as any).catch((error) => {
-			this.emit('commandError', error, cwc)
-		})
+		return this._obs
+			.call(cmd.command.requestName, cmd.command.args)
+			.then((e) => {
+				console.trace(e)
+			})
+			.catch((error) => {
+				console.trace(error)
+				this.emit('commandError', error, cwc)
+			})
 	}
 }
 
 interface OBSSceneItem {
-	render: boolean
+	kind: string
+	settings: any
+	enabled: boolean
 }
 
 interface OBSScene {
 	sceneItems: {
-		[key: string]: OBSSceneItem
+		[key: string]: OBSSceneItem | undefined
 	}
 }
 
@@ -657,15 +787,17 @@ export class OBSState {
 	recording: boolean | undefined
 	streaming: boolean | undefined
 	muted: {
-		[key: string]: boolean
+		[key: string]: boolean | undefined
 	}
 	scenes: {
-		[key: string]: OBSScene
+		[key: string]: OBSScene | undefined
 	}
 	sources: {
-		[key: string]: {
-			sourceType: string
-			sourceSettings: object
-		}
+		[key: string]:
+			| {
+					sourceType: string
+					sourceSettings: object
+			  }
+			| undefined
 	}
 }

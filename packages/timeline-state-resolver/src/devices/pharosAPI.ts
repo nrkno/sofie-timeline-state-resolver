@@ -1,4 +1,4 @@
-import * as WebSocket from 'ws'
+import WebSocket from 'ws'
 import { EventEmitter } from 'events'
 import * as request from 'request'
 import * as _ from 'underscore'

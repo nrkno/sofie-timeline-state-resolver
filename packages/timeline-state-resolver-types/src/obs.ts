@@ -9,6 +9,7 @@ export type MappingOBSAny =
 	| MappingOBSSceneItemRender
 	| MappingOBSMute
 	| MappingOBSSourceSettings
+	| MappingOBSInput
 
 export interface MappingOBS extends Mapping {
 	device: DeviceType.OBS
@@ -42,6 +43,15 @@ export interface MappingOBSSceneItemRender extends MappingOBS {
 	source: string
 }
 
+export interface MappingOBSInput extends MappingOBS {
+	mappingType: MappingOBSType.Input
+
+	/** Name of the scene item to be modified */
+	sceneName: string
+
+	index: number // TODO
+}
+
 export interface MappingOBSSourceSettings extends MappingOBS {
 	mappingType: MappingOBSType.SourceSettings
 
@@ -64,25 +74,13 @@ export enum MappingOBSType {
 	SceneItemRender = 4,
 	Mute = 5,
 	SourceSettings = 6,
+	Input = 7,
 }
 
 export interface OBSOptions {
 	host: string
 	port: number
 	password?: string
-}
-
-export enum OBSRequest {
-	SET_CURRENT_SCENE = 'SetCurrentScene',
-	SET_PREVIEW_SCENE = 'SetPreviewScene',
-	SET_CURRENT_TRANSITION = 'SetCurrentTransition',
-	START_RECORDING = 'StartRecording',
-	STOP_RECORDING = 'StopRecording',
-	START_STREAMING = 'StartStreaming',
-	STOP_STREAMING = 'StopStreaming',
-	SET_SCENE_ITEM_RENDEER = 'SetSceneItemRender',
-	SET_MUTE = 'SetMute',
-	SET_SOURCE_SETTINGS = 'SetSourceSettings',
 }
 
 export type TimelineObjOBSAny =
@@ -93,6 +91,7 @@ export type TimelineObjOBSAny =
 	| TimelineObjOBSSceneItemRender
 	| TimelineObjOBSMute
 	| TimelineObjOBSSourceSettings
+	| TimelineObjOBSInput
 
 export enum TimelineContentTypeOBS {
 	CURRENT_SCENE = 'CURRENT_SCENE',
@@ -102,6 +101,7 @@ export enum TimelineContentTypeOBS {
 	SCENE_ITEM_RENDER = 'SCENE_ITEM_RENDER',
 	MUTE = 'MUTE',
 	SOURCE_SETTINGS = 'SOURCE_SETTINGS',
+	INPUT = 'input',
 }
 export interface TimelineObjOBSBase extends TSRTimelineObjBase {
 	content: {
@@ -154,6 +154,21 @@ export interface TimelineObjOBSSceneItemRender extends TimelineObjOBSBase {
 	content: {
 		deviceType: DeviceType.OBS
 		type: TimelineContentTypeOBS.SCENE_ITEM_RENDER
+
+		/** Should the scene item be enabled */
+		on: boolean
+	}
+}
+
+export interface TimelineObjOBSInput extends TimelineObjOBSBase {
+	content: {
+		deviceType: DeviceType.OBS
+		type: TimelineContentTypeOBS.INPUT
+
+		name: string // TODO - this should be owned by tsr to avoid collisions?
+		kind: string
+
+		settings: any
 
 		/** Should the scene item be enabled */
 		on: boolean

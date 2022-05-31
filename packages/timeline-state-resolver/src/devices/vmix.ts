@@ -1,6 +1,6 @@
 import * as _ from 'underscore'
 import * as path from 'path'
-import * as deepMerge from 'deepmerge'
+import deepMerge from 'deepmerge'
 import { DeviceWithState, CommandWithContext, DeviceStatus, StatusCode } from './device'
 import { DoOnTime, SendMode } from '../doOnTime'
 

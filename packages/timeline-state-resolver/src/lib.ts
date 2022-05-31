@@ -49,8 +49,8 @@ const SymbolProto = typeof Symbol !== 'undefined' ? Symbol.prototype : null
 // Internal recursive comparison function for `getDiff`.
 function deepDiff(a: any, b: any, aStack: any, bStack: any): string | null {
 	// Unwrap any wrapped objects.
-	if (a instanceof _) a = (a as any)._wrapped
-	if (b instanceof _) b = (b as any)._wrapped
+	if (a instanceof (_ as any)) a = (a as any)._wrapped
+	if (b instanceof (_ as any)) b = (b as any)._wrapped
 	// Compare `[[Class]]` names.
 	const aClassName = ObjProto.toString.call(a)
 	const bClassName = ObjProto.toString.call(b)
