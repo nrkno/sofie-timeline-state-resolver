@@ -8240,10 +8240,10 @@ through@2, "through@>=2.2.7 <3", through@^2.3.4, through@^2.3.6, through@^2.3.8:
   resolved "https://registry.yarnpkg.com/through/-/through-2.3.8.tgz#0dd4c9ffaabc357960b1b724115d7e0e86a2e1f5"
   integrity sha1-DdTJ/6q8NXlgsbckEV1+Doai4fU=
 
-"timeline-state-resolver-types@npm:@tv2media/timeline-state-resolver-types@2.0.0":
-  version "2.0.0"
-  resolved "https://registry.yarnpkg.com/@tv2media/timeline-state-resolver-types/-/timeline-state-resolver-types-2.0.0.tgz#0af6ed0c1d69bd6c27b77c175f4fedf204ef8505"
-  integrity sha512-hfNrbMp9fPV5ItBM1MqDNLOxlzRJGEMb2HyY9Blr1+5ql7ap+eeb8XkH2asIJAljIyHjJ1MwKjjqLgfEYY6h0w==
+"timeline-state-resolver-types@npm:@tv2media/timeline-state-resolver-types@2.0.1":
+  version "2.0.1"
+  resolved "https://registry.yarnpkg.com/@tv2media/timeline-state-resolver-types/-/timeline-state-resolver-types-2.0.1.tgz#81c75022d73bce40f26f4c903c607476be3ed4b4"
+  integrity sha512-XjrXAjj8RFAJWWOIsN4riRXUbNAmS/EMRMwW+CsFxy1etjxLcmd5denxJTzQjK2WvVizW8tSpR2JepoM74S5vA==
   dependencies:
     tslib "^2.3.1"
 
