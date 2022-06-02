@@ -203,7 +203,7 @@ describe('Sisyfos', () => {
 		expect(getMockCall(commandReceiver0, 0, 1)).toMatchObject({
 			type: 'togglePgm',
 			channel: 0,
-			value: 1,
+			values: [1],
 		})
 
 		await mockTime.advanceTimeTicks(1000) // 1 seconds into the future
@@ -221,7 +221,7 @@ describe('Sisyfos', () => {
 		expect(getMockCall(commandReceiver0, 3, 1)).toMatchObject({
 			type: 'togglePgm',
 			channel: 1,
-			value: 1,
+			values: [1],
 		})
 
 		await mockTime.advanceTimeTicks(3000) // 6 seconds into the future
@@ -236,7 +236,7 @@ describe('Sisyfos', () => {
 		expect(getMockCall(commandReceiver0, 5, 1)).toMatchObject({
 			type: 'togglePgm',
 			channel: 0,
-			value: 0,
+			values: [0],
 		})
 		// set new label
 		expect(getMockCall(commandReceiver0, 6, 1)).toMatchObject({
@@ -420,7 +420,7 @@ describe('Sisyfos', () => {
 		expect(getMockCall(commandReceiver0, 0, 1)).toMatchObject({
 			type: 'togglePgm',
 			channel: 0,
-			value: 1,
+			values: [1],
 		})
 
 		await mockTime.advanceTimeTicks(1000) // 1 seconds into the future
@@ -438,7 +438,7 @@ describe('Sisyfos', () => {
 		expect(getMockCall(commandReceiver0, 3, 1)).toMatchObject({
 			type: 'togglePgm',
 			channel: 1,
-			value: 1,
+			values: [1],
 		})
 
 		await mockTime.advanceTimeTicks(3000) // 6 seconds into the future
@@ -453,7 +453,7 @@ describe('Sisyfos', () => {
 		expect(getMockCall(commandReceiver0, 5, 1)).toMatchObject({
 			type: 'togglePgm',
 			channel: 0,
-			value: 0,
+			values: [0],
 		})
 		// set new label
 		expect(getMockCall(commandReceiver0, 6, 1)).toMatchObject({
@@ -599,7 +599,7 @@ describe('Sisyfos', () => {
 		expect(getMockCall(commandReceiver0, 3, 1)).toMatchObject({
 			type: 'togglePgm',
 			channel: 1,
-			value: 0,
+			values: [0],
 		})
 	})
 
@@ -760,7 +760,7 @@ describe('Sisyfos', () => {
 		expect(getMockCall(commandReceiver0, 0, 1)).toMatchObject({
 			type: 'togglePgm',
 			channel: 1,
-			value: 1,
+			values: [1],
 		})
 		commandReceiver0.mockClear()
 
@@ -770,7 +770,7 @@ describe('Sisyfos', () => {
 		expect(getMockCall(commandReceiver0, 0, 1)).toMatchObject({
 			type: 'togglePgm',
 			channel: 2,
-			value: 1,
+			values: [1],
 		})
 		commandReceiver0.mockClear()
 
@@ -800,7 +800,7 @@ describe('Sisyfos', () => {
 		expect(getMockCall(commandReceiver0, 1, 1)).toMatchObject({
 			type: 'togglePgm',
 			channel: 2,
-			value: 0,
+			values: [0],
 		})
 		expect(getMockCall(commandReceiver0, 2, 1)).toMatchObject({
 			type: 'setFader',

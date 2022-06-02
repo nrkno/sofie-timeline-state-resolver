@@ -1,5 +1,6 @@
 import * as osc from 'osc'
 import { EventEmitter } from 'events'
+import { MetaArgument } from 'osc'
 
 /** How often to check connection status */
 const CONNECTIVITY_INTERVAL = 3000 // ms
@@ -82,14 +83,15 @@ export class SisyfosApi extends EventEmitter {
 				],
 			})
 		} else if (command.type === SisyfosCommandType.TOGGLE_PGM) {
+			const args: Array<MetaArgument> = (command as ValuesCommand).values.map((value) => {
+				return {
+					type: 'i',
+					value,
+				}
+			})
 			this._oscClient.send({
-				address: `/ch/${(command as ValueCommand).channel + 1}/pgm`,
-				args: [
-					{
-						type: 'i',
-						value: (command as ValueCommand).value,
-					},
-				],
+				address: `/ch/${(command as ValuesCommand).channel + 1}/pgm`,
+				args,
 			})
 		} else if (command.type === SisyfosCommandType.TOGGLE_PST) {
 			this._oscClient.send({
@@ -364,6 +366,11 @@ export interface ValueCommand extends ChannelCommand {
 	value: number
 }
 
+export interface ValuesCommand extends Omit<ChannelCommand, 'value'> {
+	type: SisyfosCommandType.TOGGLE_PGM
+	values: number[]
+}
+
 export interface StringCommand extends ChannelCommand {
 	type: SisyfosCommandType.LABEL
 	value: string
@@ -376,6 +383,7 @@ export interface ResyncCommand extends BaseCommand {
 export type SisyfosCommand =
 	| BaseCommand
 	| ValueCommand
+	| ValuesCommand
 	| BoolCommand
 	| StringCommand
 	| ResyncCommand
@@ -398,6 +406,7 @@ export interface SisyfosAPIChannel {
 	pstOn: number
 	label: string
 	visible: boolean
+	fadeTime?: number
 }
 
 export interface SisyfosAPIState {

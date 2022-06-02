@@ -16,7 +16,14 @@ import {
 import { DoOnTime, SendMode } from '../doOnTime'
 
 import { TimelineState, ResolvedTimelineObjectInstance } from 'superfly-timeline'
-import { SisyfosApi, SisyfosCommand, SisyfosState, SisyfosChannel, SisyfosCommandType } from './sisyfosAPI'
+import {
+	SisyfosApi,
+	SisyfosCommand,
+	SisyfosState,
+	SisyfosChannel,
+	SisyfosCommandType,
+	ValuesCommand,
+} from './sisyfosAPI'
 import Debug from 'debug'
 import { startTrace, endTrace } from '../lib'
 const debug = Debug('timeline-state-resolver:sisyfos')
@@ -408,6 +415,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 				if (newChannel.faderLevel !== undefined) channel.faderLevel = newChannel.faderLevel
 				if (newChannel.label !== undefined && newChannel.label !== '') channel.label = newChannel.label
 				if (newChannel.visible !== undefined) channel.visible = newChannel.visible
+				if (newChannel.fadeTime !== undefined) channel.fadeTime = newChannel.fadeTime
 
 				channel.tlObjIds.push(newChannel.tlObjId)
 			}
@@ -477,13 +485,17 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 
 			if (oldChannel && oldChannel.pgmOn !== newChannel.pgmOn) {
 				debug(`Channel ${index} pgm goes from "${oldChannel.pgmOn}" to "${newChannel.pgmOn}"`)
+				const values: number[] = [newChannel.pgmOn]
+				if (newChannel.fadeTime) {
+					values.push(newChannel.fadeTime)
+				}
 				commands.push({
 					context: `Channel ${index} pgm goes from "${oldChannel.pgmOn}" to "${newChannel.pgmOn}"`,
 					content: {
 						type: SisyfosCommandType.TOGGLE_PGM,
 						channel: Number(index),
-						value: newChannel.pgmOn,
-					},
+						values,
+					} as ValuesCommand,
 					timelineObjId: newChannel.tlObjIds[0] || '',
 				})
 			}

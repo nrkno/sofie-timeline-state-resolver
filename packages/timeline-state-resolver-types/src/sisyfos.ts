@@ -52,6 +52,7 @@ export interface SisyfosChannelOptions {
 	faderLevel?: number
 	label?: string
 	visible?: boolean
+	fadeTime?: number
 }
 
 export interface TimelineObjSisyfosTriggerValue extends TimelineObjSisyfos {
