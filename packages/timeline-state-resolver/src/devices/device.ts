@@ -1,6 +1,13 @@
 import * as _ from 'underscore'
 import { TimelineState } from 'superfly-timeline'
-import { Mappings, DeviceType, MediaObject, DeviceOptionsBase } from 'timeline-state-resolver-types'
+import {
+	Mappings,
+	DeviceType,
+	MediaObject,
+	DeviceOptionsBase,
+	DeviceStatus,
+	StatusCode,
+} from 'timeline-state-resolver-types'
 import { EventEmitter } from 'eventemitter3'
 import { CommandReport, DoOnTime, SlowFulfilledCommandInfo, SlowSentCommandInfo } from '../doOnTime'
 import { ExpectedPlayoutItem } from '../expectedPlayoutItems'
@@ -26,23 +33,12 @@ export interface CommandWithContext {
 	timelineObjId: string
 	command: any
 }
-export enum StatusCode {
-	UNKNOWN = 0, // Status unknown
-	GOOD = 1, // All good and green
-	WARNING_MINOR = 2, // Everything is not OK, operation is not affected
-	WARNING_MAJOR = 3, // Everything is not OK, operation might be affected
-	BAD = 4, // Operation affected, possible to recover
-	FATAL = 5, // Operation affected, not possible to recover without manual interference
-}
-export interface DeviceStatus {
-	statusCode: StatusCode
-	messages?: Array<string>
-	active: boolean
-}
 
 export function literal<T>(o: T) {
 	return o
 }
+
+export { DeviceStatus, StatusCode }
 
 export type DeviceEvents = {
 	info: [info: string]
@@ -153,7 +149,7 @@ export abstract class Device<TOptions extends DeviceOptionsBase<any>>
 	 * @param initOptions Device-specific options
 	 * @param activeRundownPlaylistId ID of active rundown playlist
 	 */
-	abstract init(initOptions: TOptions['options'], activeRundownPlaylistId: string | undefined): Promise<boolean>
+	abstract init(initOptions: TOptions['options'], activeRundownPlaylistId?: string): Promise<boolean>
 	async terminate(): Promise<boolean> {
 		return Promise.resolve(true)
 	}

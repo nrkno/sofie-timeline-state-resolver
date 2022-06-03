@@ -8,6 +8,7 @@ export type MappingOBSAny =
 	| MappingOBSRecording
 	| MappingOBSSceneItemRender
 	| MappingOBSMute
+	| MappingOBSSourceSettings
 
 export interface MappingOBS extends Mapping {
 	device: DeviceType.OBS
