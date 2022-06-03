@@ -238,7 +238,6 @@ describe('vizMSE', () => {
 	})
 	test('vizMSE: External/Pilot element', async () => {
 		const { device, myConductor, onError, commandReceiver0 } = await setupDevice()
-
 		await mockTime.advanceTimeToTicks(10100)
 
 		await device.ignoreWaitsInTests()

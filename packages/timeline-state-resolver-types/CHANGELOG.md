@@ -7,10 +7,6 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
 
 **Note:** Version bump only for package timeline-state-resolver-types
 
-
-
-
-
 # [6.4.0-release39.1](https://github.com/nrkno/sofie-timeline-state-resolver/compare/6.3.0...6.4.0-release39.1) (2022-02-03)
 
 **Note:** Version bump only for package timeline-state-resolver-types
