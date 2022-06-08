@@ -1326,7 +1326,7 @@ class VizMSEManager extends EventEmitter {
 		return `sofieInt_${layer.templateName}_${getHash((layer.templateData ?? []).join(','))}`
 	}
 
-	static getPlayoutItemContent(this: void, playoutItem: VIZMSEPlayoutItemContent): VizMSEPlayoutItemContentInstance {
+	static getPlayoutItemContent(playoutItem: VIZMSEPlayoutItemContent): VizMSEPlayoutItemContentInstance {
 		if (isVIZMSEPlayoutItemContentExternal(playoutItem)) {
 			return playoutItem
 		} else {
