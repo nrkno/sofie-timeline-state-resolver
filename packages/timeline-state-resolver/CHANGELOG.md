@@ -3,6 +3,22 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [7.0.0-release41.2](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/7.0.0-release41.0...7.0.0-release41.2) (2022-04-28)
+
+### Bug Fixes
+
+- event listeners must not return anything ([cb2fe13](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/cb2fe13c965bc3f8e221c1db08e970b454e92f69))
+- move the types DeviceStatus, StatusCode to timeline-state-resolver-types ([4d84179](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/4d84179372ba243fe60d102ec52447ca87f0a8c9))
+- upgrade casparcg-state ([bbeee15](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/bbeee15e895be58100f4ddb88fb4e229a7aeb07b))
+
+# [7.0.0-release41.1](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/7.0.0-release41.0...7.0.0-release41.1) (2022-04-12)
+
+### Bug Fixes
+
+- event listeners must not return anything ([cb2fe13](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/cb2fe13c965bc3f8e221c1db08e970b454e92f69))
+- move the types DeviceStatus, StatusCode to timeline-state-resolver-types ([4d84179](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/4d84179372ba243fe60d102ec52447ca87f0a8c9))
+- upgrade casparcg-state ([bbeee15](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/bbeee15e895be58100f4ddb88fb4e229a7aeb07b))
+
 # [7.0.0-release41.0](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/6.4.0-release39.1...7.0.0-release41.0) (2022-03-21)
 
 ### Bug Fixes

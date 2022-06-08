@@ -69,12 +69,12 @@ export class DeviceContainer<TOptions extends DeviceOptionsBase<any>> {
 		return this._initialized
 	}
 
-	public async init(initOptions: TOptions['options'], ...args: any[]): Promise<boolean> {
+	public async init(initOptions: TOptions['options'], activeRundownPlaylistId: string | undefined): Promise<boolean> {
 		if (this.initialized === true) {
 			throw new Error(`Device ${this.deviceId} is already initialized`)
 		}
 
-		const res = await this._device.init(initOptions, ...args)
+		const res = await this._device.init(initOptions, activeRundownPlaylistId)
 		this._initialized = true
 		return res
 	}
