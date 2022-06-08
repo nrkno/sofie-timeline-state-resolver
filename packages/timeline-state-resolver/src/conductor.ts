@@ -1299,7 +1299,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 			this._statMeasureStart = 0
 			this._statMeasureReason = ''
 
-			this.emit('info', 'statReport', JSON.stringify(reportDuration))
+			this.emit('debug', 'statReport', JSON.stringify(reportDuration))
 			this.emit('statReport', reportDuration)
 		}
 	}
