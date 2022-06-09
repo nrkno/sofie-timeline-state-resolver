@@ -26,7 +26,6 @@
     "release:bump-prerelease": "lerna version --exact --conventional-commits --conventional-prerelease --tag-version-prefix='' --no-push",
     "validate:dependencies": "yarn lerna exec --parallel yarn validate:dependencies",
     "validate:dev-dependencies": "yarn lerna exec --parallel yarn validate:dev-dependencies",
-    "prepublishOnly": "yarn rename-tv2",
     "rename-tv2": "yarn lerna run tv2-rename && git commit -a -m 'tmp' --author=."
   },
   "devDependencies": {
