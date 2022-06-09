@@ -1,5 +1,5 @@
 {
-	"name": "@tv2media/timeline-state-resolver",
+	"name": "timeline-state-resolver",
 	"version": "2.0.0",
 	"description": "Have timeline, control stuff",
 	"main": "dist/index.js",
@@ -62,7 +62,8 @@
 		"cov": "jest --coverage && yarn cov-open",
 		"cov-open": "open-cli coverage/lcov-report/index.html",
 		"validate:dependencies": "yarn audit --groups dependencies && yarn license-validate",
-		"validate:dev-dependencies": "yarn audit --groups devDependencies"
+		"validate:dev-dependencies": "yarn audit --groups devDependencies",
+		"tv2-rename": "echo \"`jq '.name = \"@tv2media/\" + .name' package.json --tab`\" > package.json"
 	},
 	"engines": {
 		"node": "^14.18 || ^16.14"
@@ -105,7 +106,7 @@
 		"sprintf-js": "^1.1.2",
 		"superfly-timeline": "8.2.7",
 		"threadedclass": "^1.0.2",
-		"timeline-state-resolver-types": "npm:@tv2media/timeline-state-resolver-types@2.0.0",
+		"timeline-state-resolver-types": "2.0.0",
 		"tslib": "^2.3.1",
 		"tv-automation-quantel-gateway-client": "^2.0.4",
 		"underscore": "^1.12.0",
