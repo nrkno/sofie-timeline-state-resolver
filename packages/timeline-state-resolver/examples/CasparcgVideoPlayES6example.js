@@ -1,7 +1,7 @@
 //ES6 example code based on playVideoInCaspar.ts
 //copy and paste it to your own project
 
-const { Conductor, DeviceType } = require('@tv2media/timeline-state-resolver')
+const { Conductor, DeviceType } = require('timeline-state-resolver')
 
 // Initialize TimelineStateResolver:
 const tsrConductor = new Conductor()
