@@ -1,5 +1,5 @@
 {
-  "name": "@tv2media/timeline-state-resolver-packages",
+  "name": "timeline-state-resolver-packages",
   "private": true,
   "version": "0.0.0",
   "workspaces": {
@@ -14,19 +14,19 @@
     "build:types": "cd packages/timeline-state-resolver-types && yarn build",
     "build:main": "cd packages/timeline-state-resolver && yarn build",
     "lint": "yarn lerna exec yarn lint -- --",
-    "link-types": "yarn symlink-dir packages/timeline-state-resolver-types packages/timeline-state-resolver/node_modules/timeline-state-resolver-types",
     "test": "yarn lerna exec yarn test",
     "unit": "yarn lerna exec yarn unit",
     "unitci": "yarn lerna exec yarn unitci",
     "watch": "lerna run --parallel build:main -- --watch --preserveWatchOutput",
     "docs": "yarn typedoc .",
-    "postinstall": "lerna bootstrap && yarn link-types",
+    "postinstall": "lerna bootstrap",
     "release:set-version": "lerna version --exact --no-changelog --no-git-tag-version --no-push --yes",
     "release:bump-release": "lerna version --exact --conventional-commits --conventional-graduate --tag-version-prefix='' --no-push",
     "release:bump-release-force": "lerna version --exact --conventional-commits --tag-version-prefix='' --no-push --force-publish=*",
     "release:bump-prerelease": "lerna version --exact --conventional-commits --conventional-prerelease --tag-version-prefix='' --no-push",
     "validate:dependencies": "yarn lerna exec --parallel yarn validate:dependencies",
-    "validate:dev-dependencies": "yarn lerna exec --parallel yarn validate:dev-dependencies"
+    "validate:dev-dependencies": "yarn lerna exec --parallel yarn validate:dev-dependencies",
+    "rename-tv2": "yarn lerna run tv2-rename && git config user.name github-actions && git config user.email github-actions@github.com && git commit -a -m 'tmp'"
   },
   "devDependencies": {
     "@sofie-automation/code-standard-preset": "~2.0.0",

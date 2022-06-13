@@ -1,6 +1,6 @@
 {
-	"name": "@tv2media/timeline-state-resolver",
-	"version": "2.0.2",
+	"name": "timeline-state-resolver",
+	"version": "2.1.0",
 	"description": "Have timeline, control stuff",
 	"main": "dist/index.js",
 	"typings": "dist/index.d.ts",
@@ -62,7 +62,10 @@
 		"cov": "jest --coverage && yarn cov-open",
 		"cov-open": "open-cli coverage/lcov-report/index.html",
 		"validate:dependencies": "yarn audit --groups dependencies && yarn license-validate",
-		"validate:dev-dependencies": "yarn audit --groups devDependencies"
+		"validate:dev-dependencies": "yarn audit --groups devDependencies",
+		"tv2-rename": "yarn tv2-rename:package && yarn tv2-rename:dependency",
+		"tv2-rename:package": "echo \"`jq '.name = \"@tv2media/\" + .name' package.json --tab`\" > package.json",
+		"tv2-rename:dependency": "echo \"`jq '.dependencies.\"timeline-state-resolver-types\" = \"npm:@tv2media/timeline-state-resolver-types@\" + .dependencies.\"timeline-state-resolver-types\"' package.json --tab`\" > package.json"
 	},
 	"engines": {
 		"node": "^14.18 || ^16.14"
@@ -89,7 +92,7 @@
 		"atem-connection": "2.4.0",
 		"atem-state": "^0.12.2",
 		"casparcg-connection": "^5.1.0",
-		"casparcg-state": "^2.1.0",
+		"casparcg-state": "2.1.1-nightly-20220216-113227-36bcfd5.0",
 		"debug": "^4.3.1",
 		"deepmerge": "^4.2.2",
 		"emberplus-connection": "^0.1.2",
@@ -104,8 +107,8 @@
 		"request": "^2.88.0",
 		"sprintf-js": "^1.1.2",
 		"superfly-timeline": "^8.2.8",
-		"threadedclass": "^1.0.1",
-		"timeline-state-resolver-types": "npm:@tv2media/timeline-state-resolver-types@2.0.1",
+		"threadedclass": "^1.0.2",
+		"timeline-state-resolver-types": "2.1.0",
 		"tslib": "^2.3.1",
 		"tv-automation-quantel-gateway-client": "^2.0.4",
 		"underscore": "^1.12.0",

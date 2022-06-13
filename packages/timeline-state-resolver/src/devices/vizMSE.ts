@@ -982,13 +982,15 @@ class VizMSEManager extends EventEmitter {
 						await this._initializeShows(uniqueShowIds)
 
 						setTimeout(() => {
-							elementHashesToDelete.map(async (elementHash) => {
-								const element = this._elementCache[elementHash]
-								if (element?.toDelete) {
-									await this._deleteElement(element.content)
-									delete this._elementCache[elementHash]
-								}
-							})
+							Promise.all(
+								elementHashesToDelete.map(async (elementHash) => {
+									const element = this._elementCache[elementHash]
+									if (element?.toDelete) {
+										await this._deleteElement(element.content)
+										delete this._elementCache[elementHash]
+									}
+								})
+							).catch((error) => this.emit('error', error))
 						}, DELETE_TIME_WAIT)
 					}
 				})
@@ -1328,7 +1330,7 @@ class VizMSEManager extends EventEmitter {
 		if (isVIZMSEPlayoutItemContentExternal(playoutItem)) {
 			return playoutItem
 		} else {
-			return { ...playoutItem, instanceName: this.getInternalElementInstanceName(playoutItem) }
+			return { ...playoutItem, instanceName: VizMSEManager.getInternalElementInstanceName(playoutItem) }
 		}
 	}
 	static getPlayoutItemContentFromLayer(layer: VizMSEStateLayer): VizMSEPlayoutItemContentInstance {
