@@ -103,7 +103,7 @@
 		"p-timeout": "^3.2.0",
 		"request": "^2.88.0",
 		"sprintf-js": "^1.1.2",
-		"superfly-timeline": "^8.2.1",
+		"superfly-timeline": "^8.2.8",
 		"threadedclass": "^1.0.1",
 		"timeline-state-resolver-types": "npm:@tv2media/timeline-state-resolver-types@2.0.1",
 		"tslib": "^2.3.1",
