@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [2.1.1](https://github.com/tv2/tv-automation-state-timeline-resolver/compare/v2.0.0...2.1.1) (2022-06-14)
+
+### Bug Fixes
+
+- move the types DeviceStatus, StatusCode to timeline-state-resolver-types ([4d84179](https://github.com/tv2/tv-automation-state-timeline-resolver/commit/4d84179372ba243fe60d102ec52447ca87f0a8c9))
+- **obs:** add missing mapping type to MappingOBSAny ([2ff5522](https://github.com/tv2/tv-automation-state-timeline-resolver/commit/2ff55222a8b5fc915c8926aa2bc9ea4f1e796000))
+
 # [2.1.0](https://github.com/tv2/tv-automation-state-timeline-resolver/compare/v0.1.3...v2.1.0) (2022-06-09)
 
 ### Bug Fixes
