@@ -28,6 +28,7 @@ import {
 	QuantelCommandType,
 	QuantelStatePort,
 } from './interfaces'
+export { QuantelCommandType }
 
 const IDEAL_PREPARE_TIME = 1000
 const PREPARE_TIME_WAIT = 50

@@ -24,7 +24,8 @@
     "release:bump-release": "lerna version --exact --conventional-commits --conventional-graduate --tag-version-prefix='' --no-push --force-publish=*",
     "release:bump-prerelease": "lerna version --exact --conventional-commits --conventional-prerelease --tag-version-prefix='' --no-push --force-publish=*",
     "validate:dependencies": "yarn lerna exec --parallel yarn validate:dependencies",
-    "validate:dev-dependencies": "yarn lerna exec --parallel yarn validate:dev-dependencies"
+    "validate:dev-dependencies": "yarn lerna exec --parallel yarn validate:dev-dependencies",
+		"schema-types": "cd ./packages/timeline-state-resolver && yarn schema-types && cd ../../"
   },
   "devDependencies": {
     "@sofie-automation/code-standard-preset": "~2.0.2",

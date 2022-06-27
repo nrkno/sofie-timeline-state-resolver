@@ -1,0 +1,12 @@
+[
+	{
+		"id": "clearAllChannels",
+		"name": "Clear",
+		"destructive": true
+	},
+	{
+		"id": "restartServer",
+		"name": "Restart Server",
+		"destructive": true
+	}
+]

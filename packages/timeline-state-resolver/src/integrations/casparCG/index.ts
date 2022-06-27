@@ -47,6 +47,7 @@ import * as request from 'request'
 import { InternalTransitionHandler } from '../../devices/transitions/transitionHandler'
 import Debug from 'debug'
 import { endTrace, startTrace } from '../../lib'
+import { Actions } from './interfaces'
 const debug = Debug('timeline-state-resolver:casparcg')
 
 const MAX_TIMESYNC_TRIES = 5
@@ -660,6 +661,35 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 			this.clearStates()
 		}
 		// a resolveTimeline will be triggered later
+	}
+
+	async clearAllChannels() {
+		const command = await this._ccg.info()
+		const channels: any[] = command.response.data
+
+		await Promise.all(
+			_.map(channels, async (channel: any) => {
+				await this._commandReceiver(
+					this.getCurrentTime(),
+					new AMCP.ClearCommand({
+						channel: channel.channel,
+					}),
+					'clearAllChannels',
+					''
+				)
+			})
+		)
+
+		this.clearStates()
+	}
+
+	async executeAction(id: Actions, _payload: any): Promise<any> {
+		switch (id) {
+			case Actions.ClearAllChannels:
+				return this.clearAllChannels()
+			case Actions.RestartServer:
+				return this.restartCasparCG()
+		}
 	}
 
 	/**

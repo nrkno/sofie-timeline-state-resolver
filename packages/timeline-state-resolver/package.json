@@ -63,7 +63,8 @@
 		"cov-open": "open-cli coverage/lcov-report/index.html",
 		"validate:dependencies": "yarn audit --groups dependencies && yarn license-validate",
 		"validate:dev-dependencies": "yarn audit --groups devDependencies",
-		"precommit": "lint-staged"
+		"precommit": "lint-staged",
+		"schema-types": "node ./scripts/schema-types.mjs"
 	},
 	"engines": {
 		"node": "^14.18 || ^16.14"
@@ -117,5 +118,8 @@
 	},
 	"publishConfig": {
 		"access": "public"
+	},
+	"devDependencies": {
+		"json-schema-to-typescript": "^10.1.5"
 	}
 }
