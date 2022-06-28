@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [7.0.1](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/7.0.0...7.0.1) (2022-06-28)
+
+### Bug Fixes
+
+- test after casparcg-state update ([4674f37](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/4674f37c393683bd74f9a4e7519a4cc4a1d42141))
+
 # [7.0.0](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/7.0.0-release41.2...7.0.0) (2022-06-27)
 
 **Note:** Version bump only for package timeline-state-resolver
