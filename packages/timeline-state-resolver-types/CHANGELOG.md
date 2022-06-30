@@ -23,6 +23,10 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
 
 ## [1.0.2-release37.1](https://github.com/nrkno/sofie-timeline-state-resolver/compare/1.0.2-release37...1.0.2-release37.1) (2021-09-02)
 
+# [7.0.0](https://github.com/nrkno/sofie-timeline-state-resolver/compare/7.0.0-release41.2...7.0.0) (2022-06-27)
+
+**Note:** Version bump only for package timeline-state-resolver-types
+
 # [7.0.0-release41.2](https://github.com/nrkno/sofie-timeline-state-resolver/compare/7.0.0-release41.0...7.0.0-release41.2) (2022-04-28)
 
 ### Bug Fixes

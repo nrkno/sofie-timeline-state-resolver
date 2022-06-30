@@ -2495,10 +2495,10 @@ casparcg-connection@^5.1.0:
     xml2js "^0.4.19"
     xmlbuilder "^9.0.7"
 
-casparcg-state@2.1.1-nightly-20220216-113227-36bcfd5.0:
-  version "2.1.1-nightly-20220216-113227-36bcfd5.0"
-  resolved "https://registry.yarnpkg.com/casparcg-state/-/casparcg-state-2.1.1-nightly-20220216-113227-36bcfd5.0.tgz#dbedbee744678d08a0c99ecf267fc07aa62370c5"
-  integrity sha512-l7ZlZtAnNEQEv0ztBznL3h2ihCl4UclAlyKGY3S2aWosGys5tWY3tyAGbkqxSt+BOMhYlo+4AiZuLUOEKJTDNw==
+casparcg-state@^2.1.1:
+  version "2.1.1"
+  resolved "https://registry.yarnpkg.com/casparcg-state/-/casparcg-state-2.1.1.tgz#8d33bca7907f128b5a8a6918899ddc6d2d1413ae"
+  integrity sha512-p2EG2TsypyTHlLC+aiK65s0y9O22moGx3egZzfHU/PbnWmFeyYUo5eqU/s7sTdlyTpBNVgrbIJ7LPRgtgNOvWA==
   dependencies:
     casparcg-connection "^5.1.0"
     fast-clone "^1.5.13"
@@ -4061,10 +4061,10 @@ globby@^11.0.1, globby@^11.0.2, globby@^11.0.4:
     merge2 "^1.4.1"
     slash "^3.0.0"
 
-got@^11.8.2:
-  version "11.8.3"
-  resolved "https://registry.yarnpkg.com/got/-/got-11.8.3.tgz#f496c8fdda5d729a90b4905d2b07dbd148170770"
-  integrity sha512-7gtQ5KiPh1RtGS9/Jbv1ofDpBFuq42gyfEib+ejaRBJuj/3tQFeR5+gw57e4ipaU8c/rCjvX6fkQz2lyDlGAOg==
+got@^11.8.2, got@^11.8.5:
+  version "11.8.5"
+  resolved "https://registry.yarnpkg.com/got/-/got-11.8.5.tgz#ce77d045136de56e8f024bebb82ea349bc730046"
+  integrity sha512-o0Je4NvQObAuZPHLFoRSkdG2lTgtcynqymzg2Vupdx6PorhaT5MCbIyXG6d4D94kk8ZG57QeosgdiqfJWhEhlQ==
   dependencies:
     "@sindresorhus/is" "^4.0.0"
     "@szmarczak/http-timer" "^4.0.5"

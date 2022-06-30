@@ -3,6 +3,14 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [7.1.0-release42.2](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/7.1.0-release42.1...7.1.0-release42.2) (2022-05-19)
+
+### Bug Fixes
+
+* update casparcg-state ([7698a5d](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/7698a5dff610fd74e79f9b6348beb872a319f018))
+
+
+
 # [7.1.0-release42.1](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/7.0.0-release41.1...7.1.0-release42.1) (2022-04-29)
 
 
@@ -67,7 +75,7 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
 
 
 
-# [1.0.0-release37](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/6.1.0-release36.1...1.0.0-release37) (2021-08-31)
+## [1.0.0-release37](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/6.1.0-release36.1...1.0.0-release37) (2021-08-31)
 
 
 ### Bug Fixes
@@ -106,7 +114,17 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
 * sisyfos retrigger mechanism ([26033cd](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/26033cdba23618bc03bf4dee89c1db7907b40dcc))
 * Use layerName as default label for sisyfos faders ([4e18a2a](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/4e18a2a910d1794993bab8716af41802049c9c0a))
 
+# [7.0.1](https://github.com/nrkno/sofie-timeline-state-resolver/compare/7.0.0...7.0.1) (2022-06-28)
 
+### Bug Fixes
+
+* test after casparcg-state update ([4674f37](https://github.com/nrkno/sofie-timeline-state-resolver/commit/4674f37c393683bd74f9a4e7519a4cc4a1d42141))
+
+
+
+# [7.0.0](https://github.com/nrkno/sofie-timeline-state-resolver/compare/7.0.0-release41.2...7.0.0) (2022-06-27)
+
+**Note:** Version bump only for package timeline-state-resolver-packages
 
 
 
