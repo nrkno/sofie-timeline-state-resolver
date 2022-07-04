@@ -3,6 +3,21 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [7.3.0-release44.0](https://github.com/nrkno/sofie-timeline-state-resolver/compare/7.0.1...7.3.0-release44.0) (2022-07-04)
+
+# [7.1.0-release42.1](https://github.com/nrkno/sofie-timeline-state-resolver/compare/7.0.0-release41.2...7.1.0-release42.1) (2022-04-29)
+
+### Features
+
+- SOF-752 show init and cleanup ([44264b0](https://github.com/nrkno/sofie-timeline-state-resolver/commit/44264b08bddccbbe62c6779beb8acba18f438080))
+
+### Reverts
+
+- Revert "7.1.0" ([8ce054c](https://github.com/nrkno/sofie-timeline-state-resolver/commit/8ce054c6016fc0d23ef37a3ae1d233090a829fb9))
+- Revert "test: Rename package on publish" ([855f772](https://github.com/nrkno/sofie-timeline-state-resolver/commit/855f7725d73878d10caea077aec50429e3146b41))
+
+## [1.0.2-release37.1](https://github.com/nrkno/sofie-timeline-state-resolver/compare/1.0.2-release37...1.0.2-release37.1) (2021-09-02)
+
 # [7.1.0-release42.1](https://github.com/nrkno/sofie-timeline-state-resolver/compare/7.0.0-release41.1...7.1.0-release42.1) (2022-04-29)
 
 ### Features

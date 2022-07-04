@@ -3,6 +3,98 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [7.3.0-release44.0](https://github.com/nrkno/sofie-timeline-state-resolver/compare/7.0.1...7.3.0-release44.0) (2022-07-04)
+
+
+
+# [7.1.0-release42.2](https://github.com/nrkno/sofie-timeline-state-resolver/compare/7.1.0-release42.1...7.1.0-release42.2) (2022-05-19)
+
+
+### Bug Fixes
+
+* update casparcg-state ([7698a5d](https://github.com/nrkno/sofie-timeline-state-resolver/commit/7698a5dff610fd74e79f9b6348beb872a319f018))
+
+
+
+# [7.1.0-release42.1](https://github.com/nrkno/sofie-timeline-state-resolver/compare/7.0.0-release41.2...7.1.0-release42.1) (2022-04-29)
+
+
+### Bug Fixes
+
+* Build errors ([249032d](https://github.com/nrkno/sofie-timeline-state-resolver/commit/249032d8deb9bfd8568d9fb5275f1dd58e4b4647))
+* Retry if retryInterval >=0 ([3616a03](https://github.com/nrkno/sofie-timeline-state-resolver/commit/3616a03dd0b138414845b02c5553fac26342e3d9))
+* update hyperdeck dep ([db75cc6](https://github.com/nrkno/sofie-timeline-state-resolver/commit/db75cc666bdfd8e5133b604ec56699cee50f2d0b))
+* update supertimeline ([251c8b5](https://github.com/nrkno/sofie-timeline-state-resolver/commit/251c8b5a83d84e8457cabe8badcf2e52cf10d3ba))
+* yarn upgrade ([40aa2e5](https://github.com/nrkno/sofie-timeline-state-resolver/commit/40aa2e5a21149b89735fd8e6a85c9c2366a274d3))
+
+
+### Features
+
+* SOF-752 show init and cleanup ([44264b0](https://github.com/nrkno/sofie-timeline-state-resolver/commit/44264b08bddccbbe62c6779beb8acba18f438080))
+
+
+### Reverts
+
+* Revert "7.1.0" ([8ce054c](https://github.com/nrkno/sofie-timeline-state-resolver/commit/8ce054c6016fc0d23ef37a3ae1d233090a829fb9))
+* Revert "test: Rename package on publish" ([855f772](https://github.com/nrkno/sofie-timeline-state-resolver/commit/855f7725d73878d10caea077aec50429e3146b41))
+
+
+
+## [1.0.2-release37.1](https://github.com/nrkno/sofie-timeline-state-resolver/compare/1.0.2-release37...1.0.2-release37.1) (2021-09-02)
+
+
+
+## [1.0.2-release37](https://github.com/nrkno/sofie-timeline-state-resolver/compare/1.0.1-release37...1.0.2-release37) (2021-08-31)
+
+
+
+## [1.0.1-release37](https://github.com/nrkno/sofie-timeline-state-resolver/compare/1.0.0-release37...1.0.1-release37) (2021-08-31)
+
+
+
+# [1.0.0-release37](https://github.com/nrkno/sofie-timeline-state-resolver/compare/6.1.0-release36.1...1.0.0-release37) (2021-08-31)
+
+
+### Bug Fixes
+
+* allow multiple mappings to reference 1 casparcg layer ([a604b08](https://github.com/nrkno/sofie-timeline-state-resolver/commit/a604b08d902b8d677fe9b7d296b605d3c8961504))
+* bad merge ([dd6ea93](https://github.com/nrkno/sofie-timeline-state-resolver/commit/dd6ea93bfd0ee62a403df7abc251ede409c624b5))
+* do not clear elements and engines when going rehearsal<->active ([09bf843](https://github.com/nrkno/sofie-timeline-state-resolver/commit/09bf84332eaab4ded856772f53ff0323df123b78))
+* do not purge baseline items ([0fe088d](https://github.com/nrkno/sofie-timeline-state-resolver/commit/0fe088d02330b289de97874ed92eba7b335b12ae))
+* do not purge elements when going active<->rehearsal ([587b795](https://github.com/nrkno/sofie-timeline-state-resolver/commit/587b7953b258245b771aa611576affc10f82e77a))
+* elements to keep criteria ([3146254](https://github.com/nrkno/sofie-timeline-state-resolver/commit/3146254dacb22031124c10da33ee6b989f28773f))
+* Errors from cherry pick ([4754a67](https://github.com/nrkno/sofie-timeline-state-resolver/commit/4754a67e8dd38c081b91f07c5749b0e268cf9180))
+* exceptions and timeouts ([6cb01ad](https://github.com/nrkno/sofie-timeline-state-resolver/commit/6cb01ad5fc738a1bc6d97fc5718c95d1ecb73e2d))
+* extend templateData when allowing multiple mappings to reference 1 casparcg layer ([eb04832](https://github.com/nrkno/sofie-timeline-state-resolver/commit/eb0483201f7d368bcadadfa5c6837c3f1c4c2903))
+* keep checking status of loaded elements ([3085502](https://github.com/nrkno/sofie-timeline-state-resolver/commit/30855020b5b93ea10591fea2f45810a438966ba8))
+* load only elements from the active playlist when restarting ([7d21e69](https://github.com/nrkno/sofie-timeline-state-resolver/commit/7d21e69dbfc959fee871746d83f9cfa1dade9b2d))
+* make -1 disable caspar retry ([8069aaa](https://github.com/nrkno/sofie-timeline-state-resolver/commit/8069aaaab456dcaf9eb2533caf3670b3a32ee736))
+* make makeReady execute faster ([913bcfc](https://github.com/nrkno/sofie-timeline-state-resolver/commit/913bcfcdd876fd85bdecf3855a6589f6d7b56fba))
+* missing optional chaining ([11862a9](https://github.com/nrkno/sofie-timeline-state-resolver/commit/11862a95d5ee9caed0ec19f5abae7769eab17863))
+* prevent duplicate external elements ([6472eaf](https://github.com/nrkno/sofie-timeline-state-resolver/commit/6472eaf267dc45fe423b7cd3d3fa0d5ba109cf5e))
+* recreate removed mediaObjects after reconnecting ([1a7e65d](https://github.com/nrkno/sofie-timeline-state-resolver/commit/1a7e65d0a3b5a0942f2f06deb7b58366d2827802))
+* rehearsal<->active when gateway was restarted ([3c40715](https://github.com/nrkno/sofie-timeline-state-resolver/commit/3c40715210230e1c864f92d9e814f05b2e2c0a42))
+* reload external elements that became unloaded ([93bf3aa](https://github.com/nrkno/sofie-timeline-state-resolver/commit/93bf3aad6fbc53d2391e6a1eec013548cac27634))
+* remove duplicates in incoming data ([e86f170](https://github.com/nrkno/sofie-timeline-state-resolver/commit/e86f170cd6753025347a42f4685716837543b089))
+* Remove ExpectedPlayoutItemContentBase from tsr-types [publish] ([cd92561](https://github.com/nrkno/sofie-timeline-state-resolver/commit/cd92561a02e58f02d5c97351cc67934f77ecb5fb))
+* report channel name instead of engine name ([24387d5](https://github.com/nrkno/sofie-timeline-state-resolver/commit/24387d59e9f2f329dcb4fdd2739288cb190e245e))
+* Set fader label ([78a3ecd](https://github.com/nrkno/sofie-timeline-state-resolver/commit/78a3ecd9c423a6866d7c7218acb368d61044ecd0))
+* treat all status codes below 400 as correct ([d0791b1](https://github.com/nrkno/sofie-timeline-state-resolver/commit/d0791b188b2304722e5b12d4f3d36f6c07ebd269))
+
+
+### Features
+
+* Add layerName property to mappings ([c0d81eb](https://github.com/nrkno/sofie-timeline-state-resolver/commit/c0d81ebee21349515e8532fca9ef13250e31068d))
+* indicate elements as missing when MSE disconnected ([68bf2fb](https://github.com/nrkno/sofie-timeline-state-resolver/commit/68bf2fb72f3871b0730751036e0a582a37d3ca2f))
+* monitor viz engines over http ([ab6c76b](https://github.com/nrkno/sofie-timeline-state-resolver/commit/ab6c76bad94f5c9e5a4407ef4d3b7c00a83cb3b8))
+* rename activeRundown -> activePlaylist. ([fb2ae0b](https://github.com/nrkno/sofie-timeline-state-resolver/commit/fb2ae0b25a3899ad4f9be1981e67def713a053f8))
+* sisyfos retrigger mechanism ([26033cd](https://github.com/nrkno/sofie-timeline-state-resolver/commit/26033cdba23618bc03bf4dee89c1db7907b40dcc))
+* Use layerName as default label for sisyfos faders ([4e18a2a](https://github.com/nrkno/sofie-timeline-state-resolver/commit/4e18a2a910d1794993bab8716af41802049c9c0a))
+
+
+
+
+
 # [7.1.0-release42.2](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/7.1.0-release42.1...7.1.0-release42.2) (2022-05-19)
 
 ### Bug Fixes

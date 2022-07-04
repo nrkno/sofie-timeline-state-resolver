@@ -20,7 +20,7 @@
     "postinstall": "lerna bootstrap",
     "release:set-version": "lerna version --exact --no-changelog --no-git-tag-version --no-push --yes",
     "release:bump-release": "lerna version --exact --conventional-commits --conventional-graduate --tag-version-prefix='' --no-push --force-publish=*",
-    "release:bump-prerelease": "lerna version --exact --conventional-commits --conventional-prerelease --tag-version-prefix='' --no-push",
+    "release:bump-prerelease": "lerna version --exact --conventional-commits --conventional-prerelease --tag-version-prefix='' --no-push --force-publish=*",
     "validate:dependencies": "yarn lerna exec --parallel yarn validate:dependencies",
     "validate:dev-dependencies": "yarn lerna exec --parallel yarn validate:dev-dependencies"
   },
