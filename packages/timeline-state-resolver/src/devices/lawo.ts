@@ -669,7 +669,7 @@ export class LawoDevice extends DeviceWithState<LawoState, DeviceOptionsLawoInte
 		}
 
 		if (Object.keys(this.transitions).length === 0) {
-			clearInterval(this.transitionInterval!)
+			clearInterval(this.transitionInterval)
 			this.transitionInterval = undefined
 		}
 	}
