@@ -81,10 +81,13 @@ export type SuperSourceBox = {
 }
 
 export interface AtemTransitionSettings {
-	// dip
 	// DVE
 	mix?: {
 		rate: number
+	}
+	dip?: {
+		rate: number
+		input: number
 	}
 	// stinger
 	wipe?: {
