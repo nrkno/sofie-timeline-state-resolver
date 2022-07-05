@@ -4112,7 +4112,7 @@ globby@^11.0.1, globby@^11.0.2, globby@^11.1.0:
     merge2 "^1.4.1"
     slash "^3.0.0"
 
-got@^11.8.2, got@^11.8.5:
+got@^11.8.5:
   version "11.8.5"
   resolved "https://registry.yarnpkg.com/got/-/got-11.8.5.tgz#ce77d045136de56e8f024bebb82ea349bc730046"
   integrity sha512-o0Je4NvQObAuZPHLFoRSkdG2lTgtcynqymzg2Vupdx6PorhaT5MCbIyXG6d4D94kk8ZG57QeosgdiqfJWhEhlQ==
@@ -8303,12 +8303,12 @@ tunnel-agent@^0.6.0:
   dependencies:
     safe-buffer "^5.0.1"
 
-tv-automation-quantel-gateway-client@^2.0.4:
-  version "2.0.4"
-  resolved "https://registry.yarnpkg.com/tv-automation-quantel-gateway-client/-/tv-automation-quantel-gateway-client-2.0.4.tgz#c130cca5e953a4749226ddedad672fc3de9e1d84"
-  integrity sha512-ETw+Zrusv6aMoZz1qfxsHaQ1q5SCXocN1IBOdAZ7NHW1Yw1+QCm10LXXh8OuL8iyaHx9GKbIsYOAAYYpLM9j6w==
+tv-automation-quantel-gateway-client@^2.0.5:
+  version "2.0.5"
+  resolved "https://registry.yarnpkg.com/tv-automation-quantel-gateway-client/-/tv-automation-quantel-gateway-client-2.0.5.tgz#64987c834fe233ed3e988360d4e27598cfa37893"
+  integrity sha512-HjHcV289Mv6PjCoco283r+yvqLJ7Oqlvwz+DUaTec4NinUxTXHaZ8CCPVyUmz2ShR0u1YBqhLRDuL4YwrNJuqQ==
   dependencies:
-    got "^11.8.2"
+    got "^11.8.5"
 
 tweetnacl@^0.14.3, tweetnacl@~0.14.0:
   version "0.14.5"
