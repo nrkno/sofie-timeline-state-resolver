@@ -3,7 +3,6 @@ import {
 	TimelineObject,
 	ResolvedTimeline,
 	ResolvedTimelineObject,
-	ResolverCache,
 	Time,
 	EventType,
 	Cap,
@@ -16,6 +15,7 @@ import _ = require('underscore')
 import { TimelineTriggerTimeResult } from './conductor'
 import { TSRTimeline, TSRTimelineObj } from 'timeline-state-resolver-types'
 import { literal } from './devices/device'
+import got from 'got'
 
 /**
  * Make all optional properties be required and `| undefined`
@@ -33,6 +33,7 @@ export interface RustNextEvent {
 
 export interface RustTimelineLayerState2 {
 	object_id: string
+	raw_object: TimelineObject
 	instance_id: string | undefined
 	instance: RustTimelineObjectInstance | undefined // TODO - this is a bit heavy now?
 	keyframes: RustTimelineLayerState2Keyframe[]
@@ -76,30 +77,78 @@ export interface RustResult {
 	next_events: RustNextEvent[]
 }
 
+function clean(obj) {
+	// this is to make the test fair, as rust doesnt handle the content at all
+	// obj.content = {}
+	if (obj.enable && !Array.isArray(obj.enable)) {
+		obj.enable = [obj.enable]
+	}
+	if (obj.enable) {
+		for (const en of obj.enable) {
+			if (typeof en.start === 'number') {
+				en.start = Math.floor(en.start)
+			}
+			if (typeof en.end === 'number') {
+				en.end = Math.floor(en.end)
+			}
+			if (typeof en.duration === 'number') {
+				en.duration = Math.floor(en.duration)
+			}
+		}
+	}
+	if (obj.priority === undefined) obj.priority = 0
+	obj.priority = Math.floor(1000 * obj.priority)
+	if (obj.children) {
+		for (const ch of obj.children) {
+			clean(ch)
+		}
+	}
+	if (obj.keyframes) {
+		for (const kf of obj.keyframes) {
+			clean(kf)
+		}
+	}
+}
+
 export class HttpResolver {
 	private readonly onSetTimelineTriggerTime: (res: TimelineTriggerTimeResult) => void
 
-	private cache: ResolverCache = {}
+	// private cache: ResolverCache = {}
 
 	public constructor(onSetTimelineTriggerTime: (res: TimelineTriggerTimeResult) => void) {
 		this.onSetTimelineTriggerTime = onSetTimelineTriggerTime
 	}
 
-	public async resolveTimeline(resolveTime: number, timeline: TSRTimeline, limitTime: number, useCache: boolean) {
+	public async resolveTimeline(resolveTime: number, timeline0: TSRTimeline, limitTime: number, _useCache: boolean) {
+		const timeline = JSON.parse(JSON.stringify(timeline0)) // TODO - this is bad, but we need to avoid mutating it...
 		const objectsFixed = this._fixNowObjects(timeline, resolveTime)
 
-		const resolvedTimeline = Resolver.resolveTimeline(timeline, {
-			limitCount: 999,
-			limitTime: limitTime,
-			time: resolveTime,
-			cache: useCache ? this.cache : undefined,
-		})
+		for (const obj of timeline) {
+			clean(obj)
+		}
 
-		const resolvedStates = Resolver.resolveAllStates(resolvedTimeline) as any as RustResult
+		const doc = {
+			objects: timeline,
+			options: {
+				limitCount: 999,
+				limitTime: Math.floor(limitTime),
+				time: Math.floor(resolveTime),
+			},
+		}
+		try {
+			const resolvedStates = await got
+				.post('http://localhost:8080', {
+					json: doc,
+				})
+				.json<RustResult>()
 
-		return {
-			resolvedStates,
-			objectsFixed,
+			return {
+				resolvedStates,
+				objectsFixed,
+			}
+		} catch (e) {
+			console.log(`NEW NUMBER WAS ${JSON.stringify(doc)}`)
+			throw e
 		}
 	}
 
@@ -189,33 +238,35 @@ export class HttpResolver {
 	}
 }
 
-export function getState2(rawTl: TSRTimeline, resolvedStates: RustResult, time: Time, eventLimit = 0): TimelineState {
+export function getState2(resolvedStates: RustResult, time: Time, eventLimit = 0): TimelineState {
+	let nextEvents = _.filter(resolvedStates.next_events, (e) => e.time > time)
+	if (eventLimit) nextEvents = nextEvents.slice(0, eventLimit)
+
 	const state: TimelineState = {
 		time: time,
 		layers: {},
-		nextEvents: _.filter(resolvedStates.next_events, (e) => e.time > time).map((e) => ({
+		nextEvents: nextEvents.map((e) => ({
 			type: e.event_type,
 			time: e.time,
 			objId: e.object_id,
 		})),
 	}
-	if (eventLimit) state.nextEvents = state.nextEvents.slice(0, eventLimit)
 
-	const allObjects = new Map<string, TimelineObject>()
-	const doObj = (obj: TimelineObject) => {
-		allObjects.set(obj.id, obj)
-		if (obj.children) {
-			for (const obj2 of obj.children) {
-				doObj(obj2)
-			}
-		}
-	}
-	for (const obj of rawTl) {
-		doObj(obj)
-	}
+	// const allObjects: { [id: string]: TimelineObject | undefined } = {}
+	// const doObj = (obj: TimelineObject) => {
+	// 	allObjects[obj.id] = obj
+	// 	if (obj.children) {
+	// 		for (const obj2 of obj.children) {
+	// 			doObj(obj2)
+	// 		}
+	// 	}
+	// }
+	// for (const obj of rawTl) {
+	// 	doObj(obj)
+	// }
 
 	_.each(_.keys(resolvedStates.layers), (layer: string) => {
-		const o = getStateAtTime(allObjects, resolvedStates.state, layer, time)
+		const o = getStateAtTime(resolvedStates.state, layer, time)
 		if (o) state.layers[layer] = o
 	})
 
@@ -236,7 +287,7 @@ function applyKeyframeContent(parentContent: Content, keyframeContent: Content) 
 		}
 	})
 }
-function getStateAtTime(allObjs: Map<string, TimelineObject>, states: AllStates2, layer: string, requestTime: number) {
+function getStateAtTime(states: AllStates2, layer: string, requestTime: number) {
 	const layerStates = states[layer] || {}
 
 	const times: number[] = _.map(_.keys(layerStates), (time) => parseFloat(time))
@@ -250,7 +301,7 @@ function getStateAtTime(allObjs: Map<string, TimelineObject>, states: AllStates2
 			const currentStateInstances = layerStates[time]
 			if (currentStateInstances && currentStateInstances.instance) {
 				const objId = currentStateInstances.object_id
-				const rawObj = allObjs.get(objId)
+				const rawObj = currentStateInstances.raw_object
 				if (!rawObj) throw new Error(`Missing obj ${objId}`)
 
 				isCloned = false

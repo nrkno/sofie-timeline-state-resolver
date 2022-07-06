@@ -1,4 +1,4 @@
-import { Resolver, TimelineObject, ResolvedTimeline, ResolvedTimelineObject, ResolverCache } from 'superfly-timeline'
+import { Resolver, TimelineObject, ResolvedTimeline, ResolvedTimelineObject } from 'superfly-timeline'
 import _ = require('underscore')
 import { TimelineTriggerTimeResult } from './conductor'
 import { TSRTimeline, TSRTimelineObj } from 'timeline-state-resolver-types'
@@ -6,20 +6,21 @@ import { TSRTimeline, TSRTimelineObj } from 'timeline-state-resolver-types'
 export class AsyncResolver {
 	private readonly onSetTimelineTriggerTime: (res: TimelineTriggerTimeResult) => void
 
-	private cache: ResolverCache = {}
+	// private cache: ResolverCache = {}
 
 	public constructor(onSetTimelineTriggerTime: (res: TimelineTriggerTimeResult) => void) {
 		this.onSetTimelineTriggerTime = onSetTimelineTriggerTime
 	}
 
-	public resolveTimeline(resolveTime: number, timeline: TSRTimeline, limitTime: number, useCache: boolean) {
+	public resolveTimeline(resolveTime: number, timeline0: TSRTimeline, limitTime: number, _useCache: boolean) {
+		const timeline = JSON.parse(JSON.stringify(timeline0)) // TODO - this is bad, but we need to avoid mutating it...
 		const objectsFixed = this._fixNowObjects(timeline, resolveTime)
 
 		const resolvedTimeline = Resolver.resolveTimeline(timeline, {
 			limitCount: 999,
 			limitTime: limitTime,
 			time: resolveTime,
-			cache: useCache ? this.cache : undefined,
+			// cache: useCache ? this.cache : undefined,
 		})
 
 		const resolvedStates = Resolver.resolveAllStates(resolvedTimeline)

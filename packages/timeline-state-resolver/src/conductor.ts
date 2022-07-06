@@ -45,6 +45,7 @@ import PTimeout from 'p-timeout'
 import { ShotokuDevice, DeviceOptionsShotokuInternal } from './devices/shotoku'
 import { endTrace, FinishedTrace, startTrace } from './lib'
 import { getState2, HttpResolver, RustResult } from './HttpResolver'
+import { performance } from 'perf_hooks'
 
 export { DeviceContainer }
 export { CommandWithContext }
@@ -898,6 +899,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 				resolvedStates = this._resolvedStates.resolvedStates
 				resolvedStates2 = this._resolvedStates.resolvedStates2
 			} else {
+				const start0 = performance.now()
 				// No, we need to resolve the timeline again:
 				const o = await this._resolver.resolveTimeline(
 					resolveTime,
@@ -905,14 +907,20 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 					resolveTime + RESOLVE_LIMIT_TIME,
 					this._useCacheWhenResolving
 				)
+
+				const end0 = performance.now()
 				resolvedStates = o.resolvedStates
 
+				const start1 = performance.now()
 				const o2 = await this._resolver2.resolveTimeline(
 					resolveTime,
 					timeline,
 					resolveTime + RESOLVE_LIMIT_TIME,
 					this._useCacheWhenResolving
 				)
+				const end1 = performance.now()
+
+				console.log(`NEW NUMBER TIMELINE: ${end0 - start0}, ${end1 - start1}`)
 
 				resolvedStates2 = o2.resolvedStates
 
@@ -934,8 +942,12 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 				_.each(timeline, (o) => applyRecursively(o, fixNow))
 			}
 
+			// const start2 = performance.now()
 			const tlState = Resolver.getState(resolvedStates, resolveTime)
-			const tlState2 = getState2(timeline, resolvedStates2, resolveTime)
+			// const mid2 = performance.now()
+			// const tlState2 = getState2(resolvedStates2, resolveTime)
+			// const end2 = performance.now()
+			// console.log(`NEW NUMBER STATE: ${mid2 - start2}, ${end2 - mid2}`)
 
 			await pPrepareForHandleStates
 
@@ -950,7 +962,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 				)
 			}
 
-			console.log(!!tlState2) // Keep the object alive for a bit
+			// console.log(!!tlState2) // Keep the object alive for a bit
 			const layersPerDevice = this.filterLayersPerDevice(
 				tlState.layers,
 				Array.from(this.devices.values()).filter((d) => d.initialized === true)
