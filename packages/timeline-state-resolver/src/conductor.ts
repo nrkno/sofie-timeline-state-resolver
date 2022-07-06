@@ -44,6 +44,7 @@ import * as PAll from 'p-all'
 import PTimeout from 'p-timeout'
 import { ShotokuDevice, DeviceOptionsShotokuInternal } from './devices/shotoku'
 import { endTrace, FinishedTrace, startTrace } from './lib'
+import { getState2, HttpResolver, RustResult } from './HttpResolver'
 
 export { DeviceContainer }
 export { CommandWithContext }
@@ -148,9 +149,11 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 	private _nextResolveTime = 0
 	private _resolvedStates: {
 		resolvedStates: ResolvedStates | null
+		resolvedStates2: RustResult | null
 		resolveTime: number
 	} = {
 		resolvedStates: null,
+		resolvedStates2: null,
 		resolveTime: 0,
 	}
 	private _resolveTimelineTrigger: NodeJS.Timer | undefined
@@ -173,6 +176,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 	private _statReports: StatReport[] = []
 
 	private _resolver!: ThreadedClass<AsyncResolver>
+	private _resolver2: HttpResolver
 
 	private _interval: NodeJS.Timer
 	private _timelineHash: string | undefined
@@ -181,6 +185,11 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 	constructor(options: ConductorOptions = {}) {
 		super()
 		this._options = options
+
+		this._resolver2 = new HttpResolver((_r) => {
+			// Ignore for now, as we are running both resolvers
+			// this.emit('setTimelineTriggerTime', r)
+		})
 
 		this._multiThreadedResolver = !!options.multiThreadedResolver
 		this._useCacheWhenResolving = !!options.useCacheWhenResolving
@@ -671,6 +680,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 				this._nextResolveTime = 0 // This will cause _resolveTimeline() to generate the state for NOW
 				this._resolvedStates = {
 					resolvedStates: null,
+					resolvedStates2: null,
 					resolveTime: 0,
 				}
 			})
@@ -877,13 +887,16 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 
 			// Determine if we can use the pre-resolved timeline:
 			let resolvedStates: ResolvedStates
+			let resolvedStates2: RustResult
 			if (
 				this._resolvedStates.resolvedStates &&
+				this._resolvedStates.resolvedStates2 &&
 				resolveTime >= this._resolvedStates.resolveTime &&
 				resolveTime < this._resolvedStates.resolveTime + RESOLVE_LIMIT_TIME
 			) {
 				// Yes, we can use the previously resolved timeline:
 				resolvedStates = this._resolvedStates.resolvedStates
+				resolvedStates2 = this._resolvedStates.resolvedStates2
 			} else {
 				// No, we need to resolve the timeline again:
 				const o = await this._resolver.resolveTimeline(
@@ -894,7 +907,17 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 				)
 				resolvedStates = o.resolvedStates
 
+				const o2 = await this._resolver2.resolveTimeline(
+					resolveTime,
+					timeline,
+					resolveTime + RESOLVE_LIMIT_TIME,
+					this._useCacheWhenResolving
+				)
+
+				resolvedStates2 = o2.resolvedStates
+
 				this._resolvedStates.resolvedStates = resolvedStates
+				this._resolvedStates.resolvedStates2 = resolvedStates2
 				this._resolvedStates.resolveTime = resolveTime
 
 				// Apply changes to fixed objects (set "now" triggers to an actual time):
@@ -912,6 +935,8 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 			}
 
 			const tlState = Resolver.getState(resolvedStates, resolveTime)
+			const tlState2 = getState2(timeline, resolvedStates2, resolveTime)
+
 			await pPrepareForHandleStates
 
 			statTimeTimelineResolved = Date.now()
@@ -925,6 +950,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 				)
 			}
 
+			console.log(!!tlState2) // Keep the object alive for a bit
 			const layersPerDevice = this.filterLayersPerDevice(
 				tlState.layers,
 				Array.from(this.devices.values()).filter((d) => d.initialized === true)
