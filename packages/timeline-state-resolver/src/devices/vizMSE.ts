@@ -38,6 +38,7 @@ import * as net from 'net'
 import { ExpectedPlayoutItem } from '../expectedPlayoutItems'
 import * as request from 'request'
 import { startTrace, endTrace, deferAsync } from '../lib'
+import { HTTPClientError, HTTPServerError } from '@tv2media/v-connection/dist/msehttp'
 
 /** The ideal time to prepare elements before going on air */
 const IDEAL_PREPARE_TIME = 1000
@@ -761,7 +762,10 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState, DeviceOptionsVizM
 			const error = e as Error
 			let errorString = error && error.message ? error.message : error.toString()
 			if (error?.stack) {
-				errorString += error.stack
+				errorString += '\n' + error.stack
+			}
+			if (e instanceof HTTPClientError || e instanceof HTTPServerError) {
+				errorString += '\n\n' + (e.body ?? '[No request body present]')
 			}
 			this.emit('commandError', new Error(errorString), cwc)
 		}
