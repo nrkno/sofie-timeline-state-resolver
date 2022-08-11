@@ -16,6 +16,8 @@ import {
 import { ThreadedClass } from 'threadedclass'
 import { literal } from '../device'
 import { getMockCall } from '../../__tests__/lib'
+import { AtemStateUtil } from 'atem-connection'
+import { TransitionStyle } from 'atem-connection/dist/enums'
 
 describe('Atem', () => {
 	const mockTime = new MockTime()
@@ -327,5 +329,208 @@ describe('Atem', () => {
 		// Handle the same state, after the commands have been sent
 		device.handleState(mockState, myLayerMapping)
 		expect(device.queue).toHaveLength(0)
+	})
+
+	test('Atem: sends TransitionPropertiesCommand for DIP', async () => {
+		const commandReceiver0: any = jest.fn(async () => {
+			return Promise.resolve()
+		})
+		const myLayerMapping0: MappingAtem = {
+			device: DeviceType.ATEM,
+			deviceId: 'myAtem',
+			mappingType: MappingAtemType.MixEffect,
+			index: 0,
+		}
+		const myLayerMapping: Mappings = {
+			myLayer0: myLayerMapping0,
+		}
+
+		const myConductor = new Conductor({
+			multiThreadedResolver: false,
+			getCurrentTime: mockTime.getCurrentTime,
+		})
+		await myConductor.init()
+		await myConductor.addDevice(
+			'myAtem',
+			literal<DeviceOptionsAtemInternal>({
+				type: DeviceType.ATEM,
+				options: {
+					host: '127.0.0.1',
+					port: 9910,
+				},
+				commandReceiver: commandReceiver0,
+			})
+		)
+
+		const deviceContainer = myConductor.getDevice('myAtem')
+		const device = deviceContainer!.device as ThreadedClass<AtemDevice>
+
+		// Check that no commands has been scheduled:
+		expect(await device.queue).toHaveLength(0)
+
+		myConductor.setTimelineAndMappings(
+			[
+				{
+					id: 'obj0',
+					enable: {
+						start: mockTime.now - 1000, // 1 seconds ago
+						duration: 2000,
+					},
+					layer: 'myLayer0',
+					content: {
+						deviceType: DeviceType.ATEM,
+						type: TimelineContentTypeAtem.ME,
+						me: {
+							input: 2,
+							transition: AtemTransitionStyle.CUT,
+						},
+					},
+				},
+				{
+					id: 'obj1',
+					enable: {
+						start: '#obj0.end',
+						duration: 2000,
+					},
+					layer: 'myLayer0',
+					content: {
+						deviceType: DeviceType.ATEM,
+						type: TimelineContentTypeAtem.ME,
+						me: {
+							input: 3,
+							transition: AtemTransitionStyle.DIP,
+						},
+					},
+				},
+			],
+			myLayerMapping
+		)
+
+		commandReceiver0.mockClear()
+		await mockTime.advanceTimeToTicks(10200)
+		expect(commandReceiver0).toHaveBeenCalledTimes(2)
+		compareAtemCommands(getMockCall(commandReceiver0, 0, 1), new AtemConnection.Commands.PreviewInputCommand(0, 2))
+		compareAtemCommands(getMockCall(commandReceiver0, 1, 1), new AtemConnection.Commands.CutCommand(0))
+
+		commandReceiver0.mockClear()
+		await mockTime.advanceTimeToTicks(12200)
+
+		expect(commandReceiver0).toHaveBeenCalledTimes(5)
+		const transitionPropertiesCommand = new AtemConnection.Commands.TransitionPropertiesCommand(0)
+		transitionPropertiesCommand.updateProps({ nextStyle: 1 })
+		compareAtemCommands(getMockCall(commandReceiver0, 0, 1), transitionPropertiesCommand)
+		compareAtemCommands(getMockCall(commandReceiver0, 1, 1), new AtemConnection.Commands.PreviewInputCommand(0, 3))
+		compareAtemCommands(getMockCall(commandReceiver0, 2, 1), transitionPropertiesCommand)
+		compareAtemCommands(
+			getMockCall(commandReceiver0, 3, 1),
+			new AtemConnection.Commands.TransitionPositionCommand(0, 0)
+		)
+		compareAtemCommands(getMockCall(commandReceiver0, 4, 1), new AtemConnection.Commands.AutoTransitionCommand(0))
+	})
+
+	test('Atem: does not reset transition properties when initial nextStyle is not 0', async () => {
+		const commandReceiver0: any = jest.fn(async () => {
+			return Promise.resolve()
+		})
+		const myLayerMapping0: MappingAtem = {
+			device: DeviceType.ATEM,
+			deviceId: 'myAtem',
+			mappingType: MappingAtemType.MixEffect,
+			index: 0,
+		}
+		const myLayerMapping: Mappings = {
+			myLayer0: myLayerMapping0,
+		}
+
+		const myConductor = new Conductor({
+			multiThreadedResolver: false,
+			getCurrentTime: mockTime.getCurrentTime,
+		})
+		await myConductor.init()
+		await myConductor.addDevice(
+			'myAtem',
+			literal<DeviceOptionsAtemInternal>({
+				type: DeviceType.ATEM,
+				options: {
+					host: '127.0.0.1',
+					port: 9910,
+				},
+				commandReceiver: commandReceiver0,
+			})
+		)
+
+		await mockTime.advanceTimeToTicks(10100)
+
+		const deviceContainer = myConductor.getDevice('myAtem')
+		const device = deviceContainer!.device as ThreadedClass<AtemDevice>
+
+		// Check that no commands has been scheduled:
+		expect(await device.queue).toHaveLength(0)
+
+		const oldState = AtemStateUtil.Create()
+		const mixEffect = AtemStateUtil.getMixEffect(oldState, 0)
+		mixEffect.transitionProperties.nextStyle = TransitionStyle.DIP
+		mixEffect.programInput = 2
+
+		// @ts-ignore
+		device.setState(oldState, mockTime.now)
+
+		myConductor.setTimelineAndMappings(
+			[
+				{
+					id: 'obj0',
+					enable: {
+						start: mockTime.now,
+						duration: 2000,
+					},
+					layer: 'myLayer0',
+					content: {
+						deviceType: DeviceType.ATEM,
+						type: TimelineContentTypeAtem.ME,
+						me: {
+							input: 2,
+							transition: AtemTransitionStyle.DIP,
+						},
+					},
+				},
+			],
+			myLayerMapping
+		)
+
+		await mockTime.advanceTimeToTicks(10200)
+
+		myConductor.setTimelineAndMappings(
+			[
+				{
+					id: 'obj0',
+					enable: {
+						start: mockTime.now,
+						duration: 2000,
+					},
+					layer: 'myLayer0',
+					content: {
+						deviceType: DeviceType.ATEM,
+						type: TimelineContentTypeAtem.ME,
+						me: {
+							input: 4,
+							transition: AtemTransitionStyle.DIP,
+						},
+					},
+				},
+			],
+			myLayerMapping
+		)
+
+		await mockTime.advanceTimeToTicks(11200)
+
+		const transitionPropertiesCommand = commandReceiver0.mock.calls.find(
+			(call) => call[1] instanceof AtemConnection.Commands.TransitionPropertiesCommand
+		)
+		expect(transitionPropertiesCommand).toBeUndefined()
+
+		const autoTransitionCommand = commandReceiver0.mock.calls.find(
+			(call) => call[1] instanceof AtemConnection.Commands.AutoTransitionCommand
+		)
+		expect(autoTransitionCommand).toBeDefined()
 	})
 })
