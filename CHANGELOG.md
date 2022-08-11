@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [2.1.4](https://github.com/tv2/tv-automation-state-timeline-resolver/compare/2.1.3...2.1.4) (2022-08-11)
+
+
+### Bug Fixes
+
+* SOF-1046 prevent resetting transition on startup ([e52cf60](https://github.com/tv2/tv-automation-state-timeline-resolver/commit/e52cf60c07e58062c346bf0a84e48a9106b28105))
+
+
+
+
+
 ## [2.1.3](https://github.com/tv2/tv-automation-state-timeline-resolver/compare/2.1.2...2.1.3) (2022-07-04)
 
 **Note:** Version bump only for package timeline-state-resolver-packages
