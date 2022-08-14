@@ -82,8 +82,16 @@ export interface TimelineObjHyperdeckTransport extends TimelineObjHyperdeck {
 		deviceType: DeviceType.HYPERDECK
 		type: TimelineContentTypeHyperdeck.TRANSPORT
 
-		/** The status of the hyperdeck. To start a recording, set to TransportStatus.RECORD */
+		/** The status of the hyperdeck. To start a recording, set to TransportStatus.RECORD. To start playback, set to TransportStatus.PLAY. */
 		status: TransportStatus
+		/** How fast to play the currently-playing clip [-5000 - 5000]. Default 1x speed is 100. 0 is stopped. Negative values are rewind. Values above 100 are fast-forward. */
+		speed: number
+		/** Whether or not to loop the currently-playing clip */
+		loop: boolean
+		/** Wheter or not to stop playback when the currently-playing clip is finished */
+		singleClip: boolean
+		/** The numeric ID of the clip to play. null = no clip */
+		clipId: number | null
 		/** The filename to record to */
 		recordFilename?: string
 	}

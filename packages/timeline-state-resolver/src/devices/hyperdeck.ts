@@ -41,6 +41,10 @@ export interface HyperdeckCommandWithContext {
 
 export interface TransportInfoCommandResponseExt {
 	status: TransportStatus
+	speed: number
+	singleClip: boolean
+	loop: boolean
+	clipId: number | null
 	recordFilename?: string
 }
 
@@ -313,11 +317,19 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState, DeviceOptionsH
 								deviceState.transport = {
 									status: hyperdeckObjTransport.content.status,
 									recordFilename: hyperdeckObjTransport.content.recordFilename,
+									speed: hyperdeckObjTransport.content.speed,
+									loop: hyperdeckObjTransport.content.loop,
+									singleClip: hyperdeckObjTransport.content.singleClip,
+									clipId: hyperdeckObjTransport.content.clipId,
 								}
 							}
 
 							deviceState.transport.status = hyperdeckObjTransport.content.status
 							deviceState.transport.recordFilename = hyperdeckObjTransport.content.recordFilename
+							deviceState.transport.speed = hyperdeckObjTransport.content.speed
+							deviceState.transport.loop = hyperdeckObjTransport.content.loop
+							deviceState.transport.singleClip = hyperdeckObjTransport.content.singleClip
+							deviceState.transport.clipId = hyperdeckObjTransport.content.clipId
 						}
 						break
 				}
@@ -379,6 +391,11 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState, DeviceOptionsH
 				if (supposedState === TransportStatus.RECORD && this._transportStatus !== supposedState) {
 					if (statusCode < StatusCode.WARNING_MAJOR) statusCode = StatusCode.WARNING_MAJOR
 					messages.push('Hyperdeck not recording')
+				}
+
+				if (supposedState === TransportStatus.PLAY && this._transportStatus !== supposedState) {
+					if (statusCode < StatusCode.WARNING_MAJOR) statusCode = StatusCode.WARNING_MAJOR
+					messages.push('Hyperdeck not playing')
 				}
 			}
 		}
@@ -500,10 +517,61 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState, DeviceOptionsH
 
 					break
 				}
+				case TransportStatus.PLAY: {
+					if (
+						oldHyperdeckState.transport.status !== newHyperdeckState.transport.status ||
+						oldHyperdeckState.transport.speed !== newHyperdeckState.transport.speed ||
+						oldHyperdeckState.transport.loop !== newHyperdeckState.transport.loop ||
+						oldHyperdeckState.transport.singleClip !== newHyperdeckState.transport.singleClip
+					) {
+						// Start or modify playback
+						commandsToAchieveState.push({
+							command: new HyperdeckCommands.PlayCommand(
+								newHyperdeckState.transport.speed + '',
+								newHyperdeckState.transport.loop,
+								newHyperdeckState.transport.singleClip
+							),
+							context: {
+								oldState: oldHyperdeckState.transport,
+								newState: newHyperdeckState.transport,
+							},
+							timelineObjId: newHyperdeckState.timelineObjId,
+						})
+					} // else continue playing
+
+					if (oldHyperdeckState.transport.clipId !== newHyperdeckState.transport.clipId) {
+						if (newHyperdeckState.transport.clipId === null) {
+							// Stop playback
+							commandsToAchieveState.push({
+								command: new HyperdeckCommands.StopCommand(),
+								context: {
+									oldState: oldHyperdeckState.transport,
+									newState: newHyperdeckState.transport,
+								},
+								timelineObjId: newHyperdeckState.timelineObjId,
+							})
+						} else {
+							// Go to the new clip
+							commandsToAchieveState.push({
+								command: new HyperdeckCommands.GoToCommand(undefined, newHyperdeckState.transport.clipId),
+								context: {
+									oldState: oldHyperdeckState.transport,
+									newState: newHyperdeckState.transport,
+								},
+								timelineObjId: newHyperdeckState.timelineObjId,
+							})
+						}
+					} // else continue playing
+
+					break
+				}
 				default:
 					// TODO - warn
 					// for now we are assuming they want a stop. that could be conditional later on
-					if (oldHyperdeckState.transport.status === TransportStatus.RECORD) {
+					if (
+						oldHyperdeckState.transport.status === TransportStatus.RECORD ||
+						oldHyperdeckState.transport.status === TransportStatus.PLAY
+					) {
 						commandsToAchieveState.push({
 							command: new HyperdeckCommands.StopCommand(),
 							context: {
@@ -616,6 +684,10 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState, DeviceOptionsH
 			},
 			transport: {
 				status: TransportStatus.PREVIEW,
+				speed: 100, // 1x speed
+				loop: false,
+				singleClip: true,
+				clipId: null,
 			},
 			timelineObjId: '',
 		}
