@@ -56,6 +56,12 @@ export interface DeviceState {
 }
 
 type CommandContext = any
+
+const DEFAULT_SPEED = 100 // 1x speed
+const DEFAULT_LOOP = false
+const DEFAULT_SINGLE_CLIP = true
+const DEFAULT_CLIP_ID = null
+
 /**
  * This is a wrapper for the Hyperdeck Device. Commands to any and all hyperdeck devices will be sent through here.
  */
@@ -314,22 +320,55 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState, DeviceOptionsH
 						if (hyperdeckObj.content.type === TimelineContentTypeHyperdeck.TRANSPORT) {
 							const hyperdeckObjTransport = tlObject as any as TimelineObjHyperdeckTransport
 							if (!deviceState.transport) {
-								deviceState.transport = {
-									status: hyperdeckObjTransport.content.status,
-									recordFilename: hyperdeckObjTransport.content.recordFilename,
-									speed: hyperdeckObjTransport.content.speed,
-									loop: hyperdeckObjTransport.content.loop,
-									singleClip: hyperdeckObjTransport.content.singleClip,
-									clipId: hyperdeckObjTransport.content.clipId,
+								switch (hyperdeckObjTransport.content.status) {
+									case TransportStatus.PREVIEW:
+									case TransportStatus.STOPPED:
+									case TransportStatus.FORWARD:
+									case TransportStatus.REWIND:
+									case TransportStatus.JOG:
+									case TransportStatus.SHUTTLE:
+										deviceState.transport = {
+											status: hyperdeckObjTransport.content.status,
+											speed: DEFAULT_SPEED,
+											loop: DEFAULT_LOOP,
+											singleClip: DEFAULT_SINGLE_CLIP,
+											clipId: DEFAULT_CLIP_ID,
+										}
+										break
+									case TransportStatus.PLAY:
+										deviceState.transport = {
+											status: hyperdeckObjTransport.content.status,
+											speed: hyperdeckObjTransport.content.speed ?? DEFAULT_SPEED,
+											loop: hyperdeckObjTransport.content.loop ?? DEFAULT_LOOP,
+											singleClip: hyperdeckObjTransport.content.singleClip ?? DEFAULT_SINGLE_CLIP,
+											clipId: hyperdeckObjTransport.content.clipId,
+										}
+										break
+									case TransportStatus.RECORD:
+										deviceState.transport = {
+											status: hyperdeckObjTransport.content.status,
+											speed: DEFAULT_SPEED,
+											loop: DEFAULT_LOOP,
+											singleClip: DEFAULT_SINGLE_CLIP,
+											clipId: DEFAULT_CLIP_ID,
+											recordFilename: hyperdeckObjTransport.content.recordFilename,
+										}
+										break
+									default:
+										// @ts-ignore never
+										throw new Error(`Unsupported status "${hyperdeckObjTransport.content.status}"`)
 								}
 							}
 
 							deviceState.transport.status = hyperdeckObjTransport.content.status
-							deviceState.transport.recordFilename = hyperdeckObjTransport.content.recordFilename
-							deviceState.transport.speed = hyperdeckObjTransport.content.speed
-							deviceState.transport.loop = hyperdeckObjTransport.content.loop
-							deviceState.transport.singleClip = hyperdeckObjTransport.content.singleClip
-							deviceState.transport.clipId = hyperdeckObjTransport.content.clipId
+							if (hyperdeckObjTransport.content.status === TransportStatus.RECORD) {
+								deviceState.transport.recordFilename = hyperdeckObjTransport.content.recordFilename
+							} else if (hyperdeckObjTransport.content.status === TransportStatus.PLAY) {
+								deviceState.transport.speed = hyperdeckObjTransport.content.speed ?? DEFAULT_SPEED
+								deviceState.transport.loop = hyperdeckObjTransport.content.loop ?? DEFAULT_LOOP
+								deviceState.transport.singleClip = hyperdeckObjTransport.content.singleClip ?? DEFAULT_SINGLE_CLIP
+								deviceState.transport.clipId = hyperdeckObjTransport.content.clipId
+							}
 						}
 						break
 				}
@@ -684,10 +723,10 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState, DeviceOptionsH
 			},
 			transport: {
 				status: TransportStatus.PREVIEW,
-				speed: 100, // 1x speed
-				loop: false,
-				singleClip: true,
-				clipId: null,
+				speed: DEFAULT_SPEED,
+				loop: DEFAULT_LOOP,
+				singleClip: DEFAULT_SINGLE_CLIP,
+				clipId: DEFAULT_CLIP_ID,
 			},
 			timelineObjId: '',
 		}

@@ -92,10 +92,6 @@ describe('Hyperdeck', () => {
 					type: TimelineContentTypeHyperdeck.TRANSPORT,
 
 					status: TransportStatus.RECORD,
-					speed: 0,
-					loop: false,
-					singleClip: true,
-					clipId: null,
 					recordFilename: 'sofie_dev',
 				},
 			},
@@ -111,10 +107,6 @@ describe('Hyperdeck', () => {
 					type: TimelineContentTypeHyperdeck.TRANSPORT,
 
 					status: TransportStatus.PREVIEW,
-					speed: 0,
-					loop: false,
-					singleClip: true,
-					clipId: null,
 				},
 			},
 		])
@@ -226,10 +218,6 @@ describe('Hyperdeck', () => {
 					type: TimelineContentTypeHyperdeck.TRANSPORT,
 
 					status: TransportStatus.PREVIEW,
-					speed: 100,
-					loop: false,
-					singleClip: true,
-					clipId: null,
 				},
 			},
 		])
@@ -344,10 +332,6 @@ describe('Hyperdeck', () => {
 					type: TimelineContentTypeHyperdeck.TRANSPORT,
 
 					status: TransportStatus.PREVIEW,
-					speed: 100,
-					loop: false,
-					singleClip: true,
-					clipId: null,
 				},
 			},
 		])
