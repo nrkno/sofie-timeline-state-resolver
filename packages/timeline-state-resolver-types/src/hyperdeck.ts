@@ -97,7 +97,7 @@ export interface TimelineObjHyperdeckTransport extends TimelineObjHyperdeck {
 				loop?: boolean
 				/** Wheter or not to stop playback when the currently-playing clip is finished */
 				singleClip?: boolean
-				/** The numeric ID of the clip to play. null = no clip */
+				/** The numeric ID of the clip to play. null = play last played clip */
 				clipId: number | null
 		  }
 		| {
