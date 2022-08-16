@@ -578,28 +578,19 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState, DeviceOptionsH
 						})
 					} // else continue playing
 
-					if (oldHyperdeckState.transport.clipId !== newHyperdeckState.transport.clipId) {
-						if (newHyperdeckState.transport.clipId === null) {
-							// Stop playback
-							commandsToAchieveState.push({
-								command: new HyperdeckCommands.StopCommand(),
-								context: {
-									oldState: oldHyperdeckState.transport,
-									newState: newHyperdeckState.transport,
-								},
-								timelineObjId: newHyperdeckState.timelineObjId,
-							})
-						} else {
-							// Go to the new clip
-							commandsToAchieveState.push({
-								command: new HyperdeckCommands.GoToCommand(undefined, newHyperdeckState.transport.clipId),
-								context: {
-									oldState: oldHyperdeckState.transport,
-									newState: newHyperdeckState.transport,
-								},
-								timelineObjId: newHyperdeckState.timelineObjId,
-							})
-						}
+					if (
+						oldHyperdeckState.transport.clipId !== newHyperdeckState.transport.clipId &&
+						newHyperdeckState.transport.clipId !== null
+					) {
+						// Go to the new clip
+						commandsToAchieveState.push({
+							command: new HyperdeckCommands.GoToCommand(undefined, newHyperdeckState.transport.clipId),
+							context: {
+								oldState: oldHyperdeckState.transport,
+								newState: newHyperdeckState.transport,
+							},
+							timelineObjId: newHyperdeckState.timelineObjId,
+						})
 					} // else continue playing
 
 					break
