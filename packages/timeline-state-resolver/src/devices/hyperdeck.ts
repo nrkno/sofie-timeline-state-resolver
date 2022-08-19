@@ -618,6 +618,37 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState, DeviceOptionsH
 
 					break
 				}
+				case TransportStatus.PREVIEW: {
+					if (oldHyperdeckState.transport.status !== newHyperdeckState.transport.status) {
+						// Switch to preview mode
+						// A subsequent play or record command will automatically override this
+						commandsToAchieveState.push({
+							command: new HyperdeckCommands.PreviewCommand(true),
+							context: {
+								oldState: oldHyperdeckState.transport,
+								newState: newHyperdeckState.transport,
+							},
+							timelineObjId: newHyperdeckState.timelineObjId,
+						})
+					}
+
+					break
+				}
+				case TransportStatus.STOPPED: {
+					if (oldHyperdeckState.transport.status !== newHyperdeckState.transport.status) {
+						// Stop playback/recording
+						commandsToAchieveState.push({
+							command: new HyperdeckCommands.StopCommand(),
+							context: {
+								oldState: oldHyperdeckState.transport,
+								newState: newHyperdeckState.transport,
+							},
+							timelineObjId: newHyperdeckState.timelineObjId,
+						})
+					}
+
+					break
+				}
 				default:
 					// TODO - warn
 					// for now we are assuming they want a stop. that could be conditional later on
@@ -736,7 +767,7 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState, DeviceOptionsH
 				droppedFrames: false,
 			},
 			transport: {
-				status: TransportStatus.PREVIEW,
+				status: TransportStatus.STOPPED,
 				speed: DEFAULT_SPEED,
 				loop: DEFAULT_LOOP,
 				singleClip: DEFAULT_SINGLE_CLIP,
