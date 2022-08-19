@@ -338,7 +338,7 @@ describe('Hyperdeck', () => {
 
 		await mockTime.advanceTimeToTicks(10200)
 
-		expect(commandReceiver0).toHaveBeenCalledTimes(2)
+		expect(commandReceiver0).toHaveBeenCalledTimes(3)
 		expect(getMockCall(commandReceiver0, 0, 1)).toBeInstanceOf(PlayCommand)
 		expect(getMockCall(commandReceiver0, 0, 1)).toHaveProperty('speed', '100')
 		expect(getMockCall(commandReceiver0, 0, 1)).toHaveProperty('loop', false)
@@ -347,8 +347,20 @@ describe('Hyperdeck', () => {
 		expect(getMockCall(commandReceiver0, 1, 1)).toBeInstanceOf(GoToCommand)
 		expect(getMockCall(commandReceiver0, 1, 1)).toHaveProperty('clipId', 1)
 		expect(getMockCall(commandReceiver0, 1, 2)).toBeTruthy() // context
+
+		/**
+		 * This is the redundant/fallback/safety Play command that gets sent after most GoTo commands
+		 * to ensure that the Hyperdeck is actually playing, because it might have stopped
+		 * without TSR knowing.
+		 */
+		expect(getMockCall(commandReceiver0, 2, 1)).toBeInstanceOf(PlayCommand)
+		expect(getMockCall(commandReceiver0, 2, 1)).toHaveProperty('speed', '100')
+		expect(getMockCall(commandReceiver0, 2, 1)).toHaveProperty('loop', false)
+		expect(getMockCall(commandReceiver0, 2, 1)).toHaveProperty('singleClip', true)
+		expect(getMockCall(commandReceiver0, 2, 2)).toBeTruthy() // context
+
 		// also test the actual command sent to hyperdeck:
-		expect(hyperdeckMockCommand).toHaveBeenCalledTimes(2)
+		expect(hyperdeckMockCommand).toHaveBeenCalledTimes(3)
 		expect(getMockCall(hyperdeckMockCommand, 0, 0)).toBeInstanceOf(PlayCommand)
 		expect(getMockCall(hyperdeckMockCommand, 0, 0)).toMatchObject({
 			speed: '100',
@@ -360,18 +372,26 @@ describe('Hyperdeck', () => {
 			clipId: 1,
 		})
 
+		// Same as above, this is the redundant Play command.
+		expect(getMockCall(hyperdeckMockCommand, 2, 0)).toBeInstanceOf(PlayCommand)
+		expect(getMockCall(hyperdeckMockCommand, 2, 0)).toMatchObject({
+			speed: '100',
+			loop: false,
+			singleClip: true,
+		})
+
 		myConductor.setTimelineAndMappings(myConductor.timeline) // Same timeline
 		await mockTime.advanceTimeToTicks(10400)
-		expect(hyperdeckMockCommand).toHaveBeenCalledTimes(2) // nothing has changed, so it should not be called again
+		expect(hyperdeckMockCommand).toHaveBeenCalledTimes(3) // nothing has changed, so it should not be called again
 
 		await mockTime.advanceTimeToTicks(12000)
 
-		expect(commandReceiver0).toHaveBeenCalledTimes(3)
-		expect(getMockCall(commandReceiver0, 2, 1)).toBeInstanceOf(StopCommand)
-		expect(getMockCall(commandReceiver0, 2, 2)).toBeTruthy() // context
+		expect(commandReceiver0).toHaveBeenCalledTimes(4)
+		expect(getMockCall(commandReceiver0, 3, 1)).toBeInstanceOf(StopCommand)
+		expect(getMockCall(commandReceiver0, 3, 2)).toBeTruthy() // context
 
 		await mockTime.advanceTimeToTicks(13000)
-		expect(commandReceiver0).toHaveBeenCalledTimes(3)
+		expect(commandReceiver0).toHaveBeenCalledTimes(4)
 		// no new commands should have been sent, becuse obj2 is the same as obj1
 	})
 })

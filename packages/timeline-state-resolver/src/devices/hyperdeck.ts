@@ -591,6 +591,29 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState, DeviceOptionsH
 							},
 							timelineObjId: newHyperdeckState.timelineObjId,
 						})
+
+						/**
+						 * If the last played clip naturally reached its end and singleClip was
+						 * true or it was the last clip on the disk, the Hyperdeck will stop,
+						 * but our state will still think that it is playing.
+						 * This means that in order to reliably play the clip we just GoTo'd,
+						 * we have to always send a Play command.
+						 */
+						if (newHyperdeckState.transport.status === TransportStatus.PLAY) {
+							// Start or modify playback
+							commandsToAchieveState.push({
+								command: new HyperdeckCommands.PlayCommand(
+									newHyperdeckState.transport.speed + '',
+									newHyperdeckState.transport.loop,
+									newHyperdeckState.transport.singleClip
+								),
+								context: {
+									oldState: oldHyperdeckState.transport,
+									newState: newHyperdeckState.transport,
+								},
+								timelineObjId: newHyperdeckState.timelineObjId,
+							})
+						} // else continue playing
 					} // else continue playing
 
 					break
