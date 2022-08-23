@@ -101,6 +101,18 @@ export interface TimelineObjHyperdeckTransport extends TimelineObjHyperdeck {
 				clipId: number | null
 		  }
 		| {
+				status: TransportStatus.FORWARD
+		  }
+		| {
+				status: TransportStatus.REWIND
+		  }
+		| {
+				status: TransportStatus.JOG
+		  }
+		| {
+				status: TransportStatus.SHUTTLE
+		  }
+		| {
 				status: TransportStatus.RECORD
 
 				/** The filename to record to */
