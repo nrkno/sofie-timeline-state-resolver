@@ -111,6 +111,10 @@ export class OSCMessageDevice extends DeviceWithState<OSCDeviceState, DeviceOpti
 				metadata: true,
 			})
 			this._oscClient.open()
+
+			// UDP has no concept of being connected or not, so set status to
+			// 'connected' to suppress connection-related warnings.
+			this._oscClientStatus = 'connected'
 		}
 
 		return Promise.resolve(true) // This device doesn't have any initialization procedure
