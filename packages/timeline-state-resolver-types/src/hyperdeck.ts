@@ -14,6 +14,7 @@ export interface HyperdeckOptions {
 	host: string
 	port?: number
 	minRecordingTime?: number
+	warnOnEmptySlots?: boolean
 }
 
 export enum TimelineContentTypeHyperdeck {

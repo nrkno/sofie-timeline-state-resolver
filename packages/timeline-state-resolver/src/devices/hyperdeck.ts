@@ -78,6 +78,7 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState, DeviceOptionsH
 	private _slots = 0
 	private _slotStatus = {}
 	private _transportStatus: TransportStatus
+	private _warnOnEmptySlots: boolean
 
 	private _commandReceiver: CommandReceiver
 
@@ -131,6 +132,9 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState, DeviceOptionsH
 							if (this._recTimePollTimer) clearTimeout(this._recTimePollTimer)
 						}
 						this._queryRecordingTime().catch((e) => this.emit('error', 'HyperDeck.queryRecordingTime', e))
+
+						this._warnOnEmptySlots =
+							typeof initOptions.warnOnEmptySlots === 'boolean' ? initOptions.warnOnEmptySlots : true
 
 						const notifyCmd = new HyperdeckCommands.NotifySetCommand()
 						notifyCmd.slot = true
@@ -412,7 +416,7 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState, DeviceOptionsH
 			// check for available slots
 			let noAvailableSlots = true
 			for (let slot = 1; slot <= this._slots; slot++) {
-				if (this._slotStatus[slot] && this._slotStatus[slot].status !== SlotStatus.MOUNTED) {
+				if (this._slotStatus[slot] && this._slotStatus[slot].status !== SlotStatus.MOUNTED && this._warnOnEmptySlots) {
 					messages.push(`Slot ${slot} is not mounted`)
 					if (statusCode < StatusCode.WARNING_MINOR) statusCode = StatusCode.WARNING_MINOR
 				} else {
