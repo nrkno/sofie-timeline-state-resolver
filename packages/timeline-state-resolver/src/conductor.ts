@@ -30,7 +30,7 @@ import { TCPSendDevice, DeviceOptionsTCPSendInternal } from './devices/tcpSend'
 import { PharosDevice, DeviceOptionsPharosInternal } from './devices/pharos'
 import { OSCMessageDevice, DeviceOptionsOSCInternal } from './devices/osc'
 import { DeviceContainer } from './devices/deviceContainer'
-import { MemUsageReport, threadedClass, ThreadedClass, ThreadedClassManager } from 'threadedclass'
+import { MemUsageReport, threadedClass, ThreadedClass, ThreadedClassConfig, ThreadedClassManager } from 'threadedclass'
 import { AsyncResolver } from './AsyncResolver'
 import { HTTPWatcherDevice, DeviceOptionsHTTPWatcherInternal } from './devices/httpWatcher'
 import { QuantelDevice, DeviceOptionsQuantelInternal } from './devices/quantel'
@@ -57,6 +57,8 @@ export const MINTIMEUNIT = 1 // Minimum unit of time
 
 /** When resolving and the timeline has repeating objects, only resolve this far into the future */
 const RESOLVE_LIMIT_TIME = 10000
+
+const FREEZE_LIMIT = 5000 // how long to wait before considering the child to be unresponsive
 
 export type TimelineTriggerTimeResult = Array<{ id: string; time: number }>
 
@@ -386,11 +388,12 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 				throw new Error(`Device "${deviceId}" already exists when creating device`)
 			}
 
-			const threadedClassOptions = {
+			const threadedClassOptions: ThreadedClassConfig = {
 				threadUsage: deviceOptions.threadUsage || 1,
 				autoRestart: false,
 				disableMultithreading: !deviceOptions.isMultiThreaded,
 				instanceName: deviceId,
+				freezeLimit: FREEZE_LIMIT,
 			}
 
 			const getCurrentTime = () => {
@@ -405,10 +408,8 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 					deviceOptions,
 					getCurrentTime,
 					{
+						...threadedClassOptions,
 						threadUsage: deviceOptions.isMultiThreaded ? 0.1 : 0,
-						autoRestart: false,
-						disableMultithreading: !deviceOptions.isMultiThreaded,
-						instanceName: deviceId,
 					}
 				)
 			} else if (deviceOptions.type === DeviceType.CASPARCG) {
