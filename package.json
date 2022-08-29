@@ -40,7 +40,7 @@
     "jest": "^26.0.1",
     "jest-haste-map": "^26.0.1",
     "jest-resolve": "^26.0.1",
-    "lerna": "^4.0.0",
+    "lerna": "^5.4.3",
     "open-cli": "^7.0.1",
     "rimraf": "^3.0.2",
     "symlink-dir": "^5.0.1",
