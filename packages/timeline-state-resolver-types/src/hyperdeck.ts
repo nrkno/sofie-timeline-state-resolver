@@ -14,7 +14,8 @@ export interface HyperdeckOptions {
 	host: string
 	port?: number
 	minRecordingTime?: number
-	warnOnEmptySlots?: boolean
+	/** If true, no warnings will be emitted when storage slots are empty. */
+	suppressEmptySlotWarnings?: boolean
 }
 
 export enum TimelineContentTypeHyperdeck {
