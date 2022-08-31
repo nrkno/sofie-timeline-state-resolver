@@ -765,7 +765,15 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState, DeviceOptionsVizM
 				errorString += '\n' + error.stack
 			}
 			if (e instanceof HTTPClientError || e instanceof HTTPServerError) {
-				errorString += '\n\n' + (e.body ?? '[No request body present]')
+				errorString +=
+					'\n\nPath: ' +
+					e.path +
+					'\n\n' +
+					(e.body ?? '[No request body present]') +
+					'\n\nStatus: ' +
+					e.status +
+					'\nResponse:\n' +
+					e.response
 			}
 			this.emit('commandError', new Error(errorString), cwc)
 		}
