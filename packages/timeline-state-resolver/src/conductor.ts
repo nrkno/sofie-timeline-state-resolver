@@ -1003,7 +1003,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 							instance.id +
 							instance.content.callBack +
 							instance.content.callBackStopped +
-							instance.instance.start +
+							// instance.instance.start +
 							JSON.stringify(instance.content.callBackData)
 						activeObjects[callBackId] = {
 							time: instance.instance.start || 0,
@@ -1023,7 +1023,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 				tlState.time,
 				undefined,
 				(sentCallbacksNew) => {
-					this._diffStateForCallbacks(sentCallbacksNew)
+					this._diffStateForCallbacks(sentCallbacksNew, tlState.time)
 				},
 				activeObjects
 			)
@@ -1122,7 +1122,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 		)
 	}
 
-	private _diffStateForCallbacks(activeObjects: TimelineCallbacks) {
+	private _diffStateForCallbacks(activeObjects: TimelineCallbacks, tlTime: number) {
 		const sentCallbacks: TimelineCallbacks = this._sentCallbacks
 		const time = this.getCurrentTime()
 
@@ -1136,6 +1136,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 		_.each(activeObjects, (cb, callBackId) => {
 			if (cb.callBack && cb.startTime) {
 				if (!sentCallbacks[callBackId]) {
+					// console.log(`Sending start: ${cb.id}, time: ${cb.startTime}, callBackId: ${callBackId}`)
 					// Object has started playing
 					this._queueCallback(true, {
 						type: 'start',
@@ -1153,9 +1154,14 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 		_.each(sentCallbacks, (cb, callBackId: string) => {
 			if (cb.callBackStopped && !activeObjects[callBackId]) {
 				// Object has stopped playing
+				// console.log(
+				// 	`Sending stop: ${cb.id}, time: ${tlTime}, diff: ${
+				// 		tlTime - (cb.expectedEndTime ?? tlTime)
+				// 	}, callBackId: ${callBackId}`
+				// )
 				this._queueCallback(false, {
 					type: 'stop',
-					time: time,
+					time: tlTime,
 					instanceId: cb.id,
 					callBack: cb.callBackStopped,
 					callBackData: cb.callBackData,
