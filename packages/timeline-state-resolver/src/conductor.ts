@@ -1003,7 +1003,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 							instance.id +
 							instance.content.callBack +
 							instance.content.callBackStopped +
-							// instance.instance.start +
+							(instance.instance.originalStart ?? instance.instance.start) +
 							JSON.stringify(instance.content.callBackData)
 						activeObjects[callBackId] = {
 							time: instance.instance.start || 0,
