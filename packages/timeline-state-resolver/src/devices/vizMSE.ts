@@ -962,7 +962,6 @@ class VizMSEManager extends EventEmitter {
 
 						const elementHashesToDelete: string[] = []
 						// When a new element is added, we'll trigger a show init:
-
 						const showIdsToInitialize = new Set<string>()
 						_.each(this._elementCache, (element) => {
 							if (isVizMSEPlayoutItemContentInternalInstance(element.content)) {
@@ -1015,7 +1014,7 @@ class VizMSEManager extends EventEmitter {
 				this.emit('debug', `VizMSE: purging rundown`)
 				const elementsToKeep = this._expectedPlayoutItems
 					.filter((item) => !!item.baseline)
-					.map(VizMSEManager.getPlayoutItemContent)
+					.map((playoutItem) => VizMSEManager.getPlayoutItemContent(playoutItem))
 					.filter(isVizMSEPlayoutItemContentExternalInstance)
 
 				await rundown.purgeExternalElements(elementsToKeep)
@@ -1279,7 +1278,7 @@ class VizMSEManager extends EventEmitter {
 			try {
 				await rundown.initializeShow(showId)
 			} catch (e) {
-				this.emit('error', `Error in _initializeShows : ${(e as Error).toString()}`)
+				this.emit('error', `Error in _initializeShows : ${e instanceof Error ? e.toString() : e}`)
 			}
 		}
 	}
@@ -1306,7 +1305,7 @@ class VizMSEManager extends EventEmitter {
 			try {
 				await rundown.cleanupShow(showId)
 			} catch (e) {
-				this.emit('error', `Error in _cleanupShows : ${(e as Error).toString()}`)
+				this.emit('error', `Error in _cleanupShows : ${e instanceof Error ? e.toString() : e}`)
 			}
 		}
 	}
@@ -1327,7 +1326,7 @@ class VizMSEManager extends EventEmitter {
 		return `sofieInt_${layer.templateName}_${getHash((layer.templateData ?? []).join(','))}`
 	}
 
-	static getPlayoutItemContent(this: void, playoutItem: VIZMSEPlayoutItemContent): VizMSEPlayoutItemContentInstance {
+	static getPlayoutItemContent(playoutItem: VIZMSEPlayoutItemContent): VizMSEPlayoutItemContentInstance {
 		if (isVIZMSEPlayoutItemContentExternal(playoutItem)) {
 			return playoutItem
 		} else {

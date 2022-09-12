@@ -17,10 +17,17 @@ import {
 	TimelineObjAtemMacroPlayer,
 	DeviceOptionsAtem,
 	Mappings,
+	AtemTransitionStyle,
 } from 'timeline-state-resolver-types'
 import { TimelineState } from 'superfly-timeline'
 import { AtemState, State as DeviceState, Defaults as StateDefault } from 'atem-state'
-import { BasicAtem, Commands as AtemCommands, AtemState as NativeAtemState, AtemStateUtil } from 'atem-connection'
+import {
+	BasicAtem,
+	Commands as AtemCommands,
+	AtemState as NativeAtemState,
+	AtemStateUtil,
+	Enums as ConnectionEnums,
+} from 'atem-connection'
 import { DoOnTime, SendMode } from '../doOnTime'
 import { endTrace, startTrace } from '../lib'
 
@@ -248,8 +255,12 @@ export class AtemDevice extends DeviceWithState<DeviceState, DeviceOptionsAtemIn
 								const me = AtemStateUtil.getMixEffect(deviceState, mapping.index)
 								const atemObj = tlObject as any as TimelineObjAtemME
 								const atemObjKeyers = atemObj.content.me.upstreamKeyers
+								const transition = atemObj.content.me.transition
 
 								deepExtend(me, _.omit(atemObj.content.me, 'upstreamKeyers'))
+								if (this._isAssignableToNextStyle(transition)) {
+									me.transitionProperties.nextStyle = transition as number as ConnectionEnums.TransitionStyle
+								}
 								if (atemObjKeyers) {
 									_.each(atemObjKeyers, (objKey, i) => {
 										const keyer = AtemStateUtil.getUpstreamKeyer(me, i)
@@ -467,5 +478,10 @@ export class AtemDevice extends DeviceWithState<DeviceState, DeviceOptionsAtemIn
 	}
 	private _connectionChanged() {
 		this.emit('connectionChanged', this.getStatus())
+	}
+	private _isAssignableToNextStyle(transition: AtemTransitionStyle | undefined) {
+		return (
+			transition !== undefined && transition !== AtemTransitionStyle.DUMMY && transition !== AtemTransitionStyle.CUT
+		)
 	}
 }

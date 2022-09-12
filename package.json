@@ -10,7 +10,9 @@
   },
   "scripts": {
     "prepare": "husky install",
-    "build": "yarn lerna exec yarn build",
+    "build": "yarn build:types && yarn build:main",
+    "build:types": "cd packages/timeline-state-resolver-types && yarn build",
+    "build:main": "cd packages/timeline-state-resolver && yarn build",
     "lint": "yarn lerna exec yarn lint -- --",
     "test": "yarn lerna exec yarn test",
     "unit": "yarn lerna exec yarn unit",
@@ -39,6 +41,7 @@
     "lerna": "^4.0.0",
     "open-cli": "^7.0.1",
     "rimraf": "^3.0.2",
+    "symlink-dir": "^5.0.1",
     "ts-jest": "^26.1.0",
     "type-fest": "^2.16.0",
     "typedoc": "^0.22.14",
