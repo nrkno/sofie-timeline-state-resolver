@@ -395,7 +395,9 @@ export class OSCMessageDevice extends DeviceWithState<OSCDeviceState, DeviceOpti
 		}
 
 		if (Object.keys(this.transitions).length === 0) {
-			clearInterval(this.transitionInterval)
+			if (this.transitionInterval) {
+				clearInterval(this.transitionInterval)
+			}
 			this.transitionInterval = undefined
 		}
 	}
