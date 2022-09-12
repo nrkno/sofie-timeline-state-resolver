@@ -3,25 +3,40 @@ import {
 	DeviceType,
 	Mappings,
 	StatusCode,
-	TimelineObjTelemetrics,
 	TelemetricsOptions,
+	TimelineObjTelemetrics,
 } from 'timeline-state-resolver-types'
 import { TimelineState } from 'superfly-timeline'
 import { Device, DeviceStatus } from './device'
 import { Socket } from 'net'
 import * as _ from 'underscore'
+import { DoOnTime } from '../doOnTime'
+import Timer = NodeJS.Timer
 
 const TELEMETRICS_NAME = 'Telemetrics'
 const SOCKET_PORT = 5000
+const TIMEOUT_IN_MS = 2000
 
 /**
  * Connects to a Telemetrics Device on port 5000 using a TCP socket.
  * This class uses a fire and forget approach.
  */
 export class TelemetricsDevice extends Device<DeviceOptionsTelemetrics> {
+	private doOnTime: DoOnTime
+
 	private socket: Socket
 	private statusCode: StatusCode = StatusCode.UNKNOWN
 	private errorMessage: string
+
+	private recentlySendCalls: Map<string, number> = new Map()
+	private retryConnectionTimer: Timer | undefined
+
+	constructor(deviceId: string, deviceOptions: DeviceOptionsTelemetrics, getCurrentTime: () => Promise<number>) {
+		super(deviceId, deviceOptions, getCurrentTime)
+
+		this.doOnTime = new DoOnTime(() => this.getCurrentTime())
+		this.handleDoOnTime(this.doOnTime, 'telemetrics')
+	}
 
 	get canConnect(): boolean {
 		return true
@@ -76,10 +91,24 @@ export class TelemetricsDevice extends Device<DeviceOptionsTelemetrics> {
 		super.onHandleState(newState, mappings)
 		_.each(newState.layers, (timelineObject, _layerName) => {
 			const telemetricsObject: TimelineObjTelemetrics = timelineObject as unknown as TimelineObjTelemetrics
-			const preset: number = telemetricsObject.content.presetNumber
-			const command = `P0C${preset}\r`
-			this.socket.write(command)
+			telemetricsObject.content.presetShotIdentifiers.forEach((presetShotIdentifier: number) => {
+				const command = `P0C${presetShotIdentifier}\r`
+
+				if (this.hasCommandBeenSendWithinLastSecond(command, newState.time)) {
+					return
+				}
+
+				this.recentlySendCalls.set(command, newState.time)
+
+				this.doOnTime.queue(newState.time, undefined, () => {
+					this.socket.write(command)
+				})
+			})
 		})
+	}
+
+	private hasCommandBeenSendWithinLastSecond(command: string, time: number): boolean {
+		return this.recentlySendCalls.has(command) && this.recentlySendCalls.get(command)! >= time - 1000
 	}
 
 	async init(options: TelemetricsOptions): Promise<boolean> {
@@ -98,7 +127,9 @@ export class TelemetricsDevice extends Device<DeviceOptionsTelemetrics> {
 		})
 
 		this.socket.on('close', (hadError: boolean) => {
+			this.doOnTime.dispose()
 			this.updateStatus(hadError ? StatusCode.FATAL : StatusCode.BAD)
+			this.reconnect(host)
 		})
 
 		this.socket.connect(SOCKET_PORT, host)
@@ -119,7 +150,19 @@ export class TelemetricsDevice extends Device<DeviceOptionsTelemetrics> {
 		this.emit('connectionChanged', this.getStatus())
 	}
 
-	prepareForHandleState(_newStateTime: number): void {
-		// No state to handle - we use a fire and forget approach
+	private reconnect(host: string): void {
+		if (this.retryConnectionTimer) {
+			return
+		}
+		this.retryConnectionTimer = setTimeout(() => {
+			this.emit('info', 'Reconnecting...')
+			clearTimeout(this.retryConnectionTimer!)
+			this.retryConnectionTimer = undefined
+			void this.setupSocket(host)
+		}, TIMEOUT_IN_MS)
+	}
+
+	prepareForHandleState(newStateTime: number): void {
+		this.doOnTime.clearQueueNowAndAfter(newStateTime)
 	}
 }

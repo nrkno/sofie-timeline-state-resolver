@@ -5,6 +5,7 @@ import { Socket } from 'net'
 import { mocked } from 'ts-jest/utils'
 import { TimelineState } from 'superfly-timeline'
 import { ResolvedTimelineObjectInstance } from 'superfly-timeline/dist/api/api'
+import { DoOrderFunctionNothing } from '../../doOnTime'
 
 const SERVER_PORT = 5000
 const SERVER_HOST = '1.1.1.1'
@@ -22,6 +23,20 @@ jest.mock('net', () => {
 				on: (event: string, listener: (...args: any[]) => void) => {
 					SOCKET_EVENTS.set(event, listener)
 				},
+			}
+		}),
+	}
+})
+
+jest.mock('../../doOnTime', () => {
+	return {
+		DoOnTime: jest.fn().mockImplementation(() => {
+			return {
+				queue: (_time: number, _queueId: string | undefined, fcn: DoOrderFunctionNothing) => {
+					fcn()
+				},
+				on: jest.fn(),
+				dispose: jest.fn(),
 			}
 		}),
 	}
@@ -141,6 +156,14 @@ describe('telemetrics', () => {
 			const expectedResult = `P0C${presetNumber}\r`
 			expect(MOCKED_SOCKET_WRITE).toBeCalledWith(expectedResult)
 		})
+
+		it('receives three presets, sends three commands', () => {
+			const device = createInitializedTelemetricsDevice()
+
+			device.handleState(createTimelineState([1, 2, 3]), {})
+
+			expect(MOCKED_SOCKET_WRITE).toBeCalledTimes(3)
+		})
 	})
 })
 
@@ -161,12 +184,14 @@ function createInitializedTelemetricsDevice(): TelemetricsDevice {
 	return device
 }
 
-function createTimelineState(preset?: number): TimelineState {
+function createTimelineState(preset: number | number[]): TimelineState {
+	const presetIdentifiers = Number(preset) ? [preset] : preset
 	return {
+		time: 0,
 		layers: {
 			telemetrics_layer: {
 				content: {
-					presetNumber: preset ?? 1,
+					presetShotIdentifiers: presetIdentifiers,
 				} as unknown as TimelineObjTelemetrics,
 			} as unknown as ResolvedTimelineObjectInstance,
 		},

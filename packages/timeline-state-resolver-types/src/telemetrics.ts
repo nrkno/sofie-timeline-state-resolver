@@ -9,6 +9,6 @@ export type TimelineObjTelemetricsAny = TimelineObjTelemetrics
 export interface TimelineObjTelemetrics extends TSRTimelineObjBase {
 	content: {
 		deviceType: DeviceType.TELEMETRICS
-		presetNumber: number
+		presetShotIdentifiers: number[]
 	}
 }
