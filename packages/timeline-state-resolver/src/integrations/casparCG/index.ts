@@ -114,8 +114,8 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 		this.initOptions = initOptions
 		this._useScheduling = initOptions.useScheduling
 		this._ccg = new CasparCG({
-			host: initOptions.host,
-			port: initOptions.port,
+			host: initOptions.host || '',
+			port: initOptions.port || 5250,
 			autoConnect: true,
 			virginServerCheck: true,
 			onConnectionChanged: (connected: boolean) => {
@@ -690,6 +690,10 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 			case Actions.RestartServer:
 				return this.restartCasparCG()
 		}
+	}
+
+	async getActionIds() {
+		return Actions
 	}
 
 	/**
