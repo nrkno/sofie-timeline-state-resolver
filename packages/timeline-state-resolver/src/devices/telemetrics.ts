@@ -128,8 +128,12 @@ export class TelemetricsDevice extends Device<DeviceOptionsTelemetrics> {
 
 		this.socket.on('close', (hadError: boolean) => {
 			this.doOnTime.dispose()
-			this.updateStatus(hadError ? StatusCode.FATAL : StatusCode.BAD)
-			this.reconnect(host)
+			if (hadError) {
+				this.updateStatus(StatusCode.UNKNOWN)
+				this.reconnect(host)
+			} else {
+				this.updateStatus(StatusCode.BAD)
+			}
 		})
 
 		this.socket.connect(SOCKET_PORT, host)
@@ -164,5 +168,15 @@ export class TelemetricsDevice extends Device<DeviceOptionsTelemetrics> {
 
 	prepareForHandleState(newStateTime: number): void {
 		this.doOnTime.clearQueueNowAndAfter(newStateTime)
+	}
+
+	async terminate(): Promise<boolean> {
+		this.doOnTime.dispose()
+		if (this.retryConnectionTimer) {
+			clearTimeout(this.retryConnectionTimer)
+			this.retryConnectionTimer = undefined
+		}
+		this.socket.destroy()
+		return true
 	}
 }

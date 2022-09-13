@@ -45,11 +45,17 @@ jest.mock('../../doOnTime', () => {
 describe('telemetrics', () => {
 	const mockedSocket = mocked(Socket, true)
 
+	let device: TelemetricsDevice
+
 	beforeEach(() => {
 		mockedSocket.mockClear()
 		MOCKED_SOCKET_CONNECT.mockClear()
 		MOCKED_SOCKET_WRITE.mockClear()
 		SOCKET_EVENTS.clear()
+	})
+
+	afterEach(() => {
+		device.terminate()
 	})
 
 	afterAll(() => {
@@ -59,7 +65,7 @@ describe('telemetrics', () => {
 	describe('deviceName', () => {
 		it('returns "Telemetrics" plus the device id', () => {
 			const deviceId = 'someId'
-			const device = createTelemetricsDevice(deviceId)
+			device = createTelemetricsDevice(deviceId)
 
 			const result = device.deviceName
 
@@ -69,7 +75,7 @@ describe('telemetrics', () => {
 
 	describe('init', () => {
 		it('has correct ip, connects to server', () => {
-			const device = createTelemetricsDevice()
+			device = createTelemetricsDevice()
 
 			void device.init({ host: SERVER_HOST })
 
@@ -77,7 +83,7 @@ describe('telemetrics', () => {
 		})
 
 		it('on error, status is FATAL', () => {
-			const device = createTelemetricsDevice()
+			device = createTelemetricsDevice()
 
 			void device.init({ host: SERVER_HOST })
 			SOCKET_EVENTS.get('error')!(new Error())
@@ -87,7 +93,7 @@ describe('telemetrics', () => {
 		})
 
 		it('on error, error message is included in status', () => {
-			const device = createTelemetricsDevice()
+			device = createTelemetricsDevice()
 			const errorMessage = 'someErrorMessage'
 
 			void device.init({ host: SERVER_HOST })
@@ -98,7 +104,7 @@ describe('telemetrics', () => {
 		})
 
 		it('on close, closed with error, status is FATAL', () => {
-			const device = createTelemetricsDevice()
+			device = createTelemetricsDevice()
 
 			void device.init({ host: SERVER_HOST })
 			SOCKET_EVENTS.get('close')!(true)
@@ -108,7 +114,7 @@ describe('telemetrics', () => {
 		})
 
 		it('on close, closed with error, status is BAD', () => {
-			const device = createTelemetricsDevice()
+			device = createTelemetricsDevice()
 
 			void device.init({ host: SERVER_HOST })
 			SOCKET_EVENTS.get('close')!(false)
@@ -118,7 +124,7 @@ describe('telemetrics', () => {
 		})
 
 		it('on connect, status is GOOD', () => {
-			const device = createTelemetricsDevice()
+			device = createTelemetricsDevice()
 
 			void device.init({ host: SERVER_HOST })
 			SOCKET_EVENTS.get('connect')!()
@@ -130,7 +136,7 @@ describe('telemetrics', () => {
 
 	describe('handleState', () => {
 		it('has correctly formatted command', () => {
-			const device = createInitializedTelemetricsDevice()
+			device = createInitializedTelemetricsDevice()
 			const commandPrefix = 'P0C'
 			const commandPostFix = '\r'
 			const presetNumber = 5
@@ -142,7 +148,7 @@ describe('telemetrics', () => {
 		})
 
 		it('receives preset 1, sends command for preset 1', () => {
-			const device = createInitializedTelemetricsDevice()
+			device = createInitializedTelemetricsDevice()
 			const presetNumber = 1
 
 			device.handleState(createTimelineState(presetNumber), {})
@@ -152,7 +158,7 @@ describe('telemetrics', () => {
 		})
 
 		it('receives preset 2, sends command for preset 2', () => {
-			const device = createInitializedTelemetricsDevice()
+			device = createInitializedTelemetricsDevice()
 			const presetNumber = 2
 
 			device.handleState(createTimelineState(presetNumber), {})
@@ -162,7 +168,7 @@ describe('telemetrics', () => {
 		})
 
 		it('receives three presets, sends three commands', () => {
-			const device = createInitializedTelemetricsDevice()
+			device = createInitializedTelemetricsDevice()
 
 			device.handleState(createTimelineState([1, 2, 3]), {})
 
