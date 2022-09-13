@@ -23,6 +23,7 @@ jest.mock('net', () => {
 				on: (event: string, listener: (...args: any[]) => void) => {
 					SOCKET_EVENTS.set(event, listener)
 				},
+				destroy: jest.fn(),
 			}
 		}),
 	}
@@ -55,7 +56,7 @@ describe('telemetrics', () => {
 	})
 
 	afterEach(() => {
-		device.terminate()
+		void device.terminate()
 	})
 
 	afterAll(() => {
