@@ -3,7 +3,8 @@ import { Conductor } from '../../../conductor'
 import { Mappings, DeviceType, MappingQuantel, QuantelTransitionType } from 'timeline-state-resolver-types'
 import { MockTime } from '../../../__tests__/mockTime'
 import { ThreadedClass } from 'threadedclass'
-import { QuantelDevice, QuantelCommandType } from '..'
+import { QuantelDevice } from '..'
+import { QuantelCommandType } from '../interfaces'
 import '../../../__tests__/lib'
 
 const orgSetTimeout = setTimeout
