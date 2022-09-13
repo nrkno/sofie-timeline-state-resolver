@@ -176,7 +176,7 @@ export class TelemetricsDevice extends Device<DeviceOptionsTelemetrics> {
 			clearTimeout(this.retryConnectionTimer)
 			this.retryConnectionTimer = undefined
 		}
-		this.socket.destroy()
+		this.socket?.destroy()
 		return true
 	}
 }
