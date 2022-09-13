@@ -103,24 +103,24 @@ describe('telemetrics', () => {
 			expect(result.messages).toContainEqual(errorMessage)
 		})
 
-		it('on close, closed with error, status is FATAL', () => {
+		it('on close, closed with error, status is BAD', () => {
 			device = createTelemetricsDevice()
 
 			void device.init({ host: SERVER_HOST })
 			SOCKET_EVENTS.get('close')!(true)
 
 			const result = device.getStatus()
-			expect(result.statusCode).toBe(StatusCode.FATAL)
+			expect(result.statusCode).toBe(StatusCode.BAD)
 		})
 
-		it('on close, closed with error, status is BAD', () => {
+		it('on close, closed without error, status is UNKNOWN', () => {
 			device = createTelemetricsDevice()
 
 			void device.init({ host: SERVER_HOST })
 			SOCKET_EVENTS.get('close')!(false)
 
 			const result = device.getStatus()
-			expect(result.statusCode).toBe(StatusCode.BAD)
+			expect(result.statusCode).toBe(StatusCode.UNKNOWN)
 		})
 
 		it('on connect, status is GOOD', () => {

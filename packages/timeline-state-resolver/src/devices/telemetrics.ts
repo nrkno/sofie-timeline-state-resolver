@@ -129,10 +129,10 @@ export class TelemetricsDevice extends Device<DeviceOptionsTelemetrics> {
 		this.socket.on('close', (hadError: boolean) => {
 			this.doOnTime.dispose()
 			if (hadError) {
-				this.updateStatus(StatusCode.UNKNOWN)
+				this.updateStatus(StatusCode.BAD)
 				this.reconnect(host)
 			} else {
-				this.updateStatus(StatusCode.BAD)
+				this.updateStatus(StatusCode.UNKNOWN)
 			}
 		})
 
