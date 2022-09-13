@@ -52,6 +52,10 @@ describe('telemetrics', () => {
 		SOCKET_EVENTS.clear()
 	})
 
+	afterAll(() => {
+		jest.restoreAllMocks()
+	})
+
 	describe('deviceName', () => {
 		it('returns "Telemetrics" plus the device id', () => {
 			const deviceId = 'someId'
