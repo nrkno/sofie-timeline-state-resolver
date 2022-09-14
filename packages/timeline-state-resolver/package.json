@@ -86,7 +86,7 @@
 		"production"
 	],
 	"dependencies": {
-		"@tv2media/v-connection": "^6.0.0",
+		"@tv2media/v-connection": "^6.0.2",
 		"atem-connection": "2.4.0",
 		"atem-state": "^0.12.2",
 		"casparcg-connection": "^5.1.0",
@@ -105,7 +105,7 @@
 		"request": "^2.88.0",
 		"sprintf-js": "^1.1.2",
 		"superfly-timeline": "^8.2.7",
-		"threadedclass": "^1.0.2",
+		"threadedclass": "^1.1.0",
 		"timeline-state-resolver-types": "7.3.0-release44.0",
 		"tslib": "^2.3.1",
 		"tv-automation-quantel-gateway-client": "^2.0.4",
