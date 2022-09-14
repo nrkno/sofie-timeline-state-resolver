@@ -83,14 +83,14 @@ describe('telemetrics', () => {
 			expect(MOCKED_SOCKET_CONNECT).toBeCalledWith(SERVER_PORT, SERVER_HOST)
 		})
 
-		it('on error, status is FATAL', () => {
+		it('on error, status is BAD', () => {
 			device = createTelemetricsDevice()
 
 			void device.init({ host: SERVER_HOST })
 			SOCKET_EVENTS.get('error')!(new Error())
 
 			const result = device.getStatus()
-			expect(result.statusCode).toBe(StatusCode.FATAL)
+			expect(result.statusCode).toBe(StatusCode.BAD)
 		})
 
 		it('on error, error message is included in status', () => {
@@ -175,6 +175,16 @@ describe('telemetrics', () => {
 
 			expect(MOCKED_SOCKET_WRITE).toBeCalledTimes(3)
 		})
+
+		it('is called a second time with the same timelineState, only sends one command', () => {
+			device = createInitializedTelemetricsDevice()
+
+			const timelineState = createTimelineState(1)
+			device.handleState(timelineState, {})
+			device.handleState(timelineState, {})
+
+			expect(MOCKED_SOCKET_WRITE).toBeCalledTimes(1)
+		})
 	})
 })
 
@@ -201,6 +211,7 @@ function createTimelineState(preset: number | number[]): TimelineState {
 		time: 0,
 		layers: {
 			telemetrics_layer: {
+				id: 'telemetrics_layer_id',
 				content: {
 					presetShotIdentifiers: presetIdentifiers,
 				} as unknown as TimelineObjTelemetrics,
