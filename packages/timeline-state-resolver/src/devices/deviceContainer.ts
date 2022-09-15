@@ -24,6 +24,7 @@ export class DeviceContainer<TOptions extends DeviceOptionsBase<any>> extends Ev
 	private _startTime = -1
 	private _onEventListeners: { stop: () => void }[] = []
 	private _debugLogging = true
+	private _debugState = false
 	private _initialized = false
 
 	private constructor(deviceOptions: TOptions, threadConfig?: ThreadedClassConfig) {
@@ -108,6 +109,11 @@ export class DeviceContainer<TOptions extends DeviceOptionsBase<any>> extends Ev
 		await this._device.setDebugLogging(debug)
 	}
 
+	public async setDebugState(debug: boolean): Promise<void> {
+		this._debugState = debug
+		await this._device.setDebugState(debug)
+	}
+
 	public get device(): ThreadedClass<Device<TOptions>> {
 		return this._device
 	}
@@ -135,5 +141,9 @@ export class DeviceContainer<TOptions extends DeviceOptionsBase<any>> extends Ev
 
 	public get debugLogging(): boolean {
 		return this._debugLogging
+	}
+
+	public get debugState(): boolean {
+		return this._debugState
 	}
 }

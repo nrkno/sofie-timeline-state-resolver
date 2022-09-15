@@ -125,6 +125,7 @@ export interface StatReport {
 export type ConductorEvents = {
 	error: [...args: any[]]
 	debug: [...args: any[]]
+	debugState: [...args: any[]]
 	info: [...args: any[]]
 	warning: [...args: any[]]
 
@@ -368,11 +369,15 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 			const onDeviceDebug = (...args: DeviceEvents['debug']) => {
 				this.emit('debug', instanceId, ...args)
 			}
+			const onDeviceDebugState = (...args: DeviceEvents['debugState']) => {
+				this.emit('debugState', args)
+			}
 
 			newDevice.device.on('info', onDeviceInfo).catch(console.error)
 			newDevice.device.on('warning', onDeviceWarning).catch(console.error)
 			newDevice.device.on('error', onDeviceError).catch(console.error)
 			newDevice.device.on('debug', onDeviceDebug).catch(console.error)
+			newDevice.device.on('debugState', onDeviceDebugState).catch(console.error)
 
 			const device = await this.initDevice(deviceId, deviceOptions, activeRundownPlaylistId)
 
@@ -381,6 +386,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 			newDevice.device.removeListener('warning', onDeviceWarning).catch(console.error)
 			newDevice.device.removeListener('error', onDeviceError).catch(console.error)
 			newDevice.device.removeListener('debug', onDeviceDebug).catch(console.error)
+			newDevice.device.removeListener('debugState', onDeviceDebugState).catch(console.error)
 
 			return device
 		} catch (e) {

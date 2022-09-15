@@ -48,6 +48,7 @@ export type DeviceEvents = {
 	warning: [warning: string]
 	error: [context: string, err: Error]
 	debug: [...debug: any[]]
+	debugState: [state: object]
 	/** The connection status has changed */
 	connectionChanged: [status: DeviceStatus]
 	/** A message to the resolver that something has happened that warrants a reset of the resolver (to re-run it again) */
@@ -116,12 +117,14 @@ export abstract class Device<TOptions extends DeviceOptionsBase<any>>
 	protected _reportAllCommands = false
 	protected _isActive = true
 	private debugLogging: boolean
+	private debugState: boolean
 
 	constructor(deviceId: string, deviceOptions: TOptions, getCurrentTime: () => Promise<number>) {
 		super()
 		this._deviceId = deviceId
 		this._deviceOptions = deviceOptions
 		this.debugLogging = deviceOptions.debug ?? true // Default to true to keep backwards compatibility
+		this.debugState = deviceOptions.debugState ?? false
 
 		this._instanceId = Math.floor(Math.random() * 10000)
 		this._startTime = Date.now()
@@ -213,6 +216,16 @@ export abstract class Device<TOptions extends DeviceOptionsBase<any>>
 	protected emitDebug(...args: any[]) {
 		if (this.debugLogging) {
 			this.emit('debug', ...args)
+		}
+	}
+
+	setDebugState(debug: boolean) {
+		this.debugState = debug
+	}
+
+	protected emitDebugState(state: object) {
+		if (this.debugState) {
+			this.emit('debugState', state)
 		}
 	}
 
