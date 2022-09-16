@@ -1,5 +1,5 @@
 import { Mapping } from './mapping'
-import { TSRTimelineObjBase, DeviceType, DatastoreValue } from '.'
+import { TSRTimelineObjBase, DeviceType } from '.'
 
 export interface MappingAtem extends Mapping {
 	device: DeviceType.ATEM
@@ -134,7 +134,7 @@ export interface TimelineObjAtemME extends TimelineObjAtemBase {
 		type: TimelineContentTypeAtem.ME
 		me: XOR<
 			{
-				input: DatastoreValue<number>
+				input: number
 				transition: AtemTransitionStyle
 			},
 			{

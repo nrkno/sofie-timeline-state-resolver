@@ -68,8 +68,6 @@ export enum DeviceType {
 	OBS = 21,
 }
 
-export type DatastoreValue<T> = T | { _datastoreKey: string; default: T }
-
 export interface TSRTimelineKeyframe<T> extends Timeline.TimelineKeyframe {
 	content: Partial<T>
 }
@@ -77,6 +75,12 @@ export interface TSRTimelineKeyframe<T> extends Timeline.TimelineKeyframe {
 export interface TSRTimelineObjBase extends Omit<Timeline.TimelineObject, 'content'>, TSRTimelineObjProps {
 	content: {
 		deviceType: DeviceType
+		$references?: {
+			[key: string]: {
+				path: any
+				overwrite: boolean
+			}
+		}
 	}
 	keyframes?: Array<TSRTimelineKeyframe<this['content']>>
 }
