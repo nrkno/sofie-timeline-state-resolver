@@ -1,5 +1,5 @@
 import { Mapping } from './mapping'
-import { TSRTimelineObjBase, DeviceType } from '.'
+import { TSRTimelineObjBase, DeviceType, TimelineDatastoreReferencesContent } from '.'
 
 export interface MappingHyperdeck extends Mapping {
 	device: DeviceType.HYPERDECK
@@ -75,7 +75,7 @@ export interface TimelineObjHyperdeck extends TSRTimelineObjBase {
 		deviceType: DeviceType.HYPERDECK
 		/** The type of control of the Hyperdeck */
 		type: TimelineContentTypeHyperdeck
-	}
+	} & TimelineDatastoreReferencesContent
 }
 export interface TimelineObjHyperdeckTransport extends TimelineObjHyperdeck {
 	content: {
@@ -86,5 +86,5 @@ export interface TimelineObjHyperdeckTransport extends TimelineObjHyperdeck {
 		status: TransportStatus
 		/** The filename to record to */
 		recordFilename?: string
-	}
+	} & TimelineDatastoreReferencesContent
 }

@@ -1,5 +1,5 @@
 import { Mapping } from './mapping'
-import { DeviceType, TSRTimelineObjBaseWithOnAir } from '.'
+import { DeviceType, TimelineDatastoreReferencesContent, TSRTimelineObjBaseWithOnAir } from '.'
 
 export interface MappingQuantel extends Mapping {
 	device: DeviceType.QUANTEL
@@ -67,7 +67,7 @@ export interface TimelineObjQuantelClip extends TSRTimelineObjBaseWithOnAir {
 
 		// inTransition?: QuantelTransition
 		outTransition?: QuantelOutTransition
-	}
+	} & TimelineDatastoreReferencesContent
 }
 export type QuantelOutTransition = QuantelTransitionDelay
 export interface QuantelTransitionBase {

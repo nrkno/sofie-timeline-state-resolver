@@ -72,16 +72,20 @@ export interface TSRTimelineKeyframe<T> extends Timeline.TimelineKeyframe {
 	content: Partial<T>
 }
 
+export interface TimelineDatastoreReferences {
+	[key: string]: {
+		path: string
+		overwrite: boolean
+	}
+}
+export interface TimelineDatastoreReferencesContent {
+	$references?: TimelineDatastoreReferences
+}
+
 export interface TSRTimelineObjBase extends Omit<Timeline.TimelineObject, 'content'>, TSRTimelineObjProps {
 	content: {
 		deviceType: DeviceType
-		$references?: {
-			[key: string]: {
-				path: any
-				overwrite: boolean
-			}
-		}
-	}
+	} & TimelineDatastoreReferencesContent
 	keyframes?: Array<TSRTimelineKeyframe<this['content']>>
 }
 

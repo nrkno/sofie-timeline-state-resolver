@@ -1,5 +1,5 @@
 import { Mapping } from './mapping'
-import { TSRTimelineObjBase, DeviceType } from '.'
+import { TSRTimelineObjBase, DeviceType, TimelineDatastoreReferencesContent } from '.'
 
 export type MappingOBSAny =
 	| MappingOBSCurrentScene
@@ -117,7 +117,7 @@ export interface TimelineObjOBSCurrentScene extends TimelineObjOBSBase {
 
 		/** Name of the scene that should be current */
 		sceneName: string
-	}
+	} & TimelineDatastoreReferencesContent
 }
 
 export interface TimelineObjOBSCurrentTransition extends TimelineObjOBSBase {
@@ -127,7 +127,7 @@ export interface TimelineObjOBSCurrentTransition extends TimelineObjOBSBase {
 
 		/** Name of the transition that should be current */
 		transitionName: string
-	}
+	} & TimelineDatastoreReferencesContent
 }
 
 export interface TimelineObjOBSRecording extends TimelineObjOBSBase {
@@ -137,7 +137,7 @@ export interface TimelineObjOBSRecording extends TimelineObjOBSBase {
 
 		/** Should recording be turned on */
 		on: boolean
-	}
+	} & TimelineDatastoreReferencesContent
 }
 
 export interface TimelineObjOBSStreaming extends TimelineObjOBSBase {
@@ -147,7 +147,7 @@ export interface TimelineObjOBSStreaming extends TimelineObjOBSBase {
 
 		/** Should streaming be turned on */
 		on: boolean
-	}
+	} & TimelineDatastoreReferencesContent
 }
 
 export interface TimelineObjOBSSceneItemRender extends TimelineObjOBSBase {
