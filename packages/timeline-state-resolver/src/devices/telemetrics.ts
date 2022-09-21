@@ -32,6 +32,7 @@ export class TelemetricsDevice extends DeviceWithState<TelemetricsState, DeviceO
 	private socket: Socket
 	private statusCode: StatusCode = StatusCode.UNKNOWN
 	private errorMessage: string
+	private resolveInitPromise: (value: boolean) => void
 
 	private retryConnectionTimer: Timer | undefined
 
@@ -111,10 +112,21 @@ export class TelemetricsDevice extends DeviceWithState<TelemetricsState, DeviceO
 	}
 
 	async init(options: TelemetricsOptions): Promise<boolean> {
-		return this.setupSocket(options.host)
+		const initPromise = new Promise<boolean>((resolve) => {
+			this.resolveInitPromise = resolve
+		})
+		this.connectToDevice(options.host)
+		return initPromise
 	}
 
-	private async setupSocket(host: string): Promise<boolean> {
+	private connectToDevice(host: string) {
+		if (!this.socket || this.socket.destroyed) {
+			this.setupSocket(host)
+		}
+		this.socket.connect(SOCKET_PORT, host)
+	}
+
+	private setupSocket(host: string) {
 		this.socket = new Socket()
 
 		this.socket.on('data', (data: Buffer) => {
@@ -135,13 +147,10 @@ export class TelemetricsDevice extends DeviceWithState<TelemetricsState, DeviceO
 			}
 		})
 
-		this.socket.connect(SOCKET_PORT, host)
-
-		return new Promise((resolve) => {
-			this.socket.on('connect', () => {
-				this.updateStatus(StatusCode.GOOD)
-				return resolve(true)
-			})
+		this.socket.on('connect', () => {
+			this.emit('debug', 'Successfully connected to device')
+			this.updateStatus(StatusCode.GOOD)
+			this.resolveInitPromise(true)
 		})
 	}
 
@@ -158,10 +167,10 @@ export class TelemetricsDevice extends DeviceWithState<TelemetricsState, DeviceO
 			return
 		}
 		this.retryConnectionTimer = setTimeout(() => {
-			this.emit('info', 'Reconnecting...')
+			this.emit('debug', 'Reconnecting...')
 			clearTimeout(this.retryConnectionTimer!)
 			this.retryConnectionTimer = undefined
-			void this.setupSocket(host)
+			this.connectToDevice(host)
 		}, TIMEOUT_IN_MS)
 	}
 
