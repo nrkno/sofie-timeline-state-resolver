@@ -5,7 +5,6 @@ import {
 	ResolvedStates,
 	TimelineObject,
 	Resolver,
-	TimelineObjectInstance,
 } from 'superfly-timeline'
 
 import { CommandWithContext, DeviceEvents } from './devices/device'
@@ -1078,22 +1077,9 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 	private _setDeviceState(deviceId: string, time: number, state: TimelineState, mappings: Mappings) {
 		if (!this._deviceStates[deviceId]) this._deviceStates[deviceId] = []
 
-		const dependencies: string[] = []
-		const setDepencencies = (content: Record<string, any>) => {
-			Object.values(content).forEach((val) => {
-				if (typeof val === 'object') {
-					if ('_datastoreKey' in val) {
-						dependencies.push(val._datastoreKey)
-					} else {
-						// todo - can we do a tighter check
-						setDepencencies(val)
-					}
-				}
-			})
-		}
-		Object.values(state.layers).forEach((layer) => {
-			setDepencencies(layer.content)
-		})
+		const dependencies: string[] = Object.values(state.layers).flatMap(({ content }) =>
+			Object.keys(content.$references || {})
+		)
 
 		this._deviceStates[deviceId] = _.compact([
 			this._deviceStates[deviceId].reverse().find((s) => s.time <= this.getCurrentTime()),
@@ -1110,30 +1096,26 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 		])
 
 		const filledState: typeof state = JSON.parse(JSON.stringify(state))
-		const fillState = (content: Record<string, any>, instance: TimelineObjectInstance) => {
-			Object.entries(content).forEach(([index, val]) => {
-				if (typeof val === 'object') {
-					if ('_datastoreKey' in val) {
-						const datastoreVal = this._datastore[val._datastoreKey]
-
-						if (!datastoreVal) {
-							content[index] = val.default
-						} else if (instance.originalStart && instance.originalStart > datastoreVal.modified) {
-							content[index] = val.default
-						} else if (!instance.originalStart && instance.start > datastoreVal.modified) {
-							content[index] = val.default
-						} else {
-							content[index] = datastoreVal.value
-						}
-					} else {
-						// todo - can we do a tighter check
-						fillState(val, instance)
+		Object.values(filledState.layers).forEach(({ content, instance }) => {
+			if ((content as TSRTimelineObjBase['content']).$references) {
+				Object.entries((content as TSRTimelineObjBase['content']).$references || {}).forEach(([key, ref]) => {
+					const datastoreVal = this._datastore[key]
+					const set = (obj: Record<string, any>, path: string, val: any) => {
+						const p = path.split('.')
+						p.slice(0, -1).reduce((a, b) => (a[b] ? a[b] : (a[b] = {})), obj)[p.slice(-1)[0]] = val
 					}
-				}
-			})
-		}
-		Object.values(filledState.layers).forEach((layer) => {
-			fillState(layer.content, layer.instance)
+
+					if (datastoreVal !== undefined) {
+						if (ref.overwrite) {
+							if ((instance.originalStart || instance.start || 0) <= datastoreVal.modified) {
+								set(content, ref.path, datastoreVal.value)
+							}
+						} else {
+							set(content, ref.path, datastoreVal.value)
+						}
+					}
+				})
+			}
 		})
 
 		return this.getDevice(deviceId)?.device.handleState(filledState, mappings)
@@ -1171,7 +1153,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 									const datastoreVal = this._datastore[key]
 									const set = (obj: Record<string, any>, path: string, val: any) => {
 										const p = path.split('.')
-										p.slice(0, -1).reduce((a, b) => a[b], obj)[p.slice(-1)[0]] = val
+										p.slice(0, -1).reduce((a, b) => (a[b] ? a[b] : (a[b] = {})), obj)[p.slice(-1)[0]] = val
 									}
 
 									if (datastoreVal !== undefined) {
