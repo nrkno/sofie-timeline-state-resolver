@@ -15,7 +15,7 @@ import Timer = NodeJS.Timer
 
 const TELEMETRICS_NAME = 'Telemetrics'
 const TELEMETRICS_COMMAND_PREFIX = 'P0C'
-const SOCKET_PORT = 5000
+const DEFAULT_SOCKET_PORT = 5000
 const TIMEOUT_IN_MS = 2000
 
 interface TelemetricsState {
@@ -115,18 +115,18 @@ export class TelemetricsDevice extends DeviceWithState<TelemetricsState, DeviceO
 		const initPromise = new Promise<boolean>((resolve) => {
 			this.resolveInitPromise = resolve
 		})
-		this.connectToDevice(options.host)
+		this.connectToDevice(options.host, options.port ?? DEFAULT_SOCKET_PORT)
 		return initPromise
 	}
 
-	private connectToDevice(host: string) {
+	private connectToDevice(host: string, port: number) {
 		if (!this.socket || this.socket.destroyed) {
-			this.setupSocket(host)
+			this.setupSocket(host, port)
 		}
-		this.socket.connect(SOCKET_PORT, host)
+		this.socket.connect(port, host)
 	}
 
-	private setupSocket(host: string) {
+	private setupSocket(host: string, port: number) {
 		this.socket = new Socket()
 
 		this.socket.on('data', (data: Buffer) => {
@@ -141,7 +141,7 @@ export class TelemetricsDevice extends DeviceWithState<TelemetricsState, DeviceO
 			this.doOnTime.dispose()
 			if (hadError) {
 				this.updateStatus(StatusCode.BAD)
-				this.reconnect(host)
+				this.reconnect(host, port)
 			} else {
 				this.updateStatus(StatusCode.UNKNOWN)
 			}
@@ -162,7 +162,7 @@ export class TelemetricsDevice extends DeviceWithState<TelemetricsState, DeviceO
 		this.emit('connectionChanged', this.getStatus())
 	}
 
-	private reconnect(host: string): void {
+	private reconnect(host: string, port: number): void {
 		if (this.retryConnectionTimer) {
 			return
 		}
@@ -170,7 +170,7 @@ export class TelemetricsDevice extends DeviceWithState<TelemetricsState, DeviceO
 			this.emit('debug', 'Reconnecting...')
 			clearTimeout(this.retryConnectionTimer!)
 			this.retryConnectionTimer = undefined
-			this.connectToDevice(host)
+			this.connectToDevice(host, port)
 		}, TIMEOUT_IN_MS)
 	}
 

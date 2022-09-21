@@ -2,6 +2,7 @@ import { DeviceType, TSRTimelineObjBase } from './index'
 
 export interface TelemetricsOptions {
 	host: string
+	port?: number
 }
 
 export type TimelineObjTelemetricsAny = TimelineObjTelemetrics
