@@ -1,4 +1,7 @@
+import { TimelineState } from 'superfly-timeline'
+import { TSRTimelineObjBase } from 'timeline-state-resolver-types'
 import * as _ from 'underscore'
+import { Datastore } from './conductor'
 
 /**
  * getDiff is the reverse of underscore:s _.isEqual(): It compares two values and if they differ it returns an explanation of the difference
@@ -216,4 +219,40 @@ export function endTrace(trace: Trace): FinishedTrace {
  */
 export function deferAsync(fn: () => Promise<void>, catcher: (e: unknown) => void): void {
 	fn().catch(catcher)
+}
+
+/**
+ * Set a value on an object from a .-delimited path
+ * @param obj The base object
+ * @param path Path of the value to set
+ * @param val The value to set
+ */
+const set = (obj: Record<string, any>, path: string, val: any) => {
+	const p = path.split('.')
+	p.slice(0, -1).reduce((a, b) => (a[b] ? a[b] : (a[b] = {})), obj)[p.slice(-1)[0]] = val
+}
+export function fillStateFromDatastore(state: TimelineState, datastore: Datastore) {
+	// clone the state so we can freely manipulate it
+	const filledState: typeof state = JSON.parse(JSON.stringify(state))
+
+	Object.values(filledState.layers).forEach(({ content, instance }) => {
+		if ((content as TSRTimelineObjBase['content']).$references) {
+			Object.entries((content as TSRTimelineObjBase['content']).$references || {}).forEach(([key, ref]) => {
+				const datastoreVal = datastore[key]
+
+				if (datastoreVal !== undefined) {
+					if (ref.overwrite) {
+						// only use the datastore value if it was changed after the tl obj started
+						if ((instance.originalStart || instance.start || 0) <= datastoreVal.modified) {
+							set(content, ref.path, datastoreVal.value)
+						}
+					} else {
+						set(content, ref.path, datastoreVal.value)
+					}
+				}
+			})
+		}
+	})
+
+	return filledState
 }

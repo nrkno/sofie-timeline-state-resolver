@@ -18,7 +18,6 @@ import {
 	ResolvedTimelineObjectInstanceExtended,
 	TSRTimeline,
 	DeviceOptionsBase,
-	TSRTimelineObjBase,
 } from 'timeline-state-resolver-types'
 import { AtemDevice, DeviceOptionsAtemInternal } from './devices/atem'
 import { EventEmitter } from 'eventemitter3'
@@ -44,7 +43,7 @@ import PQueue from 'p-queue'
 import * as PAll from 'p-all'
 import PTimeout from 'p-timeout'
 import { ShotokuDevice, DeviceOptionsShotokuInternal } from './devices/shotoku'
-import { endTrace, FinishedTrace, startTrace } from './lib'
+import { endTrace, fillStateFromDatastore, FinishedTrace, startTrace } from './lib'
 
 export { DeviceContainer }
 export { CommandWithContext }
@@ -115,6 +114,12 @@ export interface StatReport {
 	timelineSizeOld: number
 	estimatedResolveTime: number
 }
+export interface Datastore {
+	[key: string]: {
+		value: any
+		modified: number
+	}
+}
 
 export type ConductorEvents = {
 	error: [...args: any[]]
@@ -140,7 +145,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 	private _timelineSize: number | undefined = undefined
 	private _mappings: Mappings = {}
 
-	private _datastore: { [key: string]: { value: any; modified: number } } = {}
+	private _datastore: Datastore = {}
 	private _deviceStates: {
 		[deviceId: string]: {
 			state: TimelineState
@@ -1077,10 +1082,12 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 	private _setDeviceState(deviceId: string, time: number, state: TimelineState, mappings: Mappings) {
 		if (!this._deviceStates[deviceId]) this._deviceStates[deviceId] = []
 
+		// find all references to the datastore that are in this state
 		const dependencies: string[] = Object.values(state.layers).flatMap(({ content }) =>
 			Object.keys(content.$references || {})
 		)
 
+		// store all states between the current state and the new state
 		this._deviceStates[deviceId] = _.compact([
 			this._deviceStates[deviceId].reverse().find((s) => s.time <= this.getCurrentTime()),
 			...this._deviceStates[deviceId]
@@ -1095,43 +1102,24 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 			},
 		])
 
-		const filledState: typeof state = JSON.parse(JSON.stringify(state))
-		Object.values(filledState.layers).forEach(({ content, instance }) => {
-			if ((content as TSRTimelineObjBase['content']).$references) {
-				Object.entries((content as TSRTimelineObjBase['content']).$references || {}).forEach(([key, ref]) => {
-					const datastoreVal = this._datastore[key]
-					const set = (obj: Record<string, any>, path: string, val: any) => {
-						const p = path.split('.')
-						p.slice(0, -1).reduce((a, b) => (a[b] ? a[b] : (a[b] = {})), obj)[p.slice(-1)[0]] = val
-					}
+		// replace references to the timeline datastore with the actual values
+		const filledState = fillStateFromDatastore(state, this._datastore)
 
-					if (datastoreVal !== undefined) {
-						if (ref.overwrite) {
-							if ((instance.originalStart || instance.start || 0) <= datastoreVal.modified) {
-								set(content, ref.path, datastoreVal.value)
-							}
-						} else {
-							set(content, ref.path, datastoreVal.value)
-						}
-					}
-				})
-			}
-		})
-
+		// send the filled state to the device handler
 		return this.getDevice(deviceId)?.device.handleState(filledState, mappings)
 	}
-	setDatastore(newStore: Record<string, any>) {
+	setDatastore(newStore: Datastore) {
 		this._actionQueue
 			.add(() => {
 				const allKeys = new Set([...Object.keys(newStore), ...Object.keys(this._datastore)])
 
-				const changed: string[] = []
+				const affectedDevices: string[] = []
 				for (const key of allKeys) {
 					if (this._datastore[key]?.value !== newStore[key]?.value) {
 						// it changed! let's sift through our dependencies to see if we need to do anything
 						Object.entries(this._deviceStates).forEach(([deviceId, states]) => {
-							if (states.find((state) => state.dependencies.find((deps) => deps === key))) {
-								changed.push(deviceId)
+							if (states.find((state) => state.dependencies.find((dep) => dep === key))) {
+								affectedDevices.push(deviceId)
 							}
 						})
 					}
@@ -1139,35 +1127,14 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 
 				this._datastore = newStore
 
-				for (const deviceId of changed) {
+				for (const deviceId of affectedDevices) {
 					const toBeFilled = _.compact([
 						this._deviceStates[deviceId].reverse().find((s) => s.time <= this.getCurrentTime()), // one state before now
 						...this._deviceStates[deviceId].filter((s) => s.time > this.getCurrentTime()), // all states after now
 					])
 
 					for (const s of toBeFilled) {
-						const filledState: typeof s.state = JSON.parse(JSON.stringify(s.state))
-						Object.values(filledState.layers).forEach(({ content, instance }) => {
-							if ((content as TSRTimelineObjBase['content']).$references) {
-								Object.entries((content as TSRTimelineObjBase['content']).$references || {}).forEach(([key, ref]) => {
-									const datastoreVal = this._datastore[key]
-									const set = (obj: Record<string, any>, path: string, val: any) => {
-										const p = path.split('.')
-										p.slice(0, -1).reduce((a, b) => (a[b] ? a[b] : (a[b] = {})), obj)[p.slice(-1)[0]] = val
-									}
-
-									if (datastoreVal !== undefined) {
-										if (ref.overwrite) {
-											if ((instance.originalStart || instance.start || 0) <= datastoreVal.modified) {
-												set(content, ref.path, datastoreVal.value)
-											}
-										} else {
-											set(content, ref.path, datastoreVal.value)
-										}
-									}
-								})
-							}
-						})
+						const filledState = fillStateFromDatastore(s.state, this._datastore)
 
 						this.getDevice(deviceId)
 							?.device.handleState(filledState, s.mappings)

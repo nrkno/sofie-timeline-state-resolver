@@ -72,9 +72,18 @@ export interface TSRTimelineKeyframe<T> extends Timeline.TimelineKeyframe {
 	content: Partial<T>
 }
 
+/**
+ * An object containing references to the datastore
+ */
 export interface TimelineDatastoreReferences {
 	[key: string]: {
+		/**
+		 * Path to the property in the content object to override
+		 */
 		path: string
+		/**
+		 * Whether the default should override if the timeline object is newer than the datastore value
+		 */
 		overwrite: boolean
 	}
 }
