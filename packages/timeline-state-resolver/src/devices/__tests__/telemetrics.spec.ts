@@ -185,6 +185,22 @@ describe('telemetrics', () => {
 
 			expect(MOCKED_SOCKET_WRITE).toBeCalledTimes(1)
 		})
+
+		it('receives two layers with the same shot, only sends one command', () => {
+			device = createInitializedTelemetricsDevice()
+
+			const timelineState = createTimelineState(1)
+			timelineState.layers['randomLayer'] = {
+				id: 'random_layer_id',
+				content: {
+					presetShotIdentifiers: [1],
+				} as unknown as TimelineObjTelemetrics,
+			} as unknown as ResolvedTimelineObjectInstance
+
+			device.handleState(timelineState, {})
+
+			expect(MOCKED_SOCKET_WRITE).toBeCalledTimes(1)
+		})
 	})
 })
 
@@ -208,7 +224,7 @@ function createInitializedTelemetricsDevice(): TelemetricsDevice {
 function createTimelineState(preset: number | number[]): TimelineState {
 	const presetIdentifiers = Number(preset) ? [preset] : preset
 	return {
-		time: 0,
+		time: 10,
 		layers: {
 			telemetrics_layer: {
 				id: 'telemetrics_layer_id',
