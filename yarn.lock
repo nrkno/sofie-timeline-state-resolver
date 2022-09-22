@@ -8127,10 +8127,10 @@ threadedclass@^0.8.0:
     is-running "^2.1.0"
     tslib "^1.13.0"
 
-threadedclass@^1.0.2:
-  version "1.0.2"
-  resolved "https://registry.yarnpkg.com/threadedclass/-/threadedclass-1.0.2.tgz#c5574cac282198433b9f3685202c5081df23206b"
-  integrity sha512-xkKqzipcLV25TqI3Z3eykpl5TiAGwg+h0DUwvYEh9GXRxvNcKZJIfl2l5/Bn6UxOuHAKXGT/HBN9PWDRf2P34g==
+threadedclass@^1.1.0:
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/threadedclass/-/threadedclass-1.1.0.tgz#3f0e3e91d41098a9c9aa98635fa043530702e269"
+  integrity sha512-+R9wHIHKMsmp0g1TKHZ9gcATD5Pohig4ZWqDqV2o1+VjKjw8KmUcTQZ0sJCj/G8hjFxXPp2QAZDHsmzTcqQJYQ==
   dependencies:
     callsites "^3.1.0"
     eventemitter3 "^4.0.4"
