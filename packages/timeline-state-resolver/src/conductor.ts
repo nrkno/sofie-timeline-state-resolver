@@ -18,6 +18,7 @@ import {
 	ResolvedTimelineObjectInstanceExtended,
 	TSRTimeline,
 	DeviceOptionsBase,
+	TimelineDatastoreReferences,
 } from 'timeline-state-resolver-types'
 import { AtemDevice, DeviceOptionsAtemInternal } from './devices/atem'
 import { EventEmitter } from 'eventemitter3'
@@ -44,6 +45,7 @@ import * as PAll from 'p-all'
 import PTimeout from 'p-timeout'
 import { ShotokuDevice, DeviceOptionsShotokuInternal } from './devices/shotoku'
 import { endTrace, fillStateFromDatastore, FinishedTrace, startTrace } from './lib'
+import { Datastore } from 'timeline-state-resolver-types/src'
 
 export { DeviceContainer }
 export { CommandWithContext }
@@ -113,12 +115,6 @@ export interface StatReport {
 	timelineSize: number
 	timelineSizeOld: number
 	estimatedResolveTime: number
-}
-export interface Datastore {
-	[key: string]: {
-		value: any
-		modified: number
-	}
 }
 
 export type ConductorEvents = {
@@ -1084,7 +1080,9 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 
 		// find all references to the datastore that are in this state
 		const dependencies: string[] = Object.values(state.layers).flatMap(({ content }) =>
-			Object.keys(content.$references || {})
+			Object.values(content.$references || {}).map((r: TimelineDatastoreReferences[any]): string => {
+				return r.datastoreKey
+			})
 		)
 
 		// store all states between the current state and the new state

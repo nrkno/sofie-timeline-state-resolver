@@ -76,13 +76,14 @@ export interface TSRTimelineKeyframe<T> extends Timeline.TimelineKeyframe {
  * An object containing references to the datastore
  */
 export interface TimelineDatastoreReferences {
-	[key: string]: {
+	/**
+	 * localPath is the path to the property in the content object to override
+	 */
+	[localPath: string]: {
+		/** Reference to the Datastore key where to fetch the value */
+		datastoreKey: string
 		/**
-		 * Path to the property in the content object to override
-		 */
-		path: string
-		/**
-		 * Whether the default should override if the timeline object is newer than the datastore value
+		 * If true, the referenced value in the Datastore is only applied after the timeline-object has started (ie a later-started timeline-object will not be affected)
 		 */
 		overwrite: boolean
 	}
@@ -137,3 +138,15 @@ export type TSRTimelineObj =
 	| TimelineObjVIZMSEAny
 
 export type TSRTimeline = Array<TSRTimelineObj>
+
+/**
+ * A simple key value store that can be referred to from the timeline objects
+ */
+export interface Datastore {
+	[datastoreKey: string]: {
+		/** The value that will replace a value in the Timeline-object content */
+		value: any
+		/** A unix-Timestamp of when the value was set. (Note that this must not be set a value in the future.) */
+		modified: number
+	}
+}

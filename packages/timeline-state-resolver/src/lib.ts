@@ -1,7 +1,6 @@
 import { TimelineState } from 'superfly-timeline'
-import { TSRTimelineObjBase } from 'timeline-state-resolver-types'
+import { TSRTimelineObjBase, Datastore } from 'timeline-state-resolver-types'
 import * as _ from 'underscore'
-import { Datastore } from './conductor'
 
 /**
  * getDiff is the reverse of underscore:s _.isEqual(): It compares two values and if they differ it returns an explanation of the difference
@@ -237,17 +236,17 @@ export function fillStateFromDatastore(state: TimelineState, datastore: Datastor
 
 	Object.values(filledState.layers).forEach(({ content, instance }) => {
 		if ((content as TSRTimelineObjBase['content']).$references) {
-			Object.entries((content as TSRTimelineObjBase['content']).$references || {}).forEach(([key, ref]) => {
-				const datastoreVal = datastore[key]
+			Object.entries((content as TSRTimelineObjBase['content']).$references || {}).forEach(([path, ref]) => {
+				const datastoreVal = datastore[ref.datastoreKey]
 
 				if (datastoreVal !== undefined) {
 					if (ref.overwrite) {
 						// only use the datastore value if it was changed after the tl obj started
 						if ((instance.originalStart || instance.start || 0) <= datastoreVal.modified) {
-							set(content, ref.path, datastoreVal.value)
+							set(content, path, datastoreVal.value)
 						}
 					} else {
-						set(content, ref.path, datastoreVal.value)
+						set(content, path, datastoreVal.value)
 					}
 				}
 			})
