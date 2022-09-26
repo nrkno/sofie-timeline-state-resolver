@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [7.3.0-release44.1](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/7.3.0-release44.0...7.3.0-release44.1) (2022-09-22)
+
+
+### Bug Fixes
+
+* update v-connection dep ([53fbc96](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/53fbc9650f905ace72563f3b4f0e44f45e951685))
+
+
+
+
+
 # [7.3.0-release44.0](https://github.com/nrkno/sofie-timeline-state-resolver/compare/7.0.1...7.3.0-release44.0) (2022-07-04)
 
 
