@@ -19,11 +19,13 @@ import {
 	ResolvedTimelineObjectInstanceExtended,
 	TSRTimeline,
 	DeviceOptionsBase,
+	TimelineDatastoreReferences,
+	Datastore,
 } from 'timeline-state-resolver-types'
 
 import { DoOnTime } from './devices/doOnTime'
 import { AsyncResolver } from './AsyncResolver'
-import { endTrace, FinishedTrace, startTrace } from './lib'
+import { endTrace, fillStateFromDatastore, FinishedTrace, startTrace } from './lib'
 
 import { CommandWithContext, DeviceEvents } from './devices/device'
 import { DeviceContainer } from './devices/deviceContainer'
@@ -142,6 +144,16 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 	private _timeline: TSRTimeline = []
 	private _timelineSize: number | undefined = undefined
 	private _mappings: Mappings = {}
+
+	private _datastore: Datastore = {}
+	private _deviceStates: {
+		[deviceId: string]: {
+			state: TimelineState
+			mappings: Mappings
+			time: number
+			dependencies: string[]
+		}[]
+	} = {}
 
 	private _options: ConductorOptions
 
@@ -949,7 +961,8 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 
 				// Pass along the state to the device, it will generate its commands and execute them:
 				try {
-					await device.device.handleState(removeParentFromState(subState), this._mappings)
+					// await device.device.handleState(removeParentFromState(subState), this._mappings)
+					await this._setDeviceState(device.deviceId, tlState.time, removeParentFromState(subState), this._mappings)
 				} catch (e) {
 					this.emit('error', 'Error in device "' + device.deviceId + '"' + e + ' ' + (e as Error).stack)
 				}
@@ -1064,6 +1077,75 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 			this.emit('error', 'triggerResolveTimeline', e)
 		}
 		return nextResolveTime
+	}
+	private _setDeviceState(deviceId: string, time: number, state: TimelineState, mappings: Mappings) {
+		if (!this._deviceStates[deviceId]) this._deviceStates[deviceId] = []
+
+		// find all references to the datastore that are in this state
+		const dependencies: string[] = Object.values(state.layers).flatMap(({ content }) =>
+			Object.values(content.$references || {}).map((r: TimelineDatastoreReferences[any]): string => {
+				return r.datastoreKey
+			})
+		)
+
+		// store all states between the current state and the new state
+		this._deviceStates[deviceId] = _.compact([
+			this._deviceStates[deviceId].reverse().find((s) => s.time <= this.getCurrentTime()),
+			...this._deviceStates[deviceId]
+				.reverse()
+				.filter((s) => s.time < time && s.time > this.getCurrentTime())
+				.reverse(),
+			{
+				time,
+				state,
+				dependencies,
+				mappings,
+			},
+		])
+
+		// replace references to the timeline datastore with the actual values
+		const filledState = fillStateFromDatastore(state, this._datastore)
+
+		// send the filled state to the device handler
+		return this.getDevice(deviceId)?.device.handleState(filledState, mappings)
+	}
+	setDatastore(newStore: Datastore) {
+		this._actionQueue
+			.add(() => {
+				const allKeys = new Set([...Object.keys(newStore), ...Object.keys(this._datastore)])
+
+				const affectedDevices: string[] = []
+				for (const key of allKeys) {
+					if (this._datastore[key]?.value !== newStore[key]?.value) {
+						// it changed! let's sift through our dependencies to see if we need to do anything
+						Object.entries(this._deviceStates).forEach(([deviceId, states]) => {
+							if (states.find((state) => state.dependencies.find((dep) => dep === key))) {
+								affectedDevices.push(deviceId)
+							}
+						})
+					}
+				}
+
+				this._datastore = newStore
+
+				for (const deviceId of affectedDevices) {
+					const toBeFilled = _.compact([
+						this._deviceStates[deviceId].reverse().find((s) => s.time <= this.getCurrentTime()), // one state before now
+						...this._deviceStates[deviceId].filter((s) => s.time > this.getCurrentTime()), // all states after now
+					])
+
+					for (const s of toBeFilled) {
+						const filledState = fillStateFromDatastore(s.state, this._datastore)
+
+						this.getDevice(deviceId)
+							?.device.handleState(filledState, s.mappings)
+							.catch((e) => this.emit('error', 'resolveTimeline' + e + '\nStack: ' + (e as Error).stack))
+					}
+				}
+			})
+			.catch((e) => {
+				this.emit('error', 'Caught error in setDatastore' + e)
+			})
 	}
 	getTimelineSize(): number {
 		if (this._timelineSize === undefined) {

@@ -1,5 +1,5 @@
 import { Mapping } from './mapping'
-import { TSRTimelineObjBase, DeviceType } from '.'
+import { TSRTimelineObjBase, DeviceType, TimelineDatastoreReferencesContent } from '.'
 
 export interface MappingHyperdeck extends Mapping {
 	device: DeviceType.HYPERDECK
@@ -77,7 +77,7 @@ export interface TimelineObjHyperdeck extends TSRTimelineObjBase {
 		deviceType: DeviceType.HYPERDECK
 		/** The type of control of the Hyperdeck */
 		type: TimelineContentTypeHyperdeck
-	}
+	} & TimelineDatastoreReferencesContent
 }
 export interface TimelineObjHyperdeckTransport extends TimelineObjHyperdeck {
 	content: {
@@ -92,7 +92,6 @@ export interface TimelineObjHyperdeckTransport extends TimelineObjHyperdeck {
 		  }
 		| {
 				status: TransportStatus.PLAY
-
 				/** How fast to play the currently-playing clip [-5000 - 5000]. 1x speed is 100. 0 is stopped. Negative values are rewind. Values above 100 are fast-forward. */
 				speed?: number
 				/** Whether or not to loop the currently-playing clip */
@@ -120,5 +119,6 @@ export interface TimelineObjHyperdeckTransport extends TimelineObjHyperdeck {
 				/** The filename to record to */
 				recordFilename?: string
 		  }
-	)
+	) &
+		TimelineDatastoreReferencesContent
 }

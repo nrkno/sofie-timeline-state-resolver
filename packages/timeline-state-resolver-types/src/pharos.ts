@@ -1,5 +1,5 @@
 import { Mapping } from './mapping'
-import { TSRTimelineObjBase, DeviceType } from '.'
+import { TSRTimelineObjBase, DeviceType, TimelineDatastoreReferencesContent } from '.'
 
 export interface PharosOptions {
 	host: string
@@ -36,7 +36,7 @@ export interface TimelineObjPharosScene extends TimelineObjPharos {
 
 		scene: number
 		fade?: number
-	}
+	} & TimelineDatastoreReferencesContent
 }
 export interface TimelineObjPharosTimeline extends TimelineObjPharos {
 	content: {
@@ -49,5 +49,5 @@ export interface TimelineObjPharosTimeline extends TimelineObjPharos {
 		pause?: boolean
 		rate?: boolean
 		fade?: number
-	}
+	} & TimelineDatastoreReferencesContent
 }
