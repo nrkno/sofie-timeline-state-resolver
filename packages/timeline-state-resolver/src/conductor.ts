@@ -1019,7 +1019,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 							instance.id +
 							instance.content.callBack +
 							instance.content.callBackStopped +
-							instance.instance.start +
+							(instance.instance.originalStart ?? instance.instance.start) +
 							JSON.stringify(instance.content.callBackData)
 						activeObjects[callBackId] = {
 							time: instance.instance.start || 0,
@@ -1039,7 +1039,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 				tlState.time,
 				undefined,
 				(sentCallbacksNew) => {
-					this._diffStateForCallbacks(sentCallbacksNew)
+					this._diffStateForCallbacks(sentCallbacksNew, tlState.time)
 				},
 				activeObjects
 			)
@@ -1207,20 +1207,17 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 		)
 	}
 
-	private _diffStateForCallbacks(activeObjects: TimelineCallbacks) {
-		const sentCallbacks: TimelineCallbacks = this._sentCallbacks
-		const time = this.getCurrentTime()
-
-		// clear callbacks scheduled after the current tlState
-		_.each(sentCallbacks, (o: TimelineCallback, callbackId: string) => {
-			if (o.time >= time) {
-				delete sentCallbacks[callbackId]
+	private _diffStateForCallbacks(activeObjects: TimelineCallbacks, tlTime: number) {
+		// Clear callbacks scheduled after the current tlState
+		for (const [callbackId, o] of Object.entries(this._sentCallbacks)) {
+			if (o.time >= tlTime) {
+				delete this._sentCallbacks[callbackId]
 			}
-		})
-		// Send callbacks for started objects
-		_.each(activeObjects, (cb, callBackId) => {
+		}
+		// Send callbacks for playing objects:
+		for (const [callbackId, cb] of Object.entries(activeObjects)) {
 			if (cb.callBack && cb.startTime) {
-				if (!sentCallbacks[callBackId]) {
+				if (!this._sentCallbacks[callbackId]) {
 					// Object has started playing
 					this._queueCallback(true, {
 						type: 'start',
@@ -1233,20 +1230,20 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 					// callback already sent, do nothing
 				}
 			}
-		})
+		}
 		// Send callbacks for stopped objects
-		_.each(sentCallbacks, (cb, callBackId: string) => {
-			if (cb.callBackStopped && !activeObjects[callBackId]) {
+		for (const [callbackId, cb] of Object.entries(this._sentCallbacks)) {
+			if (cb.callBackStopped && !activeObjects[callbackId]) {
 				// Object has stopped playing
 				this._queueCallback(false, {
 					type: 'stop',
-					time: time,
+					time: tlTime,
 					instanceId: cb.id,
 					callBack: cb.callBackStopped,
 					callBackData: cb.callBackData,
 				})
 			}
-		})
+		}
 		this._sentCallbacks = activeObjects
 	}
 	private _queueCallback(playing: boolean, cb: QueueCallback): void {
