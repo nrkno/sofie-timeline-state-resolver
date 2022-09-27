@@ -1123,11 +1123,9 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 	}
 
 	private _diffStateForCallbacks(activeObjects: TimelineCallbacks, tlTime: number) {
-		const time = this.getCurrentTime()
-
 		// Clear callbacks scheduled after the current tlState
 		for (const [callbackId, o] of Object.entries(this._sentCallbacks)) {
-			if (o.time >= time) {
+			if (o.time >= tlTime) {
 				delete this._sentCallbacks[callbackId]
 			}
 		}
