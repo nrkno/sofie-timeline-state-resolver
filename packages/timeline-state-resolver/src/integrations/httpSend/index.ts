@@ -273,7 +273,7 @@ export class HTTPSendDevice extends DeviceWithState<HTTPSendState, DeviceOptions
 		} catch (error) {
 			const err = error as RequestError // make typescript happy
 
-			this.emit('error', `HTTPSend.response error ${cmd.type} (${context}`, err)
+			this.emit('error', `HTTPSend.response error on ${cmd.type} "${cmd.url}" (${context})`, err)
 			this.emit('commandError', err, cwc)
 			debug(`Failed ${cmd.url}: ${error} (${timelineObjId})`)
 
