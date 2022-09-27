@@ -1123,20 +1123,18 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 	}
 
 	private _diffStateForCallbacks(activeObjects: TimelineCallbacks, tlTime: number) {
-		const sentCallbacks: TimelineCallbacks = this._sentCallbacks
 		const time = this.getCurrentTime()
 
-		// clear callbacks scheduled after the current tlState
-		_.each(sentCallbacks, (o: TimelineCallback, callbackId: string) => {
+		// Clear callbacks scheduled after the current tlState
+		for (const [callbackId, o] of Object.entries(this._sentCallbacks)) {
 			if (o.time >= time) {
-				delete sentCallbacks[callbackId]
+				delete this._sentCallbacks[callbackId]
 			}
-		})
-		// Send callbacks for started objects
-		_.each(activeObjects, (cb, callBackId) => {
+		}
+		// Send callbacks for playing objects:
+		for (const [callbackId, cb] of Object.entries(activeObjects)) {
 			if (cb.callBack && cb.startTime) {
-				if (!sentCallbacks[callBackId]) {
-					// console.log(`Sending start: ${cb.id}, time: ${cb.startTime}, callBackId: ${callBackId}`)
+				if (!this._sentCallbacks[callbackId]) {
 					// Object has started playing
 					this._queueCallback(true, {
 						type: 'start',
@@ -1149,16 +1147,11 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 					// callback already sent, do nothing
 				}
 			}
-		})
+		}
 		// Send callbacks for stopped objects
-		_.each(sentCallbacks, (cb, callBackId: string) => {
-			if (cb.callBackStopped && !activeObjects[callBackId]) {
+		for (const [callbackId, cb] of Object.entries(this._sentCallbacks)) {
+			if (cb.callBackStopped && !activeObjects[callbackId]) {
 				// Object has stopped playing
-				// console.log(
-				// 	`Sending stop: ${cb.id}, time: ${tlTime}, diff: ${
-				// 		tlTime - (cb.expectedEndTime ?? tlTime)
-				// 	}, callBackId: ${callBackId}`
-				// )
 				this._queueCallback(false, {
 					type: 'stop',
 					time: tlTime,
@@ -1167,7 +1160,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 					callBackData: cb.callBackData,
 				})
 			}
-		})
+		}
 		this._sentCallbacks = activeObjects
 	}
 	private _queueCallback(playing: boolean, cb: QueueCallback): void {
