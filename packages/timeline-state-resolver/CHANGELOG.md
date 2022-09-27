@@ -3,6 +3,40 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [7.4.0-release46.1](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/7.3.0-release44.1...7.4.0-release46.1) (2022-09-27)
+
+
+### Bug Fixes
+
+* don't stop playback when clipId is null ([cfc8f2e](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/cfc8f2e2c5e467e783e2fcf18377078caf313ad1))
+* fixed memory leak in datastore ([8e06eb6](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/8e06eb68c2352b59e7298c1bc2543ffa150edd7f))
+* improve callBackId creation, so that it relies more on the incoming timeline objects, rather than resolved timeline objects ([349dbf3](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/349dbf3d8f829fcd15b0480f1af1724d76bd1afa))
+* index datastore references by path ([9b48d72](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/9b48d725d79d4eee13e7347e450abaadf02b6db2))
+* invert warnOnEmptySlots to suppressEmptySlotWarnings ([edcd7b0](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/edcd7b0fde747ae160c93f2ca1284661153f5647))
+* lowered logging level for a apparent log call via an event. ([ca06e3b](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/ca06e3bbe60acf27220ab9773c1751454bea8b8f))
+* move all references to the root of the tl obj ([130b6c3](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/130b6c3a908b0911f94ccedc67e7004404f11010))
+* send only one callback per timeline object ([00b168d](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/00b168dc5511881ef9471dca1a4851342d6d115b))
+* SOF-1046 prevent resetting transition on startup ([e52cf60](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/e52cf60c07e58062c346bf0a84e48a9106b28105))
+* SOF-1091 increase threadedClass freezeLimit ([f852b99](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/f852b99415000da334dffa370267e69314832956))
+* test after casparcg-state update ([c93ab57](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/c93ab5750344d67ae8d1ef6c34ca47ca7d60d3f9))
+* unrelated build errors ([68791e9](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/68791e9bc1602488e69c2fe3c5b49c74b6e5b538))
+* use tlTime instead of time to remove future callbacks. ([0e70a3f](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/0e70a3f51253ede85c233714fd0b42fd83cffae2))
+
+
+### Features
+
+* **datastore:** newer tl objs will override entry ([9f31b9f](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/9f31b9f614b1c54665ce4c379e912e19603abdce))
+* **HyperDeck:** add "warnOnEmptySlots" option ([233a413](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/233a4132097f38723b7150b7e61635f39e08115d))
+* **Hyperdeck:** add explicit support for Preview and Stopped states ([133776f](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/133776f2cbc5bfc1ef9255b0f1e161357ae6e339))
+* **Hyperdeck:** add support for play and goto commands ([50e9e15](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/50e9e156651ba250a4fa3d5fcc01a184ba928ade))
+* include more info about the request ([f17ad70](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/f17ad70fd90afc819d878e143d6130edf672be1f))
+* timeline datastore prototype ([e122e8b](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/e122e8bff7404b1955853131d24144c660f76753))
+* **vizMSE:** add logging of request body when client error caught ([85a2894](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/85a2894c66c1a06cc0ddee2e1c72745f294f0998))
+
+
+
+
+
 # [7.4.0-release46.0](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/7.3.0-release44.1...7.4.0-release46.0) (2022-09-26)
 
 
