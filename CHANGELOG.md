@@ -3,6 +3,18 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [2.1.6](https://github.com/tv2/tv-automation-state-timeline-resolver/compare/2.1.5...2.1.6) (2022-09-06)
+
+
+### Bug Fixes
+
+* SOF-1091 increase threadedClass freezeLimit ([f852b99](https://github.com/tv2/tv-automation-state-timeline-resolver/commit/f852b99415000da334dffa370267e69314832956))
+* test after casparcg-state update ([c93ab57](https://github.com/tv2/tv-automation-state-timeline-resolver/commit/c93ab5750344d67ae8d1ef6c34ca47ca7d60d3f9))
+
+
+
+
+
 ## [2.1.5](https://github.com/tv2/tv-automation-state-timeline-resolver/compare/2.1.4...2.1.5) (2022-08-17)
 
 **Note:** Version bump only for package timeline-state-resolver-packages
