@@ -590,6 +590,9 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 			}
 
 			newDevice.device.on('resetResolver', () => this.resetResolver()).catch(console.error)
+			newDevice.on('error', (context, e) => {
+				this.emit('error', `deviceContainer for "${newDevice?.deviceId}" emitted an error: ${context}, ${e}`)
+			})
 
 			// Double check that it hasnt been created while we were busy waiting
 			if (this.devices.has(deviceId)) {
