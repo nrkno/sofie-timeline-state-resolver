@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [7.3.0-release44.2](https://github.com/nrkno/sofie-timeline-state-resolver/compare/7.3.0-release44.1...7.3.0-release44.2) (2022-09-29)
+
+
+### Bug Fixes
+
+* timeout a device terminate operation if it takes too long and force-terminate ([59ec81a](https://github.com/nrkno/sofie-timeline-state-resolver/commit/59ec81a2947a8f48b699fd52f6e9185dd1587f2e))
+
+
+
+
+
 # [7.3.0-release44.1](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/7.3.0-release44.0...7.3.0-release44.1) (2022-09-22)
 
 
