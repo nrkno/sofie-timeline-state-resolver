@@ -1,5 +1,5 @@
 import { Mapping } from './mapping'
-import { TSRTimelineObjBase, DeviceType } from '.'
+import { TSRTimelineObjBase, DeviceType, TimelineDatastoreReferencesContent } from '.'
 
 export interface MappingCasparCG extends Mapping {
 	device: DeviceType.CASPARCG
@@ -118,7 +118,8 @@ export interface TimelineObjCCGMedia extends TimelineObjCasparCGBase {
 		/* ffmpeg filter strings for 2.3+ */
 		videoFilter?: string
 		audioFilter?: string
-	} & TimelineObjCCGProducerContentBase
+	} & TimelineObjCCGProducerContentBase &
+		TimelineDatastoreReferencesContent
 }
 export interface TimelineObjCCGIP extends TimelineObjCasparCGBase {
 	content: {
@@ -135,7 +136,8 @@ export interface TimelineObjCCGIP extends TimelineObjCasparCGBase {
 		/* ffmpeg filter strings for 2.3+ */
 		videoFilter?: string
 		audioFilter?: string
-	} & TimelineObjCCGProducerContentBase
+	} & TimelineObjCCGProducerContentBase &
+		TimelineDatastoreReferencesContent
 }
 export interface TimelineObjCCGInput extends TimelineObjCasparCGBase {
 	content: {
@@ -158,7 +160,8 @@ export interface TimelineObjCCGInput extends TimelineObjCasparCGBase {
 		/* ffmpeg filter strings for 2.3+ */
 		videoFilter?: string
 		audioFilter?: string
-	} & TimelineObjCCGProducerContentBase
+	} & TimelineObjCCGProducerContentBase &
+		TimelineDatastoreReferencesContent
 }
 export interface TimelineObjCCGHTMLPage extends TimelineObjCasparCGBase {
 	content: {
@@ -166,7 +169,8 @@ export interface TimelineObjCCGHTMLPage extends TimelineObjCasparCGBase {
 		type: TimelineContentTypeCasparCg.HTMLPAGE
 		/** The URL to load */
 		url: string
-	} & TimelineObjCCGProducerContentBase
+	} & TimelineObjCCGProducerContentBase &
+		TimelineDatastoreReferencesContent
 }
 export interface TimelineObjCCGTemplate extends TimelineObjCasparCGBase {
 	content: {
@@ -180,7 +184,8 @@ export interface TimelineObjCCGTemplate extends TimelineObjCasparCGBase {
 		data?: any
 		/** Whether to use CG stop or CLEAR layer when stopping the template. Defaults to false = CLEAR  */
 		useStopCommand: boolean
-	} & TimelineObjCCGProducerContentBase
+	} & TimelineObjCCGProducerContentBase &
+		TimelineDatastoreReferencesContent
 }
 export interface TimelineObjCCGRoute extends TimelineObjCasparCGBase {
 	content: {
@@ -204,7 +209,8 @@ export interface TimelineObjCCGRoute extends TimelineObjCasparCGBase {
 		/* ffmpeg filter strings for 2.3+ */
 		videoFilter?: string
 		audioFilter?: string
-	} & TimelineObjCCGProducerContentBase
+	} & TimelineObjCCGProducerContentBase &
+		TimelineDatastoreReferencesContent
 }
 export interface TimelineObjCCGRecord extends TimelineObjCasparCGBase {
 	content: {
@@ -214,7 +220,7 @@ export interface TimelineObjCCGRecord extends TimelineObjCasparCGBase {
 		file: string
 		/** ffmpeg encoder options (example '-vcodec libx264 -preset ultrafast') */
 		encoderOptions: string
-	}
+	} & TimelineDatastoreReferencesContent
 }
 
 // Note: enums copied from casparcg-connection

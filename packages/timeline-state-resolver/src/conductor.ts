@@ -19,11 +19,13 @@ import {
 	ResolvedTimelineObjectInstanceExtended,
 	TSRTimeline,
 	DeviceOptionsBase,
+	TimelineDatastoreReferences,
+	Datastore,
 } from 'timeline-state-resolver-types'
 
 import { DoOnTime } from './devices/doOnTime'
 import { AsyncResolver } from './AsyncResolver'
-import { endTrace, FinishedTrace, startTrace } from './lib'
+import { endTrace, fillStateFromDatastore, FinishedTrace, startTrace } from './lib'
 
 import { CommandWithContext, DeviceEvents } from './devices/device'
 import { DeviceContainer } from './devices/deviceContainer'
@@ -90,6 +92,7 @@ interface TimelineCallback {
 }
 type TimelineCallbacks = { [key: string]: TimelineCallback }
 const CALLBACK_WAIT_TIME = 50
+const REMOVE_TIMEOUT = 5000
 interface CallbackInstance {
 	playing: boolean | undefined
 
@@ -142,6 +145,16 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 	private _timeline: TSRTimeline = []
 	private _timelineSize: number | undefined = undefined
 	private _mappings: Mappings = {}
+
+	private _datastore: Datastore = {}
+	private _deviceStates: {
+		[deviceId: string]: {
+			state: TimelineState
+			mappings: Mappings
+			time: number
+			dependencies: string[]
+		}[]
+	} = {}
 
 	private _options: ConductorOptions
 
@@ -641,7 +654,10 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 		const device = this.devices.get(deviceId)
 		if (device) {
 			try {
-				await device.device.terminate()
+				await Promise.race([
+					device.device.terminate(),
+					new Promise<void>((_, reject) => setTimeout(() => reject('Timeout'), REMOVE_TIMEOUT)),
+				])
 			} catch (e) {
 				// An error while terminating is probably not that important, since we'll kill the instance anyway
 				this.emit('warning', 'Error when terminating device', e)
@@ -949,7 +965,8 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 
 				// Pass along the state to the device, it will generate its commands and execute them:
 				try {
-					await device.device.handleState(removeParentFromState(subState), this._mappings)
+					// await device.device.handleState(removeParentFromState(subState), this._mappings)
+					await this._setDeviceState(device.deviceId, tlState.time, removeParentFromState(subState), this._mappings)
 				} catch (e) {
 					this.emit('error', 'Error in device "' + device.deviceId + '"' + e + ' ' + (e as Error).stack)
 				}
@@ -1006,7 +1023,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 							instance.id +
 							instance.content.callBack +
 							instance.content.callBackStopped +
-							instance.instance.start +
+							(instance.instance.originalStart ?? instance.instance.start) +
 							JSON.stringify(instance.content.callBackData)
 						activeObjects[callBackId] = {
 							time: instance.instance.start || 0,
@@ -1026,7 +1043,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 				tlState.time,
 				undefined,
 				(sentCallbacksNew) => {
-					this._diffStateForCallbacks(sentCallbacksNew)
+					this._diffStateForCallbacks(sentCallbacksNew, tlState.time)
 				},
 				activeObjects
 			)
@@ -1064,6 +1081,75 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 			this.emit('error', 'triggerResolveTimeline', e)
 		}
 		return nextResolveTime
+	}
+	private _setDeviceState(deviceId: string, time: number, state: TimelineState, mappings: Mappings) {
+		if (!this._deviceStates[deviceId]) this._deviceStates[deviceId] = []
+
+		// find all references to the datastore that are in this state
+		const dependencies: string[] = Object.values(state.layers).flatMap(({ content }) =>
+			Object.values(content.$references || {}).map((r: TimelineDatastoreReferences[any]): string => {
+				return r.datastoreKey
+			})
+		)
+
+		// store all states between the current state and the new state
+		this._deviceStates[deviceId] = _.compact([
+			this._deviceStates[deviceId].reverse().find((s) => s.time <= this.getCurrentTime()),
+			...this._deviceStates[deviceId]
+				.reverse()
+				.filter((s) => s.time < time && s.time > this.getCurrentTime())
+				.reverse(),
+			{
+				time,
+				state,
+				dependencies,
+				mappings,
+			},
+		])
+
+		// replace references to the timeline datastore with the actual values
+		const filledState = fillStateFromDatastore(state, this._datastore)
+
+		// send the filled state to the device handler
+		return this.getDevice(deviceId)?.device.handleState(filledState, mappings)
+	}
+	setDatastore(newStore: Datastore) {
+		this._actionQueue
+			.add(() => {
+				const allKeys = new Set([...Object.keys(newStore), ...Object.keys(this._datastore)])
+
+				const affectedDevices: string[] = []
+				for (const key of allKeys) {
+					if (this._datastore[key]?.value !== newStore[key]?.value) {
+						// it changed! let's sift through our dependencies to see if we need to do anything
+						Object.entries(this._deviceStates).forEach(([deviceId, states]) => {
+							if (states.find((state) => state.dependencies.find((dep) => dep === key))) {
+								affectedDevices.push(deviceId)
+							}
+						})
+					}
+				}
+
+				this._datastore = newStore
+
+				for (const deviceId of affectedDevices) {
+					const toBeFilled = _.compact([
+						this._deviceStates[deviceId].reverse().find((s) => s.time <= this.getCurrentTime()), // one state before now
+						...this._deviceStates[deviceId].filter((s) => s.time > this.getCurrentTime()), // all states after now
+					])
+
+					for (const s of toBeFilled) {
+						const filledState = fillStateFromDatastore(s.state, this._datastore)
+
+						this.getDevice(deviceId)
+							?.device.handleState(filledState, s.mappings)
+							.catch((e) => this.emit('error', 'resolveTimeline' + e + '\nStack: ' + (e as Error).stack))
+					}
+				}
+			})
+			.catch((e) => {
+				this.emit('error', 'Caught error in setDatastore' + e)
+			})
 	}
 	getTimelineSize(): number {
 		if (this._timelineSize === undefined) {
@@ -1125,20 +1211,17 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 		)
 	}
 
-	private _diffStateForCallbacks(activeObjects: TimelineCallbacks) {
-		const sentCallbacks: TimelineCallbacks = this._sentCallbacks
-		const time = this.getCurrentTime()
-
-		// clear callbacks scheduled after the current tlState
-		_.each(sentCallbacks, (o: TimelineCallback, callbackId: string) => {
-			if (o.time >= time) {
-				delete sentCallbacks[callbackId]
+	private _diffStateForCallbacks(activeObjects: TimelineCallbacks, tlTime: number) {
+		// Clear callbacks scheduled after the current tlState
+		for (const [callbackId, o] of Object.entries(this._sentCallbacks)) {
+			if (o.time >= tlTime) {
+				delete this._sentCallbacks[callbackId]
 			}
-		})
-		// Send callbacks for started objects
-		_.each(activeObjects, (cb, callBackId) => {
+		}
+		// Send callbacks for playing objects:
+		for (const [callbackId, cb] of Object.entries(activeObjects)) {
 			if (cb.callBack && cb.startTime) {
-				if (!sentCallbacks[callBackId]) {
+				if (!this._sentCallbacks[callbackId]) {
 					// Object has started playing
 					this._queueCallback(true, {
 						type: 'start',
@@ -1151,20 +1234,20 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 					// callback already sent, do nothing
 				}
 			}
-		})
+		}
 		// Send callbacks for stopped objects
-		_.each(sentCallbacks, (cb, callBackId: string) => {
-			if (cb.callBackStopped && !activeObjects[callBackId]) {
+		for (const [callbackId, cb] of Object.entries(this._sentCallbacks)) {
+			if (cb.callBackStopped && !activeObjects[callbackId]) {
 				// Object has stopped playing
 				this._queueCallback(false, {
 					type: 'stop',
-					time: time,
+					time: tlTime,
 					instanceId: cb.id,
 					callBack: cb.callBackStopped,
 					callBackData: cb.callBackData,
 				})
 			}
-		})
+		}
 		this._sentCallbacks = activeObjects
 	}
 	private _queueCallback(playing: boolean, cb: QueueCallback): void {

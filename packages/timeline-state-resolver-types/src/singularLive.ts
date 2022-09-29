@@ -1,5 +1,5 @@
 import { Mapping } from './mapping'
-import { TSRTimelineObjBase, DeviceType } from '.'
+import { TSRTimelineObjBase, DeviceType, TimelineDatastoreReferencesContent } from '.'
 
 export interface MappingSingularLive extends Mapping {
 	device: DeviceType.SINGULAR_LIVE
@@ -26,7 +26,7 @@ export interface TimelineObjSingularLiveBase extends TSRTimelineObjBase {
 	content: {
 		deviceType: DeviceType.SINGULAR_LIVE
 		type: TimelineContentTypeSingularLive
-	}
+	} & TimelineDatastoreReferencesContent
 }
 
 export interface TimelineObjSingularLiveComposition extends TimelineObjSingularLiveBase {
@@ -36,7 +36,7 @@ export interface TimelineObjSingularLiveComposition extends TimelineObjSingularL
 
 		animation?: SingularCompositionAnimation
 		controlNode: SingularCompositionControlNode
-	}
+	} & TimelineDatastoreReferencesContent
 }
 export interface SingularCompositionAnimation {
 	action: 'jump' | 'play'
