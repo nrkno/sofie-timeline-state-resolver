@@ -73,6 +73,11 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
 * **vizMSE:** add logging of request body when client error caught ([85a2894](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/85a2894c66c1a06cc0ddee2e1c72745f294f0998))
 
 
+# [7.3.0-release44.2](https://github.com/nrkno/sofie-timeline-state-resolver/compare/7.3.0-release44.1...7.3.0-release44.2) (2022-09-29)
+
+* timeout a device terminate operation if it takes too long and force-terminate ([59ec81a](https://github.com/nrkno/sofie-timeline-state-resolver/commit/59ec81a2947a8f48b699fd52f6e9185dd1587f2e))
+
+
 
 
 
