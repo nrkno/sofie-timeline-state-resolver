@@ -29,7 +29,7 @@ import { TCPSendDevice, DeviceOptionsTCPSendInternal } from './devices/tcpSend'
 import { PharosDevice, DeviceOptionsPharosInternal } from './devices/pharos'
 import { OSCMessageDevice, DeviceOptionsOSCInternal } from './devices/osc'
 import { DeviceContainer } from './devices/deviceContainer'
-import { MemUsageReport, threadedClass, ThreadedClass, ThreadedClassManager } from 'threadedclass'
+import { MemUsageReport, threadedClass, ThreadedClass, ThreadedClassConfig, ThreadedClassManager } from 'threadedclass'
 import { AsyncResolver } from './AsyncResolver'
 import { HTTPWatcherDevice, DeviceOptionsHTTPWatcherInternal } from './devices/httpWatcher'
 import { QuantelDevice, DeviceOptionsQuantelInternal } from './devices/quantel'
@@ -86,6 +86,7 @@ interface TimelineCallback {
 }
 type TimelineCallbacks = { [key: string]: TimelineCallback }
 const CALLBACK_WAIT_TIME = 50
+const REMOVE_TIMEOUT = 5000
 interface CallbackInstance {
 	playing: boolean | undefined
 
@@ -384,7 +385,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 				throw new Error(`Device "${deviceId}" already exists when creating device`)
 			}
 
-			const threadedClassOptions = {
+			const threadedClassOptions: ThreadedClassConfig = {
 				threadUsage: deviceOptions.threadUsage || 1,
 				autoRestart: false,
 				disableMultithreading: !deviceOptions.isMultiThreaded,
@@ -638,7 +639,10 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 		const device = this.devices.get(deviceId)
 		if (device) {
 			try {
-				await device.device.terminate()
+				await Promise.race([
+					device.device.terminate(),
+					new Promise<void>((_, reject) => setTimeout(() => reject('Timeout'), REMOVE_TIMEOUT)),
+				])
 			} catch (e) {
 				// An error while terminating is probably not that important, since we'll kill the instance anyway
 				this.emit('warning', 'Error when terminating device', e)
