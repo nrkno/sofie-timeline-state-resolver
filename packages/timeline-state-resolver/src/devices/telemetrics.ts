@@ -6,8 +6,8 @@ import {
 	TelemetricsOptions,
 	TimelineObjTelemetrics,
 } from 'timeline-state-resolver-types'
-import { ObjectId, TimelineState } from 'superfly-timeline'
-import { Device, DeviceStatus } from './device'
+import { TimelineState } from 'superfly-timeline'
+import { DeviceStatus, DeviceWithState } from './device'
 import { Socket } from 'net'
 import * as _ from 'underscore'
 import { DoOnTime } from '../doOnTime'
@@ -18,11 +18,15 @@ const TELEMETRICS_COMMAND_PREFIX = 'P0C'
 const DEFAULT_SOCKET_PORT = 5000
 const TIMEOUT_IN_MS = 2000
 
+interface TelemetricsState {
+	presetShotIdentifiers: number[]
+}
+
 /**
  * Connects to a Telemetrics Device on port 5000 using a TCP socket.
  * This class uses a fire and forget approach.
  */
-export class TelemetricsDevice extends Device<DeviceOptionsTelemetrics> {
+export class TelemetricsDevice extends DeviceWithState<TelemetricsState, DeviceOptionsTelemetrics> {
 	private doOnTime: DoOnTime
 
 	private socket: Socket
@@ -31,8 +35,6 @@ export class TelemetricsDevice extends Device<DeviceOptionsTelemetrics> {
 	private resolveInitPromise: (value: boolean) => void
 
 	private retryConnectionTimer: Timer | undefined
-
-	private lastReceivedCommandIds: Set<ObjectId> = new Set()
 
 	constructor(deviceId: string, deviceOptions: DeviceOptionsTelemetrics, getCurrentTime: () => Promise<number>) {
 		super(deviceId, deviceOptions, getCurrentTime)
@@ -91,37 +93,36 @@ export class TelemetricsDevice extends Device<DeviceOptionsTelemetrics> {
 
 	handleState(newState: TimelineState, mappings: Mappings): void {
 		super.onHandleState(newState, mappings)
+		const previousStateTime: number = Math.max(this.getCurrentTime(), newState.time)
+		const oldState: TelemetricsState = this.getStateBefore(previousStateTime)?.state ?? { presetShotIdentifiers: [] }
+		const newTelemetricsState: TelemetricsState = this.findNewTelemetricsState(newState)
 
-		const presetShotSet: Set<number> = new Set()
-		const objectIds: ObjectId[] = []
+		this.doOnTime.clearQueueNowAndAfter(previousStateTime)
 
-		_.each(newState.layers, (timelineObject, _layerName) => {
-			const telemetricsObject: TimelineObjTelemetrics = timelineObject as unknown as TimelineObjTelemetrics
+		this.setState(newTelemetricsState, newState.time)
+		const presetIdentifiersToSend: number[] = this.filterNewPresetIdentifiersFromOld(newTelemetricsState, oldState)
 
-			telemetricsObject.content.presetShotIdentifiers.forEach((shot) => presetShotSet.add(shot))
-			objectIds.push(telemetricsObject.id)
-		})
-
-		if (objectIds.length === 0 || this.hasCommandsBeenSent(objectIds)) {
-			return
-		}
-
-		this.lastReceivedCommandIds.clear()
-		objectIds.forEach((objectId) => this.lastReceivedCommandIds.add(objectId))
-
-		presetShotSet.forEach((presetShot: number) => {
-			const command = `${TELEMETRICS_COMMAND_PREFIX}${presetShot}\r`
-			this.doOnTime.queue(newState.time, undefined, () => this.socket.write(command))
-		})
+		presetIdentifiersToSend.forEach((presetShotIdentifier) => this.sendCommand(presetShotIdentifier, newState))
 	}
 
-	private hasCommandsBeenSent(idsToSend: ObjectId[]): boolean {
-		for (let i = 0; i < idsToSend.length; i++) {
-			if (this.lastReceivedCommandIds.has(idsToSend[i])) {
-				return true
-			}
-		}
-		return false
+	private findNewTelemetricsState(newState: TimelineState): TelemetricsState {
+		const newTelemetricsState: TelemetricsState = { presetShotIdentifiers: [] }
+
+		newTelemetricsState.presetShotIdentifiers = _.map(newState.layers, (timelineObject, _layerName) => {
+			const telemetricsObject: TimelineObjTelemetrics = timelineObject as unknown as TimelineObjTelemetrics
+			return telemetricsObject.content.presetShotIdentifiers
+		}).flat()
+
+		return newTelemetricsState
+	}
+
+	private filterNewPresetIdentifiersFromOld(newState: TelemetricsState, oldState: TelemetricsState): number[] {
+		return newState.presetShotIdentifiers.filter((preset) => !oldState.presetShotIdentifiers.includes(preset))
+	}
+
+	private sendCommand(presetShotIdentifier: number, newState: TimelineState) {
+		const command = `${TELEMETRICS_COMMAND_PREFIX}${presetShotIdentifier}\r`
+		this.doOnTime.queue(newState.time, undefined, () => this.socket.write(command))
 	}
 
 	async init(options: TelemetricsOptions): Promise<boolean> {
@@ -189,6 +190,7 @@ export class TelemetricsDevice extends Device<DeviceOptionsTelemetrics> {
 
 	prepareForHandleState(newStateTime: number): void {
 		this.doOnTime.clearQueueNowAndAfter(newStateTime)
+		this.cleanUpStates(0, newStateTime)
 	}
 
 	async terminate(): Promise<boolean> {

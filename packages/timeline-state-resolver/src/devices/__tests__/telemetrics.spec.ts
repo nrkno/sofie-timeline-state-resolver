@@ -38,6 +38,7 @@ jest.mock('../../doOnTime', () => {
 				},
 				on: jest.fn(),
 				dispose: jest.fn(),
+				clearQueueNowAndAfter: jest.fn(),
 			}
 		}),
 	}
@@ -174,32 +175,6 @@ describe('telemetrics', () => {
 			device.handleState(createTimelineState([1, 2, 3]), {})
 
 			expect(MOCKED_SOCKET_WRITE).toBeCalledTimes(3)
-		})
-
-		it('is called a second time with the same timelineState, only sends one command', () => {
-			device = createInitializedTelemetricsDevice()
-
-			const timelineState = createTimelineState(1)
-			device.handleState(timelineState, {})
-			device.handleState(timelineState, {})
-
-			expect(MOCKED_SOCKET_WRITE).toBeCalledTimes(1)
-		})
-
-		it('receives two layers with the same shot, only sends one command', () => {
-			device = createInitializedTelemetricsDevice()
-
-			const timelineState = createTimelineState(1)
-			timelineState.layers['randomLayer'] = {
-				id: 'random_layer_id',
-				content: {
-					presetShotIdentifiers: [1],
-				} as unknown as TimelineObjTelemetrics,
-			} as unknown as ResolvedTimelineObjectInstance
-
-			device.handleState(timelineState, {})
-
-			expect(MOCKED_SOCKET_WRITE).toBeCalledTimes(1)
 		})
 
 		it('receives two layers with different shots, sends two commands', () => {
