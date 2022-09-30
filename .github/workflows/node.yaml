@@ -163,6 +163,7 @@ jobs:
         if: ${{ steps.do-publish.outputs.tag }}
         run: |
           echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" >> ~/.npmrc
+          yarn rename-tv2
           yarn lerna publish from-package --tag-version-prefix='' --dist-tag ${{ steps.do-publish.outputs.tag }} --yes --no-verify-access
         env:
           CI: true

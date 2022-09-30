@@ -32,7 +32,10 @@
 		"cov-open": "open-cli coverage/lcov-report/index.html",
 		"validate:dependencies": "yarn audit --groups dependencies && yarn license-validate",
 		"validate:dev-dependencies": "yarn audit --groups devDependencies",
-		"precommit": "lint-staged"
+		"precommit": "lint-staged",
+		"tv2-rename": "yarn tv2-rename:package && yarn tv2-rename:dependency",
+		"tv2-rename:package": "echo \"`jq '.name = \"@tv2media/\" + .name' package.json --tab`\" > package.json",
+		"tv2-rename:dependency": "echo \"`jq '.dependencies.\"timeline-state-resolver-types\" = \"npm:@tv2media/timeline-state-resolver-types@\" + .dependencies.\"timeline-state-resolver-types\"' package.json --tab`\" > package.json"
 	},
 	"engines": {
 		"node": "^14.18 || ^16.14"
