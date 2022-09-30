@@ -33,6 +33,10 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
 - **HyperDeck:** add "warnOnEmptySlots" option ([233a413](https://github.com/nrkno/sofie-timeline-state-resolver/commit/233a4132097f38723b7150b7e61635f39e08115d))
 - **Hyperdeck:** add support for play and goto commands ([50e9e15](https://github.com/nrkno/sofie-timeline-state-resolver/commit/50e9e156651ba250a4fa3d5fcc01a184ba928ade))
 
+# [7.3.0-release44.2](https://github.com/nrkno/sofie-timeline-state-resolver/compare/7.3.0-release44.1...7.3.0-release44.2) (2022-09-29)
+
+**Note:** Version bump only for package timeline-state-resolver-types
+
 # [7.3.0-release44.1](https://github.com/nrkno/sofie-timeline-state-resolver/compare/7.3.0-release44.0...7.3.0-release44.1) (2022-09-22)
 
 **Note:** Version bump only for package timeline-state-resolver-types

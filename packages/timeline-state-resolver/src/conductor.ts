@@ -92,6 +92,7 @@ interface TimelineCallback {
 }
 type TimelineCallbacks = { [key: string]: TimelineCallback }
 const CALLBACK_WAIT_TIME = 50
+const REMOVE_TIMEOUT = 5000
 interface CallbackInstance {
 	playing: boolean | undefined
 
@@ -653,7 +654,10 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 		const device = this.devices.get(deviceId)
 		if (device) {
 			try {
-				await device.device.terminate()
+				await Promise.race([
+					device.device.terminate(),
+					new Promise<void>((_, reject) => setTimeout(() => reject('Timeout'), REMOVE_TIMEOUT)),
+				])
 			} catch (e) {
 				// An error while terminating is probably not that important, since we'll kill the instance anyway
 				this.emit('warning', 'Error when terminating device', e)
