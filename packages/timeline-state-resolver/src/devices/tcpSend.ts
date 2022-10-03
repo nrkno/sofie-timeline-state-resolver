@@ -46,7 +46,7 @@ export class TCPSendDevice extends DeviceWithState<TSCSendState, DeviceOptionsTC
 	private _host: string
 	private _port: number
 	private _bufferEncoding?: BufferEncoding
-	private _setDisconnected = false // set to true if disconnect() has been called (then do not trye to reconnect)
+	private _setDisconnected = false // set to true if disconnect() has been called (then do not try to reconnect)
 	private _retryConnectTimeout: NodeJS.Timer
 	// private _queue: Array<any>
 
