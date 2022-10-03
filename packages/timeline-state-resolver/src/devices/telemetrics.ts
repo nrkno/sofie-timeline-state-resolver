@@ -102,7 +102,7 @@ export class TelemetricsDevice extends DeviceWithState<TelemetricsState, DeviceO
 		this.setState(newTelemetricsState, newState.time)
 		const presetIdentifiersToSend: number[] = this.filterNewPresetIdentifiersFromOld(newTelemetricsState, oldState)
 
-		presetIdentifiersToSend.forEach((presetShotIdentifier) => this.sendCommand(presetShotIdentifier, newState))
+		presetIdentifiersToSend.forEach((presetShotIdentifier) => this.queueCommand(presetShotIdentifier, newState))
 	}
 
 	private findNewTelemetricsState(newState: TimelineState): TelemetricsState {
@@ -120,7 +120,7 @@ export class TelemetricsDevice extends DeviceWithState<TelemetricsState, DeviceO
 		return newState.presetShotIdentifiers.filter((preset) => !oldState.presetShotIdentifiers.includes(preset))
 	}
 
-	private sendCommand(presetShotIdentifier: number, newState: TimelineState) {
+	private queueCommand(presetShotIdentifier: number, newState: TimelineState) {
 		const command = `${TELEMETRICS_COMMAND_PREFIX}${presetShotIdentifier}\r`
 		this.doOnTime.queue(newState.time, undefined, () => this.socket.write(command))
 	}
