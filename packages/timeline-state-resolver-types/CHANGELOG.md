@@ -3,7 +3,27 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
-# [7.4.0-release46.1](https://github.com/nrkno/sofie-timeline-state-resolver/compare/7.3.0-release44.1...7.4.0-release46.1) (2022-09-27)
+## [2.1.7](https://github.com/tv2/tv-automation-state-timeline-resolver/compare/2.1.6...2.1.7) (2022-10-03)
+
+**Note:** Version bump only for package timeline-state-resolver-types
+
+## [2.1.6](https://github.com/tv2/tv-automation-state-timeline-resolver/compare/2.1.5...2.1.6) (2022-09-06)
+
+**Note:** Version bump only for package timeline-state-resolver-types
+
+## [2.1.5](https://github.com/tv2/tv-automation-state-timeline-resolver/compare/2.1.4...2.1.5) (2022-08-17)
+
+**Note:** Version bump only for package timeline-state-resolver-types
+
+## [2.1.4](https://github.com/tv2/tv-automation-state-timeline-resolver/compare/2.1.3...2.1.4) (2022-08-11)
+
+**Note:** Version bump only for package timeline-state-resolver-types
+
+## [2.1.3](https://github.com/tv2/tv-automation-state-timeline-resolver/compare/2.1.2...2.1.3) (2022-07-04)
+
+**Note:** Version bump only for package timeline-state-resolver-types
+
+## [2.1.1](https://github.com/tv2/tv-automation-state-timeline-resolver/compare/v2.0.0...2.1.1) (2022-06-14)
 
 ### Bug Fixes
 

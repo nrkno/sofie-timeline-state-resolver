@@ -1,25 +1,4 @@
-export * from './abstract'
-export * from './atem'
-export * from './casparcg'
-export * from './httpSend'
-export * from './httpWatcher'
-export * from './hyperdeck'
-export * from './lawo'
-export * from './osc'
-export * from './pharos'
-export * from './panasonicPTZ'
-export * from './sisyfos'
-export * from './quantel'
-export * from './shotoku'
-export * from './tcpSend'
-export * from './vizMSE'
-export * from './singularLive'
-export * from './vmix'
-export * from './obs'
-
-export * from './device'
-export * from './mapping'
-
+import { TimelineObjTelemetricsAny } from './telemetrics'
 import * as Timeline from './superfly-timeline'
 import { TimelineObjAtemAny } from './atem'
 import { TimelineObjCasparCGAny } from './casparcg'
@@ -39,6 +18,29 @@ import { TimelineObjVIZMSEAny } from './vizMSE'
 import { TimelineObjSingularLiveAny } from './singularLive'
 import { TimelineObjVMixAny } from './vmix'
 import { TimelineObjOBSAny } from './obs'
+
+export * from './abstract'
+export * from './atem'
+export * from './casparcg'
+export * from './httpSend'
+export * from './httpWatcher'
+export * from './hyperdeck'
+export * from './lawo'
+export * from './osc'
+export * from './pharos'
+export * from './panasonicPTZ'
+export * from './sisyfos'
+export * from './quantel'
+export * from './shotoku'
+export * from './tcpSend'
+export * from './vizMSE'
+export * from './singularLive'
+export * from './vmix'
+export * from './obs'
+export * from './telemetrics'
+
+export * from './device'
+export * from './mapping'
 
 export { Timeline }
 export * from './mapping'
@@ -66,6 +68,7 @@ export enum DeviceType {
 	SHOTOKU = 15,
 	VMIX = 20,
 	OBS = 21,
+	TELEMETRICS = 22,
 }
 
 export interface TSRTimelineKeyframe<T> extends Timeline.TimelineKeyframe {
@@ -136,6 +139,7 @@ export type TSRTimelineObj =
 	| TimelineObjSingularLiveAny
 	| TimelineObjVMixAny
 	| TimelineObjVIZMSEAny
+	| TimelineObjTelemetricsAny
 
 export type TSRTimeline = Array<TSRTimelineObj>
 
