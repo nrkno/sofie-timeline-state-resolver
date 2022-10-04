@@ -66,7 +66,7 @@ export class DeviceContainer<TOptions extends DeviceOptionsBase<any>> extends Ev
 					if (container.onChildClose) container.onChildClose()
 				}),
 				ThreadedClassManager.onEvent(container._device, 'error', (error) => {
-					container.emit('error', 'threadedClass', error)
+					container.emit('error', `${orgClassExport} "${deviceId}" threadedClass error`, error)
 				}),
 			]
 		}
