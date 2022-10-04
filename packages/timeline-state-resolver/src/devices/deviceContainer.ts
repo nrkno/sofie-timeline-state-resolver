@@ -1,13 +1,18 @@
 import { ThreadedClass, threadedClass, ThreadedClassConfig, ThreadedClassManager } from 'threadedclass'
 import { Device } from './device'
 import { DeviceType, DeviceOptionsBase } from 'timeline-state-resolver-types'
+import { EventEmitter } from 'eventemitter3'
+
+export type DeviceContainerEvents = {
+	error: [context: string, err: Error]
+}
 
 /**
  * A device container is a wrapper around a device in ThreadedClass class, it
  * keeps a local property of some basic information about the device (like
  * names and id's) to prevent a costly round trip over IPC.
  */
-export class DeviceContainer<TOptions extends DeviceOptionsBase<any>> {
+export class DeviceContainer<TOptions extends DeviceOptionsBase<any>> extends EventEmitter<DeviceContainerEvents> {
 	private _device: ThreadedClass<Device<TOptions>>
 	private _deviceId = 'N/A'
 	private _deviceType: DeviceType
@@ -17,11 +22,12 @@ export class DeviceContainer<TOptions extends DeviceOptionsBase<any>> {
 	public onChildClose: () => void | undefined
 	private _instanceId = -1
 	private _startTime = -1
-	private _onEventListener: { stop: () => void } | undefined
+	private _onEventListeners: { stop: () => void }[] | undefined
 	private _debugLogging = true
 	private _initialized = false
 
 	private constructor(deviceOptions: TOptions, threadConfig?: ThreadedClassConfig) {
+		super()
 		this._deviceOptions = deviceOptions
 		this._threadConfig = threadConfig
 		this._debugLogging = deviceOptions.debug || false
@@ -54,10 +60,15 @@ export class DeviceContainer<TOptions extends DeviceOptionsBase<any>> {
 		)
 
 		if (deviceOptions.isMultiThreaded) {
-			container._onEventListener = ThreadedClassManager.onEvent(container._device, 'thread_closed', () => {
-				// This is called if a child crashes
-				if (container.onChildClose) container.onChildClose()
-			})
+			container._onEventListeners = [
+				ThreadedClassManager.onEvent(container._device, 'thread_closed', () => {
+					// This is called if a child crashes
+					if (container.onChildClose) container.onChildClose()
+				}),
+				ThreadedClassManager.onEvent(container._device, 'error', (error) => {
+					container.emit('error', `${orgClassExport} "${deviceId}" threadedClass error`, error)
+				}),
+			]
 		}
 
 		await container.reloadProps()
@@ -88,8 +99,8 @@ export class DeviceContainer<TOptions extends DeviceOptionsBase<any>> {
 	}
 
 	public async terminate() {
-		if (this._onEventListener) {
-			this._onEventListener.stop()
+		if (this._onEventListeners) {
+			this._onEventListeners.forEach((listener) => listener.stop())
 		}
 		await ThreadedClassManager.destroy(this._device)
 	}
