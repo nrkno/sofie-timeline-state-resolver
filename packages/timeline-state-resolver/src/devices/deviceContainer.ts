@@ -22,7 +22,7 @@ export class DeviceContainer<TOptions extends DeviceOptionsBase<any>> extends Ev
 	public onChildClose: () => void | undefined
 	private _instanceId = -1
 	private _startTime = -1
-	private _onEventListeners: { stop: () => void }[] | undefined
+	private _onEventListeners: { stop: () => void }[] = []
 	private _debugLogging = true
 	private _initialized = false
 
