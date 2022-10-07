@@ -89,7 +89,7 @@
 	],
 	"dependencies": {
 		"@tv2media/v-connection": "^6.0.2",
-		"atem-connection": "3.0.1",
+		"atem-connection": "2.4.0",
 		"atem-state": "^0.12.2",
 		"casparcg-connection": "^5.1.0",
 		"casparcg-state": "2.1.2-nightly-latest-20220819-074840-588e6e7.0",
