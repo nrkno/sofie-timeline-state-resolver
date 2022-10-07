@@ -246,6 +246,17 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 			}
 		)
 
+		ThreadedClassManager.onEvent(this._resolver, 'thread_closed', () => {
+			// This is called if a child crashes - we are using autoRestart, so we just log
+			this.emit('warning', 'AsyncResolver thread closed')
+		})
+		ThreadedClassManager.onEvent(this._resolver, 'restarted', () => {
+			this.emit('warning', 'AsyncResolver thread restarted')
+		})
+		ThreadedClassManager.onEvent(this._resolver, 'error', (error: any) => {
+			this.emit('error', 'AsyncResolver threadedClass error', error)
+		})
+
 		this._isInitialized = true
 		this.resetResolver()
 	}
@@ -602,6 +613,9 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 			}
 
 			newDevice.device.on('resetResolver', () => this.resetResolver()).catch(console.error)
+			newDevice.on('error', (context, e) => {
+				this.emit('error', `deviceContainer for "${newDevice?.deviceId}" emitted an error: ${context}, ${e}`)
+			})
 
 			// Double check that it hasnt been created while we were busy waiting
 			if (this.devices.has(deviceId)) {
