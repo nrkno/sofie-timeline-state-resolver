@@ -81,7 +81,7 @@ export class DeviceContainer<TOptions extends DeviceOptionsBase<any>> extends Ev
 	}
 
 	public async init(initOptions: TOptions['options'], activeRundownPlaylistId: string | undefined): Promise<boolean> {
-		if (this.initialized === true) {
+		if (this.initialized) {
 			throw new Error(`Device ${this.deviceId} is already initialized`)
 		}
 
@@ -99,9 +99,7 @@ export class DeviceContainer<TOptions extends DeviceOptionsBase<any>> extends Ev
 	}
 
 	public async terminate() {
-		if (this._onEventListeners) {
-			this._onEventListeners.forEach((listener) => listener.stop())
-		}
+		this._onEventListeners.forEach((listener) => listener.stop())
 		await ThreadedClassManager.destroy(this._device)
 	}
 
