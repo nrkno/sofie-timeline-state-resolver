@@ -1,5 +1,5 @@
 import { Mapping } from './mapping'
-import { TSRTimelineObjBase, DeviceType } from '.'
+import { TSRTimelineObjBase, DeviceType, TimelineDatastoreReferencesContent } from '.'
 
 export interface MappingVizMSE extends Mapping {
 	device: DeviceType.VIZMSE
@@ -83,7 +83,7 @@ export interface TimelineObjVIZMSEBase extends TSRTimelineObjBase {
 
 		// inTransition?: VIZMSEOutTransition
 		outTransition?: VIZMSEOutTransition
-	}
+	} & TimelineDatastoreReferencesContent
 }
 export interface TimelineObjVIZMSEElementInternal extends TimelineObjVIZMSEBase {
 	content: {
@@ -113,7 +113,7 @@ export interface TimelineObjVIZMSEElementInternal extends TimelineObjVIZMSEBase 
 		showId: string
 		/** Whether this element should have its take delayed until after an out transition has finished */
 		delayTakeAfterOutTransition?: boolean
-	}
+	} & TimelineDatastoreReferencesContent
 }
 export interface TimelineObjVIZMSEElementPilot extends TimelineObjVIZMSEBase {
 	content: {
@@ -139,7 +139,7 @@ export interface TimelineObjVIZMSEElementPilot extends TimelineObjVIZMSEBase {
 		templateVcpId: number
 		/** Whether this element should have its take delayed until after an out transition has finished */
 		delayTakeAfterOutTransition?: boolean
-	}
+	} & TimelineDatastoreReferencesContent
 }
 export interface TimelineObjVIZMSEElementContinue extends TSRTimelineObjBase {
 	content: {
@@ -151,13 +151,13 @@ export interface TimelineObjVIZMSEElementContinue extends TSRTimelineObjBase {
 
 		/** What other layer to continue */
 		reference: string
-	}
+	} & TimelineDatastoreReferencesContent
 }
 export interface TimelineObjVIZMSELoadAllElements extends TSRTimelineObjBase {
 	content: {
 		deviceType: DeviceType.VIZMSE
 		type: TimelineContentTypeVizMSE.LOAD_ALL_ELEMENTS
-	}
+	} & TimelineDatastoreReferencesContent
 }
 export interface TimelineObjVIZMSEClearAllElements extends TSRTimelineObjBase {
 	content: {
@@ -169,7 +169,7 @@ export interface TimelineObjVIZMSEClearAllElements extends TSRTimelineObjBase {
 
 		/** IDs of the Show to use for taking the special template */
 		showId: string
-	}
+	} & TimelineDatastoreReferencesContent
 }
 export interface TimelineObjVIZMSEInitializeShows extends TSRTimelineObjBase {
 	content: {
@@ -178,7 +178,7 @@ export interface TimelineObjVIZMSEInitializeShows extends TSRTimelineObjBase {
 
 		/** IDs of the Shows to initialize */
 		showIds: string[]
-	}
+	} & TimelineDatastoreReferencesContent
 }
 export interface TimelineObjVIZMSECleanupShows extends TSRTimelineObjBase {
 	content: {
@@ -187,7 +187,7 @@ export interface TimelineObjVIZMSECleanupShows extends TSRTimelineObjBase {
 
 		/** IDs of the Shows to cleanup */
 		showIds: string[]
-	}
+	} & TimelineDatastoreReferencesContent
 }
 
 export interface TimelineObjVIZMSEConcept extends TimelineObjVIZMSEBase {
@@ -195,7 +195,7 @@ export interface TimelineObjVIZMSEConcept extends TimelineObjVIZMSEBase {
 		deviceType: DeviceType.VIZMSE
 		type: TimelineContentTypeVizMSE.CONCEPT
 		concept: string
-	}
+	} & TimelineDatastoreReferencesContent
 }
 
 export type VIZMSEOutTransition = VIZMSETransitionDelay

@@ -1,5 +1,5 @@
 import { Mapping } from './mapping'
-import { TSRTimelineObjBase, DeviceType } from '.'
+import { TSRTimelineObjBase, DeviceType, TimelineDatastoreReferencesContent } from '.'
 
 export interface MappingHTTPSend extends Mapping {
 	device: DeviceType.HTTPSEND
@@ -39,5 +39,6 @@ export interface TimelineObjHTTPSendBase extends TSRTimelineObjBase {
 export interface TimelineObjHTTPRequest extends TimelineObjHTTPSendBase {
 	content: {
 		deviceType: DeviceType.HTTPSEND
-	} & HTTPSendCommandContent
+	} & HTTPSendCommandContent &
+		TimelineDatastoreReferencesContent
 }

@@ -3,6 +3,47 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [2.2.0](https://github.com/tv2/tv-automation-state-timeline-resolver/compare/2.1.7...2.2.0) (2022-10-04)
+
+# [7.3.0-release44.2](https://github.com/tv2/tv-automation-state-timeline-resolver/compare/7.4.0-release46.1...7.3.0-release44.2) (2022-09-29)
+
+# [7.4.0-release46.1](https://github.com/tv2/tv-automation-state-timeline-resolver/compare/7.4.0-release46.0...7.4.0-release46.1) (2022-09-27)
+
+# [7.4.0-release46.0](https://github.com/tv2/tv-automation-state-timeline-resolver/compare/7.3.0-release44.1...7.4.0-release46.0) (2022-09-26)
+
+### Bug Fixes
+
+- index datastore references by path ([9b48d72](https://github.com/tv2/tv-automation-state-timeline-resolver/commit/9b48d725d79d4eee13e7347e450abaadf02b6db2))
+
+# [7.3.0-release44.1](https://github.com/tv2/tv-automation-state-timeline-resolver/compare/2.1.6...7.3.0-release44.1) (2022-09-22)
+
+### Bug Fixes
+
+- invert warnOnEmptySlots to suppressEmptySlotWarnings ([edcd7b0](https://github.com/tv2/tv-automation-state-timeline-resolver/commit/edcd7b0fde747ae160c93f2ca1284661153f5647))
+- move all references to the root of the tl obj ([130b6c3](https://github.com/tv2/tv-automation-state-timeline-resolver/commit/130b6c3a908b0911f94ccedc67e7004404f11010))
+- put 'em back to make linter happy ([e83a5ed](https://github.com/tv2/tv-automation-state-timeline-resolver/commit/e83a5ed87f1983b16c9b5b8c134e1441fb8d324a))
+- **types:** remove unsupported/manual transport statuses ([b362072](https://github.com/tv2/tv-automation-state-timeline-resolver/commit/b362072424236f13f9c04bf477d6b98e41254359))
+- update typings with datastore references ([2c0074b](https://github.com/tv2/tv-automation-state-timeline-resolver/commit/2c0074bc74d8fa0eead89b44b558e73de4057638))
+
+### Features
+
+- **HyperDeck:** add "warnOnEmptySlots" option ([233a413](https://github.com/tv2/tv-automation-state-timeline-resolver/commit/233a4132097f38723b7150b7e61635f39e08115d))
+- **Hyperdeck:** add support for play and goto commands ([50e9e15](https://github.com/tv2/tv-automation-state-timeline-resolver/commit/50e9e156651ba250a4fa3d5fcc01a184ba928ade))
+
+# [7.3.0-release44.0](https://github.com/tv2/tv-automation-state-timeline-resolver/compare/2.1.3...7.3.0-release44.0) (2022-07-04)
+
+# [7.0.0](https://github.com/tv2/tv-automation-state-timeline-resolver/compare/2.1.2...7.0.0) (2022-06-27)
+
+### Features
+
+- timeline datastore prototype ([e122e8b](https://github.com/tv2/tv-automation-state-timeline-resolver/commit/e122e8bff7404b1955853131d24144c660f76753))
+
+# [7.1.0-release42.1](https://github.com/tv2/tv-automation-state-timeline-resolver/compare/7.0.0-release41.2...7.1.0-release42.1) (2022-04-29)
+
+### Reverts
+
+- Revert "7.1.0" ([8ce054c](https://github.com/tv2/tv-automation-state-timeline-resolver/commit/8ce054c6016fc0d23ef37a3ae1d233090a829fb9))
+
 ## [2.1.7](https://github.com/tv2/tv-automation-state-timeline-resolver/compare/2.1.6...2.1.7) (2022-10-03)
 
 **Note:** Version bump only for package timeline-state-resolver-types
@@ -27,32 +68,78 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
 
 ### Bug Fixes
 
-- move the types DeviceStatus, StatusCode to timeline-state-resolver-types ([4d84179](https://github.com/tv2/tv-automation-state-timeline-resolver/commit/4d84179372ba243fe60d102ec52447ca87f0a8c9))
-- **obs:** add missing mapping type to MappingOBSAny ([2ff5522](https://github.com/tv2/tv-automation-state-timeline-resolver/commit/2ff55222a8b5fc915c8926aa2bc9ea4f1e796000))
-
-# [2.1.0](https://github.com/tv2/tv-automation-state-timeline-resolver/compare/v0.1.3...v2.1.0) (2022-06-09)
-
-### Bug Fixes
-
-- add missing atem-type to TimelineObjAtemAny ([fd0a0b9](https://github.com/tv2/tv-automation-state-timeline-resolver/commit/fd0a0b925d9fa51284dcee260464876ae8a6f863))
-- emitting of 'debug' events should only be done if the debug property is truthy. ([5d015a1](https://github.com/tv2/tv-automation-state-timeline-resolver/commit/5d015a1dfde3ffc86f9aea9366bf72f76537d9a4))
-- move the types DeviceStatus, StatusCode to timeline-state-resolver-types ([4d84179](https://github.com/tv2/tv-automation-state-timeline-resolver/commit/4d84179372ba243fe60d102ec52447ca87f0a8c9))
-- **obs:** add missing mapping type to MappingOBSAny ([2ff5522](https://github.com/tv2/tv-automation-state-timeline-resolver/commit/2ff55222a8b5fc915c8926aa2bc9ea4f1e796000))
-- Updated links to match the changed repo name ([6fe910f](https://github.com/tv2/tv-automation-state-timeline-resolver/commit/6fe910f69a313e1f7b84e88a6550c3e40ac29afa))
+- index datastore references by path ([9b48d72](https://github.com/nrkno/sofie-timeline-state-resolver/commit/9b48d725d79d4eee13e7347e450abaadf02b6db2))
+- invert warnOnEmptySlots to suppressEmptySlotWarnings ([edcd7b0](https://github.com/nrkno/sofie-timeline-state-resolver/commit/edcd7b0fde747ae160c93f2ca1284661153f5647))
+- move all references to the root of the tl obj ([130b6c3](https://github.com/nrkno/sofie-timeline-state-resolver/commit/130b6c3a908b0911f94ccedc67e7004404f11010))
+- put 'em back to make linter happy ([e83a5ed](https://github.com/nrkno/sofie-timeline-state-resolver/commit/e83a5ed87f1983b16c9b5b8c134e1441fb8d324a))
+- **types:** remove unsupported/manual transport statuses ([b362072](https://github.com/nrkno/sofie-timeline-state-resolver/commit/b362072424236f13f9c04bf477d6b98e41254359))
+- update typings with datastore references ([2c0074b](https://github.com/nrkno/sofie-timeline-state-resolver/commit/2c0074bc74d8fa0eead89b44b558e73de4057638))
 
 ### Features
 
-- map sisyfos channel by its label ([afcf056](https://github.com/tv2/tv-automation-state-timeline-resolver/commit/afcf056a568f5e18545379c2655b8c1769b98be2))
-- monitor viz engines over http ([321fff1](https://github.com/tv2/tv-automation-state-timeline-resolver/commit/321fff112c0d6a8b6fad482a93fa8a69d348dda4))
-- mono repo ([#180](https://github.com/tv2/tv-automation-state-timeline-resolver/issues/180)) ([7349e20](https://github.com/tv2/tv-automation-state-timeline-resolver/commit/7349e2007dff661329bb44b3407ab4adbd390082))
-- **OBS:** Support OBS Live Video Production Software ([#187](https://github.com/tv2/tv-automation-state-timeline-resolver/issues/187)) ([f2fe81a](https://github.com/tv2/tv-automation-state-timeline-resolver/commit/f2fe81a3ae87ccd3c8db812e88ef9a94b74673d5))
-- purge unknown elements from the viz-rundown upon activation ([cff4d0c](https://github.com/tv2/tv-automation-state-timeline-resolver/commit/cff4d0cbcd46b7da97a8de31cb92381286294350))
-- resend failing http commands ([cb2ee39](https://github.com/tv2/tv-automation-state-timeline-resolver/commit/cb2ee3967f587520c8dd1e3b6d3543af6fcae687))
-- SOF-752 show init and cleanup ([44264b0](https://github.com/tv2/tv-automation-state-timeline-resolver/commit/44264b08bddccbbe62c6779beb8acba18f438080))
+- **HyperDeck:** add "warnOnEmptySlots" option ([233a413](https://github.com/nrkno/sofie-timeline-state-resolver/commit/233a4132097f38723b7150b7e61635f39e08115d))
+- **Hyperdeck:** add support for play and goto commands ([50e9e15](https://github.com/nrkno/sofie-timeline-state-resolver/commit/50e9e156651ba250a4fa3d5fcc01a184ba928ade))
+- timeline datastore prototype ([e122e8b](https://github.com/nrkno/sofie-timeline-state-resolver/commit/e122e8bff7404b1955853131d24144c660f76753))
+
+# [7.4.0-release46.0](https://github.com/nrkno/sofie-timeline-state-resolver/compare/7.3.0-release44.1...7.4.0-release46.0) (2022-09-26)
+
+### Bug Fixes
+
+- invert warnOnEmptySlots to suppressEmptySlotWarnings ([edcd7b0](https://github.com/nrkno/sofie-timeline-state-resolver/commit/edcd7b0fde747ae160c93f2ca1284661153f5647))
+- put 'em back to make linter happy ([e83a5ed](https://github.com/nrkno/sofie-timeline-state-resolver/commit/e83a5ed87f1983b16c9b5b8c134e1441fb8d324a))
+- **types:** remove unsupported/manual transport statuses ([b362072](https://github.com/nrkno/sofie-timeline-state-resolver/commit/b362072424236f13f9c04bf477d6b98e41254359))
+
+### Features
+
+- **HyperDeck:** add "warnOnEmptySlots" option ([233a413](https://github.com/nrkno/sofie-timeline-state-resolver/commit/233a4132097f38723b7150b7e61635f39e08115d))
+- **Hyperdeck:** add support for play and goto commands ([50e9e15](https://github.com/nrkno/sofie-timeline-state-resolver/commit/50e9e156651ba250a4fa3d5fcc01a184ba928ade))
+
+# [7.3.0-release44.2](https://github.com/nrkno/sofie-timeline-state-resolver/compare/7.3.0-release44.1...7.3.0-release44.2) (2022-09-29)
+
+**Note:** Version bump only for package timeline-state-resolver-types
+
+# [7.3.0-release44.1](https://github.com/nrkno/sofie-timeline-state-resolver/compare/7.3.0-release44.0...7.3.0-release44.1) (2022-09-22)
+
+**Note:** Version bump only for package timeline-state-resolver-types
+
+# [7.3.0-release44.0](https://github.com/nrkno/sofie-timeline-state-resolver/compare/7.0.1...7.3.0-release44.0) (2022-07-04)
+
+# [7.1.0-release42.1](https://github.com/nrkno/sofie-timeline-state-resolver/compare/7.0.0-release41.2...7.1.0-release42.1) (2022-04-29)
+
+### Features
+
+- SOF-752 show init and cleanup ([44264b0](https://github.com/nrkno/sofie-timeline-state-resolver/commit/44264b08bddccbbe62c6779beb8acba18f438080))
 
 ### Reverts
 
-- Revert "test: Rename package on publish" ([855f772](https://github.com/tv2/tv-automation-state-timeline-resolver/commit/855f7725d73878d10caea077aec50429e3146b41))
+- Revert "7.1.0" ([8ce054c](https://github.com/nrkno/sofie-timeline-state-resolver/commit/8ce054c6016fc0d23ef37a3ae1d233090a829fb9))
+- Revert "test: Rename package on publish" ([855f772](https://github.com/nrkno/sofie-timeline-state-resolver/commit/855f7725d73878d10caea077aec50429e3146b41))
+
+## [1.0.2-release37.1](https://github.com/nrkno/sofie-timeline-state-resolver/compare/1.0.2-release37...1.0.2-release37.1) (2021-09-02)
+
+# [7.1.0-release42.1](https://github.com/nrkno/sofie-timeline-state-resolver/compare/7.0.0-release41.1...7.1.0-release42.1) (2022-04-29)
+
+### Features
+
+- SOF-752 show init and cleanup ([44264b0](https://github.com/nrkno/sofie-timeline-state-resolver/commit/44264b08bddccbbe62c6779beb8acba18f438080))
+
+### Reverts
+
+- Revert "7.1.0" ([8ce054c](https://github.com/nrkno/sofie-timeline-state-resolver/commit/8ce054c6016fc0d23ef37a3ae1d233090a829fb9))
+
+## [1.0.2-release37.4](https://github.com/nrkno/sofie-timeline-state-resolver/compare/6.2.0-release37.7...1.0.2-release37.4) (2021-11-08)
+
+## [1.0.2-release37.3](https://github.com/nrkno/sofie-timeline-state-resolver/compare/1.0.2-release37.2...1.0.2-release37.3) (2021-10-14)
+
+### Reverts
+
+- Revert "test: Rename package on publish" ([855f772](https://github.com/nrkno/sofie-timeline-state-resolver/commit/855f7725d73878d10caea077aec50429e3146b41))
+
+## [1.0.2-release37.1](https://github.com/nrkno/sofie-timeline-state-resolver/compare/1.0.2-release37...1.0.2-release37.1) (2021-09-02)
+
+# [7.0.0](https://github.com/nrkno/sofie-timeline-state-resolver/compare/7.0.0-release41.2...7.0.0) (2022-06-27)
+
+**Note:** Version bump only for package timeline-state-resolver-types
 
 # [7.0.0-release41.2](https://github.com/nrkno/sofie-timeline-state-resolver/compare/7.0.0-release41.0...7.0.0-release41.2) (2022-04-28)
 

@@ -1,6 +1,6 @@
 {
 	"name": "timeline-state-resolver",
-	"version": "2.1.8",
+	"version": "2.2.1",
 	"description": "Have timeline, control stuff",
 	"main": "dist/index.js",
 	"typings": "dist/index.d.ts",
@@ -15,37 +15,6 @@
 		"url": "https://github.com/tv2/tv-automation-state-timeline-resolver/issues"
 	},
 	"homepage": "https://github.com/tv2/tv-automation-state-timeline-resolver#readme",
-	"contributors": [
-		{
-			"name": "Johan Nyman",
-			"email": "johan@superfly.tv",
-			"url": "http://superfly.tv"
-		},
-		{
-			"name": "Balte de Wit",
-			"email": "balte@superfly.tv",
-			"url": "http://superfly.tv"
-		},
-		{
-			"name": "Jesper Stærkær",
-			"email": "jesper@superfly.tv",
-			"url": "http://superfly.tv"
-		},
-		{
-			"name": "Jan Starzak",
-			"email": "jan@superfly.tv",
-			"url": "http://superfly.tv"
-		},
-		{
-			"name": "Stephan Nordnes Eriksen",
-			"email": "Stephanruler@gmail.com"
-		},
-		{
-			"name": "Julian Waller",
-			"email": "julian@superfly.tv",
-			"url": "http://superfly.tv"
-		}
-	],
 	"scripts": {
 		"unlink:all": "yarn unlink atem-connection & yarn unlink atem-state & yarn unlink casparcg-connection & yarn unlink casparcg-state & yarn unlink superfly-timeline",
 		"build": "rimraf dist && yarn build:main",
@@ -98,7 +67,7 @@
 		"emberplus-connection": "^0.1.2",
 		"eventemitter3": "^4.0.7",
 		"got": "^11.8.5",
-		"hyperdeck-connection": "^0.4.3",
+		"hyperdeck-connection": "^0.5.0",
 		"obs-websocket-js": "^4.0.3",
 		"osc": "^2.4.2",
 		"p-all": "^3.0.0",
@@ -106,15 +75,15 @@
 		"p-timeout": "^3.2.0",
 		"request": "^2.88.0",
 		"sprintf-js": "^1.1.2",
-		"superfly-timeline": "8.2.1",
+		"superfly-timeline": "^8.2.8",
 		"threadedclass": "^1.1.1",
-		"timeline-state-resolver-types": "2.1.8",
+		"timeline-state-resolver-types": "2.2.1",
 		"tslib": "^2.3.1",
-		"tv-automation-quantel-gateway-client": "^2.0.4",
-		"underscore": "^1.12.0",
+		"tv-automation-quantel-gateway-client": "^2.0.5",
+		"underscore": "^1.13.4",
 		"underscore-deep-extend": "^1.1.5",
-		"utf-8-validate": "^5.0.8",
-		"ws": "^7.5.5",
+		"utf-8-validate": "^5.0.9",
+		"ws": "^7.5.7",
 		"xml-js": "^1.6.11"
 	},
 	"publishConfig": {

@@ -10,7 +10,7 @@ import { TimelineState } from 'superfly-timeline'
 import { DeviceStatus, DeviceWithState } from './device'
 import { Socket } from 'net'
 import * as _ from 'underscore'
-import { DoOnTime } from '../doOnTime'
+import { DoOnTime } from './doOnTime'
 import Timer = NodeJS.Timer
 
 const TELEMETRICS_NAME = 'Telemetrics'
@@ -182,7 +182,7 @@ export class TelemetricsDevice extends DeviceWithState<TelemetricsState, DeviceO
 		}
 		this.retryConnectionTimer = setTimeout(() => {
 			this.emit('debug', 'Reconnecting...')
-			clearTimeout(this.retryConnectionTimer!)
+			clearTimeout(this.retryConnectionTimer)
 			this.retryConnectionTimer = undefined
 			this.connectToDevice(host, port)
 		}, TIMEOUT_IN_MS)
