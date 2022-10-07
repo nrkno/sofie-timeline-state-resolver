@@ -1,6 +1,6 @@
 {
 	"name": "timeline-state-resolver-types",
-	"version": "2.1.7",
+	"version": "2.2.1",
 	"description": "Have timeline, control stuff",
 	"main": "dist/index.js",
 	"typings": "dist/index.d.ts",
@@ -10,40 +10,9 @@
 		"url": "git+https://github.com/tv2/tv-automation-state-timeline-resolver.git"
 	},
 	"bugs": {
-		"url": "https://github.com/tv2/tv-automation-state-timeline-resolver/issues"
+		"url": "https://github.com/tv2/tv-automation-state-timeline-resolverissues"
 	},
 	"homepage": "https://github.com/tv2/tv-automation-state-timeline-resolver#readme",
-	"contributors": [
-		{
-			"name": "Johan Nyman",
-			"email": "johan@superfly.tv",
-			"url": "http://superfly.tv"
-		},
-		{
-			"name": "Balte de Wit",
-			"email": "balte@superfly.tv",
-			"url": "http://superfly.tv"
-		},
-		{
-			"name": "Jesper Stærkær",
-			"email": "jesper@superfly.tv",
-			"url": "http://superfly.tv"
-		},
-		{
-			"name": "Jan Starzak",
-			"email": "jan@superfly.tv",
-			"url": "http://superfly.tv"
-		},
-		{
-			"name": "Stephan Nordnes Eriksen",
-			"email": "Stephanruler@gmail.com"
-		},
-		{
-			"name": "Julian Waller",
-			"email": "julian@superfly.tv",
-			"url": "http://superfly.tv"
-		}
-	],
 	"scripts": {
 		"test": "yarn lint && yarn unit",
 		"unit": "jest",

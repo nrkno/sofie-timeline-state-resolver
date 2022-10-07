@@ -1,5 +1,5 @@
 import { Mapping } from './mapping'
-import { DeviceType, TSRTimelineObjBase } from '.'
+import { DeviceType, TimelineDatastoreReferencesContent, TSRTimelineObjBase } from '.'
 
 export interface SisyfosOptions {
 	host: string
@@ -61,7 +61,7 @@ export interface TimelineObjSisyfosTriggerValue extends TimelineObjSisyfos {
 		type: TimelineContentTypeSisyfos.TRIGGERVALUE
 
 		triggerValue: string
-	}
+	} & TimelineDatastoreReferencesContent
 }
 export interface TimelineObjSisyfosChannel extends TimelineObjSisyfos {
 	content: {
@@ -69,7 +69,8 @@ export interface TimelineObjSisyfosChannel extends TimelineObjSisyfos {
 		type: TimelineContentTypeSisyfos.CHANNEL
 		resync?: boolean
 		overridePriority?: number // defaults to 0
-	} & SisyfosChannelOptions
+	} & SisyfosChannelOptions &
+		TimelineDatastoreReferencesContent
 }
 export interface TimelineObjSisyfosChannels extends TimelineObjSisyfos {
 	content: {
@@ -82,5 +83,5 @@ export interface TimelineObjSisyfosChannels extends TimelineObjSisyfos {
 		resync?: boolean
 		overridePriority?: number // defaults to 0
 		triggerValue?: string
-	}
+	} & TimelineDatastoreReferencesContent
 }

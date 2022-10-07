@@ -1,5 +1,5 @@
 import { Mapping } from './mapping'
-import { TSRTimelineObjBase, DeviceType } from '.'
+import { TSRTimelineObjBase, DeviceType, TimelineDatastoreReferencesContent } from '.'
 
 export type MappingVMixAny =
 	| MappingVMixProgram
@@ -174,7 +174,7 @@ export interface TimelineObjVMixBase extends TSRTimelineObjBase {
 	content: {
 		deviceType: DeviceType.VMIX
 		type: TimelineContentTypeVMix
-	}
+	} & TimelineDatastoreReferencesContent
 }
 
 export interface TimelineObjVMixProgram extends TimelineObjVMixBase {
@@ -190,7 +190,7 @@ export interface TimelineObjVMixProgram extends TimelineObjVMixBase {
 
 		/** Transition effect (Stingers work only for Mix number 1) */
 		transition?: VMixTransition
-	}
+	} & TimelineDatastoreReferencesContent
 }
 
 export interface TimelineObjVMixPreview extends TimelineObjVMixBase {
@@ -200,7 +200,7 @@ export interface TimelineObjVMixPreview extends TimelineObjVMixBase {
 
 		/** Input number or name */
 		input: number | string
-	}
+	} & TimelineDatastoreReferencesContent
 }
 
 export interface TimelineObjVMixAudio extends TimelineObjVMixBase {
@@ -225,7 +225,7 @@ export interface TimelineObjVMixAudio extends TimelineObjVMixBase {
 
 		/** Audio follow video */
 		audioAuto?: boolean
-	}
+	} & TimelineDatastoreReferencesContent
 }
 
 export interface TimelineObjVMixFader extends TimelineObjVMixBase {
@@ -235,7 +235,7 @@ export interface TimelineObjVMixFader extends TimelineObjVMixBase {
 
 		/** Position of the transition fader (0 - 255) */
 		position: number
-	}
+	} & TimelineDatastoreReferencesContent
 }
 
 export interface TimelineObjVMixStreaming extends TimelineObjVMixBase {
@@ -245,7 +245,7 @@ export interface TimelineObjVMixStreaming extends TimelineObjVMixBase {
 
 		/** If streaming should be turned on */
 		on: boolean
-	}
+	} & TimelineDatastoreReferencesContent
 }
 
 export interface TimelineObjVMixRecording extends TimelineObjVMixBase {
@@ -255,7 +255,7 @@ export interface TimelineObjVMixRecording extends TimelineObjVMixBase {
 
 		/** If recording should be turned on */
 		on: boolean
-	}
+	} & TimelineDatastoreReferencesContent
 }
 
 export interface TimelineObjVMixFadeToBlack extends TimelineObjVMixBase {
@@ -265,7 +265,7 @@ export interface TimelineObjVMixFadeToBlack extends TimelineObjVMixBase {
 
 		/** If Fade To Black should be turned on */
 		on: boolean
-	}
+	} & TimelineDatastoreReferencesContent
 }
 
 export interface TimelineObjVMixInput extends TimelineObjVMixBase {
@@ -292,7 +292,7 @@ export interface TimelineObjVMixInput extends TimelineObjVMixBase {
 
 		/** List of input (Multi View) overlays; indexes start from 1 */
 		overlays?: VMixInputOverlays
-	}
+	} & TimelineDatastoreReferencesContent
 }
 
 export interface TimelineObjVMixOutput extends TimelineObjVMixBase {
@@ -305,7 +305,7 @@ export interface TimelineObjVMixOutput extends TimelineObjVMixBase {
 
 		/** Number/name of the input when source:'Input' is chosen */
 		input?: number | string
-	}
+	} & TimelineDatastoreReferencesContent
 }
 
 export interface TimelineObjVMixExternal extends TimelineObjVMixBase {
@@ -315,7 +315,7 @@ export interface TimelineObjVMixExternal extends TimelineObjVMixBase {
 
 		/** If external should be turned on */
 		on: boolean
-	}
+	} & TimelineDatastoreReferencesContent
 }
 
 export interface TimelineObjVMixOverlay extends TimelineObjVMixBase {
@@ -325,7 +325,7 @@ export interface TimelineObjVMixOverlay extends TimelineObjVMixBase {
 
 		/** Input number or name */
 		input: number | string
-	}
+	} & TimelineDatastoreReferencesContent
 }
 
 export interface VMixTransform {
