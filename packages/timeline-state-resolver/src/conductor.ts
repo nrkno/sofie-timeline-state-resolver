@@ -48,6 +48,7 @@ import { VMixDevice, DeviceOptionsVMixInternal } from './integrations/vmix'
 import { OBSDevice, DeviceOptionsOBSInternal } from './integrations/obs'
 import { VizMSEDevice, DeviceOptionsVizMSEInternal } from './integrations/vizMSE'
 import { ShotokuDevice, DeviceOptionsShotokuInternal } from './integrations/shotoku'
+import { TriCasterDevice, DeviceOptionsTriCasterInternal } from './integrations/tricaster'
 
 export { DeviceContainer }
 export { CommandWithContext }
@@ -585,6 +586,15 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 				newDevice = await DeviceContainer.create<DeviceOptionsOBSInternal, typeof OBSDevice>(
 					'../../dist/integrations/obs/index.js',
 					'OBSDevice',
+					deviceId,
+					deviceOptions,
+					getCurrentTime,
+					threadedClassOptions
+				)
+			} else if (deviceOptions.type === DeviceType.TRICASTER) {
+				newDevice = await DeviceContainer.create<DeviceOptionsTriCasterInternal, typeof TriCasterDevice>(
+					'../../dist/integrations/tricaster/index.js',
+					'TriCasterDevice',
 					deviceId,
 					deviceOptions,
 					getCurrentTime,
@@ -1470,6 +1480,7 @@ export type DeviceOptionsAnyInternal =
 	| DeviceOptionsVMixInternal
 	| DeviceOptionsShotokuInternal
 	| DeviceOptionsVizMSEInternal
+	| DeviceOptionsTriCasterInternal
 
 function removeParentFromState(o: TimelineState): TimelineState {
 	for (const key in o) {
