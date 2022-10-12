@@ -9,6 +9,7 @@ export * from './osc'
 export * from './pharos'
 export * from './panasonicPTZ'
 export * from './sisyfos'
+export * from './sofieChef'
 export * from './quantel'
 export * from './shotoku'
 export * from './tcpSend'
@@ -35,6 +36,7 @@ import { TSRTimelineObjProps } from './mapping'
 import { TimelineObjQuantelAny } from './quantel'
 import { TimelineObjShotoku } from './shotoku'
 import { TimelineObjSisyfosAny } from './sisyfos'
+import { TimelineObjSofieChefAny } from './sofieChef'
 import { TimelineObjVIZMSEAny } from './vizMSE'
 import { TimelineObjSingularLiveAny } from './singularLive'
 import { TimelineObjVMixAny } from './vmix'
@@ -66,6 +68,7 @@ export enum DeviceType {
 	SHOTOKU = 15,
 	VMIX = 20,
 	OBS = 21,
+	SOFIE_CHEF = 22,
 }
 
 export interface TSRTimelineKeyframe<T> extends Timeline.TimelineKeyframe {
@@ -133,6 +136,7 @@ export type TSRTimelineObj =
 	| TimelineObjQuantelAny
 	| TimelineObjShotoku
 	| TimelineObjSisyfosAny
+	| TimelineObjSofieChefAny
 	| TimelineObjSingularLiveAny
 	| TimelineObjVMixAny
 	| TimelineObjVIZMSEAny
