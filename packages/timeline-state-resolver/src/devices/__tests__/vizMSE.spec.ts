@@ -15,6 +15,8 @@ import { ThreadedClass } from 'threadedclass'
 import { getMockCall } from '../../__tests__/lib'
 import { VizMSEDevice } from '../vizMSE'
 import * as vConnection from '../../__mocks__/v-connection'
+import * as net from '../../__mocks__/net'
+import { Socket } from '../../__mocks__/net'
 const getMockMSEs = vConnection.getMockMSEs
 type MSEMock = vConnection.MSEMock
 type VRundownMocked = vConnection.VRundownMocked
@@ -22,6 +24,14 @@ import _ = require('underscore')
 import { literal, StatusCode } from '../device'
 
 const SHOW_ID = '34ea2db4-ad93-42fb-b352-e49f926ed83f'
+
+const orgSetTimeout = setTimeout
+
+async function wait(time = 1) {
+	return new Promise((resolve) => {
+		orgSetTimeout(resolve, time)
+	})
+}
 
 async function setupDevice() {
 	let device: any = undefined
@@ -71,6 +81,7 @@ const mockTime = new MockTime()
 
 describe('vizMSE', () => {
 	jest.mock('@tv2media/v-connection', () => vConnection)
+	jest.mock('net', () => net)
 
 	// const orgSetTimeout = setTimeout
 
@@ -1017,5 +1028,152 @@ describe('vizMSE', () => {
 		)
 
 		expect(onError).toHaveBeenCalledTimes(0)
+	})
+	test('vizMSE: clear all elements on makeReady when clearAllOnMakeReady is true', async () => {
+		const CLEAR_COMMAND = 'RENDERER*FRONT_LAYER SET_OBJECT'
+		const PROFILE_NAME = 'mockProfile'
+		const myConductor = new Conductor({
+			multiThreadedResolver: false,
+			getCurrentTime: mockTime.getCurrentTime,
+		})
+		await myConductor.init()
+		await myConductor.addDevice('myViz', {
+			type: DeviceType.VIZMSE,
+			options: {
+				host: '127.0.0.1',
+				preloadAllElements: true,
+				playlistID: 'my-super-playlist-id',
+				profile: PROFILE_NAME,
+				clearAllOnMakeReady: true,
+				clearAllTemplateName: 'clear_all_of_them',
+				clearAllCommands: [CLEAR_COMMAND],
+			},
+		})
+
+		const deviceContainer = myConductor.getDevice('myViz')
+		const device = deviceContainer!.device as ThreadedClass<VizMSEDevice>
+		await device.ignoreWaitsInTests()
+
+		const mse = _.last(getMockMSEs()) as MSEMock
+		expect(mse).toBeTruthy()
+		mse.mockCreateProfile(PROFILE_NAME, {
+			Channel1: {
+				entry: {
+					viz: {
+						value: 'Engine1',
+					},
+				},
+			},
+		})
+		mse.mockSetEngines([
+			{
+				mode: 'mockData',
+				status: 'mockData',
+				type: 'viz',
+				name: 'Engine1',
+				encoding: {
+					value: 'mockData',
+				},
+				state: 'mockData',
+				renderer: {
+					localhost: {},
+				},
+				publishing_point_uri: 'mockData',
+				publishing_point_atom_id: 'mockData',
+				info: 'mockData',
+			},
+		])
+
+		let netSocket: Socket
+
+		const writeBuffer = await Promise.all([
+			new Promise((resolve) => {
+				Socket.mockOnNextSocket((mockSocket: Socket) => {
+					netSocket = mockSocket
+					netSocket.onWrite = (buffer) => {
+						resolve(buffer.toString())
+					}
+				})
+			}),
+			device.makeReady(true, 'someDummyId'),
+		])
+
+		expect(writeBuffer[0]).toMatch(CLEAR_COMMAND)
+	})
+	test("vizMSE: don't clear engines when clearAllOnMakeReady is set to false", async () => {
+		const CLEAR_COMMAND = 'RENDERER*FRONT_LAYER SET_OBJECT'
+		const PROFILE_NAME = 'mockProfile'
+		const myConductor = new Conductor({
+			multiThreadedResolver: false,
+			getCurrentTime: mockTime.getCurrentTime,
+		})
+		await myConductor.init()
+		await myConductor.addDevice('myViz', {
+			type: DeviceType.VIZMSE,
+			options: {
+				host: '127.0.0.1',
+				preloadAllElements: true,
+				playlistID: 'my-super-playlist-id',
+				profile: PROFILE_NAME,
+				clearAllOnMakeReady: false,
+				clearAllTemplateName: 'clear_all_of_them',
+				clearAllCommands: [CLEAR_COMMAND],
+			},
+		})
+
+		const deviceContainer = myConductor.getDevice('myViz')
+		const device = deviceContainer!.device as ThreadedClass<VizMSEDevice>
+		await device.ignoreWaitsInTests()
+
+		const mse = _.last(getMockMSEs()) as MSEMock
+		expect(mse).toBeTruthy()
+		mse.mockCreateProfile(PROFILE_NAME, {
+			Channel1: {
+				entry: {
+					viz: {
+						value: 'Engine1',
+					},
+				},
+			},
+		})
+		mse.mockSetEngines([
+			{
+				mode: 'mockData',
+				status: 'mockData',
+				type: 'viz',
+				name: 'Engine1',
+				encoding: {
+					value: 'mockData',
+				},
+				state: 'mockData',
+				renderer: {
+					localhost: {},
+				},
+				publishing_point_uri: 'mockData',
+				publishing_point_atom_id: 'mockData',
+				info: 'mockData',
+			},
+		])
+
+		let netSocket: Socket
+
+		const promiseRaceResult = await Promise.all([
+			Promise.race([
+				new Promise((resolve) => {
+					Socket.mockOnNextSocket((mockSocket: Socket) => {
+						netSocket = mockSocket
+						netSocket.onWrite = (buffer) => {
+							resolve(buffer.toString())
+						}
+					})
+				}),
+				(async () => {
+					await wait(100)
+					return 'timeout'
+				})(),
+			]),
+			device.makeReady(true, 'someDummyId'),
+		])
+		expect(promiseRaceResult[0]).toBe('timeout')
 	})
 })

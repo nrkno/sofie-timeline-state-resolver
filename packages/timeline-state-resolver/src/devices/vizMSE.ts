@@ -2266,7 +2266,6 @@ class VizEngineTcpSender extends EventEmitter {
 	}
 
 	private _connect() {
-		this._socket = net.createConnection(this._port, this._host)
 		this._socket.on('connect', () => {
 			this._connected = true
 			if (this._sendQueue.length) {
@@ -2281,6 +2280,7 @@ class VizEngineTcpSender extends EventEmitter {
 			// this handles a dns exception, but the error is handled on 'error' event
 		})
 		this._socket.on('data', this._processData.bind(this))
+		this._socket.connect(this._port, this._host)
 	}
 
 	private _flushQueue() {
