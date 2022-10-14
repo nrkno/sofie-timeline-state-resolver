@@ -298,7 +298,7 @@ export class SofieChefDevice extends DeviceWithState<SofieChefState, DeviceOptio
 					context: 'added',
 					timelineObjId: window.urlTimelineObjId,
 					content: {
-						msgId: this.msgId++,
+						msgId: 0, // set later
 						type: ReceiveWSMessageType.PLAYURL,
 						windowId: windowId,
 						url: window.url,
@@ -311,7 +311,7 @@ export class SofieChefDevice extends DeviceWithState<SofieChefState, DeviceOptio
 						context: 'changed',
 						timelineObjId: window.urlTimelineObjId,
 						content: {
-							msgId: this.msgId++,
+							msgId: 0, // set later
 							type: ReceiveWSMessageType.PLAYURL,
 							windowId: windowId,
 							url: window.url,
@@ -330,7 +330,7 @@ export class SofieChefDevice extends DeviceWithState<SofieChefState, DeviceOptio
 					context: 'removed',
 					timelineObjId: oldWindow.urlTimelineObjId,
 					content: {
-						msgId: this.msgId++,
+						msgId: 0, // set later
 						type: ReceiveWSMessageType.STOP,
 						windowId: windowId,
 					},
@@ -400,6 +400,11 @@ export class SofieChefDevice extends DeviceWithState<SofieChefState, DeviceOptio
 
 	private async _sendMessage(msg: ReceiveWSMessageAny): Promise<void> {
 		return new Promise((resolve, reject) => {
+			msg.msgId = this.msgId++
+			if (this.initOptions?.apiKey) {
+				msg.apiKey = this.initOptions?.apiKey
+			}
+
 			this.waitingForReplies[msg.msgId + ''] = {
 				resolve,
 				reject,
