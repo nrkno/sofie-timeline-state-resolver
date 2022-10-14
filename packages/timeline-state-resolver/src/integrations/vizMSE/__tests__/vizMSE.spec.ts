@@ -847,6 +847,7 @@ describe('vizMSE', () => {
 					deviceType: DeviceType.VIZMSE,
 					type: TimelineContentTypeVizMSE.CLEANUP_SHOWS,
 					showIds: ['show3', 'show4'],
+					cleanupAllShows: false
 				},
 			},
 		])
