@@ -33,7 +33,7 @@ export class Socket extends EventEmitter {
 	// this.emit('close')
 	// this.emit('end')
 
-	public connect(port: number, host: string, cb?: () => void) {
+	public connect(port: number, host = 'localhost', cb?: () => void) {
 		// this._port = port
 		// this._host = host
 
