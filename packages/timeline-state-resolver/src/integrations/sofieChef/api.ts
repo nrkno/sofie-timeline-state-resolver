@@ -17,6 +17,7 @@ export type ReceiveWSMessageAny =
 export interface ReceiveWSMessageBase {
 	type: ReceiveWSMessageType
 	msgId: number
+	apiKey?: string
 }
 
 export enum ReceiveWSMessageType {
@@ -28,20 +29,23 @@ export enum ReceiveWSMessageType {
 
 export interface ReceiveWSMessagePlayURL extends ReceiveWSMessageBase {
 	type: ReceiveWSMessageType.PLAYURL
-	windowIndex: number
+	windowId: string
+	/** The URL to load in the window */
 	url: string
+	/** [optional] Execute javascript code after loading URL */
+	jsCode?: string
 }
 export interface ReceiveWSMessageRestart extends ReceiveWSMessageBase {
 	type: ReceiveWSMessageType.RESTART
-	windowIndex: number
+	windowId: string
 }
 export interface ReceiveWSMessageStop extends ReceiveWSMessageBase {
 	type: ReceiveWSMessageType.STOP
-	windowIndex: number
+	windowId: string
 }
 export interface ReceiveWSMessageExecute extends ReceiveWSMessageBase {
 	type: ReceiveWSMessageType.EXECUTE
-	windowIndex: number
+	windowId: string
 	jsCode: string
 }
 
@@ -71,12 +75,9 @@ export interface SendWSMessageStatus extends SendWSMessageBase {
 	}
 }
 export enum StatusCode {
-	UNKNOWN = 0, // Status unknown
-	GOOD = 1, // All good and green
-	WARNING_MINOR = 2, // Everything is not OK, operation is not affected
-	WARNING_MAJOR = 3, // Everything is not OK, operation might be affected
-	BAD = 4, // Operation affected, possible to recover
-	FATAL = 5, // Operation affected, not possible to recover without manual interference
+	GOOD = 'good',
+	WARNING = 'warning',
+	ERROR = 'error',
 }
 
 export interface StatusObject {

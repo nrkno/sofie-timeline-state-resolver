@@ -18,6 +18,7 @@ import {
 	SendWSMessageAny,
 	SendWSMessageStatus,
 	SendWSMessageType,
+	StatusCode as ChefStatusCode,
 } from './api'
 
 export interface DeviceOptionsSofieChefInternal extends DeviceOptionsSofieChef {
@@ -37,8 +38,10 @@ export interface Command {
 }
 export interface SofieChefState {
 	windows: {
-		[index: string]: {
+		[windowId: string]: {
 			url: string
+			/** The TimelineObject which set the url */
+			urlTimelineObjId: string
 		}
 	}
 }
@@ -59,8 +62,8 @@ export class SofieChefDevice extends DeviceWithState<SofieChefState, DeviceOptio
 	private _connected = false
 	private status: SendWSMessageStatus['status'] = {
 		app: {
-			statusCode: StatusCode.BAD,
-			message: 'N/A',
+			statusCode: ChefStatusCode.ERROR,
+			message: 'No status received yet',
 		},
 		windows: {},
 	}
@@ -131,7 +134,6 @@ export class SofieChefDevice extends DeviceWithState<SofieChefState, DeviceOptio
 	private reconnectTimeout?: NodeJS.Timer
 	private tryReconnect() {
 		if (this.reconnectTimeout) return
-		console.log('tryReconnect')
 
 		this.reconnectTimeout = setTimeout(() => {
 			delete this.reconnectTimeout
@@ -166,12 +168,8 @@ export class SofieChefDevice extends DeviceWithState<SofieChefState, DeviceOptio
 			.state
 
 		const newSofieChefState = this.convertStateToSofieChef(newState, newMappings)
-		console.log('newSofieChefState', newSofieChefState)
-		console.log('oldSofieChefState', oldSofieChefState)
 
 		const commandsToAchieveState: Array<Command> = this._diffStates(oldSofieChefState, newSofieChefState)
-
-		console.log('commandsToAchieveState', commandsToAchieveState)
 
 		// clear any queued commands later than this time:
 		this._doOnTime.clearQueueNowAndAfter(previousStateTime)
@@ -207,8 +205,9 @@ export class SofieChefDevice extends DeviceWithState<SofieChefState, DeviceOptio
 			const content = layerState.content as TimelineObjSofieChefAny['content']
 
 			if (mapping) {
-				sofieChefState.windows[mapping.windowIndex + ''] = {
+				sofieChefState.windows[mapping.windowId] = {
 					url: content.url,
+					urlTimelineObjId: layerState.id,
 				}
 			}
 		}
@@ -235,13 +234,14 @@ export class SofieChefDevice extends DeviceWithState<SofieChefState, DeviceOptio
 		if (!this.connected) {
 			statusCode = StatusCode.BAD
 			messages.push('Not connected')
-		} else if (this.status.app.statusCode !== StatusCode.GOOD) {
-			statusCode = this.status.app.statusCode
+		} else if (this.status.app.statusCode !== ChefStatusCode.GOOD) {
+			statusCode = this.convertStatusCode(this.status.app.statusCode)
 			messages.push(this.status.app.message)
 		} else {
 			for (const [index, window] of Object.entries(this.status.windows)) {
-				if (window.statusCode > statusCode) {
-					statusCode = window.statusCode
+				const windowStatusCode = this.convertStatusCode(window.statusCode)
+				if (windowStatusCode > statusCode) {
+					statusCode = windowStatusCode
 					messages.push(`Window ${index}: ${window.message}`)
 				}
 			}
@@ -251,6 +251,19 @@ export class SofieChefDevice extends DeviceWithState<SofieChefState, DeviceOptio
 			statusCode: statusCode,
 			messages: messages,
 			active: this.isActive,
+		}
+	}
+	private convertStatusCode(s: ChefStatusCode): StatusCode {
+		switch (s) {
+			case ChefStatusCode.GOOD:
+				return StatusCode.GOOD
+			case ChefStatusCode.WARNING:
+				return StatusCode.WARNING_MAJOR
+			case ChefStatusCode.ERROR:
+				return StatusCode.BAD
+			default: {
+				return StatusCode.BAD
+			}
 		}
 	}
 	/**
@@ -276,18 +289,18 @@ export class SofieChefDevice extends DeviceWithState<SofieChefState, DeviceOptio
 		const commands: Command[] = []
 
 		// Added / Changed things:
-		for (const [windowIndex, window] of Object.entries(newSofieChefState.windows)) {
-			const oldWindow = oldSofieChefState.windows[windowIndex]
+		for (const [windowId, window] of Object.entries(newSofieChefState.windows)) {
+			const oldWindow = oldSofieChefState.windows[windowId]
 
 			if (!oldWindow) {
 				// Added
 				commands.push({
 					context: 'added',
-					timelineObjId: '',
+					timelineObjId: window.urlTimelineObjId,
 					content: {
 						msgId: this.msgId++,
 						type: ReceiveWSMessageType.PLAYURL,
-						windowIndex: parseInt(windowIndex),
+						windowId: windowId,
 						url: window.url,
 					},
 				})
@@ -296,11 +309,11 @@ export class SofieChefDevice extends DeviceWithState<SofieChefState, DeviceOptio
 				if (oldWindow.url !== window.url) {
 					commands.push({
 						context: 'changed',
-						timelineObjId: '',
+						timelineObjId: window.urlTimelineObjId,
 						content: {
 							msgId: this.msgId++,
 							type: ReceiveWSMessageType.PLAYURL,
-							windowIndex: parseInt(windowIndex),
+							windowId: windowId,
 							url: window.url,
 						},
 					})
@@ -308,18 +321,18 @@ export class SofieChefDevice extends DeviceWithState<SofieChefState, DeviceOptio
 			}
 		}
 		// Removed things
-		for (const windowIndex of Object.keys(oldSofieChefState.windows)) {
-			const newWindow = newSofieChefState.windows[windowIndex]
+		for (const [windowId, oldWindow] of Object.entries(oldSofieChefState.windows)) {
+			const newWindow = newSofieChefState.windows[windowId]
 
 			if (!newWindow) {
 				// Removed
 				commands.push({
 					context: 'removed',
-					timelineObjId: '',
+					timelineObjId: oldWindow.urlTimelineObjId,
 					content: {
 						msgId: this.msgId++,
 						type: ReceiveWSMessageType.STOP,
-						windowIndex: parseInt(windowIndex),
+						windowId: windowId,
 					},
 				})
 			}
