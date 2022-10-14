@@ -361,7 +361,11 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState, DeviceOptionsVizM
 
 			if (this._vizmseManager) {
 				if (this._initOptions && activeRundownPlaylistId !== previousPlaylistId) {
-					if (this._initOptions.clearAllCommands && this._initOptions.clearAllCommands.length) {
+					if (
+						this._initOptions.clearAllOnMakeReady &&
+						this._initOptions.clearAllCommands &&
+						this._initOptions.clearAllCommands.length
+					) {
 						await this._vizmseManager.clearEngines({
 							type: VizMSECommandType.CLEAR_ALL_ENGINES,
 							time: this.getCurrentTime(),
@@ -2262,7 +2266,6 @@ class VizEngineTcpSender extends EventEmitter {
 	}
 
 	private _connect() {
-		this._socket = net.createConnection(this._port, this._host)
 		this._socket.on('connect', () => {
 			this._connected = true
 			if (this._sendQueue.length) {
@@ -2277,6 +2280,7 @@ class VizEngineTcpSender extends EventEmitter {
 			// this handles a dns exception, but the error is handled on 'error' event
 		})
 		this._socket.on('data', this._processData.bind(this))
+		this._socket.connect(this._port, this._host)
 	}
 
 	private _flushQueue() {
