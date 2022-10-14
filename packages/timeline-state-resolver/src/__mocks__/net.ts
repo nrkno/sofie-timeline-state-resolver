@@ -33,12 +33,15 @@ export class Socket extends EventEmitter {
 	// this.emit('close')
 	// this.emit('end')
 
-	public connect(port: number, host: string) {
+	public connect(port: number, host: string, cb?: () => void) {
 		// this._port = port
 		// this._host = host
 
 		if (this.onConnect) this.onConnect(port, host)
 		setTimeoutOrg(() => {
+			if (cb) {
+				cb()
+			}
 			this.setConnected()
 		}, 3)
 	}
