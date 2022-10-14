@@ -227,6 +227,22 @@ export class SofieChefDevice extends DeviceWithState<SofieChefState, DeviceOptio
 			this._doOnTime.clearQueueNowAndAfter(this.getCurrentTime())
 		}
 	}
+	/** Restart (reload) all windows */
+	async restartAllWindows() {
+		await this._sendMessage({
+			msgId: 0, // set later
+			type: ReceiveWSMessageType.RESTART,
+			windowId: '$all', // Magic token, restart all windows
+		})
+	}
+	/** Restart (reload) a window */
+	async restartWindow(windowId: string) {
+		await this._sendMessage({
+			msgId: 0, // set later
+			type: ReceiveWSMessageType.RESTART,
+			windowId: windowId,
+		})
+	}
 	getStatus(): DeviceStatus {
 		let statusCode = StatusCode.GOOD
 		const messages: string[] = []
