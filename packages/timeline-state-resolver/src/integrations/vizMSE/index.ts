@@ -1,6 +1,6 @@
 import * as _ from 'underscore'
 import { EventEmitter } from 'events'
-import { DeviceWithState, CommandWithContext, DeviceStatus, StatusCode, literal } from './../../devices/device'
+import { CommandWithContext, DeviceStatus, DeviceWithState, literal, StatusCode } from './../../devices/device'
 
 import {
 	DeviceOptionsVizMSE,
@@ -16,14 +16,14 @@ import {
 	VizMSEOptions,
 	VIZMSEOutTransition,
 	VIZMSEPlayoutItemContent,
-	VIZMSETransitionType,
-	VIZMSEPlayoutItemContentInternal,
 	VIZMSEPlayoutItemContentExternal,
+	VIZMSEPlayoutItemContentInternal,
+	VIZMSETransitionType,
 } from 'timeline-state-resolver-types'
 
 import { ResolvedTimelineObjectInstance, TimelineState } from 'superfly-timeline'
 
-import { createMSE, MSE, VRundown, InternalElement, ExternalElement, VElement } from '@tv2media/v-connection'
+import { createMSE, ExternalElement, InternalElement, MSE, VElement, VRundown } from '@tv2media/v-connection'
 
 import { DoOnTime, SendMode } from '../../devices/doOnTime'
 
@@ -31,7 +31,7 @@ import * as crypto from 'crypto'
 import * as net from 'net'
 import { ExpectedPlayoutItem } from '../../expectedPlayoutItems'
 import * as request from 'request'
-import { startTrace, endTrace, deferAsync } from '../../lib'
+import { deferAsync, endTrace, startTrace } from '../../lib'
 import { HTTPClientError, HTTPServerError } from '@tv2media/v-connection/dist/msehttp'
 
 /** The ideal time to prepare elements before going on air */
@@ -294,6 +294,7 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState, DeviceOptionsVizM
 								timelineObjId: l.id,
 								contentType: TimelineContentTypeVizMSE.CLEANUP_SHOWS,
 								showIds: l.content.showIds,
+								cleanupAllShows: l.content.cleanupAllShows,
 							})
 							break
 						case TimelineContentTypeVizMSE.CONCEPT:
@@ -505,15 +506,20 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState, DeviceOptionsVizM
 				}
 			} else if (newLayer.contentType === TimelineContentTypeVizMSE.CLEANUP_SHOWS) {
 				if (!oldLayer || !_.isEqual(newLayer, oldLayer)) {
-					addCommand(
-						literal<VizMSECommandCleanupShows>({
-							type: VizMSECommandType.CLEANUP_SHOWS,
-							timelineObjId: newLayer.timelineObjId,
-							showIds: newLayer.showIds,
-							time: time,
-						}),
-						newLayer.lookahead
-					)
+					const command: VizMSECommandCleanupAllShows | VizMSECommandCleanupShows = newLayer.cleanupAllShows
+						? literal<VizMSECommandCleanupAllShows>({
+								type: VizMSECommandType.CLEANUP_ALL_SHOWS,
+								timelineObjId: newLayer.timelineObjId,
+								time: time,
+						  })
+						: literal<VizMSECommandCleanupShows>({
+								type: VizMSECommandType.CLEANUP_SHOWS,
+								timelineObjId: newLayer.timelineObjId,
+								showIds: newLayer.showIds,
+								time: time,
+						  })
+
+					addCommand(command, newLayer.lookahead)
 				}
 			} else if (newLayer.contentType === TimelineContentTypeVizMSE.CONCEPT) {
 				if (!oldLayer || !_.isEqual(newLayer, oldLayer)) {
@@ -817,6 +823,9 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState, DeviceOptionsVizM
 						break
 					case VizMSECommandType.CLEANUP_SHOWS:
 						await this._vizmseManager.cleanupShows(cmd)
+						break
+					case VizMSECommandType.CLEANUP_ALL_SHOWS:
+						await this._vizmseManager.cleanupAllShows()
 						break
 					default:
 						// @ts-ignore never
@@ -1306,6 +1315,12 @@ class VizMSEManager extends EventEmitter {
 		this._triggerCommandSent()
 	}
 
+	public async cleanupShows(cmd: VizMSECommandCleanupShows): Promise<void> {
+		this._triggerCommandSent()
+		await this._cleanupShows(cmd.showIds)
+		this._triggerCommandSent()
+	}
+
 	private async _cleanupShows(showIds: string[]) {
 		const rundown = await this._getRundown()
 		this.emit('debug', `Triggering show ${showIds} cleanup `)
@@ -1319,9 +1334,14 @@ class VizMSEManager extends EventEmitter {
 		}
 	}
 
-	public async cleanupShows(cmd: VizMSECommandCleanupShows): Promise<void> {
+	public async cleanupAllShows(): Promise<void> {
 		this._triggerCommandSent()
-		await this._cleanupShows(cmd.showIds)
+		const rundown = await this._getRundown()
+		try {
+			await rundown.cleanupAllShows()
+		} catch (error) {
+			this.emit('error', `Error in cleanupAllShows : ${error instanceof Error ? error.toString() : error}`)
+		}
 		this._triggerCommandSent()
 	}
 
@@ -2059,8 +2079,9 @@ interface VizMSEStateLayerInitializeShows extends VizMSEStateLayerBase {
 }
 interface VizMSEStateLayerCleanupShows extends VizMSEStateLayerBase {
 	contentType: TimelineContentTypeVizMSE.CLEANUP_SHOWS
-
+	/* ShowIds are ignored if 'cleanupAllShows' is true */
 	showIds: string[]
+	cleanupAllShows: boolean
 }
 interface VizMSEStateLayerLoadAllElements extends VizMSEStateLayerBase {
 	contentType: TimelineContentTypeVizMSE.LOAD_ALL_ELEMENTS
@@ -2089,6 +2110,7 @@ export enum VizMSECommandType {
 	CLEAR_ALL_ENGINES = 'clear_all_engines',
 	INITIALIZE_SHOWS = 'initialize_shows',
 	CLEANUP_SHOWS = 'cleanup_shows',
+	CLEANUP_ALL_SHOWS = 'cleanup_all_shows',
 	SET_CONCEPT = 'set_concept',
 }
 
@@ -2139,6 +2161,10 @@ interface VizMSECommandCleanupShows extends VizMSECommandBase {
 	showIds: string[]
 }
 
+interface VizMSECommandCleanupAllShows extends VizMSECommandBase {
+	type: VizMSECommandType.CLEANUP_ALL_SHOWS
+}
+
 interface VizMSECommandSetConcept extends VizMSECommandBase {
 	type: VizMSECommandType.SET_CONCEPT
 	concept: string
@@ -2156,6 +2182,7 @@ type VizMSECommand =
 	| VizMSECommandClearAllEngines
 	| VizMSECommandInitializeShows
 	| VizMSECommandCleanupShows
+	| VizMSECommandCleanupAllShows
 	| VizMSECommandSetConcept
 
 interface VizMSEPlayoutItemContentInternalInstance extends VIZMSEPlayoutItemContentInternal {
