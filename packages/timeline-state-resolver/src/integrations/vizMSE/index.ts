@@ -294,7 +294,6 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState, DeviceOptionsVizM
 								timelineObjId: l.id,
 								contentType: TimelineContentTypeVizMSE.CLEANUP_SHOWS,
 								showIds: l.content.showIds,
-								cleanupAllShows: l.content.cleanupAllShows,
 							})
 							break
 						case TimelineContentTypeVizMSE.CONCEPT:
@@ -506,19 +505,19 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState, DeviceOptionsVizM
 				}
 			} else if (newLayer.contentType === TimelineContentTypeVizMSE.CLEANUP_SHOWS) {
 				if (!oldLayer || !_.isEqual(newLayer, oldLayer)) {
-					const command: VizMSECommandCleanupAllShows | VizMSECommandCleanupShows = newLayer.cleanupAllShows
-						? literal<VizMSECommandCleanupAllShows>({
-								type: VizMSECommandType.CLEANUP_ALL_SHOWS,
-								timelineObjId: newLayer.timelineObjId,
-								time: time,
-						  })
-						: literal<VizMSECommandCleanupShows>({
-								type: VizMSECommandType.CLEANUP_SHOWS,
-								timelineObjId: newLayer.timelineObjId,
-								showIds: newLayer.showIds,
-								time: time,
-						  })
-
+					const command: VizMSECommandCleanupAllShows | VizMSECommandCleanupShows =
+						newLayer.showIds === 'all'
+							? literal<VizMSECommandCleanupAllShows>({
+									type: VizMSECommandType.CLEANUP_ALL_SHOWS,
+									timelineObjId: newLayer.timelineObjId,
+									time: time,
+							  })
+							: literal<VizMSECommandCleanupShows>({
+									type: VizMSECommandType.CLEANUP_SHOWS,
+									timelineObjId: newLayer.timelineObjId,
+									showIds: newLayer.showIds,
+									time: time,
+							  })
 					addCommand(command, newLayer.lookahead)
 				}
 			} else if (newLayer.contentType === TimelineContentTypeVizMSE.CONCEPT) {
@@ -2079,9 +2078,8 @@ interface VizMSEStateLayerInitializeShows extends VizMSEStateLayerBase {
 }
 interface VizMSEStateLayerCleanupShows extends VizMSEStateLayerBase {
 	contentType: TimelineContentTypeVizMSE.CLEANUP_SHOWS
-	/* ShowIds are ignored if 'cleanupAllShows' is true */
-	showIds: string[]
-	cleanupAllShows: boolean
+	/** IDs of the Shows to cleanup - 'all' will cleanup all shows */
+	showIds: string[] | 'all'
 }
 interface VizMSEStateLayerLoadAllElements extends VizMSEStateLayerBase {
 	contentType: TimelineContentTypeVizMSE.LOAD_ALL_ELEMENTS

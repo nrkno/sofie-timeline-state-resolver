@@ -185,9 +185,8 @@ export interface TimelineObjVIZMSECleanupShows extends TSRTimelineObjBase {
 		deviceType: DeviceType.VIZMSE
 		type: TimelineContentTypeVizMSE.CLEANUP_SHOWS
 
-		/** IDs of the Shows to cleanup - is ignored if 'cleanupAllShows' is true */
-		showIds: string[]
-		cleanupAllShows: boolean
+		/** IDs of the Shows to cleanup - 'all' will cleanup all shows */
+		showIds: string[] | 'all'
 	} & TimelineDatastoreReferencesContent
 }
 
