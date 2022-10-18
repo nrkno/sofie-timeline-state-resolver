@@ -1,5 +1,5 @@
 import { EventEmitter } from 'obs-websocket-js'
-import { QuantelTransitionType, QuantelControlMode } from 'timeline-state-resolver-types'
+import { QuantelTransitionType, QuantelControlMode, QuantelOutTransition } from 'timeline-state-resolver-types'
 import { QuantelGateway, Q, QuantelErrorResponse } from 'tv-automation-quantel-gateway-client'
 import _ = require('underscore')
 import {
@@ -309,16 +309,31 @@ export class QuantelManager extends EventEmitter {
 	public async clearClip(cmd: QuantelCommandClearClip): Promise<void> {
 		// Fetch tracked reference to the loaded clip:
 		const trackedPort = this.getTrackedPort(cmd.portId)
-		if (cmd.transition) {
-			if (cmd.transition.type === QuantelTransitionType.DELAY) {
-				if (await this.waitWithPort(cmd.portId, cmd.transition.delay)) {
+		await this._clearPortClip(cmd.portId, trackedPort, cmd.transition)
+	}
+	public async clearAllPorts(): Promise<void> {
+		await Promise.all(
+			Object.entries(this._quantelState.port).map(async ([portId, trackedPort]) => {
+				await this._clearPortClip(portId, trackedPort, undefined)
+			})
+		)
+	}
+	private async _clearPortClip(
+		portId: string,
+		trackedPort: QuantelTrackedStatePort,
+		transition: QuantelOutTransition | undefined
+	): Promise<void> {
+		// Fetch tracked reference to the loaded clip:
+		if (transition) {
+			if (transition.type === QuantelTransitionType.DELAY) {
+				if (await this.waitWithPort(portId, transition.delay)) {
 					// at this point, the wait aws aborted by someone else. Do nothing then.
 					return
 				}
 			}
 		}
 		// Reset the port (this will clear all fragments and reset playhead)
-		await this._quantel.resetPort(cmd.portId)
+		await this._quantel.resetPort(portId)
 
 		trackedPort.loadedFragments = {}
 		trackedPort.offset = -1

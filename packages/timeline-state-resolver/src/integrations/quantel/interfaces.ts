@@ -18,6 +18,7 @@ export interface QuantelStatePort {
 
 	notOnAir?: boolean
 	outTransition?: QuantelOutTransition
+	noClear?: boolean
 
 	/** Future clips, that should be preloaded */
 	lookaheadClip?: QuantelStatePortClipLookahead

@@ -118,6 +118,9 @@ export interface TimelineObjCCGMedia extends TimelineObjCasparCGBase {
 		/* ffmpeg filter strings for 2.3+ */
 		videoFilter?: string
 		audioFilter?: string
+
+		/** If true, we'll never send a CLEAR for this object when it stops */
+		noClear?: boolean
 	} & TimelineObjCCGProducerContentBase &
 		TimelineDatastoreReferencesContent
 }

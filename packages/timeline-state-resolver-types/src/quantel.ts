@@ -67,6 +67,9 @@ export interface TimelineObjQuantelClip extends TSRTimelineObjBaseWithOnAir {
 
 		// inTransition?: QuantelTransition
 		outTransition?: QuantelOutTransition
+
+		/** If true, we'll never send a CLEAR for this object when it stops */
+		noClear?: boolean
 	} & TimelineDatastoreReferencesContent
 }
 export type QuantelOutTransition = QuantelTransitionDelay

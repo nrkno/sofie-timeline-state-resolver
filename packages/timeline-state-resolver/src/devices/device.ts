@@ -290,15 +290,15 @@ export abstract class Device<TOptions extends DeviceOptionsBase<any>>
 	private updateIsActive(mappings: Mappings) {
 		// If there are no mappings assigned to this device, it is considered inactive
 
-		const ownMappings: Mappings = {}
 		let isActive = false
 
-		_.each(mappings, (mapping, layerId) => {
+		for (const mapping of Object.values(mappings)) {
 			if (mapping.deviceId === this.deviceId) {
 				isActive = true
-				ownMappings[layerId] = mapping
+				break
 			}
-		})
+		}
+
 		this._isActive = isActive
 	}
 }

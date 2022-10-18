@@ -301,6 +301,8 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 				channelLayout: mediaObj.content.channelLayout,
 				clearOn404: true,
 
+				noClear: mediaObj.content.noClear,
+
 				vfilter: mediaObj.content.videoFilter,
 				afilter: mediaObj.content.audioFilter,
 			})
@@ -654,12 +656,35 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 					)
 				})
 			)
-		}
-		// reset our own state(s):
-		if (okToDestroyStuff) {
+
+			// reset our own state(s):
 			this.clearStates()
 		}
 		// a resolveTimeline will be triggered later
+	}
+
+	async standDown(okToDestroyStuff?: boolean | undefined): Promise<void> {
+		// Clear all channels
+		if (okToDestroyStuff) {
+			const command = await this._ccg.info()
+			const channels: any[] = command.response.data
+
+			await Promise.all(
+				_.map(channels, async (channel: any) => {
+					await this._commandReceiver(
+						this.getCurrentTime(),
+						new AMCP.ClearCommand({
+							channel: channel.channel,
+						}),
+						'makeReady and destroystuff',
+						''
+					)
+				})
+			)
+
+			// reset our own state(s):
+			this.clearStates()
+		}
 	}
 
 	/**

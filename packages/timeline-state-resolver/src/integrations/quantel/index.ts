@@ -305,9 +305,10 @@ export class QuantelDevice extends DeviceWithState<QuantelState, DeviceOptionsQu
 					} else {
 						const startTime = layer.instance.originalStart || layer.instance.start
 
-						port.timelineObjId = layer.id
-						port.notOnAir = layer.content.notOnAir || isLookahead
-						port.outTransition = layer.content.outTransition
+						port.timelineObjId = clip.id
+						port.notOnAir = clip.content.notOnAir || isLookahead
+						port.outTransition = clip.content.outTransition
+						port.noClear = clip.content.noClear
 						port.lookahead = isLookahead
 
 						port.clip = {
@@ -316,7 +317,7 @@ export class QuantelDevice extends DeviceWithState<QuantelState, DeviceOptionsQu
 							// clipId // set later
 
 							pauseTime: clip.content.pauseTime,
-							playing: isLookahead ? false : clip.content.playing !== undefined ? clip.content.playing : true,
+							playing: isLookahead ? false : clip.content.playing ?? true,
 
 							inPoint: clip.content.inPoint,
 							length: clip.content.length,
@@ -345,6 +346,17 @@ export class QuantelDevice extends DeviceWithState<QuantelState, DeviceOptionsQu
 			this.clearStates()
 		}
 	}
+
+	/**
+	 * The standDown event could be triggered at a time after broadcast
+	 * The exact implementation differ between different devices
+	 * @param okToDestroyStuff If true, the device may do things that might affect the output (temporarily)
+	 */
+	async standDown(_okToDestroyStuff?: boolean): Promise<void> {
+		// Ensure all ports have stopped playing (in case `noClear` was used)
+		await this._quantelManager.clearAllPorts()
+	}
+
 	getStatus(): DeviceStatus {
 		let statusCode = StatusCode.GOOD
 		const messages: Array<string> = []
@@ -492,7 +504,7 @@ export class QuantelDevice extends DeviceWithState<QuantelState, DeviceOptionsQu
 							newPort.lookahead
 						)
 					}
-				} else {
+				} else if (!oldPort || !oldPort.noClear) {
 					addCommand(
 						{
 							type: QuantelCommandType.CLEARCLIP,
