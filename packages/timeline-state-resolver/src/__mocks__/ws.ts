@@ -94,7 +94,7 @@ class WebSocket extends EventEmitter {
 	public mockReplyFunction(fcn: (msg: string) => Promise<string> | string) {
 		this._replyFunction = fcn
 	}
-	public mockSetConnected(connected) {
+	public mockSetConnected(connected: boolean) {
 		this._mockConnect = connected
 
 		this._updateConnectionStatus()

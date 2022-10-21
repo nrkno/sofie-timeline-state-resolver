@@ -48,6 +48,7 @@ import { VMixDevice, DeviceOptionsVMixInternal } from './integrations/vmix'
 import { OBSDevice, DeviceOptionsOBSInternal } from './integrations/obs'
 import { VizMSEDevice, DeviceOptionsVizMSEInternal } from './integrations/vizMSE'
 import { ShotokuDevice, DeviceOptionsShotokuInternal } from './integrations/shotoku'
+import { DeviceOptionsSofieChefInternal, SofieChefDevice } from './integrations/sofieChef'
 
 export { DeviceContainer }
 export { CommandWithContext }
@@ -585,6 +586,15 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 				newDevice = await DeviceContainer.create<DeviceOptionsOBSInternal, typeof OBSDevice>(
 					'../../dist/integrations/obs/index.js',
 					'OBSDevice',
+					deviceId,
+					deviceOptions,
+					getCurrentTime,
+					threadedClassOptions
+				)
+			} else if (deviceOptions.type === DeviceType.SOFIE_CHEF) {
+				newDevice = await DeviceContainer.create<DeviceOptionsSofieChefInternal, typeof SofieChefDevice>(
+					'../../dist/integrations/sofieChef/index.js',
+					'SofieChefDevice',
 					deviceId,
 					deviceOptions,
 					getCurrentTime,
@@ -1465,6 +1475,7 @@ export type DeviceOptionsAnyInternal =
 	| DeviceOptionsOBSInternal
 	| DeviceOptionsOSCInternal
 	| DeviceOptionsSisyfosInternal
+	| DeviceOptionsSofieChefInternal
 	| DeviceOptionsQuantelInternal
 	| DeviceOptionsSingularLiveInternal
 	| DeviceOptionsVMixInternal
