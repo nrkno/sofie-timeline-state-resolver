@@ -187,6 +187,7 @@ export class SofieChefDevice extends DeviceWithState<SofieChefState, DeviceOptio
 		this._doOnTime.dispose()
 
 		this._ws?.terminate()
+		this._ws?.removeAllListeners()
 
 		return true
 	}
