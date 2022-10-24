@@ -199,6 +199,10 @@ export class VRundownMock implements VRundown {
 		return { path: '', status: 200, response: 'mock' }
 	}
 
+	async cleanupAllShows(): Promise<CommandResult[]> {
+		throw [{ path: '', status: 200, response: 'mock' }]
+	}
+
 	async listTemplates(): Promise<string[]> {
 		return []
 	}

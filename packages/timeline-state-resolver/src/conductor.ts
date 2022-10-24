@@ -21,6 +21,7 @@ import {
 	DeviceOptionsBase,
 	TimelineDatastoreReferences,
 	Datastore,
+	DeviceOptionsTelemetrics,
 } from 'timeline-state-resolver-types'
 
 import { DoOnTime } from './devices/doOnTime'
@@ -49,6 +50,7 @@ import { OBSDevice, DeviceOptionsOBSInternal } from './integrations/obs'
 import { VizMSEDevice, DeviceOptionsVizMSEInternal } from './integrations/vizMSE'
 import { ShotokuDevice, DeviceOptionsShotokuInternal } from './integrations/shotoku'
 import { DeviceOptionsSofieChefInternal, SofieChefDevice } from './integrations/sofieChef'
+import { TelemetricsDevice } from './devices/telemetrics'
 
 export { DeviceContainer }
 export { CommandWithContext }
@@ -600,6 +602,15 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 					getCurrentTime,
 					threadedClassOptions
 				)
+			} else if (deviceOptions.type === DeviceType.TELEMETRICS) {
+				newDevice = await DeviceContainer.create<DeviceOptionsTelemetrics, typeof TelemetricsDevice>(
+					'../../dist/devices/telemetrics.js',
+					'TelemetricsDevice',
+					deviceId,
+					deviceOptions,
+					getCurrentTime,
+					threadedClassOptions
+				)
 			} else {
 				// @ts-ignore deviceOptions.type is of type "never"
 				const type: any = deviceOptions.type
@@ -687,7 +698,6 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 				this.emit('warning', 'Error when terminating device', e)
 			}
 			await device.terminate()
-
 			this.devices.delete(deviceId)
 		} else {
 			return Promise.reject('No device found')
@@ -1481,6 +1491,7 @@ export type DeviceOptionsAnyInternal =
 	| DeviceOptionsVMixInternal
 	| DeviceOptionsShotokuInternal
 	| DeviceOptionsVizMSEInternal
+	| DeviceOptionsTelemetrics
 
 function removeParentFromState(o: TimelineState): TimelineState {
 	for (const key in o) {
