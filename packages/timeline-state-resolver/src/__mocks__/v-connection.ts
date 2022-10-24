@@ -15,6 +15,7 @@ import {
 	ElementId,
 	isInternalElement,
 	isExternalElement,
+	VExecutionGroup,
 } from '@tv2media/v-connection'
 import { EventEmitter } from 'events'
 import { CommandResult } from '@tv2media/v-connection/dist/msehttp'
@@ -46,6 +47,7 @@ export class MSEMock extends EventEmitter implements MSE {
 	public readonly wsPort: number
 	public readonly resthost: string
 
+	private engines: VizEngine[] = []
 	private profiles: { [profileName: string]: VProfile } = {}
 	private rundowns: { [playlistId: string]: VRundownMock } = {}
 
@@ -66,16 +68,18 @@ export class MSEMock extends EventEmitter implements MSE {
 		return rundown
 	}
 	async getEngines(): Promise<VizEngine[]> {
-		return []
+		return this.engines
 	}
 	async listProfiles(): Promise<string[]> {
 		return _.keys(this.profiles) // ?
 	}
 	async getProfile(profileName: string): Promise<VProfile> {
-		return {
-			name: profileName,
-			execution_groups: {},
-		}
+		return (
+			this.profiles[profileName] || {
+				name: profileName,
+				execution_groups: {},
+			}
+		)
 	}
 	async listShows(): Promise<string[]> {
 		return []
@@ -114,12 +118,11 @@ export class MSEMock extends EventEmitter implements MSE {
 		return false
 	}
 	async createProfile(profileName: string, _profileDetailsTbc: any): Promise<VProfile> {
-		const profile: VProfile = {
-			name: profileName,
-			execution_groups: {},
-		}
+		return this.mockCreateProfile(profileName, {})
+	}
+	public mockCreateProfile(profileName: string, execution_groups: { [group: string]: VExecutionGroup }): VProfile {
+		const profile = { name: profileName, execution_groups }
 		this.profiles[profileName] = profile
-
 		return profile
 	}
 	async deleteProfile(profileName: string): Promise<boolean> {
@@ -156,6 +159,9 @@ export class MSEMock extends EventEmitter implements MSE {
 	}
 	mockSetDisconnected() {
 		this.emit('disconnected')
+	}
+	mockSetEngines(engines: VizEngine[]) {
+		this.engines = engines
 	}
 }
 
