@@ -3,6 +3,18 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [7.3.0](https://github.com/nrkno/sofie-timeline-state-resolver/compare/7.3.0-release44.2...7.3.0) (2022-10-24)
+
+
+### Bug Fixes
+
+* re-add net mock connect callback ([95ebdad](https://github.com/nrkno/sofie-timeline-state-resolver/commit/95ebdad8881885e8078ed868700e93aa1e974106))
+* re-adds a check for clearAllOnMakeReady before doing so ([4b6168f](https://github.com/nrkno/sofie-timeline-state-resolver/commit/4b6168fbfc938d60f479b18d140ced21bf4a598e))
+
+
+
+
+
 # [7.3.0-release44.2](https://github.com/nrkno/sofie-timeline-state-resolver/compare/7.3.0-release44.1...7.3.0-release44.2) (2022-09-29)
 
 
