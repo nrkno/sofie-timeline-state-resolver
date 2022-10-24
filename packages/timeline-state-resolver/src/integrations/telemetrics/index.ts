@@ -7,10 +7,10 @@ import {
 	TimelineObjTelemetrics,
 } from 'timeline-state-resolver-types'
 import { TimelineState } from 'superfly-timeline'
-import { DeviceStatus, DeviceWithState } from './device'
+import { DeviceStatus, DeviceWithState } from '../../devices/device'
 import { Socket } from 'net'
 import * as _ from 'underscore'
-import { DoOnTime } from './doOnTime'
+import { DoOnTime } from '../../devices/doOnTime'
 import Timer = NodeJS.Timer
 
 const TELEMETRICS_NAME = 'Telemetrics'

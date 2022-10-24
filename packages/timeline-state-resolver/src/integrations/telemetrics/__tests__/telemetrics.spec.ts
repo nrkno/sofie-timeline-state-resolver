@@ -1,11 +1,11 @@
-import { TelemetricsDevice } from '../telemetrics'
+import { TelemetricsDevice } from '..'
 import { DeviceOptionsTelemetrics, DeviceType, StatusCode, TimelineObjTelemetrics } from 'timeline-state-resolver-types'
 import { Socket } from 'net'
 // eslint-disable-next-line node/no-extraneous-import
 import { mocked } from 'ts-jest/utils'
 import { TimelineState } from 'superfly-timeline'
 import { ResolvedTimelineObjectInstance } from 'superfly-timeline/dist/api/api'
-import { DoOrderFunctionNothing } from '../doOnTime'
+import { DoOrderFunctionNothing } from '../../../devices/doOnTime'
 
 const SERVER_PORT = 5000
 const SERVER_HOST = '1.1.1.1'
@@ -29,7 +29,7 @@ jest.mock('net', () => {
 	}
 })
 
-jest.mock('../doOnTime', () => {
+jest.mock('../../../devices/doOnTime', () => {
 	return {
 		DoOnTime: jest.fn().mockImplementation(() => {
 			return {

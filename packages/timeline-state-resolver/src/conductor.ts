@@ -50,7 +50,7 @@ import { OBSDevice, DeviceOptionsOBSInternal } from './integrations/obs'
 import { VizMSEDevice, DeviceOptionsVizMSEInternal } from './integrations/vizMSE'
 import { ShotokuDevice, DeviceOptionsShotokuInternal } from './integrations/shotoku'
 import { DeviceOptionsSofieChefInternal, SofieChefDevice } from './integrations/sofieChef'
-import { TelemetricsDevice } from './devices/telemetrics'
+import { TelemetricsDevice } from './integrations/telemetrics'
 
 export { DeviceContainer }
 export { CommandWithContext }
