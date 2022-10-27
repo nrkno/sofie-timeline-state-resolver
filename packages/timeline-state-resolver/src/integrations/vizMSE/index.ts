@@ -129,7 +129,7 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState, DeviceOptionsVizM
 		this._vizmseManager.on('clearMediaObjects', () => this.emit('clearMediaObjects', this.deviceId))
 
 		this._vizmseManager.on('info', (str) => this.emit('info', 'VizMSE: ' + str))
-		this._vizmseManager.on('warning', (str) => this.emit('warning', 'VizMSE' + str))
+		this._vizmseManager.on('warning', (str) => this.emit('warning', 'VizMSE: ' + str))
 		this._vizmseManager.on('error', (e) => this.emit('error', 'VizMSE', e))
 		this._vizmseManager.on('debug', (...args) => this.emitDebug(...args))
 
@@ -906,6 +906,7 @@ class VizMSEManager extends EventEmitter {
 	public async initializeRundown(activeRundownPlaylistId: string | undefined): Promise<void> {
 		this._vizMSE.on('connected', () => this.mseConnectionChanged(true))
 		this._vizMSE.on('disconnected', () => this.mseConnectionChanged(false))
+		this._vizMSE.on('warning', (message: string) => this.emit('warning', 'v-connection: ' + message))
 		this._activeRundownPlaylistId = activeRundownPlaylistId
 		this._preloadedRundownPlaylistId = this.onlyPreloadActivePlaylist ? activeRundownPlaylistId : undefined
 
