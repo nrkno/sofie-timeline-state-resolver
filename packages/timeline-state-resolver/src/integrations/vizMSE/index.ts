@@ -130,7 +130,7 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState, DeviceOptionsVizM
 
 		this._vizmseManager.on('info', (str) => this.emit('info', 'VizMSE: ' + str))
 		this._vizmseManager.on('warning', (str) => this.emit('warning', 'VizMSE: ' + str))
-		this._vizmseManager.on('error', (e) => this.emit('error', 'VizMSE', e))
+		this._vizmseManager.on('error', (e) => this.emit('error', 'VizMSE', typeof e === 'string' ? new Error(e) : e))
 		this._vizmseManager.on('debug', (...args) => this.emitDebug(...args))
 
 		await this._vizmseManager.initializeRundown(activeRundownPlaylistId)
