@@ -72,9 +72,7 @@ export enum DeviceType {
 	TELEMETRICS = 23,
 }
 
-export interface TSRTimelineKeyframe<T> extends Timeline.TimelineKeyframe {
-	content: Partial<T>
-}
+export type TSRTimelineKeyframe<TContent> = Timeline.TimelineKeyframe<TContent>
 
 /**
  * An object containing references to the datastore

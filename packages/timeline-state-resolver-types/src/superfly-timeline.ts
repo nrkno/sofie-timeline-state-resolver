@@ -71,7 +71,7 @@ export interface TimelineKeyframe<TContent = unknown> {
 	enable: TimelineEnable | TimelineEnable[]
 	duration?: number | string
 	classes?: Array<string>
-	content: TContent
+	content: Partial<TContent>
 	disabled?: boolean
 }
 export interface ResolvedTimeline<TContent = unknown> {
