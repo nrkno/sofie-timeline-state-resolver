@@ -1,5 +1,5 @@
 import { Mapping } from './mapping'
-import { TSRTimelineObjBase, DeviceType, TimelineDatastoreReferencesContent } from '.'
+import { DeviceType } from '.'
 
 export interface SofieChefOptions {
 	/** Address to the Sofie Chef websocket server. Example: 'ws://127.0.0.1:5271' */
@@ -17,19 +17,14 @@ export enum TimelineContentTypeSofieChef {
 	URL = 'url',
 }
 
-export type TimelineObjSofieChefAny = TimelineObjSofieChefScene
+export type TimelineContentSofieChefAny = TimelineContentSofieChefScene
 
-export interface TimelineObjSofieChef extends TSRTimelineObjBase {
-	content: {
-		deviceType: DeviceType.SOFIE_CHEF
-		type: TimelineContentTypeSofieChef
-	}
+export interface TimelineContentSofieChef {
+	deviceType: DeviceType.SOFIE_CHEF
+	type: TimelineContentTypeSofieChef
 }
-export interface TimelineObjSofieChefScene extends TimelineObjSofieChef {
-	content: {
-		deviceType: DeviceType.SOFIE_CHEF
-		type: TimelineContentTypeSofieChef.URL
+export interface TimelineContentSofieChefScene extends TimelineContentSofieChef {
+	type: TimelineContentTypeSofieChef.URL
 
-		url: string
-	} & TimelineDatastoreReferencesContent
+	url: string
 }

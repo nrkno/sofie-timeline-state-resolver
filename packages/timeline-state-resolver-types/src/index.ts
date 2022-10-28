@@ -1,24 +1,24 @@
 import * as Timeline from './superfly-timeline'
-import { TimelineObjTelemetricsAny } from './telemetrics'
-import { TimelineObjAtemAny } from './atem'
-import { TimelineObjCasparCGAny } from './casparcg'
-import { TimelineObjHTTPSendAny } from './httpSend'
-import { TimelineObjTCPSendAny } from './tcpSend'
-import { TimelineObjHyperdeckAny } from './hyperdeck'
-import { TimelineObjLawoAny } from './lawo'
-import { TimelineObjOSCAny } from './osc'
-import { TimelineObjPharosAny } from './pharos'
-import { TimelineObjPanasonicPtzAny } from './panasonicPTZ'
-import { TimelineObjAbstractAny } from './abstract'
+import { TimelineContentTelemetricsAny } from './telemetrics'
+import { TimelineContentAtemAny } from './atem'
+import { TimelineContentCasparCGAny } from './casparcg'
+import { TimelineContentHTTPSendAny } from './httpSend'
+import { TimelineContentTCPSendAny } from './tcpSend'
+import { TimelineContentHyperdeckAny } from './hyperdeck'
+import { TimelineContentLawoAny } from './lawo'
+import { TimelineContentOSCAny } from './osc'
+import { TimelineContentPharosAny } from './pharos'
+import { TimelineContentPanasonicPtzAny } from './panasonicPTZ'
+import { TimelineContentAbstractAny } from './abstract'
 import { TSRTimelineObjProps } from './mapping'
-import { TimelineObjQuantelAny } from './quantel'
-import { TimelineObjShotoku } from './shotoku'
-import { TimelineObjSisyfosAny } from './sisyfos'
-import { TimelineObjSofieChefAny } from './sofieChef'
-import { TimelineObjVIZMSEAny } from './vizMSE'
-import { TimelineObjSingularLiveAny } from './singularLive'
-import { TimelineObjVMixAny } from './vmix'
-import { TimelineObjOBSAny } from './obs'
+import { TimelineContentQuantelAny } from './quantel'
+import { TimelineContentShotoku } from './shotoku'
+import { TimelineContentSisyfosAny } from './sisyfos'
+import { TimelineContentSofieChefAny } from './sofieChef'
+import { TimelineContentVIZMSEAny } from './vizMSE'
+import { TimelineContentSingularLiveAny } from './singularLive'
+import { TimelineContentVMixAny } from './vmix'
+import { TimelineContentOBSAny } from './obs'
 
 export * from './abstract'
 export * from './atem'
@@ -48,8 +48,6 @@ export { Timeline }
 export * from './mapping'
 export * from './expectedPlayoutItems'
 export * from './mediaObject'
-
-export type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>
 
 export enum DeviceType {
 	ABSTRACT = 0,
@@ -98,54 +96,48 @@ export interface TimelineDatastoreReferencesContent {
 	$references?: TimelineDatastoreReferences
 }
 
-export interface TSRTimelineObjBase extends Omit<Timeline.TimelineObject, 'content'>, TSRTimelineObjProps {
-	content: {
-		deviceType: DeviceType
-	} & TimelineDatastoreReferencesContent
-	keyframes?: Array<TSRTimelineKeyframe<this['content']>>
+export type TSRTimelineObjBase<TContent extends { deviceType: DeviceType }> = Timeline.TimelineObject<
+	TContent & TimelineDatastoreReferencesContent
+> &
+	TSRTimelineObjProps
+
+// TODO - is this useful/correct?
+// export interface TSRTimelineObjBaseWithOnAir extends TSRTimelineObjBase {
+// 	content: {
+// 		deviceType: DeviceType
+// 		/** If the object in question is intended to NOT be on air.
+// 		 * The exact result depends on the device, but it could affect things like making in-transitions quicker, faster camera movements, etc..
+// 		 */
+// 		notOnAir?: boolean
+// 	}
+// }
+
+export interface TimelineContentEmpty {
+	deviceType: DeviceType.ABSTRACT
+	type: 'empty'
 }
 
-export interface TSRTimelineObjBaseWithOnAir extends TSRTimelineObjBase {
-	content: {
-		deviceType: DeviceType
-		/** If the object in question is intended to NOT be on air.
-		 * The exact result depends on the device, but it could affect things like making in-transitions quicker, faster camera movements, etc..
-		 */
-		notOnAir?: boolean
-	}
-}
-
-export interface TimelineObjEmpty extends TSRTimelineObjBase {
-	content: {
-		deviceType: DeviceType.ABSTRACT
-		type: 'empty'
-	}
-	classes: Array<string>
-}
-
-export type TSRTimelineObj =
-	| TimelineObjEmpty
-	| TimelineObjAbstractAny
-	| TimelineObjAtemAny
-	| TimelineObjCasparCGAny
-	| TimelineObjHTTPSendAny
-	| TimelineObjTCPSendAny
-	| TimelineObjHyperdeckAny
-	| TimelineObjLawoAny
-	| TimelineObjOBSAny
-	| TimelineObjOSCAny
-	| TimelineObjPharosAny
-	| TimelineObjPanasonicPtzAny
-	| TimelineObjQuantelAny
-	| TimelineObjShotoku
-	| TimelineObjSisyfosAny
-	| TimelineObjSofieChefAny
-	| TimelineObjSingularLiveAny
-	| TimelineObjVMixAny
-	| TimelineObjVIZMSEAny
-	| TimelineObjTelemetricsAny
-
-export type TSRTimeline = Array<TSRTimelineObj>
+export type TSRTimelineContent =
+	| TimelineContentEmpty
+	| TimelineContentAbstractAny
+	| TimelineContentAtemAny
+	| TimelineContentCasparCGAny
+	| TimelineContentHTTPSendAny
+	| TimelineContentTCPSendAny
+	| TimelineContentHyperdeckAny
+	| TimelineContentLawoAny
+	| TimelineContentOBSAny
+	| TimelineContentOSCAny
+	| TimelineContentPharosAny
+	| TimelineContentPanasonicPtzAny
+	| TimelineContentQuantelAny
+	| TimelineContentShotoku
+	| TimelineContentSisyfosAny
+	| TimelineContentSofieChefAny
+	| TimelineContentSingularLiveAny
+	| TimelineContentVMixAny
+	| TimelineContentVIZMSEAny
+	| TimelineContentTelemetricsAny
 
 /**
  * A simple key value store that can be referred to from the timeline objects

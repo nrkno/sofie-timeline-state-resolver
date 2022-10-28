@@ -1,5 +1,5 @@
 import { Mapping } from './mapping'
-import { TSRTimelineObjBase, DeviceType, TimelineDatastoreReferencesContent } from '.'
+import { DeviceType } from '.'
 
 export interface MappingHyperdeck extends Mapping {
 	device: DeviceType.HYPERDECK
@@ -70,20 +70,16 @@ export enum VideoFormat {
 }
 // -------------------------------------------------------------
 
-export type TimelineObjHyperdeckAny = TimelineObjHyperdeckTransport
+export type TimelineContentHyperdeckAny = TimelineContentHyperdeckTransport
 
-export interface TimelineObjHyperdeck extends TSRTimelineObjBase {
-	content: {
-		deviceType: DeviceType.HYPERDECK
-		/** The type of control of the Hyperdeck */
-		type: TimelineContentTypeHyperdeck
-	} & TimelineDatastoreReferencesContent
+export interface TimelineContentHyperdeck {
+	deviceType: DeviceType.HYPERDECK
+	/** The type of control of the Hyperdeck */
+	type: TimelineContentTypeHyperdeck
 }
-export interface TimelineObjHyperdeckTransport extends TimelineObjHyperdeck {
-	content: {
-		deviceType: DeviceType.HYPERDECK
-		type: TimelineContentTypeHyperdeck.TRANSPORT
-	} & (
+export type TimelineContentHyperdeckTransport = TimelineContentHyperdeck & {
+	type: TimelineContentTypeHyperdeck.TRANSPORT
+} & (
 		| {
 				status: TransportStatus.PREVIEW
 		  }
@@ -119,6 +115,4 @@ export interface TimelineObjHyperdeckTransport extends TimelineObjHyperdeck {
 				/** The filename to record to */
 				recordFilename?: string
 		  }
-	) &
-		TimelineDatastoreReferencesContent
-}
+	)

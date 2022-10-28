@@ -27,25 +27,23 @@ export interface ResolveOptions {
 	/** If set to true, the resolver will go through the instances of the objects and fix collisions, so that the instances more closely resembles the end state. */
 	resolveInstanceCollisions?: boolean
 }
-export interface TimelineObject {
+export interface TimelineObject<TContent = unknown> {
 	id: ObjectId
 	enable: TimelineEnable | TimelineEnable[]
 	layer: string | number
 	/** Group children */
 	children?: Array<TimelineObject>
 	/** Keyframes can be used to modify the content of an object */
-	keyframes?: Array<TimelineKeyframe>
+	keyframes?: Array<TimelineKeyframe<TContent>>
 	classes?: Array<string>
 	disabled?: boolean
 	isGroup?: boolean
 	priority?: number
 	/** If set to true, colliding timeline-instances will be merged into one */
 	seamless?: boolean
-	content: Content
+	content: TContent
 }
-export declare type Content = {
-	[key: string]: any
-}
+
 export interface TimelineEnable {
 	/**
 	 * Examples of references:
@@ -68,15 +66,14 @@ export interface TimelineEnable {
 	/** (Optional) Makes the object repeat with given interval */
 	repeating?: Expression
 }
-export interface TimelineKeyframe {
+export interface TimelineKeyframe<TContent = unknown> {
 	id: string
 	enable: TimelineEnable | TimelineEnable[]
 	duration?: number | string
 	classes?: Array<string>
-	content: Content
+	content: TContent
 	disabled?: boolean
 }
-export interface TimelineObjectKeyframe extends TimelineObject, TimelineKeyframe {}
 export interface ResolvedTimeline {
 	/** The options used to resolve the timeline */
 	options: ResolveOptions
@@ -110,7 +107,7 @@ export interface ResolvedTimeline {
 export interface ResolvedTimelineObjects {
 	[id: string]: ResolvedTimelineObject
 }
-export interface ResolvedTimelineObject extends TimelineObject {
+export interface ResolvedTimelineObject<TContent = unknown> extends TimelineObject<TContent> {
 	resolved: {
 		/** Is set to true when object has been resolved */
 		resolved: boolean

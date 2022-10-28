@@ -1,5 +1,5 @@
 import { Mapping } from './mapping'
-import { TSRTimelineObjBase, DeviceType, TimelineDatastoreReferencesContent } from '.'
+import { DeviceType } from '.'
 
 export type EmberValue = number | string | boolean | Buffer | null
 enum ParameterType {
@@ -68,56 +68,41 @@ export enum TimelineContentTypeLawo { //  Lawo-state
 	TRIGGER_VALUE = 'triggervalue',
 }
 
-export type TimelineObjLawoAny =
-	| TimelineObjLawoSources
-	| TimelineObjLawoSource
-	| TimelineObjLawoEmberProperty
-	| TimelineObjLawoEmberRetrigger
+export type TimelineContentLawoAny =
+	| TimelineContentLawoSources
+	| TimelineContentLawoSource
+	| TimelineContentLawoEmberProperty
+	| TimelineContentLawoEmberRetrigger
 
-export interface ContentTimelineObjLawoSource {
+export interface ContentTimelineContentLawoSource {
 	faderValue: number
 	transitionDuration?: number
 }
 
-export interface TimelineObjLawoBase extends TSRTimelineObjBase {
-	content: {
-		deviceType: DeviceType.LAWO
-		type: TimelineContentTypeLawo
-	}
+export interface TimelineContentLawoBase {
+	deviceType: DeviceType.LAWO
+	type: TimelineContentTypeLawo
 }
-export interface TimelineObjLawoSources extends TimelineObjLawoBase {
-	content: {
-		deviceType: DeviceType.LAWO
-		type: TimelineContentTypeLawo.SOURCES
+export interface TimelineContentLawoSources extends TimelineContentLawoBase {
+	type: TimelineContentTypeLawo.SOURCES
 
-		sources: Array<
-			{
-				mappingName: string
-			} & ContentTimelineObjLawoSource
-		>
-		overridePriority?: number // defaults to 0
-	} & TimelineDatastoreReferencesContent
+	sources: Array<
+		{
+			mappingName: string
+		} & ContentTimelineContentLawoSource
+	>
+	overridePriority?: number // defaults to 0
 }
-export interface TimelineObjLawoSource extends TimelineObjLawoBase {
-	content: {
-		deviceType: DeviceType.LAWO
-		type: TimelineContentTypeLawo.SOURCE
+export interface TimelineContentLawoSource extends TimelineContentLawoBase, ContentTimelineContentLawoSource {
+	type: TimelineContentTypeLawo.SOURCE
 
-		overridePriority?: number // defaults to 0
-	} & ContentTimelineObjLawoSource &
-		TimelineDatastoreReferencesContent
+	overridePriority?: number // defaults to 0
 }
-export interface TimelineObjLawoEmberProperty extends TimelineObjLawoBase {
-	content: {
-		deviceType: DeviceType.LAWO
-		type: TimelineContentTypeLawo.EMBER_PROPERTY
-		value: EmberValue
-	} & TimelineDatastoreReferencesContent
+export interface TimelineContentLawoEmberProperty extends TimelineContentLawoBase {
+	type: TimelineContentTypeLawo.EMBER_PROPERTY
+	value: EmberValue
 }
-export interface TimelineObjLawoEmberRetrigger extends TimelineObjLawoBase {
-	content: {
-		deviceType: DeviceType.LAWO
-		type: TimelineContentTypeLawo.TRIGGER_VALUE
-		triggerValue: string
-	} & TimelineDatastoreReferencesContent
+export interface TimelineContentLawoEmberRetrigger extends TimelineContentLawoBase {
+	type: TimelineContentTypeLawo.TRIGGER_VALUE
+	triggerValue: string
 }
