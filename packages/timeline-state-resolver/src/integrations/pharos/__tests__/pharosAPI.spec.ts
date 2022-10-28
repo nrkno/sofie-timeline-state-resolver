@@ -227,7 +227,6 @@ function getStandardPharosMockReply() {
 		} else if (data.subscribe) {
 			if (
 				data.subscribe === 'timeline' ||
-				data.subscribe === 'timeline' ||
 				data.subscribe === 'scene' ||
 				data.subscribe === 'group' ||
 				data.subscribe === 'content_target' ||
