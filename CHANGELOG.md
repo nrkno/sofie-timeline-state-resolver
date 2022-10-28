@@ -3,6 +3,22 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [2.3.0](https://github.com/tv2/tv-automation-state-timeline-resolver/compare/2.2.3...2.3.0) (2022-10-28)
+
+
+### Bug Fixes
+
+* SOF-1140 wrap strings in Errors to avoid mangled logs ([bca62cb](https://github.com/tv2/tv-automation-state-timeline-resolver/commit/bca62cb7d3abd05974e79f5eece079de98a4bacf))
+
+
+### Features
+
+* SOF-1140 handle warnings from v-connection ([a48d313](https://github.com/tv2/tv-automation-state-timeline-resolver/commit/a48d313d20344ebd8a061c625d8ed3491df95465))
+
+
+
+
+
 ## [2.2.3](https://github.com/tv2/tv-automation-state-timeline-resolver/compare/2.2.2...2.2.3) (2022-10-18)
 
 **Note:** Version bump only for package timeline-state-resolver-packages
