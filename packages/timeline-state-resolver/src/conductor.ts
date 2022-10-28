@@ -17,11 +17,13 @@ import {
 	Mapping,
 	DeviceType,
 	ResolvedTimelineObjectInstanceExtended,
-	TSRTimeline,
 	DeviceOptionsBase,
 	TimelineDatastoreReferences,
 	Datastore,
 	DeviceOptionsTelemetrics,
+	TSRTimelineObj,
+	TSRTimeline,
+	Timeline,
 } from 'timeline-state-resolver-types'
 
 import { DoOnTime } from './devices/doOnTime'
@@ -906,7 +908,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 				this.emit('error', error)
 			})
 
-			const applyRecursively = (o: TimelineObject, func: (o: TimelineObject) => void) => {
+			const applyRecursively = (o: Timeline.TimelineObject<any>, func: (o: Timeline.TimelineObject<any>) => void) => {
 				func(o)
 
 				if (o.isGroup) {
@@ -1193,7 +1195,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 		}
 		return this._timelineSize
 	}
-	private getTimelineSizeInner(timelineObjects: TimelineObject[]): number {
+	private getTimelineSizeInner(timelineObjects: TSRTimelineObj<any>[]): number {
 		let size = 0
 		size += timelineObjects.length
 		for (const obj of timelineObjects) {

@@ -5,7 +5,7 @@ import {
 	SofieChefOptions,
 	DeviceOptionsSofieChef,
 	Mappings,
-	TimelineObjSofieChefAny,
+	TimelineContentSofieChefAny,
 	MappingSofieChef,
 } from 'timeline-state-resolver-types'
 
@@ -203,7 +203,7 @@ export class SofieChefDevice extends DeviceWithState<SofieChefState, DeviceOptio
 		}
 		for (const [layer, layerState] of Object.entries(state.layers)) {
 			const mapping = mappings[layer] as MappingSofieChef
-			const content = layerState.content as TimelineObjSofieChefAny['content']
+			const content = layerState.content as TimelineContentSofieChefAny
 
 			if (mapping) {
 				sofieChefState.windows[mapping.windowId] = {

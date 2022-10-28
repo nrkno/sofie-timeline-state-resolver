@@ -4,7 +4,7 @@ import {
 	Mappings,
 	StatusCode,
 	TelemetricsOptions,
-	TimelineObjTelemetrics,
+	TimelineContentTelemetrics,
 } from 'timeline-state-resolver-types'
 import { TimelineState } from 'superfly-timeline'
 import { DeviceStatus, DeviceWithState } from '../../devices/device'
@@ -109,8 +109,8 @@ export class TelemetricsDevice extends DeviceWithState<TelemetricsState, DeviceO
 		const newTelemetricsState: TelemetricsState = { presetShotIdentifiers: [] }
 
 		newTelemetricsState.presetShotIdentifiers = _.map(newState.layers, (timelineObject, _layerName) => {
-			const telemetricsObject: TimelineObjTelemetrics = timelineObject as unknown as TimelineObjTelemetrics
-			return telemetricsObject.content.presetShotIdentifiers
+			const telemetricsContent = timelineObject.content as TimelineContentTelemetrics
+			return telemetricsContent.presetShotIdentifiers
 		}).flat()
 
 		return newTelemetricsState

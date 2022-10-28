@@ -45,7 +45,7 @@
     "ts-jest": "^26.1.0",
     "type-fest": "^2.16.0",
     "typedoc": "^0.22.14",
-    "typescript": "~4.5"
+    "typescript": "~4.7"
   },
   "prettier": "@sofie-automation/code-standard-preset/.prettierrc.json"
 }

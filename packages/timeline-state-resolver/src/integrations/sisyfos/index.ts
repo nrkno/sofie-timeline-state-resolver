@@ -7,10 +7,11 @@ import {
 	SisyfosOptions,
 	MappingSisyfos,
 	MappingSisyfosType,
-	TimelineObjSisyfosAny,
+	TimelineContentSisyfosAny,
 	TimelineContentTypeSisyfos,
 	SisyfosChannelOptions,
 	MappingSisyfosChannel,
+	TSRTimelineObjProps,
 } from 'timeline-state-resolver-types'
 
 import { DoOnTime, SendMode } from '../../devices/doOnTime'
@@ -302,10 +303,10 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 		} & SisyfosChannelOptions)[] = []
 
 		_.each(state.layers, (tlObject, layerName) => {
-			const layer = tlObject as ResolvedTimelineObjectInstance & TimelineObjSisyfosAny
+			const layer = tlObject as ResolvedTimelineObjectInstance & TSRTimelineObjProps
 			let foundMapping = mappings[layerName] as MappingSisyfos | undefined
 
-			const content = tlObject.content as TimelineObjSisyfosAny['content']
+			const content = tlObject.content as TimelineContentSisyfosAny
 
 			// Allow resync without valid channel mapping
 			if (layer.content.resync !== undefined) {

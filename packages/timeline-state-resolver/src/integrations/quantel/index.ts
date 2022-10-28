@@ -6,7 +6,7 @@ import {
 	Mapping,
 	MappingQuantel,
 	QuantelOptions,
-	TimelineObjQuantelClip,
+	TimelineContentQuantelClip,
 	QuantelControlMode,
 	ResolvedTimelineObjectInstanceExtended,
 	QuantelOutTransition,
@@ -284,17 +284,16 @@ export class QuantelDevice extends DeviceWithState<QuantelState, DeviceOptionsQu
 				const port: QuantelStatePort = state.port[mapping.portId]
 				if (!port) throw new Error(`Port "${mapping.portId}" not found`)
 
-				if (layer.content && (layer.content.title || layer.content.guid)) {
-					const clip = layer as any as TimelineObjQuantelClip
-
+				const content = layer.content as TimelineContentQuantelClip
+				if (content && (content.title || content.guid)) {
 					// Note on lookaheads:
 					// If there is ONLY a lookahead on a port, it'll be treated as a "paused (real) clip"
 					// If there is a lookahead alongside the a real clip, its fragments will be preloaded
 
 					if (isLookahead) {
 						port.lookaheadClip = {
-							title: clip.content.title,
-							guid: clip.content.guid,
+							title: content.title,
+							guid: content.guid,
 							timelineObjId: layer.id,
 						}
 					}
@@ -306,22 +305,22 @@ export class QuantelDevice extends DeviceWithState<QuantelState, DeviceOptionsQu
 						const startTime = layer.instance.originalStart || layer.instance.start
 
 						port.timelineObjId = layer.id
-						port.notOnAir = layer.content.notOnAir || isLookahead
-						port.outTransition = layer.content.outTransition
+						port.notOnAir = content.notOnAir || isLookahead
+						port.outTransition = content.outTransition
 						port.lookahead = isLookahead
 
 						port.clip = {
-							title: clip.content.title,
-							guid: clip.content.guid,
+							title: content.title,
+							guid: content.guid,
 							// clipId // set later
 
-							pauseTime: clip.content.pauseTime,
-							playing: isLookahead ? false : clip.content.playing !== undefined ? clip.content.playing : true,
+							pauseTime: content.pauseTime,
+							playing: isLookahead ? false : content.playing ?? true,
 
-							inPoint: clip.content.inPoint,
-							length: clip.content.length,
+							inPoint: content.inPoint,
+							length: content.length,
 
-							playTime: (clip.content.noStarttime || isLookahead ? null : startTime) || null,
+							playTime: (content.noStarttime || isLookahead ? null : startTime) || null,
 						}
 					}
 				}

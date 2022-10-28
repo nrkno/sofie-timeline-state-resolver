@@ -5,7 +5,7 @@ import {
 	SingularLiveOptions,
 	TimelineContentTypeSingularLive,
 	MappingSingularLive,
-	TimelineObjSingularLiveAny,
+	TimelineContentSingularLiveAny,
 	DeviceOptionsSingularLive,
 	SingularCompositionAnimation,
 	SingularCompositionControlNode,
@@ -178,14 +178,14 @@ export class SingularLiveDevice extends DeviceWithState<SingularLiveState, Devic
 		_.each(state.layers, (tlObject: ResolvedTimelineObjectInstance, layerName: string) => {
 			const mapping: MappingSingularLive | undefined = newMappings[layerName] as MappingSingularLive
 			if (mapping && mapping.device === DeviceType.SINGULAR_LIVE && mapping.deviceId === this.deviceId) {
-				const tlObjectSource = tlObject as any as TimelineObjSingularLiveAny
+				const content = tlObject.content as TimelineContentSingularLiveAny
 
-				if (tlObjectSource.content.type === TimelineContentTypeSingularLive.COMPOSITION) {
+				if (content.type === TimelineContentTypeSingularLive.COMPOSITION) {
 					singularState.compositions[mapping.compositionName] = {
 						timelineObjId: tlObject.id,
 
-						controlNode: tlObjectSource.content.controlNode,
-						animation: tlObjectSource.content.animation || { action: 'play' },
+						controlNode: content.controlNode,
+						animation: content.animation || { action: 'play' },
 					}
 				}
 			}

@@ -7,9 +7,9 @@ import {
 	DeviceOptionsShotoku,
 	ShotokuTransitionType,
 	Mappings,
-	TimelineObjShotoku,
+	TimelineContentShotoku,
 	TimelineContentTypeShotoku,
-	TimelineObjShotokuSequence,
+	TimelineContentShotokuSequence,
 } from 'timeline-state-resolver-types'
 import { DoOnTime, SendMode } from '../../devices/doOnTime'
 
@@ -38,7 +38,7 @@ type ShotokuDeviceState = {
 		string,
 		{
 			fromTlObject: string
-			shots: TimelineObjShotokuSequence['content']['shots']
+			shots: TimelineContentShotokuSequence['shots']
 		}
 	>
 }
@@ -156,7 +156,7 @@ export class ShotokuDevice extends DeviceWithState<ShotokuDeviceState, DeviceOpt
 		}
 
 		_.each(state.layers, (layer) => {
-			const content = layer.content as TimelineObjShotoku['content']
+			const content = layer.content as TimelineContentShotoku
 
 			if (content.type === TimelineContentTypeShotoku.SHOT) {
 				const show = content.show || 1

@@ -7,19 +7,14 @@ import {
 	TimelineContentTypeCasparCg,
 	MappingCasparCG,
 	CasparCGOptions,
-	TimelineObjCCGMedia,
-	TimelineObjCCGHTMLPage,
-	TimelineObjCCGRoute,
-	TimelineObjCCGInput,
-	TimelineObjCCGRecord,
-	TimelineObjCCGTemplate,
-	TimelineObjCCGProducerContentBase,
+	TimelineContentCCGProducerContentBase,
 	ResolvedTimelineObjectInstanceExtended,
-	TimelineObjCCGIP,
 	DeviceOptionsCasparCG,
 	Transition,
 	Mappings,
 	TSRTransitionOptions,
+	TimelineContentCasparCGAny,
+	TSRTimelineObjProps,
 } from 'timeline-state-resolver-types'
 
 import { TimelineState, ResolvedTimelineObjectInstance } from 'superfly-timeline'
@@ -274,109 +269,98 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 		let startTime = layer.instance.originalStart || layer.instance.start
 		if (startTime === 0) startTime = 1 // @todo: startTime === 0 will make ccg-state seek to the current time
 
-		let stateLayer: LayerBase | null = null
-		if (layer.content.type === TimelineContentTypeCasparCg.MEDIA) {
-			const mediaObj = layer as any as TimelineObjCCGMedia
+		const layerProps = layer as ResolvedTimelineObjectInstance & TSRTimelineObjProps
+		const content = layer.content as TimelineContentCasparCGAny
 
-			const holdOnFirstFrame = !isForeground || mediaObj.isLookahead
-			const loopingPlayTime =
-				mediaObj.content.loop && !mediaObj.content.seek && !mediaObj.content.inPoint && !mediaObj.content.length
+		let stateLayer: LayerBase | null = null
+		if (content.type === TimelineContentTypeCasparCg.MEDIA) {
+			const holdOnFirstFrame = !isForeground || layerProps.isLookahead
+			const loopingPlayTime = content.loop && !content.seek && !content.inPoint && !content.length
 
 			stateLayer = literal<MediaLayer>({
 				id: layer.id,
 				layerNo: mapping.layer,
 				content: LayerContentType.MEDIA,
-				media: mediaObj.content.file,
-				playTime: !holdOnFirstFrame && (mediaObj.content.noStarttime || loopingPlayTime) ? null : startTime,
+				media: content.file,
+				playTime: !holdOnFirstFrame && (content.noStarttime || loopingPlayTime) ? null : startTime,
 
-				pauseTime: holdOnFirstFrame ? startTime : mediaObj.content.pauseTime || null,
-				playing:
-					!mediaObj.isLookahead && (mediaObj.content.playing !== undefined ? mediaObj.content.playing : isForeground),
+				pauseTime: holdOnFirstFrame ? startTime : content.pauseTime || null,
+				playing: !layerProps.isLookahead && (content.playing !== undefined ? content.playing : isForeground),
 
-				looping: mediaObj.content.loop,
-				seek: mediaObj.content.seek,
-				inPoint: mediaObj.content.inPoint,
-				length: mediaObj.content.length,
+				looping: content.loop,
+				seek: content.seek,
+				inPoint: content.inPoint,
+				length: content.length,
 
-				channelLayout: mediaObj.content.channelLayout,
+				channelLayout: content.channelLayout,
 				clearOn404: true,
 
-				vfilter: mediaObj.content.videoFilter,
-				afilter: mediaObj.content.audioFilter,
+				vfilter: content.videoFilter,
+				afilter: content.audioFilter,
 			})
 			// this.emitDebug(stateLayer)
-		} else if (layer.content.type === TimelineContentTypeCasparCg.IP) {
-			const ipObj = layer as any as TimelineObjCCGIP
-
+		} else if (content.type === TimelineContentTypeCasparCg.IP) {
 			stateLayer = literal<MediaLayer>({
 				id: layer.id,
 				layerNo: mapping.layer,
 				content: LayerContentType.MEDIA,
-				media: ipObj.content.uri,
-				channelLayout: ipObj.content.channelLayout,
+				media: content.uri,
+				channelLayout: content.channelLayout,
 				playTime: null, // ip inputs can't be seeked // layer.resolved.startTime || null,
 				playing: true,
 				seek: 0, // ip inputs can't be seeked
 
-				vfilter: ipObj.content.videoFilter,
-				afilter: ipObj.content.audioFilter,
+				vfilter: content.videoFilter,
+				afilter: content.audioFilter,
 			})
-		} else if (layer.content.type === TimelineContentTypeCasparCg.INPUT) {
-			const inputObj = layer as any as TimelineObjCCGInput
-
+		} else if (content.type === TimelineContentTypeCasparCg.INPUT) {
 			stateLayer = literal<InputLayer>({
 				id: layer.id,
 				layerNo: mapping.layer,
 				content: LayerContentType.INPUT,
 				media: 'decklink',
 				input: {
-					device: inputObj.content.device,
-					channelLayout: inputObj.content.channelLayout,
-					format: inputObj.content.deviceFormat,
+					device: content.device,
+					channelLayout: content.channelLayout,
+					format: content.deviceFormat,
 				},
-				filter: inputObj.content.filter,
+				filter: content.filter,
 				playing: true,
 				playTime: null,
 
-				vfilter: inputObj.content.videoFilter,
-				afilter: inputObj.content.audioFilter,
+				vfilter: content.videoFilter,
+				afilter: content.audioFilter,
 			})
-		} else if (layer.content.type === TimelineContentTypeCasparCg.TEMPLATE) {
-			const recordObj = layer as any as TimelineObjCCGTemplate
-
+		} else if (content.type === TimelineContentTypeCasparCg.TEMPLATE) {
 			stateLayer = literal<TemplateLayer>({
 				id: layer.id,
 				layerNo: mapping.layer,
 				content: LayerContentType.TEMPLATE,
-				media: recordObj.content.name,
+				media: content.name,
 
 				playTime: startTime || null,
 				playing: true,
 
-				templateType: recordObj.content.templateType || 'html',
-				templateData: recordObj.content.data,
-				cgStop: recordObj.content.useStopCommand,
+				templateType: content.templateType || 'html',
+				templateData: content.data,
+				cgStop: content.useStopCommand,
 			})
-		} else if (layer.content.type === TimelineContentTypeCasparCg.HTMLPAGE) {
-			const htmlObj = layer as any as TimelineObjCCGHTMLPage
-
+		} else if (content.type === TimelineContentTypeCasparCg.HTMLPAGE) {
 			stateLayer = literal<HtmlPageLayer>({
 				id: layer.id,
 				layerNo: mapping.layer,
 				content: LayerContentType.HTMLPAGE,
-				media: htmlObj.content.url,
+				media: content.url,
 
 				playTime: startTime || null,
 				playing: true,
 			})
-		} else if (layer.content.type === TimelineContentTypeCasparCg.ROUTE) {
-			const routeObj = layer as any as TimelineObjCCGRoute
-
-			if (routeObj.content.mappedLayer) {
-				const routeMapping = mappings[routeObj.content.mappedLayer] as MappingCasparCG
+		} else if (content.type === TimelineContentTypeCasparCg.ROUTE) {
+			if (content.mappedLayer) {
+				const routeMapping = mappings[content.mappedLayer] as MappingCasparCG
 				if (routeMapping && routeMapping.deviceId === this.deviceId) {
-					routeObj.content.channel = routeMapping.channel
-					routeObj.content.layer = routeMapping.layer
+					content.channel = routeMapping.channel
+					content.layer = routeMapping.layer
 				}
 			}
 			stateLayer = literal<RouteLayer>({
@@ -385,28 +369,26 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 				content: LayerContentType.ROUTE,
 				media: 'route',
 				route: {
-					channel: routeObj.content.channel || 0,
-					layer: routeObj.content.layer,
-					channelLayout: routeObj.content.channelLayout,
+					channel: content.channel || 0,
+					layer: content.layer,
+					channelLayout: content.channelLayout,
 				},
-				mode: routeObj.content.mode || undefined,
-				delay: routeObj.content.delay || undefined,
+				mode: content.mode || undefined,
+				delay: content.delay || undefined,
 				playing: true,
 				playTime: null, // layer.resolved.startTime || null,
 
-				vfilter: routeObj.content.videoFilter,
-				afilter: routeObj.content.audioFilter,
+				vfilter: content.videoFilter,
+				afilter: content.audioFilter,
 			})
-		} else if (layer.content.type === TimelineContentTypeCasparCg.RECORD) {
-			const recordObj = layer as any as TimelineObjCCGRecord
-
+		} else if (content.type === TimelineContentTypeCasparCg.RECORD) {
 			if (startTime) {
 				stateLayer = literal<RecordLayer>({
 					id: layer.id,
 					layerNo: mapping.layer,
 					content: LayerContentType.RECORD,
-					media: recordObj.content.file,
-					encoderOptions: recordObj.content.encoderOptions,
+					media: content.file,
+					encoderOptions: content.encoderOptions,
 					playing: true,
 					playTime: startTime,
 				})
@@ -424,7 +406,7 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 			stateLayer = l
 		} // now it holds that stateLayer is truthy
 
-		const baseContent = layer.content as TimelineObjCCGProducerContentBase
+		const baseContent = content as TimelineContentCCGProducerContentBase
 		if (baseContent.transitions) {
 			// add transitions to the layer obj
 			switch (baseContent.type) {
@@ -454,11 +436,11 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 					break
 			}
 		}
-		if (layer.content.mixer) {
+		if ('mixer' in content && content.mixer) {
 			// add mixer properties
 			// just pass through values here:
 			const mixer: Mixer = {}
-			_.each(layer.content.mixer, (value, property) => {
+			_.each(content.mixer, (value, property) => {
 				mixer[property] = value
 			})
 			stateLayer.mixer = mixer

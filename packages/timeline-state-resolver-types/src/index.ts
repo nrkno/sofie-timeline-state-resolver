@@ -96,21 +96,13 @@ export interface TimelineDatastoreReferencesContent {
 	$references?: TimelineDatastoreReferences
 }
 
-export type TSRTimelineObjBase<TContent extends { deviceType: DeviceType }> = Timeline.TimelineObject<
-	TContent & TimelineDatastoreReferencesContent
-> &
-	TSRTimelineObjProps
+export type TSRTimeline = TSRTimelineObj<TSRTimelineContent>[]
 
-// TODO - is this useful/correct?
-// export interface TSRTimelineObjBaseWithOnAir extends TSRTimelineObjBase {
-// 	content: {
-// 		deviceType: DeviceType
-// 		/** If the object in question is intended to NOT be on air.
-// 		 * The exact result depends on the device, but it could affect things like making in-transitions quicker, faster camera movements, etc..
-// 		 */
-// 		notOnAir?: boolean
-// 	}
-// }
+export interface TSRTimelineObj<TContent extends { deviceType: DeviceType }>
+	extends Omit<Timeline.TimelineObject<TContent & TimelineDatastoreReferencesContent>, 'children'>,
+		TSRTimelineObjProps {
+	children?: TSRTimelineObj<TSRTimelineContent>[]
+}
 
 export interface TimelineContentEmpty {
 	deviceType: DeviceType.ABSTRACT

@@ -74,11 +74,11 @@ export interface TimelineKeyframe<TContent = unknown> {
 	content: TContent
 	disabled?: boolean
 }
-export interface ResolvedTimeline {
+export interface ResolvedTimeline<TContent = unknown> {
 	/** The options used to resolve the timeline */
 	options: ResolveOptions
 	/** Map of all objects on timeline */
-	objects: ResolvedTimelineObjects
+	objects: ResolvedTimelineObjects<TContent>
 	/** Map of all classes on timeline, maps className to object ids */
 	classes: {
 		[className: string]: Array<string>
@@ -104,9 +104,7 @@ export interface ResolvedTimeline {
 		resolvingCount: number
 	}
 }
-export interface ResolvedTimelineObjects {
-	[id: string]: ResolvedTimelineObject
-}
+export type ResolvedTimelineObjects<TContent = unknown> = Record<string, ResolvedTimelineObject<TContent>>
 export interface ResolvedTimelineObject<TContent = unknown> extends TimelineObject<TContent> {
 	resolved: {
 		/** Is set to true when object has been resolved */
@@ -172,7 +170,7 @@ export interface ResolvedStates extends ResolvedTimeline {
 	state: AllStates
 	nextEvents: Array<NextEvent>
 }
-export interface ResolvedTimelineObjectInstance extends ResolvedTimelineObject {
+export interface ResolvedTimelineObjectInstance<TContent = unknown> extends ResolvedTimelineObject<TContent> {
 	instance: TimelineObjectInstance
 }
 export interface NextEvent {
@@ -180,50 +178,21 @@ export interface NextEvent {
 	time: Time
 	objId: string
 }
-export interface ResolvedTimelineObjectInstanceKeyframe extends ResolvedTimelineObjectInstance {
+export interface ResolvedTimelineObjectInstanceKeyframe<TContent = unknown>
+	extends ResolvedTimelineObjectInstance<TContent> {
 	isKeyframe?: boolean
 	keyframeEndTime?: TimeMaybe
 }
-export interface AllStates {
+export interface AllStates<TContent = unknown> {
 	[layer: string]: {
-		[time: string]: ResolvedTimelineObjectInstanceKeyframe[] | null
+		[time: string]: ResolvedTimelineObjectInstanceKeyframe<TContent>[] | null
 	}
 }
-export interface StateInTime {
-	[layer: string]: ResolvedTimelineObjectInstance
+export interface StateInTime<TContent = unknown> {
+	[layer: string]: ResolvedTimelineObjectInstance<TContent>
 }
 export interface TimeEvent {
 	time: number
 	/** true when the event indicate that something starts, false when something ends */
 	enable: boolean
 }
-
-// Resolver ------------------------------------------------------------
-export declare class Resolver {
-	/**
-	 * Go through all objects on the timeline and calculate all the timings.
-	 * Returns a ResolvedTimeline which can be piped into Resolver.getState()
-	 * @param timeline Array of timeline objects
-	 * @param options Resolve options
-	 */
-	static resolveTimeline(timeline: Array<TimelineObject>, options: ResolveOptions): ResolvedTimeline
-	/** Calculate the state for all points in time.  */
-	static resolveAllStates(resolvedTimeline: ResolvedTimeline): ResolvedStates
-	/**
-	 * Calculate the state at a given point in time.
-	 * Using a ResolvedTimeline calculated by Resolver.resolveTimeline() or
-	 * a ResolvedStates calculated by Resolver.resolveAllStates()
-	 * @param resolved ResolvedTimeline calculated by Resolver.resolveTimeline.
-	 * @param time The point in time where to calculate the state
-	 * @param eventLimit (Optional) Limits the number of returned upcoming events.
-	 */
-	static getState(resolved: ResolvedTimeline | ResolvedStates, time: Time, eventLimit?: number): TimelineState
-}
-export declare function resolveTimelineObj(resolvedTimeline: ResolvedTimeline, obj: ResolvedTimelineObject): void
-declare type ObjectRefType = 'start' | 'end' | 'duration'
-export declare function lookupExpression(
-	resolvedTimeline: ResolvedTimeline,
-	obj: TimelineObject,
-	expr: Expression | null,
-	context: ObjectRefType
-): Array<TimelineObjectInstance> | ValueWithReference | null

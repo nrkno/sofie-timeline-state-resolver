@@ -5,16 +5,13 @@ import {
 	DeviceType,
 	TimelineContentTypeLawo,
 	MappingLawo,
-	TimelineObjLawoSource,
-	TimelineObjLawoAny,
-	TimelineObjLawoEmberProperty,
-	TimelineObjLawoEmberRetrigger,
+	TimelineContentLawoAny,
 	DeviceOptionsLawo,
 	LawoCommand,
 	SetLawoValueFn,
 	LawoOptions,
 	LawoDeviceMode,
-	ContentTimelineObjLawoSource,
+	ContentTimelineContentLawoSource,
 	MappingLawoType,
 	Mappings,
 } from 'timeline-state-resolver-types'
@@ -285,7 +282,7 @@ export class LawoDevice extends DeviceWithState<LawoState, DeviceOptionsLawoInte
 		const newFaders: Array<{ attrPath: string; node: LawoStateNode; priority: number }> = []
 		const pushFader = (
 			identifier: string,
-			fader: ContentTimelineObjLawoSource,
+			fader: ContentTimelineContentLawoSource,
 			mapping: MappingLawo,
 			tlObjId: string,
 			priority = 0
@@ -308,19 +305,16 @@ export class LawoDevice extends DeviceWithState<LawoState, DeviceOptionsLawoInte
 
 		_.each(state.layers, (tlObject: ResolvedTimelineObjectInstance, layerName: string) => {
 			// for every layer
-			const lawoObj = tlObject as any as TimelineObjLawoAny
+			const content = tlObject.content as TimelineContentLawoAny
 
 			const mapping: MappingLawo | undefined = mappings[layerName] as MappingLawo
 
 			if (mapping && mapping.device === DeviceType.LAWO && mapping.deviceId === this.deviceId) {
 				// Mapping is for Lawo
 
-				if (
-					mapping.mappingType === MappingLawoType.SOURCES &&
-					lawoObj.content.type === TimelineContentTypeLawo.SOURCES
-				) {
+				if (mapping.mappingType === MappingLawoType.SOURCES && content.type === TimelineContentTypeLawo.SOURCES) {
 					// mapping implies a composite of sources
-					for (const fader of lawoObj.content.sources) {
+					for (const fader of content.sources) {
 						// for every mapping in the composite
 						const sourceMapping: MappingLawo | undefined = mappings[fader.mappingName] as MappingLawo
 
@@ -333,32 +327,28 @@ export class LawoDevice extends DeviceWithState<LawoState, DeviceOptionsLawoInte
 							continue
 						// mapped mapping is a source mapping
 
-						pushFader(sourceMapping.identifier, fader, sourceMapping, tlObject.id, lawoObj.content.overridePriority)
+						pushFader(sourceMapping.identifier, fader, sourceMapping, tlObject.id, content.overridePriority)
 					}
-				} else if (mapping.identifier && lawoObj.content.type === TimelineContentTypeLawo.SOURCE) {
+				} else if (mapping.identifier && content.type === TimelineContentTypeLawo.SOURCE) {
 					// mapping is for a source
-					const tlObjectSource: TimelineObjLawoSource = lawoObj as TimelineObjLawoSource
-					const fader: ContentTimelineObjLawoSource = tlObjectSource.content
-					const priority = tlObjectSource.content.overridePriority
-					pushFader(mapping.identifier, fader, mapping, tlObject.id, priority)
-				} else if (mapping.identifier && lawoObj.content.type === TimelineContentTypeLawo.EMBER_PROPERTY) {
+					const priority = content.overridePriority
+					pushFader(mapping.identifier, content, mapping, tlObject.id, priority)
+				} else if (mapping.identifier && content.type === TimelineContentTypeLawo.EMBER_PROPERTY) {
 					// mapping is a property to set
-					const tlObjectSource: TimelineObjLawoEmberProperty = lawoObj as TimelineObjLawoEmberProperty
 
 					lawoState.nodes[mapping.identifier] = {
-						type: tlObjectSource.content.type,
+						type: content.type,
 						key: '',
 						identifier: mapping.identifier,
-						value: tlObjectSource.content.value,
+						value: content.value,
 						valueType: mapping.emberType || EmberModel.ParameterType.Real,
 						priority: mapping.priority || 0,
 						timelineObjId: tlObject.id,
 					}
-				} else if (lawoObj.content.type === TimelineContentTypeLawo.TRIGGER_VALUE) {
+				} else if (content.type === TimelineContentTypeLawo.TRIGGER_VALUE) {
 					// mapping is a trigger value (will resend all commands to the Lawo to enforce state when changed)
-					const tlObjectSource: TimelineObjLawoEmberRetrigger = lawoObj as TimelineObjLawoEmberRetrigger
 
-					lawoState.triggerValue = tlObjectSource.content.triggerValue
+					lawoState.triggerValue = content.triggerValue
 				}
 			}
 		})

@@ -2,10 +2,10 @@ import * as _ from 'underscore'
 import { DeviceWithState, CommandWithContext, DeviceStatus, StatusCode } from '../../devices/device'
 import {
 	DeviceType,
-	TimelineObjPanasonicPtzPreset,
-	TimelineObjPanasonicPtzPresetSpeed,
-	TimelineObjPanasonicPtzZoomSpeed,
-	TimelineObjPanasonicPtzZoom,
+	TimelineContentPanasonicPtzPreset,
+	TimelineContentPanasonicPtzPresetSpeed,
+	TimelineContentPanasonicPtzZoomSpeed,
+	TimelineContentPanasonicPtzZoom,
 	TimelineContentTypePanasonicPtz,
 	MappingPanasonicPtz,
 	MappingPanasonicPtzType,
@@ -160,27 +160,27 @@ export class PanasonicPtzDevice extends DeviceWithState<PanasonicPtzState, Devic
 			const mapping: MappingPanasonicPtz | undefined = mappings[layerName] as MappingPanasonicPtz
 			if (mapping && mapping.device === DeviceType.PANASONIC_PTZ && mapping.deviceId === this.deviceId) {
 				if (mapping.mappingType === MappingPanasonicPtzType.PRESET) {
-					const tlObjectSource = tlObject as any as TimelineObjPanasonicPtzPreset
+					const content = tlObject.content as TimelineContentPanasonicPtzPreset
 					ptzState.preset = {
-						value: tlObjectSource.content.preset,
+						value: content.preset,
 						timelineObjId: tlObject.id,
 					}
 				} else if (mapping.mappingType === MappingPanasonicPtzType.PRESET_SPEED) {
-					const tlObjectSource = tlObject as any as TimelineObjPanasonicPtzPresetSpeed
+					const content = tlObject.content as TimelineContentPanasonicPtzPresetSpeed
 					ptzState.speed = {
-						value: tlObjectSource.content.speed,
+						value: content.speed,
 						timelineObjId: tlObject.id,
 					}
 				} else if (mapping.mappingType === MappingPanasonicPtzType.ZOOM_SPEED) {
-					const tlObjectSource = tlObject as any as TimelineObjPanasonicPtzZoomSpeed
+					const content = tlObject.content as TimelineContentPanasonicPtzZoomSpeed
 					ptzState.zoomSpeed = {
-						value: tlObjectSource.content.zoomSpeed,
+						value: content.zoomSpeed,
 						timelineObjId: tlObject.id,
 					}
 				} else if (mapping.mappingType === MappingPanasonicPtzType.ZOOM) {
-					const tlObjectSource = tlObject as any as TimelineObjPanasonicPtzZoom
+					const content = tlObject.content as TimelineContentPanasonicPtzZoom
 					ptzState.zoom = {
-						value: tlObjectSource.content.zoom,
+						value: content.zoom,
 						timelineObjId: tlObject.id,
 					}
 				}
