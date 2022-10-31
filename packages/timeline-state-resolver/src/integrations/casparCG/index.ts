@@ -669,7 +669,6 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 				time,
 				undefined,
 				async (c: { command: AMCPCommand; cmd: AMCPCommandWithContext }) => {
-					console.log('send', time, c.command, c.cmd.context.context, c.cmd.context.layerId)
 					return this._commandReceiver(time, c.command, c.cmd.context.context, c.cmd.context.layerId)
 				},
 				{ command: { command: cmd.command, params: cmd.params }, cmd: cmd }
