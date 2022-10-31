@@ -32,7 +32,7 @@ export interface TimelineObject<TContent = unknown> {
 	enable: TimelineEnable | TimelineEnable[]
 	layer: string | number
 	/** Group children */
-	children?: Array<TimelineObject>
+	children?: Array<TimelineObject<any>>
 	/** Keyframes can be used to modify the content of an object */
 	keyframes?: Array<TimelineKeyframe<TContent>>
 	classes?: Array<string>
@@ -154,22 +154,7 @@ export interface ExpressionObj {
 	o: string
 	r: Expression
 }
-export declare type ExpressionEvent = InstanceEvent<boolean>
-export declare type ResolvedExpression = Array<ExpressionEvent>
-export interface ResolvedExpressionObj {
-	l: ResolvedExpression
-	o: '+' | '-' | '*' | '/' | '&' | '|' | '!'
-	r: ResolvedExpression
-}
-export interface TimelineState {
-	time: Time
-	layers: StateInTime
-	nextEvents: Array<NextEvent>
-}
-export interface ResolvedStates extends ResolvedTimeline {
-	state: AllStates
-	nextEvents: Array<NextEvent>
-}
+
 export interface ResolvedTimelineObjectInstance<TContent = unknown> extends ResolvedTimelineObject<TContent> {
 	instance: TimelineObjectInstance
 }
