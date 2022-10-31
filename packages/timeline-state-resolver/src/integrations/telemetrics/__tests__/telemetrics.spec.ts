@@ -1,11 +1,17 @@
 import { TelemetricsDevice } from '..'
-import { DeviceOptionsTelemetrics, DeviceType, StatusCode, TimelineObjTelemetrics } from 'timeline-state-resolver-types'
+import {
+	DeviceOptionsTelemetrics,
+	DeviceType,
+	StatusCode,
+	TimelineContentTelemetrics,
+} from 'timeline-state-resolver-types'
 import { Socket } from 'net'
 // eslint-disable-next-line node/no-extraneous-import
 import { mocked } from 'ts-jest/utils'
 import { TimelineState } from 'superfly-timeline'
 import { ResolvedTimelineObjectInstance } from 'superfly-timeline/dist/api/api'
 import { DoOrderFunctionNothing } from '../../../devices/doOnTime'
+import { literal } from '../../../devices/device'
 
 const SERVER_PORT = 5000
 const SERVER_HOST = '1.1.1.1'
@@ -183,9 +189,10 @@ describe('telemetrics', () => {
 			const timelineState = createTimelineState(1)
 			timelineState.layers['randomLayer'] = {
 				id: 'random_layer_id',
-				content: {
+				content: literal<TimelineContentTelemetrics>({
+					deviceType: DeviceType.TELEMETRICS,
 					presetShotIdentifiers: [3],
-				} as unknown as TimelineObjTelemetrics,
+				}),
 			} as unknown as ResolvedTimelineObjectInstance
 
 			device.handleState(timelineState, {})
@@ -226,15 +233,16 @@ function createInitializedTelemetricsDevice(): TelemetricsDevice {
 }
 
 function createTimelineState(preset: number | number[]): TimelineState {
-	const presetIdentifiers = Number(preset) ? [preset] : preset
+	const presetIdentifiers: number[] = Array.isArray(preset) ? preset : [preset]
 	return {
 		time: 10,
 		layers: {
 			telemetrics_layer: {
 				id: `telemetrics_layer_id_${Math.random() * 1000}`,
-				content: {
+				content: literal<TimelineContentTelemetrics>({
+					deviceType: DeviceType.TELEMETRICS,
 					presetShotIdentifiers: presetIdentifiers,
-				} as unknown as TimelineObjTelemetrics,
+				}),
 			} as unknown as ResolvedTimelineObjectInstance,
 		},
 	} as unknown as TimelineState

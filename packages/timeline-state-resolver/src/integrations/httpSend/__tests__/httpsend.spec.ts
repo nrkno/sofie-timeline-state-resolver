@@ -4,8 +4,9 @@ import {
 	MappingHTTPSend,
 	Mappings,
 	DeviceType,
-	TimelineObjHTTPRequest,
+	TimelineContentHTTPRequest,
 	TimelineContentTypeHTTP,
+	TSRTimelineObj,
 } from 'timeline-state-resolver-types'
 import { MockTime } from '../../../__tests__/mockTime'
 import { ThreadedClass } from 'threadedclass'
@@ -127,7 +128,7 @@ describe('HTTP-Send', () => {
 		// Check that no commands has been scheduled:
 		expect(await device.queue).toHaveLength(0)
 
-		const timeline: Array<TimelineObjHTTPRequest> = [
+		const timeline: Array<TSRTimelineObj<TimelineContentHTTPRequest>> = [
 			{
 				id: 'obj0',
 				enable: {
