@@ -7,12 +7,12 @@ const stringifySchema = (action) => ({ ...action, payload: JSON.stringify(action
 
 export const manifest = {
 	[DeviceType.ABSTRACT]: {
-		actions: AbstractActions.map(stringifySchema),
+		actions: AbstractActions.actions.map(stringifySchema),
 	},
 	[DeviceType.ATEM]: {
-		actions: AtemActions.map(stringifySchema),
+		actions: AtemActions.actions.map(stringifySchema),
 	},
 	[DeviceType.CASPARCG]: {
-		actions: CasparCGActions.map(stringifySchema),
+		actions: CasparCGActions.actions.map(stringifySchema),
 	},
 }
