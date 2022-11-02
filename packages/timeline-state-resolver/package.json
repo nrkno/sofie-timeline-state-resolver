@@ -64,7 +64,7 @@
 		"validate:dependencies": "yarn audit --groups dependencies && yarn license-validate",
 		"validate:dev-dependencies": "yarn audit --groups devDependencies",
 		"precommit": "lint-staged",
-		"schema-types": "node ./scripts/schema-types.mjs"
+		"generate-schema-types": "node ./scripts/schema-types.mjs"
 	},
 	"engines": {
 		"node": "^14.18 || ^16.14"

@@ -1,12 +1,15 @@
-[
-	{
-		"id": "clearAllChannels",
-		"name": "Clear",
-		"destructive": true
-	},
-	{
-		"id": "restartServer",
-		"name": "Restart Server",
-		"destructive": true
-	}
-]
+{
+	"$schema": "../../../$schemas/action-schema.json",
+	"actions": [
+		{
+			"id": "clearAllChannels",
+			"name": "Clear",
+			"destructive": true
+		},
+		{
+			"id": "restartServer",
+			"name": "Restart Server",
+			"destructive": true
+		}
+	]
+}

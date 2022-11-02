@@ -1,29 +1,30 @@
-[
-	{
-		"id": "test",
-		"name": "Test action",
-		"destructive": false,
-		"payload": {
-			"$schema": "https://json-schema.org/draft/2020-12/schema",
-			"$id": "https://example.com/product.schema.json",
-			"title": "Test payload",
-			"type": "object",
-			"properties": {
-				"test1": {
-					"type": "number",
-					"title": "Test 1"
+{
+	"$schema": "../../../$schemas/action-schema.json",
+	"actions": [
+		{
+			"id": "test",
+			"name": "Test action",
+			"destructive": false,
+			"payload": {
+				"$schema": "https://json-schema.org/draft/2020-12/schema",
+				"type": "object",
+				"properties": {
+					"test1": {
+						"type": "number",
+						"title": "Test 1"
+					},
+					"test2": {
+						"type": "number",
+						"title": "Test 2"
+					},
+					"test3": {
+						"type": "boolean",
+						"title": "Test 3"
+					}
 				},
-				"test2": {
-					"type": "number",
-					"title": "Test 2"
-				},
-				"test3": {
-					"type": "boolean",
-					"title": "Test 3"
-				}
-			},
-			"required": ["test1", "test2"],
-			"additionalProperties": false
+				"required": ["test1", "test2"],
+				"additionalProperties": false
+			}
 		}
-	}
-]
+	]
+}
