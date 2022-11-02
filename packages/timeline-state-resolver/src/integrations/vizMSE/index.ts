@@ -204,6 +204,10 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState, DeviceOptionsVizM
 		return this._vizMSEConnected
 	}
 
+	public async purgeRundown(clearAll: boolean): Promise<void> {
+		await this._vizmseManager?.purgeRundown(clearAll)
+	}
+
 	get deviceType() {
 		return DeviceType.VIZMSE
 	}
