@@ -3,6 +3,10 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [7.5.0-release47.3](https://github.com/nrkno/sofie-timeline-state-resolver/compare/7.5.0-release47.2...7.5.0-release47.3) (2022-11-07)
+
+**Note:** Version bump only for package timeline-state-resolver-types
+
 # [7.5.0-release47.2](https://github.com/nrkno/sofie-timeline-state-resolver/compare/7.5.0-release47.1...7.5.0-release47.2) (2022-11-02)
 
 **Note:** Version bump only for package timeline-state-resolver-types
