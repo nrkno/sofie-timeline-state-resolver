@@ -20,6 +20,8 @@ import {
 	Transition,
 	Mappings,
 	TSRTransitionOptions,
+	ActionExecutionResult,
+	ActionExecutionResultCode,
 } from 'timeline-state-resolver-types'
 
 import { TimelineState, ResolvedTimelineObjectInstance } from 'superfly-timeline'
@@ -663,7 +665,14 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 		// a resolveTimeline will be triggered later
 	}
 
-	async clearAllChannels() {
+	async clearAllChannels(): Promise<ActionExecutionResult> {
+		if (!this._ccg.connected) {
+			return {
+				result: ActionExecutionResultCode.Error,
+				response: 'Cannot restart CasparCG without a connection',
+			}
+		}
+
 		const command = await this._ccg.info()
 		const channels: any[] = command.response.data
 
@@ -681,41 +690,58 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 		)
 
 		this.clearStates()
+
+		return {
+			result: ActionExecutionResultCode.Ok,
+		}
 	}
 
-	async executeAction(id: Actions, _payload: any): Promise<any> {
+	async executeAction(id: Actions): Promise<ActionExecutionResult> {
 		switch (id) {
 			case Actions.ClearAllChannels:
 				return this.clearAllChannels()
 			case Actions.RestartServer:
-				return this.restartCasparCG()
+				await this.restartCasparCG()
+				return {
+					result: ActionExecutionResultCode.Ok,
+				}
+			default:
+				return {
+					result: ActionExecutionResultCode.Error,
+					response: 'Action "' + id + '" not found',
+				}
 		}
-	}
-
-	async getActionIds() {
-		return Actions
 	}
 
 	/**
 	 * Attemps to restart casparcg over the HTTP API provided by CasparCG launcher.
 	 */
-	async restartCasparCG(): Promise<void> {
-		return new Promise<void>((resolve, reject) => {
-			if (!this.initOptions) throw new Error('CasparCGDevice._connectionOptions is not set!')
-			if (!this.initOptions.launcherHost) throw new Error('CasparCGDevice: config.launcherHost is not set!')
-			if (!this.initOptions.launcherPort) throw new Error('CasparCGDevice: config.launcherPort is not set!')
+	async restartCasparCG(): Promise<ActionExecutionResult> {
+		if (!this.initOptions) {
+			return { result: ActionExecutionResultCode.Error, response: 'CasparCGDevice._connectionOptions is not set!' }
+		}
+		if (!this.initOptions.launcherHost) {
+			return { result: ActionExecutionResultCode.Error, response: 'CasparCGDevice: config.launcherHost is not set!' }
+		}
+		if (!this.initOptions.launcherPort) {
+			return { result: ActionExecutionResultCode.Error, response: 'CasparCGDevice: config.launcherPort is not set!' }
+		}
 
-			const url = `http://${this.initOptions.launcherHost}:${this.initOptions.launcherPort}/processes/casparcg/restart`
+		return new Promise<ActionExecutionResult>((resolve) => {
+			const url = `http://${this.initOptions?.launcherHost}:${this.initOptions?.launcherPort}/processes/casparcg/restart`
 			request.post(
 				url,
 				{}, // json: cmd.params
 				(error, response) => {
 					if (error) {
-						reject(error)
+						resolve({ result: ActionExecutionResultCode.Error, response: error })
 					} else if (response.statusCode === 200) {
-						resolve()
+						resolve({ result: ActionExecutionResultCode.Ok })
 					} else {
-						reject('Bad reply: [' + response.statusCode + '] ' + response.body)
+						resolve({
+							result: ActionExecutionResultCode.Error,
+							response: 'Bad reply: [' + response.statusCode + '] ' + response.body,
+						})
 					}
 				}
 			)

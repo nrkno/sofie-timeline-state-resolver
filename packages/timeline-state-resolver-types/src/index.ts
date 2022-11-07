@@ -158,3 +158,13 @@ export interface Datastore {
 		modified: number
 	}
 }
+
+export interface ActionExecutionResult {
+	result: ActionExecutionResultCode
+	response?: string
+}
+
+export enum ActionExecutionResultCode {
+	Error = 'ERROR',
+	Ok = 'OK',
+}

@@ -7,6 +7,8 @@ import {
 	DeviceOptionsBase,
 	DeviceStatus,
 	StatusCode,
+	ActionExecutionResult,
+	ActionExecutionResultCode,
 } from 'timeline-state-resolver-types'
 import { EventEmitter } from 'eventemitter3'
 import { CommandReport, DoOnTime, SlowFulfilledCommandInfo, SlowSentCommandInfo } from './doOnTime'
@@ -233,6 +235,13 @@ export abstract class Device<TOptions extends DeviceOptionsBase<any>>
 	}
 	get isActive(): boolean {
 		return this._isActive
+	}
+
+	async executeAction(_actionId: string, _payload?: Record<string, any>): Promise<ActionExecutionResult> {
+		return {
+			result: ActionExecutionResultCode.Error,
+			response: 'Device does not implement an action handler',
+		}
 	}
 
 	private _updateCurrentTime() {
