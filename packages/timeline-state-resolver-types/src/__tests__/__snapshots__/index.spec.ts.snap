@@ -47,6 +47,7 @@ Array [
   "TimelineContentTypeVMix",
   "TimelineContentTypeVizMSE",
   "Transition",
+  "TranslationsBundleType",
   "TransportStatus",
   "VIZMSETransitionType",
   "VMixCommand",
