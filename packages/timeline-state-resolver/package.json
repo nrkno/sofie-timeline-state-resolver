@@ -48,7 +48,7 @@
 	],
 	"scripts": {
 		"unlink:all": "yarn unlink atem-connection & yarn unlink atem-state & yarn unlink casparcg-connection & yarn unlink casparcg-state & yarn unlink superfly-timeline",
-		"build": "rimraf dist && yarn build:main && translations:bundle",
+		"build": "rimraf dist && yarn build:main && yarn translations:bundle",
 		"build:main": "tsc -p tsconfig.build.json",
 		"lint:raw": "eslint --ext .ts --ext .js --ext .tsx --ext .jsx --ignore-pattern dist",
 		"lint": "yarn lint:raw .",
@@ -65,8 +65,8 @@
 		"validate:dev-dependencies": "yarn audit --groups devDependencies",
 		"precommit": "lint-staged",
 		"generate-schema-types": "node ./scripts/schema-types.mjs",
-		"translations:extract": "node ./scripts/translations/extract.mjs",
-		"translations:bundle": "node ./scripts/translations/bundle.mjs"
+		"translations:extract": "node ./scripts/translation/extract.mjs",
+		"translations:bundle": "node ./scripts/translation/bundle.mjs"
 	},
 	"engines": {
 		"node": "^14.18 || ^16.14"
