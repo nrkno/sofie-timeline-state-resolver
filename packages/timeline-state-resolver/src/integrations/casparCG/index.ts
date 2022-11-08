@@ -936,7 +936,7 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 						// auto next + stop means bg -> fg => nextUp cleared
 						trackedState.channels[resCommand.channel].layers[resCommand.layer] = {
 							...channel.layers[resCommand.layer],
-							nextUp: undefined, // a play command always clears nextUp
+							nextUp: undefined, // auto next + stop means bg -> fg => nextUp cleared
 						}
 					} else if (resCommand.name === 'ResumeCommand' || resCommand.name === 'StopCommand') {
 						// stop and resume can be done without affecting nextup
