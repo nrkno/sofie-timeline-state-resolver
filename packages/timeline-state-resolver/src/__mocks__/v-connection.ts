@@ -193,7 +193,7 @@ export class VRundownMock implements VRundown {
 		return { path: '', status: 200, response: 'mock' }
 	}
 
-	async cleanupAllShows(): Promise<CommandResult[]> {
+	async cleanupAllSofieShows(): Promise<CommandResult[]> {
 		throw [{ path: '', status: 200, response: 'mock' }]
 	}
 
