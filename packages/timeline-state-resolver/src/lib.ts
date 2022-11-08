@@ -1,5 +1,5 @@
 import { TimelineState } from 'superfly-timeline'
-import { TSRTimelineObjBase, Datastore } from 'timeline-state-resolver-types'
+import { TSRTimelineObjBase, Datastore, ITranslatableMessage } from 'timeline-state-resolver-types'
 import * as _ from 'underscore'
 
 /**
@@ -254,4 +254,11 @@ export function fillStateFromDatastore(state: TimelineState, datastore: Datastor
 	})
 
 	return filledState
+}
+
+export function t(key: string, args?: { [k: string]: any }): ITranslatableMessage {
+	return {
+		key,
+		args,
+	}
 }

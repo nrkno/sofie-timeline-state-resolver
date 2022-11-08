@@ -19,6 +19,7 @@ import { TimelineObjVIZMSEAny } from './vizMSE'
 import { TimelineObjSingularLiveAny } from './singularLive'
 import { TimelineObjVMixAny } from './vmix'
 import { TimelineObjOBSAny } from './obs'
+import { ITranslatableMessage } from './translations'
 
 export * from './abstract'
 export * from './atem'
@@ -48,6 +49,7 @@ export { Timeline }
 export * from './mapping'
 export * from './expectedPlayoutItems'
 export * from './mediaObject'
+export * from './translations'
 
 export type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>
 
@@ -161,7 +163,7 @@ export interface Datastore {
 
 export interface ActionExecutionResult {
 	result: ActionExecutionResultCode
-	response?: string
+	response?: ITranslatableMessage
 }
 
 export enum ActionExecutionResultCode {

@@ -1,0 +1,53 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: i18next-conv\n"
+"mime-version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1)\n"
+"POT-Creation-Date: 2022-11-08T12:19:16.191Z\n"
+"PO-Revision-Date: 2022-11-08T12:19:16.191Z\n"
+"Language: en\n"
+
+msgid "Action \"{{id}}\" not found"
+msgstr ""
+
+msgid "Bad reply: [{{statusCode}}] {{body}}"
+msgstr ""
+
+msgid "Cannot restart CasparCG without a connection"
+msgstr ""
+
+msgid "CasparCGDevice: config.launcherHost is not set!"
+msgstr ""
+
+msgid "CasparCGDevice: config.launcherPort is not set!"
+msgstr ""
+
+msgid "Clear"
+msgstr ""
+
+msgid "Device does not implement an action handler"
+msgstr ""
+
+msgid "Restart Server"
+msgstr ""
+
+msgid "Resync Atem"
+msgstr ""
+
+msgid "Test 1"
+msgstr ""
+
+msgid "Test 2"
+msgstr ""
+
+msgid "Test 3"
+msgstr ""
+
+msgid "Test action"
+msgstr ""
+
+msgctxt "connectionOptions is not set!"
+msgid "CasparCGDevice."
+msgstr ""

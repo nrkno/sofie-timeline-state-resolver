@@ -48,7 +48,7 @@ import { DoOnTime, SendMode } from '../../devices/doOnTime'
 import * as request from 'request'
 import { InternalTransitionHandler } from '../../devices/transitions/transitionHandler'
 import Debug from 'debug'
-import { endTrace, startTrace } from '../../lib'
+import { endTrace, startTrace, t } from '../../lib'
 import { Actions } from './interfaces'
 const debug = Debug('timeline-state-resolver:casparcg')
 
@@ -669,7 +669,7 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 		if (!this._ccg.connected) {
 			return {
 				result: ActionExecutionResultCode.Error,
-				response: 'Cannot restart CasparCG without a connection',
+				response: t('Cannot restart CasparCG without a connection'),
 			}
 		}
 
@@ -708,7 +708,7 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 			default:
 				return {
 					result: ActionExecutionResultCode.Error,
-					response: 'Action "' + id + '" not found',
+					response: t('Action "{{id}}" not found', { id }),
 				}
 		}
 	}
@@ -718,13 +718,13 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 	 */
 	async restartCasparCG(): Promise<ActionExecutionResult> {
 		if (!this.initOptions) {
-			return { result: ActionExecutionResultCode.Error, response: 'CasparCGDevice._connectionOptions is not set!' }
+			return { result: ActionExecutionResultCode.Error, response: t('CasparCGDevice._connectionOptions is not set!') }
 		}
 		if (!this.initOptions.launcherHost) {
-			return { result: ActionExecutionResultCode.Error, response: 'CasparCGDevice: config.launcherHost is not set!' }
+			return { result: ActionExecutionResultCode.Error, response: t('CasparCGDevice: config.launcherHost is not set!') }
 		}
 		if (!this.initOptions.launcherPort) {
-			return { result: ActionExecutionResultCode.Error, response: 'CasparCGDevice: config.launcherPort is not set!' }
+			return { result: ActionExecutionResultCode.Error, response: t('CasparCGDevice: config.launcherPort is not set!') }
 		}
 
 		return new Promise<ActionExecutionResult>((resolve) => {
@@ -740,7 +740,10 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 					} else {
 						resolve({
 							result: ActionExecutionResultCode.Error,
-							response: 'Bad reply: [' + response.statusCode + '] ' + response.body,
+							response: t('Bad reply: [{{statusCode}}] {{body}}', {
+								statusCode: response.statusCode,
+								body: response.body,
+							}),
 						})
 					}
 				}
