@@ -26,7 +26,6 @@ import { TimelineState, ResolvedTimelineObjectInstance } from 'superfly-timeline
 import {
 	CasparCGState,
 	AMCPCommandVOWithContext,
-	ChannelInfo,
 	LayerBase,
 	MediaLayer,
 	InputLayer,
@@ -47,6 +46,7 @@ import * as request from 'request'
 import { InternalTransitionHandler } from '../../devices/transitions/transitionHandler'
 import Debug from 'debug'
 import { endTrace, startTrace } from '../../lib'
+import { InternalState } from 'casparcg-state/dist/lib/stateObjectStorage'
 const debug = Debug('timeline-state-resolver:casparcg')
 
 const MAX_TIMESYNC_TRIES = 5
@@ -70,7 +70,6 @@ export type CommandReceiver = (
  */
 export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCGInternal> {
 	private _ccg: CasparCG
-	private _ccgState: CasparCGState
 	private _queue: { [token: string]: { time: number; command: CommandNS.IAMCPCommand } } = {}
 	private _commandReceiver: CommandReceiver
 	private _timeToTimecodeMap: { time: number; timecode: number } = { time: 0, timecode: 0 }
@@ -83,6 +82,7 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 	private _transitionHandler: InternalTransitionHandler = new InternalTransitionHandler()
 	private _retryTimeout: NodeJS.Timeout
 	private _retryTime: number | null = null
+	private _currentState: InternalState = { channels: {} }
 
 	constructor(deviceId: string, deviceOptions: DeviceOptionsCasparCGInternal, getCurrentTime: () => Promise<number>) {
 		super(deviceId, deviceOptions, getCurrentTime)
@@ -94,7 +94,6 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 			if (deviceOptions.options.timeBase) this._timeBase = deviceOptions.options.timeBase
 		}
 
-		this._ccgState = new CasparCGState()
 		this._doOnTime = new DoOnTime(
 			() => {
 				return this.getCurrentTime()
@@ -130,23 +129,21 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 				// a "virgin server" was just restarted (so it is cleared & black).
 				// Otherwise it was probably just a loss of connection
 
-				this._ccgState.softClearState()
+				this._currentState = { channels: {} }
 				this.clearStates()
 				this.emit('resetResolver')
 			}
 		})
 
 		const command = await this._ccg.info()
-		this._ccgState.initStateFromChannelInfo(
-			_.map(command.response.data, (obj: any) => {
-				return {
-					channelNo: obj.channel,
-					videoMode: obj.format.toUpperCase(),
-					fps: obj.frameRate,
-				}
-			}) as ChannelInfo[],
-			this.getCurrentTime()
-		)
+		command.response.data.forEach((obj, i) => {
+			this._currentState.channels[i + 1] = {
+				channelNo: i + 1,
+				videoMode: obj.format.toUpperCase(),
+				fps: obj.frameRate,
+				layers: {},
+			}
+		})
 
 		if (typeof initOptions.retryInterval === 'number' && initOptions.retryInterval >= 0) {
 			this._retryTime = initOptions.retryInterval || MEDIA_RETRY_INTERVAL
@@ -190,11 +187,6 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 	 */
 	handleState(newState: TimelineState, newMappings: Mappings) {
 		super.onHandleState(newState, newMappings)
-		// check if initialized:
-		if (!this._ccgState.isInitialised) {
-			this.emit('warning', 'CasparCG State not initialized yet')
-			return
-		}
 
 		const previousStateTime = Math.max(this.getCurrentTime(), newState.time)
 
@@ -698,11 +690,6 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 			}
 		}
 
-		if (!this._ccgState.isInitialised) {
-			statusCode = StatusCode.BAD
-			messages.push(`CasparCG device connection not initialized (restart required)`)
-		}
-
 		if (this._queueOverflow) {
 			statusCode = StatusCode.BAD
 			messages.push('Command queue overflow: CasparCG server has to be restarted')
@@ -857,38 +844,7 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 				}
 				// If the command was performed successfully, copy the state from the current state into the tracked caspar-state:
 				// This is later used in _assertIntendedState
-				if (
-					(resCommand.name === 'LoadbgCommand' ||
-						resCommand.name === 'PlayCommand' ||
-						resCommand.name === 'LoadCommand' ||
-						resCommand.name === 'ClearCommand' ||
-						resCommand.name === 'StopCommand' ||
-						resCommand.name === 'ResumeCommand') &&
-					resCommand.channel &&
-					resCommand.layer
-				) {
-					const currentState = this.getState(time)
-					if (currentState) {
-						const currentCasparState = currentState.state
-
-						const trackedState = this._ccgState.getState()
-
-						const channel = currentCasparState.channels[resCommand.channel]
-						if (channel) {
-							if (!trackedState.channels[resCommand.channel]) {
-								trackedState.channels[resCommand.channel] = {
-									channelNo: channel.channelNo,
-									fps: channel.fps || 0,
-									videoMode: channel.videoMode || null,
-									layers: {},
-								}
-							}
-							// Copy the tracked from current state:
-							trackedState.channels[resCommand.channel].layers[resCommand.layer] = channel.layers[resCommand.layer]
-							this._ccgState.setState(trackedState)
-						}
-					}
-				}
+				this._changeTrackedStateFromCommand(resCommand, time)
 
 				if (this._queueOverflow) {
 					this._queueOverflow = false
@@ -928,6 +884,79 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 			})
 	}
 
+	private _changeTrackedStateFromCommand(resCommand: CommandNS.IAMCPCommand, time: number) {
+		if (
+			(resCommand.name === 'LoadbgCommand' ||
+				resCommand.name === 'PlayCommand' ||
+				resCommand.name === 'LoadCommand' ||
+				resCommand.name === 'ClearCommand' ||
+				resCommand.name === 'StopCommand' ||
+				resCommand.name === 'ResumeCommand') &&
+			resCommand.channel &&
+			resCommand.layer
+		) {
+			const currentState = this.getState(time)
+			if (currentState) {
+				const currentCasparState = currentState.state
+
+				const trackedState = this._currentState
+
+				const channel = currentCasparState.channels[resCommand.channel]
+				if (channel) {
+					if (!trackedState.channels[resCommand.channel]) {
+						trackedState.channels[resCommand.channel] = {
+							channelNo: channel.channelNo,
+							fps: channel.fps || 0,
+							videoMode: channel.videoMode || null,
+							layers: {},
+						}
+					}
+
+					// copy into the trackedState
+					if (
+						(resCommand.name === 'PlayCommand' && resCommand.getParam('clip')) ||
+						(!resCommand.getParam('clip') && trackedState.channels[resCommand.channel].layers[resCommand.layer].nextUp)
+					) {
+						// a play command without parameters (channel/layer) is only succesful if the nextUp worked
+						// a play command with params can always be accepted
+						trackedState.channels[resCommand.channel].layers[resCommand.layer] = {
+							...channel.layers[resCommand.layer],
+							nextUp: undefined, // a play command always clears nextUp
+						}
+					} else if (resCommand.name === 'LoadbgCommand') {
+						// only loadbg can set nextUp and nextUp can only be set by loadbg
+						trackedState.channels[resCommand.channel].layers[resCommand.layer] = {
+							...trackedState.channels[resCommand.channel].layers[resCommand.layer],
+							nextUp: channel.layers[resCommand.layer].nextUp,
+						}
+					} else if (
+						resCommand.name === 'StopCommand' &&
+						trackedState.channels[resCommand.channel].layers[resCommand.layer].nextUp?.auto
+					) {
+						// auto next + stop means bg -> fg => nextUp cleared
+						trackedState.channels[resCommand.channel].layers[resCommand.layer] = {
+							...channel.layers[resCommand.layer],
+							nextUp: undefined, // auto next + stop means bg -> fg => nextUp cleared
+						}
+					} else if (resCommand.name === 'ResumeCommand' || resCommand.name === 'StopCommand') {
+						// stop and resume can be done without affecting nextup
+						trackedState.channels[resCommand.channel].layers[resCommand.layer] = {
+							...channel.layers[resCommand.layer],
+							nextUp: trackedState.channels[resCommand.channel].layers[resCommand.layer].nextUp,
+						}
+					} else {
+						// anything else can always be copied but also clears nextUp
+						// @todo - can LOADBG be followed by an empty LOAD? (if yes, apply same logic as PLAY)
+						trackedState.channels[resCommand.channel].layers[resCommand.layer] = {
+							...channel.layers[resCommand.layer],
+							nextUp: undefined,
+						}
+					}
+				}
+			}
+		}
+	}
+
 	/**
 	 * This function takes the current timeline-state, and diffs it with the known
 	 * CasparCG state. If any media has failed to load, it will create a diff with
@@ -944,7 +973,7 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 
 		const ccgState = tlState.state
 
-		const diff = this._ccgState.getDiff(ccgState, this.getCurrentTime())
+		const diff = CasparCGState.diffStates(this._currentState, ccgState, this.getCurrentTime())
 
 		const cmd: Array<AMCPCommandVOWithContext> = []
 		for (const layer of diff) {
