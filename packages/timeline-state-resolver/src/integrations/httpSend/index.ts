@@ -7,7 +7,7 @@ import {
 	DeviceOptionsHTTPSend,
 	Mappings,
 	TimelineContentTypeHTTP,
-	TimelineContentTypeHTTPParamType
+	TimelineContentTypeHTTPParamType,
 } from 'timeline-state-resolver-types'
 import { DoOnTime, SendMode } from '../../devices/doOnTime'
 import got, { OptionsOfTextResponseBody, RequestError } from 'got'
@@ -257,7 +257,6 @@ export class HTTPSendDevice extends DeviceWithState<HTTPSendState, DeviceOptions
 
 		const httpReq = got[cmd.type]
 		try {
-
 			const options: OptionsOfTextResponseBody = {}
 
 			const params = 'params' in cmd && !_.isEmpty(cmd.params) ? cmd.params : undefined
@@ -271,7 +270,6 @@ export class HTTPSendDevice extends DeviceWithState<HTTPSendState, DeviceOptions
 						// Default is json:
 						options.json = params
 					}
-
 				}
 			}
 
