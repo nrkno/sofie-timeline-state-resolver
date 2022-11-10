@@ -7,6 +7,7 @@ import {
 	DeviceOptionsHTTPSend,
 	Mappings,
 	TimelineContentTypeHTTP,
+	TimelineContentTypeHTTPParamType
 } from 'timeline-state-resolver-types'
 import { DoOnTime, SendMode } from '../../devices/doOnTime'
 import got, { OptionsOfTextResponseBody, RequestError } from 'got'
@@ -264,7 +265,13 @@ export class HTTPSendDevice extends DeviceWithState<HTTPSendState, DeviceOptions
 				if (cmd.type === TimelineContentTypeHTTP.GET) {
 					options.searchParams = params
 				} else {
-					options.json = params
+					if (cmd.paramsType === TimelineContentTypeHTTPParamType.FORM) {
+						options.form = params
+					} else {
+						// Default is json:
+						options.json = params
+					}
+
 				}
 			}
 
