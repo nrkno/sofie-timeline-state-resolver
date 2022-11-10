@@ -6,9 +6,10 @@ import {
 	HTTPSendCommandContent,
 	DeviceOptionsHTTPSend,
 	Mappings,
+	TimelineContentTypeHTTP,
 } from 'timeline-state-resolver-types'
 import { DoOnTime, SendMode } from '../../devices/doOnTime'
-import got, { RequestError } from 'got'
+import got, { OptionsOfTextResponseBody, RequestError } from 'got'
 
 import { TimelineState, ResolvedTimelineObjectInstance } from 'superfly-timeline'
 
@@ -255,9 +256,19 @@ export class HTTPSendDevice extends DeviceWithState<HTTPSendState, DeviceOptions
 
 		const httpReq = got[cmd.type]
 		try {
-			const response = await httpReq(cmd.url, {
-				json: 'params' in cmd ? cmd.params : undefined,
-			})
+
+			const options: OptionsOfTextResponseBody = {}
+
+			const params = 'params' in cmd && !_.isEmpty(cmd.params) ? cmd.params : undefined
+			if (params) {
+				if (cmd.type === TimelineContentTypeHTTP.GET) {
+					options.searchParams = params
+				} else {
+					options.json = params
+				}
+			}
+
+			const response = await httpReq(cmd.url, options)
 
 			if (response.statusCode === 200) {
 				this.emitDebug(
