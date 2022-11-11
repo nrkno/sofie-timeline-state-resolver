@@ -353,6 +353,7 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState, DeviceOptionsVizM
 	async makeReady(okToDestroyStuff?: boolean, activeRundownPlaylistId?: string): Promise<void> {
 		const previousPlaylistId = this._vizmseManager?.activeRundownPlaylistId
 		if (this._vizmseManager) {
+			await this._vizmseManager.cleanupAllSofieShows()
 			await this._vizmseManager.activate(activeRundownPlaylistId)
 		} else throw new Error(`Unable to activate vizMSE, not initialized yet!`)
 
@@ -505,19 +506,12 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState, DeviceOptionsVizM
 				}
 			} else if (newLayer.contentType === TimelineContentTypeVizMSE.CLEANUP_SHOWS) {
 				if (!oldLayer || !_.isEqual(newLayer, oldLayer)) {
-					const command: VizMSECommandCleanupAllShows | VizMSECommandCleanupShows =
-						newLayer.showIds === 'all'
-							? literal<VizMSECommandCleanupAllShows>({
-									type: VizMSECommandType.CLEANUP_ALL_SHOWS,
-									timelineObjId: newLayer.timelineObjId,
-									time: time,
-							  })
-							: literal<VizMSECommandCleanupShows>({
-									type: VizMSECommandType.CLEANUP_SHOWS,
-									timelineObjId: newLayer.timelineObjId,
-									showIds: newLayer.showIds,
-									time: time,
-							  })
+					const command: VizMSECommandCleanupShows = literal<VizMSECommandCleanupShows>({
+						type: VizMSECommandType.CLEANUP_SHOWS,
+						timelineObjId: newLayer.timelineObjId,
+						showIds: newLayer.showIds,
+						time: time,
+					})
 					addCommand(command, newLayer.lookahead)
 				}
 			} else if (newLayer.contentType === TimelineContentTypeVizMSE.CONCEPT) {
@@ -822,9 +816,6 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState, DeviceOptionsVizM
 						break
 					case VizMSECommandType.CLEANUP_SHOWS:
 						await this._vizmseManager.cleanupShows(cmd)
-						break
-					case VizMSECommandType.CLEANUP_ALL_SHOWS:
-						await this._vizmseManager.cleanupAllShows()
 						break
 					default:
 						// @ts-ignore never
@@ -1334,13 +1325,13 @@ class VizMSEManager extends EventEmitter {
 		}
 	}
 
-	public async cleanupAllShows(): Promise<void> {
+	public async cleanupAllSofieShows(): Promise<void> {
 		this._triggerCommandSent()
 		const rundown = await this._getRundown()
 		try {
-			await rundown.cleanupAllShows()
+			await rundown.cleanupAllSofieShows()
 		} catch (error) {
-			this.emit('error', `Error in cleanupAllShows : ${error instanceof Error ? error.toString() : error}`)
+			this.emit('error', `Error in cleanupAllSofieShows : ${error instanceof Error ? error.toString() : error}`)
 		}
 		this._triggerCommandSent()
 	}
@@ -2080,7 +2071,7 @@ interface VizMSEStateLayerInitializeShows extends VizMSEStateLayerBase {
 interface VizMSEStateLayerCleanupShows extends VizMSEStateLayerBase {
 	contentType: TimelineContentTypeVizMSE.CLEANUP_SHOWS
 	/** IDs of the Shows to cleanup - 'all' will cleanup all shows */
-	showIds: string[] | 'all'
+	showIds: string[]
 }
 interface VizMSEStateLayerLoadAllElements extends VizMSEStateLayerBase {
 	contentType: TimelineContentTypeVizMSE.LOAD_ALL_ELEMENTS
@@ -2109,7 +2100,6 @@ export enum VizMSECommandType {
 	CLEAR_ALL_ENGINES = 'clear_all_engines',
 	INITIALIZE_SHOWS = 'initialize_shows',
 	CLEANUP_SHOWS = 'cleanup_shows',
-	CLEANUP_ALL_SHOWS = 'cleanup_all_shows',
 	SET_CONCEPT = 'set_concept',
 }
 
@@ -2160,10 +2150,6 @@ interface VizMSECommandCleanupShows extends VizMSECommandBase {
 	showIds: string[]
 }
 
-interface VizMSECommandCleanupAllShows extends VizMSECommandBase {
-	type: VizMSECommandType.CLEANUP_ALL_SHOWS
-}
-
 interface VizMSECommandSetConcept extends VizMSECommandBase {
 	type: VizMSECommandType.SET_CONCEPT
 	concept: string
@@ -2181,7 +2167,6 @@ type VizMSECommand =
 	| VizMSECommandClearAllEngines
 	| VizMSECommandInitializeShows
 	| VizMSECommandCleanupShows
-	| VizMSECommandCleanupAllShows
 	| VizMSECommandSetConcept
 
 interface VizMSEPlayoutItemContentInternalInstance extends VIZMSEPlayoutItemContentInternal {
