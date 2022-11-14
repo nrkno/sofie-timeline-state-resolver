@@ -1168,7 +1168,8 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 
 				for (const deviceId of affectedDevices) {
 					const toBeFilled = _.compact([
-						this._deviceStates[deviceId].reverse().find((s) => s.time <= this.getCurrentTime()), // one state before now
+						// shallow clone so we don't reverse the array in place
+						[...this._deviceStates[deviceId]].reverse().find((s) => s.time <= this.getCurrentTime()), // one state before now
 						...this._deviceStates[deviceId].filter((s) => s.time > this.getCurrentTime()), // all states after now
 					])
 
