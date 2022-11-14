@@ -3,13 +3,13 @@ import {
 	DeviceOptionsTelemetrics,
 	DeviceType,
 	StatusCode,
+	Timeline,
 	TimelineContentTelemetrics,
+	TSRTimelineContent,
 } from 'timeline-state-resolver-types'
 import { Socket } from 'net'
 // eslint-disable-next-line node/no-extraneous-import
 import { mocked } from 'ts-jest/utils'
-import { TimelineState } from 'superfly-timeline'
-import { ResolvedTimelineObjectInstance } from 'superfly-timeline/dist/api/api'
 import { DoOrderFunctionNothing } from '../../../devices/doOnTime'
 import { literal } from '../../../devices/device'
 
@@ -193,7 +193,7 @@ describe('telemetrics', () => {
 					deviceType: DeviceType.TELEMETRICS,
 					presetShotIdentifiers: [3],
 				}),
-			} as unknown as ResolvedTimelineObjectInstance
+			} as unknown as Timeline.ResolvedTimelineObjectInstance<any>
 
 			device.handleState(timelineState, {})
 
@@ -232,7 +232,7 @@ function createInitializedTelemetricsDevice(): TelemetricsDevice {
 	return device
 }
 
-function createTimelineState(preset: number | number[]): TimelineState {
+function createTimelineState(preset: number | number[]): Timeline.TimelineState<TSRTimelineContent> {
 	const presetIdentifiers: number[] = Array.isArray(preset) ? preset : [preset]
 	return {
 		time: 10,
@@ -243,7 +243,8 @@ function createTimelineState(preset: number | number[]): TimelineState {
 					deviceType: DeviceType.TELEMETRICS,
 					presetShotIdentifiers: presetIdentifiers,
 				}),
-			} as unknown as ResolvedTimelineObjectInstance,
+			} as unknown as Timeline.ResolvedTimelineObjectInstance<any>,
 		},
-	} as unknown as TimelineState
+		nextEvents: [],
+	}
 }

@@ -32,7 +32,7 @@ export interface TimelineObject<TContent = unknown> {
 	enable: TimelineEnable | TimelineEnable[]
 	layer: string | number
 	/** Group children */
-	children?: Array<TimelineObject<unknown>>
+	children?: Array<TimelineObject<any>> // Future: this should be typed better, but doing so breaks type compatability with superfly-timeline
 	/** Keyframes can be used to modify the content of an object */
 	keyframes?: Array<TimelineKeyframe<TContent>>
 	classes?: Array<string>
