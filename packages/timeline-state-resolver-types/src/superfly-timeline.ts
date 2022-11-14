@@ -32,7 +32,7 @@ export interface TimelineObject<TContent = unknown> {
 	enable: TimelineEnable | TimelineEnable[]
 	layer: string | number
 	/** Group children */
-	children?: Array<TimelineObject<any>>
+	children?: Array<TimelineObject<unknown>>
 	/** Keyframes can be used to modify the content of an object */
 	keyframes?: Array<TimelineKeyframe<TContent>>
 	classes?: Array<string>

@@ -74,7 +74,7 @@ export type TimelineContentLawoAny =
 	| TimelineContentLawoEmberProperty
 	| TimelineContentLawoEmberRetrigger
 
-export interface ContentTimelineContentLawoSource {
+export interface TimelineContentLawoSourceValue {
 	faderValue: number
 	transitionDuration?: number
 }
@@ -89,11 +89,11 @@ export interface TimelineContentLawoSources extends TimelineContentLawoBase {
 	sources: Array<
 		{
 			mappingName: string
-		} & ContentTimelineContentLawoSource
+		} & TimelineContentLawoSourceValue
 	>
 	overridePriority?: number // defaults to 0
 }
-export interface TimelineContentLawoSource extends TimelineContentLawoBase, ContentTimelineContentLawoSource {
+export interface TimelineContentLawoSource extends TimelineContentLawoBase, TimelineContentLawoSourceValue {
 	type: TimelineContentTypeLawo.SOURCE
 
 	overridePriority?: number // defaults to 0

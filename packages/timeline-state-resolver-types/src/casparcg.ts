@@ -59,7 +59,7 @@ export interface TimelineStingTransition extends TimelineTransitionBase {
 	audioFadeDuration?: number
 }
 
-export interface TimelineContentCCGProducerContentBase {
+export interface TimelineContentCCGProducerBase {
 	/** The type of CasparCG content  */
 	type: TimelineContentTypeCasparCg
 	transitions?: {
@@ -81,7 +81,7 @@ export interface TimelineContentCasparCGBase {
 	type: TimelineContentTypeCasparCg
 }
 
-export interface TimelineContentCCGMedia extends TimelineContentCasparCGBase, TimelineContentCCGProducerContentBase {
+export interface TimelineContentCCGMedia extends TimelineContentCasparCGBase, TimelineContentCCGProducerBase {
 	type: TimelineContentTypeCasparCg.MEDIA
 
 	/** Path to the file to be played (example: 'AMB') */
@@ -113,7 +113,7 @@ export interface TimelineContentCCGMedia extends TimelineContentCasparCGBase, Ti
 	videoFilter?: string
 	audioFilter?: string
 }
-export interface TimelineContentCCGIP extends TimelineContentCasparCGBase, TimelineContentCCGProducerContentBase {
+export interface TimelineContentCCGIP extends TimelineContentCasparCGBase, TimelineContentCCGProducerBase {
 	type: TimelineContentTypeCasparCg.IP
 	/** The URI to the input stream */
 	uri: string
@@ -125,7 +125,7 @@ export interface TimelineContentCCGIP extends TimelineContentCasparCGBase, Timel
 	videoFilter?: string
 	audioFilter?: string
 }
-export interface TimelineContentCCGInput extends TimelineContentCasparCGBase, TimelineContentCCGProducerContentBase {
+export interface TimelineContentCCGInput extends TimelineContentCasparCGBase, TimelineContentCCGProducerBase {
 	type: TimelineContentTypeCasparCg.INPUT
 	/** The type of input (example: 'decklink') */
 	inputType: string
@@ -143,12 +143,12 @@ export interface TimelineContentCCGInput extends TimelineContentCasparCGBase, Ti
 	videoFilter?: string
 	audioFilter?: string
 }
-export interface TimelineContentCCGHTMLPage extends TimelineContentCasparCGBase, TimelineContentCCGProducerContentBase {
+export interface TimelineContentCCGHTMLPage extends TimelineContentCasparCGBase, TimelineContentCCGProducerBase {
 	type: TimelineContentTypeCasparCg.HTMLPAGE
 	/** The URL to load */
 	url: string
 }
-export interface TimelineContentCCGTemplate extends TimelineContentCasparCGBase, TimelineContentCCGProducerContentBase {
+export interface TimelineContentCCGTemplate extends TimelineContentCasparCGBase, TimelineContentCCGProducerBase {
 	type: TimelineContentTypeCasparCg.TEMPLATE
 	/** The type of template to load ('html' or 'flash') */
 	templateType?: 'html' | 'flash'
@@ -159,7 +159,7 @@ export interface TimelineContentCCGTemplate extends TimelineContentCasparCGBase,
 	/** Whether to use CG stop or CLEAR layer when stopping the template. Defaults to false = CLEAR  */
 	useStopCommand: boolean
 }
-export interface TimelineContentCCGRoute extends TimelineContentCasparCGBase, TimelineContentCCGProducerContentBase {
+export interface TimelineContentCCGRoute extends TimelineContentCasparCGBase, TimelineContentCCGProducerBase {
 	type: TimelineContentTypeCasparCg.ROUTE
 	/** The CasparCG-channel to route from */
 	channel?: number

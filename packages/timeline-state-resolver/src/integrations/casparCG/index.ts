@@ -7,7 +7,7 @@ import {
 	TimelineContentTypeCasparCg,
 	MappingCasparCG,
 	CasparCGOptions,
-	TimelineContentCCGProducerContentBase,
+	TimelineContentCCGProducerBase,
 	ResolvedTimelineObjectInstanceExtended,
 	DeviceOptionsCasparCG,
 	Transition,
@@ -406,7 +406,7 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 			stateLayer = l
 		} // now it holds that stateLayer is truthy
 
-		const baseContent = content as TimelineContentCCGProducerContentBase
+		const baseContent = content as TimelineContentCCGProducerBase
 		if (baseContent.transitions) {
 			// add transitions to the layer obj
 			switch (baseContent.type) {

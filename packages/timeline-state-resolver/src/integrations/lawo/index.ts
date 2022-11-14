@@ -11,7 +11,7 @@ import {
 	SetLawoValueFn,
 	LawoOptions,
 	LawoDeviceMode,
-	ContentTimelineContentLawoSource,
+	TimelineContentLawoSourceValue,
 	MappingLawoType,
 	Mappings,
 } from 'timeline-state-resolver-types'
@@ -282,7 +282,7 @@ export class LawoDevice extends DeviceWithState<LawoState, DeviceOptionsLawoInte
 		const newFaders: Array<{ attrPath: string; node: LawoStateNode; priority: number }> = []
 		const pushFader = (
 			identifier: string,
-			fader: ContentTimelineContentLawoSource,
+			fader: TimelineContentLawoSourceValue,
 			mapping: MappingLawo,
 			tlObjId: string,
 			priority = 0
