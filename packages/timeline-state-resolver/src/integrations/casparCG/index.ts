@@ -15,9 +15,10 @@ import {
 	TSRTransitionOptions,
 	TimelineContentCasparCGAny,
 	TSRTimelineObjProps,
+	Timeline,
+	TSRTimelineContent,
 } from 'timeline-state-resolver-types'
 
-import { TimelineState, ResolvedTimelineObjectInstance } from 'superfly-timeline'
 import {
 	CasparCGState,
 	AMCPCommandVOWithContext,
@@ -183,7 +184,7 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 	/**
 	 * Generates an array of CasparCG commands by comparing the newState against the oldState, or the current device state.
 	 */
-	handleState(newState: TimelineState, newMappings: Mappings) {
+	handleState(newState: Timeline.TimelineState<TSRTimelineContent>, newMappings: Mappings) {
 		super.onHandleState(newState, newMappings)
 		// check if initialized:
 		if (!this._ccgState.isInitialised) {
@@ -262,14 +263,14 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 
 	private convertObjectToCasparState(
 		mappings: Mappings,
-		layer: ResolvedTimelineObjectInstance,
+		layer: Timeline.ResolvedTimelineObjectInstance,
 		mapping: MappingCasparCG,
 		isForeground: boolean
 	): LayerBase {
 		let startTime = layer.instance.originalStart || layer.instance.start
 		if (startTime === 0) startTime = 1 // @todo: startTime === 0 will make ccg-state seek to the current time
 
-		const layerProps = layer as ResolvedTimelineObjectInstance & TSRTimelineObjProps
+		const layerProps = layer as Timeline.ResolvedTimelineObjectInstance & TSRTimelineObjProps
 		const content = layer.content as TimelineContentCasparCGAny
 
 		let stateLayer: LayerBase | null = null
@@ -454,7 +455,7 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 	 * Takes a timeline state and returns a CasparCG State that will work with the state lib.
 	 * @param timelineState The timeline state to generate from.
 	 */
-	convertStateToCaspar(timelineState: TimelineState, mappings: Mappings): State {
+	convertStateToCaspar(timelineState: Timeline.TimelineState<TSRTimelineContent>, mappings: Mappings): State {
 		const caspar: State = {
 			channels: {},
 		}
@@ -481,17 +482,17 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 				channel.fps = this.initOptions ? this.initOptions.fps || 25 : 25
 				caspar.channels[mapping.channel] = channel
 
-				let foregroundObj = timelineState.layers[layerName] as ResolvedTimelineObjectInstance | undefined
+				let foregroundObj: ResolvedTimelineObjectInstanceExtended | undefined = timelineState.layers[layerName]
 				let backgroundObj = _.last(
 					_.filter(timelineState.layers, (obj) => {
 						// Takes the last one, to be consistent with previous behaviour
-						const objExt = obj as ResolvedTimelineObjectInstanceExtended
+						const objExt: ResolvedTimelineObjectInstanceExtended = obj
 						return !!objExt.isLookahead && objExt.lookaheadForLayer === layerName
 					})
 				)
 
 				// If lookahead is on the same layer, then ensure objects are treated as such
-				if (foregroundObj && (foregroundObj as ResolvedTimelineObjectInstanceExtended).isLookahead) {
+				if (foregroundObj && foregroundObj.isLookahead) {
 					backgroundObj = foregroundObj
 					foregroundObj = undefined
 				}

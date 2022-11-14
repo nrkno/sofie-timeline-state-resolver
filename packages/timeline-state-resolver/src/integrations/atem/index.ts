@@ -10,9 +10,9 @@ import {
 	DeviceOptionsAtem,
 	Mappings,
 	AtemTransitionStyle,
-	TimelineContentAtemAny,
+	Timeline,
+	TSRTimelineContent,
 } from 'timeline-state-resolver-types'
-import { TimelineState } from 'superfly-timeline'
 import { AtemState, State as DeviceState, Defaults as StateDefault } from 'atem-state'
 import {
 	BasicAtem,
@@ -161,7 +161,7 @@ export class AtemDevice extends DeviceWithState<DeviceState, DeviceOptionsAtemIn
 	 * be executed at the state's time.
 	 * @param newState The state to handle
 	 */
-	handleState(newState: TimelineState, newMappings: Mappings) {
+	handleState(newState: Timeline.TimelineState<TSRTimelineContent>, newMappings: Mappings) {
 		super.onHandleState(newState, newMappings)
 		if (!this._initialized) {
 			// before it's initialized don't do anything
@@ -222,7 +222,7 @@ export class AtemDevice extends DeviceWithState<DeviceState, DeviceOptionsAtemIn
 	 * Convert a timeline state into an Atem state.
 	 * @param state The state to be converted
 	 */
-	convertStateToAtem(state: TimelineState, newMappings: Mappings): DeviceState {
+	convertStateToAtem(state: Timeline.TimelineState<TSRTimelineContent>, newMappings: Mappings): DeviceState {
 		if (!this._initialized) throw Error('convertStateToAtem cannot be used before inititialized')
 
 		// Start out with default state:
@@ -235,11 +235,11 @@ export class AtemDevice extends DeviceWithState<DeviceState, DeviceOptionsAtemIn
 
 		// For every layer, augment the state
 		_.each(sortedLayers, ({ tlObject, layerName }) => {
-			const content = tlObject.content as TimelineContentAtemAny
+			const content = tlObject.content
 
 			const mapping = newMappings[layerName] as MappingAtem | undefined
 
-			if (mapping && mapping.deviceId === this.deviceId) {
+			if (mapping && mapping.deviceId === this.deviceId && content.deviceType === DeviceType.ATEM) {
 				if (mapping.index !== undefined && mapping.index >= 0) {
 					// index must be 0 or higher
 					switch (mapping.mappingType) {

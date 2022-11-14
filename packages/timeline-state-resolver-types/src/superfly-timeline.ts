@@ -126,12 +126,28 @@ export interface ResolvedTimelineObject<TContent = unknown> extends TimelineObje
 	}
 }
 export interface TimelineObjectInstance {
+	/** id of the instance (unique)  */
 	id: string
+	/** if true, the instance starts from the beginning of time */
 	isFirst?: boolean
+	/** The start time of the instance */
 	start: Time
+	/** The end time of the instance (null = infinite) */
 	end: Time | null
+	/** The original start time of the instance (if an instance is split or capped, the original start time is retained in here).
+	 * If undefined, fallback to .start
+	 */
+	originalStart?: Time
+	/** The original end time of the instance (if an instance is split or capped, the original end time is retained in here)
+	 * If undefined, fallback to .end
+	 */
+	originalEnd?: Time | null
+	/** array of the id of the referenced objects */
 	references: Array<string>
+	/** If set, tells the cap of the parent. The instance will always be capped inside this. */
 	caps?: Array<Cap>
+	/** If the instance was generated from another instance, reference to the original */
+	fromInstanceId?: string
 }
 export interface Cap {
 	id: string
@@ -153,6 +169,12 @@ export interface ExpressionObj {
 	l: Expression
 	o: string
 	r: Expression
+}
+
+export interface TimelineState<TContent = unknown> {
+	time: Time
+	layers: StateInTime<TContent>
+	nextEvents: Array<NextEvent>
 }
 
 export interface ResolvedTimelineObjectInstance<TContent = unknown> extends ResolvedTimelineObject<TContent> {

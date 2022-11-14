@@ -1,11 +1,5 @@
 import * as _ from 'underscore'
-import {
-	TimelineState,
-	ResolvedTimelineObjectInstance,
-	ResolvedStates,
-	TimelineObject,
-	Resolver,
-} from 'superfly-timeline'
+import { ResolvedTimelineObjectInstance, ResolvedStates, TimelineObject, Resolver } from 'superfly-timeline'
 import { EventEmitter } from 'eventemitter3'
 import { MemUsageReport, threadedClass, ThreadedClass, ThreadedClassConfig, ThreadedClassManager } from 'threadedclass'
 import PQueue from 'p-queue'
@@ -18,12 +12,13 @@ import {
 	DeviceType,
 	ResolvedTimelineObjectInstanceExtended,
 	DeviceOptionsBase,
-	TimelineDatastoreReferences,
 	Datastore,
 	DeviceOptionsTelemetrics,
 	TSRTimelineObj,
 	TSRTimeline,
 	Timeline,
+	TSRTimelineContent,
+	TimelineDatastoreReferencesContent,
 } from 'timeline-state-resolver-types'
 
 import { DoOnTime } from './devices/doOnTime'
@@ -154,7 +149,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 	private _datastore: Datastore = {}
 	private _deviceStates: {
 		[deviceId: string]: {
-			state: TimelineState
+			state: Timeline.TimelineState<TSRTimelineContent>
 			mappings: Mappings
 			time: number
 			dependencies: string[]
@@ -980,8 +975,10 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 				)
 			}
 
+			const tlStateLayers: Timeline.TimelineState<any>['layers'] = tlState.layers // This is a cast, but only for the `content`
+
 			const layersPerDevice = this.filterLayersPerDevice(
-				tlState.layers,
+				tlStateLayers,
 				Array.from(this.devices.values()).filter((d) => d.initialized === true)
 			)
 
@@ -993,7 +990,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 				}
 
 				// The subState contains only the parts of the state relevant to that device:
-				const subState: TimelineState = {
+				const subState: Timeline.TimelineState<TSRTimelineContent> = {
 					time: tlState.time,
 					layers: layersPerDevice[device.deviceId] || {},
 					nextEvents: [],
@@ -1118,15 +1115,23 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 		}
 		return nextResolveTime
 	}
-	private _setDeviceState(deviceId: string, time: number, state: TimelineState, mappings: Mappings) {
+	private _setDeviceState(
+		deviceId: string,
+		time: number,
+		state: Timeline.TimelineState<TSRTimelineContent>,
+		mappings: Mappings
+	) {
 		if (!this._deviceStates[deviceId]) this._deviceStates[deviceId] = []
 
 		// find all references to the datastore that are in this state
-		const dependencies: string[] = Object.values(state.layers).flatMap(({ content }) =>
-			Object.values(content.$references || {}).map((r: TimelineDatastoreReferences[any]): string => {
-				return r.datastoreKey
-			})
-		)
+		const dependenciesSet = new Set<string>()
+		for (const { content } of Object.values(state.layers)) {
+			const dataStoreContent = content as TimelineDatastoreReferencesContent
+			for (const r of Object.values(dataStoreContent.$references || {})) {
+				dependenciesSet.add(r.datastoreKey)
+			}
+		}
+		const dependencies = Array.from(dependenciesSet)
 
 		// store all states between the current state and the new state
 		this._deviceStates[deviceId] = _.compact([
@@ -1436,15 +1441,18 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 	/**
 	 * Split the state into substates that are relevant for each device
 	 */
-	private filterLayersPerDevice(layers: TimelineState['layers'], devices: DeviceContainer<DeviceOptionsBase<any>>[]) {
-		const filteredStates: { [deviceId: string]: { [layerId: string]: ResolvedTimelineObjectInstance } } = {}
+	private filterLayersPerDevice(
+		layers: Timeline.TimelineState<TSRTimelineContent>['layers'],
+		devices: DeviceContainer<DeviceOptionsBase<any>>[]
+	) {
+		const filteredStates: { [deviceId: string]: { [layerId: string]: ResolvedTimelineObjectInstanceExtended } } = {}
 
 		const deviceIdAndTypes: { [idAndTyoe: string]: string } = {}
 
 		_.each(devices, (device) => {
 			deviceIdAndTypes[device.deviceId + '__' + device.deviceType] = device.deviceId
 		})
-		_.each(layers, (o: ResolvedTimelineObjectInstance, layerId: string) => {
+		_.each(layers, (o, layerId: string) => {
 			const oExt: ResolvedTimelineObjectInstanceExtended = o
 			let mapping: Mapping = this._mappings[o.layer + '']
 			if (!mapping && oExt.isLookahead && oExt.lookaheadForLayer) {
@@ -1495,7 +1503,9 @@ export type DeviceOptionsAnyInternal =
 	| DeviceOptionsVizMSEInternal
 	| DeviceOptionsTelemetrics
 
-function removeParentFromState(o: TimelineState): TimelineState {
+function removeParentFromState(
+	o: Timeline.TimelineState<TSRTimelineContent>
+): Timeline.TimelineState<TSRTimelineContent> {
 	for (const key in o) {
 		if (key === 'parent') {
 			delete o['parent']

@@ -5,16 +5,16 @@ import {
 	SingularLiveOptions,
 	TimelineContentTypeSingularLive,
 	MappingSingularLive,
-	TimelineContentSingularLiveAny,
 	DeviceOptionsSingularLive,
 	SingularCompositionAnimation,
 	SingularCompositionControlNode,
 	Mappings,
+	TSRTimelineContent,
+	Timeline,
 } from 'timeline-state-resolver-types'
 import { DoOnTime, SendMode } from '../../devices/doOnTime'
 import * as request from 'request'
 
-import { TimelineState, ResolvedTimelineObjectInstance } from 'superfly-timeline'
 export interface DeviceOptionsSingularLiveInternal extends DeviceOptionsSingularLive {
 	commandReceiver?: CommandReceiver
 }
@@ -114,7 +114,7 @@ export class SingularLiveDevice extends DeviceWithState<SingularLiveState, Devic
 		this._doOnTime.clearQueueNowAndAfter(newStateTime)
 		this.cleanUpStates(0, newStateTime)
 	}
-	handleState(newState: TimelineState, newMappings: Mappings) {
+	handleState(newState: Timeline.TimelineState<TSRTimelineContent>, newMappings: Mappings) {
 		super.onHandleState(newState, newMappings)
 		// Handle this new state, at the point in time specified
 
@@ -170,15 +170,20 @@ export class SingularLiveDevice extends DeviceWithState<SingularLiveState, Devic
 			compositions: {},
 		}
 	}
-	convertStateToSingularLive(state: TimelineState, newMappings: Mappings) {
+	convertStateToSingularLive(state: Timeline.TimelineState<TSRTimelineContent>, newMappings: Mappings) {
 		// convert the timeline state into something we can use
 		// (won't even use this.mapping)
 		const singularState: SingularLiveState = this._getDefaultState()
 
-		_.each(state.layers, (tlObject: ResolvedTimelineObjectInstance, layerName: string) => {
+		_.each(state.layers, (tlObject, layerName: string) => {
 			const mapping: MappingSingularLive | undefined = newMappings[layerName] as MappingSingularLive
-			if (mapping && mapping.device === DeviceType.SINGULAR_LIVE && mapping.deviceId === this.deviceId) {
-				const content = tlObject.content as TimelineContentSingularLiveAny
+			if (
+				mapping &&
+				mapping.device === DeviceType.SINGULAR_LIVE &&
+				mapping.deviceId === this.deviceId &&
+				tlObject.content.deviceType === DeviceType.SINGULAR_LIVE
+			) {
+				const content = tlObject.content
 
 				if (content.type === TimelineContentTypeSingularLive.COMPOSITION) {
 					singularState.compositions[mapping.compositionName] = {

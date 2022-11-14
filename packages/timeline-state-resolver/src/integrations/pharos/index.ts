@@ -4,16 +4,15 @@ import {
 	DeviceType,
 	PharosOptions,
 	TimelineContentTypePharos,
-	TimelineContentPharos,
 	TimelineContentPharosScene,
 	TimelineContentPharosTimeline,
 	DeviceOptionsPharos,
 	Mappings,
-	TSRTimelineObj,
 	TimelineContentPharosAny,
+	TSRTimelineContent,
+	Timeline,
 } from 'timeline-state-resolver-types'
 
-import { TimelineState, ResolvedTimelineObjectInstance } from 'superfly-timeline'
 import { DoOnTime, SendMode } from '../../devices/doOnTime'
 import { Pharos, ProjectInfo } from './connection'
 
@@ -31,11 +30,7 @@ export interface Command {
 	context: CommandContext
 	timelineObjId: string
 }
-export interface PharosState extends TimelineState {
-	Layers: {
-		[Layer: string]: TimelineContentPharos
-	}
-}
+type PharosState = Timeline.TimelineState<TSRTimelineContent>
 
 interface CommandContent {
 	fcn: (...args: any[]) => Promise<any>
@@ -109,13 +104,13 @@ export class PharosDevice extends DeviceWithState<PharosState, DeviceOptionsPhar
 	 * in time.
 	 * @param newState
 	 */
-	handleState(newState: TimelineState, newMappings: Mappings) {
+	handleState(newState: Timeline.TimelineState<TSRTimelineContent>, newMappings: Mappings) {
 		super.onHandleState(newState, newMappings)
 		// Handle this new state, at the point in time specified
 
 		const previousStateTime = Math.max(this.getCurrentTime(), newState.time)
 		const oldPharosState: PharosState = (
-			this.getStateBefore(previousStateTime) || { state: { Layers: {}, time: 0, layers: {}, nextEvents: [] } }
+			this.getStateBefore(previousStateTime) || { state: { time: 0, layers: {}, nextEvents: [] } }
 		).state
 
 		const newPharosState = this.convertStateToPharos(newState)
@@ -146,8 +141,8 @@ export class PharosDevice extends DeviceWithState<PharosState, DeviceOptionsPhar
 	get connected(): boolean {
 		return this._pharos.connected
 	}
-	convertStateToPharos(state: TimelineState): PharosState {
-		return state as PharosState
+	convertStateToPharos(state: Timeline.TimelineState<TSRTimelineContent>): PharosState {
+		return state
 	}
 	get deviceType() {
 		return DeviceType.PHAROS
@@ -201,7 +196,10 @@ export class PharosDevice extends DeviceWithState<PharosState, DeviceOptionsPhar
 		const commands: Array<Command> = []
 		const stoppedLayers: { [layerKey: string]: true } = {}
 
-		const stopLayer = (oldLayer: TSRTimelineObj<TimelineContentPharosAny>, reason?: string) => {
+		const stopLayer = (
+			oldLayer: Timeline.ResolvedTimelineObjectInstance<TimelineContentPharosAny>,
+			reason?: string
+		) => {
 			if (stoppedLayers[oldLayer.id]) return // don't send several remove commands for the same object
 
 			if (oldLayer.content.noRelease) return // override: don't stop / release
@@ -231,8 +229,8 @@ export class PharosDevice extends DeviceWithState<PharosState, DeviceOptionsPhar
 			}
 		}
 		const modifyTimelinePlay = (
-			newLayer: TSRTimelineObj<TimelineContentPharosAny>,
-			oldLayer?: TSRTimelineObj<TimelineContentPharosAny>
+			newLayer: Timeline.ResolvedTimelineObjectInstance<TimelineContentPharosAny>,
+			oldLayer?: Timeline.ResolvedTimelineObjectInstance<TimelineContentPharosAny>
 		) => {
 			if (newLayer.content.type === TimelineContentTypePharos.TIMELINE) {
 				if (
@@ -276,7 +274,10 @@ export class PharosDevice extends DeviceWithState<PharosState, DeviceOptionsPhar
 				// @todo: support pause / setTimelinePosition
 			}
 		}
-		const startLayer = (newLayer: TSRTimelineObj<TimelineContentPharosAny>, reason?: string) => {
+		const startLayer = (
+			newLayer: Timeline.ResolvedTimelineObjectInstance<TimelineContentPharosAny>,
+			reason?: string
+		) => {
 			if (!newLayer.content.stopped) {
 				if (newLayer.content.type === TimelineContentTypePharos.SCENE) {
 					if (!reason) reason = 'added scene'
@@ -306,15 +307,29 @@ export class PharosDevice extends DeviceWithState<PharosState, DeviceOptionsPhar
 			}
 		}
 
+		const isPharosObject = (
+			obj: Timeline.ResolvedTimelineObjectInstance<TSRTimelineContent> | undefined
+		): obj is Timeline.ResolvedTimelineObjectInstance<TimelineContentPharosAny> => {
+			return !!obj && obj.content.deviceType === DeviceType.PHAROS
+		}
+
 		// Added / Changed things:
-		_.each(newPharosState.layers, (newLayer: ResolvedTimelineObjectInstance, layerKey) => {
-			const oldPharosObj = oldPharosState.layers[layerKey] as any as
-				| TSRTimelineObj<TimelineContentPharosAny>
-				| undefined
+		_.each(newPharosState.layers, (newLayer, layerKey) => {
+			const oldPharosObj0 = oldPharosState.layers[layerKey]
+			const oldPharosObj: Timeline.ResolvedTimelineObjectInstance<TimelineContentPharosAny> | undefined =
+				isPharosObject(oldPharosObj0) ? oldPharosObj0 : undefined
 
-			const pharosObj = newLayer as any as TSRTimelineObj<TimelineContentPharosAny>
+			const pharosObj: Timeline.ResolvedTimelineObjectInstance<TimelineContentPharosAny> | undefined = isPharosObject(
+				newLayer
+			)
+				? newLayer
+				: undefined
 
-			if (!oldPharosObj) {
+			if (!pharosObj) {
+				if (oldPharosObj) {
+					stopLayer(oldPharosObj)
+				}
+			} else if (!oldPharosObj || !isPharosObject(oldPharosObj)) {
 				// item is new
 				startLayer(pharosObj)
 			} else {
@@ -348,13 +363,11 @@ export class PharosDevice extends DeviceWithState<PharosState, DeviceOptionsPhar
 			}
 		})
 		// Removed things
-		_.each(oldPharosState.layers, (oldLayer: ResolvedTimelineObjectInstance, layerKey) => {
-			const oldPharosObj = oldLayer as any as TSRTimelineObj<TimelineContentPharosAny>
-
+		_.each(oldPharosState.layers, (oldLayer, layerKey) => {
 			const newLayer = newPharosState.layers[layerKey]
-			if (!newLayer) {
+			if (!newLayer && isPharosObject(oldLayer)) {
 				// removed item
-				stopLayer(oldPharosObj)
+				stopLayer(oldLayer)
 			}
 		})
 

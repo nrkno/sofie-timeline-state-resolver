@@ -1,5 +1,4 @@
 import * as _ from 'underscore'
-import { TimelineState } from 'superfly-timeline'
 import {
 	Mappings,
 	DeviceType,
@@ -7,6 +6,8 @@ import {
 	DeviceOptionsBase,
 	DeviceStatus,
 	StatusCode,
+	Timeline,
+	TSRTimelineContent,
 } from 'timeline-state-resolver-types'
 import { EventEmitter } from 'eventemitter3'
 import { CommandReport, DoOnTime, SlowFulfilledCommandInfo, SlowSentCommandInfo } from './doOnTime'
@@ -74,7 +75,7 @@ export interface IDevice<TOptions extends DeviceOptionsBase<any>> {
 	getCurrentTime: () => number
 
 	prepareForHandleState: (newStateTime: number) => void
-	handleState: (newState: TimelineState, mappings: Mappings) => void
+	handleState: (newState: Timeline.TimelineState<TSRTimelineContent>, mappings: Mappings) => void
 	clearFuture: (clearAfterTime: number) => void
 	canConnect: boolean
 	connected: boolean
@@ -168,10 +169,10 @@ export abstract class Device<TOptions extends DeviceOptionsBase<any>>
 	/** Called from Conductor when a new state is about to be handled soon */
 	abstract prepareForHandleState(newStateTime: number): void
 	/** Called from Conductor when a new state is to be handled */
-	abstract handleState(newState: TimelineState, mappings: Mappings): void
+	abstract handleState(newState: Timeline.TimelineState<TSRTimelineContent>, mappings: Mappings): void
 
 	/** To be called by children first in .handleState */
-	protected onHandleState(_newState: TimelineState, mappings: Mappings) {
+	protected onHandleState(_newState: Timeline.TimelineState<TSRTimelineContent>, mappings: Mappings) {
 		this.updateIsActive(mappings)
 	}
 	/**

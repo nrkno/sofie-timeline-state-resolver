@@ -4,7 +4,6 @@ import * as deepMerge from 'deepmerge'
 import { DeviceWithState, CommandWithContext, DeviceStatus, StatusCode } from './../../devices/device'
 import { DoOnTime, SendMode } from '../../devices/doOnTime'
 
-import { TimelineState } from 'superfly-timeline'
 import { VMix, VMixStateCommand } from './connection'
 import {
 	DeviceType,
@@ -19,8 +18,9 @@ import {
 	VMixTransform,
 	VMixInputOverlays,
 	MappingVMixType,
-	TimelineContentVMixAny,
 	MappingVMixAny,
+	Timeline,
+	TSRTimelineContent,
 } from 'timeline-state-resolver-types'
 
 export interface DeviceOptionsVMixInternal extends DeviceOptionsVMix {
@@ -193,7 +193,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 		this.cleanUpStates(0, newStateTime + 0.1)
 	}
 
-	handleState(newState: TimelineState, newMappings: Mappings) {
+	handleState(newState: Timeline.TimelineState<TSRTimelineContent>, newMappings: Mappings) {
 		super.onHandleState(newState, newMappings)
 		if (!this._initialized) {
 			// before it's initialized don't do anything
@@ -260,7 +260,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 		return false
 	}
 
-	convertStateToVMix(state: TimelineState, mappings: Mappings): VMixStateExtended {
+	convertStateToVMix(state: Timeline.TimelineState<TSRTimelineContent>, mappings: Mappings): VMixStateExtended {
 		if (!this._initialized) throw Error('convertStateToVMix cannot be used before inititialized')
 
 		const deviceState = this._getDefaultState()
@@ -276,9 +276,9 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 		)
 
 		_.each(sortedLayers, ({ tlObject, layerName, mapping }) => {
-			const content = tlObject.content as TimelineContentVMixAny
+			const content = tlObject.content
 
-			if (mapping) {
+			if (mapping && content.deviceType === DeviceType.VMIX) {
 				switch (mapping.mappingType) {
 					case MappingVMixType.Program:
 						if (content.type === TimelineContentTypeVMix.PROGRAM) {

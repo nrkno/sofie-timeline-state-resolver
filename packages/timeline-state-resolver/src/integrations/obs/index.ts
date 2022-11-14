@@ -3,7 +3,6 @@ import * as underScoreDeepExtend from 'underscore-deep-extend'
 import { DeviceWithState, CommandWithContext, DeviceStatus, StatusCode } from './../../devices/device'
 import { DoOnTime, SendMode } from '../../devices/doOnTime'
 
-import { TimelineState } from 'superfly-timeline'
 import * as OBSWebSocket from 'obs-websocket-js'
 import {
 	DeviceType,
@@ -18,6 +17,8 @@ import {
 	MappingOBSSceneItemRender,
 	MappingOBSSourceSettings,
 	ResolvedTimelineObjectInstanceExtended,
+	TSRTimelineContent,
+	Timeline,
 } from 'timeline-state-resolver-types'
 
 interface OBSRequest {
@@ -195,7 +196,7 @@ export class OBSDevice extends DeviceWithState<OBSState, DeviceOptionsOBSInterna
 		this.cleanUpStates(0, newStateTime)
 	}
 
-	handleState(newState: TimelineState, newMappings: Mappings) {
+	handleState(newState: Timeline.TimelineState<TSRTimelineContent>, newMappings: Mappings) {
 		super.onHandleState(newState, newMappings)
 		if (!this._initialized) {
 			// before it's initialized don't do anything
@@ -269,7 +270,7 @@ export class OBSDevice extends DeviceWithState<OBSState, DeviceOptionsOBSInterna
 		return this._connected
 	}
 
-	convertStateToOBS(state: TimelineState, mappings: Mappings): OBSState {
+	convertStateToOBS(state: Timeline.TimelineState<TSRTimelineContent>, mappings: Mappings): OBSState {
 		if (!this._initialized) {
 			throw Error('convertStateToOBS cannot be used before inititialized')
 		}
@@ -294,7 +295,7 @@ export class OBSDevice extends DeviceWithState<OBSState, DeviceOptionsOBSInterna
 		)
 
 		_.each(sortedLayers, ({ tlObject, mapping }) => {
-			if (mapping) {
+			if (mapping && tlObject.content.deviceType === DeviceType.OBS) {
 				switch (mapping.mappingType) {
 					case MappingOBSType.CurrentScene:
 						if (tlObject.content.type === TimelineContentTypeOBS.CURRENT_SCENE) {

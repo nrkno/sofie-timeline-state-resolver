@@ -4,9 +4,10 @@ import {
 	Mappings,
 	StatusCode,
 	TelemetricsOptions,
+	Timeline,
 	TimelineContentTelemetrics,
+	TSRTimelineContent,
 } from 'timeline-state-resolver-types'
-import { TimelineState } from 'superfly-timeline'
 import { DeviceStatus, DeviceWithState } from '../../devices/device'
 import { Socket } from 'net'
 import * as _ from 'underscore'
@@ -91,7 +92,7 @@ export class TelemetricsDevice extends DeviceWithState<TelemetricsState, DeviceO
 		}
 	}
 
-	handleState(newState: TimelineState, mappings: Mappings): void {
+	handleState(newState: Timeline.TimelineState<TSRTimelineContent>, mappings: Mappings): void {
 		super.onHandleState(newState, mappings)
 		const previousStateTime: number = Math.max(this.getCurrentTime(), newState.time)
 		const oldState: TelemetricsState = this.getStateBefore(previousStateTime)?.state ?? { presetShotIdentifiers: [] }
@@ -105,7 +106,7 @@ export class TelemetricsDevice extends DeviceWithState<TelemetricsState, DeviceO
 		presetIdentifiersToSend.forEach((presetShotIdentifier) => this.queueCommand(presetShotIdentifier, newState))
 	}
 
-	private findNewTelemetricsState(newState: TimelineState): TelemetricsState {
+	private findNewTelemetricsState(newState: Timeline.TimelineState<TSRTimelineContent>): TelemetricsState {
 		const newTelemetricsState: TelemetricsState = { presetShotIdentifiers: [] }
 
 		newTelemetricsState.presetShotIdentifiers = _.map(newState.layers, (timelineObject, _layerName) => {
@@ -120,7 +121,7 @@ export class TelemetricsDevice extends DeviceWithState<TelemetricsState, DeviceO
 		return newState.presetShotIdentifiers.filter((preset) => !oldState.presetShotIdentifiers.includes(preset))
 	}
 
-	private queueCommand(presetShotIdentifier: number, newState: TimelineState) {
+	private queueCommand(presetShotIdentifier: number, newState: Timeline.TimelineState<TSRTimelineContent>) {
 		const command = `${TELEMETRICS_COMMAND_PREFIX}${presetShotIdentifier}\r`
 		this.doOnTime.queue(newState.time, undefined, () => this.socket.write(command))
 	}

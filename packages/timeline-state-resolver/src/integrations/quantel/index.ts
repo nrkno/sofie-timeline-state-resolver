@@ -12,9 +12,9 @@ import {
 	QuantelOutTransition,
 	DeviceOptionsQuantel,
 	Mappings,
+	Timeline,
+	TSRTimelineContent,
 } from 'timeline-state-resolver-types'
-
-import { TimelineState, ResolvedTimelineObjectInstance } from 'superfly-timeline'
 
 import { DoOnTime, SendMode } from '../../devices/doOnTime'
 import { QuantelGateway } from 'tv-automation-quantel-gateway-client'
@@ -143,7 +143,7 @@ export class QuantelDevice extends DeviceWithState<QuantelState, DeviceOptionsQu
 	/**
 	 * Generates an array of Quantel commands by comparing the newState against the oldState, or the current device state.
 	 */
-	handleState(newState: TimelineState, newMappings: Mappings) {
+	handleState(newState: Timeline.TimelineState<TSRTimelineContent>, newMappings: Mappings) {
 		super.onHandleState(newState, newMappings)
 		// check if initialized:
 		if (!this._quantel.initialized) {
@@ -246,7 +246,7 @@ export class QuantelDevice extends DeviceWithState<QuantelState, DeviceOptionsQu
 	 * Takes a timeline state and returns a Quantel State that will work with the state lib.
 	 * @param timelineState The timeline state to generate from.
 	 */
-	convertStateToQuantel(timelineState: TimelineState, mappings: Mappings): QuantelState {
+	convertStateToQuantel(timelineState: Timeline.TimelineState<TSRTimelineContent>, mappings: Mappings): QuantelState {
 		const state: QuantelState = {
 			time: timelineState.time,
 			port: {},
@@ -262,8 +262,8 @@ export class QuantelDevice extends DeviceWithState<QuantelState, DeviceOptionsQu
 			}
 		})
 
-		_.each(timelineState.layers, (layer: ResolvedTimelineObjectInstance, layerName: string) => {
-			const layerExt = layer as ResolvedTimelineObjectInstanceExtended
+		_.each(timelineState.layers, (layer, layerName: string) => {
+			const layerExt: ResolvedTimelineObjectInstanceExtended = layer
 			let foundMapping: Mapping = mappings[layerName]
 
 			let isLookahead = false

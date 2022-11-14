@@ -5,7 +5,6 @@ import {
 	DeviceType,
 	TimelineContentTypeLawo,
 	MappingLawo,
-	TimelineContentLawoAny,
 	DeviceOptionsLawo,
 	LawoCommand,
 	SetLawoValueFn,
@@ -14,8 +13,9 @@ import {
 	TimelineContentLawoSourceValue,
 	MappingLawoType,
 	Mappings,
+	Timeline,
+	TSRTimelineContent,
 } from 'timeline-state-resolver-types'
-import { TimelineState, ResolvedTimelineObjectInstance } from 'superfly-timeline'
 import { DoOnTime, SendMode } from '../../devices/doOnTime'
 import { deferAsync, getDiff } from '../../lib'
 import { EmberClient, Types as EmberTypes, Model as EmberModel } from 'emberplus-connection'
@@ -210,7 +210,7 @@ export class LawoDevice extends DeviceWithState<LawoState, DeviceOptionsLawoInte
 	 * Handles a state such that the device will reflect that state at the given time.
 	 * @param newState
 	 */
-	handleState(newState: TimelineState, newMappings: Mappings) {
+	handleState(newState: Timeline.TimelineState<TSRTimelineContent>, newMappings: Mappings) {
 		super.onHandleState(newState, newMappings)
 		if (!this._initialized) return
 
@@ -272,7 +272,7 @@ export class LawoDevice extends DeviceWithState<LawoState, DeviceOptionsLawoInte
 	 * Converts a timeline state into a device state.
 	 * @param state
 	 */
-	convertStateToLawo(state: TimelineState, mappings: Mappings): LawoState {
+	convertStateToLawo(state: Timeline.TimelineState<TSRTimelineContent>, mappings: Mappings): LawoState {
 		const lawoState: LawoState = {
 			nodes: {},
 		}
@@ -303,13 +303,18 @@ export class LawoDevice extends DeviceWithState<LawoState, DeviceOptionsLawoInte
 			})
 		}
 
-		_.each(state.layers, (tlObject: ResolvedTimelineObjectInstance, layerName: string) => {
+		_.each(state.layers, (tlObject, layerName: string) => {
 			// for every layer
-			const content = tlObject.content as TimelineContentLawoAny
+			const content = tlObject.content
 
 			const mapping: MappingLawo | undefined = mappings[layerName] as MappingLawo
 
-			if (mapping && mapping.device === DeviceType.LAWO && mapping.deviceId === this.deviceId) {
+			if (
+				mapping &&
+				mapping.device === DeviceType.LAWO &&
+				mapping.deviceId === this.deviceId &&
+				content.deviceType === DeviceType.LAWO
+			) {
 				// Mapping is for Lawo
 
 				if (mapping.mappingType === MappingLawoType.SOURCES && content.type === TimelineContentTypeLawo.SOURCES) {

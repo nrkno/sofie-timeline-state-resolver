@@ -9,10 +9,12 @@ import {
 	Mappings,
 	MediaObject,
 	ResolvedTimelineObjectInstanceExtended,
+	Timeline,
 	TimelineContentTypeVizMSE,
 	TimelineContentVIZMSEAny,
 	TimelineContentVIZMSEElementInternal,
 	TimelineContentVIZMSEElementPilot,
+	TSRTimelineContent,
 	VizMSEOptions,
 	VIZMSEOutTransition,
 	VIZMSEPlayoutItemContent,
@@ -20,8 +22,6 @@ import {
 	VIZMSEPlayoutItemContentInternal,
 	VIZMSETransitionType,
 } from 'timeline-state-resolver-types'
-
-import { ResolvedTimelineObjectInstance, TimelineState } from 'superfly-timeline'
 
 import { createMSE, ExternalElement, InternalElement, MSE, VElement, VRundown } from '@tv2media/v-connection'
 
@@ -159,7 +159,7 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState, DeviceOptionsVizM
 	/**
 	 * Generates an array of VizMSE commands by comparing the newState against the oldState, or the current device state.
 	 */
-	handleState(newState: TimelineState, newMappings: Mappings) {
+	handleState(newState: Timeline.TimelineState<TSRTimelineContent>, newMappings: Mappings) {
 		super.onHandleState(newState, newMappings)
 		// check if initialized:
 		if (!this._vizmseManager || !this._vizmseManager.initialized) {
@@ -240,14 +240,14 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState, DeviceOptionsVizM
 	 * Takes a timeline state and returns a VizMSE State that will work with the state lib.
 	 * @param timelineState The timeline state to generate from.
 	 */
-	convertStateToVizMSE(timelineState: TimelineState, mappings: Mappings): VizMSEState {
+	convertStateToVizMSE(timelineState: Timeline.TimelineState<TSRTimelineContent>, mappings: Mappings): VizMSEState {
 		const state: VizMSEState = {
 			time: timelineState.time,
 			layer: {},
 		}
 
-		_.each(timelineState.layers, (layer: ResolvedTimelineObjectInstance, layerName: string) => {
-			const layerExt = layer as ResolvedTimelineObjectInstanceExtended
+		_.each(timelineState.layers, (layer, layerName: string) => {
+			const layerExt: ResolvedTimelineObjectInstanceExtended = layer
 			let foundMapping: Mapping = mappings[layerName]
 
 			let isLookahead = false
