@@ -14,7 +14,7 @@ import {
 	QuantelStatePortClipContent,
 	QuantelTrackedState,
 	QuantelTrackedStatePort,
-} from './interfaces'
+} from './quantelInterfaces'
 
 const SOFT_JUMP_WAIT_TIME = 250
 

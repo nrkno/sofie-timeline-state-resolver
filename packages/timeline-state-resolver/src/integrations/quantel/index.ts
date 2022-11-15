@@ -18,7 +18,7 @@ import { TimelineState, ResolvedTimelineObjectInstance } from 'superfly-timeline
 
 import { DoOnTime, SendMode } from '../../devices/doOnTime'
 import { QuantelGateway } from 'tv-automation-quantel-gateway-client'
-import { startTrace, endTrace } from '../../lib'
+import { startTrace, endTrace, t } from '../../lib'
 import { QuantelManager } from './connection'
 import {
 	QuantelCommand,
@@ -27,7 +27,9 @@ import {
 	QuantelStatePortClip,
 	QuantelCommandType,
 	QuantelStatePort,
-} from './interfaces'
+} from './quantelInterfaces'
+import { Actions } from './interfaces'
+import { ActionExecutionResult, ActionExecutionResultCode } from 'timeline-state-resolver-types'
 export { QuantelCommandType }
 
 const IDEAL_PREPARE_TIME = 1000
@@ -186,6 +188,19 @@ export class QuantelDevice extends DeviceWithState<QuantelState, DeviceOptionsQu
 			return this._quantel.kill()
 		} else {
 			throw new Error('Quantel Gateway not connected')
+		}
+	}
+	async executeAction(actionId: string, _payload?: Record<string, any> | undefined): Promise<ActionExecutionResult> {
+		switch (actionId) {
+			case Actions.RestartGateway:
+				try {
+					await this.restartGateway()
+					return { result: ActionExecutionResultCode.Ok }
+				} catch {
+					return { result: ActionExecutionResultCode.Error }
+				}
+			default:
+				return { result: ActionExecutionResultCode.Ok, response: t('Action "{{id}}" not found', { actionId }) }
 		}
 	}
 

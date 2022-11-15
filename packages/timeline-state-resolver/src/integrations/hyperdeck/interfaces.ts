@@ -5,5 +5,5 @@
  * and run "yarn generate-schema-types" to regenerate this file.
  */
 export enum Actions {
-	TestAction = 'testAction',
+	FormatDisks = 'formatDisks',
 }

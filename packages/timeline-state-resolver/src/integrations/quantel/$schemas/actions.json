@@ -2,8 +2,9 @@
 	"$schema": "../../../$schemas/action-schema.json",
 	"actions": [
 		{
-			"id": "testAction",
-			"name": "Test action"
+			"id": "restartGateway",
+			"name": "Restart gateway",
+			"destructive": true
 		}
 	]
 }
