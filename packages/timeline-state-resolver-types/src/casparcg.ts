@@ -18,8 +18,6 @@ export interface CasparCGOptions {
 	useScheduling?: boolean
 	/** Interval (ms) for retrying to load media that previously failed. (-1 disables, 0 uses the default interval) */
 	retryInterval?: number
-	/* Timecode base of channel */
-	timeBase?: { [channel: string]: number } | number
 	/* fps used for all channels */
 	fps?: number
 
@@ -150,8 +148,9 @@ export interface TimelineObjCCGInput extends TimelineObjCasparCGBase {
 		/** The input format (example: '1080i5000') */
 		deviceFormat: ChannelFormat // ,
 
-		// videoFilter?: string
-		// audioFilter?: string
+		/**
+		 * @deprecated use videoFilter instead
+		 */
 		filter?: string // should this be separate for audio and video?
 
 		/** Audio channel layout (example 'stereo') */
