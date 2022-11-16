@@ -1,7 +1,7 @@
 import * as _ from 'underscore'
 import * as deepMerge from 'deepmerge'
 import { DeviceWithState, CommandWithContext, DeviceStatus, StatusCode, literal } from '../../devices/device'
-import { AMCPCommand, BasicCasparCGAPI, Commands, Response } from 'casparcg-connection'
+import { AMCPCommand, BasicCasparCGAPI, ClearCommand, Commands, Response } from 'casparcg-connection'
 import {
 	DeviceType,
 	TimelineContentTypeCasparCg,
@@ -608,15 +608,24 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 			}
 		}
 
-		const command = await this._ccg.info()
-		const channels: any[] = command.response.data
+		const { error, request } = await this._ccg.executeCommand({ command: Commands.Info, params: {} })
+		if (error) {
+			return { result: ActionExecutionResultCode.Error }
+		}
+		const response = await request
+		if (!response?.data[0]) {
+			return { result: ActionExecutionResultCode.Error }
+		}
 
 		await Promise.all(
-			_.map(channels, async (channel: any) => {
+			response.data.map(async (_, i) => {
 				await this._commandReceiver(
 					this.getCurrentTime(),
-					new AMCP.ClearCommand({
-						channel: channel.channel,
+					literal<ClearCommand>({
+						command: Commands.Clear,
+						params: {
+							channel: i + 1,
+						},
 					}),
 					'clearAllChannels',
 					''
@@ -625,6 +634,17 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 		)
 
 		this.clearStates()
+		this._currentState = { channels: {} }
+		response.data.forEach((obj) => {
+			this._currentState.channels[obj.channel] = {
+				channelNo: obj.channel,
+				videoMode: obj.format.toUpperCase(),
+				fps: obj.frameRate,
+				layers: {},
+			}
+		})
+
+		this.emit('resetResolver')
 
 		return {
 			result: ActionExecutionResultCode.Ok,
