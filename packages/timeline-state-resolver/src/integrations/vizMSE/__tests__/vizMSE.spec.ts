@@ -21,8 +21,6 @@ type VRundownMocked = vConnection.VRundownMocked
 import _ = require('underscore')
 import { literal, StatusCode } from '../../../devices/device'
 
-const SHOW_ID = '34ea2db4-ad93-42fb-b352-e49f926ed83f'
-
 async function setupDevice() {
 	let device: any = undefined
 	const commandReceiver0 = jest.fn((...args) => {
@@ -58,6 +56,7 @@ async function setupDevice() {
 			preloadAllElements: true,
 			playlistID: 'my-super-playlist-id',
 			profile: 'profile9999',
+			showDirectoryPath: 'SOFIE',
 		},
 		commandReceiver: commandReceiver0,
 	})
@@ -80,7 +79,7 @@ describe('vizMSE', () => {
 	beforeEach(() => {
 		mockTime.init()
 	})
-	test('vizMSE: Internal element', async () => {
+	test('Internal element', async () => {
 		const { device, myConductor, commandReceiver0 } = await setupDevice()
 		await mockTime.advanceTimeToTicks(10100)
 
@@ -106,7 +105,7 @@ describe('vizMSE', () => {
 					// noAutoPreloading?: boolean
 					templateName: 'myInternalElement',
 					templateData: ['line1', 'line2'],
-					showId: SHOW_ID,
+					showName: 'mock_show1',
 				},
 			},
 			{
@@ -121,7 +120,7 @@ describe('vizMSE', () => {
 					type: TimelineContentTypeVizMSE.ELEMENT_INTERNAL,
 					templateName: 'myInternalElement2',
 					templateData: ['line1'],
-					showId: SHOW_ID,
+					showName: 'mock_show1',
 				},
 			},
 			{
@@ -154,7 +153,7 @@ describe('vizMSE', () => {
 				instanceName: expect.stringContaining('myInternalElement'),
 				templateName: 'myInternalElement',
 				templateData: ['line1', 'line2'],
-				showId: SHOW_ID,
+				showId: 'UUID1',
 			},
 			type: 'prepare',
 			// channelName?: string
@@ -171,7 +170,7 @@ describe('vizMSE', () => {
 				instanceName: expect.stringContaining('myInternalElement'),
 				templateName: 'myInternalElement',
 				templateData: ['line1', 'line2'],
-				showId: SHOW_ID,
+				showId: 'UUID1',
 			},
 			type: 'take',
 		})
@@ -186,7 +185,7 @@ describe('vizMSE', () => {
 				instanceName: expect.stringContaining('myInternalElement2'),
 				templateName: 'myInternalElement2',
 				templateData: ['line1'],
-				showId: SHOW_ID,
+				showId: 'UUID1',
 			},
 			type: 'prepare',
 		})
@@ -201,7 +200,7 @@ describe('vizMSE', () => {
 				instanceName: expect.stringContaining('myInternalElement2'),
 				templateName: 'myInternalElement2',
 				templateData: ['line1'],
-				showId: SHOW_ID,
+				showId: 'UUID1',
 			},
 			type: 'take',
 		})
@@ -216,7 +215,7 @@ describe('vizMSE', () => {
 				instanceName: expect.stringContaining('myInternalElement2'),
 				templateName: 'myInternalElement2',
 				templateData: ['line1'],
-				showId: SHOW_ID,
+				showId: 'UUID1',
 			},
 			type: 'continue',
 		})
@@ -231,12 +230,12 @@ describe('vizMSE', () => {
 				instanceName: expect.stringContaining('myInternalElement2'),
 				templateName: 'myInternalElement2',
 				templateData: ['line1'],
-				showId: SHOW_ID,
+				showId: 'UUID1',
 			},
 			type: 'out',
 		})
 	})
-	test('vizMSE: External/Pilot element', async () => {
+	test('External/Pilot element', async () => {
 		const { device, myConductor, onError, commandReceiver0 } = await setupDevice()
 		await mockTime.advanceTimeToTicks(10100)
 
@@ -470,7 +469,7 @@ describe('vizMSE', () => {
 
 		expect(onError).toHaveBeenCalledTimes(0)
 	})
-	test('vizMSE: bad init options & basic functionality', async () => {
+	test('bad init options & basic functionality', async () => {
 		const myConductor = new Conductor({
 			multiThreadedResolver: false,
 			getCurrentTime: mockTime.getCurrentTime,
@@ -550,7 +549,7 @@ describe('vizMSE', () => {
 		expect(onError).toHaveBeenCalledTimes(0)
 		expect(onWarning).toHaveBeenCalledTimes(0)
 	})
-	test('vizMSE: clear all elements', async () => {
+	test('clear all elements', async () => {
 		const commandReceiver0 = jest.fn(async () => {
 			return Promise.resolve()
 		})
@@ -582,6 +581,7 @@ describe('vizMSE', () => {
 				profile: 'profile9999',
 				clearAllTemplateName: 'clear_all_of_them',
 				clearAllCommands: ['RENDERER*FRONT_LAYER SET_OBJECT ', 'RENDERER SET_OBJECT '],
+				showDirectoryPath: 'SOFIE',
 			},
 			commandReceiver: commandReceiver0,
 		})
@@ -607,7 +607,7 @@ describe('vizMSE', () => {
 					type: TimelineContentTypeVizMSE.ELEMENT_INTERNAL,
 					templateName: 'myInternalElement',
 					templateData: [],
-					showId: SHOW_ID,
+					showName: 'mock_show1',
 				},
 			},
 			{
@@ -621,7 +621,7 @@ describe('vizMSE', () => {
 					deviceType: DeviceType.VIZMSE,
 					type: TimelineContentTypeVizMSE.CLEAR_ALL_ELEMENTS,
 					channelsToSendCommands: ['OVL', 'FULL'],
-					showId: SHOW_ID,
+					showName: 'mock_show1',
 				},
 			},
 		] as TSRTimeline)
@@ -653,7 +653,7 @@ describe('vizMSE', () => {
 				instanceName: expect.stringContaining('myInternalElement'),
 				templateName: 'myInternalElement',
 				templateData: [],
-				showId: SHOW_ID,
+				showId: 'UUID1',
 			},
 			type: 'prepare',
 		})
@@ -664,7 +664,7 @@ describe('vizMSE', () => {
 				instanceName: expect.stringContaining('myInternalElement'),
 				templateName: 'myInternalElement',
 				templateData: [],
-				showId: SHOW_ID,
+				showId: 'UUID1',
 			},
 			type: 'take',
 		})
@@ -692,7 +692,7 @@ describe('vizMSE', () => {
 				instanceName: expect.stringContaining('myInternalElement'),
 				templateName: 'myInternalElement',
 				templateData: [],
-				showId: SHOW_ID,
+				showId: 'UUID1',
 			},
 			type: 'prepare',
 		})
@@ -707,7 +707,7 @@ describe('vizMSE', () => {
 				instanceName: expect.stringContaining('myInternalElement'),
 				templateName: 'myInternalElement',
 				templateData: [],
-				showId: SHOW_ID,
+				showId: 'UUID1',
 			},
 			type: 'take',
 		})
@@ -722,12 +722,12 @@ describe('vizMSE', () => {
 				instanceName: expect.stringContaining('myInternalElement'),
 				templateName: 'myInternalElement',
 				templateData: [],
-				showId: SHOW_ID,
+				showId: 'UUID1',
 			},
 			type: 'out',
 		})
 	})
-	test('vizMSE: Delayed External/Pilot element', async () => {
+	test('Delayed External/Pilot element', async () => {
 		const { device, myConductor, onError, commandReceiver0 } = await setupDevice()
 		await mockTime.advanceTimeToTicks(10100)
 
@@ -807,7 +807,7 @@ describe('vizMSE', () => {
 
 		expect(onError).toHaveBeenCalledTimes(0)
 	})
-	test('vizMSE: produces initialization and cleanup commands', async () => {
+	test('produces initialization and cleanup commands', async () => {
 		const { device, myConductor, onError, commandReceiver0 } = await setupDevice()
 		await mockTime.advanceTimeToTicks(10100)
 		await device.ignoreWaitsInTests()
@@ -833,7 +833,7 @@ describe('vizMSE', () => {
 				content: {
 					deviceType: DeviceType.VIZMSE,
 					type: TimelineContentTypeVizMSE.INITIALIZE_SHOWS,
-					showIds: ['show1', 'show2'],
+					showNames: ['mock_show1', 'mock_show2'],
 				},
 			},
 			{
@@ -846,7 +846,7 @@ describe('vizMSE', () => {
 				content: {
 					deviceType: DeviceType.VIZMSE,
 					type: TimelineContentTypeVizMSE.CLEANUP_SHOWS,
-					showIds: ['show3', 'show4'],
+					showNames: ['mock_show3', 'mock_show4'],
 				},
 			},
 		])
@@ -861,7 +861,7 @@ describe('vizMSE', () => {
 			timelineObjId: 'obj0',
 			time: 15100,
 			type: 'initialize_shows',
-			showIds: ['show1', 'show2'],
+			showIds: ['UUID1', 'UUID2'],
 		})
 
 		commandReceiver0.mockClear()
@@ -881,7 +881,7 @@ describe('vizMSE', () => {
 			timelineObjId: 'obj1',
 			time: 21100,
 			type: 'cleanup_shows',
-			showIds: ['show3', 'show4'],
+			showIds: ['UUID3', 'UUID4'],
 		})
 
 		commandReceiver0.mockClear()
@@ -890,7 +890,7 @@ describe('vizMSE', () => {
 
 		expect(onError).toHaveBeenCalledTimes(0)
 	})
-	test('vizMSE: re-initializes show for incoming elements during TimelineObjVIZMSEInitializeShows', async () => {
+	test('re-initializes show for incoming elements during TimelineObjVIZMSEInitializeShows', async () => {
 		const { device, myConductor, onError } = await setupDevice()
 		await device.ignoreWaitsInTests()
 		await myConductor.devicesMakeReady(true)
@@ -915,7 +915,7 @@ describe('vizMSE', () => {
 				content: {
 					deviceType: DeviceType.VIZMSE,
 					type: TimelineContentTypeVizMSE.INITIALIZE_SHOWS,
-					showIds: ['show1', 'show2'],
+					showNames: ['mock_show1', 'mock_show2'],
 				},
 			},
 		])
@@ -924,7 +924,7 @@ describe('vizMSE', () => {
 			literal<VIZMSEPlayoutItemContentInternal[]>([
 				{
 					templateName: 'bund',
-					showId: 'show1',
+					showName: 'mock_show1',
 				},
 			])
 		)
@@ -936,25 +936,25 @@ describe('vizMSE', () => {
 			literal<VIZMSEPlayoutItemContentInternal[]>([
 				{
 					templateName: 'bund',
-					showId: 'show1',
+					showName: 'mock_show1',
 				},
 				{
 					templateName: 'bund',
-					showId: 'show2',
+					showName: 'mock_show2',
 				},
 				{
 					templateName: 'ident',
-					showId: 'show3',
+					showName: 'mock_show3',
 				},
 				{
 					templateName: 'tlf',
-					showId: 'show2',
+					showName: 'mock_show2',
 				},
 			])
 		)
 		await mockTime.advanceTimeToTicks(16500)
 		expect(rundown.initializeShow).toHaveBeenCalledTimes(1)
-		expect(rundown.initializeShow).toHaveBeenNthCalledWith(1, 'show2')
+		expect(rundown.initializeShow).toHaveBeenNthCalledWith(1, 'UUID2')
 
 		rundown.initializeShow.mockClear()
 		await mockTime.advanceTimeToTicks(25500)
@@ -962,7 +962,7 @@ describe('vizMSE', () => {
 
 		expect(onError).toHaveBeenCalledTimes(0)
 	})
-	test('vizMSE: creates and deletes internal elements', async () => {
+	test('creates and deletes internal elements', async () => {
 		const { device, myConductor, onError } = await setupDevice()
 		await mockTime.advanceTimeToTicks(10100)
 
@@ -983,7 +983,7 @@ describe('vizMSE', () => {
 			literal<VIZMSEPlayoutItemContentInternal[]>([
 				{
 					templateName: 'bund',
-					showId: 'show2',
+					showName: 'mock_show2',
 					templateData: ['foo', 'bar'],
 					channel: 'my_channel',
 				},
@@ -994,7 +994,7 @@ describe('vizMSE', () => {
 			1,
 			expect.objectContaining({
 				instanceName: 'sofieInt_bund_szi7xlRYleXD4TLRdBjduVRjx3E_',
-				showId: 'show2',
+				showId: 'UUID2',
 			}),
 			'bund',
 			['foo', 'bar'],
@@ -1011,7 +1011,7 @@ describe('vizMSE', () => {
 			1,
 			expect.objectContaining({
 				instanceName: 'sofieInt_bund_szi7xlRYleXD4TLRdBjduVRjx3E_',
-				showId: 'show2',
+				showId: 'UUID2',
 			})
 		)
 

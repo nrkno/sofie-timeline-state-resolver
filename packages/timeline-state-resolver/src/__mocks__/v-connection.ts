@@ -80,6 +80,15 @@ export class MSEMock extends EventEmitter implements MSE {
 	async listShows(): Promise<string[]> {
 		return []
 	}
+	async listShowsFromDirectory(): Promise<Map<string, string>> {
+		return new Map([
+			['SOFIE/mock_show1.show', 'UUID1'],
+			['SOFIE/mock_show2.show', 'UUID2'],
+			['SOFIE/mock_show3.show', 'UUID3'],
+			['SOFIE/mock_show4.show', 'UUID4'],
+			['mock_show1.show', 'UUID5'],
+		])
+	}
 	async getShow(showID: string): Promise<VShow> {
 		return {
 			id: 'mockshowid_' + showID,
