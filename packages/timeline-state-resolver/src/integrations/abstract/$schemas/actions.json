@@ -3,7 +3,8 @@
 	"actions": [
 		{
 			"id": "testAction",
-			"name": "Test action"
+			"name": "Test action",
+			"timeout": 1000
 		}
 	]
 }

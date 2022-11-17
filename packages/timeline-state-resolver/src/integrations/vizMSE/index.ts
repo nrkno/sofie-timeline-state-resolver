@@ -3,6 +3,8 @@ import { EventEmitter } from 'events'
 import { CommandWithContext, DeviceStatus, DeviceWithState, literal, StatusCode } from './../../devices/device'
 
 import {
+	ActionExecutionResult,
+	ActionExecutionResultCode,
 	DeviceOptionsVizMSE,
 	DeviceType,
 	Mapping,
@@ -31,8 +33,9 @@ import * as crypto from 'crypto'
 import * as net from 'net'
 import { ExpectedPlayoutItem } from '../../expectedPlayoutItems'
 import * as request from 'request'
-import { deferAsync, endTrace, startTrace } from '../../lib'
+import { deferAsync, endTrace, startTrace, t } from '../../lib'
 import { HTTPClientError, HTTPServerError } from '@tv2media/v-connection/dist/msehttp'
+import { Actions } from './interfaces'
 
 /** The ideal time to prepare elements before going on air */
 const IDEAL_PREPARE_TIME = 1000
@@ -206,6 +209,16 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState, DeviceOptionsVizM
 
 	public async purgeRundown(clearAll: boolean): Promise<void> {
 		await this._vizmseManager?.purgeRundown(clearAll)
+	}
+
+	async executeAction(actionId: string, _payload?: Record<string, any> | undefined): Promise<ActionExecutionResult> {
+		switch (actionId) {
+			case Actions.PurgeRundown:
+				await this.purgeRundown(true)
+				return { result: ActionExecutionResultCode.Ok }
+			default:
+				return { result: ActionExecutionResultCode.Ok, response: t('Action "{{id}}" not found', { actionId }) }
+		}
 	}
 
 	get deviceType() {
