@@ -16,6 +16,7 @@ import { ThreadedClass } from 'threadedclass'
 import { AbstractDevice } from '../integrations/abstract'
 import { getMockCall } from './lib'
 import { setupAllMocks } from '../__mocks__/_setup-all-mocks'
+import { Commands } from 'casparcg-connection'
 
 describe('Conductor', () => {
 	const mockTime = new MockTime()
@@ -390,16 +391,16 @@ describe('Conductor', () => {
 		// 	timecode: '00:00:10:00'
 		// })
 
-		expect(getMockCall(commandReceiver1, 0, 1).name).toEqual('ClearCommand')
-		expect(getMockCall(commandReceiver1, 0, 1)._objectParams).toMatchObject({
+		expect(getMockCall(commandReceiver1, 0, 1).command).toEqual(Commands.Clear)
+		expect(getMockCall(commandReceiver1, 0, 1).params).toMatchObject({
 			channel: 1,
 		})
-		expect(getMockCall(commandReceiver1, 1, 1).name).toEqual('ClearCommand')
-		expect(getMockCall(commandReceiver1, 1, 1)._objectParams).toMatchObject({
+		expect(getMockCall(commandReceiver1, 1, 1).command).toEqual(Commands.Clear)
+		expect(getMockCall(commandReceiver1, 1, 1).params).toMatchObject({
 			channel: 2,
 		})
-		expect(getMockCall(commandReceiver1, 2, 1).name).toEqual('ClearCommand')
-		expect(getMockCall(commandReceiver1, 2, 1)._objectParams).toMatchObject({
+		expect(getMockCall(commandReceiver1, 2, 1).command).toEqual(Commands.Clear)
+		expect(getMockCall(commandReceiver1, 2, 1).params).toMatchObject({
 			channel: 3,
 		})
 	})
@@ -485,9 +486,6 @@ describe('Conductor', () => {
 		const device0 = device0Container!.device as ThreadedClass<AbstractDevice>
 		expect(device0).toBeTruthy()
 
-		// The queues should be empty
-		expect(await device0.queue).toHaveLength(0)
-
 		conductor.setTimelineAndMappings(timeline)
 
 		// there should now be commands queued:
@@ -496,13 +494,11 @@ describe('Conductor', () => {
 		await mockTime.advanceTimeToTicks(10500)
 
 		expect(commandReceiver0).toHaveBeenCalledTimes(1)
-		expect(getMockCall(commandReceiver0, 0, 1).name).toEqual('PlayCommand')
-		expect(getMockCall(commandReceiver0, 0, 1)).toMatchObject({
-			_objectParams: {
-				clip: 'AMB',
-				channel: 1,
-				layer: 10,
-			},
+		expect(getMockCall(commandReceiver0, 0, 1).command).toEqual(Commands.Play)
+		expect(getMockCall(commandReceiver0, 0, 1).params).toMatchObject({
+			clip: 'AMB',
+			channel: 1,
+			layer: 10,
 		})
 
 		commandReceiver0.mockClear()
@@ -514,21 +510,17 @@ describe('Conductor', () => {
 		await mockTime.advanceTimeTicks(100) // just a little bit
 
 		expect(commandReceiver0).toHaveBeenCalledTimes(2)
-		expect(getMockCall(commandReceiver0, 0, 1).name).toEqual('ClearCommand')
-		expect(getMockCall(commandReceiver0, 0, 1)).toMatchObject({
-			_objectParams: {
-				// clip: 'AMB',
-				channel: 1,
-				layer: 10,
-			},
+		expect(getMockCall(commandReceiver0, 0, 1).command).toEqual(Commands.Clear)
+		expect(getMockCall(commandReceiver0, 0, 1).params).toMatchObject({
+			// clip: 'AMB',
+			channel: 1,
+			layer: 10,
 		})
-		expect(getMockCall(commandReceiver0, 1, 1).name).toEqual('PlayCommand')
-		expect(getMockCall(commandReceiver0, 1, 1)).toMatchObject({
-			_objectParams: {
-				clip: 'AMB',
-				channel: 1,
-				layer: 20,
-			},
+		expect(getMockCall(commandReceiver0, 1, 1).command).toEqual(Commands.Play)
+		expect(getMockCall(commandReceiver0, 1, 1).params).toMatchObject({
+			clip: 'AMB',
+			channel: 1,
+			layer: 20,
 		})
 
 		commandReceiver0.mockClear()
@@ -563,17 +555,17 @@ describe('Conductor', () => {
 		// 	})
 		// } else {
 		expect(commandReceiver0).toHaveBeenCalledTimes(2)
-		expect(getMockCall(commandReceiver0, 0, 1).name).toEqual('ClearCommand')
 		expect(getMockCall(commandReceiver0, 0, 1)).toMatchObject({
-			_objectParams: {
+			command: Commands.Clear,
+			params: {
 				channel: 1,
 				layer: 20,
 			},
 		})
 
-		expect(getMockCall(commandReceiver0, 1, 1).name).toEqual('PlayCommand')
 		expect(getMockCall(commandReceiver0, 1, 1)).toMatchObject({
-			_objectParams: {
+			command: Commands.Play,
+			params: {
 				clip: 'AMB',
 				channel: 2,
 				layer: 10,
