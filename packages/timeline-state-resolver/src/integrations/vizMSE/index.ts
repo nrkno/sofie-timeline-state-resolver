@@ -298,18 +298,18 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState, DeviceOptionsVizM
 							state.layer[layerName] = literal<VizMSEStateLayerInitializeShows>({
 								timelineObjId: l.id,
 								contentType: TimelineContentTypeVizMSE.INITIALIZE_SHOWS,
-								showIds: this._vizmseManager
-									? _.compact(l.content.showNames.map(this._vizmseManager.resolveShowNameToId.bind(this)))
-									: [],
+								showIds: _.compact(
+									l.content.showNames.map((showName) => this._vizmseManager?.resolveShowNameToId(showName))
+								),
 							})
 							break
 						case TimelineContentTypeVizMSE.CLEANUP_SHOWS:
 							state.layer[layerName] = literal<VizMSEStateLayerCleanupShows>({
 								timelineObjId: l.id,
 								contentType: TimelineContentTypeVizMSE.CLEANUP_SHOWS,
-								showIds: this._vizmseManager
-									? _.compact(l.content.showNames.map(this._vizmseManager.resolveShowNameToId.bind(this)))
-									: [],
+								showIds: _.compact(
+									l.content.showNames.map((showName) => this._vizmseManager?.resolveShowNameToId(showName))
+								),
 							})
 							break
 						case TimelineContentTypeVizMSE.CONCEPT:
