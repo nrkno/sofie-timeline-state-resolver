@@ -178,7 +178,7 @@ export interface TimelineObjVIZMSEInitializeShows extends TSRTimelineObjBase {
 		deviceType: DeviceType.VIZMSE
 		type: TimelineContentTypeVizMSE.INITIALIZE_SHOWS
 
-		/** IDs of the Shows to initialize */
+		/** Names of the Shows to initialize */
 		showNames: string[]
 	} & TimelineDatastoreReferencesContent
 }
@@ -187,7 +187,7 @@ export interface TimelineObjVIZMSECleanupShows extends TSRTimelineObjBase {
 		deviceType: DeviceType.VIZMSE
 		type: TimelineContentTypeVizMSE.CLEANUP_SHOWS
 
-		/** IDs of the Shows to cleanup */
+		/** Names of the Shows to cleanup */
 		showNames: string[]
 	} & TimelineDatastoreReferencesContent
 }

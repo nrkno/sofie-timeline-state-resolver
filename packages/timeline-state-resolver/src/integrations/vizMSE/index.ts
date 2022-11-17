@@ -176,7 +176,7 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState, DeviceOptionsVizM
 			.state
 
 		const convertTrace = startTrace(`device:convertState`, { deviceId: this.deviceId })
-		const newVizMSEState = this.convertStateToVizMSE(newState, newMappings)
+		const newVizMSEState = this._convertStateToVizMSE(newState, newMappings)
 		this.emit('timeTrace', endTrace(convertTrace))
 
 		const diffTrace = startTrace(`device:diffState`, { deviceId: this.deviceId })
@@ -243,7 +243,7 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState, DeviceOptionsVizM
 	 * Takes a timeline state and returns a VizMSE State that will work with the state lib.
 	 * @param timelineState The timeline state to generate from.
 	 */
-	convertStateToVizMSE(timelineState: TimelineState, mappings: Mappings): VizMSEState {
+	private _convertStateToVizMSE(timelineState: TimelineState, mappings: Mappings): VizMSEState {
 		const state: VizMSEState = {
 			time: timelineState.time,
 			layer: {},
@@ -298,18 +298,18 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState, DeviceOptionsVizM
 							state.layer[layerName] = literal<VizMSEStateLayerInitializeShows>({
 								timelineObjId: l.id,
 								contentType: TimelineContentTypeVizMSE.INITIALIZE_SHOWS,
-								showIds: _.compact(
-									l.content.showNames.map((showName) => this._vizmseManager?.resolveShowNameToId(showName))
-								),
+								showIds: this._vizmseManager
+									? _.compact(l.content.showNames.map(this._vizmseManager.resolveShowNameToId.bind(this)))
+									: [],
 							})
 							break
 						case TimelineContentTypeVizMSE.CLEANUP_SHOWS:
 							state.layer[layerName] = literal<VizMSEStateLayerCleanupShows>({
 								timelineObjId: l.id,
 								contentType: TimelineContentTypeVizMSE.CLEANUP_SHOWS,
-								showIds: _.compact(
-									l.content.showNames.map((showName) => this._vizmseManager?.resolveShowNameToId(showName))
-								),
+								showIds: this._vizmseManager
+									? _.compact(l.content.showNames.map(this._vizmseManager.resolveShowNameToId.bind(this)))
+									: [],
 							})
 							break
 						case TimelineContentTypeVizMSE.CONCEPT:
@@ -320,7 +320,7 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState, DeviceOptionsVizM
 							})
 							break
 						default: {
-							const stateLayer = this._content2StateLayer(l.id, l.content as any)
+							const stateLayer = this._contentToStateLayer(l.id, l.content as any)
 							if (stateLayer) {
 								if (isLookahead) stateLayer.lookahead = true
 
@@ -362,7 +362,7 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState, DeviceOptionsVizM
 		return state
 	}
 
-	private _content2StateLayer(
+	private _contentToStateLayer(
 		timelineObjId: string,
 		content: TimelineObjVIZMSEElementInternal['content'] | TimelineObjVIZMSEElementPilot['content']
 	): VizMSEStateLayer | undefined {
@@ -371,7 +371,7 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState, DeviceOptionsVizM
 			if (!showId) {
 				this.emit(
 					'warning',
-					`_content2StateLayer: Unable to find Show Id for template "${content.templateName}" and Show Name "${content.showName}"`
+					`_contentToStateLayer: Unable to find Show Id for template "${content.templateName}" and Show Name "${content.showName}"`
 				)
 				return undefined
 			}

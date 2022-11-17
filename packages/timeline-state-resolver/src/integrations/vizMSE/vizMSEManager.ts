@@ -116,8 +116,8 @@ export class VizMSEManager extends EventEmitter {
 	 * Our approach is to create a single rundown on initialization, and then use only that for later control.
 	 */
 	public async initializeRundown(activeRundownPlaylistId: string | undefined): Promise<void> {
-		this._vizMSE.on('connected', () => this.mseConnectionChanged(true))
-		this._vizMSE.on('disconnected', () => this.mseConnectionChanged(false))
+		this._vizMSE.on('connected', () => this._mseConnectionChanged(true))
+		this._vizMSE.on('disconnected', () => this._mseConnectionChanged(false))
 		this._vizMSE.on('warning', (message: string) => this.emit('warning', 'v-connection: ' + message))
 		this._activeRundownPlaylistId = activeRundownPlaylistId
 		this._preloadedRundownPlaylistId = this.onlyPreloadActivePlaylist ? activeRundownPlaylistId : undefined
@@ -131,7 +131,7 @@ export class VizMSEManager extends EventEmitter {
 				// Perform a ping, to ensure we are connected properly
 				await this._vizMSE.ping()
 				this._msePingConnected = true
-				this.mseConnectionChanged(true)
+				this._mseConnectionChanged(true)
 
 				// Setup the rundown used by this device:
 				const rundown = await this._getRundown()
@@ -189,7 +189,7 @@ export class VizMSEManager extends EventEmitter {
 				.then(async (hashesAndItems) => {
 					if (this._rundown && this._hasActiveRundown) {
 						this.emit('debug', 'VIZDEBUG: auto load internal elements...')
-						await this.updateElementsLoadedStatus()
+						await this._updateElementsLoadedStatus()
 
 						const elementHashesToDelete: string[] = []
 						// When a new element is added, we'll trigger a show init:
@@ -345,7 +345,7 @@ export class VizMSEManager extends EventEmitter {
 
 		if (cmd.transition) {
 			if (cmd.transition.type === VIZMSETransitionType.DELAY) {
-				if (await this.waitWithLayer(cmd.layerId || '__default', cmd.transition.delay)) {
+				if (await this._waitWithLayer(cmd.layerId || '__default', cmd.transition.delay)) {
 					// at this point, the wait aws aborted by someone else. Do nothing then.
 					return
 				}
@@ -366,7 +366,7 @@ export class VizMSEManager extends EventEmitter {
 
 		if (cmd.transition) {
 			if (cmd.transition.type === VIZMSETransitionType.DELAY) {
-				if (await this.waitWithLayer(cmd.layerId || '__default', cmd.transition.delay)) {
+				if (await this._waitWithLayer(cmd.layerId || '__default', cmd.transition.delay)) {
 					// at this point, the wait aws aborted by someone else. Do nothing then.
 					return
 				}
@@ -784,7 +784,7 @@ export class VizMSEManager extends EventEmitter {
 	/**
 	 * Update the load-statuses of the expectedPlayoutItems -elements from MSE, where needed
 	 */
-	private async updateElementsLoadedStatus(forceReloadAll?: boolean) {
+	private async _updateElementsLoadedStatus(forceReloadAll?: boolean) {
 		const hashesAndItems = await this._prepareAndGetExpectedPlayoutItems()
 		let someUnloaded = false
 		const elementsToLoad = _.compact(
@@ -909,7 +909,7 @@ export class VizMSEManager extends EventEmitter {
 
 			this.emit('debug', '_triggerLoadAllElements starting')
 			// First, update the loading-status of all elements:
-			await this.updateElementsLoadedStatus(true)
+			await this._updateElementsLoadedStatus(true)
 
 			// if (this._initializeRundownOnLoadAll) {
 			// Then, load all elements that needs loading:
@@ -947,7 +947,7 @@ export class VizMSEManager extends EventEmitter {
 			await this._wait(2000)
 			if (loadTwice) {
 				// He's checking it twice:
-				await this.updateElementsLoadedStatus()
+				await this._updateElementsLoadedStatus()
 				// Gonna find out what's loaded and nice:
 				await loadAllElementsThatNeedsLoading()
 			}
@@ -998,14 +998,14 @@ export class VizMSEManager extends EventEmitter {
 					// ok!
 					if (!this._msePingConnected) {
 						this._msePingConnected = true
-						this.onConnectionChanged()
+						this._onConnectionChanged()
 					}
 				})
 				.catch(() => {
 					// not ok!
 					if (this._msePingConnected) {
 						this._msePingConnected = false
-						this.onConnectionChanged()
+						this._onConnectionChanged()
 					}
 				})
 				.then(async () => {
@@ -1032,7 +1032,7 @@ export class VizMSEManager extends EventEmitter {
 		})
 		if (!_.isEqual(enginesDisconnected, this.enginesDisconnected)) {
 			this.enginesDisconnected = enginesDisconnected
-			this.onConnectionChanged()
+			this._onConnectionChanged()
 		}
 	}
 	private async _pingEngine(engine: Engine): Promise<EngineStatus> {
@@ -1056,7 +1056,7 @@ export class VizMSEManager extends EventEmitter {
 				this.preloadAllElements &&
 				this._timeSinceLastCommandSent() > SAFE_PRELOAD_TIME
 			) {
-				await this.updateElementsLoadedStatus(false)
+				await this._updateElementsLoadedStatus(false)
 
 				let notLoaded = 0
 				let loading = 0
@@ -1208,7 +1208,7 @@ export class VizMSEManager extends EventEmitter {
 			return this._rundown
 		}
 	}
-	private mseConnectionChanged(connected: boolean) {
+	private _mseConnectionChanged(connected: boolean) {
 		if (connected !== this._mseConnected) {
 			if (connected) {
 				// not the first connection
@@ -1217,10 +1217,10 @@ export class VizMSEManager extends EventEmitter {
 				}
 			}
 			this._mseConnected = connected
-			this.onConnectionChanged()
+			this._onConnectionChanged()
 		}
 	}
-	private onConnectionChanged() {
+	private _onConnectionChanged() {
 		this.emit('connectionChanged', this._mseConnected && this._msePingConnected)
 	}
 
@@ -1234,7 +1234,7 @@ export class VizMSEManager extends EventEmitter {
 	/**
 	 * Returns true if the wait was cleared from someone else
 	 */
-	private async waitWithLayer(layerId: string, delay: number): Promise<boolean> {
+	private async _waitWithLayer(layerId: string, delay: number): Promise<boolean> {
 		return new Promise((resolve) => {
 			if (!this._waitWithLayers[layerId]) this._waitWithLayers[layerId] = []
 			this._waitWithLayers[layerId].push(resolve)
