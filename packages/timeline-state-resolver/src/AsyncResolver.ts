@@ -1,7 +1,7 @@
 import { Resolver, TimelineObject, ResolvedTimeline, ResolvedTimelineObject, ResolverCache } from 'superfly-timeline'
 import _ = require('underscore')
 import { TimelineTriggerTimeResult } from './conductor'
-import { TSRTimeline, TSRTimelineObj } from 'timeline-state-resolver-types'
+import { TSRTimeline, TSRTimelineContent, TSRTimelineObj } from 'timeline-state-resolver-types'
 
 export class AsyncResolver {
 	private readonly onSetTimelineTriggerTime: (res: TimelineTriggerTimeResult) => void
@@ -35,9 +35,9 @@ export class AsyncResolver {
 			id: string
 			time: number
 		}> = []
-		const timeLineMap: { [id: string]: TSRTimelineObj } = {}
+		const timeLineMap: { [id: string]: TSRTimelineObj<TSRTimelineContent> } = {}
 
-		const setObjectTime = (o: TSRTimelineObj, time: number) => {
+		const setObjectTime = (o: TSRTimelineObj<TSRTimelineContent>, time: number) => {
 			if (!_.isArray(o.enable)) {
 				o.enable.start = time // set the objects to "now" so that they are resolved correctly temporarily
 				const o2 = timeLineMap[o.id]
@@ -57,7 +57,7 @@ export class AsyncResolver {
 		})
 
 		// First: fix the ones on the first level (i e not in groups), because they are easy (this also saves us one iteration time later):
-		_.each(timeLineMap, (o: TSRTimelineObj) => {
+		_.each(timeLineMap, (o: TSRTimelineObj<TSRTimelineContent>) => {
 			if (!_.isArray(o.enable)) {
 				if (o.enable.start === 'now') {
 					setObjectTime(o, now)
@@ -71,7 +71,7 @@ export class AsyncResolver {
 
 		let resolvedTimeline: ResolvedTimeline
 		const fixObjects = (objs: TimelineObject[], parentObject?: TimelineObject) => {
-			_.each(objs, (o: TSRTimelineObj) => {
+			_.each(objs, (o: TSRTimelineObj<TSRTimelineContent>) => {
 				if (!_.isArray(o.enable) && o.enable.start === 'now') {
 					// find parent, and set relative to that
 					if (parentObject) {

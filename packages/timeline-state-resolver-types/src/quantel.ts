@@ -1,5 +1,5 @@
 import { Mapping } from './mapping'
-import { DeviceType, TimelineDatastoreReferencesContent, TSRTimelineObjBaseWithOnAir } from '.'
+import { DeviceType } from '.'
 
 export interface MappingQuantel extends Mapping {
 	device: DeviceType.QUANTEL
@@ -40,34 +40,32 @@ export interface QuantelOptions {
 	// doAutomaticCloningIfNeeded?: bool // not implemented yet
 }
 
-export type TimelineObjQuantelAny = TimelineObjQuantelClip
-export interface TimelineObjQuantelClip extends TSRTimelineObjBaseWithOnAir {
-	content: {
-		deviceType: DeviceType.QUANTEL
-		notOnAir?: boolean
+export type TimelineContentQuantelAny = TimelineContentQuantelClip
+export interface TimelineContentQuantelClip {
+	deviceType: DeviceType.QUANTEL
+	notOnAir?: boolean
 
-		/** The title of the clip to be played (example: 'AMB'), either this or guid must be provided */
-		title?: string
+	/** The title of the clip to be played (example: 'AMB'), either this or guid must be provided */
+	title?: string
 
-		/** The GUID of the clip to be played, either this or title must be provided */
-		guid?: string
+	/** The GUID of the clip to be played, either this or title must be provided */
+	guid?: string
 
-		/** The point in the clip where to start playing. When looping, will return to this point. [milliseconds from start of file] */
-		inPoint?: number
-		/** The duration of the file. The playout will either freeze after this time. */
-		length?: number
+	/** The point in the clip where to start playing. When looping, will return to this point. [milliseconds from start of file] */
+	inPoint?: number
+	/** The duration of the file. The playout will either freeze after this time. */
+	length?: number
 
-		/** When pausing, the unix-time the playout was paused. */
-		pauseTime?: number
-		/** If the video is playing or is paused (defaults to true) */
-		playing?: boolean
+	/** When pausing, the unix-time the playout was paused. */
+	pauseTime?: number
+	/** If the video is playing or is paused (defaults to true) */
+	playing?: boolean
 
-		/** If true, the startTime won't be used to SEEK to the correct place in the media */
-		noStarttime?: boolean
+	/** If true, the startTime won't be used to SEEK to the correct place in the media */
+	noStarttime?: boolean
 
-		// inTransition?: QuantelTransition
-		outTransition?: QuantelOutTransition
-	} & TimelineDatastoreReferencesContent
+	// inTransition?: QuantelTransition
+	outTransition?: QuantelOutTransition
 }
 export type QuantelOutTransition = QuantelTransitionDelay
 export interface QuantelTransitionBase {

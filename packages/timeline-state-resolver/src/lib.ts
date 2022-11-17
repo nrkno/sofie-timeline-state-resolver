@@ -1,5 +1,9 @@
-import { TimelineState } from 'superfly-timeline'
-import { TSRTimelineObjBase, Datastore } from 'timeline-state-resolver-types'
+import {
+	Datastore,
+	Timeline,
+	TimelineDatastoreReferencesContent,
+	TSRTimelineContent,
+} from 'timeline-state-resolver-types'
 import * as _ from 'underscore'
 
 /**
@@ -230,13 +234,13 @@ const set = (obj: Record<string, any>, path: string, val: any) => {
 	const p = path.split('.')
 	p.slice(0, -1).reduce((a, b) => (a[b] ? a[b] : (a[b] = {})), obj)[p.slice(-1)[0]] = val
 }
-export function fillStateFromDatastore(state: TimelineState, datastore: Datastore) {
+export function fillStateFromDatastore(state: Timeline.TimelineState<TSRTimelineContent>, datastore: Datastore) {
 	// clone the state so we can freely manipulate it
 	const filledState: typeof state = JSON.parse(JSON.stringify(state))
 
 	Object.values(filledState.layers).forEach(({ content, instance }) => {
-		if ((content as TSRTimelineObjBase['content']).$references) {
-			Object.entries((content as TSRTimelineObjBase['content']).$references || {}).forEach(([path, ref]) => {
+		if ((content as TimelineDatastoreReferencesContent).$references) {
+			Object.entries((content as TimelineDatastoreReferencesContent).$references || {}).forEach(([path, ref]) => {
 				const datastoreVal = datastore[ref.datastoreKey]
 
 				if (datastoreVal !== undefined) {

@@ -1,6 +1,4 @@
-import { Enums } from 'atem-state'
 import * as AtemConnection from 'atem-connection'
-import { ResolvedTimelineObjectInstance, TimelineState } from 'superfly-timeline'
 import { Conductor } from '../../../conductor'
 import { AtemDevice, DeviceOptionsAtemInternal } from '..'
 import { MockTime } from '../../../__tests__/mockTime'
@@ -12,6 +10,9 @@ import {
 	TimelineContentTypeAtem,
 	AtemOptions,
 	AtemTransitionStyle,
+	TSRTimelineContent,
+	Timeline,
+	TimelineContentAtemME,
 } from 'timeline-state-resolver-types'
 import { ThreadedClass } from 'threadedclass'
 import { AtemStateUtil } from 'atem-connection'
@@ -43,7 +44,7 @@ describe('Atem', () => {
 		const commandReceiver0: any = jest.fn(async () => {
 			return Promise.resolve()
 		})
-		const mockState: TimelineState = {
+		const mockState: Timeline.TimelineState<TSRTimelineContent> = {
 			time: mockTime.now + 50,
 			layers: {},
 			nextEvents: [],
@@ -260,7 +261,7 @@ describe('Atem', () => {
 			}),
 		}
 
-		const resolvedObj: ResolvedTimelineObjectInstance = {
+		const resolvedObj: Timeline.ResolvedTimelineObjectInstance<TimelineContentAtemME> = {
 			id: 'obj0',
 			enable: {
 				start: mockTime.now - 1000, // 1 seconds ago
@@ -268,10 +269,11 @@ describe('Atem', () => {
 			},
 			layer: 'myLayer0',
 			content: {
+				deviceType: DeviceType.ATEM,
 				type: TimelineContentTypeAtem.ME,
 				me: {
 					input: 4,
-					transition: Enums.TransitionStyle.CUT,
+					transition: AtemTransitionStyle.CUT,
 				},
 			},
 			resolved: {
@@ -282,7 +284,7 @@ describe('Atem', () => {
 			},
 			instance: { start: mockTime.now - 1000, end: Infinity, id: 'a0', references: [] },
 		}
-		const mockState: TimelineState = {
+		const mockState: Timeline.TimelineState<TSRTimelineContent> = {
 			time: mockTime.now + 50,
 			layers: {
 				myLayer0: resolvedObj,

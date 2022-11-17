@@ -1,5 +1,5 @@
 import { Mapping } from './mapping'
-import { TSRTimelineObjBase, DeviceType, TimelineDatastoreReferencesContent } from '.'
+import { DeviceType } from '.'
 
 export type MappingVMixAny =
 	| MappingVMixProgram
@@ -144,18 +144,18 @@ export enum VMixCommand {
 	SET_INPUT_OVERLAY = 'SET_INPUT_OVERLAY',
 }
 
-export type TimelineObjVMixAny =
-	| TimelineObjVMixProgram
-	| TimelineObjVMixPreview
-	| TimelineObjVMixAudio
-	| TimelineObjVMixFader
-	| TimelineObjVMixRecording
-	| TimelineObjVMixStreaming
-	| TimelineObjVMixExternal
-	| TimelineObjVMixFadeToBlack
-	| TimelineObjVMixOutput
-	| TimelineObjVMixOverlay
-	| TimelineObjVMixInput
+export type TimelineContentVMixAny =
+	| TimelineContentVMixProgram
+	| TimelineContentVMixPreview
+	| TimelineContentVMixAudio
+	| TimelineContentVMixFader
+	| TimelineContentVMixRecording
+	| TimelineContentVMixStreaming
+	| TimelineContentVMixExternal
+	| TimelineContentVMixFadeToBlack
+	| TimelineContentVMixOutput
+	| TimelineContentVMixOverlay
+	| TimelineContentVMixInput
 
 export enum TimelineContentTypeVMix {
 	PROGRAM = 'PROGRAM',
@@ -170,162 +170,127 @@ export enum TimelineContentTypeVMix {
 	EXTERNAL = 'EXTERNAL',
 	OVERLAY = 'OVERLAY',
 }
-export interface TimelineObjVMixBase extends TSRTimelineObjBase {
-	content: {
-		deviceType: DeviceType.VMIX
-		type: TimelineContentTypeVMix
-	} & TimelineDatastoreReferencesContent
+export interface TimelineContentVMixBase {
+	deviceType: DeviceType.VMIX
+	type: TimelineContentTypeVMix
 }
 
-export interface TimelineObjVMixProgram extends TimelineObjVMixBase {
-	content: {
-		deviceType: DeviceType.VMIX
-		type: TimelineContentTypeVMix.PROGRAM
+export interface TimelineContentVMixProgram extends TimelineContentVMixBase {
+	type: TimelineContentTypeVMix.PROGRAM
 
-		/** Input number or name */
-		input?: number | string
+	/** Input number or name */
+	input?: number | string
 
-		/** Input layer name */
-		inputLayer?: string
+	/** Input layer name */
+	inputLayer?: string
 
-		/** Transition effect (Stingers work only for Mix number 1) */
-		transition?: VMixTransition
-	} & TimelineDatastoreReferencesContent
+	/** Transition effect (Stingers work only for Mix number 1) */
+	transition?: VMixTransition
 }
 
-export interface TimelineObjVMixPreview extends TimelineObjVMixBase {
-	content: {
-		deviceType: DeviceType.VMIX
-		type: TimelineContentTypeVMix.PREVIEW
+export interface TimelineContentVMixPreview extends TimelineContentVMixBase {
+	type: TimelineContentTypeVMix.PREVIEW
 
-		/** Input number or name */
-		input: number | string
-	} & TimelineDatastoreReferencesContent
+	/** Input number or name */
+	input: number | string
 }
 
-export interface TimelineObjVMixAudio extends TimelineObjVMixBase {
-	content: {
-		deviceType: DeviceType.VMIX
-		type: TimelineContentTypeVMix.AUDIO
+export interface TimelineContentVMixAudio extends TimelineContentVMixBase {
+	type: TimelineContentTypeVMix.AUDIO
 
-		/** Channel volume (0 - 100) */
-		volume?: number
+	/** Channel volume (0 - 100) */
+	volume?: number
 
-		/** Volume change fade length in milliseconds */
-		fade?: number
+	/** Volume change fade length in milliseconds */
+	fade?: number
 
-		/** Channel balance (-1 - 1) */
-		balance?: number
+	/** Channel balance (-1 - 1) */
+	balance?: number
 
-		/** If input is muted */
-		muted?: boolean
+	/** If input is muted */
+	muted?: boolean
 
-		/** Comma separated list of busses to enable (M,A,B,C,D,E,F,G) */
-		audioBuses?: string
+	/** Comma separated list of busses to enable (M,A,B,C,D,E,F,G) */
+	audioBuses?: string
 
-		/** Audio follow video */
-		audioAuto?: boolean
-	} & TimelineDatastoreReferencesContent
+	/** Audio follow video */
+	audioAuto?: boolean
 }
 
-export interface TimelineObjVMixFader extends TimelineObjVMixBase {
-	content: {
-		deviceType: DeviceType.VMIX
-		type: TimelineContentTypeVMix.FADER
+export interface TimelineContentVMixFader extends TimelineContentVMixBase {
+	type: TimelineContentTypeVMix.FADER
 
-		/** Position of the transition fader (0 - 255) */
-		position: number
-	} & TimelineDatastoreReferencesContent
+	/** Position of the transition fader (0 - 255) */
+	position: number
 }
 
-export interface TimelineObjVMixStreaming extends TimelineObjVMixBase {
-	content: {
-		deviceType: DeviceType.VMIX
-		type: TimelineContentTypeVMix.STREAMING
+export interface TimelineContentVMixStreaming extends TimelineContentVMixBase {
+	type: TimelineContentTypeVMix.STREAMING
 
-		/** If streaming should be turned on */
-		on: boolean
-	} & TimelineDatastoreReferencesContent
+	/** If streaming should be turned on */
+	on: boolean
 }
 
-export interface TimelineObjVMixRecording extends TimelineObjVMixBase {
-	content: {
-		deviceType: DeviceType.VMIX
-		type: TimelineContentTypeVMix.RECORDING
+export interface TimelineContentVMixRecording extends TimelineContentVMixBase {
+	type: TimelineContentTypeVMix.RECORDING
 
-		/** If recording should be turned on */
-		on: boolean
-	} & TimelineDatastoreReferencesContent
+	/** If recording should be turned on */
+	on: boolean
 }
 
-export interface TimelineObjVMixFadeToBlack extends TimelineObjVMixBase {
-	content: {
-		deviceType: DeviceType.VMIX
-		type: TimelineContentTypeVMix.FADE_TO_BLACK
+export interface TimelineContentVMixFadeToBlack extends TimelineContentVMixBase {
+	type: TimelineContentTypeVMix.FADE_TO_BLACK
 
-		/** If Fade To Black should be turned on */
-		on: boolean
-	} & TimelineDatastoreReferencesContent
+	/** If Fade To Black should be turned on */
+	on: boolean
 }
 
-export interface TimelineObjVMixInput extends TimelineObjVMixBase {
-	content: {
-		deviceType: DeviceType.VMIX
-		type: TimelineContentTypeVMix.INPUT
+export interface TimelineContentVMixInput extends TimelineContentVMixBase {
+	type: TimelineContentTypeVMix.INPUT
 
-		/** Media file path */
-		filePath?: number | string
+	/** Media file path */
+	filePath?: number | string
 
-		/** Set only when dealing with media */
-		inputType?: VMixInputType
+	/** Set only when dealing with media */
+	inputType?: VMixInputType
 
-		/** If media should be playing */
-		playing?: boolean
+	/** If media should be playing */
+	playing?: boolean
 
-		/** Media starting position in milliseconds */
-		seek?: number
+	/** Media starting position in milliseconds */
+	seek?: number
 
-		/** If media should loop */
-		loop?: boolean
+	/** If media should loop */
+	loop?: boolean
 
-		transform?: VMixTransform
+	transform?: VMixTransform
 
-		/** List of input (Multi View) overlays; indexes start from 1 */
-		overlays?: VMixInputOverlays
-	} & TimelineDatastoreReferencesContent
+	/** List of input (Multi View) overlays; indexes start from 1 */
+	overlays?: VMixInputOverlays
 }
 
-export interface TimelineObjVMixOutput extends TimelineObjVMixBase {
-	content: {
-		deviceType: DeviceType.VMIX
-		type: TimelineContentTypeVMix.OUTPUT
+export interface TimelineContentVMixOutput extends TimelineContentVMixBase {
+	type: TimelineContentTypeVMix.OUTPUT
 
-		/** Type of the source sent to output */
-		source: 'Preview' | 'Program' | 'MultiView' | 'Input'
+	/** Type of the source sent to output */
+	source: 'Preview' | 'Program' | 'MultiView' | 'Input'
 
-		/** Number/name of the input when source:'Input' is chosen */
-		input?: number | string
-	} & TimelineDatastoreReferencesContent
+	/** Number/name of the input when source:'Input' is chosen */
+	input?: number | string
 }
 
-export interface TimelineObjVMixExternal extends TimelineObjVMixBase {
-	content: {
-		deviceType: DeviceType.VMIX
-		type: TimelineContentTypeVMix.EXTERNAL
+export interface TimelineContentVMixExternal extends TimelineContentVMixBase {
+	type: TimelineContentTypeVMix.EXTERNAL
 
-		/** If external should be turned on */
-		on: boolean
-	} & TimelineDatastoreReferencesContent
+	/** If external should be turned on */
+	on: boolean
 }
 
-export interface TimelineObjVMixOverlay extends TimelineObjVMixBase {
-	content: {
-		deviceType: DeviceType.VMIX
-		type: TimelineContentTypeVMix.OVERLAY
+export interface TimelineContentVMixOverlay extends TimelineContentVMixBase {
+	type: TimelineContentTypeVMix.OVERLAY
 
-		/** Input number or name */
-		input: number | string
-	} & TimelineDatastoreReferencesContent
+	/** Input number or name */
+	input: number | string
 }
 
 export interface VMixTransform {

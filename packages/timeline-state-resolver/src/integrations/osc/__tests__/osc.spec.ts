@@ -6,8 +6,9 @@ import {
 	DeviceType,
 	TimelineContentTypeOSC,
 	OSCValueType,
-	TimelineObjOSCMessage,
+	TimelineContentOSCMessage,
 	OSCDeviceType,
+	TSRTimelineObj,
 } from 'timeline-state-resolver-types'
 import { MockTime } from '../../../__tests__/mockTime'
 import { literal } from '../../../devices/device'
@@ -60,7 +61,7 @@ describe('OSC-Message', () => {
 		expect(await device.queue).toHaveLength(0)
 
 		myConductor.setTimelineAndMappings([
-			literal<TimelineObjOSCMessage>({
+			literal<TSRTimelineObj<TimelineContentOSCMessage>>({
 				id: 'obj0',
 				enable: {
 					start: mockTime.now + 1000, // in 1 second
@@ -162,7 +163,7 @@ describe('OSC-Message', () => {
 		expect(await device.queue).toHaveLength(0)
 
 		myConductor.setTimelineAndMappings([
-			literal<TimelineObjOSCMessage>({
+			literal<TSRTimelineObj<TimelineContentOSCMessage>>({
 				id: 'obj0',
 				enable: {
 					start: mockTime.now + 1000, // in 1 second

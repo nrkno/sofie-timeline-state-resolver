@@ -6,15 +6,15 @@ import {
 	Mapping,
 	MappingQuantel,
 	QuantelOptions,
-	TimelineObjQuantelClip,
+	TimelineContentQuantelClip,
 	QuantelControlMode,
 	ResolvedTimelineObjectInstanceExtended,
 	QuantelOutTransition,
 	DeviceOptionsQuantel,
 	Mappings,
+	Timeline,
+	TSRTimelineContent,
 } from 'timeline-state-resolver-types'
-
-import { TimelineState, ResolvedTimelineObjectInstance } from 'superfly-timeline'
 
 import { DoOnTime, SendMode } from '../../devices/doOnTime'
 import { QuantelGateway } from 'tv-automation-quantel-gateway-client'
@@ -143,7 +143,7 @@ export class QuantelDevice extends DeviceWithState<QuantelState, DeviceOptionsQu
 	/**
 	 * Generates an array of Quantel commands by comparing the newState against the oldState, or the current device state.
 	 */
-	handleState(newState: TimelineState, newMappings: Mappings) {
+	handleState(newState: Timeline.TimelineState<TSRTimelineContent>, newMappings: Mappings) {
 		super.onHandleState(newState, newMappings)
 		// check if initialized:
 		if (!this._quantel.initialized) {
@@ -246,7 +246,7 @@ export class QuantelDevice extends DeviceWithState<QuantelState, DeviceOptionsQu
 	 * Takes a timeline state and returns a Quantel State that will work with the state lib.
 	 * @param timelineState The timeline state to generate from.
 	 */
-	convertStateToQuantel(timelineState: TimelineState, mappings: Mappings): QuantelState {
+	convertStateToQuantel(timelineState: Timeline.TimelineState<TSRTimelineContent>, mappings: Mappings): QuantelState {
 		const state: QuantelState = {
 			time: timelineState.time,
 			port: {},
@@ -262,8 +262,8 @@ export class QuantelDevice extends DeviceWithState<QuantelState, DeviceOptionsQu
 			}
 		})
 
-		_.each(timelineState.layers, (layer: ResolvedTimelineObjectInstance, layerName: string) => {
-			const layerExt = layer as ResolvedTimelineObjectInstanceExtended
+		_.each(timelineState.layers, (layer, layerName: string) => {
+			const layerExt: ResolvedTimelineObjectInstanceExtended = layer
 			let foundMapping: Mapping = mappings[layerName]
 
 			let isLookahead = false
@@ -284,17 +284,16 @@ export class QuantelDevice extends DeviceWithState<QuantelState, DeviceOptionsQu
 				const port: QuantelStatePort = state.port[mapping.portId]
 				if (!port) throw new Error(`Port "${mapping.portId}" not found`)
 
-				if (layer.content && (layer.content.title || layer.content.guid)) {
-					const clip = layer as any as TimelineObjQuantelClip
-
+				const content = layer.content as TimelineContentQuantelClip
+				if (content && (content.title || content.guid)) {
 					// Note on lookaheads:
 					// If there is ONLY a lookahead on a port, it'll be treated as a "paused (real) clip"
 					// If there is a lookahead alongside the a real clip, its fragments will be preloaded
 
 					if (isLookahead) {
 						port.lookaheadClip = {
-							title: clip.content.title,
-							guid: clip.content.guid,
+							title: content.title,
+							guid: content.guid,
 							timelineObjId: layer.id,
 						}
 					}
@@ -306,22 +305,22 @@ export class QuantelDevice extends DeviceWithState<QuantelState, DeviceOptionsQu
 						const startTime = layer.instance.originalStart || layer.instance.start
 
 						port.timelineObjId = layer.id
-						port.notOnAir = layer.content.notOnAir || isLookahead
-						port.outTransition = layer.content.outTransition
+						port.notOnAir = content.notOnAir || isLookahead
+						port.outTransition = content.outTransition
 						port.lookahead = isLookahead
 
 						port.clip = {
-							title: clip.content.title,
-							guid: clip.content.guid,
+							title: content.title,
+							guid: content.guid,
 							// clipId // set later
 
-							pauseTime: clip.content.pauseTime,
-							playing: isLookahead ? false : clip.content.playing !== undefined ? clip.content.playing : true,
+							pauseTime: content.pauseTime,
+							playing: isLookahead ? false : content.playing ?? true,
 
-							inPoint: clip.content.inPoint,
-							length: clip.content.length,
+							inPoint: content.inPoint,
+							length: content.length,
 
-							playTime: (clip.content.noStarttime || isLookahead ? null : startTime) || null,
+							playTime: (content.noStarttime || isLookahead ? null : startTime) || null,
 						}
 					}
 				}

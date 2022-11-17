@@ -5,11 +5,11 @@ import {
 	SofieChefOptions,
 	DeviceOptionsSofieChef,
 	Mappings,
-	TimelineObjSofieChefAny,
 	MappingSofieChef,
+	TSRTimelineContent,
+	Timeline,
 } from 'timeline-state-resolver-types'
 
-import { TimelineState } from 'superfly-timeline'
 import { DoOnTime, SendMode } from '../../devices/doOnTime'
 import * as WebSocket from 'ws'
 import {
@@ -159,7 +159,7 @@ export class SofieChefDevice extends DeviceWithState<SofieChefState, DeviceOptio
 	 * in time.
 	 * @param newState
 	 */
-	handleState(newState: TimelineState, newMappings: Mappings) {
+	handleState(newState: Timeline.TimelineState<TSRTimelineContent>, newMappings: Mappings) {
 		super.onHandleState(newState, newMappings)
 		// Handle this new state, at the point in time specified
 
@@ -197,15 +197,15 @@ export class SofieChefDevice extends DeviceWithState<SofieChefState, DeviceOptio
 	get connected(): boolean {
 		return this._connected
 	}
-	convertStateToSofieChef(state: TimelineState, mappings: Mappings): SofieChefState {
+	convertStateToSofieChef(state: Timeline.TimelineState<TSRTimelineContent>, mappings: Mappings): SofieChefState {
 		const sofieChefState: SofieChefState = {
 			windows: {},
 		}
 		for (const [layer, layerState] of Object.entries(state.layers)) {
 			const mapping = mappings[layer] as MappingSofieChef
-			const content = layerState.content as TimelineObjSofieChefAny['content']
+			const content = layerState.content
 
-			if (mapping) {
+			if (mapping && content.deviceType === DeviceType.SOFIE_CHEF) {
 				sofieChefState.windows[mapping.windowId] = {
 					url: content.url,
 					urlTimelineObjId: layerState.id,

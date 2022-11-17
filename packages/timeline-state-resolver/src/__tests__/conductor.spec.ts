@@ -7,6 +7,7 @@ import {
 	LawoDeviceMode,
 	MappingCasparCG,
 	TimelineContentTypeCasparCg,
+	TimelineContentCCGMedia,
 } from 'timeline-state-resolver-types'
 import { Conductor, TimelineTriggerTimeResult } from '../conductor'
 import * as _ from 'underscore'
@@ -65,7 +66,7 @@ describe('Conductor', () => {
 		})
 
 		// add something that will play in a seconds time
-		const abstractThing0: TSRTimelineObj = {
+		const abstractThing0: TSRTimelineObj<any> = {
 			id: 'a0',
 			enable: {
 				start: mockTime.now,
@@ -78,7 +79,7 @@ describe('Conductor', () => {
 				myAttr2: 'two',
 			},
 		}
-		const abstractThing1: TSRTimelineObj = {
+		const abstractThing1: TSRTimelineObj<any> = {
 			id: 'a1',
 			enable: {
 				start: mockTime.now + 1000,
@@ -214,7 +215,7 @@ describe('Conductor', () => {
 		})
 
 		// add something that will play "now"
-		const abstractThing0: TSRTimelineObj = {
+		const abstractThing0: TSRTimelineObj<any> = {
 			// will be converted from "now" to 10000
 			id: 'a0',
 			enable: {
@@ -228,7 +229,7 @@ describe('Conductor', () => {
 				myAttr2: 'two',
 			},
 		}
-		const abstractThing1: TSRTimelineObj = {
+		const abstractThing1: TSRTimelineObj<any> = {
 			// will cause a callback to be sent
 			id: 'a1',
 			enable: {
@@ -463,7 +464,7 @@ describe('Conductor', () => {
 		await mockTime.advanceTimeTicks(10) // just a little bit
 
 		// add something that will play "now"
-		const video0: TSRTimelineObj = {
+		const video0: TSRTimelineObj<TimelineContentCCGMedia> = {
 			// will be converted from "now" to 10000
 			id: 'a0',
 			enable: {

@@ -1,5 +1,5 @@
 import { Mapping } from './mapping'
-import { TSRTimelineObjBase, DeviceType, TimelineDatastoreReferencesContent } from '.'
+import { DeviceType } from '.'
 
 // Note: This type is a loose referral to (a copy of) keyof typeof Easing in '../../easings', so that Easing structure won't be included in the types package
 export type OSCEasingType =
@@ -61,7 +61,7 @@ export interface OSCValueBoolean {
 }
 export type SomeOSCValue = OSCValueNumber | OSCValueString | OSCValueBlob | OSCValueBoolean
 
-export interface OSCMessageCommandContent extends TimelineDatastoreReferencesContent {
+export interface OSCMessageCommandContent {
 	type: TimelineContentTypeOSC.OSC
 	path: string
 	values: SomeOSCValue[]
@@ -72,16 +72,10 @@ export interface OSCMessageCommandContent extends TimelineDatastoreReferencesCon
 	}
 	from?: SomeOSCValue[]
 }
-export type TimelineObjOSCAny = TimelineObjOSCMessage
+export type TimelineContentOSCAny = TimelineContentOSCMessage
 
-export interface TimelineObjOSC extends TSRTimelineObjBase {
-	content: {
-		deviceType: DeviceType.OSC
-		type: TimelineContentTypeOSC
-	}
+export interface TimelineContentOSC {
+	deviceType: DeviceType.OSC
+	type: TimelineContentTypeOSC
 }
-export interface TimelineObjOSCMessage extends TimelineObjOSC {
-	content: {
-		deviceType: DeviceType.OSC
-	} & OSCMessageCommandContent
-}
+export type TimelineContentOSCMessage = TimelineContentOSC & OSCMessageCommandContent

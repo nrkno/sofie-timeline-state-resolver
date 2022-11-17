@@ -67,7 +67,7 @@ describe('Abstract device', () => {
 					content: {
 						deviceType: DeviceType.ABSTRACT,
 						tmp0: 'abc',
-					},
+					} as any,
 				},
 				{
 					id: 'obj1',
@@ -79,7 +79,7 @@ describe('Abstract device', () => {
 					content: {
 						deviceType: DeviceType.ABSTRACT,
 						tmp0: 'abcde',
-					},
+					} as any,
 				},
 			],
 			myLayerMapping

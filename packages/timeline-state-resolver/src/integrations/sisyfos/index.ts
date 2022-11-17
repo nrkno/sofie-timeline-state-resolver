@@ -7,15 +7,17 @@ import {
 	SisyfosOptions,
 	MappingSisyfos,
 	MappingSisyfosType,
-	TimelineObjSisyfosAny,
+	TimelineContentSisyfosAny,
 	TimelineContentTypeSisyfos,
 	SisyfosChannelOptions,
 	MappingSisyfosChannel,
+	TSRTimelineContent,
+	Timeline,
+	ResolvedTimelineObjectInstanceExtended,
 } from 'timeline-state-resolver-types'
 
 import { DoOnTime, SendMode } from '../../devices/doOnTime'
 
-import { TimelineState, ResolvedTimelineObjectInstance } from 'superfly-timeline'
 import {
 	SisyfosApi,
 	SisyfosCommand,
@@ -102,7 +104,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 	 * in time.
 	 * @param newState
 	 */
-	handleState(newState: TimelineState, newMappings: Mappings) {
+	handleState(newState: Timeline.TimelineState<TSRTimelineContent>, newMappings: Mappings) {
 		super.onHandleState(newState, newMappings)
 		if (!this._sisyfos.state) {
 			this.emit('warning', 'Sisyfos State not initialized yet')
@@ -269,7 +271,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 	 * a timeline state.
 	 * @param state
 	 */
-	convertStateToSisyfosState(state: TimelineState, mappings: Mappings) {
+	convertStateToSisyfosState(state: Timeline.TimelineState<TSRTimelineContent>, mappings: Mappings) {
 		const deviceState: SisyfosState = this.getDeviceState(true, mappings)
 
 		// Set labels to layer names
@@ -302,10 +304,10 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 		} & SisyfosChannelOptions)[] = []
 
 		_.each(state.layers, (tlObject, layerName) => {
-			const layer = tlObject as ResolvedTimelineObjectInstance & TimelineObjSisyfosAny
+			const layer = tlObject as ResolvedTimelineObjectInstanceExtended<any>
 			let foundMapping = mappings[layerName] as MappingSisyfos | undefined
 
-			const content = tlObject.content as TimelineObjSisyfosAny['content']
+			const content = tlObject.content as TimelineContentSisyfosAny
 
 			// Allow resync without valid channel mapping
 			if (layer.content.resync !== undefined) {
