@@ -12,6 +12,7 @@ import {
 	QuantelOutTransition,
 	DeviceOptionsQuantel,
 	Mappings,
+	QuantelActions,
 } from 'timeline-state-resolver-types'
 
 import { TimelineState, ResolvedTimelineObjectInstance } from 'superfly-timeline'
@@ -27,8 +28,7 @@ import {
 	QuantelStatePortClip,
 	QuantelCommandType,
 	QuantelStatePort,
-} from './quantelInterfaces'
-import { Actions } from './interfaces'
+} from './interfaces'
 import { ActionExecutionResult, ActionExecutionResultCode } from 'timeline-state-resolver-types'
 export { QuantelCommandType }
 
@@ -192,7 +192,7 @@ export class QuantelDevice extends DeviceWithState<QuantelState, DeviceOptionsQu
 	}
 	async executeAction(actionId: string, _payload?: Record<string, any> | undefined): Promise<ActionExecutionResult> {
 		switch (actionId) {
-			case Actions.RestartGateway:
+			case QuantelActions.RestartGateway:
 				try {
 					await this.restartGateway()
 					return { result: ActionExecutionResultCode.Ok }

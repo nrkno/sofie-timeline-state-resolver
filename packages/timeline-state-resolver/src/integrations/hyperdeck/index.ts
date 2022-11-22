@@ -12,6 +12,7 @@ import {
 	TimelineObjHyperdeckAny,
 	DeviceOptionsHyperdeck,
 	Mappings,
+	HyperdeckActions,
 } from 'timeline-state-resolver-types'
 import {
 	Hyperdeck,
@@ -23,7 +24,6 @@ import {
 import { DoOnTime, SendMode } from '../../devices/doOnTime'
 import { SlotInfoCommandResponse } from 'hyperdeck-connection/dist/commands'
 import { deferAsync, endTrace, startTrace, t } from '../../lib'
-import { Actions } from './interfaces'
 import { ActionExecutionResult, ActionExecutionResultCode } from 'timeline-state-resolver-types'
 
 export interface DeviceOptionsHyperdeckInternal extends DeviceOptionsHyperdeck {
@@ -246,7 +246,7 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState, DeviceOptionsH
 	}
 	async executeAction(actionId: string, _payload?: Record<string, any> | undefined): Promise<ActionExecutionResult> {
 		switch (actionId) {
-			case Actions.FormatDisks:
+			case HyperdeckActions.FormatDisks:
 				try {
 					await this.formatDisks()
 					return { result: ActionExecutionResultCode.Ok }

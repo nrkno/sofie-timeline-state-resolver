@@ -4,7 +4,7 @@ import { Mappings, DeviceType, MappingQuantel, QuantelTransitionType } from 'tim
 import { MockTime } from '../../../__tests__/mockTime'
 import { ThreadedClass } from 'threadedclass'
 import { QuantelDevice } from '..'
-import { QuantelCommandType } from '../quantelInterfaces'
+import { QuantelCommandType } from '../interfaces'
 import '../../../__tests__/lib'
 
 const orgSetTimeout = setTimeout

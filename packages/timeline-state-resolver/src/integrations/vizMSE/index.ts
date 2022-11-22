@@ -21,6 +21,7 @@ import {
 	VIZMSEPlayoutItemContentExternal,
 	VIZMSEPlayoutItemContentInternal,
 	VIZMSETransitionType,
+	VizMSEActions,
 } from 'timeline-state-resolver-types'
 
 import { ResolvedTimelineObjectInstance, TimelineState } from 'superfly-timeline'
@@ -35,7 +36,6 @@ import { ExpectedPlayoutItem } from '../../expectedPlayoutItems'
 import * as request from 'request'
 import { deferAsync, endTrace, startTrace, t } from '../../lib'
 import { HTTPClientError, HTTPServerError } from '@tv2media/v-connection/dist/msehttp'
-import { Actions } from './interfaces'
 
 /** The ideal time to prepare elements before going on air */
 const IDEAL_PREPARE_TIME = 1000
@@ -213,7 +213,7 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState, DeviceOptionsVizM
 
 	async executeAction(actionId: string, _payload?: Record<string, any> | undefined): Promise<ActionExecutionResult> {
 		switch (actionId) {
-			case Actions.PurgeRundown:
+			case VizMSEActions.PurgeRundown:
 				await this.purgeRundown(true)
 				return { result: ActionExecutionResultCode.Ok }
 			default:

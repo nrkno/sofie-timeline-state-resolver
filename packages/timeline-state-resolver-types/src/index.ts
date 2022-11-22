@@ -51,6 +51,8 @@ export * from './expectedPlayoutItems'
 export * from './mediaObject'
 export * from './translations'
 
+export * from './generated'
+
 export type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>
 
 export enum DeviceType {

@@ -20,6 +20,7 @@ import {
 	Mappings,
 	ActionExecutionResult,
 	ActionExecutionResultCode,
+	CasparCGActions,
 } from 'timeline-state-resolver-types'
 
 import { TimelineState, ResolvedTimelineObjectInstance } from 'superfly-timeline'
@@ -47,7 +48,6 @@ import * as request from 'request'
 import { InternalTransitionHandler } from '../../devices/transitions/transitionHandler'
 import Debug from 'debug'
 import { endTrace, startTrace, t } from '../../lib'
-import { Actions } from './interfaces'
 const debug = Debug('timeline-state-resolver:casparcg')
 
 const MEDIA_RETRY_INTERVAL = 10 * 1000 // default time in ms between checking whether a file needs to be retried loading
@@ -651,11 +651,11 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 		}
 	}
 
-	async executeAction(id: Actions): Promise<ActionExecutionResult> {
+	async executeAction(id: CasparCGActions): Promise<ActionExecutionResult> {
 		switch (id) {
-			case Actions.ClearAllChannels:
+			case CasparCGActions.ClearAllChannels:
 				return this.clearAllChannels()
-			case Actions.RestartServer:
+			case CasparCGActions.RestartServer:
 				await this.restartCasparCG()
 				return {
 					result: ActionExecutionResultCode.Ok,
