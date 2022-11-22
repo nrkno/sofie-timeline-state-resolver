@@ -8,6 +8,7 @@ import PrettierConf from '@sofie-automation/code-standard-preset/.prettierrc.jso
  * and auto-generates types for those schemas
  *
  * @todo: auto generate the interfaces.ts in /src as well
+ * @todo: write meta schemas for options & mappings
  *
  ***********************************************************/
 
