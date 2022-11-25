@@ -1,5 +1,5 @@
 import { JsonLexer } from './jsonLexer.mjs'
-const locales = ['en', 'nb', 'nn']
+const locales = ['en', 'nb', 'nn', 'sv']
 export const translationsPath = 'locales/$LOCALE/$NAMESPACE'
 export const conversionOptions = {
 	gettextDefaultCharset: 'UTF-8',
