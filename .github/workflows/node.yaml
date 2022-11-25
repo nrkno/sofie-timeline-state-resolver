@@ -71,7 +71,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node-version: [14.x, 16.x, 18.x]
+        node-version: [16.x, 18.x]
         lib-name: [timeline-state-resolver, timeline-state-resolver-types]
 
     steps:
@@ -95,11 +95,8 @@ jobs:
       - name: Send coverage
         if: matrix.node-version == '16.x'
         uses: codecov/codecov-action@v2
-        with:
-          fail_ci_if_error: true
-          # name: codecov-umbrella
       # - name: Check docs generation
-      #   if: matrix.node-version == '14.x'
+      #   if: matrix.node-version == '16.x'
       #   run: |
       #     yarn docs:test
       #   env:
