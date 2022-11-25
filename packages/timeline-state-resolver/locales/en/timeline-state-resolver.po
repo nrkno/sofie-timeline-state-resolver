@@ -5,8 +5,8 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1)\n"
-"POT-Creation-Date: 2022-11-08T12:19:16.191Z\n"
-"PO-Revision-Date: 2022-11-08T12:19:16.191Z\n"
+"POT-Creation-Date: 2022-11-25T09:14:57.821Z\n"
+"PO-Revision-Date: 2022-11-25T09:14:57.822Z\n"
 "Language: en\n"
 
 msgid "Action \"{{id}}\" not found"
@@ -27,22 +27,25 @@ msgstr ""
 msgid "Clear"
 msgstr ""
 
+msgid "Command received by the abstract device"
+msgstr ""
+
 msgid "Device does not implement an action handler"
+msgstr ""
+
+msgid "Format disks"
+msgstr ""
+
+msgid "Purge Viz Rundown"
+msgstr ""
+
+msgid "Restart gateway"
 msgstr ""
 
 msgid "Restart Server"
 msgstr ""
 
 msgid "Resync Atem"
-msgstr ""
-
-msgid "Test 1"
-msgstr ""
-
-msgid "Test 2"
-msgstr ""
-
-msgid "Test 3"
 msgstr ""
 
 msgid "Test action"

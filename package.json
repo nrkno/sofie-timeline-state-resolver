@@ -25,7 +25,8 @@
     "release:bump-prerelease": "lerna version --exact --conventional-commits --conventional-prerelease --tag-version-prefix='' --no-push --force-publish=*",
     "validate:dependencies": "yarn lerna exec --parallel yarn validate:dependencies",
     "validate:dev-dependencies": "yarn lerna exec --parallel yarn validate:dev-dependencies",
-    "generate-schema-types": "lerna run generate-schema-types --stream"
+    "generate-schema-types": "lerna run generate-schema-types --stream",
+    "translations:extract": "lerna run translations:extract --stream"
   },
   "devDependencies": {
     "@sofie-automation/code-standard-preset": "~2.0.2",
