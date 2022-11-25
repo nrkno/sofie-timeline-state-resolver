@@ -28,7 +28,7 @@ import {
 	QuantelStatePortClip,
 	QuantelCommandType,
 	QuantelStatePort,
-} from './interfaces'
+} from './types'
 import { ActionExecutionResult, ActionExecutionResultCode } from 'timeline-state-resolver-types'
 export { QuantelCommandType }
 
