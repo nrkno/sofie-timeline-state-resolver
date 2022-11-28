@@ -57,7 +57,7 @@
 		"production"
 	],
 	"dependencies": {
-		"@tv2media/v-connection": "^7.1.0",
+		"@tv2media/v-connection": "^7.2.0",
 		"atem-connection": "2.4.0",
 		"atem-state": "^0.12.2",
 		"casparcg-connection": "^5.1.0",
