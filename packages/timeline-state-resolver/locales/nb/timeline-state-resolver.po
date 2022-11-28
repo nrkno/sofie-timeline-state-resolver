@@ -10,47 +10,47 @@ msgstr ""
 "Language: nb\n"
 
 msgid "Action \"{{id}}\" not found"
-msgstr ""
+msgstr "Fant ikke funksjonen \"{{id}}\""
 
 msgid "Bad reply: [{{statusCode}}] {{body}}"
-msgstr ""
+msgstr "Bad reply: [{{statusCode}}] {{body}}"
 
 msgid "Cannot restart CasparCG without a connection"
-msgstr ""
+msgstr "Kan ikke restarte CasparCG uten en tilkobling"
 
 msgid "CasparCGDevice: config.launcherHost is not set!"
-msgstr ""
+msgstr "CasparCG: config.launcherHost er ikke definert!"
 
 msgid "CasparCGDevice: config.launcherPort is not set!"
-msgstr ""
+msgstr "CasparCG: config.launcherPort er ikke definert!"
 
 msgid "Clear"
-msgstr ""
+msgstr "Tøm"
 
 msgid "Command received by the abstract device"
-msgstr ""
+msgstr "Kommandoen har blitt mottatt av den abstrakte enheten"
 
 msgid "Device does not implement an action handler"
-msgstr "Enheten implementerer ikke en handlingsbehandler"
+msgstr "Enheten støtter ikke funksjoner"
 
 msgid "Format disks"
-msgstr ""
+msgstr "Formater disk"
 
 msgid "Purge Viz Rundown"
-msgstr ""
+msgstr "Tøm Viz-speilleliste"
 
 msgid "Restart gateway"
-msgstr ""
+msgstr "Restart gateway"
 
 msgid "Restart Server"
-msgstr ""
+msgstr "Restart server"
 
 msgid "Resync Atem"
-msgstr ""
+msgstr "Synkroniser Atem på nytt"
 
 msgid "Test action"
-msgstr ""
+msgstr "Test funksjon"
 
 msgctxt "connectionOptions is not set!"
 msgid "CasparCGDevice."
-msgstr ""
+msgstr "CasparCGDevice."
