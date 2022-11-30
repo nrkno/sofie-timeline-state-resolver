@@ -10,6 +10,7 @@ import {
 	Mappings,
 	TSRTimelineContent,
 	Timeline,
+	HyperdeckActions,
 } from 'timeline-state-resolver-types'
 import {
 	Hyperdeck,
@@ -20,7 +21,8 @@ import {
 } from 'hyperdeck-connection'
 import { DoOnTime, SendMode } from '../../devices/doOnTime'
 import { SlotInfoCommandResponse } from 'hyperdeck-connection/dist/commands'
-import { deferAsync, endTrace, startTrace } from '../../lib'
+import { deferAsync, endTrace, startTrace, t } from '../../lib'
+import { ActionExecutionResult, ActionExecutionResultCode } from 'timeline-state-resolver-types'
 
 export interface DeviceOptionsHyperdeckInternal extends DeviceOptionsHyperdeck {
 	commandReceiver?: CommandReceiver
@@ -239,6 +241,19 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState, DeviceOptionsH
 		}
 
 		await this._queryRecordingTime()
+	}
+	async executeAction(actionId: string, _payload?: Record<string, any> | undefined): Promise<ActionExecutionResult> {
+		switch (actionId) {
+			case HyperdeckActions.FormatDisks:
+				try {
+					await this.formatDisks()
+					return { result: ActionExecutionResultCode.Ok }
+				} catch {
+					return { result: ActionExecutionResultCode.Error }
+				}
+			default:
+				return { result: ActionExecutionResultCode.Ok, response: t('Action "{{id}}" not found', { actionId }) }
+		}
 	}
 	/** Called by the Conductor a bit before a .handleState is called */
 	prepareForHandleState(newStateTime: number) {

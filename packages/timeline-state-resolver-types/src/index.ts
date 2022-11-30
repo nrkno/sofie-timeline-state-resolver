@@ -19,6 +19,7 @@ import { TimelineContentVIZMSEAny } from './vizMSE'
 import { TimelineContentSingularLiveAny } from './singularLive'
 import { TimelineContentVMixAny } from './vmix'
 import { TimelineContentOBSAny } from './obs'
+import { ITranslatableMessage } from './translations'
 
 export * from './abstract'
 export * from './atem'
@@ -48,6 +49,9 @@ export { Timeline }
 export * from './mapping'
 export * from './expectedPlayoutItems'
 export * from './mediaObject'
+export * from './translations'
+
+export * from './generated'
 
 export enum DeviceType {
 	ABSTRACT = 0,
@@ -139,4 +143,14 @@ export interface Datastore {
 		/** A unix-Timestamp of when the value was set. (Note that this must not be set a value in the future.) */
 		modified: number
 	}
+}
+
+export interface ActionExecutionResult {
+	result: ActionExecutionResultCode
+	response?: ITranslatableMessage
+}
+
+export enum ActionExecutionResultCode {
+	Error = 'ERROR',
+	Ok = 'OK',
 }

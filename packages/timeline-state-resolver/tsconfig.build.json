@@ -1,6 +1,6 @@
 {
 	"extends": "@sofie-automation/code-standard-preset/ts/tsconfig.lib",
-	"include": ["src/**/*.ts"],
+	"include": ["src/**/*.ts", "src/integrations/**/*.json"],
 	"exclude": ["node_modules/**", "src/**/*spec.ts", "src/**/__tests__/*", "src/**/__mocks__/*"],
 	"compilerOptions": {
 		"outDir": "./dist",
@@ -14,6 +14,7 @@
 		// Temporary overrides, to allow for gradual migration project
 		"strictPropertyInitialization": false,
 		"noImplicitAny": false,
-		"strictFunctionTypes": false
+		"strictFunctionTypes": false,
+		"resolveJsonModule": true
 	}
 }

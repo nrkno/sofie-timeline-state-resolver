@@ -2,14 +2,19 @@
 
 exports[`index imports 1`] = `
 Array [
+  "AbstractActions",
+  "ActionExecutionResultCode",
+  "AtemActions",
   "AtemMediaPoolType",
   "AtemTransitionStyle",
   "BlendMode",
+  "CasparCGActions",
   "ChannelFormat",
   "Chroma",
   "DeviceType",
   "Direction",
   "Ease",
+  "HyperdeckActions",
   "LawoDeviceMode",
   "MappingAtemType",
   "MappingHyperdeckType",
@@ -22,6 +27,7 @@ Array [
   "OBSRequest",
   "OSCDeviceType",
   "OSCValueType",
+  "QuantelActions",
   "QuantelControlMode",
   "QuantelTransitionType",
   "ShotokuTransitionType",
@@ -47,11 +53,13 @@ Array [
   "TimelineContentTypeVMix",
   "TimelineContentTypeVizMSE",
   "Transition",
+  "TranslationsBundleType",
   "TransportStatus",
   "VIZMSETransitionType",
   "VMixCommand",
   "VMixInputType",
   "VMixTransitionType",
   "VideoFormat",
+  "VizMSEActions",
 ]
 `;

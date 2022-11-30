@@ -48,7 +48,7 @@
 	],
 	"scripts": {
 		"unlink:all": "yarn unlink atem-connection & yarn unlink atem-state & yarn unlink casparcg-connection & yarn unlink casparcg-state & yarn unlink superfly-timeline",
-		"build": "rimraf dist && yarn build:main",
+		"build": "rimraf dist && yarn build:main && yarn translations:bundle",
 		"build:main": "tsc -p tsconfig.build.json",
 		"lint:raw": "eslint --ext .ts --ext .js --ext .tsx --ext .jsx --ignore-pattern dist",
 		"lint": "yarn lint:raw .",
@@ -63,7 +63,10 @@
 		"cov-open": "open-cli coverage/lcov-report/index.html",
 		"validate:dependencies": "yarn audit --groups dependencies && yarn license-validate",
 		"validate:dev-dependencies": "yarn audit --groups devDependencies",
-		"precommit": "lint-staged"
+		"precommit": "lint-staged",
+		"generate-schema-types": "node ./scripts/schema-types.mjs",
+		"translations:extract": "node ./scripts/translation/extract.mjs",
+		"translations:bundle": "node ./scripts/translation/bundle.mjs"
 	},
 	"engines": {
 		"node": "^16.14 || 18"
@@ -117,5 +120,11 @@
 	},
 	"publishConfig": {
 		"access": "public"
+	},
+	"devDependencies": {
+		"i18next-conv": "^13.1.0",
+		"i18next-parser": "^6.6.0",
+		"json-schema-to-typescript": "^10.1.5",
+		"vinyl-fs": "^3.0.3"
 	}
 }

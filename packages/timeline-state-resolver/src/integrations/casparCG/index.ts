@@ -1,7 +1,7 @@
 import * as _ from 'underscore'
 import * as deepMerge from 'deepmerge'
 import { DeviceWithState, CommandWithContext, DeviceStatus, StatusCode, literal } from '../../devices/device'
-import { AMCPCommand, BasicCasparCGAPI, Commands, Response } from 'casparcg-connection'
+import { AMCPCommand, BasicCasparCGAPI, ClearCommand, Commands, Response } from 'casparcg-connection'
 import {
 	DeviceType,
 	TimelineContentTypeCasparCg,
@@ -15,6 +15,9 @@ import {
 	TSRTimelineObjProps,
 	Timeline,
 	TSRTimelineContent,
+	ActionExecutionResult,
+	ActionExecutionResultCode,
+	CasparCGActions,
 } from 'timeline-state-resolver-types'
 
 import {
@@ -40,7 +43,7 @@ import { DoOnTime, SendMode } from '../../devices/doOnTime'
 import * as request from 'request'
 import { InternalTransitionHandler } from '../../devices/transitions/transitionHandler'
 import Debug from 'debug'
-import { endTrace, startTrace } from '../../lib'
+import { endTrace, startTrace, t } from '../../lib'
 const debug = Debug('timeline-state-resolver:casparcg')
 
 const MEDIA_RETRY_INTERVAL = 10 * 1000 // default time in ms between checking whether a file needs to be retried loading
@@ -580,26 +583,106 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 		// a resolveTimeline will be triggered later
 	}
 
+	async clearAllChannels(): Promise<ActionExecutionResult> {
+		if (!this._ccg.connected) {
+			return {
+				result: ActionExecutionResultCode.Error,
+				response: t('Cannot restart CasparCG without a connection'),
+			}
+		}
+
+		const { error, request } = await this._ccg.executeCommand({ command: Commands.Info, params: {} })
+		if (error) {
+			return { result: ActionExecutionResultCode.Error }
+		}
+		const response = await request
+		if (!response?.data[0]) {
+			return { result: ActionExecutionResultCode.Error }
+		}
+
+		await Promise.all(
+			response.data.map(async (_, i) => {
+				await this._commandReceiver(
+					this.getCurrentTime(),
+					literal<ClearCommand>({
+						command: Commands.Clear,
+						params: {
+							channel: i + 1,
+						},
+					}),
+					'clearAllChannels',
+					''
+				)
+			})
+		)
+
+		this.clearStates()
+		this._currentState = { channels: {} }
+		response.data.forEach((obj) => {
+			this._currentState.channels[obj.channel] = {
+				channelNo: obj.channel,
+				videoMode: obj.format.toUpperCase(),
+				fps: obj.frameRate,
+				layers: {},
+			}
+		})
+
+		this.emit('resetResolver')
+
+		return {
+			result: ActionExecutionResultCode.Ok,
+		}
+	}
+
+	async executeAction(id: CasparCGActions): Promise<ActionExecutionResult> {
+		switch (id) {
+			case CasparCGActions.ClearAllChannels:
+				return this.clearAllChannels()
+			case CasparCGActions.RestartServer:
+				await this.restartCasparCG()
+				return {
+					result: ActionExecutionResultCode.Ok,
+				}
+			default:
+				return {
+					result: ActionExecutionResultCode.Error,
+					response: t('Action "{{id}}" not found', { id }),
+				}
+		}
+	}
+
 	/**
 	 * Attemps to restart casparcg over the HTTP API provided by CasparCG launcher.
 	 */
-	async restartCasparCG(): Promise<void> {
-		return new Promise<void>((resolve, reject) => {
-			if (!this.initOptions) throw new Error('CasparCGDevice._connectionOptions is not set!')
-			if (!this.initOptions.launcherHost) throw new Error('CasparCGDevice: config.launcherHost is not set!')
-			if (!this.initOptions.launcherPort) throw new Error('CasparCGDevice: config.launcherPort is not set!')
+	async restartCasparCG(): Promise<ActionExecutionResult> {
+		if (!this.initOptions) {
+			return { result: ActionExecutionResultCode.Error, response: t('CasparCGDevice._connectionOptions is not set!') }
+		}
+		if (!this.initOptions.launcherHost) {
+			return { result: ActionExecutionResultCode.Error, response: t('CasparCGDevice: config.launcherHost is not set!') }
+		}
+		if (!this.initOptions.launcherPort) {
+			return { result: ActionExecutionResultCode.Error, response: t('CasparCGDevice: config.launcherPort is not set!') }
+		}
 
-			const url = `http://${this.initOptions.launcherHost}:${this.initOptions.launcherPort}/processes/casparcg/restart`
+		return new Promise<ActionExecutionResult>((resolve) => {
+			const url = `http://${this.initOptions?.launcherHost}:${this.initOptions?.launcherPort}/processes/casparcg/restart`
 			request.post(
 				url,
 				{}, // json: cmd.params
 				(error, response) => {
 					if (error) {
-						reject(error)
+						resolve({ result: ActionExecutionResultCode.Error, response: error })
 					} else if (response.statusCode === 200) {
-						resolve()
+						resolve({ result: ActionExecutionResultCode.Ok })
 					} else {
-						reject('Bad reply: [' + response.statusCode + '] ' + response.body)
+						resolve({
+							result: ActionExecutionResultCode.Error,
+							response: t('Bad reply: [{{statusCode}}] {{body}}', {
+								statusCode: response.statusCode,
+								body: response.body,
+							}),
+						})
 					}
 				}
 			)

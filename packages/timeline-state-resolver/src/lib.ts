@@ -3,6 +3,7 @@ import {
 	Timeline,
 	TimelineDatastoreReferencesContent,
 	TSRTimelineContent,
+	ITranslatableMessage,
 } from 'timeline-state-resolver-types'
 import * as _ from 'underscore'
 
@@ -258,4 +259,11 @@ export function fillStateFromDatastore(state: Timeline.TimelineState<TSRTimeline
 	})
 
 	return filledState
+}
+
+export function t(key: string, args?: { [k: string]: any }): ITranslatableMessage {
+	return {
+		key,
+		args,
+	}
 }

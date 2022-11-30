@@ -1,0 +1,56 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: i18next-conv\n"
+"mime-version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1)\n"
+"POT-Creation-Date: 2022-11-25T09:14:57.834Z\n"
+"PO-Revision-Date: 2022-11-25T09:14:57.834Z\n"
+"Language: nn\n"
+
+msgid "Action \"{{id}}\" not found"
+msgstr "Fann ikkje funksjonen \"{{id}}\""
+
+msgid "Bad reply: [{{statusCode}}] {{body}}"
+msgstr "Bad reply: [{{statusCode}}] {{body}}"
+
+msgid "Cannot restart CasparCG without a connection"
+msgstr "Kan ikkje starte CasparCG på nytt utan ei tilkopling"
+
+msgid "CasparCGDevice: config.launcherHost is not set!"
+msgstr "CasparCG: config.launcherHost er ikkje definert!"
+
+msgid "CasparCGDevice: config.launcherPort is not set!"
+msgstr "CasparCG: config.launcherPort er ikkje definert!"
+
+msgid "Clear"
+msgstr "Tøm"
+
+msgid "Command received by the abstract device"
+msgstr "Kommandoen har blitt motteken av den abstrakte eininga"
+
+msgid "Device does not implement an action handler"
+msgstr "Eininga støtter ikkje funksjonar"
+
+msgid "Format disks"
+msgstr "Formater disk"
+
+msgid "Purge Viz Rundown"
+msgstr "Tøm Viz-speleliste"
+
+msgid "Restart gateway"
+msgstr "Start gateway på nytt"
+
+msgid "Restart Server"
+msgstr "Start server på nytt"
+
+msgid "Resync Atem"
+msgstr "Synkroniser Atem på nytt"
+
+msgid "Test action"
+msgstr "Test funksjon"
+
+msgctxt "connectionOptions is not set!"
+msgid "CasparCGDevice."
+msgstr "CasparCGDevice."

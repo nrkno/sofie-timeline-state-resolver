@@ -10,6 +10,8 @@ import {
 } from 'timeline-state-resolver-types'
 
 import { DoOnTime, SendMode } from '../../devices/doOnTime'
+import { ActionExecutionResult, ActionExecutionResultCode } from 'timeline-state-resolver-types'
+import { t } from '../../lib'
 
 export interface Command {
 	commandName: string
@@ -55,6 +57,10 @@ export class AbstractDevice extends DeviceWithState<AbstractState, DeviceOptions
 			this._deviceOptions
 		)
 		this.handleDoOnTime(this._doOnTime, 'Abstract')
+	}
+
+	async executeAction(_actionId: string, _payload?: Record<string, any> | undefined): Promise<ActionExecutionResult> {
+		return { result: ActionExecutionResultCode.Ok, response: t('Command received by the abstract device') }
 	}
 
 	/**

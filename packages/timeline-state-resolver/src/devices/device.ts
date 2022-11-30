@@ -8,11 +8,13 @@ import {
 	StatusCode,
 	Timeline,
 	TSRTimelineContent,
+	ActionExecutionResult,
+	ActionExecutionResultCode,
 } from 'timeline-state-resolver-types'
 import { EventEmitter } from 'eventemitter3'
 import { CommandReport, DoOnTime, SlowFulfilledCommandInfo, SlowSentCommandInfo } from './doOnTime'
 import { ExpectedPlayoutItem } from '../expectedPlayoutItems'
-import { FinishedTrace } from '../lib'
+import { FinishedTrace, t } from '../lib'
 
 /*
 	This is a base class for all the Device wrappers.
@@ -234,6 +236,13 @@ export abstract class Device<TOptions extends DeviceOptionsBase<any>>
 	}
 	get isActive(): boolean {
 		return this._isActive
+	}
+
+	async executeAction(_actionId: string, _payload?: Record<string, any>): Promise<ActionExecutionResult> {
+		return {
+			result: ActionExecutionResultCode.Error,
+			response: t('Device does not implement an action handler'),
+		}
 	}
 
 	private _updateCurrentTime() {
