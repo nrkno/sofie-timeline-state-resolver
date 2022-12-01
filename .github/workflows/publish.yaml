@@ -66,6 +66,7 @@ jobs:
 
       - name: Get the Prerelease tag
         id: prerelease-tag
+        if: ${{ steps.do-publish.outputs.publish }}
         run: |
           echo "Git ref is: ${{ github.ref }}"
           if [[ "${{ github.ref }}" == "refs/heads/master" || "${{ github.ref }}" == "refs/heads/main" ]]
