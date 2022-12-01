@@ -73,7 +73,11 @@ jobs:
           then
             echo "tag=latest" >> $GITHUB_OUTPUT
             echo "Tag is: latest"
-          elif [[ "${{ github.ref }}" =~ refs\/tags\/(v.+) || "${{ github.ref }}" =~ refs\/pull\/([0-9]+)\/merge || "${{ github.ref }}" =~ refs\/heads\/(.+) || "${{ github.ref }}" =~ refs\/tags\/(.+) ]]
+          elif [[ "${{ github.ref }}" =~ refs\/pull\/([0-9]+)\/merge ]]
+          then
+            echo "tag=pr-${BASH_REMATCH[1]}" >> $GITHUB_OUTPUT
+            echo "Tag is: pr-${BASH_REMATCH[1]}"          
+          elif [[ "${{ github.ref }}" =~ refs\/tags\/(v.+) || "${{ github.ref }}" =~ refs\/heads\/(.+) || "${{ github.ref }}" =~ refs\/tags\/(.+) ]]
           then
             echo "tag=${BASH_REMATCH[1]}" >> $GITHUB_OUTPUT
             echo "Tag is: ${BASH_REMATCH[1]}"
