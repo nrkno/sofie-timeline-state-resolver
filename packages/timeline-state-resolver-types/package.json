@@ -1,6 +1,6 @@
 {
 	"name": "timeline-state-resolver-types",
-	"version": "3.0.2",
+	"version": "3.0.3",
 	"description": "Have timeline, control stuff",
 	"main": "dist/index.js",
 	"typings": "dist/index.d.ts",
