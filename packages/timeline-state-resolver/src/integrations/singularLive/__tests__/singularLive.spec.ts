@@ -76,7 +76,7 @@ describe('Singular.Live', () => {
 		await mockTime.advanceTimeToTicks(11100)
 
 		expect(commandReceiver0).toHaveBeenCalledTimes(2)
-		expect(commandReceiver0).toBeCalledWith(
+		expect(commandReceiver0).toHaveBeenCalledWith(
 			expect.anything(),
 			expect.objectContaining({
 				compositionName: 'Lower Third',

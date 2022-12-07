@@ -85,7 +85,7 @@ describe('telemetrics', () => {
 
 			void device.init({ host: SERVER_HOST })
 
-			expect(MOCKED_SOCKET_CONNECT).toBeCalledWith(SERVER_PORT, SERVER_HOST)
+			expect(MOCKED_SOCKET_CONNECT).toHaveBeenCalledWith(SERVER_PORT, SERVER_HOST)
 		})
 
 		it('on error, status is BAD', () => {
@@ -150,7 +150,7 @@ describe('telemetrics', () => {
 			device.handleState(createTimelineState(presetNumber), {})
 
 			const expectedCommand = `${commandPrefix}${presetNumber}${commandPostFix}`
-			expect(MOCKED_SOCKET_WRITE).toBeCalledWith(expectedCommand)
+			expect(MOCKED_SOCKET_WRITE).toHaveBeenCalledWith(expectedCommand)
 		})
 
 		it('receives preset 1, sends command for preset 1', () => {
@@ -160,7 +160,7 @@ describe('telemetrics', () => {
 			device.handleState(createTimelineState(presetNumber), {})
 
 			const expectedResult = `P0C${presetNumber}\r`
-			expect(MOCKED_SOCKET_WRITE).toBeCalledWith(expectedResult)
+			expect(MOCKED_SOCKET_WRITE).toHaveBeenCalledWith(expectedResult)
 		})
 
 		it('receives preset 2, sends command for preset 2', () => {
@@ -170,7 +170,7 @@ describe('telemetrics', () => {
 			device.handleState(createTimelineState(presetNumber), {})
 
 			const expectedResult = `P0C${presetNumber}\r`
-			expect(MOCKED_SOCKET_WRITE).toBeCalledWith(expectedResult)
+			expect(MOCKED_SOCKET_WRITE).toHaveBeenCalledWith(expectedResult)
 		})
 
 		it('receives three presets, sends three commands', () => {
@@ -178,7 +178,7 @@ describe('telemetrics', () => {
 
 			device.handleState(createTimelineState([1, 2, 3]), {})
 
-			expect(MOCKED_SOCKET_WRITE).toBeCalledTimes(3)
+			expect(MOCKED_SOCKET_WRITE).toHaveBeenCalledTimes(3)
 		})
 
 		it('receives two layers with different shots, sends two commands', () => {
@@ -195,7 +195,7 @@ describe('telemetrics', () => {
 
 			device.handleState(timelineState, {})
 
-			expect(MOCKED_SOCKET_WRITE).toBeCalledTimes(2)
+			expect(MOCKED_SOCKET_WRITE).toHaveBeenCalledTimes(2)
 		})
 
 		it('receives the same shot at two different times, it sends both', () => {
@@ -208,7 +208,7 @@ describe('telemetrics', () => {
 			device.handleState(timelineState, {})
 			device.handleState(laterTimelineState, {})
 
-			expect(MOCKED_SOCKET_WRITE).toBeCalledTimes(2)
+			expect(MOCKED_SOCKET_WRITE).toHaveBeenCalledTimes(2)
 		})
 	})
 })

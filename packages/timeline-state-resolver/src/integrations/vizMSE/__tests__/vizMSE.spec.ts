@@ -331,16 +331,16 @@ describe('vizMSE', () => {
 		expect(rundown.activate).toHaveBeenCalledTimes(2)
 
 		expect(rundown.getElement).toHaveBeenCalledTimes(4)
-		expect(rundown.getElement).nthCalledWith(1, expectedItem1)
-		expect(rundown.getElement).nthCalledWith(2, expectedItem2)
+		expect(rundown.getElement).toHaveBeenNthCalledWith(1, expectedItem1)
+		expect(rundown.getElement).toHaveBeenNthCalledWith(2, expectedItem2)
 
 		expect(rundown.createElement).toHaveBeenCalledTimes(2)
 		expect(rundown.createElement).toHaveBeenNthCalledWith(1, expectedItem1)
 		expect(rundown.createElement).toHaveBeenNthCalledWith(2, expectedItem2)
 
 		expect(rundown.initialize).toHaveBeenCalledTimes(2)
-		expect(rundown.initialize).nthCalledWith(1, expectedItem1)
-		expect(rundown.initialize).nthCalledWith(2, expectedItem2)
+		expect(rundown.initialize).toHaveBeenNthCalledWith(1, expectedItem1)
+		expect(rundown.initialize).toHaveBeenNthCalledWith(2, expectedItem2)
 
 		commandReceiver0.mockClear()
 		await mockTime.advanceTimeToTicks(14500)
@@ -470,7 +470,7 @@ describe('vizMSE', () => {
 		})
 
 		expect(rundown.initialize).toHaveBeenCalledTimes(1)
-		expect(rundown.initialize).nthCalledWith(1, expectedItem3)
+		expect(rundown.initialize).toHaveBeenNthCalledWith(1, expectedItem3)
 
 		expect(rundown.deactivate).toHaveBeenCalledTimes(0)
 		await myConductor.devicesStandDown(true)
@@ -792,7 +792,7 @@ describe('vizMSE', () => {
 		await mockTime.advanceTimeToTicks(15500)
 		expect(commandReceiver0.mock.calls.length).toEqual(1)
 		expect(rundown.take).toHaveBeenCalledTimes(1)
-		expect(rundown.take).nthCalledWith(1, {
+		expect(rundown.take).toHaveBeenNthCalledWith(1, {
 			vcpid: 1337,
 			channel: 'FULL1',
 		})
@@ -807,7 +807,7 @@ describe('vizMSE', () => {
 		commandReceiver0.mockClear()
 		await mockTime.advanceTimeToTicks(21200)
 		expect(rundown.out).toHaveBeenCalledTimes(1)
-		expect(rundown.out).nthCalledWith(1, {
+		expect(rundown.out).toHaveBeenNthCalledWith(1, {
 			vcpid: 1337,
 			channel: 'FULL1',
 		})

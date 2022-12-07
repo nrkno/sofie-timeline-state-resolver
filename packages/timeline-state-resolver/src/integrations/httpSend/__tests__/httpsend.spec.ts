@@ -74,7 +74,7 @@ describe('HTTP-Send', () => {
 		await mockTime.advanceTimeToTicks(11100)
 
 		expect(commandReceiver0).toHaveBeenCalledTimes(1)
-		expect(commandReceiver0).toBeCalledWith(
+		expect(commandReceiver0).toHaveBeenCalledWith(
 			expect.anything(),
 			expect.objectContaining({
 				type: 'post',
