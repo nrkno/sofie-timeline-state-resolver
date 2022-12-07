@@ -26,11 +26,18 @@ import '../../../__tests__/lib'
 
 const orgSetTimeout = setTimeout
 
-async function t<A>(p: Promise<A>, mockTime, advanceTime = 50): Promise<A> {
-	orgSetTimeout(() => {
-		mockTime.advanceTimeTicks(advanceTime)
-	}, 1)
-	return p
+async function runPromise<A>(p: Promise<A>, mockTime: MockTime, advanceTime = 50): Promise<A> {
+	const pTimers = new Promise((resolve, reject) => {
+		orgSetTimeout(() => {
+			mockTime.advanceTimeTicks(advanceTime).then(resolve, reject)
+		}, 1)
+	})
+
+	const res = await p
+
+	await pTimers
+
+	return res
 }
 
 /** Accepted deviance, accepted deviance in command timing during testing */
@@ -44,9 +51,6 @@ describe('vMix', () => {
 	}
 
 	const mockTime = new MockTime()
-	beforeAll(() => {
-		mockTime.mockDateNow()
-	})
 	beforeEach(() => {
 		mockTime.init()
 
@@ -79,7 +83,7 @@ describe('vMix', () => {
 
 		await myConductor.init()
 
-		await t(
+		await runPromise(
 			myConductor.addDevice('myvmix', {
 				type: DeviceType.VMIX,
 				options: {
@@ -99,7 +103,7 @@ describe('vMix', () => {
 
 		myConductor.setTimelineAndMappings([], myLayerMapping)
 
-		expect(mockTime.getCurrentTime()).toEqual(10000)
+		expect(mockTime.getCurrentTime()).toEqual(10050)
 		await mockTime.advanceTimeToTicks(10100)
 
 		// get initial info
@@ -255,7 +259,7 @@ describe('vMix', () => {
 
 		await myConductor.init()
 
-		await t(
+		await runPromise(
 			myConductor.addDevice('myvmix', {
 				type: DeviceType.VMIX,
 				options: {
@@ -275,7 +279,7 @@ describe('vMix', () => {
 
 		myConductor.setTimelineAndMappings([], myLayerMapping)
 
-		expect(mockTime.getCurrentTime()).toEqual(10000)
+		expect(mockTime.getCurrentTime()).toEqual(10050)
 		await mockTime.advanceTimeToTicks(10100)
 
 		clearMocks()
@@ -563,7 +567,7 @@ describe('vMix', () => {
 
 		await myConductor.init()
 
-		await t(
+		await runPromise(
 			myConductor.addDevice('myvmix', {
 				type: DeviceType.VMIX,
 				options: {
@@ -583,7 +587,7 @@ describe('vMix', () => {
 
 		myConductor.setTimelineAndMappings([], myLayerMapping)
 
-		expect(mockTime.getCurrentTime()).toEqual(10000)
+		expect(mockTime.getCurrentTime()).toEqual(10050)
 		await mockTime.advanceTimeToTicks(10100)
 
 		clearMocks()
@@ -798,7 +802,7 @@ describe('vMix', () => {
 
 		await myConductor.init()
 
-		await t(
+		await runPromise(
 			myConductor.addDevice('myvmix', {
 				type: DeviceType.VMIX,
 				options: {
@@ -818,7 +822,7 @@ describe('vMix', () => {
 
 		myConductor.setTimelineAndMappings([], myLayerMapping)
 
-		expect(mockTime.getCurrentTime()).toEqual(10000)
+		expect(mockTime.getCurrentTime()).toEqual(10050)
 		await mockTime.advanceTimeToTicks(10100)
 
 		clearMocks()
@@ -1110,7 +1114,7 @@ describe('vMix', () => {
 
 		await myConductor.init()
 
-		await t(
+		await runPromise(
 			myConductor.addDevice('myvmix', {
 				type: DeviceType.VMIX,
 				options: {
@@ -1130,7 +1134,7 @@ describe('vMix', () => {
 
 		myConductor.setTimelineAndMappings([], myLayerMapping)
 
-		expect(mockTime.getCurrentTime()).toEqual(10000)
+		expect(mockTime.getCurrentTime()).toEqual(10050)
 		await mockTime.advanceTimeToTicks(10100)
 
 		clearMocks()
@@ -1500,7 +1504,7 @@ describe('vMix', () => {
 
 		await myConductor.init()
 
-		await t(
+		await runPromise(
 			myConductor.addDevice('myvmix', {
 				type: DeviceType.VMIX,
 				options: {
@@ -1520,7 +1524,7 @@ describe('vMix', () => {
 
 		myConductor.setTimelineAndMappings([], myLayerMapping)
 
-		expect(mockTime.getCurrentTime()).toEqual(10000)
+		expect(mockTime.getCurrentTime()).toEqual(10050)
 		await mockTime.advanceTimeToTicks(10100)
 
 		// get initial info
@@ -1736,7 +1740,7 @@ describe('vMix', () => {
 
 		await myConductor.init()
 
-		await t(
+		await runPromise(
 			myConductor.addDevice('myvmix', {
 				type: DeviceType.VMIX,
 				options: {
@@ -1756,7 +1760,7 @@ describe('vMix', () => {
 
 		myConductor.setTimelineAndMappings([], myLayerMapping)
 
-		expect(mockTime.getCurrentTime()).toEqual(10000)
+		expect(mockTime.getCurrentTime()).toEqual(10050)
 		await mockTime.advanceTimeToTicks(10100)
 
 		// get initial info
@@ -1866,7 +1870,7 @@ describe('vMix', () => {
 
 		await myConductor.init()
 
-		await t(
+		await runPromise(
 			myConductor.addDevice('myvmix', {
 				type: DeviceType.VMIX,
 				options: {
@@ -1886,7 +1890,7 @@ describe('vMix', () => {
 
 		myConductor.setTimelineAndMappings([], myLayerMapping)
 
-		expect(mockTime.getCurrentTime()).toEqual(10000)
+		expect(mockTime.getCurrentTime()).toEqual(10050)
 		await mockTime.advanceTimeToTicks(10100)
 
 		// get initial info
@@ -1989,7 +1993,7 @@ describe('vMix', () => {
 
 		await myConductor.init()
 
-		await t(
+		await runPromise(
 			myConductor.addDevice('myvmix', {
 				type: DeviceType.VMIX,
 				options: {
@@ -2009,7 +2013,7 @@ describe('vMix', () => {
 
 		myConductor.setTimelineAndMappings([], myLayerMapping)
 
-		expect(mockTime.getCurrentTime()).toEqual(10000)
+		expect(mockTime.getCurrentTime()).toEqual(10050)
 		await mockTime.advanceTimeToTicks(10100)
 
 		// get initial info
@@ -2112,7 +2116,7 @@ describe('vMix', () => {
 
 		await myConductor.init()
 
-		await t(
+		await runPromise(
 			myConductor.addDevice('myvmix', {
 				type: DeviceType.VMIX,
 				options: {
@@ -2132,7 +2136,7 @@ describe('vMix', () => {
 
 		myConductor.setTimelineAndMappings([], myLayerMapping)
 
-		expect(mockTime.getCurrentTime()).toEqual(10000)
+		expect(mockTime.getCurrentTime()).toEqual(10050)
 		await mockTime.advanceTimeToTicks(10100)
 
 		// get initial info
@@ -2236,7 +2240,7 @@ describe('vMix', () => {
 
 		await myConductor.init()
 
-		await t(
+		await runPromise(
 			myConductor.addDevice('myvmix', {
 				type: DeviceType.VMIX,
 				options: {
@@ -2256,7 +2260,7 @@ describe('vMix', () => {
 
 		myConductor.setTimelineAndMappings([], myLayerMapping)
 
-		expect(mockTime.getCurrentTime()).toEqual(10000)
+		expect(mockTime.getCurrentTime()).toEqual(10050)
 		await mockTime.advanceTimeToTicks(10100)
 
 		// get initial info
@@ -2372,7 +2376,7 @@ describe('vMix', () => {
 
 		await myConductor.init()
 
-		await t(
+		await runPromise(
 			myConductor.addDevice('myvmix', {
 				type: DeviceType.VMIX,
 				options: {
@@ -2392,7 +2396,7 @@ describe('vMix', () => {
 
 		myConductor.setTimelineAndMappings([], myLayerMapping)
 
-		expect(mockTime.getCurrentTime()).toEqual(10000)
+		expect(mockTime.getCurrentTime()).toEqual(10050)
 		await mockTime.advanceTimeToTicks(10100)
 
 		// get initial info
@@ -2509,7 +2513,7 @@ describe('vMix', () => {
 
 		await myConductor.init()
 
-		await t(
+		await runPromise(
 			myConductor.addDevice('myvmix', {
 				type: DeviceType.VMIX,
 				options: {
@@ -2529,7 +2533,7 @@ describe('vMix', () => {
 
 		myConductor.setTimelineAndMappings([], myLayerMapping)
 
-		expect(mockTime.getCurrentTime()).toEqual(10000)
+		expect(mockTime.getCurrentTime()).toEqual(10050)
 		await mockTime.advanceTimeToTicks(10100)
 
 		// get initial info
@@ -2632,7 +2636,7 @@ describe('vMix', () => {
 
 		await myConductor.init()
 
-		await t(
+		await runPromise(
 			myConductor.addDevice('myvmix', {
 				type: DeviceType.VMIX,
 				options: {
@@ -2652,7 +2656,7 @@ describe('vMix', () => {
 
 		myConductor.setTimelineAndMappings([], myLayerMapping)
 
-		expect(mockTime.getCurrentTime()).toEqual(10000)
+		expect(mockTime.getCurrentTime()).toEqual(10050)
 		await mockTime.advanceTimeToTicks(10100)
 
 		// get initial info

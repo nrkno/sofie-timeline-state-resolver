@@ -658,7 +658,7 @@ describe('CasparCG', () => {
 		})
 
 		// advance time to end of clip:
-		await mockTime.advanceTimeToTicks(12000)
+		await mockTime.advanceTimeToTicks(12010)
 
 		// two more commands have been sent:
 		expect(commandReceiver0).toHaveBeenCalledTimes(4)

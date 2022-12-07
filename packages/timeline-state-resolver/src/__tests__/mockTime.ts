@@ -2,9 +2,9 @@ export class MockTime {
 	private _now = 10000
 	private _hasBeeninit = false
 	mockDateNow() {
-		Date.now = jest.fn(() => {
-			return this.getCurrentTime()
-		})
+		// Date.now = jest.fn(() => {
+		// 	return this.getCurrentTime()
+		// })
 	}
 	get now() {
 		if (!this._hasBeeninit) throw new Error('Has not been init')
@@ -25,7 +25,7 @@ export class MockTime {
 	init = () => {
 		this._hasBeeninit = true
 		this._now = 10000
-		jest.useFakeTimers()
+		jest.useFakeTimers({ now: this._now })
 	}
 	advanceTime = (advanceTime: number) => {
 		this._now += advanceTime

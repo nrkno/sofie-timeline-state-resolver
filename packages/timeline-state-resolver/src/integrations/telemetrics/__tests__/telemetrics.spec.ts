@@ -8,8 +8,6 @@ import {
 	TSRTimelineContent,
 } from 'timeline-state-resolver-types'
 import { Socket } from 'net'
-// eslint-disable-next-line node/no-extraneous-import
-import { mocked } from 'ts-jest/utils'
 import { DoOrderFunctionNothing } from '../../../devices/doOnTime'
 import { literal } from '../../../devices/device'
 
@@ -51,7 +49,7 @@ jest.mock('../../../devices/doOnTime', () => {
 })
 
 describe('telemetrics', () => {
-	const mockedSocket = mocked(Socket, true)
+	const mockedSocket = jest.mocked(Socket)
 
 	let device: TelemetricsDevice
 
