@@ -85,9 +85,6 @@ describe('vizMSE', () => {
 
 	// const orgSetTimeout = setTimeout
 
-	beforeAll(() => {
-		mockTime.mockDateNow()
-	})
 	beforeEach(() => {
 		mockTime.init()
 	})

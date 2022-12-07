@@ -22,7 +22,6 @@ describe('Conductor', () => {
 	const mockTime = new MockTime()
 	beforeAll(() => {
 		setupAllMocks()
-		mockTime.mockDateNow()
 	})
 	beforeEach(() => {
 		mockTime.init()

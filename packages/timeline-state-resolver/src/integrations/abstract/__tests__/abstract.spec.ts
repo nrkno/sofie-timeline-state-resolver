@@ -8,9 +8,6 @@ import { getMockCall } from '../../../__tests__/lib'
 
 describe('Abstract device', () => {
 	const mockTime = new MockTime()
-	beforeAll(() => {
-		mockTime.mockDateNow()
-	})
 	beforeEach(() => {
 		mockTime.init()
 	})

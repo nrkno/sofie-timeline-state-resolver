@@ -27,9 +27,6 @@ import * as WebSocket from '../../../__mocks__/ws'
 
 describe('OBS', () => {
 	const mockTime = new MockTime()
-	beforeAll(() => {
-		mockTime.mockDateNow()
-	})
 	beforeEach(() => {
 		mockTime.init()
 		WebSocket.clearMockInstances()

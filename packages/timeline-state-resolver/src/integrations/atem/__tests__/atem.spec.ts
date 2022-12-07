@@ -33,9 +33,6 @@ describe('Atem', () => {
 		)
 	}
 
-	beforeAll(() => {
-		mockTime.mockDateNow()
-	})
 	beforeEach(() => {
 		mockTime.init()
 	})

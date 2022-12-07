@@ -1,11 +1,6 @@
 export class MockTime {
 	private _now = 10000
 	private _hasBeeninit = false
-	mockDateNow() {
-		// Date.now = jest.fn(() => {
-		// 	return this.getCurrentTime()
-		// })
-	}
 	get now() {
 		if (!this._hasBeeninit) throw new Error('Has not been init')
 		return this.getCurrentTime()

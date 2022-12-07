@@ -15,9 +15,6 @@ import { getMockCall } from '../../../__tests__/lib'
 // let nowActual = Date.now()
 describe('HTTP-Send', () => {
 	const mockTime = new MockTime()
-	beforeAll(() => {
-		mockTime.mockDateNow()
-	})
 	beforeEach(() => {
 		mockTime.init()
 	})

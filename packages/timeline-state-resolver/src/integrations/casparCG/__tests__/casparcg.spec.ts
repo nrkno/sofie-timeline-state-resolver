@@ -24,9 +24,6 @@ import { Commands } from 'casparcg-connection'
 
 describe('CasparCG', () => {
 	const mockTime = new MockTime()
-	beforeAll(() => {
-		mockTime.mockDateNow()
-	})
 	beforeEach(() => {
 		mockTime.init()
 	})
@@ -1839,9 +1836,6 @@ describe('CasparCG', () => {
 
 // describe('CasparCG - Custom transitions', () => {
 // 	const mockTime = new MockTime()
-// 	beforeAll(() => {
-// 		mockTime.mockDateNow()
-// 	})
 // 	beforeEach(() => {
 // 		mockTime.init()
 // 	})

@@ -18,9 +18,6 @@ import { getMockCall } from '../../../__tests__/lib'
 // let nowActual = Date.now()
 describe('OSC-Message', () => {
 	const mockTime = new MockTime()
-	beforeAll(() => {
-		mockTime.mockDateNow()
-	})
 	beforeEach(() => {
 		mockTime.init()
 	})

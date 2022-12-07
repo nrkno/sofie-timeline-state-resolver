@@ -14,10 +14,6 @@ import { getMockCall } from '../../../__tests__/lib'
 
 describe('Lawo', () => {
 	const mockTime = new MockTime()
-
-	beforeAll(() => {
-		mockTime.mockDateNow()
-	})
 	beforeEach(() => {
 		mockTime.init()
 	})

@@ -26,9 +26,6 @@ describe('Sisyfos', () => {
 		})
 	}
 
-	beforeAll(() => {
-		mockTime.mockDateNow()
-	})
 	beforeEach(() => {
 		mockTime.init()
 	})

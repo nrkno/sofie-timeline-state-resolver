@@ -139,9 +139,6 @@ describe('Quantel', () => {
 	}
 
 	const mockTime = new MockTime()
-	beforeAll(() => {
-		mockTime.mockDateNow()
-	})
 	beforeEach(() => {
 		mockTime.init()
 
