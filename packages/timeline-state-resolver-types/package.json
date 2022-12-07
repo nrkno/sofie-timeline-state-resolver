@@ -10,7 +10,7 @@
 		"url": "git+https://github.com/nrkno/sofie-timeline-state-resolver.git"
 	},
 	"bugs": {
-		"url": "https://github.com/nrkno/sofie-timeline-state-resolverissues"
+		"url": "https://github.com/nrkno/sofie-timeline-state-resolver/issues"
 	},
 	"homepage": "https://github.com/nrkno/sofie-timeline-state-resolver#readme",
 	"contributors": [

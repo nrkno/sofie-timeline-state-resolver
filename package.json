@@ -5,7 +5,8 @@
   "workspaces": {
     "packages": [
       "packages/timeline-state-resolver-types",
-      "packages/timeline-state-resolver"
+      "packages/timeline-state-resolver",
+      "packages/quick-tsr"
     ]
   },
   "scripts": {
@@ -45,6 +46,7 @@
     "rimraf": "^3.0.2",
     "symlink-dir": "^5.0.1",
     "ts-jest": "^26.1.0",
+    "ts-node": "^8.4.1",
     "type-fest": "^2.16.0",
     "typedoc": "^0.22.14",
     "typescript": "~4.5"

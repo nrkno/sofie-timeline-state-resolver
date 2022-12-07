@@ -48,6 +48,8 @@ This will link the types package to the main library so that you can use your ne
 
 Note, that your IDE may not pick up your new type definitions until you build the types package.
 
+There is a test application [quick-tsr](/packages/quick-tsr) inside this repository which can be used to easily test changes made to this library.
+
 ### Working with types
 
 Types that need to be consumed by external systems that have no need to interact with the TSR library itself should be written in the timeline-state-resolver-types package. Some types will be generated from JSON schemas, the schemas are composed under the $schemas subfolder in the specific integration's subfolder. (See the abstract integration for an example). The types can be generated with the `yarn generate-schema-types` command. The schemas themselves must be exported from the `src/manifests.ts` file, so they can be used by external systems to validate payloads and generate UI's.

@@ -1,0 +1,16 @@
+{
+	"extends": "../../node_modules/@sofie-automation/code-standard-preset/eslint/main",
+	"settings": {
+		"jest": {
+			"version": "latest"
+		}
+	},
+	"overrides": [
+		{
+			"files": ["*.ts"],
+			"rules": {
+				"node/no-unpublished-import": "off"
+			}
+		}
+	]
+}
