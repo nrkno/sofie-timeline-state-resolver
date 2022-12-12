@@ -1,19 +1,19 @@
 {
   "name": "quick-tsr",
   "private": true,
-	"version": "8.0.0-release48",
+  "version": "8.0.0-release48.0",
   "description": "Read timeline from file, use TSR, play stuff",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
   "license": "MIT",
-	"repository": {
-		"type": "git",
-		"url": "git+https://github.com/nrkno/sofie-timeline-state-resolver.git"
-	},
-	"bugs": {
-		"url": "https://github.com/nrkno/sofie-timeline-state-resolver/issues"
-	},
-	"homepage": "https://github.com/nrkno/sofie-timeline-state-resolver#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nrkno/sofie-timeline-state-resolver.git"
+  },
+  "bugs": {
+    "url": "https://github.com/nrkno/sofie-timeline-state-resolver/issues"
+  },
+  "homepage": "https://github.com/nrkno/sofie-timeline-state-resolver#readme",
   "author": {
     "name": "Johan Nyman",
     "email": "johan@superfly.tv",
@@ -30,8 +30,8 @@
     "lint-fix": "yarn lint --fix",
     "inspect": "node --inspect dist/index.js",
     "start": "ts-node src/index.ts",
-		"validate:dependencies": "yarn audit --groups dependencies && yarn license-validate",
-		"validate:dev-dependencies": "yarn audit --groups devDependencies",
+    "validate:dependencies": "yarn audit --groups dependencies && yarn license-validate",
+    "validate:dev-dependencies": "yarn audit --groups devDependencies",
     "license-validate": "yarn sofie-licensecheck",
     "test": "echo \"Note: no test specified for quick-tsr\" && exit 0"
   },
@@ -63,7 +63,7 @@
   "dependencies": {
     "chokidar": "^3.2.1",
     "fast-clone": "^1.5.13",
-    "timeline-state-resolver": "8.0.0-release48",
+    "timeline-state-resolver": "8.0.0-release48.0",
     "tslib": "^2.4.1",
     "underscore": "^1.9.1"
   }
