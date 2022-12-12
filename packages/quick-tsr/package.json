@@ -30,8 +30,10 @@
     "lint-fix": "yarn lint --fix",
     "inspect": "node --inspect dist/index.js",
     "start": "ts-node src/index.ts",
-    "validate:dependencies": "yarn audit && yarn license-validate",
-    "license-validate": "yarn sofie-licensecheck"
+		"validate:dependencies": "yarn audit --groups dependencies && yarn license-validate",
+		"validate:dev-dependencies": "yarn audit --groups devDependencies",
+    "license-validate": "yarn sofie-licensecheck",
+    "test": "echo \"Note: no test specified for quick-tsr\" && exit 0"
   },
   "prettier": "@sofie-automation/code-standard-preset/.prettierrc.json",
   "lint-staged": {
