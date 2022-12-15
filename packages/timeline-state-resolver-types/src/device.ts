@@ -18,6 +18,7 @@ import {
 	HTTPWatcherOptions,
 	VizMSEOptions,
 	VMixOptions,
+	MultiOSCOptions,
 } from '.'
 import { ShotokuOptions } from './shotoku'
 import { TelemetricsOptions } from './telemetrics'
@@ -136,4 +137,7 @@ export interface DeviceOptionsVMix extends DeviceOptionsBase<VMixOptions> {
 
 export interface DeviceOptionsTelemetrics extends DeviceOptionsBase<TelemetricsOptions> {
 	type: DeviceType.TELEMETRICS
+}
+export interface DeviceOptionsMultiOSC extends DeviceOptionsBase<MultiOSCOptions> {
+	type: DeviceType.MULTI_OSC
 }
