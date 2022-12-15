@@ -12,6 +12,7 @@ export class OSCConnection extends EventEmitter {
 	connectionId: string
 	host: string
 	port: number
+	private _type: OSCDeviceType
 
 	private _oscClient: osc.UDPPort | osc.TCPSocketPort
 	private _oscSender: OSCSender
@@ -27,6 +28,7 @@ export class OSCConnection extends EventEmitter {
 		this.connectionId = options.connectionId
 		this.host = options.host
 		this.port = options.port
+		this._type = options.type
 		this._oscSender = options.oscSender || this._defaultOscSender.bind(this)
 
 		if (options.type === OSCDeviceType.UDP) {
@@ -75,7 +77,7 @@ export class OSCConnection extends EventEmitter {
 	}
 
 	get connected(): boolean {
-		return this._connected
+		return this._type === OSCDeviceType.TCP ? this._connected : true
 	}
 
 	private updateIsConnected(connected: boolean) {
