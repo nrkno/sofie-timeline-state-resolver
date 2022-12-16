@@ -44,6 +44,7 @@ export interface DeviceOptionsBase<T> extends SlowReportOptions {
 	disable?: boolean
 	options?: T
 	debug?: boolean
+	debugState?: boolean
 }
 
 export interface SlowReportOptions {

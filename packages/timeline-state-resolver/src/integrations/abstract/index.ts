@@ -101,6 +101,19 @@ export class AbstractDevice extends DeviceWithState<AbstractState, DeviceOptions
 
 		// store the new state, for later use:
 		this.setState(newState, newState.time)
+
+		if (this.deviceOptions.debugState) {
+			const debugState: Record<string, object> = {}
+			for (const layer of Object.keys(newMappings)) {
+				const tlObject = newAbstractState.layers[layer]
+				if (tlObject !== undefined) {
+					debugState[layer] = { id: tlObject.id, classes: tlObject.classes, content: tlObject.content }
+				} else {
+					debugState[layer] = {}
+				}
+			}
+			this.emitDebugState(debugState)
+		}
 	}
 	/**
 	 * Clear any scheduled commands after this time
