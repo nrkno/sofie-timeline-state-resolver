@@ -329,6 +329,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 			return Array.from(this.devices.values()).filter((device) => device.initialized === true)
 		}
 	}
+
 	public getDevice(
 		deviceId: string,
 		includeUninitialized = false
@@ -402,6 +403,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 			return Promise.reject(e)
 		}
 	}
+
 	/**
 	 * Creates an uninitialised device that can be referenced by the timeline and mappings.
 	 * @param deviceId Id used by the mappings to reference the device.
@@ -438,10 +440,10 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 				return this.getCurrentTime()
 			}
 
-			let newDevicePs: Promise<DeviceContainer<DeviceOptionsBase<any>> | undefined>
+			let newDevicePromise: Promise<DeviceContainer<DeviceOptionsBase<any>> | undefined>
 
 			if (deviceOptions.type === DeviceType.ABSTRACT) {
-				newDevicePs = DeviceContainer.create<DeviceOptionsAbstractInternal, typeof AbstractDevice>(
+				newDevicePromise = DeviceContainer.create<DeviceOptionsAbstractInternal, typeof AbstractDevice>(
 					'../../dist/integrations/abstract/index.js',
 					'AbstractDevice',
 					deviceId,
@@ -454,7 +456,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 				)
 			} else if (deviceOptions.type === DeviceType.CASPARCG) {
 				// Add CasparCG device:
-				newDevicePs = DeviceContainer.create<DeviceOptionsCasparCGInternal, typeof CasparCGDevice>(
+				newDevicePromise = DeviceContainer.create<DeviceOptionsCasparCGInternal, typeof CasparCGDevice>(
 					'../../dist/integrations/casparCG/index.js',
 					'CasparCGDevice',
 					deviceId,
@@ -463,7 +465,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 					threadedClassOptions
 				)
 			} else if (deviceOptions.type === DeviceType.ATEM) {
-				newDevicePs = DeviceContainer.create<DeviceOptionsAtemInternal, typeof AtemDevice>(
+				newDevicePromise = DeviceContainer.create<DeviceOptionsAtemInternal, typeof AtemDevice>(
 					'../../dist/integrations/atem/index.js',
 					'AtemDevice',
 					deviceId,
@@ -472,7 +474,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 					threadedClassOptions
 				)
 			} else if (deviceOptions.type === DeviceType.HTTPSEND) {
-				newDevicePs = DeviceContainer.create<DeviceOptionsHTTPSendInternal, typeof HTTPSendDevice>(
+				newDevicePromise = DeviceContainer.create<DeviceOptionsHTTPSendInternal, typeof HTTPSendDevice>(
 					'../../dist/integrations/httpSend/index.js',
 					'HTTPSendDevice',
 					deviceId,
@@ -481,7 +483,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 					threadedClassOptions
 				)
 			} else if (deviceOptions.type === DeviceType.HTTPWATCHER) {
-				newDevicePs = DeviceContainer.create<DeviceOptionsHTTPWatcherInternal, typeof HTTPWatcherDevice>(
+				newDevicePromise = DeviceContainer.create<DeviceOptionsHTTPWatcherInternal, typeof HTTPWatcherDevice>(
 					'../../dist/integrations/httpWatcher/index.js',
 					'HTTPWatcherDevice',
 					deviceId,
@@ -490,7 +492,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 					threadedClassOptions
 				)
 			} else if (deviceOptions.type === DeviceType.LAWO) {
-				newDevicePs = DeviceContainer.create<DeviceOptionsLawoInternal, typeof LawoDevice>(
+				newDevicePromise = DeviceContainer.create<DeviceOptionsLawoInternal, typeof LawoDevice>(
 					'../../dist/integrations/lawo/index.js',
 					'LawoDevice',
 					deviceId,
@@ -499,7 +501,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 					threadedClassOptions
 				)
 			} else if (deviceOptions.type === DeviceType.TCPSEND) {
-				newDevicePs = DeviceContainer.create<DeviceOptionsTCPSendInternal, typeof TCPSendDevice>(
+				newDevicePromise = DeviceContainer.create<DeviceOptionsTCPSendInternal, typeof TCPSendDevice>(
 					'../../dist/integrations/tcpSend/index.js',
 					'TCPSendDevice',
 					deviceId,
@@ -508,7 +510,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 					threadedClassOptions
 				)
 			} else if (deviceOptions.type === DeviceType.PANASONIC_PTZ) {
-				newDevicePs = DeviceContainer.create<DeviceOptionsPanasonicPTZInternal, typeof PanasonicPtzDevice>(
+				newDevicePromise = DeviceContainer.create<DeviceOptionsPanasonicPTZInternal, typeof PanasonicPtzDevice>(
 					'../../dist/integrations/panasonicPTZ/index.js',
 					'PanasonicPtzDevice',
 					deviceId,
@@ -517,7 +519,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 					threadedClassOptions
 				)
 			} else if (deviceOptions.type === DeviceType.HYPERDECK) {
-				newDevicePs = DeviceContainer.create<DeviceOptionsHyperdeckInternal, typeof HyperdeckDevice>(
+				newDevicePromise = DeviceContainer.create<DeviceOptionsHyperdeckInternal, typeof HyperdeckDevice>(
 					'../../dist/integrations/hyperdeck/index.js',
 					'HyperdeckDevice',
 					deviceId,
@@ -526,7 +528,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 					threadedClassOptions
 				)
 			} else if (deviceOptions.type === DeviceType.PHAROS) {
-				newDevicePs = DeviceContainer.create<DeviceOptionsPharosInternal, typeof PharosDevice>(
+				newDevicePromise = DeviceContainer.create<DeviceOptionsPharosInternal, typeof PharosDevice>(
 					'../../dist/integrations/pharos/index.js',
 					'PharosDevice',
 					deviceId,
@@ -535,7 +537,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 					threadedClassOptions
 				)
 			} else if (deviceOptions.type === DeviceType.OSC) {
-				newDevicePs = DeviceContainer.create<DeviceOptionsOSCInternal, typeof OSCMessageDevice>(
+				newDevicePromise = DeviceContainer.create<DeviceOptionsOSCInternal, typeof OSCMessageDevice>(
 					'../../dist/integrations/osc/index.js',
 					'OSCMessageDevice',
 					deviceId,
@@ -544,7 +546,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 					threadedClassOptions
 				)
 			} else if (deviceOptions.type === DeviceType.QUANTEL) {
-				newDevicePs = DeviceContainer.create<DeviceOptionsQuantelInternal, typeof QuantelDevice>(
+				newDevicePromise = DeviceContainer.create<DeviceOptionsQuantelInternal, typeof QuantelDevice>(
 					'../../dist/integrations/quantel/index.js',
 					'QuantelDevice',
 					deviceId,
@@ -553,7 +555,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 					threadedClassOptions
 				)
 			} else if (deviceOptions.type === DeviceType.SHOTOKU) {
-				newDevicePs = DeviceContainer.create<DeviceOptionsShotokuInternal, typeof ShotokuDevice>(
+				newDevicePromise = DeviceContainer.create<DeviceOptionsShotokuInternal, typeof ShotokuDevice>(
 					'../../dist/integrations/shotoku/index.js',
 					'ShotokuDevice',
 					deviceId,
@@ -562,7 +564,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 					threadedClassOptions
 				)
 			} else if (deviceOptions.type === DeviceType.SISYFOS) {
-				newDevicePs = DeviceContainer.create<DeviceOptionsSisyfosInternal, typeof SisyfosMessageDevice>(
+				newDevicePromise = DeviceContainer.create<DeviceOptionsSisyfosInternal, typeof SisyfosMessageDevice>(
 					'../../dist/integrations/sisyfos/index.js',
 					'SisyfosMessageDevice',
 					deviceId,
@@ -571,7 +573,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 					threadedClassOptions
 				)
 			} else if (deviceOptions.type === DeviceType.VIZMSE) {
-				newDevicePs = DeviceContainer.create<DeviceOptionsVizMSEInternal, typeof VizMSEDevice>(
+				newDevicePromise = DeviceContainer.create<DeviceOptionsVizMSEInternal, typeof VizMSEDevice>(
 					'../../dist/integrations/vizMSE/index.js',
 					'VizMSEDevice',
 					deviceId,
@@ -580,7 +582,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 					threadedClassOptions
 				)
 			} else if (deviceOptions.type === DeviceType.SINGULAR_LIVE) {
-				newDevicePs = DeviceContainer.create<DeviceOptionsSingularLiveInternal, typeof SingularLiveDevice>(
+				newDevicePromise = DeviceContainer.create<DeviceOptionsSingularLiveInternal, typeof SingularLiveDevice>(
 					'../../dist/integrations/singularLive/index.js',
 					'SingularLiveDevice',
 					deviceId,
@@ -589,7 +591,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 					threadedClassOptions
 				)
 			} else if (deviceOptions.type === DeviceType.VMIX) {
-				newDevicePs = DeviceContainer.create<DeviceOptionsVMixInternal, typeof VMixDevice>(
+				newDevicePromise = DeviceContainer.create<DeviceOptionsVMixInternal, typeof VMixDevice>(
 					'../../dist/integrations/vmix/index.js',
 					'VMixDevice',
 					deviceId,
@@ -598,7 +600,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 					threadedClassOptions
 				)
 			} else if (deviceOptions.type === DeviceType.OBS) {
-				newDevicePs = DeviceContainer.create<DeviceOptionsOBSInternal, typeof OBSDevice>(
+				newDevicePromise = DeviceContainer.create<DeviceOptionsOBSInternal, typeof OBSDevice>(
 					'../../dist/integrations/obs/index.js',
 					'OBSDevice',
 					deviceId,
@@ -607,7 +609,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 					threadedClassOptions
 				)
 			} else if (deviceOptions.type === DeviceType.TELEMETRICS) {
-				newDevicePs = DeviceContainer.create<DeviceOptionsTelemetrics, typeof TelemetricsDevice>(
+				newDevicePromise = DeviceContainer.create<DeviceOptionsTelemetrics, typeof TelemetricsDevice>(
 					'../../dist/devices/telemetrics.js',
 					'TelemetricsDevice',
 					deviceId,
@@ -621,9 +623,9 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 				return Promise.reject(`No matching device type for "${type}" ("${DeviceType[type]}") found in conductor`)
 			}
 
-			newDevice = await makeAbortable(async () => {
+			newDevice = await makeImmediatelyAbortable(async () => {
 				throwIfAborted()
-				const newDevice = await newDevicePs
+				const newDevice = await newDevicePromise
 				if (options?.signal?.aborted) {
 					// if the promise above did not resolve before aborted,
 					// this executes some time after raceAbortable rejects, serving as a cleanup
@@ -658,6 +660,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 			return Promise.reject(e)
 		}
 	}
+
 	private async terminateUnwantedDevice(newDevice: DeviceContainer<DeviceOptionsBase<any>> | undefined) {
 		if (newDevice) {
 			try {
@@ -667,6 +670,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 			}
 		}
 	}
+
 	/**
 	 * Initialises an existing device that can be referenced by the timeline and mappings.
 	 * @param deviceId Id used by the mappings to reference the device.
@@ -697,7 +701,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 			'info',
 			`Initializing device ${newDevice.deviceId} (${newDevice.instanceId}) of type ${DeviceType[deviceOptions.type]}...`
 		)
-		return makeAbortable(async () => {
+		return makeImmediatelyAbortable(async () => {
 			const throwIfAborted = () => {
 				if (options?.signal?.aborted) {
 					throw new AbortError(`Device "${deviceId}" initialisation aborted`)
@@ -712,6 +716,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 			return newDevice
 		}, options?.signal)
 	}
+
 	/**
 	 * Safely remove a device
 	 * @param deviceId The id of the device to be removed
@@ -734,6 +739,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 			return Promise.reject('No device found')
 		}
 	}
+
 	/**
 	 * Remove all devices
 	 */
@@ -744,6 +750,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 
 		await this._mapAllDevices(true, async (d) => this.removeDevice(d.deviceId))
 	}
+
 	/**
 	 * Resets the resolve-time, so that the resolving will happen for the point-in time NOW
 	 * next time
@@ -764,6 +771,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 
 		this._triggerResolveTimeline()
 	}
+
 	/**
 	 * Send a makeReady-trigger to all devices
 	 */
@@ -791,6 +799,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 			this._triggerResolveTimeline()
 		})
 	}
+
 	/**
 	 * Send a standDown-trigger to all devices
 	 */
@@ -851,6 +860,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 			this._resolveTimeline()
 		}
 	}
+
 	/**
 	 * Resolves the timeline for the next resolve-time, generates the commands and passes on the commands.
 	 */
@@ -870,6 +880,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 				this.emit('error', 'Caught error in _resolveTimeline.then' + e)
 			})
 	}
+
 	private async _resolveTimelineInner(): Promise<number | undefined> {
 		const trace = startTrace('conductor:resolveTimeline')
 		if (!this._isInitialized) {
@@ -1147,6 +1158,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 		}
 		return nextResolveTime
 	}
+
 	private _setDeviceState(deviceId: string, time: number, state: TimelineState, mappings: Mappings) {
 		if (!this._deviceStates[deviceId]) this._deviceStates[deviceId] = []
 
@@ -1178,6 +1190,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 		// send the filled state to the device handler
 		return this.getDevice(deviceId)?.device.handleState(filledState, mappings)
 	}
+
 	setDatastore(newStore: Datastore) {
 		this._actionQueue
 			.add(() => {
@@ -1216,6 +1229,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 				this.emit('error', 'Caught error in setDatastore' + e)
 			})
 	}
+
 	getTimelineSize(): number {
 		if (this._timelineSize === undefined) {
 			// Update the cache:
@@ -1224,6 +1238,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 		}
 		return this._timelineSize
 	}
+
 	private getTimelineSizeInner(timelineObjects: TimelineObject[]): number {
 		let size = 0
 		size += timelineObjects.length
@@ -1237,6 +1252,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 		}
 		return size
 	}
+
 	/**
 	 * Returns a time estimate for the resolval duration based on the amount of
 	 * objects on the timeline. If the proActiveResolve option is falsy this
@@ -1250,6 +1266,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 			return 0
 		}
 	}
+
 	/** Calculates the estimated time it'll take to resolve a timeline of a certain size */
 	static calculateResolveTime(timelineSize: number, multiplier: number): number {
 		// Note: The LEVEL should really be a dynamic value, to reflect the actual performance of the hardware this is running on.
@@ -1315,6 +1332,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 		}
 		this._sentCallbacks = activeObjects
 	}
+
 	private _queueCallback(playing: boolean, cb: QueueCallback): void {
 		let o: CallbackInstance
 
@@ -1372,6 +1390,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 
 		this._triggerSendStartStopCallbacks()
 	}
+
 	private _triggerSendStartStopCallbacks() {
 		if (!this._triggerSendStartStopCallbacksTimeout) {
 			this._triggerSendStartStopCallbacksTimeout = setTimeout(() => {
@@ -1380,6 +1399,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 			}, CALLBACK_WAIT_TIME)
 		}
 	}
+
 	private _sendStartStopCallbacks() {
 		const now = this.getCurrentTime()
 
@@ -1440,6 +1460,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 			this._statMeasureReason = reason
 		}
 	}
+
 	private statReport(startTime: number, report: StatReport) {
 		// Check if the report is from the start of a measuring
 		if (this._statMeasureStart && this._statMeasureStart === startTime) {
@@ -1462,6 +1483,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 			this.emit('statReport', reportDuration)
 		}
 	}
+
 	/**
 	 * Split the state into substates that are relevant for each device
 	 */
@@ -1492,6 +1514,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 		})
 		return filteredStates
 	}
+
 	/**
 	 * Only emits the event when there is an active rundownPlaylist.
 	 * This is used to reduce unnesessary logging
@@ -1540,17 +1563,17 @@ function removeParentFromState(o: TimelineState): TimelineState {
  * @param abortSignal the AbortSignal
  * @returns Promise of the same type as `func`
  */
-async function makeAbortable<T>(
+async function makeImmediatelyAbortable<T>(
 	func: (abortSignal?: AbortSignal) => Promise<T>,
 	abortSignal?: AbortSignal
 ): Promise<T> {
-	const mainPs = func(abortSignal)
+	const mainPromise = func(abortSignal)
 	if (!abortSignal) {
-		return mainPs
+		return mainPromise
 	}
-	let resolveAbortPs: Function
-	const abortPs = new Promise<void>((resolve, reject) => {
-		resolveAbortPs = () => {
+	let resolveAbortPromise: Function
+	const abortPromise = new Promise<void>((resolve, reject) => {
+		resolveAbortPromise = () => {
 			resolve()
 			// @ts-expect-error
 			abortSignal.removeEventListener('abort', rejectPromise)
@@ -1561,15 +1584,15 @@ async function makeAbortable<T>(
 		// @ts-expect-error
 		abortSignal.addEventListener('abort', rejectPromise, { once: true })
 	})
-	return Promise.race([mainPs, abortPs])
+	return Promise.race([mainPromise, abortPromise])
 		.then((result) => {
-			// only mainPs could have resolved, so the result must be T
-			resolveAbortPs()
+			// only mainPromise could have resolved, so the result must be T
+			resolveAbortPromise()
 			return result as T
 		})
 		.catch((reason) => {
-			// mainPs or abortPs might have rejected; calling resolveAbortPs in the latter case is safe
-			resolveAbortPs()
+			// mainPromise or abortPromise might have rejected; calling resolveAbortPromise in the latter case is safe
+			resolveAbortPromise()
 			throw reason
 		})
 }
