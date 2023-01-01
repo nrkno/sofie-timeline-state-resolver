@@ -2,7 +2,7 @@ import { EventEmitter } from 'eventemitter3'
 import * as request from 'request'
 import * as xml from 'xml-js'
 import { VMixOptions, VMixCommand, VMixTransitionType } from 'timeline-state-resolver-types'
-import { VMixState, VMixInput, VMixMix } from './index'
+import { VMixState, VMixInput, VMixMix, TSR_INPUT_PREFIX } from './index'
 import * as _ from 'underscore'
 
 const PING_INTERVAL = 10 * 1000
@@ -25,6 +25,10 @@ export class VMix extends EventEmitter<VMixEvents> {
 	private _disposed = false
 
 	private _socketKeepAliveTimeout: NodeJS.Timer | null = null
+
+	constructor(private getCurrentTime: () => number) {
+		super()
+	}
 
 	async connect(options: VMixOptions): Promise<boolean> {
 		return this._connectHTTP(options)
@@ -188,13 +192,17 @@ export class VMix extends EventEmitter<VMixEvents> {
 			inputs: _.indexBy(
 				(xmlState['vmix']['inputs']['input'] as Array<any>).map((input): VMixInput => {
 					fixedInputsCount++
+					const title = input['_attributes']['title'] as string
+					const loop = input['_attributes']['loop'] === 'False' ? false : true
+					const state = input['_attributes']['state']
+					const position = Number(input['_attributes']['position']) || 0
 					return {
 						number: Number(input['_attributes']['number']),
 						type: input['_attributes']['type'],
-						state: input['_attributes']['state'],
-						position: Number(input['_attributes']['position']) || 0,
+						state,
+						position: !loop && state !== 'Running' ? position : undefined,
 						duration: Number(input['_attributes']['duration']) || 0,
-						loop: input['_attributes']['loop'] === 'False' ? false : true,
+						loop,
 						muted: input['_attributes']['muted'] === 'False' ? false : true,
 						volume: Number(input['_attributes']['volume'] || 100),
 						balance: Number(input['_attributes']['balance'] || 0),
@@ -205,9 +213,11 @@ export class VMix extends EventEmitter<VMixEvents> {
 							alpha: -1, // unavailable
 							zoom: Number(input['position'] ? input['position']['_attributes']['zoomX'] || 1 : 1), // assume that zoomX==zoomY
 						},
+						name: title.startsWith(TSR_INPUT_PREFIX) ? title.substring(TSR_INPUT_PREFIX.length) : undefined,
+						playTime: loop || state !== 'Running' || !position ? undefined : this.getCurrentTime() - position,
 					}
 				}),
-				'number'
+				(input) => (input.name ? TSR_INPUT_PREFIX + input.name : input.number!)
 			),
 			overlays: (xmlState['vmix']['overlays']['overlay'] as Array<any>).map((overlay) => {
 				return {

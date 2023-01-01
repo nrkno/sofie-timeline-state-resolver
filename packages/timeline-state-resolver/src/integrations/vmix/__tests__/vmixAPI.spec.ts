@@ -30,7 +30,7 @@ describe('vMixAPI', () => {
 		const onDisconnected = jest.fn()
 		const onStateChanged = jest.fn()
 
-		const vmix = new VMix()
+		const vmix = new VMix(Date.now)
 		vmix.on('error', onError)
 		vmix.on('connected', onConnected)
 		vmix.on('disconnected', onDisconnected)
@@ -60,7 +60,6 @@ describe('vMixAPI', () => {
 					number: 1,
 					type: 'Capture',
 					state: 'Running',
-					position: 0,
 					duration: 0,
 					loop: false,
 					muted: false,
@@ -78,7 +77,6 @@ describe('vMixAPI', () => {
 					number: 2,
 					type: 'Capture',
 					state: 'Running',
-					position: 0,
 					duration: 0,
 					loop: false,
 					muted: true,
@@ -141,7 +139,7 @@ describe('vMixAPI', () => {
 		expect(vmix.connected).toBeFalsy()
 	})
 	test('Connection status', async () => {
-		const vmix = new VMix()
+		const vmix = new VMix(Date.now)
 		const onError = jest.fn()
 		const onConnected = jest.fn()
 		const onDisconnected = jest.fn()
