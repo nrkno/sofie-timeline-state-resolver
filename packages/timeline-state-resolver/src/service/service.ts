@@ -113,6 +113,10 @@ export class Service extends EventEmitter<DeviceEvents> {
 		this._isActive = Object.keys(newMappings).length > 0
 	}
 
+	getCurrentTime(): number {
+		return Date.now() // @todo - get time from somewhere
+	}
+
 	// @todo - do we still need this?
 	clearFuture() {
 		this._stateHandler.clearFuture()

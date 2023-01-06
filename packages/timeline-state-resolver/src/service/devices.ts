@@ -1,4 +1,4 @@
-import { OscDevice } from '../integrations/osc/device'
+import { OscDevice } from '../integrations/osc'
 import { DeviceType } from 'timeline-state-resolver-types'
 import { Device } from './device'
 
