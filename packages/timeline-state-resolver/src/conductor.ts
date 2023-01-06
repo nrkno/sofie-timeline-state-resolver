@@ -37,7 +37,7 @@ import { PanasonicPtzDevice, DeviceOptionsPanasonicPTZInternal } from './integra
 import { HyperdeckDevice, DeviceOptionsHyperdeckInternal } from './integrations/hyperdeck'
 import { TCPSendDevice, DeviceOptionsTCPSendInternal } from './integrations/tcpSend'
 import { PharosDevice, DeviceOptionsPharosInternal } from './integrations/pharos'
-import { OSCMessageDevice, DeviceOptionsOSCInternal } from './integrations/osc'
+import { DeviceOptionsOSCInternal } from './integrations/osc'
 import { HTTPWatcherDevice, DeviceOptionsHTTPWatcherInternal } from './integrations/httpWatcher'
 import { QuantelDevice, DeviceOptionsQuantelInternal } from './integrations/quantel'
 import { SisyfosMessageDevice, DeviceOptionsSisyfosInternal } from './integrations/sisyfos'
@@ -48,6 +48,7 @@ import { VizMSEDevice, DeviceOptionsVizMSEInternal } from './integrations/vizMSE
 import { ShotokuDevice, DeviceOptionsShotokuInternal } from './integrations/shotoku'
 import { DeviceOptionsSofieChefInternal, SofieChefDevice } from './integrations/sofieChef'
 import { TelemetricsDevice } from './integrations/telemetrics'
+import { RemoteService } from './service/remoteService'
 
 export { DeviceContainer }
 export { CommandWithContext }
@@ -159,7 +160,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 
 	private _options: ConductorOptions
 
-	private devices = new Map<string, DeviceContainer<DeviceOptionsBase<any>>>()
+	private devices = new Map<string, DeviceContainer<DeviceOptionsBase<any>> | RemoteService<DeviceOptionsBase<any>>>()
 
 	private _getCurrentTime?: () => number
 
@@ -317,7 +318,9 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 		this._estimateResolveTimeMultiplier = value
 	}
 
-	public getDevices(includeUninitialized = false): Array<DeviceContainer<DeviceOptionsBase<any>>> {
+	public getDevices(
+		includeUninitialized = false
+	): Array<DeviceContainer<DeviceOptionsBase<any>> | RemoteService<DeviceOptionsBase<any>>> {
 		if (includeUninitialized) {
 			return Array.from(this.devices.values())
 		} else {
@@ -327,7 +330,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 	public getDevice(
 		deviceId: string,
 		includeUninitialized = false
-	): DeviceContainer<DeviceOptionsBase<any>> | undefined {
+	): DeviceContainer<DeviceOptionsBase<any>> | RemoteService<DeviceOptionsBase<any>> | undefined {
 		if (includeUninitialized) {
 			return this.devices.get(deviceId)
 		} else {
@@ -351,7 +354,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 		deviceId: string,
 		deviceOptions: DeviceOptionsAnyInternal,
 		activeRundownPlaylistId?: string
-	): Promise<DeviceContainer<DeviceOptionsBase<any>>> {
+	): Promise<DeviceContainer<DeviceOptionsBase<any>> | RemoteService<DeviceOptionsBase<any>>> {
 		const newDevice = await this.createDevice(deviceId, deviceOptions)
 
 		try {
@@ -411,8 +414,8 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 	public async createDevice(
 		deviceId: string,
 		deviceOptions: DeviceOptionsAnyInternal
-	): Promise<DeviceContainer<DeviceOptionsBase<any>>> {
-		let newDevice: DeviceContainer<DeviceOptionsBase<any>> | undefined
+	): Promise<DeviceContainer<DeviceOptionsBase<any>> | RemoteService<DeviceOptionsBase<any>>> {
+		let newDevice: DeviceContainer<DeviceOptionsBase<any>> | RemoteService<DeviceOptionsBase<any>> | undefined
 		try {
 			if (this.devices.has(deviceId)) {
 				throw new Error(`Device "${deviceId}" already exists when creating device`)
@@ -524,15 +527,6 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 					getCurrentTime,
 					threadedClassOptions
 				)
-			} else if (deviceOptions.type === DeviceType.OSC) {
-				newDevice = await DeviceContainer.create<DeviceOptionsOSCInternal, typeof OSCMessageDevice>(
-					'../../dist/integrations/osc/index.js',
-					'OSCMessageDevice',
-					deviceId,
-					deviceOptions,
-					getCurrentTime,
-					threadedClassOptions
-				)
 			} else if (deviceOptions.type === DeviceType.QUANTEL) {
 				newDevice = await DeviceContainer.create<DeviceOptionsQuantelInternal, typeof QuantelDevice>(
 					'../../dist/integrations/quantel/index.js',
@@ -615,9 +609,24 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 					threadedClassOptions
 				)
 			} else {
-				// @ts-ignore deviceOptions.type is of type "never"
-				const type: any = deviceOptions.type
-				return Promise.reject(`No matching device type for "${type}" ("${DeviceType[type]}") found in conductor`)
+				// presumably this device is implemented in the new service handler
+				try {
+					newDevice = await RemoteService.create(
+						'../../dist/service/service.js',
+						'Service',
+						deviceId,
+						deviceOptions,
+						() => 0,
+						{
+							...threadedClassOptions,
+							threadUsage: deviceOptions.isMultiThreaded ? 0.1 : 0,
+						}
+					)
+				} catch {
+					// @ts-ignore deviceOptions.type is of type "never"
+					const type: any = deviceOptions.type
+					return Promise.reject(`No matching device type for "${type}" ("${DeviceType[type]}") found in conductor`)
+				}
 			}
 
 			if (!newDevice) {
@@ -660,7 +669,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 		deviceId: string,
 		deviceOptions: DeviceOptionsAnyInternal,
 		activeRundownPlaylistId?: string
-	): Promise<DeviceContainer<DeviceOptionsBase<any>>> {
+	): Promise<DeviceContainer<DeviceOptionsBase<any>> | RemoteService<DeviceOptionsBase<any>>> {
 		const newDevice = this.devices.get(deviceId)
 
 		if (!newDevice) {
@@ -790,7 +799,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 
 	private async _mapAllDevices<T>(
 		includeUninitialized: boolean,
-		fcn: (d: DeviceContainer<DeviceOptionsBase<any>>) => Promise<T>
+		fcn: (d: DeviceContainer<DeviceOptionsBase<any>> | RemoteService<DeviceOptionsBase<any>>) => Promise<T>
 	): Promise<T[]> {
 		return PAll(
 			this.getDevices(true)
@@ -1450,7 +1459,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 	 */
 	private filterLayersPerDevice(
 		layers: Timeline.TimelineState<TSRTimelineContent>['layers'],
-		devices: DeviceContainer<DeviceOptionsBase<any>>[]
+		devices: (DeviceContainer<DeviceOptionsBase<any>> | RemoteService<DeviceOptionsBase<any>>)[]
 	) {
 		const filteredStates: { [deviceId: string]: { [layerId: string]: ResolvedTimelineObjectInstanceExtended } } = {}
 
