@@ -3,6 +3,15 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [3.1.0](https://github.com/tv2/tv-automation-state-timeline-resolver/compare/3.0.3...3.1.0) (2023-01-09)
+
+
+### Features
+
+* SOF-1135 make `createDevice` and `initDevice` abortable ([70bfef2](https://github.com/tv2/tv-automation-state-timeline-resolver/commit/70bfef20029b8972aeb248a7c2012b5d92fb2ecc))
+
+
+
 ## [3.0.3](https://github.com/tv2/tv-automation-state-timeline-resolver/compare/3.0.2...3.0.3) (2022-12-05)
 
 **Note:** Version bump only for package timeline-state-resolver-packages
