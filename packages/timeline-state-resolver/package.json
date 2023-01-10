@@ -98,7 +98,7 @@
 		"deepmerge": "^4.2.2",
 		"emberplus-connection": "^0.1.2",
 		"eventemitter3": "^4.0.7",
-		"got": "^11.8.5",
+		"got": "^11.8.6",
 		"hyperdeck-connection": "^0.5.0",
 		"obs-websocket-js": "^4.0.3",
 		"osc": "^2.4.2",
