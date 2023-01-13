@@ -19,7 +19,8 @@
 		"suppressEmptySlotWarnings": {
 			"type": "integer",
 			"description": "If true, no warnings will be emitted when storage slots are empty.",
-			"sofieTitle": "Suppress Empty Slot Warnings"
+			"sofieTitle": "Suppress Empty Slot Warnings",
+			"sofieDescription": ""
 		}
 	},
 	"required": ["host"],

@@ -6,12 +6,14 @@
 		"host": {
 			"type": "string",
 			"description": "Host of CasparCG server",
+			"sofieDescription": "",
 			"sofieTitle": "Host",
 			"default": ""
 		},
 		"port": {
 			"type": "integer",
 			"description": "Port of CasparCG server",
+			"sofieDescription": "",
 			"sofieTitle": "Port",
 			"default": 5250
 		},
@@ -28,6 +30,7 @@
 		"fps": {
 			"type": "number",
 			"description": "fps used for all channels",
+			"sofieDescription": "",
 			"sofieTitle": "Frame rate",
 			"default": 25
 		},
@@ -41,6 +44,7 @@
 		"useScheduling": {
 			"type": "boolean",
 			"description": "whether to use the CasparCG-SCHEDULE command to run future commands, or the internal (backwards-compatible) command queue",
+			"sofieDescription": "",
 			"sofieTitle": "Use CasparCG Timecode Scheduler",
 			"default": false
 		}

@@ -6,72 +6,86 @@
 		"host": {
 			"type": "string",
 			"sofieTitle": "Host",
-			"description": "Host name or IP adress to the MSE machine"
+			"description": "Host name or IP adress to the MSE machine",
+			"sofieDescription": ""
 		},
 		"restPort": {
 			"type": "integer",
 			"sofieTitle": "(Optional) REST port",
-			"description": "Port number to the REST interface (optional)"
+			"description": "Port number to the REST interface (optional)",
+			"sofieDescription": ""
 		},
 		"wsPort": {
 			"type": "integer",
 			"sofieTitle": "(Optional) Websocket port",
-			"description": "Port number to the web-sockets interface (optional)"
+			"description": "Port number to the web-sockets interface (optional)",
+			"sofieDescription": ""
 		},
 		"engineRestPort": {
 			"type": "integer",
 			"sofieTitle": "(Optional) Viz Engines REST port",
-			"description": "Port number to the REST interfaces of Viz Engines (optional)"
+			"description": "Port number to the REST interfaces of Viz Engines (optional)",
+			"sofieDescription": ""
 		},
 		"profile": {
 			"type": "string",
 			"sofieTitle": "Profile",
-			"description": "Identifier of the \"profile\" to send commands to"
+			"description": "Identifier of the \"profile\" to send commands to",
+			"sofieDescription": ""
 		},
 		"playlistID": {
 			"type": "string",
 			"sofieTitle": "(Optional) Playlist ID",
-			"description": "Identifier of the \"playlist\" to send commands to"
+			"description": "Identifier of the \"playlist\" to send commands to",
+			"sofieDescription": ""
 		},
 		"preloadAllElements": {
 			"type": "boolean",
 			"sofieTitle": "Preload all elements",
-			"description": "Whether all elements should be preloaded or not"
+			"description": "Whether all elements should be preloaded or not",
+			"sofieDescription": ""
 		},
 		"purgeUnknownElements": {
 			"type": "boolean",
 			"sofieTitle": "Purge unknown/unused element from Viz Rundown upon activate",
-			"description": "Whether unknown elements should be purged from the rundown upon activation"
+			"description": "Whether unknown elements should be purged from the rundown upon activation",
+			"sofieDescription": ""
 		},
 		"autoLoadInternalElements": {
 			"type": "boolean",
 			"sofieTitle": "Automatically load internal elements when added",
-			"description": "Whether internal elements should automatically be loaded when added to expectedPlayoutItems"
+			"description": "Whether internal elements should automatically be loaded when added to expectedPlayoutItems",
+			"sofieDescription": ""
 		},
 		"clearAllTemplateName": {
 			"type": "string",
 			"sofieTitle": "Clear-All template name",
-			"description": "It is a common practice to have an element which only purpose is to \"clear all graphics\" on the vizEngine.\nTo use this in TSR, set a reference to that here"
+			"description": "It is a common practice to have an element which only purpose is to \"clear all graphics\" on the vizEngine.\nTo use this in TSR, set a reference to that here",
+			"sofieDescription": ""
 		},
 		"clearAllOnMakeReady": {
 			"type": "boolean",
 			"sofieTitle": "Clear-All on make-ready (activate rundown)",
-			"description": "Whether to trigger a clear all templates upon makeReady"
+			"description": "Whether to trigger a clear all templates upon makeReady",
+			"sofieDescription": ""
 		},
 		"dontDeactivateOnStandDown": {
 			"type": "boolean",
 			"sofieTitle": "Don't deactivate on stand-down (deactivate rundown)",
-			"description": "If true, the rundown won't be deactivated on standdown"
+			"description": "If true, the rundown won't be deactivated on standdown",
+			"sofieDescription": ""
 		},
 		"onlyPreloadActivePlaylist": {
 			"type": "boolean",
 			"sofieTitle": "Only preload elements in active Playlist",
-			"description": "If true, only elements in the currently active rundown will be loaded"
+			"description": "If true, only elements in the currently active rundown will be loaded",
+			"sofieDescription": ""
 		},
 		"clearAllCommands": {
 			"type": "array",
 			"sofieTitle": "Clear All Channels Commands",
 			"description": "List of commands to be sent to Viz Engines in order to fully clear them",
+			"sofieDescription": "",
 			"items": {
 				"type": "string"
 			}

@@ -5,14 +5,16 @@
 	"properties": {
 		"makeReadyDoesReset": {
 			"type": "boolean",
-			"sofieTitle": "",
+			"sofieTitle": "Whether Make Ready triggers a state reset",
+			"sofieDescription": "",
 			"description": "Whether a makeReady should be treated as a reset of the device. It should be assumed clean, with the queue discarded, and state reapplied from empty",
 			"default": false
 		},
 		"resendTime": {
 			"type": "integer",
 			"description": "Minimum time in ms before a command is resent, set to <= 0 or undefined to disable",
-			"sofieTitle": "",
+			"sofieDescription": "Minimum time in ms before a command is resent, set to a number > 0 to enable",
+			"sofieTitle": "Resend time in ms",
 			"default": 0
 		},
 		"makeReadyCommands": {

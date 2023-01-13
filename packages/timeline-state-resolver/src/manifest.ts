@@ -33,8 +33,8 @@ const stringifySchema = (action: SingleActionSchema & { payload?: any }): Single
 	payload: JSON.stringify(action.payload),
 })
 
-export type TSRDeviceManifest<T extends string | number = string | number> = {
-	[deviceType in T]: {
+export type TSRDevicesManifest = {
+	[deviceType in DeviceType]: {
 		displayName: string
 		configSchema: string
 		actions?: SingleActionSchema[]
@@ -43,99 +43,97 @@ export type TSRDeviceManifest<T extends string | number = string | number> = {
 
 export interface TSRManifest {
 	commonOptions: string
-	subdevices: TSRDeviceManifest
+	subdevices: TSRDevicesManifest
 }
 
-export const manifest: TSRDeviceManifest<DeviceType> = {
-	[DeviceType.ABSTRACT]: {
-		displayName: 'Abstract',
-		actions: AbstractActions.actions.map(stringifySchema),
-		configSchema: JSON.stringify(AbstractOptions),
-	},
-	[DeviceType.ATEM]: {
-		displayName: 'Blackmagic ATEM',
-		actions: AtemActions.actions.map(stringifySchema),
-		configSchema: JSON.stringify(AtemOptions),
-	},
-	[DeviceType.CASPARCG]: {
-		displayName: 'CasparCG',
-		actions: CasparCGActions.actions.map(stringifySchema),
-		configSchema: JSON.stringify(CasparCGOptions),
-	},
-	[DeviceType.HTTPSEND]: {
-		displayName: 'HTTP Send',
-		configSchema: JSON.stringify(HTTPSendOptions),
-	},
-	[DeviceType.HTTPWATCHER]: {
-		displayName: 'HTTP Watcher',
-		configSchema: JSON.stringify(HTTPWatcherOptions),
-	},
-	[DeviceType.HYPERDECK]: {
-		displayName: 'Blackmagic Hyperdeck',
-		actions: HyperdeckActions.actions.map(stringifySchema),
-		configSchema: JSON.stringify(HyperdeckOptions),
-	},
-	[DeviceType.LAWO]: {
-		displayName: 'Lawo',
-		configSchema: JSON.stringify(LawoOptions),
-	},
-	[DeviceType.OBS]: {
-		displayName: 'OBS Studio',
-		configSchema: JSON.stringify(OBSOptions),
-	},
-	[DeviceType.OSC]: {
-		displayName: 'OSC',
-		configSchema: JSON.stringify(OSCOptions),
-	},
-	[DeviceType.PANASONIC_PTZ]: {
-		displayName: 'Panasonic PTZ',
-		configSchema: JSON.stringify(PanasonicPTZOptions),
-	},
-	[DeviceType.PHAROS]: {
-		displayName: 'Pharos',
-		configSchema: JSON.stringify(PharosOptions),
-	},
-	[DeviceType.QUANTEL]: {
-		displayName: 'Quantel',
-		actions: QuantelActions.actions.map(stringifySchema),
-		configSchema: JSON.stringify(QuantelOptions),
-	},
-	[DeviceType.SHOTOKU]: {
-		displayName: 'Shotoku',
-		configSchema: JSON.stringify(ShotokuOptions),
-	},
-	[DeviceType.SINGULAR_LIVE]: {
-		displayName: 'Singular Live',
-		configSchema: JSON.stringify(SingularLiveOptions),
-	},
-	[DeviceType.SISYFOS]: {
-		displayName: 'Sisyfos',
-		configSchema: JSON.stringify(SisyfosOptions),
-	},
-	[DeviceType.SOFIE_CHEF]: {
-		displayName: 'Sofie Chef',
-		configSchema: JSON.stringify(SofieChefOptions),
-	},
-	[DeviceType.TCPSEND]: {
-		displayName: 'TCP Send',
-		configSchema: JSON.stringify(TCPSendOptions),
-	},
-	[DeviceType.TELEMETRICS]: {
-		displayName: 'Telemetrics',
-		configSchema: JSON.stringify(TelemetricsOptions),
-	},
-	[DeviceType.VIZMSE]: {
-		displayName: 'Viz MSE',
-		actions: VizMSEActions.actions.map(stringifySchema),
-		configSchema: JSON.stringify(VizMSEOptions),
-	},
-	[DeviceType.VMIX]: {
-		displayName: 'VMix',
-		configSchema: JSON.stringify(VMixOptions),
-	},
-}
-
-export const manifest2: TSRManifest = {
+export const manifest: TSRManifest = {
 	commonOptions: JSON.stringify(CommonOptions),
-	subdevices: manifest,
+	subdevices: {
+		[DeviceType.ABSTRACT]: {
+			displayName: 'Abstract',
+			actions: AbstractActions.actions.map(stringifySchema),
+			configSchema: JSON.stringify(AbstractOptions),
+		},
+		[DeviceType.ATEM]: {
+			displayName: 'Blackmagic ATEM',
+			actions: AtemActions.actions.map(stringifySchema),
+			configSchema: JSON.stringify(AtemOptions),
+		},
+		[DeviceType.CASPARCG]: {
+			displayName: 'CasparCG',
+			actions: CasparCGActions.actions.map(stringifySchema),
+			configSchema: JSON.stringify(CasparCGOptions),
+		},
+		[DeviceType.HTTPSEND]: {
+			displayName: 'HTTP Send',
+			configSchema: JSON.stringify(HTTPSendOptions),
+		},
+		[DeviceType.HTTPWATCHER]: {
+			displayName: 'HTTP Watcher',
+			configSchema: JSON.stringify(HTTPWatcherOptions),
+		},
+		[DeviceType.HYPERDECK]: {
+			displayName: 'Blackmagic Hyperdeck',
+			actions: HyperdeckActions.actions.map(stringifySchema),
+			configSchema: JSON.stringify(HyperdeckOptions),
+		},
+		[DeviceType.LAWO]: {
+			displayName: 'Lawo',
+			configSchema: JSON.stringify(LawoOptions),
+		},
+		[DeviceType.OBS]: {
+			displayName: 'OBS Studio',
+			configSchema: JSON.stringify(OBSOptions),
+		},
+		[DeviceType.OSC]: {
+			displayName: 'OSC',
+			configSchema: JSON.stringify(OSCOptions),
+		},
+		[DeviceType.PANASONIC_PTZ]: {
+			displayName: 'Panasonic PTZ',
+			configSchema: JSON.stringify(PanasonicPTZOptions),
+		},
+		[DeviceType.PHAROS]: {
+			displayName: 'Pharos',
+			configSchema: JSON.stringify(PharosOptions),
+		},
+		[DeviceType.QUANTEL]: {
+			displayName: 'Quantel',
+			actions: QuantelActions.actions.map(stringifySchema),
+			configSchema: JSON.stringify(QuantelOptions),
+		},
+		[DeviceType.SHOTOKU]: {
+			displayName: 'Shotoku',
+			configSchema: JSON.stringify(ShotokuOptions),
+		},
+		[DeviceType.SINGULAR_LIVE]: {
+			displayName: 'Singular Live',
+			configSchema: JSON.stringify(SingularLiveOptions),
+		},
+		[DeviceType.SISYFOS]: {
+			displayName: 'Sisyfos',
+			configSchema: JSON.stringify(SisyfosOptions),
+		},
+		[DeviceType.SOFIE_CHEF]: {
+			displayName: 'Sofie Chef',
+			configSchema: JSON.stringify(SofieChefOptions),
+		},
+		[DeviceType.TCPSEND]: {
+			displayName: 'TCP Send',
+			configSchema: JSON.stringify(TCPSendOptions),
+		},
+		[DeviceType.TELEMETRICS]: {
+			displayName: 'Telemetrics',
+			configSchema: JSON.stringify(TelemetricsOptions),
+		},
+		[DeviceType.VIZMSE]: {
+			displayName: 'Viz MSE',
+			actions: VizMSEActions.actions.map(stringifySchema),
+			configSchema: JSON.stringify(VizMSEOptions),
+		},
+		[DeviceType.VMIX]: {
+			displayName: 'VMix',
+			configSchema: JSON.stringify(VMixOptions),
+		},
+	},
 }
