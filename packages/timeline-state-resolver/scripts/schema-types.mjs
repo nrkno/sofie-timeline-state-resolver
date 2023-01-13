@@ -21,7 +21,8 @@ const PrettierConf = JSON.parse(
 // convert action-schema
 // compile options from file
 try {
-	const actionSchema = await compileFromFile('./src/$schemas/action-schema.json', {
+	const actionSchemaDescr = JSON.parse(await fs.readFile('./src/$schemas/action-schema.json'))
+	const actionSchema = await compile(actionSchemaDescr.properties.actions.items, 'TSRActionSchema', {
 		additionalProperties: false,
 		style: PrettierConf,
 		bannerComment: '',

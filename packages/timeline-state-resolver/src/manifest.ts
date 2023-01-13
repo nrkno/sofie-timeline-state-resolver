@@ -1,4 +1,4 @@
-import { DeviceType, SingleActionSchema } from 'timeline-state-resolver-types'
+import { DeviceType, TSRActionSchema } from 'timeline-state-resolver-types'
 import AbstractActions = require('./integrations/abstract/$schemas/actions.json')
 import AbstractOptions = require('./integrations/abstract/$schemas/options.json')
 import AtemActions = require('./integrations/atem/$schemas/actions.json')
@@ -28,7 +28,7 @@ import VMixOptions = require('./integrations/vmix/$schemas/options.json')
 
 import CommonOptions = require('./$schemas/common-options.json')
 
-const stringifySchema = (action: SingleActionSchema & { payload?: any }): SingleActionSchema => ({
+const stringifySchema = (action: TSRActionSchema & { payload?: any }): TSRActionSchema => ({
 	...action,
 	payload: JSON.stringify(action.payload),
 })
@@ -37,7 +37,7 @@ export type TSRDevicesManifest = {
 	[deviceType in DeviceType]: {
 		displayName: string
 		configSchema: string
-		actions?: SingleActionSchema[]
+		actions?: TSRActionSchema[]
 	}
 }
 

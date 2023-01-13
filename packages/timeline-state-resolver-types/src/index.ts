@@ -155,6 +155,3 @@ export enum ActionExecutionResultCode {
 	Error = 'ERROR',
 	Ok = 'OK',
 }
-
-// TODO - tidy this?
-export type SingleActionSchema = ActionSchema['actions'][0]
