@@ -26,29 +26,7 @@ export enum MappingLawoType {
 	FULL_PATH = 'fullpath',
 	TRIGGER_VALUE = 'triggerValue',
 }
-export enum LawoDeviceMode {
-	R3lay,
-	Ruby,
-	RubyManualRamp,
-	MC2,
-	Manual,
-}
-export interface LawoOptions {
-	setValueFn?: SetLawoValueFn
-	host?: string
-	port?: number
 
-	deviceMode: LawoDeviceMode
-
-	faderInterval?: number
-
-	/** Manual mode only: */
-	sourcesPath?: string
-	dbPropertyName?: string
-	rampMotorFunctionPath?: string
-	faderThreshold?: number
-}
-export type SetLawoValueFn = (command: LawoCommand, timelineObjId: string, logCommand?: boolean) => Promise<any>
 export interface LawoCommand {
 	path: string
 	value: EmberValue

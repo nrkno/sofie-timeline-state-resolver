@@ -26,6 +26,7 @@
 					},
 					"payload": {
 						"type": "object",
+						"tsType": "string",
 						"description": "The payload object is the first argument of the function",
 						"properties": {
 							"type": {

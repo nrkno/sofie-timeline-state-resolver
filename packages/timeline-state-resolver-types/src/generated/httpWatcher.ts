@@ -5,6 +5,10 @@
  * and run "yarn generate-schema-types" to regenerate this file.
  */
 
-export enum VizMSEActions {
-	PurgeRundown = 'purgeRundown',
+export interface HTTPWatcherOptions {
+	uri: string
+	httpMethod?: string
+	expectedHttpResponse?: number
+	keyword?: string
+	interval?: number
 }

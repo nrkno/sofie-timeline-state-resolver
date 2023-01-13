@@ -1,0 +1,50 @@
+{
+	"$schema": "https://json-schema.org/draft/2020-12/schema",
+	"title": "CasparCG Options",
+	"type": "object",
+	"properties": {
+		"host": {
+			"type": "string",
+			"description": "Host of CasparCG server",
+			"sofieTitle": "Host",
+			"default": ""
+		},
+		"port": {
+			"type": "integer",
+			"description": "Port of CasparCG server",
+			"sofieTitle": "Port",
+			"default": 5250
+		},
+		"launcherHost": {
+			"type": "string",
+			"sofieTitle": "Launcher Host",
+			"default": ""
+		},
+		"launcherPort": {
+			"type": "integer",
+			"sofieTitle": "Launcher Port",
+			"default": 8005
+		},
+		"fps": {
+			"type": "number",
+			"description": "fps used for all channels",
+			"sofieTitle": "Frame rate",
+			"default": 25
+		},
+		"retryInterval": {
+			"type": "number",
+			"description": "Interval (ms) for retrying to load media that previously failed. (-1 disables, 0 uses the default interval)",
+			"sofieTitle": "Media retry interval",
+			"sofieDescription": "Time between retries for media that could not be loaded on first try. Set to -1 to disable.",
+			"default": 0
+		},
+		"useScheduling": {
+			"type": "boolean",
+			"description": "whether to use the CasparCG-SCHEDULE command to run future commands, or the internal (backwards-compatible) command queue",
+			"sofieTitle": "Use CasparCG Timecode Scheduler",
+			"default": false
+		}
+	},
+	"required": ["host"],
+	"additionalProperties": false
+}

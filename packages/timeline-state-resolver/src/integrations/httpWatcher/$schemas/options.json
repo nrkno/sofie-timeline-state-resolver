@@ -1,0 +1,30 @@
+{
+	"$schema": "https://json-schema.org/draft/2020-12/schema",
+	"title": "HTTPWatcherOptions",
+	"type": "object",
+	"properties": {
+		"uri": {
+			"type": "string",
+			"sofieTitle": "URI"
+		},
+		"httpMethod": {
+			"type": "string",
+			"sofieTitle": "HTTP Method"
+		},
+		"expectedHttpResponse": {
+			"type": "integer",
+			"sofieTitle": "Expected Response Code",
+			"default": 200
+		},
+		"keyword": {
+			"type": "string",
+			"sofieTitle": "Match keyword"
+		},
+		"interval": {
+			"type": "integer",
+			"sofieTitle": "Poll Interval"
+		}
+	},
+	"required": ["uri"],
+	"additionalProperties": false
+}

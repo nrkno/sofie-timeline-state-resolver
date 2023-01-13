@@ -7,7 +7,6 @@ import {
 	MappingLawo,
 	DeviceOptionsLawo,
 	LawoCommand,
-	SetLawoValueFn,
 	LawoOptions,
 	LawoDeviceMode,
 	TimelineContentLawoSourceValue,
@@ -20,8 +19,11 @@ import { DoOnTime, SendMode } from '../../devices/doOnTime'
 import { deferAsync, getDiff } from '../../lib'
 import { EmberClient, Types as EmberTypes, Model as EmberModel } from 'emberplus-connection'
 
+export type SetLawoValueFn = (command: LawoCommand, timelineObjId: string, logCommand?: boolean) => Promise<any>
+
 export interface DeviceOptionsLawoInternal extends DeviceOptionsLawo {
 	commandReceiver?: CommandReceiver
+	setValueFn?: SetLawoValueFn
 }
 export type CommandReceiver = (
 	time: number,
@@ -98,8 +100,8 @@ export class LawoDevice extends DeviceWithState<LawoState, DeviceOptionsLawoInte
 			} else {
 				this._commandReceiver = this._defaultCommandReceiver.bind(this)
 			}
-			if (deviceOptions.options.setValueFn) {
-				this._setValueFn = deviceOptions.options.setValueFn
+			if (deviceOptions.setValueFn) {
+				this._setValueFn = deviceOptions.setValueFn
 			} else {
 				this._setValueFn = async (...args) => {
 					return this.setValueWrapper(...args)

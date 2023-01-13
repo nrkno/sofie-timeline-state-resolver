@@ -1,0 +1,68 @@
+{
+	"$schema": "https://json-schema.org/draft/2020-12/schema",
+	"title": "HTTP Send Options",
+	"type": "object",
+	"properties": {
+		"makeReadyDoesReset": {
+			"type": "boolean",
+			"sofieTitle": "",
+			"description": "Whether a makeReady should be treated as a reset of the device. It should be assumed clean, with the queue discarded, and state reapplied from empty",
+			"default": false
+		},
+		"resendTime": {
+			"type": "integer",
+			"description": "Minimum time in ms before a command is resent, set to <= 0 or undefined to disable",
+			"sofieTitle": "",
+			"default": 0
+		},
+		"makeReadyCommands": {
+			"type": "array",
+			"sofieTitle": "Make Ready Commands",
+			"items": {
+				"type": "object",
+				"title": "HTTPSendCommandContent",
+				"todo": "should this be pulled in from elsewhere? its a timeline object type too",
+				"properties": {
+					"type": {
+						"type": "string",
+						"sofieTitle": "Type",
+						"default": "",
+						"TODO": "enum"
+					},
+					"url": {
+						"type": "string",
+						"sofieTitle": "Url",
+						"default": ""
+					},
+					"params": {
+						"type": "string",
+						"sofieTitle": "Params",
+						"default": "",
+						"TODO": "json?",
+						"tsType": "any"
+					},
+					"paramsType": {
+						"type": "string",
+						"sofieTitle": "Params type",
+						"default": "json",
+						"TODO": "enum"
+					},
+					"temporalPriority": {
+						"type": "integer",
+						"sofieTitle": "Temporal Priority",
+						"default": 0
+					},
+					"queueId": {
+						"type": "string",
+						"description": "Commands in the same queue will be sent in order (will wait for the previous to finish before sending next",
+						"sofieTitle": "Send Queue Id"
+					}
+				},
+				"required": ["type", "url", "params"],
+				"additionalProperties": false
+			}
+		}
+	},
+	"required": ["host"],
+	"additionalProperties": false
+}

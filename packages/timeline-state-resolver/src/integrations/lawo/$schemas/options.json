@@ -1,0 +1,47 @@
+{
+	"$schema": "https://json-schema.org/draft/2020-12/schema",
+	"$id": "https://example.com/product.schema.json",
+	"title": "Lawo Options",
+	"type": "object",
+	"properties": {
+		"host": {
+			"type": "string",
+			"sofieTitle": "Host",
+			"default": ""
+		},
+		"port": {
+			"type": "integer",
+			"sofieTitle": "Port",
+			"default": 0
+		},
+		"deviceMode": {
+			"type": "integer",
+			"sofieTitle": "DeviceMode",
+			"title": "LawoDeviceMode",
+			"default": 0,
+			"enum": [0, 1, 2, 3, 4],
+			"tsEnumNames": ["R3lay", "Ruby", "RubyManualRamp", "MC2", "Manual"]
+		},
+		"faderInterval": {
+			"type": "integer"
+		},
+		"sourcesPath": {
+			"type": "string",
+			"description": "Manual mode only:"
+		},
+		"dbPropertyName": {
+			"type": "string",
+			"description": "Manual mode only:"
+		},
+		"rampMotorFunctionPath": {
+			"type": "string",
+			"description": "Manual mode only:"
+		},
+		"faderThreshold": {
+			"type": "number",
+			"description": "Manual mode only:"
+		}
+	},
+	"required": ["host", "deviceMode"],
+	"additionalProperties": false
+}
