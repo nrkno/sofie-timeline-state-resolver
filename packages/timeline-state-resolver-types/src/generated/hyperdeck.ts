@@ -12,7 +12,7 @@ export interface HyperdeckOptions {
 	/**
 	 * If true, no warnings will be emitted when storage slots are empty.
 	 */
-	suppressEmptySlotWarnings?: number
+	suppressEmptySlotWarnings?: boolean
 }
 
 export enum HyperdeckActions {

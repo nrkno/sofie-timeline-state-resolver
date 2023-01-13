@@ -17,7 +17,7 @@
 			"sofieTitle": "Minimum recording time"
 		},
 		"suppressEmptySlotWarnings": {
-			"type": "integer",
+			"type": "boolean",
 			"description": "If true, no warnings will be emitted when storage slots are empty.",
 			"sofieTitle": "Suppress Empty Slot Warnings",
 			"sofieDescription": ""
