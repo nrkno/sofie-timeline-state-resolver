@@ -11,19 +11,19 @@ export interface LawoOptions {
 	deviceMode: LawoDeviceMode
 	faderInterval?: number
 	/**
-	 * Manual mode only:
+	 * Manual mode only
 	 */
 	sourcesPath?: string
 	/**
-	 * Manual mode only:
+	 * Manual mode only
 	 */
 	dbPropertyName?: string
 	/**
-	 * Manual mode only:
+	 * Manual mode only
 	 */
 	rampMotorFunctionPath?: string
 	/**
-	 * Manual mode only:
+	 * Manual mode only
 	 */
 	faderThreshold?: number
 }

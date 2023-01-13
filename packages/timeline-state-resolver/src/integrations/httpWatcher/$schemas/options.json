@@ -13,16 +13,16 @@
 		},
 		"expectedHttpResponse": {
 			"type": "integer",
-			"sofieTitle": "Expected Response Code",
+			"sofieTitle": "Expected HTTP Response",
 			"default": 200
 		},
 		"keyword": {
 			"type": "string",
-			"sofieTitle": "Match keyword"
+			"sofieTitle": "Keyword"
 		},
 		"interval": {
 			"type": "integer",
-			"sofieTitle": "Poll Interval"
+			"sofieTitle": "Interval"
 		}
 	},
 	"required": ["uri"],

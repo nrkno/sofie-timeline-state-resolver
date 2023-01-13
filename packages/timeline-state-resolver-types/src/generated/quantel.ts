@@ -5,6 +5,33 @@
  * and run "yarn generate-schema-types" to regenerate this file.
  */
 
+export interface QuantelOptions {
+	/**
+	 * Url to the quantel gateway
+	 */
+	gatewayUrl: string
+	/**
+	 * Location of the ISA manager to be connected to first of all
+	 */
+	ISAUrlMaster: string
+	/**
+	 * Optional backup ISA manager for the gateway to switch to in the event of failure of the master
+	 */
+	ISAUrlBackup?: string
+	/**
+	 * The ID of the zone to use. If omitted, will be using 'default'
+	 */
+	zoneId?: string
+	/**
+	 * The id of the server to control. An integer
+	 */
+	serverId: number
+	/**
+	 * If set: If a clip turns out to be on the wrong server, an attempt to copy the clip will be done
+	 */
+	allowCloneClips?: boolean
+}
+
 export enum QuantelActions {
 	RestartGateway = 'restartGateway',
 }

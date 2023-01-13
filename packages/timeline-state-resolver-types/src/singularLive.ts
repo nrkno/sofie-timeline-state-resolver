@@ -12,10 +12,6 @@ export interface SingularLiveContent {
 	/** Commands in the same queue will be sent in order (will wait for the previous to finish before sending next */
 	queueId?: string
 }
-export interface SingularLiveOptions {
-	accessToken: string
-	// makeReadyCommands?: SingularLiveContent[]
-}
 
 export enum TimelineContentTypeSingularLive {
 	COMPOSITION = 'composition',

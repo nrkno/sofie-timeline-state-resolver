@@ -1,0 +1,20 @@
+{
+	"$schema": "https://json-schema.org/draft/2020-12/schema",
+	"title": "Sofie Chef Options",
+	"type": "object",
+	"properties": {
+		"address": {
+			"type": "string",
+			"sofieTitle": "Device URL",
+			"sofieDescription": "Example: 'ws://127.0.0.1:5271'",
+			"description": "Address to the Sofie Chef websocket server. Example: 'ws://127.0.0.1:5271'"
+		},
+		"apiKey": {
+			"type": "string",
+			"sofieTitle": "API Key",
+			"description": "Access key to the Sofie Chef API"
+		}
+	},
+	"required": ["address"],
+	"additionalProperties": false
+}

@@ -15,17 +15,6 @@ export type OSCEasingType =
 	| 'Back'
 	| 'Bounce'
 
-export enum OSCDeviceType {
-	TCP = 'tcp',
-	UDP = 'udp',
-}
-
-export interface OSCOptions {
-	host: string
-	port: number
-	type: OSCDeviceType
-}
-
 export interface MappingOSC extends Mapping {
 	device: DeviceType.OSC
 }

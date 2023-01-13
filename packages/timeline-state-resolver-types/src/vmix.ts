@@ -102,11 +102,6 @@ export enum MappingVMixType {
 	Fader = 10,
 }
 
-export interface VMixOptions {
-	host: string
-	port: number
-}
-
 export enum VMixCommand {
 	PREVIEW_INPUT = 'PREVIEW_INPUT',
 	TRANSITION = 'TRANSITION',

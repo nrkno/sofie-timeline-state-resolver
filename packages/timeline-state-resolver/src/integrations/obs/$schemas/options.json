@@ -1,0 +1,21 @@
+{
+	"$schema": "https://json-schema.org/draft/2020-12/schema",
+	"title": "OBS Options",
+	"type": "object",
+	"properties": {
+		"host": {
+			"type": "string",
+			"sofieTitle": "Host"
+		},
+		"port": {
+			"type": "integer",
+			"sofieTitle": "Port"
+		},
+		"password": {
+			"type": "string",
+			"sofieTitle": "Password"
+		}
+	},
+	"required": ["host", "port"],
+	"additionalProperties": false
+}

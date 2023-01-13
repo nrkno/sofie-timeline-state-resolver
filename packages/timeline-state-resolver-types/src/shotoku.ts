@@ -1,11 +1,6 @@
 import { Mapping } from './mapping'
 import { DeviceType } from '.'
 
-export interface ShotokuOptions {
-	host: string
-	port: number
-}
-
 export interface MappingShotoku extends Mapping {
 	device: DeviceType.SHOTOKU
 }

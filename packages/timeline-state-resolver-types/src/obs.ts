@@ -66,12 +66,6 @@ export enum MappingOBSType {
 	SourceSettings = 6,
 }
 
-export interface OBSOptions {
-	host: string
-	port: number
-	password?: string
-}
-
 export enum OBSRequest {
 	SET_CURRENT_SCENE = 'SetCurrentScene',
 	SET_PREVIEW_SCENE = 'SetPreviewScene',

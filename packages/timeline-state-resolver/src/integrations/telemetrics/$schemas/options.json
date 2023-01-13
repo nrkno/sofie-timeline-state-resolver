@@ -1,0 +1,17 @@
+{
+	"$schema": "https://json-schema.org/draft/2020-12/schema",
+	"title": "Telemetrics Options",
+	"type": "object",
+	"properties": {
+		"host": {
+			"type": "string",
+			"sofieTitle": "Host"
+		},
+		"port": {
+			"type": "integer",
+			"sofieTitle": "Port"
+		}
+	},
+	"required": ["host", "port"],
+	"additionalProperties": false
+}

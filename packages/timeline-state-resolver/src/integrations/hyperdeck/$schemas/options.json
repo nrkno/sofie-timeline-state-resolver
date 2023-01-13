@@ -1,0 +1,27 @@
+{
+	"$schema": "https://json-schema.org/draft/2020-12/schema",
+	"title": "Hyperdeck Options",
+	"type": "object",
+	"properties": {
+		"host": {
+			"type": "string",
+			"sofieTitle": "Host",
+			"default": ""
+		},
+		"port": {
+			"type": "integer",
+			"sofieTitle": "Port"
+		},
+		"minRecordingTime": {
+			"type": "integer",
+			"sofieTitle": "Minimum recording time"
+		},
+		"suppressEmptySlotWarnings": {
+			"type": "integer",
+			"description": "If true, no warnings will be emitted when storage slots are empty.",
+			"sofieTitle": "Suppress Empty Slot Warnings"
+		}
+	},
+	"required": ["host"],
+	"additionalProperties": false
+}

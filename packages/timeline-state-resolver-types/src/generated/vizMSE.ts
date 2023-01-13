@@ -5,6 +5,66 @@
  * and run "yarn generate-schema-types" to regenerate this file.
  */
 
+export interface VizMSEOptions {
+	/**
+	 * Host name or IP adress to the MSE machine
+	 */
+	host: string
+	/**
+	 * Port number to the REST interface (optional)
+	 */
+	restPort?: number
+	/**
+	 * Port number to the web-sockets interface (optional)
+	 */
+	wsPort?: number
+	/**
+	 * Port number to the REST interfaces of Viz Engines (optional)
+	 */
+	engineRestPort?: number
+	/**
+	 * Identifier of the "profile" to send commands to
+	 */
+	profile: string
+	/**
+	 * Identifier of the "playlist" to send commands to
+	 */
+	playlistID?: string
+	/**
+	 * Whether all elements should be preloaded or not
+	 */
+	preloadAllElements?: boolean
+	/**
+	 * Whether unknown elements should be purged from the rundown upon activation
+	 */
+	purgeUnknownElements?: boolean
+	/**
+	 * Whether internal elements should automatically be loaded when added to expectedPlayoutItems
+	 */
+	autoLoadInternalElements?: boolean
+	/**
+	 * It is a common practice to have an element which only purpose is to "clear all graphics" on the vizEngine.
+	 * To use this in TSR, set a reference to that here
+	 */
+	clearAllTemplateName?: string
+	/**
+	 * Whether to trigger a clear all templates upon makeReady
+	 */
+	clearAllOnMakeReady?: boolean
+	/**
+	 * If true, the rundown won't be deactivated on standdown
+	 */
+	dontDeactivateOnStandDown?: boolean
+	/**
+	 * If true, only elements in the currently active rundown will be loaded
+	 */
+	onlyPreloadActivePlaylist?: boolean
+	/**
+	 * List of commands to be sent to Viz Engines in order to fully clear them
+	 */
+	clearAllCommands?: string[]
+}
+
 export enum VizMSEActions {
 	PurgeRundown = 'purgeRundown',
 }

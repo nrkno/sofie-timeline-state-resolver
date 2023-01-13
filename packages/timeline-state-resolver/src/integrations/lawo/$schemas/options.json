@@ -16,30 +16,36 @@
 		},
 		"deviceMode": {
 			"type": "integer",
-			"sofieTitle": "DeviceMode",
+			"sofieTitle": "Device Mode",
 			"title": "LawoDeviceMode",
 			"default": 0,
 			"enum": [0, 1, 2, 3, 4],
 			"tsEnumNames": ["R3lay", "Ruby", "RubyManualRamp", "MC2", "Manual"]
 		},
 		"faderInterval": {
-			"type": "integer"
+			"type": "integer",
+			"sofieTitle": "Fader setValue Interval"
 		},
 		"sourcesPath": {
 			"type": "string",
-			"description": "Manual mode only:"
+			"description": "Manual mode only",
+			"sofieTitle": "Sources Path"
 		},
 		"dbPropertyName": {
 			"type": "string",
-			"description": "Manual mode only:"
+			"description": "Manual mode only",
+			"sofieTitle": "dB Property Path"
 		},
 		"rampMotorFunctionPath": {
 			"type": "string",
-			"description": "Manual mode only:"
+			"description": "Manual mode only",
+			"sofieTitle": "Ramp Motor Function Path"
 		},
 		"faderThreshold": {
-			"type": "number",
-			"description": "Manual mode only:"
+			"type": "integer",
+			"description": "Manual mode only",
+			"sofieTitle": "Fader cutoff value",
+			"default": -60
 		}
 	},
 	"required": ["host", "deviceMode"],

@@ -5,16 +5,13 @@
  * and run "yarn generate-schema-types" to regenerate this file.
  */
 
-export interface HyperdeckOptions {
+export interface OSCOptions {
 	host: string
-	port?: number
-	minRecordingTime?: number
-	/**
-	 * If true, no warnings will be emitted when storage slots are empty.
-	 */
-	suppressEmptySlotWarnings?: number
+	port: number
+	type: OSCDeviceType
 }
 
-export enum HyperdeckActions {
-	FormatDisks = 'formatDisks',
+export enum OSCDeviceType {
+	TCP = 'tcp',
+	UDP = 'udp'
 }

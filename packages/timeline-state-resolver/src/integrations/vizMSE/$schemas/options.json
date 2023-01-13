@@ -1,0 +1,82 @@
+{
+	"$schema": "https://json-schema.org/draft/2020-12/schema",
+	"title": "Viz MSE Options",
+	"type": "object",
+	"properties": {
+		"host": {
+			"type": "string",
+			"sofieTitle": "Host",
+			"description": "Host name or IP adress to the MSE machine"
+		},
+		"restPort": {
+			"type": "integer",
+			"sofieTitle": "(Optional) REST port",
+			"description": "Port number to the REST interface (optional)"
+		},
+		"wsPort": {
+			"type": "integer",
+			"sofieTitle": "(Optional) Websocket port",
+			"description": "Port number to the web-sockets interface (optional)"
+		},
+		"engineRestPort": {
+			"type": "integer",
+			"sofieTitle": "(Optional) Viz Engines REST port",
+			"description": "Port number to the REST interfaces of Viz Engines (optional)"
+		},
+		"profile": {
+			"type": "string",
+			"sofieTitle": "Profile",
+			"description": "Identifier of the \"profile\" to send commands to"
+		},
+		"playlistID": {
+			"type": "string",
+			"sofieTitle": "(Optional) Playlist ID",
+			"description": "Identifier of the \"playlist\" to send commands to"
+		},
+		"preloadAllElements": {
+			"type": "boolean",
+			"sofieTitle": "Preload all elements",
+			"description": "Whether all elements should be preloaded or not"
+		},
+		"purgeUnknownElements": {
+			"type": "boolean",
+			"sofieTitle": "Purge unknown/unused element from Viz Rundown upon activate",
+			"description": "Whether unknown elements should be purged from the rundown upon activation"
+		},
+		"autoLoadInternalElements": {
+			"type": "boolean",
+			"sofieTitle": "Automatically load internal elements when added",
+			"description": "Whether internal elements should automatically be loaded when added to expectedPlayoutItems"
+		},
+		"clearAllTemplateName": {
+			"type": "string",
+			"sofieTitle": "Clear-All template name",
+			"description": "It is a common practice to have an element which only purpose is to \"clear all graphics\" on the vizEngine.\nTo use this in TSR, set a reference to that here"
+		},
+		"clearAllOnMakeReady": {
+			"type": "boolean",
+			"sofieTitle": "Clear-All on make-ready (activate rundown)",
+			"description": "Whether to trigger a clear all templates upon makeReady"
+		},
+		"dontDeactivateOnStandDown": {
+			"type": "boolean",
+			"sofieTitle": "Don't deactivate on stand-down (deactivate rundown)",
+			"description": "If true, the rundown won't be deactivated on standdown"
+		},
+		"onlyPreloadActivePlaylist": {
+			"type": "boolean",
+			"sofieTitle": "Only preload elements in active Playlist",
+			"description": "If true, only elements in the currently active rundown will be loaded"
+		},
+		"clearAllCommands": {
+			"type": "array",
+			"sofieTitle": "Clear All Channels Commands",
+			"description": "List of commands to be sent to Viz Engines in order to fully clear them",
+			"items": {
+				"type": "string"
+			}
+		}
+	},
+	"required": ["host", "profile"],
+	"additionalProperties": false
+}

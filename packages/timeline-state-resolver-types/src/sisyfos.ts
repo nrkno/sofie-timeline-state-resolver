@@ -1,11 +1,6 @@
 import { Mapping } from './mapping'
 import { DeviceType } from '.'
 
-export interface SisyfosOptions {
-	host: string
-	port: number
-}
-
 export enum MappingSisyfosType {
 	CHANNEL = 'channel',
 	CHANNEL_BY_LABEL = 'channel_by_label',

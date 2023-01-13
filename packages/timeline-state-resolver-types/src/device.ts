@@ -18,9 +18,9 @@ import {
 	HTTPWatcherOptions,
 	VizMSEOptions,
 	VMixOptions,
+	ShotokuOptions,
+	TelemetricsOptions,
 } from '.'
-import { ShotokuOptions } from './shotoku'
-import { TelemetricsOptions } from './telemetrics'
 
 export enum StatusCode {
 	UNKNOWN = 0, // Status unknown

@@ -1,0 +1,22 @@
+{
+	"$schema": "https://json-schema.org/draft/2020-12/schema",
+	"title": "Panasonic PTZ Options",
+	"type": "object",
+	"properties": {
+		"host": {
+			"type": "string",
+			"sofieTitle": "Host"
+		},
+		"port": {
+			"type": "integer",
+			"sofieTitle": "Port"
+		},
+		"https": {
+			"type": "boolean",
+			"sofieTitle": "Use HTTPS",
+			"default": false
+		}
+	},
+	"required": ["host", "port"],
+	"additionalProperties": false
+}
