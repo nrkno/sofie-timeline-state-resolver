@@ -16,7 +16,7 @@ export interface AtemMediaPoolAsset {
 	position: number
 }
 
-export const enum AtemMediaPoolType {
+export enum AtemMediaPoolType {
 	Still = 'still',
 	Clip = 'clip',
 	Audio = 'audio'

@@ -28,7 +28,7 @@ export interface LawoOptions {
 	faderThreshold?: number
 }
 
-export const enum LawoDeviceMode {
+export enum LawoDeviceMode {
 	R3lay = 0,
 	Ruby = 1,
 	RubyManualRamp = 2,

@@ -54,6 +54,7 @@ for (const dir of dirs) {
 				additionalProperties: false,
 				style: PrettierConf,
 				bannerComment: '',
+				enableConstEnums: false, // TODO - temporary?
 			})
 			output += '\n' + options
 		}
