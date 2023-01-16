@@ -2821,10 +2821,10 @@ casparcg-connection@^6.0.0:
     tslib "^2.4.0"
     xml2js "^0.4.23"
 
-casparcg-state@^3.0.1:
-  version "3.0.1"
-  resolved "https://registry.yarnpkg.com/casparcg-state/-/casparcg-state-3.0.1.tgz#e6aa97db649c66fe58fe03ab02ed0d776ad80fa2"
-  integrity sha512-KVGCh4VZfKAfyOw3MzyhHxc54wZuhUb9kZaB4J96rzGEOoDiEA0Qqyni2MTAqWElCOL4+oDFY7hJeSYIDgFv1w==
+casparcg-state@^3.0.2:
+  version "3.0.2"
+  resolved "https://registry.yarnpkg.com/casparcg-state/-/casparcg-state-3.0.2.tgz#ffe808b1461da1e9b6e239026f80098efdf01bff"
+  integrity sha512-2HOD7VGoz11k3WNAq2OrPON5m4TR+PFUvmEt7MQAxP2EE02DxGFEKyrwxuqZuO4BsjpYeo1kMkfcq618Yx5AQA==
   dependencies:
     casparcg-connection "^6.0.0"
     fast-clone "^1.5.13"
