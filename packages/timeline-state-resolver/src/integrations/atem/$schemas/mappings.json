@@ -1,0 +1,109 @@
+{
+	"$schema": "../../../$schemas/mapping-schema.json",
+	"mappings": {
+		"mixEffect": {
+			"type": "object",
+			"properties": {
+				"index": {
+					"type": "integer",
+					"ui:title": "Index",
+					"default": 0,
+					"min": 0,
+					"ui:zeroBased": true
+				}
+			},
+			"required": ["index"],
+			"additionalProperties": false
+		},
+		"DownStreamKeyer": {
+			"type": "object",
+			"properties": {
+				"index": {
+					"type": "integer",
+					"ui:title": "Index",
+					"default": 0,
+					"min": 0,
+					"ui:zeroBased": true
+				}
+			},
+			"required": ["index"],
+			"additionalProperties": false
+		},
+		"SuperSourceBox": {
+			"type": "object",
+			"properties": {
+				"index": {
+					"type": "integer",
+					"ui:title": "Index",
+					"default": 0,
+					"min": 0,
+					"ui:zeroBased": true
+				}
+			},
+			"required": ["index"],
+			"additionalProperties": false
+		},
+		"Auxilliary": {
+			"type": "object",
+			"properties": {
+				"index": {
+					"type": "integer",
+					"ui:title": "Index",
+					"default": 0,
+					"min": 0,
+					"ui:zeroBased": true
+				}
+			},
+			"required": ["index"],
+			"additionalProperties": false
+		},
+		"MediaPlayer": {
+			"type": "object",
+			"properties": {
+				"index": {
+					"type": "integer",
+					"ui:title": "Index",
+					"default": 0,
+					"min": 0,
+					"ui:zeroBased": true
+				}
+			},
+			"required": ["index"],
+			"additionalProperties": false
+		},
+		"SuperSourceProperties": {
+			"type": "object",
+			"properties": {
+				"index": {
+					"type": "integer",
+					"ui:title": "Index",
+					"default": 0,
+					"min": 0,
+					"ui:zeroBased": true
+				}
+			},
+			"required": ["index"],
+			"additionalProperties": false
+		},
+		"AudioChannel": {
+			"type": "object",
+			"properties": {
+				"index": {
+					"type": "integer",
+					"ui:title": "Index",
+					"default": 0,
+					"min": 0,
+					"ui:zeroBased": true
+				}
+			},
+			"required": ["index"],
+			"additionalProperties": false
+		},
+		"MacroPlayer": {
+			"type": "object",
+			"properties": {},
+			"required": [],
+			"additionalProperties": false
+		}
+	}
+}

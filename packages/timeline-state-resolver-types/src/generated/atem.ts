@@ -22,6 +22,58 @@ export enum AtemMediaPoolType {
 	Audio = 'audio'
 }
 
+export interface MappingAtemMixEffect {
+	index: number
+	mappingType: MappingAtemType.MixEffect
+}
+
+export interface MappingAtemDownStreamKeyer {
+	index: number
+	mappingType: MappingAtemType.DownStreamKeyer
+}
+
+export interface MappingAtemSuperSourceBox {
+	index: number
+	mappingType: MappingAtemType.SuperSourceBox
+}
+
+export interface MappingAtemAuxilliary {
+	index: number
+	mappingType: MappingAtemType.Auxilliary
+}
+
+export interface MappingAtemMediaPlayer {
+	index: number
+	mappingType: MappingAtemType.MediaPlayer
+}
+
+export interface MappingAtemSuperSourceProperties {
+	index: number
+	mappingType: MappingAtemType.SuperSourceProperties
+}
+
+export interface MappingAtemAudioChannel {
+	index: number
+	mappingType: MappingAtemType.AudioChannel
+}
+
+export interface MappingAtemMacroPlayer {
+	mappingType: MappingAtemType.MacroPlayer
+}
+
+export enum MappingAtemType {
+	MixEffect = 'mixEffect',
+	DownStreamKeyer = 'DownStreamKeyer',
+	SuperSourceBox = 'SuperSourceBox',
+	Auxilliary = 'Auxilliary',
+	MediaPlayer = 'MediaPlayer',
+	SuperSourceProperties = 'SuperSourceProperties',
+	AudioChannel = 'AudioChannel',
+	MacroPlayer = 'MacroPlayer',
+}
+
+export type SomeMappingAtem = MappingAtemMixEffect | MappingAtemDownStreamKeyer | MappingAtemSuperSourceBox | MappingAtemAuxilliary | MappingAtemMediaPlayer | MappingAtemSuperSourceProperties | MappingAtemAudioChannel | MappingAtemMacroPlayer
+
 export enum AtemActions {
 	Resync = 'resync',
 }

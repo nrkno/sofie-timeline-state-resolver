@@ -20,7 +20,6 @@ import { TimelineContentSingularLiveAny } from './singularLive'
 import { TimelineContentVMixAny } from './vmix'
 import { TimelineContentOBSAny } from './obs'
 import { ITranslatableMessage } from './translations'
-import { ActionSchema } from './generated'
 
 export * from './abstract'
 export * from './atem'

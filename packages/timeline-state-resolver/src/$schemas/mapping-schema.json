@@ -1,0 +1,20 @@
+{
+	"$schema": "https://json-schema.org/draft/2020-12/schema",
+	"description": "This is a meta-schema that defines the schemas for *device*/$schemas/mappings.json",
+	"type": "object",
+	"properties": {
+		"mappings": {
+			"type": "object",
+			"patternProperties": {
+				".+": {
+					"type": "object",
+					"$schema": "https://json-schema.org/draft/2020-12/schema",
+					"TODO": "does this need to be stricter?"
+				}
+			},
+			"additionalProperties": false
+		}
+	},
+	"required": ["mappings"],
+	"additionalProperties": false
+}

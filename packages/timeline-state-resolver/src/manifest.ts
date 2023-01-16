@@ -3,6 +3,7 @@ import AbstractActions = require('./integrations/abstract/$schemas/actions.json'
 import AbstractOptions = require('./integrations/abstract/$schemas/options.json')
 import AtemActions = require('./integrations/atem/$schemas/actions.json')
 import AtemOptions = require('./integrations/atem/$schemas/options.json')
+import AtemMappings = require('./integrations/atem/$schemas/mappings.json')
 import CasparCGActions = require('./integrations/casparCG/$schemas/actions.json')
 import CasparCGOptions = require('./integrations/casparCG/$schemas/options.json')
 import HTTPSendOptions = require('./integrations/httpSend/$schemas/options.json')
@@ -38,6 +39,7 @@ export type TSRDevicesManifest = {
 		displayName: string
 		configSchema: string
 		actions?: TSRActionSchema[]
+		mappingSchema?: string // TODO - make required
 	}
 }
 
@@ -58,6 +60,7 @@ export const manifest: TSRManifest = {
 			displayName: 'Blackmagic ATEM',
 			actions: AtemActions.actions.map(stringifySchema),
 			configSchema: JSON.stringify(AtemOptions),
+			mappingSchema: JSON.stringify(AtemMappings),
 		},
 		[DeviceType.CASPARCG]: {
 			displayName: 'CasparCG',
