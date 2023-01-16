@@ -26,5 +26,4 @@ export interface TSRActionSchema {
 	 * The payload object is the first argument of the function
 	 */
 	payload?: string
-	[k: string]: unknown
 }

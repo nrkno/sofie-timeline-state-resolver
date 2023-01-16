@@ -5,28 +5,27 @@
 	"properties": {
 		"host": {
 			"type": "string",
-			"sofieTitle": "Host"
+			"ui:title": "Host"
 		},
 		"port": {
 			"type": "integer",
-			"sofieTitle": "Port"
+			"ui:title": "Port"
 		},
 		"bufferEncoding": {
 			"type": "string",
-			"sofieTitle": "Buffer Encoding",
+			"ui:title": "Buffer Encoding",
 			"enum": ["ascii", "utf8", "utf-8", "utf16le", "ucs2", "ucs-2", "base64", "base64url", "latin1", "binary", "hex"],
 			"default": "utf8"
 		},
 		"makeReadyDoesReset": {
 			"type": "boolean",
-			"sofieTitle": "",
+			"ui:title": "",
 			"description": "Whether a makeReady should be treated as a reset of the device. It should be assumed clean, with the queue discarded, and state reapplied from empty",
-			"sofieDescription": "",
 			"default": false
 		},
 		"makeReadyCommands": {
 			"type": "array",
-			"sofieTitle": "Make Ready Commands",
+			"ui:title": "Make Ready Commands",
 			"items": {
 				"type": "object",
 				"title": "TcpSendCommandContent",
@@ -34,18 +33,18 @@
 				"properties": {
 					"message": {
 						"type": "string",
-						"sofieTitle": "Message",
+						"ui:title": "Message",
 						"default": ""
 					},
 					"temporalPriority": {
 						"type": "integer",
-						"sofieTitle": "Temporal Priority",
+						"ui:title": "Temporal Priority",
 						"default": 0
 					},
 					"queueId": {
 						"type": "string",
 						"description": "Commands in the same queue will be sent in order (will wait for the previous to finish before sending next",
-						"sofieTitle": "Send Queue Id"
+						"ui:title": "Send Queue Id"
 					}
 				},
 				"required": ["message"],

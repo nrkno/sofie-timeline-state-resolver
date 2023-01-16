@@ -1,35 +1,35 @@
 {
 	"$schema": "https://json-schema.org/draft/2020-12/schema",
-	"title": "AtemOptions",
+	"title": "Atem Options",
 	"type": "object",
 	"properties": {
 		"host": {
 			"type": "string",
-			"sofieTitle": "Host",
+			"ui:title": "Host",
 			"default": ""
 		},
 		"port": {
 			"type": "integer",
-			"sofieTitle": "Port",
+			"ui:title": "Port",
 			"default": 9910
 		},
 		"mediaPoolAssets": {
 			"type": "array",
-			"sofieTitle": "Media Pool Assets",
+			"ui:title": "Media Pool Assets",
 			"items": {
 				"type": "object",
 				"title": "AtemMediaPoolAsset",
 				"properties": {
 					"path": {
 						"type": "string",
-						"sofieTitle": "Path",
+						"ui:title": "Path",
 						"sofieSummaryTitle": "File Path",
 						"default": ""
 					},
 					"type": {
 						"type": "string",
 						"title": "AtemMediaPoolType",
-						"sofieTitle": "Type",
+						"ui:title": "Type",
 						"sofieSummaryTitle": "Type",
 						"enum": ["still", "clip", "audio"],
 						"tsEnumNames": ["Still", "Clip", "Audio"],
@@ -37,7 +37,7 @@
 					},
 					"position": {
 						"type": "integer",
-						"sofieTitle": "Position",
+						"ui:title": "Position",
 						"default": 0,
 						"minimum": 0
 					}

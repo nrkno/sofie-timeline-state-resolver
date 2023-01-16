@@ -5,11 +5,11 @@
 	"properties": {
 		"host": {
 			"type": "string",
-			"sofieTitle": "Host"
+			"ui:title": "Host"
 		},
 		"ssl": {
 			"type": "boolean",
-			"sofieTitle": "Enable SSL",
+			"ui:title": "Enable SSL",
 			"default": false
 		}
 	},

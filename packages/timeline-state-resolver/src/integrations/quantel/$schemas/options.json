@@ -5,40 +5,34 @@
 	"properties": {
 		"gatewayUrl": {
 			"type": "string",
-			"sofieTitle": "Gateway URL",
-			"description": "Url to the quantel gateway",
-			"sofieDescription": ""
+			"ui:title": "Gateway URL",
+			"description": "Url to the quantel gateway"
 		},
 		"ISAUrlMaster": {
 			"type": "string",
-			"sofieTitle": "ISA URL (Master)",
-			"description": "Location of the ISA manager to be connected to first of all",
-			"sofieDescription": ""
+			"ui:title": "ISA URL (Master)",
+			"description": "Location of the ISA manager to be connected to first of all"
 		},
 		"ISAUrlBackup": {
 			"type": "string",
-			"sofieTitle": "ISA URL (Backup)",
-			"description": "Optional backup ISA manager for the gateway to switch to in the event of failure of the master",
-			"sofieDescription": ""
+			"ui:title": "ISA URL (Backup)",
+			"description": "Optional backup ISA manager for the gateway to switch to in the event of failure of the master"
 		},
 		"zoneId": {
 			"type": "string",
-			"sofieTitle": "Zone ID",
+			"ui:title": "Zone ID",
 			"description": "The ID of the zone to use. If omitted, will be using 'default'",
-			"sofieDescription": "",
 			"default": "default"
 		},
 		"serverId": {
 			"type": "integer",
-			"sofieTitle": "Quantel Server ID",
-			"description": "The id of the server to control. An integer",
-			"sofieDescription": ""
+			"ui:title": "Quantel Server ID",
+			"description": "The id of the server to control. An integer"
 		},
 		"allowCloneClips": {
 			"type": "boolean",
-			"sofieTitle": "Allow cloning of clips if on wrong server/pool",
+			"ui:title": "Allow cloning of clips if on wrong server/pool",
 			"description": "If set: If a clip turns out to be on the wrong server, an attempt to copy the clip will be done",
-			"sofieDescription": "",
 			"default": false
 		}
 	},

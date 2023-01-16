@@ -5,21 +5,20 @@
 	"properties": {
 		"makeReadyDoesReset": {
 			"type": "boolean",
-			"sofieTitle": "Whether Make Ready triggers a state reset",
-			"sofieDescription": "",
+			"ui:title": "Whether Make Ready triggers a state reset",
 			"description": "Whether a makeReady should be treated as a reset of the device. It should be assumed clean, with the queue discarded, and state reapplied from empty",
 			"default": false
 		},
 		"resendTime": {
 			"type": "integer",
 			"description": "Minimum time in ms before a command is resent, set to <= 0 or undefined to disable",
-			"sofieDescription": "Minimum time in ms before a command is resent, set to a number > 0 to enable",
-			"sofieTitle": "Resend time in ms",
+			"ui:description": "Minimum time in ms before a command is resent, set to a number > 0 to enable",
+			"ui:title": "Resend time in ms",
 			"default": 0
 		},
 		"makeReadyCommands": {
 			"type": "array",
-			"sofieTitle": "Make Ready Commands",
+			"ui:title": "Make Ready Commands",
 			"items": {
 				"type": "object",
 				"title": "HTTPSendCommandContent",
@@ -27,37 +26,37 @@
 				"properties": {
 					"type": {
 						"type": "string",
-						"sofieTitle": "Type",
+						"ui:title": "Type",
 						"default": "",
 						"TODO": "enum"
 					},
 					"url": {
 						"type": "string",
-						"sofieTitle": "Url",
+						"ui:title": "Url",
 						"default": ""
 					},
 					"params": {
 						"type": "string",
-						"sofieTitle": "Params",
+						"ui:title": "Params",
 						"default": "",
 						"TODO": "json?",
 						"tsType": "any"
 					},
 					"paramsType": {
 						"type": "string",
-						"sofieTitle": "Params type",
+						"ui:title": "Params type",
 						"default": "json",
 						"TODO": "enum"
 					},
 					"temporalPriority": {
 						"type": "integer",
-						"sofieTitle": "Temporal Priority",
+						"ui:title": "Temporal Priority",
 						"default": 0
 					},
 					"queueId": {
 						"type": "string",
 						"description": "Commands in the same queue will be sent in order (will wait for the previous to finish before sending next",
-						"sofieTitle": "Send Queue Id"
+						"ui:title": "Send Queue Id"
 					}
 				},
 				"required": ["type", "url", "params"],

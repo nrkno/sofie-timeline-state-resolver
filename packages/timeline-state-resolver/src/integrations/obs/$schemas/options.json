@@ -5,15 +5,15 @@
 	"properties": {
 		"host": {
 			"type": "string",
-			"sofieTitle": "Host"
+			"ui:title": "Host"
 		},
 		"port": {
 			"type": "integer",
-			"sofieTitle": "Port"
+			"ui:title": "Port"
 		},
 		"password": {
 			"type": "string",
-			"sofieTitle": "Password"
+			"ui:title": "Password"
 		}
 	},
 	"required": ["host", "port"],

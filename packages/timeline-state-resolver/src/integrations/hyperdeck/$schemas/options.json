@@ -5,22 +5,21 @@
 	"properties": {
 		"host": {
 			"type": "string",
-			"sofieTitle": "Host",
+			"ui:title": "Host",
 			"default": ""
 		},
 		"port": {
 			"type": "integer",
-			"sofieTitle": "Port"
+			"ui:title": "Port"
 		},
 		"minRecordingTime": {
 			"type": "integer",
-			"sofieTitle": "Minimum recording time"
+			"ui:title": "Minimum recording time"
 		},
 		"suppressEmptySlotWarnings": {
 			"type": "boolean",
 			"description": "If true, no warnings will be emitted when storage slots are empty.",
-			"sofieTitle": "Suppress Empty Slot Warnings",
-			"sofieDescription": ""
+			"ui:title": "Suppress Empty Slot Warnings"
 		}
 	},
 	"required": ["host"],

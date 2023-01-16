@@ -5,15 +5,15 @@
 	"properties": {
 		"host": {
 			"type": "string",
-			"sofieTitle": "Host"
+			"ui:title": "Host"
 		},
 		"port": {
 			"type": "integer",
-			"sofieTitle": "Port"
+			"ui:title": "Port"
 		},
 		"https": {
 			"type": "boolean",
-			"sofieTitle": "Use HTTPS",
+			"ui:title": "Use HTTPS",
 			"default": false
 		}
 	},

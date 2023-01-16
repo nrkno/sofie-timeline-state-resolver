@@ -6,17 +6,17 @@
 	"properties": {
 		"host": {
 			"type": "string",
-			"sofieTitle": "Host",
+			"ui:title": "Host",
 			"default": ""
 		},
 		"port": {
 			"type": "integer",
-			"sofieTitle": "Port",
+			"ui:title": "Port",
 			"default": 0
 		},
 		"deviceMode": {
 			"type": "integer",
-			"sofieTitle": "Device Mode",
+			"ui:title": "Device Mode",
 			"title": "LawoDeviceMode",
 			"default": 0,
 			"enum": [0, 1, 2, 3, 4],
@@ -24,27 +24,27 @@
 		},
 		"faderInterval": {
 			"type": "integer",
-			"sofieTitle": "Fader setValue Interval"
+			"ui:title": "Fader setValue Interval"
 		},
 		"sourcesPath": {
 			"type": "string",
 			"description": "Manual mode only",
-			"sofieTitle": "Sources Path"
+			"ui:title": "Sources Path"
 		},
 		"dbPropertyName": {
 			"type": "string",
 			"description": "Manual mode only",
-			"sofieTitle": "dB Property Path"
+			"ui:title": "dB Property Path"
 		},
 		"rampMotorFunctionPath": {
 			"type": "string",
 			"description": "Manual mode only",
-			"sofieTitle": "Ramp Motor Function Path"
+			"ui:title": "Ramp Motor Function Path"
 		},
 		"faderThreshold": {
 			"type": "integer",
 			"description": "Manual mode only",
-			"sofieTitle": "Fader cutoff value",
+			"ui:title": "Fader cutoff value",
 			"default": -60
 		}
 	},

@@ -45,9 +45,11 @@
 						]
 					}
 				},
-				"required": ["id", "name", "destructive"]
+				"required": ["id", "name", "destructive"],
+				"additionalProperties": false
 			}
 		}
 	},
-	"required": ["actions"]
+	"required": ["actions"],
+	"additionalProperties": false
 }

@@ -5,16 +5,14 @@
 	"properties": {
 		"address": {
 			"type": "string",
-			"sofieTitle": "Device URL",
-			"sofieDescription": "Example: 'ws://127.0.0.1:5271'",
-			"description": "Address to the Sofie Chef websocket server. Example: 'ws://127.0.0.1:5271'",
-			"sofieDescription": ""
+			"ui:title": "Device URL",
+			"ui:description": "Example: 'ws://127.0.0.1:5271'",
+			"description": "Address to the Sofie Chef websocket server. Example: 'ws://127.0.0.1:5271'"
 		},
 		"apiKey": {
 			"type": "string",
-			"sofieTitle": "API Key",
-			"description": "Access key to the Sofie Chef API",
-			"sofieDescription": ""
+			"ui:title": "API Key",
+			"description": "Access key to the Sofie Chef API"
 		}
 	},
 	"required": ["address"],
