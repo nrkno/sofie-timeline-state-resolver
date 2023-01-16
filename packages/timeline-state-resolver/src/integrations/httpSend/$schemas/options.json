@@ -27,12 +27,14 @@
 					"type": {
 						"type": "string",
 						"ui:title": "Type",
+						"ui:summaryTitle": "Type",
 						"default": "",
 						"TODO": "enum"
 					},
 					"url": {
 						"type": "string",
 						"ui:title": "Url",
+						"ui:summaryTitle": "URL",
 						"default": ""
 					},
 					"params": {

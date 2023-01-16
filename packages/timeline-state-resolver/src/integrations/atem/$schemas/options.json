@@ -23,14 +23,14 @@
 					"path": {
 						"type": "string",
 						"ui:title": "Path",
-						"sofieSummaryTitle": "File Path",
+						"ui:summaryTitle": "File Path",
 						"default": ""
 					},
 					"type": {
 						"type": "string",
 						"title": "AtemMediaPoolType",
 						"ui:title": "Type",
-						"sofieSummaryTitle": "Type",
+						"ui:summaryTitle": "Type",
 						"enum": ["still", "clip", "audio"],
 						"tsEnumNames": ["Still", "Clip", "Audio"],
 						"default": "still"

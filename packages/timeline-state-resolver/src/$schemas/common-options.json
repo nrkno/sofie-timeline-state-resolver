@@ -5,17 +5,17 @@
 	"properties": {
 		"debug": {
 			"type": "boolean",
-			"title": "Activate debug logging for device",
+			"ui:title": "Activate debug logging for device",
 			"default": false
 		},
 		"disable": {
 			"type": "boolean",
-			"title": "Disable",
+			"ui:title": "Disable",
 			"default": false
 		},
 		"threadUsage": {
 			"type": "number",
-			"title": "Thread Usage",
+			"ui:title": "Thread Usage",
 			"default": 0
 		}
 	},

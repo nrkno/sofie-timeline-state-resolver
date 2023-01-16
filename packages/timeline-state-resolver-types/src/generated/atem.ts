@@ -63,13 +63,13 @@ export interface MappingAtemMacroPlayer {
 
 export enum MappingAtemType {
 	MixEffect = 'mixEffect',
-	DownStreamKeyer = 'DownStreamKeyer',
-	SuperSourceBox = 'SuperSourceBox',
-	Auxilliary = 'Auxilliary',
-	MediaPlayer = 'MediaPlayer',
-	SuperSourceProperties = 'SuperSourceProperties',
-	AudioChannel = 'AudioChannel',
-	MacroPlayer = 'MacroPlayer',
+	DownStreamKeyer = 'downStreamKeyer',
+	SuperSourceBox = 'superSourceBox',
+	Auxilliary = 'auxilliary',
+	MediaPlayer = 'mediaPlayer',
+	SuperSourceProperties = 'superSourceProperties',
+	AudioChannel = 'audioChannel',
+	MacroPlayer = 'macroPlayer',
 }
 
 export type SomeMappingAtem = MappingAtemMixEffect | MappingAtemDownStreamKeyer | MappingAtemSuperSourceBox | MappingAtemAuxilliary | MappingAtemMediaPlayer | MappingAtemSuperSourceProperties | MappingAtemAudioChannel | MappingAtemMacroPlayer

@@ -15,7 +15,7 @@
 			"required": ["index"],
 			"additionalProperties": false
 		},
-		"DownStreamKeyer": {
+		"downStreamKeyer": {
 			"type": "object",
 			"properties": {
 				"index": {
@@ -29,7 +29,7 @@
 			"required": ["index"],
 			"additionalProperties": false
 		},
-		"SuperSourceBox": {
+		"superSourceBox": {
 			"type": "object",
 			"properties": {
 				"index": {
@@ -43,7 +43,7 @@
 			"required": ["index"],
 			"additionalProperties": false
 		},
-		"Auxilliary": {
+		"auxilliary": {
 			"type": "object",
 			"properties": {
 				"index": {
@@ -57,7 +57,7 @@
 			"required": ["index"],
 			"additionalProperties": false
 		},
-		"MediaPlayer": {
+		"mediaPlayer": {
 			"type": "object",
 			"properties": {
 				"index": {
@@ -71,7 +71,7 @@
 			"required": ["index"],
 			"additionalProperties": false
 		},
-		"SuperSourceProperties": {
+		"superSourceProperties": {
 			"type": "object",
 			"properties": {
 				"index": {
@@ -85,7 +85,7 @@
 			"required": ["index"],
 			"additionalProperties": false
 		},
-		"AudioChannel": {
+		"audioChannel": {
 			"type": "object",
 			"properties": {
 				"index": {
@@ -99,7 +99,7 @@
 			"required": ["index"],
 			"additionalProperties": false
 		},
-		"MacroPlayer": {
+		"macroPlayer": {
 			"type": "object",
 			"properties": {},
 			"required": [],
