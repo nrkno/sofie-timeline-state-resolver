@@ -4,13 +4,14 @@ import {
 	DeviceType,
 	SingularLiveOptions,
 	TimelineContentTypeSingularLive,
-	MappingSingularLive,
+	SomeMappingSingularLive,
 	DeviceOptionsSingularLive,
 	SingularCompositionAnimation,
 	SingularCompositionControlNode,
-	Mappings,
+	NewMappings,
 	TSRTimelineContent,
 	Timeline,
+	NewMapping,
 } from 'timeline-state-resolver-types'
 import { DoOnTime, SendMode } from '../../devices/doOnTime'
 import * as request from 'request'
@@ -114,7 +115,7 @@ export class SingularLiveDevice extends DeviceWithState<SingularLiveState, Devic
 		this._doOnTime.clearQueueNowAndAfter(newStateTime)
 		this.cleanUpStates(0, newStateTime)
 	}
-	handleState(newState: Timeline.TimelineState<TSRTimelineContent>, newMappings: Mappings) {
+	handleState(newState: Timeline.TimelineState<TSRTimelineContent>, newMappings: NewMappings) {
 		super.onHandleState(newState, newMappings)
 		// Handle this new state, at the point in time specified
 
@@ -170,13 +171,13 @@ export class SingularLiveDevice extends DeviceWithState<SingularLiveState, Devic
 			compositions: {},
 		}
 	}
-	convertStateToSingularLive(state: Timeline.TimelineState<TSRTimelineContent>, newMappings: Mappings) {
+	convertStateToSingularLive(state: Timeline.TimelineState<TSRTimelineContent>, newMappings: NewMappings) {
 		// convert the timeline state into something we can use
 		// (won't even use this.mapping)
 		const singularState: SingularLiveState = this._getDefaultState()
 
 		_.each(state.layers, (tlObject, layerName: string) => {
-			const mapping: MappingSingularLive | undefined = newMappings[layerName] as MappingSingularLive
+			const mapping = newMappings[layerName] as NewMapping<SomeMappingSingularLive>
 			if (
 				mapping &&
 				mapping.device === DeviceType.SINGULAR_LIVE &&
@@ -186,7 +187,7 @@ export class SingularLiveDevice extends DeviceWithState<SingularLiveState, Devic
 				const content = tlObject.content
 
 				if (content.type === TimelineContentTypeSingularLive.COMPOSITION) {
-					singularState.compositions[mapping.compositionName] = {
+					singularState.compositions[mapping.options.compositionName] = {
 						timelineObjId: tlObject.id,
 
 						controlNode: content.controlNode,

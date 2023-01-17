@@ -9,7 +9,7 @@ import {
 	DeviceType,
 	DeviceOptionsVMix,
 	VMixOptions,
-	Mappings,
+	NewMappings,
 	TimelineContentTypeVMix,
 	VMixCommand,
 	VMixTransition,
@@ -17,10 +17,11 @@ import {
 	VMixInputType,
 	VMixTransform,
 	VMixInputOverlays,
-	MappingVMixType,
-	MappingVMixAny,
+	MappingVmixType,
+	SomeMappingVmix,
 	Timeline,
 	TSRTimelineContent,
+	NewMapping,
 } from 'timeline-state-resolver-types'
 
 export interface DeviceOptionsVMixInternal extends DeviceOptionsVMix {
@@ -193,7 +194,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 		this.cleanUpStates(0, newStateTime + 0.1)
 	}
 
-	handleState(newState: Timeline.TimelineState<TSRTimelineContent>, newMappings: Mappings) {
+	handleState(newState: Timeline.TimelineState<TSRTimelineContent>, newMappings: NewMappings) {
 		super.onHandleState(newState, newMappings)
 		if (!this._initialized) {
 			// before it's initialized don't do anything
@@ -260,7 +261,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 		return false
 	}
 
-	convertStateToVMix(state: Timeline.TimelineState<TSRTimelineContent>, mappings: Mappings): VMixStateExtended {
+	convertStateToVMix(state: Timeline.TimelineState<TSRTimelineContent>, mappings: NewMappings): VMixStateExtended {
 		if (!this._initialized) throw Error('convertStateToVMix cannot be used before inititialized')
 
 		const deviceState = this._getDefaultState()
@@ -270,19 +271,19 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 			_.map(state.layers, (tlObject, layerName) => ({
 				layerName,
 				tlObject,
-				mapping: mappings[layerName] as MappingVMixAny,
+				mapping: mappings[layerName] as NewMapping<SomeMappingVmix>,
 			})).sort((a, b) => a.layerName.localeCompare(b.layerName)),
-			(o) => o.mapping.mappingType
+			(o) => o.mapping.options.mappingType
 		)
 
 		_.each(sortedLayers, ({ tlObject, layerName, mapping }) => {
 			const content = tlObject.content
 
 			if (mapping && content.deviceType === DeviceType.VMIX) {
-				switch (mapping.mappingType) {
-					case MappingVMixType.Program:
+				switch (mapping.options.mappingType) {
+					case MappingVmixType.Program:
 						if (content.type === TimelineContentTypeVMix.PROGRAM) {
-							const mixProgram = (mapping.index || 1) - 1
+							const mixProgram = (mapping.options.index || 1) - 1
 							if (content.input !== undefined) {
 								this.switchToInput(content.input, deviceState, mixProgram, content.transition)
 							} else if (content.inputLayer) {
@@ -290,52 +291,52 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 							}
 						}
 						break
-					case MappingVMixType.Preview:
+					case MappingVmixType.Preview:
 						if (content.type === TimelineContentTypeVMix.PREVIEW) {
-							const mixPreview = (mapping.index || 1) - 1
+							const mixPreview = (mapping.options.index || 1) - 1
 							if (content.input) deviceState.reportedState.mixes[mixPreview].preview = content.input
 						}
 						break
-					case MappingVMixType.AudioChannel:
+					case MappingVmixType.AudioChannel:
 						if (content.type === TimelineContentTypeVMix.AUDIO) {
 							const vmixTlAudioPicked = _.pick(content, 'volume', 'balance', 'audioAuto', 'audioBuses', 'muted', 'fade')
-							if (mapping.index) {
+							if (mapping.options.index) {
 								deviceState.reportedState.inputs = this.modifyInput(deviceState, vmixTlAudioPicked, {
-									key: mapping.index,
+									key: mapping.options.index,
 								})
-							} else if (mapping.inputLayer) {
+							} else if (mapping.options.inputLayer) {
 								deviceState.reportedState.inputs = this.modifyInput(deviceState, vmixTlAudioPicked, {
-									layer: mapping.inputLayer,
+									layer: mapping.options.inputLayer,
 								})
 							}
 						}
 						break
-					case MappingVMixType.Fader:
+					case MappingVmixType.Fader:
 						if (content.type === TimelineContentTypeVMix.FADER) {
 							deviceState.reportedState.faderPosition = content.position
 						}
 						break
-					case MappingVMixType.Recording:
+					case MappingVmixType.Recording:
 						if (content.type === TimelineContentTypeVMix.RECORDING) {
 							deviceState.reportedState.recording = content.on
 						}
 						break
-					case MappingVMixType.Streaming:
+					case MappingVmixType.Streaming:
 						if (content.type === TimelineContentTypeVMix.STREAMING) {
 							deviceState.reportedState.streaming = content.on
 						}
 						break
-					case MappingVMixType.External:
+					case MappingVmixType.External:
 						if (content.type === TimelineContentTypeVMix.EXTERNAL) {
 							deviceState.reportedState.external = content.on
 						}
 						break
-					case MappingVMixType.FadeToBlack:
+					case MappingVmixType.FadeToBlack:
 						if (content.type === TimelineContentTypeVMix.FADE_TO_BLACK) {
 							deviceState.reportedState.fadeToBlack = content.on
 						}
 						break
-					case MappingVMixType.Input:
+					case MappingVmixType.Input:
 						if (content.type === TimelineContentTypeVMix.INPUT) {
 							deviceState.reportedState.inputs = this.modifyInput(
 								deviceState,
@@ -348,22 +349,22 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 									overlays: content.overlays,
 								},
 
-								{ key: mapping.index || content.filePath },
+								{ key: mapping.options.index || content.filePath },
 								layerName
 							)
 						}
 						break
-					case MappingVMixType.Output:
+					case MappingVmixType.Output:
 						if (content.type === TimelineContentTypeVMix.OUTPUT) {
-							deviceState.outputs[mapping.index] = {
+							deviceState.outputs[mapping.options.index] = {
 								source: content.source,
 								input: content.input,
 							}
 						}
 						break
-					case MappingVMixType.Overlay:
+					case MappingVmixType.Overlay:
 						if (content.type === TimelineContentTypeVMix.OVERLAY) {
-							const overlayIndex = mapping.index - 1
+							const overlayIndex = mapping.options.index - 1
 							deviceState.reportedState.overlays[overlayIndex].input = content.input
 						}
 						break

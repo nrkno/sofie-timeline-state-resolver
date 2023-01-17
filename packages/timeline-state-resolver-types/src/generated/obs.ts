@@ -11,4 +11,58 @@ export interface OBSOptions {
 	password?: string
 }
 
-export type SomeMappingObs = unknown
+export interface MappingObsCurrentScene {
+	mappingType: MappingObsType.CurrentScene
+}
+
+export interface MappingObsCurrentTransition {
+	mappingType: MappingObsType.CurrentTransition
+}
+
+export interface MappingObsRecording {
+	mappingType: MappingObsType.Recording
+}
+
+export interface MappingObsStreaming {
+	mappingType: MappingObsType.Streaming
+}
+
+export interface MappingObsSceneItemRender {
+	/**
+	 * Name of the scene item to be modified
+	 */
+	sceneName: string
+	/**
+	 * Scene item source name
+	 */
+	source: string
+	mappingType: MappingObsType.SceneItemRender
+}
+
+export interface MappingObsMute {
+	/**
+	 * Source name
+	 */
+	source: string
+	mappingType: MappingObsType.Mute
+}
+
+export interface MappingObsSourceSettings {
+	/**
+	 * Source name
+	 */
+	source: string
+	mappingType: MappingObsType.SourceSettings
+}
+
+export enum MappingObsType {
+	CurrentScene = 'currentScene',
+	CurrentTransition = 'currentTransition',
+	Recording = 'recording',
+	Streaming = 'streaming',
+	SceneItemRender = 'sceneItemRender',
+	Mute = 'mute',
+	SourceSettings = 'sourceSettings',
+}
+
+export type SomeMappingObs = MappingObsCurrentScene | MappingObsCurrentTransition | MappingObsRecording | MappingObsStreaming | MappingObsSceneItemRender | MappingObsMute | MappingObsSourceSettings

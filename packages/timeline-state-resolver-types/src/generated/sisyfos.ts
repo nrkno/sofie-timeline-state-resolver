@@ -10,4 +10,25 @@ export interface SisyfosOptions {
 	port: number
 }
 
-export type SomeMappingSisyfos = unknown
+export interface MappingSisyfosChannel {
+	channel: number
+	setLabelToLayerName?: boolean
+	mappingType: MappingSisyfosType.Channel
+}
+
+export interface MappingSisyfosChannelByLabel {
+	label: string
+	mappingType: MappingSisyfosType.ChannelByLabel
+}
+
+export interface MappingSisyfosChannels {
+	mappingType: MappingSisyfosType.Channels
+}
+
+export enum MappingSisyfosType {
+	Channel = 'channel',
+	ChannelByLabel = 'channel_by_label',
+	Channels = 'channels',
+}
+
+export type SomeMappingSisyfos = MappingSisyfosChannel | MappingSisyfosChannelByLabel | MappingSisyfosChannels

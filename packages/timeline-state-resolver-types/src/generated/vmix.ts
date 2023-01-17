@@ -10,4 +10,90 @@ export interface VMixOptions {
 	port: number
 }
 
-export type SomeMappingVmix = unknown
+export interface MappingVmixProgram {
+	/**
+	 * Number of the mix (1 is the main mix, 2-4 are optional Mix Inputs)
+	 */
+	index?: 1 | 2 | 3 | 4
+	mappingType: MappingVmixType.Program
+}
+
+export interface MappingVmixPreview {
+	/**
+	 * Number of the mix (1 is the main mix, 2-4 are optional Mix Inputs)
+	 */
+	index?: 1 | 2 | 3 | 4
+	mappingType: MappingVmixType.Preview
+}
+
+export interface MappingVmixInput {
+	/**
+	 * Input number or name
+	 */
+	index?: string
+	mappingType: MappingVmixType.Input
+}
+
+export interface MappingVmixAudioChannel {
+	/**
+	 * Input number or name
+	 */
+	index?: string
+	/**
+	 * Input layer name
+	 */
+	inputLayer?: string
+	mappingType: MappingVmixType.AudioChannel
+}
+
+export interface MappingVmixOutput {
+	/**
+	 * Output
+	 */
+	index: '2' | '3' | '4' | 'External2' | 'Fullscreen' | 'Fullscreen2'
+	mappingType: MappingVmixType.Output
+}
+
+export interface MappingVmixOverlay {
+	/**
+	 * Overlay number
+	 */
+	index: 1 | 2 | 3 | 4
+	mappingType: MappingVmixType.Overlay
+}
+
+export interface MappingVmixRecording {
+	mappingType: MappingVmixType.Recording
+}
+
+export interface MappingVmixStreaming {
+	mappingType: MappingVmixType.Streaming
+}
+
+export interface MappingVmixExternal {
+	mappingType: MappingVmixType.External
+}
+
+export interface MappingVmixFadeToBlack {
+	mappingType: MappingVmixType.FadeToBlack
+}
+
+export interface MappingVmixFader {
+	mappingType: MappingVmixType.Fader
+}
+
+export enum MappingVmixType {
+	Program = 'program',
+	Preview = 'preview',
+	Input = 'input',
+	AudioChannel = 'audioChannel',
+	Output = 'output',
+	Overlay = 'overlay',
+	Recording = 'recording',
+	Streaming = 'streaming',
+	External = 'external',
+	FadeToBlack = 'fadeToBlack',
+	Fader = 'fader',
+}
+
+export type SomeMappingVmix = MappingVmixProgram | MappingVmixPreview | MappingVmixInput | MappingVmixAudioChannel | MappingVmixOutput | MappingVmixOverlay | MappingVmixRecording | MappingVmixStreaming | MappingVmixExternal | MappingVmixFadeToBlack | MappingVmixFader
