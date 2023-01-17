@@ -8,10 +8,10 @@ import {
 	DeviceOptionsSingularLive,
 	SingularCompositionAnimation,
 	SingularCompositionControlNode,
-	NewMappings,
+	Mappings,
 	TSRTimelineContent,
 	Timeline,
-	NewMapping,
+	Mapping,
 } from 'timeline-state-resolver-types'
 import { DoOnTime, SendMode } from '../../devices/doOnTime'
 import * as request from 'request'
@@ -115,7 +115,7 @@ export class SingularLiveDevice extends DeviceWithState<SingularLiveState, Devic
 		this._doOnTime.clearQueueNowAndAfter(newStateTime)
 		this.cleanUpStates(0, newStateTime)
 	}
-	handleState(newState: Timeline.TimelineState<TSRTimelineContent>, newMappings: NewMappings) {
+	handleState(newState: Timeline.TimelineState<TSRTimelineContent>, newMappings: Mappings) {
 		super.onHandleState(newState, newMappings)
 		// Handle this new state, at the point in time specified
 
@@ -171,13 +171,13 @@ export class SingularLiveDevice extends DeviceWithState<SingularLiveState, Devic
 			compositions: {},
 		}
 	}
-	convertStateToSingularLive(state: Timeline.TimelineState<TSRTimelineContent>, newMappings: NewMappings) {
+	convertStateToSingularLive(state: Timeline.TimelineState<TSRTimelineContent>, newMappings: Mappings) {
 		// convert the timeline state into something we can use
 		// (won't even use this.mapping)
 		const singularState: SingularLiveState = this._getDefaultState()
 
 		_.each(state.layers, (tlObject, layerName: string) => {
-			const mapping = newMappings[layerName] as NewMapping<SomeMappingSingularLive>
+			const mapping = newMappings[layerName] as Mapping<SomeMappingSingularLive>
 			if (
 				mapping &&
 				mapping.device === DeviceType.SINGULAR_LIVE &&

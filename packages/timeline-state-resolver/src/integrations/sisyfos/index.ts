@@ -3,7 +3,7 @@ import { DeviceWithState, CommandWithContext, DeviceStatus, StatusCode } from '.
 import {
 	DeviceType,
 	DeviceOptionsSisyfos,
-	NewMappings,
+	Mappings,
 	SisyfosOptions,
 	SomeMappingSisyfos,
 	MappingSisyfosType,
@@ -14,7 +14,7 @@ import {
 	TSRTimelineContent,
 	Timeline,
 	ResolvedTimelineObjectInstanceExtended,
-	NewMapping,
+	Mapping,
 } from 'timeline-state-resolver-types'
 
 import { DoOnTime, SendMode } from '../../devices/doOnTime'
@@ -105,7 +105,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 	 * in time.
 	 * @param newState
 	 */
-	handleState(newState: Timeline.TimelineState<TSRTimelineContent>, newMappings: NewMappings) {
+	handleState(newState: Timeline.TimelineState<TSRTimelineContent>, newMappings: Mappings) {
 		super.onHandleState(newState, newMappings)
 		if (!this._sisyfos.state) {
 			this.emit('warning', 'Sisyfos State not initialized yet')
@@ -222,7 +222,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 	get connected(): boolean {
 		return this._sisyfos.connected
 	}
-	getDeviceState(isDefaultState = true, mappings?: NewMappings): SisyfosState {
+	getDeviceState(isDefaultState = true, mappings?: Mappings): SisyfosState {
 		let deviceStateFromAPI = this._sisyfos.state
 		const deviceState: SisyfosState = {
 			channels: {},
@@ -233,8 +233,8 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 
 		const channels = mappings
 			? Object.values(mappings || {})
-					.filter((m: NewMapping<SomeMappingSisyfos>) => m.options.mappingType === MappingSisyfosType.Channel)
-					.map((m: NewMapping<MappingSisyfosChannel>) => m.options.channel)
+					.filter((m: Mapping<SomeMappingSisyfos>) => m.options.mappingType === MappingSisyfosType.Channel)
+					.map((m: Mapping<MappingSisyfosChannel>) => m.options.channel)
 			: Object.keys(deviceStateFromAPI.channels)
 
 		for (const ch of channels) {
@@ -272,12 +272,12 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 	 * a timeline state.
 	 * @param state
 	 */
-	convertStateToSisyfosState(state: Timeline.TimelineState<TSRTimelineContent>, mappings: NewMappings) {
+	convertStateToSisyfosState(state: Timeline.TimelineState<TSRTimelineContent>, mappings: Mappings) {
 		const deviceState: SisyfosState = this.getDeviceState(true, mappings)
 
 		// Set labels to layer names
 		for (const mapping of Object.values(mappings)) {
-			const sisyfosMapping = mapping as NewMapping<SomeMappingSisyfos>
+			const sisyfosMapping = mapping as Mapping<SomeMappingSisyfos>
 
 			if (sisyfosMapping.options.mappingType !== MappingSisyfosType.Channel) continue
 
@@ -306,7 +306,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 
 		_.each(state.layers, (tlObject, layerName) => {
 			const layer = tlObject as ResolvedTimelineObjectInstanceExtended<any>
-			let foundMapping = mappings[layerName] as NewMapping<SomeMappingSisyfos> | undefined
+			let foundMapping = mappings[layerName] as Mapping<SomeMappingSisyfos> | undefined
 
 			const content = tlObject.content as TimelineContentSisyfosAny
 
@@ -322,7 +322,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 
 			// if the tlObj is specifies to load to PST the original Layer is used to resolve the mapping
 			if (!foundMapping && layer.isLookahead && layer.lookaheadForLayer) {
-				foundMapping = mappings[layer.lookaheadForLayer] as NewMapping<SomeMappingSisyfos> | undefined
+				foundMapping = mappings[layer.lookaheadForLayer] as Mapping<SomeMappingSisyfos> | undefined
 			}
 
 			if (foundMapping && foundMapping.deviceId === this.deviceId) {
@@ -370,7 +370,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 					content.type === TimelineContentTypeSisyfos.CHANNELS
 				) {
 					_.each(content.channels, (channel) => {
-						const referencedMapping = mappings[channel.mappedLayer] as NewMapping<SomeMappingSisyfos> | undefined
+						const referencedMapping = mappings[channel.mappedLayer] as Mapping<SomeMappingSisyfos> | undefined
 						if (referencedMapping && referencedMapping.options.mappingType === MappingSisyfosType.Channel) {
 							newChannels.push({
 								...channel,

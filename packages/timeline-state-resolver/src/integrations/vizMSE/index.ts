@@ -24,6 +24,7 @@ import {
 	VIZMSEPlayoutItemContentInternal,
 	VIZMSETransitionType,
 	VizMSEActions,
+	SomeMappingVizMSE,
 } from 'timeline-state-resolver-types'
 
 import { createMSE, ExternalElement, InternalElement, MSE, VElement, VRundown } from '@tv2media/v-connection'
@@ -265,7 +266,7 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState, DeviceOptionsVizM
 
 		_.each(timelineState.layers, (layer, layerName: string) => {
 			const layerExt: ResolvedTimelineObjectInstanceExtended = layer
-			let foundMapping: Mapping = mappings[layerName]
+			let foundMapping: Mapping<SomeMappingVizMSE> = mappings[layerName]
 
 			let isLookahead = false
 			if (!foundMapping && layerExt.isLookahead && layerExt.lookaheadForLayer) {

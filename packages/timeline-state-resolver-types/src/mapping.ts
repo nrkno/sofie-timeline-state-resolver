@@ -1,29 +1,19 @@
 import { ResolvedTimelineObjectInstance } from './superfly-timeline'
 import { DeviceType, TSRTimelineContent } from '.'
 
-export interface NewMappings {
-	[layerName: string]: NewMapping<unknown>
+export interface Mappings<TOptions extends { mappingType: string } | unknown = unknown> {
+	[layerName: string]: Mapping<TOptions>
 }
 
-// TODO ??
-export interface NewMapping<TOptions, TType = DeviceType> {
+export interface Mapping<TOptions extends { mappingType: string } | unknown, TType = DeviceType> {
 	device: TType // TODO - is this helpful being generic?
 	deviceId: string
 
 	/** Human-readable name given to the layer. Can be used by devices to set the label of e.g. a fader a mapping points to. */
 	layerName?: string
 
+	/** Mapping specific options */
 	options: TOptions
-}
-
-export interface Mappings {
-	[layerName: string]: Mapping
-}
-export interface Mapping {
-	device: DeviceType
-	deviceId: string
-	/** Human-readable name given to the layer. Can be used by devices to set the label of e.g. a fader a mapping points to. */
-	layerName?: string
 }
 
 export interface ResolvedTimelineObjectInstanceExtended<TContent = TSRTimelineContent>

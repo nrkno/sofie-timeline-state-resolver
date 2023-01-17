@@ -1461,7 +1461,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 		})
 		_.each(layers, (o, layerId: string) => {
 			const oExt: ResolvedTimelineObjectInstanceExtended = o
-			let mapping: Mapping = this._mappings[o.layer + '']
+			let mapping: Mapping<unknown> = this._mappings[o.layer + '']
 			if (!mapping && oExt.isLookahead && oExt.lookaheadForLayer) {
 				mapping = this._mappings[oExt.lookaheadForLayer]
 			}

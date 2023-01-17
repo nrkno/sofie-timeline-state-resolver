@@ -10,7 +10,7 @@ import {
 	TimelineContentCCGProducerBase,
 	ResolvedTimelineObjectInstanceExtended,
 	DeviceOptionsCasparCG,
-	NewMappings,
+	Mappings,
 	TimelineContentCasparCGAny,
 	TSRTimelineObjProps,
 	Timeline,
@@ -19,7 +19,7 @@ import {
 	ActionExecutionResultCode,
 	CasparCGActions,
 	MappingCasparCGLayer,
-	NewMapping,
+	Mapping,
 } from 'timeline-state-resolver-types'
 
 import {
@@ -178,7 +178,7 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 	/**
 	 * Generates an array of CasparCG commands by comparing the newState against the oldState, or the current device state.
 	 */
-	handleState(newState: Timeline.TimelineState<TSRTimelineContent>, newMappings: NewMappings) {
+	handleState(newState: Timeline.TimelineState<TSRTimelineContent>, newMappings: Mappings) {
 		super.onHandleState(newState, newMappings)
 
 		const previousStateTime = Math.max(this.getCurrentTime(), newState.time)
@@ -234,7 +234,7 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 	}
 
 	private convertObjectToCasparState(
-		mappings: NewMappings,
+		mappings: Mappings,
 		layer: Timeline.ResolvedTimelineObjectInstance,
 		mapping: MappingCasparCGLayer,
 		isForeground: boolean
@@ -329,7 +329,7 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 			})
 		} else if (content.type === TimelineContentTypeCasparCg.ROUTE) {
 			if (content.mappedLayer) {
-				const routeMapping = mappings[content.mappedLayer] as NewMapping<SomeMappingCasparCG>
+				const routeMapping = mappings[content.mappedLayer] as Mapping<SomeMappingCasparCG>
 				if (routeMapping && routeMapping.deviceId === this.deviceId) {
 					content.channel = routeMapping.options.channel
 					content.layer = routeMapping.options.layer
@@ -427,7 +427,7 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 	 * Takes a timeline state and returns a CasparCG State that will work with the state lib.
 	 * @param timelineState The timeline state to generate from.
 	 */
-	convertStateToCaspar(timelineState: Timeline.TimelineState<TSRTimelineContent>, mappings: NewMappings): State {
+	convertStateToCaspar(timelineState: Timeline.TimelineState<TSRTimelineContent>, mappings: Mappings): State {
 		const caspar: State = {
 			channels: {},
 		}
@@ -440,7 +440,7 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 				_.has(foundMapping, 'channel') &&
 				_.has(foundMapping, 'layer')
 			) {
-				const mapping = foundMapping as NewMapping<SomeMappingCasparCG>
+				const mapping = foundMapping as Mapping<SomeMappingCasparCG>
 				mapping.options.channel = mapping.options.channel || 0
 				mapping.options.layer = mapping.options.layer || 0
 

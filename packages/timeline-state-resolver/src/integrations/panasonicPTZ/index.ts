@@ -7,10 +7,10 @@ import {
 	MappingPanasonicPTZType,
 	PanasonicPTZOptions,
 	DeviceOptionsPanasonicPTZ,
-	NewMappings,
+	Mappings,
 	TSRTimelineContent,
 	Timeline,
-	NewMapping,
+	Mapping,
 } from 'timeline-state-resolver-types'
 import { DoOnTime, SendMode } from '../../devices/doOnTime'
 import { PanasonicPtzHttpInterface } from './connection'
@@ -150,12 +150,12 @@ export class PanasonicPtzDevice extends DeviceWithState<PanasonicPtzState, Devic
 	 * Converts a timeline state into a device state.
 	 * @param state
 	 */
-	convertStateToPtz(state: Timeline.TimelineState<TSRTimelineContent>, mappings: NewMappings): PanasonicPtzState {
+	convertStateToPtz(state: Timeline.TimelineState<TSRTimelineContent>, mappings: Mappings): PanasonicPtzState {
 		// convert the timeline state into something we can use
 		const ptzState: PanasonicPtzState = this._getDefaultState()
 
 		_.each(state.layers, (tlObject, layerName: string) => {
-			const mapping = mappings[layerName] as NewMapping<SomeMappingPanasonicPTZ> | undefined
+			const mapping = mappings[layerName] as Mapping<SomeMappingPanasonicPTZ> | undefined
 			if (
 				mapping &&
 				mapping.device === DeviceType.PANASONIC_PTZ &&
@@ -211,7 +211,7 @@ export class PanasonicPtzDevice extends DeviceWithState<PanasonicPtzState, Devic
 	 * in time.
 	 * @param newState
 	 */
-	handleState(newState: Timeline.TimelineState<TSRTimelineContent>, newMappings: NewMappings) {
+	handleState(newState: Timeline.TimelineState<TSRTimelineContent>, newMappings: Mappings) {
 		super.onHandleState(newState, newMappings)
 		// Create device states
 		const previousStateTime = Math.max(this.getCurrentTime(), newState.time)

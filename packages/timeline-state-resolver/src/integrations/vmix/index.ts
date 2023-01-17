@@ -9,7 +9,7 @@ import {
 	DeviceType,
 	DeviceOptionsVMix,
 	VMixOptions,
-	NewMappings,
+	Mappings,
 	TimelineContentTypeVMix,
 	VMixCommand,
 	VMixTransition,
@@ -21,7 +21,7 @@ import {
 	SomeMappingVmix,
 	Timeline,
 	TSRTimelineContent,
-	NewMapping,
+	Mapping,
 } from 'timeline-state-resolver-types'
 
 export interface DeviceOptionsVMixInternal extends DeviceOptionsVMix {
@@ -194,7 +194,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 		this.cleanUpStates(0, newStateTime + 0.1)
 	}
 
-	handleState(newState: Timeline.TimelineState<TSRTimelineContent>, newMappings: NewMappings) {
+	handleState(newState: Timeline.TimelineState<TSRTimelineContent>, newMappings: Mappings) {
 		super.onHandleState(newState, newMappings)
 		if (!this._initialized) {
 			// before it's initialized don't do anything
@@ -261,7 +261,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 		return false
 	}
 
-	convertStateToVMix(state: Timeline.TimelineState<TSRTimelineContent>, mappings: NewMappings): VMixStateExtended {
+	convertStateToVMix(state: Timeline.TimelineState<TSRTimelineContent>, mappings: Mappings): VMixStateExtended {
 		if (!this._initialized) throw Error('convertStateToVMix cannot be used before inititialized')
 
 		const deviceState = this._getDefaultState()
@@ -271,7 +271,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 			_.map(state.layers, (tlObject, layerName) => ({
 				layerName,
 				tlObject,
-				mapping: mappings[layerName] as NewMapping<SomeMappingVmix>,
+				mapping: mappings[layerName] as Mapping<SomeMappingVmix>,
 			})).sort((a, b) => a.layerName.localeCompare(b.layerName)),
 			(o) => o.mapping.options.mappingType
 		)

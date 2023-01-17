@@ -6,11 +6,11 @@ import {
 	MappingHyperdeckType,
 	HyperdeckOptions,
 	DeviceOptionsHyperdeck,
-	NewMappings,
+	Mappings,
 	TSRTimelineContent,
 	Timeline,
 	HyperdeckActions,
-	NewMapping,
+	Mapping,
 	SomeMappingHyperdeck,
 } from 'timeline-state-resolver-types'
 import {
@@ -267,7 +267,7 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState, DeviceOptionsH
 	 * that state at that time.
 	 * @param newState
 	 */
-	handleState(newState: Timeline.TimelineState<TSRTimelineContent>, newMappings: NewMappings) {
+	handleState(newState: Timeline.TimelineState<TSRTimelineContent>, newMappings: Mappings) {
 		super.onHandleState(newState, newMappings)
 		if (!this._initialized) {
 			// before it's initialized don't do anything
@@ -317,7 +317,7 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState, DeviceOptionsH
 	 * Converts a timeline state to a device state.
 	 * @param state
 	 */
-	convertStateToHyperdeck(state: Timeline.TimelineState<TSRTimelineContent>, mappings: NewMappings): DeviceState {
+	convertStateToHyperdeck(state: Timeline.TimelineState<TSRTimelineContent>, mappings: Mappings): DeviceState {
 		if (!this._initialized) throw Error('convertStateToHyperdeck cannot be used before inititialized')
 
 		// Convert the timeline state into something we can use easier:
@@ -329,7 +329,7 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState, DeviceOptionsH
 		_.each(sortedLayers, ({ tlObject, layerName }) => {
 			const content = tlObject.content
 
-			const mapping = mappings[layerName] as NewMapping<SomeMappingHyperdeck>
+			const mapping = mappings[layerName] as Mapping<SomeMappingHyperdeck>
 
 			if (mapping && mapping.deviceId === this.deviceId && content.deviceType === DeviceType.HYPERDECK) {
 				switch (mapping.options.mappingType) {

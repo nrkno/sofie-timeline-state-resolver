@@ -12,9 +12,9 @@ import {
 	MappingLawoType,
 	Timeline,
 	TSRTimelineContent,
-	NewMapping,
+	Mapping,
 	SomeMappingLawo,
-	NewMappings,
+	Mappings,
 	MappingLawoSource,
 } from 'timeline-state-resolver-types'
 import { DoOnTime, SendMode } from '../../devices/doOnTime'
@@ -214,7 +214,7 @@ export class LawoDevice extends DeviceWithState<LawoState, DeviceOptionsLawoInte
 	 * Handles a state such that the device will reflect that state at the given time.
 	 * @param newState
 	 */
-	handleState(newState: Timeline.TimelineState<TSRTimelineContent>, newMappings: NewMappings) {
+	handleState(newState: Timeline.TimelineState<TSRTimelineContent>, newMappings: Mappings) {
 		super.onHandleState(newState, newMappings)
 		if (!this._initialized) return
 
@@ -276,7 +276,7 @@ export class LawoDevice extends DeviceWithState<LawoState, DeviceOptionsLawoInte
 	 * Converts a timeline state into a device state.
 	 * @param state
 	 */
-	convertStateToLawo(state: Timeline.TimelineState<TSRTimelineContent>, mappings: NewMappings): LawoState {
+	convertStateToLawo(state: Timeline.TimelineState<TSRTimelineContent>, mappings: Mappings): LawoState {
 		const lawoState: LawoState = {
 			nodes: {},
 		}
@@ -287,7 +287,7 @@ export class LawoDevice extends DeviceWithState<LawoState, DeviceOptionsLawoInte
 		const pushFader = (
 			identifier: string,
 			fader: TimelineContentLawoSourceValue,
-			mapping: NewMapping<MappingLawoSource>,
+			mapping: Mapping<MappingLawoSource>,
 			tlObjId: string,
 			priority = 0
 		) => {
@@ -311,7 +311,7 @@ export class LawoDevice extends DeviceWithState<LawoState, DeviceOptionsLawoInte
 			// for every layer
 			const content = tlObject.content
 
-			const mapping = mappings[layerName] as NewMapping<SomeMappingLawo> | undefined
+			const mapping = mappings[layerName] as Mapping<SomeMappingLawo> | undefined
 
 			if (
 				mapping &&
@@ -328,7 +328,7 @@ export class LawoDevice extends DeviceWithState<LawoState, DeviceOptionsLawoInte
 					// mapping implies a composite of sources
 					for (const fader of content.sources) {
 						// for every mapping in the composite
-						const sourceMapping = mappings[fader.mappingName] as NewMapping<MappingLawoSource> | undefined
+						const sourceMapping = mappings[fader.mappingName] as Mapping<MappingLawoSource> | undefined
 
 						if (
 							!sourceMapping ||
@@ -348,13 +348,7 @@ export class LawoDevice extends DeviceWithState<LawoState, DeviceOptionsLawoInte
 				) {
 					// mapping is for a source
 					const priority = content.overridePriority
-					pushFader(
-						mapping.options.identifier,
-						content,
-						mapping as NewMapping<MappingLawoSource>,
-						tlObject.id,
-						priority
-					)
+					pushFader(mapping.options.identifier, content, mapping as Mapping<MappingLawoSource>, tlObject.id, priority)
 				} else if (
 					mapping.options.mappingType === MappingLawoType.Fullpath &&
 					mapping.options.identifier &&

@@ -8,11 +8,11 @@ import {
 	MappingAtemType,
 	AtemOptions,
 	DeviceOptionsAtem,
-	NewMappings,
+	Mappings,
 	AtemTransitionStyle,
 	Timeline,
 	TSRTimelineContent,
-	NewMapping,
+	Mapping,
 	MappingAtemAuxilliary,
 } from 'timeline-state-resolver-types'
 import { AtemState, State as DeviceState, Defaults as StateDefault } from 'atem-state'
@@ -163,7 +163,7 @@ export class AtemDevice extends DeviceWithState<DeviceState, DeviceOptionsAtemIn
 	 * be executed at the state's time.
 	 * @param newState The state to handle
 	 */
-	handleState(newState: Timeline.TimelineState<TSRTimelineContent>, newMappings: NewMappings) {
+	handleState(newState: Timeline.TimelineState<TSRTimelineContent>, newMappings: Mappings) {
 		super.onHandleState(newState, newMappings)
 		if (!this._initialized) {
 			// before it's initialized don't do anything
@@ -224,7 +224,7 @@ export class AtemDevice extends DeviceWithState<DeviceState, DeviceOptionsAtemIn
 	 * Convert a timeline state into an Atem state.
 	 * @param state The state to be converted
 	 */
-	convertStateToAtem(state: Timeline.TimelineState<TSRTimelineContent>, newMappings: NewMappings): DeviceState {
+	convertStateToAtem(state: Timeline.TimelineState<TSRTimelineContent>, newMappings: Mappings): DeviceState {
 		if (!this._initialized) throw Error('convertStateToAtem cannot be used before inititialized')
 
 		// Start out with default state:
@@ -239,7 +239,7 @@ export class AtemDevice extends DeviceWithState<DeviceState, DeviceOptionsAtemIn
 		_.each(sortedLayers, ({ tlObject, layerName }) => {
 			const content = tlObject.content
 
-			const mapping = newMappings[layerName] as NewMapping<SomeMappingAtem> | undefined
+			const mapping = newMappings[layerName] as Mapping<SomeMappingAtem> | undefined
 
 			if (mapping && mapping.deviceId === this.deviceId && content.deviceType === DeviceType.ATEM) {
 				if ('index' in mapping.options && mapping.options.index !== undefined && mapping.options.index >= 0) {
@@ -398,7 +398,7 @@ export class AtemDevice extends DeviceWithState<DeviceState, DeviceOptionsAtemIn
 	private _diffStates(
 		oldAtemState: DeviceState,
 		newAtemState: DeviceState,
-		mappings: NewMappings
+		mappings: Mappings
 	): Array<AtemCommandWithContext> {
 		// Ensure the state diffs the correct version
 		if (this._atem.state) {
@@ -409,7 +409,7 @@ export class AtemDevice extends DeviceWithState<DeviceState, DeviceOptionsAtemIn
 		const noOfAuxes = Math.max(oldAtemState.video.auxilliaries.length, newAtemState.video.auxilliaries.length)
 		const auxMappings = Object.values(mappings)
 			.filter(
-				(mapping: NewMapping<SomeMappingAtem>): mapping is NewMapping<MappingAtemAuxilliary> =>
+				(mapping: Mapping<SomeMappingAtem>): mapping is Mapping<MappingAtemAuxilliary> =>
 					mapping.options.mappingType === MappingAtemType.Auxilliary
 			)
 			.map((mapping) => mapping.options.index)

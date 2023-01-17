@@ -8,14 +8,14 @@ import {
 	DeviceType,
 	DeviceOptionsOBS,
 	OBSOptions,
-	NewMappings,
+	Mappings,
 	SomeMappingObs,
 	TimelineContentTypeOBS,
 	OBSRequest as OBSRequestName,
 	ResolvedTimelineObjectInstanceExtended,
 	TSRTimelineContent,
 	Timeline,
-	NewMapping,
+	Mapping,
 	MappingObsType,
 	MappingObsMute,
 	MappingObsSceneItemRender,
@@ -197,7 +197,7 @@ export class OBSDevice extends DeviceWithState<OBSState, DeviceOptionsOBSInterna
 		this.cleanUpStates(0, newStateTime)
 	}
 
-	handleState(newState: Timeline.TimelineState<TSRTimelineContent>, newMappings: NewMappings) {
+	handleState(newState: Timeline.TimelineState<TSRTimelineContent>, newMappings: Mappings) {
 		super.onHandleState(newState, newMappings)
 		if (!this._initialized) {
 			// before it's initialized don't do anything
@@ -271,7 +271,7 @@ export class OBSDevice extends DeviceWithState<OBSState, DeviceOptionsOBSInterna
 		return this._connected
 	}
 
-	convertStateToOBS(state: Timeline.TimelineState<TSRTimelineContent>, mappings: NewMappings): OBSState {
+	convertStateToOBS(state: Timeline.TimelineState<TSRTimelineContent>, mappings: Mappings): OBSState {
 		if (!this._initialized) {
 			throw Error('convertStateToOBS cannot be used before inititialized')
 		}
@@ -282,9 +282,9 @@ export class OBSDevice extends DeviceWithState<OBSState, DeviceOptionsOBSInterna
 		const sortedLayers = _.sortBy(
 			_.map(state.layers, (tlObject, layerName) => {
 				const tlObjectExt = tlObject as ResolvedTimelineObjectInstanceExtended
-				let mapping = mappings[layerName] as NewMapping<SomeMappingObs> | undefined
+				let mapping = mappings[layerName] as Mapping<SomeMappingObs> | undefined
 				if (!mapping && tlObjectExt.isLookahead && tlObjectExt.lookaheadForLayer) {
-					mapping = mappings[tlObjectExt.lookaheadForLayer] as NewMapping<SomeMappingObs> | undefined
+					mapping = mappings[tlObjectExt.lookaheadForLayer] as Mapping<SomeMappingObs> | undefined
 				}
 				return {
 					layerName,
