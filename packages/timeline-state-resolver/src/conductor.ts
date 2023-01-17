@@ -48,7 +48,7 @@ import { VizMSEDevice, DeviceOptionsVizMSEInternal } from './integrations/vizMSE
 import { ShotokuDevice, DeviceOptionsShotokuInternal } from './integrations/shotoku'
 import { DeviceOptionsSofieChefInternal, SofieChefDevice } from './integrations/sofieChef'
 import { TelemetricsDevice } from './integrations/telemetrics'
-import { RemoteService } from './service/remoteService'
+import { BaseRemoteDeviceIntegration, RemoteDeviceInstance } from './service/remoteDeviceInstance'
 
 export { DeviceContainer }
 export { CommandWithContext }
@@ -160,7 +160,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 
 	private _options: ConductorOptions
 
-	private devices = new Map<string, DeviceContainer<DeviceOptionsBase<any>> | RemoteService<DeviceOptionsBase<any>>>()
+	private devices = new Map<string, BaseRemoteDeviceIntegration<DeviceOptionsBase<any>>>()
 
 	private _getCurrentTime?: () => number
 
@@ -318,9 +318,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 		this._estimateResolveTimeMultiplier = value
 	}
 
-	public getDevices(
-		includeUninitialized = false
-	): Array<DeviceContainer<DeviceOptionsBase<any>> | RemoteService<DeviceOptionsBase<any>>> {
+	public getDevices(includeUninitialized = false): Array<BaseRemoteDeviceIntegration<DeviceOptionsBase<any>>> {
 		if (includeUninitialized) {
 			return Array.from(this.devices.values())
 		} else {
@@ -330,7 +328,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 	public getDevice(
 		deviceId: string,
 		includeUninitialized = false
-	): DeviceContainer<DeviceOptionsBase<any>> | RemoteService<DeviceOptionsBase<any>> | undefined {
+	): BaseRemoteDeviceIntegration<DeviceOptionsBase<any>> | undefined {
 		if (includeUninitialized) {
 			return this.devices.get(deviceId)
 		} else {
@@ -354,7 +352,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 		deviceId: string,
 		deviceOptions: DeviceOptionsAnyInternal,
 		activeRundownPlaylistId?: string
-	): Promise<DeviceContainer<DeviceOptionsBase<any>> | RemoteService<DeviceOptionsBase<any>>> {
+	): Promise<BaseRemoteDeviceIntegration<DeviceOptionsBase<any>>> {
 		const newDevice = await this.createDevice(deviceId, deviceOptions)
 
 		try {
@@ -414,8 +412,8 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 	public async createDevice(
 		deviceId: string,
 		deviceOptions: DeviceOptionsAnyInternal
-	): Promise<DeviceContainer<DeviceOptionsBase<any>> | RemoteService<DeviceOptionsBase<any>>> {
-		let newDevice: DeviceContainer<DeviceOptionsBase<any>> | RemoteService<DeviceOptionsBase<any>> | undefined
+	): Promise<BaseRemoteDeviceIntegration<DeviceOptionsBase<any>>> {
+		let newDevice: BaseRemoteDeviceIntegration<DeviceOptionsBase<any>> | undefined
 		try {
 			if (this.devices.has(deviceId)) {
 				throw new Error(`Device "${deviceId}" already exists when creating device`)
@@ -611,9 +609,9 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 			} else {
 				// presumably this device is implemented in the new service handler
 				try {
-					newDevice = await RemoteService.create(
-						'../../dist/service/service.js',
-						'Service',
+					newDevice = await RemoteDeviceInstance.create(
+						'../../dist/service/DeviceInstance.js',
+						'DeviceInstanceWrapper',
 						deviceId,
 						deviceOptions,
 						() => 0,
@@ -669,7 +667,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 		deviceId: string,
 		deviceOptions: DeviceOptionsAnyInternal,
 		activeRundownPlaylistId?: string
-	): Promise<DeviceContainer<DeviceOptionsBase<any>> | RemoteService<DeviceOptionsBase<any>>> {
+	): Promise<BaseRemoteDeviceIntegration<DeviceOptionsBase<any>>> {
 		const newDevice = this.devices.get(deviceId)
 
 		if (!newDevice) {
@@ -799,7 +797,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 
 	private async _mapAllDevices<T>(
 		includeUninitialized: boolean,
-		fcn: (d: DeviceContainer<DeviceOptionsBase<any>> | RemoteService<DeviceOptionsBase<any>>) => Promise<T>
+		fcn: (d: BaseRemoteDeviceIntegration<DeviceOptionsBase<any>>) => Promise<T>
 	): Promise<T[]> {
 		return PAll(
 			this.getDevices(true)
@@ -911,7 +909,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 			const pPrepareForHandleStates: Promise<unknown> = Promise.all(
 				Array.from(this.devices.values())
 					.filter((d) => d.initialized === true)
-					.map(async (device: DeviceContainer<DeviceOptionsBase<any>>): Promise<void> => {
+					.map(async (device: BaseRemoteDeviceIntegration<DeviceOptionsBase<any>>): Promise<void> => {
 						await device.device.prepareForHandleState(resolveTime)
 					})
 			).catch((error) => {
@@ -998,27 +996,30 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 			)
 
 			// Push state to the right device:
-			await this._mapAllDevices(false, async (device: DeviceContainer<DeviceOptionsBase<any>>): Promise<void> => {
-				if (this._options.optimizeForProduction) {
-					// Don't send any state to the abstract device, since it doesn't do anything anyway
-					if (device.deviceType === DeviceType.ABSTRACT) return
-				}
+			await this._mapAllDevices(
+				false,
+				async (device: BaseRemoteDeviceIntegration<DeviceOptionsBase<any>>): Promise<void> => {
+					if (this._options.optimizeForProduction) {
+						// Don't send any state to the abstract device, since it doesn't do anything anyway
+						if (device.deviceType === DeviceType.ABSTRACT) return
+					}
 
-				// The subState contains only the parts of the state relevant to that device:
-				const subState: Timeline.TimelineState<TSRTimelineContent> = {
-					time: tlState.time,
-					layers: layersPerDevice[device.deviceId] || {},
-					nextEvents: [],
-				}
+					// The subState contains only the parts of the state relevant to that device:
+					const subState: Timeline.TimelineState<TSRTimelineContent> = {
+						time: tlState.time,
+						layers: layersPerDevice[device.deviceId] || {},
+						nextEvents: [],
+					}
 
-				// Pass along the state to the device, it will generate its commands and execute them:
-				try {
-					// await device.device.handleState(removeParentFromState(subState), this._mappings)
-					await this._setDeviceState(device.deviceId, tlState.time, removeParentFromState(subState), this._mappings)
-				} catch (e) {
-					this.emit('error', 'Error in device "' + device.deviceId + '"' + e + ' ' + (e as Error).stack)
+					// Pass along the state to the device, it will generate its commands and execute them:
+					try {
+						// await device.device.handleState(removeParentFromState(subState), this._mappings)
+						await this._setDeviceState(device.deviceId, tlState.time, removeParentFromState(subState), this._mappings)
+					} catch (e) {
+						this.emit('error', 'Error in device "' + device.deviceId + '"' + e + ' ' + (e as Error).stack)
+					}
 				}
-			})
+			)
 
 			statTimeStateHandled = Date.now()
 
@@ -1045,7 +1046,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 			} else {
 				// there's nothing ahead in the timeline,
 				// Tell the devices that the future is clear:
-				await this._mapAllDevices(true, async (device: DeviceContainer<DeviceOptionsBase<any>>) => {
+				await this._mapAllDevices(true, async (device: BaseRemoteDeviceIntegration<DeviceOptionsBase<any>>) => {
 					try {
 						await device.device.clearFuture(tlState.time)
 					} catch (e) {
@@ -1459,7 +1460,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 	 */
 	private filterLayersPerDevice(
 		layers: Timeline.TimelineState<TSRTimelineContent>['layers'],
-		devices: (DeviceContainer<DeviceOptionsBase<any>> | RemoteService<DeviceOptionsBase<any>>)[]
+		devices: BaseRemoteDeviceIntegration<DeviceOptionsBase<any>>[]
 	) {
 		const filteredStates: { [deviceId: string]: { [layerId: string]: ResolvedTimelineObjectInstanceExtended } } = {}
 

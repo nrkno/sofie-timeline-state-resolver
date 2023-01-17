@@ -9,19 +9,14 @@ import {
 	Timeline,
 	TSRTimelineContent,
 } from 'timeline-state-resolver-types'
-import { Device } from './device'
+import { CommandWithContext, Device } from './device'
 import { StateHandler } from './stateHandler'
 import { DevicesDict } from './devices'
 import { DeviceEvents } from './device'
-import { SlowSentCommandInfo, SlowFulfilledCommandInfo, CommandWithContext, CommandReport } from '../'
+import { SlowSentCommandInfo, SlowFulfilledCommandInfo, CommandReport } from '..'
 
 type Config = any
 type DeviceState = any
-type Command = {
-	command: any
-	context: any
-	tlObjId: string
-}
 
 export interface ServiceDetails {
 	deviceId: string
@@ -34,9 +29,9 @@ export interface ServiceDetails {
 /**
  * Top level container for setting up and interacting with any device integrations
  */
-export class Service extends EventEmitter<DeviceEvents> {
-	private _device: Device<any, DeviceState, Command> & EventEmitter<DeviceEvents>
-	private _stateHandler: StateHandler<DeviceState, Command>
+export class DeviceInstanceWrapper extends EventEmitter<DeviceEvents> {
+	private _device: Device<any, DeviceState, CommandWithContext> & EventEmitter<DeviceEvents>
+	private _stateHandler: StateHandler<DeviceState, CommandWithContext>
 
 	private _deviceId: string
 	private _deviceType: DeviceType
@@ -65,12 +60,7 @@ export class Service extends EventEmitter<DeviceEvents> {
 
 		this._setupDeviceEventHandlers()
 
-		// set up state handler
-		this._stateHandler = new StateHandler(
-			(state, mappings) => this._device.convertTimelineStateToDeviceState(state, mappings),
-			(o, n, m) => this._device.diffStates(o, n, m),
-			(command) => this._device.sendCommand(command.command, command.context, command.tlObjId)
-		)
+		this._stateHandler = new StateHandler(this._device)
 	}
 
 	async initDevice(_activeRundownPlaylistId?: string) {
@@ -107,6 +97,9 @@ export class Service extends EventEmitter<DeviceEvents> {
 		}
 	}
 
+	/** @deprecated - just here for API compatiblity with the old class */
+	prepareForHandleState() {}
+
 	handleState(newState: Timeline.TimelineState<TSRTimelineContent>, newMappings: Mappings) {
 		this._stateHandler.handleState(newState, newMappings)
 
@@ -118,8 +111,8 @@ export class Service extends EventEmitter<DeviceEvents> {
 	}
 
 	// @todo - do we still need this?
-	clearFuture() {
-		this._stateHandler.clearFuture()
+	clearFuture(t) {
+		this._stateHandler.clearFuture(t)
 	}
 
 	getDetails(): ServiceDetails {

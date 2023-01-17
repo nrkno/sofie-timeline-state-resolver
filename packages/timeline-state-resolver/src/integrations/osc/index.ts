@@ -116,7 +116,6 @@ export class OscDevice extends EventEmitter implements Device<OSCOptions, OscDev
 			if (!oldLayer) {
 				// added!
 				commands.push({
-					// commandName: 'added',
 					context: `added: ${newCommandContent.fromTlObject}`,
 					tlObjId: newCommandContent.fromTlObject,
 					command: newCommandContent,
@@ -126,7 +125,6 @@ export class OscDevice extends EventEmitter implements Device<OSCOptions, OscDev
 				if (!_.isEqual(oldLayer, newCommandContent)) {
 					// changed!
 					commands.push({
-						// commandName: 'changed',
 						context: `changed: ${newCommandContent.fromTlObject}`,
 						tlObjId: newCommandContent.fromTlObject,
 						command: newCommandContent,
@@ -134,30 +132,13 @@ export class OscDevice extends EventEmitter implements Device<OSCOptions, OscDev
 				}
 			}
 		})
-		// removed
-		// Object.entries(oldState).forEach(([address, oldCommandContent]) => {
-		// 	const newLayer = newState[address]
-		// 	if (!newLayer) {
-		// 		// removed!
-		// 		commands.push({
-		// 			// commandName: 'removed',
-		// 			context: `removed: ${oldCommandContent.fromTlObject}`,
-		// 			tlObjId: oldCommandContent.fromTlObject,
-		// 			command: oldCommandContent,
-		// 		})
-		// 	}
-		// })
 		return commands
 	}
-	async sendCommand(
-		command: OscCommandWithContext['command'],
-		context: OscCommandWithContext['context'],
-		timelineObjId: OscCommandWithContext['tlObjId']
-	): Promise<any> {
+	async sendCommand({ command, context, tlObjId }: OscCommandWithContext): Promise<any> {
 		const cwc = {
 			context: context,
 			command: command,
-			timelineObjId: timelineObjId,
+			timelineObjId: tlObjId,
 		}
 		this.emit('debug', cwc)
 		debug(command)

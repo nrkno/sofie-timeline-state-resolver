@@ -8,7 +8,9 @@ export interface DeviceEntry {
 	deviceName: (deviceId: string, options: any) => string
 }
 
-export const DevicesDict: Record<DeviceType.OSC, DeviceEntry> = {
+type ImplementedDeviceTypes = DeviceType.OSC
+
+export const DevicesDict: Record<ImplementedDeviceTypes, DeviceEntry> = {
 	[DeviceType.OSC]: {
 		deviceClass: OscDevice,
 		canConnect: true,

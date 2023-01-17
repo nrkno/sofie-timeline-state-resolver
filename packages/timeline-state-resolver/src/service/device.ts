@@ -1,4 +1,4 @@
-import { SlowSentCommandInfo, SlowFulfilledCommandInfo, CommandWithContext, CommandReport } from '../'
+import { SlowSentCommandInfo, SlowFulfilledCommandInfo, CommandReport } from '../'
 import { FinishedTrace } from '../lib'
 import {
 	Timeline,
@@ -11,7 +11,14 @@ import {
 
 type CommandContext = any
 
-export interface Device<DeviceOptions, DeviceState, Command> {
+export type CommandWithContext = {
+	command: any
+	context: CommandContext
+	tlObjId: string
+}
+
+export interface Device<DeviceOptions, DeviceState, Command extends CommandWithContext>
+	extends BaseDeviceAPI<DeviceState, Command> {
 	/**
 	 * Initiates the device connection, after this has resolved the device
 	 * is ready to be controlled
@@ -26,6 +33,18 @@ export interface Device<DeviceOptions, DeviceState, Command> {
 	makeReady?(okToDestroyStuff?: boolean): Promise<void>
 	standDown?(): Promise<void>
 
+	get connected(): boolean
+	getStatus(): Omit<DeviceStatus, 'active'>
+
+	actions: Record<string, (id: string, payload: Record<string, any>) => Promise<ActionExecutionResult>>
+
+	// todo - add media objects
+}
+
+/**
+ * Minimal API for the StateHandler to be able to use a device
+ */
+export interface BaseDeviceAPI<DeviceState, Command extends CommandWithContext> {
 	/**
 	 * This method takes in a Timeline State that describes a point
 	 * in time on the timeline and returns a decice state that
@@ -44,14 +63,7 @@ export interface Device<DeviceOptions, DeviceState, Command> {
 	 */
 	diffStates(oldState: DeviceState | undefined, newState: DeviceState, mappings: Mappings): Array<Command>
 	/** This method will take a command and send it to the device */
-	sendCommand(command: Command, context: CommandContext, timelineObjId: string): Promise<any>
-
-	get connected(): boolean
-	getStatus(): Omit<DeviceStatus, 'active'>
-
-	actions: Record<string, (id: string, payload: Record<string, any>) => Promise<ActionExecutionResult>>
-
-	// todo - add media objects
+	sendCommand(command: Command): Promise<any>
 }
 
 export interface DeviceEvents {

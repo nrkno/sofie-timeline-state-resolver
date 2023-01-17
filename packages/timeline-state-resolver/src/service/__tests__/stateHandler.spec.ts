@@ -4,9 +4,13 @@ import { StateHandler } from '../stateHandler'
 interface DeviceState {
 	[prop: string]: true
 }
-interface Command {
-	type: 'added' | 'removed'
-	property: string
+interface CommandWithContext {
+	command: {
+		type: 'added' | 'removed'
+		property: string
+	}
+	context: string
+	tlObjId: string
 }
 
 const MOCK_COMMAND_RECEIVER = jest.fn()
@@ -17,26 +21,30 @@ describe('stateHandler', () => {
 		MOCK_COMMAND_RECEIVER.mockReset()
 	})
 
-	function getNewStateHandler(): StateHandler<DeviceState, Command> {
-		return new StateHandler<DeviceState, Command>(
-			(s) => s.layers as unknown as DeviceState,
-			(o, n) =>
+	function getNewStateHandler(): StateHandler<DeviceState, CommandWithContext> {
+		return new StateHandler<DeviceState, CommandWithContext>({
+			convertTimelineStateToDeviceState: (s) => s.layers as unknown as DeviceState,
+			diffStates: (o, n) =>
 				[
 					...Object.keys(n)
-						.filter((e) => !o[e])
+						.filter((e) => !(o || {})[e])
 						.map((e) => ({
-							type: 'added',
-							property: e,
+							command: {
+								type: 'added',
+								property: e,
+							},
 						})),
-					...Object.keys(o)
+					...Object.keys(o || {})
 						.filter((e) => !n[e])
 						.map((e) => ({
-							type: 'removed',
-							property: e,
+							command: {
+								type: 'removed',
+								property: e,
+							},
 						})),
-				] as Command[],
-			MOCK_COMMAND_RECEIVER
-		)
+				] as CommandWithContext[],
+			sendCommand: MOCK_COMMAND_RECEIVER,
+		})
 	}
 
 	test('transition to a new state', async () => {
@@ -50,8 +58,10 @@ describe('stateHandler', () => {
 
 		expect(MOCK_COMMAND_RECEIVER).toBeCalledTimes(1)
 		expect(MOCK_COMMAND_RECEIVER).toBeCalledWith({
-			type: 'removed',
-			property: 'entry1',
+			command: {
+				type: 'removed',
+				property: 'entry1',
+			},
 		})
 	})
 
@@ -66,8 +76,10 @@ describe('stateHandler', () => {
 
 		expect(MOCK_COMMAND_RECEIVER).toBeCalledTimes(1)
 		expect(MOCK_COMMAND_RECEIVER).toBeCalledWith({
-			type: 'removed',
-			property: 'entry1',
+			command: {
+				type: 'removed',
+				property: 'entry1',
+			},
 		})
 
 		stateHandler.handleState(
@@ -81,13 +93,16 @@ describe('stateHandler', () => {
 		expect(MOCK_COMMAND_RECEIVER).toBeCalledTimes(1)
 
 		// advance time
+		MOCK_COMMAND_RECEIVER.mockReset()
 		jest.advanceTimersByTime(100)
 
 		// now expect to be called with new commands
-		expect(MOCK_COMMAND_RECEIVER).toBeCalledTimes(2)
+		expect(MOCK_COMMAND_RECEIVER).toBeCalledTimes(1)
 		expect(MOCK_COMMAND_RECEIVER).toBeCalledWith({
-			type: 'added',
-			property: 'entry1',
+			command: {
+				type: 'added',
+				property: 'entry1',
+			},
 		})
 	})
 })

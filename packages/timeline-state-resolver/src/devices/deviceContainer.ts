@@ -1,37 +1,21 @@
 import { ThreadedClass, threadedClass, ThreadedClassConfig, ThreadedClassManager } from 'threadedclass'
 import { Device } from './device'
-import { DeviceType, DeviceOptionsBase } from 'timeline-state-resolver-types'
-import { EventEmitter } from 'eventemitter3'
+import { DeviceOptionsBase } from 'timeline-state-resolver-types'
+import { BaseRemoteDeviceIntegration, DeviceContainerEvents } from '../service/remoteDeviceInstance'
 
-export type DeviceContainerEvents = {
-	error: [context: string, err: Error]
-}
+export { DeviceContainerEvents }
 
 /**
  * A device container is a wrapper around a device in ThreadedClass class, it
  * keeps a local property of some basic information about the device (like
  * names and id's) to prevent a costly round trip over IPC.
  */
-export class DeviceContainer<TOptions extends DeviceOptionsBase<any>> extends EventEmitter<DeviceContainerEvents> {
-	private _device: ThreadedClass<Device<TOptions>>
-	private _deviceId = 'N/A'
-	private _deviceType: DeviceType
-	private _deviceName = 'N/A'
-	private readonly _deviceOptions: TOptions
-	private readonly _threadConfig: ThreadedClassConfig | undefined
+export class DeviceContainer<TOptions extends DeviceOptionsBase<any>> extends BaseRemoteDeviceIntegration<TOptions> {
+	protected _device: ThreadedClass<Device<TOptions>>
 	public onChildClose: () => void | undefined
-	private _instanceId = -1
-	private _startTime = -1
-	private _onEventListeners: { stop: () => void }[] = []
-	private _debugLogging = true
-	private _debugState = false
-	private _initialized = false
 
 	private constructor(deviceOptions: TOptions, threadConfig?: ThreadedClassConfig) {
-		super()
-		this._deviceOptions = deviceOptions
-		this._threadConfig = threadConfig
-		this._debugLogging = deviceOptions.debug || false
+		super(deviceOptions, threadConfig)
 	}
 
 	static async create<
@@ -77,8 +61,12 @@ export class DeviceContainer<TOptions extends DeviceOptionsBase<any>> extends Ev
 		return container
 	}
 
-	get initialized() {
-		return this._initialized
+	public async reloadProps(): Promise<void> {
+		this._deviceId = await this._device.deviceId
+		this._deviceType = await this._device.deviceType
+		this._deviceName = await this._device.deviceName
+		this._instanceId = await this._device.instanceId
+		this._startTime = await this._device.startTime
 	}
 
 	public async init(initOptions: TOptions['options'], activeRundownPlaylistId: string | undefined): Promise<boolean> {
@@ -89,61 +77,5 @@ export class DeviceContainer<TOptions extends DeviceOptionsBase<any>> extends Ev
 		const res = await this._device.init(initOptions, activeRundownPlaylistId)
 		this._initialized = true
 		return res
-	}
-
-	public async reloadProps(): Promise<void> {
-		this._deviceId = await this.device.deviceId
-		this._deviceType = await this.device.deviceType
-		this._deviceName = await this.device.deviceName
-		this._instanceId = await this.device.instanceId
-		this._startTime = await this.device.startTime
-	}
-
-	public async terminate() {
-		this._onEventListeners.forEach((listener) => listener.stop())
-		await ThreadedClassManager.destroy(this._device)
-	}
-
-	public async setDebugLogging(debug: boolean): Promise<void> {
-		this._debugLogging = debug
-		await this._device.setDebugLogging(debug)
-	}
-
-	public async setDebugState(debug: boolean): Promise<void> {
-		this._debugState = debug
-		await this._device.setDebugState(debug)
-	}
-
-	public get device(): ThreadedClass<Device<TOptions>> {
-		return this._device
-	}
-	public get deviceId(): string {
-		return this._deviceId
-	}
-	public get deviceType(): DeviceType {
-		return this._deviceType
-	}
-	public get deviceName(): string {
-		return this._deviceName
-	}
-	public get deviceOptions(): TOptions {
-		return this._deviceOptions
-	}
-	public get threadConfig(): ThreadedClassConfig | undefined {
-		return this._threadConfig
-	}
-	public get instanceId(): number {
-		return this._instanceId
-	}
-	public get startTime(): number {
-		return this._startTime
-	}
-
-	public get debugLogging(): boolean {
-		return this._debugLogging
-	}
-
-	public get debugState(): boolean {
-		return this._debugState
 	}
 }

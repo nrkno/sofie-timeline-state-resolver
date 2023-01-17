@@ -249,16 +249,16 @@ describe('OSC Device', () => {
 		test('send a command', async () => {
 			const dev = await getInitialisedOscDevice()
 
-			dev.sendCommand(
-				{
+			dev.sendCommand({
+				command: {
 					fromTlObject: 'obj0',
 					path: '/path/test',
 					type: TimelineContentTypeOSC.OSC,
 					values: [],
 				},
-				'',
-				''
-			)
+				context: '',
+				tlObjId: '',
+			})
 
 			expect(MOCKED_SOCKET_WRITE).toBeCalledTimes(1)
 			expect(MOCKED_SOCKET_WRITE).toBeCalledWith(
@@ -275,8 +275,8 @@ describe('OSC Device', () => {
 			jest.useFakeTimers({ now: 10000 })
 			const dev = await getInitialisedOscDevice()
 
-			dev.sendCommand(
-				{
+			dev.sendCommand({
+				command: {
 					fromTlObject: 'obj0',
 					path: '/path/test',
 					type: TimelineContentTypeOSC.OSC,
@@ -298,9 +298,9 @@ describe('OSC Device', () => {
 						direction: 'None',
 					},
 				},
-				'',
-				''
-			)
+				context: '',
+				tlObjId: '',
+			})
 
 			// first command is sent immediately
 			expect(MOCKED_SOCKET_WRITE).toBeCalledTimes(1)
