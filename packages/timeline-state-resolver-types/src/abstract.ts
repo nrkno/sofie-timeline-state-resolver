@@ -1,8 +1,4 @@
-import { DeviceType, Mapping } from '.'
-
-export interface MappingAbstract extends Mapping {
-	device: DeviceType.ABSTRACT
-}
+import { DeviceType } from '.'
 
 export type TimelineContentAbstractAny = TSRTimelineContentAbstract
 export interface TSRTimelineContentAbstract {

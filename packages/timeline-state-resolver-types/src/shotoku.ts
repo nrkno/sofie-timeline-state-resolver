@@ -1,9 +1,4 @@
-import { Mapping } from './mapping'
 import { DeviceType } from '.'
-
-export interface MappingShotoku extends Mapping {
-	device: DeviceType.SHOTOKU
-}
 
 export enum TimelineContentTypeShotoku {
 	SHOT = 'shot',

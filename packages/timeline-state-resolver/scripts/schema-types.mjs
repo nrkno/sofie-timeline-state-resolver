@@ -72,6 +72,8 @@ for (const dir of dirs) {
 			const mappingDescr = JSON.parse(await fs.readFile(filePath))
 			for (const [id, mapping] of Object.entries(mappingDescr.mappings)) {
 				mappingIds.push(id)
+
+				// Perform some tweaks of the schema for mappingType, which is required to be defined based on the id
 				mapping.title = `Mapping${capitalise(dir)}${capitalise(id)}`
 				mapping.properties['mappingType'] = {
 					type: 'constant',
@@ -81,11 +83,11 @@ for (const dir of dirs) {
 				if (!mapping.required) mapping.required = []
 				if (!mapping.required.includes('mappingType')) mapping.required.push('mappingType')
 
-				// TODO - inject tsType for mappingType and make it required
 				const mappingTypes = await compile(mapping, id + 'Mapping', {
 					additionalProperties: false,
 					style: PrettierConf,
 					bannerComment: '',
+					enableConstEnums: false, // TODO - temporary?
 				})
 				output += '\n' + mappingTypes
 			}
@@ -96,8 +98,8 @@ for (const dir of dirs) {
 	}
 
 	// very crude way to create an enum and union for the mappings:
+	const mappingTypes = []
 	if (mappingIds.length > 0) {
-		const mappingTypes = []
 		let mappingsEnum = 'export enum Mapping' + capitalise(dir) + 'Type {\n'
 		for (const id of mappingIds) {
 			mappingTypes.push(`Mapping${capitalise(dir)}${capitalise(id)}`)
@@ -106,9 +108,8 @@ for (const dir of dirs) {
 		mappingsEnum += '}\n'
 
 		output += '\n' + mappingsEnum
-
-		output += '\n' + `export type SomeMapping${capitalise(dir)} = ${mappingTypes.join(' | ')}\n`
 	}
+	output += '\n' + `export type SomeMapping${capitalise(dir)} = ${mappingTypes.join(' | ') || 'unknown'}\n`
 
 	// compile actions from file
 	const actionIds = []

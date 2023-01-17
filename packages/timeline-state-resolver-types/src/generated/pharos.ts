@@ -9,3 +9,5 @@ export interface PharosOptions {
 	host: string
 	ssl?: boolean
 }
+
+export type SomeMappingPharos = unknown

@@ -1,0 +1,55 @@
+{
+	"$schema": "../../../$schemas/mapping-schema.json",
+	"default": "source",
+	"mappings": {
+		"source": {
+			"type": "object",
+			"properties": {
+				"identifier": {
+					"type": "string",
+					"ui:title": "Identifier"
+				},
+				"priority": {
+					"type": "integer",
+					"ui:title": "Priority"
+				}
+			},
+			"required": ["identifier"],
+			"additionalProperties": false
+		},
+		"sources": {
+			"type": "object",
+			"properties": {},
+			"required": [],
+			"additionalProperties": false
+		},
+		"fullpath": {
+			"type": "object",
+			"properties": {
+				"identifier": {
+					"type": "string",
+					"ui:title": "Identifier"
+				},
+				"emberType": {
+					"type": "string",
+					"title": "EmberParameterType",
+					"ui:title": "Ember Type",
+					"enum": ["NULL", "INTEGER", "REAL", "STRING", "BOOLEAN", "TRIGGER", "ENUM", "OCTETS"],
+					"tsEnumNames": ["Null", "Integer", "Real", "String", "Boolean", "Trigger", "Enum", "Octets"]
+				},
+				"priority": {
+					"type": "integer",
+					"ui:title": "Priority"
+				}
+			},
+			"required": [],
+			"additionalProperties": false
+		},
+		"triggerValue": {
+			"type": "object",
+			"properties": {},
+			"required": [],
+			"additionalProperties": false
+		}
+	}
+}

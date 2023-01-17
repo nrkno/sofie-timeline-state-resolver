@@ -3,15 +3,15 @@ import { DeviceWithState, CommandWithContext, DeviceStatus, StatusCode } from '.
 
 import {
 	DeviceType,
-	Mapping,
-	MappingQuantel,
+	NewMapping,
+	SomeMappingQuantel,
 	QuantelOptions,
 	TimelineContentQuantelClip,
 	QuantelControlMode,
 	ResolvedTimelineObjectInstanceExtended,
 	QuantelOutTransition,
 	DeviceOptionsQuantel,
-	Mappings,
+	NewMappings,
 	Timeline,
 	TSRTimelineContent,
 	QuantelActions,
@@ -146,7 +146,7 @@ export class QuantelDevice extends DeviceWithState<QuantelState, DeviceOptionsQu
 	/**
 	 * Generates an array of Quantel commands by comparing the newState against the oldState, or the current device state.
 	 */
-	handleState(newState: Timeline.TimelineState<TSRTimelineContent>, newMappings: Mappings) {
+	handleState(newState: Timeline.TimelineState<TSRTimelineContent>, newMappings: NewMappings) {
 		super.onHandleState(newState, newMappings)
 		// check if initialized:
 		if (!this._quantel.initialized) {
@@ -232,7 +232,7 @@ export class QuantelDevice extends DeviceWithState<QuantelState, DeviceOptionsQu
 	get queue() {
 		return this._doOnTime.getQueue()
 	}
-	private _getMappedPorts(mappings: Mappings): MappedPorts {
+	private _getMappedPorts(mappings: NewMappings): MappedPorts {
 		const ports: MappedPorts = {}
 
 		_.each(mappings, (mapping) => {
@@ -243,16 +243,18 @@ export class QuantelDevice extends DeviceWithState<QuantelState, DeviceOptionsQu
 				_.has(mapping, 'portId') &&
 				_.has(mapping, 'channelId')
 			) {
-				const qMapping: MappingQuantel = mapping as MappingQuantel
+				const qMapping = mapping as NewMapping<SomeMappingQuantel>
 
-				if (!ports[qMapping.portId]) {
-					ports[qMapping.portId] = {
-						mode: qMapping.mode || QuantelControlMode.QUALITY,
+				if (!ports[qMapping.options.portId]) {
+					ports[qMapping.options.portId] = {
+						mode: qMapping.options.mode || QuantelControlMode.QUALITY,
 						channels: [],
 					}
 				}
 
-				ports[qMapping.portId].channels = _.sortBy(_.uniq(ports[qMapping.portId].channels.concat([qMapping.channelId])))
+				ports[qMapping.options.portId].channels = _.sortBy(
+					_.uniq(ports[qMapping.options.portId].channels.concat([qMapping.options.channelId]))
+				)
 			}
 		})
 		return ports
@@ -262,7 +264,10 @@ export class QuantelDevice extends DeviceWithState<QuantelState, DeviceOptionsQu
 	 * Takes a timeline state and returns a Quantel State that will work with the state lib.
 	 * @param timelineState The timeline state to generate from.
 	 */
-	convertStateToQuantel(timelineState: Timeline.TimelineState<TSRTimelineContent>, mappings: Mappings): QuantelState {
+	convertStateToQuantel(
+		timelineState: Timeline.TimelineState<TSRTimelineContent>,
+		mappings: NewMappings
+	): QuantelState {
 		const state: QuantelState = {
 			time: timelineState.time,
 			port: {},
@@ -280,7 +285,7 @@ export class QuantelDevice extends DeviceWithState<QuantelState, DeviceOptionsQu
 
 		_.each(timelineState.layers, (layer, layerName: string) => {
 			const layerExt: ResolvedTimelineObjectInstanceExtended = layer
-			let foundMapping: Mapping = mappings[layerName]
+			let foundMapping = mappings[layerName]
 
 			let isLookahead = false
 			if (!foundMapping && layerExt.isLookahead && layerExt.lookaheadForLayer) {
@@ -295,10 +300,11 @@ export class QuantelDevice extends DeviceWithState<QuantelState, DeviceOptionsQu
 				_.has(foundMapping, 'portId') &&
 				_.has(foundMapping, 'channelId')
 			) {
-				const mapping: MappingQuantel = foundMapping as MappingQuantel
+				const mapping = foundMapping as NewMapping<SomeMappingQuantel> | undefined
+				if (!mapping) throw new Error(`Mapping "${layerName}" not found`)
 
-				const port: QuantelStatePort = state.port[mapping.portId]
-				if (!port) throw new Error(`Port "${mapping.portId}" not found`)
+				const port: QuantelStatePort = state.port[mapping.options.portId]
+				if (!port) throw new Error(`Port "${mapping.options.portId}" not found`)
 
 				const content = layer.content as TimelineContentQuantelClip
 				if (content && (content.title || content.guid)) {

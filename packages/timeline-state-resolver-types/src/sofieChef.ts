@@ -1,10 +1,4 @@
-import { Mapping } from './mapping'
 import { DeviceType } from '.'
-
-export interface MappingSofieChef extends Mapping {
-	device: DeviceType.SOFIE_CHEF
-	windowId: string
-}
 
 export enum TimelineContentTypeSofieChef {
 	URL = 'url',

@@ -4,16 +4,18 @@ import { DeviceWithState, CommandWithContext, DeviceStatus, StatusCode } from '.
 import {
 	DeviceType,
 	TimelineContentTypeLawo,
-	MappingLawo,
 	DeviceOptionsLawo,
 	LawoCommand,
 	LawoOptions,
 	LawoDeviceMode,
 	TimelineContentLawoSourceValue,
 	MappingLawoType,
-	Mappings,
 	Timeline,
 	TSRTimelineContent,
+	NewMapping,
+	SomeMappingLawo,
+	NewMappings,
+	MappingLawoSource,
 } from 'timeline-state-resolver-types'
 import { DoOnTime, SendMode } from '../../devices/doOnTime'
 import { deferAsync, getDiff } from '../../lib'
@@ -212,7 +214,7 @@ export class LawoDevice extends DeviceWithState<LawoState, DeviceOptionsLawoInte
 	 * Handles a state such that the device will reflect that state at the given time.
 	 * @param newState
 	 */
-	handleState(newState: Timeline.TimelineState<TSRTimelineContent>, newMappings: Mappings) {
+	handleState(newState: Timeline.TimelineState<TSRTimelineContent>, newMappings: NewMappings) {
 		super.onHandleState(newState, newMappings)
 		if (!this._initialized) return
 
@@ -274,7 +276,7 @@ export class LawoDevice extends DeviceWithState<LawoState, DeviceOptionsLawoInte
 	 * Converts a timeline state into a device state.
 	 * @param state
 	 */
-	convertStateToLawo(state: Timeline.TimelineState<TSRTimelineContent>, mappings: Mappings): LawoState {
+	convertStateToLawo(state: Timeline.TimelineState<TSRTimelineContent>, mappings: NewMappings): LawoState {
 		const lawoState: LawoState = {
 			nodes: {},
 		}
@@ -285,7 +287,7 @@ export class LawoDevice extends DeviceWithState<LawoState, DeviceOptionsLawoInte
 		const pushFader = (
 			identifier: string,
 			fader: TimelineContentLawoSourceValue,
-			mapping: MappingLawo,
+			mapping: NewMapping<MappingLawoSource>,
 			tlObjId: string,
 			priority = 0
 		) => {
@@ -299,7 +301,7 @@ export class LawoDevice extends DeviceWithState<LawoState, DeviceOptionsLawoInte
 					value: fader.faderValue,
 					valueType: EmberModel.ParameterType.Real,
 					transitionDuration: fader.transitionDuration,
-					priority: mapping.priority || 0,
+					priority: mapping.options.priority || 0,
 					timelineObjId: tlObjId,
 				},
 			})
@@ -309,7 +311,7 @@ export class LawoDevice extends DeviceWithState<LawoState, DeviceOptionsLawoInte
 			// for every layer
 			const content = tlObject.content
 
-			const mapping: MappingLawo | undefined = mappings[layerName] as MappingLawo
+			const mapping = mappings[layerName] as NewMapping<SomeMappingLawo> | undefined
 
 			if (
 				mapping &&
@@ -319,40 +321,66 @@ export class LawoDevice extends DeviceWithState<LawoState, DeviceOptionsLawoInte
 			) {
 				// Mapping is for Lawo
 
-				if (mapping.mappingType === MappingLawoType.SOURCES && content.type === TimelineContentTypeLawo.SOURCES) {
+				if (
+					mapping.options.mappingType === MappingLawoType.Sources &&
+					content.type === TimelineContentTypeLawo.SOURCES
+				) {
 					// mapping implies a composite of sources
 					for (const fader of content.sources) {
 						// for every mapping in the composite
-						const sourceMapping: MappingLawo | undefined = mappings[fader.mappingName] as MappingLawo
+						const sourceMapping = mappings[fader.mappingName] as NewMapping<MappingLawoSource> | undefined
 
 						if (
 							!sourceMapping ||
-							!sourceMapping.identifier ||
-							sourceMapping.mappingType !== MappingLawoType.SOURCE ||
+							!sourceMapping.options.identifier ||
+							sourceMapping.options.mappingType !== MappingLawoType.Source ||
 							mapping.deviceId !== this.deviceId
 						)
 							continue
 						// mapped mapping is a source mapping
 
-						pushFader(sourceMapping.identifier, fader, sourceMapping, tlObject.id, content.overridePriority)
+						pushFader(sourceMapping.options.identifier, fader, sourceMapping, tlObject.id, content.overridePriority)
 					}
-				} else if (mapping.identifier && content.type === TimelineContentTypeLawo.SOURCE) {
+				} else if (
+					mapping.options.mappingType === MappingLawoType.Source &&
+					mapping.options.identifier &&
+					content.type === TimelineContentTypeLawo.SOURCE
+				) {
 					// mapping is for a source
 					const priority = content.overridePriority
-					pushFader(mapping.identifier, content, mapping, tlObject.id, priority)
-				} else if (mapping.identifier && content.type === TimelineContentTypeLawo.EMBER_PROPERTY) {
+					pushFader(
+						mapping.options.identifier,
+						content,
+						mapping as NewMapping<MappingLawoSource>,
+						tlObject.id,
+						priority
+					)
+				} else if (
+					mapping.options.mappingType === MappingLawoType.Fullpath &&
+					mapping.options.identifier &&
+					content.type === TimelineContentTypeLawo.EMBER_PROPERTY
+				) {
 					// mapping is a property to set
 
-					lawoState.nodes[mapping.identifier] = {
+					const emberType =
+						mapping.options.emberType &&
+						Object.values(EmberModel.ParameterType).includes(mapping.options.emberType as any)
+							? (mapping.options.emberType as unknown as EmberModel.ParameterType)
+							: EmberModel.ParameterType.Real
+
+					lawoState.nodes[mapping.options.identifier] = {
 						type: content.type,
 						key: '',
-						identifier: mapping.identifier,
+						identifier: mapping.options.identifier,
 						value: content.value,
-						valueType: mapping.emberType || EmberModel.ParameterType.Real,
-						priority: mapping.priority || 0,
+						valueType: emberType,
+						priority: mapping.options.priority || 0,
 						timelineObjId: tlObject.id,
 					}
-				} else if (content.type === TimelineContentTypeLawo.TRIGGER_VALUE) {
+				} else if (
+					mapping.options.mappingType === MappingLawoType.TriggerValue &&
+					content.type === TimelineContentTypeLawo.TRIGGER_VALUE
+				) {
 					// mapping is a trigger value (will resend all commands to the Lawo to enforce state when changed)
 
 					lawoState.triggerValue = content.triggerValue

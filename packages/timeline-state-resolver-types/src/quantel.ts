@@ -1,24 +1,4 @@
-import { Mapping } from './mapping'
 import { DeviceType } from '.'
-
-export interface MappingQuantel extends Mapping {
-	device: DeviceType.QUANTEL
-
-	/** The port to use  */
-	portId: string
-	/** The channel to connect the port to */
-	channelId: number
-	// keyChannelID: number // not implemented yet, used when outputting Key + Fill
-
-	/** Which strategy to use during "busy times" (defaults to QUALITY) */
-	mode?: QuantelControlMode
-}
-export enum QuantelControlMode {
-	/** Try to avoid freeze-frames when playing */
-	QUALITY = 'quality',
-	/** Try to play as fast as possible */
-	SPEED = 'speed',
-}
 
 export type TimelineContentQuantelAny = TimelineContentQuantelClip
 export interface TimelineContentQuantelClip {

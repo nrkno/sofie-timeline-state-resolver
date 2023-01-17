@@ -30,6 +30,19 @@ export interface CasparCGOptions {
 	useScheduling?: boolean
 }
 
+export interface MappingCasparCGLayer {
+	channel: number
+	layer: number
+	previewWhenNotOnAir?: boolean
+	mappingType: MappingCasparCGType.Layer
+}
+
+export enum MappingCasparCGType {
+	Layer = 'layer',
+}
+
+export type SomeMappingCasparCG = MappingCasparCGLayer
+
 export enum CasparCGActions {
 	ClearAllChannels = 'clearAllChannels',
 	RestartServer = 'restartServer',

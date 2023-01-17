@@ -1,12 +1,4 @@
-import { Mapping } from './mapping'
 import { DeviceType } from '.'
-
-export interface MappingCasparCG extends Mapping {
-	device: DeviceType.CASPARCG
-	channel: number
-	layer: number
-	previewWhenNotOnAir?: boolean
-}
 
 export enum TimelineContentTypeCasparCg { //  CasparCG-state
 	MEDIA = 'media',

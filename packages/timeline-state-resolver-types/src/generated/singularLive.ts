@@ -8,3 +8,14 @@
 export interface SingularLiveOptions {
 	accessToken: string
 }
+
+export interface MappingSingularLiveComposition {
+	compositionName: string
+	mappingType: MappingSingularLiveType.Composition
+}
+
+export enum MappingSingularLiveType {
+	Composition = 'composition',
+}
+
+export type SomeMappingSingularLive = MappingSingularLiveComposition

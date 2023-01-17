@@ -1,0 +1,17 @@
+{
+	"$schema": "../../../$schemas/mapping-schema.json",
+	"default": "composition",
+	"mappings": {
+		"composition": {
+			"type": "object",
+			"properties": {
+				"compositionName": {
+					"type": "string",
+					"ui:title": "Composition Name"
+				}
+			},
+			"required": ["compositionName"],
+			"additionalProperties": false
+		}
+	}
+}

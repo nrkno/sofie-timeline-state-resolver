@@ -32,6 +32,33 @@ export interface QuantelOptions {
 	allowCloneClips?: boolean
 }
 
+export interface MappingQuantelPort {
+	/**
+	 * The port to use
+	 */
+	portId: number
+	/**
+	 * The channel to connect the port to
+	 */
+	channelId: number
+	mode?: QuantelControlMode
+	mappingType: MappingQuantelType.Port
+}
+
+/**
+ * Which strategy to use during "busy times" (defaults to QUALITY)
+ */
+export enum QuantelControlMode {
+	QUALITY = 'quality',
+	SPEED = 'speed'
+}
+
+export enum MappingQuantelType {
+	Port = 'port',
+}
+
+export type SomeMappingQuantel = MappingQuantelPort
+
 export enum QuantelActions {
 	RestartGateway = 'restartGateway',
 }

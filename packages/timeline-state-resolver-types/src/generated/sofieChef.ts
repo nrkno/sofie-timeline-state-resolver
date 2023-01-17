@@ -15,3 +15,14 @@ export interface SofieChefOptions {
 	 */
 	apiKey?: string
 }
+
+export interface MappingSofieChefWindow {
+	windowId: string
+	mappingType: MappingSofieChefType.Window
+}
+
+export enum MappingSofieChefType {
+	Window = 'window',
+}
+
+export type SomeMappingSofieChef = MappingSofieChefWindow

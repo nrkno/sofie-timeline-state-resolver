@@ -15,3 +15,5 @@ export enum OSCDeviceType {
 	TCP = 'tcp',
 	UDP = 'udp'
 }
+
+export type SomeMappingOsc = unknown

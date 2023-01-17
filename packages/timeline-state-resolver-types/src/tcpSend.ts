@@ -1,9 +1,4 @@
-import { Mapping } from './mapping'
 import { DeviceType, TcpSendCommandContent } from '.'
-
-export interface MappingTCPSend extends Mapping {
-	device: DeviceType.TCPSEND
-}
 
 export enum TimelineContentTypeTcp {
 	GET = 'get',

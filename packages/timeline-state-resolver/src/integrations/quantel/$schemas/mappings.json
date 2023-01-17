@@ -1,0 +1,38 @@
+{
+	"$schema": "../../../$schemas/mapping-schema.json",
+	"default": "port",
+	"mappings": {
+		"port": {
+			"type": "object",
+			"properties": {
+				"portId": {
+					"type": "integer",
+					"ui:title": "Port ID",
+					"ui:description": "The name you'd like the port to have",
+					"description": "The port to use",
+					"default": 1,
+					"min": 0
+				},
+				"channelId": {
+					"type": "integer",
+					"ui:title": "Channel ID",
+					"ui:description": "The channel to use for output (0 is the first one)",
+					"description": "The channel to connect the port to",
+					"default": 1,
+					"min": 0
+				},
+				"mode": {
+					"type": "string",
+					"ui:title": "Mode",
+					"title": "QuantelControlMode",
+					"description": "Which strategy to use during \"busy times\" (defaults to QUALITY) ",
+					"enum": ["quality", "speed"],
+					"tsEnumNames": ["QUALITY", "SPEED"],
+					"default": "quality"
+				}
+			},
+			"required": ["portId", "channelId"],
+			"additionalProperties": false
+		}
+	}
+}

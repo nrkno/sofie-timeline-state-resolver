@@ -34,3 +34,5 @@ export interface TcpSendCommandContent {
 	 */
 	queueId?: string
 }
+
+export type SomeMappingTcpSend = unknown

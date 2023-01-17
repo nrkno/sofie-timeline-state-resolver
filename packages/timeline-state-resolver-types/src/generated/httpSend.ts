@@ -27,3 +27,5 @@ export interface HTTPSendCommandContent {
 	 */
 	queueId?: string
 }
+
+export type SomeMappingHttpSend = unknown

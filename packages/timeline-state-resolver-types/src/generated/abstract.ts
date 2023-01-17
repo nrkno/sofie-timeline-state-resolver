@@ -7,6 +7,8 @@
 
 export interface AbstractOptions {}
 
+export type SomeMappingAbstract = unknown
+
 export enum AbstractActions {
 	TestAction = 'testAction',
 }

@@ -10,3 +10,5 @@ export interface OBSOptions {
 	port: number
 	password?: string
 }
+
+export type SomeMappingObs = unknown

@@ -9,3 +9,5 @@ export interface ShotokuOptions {
 	host: string
 	port: number
 }
+
+export type SomeMappingShotoku = unknown

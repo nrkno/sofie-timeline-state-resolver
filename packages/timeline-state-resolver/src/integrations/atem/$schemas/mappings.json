@@ -1,5 +1,6 @@
 {
 	"$schema": "../../../$schemas/mapping-schema.json",
+	"default": "auxilliary",
 	"mappings": {
 		"mixEffect": {
 			"type": "object",

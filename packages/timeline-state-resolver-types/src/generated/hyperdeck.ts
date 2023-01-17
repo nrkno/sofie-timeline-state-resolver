@@ -15,6 +15,16 @@ export interface HyperdeckOptions {
 	suppressEmptySlotWarnings?: boolean
 }
 
+export interface MappingHyperdeckTransport {
+	mappingType: MappingHyperdeckType.Transport
+}
+
+export enum MappingHyperdeckType {
+	Transport = 'transport',
+}
+
+export type SomeMappingHyperdeck = MappingHyperdeckTransport
+
 export enum HyperdeckActions {
 	FormatDisks = 'formatDisks',
 }

@@ -3,14 +3,15 @@ import { DeviceWithState, CommandWithContext, DeviceStatus, StatusCode } from '.
 import {
 	DeviceType,
 	TimelineContentTypeHyperdeck,
-	MappingHyperdeck,
 	MappingHyperdeckType,
 	HyperdeckOptions,
 	DeviceOptionsHyperdeck,
-	Mappings,
+	NewMappings,
 	TSRTimelineContent,
 	Timeline,
 	HyperdeckActions,
+	NewMapping,
+	SomeMappingHyperdeck,
 } from 'timeline-state-resolver-types'
 import {
 	Hyperdeck,
@@ -266,7 +267,7 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState, DeviceOptionsH
 	 * that state at that time.
 	 * @param newState
 	 */
-	handleState(newState: Timeline.TimelineState<TSRTimelineContent>, newMappings: Mappings) {
+	handleState(newState: Timeline.TimelineState<TSRTimelineContent>, newMappings: NewMappings) {
 		super.onHandleState(newState, newMappings)
 		if (!this._initialized) {
 			// before it's initialized don't do anything
@@ -316,7 +317,7 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState, DeviceOptionsH
 	 * Converts a timeline state to a device state.
 	 * @param state
 	 */
-	convertStateToHyperdeck(state: Timeline.TimelineState<TSRTimelineContent>, mappings: Mappings): DeviceState {
+	convertStateToHyperdeck(state: Timeline.TimelineState<TSRTimelineContent>, mappings: NewMappings): DeviceState {
 		if (!this._initialized) throw Error('convertStateToHyperdeck cannot be used before inititialized')
 
 		// Convert the timeline state into something we can use easier:
@@ -328,11 +329,11 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState, DeviceOptionsH
 		_.each(sortedLayers, ({ tlObject, layerName }) => {
 			const content = tlObject.content
 
-			const mapping = mappings[layerName] as MappingHyperdeck
+			const mapping = mappings[layerName] as NewMapping<SomeMappingHyperdeck>
 
 			if (mapping && mapping.deviceId === this.deviceId && content.deviceType === DeviceType.HYPERDECK) {
-				switch (mapping.mappingType) {
-					case MappingHyperdeckType.TRANSPORT:
+				switch (mapping.options.mappingType) {
+					case MappingHyperdeckType.Transport:
 						if (content.type === TimelineContentTypeHyperdeck.TRANSPORT) {
 							if (!deviceState.transport) {
 								switch (content.status) {

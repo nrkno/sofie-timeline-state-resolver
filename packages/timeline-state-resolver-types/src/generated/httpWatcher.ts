@@ -12,3 +12,5 @@ export interface HTTPWatcherOptions {
 	keyword?: string
 	interval?: number
 }
+
+export type SomeMappingHttpWatcher = unknown

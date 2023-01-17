@@ -1,9 +1,4 @@
-import { Mapping } from './mapping'
 import { DeviceType } from '.'
-
-export interface MappingPharos extends Mapping {
-	device: DeviceType.PHAROS
-}
 
 export enum TimelineContentTypePharos {
 	SCENE = 'scene',

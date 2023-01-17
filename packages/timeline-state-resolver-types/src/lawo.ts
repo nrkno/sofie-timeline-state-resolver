@@ -1,5 +1,5 @@
-import { Mapping } from './mapping'
 import { DeviceType } from '.'
+// import {EmberParameterType} from './generated/lawo'
 
 export type EmberValue = number | string | boolean | Buffer | null
 enum ParameterType {
@@ -11,20 +11,6 @@ enum ParameterType {
 	Trigger = 'TRIGGER',
 	Enum = 'ENUM',
 	Octets = 'OCTETS',
-}
-
-export interface MappingLawo extends Mapping {
-	device: DeviceType.LAWO
-	mappingType: MappingLawoType
-	identifier?: string
-	emberType?: ParameterType
-	priority?: number
-}
-export enum MappingLawoType {
-	SOURCE = 'source',
-	SOURCES = 'sources', // TODO - naming? can this also be a full path or trigger val?
-	FULL_PATH = 'fullpath',
-	TRIGGER_VALUE = 'triggerValue',
 }
 
 export interface LawoCommand {

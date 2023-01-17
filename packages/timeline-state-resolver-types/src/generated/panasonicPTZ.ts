@@ -10,3 +10,28 @@ export interface PanasonicPTZOptions {
 	port: number
 	https?: boolean
 }
+
+export interface MappingPanasonicPTZPresetMem {
+	mappingType: MappingPanasonicPTZType.PresetMem
+}
+
+export interface MappingPanasonicPTZPresetSpeed {
+	mappingType: MappingPanasonicPTZType.PresetSpeed
+}
+
+export interface MappingPanasonicPTZZoomSpeed {
+	mappingType: MappingPanasonicPTZType.ZoomSpeed
+}
+
+export interface MappingPanasonicPTZZoom {
+	mappingType: MappingPanasonicPTZType.Zoom
+}
+
+export enum MappingPanasonicPTZType {
+	PresetMem = 'presetMem',
+	PresetSpeed = 'presetSpeed',
+	ZoomSpeed = 'zoomSpeed',
+	Zoom = 'zoom',
+}
+
+export type SomeMappingPanasonicPTZ = MappingPanasonicPTZPresetMem | MappingPanasonicPTZPresetSpeed | MappingPanasonicPTZZoomSpeed | MappingPanasonicPTZZoom

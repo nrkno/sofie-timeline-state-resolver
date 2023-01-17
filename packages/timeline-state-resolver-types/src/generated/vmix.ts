@@ -9,3 +9,5 @@ export interface VMixOptions {
 	host: string
 	port: number
 }
+
+export type SomeMappingVmix = unknown

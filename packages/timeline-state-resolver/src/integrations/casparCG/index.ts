@@ -5,12 +5,12 @@ import { AMCPCommand, BasicCasparCGAPI, ClearCommand, Commands, Response } from 
 import {
 	DeviceType,
 	TimelineContentTypeCasparCg,
-	MappingCasparCG,
+	SomeMappingCasparCG,
 	CasparCGOptions,
 	TimelineContentCCGProducerBase,
 	ResolvedTimelineObjectInstanceExtended,
 	DeviceOptionsCasparCG,
-	Mappings,
+	NewMappings,
 	TimelineContentCasparCGAny,
 	TSRTimelineObjProps,
 	Timeline,
@@ -18,6 +18,8 @@ import {
 	ActionExecutionResult,
 	ActionExecutionResultCode,
 	CasparCGActions,
+	MappingCasparCGLayer,
+	NewMapping,
 } from 'timeline-state-resolver-types'
 
 import {
@@ -176,7 +178,7 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 	/**
 	 * Generates an array of CasparCG commands by comparing the newState against the oldState, or the current device state.
 	 */
-	handleState(newState: Timeline.TimelineState<TSRTimelineContent>, newMappings: Mappings) {
+	handleState(newState: Timeline.TimelineState<TSRTimelineContent>, newMappings: NewMappings) {
 		super.onHandleState(newState, newMappings)
 
 		const previousStateTime = Math.max(this.getCurrentTime(), newState.time)
@@ -232,9 +234,9 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 	}
 
 	private convertObjectToCasparState(
-		mappings: Mappings,
+		mappings: NewMappings,
 		layer: Timeline.ResolvedTimelineObjectInstance,
-		mapping: MappingCasparCG,
+		mapping: MappingCasparCGLayer,
 		isForeground: boolean
 	): LayerBase {
 		let startTime = layer.instance.originalStart || layer.instance.start
@@ -327,10 +329,10 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 			})
 		} else if (content.type === TimelineContentTypeCasparCg.ROUTE) {
 			if (content.mappedLayer) {
-				const routeMapping = mappings[content.mappedLayer] as MappingCasparCG
+				const routeMapping = mappings[content.mappedLayer] as NewMapping<SomeMappingCasparCG>
 				if (routeMapping && routeMapping.deviceId === this.deviceId) {
-					content.channel = routeMapping.channel
-					content.layer = routeMapping.layer
+					content.channel = routeMapping.options.channel
+					content.layer = routeMapping.options.layer
 				}
 			}
 			stateLayer = literal<RouteLayer>({
@@ -425,7 +427,7 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 	 * Takes a timeline state and returns a CasparCG State that will work with the state lib.
 	 * @param timelineState The timeline state to generate from.
 	 */
-	convertStateToCaspar(timelineState: Timeline.TimelineState<TSRTimelineContent>, mappings: Mappings): State {
+	convertStateToCaspar(timelineState: Timeline.TimelineState<TSRTimelineContent>, mappings: NewMappings): State {
 		const caspar: State = {
 			channels: {},
 		}
@@ -438,19 +440,19 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 				_.has(foundMapping, 'channel') &&
 				_.has(foundMapping, 'layer')
 			) {
-				const mapping = foundMapping as MappingCasparCG
-				mapping.channel = mapping.channel || 0
-				mapping.layer = mapping.layer || 0
+				const mapping = foundMapping as NewMapping<SomeMappingCasparCG>
+				mapping.options.channel = mapping.options.channel || 0
+				mapping.options.layer = mapping.options.layer || 0
 
 				// create a channel in state if necessary, or reuse existing channel
-				const channel = caspar.channels[mapping.channel] || { channelNo: mapping.channel, layers: {} }
-				channel.channelNo = Number(mapping.channel) || 1
+				const channel = caspar.channels[mapping.options.channel] || { channelNo: mapping.options.channel, layers: {} }
+				channel.channelNo = Number(mapping.options.channel) || 1
 				channel.fps = this.initOptions ? this.initOptions.fps || 25 : 25
 				caspar.channels[channel.channelNo] = channel
 
 				// @todo: check if we need to get fps.
 				channel.fps = this.initOptions ? this.initOptions.fps || 25 : 25
-				caspar.channels[mapping.channel] = channel
+				caspar.channels[mapping.options.channel] = channel
 
 				let foregroundObj: ResolvedTimelineObjectInstanceExtended | undefined = timelineState.layers[layerName]
 				let backgroundObj = _.last(
@@ -469,19 +471,23 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 
 				// create layer of appropriate type
 				const foregroundStateLayer = foregroundObj
-					? this.convertObjectToCasparState(mappings, foregroundObj, mapping, true)
+					? this.convertObjectToCasparState(mappings, foregroundObj, mapping.options, true)
 					: undefined
 				const backgroundStateLayer = backgroundObj
-					? this.convertObjectToCasparState(mappings, backgroundObj, mapping, false)
+					? this.convertObjectToCasparState(mappings, backgroundObj, mapping.options, false)
 					: undefined
 
 				debug(
-					`${layerName} (${mapping.channel}-${mapping.layer}): FG keys: ${Object.entries(foregroundStateLayer || {})
+					`${layerName} (${mapping.options.channel}-${mapping.options.layer}): FG keys: ${Object.entries(
+						foregroundStateLayer || {}
+					)
 						.map((e) => e[0] + ': ' + e[1])
 						.join(', ')}`
 				)
 				debug(
-					`${layerName} (${mapping.channel}-${mapping.layer}): BG keys: ${Object.entries(backgroundStateLayer || {})
+					`${layerName} (${mapping.options.channel}-${mapping.options.layer}): BG keys: ${Object.entries(
+						backgroundStateLayer || {}
+					)
 						.map((e) => e[0] + ': ' + e[1])
 						.join(', ')}`
 				)
@@ -499,16 +505,17 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 				}
 
 				if (foregroundStateLayer) {
-					const currentTemplateData = (channel.layers[mapping.layer] as any as TemplateLayer | undefined)?.templateData
+					const currentTemplateData = (channel.layers[mapping.options.layer] as any as TemplateLayer | undefined)
+						?.templateData
 					const foregroundTemplateData = (foregroundStateLayer as any as TemplateLayer | undefined)?.templateData
-					channel.layers[mapping.layer] = merge(channel.layers[mapping.layer], {
+					channel.layers[mapping.options.layer] = merge(channel.layers[mapping.options.layer], {
 						...foregroundStateLayer,
 						...(_.isObject(currentTemplateData) && _.isObject(foregroundTemplateData)
 							? { templateData: deepMerge(currentTemplateData, foregroundTemplateData) }
 							: {}),
 						nextUp: backgroundStateLayer
 							? merge(
-									(channel.layers[mapping.layer] || {}).nextUp!,
+									(channel.layers[mapping.options.layer] || {}).nextUp!,
 									literal<NextUp>({
 										...(backgroundStateLayer as NextUp),
 										auto: false,
@@ -517,18 +524,18 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 							: undefined,
 					})
 				} else if (backgroundStateLayer) {
-					if (mapping.previewWhenNotOnAir) {
-						channel.layers[mapping.layer] = merge(channel.layers[mapping.layer], {
-							...channel.layers[mapping.layer],
+					if (mapping.options.previewWhenNotOnAir) {
+						channel.layers[mapping.options.layer] = merge(channel.layers[mapping.options.layer], {
+							...channel.layers[mapping.options.layer],
 							...backgroundStateLayer,
 							playing: false,
 						})
 					} else {
-						channel.layers[mapping.layer] = merge(
-							channel.layers[mapping.layer],
+						channel.layers[mapping.options.layer] = merge(
+							channel.layers[mapping.options.layer],
 							literal<EmptyLayer>({
 								id: `${backgroundStateLayer.id}_empty_base`,
-								layerNo: mapping.layer,
+								layerNo: mapping.options.layer,
 								content: LayerContentType.NOTHING,
 								playing: false,
 								nextUp: literal<NextUp>({

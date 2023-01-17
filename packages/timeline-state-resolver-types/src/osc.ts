@@ -1,4 +1,3 @@
-import { Mapping } from './mapping'
 import { DeviceType } from '.'
 
 // Note: This type is a loose referral to (a copy of) keyof typeof Easing in '../../easings', so that Easing structure won't be included in the types package
@@ -14,10 +13,6 @@ export type OSCEasingType =
 	| 'Elastic'
 	| 'Back'
 	| 'Bounce'
-
-export interface MappingOSC extends Mapping {
-	device: DeviceType.OSC
-}
 
 export enum TimelineContentTypeOSC {
 	OSC = 'osc',

@@ -35,3 +35,44 @@ export enum LawoDeviceMode {
 	MC2 = 3,
 	Manual = 4
 }
+
+export interface MappingLawoSource {
+	identifier: string
+	priority?: number
+	mappingType: MappingLawoType.Source
+}
+
+export interface MappingLawoSources {
+	mappingType: MappingLawoType.Sources
+}
+
+export interface MappingLawoFullpath {
+	identifier?: string
+	emberType?: EmberParameterType
+	priority?: number
+	mappingType: MappingLawoType.Fullpath
+}
+
+export enum EmberParameterType {
+	Null = 'NULL',
+	Integer = 'INTEGER',
+	Real = 'REAL',
+	String = 'STRING',
+	Boolean = 'BOOLEAN',
+	Trigger = 'TRIGGER',
+	Enum = 'ENUM',
+	Octets = 'OCTETS'
+}
+
+export interface MappingLawoTriggerValue {
+	mappingType: MappingLawoType.TriggerValue
+}
+
+export enum MappingLawoType {
+	Source = 'source',
+	Sources = 'sources',
+	Fullpath = 'fullpath',
+	TriggerValue = 'triggerValue',
+}
+
+export type SomeMappingLawo = MappingLawoSource | MappingLawoSources | MappingLawoFullpath | MappingLawoTriggerValue

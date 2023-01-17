@@ -9,3 +9,5 @@ export interface SisyfosOptions {
 	host: string
 	port: number
 }
+
+export type SomeMappingSisyfos = unknown

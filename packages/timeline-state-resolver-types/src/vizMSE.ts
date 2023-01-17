@@ -1,9 +1,4 @@
-import { Mapping } from './mapping'
 import { DeviceType } from '.'
-
-export interface MappingVizMSE extends Mapping {
-	device: DeviceType.VIZMSE
-}
 
 export enum TimelineContentTypeVizMSE {
 	ELEMENT_INTERNAL = 'element_internal',

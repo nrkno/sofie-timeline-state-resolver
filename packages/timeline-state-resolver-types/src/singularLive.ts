@@ -1,10 +1,4 @@
-import { Mapping } from './mapping'
 import { DeviceType } from '.'
-
-export interface MappingSingularLive extends Mapping {
-	device: DeviceType.SINGULAR_LIVE
-	compositionName: string
-}
 
 export interface SingularLiveContent {
 	type: TimelineContentTypeSingularLive

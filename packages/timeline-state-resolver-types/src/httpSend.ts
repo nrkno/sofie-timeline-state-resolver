@@ -1,9 +1,4 @@
-import { Mapping } from './mapping'
 import { DeviceType, HTTPSendCommandContent } from '.'
-
-export interface MappingHTTPSend extends Mapping {
-	device: DeviceType.HTTPSEND
-}
 
 export enum TimelineContentTypeHTTP {
 	GET = 'get',

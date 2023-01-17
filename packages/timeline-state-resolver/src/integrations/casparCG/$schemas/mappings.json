@@ -1,0 +1,33 @@
+{
+	"$schema": "../../../$schemas/mapping-schema.json",
+	"default": "layer",
+	"mappings": {
+		"layer": {
+			"type": "object",
+			"properties": {
+				"channel": {
+					"type": "integer",
+					"ui:title": "Channel",
+					"ui:description": "The CasparCG channel to use (1 is the first)",
+					"default": 1,
+					"min": 0
+				},
+				"layer": {
+					"type": "integer",
+					"ui:title": "Layer",
+					"ui:description": "The layer in a channel to use",
+					"default": 1,
+					"min": 0
+				},
+				"previewWhenNotOnAir": {
+					"type": "boolean",
+					"ui:title": "Preview when not On-Air",
+					"ui:description": "Whether to load to first frame",
+					"default": false
+				}
+			},
+			"required": ["channel", "layer"],
+			"additionalProperties": false
+		}
+	}
+}

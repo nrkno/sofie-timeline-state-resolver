@@ -9,3 +9,5 @@ export interface TelemetricsOptions {
 	host: string
 	port: number
 }
+
+export type SomeMappingTelemetrics = unknown
