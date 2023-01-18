@@ -47,6 +47,7 @@ import VMixOptions = require('./integrations/vmix/$schemas/options.json')
 import VMixMappings = require('./integrations/vmix/$schemas/mappings.json')
 
 import CommonOptions = require('./$schemas/common-options.json')
+import { generateTranslation, t } from './lib'
 
 const stringifySchema = (action: TSRActionSchema & { payload?: any }): TSRActionSchema => ({
 	...action,
@@ -71,108 +72,108 @@ export const manifest: TSRManifest = {
 	commonOptions: JSON.stringify(CommonOptions),
 	subdevices: {
 		[DeviceType.ABSTRACT]: {
-			displayName: 'Abstract',
+			displayName: generateTranslation('Abstract'),
 			actions: AbstractActions.actions.map(stringifySchema),
 			configSchema: JSON.stringify(AbstractOptions),
 			mappingSchema: JSON.stringify(AbstractMappings),
 		},
 		[DeviceType.ATEM]: {
-			displayName: 'Blackmagic ATEM',
+			displayName: generateTranslation('Blackmagic ATEM'),
 			actions: AtemActions.actions.map(stringifySchema),
 			configSchema: JSON.stringify(AtemOptions),
 			mappingSchema: JSON.stringify(AtemMappings),
 		},
 		[DeviceType.CASPARCG]: {
-			displayName: 'CasparCG',
+			displayName: generateTranslation('CasparCG'),
 			actions: CasparCGActions.actions.map(stringifySchema),
 			configSchema: JSON.stringify(CasparCGOptions),
 			mappingSchema: JSON.stringify(CasparCGMappings),
 		},
 		[DeviceType.HTTPSEND]: {
-			displayName: 'HTTP Send',
+			displayName: generateTranslation('HTTP Send'),
 			configSchema: JSON.stringify(HTTPSendOptions),
 			mappingSchema: JSON.stringify(HTTPSendMappings),
 		},
 		[DeviceType.HTTPWATCHER]: {
-			displayName: 'HTTP Watcher',
+			displayName: generateTranslation('HTTP Watcher'),
 			configSchema: JSON.stringify(HTTPWatcherOptions),
 			mappingSchema: JSON.stringify(HTTPWatcherMappings),
 		},
 		[DeviceType.HYPERDECK]: {
-			displayName: 'Blackmagic Hyperdeck',
+			displayName: generateTranslation('Blackmagic Hyperdeck'),
 			actions: HyperdeckActions.actions.map(stringifySchema),
 			configSchema: JSON.stringify(HyperdeckOptions),
 			mappingSchema: JSON.stringify(HyperdeckMappings),
 		},
 		[DeviceType.LAWO]: {
-			displayName: 'Lawo',
+			displayName: generateTranslation('Lawo'),
 			configSchema: JSON.stringify(LawoOptions),
 			mappingSchema: JSON.stringify(LawoMappings),
 		},
 		[DeviceType.OBS]: {
-			displayName: 'OBS Studio',
+			displayName: generateTranslation('OBS Studio'),
 			configSchema: JSON.stringify(OBSOptions),
 			mappingSchema: JSON.stringify(OBSMappings),
 		},
 		[DeviceType.OSC]: {
-			displayName: 'OSC',
+			displayName: generateTranslation('OSC'),
 			configSchema: JSON.stringify(OSCOptions),
 			mappingSchema: JSON.stringify(OSCMappings),
 		},
 		[DeviceType.PANASONIC_PTZ]: {
-			displayName: 'Panasonic PTZ',
+			displayName: generateTranslation('Panasonic PTZ'),
 			configSchema: JSON.stringify(PanasonicPTZOptions),
 			mappingSchema: JSON.stringify(PanasonicPTZMappings),
 		},
 		[DeviceType.PHAROS]: {
-			displayName: 'Pharos',
+			displayName: generateTranslation('Pharos'),
 			configSchema: JSON.stringify(PharosOptions),
 			mappingSchema: JSON.stringify(PharosMappings),
 		},
 		[DeviceType.QUANTEL]: {
-			displayName: 'Quantel',
+			displayName: generateTranslation('Quantel'),
 			actions: QuantelActions.actions.map(stringifySchema),
 			configSchema: JSON.stringify(QuantelOptions),
 			mappingSchema: JSON.stringify(QuantelMappings),
 		},
 		[DeviceType.SHOTOKU]: {
-			displayName: 'Shotoku',
+			displayName: generateTranslation('Shotoku'),
 			configSchema: JSON.stringify(ShotokuOptions),
 			mappingSchema: JSON.stringify(ShotokuMappings),
 		},
 		[DeviceType.SINGULAR_LIVE]: {
-			displayName: 'Singular Live',
+			displayName: generateTranslation('Singular Live'),
 			configSchema: JSON.stringify(SingularLiveOptions),
 			mappingSchema: JSON.stringify(SingularLiveMappings),
 		},
 		[DeviceType.SISYFOS]: {
-			displayName: 'Sisyfos',
+			displayName: generateTranslation('Sisyfos'),
 			configSchema: JSON.stringify(SisyfosOptions),
 			mappingSchema: JSON.stringify(SisyfosMappings),
 		},
 		[DeviceType.SOFIE_CHEF]: {
-			displayName: 'Sofie Chef',
+			displayName: generateTranslation('Sofie Chef'),
 			configSchema: JSON.stringify(SofieChefOptions),
 			mappingSchema: JSON.stringify(SofieChefMappings),
 		},
 		[DeviceType.TCPSEND]: {
-			displayName: 'TCP Send',
+			displayName: generateTranslation('TCP Send'),
 			configSchema: JSON.stringify(TCPSendOptions),
 			mappingSchema: JSON.stringify(TCPSendMappings),
 		},
 		[DeviceType.TELEMETRICS]: {
-			displayName: 'Telemetrics',
+			displayName: generateTranslation('Telemetrics'),
 			configSchema: JSON.stringify(TelemetricsOptions),
 			mappingSchema: JSON.stringify(TelemetricsMappings),
 		},
 		[DeviceType.VIZMSE]: {
-			displayName: 'Viz MSE',
+			displayName: generateTranslation('Viz MSE'),
 			actions: VizMSEActions.actions.map(stringifySchema),
 			configSchema: JSON.stringify(VizMSEOptions),
 			mappingSchema: JSON.stringify(VizMSEMappings),
 		},
 		[DeviceType.VMIX]: {
-			displayName: 'VMix',
+			displayName: generateTranslation('VMix'),
 			configSchema: JSON.stringify(VMixOptions),
 			mappingSchema: JSON.stringify(VMixMappings),
 		},

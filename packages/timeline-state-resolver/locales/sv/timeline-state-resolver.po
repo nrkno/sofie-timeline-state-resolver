@@ -5,8 +5,8 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1)\n"
-"POT-Creation-Date: 2023-01-18T11:24:17.267Z\n"
-"PO-Revision-Date: 2023-01-18T11:24:17.267Z\n"
+"POT-Creation-Date: 2023-01-18T11:53:39.387Z\n"
+"PO-Revision-Date: 2023-01-18T11:53:39.387Z\n"
 "Language: sv\n"
 
 msgid "(Optional) Playlist ID"
@@ -19,6 +19,9 @@ msgid "(Optional) Viz Engines REST port"
 msgstr ""
 
 msgid "(Optional) Websocket port"
+msgstr ""
+
+msgid "Abstract"
 msgstr ""
 
 msgid "Access Token"
@@ -42,11 +45,20 @@ msgstr ""
 msgid "Bad reply: [{{statusCode}}] {{body}}"
 msgstr "Felaktigt svar: [{{statusCode}}] {{body}}"
 
+msgid "Blackmagic ATEM"
+msgstr ""
+
+msgid "Blackmagic Hyperdeck"
+msgstr ""
+
 msgid "Buffer Encoding"
 msgstr ""
 
 msgid "Cannot restart CasparCG without a connection"
 msgstr "Kan inte starta om CasparCG utan en anslutning"
+
+msgid "CasparCG"
+msgstr ""
 
 msgid "CasparCGDevice: config.launcherHost is not set!"
 msgstr "CasparCG: config.launcherHost är inte ifylld!"
@@ -114,6 +126,9 @@ msgstr ""
 msgid "Fader setValue Interval"
 msgstr ""
 
+msgid "File Path"
+msgstr ""
+
 msgid "Format disks"
 msgstr "Formatera hårddiskarna"
 
@@ -127,6 +142,12 @@ msgid "Host"
 msgstr ""
 
 msgid "HTTP Method"
+msgstr ""
+
+msgid "HTTP Send"
+msgstr ""
+
+msgid "HTTP Watcher"
 msgstr ""
 
 msgid "Identifier"
@@ -162,6 +183,9 @@ msgstr ""
 msgid "Launcher Port"
 msgstr ""
 
+msgid "Lawo"
+msgstr ""
+
 msgid "Layer"
 msgstr ""
 
@@ -174,6 +198,9 @@ msgstr ""
 msgid "Media retry interval"
 msgstr ""
 
+msgid "Message"
+msgstr ""
+
 msgid "Minimum recording time"
 msgstr ""
 
@@ -183,16 +210,40 @@ msgstr ""
 msgid "Mode"
 msgstr ""
 
+msgid "OBS Studio"
+msgstr ""
+
 msgid "Only preload elements in active Playlist"
 msgstr ""
 
+msgid "OSC"
+msgstr ""
+
+msgid "Panasonic PTZ"
+msgstr ""
+
+msgid "Params"
+msgstr ""
+
+msgid "Params type"
+msgstr ""
+
 msgid "Password"
+msgstr ""
+
+msgid "Path"
+msgstr ""
+
+msgid "Pharos"
 msgstr ""
 
 msgid "Port"
 msgstr ""
 
 msgid "Port ID"
+msgstr ""
+
+msgid "Position"
 msgstr ""
 
 msgid "Preload all elements"
@@ -212,6 +263,9 @@ msgstr ""
 
 msgid "Purge Viz Rundown"
 msgstr "Rensa Viz Rundown"
+
+msgid "Quantel"
+msgstr ""
 
 msgid "Quantel Server ID"
 msgstr ""
@@ -234,7 +288,22 @@ msgstr "Synka om Atem"
 msgid "Scene Name"
 msgstr ""
 
+msgid "Send Queue Id"
+msgstr ""
+
 msgid "Set channel label to layer name"
+msgstr ""
+
+msgid "Shotoku"
+msgstr ""
+
+msgid "Singular Live"
+msgstr ""
+
+msgid "Sisyfos"
+msgstr ""
+
+msgid "Sofie Chef"
 msgstr ""
 
 msgid "Source"
@@ -244,6 +313,15 @@ msgid "Sources Path"
 msgstr ""
 
 msgid "Suppress Empty Slot Warnings"
+msgstr ""
+
+msgid "TCP Send"
+msgstr ""
+
+msgid "Telemetrics"
+msgstr ""
+
+msgid "Temporal Priority"
 msgstr ""
 
 msgid "Test action"
@@ -275,10 +353,22 @@ msgstr ""
 msgid "URI"
 msgstr ""
 
+msgid "Url"
+msgstr ""
+
+msgid "URL"
+msgstr ""
+
 msgid "Use CasparCG Timecode Scheduler"
 msgstr ""
 
 msgid "Use HTTPS"
+msgstr ""
+
+msgid "Viz MSE"
+msgstr ""
+
+msgid "VMix"
 msgstr ""
 
 msgid "Whether Make Ready triggers a state reset"

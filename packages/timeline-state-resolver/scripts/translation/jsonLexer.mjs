@@ -41,13 +41,17 @@ export class JsonLexer extends BaseLexer {
 }
 
 function processObject(keys, obj) {
-	if (obj && obj.type === 'object') {
-		for (const prop of Object.values(obj.properties || {})) {
-			if (prop['ui:title']) keys.push(prop['ui:title'])
-			if (prop['ui:summaryTitle']) keys.push(prop['ui:summaryTitle'])
-			if (prop['ui:description']) keys.push(prop['ui:description'])
+	if (!obj) return
 
-			processObject(prop)
+	if (obj['ui:title']) keys.push(obj['ui:title'])
+	if (obj['ui:summaryTitle']) keys.push(obj['ui:summaryTitle'])
+	if (obj['ui:description']) keys.push(obj['ui:description'])
+
+	if (obj.type === 'array') {
+		processObject(keys, obj.items)
+	} else if (obj.type === 'object') {
+		for (const prop of Object.values(obj.properties || {})) {
+			processObject(keys, prop)
 		}
 	}
 }
