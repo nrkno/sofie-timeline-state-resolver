@@ -8,6 +8,7 @@
 				"channel": {
 					"type": "integer",
 					"ui:title": "Channel",
+					"ui:summaryTitle": "Channel",
 					"ui:zeroBased": true
 				},
 				"setLabelToLayerName": {
@@ -23,7 +24,8 @@
 			"properties": {
 				"label": {
 					"type": "string",
-					"ui:title": "Window ID",
+					"ui:title": "Label",
+					"ui:summaryTitle": "Label",
 					"ui:description": "Identify the channel by label (does not set the label in Sisyfos)"
 				}
 			},

@@ -7,7 +7,8 @@
 			"properties": {
 				"identifier": {
 					"type": "string",
-					"ui:title": "Identifier"
+					"ui:title": "Identifier",
+					"ui:summaryTitle": "Identifier"
 				},
 				"priority": {
 					"type": "integer",
@@ -28,7 +29,8 @@
 			"properties": {
 				"identifier": {
 					"type": "string",
-					"ui:title": "Identifier"
+					"ui:title": "Identifier",
+					"ui:summaryTitle": "Identifier"
 				},
 				"emberType": {
 					"type": "string",

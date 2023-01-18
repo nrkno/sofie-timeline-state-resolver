@@ -8,6 +8,7 @@
 				"index": {
 					"type": "integer",
 					"ui:title": "Index",
+					"ui:summaryTitle": "Index",
 					"description": "Number of the mix (1 is the main mix, 2-4 are optional Mix Inputs)",
 					"enum": [1, 2, 3, 4]
 				}
@@ -21,6 +22,7 @@
 				"index": {
 					"type": "integer",
 					"ui:title": "Index",
+					"ui:summaryTitle": "Index",
 					"description": "Number of the mix (1 is the main mix, 2-4 are optional Mix Inputs)",
 					"enum": [1, 2, 3, 4]
 				}
@@ -35,6 +37,7 @@
 					"type": "string",
 					"ui:title": "Index",
 					"ui:description": "Input number or name",
+					"ui:summaryTitle": "Index",
 					"description": "Input number or name",
 					"TODO": "string | number. this could be done with 'anyOf' or something, but adds complexity for little benefit"
 				}
@@ -49,6 +52,7 @@
 					"type": "string",
 					"ui:title": "Index",
 					"ui:description": "Input number or name",
+					"ui:summaryTitle": "Index",
 					"description": "Input number or name",
 					"TODO": "string | number. this could be done with 'anyOf' or something, but adds complexity for little benefit"
 				},
@@ -67,6 +71,7 @@
 				"index": {
 					"type": "string",
 					"ui:title": "Index",
+					"ui:summaryTitle": "Index",
 					"description": "Output",
 					"enum": ["2", "3", "4", "External2", "Fullscreen", "Fullscreen2"]
 				}
@@ -80,6 +85,7 @@
 				"index": {
 					"type": "integer",
 					"ui:title": "Index",
+					"ui:summaryTitle": "Index",
 					"description": "Overlay number",
 					"enum": [1, 2, 3, 4]
 				}

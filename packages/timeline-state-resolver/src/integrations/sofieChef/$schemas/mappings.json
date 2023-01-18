@@ -7,7 +7,8 @@
 			"properties": {
 				"windowId": {
 					"type": "string",
-					"ui:title": "Window ID"
+					"ui:title": "Window ID",
+					"ui:summaryTitle": "Window ID"
 				}
 			},
 			"required": ["windowId"],

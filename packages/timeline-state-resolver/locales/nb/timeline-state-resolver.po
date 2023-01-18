@@ -5,8 +5,8 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1)\n"
-"POT-Creation-Date: 2023-01-18T11:53:39.381Z\n"
-"PO-Revision-Date: 2023-01-18T11:53:39.381Z\n"
+"POT-Creation-Date: 2023-01-18T17:23:39.383Z\n"
+"PO-Revision-Date: 2023-01-18T17:23:39.383Z\n"
 "Language: nb\n"
 
 msgid "(Optional) Playlist ID"
@@ -39,7 +39,13 @@ msgstr ""
 msgid "API Key"
 msgstr ""
 
+msgid "Audio Channel"
+msgstr ""
+
 msgid "Automatically load internal elements when added"
+msgstr ""
+
+msgid "Auxilliary"
 msgstr ""
 
 msgid "Bad reply: [{{statusCode}}] {{body}}"
@@ -87,6 +93,9 @@ msgstr ""
 msgid "Command received by the abstract device"
 msgstr "Kommandoen har blitt mottatt av den abstrakte enheten"
 
+msgid "Composition"
+msgstr ""
+
 msgid "Composition Name"
 msgstr ""
 
@@ -106,6 +115,9 @@ msgid "Disable"
 msgstr ""
 
 msgid "Don't deactivate on stand-down (deactivate rundown)"
+msgstr ""
+
+msgid "DSK"
 msgstr ""
 
 msgid "Ember Type"
@@ -177,6 +189,9 @@ msgstr ""
 msgid "Keyword"
 msgstr ""
 
+msgid "Label"
+msgstr ""
+
 msgid "Launcher Host"
 msgstr ""
 
@@ -192,6 +207,9 @@ msgstr ""
 msgid "Make Ready Commands"
 msgstr ""
 
+msgid "Media Player"
+msgstr ""
+
 msgid "Media Pool Assets"
 msgstr ""
 
@@ -205,6 +223,9 @@ msgid "Minimum recording time"
 msgstr ""
 
 msgid "Minimum time in ms before a command is resent, set to a number > 0 to enable"
+msgstr ""
+
+msgid "Mix Effect"
 msgstr ""
 
 msgid "Mode"
@@ -310,6 +331,12 @@ msgid "Source"
 msgstr ""
 
 msgid "Sources Path"
+msgstr ""
+
+msgid "SuperSource"
+msgstr ""
+
+msgid "SuperSource Box"
 msgstr ""
 
 msgid "Suppress Empty Slot Warnings"

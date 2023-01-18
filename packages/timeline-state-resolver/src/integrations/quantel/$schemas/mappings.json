@@ -9,6 +9,7 @@
 					"type": "integer",
 					"ui:title": "Port ID",
 					"ui:description": "The name you'd like the port to have",
+					"ui:summaryTitle": "Port",
 					"description": "The port to use",
 					"default": 1,
 					"min": 0
@@ -17,6 +18,7 @@
 					"type": "integer",
 					"ui:title": "Channel ID",
 					"ui:description": "The channel to use for output (0 is the first one)",
+					"ui:summaryTitle": "Channel",
 					"description": "The channel to connect the port to",
 					"default": 1,
 					"min": 0
