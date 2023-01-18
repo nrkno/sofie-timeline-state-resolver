@@ -5,15 +5,45 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1)\n"
-"POT-Creation-Date: 2022-11-25T09:14:57.829Z\n"
-"PO-Revision-Date: 2022-11-25T09:14:57.829Z\n"
+"POT-Creation-Date: 2023-01-18T11:24:17.261Z\n"
+"PO-Revision-Date: 2023-01-18T11:24:17.261Z\n"
 "Language: nb\n"
+
+msgid "(Optional) Playlist ID"
+msgstr ""
+
+msgid "(Optional) REST port"
+msgstr ""
+
+msgid "(Optional) Viz Engines REST port"
+msgstr ""
+
+msgid "(Optional) Websocket port"
+msgstr ""
+
+msgid "Access Token"
+msgstr ""
 
 msgid "Action \"{{id}}\" not found"
 msgstr "Fant ikke funksjonen \"{{id}}\""
 
+msgid "Activate debug logging for device"
+msgstr ""
+
+msgid "Allow cloning of clips if on wrong server/pool"
+msgstr ""
+
+msgid "API Key"
+msgstr ""
+
+msgid "Automatically load internal elements when added"
+msgstr ""
+
 msgid "Bad reply: [{{statusCode}}] {{body}}"
 msgstr "Bad reply: [{{statusCode}}] {{body}}"
+
+msgid "Buffer Encoding"
+msgstr ""
 
 msgid "Cannot restart CasparCG without a connection"
 msgstr "Kan ikke restarte CasparCG uten en tilkobling"
@@ -24,20 +54,173 @@ msgstr "CasparCG: config.launcherHost er ikke definert!"
 msgid "CasparCGDevice: config.launcherPort is not set!"
 msgstr "CasparCG: config.launcherPort er ikke definert!"
 
+msgid "Channel"
+msgstr ""
+
+msgid "Channel ID"
+msgstr ""
+
 msgid "Clear"
 msgstr "Tøm"
+
+msgid "Clear All Channels Commands"
+msgstr ""
+
+msgid "Clear-All on make-ready (activate rundown)"
+msgstr ""
+
+msgid "Clear-All template name"
+msgstr ""
 
 msgid "Command received by the abstract device"
 msgstr "Kommandoen har blitt mottatt av den abstrakte enheten"
 
+msgid "Composition Name"
+msgstr ""
+
+msgid "dB Property Path"
+msgstr ""
+
 msgid "Device does not implement an action handler"
 msgstr "Enheten støtter ikke funksjoner"
+
+msgid "Device Mode"
+msgstr ""
+
+msgid "Device URL"
+msgstr ""
+
+msgid "Disable"
+msgstr ""
+
+msgid "Don't deactivate on stand-down (deactivate rundown)"
+msgstr ""
+
+msgid "Ember Type"
+msgstr ""
+
+msgid "Enable SSL"
+msgstr ""
+
+msgid "Example: 'ws://127.0.0.1:5271'"
+msgstr ""
+
+msgid "Expected HTTP Response"
+msgstr ""
+
+msgid "Fader cutoff value"
+msgstr ""
+
+msgid "Fader setValue Interval"
+msgstr ""
 
 msgid "Format disks"
 msgstr "Formater disk"
 
+msgid "Frame rate"
+msgstr ""
+
+msgid "Gateway URL"
+msgstr ""
+
+msgid "Host"
+msgstr ""
+
+msgid "HTTP Method"
+msgstr ""
+
+msgid "Identifier"
+msgstr ""
+
+msgid "Identify the channel by label (does not set the label in Sisyfos)"
+msgstr ""
+
+msgid "Index"
+msgstr ""
+
+msgid "Input Layer"
+msgstr ""
+
+msgid "Input number or name"
+msgstr ""
+
+msgid "Interval"
+msgstr ""
+
+msgid "ISA URL (Backup)"
+msgstr ""
+
+msgid "ISA URL (Master)"
+msgstr ""
+
+msgid "Keyword"
+msgstr ""
+
+msgid "Launcher Host"
+msgstr ""
+
+msgid "Launcher Port"
+msgstr ""
+
+msgid "Layer"
+msgstr ""
+
+msgid "Make Ready Commands"
+msgstr ""
+
+msgid "Media Pool Assets"
+msgstr ""
+
+msgid "Media retry interval"
+msgstr ""
+
+msgid "Minimum recording time"
+msgstr ""
+
+msgid "Minimum time in ms before a command is resent, set to a number > 0 to enable"
+msgstr ""
+
+msgid "Mode"
+msgstr ""
+
+msgid "Only preload elements in active Playlist"
+msgstr ""
+
+msgid "Password"
+msgstr ""
+
+msgid "Port"
+msgstr ""
+
+msgid "Port ID"
+msgstr ""
+
+msgid "Preload all elements"
+msgstr ""
+
+msgid "Preview when not On-Air"
+msgstr ""
+
+msgid "Priority"
+msgstr ""
+
+msgid "Profile"
+msgstr ""
+
+msgid "Purge unknown/unused element from Viz Rundown upon activate"
+msgstr ""
+
 msgid "Purge Viz Rundown"
 msgstr "Tøm Viz-speilleliste"
+
+msgid "Quantel Server ID"
+msgstr ""
+
+msgid "Ramp Motor Function Path"
+msgstr ""
+
+msgid "Resend time in ms"
+msgstr ""
 
 msgid "Restart gateway"
 msgstr "Restart gateway"
@@ -48,8 +231,67 @@ msgstr "Restart server"
 msgid "Resync Atem"
 msgstr "Synkroniser Atem på nytt"
 
+msgid "Scene Name"
+msgstr ""
+
+msgid "Set channel label to layer name"
+msgstr ""
+
+msgid "Source"
+msgstr ""
+
+msgid "Sources Path"
+msgstr ""
+
+msgid "Suppress Empty Slot Warnings"
+msgstr ""
+
 msgid "Test action"
 msgstr "Test funksjon"
+
+msgid "The CasparCG channel to use (1 is the first)"
+msgstr ""
+
+msgid "The channel to use for output (0 is the first one)"
+msgstr ""
+
+msgid "The layer in a channel to use"
+msgstr ""
+
+msgid "The name you'd like the port to have"
+msgstr ""
+
+msgid "Thread Usage"
+msgstr ""
+
+msgid ""
+"Time between retries for media that could not be loaded on first try. Set "
+"to -1 to disable."
+msgstr ""
+
+msgid "Type"
+msgstr ""
+
+msgid "URI"
+msgstr ""
+
+msgid "Use CasparCG Timecode Scheduler"
+msgstr ""
+
+msgid "Use HTTPS"
+msgstr ""
+
+msgid "Whether Make Ready triggers a state reset"
+msgstr ""
+
+msgid "Whether to load to first frame"
+msgstr ""
+
+msgid "Window ID"
+msgstr ""
+
+msgid "Zone ID"
+msgstr ""
 
 msgctxt "connectionOptions is not set!"
 msgid "CasparCGDevice."
