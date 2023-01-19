@@ -36,7 +36,7 @@ export interface MappingQuantelPort {
 	/**
 	 * The port to use
 	 */
-	portId: number
+	portId: string
 	/**
 	 * The channel to connect the port to
 	 */

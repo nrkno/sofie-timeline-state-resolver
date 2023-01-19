@@ -115,7 +115,8 @@ for (const dir of dirs) {
 
 		output += '\n' + mappingsEnum
 	}
-	output += '\n' + `export type SomeMapping${capitalise(dir)} = ${mappingTypes.join(' | ') || 'unknown'}\n`
+	output +=
+		'\n' + `export type SomeMapping${capitalise(dir)} = ${mappingTypes.join(' | ') || 'Record<string, never>'}\n`
 
 	// compile actions from file
 	const actionIds = []

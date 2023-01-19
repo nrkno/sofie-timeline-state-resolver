@@ -10,4 +10,4 @@ export interface TelemetricsOptions {
 	port: number
 }
 
-export type SomeMappingTelemetrics = unknown
+export type SomeMappingTelemetrics = Record<string, never>

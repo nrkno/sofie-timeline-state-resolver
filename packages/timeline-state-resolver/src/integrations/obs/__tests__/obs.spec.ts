@@ -1,14 +1,7 @@
 import { Conductor } from '../../../conductor'
 import {
-	MappingOBSCurrentScene,
 	Mappings,
 	DeviceType,
-	MappingOBSType,
-	MappingOBSCurrentTransition,
-	MappingOBSRecording,
-	MappingOBSSceneItemRender,
-	MappingOBSSourceSettings,
-	MappingOBSStreaming,
 	TimelineContentTypeOBS,
 	TimelineContentOBSCurrentScene,
 	TimelineContentOBSRecording,
@@ -17,6 +10,14 @@ import {
 	TimelineContentOBSSourceSettings,
 	TimelineContentOBSSceneItemRender,
 	TSRTimelineObj,
+	MappingObsCurrentScene,
+	Mapping,
+	MappingObsCurrentTransition,
+	MappingObsRecording,
+	MappingObsStreaming,
+	MappingObsSourceSettings,
+	MappingObsSceneItemRender,
+	MappingObsType,
 } from 'timeline-state-resolver-types'
 import { MockTime } from '../../../__tests__/mockTime'
 import { literal } from '../../../devices/device'
@@ -44,38 +45,50 @@ describe('OBS', () => {
 		const commandReceiver0: any = jest.fn(async () => {
 			return Promise.resolve()
 		})
-		const currentSceneMapping: MappingOBSCurrentScene = {
+		const currentSceneMapping: Mapping<MappingObsCurrentScene> = {
 			device: DeviceType.OBS,
-			mappingType: MappingOBSType.CurrentScene,
 			deviceId: 'obs0',
+			options: {
+				mappingType: MappingObsType.CurrentScene,
+			},
 		}
-		const currentTransitionMapping: MappingOBSCurrentTransition = {
+		const currentTransitionMapping: Mapping<MappingObsCurrentTransition> = {
 			device: DeviceType.OBS,
-			mappingType: MappingOBSType.CurrentTransition,
 			deviceId: 'obs0',
+			options: {
+				mappingType: MappingObsType.CurrentTransition,
+			},
 		}
-		const recordingMapping: MappingOBSRecording = {
+		const recordingMapping: Mapping<MappingObsRecording> = {
 			device: DeviceType.OBS,
-			mappingType: MappingOBSType.Recording,
 			deviceId: 'obs0',
+			options: {
+				mappingType: MappingObsType.Recording,
+			},
 		}
-		const streamingMapping: MappingOBSStreaming = {
+		const streamingMapping: Mapping<MappingObsStreaming> = {
 			device: DeviceType.OBS,
-			mappingType: MappingOBSType.Streaming,
 			deviceId: 'obs0',
+			options: {
+				mappingType: MappingObsType.Streaming,
+			},
 		}
-		const sourceSettingsMapping: MappingOBSSourceSettings = {
+		const sourceSettingsMapping: Mapping<MappingObsSourceSettings> = {
 			device: DeviceType.OBS,
-			mappingType: MappingOBSType.SourceSettings,
 			deviceId: 'obs0',
-			source: 'source0',
+			options: {
+				mappingType: MappingObsType.SourceSettings,
+				source: 'source0',
+			},
 		}
-		const sceneItemRenderMapping: MappingOBSSceneItemRender = {
+		const sceneItemRenderMapping: Mapping<MappingObsSceneItemRender> = {
 			device: DeviceType.OBS,
-			mappingType: MappingOBSType.SceneItemRender,
 			deviceId: 'obs0',
-			sceneName: 'scene0',
-			source: 'source0',
+			options: {
+				mappingType: MappingObsType.SceneItemRender,
+				sceneName: 'scene0',
+				source: 'source0',
+			},
 		}
 		const myLayerMapping: Mappings = {
 			obs0_currentScene: currentSceneMapping,

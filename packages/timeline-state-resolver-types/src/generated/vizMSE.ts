@@ -65,7 +65,7 @@ export interface VizMSEOptions {
 	clearAllCommands?: string[]
 }
 
-export type SomeMappingVizMSE = unknown
+export type SomeMappingVizMSE = Record<string, never>
 
 export enum VizMSEActions {
 	PurgeRundown = 'purgeRundown',

@@ -41,4 +41,4 @@ export enum TimelineContentTypeHTTPParamType {
 	FORM = 'form'
 }
 
-export type SomeMappingHttpSend = unknown
+export type SomeMappingHttpSend = Record<string, never>

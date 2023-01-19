@@ -13,4 +13,4 @@ export interface HTTPWatcherOptions {
 	interval?: number
 }
 
-export type SomeMappingHttpWatcher = unknown
+export type SomeMappingHttpWatcher = Record<string, never>

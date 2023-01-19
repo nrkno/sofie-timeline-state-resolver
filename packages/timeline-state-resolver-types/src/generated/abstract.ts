@@ -7,7 +7,7 @@
 
 export interface AbstractOptions {}
 
-export type SomeMappingAbstract = unknown
+export type SomeMappingAbstract = Record<string, never>
 
 export enum AbstractActions {
 	TestAction = 'testAction',

@@ -6,13 +6,12 @@
 			"type": "object",
 			"properties": {
 				"portId": {
-					"type": "integer",
+					"type": "string",
 					"ui:title": "Port ID",
 					"ui:description": "The name you'd like the port to have",
 					"ui:summaryTitle": "Port",
 					"description": "The port to use",
-					"default": 1,
-					"min": 0
+					"default": ""
 				},
 				"channelId": {
 					"type": "integer",

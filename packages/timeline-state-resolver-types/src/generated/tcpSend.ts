@@ -35,4 +35,4 @@ export interface TcpSendCommandContent {
 	queueId?: string
 }
 
-export type SomeMappingTcpSend = unknown
+export type SomeMappingTcpSend = Record<string, never>

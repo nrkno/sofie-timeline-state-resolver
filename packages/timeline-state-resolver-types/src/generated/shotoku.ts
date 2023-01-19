@@ -10,4 +10,4 @@ export interface ShotokuOptions {
 	port: number
 }
 
-export type SomeMappingShotoku = unknown
+export type SomeMappingShotoku = Record<string, never>

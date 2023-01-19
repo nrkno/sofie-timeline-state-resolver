@@ -16,4 +16,4 @@ export enum OSCDeviceType {
 	UDP = 'udp'
 }
 
-export type SomeMappingOsc = unknown
+export type SomeMappingOsc = Record<string, never>

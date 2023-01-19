@@ -10,4 +10,4 @@ export interface PharosOptions {
 	ssl?: boolean
 }
 
-export type SomeMappingPharos = unknown
+export type SomeMappingPharos = Record<string, never>
