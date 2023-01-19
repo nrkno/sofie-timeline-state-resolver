@@ -8,7 +8,6 @@ import * as path from 'path'
  * and auto-generates types for those schemas
  *
  * @todo: auto generate the interfaces.ts in /src as well
- * @todo: write meta schemas for options & mappings
  *
  ***********************************************************/
 const BANNER =
@@ -62,7 +61,7 @@ for (const dir of dirs) {
 				additionalProperties: false,
 				style: PrettierConf,
 				bannerComment: '',
-				enableConstEnums: false, // TODO - temporary?
+				enableConstEnums: false,
 			})
 			output += '\n' + options
 		}
@@ -94,7 +93,7 @@ for (const dir of dirs) {
 					additionalProperties: false,
 					style: PrettierConf,
 					bannerComment: '',
-					enableConstEnums: false, // TODO - temporary?
+					enableConstEnums: false,
 				})
 				output += '\n' + mappingTypes
 			}

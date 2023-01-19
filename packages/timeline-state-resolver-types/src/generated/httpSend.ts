@@ -17,15 +17,28 @@ export interface HTTPSendOptions {
 	makeReadyCommands?: HTTPSendCommandContent[]
 }
 export interface HTTPSendCommandContent {
-	type: string
+	type: TimelineContentTypeHTTP
 	url: string
-	params: any
-	paramsType?: string
+	params: {
+		[k: string]: unknown
+	}
+	paramsType?: TimelineContentTypeHTTPParamType
 	temporalPriority?: number
 	/**
 	 * Commands in the same queue will be sent in order (will wait for the previous to finish before sending next
 	 */
 	queueId?: string
+}
+
+export enum TimelineContentTypeHTTP {
+	GET = 'get',
+	POST = 'post',
+	PUT = 'put',
+	DELETE = 'delete'
+}
+export enum TimelineContentTypeHTTPParamType {
+	JSON = 'json',
+	FORM = 'form'
 }
 
 export type SomeMappingHttpSend = unknown

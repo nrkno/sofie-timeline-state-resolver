@@ -26,10 +26,12 @@
 				"properties": {
 					"type": {
 						"type": "string",
+						"title": "TimelineContentTypeHTTP",
 						"ui:title": "Type",
 						"ui:summaryTitle": "Type",
 						"default": "",
-						"TODO": "enum"
+						"enum": ["get", "post", "put", "delete"],
+						"tsEnumNames": ["GET", "POST", "PUT", "DELETE"]
 					},
 					"url": {
 						"type": "string",
@@ -38,17 +40,18 @@
 						"default": ""
 					},
 					"params": {
-						"type": "string",
+						"type": "object",
 						"ui:title": "Params",
-						"default": "",
-						"TODO": "json?",
-						"tsType": "any"
+						"ui:displayType": "json",
+						"additionalProperties": true
 					},
 					"paramsType": {
 						"type": "string",
+						"title": "TimelineContentTypeHTTPParamType",
 						"ui:title": "Params type",
 						"default": "json",
-						"TODO": "enum"
+						"enum": ["json", "form"],
+						"tsEnumNames": ["JSON", "FORM"]
 					},
 					"temporalPriority": {
 						"type": "integer",

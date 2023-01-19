@@ -17,9 +17,6 @@ import {
 	Timeline,
 	Mapping,
 	MappingObsType,
-	MappingObsMute,
-	MappingObsSceneItemRender,
-	MappingObsSourceSettings,
 } from 'timeline-state-resolver-types'
 
 interface OBSRequest {
@@ -344,7 +341,7 @@ export class OBSDevice extends DeviceWithState<OBSState, DeviceOptionsOBSInterna
 								break
 							}
 
-							const source = (mapping.options as MappingObsMute).source
+							const source = mapping.options.source
 							deviceState.muted[source] = tlObject.content.mute
 						}
 						break
@@ -355,8 +352,8 @@ export class OBSDevice extends DeviceWithState<OBSState, DeviceOptionsOBSInterna
 								break
 							}
 
-							const source = (mapping.options as MappingObsSceneItemRender).source
-							const sceneName = (mapping.options as MappingObsSceneItemRender).sceneName
+							const source = mapping.options.source
+							const sceneName = mapping.options.sceneName
 							deepExtend(deviceState.scenes, {
 								[sceneName]: {
 									sceneItems: {
@@ -375,7 +372,7 @@ export class OBSDevice extends DeviceWithState<OBSState, DeviceOptionsOBSInterna
 								break
 							}
 
-							const source = (mapping.options as MappingObsSourceSettings).source
+							const source = mapping.options.source
 
 							deepExtend(deviceState.sources, {
 								[source]: {
