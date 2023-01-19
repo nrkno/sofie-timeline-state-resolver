@@ -79,8 +79,6 @@ export interface DeviceEvents {
 	resetResolver: []
 
 	/** A report that a command was sent too late */
-	slowCommand: [commandInfo: string]
-	/** A report that a command was sent too late */
 	slowSentCommand: [info: SlowSentCommandInfo]
 	/** A report that a command was fullfilled too late */
 	slowFulfilledCommand: [info: SlowFulfilledCommandInfo]

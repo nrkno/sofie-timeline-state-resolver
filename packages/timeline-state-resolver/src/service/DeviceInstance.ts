@@ -13,9 +13,10 @@ import { CommandWithContext, Device } from './device'
 import { StateHandler } from './stateHandler'
 import { DevicesDict } from './devices'
 import { DeviceEvents } from './device'
-import { SlowSentCommandInfo, SlowFulfilledCommandInfo, CommandReport } from '..'
+import { DeviceOptionsAnyInternal } from '..'
+import { StateChangeReport } from './measure'
 
-type Config = any
+type Config = DeviceOptionsAnyInternal
 type DeviceState = any
 
 export interface ServiceDetails {
@@ -60,12 +61,67 @@ export class DeviceInstanceWrapper extends EventEmitter<DeviceEvents> {
 
 		this._setupDeviceEventHandlers()
 
-		this._stateHandler = new StateHandler(this._device)
+		this._stateHandler = new StateHandler(
+			{
+				deviceId: id,
+				logger: {
+					debug: (...args: any[]) => this.emit('debug', ...args),
+					info: (info: string) => this.emit('info', info),
+					warn: (warn: string) => this.emit('warning', warn),
+					error: (context: string, e: Error) => this.emit('error', context, e),
+				},
+				emitTimeTrace: (trace: FinishedTrace) => this.emit('timeTrace', trace),
+				reportStateChangeMeasurement: (report: StateChangeReport) => {
+					report.commands.forEach((cReport) => {
+						if (cReport.executeDelay && cReport.executeDelay > (this.config.limitSlowSentCommand || 40)) {
+							this.emit('slowSentCommand', {
+								added: report.added,
+								prepareTime: 0,
+								plannedSend: report.scheduled,
+								send: report.executed || 0,
+								queueId: '',
+								args: cReport.args,
+								sendDelay: cReport.executeDelay,
+								addedDelay: 0,
+								internalDelay: 0,
+							})
+						}
+						if (cReport.fulfilledDelay && cReport.fulfilledDelay > (this.config.limitSlowFulfilledCommand || 100)) {
+							this.emit('slowFulfilledCommand', {
+								added: report.added,
+								prepareTime: 0,
+								plannedSend: report.scheduled,
+								send: report.executed || 0,
+								queueId: '',
+								args: cReport.args,
+								fullfilled: cReport.fulfilled || 0,
+								fulfilledDelay: cReport.fulfilledDelay,
+							})
+						}
+						this.emit('commandReport', {
+							plannedSend: report.scheduled,
+							queueId: '',
+							added: report.added,
+							prepareTime: 0,
+							send: cReport.executed,
+							fullfilled: cReport.fulfilled || 0,
+							args: cReport.args,
+						})
+					})
+				},
+			},
+			{
+				executionType: deviceSpecs.executionMode(config.options),
+			},
+			this._device
+		)
 	}
 
 	async initDevice(_activeRundownPlaylistId?: string) {
 		const res = await this._device.init(this.config.options)
-		this._stateHandler.setCurrentState(undefined) // todo - temporary
+		this._stateHandler.setCurrentState(undefined).catch((e) => {
+			console.error('Error while setting current state', e)
+		}) // todo - temporary
 		return res
 	}
 	async terminate() {
@@ -98,10 +154,14 @@ export class DeviceInstanceWrapper extends EventEmitter<DeviceEvents> {
 	}
 
 	/** @deprecated - just here for API compatiblity with the old class */
-	prepareForHandleState() {}
+	prepareForHandleState() {
+		//
+	}
 
 	handleState(newState: Timeline.TimelineState<TSRTimelineContent>, newMappings: Mappings) {
-		this._stateHandler.handleState(newState, newMappings)
+		this._stateHandler.handleState(newState, newMappings).catch((e) => {
+			this.emit('error', 'Error while handling state', e)
+		})
 
 		this._isActive = Object.keys(newMappings).length > 0
 	}
@@ -110,8 +170,7 @@ export class DeviceInstanceWrapper extends EventEmitter<DeviceEvents> {
 		return Date.now() // @todo - get time from somewhere
 	}
 
-	// @todo - do we still need this?
-	clearFuture(t) {
+	clearFuture(t: number) {
 		this._stateHandler.clearFuture(t)
 	}
 
@@ -167,19 +226,6 @@ export class DeviceInstanceWrapper extends EventEmitter<DeviceEvents> {
 			this.emit('resetResolver')
 		})
 
-		/** A report that a command was sent too late */
-		this._device.on('slowCommand', (commandInfo: string) => {
-			this.emit('slowCommand', commandInfo)
-		})
-		/** A report that a command was sent too late */
-		this._device.on('slowSentCommand', (info: SlowSentCommandInfo) => {
-			this.emit('slowSentCommand', info)
-		})
-		/** A report that a command was fullfilled too late */
-		this._device.on('slowFulfilledCommand', (info: SlowFulfilledCommandInfo) => {
-			this.emit('slowFulfilledCommand', info)
-		})
-
 		/** Something went wrong when executing a command  */
 		this._device.on('commandError', (error: Error, context: CommandWithContext) => {
 			this.emit('commandError', error, context)
@@ -193,9 +239,6 @@ export class DeviceInstanceWrapper extends EventEmitter<DeviceEvents> {
 			this.emit('clearMediaObjects', collectionId)
 		})
 
-		this._device.on('commandReport', (commandReport: CommandReport) => {
-			this.emit('commandReport', commandReport)
-		})
 		this._device.on('timeTrace', (trace: FinishedTrace) => {
 			this.emit('timeTrace', trace)
 		})

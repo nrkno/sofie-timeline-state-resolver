@@ -1,26 +1,20 @@
+import { FinishedTrace, startTrace, endTrace } from '../lib'
 import { Mappings, Timeline, TSRTimelineContent } from 'timeline-state-resolver-types'
 import { BaseDeviceAPI, CommandWithContext } from './device'
+import { Measurement, StateChangeReport } from './measure'
 
 interface StateChange<DeviceState, Command extends CommandWithContext> {
 	commands?: Command[]
 	state: Timeline.TimelineState<TSRTimelineContent>
 	deviceState: DeviceState
 	mappings: Mappings
+
+	measurement?: Measurement
 }
 interface ExecutedStateChange<DeviceState, Command extends CommandWithContext>
 	extends StateChange<DeviceState, Command> {
 	commands: Command[]
 }
-
-// const logState = (state: any) =>
-// 	JSON.stringify(
-// 		{
-// 			time: state.time,
-// 			layers: Object.fromEntries(Object.entries(state.layers).map(([id, lyr]) => [id, lyr.id])),
-// 		},
-// 		null,
-// 		2
-// 	)
 
 export class StateHandler<DeviceState, Command extends CommandWithContext> {
 	private stateQueue: StateChange<DeviceState, Command>[] = []
@@ -29,27 +23,39 @@ export class StateHandler<DeviceState, Command extends CommandWithContext> {
 
 	private clock: NodeJS.Timeout
 
-	private convertTimelineStateToDeviceState: (
-		state: Timeline.TimelineState<TSRTimelineContent>,
-		mappings: Mappings
-	) => DeviceState
-	private diffDeviceStates: (oldState: DeviceState, newState: DeviceState, mappings: Mappings) => Command[]
-	private executeCommand: (command: Command) => any
+	private convertTimelineStateToDeviceState: BaseDeviceAPI<DeviceState, Command>['convertTimelineStateToDeviceState']
+	private diffDeviceStates: BaseDeviceAPI<DeviceState, Command>['diffStates']
+	private executeCommand: BaseDeviceAPI<DeviceState, Command>['sendCommand']
 
-	constructor(device: BaseDeviceAPI<DeviceState, Command>) {
+	private logger: StateHandlerContext['logger']
+
+	constructor(
+		private context: StateHandlerContext,
+		private config: StateHandlerConfig,
+		device: BaseDeviceAPI<DeviceState, Command>
+	) {
+		this.logger = context.logger
+
 		this.convertTimelineStateToDeviceState = (s, m) => device.convertTimelineStateToDeviceState(s, m)
 		this.diffDeviceStates = (o, n, m) => device.diffStates(o, n, m)
-		this.executeCommand = (c) => device.sendCommand(c)
+		this.executeCommand = async (c) => device.sendCommand(c)
 
 		this.clock = setInterval(() => {
 			// main clock to check if next state needs to be sent out
-			const nextState = this.stateQueue[0]
+			const nextStates = this.stateQueue.filter((s) => s.state.time < Date.now() + 20) // any states to be executed before the next tick
 
-			if (!this._executingStateChange && nextState && nextState.state.time <= Date.now()) {
-				// -20 so visually it will be shown on the next frame?
-				this.executeNextStateChange()
-			}
-		}, 20) // TODO - 20ms is not subframe accuracy
+			nextStates.forEach((nextState) => {
+				const nextTime = Math.max(0, nextState?.state.time - Date.now())
+				setTimeout(() => {
+					if (!this._executingStateChange && this.stateQueue[0] === nextState) {
+						// if this is the next state, execute it
+						this.executeNextStateChange().catch((e) => {
+							this.logger.error('Error while executing next state change', e)
+						})
+					}
+				}, nextTime)
+			})
+		}, 20)
 	}
 
 	async terminate() {
@@ -64,19 +70,27 @@ export class StateHandler<DeviceState, Command extends CommandWithContext> {
 	async handleState(state: Timeline.TimelineState<TSRTimelineContent>, mappings: Mappings) {
 		const nextState = this.stateQueue[0]
 
+		const trace = startTrace('device:convertTimelineStateToDeviceState', { deviceId: this.context.deviceId })
+		const deviceState = this.convertTimelineStateToDeviceState(state, mappings)
+		this.context.emitTimeTrace(endTrace(trace))
+
 		this.stateQueue = [
 			...this.stateQueue.filter((s) => s.state.time < state.time), // TODO - can we smuggle a little and execute something for the next frame?
 			{
-				deviceState: this.convertTimelineStateToDeviceState(state, mappings),
+				deviceState,
 				state,
 				mappings,
+
+				measurement: new Measurement(state.time),
 			},
 		]
 
 		if (nextState !== this.stateQueue[0]) {
 			// the next state changed
 			if (nextState) nextState.commands = undefined
-			this.calculateNextStateChange()
+			this.calculateNextStateChange().catch((e) => {
+				this.logger.error('Error while executing next state change', e)
+			})
 		}
 	}
 
@@ -90,7 +104,7 @@ export class StateHandler<DeviceState, Command extends CommandWithContext> {
 		await this.calculateNextStateChange()
 	}
 
-	async clearFuture(t: number) {
+	clearFuture(t: number) {
 		this.stateQueue = this.stateQueue.filter((s) => s.state.time <= t)
 	}
 
@@ -101,13 +115,16 @@ export class StateHandler<DeviceState, Command extends CommandWithContext> {
 		if (!nextState) return
 
 		try {
+			const trace = startTrace('device:diffDeviceStates', { deviceId: this.context.deviceId })
 			nextState.commands = this.diffDeviceStates(
 				this.currentState.deviceState,
 				nextState.deviceState,
 				nextState.mappings
 			)
-		} catch {
+			this.context.emitTimeTrace(endTrace(trace))
+		} catch (e) {
 			// todo - log an error
+			this.logger.error('diffDeviceState failed, t = ' + nextState.state.time, e as Error)
 			// we don't want to get stuck, so we should act as if this can be executed anyway
 			nextState.commands = []
 		}
@@ -135,15 +152,69 @@ export class StateHandler<DeviceState, Command extends CommandWithContext> {
 			return
 		}
 
+		newState.measurement?.executeState()
+
 		this.currentState = undefined
 
-		for (let command of newState.commands) {
-			this.executeCommand(command) // should these be awaited? what if they time out?
+		if (this.config.executionType === 'salvo') {
+			Promise.allSettled(
+				newState.commands.map(async (command) => {
+					newState.measurement?.executeCommand(command)
+					return this.executeCommand(command).then(() => {
+						newState.measurement?.finishedCommandExecution(command)
+						return command
+					})
+				})
+			)
+				.then(() => {
+					if (newState.measurement) this.context.reportStateChangeMeasurement(newState.measurement.report())
+				})
+				.catch((e) => {
+					this.logger.error('Error while executing next state change', e)
+				})
+		} else {
+			const execAll = async () => {
+				for (const command of newState.commands || []) {
+					newState.measurement?.executeCommand(command)
+					await this.executeCommand(command).catch((e) => {
+						this.logger.error('Error while executing command', e)
+					})
+					newState.measurement?.finishedCommandExecution(command)
+				}
+			}
+
+			execAll()
+				.then(() => {
+					if (newState.measurement) this.context.reportStateChangeMeasurement(newState.measurement.report())
+				})
+				.catch((e) => {
+					this.logger.error('Error while executing next state change', e)
+				})
 		}
 
 		this.currentState = newState as ExecutedStateChange<DeviceState, Command>
 		this._executingStateChange = false
 
-		this.calculateNextStateChange()
+		this.calculateNextStateChange().catch((e) => {
+			this.logger.error('Error while executing next state change', e)
+		})
 	}
+}
+
+export interface StateHandlerConfig {
+	executionType: 'salvo' | 'sequential'
+}
+
+export interface StateHandlerContext {
+	deviceId: string
+
+	logger: {
+		debug: (...args: any[]) => void
+		info: (info: string) => void
+		warn: (warning: string) => void
+		error: (context: string, err: Error) => void
+	}
+
+	emitTimeTrace: (trace: FinishedTrace) => void
+	reportStateChangeMeasurement: (report: StateChangeReport) => void
 }

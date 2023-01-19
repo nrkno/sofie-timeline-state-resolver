@@ -22,42 +22,64 @@ describe('stateHandler', () => {
 	})
 
 	function getNewStateHandler(): StateHandler<DeviceState, CommandWithContext> {
-		return new StateHandler<DeviceState, CommandWithContext>({
-			convertTimelineStateToDeviceState: (s) => s.layers as unknown as DeviceState,
-			diffStates: (o, n) =>
-				[
-					...Object.keys(n)
-						.filter((e) => !(o || {})[e])
-						.map((e) => ({
-							command: {
-								type: 'added',
-								property: e,
-							},
-						})),
-					...Object.keys(o || {})
-						.filter((e) => !n[e])
-						.map((e) => ({
-							command: {
-								type: 'removed',
-								property: e,
-							},
-						})),
-				] as CommandWithContext[],
-			sendCommand: MOCK_COMMAND_RECEIVER,
-		})
+		return new StateHandler<DeviceState, CommandWithContext>(
+			{
+				deviceId: 'unitTests0',
+				logger: {
+					debug: console.log,
+					info: console.log,
+					warn: console.log,
+					error: console.log,
+				},
+				emitTimeTrace: () => null,
+				reportStateChangeMeasurement: () => null,
+			},
+			{
+				executionType: 'salvo',
+			},
+			{
+				convertTimelineStateToDeviceState: (s) => s.layers as unknown as DeviceState,
+				diffStates: (o, n) =>
+					[
+						...Object.keys(n)
+							.filter((e) => !(o || {})[e])
+							.map((e) => ({
+								command: {
+									type: 'added',
+									property: e,
+								},
+							})),
+						...Object.keys(o || {})
+							.filter((e) => !n[e])
+							.map((e) => ({
+								command: {
+									type: 'removed',
+									property: e,
+								},
+							})),
+					] as CommandWithContext[],
+				sendCommand: MOCK_COMMAND_RECEIVER,
+			}
+		)
 	}
 
 	test('transition to a new state', async () => {
 		const stateHandler = getNewStateHandler()
 
-		stateHandler.setCurrentState({
-			entry1: true,
+		stateHandler
+			.setCurrentState({
+				entry1: true,
+			})
+			.catch((e) => {
+				console.error('Error while setting current state', e)
+			})
+
+		stateHandler.handleState(createTimelineState(10000, {}), {}).catch((e) => {
+			console.error('Error while handling state', e)
 		})
 
-		stateHandler.handleState(createTimelineState(10000, {}), {})
-
-		expect(MOCK_COMMAND_RECEIVER).toBeCalledTimes(1)
-		expect(MOCK_COMMAND_RECEIVER).toBeCalledWith({
+		expect(MOCK_COMMAND_RECEIVER).toHaveBeenCalledTimes(1)
+		expect(MOCK_COMMAND_RECEIVER).toHaveBeenCalledWith({
 			command: {
 				type: 'removed',
 				property: 'entry1',
@@ -68,37 +90,47 @@ describe('stateHandler', () => {
 	test('transition to 2 new states', async () => {
 		const stateHandler = getNewStateHandler()
 
-		stateHandler.setCurrentState({
-			entry1: true,
+		stateHandler
+			.setCurrentState({
+				entry1: true,
+			})
+			.catch((e) => {
+				console.error('Error while setting current state', e)
+			})
+
+		stateHandler.handleState(createTimelineState(10000, {}), {}).catch((e) => {
+			console.error('Error while handling state', e)
 		})
 
-		stateHandler.handleState(createTimelineState(10000, {}), {})
-
-		expect(MOCK_COMMAND_RECEIVER).toBeCalledTimes(1)
-		expect(MOCK_COMMAND_RECEIVER).toBeCalledWith({
+		expect(MOCK_COMMAND_RECEIVER).toHaveBeenCalledTimes(1)
+		expect(MOCK_COMMAND_RECEIVER).toHaveBeenCalledWith({
 			command: {
 				type: 'removed',
 				property: 'entry1',
 			},
 		})
 
-		stateHandler.handleState(
-			createTimelineState(10100, {
-				entry1: true,
-			}),
-			{}
-		)
+		stateHandler
+			.handleState(
+				createTimelineState(10100, {
+					entry1: true,
+				}),
+				{}
+			)
+			.catch((e) => {
+				console.error('Error while handling state', e)
+			})
 
 		// do not expect to be called because this is in the future
-		expect(MOCK_COMMAND_RECEIVER).toBeCalledTimes(1)
+		expect(MOCK_COMMAND_RECEIVER).toHaveBeenCalledTimes(1)
 
 		// advance time
 		MOCK_COMMAND_RECEIVER.mockReset()
-		jest.advanceTimersByTime(100)
+		jest.advanceTimersByTime(101)
 
 		// now expect to be called with new commands
-		expect(MOCK_COMMAND_RECEIVER).toBeCalledTimes(1)
-		expect(MOCK_COMMAND_RECEIVER).toBeCalledWith({
+		expect(MOCK_COMMAND_RECEIVER).toHaveBeenCalledTimes(1)
+		expect(MOCK_COMMAND_RECEIVER).toHaveBeenCalledWith({
 			command: {
 				type: 'added',
 				property: 'entry1',

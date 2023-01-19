@@ -1,4 +1,3 @@
-import { MockTime } from '../../../__tests__/mockTime'
 import {
 	DeviceType,
 	OSCDeviceType,
@@ -249,19 +248,23 @@ describe('OSC Device', () => {
 		test('send a command', async () => {
 			const dev = await getInitialisedOscDevice()
 
-			dev.sendCommand({
-				command: {
-					fromTlObject: 'obj0',
-					path: '/path/test',
-					type: TimelineContentTypeOSC.OSC,
-					values: [],
-				},
-				context: '',
-				tlObjId: '',
-			})
+			dev
+				.sendCommand({
+					command: {
+						fromTlObject: 'obj0',
+						path: '/path/test',
+						type: TimelineContentTypeOSC.OSC,
+						values: [],
+					},
+					context: '',
+					tlObjId: '',
+				})
+				.catch((e) => {
+					throw e
+				})
 
-			expect(MOCKED_SOCKET_WRITE).toBeCalledTimes(1)
-			expect(MOCKED_SOCKET_WRITE).toBeCalledWith(
+			expect(MOCKED_SOCKET_WRITE).toHaveBeenCalledTimes(1)
+			expect(MOCKED_SOCKET_WRITE).toHaveBeenCalledWith(
 				{
 					address: '/path/test',
 					args: [],
@@ -275,36 +278,40 @@ describe('OSC Device', () => {
 			jest.useFakeTimers({ now: 10000 })
 			const dev = await getInitialisedOscDevice()
 
-			dev.sendCommand({
-				command: {
-					fromTlObject: 'obj0',
-					path: '/path/test',
-					type: TimelineContentTypeOSC.OSC,
-					values: [
-						{
-							type: OSCValueType.FLOAT,
-							value: 123.45,
+			dev
+				.sendCommand({
+					command: {
+						fromTlObject: 'obj0',
+						path: '/path/test',
+						type: TimelineContentTypeOSC.OSC,
+						values: [
+							{
+								type: OSCValueType.FLOAT,
+								value: 123.45,
+							},
+						],
+						from: [
+							{
+								type: OSCValueType.FLOAT,
+								value: 100,
+							},
+						],
+						transition: {
+							duration: 1000,
+							type: 'Linear',
+							direction: 'None',
 						},
-					],
-					from: [
-						{
-							type: OSCValueType.FLOAT,
-							value: 100,
-						},
-					],
-					transition: {
-						duration: 1000,
-						type: 'Linear',
-						direction: 'None',
 					},
-				},
-				context: '',
-				tlObjId: '',
-			})
+					context: '',
+					tlObjId: '',
+				})
+				.catch((e) => {
+					throw e
+				})
 
 			// first command is sent immediately
-			expect(MOCKED_SOCKET_WRITE).toBeCalledTimes(1)
-			expect(MOCKED_SOCKET_WRITE).toBeCalledWith(
+			expect(MOCKED_SOCKET_WRITE).toHaveBeenCalledTimes(1)
+			expect(MOCKED_SOCKET_WRITE).toHaveBeenCalledWith(
 				{
 					address: '/path/test',
 					args: [
@@ -319,7 +326,7 @@ describe('OSC Device', () => {
 			)
 
 			jest.advanceTimersByTime(1000)
-			expect(MOCKED_SOCKET_WRITE).toBeCalledTimes(1000 / 40 + 1)
+			expect(MOCKED_SOCKET_WRITE).toHaveBeenCalledTimes(1000 / 40 + 1)
 
 			let last = 100
 			for (let i = 1; i < 26; i++) {
