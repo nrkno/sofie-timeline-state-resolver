@@ -342,7 +342,7 @@ export class LawoDevice extends DeviceWithState<LawoState, DeviceOptionsLawoInte
 						pushFader(sourceMapping.options.identifier, fader, sourceMapping, tlObject.id, content.overridePriority)
 					}
 				} else if (
-					mapping.options.mappingType === MappingLawoType.Source &&
+					'identifier' in mapping.options && // TODO - this should check mapping type
 					mapping.options.identifier &&
 					content.type === TimelineContentTypeLawo.SOURCE
 				) {
@@ -350,13 +350,14 @@ export class LawoDevice extends DeviceWithState<LawoState, DeviceOptionsLawoInte
 					const priority = content.overridePriority
 					pushFader(mapping.options.identifier, content, mapping as Mapping<MappingLawoSource>, tlObject.id, priority)
 				} else if (
-					mapping.options.mappingType === MappingLawoType.Fullpath &&
+					'identifier' in mapping.options && // TODO - this should check mapping type
 					mapping.options.identifier &&
 					content.type === TimelineContentTypeLawo.EMBER_PROPERTY
 				) {
 					// mapping is a property to set
 
 					const emberType =
+						'emberType' in mapping.options &&
 						mapping.options.emberType &&
 						Object.values(EmberModel.ParameterType).includes(mapping.options.emberType as any)
 							? (mapping.options.emberType as unknown as EmberModel.ParameterType)

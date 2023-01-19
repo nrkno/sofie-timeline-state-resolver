@@ -47,6 +47,20 @@ export interface VMixStateCommandWithContext {
 	timelineId: string
 }
 
+const mappingPriority: { [k in MappingVmixType]: number } = {
+	[MappingVmixType.Program]: 0,
+	[MappingVmixType.Preview]: 1,
+	[MappingVmixType.Input]: 2, // order of Input and AudioChannel matters because of the way layers are sorted
+	[MappingVmixType.AudioChannel]: 3,
+	[MappingVmixType.Output]: 4,
+	[MappingVmixType.Overlay]: 5,
+	[MappingVmixType.Recording]: 6,
+	[MappingVmixType.Streaming]: 7,
+	[MappingVmixType.External]: 8,
+	[MappingVmixType.FadeToBlack]: 9,
+	[MappingVmixType.Fader]: 10,
+}
+
 /**
  * This is a VMixDevice, it sends commands when it feels like it
  */
@@ -273,7 +287,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 				tlObject,
 				mapping: mappings[layerName] as Mapping<SomeMappingVmix>,
 			})).sort((a, b) => a.layerName.localeCompare(b.layerName)),
-			(o) => o.mapping.options.mappingType
+			(o) => mappingPriority[o.mapping.options.mappingType] ?? Number.POSITIVE_INFINITY
 		)
 
 		_.each(sortedLayers, ({ tlObject, layerName, mapping }) => {

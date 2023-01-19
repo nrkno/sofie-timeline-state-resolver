@@ -12,6 +12,6 @@
 			"ui:title": "Port"
 		}
 	},
-	"required": ["host", "port"],
+	"required": ["host"],
 	"additionalProperties": false
 }

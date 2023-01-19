@@ -1928,11 +1928,11 @@ describe('Quantel', () => {
 		const { commandReceiver0, myConductor, errorHandler, deviceErrorHandler } = await setupDefaultQuantelDeviceForTest()
 
 		const mappings = myConductor.mapping
-		const mapping = mappings['myLayer0'] as MappingQuantel
+		const mapping = mappings['myLayer0'] as Mapping<SomeMappingQuantel>
 		expect(mapping).toBeTruthy()
 
 		// Rename the port to something else
-		mapping.portId = 'myNewPort'
+		mapping.options.portId = 'myNewPort'
 
 		myConductor.setTimelineAndMappings([], mappings)
 		await mockTime.advanceTimeTicks(50)

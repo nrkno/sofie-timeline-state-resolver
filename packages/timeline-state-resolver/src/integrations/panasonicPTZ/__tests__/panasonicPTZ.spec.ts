@@ -22,7 +22,7 @@ describe('Panasonic PTZ', () => {
 
 	const onGet = jest.fn((url, _options, callback) => {
 		orgSetTimeout(() => {
-			if (url === 'http://192.168.0.10/cgi-bin/aw_ptz?cmd=%23O&res=1') {
+			if (url === 'http://192.168.0.10:8000/cgi-bin/aw_ptz?cmd=%23O&res=1') {
 				callback(null, {
 					statusCode: 200,
 					body: 'p1',

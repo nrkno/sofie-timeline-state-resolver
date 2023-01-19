@@ -7,7 +7,7 @@
 
 export interface TelemetricsOptions {
 	host: string
-	port: number
+	port?: number
 }
 
 export type SomeMappingTelemetrics = Record<string, never>

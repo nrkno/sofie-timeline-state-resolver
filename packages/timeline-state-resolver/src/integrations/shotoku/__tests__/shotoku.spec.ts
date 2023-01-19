@@ -1,7 +1,8 @@
 import {
 	Mappings,
+	Mapping,
 	DeviceType,
-	MappingShotoku,
+	SomeMappingShotoku,
 	TimelineContentTypeShotoku,
 	ShotokuTransitionType,
 } from 'timeline-state-resolver-types'
@@ -49,9 +50,10 @@ describe('Shotoku', () => {
 			socket.onClose = onSocketClose
 		})
 
-		const myLayerMapping0: MappingShotoku = {
+		const myLayerMapping0: Mapping<SomeMappingShotoku> = {
 			device: DeviceType.SHOTOKU,
 			deviceId: 'myShotoku',
+			options: {},
 		}
 		const myLayerMapping: Mappings = {
 			myLayer0: myLayerMapping0,
@@ -225,9 +227,10 @@ describe('Shotoku', () => {
 			socket.onClose = onSocketClose
 		})
 
-		const myLayerMapping0: MappingShotoku = {
+		const myLayerMapping0: Mapping<SomeMappingShotoku> = {
 			device: DeviceType.SHOTOKU,
 			deviceId: 'myShotoku',
+			options: {},
 		}
 		const myLayerMapping: Mappings = {
 			myLayer0: myLayerMapping0,

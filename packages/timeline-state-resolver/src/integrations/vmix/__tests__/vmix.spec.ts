@@ -2,22 +2,21 @@ import { setupVmixMock } from './vmixMock'
 import { Conductor } from '../../../conductor'
 import {
 	Mappings,
+	Mapping,
+	SomeMappingVmix,
 	DeviceType,
-	MappingVMix,
-	MappingVMixType,
 	TimelineContentTypeVMix,
 	VMixInputType,
 	VMixCommand,
-	MappingVMixAny,
 	VMixTransitionType,
-	MappingVMixOverlay,
-	MappingVMixRecording,
-	MappingVMixExternal,
-	MappingVMixStreaming,
-	MappingVMixOutput,
-	MappingVMixInput,
-	MappingVMixFadeToBlack,
-	MappingVMixFader,
+	MappingVmixType,
+	MappingVmixFader,
+	MappingVmixFadeToBlack,
+	MappingVmixOutput,
+	MappingVmixStreaming,
+	MappingVmixExternal,
+	MappingVmixRecording,
+	MappingVmixOverlay,
 } from 'timeline-state-resolver-types'
 import { ThreadedClass } from 'threadedclass'
 import { VMixDevice } from '..'
@@ -65,10 +64,12 @@ describe('vMix', () => {
 			return device._defaultCommandReceiver(...args)
 		})
 
-		const myLayerMapping0: MappingVMix = {
+		const myLayerMapping0: Mapping<SomeMappingVmix> = {
 			device: DeviceType.VMIX,
-			mappingType: MappingVMixType.Input,
 			deviceId: 'myvmix',
+			options: {
+				mappingType: MappingVmixType.Input,
+			},
 		}
 		const myLayerMapping: Mappings = {
 			vmix_media0: myLayerMapping0,
@@ -241,10 +242,12 @@ describe('vMix', () => {
 			return device._defaultCommandReceiver(...args)
 		})
 
-		const myLayerMapping0: MappingVMixInput = {
+		const myLayerMapping0: Mapping<SomeMappingVmix> = {
 			device: DeviceType.VMIX,
-			mappingType: MappingVMixType.Input,
 			deviceId: 'myvmix',
+			options: {
+				mappingType: MappingVmixType.Input,
+			},
 		}
 		const myLayerMapping: Mappings = {
 			vmix_media0: myLayerMapping0,
@@ -548,11 +551,13 @@ describe('vMix', () => {
 			return device._defaultCommandReceiver(...args)
 		})
 
-		const myLayerMapping0: MappingVMixInput = {
+		const myLayerMapping0: Mapping<SomeMappingVmix> = {
 			device: DeviceType.VMIX,
-			mappingType: MappingVMixType.Input,
 			deviceId: 'myvmix',
-			index: 2,
+			options: {
+				mappingType: MappingVmixType.Input,
+				index: '2',
+			},
 		}
 		const myLayerMapping: Mappings = {
 			vmix_media0: myLayerMapping0,
@@ -771,21 +776,27 @@ describe('vMix', () => {
 			return device._defaultCommandReceiver(...args)
 		})
 
-		const myLayerMapping0: MappingVMixAny = {
+		const myLayerMapping0: Mapping<SomeMappingVmix> = {
 			device: DeviceType.VMIX,
-			mappingType: MappingVMixType.Input,
 			deviceId: 'myvmix',
+			options: {
+				mappingType: MappingVmixType.Input,
+			},
 		}
-		const myLayerMapping1: MappingVMixAny = {
+		const myLayerMapping1: Mapping<SomeMappingVmix> = {
 			device: DeviceType.VMIX,
-			mappingType: MappingVMixType.AudioChannel,
-			inputLayer: 'vmix_media0',
 			deviceId: 'myvmix',
+			options: {
+				mappingType: MappingVmixType.AudioChannel,
+				inputLayer: 'vmix_media0',
+			},
 		}
-		const myLayerMapping2: MappingVMixAny = {
+		const myLayerMapping2: Mapping<SomeMappingVmix> = {
 			device: DeviceType.VMIX,
-			mappingType: MappingVMixType.Program,
 			deviceId: 'myvmix',
+			options: {
+				mappingType: MappingVmixType.Program,
+			},
 		}
 		const myLayerMapping: Mappings = {
 			vmix_media0: myLayerMapping0,
@@ -1095,11 +1106,13 @@ describe('vMix', () => {
 			return device._defaultCommandReceiver(...args)
 		})
 
-		const myLayerMapping0: MappingVMixAny = {
+		const myLayerMapping0: Mapping<SomeMappingVmix> = {
 			device: DeviceType.VMIX,
-			mappingType: MappingVMixType.AudioChannel,
-			index: '2',
 			deviceId: 'myvmix',
+			options: {
+				mappingType: MappingVmixType.AudioChannel,
+				index: '2',
+			},
 		}
 		const myLayerMapping: Mappings = {
 			vmix_audio0: myLayerMapping0,
@@ -1466,27 +1479,35 @@ describe('vMix', () => {
 			return device._defaultCommandReceiver(...args)
 		})
 
-		const myLayerMapping0: MappingVMixAny = {
+		const myLayerMapping0: Mapping<SomeMappingVmix> = {
 			device: DeviceType.VMIX,
-			mappingType: MappingVMixType.Program,
 			deviceId: 'myvmix',
+			options: {
+				mappingType: MappingVmixType.Program,
+			},
 		}
-		const myLayerMapping1: MappingVMixAny = {
+		const myLayerMapping1: Mapping<SomeMappingVmix> = {
 			device: DeviceType.VMIX,
-			mappingType: MappingVMixType.Program,
-			index: 2,
 			deviceId: 'myvmix',
+			options: {
+				mappingType: MappingVmixType.Program,
+				index: 2,
+			},
 		}
-		const myLayerMapping2: MappingVMixAny = {
+		const myLayerMapping2: Mapping<SomeMappingVmix> = {
 			device: DeviceType.VMIX,
-			mappingType: MappingVMixType.Preview,
 			deviceId: 'myvmix',
+			options: {
+				mappingType: MappingVmixType.Preview,
+			},
 		}
-		const myLayerMapping3: MappingVMixAny = {
+		const myLayerMapping3: Mapping<SomeMappingVmix> = {
 			device: DeviceType.VMIX,
-			mappingType: MappingVMixType.Preview,
-			index: 2,
 			deviceId: 'myvmix',
+			options: {
+				mappingType: MappingVmixType.Preview,
+				index: 2,
+			},
 		}
 		const myLayerMapping: Mappings = {
 			vmix_program0: myLayerMapping0,
@@ -1721,11 +1742,13 @@ describe('vMix', () => {
 			return device._defaultCommandReceiver(...args)
 		})
 
-		const myLayerMapping0: MappingVMixOverlay = {
+		const myLayerMapping0: Mapping<MappingVmixOverlay> = {
 			device: DeviceType.VMIX,
-			mappingType: MappingVMixType.Overlay,
-			index: 2,
 			deviceId: 'myvmix',
+			options: {
+				mappingType: MappingVmixType.Overlay,
+				index: 2,
+			},
 		}
 		const myLayerMapping: Mappings = {
 			vmix_overlay2: myLayerMapping0,
@@ -1852,10 +1875,12 @@ describe('vMix', () => {
 			return device._defaultCommandReceiver(...args)
 		})
 
-		const myLayerMapping0: MappingVMixRecording = {
+		const myLayerMapping0: Mapping<MappingVmixRecording> = {
 			device: DeviceType.VMIX,
-			mappingType: MappingVMixType.Recording,
 			deviceId: 'myvmix',
+			options: {
+				mappingType: MappingVmixType.Recording,
+			},
 		}
 		const myLayerMapping: Mappings = {
 			vmix_recording0: myLayerMapping0,
@@ -1975,10 +2000,12 @@ describe('vMix', () => {
 			return device._defaultCommandReceiver(...args)
 		})
 
-		const myLayerMapping0: MappingVMixExternal = {
+		const myLayerMapping0: Mapping<MappingVmixExternal> = {
 			device: DeviceType.VMIX,
-			mappingType: MappingVMixType.External,
 			deviceId: 'myvmix',
+			options: {
+				mappingType: MappingVmixType.External,
+			},
 		}
 		const myLayerMapping: Mappings = {
 			vmix_external0: myLayerMapping0,
@@ -2098,10 +2125,12 @@ describe('vMix', () => {
 			return device._defaultCommandReceiver(...args)
 		})
 
-		const myLayerMapping0: MappingVMixStreaming = {
+		const myLayerMapping0: Mapping<MappingVmixStreaming> = {
 			device: DeviceType.VMIX,
-			mappingType: MappingVMixType.Streaming,
 			deviceId: 'myvmix',
+			options: {
+				mappingType: MappingVmixType.Streaming,
+			},
 		}
 		const myLayerMapping: Mappings = {
 			vmix_streaming0: myLayerMapping0,
@@ -2221,11 +2250,13 @@ describe('vMix', () => {
 			return device._defaultCommandReceiver(...args)
 		})
 
-		const myLayerMapping0: MappingVMixOutput = {
+		const myLayerMapping0: Mapping<MappingVmixOutput> = {
 			device: DeviceType.VMIX,
-			mappingType: MappingVMixType.Output,
 			deviceId: 'myvmix',
-			index: 'Fullscreen',
+			options: {
+				mappingType: MappingVmixType.Output,
+				index: 'Fullscreen',
+			},
 		}
 		const myLayerMapping: Mappings = {
 			vmix_output0: myLayerMapping0,
@@ -2357,11 +2388,13 @@ describe('vMix', () => {
 			return device._defaultCommandReceiver(...args)
 		})
 
-		const myLayerMapping0: MappingVMixOutput = {
+		const myLayerMapping0: Mapping<MappingVmixOutput> = {
 			device: DeviceType.VMIX,
-			mappingType: MappingVMixType.Output,
 			deviceId: 'myvmix',
-			index: 'Fullscreen',
+			options: {
+				mappingType: MappingVmixType.Output,
+				index: 'Fullscreen',
+			},
 		}
 		const myLayerMapping: Mappings = {
 			vmix_output0: myLayerMapping0,
@@ -2495,10 +2528,12 @@ describe('vMix', () => {
 			return device._defaultCommandReceiver(...args)
 		})
 
-		const myLayerMapping0: MappingVMixFadeToBlack = {
+		const myLayerMapping0: Mapping<MappingVmixFadeToBlack> = {
 			device: DeviceType.VMIX,
-			mappingType: MappingVMixType.FadeToBlack,
 			deviceId: 'myvmix',
+			options: {
+				mappingType: MappingVmixType.FadeToBlack,
+			},
 		}
 		const myLayerMapping: Mappings = {
 			vmix_ftb0: myLayerMapping0,
@@ -2618,10 +2653,12 @@ describe('vMix', () => {
 			return device._defaultCommandReceiver(...args)
 		})
 
-		const myLayerMapping0: MappingVMixFader = {
+		const myLayerMapping0: Mapping<MappingVmixFader> = {
 			device: DeviceType.VMIX,
-			mappingType: MappingVMixType.Fader,
 			deviceId: 'myvmix',
+			options: {
+				mappingType: MappingVmixType.Fader,
+			},
 		}
 		const myLayerMapping: Mappings = {
 			vmix_fader0: myLayerMapping0,

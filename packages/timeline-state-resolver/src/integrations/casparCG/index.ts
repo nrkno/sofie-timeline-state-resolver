@@ -437,8 +437,8 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 				foundMapping &&
 				foundMapping.device === DeviceType.CASPARCG &&
 				foundMapping.deviceId === this.deviceId &&
-				_.has(foundMapping, 'channel') &&
-				_.has(foundMapping, 'layer')
+				_.has(foundMapping.options, 'channel') &&
+				_.has(foundMapping.options, 'layer')
 			) {
 				const mapping = foundMapping as Mapping<SomeMappingCasparCG>
 				mapping.options.channel = mapping.options.channel || 0
