@@ -18,6 +18,8 @@ export interface VizMSEOptions {
 	profile: string
 	/** Identifier of the "playlist" to send commands to */
 	playlistID?: string
+	/** Path relative to "/directory/shows", where Shows managed by Sofie are listed e.g. "SOFIE" */
+	showDirectoryPath?: string
 
 	/** Whether all elements should be preloaded or not */
 	preloadAllElements?: boolean
@@ -109,8 +111,8 @@ export interface TimelineObjVIZMSEElementInternal extends TimelineObjVIZMSEBase 
 		templateName: string
 		/** Data to be fed into the template */
 		templateData: Array<string>
-		/** Which Show to place this element in */
-		showId: string
+		/** Name of the Show to place this element in */
+		showName: string
 		/** Whether this element should have its take delayed until after an out transition has finished */
 		delayTakeAfterOutTransition?: boolean
 	} & TimelineDatastoreReferencesContent
@@ -167,8 +169,8 @@ export interface TimelineObjVIZMSEClearAllElements extends TSRTimelineObjBase {
 		/** Names of the channels to send the special clear commands to */
 		channelsToSendCommands?: string[]
 
-		/** IDs of the Show to use for taking the special template */
-		showId: string
+		/** Name of the Show to use for taking the special template */
+		showName: string
 	} & TimelineDatastoreReferencesContent
 }
 export interface TimelineObjVIZMSEInitializeShows extends TSRTimelineObjBase {
@@ -176,8 +178,8 @@ export interface TimelineObjVIZMSEInitializeShows extends TSRTimelineObjBase {
 		deviceType: DeviceType.VIZMSE
 		type: TimelineContentTypeVizMSE.INITIALIZE_SHOWS
 
-		/** IDs of the Shows to initialize */
-		showIds: string[]
+		/** Names of the Shows to initialize */
+		showNames: string[]
 	} & TimelineDatastoreReferencesContent
 }
 export interface TimelineObjVIZMSECleanupShows extends TSRTimelineObjBase {
@@ -185,8 +187,8 @@ export interface TimelineObjVIZMSECleanupShows extends TSRTimelineObjBase {
 		deviceType: DeviceType.VIZMSE
 		type: TimelineContentTypeVizMSE.CLEANUP_SHOWS
 
-		/** IDs of the Shows to cleanup */
-		showIds: string[]
+		/** Names of the Shows to cleanup */
+		showNames: string[]
 	} & TimelineDatastoreReferencesContent
 }
 
@@ -225,7 +227,7 @@ export interface VIZMSEPlayoutItemContentInternal extends VIZMSEPlayoutItemConte
 	/** Data fields of the element */
 	templateData?: string[]
 	/** Which Show to place this element in */
-	showId: string
+	showName: string
 }
 
 export interface VIZMSEPlayoutItemContentExternal extends VIZMSEPlayoutItemContentBase {

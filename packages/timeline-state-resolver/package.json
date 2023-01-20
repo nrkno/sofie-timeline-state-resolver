@@ -1,6 +1,6 @@
 {
 	"name": "timeline-state-resolver",
-	"version": "7.4.0-release46.1",
+	"version": "3.1.0",
 	"description": "Have timeline, control stuff",
 	"main": "dist/index.js",
 	"typings": "dist/index.d.ts",
@@ -9,43 +9,12 @@
 	"license": "MIT",
 	"repository": {
 		"type": "git",
-		"url": "git+https://github.com/nrkno/tv-automation-state-timeline-resolver.git"
+		"url": "git+https://github.com/tv2/tv-automation-state-timeline-resolver.git"
 	},
 	"bugs": {
-		"url": "https://github.com/nrkno/tv-automation-state-timeline-resolver/issues"
+		"url": "https://github.com/tv2/tv-automation-state-timeline-resolver/issues"
 	},
-	"homepage": "https://github.com/nrkno/tv-automation-state-timeline-resolver#readme",
-	"contributors": [
-		{
-			"name": "Johan Nyman",
-			"email": "johan@superfly.tv",
-			"url": "http://superfly.tv"
-		},
-		{
-			"name": "Balte de Wit",
-			"email": "balte@superfly.tv",
-			"url": "http://superfly.tv"
-		},
-		{
-			"name": "Jesper Stærkær",
-			"email": "jesper@superfly.tv",
-			"url": "http://superfly.tv"
-		},
-		{
-			"name": "Jan Starzak",
-			"email": "jan@superfly.tv",
-			"url": "http://superfly.tv"
-		},
-		{
-			"name": "Stephan Nordnes Eriksen",
-			"email": "Stephanruler@gmail.com"
-		},
-		{
-			"name": "Julian Waller",
-			"email": "julian@superfly.tv",
-			"url": "http://superfly.tv"
-		}
-	],
+	"homepage": "https://github.com/tv2/tv-automation-state-timeline-resolver#readme",
 	"scripts": {
 		"unlink:all": "yarn unlink atem-connection & yarn unlink atem-state & yarn unlink casparcg-connection & yarn unlink casparcg-state & yarn unlink superfly-timeline",
 		"build": "rimraf dist && yarn build:main",
@@ -63,7 +32,9 @@
 		"cov-open": "open-cli coverage/lcov-report/index.html",
 		"validate:dependencies": "yarn audit --groups dependencies && yarn license-validate",
 		"validate:dev-dependencies": "yarn audit --groups devDependencies",
-		"precommit": "lint-staged"
+		"tv2-rename": "yarn tv2-rename:package && yarn tv2-rename:dependency",
+		"tv2-rename:package": "echo \"`jq '.name = \"@tv2media/\" + .name' package.json --tab`\" > package.json",
+		"tv2-rename:dependency": "echo \"`jq '.dependencies.\"timeline-state-resolver-types\" = \"npm:@tv2media/timeline-state-resolver-types@\" + .dependencies.\"timeline-state-resolver-types\"' package.json --tab`\" > package.json"
 	},
 	"engines": {
 		"node": "^14.18 || ^16.14"
@@ -86,7 +57,7 @@
 		"production"
 	],
 	"dependencies": {
-		"@tv2media/v-connection": "^6.0.2",
+		"@tv2media/v-connection": "^7.2.1",
 		"atem-connection": "2.4.0",
 		"atem-state": "^0.12.2",
 		"casparcg-connection": "^5.1.0",
@@ -106,7 +77,7 @@
 		"sprintf-js": "^1.1.2",
 		"superfly-timeline": "^8.2.8",
 		"threadedclass": "^1.1.1",
-		"timeline-state-resolver-types": "7.4.0-release46.1",
+		"timeline-state-resolver-types": "3.1.0",
 		"tslib": "^2.3.1",
 		"tv-automation-quantel-gateway-client": "^2.0.5",
 		"underscore": "^1.13.4",

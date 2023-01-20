@@ -21,10 +21,11 @@
     "docs": "yarn typedoc .",
     "postinstall": "lerna bootstrap",
     "release:set-version": "lerna version --exact --no-changelog --no-git-tag-version --no-push --yes",
-    "release:bump-release": "lerna version --exact --conventional-commits --conventional-graduate --tag-version-prefix='' --no-push --force-publish=*",
-    "release:bump-prerelease": "lerna version --exact --conventional-commits --conventional-prerelease --tag-version-prefix='' --no-push --force-publish=*",
+    "release:bump-release": "lerna version --exact --conventional-commits --changelog-preset conventionalcommits --conventional-graduate --tag-version-prefix='' --no-push --force-publish=*",
+    "release:bump-prerelease": "lerna version --exact --conventional-commits --changelog-preset conventionalcommits --conventional-prerelease --tag-version-prefix='' --no-push --force-publish=*",
     "validate:dependencies": "yarn lerna exec --parallel yarn validate:dependencies",
-    "validate:dev-dependencies": "yarn lerna exec --parallel yarn validate:dev-dependencies"
+    "validate:dev-dependencies": "yarn lerna exec --parallel yarn validate:dev-dependencies",
+    "rename-tv2": "yarn lerna run tv2-rename && git config user.name github-actions && git config user.email github-actions@github.com && git commit -a -m 'tmp'"
   },
   "devDependencies": {
     "@sofie-automation/code-standard-preset": "~2.0.2",
@@ -35,6 +36,7 @@
     "@types/underscore": "^1.10.24",
     "@types/ws": "^7.4.7",
     "@types/xml-js": "^1.0.0",
+    "conventional-changelog-conventionalcommits": "^5.0.0",
     "jest": "^26.0.1",
     "jest-haste-map": "^26.0.1",
     "jest-resolve": "^26.0.1",

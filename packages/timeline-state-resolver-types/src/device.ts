@@ -20,6 +20,7 @@ import {
 	TriCasterOptions,
 } from '.'
 import { ShotokuOptions } from './shotoku'
+import { TelemetricsOptions } from './telemetrics'
 
 export enum StatusCode {
 	UNKNOWN = 0, // Status unknown
@@ -71,6 +72,7 @@ export type DeviceOptionsAny =
 	| DeviceOptionsVMix
 	| DeviceOptionsVizMSE
 	| DeviceOptionsShotoku
+	| DeviceOptionsTelemetrics
 	| DeviceOptionsTriCaster
 
 export interface DeviceOptionsAbstract extends DeviceOptionsBase<AbstractOptions> {
@@ -126,6 +128,9 @@ export interface DeviceOptionsShotoku extends DeviceOptionsBase<ShotokuOptions> 
 }
 export interface DeviceOptionsVMix extends DeviceOptionsBase<VMixOptions> {
 	type: DeviceType.VMIX
+}
+export interface DeviceOptionsTelemetrics extends DeviceOptionsBase<TelemetricsOptions> {
+	type: DeviceType.TELEMETRICS
 }
 export interface DeviceOptionsTriCaster extends DeviceOptionsBase<TriCasterOptions> {
 	type: DeviceType.TRICASTER

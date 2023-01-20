@@ -3,7 +3,90 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
-# [7.4.0-release46.1](https://github.com/nrkno/sofie-timeline-state-resolver/compare/7.3.0-release44.1...7.4.0-release46.1) (2022-09-27)
+## [3.0.3](https://github.com/tv2/tv-automation-state-timeline-resolver/compare/3.0.2...3.0.3) (2022-12-05)
+
+**Note:** Version bump only for package timeline-state-resolver-types
+
+## [3.0.0](https://github.com/tv2/tv-automation-state-timeline-resolver/compare/2.3.1...3.0.0) (2022-11-21)
+
+### ⚠ BREAKING CHANGES
+
+- resolve MSE show names to IDs using the directory
+
+### Features
+
+- resolve MSE show names to IDs using the directory ([e094dda](https://github.com/tv2/tv-automation-state-timeline-resolver/commit/e094dda7dbd14b312ff8ffef5d45a39a1e802bcf))
+
+## [2.3.1](https://github.com/tv2/tv-automation-state-timeline-resolver/compare/2.3.0...2.3.1) (2022-11-11)
+
+**Note:** Version bump only for package timeline-state-resolver-types
+
+## [2.2.3](https://github.com/tv2/tv-automation-state-timeline-resolver/compare/2.2.2...2.2.3) (2022-10-18)
+
+**Note:** Version bump only for package timeline-state-resolver-types
+
+# [2.2.0](https://github.com/tv2/tv-automation-state-timeline-resolver/compare/2.1.7...2.2.0) (2022-10-04)
+
+# [7.3.0-release44.2](https://github.com/tv2/tv-automation-state-timeline-resolver/compare/7.4.0-release46.1...7.3.0-release44.2) (2022-09-29)
+
+# [7.4.0-release46.1](https://github.com/tv2/tv-automation-state-timeline-resolver/compare/7.4.0-release46.0...7.4.0-release46.1) (2022-09-27)
+
+# [7.4.0-release46.0](https://github.com/tv2/tv-automation-state-timeline-resolver/compare/7.3.0-release44.1...7.4.0-release46.0) (2022-09-26)
+
+### Bug Fixes
+
+- index datastore references by path ([9b48d72](https://github.com/tv2/tv-automation-state-timeline-resolver/commit/9b48d725d79d4eee13e7347e450abaadf02b6db2))
+
+# [7.3.0-release44.1](https://github.com/tv2/tv-automation-state-timeline-resolver/compare/2.1.6...7.3.0-release44.1) (2022-09-22)
+
+### Bug Fixes
+
+- invert warnOnEmptySlots to suppressEmptySlotWarnings ([edcd7b0](https://github.com/tv2/tv-automation-state-timeline-resolver/commit/edcd7b0fde747ae160c93f2ca1284661153f5647))
+- move all references to the root of the tl obj ([130b6c3](https://github.com/tv2/tv-automation-state-timeline-resolver/commit/130b6c3a908b0911f94ccedc67e7004404f11010))
+- put 'em back to make linter happy ([e83a5ed](https://github.com/tv2/tv-automation-state-timeline-resolver/commit/e83a5ed87f1983b16c9b5b8c134e1441fb8d324a))
+- **types:** remove unsupported/manual transport statuses ([b362072](https://github.com/tv2/tv-automation-state-timeline-resolver/commit/b362072424236f13f9c04bf477d6b98e41254359))
+- update typings with datastore references ([2c0074b](https://github.com/tv2/tv-automation-state-timeline-resolver/commit/2c0074bc74d8fa0eead89b44b558e73de4057638))
+
+### Features
+
+- **HyperDeck:** add "warnOnEmptySlots" option ([233a413](https://github.com/tv2/tv-automation-state-timeline-resolver/commit/233a4132097f38723b7150b7e61635f39e08115d))
+- **Hyperdeck:** add support for play and goto commands ([50e9e15](https://github.com/tv2/tv-automation-state-timeline-resolver/commit/50e9e156651ba250a4fa3d5fcc01a184ba928ade))
+
+# [7.3.0-release44.0](https://github.com/tv2/tv-automation-state-timeline-resolver/compare/2.1.3...7.3.0-release44.0) (2022-07-04)
+
+# [7.0.0](https://github.com/tv2/tv-automation-state-timeline-resolver/compare/2.1.2...7.0.0) (2022-06-27)
+
+### Features
+
+- timeline datastore prototype ([e122e8b](https://github.com/tv2/tv-automation-state-timeline-resolver/commit/e122e8bff7404b1955853131d24144c660f76753))
+
+# [7.1.0-release42.1](https://github.com/tv2/tv-automation-state-timeline-resolver/compare/7.0.0-release41.2...7.1.0-release42.1) (2022-04-29)
+
+### Reverts
+
+- Revert "7.1.0" ([8ce054c](https://github.com/tv2/tv-automation-state-timeline-resolver/commit/8ce054c6016fc0d23ef37a3ae1d233090a829fb9))
+
+## [2.1.7](https://github.com/tv2/tv-automation-state-timeline-resolver/compare/2.1.6...2.1.7) (2022-10-03)
+
+**Note:** Version bump only for package timeline-state-resolver-types
+
+## [2.1.6](https://github.com/tv2/tv-automation-state-timeline-resolver/compare/2.1.5...2.1.6) (2022-09-06)
+
+**Note:** Version bump only for package timeline-state-resolver-types
+
+## [2.1.5](https://github.com/tv2/tv-automation-state-timeline-resolver/compare/2.1.4...2.1.5) (2022-08-17)
+
+**Note:** Version bump only for package timeline-state-resolver-types
+
+## [2.1.4](https://github.com/tv2/tv-automation-state-timeline-resolver/compare/2.1.3...2.1.4) (2022-08-11)
+
+**Note:** Version bump only for package timeline-state-resolver-types
+
+## [2.1.3](https://github.com/tv2/tv-automation-state-timeline-resolver/compare/2.1.2...2.1.3) (2022-07-04)
+
+**Note:** Version bump only for package timeline-state-resolver-types
+
+## [2.1.1](https://github.com/tv2/tv-automation-state-timeline-resolver/compare/v2.0.0...2.1.1) (2022-06-14)
 
 ### Bug Fixes
 
