@@ -46,6 +46,7 @@ const capitalise = (s) => {
 }
 
 let indexFile = BANNER + `\nexport * from './action-schema'`
+let baseMappingsTypes = []
 
 // iterate over integrations
 for (const dir of dirs) {
@@ -115,8 +116,10 @@ for (const dir of dirs) {
 
 		output += '\n' + mappingsEnum
 	}
-	output +=
-		'\n' + `export type SomeMapping${capitalise(dir)} = ${mappingTypes.join(' | ') || 'Record<string, never>'}\n`
+
+	const someMappingName = `SomeMapping${capitalise(dir)}`
+	baseMappingsTypes.push(someMappingName)
+	output += '\n' + `export type ${someMappingName} = ${mappingTypes.join(' | ') || 'Record<string, never>'}\n`
 
 	// compile actions from file
 	const actionIds = []
@@ -160,9 +163,15 @@ for (const dir of dirs) {
 		await fs.writeFile(outputFilePath, output)
 
 		indexFile += `\nexport * from './${dir}'`
+		indexFile += `\nimport { ${someMappingName} } from './${dir}'`
+		indexFile += '\n'
 	} else {
 		if (await fsUnlink(outputFilePath)) console.log('Removed ' + outputFilePath)
 	}
+}
+
+if (baseMappingsTypes.length) {
+	indexFile += `\nexport type TSRMappingOptions =\n\t| ${baseMappingsTypes.join('\n\t| ')}`
 }
 
 // Output the tsr-types index file
