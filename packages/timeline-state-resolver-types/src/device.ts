@@ -21,6 +21,7 @@ import {
 	ShotokuOptions,
 	TelemetricsOptions,
 } from '.'
+import { DeviceCommonOptions } from './generated/common-options'
 
 export enum StatusCode {
 	UNKNOWN = 0, // Status unknown
@@ -36,14 +37,11 @@ export interface DeviceStatus {
 	active: boolean
 }
 
-export interface DeviceOptionsBase<T> extends SlowReportOptions {
+export interface DeviceOptionsBase<T> extends SlowReportOptions, DeviceCommonOptions {
 	type: DeviceType
 	isMultiThreaded?: boolean
 	reportAllCommands?: boolean
-	threadUsage?: number
-	disable?: boolean
 	options?: T
-	debug?: boolean
 	debugState?: boolean
 }
 

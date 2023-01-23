@@ -18,7 +18,6 @@ const PrettierConf = JSON.parse(
 )
 
 // convert action-schema
-// compile options from file
 try {
 	const actionSchemaDescr = JSON.parse(await fs.readFile('./src/$schemas/action-schema.json'))
 	const actionSchema = await compile(actionSchemaDescr.properties.actions.items, 'TSRActionSchema', {
@@ -30,6 +29,21 @@ try {
 	await fs.writeFile('../timeline-state-resolver-types/src/generated/action-schema.ts', BANNER + '\n' + actionSchema)
 } catch (e) {
 	console.error('Error while generating action-schema.json, continuing...')
+	console.error(e)
+}
+
+// convert action-schema
+try {
+	const commonOptionsDescr = JSON.parse(await fs.readFile('./src/$schemas/common-options.json'))
+	const actionSchema = await compile(commonOptionsDescr, 'DeviceCommonOptions', {
+		additionalProperties: false,
+		style: PrettierConf,
+		bannerComment: '',
+	})
+
+	await fs.writeFile('../timeline-state-resolver-types/src/generated/common-options.ts', BANNER + '\n' + actionSchema)
+} catch (e) {
+	console.error('Error while generating common-options.json, continuing...')
 	console.error(e)
 }
 
