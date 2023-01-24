@@ -24,7 +24,7 @@ import { TriCasterState } from './triCasterStateDiffer'
 
 type DeepPartial<T> = { [P in keyof T]?: T[P] extends object ? DeepPartial<T[P]> : T[P] }
 
-export class TimelineStateConverter {
+export class TriCasterTimelineStateConverter {
 	private meNames: Set<TriCasterMixEffectName>
 	private inputNames: Set<TriCasterInputName>
 	private audioChannelNames: Set<TriCasterAudioChannelName>
@@ -57,19 +57,19 @@ export class TimelineStateConverter {
 				return
 			}
 			switch (mapping.mappingType) {
-				case MappingTriCasterType.MixEffect:
+				case MappingTriCasterType.ME:
 					this.applyMixEffectState(resultState, tlObject, mapping)
 					break
-				case MappingTriCasterType.DownStreamKeyer:
+				case MappingTriCasterType.DSK:
 					this.applyDskState(resultState, tlObject, mapping)
 					break
-				case MappingTriCasterType.Input:
+				case MappingTriCasterType.INPUT:
 					this.applyInputState(resultState, tlObject, mapping)
 					break
-				case MappingTriCasterType.AudioChannel:
+				case MappingTriCasterType.AUDIO_CHANNEL:
 					this.applyAudioChannelState(resultState, tlObject, mapping)
 					break
-				case MappingTriCasterType.MixOutput:
+				case MappingTriCasterType.MIX_OUTPUT:
 					this.applyMixOutputState(resultState, tlObject, mapping)
 					break
 			}
@@ -93,7 +93,7 @@ export class TimelineStateConverter {
 		const mixEffects = resultState.mixEffects
 		if (!isTimelineObjTriCasterME(tlObject) || !this.meNames.has(mapping.name)) return
 		this.deepApply(mixEffects[mapping.name], tlObject.content.me)
-		if (Object.keys(tlObject.content.me.layers ?? {}).length) {
+		if ('layers' in tlObject.content.me && Object.keys(tlObject.content.me.layers).length) {
 			mixEffects[mapping.name].isInEffectMode = true
 		}
 	}

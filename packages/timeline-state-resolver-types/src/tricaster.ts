@@ -24,38 +24,36 @@ interface MappingTriCasterBase extends Mapping {
 }
 
 export interface MappingTriCasterMixEffect extends MappingTriCasterBase {
-	mappingType: MappingTriCasterType.MixEffect
+	mappingType: MappingTriCasterType.ME
 	name: TriCasterMixEffectName
 }
 
 export interface MappingTriCasterDownStreamKeyer extends MappingTriCasterBase {
-	mappingType: MappingTriCasterType.DownStreamKeyer
+	mappingType: MappingTriCasterType.DSK
 	name: TriCasterKeyerName
 }
 
 export interface MappingTriCasterInput extends MappingTriCasterBase {
-	mappingType: MappingTriCasterType.Input
+	mappingType: MappingTriCasterType.INPUT
 	name: TriCasterInputName
 }
 
 export interface MappingTriCasterAudioChannel extends MappingTriCasterBase {
-	mappingType: MappingTriCasterType.AudioChannel
+	mappingType: MappingTriCasterType.AUDIO_CHANNEL
 	name: TriCasterAudioChannelName
 }
 
 export interface MappingTriCasterMixOutput extends MappingTriCasterBase {
-	mappingType: MappingTriCasterType.MixOutput
+	mappingType: MappingTriCasterType.MIX_OUTPUT
 	name: TriCasterMixOutputName
 }
 
 export enum MappingTriCasterType {
-	MixEffect = 0,
-	DownStreamKeyer = 1,
-	AudioChannel = 2,
-	Recording = 3,
-	Streaming = 4,
-	MixOutput = 5,
-	Input = 6,
+	ME = 'ME',
+	DSK = 'DSK',
+	INPUT = 'INPUT',
+	AUDIO_CHANNEL = 'AUDIO_CHANNEL',
+	MIX_OUTPUT = 'MIX_OUTPUT',
 }
 
 export type MappingTriCaster =
@@ -73,8 +71,8 @@ export interface TriCasterOptions {
 export enum TimelineContentTypeTriCaster {
 	ME = 'ME',
 	DSK = 'DSK',
-	AUDIO_CHANNEL = 'AUDIO_CHANNEL',
 	INPUT = 'INPUT',
+	AUDIO_CHANNEL = 'AUDIO_CHANNEL',
 	MIX_OUTPUT = 'MIX_OUTPUT',
 }
 
@@ -92,23 +90,34 @@ export interface TimelineObjTriCasterBase extends TSRTimelineObjBase {
 	} & TimelineDatastoreReferencesContent
 }
 
-export type TriCasterMixEffect = {
-	/** Discarded when layers are defined (M/E in effect mode) */
-	programInput?: string
-
-	/** Discarded when transition other than 'cut' is used */
-	previewInput?: string
-
-	transition?: TriCasterTransition
-
+interface TriCasterMixEffectBase {
 	keyers?: Record<TriCasterKeyerName, TriCasterKeyer>
-
-	/** Use only in conjunction with effects that use M/E rows as layers (e.g. LiveSets) */
-	layers?: Partial<Record<TriCasterLayerName, TriCasterLayer>>
 
 	/** Default: 'background' */
 	delegates?: TriCasterDelegateName[]
 }
+
+export interface TriCasterMixEffectInMixMode extends TriCasterMixEffectBase {
+	programInput: string
+
+	transition?: TriCasterTransition
+}
+
+export interface TriCasterMixEffectWithPreview extends TriCasterMixEffectInMixMode {
+	previewInput: string
+
+	transition?: { effect: 'cut'; duration: 0 }
+}
+
+export interface TriCasterMixEffectInEffectMode extends TriCasterMixEffectBase {
+	/** Use only in conjunction with effects that use M/E rows as layers (e.g. LiveSets) */
+	layers: Partial<Record<TriCasterLayerName, TriCasterLayer>>
+}
+
+export type TriCasterMixEffect =
+	| TriCasterMixEffectInEffectMode
+	| TriCasterMixEffectWithPreview
+	| TriCasterMixEffectInMixMode
 
 export interface TimelineObjTriCasterME extends TimelineObjTriCasterBase {
 	content: {

@@ -1,7 +1,7 @@
-import { ExternalStateConverter } from '../externalStateConverter'
+import { TriCasterShortcutStateConverter } from '../triCasterShortcutStateConverter'
 
-function setUpExternalStateConverter() {
-	return new ExternalStateConverter(
+function setUpShortcutStateConverter() {
+	return new TriCasterShortcutStateConverter(
 		['main', 'v1', 'v2'],
 		['input1', 'input2'],
 		['input1', 'input2', 'sound', 'master'],
@@ -11,10 +11,10 @@ function setUpExternalStateConverter() {
 	)
 }
 
-describe('ExternalStateConverter.getTriCasterStateFromShortcutState', () => {
+describe('TriCasterShortcutStateConverter.getTriCasterStateFromShortcutState', () => {
 	describe('MixEffects', () => {
 		test('sets inputs', () => {
-			const converter = setUpExternalStateConverter()
+			const converter = setUpShortcutStateConverter()
 
 			const state = converter.getTriCasterStateFromShortcutState(`<shortcut_states>
 	<shortcut_state name="main_a_row_named_input" value="INPUT7" type="" sender="unknown"/>
@@ -26,7 +26,7 @@ describe('ExternalStateConverter.getTriCasterStateFromShortcutState', () => {
 		})
 
 		test.skip('sets cut transition', () => {
-			const converter = setUpExternalStateConverter()
+			const converter = setUpShortcutStateConverter()
 
 			const state = converter.getTriCasterStateFromShortcutState(`<shortcut_states>
 	<shortcut_state name="main_select_fade" value="false" type="bool" sender="unknown"/>
@@ -41,7 +41,7 @@ describe('ExternalStateConverter.getTriCasterStateFromShortcutState', () => {
 		})
 
 		test.skip('sets fade transition', () => {
-			const converter = setUpExternalStateConverter()
+			const converter = setUpShortcutStateConverter()
 
 			const state = converter.getTriCasterStateFromShortcutState(`<shortcut_states>
 	<shortcut_state name="main_dsk1_select_fade" value="true" type="bool" sender="unknown"/>
@@ -56,7 +56,7 @@ describe('ExternalStateConverter.getTriCasterStateFromShortcutState', () => {
 		})
 
 		test.skip('sets numeric transition', () => {
-			const converter = setUpExternalStateConverter()
+			const converter = setUpShortcutStateConverter()
 
 			const state = converter.getTriCasterStateFromShortcutState(`<shortcut_states>
 	<shortcut_state name="main_dsk1_select_fade" value="false" type="bool" sender="unknown"/>
@@ -73,7 +73,7 @@ describe('ExternalStateConverter.getTriCasterStateFromShortcutState', () => {
 
 	describe('DSK', () => {
 		test('sets onAir', () => {
-			const converter = setUpExternalStateConverter()
+			const converter = setUpShortcutStateConverter()
 
 			const state = converter.getTriCasterStateFromShortcutState(`<shortcut_states>
 	<shortcut_state name="main_dsk1_value" value="0" type="double" sender="unknown" />
@@ -89,7 +89,7 @@ describe('ExternalStateConverter.getTriCasterStateFromShortcutState', () => {
 		})
 
 		test.skip('sets cut transition', () => {
-			const converter = setUpExternalStateConverter()
+			const converter = setUpShortcutStateConverter()
 
 			const state = converter.getTriCasterStateFromShortcutState(`<shortcut_states>
 	<shortcut_state name="main_dsk1_select_fade" value="false" type="bool" sender="unknown"/>
@@ -104,7 +104,7 @@ describe('ExternalStateConverter.getTriCasterStateFromShortcutState', () => {
 		})
 
 		test.skip('sets fade transition', () => {
-			const converter = setUpExternalStateConverter()
+			const converter = setUpShortcutStateConverter()
 
 			const state = converter.getTriCasterStateFromShortcutState(`<shortcut_states>
 	<shortcut_state name="main_dsk1_select_fade" value="true" type="bool" sender="unknown"/>
@@ -119,7 +119,7 @@ describe('ExternalStateConverter.getTriCasterStateFromShortcutState', () => {
 		})
 
 		test.skip('sets numeric transition', () => {
-			const converter = setUpExternalStateConverter()
+			const converter = setUpShortcutStateConverter()
 
 			const state = converter.getTriCasterStateFromShortcutState(`<shortcut_states>
 	<shortcut_state name="main_dsk1_select_fade" value="false" type="bool" sender="unknown"/>
@@ -134,7 +134,7 @@ describe('ExternalStateConverter.getTriCasterStateFromShortcutState', () => {
 		})
 
 		test('sets input', () => {
-			const converter = setUpExternalStateConverter()
+			const converter = setUpShortcutStateConverter()
 
 			const state = converter.getTriCasterStateFromShortcutState(`<shortcut_states>
 	<shortcut_state name="main_dsk3_select_named_input" value="v6" type="" sender="unknown"/>
@@ -144,7 +144,7 @@ describe('ExternalStateConverter.getTriCasterStateFromShortcutState', () => {
 		})
 
 		test.skip('sets position', () => {
-			const converter = setUpExternalStateConverter()
+			const converter = setUpShortcutStateConverter()
 
 			const state = converter.getTriCasterStateFromShortcutState(`<shortcut_states>
 	<shortcut_state name="main_dsk3_position_x" value="1.25" type="double" sender="unknown"/>
@@ -156,7 +156,7 @@ describe('ExternalStateConverter.getTriCasterStateFromShortcutState', () => {
 		})
 
 		test.skip('sets crop', () => {
-			const converter = setUpExternalStateConverter()
+			const converter = setUpShortcutStateConverter()
 
 			const state = converter.getTriCasterStateFromShortcutState(`<shortcut_states>
 	<shortcut_state name="main_dsk2_crop_down_value" value="14.6666666666667" type="double" sender="unknown"/>
@@ -174,7 +174,7 @@ describe('ExternalStateConverter.getTriCasterStateFromShortcutState', () => {
 		})
 
 		test.skip('sets rotation', () => {
-			const converter = setUpExternalStateConverter()
+			const converter = setUpShortcutStateConverter()
 
 			const state = converter.getTriCasterStateFromShortcutState(`<shortcut_states>
 	<shortcut_state name="main_dsk2_rotation_x" value="559.685555555" type="double" sender="unknown"/>
@@ -190,7 +190,7 @@ describe('ExternalStateConverter.getTriCasterStateFromShortcutState', () => {
 		})
 
 		test.skip('sets feather', () => {
-			const converter = setUpExternalStateConverter()
+			const converter = setUpShortcutStateConverter()
 
 			const state = converter.getTriCasterStateFromShortcutState(`<shortcut_states>
 	<shortcut_state name="main_dsk2_feather_value" value="75" type="double" sender="unknown"/>
@@ -202,7 +202,7 @@ describe('ExternalStateConverter.getTriCasterStateFromShortcutState', () => {
 
 	describe('Layer', () => {
 		test('sets input', () => {
-			const converter = setUpExternalStateConverter()
+			const converter = setUpShortcutStateConverter()
 
 			const state = converter.getTriCasterStateFromShortcutState(`<shortcut_states>
 	<shortcut_state name="v2_a_row_named_input" value="v6" type="" sender="unknown"/>
@@ -212,7 +212,7 @@ describe('ExternalStateConverter.getTriCasterStateFromShortcutState', () => {
 		})
 
 		test.skip('sets position', () => {
-			const converter = setUpExternalStateConverter()
+			const converter = setUpShortcutStateConverter()
 
 			const state = converter.getTriCasterStateFromShortcutState(`<shortcut_states>
 	<shortcut_state name="v2_a_position_x" value="1.25" type="double" sender="unknown"/>
@@ -226,7 +226,7 @@ describe('ExternalStateConverter.getTriCasterStateFromShortcutState', () => {
 		})
 
 		test.skip('sets crop', () => {
-			const converter = setUpExternalStateConverter()
+			const converter = setUpShortcutStateConverter()
 
 			const state = converter.getTriCasterStateFromShortcutState(`<shortcut_states>
 	<shortcut_state name="v2_a_crop_down_value" value="14.6666666666667" type="double" sender="unknown"/>
@@ -244,7 +244,7 @@ describe('ExternalStateConverter.getTriCasterStateFromShortcutState', () => {
 		})
 
 		test.skip('sets rotation', () => {
-			const converter = setUpExternalStateConverter()
+			const converter = setUpShortcutStateConverter()
 
 			const state = converter.getTriCasterStateFromShortcutState(`<shortcut_states>
 	<shortcut_state name="v2_a_rotation_x" value="559.685555555" type="double" sender="unknown"/>
@@ -260,7 +260,7 @@ describe('ExternalStateConverter.getTriCasterStateFromShortcutState', () => {
 		})
 
 		test.skip('sets feather', () => {
-			const converter = setUpExternalStateConverter()
+			const converter = setUpShortcutStateConverter()
 
 			const state = converter.getTriCasterStateFromShortcutState(`<shortcut_states>
 	<shortcut_state name="v2_a_feather_value" value="75" type="double" sender="unknown"/>
@@ -272,7 +272,7 @@ describe('ExternalStateConverter.getTriCasterStateFromShortcutState', () => {
 
 	describe('Mix Outputs', () => {
 		test('sets outputs', () => {
-			const converter = setUpExternalStateConverter()
+			const converter = setUpShortcutStateConverter()
 
 			const state = converter.getTriCasterStateFromShortcutState(`<shortcut_states>
 	<shortcut_state name="mix1_output_source" value="input7" type="" sender="unknown"/>

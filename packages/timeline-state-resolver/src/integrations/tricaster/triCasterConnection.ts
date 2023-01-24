@@ -4,7 +4,7 @@ import WebSocket = require('ws')
 import { TriCasterInfoParser, TriCasterProductInfo, TriCasterSwitcherInfo } from './triCasterInfoParser'
 import { serializeToWebSocketMessage, TriCasterCommand } from './triCasterCommands'
 
-interface TriCasterConnectionEvents {
+export interface TriCasterConnectionEvents {
 	connected: (info: TriCasterInfo, shortcutStateXml: string) => void
 	disconnected: (reason: string) => void
 	error: (reason: any) => void

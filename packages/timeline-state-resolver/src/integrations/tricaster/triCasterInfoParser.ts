@@ -16,17 +16,18 @@ export interface TriCasterProductInfo {
 export class TriCasterInfoParser {
 	parseSwitcherUpdate(switcherUpdateXml: string): TriCasterSwitcherInfo {
 		const parsedSwitcher = xml2js(switcherUpdateXml, { compact: true }) as ElementCompact
+		const dskCount: number = (parsedSwitcher.switcher_update?.switcher_overlays?.overlay?.length ?? 5) - 1 // @todo why does the xml contain one more? probably it has something to do with previz or background
+		const inputs = parsedSwitcher.switcher_update?.inputs
 		const inputCount: number =
-			parsedSwitcher.switcher_update?.inputs?.physical_input?.filter((input: ElementCompact) =>
+			inputs?.physical_input?.filter((input: ElementCompact) =>
 				/Input\d+/.test(input._attributes?.physical_input_number?.toString() ?? '')
 			).length ?? 32
-		const dskCount: number = (parsedSwitcher.switcher_update?.switcher_overlays?.overlay?.length ?? 5) - 1 // @todo why does the xml contain one more? probably it has something to do with previz or background
 		const meCount: number =
-			parsedSwitcher.switcher_update?.inputs?.simulated_input?.filter((input: ElementCompact) =>
+			inputs?.simulated_input?.filter((input: ElementCompact) =>
 				/V\d+/.test(input._attributes?.simulated_input_number?.toString() ?? '')
 			).length ?? 8
 		const ddrCount: number =
-			parsedSwitcher.switcher_update?.inputs?.simulated_input?.filter((input: ElementCompact) =>
+			inputs?.simulated_input?.filter((input: ElementCompact) =>
 				/DDR\d+/.test(input._attributes?.simulated_input_number?.toString() ?? '')
 			).length ?? 4
 

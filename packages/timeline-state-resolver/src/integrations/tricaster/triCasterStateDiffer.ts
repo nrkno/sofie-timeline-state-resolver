@@ -13,6 +13,9 @@ import {
 	TriCasterMixOutputName,
 	TriCasterAudioChannel,
 	TriCasterInput,
+	TriCasterMixEffectInEffectMode,
+	TriCasterMixEffectWithPreview,
+	TriCasterMixEffectInMixMode,
 } from 'timeline-state-resolver-types'
 import {
 	TriCasterCommand,
@@ -21,12 +24,14 @@ import {
 	TriCasterGenericCommandName,
 	TriCasterGenericCommand,
 } from './triCasterCommands'
-import { ExternalStateConverter } from './externalStateConverter'
-import { TimelineStateConverter } from './timelineStateConverter'
+import { TriCasterShortcutStateConverter } from './triCasterShortcutStateConverter'
+import { TriCasterTimelineStateConverter } from './triCasterTimelineStateConverter'
 import { TriCasterInfo } from './triCasterConnection'
 import _ = require('underscore')
 
 const BLACK_INPUT = 'black'
+const A_ROW_SUFFIX = '_a' // the Program row
+const B_ROW_SUFFIX = '_b' // the Preview row
 
 export type RequiredDeep<T> = T extends object
 	? {
@@ -66,10 +71,13 @@ export interface TriCasterState {
 	outputs: Record<TriCasterMixOutputName, TriCasterMixOutputState>
 }
 
-export type TriCasterMixEffectState = TriCasterMixEffect & { isInEffectMode?: boolean }
+export type TriCasterMixEffectState = Partial<
+	Omit<TriCasterMixEffectWithPreview, 'transition'> & TriCasterMixEffectInEffectMode & TriCasterMixEffectInMixMode
+> & { isInEffectMode?: boolean }
 
 export type CompleteTriCasterMixEffectState = RequiredDeep<Omit<TriCasterMixEffectState, 'layers' | 'previewInput'>> &
-	Pick<TriCasterMixEffect, 'layers' | 'previewInput'>
+	Pick<TriCasterMixEffectInEffectMode, 'layers'> &
+	Partial<Pick<TriCasterMixEffectWithPreview, 'previewInput'>>
 
 export type TriCasterLayerState = TriCasterLayer
 export type TriCasterKeyerState = TriCasterKeyer
@@ -102,8 +110,8 @@ export class TriCasterStateDiffer {
 
 	private readonly commandGenerator: CommandGenerator<TriCasterState>
 
-	public readonly timelineStateConverter: TimelineStateConverter
-	public readonly externalStateConverter: ExternalStateConverter
+	public readonly timelineStateConverter: TriCasterTimelineStateConverter
+	public readonly shortcutStateConverter: TriCasterShortcutStateConverter
 
 	constructor(options: TriCasterStateDifferOptions) {
 		this.inputCount = options.inputCount
@@ -120,14 +128,14 @@ export class TriCasterStateDiffer {
 		this.mixOutputNames = fillArray<TriCasterMixOutputName>(options.outputCount, (i) => `mix${i + 1}`)
 		this.commandGenerator = this.getGenerator()
 
-		this.timelineStateConverter = new TimelineStateConverter(
+		this.timelineStateConverter = new TriCasterTimelineStateConverter(
 			() => this.getDefaultState(),
 			this.meNames,
 			this.inputNames,
 			this.audioChannelNames,
 			this.mixOutputNames
 		)
-		this.externalStateConverter = new ExternalStateConverter(
+		this.shortcutStateConverter = new TriCasterShortcutStateConverter(
 			this.meNames,
 			this.inputNames,
 			this.audioChannelNames,
@@ -323,7 +331,7 @@ export class TriCasterStateDiffer {
 		if (state.transition.effect !== 'cut') {
 			return null
 		}
-		return [{ name: CommandName.ROW_NAMED_INPUT, value, target: target + '_b' }]
+		return [{ name: CommandName.ROW_NAMED_INPUT, value, target: target + B_ROW_SUFFIX }]
 	}
 
 	private programInputCommandGenerator: CommandGeneratorFunction<string, RequiredDeep<TriCasterMixEffectState>> = ({
@@ -335,14 +343,14 @@ export class TriCasterStateDiffer {
 		if (state.transition.effect === 'cut') {
 			if (!state.previewInput) {
 				return [
-					{ name: CommandName.ROW_NAMED_INPUT, value, target: target + '_b' },
+					{ name: CommandName.ROW_NAMED_INPUT, value, target: target + B_ROW_SUFFIX },
 					{ name: CommandName.TAKE, target },
 				]
 			}
-			return [{ name: CommandName.ROW_NAMED_INPUT, value, target: target + '_a' }]
+			return [{ name: CommandName.ROW_NAMED_INPUT, value, target: target + A_ROW_SUFFIX }]
 		}
 		return [
-			{ name: CommandName.ROW_NAMED_INPUT, value, target: target + '_b' },
+			{ name: CommandName.ROW_NAMED_INPUT, value, target: target + B_ROW_SUFFIX },
 			{ name: CommandName.AUTO, target },
 		]
 	}

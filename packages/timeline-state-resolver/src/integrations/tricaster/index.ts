@@ -5,24 +5,13 @@ import { DoOnTime, SendMode } from '../../devices/doOnTime'
 import { TimelineState } from 'superfly-timeline'
 import { DeviceType, Mappings, TriCasterOptions, DeviceOptionsTriCaster } from 'timeline-state-resolver-types'
 import { TriCasterState, TriCasterStateDiffer } from './triCasterStateDiffer'
-import { TriCasterCommandContext, TriCasterCommandWithContext } from './triCasterCommands'
+import { TriCasterCommandWithContext } from './triCasterCommands'
 import { TriCasterConnection } from './triCasterConnection'
 
 const DEFAULT_PORT = 5951
 
-export interface DeviceOptionsTriCasterInternal extends DeviceOptionsTriCaster {
-	commandReceiver?: CommandReceiver
-}
-export type CommandReceiver = (
-	time: number,
-	cmd: TriCasterCommandWithContext,
-	context: TriCasterCommandContext,
-	timelineObjId: string
-) => Promise<any>
+export type DeviceOptionsTriCasterInternal = DeviceOptionsTriCaster
 
-/**
- * This is a VMixDevice, it sends commands when it feels like it
- */
 export class TriCasterDevice extends DeviceWithState<TriCasterState, DeviceOptionsTriCasterInternal> {
 	private _doOnTime: DoOnTime
 
@@ -35,13 +24,7 @@ export class TriCasterDevice extends DeviceWithState<TriCasterState, DeviceOptio
 	constructor(deviceId: string, deviceOptions: DeviceOptionsTriCasterInternal, getCurrentTime: () => Promise<number>) {
 		super(deviceId, deviceOptions, getCurrentTime)
 
-		this._doOnTime = new DoOnTime(
-			() => {
-				return this.getCurrentTime()
-			},
-			SendMode.BURST,
-			this._deviceOptions
-		)
+		this._doOnTime = new DoOnTime(() => this.getCurrentTime(), SendMode.BURST, this._deviceOptions)
 		this._doOnTime.on('error', (e) => this.emit('error', 'TriCasterDevice.doOnTime', e))
 		this._doOnTime.on('slowCommand', (msg) => this.emit('slowCommand', this.deviceName + ': ' + msg))
 		this._doOnTime.on('slowSentCommand', (info) => this.emit('slowSentCommand', info))
@@ -75,7 +58,7 @@ export class TriCasterDevice extends DeviceWithState<TriCasterState, DeviceOptio
 			throw new Error('State Differ not available')
 		}
 		const time = this.getCurrentTime()
-		const state = this._stateDiffer.externalStateConverter.getTriCasterStateFromShortcutState(shortcutStateXml)
+		const state = this._stateDiffer.shortcutStateConverter.getTriCasterStateFromShortcutState(shortcutStateXml)
 		this.setState(state, time)
 	}
 
@@ -181,14 +164,7 @@ export class TriCasterDevice extends DeviceWithState<TriCasterState, DeviceOptio
 
 	private _addToQueue(commandsToAchieveState: Array<TriCasterCommandWithContext>, time: number): void {
 		_.each(commandsToAchieveState, (cmd: TriCasterCommandWithContext) => {
-			this._doOnTime.queue(
-				time,
-				undefined,
-				async (cmd: TriCasterCommandWithContext) => {
-					return this._sendCommand(cmd)
-				},
-				cmd
-			)
+			this._doOnTime.queue(time, undefined, async (cmd: TriCasterCommandWithContext) => this._sendCommand(cmd), cmd)
 		})
 	}
 

@@ -7,7 +7,7 @@ import {
 	TimelineObjTriCasterME,
 	TimelineObjTriCasterMixOutput,
 } from 'timeline-state-resolver-types'
-import { TimelineStateConverter } from '../timelineStateConverter'
+import { TriCasterTimelineStateConverter } from '../triCasterTimelineStateConverter'
 import {
 	CompleteTriCasterMixEffectState,
 	CompleteTriCasterState,
@@ -16,10 +16,10 @@ import {
 	TriCasterLayerState,
 } from '../triCasterStateDiffer'
 import { literal } from '../../../devices/device'
-import { ResolvedTimelineObjectInstance, TimelineObject } from 'superfly-timeline'
+import { wrapIntoResolvedInstance } from './helpers'
 
 function setupTimelineStateConverter() {
-	return new TimelineStateConverter(
+	return new TriCasterTimelineStateConverter(
 		() => mockGetDefaultState(),
 		['main', 'v1', 'v2'],
 		['input1', 'input2'],
@@ -85,17 +85,6 @@ const mockGetDefaultLayer = (): TriCasterLayerState => ({
 	feather: 0,
 })
 
-const wrapIntoResolvedInstance = <T extends TimelineObject>(timelineObject: T): ResolvedTimelineObjectInstance => ({
-	...timelineObject,
-	resolved: {
-		resolved: true,
-		resolving: false,
-		instances: [{ start: 0, end: Infinity, id: timelineObject.id, references: [] }],
-		directReferences: [],
-	},
-	instance: { start: 0, end: Infinity, id: timelineObject.id, references: [] },
-})
-
 describe('TimelineStateConverter.getTriCasterStateFromTimelineState', () => {
 	test('sets MixEffect properties', () => {
 		const converter = setupTimelineStateConverter()
@@ -152,13 +141,13 @@ describe('TimelineStateConverter.getTriCasterStateFromTimelineState', () => {
 			{
 				tc_me0_0: literal<MappingTriCaster>({
 					device: DeviceType.TRICASTER,
-					mappingType: MappingTriCasterType.MixEffect,
+					mappingType: MappingTriCasterType.ME,
 					name: 'main',
 					deviceId: 'tc0',
 				}),
 				tc_me0_1: literal<MappingTriCaster>({
 					device: DeviceType.TRICASTER,
-					mappingType: MappingTriCasterType.MixEffect,
+					mappingType: MappingTriCasterType.ME,
 					name: 'v1',
 					deviceId: 'tc0',
 				}),
@@ -172,7 +161,7 @@ describe('TimelineStateConverter.getTriCasterStateFromTimelineState', () => {
 		expectedState.mixEffects.main.transition = { effect: 5, duration: 20 }
 		expectedState.mixEffects.v1.keyers.dsk2.input = 'input5'
 		expectedState.mixEffects.v1.keyers.dsk2.onAir = true
-		expectedState.mixEffects.v1.layers!.b = {
+		expectedState.mixEffects.v1.layers.b = {
 			input: 'ddr3',
 			position: {
 				x: 2,
@@ -221,7 +210,7 @@ describe('TimelineStateConverter.getTriCasterStateFromTimelineState', () => {
 			{
 				tc_out2: literal<MappingTriCaster>({
 					device: DeviceType.TRICASTER,
-					mappingType: MappingTriCasterType.MixOutput,
+					mappingType: MappingTriCasterType.MIX_OUTPUT,
 					name: 'mix2',
 					deviceId: 'tc0',
 				}),
@@ -261,7 +250,7 @@ describe('TimelineStateConverter.getTriCasterStateFromTimelineState', () => {
 			{
 				tc_inp2: literal<MappingTriCaster>({
 					device: DeviceType.TRICASTER,
-					mappingType: MappingTriCasterType.Input,
+					mappingType: MappingTriCasterType.INPUT,
 					name: 'input2',
 					deviceId: 'tc0',
 				}),
