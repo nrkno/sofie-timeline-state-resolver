@@ -31,7 +31,8 @@
 		"playlistID": {
 			"type": "string",
 			"ui:title": "(Optional) Playlist ID",
-			"description": "Identifier of the \"playlist\" to send commands to"
+			"description": "Identifier of the \"playlist\" to send commands to",
+			"default": "SOFIE"
 		},
 		"preloadAllElements": {
 			"type": "boolean",

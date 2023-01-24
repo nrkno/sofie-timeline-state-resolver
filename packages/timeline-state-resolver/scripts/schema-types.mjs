@@ -32,16 +32,19 @@ try {
 	console.error(e)
 }
 
-// convert action-schema
+// convert common-options
 try {
 	const commonOptionsDescr = JSON.parse(await fs.readFile('./src/$schemas/common-options.json'))
-	const actionSchema = await compile(commonOptionsDescr, 'DeviceCommonOptions', {
+	const commonOptionsSchema = await compile(commonOptionsDescr, 'DeviceCommonOptions', {
 		additionalProperties: false,
 		style: PrettierConf,
 		bannerComment: '',
 	})
 
-	await fs.writeFile('../timeline-state-resolver-types/src/generated/common-options.ts', BANNER + '\n' + actionSchema)
+	await fs.writeFile(
+		'../timeline-state-resolver-types/src/generated/common-options.ts',
+		BANNER + '\n' + commonOptionsSchema
+	)
 } catch (e) {
 	console.error('Error while generating common-options.json, continuing...')
 	console.error(e)
