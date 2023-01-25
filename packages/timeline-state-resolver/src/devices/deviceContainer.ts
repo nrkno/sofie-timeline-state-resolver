@@ -44,21 +44,29 @@ export class DeviceContainer<TOptions extends DeviceOptionsBase<any>> extends Ba
 			threadConfig
 		)
 
-		if (deviceOptions.isMultiThreaded) {
-			container._onEventListeners = [
-				ThreadedClassManager.onEvent(container._device, 'thread_closed', () => {
-					// This is called if a child crashes
-					if (container.onChildClose) container.onChildClose()
-				}),
-				ThreadedClassManager.onEvent(container._device, 'error', (error) => {
-					container.emit('error', `${orgClassExport} "${deviceId}" threadedClass error`, error)
-				}),
-			]
+		try {
+			if (deviceOptions.isMultiThreaded) {
+				container._onEventListeners = [
+					ThreadedClassManager.onEvent(container._device, 'thread_closed', () => {
+						// This is called if a child crashes
+						if (container.onChildClose) container.onChildClose()
+					}),
+					ThreadedClassManager.onEvent(container._device, 'error', (error) => {
+						container.emit('error', `${orgClassExport} "${deviceId}" threadedClass error`, error)
+					}),
+				]
+			}
+
+			await container.reloadProps()
+
+			return container
+		} catch (e) {
+			// try to clean up any loose threads
+			try {
+				container.terminate()
+			} catch {}
+			throw e
 		}
-
-		await container.reloadProps()
-
-		return container
 	}
 
 	public async reloadProps(): Promise<void> {
