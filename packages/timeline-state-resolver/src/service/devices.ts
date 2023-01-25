@@ -11,6 +11,7 @@ export interface DeviceEntry {
 
 type ImplementedDeviceTypes = DeviceType.OSC
 
+// TODO - move all device implementations here and remove the old Device classes
 export const DevicesDict: Record<ImplementedDeviceTypes, DeviceEntry> = {
 	[DeviceType.OSC]: {
 		deviceClass: OscDevice,
