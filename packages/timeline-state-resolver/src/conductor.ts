@@ -614,11 +614,8 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 						'DeviceInstanceWrapper',
 						deviceId,
 						deviceOptions,
-						() => 0,
-						{
-							...threadedClassOptions,
-							threadUsage: deviceOptions.isMultiThreaded ? 0.1 : 0,
-						}
+						getCurrentTime,
+						threadedClassOptions
 					)
 				} catch {
 					// @ts-ignore deviceOptions.type is of type "never"

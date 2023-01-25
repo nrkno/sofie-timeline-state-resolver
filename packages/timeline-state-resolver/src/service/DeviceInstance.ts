@@ -44,7 +44,7 @@ export class DeviceInstanceWrapper extends EventEmitter<DeviceEvents> {
 	private _logDebug = false
 	private _logDebugStates = false
 
-	constructor(id: string, private config: Config) {
+	constructor(id: string, private config: Config, public getCurrentTime: () => number) {
 		super()
 
 		const deviceSpecs = DevicesDict[config.type]
@@ -57,7 +57,7 @@ export class DeviceInstanceWrapper extends EventEmitter<DeviceEvents> {
 		this._deviceId = id
 		this._deviceType = config.type
 		this._deviceName = deviceSpecs.deviceName(id, config)
-		this._startTime = Date.now()
+		this._startTime = this.getCurrentTime()
 
 		this._setupDeviceEventHandlers()
 
@@ -109,6 +109,7 @@ export class DeviceInstanceWrapper extends EventEmitter<DeviceEvents> {
 						})
 					})
 				},
+				getCurrentTime: this.getCurrentTime,
 			},
 			{
 				executionType: deviceSpecs.executionMode(config.options),
@@ -118,11 +119,7 @@ export class DeviceInstanceWrapper extends EventEmitter<DeviceEvents> {
 	}
 
 	async initDevice(_activeRundownPlaylistId?: string) {
-		const res = await this._device.init(this.config.options)
-		this._stateHandler.setCurrentState(undefined).catch((e) => {
-			console.error('Error while setting current state', e)
-		}) // todo - temporary
-		return res
+		return this._device.init(this.config.options)
 	}
 	async terminate() {
 		await this._stateHandler.terminate()
@@ -166,12 +163,8 @@ export class DeviceInstanceWrapper extends EventEmitter<DeviceEvents> {
 		this._isActive = Object.keys(newMappings).length > 0
 	}
 
-	getCurrentTime(): number {
-		return Date.now() // @todo - get time from somewhere
-	}
-
 	clearFuture(t: number) {
-		this._stateHandler.clearFuture(t)
+		this._stateHandler.clearFutureAfterTimestamp(t)
 	}
 
 	getDetails(): ServiceDetails {
