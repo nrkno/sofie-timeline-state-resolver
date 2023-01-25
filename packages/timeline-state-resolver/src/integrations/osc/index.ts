@@ -160,7 +160,7 @@ export class OscDevice extends EventEmitter implements Device<OSCOptions, OscDev
 
 				this.transitions[command.path] = {
 					// push the tween
-					started: Date.now(), // todo - safe to use?
+					started: this.getMonotonicTime(),
 					...command,
 				}
 				this._oscSender({
@@ -208,9 +208,10 @@ export class OscDevice extends EventEmitter implements Device<OSCOptions, OscDev
 		this._oscClient.send(msg, address, port)
 	}
 	private runAnimation() {
+		const t = this.getMonotonicTime()
 		for (const addr in this.transitions) {
 			// delete old tweens
-			if (this.transitions[addr].started + this.transitions[addr].transition!.duration < Date.now()) {
+			if (this.transitions[addr].started + this.transitions[addr].transition!.duration < t) {
 				delete this.transitions[addr]
 			}
 		}
@@ -222,7 +223,7 @@ export class OscDevice extends EventEmitter implements Device<OSCOptions, OscDev
 			const easing = (easingType || {})[tween.transition!.direction]
 			if (easing) {
 				// scale time in range 0...1, then calculate progress in range 0..1
-				const deltaTime = Date.now() - tween.started
+				const deltaTime = t - tween.started
 				const progress = deltaTime / tween.transition!.duration
 				const fraction = easing(progress)
 				// calculate individual values:
@@ -266,5 +267,10 @@ export class OscDevice extends EventEmitter implements Device<OSCOptions, OscDev
 			}
 			this.transitionInterval = undefined
 		}
+	}
+
+	private getMonotonicTime() {
+		const hrTime = process.hrtime()
+		return hrTime[0] * 1000 + hrTime[1] / 1000000
 	}
 }
