@@ -92,7 +92,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 		this._doOnTime.on('slowFulfilledCommand', (info) => this.emit('slowFulfilledCommand', info))
 	}
 	async init(options: VMixOptions): Promise<boolean> {
-		this._vmix = new VMix()
+		this._vmix = new VMix(options.host, options.port, false)
 		this._vmix.on('connected', () => {
 			const time = this.getCurrentTime()
 			let state = this._getDefaultState()
@@ -107,9 +107,16 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 		})
 		this._vmix.on('error', (e) => this.emit('error', 'VMix', e))
 		this._vmix.on('stateChanged', (state) => this._onVMixStateChanged(state))
-		this._vmix.on('debug', (...args) => this.emitDebug(...args))
+		this._vmix.on('data', (d) => {
+			if (d.command === 'XML' && d.body) {
+				this._vmix.parseVMixState(d.body)
+			}
+		})
+		// this._vmix.on('debug', (...args) => this.emitDebug(...args))
 
-		return this._vmix.connect(options)
+		this._vmix.changeConnection(options.host)
+
+		return true
 	}
 	private _connectionChanged() {
 		this.emit('connectionChanged', this.getStatus())
@@ -242,7 +249,10 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 
 	async terminate() {
 		this._doOnTime.dispose()
-		await this._vmix.dispose()
+
+		this._vmix.removeAllListeners()
+		this._vmix.disconnect()
+
 		return Promise.resolve(true)
 	}
 

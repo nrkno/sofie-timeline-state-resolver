@@ -1,91 +1,204 @@
 import { EventEmitter } from 'eventemitter3'
-import * as request from 'request'
+import { Socket } from 'net'
 import * as xml from 'xml-js'
-import { VMixOptions, VMixCommand, VMixTransitionType } from 'timeline-state-resolver-types'
+import { VMixCommand, VMixTransitionType } from 'timeline-state-resolver-types'
 import { VMixState, VMixInput, VMixMix } from './vmix'
 import * as _ from 'underscore'
 
-const PING_INTERVAL = 10 * 1000
+const RESPONSE_REGEX = /(?<command>\w+)\s+(?<response>OK|ER|\d+)(\s+(?<responseMsg>.*))?/i
 
-export type VMixEvents = {
+export enum ResponseTypes {
+	Info = 'INFO',
+	OK = 'OK',
+	ClientError = 'ERROR',
+	ServerError = 'FAILED',
+}
+
+export type ConnectionEvents = {
+	data: [response: Response]
 	connected: []
 	disconnected: []
 	initialized: []
 	stateChanged: [state: VMixState]
-	debug: [msg: string]
-	error: [err: Error]
+	error: [error: Error]
 }
 
-export class VMix extends EventEmitter<VMixEvents> {
-	public state: VMixState
-	public pingInterval = PING_INTERVAL
+export interface Response {
+	command: string
+	response: 'OK' | 'ER'
+	message: string
+	body?: string
+}
 
-	private _options: VMixOptions
+export class BaseConnection extends EventEmitter<ConnectionEvents> {
+	private _socket?: Socket
+	private _unprocessedLines: string[] = []
+	private _reconnectTimeout?: NodeJS.Timeout
 	private _connected = false
-	private _disposed = false
 
-	private _socketKeepAliveTimeout: NodeJS.Timer | null = null
-
-	async connect(options: VMixOptions): Promise<boolean> {
-		return this._connectHTTP(options)
+	constructor(private host: string, private port = 8099, autoConnect: boolean) {
+		super()
+		if (autoConnect) this._setupSocket()
 	}
 
-	public get connected(): boolean {
+	get connected(): boolean {
 		return this._connected
 	}
 
-	public async dispose(): Promise<void> {
-		return new Promise((resolve) => {
-			this._connected = false
-			this._disposed = true
-			if (this._socketKeepAliveTimeout) {
-				clearTimeout(this._socketKeepAliveTimeout)
-				this._socketKeepAliveTimeout = null
-			}
-			resolve()
+	changeConnection(host: string, port = 8099): void {
+		this.host = host
+		this.port = port
+
+		this._socket?.end()
+
+		this._setupSocket()
+	}
+
+	disconnect(): void {
+		this._socket?.end()
+	}
+
+	public async getVMixState() {
+		return this._sendCommand('XML')
+	}
+
+	public async sendCommandFunction(
+		func: string,
+		args: { input?: string | number; value?: string | number; extra?: string; duration?: number; mix?: number }
+	): Promise<any> {
+		const inp = args.input !== undefined ? `&Input=${args.input}` : ''
+		const val = args.value !== undefined ? `&Value=${args.value}` : ''
+		const dur = args.duration !== undefined ? `&Duration=${args.duration}` : ''
+		const mix = args.mix !== undefined ? `&Mix=${args.mix}` : ''
+		const ext = args.extra !== undefined ? args.extra : ''
+
+		const queryString = `${inp}${val}${dur}${mix}${ext}`.slice(1) // remove the first &
+		const command = `FUNCTION ${func} ${queryString}`
+
+		// this.emit('debug', `Sending command: ${command}`)
+
+		return this._sendCommand(command)
+	}
+
+	private async _sendCommand(cmd: string): Promise<Error | undefined> {
+		return new Promise<Error | undefined>((r) => {
+			this._socket?.write(cmd + '\r\n', (e) => (e ? r(e) : r(undefined)))
 		})
 	}
 
-	private async _connectHTTP(options?: VMixOptions): Promise<boolean> {
-		if (options) {
-			if (!(options.host.startsWith('http://') || options.host.startsWith('https://'))) {
-				options.host = `http://${options.host}`
+	private async _processIncomingData(data: Buffer) {
+		const string = data.toString('utf-8')
+		const newLines = string.split('\r\n')
+
+		this._unprocessedLines.push(...newLines)
+
+		while (this._unprocessedLines.length > 0) {
+			const result = RESPONSE_REGEX.exec(this._unprocessedLines[0])
+			let processedLines = 0
+
+			if (result && result.groups?.['response']) {
+				// create a response object
+				const responseLen = parseInt(result?.groups?.['response'])
+				const response: Response = {
+					command: result.groups?.['command'],
+					response: (Number.isNaN(responseLen) ? result.groups?.['response'] : 'OK') as Response['response'],
+					message: result.groups?.['responseMsg'],
+					body: undefined as undefined | string,
+				}
+				processedLines++
+
+				// parse additional lines if needed
+				if (!Number.isNaN(responseLen)) {
+					let len = responseLen
+					const lines: string[] = []
+
+					while (len > 0) {
+						const l = this._unprocessedLines[lines.length + 1] // offset of 1 because first line is not data
+						if (!l) break // todo - should we wait for streaming data to come in?
+
+						len -= l.length + 2
+						lines.push(l)
+					}
+					response.body = lines.join('\r\n')
+					processedLines += lines.length
+				}
+
+				// now do something with response
+				this.emit('data', response)
+			} else {
+				// well this is not happy, do we do something?
+				processedLines++
 			}
-			this._options = options
+
+			// remove processed lines
+			this._unprocessedLines.splice(0, processedLines)
+		}
+	}
+
+	private _triggerReconnect() {
+		if (!this._reconnectTimeout) {
+			this._reconnectTimeout = setTimeout(() => {
+				this._reconnectTimeout = undefined
+
+				if (!this._connected) this._setupSocket()
+			}, 5000)
+		}
+	}
+
+	private _setupSocket() {
+		if (this._socket) {
+			this._socket.removeAllListeners()
+			if (!this._socket.destroyed) {
+				this._socket.destroy()
+			}
 		}
 
-		return new Promise((resolve) => {
-			this.once('initialized', () => {
-				this.emit('stateChanged', this.state)
-				resolve(true)
-			})
+		this._socket = new Socket()
+		this._socket.setEncoding('utf-8')
 
-			this.getVMixState()
+		this._socket.on('data', (data) => {
+			this._processIncomingData(data).catch((e) => this.emit('error', e))
 		})
+		this._socket.on('connect', () => {
+			console.log('conn')
+			this._setConnected(true)
+		})
+		this._socket.on('close', () => {
+			console.log('disconn')
+			this._setConnected(false)
+			this._triggerReconnect()
+		})
+		this._socket.on('error', (e) => {
+			console.log('err??')
+			if (`${e}`.match(/ECONNREFUSED/)) {
+				// Unable to connect, no need to handle this error
+				this._setConnected(false)
+			} else {
+				this.emit('error', e)
+			}
+		})
+
+		this._socket.connect(this.port, this.host)
+		console.log('whelp')
 	}
 
-	private setConnected(connected: boolean) {
-		if (connected !== this._connected) {
-			this._connected = connected
-			if (connected) {
+	private _setConnected(connected: boolean) {
+		if (connected) {
+			if (!this._connected) {
+				this._connected = true
 				this.emit('connected')
-			} else {
+			}
+		} else {
+			if (this._connected) {
+				this._connected = false
 				this.emit('disconnected')
 			}
 		}
 	}
+}
 
-	private _stillAlive() {
-		if (this._socketKeepAliveTimeout) {
-			clearTimeout(this._socketKeepAliveTimeout)
-			this._socketKeepAliveTimeout = null
-		}
-		if (!this._disposed) {
-			this._socketKeepAliveTimeout = setTimeout(() => {
-				this.getVMixState()
-			}, this.pingInterval)
-		}
-	}
+export class VMix extends BaseConnection {
+	public state: VMixState
 
 	public async sendCommand(command: VMixStateCommand): Promise<any> {
 		switch (command.command) {
@@ -160,19 +273,6 @@ export class VMix extends EventEmitter<VMixEvents> {
 			default:
 				throw new Error(`vmixAPI: Command ${((command || {}) as any).command} not implemented`)
 		}
-	}
-
-	public getVMixState(): void {
-		request.get(`${this._options.host}:${this._options.port}/api`, {}, (error, res) => {
-			if (error) {
-				this.setConnected(false)
-			} else {
-				this.parseVMixState(res.body)
-				this.emit('initialized')
-				this.setConnected(true)
-			}
-			this._stillAlive()
-		})
 	}
 
 	public parseVMixState(responseBody: string): void {
@@ -395,34 +495,6 @@ export class VMix extends EventEmitter<VMixEvents> {
 	public async setInputOverlay(input: string | number, index: number, value: string | number): Promise<any> {
 		const val = `${index},${value}`
 		return this.sendCommandFunction(`SetMultiViewOverlay`, { input, value: val })
-	}
-
-	public async sendCommandFunction(
-		func: string,
-		args: { input?: string | number; value?: string | number; extra?: string; duration?: number; mix?: number }
-	): Promise<any> {
-		const inp = args.input !== undefined ? `&Input=${args.input}` : ''
-		const val = args.value !== undefined ? `&Value=${args.value}` : ''
-		const dur = args.duration !== undefined ? `&Duration=${args.duration}` : ''
-		const mix = args.mix !== undefined ? `&Mix=${args.mix}` : ''
-		const ext = args.extra !== undefined ? args.extra : ''
-
-		const command = `${this._options.host}:${this._options.port}/api/?Function=${func}${inp}${val}${dur}${mix}${ext}`
-
-		this.emit('debug', `Sending command: ${command}`)
-
-		return new Promise<void>((resolve, reject) => {
-			request.get(command, {}, (error) => {
-				if (error) {
-					this.setConnected(false)
-					reject(error)
-				} else {
-					this._stillAlive()
-					this.setConnected(true)
-					resolve()
-				}
-			})
-		})
 	}
 }
 
