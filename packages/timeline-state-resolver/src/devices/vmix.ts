@@ -94,13 +94,9 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 	async init(options: VMixOptions): Promise<boolean> {
 		this._vmix = new VMix(options.host, options.port, false)
 		this._vmix.on('connected', () => {
-			const time = this.getCurrentTime()
-			let state = this._getDefaultState()
-			state = deepMerge<VMixStateExtended>(state, { reportedState: this._vmix.state })
-			this.setState(state, time)
-			this._initialized = true
+			// todo - should we reset the state at this point?
 			this._setConnected(true)
-			this.emit('resetResolver')
+			this._vmix.getVMixState().catch((e) => this.emit('error', 'VMix init', e))
 		})
 		this._vmix.on('disconnected', () => {
 			this._setConnected(false)
@@ -108,8 +104,18 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 		this._vmix.on('error', (e) => this.emit('error', 'VMix', e))
 		this._vmix.on('stateChanged', (state) => this._onVMixStateChanged(state))
 		this._vmix.on('data', (d) => {
+			if (d.message !== 'Completed') this.emit('debug', d)
 			if (d.command === 'XML' && d.body) {
 				this._vmix.parseVMixState(d.body)
+
+				if (!this._initialized) {
+					const time = this.getCurrentTime()
+					let state = this._getDefaultState()
+					state = deepMerge<VMixStateExtended>(state, { reportedState: this._vmix.state })
+					this.setState(state, time)
+					this._initialized = true
+					this.emit('resetResolver')
+				}
 			}
 		})
 		// this._vmix.on('debug', (...args) => this.emitDebug(...args))

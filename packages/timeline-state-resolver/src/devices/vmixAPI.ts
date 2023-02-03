@@ -160,16 +160,13 @@ export class BaseConnection extends EventEmitter<ConnectionEvents> {
 			this._processIncomingData(data).catch((e) => this.emit('error', e))
 		})
 		this._socket.on('connect', () => {
-			console.log('conn')
 			this._setConnected(true)
 		})
 		this._socket.on('close', () => {
-			console.log('disconn')
 			this._setConnected(false)
 			this._triggerReconnect()
 		})
 		this._socket.on('error', (e) => {
-			console.log('err??')
 			if (`${e}`.match(/ECONNREFUSED/)) {
 				// Unable to connect, no need to handle this error
 				this._setConnected(false)
@@ -179,7 +176,6 @@ export class BaseConnection extends EventEmitter<ConnectionEvents> {
 		})
 
 		this._socket.connect(this.port, this.host)
-		console.log('whelp')
 	}
 
 	private _setConnected(connected: boolean) {
