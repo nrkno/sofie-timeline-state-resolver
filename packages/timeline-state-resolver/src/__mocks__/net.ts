@@ -12,6 +12,8 @@ export class Socket extends EventEmitter {
 	// private _host: string
 	private _connected = false
 
+	public destroyed = false
+
 	constructor() {
 		super()
 
@@ -45,10 +47,16 @@ export class Socket extends EventEmitter {
 			this.setConnected()
 		}, 3)
 	}
-	public write(buff: Buffer, encoding = 'utf8') {
+	public write(buf: Buffer, cb?: () => void)
+	public write(buf: Buffer, encoding?: BufferEncoding, cb?: () => void)
+	public write(buf: Buffer, encodingOrCb?: BufferEncoding | (() => void), cb?: () => void) {
+		const DEFAULT_ENCODING = 'utf-8'
+		cb = typeof encodingOrCb === 'function' ? encodingOrCb : cb
+		const encoding = typeof encodingOrCb === 'function' ? DEFAULT_ENCODING : encodingOrCb
 		if (this.onWrite) {
-			this.onWrite(buff, encoding)
+			this.onWrite(buf, encoding ?? DEFAULT_ENCODING)
 		}
+		if (cb) cb()
 	}
 	public end() {
 		this.setEnd()
@@ -62,6 +70,14 @@ export class Socket extends EventEmitter {
 		this.emit('data', data)
 	}
 
+	public setNoDelay(_noDelay?: boolean) {
+		// noop
+	}
+
+	public setEncoding(_encoding?: BufferEncoding) {
+		// noop
+	}
+
 	private setConnected() {
 		if (this._connected !== true) {
 			this._connected = true
@@ -72,6 +88,7 @@ export class Socket extends EventEmitter {
 		if (this._connected !== false) {
 			this._connected = false
 		}
+		this.destroyed = true
 		this.emit('close')
 		if (this.onClose) this.onClose()
 	}

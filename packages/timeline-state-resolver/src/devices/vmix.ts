@@ -96,7 +96,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 		this._vmix.on('connected', () => {
 			// todo - should we reset the state at this point?
 			this._setConnected(true)
-			this._vmix.getVMixState().catch((e) => this.emit('error', 'VMix init', e))
+			this._vmix.requestVMixState().catch((e) => this.emit('error', 'VMix init', e))
 		})
 		this._vmix.on('disconnected', () => {
 			this._setConnected(false)
@@ -120,7 +120,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 		})
 		// this._vmix.on('debug', (...args) => this.emitDebug(...args))
 
-		this._vmix.changeConnection(options.host)
+		this._vmix.connect()
 
 		return true
 	}

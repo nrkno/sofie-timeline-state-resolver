@@ -1,9 +1,14 @@
-import request = require('../../__mocks__/request')
+import * as net from '../../__mocks__/net'
+
+jest.mock('net', () => net)
+
 // const orgSetTimeout = setTimeout
 
 /*
 	This file mocks the server-side part of VMIX
 */
+
+const COMMAND_REGEX = /^(?<command>\w+)(?:\s+(?<function>[\w\d]+)?(?:\s+(?<args>.+))?)?$/
 
 const vmixMockState = `<vmix>
 <version>21.0.0.55</version>
@@ -48,143 +53,95 @@ export function setupVmixMock() {
 		serverIsUp: true,
 	}
 
-	// @ts-ignore: not logging
-	const onRequest = jest.fn((_type: string, _url: string) => {
-		// console.log('onRequest', type, url)
+	const onFunction = jest.fn((_funcName: string, _funcArgs: string) => {
+		// noop
 	})
 
-	const onRequestRaw = jest.fn((type: string, url: string) => {
-		onRequest(type, url)
+	const onData = jest.fn((data, encoding, socket: net.Socket) => {
+		handleData(data, encoding, socket, onFunction)
 	})
 
-	const onGet = jest.fn((url, options, cb) => handleRequest(vmixServer, onRequestRaw, 'get', url, options, cb))
-	const onPost = jest.fn((url, options, cb) => handleRequest(vmixServer, onRequestRaw, 'post', url, options, cb))
-	const onPut = jest.fn((url, options, cb) => handleRequest(vmixServer, onRequestRaw, 'put', url, options, cb))
-	const onHead = jest.fn((url, options, cb) => handleRequest(vmixServer, onRequestRaw, 'head', url, options, cb))
-	const onPatch = jest.fn((url, options, cb) => handleRequest(vmixServer, onRequestRaw, 'patch', url, options, cb))
-	const onDel = jest.fn((url, options, cb) => handleRequest(vmixServer, onRequestRaw, 'del', url, options, cb))
-	const onDelete = jest.fn((url, options, cb) => handleRequest(vmixServer, onRequestRaw, 'delete', url, options, cb))
+	const onConnect = jest.fn((_port: number, _host: string) => {
+		// noop
+	})
 
-	request.setMockGet(onGet)
-	request.setMockPost(onPost)
-	request.setMockPut(onPut)
-	request.setMockHead(onHead)
-	request.setMockPatch(onPatch)
-	request.setMockDel(onDel)
-	request.setMockDelete(onDelete)
+	net.Socket.mockOnNextSocket((socket) => {
+		socket.onConnect = onConnect
+		socket.onWrite = (data, encoding) => onData(data, encoding, socket)
+	})
+
+	const disconnectAll = () => {
+		for (const socket of net.Socket.mockSockets()) {
+			socket.mockClose()
+		}
+	}
 
 	return {
 		vmixServer,
-		onRequest,
-		onRequestRaw,
-		onGet,
-		onPost,
-		onPut,
-		onHead,
-		onPatch,
-		onDel,
-		onDelete,
+		onData,
+		onFunction,
+		onConnect,
+		disconnectAll,
 	}
 }
 
-type Params = { [key: string]: any }
 interface VmixServerMockOptions {
 	repliesAreGood: boolean
 	serverIsUp: boolean
 }
 
-function urlRoute(requestType: string, url: string, routes: { [route: string]: (params: Params) => object }): object {
-	let body: any = {
-		status: 404,
-		message: `(Mock) Not found. Request ${requestType} ${url}`,
-		stack: '',
+function handleData(
+	data: Buffer,
+	encoding: BufferEncoding,
+	socket: net.Socket,
+	clb: (funcName: string, funcArgs: string) => void
+) {
+	const lines = data.toString(encoding).split('\r\n')
+
+	for (const line of lines) {
+		const match = line.match(COMMAND_REGEX)
+		if (!match) continue
+		const command = match.groups?.['command']
+		const funcName = match.groups?.['function']
+		const funcArgs = match.groups?.['args']
+		if (!command) continue
+
+		switch (command) {
+			case 'XML':
+				sendData(socket, buildResponse('XML', undefined, vmixMockState.replace(/[\r\n]/g, '')))
+				break
+			default:
+				if (funcName) clb(funcName, funcArgs ?? '')
+				sendData(socket, buildResponse(command, 'OK', funcName))
+				break
+		}
+	}
+}
+
+function buildResponse(command: string, state?: 'OK' | 'ER', dataOrMessage?: string): string[] {
+	const result: string[] = []
+
+	let firstLine = command
+	let hasData = false
+	if (state) {
+		firstLine += ` ${state}`
+		if (dataOrMessage) firstLine += ` ${dataOrMessage}`
+	} else if (dataOrMessage) {
+		firstLine += ` ${dataOrMessage?.length}`
+		hasData = true
 	}
 
-	const matchUrl = `${requestType} ${url}`
-	let reroutedParams: any = null
+	result.push(firstLine)
+	if (hasData && dataOrMessage) result.push(dataOrMessage)
 
-	let found = false
-	const routeKeys = Object.keys(routes).sort((a, b) => {
-		if (a.length < b.length) return 1
-		if (a.length > b.length) return -1
-		return 0
-	})
-	routeKeys.forEach((route) => {
-		if (!found) {
-			const callback = routes[route]
-
-			const paramList = route.match(/(:[^/]+)/g) || []
-
-			route = route.replace(/\?/g, '\\?')
-
-			paramList.forEach((param) => {
-				route = route.replace(param, '([^\\/&]+)')
-			})
-			const m = matchUrl.match(new RegExp(route))
-			if (m) {
-				const params: Params = {}
-				paramList.forEach((param, index: number) => {
-					const p = param.slice(1) // remove the prepended ':'
-					params[p] = m[index + 1]
-				})
-
-				body = callback(reroutedParams || params)
-
-				if (body.__reroute === true) {
-					// reroute to another other route
-					if (!reroutedParams) reroutedParams = params
-				} else {
-					found = true
-				}
-			}
-		}
-	})
-	return body
+	return result
 }
-function handleRequest(
-	vmixServer: VmixServerMockOptions,
-	triggerFcn: Function,
-	type: string,
-	url: string,
-	_bodyData: any,
-	callback: (err: Error | null, value?: any) => void
-) {
+
+function sendData(socket: net.Socket, response: string | string[]) {
+	const dataStr = Array.isArray(response) ? response.join('\r\n') : response
+	const dataBuf = Buffer.from(dataStr, 'utf-8')
+
 	process.nextTick(() => {
-		triggerFcn(type, url)
-
-		if (!vmixServer.serverIsUp) {
-			callback(new Error(), null)
-			return
-		}
-
-		try {
-			const resource = (url.match(/http:\/\/[^/]+(.*)/) || [])[1] || ''
-
-			let body: object = {}
-
-			if (!vmixServer.repliesAreGood) throw new Error('Bad mock reply')
-
-			body = urlRoute(type, resource, {
-				'get /api': () => {
-					return {
-						response: vmixMockState,
-					}
-				},
-			})
-
-			callback(null, {
-				statusCode: 200,
-				body: body['response'],
-			})
-		} catch (e: any) {
-			callback(null, {
-				statusCode: 500,
-				body: JSON.stringify({
-					status: 500,
-					message: e.toString(),
-					stack: e.stack || '',
-				}),
-			})
-		}
+		socket.mockData(dataBuf)
 	})
 }

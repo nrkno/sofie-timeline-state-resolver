@@ -5,7 +5,8 @@ import { VMixCommand, VMixTransitionType } from 'timeline-state-resolver-types'
 import { VMixState, VMixInput, VMixMix } from './vmix'
 import * as _ from 'underscore'
 
-const RESPONSE_REGEX = /(?<command>\w+)\s+(?<response>OK|ER|\d+)(\s+(?<responseMsg>.*))?/i
+const VMIX_DEFAULT_TCP_PORT = 8099
+const RESPONSE_REGEX = /^(?<command>\w+)\s+(?<response>OK|ER|\d+)(\s+(?<responseMsg>.*))?/i
 
 export enum ResponseTypes {
 	Info = 'INFO',
@@ -36,7 +37,7 @@ export class BaseConnection extends EventEmitter<ConnectionEvents> {
 	private _reconnectTimeout?: NodeJS.Timeout
 	private _connected = false
 
-	constructor(private host: string, private port = 8099, autoConnect: boolean) {
+	constructor(private host: string, private port = VMIX_DEFAULT_TCP_PORT, autoConnect = false) {
 		super()
 		if (autoConnect) this._setupSocket()
 	}
@@ -45,9 +46,9 @@ export class BaseConnection extends EventEmitter<ConnectionEvents> {
 		return this._connected
 	}
 
-	changeConnection(host: string, port = 8099): void {
-		this.host = host
-		this.port = port
+	connect(host?: string, port?: number): void {
+		this.host = host ?? this.host
+		this.port = host ? port ?? VMIX_DEFAULT_TCP_PORT : this.port
 
 		this._socket?.end()
 
@@ -58,7 +59,7 @@ export class BaseConnection extends EventEmitter<ConnectionEvents> {
 		this._socket?.end()
 	}
 
-	public async getVMixState() {
+	public async requestVMixState() {
 		return this._sendCommand('XML')
 	}
 
@@ -81,8 +82,8 @@ export class BaseConnection extends EventEmitter<ConnectionEvents> {
 	}
 
 	private async _sendCommand(cmd: string): Promise<Error | undefined> {
-		return new Promise<Error | undefined>((r) => {
-			this._socket?.write(cmd + '\r\n', (e) => (e ? r(e) : r(undefined)))
+		return new Promise<Error | undefined>((resolve) => {
+			this._socket?.write(cmd + '\r\n', (err) => resolve(err))
 		})
 	}
 
@@ -154,6 +155,7 @@ export class BaseConnection extends EventEmitter<ConnectionEvents> {
 		}
 
 		this._socket = new Socket()
+		this._socket.setNoDelay(true)
 		this._socket.setEncoding('utf-8')
 
 		this._socket.on('data', (data) => {
@@ -350,6 +352,7 @@ export class VMix extends BaseConnection {
 
 	public setState(state: VMixState): void {
 		this.state = state
+		this.emit('stateChanged', state)
 	}
 
 	public async setPreviewInput(input: number | string, mix: number): Promise<any> {

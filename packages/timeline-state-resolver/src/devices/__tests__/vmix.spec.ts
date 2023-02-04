@@ -37,10 +37,10 @@ async function t<A>(p: Promise<A>, mockTime, advanceTime = 50): Promise<A> {
 const ADEV = 30
 
 describe('vMix', () => {
-	const { vmixServer, onRequest } = setupVmixMock()
+	const { vmixServer, onFunction } = setupVmixMock()
 
 	function clearMocks() {
-		onRequest.mockClear()
+		onFunction.mockClear()
 	}
 
 	const mockTime = new MockTime()
