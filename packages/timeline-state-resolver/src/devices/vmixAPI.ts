@@ -74,7 +74,11 @@ export class BaseConnection extends EventEmitter<ConnectionEvents> {
 		const ext = args.extra !== undefined ? args.extra : ''
 
 		const queryString = `${inp}${val}${dur}${mix}${ext}`.slice(1) // remove the first &
-		const command = `FUNCTION ${func} ${queryString}`
+		let command = `FUNCTION ${func}`
+
+		if (queryString) {
+			command += ` ${queryString}`
+		}
 
 		// this.emit('debug', `Sending command: ${command}`)
 

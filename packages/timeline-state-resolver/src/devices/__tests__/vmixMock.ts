@@ -53,12 +53,16 @@ export function setupVmixMock() {
 		serverIsUp: true,
 	}
 
-	const onFunction = jest.fn((_funcName: string, _funcArgs: string) => {
+	const onFunction = jest.fn((_funcName: string, _funcArgs: string | null) => {
+		// noop
+	})
+
+	const onXML = jest.fn(() => {
 		// noop
 	})
 
 	const onData = jest.fn((data, encoding, socket: net.Socket) => {
-		handleData(data, encoding, socket, onFunction)
+		handleData(data, encoding, socket, onFunction, onXML)
 	})
 
 	const onConnect = jest.fn((_port: number, _host: string) => {
@@ -78,9 +82,10 @@ export function setupVmixMock() {
 
 	return {
 		vmixServer,
+		onConnect,
 		onData,
 		onFunction,
-		onConnect,
+		onXML,
 		disconnectAll,
 	}
 }
@@ -94,7 +99,8 @@ function handleData(
 	data: Buffer,
 	encoding: BufferEncoding,
 	socket: net.Socket,
-	clb: (funcName: string, funcArgs: string) => void
+	funcClb: (funcName: string, funcArgs: string | null) => void,
+	xmlClb: () => void
 ) {
 	const lines = data.toString(encoding).split('\r\n')
 
@@ -108,12 +114,16 @@ function handleData(
 
 		switch (command) {
 			case 'XML':
+				xmlClb()
 				sendData(socket, buildResponse('XML', undefined, vmixMockState.replace(/[\r\n]/g, '')))
 				break
-			default:
-				if (funcName) clb(funcName, funcArgs ?? '')
+			case 'FUNCTION':
+				if (!funcName) throw new Error('Empty function name!')
+				funcClb(funcName, funcArgs ?? null)
 				sendData(socket, buildResponse(command, 'OK', funcName))
 				break
+			default:
+				throw new Error(`Unknown command: "${command}"`)
 		}
 	}
 }

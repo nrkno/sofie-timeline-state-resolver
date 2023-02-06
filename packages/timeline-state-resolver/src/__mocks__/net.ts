@@ -1,5 +1,4 @@
 import { EventEmitter } from 'events'
-const setTimeoutOrg = setTimeout
 const sockets: Array<Socket> = []
 const onNextSocket: Array<Function> = []
 
@@ -40,12 +39,12 @@ export class Socket extends EventEmitter {
 		// this._host = host
 
 		if (this.onConnect) this.onConnect(port, host)
-		setTimeoutOrg(() => {
+		process.nextTick(() => {
 			if (cb) {
 				cb()
 			}
 			this.setConnected()
-		}, 3)
+		})
 	}
 	public write(buf: Buffer, cb?: () => void)
 	public write(buf: Buffer, encoding?: BufferEncoding, cb?: () => void)
@@ -76,6 +75,10 @@ export class Socket extends EventEmitter {
 
 	public setEncoding(_encoding?: BufferEncoding) {
 		// noop
+	}
+
+	public destroy() {
+		this.destroyed = true
 	}
 
 	private setConnected() {
