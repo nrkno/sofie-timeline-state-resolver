@@ -28,7 +28,6 @@ export interface NoraNRKCommandContent {
 				}
 		  }
 
-	/** How the params are sent. Ignored for GET since params are sent in querystring. Default is JSON. */
 	temporalPriority?: number // default: 0
 	/** Commands in the same queue will be sent in order (will wait for the previous to finish before sending next */
 	queueId?: string
