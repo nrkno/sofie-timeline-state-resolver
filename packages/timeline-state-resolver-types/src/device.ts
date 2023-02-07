@@ -18,6 +18,7 @@ import {
 	HTTPWatcherOptions,
 	VizMSEOptions,
 	VMixOptions,
+	NoraNRKOptions,
 } from '.'
 import { ShotokuOptions } from './shotoku'
 import { TelemetricsOptions } from './telemetrics'
@@ -74,6 +75,7 @@ export type DeviceOptionsAny =
 	| DeviceOptionsVizMSE
 	| DeviceOptionsShotoku
 	| DeviceOptionsTelemetrics
+	| DeviceOptionsNoraNRK
 
 export interface DeviceOptionsAbstract extends DeviceOptionsBase<AbstractOptions> {
 	type: DeviceType.ABSTRACT
@@ -136,4 +138,8 @@ export interface DeviceOptionsVMix extends DeviceOptionsBase<VMixOptions> {
 
 export interface DeviceOptionsTelemetrics extends DeviceOptionsBase<TelemetricsOptions> {
 	type: DeviceType.TELEMETRICS
+}
+
+export interface DeviceOptionsNoraNRK extends DeviceOptionsBase<NoraNRKOptions> {
+	type: DeviceType.NORA_NRK
 }
