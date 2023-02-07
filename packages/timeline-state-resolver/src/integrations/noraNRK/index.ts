@@ -14,7 +14,7 @@ import { TimelineState, ResolvedTimelineObjectInstance } from 'superfly-timeline
 
 import Debug from 'debug'
 import { endTrace, startTrace } from '../../lib'
-const debug = Debug('timeline-state-resolver:httpsend')
+const debug = Debug('timeline-state-resolver:noranrk')
 
 export interface DeviceOptionsNoraNRKInternal extends DeviceOptionsNoraNRK {
 	commandReceiver?: CommandReceiver
