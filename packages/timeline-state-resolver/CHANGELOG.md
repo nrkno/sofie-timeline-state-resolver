@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [7.5.0-release47.6](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/7.5.0-release47.5...7.5.0-release47.6) (2023-02-07)
+
+
+### Bug Fixes
+
+* telemetrics device will never start, because the file path to class is wrong ([8f722c4](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/8f722c44fc4749dd815cb1fbd75d24f8d995a334))
+
+
+
+
+
 # [7.5.0-release47.5](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/7.5.0-release47.4...7.5.0-release47.5) (2023-01-16)
 
 **Note:** Version bump only for package timeline-state-resolver
