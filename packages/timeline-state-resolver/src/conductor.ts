@@ -51,6 +51,7 @@ import { VizMSEDevice, DeviceOptionsVizMSEInternal } from './integrations/vizMSE
 import { ShotokuDevice, DeviceOptionsShotokuInternal } from './integrations/shotoku'
 import { DeviceOptionsSofieChefInternal, SofieChefDevice } from './integrations/sofieChef'
 import { TelemetricsDevice } from './integrations/telemetrics'
+import { NoraNRKDevice, DeviceOptionsNoraNRKInternal } from './integrations/noraNRK'
 
 export { DeviceContainer }
 export { CommandWithContext }
@@ -606,6 +607,15 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 				newDevice = await DeviceContainer.create<DeviceOptionsTelemetrics, typeof TelemetricsDevice>(
 					'../../dist/devices/telemetrics.js',
 					'TelemetricsDevice',
+					deviceId,
+					deviceOptions,
+					getCurrentTime,
+					threadedClassOptions
+				)
+			} else if (deviceOptions.type === DeviceType.NORA_NRK) {
+				newDevice = await DeviceContainer.create<DeviceOptionsNoraNRKInternal, typeof NoraNRKDevice>(
+					'../../dist/devices/nora.js',
+					'NoraNRKDevice',
 					deviceId,
 					deviceOptions,
 					getCurrentTime,
@@ -1493,6 +1503,7 @@ export type DeviceOptionsAnyInternal =
 	| DeviceOptionsShotokuInternal
 	| DeviceOptionsVizMSEInternal
 	| DeviceOptionsTelemetrics
+	| DeviceOptionsNoraNRKInternal
 
 function removeParentFromState(o: TimelineState): TimelineState {
 	for (const key in o) {

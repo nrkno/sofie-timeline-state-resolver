@@ -19,6 +19,7 @@ import { TimelineObjVIZMSEAny } from './vizMSE'
 import { TimelineObjSingularLiveAny } from './singularLive'
 import { TimelineObjVMixAny } from './vmix'
 import { TimelineObjOBSAny } from './obs'
+import { TimelineObjNoraNRKAny } from './noraNRK'
 
 export * from './abstract'
 export * from './atem'
@@ -40,6 +41,7 @@ export * from './singularLive'
 export * from './vmix'
 export * from './obs'
 export * from './telemetrics'
+export * from './noraNRK'
 
 export * from './device'
 export * from './mapping'
@@ -72,6 +74,7 @@ export enum DeviceType {
 	OBS = 21,
 	SOFIE_CHEF = 22,
 	TELEMETRICS = 23,
+	NORA_NRK = 24,
 }
 
 export interface TSRTimelineKeyframe<T> extends Timeline.TimelineKeyframe {
@@ -144,6 +147,7 @@ export type TSRTimelineObj =
 	| TimelineObjVMixAny
 	| TimelineObjVIZMSEAny
 	| TimelineObjTelemetricsAny
+	| TimelineObjNoraNRKAny
 
 export type TSRTimeline = Array<TSRTimelineObj>
 
