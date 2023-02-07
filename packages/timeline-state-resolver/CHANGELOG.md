@@ -26,6 +26,40 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
 
 
 
+# [7.5.0-release47.6](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/7.5.0-release47.5...7.5.0-release47.6) (2023-02-07)
+
+
+### Bug Fixes
+
+* telemetrics device will never start, because the file path to class is wrong ([8f722c4](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/8f722c44fc4749dd815cb1fbd75d24f8d995a334))
+
+
+
+
+
+# [7.5.0-release47.5](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/7.5.0-release47.4...7.5.0-release47.5) (2023-01-16)
+
+**Note:** Version bump only for package timeline-state-resolver
+
+
+
+
+
+# [7.5.0-release47.4](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/7.5.0-release47.3...7.5.0-release47.4) (2023-01-13)
+
+
+### Bug Fixes
+
+* add optional parameter to HTTPSend timelineObj: paramsType ([979dc61](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/979dc61748c4c371a8b17c7fd8c5929c69f747d9))
+* add support for Node 18 ([6242dd6](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/6242dd68f54a491aa71bdfd30b066550d6f7e90e))
+* bug fix: HTTPSend device didn't send GET requests ([8315531](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/83155314706497a9c630dbde14d5c5d7e57103cf))
+* prevent in place reverse in setDatastore ([473ab71](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/473ab713785325c2062db983c8ece80ea5dede4d))
+* track ccg state internally ([fd5596f](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/fd5596fcf975a7a122c6fb21946f13c2e97a4233))
+
+
+
+
+
 # [7.5.0-release47.3](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/7.5.0-release47.2...7.5.0-release47.3) (2022-11-07)
 
 **Note:** Version bump only for package timeline-state-resolver

@@ -601,7 +601,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 				)
 			} else if (deviceOptions.type === DeviceType.TELEMETRICS) {
 				newDevice = await DeviceContainer.create<DeviceOptionsTelemetrics, typeof TelemetricsDevice>(
-					'../../dist/devices/telemetrics.js',
+					'../../dist/integrations/telemetrics/index.js',
 					'TelemetricsDevice',
 					deviceId,
 					deviceOptions,
