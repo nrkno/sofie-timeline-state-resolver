@@ -1,12 +1,6 @@
 import { Conductor } from '../../../conductor'
 import { NoraNRKDevice } from '..'
-import {
-	Mappings,
-	DeviceType,
-	TimelineObjHTTPRequest,
-	TimelineContentTypeHTTP,
-	MappingNoraNRK,
-} from 'timeline-state-resolver-types'
+import { Mappings, DeviceType, MappingNoraNRK, TimelineObjNoraNRKAny } from 'timeline-state-resolver-types'
 import { MockTime } from '../../../__tests__/mockTime'
 import { ThreadedClass } from 'threadedclass'
 import { getMockCall } from '../../../__tests__/lib'
@@ -60,13 +54,19 @@ describe('NORA Core (NRK)', () => {
 				},
 				layer: 'myLayer0',
 				content: {
-					deviceType: DeviceType.HTTPSEND,
-					type: TimelineContentTypeHTTP.POST,
+					deviceType: DeviceType.NORA_NRK,
 
-					url: 'http://superfly.tv',
-					params: {
-						a: 1,
-						b: 2,
+					group: 'test',
+					channel: 'gfx1',
+					payload: {
+						manifest: 'nyheter',
+						template: {
+							name: '01_navn',
+							event: 'take',
+						},
+						content: {
+							navn: 'Firstname Lastname',
+						},
 					},
 				},
 			},
@@ -79,11 +79,17 @@ describe('NORA Core (NRK)', () => {
 		expect(commandReceiver0).toBeCalledWith(
 			expect.anything(),
 			expect.objectContaining({
-				type: 'post',
-				url: 'http://superfly.tv',
-				params: {
-					a: 1,
-					b: 2,
+				group: 'test',
+				channel: 'gfx1',
+				payload: {
+					manifest: 'nyheter',
+					template: {
+						name: '01_navn',
+						event: 'take',
+					},
+					content: {
+						navn: 'Firstname Lastname',
+					},
 				},
 			}),
 			expect.anything(),
@@ -127,7 +133,7 @@ describe('NORA Core (NRK)', () => {
 		// Check that no commands has been scheduled:
 		expect(await device.queue).toHaveLength(0)
 
-		const timeline: Array<TimelineObjHTTPRequest> = [
+		const timeline: Array<TimelineObjNoraNRKAny> = [
 			{
 				id: 'obj0',
 				enable: {
@@ -136,11 +142,21 @@ describe('NORA Core (NRK)', () => {
 				},
 				layer: 'myLayer0',
 				content: {
-					deviceType: DeviceType.HTTPSEND,
-					type: 'POST' as TimelineContentTypeHTTP.POST,
+					deviceType: DeviceType.NORA_NRK,
 
-					url: 'http://superfly.tv/1',
-					params: {},
+					group: 'test',
+					channel: 'gfx1',
+					payload: {
+						manifest: 'nyheter',
+						template: {
+							name: '01_navn',
+							event: 'take',
+						},
+						content: {
+							navn: 'Firstname Lastname',
+						},
+					},
+
 					temporalPriority: 1,
 				},
 			},
@@ -152,11 +168,21 @@ describe('NORA Core (NRK)', () => {
 				},
 				layer: 'myLayer1',
 				content: {
-					deviceType: DeviceType.HTTPSEND,
-					type: 'POST' as TimelineContentTypeHTTP.POST,
+					deviceType: DeviceType.NORA_NRK,
 
-					url: 'http://superfly.tv/2',
-					params: {},
+					group: 'test',
+					channel: 'gfx1',
+					payload: {
+						manifest: 'nyheter',
+						template: {
+							name: '02_navn_alt',
+							event: 'take',
+						},
+						content: {
+							navn: 'Firstname Lastname',
+						},
+					},
+
 					temporalPriority: 3,
 				},
 			},
@@ -168,11 +194,21 @@ describe('NORA Core (NRK)', () => {
 				},
 				layer: 'myLayer2',
 				content: {
-					deviceType: DeviceType.HTTPSEND,
-					type: 'POST' as TimelineContentTypeHTTP.POST,
+					deviceType: DeviceType.NORA_NRK,
 
-					url: 'http://superfly.tv/3',
-					params: {},
+					group: 'test',
+					channel: 'gfx1',
+					payload: {
+						manifest: 'nyheter',
+						template: {
+							name: '03_navn_alt_2',
+							event: 'take',
+						},
+						content: {
+							navn: 'Firstname Lastname',
+						},
+					},
+
 					temporalPriority: 2,
 				},
 			},
@@ -188,7 +224,9 @@ describe('NORA Core (NRK)', () => {
 		expect(commandReceiver0).toHaveBeenNthCalledWith(
 			1,
 			expect.anything(),
-			expect.objectContaining({ url: 'http://superfly.tv/1' }),
+			expect.objectContaining({
+				payload: expect.objectContaining({ template: expect.objectContaining({ name: '01_navn' }) }),
+			}),
 			expect.anything(),
 			expect.stringContaining('obj0'),
 			expect.anything()
@@ -196,7 +234,9 @@ describe('NORA Core (NRK)', () => {
 		expect(commandReceiver0).toHaveBeenNthCalledWith(
 			2,
 			expect.anything(),
-			expect.objectContaining({ url: 'http://superfly.tv/3' }),
+			expect.objectContaining({
+				payload: expect.objectContaining({ template: expect.objectContaining({ name: '03_navn_alt_2' }) }),
+			}),
 			expect.anything(),
 			expect.stringContaining('obj2'),
 			expect.anything()
@@ -204,7 +244,9 @@ describe('NORA Core (NRK)', () => {
 		expect(commandReceiver0).toHaveBeenNthCalledWith(
 			3,
 			expect.anything(),
-			expect.objectContaining({ url: 'http://superfly.tv/2' }),
+			expect.objectContaining({
+				payload: expect.objectContaining({ template: expect.objectContaining({ name: '02_navn_alt' }) }),
+			}),
 			expect.anything(),
 			expect.stringContaining('obj1'),
 			expect.anything()

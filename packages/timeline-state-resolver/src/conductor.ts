@@ -614,7 +614,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 				)
 			} else if (deviceOptions.type === DeviceType.NORA_NRK) {
 				newDevice = await DeviceContainer.create<DeviceOptionsNoraNRKInternal, typeof NoraNRKDevice>(
-					'../../dist/devices/nora.js',
+					'../../dist/integrations/noraNRK/index.js',
 					'NoraNRKDevice',
 					deviceId,
 					deviceOptions,
