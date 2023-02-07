@@ -10,7 +10,23 @@ export interface NoraNRKCommandContent {
 	groupSuffix?: string
 	channel: string
 
-	payload: Record<string, number | string | any>
+	payload:
+		| {
+				manifest?: string
+				template: {
+					name: string
+					event: 'take' | 'takeout' | 'preview'
+					layer: string
+					[key: string]: string | number | any
+				}
+				[key: string]: string | number | any
+		  }
+		| {
+				template: {
+					event: 'takeout'
+					layer: string
+				}
+		  }
 
 	/** How the params are sent. Ignored for GET since params are sent in querystring. Default is JSON. */
 	temporalPriority?: number // default: 0

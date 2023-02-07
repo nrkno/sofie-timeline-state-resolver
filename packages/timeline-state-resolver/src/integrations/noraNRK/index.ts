@@ -46,7 +46,7 @@ export class NoraNRKDevice extends DeviceWithState<NoraNRKState, DeviceOptionsNo
 	private _doOnTime: DoOnTime
 
 	private _commandReceiver: CommandReceiver
-	private activeLayers = new Map<string, string>()
+	private targetState = new Map<string, string>()
 
 	constructor(deviceId: string, deviceOptions: DeviceOptionsNoraNRKInternal, getCurrentTime: () => Promise<number>) {
 		super(deviceId, deviceOptions, getCurrentTime)
@@ -161,10 +161,10 @@ export class NoraNRKDevice extends DeviceWithState<NoraNRKState, DeviceOptionsNo
 				cmd.content.queueId,
 				(cmd: Command) => {
 					if (cmd.commandName === 'added' || cmd.commandName === 'changed') {
-						this.activeLayers.set(cmd.layer, JSON.stringify(cmd.content))
+						this.targetState.set(cmd.layer, JSON.stringify(cmd.content))
 						return this._commandReceiver(time, cmd.content, cmd.context, cmd.timelineObjId, cmd.layer)
 					} else {
-						this.activeLayers.delete(cmd.layer)
+						this.targetState.delete(cmd.layer)
 						return null
 					}
 				},
@@ -236,7 +236,7 @@ export class NoraNRKDevice extends DeviceWithState<NoraNRKState, DeviceOptionsNo
 		layer?: string
 	): Promise<void> {
 		if (layer) {
-			const hash = this.activeLayers.get(layer)
+			const hash = this.targetState.get(layer)
 			if (JSON.stringify(cmd) !== hash) return Promise.resolve() // command is no longer relevant to state
 		}
 		const cwc: CommandWithContext = {
@@ -246,39 +246,59 @@ export class NoraNRKDevice extends DeviceWithState<NoraNRKState, DeviceOptionsNo
 		}
 		this.emitDebug(cwc)
 
-		const rebasedUrl = new URL(
+		let request = got.post
+		let method = 'POST'
+
+		let rebasedUrl = new URL(
 			`/renders/${cmd.group}${cmd.groupSuffix ?? ''}/${cmd.channel}`,
 			this._deviceOptions.options?.coreUrl
 		)
+		let payload: Record<string, any> = cmd.payload
+
+		// this is a "clear-layer" command
+		if (cmd.payload.template.event === 'takeout' && !('name' in cmd.payload.template)) {
+			method = 'PUT'
+			request = got.put
+			rebasedUrl = new URL(
+				`/renders/${cmd.group}${cmd.groupSuffix ?? ''}/${cmd.channel}/${cmd.payload.template.layer}`,
+				this._deviceOptions.options?.coreUrl
+			)
+			payload = {
+				template: {
+					event: 'takeout',
+				},
+			}
+		}
+
 		if (this._deviceOptions.options?.apiKey) {
 			rebasedUrl.searchParams.append('apiKey', this._deviceOptions.options?.apiKey)
 		}
 
 		const t = Date.now()
-		debug(`POST: ${rebasedUrl} ${JSON.stringify(cmd.payload)} (${timelineObjId})`)
+		debug(`${method}: ${rebasedUrl} ${JSON.stringify(cmd.payload)} (${timelineObjId})`)
 
 		try {
 			const options: OptionsOfTextResponseBody = {}
 
-			options.json = cmd.payload ?? undefined
+			options.json = payload ?? undefined
 
-			const response = await got.post(rebasedUrl, options)
+			const response = await request(rebasedUrl, options)
 
 			if (response.statusCode === 200) {
 				this.emitDebug(
-					`NoraNRK: POST: Good statuscode response on url "${rebasedUrl}": ${response.statusCode} (${context})`
+					`NoraNRK: ${method}: Good statuscode response on url "${rebasedUrl}": ${response.statusCode} (${context})`
 				)
 			} else {
 				debug(`Bad response for ${rebasedUrl}: ${response.statusCode}`)
 				this.emit(
 					'warning',
-					`NoraNRK: POST: Bad statuscode response on url "${rebasedUrl}": ${response.statusCode} (${context})`
+					`NoraNRK: ${method}: Bad statuscode response on url "${rebasedUrl}": ${response.statusCode} (${context})`
 				)
 			}
 		} catch (error) {
 			const err = error as RequestError // make typescript happy
 
-			this.emit('error', `NoraNRK.response error on POST "${rebasedUrl}" (${context})`, err)
+			this.emit('error', `NoraNRK.response error on ${method} "${rebasedUrl}" (${context})`, err)
 			this.emit('commandError', err, cwc)
 			debug(`Failed ${rebasedUrl}: ${error} (${timelineObjId})`)
 
