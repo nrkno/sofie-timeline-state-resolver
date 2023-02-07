@@ -61,6 +61,7 @@ describe('NORA Core (NRK)', () => {
 					payload: {
 						manifest: 'nyheter',
 						template: {
+							layer: 'super',
 							name: '01_navn',
 							event: 'take',
 						},
@@ -84,6 +85,7 @@ describe('NORA Core (NRK)', () => {
 				payload: {
 					manifest: 'nyheter',
 					template: {
+						layer: 'super',
 						name: '01_navn',
 						event: 'take',
 					},
@@ -149,6 +151,7 @@ describe('NORA Core (NRK)', () => {
 					payload: {
 						manifest: 'nyheter',
 						template: {
+							layer: 'super',
 							name: '01_navn',
 							event: 'take',
 						},
@@ -175,6 +178,7 @@ describe('NORA Core (NRK)', () => {
 					payload: {
 						manifest: 'nyheter',
 						template: {
+							layer: 'super',
 							name: '02_navn_alt',
 							event: 'take',
 						},
@@ -201,6 +205,7 @@ describe('NORA Core (NRK)', () => {
 					payload: {
 						manifest: 'nyheter',
 						template: {
+							layer: 'super',
 							name: '03_navn_alt_2',
 							event: 'take',
 						},

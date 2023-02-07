@@ -180,8 +180,9 @@ export class NoraNRKDevice extends DeviceWithState<NoraNRKState, DeviceOptionsNo
 
 		const commands: Array<Command> = []
 
-		_.each(newhttpSendState.layers, (newLayer: ResolvedTimelineObjectInstance, layerKey: string) => {
-			const oldLayer = oldhttpSendState.layers[layerKey]
+		_.each(newhttpSendState.layers, (newLayer: ResolvedTimelineObjectInstance) => {
+			const noraLayer = (newLayer.content as NoraNRKCommandContent).payload.template.layer
+			const oldLayer = oldhttpSendState.layers[noraLayer]
 			if (!oldLayer) {
 				// added!
 				commands.push({
@@ -189,7 +190,7 @@ export class NoraNRKDevice extends DeviceWithState<NoraNRKState, DeviceOptionsNo
 					commandName: 'added',
 					content: newLayer.content as NoraNRKCommandContent,
 					context: `added: ${newLayer.id}`,
-					layer: layerKey,
+					layer: noraLayer,
 				})
 			} else {
 				// changed?
@@ -200,14 +201,15 @@ export class NoraNRKDevice extends DeviceWithState<NoraNRKState, DeviceOptionsNo
 						commandName: 'changed',
 						content: newLayer.content as NoraNRKCommandContent,
 						context: `changed: ${newLayer.id} (previously: ${oldLayer.id})`,
-						layer: layerKey,
+						layer: noraLayer,
 					})
 				}
 			}
 		})
 		// removed
-		_.each(oldhttpSendState.layers, (oldLayer: ResolvedTimelineObjectInstance, layerKey) => {
-			const newLayer = newhttpSendState.layers[layerKey]
+		_.each(oldhttpSendState.layers, (oldLayer: ResolvedTimelineObjectInstance) => {
+			const noraLayer = (oldLayer.content as NoraNRKCommandContent).payload.template.layer
+			const newLayer = newhttpSendState.layers[noraLayer]
 			if (!newLayer) {
 				// removed!
 				commands.push({
@@ -215,7 +217,7 @@ export class NoraNRKDevice extends DeviceWithState<NoraNRKState, DeviceOptionsNo
 					commandName: 'removed',
 					content: oldLayer.content as NoraNRKCommandContent,
 					context: `removed: ${oldLayer.id}`,
-					layer: layerKey,
+					layer: noraLayer,
 				})
 			}
 		})
