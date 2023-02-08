@@ -94,7 +94,8 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 	async init(options: VMixOptions): Promise<boolean> {
 		this._vmix = new VMix(options.host, options.port, false)
 		this._vmix.on('connected', () => {
-			// todo - should we reset the state at this point?
+			// We are not resetting the state at this point and waiting for the state to arrive. Otherwise, we risk
+			// going back and forth on reconnections
 			this._setConnected(true)
 			this._vmix.requestVMixState().catch((e) => this.emit('error', 'VMix init', e))
 		})
