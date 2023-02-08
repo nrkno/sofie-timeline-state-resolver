@@ -97,8 +97,9 @@ export class BaseConnection extends EventEmitter<ConnectionEvents> {
 
 		this._unprocessedLines.push(...newLines)
 
-		while (this._unprocessedLines.length > 0) {
-			const result = RESPONSE_REGEX.exec(this._unprocessedLines[0])
+		lineProcessing: while (this._unprocessedLines.length > 0) {
+			const firstLine = this._unprocessedLines[0]
+			const result = RESPONSE_REGEX.exec(firstLine)
 			let processedLines = 0
 
 			if (result && result.groups?.['response']) {
@@ -112,14 +113,17 @@ export class BaseConnection extends EventEmitter<ConnectionEvents> {
 				}
 				processedLines++
 
-				// parse additional lines if needed
+				// parse payload data if there is any
 				if (!Number.isNaN(responseLen)) {
 					let len = responseLen
 					const lines: string[] = []
 
 					while (len > 0) {
 						const l = this._unprocessedLines[lines.length + 1] // offset of 1 because first line is not data
-						if (!l) break // todo - should we wait for streaming data to come in?
+						if (l === undefined) {
+							// we have not received all the data from server, break line processing and wait for more data
+							break lineProcessing
+						}
 
 						len -= l.length + 2
 						lines.push(l)
@@ -130,8 +134,12 @@ export class BaseConnection extends EventEmitter<ConnectionEvents> {
 
 				// now do something with response
 				this.emit('data', response)
+			} else if (firstLine.length > 0) {
+				// there is some data, but we can't recognize it, emit an error
+				this.emit('error', new Error(`Unknown response from vMix: "${firstLine}"`))
+				processedLines++
 			} else {
-				// well this is not happy, do we do something?
+				// empty lines we silently ignore
 				processedLines++
 			}
 

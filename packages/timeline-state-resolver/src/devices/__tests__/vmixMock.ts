@@ -10,22 +10,22 @@ jest.mock('net', () => net)
 
 const COMMAND_REGEX = /^(?<command>\w+)(?:\s+(?<function>[\w\d]+)?(?:\s+(?<args>.+))?)?$/
 
-const vmixMockState = `<vmix>
-<version>21.0.0.55</version>
-<edition>HD</edition>
-<preset>C:\\Users\\server\\AppData\\Roaming\\last.vmix</preset>
-<inputs>
-<input key="ca9bc59f-f698-41fe-b17d-1e1743cfee88" number="1" type="Capture" title="Cam 1" state="Running" position="0" duration="0" loop="False" muted="False" volume="100" balance="0" solo="False" audiobusses="M" meterF1="0.03034842" meterF2="0.03034842"></input>
-<input key="1a50938d-c653-4eae-bc4c-24d9c12fa773" number="2" type="Capture" title="Cam 2" state="Running" position="0" duration="0" loop="False" muted="True" volume="100" balance="0" solo="False" audiobusses="M,C" meterF1="0.0007324442" meterF2="0.0007629627"></input>
-</inputs>
-<overlays>
-<overlay number="1"/>
-<overlay number="2"/>
-<overlay number="3"/>
-<overlay number="4"/>
-<overlay number="5"/>
-<overlay number="6"/>
-</overlays>
+const vmixMockState = `<vmix>\r\n
+<version>21.0.0.55</version>\r\n
+<edition>HD</edition>\r\n
+<preset>C:\\Users\\server\\AppData\\Roaming\\last.vmix</preset>\r\n
+<inputs>\r\n
+<input key="ca9bc59f-f698-41fe-b17d-1e1743cfee88" number="1" type="Capture" title="Cam 1" state="Running" position="0" duration="0" loop="False" muted="False" volume="100" balance="0" solo="False" audiobusses="M" meterF1="0.03034842" meterF2="0.03034842"></input>\r\n
+<input key="1a50938d-c653-4eae-bc4c-24d9c12fa773" number="2" type="Capture" title="Cam 2" state="Running" position="0" duration="0" loop="False" muted="True" volume="100" balance="0" solo="False" audiobusses="M,C" meterF1="0.0007324442" meterF2="0.0007629627"></input>\r\n
+</inputs>\r\n
+<overlays>\r\n
+<overlay number="1"/>\r\n
+<overlay number="2"/>\r\n
+<overlay number="3"/>\r\n
+<overlay number="4"/>\r\n
+<overlay number="5"/>\r\n
+<overlay number="6"/>\r\n
+</overlays>\r\n
 <preview>2</preview>
 <active>1</active>
 <fadeToBlack>False</fadeToBlack>
@@ -115,7 +115,7 @@ function handleData(
 		switch (command) {
 			case 'XML':
 				xmlClb()
-				sendData(socket, buildResponse('XML', undefined, vmixMockState.replace(/[\r\n]/g, '')))
+				sendData(socket, buildResponse('XML', undefined, vmixMockState))
 				break
 			case 'FUNCTION':
 				if (!funcName) throw new Error('Empty function name!')
@@ -141,17 +141,22 @@ function buildResponse(command: string, state?: 'OK' | 'ER', dataOrMessage?: str
 		hasData = true
 	}
 
+	firstLine += '\r\n'
+
 	result.push(firstLine)
-	if (hasData && dataOrMessage) result.push(dataOrMessage)
+	if (hasData && dataOrMessage) {
+		result.push(dataOrMessage)
+	}
 
 	return result
 }
 
-function sendData(socket: net.Socket, response: string | string[]) {
-	const dataStr = Array.isArray(response) ? response.join('\r\n') : response
-	const dataBuf = Buffer.from(dataStr, 'utf-8')
-
-	process.nextTick(() => {
-		socket.mockData(dataBuf)
-	})
+// send every item in the array in a separate `data` event/packet
+function sendData(socket: net.Socket, response: string[]) {
+	for (const packet of response) {
+		const dataBuf = Buffer.from(packet, 'utf-8')
+		process.nextTick(() => {
+			socket.mockData(dataBuf)
+		})
+	}
 }
