@@ -8,7 +8,7 @@ jest.mock('net', () => net)
 	This file mocks the server-side part of VMIX
 */
 
-const COMMAND_REGEX = /^(?<command>\w+)(?:\s+(?<function>[\w]+)?(?:\s+(?<args>.+))?)?$/
+const COMMAND_REGEX = /^(?<command>\w+)(?:\s+(?<function>\w+)?(?:\s+(?<args>.+))?)?$/
 
 const vmixMockState = `<vmix>\r\n
 <version>21.0.0.55</version>\r\n
