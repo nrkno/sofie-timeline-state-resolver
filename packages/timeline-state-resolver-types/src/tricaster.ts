@@ -91,6 +91,8 @@ export interface TimelineObjTriCasterBase extends TSRTimelineObjBase {
 }
 
 interface TriCasterMixEffectBase {
+	transition?: TriCasterTransition
+
 	keyers?: Record<TriCasterKeyerName, TriCasterKeyer>
 
 	/** Default: 'background' */
@@ -98,20 +100,20 @@ interface TriCasterMixEffectBase {
 }
 
 export interface TriCasterMixEffectInMixMode extends TriCasterMixEffectBase {
-	programInput: string
-
-	transition?: TriCasterTransition
+	programInput?: string
 }
 
 export interface TriCasterMixEffectWithPreview extends TriCasterMixEffectInMixMode {
-	previewInput: string
+	previewInput?: string
 
 	transition?: { effect: 'cut'; duration: 0 }
 }
 
 export interface TriCasterMixEffectInEffectMode extends TriCasterMixEffectBase {
 	/** Use only in conjunction with effects that use M/E rows as layers (e.g. LiveSets) */
-	layers: Partial<Record<TriCasterLayerName, TriCasterLayer>>
+	layers?: Partial<Record<TriCasterLayerName, TriCasterLayer>>
+
+	transition?: { effect: number; duration: 0 }
 }
 
 export type TriCasterMixEffect =
@@ -129,7 +131,11 @@ export interface TimelineObjTriCasterME extends TimelineObjTriCasterBase {
 }
 
 export function isTimelineObjTriCasterME(timelineObject: TSRTimelineObjBase): timelineObject is TimelineObjTriCasterME {
-	return (timelineObject as TimelineObjTriCasterBase).content?.type === TimelineContentTypeTriCaster.ME
+	return isTimelineObjTriCaster(timelineObject) && timelineObject.content.type === TimelineContentTypeTriCaster.ME
+}
+
+export function isTimelineObjTriCaster(timelineObject: TSRTimelineObjBase): timelineObject is TimelineObjTriCasterBase {
+	return timelineObject.content.deviceType === DeviceType.TRICASTER
 }
 
 /**
@@ -147,7 +153,7 @@ export interface TimelineObjTriCasterDSK extends TimelineObjTriCasterBase {
 export function isTimelineObjTriCasterDSK(
 	timelineObject: TSRTimelineObjBase
 ): timelineObject is TimelineObjTriCasterDSK {
-	return (timelineObject as TimelineObjTriCasterBase).content?.type === TimelineContentTypeTriCaster.DSK
+	return isTimelineObjTriCaster(timelineObject) && timelineObject.content.type === TimelineContentTypeTriCaster.DSK
 }
 
 export interface TriCasterInput {
@@ -167,7 +173,7 @@ export interface TimelineObjTriCasterInput extends TimelineObjTriCasterBase {
 export function isTimelineObjTriCasterInput(
 	timelineObject: TSRTimelineObjBase
 ): timelineObject is TimelineObjTriCasterInput {
-	return (timelineObject as TimelineObjTriCasterBase).content?.type === TimelineContentTypeTriCaster.INPUT
+	return isTimelineObjTriCaster(timelineObject) && timelineObject.content.type === TimelineContentTypeTriCaster.INPUT
 }
 
 export interface TriCasterAudioChannel {
@@ -191,7 +197,9 @@ export interface TimelineObjTriCasterAudioChannel extends TimelineObjTriCasterBa
 export function isTimelineObjTriCasterAudioChannel(
 	timelineObject: TSRTimelineObjBase
 ): timelineObject is TimelineObjTriCasterAudioChannel {
-	return (timelineObject as TimelineObjTriCasterBase).content?.type === TimelineContentTypeTriCaster.AUDIO_CHANNEL
+	return (
+		isTimelineObjTriCaster(timelineObject) && timelineObject.content.type === TimelineContentTypeTriCaster.AUDIO_CHANNEL
+	)
 }
 
 export interface TimelineObjTriCasterMixOutput extends TimelineObjTriCasterBase {
@@ -211,7 +219,9 @@ export interface TimelineObjTriCasterMixOutput extends TimelineObjTriCasterBase 
 export function isTimelineObjTriCasterMixOutput(
 	timelineObject: TSRTimelineObjBase
 ): timelineObject is TimelineObjTriCasterMixOutput {
-	return (timelineObject as TimelineObjTriCasterBase).content?.type === TimelineContentTypeTriCaster.MIX_OUTPUT
+	return (
+		isTimelineObjTriCaster(timelineObject) && timelineObject.content.type === TimelineContentTypeTriCaster.MIX_OUTPUT
+	)
 }
 
 export type TriCasterTransitionEffect = 'cut' | 'fade' | number
