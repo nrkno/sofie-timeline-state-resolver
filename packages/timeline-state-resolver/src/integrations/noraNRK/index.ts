@@ -47,6 +47,7 @@ export class NoraNRKDevice extends DeviceWithState<NoraNRKState, DeviceOptionsNo
 
 	private _commandReceiver: CommandReceiver
 	private targetState = new Map<string, string>()
+	// private actualState = new Map<string, string>() // comes from Nora, streamed over a socket
 
 	constructor(deviceId: string, deviceOptions: DeviceOptionsNoraNRKInternal, getCurrentTime: () => Promise<number>) {
 		super(deviceId, deviceOptions, getCurrentTime)
@@ -247,6 +248,8 @@ export class NoraNRKDevice extends DeviceWithState<NoraNRKState, DeviceOptionsNo
 			timelineObjId: timelineObjId,
 		}
 		this.emitDebug(cwc)
+
+		// later: do an additional check here if a command actually needs to be sent
 
 		let request = got.post
 		let method = 'POST'
