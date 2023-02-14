@@ -1,26 +1,31 @@
-import request = require('../../../__mocks__/request')
-// const orgSetTimeout = setTimeout
+import * as net from '../../../__mocks__/net'
+
+jest.mock('net', () => net)
+
+const orgSetImmediate = setImmediate
 
 /*
 	This file mocks the server-side part of VMIX
 */
 
-const vmixMockState = `<vmix>
-<version>21.0.0.55</version>
-<edition>HD</edition>
-<preset>C:\\Users\\server\\AppData\\Roaming\\last.vmix</preset>
-<inputs>
-<input key="ca9bc59f-f698-41fe-b17d-1e1743cfee88" number="1" type="Capture" title="Cam 1" state="Running" position="0" duration="0" loop="False" muted="False" volume="100" balance="0" solo="False" audiobusses="M" meterF1="0.03034842" meterF2="0.03034842"></input>
-<input key="1a50938d-c653-4eae-bc4c-24d9c12fa773" number="2" type="Capture" title="Cam 2" state="Running" position="0" duration="0" loop="False" muted="True" volume="100" balance="0" solo="False" audiobusses="M,C" meterF1="0.0007324442" meterF2="0.0007629627"></input>
-</inputs>
-<overlays>
-<overlay number="1"/>
-<overlay number="2"/>
-<overlay number="3"/>
-<overlay number="4"/>
-<overlay number="5"/>
-<overlay number="6"/>
-</overlays>
+const COMMAND_REGEX = /^(?<command>\w+)(?:\s+(?<function>\w+)?(?:\s+(?<args>.+))?)?$/
+
+const vmixMockState = `<vmix>\r\n
+<version>21.0.0.55</version>\r\n
+<edition>HD</edition>\r\n
+<preset>C:\\Users\\server\\AppData\\Roaming\\last.vmix</preset>\r\n
+<inputs>\r\n
+<input key="ca9bc59f-f698-41fe-b17d-1e1743cfee88" number="1" type="Capture" title="Cam 1" state="Running" position="0" duration="0" loop="False" muted="False" volume="100" balance="0" solo="False" audiobusses="M" meterF1="0.03034842" meterF2="0.03034842"></input>\r\n
+<input key="1a50938d-c653-4eae-bc4c-24d9c12fa773" number="2" type="Capture" title="Cam 2" state="Running" position="0" duration="0" loop="False" muted="True" volume="100" balance="0" solo="False" audiobusses="M,C" meterF1="0.0007324442" meterF2="0.0007629627"></input>\r\n
+</inputs>\r\n
+<overlays>\r\n
+<overlay number="1"/>\r\n
+<overlay number="2"/>\r\n
+<overlay number="3"/>\r\n
+<overlay number="4"/>\r\n
+<overlay number="5"/>\r\n
+<overlay number="6"/>\r\n
+</overlays>\r\n
 <preview>2</preview>
 <active>1</active>
 <fadeToBlack>False</fadeToBlack>
@@ -48,143 +53,110 @@ export function setupVmixMock() {
 		serverIsUp: true,
 	}
 
-	// @ts-ignore: not logging
-	const onRequest = jest.fn((_type: string, _url: string) => {
-		// console.log('onRequest', type, url)
+	const onFunction = jest.fn((_funcName: string, _funcArgs: string | null) => {
+		// noop
 	})
 
-	const onRequestRaw = jest.fn((type: string, url: string) => {
-		onRequest(type, url)
+	const onXML = jest.fn(() => {
+		// noop
 	})
 
-	const onGet = jest.fn((url, options, cb) => handleRequest(vmixServer, onRequestRaw, 'get', url, options, cb))
-	const onPost = jest.fn((url, options, cb) => handleRequest(vmixServer, onRequestRaw, 'post', url, options, cb))
-	const onPut = jest.fn((url, options, cb) => handleRequest(vmixServer, onRequestRaw, 'put', url, options, cb))
-	const onHead = jest.fn((url, options, cb) => handleRequest(vmixServer, onRequestRaw, 'head', url, options, cb))
-	const onPatch = jest.fn((url, options, cb) => handleRequest(vmixServer, onRequestRaw, 'patch', url, options, cb))
-	const onDel = jest.fn((url, options, cb) => handleRequest(vmixServer, onRequestRaw, 'del', url, options, cb))
-	const onDelete = jest.fn((url, options, cb) => handleRequest(vmixServer, onRequestRaw, 'delete', url, options, cb))
+	const onData = jest.fn((data, encoding, socket: net.Socket) => {
+		handleData(data, encoding, socket, onFunction, onXML)
+	})
 
-	request.setMockGet(onGet)
-	request.setMockPost(onPost)
-	request.setMockPut(onPut)
-	request.setMockHead(onHead)
-	request.setMockPatch(onPatch)
-	request.setMockDel(onDel)
-	request.setMockDelete(onDelete)
+	const onConnect = jest.fn((_port: number, _host: string) => {
+		// noop
+	})
+
+	net.Socket.mockOnNextSocket((socket) => {
+		socket.onConnect = onConnect
+		socket.onWrite = (data, encoding) => onData(data, encoding, socket)
+	})
+
+	const disconnectAll = () => {
+		for (const socket of net.Socket.mockSockets()) {
+			socket.mockClose()
+		}
+	}
 
 	return {
 		vmixServer,
-		onRequest,
-		onRequestRaw,
-		onGet,
-		onPost,
-		onPut,
-		onHead,
-		onPatch,
-		onDel,
-		onDelete,
+		onConnect,
+		onData,
+		onFunction,
+		onXML,
+		disconnectAll,
 	}
 }
 
-type Params = { [key: string]: any }
 interface VmixServerMockOptions {
 	repliesAreGood: boolean
 	serverIsUp: boolean
 }
 
-function urlRoute(requestType: string, url: string, routes: { [route: string]: (params: Params) => object }): object {
-	let body: any = {
-		status: 404,
-		message: `(Mock) Not found. Request ${requestType} ${url}`,
-		stack: '',
+function handleData(
+	data: Buffer,
+	encoding: BufferEncoding,
+	socket: net.Socket,
+	funcClb: (funcName: string, funcArgs: string | null) => void,
+	xmlClb: () => void
+) {
+	const lines = data.toString(encoding).split('\r\n')
+
+	for (const line of lines) {
+		const match = line.match(COMMAND_REGEX)
+		if (!match) continue
+		const command = match.groups?.['command']
+		const funcName = match.groups?.['function']
+		const funcArgs = match.groups?.['args']
+		if (!command) continue
+
+		switch (command) {
+			case 'XML':
+				xmlClb()
+				sendData(socket, buildResponse('XML', undefined, vmixMockState))
+				break
+			case 'FUNCTION':
+				if (!funcName) throw new Error('Empty function name!')
+				funcClb(funcName, funcArgs ?? null)
+				sendData(socket, buildResponse(command, 'OK', funcName))
+				break
+			default:
+				throw new Error(`Unknown command: "${command}"`)
+		}
+	}
+}
+
+function buildResponse(command: string, state?: 'OK' | 'ER', dataOrMessage?: string): string[] {
+	const result: string[] = []
+
+	let firstLine = command
+	let hasData = false
+	if (state) {
+		firstLine += ` ${state}`
+		if (dataOrMessage) firstLine += ` ${dataOrMessage}`
+	} else if (dataOrMessage) {
+		firstLine += ` ${dataOrMessage?.length}`
+		hasData = true
 	}
 
-	const matchUrl = `${requestType} ${url}`
-	let reroutedParams: any = null
+	firstLine += '\r\n'
 
-	let found = false
-	const routeKeys = Object.keys(routes).sort((a, b) => {
-		if (a.length < b.length) return 1
-		if (a.length > b.length) return -1
-		return 0
-	})
-	routeKeys.forEach((route) => {
-		if (!found) {
-			const callback = routes[route]
+	result.push(firstLine)
+	if (hasData && dataOrMessage) {
+		result.push(dataOrMessage)
+	}
 
-			const paramList = route.match(/(:[^/]+)/g) || []
-
-			route = route.replace(/\?/g, '\\?')
-
-			paramList.forEach((param) => {
-				route = route.replace(param, '([^\\/&]+)')
-			})
-			const m = matchUrl.match(new RegExp(route))
-			if (m) {
-				const params: Params = {}
-				paramList.forEach((param, index: number) => {
-					const p = param.slice(1) // remove the prepended ':'
-					params[p] = m[index + 1]
-				})
-
-				body = callback(reroutedParams || params)
-
-				if (body.__reroute === true) {
-					// reroute to another other route
-					if (!reroutedParams) reroutedParams = params
-				} else {
-					found = true
-				}
-			}
-		}
-	})
-	return body
+	return result
 }
-function handleRequest(
-	vmixServer: VmixServerMockOptions,
-	triggerFcn: Function,
-	type: string,
-	url: string,
-	_bodyData: any,
-	callback: (err: Error | null, value?: any) => void
-) {
-	process.nextTick(() => {
-		triggerFcn(type, url)
 
-		if (!vmixServer.serverIsUp) {
-			callback(new Error(), null)
-			return
-		}
-
-		try {
-			const resource = (url.match(/http:\/\/[^/]+(.*)/) || [])[1] || ''
-
-			let body: object = {}
-
-			if (!vmixServer.repliesAreGood) throw new Error('Bad mock reply')
-
-			body = urlRoute(type, resource, {
-				'get /api': () => {
-					return {
-						response: vmixMockState,
-					}
-				},
-			})
-
-			callback(null, {
-				statusCode: 200,
-				body: body['response'],
-			})
-		} catch (e: any) {
-			callback(null, {
-				statusCode: 500,
-				body: JSON.stringify({
-					status: 500,
-					message: e.toString(),
-					stack: e.stack || '',
-				}),
-			})
-		}
-	})
+// send every item in the array in a separate `data` event/packet
+function sendData(socket: net.Socket, response: string[]) {
+	for (const packet of response) {
+		const dataBuf = Buffer.from(packet, 'utf-8')
+		orgSetImmediate(() => {
+			socket.mockData(dataBuf)
+		})
+	}
 }
