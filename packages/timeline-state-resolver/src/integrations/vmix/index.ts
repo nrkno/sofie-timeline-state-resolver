@@ -76,24 +76,38 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 		this._doOnTime.on('slowFulfilledCommand', (info) => this.emit('slowFulfilledCommand', info))
 	}
 	async init(options: VMixOptions): Promise<boolean> {
-		this._vmix = new VMix()
+		this._vmix = new VMix(options.host, options.port, false)
 		this._vmix.on('connected', () => {
-			const time = this.getCurrentTime()
-			let state = this._getDefaultState()
-			state = deepMerge<VMixStateExtended>(state, { reportedState: this._vmix.state })
-			this.setState(state, time)
-			this._initialized = true
+			// We are not resetting the state at this point and waiting for the state to arrive. Otherwise, we risk
+			// going back and forth on reconnections
 			this._setConnected(true)
-			this.emit('resetResolver')
+			this._vmix.requestVMixState().catch((e) => this.emit('error', 'VMix init', e))
 		})
 		this._vmix.on('disconnected', () => {
 			this._setConnected(false)
 		})
 		this._vmix.on('error', (e) => this.emit('error', 'VMix', e))
 		this._vmix.on('stateChanged', (state) => this._onVMixStateChanged(state))
-		this._vmix.on('debug', (...args) => this.emitDebug(...args))
+		this._vmix.on('data', (d) => {
+			if (d.message !== 'Completed') this.emit('debug', d)
+			if (d.command === 'XML' && d.body) {
+				this._vmix.parseVMixState(d.body)
 
-		return this._vmix.connect(options)
+				if (!this._initialized) {
+					const time = this.getCurrentTime()
+					let state = this._getDefaultState()
+					state = deepMerge<VMixStateExtended>(state, { reportedState: this._vmix.state })
+					this.setState(state, time)
+					this._initialized = true
+					this.emit('resetResolver')
+				}
+			}
+		})
+		// this._vmix.on('debug', (...args) => this.emitDebug(...args))
+
+		this._vmix.connect()
+
+		return true
 	}
 	private _connectionChanged() {
 		this.emit('connectionChanged', this.getStatus())
@@ -226,7 +240,10 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 
 	async terminate() {
 		this._doOnTime.dispose()
-		await this._vmix.dispose()
+
+		this._vmix.removeAllListeners()
+		this._vmix.disconnect()
+
 		return Promise.resolve(true)
 	}
 
