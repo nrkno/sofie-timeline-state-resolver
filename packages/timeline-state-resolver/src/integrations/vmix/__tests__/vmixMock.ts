@@ -2,7 +2,7 @@ import * as net from '../../../__mocks__/net'
 
 jest.mock('net', () => net)
 
-// const orgSetTimeout = setTimeout
+const orgSetImmediate = setImmediate
 
 /*
 	This file mocks the server-side part of VMIX
@@ -155,7 +155,7 @@ function buildResponse(command: string, state?: 'OK' | 'ER', dataOrMessage?: str
 function sendData(socket: net.Socket, response: string[]) {
 	for (const packet of response) {
 		const dataBuf = Buffer.from(packet, 'utf-8')
-		process.nextTick(() => {
+		orgSetImmediate(() => {
 			socket.mockData(dataBuf)
 		})
 	}

@@ -2,6 +2,8 @@ import { EventEmitter } from 'events'
 const sockets: Array<Socket> = []
 const onNextSocket: Array<Function> = []
 
+const orgSetImmediate = setImmediate
+
 export class Socket extends EventEmitter {
 	public onWrite: (buff: Buffer, encoding: string) => void
 	public onConnect: (port: number, host: string) => void
@@ -39,7 +41,7 @@ export class Socket extends EventEmitter {
 		// this._host = host
 
 		if (this.onConnect) this.onConnect(port, host)
-		process.nextTick(() => {
+		orgSetImmediate(() => {
 			if (cb) {
 				cb()
 			}

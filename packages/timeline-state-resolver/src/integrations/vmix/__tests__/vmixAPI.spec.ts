@@ -32,7 +32,7 @@ describe('vMixAPI', () => {
 			}
 		})
 
-		const vmix = new VMix('127.0.0.1')
+		const vmix = new VMix('255.255.255.255')
 		vmix.on('error', onError)
 		vmix.on('connected', onConnected)
 		vmix.on('disconnected', onDisconnected)
@@ -47,7 +47,7 @@ describe('vMixAPI', () => {
 
 		expect(vmix.connected).toBeTruthy()
 
-		expect(onConnect).toHaveBeenLastCalledWith(8099, '127.0.0.1')
+		expect(onConnect).toHaveBeenLastCalledWith(8099, '255.255.255.255')
 
 		await vmix.requestVMixState()
 
@@ -142,7 +142,7 @@ describe('vMixAPI', () => {
 		expect(vmix.connected).toBeFalsy()
 	})
 	test('Connection status', async () => {
-		const vmix = new VMix('127.0.0.1')
+		const vmix = new VMix('255.255.255.255')
 		const onError = jest.fn()
 		const onConnected = jest.fn()
 		const onDisconnected = jest.fn()
@@ -151,7 +151,7 @@ describe('vMixAPI', () => {
 		vmix.on('connected', onConnected)
 		vmix.on('disconnected', onDisconnected)
 		vmix.on('stateChanged', onStateChanged)
-		vmix.connect('127.0.0.1')
+		vmix.connect('255.255.255.255')
 
 		await wait(10)
 
