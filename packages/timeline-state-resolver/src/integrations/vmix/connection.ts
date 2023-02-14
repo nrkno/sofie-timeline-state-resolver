@@ -280,6 +280,10 @@ export class VMix extends BaseConnection {
 				return this.overlayInputOut(command.value)
 			case VMixCommand.SET_INPUT_OVERLAY:
 				return this.setInputOverlay(command.input, command.index, command.value)
+			case VMixCommand.LIST_ADD:
+				return this.listAdd(command.input, command.value)
+			case VMixCommand.LIST_REMOVE_ALL:
+				return this.listRemoveAll(command.input)
 			default:
 				throw new Error(`vmixAPI: Command ${((command || {}) as any).command} not implemented`)
 		}
@@ -507,6 +511,14 @@ export class VMix extends BaseConnection {
 		const val = `${index},${value}`
 		return this.sendCommandFunction(`SetMultiViewOverlay`, { input, value: val })
 	}
+
+	public async listAdd(input: string | number, value: string | number): Promise<any> {
+		return this.sendCommandFunction(`ListAdd`, { input, value: encodeURIComponent(value) })
+	}
+
+	public async listRemoveAll(input: string | number): Promise<any> {
+		return this.sendCommandFunction(`ListRemoveAll`, { input })
+	}
 }
 
 export interface VMixStateCommandBase {
@@ -661,6 +673,15 @@ export interface VMixStateCommandSetInputOverlay extends VMixStateCommandBase {
 	index: number
 	value: string | number
 }
+export interface VMixStateCommandListAdd extends VMixStateCommandBase {
+	command: VMixCommand.LIST_ADD
+	input: string | number
+	value: string
+}
+export interface VMixStateCommandListRemoveAll extends VMixStateCommandBase {
+	command: VMixCommand.LIST_REMOVE_ALL
+	input: string | number
+}
 export type VMixStateCommand =
 	| VMixStateCommandPreviewInput
 	| VMixStateCommandTransition
@@ -696,3 +717,5 @@ export type VMixStateCommand =
 	| VMixStateCommandOverlayInputIn
 	| VMixStateCommandOverlayInputOut
 	| VMixStateCommandSetInputOverlay
+	| VMixStateCommandListAdd
+	| VMixStateCommandListRemoveAll

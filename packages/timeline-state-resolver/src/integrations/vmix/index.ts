@@ -363,6 +363,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 									position: content.seek,
 									transform: content.transform,
 									overlays: content.overlays,
+									listFilePaths: content.listFilePaths,
 								},
 
 								{ key: mapping.index || content.filePath },
@@ -793,6 +794,27 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 					timelineId: '',
 				})
 			}
+			if (input.listFilePaths !== undefined && !_.isEqual(oldInput.listFilePaths, input.listFilePaths)) {
+				commands.push({
+					command: {
+						command: VMixCommand.LIST_REMOVE_ALL,
+						input: input.name,
+					},
+					context: null,
+					timelineId: '',
+				})
+				for (const filePath of input.listFilePaths) {
+					commands.push({
+						command: {
+							command: VMixCommand.LIST_ADD,
+							input: input.name,
+							value: filePath,
+						},
+						context: null,
+						timelineId: '',
+					})
+				}
+			}
 		})
 		return commands
 	}
@@ -1062,6 +1084,7 @@ export interface VMixInput {
 	audioAuto?: boolean
 	transform?: VMixTransform
 	overlays?: VMixInputOverlays
+	listFilePaths?: string[]
 }
 
 export interface VMixOverlay {

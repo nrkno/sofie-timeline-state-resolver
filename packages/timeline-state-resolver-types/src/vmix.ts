@@ -142,6 +142,8 @@ export enum VMixCommand {
 	OVERLAY_INPUT_IN = 'OVERLAY_INPUT_IN',
 	OVERLAY_INPUT_OUT = 'OVERLAY_INPUT_OUT',
 	SET_INPUT_OVERLAY = 'SET_INPUT_OVERLAY',
+	LIST_ADD = 'LIST_ADD',
+	LIST_REMOVE_ALL = 'LIST_REMOVE_ALL',
 }
 
 export type TimelineContentVMixAny =
@@ -267,6 +269,9 @@ export interface TimelineContentVMixInput extends TimelineContentVMixBase {
 
 	/** List of input (Multi View) overlays; indexes start from 1 */
 	overlays?: VMixInputOverlays
+
+	/** An array of file paths to load into a List input. Uses Windows-style path separators (\\). Only applies to List inputs. */
+	listFilePaths?: string[]
 }
 
 export interface TimelineContentVMixOutput extends TimelineContentVMixBase {
@@ -349,4 +354,5 @@ export enum VMixInputType {
 	AudioFile = 'AudioFile',
 	Flash = 'Flash',
 	PowerPoint = 'PowerPoint',
+	List = 'List',
 }
