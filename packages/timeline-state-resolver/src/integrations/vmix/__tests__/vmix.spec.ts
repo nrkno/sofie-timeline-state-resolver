@@ -155,7 +155,7 @@ describe('vMix', () => {
 				command: {
 					command: VMixCommand.SET_INPUT_NAME,
 					input: 'My Clip.mp4',
-					value: 'C:/videos/My Clip.mp4',
+					value: 'TSR_MEDIA_C:/videos/My Clip.mp4',
 				},
 			}),
 			null,
@@ -172,7 +172,7 @@ describe('vMix', () => {
 		expect(onRequest).toHaveBeenNthCalledWith(
 			2,
 			'get',
-			expect.stringContaining('/api/?Function=SetInputName&Input=My Clip.mp4&Value=C:/videos/My Clip.mp4')
+			expect.stringContaining('/api/?Function=SetInputName&Input=My Clip.mp4&Value=TSR_MEDIA_C:/videos/My Clip.mp4')
 		)
 
 		clearMocks()
@@ -188,7 +188,7 @@ describe('vMix', () => {
 			expect.objectContaining({
 				command: {
 					command: VMixCommand.PLAY_INPUT,
-					input: 'C:/videos/My Clip.mp4',
+					input: 'TSR_MEDIA_C:/videos/My Clip.mp4',
 				},
 			}),
 			null,
@@ -199,7 +199,7 @@ describe('vMix', () => {
 		expect(onRequest).toHaveBeenNthCalledWith(
 			1,
 			'get',
-			expect.stringContaining('/api/?Function=Play&Input=C:/videos/My Clip.mp4')
+			expect.stringContaining('/api/?Function=Play&Input=TSR_MEDIA_C:/videos/My Clip.mp4')
 		)
 
 		clearMocks()
@@ -214,7 +214,7 @@ describe('vMix', () => {
 			expect.objectContaining({
 				command: {
 					command: VMixCommand.REMOVE_INPUT,
-					input: 'C:/videos/My Clip.mp4',
+					input: 'TSR_MEDIA_C:/videos/My Clip.mp4',
 				},
 			}),
 			null,
@@ -225,7 +225,7 @@ describe('vMix', () => {
 		expect(onRequest).toHaveBeenNthCalledWith(
 			1,
 			'get',
-			expect.stringContaining('/api/?Function=RemoveInput&Input=C:/videos/My Clip.mp4')
+			expect.stringContaining('/api/?Function=RemoveInput&Input=TSR_MEDIA_C:/videos/My Clip.mp4')
 		)
 
 		await myConductor.destroy()
@@ -340,7 +340,7 @@ describe('vMix', () => {
 				command: {
 					command: VMixCommand.SET_INPUT_NAME,
 					input: 'My Clip.mp4',
-					value: 'C:/videos/My Clip.mp4',
+					value: 'TSR_MEDIA_C:/videos/My Clip.mp4',
 				},
 			}),
 			null,
@@ -357,7 +357,7 @@ describe('vMix', () => {
 		expect(onRequest).toHaveBeenNthCalledWith(
 			2,
 			'get',
-			expect.stringContaining('/api/?Function=SetInputName&Input=My Clip.mp4&Value=C:/videos/My Clip.mp4')
+			expect.stringContaining('/api/?Function=SetInputName&Input=My Clip.mp4&Value=TSR_MEDIA_C:/videos/My Clip.mp4')
 		)
 
 		clearMocks()
@@ -373,7 +373,7 @@ describe('vMix', () => {
 			expect.objectContaining({
 				command: {
 					command: VMixCommand.SET_POSITION,
-					input: 'C:/videos/My Clip.mp4',
+					input: 'TSR_MEDIA_C:/videos/My Clip.mp4',
 					value: 10000,
 				},
 			}),
@@ -386,7 +386,7 @@ describe('vMix', () => {
 			expect.objectContaining({
 				command: {
 					command: VMixCommand.LOOP_ON,
-					input: 'C:/videos/My Clip.mp4',
+					input: 'TSR_MEDIA_C:/videos/My Clip.mp4',
 				},
 			}),
 			null,
@@ -398,7 +398,7 @@ describe('vMix', () => {
 			expect.objectContaining({
 				command: {
 					command: VMixCommand.SET_ZOOM,
-					input: 'C:/videos/My Clip.mp4',
+					input: 'TSR_MEDIA_C:/videos/My Clip.mp4',
 					value: 0.5,
 				},
 			}),
@@ -411,7 +411,7 @@ describe('vMix', () => {
 			expect.objectContaining({
 				command: {
 					command: VMixCommand.SET_ALPHA,
-					input: 'C:/videos/My Clip.mp4',
+					input: 'TSR_MEDIA_C:/videos/My Clip.mp4',
 					value: 123,
 				},
 			}),
@@ -424,7 +424,7 @@ describe('vMix', () => {
 			expect.objectContaining({
 				command: {
 					command: VMixCommand.SET_PAN_X,
-					input: 'C:/videos/My Clip.mp4',
+					input: 'TSR_MEDIA_C:/videos/My Clip.mp4',
 					value: 0.3,
 				},
 			}),
@@ -437,7 +437,7 @@ describe('vMix', () => {
 			expect.objectContaining({
 				command: {
 					command: VMixCommand.SET_PAN_Y,
-					input: 'C:/videos/My Clip.mp4',
+					input: 'TSR_MEDIA_C:/videos/My Clip.mp4',
 					value: 1.2,
 				},
 			}),
@@ -450,7 +450,7 @@ describe('vMix', () => {
 			expect.objectContaining({
 				command: {
 					command: VMixCommand.SET_INPUT_OVERLAY,
-					input: 'C:/videos/My Clip.mp4',
+					input: 'TSR_MEDIA_C:/videos/My Clip.mp4',
 					index: 1,
 					value: 'G:/videos/My Other Clip.mp4',
 				},
@@ -464,7 +464,7 @@ describe('vMix', () => {
 			expect.objectContaining({
 				command: {
 					command: VMixCommand.SET_INPUT_OVERLAY,
-					input: 'C:/videos/My Clip.mp4',
+					input: 'TSR_MEDIA_C:/videos/My Clip.mp4',
 					index: 3,
 					value: 5,
 				},
@@ -478,7 +478,7 @@ describe('vMix', () => {
 			expect.objectContaining({
 				command: {
 					command: VMixCommand.PLAY_INPUT,
-					input: 'C:/videos/My Clip.mp4',
+					input: 'TSR_MEDIA_C:/videos/My Clip.mp4',
 				},
 			}),
 			null,
@@ -490,49 +490,49 @@ describe('vMix', () => {
 		expect(onRequest).toHaveBeenNthCalledWith(
 			1,
 			'get',
-			expect.stringContaining('/api/?Function=SetPosition&Input=C:/videos/My Clip.mp4&Value=10000')
+			expect.stringContaining('/api/?Function=SetPosition&Input=TSR_MEDIA_C:/videos/My Clip.mp4&Value=10000')
 		)
 		expect(onRequest).toHaveBeenNthCalledWith(
 			2,
 			'get',
-			expect.stringContaining('/api/?Function=LoopOn&Input=C:/videos/My Clip.mp4')
+			expect.stringContaining('/api/?Function=LoopOn&Input=TSR_MEDIA_C:/videos/My Clip.mp4')
 		)
 		expect(onRequest).toHaveBeenNthCalledWith(
 			3,
 			'get',
-			expect.stringContaining('/api/?Function=SetZoom&Input=C:/videos/My Clip.mp4&Value=0.5')
+			expect.stringContaining('/api/?Function=SetZoom&Input=TSR_MEDIA_C:/videos/My Clip.mp4&Value=0.5')
 		)
 		expect(onRequest).toHaveBeenNthCalledWith(
 			4,
 			'get',
-			expect.stringContaining('/api/?Function=SetAlpha&Input=C:/videos/My Clip.mp4&Value=123')
+			expect.stringContaining('/api/?Function=SetAlpha&Input=TSR_MEDIA_C:/videos/My Clip.mp4&Value=123')
 		)
 		expect(onRequest).toHaveBeenNthCalledWith(
 			5,
 			'get',
-			expect.stringContaining('/api/?Function=SetPanX&Input=C:/videos/My Clip.mp4&Value=0.3')
+			expect.stringContaining('/api/?Function=SetPanX&Input=TSR_MEDIA_C:/videos/My Clip.mp4&Value=0.3')
 		)
 		expect(onRequest).toHaveBeenNthCalledWith(
 			6,
 			'get',
-			expect.stringContaining('/api/?Function=SetPanY&Input=C:/videos/My Clip.mp4&Value=1.2')
+			expect.stringContaining('/api/?Function=SetPanY&Input=TSR_MEDIA_C:/videos/My Clip.mp4&Value=1.2')
 		)
 		expect(onRequest).toHaveBeenNthCalledWith(
 			7,
 			'get',
 			expect.stringContaining(
-				'/api/?Function=SetMultiViewOverlay&Input=C:/videos/My Clip.mp4&Value=1,G:/videos/My Other Clip.mp4'
+				'/api/?Function=SetMultiViewOverlay&Input=TSR_MEDIA_C:/videos/My Clip.mp4&Value=1,G:/videos/My Other Clip.mp4'
 			)
 		)
 		expect(onRequest).toHaveBeenNthCalledWith(
 			8,
 			'get',
-			expect.stringContaining('/api/?Function=SetMultiViewOverlay&Input=C:/videos/My Clip.mp4&Value=3,5')
+			expect.stringContaining('/api/?Function=SetMultiViewOverlay&Input=TSR_MEDIA_C:/videos/My Clip.mp4&Value=3,5')
 		)
 		expect(onRequest).toHaveBeenNthCalledWith(
 			9,
 			'get',
-			expect.stringContaining('/api/?Function=Play&Input=C:/videos/My Clip.mp4')
+			expect.stringContaining('/api/?Function=Play&Input=TSR_MEDIA_C:/videos/My Clip.mp4')
 		)
 
 		await myConductor.destroy()
@@ -910,7 +910,7 @@ describe('vMix', () => {
 				command: {
 					command: VMixCommand.SET_INPUT_NAME,
 					input: 'My Clip.mp4',
-					value: 'C:/videos/My Clip.mp4',
+					value: 'TSR_MEDIA_C:/videos/My Clip.mp4',
 				},
 			}),
 			null,
@@ -927,7 +927,7 @@ describe('vMix', () => {
 		expect(onRequest).toHaveBeenNthCalledWith(
 			2,
 			'get',
-			expect.stringContaining('/api/?Function=SetInputName&Input=My Clip.mp4&Value=C:/videos/My Clip.mp4')
+			expect.stringContaining('/api/?Function=SetInputName&Input=My Clip.mp4&Value=TSR_MEDIA_C:/videos/My Clip.mp4')
 		)
 
 		clearMocks()
@@ -943,7 +943,7 @@ describe('vMix', () => {
 			expect.objectContaining({
 				command: {
 					command: VMixCommand.AUDIO_VOLUME,
-					input: 'C:/videos/My Clip.mp4',
+					input: 'TSR_MEDIA_C:/videos/My Clip.mp4',
 					value: 25,
 					fade: 0,
 				},
@@ -957,7 +957,7 @@ describe('vMix', () => {
 			expect.objectContaining({
 				command: {
 					command: VMixCommand.TRANSITION,
-					input: 'C:/videos/My Clip.mp4',
+					input: 'TSR_MEDIA_C:/videos/My Clip.mp4',
 					duration: 0,
 					effect: VMixTransitionType.Cut,
 					mix: 0,
@@ -972,12 +972,12 @@ describe('vMix', () => {
 		expect(onRequest).toHaveBeenNthCalledWith(
 			1,
 			'get',
-			expect.stringContaining('/api/?Function=SetVolume&Input=C:/videos/My Clip.mp4&Value=25')
+			expect.stringContaining('/api/?Function=SetVolume&Input=TSR_MEDIA_C:/videos/My Clip.mp4&Value=25')
 		)
 		expect(onRequest).toHaveBeenNthCalledWith(
 			2,
 			'get',
-			expect.stringContaining('/api/?Function=Cut&Input=C:/videos/My Clip.mp4&Duration=0&Mix=0')
+			expect.stringContaining('/api/?Function=Cut&Input=TSR_MEDIA_C:/videos/My Clip.mp4&Duration=0&Mix=0')
 		)
 
 		clearMocks()
@@ -1006,7 +1006,7 @@ describe('vMix', () => {
 				command: {
 					command: VMixCommand.SET_INPUT_NAME,
 					input: 'My Other Clip.mp4',
-					value: 'G:/videos/My Other Clip.mp4',
+					value: 'TSR_MEDIA_G:/videos/My Other Clip.mp4',
 				},
 			}),
 			null,
@@ -1018,7 +1018,7 @@ describe('vMix', () => {
 			expect.objectContaining({
 				command: {
 					command: VMixCommand.AUDIO_VOLUME,
-					input: 'G:/videos/My Other Clip.mp4',
+					input: 'TSR_MEDIA_G:/videos/My Other Clip.mp4',
 					value: 25,
 					fade: 0,
 				},
@@ -1032,7 +1032,7 @@ describe('vMix', () => {
 			expect.objectContaining({
 				command: {
 					command: VMixCommand.TRANSITION,
-					input: 'G:/videos/My Other Clip.mp4',
+					input: 'TSR_MEDIA_G:/videos/My Other Clip.mp4',
 					duration: 0,
 					effect: VMixTransitionType.Cut,
 					mix: 0,
@@ -1047,7 +1047,7 @@ describe('vMix', () => {
 			expect.objectContaining({
 				command: {
 					command: VMixCommand.REMOVE_INPUT,
-					input: 'C:/videos/My Clip.mp4',
+					input: 'TSR_MEDIA_C:/videos/My Clip.mp4',
 				},
 			}),
 			null,
@@ -1064,22 +1064,24 @@ describe('vMix', () => {
 		expect(onRequest).toHaveBeenNthCalledWith(
 			2,
 			'get',
-			expect.stringContaining('/api/?Function=SetInputName&Input=My Other Clip.mp4&Value=G:/videos/My Other Clip.mp4')
+			expect.stringContaining(
+				'/api/?Function=SetInputName&Input=My Other Clip.mp4&Value=TSR_MEDIA_G:/videos/My Other Clip.mp4'
+			)
 		)
 		expect(onRequest).toHaveBeenNthCalledWith(
 			3,
 			'get',
-			expect.stringContaining('/api/?Function=SetVolume&Input=G:/videos/My Other Clip.mp4&Value=25')
+			expect.stringContaining('/api/?Function=SetVolume&Input=TSR_MEDIA_G:/videos/My Other Clip.mp4&Value=25')
 		)
 		expect(onRequest).toHaveBeenNthCalledWith(
 			4,
 			'get',
-			expect.stringContaining('/api/?Function=Cut&Input=G:/videos/My Other Clip.mp4&Duration=0&Mix=0')
+			expect.stringContaining('/api/?Function=Cut&Input=TSR_MEDIA_G:/videos/My Other Clip.mp4&Duration=0&Mix=0')
 		)
 		expect(onRequest).toHaveBeenNthCalledWith(
 			5,
 			'get',
-			expect.stringContaining('/api/?Function=RemoveInput&Input=C:/videos/My Clip.mp4')
+			expect.stringContaining('/api/?Function=RemoveInput&Input=TSR_MEDIA_C:/videos/My Clip.mp4')
 		)
 
 		await myConductor.destroy()
@@ -2150,7 +2152,7 @@ describe('vMix', () => {
 
 		myConductor.setTimelineAndMappings([
 			{
-				id: 'external0',
+				id: 'streaming0',
 				enable: {
 					start: 11000,
 					duration: 5000,

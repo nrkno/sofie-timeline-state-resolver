@@ -21,6 +21,8 @@ import {
 	MappingVMixAny,
 	Timeline,
 	TSRTimelineContent,
+	MappingVMixInput,
+	TimelineContentVMixInput,
 } from 'timeline-state-resolver-types'
 
 export interface DeviceOptionsVMixInternal extends DeviceOptionsVMix {
@@ -45,6 +47,11 @@ export interface VMixStateCommandWithContext {
 	context: CommandContext
 	timelineId: string
 }
+
+/** Prefix of media input added by TSR. Only those with this prefix can be removed by this implementation */
+export const TSR_INPUT_PREFIX = 'TSR_MEDIA_'
+/** (ms) */
+const PLAY_TIME_PRECISION = 150
 
 /**
  * This is a VMixDevice, it sends commands when it feels like it
@@ -76,7 +83,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 		this._doOnTime.on('slowFulfilledCommand', (info) => this.emit('slowFulfilledCommand', info))
 	}
 	async init(options: VMixOptions): Promise<boolean> {
-		this._vmix = new VMix()
+		this._vmix = new VMix(() => this.getCurrentTime())
 		this._vmix.on('connected', () => {
 			const time = this.getCurrentTime()
 			let state = this._getDefaultState()
@@ -135,21 +142,13 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 		}
 	}
 
-	private _getDefaultInputsState(count: number): { [key: string]: VMixInput } {
-		const defaultInputs: { [key: string]: VMixInput } = {}
-		for (let i = 1; i <= count; i++) {
-			defaultInputs[i] = this._getDefaultInputState(i)
-		}
-		return defaultInputs
-	}
-
 	private _getDefaultState(): VMixStateExtended {
 		return {
 			reportedState: {
 				version: '',
 				edition: '',
 				fixedInputsCount: 0,
-				inputs: this._getDefaultInputsState(this._vmix.state.fixedInputsCount),
+				inputs: {},
 				overlays: _.map([1, 2, 3, 4, 5, 6], (num) => {
 					return {
 						number: num,
@@ -166,24 +165,54 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 				}),
 				fadeToBlack: false,
 				faderPosition: 0,
-				recording: false,
-				external: false,
-				streaming: false,
+				recording: undefined,
+				external: undefined,
+				streaming: undefined,
 				playlist: false,
 				multiCorder: false,
 				fullscreen: false,
 				audio: [],
 			},
 			outputs: {
-				'2': { source: 'Program' },
-				'3': { source: 'Program' },
-				'4': { source: 'Program' },
-				External2: { source: 'Program' },
-				Fullscreen: { source: 'Program' },
-				Fullscreen2: { source: 'Program' },
+				'2': undefined,
+				'3': undefined,
+				'4': undefined,
+				External2: undefined,
+				Fullscreen: undefined,
+				Fullscreen2: undefined,
 			},
 			inputLayers: {},
 		}
+	}
+
+	private _fillStateWithMappingsDefaults(state: VMixStateExtended, mappings: Mappings) {
+		for (const mapping of Object.values(mappings) as MappingVMixAny[]) {
+			switch (mapping.mappingType) {
+				case MappingVMixType.Input:
+					if (mapping.index) {
+						state.reportedState.inputs[mapping.index] = this._getDefaultInputState(0)
+					}
+					break
+				case MappingVMixType.AudioChannel:
+					if (mapping.index) {
+						state.reportedState.inputs[mapping.index] = this._getDefaultInputState(0)
+					}
+					break
+				case MappingVMixType.Recording:
+					state.reportedState.recording = false
+					break
+				case MappingVMixType.Streaming:
+					state.reportedState.streaming = false
+					break
+				case MappingVMixType.External:
+					state.reportedState.external = false
+					break
+				case MappingVMixType.Output:
+					state.outputs[mapping.index] = { source: 'Program' }
+					break
+			}
+		}
+		return state
 	}
 
 	/** Called by the Conductor a bit before a .handleState is called */
@@ -207,10 +236,10 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 
 		const newVMixState = this.convertStateToVMix(newState, newMappings)
 
-		const commandsToAchieveState: Array<any> = this._diffStates(oldState, newVMixState)
-
 		// clear any queued commands later than this time:
 		this._doOnTime.clearQueueNowAndAfter(previousStateTime)
+
+		const commandsToAchieveState: Array<any> = this._diffStates(oldState, newVMixState, newState.time)
 
 		// add the new commands to the queue:
 		this._addToQueue(commandsToAchieveState, newState.time)
@@ -263,7 +292,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 	convertStateToVMix(state: Timeline.TimelineState<TSRTimelineContent>, mappings: Mappings): VMixStateExtended {
 		if (!this._initialized) throw Error('convertStateToVMix cannot be used before inititialized')
 
-		const deviceState = this._getDefaultState()
+		const deviceState = this._fillStateWithMappingsDefaults(this._getDefaultState(), mappings)
 
 		// Sort layer based on Mapping type (to make sure audio is after inputs) and Layer name
 		const sortedLayers = _.sortBy(
@@ -346,9 +375,12 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 									position: content.seek,
 									transform: content.transform,
 									overlays: content.overlays,
+									name: typeof content.filePath === 'number' ? undefined : content.filePath,
+									playTime: tlObject.instance.originalStart || tlObject.instance.start,
 								},
-
-								{ key: mapping.index || content.filePath },
+								{
+									key: this._getInputKey(mapping, content),
+								},
 								layerName
 							)
 						}
@@ -373,6 +405,12 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 		return deviceState
 	}
 
+	private _getInputKey(mapping: MappingVMixInput, content: TimelineContentVMixInput): string | number | undefined {
+		return (
+			mapping.index || (typeof content.filePath === 'number' ? content.filePath : TSR_INPUT_PREFIX + content.filePath)
+		)
+	}
+
 	getFilename(filePath: string) {
 		return path.basename(filePath)
 	}
@@ -383,24 +421,23 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 		input: { key?: string | number; layer?: string },
 		layerName?: string
 	): { [key: string]: VMixInput } {
-		const inputs = deviceState.reportedState.inputs
+		const { inputs } = deviceState.reportedState
 		const newInputPicked = _.pick(newInput, (x) => !_.isUndefined(x))
 		let inputKey: string | number | undefined
 		if (input.layer) {
 			inputKey = deviceState.inputLayers[input.layer]
 		} else {
-			inputKey = input.key!
+			inputKey = input.key
 		}
-		if (inputKey) {
-			if (inputKey in inputs) {
-				inputs[inputKey] = deepMerge(inputs[inputKey], newInputPicked)
-			} else {
-				const inputState = this._getDefaultInputState(0)
-				inputs[inputKey] = deepMerge(inputState, newInputPicked)
-			}
-			if (layerName) {
-				deviceState.inputLayers[layerName] = inputKey as string
-			}
+		if (!inputKey) return inputs
+		if (inputKey in inputs) {
+			inputs[inputKey] = deepMerge(inputs[inputKey], newInputPicked)
+		} else {
+			const inputState = this._getDefaultInputState(0)
+			inputs[inputKey] = deepMerge(inputState, newInputPicked)
+		}
+		if (layerName) {
+			deviceState.inputLayers[layerName] = inputKey as string
 		}
 		return inputs
 	}
@@ -529,7 +566,8 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 
 	private _resolveInputsState(
 		oldVMixState: VMixStateExtended,
-		newVMixState: VMixStateExtended
+		newVMixState: VMixStateExtended,
+		newStateTime: number
 	): Array<VMixStateCommandWithContext> {
 		const commands: Array<VMixStateCommandWithContext> = []
 		_.each(newVMixState.reportedState.inputs, (input, key) => {
@@ -550,7 +588,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 					command: {
 						command: VMixCommand.SET_INPUT_NAME,
 						input: this.getFilename(input.name),
-						value: input.name,
+						value: key,
 					},
 					context: null,
 					timelineId: '',
@@ -558,22 +596,27 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 				this._addToQueue(addCommands, this.getCurrentTime())
 			}
 			const oldInput = oldVMixState.reportedState.inputs[key] || this._getDefaultInputState(0) // or {} but we assume that a new input has all parameters default
-			if (input.playing !== undefined && oldInput.playing !== input.playing && !input.playing) {
+			if (input.playing === false && oldInput.playing !== input.playing) {
 				commands.push({
 					command: {
 						command: VMixCommand.PAUSE_INPUT,
-						input: input.name,
+						input: key,
 					},
 					context: null,
 					timelineId: '',
 				})
 			}
-			if (oldInput.position !== input.position) {
+
+			const seekOffset = input.playTime ? newStateTime - input.playTime : 0
+			if (
+				oldInput.position !== input.position ||
+				(oldInput.playing !== input.playing && input.playing && Math.abs(seekOffset) > PLAY_TIME_PRECISION)
+			) {
 				commands.push({
 					command: {
 						command: VMixCommand.SET_POSITION,
 						input: key,
-						value: input.position ? input.position : 0,
+						value: input.position !== undefined ? Math.max(seekOffset + input.position, 0) : 0,
 					},
 					context: null,
 					timelineId: '',
@@ -584,7 +627,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 					commands.push({
 						command: {
 							command: VMixCommand.LOOP_ON,
-							input: input.name,
+							input: key,
 						},
 						context: null,
 						timelineId: '',
@@ -593,7 +636,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 					commands.push({
 						command: {
 							command: VMixCommand.LOOP_OFF,
-							input: input.name,
+							input: key,
 						},
 						context: null,
 						timelineId: '',
@@ -737,21 +780,21 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 				}
 			}
 			if (input.overlays !== undefined && !_.isEqual(oldInput.overlays, input.overlays)) {
-				Object.keys(input.overlays).forEach((index) => {
-					if (input.overlays !== oldInput.overlays?.[index]) {
+				for (const index of Object.keys(input.overlays)) {
+					if (input.overlays[index] !== oldInput.overlays?.[index]) {
 						commands.push({
 							command: {
 								command: VMixCommand.SET_INPUT_OVERLAY,
 								input: key,
-								value: input.overlays![Number(index)],
+								value: this._useTsrInputIfPresent(newVMixState, input.overlays[index]),
 								index: Number(index),
 							},
 							context: null,
 							timelineId: '',
 						})
 					}
-				})
-				Object.keys(oldInput?.overlays || {}).forEach((index) => {
+				}
+				for (const index of Object.keys(oldInput.overlays || {})) {
 					if (!input.overlays?.[index]) {
 						commands.push({
 							command: {
@@ -764,13 +807,13 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 							timelineId: '',
 						})
 					}
-				})
+				}
 			}
 			if (input.playing !== undefined && oldInput.playing !== input.playing && input.playing) {
 				commands.push({
 					command: {
 						command: VMixCommand.PLAY_INPUT,
-						input: input.name,
+						input: key,
 					},
 					context: null,
 					timelineId: '',
@@ -780,26 +823,28 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 		return commands
 	}
 
+	private _useTsrInputIfPresent(state: VMixStateExtended, name: string | number): string | number {
+		if (typeof name === 'number') return name
+		const possibleName = TSR_INPUT_PREFIX + name
+		return state.reportedState.inputs[possibleName] ? possibleName : name
+	}
+
 	private _resolveInputsRemovalState(
-		oldVMixState: VMixStateExtended,
-		newVMixState: VMixStateExtended
+		oldVMixState: VMixState,
+		newVMixState: VMixState
 	): Array<VMixStateCommandWithContext> {
 		const commands: Array<VMixStateCommandWithContext> = []
-		_.difference(
-			Object.keys(oldVMixState.reportedState.inputs),
-			Object.keys(newVMixState.reportedState.inputs)
-		).forEach((input) => {
-			if (oldVMixState.reportedState.inputs[input].type !== undefined) {
-				// TODO: either schedule this command for later or make the timeline object long enough to prevent removing while transitioning
-				commands.push({
-					command: {
-						command: VMixCommand.REMOVE_INPUT,
-						input: oldVMixState.reportedState.inputs[input].name || input,
-					},
-					context: null,
-					timelineId: '',
-				})
-			}
+		_.difference(Object.keys(oldVMixState.inputs), Object.keys(newVMixState.inputs)).forEach((input) => {
+			if (oldVMixState.inputs[input].type === undefined || !input.startsWith(TSR_INPUT_PREFIX)) return
+			// TODO: either schedule this command for later or make the timeline object long enough to prevent removing while transitioning
+			commands.push({
+				command: {
+					command: VMixCommand.REMOVE_INPUT,
+					input: input,
+				},
+				context: null,
+				timelineId: '',
+			})
 		})
 		return commands
 	}
@@ -837,13 +882,10 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 		return commands
 	}
 
-	private _resolveRecordingState(
-		oldVMixState: VMixStateExtended,
-		newVMixState: VMixStateExtended
-	): Array<VMixStateCommandWithContext> {
+	private _resolveRecordingState(oldVMixState: VMixState, newVMixState: VMixState): Array<VMixStateCommandWithContext> {
 		const commands: Array<VMixStateCommandWithContext> = []
-		if (oldVMixState.reportedState.recording !== newVMixState.reportedState.recording) {
-			if (newVMixState.reportedState.recording) {
+		if (newVMixState.recording !== undefined && oldVMixState.recording !== newVMixState.recording) {
+			if (newVMixState.recording) {
 				commands.push({
 					command: {
 						command: VMixCommand.START_RECORDING,
@@ -864,13 +906,10 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 		return commands
 	}
 
-	private _resolveStreamingState(
-		oldVMixState: VMixStateExtended,
-		newVMixState: VMixStateExtended
-	): Array<VMixStateCommandWithContext> {
+	private _resolveStreamingState(oldVMixState: VMixState, newVMixState: VMixState): Array<VMixStateCommandWithContext> {
 		const commands: Array<VMixStateCommandWithContext> = []
-		if (oldVMixState.reportedState.streaming !== newVMixState.reportedState.streaming) {
-			if (newVMixState.reportedState.streaming) {
+		if (newVMixState.streaming !== undefined && oldVMixState.streaming !== newVMixState.streaming) {
+			if (newVMixState.streaming) {
 				commands.push({
 					command: {
 						command: VMixCommand.START_STREAMING,
@@ -891,13 +930,10 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 		return commands
 	}
 
-	private _resolveExternalState(
-		oldVMixState: VMixStateExtended,
-		newVMixState: VMixStateExtended
-	): Array<VMixStateCommandWithContext> {
+	private _resolveExternalState(oldVMixState: VMixState, newVMixState: VMixState): Array<VMixStateCommandWithContext> {
 		const commands: Array<VMixStateCommandWithContext> = []
-		if (oldVMixState.reportedState.external !== newVMixState.reportedState.external) {
-			if (newVMixState.reportedState.external) {
+		if (newVMixState.external !== undefined && oldVMixState.external !== newVMixState.external) {
+			if (newVMixState.external) {
 				commands.push({
 					command: {
 						command: VMixCommand.START_EXTERNAL,
@@ -923,42 +959,41 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 		newVMixState: VMixStateExtended
 	): Array<VMixStateCommandWithContext> {
 		const commands: Array<VMixStateCommandWithContext> = []
-		_.map(newVMixState.outputs, (output, name) => {
+		for (const [name, output] of Object.entries(newVMixState.outputs)) {
 			const nameKey = name as keyof VMixStateExtended['outputs']
 			const oldOutput = nameKey in oldVMixState.outputs ? oldVMixState.outputs[nameKey] : undefined
-			if (!_.isEqual(output, oldOutput)) {
+			if (output !== undefined && !_.isEqual(output, oldOutput)) {
 				const value = output.source === 'Program' ? 'Output' : output.source
 				commands.push({
 					command: {
 						command: VMixCommand.SET_OUPUT,
 						value,
-						input: output.input,
+						input: output.source === 'Input' ? output.input : undefined,
 						name,
 					},
 					context: null,
 					timelineId: '',
 				})
 			}
-		})
+		}
 		return commands
 	}
 
 	private _diffStates(
 		oldVMixState: VMixStateExtended,
-		newVMixState: VMixStateExtended
+		newVMixState: VMixStateExtended,
+		newStateTime: number
 	): Array<VMixStateCommandWithContext> {
-		let commands: Array<VMixStateCommandWithContext> = []
-
-		commands = commands.concat(this._resolveInputsState(oldVMixState, newVMixState))
-		commands = commands.concat(this._resolveMixState(oldVMixState, newVMixState))
-		commands = commands.concat(this._resolveOverlaysState(oldVMixState, newVMixState))
-		commands = commands.concat(this._resolveRecordingState(oldVMixState, newVMixState))
-		commands = commands.concat(this._resolveStreamingState(oldVMixState, newVMixState))
-		commands = commands.concat(this._resolveExternalState(oldVMixState, newVMixState))
-		commands = commands.concat(this._resolveOutputsState(oldVMixState, newVMixState))
-		commands = commands.concat(this._resolveInputsRemovalState(oldVMixState, newVMixState))
-
-		return commands
+		return [
+			...this._resolveInputsState(oldVMixState, newVMixState, newStateTime),
+			...this._resolveMixState(oldVMixState, newVMixState),
+			...this._resolveOverlaysState(oldVMixState, newVMixState),
+			...this._resolveRecordingState(oldVMixState.reportedState, newVMixState.reportedState),
+			...this._resolveStreamingState(oldVMixState.reportedState, newVMixState.reportedState),
+			...this._resolveExternalState(oldVMixState.reportedState, newVMixState.reportedState),
+			...this._resolveOutputsState(oldVMixState, newVMixState),
+			...this._resolveInputsRemovalState(oldVMixState.reportedState, newVMixState.reportedState),
+		]
 	}
 
 	private async _defaultCommandReceiver(
@@ -988,14 +1023,14 @@ interface VMixOutput {
 export interface VMixStateExtended {
 	reportedState: VMixState
 	outputs: {
-		External2: VMixOutput
+		External2: VMixOutput | undefined
 
-		'2': VMixOutput
-		'3': VMixOutput
-		'4': VMixOutput
+		'2': VMixOutput | undefined
+		'3': VMixOutput | undefined
+		'4': VMixOutput | undefined
 
-		Fullscreen: VMixOutput
-		Fullscreen2: VMixOutput
+		Fullscreen: VMixOutput | undefined
+		Fullscreen2: VMixOutput | undefined
 	}
 	inputLayers: { [key: string]: string }
 }
@@ -1009,9 +1044,9 @@ export interface VMixState {
 	mixes: VMixMix[]
 	fadeToBlack: boolean
 	faderPosition?: number
-	recording: boolean
-	external: boolean
-	streaming: boolean
+	recording: boolean | undefined
+	external: boolean | undefined
+	streaming: boolean | undefined
 	playlist: boolean
 	multiCorder: boolean
 	fullscreen: boolean
@@ -1045,6 +1080,8 @@ export interface VMixInput {
 	audioAuto?: boolean
 	transform?: VMixTransform
 	overlays?: VMixInputOverlays
+	/** Like with CasparCG State, this is the timestamp this media has started playing */
+	playTime?: number
 }
 
 export interface VMixOverlay {

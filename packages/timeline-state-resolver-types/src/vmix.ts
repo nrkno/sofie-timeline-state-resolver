@@ -249,7 +249,7 @@ export interface TimelineContentVMixInput extends TimelineContentVMixBase {
 	type: TimelineContentTypeVMix.INPUT
 
 	/** Media file path */
-	filePath?: number | string
+	filePath?: string
 
 	/** Set only when dealing with media */
 	inputType?: VMixInputType
@@ -265,7 +265,7 @@ export interface TimelineContentVMixInput extends TimelineContentVMixBase {
 
 	transform?: VMixTransform
 
-	/** List of input (Multi View) overlays; indexes start from 1 */
+	/** List of input overlays (Layers / Multi View); indexes start from 1 */
 	overlays?: VMixInputOverlays
 }
 
@@ -294,16 +294,29 @@ export interface TimelineContentVMixOverlay extends TimelineContentVMixBase {
 }
 
 export interface VMixTransform {
-	/** Scale (0 - 5) */
+	/**
+	 * Scale
+	 * Range: 0.0 to 5.0; Default: 1.0
+	 * Due to limitations in the API, it controls both Zoom X and Zoom Y
+	 */
 	zoom: number
 
-	/** Horizontal pan (-2 - 2) */
+	/**
+	 * Horizontal pan
+	 * Range: -2.0 to 2.0; Default: 0.0
+	 */
 	panX: number
 
-	/** Vertical pan (-2 - 2) */
+	/**
+	 * Vertical pan
+	 * Range: -2.0 to 2.0; Default: 0.0
+	 */
 	panY: number
 
-	/** Transparency (0 - 255) */
+	/**
+	 * Transparency
+	 * Range: 0 to 255; Default: 255
+	 */
 	alpha: number
 }
 
