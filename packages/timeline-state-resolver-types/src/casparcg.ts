@@ -1,5 +1,5 @@
 import { Mapping } from './mapping'
-import { TSRTimelineObjBase, DeviceType } from '.'
+import { DeviceType } from '.'
 
 export interface MappingCasparCG extends Mapping {
 	device: DeviceType.CASPARCG
@@ -18,8 +18,6 @@ export interface CasparCGOptions {
 	useScheduling?: boolean
 	/** Interval (ms) for retrying to load media that previously failed. (-1 disables, 0 uses the default interval) */
 	retryInterval?: number
-	/* Timecode base of channel */
-	timeBase?: { [channel: string]: number } | number
 	/* fps used for all channels */
 	fps?: number
 
@@ -59,7 +57,7 @@ export interface TimelineStingTransition extends TimelineTransitionBase {
 	audioFadeDuration?: number
 }
 
-export interface TimelineObjCCGProducerContentBase {
+export interface TimelineContentCCGProducerBase {
 	/** The type of CasparCG content  */
 	type: TimelineContentTypeCasparCg
 	transitions?: {
@@ -68,153 +66,127 @@ export interface TimelineObjCCGProducerContentBase {
 	}
 	mixer?: Mixer
 }
-export type TimelineObjCasparCGAny =
-	| TimelineObjCCGMedia
-	| TimelineObjCCGIP
-	| TimelineObjCCGInput
-	| TimelineObjCCGHTMLPage
-	| TimelineObjCCGRecord
-	| TimelineObjCCGRoute
-	| TimelineObjCCGTemplate
-export interface TimelineObjCasparCGBase extends TSRTimelineObjBase {
-	content: {
-		deviceType: DeviceType.CASPARCG
-		type: TimelineContentTypeCasparCg
-	}
+export type TimelineContentCasparCGAny =
+	| TimelineContentCCGMedia
+	| TimelineContentCCGIP
+	| TimelineContentCCGInput
+	| TimelineContentCCGHTMLPage
+	| TimelineContentCCGRecord
+	| TimelineContentCCGRoute
+	| TimelineContentCCGTemplate
+export interface TimelineContentCasparCGBase {
+	deviceType: DeviceType.CASPARCG
+	type: TimelineContentTypeCasparCg
 }
 
-export interface TimelineObjCCGMedia extends TimelineObjCasparCGBase {
-	content: {
-		deviceType: DeviceType.CASPARCG
-		type: TimelineContentTypeCasparCg.MEDIA
+export interface TimelineContentCCGMedia extends TimelineContentCasparCGBase, TimelineContentCCGProducerBase {
+	type: TimelineContentTypeCasparCg.MEDIA
 
-		/** Path to the file to be played (example: 'AMB') */
-		file: string
-		/** Whether the media file should be looping or not */
-		loop?: boolean
+	/** Path to the file to be played (example: 'AMB') */
+	file: string
+	/** Whether the media file should be looping or not */
+	loop?: boolean
 
-		/** The point where the file starts playing [milliseconds from start of file] */
-		seek?: number
-		/** The point where the file returns to, when looping [milliseconds from start of file] */
-		inPoint?: number
-		/** The duration of the file. The playout will either freeze or loop after this time.
-		 * Note that for seeking to work when looping, .length has to be provided. [milliseconds]
-		 */
-		length?: number
+	/** The point where the file starts playing [milliseconds from start of file] */
+	seek?: number
+	/** The point where the file returns to, when looping [milliseconds from start of file] */
+	inPoint?: number
+	/** The duration of the file. The playout will either freeze or loop after this time.
+	 * Note that for seeking to work when looping, .length has to be provided. [milliseconds]
+	 */
+	length?: number
 
-		// videoFilter?: string
-		// audioFilter?: string
-		/** Audio channel layout (example 'stereo') */
-		channelLayout?: string
+	/** Audio channel layout (example 'stereo') */
+	channelLayout?: string
 
-		/** When pausing, the unix-time the playout was paused. */
-		pauseTime?: number
-		/** If the video is playing or is paused (defaults to true) */
-		playing?: boolean
+	/** When pausing, the unix-time the playout was paused. */
+	pauseTime?: number
+	/** If the video is playing or is paused (defaults to true) */
+	playing?: boolean
 
-		/** If true, the startTime won't be used to SEEK to the correct place in the media */
-		noStarttime?: boolean
+	/** If true, the startTime won't be used to SEEK to the correct place in the media */
+	noStarttime?: boolean
 
-		/* ffmpeg filter strings for 2.3+ */
-		videoFilter?: string
-		audioFilter?: string
-	} & TimelineObjCCGProducerContentBase
+	/* ffmpeg filter strings for 2.3+ */
+	videoFilter?: string
+	audioFilter?: string
 }
-export interface TimelineObjCCGIP extends TimelineObjCasparCGBase {
-	content: {
-		deviceType: DeviceType.CASPARCG
-		type: TimelineContentTypeCasparCg.IP
-		/** The URI to the input stream */
-		uri: string
+export interface TimelineContentCCGIP extends TimelineContentCasparCGBase, TimelineContentCCGProducerBase {
+	type: TimelineContentTypeCasparCg.IP
+	/** The URI to the input stream */
+	uri: string
 
-		// videoFilter?: string
-		// audioFilter?: string
-		/** Audio channel layout (example 'stereo') */
-		channelLayout?: string
+	/** Audio channel layout (example 'stereo') */
+	channelLayout?: string
 
-		/* ffmpeg filter strings for 2.3+ */
-		videoFilter?: string
-		audioFilter?: string
-	} & TimelineObjCCGProducerContentBase
+	/* ffmpeg filter strings for 2.3+ */
+	videoFilter?: string
+	audioFilter?: string
 }
-export interface TimelineObjCCGInput extends TimelineObjCasparCGBase {
-	content: {
-		deviceType: DeviceType.CASPARCG
-		type: TimelineContentTypeCasparCg.INPUT
-		/** The type of input (example: 'decklink') */
-		inputType: string
-		/** The inoput device index (to check in CASPARCG, run INFO SYSTEM) */
-		device: number
-		/** The input format (example: '1080i5000') */
-		deviceFormat: ChannelFormat // ,
+export interface TimelineContentCCGInput extends TimelineContentCasparCGBase, TimelineContentCCGProducerBase {
+	type: TimelineContentTypeCasparCg.INPUT
+	/** The type of input (example: 'decklink') */
+	inputType: string
+	/** The inoput device index (to check in CASPARCG, run INFO SYSTEM) */
+	device: number
+	/** The input format (example: '1080i5000') */
+	deviceFormat: ChannelFormat // ,
 
-		// videoFilter?: string
-		// audioFilter?: string
-		filter?: string // should this be separate for audio and video?
+	/**
+	 * @deprecated use videoFilter instead
+	 */
+	filter?: string // should this be separate for audio and video?
 
-		/** Audio channel layout (example 'stereo') */
-		channelLayout?: string
+	/** Audio channel layout (example 'stereo') */
+	channelLayout?: string
 
-		/* ffmpeg filter strings for 2.3+ */
-		videoFilter?: string
-		audioFilter?: string
-	} & TimelineObjCCGProducerContentBase
+	/* ffmpeg filter strings for 2.3+ */
+	videoFilter?: string
+	audioFilter?: string
 }
-export interface TimelineObjCCGHTMLPage extends TimelineObjCasparCGBase {
-	content: {
-		deviceType: DeviceType.CASPARCG
-		type: TimelineContentTypeCasparCg.HTMLPAGE
-		/** The URL to load */
-		url: string
-	} & TimelineObjCCGProducerContentBase
+export interface TimelineContentCCGHTMLPage extends TimelineContentCasparCGBase, TimelineContentCCGProducerBase {
+	type: TimelineContentTypeCasparCg.HTMLPAGE
+	/** The URL to load */
+	url: string
 }
-export interface TimelineObjCCGTemplate extends TimelineObjCasparCGBase {
-	content: {
-		deviceType: DeviceType.CASPARCG
-		type: TimelineContentTypeCasparCg.TEMPLATE
-		/** The type of template to load ('html' or 'flash') */
-		templateType?: 'html' | 'flash'
-		/** The name/path of the template */
-		name: string
-		/** The data to send into the template. Fee to be whatever, as long as the template likes it */
-		data?: any
-		/** Whether to use CG stop or CLEAR layer when stopping the template. Defaults to false = CLEAR  */
-		useStopCommand: boolean
-	} & TimelineObjCCGProducerContentBase
+export interface TimelineContentCCGTemplate extends TimelineContentCasparCGBase, TimelineContentCCGProducerBase {
+	type: TimelineContentTypeCasparCg.TEMPLATE
+	/** The type of template to load ('html' or 'flash') */
+	templateType?: 'html' | 'flash'
+	/** The name/path of the template */
+	name: string
+	/** The data to send into the template. Fee to be whatever, as long as the template likes it */
+	data?: any
+	/** Whether to use CG stop or CLEAR layer when stopping the template. Defaults to false = CLEAR  */
+	useStopCommand: boolean
 }
-export interface TimelineObjCCGRoute extends TimelineObjCasparCGBase {
-	content: {
-		deviceType: DeviceType.CASPARCG
-		type: TimelineContentTypeCasparCg.ROUTE
-		/** The CasparCG-channel to route from */
-		channel?: number
-		/** The CasparCG-layer to route from */
-		layer?: number
+export interface TimelineContentCCGRoute extends TimelineContentCasparCGBase, TimelineContentCCGProducerBase {
+	type: TimelineContentTypeCasparCg.ROUTE
+	/** The CasparCG-channel to route from */
+	channel?: number
+	/** The CasparCG-layer to route from */
+	layer?: number
 
-		/** Uses the mappings to determine what layer to route (overrides channel/layer parameters) */
-		mappedLayer?: string
+	/** Uses the mappings to determine what layer to route (overrides channel/layer parameters) */
+	mappedLayer?: string
 
-		/** Type of routing ('BACKGROUND' | 'NEXT') */
-		mode?: 'BACKGROUND' | 'NEXT'
-		/** Audio channel layout (example 'stereo') */
-		channelLayout?: string
-		/** The amount of milliseconds to delay the signal on this route. This value is downsampled to channel frames upon execution. */
-		delay?: number
+	/** Type of routing ('BACKGROUND' | 'NEXT') */
+	mode?: 'BACKGROUND' | 'NEXT'
+	/** Audio channel layout (example 'stereo') */
+	channelLayout?: string
+	/** The amount of milliseconds to delay the signal on this route. This value is downsampled to channel frames upon execution. */
+	delay?: number
 
-		/* ffmpeg filter strings for 2.3+ */
-		videoFilter?: string
-		audioFilter?: string
-	} & TimelineObjCCGProducerContentBase
+	/* ffmpeg filter strings for 2.3+ */
+	videoFilter?: string
+	audioFilter?: string
 }
-export interface TimelineObjCCGRecord extends TimelineObjCasparCGBase {
-	content: {
-		deviceType: DeviceType.CASPARCG
-		type: TimelineContentTypeCasparCg.RECORD
-		/** The filename to output to (will be in the media folder) */
-		file: string
-		/** ffmpeg encoder options (example '-vcodec libx264 -preset ultrafast') */
-		encoderOptions: string
-	}
+export interface TimelineContentCCGRecord extends TimelineContentCasparCGBase {
+	type: TimelineContentTypeCasparCg.RECORD
+	/** The filename to output to (will be in the media folder) */
+	file: string
+	/** ffmpeg encoder options (example '-vcodec libx264 -preset ultrafast') */
+	encoderOptions: string
 }
 
 // Note: enums copied from casparcg-connection

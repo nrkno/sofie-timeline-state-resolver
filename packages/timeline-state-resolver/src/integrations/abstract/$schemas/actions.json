@@ -1,0 +1,10 @@
+{
+	"$schema": "../../../$schemas/action-schema.json",
+	"actions": [
+		{
+			"id": "testAction",
+			"name": "Test action",
+			"timeout": 1000
+		}
+	]
+}

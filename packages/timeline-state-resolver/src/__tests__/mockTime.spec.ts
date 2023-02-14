@@ -13,7 +13,7 @@ describe('mockTime', () => {
 		expect(mockTime.now).toEqual(12000)
 		expect(() => {
 			mockTime.advanceTimeTo(11000)
-		}).toThrowError()
+		}).toThrow()
 	})
 	test('mockTimeAsync', async () => {
 		const mockTime = new MockTime()

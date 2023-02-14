@@ -1,10 +1,14 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`index imports 1`] = `
-Array [
+[
+  "AbstractActions",
+  "ActionExecutionResultCode",
+  "AtemActions",
   "AtemMediaPoolType",
   "AtemTransitionStyle",
   "BlendMode",
+  "CasparCGActions",
   "CasparCGDevice",
   "ChannelFormat",
   "Chroma",
@@ -15,6 +19,7 @@ Array [
   "Direction",
   "DoOnTime",
   "Ease",
+  "HyperdeckActions",
   "HyperdeckDevice",
   "LOOKAHEADTIME",
   "LawoDeviceMode",
@@ -32,6 +37,7 @@ Array [
   "OSCDeviceType",
   "OSCValueType",
   "PREPARETIME",
+  "QuantelActions",
   "QuantelControlMode",
   "QuantelDevice",
   "QuantelTransitionType",
@@ -44,6 +50,7 @@ Array [
   "TimelineContentTypeAtem",
   "TimelineContentTypeCasparCg",
   "TimelineContentTypeHTTP",
+  "TimelineContentTypeHTTPParamType",
   "TimelineContentTypeHyperdeck",
   "TimelineContentTypeLawo",
   "TimelineContentTypeOBS",
@@ -53,16 +60,20 @@ Array [
   "TimelineContentTypeShotoku",
   "TimelineContentTypeSingularLive",
   "TimelineContentTypeSisyfos",
+  "TimelineContentTypeSofieChef",
   "TimelineContentTypeTcp",
   "TimelineContentTypeVMix",
   "TimelineContentTypeVizMSE",
   "Transition",
+  "TranslationsBundleType",
   "TransportStatus",
   "VIZMSETransitionType",
   "VMixCommand",
   "VMixInputType",
   "VMixTransitionType",
   "VideoFormat",
+  "VizMSEActions",
   "VizMSEDevice",
+  "manifest",
 ]
 `;

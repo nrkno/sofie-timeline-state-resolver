@@ -1,5 +1,4 @@
 import * as _ from 'underscore'
-import { TimelineState } from 'superfly-timeline'
 import {
 	Mappings,
 	DeviceType,
@@ -7,11 +6,15 @@ import {
 	DeviceOptionsBase,
 	DeviceStatus,
 	StatusCode,
+	Timeline,
+	TSRTimelineContent,
+	ActionExecutionResult,
+	ActionExecutionResultCode,
 } from 'timeline-state-resolver-types'
 import { EventEmitter } from 'eventemitter3'
-import { CommandReport, DoOnTime, SlowFulfilledCommandInfo, SlowSentCommandInfo } from '../doOnTime'
+import { CommandReport, DoOnTime, SlowFulfilledCommandInfo, SlowSentCommandInfo } from './doOnTime'
 import { ExpectedPlayoutItem } from '../expectedPlayoutItems'
-import { FinishedTrace } from '../lib'
+import { FinishedTrace, t } from '../lib'
 
 /*
 	This is a base class for all the Device wrappers.
@@ -74,7 +77,7 @@ export interface IDevice<TOptions extends DeviceOptionsBase<any>> {
 	getCurrentTime: () => number
 
 	prepareForHandleState: (newStateTime: number) => void
-	handleState: (newState: TimelineState, mappings: Mappings) => void
+	handleState: (newState: Timeline.TimelineState<TSRTimelineContent>, mappings: Mappings) => void
 	clearFuture: (clearAfterTime: number) => void
 	canConnect: boolean
 	connected: boolean
@@ -168,10 +171,10 @@ export abstract class Device<TOptions extends DeviceOptionsBase<any>>
 	/** Called from Conductor when a new state is about to be handled soon */
 	abstract prepareForHandleState(newStateTime: number): void
 	/** Called from Conductor when a new state is to be handled */
-	abstract handleState(newState: TimelineState, mappings: Mappings): void
+	abstract handleState(newState: Timeline.TimelineState<TSRTimelineContent>, mappings: Mappings): void
 
 	/** To be called by children first in .handleState */
-	protected onHandleState(_newState: TimelineState, mappings: Mappings) {
+	protected onHandleState(_newState: Timeline.TimelineState<TSRTimelineContent>, mappings: Mappings) {
 		this.updateIsActive(mappings)
 	}
 	/**
@@ -233,6 +236,13 @@ export abstract class Device<TOptions extends DeviceOptionsBase<any>>
 	}
 	get isActive(): boolean {
 		return this._isActive
+	}
+
+	async executeAction(_actionId: string, _payload?: Record<string, any>): Promise<ActionExecutionResult> {
+		return {
+			result: ActionExecutionResultCode.Error,
+			response: t('Device does not implement an action handler'),
+		}
 	}
 
 	private _updateCurrentTime() {

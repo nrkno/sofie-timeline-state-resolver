@@ -1,5 +1,5 @@
 import { Mapping } from './mapping'
-import { TSRTimelineObjBase, DeviceType } from '.'
+import { DeviceType } from '.'
 
 export interface MappingVizMSE extends Mapping {
 	device: DeviceType.VIZMSE
@@ -54,148 +54,95 @@ export enum TimelineContentTypeVizMSE {
 	CONCEPT = 'concept',
 }
 
-export type TimelineObjVIZMSEAny =
-	| TimelineObjVIZMSEElementInternal
-	| TimelineObjVIZMSEElementPilot
-	| TimelineObjVIZMSEElementContinue
-	| TimelineObjVIZMSELoadAllElements
-	| TimelineObjVIZMSEClearAllElements
-	| TimelineObjVIZMSEInitializeShows
-	| TimelineObjVIZMSECleanupShows
-	| TimelineObjVIZMSEConcept
+export type TimelineContentVIZMSEAny =
+	| TimelineContentVIZMSEElementInternal
+	| TimelineContentVIZMSEElementPilot
+	| TimelineContentVIZMSEElementContinue
+	| TimelineContentVIZMSELoadAllElements
+	| TimelineContentVIZMSEClearAllElements
+	| TimelineContentVIZMSEInitializeShows
+	| TimelineContentVIZMSECleanupShows
+	| TimelineContentVIZMSEConcept
 
-export interface TimelineObjVIZMSEBase extends TSRTimelineObjBase {
-	content: {
-		deviceType: DeviceType.VIZMSE
-		type: TimelineContentTypeVizMSE
-
-		/** When this changes, a continue-function will be triggered */
-		continueStep?: number
-
-		/** What channel to output to */
-		channelName?: string
-
-		/** Don't play, only cue the element  */
-		cue?: boolean
-
-		/** If true, won't be preloaded automatically */
-		noAutoPreloading?: boolean
-
-		// inTransition?: VIZMSEOutTransition
-		outTransition?: VIZMSEOutTransition
-	}
+export interface TimelineContentVIZMSEBase {
+	deviceType: DeviceType.VIZMSE
+	type: TimelineContentTypeVizMSE
 }
-export interface TimelineObjVIZMSEElementInternal extends TimelineObjVIZMSEBase {
-	content: {
-		deviceType: DeviceType.VIZMSE
-		type: TimelineContentTypeVizMSE.ELEMENT_INTERNAL
+export interface TimelineContentVIZMSEElementBase extends TimelineContentVIZMSEBase {
+	type: TimelineContentTypeVizMSE.ELEMENT_INTERNAL | TimelineContentTypeVizMSE.ELEMENT_PILOT
 
-		/** When this changes, a continue-function will be triggered */
-		continueStep?: number
+	/** When this changes, a continue-function will be triggered */
+	continueStep?: number
 
-		/** What channel to output to */
-		channelName?: string
+	/** What channel to output to */
+	channelName?: string
 
-		/** Don't play, only cue the element  */
-		cue?: boolean
+	/** Don't play, only cue the element  */
+	cue?: boolean
 
-		/** If true, won't be preloaded (cued) automatically */
-		noAutoPreloading?: boolean
+	/** If true, won't be preloaded automatically */
+	noAutoPreloading?: boolean
 
-		// inTransition?: VIZMSEOutTransition
-		outTransition?: VIZMSEOutTransition
-
-		/** Name of the template to be played */
-		templateName: string
-		/** Data to be fed into the template */
-		templateData: Array<string>
-		/** Which Show to place this element in */
-		showId: string
-		/** Whether this element should have its take delayed until after an out transition has finished */
-		delayTakeAfterOutTransition?: boolean
-	}
+	// inTransition?: VIZMSEOutTransition
+	outTransition?: VIZMSEOutTransition
 }
-export interface TimelineObjVIZMSEElementPilot extends TimelineObjVIZMSEBase {
-	content: {
-		deviceType: DeviceType.VIZMSE
-		type: TimelineContentTypeVizMSE.ELEMENT_PILOT
+export interface TimelineContentVIZMSEElementInternal extends TimelineContentVIZMSEElementBase {
+	type: TimelineContentTypeVizMSE.ELEMENT_INTERNAL
 
-		/** When this changes, a continue-function will be triggered */
-		continueStep?: number
-
-		/** What channel to output to */
-		channelName?: string
-
-		/** Don't play, only cue the element  */
-		cue?: boolean
-
-		/** If true, won't be preloaded (cued) automatically */
-		noAutoPreloading?: boolean
-
-		// inTransition?: VIZMSEOutTransition
-		outTransition?: VIZMSEOutTransition
-
-		/** Viz-Pilot id of the template to be played */
-		templateVcpId: number
-		/** Whether this element should have its take delayed until after an out transition has finished */
-		delayTakeAfterOutTransition?: boolean
-	}
+	/** Name of the template to be played */
+	templateName: string
+	/** Data to be fed into the template */
+	templateData: Array<string>
+	/** Which Show to place this element in */
+	showId: string
+	/** Whether this element should have its take delayed until after an out transition has finished */
+	delayTakeAfterOutTransition?: boolean
 }
-export interface TimelineObjVIZMSEElementContinue extends TSRTimelineObjBase {
-	content: {
-		deviceType: DeviceType.VIZMSE
-		type: TimelineContentTypeVizMSE.CONTINUE
+export interface TimelineContentVIZMSEElementPilot extends TimelineContentVIZMSEElementBase {
+	type: TimelineContentTypeVizMSE.ELEMENT_PILOT
 
-		/** Whether to continue or reverse (defaults to 1) */
-		direction?: 1 | -1
-
-		/** What other layer to continue */
-		reference: string
-	}
+	/** Viz-Pilot id of the template to be played */
+	templateVcpId: number
+	/** Whether this element should have its take delayed until after an out transition has finished */
+	delayTakeAfterOutTransition?: boolean
 }
-export interface TimelineObjVIZMSELoadAllElements extends TSRTimelineObjBase {
-	content: {
-		deviceType: DeviceType.VIZMSE
-		type: TimelineContentTypeVizMSE.LOAD_ALL_ELEMENTS
-	}
+export interface TimelineContentVIZMSEElementContinue extends TimelineContentVIZMSEBase {
+	type: TimelineContentTypeVizMSE.CONTINUE
+
+	/** Whether to continue or reverse (defaults to 1) */
+	direction?: 1 | -1
+
+	/** What other layer to continue */
+	reference: string
 }
-export interface TimelineObjVIZMSEClearAllElements extends TSRTimelineObjBase {
-	content: {
-		deviceType: DeviceType.VIZMSE
-		type: TimelineContentTypeVizMSE.CLEAR_ALL_ELEMENTS
-
-		/** Names of the channels to send the special clear commands to */
-		channelsToSendCommands?: string[]
-
-		/** IDs of the Show to use for taking the special template */
-		showId: string
-	}
+export interface TimelineContentVIZMSELoadAllElements extends TimelineContentVIZMSEBase {
+	type: TimelineContentTypeVizMSE.LOAD_ALL_ELEMENTS
 }
-export interface TimelineObjVIZMSEInitializeShows extends TSRTimelineObjBase {
-	content: {
-		deviceType: DeviceType.VIZMSE
-		type: TimelineContentTypeVizMSE.INITIALIZE_SHOWS
+export interface TimelineContentVIZMSEClearAllElements extends TimelineContentVIZMSEBase {
+	type: TimelineContentTypeVizMSE.CLEAR_ALL_ELEMENTS
 
-		/** IDs of the Shows to initialize */
-		showIds: string[]
-	}
+	/** Names of the channels to send the special clear commands to */
+	channelsToSendCommands?: string[]
+
+	/** IDs of the Show to use for taking the special template */
+	showId: string
 }
-export interface TimelineObjVIZMSECleanupShows extends TSRTimelineObjBase {
-	content: {
-		deviceType: DeviceType.VIZMSE
-		type: TimelineContentTypeVizMSE.CLEANUP_SHOWS
+export interface TimelineContentVIZMSEInitializeShows extends TimelineContentVIZMSEBase {
+	type: TimelineContentTypeVizMSE.INITIALIZE_SHOWS
 
-		/** IDs of the Shows to cleanup */
-		showIds: string[]
-	}
+	/** IDs of the Shows to initialize */
+	showIds: string[]
+}
+export interface TimelineContentVIZMSECleanupShows extends TimelineContentVIZMSEBase {
+	type: TimelineContentTypeVizMSE.CLEANUP_SHOWS
+
+	/** IDs of the Shows to cleanup - 'all' will cleanup all shows */
+	showIds: string[] | 'all'
 }
 
-export interface TimelineObjVIZMSEConcept extends TimelineObjVIZMSEBase {
-	content: {
-		deviceType: DeviceType.VIZMSE
-		type: TimelineContentTypeVizMSE.CONCEPT
-		concept: string
-	}
+export interface TimelineContentVIZMSEConcept extends TimelineContentVIZMSEBase {
+	type: TimelineContentTypeVizMSE.CONCEPT
+	concept: string
 }
 
 export type VIZMSEOutTransition = VIZMSETransitionDelay

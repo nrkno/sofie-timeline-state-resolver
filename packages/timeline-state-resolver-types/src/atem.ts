@@ -1,5 +1,5 @@
 import { Mapping } from './mapping'
-import { TSRTimelineObjBase, DeviceType } from '.'
+import { DeviceType } from '.'
 
 export interface MappingAtem extends Mapping {
 	device: DeviceType.ATEM
@@ -81,10 +81,13 @@ export type SuperSourceBox = {
 }
 
 export interface AtemTransitionSettings {
-	// dip
 	// DVE
 	mix?: {
 		rate: number
+	}
+	dip?: {
+		rate: number
+		input: number
 	}
 	// stinger
 	wipe?: {
@@ -107,20 +110,19 @@ export interface AtemTransitionSettings {
 		flipFlop?: boolean
 	}
 }
-export type TimelineObjAtemAny =
-	| TimelineObjAtemME
-	| TimelineObjAtemDSK
-	| TimelineObjAtemAUX
-	| TimelineObjAtemSsrc
-	| TimelineObjAtemSsrcProps
-	| TimelineObjAtemMacroPlayer
-	| TimelineObjAtemAudioChannel
-	| TimelineObjAtemMediaPlayer
-export interface TimelineObjAtemBase extends TSRTimelineObjBase {
-	content: {
-		deviceType: DeviceType.ATEM
-		type: TimelineContentTypeAtem
-	}
+
+export type TimelineContentAtemAny =
+	| TimelineContentAtemME
+	| TimelineContentAtemDSK
+	| TimelineContentAtemAUX
+	| TimelineContentAtemSsrc
+	| TimelineContentAtemSsrcProps
+	| TimelineContentAtemMacroPlayer
+	| TimelineContentAtemAudioChannel
+	| TimelineContentAtemMediaPlayer
+export interface TimelineContentAtemBase {
+	deviceType: DeviceType.ATEM
+	type: TimelineContentTypeAtem
 }
 
 // as described in this issue: https://github.com/Microsoft/TypeScript/issues/14094
@@ -128,137 +130,125 @@ type Without<T, U> = { [P in Exclude<keyof T, keyof U>]?: never }
 // eslint-disable-next-line @typescript-eslint/ban-types
 type XOR<T, U> = T | U extends object ? (Without<T, U> & U) | (Without<U, T> & T) : T | U
 
-export interface TimelineObjAtemME extends TimelineObjAtemBase {
-	content: {
-		deviceType: DeviceType.ATEM
-		type: TimelineContentTypeAtem.ME
-		me: XOR<
-			{
-				input: number
-				transition: AtemTransitionStyle
-			},
-			{
-				/** Cut directly to program */
-				programInput?: number
-				/**
-				 * Set preview input.
-				 * Cannot be used in conjunction with `input`;
-				 * `programInput` must be used instead if control of program and preview are both needed.
-				 */
-				previewInput?: number
-			}
-		> & {
-			/** Is ME in transition state */
-			inTransition?: boolean
-			/** Should preview transition */
-			transitionPreview?: boolean
-			/** Position of T-bar */
-			transitionPosition?: number
-			// transitionFramesLeft?: number;
-			// fadeToBlack?: boolean;
-			// numberOfKeyers?: number;
-			// transitionProperties?: AtemTransitionProperties;
-
-			/** Settings for mix rate, wipe style */
-			transitionSettings?: AtemTransitionSettings
-
-			upstreamKeyers?: {
-				readonly upstreamKeyerId: number
-				onAir?: boolean
-				/** 0: Luma, 1: Chroma, 2: Pattern, 3: DVE */
-				mixEffectKeyType?: number
-				/** Use flying key */
-				flyEnabled?: boolean
-				/** Fill */
-				fillSource?: number
-				/** Key */
-				cutSource?: number
-				/** Mask keyer */
-				maskEnabled?: boolean
-				/** -9000 -> 9000 */
-				maskTop?: number
-				/** -9000 -> 9000 */
-				maskBottom?: number
-				/** -16000 -> 16000 */
-				maskLeft?: number
-				/** -16000 -> 16000 */
-				maskRight?: number
-
-				// dveSettings: UpstreamKeyerDVESettings;
-				// chromaSettings: UpstreamKeyerChromaSettings;
-				// patternSettings: UpstreamKeyerPatternSettings;
-				// flyKeyframes: Array<UpstreamKeyerFlyKeyframe>;
-				// flyProperties: UpstreamKeyerFlySettings;
-				lumaSettings?: {
-					/** Premultiply key */
-					preMultiplied?: boolean
-					/** 0-1000 */
-					clip?: number
-					/** 0-1000 */
-					gain?: number
-					/** Invert key */
-					invert?: boolean
-				}
-			}[]
+export interface TimelineContentAtemME extends TimelineContentAtemBase {
+	type: TimelineContentTypeAtem.ME
+	me: XOR<
+		{
+			input: number
+			transition: AtemTransitionStyle
+		},
+		{
+			/** Cut directly to program */
+			programInput?: number
+			/**
+			 * Set preview input.
+			 * Cannot be used in conjunction with `input`;
+			 * `programInput` must be used instead if control of program and preview are both needed.
+			 */
+			previewInput?: number
 		}
-	}
-}
-export interface TimelineObjAtemDSK extends TimelineObjAtemBase {
-	content: {
-		deviceType: DeviceType.ATEM
-		type: TimelineContentTypeAtem.DSK
-		dsk: {
-			onAir: boolean
-			sources?: {
-				/** Fill */
-				fillSource: number
-				/** Key */
-				cutSource: number
-			}
-			properties?: {
-				/** On at next transition */
-				tie?: boolean
-				/** 1 - 250 frames */
-				rate?: number
+	> & {
+		/** Is ME in transition state */
+		inTransition?: boolean
+		/** Should preview transition */
+		transitionPreview?: boolean
+		/** Position of T-bar */
+		transitionPosition?: number
+		// transitionFramesLeft?: number;
+		// fadeToBlack?: boolean;
+		// numberOfKeyers?: number;
+		// transitionProperties?: AtemTransitionProperties;
+
+		/** Settings for mix rate, wipe style */
+		transitionSettings?: AtemTransitionSettings
+
+		upstreamKeyers?: {
+			readonly upstreamKeyerId: number
+			onAir?: boolean
+			/** 0: Luma, 1: Chroma, 2: Pattern, 3: DVE */
+			mixEffectKeyType?: number
+			/** Use flying key */
+			flyEnabled?: boolean
+			/** Fill */
+			fillSource?: number
+			/** Key */
+			cutSource?: number
+			/** Mask keyer */
+			maskEnabled?: boolean
+			/** -9000 -> 9000 */
+			maskTop?: number
+			/** -9000 -> 9000 */
+			maskBottom?: number
+			/** -16000 -> 16000 */
+			maskLeft?: number
+			/** -16000 -> 16000 */
+			maskRight?: number
+
+			// dveSettings: UpstreamKeyerDVESettings;
+			// chromaSettings: UpstreamKeyerChromaSettings;
+			// patternSettings: UpstreamKeyerPatternSettings;
+			// flyKeyframes: Array<UpstreamKeyerFlyKeyframe>;
+			// flyProperties: UpstreamKeyerFlySettings;
+			lumaSettings?: {
 				/** Premultiply key */
-				preMultiply?: boolean
-				/** 0 - 1000 */
+				preMultiplied?: boolean
+				/** 0-1000 */
 				clip?: number
-				/** 0 - 1000 */
+				/** 0-1000 */
 				gain?: number
 				/** Invert key */
 				invert?: boolean
-				mask?: {
-					enabled: boolean
-					/** -9000 -> 9000 */
-					top?: number
-					/** -9000 -> 9000 */
-					bottom?: number
-					/** -16000 -> 16000 */
-					left?: number
-					/** -16000 -> 16000 */
-					right?: number
-				}
+			}
+		}[]
+	}
+}
+export interface TimelineContentAtemDSK extends TimelineContentAtemBase {
+	type: TimelineContentTypeAtem.DSK
+	dsk: {
+		onAir: boolean
+		sources?: {
+			/** Fill */
+			fillSource: number
+			/** Key */
+			cutSource: number
+		}
+		properties?: {
+			/** On at next transition */
+			tie?: boolean
+			/** 1 - 250 frames */
+			rate?: number
+			/** Premultiply key */
+			preMultiply?: boolean
+			/** 0 - 1000 */
+			clip?: number
+			/** 0 - 1000 */
+			gain?: number
+			/** Invert key */
+			invert?: boolean
+			mask?: {
+				enabled: boolean
+				/** -9000 -> 9000 */
+				top?: number
+				/** -9000 -> 9000 */
+				bottom?: number
+				/** -16000 -> 16000 */
+				left?: number
+				/** -16000 -> 16000 */
+				right?: number
 			}
 		}
 	}
 }
-export interface TimelineObjAtemAUX extends TimelineObjAtemBase {
-	content: {
-		deviceType: DeviceType.ATEM
-		type: TimelineContentTypeAtem.AUX
-		aux: {
-			input: number
-		}
+export interface TimelineContentAtemAUX extends TimelineContentAtemBase {
+	type: TimelineContentTypeAtem.AUX
+	aux: {
+		input: number
 	}
 }
-export interface TimelineObjAtemSsrc extends TimelineObjAtemBase {
-	content: {
-		deviceType: DeviceType.ATEM
-		type: TimelineContentTypeAtem.SSRC
-		ssrc: {
-			boxes: Array<SuperSourceBox>
-		}
+export interface TimelineContentAtemSsrc extends TimelineContentAtemBase {
+	type: TimelineContentTypeAtem.SSRC
+	ssrc: {
+		boxes: Array<SuperSourceBox>
 	}
 }
 
@@ -323,54 +313,42 @@ interface AtemSSrcPropsBorder {
 	borderLightSourceAltitude: number
 }
 
-export interface TimelineObjAtemSsrcProps extends TimelineObjAtemBase {
-	content: {
-		deviceType: DeviceType.ATEM
-		type: TimelineContentTypeAtem.SSRCPROPS
-		ssrcProps: (AtemSSrcPropsPreMultiplied | AtemSSrcPropsStraight) & (AtemSSrcPropsNoBorder | AtemSSrcPropsBorder)
-	}
+export interface TimelineContentAtemSsrcProps extends TimelineContentAtemBase {
+	type: TimelineContentTypeAtem.SSRCPROPS
+	ssrcProps: (AtemSSrcPropsPreMultiplied | AtemSSrcPropsStraight) & (AtemSSrcPropsNoBorder | AtemSSrcPropsBorder)
 }
 
-export interface TimelineObjAtemMediaPlayer extends TimelineObjAtemBase {
-	content: {
-		deviceType: DeviceType.ATEM
-		type: TimelineContentTypeAtem.MEDIAPLAYER
+export interface TimelineContentAtemMediaPlayer extends TimelineContentAtemBase {
+	type: TimelineContentTypeAtem.MEDIAPLAYER
 
-		mediaPlayer: {
-			sourceType: MediaSourceType
-			clipIndex: number
-			stillIndex: number
+	mediaPlayer: {
+		sourceType: MediaSourceType
+		clipIndex: number
+		stillIndex: number
 
-			// TODO - these need wrapping up to something that makes more sense for a timeline
-			playing: boolean
-			loop: boolean
-			atBeginning: boolean
-			clipFrame: number
-		}
+		// TODO - these need wrapping up to something that makes more sense for a timeline
+		playing: boolean
+		loop: boolean
+		atBeginning: boolean
+		clipFrame: number
 	}
 }
-export interface TimelineObjAtemAudioChannel extends TimelineObjAtemBase {
-	content: {
-		deviceType: DeviceType.ATEM
-		type: TimelineContentTypeAtem.AUDIOCHANNEL
-		audioChannel: {
-			/** 0 - 65381 */
-			gain?: number
-			/** -10000 - 10000 */
-			balance?: number
-			/** 0: Off, 1: On, 2: AFV */
-			mixOption?: number
-		}
+export interface TimelineContentAtemAudioChannel extends TimelineContentAtemBase {
+	type: TimelineContentTypeAtem.AUDIOCHANNEL
+	audioChannel: {
+		/** 0 - 65381 */
+		gain?: number
+		/** -10000 - 10000 */
+		balance?: number
+		/** 0: Off, 1: On, 2: AFV */
+		mixOption?: number
 	}
 }
-export interface TimelineObjAtemMacroPlayer extends TimelineObjAtemBase {
-	content: {
-		deviceType: DeviceType.ATEM
-		type: TimelineContentTypeAtem.MACROPLAYER
-		macroPlayer: {
-			macroIndex: number
-			isRunning: boolean
-			loop?: boolean
-		}
+export interface TimelineContentAtemMacroPlayer extends TimelineContentAtemBase {
+	type: TimelineContentTypeAtem.MACROPLAYER
+	macroPlayer: {
+		macroIndex: number
+		isRunning: boolean
+		loop?: boolean
 	}
 }
