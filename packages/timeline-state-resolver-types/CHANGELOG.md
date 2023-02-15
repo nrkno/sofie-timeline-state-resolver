@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [3.2.0](https://github.com/tv2/tv-automation-state-timeline-resolver/compare/3.0.3...3.2.0) (2023-02-15)
+
+### Features
+
+- SOF-1254 add TriCaster integration ([06b129e](https://github.com/tv2/tv-automation-state-timeline-resolver/commit/06b129ecec2d87b0caaa22fda36b2b5ef953653e))
+
+### Bug Fixes
+
+- SOF-1254 improve types ([0471a7b](https://github.com/tv2/tv-automation-state-timeline-resolver/commit/0471a7bf64f7340e83b5b6f47212003fd2586ca6))
+- SOF-1254 type guards and make some properties optional ([f8b8aab](https://github.com/tv2/tv-automation-state-timeline-resolver/commit/f8b8aab02a0ef7f0ad8814365ca3e08820c9a1af))
+
 ## [3.0.3](https://github.com/tv2/tv-automation-state-timeline-resolver/compare/3.0.2...3.0.3) (2022-12-05)
 
 **Note:** Version bump only for package timeline-state-resolver-types

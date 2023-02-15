@@ -3,6 +3,25 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [3.2.0](https://github.com/ianshade/tv-automation-state-timeline-resolver/compare/3.0.3...3.2.0) (2023-02-15)
+
+
+### Features
+
+* SOF-1135 make `createDevice` and `initDevice` abortable ([70bfef2](https://github.com/ianshade/tv-automation-state-timeline-resolver/commit/70bfef20029b8972aeb248a7c2012b5d92fb2ecc))
+* SOF-1254 add TriCaster integration ([06b129e](https://github.com/ianshade/tv-automation-state-timeline-resolver/commit/06b129ecec2d87b0caaa22fda36b2b5ef953653e))
+
+
+### Bug Fixes
+
+* add thread event handling for AsyncResolver thread ([68904e2](https://github.com/ianshade/tv-automation-state-timeline-resolver/commit/68904e20c119b4df6bb665f725acb39b86bc54b8))
+* register error handler in threadedClass ([dae9db0](https://github.com/ianshade/tv-automation-state-timeline-resolver/commit/dae9db0a0876a873702f27770771ec01cfc5d1e0))
+* SOF-1254 improve types ([0471a7b](https://github.com/ianshade/tv-automation-state-timeline-resolver/commit/0471a7bf64f7340e83b5b6f47212003fd2586ca6))
+* SOF-1254 log warning when websocket disconnected ([3d9964a](https://github.com/ianshade/tv-automation-state-timeline-resolver/commit/3d9964af7c4352c36e95824dd323cd2fe46717fd))
+* SOF-1254 type guards and make some properties optional ([f8b8aab](https://github.com/ianshade/tv-automation-state-timeline-resolver/commit/f8b8aab02a0ef7f0ad8814365ca3e08820c9a1af))
+
+
+
 ## [3.1.0](https://github.com/tv2/tv-automation-state-timeline-resolver/compare/3.0.3...3.1.0) (2023-01-09)
 
 
