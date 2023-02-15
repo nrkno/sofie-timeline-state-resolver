@@ -18,6 +18,7 @@ export class TriCasterDevice extends DeviceWithState<TriCasterState, DeviceOptio
 	private _resolveInitPromise: (value: boolean) => void
 	private _connected = false
 	private _initialized = false
+	private _isTerminating = false
 	private _connection?: TriCasterConnection
 	private _stateDiffer?: TriCasterStateDiffer
 
@@ -43,7 +44,10 @@ export class TriCasterDevice extends DeviceWithState<TriCasterState, DeviceOptio
 			this._resolveInitPromise(true)
 			this.emit('info', `Connected to TriCaster ${info.productModel}, session: ${info.sessionName}`)
 		})
-		this._connection.on('disconnected', (_reason) => {
+		this._connection.on('disconnected', (reason) => {
+			if (!this._isTerminating) {
+				this.emit('warning', `TriCaster disconected due to: ${reason}`)
+			}
 			this._setConnected(false)
 		})
 		this._connection.on('error', (reason) => {
@@ -115,6 +119,7 @@ export class TriCasterDevice extends DeviceWithState<TriCasterState, DeviceOptio
 	}
 
 	async terminate(): Promise<boolean> {
+		this._isTerminating = true
 		this._doOnTime.dispose()
 		this._connection?.close()
 		return Promise.resolve(true)
@@ -143,7 +148,7 @@ export class TriCasterDevice extends DeviceWithState<TriCasterState, DeviceOptio
 	}
 
 	get canConnect(): boolean {
-		return false
+		return true
 	}
 
 	get connected(): boolean {
