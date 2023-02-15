@@ -53,6 +53,7 @@ Array [
   "VMixInputType",
   "VMixTransitionType",
   "VideoFormat",
+  "isTimelineObjTriCaster",
   "isTimelineObjTriCasterAudioChannel",
   "isTimelineObjTriCasterDSK",
   "isTimelineObjTriCasterInput",

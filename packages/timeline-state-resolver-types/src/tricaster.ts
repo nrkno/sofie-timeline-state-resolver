@@ -91,7 +91,7 @@ export interface TimelineObjTriCasterBase extends TSRTimelineObjBase {
 }
 
 interface TriCasterMixEffectBase {
-	transition?: TriCasterTransition
+	transitionEffect?: TriCasterTransitionEffect
 
 	keyers?: Record<TriCasterKeyerName, TriCasterKeyer>
 
@@ -101,19 +101,22 @@ interface TriCasterMixEffectBase {
 
 export interface TriCasterMixEffectInMixMode extends TriCasterMixEffectBase {
 	programInput?: string
+
+	/** Duration in seconds, applicable to effects other than 'cut' */
+	transitionDuration?: number
 }
 
 export interface TriCasterMixEffectWithPreview extends TriCasterMixEffectInMixMode {
 	previewInput?: string
 
-	transition?: { effect: 'cut'; duration: 0 }
+	transitionEffect?: 'cut'
 }
 
 export interface TriCasterMixEffectInEffectMode extends TriCasterMixEffectBase {
 	/** Use only in conjunction with effects that use M/E rows as layers (e.g. LiveSets) */
 	layers?: Partial<Record<TriCasterLayerName, TriCasterLayer>>
 
-	transition?: { effect: number; duration: 0 }
+	transitionEffect?: number
 }
 
 export type TriCasterMixEffect =
@@ -226,12 +229,6 @@ export function isTimelineObjTriCasterMixOutput(
 
 export type TriCasterTransitionEffect = 'cut' | 'fade' | number
 
-export interface TriCasterTransition {
-	effect: TriCasterTransitionEffect
-	/** Duration in seconds, applicable to effects other than 'cut' */
-	duration: number
-}
-
 /**
  * Properties of a layer in effect mode (as opposed to transition mode)
  * Value ranges in this type adhere to the API and may differ from the GUI
@@ -322,5 +319,7 @@ export interface TriCasterLayer {
  */
 export interface TriCasterKeyer extends TriCasterLayer {
 	onAir?: boolean
-	transition?: TriCasterTransition
+	transitionEffect?: TriCasterTransitionEffect
+	/** Duration in seconds, applicable to effects other than 'cut' */
+	transitionDuration?: number
 }

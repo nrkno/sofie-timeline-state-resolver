@@ -93,7 +93,8 @@ export class TriCasterTimelineStateConverter {
 		const mixEffects = resultState.mixEffects
 		if (!isTimelineObjTriCasterME(tlObject) || !this.meNames.has(mapping.name)) return
 		this.deepApply(mixEffects[mapping.name], tlObject.content.me)
-		if ('layers' in tlObject.content.me && Object.keys(tlObject.content.me.layers).length) {
+		const mixEffect = tlObject.content.me
+		if ('layers' in mixEffect && Object.keys(mixEffect.layers ?? []).length) {
 			mixEffects[mapping.name].isInEffectMode = true
 		}
 	}

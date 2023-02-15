@@ -53,7 +53,8 @@ const mockGetDefaultState = (): CompleteTriCasterState => ({
 const mockGetDefaultMe = (): CompleteTriCasterMixEffectState => ({
 	programInput: 'black',
 	previewInput: 'black',
-	transition: { effect: 'cut', duration: 0 },
+	transitionEffect: 'cut',
+	transitionDuration: 1,
 	layers: { a: mockGetDefaultLayer(), b: mockGetDefaultLayer() },
 	keyers: {
 		dsk1: mockGetDefaultKeyer(),
@@ -71,7 +72,8 @@ const mockGetDefaultKeyer = (): RequiredDeep<TriCasterKeyerState> => ({
 	rotation: { x: 0, y: 0, z: 0 },
 	crop: { left: 0, right: 0, up: 0, down: 0 },
 	onAir: false,
-	transition: { effect: 'cut', duration: 1 },
+	transitionEffect: 'cut',
+	transitionDuration: 1,
 	feather: 0,
 })
 
@@ -100,7 +102,7 @@ describe('TimelineStateConverter.getTriCasterStateFromTimelineState', () => {
 						content: {
 							deviceType: DeviceType.TRICASTER,
 							type: TimelineContentTypeTriCaster.ME,
-							me: { programInput: 'input2', previewInput: 'input3', transition: { effect: 5, duration: 20 } },
+							me: { programInput: 'input2', previewInput: 'input3', transitionEffect: 5, transitionDuration: 20 },
 						},
 					}),
 					tc_me0_1: wrapIntoResolvedInstance<TimelineObjTriCasterME>({
@@ -158,10 +160,11 @@ describe('TimelineStateConverter.getTriCasterStateFromTimelineState', () => {
 		const expectedState = mockGetDefaultState()
 		expectedState.mixEffects.main.programInput = 'input2'
 		expectedState.mixEffects.main.previewInput = 'input3'
-		expectedState.mixEffects.main.transition = { effect: 5, duration: 20 }
+		expectedState.mixEffects.main.transitionEffect = 5
+		expectedState.mixEffects.main.transitionDuration = 20
 		expectedState.mixEffects.v1.keyers.dsk2.input = 'input5'
 		expectedState.mixEffects.v1.keyers.dsk2.onAir = true
-		expectedState.mixEffects.v1.layers.b = {
+		expectedState.mixEffects.v1.layers!.b = {
 			input: 'ddr3',
 			position: {
 				x: 2,

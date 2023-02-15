@@ -1,7 +1,6 @@
 import {
 	TriCasterLayer,
 	TriCasterKeyer,
-	TriCasterTransition,
 	TriCasterMixEffect,
 	TriCasterKeyerName,
 	TriCasterLayerName,
@@ -16,6 +15,7 @@ import {
 	TriCasterMixEffectInEffectMode,
 	TriCasterMixEffectWithPreview,
 	TriCasterMixEffectInMixMode,
+	TriCasterTransitionEffect,
 } from 'timeline-state-resolver-types'
 import {
 	TriCasterCommand,
@@ -72,7 +72,7 @@ export interface TriCasterState {
 }
 
 export type TriCasterMixEffectState = Partial<
-	Omit<TriCasterMixEffectWithPreview, 'transition'> & TriCasterMixEffectInEffectMode & TriCasterMixEffectInMixMode
+	Omit<TriCasterMixEffectWithPreview & TriCasterMixEffectInEffectMode, 'transitionEffect'> & TriCasterMixEffectInMixMode
 > & { isInEffectMode?: boolean }
 
 export type CompleteTriCasterMixEffectState = RequiredDeep<Omit<TriCasterMixEffectState, 'layers' | 'previewInput'>> &
@@ -153,7 +153,8 @@ export class TriCasterStateDiffer {
 					programInput: BLACK_INPUT,
 					previewInput: undefined,
 					isInEffectMode: false,
-					transition: { effect: 'cut', duration: 0 },
+					transitionEffect: 'cut',
+					transitionDuration: 1,
 					layers: meName !== 'main' ? fillRecord(this.layerNames, () => this.getDefaultLayerState()) : {},
 					keyers: fillRecord(this.dskNames, () => this.getDefaultKeyerState()),
 					delegates: ['background'],
@@ -188,7 +189,8 @@ export class TriCasterStateDiffer {
 	private getDefaultKeyerState(): RequiredDeep<TriCasterKeyerState> {
 		return {
 			onAir: false,
-			transition: { effect: 'cut', duration: 0 },
+			transitionEffect: 'cut',
+			transitionDuration: 1,
 			...this.getDefaultLayerState(),
 		}
 	}
@@ -235,26 +237,31 @@ export class TriCasterStateDiffer {
 		source: CommandName.OUTPUT_SOURCE,
 	}
 
-	private transitionCommandGenerator: CommandGenerator<TriCasterTransition> = {
-		effect: ({ value, target, state }) => {
-			const commands: TriCasterCommand[] = []
-			if (value === 'cut') {
-				return commands
-			}
-			if (typeof value === 'number') {
-				commands.push({ name: CommandName.SELECT_INDEX, target, value })
-			} else if (value === 'fade') {
-				commands.push({ name: CommandName.SELECT_INDEX, target, value: 1 }) // @todo
-			}
-			commands.push({ name: CommandName.SPEED, target, value: state.duration })
+	private effectCommandGenerator: CommandGeneratorFunction<
+		TriCasterTransitionEffect,
+		RequiredDeep<TriCasterMixEffectState | TriCasterKeyerState>
+	> = ({ value, target, state }) => {
+		const commands: TriCasterCommand[] = []
+		if (value === 'cut') {
 			return commands
-		},
-		duration: ({ value, state, oldState, target }) => {
-			if (!oldState || state.effect !== oldState.effect) {
-				return []
-			}
-			return [{ name: CommandName.SPEED, target, value }]
-		},
+		}
+		if (typeof value === 'number') {
+			commands.push({ name: CommandName.SELECT_INDEX, target, value })
+		} else if (value === 'fade') {
+			commands.push({ name: CommandName.SELECT_INDEX, target, value: 1 })
+		}
+		commands.push({ name: CommandName.SPEED, target, value: state.transitionDuration })
+		return commands
+	}
+
+	private durationCommandGenerator: CommandGeneratorFunction<
+		number,
+		RequiredDeep<TriCasterMixEffectState | TriCasterKeyerState>
+	> = ({ value, state, oldState, target }) => {
+		if (!oldState || state.transitionEffect !== oldState.transitionEffect) {
+			return []
+		}
+		return [{ name: CommandName.SPEED, target, value }]
 	}
 
 	private layerCommandGenerator: CommandGenerator<TriCasterLayerState> = {
@@ -283,11 +290,12 @@ export class TriCasterStateDiffer {
 	}
 
 	private keyerCommandGenerator: CommandGenerator<TriCasterKeyerState> = {
-		transition: this.transitionCommandGenerator,
+		transitionEffect: this.effectCommandGenerator,
+		transitionDuration: this.durationCommandGenerator,
 		...this.layerCommandGenerator,
 		input: CommandName.SELECT_NAMED_INPUT,
 		onAir: ({ state, target }) => {
-			if (state.transition.effect === 'cut') {
+			if (state.transitionEffect === 'cut') {
 				return [{ name: CommandName.TAKE, target }]
 			}
 			return [{ name: CommandName.AUTO, target }]
@@ -298,7 +306,8 @@ export class TriCasterStateDiffer {
 		return {
 			$target: meName,
 			isInEffectMode: null,
-			transition: this.transitionCommandGenerator,
+			transitionEffect: this.effectCommandGenerator,
+			transitionDuration: this.durationCommandGenerator,
 			delegates: this.delegateCommandGenerator,
 			keyers: fillRecord(this.dskNames, (name) => ({ $target: name, ...this.keyerCommandGenerator })),
 			layers: fillRecord(this.layerNames, (name) => ({
@@ -328,7 +337,7 @@ export class TriCasterStateDiffer {
 		target,
 	}) => {
 		if (state.isInEffectMode) return null
-		if (state.transition.effect !== 'cut') {
+		if (state.transitionEffect !== 'cut') {
 			return null
 		}
 		return [{ name: CommandName.ROW_NAMED_INPUT, value, target: target + B_ROW_SUFFIX }]
@@ -340,7 +349,7 @@ export class TriCasterStateDiffer {
 		target,
 	}) => {
 		if (state.isInEffectMode) return null
-		if (state.transition.effect === 'cut') {
+		if (state.transitionEffect === 'cut') {
 			if (!state.previewInput) {
 				return [
 					{ name: CommandName.ROW_NAMED_INPUT, value, target: target + B_ROW_SUFFIX },
