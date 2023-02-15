@@ -22,6 +22,7 @@ Using the input, it resolves the expected state, diffs the state against current
 * **Quantel** video server
 * **[vMix](https://www.vmix.com/)** software vision mixer
 * **VizRT MediaSequencer** graphics system - using the [v-connection](https://github.com/tv2/v-connection) library
+* **NRK Nora** graphics system - an in-house graphics system developed by [NRK](https://www.nrk.no)
 * Arbitrary [OSC](https://en.wikipedia.org/wiki/Open_Sound_Control) compatible devices
 * Arbitrary HTTP (REST) compatible devices
 * Arbitrary TCP-socket compatible devices
