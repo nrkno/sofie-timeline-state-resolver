@@ -50,6 +50,7 @@ import { OBSDevice, DeviceOptionsOBSInternal } from './integrations/obs'
 import { VizMSEDevice, DeviceOptionsVizMSEInternal } from './integrations/vizMSE'
 import { ShotokuDevice, DeviceOptionsShotokuInternal } from './integrations/shotoku'
 import { TelemetricsDevice } from './devices/telemetrics'
+import { TriCasterDevice, DeviceOptionsTriCasterInternal } from './integrations/tricaster'
 
 export { DeviceContainer }
 export { CommandWithContext }
@@ -652,6 +653,15 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 				return DeviceContainer.create<DeviceOptionsTelemetrics, typeof TelemetricsDevice>(
 					'../../dist/devices/telemetrics.js',
 					'TelemetricsDevice',
+					deviceId,
+					deviceOptions,
+					getCurrentTime,
+					threadedClassOptions
+				)
+			case DeviceType.TRICASTER:
+				return DeviceContainer.create<DeviceOptionsTriCasterInternal, typeof TriCasterDevice>(
+					'../../dist/integrations/tricaster/index.js',
+					'TriCasterDevice',
 					deviceId,
 					deviceOptions,
 					getCurrentTime,
@@ -1538,6 +1548,7 @@ export type DeviceOptionsAnyInternal =
 	| DeviceOptionsShotokuInternal
 	| DeviceOptionsVizMSEInternal
 	| DeviceOptionsTelemetrics
+	| DeviceOptionsTriCasterInternal
 
 function removeParentFromState(o: TimelineState): TimelineState {
 	for (const key in o) {

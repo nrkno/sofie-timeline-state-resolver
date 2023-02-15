@@ -17,6 +17,7 @@ import {
 	HTTPWatcherOptions,
 	VizMSEOptions,
 	VMixOptions,
+	TriCasterOptions,
 } from '.'
 import { ShotokuOptions } from './shotoku'
 import { TelemetricsOptions } from './telemetrics'
@@ -72,6 +73,7 @@ export type DeviceOptionsAny =
 	| DeviceOptionsVizMSE
 	| DeviceOptionsShotoku
 	| DeviceOptionsTelemetrics
+	| DeviceOptionsTriCaster
 
 export interface DeviceOptionsAbstract extends DeviceOptionsBase<AbstractOptions> {
 	type: DeviceType.ABSTRACT
@@ -124,11 +126,12 @@ export interface DeviceOptionsSingularLive extends DeviceOptionsBase<SingularLiv
 export interface DeviceOptionsShotoku extends DeviceOptionsBase<ShotokuOptions> {
 	type: DeviceType.SHOTOKU
 }
-
 export interface DeviceOptionsVMix extends DeviceOptionsBase<VMixOptions> {
 	type: DeviceType.VMIX
 }
-
 export interface DeviceOptionsTelemetrics extends DeviceOptionsBase<TelemetricsOptions> {
 	type: DeviceType.TELEMETRICS
+}
+export interface DeviceOptionsTriCaster extends DeviceOptionsBase<TriCasterOptions> {
+	type: DeviceType.TRICASTER
 }

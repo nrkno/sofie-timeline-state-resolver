@@ -17,6 +17,7 @@ Array [
   "MappingOBSType",
   "MappingPanasonicPtzType",
   "MappingSisyfosType",
+  "MappingTriCasterType",
   "MappingVMixType",
   "MediaSourceType",
   "OBSRequest",
@@ -42,6 +43,7 @@ Array [
   "TimelineContentTypeSingularLive",
   "TimelineContentTypeSisyfos",
   "TimelineContentTypeTcp",
+  "TimelineContentTypeTriCaster",
   "TimelineContentTypeVMix",
   "TimelineContentTypeVizMSE",
   "Transition",
@@ -51,5 +53,11 @@ Array [
   "VMixInputType",
   "VMixTransitionType",
   "VideoFormat",
+  "isTimelineObjTriCaster",
+  "isTimelineObjTriCasterAudioChannel",
+  "isTimelineObjTriCasterDSK",
+  "isTimelineObjTriCasterInput",
+  "isTimelineObjTriCasterME",
+  "isTimelineObjTriCasterMixOutput",
 ]
 `;
