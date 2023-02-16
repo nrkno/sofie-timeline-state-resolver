@@ -4,6 +4,7 @@ import {
 	MappingTriCasterType,
 	TimelineContentTypeTriCaster,
 	TimelineObjTriCasterInput,
+	TimelineObjTriCasterMatrixOutput,
 	TimelineObjTriCasterME,
 	TimelineObjTriCasterMixOutput,
 } from 'timeline-state-resolver-types'
@@ -19,13 +20,13 @@ import { literal } from '../../../devices/device'
 import { wrapIntoResolvedInstance } from './helpers'
 
 function setupTimelineStateConverter() {
-	return new TriCasterTimelineStateConverter(
-		() => mockGetDefaultState(),
-		['main', 'v1', 'v2'],
-		['input1', 'input2'],
-		['input1', 'input2', 'sound', 'master'],
-		['mix1', 'mix2']
-	)
+	return new TriCasterTimelineStateConverter(() => mockGetDefaultState(), {
+		mixEffects: ['main', 'v1', 'v2'],
+		inputs: ['input1', 'input2'],
+		audioChannels: ['input1', 'input2', 'sound', 'master'],
+		mixOutputs: ['mix1', 'mix2'],
+		matrixOutputs: ['out1', 'out2'],
+	})
 }
 
 const mockGetDefaultState = (): CompleteTriCasterState => ({
@@ -44,9 +45,13 @@ const mockGetDefaultState = (): CompleteTriCasterState => ({
 	audioChannels: {},
 	isRecording: false,
 	isStreaming: false,
-	outputs: {
+	mixOutputs: {
 		mix1: { source: 'program' },
 		mix2: { source: 'program' },
+	},
+	matrixOutputs: {
+		out1: { source: 'mix1' },
+		out2: { source: 'mix1' },
 	},
 })
 
@@ -190,7 +195,44 @@ describe('TimelineStateConverter.getTriCasterStateFromTimelineState', () => {
 		expect(convertedState).toEqual(expectedState)
 	})
 
-	test('sets outputs', () => {
+	test('sets mix outputs', () => {
+		const converter = setupTimelineStateConverter()
+
+		const convertedState = converter.getTriCasterStateFromTimelineState(
+			{
+				time: Date.now(),
+				layers: {
+					tc_out2: wrapIntoResolvedInstance<TimelineObjTriCasterMatrixOutput>({
+						layer: 'tc_out2',
+						enable: { while: '1' },
+						id: 't0',
+						content: {
+							deviceType: DeviceType.TRICASTER,
+							type: TimelineContentTypeTriCaster.MATRIX_OUTPUT,
+							source: 'input5',
+						},
+					}),
+				},
+				nextEvents: [],
+			},
+			{
+				tc_out2: literal<MappingTriCaster>({
+					device: DeviceType.TRICASTER,
+					mappingType: MappingTriCasterType.MATRIX_OUTPUT,
+					name: 'out2',
+					deviceId: 'tc0',
+				}),
+			},
+			'tc0'
+		)
+
+		const expectedState = mockGetDefaultState()
+		expectedState.matrixOutputs.out2.source = 'input5'
+
+		expect(convertedState).toEqual(expectedState)
+	})
+
+	test('sets matrix outputs', () => {
 		const converter = setupTimelineStateConverter()
 
 		const convertedState = converter.getTriCasterStateFromTimelineState(
@@ -222,7 +264,7 @@ describe('TimelineStateConverter.getTriCasterStateFromTimelineState', () => {
 		)
 
 		const expectedState = mockGetDefaultState()
-		expectedState.outputs.mix2.source = 'me_program'
+		expectedState.mixOutputs.mix2.source = 'me_program'
 
 		expect(convertedState).toEqual(expectedState)
 	})

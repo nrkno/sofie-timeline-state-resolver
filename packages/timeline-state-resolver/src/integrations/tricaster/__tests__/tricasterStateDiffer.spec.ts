@@ -435,16 +435,29 @@ describe('TriCasterStateDiffer.getCommandsToAchieveState', () => {
 		})
 	})
 
-	describe('Outputs', () => {
+	describe('Mix Outputs', () => {
 		test('sets output source', () => {
 			const { stateDiffer, oldState, newState } = setupStateDiffer()
 
-			newState.outputs.mix3.source = 'me_preview'
+			newState.mixOutputs.mix3.source = 'me_preview'
 
 			const commands = stateDiffer.getCommandsToAchieveState(newState, oldState)
 
 			expect(commands.length).toEqual(1)
 			expect(commands[0].command).toEqual({ target: 'mix3', name: '_output_source', value: 'me_preview' })
+		})
+	})
+
+	describe('Matrix Outputs', () => {
+		test('sets output source', () => {
+			const { stateDiffer, oldState, newState } = setupStateDiffer()
+
+			newState.matrixOutputs.out3.source = 'input5'
+
+			const commands = stateDiffer.getCommandsToAchieveState(newState, oldState)
+
+			expect(commands.length).toEqual(1)
+			expect(commands[0].command).toEqual({ target: 'out3', name: '_crosspoint_source', value: 'input5' })
 		})
 	})
 })

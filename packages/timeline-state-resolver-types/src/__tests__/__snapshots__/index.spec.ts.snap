@@ -58,6 +58,7 @@ Array [
   "isTimelineObjTriCasterDSK",
   "isTimelineObjTriCasterInput",
   "isTimelineObjTriCasterME",
+  "isTimelineObjTriCasterMatrixOutput",
   "isTimelineObjTriCasterMixOutput",
 ]
 `;

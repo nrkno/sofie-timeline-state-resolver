@@ -7,6 +7,7 @@ import {
 	TriCasterInputName,
 	TriCasterAudioChannelName,
 	TriCasterMixEffectName,
+	TriCasterMatrixOutputName,
 	TriCasterSourceName,
 	TriCasterDelegateName,
 	TriCasterMixOutputName,
@@ -32,6 +33,7 @@ import _ = require('underscore')
 const BLACK_INPUT = 'black'
 const A_ROW_SUFFIX = '_a' // the Program row
 const B_ROW_SUFFIX = '_b' // the Preview row
+const MATRIX_OUTPUTS_COUNT = 8 // @todo: hardcoded for now; only a few models have this feature; how to query for it?
 
 export type RequiredDeep<T> = T extends object
 	? {
@@ -68,7 +70,8 @@ export interface TriCasterState {
 	inputs: Record<TriCasterInputName, TriCasterInputState>
 	isRecording: boolean
 	isStreaming: boolean
-	outputs: Record<TriCasterMixOutputName, TriCasterMixOutputState>
+	mixOutputs: Record<TriCasterMixOutputName, TriCasterOutputState>
+	matrixOutputs: Record<TriCasterMatrixOutputName, TriCasterOutputState>
 }
 
 export type TriCasterMixEffectState = Partial<
@@ -93,7 +96,7 @@ export type TriCasterInputState = TriCasterInput
 export type CompleteTriCasterInputState = RequiredDeep<Omit<TriCasterInputState, 'videoSource'>> &
 	Pick<TriCasterInputState, 'videoSource'>
 
-export interface TriCasterMixOutputState {
+export interface TriCasterOutputState {
 	source?: string
 }
 
@@ -107,6 +110,7 @@ export class TriCasterStateDiffer {
 	private readonly inputNames: TriCasterInputName[]
 	private readonly audioChannelNames: TriCasterAudioChannelName[]
 	private readonly mixOutputNames: TriCasterMixOutputName[]
+	private readonly matrixOutputNames: TriCasterMatrixOutputName[]
 
 	private readonly commandGenerator: CommandGenerator<TriCasterState>
 
@@ -126,23 +130,21 @@ export class TriCasterStateDiffer {
 		]
 		this.audioChannelNames = [...extraAudioChannelNames, ...this.inputNames]
 		this.mixOutputNames = fillArray<TriCasterMixOutputName>(options.outputCount, (i) => `mix${i + 1}`)
+		this.matrixOutputNames = fillArray<TriCasterMatrixOutputName>(MATRIX_OUTPUTS_COUNT, (i) => `out${i + 1}`)
 		this.commandGenerator = this.getGenerator()
 
-		this.timelineStateConverter = new TriCasterTimelineStateConverter(
-			() => this.getDefaultState(),
-			this.meNames,
-			this.inputNames,
-			this.audioChannelNames,
-			this.mixOutputNames
-		)
-		this.shortcutStateConverter = new TriCasterShortcutStateConverter(
-			this.meNames,
-			this.inputNames,
-			this.audioChannelNames,
-			this.layerNames,
-			this.dskNames,
-			this.mixOutputNames
-		)
+		const resourceNames = {
+			mixEffects: this.meNames,
+			inputs: this.inputNames,
+			audioChannels: this.audioChannelNames,
+			layers: this.layerNames,
+			keyers: this.dskNames,
+			mixOutputs: this.mixOutputNames,
+			matrixOutputs: this.matrixOutputNames,
+		}
+
+		this.timelineStateConverter = new TriCasterTimelineStateConverter(() => this.getDefaultState(), resourceNames)
+		this.shortcutStateConverter = new TriCasterShortcutStateConverter(resourceNames)
 	}
 
 	getDefaultState(): CompleteTriCasterState {
@@ -170,7 +172,8 @@ export class TriCasterStateDiffer {
 			),
 			isRecording: false,
 			isStreaming: false,
-			outputs: fillRecord(this.mixOutputNames, () => ({ source: 'program' })),
+			mixOutputs: fillRecord(this.mixOutputNames, () => ({ source: 'program' })),
+			matrixOutputs: fillRecord(this.matrixOutputNames, () => ({ source: 'mix1' })),
 		}
 	}
 
@@ -216,9 +219,13 @@ export class TriCasterStateDiffer {
 			})),
 			isRecording: ({ value }) => [{ name: CommandName.RECORD_TOGGLE, value: value ? 1 : 0 }],
 			isStreaming: ({ value }) => [{ name: CommandName.STREAMING_TOGGLE, value: value ? 1 : 0 }],
-			outputs: fillRecord(this.mixOutputNames, (mixOutputName) => ({
+			mixOutputs: fillRecord(this.mixOutputNames, (mixOutputName) => ({
 				$target: mixOutputName,
 				...this.mixOutputCommandGenerator,
+			})),
+			matrixOutputs: fillRecord(this.matrixOutputNames, (matrixOutputName) => ({
+				$target: matrixOutputName,
+				...this.matrixOutputCommandGenerator,
 			})),
 		}
 	}
@@ -233,8 +240,12 @@ export class TriCasterStateDiffer {
 		isMuted: CommandName.MUTE,
 	}
 
-	private mixOutputCommandGenerator: CommandGenerator<TriCasterMixOutputState> = {
+	private mixOutputCommandGenerator: CommandGenerator<TriCasterOutputState> = {
 		source: CommandName.OUTPUT_SOURCE,
+	}
+
+	private matrixOutputCommandGenerator: CommandGenerator<TriCasterOutputState> = {
+		source: CommandName.CROSSPOINT_SOURCE,
 	}
 
 	private effectCommandGenerator: CommandGeneratorFunction<
