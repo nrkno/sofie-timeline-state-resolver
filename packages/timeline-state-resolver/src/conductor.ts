@@ -49,7 +49,7 @@ import { VizMSEDevice, DeviceOptionsVizMSEInternal } from './integrations/vizMSE
 import { ShotokuDevice, DeviceOptionsShotokuInternal } from './integrations/shotoku'
 import { DeviceOptionsSofieChefInternal, SofieChefDevice } from './integrations/sofieChef'
 import { TelemetricsDevice } from './integrations/telemetrics'
-import { MultiOSCMessageDevice } from './integrations/multiOsc'
+import { DeviceOptionsMultiOSCInternal, MultiOSCMessageDevice } from './integrations/multiOsc'
 
 export { DeviceContainer }
 export { CommandWithContext }
@@ -1506,6 +1506,7 @@ export type DeviceOptionsAnyInternal =
 	| DeviceOptionsPharosInternal
 	| DeviceOptionsOBSInternal
 	| DeviceOptionsOSCInternal
+	| DeviceOptionsMultiOSCInternal
 	| DeviceOptionsSisyfosInternal
 	| DeviceOptionsSofieChefInternal
 	| DeviceOptionsQuantelInternal
