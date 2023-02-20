@@ -53,7 +53,6 @@ describe('MultiOSC-Message', () => {
 				],
 				timeBetweenCommands: 160,
 			},
-			// @ts-ignore: @todo - why doesn't it let me do this?
 			oscSenders: { osc0: commandReceiver0 },
 		})
 		myConductor.setTimelineAndMappings([], myLayerMapping)

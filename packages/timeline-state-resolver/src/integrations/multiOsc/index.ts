@@ -14,9 +14,7 @@ import { DoOnTime, SendMode } from '../../devices/doOnTime'
 
 import * as osc from 'osc'
 
-// import Debug from 'debug'
 import { OSCConnection } from './deviceConnection'
-// const debug = Debug('timeline-state-resolver:multiOsc')
 
 export interface DeviceOptionsMultiOSCInternal extends DeviceOptionsMultiOSC {
 	oscSenders?: Record<string, (msg: osc.OscMessage, address?: string | undefined, port?: number | undefined) => void>
@@ -279,12 +277,12 @@ export class MultiOSCMessageDevice extends DeviceWithState<OSCDeviceState, Devic
 				args: nextCommand.content.values,
 			})
 		} catch (e) {
-			// this.emit('commandError', new Error(e), nextCommand)
+			this.emit('commandError', new Error('Command failed: ' + e), { ...nextCommand, command: nextCommand })
 		}
 
 		this._commandQueueTimer = setTimeout(() => {
 			this._commandQueueTimer = undefined
-			this._processQueue().catch((e) => this.emit('error', 'Error in processinG queue', e))
-		}, this.deviceOptions.options?.timeBetweenCommands || 0) // todo - can or should this come from the tl object?
+			this._processQueue().catch((e) => this.emit('error', 'Error in processing queue', e))
+		}, this.deviceOptions.options?.timeBetweenCommands || 0)
 	}
 }

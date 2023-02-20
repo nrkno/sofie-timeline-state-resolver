@@ -8,7 +8,7 @@ export interface MultiOSCOptions {
 		port: number
 		type: OSCDeviceType
 	}[]
-	timeBetweenCommands: number // todo - move this to the individual timeline objects?
+	timeBetweenCommands: number
 }
 
 export interface MappingMultiOSC extends Mapping {

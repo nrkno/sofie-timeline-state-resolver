@@ -49,7 +49,6 @@ export class OSCConnection extends EventEmitter {
 			;(this._oscClient as osc.TCPSocketPort).socket.on('connect', () => this.updateIsConnected(true))
 		}
 		this._oscClient.on('error', (error: any) => this.emit('error', error))
-		// this._oscClient.on('message', (received: osc.OscMessage) => this.receiver(received))
 
 		return new Promise((resolve) => {
 			this._oscClient.on('ready', () => {
