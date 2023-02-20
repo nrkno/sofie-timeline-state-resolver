@@ -794,7 +794,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 					timelineId: '',
 				})
 			}
-			if (input.listFilePaths !== undefined && !_.isEqual(oldInput.listFilePaths, input.listFilePaths)) {
+			if (!_.isEqual(oldInput.listFilePaths, input.listFilePaths)) {
 				commands.push({
 					command: {
 						command: VMixCommand.LIST_REMOVE_ALL,
@@ -803,16 +803,18 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 					context: null,
 					timelineId: '',
 				})
-				for (const filePath of input.listFilePaths) {
-					commands.push({
-						command: {
-							command: VMixCommand.LIST_ADD,
-							input: input.name,
-							value: filePath,
-						},
-						context: null,
-						timelineId: '',
-					})
+				if (Array.isArray(input.listFilePaths)) {
+					for (const filePath of input.listFilePaths) {
+						commands.push({
+							command: {
+								command: VMixCommand.LIST_ADD,
+								input: input.name,
+								value: filePath,
+							},
+							context: null,
+							timelineId: '',
+						})
+					}
 				}
 			}
 		})
