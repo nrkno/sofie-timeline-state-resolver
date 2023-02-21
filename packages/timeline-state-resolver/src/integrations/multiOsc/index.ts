@@ -128,7 +128,8 @@ export class MultiOSCMessageDevice extends DeviceWithState<OSCDeviceState, Devic
 
 		for (const conn of Object.values(this._connections)) {
 			if (!conn.connected) {
-				;(status.statusCode = StatusCode.BAD), status.messages.push(`${conn.connectionId} is disconnected`)
+				status.statusCode = StatusCode.BAD
+				status.messages.push(`${conn.connectionId} is disconnected`)
 			}
 		}
 
