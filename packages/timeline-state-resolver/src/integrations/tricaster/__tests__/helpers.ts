@@ -1,8 +1,8 @@
-import { TimelineObject, ResolvedTimelineObjectInstance } from 'superfly-timeline'
+import { TimelineContentTriCasterAny, TSRTimelineObj, Timeline } from 'timeline-state-resolver-types'
 
-export const wrapIntoResolvedInstance = <T extends TimelineObject>(
-	timelineObject: T
-): ResolvedTimelineObjectInstance => ({
+export const wrapIntoResolvedInstance = <Content extends TimelineContentTriCasterAny>(
+	timelineObject: TSRTimelineObj<Content>
+): Timeline.ResolvedTimelineObjectInstance<Content> => ({
 	...timelineObject,
 	resolved: {
 		resolved: true,

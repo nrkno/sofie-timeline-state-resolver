@@ -5,7 +5,7 @@ import {
 	MappingTriCaster,
 	MappingTriCasterType,
 	TimelineContentTypeTriCaster,
-	TimelineObjTriCasterME,
+	TimelineContentTriCasterME,
 } from 'timeline-state-resolver-types'
 import { TriCasterDevice } from '..'
 import { TriCasterConnectionEvents, TriCasterConnection } from '../triCasterConnection'
@@ -57,21 +57,21 @@ describe('TriCasterDevice', () => {
 			port: 56789,
 		})
 
-		expect(MOCK_SEND).not.toBeCalled()
+		expect(MOCK_SEND).not.toHaveBeenCalled()
 
 		device.handleState({ time: 11000, layers: {}, nextEvents: [] }, {})
 		await mockTime.advanceTimeToTicks(11010)
 
 		// check that initial commands are sent after connection
 		// the number of them is not that relevant
-		expect(MOCK_SEND).toBeCalled()
+		expect(MOCK_SEND).toHaveBeenCalled()
 		MOCK_SEND.mockClear()
 
 		device.handleState(
 			{
 				time: 12000,
 				layers: {
-					tc_me0_0: wrapIntoResolvedInstance<TimelineObjTriCasterME>({
+					tc_me0_0: wrapIntoResolvedInstance<TimelineContentTriCasterME>({
 						layer: 'tc_me0_0',
 						enable: { while: '1' },
 						id: 't0',

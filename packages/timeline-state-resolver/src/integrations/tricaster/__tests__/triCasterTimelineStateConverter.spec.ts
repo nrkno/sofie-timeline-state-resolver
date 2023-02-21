@@ -3,9 +3,9 @@ import {
 	MappingTriCaster,
 	MappingTriCasterType,
 	TimelineContentTypeTriCaster,
-	TimelineObjTriCasterInput,
-	TimelineObjTriCasterME,
-	TimelineObjTriCasterMixOutput,
+	TimelineContentTriCasterInput,
+	TimelineContentTriCasterME,
+	TimelineContentTriCasterMixOutput,
 } from 'timeline-state-resolver-types'
 import { TriCasterTimelineStateConverter } from '../triCasterTimelineStateConverter'
 import {
@@ -95,7 +95,7 @@ describe('TimelineStateConverter.getTriCasterStateFromTimelineState', () => {
 			{
 				time: Date.now(),
 				layers: {
-					tc_me0_0: wrapIntoResolvedInstance<TimelineObjTriCasterME>({
+					tc_me0_0: wrapIntoResolvedInstance<TimelineContentTriCasterME>({
 						layer: 'tc_me0_0',
 						enable: { while: '1' },
 						id: 't0',
@@ -105,7 +105,7 @@ describe('TimelineStateConverter.getTriCasterStateFromTimelineState', () => {
 							me: { programInput: 'input2', previewInput: 'input3', transitionEffect: 5, transitionDuration: 20 },
 						},
 					}),
-					tc_me0_1: wrapIntoResolvedInstance<TimelineObjTriCasterME>({
+					tc_me0_1: wrapIntoResolvedInstance<TimelineContentTriCasterME>({
 						layer: 'tc_me0_1',
 						enable: { while: '1' },
 						id: 't0',
@@ -197,7 +197,7 @@ describe('TimelineStateConverter.getTriCasterStateFromTimelineState', () => {
 			{
 				time: Date.now(),
 				layers: {
-					tc_out2: wrapIntoResolvedInstance<TimelineObjTriCasterMixOutput>({
+					tc_out2: wrapIntoResolvedInstance<TimelineContentTriCasterMixOutput>({
 						layer: 'tc_out2',
 						enable: { while: '1' },
 						id: 't0',
@@ -234,7 +234,7 @@ describe('TimelineStateConverter.getTriCasterStateFromTimelineState', () => {
 			{
 				time: Date.now(),
 				layers: {
-					tc_inp2: wrapIntoResolvedInstance<TimelineObjTriCasterInput>({
+					tc_inp2: wrapIntoResolvedInstance<TimelineContentTriCasterInput>({
 						layer: 'tc_inp2',
 						enable: { while: '1' },
 						id: 't0',
