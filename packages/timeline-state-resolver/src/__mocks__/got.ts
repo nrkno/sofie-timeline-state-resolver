@@ -80,4 +80,4 @@ const got: any = (options: Options) => {
 Object.keys(gotMethods).forEach((key) => {
 	got[key] = gotMethods[key]
 })
-export = got
+export default got

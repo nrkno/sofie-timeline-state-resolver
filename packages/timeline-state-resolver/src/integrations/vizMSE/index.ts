@@ -2,28 +2,31 @@ import * as _ from 'underscore'
 import { CommandWithContext, DeviceStatus, DeviceWithState, literal, StatusCode } from './../../devices/device'
 
 import {
+	ActionExecutionResult,
+	ActionExecutionResultCode,
 	DeviceOptionsVizMSE,
 	DeviceType,
 	Mapping,
 	Mappings,
 	MediaObject,
 	ResolvedTimelineObjectInstanceExtended,
+	Timeline,
 	TimelineContentTypeVizMSE,
-	TimelineObjVIZMSEAny,
-	TimelineObjVIZMSEElementInternal,
-	TimelineObjVIZMSEElementPilot,
+	TimelineContentVIZMSEAny,
+	TSRTimelineContent,
 	VizMSEOptions,
 	VIZMSETransitionType,
+	VizMSEActions,
+	TimelineContentVIZMSEElementPilot,
+	TimelineContentVIZMSEElementInternal,
 } from 'timeline-state-resolver-types'
-
-import { ResolvedTimelineObjectInstance, TimelineState } from 'superfly-timeline'
 
 import { createMSE, MSE } from '@tv2media/v-connection'
 
 import { DoOnTime, SendMode } from '../../devices/doOnTime'
 
 import { ExpectedPlayoutItem } from '../../expectedPlayoutItems'
-import { endTrace, startTrace } from '../../lib'
+import { endTrace, startTrace, t } from '../../lib'
 import { HTTPClientError, HTTPServerError } from '@tv2media/v-connection/dist/msehttp'
 import { VizMSEManager } from './vizMSEManager'
 import {
@@ -162,7 +165,7 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState, DeviceOptionsVizM
 	/**
 	 * Generates an array of VizMSE commands by comparing the newState against the oldState, or the current device state.
 	 */
-	handleState(newState: TimelineState, newMappings: Mappings) {
+	handleState(newState: Timeline.TimelineState<TSRTimelineContent>, newMappings: Mappings) {
 		super.onHandleState(newState, newMappings)
 		// check if initialized:
 		if (!this._vizmseManager || !this._vizmseManager.initialized) {
@@ -176,7 +179,7 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState, DeviceOptionsVizM
 			.state
 
 		const convertTrace = startTrace(`device:convertState`, { deviceId: this.deviceId })
-		const newVizMSEState = this._convertStateToVizMSE(newState, newMappings)
+		const newVizMSEState = this.convertStateToVizMSE(newState, newMappings)
 		this.emit('timeTrace', endTrace(convertTrace))
 
 		const diffTrace = startTrace(`device:diffState`, { deviceId: this.deviceId })
@@ -205,6 +208,20 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState, DeviceOptionsVizM
 	}
 	get connected(): boolean {
 		return this._vizMSEConnected
+	}
+
+	public async purgeRundown(clearAll: boolean): Promise<void> {
+		await this._vizmseManager?.purgeRundown(clearAll)
+	}
+
+	async executeAction(actionId: string, _payload?: Record<string, any> | undefined): Promise<ActionExecutionResult> {
+		switch (actionId) {
+			case VizMSEActions.PurgeRundown:
+				await this.purgeRundown(true)
+				return { result: ActionExecutionResultCode.Ok }
+			default:
+				return { result: ActionExecutionResultCode.Ok, response: t('Action "{{id}}" not found', { actionId }) }
+		}
 	}
 
 	get deviceType() {
@@ -243,14 +260,14 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState, DeviceOptionsVizM
 	 * Takes a timeline state and returns a VizMSE State that will work with the state lib.
 	 * @param timelineState The timeline state to generate from.
 	 */
-	private _convertStateToVizMSE(timelineState: TimelineState, mappings: Mappings): VizMSEState {
+	convertStateToVizMSE(timelineState: Timeline.TimelineState<TSRTimelineContent>, mappings: Mappings): VizMSEState {
 		const state: VizMSEState = {
 			time: timelineState.time,
 			layer: {},
 		}
 
-		_.each(timelineState.layers, (layer: ResolvedTimelineObjectInstance, layerName: string) => {
-			const layerExt = layer as ResolvedTimelineObjectInstanceExtended
+		_.each(timelineState.layers, (layer, layerName: string) => {
+			const layerExt: ResolvedTimelineObjectInstanceExtended = layer
 			let foundMapping: Mapping = mappings[layerName]
 
 			let isLookahead = false
@@ -260,67 +277,67 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState, DeviceOptionsVizM
 			}
 			if (foundMapping && foundMapping.device === DeviceType.VIZMSE && foundMapping.deviceId === this.deviceId) {
 				if (layer.content) {
-					const l = layer as any as TimelineObjVIZMSEAny
+					const content = layer.content as TimelineContentVIZMSEAny
 
-					switch (l.content.type) {
+					switch (content.type) {
 						case TimelineContentTypeVizMSE.LOAD_ALL_ELEMENTS:
 							state.layer[layerName] = literal<VizMSEStateLayerLoadAllElements>({
-								timelineObjId: l.id,
+								timelineObjId: layer.id,
 								contentType: TimelineContentTypeVizMSE.LOAD_ALL_ELEMENTS,
 							})
 							break
 						case TimelineContentTypeVizMSE.CLEAR_ALL_ELEMENTS: {
 							// Special case: clear all graphics:
-							const showId = this._vizmseManager?.resolveShowNameToId(l.content.showName)
+							const showId = this._vizmseManager?.resolveShowNameToId(content.showName)
 							if (!showId) {
 								this.emit(
 									'warning',
-									`convertStateToVizMSE: Unable to find Show Id for Clear-All template and Show Name "${l.content.showName}"`
+									`convertStateToVizMSE: Unable to find Show Id for Clear-All template and Show Name "${content.showName}"`
 								)
 								break
 							}
 							state.isClearAll = {
-								timelineObjId: l.id,
+								timelineObjId: layer.id,
 								showId,
-								channelsToSendCommands: l.content.channelsToSendCommands,
+								channelsToSendCommands: content.channelsToSendCommands,
 							}
 							break
 						}
 						case TimelineContentTypeVizMSE.CONTINUE:
 							state.layer[layerName] = literal<VizMSEStateLayerContinue>({
-								timelineObjId: l.id,
+								timelineObjId: layer.id,
 								contentType: TimelineContentTypeVizMSE.CONTINUE,
-								direction: l.content.direction,
-								reference: l.content.reference,
+								direction: content.direction,
+								reference: content.reference,
 							})
 							break
 						case TimelineContentTypeVizMSE.INITIALIZE_SHOWS:
 							state.layer[layerName] = literal<VizMSEStateLayerInitializeShows>({
-								timelineObjId: l.id,
+								timelineObjId: layer.id,
 								contentType: TimelineContentTypeVizMSE.INITIALIZE_SHOWS,
 								showIds: _.compact(
-									l.content.showNames.map((showName) => this._vizmseManager?.resolveShowNameToId(showName))
+									content.showNames.map((showName) => this._vizmseManager?.resolveShowNameToId(showName))
 								),
 							})
 							break
 						case TimelineContentTypeVizMSE.CLEANUP_SHOWS:
 							state.layer[layerName] = literal<VizMSEStateLayerCleanupShows>({
-								timelineObjId: l.id,
+								timelineObjId: layer.id,
 								contentType: TimelineContentTypeVizMSE.CLEANUP_SHOWS,
 								showIds: _.compact(
-									l.content.showNames.map((showName) => this._vizmseManager?.resolveShowNameToId(showName))
+									content.showNames.map((showName) => this._vizmseManager?.resolveShowNameToId(showName))
 								),
 							})
 							break
 						case TimelineContentTypeVizMSE.CONCEPT:
 							state.layer[layerName] = literal<VizMSEStateLayerConcept>({
-								timelineObjId: l.id,
+								timelineObjId: layer.id,
 								contentType: TimelineContentTypeVizMSE.CONCEPT,
-								concept: l.content.concept,
+								concept: content.concept,
 							})
 							break
 						default: {
-							const stateLayer = this._contentToStateLayer(l.id, l.content as any)
+							const stateLayer = this._contentToStateLayer(layer.id, content)
 							if (stateLayer) {
 								if (isLookahead) stateLayer.lookahead = true
 
@@ -364,7 +381,7 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState, DeviceOptionsVizM
 
 	private _contentToStateLayer(
 		timelineObjId: string,
-		content: TimelineObjVIZMSEElementInternal['content'] | TimelineObjVIZMSEElementPilot['content']
+		content: TimelineContentVIZMSEElementInternal | TimelineContentVIZMSEElementPilot
 	): VizMSEStateLayer | undefined {
 		if (content.type === TimelineContentTypeVizMSE.ELEMENT_INTERNAL) {
 			const showId = this._vizmseManager?.resolveShowNameToId(content.showName)
@@ -413,7 +430,7 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState, DeviceOptionsVizM
 	async makeReady(okToDestroyStuff?: boolean, activeRundownPlaylistId?: string): Promise<void> {
 		const previousPlaylistId = this._vizmseManager?.activeRundownPlaylistId
 		if (this._vizmseManager) {
-			await this._vizmseManager.cleanupAllSofieShows()
+			await this._vizmseManager.cleanupAllShows()
 			await this._vizmseManager.activate(activeRundownPlaylistId)
 		} else throw new Error(`Unable to activate vizMSE, not initialized yet!`)
 
@@ -423,7 +440,11 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState, DeviceOptionsVizM
 
 			if (this._vizmseManager) {
 				if (this._initOptions && activeRundownPlaylistId !== previousPlaylistId) {
-					if (this._initOptions.clearAllCommands && this._initOptions.clearAllCommands.length) {
+					if (
+						this._initOptions.clearAllOnMakeReady &&
+						this._initOptions.clearAllCommands &&
+						this._initOptions.clearAllCommands.length
+					) {
 						await this._vizmseManager.clearEngines({
 							type: VizMSECommandType.CLEAR_ALL_ENGINES,
 							time: this.getCurrentTime(),

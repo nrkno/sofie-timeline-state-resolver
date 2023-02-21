@@ -2,8 +2,14 @@ import * as _ from 'underscore'
 import { DeviceWithState, DeviceStatus, StatusCode } from './../../devices/device'
 import { DoOnTime, SendMode } from '../../devices/doOnTime'
 
-import { TimelineState } from 'superfly-timeline'
-import { DeviceType, Mappings, TriCasterOptions, DeviceOptionsTriCaster } from 'timeline-state-resolver-types'
+import {
+	DeviceType,
+	Mappings,
+	TriCasterOptions,
+	DeviceOptionsTriCaster,
+	Timeline,
+	TSRTimelineContent,
+} from 'timeline-state-resolver-types'
 import { TriCasterState, TriCasterStateDiffer } from './triCasterStateDiffer'
 import { TriCasterCommandWithContext } from './triCasterCommands'
 import { TriCasterConnection } from './triCasterConnection'
@@ -84,7 +90,7 @@ export class TriCasterDevice extends DeviceWithState<TriCasterState, DeviceOptio
 		this.cleanUpStates(0, newStateTime)
 	}
 
-	handleState(newState: TimelineState, newMappings: Mappings): void {
+	handleState(newState: Timeline.TimelineState<TSRTimelineContent>, newMappings: Mappings): void {
 		super.onHandleState(newState, newMappings)
 		if (!this._initialized || !this._stateDiffer) {
 			// before it's initialized don't do anything

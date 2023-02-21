@@ -1,18 +1,49 @@
 {
 	"name": "timeline-state-resolver-types",
-	"version": "3.2.0",
+	"version": "8.0.0-release48.0",
 	"description": "Have timeline, control stuff",
 	"main": "dist/index.js",
 	"typings": "dist/index.d.ts",
 	"license": "MIT",
 	"repository": {
 		"type": "git",
-		"url": "git+https://github.com/tv2/tv-automation-state-timeline-resolver.git"
+		"url": "git+https://github.com/nrkno/sofie-timeline-state-resolver.git"
 	},
 	"bugs": {
-		"url": "https://github.com/tv2/tv-automation-state-timeline-resolverissues"
+		"url": "https://github.com/nrkno/sofie-timeline-state-resolver/issues"
 	},
-	"homepage": "https://github.com/tv2/tv-automation-state-timeline-resolver#readme",
+	"homepage": "https://github.com/nrkno/sofie-timeline-state-resolver#readme",
+	"contributors": [
+		{
+			"name": "Johan Nyman",
+			"email": "johan@superfly.tv",
+			"url": "http://superfly.tv"
+		},
+		{
+			"name": "Balte de Wit",
+			"email": "balte@superfly.tv",
+			"url": "http://superfly.tv"
+		},
+		{
+			"name": "Jesper Stærkær",
+			"email": "jesper@superfly.tv",
+			"url": "http://superfly.tv"
+		},
+		{
+			"name": "Jan Starzak",
+			"email": "jan@superfly.tv",
+			"url": "http://superfly.tv"
+		},
+		{
+			"name": "Stephan Nordnes Eriksen",
+			"email": "Stephanruler@gmail.com"
+		},
+		{
+			"name": "Julian Waller",
+			"email": "julian@superfly.tv",
+			"url": "http://superfly.tv"
+		}
+	],
 	"scripts": {
 		"test": "yarn lint && yarn unit",
 		"unit": "jest",
@@ -27,11 +58,10 @@
 		"lint": "yarn lint:raw .",
 		"lint-fix": "yarn lint --fix",
 		"license-validate": "yarn sofie-licensecheck",
-		"precommit": "lint-staged",
-		"tv2-rename": "echo \"`jq '.name = \"@tv2media/\" + .name' package.json --tab`\" > package.json"
+		"precommit": "lint-staged"
 	},
 	"engines": {
-		"node": "^14.18 || ^16.14"
+		"node": "^14.18 || ^16.14 || 18"
 	},
 	"files": [
 		"/dist",
@@ -54,7 +84,7 @@
 		"production"
 	],
 	"dependencies": {
-		"tslib": "^2.3.1"
+		"tslib": "^2.4.1"
 	},
 	"publishConfig": {
 		"access": "public"

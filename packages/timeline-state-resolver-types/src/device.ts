@@ -10,6 +10,7 @@ import {
 	QuantelOptions,
 	SingularLiveOptions,
 	SisyfosOptions,
+	SofieChefOptions,
 	TCPSendOptions,
 	AbstractOptions,
 	LawoOptions,
@@ -44,6 +45,7 @@ export interface DeviceOptionsBase<T> extends SlowReportOptions {
 	disable?: boolean
 	options?: T
 	debug?: boolean
+	debugState?: boolean
 }
 
 export interface SlowReportOptions {
@@ -67,6 +69,7 @@ export type DeviceOptionsAny =
 	| DeviceOptionsOSC
 	| DeviceOptionsHTTPWatcher
 	| DeviceOptionsSisyfos
+	| DeviceOptionsSofieChef
 	| DeviceOptionsQuantel
 	| DeviceOptionsSingularLive
 	| DeviceOptionsVMix
@@ -113,6 +116,9 @@ export interface DeviceOptionsHTTPWatcher extends DeviceOptionsBase<HTTPWatcherO
 }
 export interface DeviceOptionsSisyfos extends DeviceOptionsBase<SisyfosOptions> {
 	type: DeviceType.SISYFOS
+}
+export interface DeviceOptionsSofieChef extends DeviceOptionsBase<SofieChefOptions> {
+	type: DeviceType.SOFIE_CHEF
 }
 export interface DeviceOptionsQuantel extends DeviceOptionsBase<QuantelOptions> {
 	type: DeviceType.QUANTEL

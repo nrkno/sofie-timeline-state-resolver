@@ -6,14 +6,16 @@ import {
 	HTTPSendCommandContent,
 	DeviceOptionsHTTPSend,
 	Mappings,
+	Timeline,
+	TSRTimelineContent,
+	TimelineContentTypeHTTP,
+	TimelineContentTypeHTTPParamType,
 } from 'timeline-state-resolver-types'
 import { DoOnTime, SendMode } from '../../devices/doOnTime'
-import got, { RequestError } from 'got'
-
-import { TimelineState, ResolvedTimelineObjectInstance } from 'superfly-timeline'
+import got, { OptionsOfTextResponseBody, RequestError } from 'got'
+import { endTrace, startTrace } from '../../lib'
 
 import Debug from 'debug'
-import { endTrace, startTrace } from '../../lib'
 const debug = Debug('timeline-state-resolver:httpsend')
 
 export interface DeviceOptionsHTTPSendInternal extends DeviceOptionsHTTPSend {
@@ -35,7 +37,7 @@ interface Command {
 }
 type CommandContext = string
 
-type HTTPSendState = TimelineState
+type HTTPSendState = Timeline.TimelineState<TSRTimelineContent>
 
 /**
  * This is a HTTPSendDevice, it sends http commands when it feels like it
@@ -77,12 +79,12 @@ export class HTTPSendDevice extends DeviceWithState<HTTPSendState, DeviceOptions
 		this._doOnTime.clearQueueNowAndAfter(newStateTime)
 		this.cleanUpStates(0, newStateTime)
 	}
-	handleState(newState: TimelineState, newMappings: Mappings) {
+	handleState(newState: Timeline.TimelineState<TSRTimelineContent>, newMappings: Mappings) {
 		super.onHandleState(newState, newMappings)
 		// Handle this new state, at the point in time specified
 
 		const previousStateTime = Math.max(this.getCurrentTime(), newState.time)
-		const oldState: TimelineState = (
+		const oldState: Timeline.TimelineState<TSRTimelineContent> = (
 			this.getStateBefore(previousStateTime) || { state: { time: 0, layers: {}, nextEvents: [] } }
 		).state
 
@@ -140,7 +142,7 @@ export class HTTPSendDevice extends DeviceWithState<HTTPSendState, DeviceOptions
 	get connected(): boolean {
 		return false
 	}
-	convertStateToHttpSend(state: TimelineState) {
+	convertStateToHttpSend(state: Timeline.TimelineState<TSRTimelineContent>) {
 		// convert the timeline state into something we can use
 		// (won't even use this.mapping)
 		return state
@@ -179,12 +181,12 @@ export class HTTPSendDevice extends DeviceWithState<HTTPSendState, DeviceOptions
 	/**
 	 * Compares the new timeline-state with the old one, and generates commands to account for the difference
 	 */
-	private _diffStates(oldhttpSendState: TimelineState, newhttpSendState: TimelineState): Array<Command> {
+	private _diffStates(oldhttpSendState: HTTPSendState, newhttpSendState: HTTPSendState): Array<Command> {
 		// in this httpSend class, let's just cheat:
 
 		const commands: Array<Command> = []
 
-		_.each(newhttpSendState.layers, (newLayer: ResolvedTimelineObjectInstance, layerKey: string) => {
+		_.each(newhttpSendState.layers, (newLayer, layerKey: string) => {
 			const oldLayer = oldhttpSendState.layers[layerKey]
 			if (!oldLayer) {
 				// added!
@@ -210,7 +212,7 @@ export class HTTPSendDevice extends DeviceWithState<HTTPSendState, DeviceOptions
 			}
 		})
 		// removed
-		_.each(oldhttpSendState.layers, (oldLayer: ResolvedTimelineObjectInstance, layerKey) => {
+		_.each(oldhttpSendState.layers, (oldLayer, layerKey) => {
 			const newLayer = newhttpSendState.layers[layerKey]
 			if (!newLayer) {
 				// removed!
@@ -255,9 +257,23 @@ export class HTTPSendDevice extends DeviceWithState<HTTPSendState, DeviceOptions
 
 		const httpReq = got[cmd.type]
 		try {
-			const response = await httpReq(cmd.url, {
-				json: 'params' in cmd ? cmd.params : undefined,
-			})
+			const options: OptionsOfTextResponseBody = {}
+
+			const params = 'params' in cmd && !_.isEmpty(cmd.params) ? cmd.params : undefined
+			if (params) {
+				if (cmd.type === TimelineContentTypeHTTP.GET) {
+					options.searchParams = params
+				} else {
+					if (cmd.paramsType === TimelineContentTypeHTTPParamType.FORM) {
+						options.form = params
+					} else {
+						// Default is json:
+						options.json = params
+					}
+				}
+			}
+
+			const response = await httpReq(cmd.url, options)
 
 			if (response.statusCode === 200) {
 				this.emitDebug(
@@ -273,7 +289,7 @@ export class HTTPSendDevice extends DeviceWithState<HTTPSendState, DeviceOptions
 		} catch (error) {
 			const err = error as RequestError // make typescript happy
 
-			this.emit('error', `HTTPSend.response error ${cmd.type} (${context}`, err)
+			this.emit('error', `HTTPSend.response error on ${cmd.type} "${cmd.url}" (${context})`, err)
 			this.emit('commandError', err, cwc)
 			debug(`Failed ${cmd.url}: ${error} (${timelineObjId})`)
 

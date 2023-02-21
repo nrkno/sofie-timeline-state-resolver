@@ -1,0 +1,52 @@
+{
+	"$schema": "https://json-schema.org/draft/2020-12/schema",
+	"description": "This is a meta-schema that defines the schemas for *device*/$schemas/actions.json",
+	"type": "object",
+	"properties": {
+		"actions": {
+			"type": "array",
+			"items": {
+				"type": "object",
+				"properties": {
+					"id": {
+						"type": "string",
+						"description": "Device-unique id of the action"
+					},
+					"name": {
+						"type": "string",
+						"description": "User readable name of the action"
+					},
+					"destructive": {
+						"type": "boolean",
+						"description": "A destructive action affects playout, users might get a confirmation dialog before executing it."
+					},
+					"timeout": {
+						"type": "integer",
+						"description": "Time in ms after which the action should be considered to have failed if it hasn't returned yet."
+					},
+					"payload": {
+						"type": "object",
+						"description": "The payload object is the first argument of the function",
+						"properties": {
+							"type": {
+								"type": "string",
+								"enum": ["object"]
+							},
+							"properties": {
+								"type": "object"
+							}
+						},
+						"required": ["type", "properties"],
+						"allOf": [
+							{
+								"$ref": "https://json-schema.org/draft/2020-12/schema"
+							}
+						]
+					}
+				},
+				"required": ["id", "name", "destructive"]
+			}
+		}
+	},
+	"required": ["actions"]
+}

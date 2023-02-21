@@ -1,5 +1,5 @@
 import { Mapping } from './mapping'
-import { TSRTimelineObjBase, DeviceType, TimelineDatastoreReferencesContent } from '.'
+import { DeviceType } from '.'
 
 export interface MappingVizMSE extends Mapping {
 	device: DeviceType.VIZMSE
@@ -56,148 +56,130 @@ export enum TimelineContentTypeVizMSE {
 	CONCEPT = 'concept',
 }
 
-export type TimelineObjVIZMSEAny =
-	| TimelineObjVIZMSEElementInternal
-	| TimelineObjVIZMSEElementPilot
-	| TimelineObjVIZMSEElementContinue
-	| TimelineObjVIZMSELoadAllElements
-	| TimelineObjVIZMSEClearAllElements
-	| TimelineObjVIZMSEInitializeShows
-	| TimelineObjVIZMSECleanupShows
-	| TimelineObjVIZMSEConcept
+export type TimelineContentVIZMSEAny =
+	| TimelineContentVIZMSEElementInternal
+	| TimelineContentVIZMSEElementPilot
+	| TimelineContentVIZMSEElementContinue
+	| TimelineContentVIZMSELoadAllElements
+	| TimelineContentVIZMSEClearAllElements
+	| TimelineContentVIZMSEInitializeShows
+	| TimelineContentVIZMSECleanupShows
+	| TimelineContentVIZMSEConcept
 
-export interface TimelineObjVIZMSEBase extends TSRTimelineObjBase {
-	content: {
-		deviceType: DeviceType.VIZMSE
-		type: TimelineContentTypeVizMSE
+export interface TimelineContentVIZMSEBase {
+	deviceType: DeviceType.VIZMSE
+	type: TimelineContentTypeVizMSE
 
-		/** When this changes, a continue-function will be triggered */
-		continueStep?: number
+	/** When this changes, a continue-function will be triggered */
+	continueStep?: number
 
-		/** What channel to output to */
-		channelName?: string
+	/** What channel to output to */
+	channelName?: string
 
-		/** Don't play, only cue the element  */
-		cue?: boolean
+	/** Don't play, only cue the element  */
+	cue?: boolean
 
-		/** If true, won't be preloaded automatically */
-		noAutoPreloading?: boolean
+	/** If true, won't be preloaded automatically */
+	noAutoPreloading?: boolean
 
-		// inTransition?: VIZMSEOutTransition
-		outTransition?: VIZMSEOutTransition
-	} & TimelineDatastoreReferencesContent
+	// inTransition?: VIZMSEOutTransition
+	outTransition?: VIZMSEOutTransition
 }
-export interface TimelineObjVIZMSEElementInternal extends TimelineObjVIZMSEBase {
-	content: {
-		deviceType: DeviceType.VIZMSE
-		type: TimelineContentTypeVizMSE.ELEMENT_INTERNAL
+export interface TimelineContentVIZMSEElementInternal extends TimelineContentVIZMSEBase {
+	deviceType: DeviceType.VIZMSE
+	type: TimelineContentTypeVizMSE.ELEMENT_INTERNAL
 
-		/** When this changes, a continue-function will be triggered */
-		continueStep?: number
+	/** When this changes, a continue-function will be triggered */
+	continueStep?: number
 
-		/** What channel to output to */
-		channelName?: string
+	/** What channel to output to */
+	channelName?: string
 
-		/** Don't play, only cue the element  */
-		cue?: boolean
+	/** Don't play, only cue the element  */
+	cue?: boolean
 
-		/** If true, won't be preloaded (cued) automatically */
-		noAutoPreloading?: boolean
+	/** If true, won't be preloaded (cued) automatically */
+	noAutoPreloading?: boolean
 
-		// inTransition?: VIZMSEOutTransition
-		outTransition?: VIZMSEOutTransition
+	// inTransition?: VIZMSEOutTransition
+	outTransition?: VIZMSEOutTransition
 
-		/** Name of the template to be played */
-		templateName: string
-		/** Data to be fed into the template */
-		templateData: Array<string>
-		/** Name of the Show to place this element in */
-		showName: string
-		/** Whether this element should have its take delayed until after an out transition has finished */
-		delayTakeAfterOutTransition?: boolean
-	} & TimelineDatastoreReferencesContent
+	/** Name of the template to be played */
+	templateName: string
+	/** Data to be fed into the template */
+	templateData: Array<string>
+	/** Name of the Show to place this element in */
+	showName: string
+	/** Whether this element should have its take delayed until after an out transition has finished */
+	delayTakeAfterOutTransition?: boolean
 }
-export interface TimelineObjVIZMSEElementPilot extends TimelineObjVIZMSEBase {
-	content: {
-		deviceType: DeviceType.VIZMSE
-		type: TimelineContentTypeVizMSE.ELEMENT_PILOT
+export interface TimelineContentVIZMSEElementPilot extends TimelineContentVIZMSEBase {
+	deviceType: DeviceType.VIZMSE
+	type: TimelineContentTypeVizMSE.ELEMENT_PILOT
 
-		/** When this changes, a continue-function will be triggered */
-		continueStep?: number
+	/** When this changes, a continue-function will be triggered */
+	continueStep?: number
 
-		/** What channel to output to */
-		channelName?: string
+	/** What channel to output to */
+	channelName?: string
 
-		/** Don't play, only cue the element  */
-		cue?: boolean
+	/** Don't play, only cue the element  */
+	cue?: boolean
 
-		/** If true, won't be preloaded (cued) automatically */
-		noAutoPreloading?: boolean
+	/** If true, won't be preloaded (cued) automatically */
+	noAutoPreloading?: boolean
 
-		// inTransition?: VIZMSEOutTransition
-		outTransition?: VIZMSEOutTransition
+	// inTransition?: VIZMSEOutTransition
+	outTransition?: VIZMSEOutTransition
 
-		/** Viz-Pilot id of the template to be played */
-		templateVcpId: number
-		/** Whether this element should have its take delayed until after an out transition has finished */
-		delayTakeAfterOutTransition?: boolean
-	} & TimelineDatastoreReferencesContent
+	/** Viz-Pilot id of the template to be played */
+	templateVcpId: number
+	/** Whether this element should have its take delayed until after an out transition has finished */
+	delayTakeAfterOutTransition?: boolean
 }
-export interface TimelineObjVIZMSEElementContinue extends TSRTimelineObjBase {
-	content: {
-		deviceType: DeviceType.VIZMSE
-		type: TimelineContentTypeVizMSE.CONTINUE
+export interface TimelineContentVIZMSEElementContinue extends TimelineContentVIZMSEBase {
+	deviceType: DeviceType.VIZMSE
+	type: TimelineContentTypeVizMSE.CONTINUE
 
-		/** Whether to continue or reverse (defaults to 1) */
-		direction?: 1 | -1
+	/** Whether to continue or reverse (defaults to 1) */
+	direction?: 1 | -1
 
-		/** What other layer to continue */
-		reference: string
-	} & TimelineDatastoreReferencesContent
+	/** What other layer to continue */
+	reference: string
 }
-export interface TimelineObjVIZMSELoadAllElements extends TSRTimelineObjBase {
-	content: {
-		deviceType: DeviceType.VIZMSE
-		type: TimelineContentTypeVizMSE.LOAD_ALL_ELEMENTS
-	} & TimelineDatastoreReferencesContent
+export interface TimelineContentVIZMSELoadAllElements extends TimelineContentVIZMSEBase {
+	deviceType: DeviceType.VIZMSE
+	type: TimelineContentTypeVizMSE.LOAD_ALL_ELEMENTS
 }
-export interface TimelineObjVIZMSEClearAllElements extends TSRTimelineObjBase {
-	content: {
-		deviceType: DeviceType.VIZMSE
-		type: TimelineContentTypeVizMSE.CLEAR_ALL_ELEMENTS
+export interface TimelineContentVIZMSEClearAllElements extends TimelineContentVIZMSEBase {
+	deviceType: DeviceType.VIZMSE
+	type: TimelineContentTypeVizMSE.CLEAR_ALL_ELEMENTS
 
-		/** Names of the channels to send the special clear commands to */
-		channelsToSendCommands?: string[]
+	/** Names of the channels to send the special clear commands to */
+	channelsToSendCommands?: string[]
 
-		/** Name of the Show to use for taking the special template */
-		showName: string
-	} & TimelineDatastoreReferencesContent
+	/** Name of the Show to use for taking the special template */
+	showName: string
 }
-export interface TimelineObjVIZMSEInitializeShows extends TSRTimelineObjBase {
-	content: {
-		deviceType: DeviceType.VIZMSE
-		type: TimelineContentTypeVizMSE.INITIALIZE_SHOWS
+export interface TimelineContentVIZMSEInitializeShows extends TimelineContentVIZMSEBase {
+	deviceType: DeviceType.VIZMSE
+	type: TimelineContentTypeVizMSE.INITIALIZE_SHOWS
 
-		/** Names of the Shows to initialize */
-		showNames: string[]
-	} & TimelineDatastoreReferencesContent
+	/** Names of the Shows to initialize */
+	showNames: string[]
 }
-export interface TimelineObjVIZMSECleanupShows extends TSRTimelineObjBase {
-	content: {
-		deviceType: DeviceType.VIZMSE
-		type: TimelineContentTypeVizMSE.CLEANUP_SHOWS
+export interface TimelineContentVIZMSECleanupShows extends TimelineContentVIZMSEBase {
+	deviceType: DeviceType.VIZMSE
+	type: TimelineContentTypeVizMSE.CLEANUP_SHOWS
 
-		/** Names of the Shows to cleanup */
-		showNames: string[]
-	} & TimelineDatastoreReferencesContent
+	/** Names of the Shows to cleanup */
+	showNames: string[]
 }
 
-export interface TimelineObjVIZMSEConcept extends TimelineObjVIZMSEBase {
-	content: {
-		deviceType: DeviceType.VIZMSE
-		type: TimelineContentTypeVizMSE.CONCEPT
-		concept: string
-	} & TimelineDatastoreReferencesContent
+export interface TimelineContentVIZMSEConcept extends TimelineContentVIZMSEBase {
+	deviceType: DeviceType.VIZMSE
+	type: TimelineContentTypeVizMSE.CONCEPT
+	concept: string
 }
 
 export type VIZMSEOutTransition = VIZMSETransitionDelay

@@ -1,5 +1,5 @@
 import { Mapping } from './mapping'
-import { TSRTimelineObjBase, DeviceType, TimelineDatastoreReferencesContent } from '.'
+import { DeviceType } from '.'
 
 export interface PharosOptions {
 	host: string
@@ -15,39 +15,31 @@ export enum TimelineContentTypePharos {
 	TIMELINE = 'timeline',
 }
 
-export type TimelineObjPharosAny = TimelineObjPharosScene | TimelineObjPharosTimeline
+export type TimelineContentPharosAny = TimelineContentPharosScene | TimelineContentPharosTimeline
 
-export interface TimelineObjPharos extends TSRTimelineObjBase {
-	content: {
-		deviceType: DeviceType.PHAROS
-		type: TimelineContentTypePharos
+export interface TimelineContentPharos {
+	deviceType: DeviceType.PHAROS
+	type: TimelineContentTypePharos
 
-		/** override: don't stop / release */
-		noRelease?: true
-		stopped?: boolean
-	}
+	/** override: don't stop / release */
+	noRelease?: true
+	stopped?: boolean
 }
-export interface TimelineObjPharosScene extends TimelineObjPharos {
-	content: {
-		deviceType: DeviceType.PHAROS
-		type: TimelineContentTypePharos.SCENE
-		stopped?: boolean
-		noRelease?: true
+export interface TimelineContentPharosScene extends TimelineContentPharos {
+	type: TimelineContentTypePharos.SCENE
+	stopped?: boolean
+	noRelease?: true
 
-		scene: number
-		fade?: number
-	} & TimelineDatastoreReferencesContent
+	scene: number
+	fade?: number
 }
-export interface TimelineObjPharosTimeline extends TimelineObjPharos {
-	content: {
-		deviceType: DeviceType.PHAROS
-		type: TimelineContentTypePharos.TIMELINE
-		stopped?: boolean
-		noRelease?: true
+export interface TimelineContentPharosTimeline extends TimelineContentPharos {
+	type: TimelineContentTypePharos.TIMELINE
+	stopped?: boolean
+	noRelease?: true
 
-		timeline: number
-		pause?: boolean
-		rate?: boolean
-		fade?: number
-	} & TimelineDatastoreReferencesContent
+	timeline: number
+	pause?: boolean
+	rate?: boolean
+	fade?: number
 }

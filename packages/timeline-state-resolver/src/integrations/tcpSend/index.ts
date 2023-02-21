@@ -7,9 +7,10 @@ import {
 	TcpSendCommandContent,
 	DeviceOptionsTCPSend,
 	Mappings,
+	TSRTimelineContent,
+	Timeline,
 } from 'timeline-state-resolver-types'
 import { DoOnTime, SendMode } from '../../devices/doOnTime'
-import { TimelineState, ResolvedTimelineObjectInstance } from 'superfly-timeline'
 
 const TIMEOUT = 3000 // ms
 const RETRY_TIMEOUT = 5000 // ms
@@ -31,7 +32,7 @@ interface TCPSendCommand {
 }
 type CommandContext = string
 
-type TSCSendState = TimelineState
+type TSCSendState = Timeline.TimelineState<TSRTimelineContent>
 
 /**
  * This is a TCPSendDevice, it sends commands over tcp when it feels like it
@@ -85,7 +86,7 @@ export class TCPSendDevice extends DeviceWithState<TSCSendState, DeviceOptionsTC
 		this._doOnTime.clearQueueNowAndAfter(newStateTime)
 		this.cleanUpStates(0, newStateTime)
 	}
-	handleState(newState: TimelineState, newMappings: Mappings) {
+	handleState(newState: Timeline.TimelineState<TSRTimelineContent>, newMappings: Mappings) {
 		super.onHandleState(newState, newMappings)
 		// Handle this new state, at the point in time specified
 
@@ -142,7 +143,7 @@ export class TCPSendDevice extends DeviceWithState<TSCSendState, DeviceOptionsTC
 	get connected(): boolean {
 		return this._connected
 	}
-	convertStateToTCPSend(state: TimelineState) {
+	convertStateToTCPSend(state: Timeline.TimelineState<TSRTimelineContent>) {
 		// convert the timeline state into something we can use
 		// (won't even use this.mapping)
 		return state
@@ -212,11 +213,11 @@ export class TCPSendDevice extends DeviceWithState<TSCSendState, DeviceOptionsTC
 	/**
 	 * Compares the new timeline-state with the old one, and generates commands to account for the difference
 	 */
-	private _diffStates(oldTCPSendState: TimelineState, newTCPSendState: TimelineState): Array<TCPSendCommand> {
+	private _diffStates(oldTCPSendState: TSCSendState, newTCPSendState: TSCSendState): Array<TCPSendCommand> {
 		// in this TCPSend class, let's just cheat:
 		const commands: Array<TCPSendCommand> = []
 
-		_.each(newTCPSendState.layers, (newLayer: ResolvedTimelineObjectInstance, layerKey: string) => {
+		_.each(newTCPSendState.layers, (newLayer, layerKey: string) => {
 			const oldLayer = oldTCPSendState.layers[layerKey]
 			// added/changed
 			if (newLayer.content) {
@@ -243,7 +244,7 @@ export class TCPSendDevice extends DeviceWithState<TSCSendState, DeviceOptionsTC
 			}
 		})
 		// removed
-		_.each(oldTCPSendState.layers, (oldLayer: ResolvedTimelineObjectInstance, layerKey) => {
+		_.each(oldTCPSendState.layers, (oldLayer, layerKey) => {
 			const newLayer = newTCPSendState.layers[layerKey]
 			if (!newLayer) {
 				// removed!

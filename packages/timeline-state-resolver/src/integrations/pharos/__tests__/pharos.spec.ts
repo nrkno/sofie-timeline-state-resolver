@@ -9,9 +9,6 @@ import * as WebSocket from '../../../__mocks__/ws'
 describe('Pharos', () => {
 	jest.mock('ws', () => WebSocket)
 	const mockTime = new MockTime()
-	beforeAll(() => {
-		mockTime.mockDateNow()
-	})
 	beforeEach(() => {
 		mockTime.init()
 

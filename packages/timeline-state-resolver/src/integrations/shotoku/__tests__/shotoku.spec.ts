@@ -23,9 +23,6 @@ async function waitALittleBit() {
 // let nowActual = Date.now()
 describe('Shotoku', () => {
 	const mockTime = new MockTime()
-	beforeAll(() => {
-		mockTime.mockDateNow()
-	})
 	beforeEach(() => {
 		mockTime.init()
 	})

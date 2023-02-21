@@ -3,7 +3,8 @@ import { Conductor, DeviceType, CasparCGDevice } from '../../dist/'
 import {
 	DeviceType as Types_DeviceType,
 	TSRTimeline,
-	TimelineObjEmpty,
+	TSRTimelineObj,
+	TimelineContentEmpty,
 	DeviceOptionsAbstract,
 } from 'timeline-state-resolver-types'
 
@@ -29,7 +30,7 @@ describe('Usage of library', () => {
 		expect(Types_DeviceType).toEqual(DeviceType)
 
 		// Expect these types to work:
-		const obj: TimelineObjEmpty = {
+		const obj: TSRTimelineObj<TimelineContentEmpty> = {
 			id: 'myId',
 			enable: {
 				start: 0,

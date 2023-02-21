@@ -9,10 +9,11 @@ import {
 	DeviceOptionsOSC,
 	Mappings,
 	OSCDeviceType,
+	Timeline,
+	TSRTimelineContent,
 } from 'timeline-state-resolver-types'
 import { DoOnTime, SendMode } from '../../devices/doOnTime'
 
-import { TimelineState } from 'superfly-timeline'
 import * as osc from 'osc'
 import { Easing } from './../../devices/transitions/easings'
 
@@ -126,7 +127,7 @@ export class OSCMessageDevice extends DeviceWithState<OSCDeviceState, DeviceOpti
 	 * in time.
 	 * @param newState
 	 */
-	handleState(newState: TimelineState, newMappings: Mappings) {
+	handleState(newState: Timeline.TimelineState<TSRTimelineContent>, newMappings: Mappings) {
 		super.onHandleState(newState, newMappings)
 		// Transform timeline states into device states
 		const previousStateTime = Math.max(this.getCurrentTime(), newState.time)
@@ -186,21 +187,23 @@ export class OSCMessageDevice extends DeviceWithState<OSCDeviceState, DeviceOpti
 	 * a timeline state.
 	 * @param state
 	 */
-	convertStateToOSCMessage(state: TimelineState) {
+	convertStateToOSCMessage(state: Timeline.TimelineState<TSRTimelineContent>) {
 		const addrToOSCMessage: OSCDeviceState = {}
 		const addrToPriority: { [address: string]: number } = {}
 
 		_.each(state.layers, (layer) => {
-			const content: OSCDeviceStateContent = {
-				...(layer.content as OSCMessageCommandContent),
-				fromTlObject: layer.id,
-			}
-			if (
-				(addrToOSCMessage[content.path] && addrToPriority[content.path] <= (layer.priority || 0)) ||
-				!addrToOSCMessage[content.path]
-			) {
-				addrToOSCMessage[content.path] = content
-				addrToPriority[content.path] = layer.priority || 0
+			if (layer.content.deviceType === DeviceType.OSC) {
+				const content: OSCDeviceStateContent = {
+					...layer.content,
+					fromTlObject: layer.id,
+				}
+				if (
+					(addrToOSCMessage[content.path] && addrToPriority[content.path] <= (layer.priority || 0)) ||
+					!addrToOSCMessage[content.path]
+				) {
+					addrToOSCMessage[content.path] = content
+					addrToPriority[content.path] = layer.priority || 0
+				}
 			}
 		})
 

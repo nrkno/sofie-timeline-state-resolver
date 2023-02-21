@@ -1,24 +1,26 @@
 import * as Timeline from './superfly-timeline'
-import { TimelineObjAtemAny } from './atem'
-import { TimelineObjCasparCGAny } from './casparcg'
-import { TimelineObjHTTPSendAny } from './httpSend'
-import { TimelineObjTCPSendAny } from './tcpSend'
-import { TimelineObjHyperdeckAny } from './hyperdeck'
-import { TimelineObjLawoAny } from './lawo'
-import { TimelineObjOSCAny } from './osc'
-import { TimelineObjPharosAny } from './pharos'
-import { TimelineObjPanasonicPtzAny } from './panasonicPTZ'
-import { TimelineObjAbstractAny } from './abstract'
+import { TimelineContentTelemetricsAny } from './telemetrics'
+import { TimelineContentAtemAny } from './atem'
+import { TimelineContentCasparCGAny } from './casparcg'
+import { TimelineContentHTTPSendAny } from './httpSend'
+import { TimelineContentTCPSendAny } from './tcpSend'
+import { TimelineContentHyperdeckAny } from './hyperdeck'
+import { TimelineContentLawoAny } from './lawo'
+import { TimelineContentOSCAny } from './osc'
+import { TimelineContentPharosAny } from './pharos'
+import { TimelineContentPanasonicPtzAny } from './panasonicPTZ'
+import { TimelineContentAbstractAny } from './abstract'
 import { TSRTimelineObjProps } from './mapping'
-import { TimelineObjQuantelAny } from './quantel'
-import { TimelineObjShotoku } from './shotoku'
-import { TimelineObjSisyfosAny } from './sisyfos'
-import { TimelineObjVIZMSEAny } from './vizMSE'
-import { TimelineObjSingularLiveAny } from './singularLive'
-import { TimelineObjVMixAny } from './vmix'
-import { TimelineObjOBSAny } from './obs'
-import { TimelineObjTelemetricsAny } from './telemetrics'
-import { TimelineObjTriCasterAny } from './tricaster'
+import { TimelineContentQuantelAny } from './quantel'
+import { TimelineContentShotoku } from './shotoku'
+import { TimelineContentSisyfosAny } from './sisyfos'
+import { TimelineContentSofieChefAny } from './sofieChef'
+import { TimelineContentVIZMSEAny } from './vizMSE'
+import { TimelineContentSingularLiveAny } from './singularLive'
+import { TimelineContentVMixAny } from './vmix'
+import { TimelineContentOBSAny } from './obs'
+import { TimelineContentTriCasterAny } from './tricaster'
+import { ITranslatableMessage } from './translations'
 
 export * from './abstract'
 export * from './atem'
@@ -31,6 +33,7 @@ export * from './osc'
 export * from './pharos'
 export * from './panasonicPTZ'
 export * from './sisyfos'
+export * from './sofieChef'
 export * from './quantel'
 export * from './shotoku'
 export * from './tcpSend'
@@ -48,8 +51,9 @@ export { Timeline }
 export * from './mapping'
 export * from './expectedPlayoutItems'
 export * from './mediaObject'
+export * from './translations'
 
-export type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>
+export * from './generated'
 
 export enum DeviceType {
 	ABSTRACT = 0,
@@ -70,13 +74,12 @@ export enum DeviceType {
 	SHOTOKU = 15,
 	VMIX = 20,
 	OBS = 21,
-	TELEMETRICS = 22,
+	SOFIE_CHEF = 22,
+	TELEMETRICS = 23,
 	TRICASTER = 24,
 }
 
-export interface TSRTimelineKeyframe<T> extends Timeline.TimelineKeyframe {
-	content: Partial<T>
-}
+export type TSRTimelineKeyframe<TContent> = Timeline.TimelineKeyframe<TContent>
 
 /**
  * An object containing references to the datastore
@@ -98,54 +101,41 @@ export interface TimelineDatastoreReferencesContent {
 	$references?: TimelineDatastoreReferences
 }
 
-export interface TSRTimelineObjBase extends Omit<Timeline.TimelineObject, 'content'>, TSRTimelineObjProps {
-	content: {
-		deviceType: DeviceType
-	} & TimelineDatastoreReferencesContent
-	keyframes?: Array<TSRTimelineKeyframe<this['content']>>
+export type TSRTimeline = TSRTimelineObj<TSRTimelineContent>[]
+
+export interface TSRTimelineObj<TContent extends { deviceType: DeviceType }>
+	extends Omit<Timeline.TimelineObject<TContent & TimelineDatastoreReferencesContent>, 'children'>,
+		TSRTimelineObjProps {
+	children?: TSRTimelineObj<TSRTimelineContent>[]
 }
 
-export interface TSRTimelineObjBaseWithOnAir extends TSRTimelineObjBase {
-	content: {
-		deviceType: DeviceType
-		/** If the object in question is intended to NOT be on air.
-		 * The exact result depends on the device, but it could affect things like making in-transitions quicker, faster camera movements, etc..
-		 */
-		notOnAir?: boolean
-	}
+export interface TimelineContentEmpty {
+	deviceType: DeviceType.ABSTRACT
+	type: 'empty'
 }
 
-export interface TimelineObjEmpty extends TSRTimelineObjBase {
-	content: {
-		deviceType: DeviceType.ABSTRACT
-		type: 'empty'
-	}
-	classes: Array<string>
-}
-
-export type TSRTimelineObj =
-	| TimelineObjEmpty
-	| TimelineObjAbstractAny
-	| TimelineObjAtemAny
-	| TimelineObjCasparCGAny
-	| TimelineObjHTTPSendAny
-	| TimelineObjTCPSendAny
-	| TimelineObjHyperdeckAny
-	| TimelineObjLawoAny
-	| TimelineObjOBSAny
-	| TimelineObjOSCAny
-	| TimelineObjPharosAny
-	| TimelineObjPanasonicPtzAny
-	| TimelineObjQuantelAny
-	| TimelineObjShotoku
-	| TimelineObjSisyfosAny
-	| TimelineObjSingularLiveAny
-	| TimelineObjVMixAny
-	| TimelineObjVIZMSEAny
-	| TimelineObjTelemetricsAny
-	| TimelineObjTriCasterAny
-
-export type TSRTimeline = Array<TSRTimelineObj>
+export type TSRTimelineContent =
+	| TimelineContentEmpty
+	| TimelineContentAbstractAny
+	| TimelineContentAtemAny
+	| TimelineContentCasparCGAny
+	| TimelineContentHTTPSendAny
+	| TimelineContentTCPSendAny
+	| TimelineContentHyperdeckAny
+	| TimelineContentLawoAny
+	| TimelineContentOBSAny
+	| TimelineContentOSCAny
+	| TimelineContentPharosAny
+	| TimelineContentPanasonicPtzAny
+	| TimelineContentQuantelAny
+	| TimelineContentShotoku
+	| TimelineContentSisyfosAny
+	| TimelineContentSofieChefAny
+	| TimelineContentSingularLiveAny
+	| TimelineContentVMixAny
+	| TimelineContentVIZMSEAny
+	| TimelineContentTelemetricsAny
+	| TimelineContentTriCasterAny
 
 /**
  * A simple key value store that can be referred to from the timeline objects
@@ -157,4 +147,14 @@ export interface Datastore {
 		/** A unix-Timestamp of when the value was set. (Note that this must not be set a value in the future.) */
 		modified: number
 	}
+}
+
+export interface ActionExecutionResult {
+	result: ActionExecutionResultCode
+	response?: ITranslatableMessage
+}
+
+export enum ActionExecutionResultCode {
+	Error = 'ERROR',
+	Ok = 'OK',
 }

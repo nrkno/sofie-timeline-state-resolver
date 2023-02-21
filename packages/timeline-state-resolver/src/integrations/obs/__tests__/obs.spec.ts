@@ -10,12 +10,13 @@ import {
 	MappingOBSSourceSettings,
 	MappingOBSStreaming,
 	TimelineContentTypeOBS,
-	TimelineObjOBSCurrentScene,
-	TimelineObjOBSRecording,
-	TimelineObjOBSStreaming,
-	TimelineObjOBSCurrentTransition,
-	TimelineObjOBSSourceSettings,
-	TimelineObjOBSSceneItemRender,
+	TimelineContentOBSCurrentScene,
+	TimelineContentOBSRecording,
+	TimelineContentOBSStreaming,
+	TimelineContentOBSCurrentTransition,
+	TimelineContentOBSSourceSettings,
+	TimelineContentOBSSceneItemRender,
+	TSRTimelineObj,
 } from 'timeline-state-resolver-types'
 import { MockTime } from '../../../__tests__/mockTime'
 import { literal } from '../../../devices/device'
@@ -26,9 +27,6 @@ import * as WebSocket from '../../../__mocks__/ws'
 
 describe('OBS', () => {
 	const mockTime = new MockTime()
-	beforeAll(() => {
-		mockTime.mockDateNow()
-	})
 	beforeEach(() => {
 		mockTime.init()
 		WebSocket.clearMockInstances()
@@ -157,7 +155,7 @@ describe('OBS', () => {
 		expect(await device.queue).toHaveLength(0)
 
 		myConductor.setTimelineAndMappings([
-			literal<TimelineObjOBSCurrentScene>({
+			literal<TSRTimelineObj<TimelineContentOBSCurrentScene>>({
 				id: 'obj0',
 				enable: {
 					start: mockTime.now + 1000, // in 1 second
@@ -205,7 +203,7 @@ describe('OBS', () => {
 		expect(await device.queue).toHaveLength(0)
 
 		myConductor.setTimelineAndMappings([
-			literal<TimelineObjOBSCurrentScene>({
+			literal<TSRTimelineObj<TimelineContentOBSCurrentScene>>({
 				id: 'obj0',
 				enable: {
 					start: mockTime.now + 1000, // in 1 second
@@ -227,7 +225,7 @@ describe('OBS', () => {
 		expect(commandReceiver0).toHaveBeenCalledTimes(1)
 
 		myConductor.setTimelineAndMappings([
-			literal<TimelineObjOBSCurrentScene>({
+			literal<TSRTimelineObj<TimelineContentOBSCurrentScene>>({
 				id: 'obj0',
 				enable: {
 					while: 1,
@@ -240,7 +238,7 @@ describe('OBS', () => {
 					sceneName: 'scene0',
 				},
 			}),
-			literal<TimelineObjOBSCurrentScene>({
+			literal<TSRTimelineObj<TimelineContentOBSCurrentScene>>({
 				id: 'lookahead_obj0',
 				enable: {
 					while: 1,
@@ -284,7 +282,7 @@ describe('OBS', () => {
 		expect(await device.queue).toHaveLength(0)
 
 		myConductor.setTimelineAndMappings([
-			literal<TimelineObjOBSRecording>({
+			literal<TSRTimelineObj<TimelineContentOBSRecording>>({
 				id: 'obj0',
 				enable: {
 					while: 1,
@@ -297,7 +295,7 @@ describe('OBS', () => {
 					on: true,
 				},
 			}),
-			literal<TimelineObjOBSStreaming>({
+			literal<TSRTimelineObj<TimelineContentOBSStreaming>>({
 				id: 'obj1',
 				enable: {
 					while: 1,
@@ -347,7 +345,7 @@ describe('OBS', () => {
 		expect(await device.queue).toHaveLength(0)
 
 		myConductor.setTimelineAndMappings([
-			literal<TimelineObjOBSCurrentTransition>({
+			literal<TSRTimelineObj<TimelineContentOBSCurrentTransition>>({
 				id: 'obj0',
 				enable: {
 					while: 1,
@@ -393,7 +391,7 @@ describe('OBS', () => {
 		expect(await device.queue).toHaveLength(0)
 
 		myConductor.setTimelineAndMappings([
-			literal<TimelineObjOBSSceneItemRender>({
+			literal<TSRTimelineObj<TimelineContentOBSSceneItemRender>>({
 				id: 'obj0',
 				enable: {
 					while: 1,
@@ -424,7 +422,7 @@ describe('OBS', () => {
 		expect(getMockCall(commandReceiver0, 0, 2)).toMatch(/changed/) // context
 
 		myConductor.setTimelineAndMappings([
-			literal<TimelineObjOBSSceneItemRender>({
+			literal<TSRTimelineObj<TimelineContentOBSSceneItemRender>>({
 				id: 'obj0',
 				enable: {
 					while: 1,
@@ -472,7 +470,7 @@ describe('OBS', () => {
 		expect(await device.queue).toHaveLength(0)
 
 		myConductor.setTimelineAndMappings([
-			literal<TimelineObjOBSSourceSettings>({
+			literal<TSRTimelineObj<TimelineContentOBSSourceSettings>>({
 				id: 'obj0',
 				enable: {
 					while: 1,
@@ -509,7 +507,7 @@ describe('OBS', () => {
 		expect(getMockCall(commandReceiver0, 0, 2)).toMatch(/changed/) // context
 
 		myConductor.setTimelineAndMappings([
-			literal<TimelineObjOBSSourceSettings>({
+			literal<TSRTimelineObj<TimelineContentOBSSourceSettings>>({
 				id: 'obj0',
 				enable: {
 					while: 1,

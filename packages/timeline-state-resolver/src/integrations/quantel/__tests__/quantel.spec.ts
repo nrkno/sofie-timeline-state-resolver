@@ -4,7 +4,7 @@ import { Mappings, DeviceType, MappingQuantel, QuantelTransitionType } from 'tim
 import { MockTime } from '../../../__tests__/mockTime'
 import { ThreadedClass } from 'threadedclass'
 import { QuantelDevice } from '..'
-import { QuantelCommandType } from '../interfaces'
+import { QuantelCommandType } from '../types'
 import '../../../__tests__/lib'
 
 const orgSetTimeout = setTimeout
@@ -139,9 +139,6 @@ describe('Quantel', () => {
 	}
 
 	const mockTime = new MockTime()
-	beforeAll(() => {
-		mockTime.mockDateNow()
-	})
 	beforeEach(() => {
 		mockTime.init()
 

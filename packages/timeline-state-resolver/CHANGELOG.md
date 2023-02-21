@@ -3,34 +3,41 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
-## [3.2.0](https://github.com/tv2/tv-automation-state-timeline-resolver/compare/3.0.3...3.2.0) (2023-02-15)
-
-
-### Features
-
-* SOF-1135 make `createDevice` and `initDevice` abortable ([70bfef2](https://github.com/tv2/tv-automation-state-timeline-resolver/commit/70bfef20029b8972aeb248a7c2012b5d92fb2ecc))
-* SOF-1254 add TriCaster integration ([06b129e](https://github.com/tv2/tv-automation-state-timeline-resolver/commit/06b129ecec2d87b0caaa22fda36b2b5ef953653e))
+# [8.0.0-release48.0](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/7.5.0-release47.3...8.0.0-release48.0) (2022-12-12)
 
 
 ### Bug Fixes
 
-* add thread event handling for AsyncResolver thread ([68904e2](https://github.com/tv2/tv-automation-state-timeline-resolver/commit/68904e20c119b4df6bb665f725acb39b86bc54b8))
-* register error handler in threadedClass ([dae9db0](https://github.com/tv2/tv-automation-state-timeline-resolver/commit/dae9db0a0876a873702f27770771ec01cfc5d1e0))
-* SOF-1254 improve types ([0471a7b](https://github.com/tv2/tv-automation-state-timeline-resolver/commit/0471a7bf64f7340e83b5b6f47212003fd2586ca6))
-* SOF-1254 log warning when websocket disconnected ([3d9964a](https://github.com/tv2/tv-automation-state-timeline-resolver/commit/3d9964af7c4352c36e95824dd323cd2fe46717fd))
-
-
-
-## [3.1.0](https://github.com/tv2/tv-automation-state-timeline-resolver/compare/3.0.3...3.1.0) (2023-01-09)
+* add optional parameter to HTTPSend timelineObj: paramsType ([979dc61](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/979dc61748c4c371a8b17c7fd8c5929c69f747d9))
+* add support for Node 18 ([6242dd6](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/6242dd68f54a491aa71bdfd30b066550d6f7e90e))
+* bug fix: HTTPSend device didn't send GET requests ([8315531](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/83155314706497a9c630dbde14d5c5d7e57103cf))
+* prevent in place reverse in setDatastore ([473ab71](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/473ab713785325c2062db983c8ece80ea5dede4d))
+* track ccg state internally ([fd5596f](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/fd5596fcf975a7a122c6fb21946f13c2e97a4233))
 
 
 ### Features
 
-* SOF-1135 make `createDevice` and `initDevice` abortable ([70bfef2](https://github.com/tv2/tv-automation-state-timeline-resolver/commit/70bfef20029b8972aeb248a7c2012b5d92fb2ecc))
+* action manifests ([681d4c8](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/681d4c8a72fb409dba919fd13db17f3c2f168d1a))
+* add vizmse actions ([f7e585c](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/f7e585c97e852ab30e9fd6d20077be906038af70))
+* translations for actions ([df4cb43](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/df4cb43cf16a8e2ae34c1fe44801c5a327f9b01e))
+* update for casparcg-connection rewrite ([5dfdd23](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/5dfdd2320caf89432d36513026c1259e2cf3d366))
 
 
 
-## [3.0.3](https://github.com/tv2/tv-automation-state-timeline-resolver/compare/3.0.2...3.0.3) (2022-12-05)
+
+
+# [7.5.0-release47.6](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/7.5.0-release47.5...7.5.0-release47.6) (2023-02-07)
+
+
+### Bug Fixes
+
+* telemetrics device will never start, because the file path to class is wrong ([8f722c4](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/8f722c44fc4749dd815cb1fbd75d24f8d995a334))
+
+
+
+
+
+# [7.5.0-release47.5](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/7.5.0-release47.4...7.5.0-release47.5) (2023-01-16)
 
 **Note:** Version bump only for package timeline-state-resolver
 
@@ -38,7 +45,22 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
 
 
 
-## [3.0.2](https://github.com/tv2/tv-automation-state-timeline-resolver/compare/3.0.0...3.0.2) (2022-11-28)
+# [7.5.0-release47.4](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/7.5.0-release47.3...7.5.0-release47.4) (2023-01-13)
+
+
+### Bug Fixes
+
+* add optional parameter to HTTPSend timelineObj: paramsType ([979dc61](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/979dc61748c4c371a8b17c7fd8c5929c69f747d9))
+* add support for Node 18 ([6242dd6](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/6242dd68f54a491aa71bdfd30b066550d6f7e90e))
+* bug fix: HTTPSend device didn't send GET requests ([8315531](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/83155314706497a9c630dbde14d5c5d7e57103cf))
+* prevent in place reverse in setDatastore ([473ab71](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/473ab713785325c2062db983c8ece80ea5dede4d))
+* track ccg state internally ([fd5596f](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/fd5596fcf975a7a122c6fb21946f13c2e97a4233))
+
+
+
+
+
+# [7.5.0-release47.3](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/7.5.0-release47.2...7.5.0-release47.3) (2022-11-07)
 
 **Note:** Version bump only for package timeline-state-resolver
 
@@ -46,7 +68,7 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
 
 
 
-## [3.0.1](https://github.com/tv2/tv-automation-state-timeline-resolver/compare/3.0.0...3.0.1) (2022-11-28)
+# [7.5.0-release47.2](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/7.5.0-release47.1...7.5.0-release47.2) (2022-11-02)
 
 **Note:** Version bump only for package timeline-state-resolver
 
@@ -54,167 +76,88 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
 
 
 
-## [3.0.0](https://github.com/tv2/tv-automation-state-timeline-resolver/compare/2.3.1...3.0.0) (2022-11-21)
-
-
-### ⚠ BREAKING CHANGES
-
-* resolve MSE show names to IDs using the directory
-
-### Features
-
-* resolve MSE show names to IDs using the directory ([e094dda](https://github.com/tv2/tv-automation-state-timeline-resolver/commit/e094dda7dbd14b312ff8ffef5d45a39a1e802bcf))
+# [7.5.0-release47.1](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/7.5.0-release47.0...7.5.0-release47.1) (2022-11-02)
 
 
 ### Bug Fixes
 
-* unable to resolve show ids (bug from previous refactor) ([cdf2c62](https://github.com/tv2/tv-automation-state-timeline-resolver/commit/cdf2c62227517e7a48a7c8c7ae102374167056cd))
-
-
-
-## [2.3.1](https://github.com/tv2/tv-automation-state-timeline-resolver/compare/2.3.0...2.3.1) (2022-11-11)
-
-**Note:** Version bump only for package timeline-state-resolver
+* add method to manually purge viz rundown ([49737e2](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/49737e2fba1b967b1b5d6d84e5c1624ee3a9ab11))
 
 
 
 
 
-# [2.3.0](https://github.com/tv2/tv-automation-state-timeline-resolver/compare/2.2.3...2.3.0) (2022-10-28)
+# [7.5.0-release47.0](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/7.3.0...7.5.0-release47.0) (2022-10-28)
 
 
 ### Bug Fixes
 
-* SOF-1140 wrap strings in Errors to avoid mangled logs ([bca62cb](https://github.com/tv2/tv-automation-state-timeline-resolver/commit/bca62cb7d3abd05974e79f5eece079de98a4bacf))
+* add methods for restarting windows ([31e4289](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/31e4289cceb8b7472e7749fc33daa98b64229675))
+* add thread event handling for AsyncResolver thread ([3a7581b](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/3a7581ba8a31b84deba54b46146b1811eb2868d8))
+* add thread event handling for AsyncResolver thread ([68904e2](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/68904e20c119b4df6bb665f725acb39b86bc54b8))
+* register error handler in threadedClass ([67f42f3](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/67f42f3dc8bd7c41a7737d31aea1d3480876c8c5))
+* register error handler in threadedClass ([dae9db0](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/dae9db0a0876a873702f27770771ec01cfc5d1e0))
+* timeout a device terminate operation if it takes too long and force-terminate ([7686d8b](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/7686d8b9b11027daaefbd06028b5dbe7d96c0595))
+* update SofieChef device API ([514d827](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/514d8271dd0d1fbce673154067d92f02a25e0b4b))
 
 
 ### Features
 
-* SOF-1140 handle warnings from v-connection ([a48d313](https://github.com/tv2/tv-automation-state-timeline-resolver/commit/a48d313d20344ebd8a061c625d8ed3491df95465))
+* add Sofie Chef device ([4fac092](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/4fac092d6f896d1f5fa77c92b7f8a69339a75c55))
 
 
 
-
-
-## [2.2.3](https://github.com/tv2/tv-automation-state-timeline-resolver/compare/2.2.2...2.2.3) (2022-10-18)
-
-**Note:** Version bump only for package timeline-state-resolver
-
-
-
-
-
-# [2.2.0](https://github.com/tv2/tv-automation-state-timeline-resolver/compare/2.1.7...2.2.0) (2022-10-04)
-
-
-
-# [7.3.0-release44.2](https://github.com/tv2/tv-automation-state-timeline-resolver/compare/7.4.0-release46.1...7.3.0-release44.2) (2022-09-29)
+# [7.4.0-release46.1](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/7.4.0-release46.0...7.4.0-release46.1) (2022-09-27)
 
 
 ### Bug Fixes
 
-* timeout a device terminate operation if it takes too long and force-terminate ([59ec81a](https://github.com/tv2/tv-automation-state-timeline-resolver/commit/59ec81a2947a8f48b699fd52f6e9185dd1587f2e))
+* improve error for http-device ([40d00ab](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/40d00abb27f478b81ad11d121f7863e29047309b))
+* use tlTime instead of time to remove future callbacks. ([0e70a3f](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/0e70a3f51253ede85c233714fd0b42fd83cffae2))
 
 
 
-# [7.4.0-release46.1](https://github.com/tv2/tv-automation-state-timeline-resolver/compare/7.4.0-release46.0...7.4.0-release46.1) (2022-09-27)
-
-
-### Bug Fixes
-
-* use tlTime instead of time to remove future callbacks. ([0e70a3f](https://github.com/tv2/tv-automation-state-timeline-resolver/commit/0e70a3f51253ede85c233714fd0b42fd83cffae2))
-
-
-
-# [7.4.0-release46.0](https://github.com/tv2/tv-automation-state-timeline-resolver/compare/7.3.0-release44.1...7.4.0-release46.0) (2022-09-26)
+# [7.4.0-release46.0](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/7.3.0-release44.1...7.4.0-release46.0) (2022-09-26)
 
 
 ### Bug Fixes
 
-* index datastore references by path ([9b48d72](https://github.com/tv2/tv-automation-state-timeline-resolver/commit/9b48d725d79d4eee13e7347e450abaadf02b6db2))
-
-
-
-# [7.3.0-release44.1](https://github.com/tv2/tv-automation-state-timeline-resolver/compare/2.1.6...7.3.0-release44.1) (2022-09-22)
-
-
-### Bug Fixes
-
-* don't stop playback when clipId is null ([cfc8f2e](https://github.com/tv2/tv-automation-state-timeline-resolver/commit/cfc8f2e2c5e467e783e2fcf18377078caf313ad1))
-* improve callBackId creation, so that it relies more on the incoming timeline objects, rather than resolved timeline objects ([349dbf3](https://github.com/tv2/tv-automation-state-timeline-resolver/commit/349dbf3d8f829fcd15b0480f1af1724d76bd1afa))
-* invert warnOnEmptySlots to suppressEmptySlotWarnings ([edcd7b0](https://github.com/tv2/tv-automation-state-timeline-resolver/commit/edcd7b0fde747ae160c93f2ca1284661153f5647))
-* move all references to the root of the tl obj ([130b6c3](https://github.com/tv2/tv-automation-state-timeline-resolver/commit/130b6c3a908b0911f94ccedc67e7004404f11010))
-* send only one callback per timeline object ([00b168d](https://github.com/tv2/tv-automation-state-timeline-resolver/commit/00b168dc5511881ef9471dca1a4851342d6d115b))
-* unrelated build errors ([68791e9](https://github.com/tv2/tv-automation-state-timeline-resolver/commit/68791e9bc1602488e69c2fe3c5b49c74b6e5b538))
-* update v-connection dep ([53fbc96](https://github.com/tv2/tv-automation-state-timeline-resolver/commit/53fbc9650f905ace72563f3b4f0e44f45e951685))
+* don't stop playback when clipId is null ([cfc8f2e](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/cfc8f2e2c5e467e783e2fcf18377078caf313ad1))
+* fixed memory leak in datastore ([8e06eb6](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/8e06eb68c2352b59e7298c1bc2543ffa150edd7f))
+* improve callBackId creation, so that it relies more on the incoming timeline objects, rather than resolved timeline objects ([349dbf3](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/349dbf3d8f829fcd15b0480f1af1724d76bd1afa))
+* index datastore references by path ([9b48d72](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/9b48d725d79d4eee13e7347e450abaadf02b6db2))
+* invert warnOnEmptySlots to suppressEmptySlotWarnings ([edcd7b0](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/edcd7b0fde747ae160c93f2ca1284661153f5647))
+* lowered logging level for a apparent log call via an event. ([ca06e3b](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/ca06e3bbe60acf27220ab9773c1751454bea8b8f))
+* move all references to the root of the tl obj ([130b6c3](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/130b6c3a908b0911f94ccedc67e7004404f11010))
+* send only one callback per timeline object ([00b168d](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/00b168dc5511881ef9471dca1a4851342d6d115b))
+* SOF-1046 prevent resetting transition on startup ([e52cf60](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/e52cf60c07e58062c346bf0a84e48a9106b28105))
+* SOF-1091 increase threadedClass freezeLimit ([f852b99](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/f852b99415000da334dffa370267e69314832956))
+* test after casparcg-state update ([c93ab57](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/c93ab5750344d67ae8d1ef6c34ca47ca7d60d3f9))
+* unrelated build errors ([68791e9](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/68791e9bc1602488e69c2fe3c5b49c74b6e5b538))
 
 
 ### Features
 
-* **HyperDeck:** add "warnOnEmptySlots" option ([233a413](https://github.com/tv2/tv-automation-state-timeline-resolver/commit/233a4132097f38723b7150b7e61635f39e08115d))
-* **Hyperdeck:** add explicit support for Preview and Stopped states ([133776f](https://github.com/tv2/tv-automation-state-timeline-resolver/commit/133776f2cbc5bfc1ef9255b0f1e161357ae6e339))
-* **Hyperdeck:** add support for play and goto commands ([50e9e15](https://github.com/tv2/tv-automation-state-timeline-resolver/commit/50e9e156651ba250a4fa3d5fcc01a184ba928ade))
-* include more info about the request ([f17ad70](https://github.com/tv2/tv-automation-state-timeline-resolver/commit/f17ad70fd90afc819d878e143d6130edf672be1f))
-* **vizMSE:** add logging of request body when client error caught ([85a2894](https://github.com/tv2/tv-automation-state-timeline-resolver/commit/85a2894c66c1a06cc0ddee2e1c72745f294f0998))
+* **datastore:** newer tl objs will override entry ([9f31b9f](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/9f31b9f614b1c54665ce4c379e912e19603abdce))
+* **HyperDeck:** add "warnOnEmptySlots" option ([233a413](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/233a4132097f38723b7150b7e61635f39e08115d))
+* **Hyperdeck:** add explicit support for Preview and Stopped states ([133776f](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/133776f2cbc5bfc1ef9255b0f1e161357ae6e339))
+* **Hyperdeck:** add support for play and goto commands ([50e9e15](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/50e9e156651ba250a4fa3d5fcc01a184ba928ade))
+* include more info about the request ([f17ad70](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/f17ad70fd90afc819d878e143d6130edf672be1f))
+* timeline datastore prototype ([e122e8b](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/e122e8bff7404b1955853131d24144c660f76753))
+* **vizMSE:** add logging of request body when client error caught ([85a2894](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/85a2894c66c1a06cc0ddee2e1c72745f294f0998))
 
 
 
-# [7.3.0-release44.0](https://github.com/tv2/tv-automation-state-timeline-resolver/compare/2.1.3...7.3.0-release44.0) (2022-07-04)
 
 
-
-## [7.0.1](https://github.com/tv2/tv-automation-state-timeline-resolver/compare/7.0.0...7.0.1) (2022-06-28)
-
-
-### Bug Fixes
-
-* test after casparcg-state update ([4674f37](https://github.com/tv2/tv-automation-state-timeline-resolver/commit/4674f37c393683bd74f9a4e7519a4cc4a1d42141))
-
-
-
-# [7.0.0](https://github.com/tv2/tv-automation-state-timeline-resolver/compare/2.1.2...7.0.0) (2022-06-27)
-
-
-### Features
-
-* **datastore:** newer tl objs will override entry ([9f31b9f](https://github.com/tv2/tv-automation-state-timeline-resolver/commit/9f31b9f614b1c54665ce4c379e912e19603abdce))
-
-
-
-# [7.1.0-release42.2](https://github.com/tv2/tv-automation-state-timeline-resolver/compare/v2.0.0...7.1.0-release42.2) (2022-05-19)
-
+# [7.3.0](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/7.3.0-release44.2...7.3.0) (2022-10-24)
 
 ### Bug Fixes
 
-* fixed memory leak in datastore ([8e06eb6](https://github.com/tv2/tv-automation-state-timeline-resolver/commit/8e06eb68c2352b59e7298c1bc2543ffa150edd7f))
-* update casparcg-state ([7698a5d](https://github.com/tv2/tv-automation-state-timeline-resolver/commit/7698a5dff610fd74e79f9b6348beb872a319f018))
+- re-add net mock connect callback ([95ebdad](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/95ebdad8881885e8078ed868700e93aa1e974106))
+- re-adds a check for clearAllOnMakeReady before doing so ([4b6168f](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/4b6168fbfc938d60f479b18d140ced21bf4a598e))
 
-
-### Features
-
-* timeline datastore prototype ([e122e8b](https://github.com/tv2/tv-automation-state-timeline-resolver/commit/e122e8bff7404b1955853131d24144c660f76753))
-
-
-
-# [7.1.0-release42.1](https://github.com/tv2/tv-automation-state-timeline-resolver/compare/7.0.0-release41.2...7.1.0-release42.1) (2022-04-29)
-
-
-### Bug Fixes
-
-* update hyperdeck dep ([db75cc6](https://github.com/tv2/tv-automation-state-timeline-resolver/commit/db75cc666bdfd8e5133b604ec56699cee50f2d0b))
-* update supertimeline ([251c8b5](https://github.com/tv2/tv-automation-state-timeline-resolver/commit/251c8b5a83d84e8457cabe8badcf2e52cf10d3ba))
-
-
-### Reverts
-
-* Revert "7.1.0" ([8ce054c](https://github.com/tv2/tv-automation-state-timeline-resolver/commit/8ce054c6016fc0d23ef37a3ae1d233090a829fb9))
-
-
-
-
-
-# [7.4.0-release46.1](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/7.3.0-release44.1...7.4.0-release46.1) (2022-09-27)
-
+# [7.3.0-release44.2](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/7.3.0-release44.1...7.3.0-release44.2) (2022-09-29)
 
 ### Bug Fixes
 

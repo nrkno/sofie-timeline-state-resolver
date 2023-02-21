@@ -1,6 +1,6 @@
 {
 	"name": "timeline-state-resolver",
-	"version": "3.2.0",
+	"version": "8.0.0-release48.0",
 	"description": "Have timeline, control stuff",
 	"main": "dist/index.js",
 	"typings": "dist/index.d.ts",
@@ -9,15 +9,46 @@
 	"license": "MIT",
 	"repository": {
 		"type": "git",
-		"url": "git+https://github.com/tv2/tv-automation-state-timeline-resolver.git"
+		"url": "git+https://github.com/nrkno/tv-automation-state-timeline-resolver.git"
 	},
 	"bugs": {
-		"url": "https://github.com/tv2/tv-automation-state-timeline-resolver/issues"
+		"url": "https://github.com/nrkno/tv-automation-state-timeline-resolver/issues"
 	},
-	"homepage": "https://github.com/tv2/tv-automation-state-timeline-resolver#readme",
+	"homepage": "https://github.com/nrkno/tv-automation-state-timeline-resolver#readme",
+	"contributors": [
+		{
+			"name": "Johan Nyman",
+			"email": "johan@superfly.tv",
+			"url": "http://superfly.tv"
+		},
+		{
+			"name": "Balte de Wit",
+			"email": "balte@superfly.tv",
+			"url": "http://superfly.tv"
+		},
+		{
+			"name": "Jesper Stærkær",
+			"email": "jesper@superfly.tv",
+			"url": "http://superfly.tv"
+		},
+		{
+			"name": "Jan Starzak",
+			"email": "jan@superfly.tv",
+			"url": "http://superfly.tv"
+		},
+		{
+			"name": "Stephan Nordnes Eriksen",
+			"email": "Stephanruler@gmail.com"
+		},
+		{
+			"name": "Julian Waller",
+			"email": "julian@superfly.tv",
+			"url": "http://superfly.tv"
+		}
+	],
 	"scripts": {
 		"unlink:all": "yarn unlink atem-connection & yarn unlink atem-state & yarn unlink casparcg-connection & yarn unlink casparcg-state & yarn unlink superfly-timeline",
-		"build": "rimraf dist && yarn build:main",
+		"build": "rimraf dist && yarn build:main && yarn translations:bundle",
 		"build:main": "tsc -p tsconfig.build.json",
 		"lint:raw": "eslint --ext .ts --ext .js --ext .tsx --ext .jsx --ignore-pattern dist",
 		"lint": "yarn lint:raw .",
@@ -32,12 +63,13 @@
 		"cov-open": "open-cli coverage/lcov-report/index.html",
 		"validate:dependencies": "yarn audit --groups dependencies && yarn license-validate",
 		"validate:dev-dependencies": "yarn audit --groups devDependencies",
-		"tv2-rename": "yarn tv2-rename:package && yarn tv2-rename:dependency",
-		"tv2-rename:package": "echo \"`jq '.name = \"@tv2media/\" + .name' package.json --tab`\" > package.json",
-		"tv2-rename:dependency": "echo \"`jq '.dependencies.\"timeline-state-resolver-types\" = \"npm:@tv2media/timeline-state-resolver-types@\" + .dependencies.\"timeline-state-resolver-types\"' package.json --tab`\" > package.json"
+		"precommit": "lint-staged",
+		"generate-schema-types": "node ./scripts/schema-types.mjs",
+		"translations:extract": "node ./scripts/translation/extract.mjs",
+		"translations:bundle": "node ./scripts/translation/bundle.mjs"
 	},
 	"engines": {
-		"node": "^14.18 || ^16.14"
+		"node": "^14.18 || ^16.14 || 18"
 	},
 	"files": [
 		"/dist",
@@ -60,13 +92,13 @@
 		"@tv2media/v-connection": "^7.2.1",
 		"atem-connection": "2.4.0",
 		"atem-state": "^0.12.2",
-		"casparcg-connection": "^5.1.0",
-		"casparcg-state": "2.1.2-nightly-latest-20220819-074840-588e6e7.0",
+		"casparcg-connection": "^6.0.0",
+		"casparcg-state": "^3.0.2",
 		"debug": "^4.3.1",
 		"deepmerge": "^4.2.2",
 		"emberplus-connection": "^0.1.2",
 		"eventemitter3": "^4.0.7",
-		"got": "^11.8.5",
+		"got": "^11.8.6",
 		"hyperdeck-connection": "^0.5.0",
 		"obs-websocket-js": "^4.0.3",
 		"osc": "^2.4.2",
@@ -75,18 +107,24 @@
 		"p-timeout": "^3.2.0",
 		"request": "^2.88.0",
 		"sprintf-js": "^1.1.2",
-		"superfly-timeline": "^8.2.8",
-		"threadedclass": "^1.1.1",
-		"timeline-state-resolver-types": "3.2.0",
-		"tslib": "^2.3.1",
-		"tv-automation-quantel-gateway-client": "^2.0.5",
+		"superfly-timeline": "^8.3.1",
+		"threadedclass": "^1.2.0",
+		"timeline-state-resolver-types": "8.0.0-release48.0",
+		"tslib": "^2.4.1",
+		"tv-automation-quantel-gateway-client": "^3.0.2",
 		"underscore": "^1.13.4",
 		"underscore-deep-extend": "^1.1.5",
-		"utf-8-validate": "^5.0.9",
+		"utf-8-validate": "^5.0.10",
 		"ws": "^7.5.7",
 		"xml-js": "^1.6.11"
 	},
 	"publishConfig": {
 		"access": "public"
+	},
+	"devDependencies": {
+		"i18next-conv": "^13.1.0",
+		"i18next-parser": "^6.6.0",
+		"json-schema-to-typescript": "^10.1.5",
+		"vinyl-fs": "^3.0.3"
 	}
 }

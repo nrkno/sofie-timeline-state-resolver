@@ -1,5 +1,5 @@
 import { Mapping } from './mapping'
-import { DeviceType, TimelineDatastoreReferencesContent, TSRTimelineObjBase } from '.'
+import { DeviceType } from '.'
 
 export type TriCasterMixEffectName = 'main' | `v${number}`
 export type TriCasterKeyerName = `dsk${number}`
@@ -76,18 +76,16 @@ export enum TimelineContentTypeTriCaster {
 	MIX_OUTPUT = 'MIX_OUTPUT',
 }
 
-export type TimelineObjTriCasterAny =
-	| TimelineObjTriCasterME
-	| TimelineObjTriCasterDSK
-	| TimelineObjTriCasterInput
-	| TimelineObjTriCasterAudioChannel
-	| TimelineObjTriCasterMixOutput
+export type TimelineContentTriCasterAny =
+	| TimelineContentTriCasterME
+	| TimelineContentTriCasterDSK
+	| TimelineContentTriCasterInput
+	| TimelineContentTriCasterAudioChannel
+	| TimelineContentTriCasterMixOutput
 
-export interface TimelineObjTriCasterBase extends TSRTimelineObjBase {
-	content: {
-		deviceType: DeviceType.TRICASTER
-		type: TimelineContentTypeTriCaster
-	} & TimelineDatastoreReferencesContent
+export interface TimelineContentTriCasterBase {
+	deviceType: DeviceType.TRICASTER
+	type: TimelineContentTypeTriCaster
 }
 
 interface TriCasterMixEffectBase {
@@ -124,60 +122,51 @@ export type TriCasterMixEffect =
 	| TriCasterMixEffectWithPreview
 	| TriCasterMixEffectInMixMode
 
-export interface TimelineObjTriCasterME extends TimelineObjTriCasterBase {
-	content: {
-		deviceType: DeviceType.TRICASTER
-		type: TimelineContentTypeTriCaster.ME
+export interface TimelineContentTriCasterME extends TimelineContentTriCasterBase {
+	type: TimelineContentTypeTriCaster.ME
 
-		me: TriCasterMixEffect
-	} & TimelineDatastoreReferencesContent
+	me: TriCasterMixEffect
 }
 
-export function isTimelineObjTriCasterME(timelineObject: TSRTimelineObjBase): timelineObject is TimelineObjTriCasterME {
-	return isTimelineObjTriCaster(timelineObject) && timelineObject.content.type === TimelineContentTypeTriCaster.ME
-}
+// export function isTimelineObjTriCasterME(timelineObject: TSRTimelineObjBase): timelineObject is TimelineObjTriCasterME {
+// 	return isTimelineObjTriCaster(timelineObject) && timelineObject.content.type === TimelineContentTypeTriCaster.ME
+// }
 
-export function isTimelineObjTriCaster(timelineObject: TSRTimelineObjBase): timelineObject is TimelineObjTriCasterBase {
-	return timelineObject.content.deviceType === DeviceType.TRICASTER
-}
+// export function isTimelineObjTriCaster(timelineObject: TSRTimelineObjBase): timelineObject is TimelineObjTriCasterBase {
+// 	return timelineObject.content.deviceType === DeviceType.TRICASTER
+// }
 
 /**
  * Convenience object for the keyers in the Main M/E
  */
-export interface TimelineObjTriCasterDSK extends TimelineObjTriCasterBase {
-	content: {
-		deviceType: DeviceType.TRICASTER
-		type: TimelineContentTypeTriCaster.DSK
+export interface TimelineContentTriCasterDSK extends TimelineContentTriCasterBase {
+	type: TimelineContentTypeTriCaster.DSK
 
-		keyer: TriCasterKeyer
-	} & TimelineDatastoreReferencesContent
+	keyer: TriCasterKeyer
 }
 
-export function isTimelineObjTriCasterDSK(
-	timelineObject: TSRTimelineObjBase
-): timelineObject is TimelineObjTriCasterDSK {
-	return isTimelineObjTriCaster(timelineObject) && timelineObject.content.type === TimelineContentTypeTriCaster.DSK
-}
+// export function isTimelineObjTriCasterDSK(
+// 	timelineObject: TSRTimelineObjBase
+// ): timelineObject is TimelineObjTriCasterDSK {
+// 	return isTimelineObjTriCaster(timelineObject) && timelineObject.content.type === TimelineContentTypeTriCaster.DSK
+// }
 
 export interface TriCasterInput {
 	videoActAsAlpha?: boolean
 	videoSource?: string
 }
 
-export interface TimelineObjTriCasterInput extends TimelineObjTriCasterBase {
-	content: {
-		deviceType: DeviceType.TRICASTER
-		type: TimelineContentTypeTriCaster.INPUT
+export interface TimelineContentTriCasterInput extends TimelineContentTriCasterBase {
+	type: TimelineContentTypeTriCaster.INPUT
 
-		input: TriCasterInput
-	} & TimelineDatastoreReferencesContent
+	input: TriCasterInput
 }
 
-export function isTimelineObjTriCasterInput(
-	timelineObject: TSRTimelineObjBase
-): timelineObject is TimelineObjTriCasterInput {
-	return isTimelineObjTriCaster(timelineObject) && timelineObject.content.type === TimelineContentTypeTriCaster.INPUT
-}
+// export function isTimelineObjTriCasterInput(
+// 	timelineObject: TSRTimelineObjBase
+// ): timelineObject is TimelineObjTriCasterInput {
+// 	return isTimelineObjTriCaster(timelineObject) && timelineObject.content.type === TimelineContentTypeTriCaster.INPUT
+// }
 
 export interface TriCasterAudioChannel {
 	isMuted?: boolean
@@ -188,44 +177,38 @@ export interface TriCasterAudioChannel {
 	volume?: number
 }
 
-export interface TimelineObjTriCasterAudioChannel extends TimelineObjTriCasterBase {
-	content: {
-		deviceType: DeviceType.TRICASTER
-		type: TimelineContentTypeTriCaster.AUDIO_CHANNEL
+export interface TimelineContentTriCasterAudioChannel extends TimelineContentTriCasterBase {
+	type: TimelineContentTypeTriCaster.AUDIO_CHANNEL
 
-		audioChannel: TriCasterAudioChannel
-	} & TimelineDatastoreReferencesContent
+	audioChannel: TriCasterAudioChannel
 }
 
-export function isTimelineObjTriCasterAudioChannel(
-	timelineObject: TSRTimelineObjBase
-): timelineObject is TimelineObjTriCasterAudioChannel {
-	return (
-		isTimelineObjTriCaster(timelineObject) && timelineObject.content.type === TimelineContentTypeTriCaster.AUDIO_CHANNEL
-	)
+// export function isTimelineObjTriCasterAudioChannel(
+// 	timelineObject: TSRTimelineObjBase
+// ): timelineObject is TimelineObjTriCasterAudioChannel {
+// 	return (
+// 		isTimelineObjTriCaster(timelineObject) && timelineObject.content.type === TimelineContentTypeTriCaster.AUDIO_CHANNEL
+// 	)
+// }
+
+export interface TimelineContentTriCasterMixOutput extends TimelineContentTriCasterBase {
+	type: TimelineContentTypeTriCaster.MIX_OUTPUT
+
+	/**
+	 * Any of the named Inputs, Media Players and Buffers ('INPUTn', 'DDRn', 'BFRn') e.g. 'INPUT12' or
+	 * any of the MEs ('Vn') e.g. 'V1' or
+	 * or 'Program', 'Preview', 'program_clean', 'me_program', 'me_preview'
+	 */
+	source: TriCasterMixOutputSource
 }
 
-export interface TimelineObjTriCasterMixOutput extends TimelineObjTriCasterBase {
-	content: {
-		deviceType: DeviceType.TRICASTER
-		type: TimelineContentTypeTriCaster.MIX_OUTPUT
-
-		/**
-		 * Any of the named Inputs, Media Players and Buffers ('INPUTn', 'DDRn', 'BFRn') e.g. 'INPUT12' or
-		 * any of the MEs ('Vn') e.g. 'V1' or
-		 * or 'Program', 'Preview', 'program_clean', 'me_program', 'me_preview'
-		 */
-		source: TriCasterMixOutputSource
-	} & TimelineDatastoreReferencesContent
-}
-
-export function isTimelineObjTriCasterMixOutput(
-	timelineObject: TSRTimelineObjBase
-): timelineObject is TimelineObjTriCasterMixOutput {
-	return (
-		isTimelineObjTriCaster(timelineObject) && timelineObject.content.type === TimelineContentTypeTriCaster.MIX_OUTPUT
-	)
-}
+// export function isTimelineObjTriCasterMixOutput(
+// 	timelineObject: TSRTimelineObjBase
+// ): timelineObject is TimelineObjTriCasterMixOutput {
+// 	return (
+// 		isTimelineObjTriCaster(timelineObject) && timelineObject.content.type === TimelineContentTypeTriCaster.MIX_OUTPUT
+// 	)
+// }
 
 export type TriCasterTransitionEffect = 'cut' | 'fade' | number
 

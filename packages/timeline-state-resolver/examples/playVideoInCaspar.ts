@@ -1,4 +1,4 @@
-import { Conductor, DeviceType } from '../src/index' // from 'timeline-state-resolver'
+import { Conductor, DeviceType, TimelineContentCCGMedia } from '../src/index' // from 'timeline-state-resolver'
 import { TimelineContentTypeCasparCg, TSRTimelineObj } from '../../timeline-state-resolver-types/src' // from 'timeline-state-resolver-types'
 
 // Initialize TSR:
@@ -30,7 +30,7 @@ const a = async function () {
 		},
 	}
 	// Set a new timeline:
-	const video0: TSRTimelineObj = {
+	const video0: TSRTimelineObj<TimelineContentCCGMedia> = {
 		id: 'video0',
 		enable: {
 			start: Date.now(),

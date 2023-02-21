@@ -7,6 +7,7 @@ import {
 	LawoDeviceMode,
 	MappingCasparCG,
 	TimelineContentTypeCasparCg,
+	TimelineContentCCGMedia,
 } from 'timeline-state-resolver-types'
 import { Conductor, TimelineTriggerTimeResult } from '../conductor'
 import * as _ from 'underscore'
@@ -15,12 +16,12 @@ import { ThreadedClass } from 'threadedclass'
 import { AbstractDevice } from '../integrations/abstract'
 import { getMockCall } from './lib'
 import { setupAllMocks } from '../__mocks__/_setup-all-mocks'
+import { Commands } from 'casparcg-connection'
 
 describe('Conductor', () => {
 	const mockTime = new MockTime()
 	beforeAll(() => {
 		setupAllMocks()
-		mockTime.mockDateNow()
 	})
 	beforeEach(() => {
 		mockTime.init()
@@ -64,7 +65,7 @@ describe('Conductor', () => {
 		})
 
 		// add something that will play in a seconds time
-		const abstractThing0: TSRTimelineObj = {
+		const abstractThing0: TSRTimelineObj<any> = {
 			id: 'a0',
 			enable: {
 				start: mockTime.now,
@@ -77,7 +78,7 @@ describe('Conductor', () => {
 				myAttr2: 'two',
 			},
 		}
-		const abstractThing1: TSRTimelineObj = {
+		const abstractThing1: TSRTimelineObj<any> = {
 			id: 'a1',
 			enable: {
 				start: mockTime.now + 1000,
@@ -213,7 +214,7 @@ describe('Conductor', () => {
 		})
 
 		// add something that will play "now"
-		const abstractThing0: TSRTimelineObj = {
+		const abstractThing0: TSRTimelineObj<any> = {
 			// will be converted from "now" to 10000
 			id: 'a0',
 			enable: {
@@ -227,7 +228,7 @@ describe('Conductor', () => {
 				myAttr2: 'two',
 			},
 		}
-		const abstractThing1: TSRTimelineObj = {
+		const abstractThing1: TSRTimelineObj<any> = {
 			// will cause a callback to be sent
 			id: 'a1',
 			enable: {
@@ -389,16 +390,16 @@ describe('Conductor', () => {
 		// 	timecode: '00:00:10:00'
 		// })
 
-		expect(getMockCall(commandReceiver1, 0, 1).name).toEqual('ClearCommand')
-		expect(getMockCall(commandReceiver1, 0, 1)._objectParams).toMatchObject({
+		expect(getMockCall(commandReceiver1, 0, 1).command).toEqual(Commands.Clear)
+		expect(getMockCall(commandReceiver1, 0, 1).params).toMatchObject({
 			channel: 1,
 		})
-		expect(getMockCall(commandReceiver1, 1, 1).name).toEqual('ClearCommand')
-		expect(getMockCall(commandReceiver1, 1, 1)._objectParams).toMatchObject({
+		expect(getMockCall(commandReceiver1, 1, 1).command).toEqual(Commands.Clear)
+		expect(getMockCall(commandReceiver1, 1, 1).params).toMatchObject({
 			channel: 2,
 		})
-		expect(getMockCall(commandReceiver1, 2, 1).name).toEqual('ClearCommand')
-		expect(getMockCall(commandReceiver1, 2, 1)._objectParams).toMatchObject({
+		expect(getMockCall(commandReceiver1, 2, 1).command).toEqual(Commands.Clear)
+		expect(getMockCall(commandReceiver1, 2, 1).params).toMatchObject({
 			channel: 3,
 		})
 	})
@@ -462,7 +463,7 @@ describe('Conductor', () => {
 		await mockTime.advanceTimeTicks(10) // just a little bit
 
 		// add something that will play "now"
-		const video0: TSRTimelineObj = {
+		const video0: TSRTimelineObj<TimelineContentCCGMedia> = {
 			// will be converted from "now" to 10000
 			id: 'a0',
 			enable: {
@@ -484,9 +485,6 @@ describe('Conductor', () => {
 		const device0 = device0Container!.device as ThreadedClass<AbstractDevice>
 		expect(device0).toBeTruthy()
 
-		// The queues should be empty
-		expect(await device0.queue).toHaveLength(0)
-
 		conductor.setTimelineAndMappings(timeline)
 
 		// there should now be commands queued:
@@ -495,13 +493,11 @@ describe('Conductor', () => {
 		await mockTime.advanceTimeToTicks(10500)
 
 		expect(commandReceiver0).toHaveBeenCalledTimes(1)
-		expect(getMockCall(commandReceiver0, 0, 1).name).toEqual('PlayCommand')
-		expect(getMockCall(commandReceiver0, 0, 1)).toMatchObject({
-			_objectParams: {
-				clip: 'AMB',
-				channel: 1,
-				layer: 10,
-			},
+		expect(getMockCall(commandReceiver0, 0, 1).command).toEqual(Commands.Play)
+		expect(getMockCall(commandReceiver0, 0, 1).params).toMatchObject({
+			clip: 'AMB',
+			channel: 1,
+			layer: 10,
 		})
 
 		commandReceiver0.mockClear()
@@ -513,21 +509,17 @@ describe('Conductor', () => {
 		await mockTime.advanceTimeTicks(100) // just a little bit
 
 		expect(commandReceiver0).toHaveBeenCalledTimes(2)
-		expect(getMockCall(commandReceiver0, 0, 1).name).toEqual('ClearCommand')
-		expect(getMockCall(commandReceiver0, 0, 1)).toMatchObject({
-			_objectParams: {
-				// clip: 'AMB',
-				channel: 1,
-				layer: 10,
-			},
+		expect(getMockCall(commandReceiver0, 0, 1).command).toEqual(Commands.Clear)
+		expect(getMockCall(commandReceiver0, 0, 1).params).toMatchObject({
+			// clip: 'AMB',
+			channel: 1,
+			layer: 10,
 		})
-		expect(getMockCall(commandReceiver0, 1, 1).name).toEqual('PlayCommand')
-		expect(getMockCall(commandReceiver0, 1, 1)).toMatchObject({
-			_objectParams: {
-				clip: 'AMB',
-				channel: 1,
-				layer: 20,
-			},
+		expect(getMockCall(commandReceiver0, 1, 1).command).toEqual(Commands.Play)
+		expect(getMockCall(commandReceiver0, 1, 1).params).toMatchObject({
+			clip: 'AMB',
+			channel: 1,
+			layer: 20,
 		})
 
 		commandReceiver0.mockClear()
@@ -562,17 +554,17 @@ describe('Conductor', () => {
 		// 	})
 		// } else {
 		expect(commandReceiver0).toHaveBeenCalledTimes(2)
-		expect(getMockCall(commandReceiver0, 0, 1).name).toEqual('ClearCommand')
 		expect(getMockCall(commandReceiver0, 0, 1)).toMatchObject({
-			_objectParams: {
+			command: Commands.Clear,
+			params: {
 				channel: 1,
 				layer: 20,
 			},
 		})
 
-		expect(getMockCall(commandReceiver0, 1, 1).name).toEqual('PlayCommand')
 		expect(getMockCall(commandReceiver0, 1, 1)).toMatchObject({
-			_objectParams: {
+			command: Commands.Play,
+			params: {
 				clip: 'AMB',
 				channel: 2,
 				layer: 10,

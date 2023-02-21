@@ -4,8 +4,9 @@ import {
 	MappingHTTPSend,
 	Mappings,
 	DeviceType,
-	TimelineObjHTTPRequest,
+	TimelineContentHTTPRequest,
 	TimelineContentTypeHTTP,
+	TSRTimelineObj,
 } from 'timeline-state-resolver-types'
 import { MockTime } from '../../../__tests__/mockTime'
 import { ThreadedClass } from 'threadedclass'
@@ -14,9 +15,6 @@ import { getMockCall } from '../../../__tests__/lib'
 // let nowActual = Date.now()
 describe('HTTP-Send', () => {
 	const mockTime = new MockTime()
-	beforeAll(() => {
-		mockTime.mockDateNow()
-	})
 	beforeEach(() => {
 		mockTime.init()
 	})
@@ -76,7 +74,7 @@ describe('HTTP-Send', () => {
 		await mockTime.advanceTimeToTicks(11100)
 
 		expect(commandReceiver0).toHaveBeenCalledTimes(1)
-		expect(commandReceiver0).toBeCalledWith(
+		expect(commandReceiver0).toHaveBeenCalledWith(
 			expect.anything(),
 			expect.objectContaining({
 				type: 'post',
@@ -127,7 +125,7 @@ describe('HTTP-Send', () => {
 		// Check that no commands has been scheduled:
 		expect(await device.queue).toHaveLength(0)
 
-		const timeline: Array<TimelineObjHTTPRequest> = [
+		const timeline: Array<TSRTimelineObj<TimelineContentHTTPRequest>> = [
 			{
 				id: 'obj0',
 				enable: {
