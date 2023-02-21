@@ -267,3 +267,7 @@ export function t(key: string, args?: { [k: string]: any }): ITranslatableMessag
 		args,
 	}
 }
+
+export function assertNever(_never: never): void {
+	// Do nothing. This is a type guard
+}
