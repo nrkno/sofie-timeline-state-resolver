@@ -197,7 +197,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 				Fullscreen2: { source: 'Program' },
 			},
 			inputLayers: {},
-			desiredScripts: [],
+			runningScripts: [],
 		}
 	}
 
@@ -387,7 +387,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 						break
 					case MappingVMixType.Script:
 						if (content.type === TimelineContentTypeVMix.SCRIPT) {
-							deviceState.desiredScripts.push(content.name)
+							deviceState.runningScripts.push(content.name)
 						}
 						break
 				}
@@ -971,8 +971,8 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 		newVMixState: VMixStateExtended
 	): Array<VMixStateCommandWithContext> {
 		const commands: Array<VMixStateCommandWithContext> = []
-		_.map(newVMixState.desiredScripts, (name) => {
-			const alreadyRunning = oldVMixState.desiredScripts.includes(name)
+		_.map(newVMixState.runningScripts, (name) => {
+			const alreadyRunning = oldVMixState.runningScripts.includes(name)
 			if (!alreadyRunning) {
 				commands.push({
 					command: {
@@ -984,8 +984,8 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 				})
 			}
 		})
-		_.map(oldVMixState.desiredScripts, (name) => {
-			const noLongerDesired = !newVMixState.desiredScripts.includes(name)
+		_.map(oldVMixState.runningScripts, (name) => {
+			const noLongerDesired = !newVMixState.runningScripts.includes(name)
 			if (noLongerDesired) {
 				commands.push({
 					command: {
@@ -1056,7 +1056,7 @@ export interface VMixStateExtended {
 		Fullscreen2: VMixOutput
 	}
 	inputLayers: { [key: string]: string }
-	desiredScripts: string[]
+	runningScripts: string[]
 }
 
 export interface VMixState {
