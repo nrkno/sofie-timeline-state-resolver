@@ -197,6 +197,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 				Fullscreen2: { source: 'Program' },
 			},
 			inputLayers: {},
+			desiredScripts: [],
 		}
 	}
 
@@ -382,6 +383,11 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 						if (content.type === TimelineContentTypeVMix.OVERLAY) {
 							const overlayIndex = mapping.index - 1
 							deviceState.reportedState.overlays[overlayIndex].input = content.input
+						}
+						break
+					case MappingVMixType.Script:
+						if (content.type === TimelineContentTypeVMix.SCRIPT) {
+							deviceState.desiredScripts.push(content.name)
 						}
 						break
 				}
@@ -960,6 +966,40 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 		return commands
 	}
 
+	private _resolveScriptsState(
+		oldVMixState: VMixStateExtended,
+		newVMixState: VMixStateExtended
+	): Array<VMixStateCommandWithContext> {
+		const commands: Array<VMixStateCommandWithContext> = []
+		_.map(newVMixState.desiredScripts, (name) => {
+			const alreadyRunning = oldVMixState.desiredScripts.includes(name)
+			if (!alreadyRunning) {
+				commands.push({
+					command: {
+						command: VMixCommand.SCRIPT_START,
+						value: name,
+					},
+					context: null,
+					timelineId: '',
+				})
+			}
+		})
+		_.map(oldVMixState.desiredScripts, (name) => {
+			const noLongerDesired = !newVMixState.desiredScripts.includes(name)
+			if (noLongerDesired) {
+				commands.push({
+					command: {
+						command: VMixCommand.SCRIPT_STOP,
+						value: name,
+					},
+					context: null,
+					timelineId: '',
+				})
+			}
+		})
+		return commands
+	}
+
 	private _diffStates(
 		oldVMixState: VMixStateExtended,
 		newVMixState: VMixStateExtended
@@ -974,6 +1014,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 		commands = commands.concat(this._resolveExternalState(oldVMixState, newVMixState))
 		commands = commands.concat(this._resolveOutputsState(oldVMixState, newVMixState))
 		commands = commands.concat(this._resolveInputsRemovalState(oldVMixState, newVMixState))
+		commands = commands.concat(this._resolveScriptsState(oldVMixState, newVMixState))
 
 		return commands
 	}
@@ -1015,6 +1056,7 @@ export interface VMixStateExtended {
 		Fullscreen2: VMixOutput
 	}
 	inputLayers: { [key: string]: string }
+	desiredScripts: string[]
 }
 
 export interface VMixState {
