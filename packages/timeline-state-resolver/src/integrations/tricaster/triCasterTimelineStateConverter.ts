@@ -21,6 +21,7 @@ import {
 	isTimelineObjTriCasterMatrixOutput,
 	TriCasterMatrixOutputName,
 	MappingTriCasterMatrixOutput,
+	Mapping,
 } from 'timeline-state-resolver-types'
 import * as _ from 'underscore'
 import { TriCasterState } from './triCasterStateDiffer'
@@ -35,7 +36,7 @@ export class TriCasterTimelineStateConverter {
 	private matrixOutputNames: Set<TriCasterMatrixOutputName>
 
 	constructor(
-		private readonly getDefaultState: () => TriCasterState,
+		private readonly getDefaultState: (mappings: Mapping[]) => TriCasterState,
 		resourceNames: {
 			mixEffects: TriCasterMixEffectName[]
 			inputs: TriCasterInputName[]
@@ -56,7 +57,7 @@ export class TriCasterTimelineStateConverter {
 		newMappings: Mappings,
 		deviceId: string
 	): TriCasterState {
-		const resultState = this.getDefaultState()
+		const resultState = this.getDefaultState(Object.values(newMappings))
 		const sortedLayers = this.sortLayers(timelineState)
 
 		_.each(sortedLayers, ({ tlObject, layerName }) => {

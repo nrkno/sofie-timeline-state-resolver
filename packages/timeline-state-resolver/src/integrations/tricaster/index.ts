@@ -37,7 +37,7 @@ export class TriCasterDevice extends DeviceWithState<TriCasterState, DeviceOptio
 		})
 		this._connection = new TriCasterConnection(options.host, options.port ?? DEFAULT_PORT)
 		this._connection.on('connected', (info, shortcutStateXml) => {
-			this._stateDiffer = new TriCasterStateDiffer(info)
+			this._stateDiffer = new TriCasterStateDiffer(info, this.deviceId)
 			this._setInitialState(shortcutStateXml)
 			this._setConnected(true)
 			this._initialized = true
@@ -93,7 +93,8 @@ export class TriCasterDevice extends DeviceWithState<TriCasterState, DeviceOptio
 		}
 
 		const previousStateTime = Math.max(this.getCurrentTime(), newState.time)
-		const oldState = this.getStateBefore(previousStateTime)?.state ?? this._stateDiffer.getDefaultState()
+		const oldState =
+			this.getStateBefore(previousStateTime)?.state ?? this._stateDiffer.getDefaultState(Object.values(newMappings))
 
 		const newTriCasterState = this._stateDiffer.timelineStateConverter.getTriCasterStateFromTimelineState(
 			newState,
