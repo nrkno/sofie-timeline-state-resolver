@@ -1,14 +1,15 @@
 import { TriCasterShortcutStateConverter } from '../triCasterShortcutStateConverter'
 
 function setUpShortcutStateConverter() {
-	return new TriCasterShortcutStateConverter(
-		['main', 'v1', 'v2'],
-		['input1', 'input2'],
-		['input1', 'input2', 'sound', 'master'],
-		['a', 'b'],
-		['dsk1', 'dsk2', 'dsk3', 'dsk4'],
-		['mix1', 'mix2']
-	)
+	return new TriCasterShortcutStateConverter({
+		mixEffects: ['main', 'v1', 'v2'],
+		inputs: ['input1', 'input2'],
+		audioChannels: ['input1', 'input2', 'sound', 'master'],
+		layers: ['a', 'b'],
+		keyers: ['dsk1', 'dsk2', 'dsk3', 'dsk4'],
+		mixOutputs: ['mix1', 'mix2'],
+		matrixOutputs: ['out1', 'out2'],
+	})
 }
 
 describe('TriCasterShortcutStateConverter.getTriCasterStateFromShortcutState', () => {
@@ -75,8 +76,22 @@ describe('TriCasterShortcutStateConverter.getTriCasterStateFromShortcutState', (
 	<shortcut_state name="mix2_output_source" value="me_preview" type="" sender="unknown"/>
 </shortcut_states>`)
 
-			expect(state.outputs.mix1.source).toEqual('input7')
-			expect(state.outputs.mix2.source).toEqual('me_preview')
+			expect(state.mixOutputs.mix1.source).toEqual('input7')
+			expect(state.mixOutputs.mix2.source).toEqual('me_preview')
+		})
+	})
+
+	describe('Matrix Outputs', () => {
+		test('sets outputs', () => {
+			const converter = setUpShortcutStateConverter()
+
+			const state = converter.getTriCasterStateFromShortcutState(`<shortcut_states>
+	<shortcut_state name="out1_crosspoint_source" value="input5" type="" sender="unknown"/>
+	<shortcut_state name="out2_crosspoint_source" value="mix2" type="" sender="unknown"/>
+</shortcut_states>`)
+
+			expect(state.matrixOutputs.out1.source).toEqual('input5')
+			expect(state.matrixOutputs.out2.source).toEqual('mix2')
 		})
 	})
 })
