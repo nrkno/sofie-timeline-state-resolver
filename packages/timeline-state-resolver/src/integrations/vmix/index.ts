@@ -576,6 +576,34 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 				this._addToQueue(addCommands, this.getCurrentTime())
 			}
 			const oldInput = oldVMixState.reportedState.inputs[key] || this._getDefaultInputState(0) // or {} but we assume that a new input has all parameters default
+			// It is important that the operations on listFilePaths happen before most other operations.
+			// Consider the case where we want to change the contents of a List input AND set it to playing.
+			// If we set it to playing first, it will automatically be forced to stop playing when
+			// we dispatch LIST_REMOVE_ALL.
+			// So, order of operations matters here.
+			if (!_.isEqual(oldInput.listFilePaths, input.listFilePaths)) {
+				commands.push({
+					command: {
+						command: VMixCommand.LIST_REMOVE_ALL,
+						input: input.name,
+					},
+					context: null,
+					timelineId: '',
+				})
+				if (Array.isArray(input.listFilePaths)) {
+					for (const filePath of input.listFilePaths) {
+						commands.push({
+							command: {
+								command: VMixCommand.LIST_ADD,
+								input: input.name,
+								value: filePath,
+							},
+							context: null,
+							timelineId: '',
+						})
+					}
+				}
+			}
 			if (input.playing !== undefined && oldInput.playing !== input.playing && !input.playing) {
 				commands.push({
 					command: {
@@ -793,29 +821,6 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 					context: null,
 					timelineId: '',
 				})
-			}
-			if (!_.isEqual(oldInput.listFilePaths, input.listFilePaths)) {
-				commands.push({
-					command: {
-						command: VMixCommand.LIST_REMOVE_ALL,
-						input: input.name,
-					},
-					context: null,
-					timelineId: '',
-				})
-				if (Array.isArray(input.listFilePaths)) {
-					for (const filePath of input.listFilePaths) {
-						commands.push({
-							command: {
-								command: VMixCommand.LIST_ADD,
-								input: input.name,
-								value: filePath,
-							},
-							context: null,
-							timelineId: '',
-						})
-					}
-				}
 			}
 		})
 		return commands
