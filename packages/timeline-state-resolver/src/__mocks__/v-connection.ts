@@ -84,6 +84,9 @@ export class MSEMock extends EventEmitter implements MSE {
 	async listShows(): Promise<string[]> {
 		return []
 	}
+	async listShowsFromDirectory(): Promise<Map<string, string>> {
+		return new Map()
+	}
 	async getShow(showID: string): Promise<VShow> {
 		return {
 			id: 'mockshowid_' + showID,
@@ -199,7 +202,7 @@ export class VRundownMock implements VRundown {
 		return { path: '', status: 200, response: 'mock' }
 	}
 
-	async cleanupAllShows(): Promise<CommandResult[]> {
+	async cleanupAllSofieShows(): Promise<CommandResult[]> {
 		throw [{ path: '', status: 200, response: 'mock' }]
 	}
 
