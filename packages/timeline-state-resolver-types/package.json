@@ -61,7 +61,7 @@
 		"precommit": "lint-staged"
 	},
 	"engines": {
-		"node": "^14.18 || ^16.14 || 18"
+		"node": ">=14.18"
 	},
 	"files": [
 		"/dist",
