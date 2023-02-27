@@ -66,15 +66,18 @@ export interface BaseDeviceAPI<DeviceState, Command extends CommandWithContext> 
 	sendCommand(command: Command): Promise<any>
 }
 
-export interface DeviceEvents {
+/** as used by external consumers of the devices */
+export interface DeviceEvents extends BaseDeviceEvents {
+	/** The connection status has changed */
+	connectionChanged: [status: DeviceStatus]
+}
+export interface BaseDeviceEvents {
 	info: [info: string]
 	warning: [warning: string]
 	error: [context: string, err: Error]
 	debug: [...debug: any[]]
 
 	debugState: [state: object]
-	/** The connection status has changed */
-	connectionChanged: [status: DeviceStatus]
 	/** A message to the resolver that something has happened that warrants a reset of the resolver (to re-run it again) */
 	resetResolver: []
 
@@ -92,4 +95,11 @@ export interface DeviceEvents {
 
 	commandReport: [commandReport: CommandReport]
 	timeTrace: [trace: FinishedTrace]
+}
+/** as used by the internal device implentations */
+export interface DeviceImplEvents extends BaseDeviceEvents {
+	/** The connection status has changed */
+	connectionChanged: []
+	/** set state of the device */
+	setState: [state: any] // todo - typings
 }

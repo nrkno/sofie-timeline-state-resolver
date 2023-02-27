@@ -453,15 +453,6 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 					getCurrentTime,
 					threadedClassOptions
 				)
-			} else if (deviceOptions.type === DeviceType.ATEM) {
-				newDevice = await DeviceContainer.create<DeviceOptionsAtemInternal, typeof AtemDevice>(
-					'../../dist/integrations/atem/index.js',
-					'AtemDevice',
-					deviceId,
-					deviceOptions,
-					getCurrentTime,
-					threadedClassOptions
-				)
 			} else if (deviceOptions.type === DeviceType.HTTPSEND) {
 				newDevice = await DeviceContainer.create<DeviceOptionsHTTPSendInternal, typeof HTTPSendDevice>(
 					'../../dist/integrations/httpSend/index.js',

@@ -9,7 +9,7 @@ import {
 	Timeline,
 	TSRTimelineContent,
 } from 'timeline-state-resolver-types'
-import { CommandWithContext, Device } from './device'
+import { CommandWithContext, Device, DeviceImplEvents } from './device'
 import { StateHandler } from './stateHandler'
 import { DevicesDict } from './devices'
 import { DeviceEvents } from './device'
@@ -31,7 +31,7 @@ export interface ServiceDetails {
  * Top level container for setting up and interacting with any device integrations
  */
 export class DeviceInstanceWrapper extends EventEmitter<DeviceEvents> {
-	private _device: Device<any, DeviceState, CommandWithContext> & EventEmitter<DeviceEvents>
+	private _device: Device<any, DeviceState, CommandWithContext> & EventEmitter<DeviceImplEvents>
 	private _stateHandler: StateHandler<DeviceState, CommandWithContext>
 
 	private _deviceId: string
