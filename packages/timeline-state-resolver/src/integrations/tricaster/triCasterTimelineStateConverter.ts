@@ -1,6 +1,5 @@
 import { TimelineState } from 'superfly-timeline'
 import {
-	Mappings,
 	MappingTriCaster,
 	MappingTriCasterType,
 	TSRTimelineObjBase,
@@ -21,10 +20,9 @@ import {
 	isTimelineObjTriCasterMatrixOutput,
 	TriCasterMatrixOutputName,
 	MappingTriCasterMatrixOutput,
-	Mapping,
 } from 'timeline-state-resolver-types'
 import * as _ from 'underscore'
-import { TriCasterState } from './triCasterStateDiffer'
+import { MappingsTriCaster, TriCasterState } from './triCasterStateDiffer'
 
 type DeepPartial<T> = { [P in keyof T]?: T[P] extends object ? DeepPartial<T[P]> : T[P] }
 
@@ -36,7 +34,7 @@ export class TriCasterTimelineStateConverter {
 	private matrixOutputNames: Set<TriCasterMatrixOutputName>
 
 	constructor(
-		private readonly getDefaultState: (mappings: Mapping[]) => TriCasterState,
+		private readonly getDefaultState: (mappings: MappingsTriCaster) => TriCasterState,
 		resourceNames: {
 			mixEffects: TriCasterMixEffectName[]
 			inputs: TriCasterInputName[]
@@ -52,18 +50,14 @@ export class TriCasterTimelineStateConverter {
 		this.matrixOutputNames = new Set(resourceNames.matrixOutputs)
 	}
 
-	getTriCasterStateFromTimelineState(
-		timelineState: TimelineState,
-		newMappings: Mappings,
-		deviceId: string
-	): TriCasterState {
-		const resultState = this.getDefaultState(Object.values(newMappings))
+	getTriCasterStateFromTimelineState(timelineState: TimelineState, newMappings: MappingsTriCaster): TriCasterState {
+		const resultState = this.getDefaultState(newMappings)
 		const sortedLayers = this.sortLayers(timelineState)
 
-		_.each(sortedLayers, ({ tlObject, layerName }) => {
-			const mapping = newMappings[layerName] as MappingTriCaster | undefined
-			if (!mapping || mapping.deviceId !== deviceId) {
-				return
+		for (const { tlObject, layerName } of Object.values(sortedLayers)) {
+			const mapping: MappingTriCaster | undefined = newMappings[layerName]
+			if (!mapping) {
+				continue
 			}
 			switch (mapping.mappingType) {
 				case MappingTriCasterType.ME:
@@ -85,7 +79,7 @@ export class TriCasterTimelineStateConverter {
 					this.applyMatrixOutputState(resultState, tlObject, mapping)
 					break
 			}
-		})
+		}
 
 		return resultState
 	}

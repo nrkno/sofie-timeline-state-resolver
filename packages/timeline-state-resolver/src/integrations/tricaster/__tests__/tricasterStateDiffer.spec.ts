@@ -1,24 +1,43 @@
-import { DeviceType, MappingTriCaster, MappingTriCasterType as MappingType } from 'timeline-state-resolver-types'
+import { DeviceType, MappingTriCasterType as MappingType } from 'timeline-state-resolver-types'
 import { TriCasterInfo } from '../triCasterConnection'
-import { TriCasterStateDiffer } from '../triCasterStateDiffer'
+import { MappingsTriCaster, TriCasterStateDiffer } from '../triCasterStateDiffer'
 
 const MOCK_DEVICE_ID = 'tc0'
-const MOCK_MAPPINGS: MappingTriCaster[] = [
-	{ device: DeviceType.TRICASTER, mappingType: MappingType.ME, deviceId: MOCK_DEVICE_ID, name: 'main' },
-	{ device: DeviceType.TRICASTER, mappingType: MappingType.ME, deviceId: MOCK_DEVICE_ID, name: 'v1' },
-	{ device: DeviceType.TRICASTER, mappingType: MappingType.ME, deviceId: MOCK_DEVICE_ID, name: 'v2' },
-	{ device: DeviceType.TRICASTER, mappingType: MappingType.INPUT, deviceId: MOCK_DEVICE_ID, name: 'input1' },
-	{ device: DeviceType.TRICASTER, mappingType: MappingType.INPUT, deviceId: MOCK_DEVICE_ID, name: 'input2' },
-	{ device: DeviceType.TRICASTER, mappingType: MappingType.AUDIO_CHANNEL, deviceId: MOCK_DEVICE_ID, name: 'input1' },
-	{ device: DeviceType.TRICASTER, mappingType: MappingType.AUDIO_CHANNEL, deviceId: MOCK_DEVICE_ID, name: 'input2' },
-	{ device: DeviceType.TRICASTER, mappingType: MappingType.MIX_OUTPUT, deviceId: MOCK_DEVICE_ID, name: 'mix1' },
-	{ device: DeviceType.TRICASTER, mappingType: MappingType.MIX_OUTPUT, deviceId: MOCK_DEVICE_ID, name: 'mix2' },
-	{ device: DeviceType.TRICASTER, mappingType: MappingType.MATRIX_OUTPUT, deviceId: MOCK_DEVICE_ID, name: 'out1' },
-	{ device: DeviceType.TRICASTER, mappingType: MappingType.MATRIX_OUTPUT, deviceId: MOCK_DEVICE_ID, name: 'out2' },
-]
+const MOCK_MAPPINGS: MappingsTriCaster = {
+	main: { device: DeviceType.TRICASTER, mappingType: MappingType.ME, deviceId: MOCK_DEVICE_ID, name: 'main' },
+	v1: { device: DeviceType.TRICASTER, mappingType: MappingType.ME, deviceId: MOCK_DEVICE_ID, name: 'v1' },
+	v2: { device: DeviceType.TRICASTER, mappingType: MappingType.ME, deviceId: MOCK_DEVICE_ID, name: 'v2' },
+	input1: { device: DeviceType.TRICASTER, mappingType: MappingType.INPUT, deviceId: MOCK_DEVICE_ID, name: 'input1' },
+	input2: { device: DeviceType.TRICASTER, mappingType: MappingType.INPUT, deviceId: MOCK_DEVICE_ID, name: 'input2' },
+	audio_input1: {
+		device: DeviceType.TRICASTER,
+		mappingType: MappingType.AUDIO_CHANNEL,
+		deviceId: MOCK_DEVICE_ID,
+		name: 'input1',
+	},
+	audio_input2: {
+		device: DeviceType.TRICASTER,
+		mappingType: MappingType.AUDIO_CHANNEL,
+		deviceId: MOCK_DEVICE_ID,
+		name: 'input2',
+	},
+	mix1: { device: DeviceType.TRICASTER, mappingType: MappingType.MIX_OUTPUT, deviceId: MOCK_DEVICE_ID, name: 'mix1' },
+	mix2: { device: DeviceType.TRICASTER, mappingType: MappingType.MIX_OUTPUT, deviceId: MOCK_DEVICE_ID, name: 'mix2' },
+	out1: {
+		device: DeviceType.TRICASTER,
+		mappingType: MappingType.MATRIX_OUTPUT,
+		deviceId: MOCK_DEVICE_ID,
+		name: 'out1',
+	},
+	out2: {
+		device: DeviceType.TRICASTER,
+		mappingType: MappingType.MATRIX_OUTPUT,
+		deviceId: MOCK_DEVICE_ID,
+		name: 'out2',
+	},
+}
 
 function setupStateDiffer(oldMappings = MOCK_MAPPINGS, newMappings = MOCK_MAPPINGS) {
-	const deviceId = 'tc0'
 	const mockInfo: TriCasterInfo = {
 		inputCount: 2,
 		meCount: 2,
@@ -28,7 +47,7 @@ function setupStateDiffer(oldMappings = MOCK_MAPPINGS, newMappings = MOCK_MAPPIN
 		sessionName: 'TEST',
 		outputCount: 3,
 	}
-	const stateDiffer = new TriCasterStateDiffer(mockInfo, deviceId)
+	const stateDiffer = new TriCasterStateDiffer(mockInfo)
 
 	return {
 		stateDiffer,
@@ -527,8 +546,15 @@ describe('TriCasterStateDiffer.getCommandsToAchieveState', () => {
 	describe('Mapping changes', () => {
 		test('added mapings generate commands with default state, only for the mapped resource', () => {
 			const { stateDiffer, oldState, newState } = setupStateDiffer(
-				[],
-				[{ device: DeviceType.TRICASTER, mappingType: MappingType.MIX_OUTPUT, deviceId: MOCK_DEVICE_ID, name: 'mix1' }]
+				{},
+				{
+					mix1: {
+						device: DeviceType.TRICASTER,
+						mappingType: MappingType.MIX_OUTPUT,
+						deviceId: MOCK_DEVICE_ID,
+						name: 'mix1',
+					},
+				}
 			)
 
 			const commands = stateDiffer.getCommandsToAchieveState(newState, oldState)
@@ -538,7 +564,7 @@ describe('TriCasterStateDiffer.getCommandsToAchieveState', () => {
 		})
 
 		test('removed mapings do not generate commands', () => {
-			const { stateDiffer, oldState, newState } = setupStateDiffer(MOCK_MAPPINGS, [])
+			const { stateDiffer, oldState, newState } = setupStateDiffer(MOCK_MAPPINGS, {})
 
 			// some example state
 			oldState.mixEffects.main.keyers.dsk2.transitionDuration = 5.2

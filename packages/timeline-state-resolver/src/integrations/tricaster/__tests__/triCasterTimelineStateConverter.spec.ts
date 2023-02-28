@@ -158,8 +158,7 @@ describe('TimelineStateConverter.getTriCasterStateFromTimelineState', () => {
 					name: 'v1',
 					deviceId: 'tc0',
 				}),
-			},
-			'tc0'
+			}
 		)
 
 		const expectedState = mockGetDefaultState()
@@ -222,8 +221,7 @@ describe('TimelineStateConverter.getTriCasterStateFromTimelineState', () => {
 					name: 'out2',
 					deviceId: 'tc0',
 				}),
-			},
-			'tc0'
+			}
 		)
 
 		const expectedState = mockGetDefaultState()
@@ -259,8 +257,7 @@ describe('TimelineStateConverter.getTriCasterStateFromTimelineState', () => {
 					name: 'mix2',
 					deviceId: 'tc0',
 				}),
-			},
-			'tc0'
+			}
 		)
 
 		const expectedState = mockGetDefaultState()
@@ -299,8 +296,7 @@ describe('TimelineStateConverter.getTriCasterStateFromTimelineState', () => {
 					name: 'input2',
 					deviceId: 'tc0',
 				}),
-			},
-			'tc0'
+			}
 		)
 
 		const expectedState = mockGetDefaultState()
