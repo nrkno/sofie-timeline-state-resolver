@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [3.3.0](https://github.com/tv2/tv-automation-state-timeline-resolver/compare/3.2.0...3.3.0) (2023-02-28)
+
+### Features
+
+- SOF-1254 add TriCaster matrix support ([dbb1b26](https://github.com/tv2/tv-automation-state-timeline-resolver/commit/dbb1b26e84a41227e3eca0fae902bf5b57ca5d8e))
+
 ## [3.2.0](https://github.com/tv2/tv-automation-state-timeline-resolver/compare/3.0.3...3.2.0) (2023-02-15)
 
 ### Features
