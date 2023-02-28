@@ -218,6 +218,10 @@ export class DeviceInstanceWrapper extends EventEmitter<DeviceEvents> {
 		this._device.on('resetResolver', () => {
 			this.emit('resetResolver')
 		})
+		/** recalculate the next commands */
+		this._device.on('recalculateNext', () => {
+			this._stateHandler.resetNextState().catch(() => null) // todo - do not swallow this
+		})
 
 		/** Something went wrong when executing a command  */
 		this._device.on('commandError', (error: Error, context: CommandWithContext) => {

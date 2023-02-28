@@ -1,4 +1,4 @@
-import { DeviceType, MappingCasparCG } from 'timeline-state-resolver'
+import { DeviceType, MappingAtem, MappingAtemType, MappingCasparCG } from 'timeline-state-resolver'
 import { literal } from 'timeline-state-resolver/dist/devices/device'
 import type { TSRInput } from '../src'
 
@@ -9,6 +9,12 @@ export const input: TSRInput = {
 			deviceId: 'caspar0',
 			channel: 1,
 			layer: 10,
+		}),
+		me0: literal<MappingAtem>({
+			device: DeviceType.ATEM,
+			deviceId: 'atem0',
+			mappingType: MappingAtemType.MixEffect,
+			index: 0,
 		}),
 	},
 }

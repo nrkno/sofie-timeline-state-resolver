@@ -102,4 +102,6 @@ export interface DeviceImplEvents extends BaseDeviceEvents {
 	connectionChanged: []
 	/** set state of the device */
 	setState: [state: any] // todo - typings
+	/** recalculate the next commands */
+	recalculateNext: []
 }

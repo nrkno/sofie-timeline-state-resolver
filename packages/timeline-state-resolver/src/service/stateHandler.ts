@@ -74,6 +74,13 @@ export class StateHandler<DeviceState, Command extends CommandWithContext> {
 		this.stateQueue = []
 	}
 
+	async resetNextState() {
+		if (!this.stateQueue[0]) return
+
+		if (this.stateQueue[0].commands) delete this.stateQueue[0].commands
+		return this.calculateNextStateChange()
+	}
+
 	async handleState(state: Timeline.TimelineState<TSRTimelineContent>, mappings: Mappings) {
 		const nextState = this.stateQueue[0]
 

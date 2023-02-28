@@ -3,6 +3,8 @@ import {
 	TimelineContentTypeCasparCg,
 	TimelineContentCCGMedia,
 	TSRTimelineObj,
+	TimelineContentAtemME,
+	TimelineContentTypeAtem,
 } from 'timeline-state-resolver'
 import { TSRInput } from '../src'
 import { literal } from 'timeline-state-resolver/dist/devices/device'
@@ -81,6 +83,40 @@ export const input: TSRInput = {
 				},
 			],
 			*/
+		}),
+		literal<TSRTimelineObj<TimelineContentAtemME>>({
+			id: 'me0',
+			enable: {
+				start: Date.now(),
+				duration: 10 * 1000,
+				repeating: 20 * 1000,
+			},
+			layer: 'me0',
+			content: {
+				deviceType: DeviceType.ATEM,
+				type: TimelineContentTypeAtem.ME,
+
+				me: {
+					previewInput: 5,
+				},
+			},
+		}),
+		literal<TSRTimelineObj<TimelineContentAtemME>>({
+			id: 'me1',
+			enable: {
+				start: Date.now() + 10 * 1000,
+				duration: 10 * 1000,
+				repeating: 20 * 1000,
+			},
+			layer: 'me0',
+			content: {
+				deviceType: DeviceType.ATEM,
+				type: TimelineContentTypeAtem.ME,
+
+				me: {
+					previewInput: 6,
+				},
+			},
 		}),
 	],
 }
