@@ -17,6 +17,9 @@ import {
 	TriCasterMixEffectWithPreview,
 	TriCasterMixEffectInMixMode,
 	TriCasterTransitionEffect,
+	MappingTriCaster,
+	MappingTriCasterType,
+	Mappings,
 } from 'timeline-state-resolver-types'
 import {
 	TriCasterCommand,
@@ -102,6 +105,17 @@ export interface TriCasterOutputState {
 
 type TriCasterStateDifferOptions = TriCasterInfo
 
+interface TriCasterControlledResourceNames {
+	mixEffects: Set<TriCasterMixEffectName>
+	inputs: Set<TriCasterInputName>
+	audioChannels: Set<TriCasterAudioChannelName>
+	mixOutputs: Set<TriCasterMixOutputName>
+	matrixOutputs: Set<TriCasterMatrixOutputName>
+}
+export interface MappingsTriCaster extends Mappings {
+	[layerName: string]: MappingTriCaster
+}
+
 export class TriCasterStateDiffer {
 	private readonly inputCount: number
 	private readonly meNames: TriCasterMixEffectName[]
@@ -143,14 +157,18 @@ export class TriCasterStateDiffer {
 			matrixOutputs: this.matrixOutputNames,
 		}
 
-		this.timelineStateConverter = new TriCasterTimelineStateConverter(() => this.getDefaultState(), resourceNames)
+		this.timelineStateConverter = new TriCasterTimelineStateConverter(
+			(mappings) => this.getDefaultState(mappings),
+			resourceNames
+		)
 		this.shortcutStateConverter = new TriCasterShortcutStateConverter(resourceNames)
 	}
 
-	getDefaultState(): CompleteTriCasterState {
+	getDefaultState(mappings: MappingsTriCaster): CompleteTriCasterState {
+		const controlledResources = this.getControlledResourcesNames(mappings)
 		return {
 			mixEffects: fillRecord(
-				this.meNames,
+				Array.from(controlledResources.mixEffects),
 				(meName): CompleteTriCasterMixEffectState => ({
 					programInput: BLACK_INPUT,
 					previewInput: undefined,
@@ -163,18 +181,52 @@ export class TriCasterStateDiffer {
 				})
 			),
 			inputs: fillRecord(
-				this.inputNames,
+				Array.from(controlledResources.inputs),
 				(): CompleteTriCasterInputState => ({ videoSource: undefined, videoActAsAlpha: false })
 			),
 			audioChannels: fillRecord(
-				this.audioChannelNames,
+				Array.from(controlledResources.audioChannels),
 				(): RequiredDeep<TriCasterAudioChannelState> => ({ volume: 0, isMuted: true })
 			),
 			isRecording: false,
 			isStreaming: false,
-			mixOutputs: fillRecord(this.mixOutputNames, () => ({ source: 'program' })),
-			matrixOutputs: fillRecord(this.matrixOutputNames, () => ({ source: 'mix1' })),
+			mixOutputs: fillRecord(Array.from(controlledResources.mixOutputs), () => ({ source: 'program' })),
+			matrixOutputs: fillRecord(Array.from(controlledResources.matrixOutputs), () => ({ source: 'mix1' })),
 		}
+	}
+
+	private getControlledResourcesNames(mappings: MappingsTriCaster): TriCasterControlledResourceNames {
+		const result: TriCasterControlledResourceNames = {
+			mixEffects: new Set(),
+			inputs: new Set(),
+			audioChannels: new Set(),
+			mixOutputs: new Set(),
+			matrixOutputs: new Set(),
+		}
+		for (const mapping of Object.values(mappings)) {
+			switch (mapping.mappingType) {
+				case MappingTriCasterType.ME:
+					result.mixEffects.add(mapping.name)
+					break
+				case MappingTriCasterType.DSK:
+					// these require full control of the Main switcher - not ideal, the granularity will probably be improved
+					result.mixEffects.add('main')
+					break
+				case MappingTriCasterType.INPUT:
+					result.inputs.add(mapping.name)
+					break
+				case MappingTriCasterType.AUDIO_CHANNEL:
+					result.audioChannels.add(mapping.name)
+					break
+				case MappingTriCasterType.MIX_OUTPUT:
+					result.mixOutputs.add(mapping.name)
+					break
+				case MappingTriCasterType.MATRIX_OUTPUT:
+					result.matrixOutputs.add(mapping.name)
+					break
+			}
+		}
+		return result
 	}
 
 	private getDefaultLayerState(): RequiredDeep<TriCasterLayerState> {
@@ -305,10 +357,13 @@ export class TriCasterStateDiffer {
 		transitionDuration: this.durationCommandGenerator,
 		...this.layerCommandGenerator,
 		input: CommandName.SELECT_NAMED_INPUT,
-		onAir: ({ state, target }) => {
+		onAir: ({ state, target, value }) => {
 			if (state.transitionEffect === 'cut') {
-				return [{ name: CommandName.TAKE, target }]
+				return [{ name: CommandName.VALUE, target, value: value ? 1 : 0 }]
 			}
+			// @todo: transitions on keyers are dangerous when mappings change on the fly and
+			// an uncontrolled ME becomes controlled (the state might get flipped)
+			// fixing it is out of scope for now
 			return [{ name: CommandName.AUTO, target }]
 		},
 	}

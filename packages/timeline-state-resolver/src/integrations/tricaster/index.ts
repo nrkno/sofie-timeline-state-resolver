@@ -3,8 +3,14 @@ import { DeviceWithState, DeviceStatus, StatusCode } from './../../devices/devic
 import { DoOnTime, SendMode } from '../../devices/doOnTime'
 
 import { TimelineState } from 'superfly-timeline'
-import { DeviceType, Mappings, TriCasterOptions, DeviceOptionsTriCaster } from 'timeline-state-resolver-types'
-import { TriCasterState, TriCasterStateDiffer } from './triCasterStateDiffer'
+import {
+	DeviceType,
+	Mappings,
+	TriCasterOptions,
+	DeviceOptionsTriCaster,
+	MappingTriCaster,
+} from 'timeline-state-resolver-types'
+import { MappingsTriCaster, TriCasterState, TriCasterStateDiffer } from './triCasterStateDiffer'
 import { TriCasterCommandWithContext } from './triCasterCommands'
 import { TriCasterConnection } from './triCasterConnection'
 
@@ -85,6 +91,7 @@ export class TriCasterDevice extends DeviceWithState<TriCasterState, DeviceOptio
 	}
 
 	handleState(newState: TimelineState, newMappings: Mappings): void {
+		const triCasterMappings: MappingsTriCaster = this.filterTriCasterMappings(newMappings)
 		super.onHandleState(newState, newMappings)
 		if (!this._initialized || !this._stateDiffer) {
 			// before it's initialized don't do anything
@@ -93,12 +100,12 @@ export class TriCasterDevice extends DeviceWithState<TriCasterState, DeviceOptio
 		}
 
 		const previousStateTime = Math.max(this.getCurrentTime(), newState.time)
-		const oldState = this.getStateBefore(previousStateTime)?.state ?? this._stateDiffer.getDefaultState()
+		const oldState =
+			this.getStateBefore(previousStateTime)?.state ?? this._stateDiffer.getDefaultState(triCasterMappings)
 
 		const newTriCasterState = this._stateDiffer.timelineStateConverter.getTriCasterStateFromTimelineState(
 			newState,
-			newMappings,
-			this.deviceId
+			triCasterMappings
 		)
 
 		const commandsToAchieveState = this._stateDiffer.getCommandsToAchieveState(newTriCasterState, oldState)
@@ -111,6 +118,15 @@ export class TriCasterDevice extends DeviceWithState<TriCasterState, DeviceOptio
 
 		// store the new state, for later use:
 		this.setState(newTriCasterState, newState.time)
+	}
+
+	private filterTriCasterMappings(newMappings: Mappings): MappingsTriCaster {
+		return Object.entries(newMappings).reduce<MappingsTriCaster>((accumulator, [layerName, mapping]) => {
+			if (mapping.device === DeviceType.TRICASTER && mapping.deviceId === this.deviceId) {
+				accumulator[layerName] = mapping as MappingTriCaster
+			}
+			return accumulator
+		}, {})
 	}
 
 	clearFuture(clearAfterTime: number): void {
