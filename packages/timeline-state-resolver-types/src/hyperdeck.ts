@@ -1,5 +1,5 @@
 import { Mapping } from './mapping'
-import { TSRTimelineObjBase, DeviceType } from '.'
+import { TSRTimelineObjBase, DeviceType, TimelineDatastoreReferencesContent } from '.'
 
 export interface MappingHyperdeck extends Mapping {
 	device: DeviceType.HYPERDECK
@@ -14,6 +14,8 @@ export interface HyperdeckOptions {
 	host: string
 	port?: number
 	minRecordingTime?: number
+	/** If true, no warnings will be emitted when storage slots are empty. */
+	suppressEmptySlotWarnings?: boolean
 }
 
 export enum TimelineContentTypeHyperdeck {
@@ -75,16 +77,48 @@ export interface TimelineObjHyperdeck extends TSRTimelineObjBase {
 		deviceType: DeviceType.HYPERDECK
 		/** The type of control of the Hyperdeck */
 		type: TimelineContentTypeHyperdeck
-	}
+	} & TimelineDatastoreReferencesContent
 }
 export interface TimelineObjHyperdeckTransport extends TimelineObjHyperdeck {
 	content: {
 		deviceType: DeviceType.HYPERDECK
 		type: TimelineContentTypeHyperdeck.TRANSPORT
+	} & (
+		| {
+				status: TransportStatus.PREVIEW
+		  }
+		| {
+				status: TransportStatus.STOPPED
+		  }
+		| {
+				status: TransportStatus.PLAY
+				/** How fast to play the currently-playing clip [-5000 - 5000]. 1x speed is 100. 0 is stopped. Negative values are rewind. Values above 100 are fast-forward. */
+				speed?: number
+				/** Whether or not to loop the currently-playing clip */
+				loop?: boolean
+				/** Whether or not to stop playback when the currently-playing clip is finished */
+				singleClip?: boolean
+				/** The numeric ID of the clip to play. If already playing, null means continue playing the current clip. If not playing, null means play last played clip. */
+				clipId: number | null
+		  }
+		| {
+				status: TransportStatus.FORWARD
+		  }
+		| {
+				status: TransportStatus.REWIND
+		  }
+		| {
+				status: TransportStatus.JOG
+		  }
+		| {
+				status: TransportStatus.SHUTTLE
+		  }
+		| {
+				status: TransportStatus.RECORD
 
-		/** The status of the hyperdeck. To start a recording, set to TransportStatus.RECORD */
-		status: TransportStatus
-		/** The filename to record to */
-		recordFilename?: string
-	}
+				/** The filename to record to */
+				recordFilename?: string
+		  }
+	) &
+		TimelineDatastoreReferencesContent
 }

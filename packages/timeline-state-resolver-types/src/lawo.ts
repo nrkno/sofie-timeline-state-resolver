@@ -1,5 +1,5 @@
 import { Mapping } from './mapping'
-import { TSRTimelineObjBase, DeviceType } from '.'
+import { TSRTimelineObjBase, DeviceType, TimelineDatastoreReferencesContent } from '.'
 
 export type EmberValue = number | string | boolean | Buffer | null
 enum ParameterType {
@@ -96,7 +96,7 @@ export interface TimelineObjLawoSources extends TimelineObjLawoBase {
 			} & ContentTimelineObjLawoSource
 		>
 		overridePriority?: number // defaults to 0
-	}
+	} & TimelineDatastoreReferencesContent
 }
 export interface TimelineObjLawoSource extends TimelineObjLawoBase {
 	content: {
@@ -104,19 +104,20 @@ export interface TimelineObjLawoSource extends TimelineObjLawoBase {
 		type: TimelineContentTypeLawo.SOURCE
 
 		overridePriority?: number // defaults to 0
-	} & ContentTimelineObjLawoSource
+	} & ContentTimelineObjLawoSource &
+		TimelineDatastoreReferencesContent
 }
 export interface TimelineObjLawoEmberProperty extends TimelineObjLawoBase {
 	content: {
 		deviceType: DeviceType.LAWO
 		type: TimelineContentTypeLawo.EMBER_PROPERTY
 		value: EmberValue
-	}
+	} & TimelineDatastoreReferencesContent
 }
 export interface TimelineObjLawoEmberRetrigger extends TimelineObjLawoBase {
 	content: {
 		deviceType: DeviceType.LAWO
 		type: TimelineContentTypeLawo.TRIGGER_VALUE
 		triggerValue: string
-	}
+	} & TimelineDatastoreReferencesContent
 }

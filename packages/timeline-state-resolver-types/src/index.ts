@@ -1,26 +1,5 @@
-export * from './abstract'
-export * from './atem'
-export * from './casparcg'
-export * from './httpSend'
-export * from './httpWatcher'
-export * from './hyperdeck'
-export * from './lawo'
-export * from './osc'
-export * from './pharos'
-export * from './panasonicPTZ'
-export * from './sisyfos'
-export * from './quantel'
-export * from './shotoku'
-export * from './tcpSend'
-export * from './vizMSE'
-export * from './singularLive'
-export * from './vmix'
-export * from './obs'
-
-export * from './device'
-export * from './mapping'
-
 import * as Timeline from './superfly-timeline'
+import { TimelineObjTelemetricsAny } from './telemetrics'
 import { TimelineObjAtemAny } from './atem'
 import { TimelineObjCasparCGAny } from './casparcg'
 import { TimelineObjHTTPSendAny } from './httpSend'
@@ -35,10 +14,35 @@ import { TSRTimelineObjProps } from './mapping'
 import { TimelineObjQuantelAny } from './quantel'
 import { TimelineObjShotoku } from './shotoku'
 import { TimelineObjSisyfosAny } from './sisyfos'
+import { TimelineObjSofieChefAny } from './sofieChef'
 import { TimelineObjVIZMSEAny } from './vizMSE'
 import { TimelineObjSingularLiveAny } from './singularLive'
 import { TimelineObjVMixAny } from './vmix'
 import { TimelineObjOBSAny } from './obs'
+
+export * from './abstract'
+export * from './atem'
+export * from './casparcg'
+export * from './httpSend'
+export * from './httpWatcher'
+export * from './hyperdeck'
+export * from './lawo'
+export * from './osc'
+export * from './pharos'
+export * from './panasonicPTZ'
+export * from './sisyfos'
+export * from './sofieChef'
+export * from './quantel'
+export * from './shotoku'
+export * from './tcpSend'
+export * from './vizMSE'
+export * from './singularLive'
+export * from './vmix'
+export * from './obs'
+export * from './telemetrics'
+
+export * from './device'
+export * from './mapping'
 
 export { Timeline }
 export * from './mapping'
@@ -66,16 +70,38 @@ export enum DeviceType {
 	SHOTOKU = 15,
 	VMIX = 20,
 	OBS = 21,
+	SOFIE_CHEF = 22,
+	TELEMETRICS = 23,
 }
 
 export interface TSRTimelineKeyframe<T> extends Timeline.TimelineKeyframe {
 	content: Partial<T>
 }
 
+/**
+ * An object containing references to the datastore
+ */
+export interface TimelineDatastoreReferences {
+	/**
+	 * localPath is the path to the property in the content object to override
+	 */
+	[localPath: string]: {
+		/** Reference to the Datastore key where to fetch the value */
+		datastoreKey: string
+		/**
+		 * If true, the referenced value in the Datastore is only applied after the timeline-object has started (ie a later-started timeline-object will not be affected)
+		 */
+		overwrite: boolean
+	}
+}
+export interface TimelineDatastoreReferencesContent {
+	$references?: TimelineDatastoreReferences
+}
+
 export interface TSRTimelineObjBase extends Omit<Timeline.TimelineObject, 'content'>, TSRTimelineObjProps {
 	content: {
 		deviceType: DeviceType
-	}
+	} & TimelineDatastoreReferencesContent
 	keyframes?: Array<TSRTimelineKeyframe<this['content']>>
 }
 
@@ -113,8 +139,22 @@ export type TSRTimelineObj =
 	| TimelineObjQuantelAny
 	| TimelineObjShotoku
 	| TimelineObjSisyfosAny
+	| TimelineObjSofieChefAny
 	| TimelineObjSingularLiveAny
 	| TimelineObjVMixAny
 	| TimelineObjVIZMSEAny
+	| TimelineObjTelemetricsAny
 
 export type TSRTimeline = Array<TSRTimelineObj>
+
+/**
+ * A simple key value store that can be referred to from the timeline objects
+ */
+export interface Datastore {
+	[datastoreKey: string]: {
+		/** The value that will replace a value in the Timeline-object content */
+		value: any
+		/** A unix-Timestamp of when the value was set. (Note that this must not be set a value in the future.) */
+		modified: number
+	}
+}

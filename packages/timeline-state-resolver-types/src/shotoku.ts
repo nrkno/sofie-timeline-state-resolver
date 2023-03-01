@@ -1,5 +1,5 @@
 import { Mapping } from './mapping'
-import { TSRTimelineObjBase, DeviceType } from '.'
+import { TSRTimelineObjBase, DeviceType, TimelineDatastoreReferencesContent } from '.'
 
 export interface ShotokuOptions {
 	host: string
@@ -30,7 +30,8 @@ export interface TimelineObjShotokuShot extends TSRTimelineObjBase {
 	content: {
 		deviceType: DeviceType.SHOTOKU
 		type: TimelineContentTypeShotoku.SHOT
-	} & ShotokuCommandContent
+	} & ShotokuCommandContent &
+		TimelineDatastoreReferencesContent
 }
 export interface TimelineObjShotokuSequence extends TSRTimelineObjBase {
 	content: {
@@ -43,7 +44,7 @@ export interface TimelineObjShotokuSequence extends TSRTimelineObjBase {
 				offset: number
 			} & ShotokuCommandContent
 		>
-	}
+	} & TimelineDatastoreReferencesContent
 }
 
 export type TimelineObjShotoku = TimelineObjShotokuShot | TimelineObjShotokuSequence

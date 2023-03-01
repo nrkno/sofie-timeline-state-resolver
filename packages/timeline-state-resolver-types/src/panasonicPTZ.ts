@@ -1,5 +1,5 @@
 import { Mapping } from './mapping'
-import { TSRTimelineObjBase, DeviceType } from '.'
+import { TSRTimelineObjBase, DeviceType, TimelineDatastoreReferencesContent } from '.'
 
 export interface MappingPanasonicPtz extends Mapping {
 	device: DeviceType.PANASONIC_PTZ
@@ -34,14 +34,14 @@ export interface TimelineObjPanasonicPtz extends TSRTimelineObjBase {
 	content: {
 		deviceType: DeviceType.PANASONIC_PTZ
 		type: TimelineContentTypePanasonicPtz
-	}
+	} & TimelineDatastoreReferencesContent
 }
 export interface TimelineObjPanasonicPtzZoomSpeed extends TimelineObjPanasonicPtz {
 	content: {
 		deviceType: DeviceType.PANASONIC_PTZ
 		type: TimelineContentTypePanasonicPtz.ZOOM_SPEED
 		zoomSpeed: number
-	}
+	} & TimelineDatastoreReferencesContent
 }
 
 export interface TimelineObjPanasonicPtzZoom extends TimelineObjPanasonicPtz {
@@ -49,7 +49,7 @@ export interface TimelineObjPanasonicPtzZoom extends TimelineObjPanasonicPtz {
 		deviceType: DeviceType.PANASONIC_PTZ
 		type: TimelineContentTypePanasonicPtz.ZOOM
 		zoom: number
-	}
+	} & TimelineDatastoreReferencesContent
 }
 
 export interface TimelineObjPanasonicPtzPresetSpeed extends TimelineObjPanasonicPtz {
@@ -57,7 +57,7 @@ export interface TimelineObjPanasonicPtzPresetSpeed extends TimelineObjPanasonic
 		deviceType: DeviceType.PANASONIC_PTZ
 		type: TimelineContentTypePanasonicPtz.SPEED
 		speed: number
-	}
+	} & TimelineDatastoreReferencesContent
 }
 
 export interface TimelineObjPanasonicPtzPreset extends TimelineObjPanasonicPtz {
@@ -65,5 +65,5 @@ export interface TimelineObjPanasonicPtzPreset extends TimelineObjPanasonicPtz {
 		deviceType: DeviceType.PANASONIC_PTZ
 		type: TimelineContentTypePanasonicPtz.PRESET
 		preset: number
-	}
+	} & TimelineDatastoreReferencesContent
 }

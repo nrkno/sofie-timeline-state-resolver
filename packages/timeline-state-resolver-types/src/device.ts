@@ -10,6 +10,7 @@ import {
 	QuantelOptions,
 	SingularLiveOptions,
 	SisyfosOptions,
+	SofieChefOptions,
 	TCPSendOptions,
 	AbstractOptions,
 	LawoOptions,
@@ -19,6 +20,7 @@ import {
 	VMixOptions,
 } from '.'
 import { ShotokuOptions } from './shotoku'
+import { TelemetricsOptions } from './telemetrics'
 
 export enum StatusCode {
 	UNKNOWN = 0, // Status unknown
@@ -65,11 +67,13 @@ export type DeviceOptionsAny =
 	| DeviceOptionsOSC
 	| DeviceOptionsHTTPWatcher
 	| DeviceOptionsSisyfos
+	| DeviceOptionsSofieChef
 	| DeviceOptionsQuantel
 	| DeviceOptionsSingularLive
 	| DeviceOptionsVMix
 	| DeviceOptionsVizMSE
 	| DeviceOptionsShotoku
+	| DeviceOptionsTelemetrics
 
 export interface DeviceOptionsAbstract extends DeviceOptionsBase<AbstractOptions> {
 	type: DeviceType.ABSTRACT
@@ -110,6 +114,9 @@ export interface DeviceOptionsHTTPWatcher extends DeviceOptionsBase<HTTPWatcherO
 export interface DeviceOptionsSisyfos extends DeviceOptionsBase<SisyfosOptions> {
 	type: DeviceType.SISYFOS
 }
+export interface DeviceOptionsSofieChef extends DeviceOptionsBase<SofieChefOptions> {
+	type: DeviceType.SOFIE_CHEF
+}
 export interface DeviceOptionsQuantel extends DeviceOptionsBase<QuantelOptions> {
 	type: DeviceType.QUANTEL
 }
@@ -125,4 +132,8 @@ export interface DeviceOptionsShotoku extends DeviceOptionsBase<ShotokuOptions> 
 
 export interface DeviceOptionsVMix extends DeviceOptionsBase<VMixOptions> {
 	type: DeviceType.VMIX
+}
+
+export interface DeviceOptionsTelemetrics extends DeviceOptionsBase<TelemetricsOptions> {
+	type: DeviceType.TELEMETRICS
 }

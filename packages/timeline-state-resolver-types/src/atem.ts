@@ -1,5 +1,5 @@
 import { Mapping } from './mapping'
-import { TSRTimelineObjBase, DeviceType } from '.'
+import { TSRTimelineObjBase, DeviceType, TimelineDatastoreReferencesContent } from '.'
 
 export interface MappingAtem extends Mapping {
 	device: DeviceType.ATEM
@@ -81,10 +81,13 @@ export type SuperSourceBox = {
 }
 
 export interface AtemTransitionSettings {
-	// dip
 	// DVE
 	mix?: {
 		rate: number
+	}
+	dip?: {
+		rate: number
+		input: number
 	}
 	// stinger
 	wipe?: {
@@ -201,7 +204,7 @@ export interface TimelineObjAtemME extends TimelineObjAtemBase {
 				}
 			}[]
 		}
-	}
+	} & TimelineDatastoreReferencesContent
 }
 export interface TimelineObjAtemDSK extends TimelineObjAtemBase {
 	content: {
@@ -241,7 +244,7 @@ export interface TimelineObjAtemDSK extends TimelineObjAtemBase {
 				}
 			}
 		}
-	}
+	} & TimelineDatastoreReferencesContent
 }
 export interface TimelineObjAtemAUX extends TimelineObjAtemBase {
 	content: {
@@ -250,7 +253,7 @@ export interface TimelineObjAtemAUX extends TimelineObjAtemBase {
 		aux: {
 			input: number
 		}
-	}
+	} & TimelineDatastoreReferencesContent
 }
 export interface TimelineObjAtemSsrc extends TimelineObjAtemBase {
 	content: {
@@ -259,7 +262,7 @@ export interface TimelineObjAtemSsrc extends TimelineObjAtemBase {
 		ssrc: {
 			boxes: Array<SuperSourceBox>
 		}
-	}
+	} & TimelineDatastoreReferencesContent
 }
 
 interface AtemSSrcPropsBase {
@@ -328,7 +331,7 @@ export interface TimelineObjAtemSsrcProps extends TimelineObjAtemBase {
 		deviceType: DeviceType.ATEM
 		type: TimelineContentTypeAtem.SSRCPROPS
 		ssrcProps: (AtemSSrcPropsPreMultiplied | AtemSSrcPropsStraight) & (AtemSSrcPropsNoBorder | AtemSSrcPropsBorder)
-	}
+	} & TimelineDatastoreReferencesContent
 }
 
 export interface TimelineObjAtemMediaPlayer extends TimelineObjAtemBase {
@@ -347,7 +350,7 @@ export interface TimelineObjAtemMediaPlayer extends TimelineObjAtemBase {
 			atBeginning: boolean
 			clipFrame: number
 		}
-	}
+	} & TimelineDatastoreReferencesContent
 }
 export interface TimelineObjAtemAudioChannel extends TimelineObjAtemBase {
 	content: {
@@ -361,7 +364,7 @@ export interface TimelineObjAtemAudioChannel extends TimelineObjAtemBase {
 			/** 0: Off, 1: On, 2: AFV */
 			mixOption?: number
 		}
-	}
+	} & TimelineDatastoreReferencesContent
 }
 export interface TimelineObjAtemMacroPlayer extends TimelineObjAtemBase {
 	content: {
@@ -372,5 +375,5 @@ export interface TimelineObjAtemMacroPlayer extends TimelineObjAtemBase {
 			isRunning: boolean
 			loop?: boolean
 		}
-	}
+	} & TimelineDatastoreReferencesContent
 }

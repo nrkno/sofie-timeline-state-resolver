@@ -1,5 +1,5 @@
 import { Mapping } from './mapping'
-import { TSRTimelineObjBase, DeviceType } from '.'
+import { TSRTimelineObjBase, DeviceType, TimelineDatastoreReferencesContent } from '.'
 
 export interface MappingTCPSend extends Mapping {
 	device: DeviceType.TCPSEND
@@ -33,10 +33,11 @@ export type TimelineObjTCPSendAny = TimelineObjTCPRequest
 export interface TimelineObjTCPSendBase extends TSRTimelineObjBase {
 	content: {
 		deviceType: DeviceType.TCPSEND
-	}
+	} & TimelineDatastoreReferencesContent
 }
 export interface TimelineObjTCPRequest extends TimelineObjTCPSendBase {
 	content: {
 		deviceType: DeviceType.TCPSEND
-	} & TcpSendCommandContent
+	} & TcpSendCommandContent &
+		TimelineDatastoreReferencesContent
 }
