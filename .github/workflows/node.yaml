@@ -21,9 +21,9 @@ jobs:
         lib-name: [timeline-state-resolver, timeline-state-resolver-types]
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Use Node.js
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v3
         with:
           node-version-file: '.node-version'
       - name: Prepare Environment
@@ -46,9 +46,9 @@ jobs:
     timeout-minutes: 15
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Use Node.js
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v3
         with:
           node-version-file: '.node-version'
       - name: Prepare Environment
@@ -75,9 +75,9 @@ jobs:
         lib-name: [timeline-state-resolver, timeline-state-resolver-types]
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
       - name: Prepare Environment
@@ -115,11 +115,11 @@ jobs:
       # - validate-dependencies
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           fetch-depth: 0
       - name: Use Node.js
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v3
         with:
           node-version-file: '.node-version'
       - name: Check release is desired
@@ -142,10 +142,10 @@ jobs:
             if verlt $PUBLISHED_VERSION $THIS_VERSION
             then
               echo "Publishing latest"
-              echo ::set-output name=tag::"latest"
+              echo "tag=latest" >> $GITHUB_OUTPUT
             else
               echo "Publishing hotfix"
-              echo ::set-output name=tag::"hotfix"
+              echo "tag=hotfix" >> $GITHUB_OUTPUT
             fi
 
           fi
@@ -185,9 +185,9 @@ jobs:
         lib-name: [timeline-state-resolver, timeline-state-resolver-types]
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Use Node.js
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v3
         with:
           node-version-file: '.node-version'
       - name: Prepare Environment
@@ -218,9 +218,9 @@ jobs:
         lib-name: [timeline-state-resolver, timeline-state-resolver-types]
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Use Node.js
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v3
         with:
           node-version-file: '.node-version'
       - name: Prepare Environment
