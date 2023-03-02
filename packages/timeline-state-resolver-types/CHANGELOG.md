@@ -26,6 +26,14 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
 - translations for actions ([df4cb43](https://github.com/nrkno/sofie-timeline-state-resolver/commit/df4cb43cf16a8e2ae34c1fe44801c5a327f9b01e))
 - update for casparcg-connection rewrite ([5dfdd23](https://github.com/nrkno/sofie-timeline-state-resolver/commit/5dfdd2320caf89432d36513026c1259e2cf3d366))
 
+# [7.5.0](https://github.com/nrkno/sofie-timeline-state-resolver/compare/7.5.0-release47.7...7.5.0) (2023-02-28)
+
+**Note:** Version bump only for package timeline-state-resolver-types
+
+# [7.5.0-release47.7](https://github.com/nrkno/sofie-timeline-state-resolver/compare/7.5.0-release47.6...7.5.0-release47.7) (2023-02-24)
+
+**Note:** Version bump only for package timeline-state-resolver-types
+
 # [7.5.0-release47.6](https://github.com/nrkno/sofie-timeline-state-resolver/compare/7.5.0-release47.5...7.5.0-release47.6) (2023-02-07)
 
 **Note:** Version bump only for package timeline-state-resolver-types

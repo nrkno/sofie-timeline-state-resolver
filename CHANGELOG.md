@@ -3,6 +3,8 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+
+
 # [8.0.0-release48.1](https://github.com/nrkno/sofie-timeline-state-resolver/compare/7.5.0-release47.6...8.0.0-release48.1) (2023-02-14)
 
 
@@ -53,6 +55,20 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
 
 
 
+# [7.5.0](https://github.com/nrkno/sofie-timeline-state-resolver/compare/7.5.0-release47.7...7.5.0) (2023-02-28)
+
+**Note:** Version bump only for package timeline-state-resolver-packages
+
+
+
+
+
+# [7.5.0-release47.7](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/7.5.0-release47.6...7.5.0-release47.7) (2023-02-24)
+
+
+### Bug Fixes
+
+* update v-connection dependency ([3163188](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/316318801a3babc54f6222621c16c4061d78aafd))
 
 # [7.5.0-release47.6](https://github.com/nrkno/sofie-timeline-state-resolver/compare/7.5.0-release47.5...7.5.0-release47.6) (2023-02-07)
 

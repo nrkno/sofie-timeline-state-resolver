@@ -280,6 +280,12 @@ export class VMix extends BaseConnection {
 				return this.overlayInputOut(command.value)
 			case VMixCommand.SET_INPUT_OVERLAY:
 				return this.setInputOverlay(command.input, command.index, command.value)
+			case VMixCommand.SCRIPT_START:
+				return this.scriptStart(command.value)
+			case VMixCommand.SCRIPT_STOP:
+				return this.scriptStop(command.value)
+			case VMixCommand.SCRIPT_STOP_ALL:
+				return this.scriptStopAll()
 			case VMixCommand.LIST_ADD:
 				return this.listAdd(command.input, command.value)
 			case VMixCommand.LIST_REMOVE_ALL:
@@ -512,6 +518,18 @@ export class VMix extends BaseConnection {
 		return this.sendCommandFunction(`SetMultiViewOverlay`, { input, value: val })
 	}
 
+	public async scriptStart(value: string): Promise<any> {
+		return this.sendCommandFunction(`ScriptStart`, { value })
+	}
+
+	public async scriptStop(value: string): Promise<any> {
+		return this.sendCommandFunction(`ScriptStop`, { value })
+	}
+
+	public async scriptStopAll(): Promise<any> {
+		return this.sendCommandFunction(`ScriptStopAll`, {})
+	}
+
 	public async listAdd(input: string | number, value: string | number): Promise<any> {
 		return this.sendCommandFunction(`ListAdd`, { input, value: encodeURIComponent(value) })
 	}
@@ -673,6 +691,17 @@ export interface VMixStateCommandSetInputOverlay extends VMixStateCommandBase {
 	index: number
 	value: string | number
 }
+export interface VMixStateCommandScriptStart extends VMixStateCommandBase {
+	command: VMixCommand.SCRIPT_START
+	value: string
+}
+export interface VMixStateCommandScriptStop extends VMixStateCommandBase {
+	command: VMixCommand.SCRIPT_STOP
+	value: string
+}
+export interface VMixStateCommandScriptStopAll extends VMixStateCommandBase {
+	command: VMixCommand.SCRIPT_STOP_ALL
+}
 export interface VMixStateCommandListAdd extends VMixStateCommandBase {
 	command: VMixCommand.LIST_ADD
 	input: string | number
@@ -717,5 +746,8 @@ export type VMixStateCommand =
 	| VMixStateCommandOverlayInputIn
 	| VMixStateCommandOverlayInputOut
 	| VMixStateCommandSetInputOverlay
+	| VMixStateCommandScriptStart
+	| VMixStateCommandScriptStop
+	| VMixStateCommandScriptStopAll
 	| VMixStateCommandListAdd
 	| VMixStateCommandListRemoveAll

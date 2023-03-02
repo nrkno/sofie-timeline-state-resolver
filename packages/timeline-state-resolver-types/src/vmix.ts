@@ -13,6 +13,7 @@ export type MappingVMixAny =
 	| MappingVMixExternal
 	| MappingVMixFadeToBlack
 	| MappingVMixFader
+	| MappingVMixScript
 
 export interface MappingVMix extends Mapping {
 	device: DeviceType.VMIX
@@ -88,6 +89,10 @@ export interface MappingVMixFader extends MappingVMix {
 	mappingType: MappingVMixType.Fader // should this have a separate mapping?
 }
 
+export interface MappingVMixScript extends MappingVMix {
+	mappingType: MappingVMixType.Script
+}
+
 export enum MappingVMixType {
 	Program = 0,
 	Preview = 1,
@@ -100,6 +105,7 @@ export enum MappingVMixType {
 	External = 8,
 	FadeToBlack = 9,
 	Fader = 10,
+	Script = 11,
 }
 
 export interface VMixOptions {
@@ -142,6 +148,9 @@ export enum VMixCommand {
 	OVERLAY_INPUT_IN = 'OVERLAY_INPUT_IN',
 	OVERLAY_INPUT_OUT = 'OVERLAY_INPUT_OUT',
 	SET_INPUT_OVERLAY = 'SET_INPUT_OVERLAY',
+	SCRIPT_START = 'SCRIPT_START',
+	SCRIPT_STOP = 'SCRIPT_STOP',
+	SCRIPT_STOP_ALL = 'SCRIPT_STOP_ALL',
 	LIST_ADD = 'LIST_ADD',
 	LIST_REMOVE_ALL = 'LIST_REMOVE_ALL',
 }
@@ -158,6 +167,7 @@ export type TimelineContentVMixAny =
 	| TimelineContentVMixOutput
 	| TimelineContentVMixOverlay
 	| TimelineContentVMixInput
+	| TimelineContentVMixScript
 
 export enum TimelineContentTypeVMix {
 	PROGRAM = 'PROGRAM',
@@ -171,6 +181,7 @@ export enum TimelineContentTypeVMix {
 	OUTPUT = 'OUTPUT',
 	EXTERNAL = 'EXTERNAL',
 	OVERLAY = 'OVERLAY',
+	SCRIPT = 'SCRIPT',
 }
 export interface TimelineContentVMixBase {
 	deviceType: DeviceType.VMIX
@@ -296,6 +307,13 @@ export interface TimelineContentVMixOverlay extends TimelineContentVMixBase {
 
 	/** Input number or name */
 	input: number | string
+}
+
+export interface TimelineContentVMixScript extends TimelineContentVMixBase {
+	type: TimelineContentTypeVMix.SCRIPT
+
+	/** Script name */
+	name: string
 }
 
 export interface VMixTransform {
