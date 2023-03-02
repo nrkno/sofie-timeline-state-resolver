@@ -280,6 +280,12 @@ export class VMix extends BaseConnection {
 				return this.overlayInputOut(command.value)
 			case VMixCommand.SET_INPUT_OVERLAY:
 				return this.setInputOverlay(command.input, command.index, command.value)
+			case VMixCommand.SCRIPT_START:
+				return this.scriptStart(command.value)
+			case VMixCommand.SCRIPT_STOP:
+				return this.scriptStop(command.value)
+			case VMixCommand.SCRIPT_STOP_ALL:
+				return this.scriptStopAll()
 			default:
 				throw new Error(`vmixAPI: Command ${((command || {}) as any).command} not implemented`)
 		}
@@ -507,6 +513,18 @@ export class VMix extends BaseConnection {
 		const val = `${index},${value}`
 		return this.sendCommandFunction(`SetMultiViewOverlay`, { input, value: val })
 	}
+
+	public async scriptStart(value: string): Promise<any> {
+		return this.sendCommandFunction(`ScriptStart`, { value })
+	}
+
+	public async scriptStop(value: string): Promise<any> {
+		return this.sendCommandFunction(`ScriptStop`, { value })
+	}
+
+	public async scriptStopAll(): Promise<any> {
+		return this.sendCommandFunction(`ScriptStopAll`, {})
+	}
 }
 
 export interface VMixStateCommandBase {
@@ -661,6 +679,17 @@ export interface VMixStateCommandSetInputOverlay extends VMixStateCommandBase {
 	index: number
 	value: string | number
 }
+export interface VMixStateCommandScriptStart extends VMixStateCommandBase {
+	command: VMixCommand.SCRIPT_START
+	value: string
+}
+export interface VMixStateCommandScriptStop extends VMixStateCommandBase {
+	command: VMixCommand.SCRIPT_STOP
+	value: string
+}
+export interface VMixStateCommandScriptStopAll extends VMixStateCommandBase {
+	command: VMixCommand.SCRIPT_STOP_ALL
+}
 export type VMixStateCommand =
 	| VMixStateCommandPreviewInput
 	| VMixStateCommandTransition
@@ -696,3 +725,6 @@ export type VMixStateCommand =
 	| VMixStateCommandOverlayInputIn
 	| VMixStateCommandOverlayInputOut
 	| VMixStateCommandSetInputOverlay
+	| VMixStateCommandScriptStart
+	| VMixStateCommandScriptStop
+	| VMixStateCommandScriptStopAll
