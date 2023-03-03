@@ -75,6 +75,7 @@ exports[`index imports 1`] = `
   "VideoFormat",
   "VizMSEActions",
   "VizMSEDevice",
+  "VmixActions",
   "manifest",
 ]
 `;

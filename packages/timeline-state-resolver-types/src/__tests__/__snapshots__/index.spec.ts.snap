@@ -62,5 +62,6 @@ exports[`index imports 1`] = `
   "VMixTransitionType",
   "VideoFormat",
   "VizMSEActions",
+  "VmixActions",
 ]
 `;

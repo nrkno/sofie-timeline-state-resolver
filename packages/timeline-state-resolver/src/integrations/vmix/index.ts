@@ -21,7 +21,13 @@ import {
 	MappingVMixAny,
 	Timeline,
 	TSRTimelineContent,
+	ActionExecutionResult,
+	ActionExecutionResultCode,
+	OpenPresetPayload,
+	SavePresetPayload,
+	VmixActions,
 } from 'timeline-state-resolver-types'
+import { t } from '../../lib'
 
 export interface DeviceOptionsVMixInternal extends DeviceOptionsVMix {
 	commandReceiver?: CommandReceiver
@@ -267,6 +273,60 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 	async makeReady(okToDestroyStuff?: boolean): Promise<void> {
 		if (okToDestroyStuff) {
 			// do something?
+		}
+	}
+
+	async executeAction(actionId: string, payload?: Record<string, any> | undefined): Promise<ActionExecutionResult> {
+		switch (actionId) {
+			case VmixActions.LastPreset:
+				await this._vmix.lastPreset()
+				return {
+					result: ActionExecutionResultCode.Ok,
+				}
+			case VmixActions.OpenPreset:
+				return await this._openPreset(payload as OpenPresetPayload)
+			case VmixActions.SavePreset:
+				return await this._savePreset(payload as SavePresetPayload)
+			default:
+				return {
+					result: ActionExecutionResultCode.Error,
+					response: t('Action "{{actionId}}" not found', { actionId }),
+				}
+		}
+	}
+
+	_checkPresetAction(payload: OpenPresetPayload | SavePresetPayload): ActionExecutionResult | undefined {
+		if (!this._vmix.connected) {
+			return {
+				result: ActionExecutionResultCode.Error,
+				response: t('Cannot perform VMix action without a connection'),
+			}
+		}
+
+		if (!payload?.filename) {
+			return {
+				result: ActionExecutionResultCode.Error,
+				response: t('No preset filename specified'),
+			}
+		}
+		return
+	}
+
+	async _openPreset(payload: OpenPresetPayload) {
+		const presetActionCheckResult = this._checkPresetAction(payload)
+		if (typeof presetActionCheckResult === 'object') return presetActionCheckResult
+		await this._vmix.openPreset(payload.filename)
+		return {
+			result: ActionExecutionResultCode.Ok,
+		}
+	}
+
+	async _savePreset(payload: SavePresetPayload) {
+		const presetActionCheckResult = this._checkPresetAction(payload)
+		if (typeof presetActionCheckResult === 'object') return presetActionCheckResult
+		await this._vmix.savePreset(payload.filename)
+		return {
+			result: ActionExecutionResultCode.Ok,
 		}
 	}
 
