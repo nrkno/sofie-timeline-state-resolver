@@ -20,6 +20,7 @@ import {
 	MappingVMixFader,
 	MappingVMixScript,
 	VmixActions,
+	ActionExecutionResultCode,
 } from 'timeline-state-resolver-types'
 import { ThreadedClass } from 'threadedclass'
 import { VMixDevice } from '..'
@@ -2908,11 +2909,15 @@ describe('vMix', () => {
 		// Check that no commands has been scheduled:
 		expect(await device.queue).toHaveLength(0)
 
-		await device.executeAction(VmixActions.LastPreset)
+		const passResult = await device.executeAction(VmixActions.LastPreset)
 
 		expect(onFunction).toHaveBeenCalledTimes(1)
 
 		expect(onFunction).toHaveBeenNthCalledWith(1, 'LastPreset', null)
+
+		expect(passResult).toMatchObject({
+			result: ActionExecutionResultCode.Ok,
+		})
 
 		clearMocks()
 		commandReceiver0.mockClear()
@@ -2980,7 +2985,23 @@ describe('vMix', () => {
 		// Check that no commands has been scheduled:
 		expect(await device.queue).toHaveLength(0)
 
-		await device.executeAction(VmixActions.OpenPreset, {
+		const noPayloadResult = await device.executeAction(VmixActions.OpenPreset, null)
+
+		expect(noPayloadResult).toMatchObject({
+			result: ActionExecutionResultCode.Error,
+			response: { key: 'Action payload is invalid', args: undefined },
+		})
+
+		const noFileResult = await device.executeAction(VmixActions.OpenPreset, {
+			filename: undefined,
+		})
+
+		expect(noFileResult).toMatchObject({
+			result: ActionExecutionResultCode.Error,
+			response: { key: 'No preset filename specified', args: undefined },
+		})
+
+		const passResult = await device.executeAction(VmixActions.OpenPreset, {
 			filename: 'C:\\Presets\\myPreset.vmix',
 		})
 
@@ -2991,6 +3012,10 @@ describe('vMix', () => {
 			'OpenPreset',
 			expect.stringContaining('Value=C:\\Presets\\myPreset.vmix')
 		)
+
+		expect(passResult).toMatchObject({
+			result: ActionExecutionResultCode.Ok,
+		})
 
 		clearMocks()
 		commandReceiver0.mockClear()
@@ -3058,7 +3083,23 @@ describe('vMix', () => {
 		// Check that no commands has been scheduled:
 		expect(await device.queue).toHaveLength(0)
 
-		await device.executeAction(VmixActions.SavePreset, {
+		const noPayloadResult = await device.executeAction(VmixActions.SavePreset, null)
+
+		expect(noPayloadResult).toMatchObject({
+			result: ActionExecutionResultCode.Error,
+			response: { key: 'Action payload is invalid', args: undefined },
+		})
+
+		const noFileResult = await device.executeAction(VmixActions.SavePreset, {
+			filename: undefined,
+		})
+
+		expect(noFileResult).toMatchObject({
+			result: ActionExecutionResultCode.Error,
+			response: { key: 'No preset filename specified', args: undefined },
+		})
+
+		const passResult = await device.executeAction(VmixActions.SavePreset, {
 			filename: 'C:\\Presets\\myPreset.vmix',
 		})
 
@@ -3069,6 +3110,10 @@ describe('vMix', () => {
 			'SavePreset',
 			expect.stringContaining('Value=C:\\Presets\\myPreset.vmix')
 		)
+
+		expect(passResult).toMatchObject({
+			result: ActionExecutionResultCode.Ok,
+		})
 
 		clearMocks()
 		commandReceiver0.mockClear()
