@@ -279,10 +279,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 	async executeAction(actionId: string, payload?: Record<string, any> | undefined): Promise<ActionExecutionResult> {
 		switch (actionId) {
 			case VmixActions.LastPreset:
-				await this._vmix.lastPreset()
-				return {
-					result: ActionExecutionResultCode.Ok,
-				}
+				return await this._lastPreset()
 			case VmixActions.OpenPreset:
 				return await this._openPreset(payload as OpenPresetPayload)
 			case VmixActions.SavePreset:
@@ -295,7 +292,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 		}
 	}
 
-	_checkPresetAction(payload: OpenPresetPayload | SavePresetPayload): ActionExecutionResult | undefined {
+	_checkPresetAction(payload?: any, payloadRequired?: boolean): ActionExecutionResult | undefined {
 		if (!this._vmix.connected) {
 			return {
 				result: ActionExecutionResultCode.Error,
@@ -303,18 +300,36 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 			}
 		}
 
-		if (!payload?.filename) {
-			return {
-				result: ActionExecutionResultCode.Error,
-				response: t('No preset filename specified'),
+		if (payloadRequired) {
+			if (!payload || typeof payload !== 'object') {
+				return {
+					result: ActionExecutionResultCode.Error,
+					response: t('Action payload is invalid'),
+				}
+			}
+
+			if (!payload.filename) {
+				return {
+					result: ActionExecutionResultCode.Error,
+					response: t('No preset filename specified'),
+				}
 			}
 		}
 		return
 	}
 
+	async _lastPreset() {
+		const presetActionCheckResult = this._checkPresetAction()
+		if (presetActionCheckResult) return presetActionCheckResult
+		await this._vmix.lastPreset()
+		return {
+			result: ActionExecutionResultCode.Ok,
+		}
+	}
+
 	async _openPreset(payload: OpenPresetPayload) {
-		const presetActionCheckResult = this._checkPresetAction(payload)
-		if (typeof presetActionCheckResult === 'object') return presetActionCheckResult
+		const presetActionCheckResult = this._checkPresetAction(payload, true)
+		if (presetActionCheckResult) return presetActionCheckResult
 		await this._vmix.openPreset(payload.filename)
 		return {
 			result: ActionExecutionResultCode.Ok,
@@ -322,8 +337,8 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 	}
 
 	async _savePreset(payload: SavePresetPayload) {
-		const presetActionCheckResult = this._checkPresetAction(payload)
-		if (typeof presetActionCheckResult === 'object') return presetActionCheckResult
+		const presetActionCheckResult = this._checkPresetAction(payload, true)
+		if (presetActionCheckResult) return presetActionCheckResult
 		await this._vmix.savePreset(payload.filename)
 		return {
 			result: ActionExecutionResultCode.Ok,
