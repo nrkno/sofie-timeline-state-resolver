@@ -80,7 +80,7 @@ describe('TriCasterStateDiffer.getCommandsToAchieveState', () => {
 			const commands = stateDiffer.getCommandsToAchieveState(newState, oldState)
 
 			expect(commands.length).toEqual(2)
-			expect(commands[0].command).toEqual({ target: 'main', name: '_select_index', value: 1 })
+			expect(commands[0].command).toEqual({ target: 'main', name: '_set_mix_effect_bin_index', value: 0 })
 			expect(commands[1].command).toEqual({ target: 'main', name: '_speed', value: 5.2 })
 		})
 
@@ -95,7 +95,7 @@ describe('TriCasterStateDiffer.getCommandsToAchieveState', () => {
 			const commands = stateDiffer.getCommandsToAchieveState(newState, oldState)
 
 			expect(commands.length).toEqual(2)
-			expect(commands[0].command).toEqual({ target: 'main', name: '_select_index', value: 5 })
+			expect(commands[0].command).toEqual({ target: 'main', name: '_set_mix_effect_bin_index', value: 5 })
 			expect(commands[1].command).toEqual({ target: 'main', name: '_speed', value: 5.2 })
 		})
 
@@ -112,7 +112,7 @@ describe('TriCasterStateDiffer.getCommandsToAchieveState', () => {
 			const commands = stateDiffer.getCommandsToAchieveState(newState, oldState)
 
 			expect(commands.length).toEqual(4)
-			expect(commands[0].command).toEqual({ target: 'main', name: '_select_index', value: 5 })
+			expect(commands[0].command).toEqual({ target: 'main', name: '_set_mix_effect_bin_index', value: 5 })
 			expect(commands[1].command).toEqual({ target: 'main', name: '_speed', value: 5.2 })
 			expect(commands[2].command).toEqual({ target: 'main_b', name: '_row_named_input', value: 'input5' })
 			expect(commands[3].command).toEqual({ target: 'main', name: '_auto' })
@@ -164,7 +164,7 @@ describe('TriCasterStateDiffer.getCommandsToAchieveState', () => {
 			const commands = stateDiffer.getCommandsToAchieveState(newState, oldState)
 
 			expect(commands.length).toEqual(4)
-			expect(commands[0].command).toEqual({ target: 'main', name: '_select_index', value: 5 })
+			expect(commands[0].command).toEqual({ target: 'main', name: '_set_mix_effect_bin_index', value: 5 })
 			expect(commands[1].command).toEqual({ target: 'main', name: '_speed', value: 5.2 })
 			expect(commands[2].command).toEqual({ target: 'main_b', name: '_row_named_input', value: 'input5' })
 			expect(commands[3].command).toEqual({ target: 'main', name: '_auto' })

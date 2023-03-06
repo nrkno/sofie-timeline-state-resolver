@@ -300,21 +300,29 @@ export class TriCasterStateDiffer {
 		source: CommandName.CROSSPOINT_SOURCE,
 	}
 
-	private effectCommandGenerator: CommandGeneratorFunction<
+	private keyerEffectCommandGenerator: CommandGeneratorFunction<
 		TriCasterTransitionEffect,
-		RequiredDeep<TriCasterMixEffectState | TriCasterKeyerState>
-	> = ({ value, target, state }) => {
-		const commands: TriCasterCommand[] = []
-		if (value === 'cut') {
-			return commands
+		RequiredDeep<TriCasterKeyerState>
+	> = this.effectCommandGenerator(CommandName.SELECT_INDEX)
+
+	private mixEffectEffectCommandGenerator: CommandGeneratorFunction<
+		TriCasterTransitionEffect,
+		RequiredDeep<TriCasterMixEffectState>
+	> = this.effectCommandGenerator(CommandName.SET_MIX_EFFECT_BIN_INDEX)
+
+	private effectCommandGenerator(
+		selectCommand: TriCasterGenericCommandName<number>
+	): CommandGeneratorFunction<TriCasterTransitionEffect, RequiredDeep<TriCasterKeyerState | TriCasterMixEffectState>> {
+		return ({ value, target, state }) => {
+			if (value === 'cut') {
+				return []
+			}
+			const valueNumber = value === 'fade' ? 0 : value
+			return [
+				{ name: selectCommand, target, value: valueNumber },
+				{ name: CommandName.SPEED, target, value: state.transitionDuration },
+			]
 		}
-		if (typeof value === 'number') {
-			commands.push({ name: CommandName.SELECT_INDEX, target, value })
-		} else if (value === 'fade') {
-			commands.push({ name: CommandName.SELECT_INDEX, target, value: 1 })
-		}
-		commands.push({ name: CommandName.SPEED, target, value: state.transitionDuration })
-		return commands
 	}
 
 	private durationCommandGenerator: CommandGeneratorFunction<
@@ -353,7 +361,7 @@ export class TriCasterStateDiffer {
 	}
 
 	private keyerCommandGenerator: CommandGenerator<TriCasterKeyerState> = {
-		transitionEffect: this.effectCommandGenerator,
+		transitionEffect: this.keyerEffectCommandGenerator,
 		transitionDuration: this.durationCommandGenerator,
 		...this.layerCommandGenerator,
 		input: CommandName.SELECT_NAMED_INPUT,
@@ -372,7 +380,7 @@ export class TriCasterStateDiffer {
 		return {
 			$target: meName,
 			isInEffectMode: null,
-			transitionEffect: this.effectCommandGenerator,
+			transitionEffect: this.mixEffectEffectCommandGenerator,
 			transitionDuration: this.durationCommandGenerator,
 			delegates: this.delegateCommandGenerator,
 			keyers: fillRecord(this.dskNames, (name) => ({ $target: name, ...this.keyerCommandGenerator })),

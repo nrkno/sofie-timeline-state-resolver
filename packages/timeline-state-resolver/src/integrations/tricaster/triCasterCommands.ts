@@ -69,6 +69,7 @@ type RowNamedInputCommand = CommandWithValueAndTarget<CommandName.ROW_NAMED_INPU
 type TakeCommand = CommandWithTarget<CommandName.TAKE>
 type AutoCommand = CommandWithTarget<CommandName.AUTO>
 type SelectIndexCommand = CommandWithValueAndTarget<CommandName.SELECT_INDEX, number>
+type SetMixEffectBinIndexCommand = CommandWithValueAndTarget<CommandName.SET_MIX_EFFECT_BIN_INDEX, number>
 type SpeedCommand = CommandWithValueAndTarget<CommandName.SPEED, number>
 type DelegateCommand = CommandWithValueAndTarget<CommandName.DELEGATE, string>
 
@@ -107,6 +108,7 @@ export type TriCasterCommand =
 	| TakeCommand
 	| AutoCommand
 	| SelectIndexCommand
+	| SetMixEffectBinIndexCommand
 	| SpeedCommand
 	| DelegateCommand
 	| ValueCommand
