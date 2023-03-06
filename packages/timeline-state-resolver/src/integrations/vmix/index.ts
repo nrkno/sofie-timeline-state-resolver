@@ -588,6 +588,24 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 			// we dispatch LIST_REMOVE_ALL.
 			// So, order of operations matters here.
 			if (!_.isEqual(oldInput.listFilePaths, input.listFilePaths)) {
+				// vMix has a quirk that we are working around here:
+				// When a List input has no items, its Play/Pause button becomes inactive and
+				// clicking it does nothing. However, if the List was playing when it was emptied,
+				// it'll remain in a playing state. This means that as soon as new content is
+				// added to the playlist, it will immediately begin playing. This feels like a
+				// bug/mistake/otherwise unwanted behavior in every scenario. To work around this,
+				// we automatically dispatch a PAUSE_INPUT command before emptying the playlist,
+				// but only if there's no new content being added afterward.
+				if (!input.listFilePaths || (Array.isArray(input.listFilePaths) && input.listFilePaths.length <= 0)) {
+					commands.push({
+						command: {
+							command: VMixCommand.PAUSE_INPUT,
+							input: input.name,
+						},
+						context: null,
+						timelineId: '',
+					})
+				}
 				commands.push({
 					command: {
 						command: VMixCommand.LIST_REMOVE_ALL,
