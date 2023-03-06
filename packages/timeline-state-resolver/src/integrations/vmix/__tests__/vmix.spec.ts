@@ -2926,9 +2926,21 @@ describe('vMix', () => {
 
 		await mockTime.advanceTimeToTicks(11300)
 
-		expect(commandReceiver0).toHaveBeenCalledTimes(1)
+		expect(commandReceiver0).toHaveBeenCalledTimes(2)
 		expect(commandReceiver0).toHaveBeenNthCalledWith(
 			1,
+			11000,
+			expect.objectContaining({
+				command: {
+					command: VMixCommand.PAUSE_INPUT,
+					input: '1',
+				},
+			}),
+			null,
+			expect.any(String)
+		)
+		expect(commandReceiver0).toHaveBeenNthCalledWith(
+			2,
 			11000,
 			expect.objectContaining({
 				command: {
@@ -2940,9 +2952,10 @@ describe('vMix', () => {
 			expect.any(String)
 		)
 
-		expect(onFunction).toHaveBeenCalledTimes(1)
+		expect(onFunction).toHaveBeenCalledTimes(2)
 
-		expect(onFunction).toHaveBeenNthCalledWith(1, 'ListRemoveAll', expect.stringContaining('Input=1'))
+		expect(onFunction).toHaveBeenNthCalledWith(1, 'Pause', expect.stringContaining('Input=1'))
+		expect(onFunction).toHaveBeenNthCalledWith(2, 'ListRemoveAll', expect.stringContaining('Input=1'))
 
 		clearMocks()
 		commandReceiver0.mockClear()
