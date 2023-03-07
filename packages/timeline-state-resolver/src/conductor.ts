@@ -416,7 +416,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 		options?: { signal?: AbortSignal }
 	): Promise<DeviceContainer<DeviceOptionsBase<any>>> {
 		let newDevice: DeviceContainer<DeviceOptionsBase<any>> | undefined
-		const throwIfAborted = this.throwIfAborted.bind(this, options?.signal, deviceId, 'creation')
+		const throwIfAborted = () => this.throwIfAborted(options?.signal, deviceId, 'creation')
 		try {
 			if (this.devices.has(deviceId)) {
 				throw new Error(`Device "${deviceId}" already exists when creating device`)
@@ -706,7 +706,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 		activeRundownPlaylistId?: string,
 		options?: { signal?: AbortSignal }
 	): Promise<DeviceContainer<DeviceOptionsBase<any>>> {
-		const throwIfAborted = this.throwIfAborted.bind(this, deviceId, 'initialisation')
+		const throwIfAborted = () => this.throwIfAborted(options?.signal, deviceId, 'initialisation')
 
 		throwIfAborted()
 
@@ -1608,13 +1608,13 @@ async function makeImmediatelyAbortable<T>(
 	const abortPromise = new Promise<void>((resolve, reject) => {
 		resolveAbortPromise = () => {
 			resolve()
-			// @ts-expect-error
+			// @ts-expect-error removeEventListener is missing in @types/node until 16.x
 			abortSignal.removeEventListener('abort', rejectPromise)
 		}
 		const rejectPromise = () => {
 			reject(new AbortError())
 		}
-		// @ts-expect-error
+		// @ts-expect-error addEventListener is missing in @types/node until 16.x
 		abortSignal.addEventListener('abort', rejectPromise, { once: true })
 	})
 	return Promise.race([mainPromise, abortPromise])
