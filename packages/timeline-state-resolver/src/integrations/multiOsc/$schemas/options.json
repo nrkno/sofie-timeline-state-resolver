@@ -37,7 +37,7 @@
 		},
 		"timeBetweenCommands": {
 			"type": "integer",
-			"ui:title": "Port"
+			"ui:title": "Time between commands in ms"
 		}
 	},
 	"required": ["connections", "timeBetweenCommands"],

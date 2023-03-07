@@ -43,7 +43,6 @@ export interface DeviceOptionsBase<T> extends SlowReportOptions, DeviceCommonOpt
 	isMultiThreaded?: boolean
 	reportAllCommands?: boolean
 	options?: T
-	debugState?: boolean
 }
 
 export interface SlowReportOptions {

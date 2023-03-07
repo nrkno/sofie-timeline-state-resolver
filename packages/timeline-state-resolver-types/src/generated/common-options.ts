@@ -7,6 +7,7 @@
 
 export interface DeviceCommonOptions {
 	debug?: boolean
+	debugState?: boolean
 	disable?: boolean
 	threadUsage?: number
 }

@@ -8,6 +8,11 @@
 			"ui:title": "Activate debug logging for device",
 			"default": false
 		},
+		"debugState": {
+			"type": "boolean",
+			"ui:title": "Activate State Debugging",
+			"default": false
+		},
 		"disable": {
 			"type": "boolean",
 			"ui:title": "Disable",
