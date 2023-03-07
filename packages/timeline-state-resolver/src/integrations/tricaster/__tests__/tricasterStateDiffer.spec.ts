@@ -387,13 +387,47 @@ describe('TriCasterStateDiffer.getCommandsToAchieveState', () => {
 			expect(commands.length).toEqual(0)
 		})
 
+		test('changes inputs', () => {
+			const { stateDiffer, oldState, newState } = setupStateDiffer()
+
+			oldState.mixEffects.v1.layers!.a!.input = 'input1'
+			oldState.mixEffects.v1.isInEffectMode = true
+
+			newState.mixEffects.v1.layers!.a!.input = 'input2'
+			newState.mixEffects.v1.isInEffectMode = true
+
+			const commands = stateDiffer.getCommandsToAchieveState(newState, oldState)
+
+			expect(commands.length).toEqual(1)
+			expect(commands[0].command).toEqual({ target: 'v1_a', name: '_row_named_input', value: 'input2' })
+		})
+
+		test('does not change a or b inputs when not in effect mode', () => {
+			const { stateDiffer, oldState, newState } = setupStateDiffer()
+
+			oldState.mixEffects.v1.layers!.a!.input = 'input1'
+			oldState.mixEffects.v1.layers!.b!.input = 'input3'
+			oldState.mixEffects.v1.isInEffectMode = false
+
+			newState.mixEffects.v1.layers!.a!.input = 'input2'
+			newState.mixEffects.v1.layers!.b!.input = 'input4'
+			newState.mixEffects.v1.isInEffectMode = false
+
+			const commands = stateDiffer.getCommandsToAchieveState(newState, oldState)
+
+			expect(commands.length).toEqual(0)
+		})
+
 		test('generates position commands', () => {
 			const { stateDiffer, oldState, newState } = setupStateDiffer()
+
+			oldState.mixEffects.v1.isInEffectMode = true
 
 			newState.mixEffects.v1.layers!.a!.position = {
 				x: 2.8,
 				y: -1,
 			}
+			newState.mixEffects.v1.isInEffectMode = true
 
 			const commands = stateDiffer.getCommandsToAchieveState(newState, oldState)
 
@@ -405,10 +439,13 @@ describe('TriCasterStateDiffer.getCommandsToAchieveState', () => {
 		test('generates scale commands', () => {
 			const { stateDiffer, oldState, newState } = setupStateDiffer()
 
+			oldState.mixEffects.v1.isInEffectMode = true
+
 			newState.mixEffects.v1.layers!.a!.scale = {
 				x: 2.8,
 				y: -1,
 			}
+			newState.mixEffects.v1.isInEffectMode = true
 
 			const commands = stateDiffer.getCommandsToAchieveState(newState, oldState)
 
@@ -420,11 +457,14 @@ describe('TriCasterStateDiffer.getCommandsToAchieveState', () => {
 		test('generates rotation commands', () => {
 			const { stateDiffer, oldState, newState } = setupStateDiffer()
 
+			oldState.mixEffects.v1.isInEffectMode = true
+
 			newState.mixEffects.v1.layers!.a!.rotation = {
 				x: 2.8,
 				y: -1,
 				z: 5.0,
 			}
+			newState.mixEffects.v1.isInEffectMode = true
 
 			const commands = stateDiffer.getCommandsToAchieveState(newState, oldState)
 
@@ -437,12 +477,15 @@ describe('TriCasterStateDiffer.getCommandsToAchieveState', () => {
 		test('generates crop commands', () => {
 			const { stateDiffer, oldState, newState } = setupStateDiffer()
 
+			oldState.mixEffects.v1.isInEffectMode = true
+
 			newState.mixEffects.v1.layers!.a!.crop = {
 				left: 10,
 				right: 50,
 				up: 25.67,
 				down: 99.9,
 			}
+			newState.mixEffects.v1.isInEffectMode = true
 
 			const commands = stateDiffer.getCommandsToAchieveState(newState, oldState)
 
@@ -456,12 +499,31 @@ describe('TriCasterStateDiffer.getCommandsToAchieveState', () => {
 		test('generates feather commands', () => {
 			const { stateDiffer, oldState, newState } = setupStateDiffer()
 
+			oldState.mixEffects.v1.isInEffectMode = true
+
 			newState.mixEffects.v1.layers!.a!.feather = 50
+			newState.mixEffects.v1.isInEffectMode = true
 
 			const commands = stateDiffer.getCommandsToAchieveState(newState, oldState)
 
 			expect(commands.length).toEqual(1)
 			expect(commands[0].command).toEqual({ target: 'v1_a', name: '_feather_value', value: 50 })
+		})
+
+		test('generates all commands when `isInEffectMode` changes to `true`', () => {
+			const { stateDiffer, oldState, newState } = setupStateDiffer()
+
+			oldState.mixEffects.v1.isInEffectMode = false
+
+			newState.mixEffects.v1.isInEffectMode = true
+
+			const commands = stateDiffer.getCommandsToAchieveState(newState, oldState)
+
+			expect(commands.length).toEqual(56)
+			const layerCommands = commands.filter(
+				(command) => 'target' in command.command && ['v1_a', 'v1_b', 'v1_c', 'v1_d'].includes(command.command.target)
+			)
+			expect(commands.length).toEqual(layerCommands.length)
 		})
 	})
 

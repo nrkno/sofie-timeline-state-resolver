@@ -44,6 +44,8 @@ export type RequiredDeep<T> = T extends object
 	  }
 	: T
 
+export type RequireDeepExcept<T, K extends keyof T> = RequiredDeep<Omit<T, K>> & Pick<T, K>
+
 type CommandGeneratorFunction<T, K> = (args: {
 	value: Readonly<T> // @todo: for safety wrap into NonNullable with TS 4.9
 	oldValue: Readonly<T> | undefined
@@ -96,8 +98,7 @@ export type CompleteTriCasterState = RequiredDeep<Omit<TriCasterState, 'mixEffec
 export type TriCasterAudioChannelState = TriCasterAudioChannel
 export type TriCasterInputState = TriCasterInput
 
-export type CompleteTriCasterInputState = RequiredDeep<Omit<TriCasterInputState, 'videoSource'>> &
-	Pick<TriCasterInputState, 'videoSource'>
+export type CompleteTriCasterInputState = RequireDeepExcept<TriCasterInputState, 'videoSource'>
 
 export interface TriCasterOutputState {
 	source?: string
@@ -376,20 +377,41 @@ export class TriCasterStateDiffer {
 		},
 	}
 
-	private getMixEffectGenerator(meName: string): CommandGenerator<TriCasterMixEffectState> {
-		return {
-			$target: meName,
-			isInEffectMode: null,
-			transitionEffect: this.mixEffectEffectCommandGenerator,
-			transitionDuration: this.durationCommandGenerator,
-			delegates: this.delegateCommandGenerator,
-			keyers: fillRecord(this.dskNames, (name) => ({ $target: name, ...this.keyerCommandGenerator })),
-			layers: fillRecord(this.layerNames, (name) => ({
-				$target: name,
-				...this.layerCommandGenerator,
-			})),
-			previewInput: this.previewInputCommandGenerator,
-			programInput: this.programInputCommandGenerator,
+	private getMixEffectGenerator(
+		meName: TriCasterMixEffectName
+	): CommandGeneratorFunction<TriCasterMixEffectState, TriCasterState['mixEffects']> {
+		return ({ value, oldValue, target }) => {
+			const commands: TriCasterCommand[] = []
+			this.recursivelyGenerateCommands(
+				commands,
+				{
+					$target: meName,
+					isInEffectMode: null,
+					transitionEffect: this.mixEffectEffectCommandGenerator,
+					transitionDuration: this.durationCommandGenerator,
+					delegates: this.delegateCommandGenerator,
+					keyers: fillRecord(this.dskNames, (name) => ({ $target: name, ...this.keyerCommandGenerator })),
+					layers: null,
+					previewInput: !value.isInEffectMode ? this.previewInputCommandGenerator : null,
+					programInput: !value.isInEffectMode ? this.programInputCommandGenerator : null,
+				},
+				value,
+				oldValue,
+				target
+			)
+			if (value.isInEffectMode) {
+				this.recursivelyGenerateCommands(
+					commands,
+					fillRecord(this.layerNames, (name) => ({
+						$target: name,
+						...this.layerCommandGenerator,
+					})),
+					value.layers,
+					value.isInEffectMode !== oldValue?.isInEffectMode ? undefined : oldValue?.layers,
+					meName
+				)
+			}
+			return commands
 		}
 	}
 
@@ -410,7 +432,6 @@ export class TriCasterStateDiffer {
 		state,
 		target,
 	}) => {
-		if (state.isInEffectMode) return null
 		if (state.transitionEffect !== 'cut') {
 			return null
 		}
@@ -422,7 +443,6 @@ export class TriCasterStateDiffer {
 		state,
 		target,
 	}) => {
-		if (state.isInEffectMode) return null
 		if (state.transitionEffect === 'cut') {
 			if (!state.previewInput) {
 				return [
