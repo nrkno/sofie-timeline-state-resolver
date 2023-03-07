@@ -50,6 +50,8 @@ const MEDIA_RETRY_INTERVAL = 10 * 1000 // default time in ms between checking wh
 
 export interface DeviceOptionsCasparCGInternal extends DeviceOptionsCasparCG {
 	commandReceiver?: CommandReceiver
+	/** Allow skipping the resync upon connection, for unit tests */
+	skipVirginCheck?: boolean
 }
 export type CommandReceiver = (time: number, cmd: AMCPCommand, context: string, timelineObjId: string) => Promise<any>
 /**
@@ -105,6 +107,8 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 
 			Promise.resolve()
 				.then(async () => {
+					if (this.deviceOptions.skipVirginCheck) return false
+
 					// a "virgin server" was just restarted (so it is cleared & black).
 					// Otherwise it was probably just a loss of connection
 
