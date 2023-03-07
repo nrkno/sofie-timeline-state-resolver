@@ -82,6 +82,10 @@ export interface MappingVmixFader {
 	mappingType: MappingVmixType.Fader
 }
 
+export interface MappingVmixScript {
+	mappingType: MappingVmixType.Script
+}
+
 export enum MappingVmixType {
 	Program = 'program',
 	Preview = 'preview',
@@ -94,6 +98,7 @@ export enum MappingVmixType {
 	External = 'external',
 	FadeToBlack = 'fadeToBlack',
 	Fader = 'fader',
+	Script = 'script',
 }
 
-export type SomeMappingVmix = MappingVmixProgram | MappingVmixPreview | MappingVmixInput | MappingVmixAudioChannel | MappingVmixOutput | MappingVmixOverlay | MappingVmixRecording | MappingVmixStreaming | MappingVmixExternal | MappingVmixFadeToBlack | MappingVmixFader
+export type SomeMappingVmix = MappingVmixProgram | MappingVmixPreview | MappingVmixInput | MappingVmixAudioChannel | MappingVmixOutput | MappingVmixOverlay | MappingVmixRecording | MappingVmixStreaming | MappingVmixExternal | MappingVmixFadeToBlack | MappingVmixFader | MappingVmixScript

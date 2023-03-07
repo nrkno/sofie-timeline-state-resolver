@@ -59,6 +59,7 @@ const mappingPriority: { [k in MappingVmixType]: number } = {
 	[MappingVmixType.External]: 8,
 	[MappingVmixType.FadeToBlack]: 9,
 	[MappingVmixType.Fader]: 10,
+	[MappingVmixType.Script]: 11,
 }
 
 /**
@@ -91,24 +92,38 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 		this._doOnTime.on('slowFulfilledCommand', (info) => this.emit('slowFulfilledCommand', info))
 	}
 	async init(options: VMixOptions): Promise<boolean> {
-		this._vmix = new VMix()
+		this._vmix = new VMix(options.host, options.port, false)
 		this._vmix.on('connected', () => {
-			const time = this.getCurrentTime()
-			let state = this._getDefaultState()
-			state = deepMerge<VMixStateExtended>(state, { reportedState: this._vmix.state })
-			this.setState(state, time)
-			this._initialized = true
+			// We are not resetting the state at this point and waiting for the state to arrive. Otherwise, we risk
+			// going back and forth on reconnections
 			this._setConnected(true)
-			this.emit('resetResolver')
+			this._vmix.requestVMixState().catch((e) => this.emit('error', 'VMix init', e))
 		})
 		this._vmix.on('disconnected', () => {
 			this._setConnected(false)
 		})
 		this._vmix.on('error', (e) => this.emit('error', 'VMix', e))
 		this._vmix.on('stateChanged', (state) => this._onVMixStateChanged(state))
-		this._vmix.on('debug', (...args) => this.emitDebug(...args))
+		this._vmix.on('data', (d) => {
+			if (d.message !== 'Completed') this.emit('debug', d)
+			if (d.command === 'XML' && d.body) {
+				this._vmix.parseVMixState(d.body)
 
-		return this._vmix.connect(options)
+				if (!this._initialized) {
+					const time = this.getCurrentTime()
+					let state = this._getDefaultState()
+					state = deepMerge<VMixStateExtended>(state, { reportedState: this._vmix.state })
+					this.setState(state, time)
+					this._initialized = true
+					this.emit('resetResolver')
+				}
+			}
+		})
+		// this._vmix.on('debug', (...args) => this.emitDebug(...args))
+
+		this._vmix.connect()
+
+		return true
 	}
 	private _connectionChanged() {
 		this.emit('connectionChanged', this.getStatus())
@@ -198,6 +213,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 				Fullscreen2: { source: 'Program' },
 			},
 			inputLayers: {},
+			runningScripts: [],
 		}
 	}
 
@@ -241,7 +257,10 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 
 	async terminate() {
 		this._doOnTime.dispose()
-		await this._vmix.dispose()
+
+		this._vmix.removeAllListeners()
+		this._vmix.disconnect()
+
 		return Promise.resolve(true)
 	}
 
@@ -380,6 +399,11 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 						if (content.type === TimelineContentTypeVMix.OVERLAY) {
 							const overlayIndex = mapping.options.index - 1
 							deviceState.reportedState.overlays[overlayIndex].input = content.input
+						}
+						break
+					case MappingVmixType.Script:
+						if (content.type === TimelineContentTypeVMix.SCRIPT) {
+							deviceState.runningScripts.push(content.name)
 						}
 						break
 				}
@@ -958,6 +982,40 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 		return commands
 	}
 
+	private _resolveScriptsState(
+		oldVMixState: VMixStateExtended,
+		newVMixState: VMixStateExtended
+	): Array<VMixStateCommandWithContext> {
+		const commands: Array<VMixStateCommandWithContext> = []
+		_.map(newVMixState.runningScripts, (name) => {
+			const alreadyRunning = oldVMixState.runningScripts.includes(name)
+			if (!alreadyRunning) {
+				commands.push({
+					command: {
+						command: VMixCommand.SCRIPT_START,
+						value: name,
+					},
+					context: null,
+					timelineId: '',
+				})
+			}
+		})
+		_.map(oldVMixState.runningScripts, (name) => {
+			const noLongerDesired = !newVMixState.runningScripts.includes(name)
+			if (noLongerDesired) {
+				commands.push({
+					command: {
+						command: VMixCommand.SCRIPT_STOP,
+						value: name,
+					},
+					context: null,
+					timelineId: '',
+				})
+			}
+		})
+		return commands
+	}
+
 	private _diffStates(
 		oldVMixState: VMixStateExtended,
 		newVMixState: VMixStateExtended
@@ -972,6 +1030,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 		commands = commands.concat(this._resolveExternalState(oldVMixState, newVMixState))
 		commands = commands.concat(this._resolveOutputsState(oldVMixState, newVMixState))
 		commands = commands.concat(this._resolveInputsRemovalState(oldVMixState, newVMixState))
+		commands = commands.concat(this._resolveScriptsState(oldVMixState, newVMixState))
 
 		return commands
 	}
@@ -1013,6 +1072,7 @@ export interface VMixStateExtended {
 		Fullscreen2: VMixOutput
 	}
 	inputLayers: { [key: string]: string }
+	runningScripts: string[]
 }
 
 export interface VMixState {

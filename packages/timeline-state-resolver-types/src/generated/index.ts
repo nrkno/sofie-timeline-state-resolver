@@ -27,6 +27,9 @@ import { SomeMappingHyperdeck } from './hyperdeck'
 export * from './lawo'
 import { SomeMappingLawo } from './lawo'
 
+export * from './multiOsc'
+import { SomeMappingMultiOsc } from './multiOsc'
+
 export * from './obs'
 import { SomeMappingObs } from './obs'
 
@@ -74,6 +77,7 @@ export type TSRMappingOptions =
 	| SomeMappingHttpWatcher
 	| SomeMappingHyperdeck
 	| SomeMappingLawo
+	| SomeMappingMultiOsc
 	| SomeMappingObs
 	| SomeMappingOsc
 	| SomeMappingPanasonicPTZ

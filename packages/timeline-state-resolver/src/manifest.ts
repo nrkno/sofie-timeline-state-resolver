@@ -17,6 +17,8 @@ import HyperdeckOptions = require('./integrations/hyperdeck/$schemas/options.jso
 import HyperdeckMappings = require('./integrations/hyperdeck/$schemas/mappings.json')
 import LawoOptions = require('./integrations/lawo/$schemas/options.json')
 import LawoMappings = require('./integrations/lawo/$schemas/mappings.json')
+import MultiOSCOptions = require('./integrations/multiOsc/$schemas/options.json')
+import MultiOSCMappings = require('./integrations/multiOsc/$schemas/mappings.json')
 import OBSOptions = require('./integrations/obs/$schemas/options.json')
 import OBSMappings = require('./integrations/obs/$schemas/mappings.json')
 import OSCOptions = require('./integrations/osc/$schemas/options.json')
@@ -111,6 +113,11 @@ export const manifest: TSRManifest = {
 			displayName: generateTranslation('Lawo'),
 			configSchema: JSON.stringify(LawoOptions),
 			mappingsSchemas: stringifyMappingSchema(LawoMappings),
+		},
+		[DeviceType.MULTI_OSC]: {
+			displayName: generateTranslation('Multi OSC'),
+			configSchema: JSON.stringify(MultiOSCOptions),
+			mappingsSchemas: stringifyMappingSchema(MultiOSCMappings),
 		},
 		[DeviceType.OBS]: {
 			displayName: generateTranslation('OBS Studio'),

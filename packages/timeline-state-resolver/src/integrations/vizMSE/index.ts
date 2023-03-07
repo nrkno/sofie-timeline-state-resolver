@@ -1041,7 +1041,7 @@ class VizMSEManager extends EventEmitter {
 
 		const rundown = await this._getRundown()
 		const elementsToKeep = clearAll ? undefined : this.getElementsToKeep()
-		await rundown.purgeExternalElements(elementsToKeep)
+		await rundown.purgeExternalElements(elementsToKeep || [])
 	}
 	/**
 	 * Activate the rundown.
@@ -1363,7 +1363,7 @@ class VizMSEManager extends EventEmitter {
 		this._triggerCommandSent()
 		const rundown = await this._getRundown()
 		try {
-			await rundown.cleanupAllShows()
+			await rundown.cleanupAllSofieShows()
 		} catch (error) {
 			this.emit('error', `Error in cleanupAllShows : ${error instanceof Error ? error.toString() : error}`)
 		}

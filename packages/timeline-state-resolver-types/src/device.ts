@@ -20,6 +20,7 @@ import {
 	VMixOptions,
 	ShotokuOptions,
 	TelemetricsOptions,
+	MultiOSCOptions,
 } from '.'
 import { DeviceCommonOptions } from './generated/common-options'
 
@@ -73,6 +74,7 @@ export type DeviceOptionsAny =
 	| DeviceOptionsVizMSE
 	| DeviceOptionsShotoku
 	| DeviceOptionsTelemetrics
+	| DeviceOptionsMultiOSC
 
 export interface DeviceOptionsAbstract extends DeviceOptionsBase<AbstractOptions> {
 	type: DeviceType.ABSTRACT
@@ -135,4 +137,7 @@ export interface DeviceOptionsVMix extends DeviceOptionsBase<VMixOptions> {
 
 export interface DeviceOptionsTelemetrics extends DeviceOptionsBase<TelemetricsOptions> {
 	type: DeviceType.TELEMETRICS
+}
+export interface DeviceOptionsMultiOSC extends DeviceOptionsBase<MultiOSCOptions> {
+	type: DeviceType.MULTI_OSC
 }
