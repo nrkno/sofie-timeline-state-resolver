@@ -15,6 +15,8 @@ import {
 	RequiredDeep,
 	TriCasterKeyerState,
 	TriCasterLayerState,
+	TriCasterState,
+	wrapInExtendedState,
 } from '../triCasterStateDiffer'
 import { literal } from '../../../devices/device'
 import { wrapIntoResolvedInstance } from './helpers'
@@ -29,31 +31,32 @@ function setupTimelineStateConverter() {
 	})
 }
 
-const mockGetDefaultState = (): CompleteTriCasterState => ({
-	mixEffects: { main: mockGetDefaultMe(), v1: mockGetDefaultMe() }, // pretend we only have mappings for those two
-	inputs: {
-		input1: {
-			videoActAsAlpha: false,
-			videoSource: undefined,
+const mockGetDefaultState = (): CompleteTriCasterState =>
+	wrapInExtendedState<TriCasterState>({
+		mixEffects: { main: mockGetDefaultMe(), v1: mockGetDefaultMe() }, // pretend we only have mappings for those two
+		inputs: {
+			input1: {
+				videoActAsAlpha: false,
+				videoSource: undefined,
+			},
+			input2: {
+				videoActAsAlpha: false,
+				videoSource: undefined,
+			},
 		},
-		input2: {
-			videoActAsAlpha: false,
-			videoSource: undefined,
+		// @ts-ignore for now
+		audioChannels: {},
+		isRecording: false,
+		isStreaming: false,
+		mixOutputs: {
+			mix1: { source: 'program' },
+			mix2: { source: 'program' },
 		},
-	},
-	// @ts-ignore for now
-	audioChannels: {},
-	isRecording: false,
-	isStreaming: false,
-	mixOutputs: {
-		mix1: { source: 'program' },
-		mix2: { source: 'program' },
-	},
-	matrixOutputs: {
-		out1: { source: 'mix1' },
-		out2: { source: 'mix1' },
-	},
-})
+		matrixOutputs: {
+			out1: { source: 'mix1' },
+			out2: { source: 'mix1' },
+		},
+	})
 
 const mockGetDefaultMe = (): CompleteTriCasterMixEffectState => ({
 	programInput: 'black',
@@ -113,7 +116,7 @@ describe('TimelineStateConverter.getTriCasterStateFromTimelineState', () => {
 					tc_me0_1: wrapIntoResolvedInstance<TimelineObjTriCasterME>({
 						layer: 'tc_me0_1',
 						enable: { while: '1' },
-						id: 't0',
+						id: 't1',
 						content: {
 							deviceType: DeviceType.TRICASTER,
 							type: TimelineContentTypeTriCaster.ME,
@@ -162,34 +165,35 @@ describe('TimelineStateConverter.getTriCasterStateFromTimelineState', () => {
 		)
 
 		const expectedState = mockGetDefaultState()
-		expectedState.mixEffects.main.programInput = 'input2'
-		expectedState.mixEffects.main.previewInput = 'input3'
-		expectedState.mixEffects.main.transitionEffect = 5
-		expectedState.mixEffects.main.transitionDuration = 20
-		expectedState.mixEffects.v1.keyers.dsk2.input = 'input5'
-		expectedState.mixEffects.v1.keyers.dsk2.onAir = true
+		expectedState.mixEffects.main.programInput = { value: 'input2', timelineObjectId: 't0' }
+		expectedState.mixEffects.main.previewInput = { value: 'input3', timelineObjectId: 't0' }
+		expectedState.mixEffects.main.transitionEffect = { value: 5, timelineObjectId: 't0' }
+		expectedState.mixEffects.main.transitionDuration = { value: 20, timelineObjectId: 't0' }
+		expectedState.mixEffects.v1.keyers.dsk2.input = { value: 'input5', timelineObjectId: 't1' }
+		expectedState.mixEffects.v1.keyers.dsk2.onAir = { value: true, timelineObjectId: 't1' }
+		// @ts-ignore
 		expectedState.mixEffects.v1.layers!.b = {
-			input: 'ddr3',
+			input: { value: 'ddr3', timelineObjectId: 't1' },
 			position: {
-				x: 2,
-				y: -1.5,
+				x: { value: 2, timelineObjectId: 't1' },
+				y: { value: -1.5, timelineObjectId: 't1' },
 			},
 			crop: {
-				left: 5,
-				right: 10,
-				up: 1.1111,
-				down: 99.9,
+				left: { value: 5, timelineObjectId: 't1' },
+				right: { value: 10, timelineObjectId: 't1' },
+				up: { value: 1.1111, timelineObjectId: 't1' },
+				down: { value: 99.9, timelineObjectId: 't1' },
 			},
-			scale: { x: 200, y: 90 },
+			scale: { x: { value: 200, timelineObjectId: 't1' }, y: { value: 90, timelineObjectId: 't1' } },
 			rotation: {
-				x: 1,
-				y: 2,
-				z: 3,
+				x: { value: 1, timelineObjectId: 't1' },
+				y: { value: 2, timelineObjectId: 't1' },
+				z: { value: 3, timelineObjectId: 't1' },
 			},
-			feather: 67.67,
-			positioningAndCropEnabled: true,
+			feather: { value: 67.67, timelineObjectId: 't1' },
+			positioningAndCropEnabled: { value: true, timelineObjectId: 't1' },
 		}
-		expectedState.mixEffects.v1.isInEffectMode = true
+		expectedState.mixEffects.v1.isInEffectMode.value = true
 
 		expect(convertedState).toEqual(expectedState)
 	})
@@ -225,7 +229,7 @@ describe('TimelineStateConverter.getTriCasterStateFromTimelineState', () => {
 		)
 
 		const expectedState = mockGetDefaultState()
-		expectedState.matrixOutputs.out2.source = 'input5'
+		expectedState.matrixOutputs.out2.source = { value: 'input5', timelineObjectId: 't0' }
 
 		expect(convertedState).toEqual(expectedState)
 	})
@@ -261,7 +265,7 @@ describe('TimelineStateConverter.getTriCasterStateFromTimelineState', () => {
 		)
 
 		const expectedState = mockGetDefaultState()
-		expectedState.mixOutputs.mix2.source = 'me_program'
+		expectedState.mixOutputs.mix2.source = { value: 'me_program', timelineObjectId: 't0' }
 
 		expect(convertedState).toEqual(expectedState)
 	})
@@ -301,8 +305,8 @@ describe('TimelineStateConverter.getTriCasterStateFromTimelineState', () => {
 
 		const expectedState = mockGetDefaultState()
 		expectedState.inputs.input2 = {
-			videoSource: 'Input 10',
-			videoActAsAlpha: true,
+			videoSource: { value: 'Input 10', timelineObjectId: 't0' },
+			videoActAsAlpha: { value: true, timelineObjectId: 't0' },
 		}
 
 		expect(convertedState).toEqual(expectedState)

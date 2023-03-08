@@ -100,6 +100,11 @@ export interface TimelineObjTriCasterBase extends TSRTimelineObjBase {
 	content: {
 		deviceType: DeviceType.TRICASTER
 		type: TimelineContentTypeTriCaster
+		/**
+		 * Priority used to sort commands that are supposed to execute at the same time
+		 * Default: 0
+		 */
+		temporalPriority?: number
 	} & TimelineDatastoreReferencesContent
 }
 
@@ -143,6 +148,8 @@ export interface TimelineObjTriCasterME extends TimelineObjTriCasterBase {
 		type: TimelineContentTypeTriCaster.ME
 
 		me: TriCasterMixEffect
+
+		temporalPriority?: number
 	} & TimelineDatastoreReferencesContent
 }
 
@@ -163,6 +170,8 @@ export interface TimelineObjTriCasterDSK extends TimelineObjTriCasterBase {
 		type: TimelineContentTypeTriCaster.DSK
 
 		keyer: TriCasterKeyer
+
+		temporalPriority?: number
 	} & TimelineDatastoreReferencesContent
 }
 
@@ -183,6 +192,8 @@ export interface TimelineObjTriCasterInput extends TimelineObjTriCasterBase {
 		type: TimelineContentTypeTriCaster.INPUT
 
 		input: TriCasterInput
+
+		temporalPriority?: number
 	} & TimelineDatastoreReferencesContent
 }
 
@@ -207,6 +218,8 @@ export interface TimelineObjTriCasterAudioChannel extends TimelineObjTriCasterBa
 		type: TimelineContentTypeTriCaster.AUDIO_CHANNEL
 
 		audioChannel: TriCasterAudioChannel
+
+		temporalPriority?: number
 	} & TimelineDatastoreReferencesContent
 }
 
@@ -232,6 +245,8 @@ export interface TimelineObjTriCasterMixOutput extends TimelineObjTriCasterBase 
 		 * or 'program', 'preview', 'program_clean', 'me_program', 'me_preview'
 		 */
 		source: TriCasterMixOutputSource
+
+		temporalPriority?: number
 	} & TimelineDatastoreReferencesContent
 }
 
@@ -256,6 +271,8 @@ export interface TimelineObjTriCasterMatrixOutput extends TimelineObjTriCasterBa
 		 * or mix outputs ('mixN') e.g. 'mix2'
 		 */
 		source: TriCasterMatrixOutputSource
+
+		temporalPriority?: number
 	} & TimelineDatastoreReferencesContent
 }
 

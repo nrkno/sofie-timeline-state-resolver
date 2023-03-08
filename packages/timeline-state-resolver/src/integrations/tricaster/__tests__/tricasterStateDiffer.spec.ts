@@ -61,7 +61,7 @@ describe('TriCasterStateDiffer.getCommandsToAchieveState', () => {
 		test('changes main transition speed', () => {
 			const { stateDiffer, oldState, newState } = setupStateDiffer()
 
-			newState.mixEffects.main.transitionDuration = 200
+			newState.mixEffects.main.transitionDuration.value = 200
 
 			const commands = stateDiffer.getCommandsToAchieveState(newState, oldState)
 
@@ -72,10 +72,10 @@ describe('TriCasterStateDiffer.getCommandsToAchieveState', () => {
 		test('changes main transition effect to "fade", updating the speed even if it is the same', () => {
 			const { stateDiffer, oldState, newState } = setupStateDiffer()
 
-			oldState.mixEffects.main.transitionDuration = 5.2
+			oldState.mixEffects.main.transitionDuration.value = 5.2
 
-			newState.mixEffects.main.transitionEffect = 'fade'
-			newState.mixEffects.main.transitionDuration = 5.2
+			newState.mixEffects.main.transitionEffect.value = 'fade'
+			newState.mixEffects.main.transitionDuration.value = 5.2
 
 			const commands = stateDiffer.getCommandsToAchieveState(newState, oldState)
 
@@ -87,10 +87,10 @@ describe('TriCasterStateDiffer.getCommandsToAchieveState', () => {
 		test('changes main transition effect to numeric, updating the speed even if it is the same', () => {
 			const { stateDiffer, oldState, newState } = setupStateDiffer()
 
-			oldState.mixEffects.main.transitionDuration = 5.2
+			oldState.mixEffects.main.transitionDuration.value = 5.2
 
-			newState.mixEffects.main.transitionEffect = 5
-			newState.mixEffects.main.transitionDuration = 5.2
+			newState.mixEffects.main.transitionEffect.value = 5
+			newState.mixEffects.main.transitionDuration.value = 5.2
 
 			const commands = stateDiffer.getCommandsToAchieveState(newState, oldState)
 
@@ -102,12 +102,12 @@ describe('TriCasterStateDiffer.getCommandsToAchieveState', () => {
 		test('issues auto transition when program input changes and transition is not "cut"', () => {
 			const { stateDiffer, oldState, newState } = setupStateDiffer()
 
-			oldState.mixEffects.main.transitionDuration = 5.2
-			oldState.mixEffects.main.programInput = 'input1'
+			oldState.mixEffects.main.transitionDuration.value = 5.2
+			oldState.mixEffects.main.programInput.value = 'input1'
 
-			newState.mixEffects.main.transitionDuration = 5.2
-			newState.mixEffects.main.transitionEffect = 5
-			newState.mixEffects.main.programInput = 'input5'
+			newState.mixEffects.main.transitionDuration.value = 5.2
+			newState.mixEffects.main.transitionEffect.value = 5
+			newState.mixEffects.main.programInput.value = 'input5'
 
 			const commands = stateDiffer.getCommandsToAchieveState(newState, oldState)
 
@@ -121,11 +121,11 @@ describe('TriCasterStateDiffer.getCommandsToAchieveState', () => {
 		test('issues a take when program input changes and transition is "cut"', () => {
 			const { stateDiffer, oldState, newState } = setupStateDiffer()
 
-			oldState.mixEffects.main.transitionEffect = 5
-			oldState.mixEffects.main.programInput = 'input1'
+			oldState.mixEffects.main.transitionEffect.value = 5
+			oldState.mixEffects.main.programInput.value = 'input1'
 
-			newState.mixEffects.main.transitionEffect = 'cut'
-			newState.mixEffects.main.programInput = 'input5'
+			newState.mixEffects.main.transitionEffect.value = 'cut'
+			newState.mixEffects.main.programInput.value = 'input5'
 
 			const commands = stateDiffer.getCommandsToAchieveState(newState, oldState)
 
@@ -137,11 +137,11 @@ describe('TriCasterStateDiffer.getCommandsToAchieveState', () => {
 		test('changes program and preview when previewInput is provided', () => {
 			const { stateDiffer, oldState, newState } = setupStateDiffer()
 
-			oldState.mixEffects.main.previewInput = 'input2'
-			oldState.mixEffects.main.programInput = 'input1'
+			oldState.mixEffects.main.previewInput!.value = 'input2'
+			oldState.mixEffects.main.programInput.value = 'input1'
 
-			newState.mixEffects.main.previewInput = 'input6'
-			newState.mixEffects.main.programInput = 'input5'
+			newState.mixEffects.main.previewInput!.value = 'input6'
+			newState.mixEffects.main.programInput.value = 'input5'
 
 			const commands = stateDiffer.getCommandsToAchieveState(newState, oldState)
 
@@ -153,13 +153,13 @@ describe('TriCasterStateDiffer.getCommandsToAchieveState', () => {
 		test('does not change preview when transition is other than "cut"', () => {
 			const { stateDiffer, oldState, newState } = setupStateDiffer()
 
-			oldState.mixEffects.main.previewInput = 'input2'
-			oldState.mixEffects.main.programInput = 'input1'
+			oldState.mixEffects.main.previewInput!.value = 'input2'
+			oldState.mixEffects.main.programInput.value = 'input1'
 
-			newState.mixEffects.main.transitionEffect = 5
-			newState.mixEffects.main.transitionDuration = 5.2
-			newState.mixEffects.main.previewInput = 'input6'
-			newState.mixEffects.main.programInput = 'input5'
+			newState.mixEffects.main.transitionEffect.value = 5
+			newState.mixEffects.main.transitionDuration.value = 5.2
+			newState.mixEffects.main.previewInput!.value = 'input6'
+			newState.mixEffects.main.programInput.value = 'input5'
 
 			const commands = stateDiffer.getCommandsToAchieveState(newState, oldState)
 
@@ -173,9 +173,9 @@ describe('TriCasterStateDiffer.getCommandsToAchieveState', () => {
 		test('changes preview when program has no change', () => {
 			const { stateDiffer, oldState, newState } = setupStateDiffer()
 
-			oldState.mixEffects.main.previewInput = 'input2'
+			oldState.mixEffects.main.previewInput!.value = 'input2'
 
-			newState.mixEffects.main.previewInput = 'input6'
+			newState.mixEffects.main.previewInput!.value = 'input6'
 
 			const commands = stateDiffer.getCommandsToAchieveState(newState, oldState)
 
@@ -186,11 +186,11 @@ describe('TriCasterStateDiffer.getCommandsToAchieveState', () => {
 		test('sets delegates before a transition', () => {
 			const { stateDiffer, oldState, newState } = setupStateDiffer()
 
-			oldState.mixEffects.main.programInput = 'input1'
-			oldState.mixEffects.main.delegates = ['dsk3', 'dsk4']
+			oldState.mixEffects.main.programInput.value = 'input1'
+			oldState.mixEffects.main.delegates.value = ['dsk3', 'dsk4']
 
-			newState.mixEffects.main.programInput = 'input2'
-			newState.mixEffects.main.delegates = ['dsk3', 'background']
+			newState.mixEffects.main.programInput.value = 'input2'
+			newState.mixEffects.main.delegates.value = ['dsk3', 'background']
 
 			const commands = stateDiffer.getCommandsToAchieveState(newState, oldState)
 
@@ -205,9 +205,9 @@ describe('TriCasterStateDiffer.getCommandsToAchieveState', () => {
 		test('changes input when only the input changes', () => {
 			const { stateDiffer, oldState, newState } = setupStateDiffer()
 
-			oldState.mixEffects.main.keyers.dsk2.input = 'input1'
+			oldState.mixEffects.main.keyers.dsk2.input.value = 'input1'
 
-			newState.mixEffects.main.keyers.dsk2.input = 'input2'
+			newState.mixEffects.main.keyers.dsk2.input.value = 'input2'
 
 			const commands = stateDiffer.getCommandsToAchieveState(newState, oldState)
 
@@ -218,14 +218,14 @@ describe('TriCasterStateDiffer.getCommandsToAchieveState', () => {
 		test('issues auto transition when onAir changes and transition is not "cut"', () => {
 			const { stateDiffer, oldState, newState } = setupStateDiffer()
 
-			oldState.mixEffects.main.keyers.dsk2.transitionDuration = 5.2
-			oldState.mixEffects.main.keyers.dsk2.transitionEffect = 5
-			oldState.mixEffects.main.keyers.dsk2.input = 'input1'
+			oldState.mixEffects.main.keyers.dsk2.transitionDuration.value = 5.2
+			oldState.mixEffects.main.keyers.dsk2.transitionEffect.value = 5
+			oldState.mixEffects.main.keyers.dsk2.input.value = 'input1'
 
-			newState.mixEffects.main.keyers.dsk2.transitionDuration = 5.2
-			newState.mixEffects.main.keyers.dsk2.transitionEffect = 5
-			newState.mixEffects.main.keyers.dsk2.onAir = true
-			newState.mixEffects.main.keyers.dsk2.input = 'input1'
+			newState.mixEffects.main.keyers.dsk2.transitionDuration.value = 5.2
+			newState.mixEffects.main.keyers.dsk2.transitionEffect.value = 5
+			newState.mixEffects.main.keyers.dsk2.onAir.value = true
+			newState.mixEffects.main.keyers.dsk2.input.value = 'input1'
 
 			const commands = stateDiffer.getCommandsToAchieveState(newState, oldState)
 
@@ -236,12 +236,12 @@ describe('TriCasterStateDiffer.getCommandsToAchieveState', () => {
 		test('commands are in order when onAir and input change, and transition is not "cut"', () => {
 			const { stateDiffer, oldState, newState } = setupStateDiffer()
 
-			oldState.mixEffects.main.keyers.dsk2.input = 'input1'
+			oldState.mixEffects.main.keyers.dsk2.input.value = 'input1'
 
-			newState.mixEffects.main.keyers.dsk2.transitionDuration = 5.2
-			newState.mixEffects.main.keyers.dsk2.transitionEffect = 5
-			newState.mixEffects.main.keyers.dsk2.onAir = true
-			newState.mixEffects.main.keyers.dsk2.input = 'input2'
+			newState.mixEffects.main.keyers.dsk2.transitionDuration.value = 5.2
+			newState.mixEffects.main.keyers.dsk2.transitionEffect.value = 5
+			newState.mixEffects.main.keyers.dsk2.onAir.value = true
+			newState.mixEffects.main.keyers.dsk2.input.value = 'input2'
 
 			const commands = stateDiffer.getCommandsToAchieveState(newState, oldState)
 
@@ -255,8 +255,8 @@ describe('TriCasterStateDiffer.getCommandsToAchieveState', () => {
 		test('issues a value change when onAir changes and transition is "cut"', () => {
 			const { stateDiffer, oldState, newState } = setupStateDiffer()
 
-			newState.mixEffects.main.keyers.dsk2.transitionEffect = 'cut'
-			newState.mixEffects.main.keyers.dsk2.onAir = true
+			newState.mixEffects.main.keyers.dsk2.transitionEffect.value = 'cut'
+			newState.mixEffects.main.keyers.dsk2.onAir.value = true
 
 			const commands = stateDiffer.getCommandsToAchieveState(newState, oldState)
 
@@ -267,11 +267,11 @@ describe('TriCasterStateDiffer.getCommandsToAchieveState', () => {
 		test('commands are in order when when onAir and input changes and transition is "cut"', () => {
 			const { stateDiffer, oldState, newState } = setupStateDiffer()
 
-			oldState.mixEffects.main.keyers.dsk2.input = 'input1'
+			oldState.mixEffects.main.keyers.dsk2.input.value = 'input1'
 
-			newState.mixEffects.main.keyers.dsk2.transitionEffect = 'cut'
-			newState.mixEffects.main.keyers.dsk2.onAir = true
-			newState.mixEffects.main.keyers.dsk2.input = 'input2'
+			newState.mixEffects.main.keyers.dsk2.transitionEffect.value = 'cut'
+			newState.mixEffects.main.keyers.dsk2.onAir.value = true
+			newState.mixEffects.main.keyers.dsk2.input.value = 'input2'
 
 			const commands = stateDiffer.getCommandsToAchieveState(newState, oldState)
 
@@ -284,8 +284,8 @@ describe('TriCasterStateDiffer.getCommandsToAchieveState', () => {
 			const { stateDiffer, oldState, newState } = setupStateDiffer()
 
 			newState.mixEffects.main.keyers.dsk2.position = {
-				x: 2.8,
-				y: -1,
+				x: { value: 2.8 },
+				y: { value: -1 },
 			}
 
 			const commands = stateDiffer.getCommandsToAchieveState(newState, oldState)
@@ -299,8 +299,8 @@ describe('TriCasterStateDiffer.getCommandsToAchieveState', () => {
 			const { stateDiffer, oldState, newState } = setupStateDiffer()
 
 			newState.mixEffects.main.keyers.dsk2.scale = {
-				x: 2.8,
-				y: -1,
+				x: { value: 2.8 },
+				y: { value: -1 },
 			}
 
 			const commands = stateDiffer.getCommandsToAchieveState(newState, oldState)
@@ -314,9 +314,9 @@ describe('TriCasterStateDiffer.getCommandsToAchieveState', () => {
 			const { stateDiffer, oldState, newState } = setupStateDiffer()
 
 			newState.mixEffects.main.keyers.dsk2.rotation = {
-				x: 2.8,
-				y: -1,
-				z: 5.0,
+				x: { value: 2.8 },
+				y: { value: -1 },
+				z: { value: 5.0 },
 			}
 
 			const commands = stateDiffer.getCommandsToAchieveState(newState, oldState)
@@ -331,10 +331,10 @@ describe('TriCasterStateDiffer.getCommandsToAchieveState', () => {
 			const { stateDiffer, oldState, newState } = setupStateDiffer()
 
 			newState.mixEffects.main.keyers.dsk2.crop = {
-				left: 10,
-				right: 50,
-				up: 25.67,
-				down: 99.9,
+				left: { value: 10 },
+				right: { value: 50 },
+				up: { value: 25.67 },
+				down: { value: 99.9 },
 			}
 
 			const commands = stateDiffer.getCommandsToAchieveState(newState, oldState)
@@ -349,7 +349,7 @@ describe('TriCasterStateDiffer.getCommandsToAchieveState', () => {
 		test('generates feather commands', () => {
 			const { stateDiffer, oldState, newState } = setupStateDiffer()
 
-			newState.mixEffects.main.keyers.dsk2.feather = 50
+			newState.mixEffects.main.keyers.dsk2.feather.value = 50
 
 			const commands = stateDiffer.getCommandsToAchieveState(newState, oldState)
 
@@ -362,11 +362,11 @@ describe('TriCasterStateDiffer.getCommandsToAchieveState', () => {
 		test('preview change is discarded when layers are used', () => {
 			const { stateDiffer, oldState, newState } = setupStateDiffer()
 
-			oldState.mixEffects.v1.previewInput = 'input1'
-			oldState.mixEffects.v1.isInEffectMode = true
+			oldState.mixEffects.v1.previewInput!.value = 'input1'
+			oldState.mixEffects.v1.isInEffectMode.value = true
 
-			newState.mixEffects.v1.previewInput = 'input2'
-			newState.mixEffects.v1.isInEffectMode = true
+			newState.mixEffects.v1.previewInput!.value = 'input2'
+			newState.mixEffects.v1.isInEffectMode.value = true
 
 			const commands = stateDiffer.getCommandsToAchieveState(newState, oldState)
 
@@ -376,11 +376,11 @@ describe('TriCasterStateDiffer.getCommandsToAchieveState', () => {
 		test('program change is discarded when layers are used', () => {
 			const { stateDiffer, oldState, newState } = setupStateDiffer()
 
-			oldState.mixEffects.v1.programInput = 'input1'
-			oldState.mixEffects.v1.isInEffectMode = true
+			oldState.mixEffects.v1.programInput.value = 'input1'
+			oldState.mixEffects.v1.isInEffectMode.value = true
 
-			newState.mixEffects.v1.programInput = 'input2'
-			newState.mixEffects.v1.isInEffectMode = true
+			newState.mixEffects.v1.programInput.value = 'input2'
+			newState.mixEffects.v1.isInEffectMode.value = true
 
 			const commands = stateDiffer.getCommandsToAchieveState(newState, oldState)
 
@@ -390,11 +390,11 @@ describe('TriCasterStateDiffer.getCommandsToAchieveState', () => {
 		test('changes inputs', () => {
 			const { stateDiffer, oldState, newState } = setupStateDiffer()
 
-			oldState.mixEffects.v1.layers!.a!.input = 'input1'
-			oldState.mixEffects.v1.isInEffectMode = true
+			oldState.mixEffects.v1.layers!.a!.input!.value = 'input1'
+			oldState.mixEffects.v1.isInEffectMode.value = true
 
-			newState.mixEffects.v1.layers!.a!.input = 'input2'
-			newState.mixEffects.v1.isInEffectMode = true
+			newState.mixEffects.v1.layers!.a!.input!.value = 'input2'
+			newState.mixEffects.v1.isInEffectMode.value = true
 
 			const commands = stateDiffer.getCommandsToAchieveState(newState, oldState)
 
@@ -405,13 +405,13 @@ describe('TriCasterStateDiffer.getCommandsToAchieveState', () => {
 		test('does not change a or b inputs when not in effect mode', () => {
 			const { stateDiffer, oldState, newState } = setupStateDiffer()
 
-			oldState.mixEffects.v1.layers!.a!.input = 'input1'
-			oldState.mixEffects.v1.layers!.b!.input = 'input3'
-			oldState.mixEffects.v1.isInEffectMode = false
+			oldState.mixEffects.v1.layers!.a!.input!.value = 'input1'
+			oldState.mixEffects.v1.layers!.b!.input!.value = 'input3'
+			oldState.mixEffects.v1.isInEffectMode.value = false
 
-			newState.mixEffects.v1.layers!.a!.input = 'input2'
-			newState.mixEffects.v1.layers!.b!.input = 'input4'
-			newState.mixEffects.v1.isInEffectMode = false
+			newState.mixEffects.v1.layers!.a!.input!.value = 'input2'
+			newState.mixEffects.v1.layers!.b!.input!.value = 'input4'
+			newState.mixEffects.v1.isInEffectMode.value = false
 
 			const commands = stateDiffer.getCommandsToAchieveState(newState, oldState)
 
@@ -421,13 +421,13 @@ describe('TriCasterStateDiffer.getCommandsToAchieveState', () => {
 		test('generates position commands', () => {
 			const { stateDiffer, oldState, newState } = setupStateDiffer()
 
-			oldState.mixEffects.v1.isInEffectMode = true
+			oldState.mixEffects.v1.isInEffectMode.value = true
 
 			newState.mixEffects.v1.layers!.a!.position = {
-				x: 2.8,
-				y: -1,
+				x: { value: 2.8 },
+				y: { value: -1 },
 			}
-			newState.mixEffects.v1.isInEffectMode = true
+			newState.mixEffects.v1.isInEffectMode.value = true
 
 			const commands = stateDiffer.getCommandsToAchieveState(newState, oldState)
 
@@ -439,13 +439,13 @@ describe('TriCasterStateDiffer.getCommandsToAchieveState', () => {
 		test('generates scale commands', () => {
 			const { stateDiffer, oldState, newState } = setupStateDiffer()
 
-			oldState.mixEffects.v1.isInEffectMode = true
+			oldState.mixEffects.v1.isInEffectMode.value = true
 
 			newState.mixEffects.v1.layers!.a!.scale = {
-				x: 2.8,
-				y: -1,
+				x: { value: 2.8 },
+				y: { value: -1 },
 			}
-			newState.mixEffects.v1.isInEffectMode = true
+			newState.mixEffects.v1.isInEffectMode.value = true
 
 			const commands = stateDiffer.getCommandsToAchieveState(newState, oldState)
 
@@ -457,14 +457,14 @@ describe('TriCasterStateDiffer.getCommandsToAchieveState', () => {
 		test('generates rotation commands', () => {
 			const { stateDiffer, oldState, newState } = setupStateDiffer()
 
-			oldState.mixEffects.v1.isInEffectMode = true
+			oldState.mixEffects.v1.isInEffectMode.value = true
 
 			newState.mixEffects.v1.layers!.a!.rotation = {
-				x: 2.8,
-				y: -1,
-				z: 5.0,
+				x: { value: 2.8 },
+				y: { value: -1 },
+				z: { value: 5.0 },
 			}
-			newState.mixEffects.v1.isInEffectMode = true
+			newState.mixEffects.v1.isInEffectMode.value = true
 
 			const commands = stateDiffer.getCommandsToAchieveState(newState, oldState)
 
@@ -477,15 +477,15 @@ describe('TriCasterStateDiffer.getCommandsToAchieveState', () => {
 		test('generates crop commands', () => {
 			const { stateDiffer, oldState, newState } = setupStateDiffer()
 
-			oldState.mixEffects.v1.isInEffectMode = true
+			oldState.mixEffects.v1.isInEffectMode.value = true
 
 			newState.mixEffects.v1.layers!.a!.crop = {
-				left: 10,
-				right: 50,
-				up: 25.67,
-				down: 99.9,
+				left: { value: 10 },
+				right: { value: 50 },
+				up: { value: 25.67 },
+				down: { value: 99.9 },
 			}
-			newState.mixEffects.v1.isInEffectMode = true
+			newState.mixEffects.v1.isInEffectMode.value = true
 
 			const commands = stateDiffer.getCommandsToAchieveState(newState, oldState)
 
@@ -499,10 +499,10 @@ describe('TriCasterStateDiffer.getCommandsToAchieveState', () => {
 		test('generates feather commands', () => {
 			const { stateDiffer, oldState, newState } = setupStateDiffer()
 
-			oldState.mixEffects.v1.isInEffectMode = true
+			oldState.mixEffects.v1.isInEffectMode.value = true
 
-			newState.mixEffects.v1.layers!.a!.feather = 50
-			newState.mixEffects.v1.isInEffectMode = true
+			newState.mixEffects.v1.layers!.a!.feather!.value = 50
+			newState.mixEffects.v1.isInEffectMode.value = true
 
 			const commands = stateDiffer.getCommandsToAchieveState(newState, oldState)
 
@@ -513,9 +513,9 @@ describe('TriCasterStateDiffer.getCommandsToAchieveState', () => {
 		test('generates all commands when `isInEffectMode` changes to `true`', () => {
 			const { stateDiffer, oldState, newState } = setupStateDiffer()
 
-			oldState.mixEffects.v1.isInEffectMode = false
+			oldState.mixEffects.v1.isInEffectMode.value = false
 
-			newState.mixEffects.v1.isInEffectMode = true
+			newState.mixEffects.v1.isInEffectMode.value = true
 
 			const commands = stateDiffer.getCommandsToAchieveState(newState, oldState)
 
@@ -531,7 +531,7 @@ describe('TriCasterStateDiffer.getCommandsToAchieveState', () => {
 		test('sets act-as-alpha', () => {
 			const { stateDiffer, oldState, newState } = setupStateDiffer()
 
-			newState.inputs.input2.videoActAsAlpha = true
+			newState.inputs.input2.videoActAsAlpha.value = true
 
 			const commands = stateDiffer.getCommandsToAchieveState(newState, oldState)
 
@@ -542,7 +542,7 @@ describe('TriCasterStateDiffer.getCommandsToAchieveState', () => {
 		test('sets video source', () => {
 			const { stateDiffer, oldState, newState } = setupStateDiffer()
 
-			newState.inputs.input2.videoSource = 'SOME-NETWORK-SOURCE (Output 1)'
+			newState.inputs.input2.videoSource!.value = 'SOME-NETWORK-SOURCE (Output 1)'
 
 			const commands = stateDiffer.getCommandsToAchieveState(newState, oldState)
 
@@ -559,7 +559,7 @@ describe('TriCasterStateDiffer.getCommandsToAchieveState', () => {
 		test('unmutes', () => {
 			const { stateDiffer, oldState, newState } = setupStateDiffer()
 
-			newState.audioChannels.input2.isMuted = false
+			newState.audioChannels.input2.isMuted.value = false
 
 			const commands = stateDiffer.getCommandsToAchieveState(newState, oldState)
 
@@ -570,7 +570,7 @@ describe('TriCasterStateDiffer.getCommandsToAchieveState', () => {
 		test('sets volume', () => {
 			const { stateDiffer, oldState, newState } = setupStateDiffer()
 
-			newState.audioChannels.input2.volume = 5
+			newState.audioChannels.input2.volume.value = 5
 
 			const commands = stateDiffer.getCommandsToAchieveState(newState, oldState)
 
@@ -583,7 +583,7 @@ describe('TriCasterStateDiffer.getCommandsToAchieveState', () => {
 		test('sets output source', () => {
 			const { stateDiffer, oldState, newState } = setupStateDiffer()
 
-			newState.mixOutputs.mix2.source = 'me_preview'
+			newState.mixOutputs.mix2.source.value = 'me_preview'
 
 			const commands = stateDiffer.getCommandsToAchieveState(newState, oldState)
 
@@ -596,7 +596,7 @@ describe('TriCasterStateDiffer.getCommandsToAchieveState', () => {
 		test('sets output source', () => {
 			const { stateDiffer, oldState, newState } = setupStateDiffer()
 
-			newState.matrixOutputs.out2.source = 'input5'
+			newState.matrixOutputs.out2.source.value = 'input5'
 
 			const commands = stateDiffer.getCommandsToAchieveState(newState, oldState)
 
@@ -629,9 +629,9 @@ describe('TriCasterStateDiffer.getCommandsToAchieveState', () => {
 			const { stateDiffer, oldState, newState } = setupStateDiffer(MOCK_MAPPINGS, {})
 
 			// some example state
-			oldState.mixEffects.main.keyers.dsk2.transitionDuration = 5.2
-			oldState.mixEffects.main.keyers.dsk2.transitionEffect = 5
-			oldState.mixEffects.main.keyers.dsk2.input = 'input1'
+			oldState.mixEffects.main.keyers.dsk2.transitionDuration.value = 5.2
+			oldState.mixEffects.main.keyers.dsk2.transitionEffect.value = 5
+			oldState.mixEffects.main.keyers.dsk2.input.value = 'input1'
 
 			const commands = stateDiffer.getCommandsToAchieveState(newState, oldState)
 
