@@ -530,6 +530,18 @@ export class VMix extends BaseConnection {
 		return this.sendCommandFunction(`ScriptStopAll`, {})
 	}
 
+	public async lastPreset(): Promise<any> {
+		return this.sendCommandFunction('LastPreset', {})
+	}
+
+	public async openPreset(file: string): Promise<any> {
+		return this.sendCommandFunction('OpenPreset', { value: file })
+	}
+
+	public async savePreset(file: string): Promise<any> {
+		return this.sendCommandFunction('SavePreset', { value: file })
+	}
+
 	public async listAdd(input: string | number, value: string | number): Promise<any> {
 		return this.sendCommandFunction(`ListAdd`, { input, value: encodeURIComponent(value) })
 	}

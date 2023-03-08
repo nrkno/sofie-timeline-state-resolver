@@ -1,0 +1,46 @@
+{
+	"$schema": "../../../$schemas/action-schema.json",
+	"actions": [
+		{
+			"id": "lastPreset",
+			"name": "Load Last Preset",
+			"destructive": true,
+			"timeout": 5000
+		},
+		{
+			"id": "openPreset",
+			"name": "Open Preset",
+			"destructive": true,
+			"timeout": 5000,
+			"payload": {
+				"type": "object",
+				"properties": {
+					"filename": {
+						"description": "The filename of the preset to load",
+						"type": "string",
+						"required": true
+					}
+				},
+				"required": ["filename"],
+				"additionalProperties": false
+			}
+		},
+		{
+			"id": "savePreset",
+			"name": "Save Preset",
+			"destructive": true,
+			"timeout": 5000,
+			"payload": {
+				"type": "object",
+				"properties": {
+					"filename": {
+						"description": "The filename of the preset to save",
+						"type": "string"
+					}
+				},
+				"required": ["filename"],
+				"additionalProperties": false
+			}
+		}
+	]
+}
