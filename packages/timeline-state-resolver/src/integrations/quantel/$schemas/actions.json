@@ -5,6 +5,11 @@
 			"id": "restartGateway",
 			"name": "Restart gateway",
 			"destructive": true
+		},
+		{
+			"id": "resetState",
+			"name": "Reset state",
+			"destructive": true
 		}
 	]
 }

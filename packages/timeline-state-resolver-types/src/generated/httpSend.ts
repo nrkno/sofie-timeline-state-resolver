@@ -42,3 +42,19 @@ export enum TimelineContentTypeHTTPParamType {
 }
 
 export type SomeMappingHttpSend = Record<string, never>
+
+export interface SendCommandPayload {
+	type: string
+	url: string
+	params: {
+		[k: string]: unknown
+	}
+	paramsType?: string
+	temporalPriority?: number
+	queueId?: string
+}
+
+export enum HttpSendActions {
+	Reset = 'reset',
+	SendCommand = 'sendCommand',
+}

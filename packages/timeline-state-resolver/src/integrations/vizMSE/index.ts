@@ -211,15 +211,60 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState, DeviceOptionsVizM
 		return this._vizMSEConnected
 	}
 
+	async activate(payload: Record<string, any> | undefined): Promise<ActionExecutionResult> {
+		if (!payload || !payload.activeRundownPlaylistId) {
+			return {
+				result: ActionExecutionResultCode.Error,
+				response: t('Invalid payload'),
+			}
+		}
+		if (!this._vizmseManager) {
+			return {
+				result: ActionExecutionResultCode.Error,
+				response: t('Unable to activate vizMSE, not initialized yet'),
+			}
+		}
+
+		const activeRundownPlaylistId = payload.activeRundownPlaylist
+		const previousPlaylistId = this._vizmseManager?.activeRundownPlaylistId
+
+		await this._vizmseManager.activate(activeRundownPlaylistId)
+
+		if (!payload.clearAll) {
+			return {
+				result: ActionExecutionResultCode.Ok,
+			}
+		}
+
+		this.clearStates()
+
+		if (this._initOptions && activeRundownPlaylistId !== previousPlaylistId) {
+			if (this._initOptions.clearAllCommands && this._initOptions.clearAllCommands.length) {
+				await this._vizmseManager.clearEngines({
+					type: VizMSECommandType.CLEAR_ALL_ENGINES,
+					time: this.getCurrentTime(),
+					timelineObjId: 'makeReady',
+					channels: 'all',
+					commands: this._initOptions.clearAllCommands,
+				})
+			}
+		}
+
+		return {
+			result: ActionExecutionResultCode.Ok,
+		}
+	}
 	public async purgeRundown(clearAll: boolean): Promise<void> {
 		await this._vizmseManager?.purgeRundown(clearAll)
 	}
 
-	async executeAction(actionId: string, _payload?: Record<string, any> | undefined): Promise<ActionExecutionResult> {
+	async executeAction(actionId: string, payload?: Record<string, any> | undefined): Promise<ActionExecutionResult> {
 		switch (actionId) {
 			case VizMSEActions.PurgeRundown:
 				await this.purgeRundown(true)
 				return { result: ActionExecutionResultCode.Ok }
+			case VizMSEActions.Activate:
+				return this.activate(payload)
 			default:
 				return { result: ActionExecutionResultCode.Ok, response: t('Action "{{id}}" not found', { actionId }) }
 		}

@@ -71,6 +71,12 @@ export interface VizMSEOptions {
 
 export type SomeMappingVizMSE = Record<string, never>
 
+export interface ActivatePayload {
+	activeRundownPlaylistId: string
+	clearAll?: boolean
+}
+
 export enum VizMSEActions {
 	PurgeRundown = 'purgeRundown',
+	Activate = 'activate',
 }

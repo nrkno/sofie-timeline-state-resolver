@@ -5,6 +5,11 @@
 			"id": "resync",
 			"name": "Resync Atem",
 			"destructive": false
+		},
+		{
+			"id": "logNextState",
+			"name": "Log next state",
+			"destructive": false
 		}
 	]
 }

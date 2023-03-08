@@ -200,6 +200,9 @@ export class QuantelDevice extends DeviceWithState<QuantelState, DeviceOptionsQu
 				} catch {
 					return { result: ActionExecutionResultCode.Error }
 				}
+			case QuantelActions.ResetState:
+				this.clearStates()
+				return { result: ActionExecutionResultCode.Ok }
 			default:
 				return { result: ActionExecutionResultCode.Ok, response: t('Action "{{id}}" not found', { actionId }) }
 		}

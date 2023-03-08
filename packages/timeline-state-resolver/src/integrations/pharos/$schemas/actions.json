@@ -1,0 +1,10 @@
+{
+	"$schema": "../../../$schemas/action-schema.json",
+	"actions": [
+		{
+			"id": "clearQueue",
+			"name": "Clear queue",
+			"destructive": false
+		}
+	]
+}

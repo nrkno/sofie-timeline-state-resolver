@@ -14,6 +14,9 @@ import {
 	TSRTimelineContent,
 	Mapping,
 	MappingAtemAuxilliary,
+	ActionExecutionResult,
+	ActionExecutionResultCode,
+	AtemActions,
 } from 'timeline-state-resolver-types'
 import { AtemState, State as DeviceState, Defaults as StateDefault } from 'atem-state'
 import {
@@ -24,7 +27,7 @@ import {
 	Enums as ConnectionEnums,
 } from 'atem-connection'
 import { DoOnTime, SendMode } from '../../devices/doOnTime'
-import { endTrace, startTrace } from '../../lib'
+import { actionNotFoundMessage, endTrace, startTrace } from '../../lib'
 
 _.mixin({ deepExtend: underScoreDeepExtend(_) })
 
@@ -141,15 +144,43 @@ export class AtemDevice extends DeviceWithState<DeviceState, DeviceOptionsAtemIn
 		})
 	}
 
+	async logNextState(): Promise<ActionExecutionResult> {
+		this.firstStateAfterMakeReady = true
+
+		return {
+			result: ActionExecutionResultCode.Ok,
+		}
+	}
+	async resyncState(): Promise<ActionExecutionResult> {
+		this._doOnTime.clearQueueNowAndAfter(this.getCurrentTime())
+		if (this._atem.state) this.setState(this._atem.state, this.getCurrentTime())
+
+		return {
+			result: ActionExecutionResultCode.Ok,
+		}
+	}
+	async executeAction(
+		actionId: AtemActions,
+		_payload?: Record<string, any> | undefined
+	): Promise<ActionExecutionResult> {
+		switch (actionId) {
+			case AtemActions.Resync:
+				return this.resyncState()
+			case AtemActions.LogNextState:
+				return this.logNextState()
+			default:
+				return actionNotFoundMessage(actionId)
+		}
+	}
+
 	/**
 	 * Prepare device for playout
 	 * @param okToDestroyStuff If true, may break output
 	 */
 	async makeReady(okToDestroyStuff?: boolean): Promise<void> {
-		this.firstStateAfterMakeReady = true
+		await this.logNextState()
 		if (okToDestroyStuff) {
-			this._doOnTime.clearQueueNowAndAfter(this.getCurrentTime())
-			if (this._atem.state) this.setState(this._atem.state, this.getCurrentTime())
+			await this.resyncState()
 		}
 	}
 	/** Called by the Conductor a bit before a .handleState is called */

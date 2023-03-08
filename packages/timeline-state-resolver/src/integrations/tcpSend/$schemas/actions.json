@@ -1,0 +1,29 @@
+{
+	"$schema": "../../../$schemas/action-schema.json",
+	"actions": [
+		{
+			"id": "reconnect",
+			"name": "Reconnect device",
+			"destructive": true
+		},
+		{
+			"id": "resetState",
+			"name": "Reset state",
+			"destructive": true
+		},
+		{
+			"id": "sendCommand",
+			"name": "Send command",
+			"destructive": false,
+			"payload": {
+				"type": "object",
+				"properties": {
+					"message": { "type": "string" },
+					"temporalPriority": { "type": "number" },
+					"queueId": { "type": "string" }
+				},
+				"required": ["message"]
+			}
+		}
+	]
+}

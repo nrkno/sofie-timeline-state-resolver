@@ -609,35 +609,10 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 	 * @param okToDestroyStuff Whether it is OK to restart the device
 	 */
 	async makeReady(okToDestroyStuff?: boolean): Promise<void> {
-		// Sync Caspar Time to our time:
-		const command = await this._ccg.executeCommand({ command: Commands.Info, params: {} })
-		if (command.error) throw new Error('Could not makeReady')
-		const response = await command.request
-		const channels: any[] = response.data
-
-		// Clear all channels (?)
-		if (okToDestroyStuff) {
-			await Promise.all(
-				_.map(channels, async (channel: any) => {
-					await this._commandReceiver(
-						this.getCurrentTime(),
-						{
-							command: Commands.Clear,
-							params: {
-								channel: channel.channel,
-							},
-						},
-						'makeReady and destroystuff',
-						''
-					)
-				})
-			)
-		}
 		// reset our own state(s):
 		if (okToDestroyStuff) {
-			this.clearStates()
+			this.clearAllChannels()
 		}
-		// a resolveTimeline will be triggered later
 	}
 
 	async clearAllChannels(): Promise<ActionExecutionResult> {

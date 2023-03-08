@@ -194,18 +194,27 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState, DeviceOptionsH
 		return true
 	}
 
+	async resync(): Promise<ActionExecutionResult> {
+		const time = this.getCurrentTime()
+		this._doOnTime.clearQueueNowAndAfter(time)
+
+		// TODO - could this being slow/offline be a problem?
+		const state = await this._queryCurrentState()
+
+		this.setState(state, time)
+		this.emit('resetResolver')
+
+		return {
+			result: ActionExecutionResultCode.Ok,
+		}
+	}
+
 	/**
 	 * Prepares device for playout
 	 */
 	async makeReady(okToDestroyStuff?: boolean): Promise<void> {
 		if (okToDestroyStuff) {
-			const time = this.getCurrentTime()
-			this._doOnTime.clearQueueNowAndAfter(time)
-
-			// TODO - could this being slow/offline be a problem?
-			const state = await this._queryCurrentState()
-
-			this.setState(state, time)
+			this.resync()
 		}
 	}
 
@@ -252,6 +261,8 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState, DeviceOptionsH
 				} catch {
 					return { result: ActionExecutionResultCode.Error }
 				}
+			case HyperdeckActions.Resync:
+				return this.resync()
 			default:
 				return { result: ActionExecutionResultCode.Ok, response: t('Action "{{id}}" not found', { actionId }) }
 		}

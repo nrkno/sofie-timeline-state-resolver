@@ -11,3 +11,7 @@ export interface PharosOptions {
 }
 
 export type SomeMappingPharos = Record<string, never>
+
+export enum PharosActions {
+	ClearQueue = 'clearQueue',
+}

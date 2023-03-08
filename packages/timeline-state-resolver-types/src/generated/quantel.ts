@@ -61,4 +61,5 @@ export type SomeMappingQuantel = MappingQuantelPort
 
 export enum QuantelActions {
 	RestartGateway = 'restartGateway',
+	ResetState = 'resetState',
 }

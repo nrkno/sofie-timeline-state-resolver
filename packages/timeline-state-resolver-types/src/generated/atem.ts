@@ -76,4 +76,5 @@ export type SomeMappingAtem = MappingAtemMixEffect | MappingAtemDownStreamKeyer 
 
 export enum AtemActions {
 	Resync = 'resync',
+	LogNextState = 'logNextState',
 }
