@@ -89,7 +89,7 @@
 		"production"
 	],
 	"dependencies": {
-		"@tv2media/v-connection": "git+https://github.com/nrkno/v-connection.git#5386986d87ea6d1b5164d206ea42c975654b36cd",
+		"@tv2media/v-connection": "7.3.0",
 		"atem-connection": "2.4.0",
 		"atem-state": "^0.12.2",
 		"casparcg-connection": "^6.0.0",
