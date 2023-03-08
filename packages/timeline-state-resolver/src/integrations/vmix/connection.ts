@@ -104,7 +104,12 @@ export class BaseConnection extends EventEmitter<ConnectionEvents> {
 
 			if (result && result.groups?.['response']) {
 				// create a response object
-				const responseLen = parseInt(result?.groups?.['response'])
+				// Add 2 to account for the space between `command` and `response` as well as the newline after `response`.
+				const responseHeaderLength = result.groups?.['command'].length + result.groups?.['response'].length + 2
+				if (Number.isNaN(responseHeaderLength)) {
+					break lineProcessing
+				}
+				const responseLen = parseInt(result?.groups?.['response']) - responseHeaderLength
 				const response: Response = {
 					command: result.groups?.['command'],
 					response: (Number.isNaN(responseLen) ? result.groups?.['response'] : 'OK') as Response['response'],
