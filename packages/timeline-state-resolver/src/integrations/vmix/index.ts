@@ -21,7 +21,13 @@ import {
 	MappingVMixAny,
 	Timeline,
 	TSRTimelineContent,
+	ActionExecutionResult,
+	ActionExecutionResultCode,
+	OpenPresetPayload,
+	SavePresetPayload,
+	VmixActions,
 } from 'timeline-state-resolver-types'
+import { t } from '../../lib'
 
 export interface DeviceOptionsVMixInternal extends DeviceOptionsVMix {
 	commandReceiver?: CommandReceiver
@@ -270,6 +276,75 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 		}
 	}
 
+	async executeAction(actionId: string, payload?: Record<string, any> | undefined): Promise<ActionExecutionResult> {
+		switch (actionId) {
+			case VmixActions.LastPreset:
+				return await this._lastPreset()
+			case VmixActions.OpenPreset:
+				return await this._openPreset(payload as OpenPresetPayload)
+			case VmixActions.SavePreset:
+				return await this._savePreset(payload as SavePresetPayload)
+			default:
+				return {
+					result: ActionExecutionResultCode.Error,
+					response: t('Action "{{actionId}}" not found', { actionId }),
+				}
+		}
+	}
+
+	_checkPresetAction(payload?: any, payloadRequired?: boolean): ActionExecutionResult | undefined {
+		if (!this._vmix.connected) {
+			return {
+				result: ActionExecutionResultCode.Error,
+				response: t('Cannot perform VMix action without a connection'),
+			}
+		}
+
+		if (payloadRequired) {
+			if (!payload || typeof payload !== 'object') {
+				return {
+					result: ActionExecutionResultCode.Error,
+					response: t('Action payload is invalid'),
+				}
+			}
+
+			if (!payload.filename) {
+				return {
+					result: ActionExecutionResultCode.Error,
+					response: t('No preset filename specified'),
+				}
+			}
+		}
+		return
+	}
+
+	async _lastPreset() {
+		const presetActionCheckResult = this._checkPresetAction()
+		if (presetActionCheckResult) return presetActionCheckResult
+		await this._vmix.lastPreset()
+		return {
+			result: ActionExecutionResultCode.Ok,
+		}
+	}
+
+	async _openPreset(payload: OpenPresetPayload) {
+		const presetActionCheckResult = this._checkPresetAction(payload, true)
+		if (presetActionCheckResult) return presetActionCheckResult
+		await this._vmix.openPreset(payload.filename)
+		return {
+			result: ActionExecutionResultCode.Ok,
+		}
+	}
+
+	async _savePreset(payload: SavePresetPayload) {
+		const presetActionCheckResult = this._checkPresetAction(payload, true)
+		if (presetActionCheckResult) return presetActionCheckResult
+		await this._vmix.savePreset(payload.filename)
+		return {
+			result: ActionExecutionResultCode.Ok,
+		}
+	}
+
 	get canConnect(): boolean {
 		return false
 	}
@@ -364,6 +439,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 									position: content.seek,
 									transform: content.transform,
 									overlays: content.overlays,
+									listFilePaths: content.listFilePaths,
 								},
 
 								{ key: mapping.index || content.filePath },
@@ -581,6 +657,52 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 				this._addToQueue(addCommands, this.getCurrentTime())
 			}
 			const oldInput = oldVMixState.reportedState.inputs[key] || this._getDefaultInputState(0) // or {} but we assume that a new input has all parameters default
+			// It is important that the operations on listFilePaths happen before most other operations.
+			// Consider the case where we want to change the contents of a List input AND set it to playing.
+			// If we set it to playing first, it will automatically be forced to stop playing when
+			// we dispatch LIST_REMOVE_ALL.
+			// So, order of operations matters here.
+			if (!_.isEqual(oldInput.listFilePaths, input.listFilePaths)) {
+				// vMix has a quirk that we are working around here:
+				// When a List input has no items, its Play/Pause button becomes inactive and
+				// clicking it does nothing. However, if the List was playing when it was emptied,
+				// it'll remain in a playing state. This means that as soon as new content is
+				// added to the playlist, it will immediately begin playing. This feels like a
+				// bug/mistake/otherwise unwanted behavior in every scenario. To work around this,
+				// we automatically dispatch a PAUSE_INPUT command before emptying the playlist,
+				// but only if there's no new content being added afterward.
+				if (!input.listFilePaths || (Array.isArray(input.listFilePaths) && input.listFilePaths.length <= 0)) {
+					commands.push({
+						command: {
+							command: VMixCommand.PAUSE_INPUT,
+							input: input.name,
+						},
+						context: null,
+						timelineId: '',
+					})
+				}
+				commands.push({
+					command: {
+						command: VMixCommand.LIST_REMOVE_ALL,
+						input: input.name,
+					},
+					context: null,
+					timelineId: '',
+				})
+				if (Array.isArray(input.listFilePaths)) {
+					for (const filePath of input.listFilePaths) {
+						commands.push({
+							command: {
+								command: VMixCommand.LIST_ADD,
+								input: input.name,
+								value: filePath,
+							},
+							context: null,
+							timelineId: '',
+						})
+					}
+				}
+			}
 			if (input.playing !== undefined && oldInput.playing !== input.playing && !input.playing) {
 				commands.push({
 					command: {
@@ -1104,6 +1226,7 @@ export interface VMixInput {
 	audioAuto?: boolean
 	transform?: VMixTransform
 	overlays?: VMixInputOverlays
+	listFilePaths?: string[]
 }
 
 export interface VMixOverlay {
