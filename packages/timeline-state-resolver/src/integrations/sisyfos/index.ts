@@ -15,7 +15,7 @@ import {
 
 import { DoOnTime, SendMode } from '../../devices/doOnTime'
 
-import { TimelineState, ResolvedTimelineObjectInstance } from 'superfly-timeline'
+import { TimelineState } from 'superfly-timeline'
 import {
 	SisyfosApi,
 	SisyfosCommand,
@@ -302,19 +302,19 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 		} & SisyfosChannelOptions)[] = []
 
 		_.each(state.layers, (tlObject, layerName) => {
-			const layer = tlObject as ResolvedTimelineObjectInstance & TimelineObjSisyfosAny
+			const layer = tlObject as unknown as TimelineObjSisyfosAny
 			let foundMapping = mappings[layerName] as MappingSisyfos | undefined
 
 			const content = tlObject.content as TimelineObjSisyfosAny['content']
 
 			// Allow resync without valid channel mapping
-			if (layer.content.resync !== undefined) {
-				deviceState.resync = deviceState.resync || layer.content.resync
+			if ('resync' in content && content.resync !== undefined) {
+				deviceState.resync = deviceState.resync || content.resync
 			}
 
 			// Allow retrigger without valid channel mapping
-			if (layer.content.triggerValue !== undefined) {
-				deviceState.triggerValue = layer.content.triggerValue
+			if ('triggerValue' in content && content.triggerValue !== undefined) {
+				deviceState.triggerValue = content.triggerValue
 			}
 
 			// if the tlObj is specifies to load to PST the original Layer is used to resolve the mapping

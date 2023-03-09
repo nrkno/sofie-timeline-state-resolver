@@ -1,7 +1,6 @@
 import {
 	TriCasterLayer,
 	TriCasterKeyer,
-	TriCasterMixEffect,
 	TriCasterKeyerName,
 	TriCasterLayerName,
 	TriCasterInputName,
@@ -9,14 +8,12 @@ import {
 	TriCasterMixEffectName,
 	TriCasterMatrixOutputName,
 	TriCasterSourceName,
-	TriCasterDelegateName,
 	TriCasterMixOutputName,
 	TriCasterAudioChannel,
 	TriCasterInput,
 	TriCasterMixEffectInEffectMode,
 	TriCasterMixEffectWithPreview,
 	TriCasterMixEffectInMixMode,
-	TriCasterTransitionEffect,
 	MappingTriCaster,
 	MappingTriCasterType,
 	Mappings,
@@ -34,6 +31,7 @@ import { TriCasterInfo } from './triCasterConnection'
 import _ = require('underscore')
 
 const BLACK_INPUT = 'black'
+const DEFAULT_TRANSITION_DURATION = 1 // in seconds
 const A_ROW_SUFFIX = '_a' // the Program row
 const B_ROW_SUFFIX = '_b' // the Preview row
 const MATRIX_OUTPUTS_COUNT = 8 // @todo: hardcoded for now; only a few models have this feature; how to query for it?
@@ -47,27 +45,24 @@ export type RequiredDeep<T> = T extends object
 
 export type RequireDeepExcept<T, K extends keyof T> = RequiredDeep<Omit<T, K>> & Pick<T, K>
 
-type CommandGeneratorFunction<T, K> = (args: {
-	entry: Readonly<T> // @todo: for safety wrap into NonNullable with TS 4.9
-	oldEntry: Readonly<T> | undefined
-	state: Readonly<K>
-	oldState: Readonly<K> | undefined
+type CommandGeneratorFunction<T, K extends keyof T> = (args: {
+	entry: Readonly<NonNullable<WithContext<T[K]>>>
+	oldEntry: Readonly<WithContext<T[K]>> | undefined
+	state: Readonly<NonNullable<WithContext<T>>>
+	oldState: Readonly<WithContext<T>> | undefined
 	target: string
 }) => TriCasterCommandWithContext[] | null
 
-type CommandGeneratorValue<T, K> =
-	| CommandGenerator<T>
-	| CommandGeneratorFunction<WithContext<T>, WithContext<K>>
-	| TriCasterGenericCommandName<T>
+type CommandGeneratorValue<T, K extends keyof T> =
+	| CommandGenerator<T[K]>
+	| CommandGeneratorFunction<T, K>
+	| TriCasterGenericCommandName<T[K]>
 	| null
 
 type CommandGenerator<T> = {
 	[K in keyof T]: RequiredDeep<T>[K] extends object
-		? CommandGeneratorValue<T[K], T>
-		:
-				| TriCasterGenericCommandName<T[K]>
-				| CommandGeneratorFunction<NonNullable<WithContext<T[K]>>, WithContext<T>>
-				| null
+		? CommandGeneratorValue<T, K>
+		: TriCasterGenericCommandName<T[K]> | CommandGeneratorFunction<NonNullable<T>, K> | null
 } & { $target?: string }
 
 export interface TriCasterState {
@@ -190,7 +185,7 @@ export class TriCasterStateDiffer {
 					previewInput: undefined,
 					isInEffectMode: false,
 					transitionEffect: 'cut',
-					transitionDuration: 1,
+					transitionDuration: DEFAULT_TRANSITION_DURATION,
 					layers: meName !== 'main' ? fillRecord(this.layerNames, () => this.getDefaultLayerState()) : {},
 					keyers: fillRecord(this.dskNames, () => this.getDefaultKeyerState()),
 					delegates: ['background'],
@@ -261,7 +256,7 @@ export class TriCasterStateDiffer {
 		return {
 			onAir: false,
 			transitionEffect: 'cut',
-			transitionDuration: 1,
+			transitionDuration: DEFAULT_TRANSITION_DURATION,
 			...this.getDefaultLayerState(),
 		}
 	}
@@ -318,22 +313,15 @@ export class TriCasterStateDiffer {
 		source: CommandName.CROSSPOINT_SOURCE,
 	}
 
-	private keyerEffectCommandGenerator: CommandGeneratorFunction<
-		WithContext<TriCasterTransitionEffect>,
-		WithContext<TriCasterKeyerState>
-	> = this.effectCommandGenerator(CommandName.SELECT_INDEX)
+	private keyerEffectCommandGenerator: CommandGeneratorFunction<TriCasterKeyerState, 'transitionEffect'> =
+		this.effectCommandGenerator(CommandName.SELECT_INDEX)
 
-	private mixEffectEffectCommandGenerator: CommandGeneratorFunction<
-		WithContext<TriCasterTransitionEffect>,
-		WithContext<TriCasterMixEffectState>
-	> = this.effectCommandGenerator(CommandName.SET_MIX_EFFECT_BIN_INDEX)
+	private mixEffectEffectCommandGenerator: CommandGeneratorFunction<TriCasterMixEffectState, 'transitionEffect'> =
+		this.effectCommandGenerator(CommandName.SET_MIX_EFFECT_BIN_INDEX)
 
 	private effectCommandGenerator(
 		selectCommand: TriCasterGenericCommandName<number>
-	): CommandGeneratorFunction<
-		WithContext<TriCasterTransitionEffect>,
-		WithContext<TriCasterKeyerState | TriCasterMixEffectState>
-	> {
+	): CommandGeneratorFunction<TriCasterKeyerState | TriCasterMixEffectState, 'transitionEffect'> {
 		return ({ entry, target, state }) => {
 			if (entry.value === 'cut') {
 				return []
@@ -341,14 +329,17 @@ export class TriCasterStateDiffer {
 			const value = entry.value === 'fade' ? 0 : entry.value
 			return [
 				wrapInContext({ name: selectCommand, target, value }, entry),
-				wrapInContext({ name: CommandName.SPEED, target, value: state.transitionDuration?.value ?? 1 }, entry),
+				wrapInContext(
+					{ name: CommandName.SPEED, target, value: state.transitionDuration?.value ?? DEFAULT_TRANSITION_DURATION },
+					entry
+				),
 			]
 		}
 	}
 
 	private durationCommandGenerator: CommandGeneratorFunction<
-		WithContext<number>,
-		WithContext<TriCasterMixEffectState | TriCasterKeyerState>
+		TriCasterMixEffectState | TriCasterKeyerState,
+		'transitionDuration'
 	> = ({ entry, state, oldState, target }) => {
 		if (!oldState || state.transitionEffect?.value !== oldState.transitionEffect?.value) {
 			return []
@@ -399,7 +390,7 @@ export class TriCasterStateDiffer {
 
 	private getMixEffectGenerator(
 		meName: TriCasterMixEffectName
-	): CommandGeneratorFunction<WithContext<TriCasterMixEffectState>, WithContext<TriCasterState['mixEffects']>> {
+	): CommandGeneratorFunction<TriCasterState['mixEffects'], TriCasterMixEffectName> {
 		return ({ entry, oldEntry, target }) => {
 			const commands: TriCasterCommandWithContext[] = []
 			this.recursivelyGenerateCommands<TriCasterMixEffectState>(
@@ -435,10 +426,11 @@ export class TriCasterStateDiffer {
 		}
 	}
 
-	private delegateCommandGenerator: CommandGeneratorFunction<
-		WithContext<TriCasterDelegateName[]>,
-		WithContext<TriCasterMixEffect>
-	> = ({ entry, oldEntry, target }) => {
+	private delegateCommandGenerator: CommandGeneratorFunction<TriCasterMixEffectState, 'delegates'> = ({
+		entry,
+		oldEntry,
+		target,
+	}) => {
 		const newValue = [...entry.value].sort()
 		const oldValue = oldEntry?.value ? [...oldEntry.value].sort() : []
 		if (_.isEqual(newValue, oldValue)) return null
@@ -446,10 +438,11 @@ export class TriCasterStateDiffer {
 		return [wrapInContext({ name: CommandName.DELEGATE, target, value: combinedValue }, entry)]
 	}
 
-	private previewInputCommandGenerator: CommandGeneratorFunction<
-		WithContext<string>,
-		WithContext<TriCasterMixEffectState>
-	> = ({ entry, state, target }) => {
+	private previewInputCommandGenerator: CommandGeneratorFunction<TriCasterMixEffectState, 'previewInput'> = ({
+		entry,
+		state,
+		target,
+	}) => {
 		if (state.transitionEffect?.value !== 'cut') {
 			return null
 		}
@@ -458,10 +451,11 @@ export class TriCasterStateDiffer {
 		]
 	}
 
-	private programInputCommandGenerator: CommandGeneratorFunction<
-		WithContext<string>,
-		WithContext<TriCasterMixEffectState>
-	> = ({ entry, state, target }) => {
+	private programInputCommandGenerator: CommandGeneratorFunction<TriCasterMixEffectState, 'programInput'> = ({
+		entry,
+		state,
+		target,
+	}) => {
 		if (state.transitionEffect?.value === 'cut') {
 			if (!state.previewInput?.value) {
 				return [
@@ -495,9 +489,9 @@ export class TriCasterStateDiffer {
 		let key: keyof CommandGenerator<T> // this is safe only when rootCommandGenerator is exactly of type CommandGenerator<Y>
 		for (key in rootCommandGenerator) {
 			if (key === '$target') continue
-			const generator = rootCommandGenerator[key] as CommandGeneratorValue<T[keyof T], T>
-			const entry = state[key as unknown as keyof WithContext<T>]
-			const oldEntry = oldState?.[key as unknown as keyof WithContext<T>]
+			const generator = rootCommandGenerator[key] as CommandGeneratorValue<T, typeof key>
+			const entry = state[key as keyof WithContext<T>]
+			const oldEntry = oldState?.[key as keyof WithContext<T>]
 			if (this.isEmpty(entry)) continue
 			if (typeof generator === 'function') {
 				if (this.isEqual(entry, oldEntry)) continue
@@ -512,10 +506,8 @@ export class TriCasterStateDiffer {
 				commandsOut.push(...generatedCommands)
 			} else if (typeof generator === 'string') {
 				if (!isStateEntry(entry) || this.isEqual(entry, oldEntry)) continue
-				// @todo: with TS 4.9 remove `as unknown` below
-				// `generator` and `value` pair make a valid command thanks to TriCasterGenericCommandName
 				commandsOut.push(
-					wrapInContext({ name: generator, value: entry.value, target } as unknown as TriCasterGenericCommand, entry)
+					wrapInContext({ name: generator, value: entry.value, target } as TriCasterGenericCommand, entry)
 				)
 			} else if (generator) {
 				this.recursivelyGenerateCommands(
