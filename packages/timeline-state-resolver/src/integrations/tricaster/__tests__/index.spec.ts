@@ -58,13 +58,24 @@ describe('TriCasterDevice', () => {
 		})
 
 		expect(MOCK_SEND).not.toHaveBeenCalled()
+		const mappings = {
+			tc_me0_0: literal<MappingTriCaster>({
+				device: DeviceType.TRICASTER,
+				mappingType: MappingTriCasterType.ME,
+				name: 'main',
+				deviceId: 'tc0',
+			}),
+		}
 
-		device.handleState({ time: 11000, layers: {}, nextEvents: [] }, {})
+		device.handleState({ time: 11000, layers: {}, nextEvents: [] }, mappings)
 		await mockTime.advanceTimeToTicks(11010)
 
 		// check that initial commands are sent after connection
-		// the number of them is not that relevant
+		// the number of them is not that relevant, but they have to only affect the mapped resource
 		expect(MOCK_SEND).toHaveBeenCalled()
+		expect(MOCK_SEND.mock.calls.filter((call) => (call as any)[0].target.startsWith('main')).length).toEqual(
+			MOCK_SEND.mock.calls.length
+		)
 		MOCK_SEND.mockClear()
 
 		device.handleState(
@@ -84,14 +95,7 @@ describe('TriCasterDevice', () => {
 				},
 				nextEvents: [],
 			},
-			{
-				tc_me0_0: literal<MappingTriCaster>({
-					device: DeviceType.TRICASTER,
-					mappingType: MappingTriCasterType.ME,
-					name: 'main',
-					deviceId: 'tc0',
-				}),
-			}
+			mappings
 		)
 		await mockTime.advanceTimeToTicks(12010)
 		expect(MOCK_SEND).toHaveBeenCalledTimes(4)

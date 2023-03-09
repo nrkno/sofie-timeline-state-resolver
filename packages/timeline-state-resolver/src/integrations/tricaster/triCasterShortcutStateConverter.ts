@@ -4,6 +4,7 @@ import {
 	TriCasterInputName,
 	TriCasterKeyerName,
 	TriCasterLayerName,
+	TriCasterMatrixOutputName,
 	TriCasterMixEffectName,
 	TriCasterMixOutputName,
 } from 'timeline-state-resolver-types'
@@ -15,7 +16,7 @@ import {
 	TriCasterInputState,
 	TriCasterKeyerState,
 	TriCasterLayerState,
-	TriCasterMixOutputState,
+	TriCasterOutputState,
 	TriCasterState,
 } from './triCasterStateDiffer'
 import { CommandName, TriCasterGenericCommandName } from './triCasterCommands'
@@ -26,12 +27,15 @@ type ShortcutStates = {
 
 export class TriCasterShortcutStateConverter {
 	constructor(
-		private readonly meNames: TriCasterMixEffectName[],
-		private readonly inputNames: TriCasterInputName[],
-		private readonly audioChannelNames: TriCasterAudioChannelName[],
-		private readonly layerNames: TriCasterLayerName[],
-		private readonly keyerNames: TriCasterKeyerName[],
-		private readonly mixOutputNames: TriCasterMixOutputName[]
+		private readonly resourceNames: {
+			mixEffects: TriCasterMixEffectName[]
+			inputs: TriCasterInputName[]
+			audioChannels: TriCasterAudioChannelName[]
+			layers: TriCasterLayerName[]
+			keyers: TriCasterKeyerName[]
+			mixOutputs: TriCasterMixOutputName[]
+			matrixOutputs: TriCasterMatrixOutputName[]
+		}
 	) {}
 
 	getTriCasterStateFromShortcutState(shortcutStatesXml: string): TriCasterState {
@@ -42,7 +46,8 @@ export class TriCasterShortcutStateConverter {
 		return {
 			mixEffects: this.parseMixEffectsState(shortcutStates),
 			inputs: this.parseInputsState(),
-			outputs: this.parseMixOutputsState(shortcutStates),
+			mixOutputs: this.parseMixOutputsState(shortcutStates),
+			matrixOutputs: this.parseMatrixOutputsState(shortcutStates),
 			audioChannels: this.parseAudioChannelsState(shortcutStates),
 			isRecording: this.parseNumber(shortcutStates, [], CommandName.RECORD_TOGGLE) === 1,
 			isStreaming: this.parseNumber(shortcutStates, [], CommandName.STREAMING_TOGGLE) === 1,
@@ -75,7 +80,7 @@ export class TriCasterShortcutStateConverter {
 		shortcutStates: ShortcutStates
 	): Record<TriCasterMixEffectName, TriCasterMixEffectState> {
 		return fillRecord(
-			this.meNames,
+			this.resourceNames.mixEffects,
 			(mixEffectName): TriCasterMixEffectState => ({
 				programInput: this.parseString(
 					shortcutStates,
@@ -99,7 +104,7 @@ export class TriCasterShortcutStateConverter {
 		mixEffectName: string
 	): Record<TriCasterLayerName, TriCasterLayerState> {
 		return fillRecord(
-			this.layerNames,
+			this.resourceNames.layers,
 			(layerName): TriCasterLayerState => ({
 				input: this.parseString(shortcutStates, [mixEffectName, layerName], CommandName.ROW_NAMED_INPUT),
 			})
@@ -111,7 +116,7 @@ export class TriCasterShortcutStateConverter {
 		mixEffectName: string
 	): Record<TriCasterKeyerName, TriCasterKeyerState> {
 		return fillRecord(
-			this.keyerNames,
+			this.resourceNames.keyers,
 			(keyerName): TriCasterKeyerState => ({
 				input: this.parseString(shortcutStates, [mixEffectName, keyerName], CommandName.SELECT_NAMED_INPUT),
 				onAir: this.parseNumber(shortcutStates, [mixEffectName, keyerName], CommandName.VALUE) !== 0,
@@ -121,20 +126,29 @@ export class TriCasterShortcutStateConverter {
 
 	private parseInputsState(): Record<TriCasterInputName, TriCasterInputState> {
 		return fillRecord(
-			this.inputNames,
+			this.resourceNames.inputs,
 			(): TriCasterInputState => ({
 				videoSource: undefined,
 			})
 		)
 	}
 
-	private parseMixOutputsState(
-		shortcutStates: ShortcutStates
-	): Record<TriCasterMixOutputName, TriCasterMixOutputState> {
+	private parseMixOutputsState(shortcutStates: ShortcutStates): Record<TriCasterMixOutputName, TriCasterOutputState> {
 		return fillRecord(
-			this.mixOutputNames,
-			(mixOutputName): TriCasterMixOutputState => ({
+			this.resourceNames.mixOutputs,
+			(mixOutputName): TriCasterOutputState => ({
 				source: this.parseString(shortcutStates, [mixOutputName], CommandName.OUTPUT_SOURCE)?.toLowerCase(),
+			})
+		)
+	}
+
+	private parseMatrixOutputsState(
+		shortcutStates: ShortcutStates
+	): Record<TriCasterMatrixOutputName, TriCasterOutputState> {
+		return fillRecord(
+			this.resourceNames.matrixOutputs,
+			(matrixOutputName): TriCasterOutputState => ({
+				source: this.parseString(shortcutStates, [matrixOutputName], CommandName.CROSSPOINT_SOURCE)?.toLowerCase(),
 			})
 		)
 	}
@@ -143,7 +157,7 @@ export class TriCasterShortcutStateConverter {
 		shortcutStates: ShortcutStates
 	): Record<TriCasterAudioChannelName, TriCasterAudioChannelState> {
 		return fillRecord(
-			this.audioChannelNames,
+			this.resourceNames.audioChannels,
 			(audioChannelName): TriCasterAudioChannelState => ({
 				volume: this.parseNumber(shortcutStates, [audioChannelName], CommandName.VOLUME),
 				isMuted: this.parseBoolean(shortcutStates, [audioChannelName], CommandName.MUTE),

@@ -4,6 +4,7 @@ import {
 	TimelineContentTriCasterAudioChannel,
 	TimelineContentTriCasterDSK,
 	TimelineContentTriCasterInput,
+	TimelineContentTriCasterMatrixOutput,
 	TimelineContentTriCasterME,
 	TimelineContentTriCasterMixOutput,
 	TimelineContentTypeTriCaster,
@@ -36,4 +37,10 @@ export function isTimelineObjTriCasterMixOutput(
 	content: TSRTimelineContent
 ): content is TimelineContentTriCasterMixOutput {
 	return isTimelineObjTriCaster(content) && content.type === TimelineContentTypeTriCaster.MIX_OUTPUT
+}
+
+export function isTimelineObjTriCasterMatrixOutput(
+	content: TSRTimelineContent
+): content is TimelineContentTriCasterMatrixOutput {
+	return isTimelineObjTriCaster(content) && content.type === TimelineContentTypeTriCaster.MATRIX_OUTPUT
 }

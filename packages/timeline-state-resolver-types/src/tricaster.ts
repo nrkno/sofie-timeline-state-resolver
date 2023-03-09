@@ -9,6 +9,8 @@ export type TriCasterAudioChannelName = TriCasterSourceName | 'sound' | 'master'
 export type TriCasterLayerName = 'a' | 'b' | 'c' | 'd'
 export type TriCasterDelegateName = 'background' | TriCasterKeyerName
 export type TriCasterMixOutputName = `mix${number}`
+export type TriCasterMatrixOutputName = `out${number}`
+
 export type TriCasterMixOutputSource =
 	| TriCasterSourceName
 	| TriCasterMixEffectName
@@ -17,6 +19,8 @@ export type TriCasterMixOutputSource =
 	| 'program_clean'
 	| 'me_program'
 	| 'me_preview'
+
+export type TriCasterMatrixOutputSource = TriCasterSourceName | TriCasterMixOutputName
 
 interface MappingTriCasterBase extends Mapping {
 	device: DeviceType.TRICASTER
@@ -48,12 +52,18 @@ export interface MappingTriCasterMixOutput extends MappingTriCasterBase {
 	name: TriCasterMixOutputName
 }
 
+export interface MappingTriCasterMatrixOutput extends MappingTriCasterBase {
+	mappingType: MappingTriCasterType.MATRIX_OUTPUT
+	name: TriCasterMatrixOutputName
+}
+
 export enum MappingTriCasterType {
 	ME = 'ME',
 	DSK = 'DSK',
 	INPUT = 'INPUT',
 	AUDIO_CHANNEL = 'AUDIO_CHANNEL',
 	MIX_OUTPUT = 'MIX_OUTPUT',
+	MATRIX_OUTPUT = 'MATRIX_OUTPUT',
 }
 
 export type MappingTriCaster =
@@ -62,6 +72,7 @@ export type MappingTriCaster =
 	| MappingTriCasterInput
 	| MappingTriCasterAudioChannel
 	| MappingTriCasterMixOutput
+	| MappingTriCasterMatrixOutput
 
 export interface TriCasterOptions {
 	host: string
@@ -74,6 +85,7 @@ export enum TimelineContentTypeTriCaster {
 	INPUT = 'INPUT',
 	AUDIO_CHANNEL = 'AUDIO_CHANNEL',
 	MIX_OUTPUT = 'MIX_OUTPUT',
+	MATRIX_OUTPUT = 'MATRIX_OUTPUT',
 }
 
 export type TimelineContentTriCasterAny =
@@ -82,6 +94,7 @@ export type TimelineContentTriCasterAny =
 	| TimelineContentTriCasterInput
 	| TimelineContentTriCasterAudioChannel
 	| TimelineContentTriCasterMixOutput
+	| TimelineContentTriCasterMatrixOutput
 
 export interface TimelineContentTriCasterBase {
 	deviceType: DeviceType.TRICASTER
@@ -195,9 +208,9 @@ export interface TimelineContentTriCasterMixOutput extends TimelineContentTriCas
 	type: TimelineContentTypeTriCaster.MIX_OUTPUT
 
 	/**
-	 * Any of the named Inputs, Media Players and Buffers ('INPUTn', 'DDRn', 'BFRn') e.g. 'INPUT12' or
-	 * any of the MEs ('Vn') e.g. 'V1' or
-	 * or 'Program', 'Preview', 'program_clean', 'me_program', 'me_preview'
+	 * Any of the named Inputs, Media Players and Buffers ('inputN', 'ddrN', 'bfrN') e.g. 'input12'
+	 * or any of the MEs ('vN') e.g. 'v1'
+	 * or 'program', 'preview', 'program_clean', 'me_program', 'me_preview'
 	 */
 	source: TriCasterMixOutputSource
 }
@@ -207,6 +220,27 @@ export interface TimelineContentTriCasterMixOutput extends TimelineContentTriCas
 // ): timelineObject is TimelineObjTriCasterMixOutput {
 // 	return (
 // 		isTimelineObjTriCaster(timelineObject) && timelineObject.content.type === TimelineContentTypeTriCaster.MIX_OUTPUT
+// 	)
+// }
+
+/**
+ * Output from the Internal Matrix Router (crosspoint)
+ */
+export interface TimelineContentTriCasterMatrixOutput extends TimelineContentTriCasterBase {
+	type: TimelineContentTypeTriCaster.MATRIX_OUTPUT
+
+	/**
+	 * Any of the named Inputs, Media Players and Buffers ('inputN', 'ddrN', 'bfrN') e.g. 'input12'
+	 * or mix outputs ('mixN') e.g. 'mix2'
+	 */
+	source: TriCasterMatrixOutputSource
+}
+
+// export function isTimelineObjTriCasterMatrixOutput(
+// 	timelineObject: TSRTimelineObjBase
+// ): timelineObject is TimelineObjTriCasterMatrixOutput {
+// 	return (
+// 		isTimelineObjTriCaster(timelineObject) && timelineObject.content.type === TimelineContentTypeTriCaster.MATRIX_OUTPUT
 // 	)
 // }
 

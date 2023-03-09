@@ -42,6 +42,7 @@ export enum CommandName {
 	STREAMING_TOGGLE = 'streaming_toggle',
 	// outputs
 	OUTPUT_SOURCE = '_output_source',
+	CROSSPOINT_SOURCE = '_crosspoint_source',
 }
 
 export type ValueTypes = boolean | number | string
@@ -98,6 +99,7 @@ type RecordToggle = CommandWithValue<CommandName.RECORD_TOGGLE, number>
 type StreamingToggle = CommandWithValue<CommandName.STREAMING_TOGGLE, number>
 
 type OutputSource = CommandWithValueAndTarget<CommandName.OUTPUT_SOURCE, string>
+type CrosspointSource = CommandWithValueAndTarget<CommandName.CROSSPOINT_SOURCE, string>
 
 export type TriCasterCommand =
 	| RowCommand
@@ -129,6 +131,7 @@ export type TriCasterCommand =
 	| RecordToggle
 	| StreamingToggle
 	| OutputSource
+	| CrosspointSource
 
 type TriCasterGenericNumberCommand = Extract<
 	TriCasterCommand,
