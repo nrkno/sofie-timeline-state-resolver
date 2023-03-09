@@ -234,7 +234,7 @@ export class VizMSEManager extends EventEmitter {
 
 		const rundown = await this._getRundown()
 		const elementsToKeep = clearAll ? undefined : this.getElementsToKeep()
-		await rundown.purgeExternalElements(elementsToKeep)
+		await rundown.purgeExternalElements(elementsToKeep || [])
 	}
 	/**
 	 * Activate the rundown.

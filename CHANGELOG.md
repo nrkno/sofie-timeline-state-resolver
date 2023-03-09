@@ -3,6 +3,35 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+
+
+# [8.0.0-release48.1](https://github.com/nrkno/sofie-timeline-state-resolver/compare/7.5.0-release47.6...8.0.0-release48.1) (2023-02-14)
+
+
+### Bug Fixes
+
+* change mocks to be TCP, fix vmixAPI test ([def9a21](https://github.com/nrkno/sofie-timeline-state-resolver/commit/def9a21719815ec20c99dabd49bfa7c553136cb0))
+* improve data fragmentation handling, logging of unrecognized responses ([96cfe87](https://github.com/nrkno/sofie-timeline-state-resolver/commit/96cfe87f68d223ea6ef5566a31e2fd7caa9abe2e))
+* use TCP for vmix api ([3c1d1f6](https://github.com/nrkno/sofie-timeline-state-resolver/commit/3c1d1f65042772b03e9e8284dda5b4e0feca80d9))
+* **vmix:** improve vmix mock, update tests to use new mock ([265dcf1](https://github.com/nrkno/sofie-timeline-state-resolver/commit/265dcf1a0f4d05cc6fc549a2783f51a782bc0c26))
+
+
+
+# [8.0.0-release48.0](https://github.com/nrkno/sofie-timeline-state-resolver/compare/7.5.0-release47.3...8.0.0-release48.0) (2022-12-12)
+
+
+### Features
+
+* action manifests ([681d4c8](https://github.com/nrkno/sofie-timeline-state-resolver/commit/681d4c8a72fb409dba919fd13db17f3c2f168d1a))
+* add vizmse actions ([f7e585c](https://github.com/nrkno/sofie-timeline-state-resolver/commit/f7e585c97e852ab30e9fd6d20077be906038af70))
+* import quick-tsr to this repository ([bd42303](https://github.com/nrkno/sofie-timeline-state-resolver/commit/bd42303dc68054db530d10ccc590f63017b15afe))
+* translations for actions ([df4cb43](https://github.com/nrkno/sofie-timeline-state-resolver/commit/df4cb43cf16a8e2ae34c1fe44801c5a327f9b01e))
+* update for casparcg-connection rewrite ([5dfdd23](https://github.com/nrkno/sofie-timeline-state-resolver/commit/5dfdd2320caf89432d36513026c1259e2cf3d366))
+
+
+
+
+
 # [8.0.0-release48.0](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/7.5.0-release47.3...8.0.0-release48.0) (2022-12-12)
 
 
@@ -26,6 +55,20 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
 
 
 
+# [7.5.0](https://github.com/nrkno/sofie-timeline-state-resolver/compare/7.5.0-release47.7...7.5.0) (2023-02-28)
+
+**Note:** Version bump only for package timeline-state-resolver-packages
+
+
+
+
+
+# [7.5.0-release47.7](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/7.5.0-release47.6...7.5.0-release47.7) (2023-02-24)
+
+
+### Bug Fixes
+
+* update v-connection dependency ([3163188](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/316318801a3babc54f6222621c16c4061d78aafd))
 
 # [7.5.0-release47.6](https://github.com/nrkno/sofie-timeline-state-resolver/compare/7.5.0-release47.5...7.5.0-release47.6) (2023-02-07)
 

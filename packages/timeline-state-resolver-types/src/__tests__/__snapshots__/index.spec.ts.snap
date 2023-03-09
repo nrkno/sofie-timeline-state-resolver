@@ -42,6 +42,7 @@ exports[`index imports 1`] = `
   "TimelineContentTypeHTTPParamType",
   "TimelineContentTypeHyperdeck",
   "TimelineContentTypeLawo",
+  "TimelineContentTypeMultiOSC",
   "TimelineContentTypeOBS",
   "TimelineContentTypeOSC",
   "TimelineContentTypePanasonicPtz",

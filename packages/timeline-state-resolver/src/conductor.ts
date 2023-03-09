@@ -19,6 +19,7 @@ import {
 	Timeline,
 	TSRTimelineContent,
 	TimelineDatastoreReferencesContent,
+	DeviceOptionsMultiOSC,
 } from 'timeline-state-resolver-types'
 
 import { DoOnTime } from './devices/doOnTime'
@@ -49,6 +50,7 @@ import { ShotokuDevice, DeviceOptionsShotokuInternal } from './integrations/shot
 import { DeviceOptionsSofieChefInternal, SofieChefDevice } from './integrations/sofieChef'
 import { TelemetricsDevice } from './integrations/telemetrics'
 import { TriCasterDevice, DeviceOptionsTriCasterInternal } from './integrations/tricaster'
+import { DeviceOptionsMultiOSCInternal, MultiOSCMessageDevice } from './integrations/multiOsc'
 
 export { DeviceContainer }
 export { CommandWithContext }
@@ -675,6 +677,15 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 				return DeviceContainer.create<DeviceOptionsTriCasterInternal, typeof TriCasterDevice>(
 					'../../dist/integrations/tricaster/index.js',
 					'TriCasterDevice',
+					deviceId,
+					deviceOptions,
+					getCurrentTime,
+					threadedClassOptions
+				)
+			case DeviceType.MULTI_OSC:
+				return DeviceContainer.create<DeviceOptionsMultiOSC, typeof MultiOSCMessageDevice>(
+					'../../dist/integrations/multiOsc/index.js',
+					'MultiOSCMessageDevice',
 					deviceId,
 					deviceOptions,
 					getCurrentTime,
@@ -1567,6 +1578,7 @@ export type DeviceOptionsAnyInternal =
 	| DeviceOptionsPharosInternal
 	| DeviceOptionsOBSInternal
 	| DeviceOptionsOSCInternal
+	| DeviceOptionsMultiOSCInternal
 	| DeviceOptionsSisyfosInternal
 	| DeviceOptionsSofieChefInternal
 	| DeviceOptionsQuantelInternal
@@ -1576,6 +1588,7 @@ export type DeviceOptionsAnyInternal =
 	| DeviceOptionsVizMSEInternal
 	| DeviceOptionsTelemetrics
 	| DeviceOptionsTriCasterInternal
+	| DeviceOptionsMultiOSC
 
 function removeParentFromState(
 	o: Timeline.TimelineState<TSRTimelineContent>

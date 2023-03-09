@@ -43,6 +43,7 @@ export * from './vmix'
 export * from './obs'
 export * from './tricaster'
 export * from './telemetrics'
+export * from './multiOsc'
 
 export * from './device'
 export * from './mapping'
@@ -77,6 +78,7 @@ export enum DeviceType {
 	SOFIE_CHEF = 22,
 	TELEMETRICS = 23,
 	TRICASTER = 24,
+	MULTI_OSC = 25,
 }
 
 export type TSRTimelineKeyframe<TContent> = Timeline.TimelineKeyframe<TContent>
