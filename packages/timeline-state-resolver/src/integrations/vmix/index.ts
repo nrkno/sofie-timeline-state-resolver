@@ -439,6 +439,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 									position: content.seek,
 									transform: content.transform,
 									overlays: content.overlays,
+									listFilePaths: content.listFilePaths,
 								},
 
 								{ key: mapping.index || content.filePath },
@@ -656,6 +657,52 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 				this._addToQueue(addCommands, this.getCurrentTime())
 			}
 			const oldInput = oldVMixState.reportedState.inputs[key] || this._getDefaultInputState(0) // or {} but we assume that a new input has all parameters default
+			// It is important that the operations on listFilePaths happen before most other operations.
+			// Consider the case where we want to change the contents of a List input AND set it to playing.
+			// If we set it to playing first, it will automatically be forced to stop playing when
+			// we dispatch LIST_REMOVE_ALL.
+			// So, order of operations matters here.
+			if (!_.isEqual(oldInput.listFilePaths, input.listFilePaths)) {
+				// vMix has a quirk that we are working around here:
+				// When a List input has no items, its Play/Pause button becomes inactive and
+				// clicking it does nothing. However, if the List was playing when it was emptied,
+				// it'll remain in a playing state. This means that as soon as new content is
+				// added to the playlist, it will immediately begin playing. This feels like a
+				// bug/mistake/otherwise unwanted behavior in every scenario. To work around this,
+				// we automatically dispatch a PAUSE_INPUT command before emptying the playlist,
+				// but only if there's no new content being added afterward.
+				if (!input.listFilePaths || (Array.isArray(input.listFilePaths) && input.listFilePaths.length <= 0)) {
+					commands.push({
+						command: {
+							command: VMixCommand.PAUSE_INPUT,
+							input: input.name,
+						},
+						context: null,
+						timelineId: '',
+					})
+				}
+				commands.push({
+					command: {
+						command: VMixCommand.LIST_REMOVE_ALL,
+						input: input.name,
+					},
+					context: null,
+					timelineId: '',
+				})
+				if (Array.isArray(input.listFilePaths)) {
+					for (const filePath of input.listFilePaths) {
+						commands.push({
+							command: {
+								command: VMixCommand.LIST_ADD,
+								input: input.name,
+								value: filePath,
+							},
+							context: null,
+							timelineId: '',
+						})
+					}
+				}
+			}
 			if (input.playing !== undefined && oldInput.playing !== input.playing && !input.playing) {
 				commands.push({
 					command: {
@@ -1179,6 +1226,7 @@ export interface VMixInput {
 	audioAuto?: boolean
 	transform?: VMixTransform
 	overlays?: VMixInputOverlays
+	listFilePaths?: string[]
 }
 
 export interface VMixOverlay {

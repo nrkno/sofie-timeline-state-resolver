@@ -291,6 +291,10 @@ export class VMix extends BaseConnection {
 				return this.scriptStop(command.value)
 			case VMixCommand.SCRIPT_STOP_ALL:
 				return this.scriptStopAll()
+			case VMixCommand.LIST_ADD:
+				return this.listAdd(command.input, command.value)
+			case VMixCommand.LIST_REMOVE_ALL:
+				return this.listRemoveAll(command.input)
 			default:
 				throw new Error(`vmixAPI: Command ${((command || {}) as any).command} not implemented`)
 		}
@@ -542,6 +546,14 @@ export class VMix extends BaseConnection {
 	public async savePreset(file: string): Promise<any> {
 		return this.sendCommandFunction('SavePreset', { value: file })
 	}
+
+	public async listAdd(input: string | number, value: string | number): Promise<any> {
+		return this.sendCommandFunction(`ListAdd`, { input, value: encodeURIComponent(value) })
+	}
+
+	public async listRemoveAll(input: string | number): Promise<any> {
+		return this.sendCommandFunction(`ListRemoveAll`, { input })
+	}
 }
 
 export interface VMixStateCommandBase {
@@ -707,6 +719,15 @@ export interface VMixStateCommandScriptStop extends VMixStateCommandBase {
 export interface VMixStateCommandScriptStopAll extends VMixStateCommandBase {
 	command: VMixCommand.SCRIPT_STOP_ALL
 }
+export interface VMixStateCommandListAdd extends VMixStateCommandBase {
+	command: VMixCommand.LIST_ADD
+	input: string | number
+	value: string
+}
+export interface VMixStateCommandListRemoveAll extends VMixStateCommandBase {
+	command: VMixCommand.LIST_REMOVE_ALL
+	input: string | number
+}
 export type VMixStateCommand =
 	| VMixStateCommandPreviewInput
 	| VMixStateCommandTransition
@@ -745,3 +766,5 @@ export type VMixStateCommand =
 	| VMixStateCommandScriptStart
 	| VMixStateCommandScriptStop
 	| VMixStateCommandScriptStopAll
+	| VMixStateCommandListAdd
+	| VMixStateCommandListRemoveAll
