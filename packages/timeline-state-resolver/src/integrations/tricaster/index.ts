@@ -10,7 +10,7 @@ import {
 	DeviceOptionsTriCaster,
 	MappingTriCaster,
 } from 'timeline-state-resolver-types'
-import { ExtendedState, MappingsTriCaster, TriCasterState, TriCasterStateDiffer } from './triCasterStateDiffer'
+import { WithContext, MappingsTriCaster, TriCasterState, TriCasterStateDiffer } from './triCasterStateDiffer'
 import { TriCasterCommandWithContext } from './triCasterCommands'
 import { TriCasterConnection } from './triCasterConnection'
 
@@ -18,7 +18,7 @@ const DEFAULT_PORT = 5951
 
 export type DeviceOptionsTriCasterInternal = DeviceOptionsTriCaster
 
-export class TriCasterDevice extends DeviceWithState<ExtendedState<TriCasterState>, DeviceOptionsTriCasterInternal> {
+export class TriCasterDevice extends DeviceWithState<WithContext<TriCasterState>, DeviceOptionsTriCasterInternal> {
 	private _doOnTime: DoOnTime
 
 	private _resolveInitPromise: (value: boolean) => void

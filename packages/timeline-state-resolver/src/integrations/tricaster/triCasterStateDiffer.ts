@@ -57,7 +57,7 @@ type CommandGeneratorFunction<T, K> = (args: {
 
 type CommandGeneratorValue<T, K> =
 	| CommandGenerator<T>
-	| CommandGeneratorFunction<ExtendedState<T>, ExtendedState<K>>
+	| CommandGeneratorFunction<WithContext<T>, WithContext<K>>
 	| TriCasterGenericCommandName<T>
 	| null
 
@@ -66,7 +66,7 @@ type CommandGenerator<T> = {
 		? CommandGeneratorValue<T[K], T>
 		:
 				| TriCasterGenericCommandName<T[K]>
-				| CommandGeneratorFunction<NonNullable<ExtendedState<T[K]>>, ExtendedState<T>>
+				| CommandGeneratorFunction<NonNullable<WithContext<T[K]>>, WithContext<T>>
 				| null
 } & { $target?: string }
 
@@ -80,26 +80,16 @@ export interface TriCasterState {
 	matrixOutputs: Record<TriCasterMatrixOutputName, TriCasterOutputState>
 }
 
-// type ExtendedState<T> = {
-// 	[K in keyof T]: T[K] extends object
-// 		? ExtendedState<T>
-// 		: { value: T[K]; timelineObjectId?: string; temporalPriority?: number }
-// }
-
-export interface Entry<T extends any[] | string | number | boolean> {
+export interface StateEntry<T extends any[] | string | number | boolean> {
 	value: T
-	timelineObjectId?: string
+	timelineObjId?: string
 	temporalPriority?: number
 }
 
-export function isEntry(possibleEntry: any): possibleEntry is Entry<any> {
-	return possibleEntry && typeof possibleEntry === 'object' && 'value' in possibleEntry
-}
-
-export type ExtendedState<T> = T extends any[] | string | number | boolean
-	? Entry<T>
+export type WithContext<T> = T extends any[] | string | number | boolean
+	? StateEntry<T>
 	: {
-			[K in keyof T]: ExtendedState<T[K]>
+			[K in keyof T]: WithContext<T[K]>
 	  }
 
 export type TriCasterMixEffectState = Partial<
@@ -113,7 +103,7 @@ export type CompleteTriCasterMixEffectState = RequiredDeep<Omit<TriCasterMixEffe
 export type TriCasterLayerState = TriCasterLayer
 export type TriCasterKeyerState = TriCasterKeyer
 
-export type CompleteTriCasterState = ExtendedState<
+export type CompleteTriCasterState = WithContext<
 	RequiredDeep<Omit<TriCasterState, 'mixEffects' | 'inputs'>> & {
 		mixEffects: Record<TriCasterMixEffectName, CompleteTriCasterMixEffectState>
 		inputs: Record<TriCasterInputName, CompleteTriCasterInputState>
@@ -192,7 +182,7 @@ export class TriCasterStateDiffer {
 
 	getDefaultState(mappings: MappingsTriCaster): CompleteTriCasterState {
 		const controlledResources = this.getControlledResourcesNames(mappings)
-		return wrapInExtendedState({
+		return wrapStateInContext({
 			mixEffects: fillRecord(
 				Array.from(controlledResources.mixEffects),
 				(meName): CompleteTriCasterMixEffectState => ({
@@ -277,12 +267,12 @@ export class TriCasterStateDiffer {
 	}
 
 	getCommandsToAchieveState(
-		newState: ExtendedState<TriCasterState>,
-		oldState: ExtendedState<TriCasterState>
+		newState: WithContext<TriCasterState>,
+		oldState: WithContext<TriCasterState>
 	): TriCasterCommandWithContext[] {
 		const commands: TriCasterCommandWithContext[] = []
 		this.recursivelyGenerateCommands<TriCasterState>(commands, this.commandGenerator, newState, oldState, '')
-		return commands.sort((a, b) => a.temporalPriority - b.temporalPriority)
+		return commands.sort((a, b) => a.temporalPriority - b.temporalPriority) // is this fast enough? consider bucket sort
 	}
 
 	private getGenerator(): CommandGenerator<TriCasterState> {
@@ -329,36 +319,36 @@ export class TriCasterStateDiffer {
 	}
 
 	private keyerEffectCommandGenerator: CommandGeneratorFunction<
-		ExtendedState<TriCasterTransitionEffect>,
-		ExtendedState<TriCasterKeyerState>
+		WithContext<TriCasterTransitionEffect>,
+		WithContext<TriCasterKeyerState>
 	> = this.effectCommandGenerator(CommandName.SELECT_INDEX)
 
 	private mixEffectEffectCommandGenerator: CommandGeneratorFunction<
-		ExtendedState<TriCasterTransitionEffect>,
-		ExtendedState<TriCasterMixEffectState>
+		WithContext<TriCasterTransitionEffect>,
+		WithContext<TriCasterMixEffectState>
 	> = this.effectCommandGenerator(CommandName.SET_MIX_EFFECT_BIN_INDEX)
 
 	private effectCommandGenerator(
 		selectCommand: TriCasterGenericCommandName<number>
 	): CommandGeneratorFunction<
-		ExtendedState<TriCasterTransitionEffect>,
-		ExtendedState<TriCasterKeyerState | TriCasterMixEffectState>
+		WithContext<TriCasterTransitionEffect>,
+		WithContext<TriCasterKeyerState | TriCasterMixEffectState>
 	> {
 		return ({ entry, target, state }) => {
 			if (entry.value === 'cut') {
 				return []
 			}
-			const valueNumber = entry.value === 'fade' ? 0 : entry.value
+			const value = entry.value === 'fade' ? 0 : entry.value
 			return [
-				wrapInContext({ name: selectCommand, target, value: valueNumber }, entry),
+				wrapInContext({ name: selectCommand, target, value }, entry),
 				wrapInContext({ name: CommandName.SPEED, target, value: state.transitionDuration?.value ?? 1 }, entry),
 			]
 		}
 	}
 
 	private durationCommandGenerator: CommandGeneratorFunction<
-		ExtendedState<number>,
-		ExtendedState<TriCasterMixEffectState | TriCasterKeyerState>
+		WithContext<number>,
+		WithContext<TriCasterMixEffectState | TriCasterKeyerState>
 	> = ({ entry, state, oldState, target }) => {
 		if (!oldState || state.transitionEffect?.value !== oldState.transitionEffect?.value) {
 			return []
@@ -409,8 +399,8 @@ export class TriCasterStateDiffer {
 
 	private getMixEffectGenerator(
 		meName: TriCasterMixEffectName
-	): CommandGeneratorFunction<ExtendedState<TriCasterMixEffectState>, ExtendedState<TriCasterState['mixEffects']>> {
-		return ({ entry, oldEntry: oldValue, target }) => {
+	): CommandGeneratorFunction<WithContext<TriCasterMixEffectState>, WithContext<TriCasterState['mixEffects']>> {
+		return ({ entry, oldEntry, target }) => {
 			const commands: TriCasterCommandWithContext[] = []
 			this.recursivelyGenerateCommands<TriCasterMixEffectState>(
 				commands,
@@ -426,7 +416,7 @@ export class TriCasterStateDiffer {
 					programInput: !entry.isInEffectMode?.value ? this.programInputCommandGenerator : null,
 				},
 				entry,
-				oldValue,
+				oldEntry,
 				target
 			)
 			if (entry.isInEffectMode?.value && entry.layers) {
@@ -437,7 +427,7 @@ export class TriCasterStateDiffer {
 						...this.layerCommandGenerator,
 					})),
 					entry.layers,
-					entry.isInEffectMode.value !== oldValue?.isInEffectMode?.value ? undefined : oldValue?.layers,
+					entry.isInEffectMode.value !== oldEntry?.isInEffectMode?.value ? undefined : oldEntry?.layers,
 					meName
 				)
 			}
@@ -446,8 +436,8 @@ export class TriCasterStateDiffer {
 	}
 
 	private delegateCommandGenerator: CommandGeneratorFunction<
-		ExtendedState<TriCasterDelegateName[]>,
-		ExtendedState<TriCasterMixEffect>
+		WithContext<TriCasterDelegateName[]>,
+		WithContext<TriCasterMixEffect>
 	> = ({ entry, oldEntry, target }) => {
 		const newValue = [...entry.value].sort()
 		const oldValue = oldEntry?.value ? [...oldEntry.value].sort() : []
@@ -457,8 +447,8 @@ export class TriCasterStateDiffer {
 	}
 
 	private previewInputCommandGenerator: CommandGeneratorFunction<
-		ExtendedState<string>,
-		ExtendedState<TriCasterMixEffectState>
+		WithContext<string>,
+		WithContext<TriCasterMixEffectState>
 	> = ({ entry, state, target }) => {
 		if (state.transitionEffect?.value !== 'cut') {
 			return null
@@ -469,8 +459,8 @@ export class TriCasterStateDiffer {
 	}
 
 	private programInputCommandGenerator: CommandGeneratorFunction<
-		ExtendedState<string>,
-		ExtendedState<TriCasterMixEffectState>
+		WithContext<string>,
+		WithContext<TriCasterMixEffectState>
 	> = ({ entry, state, target }) => {
 		if (state.transitionEffect?.value === 'cut') {
 			if (!state.previewInput?.value) {
@@ -495,8 +485,8 @@ export class TriCasterStateDiffer {
 	private recursivelyGenerateCommands<T>(
 		commandsOut: TriCasterCommandWithContext[],
 		rootCommandGenerator: CommandGenerator<T>,
-		state: ExtendedState<T>,
-		oldState: ExtendedState<T> | undefined,
+		state: WithContext<T>,
+		oldState: WithContext<T> | undefined,
 		target: string
 	) {
 		if (rootCommandGenerator.$target) {
@@ -506,22 +496,22 @@ export class TriCasterStateDiffer {
 		for (key in rootCommandGenerator) {
 			if (key === '$target') continue
 			const generator = rootCommandGenerator[key] as CommandGeneratorValue<T[keyof T], T>
-			const entry = state[key as unknown as keyof ExtendedState<T>]
-			const oldEntry = oldState?.[key as unknown as keyof ExtendedState<T>]
-			if (entry === undefined || entry === null) continue
+			const entry = state[key as unknown as keyof WithContext<T>]
+			const oldEntry = oldState?.[key as unknown as keyof WithContext<T>]
+			if (this.isEmpty(entry)) continue
 			if (typeof generator === 'function') {
-				if (isEntry(entry) && isEntry(oldEntry) && entry.value === oldEntry.value) continue
+				if (this.isEqual(entry, oldEntry)) continue
 				const generatedCommands = generator({
-					entry: entry as ExtendedState<T[keyof T]>,
-					oldEntry: oldEntry as ExtendedState<T[keyof T]>,
+					entry: entry as WithContext<T[keyof T]>,
+					oldEntry: oldEntry as WithContext<T[keyof T]>,
 					state,
 					oldState,
 					target,
 				})
 				if (!generatedCommands) continue
-				commandsOut.push(...generatedCommands) // @todo track timelineObjIds
+				commandsOut.push(...generatedCommands)
 			} else if (typeof generator === 'string') {
-				if (!isEntry(entry) || (isEntry(entry) && isEntry(oldEntry) && entry.value === oldEntry.value)) continue
+				if (!isStateEntry(entry) || this.isEqual(entry, oldEntry)) continue
 				// @todo: with TS 4.9 remove `as unknown` below
 				// `generator` and `value` pair make a valid command thanks to TriCasterGenericCommandName
 				commandsOut.push(
@@ -531,12 +521,27 @@ export class TriCasterStateDiffer {
 				this.recursivelyGenerateCommands(
 					commandsOut,
 					generator,
-					entry as ExtendedState<T[keyof T]>,
-					oldEntry as ExtendedState<T[keyof T]>,
+					entry as WithContext<T[keyof T]>,
+					oldEntry as WithContext<T[keyof T]>,
 					target
 				)
 			}
 		}
+	}
+
+	private isEqual<T>(
+		entry: WithContext<T>[keyof WithContext<T>],
+		oldEntry: WithContext<T>[keyof WithContext<T>] | undefined
+	) {
+		return isStateEntry(entry) && isStateEntry(oldEntry) && entry.value === oldEntry.value
+	}
+
+	private isEmpty<T>(entry: WithContext<T>[keyof WithContext<T>]) {
+		return (
+			entry === undefined ||
+			entry === null ||
+			(isStateEntry(entry) && (entry.value === undefined || entry.value === null))
+		)
 	}
 }
 
@@ -557,18 +562,23 @@ export function fillRecord<T extends string, U>(keys: T[], valueOrMapFn: U | ((k
 	}, {} as Record<T, U>)
 }
 
-export function wrapInExtendedState<T>(state: T): ExtendedState<T> {
+export function wrapStateInContext<T extends object>(state: T): WithContext<T> {
 	if (_.isObject(state) && !_.isArray(state)) {
-		// @ts-ignore
-		return _.mapObject(state, (value) => wrapInExtendedState(value)) as ExtendedState<T>
+		return _.mapObject(state, (value) => wrapStateInContext(value)) as WithContext<T>
 	}
-	return { value: state } as ExtendedState<T>
+	return { value: state } as WithContext<T>
 }
 
-export function wrapInContext(command: TriCasterCommand, entry: Entry<any>): TriCasterCommandWithContext {
+export function wrapInContext(command: TriCasterCommand, entry: StateEntry<any>): TriCasterCommandWithContext {
 	return {
 		command,
-		timelineObjId: entry.timelineObjectId,
+		timelineObjId: entry.timelineObjId,
 		temporalPriority: entry.temporalPriority ?? DEFAULT_TEMPORAL_PRIORITY,
 	}
+}
+
+export function isStateEntry(
+	possibleEntry: WithContext<any> | WithContext<any>[keyof WithContext<any>]
+): possibleEntry is StateEntry<any> {
+	return possibleEntry && typeof possibleEntry === 'object' && 'value' in possibleEntry
 }

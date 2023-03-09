@@ -638,4 +638,102 @@ describe('TriCasterStateDiffer.getCommandsToAchieveState', () => {
 			expect(commands.length).toEqual(0)
 		})
 	})
+
+	describe('Tracking timeline objects', () => {
+		test('command with contexts has timelineObjectId from new state', () => {
+			const { stateDiffer, oldState, newState } = setupStateDiffer()
+
+			// some example states
+			oldState.mixEffects.main.keyers.dsk2.onAir.value = false
+			oldState.mixEffects.main.keyers.dsk2.onAir.timelineObjId = 't0'
+			oldState.mixEffects.main.keyers.dsk2.input.value = 'input1'
+			oldState.mixEffects.main.keyers.dsk2.input.timelineObjId = 't1'
+
+			newState.mixEffects.main.keyers.dsk2.onAir.value = true
+			newState.mixEffects.main.keyers.dsk2.onAir.timelineObjId = 't2'
+			newState.mixEffects.main.keyers.dsk2.input.value = 'input2'
+			newState.mixEffects.main.keyers.dsk2.input.timelineObjId = 't3'
+
+			const commands = stateDiffer.getCommandsToAchieveState(newState, oldState)
+
+			expect(commands.length).toEqual(2)
+			expect(commands[0]).toEqual({
+				command: { target: 'main_dsk2', name: '_select_named_input', value: 'input2' },
+				timelineObjId: 't3',
+				temporalPriority: 0,
+			})
+			expect(commands[1]).toEqual({
+				command: { target: 'main_dsk2', name: '_value', value: 1 },
+				timelineObjId: 't2',
+				temporalPriority: 0,
+			})
+		})
+
+		test('command are not generated if only the timeline object id has changed', () => {
+			const { stateDiffer, oldState, newState } = setupStateDiffer()
+
+			// some example states
+			oldState.mixEffects.main.keyers.dsk2.onAir.value = true
+			oldState.mixEffects.main.keyers.dsk2.onAir.timelineObjId = 't0'
+			oldState.mixEffects.main.keyers.dsk2.input.value = 'input1'
+			oldState.mixEffects.main.keyers.dsk2.input.timelineObjId = 't1'
+
+			newState.mixEffects.main.keyers.dsk2.onAir.value = true
+			newState.mixEffects.main.keyers.dsk2.onAir.timelineObjId = 't2'
+			newState.mixEffects.main.keyers.dsk2.input.value = 'input1'
+			newState.mixEffects.main.keyers.dsk2.input.timelineObjId = 't3'
+
+			const commands = stateDiffer.getCommandsToAchieveState(newState, oldState)
+
+			expect(commands.length).toEqual(0)
+		})
+	})
+
+	describe('Temporal priority', () => {
+		test('command with contexts are sorted by temporal priority', () => {
+			const { stateDiffer, oldState, newState } = setupStateDiffer()
+
+			newState.mixEffects.main.keyers.dsk2.input.value = 'input2'
+			newState.mixEffects.main.keyers.dsk2.input.temporalPriority = 1
+			newState.mixEffects.main.keyers.dsk2.onAir.value = true
+			newState.mixEffects.main.keyers.dsk2.onAir.temporalPriority = 0
+			newState.mixEffects.v2.keyers.dsk2.input.value = 'input3'
+			newState.mixEffects.v2.keyers.dsk2.input.temporalPriority = -1
+
+			const commands = stateDiffer.getCommandsToAchieveState(newState, oldState)
+
+			expect(commands.length).toEqual(3)
+			expect(commands[0]).toMatchObject({
+				command: { target: 'v2_dsk2', name: '_select_named_input', value: 'input3' },
+				temporalPriority: -1,
+			})
+			expect(commands[1]).toMatchObject({
+				command: { target: 'main_dsk2', name: '_value', value: 1 },
+				temporalPriority: 0,
+			})
+			expect(commands[2]).toMatchObject({
+				command: { target: 'main_dsk2', name: '_select_named_input', value: 'input2' },
+				temporalPriority: 1,
+			})
+		})
+
+		test('command are not generated if only the temporal priority has changed', () => {
+			const { stateDiffer, oldState, newState } = setupStateDiffer()
+
+			// some example states
+			oldState.mixEffects.main.keyers.dsk2.onAir.value = true
+			oldState.mixEffects.main.keyers.dsk2.onAir.temporalPriority = 0
+			oldState.mixEffects.main.keyers.dsk2.input.value = 'input1'
+			oldState.mixEffects.main.keyers.dsk2.input.temporalPriority = 1
+
+			newState.mixEffects.main.keyers.dsk2.onAir.value = true
+			newState.mixEffects.main.keyers.dsk2.onAir.temporalPriority = 1
+			newState.mixEffects.main.keyers.dsk2.input.value = 'input1'
+			newState.mixEffects.main.keyers.dsk2.input.temporalPriority = 0
+
+			const commands = stateDiffer.getCommandsToAchieveState(newState, oldState)
+
+			expect(commands.length).toEqual(0)
+		})
+	})
 })

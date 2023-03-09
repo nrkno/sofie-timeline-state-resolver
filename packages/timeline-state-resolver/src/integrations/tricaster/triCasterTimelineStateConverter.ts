@@ -24,8 +24,8 @@ import {
 } from 'timeline-state-resolver-types'
 import * as _ from 'underscore'
 import {
-	ExtendedState,
-	isEntry,
+	WithContext,
+	isStateEntry,
 	MappingsTriCaster,
 	TriCasterAudioChannelState,
 	TriCasterInputState,
@@ -43,7 +43,7 @@ export class TriCasterTimelineStateConverter {
 	private matrixOutputNames: Set<TriCasterMatrixOutputName>
 
 	constructor(
-		private readonly getDefaultState: (mappings: MappingsTriCaster) => ExtendedState<TriCasterState>,
+		private readonly getDefaultState: (mappings: MappingsTriCaster) => WithContext<TriCasterState>,
 		resourceNames: {
 			mixEffects: TriCasterMixEffectName[]
 			inputs: TriCasterInputName[]
@@ -62,7 +62,7 @@ export class TriCasterTimelineStateConverter {
 	getTriCasterStateFromTimelineState(
 		timelineState: TimelineState,
 		newMappings: MappingsTriCaster
-	): ExtendedState<TriCasterState> {
+	): WithContext<TriCasterState> {
 		const resultState = this.getDefaultState(newMappings)
 		const sortedLayers = this.sortLayers(timelineState)
 
@@ -104,7 +104,7 @@ export class TriCasterTimelineStateConverter {
 	}
 
 	private applyMixEffectState(
-		resultState: ExtendedState<TriCasterState>,
+		resultState: WithContext<TriCasterState>,
 		tlObject: TSRTimelineObjBase,
 		mapping: MappingTriCasterMixEffect
 	) {
@@ -118,7 +118,7 @@ export class TriCasterTimelineStateConverter {
 	}
 
 	private applyDskState(
-		resultState: ExtendedState<TriCasterState>,
+		resultState: WithContext<TriCasterState>,
 		tlObject: TSRTimelineObjBase,
 		mapping: MappingTriCasterDownStreamKeyer
 	) {
@@ -130,7 +130,7 @@ export class TriCasterTimelineStateConverter {
 	}
 
 	private applyInputState(
-		resultState: ExtendedState<TriCasterState>,
+		resultState: WithContext<TriCasterState>,
 		tlObject: TSRTimelineObjBase,
 		mapping: MappingTriCasterInput
 	) {
@@ -140,7 +140,7 @@ export class TriCasterTimelineStateConverter {
 	}
 
 	private applyAudioChannelState(
-		resultState: ExtendedState<TriCasterState>,
+		resultState: WithContext<TriCasterState>,
 		tlObject: TSRTimelineObjBase,
 		mapping: MappingTriCasterAudioChannel
 	) {
@@ -154,7 +154,7 @@ export class TriCasterTimelineStateConverter {
 	}
 
 	private applyMixOutputState(
-		resultState: ExtendedState<TriCasterState>,
+		resultState: WithContext<TriCasterState>,
 		tlObject: TSRTimelineObjBase,
 		mapping: MappingTriCasterMixOutput
 	) {
@@ -162,14 +162,14 @@ export class TriCasterTimelineStateConverter {
 		resultState.mixOutputs[mapping.name] = {
 			source: {
 				value: tlObject.content.source,
-				timelineObjectId: tlObject.id,
+				timelineObjId: tlObject.id,
 				temporalPriority: tlObject.content.temporalPriority,
 			},
 		}
 	}
 
 	private applyMatrixOutputState(
-		resultState: ExtendedState<TriCasterState>,
+		resultState: WithContext<TriCasterState>,
 		tlObject: TSRTimelineObjBase,
 		mapping: MappingTriCasterMatrixOutput
 	) {
@@ -177,7 +177,7 @@ export class TriCasterTimelineStateConverter {
 		resultState.matrixOutputs[mapping.name] = {
 			source: {
 				value: tlObject.content.source,
-				timelineObjectId: tlObject.id,
+				timelineObjId: tlObject.id,
 				temporalPriority: tlObject.content.temporalPriority,
 			},
 		}
@@ -187,27 +187,22 @@ export class TriCasterTimelineStateConverter {
 	 * Deeply applies primitive properties from `source` to existing properties of `target` (in place)
 	 */
 	private deepApplyToExtendedState<T>(
-		target: ExtendedState<T>,
+		target: WithContext<T>,
 		source: DeepPartial<T>,
 		timelineObject: TimelineObjTriCasterBase
 	): void {
 		let key: keyof T
 		for (key in source) {
-			if (typeof target !== 'object' || !(key in target)) {
-				continue
-			}
+			const sourceValue = source[key]
+			if (typeof target !== 'object' || !(key in target) || sourceValue === undefined || sourceValue === null) continue
 
-			const t = target[key as keyof ExtendedState<T>]
-			if (typeof t === 'object' && !isEntry(t)) {
-				// @ts-ignore
-				this.deepApplyToExtendedState(t, source[key] as DeepPartial<typeof t>, timelineObject)
-			} else {
-				// @ts-ignore
-				target[key] = {
-					value: source[key] as typeof t,
-					timelineObjectId: timelineObject.id,
-					temporalPriority: timelineObject.content.temporalPriority,
-				}
+			const targetEntry = target[key as keyof WithContext<T>]
+			if (isStateEntry(targetEntry)) {
+				targetEntry.value = sourceValue
+				targetEntry.timelineObjId = timelineObject.id
+				targetEntry.temporalPriority = timelineObject.content.temporalPriority
+			} else if (targetEntry && typeof targetEntry === 'object') {
+				this.deepApplyToExtendedState(targetEntry as WithContext<T[keyof T]>, sourceValue as T[keyof T], timelineObject)
 			}
 		}
 	}
