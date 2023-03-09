@@ -75,7 +75,7 @@ export enum DeviceType {
 	OBS = 21,
 	SOFIE_CHEF = 22,
 	TELEMETRICS = 23,
-	MULTI_OSC = 24,
+	MULTI_OSC = 25,
 }
 
 export type TSRTimelineKeyframe<TContent> = Timeline.TimelineKeyframe<TContent>
