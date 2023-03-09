@@ -12,7 +12,7 @@
 			"destructive": true
 		},
 		{
-			"id": "sendCommand",
+			"id": "sendTcpCommand",
 			"name": "Send command",
 			"destructive": false,
 			"payload": {

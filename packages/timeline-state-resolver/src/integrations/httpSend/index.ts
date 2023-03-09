@@ -19,7 +19,7 @@ import { actionNotFoundMessage, endTrace, startTrace } from '../../lib'
 
 import Debug from 'debug'
 import { HttpSendActions, SendCommandPayload } from 'timeline-state-resolver-types/src'
-import { t } from 'dist/lib'
+import { t } from '../../lib'
 const debug = Debug('timeline-state-resolver:httpsend')
 
 export interface DeviceOptionsHTTPSendInternal extends DeviceOptionsHTTPSend {

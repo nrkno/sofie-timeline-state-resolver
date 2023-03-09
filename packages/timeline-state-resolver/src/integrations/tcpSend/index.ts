@@ -14,7 +14,7 @@ import {
 } from 'timeline-state-resolver-types'
 import { DoOnTime, SendMode } from '../../devices/doOnTime'
 import { TcpSendActions } from 'timeline-state-resolver-types/src'
-import { actionNotFoundMessage } from 'src/lib'
+import { actionNotFoundMessage } from '../../lib'
 
 const TIMEOUT = 3000 // ms
 const RETRY_TIMEOUT = 5000 // ms
@@ -153,13 +153,16 @@ export class TCPSendDevice extends DeviceWithState<TSCSendState, DeviceOptionsTC
 			result: ActionExecutionResultCode.Ok,
 		}
 	}
-	executeAction(actionId: TcpSendActions, payload?: Record<string, any> | undefined): Promise<ActionExecutionResult> {
+	async executeAction(
+		actionId: TcpSendActions,
+		payload?: Record<string, any> | undefined
+	): Promise<ActionExecutionResult> {
 		switch (actionId) {
 			case TcpSendActions.Reconnect:
 				return this.reconnect()
 			case TcpSendActions.ResetState:
 				return this.resetState()
-			case TcpSendActions.SendCommand:
+			case TcpSendActions.SendTcpCommand:
 				return this.sendCommand(payload)
 			default:
 				return actionNotFoundMessage(actionId)

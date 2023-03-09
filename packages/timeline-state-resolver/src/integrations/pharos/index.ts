@@ -18,7 +18,7 @@ import {
 import { DoOnTime, SendMode } from '../../devices/doOnTime'
 import { Pharos, ProjectInfo } from './connection'
 import { PharosActions } from 'timeline-state-resolver-types/src'
-import { actionNotFoundMessage } from 'src/lib'
+import { actionNotFoundMessage } from '../../lib'
 
 export interface DeviceOptionsPharosInternal extends DeviceOptionsPharos {
 	commandReceiver?: CommandReceiver
