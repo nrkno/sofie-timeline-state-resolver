@@ -1767,7 +1767,7 @@
   resolved "https://registry.yarnpkg.com/@tootallnate/once/-/once-2.0.0.tgz#f544a148d3ab35801c1f633a7441fd87c2e484bf"
   integrity sha512-XCuKFP5PS55gnMVu3dty8KPatLqUoy/ZYzDzAGCQ8JNFCkLXzmI7vNHCR+XpbZaMWQK/vQubr7PkYq8g470J/A==
 
-"@tv2media/v-connection@7.3.0":
+"@tv2media/v-connection@^7.3.0":
   version "7.3.0"
   resolved "https://registry.yarnpkg.com/@tv2media/v-connection/-/v-connection-7.3.0.tgz#1d6bed97a386d59b618b272ffd5867feb84cb284"
   integrity sha512-rGg+rLS+Q69YuYgg8XfMD8ZiBr+zUlTNIQyTOFbOwnbV3ycBn+G0WDpNXuo6R73r5svh4BtCr+yapenUPO3jxg==
