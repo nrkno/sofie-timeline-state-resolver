@@ -60,7 +60,7 @@ type CommandGeneratorValue<T, K extends keyof T> =
 	| null
 
 type CommandGenerator<T> = {
-	[K in keyof T]: RequiredDeep<T>[K] extends object
+	[K in keyof T]-?: RequiredDeep<T>[K] extends object
 		? CommandGeneratorValue<T, K>
 		: TriCasterGenericCommandName<T[K]> | CommandGeneratorFunction<NonNullable<T>, K> | null
 } & { $target?: string }
@@ -71,8 +71,8 @@ export interface TriCasterState {
 	inputs: Record<TriCasterInputName, TriCasterInputState>
 	isRecording: boolean
 	isStreaming: boolean
-	mixOutputs: Record<TriCasterMixOutputName, TriCasterOutputState>
-	matrixOutputs: Record<TriCasterMatrixOutputName, TriCasterOutputState>
+	mixOutputs: Record<TriCasterMixOutputName, TriCasterMixOutputState>
+	matrixOutputs: Record<TriCasterMatrixOutputName, TriCasterMatrixOutputState>
 }
 
 export interface StateEntry<T extends any[] | string | number | boolean> {
@@ -98,19 +98,22 @@ export type CompleteTriCasterMixEffectState = RequiredDeep<Omit<TriCasterMixEffe
 export type TriCasterLayerState = TriCasterLayer
 export type TriCasterKeyerState = TriCasterKeyer
 
-export type CompleteTriCasterState = WithContext<
-	RequiredDeep<Omit<TriCasterState, 'mixEffects' | 'inputs'>> & {
-		mixEffects: Record<TriCasterMixEffectName, CompleteTriCasterMixEffectState>
-		inputs: Record<TriCasterInputName, CompleteTriCasterInputState>
-	}
->
+export type CompleteTriCasterState = RequiredDeep<Omit<TriCasterState, 'mixEffects' | 'inputs'>> & {
+	mixEffects: Record<TriCasterMixEffectName, CompleteTriCasterMixEffectState>
+	inputs: Record<TriCasterInputName, CompleteTriCasterInputState>
+}
 
 export type TriCasterAudioChannelState = TriCasterAudioChannel
 export type TriCasterInputState = TriCasterInput
 
 export type CompleteTriCasterInputState = RequireDeepExcept<TriCasterInputState, 'videoSource'>
 
-export interface TriCasterOutputState {
+export interface TriCasterMixOutputState {
+	source?: string
+	meClean?: boolean
+}
+
+export interface TriCasterMatrixOutputState {
 	source?: string
 }
 
@@ -175,9 +178,9 @@ export class TriCasterStateDiffer {
 		this.shortcutStateConverter = new TriCasterShortcutStateConverter(resourceNames)
 	}
 
-	getDefaultState(mappings: MappingsTriCaster): CompleteTriCasterState {
+	getDefaultState(mappings: MappingsTriCaster): WithContext<CompleteTriCasterState> {
 		const controlledResources = this.getControlledResourcesNames(mappings)
-		return wrapStateInContext({
+		return wrapStateInContext<CompleteTriCasterState>({
 			mixEffects: fillRecord(
 				Array.from(controlledResources.mixEffects),
 				(meName): CompleteTriCasterMixEffectState => ({
@@ -201,8 +204,14 @@ export class TriCasterStateDiffer {
 			),
 			isRecording: false,
 			isStreaming: false,
-			mixOutputs: fillRecord(Array.from(controlledResources.mixOutputs), () => ({ source: 'program' })),
-			matrixOutputs: fillRecord(Array.from(controlledResources.matrixOutputs), () => ({ source: 'mix1' })),
+			mixOutputs: fillRecord(
+				Array.from(controlledResources.mixOutputs),
+				(): RequiredDeep<TriCasterMixOutputState> => ({ source: 'program', meClean: false })
+			),
+			matrixOutputs: fillRecord(
+				Array.from(controlledResources.matrixOutputs),
+				(): RequiredDeep<TriCasterMatrixOutputState> => ({ source: 'mix1' })
+			),
 		})
 	}
 
@@ -305,11 +314,20 @@ export class TriCasterStateDiffer {
 		isMuted: CommandName.MUTE,
 	}
 
-	private mixOutputCommandGenerator: CommandGenerator<TriCasterOutputState> = {
+	private mixOutputCommandGenerator: CommandGenerator<TriCasterMixOutputState> = {
 		source: CommandName.OUTPUT_SOURCE,
+		meClean: ({ entry, target }) => {
+			const outputIndex = Number(target.match(/\d+/)?.[0]) - 1
+			return [
+				wrapInContext(
+					{ name: CommandName.SET_OUTPUT_CONFIG_VIDEO_SOURCE, output_index: outputIndex, me_clean: entry.value },
+					entry
+				),
+			]
+		},
 	}
 
-	private matrixOutputCommandGenerator: CommandGenerator<TriCasterOutputState> = {
+	private matrixOutputCommandGenerator: CommandGenerator<TriCasterMatrixOutputState> = {
 		source: CommandName.CROSSPOINT_SOURCE,
 	}
 

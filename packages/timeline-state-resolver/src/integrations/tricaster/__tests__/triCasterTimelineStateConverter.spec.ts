@@ -15,7 +15,7 @@ import {
 	RequiredDeep,
 	TriCasterKeyerState,
 	TriCasterLayerState,
-	TriCasterState,
+	WithContext,
 	wrapStateInContext,
 } from '../triCasterStateDiffer'
 import { literal } from '../../../devices/device'
@@ -31,8 +31,8 @@ function setupTimelineStateConverter() {
 	})
 }
 
-const mockGetDefaultState = (): CompleteTriCasterState =>
-	wrapStateInContext<TriCasterState>({
+const mockGetDefaultState = (): WithContext<CompleteTriCasterState> =>
+	wrapStateInContext<CompleteTriCasterState>({
 		mixEffects: { main: mockGetDefaultMe(), v1: mockGetDefaultMe() }, // pretend we only have mappings for those two
 		inputs: {
 			input1: {
@@ -49,8 +49,8 @@ const mockGetDefaultState = (): CompleteTriCasterState =>
 		isRecording: false,
 		isStreaming: false,
 		mixOutputs: {
-			mix1: { source: 'program' },
-			mix2: { source: 'program' },
+			mix1: { source: 'program', meClean: false },
+			mix2: { source: 'program', meClean: false },
 		},
 		matrixOutputs: {
 			out1: { source: 'mix1' },
@@ -198,7 +198,7 @@ describe('TimelineStateConverter.getTriCasterStateFromTimelineState', () => {
 		expect(convertedState).toEqual(expectedState)
 	})
 
-	test('sets mix outputs', () => {
+	test('sets matrix outputs', () => {
 		const converter = setupTimelineStateConverter()
 
 		const convertedState = converter.getTriCasterStateFromTimelineState(
@@ -234,7 +234,7 @@ describe('TimelineStateConverter.getTriCasterStateFromTimelineState', () => {
 		expect(convertedState).toEqual(expectedState)
 	})
 
-	test('sets matrix outputs', () => {
+	test('sets mix outputs', () => {
 		const converter = setupTimelineStateConverter()
 
 		const convertedState = converter.getTriCasterStateFromTimelineState(
@@ -249,6 +249,7 @@ describe('TimelineStateConverter.getTriCasterStateFromTimelineState', () => {
 							deviceType: DeviceType.TRICASTER,
 							type: TimelineContentTypeTriCaster.MIX_OUTPUT,
 							source: 'me_program',
+							meClean: true,
 						},
 					}),
 				},
@@ -266,6 +267,7 @@ describe('TimelineStateConverter.getTriCasterStateFromTimelineState', () => {
 
 		const expectedState = mockGetDefaultState()
 		expectedState.mixOutputs.mix2.source = { value: 'me_program', timelineObjId: 't0' }
+		expectedState.mixOutputs.mix2.meClean = { value: true, timelineObjId: 't0' }
 
 		expect(convertedState).toEqual(expectedState)
 	})
