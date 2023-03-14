@@ -96,11 +96,19 @@ export type TimelineObjTriCasterAny =
 	| TimelineObjTriCasterMixOutput
 	| TimelineObjTriCasterMatrixOutput
 
+export interface TriCasterContentBase {
+	deviceType: DeviceType.TRICASTER
+	type: TimelineContentTypeTriCaster
+
+	/**
+	 * Priority used to sort commands that are supposed to execute at the same time
+	 * Lower means faster execution (analaogous to other device integrations)
+	 * Default: 0
+	 */
+	temporalPriority?: number
+}
 export interface TimelineObjTriCasterBase extends TSRTimelineObjBase {
-	content: {
-		deviceType: DeviceType.TRICASTER
-		type: TimelineContentTypeTriCaster
-	} & TimelineDatastoreReferencesContent
+	content: TriCasterContentBase & TimelineDatastoreReferencesContent
 }
 
 interface TriCasterMixEffectBase {
@@ -138,8 +146,7 @@ export type TriCasterMixEffect =
 	| TriCasterMixEffectInMixMode
 
 export interface TimelineObjTriCasterME extends TimelineObjTriCasterBase {
-	content: {
-		deviceType: DeviceType.TRICASTER
+	content: TriCasterContentBase & {
 		type: TimelineContentTypeTriCaster.ME
 
 		me: TriCasterMixEffect
@@ -158,8 +165,7 @@ export function isTimelineObjTriCaster(timelineObject: TSRTimelineObjBase): time
  * Convenience object for the keyers in the Main M/E
  */
 export interface TimelineObjTriCasterDSK extends TimelineObjTriCasterBase {
-	content: {
-		deviceType: DeviceType.TRICASTER
+	content: TriCasterContentBase & {
 		type: TimelineContentTypeTriCaster.DSK
 
 		keyer: TriCasterKeyer
@@ -178,8 +184,7 @@ export interface TriCasterInput {
 }
 
 export interface TimelineObjTriCasterInput extends TimelineObjTriCasterBase {
-	content: {
-		deviceType: DeviceType.TRICASTER
+	content: TriCasterContentBase & {
 		type: TimelineContentTypeTriCaster.INPUT
 
 		input: TriCasterInput
@@ -202,8 +207,7 @@ export interface TriCasterAudioChannel {
 }
 
 export interface TimelineObjTriCasterAudioChannel extends TimelineObjTriCasterBase {
-	content: {
-		deviceType: DeviceType.TRICASTER
+	content: TriCasterContentBase & {
 		type: TimelineContentTypeTriCaster.AUDIO_CHANNEL
 
 		audioChannel: TriCasterAudioChannel
@@ -222,8 +226,7 @@ export function isTimelineObjTriCasterAudioChannel(
  * Output usually referred to as Video Mix Output
  */
 export interface TimelineObjTriCasterMixOutput extends TimelineObjTriCasterBase {
-	content: {
-		deviceType: DeviceType.TRICASTER
+	content: TriCasterContentBase & {
 		type: TimelineContentTypeTriCaster.MIX_OUTPUT
 
 		/**
@@ -247,8 +250,7 @@ export function isTimelineObjTriCasterMixOutput(
  * Output from the Internal Matrix Router (crosspoint)
  */
 export interface TimelineObjTriCasterMatrixOutput extends TimelineObjTriCasterBase {
-	content: {
-		deviceType: DeviceType.TRICASTER
+	content: TriCasterContentBase & {
 		type: TimelineContentTypeTriCaster.MATRIX_OUTPUT
 
 		/**
