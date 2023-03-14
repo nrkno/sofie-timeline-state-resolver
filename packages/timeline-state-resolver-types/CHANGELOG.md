@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [3.4.0](https://github.com/tv2/tv-automation-state-timeline-resolver/compare/3.3.0...3.4.0) (2023-03-14)
+
+### Features
+
+- SOF-1254 add temporal priority to TriCaster ([7133774](https://github.com/tv2/tv-automation-state-timeline-resolver/commit/7133774a49e03a038d91a9ec8fd8d0f13cbd962c))
+
 ## [3.3.0](https://github.com/tv2/tv-automation-state-timeline-resolver/compare/3.2.0...3.3.0) (2023-02-28)
 
 ### Features

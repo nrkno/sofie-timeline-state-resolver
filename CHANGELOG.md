@@ -3,6 +3,22 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [3.4.0](https://github.com/ianshade/tv-automation-state-timeline-resolver/compare/3.3.0...3.4.0) (2023-03-14)
+
+
+### Features
+
+* SOF-1254 add temporal priority to TriCaster ([7133774](https://github.com/ianshade/tv-automation-state-timeline-resolver/commit/7133774a49e03a038d91a9ec8fd8d0f13cbd962c))
+
+
+### Bug Fixes
+
+* SOF-1254 don't send layer commands when not in effect mode ([daa7d9b](https://github.com/ianshade/tv-automation-state-timeline-resolver/commit/daa7d9bbd97cad87090592bb6f440f5efc0f048d))
+* SOF-1254 use bin_index command for M/Es ([569bde0](https://github.com/ianshade/tv-automation-state-timeline-resolver/commit/569bde0d863d3fefaed65fcda0c065a1203236a4))
+* SOF-1254 wrong scale defaults ([0b66153](https://github.com/ianshade/tv-automation-state-timeline-resolver/commit/0b6615351c9376d834868164b32797f2ea67de7d))
+
+
+
 ## [3.3.0](https://github.com/ianshade/tv-automation-state-timeline-resolver/compare/3.2.0...3.3.0) (2023-02-28)
 
 
