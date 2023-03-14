@@ -25,6 +25,11 @@
 			"ui:title": "Launcher Port",
 			"default": 8005
 		},
+		"launcherProcess": {
+			"type": "string",
+			"ui:title": "Launcher Process",
+			"default": "casparcg"
+		},
 		"fps": {
 			"type": "number",
 			"description": "fps used for all channels",

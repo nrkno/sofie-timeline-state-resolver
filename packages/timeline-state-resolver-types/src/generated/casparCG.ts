@@ -16,6 +16,7 @@ export interface CasparCGOptions {
 	port?: number
 	launcherHost?: string
 	launcherPort?: number
+	launcherProcess?: string
 	/**
 	 * fps used for all channels
 	 */
