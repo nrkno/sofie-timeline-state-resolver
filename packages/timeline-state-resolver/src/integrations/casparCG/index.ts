@@ -671,9 +671,15 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 		if (!this.initOptions.launcherPort) {
 			return { result: ActionExecutionResultCode.Error, response: t('CasparCGDevice: config.launcherPort is not set!') }
 		}
+		if (!this.initOptions.launcherProcess) {
+			return {
+				result: ActionExecutionResultCode.Error,
+				response: t('CasparCGDevice: config.launcherProcess is not set!'),
+			}
+		}
 
 		return new Promise<ActionExecutionResult>((resolve) => {
-			const url = `http://${this.initOptions?.launcherHost}:${this.initOptions?.launcherPort}/processes/casparcg/restart`
+			const url = `http://${this.initOptions?.launcherHost}:${this.initOptions?.launcherPort}/processes/${this.initOptions?.launcherProcess}/restart`
 			request.post(
 				url,
 				{}, // json: cmd.params
