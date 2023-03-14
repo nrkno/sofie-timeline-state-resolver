@@ -265,6 +265,8 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState, DeviceOptionsVizM
 				return { result: ActionExecutionResultCode.Ok }
 			case VizMSEActions.Activate:
 				return this.activate(payload)
+			case VizMSEActions.StandDown:
+				return this.executeStandDown()
 			default:
 				return { result: ActionExecutionResultCode.Ok, response: t('Action "{{id}}" not found', { actionId }) }
 		}
@@ -503,19 +505,26 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState, DeviceOptionsVizM
 			} else throw new Error(`Unable to activate vizMSE, not initialized yet!`)
 		}
 	}
+	async executeStandDown(): Promise<ActionExecutionResult> {
+		if (this._vizmseManager) {
+			if (!this._initOptions || !this._initOptions.dontDeactivateOnStandDown) {
+				await this._vizmseManager.deactivate()
+			} else {
+				this._vizmseManager.standDownActiveRundown() // because we still want to stop monitoring expectedPlayoutItems
+			}
+		}
+
+		return {
+			result: ActionExecutionResultCode.Ok,
+		}
+	}
 	/**
 	 * The standDown event could be triggered at a time after broadcast
 	 * @param okToDestroyStuff If true, the device may do things that might affect the visible output
 	 */
 	async standDown(okToDestroyStuff?: boolean): Promise<void> {
 		if (okToDestroyStuff) {
-			if (this._vizmseManager) {
-				if (!this._initOptions || !this._initOptions.dontDeactivateOnStandDown) {
-					await this._vizmseManager.deactivate()
-				} else {
-					this._vizmseManager.standDownActiveRundown() // because we still want to stop monitoring expectedPlayoutItems
-				}
-			}
+			return this.executeStandDown().then(() => undefined)
 		}
 	}
 	getStatus(): DeviceStatus {

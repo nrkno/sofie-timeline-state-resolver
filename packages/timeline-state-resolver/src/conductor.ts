@@ -802,6 +802,8 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 
 	/**
 	 * Send a makeReady-trigger to all devices
+	 *
+	 * @deprecated replace by TSR actions
 	 */
 	public async devicesMakeReady(okToDestroyStuff?: boolean, activationId?: string): Promise<void> {
 		this.activationId = activationId
@@ -830,6 +832,8 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 
 	/**
 	 * Send a standDown-trigger to all devices
+	 *
+	 * @deprecated replaced by TSR actions
 	 */
 	public async devicesStandDown(okToDestroyStuff?: boolean): Promise<void> {
 		this.activationId = undefined

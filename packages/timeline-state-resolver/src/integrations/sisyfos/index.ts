@@ -15,6 +15,9 @@ import {
 	Timeline,
 	ResolvedTimelineObjectInstanceExtended,
 	Mapping,
+	SisyfosActions,
+	ActionExecutionResult,
+	ActionExecutionResultCode,
 } from 'timeline-state-resolver-types'
 
 import { DoOnTime, SendMode } from '../../devices/doOnTime'
@@ -28,7 +31,7 @@ import {
 	ValuesCommand,
 } from './connection'
 import Debug from 'debug'
-import { startTrace, endTrace } from '../../lib'
+import { startTrace, endTrace, actionNotFoundMessage } from '../../lib'
 const debug = Debug('timeline-state-resolver:sisyfos')
 
 export interface DeviceOptionsSisyfosInternal extends DeviceOptionsSisyfos {
@@ -181,39 +184,51 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 		}
 	}
 	async makeReady(okToDestroyStuff?: boolean): Promise<void> {
-		return this._makeReadyInner(okToDestroyStuff)
+		if (okToDestroyStuff) return this._makeReadyInner(okToDestroyStuff)
 	}
 
-	private async _makeReadyInner(okToDestroyStuff?: boolean, resync?: boolean): Promise<void> {
-		if (okToDestroyStuff) {
-			if (resync) {
-				this._resyncing = true
-				// If state is still not reinitialised afer 5 seconds, we may have a problem.
-				setTimeout(() => (this._resyncing = false), 5000)
-			}
-
-			this._doOnTime.clearQueueNowAndAfter(this.getCurrentTime())
-			this._sisyfos.reInitialize()
-			this._sisyfos.on('initialized', () => {
-				if (resync) {
-					this._resyncing = false
-					const targetState = this.getState(this.getCurrentTime())
-
-					if (targetState) {
-						this._handleStateInner(
-							this.getDeviceState(false),
-							targetState.state,
-							targetState.time,
-							this.getCurrentTime()
-						)
-					}
-				} else {
-					this.setState(this.getDeviceState(false), this.getCurrentTime())
-					this.emit('resetResolver')
-				}
-			})
+	private async _makeReadyInner(resync?: boolean): Promise<void> {
+		if (resync) {
+			this._resyncing = true
+			// If state is still not reinitialised afer 5 seconds, we may have a problem.
+			setTimeout(() => (this._resyncing = false), 5000)
 		}
+
+		this._doOnTime.clearQueueNowAndAfter(this.getCurrentTime())
+		this._sisyfos.reInitialize()
+		this._sisyfos.on('initialized', () => {
+			if (resync) {
+				this._resyncing = false
+				const targetState = this.getState(this.getCurrentTime())
+
+				if (targetState) {
+					this._handleStateInner(this.getDeviceState(false), targetState.state, targetState.time, this.getCurrentTime())
+				}
+			} else {
+				this.setState(this.getDeviceState(false), this.getCurrentTime())
+				this.emit('resetResolver')
+			}
+		})
+
 		return Promise.resolve()
+	}
+
+	async executeAction(
+		actionId: SisyfosActions,
+		_payload?: Record<string, any> | undefined
+	): Promise<ActionExecutionResult> {
+		switch (actionId) {
+			case SisyfosActions.Reinit:
+				return this._makeReadyInner()
+					.then(() => ({
+						result: ActionExecutionResultCode.Ok,
+					}))
+					.catch(() => ({
+						result: ActionExecutionResultCode.Error,
+					}))
+			default:
+				return actionNotFoundMessage(actionId)
+		}
 	}
 
 	get canConnect(): boolean {
@@ -576,7 +591,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 		this.emitDebug(cwc)
 
 		if (cmd.type === SisyfosCommandType.RESYNC) {
-			return this._makeReadyInner(true, true)
+			return this._makeReadyInner(true)
 		} else {
 			try {
 				this._sisyfos.send(cmd)

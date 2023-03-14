@@ -1,0 +1,17 @@
+{
+	"$schema": "../../../$schemas/action-schema.json",
+	"actions": [
+		{
+			"id": "reinit",
+			"name": "Reinitialize",
+			"destructive": false,
+			"timeout": 5000
+		},
+		{
+			"id": "resync",
+			"name": "Resync",
+			"destructive": false,
+			"timeout": 5000
+		}
+	]
+}

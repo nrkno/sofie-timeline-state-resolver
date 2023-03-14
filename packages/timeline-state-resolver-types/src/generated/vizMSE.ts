@@ -79,4 +79,5 @@ export interface ActivatePayload {
 export enum VizMSEActions {
 	PurgeRundown = 'purgeRundown',
 	Activate = 'activate',
+	StandDown = 'standDown',
 }

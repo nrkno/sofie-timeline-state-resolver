@@ -32,3 +32,8 @@ export enum MappingSisyfosType {
 }
 
 export type SomeMappingSisyfos = MappingSisyfosChannel | MappingSisyfosChannelByLabel | MappingSisyfosChannels
+
+export enum SisyfosActions {
+	Reinit = 'reinit',
+	Resync = 'resync',
+}

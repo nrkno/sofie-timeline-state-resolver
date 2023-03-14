@@ -21,6 +21,11 @@
 				"required": ["activeRundownPlaylistId"],
 				"additionalProperties": false
 			}
+		},
+		{
+			"id": "standDown",
+			"name": "Stand down Viz Rundown",
+			"destructive": true
 		}
 	]
 }
