@@ -196,6 +196,7 @@ export const manifest: TSRManifest = {
 		},
 		[DeviceType.VMIX]: {
 			displayName: generateTranslation('VMix'),
+			actions: VMixActions.actions.map(stringifyActionSchema),
 			configSchema: JSON.stringify(VMixOptions),
 			mappingsSchemas: stringifyMappingSchema(VMixMappings),
 		},
