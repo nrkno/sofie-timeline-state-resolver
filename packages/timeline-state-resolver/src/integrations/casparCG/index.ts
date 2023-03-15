@@ -611,7 +611,7 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 	async makeReady(okToDestroyStuff?: boolean): Promise<void> {
 		// reset our own state(s):
 		if (okToDestroyStuff) {
-			this.clearAllChannels()
+			await this.clearAllChannels()
 		}
 	}
 

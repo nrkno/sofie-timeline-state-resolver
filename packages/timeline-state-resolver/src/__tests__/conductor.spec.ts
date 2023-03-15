@@ -319,95 +319,97 @@ describe('Conductor', () => {
 		expect(commandReceiver0.mock.calls).toHaveLength(3)
 	})
 
-	// test('devicesMakeReady', async () => {
-	// 	const commandReceiver0 = jest.fn(async () => {
-	// 		return Promise.resolve()
-	// 	})
-	// 	const commandReceiver1 = jest.fn(async () => {
-	// 		return Promise.resolve()
-	// 	})
-	// 	const commandReceiver2 = jest.fn(async () => {
-	// 		return Promise.resolve()
-	// 	})
-	// 	const commandReceiver3 = jest.fn(async () => {
-	// 		return Promise.resolve()
-	// 	})
-	// 	const commandReceiver4 = jest.fn(async () => {
-	// 		return Promise.resolve()
-	// 	})
-	// 	const conductor = new Conductor({
-	// 		multiThreadedResolver: false,
-	// 		getCurrentTime: mockTime.getCurrentTime,
-	// 	})
+	test('devicesMakeReady', async () => {
+		const commandReceiver0 = jest.fn(async () => {
+			return Promise.resolve()
+		})
+		const commandReceiver1 = jest.fn(async () => {
+			return Promise.resolve()
+		})
+		const commandReceiver2 = jest.fn(async () => {
+			return Promise.resolve()
+		})
+		const commandReceiver3 = jest.fn(async () => {
+			return Promise.resolve()
+		})
+		const commandReceiver4 = jest.fn(async () => {
+			return Promise.resolve()
+		})
+		const conductor = new Conductor({
+			multiThreadedResolver: false,
+			getCurrentTime: mockTime.getCurrentTime,
+		})
 
-	// 	await conductor.init()
-	// 	await conductor.addDevice('device0', {
-	// 		type: DeviceType.ABSTRACT,
-	// 		options: {},
-	// 		commandReceiver: commandReceiver0,
-	// 	})
-	// 	await conductor.addDevice('device1', {
-	// 		type: DeviceType.CASPARCG,
-	// 		options: {
-	// 			host: '127.0.0.1',
-	// 		},
-	// 		commandReceiver: commandReceiver1,
-	// 	})
-	// 	await conductor.addDevice('device2', {
-	// 		type: DeviceType.ATEM,
-	// 		options: {
-	// 			host: '127.0.0.1',
-	// 		},
-	// 		commandReceiver: commandReceiver2,
-	// 	})
-	// 	await conductor.addDevice('device3', {
-	// 		type: DeviceType.HTTPSEND,
-	// 		options: {},
-	// 		commandReceiver: commandReceiver3,
-	// 	})
-	// 	await conductor.addDevice('device4', {
-	// 		type: DeviceType.LAWO,
-	// 		options: {
-	// 			deviceMode: LawoDeviceMode.Ruby,
-	// 		},
-	// 		commandReceiver: commandReceiver4,
-	// 	})
+		await conductor.init()
+		await conductor.addDevice('device0', {
+			type: DeviceType.ABSTRACT,
+			options: {},
+			commandReceiver: commandReceiver0,
+		})
+		await conductor.addDevice('device1', {
+			type: DeviceType.CASPARCG,
+			options: {
+				host: '127.0.0.1',
+			},
+			commandReceiver: commandReceiver1,
+		})
+		await conductor.addDevice('device2', {
+			type: DeviceType.ATEM,
+			options: {
+				host: '127.0.0.1',
+			},
+			commandReceiver: commandReceiver2,
+		})
+		await conductor.addDevice('device3', {
+			type: DeviceType.HTTPSEND,
+			options: {},
+			commandReceiver: commandReceiver3,
+		})
+		await conductor.addDevice('device4', {
+			type: DeviceType.LAWO,
+			options: {
+				deviceMode: LawoDeviceMode.Ruby,
+			},
+			commandReceiver: commandReceiver4,
+		})
 
-	// 	await conductor.devicesMakeReady(true)
+		await mockTime.advanceTimeTicks(10) // to allow casparcg to fake "connect"
 
-	// 	await mockTime.advanceTimeTicks(10) // to allow for commands to be sent
+		await conductor.devicesMakeReady(true)
 
-	// 	// expect(commandReceiver1).toHaveBeenCalledTimes(3)
-	// 	expect(commandReceiver1.mock.calls).toHaveLength(3)
-	// 	// expect(getMockCall(commandReceiver1, 0, 1).name).toEqual('TimeCommand')
-	// 	// expect(getMockCall(commandReceiver1, 0, 1)._objectParams).toMatchObject({
-	// 	// 	channel: 1,
-	// 	// 	timecode: '00:00:10:00'
-	// 	// })
-	// 	// expect(getMockCall(commandReceiver1, 1, 1).name).toEqual('TimeCommand')
-	// 	// expect(getMockCall(commandReceiver1, 1, 1)._objectParams).toMatchObject({
-	// 	// 	channel: 2,
-	// 	// 	timecode: '00:00:10:00'
-	// 	// })
-	// 	// expect(getMockCall(commandReceiver1, 2, 1).name).toEqual('TimeCommand')
-	// 	// expect(getMockCall(commandReceiver1, 2, 1)._objectParams).toMatchObject({
-	// 	// 	channel: 3,
-	// 	// 	timecode: '00:00:10:00'
-	// 	// })
+		await mockTime.advanceTimeTicks(10) // to allow for commands to be sent
 
-	// 	expect(getMockCall(commandReceiver1, 0, 1).command).toEqual(Commands.Clear)
-	// 	expect(getMockCall(commandReceiver1, 0, 1).params).toMatchObject({
-	// 		channel: 1,
-	// 	})
-	// 	expect(getMockCall(commandReceiver1, 1, 1).command).toEqual(Commands.Clear)
-	// 	expect(getMockCall(commandReceiver1, 1, 1).params).toMatchObject({
-	// 		channel: 2,
-	// 	})
-	// 	expect(getMockCall(commandReceiver1, 2, 1).command).toEqual(Commands.Clear)
-	// 	expect(getMockCall(commandReceiver1, 2, 1).params).toMatchObject({
-	// 		channel: 3,
-	// 	})
-	// })
+		// expect(commandReceiver1).toHaveBeenCalledTimes(3)
+		expect(commandReceiver1.mock.calls).toHaveLength(3)
+		// expect(getMockCall(commandReceiver1, 0, 1).name).toEqual('TimeCommand')
+		// expect(getMockCall(commandReceiver1, 0, 1)._objectParams).toMatchObject({
+		// 	channel: 1,
+		// 	timecode: '00:00:10:00'
+		// })
+		// expect(getMockCall(commandReceiver1, 1, 1).name).toEqual('TimeCommand')
+		// expect(getMockCall(commandReceiver1, 1, 1)._objectParams).toMatchObject({
+		// 	channel: 2,
+		// 	timecode: '00:00:10:00'
+		// })
+		// expect(getMockCall(commandReceiver1, 2, 1).name).toEqual('TimeCommand')
+		// expect(getMockCall(commandReceiver1, 2, 1)._objectParams).toMatchObject({
+		// 	channel: 3,
+		// 	timecode: '00:00:10:00'
+		// })
+
+		expect(getMockCall(commandReceiver1, 0, 1).command).toEqual(Commands.Clear)
+		expect(getMockCall(commandReceiver1, 0, 1).params).toMatchObject({
+			channel: 1,
+		})
+		expect(getMockCall(commandReceiver1, 1, 1).command).toEqual(Commands.Clear)
+		expect(getMockCall(commandReceiver1, 1, 1).params).toMatchObject({
+			channel: 2,
+		})
+		expect(getMockCall(commandReceiver1, 2, 1).command).toEqual(Commands.Clear)
+		expect(getMockCall(commandReceiver1, 2, 1).params).toMatchObject({
+			channel: 3,
+		})
+	})
 
 	test('Construction of multithreaded device', async () => {
 		const myLayerMapping0: Mapping<SomeMappingAbstract> = {
