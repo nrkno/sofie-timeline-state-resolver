@@ -11,6 +11,7 @@ import {
 	Mapping,
 	ActionExecutionResult,
 	ActionExecutionResultCode,
+	SofieChefActions,
 } from 'timeline-state-resolver-types'
 
 import { DoOnTime, SendMode } from '../../devices/doOnTime'
@@ -23,7 +24,6 @@ import {
 	SendWSMessageType,
 	StatusCode as ChefStatusCode,
 } from './api'
-import { SofieChefActions } from 'timeline-state-resolver-types/src'
 import { actionNotFoundMessage, t } from '../../lib'
 
 export interface DeviceOptionsSofieChefInternal extends DeviceOptionsSofieChef {

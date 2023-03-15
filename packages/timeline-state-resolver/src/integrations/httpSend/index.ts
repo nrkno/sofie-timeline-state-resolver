@@ -12,13 +12,14 @@ import {
 	TimelineContentTypeHTTPParamType,
 	ActionExecutionResult,
 	ActionExecutionResultCode,
+	HttpSendActions,
+	SendCommandPayload,
 } from 'timeline-state-resolver-types'
 import { DoOnTime, SendMode } from '../../devices/doOnTime'
 import got, { OptionsOfTextResponseBody, RequestError } from 'got'
 import { actionNotFoundMessage, endTrace, startTrace } from '../../lib'
 
 import Debug from 'debug'
-import { HttpSendActions, SendCommandPayload } from 'timeline-state-resolver-types/src'
 import { t } from '../../lib'
 const debug = Debug('timeline-state-resolver:httpsend')
 
@@ -154,7 +155,7 @@ export class HTTPSendDevice extends DeviceWithState<HTTPSendState, DeviceOptions
 				response: t('Failed to send command: Missing url'),
 			}
 		}
-		if (!(cmd.type in TimelineContentTypeHTTP)) {
+		if (Object.values(TimelineContentTypeHTTP).includes(cmd.type as TimelineContentTypeHTTP)) {
 			return {
 				result: ActionExecutionResultCode.Error,
 				response: t('Failed to send command: type is invalid'),

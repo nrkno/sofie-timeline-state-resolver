@@ -11,9 +11,9 @@ import {
 	Timeline,
 	ActionExecutionResult,
 	ActionExecutionResultCode,
+	TcpSendActions,
 } from 'timeline-state-resolver-types'
 import { DoOnTime, SendMode } from '../../devices/doOnTime'
-import { TcpSendActions } from 'timeline-state-resolver-types/src'
 import { actionNotFoundMessage } from '../../lib'
 
 const TIMEOUT = 3000 // ms

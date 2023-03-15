@@ -13,11 +13,11 @@ import {
 	Timeline,
 	ActionExecutionResult,
 	ActionExecutionResultCode,
+	PharosActions,
 } from 'timeline-state-resolver-types'
 
 import { DoOnTime, SendMode } from '../../devices/doOnTime'
 import { Pharos, ProjectInfo } from './connection'
-import { PharosActions } from 'timeline-state-resolver-types/src'
 import { actionNotFoundMessage } from '../../lib'
 
 export interface DeviceOptionsPharosInternal extends DeviceOptionsPharos {
