@@ -165,7 +165,7 @@ export class PharosDevice extends DeviceWithState<PharosState, DeviceOptionsPhar
 	}
 	async makeReady(okToDestroyStuff?: boolean): Promise<void> {
 		if (okToDestroyStuff) {
-			this.clearQueue()
+			await this.clearQueue()
 		}
 	}
 	async executeAction(

@@ -174,7 +174,7 @@ export class TCPSendDevice extends DeviceWithState<TSCSendState, DeviceOptionsTC
 			await this.reconnect()
 
 			if (this._makeReadyDoesReset) {
-				this.resetState()
+				await this.resetState()
 			}
 
 			for (const cmd of this._makeReadyCommands || []) {

@@ -214,7 +214,7 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState, DeviceOptionsH
 	 */
 	async makeReady(okToDestroyStuff?: boolean): Promise<void> {
 		if (okToDestroyStuff) {
-			this.resync()
+			await this.resync()
 		}
 	}
 
