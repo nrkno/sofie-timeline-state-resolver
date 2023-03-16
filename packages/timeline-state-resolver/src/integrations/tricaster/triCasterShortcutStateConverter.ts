@@ -16,10 +16,11 @@ import {
 	TriCasterInputState,
 	TriCasterKeyerState,
 	TriCasterLayerState,
-	TriCasterOutputState,
 	TriCasterState,
 	WithContext,
 	wrapStateInContext,
+	TriCasterMixOutputState,
+	TriCasterMatrixOutputState,
 } from './triCasterStateDiffer'
 import { CommandName, TriCasterGenericCommandName } from './triCasterCommands'
 
@@ -135,9 +136,9 @@ export class TriCasterShortcutStateConverter {
 
 	private parseMixOutputsState(
 		shortcutStates: ShortcutStates
-	): WithContext<Record<TriCasterMixOutputName, TriCasterOutputState>> {
+	): WithContext<Record<TriCasterMixOutputName, TriCasterMixOutputState>> {
 		return fillRecord(this.resourceNames.mixOutputs, (mixOutputName) =>
-			wrapStateInContext<TriCasterOutputState>({
+			wrapStateInContext<TriCasterMixOutputState>({
 				source: this.parseString(shortcutStates, [mixOutputName], CommandName.OUTPUT_SOURCE)?.toLowerCase(),
 			})
 		)
@@ -145,9 +146,9 @@ export class TriCasterShortcutStateConverter {
 
 	private parseMatrixOutputsState(
 		shortcutStates: ShortcutStates
-	): WithContext<Record<TriCasterMatrixOutputName, TriCasterOutputState>> {
+	): WithContext<Record<TriCasterMatrixOutputName, TriCasterMatrixOutputState>> {
 		return fillRecord(this.resourceNames.matrixOutputs, (matrixOutputName) =>
-			wrapStateInContext<TriCasterOutputState>({
+			wrapStateInContext<TriCasterMatrixOutputState>({
 				source: this.parseString(shortcutStates, [matrixOutputName], CommandName.CROSSPOINT_SOURCE)?.toLowerCase(),
 			})
 		)

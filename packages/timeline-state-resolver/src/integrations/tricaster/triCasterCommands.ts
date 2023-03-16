@@ -43,22 +43,25 @@ export enum CommandName {
 	// outputs
 	OUTPUT_SOURCE = '_output_source',
 	CROSSPOINT_SOURCE = '_crosspoint_source',
+	SET_OUTPUT_CONFIG_VIDEO_SOURCE = 'set_output_config_video_source',
 }
 
 export type ValueTypes = boolean | number | string
 
-type CommandWithValue<NameType extends CommandName, ValueType extends ValueTypes> = {
+interface Command<NameType extends CommandName> {
 	name: NameType
+}
+
+interface CommandWithValue<NameType extends CommandName, ValueType extends ValueTypes> extends Command<NameType> {
 	value: ValueType
 }
 
-type CommandWithTarget<NameType extends CommandName> = {
-	name: NameType
+interface CommandWithTarget<NameType extends CommandName> extends Command<NameType> {
 	target: string
 }
 
-type CommandWithValueAndTarget<NameType extends CommandName, ValueType extends ValueTypes> = {
-	name: NameType
+interface CommandWithValueAndTarget<NameType extends CommandName, ValueType extends ValueTypes>
+	extends Command<NameType> {
 	value: ValueType
 	target: string
 }
@@ -101,6 +104,10 @@ type StreamingToggle = CommandWithValue<CommandName.STREAMING_TOGGLE, number>
 
 type OutputSource = CommandWithValueAndTarget<CommandName.OUTPUT_SOURCE, string>
 type CrosspointSource = CommandWithValueAndTarget<CommandName.CROSSPOINT_SOURCE, string>
+interface OutputMeClean extends Command<CommandName.SET_OUTPUT_CONFIG_VIDEO_SOURCE> {
+	output_index: number
+	me_clean: boolean
+}
 
 export type TriCasterCommand =
 	| RowCommand
@@ -134,6 +141,7 @@ export type TriCasterCommand =
 	| StreamingToggle
 	| OutputSource
 	| CrosspointSource
+	| OutputMeClean
 
 type TriCasterGenericNumberCommand = Extract<
 	TriCasterCommand,

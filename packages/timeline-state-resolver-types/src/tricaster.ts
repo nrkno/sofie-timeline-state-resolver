@@ -235,6 +235,10 @@ export interface TimelineObjTriCasterMixOutput extends TimelineObjTriCasterBase 
 		 * or 'program', 'preview', 'program_clean', 'me_program', 'me_preview'
 		 */
 		source: TriCasterMixOutputSource
+		/**
+		 * Whether the clean version of the ME should be selected
+		 */
+		meClean?: boolean
 	} & TimelineDatastoreReferencesContent
 }
 

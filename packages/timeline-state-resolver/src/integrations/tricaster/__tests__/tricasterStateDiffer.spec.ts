@@ -590,6 +590,17 @@ describe('TriCasterStateDiffer.getCommandsToAchieveState', () => {
 			expect(commands.length).toEqual(1)
 			expect(commands[0].command).toEqual({ target: 'mix2', name: '_output_source', value: 'me_preview' })
 		})
+
+		test('sets ME Clean', () => {
+			const { stateDiffer, oldState, newState } = setupStateDiffer()
+
+			newState.mixOutputs.mix2.meClean.value = true
+
+			const commands = stateDiffer.getCommandsToAchieveState(newState, oldState)
+
+			expect(commands.length).toEqual(1)
+			expect(commands[0].command).toEqual({ name: 'set_output_config_video_source', output_index: 1, me_clean: true })
+		})
 	})
 
 	describe('Matrix Outputs', () => {
@@ -621,8 +632,9 @@ describe('TriCasterStateDiffer.getCommandsToAchieveState', () => {
 
 			const commands = stateDiffer.getCommandsToAchieveState(newState, oldState)
 
-			expect(commands.length).toEqual(1)
+			expect(commands.length).toEqual(2)
 			expect(commands[0].command).toEqual({ target: 'mix1', name: '_output_source', value: 'program' })
+			expect(commands[1].command).toEqual({ name: 'set_output_config_video_source', output_index: 0, me_clean: false })
 		})
 
 		test('removed mapings do not generate commands', () => {
