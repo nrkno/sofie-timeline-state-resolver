@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [3.5.0](https://github.com/tv2/tv-automation-state-timeline-resolver/compare/3.4.0...3.5.0) (2023-03-16)
+
+### Features
+
+- SOF-1254 add me_clean support for mix ouputs ([7f3fb9c](https://github.com/tv2/tv-automation-state-timeline-resolver/commit/7f3fb9c7d9edb03022db69c6e206302c5c69a815))
+
 ## [3.4.0](https://github.com/tv2/tv-automation-state-timeline-resolver/compare/3.3.0...3.4.0) (2023-03-14)
 
 ### Features
