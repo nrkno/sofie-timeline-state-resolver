@@ -1,4 +1,3 @@
-import { Mapping } from './mapping'
 import { DeviceType } from '.'
 
 export type TriCasterMixEffectName = 'main' | `v${number}`
@@ -21,58 +20,6 @@ export type TriCasterMixOutputSource =
 	| 'me_preview'
 
 export type TriCasterMatrixOutputSource = TriCasterSourceName | TriCasterMixOutputName
-
-interface MappingTriCasterBase extends Mapping {
-	device: DeviceType.TRICASTER
-	mappingType: MappingTriCasterType
-}
-
-export interface MappingTriCasterMixEffect extends MappingTriCasterBase {
-	mappingType: MappingTriCasterType.ME
-	name: TriCasterMixEffectName
-}
-
-export interface MappingTriCasterDownStreamKeyer extends MappingTriCasterBase {
-	mappingType: MappingTriCasterType.DSK
-	name: TriCasterKeyerName
-}
-
-export interface MappingTriCasterInput extends MappingTriCasterBase {
-	mappingType: MappingTriCasterType.INPUT
-	name: TriCasterInputName
-}
-
-export interface MappingTriCasterAudioChannel extends MappingTriCasterBase {
-	mappingType: MappingTriCasterType.AUDIO_CHANNEL
-	name: TriCasterAudioChannelName
-}
-
-export interface MappingTriCasterMixOutput extends MappingTriCasterBase {
-	mappingType: MappingTriCasterType.MIX_OUTPUT
-	name: TriCasterMixOutputName
-}
-
-export interface MappingTriCasterMatrixOutput extends MappingTriCasterBase {
-	mappingType: MappingTriCasterType.MATRIX_OUTPUT
-	name: TriCasterMatrixOutputName
-}
-
-export enum MappingTriCasterType {
-	ME = 'ME',
-	DSK = 'DSK',
-	INPUT = 'INPUT',
-	AUDIO_CHANNEL = 'AUDIO_CHANNEL',
-	MIX_OUTPUT = 'MIX_OUTPUT',
-	MATRIX_OUTPUT = 'MATRIX_OUTPUT',
-}
-
-export type MappingTriCaster =
-	| MappingTriCasterMixEffect
-	| MappingTriCasterDownStreamKeyer
-	| MappingTriCasterInput
-	| MappingTriCasterAudioChannel
-	| MappingTriCasterMixOutput
-	| MappingTriCasterMatrixOutput
 
 export interface TriCasterOptions {
 	host: string

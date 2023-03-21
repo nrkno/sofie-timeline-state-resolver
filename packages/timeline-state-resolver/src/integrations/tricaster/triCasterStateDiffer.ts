@@ -17,8 +17,8 @@ import {
 	TriCasterMixEffectWithPreview,
 	TriCasterMixEffectInMixMode,
 	TriCasterTransitionEffect,
-	MappingTriCaster,
-	MappingTriCasterType,
+	SomeMappingTricaster,
+	MappingTricasterType,
 	Mappings,
 } from 'timeline-state-resolver-types'
 import {
@@ -112,9 +112,7 @@ interface TriCasterControlledResourceNames {
 	mixOutputs: Set<TriCasterMixOutputName>
 	matrixOutputs: Set<TriCasterMatrixOutputName>
 }
-export interface MappingsTriCaster extends Mappings {
-	[layerName: string]: MappingTriCaster
-}
+export type MappingsTriCaster = Mappings<SomeMappingTricaster>
 
 export class TriCasterStateDiffer {
 	private readonly inputCount: number
@@ -204,25 +202,25 @@ export class TriCasterStateDiffer {
 			matrixOutputs: new Set(),
 		}
 		for (const mapping of Object.values(mappings)) {
-			switch (mapping.mappingType) {
-				case MappingTriCasterType.ME:
-					result.mixEffects.add(mapping.name)
+			switch (mapping.options.mappingType) {
+				case MappingTricasterType.ME:
+					result.mixEffects.add(mapping.options.name as TriCasterMixEffectName)
 					break
-				case MappingTriCasterType.DSK:
+				case MappingTricasterType.DSK:
 					// these require full control of the Main switcher - not ideal, the granularity will probably be improved
 					result.mixEffects.add('main')
 					break
-				case MappingTriCasterType.INPUT:
-					result.inputs.add(mapping.name)
+				case MappingTricasterType.INPUT:
+					result.inputs.add(mapping.options.name as TriCasterInputName)
 					break
-				case MappingTriCasterType.AUDIO_CHANNEL:
-					result.audioChannels.add(mapping.name)
+				case MappingTricasterType.AUDIOCHANNEL:
+					result.audioChannels.add(mapping.options.name as TriCasterAudioChannelName)
 					break
-				case MappingTriCasterType.MIX_OUTPUT:
-					result.mixOutputs.add(mapping.name)
+				case MappingTricasterType.MIXOUTPUT:
+					result.mixOutputs.add(mapping.options.name as TriCasterMixOutputName)
 					break
-				case MappingTriCasterType.MATRIX_OUTPUT:
-					result.matrixOutputs.add(mapping.name)
+				case MappingTricasterType.MATRIXOUTPUT:
+					result.matrixOutputs.add(mapping.options.name as TriCasterMatrixOutputName)
 					break
 			}
 		}

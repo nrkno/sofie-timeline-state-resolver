@@ -1,0 +1,30 @@
+{
+	"$schema": "https://json-schema.org/draft/2020-12/schema",
+	"title": "HTTPWatcherOptions",
+	"type": "object",
+	"properties": {
+		"uri": {
+			"type": "string",
+			"ui:title": "URI"
+		},
+		"httpMethod": {
+			"type": "string",
+			"ui:title": "HTTP Method"
+		},
+		"expectedHttpResponse": {
+			"type": "integer",
+			"ui:title": "Expected HTTP Response",
+			"default": 200
+		},
+		"keyword": {
+			"type": "string",
+			"ui:title": "Keyword"
+		},
+		"interval": {
+			"type": "integer",
+			"ui:title": "Interval"
+		}
+	},
+	"required": ["uri"],
+	"additionalProperties": false
+}

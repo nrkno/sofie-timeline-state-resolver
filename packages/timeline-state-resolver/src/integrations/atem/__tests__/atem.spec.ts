@@ -5,7 +5,8 @@ import { MockTime } from '../../../__tests__/mockTime'
 import {
 	Mappings,
 	DeviceType,
-	MappingAtem,
+	Mapping,
+	SomeMappingAtem,
 	MappingAtemType,
 	TimelineContentTypeAtem,
 	AtemOptions,
@@ -77,11 +78,13 @@ describe('Atem', () => {
 		const commandReceiver0: any = jest.fn(async () => {
 			return Promise.resolve()
 		})
-		const myLayerMapping0: MappingAtem = {
+		const myLayerMapping0: Mapping<SomeMappingAtem> = {
 			device: DeviceType.ATEM,
 			deviceId: 'myAtem',
-			mappingType: MappingAtemType.MixEffect,
-			index: 0,
+			options: {
+				mappingType: MappingAtemType.MixEffect,
+				index: 0,
+			},
 		}
 		const myLayerMapping: Mappings = {
 			myLayer0: myLayerMapping0,
@@ -168,11 +171,13 @@ describe('Atem', () => {
 		const commandReceiver0: any = jest.fn(() => {
 			// nothing
 		})
-		const myLayerMapping0: MappingAtem = {
+		const myLayerMapping0: Mapping<SomeMappingAtem> = {
 			device: DeviceType.ATEM,
 			deviceId: 'myAtem',
-			mappingType: MappingAtemType.MixEffect,
-			index: 0,
+			options: {
+				mappingType: MappingAtemType.MixEffect,
+				index: 0,
+			},
 		}
 		const myLayerMapping: Mappings = {
 			myLayer0: myLayerMapping0,
@@ -250,11 +255,13 @@ describe('Atem', () => {
 			return Promise.resolve()
 		})
 		const myLayerMapping: Mappings = {
-			myLayer0: literal<MappingAtem>({
+			myLayer0: literal<Mapping<SomeMappingAtem>>({
 				device: DeviceType.ATEM,
 				deviceId: 'mock',
-				mappingType: MappingAtemType.MixEffect,
-				index: 0,
+				options: {
+					mappingType: MappingAtemType.MixEffect,
+					index: 0,
+				},
 			}),
 		}
 
@@ -334,11 +341,13 @@ describe('Atem', () => {
 		const commandReceiver0: any = jest.fn(async () => {
 			return Promise.resolve()
 		})
-		const myLayerMapping0: MappingAtem = {
+		const myLayerMapping0: Mapping<SomeMappingAtem> = {
 			device: DeviceType.ATEM,
 			deviceId: 'myAtem',
-			mappingType: MappingAtemType.MixEffect,
-			index: 0,
+			options: {
+				mappingType: MappingAtemType.MixEffect,
+				index: 0,
+			},
 		}
 		const myLayerMapping: Mappings = {
 			myLayer0: myLayerMapping0,
@@ -431,11 +440,13 @@ describe('Atem', () => {
 		const commandReceiver0: any = jest.fn(async () => {
 			return Promise.resolve()
 		})
-		const myLayerMapping0: MappingAtem = {
+		const myLayerMapping0: Mapping<SomeMappingAtem> = {
 			device: DeviceType.ATEM,
 			deviceId: 'myAtem',
-			mappingType: MappingAtemType.MixEffect,
-			index: 0,
+			options: {
+				mappingType: MappingAtemType.MixEffect,
+				index: 0,
+			},
 		}
 		const myLayerMapping: Mappings = {
 			myLayer0: myLayerMapping0,

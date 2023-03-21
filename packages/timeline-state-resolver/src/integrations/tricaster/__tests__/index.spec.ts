@@ -2,10 +2,11 @@ import { EventEmitter } from 'eventemitter3'
 import { MockTime } from '../../../__tests__/mockTime'
 import {
 	DeviceType,
-	MappingTriCaster,
-	MappingTriCasterType,
+	SomeMappingTricaster,
+	MappingTricasterType,
 	TimelineContentTypeTriCaster,
 	TimelineContentTriCasterME,
+	Mapping,
 } from 'timeline-state-resolver-types'
 import { TriCasterDevice } from '..'
 import { TriCasterConnectionEvents, TriCasterConnection } from '../triCasterConnection'
@@ -59,11 +60,13 @@ describe('TriCasterDevice', () => {
 
 		expect(MOCK_SEND).not.toHaveBeenCalled()
 		const mappings = {
-			tc_me0_0: literal<MappingTriCaster>({
+			tc_me0_0: literal<Mapping<SomeMappingTricaster>>({
 				device: DeviceType.TRICASTER,
-				mappingType: MappingTriCasterType.ME,
-				name: 'main',
 				deviceId: 'tc0',
+				options: {
+					mappingType: MappingTricasterType.ME,
+					name: 'main',
+				},
 			}),
 		}
 

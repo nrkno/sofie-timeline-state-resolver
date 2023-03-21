@@ -1,7 +1,7 @@
 import { Conductor } from '../../../conductor'
 import {
 	TimelineContentTypeCasparCg,
-	MappingCasparCG,
+	SomeMappingCasparCG,
 	Mappings,
 	DeviceType,
 	ChannelFormat,
@@ -9,6 +9,8 @@ import {
 	Ease,
 	Direction,
 	TSRTimeline,
+	Mapping,
+	MappingCasparCGType,
 } from 'timeline-state-resolver-types'
 import { MockTime } from '../../../__tests__/mockTime'
 import { getMockCall } from '../../../__tests__/lib'
@@ -31,11 +33,14 @@ describe('CasparCG', () => {
 		const commandReceiver0: any = jest.fn(async () => {
 			return Promise.resolve()
 		})
-		const myLayerMapping0: MappingCasparCG = {
+		const myLayerMapping0: Mapping<SomeMappingCasparCG> = {
 			device: DeviceType.CASPARCG,
 			deviceId: 'myCCG',
-			channel: 2,
-			layer: 42,
+			options: {
+				mappingType: MappingCasparCGType.Layer,
+				channel: 2,
+				layer: 42,
+			},
 		}
 		const myLayerMapping: Mappings = {
 			myLayer0: myLayerMapping0,
@@ -107,11 +112,14 @@ describe('CasparCG', () => {
 		const commandReceiver0: any = jest.fn(async () => {
 			return Promise.resolve()
 		})
-		const myLayerMapping0: MappingCasparCG = {
+		const myLayerMapping0: Mapping<SomeMappingCasparCG> = {
 			device: DeviceType.CASPARCG,
 			deviceId: 'myCCG',
-			channel: 2,
-			layer: 42,
+			options: {
+				mappingType: MappingCasparCGType.Layer,
+				channel: 2,
+				layer: 42,
+			},
 		}
 		const myLayerMapping: Mappings = {
 			myLayer0: myLayerMapping0,
@@ -172,11 +180,14 @@ describe('CasparCG', () => {
 		const commandReceiver0: any = jest.fn(async () => {
 			return Promise.resolve()
 		})
-		const myLayerMapping0: MappingCasparCG = {
+		const myLayerMapping0: Mapping<SomeMappingCasparCG> = {
 			device: DeviceType.CASPARCG,
 			deviceId: 'myCCG',
-			channel: 2,
-			layer: 42,
+			options: {
+				mappingType: MappingCasparCGType.Layer,
+				channel: 2,
+				layer: 42,
+			},
 		}
 		const myLayerMapping: Mappings = {
 			myLayer0: myLayerMapping0,
@@ -252,11 +263,14 @@ describe('CasparCG', () => {
 		const commandReceiver0: any = jest.fn(async () => {
 			return Promise.resolve()
 		})
-		const myLayerMapping0: MappingCasparCG = {
+		const myLayerMapping0: Mapping<SomeMappingCasparCG> = {
 			device: DeviceType.CASPARCG,
 			deviceId: 'myCCG',
-			channel: 2,
-			layer: 42,
+			options: {
+				mappingType: MappingCasparCGType.Layer,
+				channel: 2,
+				layer: 42,
+			},
 		}
 		const myLayerMapping: Mappings = {
 			myLayer0: myLayerMapping0,
@@ -323,11 +337,14 @@ describe('CasparCG', () => {
 		const commandReceiver0: any = jest.fn(async () => {
 			return Promise.resolve()
 		})
-		const myLayerMapping0: MappingCasparCG = {
+		const myLayerMapping0: Mapping<SomeMappingCasparCG> = {
 			device: DeviceType.CASPARCG,
 			deviceId: 'myCCG',
-			channel: 2,
-			layer: 42,
+			options: {
+				mappingType: MappingCasparCGType.Layer,
+				channel: 2,
+				layer: 42,
+			},
 		}
 		const myLayerMapping: Mappings = {
 			myLayer0: myLayerMapping0,
@@ -410,11 +427,14 @@ describe('CasparCG', () => {
 		const commandReceiver0: any = jest.fn(async () => {
 			return Promise.resolve()
 		})
-		const myLayerMapping0: MappingCasparCG = {
+		const myLayerMapping0: Mapping<SomeMappingCasparCG> = {
 			device: DeviceType.CASPARCG,
 			deviceId: 'myCCG',
-			channel: 2,
-			layer: 42,
+			options: {
+				mappingType: MappingCasparCGType.Layer,
+				channel: 2,
+				layer: 42,
+			},
 		}
 		const myLayerMapping: Mappings = {
 			myLayer0: myLayerMapping0,
@@ -487,11 +507,14 @@ describe('CasparCG', () => {
 		const commandReceiver0: any = jest.fn(async () => {
 			return Promise.resolve()
 		})
-		const myLayerMapping0: MappingCasparCG = {
+		const myLayerMapping0: Mapping<SomeMappingCasparCG> = {
 			device: DeviceType.CASPARCG,
 			deviceId: 'myCCG',
-			channel: 2,
-			layer: 42,
+			options: {
+				mappingType: MappingCasparCGType.Layer,
+				channel: 2,
+				layer: 42,
+			},
 		}
 		const myLayerMapping: Mappings = {
 			myLayer0: myLayerMapping0,
@@ -555,17 +578,23 @@ describe('CasparCG', () => {
 		const commandReceiver0: any = jest.fn(async () => {
 			return Promise.resolve()
 		})
-		const myLayerMapping0: MappingCasparCG = {
+		const myLayerMapping0: Mapping<SomeMappingCasparCG> = {
 			device: DeviceType.CASPARCG,
 			deviceId: 'myCCG',
-			channel: 2,
-			layer: 42,
+			options: {
+				mappingType: MappingCasparCGType.Layer,
+				channel: 2,
+				layer: 42,
+			},
 		}
-		const myLayerMapping1: MappingCasparCG = {
+		const myLayerMapping1: Mapping<SomeMappingCasparCG> = {
 			device: DeviceType.CASPARCG,
 			deviceId: 'myCCG',
-			channel: 1,
-			layer: 42,
+			options: {
+				mappingType: MappingCasparCGType.Layer,
+				channel: 1,
+				layer: 42,
+			},
 		}
 		const myLayerMapping: Mappings = {
 			myLayer0: myLayerMapping0,
@@ -676,11 +705,14 @@ describe('CasparCG', () => {
 		const commandReceiver0: any = jest.fn(async () => {
 			return Promise.resolve()
 		})
-		const myLayerMapping0: MappingCasparCG = {
+		const myLayerMapping0: Mapping<SomeMappingCasparCG> = {
 			device: DeviceType.CASPARCG,
 			deviceId: 'myCCG',
-			channel: 2,
-			layer: 42,
+			options: {
+				mappingType: MappingCasparCGType.Layer,
+				channel: 2,
+				layer: 42,
+			},
 		}
 		const myLayerMapping: Mappings = {
 			myLayer0: myLayerMapping0,
@@ -787,11 +819,14 @@ describe('CasparCG', () => {
 		const commandReceiver0: any = jest.fn(async () => {
 			return Promise.resolve()
 		})
-		const myLayerMapping0: MappingCasparCG = {
+		const myLayerMapping0: Mapping<SomeMappingCasparCG> = {
 			device: DeviceType.CASPARCG,
 			deviceId: 'myCCG',
-			channel: 2,
-			layer: 42,
+			options: {
+				mappingType: MappingCasparCGType.Layer,
+				channel: 2,
+				layer: 42,
+			},
 		}
 		const myLayerMapping: Mappings = {
 			myLayer0: myLayerMapping0,
@@ -929,11 +964,14 @@ describe('CasparCG', () => {
 		const commandReceiver0: any = jest.fn(async () => {
 			return Promise.resolve()
 		})
-		const myLayerMapping0: MappingCasparCG = {
+		const myLayerMapping0: Mapping<SomeMappingCasparCG> = {
 			device: DeviceType.CASPARCG,
 			deviceId: 'myCCG',
-			channel: 2,
-			layer: 42,
+			options: {
+				mappingType: MappingCasparCGType.Layer,
+				channel: 2,
+				layer: 42,
+			},
 		}
 		const myLayerMapping: Mappings = {
 			myLayer0: myLayerMapping0,
@@ -1031,12 +1069,15 @@ describe('CasparCG', () => {
 		const commandReceiver0: any = jest.fn(async () => {
 			return Promise.resolve()
 		})
-		const myLayerMapping0: MappingCasparCG = {
+		const myLayerMapping0: Mapping<SomeMappingCasparCG> = {
 			device: DeviceType.CASPARCG,
 			deviceId: 'myCCG',
-			channel: 2,
-			layer: 42,
-			previewWhenNotOnAir: true,
+			options: {
+				mappingType: MappingCasparCGType.Layer,
+				channel: 2,
+				layer: 42,
+				previewWhenNotOnAir: true,
+			},
 		}
 		const myLayerMapping: Mappings = {
 			myLayer0: myLayerMapping0,
@@ -1134,11 +1175,14 @@ describe('CasparCG', () => {
 		const commandReceiver0: any = jest.fn(async () => {
 			return Promise.resolve()
 		})
-		const myLayerMapping0: MappingCasparCG = {
+		const myLayerMapping0: Mapping<SomeMappingCasparCG> = {
 			device: DeviceType.CASPARCG,
 			deviceId: 'myCCG',
-			channel: 2,
-			layer: 42,
+			options: {
+				mappingType: MappingCasparCGType.Layer,
+				channel: 2,
+				layer: 42,
+			},
 		}
 		const myLayerMapping: Mappings = {
 			myLayer0: myLayerMapping0,
@@ -1232,11 +1276,14 @@ describe('CasparCG', () => {
 		const commandReceiver0: any = jest.fn(async () => {
 			return Promise.resolve()
 		})
-		const myLayerMapping0: MappingCasparCG = {
+		const myLayerMapping0: Mapping<SomeMappingCasparCG> = {
 			device: DeviceType.CASPARCG,
 			deviceId: 'myCCG',
-			channel: 1,
-			layer: 10,
+			options: {
+				mappingType: MappingCasparCGType.Layer,
+				channel: 1,
+				layer: 10,
+			},
 		}
 		const myLayerMapping: Mappings = {
 			myLayer0: myLayerMapping0,
@@ -1319,11 +1366,14 @@ describe('CasparCG', () => {
 		const commandReceiver0: any = jest.fn(async () => {
 			return Promise.resolve()
 		})
-		const myLayerMapping0: MappingCasparCG = {
+		const myLayerMapping0: Mapping<SomeMappingCasparCG> = {
 			device: DeviceType.CASPARCG,
 			deviceId: 'myCCG',
-			channel: 2,
-			layer: 42,
+			options: {
+				mappingType: MappingCasparCGType.Layer,
+				channel: 2,
+				layer: 42,
+			},
 		}
 		const myLayerMapping: Mappings = {
 			myLayer0: myLayerMapping0,
@@ -1401,11 +1451,14 @@ describe('CasparCG', () => {
 		const commandReceiver0: any = jest.fn(async () => {
 			return Promise.resolve()
 		})
-		const myLayerMapping0: MappingCasparCG = {
+		const myLayerMapping0: Mapping<SomeMappingCasparCG> = {
 			device: DeviceType.CASPARCG,
 			deviceId: 'myCCG',
-			channel: 2,
-			layer: 42,
+			options: {
+				mappingType: MappingCasparCGType.Layer,
+				channel: 2,
+				layer: 42,
+			},
 		}
 		const myLayerMapping: Mappings = {
 			myLayer0: myLayerMapping0,
@@ -1526,11 +1579,14 @@ describe('CasparCG', () => {
 		const commandReceiver0: any = jest.fn(async () => {
 			return Promise.resolve()
 		})
-		const myLayerMapping0: MappingCasparCG = {
+		const myLayerMapping0: Mapping<SomeMappingCasparCG> = {
 			device: DeviceType.CASPARCG,
 			deviceId: 'myCCG',
-			channel: 2,
-			layer: 42,
+			options: {
+				mappingType: MappingCasparCGType.Layer,
+				channel: 2,
+				layer: 42,
+			},
 		}
 		const myLayerMapping: Mappings = {
 			myLayer0: myLayerMapping0,
@@ -1652,11 +1708,14 @@ describe('CasparCG', () => {
 		const commandReceiver0: any = jest.fn(async () => {
 			return Promise.resolve()
 		})
-		const myLayerMapping0: MappingCasparCG = {
+		const myLayerMapping0: Mapping<SomeMappingCasparCG> = {
 			device: DeviceType.CASPARCG,
 			deviceId: 'myCCG',
-			channel: 2,
-			layer: 42,
+			options: {
+				mappingType: MappingCasparCGType.Layer,
+				channel: 2,
+				layer: 42,
+			},
 		}
 		const myLayerMapping: Mappings = {
 			myLayer0: myLayerMapping0,
@@ -1746,11 +1805,14 @@ describe('CasparCG', () => {
 		const commandReceiver0: any = jest.fn(async () => {
 			return Promise.resolve()
 		})
-		const myLayerMapping0: MappingCasparCG = {
+		const myLayerMapping0: Mapping<SomeMappingCasparCG> = {
 			device: DeviceType.CASPARCG,
 			deviceId: 'myCCG',
-			channel: 2,
-			layer: 42,
+			options: {
+				mappingType: MappingCasparCGType.Layer,
+				channel: 2,
+				layer: 42,
+			},
 		}
 		const myLayerMapping: Mappings = {
 			myLayer0: myLayerMapping0,
@@ -1862,7 +1924,7 @@ describe('CasparCG', () => {
 // 		const commandReceiver0: any = jest.fn(async () => {
 // 			return Promise.resolve()
 // 		})
-// 		const myLayerMapping0: MappingCasparCG = {
+// 		const myLayerMapping0: Mapping<SomeMappingCasparCG> = {
 // 			device: DeviceType.CASPARCG,
 // 			deviceId: 'myCCG',
 // 			channel: 2,

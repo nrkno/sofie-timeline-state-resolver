@@ -1,12 +1,13 @@
 import {
 	DeviceType,
-	MappingTriCaster,
-	MappingTriCasterType,
+	MappingTricasterType,
 	TimelineContentTypeTriCaster,
 	TimelineContentTriCasterInput,
 	TimelineContentTriCasterME,
 	TimelineContentTriCasterMixOutput,
 	TimelineContentTriCasterMatrixOutput,
+	Mapping,
+	SomeMappingTricaster,
 } from 'timeline-state-resolver-types'
 import { TriCasterTimelineStateConverter } from '../triCasterTimelineStateConverter'
 import {
@@ -146,17 +147,21 @@ describe('TimelineStateConverter.getTriCasterStateFromTimelineState', () => {
 				nextEvents: [],
 			},
 			{
-				tc_me0_0: literal<MappingTriCaster>({
+				tc_me0_0: literal<Mapping<SomeMappingTricaster>>({
 					device: DeviceType.TRICASTER,
-					mappingType: MappingTriCasterType.ME,
-					name: 'main',
 					deviceId: 'tc0',
+					options: {
+						mappingType: MappingTricasterType.ME,
+						name: 'main',
+					},
 				}),
-				tc_me0_1: literal<MappingTriCaster>({
+				tc_me0_1: literal<Mapping<SomeMappingTricaster>>({
 					device: DeviceType.TRICASTER,
-					mappingType: MappingTriCasterType.ME,
-					name: 'v1',
 					deviceId: 'tc0',
+					options: {
+						mappingType: MappingTricasterType.ME,
+						name: 'v1',
+					},
 				}),
 			}
 		)
@@ -215,11 +220,13 @@ describe('TimelineStateConverter.getTriCasterStateFromTimelineState', () => {
 				nextEvents: [],
 			},
 			{
-				tc_out2: literal<MappingTriCaster>({
+				tc_out2: literal<Mapping<SomeMappingTricaster>>({
 					device: DeviceType.TRICASTER,
-					mappingType: MappingTriCasterType.MATRIX_OUTPUT,
-					name: 'out2',
 					deviceId: 'tc0',
+					options: {
+						mappingType: MappingTricasterType.MATRIXOUTPUT,
+						name: 'out2',
+					},
 				}),
 			}
 		)
@@ -251,11 +258,13 @@ describe('TimelineStateConverter.getTriCasterStateFromTimelineState', () => {
 				nextEvents: [],
 			},
 			{
-				tc_out2: literal<MappingTriCaster>({
+				tc_out2: literal<Mapping<SomeMappingTricaster>>({
 					device: DeviceType.TRICASTER,
-					mappingType: MappingTriCasterType.MIX_OUTPUT,
-					name: 'mix2',
 					deviceId: 'tc0',
+					options: {
+						mappingType: MappingTricasterType.MIXOUTPUT,
+						name: 'mix2',
+					},
 				}),
 			}
 		)
@@ -290,11 +299,13 @@ describe('TimelineStateConverter.getTriCasterStateFromTimelineState', () => {
 				nextEvents: [],
 			},
 			{
-				tc_inp2: literal<MappingTriCaster>({
+				tc_inp2: literal<Mapping<SomeMappingTricaster>>({
 					device: DeviceType.TRICASTER,
-					mappingType: MappingTriCasterType.INPUT,
-					name: 'input2',
 					deviceId: 'tc0',
+					options: {
+						mappingType: MappingTricasterType.INPUT,
+						name: 'input2',
+					},
 				}),
 			}
 		)

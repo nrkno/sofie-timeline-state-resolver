@@ -3,7 +3,6 @@ import { DeviceWithState, CommandWithContext, DeviceStatus, StatusCode } from '.
 import {
 	DeviceType,
 	TimelineContentTypeHyperdeck,
-	MappingHyperdeck,
 	MappingHyperdeckType,
 	HyperdeckOptions,
 	DeviceOptionsHyperdeck,
@@ -11,6 +10,8 @@ import {
 	TSRTimelineContent,
 	Timeline,
 	HyperdeckActions,
+	Mapping,
+	SomeMappingHyperdeck,
 } from 'timeline-state-resolver-types'
 import {
 	Hyperdeck,
@@ -328,11 +329,11 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState, DeviceOptionsH
 		_.each(sortedLayers, ({ tlObject, layerName }) => {
 			const content = tlObject.content
 
-			const mapping = mappings[layerName] as MappingHyperdeck
+			const mapping = mappings[layerName] as Mapping<SomeMappingHyperdeck>
 
 			if (mapping && mapping.deviceId === this.deviceId && content.deviceType === DeviceType.HYPERDECK) {
-				switch (mapping.mappingType) {
-					case MappingHyperdeckType.TRANSPORT:
+				switch (mapping.options.mappingType) {
+					case MappingHyperdeckType.Transport:
 						if (content.type === TimelineContentTypeHyperdeck.TRANSPORT) {
 							if (!deviceState.transport) {
 								switch (content.status) {

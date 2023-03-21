@@ -1,7 +1,8 @@
 import { Conductor } from '../../../conductor'
 import { OSCMessageDevice } from '../../../integrations/osc'
 import {
-	MappingOSC,
+	Mapping,
+	SomeMappingOsc,
 	Mappings,
 	DeviceType,
 	TimelineContentTypeOSC,
@@ -25,9 +26,10 @@ describe('OSC-Message', () => {
 		const commandReceiver0: any = jest.fn(async () => {
 			return Promise.resolve()
 		})
-		const myLayerMapping0: MappingOSC = {
+		const myLayerMapping0: Mapping<SomeMappingOsc> = {
 			device: DeviceType.OSC,
 			deviceId: 'osc0',
+			options: {},
 		}
 		const myLayerMapping: Mappings = {
 			myLayer0: myLayerMapping0,
@@ -127,9 +129,10 @@ describe('OSC-Message', () => {
 		const commandReceiver0: any = jest.fn(async () => {
 			return Promise.resolve()
 		})
-		const myLayerMapping0: MappingOSC = {
+		const myLayerMapping0: Mapping<SomeMappingOsc> = {
 			device: DeviceType.OSC,
 			deviceId: 'osc0',
+			options: {},
 		}
 		const myLayerMapping: Mappings = {
 			myLayer0: myLayerMapping0,

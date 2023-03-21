@@ -1,6 +1,6 @@
 import * as osc from 'osc'
 import { EventEmitter } from 'events'
-import { MultiOSCOptions, OSCDeviceType } from 'timeline-state-resolver-types'
+import { MultiOSCDeviceType, MultiOSCOptions } from 'timeline-state-resolver-types'
 
 export type OSCConnectionOptions = MultiOSCOptions['connections'][any] & {
 	oscSender?: OSCSender
@@ -12,7 +12,7 @@ export class OSCConnection extends EventEmitter {
 	connectionId: string
 	host: string
 	port: number
-	private _type: OSCDeviceType
+	private _type: MultiOSCDeviceType
 
 	private _oscClient: osc.UDPPort | osc.TCPSocketPort
 	private _oscSender: OSCSender
@@ -31,7 +31,7 @@ export class OSCConnection extends EventEmitter {
 		this._type = options.type
 		this._oscSender = options.oscSender || this._defaultOscSender.bind(this)
 
-		if (options.type === OSCDeviceType.UDP) {
+		if (options.type === MultiOSCDeviceType.UDP) {
 			this._oscClient = new osc.UDPPort({
 				localAddress: '0.0.0.0',
 				localPort: 0,
@@ -76,7 +76,7 @@ export class OSCConnection extends EventEmitter {
 	}
 
 	get connected(): boolean {
-		return this._type === OSCDeviceType.TCP ? this._connected : true
+		return this._type === MultiOSCDeviceType.TCP ? this._connected : true
 	}
 
 	private updateIsConnected(connected: boolean) {

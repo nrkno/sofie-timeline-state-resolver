@@ -1,0 +1,52 @@
+{
+	"$schema": "https://json-schema.org/draft/2020-12/schema",
+	"title": "Atem Options",
+	"type": "object",
+	"properties": {
+		"host": {
+			"type": "string",
+			"ui:title": "Host",
+			"default": ""
+		},
+		"port": {
+			"type": "integer",
+			"ui:title": "Port",
+			"default": 9910
+		},
+		"mediaPoolAssets": {
+			"type": "array",
+			"ui:title": "Media Pool Assets",
+			"items": {
+				"type": "object",
+				"title": "AtemMediaPoolAsset",
+				"properties": {
+					"path": {
+						"type": "string",
+						"ui:title": "Path",
+						"ui:summaryTitle": "File Path",
+						"default": ""
+					},
+					"type": {
+						"type": "string",
+						"title": "AtemMediaPoolType",
+						"ui:title": "Type",
+						"ui:summaryTitle": "Type",
+						"enum": ["still", "clip", "audio"],
+						"tsEnumNames": ["Still", "Clip", "Audio"],
+						"default": "still"
+					},
+					"position": {
+						"type": "integer",
+						"ui:title": "Position",
+						"default": 0,
+						"minimum": 0
+					}
+				},
+				"required": ["path", "type", "position"],
+				"additionalProperties": false
+			}
+		}
+	},
+	"required": ["host"],
+	"additionalProperties": false
+}

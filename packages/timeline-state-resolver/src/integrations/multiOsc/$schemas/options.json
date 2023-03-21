@@ -1,0 +1,45 @@
+{
+	"$schema": "https://json-schema.org/draft/2020-12/schema",
+	"title": "Multi OSC Options",
+	"type": "object",
+	"properties": {
+		"connections": {
+			"type": "array",
+			"ui:title": "Connections",
+			"items": {
+				"type": "object",
+				"properties": {
+					"connectionId": {
+						"type": "string",
+						"ui:title": "Connection ID",
+						"ui:summaryTitle": "Connection ID"
+					},
+					"host": {
+						"type": "string",
+						"ui:title": "Host"
+					},
+					"port": {
+						"type": "integer",
+						"ui:title": "Port"
+					},
+					"type": {
+						"type": "string",
+						"ui:title": "Type",
+						"title": "MultiOSCDeviceType",
+						"default": "udp",
+						"enum": ["tcp", "udp"],
+						"tsEnumNames": ["TCP", "UDP"]
+					}
+				},
+				"required": ["connectionId", "host", "port", "type"],
+				"additionalProperties": false
+			}
+		},
+		"timeBetweenCommands": {
+			"type": "integer",
+			"ui:title": "Time between commands in ms"
+		}
+	},
+	"required": ["connections", "timeBetweenCommands"],
+	"additionalProperties": false
+}

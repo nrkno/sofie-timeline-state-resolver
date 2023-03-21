@@ -17,6 +17,7 @@ import {
 	VizMSEOptions,
 	VIZMSETransitionType,
 	VizMSEActions,
+	SomeMappingVizMSE,
 	TimelineContentVIZMSEElementPilot,
 	TimelineContentVIZMSEElementInternal,
 } from 'timeline-state-resolver-types'
@@ -268,11 +269,11 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState, DeviceOptionsVizM
 
 		_.each(timelineState.layers, (layer, layerName: string) => {
 			const layerExt: ResolvedTimelineObjectInstanceExtended = layer
-			let foundMapping: Mapping = mappings[layerName]
+			let foundMapping = mappings[layerName] as Mapping<SomeMappingVizMSE>
 
 			let isLookahead = false
 			if (!foundMapping && layerExt.isLookahead && layerExt.lookaheadForLayer) {
-				foundMapping = mappings[layerExt.lookaheadForLayer]
+				foundMapping = mappings[layerExt.lookaheadForLayer] as Mapping<SomeMappingVizMSE>
 				isLookahead = true
 			}
 			if (foundMapping && foundMapping.device === DeviceType.VIZMSE && foundMapping.deviceId === this.deviceId) {

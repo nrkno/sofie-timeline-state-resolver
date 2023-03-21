@@ -7,9 +7,10 @@ import {
 	Mappings,
 	TriCasterOptions,
 	DeviceOptionsTriCaster,
-	MappingTriCaster,
+	SomeMappingTricaster,
 	Timeline,
 	TSRTimelineContent,
+	Mapping,
 } from 'timeline-state-resolver-types'
 import { MappingsTriCaster, TriCasterState, TriCasterStateDiffer } from './triCasterStateDiffer'
 import { TriCasterCommandWithContext } from './triCasterCommands'
@@ -124,7 +125,7 @@ export class TriCasterDevice extends DeviceWithState<TriCasterState, DeviceOptio
 	private filterTriCasterMappings(newMappings: Mappings): MappingsTriCaster {
 		return Object.entries(newMappings).reduce<MappingsTriCaster>((accumulator, [layerName, mapping]) => {
 			if (mapping.device === DeviceType.TRICASTER && mapping.deviceId === this.deviceId) {
-				accumulator[layerName] = mapping as MappingTriCaster
+				accumulator[layerName] = mapping as Mapping<SomeMappingTricaster>
 			}
 			return accumulator
 		}, {})

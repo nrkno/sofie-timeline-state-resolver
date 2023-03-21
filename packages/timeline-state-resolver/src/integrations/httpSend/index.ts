@@ -262,7 +262,7 @@ export class HTTPSendDevice extends DeviceWithState<HTTPSendState, DeviceOptions
 			const params = 'params' in cmd && !_.isEmpty(cmd.params) ? cmd.params : undefined
 			if (params) {
 				if (cmd.type === TimelineContentTypeHTTP.GET) {
-					options.searchParams = params
+					options.searchParams = params as Record<string, any>
 				} else {
 					if (cmd.paramsType === TimelineContentTypeHTTPParamType.FORM) {
 						options.form = params

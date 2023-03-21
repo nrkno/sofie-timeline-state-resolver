@@ -8,7 +8,8 @@ import {
 	TSRTimelineContent,
 	DeviceOptionsMultiOSC,
 	MultiOSCOptions,
-	MappingMultiOSC,
+	SomeMappingMultiOsc,
+	Mapping,
 } from 'timeline-state-resolver-types'
 import { DoOnTime, SendMode } from '../../devices/doOnTime'
 
@@ -157,22 +158,22 @@ export class MultiOSCMessageDevice extends DeviceWithState<OSCDeviceState, Devic
 		)
 
 		_.each(state.layers, (layer) => {
-			const mapping = mappings[layer.layer] as MappingMultiOSC | undefined
+			const mapping = mappings[layer.layer] as Mapping<SomeMappingMultiOsc> | undefined
 			if (!mapping) return
 
 			if (layer.content.deviceType === DeviceType.OSC) {
 				const content: OSCDeviceStateContent = {
 					...layer.content,
-					connectionId: mapping.connectionId,
+					connectionId: mapping.options.connectionId,
 					fromTlObject: layer.id,
 				}
 				if (
-					(addrToOSCMessage[mapping.connectionId][content.path] &&
-						addrToPriority[mapping.connectionId][content.path] <= (layer.priority || 0)) ||
-					!addrToOSCMessage[mapping.connectionId][content.path]
+					(addrToOSCMessage[mapping.options.connectionId][content.path] &&
+						addrToPriority[mapping.options.connectionId][content.path] <= (layer.priority || 0)) ||
+					!addrToOSCMessage[mapping.options.connectionId][content.path]
 				) {
-					addrToOSCMessage[mapping.connectionId][content.path] = content
-					addrToPriority[mapping.connectionId][content.path] = layer.priority || 0
+					addrToOSCMessage[mapping.options.connectionId][content.path] = content
+					addrToPriority[mapping.options.connectionId][content.path] = layer.priority || 0
 				}
 			}
 		})

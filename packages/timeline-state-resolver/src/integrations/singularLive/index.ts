@@ -4,13 +4,14 @@ import {
 	DeviceType,
 	SingularLiveOptions,
 	TimelineContentTypeSingularLive,
-	MappingSingularLive,
+	SomeMappingSingularLive,
 	DeviceOptionsSingularLive,
 	SingularCompositionAnimation,
 	SingularCompositionControlNode,
 	Mappings,
 	TSRTimelineContent,
 	Timeline,
+	Mapping,
 } from 'timeline-state-resolver-types'
 import { DoOnTime, SendMode } from '../../devices/doOnTime'
 import * as request from 'request'
@@ -176,7 +177,7 @@ export class SingularLiveDevice extends DeviceWithState<SingularLiveState, Devic
 		const singularState: SingularLiveState = this._getDefaultState()
 
 		_.each(state.layers, (tlObject, layerName: string) => {
-			const mapping: MappingSingularLive | undefined = newMappings[layerName] as MappingSingularLive
+			const mapping = newMappings[layerName] as Mapping<SomeMappingSingularLive>
 			if (
 				mapping &&
 				mapping.device === DeviceType.SINGULAR_LIVE &&
@@ -186,7 +187,7 @@ export class SingularLiveDevice extends DeviceWithState<SingularLiveState, Devic
 				const content = tlObject.content
 
 				if (content.type === TimelineContentTypeSingularLive.COMPOSITION) {
-					singularState.compositions[mapping.compositionName] = {
+					singularState.compositions[mapping.options.compositionName] = {
 						timelineObjId: tlObject.id,
 
 						controlNode: content.controlNode,

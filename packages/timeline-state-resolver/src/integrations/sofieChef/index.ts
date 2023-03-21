@@ -5,9 +5,10 @@ import {
 	SofieChefOptions,
 	DeviceOptionsSofieChef,
 	Mappings,
-	MappingSofieChef,
+	SomeMappingSofieChef,
 	TSRTimelineContent,
 	Timeline,
+	Mapping,
 } from 'timeline-state-resolver-types'
 
 import { DoOnTime, SendMode } from '../../devices/doOnTime'
@@ -202,11 +203,11 @@ export class SofieChefDevice extends DeviceWithState<SofieChefState, DeviceOptio
 			windows: {},
 		}
 		for (const [layer, layerState] of Object.entries(state.layers)) {
-			const mapping = mappings[layer] as MappingSofieChef
+			const mapping = mappings[layer] as Mapping<SomeMappingSofieChef>
 			const content = layerState.content
 
 			if (mapping && content.deviceType === DeviceType.SOFIE_CHEF) {
-				sofieChefState.windows[mapping.windowId] = {
+				sofieChefState.windows[mapping.options.windowId] = {
 					url: content.url,
 					urlTimelineObjId: layerState.id,
 				}

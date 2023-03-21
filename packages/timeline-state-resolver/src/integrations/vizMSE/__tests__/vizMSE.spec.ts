@@ -3,7 +3,8 @@ import {
 	Mappings,
 	DeviceType,
 	TSRTimeline,
-	MappingVizMSE,
+	Mapping,
+	SomeMappingVizMSE,
 	TimelineContentTypeVizMSE,
 	VIZMSETransitionType,
 	VizMSEOptions,
@@ -38,13 +39,15 @@ async function setupDevice() {
 		return device._defaultCommandReceiver(...args)
 	})
 
-	const myChannelMapping0: MappingVizMSE = {
+	const myChannelMapping0: Mapping<SomeMappingVizMSE> = {
 		device: DeviceType.VIZMSE,
 		deviceId: 'myViz',
+		options: {},
 	}
-	const myChannelMapping1: MappingVizMSE = {
+	const myChannelMapping1: Mapping<SomeMappingVizMSE> = {
 		device: DeviceType.VIZMSE,
 		deviceId: 'myViz',
+		options: {},
 	}
 	const myChannelMapping: Mappings = {
 		viz0: myChannelMapping0,
@@ -562,13 +565,15 @@ describe('vizMSE', () => {
 		const commandReceiver0 = jest.fn(async () => {
 			return Promise.resolve()
 		})
-		const myChannelMapping0: MappingVizMSE = {
+		const myChannelMapping0: Mapping<SomeMappingVizMSE> = {
 			device: DeviceType.VIZMSE,
 			deviceId: 'myViz',
+			options: {},
 		}
-		const myChannelMapping1: MappingVizMSE = {
+		const myChannelMapping1: Mapping<SomeMappingVizMSE> = {
 			device: DeviceType.VIZMSE,
 			deviceId: 'myViz',
+			options: {},
 		}
 		const myChannelMapping: Mappings = {
 			viz0: myChannelMapping0,

@@ -4,7 +4,7 @@ import { DeviceWithState, CommandWithContext, DeviceStatus, StatusCode } from '.
 import {
 	DeviceType,
 	Mapping,
-	MappingQuantel,
+	SomeMappingQuantel,
 	QuantelOptions,
 	TimelineContentQuantelClip,
 	QuantelControlMode,
@@ -15,6 +15,8 @@ import {
 	Timeline,
 	TSRTimelineContent,
 	QuantelActions,
+	ActionExecutionResult,
+	ActionExecutionResultCode,
 } from 'timeline-state-resolver-types'
 
 import { DoOnTime, SendMode } from '../../devices/doOnTime'
@@ -29,7 +31,6 @@ import {
 	QuantelCommandType,
 	QuantelStatePort,
 } from './types'
-import { ActionExecutionResult, ActionExecutionResultCode } from 'timeline-state-resolver-types'
 export { QuantelCommandType }
 
 const IDEAL_PREPARE_TIME = 1000
@@ -240,19 +241,21 @@ export class QuantelDevice extends DeviceWithState<QuantelState, DeviceOptionsQu
 				mapping &&
 				mapping.device === DeviceType.QUANTEL &&
 				mapping.deviceId === this.deviceId &&
-				_.has(mapping, 'portId') &&
-				_.has(mapping, 'channelId')
+				_.has(mapping.options, 'portId') &&
+				_.has(mapping.options, 'channelId')
 			) {
-				const qMapping: MappingQuantel = mapping as MappingQuantel
+				const qMapping = mapping as Mapping<SomeMappingQuantel>
 
-				if (!ports[qMapping.portId]) {
-					ports[qMapping.portId] = {
-						mode: qMapping.mode || QuantelControlMode.QUALITY,
+				if (!ports[qMapping.options.portId]) {
+					ports[qMapping.options.portId] = {
+						mode: qMapping.options.mode || QuantelControlMode.QUALITY,
 						channels: [],
 					}
 				}
 
-				ports[qMapping.portId].channels = _.sortBy(_.uniq(ports[qMapping.portId].channels.concat([qMapping.channelId])))
+				ports[qMapping.options.portId].channels = _.sortBy(
+					_.uniq(ports[qMapping.options.portId].channels.concat([qMapping.options.channelId]))
+				)
 			}
 		})
 		return ports
@@ -280,7 +283,7 @@ export class QuantelDevice extends DeviceWithState<QuantelState, DeviceOptionsQu
 
 		_.each(timelineState.layers, (layer, layerName: string) => {
 			const layerExt: ResolvedTimelineObjectInstanceExtended = layer
-			let foundMapping: Mapping = mappings[layerName]
+			let foundMapping = mappings[layerName]
 
 			let isLookahead = false
 			if (!foundMapping && layerExt.isLookahead && layerExt.lookaheadForLayer) {
@@ -292,13 +295,14 @@ export class QuantelDevice extends DeviceWithState<QuantelState, DeviceOptionsQu
 				foundMapping &&
 				foundMapping.device === DeviceType.QUANTEL &&
 				foundMapping.deviceId === this.deviceId &&
-				_.has(foundMapping, 'portId') &&
-				_.has(foundMapping, 'channelId')
+				_.has(foundMapping.options, 'portId') &&
+				_.has(foundMapping.options, 'channelId')
 			) {
-				const mapping: MappingQuantel = foundMapping as MappingQuantel
+				const mapping = foundMapping as Mapping<SomeMappingQuantel> | undefined
+				if (!mapping) throw new Error(`Mapping "${layerName}" not found`)
 
-				const port: QuantelStatePort = state.port[mapping.portId]
-				if (!port) throw new Error(`Port "${mapping.portId}" not found`)
+				const port: QuantelStatePort = state.port[mapping.options.portId]
+				if (!port) throw new Error(`Port "${mapping.options.portId}" not found`)
 
 				const content = layer.content as TimelineContentQuantelClip
 				if (content && (content.title || content.guid)) {

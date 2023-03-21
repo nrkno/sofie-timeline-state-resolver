@@ -4,7 +4,8 @@ import {
 	Mappings,
 	DeviceType,
 	TimelineContentTypeLawo,
-	MappingLawo,
+	Mapping,
+	SomeMappingLawo,
 	MappingLawoType,
 	LawoDeviceMode,
 } from 'timeline-state-resolver-types'
@@ -22,16 +23,20 @@ describe('Lawo', () => {
 		const commandReceiver0: any = jest.fn(async () => {
 			return Promise.resolve()
 		})
-		const myChannelMapping0: MappingLawo = {
+		const myChannelMapping0: Mapping<SomeMappingLawo> = {
 			device: DeviceType.LAWO,
 			deviceId: 'myLawo',
-			mappingType: MappingLawoType.SOURCE,
-			identifier: 'BASE',
+			options: {
+				mappingType: MappingLawoType.Source,
+				identifier: 'BASE',
+			},
 		}
-		const myRetriggerMapping: MappingLawo = {
+		const myRetriggerMapping: Mapping<SomeMappingLawo> = {
 			device: DeviceType.LAWO,
 			deviceId: 'myLawo',
-			mappingType: MappingLawoType.TRIGGER_VALUE,
+			options: {
+				mappingType: MappingLawoType.TriggerValue,
+			},
 		}
 		const myChannelMapping: Mappings = {
 			lawo_c1_fader: myChannelMapping0,
@@ -167,27 +172,35 @@ describe('Lawo', () => {
 		const commandReceiver0: any = jest.fn(async () => {
 			return Promise.resolve()
 		})
-		const myChannelMapping0: MappingLawo = {
+		const myChannelMapping0: Mapping<SomeMappingLawo> = {
 			device: DeviceType.LAWO,
 			deviceId: 'myLawo',
-			mappingType: MappingLawoType.SOURCE,
-			identifier: 'BASE',
+			options: {
+				mappingType: MappingLawoType.Source,
+				identifier: 'BASE',
+			},
 		}
-		const myChannelMapping1: MappingLawo = {
+		const myChannelMapping1: Mapping<SomeMappingLawo> = {
 			device: DeviceType.LAWO,
 			deviceId: 'myLawo',
-			mappingType: MappingLawoType.SOURCE,
-			identifier: 'BASE2',
+			options: {
+				mappingType: MappingLawoType.Source,
+				identifier: 'BASE2',
+			},
 		}
-		const myChannelsMapping: MappingLawo = {
+		const myChannelsMapping: Mapping<SomeMappingLawo> = {
 			device: DeviceType.LAWO,
 			deviceId: 'myLawo',
-			mappingType: MappingLawoType.SOURCES,
+			options: {
+				mappingType: MappingLawoType.Sources,
+			},
 		}
-		const myRetriggerMapping: MappingLawo = {
+		const myRetriggerMapping: Mapping<SomeMappingLawo> = {
 			device: DeviceType.LAWO,
 			deviceId: 'myLawo',
-			mappingType: MappingLawoType.TRIGGER_VALUE,
+			options: {
+				mappingType: MappingLawoType.TriggerValue,
+			},
 		}
 		const myChannelMapping: Mappings = {
 			lawo_c1_fader: myChannelMapping0,
@@ -375,27 +388,35 @@ describe('Lawo', () => {
 		const commandReceiver0: any = jest.fn(async () => {
 			return Promise.resolve()
 		})
-		const myChannelMapping0: MappingLawo = {
+		const myChannelMapping0: Mapping<SomeMappingLawo> = {
 			device: DeviceType.LAWO,
 			deviceId: 'myLawo',
-			mappingType: MappingLawoType.SOURCE,
-			identifier: 'SOURCE1',
+			options: {
+				mappingType: MappingLawoType.Source,
+				identifier: 'SOURCE1',
+			},
 		}
-		const myChannelMapping1: MappingLawo = {
+		const myChannelMapping1: Mapping<SomeMappingLawo> = {
 			device: DeviceType.LAWO,
 			deviceId: 'myLawo',
-			mappingType: MappingLawoType.SOURCE,
-			identifier: 'SOURCE2',
+			options: {
+				mappingType: MappingLawoType.Source,
+				identifier: 'SOURCE2',
+			},
 		}
-		const myChannelsMapping: MappingLawo = {
+		const myChannelsMapping: Mapping<SomeMappingLawo> = {
 			device: DeviceType.LAWO,
 			deviceId: 'myLawo',
-			mappingType: MappingLawoType.SOURCES,
+			options: {
+				mappingType: MappingLawoType.Sources,
+			},
 		}
-		const myRetriggerMapping: MappingLawo = {
+		const myRetriggerMapping: Mapping<SomeMappingLawo> = {
 			device: DeviceType.LAWO,
 			deviceId: 'myLawo',
-			mappingType: MappingLawoType.TRIGGER_VALUE,
+			options: {
+				mappingType: MappingLawoType.TriggerValue,
+			},
 		}
 		const myChannelMapping: Mappings = {
 			lawo_c1_fader: myChannelMapping0,
@@ -555,17 +576,21 @@ describe('Lawo', () => {
 		const commandReceiver0: any = jest.fn(async () => {
 			return Promise.resolve()
 		})
-		const lawoMainDelayOnMapping: MappingLawo = {
+		const lawoMainDelayOnMapping: Mapping<SomeMappingLawo> = {
 			device: DeviceType.LAWO,
 			deviceId: 'myLawo',
-			mappingType: MappingLawoType.FULL_PATH,
-			identifier: '001.Sums.MAIN.DSP.Delay.On',
+			options: {
+				mappingType: MappingLawoType.Fullpath,
+				identifier: '001.Sums.MAIN.DSP.Delay.On',
+			},
 		}
-		const lawoMainDelayTimeMapping: MappingLawo = {
+		const lawoMainDelayTimeMapping: Mapping<SomeMappingLawo> = {
 			device: DeviceType.LAWO,
 			deviceId: 'myLawo',
-			mappingType: MappingLawoType.FULL_PATH,
-			identifier: '001.Sums.MAIN.DSP.Delay.Time',
+			options: {
+				mappingType: MappingLawoType.Fullpath,
+				identifier: '001.Sums.MAIN.DSP.Delay.Time',
+			},
 		}
 
 		const myChannelMapping: Mappings = {
@@ -654,11 +679,13 @@ describe('Lawo', () => {
 		const commandReceiver0: any = jest.fn(async () => {
 			return Promise.resolve()
 		})
-		const myChannelMapping0: MappingLawo = {
+		const myChannelMapping0: Mapping<SomeMappingLawo> = {
 			device: DeviceType.LAWO,
 			deviceId: 'myLawo',
-			mappingType: MappingLawoType.SOURCE,
-			identifier: 'RM1',
+			options: {
+				mappingType: MappingLawoType.Source,
+				identifier: 'RM1',
+			},
 		}
 		const myChannelMapping: Mappings = {
 			lawo_c1_fader: myChannelMapping0,
@@ -676,11 +703,11 @@ describe('Lawo', () => {
 			options: {
 				host: '160.67.96.51',
 				port: 9000,
-				setValueFn: commandReceiver0,
 
 				deviceMode: LawoDeviceMode.R3lay,
 				faderInterval: 40,
 			},
+			setValueFn: commandReceiver0,
 		})
 		await mockTime.advanceTimeToTicks(10100)
 
@@ -724,38 +751,48 @@ describe('Lawo', () => {
 		const commandReceiver0: any = jest.fn(async () => {
 			return Promise.resolve()
 		})
-		const mapping0: MappingLawo = {
+		const mapping0: Mapping<SomeMappingLawo> = {
 			device: DeviceType.LAWO,
 			deviceId: 'myLawo',
-			mappingType: MappingLawoType.FULL_PATH,
-			identifier: 'MAIN.DSP0',
+			options: {
+				mappingType: MappingLawoType.Fullpath,
+				identifier: 'MAIN.DSP0',
+			},
 		}
-		const mapping1: MappingLawo = {
+		const mapping1: Mapping<SomeMappingLawo> = {
 			device: DeviceType.LAWO,
 			deviceId: 'myLawo',
-			mappingType: MappingLawoType.FULL_PATH,
-			identifier: 'MAIN.DSP1',
-			priority: 1,
+			options: {
+				mappingType: MappingLawoType.Fullpath,
+				identifier: 'MAIN.DSP1',
+				priority: 1,
+			},
 		}
-		const mapping2: MappingLawo = {
+		const mapping2: Mapping<SomeMappingLawo> = {
 			device: DeviceType.LAWO,
 			deviceId: 'myLawo',
-			mappingType: MappingLawoType.FULL_PATH,
-			identifier: 'MAIN.DSP2',
-			priority: 3,
+			options: {
+				mappingType: MappingLawoType.Fullpath,
+				identifier: 'MAIN.DSP2',
+				priority: 3,
+			},
 		}
-		const mapping3: MappingLawo = {
+		const mapping3: Mapping<SomeMappingLawo> = {
 			device: DeviceType.LAWO,
 			deviceId: 'myLawo',
-			mappingType: MappingLawoType.FULL_PATH,
-			identifier: 'MAIN.DSP3',
-			priority: 2,
+			options: {
+				mappingType: MappingLawoType.Fullpath,
+				identifier: 'MAIN.DSP3',
+				priority: 2,
+			},
 		}
-		const mapping4: MappingLawo = {
+		const mapping4: Mapping<SomeMappingLawo> = {
 			device: DeviceType.LAWO,
 			deviceId: 'myLawo',
-			mappingType: MappingLawoType.FULL_PATH,
-			identifier: 'MAIN.DSP4',
+			options: {
+				mappingType: MappingLawoType.Fullpath,
+				identifier: 'MAIN.DSP4',
+			},
 		}
 
 		const myChannelMapping: Mappings = {

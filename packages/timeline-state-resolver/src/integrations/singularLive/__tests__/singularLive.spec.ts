@@ -1,10 +1,12 @@
 import { Conductor } from '../../../conductor'
 import { SingularLiveDevice } from '..'
 import {
-	MappingSingularLive,
+	SomeMappingSingularLive,
+	Mapping,
 	Mappings,
 	DeviceType,
 	TimelineContentTypeSingularLive,
+	MappingSingularLiveType,
 } from 'timeline-state-resolver-types'
 import { MockTime } from '../../../__tests__/mockTime'
 import { ThreadedClass } from 'threadedclass'
@@ -21,10 +23,13 @@ describe('Singular.Live', () => {
 		const commandReceiver0: any = jest.fn(async () => {
 			return Promise.resolve()
 		})
-		const myLayerMapping0: MappingSingularLive = {
+		const myLayerMapping0: Mapping<SomeMappingSingularLive> = {
 			device: DeviceType.SINGULAR_LIVE,
 			deviceId: 'mySingular',
-			compositionName: 'Lower Third',
+			options: {
+				mappingType: MappingSingularLiveType.Composition,
+				compositionName: 'Lower Third',
+			},
 		}
 		const myLayerMapping: Mappings = {
 			myLayer0: myLayerMapping0,
