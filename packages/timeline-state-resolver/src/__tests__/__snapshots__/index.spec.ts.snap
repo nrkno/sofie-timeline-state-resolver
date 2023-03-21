@@ -2,6 +2,7 @@
 
 exports[`index imports 1`] = `
 [
+  "AbortError",
   "AbstractActions",
   "ActionExecutionResultCode",
   "AtemActions",
@@ -37,6 +38,7 @@ exports[`index imports 1`] = `
   "MappingSingularLiveType",
   "MappingSisyfosType",
   "MappingSofieChefType",
+  "MappingTricasterType",
   "MappingVmixType",
   "MediaSourceType",
   "MultiOSCDeviceType",
@@ -70,6 +72,7 @@ exports[`index imports 1`] = `
   "TimelineContentTypeSisyfos",
   "TimelineContentTypeSofieChef",
   "TimelineContentTypeTcp",
+  "TimelineContentTypeTriCaster",
   "TimelineContentTypeVMix",
   "TimelineContentTypeVizMSE",
   "Transition",
@@ -82,6 +85,7 @@ exports[`index imports 1`] = `
   "VideoFormat",
   "VizMSEActions",
   "VizMSEDevice",
+  "VmixActions",
   "manifest",
 ]
 `;

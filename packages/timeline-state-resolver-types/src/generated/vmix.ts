@@ -102,3 +102,23 @@ export enum MappingVmixType {
 }
 
 export type SomeMappingVmix = MappingVmixProgram | MappingVmixPreview | MappingVmixInput | MappingVmixAudioChannel | MappingVmixOutput | MappingVmixOverlay | MappingVmixRecording | MappingVmixStreaming | MappingVmixExternal | MappingVmixFadeToBlack | MappingVmixFader | MappingVmixScript
+
+export interface OpenPresetPayload {
+	/**
+	 * The filename of the preset to load
+	 */
+	filename: string
+}
+
+export interface SavePresetPayload {
+	/**
+	 * The filename of the preset to save
+	 */
+	filename: string
+}
+
+export enum VmixActions {
+	LastPreset = 'lastPreset',
+	OpenPreset = 'openPreset',
+	SavePreset = 'savePreset',
+}

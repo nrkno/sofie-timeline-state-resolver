@@ -34,6 +34,13 @@
 			"description": "Identifier of the \"playlist\" to send commands to",
 			"default": "SOFIE"
 		},
+		"showDirectoryPath": {
+			"type": "string",
+			"ui:title": "(Optional) Show Directory Path",
+			"ui:description": "Path where the show references are stored, relative to /directory/shows/",
+			"description": "Path relative to \"/directory/shows\", where Shows managed by Sofie are listed e.g. \"SOFIE\"",
+			"default": ""
+		},
 		"preloadAllElements": {
 			"type": "boolean",
 			"ui:title": "Preload all elements",

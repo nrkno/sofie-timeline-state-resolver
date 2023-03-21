@@ -42,6 +42,8 @@ import TCPSendOptions = require('./integrations/tcpSend/$schemas/options.json')
 import TCPSendMappings = require('./integrations/tcpSend/$schemas/mappings.json')
 import TelemetricsOptions = require('./integrations/telemetrics/$schemas/options.json')
 import TelemetricsMappings = require('./integrations/telemetrics/$schemas/mappings.json')
+import TricasterOptions = require('./integrations/tricaster/$schemas/options.json')
+import TricasterMappings = require('./integrations/tricaster/$schemas/mappings.json')
 import VizMSEActions = require('./integrations/vizMSE/$schemas/actions.json')
 import VizMSEOptions = require('./integrations/vizMSE/$schemas/options.json')
 import VizMSEMappings = require('./integrations/vizMSE/$schemas/mappings.json')
@@ -174,6 +176,11 @@ export const manifest: TSRManifest = {
 			displayName: generateTranslation('Telemetrics'),
 			configSchema: JSON.stringify(TelemetricsOptions),
 			mappingsSchemas: stringifyMappingSchema(TelemetricsMappings),
+		},
+		[DeviceType.TRICASTER]: {
+			displayName: generateTranslation('Tricaster'),
+			configSchema: JSON.stringify(TricasterOptions),
+			mappingsSchemas: stringifyMappingSchema(TricasterMappings),
 		},
 		[DeviceType.VIZMSE]: {
 			displayName: generateTranslation('Viz MSE'),

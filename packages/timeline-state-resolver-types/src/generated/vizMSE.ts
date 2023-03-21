@@ -31,6 +31,10 @@ export interface VizMSEOptions {
 	 */
 	playlistID?: string
 	/**
+	 * Path relative to "/directory/shows", where Shows managed by Sofie are listed e.g. "SOFIE"
+	 */
+	showDirectoryPath?: string
+	/**
 	 * Whether all elements should be preloaded or not
 	 */
 	preloadAllElements?: boolean
