@@ -3,6 +3,44 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [8.0.0-release49.0](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/8.0.0-release48.2...8.0.0-release49.0) (2023-03-21)
+
+
+### ⚠ BREAKING CHANGES
+
+* resolve MSE show names to IDs using the directory
+
+### Features
+
+* Emit debug state ([516a512](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/516a51203aa0af8c0a47552ecf9c0c99cd01d0be))
+* multi osc device ([b987680](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/b9876808d44543903e45ab5a1a1a2b85beed4aac))
+* resolve MSE show names to IDs using the directory ([e094dda](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/e094dda7dbd14b312ff8ffef5d45a39a1e802bcf))
+* SOF-1135 make `createDevice` and `initDevice` abortable ([70bfef2](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/70bfef20029b8972aeb248a7c2012b5d92fb2ecc))
+* SOF-1140 handle warnings from v-connection ([a48d313](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/a48d313d20344ebd8a061c625d8ed3491df95465))
+* SOF-1254 add TriCaster integration ([06b129e](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/06b129ecec2d87b0caaa22fda36b2b5ef953653e))
+* SOF-1254 add TriCaster matrix support ([dbb1b26](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/dbb1b26e84a41227e3eca0fae902bf5b57ca5d8e))
+* Vmix preset actions ([8b31294](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/8b3129412f3881ff9db2cd059927e5b5f3ae6caf))
+* **vmix:** add support for ListRemoveAll and ListAdd commands ([4a7240f](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/4a7240f7b2819bb16f263b72d1b06b98e3c40353))
+* **vmix:** add support for starting and stopping VB.NET scripts ([9f2d4ee](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/9f2d4eeeccd9ba0017fc00cfe5df18e3717ea660))
+
+
+### Bug Fixes
+
+* allow resetting to baseline ([572118b](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/572118b94a2855598848f1daa1575bc3ccc6186a))
+* ensure that LIST_REMOVE_ALL and LIST_ADD are sent before most other commands ([13bf78a](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/13bf78ad650df861dc1305998dc55e9d779d77ac))
+* multi osc device udp stateless ([af34aa0](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/af34aa023965b2e5e18b54f66478812a2488ecb8))
+* pause List inputs before emptying them ([9abc089](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/9abc0895ae02a2dfd387551b9f3a7f495abf6282))
+* properly parse multi-packet vMix TCP API responses ([35ba046](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/35ba0464905e29d1f84c2c61327e321250a44e73))
+* reduce amount of `setTimeout` when using `DoInTime` in `BURST` mode ([5123405](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/51234050e12156e08cc0e1a13e28ca17046e7a42))
+* review comments ([cb21206](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/cb2120650f928e1bc7958136318403feb1d493ec))
+* SOF-1140 wrap strings in Errors to avoid mangled logs ([bca62cb](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/bca62cb7d3abd05974e79f5eece079de98a4bacf))
+* SOF-1254 control only resources that are mapped ([7892669](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/789266983a40cfc52df75fce48cb5dbce4c977f3))
+* SOF-1254 improve types ([0471a7b](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/0471a7bf64f7340e83b5b6f47212003fd2586ca6))
+* SOF-1254 log warning when websocket disconnected ([3d9964a](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/3d9964af7c4352c36e95824dd323cd2fe46717fd))
+* unable to resolve show ids (bug from previous refactor) ([cdf2c62](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/cdf2c62227517e7a48a7c8c7ae102374167056cd))
+
+
+
 # [8.0.0-release48.2](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/7.5.0...8.0.0-release48.2) (2023-03-21)
 
 
