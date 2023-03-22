@@ -36,3 +36,16 @@ export interface TcpSendCommandContent {
 }
 
 export type SomeMappingTcpSend = Record<string, never>
+
+export interface SendTcpCommandPayload {
+	message: string
+	temporalPriority?: number
+	queueId?: string
+	[k: string]: unknown
+}
+
+export enum TcpSendActions {
+	Reconnect = 'reconnect',
+	ResetState = 'resetState',
+	SendTcpCommand = 'sendTcpCommand',
+}

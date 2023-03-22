@@ -368,11 +368,13 @@ describe('Conductor', () => {
 		await conductor.addDevice('device4', {
 			type: DeviceType.LAWO,
 			options: {
-				deviceMode: LawoDeviceMode.Ruby,
 				host: '',
+				deviceMode: LawoDeviceMode.Ruby,
 			},
 			commandReceiver: commandReceiver4,
 		})
+
+		await mockTime.advanceTimeTicks(10) // to allow casparcg to fake "connect"
 
 		await conductor.devicesMakeReady(true)
 

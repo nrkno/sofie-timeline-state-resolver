@@ -334,7 +334,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 		return
 	}
 
-	async _lastPreset() {
+	private async _lastPreset() {
 		const presetActionCheckResult = this._checkPresetAction()
 		if (presetActionCheckResult) return presetActionCheckResult
 		await this._vmix.lastPreset()
@@ -343,7 +343,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 		}
 	}
 
-	async _openPreset(payload: OpenPresetPayload) {
+	private async _openPreset(payload: OpenPresetPayload) {
 		const presetActionCheckResult = this._checkPresetAction(payload, true)
 		if (presetActionCheckResult) return presetActionCheckResult
 		await this._vmix.openPreset(payload.filename)
@@ -352,7 +352,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 		}
 	}
 
-	async _savePreset(payload: SavePresetPayload) {
+	private async _savePreset(payload: SavePresetPayload) {
 		const presetActionCheckResult = this._checkPresetAction(payload, true)
 		if (presetActionCheckResult) return presetActionCheckResult
 		await this._vmix.savePreset(payload.filename)

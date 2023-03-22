@@ -134,9 +134,8 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 							// We can't return here, as that will leave anything in channelPromises as potentially unhandled
 							channelPromises.push(Promise.reject('execute failed'))
 							break
-						} else if (request !== undefined) {
-							channelPromises.push(request)
 						}
+						channelPromises.push(request)
 					}
 
 					// Wait for all commands
@@ -609,38 +608,13 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 	 * @param okToDestroyStuff Whether it is OK to restart the device
 	 */
 	async makeReady(okToDestroyStuff?: boolean): Promise<void> {
-		// Sync Caspar Time to our time:
-		const command = await this._ccg.executeCommand({ command: Commands.Info, params: {} })
-		if (command.error) throw new Error('Could not makeReady')
-		const response = await command.request
-		const channels: any[] = response.data
-
-		// Clear all channels (?)
-		if (okToDestroyStuff) {
-			await Promise.all(
-				_.map(channels, async (channel: any) => {
-					await this._commandReceiver(
-						this.getCurrentTime(),
-						{
-							command: Commands.Clear,
-							params: {
-								channel: channel.channel,
-							},
-						},
-						'makeReady and destroystuff',
-						''
-					)
-				})
-			)
-		}
 		// reset our own state(s):
 		if (okToDestroyStuff) {
-			this.clearStates()
+			await this.clearAllChannels()
 		}
-		// a resolveTimeline will be triggered later
 	}
 
-	async clearAllChannels(): Promise<ActionExecutionResult> {
+	private async clearAllChannels(): Promise<ActionExecutionResult> {
 		if (!this._ccg.connected) {
 			return {
 				result: ActionExecutionResultCode.Error,
@@ -711,7 +685,7 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 	/**
 	 * Attemps to restart casparcg over the HTTP API provided by CasparCG launcher.
 	 */
-	async restartCasparCG(): Promise<ActionExecutionResult> {
+	private async restartCasparCG(): Promise<ActionExecutionResult> {
 		if (!this.initOptions) {
 			return { result: ActionExecutionResultCode.Error, response: t('CasparCGDevice._connectionOptions is not set!') }
 		}

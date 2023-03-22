@@ -211,15 +211,62 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState, DeviceOptionsVizM
 		return this._vizMSEConnected
 	}
 
+	async activate(payload: Record<string, any> | undefined): Promise<ActionExecutionResult> {
+		if (!payload || !payload.activeRundownPlaylistId) {
+			return {
+				result: ActionExecutionResultCode.Error,
+				response: t('Invalid payload'),
+			}
+		}
+		if (!this._vizmseManager) {
+			return {
+				result: ActionExecutionResultCode.Error,
+				response: t('Unable to activate vizMSE, not initialized yet'),
+			}
+		}
+
+		const activeRundownPlaylistId = payload.activeRundownPlaylist
+		const previousPlaylistId = this._vizmseManager?.activeRundownPlaylistId
+
+		await this._vizmseManager.activate(activeRundownPlaylistId)
+
+		if (!payload.clearAll) {
+			return {
+				result: ActionExecutionResultCode.Ok,
+			}
+		}
+
+		this.clearStates()
+
+		if (this._initOptions && activeRundownPlaylistId !== previousPlaylistId) {
+			if (this._initOptions.clearAllCommands && this._initOptions.clearAllCommands.length) {
+				await this._vizmseManager.clearEngines({
+					type: VizMSECommandType.CLEAR_ALL_ENGINES,
+					time: this.getCurrentTime(),
+					timelineObjId: 'makeReady',
+					channels: 'all',
+					commands: this._initOptions.clearAllCommands,
+				})
+			}
+		}
+
+		return {
+			result: ActionExecutionResultCode.Ok,
+		}
+	}
 	public async purgeRundown(clearAll: boolean): Promise<void> {
 		await this._vizmseManager?.purgeRundown(clearAll)
 	}
 
-	async executeAction(actionId: string, _payload?: Record<string, any> | undefined): Promise<ActionExecutionResult> {
+	async executeAction(actionId: string, payload?: Record<string, any> | undefined): Promise<ActionExecutionResult> {
 		switch (actionId) {
 			case VizMSEActions.PurgeRundown:
 				await this.purgeRundown(true)
 				return { result: ActionExecutionResultCode.Ok }
+			case VizMSEActions.Activate:
+				return this.activate(payload)
+			case VizMSEActions.StandDown:
+				return this.executeStandDown()
 			default:
 				return { result: ActionExecutionResultCode.Ok, response: t('Action "{{id}}" not found', { actionId }) }
 		}
@@ -458,19 +505,26 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState, DeviceOptionsVizM
 			} else throw new Error(`Unable to activate vizMSE, not initialized yet!`)
 		}
 	}
+	async executeStandDown(): Promise<ActionExecutionResult> {
+		if (this._vizmseManager) {
+			if (!this._initOptions || !this._initOptions.dontDeactivateOnStandDown) {
+				await this._vizmseManager.deactivate()
+			} else {
+				this._vizmseManager.standDownActiveRundown() // because we still want to stop monitoring expectedPlayoutItems
+			}
+		}
+
+		return {
+			result: ActionExecutionResultCode.Ok,
+		}
+	}
 	/**
 	 * The standDown event could be triggered at a time after broadcast
 	 * @param okToDestroyStuff If true, the device may do things that might affect the visible output
 	 */
 	async standDown(okToDestroyStuff?: boolean): Promise<void> {
 		if (okToDestroyStuff) {
-			if (this._vizmseManager) {
-				if (!this._initOptions || !this._initOptions.dontDeactivateOnStandDown) {
-					await this._vizmseManager.deactivate()
-				} else {
-					this._vizmseManager.standDownActiveRundown() // because we still want to stop monitoring expectedPlayoutItems
-				}
-			}
+			return this.executeStandDown().then(() => undefined)
 		}
 	}
 	getStatus(): DeviceStatus {

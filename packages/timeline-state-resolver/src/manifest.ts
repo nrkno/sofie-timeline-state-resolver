@@ -44,11 +44,15 @@ import TelemetricsOptions = require('./integrations/telemetrics/$schemas/options
 import TelemetricsMappings = require('./integrations/telemetrics/$schemas/mappings.json')
 import TricasterOptions = require('./integrations/tricaster/$schemas/options.json')
 import TricasterMappings = require('./integrations/tricaster/$schemas/mappings.json')
+import HttpSendActions = require('./integrations/httpSend/$schemas/actions.json')
+import PharosActions = require('./integrations/pharos/$schemas/actions.json')
+import TcpSendActions = require('./integrations/tcpSend/$schemas/actions.json')
 import VizMSEActions = require('./integrations/vizMSE/$schemas/actions.json')
 import VizMSEOptions = require('./integrations/vizMSE/$schemas/options.json')
 import VizMSEMappings = require('./integrations/vizMSE/$schemas/mappings.json')
 import VMixOptions = require('./integrations/vmix/$schemas/options.json')
 import VMixMappings = require('./integrations/vmix/$schemas/mappings.json')
+import VMixActions = require('./integrations/vmix/$schemas/actions.json')
 
 import CommonOptions = require('./$schemas/common-options.json')
 import { generateTranslation } from './lib'
@@ -97,6 +101,7 @@ export const manifest: TSRManifest = {
 		},
 		[DeviceType.HTTPSEND]: {
 			displayName: generateTranslation('HTTP Send'),
+			actions: HttpSendActions.actions.map(stringifyActionSchema),
 			configSchema: JSON.stringify(HTTPSendOptions),
 			mappingsSchemas: stringifyMappingSchema(HTTPSendMappings),
 		},
@@ -138,6 +143,7 @@ export const manifest: TSRManifest = {
 		},
 		[DeviceType.PHAROS]: {
 			displayName: generateTranslation('Pharos'),
+			actions: PharosActions.actions.map(stringifyActionSchema),
 			configSchema: JSON.stringify(PharosOptions),
 			mappingsSchemas: stringifyMappingSchema(PharosMappings),
 		},
@@ -169,6 +175,7 @@ export const manifest: TSRManifest = {
 		},
 		[DeviceType.TCPSEND]: {
 			displayName: generateTranslation('TCP Send'),
+			actions: TcpSendActions.actions.map(stringifyActionSchema),
 			configSchema: JSON.stringify(TCPSendOptions),
 			mappingsSchemas: stringifyMappingSchema(TCPSendMappings),
 		},
@@ -190,6 +197,7 @@ export const manifest: TSRManifest = {
 		},
 		[DeviceType.VMIX]: {
 			displayName: generateTranslation('VMix'),
+			actions: VMixActions.actions.map(stringifyActionSchema),
 			configSchema: JSON.stringify(VMixOptions),
 			mappingsSchemas: stringifyMappingSchema(VMixMappings),
 		},

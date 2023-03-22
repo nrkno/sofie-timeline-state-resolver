@@ -184,7 +184,7 @@ export class QuantelDevice extends DeviceWithState<QuantelState, DeviceOptionsQu
 	/**
 	 * Attempts to restart the gateway
 	 */
-	async restartGateway() {
+	private async restartGateway() {
 		if (this._quantel.connected) {
 			return this._quantel.kill()
 		} else {
@@ -200,6 +200,9 @@ export class QuantelDevice extends DeviceWithState<QuantelState, DeviceOptionsQu
 				} catch {
 					return { result: ActionExecutionResultCode.Error }
 				}
+			case QuantelActions.ClearStates:
+				this.clearStates()
+				return { result: ActionExecutionResultCode.Ok }
 			default:
 				return { result: ActionExecutionResultCode.Ok, response: t('Action "{{id}}" not found', { actionId }) }
 		}

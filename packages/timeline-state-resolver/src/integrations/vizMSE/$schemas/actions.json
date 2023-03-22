@@ -7,6 +7,25 @@
 			"description": "Purges all elements from the viz-rundown",
 			"destructive": true,
 			"timeout": 10000
+		},
+		{
+			"id": "activate",
+			"name": "Activate Viz Rundown",
+			"destructive": true,
+			"payload": {
+				"type": "object",
+				"properties": {
+					"activeRundownPlaylistId": { "type": "string" },
+					"clearAll": { "type": "boolean" }
+				},
+				"required": ["activeRundownPlaylistId"],
+				"additionalProperties": false
+			}
+		},
+		{
+			"id": "standDown",
+			"name": "Stand down Viz Rundown",
+			"destructive": true
 		}
 	]
 }

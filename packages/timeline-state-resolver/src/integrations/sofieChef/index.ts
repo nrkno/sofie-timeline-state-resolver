@@ -9,6 +9,9 @@ import {
 	TSRTimelineContent,
 	Timeline,
 	Mapping,
+	ActionExecutionResult,
+	ActionExecutionResultCode,
+	SofieChefActions,
 } from 'timeline-state-resolver-types'
 
 import { DoOnTime, SendMode } from '../../devices/doOnTime'
@@ -21,6 +24,7 @@ import {
 	SendWSMessageType,
 	StatusCode as ChefStatusCode,
 } from './api'
+import { actionNotFoundMessage, t } from '../../lib'
 
 export interface DeviceOptionsSofieChefInternal extends DeviceOptionsSofieChef {
 	commandReceiver?: CommandReceiver
@@ -224,13 +228,11 @@ export class SofieChefDevice extends DeviceWithState<SofieChefState, DeviceOptio
 	get queue() {
 		return this._doOnTime.getQueue()
 	}
-	async makeReady(okToDestroyStuff?: boolean): Promise<void> {
-		if (okToDestroyStuff) {
-			this._doOnTime.clearQueueNowAndAfter(this.getCurrentTime())
-		}
+	async makeReady(_okToDestroyStuff?: boolean): Promise<void> {
+		return Promise.resolve()
 	}
 	/** Restart (reload) all windows */
-	async restartAllWindows() {
+	private async restartAllWindows() {
 		await this._sendMessage({
 			msgId: 0, // set later
 			type: ReceiveWSMessageType.RESTART,
@@ -238,12 +240,36 @@ export class SofieChefDevice extends DeviceWithState<SofieChefState, DeviceOptio
 		})
 	}
 	/** Restart (reload) a window */
-	async restartWindow(windowId: string) {
+	private async restartWindow(windowId: string) {
 		await this._sendMessage({
 			msgId: 0, // set later
 			type: ReceiveWSMessageType.RESTART,
 			windowId: windowId,
 		})
+	}
+	async executeAction(
+		actionId: SofieChefActions,
+		payload?: Record<string, any> | undefined
+	): Promise<ActionExecutionResult> {
+		switch (actionId) {
+			case SofieChefActions.RestartAllWindows:
+				return this.restartAllWindows()
+					.then(() => ({
+						result: ActionExecutionResultCode.Ok,
+					}))
+					.catch(() => ({ result: ActionExecutionResultCode.Error }))
+			case SofieChefActions.RestartWindow:
+				if (!payload?.windowId) {
+					return { result: ActionExecutionResultCode.Error, response: t('Missing window id') }
+				}
+				return this.restartWindow(payload.windowId)
+					.then(() => ({
+						result: ActionExecutionResultCode.Ok,
+					}))
+					.catch(() => ({ result: ActionExecutionResultCode.Error }))
+			default:
+				return actionNotFoundMessage(actionId)
+		}
 	}
 	getStatus(): DeviceStatus {
 		let statusCode = StatusCode.GOOD

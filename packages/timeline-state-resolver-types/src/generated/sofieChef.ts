@@ -26,3 +26,12 @@ export enum MappingSofieChefType {
 }
 
 export type SomeMappingSofieChef = MappingSofieChefWindow
+
+export interface RestartWindowPayload {
+	windowId: string
+}
+
+export enum SofieChefActions {
+	RestartAllWindows = 'restartAllWindows',
+	RestartWindow = 'restartWindow',
+}

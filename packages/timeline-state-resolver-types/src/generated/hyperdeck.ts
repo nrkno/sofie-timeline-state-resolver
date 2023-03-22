@@ -27,4 +27,5 @@ export type SomeMappingHyperdeck = MappingHyperdeckTransport
 
 export enum HyperdeckActions {
 	FormatDisks = 'formatDisks',
+	Resync = 'resync',
 }

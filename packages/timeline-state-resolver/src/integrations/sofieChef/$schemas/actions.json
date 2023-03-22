@@ -1,0 +1,26 @@
+{
+	"$schema": "../../../$schemas/action-schema.json",
+	"actions": [
+		{
+			"id": "restartAllWindows",
+			"name": "Restart all windows",
+			"destructive": true
+		},
+		{
+			"id": "restartWindow",
+			"name": "Restart window",
+			"destructive": true,
+			"payload": {
+				"type": "object",
+				"properties": {
+					"windowId": {
+						"type": "string",
+						"name": "Window ID"
+					}
+				},
+				"additionalProperties": false,
+				"required": ["windowId"]
+			}
+		}
+	]
+}

@@ -11,10 +11,12 @@ import {
 	TimelineContentPharosAny,
 	TSRTimelineContent,
 	Timeline,
+	ActionExecutionResult,
 } from 'timeline-state-resolver-types'
 
 import { DoOnTime, SendMode } from '../../devices/doOnTime'
 import { Pharos, ProjectInfo } from './connection'
+import { actionNotFoundMessage } from '../../lib'
 
 export interface DeviceOptionsPharosInternal extends DeviceOptionsPharos {
 	commandReceiver?: CommandReceiver
@@ -153,9 +155,13 @@ export class PharosDevice extends DeviceWithState<PharosState, DeviceOptionsPhar
 	get queue() {
 		return this._doOnTime.getQueue()
 	}
-	async makeReady(okToDestroyStuff?: boolean): Promise<void> {
-		if (okToDestroyStuff) {
-			this._doOnTime.clearQueueNowAndAfter(this.getCurrentTime())
+	async makeReady(_okToDestroyStuff?: boolean): Promise<void> {
+		return Promise.resolve()
+	}
+	async executeAction(actionId: string, _payload?: Record<string, any> | undefined): Promise<ActionExecutionResult> {
+		switch (actionId) {
+			default:
+				return actionNotFoundMessage(actionId)
 		}
 	}
 	getStatus(): DeviceStatus {
