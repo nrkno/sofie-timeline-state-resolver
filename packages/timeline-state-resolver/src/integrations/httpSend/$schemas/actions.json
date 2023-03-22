@@ -2,7 +2,7 @@
 	"$schema": "../../../$schemas/action-schema.json",
 	"actions": [
 		{
-			"id": "reset",
+			"id": "resync",
 			"name": "Resync HTTP device",
 			"destructive": true
 		},

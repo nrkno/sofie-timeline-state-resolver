@@ -36,7 +36,6 @@ exports[`index imports 1`] = `
   "OBSRequest",
   "OSCDeviceType",
   "OSCValueType",
-  "PharosActions",
   "QuantelActions",
   "QuantelControlMode",
   "QuantelTransitionType",

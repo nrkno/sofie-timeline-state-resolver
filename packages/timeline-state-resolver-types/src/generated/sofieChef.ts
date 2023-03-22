@@ -32,7 +32,6 @@ export interface RestartWindowPayload {
 }
 
 export enum SofieChefActions {
-	ClearQueue = 'clearQueue',
 	RestartAllWindows = 'restartAllWindows',
 	RestartWindow = 'restartWindow',
 }

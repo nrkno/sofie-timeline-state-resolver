@@ -116,7 +116,7 @@ export class TCPSendDevice extends DeviceWithState<TSCSendState, DeviceOptionsTC
 		this._doOnTime.clearQueueAfter(clearAfterTime)
 	}
 
-	async reconnect(): Promise<ActionExecutionResult> {
+	private async reconnect(): Promise<ActionExecutionResult> {
 		await this._disconnectTCPClient()
 		await this._connectTCPClient()
 
@@ -125,7 +125,7 @@ export class TCPSendDevice extends DeviceWithState<TSCSendState, DeviceOptionsTC
 		}
 	}
 
-	async resetState(): Promise<ActionExecutionResult> {
+	private async resetState(): Promise<ActionExecutionResult> {
 		this.clearStates()
 		this._doOnTime.clearQueueAfter(0)
 
@@ -134,7 +134,7 @@ export class TCPSendDevice extends DeviceWithState<TSCSendState, DeviceOptionsTC
 		}
 	}
 
-	async sendCommand(payload: Record<string, any> | undefined): Promise<ActionExecutionResult> {
+	private async sendCommand(payload: Record<string, any> | undefined): Promise<ActionExecutionResult> {
 		if (!payload) {
 			return {
 				result: ActionExecutionResultCode.Error,

@@ -144,14 +144,7 @@ export class AtemDevice extends DeviceWithState<DeviceState, DeviceOptionsAtemIn
 		})
 	}
 
-	async logNextState(): Promise<ActionExecutionResult> {
-		this.firstStateAfterMakeReady = true
-
-		return {
-			result: ActionExecutionResultCode.Ok,
-		}
-	}
-	async resyncState(): Promise<ActionExecutionResult> {
+	private async resyncState(): Promise<ActionExecutionResult> {
 		this._doOnTime.clearQueueNowAndAfter(this.getCurrentTime())
 		if (this._atem.state) this.setState(this._atem.state, this.getCurrentTime())
 
@@ -166,8 +159,6 @@ export class AtemDevice extends DeviceWithState<DeviceState, DeviceOptionsAtemIn
 		switch (actionId) {
 			case AtemActions.Resync:
 				return this.resyncState()
-			case AtemActions.LogNextState:
-				return this.logNextState()
 			default:
 				return actionNotFoundMessage(actionId)
 		}
@@ -178,7 +169,6 @@ export class AtemDevice extends DeviceWithState<DeviceState, DeviceOptionsAtemIn
 	 * @param okToDestroyStuff If true, may break output
 	 */
 	async makeReady(okToDestroyStuff?: boolean): Promise<void> {
-		await this.logNextState()
 		if (okToDestroyStuff) {
 			await this.resyncState()
 		}

@@ -2,12 +2,6 @@
 	"$schema": "../../../$schemas/action-schema.json",
 	"actions": [
 		{
-			"id": "clearQueue",
-			"name": "Clear queue",
-			"destructive": true,
-			"timeout": 5000
-		},
-		{
 			"id": "restartAllWindows",
 			"name": "Restart all windows",
 			"destructive": true

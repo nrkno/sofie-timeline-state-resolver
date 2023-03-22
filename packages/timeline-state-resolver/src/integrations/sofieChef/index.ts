@@ -228,20 +228,11 @@ export class SofieChefDevice extends DeviceWithState<SofieChefState, DeviceOptio
 	get queue() {
 		return this._doOnTime.getQueue()
 	}
-	async executeClearQueue(): Promise<ActionExecutionResult> {
-		this._doOnTime.clearQueueNowAndAfter(this.getCurrentTime())
-
-		return {
-			result: ActionExecutionResultCode.Ok,
-		}
-	}
-	async makeReady(okToDestroyStuff?: boolean): Promise<void> {
-		if (okToDestroyStuff) {
-			return this.executeClearQueue().then(() => undefined)
-		}
+	async makeReady(_okToDestroyStuff?: boolean): Promise<void> {
+		return Promise.resolve()
 	}
 	/** Restart (reload) all windows */
-	async restartAllWindows() {
+	private async restartAllWindows() {
 		await this._sendMessage({
 			msgId: 0, // set later
 			type: ReceiveWSMessageType.RESTART,
@@ -249,7 +240,7 @@ export class SofieChefDevice extends DeviceWithState<SofieChefState, DeviceOptio
 		})
 	}
 	/** Restart (reload) a window */
-	async restartWindow(windowId: string) {
+	private async restartWindow(windowId: string) {
 		await this._sendMessage({
 			msgId: 0, // set later
 			type: ReceiveWSMessageType.RESTART,
@@ -261,8 +252,6 @@ export class SofieChefDevice extends DeviceWithState<SofieChefState, DeviceOptio
 		payload?: Record<string, any> | undefined
 	): Promise<ActionExecutionResult> {
 		switch (actionId) {
-			case SofieChefActions.ClearQueue:
-				return this.executeClearQueue()
 			case SofieChefActions.RestartAllWindows:
 				return this.restartAllWindows()
 					.then(() => ({

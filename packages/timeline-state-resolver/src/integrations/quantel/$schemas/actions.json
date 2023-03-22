@@ -7,8 +7,8 @@
 			"destructive": true
 		},
 		{
-			"id": "resetState",
-			"name": "Reset state",
+			"id": "clearStates",
+			"name": "Clear states",
 			"destructive": true
 		}
 	]

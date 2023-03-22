@@ -55,6 +55,6 @@ export interface SendCommandPayload {
 }
 
 export enum HttpSendActions {
-	Reset = 'reset',
+	Resync = 'resync',
 	SendCommand = 'sendCommand',
 }

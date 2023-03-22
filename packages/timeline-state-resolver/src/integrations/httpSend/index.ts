@@ -129,7 +129,7 @@ export class HTTPSendDevice extends DeviceWithState<HTTPSendState, DeviceOptions
 	async makeReady(okToDestroyStuff?: boolean): Promise<void> {
 		if (okToDestroyStuff) {
 			if (this._makeReadyDoesReset) {
-				await this.reset()
+				await this.resync()
 			}
 
 			for (const cmd of this._makeReadyCommands || []) {
@@ -138,7 +138,7 @@ export class HTTPSendDevice extends DeviceWithState<HTTPSendState, DeviceOptions
 		}
 	}
 
-	async reset(): Promise<ActionExecutionResult> {
+	private async resync(): Promise<ActionExecutionResult> {
 		this.clearStates()
 		this._doOnTime.clearQueueAfter(0)
 
@@ -147,7 +147,7 @@ export class HTTPSendDevice extends DeviceWithState<HTTPSendState, DeviceOptions
 		}
 	}
 
-	async sendCommand(cmd: SendCommandPayload): Promise<ActionExecutionResult> {
+	private async sendCommand(cmd: SendCommandPayload): Promise<ActionExecutionResult> {
 		const time = this.getCurrentTime()
 		if (!cmd.url) {
 			return {
@@ -187,8 +187,8 @@ export class HTTPSendDevice extends DeviceWithState<HTTPSendState, DeviceOptions
 		switch (actionId) {
 			case HttpSendActions.SendCommand:
 				return this.sendCommand(payload as SendCommandPayload)
-			case HttpSendActions.Reset:
-				return this.reset()
+			case HttpSendActions.Resync:
+				return this.resync()
 			default:
 				return actionNotFoundMessage(actionId)
 		}

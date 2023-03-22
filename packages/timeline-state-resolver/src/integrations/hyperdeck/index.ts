@@ -194,7 +194,7 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState, DeviceOptionsH
 		return true
 	}
 
-	async resync(): Promise<ActionExecutionResult> {
+	private async resync(): Promise<ActionExecutionResult> {
 		const time = this.getCurrentTime()
 		this._doOnTime.clearQueueNowAndAfter(time)
 
@@ -222,7 +222,7 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState, DeviceOptionsH
 	 * Sends commands to the HyperDeck to format disks. Afterwards,
 	 * calls this._queryRecordingTime
 	 */
-	async formatDisks() {
+	private async formatDisks() {
 		const wait = async (t: number) => new Promise<void>((resolve) => setTimeout(() => resolve(), t))
 
 		for (let i = 1; i <= this._slots; i++) {

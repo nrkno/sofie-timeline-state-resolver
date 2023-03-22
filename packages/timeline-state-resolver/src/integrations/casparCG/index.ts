@@ -614,7 +614,7 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 		}
 	}
 
-	async clearAllChannels(): Promise<ActionExecutionResult> {
+	private async clearAllChannels(): Promise<ActionExecutionResult> {
 		if (!this._ccg.connected) {
 			return {
 				result: ActionExecutionResultCode.Error,
@@ -685,7 +685,7 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 	/**
 	 * Attemps to restart casparcg over the HTTP API provided by CasparCG launcher.
 	 */
-	async restartCasparCG(): Promise<ActionExecutionResult> {
+	private async restartCasparCG(): Promise<ActionExecutionResult> {
 		if (!this.initOptions) {
 			return { result: ActionExecutionResultCode.Error, response: t('CasparCGDevice._connectionOptions is not set!') }
 		}

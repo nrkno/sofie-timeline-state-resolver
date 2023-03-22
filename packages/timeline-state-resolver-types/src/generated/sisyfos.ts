@@ -35,5 +35,4 @@ export type SomeMappingSisyfos = MappingSisyfosChannel | MappingSisyfosChannelBy
 
 export enum SisyfosActions {
 	Reinit = 'reinit',
-	Resync = 'resync',
 }

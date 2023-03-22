@@ -47,7 +47,6 @@ exports[`index imports 1`] = `
   "OSCDeviceType",
   "OSCValueType",
   "PREPARETIME",
-  "PharosActions",
   "QuantelActions",
   "QuantelControlMode",
   "QuantelDevice",
