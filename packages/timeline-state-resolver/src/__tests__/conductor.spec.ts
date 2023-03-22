@@ -368,6 +368,7 @@ describe('Conductor', () => {
 		await conductor.addDevice('device4', {
 			type: DeviceType.LAWO,
 			options: {
+				host: '',
 				deviceMode: LawoDeviceMode.Ruby,
 			},
 			commandReceiver: commandReceiver4,

@@ -52,6 +52,7 @@ import VizMSEOptions = require('./integrations/vizMSE/$schemas/options.json')
 import VizMSEMappings = require('./integrations/vizMSE/$schemas/mappings.json')
 import VMixOptions = require('./integrations/vmix/$schemas/options.json')
 import VMixMappings = require('./integrations/vmix/$schemas/mappings.json')
+import VMixActions = require('./integrations/vmix/$schemas/actions.json')
 
 import CommonOptions = require('./$schemas/common-options.json')
 import { generateTranslation } from './lib'
