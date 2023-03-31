@@ -3,6 +3,10 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [3.5.1](https://github.com/tv2/tv-automation-state-timeline-resolver/compare/3.5.0...3.5.1) (2023-03-31)
+
+**Note:** Version bump only for package timeline-state-resolver-types
+
 ## [3.5.0](https://github.com/tv2/tv-automation-state-timeline-resolver/compare/3.4.0...3.5.0) (2023-03-16)
 
 ### Features

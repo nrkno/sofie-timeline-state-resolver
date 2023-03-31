@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [3.5.1](https://github.com/ianshade/tv-automation-state-timeline-resolver/compare/3.5.0...3.5.1) (2023-03-31)
+
+
+### Bug Fixes
+
+* SOF-1404 use upstreamKeyerId to address ATEM upstream keyers ([61b0061](https://github.com/ianshade/tv-automation-state-timeline-resolver/commit/61b006156849455ec4b59d92415cd820982b1706))
+
+
+
+
+
 ## [3.5.0](https://github.com/ianshade/tv-automation-state-timeline-resolver/compare/3.4.0...3.5.0) (2023-03-16)
 
 
