@@ -63,6 +63,7 @@ describe('Singular.Live', () => {
 					deviceType: DeviceType.SINGULAR_LIVE,
 					type: TimelineContentTypeSingularLive.COMPOSITION,
 					controlNode: {
+						state: 'In',
 						payload: {
 							Name: 'Thomas',
 							Title: 'Foreperson',
@@ -75,16 +76,15 @@ describe('Singular.Live', () => {
 		expect(commandReceiver0).toHaveBeenCalledTimes(0)
 		await mockTime.advanceTimeToTicks(11100)
 
-		expect(commandReceiver0).toHaveBeenCalledTimes(2)
+		expect(commandReceiver0).toHaveBeenCalledTimes(1)
 		expect(commandReceiver0).toHaveBeenCalledWith(
 			expect.anything(),
 			expect.objectContaining({
-				compositionName: 'Lower Third',
-				controlNode: {
-					payload: {
-						Name: 'Thomas',
-						Title: 'Foreperson',
-					},
+				subCompositionName: 'Lower Third',
+				state: 'In',
+				payload: {
+					Name: 'Thomas',
+					Title: 'Foreperson',
 				},
 			}),
 			expect.anything(),
@@ -92,6 +92,6 @@ describe('Singular.Live', () => {
 		)
 		expect(getMockCall(commandReceiver0, 0, 2)).toMatch(/added/) // context
 		await mockTime.advanceTimeToTicks(16000)
-		expect(commandReceiver0).toHaveBeenCalledTimes(3)
+		expect(commandReceiver0).toHaveBeenCalledTimes(2)
 	})
 })

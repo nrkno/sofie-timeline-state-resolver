@@ -29,14 +29,11 @@ export interface TimelineContentSingularLiveBase {
 
 export interface TimelineContentSingularLiveComposition extends TimelineContentSingularLiveBase {
 	type: TimelineContentTypeSingularLive.COMPOSITION
-
-	animation?: SingularCompositionAnimation
 	controlNode: SingularCompositionControlNode
 }
-export interface SingularCompositionAnimation {
-	action: 'jump' | 'play'
-	// stage: string
-}
 export interface SingularCompositionControlNode {
-	payload: { [key: string]: string }
+	/** The animation state that the node should be in. I.e. "In", "Out", etc. */
+	state?: string
+	/** The data that should be consumed by the node. Could be text, colors, etc. */
+	payload?: { [key: string]: string }
 }
