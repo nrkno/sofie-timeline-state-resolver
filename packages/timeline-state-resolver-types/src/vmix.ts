@@ -153,6 +153,7 @@ export enum VMixCommand {
 	SCRIPT_STOP_ALL = 'SCRIPT_STOP_ALL',
 	LIST_ADD = 'LIST_ADD',
 	LIST_REMOVE_ALL = 'LIST_REMOVE_ALL',
+	RESTART_INPUT = 'RESTART_INPUT',
 }
 
 export type TimelineContentVMixAny =
@@ -283,6 +284,9 @@ export interface TimelineContentVMixInput extends TimelineContentVMixBase {
 
 	/** An array of file paths to load into a List input. Uses Windows-style path separators (\\). Only applies to List inputs. */
 	listFilePaths?: string[]
+
+	/** If media should start from the beginning or resume from where it left off */
+	restart?: boolean
 }
 
 export interface TimelineContentVMixOutput extends TimelineContentVMixBase {

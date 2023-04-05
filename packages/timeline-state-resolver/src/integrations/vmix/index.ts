@@ -440,6 +440,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 									transform: content.transform,
 									overlays: content.overlays,
 									listFilePaths: content.listFilePaths,
+									restart: content.restart,
 								},
 
 								{ key: mapping.index || content.filePath },
@@ -719,6 +720,16 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 						command: VMixCommand.SET_POSITION,
 						input: key,
 						value: input.position ? input.position : 0,
+					},
+					context: null,
+					timelineId: '',
+				})
+			}
+			if (input.restart !== undefined && oldInput.restart !== input.restart && input.restart) {
+				commands.push({
+					command: {
+						command: VMixCommand.RESTART_INPUT,
+						input: key,
 					},
 					context: null,
 					timelineId: '',
@@ -1227,6 +1238,7 @@ export interface VMixInput {
 	transform?: VMixTransform
 	overlays?: VMixInputOverlays
 	listFilePaths?: string[]
+	restart?: boolean
 }
 
 export interface VMixOverlay {
