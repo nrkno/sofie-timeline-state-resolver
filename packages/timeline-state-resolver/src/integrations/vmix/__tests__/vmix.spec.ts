@@ -601,6 +601,7 @@ describe('vMix', () => {
 				content: {
 					deviceType: DeviceType.VMIX,
 					type: TimelineContentTypeVMix.INPUT,
+					restart: true,
 					loop: true,
 					playing: true,
 					overlays: {
@@ -617,7 +618,7 @@ describe('vMix', () => {
 			11000,
 			expect.objectContaining({
 				command: {
-					command: VMixCommand.LOOP_ON,
+					command: VMixCommand.RESTART_INPUT,
 					input: '2',
 				},
 			}),
@@ -626,6 +627,18 @@ describe('vMix', () => {
 		)
 		expect(commandReceiver0).toHaveBeenNthCalledWith(
 			2,
+			11000,
+			expect.objectContaining({
+				command: {
+					command: VMixCommand.LOOP_ON,
+					input: '2',
+				},
+			}),
+			null,
+			expect.any(String)
+		)
+		expect(commandReceiver0).toHaveBeenNthCalledWith(
+			3,
 			11000,
 			expect.objectContaining({
 				command: {
@@ -639,7 +652,7 @@ describe('vMix', () => {
 			expect.any(String)
 		)
 		expect(commandReceiver0).toHaveBeenNthCalledWith(
-			3,
+			4,
 			11000,
 			expect.objectContaining({
 				command: {
@@ -653,7 +666,7 @@ describe('vMix', () => {
 			expect.any(String)
 		)
 		expect(commandReceiver0).toHaveBeenNthCalledWith(
-			4,
+			5,
 			11000,
 			expect.objectContaining({
 				command: {
@@ -665,16 +678,17 @@ describe('vMix', () => {
 			expect.any(String)
 		)
 
-		expect(onFunction).toHaveBeenCalledTimes(4)
+		expect(onFunction).toHaveBeenCalledTimes(5)
 
-		expect(onFunction).toHaveBeenNthCalledWith(1, 'LoopOn', expect.stringContaining('Input=2'))
+		expect(onFunction).toHaveBeenNthCalledWith(1, 'Restart', expect.stringContaining('Input=2'))
+		expect(onFunction).toHaveBeenNthCalledWith(2, 'LoopOn', expect.stringContaining('Input=2'))
 		expect(onFunction).toHaveBeenNthCalledWith(
-			2,
+			3,
 			'SetMultiViewOverlay',
 			expect.stringContaining('Input=2&Value=1,G:/videos/My Other Clip.mp4')
 		)
-		expect(onFunction).toHaveBeenNthCalledWith(3, 'SetMultiViewOverlay', expect.stringContaining('Input=2&Value=3,5'))
-		expect(onFunction).toHaveBeenNthCalledWith(4, 'Play', expect.stringContaining('Input=2'))
+		expect(onFunction).toHaveBeenNthCalledWith(4, 'SetMultiViewOverlay', expect.stringContaining('Input=2&Value=3,5'))
+		expect(onFunction).toHaveBeenNthCalledWith(5, 'Play', expect.stringContaining('Input=2'))
 
 		clearMocks()
 		commandReceiver0.mockClear()
