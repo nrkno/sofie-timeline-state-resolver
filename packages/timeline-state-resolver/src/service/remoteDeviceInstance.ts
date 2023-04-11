@@ -147,9 +147,7 @@ export class RemoteDeviceInstance<
 			return container
 		} catch (e) {
 			// try to clean up any loose threads
-			try {
-				container.terminate()
-			} catch {}
+			container.terminate().catch(() => null)
 			throw e
 		}
 	}

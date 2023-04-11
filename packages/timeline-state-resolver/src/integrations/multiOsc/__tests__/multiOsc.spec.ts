@@ -1,5 +1,4 @@
 import { Conductor } from '../../../conductor'
-import { OSCMessageDevice } from '../../osc'
 import {
 	Mappings,
 	DeviceType,
@@ -16,6 +15,7 @@ import { MockTime } from '../../../__tests__/mockTime'
 import { literal } from '../../../devices/device'
 import { ThreadedClass } from 'threadedclass'
 import { getMockCall } from '../../../__tests__/lib'
+import { MultiOSCMessageDevice } from '..'
 
 // let nowActual = Date.now()
 describe('MultiOSC-Message', () => {
@@ -64,7 +64,7 @@ describe('MultiOSC-Message', () => {
 		await mockTime.advanceTimeToTicks(10100)
 
 		const deviceContainer = myConductor.getDevice('osc0')
-		const device = deviceContainer!.device as ThreadedClass<OSCMessageDevice>
+		const device = deviceContainer!.device as ThreadedClass<MultiOSCMessageDevice>
 
 		// Check that no commands has been scheduled:
 		expect(await device.queue).toHaveLength(0)
