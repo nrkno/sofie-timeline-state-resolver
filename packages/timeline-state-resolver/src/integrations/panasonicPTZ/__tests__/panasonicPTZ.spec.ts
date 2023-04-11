@@ -4,8 +4,9 @@ import {
 	Mappings,
 	DeviceType,
 	TimelineContentTypePanasonicPtz,
-	MappingPanasonicPtz,
-	MappingPanasonicPtzType,
+	Mapping,
+	SomeMappingPanasonicPTZ,
+	MappingPanasonicPTZType,
 } from 'timeline-state-resolver-types'
 import { MockTime } from '../../../__tests__/mockTime'
 import { ThreadedClass } from 'threadedclass'
@@ -21,7 +22,7 @@ describe('Panasonic PTZ', () => {
 
 	const onGet = jest.fn((url, _options, callback) => {
 		orgSetTimeout(() => {
-			if (url === 'http://192.168.0.10/cgi-bin/aw_ptz?cmd=%23O&res=1') {
+			if (url === 'http://192.168.0.10:8000/cgi-bin/aw_ptz?cmd=%23O&res=1') {
 				callback(null, {
 					statusCode: 200,
 					body: 'p1',
@@ -40,25 +41,33 @@ describe('Panasonic PTZ', () => {
 		const commandReceiver0: any = jest.fn(async () => {
 			return Promise.resolve()
 		})
-		const myChannelMapping0: MappingPanasonicPtz = {
+		const myChannelMapping0: Mapping<SomeMappingPanasonicPTZ> = {
 			device: DeviceType.PANASONIC_PTZ,
 			deviceId: 'myPtz',
-			mappingType: MappingPanasonicPtzType.PRESET,
+			options: {
+				mappingType: MappingPanasonicPTZType.PresetMem,
+			},
 		}
-		const myChannelMapping1: MappingPanasonicPtz = {
+		const myChannelMapping1: Mapping<SomeMappingPanasonicPTZ> = {
 			device: DeviceType.PANASONIC_PTZ,
 			deviceId: 'myPtz',
-			mappingType: MappingPanasonicPtzType.PRESET_SPEED,
+			options: {
+				mappingType: MappingPanasonicPTZType.PresetSpeed,
+			},
 		}
-		const myChannelMapping2: MappingPanasonicPtz = {
+		const myChannelMapping2: Mapping<SomeMappingPanasonicPTZ> = {
 			device: DeviceType.PANASONIC_PTZ,
 			deviceId: 'myPtz',
-			mappingType: MappingPanasonicPtzType.ZOOM,
+			options: {
+				mappingType: MappingPanasonicPTZType.Zoom,
+			},
 		}
-		const myChannelMapping3: MappingPanasonicPtz = {
+		const myChannelMapping3: Mapping<SomeMappingPanasonicPTZ> = {
 			device: DeviceType.PANASONIC_PTZ,
 			deviceId: 'myPtz',
-			mappingType: MappingPanasonicPtzType.ZOOM_SPEED,
+			options: {
+				mappingType: MappingPanasonicPTZType.ZoomSpeed,
+			},
 		}
 		const myChannelMapping: Mappings = {
 			ptz_k1: myChannelMapping0,
@@ -77,6 +86,7 @@ describe('Panasonic PTZ', () => {
 			type: DeviceType.PANASONIC_PTZ,
 			options: {
 				host: '192.168.0.10',
+				port: 8000,
 			},
 			commandReceiver: commandReceiver0,
 		})

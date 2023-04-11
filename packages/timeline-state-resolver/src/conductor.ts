@@ -19,11 +19,12 @@ import {
 	Timeline,
 	TSRTimelineContent,
 	TimelineDatastoreReferencesContent,
+	DeviceOptionsMultiOSC,
 } from 'timeline-state-resolver-types'
 
 import { DoOnTime } from './devices/doOnTime'
 import { AsyncResolver } from './AsyncResolver'
-import { endTrace, fillStateFromDatastore, FinishedTrace, startTrace } from './lib'
+import { assertNever, endTrace, fillStateFromDatastore, FinishedTrace, startTrace } from './lib'
 
 import { CommandWithContext, DeviceEvents } from './devices/device'
 import { DeviceContainer } from './devices/deviceContainer'
@@ -48,6 +49,8 @@ import { VizMSEDevice, DeviceOptionsVizMSEInternal } from './integrations/vizMSE
 import { ShotokuDevice, DeviceOptionsShotokuInternal } from './integrations/shotoku'
 import { DeviceOptionsSofieChefInternal, SofieChefDevice } from './integrations/sofieChef'
 import { TelemetricsDevice } from './integrations/telemetrics'
+import { TriCasterDevice, DeviceOptionsTriCasterInternal } from './integrations/tricaster'
+import { DeviceOptionsMultiOSCInternal, MultiOSCMessageDevice } from './integrations/multiOsc'
 import { BaseRemoteDeviceIntegration, RemoteDeviceInstance } from './service/remoteDeviceInstance'
 
 export { DeviceContainer }
@@ -135,6 +138,10 @@ export type ConductorEvents = {
 	resolveDone: [timelineHash: string, duration: number]
 	statReport: [report: StatReport]
 	timeTrace: [trace: FinishedTrace]
+}
+
+export class AbortError extends Error {
+	name = 'AbortError'
 }
 
 /**
@@ -325,6 +332,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 			return Array.from(this.devices.values()).filter((device) => device.initialized === true)
 		}
 	}
+
 	public getDevice(
 		deviceId: string,
 		includeUninitialized = false
@@ -391,33 +399,32 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 
 			return device
 		} catch (e) {
-			if (newDevice) {
-				try {
-					await newDevice.terminate()
-				} catch (e) {
-					this.emit('error', `Cleanup failed of aborted device "${newDevice.deviceId}": ${e}`)
-				}
-			}
+			await this.terminateUnwantedDevice(newDevice)
 			this.devices.delete(deviceId)
 			this.emit('error', 'conductor.addDevice', e)
 			return Promise.reject(e)
 		}
 	}
+
 	/**
 	 * Creates an uninitialised device that can be referenced by the timeline and mappings.
 	 * @param deviceId Id used by the mappings to reference the device.
 	 * @param deviceOptions The options used to initalize the device
+	 * @param options Additional options
 	 * @returns A promise that resolves with the created device, or rejects with an error message.
 	 */
 	public async createDevice(
 		deviceId: string,
-		deviceOptions: DeviceOptionsAnyInternal
+		deviceOptions: DeviceOptionsAnyInternal,
+		options?: { signal?: AbortSignal }
 	): Promise<BaseRemoteDeviceIntegration<DeviceOptionsBase<any>>> {
 		let newDevice: BaseRemoteDeviceIntegration<DeviceOptionsBase<any>> | undefined
+		const throwIfAborted = () => this.throwIfAborted(options?.signal, deviceId, 'creation')
 		try {
 			if (this.devices.has(deviceId)) {
 				throw new Error(`Device "${deviceId}" already exists when creating device`)
 			}
+			throwIfAborted()
 
 			const threadedClassOptions: ThreadedClassConfig = {
 				threadUsage: deviceOptions.threadUsage || 1,
@@ -431,203 +438,24 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 				return this.getCurrentTime()
 			}
 
-			if (deviceOptions.type === DeviceType.ABSTRACT) {
-				newDevice = await DeviceContainer.create<DeviceOptionsAbstractInternal, typeof AbstractDevice>(
-					'../../dist/integrations/abstract/index.js',
-					'AbstractDevice',
-					deviceId,
-					deviceOptions,
-					getCurrentTime,
-					{
-						...threadedClassOptions,
-						threadUsage: deviceOptions.isMultiThreaded ? 0.1 : 0,
-					}
-				)
-			} else if (deviceOptions.type === DeviceType.CASPARCG) {
-				// Add CasparCG device:
-				newDevice = await DeviceContainer.create<DeviceOptionsCasparCGInternal, typeof CasparCGDevice>(
-					'../../dist/integrations/casparCG/index.js',
-					'CasparCGDevice',
-					deviceId,
-					deviceOptions,
-					getCurrentTime,
-					threadedClassOptions
-				)
-			} else if (deviceOptions.type === DeviceType.ATEM) {
-				newDevice = await DeviceContainer.create<DeviceOptionsAtemInternal, typeof AtemDevice>(
-					'../../dist/integrations/atem/index.js',
-					'AtemDevice',
-					deviceId,
-					deviceOptions,
-					getCurrentTime,
-					threadedClassOptions
-				)
-			} else if (deviceOptions.type === DeviceType.HTTPSEND) {
-				newDevice = await DeviceContainer.create<DeviceOptionsHTTPSendInternal, typeof HTTPSendDevice>(
-					'../../dist/integrations/httpSend/index.js',
-					'HTTPSendDevice',
-					deviceId,
-					deviceOptions,
-					getCurrentTime,
-					threadedClassOptions
-				)
-			} else if (deviceOptions.type === DeviceType.HTTPWATCHER) {
-				newDevice = await DeviceContainer.create<DeviceOptionsHTTPWatcherInternal, typeof HTTPWatcherDevice>(
-					'../../dist/integrations/httpWatcher/index.js',
-					'HTTPWatcherDevice',
-					deviceId,
-					deviceOptions,
-					getCurrentTime,
-					threadedClassOptions
-				)
-			} else if (deviceOptions.type === DeviceType.LAWO) {
-				newDevice = await DeviceContainer.create<DeviceOptionsLawoInternal, typeof LawoDevice>(
-					'../../dist/integrations/lawo/index.js',
-					'LawoDevice',
-					deviceId,
-					deviceOptions,
-					getCurrentTime,
-					threadedClassOptions
-				)
-			} else if (deviceOptions.type === DeviceType.TCPSEND) {
-				newDevice = await DeviceContainer.create<DeviceOptionsTCPSendInternal, typeof TCPSendDevice>(
-					'../../dist/integrations/tcpSend/index.js',
-					'TCPSendDevice',
-					deviceId,
-					deviceOptions,
-					getCurrentTime,
-					threadedClassOptions
-				)
-			} else if (deviceOptions.type === DeviceType.PANASONIC_PTZ) {
-				newDevice = await DeviceContainer.create<DeviceOptionsPanasonicPTZInternal, typeof PanasonicPtzDevice>(
-					'../../dist/integrations/panasonicPTZ/index.js',
-					'PanasonicPtzDevice',
-					deviceId,
-					deviceOptions,
-					getCurrentTime,
-					threadedClassOptions
-				)
-			} else if (deviceOptions.type === DeviceType.HYPERDECK) {
-				newDevice = await DeviceContainer.create<DeviceOptionsHyperdeckInternal, typeof HyperdeckDevice>(
-					'../../dist/integrations/hyperdeck/index.js',
-					'HyperdeckDevice',
-					deviceId,
-					deviceOptions,
-					getCurrentTime,
-					threadedClassOptions
-				)
-			} else if (deviceOptions.type === DeviceType.PHAROS) {
-				newDevice = await DeviceContainer.create<DeviceOptionsPharosInternal, typeof PharosDevice>(
-					'../../dist/integrations/pharos/index.js',
-					'PharosDevice',
-					deviceId,
-					deviceOptions,
-					getCurrentTime,
-					threadedClassOptions
-				)
-			} else if (deviceOptions.type === DeviceType.QUANTEL) {
-				newDevice = await DeviceContainer.create<DeviceOptionsQuantelInternal, typeof QuantelDevice>(
-					'../../dist/integrations/quantel/index.js',
-					'QuantelDevice',
-					deviceId,
-					deviceOptions,
-					getCurrentTime,
-					threadedClassOptions
-				)
-			} else if (deviceOptions.type === DeviceType.SHOTOKU) {
-				newDevice = await DeviceContainer.create<DeviceOptionsShotokuInternal, typeof ShotokuDevice>(
-					'../../dist/integrations/shotoku/index.js',
-					'ShotokuDevice',
-					deviceId,
-					deviceOptions,
-					getCurrentTime,
-					threadedClassOptions
-				)
-			} else if (deviceOptions.type === DeviceType.SISYFOS) {
-				newDevice = await DeviceContainer.create<DeviceOptionsSisyfosInternal, typeof SisyfosMessageDevice>(
-					'../../dist/integrations/sisyfos/index.js',
-					'SisyfosMessageDevice',
-					deviceId,
-					deviceOptions,
-					getCurrentTime,
-					threadedClassOptions
-				)
-			} else if (deviceOptions.type === DeviceType.VIZMSE) {
-				newDevice = await DeviceContainer.create<DeviceOptionsVizMSEInternal, typeof VizMSEDevice>(
-					'../../dist/integrations/vizMSE/index.js',
-					'VizMSEDevice',
-					deviceId,
-					deviceOptions,
-					getCurrentTime,
-					threadedClassOptions
-				)
-			} else if (deviceOptions.type === DeviceType.SINGULAR_LIVE) {
-				newDevice = await DeviceContainer.create<DeviceOptionsSingularLiveInternal, typeof SingularLiveDevice>(
-					'../../dist/integrations/singularLive/index.js',
-					'SingularLiveDevice',
-					deviceId,
-					deviceOptions,
-					getCurrentTime,
-					threadedClassOptions
-				)
-			} else if (deviceOptions.type === DeviceType.VMIX) {
-				newDevice = await DeviceContainer.create<DeviceOptionsVMixInternal, typeof VMixDevice>(
-					'../../dist/integrations/vmix/index.js',
-					'VMixDevice',
-					deviceId,
-					deviceOptions,
-					getCurrentTime,
-					threadedClassOptions
-				)
-			} else if (deviceOptions.type === DeviceType.OBS) {
-				newDevice = await DeviceContainer.create<DeviceOptionsOBSInternal, typeof OBSDevice>(
-					'../../dist/integrations/obs/index.js',
-					'OBSDevice',
-					deviceId,
-					deviceOptions,
-					getCurrentTime,
-					threadedClassOptions
-				)
-			} else if (deviceOptions.type === DeviceType.SOFIE_CHEF) {
-				newDevice = await DeviceContainer.create<DeviceOptionsSofieChefInternal, typeof SofieChefDevice>(
-					'../../dist/integrations/sofieChef/index.js',
-					'SofieChefDevice',
-					deviceId,
-					deviceOptions,
-					getCurrentTime,
-					threadedClassOptions
-				)
-			} else if (deviceOptions.type === DeviceType.TELEMETRICS) {
-				newDevice = await DeviceContainer.create<DeviceOptionsTelemetrics, typeof TelemetricsDevice>(
-					'../../dist/devices/telemetrics.js',
-					'TelemetricsDevice',
-					deviceId,
-					deviceOptions,
-					getCurrentTime,
-					threadedClassOptions
-				)
-			} else {
-				// presumably this device is implemented in the new service handler
-				try {
-					newDevice = await RemoteDeviceInstance.create(
-						'../../dist/service/DeviceInstance.js',
-						'DeviceInstanceWrapper',
-						deviceId,
-						deviceOptions,
-						getCurrentTime,
-						threadedClassOptions
-					)
-				} catch {
-					// @ts-ignore deviceOptions.type is of type "never"
-					const type: any = deviceOptions.type
-					return Promise.reject(`No matching device type for "${type}" ("${DeviceType[type]}") found in conductor`)
-				}
+			const newDevicePromise = this.createDeviceContainer(deviceOptions, deviceId, getCurrentTime, threadedClassOptions)
+
+			if (!newDevicePromise) {
+				const type: any = deviceOptions.type
+				return Promise.reject(`No matching device type for "${type}" ("${DeviceType[type]}") found in conductor`)
 			}
 
-			if (!newDevice) {
-				const type: any = deviceOptions.type
-				return Promise.reject(`No device could be created for "${type}" ("${DeviceType[type]}")`)
-			}
+			newDevice = await makeImmediatelyAbortable(async () => {
+				throwIfAborted()
+				const newDevice = await newDevicePromise
+				if (options?.signal?.aborted) {
+					// if the promise above did not resolve before aborted,
+					// this executes some time after raceAbortable rejects, serving as a cleanup
+					await this.terminateUnwantedDevice(newDevice)
+					throw new AbortError(`Device "${deviceId}" creation aborted`)
+				}
+				return newDevice
+			}, options?.signal)
 
 			newDevice.device.on('resetResolver', () => this.resetResolver()).catch(console.error)
 			newDevice.on('error', (context, e) => {
@@ -638,33 +466,267 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 			if (this.devices.has(deviceId)) {
 				throw new Error(`Device "${deviceId}" already exists when creating device`)
 			}
+			throwIfAborted()
 			this.devices.set(deviceId, newDevice)
 
 			return newDevice
 		} catch (e) {
-			if (newDevice) {
-				try {
-					await newDevice.terminate()
-				} catch (e) {
-					this.emit('error', `Cleanup failed of aborted device "${newDevice.deviceId}": ${e}`)
-				}
-			}
+			await this.terminateUnwantedDevice(newDevice)
 			this.devices.delete(deviceId)
 			this.emit('error', 'conductor.createDevice', e)
 			return Promise.reject(e)
 		}
 	}
+
+	private throwIfAborted(signal: AbortSignal | undefined, deviceId: string, action: string) {
+		if (signal?.aborted) {
+			throw new AbortError(`Device "${deviceId}" ${action} aborted`)
+		}
+	}
+
+	private createDeviceContainer(
+		deviceOptions: DeviceOptionsAnyInternal,
+		deviceId: string,
+		getCurrentTime: () => number,
+		threadedClassOptions: ThreadedClassConfig
+	): Promise<BaseRemoteDeviceIntegration<DeviceOptionsBase<any>>> | null {
+		switch (deviceOptions.type) {
+			case DeviceType.ABSTRACT:
+				return DeviceContainer.create<DeviceOptionsAbstractInternal, typeof AbstractDevice>(
+					'../../dist/integrations/abstract/index.js',
+					'AbstractDevice',
+					deviceId,
+					deviceOptions,
+					getCurrentTime,
+					{
+						...threadedClassOptions,
+						threadUsage: deviceOptions.isMultiThreaded ? 0.1 : 0,
+					}
+				)
+			case DeviceType.CASPARCG:
+				return DeviceContainer.create<DeviceOptionsCasparCGInternal, typeof CasparCGDevice>(
+					'../../dist/integrations/casparCG/index.js',
+					'CasparCGDevice',
+					deviceId,
+					deviceOptions,
+					getCurrentTime,
+					threadedClassOptions
+				)
+			case DeviceType.ATEM:
+				return DeviceContainer.create<DeviceOptionsAtemInternal, typeof AtemDevice>(
+					'../../dist/integrations/atem/index.js',
+					'AtemDevice',
+					deviceId,
+					deviceOptions,
+					getCurrentTime,
+					threadedClassOptions
+				)
+			case DeviceType.HTTPSEND:
+				return DeviceContainer.create<DeviceOptionsHTTPSendInternal, typeof HTTPSendDevice>(
+					'../../dist/integrations/httpSend/index.js',
+					'HTTPSendDevice',
+					deviceId,
+					deviceOptions,
+					getCurrentTime,
+					threadedClassOptions
+				)
+			case DeviceType.HTTPWATCHER:
+				return DeviceContainer.create<DeviceOptionsHTTPWatcherInternal, typeof HTTPWatcherDevice>(
+					'../../dist/integrations/httpWatcher/index.js',
+					'HTTPWatcherDevice',
+					deviceId,
+					deviceOptions,
+					getCurrentTime,
+					threadedClassOptions
+				)
+			case DeviceType.LAWO:
+				return DeviceContainer.create<DeviceOptionsLawoInternal, typeof LawoDevice>(
+					'../../dist/integrations/lawo/index.js',
+					'LawoDevice',
+					deviceId,
+					deviceOptions,
+					getCurrentTime,
+					threadedClassOptions
+				)
+			case DeviceType.TCPSEND:
+				return DeviceContainer.create<DeviceOptionsTCPSendInternal, typeof TCPSendDevice>(
+					'../../dist/integrations/tcpSend/index.js',
+					'TCPSendDevice',
+					deviceId,
+					deviceOptions,
+					getCurrentTime,
+					threadedClassOptions
+				)
+			case DeviceType.PANASONIC_PTZ:
+				return DeviceContainer.create<DeviceOptionsPanasonicPTZInternal, typeof PanasonicPtzDevice>(
+					'../../dist/integrations/panasonicPTZ/index.js',
+					'PanasonicPtzDevice',
+					deviceId,
+					deviceOptions,
+					getCurrentTime,
+					threadedClassOptions
+				)
+			case DeviceType.HYPERDECK:
+				return DeviceContainer.create<DeviceOptionsHyperdeckInternal, typeof HyperdeckDevice>(
+					'../../dist/integrations/hyperdeck/index.js',
+					'HyperdeckDevice',
+					deviceId,
+					deviceOptions,
+					getCurrentTime,
+					threadedClassOptions
+				)
+			case DeviceType.PHAROS:
+				return DeviceContainer.create<DeviceOptionsPharosInternal, typeof PharosDevice>(
+					'../../dist/integrations/pharos/index.js',
+					'PharosDevice',
+					deviceId,
+					deviceOptions,
+					getCurrentTime,
+					threadedClassOptions
+				)
+			case DeviceType.QUANTEL:
+				return DeviceContainer.create<DeviceOptionsQuantelInternal, typeof QuantelDevice>(
+					'../../dist/integrations/quantel/index.js',
+					'QuantelDevice',
+					deviceId,
+					deviceOptions,
+					getCurrentTime,
+					threadedClassOptions
+				)
+			case DeviceType.SHOTOKU:
+				return DeviceContainer.create<DeviceOptionsShotokuInternal, typeof ShotokuDevice>(
+					'../../dist/integrations/shotoku/index.js',
+					'ShotokuDevice',
+					deviceId,
+					deviceOptions,
+					getCurrentTime,
+					threadedClassOptions
+				)
+			case DeviceType.SISYFOS:
+				return DeviceContainer.create<DeviceOptionsSisyfosInternal, typeof SisyfosMessageDevice>(
+					'../../dist/integrations/sisyfos/index.js',
+					'SisyfosMessageDevice',
+					deviceId,
+					deviceOptions,
+					getCurrentTime,
+					threadedClassOptions
+				)
+			case DeviceType.VIZMSE:
+				return DeviceContainer.create<DeviceOptionsVizMSEInternal, typeof VizMSEDevice>(
+					'../../dist/integrations/vizMSE/index.js',
+					'VizMSEDevice',
+					deviceId,
+					deviceOptions,
+					getCurrentTime,
+					threadedClassOptions
+				)
+			case DeviceType.SINGULAR_LIVE:
+				return DeviceContainer.create<DeviceOptionsSingularLiveInternal, typeof SingularLiveDevice>(
+					'../../dist/integrations/singularLive/index.js',
+					'SingularLiveDevice',
+					deviceId,
+					deviceOptions,
+					getCurrentTime,
+					threadedClassOptions
+				)
+			case DeviceType.VMIX:
+				return DeviceContainer.create<DeviceOptionsVMixInternal, typeof VMixDevice>(
+					'../../dist/integrations/vmix/index.js',
+					'VMixDevice',
+					deviceId,
+					deviceOptions,
+					getCurrentTime,
+					threadedClassOptions
+				)
+			case DeviceType.OBS:
+				return DeviceContainer.create<DeviceOptionsOBSInternal, typeof OBSDevice>(
+					'../../dist/integrations/obs/index.js',
+					'OBSDevice',
+					deviceId,
+					deviceOptions,
+					getCurrentTime,
+					threadedClassOptions
+				)
+			case DeviceType.TELEMETRICS:
+				return DeviceContainer.create<DeviceOptionsTelemetrics, typeof TelemetricsDevice>(
+					'../../dist/integrations/telemetrics/index.js',
+					'TelemetricsDevice',
+					deviceId,
+					deviceOptions,
+					getCurrentTime,
+					threadedClassOptions
+				)
+			case DeviceType.SOFIE_CHEF:
+				return DeviceContainer.create<DeviceOptionsSofieChefInternal, typeof SofieChefDevice>(
+					'../../dist/integrations/sofieChef/index.js',
+					'SofieChefDevice',
+					deviceId,
+					deviceOptions,
+					getCurrentTime,
+					threadedClassOptions
+				)
+			case DeviceType.TRICASTER:
+				return DeviceContainer.create<DeviceOptionsTriCasterInternal, typeof TriCasterDevice>(
+					'../../dist/integrations/tricaster/index.js',
+					'TriCasterDevice',
+					deviceId,
+					deviceOptions,
+					getCurrentTime,
+					threadedClassOptions
+				)
+			case DeviceType.MULTI_OSC:
+				return DeviceContainer.create<DeviceOptionsMultiOSC, typeof MultiOSCMessageDevice>(
+					'../../dist/integrations/multiOsc/index.js',
+					'MultiOSCMessageDevice',
+					deviceId,
+					deviceOptions,
+					getCurrentTime,
+					threadedClassOptions
+				)
+			case DeviceType.OSC:
+				// presumably this device is implemented in the new service handler
+				try {
+					return RemoteDeviceInstance.create(
+						'../../dist/service/DeviceInstance.js',
+						'DeviceInstanceWrapper',
+						deviceId,
+						deviceOptions,
+						getCurrentTime,
+						threadedClassOptions
+					)
+				} catch {
+					return null
+				}
+			default:
+				assertNever(deviceOptions)
+				return null
+		}
+	}
+
+	private async terminateUnwantedDevice(newDevice: BaseRemoteDeviceIntegration<DeviceOptionsBase<any>> | undefined) {
+		await newDevice
+			?.terminate()
+			.catch((e) => this.emit('error', `Cleanup failed of aborted device "${newDevice.deviceId}": ${e}`))
+	}
+
 	/**
 	 * Initialises an existing device that can be referenced by the timeline and mappings.
 	 * @param deviceId Id used by the mappings to reference the device.
 	 * @param deviceOptions The options used to initalize the device
+	 * @param activeRundownPlaylistId Id of the current rundown playlist
+	 * @param options Additional options
 	 * @returns A promise that resolves with the initialised device, or rejects with an error message.
 	 */
 	public async initDevice(
 		deviceId: string,
 		deviceOptions: DeviceOptionsAnyInternal,
-		activeRundownPlaylistId?: string
+		activeRundownPlaylistId?: string,
+		options?: { signal?: AbortSignal }
 	): Promise<BaseRemoteDeviceIntegration<DeviceOptionsBase<any>>> {
+		const throwIfAborted = () => this.throwIfAborted(options?.signal, deviceId, 'initialisation')
+
+		throwIfAborted()
+
 		const newDevice = this.devices.get(deviceId)
 
 		if (!newDevice) {
@@ -674,20 +736,21 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 		if (newDevice.initialized === true) {
 			throw new Error('Device ' + deviceId + ' is already initialized!')
 		}
-
 		this.emit(
 			'info',
 			`Initializing device ${newDevice.deviceId} (${newDevice.instanceId}) of type ${DeviceType[deviceOptions.type]}...`
 		)
-
-		await newDevice.init(deviceOptions.options, activeRundownPlaylistId)
-
-		await newDevice.reloadProps() // because the device name might have changed after init
-
-		this.emit('info', `Device ${newDevice.deviceId} (${newDevice.instanceId}) initialized!`)
-
-		return newDevice
+		return makeImmediatelyAbortable(async () => {
+			throwIfAborted()
+			await newDevice.init(deviceOptions.options, activeRundownPlaylistId)
+			throwIfAborted()
+			await newDevice.reloadProps()
+			throwIfAborted()
+			this.emit('info', `Device ${newDevice.deviceId} (${newDevice.instanceId}) initialized!`)
+			return newDevice
+		}, options?.signal)
 	}
+
 	/**
 	 * Safely remove a device
 	 * @param deviceId The id of the device to be removed
@@ -702,7 +765,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 				])
 			} catch (e) {
 				// An error while terminating is probably not that important, since we'll kill the instance anyway
-				this.emit('warning', 'Error when terminating device', e)
+				this.emit('warning', `Error when terminating device ${e}`)
 			}
 			await device.terminate()
 			this.devices.delete(deviceId)
@@ -710,6 +773,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 			return Promise.reject('No device found')
 		}
 	}
+
 	/**
 	 * Remove all devices
 	 */
@@ -720,6 +784,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 
 		await this._mapAllDevices(true, async (d) => this.removeDevice(d.deviceId))
 	}
+
 	/**
 	 * Resets the resolve-time, so that the resolving will happen for the point-in time NOW
 	 * next time
@@ -740,8 +805,11 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 
 		this._triggerResolveTimeline()
 	}
+
 	/**
 	 * Send a makeReady-trigger to all devices
+	 *
+	 * @deprecated replace by TSR actions
 	 */
 	public async devicesMakeReady(okToDestroyStuff?: boolean, activationId?: string): Promise<void> {
 		this.activationId = activationId
@@ -767,8 +835,11 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 			this._triggerResolveTimeline()
 		})
 	}
+
 	/**
 	 * Send a standDown-trigger to all devices
+	 *
+	 * @deprecated replaced by TSR actions
 	 */
 	public async devicesStandDown(okToDestroyStuff?: boolean): Promise<void> {
 		this.activationId = undefined
@@ -827,6 +898,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 			this._resolveTimeline()
 		}
 	}
+
 	/**
 	 * Resolves the timeline for the next resolve-time, generates the commands and passes on the commands.
 	 */
@@ -846,6 +918,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 				this.emit('error', 'Caught error in _resolveTimeline.then' + e)
 			})
 	}
+
 	private async _resolveTimelineInner(): Promise<number | undefined> {
 		const trace = startTrace('conductor:resolveTimeline')
 		if (!this._isInitialized) {
@@ -1167,6 +1240,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 		// send the filled state to the device handler
 		return this.getDevice(deviceId)?.device.handleState(filledState, mappings)
 	}
+
 	setDatastore(newStore: Datastore) {
 		this._actionQueue
 			.add(() => {
@@ -1206,6 +1280,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 				this.emit('error', 'Caught error in setDatastore' + e)
 			})
 	}
+
 	getTimelineSize(): number {
 		if (this._timelineSize === undefined) {
 			// Update the cache:
@@ -1227,6 +1302,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 		}
 		return size
 	}
+
 	/**
 	 * Returns a time estimate for the resolval duration based on the amount of
 	 * objects on the timeline. If the proActiveResolve option is falsy this
@@ -1240,6 +1316,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 			return 0
 		}
 	}
+
 	/** Calculates the estimated time it'll take to resolve a timeline of a certain size */
 	static calculateResolveTime(timelineSize: number, multiplier: number): number {
 		// Note: The LEVEL should really be a dynamic value, to reflect the actual performance of the hardware this is running on.
@@ -1305,6 +1382,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 		}
 		this._sentCallbacks = activeObjects
 	}
+
 	private _queueCallback(playing: boolean, cb: QueueCallback): void {
 		let o: CallbackInstance
 
@@ -1362,6 +1440,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 
 		this._triggerSendStartStopCallbacks()
 	}
+
 	private _triggerSendStartStopCallbacks() {
 		if (!this._triggerSendStartStopCallbacksTimeout) {
 			this._triggerSendStartStopCallbacksTimeout = setTimeout(() => {
@@ -1370,6 +1449,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 			}, CALLBACK_WAIT_TIME)
 		}
 	}
+
 	private _sendStartStopCallbacks() {
 		const now = this.getCurrentTime()
 
@@ -1430,6 +1510,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 			this._statMeasureReason = reason
 		}
 	}
+
 	private statReport(startTime: number, report: StatReport) {
 		// Check if the report is from the start of a measuring
 		if (this._statMeasureStart && this._statMeasureStart === startTime) {
@@ -1452,6 +1533,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 			this.emit('statReport', reportDuration)
 		}
 	}
+
 	/**
 	 * Split the state into substates that are relevant for each device
 	 */
@@ -1468,7 +1550,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 		})
 		_.each(layers, (o, layerId: string) => {
 			const oExt: ResolvedTimelineObjectInstanceExtended = o
-			let mapping: Mapping = this._mappings[o.layer + '']
+			let mapping: Mapping<unknown> = this._mappings[o.layer + '']
 			if (!mapping && oExt.isLookahead && oExt.lookaheadForLayer) {
 				mapping = this._mappings[oExt.lookaheadForLayer]
 			}
@@ -1485,6 +1567,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 		})
 		return filteredStates
 	}
+
 	/**
 	 * Only emits the event when there is an active rundownPlaylist.
 	 * This is used to reduce unnesessary logging
@@ -1508,6 +1591,7 @@ export type DeviceOptionsAnyInternal =
 	| DeviceOptionsPharosInternal
 	| DeviceOptionsOBSInternal
 	| DeviceOptionsOSCInternal
+	| DeviceOptionsMultiOSCInternal
 	| DeviceOptionsSisyfosInternal
 	| DeviceOptionsSofieChefInternal
 	| DeviceOptionsQuantelInternal
@@ -1516,6 +1600,8 @@ export type DeviceOptionsAnyInternal =
 	| DeviceOptionsShotokuInternal
 	| DeviceOptionsVizMSEInternal
 	| DeviceOptionsTelemetrics
+	| DeviceOptionsTriCasterInternal
+	| DeviceOptionsMultiOSC
 
 function removeParentFromState(
 	o: Timeline.TimelineState<TSRTimelineContent>
@@ -1528,4 +1614,44 @@ function removeParentFromState(
 		}
 	}
 	return o
+}
+
+/**
+ * If aborted, rejects as soon as possible, but lets the wraped function safely resolve or reject on its own
+ * @param func async function to wrap
+ * @param abortSignal the AbortSignal
+ * @returns Promise of the same type as `func`
+ */
+async function makeImmediatelyAbortable<T>(
+	func: (abortSignal?: AbortSignal) => Promise<T>,
+	abortSignal?: AbortSignal
+): Promise<T> {
+	const mainPromise = func(abortSignal)
+	if (!abortSignal) {
+		return mainPromise
+	}
+	let resolveAbortPromise: Function
+	const abortPromise = new Promise<void>((resolve, reject) => {
+		resolveAbortPromise = () => {
+			resolve()
+			// @ts-expect-error removeEventListener is missing in @types/node until 16.x
+			abortSignal.removeEventListener('abort', rejectPromise)
+		}
+		const rejectPromise = () => {
+			reject(new AbortError())
+		}
+		// @ts-expect-error addEventListener is missing in @types/node until 16.x
+		abortSignal.addEventListener('abort', rejectPromise, { once: true })
+	})
+	return Promise.race([mainPromise, abortPromise])
+		.then((result) => {
+			// only mainPromise could have resolved, so the result must be T
+			resolveAbortPromise()
+			return result as T
+		})
+		.catch((reason) => {
+			// mainPromise or abortPromise might have rejected; calling resolveAbortPromise in the latter case is safe
+			resolveAbortPromise()
+			throw reason
+		})
 }

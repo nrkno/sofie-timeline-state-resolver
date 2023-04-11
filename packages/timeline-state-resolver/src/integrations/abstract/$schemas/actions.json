@@ -4,6 +4,7 @@
 		{
 			"id": "testAction",
 			"name": "Test action",
+			"destructive": false,
 			"timeout": 1000
 		}
 	]

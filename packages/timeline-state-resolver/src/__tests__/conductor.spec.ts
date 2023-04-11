@@ -1,13 +1,15 @@
 import {
 	Mappings,
-	MappingAbstract,
 	DeviceType,
 	TSRTimelineObj,
 	TSRTimeline,
 	LawoDeviceMode,
-	MappingCasparCG,
 	TimelineContentTypeCasparCg,
 	TimelineContentCCGMedia,
+	SomeMappingAbstract,
+	Mapping,
+	SomeMappingCasparCG,
+	MappingCasparCGType,
 } from 'timeline-state-resolver-types'
 import { Conductor, TimelineTriggerTimeResult } from '../conductor'
 import * as _ from 'underscore'
@@ -34,13 +36,15 @@ describe('Conductor', () => {
 			return Promise.resolve()
 		})
 
-		const myLayerMapping0: MappingAbstract = {
+		const myLayerMapping0: Mapping<SomeMappingAbstract> = {
 			device: DeviceType.ABSTRACT,
 			deviceId: 'device0',
+			options: {},
 		}
-		const myLayerMapping1: MappingAbstract = {
+		const myLayerMapping1: Mapping<SomeMappingAbstract> = {
 			device: DeviceType.ABSTRACT,
 			deviceId: 'device1',
+			options: {},
 		}
 		const myLayerMapping: Mappings = {
 			myLayer0: myLayerMapping0,
@@ -193,9 +197,10 @@ describe('Conductor', () => {
 			return Promise.resolve()
 		})
 
-		const myLayerMapping0: MappingAbstract = {
+		const myLayerMapping0: Mapping<SomeMappingAbstract> = {
 			device: DeviceType.ABSTRACT,
 			deviceId: 'device0',
+			options: {},
 		}
 		const myLayerMapping: Mappings = {
 			myLayer0: myLayerMapping0,
@@ -363,10 +368,13 @@ describe('Conductor', () => {
 		await conductor.addDevice('device4', {
 			type: DeviceType.LAWO,
 			options: {
+				host: '',
 				deviceMode: LawoDeviceMode.Ruby,
 			},
 			commandReceiver: commandReceiver4,
 		})
+
+		await mockTime.advanceTimeTicks(10) // to allow casparcg to fake "connect"
 
 		await conductor.devicesMakeReady(true)
 
@@ -405,9 +413,10 @@ describe('Conductor', () => {
 	})
 
 	test('Construction of multithreaded device', async () => {
-		const myLayerMapping0: MappingAbstract = {
+		const myLayerMapping0: Mapping<SomeMappingAbstract> = {
 			device: DeviceType.ABSTRACT,
 			deviceId: 'device0',
+			options: {},
 		}
 		const myLayerMapping: Mappings = {
 			myLayer0: myLayerMapping0,
@@ -435,11 +444,14 @@ describe('Conductor', () => {
 			return Promise.resolve()
 		})
 
-		const myLayerMapping0: MappingCasparCG = {
+		const myLayerMapping0: Mapping<SomeMappingCasparCG> = {
 			device: DeviceType.CASPARCG,
 			deviceId: 'device0',
-			channel: 1,
-			layer: 10,
+			options: {
+				mappingType: MappingCasparCGType.Layer,
+				channel: 1,
+				layer: 10,
+			},
 		}
 		const myLayerMapping: Mappings = {
 			myLayer0: myLayerMapping0,
@@ -503,7 +515,7 @@ describe('Conductor', () => {
 		commandReceiver0.mockClear()
 
 		// modify the mapping:
-		myLayerMapping0.layer = 20
+		myLayerMapping0.options.layer = 20
 		conductor.setTimelineAndMappings(conductor.timeline, myLayerMapping)
 
 		await mockTime.advanceTimeTicks(100) // just a little bit
@@ -526,11 +538,14 @@ describe('Conductor', () => {
 
 		// Replace the mapping altogether:
 		delete myLayerMapping['myLayer0']
-		const myLayerMappingNew: MappingCasparCG = {
+		const myLayerMappingNew: Mapping<SomeMappingCasparCG> = {
 			device: DeviceType.CASPARCG,
 			deviceId: 'device0',
-			channel: 2,
-			layer: 10,
+			options: {
+				mappingType: MappingCasparCGType.Layer,
+				channel: 2,
+				layer: 10,
+			},
 		}
 		myLayerMapping['myLayerNew'] = myLayerMappingNew
 		video0.layer = 'myLayerNew'

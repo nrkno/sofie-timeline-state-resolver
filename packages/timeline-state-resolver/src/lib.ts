@@ -4,6 +4,7 @@ import {
 	TimelineDatastoreReferencesContent,
 	TSRTimelineContent,
 	ITranslatableMessage,
+	ActionExecutionResultCode,
 } from 'timeline-state-resolver-types'
 import * as _ from 'underscore'
 
@@ -265,5 +266,20 @@ export function t(key: string, args?: { [k: string]: any }): ITranslatableMessag
 	return {
 		key,
 		args,
+	}
+}
+
+export function generateTranslation(key: string): string {
+	return key
+}
+
+export function assertNever(_never: never): void {
+	// Do nothing. This is a type guard
+}
+
+export function actionNotFoundMessage(id: string) {
+	return {
+		result: ActionExecutionResultCode.Error,
+		response: t('Action "{{id}}" not found', { id }),
 	}
 }

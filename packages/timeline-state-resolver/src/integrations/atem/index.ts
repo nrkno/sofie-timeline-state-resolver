@@ -4,7 +4,7 @@ import { DeviceWithState, CommandWithContext, DeviceStatus, StatusCode } from '.
 import {
 	DeviceType,
 	TimelineContentTypeAtem,
-	MappingAtem,
+	SomeMappingAtem,
 	MappingAtemType,
 	AtemOptions,
 	DeviceOptionsAtem,
@@ -12,6 +12,11 @@ import {
 	AtemTransitionStyle,
 	Timeline,
 	TSRTimelineContent,
+	Mapping,
+	MappingAtemAuxilliary,
+	ActionExecutionResult,
+	ActionExecutionResultCode,
+	AtemActions,
 } from 'timeline-state-resolver-types'
 import { AtemState, State as DeviceState, Defaults as StateDefault } from 'atem-state'
 import {
@@ -22,7 +27,7 @@ import {
 	Enums as ConnectionEnums,
 } from 'atem-connection'
 import { DoOnTime, SendMode } from '../../devices/doOnTime'
-import { endTrace, startTrace } from '../../lib'
+import { actionNotFoundMessage, endTrace, startTrace } from '../../lib'
 
 _.mixin({ deepExtend: underScoreDeepExtend(_) })
 
@@ -139,15 +144,33 @@ export class AtemDevice extends DeviceWithState<DeviceState, DeviceOptionsAtemIn
 		})
 	}
 
+	private async resyncState(): Promise<ActionExecutionResult> {
+		this._doOnTime.clearQueueNowAndAfter(this.getCurrentTime())
+		if (this._atem.state) this.setState(this._atem.state, this.getCurrentTime())
+
+		return {
+			result: ActionExecutionResultCode.Ok,
+		}
+	}
+	async executeAction(
+		actionId: AtemActions,
+		_payload?: Record<string, any> | undefined
+	): Promise<ActionExecutionResult> {
+		switch (actionId) {
+			case AtemActions.Resync:
+				return this.resyncState()
+			default:
+				return actionNotFoundMessage(actionId)
+		}
+	}
+
 	/**
 	 * Prepare device for playout
 	 * @param okToDestroyStuff If true, may break output
 	 */
 	async makeReady(okToDestroyStuff?: boolean): Promise<void> {
-		this.firstStateAfterMakeReady = true
 		if (okToDestroyStuff) {
-			this._doOnTime.clearQueueNowAndAfter(this.getCurrentTime())
-			if (this._atem.state) this.setState(this._atem.state, this.getCurrentTime())
+			await this.resyncState()
 		}
 	}
 	/** Called by the Conductor a bit before a .handleState is called */
@@ -237,15 +260,15 @@ export class AtemDevice extends DeviceWithState<DeviceState, DeviceOptionsAtemIn
 		_.each(sortedLayers, ({ tlObject, layerName }) => {
 			const content = tlObject.content
 
-			const mapping = newMappings[layerName] as MappingAtem | undefined
+			const mapping = newMappings[layerName] as Mapping<SomeMappingAtem> | undefined
 
 			if (mapping && mapping.deviceId === this.deviceId && content.deviceType === DeviceType.ATEM) {
-				if (mapping.index !== undefined && mapping.index >= 0) {
+				if ('index' in mapping.options && mapping.options.index !== undefined && mapping.options.index >= 0) {
 					// index must be 0 or higher
-					switch (mapping.mappingType) {
+					switch (mapping.options.mappingType) {
 						case MappingAtemType.MixEffect:
 							if (content.type === TimelineContentTypeAtem.ME) {
-								const me = AtemStateUtil.getMixEffect(deviceState, mapping.index)
+								const me = AtemStateUtil.getMixEffect(deviceState, mapping.options.index)
 								const atemObjKeyers = content.me.upstreamKeyers
 								const transition = content.me.transition
 
@@ -263,13 +286,13 @@ export class AtemDevice extends DeviceWithState<DeviceState, DeviceOptionsAtemIn
 							break
 						case MappingAtemType.DownStreamKeyer:
 							if (content.type === TimelineContentTypeAtem.DSK) {
-								const dsk = AtemStateUtil.getDownstreamKeyer(deviceState, mapping.index)
+								const dsk = AtemStateUtil.getDownstreamKeyer(deviceState, mapping.options.index)
 								if (dsk) deepExtend(dsk, content.dsk)
 							}
 							break
 						case MappingAtemType.SuperSourceBox:
 							if (content.type === TimelineContentTypeAtem.SSRC) {
-								const ssrc = AtemStateUtil.getSuperSource(deviceState, mapping.index)
+								const ssrc = AtemStateUtil.getSuperSource(deviceState, mapping.options.index)
 								if (ssrc) {
 									const objBoxes = content.ssrc.boxes
 									_.each(objBoxes, (box, i) => {
@@ -287,27 +310,27 @@ export class AtemDevice extends DeviceWithState<DeviceState, DeviceOptionsAtemIn
 							break
 						case MappingAtemType.SuperSourceProperties:
 							if (content.type === TimelineContentTypeAtem.SSRCPROPS) {
-								const ssrc = AtemStateUtil.getSuperSource(deviceState, mapping.index)
+								const ssrc = AtemStateUtil.getSuperSource(deviceState, mapping.options.index)
 								if (!ssrc.properties) ssrc.properties = { ...StateDefault.Video.SuperSourceProperties }
 								if (ssrc) deepExtend(ssrc.properties, content.ssrcProps)
 							}
 							break
 						case MappingAtemType.Auxilliary:
 							if (content.type === TimelineContentTypeAtem.AUX) {
-								deviceState.video.auxilliaries[mapping.index] = content.aux.input
+								deviceState.video.auxilliaries[mapping.options.index] = content.aux.input
 							}
 							break
 						case MappingAtemType.MediaPlayer:
 							if (content.type === TimelineContentTypeAtem.MEDIAPLAYER) {
-								const ms = AtemStateUtil.getMediaPlayer(deviceState, mapping.index)
+								const ms = AtemStateUtil.getMediaPlayer(deviceState, mapping.options.index)
 								if (ms) deepExtend(ms, content.mediaPlayer)
 							}
 							break
 						case MappingAtemType.AudioChannel:
 							if (content.type === TimelineContentTypeAtem.AUDIOCHANNEL) {
-								const chan = deviceState.audio?.channels[mapping.index]
+								const chan = deviceState.audio?.channels[mapping.options.index]
 								if (chan && deviceState.audio) {
-									deviceState.audio.channels[mapping.index] = {
+									deviceState.audio.channels[mapping.options.index] = {
 										...chan,
 										...content.audioChannel,
 									}
@@ -317,7 +340,7 @@ export class AtemDevice extends DeviceWithState<DeviceState, DeviceOptionsAtemIn
 					}
 				}
 
-				if (mapping.mappingType === MappingAtemType.MacroPlayer) {
+				if (mapping.options.mappingType === MappingAtemType.MacroPlayer) {
 					if (content.type === TimelineContentTypeAtem.MACROPLAYER) {
 						const ms = deviceState.macro.macroPlayer
 						if (ms) deepExtend(ms, content.macroPlayer)
@@ -406,8 +429,11 @@ export class AtemDevice extends DeviceWithState<DeviceState, DeviceOptionsAtemIn
 		// bump out any auxes that we don't control as they may be used for CC etc.
 		const noOfAuxes = Math.max(oldAtemState.video.auxilliaries.length, newAtemState.video.auxilliaries.length)
 		const auxMappings = Object.values(mappings)
-			.filter((mapping: MappingAtem) => mapping.mappingType === MappingAtemType.Auxilliary)
-			.map((mapping: MappingAtem) => mapping.index)
+			.filter(
+				(mapping: Mapping<SomeMappingAtem>): mapping is Mapping<MappingAtemAuxilliary> =>
+					mapping.options.mappingType === MappingAtemType.Auxilliary
+			)
+			.map((mapping) => mapping.options.index)
 
 		for (let i = 0; i < noOfAuxes; i++) {
 			if (!auxMappings.includes(i)) {

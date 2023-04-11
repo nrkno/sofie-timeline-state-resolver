@@ -1,4 +1,4 @@
-import { Conductor, DeviceType, TimelineContentCCGMedia } from '../src/index' // from 'timeline-state-resolver'
+import { Conductor, DeviceType, MappingCasparCGType, Mappings, TimelineContentCCGMedia } from '../src/index' // from 'timeline-state-resolver'
 import { TimelineContentTypeCasparCg, TSRTimelineObj } from '../../timeline-state-resolver-types/src' // from 'timeline-state-resolver-types'
 
 // Initialize TSR:
@@ -21,12 +21,15 @@ const a = async function () {
 	})
 
 	// Setup mappings from layers to outputs:
-	const mappings = {
+	const mappings: Mappings = {
 		layer0: {
 			device: DeviceType.CASPARCG,
 			deviceId: 'casparcg0',
-			channel: 1,
-			layer: 10,
+			options: {
+				mappingType: MappingCasparCGType.Layer,
+				channel: 1,
+				layer: 10,
+			},
 		},
 	}
 	// Set a new timeline:

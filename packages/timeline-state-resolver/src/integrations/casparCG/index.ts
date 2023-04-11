@@ -5,7 +5,7 @@ import { AMCPCommand, BasicCasparCGAPI, ClearCommand, Commands, Response } from 
 import {
 	DeviceType,
 	TimelineContentTypeCasparCg,
-	MappingCasparCG,
+	SomeMappingCasparCG,
 	CasparCGOptions,
 	TimelineContentCCGProducerBase,
 	ResolvedTimelineObjectInstanceExtended,
@@ -18,6 +18,8 @@ import {
 	ActionExecutionResult,
 	ActionExecutionResultCode,
 	CasparCGActions,
+	MappingCasparCGLayer,
+	Mapping,
 } from 'timeline-state-resolver-types'
 
 import {
@@ -50,6 +52,8 @@ const MEDIA_RETRY_INTERVAL = 10 * 1000 // default time in ms between checking wh
 
 export interface DeviceOptionsCasparCGInternal extends DeviceOptionsCasparCG {
 	commandReceiver?: CommandReceiver
+	/** Allow skipping the resync upon connection, for unit tests */
+	skipVirginCheck?: boolean
 }
 export type CommandReceiver = (time: number, cmd: AMCPCommand, context: string, timelineObjId: string) => Promise<any>
 /**
@@ -103,18 +107,65 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 			this.makeReady(false) // always make sure timecode is correct, setting it can never do bad
 				.catch((e) => this.emit('error', 'casparCG.makeReady', e))
 
-			this._connected = true
-			this._connectionChanged()
+			Promise.resolve()
+				.then(async () => {
+					if (this.deviceOptions.skipVirginCheck) return false
 
-			// TODO - maybe add this back based on info command
-			// if (event.valueOf().virginServer === true) {
-			// 	// a "virgin server" was just restarted (so it is cleared & black).
-			// 	// Otherwise it was probably just a loss of connection
+					// a "virgin server" was just restarted (so it is cleared & black).
+					// Otherwise it was probably just a loss of connection
 
-			// 	this._currentState = { channels: {} }
-			// 	this.clearStates()
-			// 	this.emit('resetResolver')
-			// }
+					const { error, request } = await this._ccg.executeCommand({ command: Commands.Info, params: {} })
+					if (error) return true
+
+					const response = await request
+
+					const channelPromises: Promise<Response>[] = []
+					const channelLength: number = response?.data?.['length'] ?? 0
+
+					// Issue commands
+					for (let i = 1; i <= channelLength; i++) {
+						// 1-based index for channels
+
+						const { error, request } = await this._ccg.executeCommand({
+							command: Commands.Info,
+							params: { channel: i },
+						})
+						if (error) {
+							// We can't return here, as that will leave anything in channelPromises as potentially unhandled
+							channelPromises.push(Promise.reject('execute failed'))
+							break
+						}
+						channelPromises.push(request)
+					}
+
+					// Wait for all commands
+					const channelResults = await Promise.all(channelPromises)
+
+					// Resync if all channels have no stage object (no possibility of anything playing)
+					return !channelResults.find((ch) => ch.data['stage'])
+				})
+				.catch((e) => {
+					this.emit('error', 'connect virgin check failed', e)
+					// Something failed, force the resync as glitching playback is better than black output
+					return true
+				})
+				.then((doResync) => {
+					// Finally we can report it as connected
+					this._connected = true
+					this._connectionChanged()
+
+					if (doResync) {
+						this._currentState = { channels: {} }
+						this.clearStates()
+						this.emit('resetResolver')
+					}
+				})
+				.catch((e) => {
+					this.emit('error', 'connect state resync failed', e)
+					// Some unknwon error occured, report the connection as failed
+					this._connected = false
+					this._connectionChanged()
+				})
 		})
 
 		this._ccg.on('disconnect', () => {
@@ -234,7 +285,7 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 	private convertObjectToCasparState(
 		mappings: Mappings,
 		layer: Timeline.ResolvedTimelineObjectInstance,
-		mapping: MappingCasparCG,
+		mapping: MappingCasparCGLayer,
 		isForeground: boolean
 	): LayerBase {
 		let startTime = layer.instance.originalStart || layer.instance.start
@@ -327,10 +378,10 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 			})
 		} else if (content.type === TimelineContentTypeCasparCg.ROUTE) {
 			if (content.mappedLayer) {
-				const routeMapping = mappings[content.mappedLayer] as MappingCasparCG
+				const routeMapping = mappings[content.mappedLayer] as Mapping<SomeMappingCasparCG>
 				if (routeMapping && routeMapping.deviceId === this.deviceId) {
-					content.channel = routeMapping.channel
-					content.layer = routeMapping.layer
+					content.channel = routeMapping.options.channel
+					content.layer = routeMapping.options.layer
 				}
 			}
 			stateLayer = literal<RouteLayer>({
@@ -435,22 +486,22 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 				foundMapping &&
 				foundMapping.device === DeviceType.CASPARCG &&
 				foundMapping.deviceId === this.deviceId &&
-				_.has(foundMapping, 'channel') &&
-				_.has(foundMapping, 'layer')
+				_.has(foundMapping.options, 'channel') &&
+				_.has(foundMapping.options, 'layer')
 			) {
-				const mapping = foundMapping as MappingCasparCG
-				mapping.channel = mapping.channel || 0
-				mapping.layer = mapping.layer || 0
+				const mapping = foundMapping as Mapping<SomeMappingCasparCG>
+				mapping.options.channel = mapping.options.channel || 0
+				mapping.options.layer = mapping.options.layer || 0
 
 				// create a channel in state if necessary, or reuse existing channel
-				const channel = caspar.channels[mapping.channel] || { channelNo: mapping.channel, layers: {} }
-				channel.channelNo = Number(mapping.channel) || 1
+				const channel = caspar.channels[mapping.options.channel] || { channelNo: mapping.options.channel, layers: {} }
+				channel.channelNo = Number(mapping.options.channel) || 1
 				channel.fps = this.initOptions ? this.initOptions.fps || 25 : 25
 				caspar.channels[channel.channelNo] = channel
 
 				// @todo: check if we need to get fps.
 				channel.fps = this.initOptions ? this.initOptions.fps || 25 : 25
-				caspar.channels[mapping.channel] = channel
+				caspar.channels[mapping.options.channel] = channel
 
 				let foregroundObj: ResolvedTimelineObjectInstanceExtended | undefined = timelineState.layers[layerName]
 				let backgroundObj = _.last(
@@ -469,19 +520,23 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 
 				// create layer of appropriate type
 				const foregroundStateLayer = foregroundObj
-					? this.convertObjectToCasparState(mappings, foregroundObj, mapping, true)
+					? this.convertObjectToCasparState(mappings, foregroundObj, mapping.options, true)
 					: undefined
 				const backgroundStateLayer = backgroundObj
-					? this.convertObjectToCasparState(mappings, backgroundObj, mapping, false)
+					? this.convertObjectToCasparState(mappings, backgroundObj, mapping.options, false)
 					: undefined
 
 				debug(
-					`${layerName} (${mapping.channel}-${mapping.layer}): FG keys: ${Object.entries(foregroundStateLayer || {})
+					`${layerName} (${mapping.options.channel}-${mapping.options.layer}): FG keys: ${Object.entries(
+						foregroundStateLayer || {}
+					)
 						.map((e) => e[0] + ': ' + e[1])
 						.join(', ')}`
 				)
 				debug(
-					`${layerName} (${mapping.channel}-${mapping.layer}): BG keys: ${Object.entries(backgroundStateLayer || {})
+					`${layerName} (${mapping.options.channel}-${mapping.options.layer}): BG keys: ${Object.entries(
+						backgroundStateLayer || {}
+					)
 						.map((e) => e[0] + ': ' + e[1])
 						.join(', ')}`
 				)
@@ -499,16 +554,17 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 				}
 
 				if (foregroundStateLayer) {
-					const currentTemplateData = (channel.layers[mapping.layer] as any as TemplateLayer | undefined)?.templateData
+					const currentTemplateData = (channel.layers[mapping.options.layer] as any as TemplateLayer | undefined)
+						?.templateData
 					const foregroundTemplateData = (foregroundStateLayer as any as TemplateLayer | undefined)?.templateData
-					channel.layers[mapping.layer] = merge(channel.layers[mapping.layer], {
+					channel.layers[mapping.options.layer] = merge(channel.layers[mapping.options.layer], {
 						...foregroundStateLayer,
 						...(_.isObject(currentTemplateData) && _.isObject(foregroundTemplateData)
 							? { templateData: deepMerge(currentTemplateData, foregroundTemplateData) }
 							: {}),
 						nextUp: backgroundStateLayer
 							? merge(
-									(channel.layers[mapping.layer] || {}).nextUp!,
+									(channel.layers[mapping.options.layer] || {}).nextUp!,
 									literal<NextUp>({
 										...(backgroundStateLayer as NextUp),
 										auto: false,
@@ -517,18 +573,18 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 							: undefined,
 					})
 				} else if (backgroundStateLayer) {
-					if (mapping.previewWhenNotOnAir) {
-						channel.layers[mapping.layer] = merge(channel.layers[mapping.layer], {
-							...channel.layers[mapping.layer],
+					if (mapping.options.previewWhenNotOnAir) {
+						channel.layers[mapping.options.layer] = merge(channel.layers[mapping.options.layer], {
+							...channel.layers[mapping.options.layer],
 							...backgroundStateLayer,
 							playing: false,
 						})
 					} else {
-						channel.layers[mapping.layer] = merge(
-							channel.layers[mapping.layer],
+						channel.layers[mapping.options.layer] = merge(
+							channel.layers[mapping.options.layer],
 							literal<EmptyLayer>({
 								id: `${backgroundStateLayer.id}_empty_base`,
-								layerNo: mapping.layer,
+								layerNo: mapping.options.layer,
 								content: LayerContentType.NOTHING,
 								playing: false,
 								nextUp: literal<NextUp>({
@@ -552,38 +608,13 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 	 * @param okToDestroyStuff Whether it is OK to restart the device
 	 */
 	async makeReady(okToDestroyStuff?: boolean): Promise<void> {
-		// Sync Caspar Time to our time:
-		const command = await this._ccg.executeCommand({ command: Commands.Info, params: {} })
-		if (command.error) throw new Error('Could not makeReady')
-		const response = await command.request
-		const channels: any[] = response.data
-
-		// Clear all channels (?)
-		if (okToDestroyStuff) {
-			await Promise.all(
-				_.map(channels, async (channel: any) => {
-					await this._commandReceiver(
-						this.getCurrentTime(),
-						{
-							command: Commands.Clear,
-							params: {
-								channel: channel.channel,
-							},
-						},
-						'makeReady and destroystuff',
-						''
-					)
-				})
-			)
-		}
 		// reset our own state(s):
 		if (okToDestroyStuff) {
-			this.clearStates()
+			await this.clearAllChannels()
 		}
-		// a resolveTimeline will be triggered later
 	}
 
-	async clearAllChannels(): Promise<ActionExecutionResult> {
+	private async clearAllChannels(): Promise<ActionExecutionResult> {
 		if (!this._ccg.connected) {
 			return {
 				result: ActionExecutionResultCode.Error,
@@ -654,7 +685,7 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 	/**
 	 * Attemps to restart casparcg over the HTTP API provided by CasparCG launcher.
 	 */
-	async restartCasparCG(): Promise<ActionExecutionResult> {
+	private async restartCasparCG(): Promise<ActionExecutionResult> {
 		if (!this.initOptions) {
 			return { result: ActionExecutionResultCode.Error, response: t('CasparCGDevice._connectionOptions is not set!') }
 		}
@@ -664,9 +695,15 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 		if (!this.initOptions.launcherPort) {
 			return { result: ActionExecutionResultCode.Error, response: t('CasparCGDevice: config.launcherPort is not set!') }
 		}
+		if (!this.initOptions.launcherProcess) {
+			return {
+				result: ActionExecutionResultCode.Error,
+				response: t('CasparCGDevice: config.launcherProcess is not set!'),
+			}
+		}
 
 		return new Promise<ActionExecutionResult>((resolve) => {
-			const url = `http://${this.initOptions?.launcherHost}:${this.initOptions?.launcherPort}/processes/casparcg/restart`
+			const url = `http://${this.initOptions?.launcherHost}:${this.initOptions?.launcherPort}/processes/${this.initOptions?.launcherProcess}/restart`
 			request.post(
 				url,
 				{}, // json: cmd.params

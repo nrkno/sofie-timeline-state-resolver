@@ -1,6 +1,6 @@
 import * as _ from 'underscore'
 import { Q } from 'tv-automation-quantel-gateway-client'
-import * as got from '../../../__mocks__/got'
+import got from '../../../__mocks__/got'
 // const orgSetTimeout = setTimeout
 
 /*

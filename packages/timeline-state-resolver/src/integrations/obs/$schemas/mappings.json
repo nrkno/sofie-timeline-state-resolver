@@ -1,0 +1,71 @@
+{
+	"$schema": "../../../$schemas/mapping-schema.json",
+	"default": "currentScene",
+	"mappings": {
+		"currentScene": {
+			"type": "object",
+			"properties": {},
+			"required": [],
+			"additionalProperties": false
+		},
+		"currentTransition": {
+			"type": "object",
+			"properties": {},
+			"required": [],
+			"additionalProperties": false
+		},
+		"recording": {
+			"type": "object",
+			"properties": {},
+			"required": [],
+			"additionalProperties": false
+		},
+		"streaming": {
+			"type": "object",
+			"properties": {},
+			"required": [],
+			"additionalProperties": false
+		},
+		"sceneItemRender": {
+			"type": "object",
+			"properties": {
+				"sceneName": {
+					"type": "string",
+					"ui:title": "Scene Name",
+					"description": "Name of the scene item to be modified"
+				},
+				"source": {
+					"type": "string",
+					"ui:title": "Source",
+					"description": "Scene item source name"
+				}
+			},
+			"required": ["sceneName", "source"],
+			"additionalProperties": false
+		},
+		"mute": {
+			"type": "object",
+			"properties": {
+				"source": {
+					"type": "string",
+					"ui:title": "Source",
+					"description": "Source name"
+				}
+			},
+			"required": ["source"],
+			"additionalProperties": false
+		},
+		"sourceSettings": {
+			"type": "object",
+			"properties": {
+				"source": {
+					"type": "string",
+					"ui:title": "Source",
+					"description": "Source name"
+				}
+			},
+			"required": ["source"],
+			"additionalProperties": false
+		}
+	}
+}

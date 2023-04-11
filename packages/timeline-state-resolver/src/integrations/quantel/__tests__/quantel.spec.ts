@@ -1,6 +1,13 @@
 import { setupQuantelGatewayMock } from './quantelGatewayMock'
 import { Conductor } from '../../../conductor'
-import { Mappings, DeviceType, MappingQuantel, QuantelTransitionType } from 'timeline-state-resolver-types'
+import {
+	Mappings,
+	DeviceType,
+	Mapping,
+	SomeMappingQuantel,
+	QuantelTransitionType,
+	MappingQuantelType,
+} from 'timeline-state-resolver-types'
 import { MockTime } from '../../../__tests__/mockTime'
 import { ThreadedClass } from 'threadedclass'
 import { QuantelDevice } from '..'
@@ -32,14 +39,17 @@ describe('Quantel', () => {
 			return device._defaultCommandReceiver(...args)
 		})
 
-		const myLayerMapping0: MappingQuantel = {
+		const myLayerMapping0: Mapping<SomeMappingQuantel> = {
 			device: DeviceType.QUANTEL,
 			deviceId: 'myQuantel',
 
-			portId: 'my_port',
-			channelId: 2,
-			// keyChannelID: number
-			// mode?: QuantelControlMode
+			options: {
+				mappingType: MappingQuantelType.Port,
+				portId: 'my_port',
+				channelId: 2,
+				// keyChannelID: number
+				// mode?: QuantelControlMode
+			},
 		}
 		const myLayerMapping: Mappings = {
 			myLayer0: myLayerMapping0,
@@ -1918,11 +1928,11 @@ describe('Quantel', () => {
 		const { commandReceiver0, myConductor, errorHandler, deviceErrorHandler } = await setupDefaultQuantelDeviceForTest()
 
 		const mappings = myConductor.mapping
-		const mapping = mappings['myLayer0'] as MappingQuantel
+		const mapping = mappings['myLayer0'] as Mapping<SomeMappingQuantel>
 		expect(mapping).toBeTruthy()
 
 		// Rename the port to something else
-		mapping.portId = 'myNewPort'
+		mapping.options.portId = 'myNewPort'
 
 		myConductor.setTimelineAndMappings([], mappings)
 		await mockTime.advanceTimeTicks(50)

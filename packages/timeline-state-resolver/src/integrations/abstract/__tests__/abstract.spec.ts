@@ -1,4 +1,4 @@
-import { Mappings, DeviceType, MappingAbstract } from 'timeline-state-resolver-types'
+import { Mappings, DeviceType, Mapping, SomeMappingAbstract } from 'timeline-state-resolver-types'
 import { Conductor } from '../../../conductor'
 import { AbstractDevice } from '..'
 import { StatusCode } from '../../../devices/device'
@@ -15,9 +15,10 @@ describe('Abstract device', () => {
 		const commandReceiver0: any = jest.fn(async () => {
 			return Promise.resolve()
 		})
-		const myLayerMapping0: MappingAbstract = {
+		const myLayerMapping0: Mapping<SomeMappingAbstract> = {
 			device: DeviceType.ABSTRACT,
 			deviceId: 'myAbstract',
+			options: {},
 		}
 		const myLayerMapping: Mappings = {
 			myLayer0: myLayerMapping0,
@@ -122,9 +123,10 @@ describe('Abstract device', () => {
 		expect(onError).toHaveBeenCalledTimes(0)
 	})
 	test('Abstract without mock', async () => {
-		const myLayerMapping0: MappingAbstract = {
+		const myLayerMapping0: Mapping<SomeMappingAbstract> = {
 			device: DeviceType.ABSTRACT,
 			deviceId: 'myAbstract',
+			options: {},
 		}
 		const myLayerMapping: Mappings = {
 			myLayer0: myLayerMapping0,

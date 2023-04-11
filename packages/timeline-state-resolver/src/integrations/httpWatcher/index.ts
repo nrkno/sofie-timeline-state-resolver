@@ -31,8 +31,8 @@ export class HTTPWatcherDevice extends Device<DeviceOptionsHTTPWatcherInternal> 
 		getCurrentTime: () => Promise<number>
 	) {
 		super(deviceId, deviceOptions, getCurrentTime)
-		const opts = deviceOptions.options || {}
-		switch (opts.httpMethod) {
+		const opts = deviceOptions.options
+		switch (opts?.httpMethod) {
 			case 'post':
 				this.httpMethod = TimelineContentTypeHTTP.POST
 				break
@@ -49,10 +49,10 @@ export class HTTPWatcherDevice extends Device<DeviceOptionsHTTPWatcherInternal> 
 				break
 		}
 
-		this.expectedHttpResponse = Number(opts.expectedHttpResponse) || undefined
-		this.keyword = opts.keyword
-		this.intervalTime = Math.max(Number(opts.interval) || 1000, 1000)
-		this.uri = opts.uri
+		this.expectedHttpResponse = Number(opts?.expectedHttpResponse) || undefined
+		this.keyword = opts?.keyword
+		this.intervalTime = Math.max(Number(opts?.interval) || 1000, 1000)
+		this.uri = opts?.uri
 	}
 
 	onInterval() {

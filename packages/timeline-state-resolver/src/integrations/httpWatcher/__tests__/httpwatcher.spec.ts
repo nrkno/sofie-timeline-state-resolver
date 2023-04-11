@@ -1,13 +1,14 @@
 import { Conductor } from '../../../conductor'
-import { Mappings, DeviceType, MappingHTTPWatcher } from 'timeline-state-resolver-types'
+import { Mappings, DeviceType, Mapping, SomeMappingHttpWatcher } from 'timeline-state-resolver-types'
 import { MockTime } from '../../../__tests__/mockTime'
 import { StatusCode } from '../../../devices/device'
 
 import request = require('../../../__mocks__/request')
 
-const myLayerMapping0: MappingHTTPWatcher = {
+const myLayerMapping0: Mapping<SomeMappingHttpWatcher> = {
 	device: DeviceType.HTTPWATCHER,
 	deviceId: 'myHTTPWatch',
+	options: {},
 }
 const myLayerMapping: Mappings = {
 	myLayer0: myLayerMapping0,

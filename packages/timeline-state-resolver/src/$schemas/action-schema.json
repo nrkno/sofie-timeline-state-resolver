@@ -26,6 +26,7 @@
 					},
 					"payload": {
 						"type": "object",
+						"tsType": "string",
 						"description": "The payload object is the first argument of the function",
 						"properties": {
 							"type": {
@@ -44,9 +45,11 @@
 						]
 					}
 				},
-				"required": ["id", "name", "destructive"]
+				"required": ["id", "name", "destructive"],
+				"additionalProperties": false
 			}
 		}
 	},
-	"required": ["actions"]
+	"required": ["actions"],
+	"additionalProperties": false
 }

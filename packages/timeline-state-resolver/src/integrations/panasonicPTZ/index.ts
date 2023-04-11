@@ -3,13 +3,14 @@ import { DeviceWithState, CommandWithContext, DeviceStatus, StatusCode } from '.
 import {
 	DeviceType,
 	TimelineContentTypePanasonicPtz,
-	MappingPanasonicPtz,
-	MappingPanasonicPtzType,
+	SomeMappingPanasonicPTZ,
+	MappingPanasonicPTZType,
 	PanasonicPTZOptions,
 	DeviceOptionsPanasonicPTZ,
 	Mappings,
 	TSRTimelineContent,
 	Timeline,
+	Mapping,
 } from 'timeline-state-resolver-types'
 import { DoOnTime, SendMode } from '../../devices/doOnTime'
 import { PanasonicPtzHttpInterface } from './connection'
@@ -154,7 +155,7 @@ export class PanasonicPtzDevice extends DeviceWithState<PanasonicPtzState, Devic
 		const ptzState: PanasonicPtzState = this._getDefaultState()
 
 		_.each(state.layers, (tlObject, layerName: string) => {
-			const mapping: MappingPanasonicPtz | undefined = mappings[layerName] as MappingPanasonicPtz
+			const mapping = mappings[layerName] as Mapping<SomeMappingPanasonicPTZ> | undefined
 			if (
 				mapping &&
 				mapping.device === DeviceType.PANASONIC_PTZ &&
@@ -162,7 +163,7 @@ export class PanasonicPtzDevice extends DeviceWithState<PanasonicPtzState, Devic
 				tlObject.content.deviceType === DeviceType.PANASONIC_PTZ
 			) {
 				if (
-					mapping.mappingType === MappingPanasonicPtzType.PRESET &&
+					mapping.options.mappingType === MappingPanasonicPTZType.PresetMem &&
 					tlObject.content.type === TimelineContentTypePanasonicPtz.PRESET
 				) {
 					ptzState.preset = {
@@ -170,7 +171,7 @@ export class PanasonicPtzDevice extends DeviceWithState<PanasonicPtzState, Devic
 						timelineObjId: tlObject.id,
 					}
 				} else if (
-					mapping.mappingType === MappingPanasonicPtzType.PRESET_SPEED &&
+					mapping.options.mappingType === MappingPanasonicPTZType.PresetSpeed &&
 					tlObject.content.type === TimelineContentTypePanasonicPtz.SPEED
 				) {
 					ptzState.speed = {
@@ -178,7 +179,7 @@ export class PanasonicPtzDevice extends DeviceWithState<PanasonicPtzState, Devic
 						timelineObjId: tlObject.id,
 					}
 				} else if (
-					mapping.mappingType === MappingPanasonicPtzType.ZOOM_SPEED &&
+					mapping.options.mappingType === MappingPanasonicPTZType.ZoomSpeed &&
 					tlObject.content.type === TimelineContentTypePanasonicPtz.ZOOM_SPEED
 				) {
 					ptzState.zoomSpeed = {
@@ -186,7 +187,7 @@ export class PanasonicPtzDevice extends DeviceWithState<PanasonicPtzState, Devic
 						timelineObjId: tlObject.id,
 					}
 				} else if (
-					mapping.mappingType === MappingPanasonicPtzType.ZOOM &&
+					mapping.options.mappingType === MappingPanasonicPTZType.Zoom &&
 					tlObject.content.type === TimelineContentTypePanasonicPtz.ZOOM
 				) {
 					ptzState.zoom = {

@@ -18,9 +18,12 @@ import {
 	HTTPWatcherOptions,
 	VizMSEOptions,
 	VMixOptions,
+	ShotokuOptions,
+	TelemetricsOptions,
+	TriCasterOptions,
+	MultiOSCOptions,
 } from '.'
-import { ShotokuOptions } from './shotoku'
-import { TelemetricsOptions } from './telemetrics'
+import { DeviceCommonOptions } from './generated/common-options'
 
 export enum StatusCode {
 	UNKNOWN = 0, // Status unknown
@@ -36,15 +39,11 @@ export interface DeviceStatus {
 	active: boolean
 }
 
-export interface DeviceOptionsBase<T> extends SlowReportOptions {
+export interface DeviceOptionsBase<T> extends SlowReportOptions, DeviceCommonOptions {
 	type: DeviceType
 	isMultiThreaded?: boolean
 	reportAllCommands?: boolean
-	threadUsage?: number
-	disable?: boolean
 	options?: T
-	debug?: boolean
-	debugState?: boolean
 }
 
 export interface SlowReportOptions {
@@ -75,6 +74,8 @@ export type DeviceOptionsAny =
 	| DeviceOptionsVizMSE
 	| DeviceOptionsShotoku
 	| DeviceOptionsTelemetrics
+	| DeviceOptionsTriCaster
+	| DeviceOptionsMultiOSC
 
 export interface DeviceOptionsAbstract extends DeviceOptionsBase<AbstractOptions> {
 	type: DeviceType.ABSTRACT
@@ -130,11 +131,15 @@ export interface DeviceOptionsSingularLive extends DeviceOptionsBase<SingularLiv
 export interface DeviceOptionsShotoku extends DeviceOptionsBase<ShotokuOptions> {
 	type: DeviceType.SHOTOKU
 }
-
 export interface DeviceOptionsVMix extends DeviceOptionsBase<VMixOptions> {
 	type: DeviceType.VMIX
 }
-
 export interface DeviceOptionsTelemetrics extends DeviceOptionsBase<TelemetricsOptions> {
 	type: DeviceType.TELEMETRICS
+}
+export interface DeviceOptionsTriCaster extends DeviceOptionsBase<TriCasterOptions> {
+	type: DeviceType.TRICASTER
+}
+export interface DeviceOptionsMultiOSC extends DeviceOptionsBase<MultiOSCOptions> {
+	type: DeviceType.MULTI_OSC
 }

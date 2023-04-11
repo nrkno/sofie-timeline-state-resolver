@@ -1,6 +1,12 @@
 import { Conductor } from '../../../conductor'
 import { PharosDevice } from '..'
-import { Mappings, DeviceType, MappingPharos, TimelineContentTypePharos } from 'timeline-state-resolver-types'
+import {
+	Mappings,
+	DeviceType,
+	Mapping,
+	SomeMappingPharos,
+	TimelineContentTypePharos,
+} from 'timeline-state-resolver-types'
 import { MockTime } from '../../../__tests__/mockTime'
 import { ThreadedClass } from 'threadedclass'
 import { getMockCall } from '../../../__tests__/lib'
@@ -29,9 +35,10 @@ describe('Pharos', () => {
 			return device._defaultCommandReceiver(...args)
 			// return Promise.resolve()
 		})
-		const myLayerMapping0: MappingPharos = {
+		const myLayerMapping0: Mapping<SomeMappingPharos> = {
 			device: DeviceType.PHAROS,
 			deviceId: 'myPharos',
+			options: {},
 		}
 		const myLayerMapping: Mappings = {
 			myLayer0: myLayerMapping0,

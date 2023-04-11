@@ -1,7 +1,8 @@
 import { Conductor } from '../../../conductor'
 import { HTTPSendDevice } from '..'
 import {
-	MappingHTTPSend,
+	SomeMappingHttpSend,
+	Mapping,
 	Mappings,
 	DeviceType,
 	TimelineContentHTTPRequest,
@@ -22,9 +23,10 @@ describe('HTTP-Send', () => {
 		const commandReceiver0: any = jest.fn(async () => {
 			return Promise.resolve()
 		})
-		const myLayerMapping0: MappingHTTPSend = {
+		const myLayerMapping0: Mapping<SomeMappingHttpSend> = {
 			device: DeviceType.HTTPSEND,
 			deviceId: 'myHTTP',
+			options: {},
 		}
 		const myLayerMapping: Mappings = {
 			myLayer0: myLayerMapping0,
@@ -96,9 +98,10 @@ describe('HTTP-Send', () => {
 		const commandReceiver0: any = jest.fn(async () => {
 			return Promise.resolve()
 		})
-		const myLayerMapping0: MappingHTTPSend = {
+		const myLayerMapping0: Mapping<SomeMappingHttpSend> = {
 			device: DeviceType.HTTPSEND,
 			deviceId: 'myHTTP',
+			options: {},
 		}
 		const myLayerMapping: Mappings = {
 			myLayer0: myLayerMapping0,

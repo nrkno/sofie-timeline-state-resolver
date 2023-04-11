@@ -1,0 +1,53 @@
+{
+	"$schema": "https://json-schema.org/draft/2020-12/schema",
+	"$id": "https://example.com/product.schema.json",
+	"title": "Lawo Options",
+	"type": "object",
+	"properties": {
+		"host": {
+			"type": "string",
+			"ui:title": "Host",
+			"default": ""
+		},
+		"port": {
+			"type": "integer",
+			"ui:title": "Port",
+			"default": 0
+		},
+		"deviceMode": {
+			"type": "integer",
+			"ui:title": "Device Mode",
+			"title": "LawoDeviceMode",
+			"default": 0,
+			"enum": [0, 1, 2, 3, 4],
+			"tsEnumNames": ["R3lay", "Ruby", "RubyManualRamp", "MC2", "Manual"]
+		},
+		"faderInterval": {
+			"type": "integer",
+			"ui:title": "Fader setValue Interval"
+		},
+		"sourcesPath": {
+			"type": "string",
+			"description": "Manual mode only",
+			"ui:title": "Sources Path"
+		},
+		"dbPropertyName": {
+			"type": "string",
+			"description": "Manual mode only",
+			"ui:title": "dB Property Path"
+		},
+		"rampMotorFunctionPath": {
+			"type": "string",
+			"description": "Manual mode only",
+			"ui:title": "Ramp Motor Function Path"
+		},
+		"faderThreshold": {
+			"type": "integer",
+			"description": "Manual mode only",
+			"ui:title": "Fader cutoff value",
+			"default": -60
+		}
+	},
+	"required": ["host", "deviceMode"],
+	"additionalProperties": false
+}

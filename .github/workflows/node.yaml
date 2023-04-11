@@ -21,13 +21,14 @@ jobs:
         lib-name: [timeline-state-resolver, timeline-state-resolver-types]
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Use Node.js
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v3
         with:
           node-version-file: '.node-version'
       - name: Prepare Environment
         run: |
+          yarn config set cache-folder /home/runner/lint-${{ matrix.lib-name }}-cache
           yarn install
           yarn build
         env:
@@ -46,13 +47,14 @@ jobs:
     timeout-minutes: 15
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Use Node.js
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v3
         with:
           node-version-file: '.node-version'
       - name: Prepare Environment
         run: |
+          yarn config set cache-folder /home/runner/docs-cache
           yarn install
           yarn build
         env:
@@ -75,13 +77,14 @@ jobs:
         lib-name: [timeline-state-resolver, timeline-state-resolver-types]
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
       - name: Prepare Environment
         run: |
+          yarn config set cache-folder /home/runner/test-${{ matrix.lib-name }}-${{ matrix.node-version }}-cache
           yarn install
           yarn build
         env:
@@ -94,7 +97,7 @@ jobs:
           CI: true
       - name: Send coverage
         if: matrix.node-version == '16.x'
-        uses: codecov/codecov-action@v2
+        uses: codecov/codecov-action@v3
       # - name: Check docs generation
       #   if: matrix.node-version == '16.x'
       #   run: |
@@ -115,11 +118,11 @@ jobs:
       # - validate-dependencies
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           fetch-depth: 0
       - name: Use Node.js
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v3
         with:
           node-version-file: '.node-version'
       - name: Check release is desired
@@ -142,16 +145,17 @@ jobs:
             if verlt $PUBLISHED_VERSION $THIS_VERSION
             then
               echo "Publishing latest"
-              echo ::set-output name=tag::"latest"
+              echo "tag=latest" >> $GITHUB_OUTPUT
             else
               echo "Publishing hotfix"
-              echo ::set-output name=tag::"hotfix"
+              echo "tag=hotfix" >> $GITHUB_OUTPUT
             fi
 
           fi
       - name: Prepare build
         if: ${{ steps.do-publish.outputs.tag }}
         run: |
+          yarn config set cache-folder /home/runner/release-cache
           yarn install
           yarn build
         env:
@@ -185,13 +189,14 @@ jobs:
         lib-name: [timeline-state-resolver, timeline-state-resolver-types]
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Use Node.js
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v3
         with:
           node-version-file: '.node-version'
       - name: Prepare Environment
         run: |
+          yarn config set cache-folder /home/runner/validate-deps-${{ matrix.lib-name }}-cache
           yarn install
         env:
           CI: true
@@ -218,13 +223,14 @@ jobs:
         lib-name: [timeline-state-resolver, timeline-state-resolver-types]
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Use Node.js
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v3
         with:
           node-version-file: '.node-version'
       - name: Prepare Environment
         run: |
+          yarn config set cache-folder /home/runner/validate-all-deps-${{ matrix.lib-name }}-cache
           yarn install
         env:
           CI: true

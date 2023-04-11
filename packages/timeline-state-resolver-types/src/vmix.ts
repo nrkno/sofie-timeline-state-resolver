@@ -1,111 +1,4 @@
-import { Mapping } from './mapping'
 import { DeviceType } from '.'
-
-export type MappingVMixAny =
-	| MappingVMixProgram
-	| MappingVMixPreview
-	| MappingVMixInput
-	| MappingVMixAudioChannel
-	| MappingVMixOutput
-	| MappingVMixOverlay
-	| MappingVMixRecording
-	| MappingVMixStreaming
-	| MappingVMixExternal
-	| MappingVMixFadeToBlack
-	| MappingVMixFader
-
-export interface MappingVMix extends Mapping {
-	device: DeviceType.VMIX
-	mappingType: MappingVMixType
-	deviceId: string
-}
-
-export interface MappingVMixProgram extends MappingVMix {
-	mappingType: MappingVMixType.Program
-
-	/** Number of the mix (1 is the main mix, 2-4 are optional Mix Inputs) */
-	index?: 1 | 2 | 3 | 4
-}
-
-export interface MappingVMixPreview extends MappingVMix {
-	mappingType: MappingVMixType.Preview // should this have a separate mapping?
-
-	/** Number of the mix (1 is the main mix, 2-4 are optional Mix Inputs) */
-	index?: 1 | 2 | 3 | 4
-}
-
-export interface MappingVMixInput extends MappingVMix {
-	mappingType: MappingVMixType.Input
-
-	/** Input number or name */
-	index?: number | string
-}
-
-export interface MappingVMixAudioChannel extends MappingVMix {
-	mappingType: MappingVMixType.AudioChannel
-
-	/** Input number or name */
-	index?: number | string
-
-	/** Input layer name */
-	inputLayer?: string
-}
-
-export interface MappingVMixOutput extends MappingVMix {
-	mappingType: MappingVMixType.Output
-
-	/** Output */
-	index: '2' | '3' | '4' | 'External2' | 'Fullscreen' | 'Fullscreen2'
-}
-
-export interface MappingVMixOverlay extends MappingVMix {
-	mappingType: MappingVMixType.Overlay
-
-	/** Overlay number */
-	index: 1 | 2 | 3 | 4
-}
-
-export interface MappingVMixRecording extends MappingVMix {
-	mappingType: MappingVMixType.Recording
-}
-
-export interface MappingVMixStreaming extends MappingVMix {
-	mappingType: MappingVMixType.Streaming
-
-	/** Stream number */
-	// index: 1 | 2 | 3 // TODO: implement
-}
-
-export interface MappingVMixExternal extends MappingVMix {
-	mappingType: MappingVMixType.External
-}
-
-export interface MappingVMixFadeToBlack extends MappingVMix {
-	mappingType: MappingVMixType.FadeToBlack // should this have a separate mapping?
-}
-
-export interface MappingVMixFader extends MappingVMix {
-	mappingType: MappingVMixType.Fader // should this have a separate mapping?
-}
-
-export enum MappingVMixType {
-	Program = 0,
-	Preview = 1,
-	Input = 2, // order of Input and AudioChannel matters because of the way layers are sorted
-	AudioChannel = 3,
-	Output = 4,
-	Overlay = 5,
-	Recording = 6,
-	Streaming = 7,
-	External = 8,
-	FadeToBlack = 9,
-	Fader = 10,
-}
-
-export interface VMixOptions {
-	host: string
-	port: number
-}
 
 export enum VMixCommand {
 	PREVIEW_INPUT = 'PREVIEW_INPUT',
@@ -142,6 +35,12 @@ export enum VMixCommand {
 	OVERLAY_INPUT_IN = 'OVERLAY_INPUT_IN',
 	OVERLAY_INPUT_OUT = 'OVERLAY_INPUT_OUT',
 	SET_INPUT_OVERLAY = 'SET_INPUT_OVERLAY',
+	SCRIPT_START = 'SCRIPT_START',
+	SCRIPT_STOP = 'SCRIPT_STOP',
+	SCRIPT_STOP_ALL = 'SCRIPT_STOP_ALL',
+	LIST_ADD = 'LIST_ADD',
+	LIST_REMOVE_ALL = 'LIST_REMOVE_ALL',
+	RESTART_INPUT = 'RESTART_INPUT',
 }
 
 export type TimelineContentVMixAny =
@@ -156,6 +55,7 @@ export type TimelineContentVMixAny =
 	| TimelineContentVMixOutput
 	| TimelineContentVMixOverlay
 	| TimelineContentVMixInput
+	| TimelineContentVMixScript
 
 export enum TimelineContentTypeVMix {
 	PROGRAM = 'PROGRAM',
@@ -169,6 +69,7 @@ export enum TimelineContentTypeVMix {
 	OUTPUT = 'OUTPUT',
 	EXTERNAL = 'EXTERNAL',
 	OVERLAY = 'OVERLAY',
+	SCRIPT = 'SCRIPT',
 }
 export interface TimelineContentVMixBase {
 	deviceType: DeviceType.VMIX
@@ -267,6 +168,12 @@ export interface TimelineContentVMixInput extends TimelineContentVMixBase {
 
 	/** List of input (Multi View) overlays; indexes start from 1 */
 	overlays?: VMixInputOverlays
+
+	/** An array of file paths to load into a List input. Uses Windows-style path separators (\\). Only applies to List inputs. */
+	listFilePaths?: string[]
+
+	/** If media should start from the beginning or resume from where it left off */
+	restart?: boolean
 }
 
 export interface TimelineContentVMixOutput extends TimelineContentVMixBase {
@@ -291,6 +198,13 @@ export interface TimelineContentVMixOverlay extends TimelineContentVMixBase {
 
 	/** Input number or name */
 	input: number | string
+}
+
+export interface TimelineContentVMixScript extends TimelineContentVMixBase {
+	type: TimelineContentTypeVMix.SCRIPT
+
+	/** Script name */
+	name: string
 }
 
 export interface VMixTransform {
@@ -349,4 +263,5 @@ export enum VMixInputType {
 	AudioFile = 'AudioFile',
 	Flash = 'Flash',
 	PowerPoint = 'PowerPoint',
+	List = 'List',
 }

@@ -1,22 +1,4 @@
-import { Mapping } from './mapping'
 import { DeviceType } from '.'
-
-export interface MappingPanasonicPtz extends Mapping {
-	device: DeviceType.PANASONIC_PTZ
-	mappingType: MappingPanasonicPtzType
-}
-export enum MappingPanasonicPtzType {
-	PRESET_SPEED = 0,
-	PRESET = 1,
-	ZOOM = 2,
-	ZOOM_SPEED = 3,
-}
-
-export interface PanasonicPTZOptions {
-	host?: string
-	port?: number
-	https?: boolean
-}
 
 export enum TimelineContentTypePanasonicPtz {
 	PRESET = 'presetMem',
