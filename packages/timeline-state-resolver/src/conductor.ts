@@ -685,18 +685,14 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 				)
 			case DeviceType.OSC:
 				// presumably this device is implemented in the new service handler
-				try {
-					return RemoteDeviceInstance.create(
-						'../../dist/service/DeviceInstance.js',
-						'DeviceInstanceWrapper',
-						deviceId,
-						deviceOptions,
-						getCurrentTime,
-						threadedClassOptions
-					)
-				} catch {
-					return null
-				}
+				return RemoteDeviceInstance.create(
+					'../../dist/service/DeviceInstance.js',
+					'DeviceInstanceWrapper',
+					deviceId,
+					deviceOptions,
+					getCurrentTime,
+					threadedClassOptions
+				)
 			default:
 				assertNever(deviceOptions)
 				return null
