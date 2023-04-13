@@ -13,18 +13,21 @@ import { CommandWithContext, Device } from './device'
 import { StateHandler } from './stateHandler'
 import { DevicesDict } from './devices'
 import { DeviceEvents } from './device'
-import { DeviceOptionsAnyInternal } from '..'
+import { DeviceOptionsAnyInternal, ExpectedPlayoutItem } from '..'
 import { StateChangeReport } from './measure'
 
 type Config = DeviceOptionsAnyInternal
 type DeviceState = any
 
-export interface ServiceDetails {
+export interface DeviceDetails {
 	deviceId: string
 	deviceType: DeviceType
 	deviceName: string
 	instanceId: number
 	startTime: number
+
+	supportsExpectedPlayoutItems: boolean
+	canConnect: boolean
 }
 
 /**
@@ -126,7 +129,7 @@ export class DeviceInstanceWrapper extends EventEmitter<DeviceEvents> {
 		return this._device.terminate()
 	}
 
-	async executeAction(id: string, payload: Record<string, any>) {
+	async executeAction(id: string, payload?: Record<string, any>) {
 		const action = this._device.actions[id]
 
 		if (!action) {
@@ -167,14 +170,21 @@ export class DeviceInstanceWrapper extends EventEmitter<DeviceEvents> {
 		this._stateHandler.clearFutureAfterTimestamp(t)
 	}
 
-	getDetails(): ServiceDetails {
+	getDetails(): DeviceDetails {
 		return {
 			deviceId: this._deviceId,
 			deviceType: this._deviceType,
 			deviceName: this._deviceName,
 			instanceId: this._instanceId,
 			startTime: this._startTime,
+
+			supportsExpectedPlayoutItems: false,
+			canConnect: DevicesDict[this.config.type].canConnect,
 		}
+	}
+
+	handleExpectedPlayoutItems(_expectedPlayoutItems: Array<ExpectedPlayoutItem>): void {
+		// do nothing yet, as this isn't implemented.
 	}
 
 	getStatus(): DeviceStatus {
