@@ -11,6 +11,8 @@ export type DeviceContainerEvents = {
 export abstract class BaseRemoteDeviceIntegration<
 	TOptions extends DeviceOptionsBase<any>
 > extends EventEmitter<DeviceContainerEvents> {
+	public abstract onChildClose: () => void | undefined
+
 	protected abstract _device: ThreadedClass<DeviceInstanceWrapper> | ThreadedClass<Device<TOptions>>
 	protected _details: DeviceDetails = {
 		deviceId: 'N/A',
