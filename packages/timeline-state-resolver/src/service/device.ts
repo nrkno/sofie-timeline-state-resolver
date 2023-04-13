@@ -36,7 +36,7 @@ export interface Device<DeviceOptions, DeviceState, Command extends CommandWithC
 	get connected(): boolean
 	getStatus(): Omit<DeviceStatus, 'active'>
 
-	actions: Record<string, (id: string, payload: Record<string, any>) => Promise<ActionExecutionResult>>
+	actions: Record<string, (id: string, payload?: Record<string, any>) => Promise<ActionExecutionResult>>
 
 	// todo - add media objects
 }

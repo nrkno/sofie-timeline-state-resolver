@@ -1,7 +1,7 @@
 import { ThreadedClass, threadedClass, ThreadedClassConfig, ThreadedClassManager } from 'threadedclass'
 import { DeviceType, DeviceOptionsBase } from 'timeline-state-resolver-types'
 import { EventEmitter } from 'eventemitter3'
-import { DeviceInstanceWrapper } from './DeviceInstance'
+import { DeviceDetails, DeviceInstanceWrapper } from './DeviceInstance'
 import { Device } from '../conductor'
 
 export type DeviceContainerEvents = {
@@ -12,11 +12,16 @@ export abstract class BaseRemoteDeviceIntegration<
 	TOptions extends DeviceOptionsBase<any>
 > extends EventEmitter<DeviceContainerEvents> {
 	protected abstract _device: ThreadedClass<DeviceInstanceWrapper> | ThreadedClass<Device<TOptions>>
-	protected _deviceId = 'N/A'
-	protected _deviceType: DeviceType
-	protected _deviceName = 'N/A'
-	protected _instanceId = -1
-	protected _startTime = -1
+	protected _details: DeviceDetails = {
+		deviceId: 'N/A',
+		deviceType: DeviceType.ABSTRACT,
+		deviceName: 'N/A',
+		instanceId: -1,
+		startTime: -1,
+
+		supportsExpectedPlayoutItems: false,
+		canConnect: true,
+	}
 	protected _onEventListeners: { stop: () => void }[] = []
 
 	private _debugLogging = true
@@ -58,13 +63,13 @@ export abstract class BaseRemoteDeviceIntegration<
 		return this._device
 	}
 	public get deviceId(): string {
-		return this._deviceId
+		return this._details.deviceId
 	}
 	public get deviceType(): DeviceType {
-		return this._deviceType
+		return this._details.deviceType
 	}
 	public get deviceName(): string {
-		return this._deviceName
+		return this._details.deviceName
 	}
 	public get deviceOptions(): TOptions {
 		return this._deviceOptions
@@ -73,10 +78,10 @@ export abstract class BaseRemoteDeviceIntegration<
 		return this._threadConfig
 	}
 	public get instanceId(): number {
-		return this._instanceId
+		return this._details.instanceId
 	}
 	public get startTime(): number {
-		return this._startTime
+		return this._details.startTime
 	}
 
 	public get debugLogging(): boolean {
@@ -85,6 +90,10 @@ export abstract class BaseRemoteDeviceIntegration<
 
 	public get debugState(): boolean {
 		return this._debugState
+	}
+
+	public get details(): DeviceDetails {
+		return this._details
 	}
 }
 
@@ -155,11 +164,14 @@ export class RemoteDeviceInstance<
 	public async reloadProps(): Promise<void> {
 		const props = await this._device.getDetails()
 
-		this._deviceId = props.deviceId
-		this._deviceType = props.deviceType
-		this._deviceName = props.deviceName
-		this._instanceId = props.instanceId
-		this._startTime = props.startTime
+		this._details.canConnect = props.canConnect
+		this._details.supportsExpectedPlayoutItems = props.supportsExpectedPlayoutItems
+
+		this._details.deviceId = props.deviceId
+		this._details.deviceType = props.deviceType
+		this._details.deviceName = props.deviceName
+		this._details.instanceId = props.instanceId
+		this._details.startTime = props.startTime
 	}
 
 	public async init(_initOptions: TOptions['options'], activeRundownPlaylistId: string | undefined): Promise<boolean> {

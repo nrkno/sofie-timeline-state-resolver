@@ -68,11 +68,14 @@ export class DeviceContainer<TOptions extends DeviceOptionsBase<any>> extends Ba
 	}
 
 	public async reloadProps(): Promise<void> {
-		this._deviceId = await this._device.deviceId
-		this._deviceType = await this._device.deviceType
-		this._deviceName = await this._device.deviceName
-		this._instanceId = await this._device.instanceId
-		this._startTime = await this._device.startTime
+		this._details.deviceId = await this._device.deviceId
+		this._details.deviceType = await this._device.deviceType
+		this._details.deviceName = await this._device.deviceName
+		this._details.instanceId = await this._device.instanceId
+		this._details.startTime = await this._device.startTime
+
+		this._details.canConnect = await this._device.canConnect
+		this._details.supportsExpectedPlayoutItems = await this._device.supportsExpectedPlayoutItems
 	}
 
 	public async init(initOptions: TOptions['options'], activeRundownPlaylistId: string | undefined): Promise<boolean> {
