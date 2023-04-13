@@ -315,7 +315,9 @@ export class HTTPSendDevice extends DeviceWithState<HTTPSendState, DeviceOptions
 
 		const httpReq = got[cmd.type]
 		try {
-			const options: OptionsOfTextResponseBody = {}
+			const options: OptionsOfTextResponseBody = {
+				headers: cmd.headers,
+			}
 
 			const params = 'params' in cmd && !_.isEmpty(cmd.params) ? cmd.params : undefined
 			if (params) {
