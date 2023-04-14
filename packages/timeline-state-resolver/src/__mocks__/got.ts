@@ -1,80 +1,78 @@
 // import * as orgGot from 'got'
 
+import { OptionsOfTextResponseBody } from 'got/dist/source'
+
 // orgGot.default([
 // 	asdf
 // ])
 
 // type Callback = (error: Error, result: any) => void
 
-let _mockGet: (options: Options) => Promise<any>
-let _mockPost: (options: Options) => Promise<any>
-let _mockPut: (options: Options) => Promise<any>
-let _mockHead: (options: Options) => Promise<any>
-let _mockPatch: (options: Options) => Promise<any>
-let _mockDel: (options: Options) => Promise<any>
-let _mockDelete: (options: Options) => Promise<any>
+let _mockGet: (url: string | Options, options?: Options) => Promise<any>
+let _mockPost: (url: string | Options, options?: Options) => Promise<any>
+let _mockPut: (url: string | Options, options?: Options) => Promise<any>
+let _mockHead: (url: string | Options, options?: Options) => Promise<any>
+let _mockPatch: (url: string | Options, options?: Options) => Promise<any>
+let _mockDel: (url: string | Options, options?: Options) => Promise<any>
+let _mockDelete: (url: string | Options, options?: Options) => Promise<any>
 
-interface Options {
-	url: string
-	method: 'POST' | 'GET' | 'PUT' | 'DELETE'
-	json?: object
-	timeout: number
-	responseType: string // 'json'
-}
+type Options = Pick<OptionsOfTextResponseBody, 'url' | 'method' | 'json' | 'timeout' | 'responseType'>
+
 const gotMethods = {
 	// mock functions:
-	setMockGet: (fcn: (options: Options) => Promise<any>) => {
+	setMockGet: (fcn: (url: string | Options, options?: Options) => Promise<any>) => {
 		_mockGet = fcn
 	},
-	setMockPost: (fcn: (options: Options) => Promise<any>) => {
+	setMockPost: (fcn: (url: string | Options, options?: Options) => Promise<any>) => {
 		_mockPost = fcn
 	},
-	setMockPut: (fcn: (options: Options) => Promise<any>) => {
+	setMockPut: (fcn: (url: string | Options, options?: Options) => Promise<any>) => {
 		_mockPut = fcn
 	},
-	setMockHead: (fcn: (options: Options) => Promise<any>) => {
+	setMockHead: (fcn: (url: string | Options, options?: Options) => Promise<any>) => {
 		_mockHead = fcn
 	},
-	setMockPatch: (fcn: (options: Options) => Promise<any>) => {
+	setMockPatch: (fcn: (url: string | Options, options?: Options) => Promise<any>) => {
 		_mockPatch = fcn
 	},
-	setMockDel: (fcn: (options: Options) => Promise<any>) => {
+	setMockDel: (fcn: (url: string | Options, options?: Options) => Promise<any>) => {
 		_mockDel = fcn
 	},
-	setMockDelete: (fcn: (options: Options) => Promise<any>) => {
+	setMockDelete: (fcn: (url: string | Options, options?: Options) => Promise<any>) => {
 		_mockDelete = fcn
 	},
 	// ------------------
-	// default: (options: Options) => {
+	// default: (url: string | Options, options?: Options) => {
 
 	// },
-	get: async (options: Options) => {
-		return _mockGet(options)
+	get: async (url: string | Options, options?: Options) => {
+		return _mockGet(url, options)
 	},
-	post: async (options: Options) => {
-		return _mockPost(options)
+	post: async (url: string | Options, options?: Options) => {
+		return _mockPost(url, options)
 	},
-	put: async (options: Options) => {
-		return _mockPut(options)
+	put: async (url: string | Options, options?: Options) => {
+		return _mockPut(url, options)
 	},
-	head: async (options: Options) => {
-		return _mockHead(options)
+	head: async (url: string | Options, options?: Options) => {
+		return _mockHead(url, options)
 	},
-	patch: async (options: Options) => {
-		return _mockPatch(options)
+	patch: async (url: string | Options, options?: Options) => {
+		return _mockPatch(url, options)
 	},
-	del: async (options: Options) => {
-		return _mockDel(options)
+	del: async (url: string | Options, options?: Options) => {
+		return _mockDel(url, options)
 	},
-	delete: async (options: Options) => {
-		return _mockDelete(options)
+	delete: async (url: string | Options, options?: Options) => {
+		return _mockDelete(url, options)
 	},
 }
-const got: any = (options: Options) => {
-	if (options.method === 'POST') return gotMethods.post(options)
-	else if (options.method === 'GET') return gotMethods.get(options)
-	else if (options.method === 'PUT') return gotMethods.put(options)
-	else if (options.method === 'DELETE') return gotMethods.delete(options)
+const got: any = (url: string | Options, options?: Options) => {
+	const method = options?.method || (typeof url === 'object' && url.method) || 'GET'
+	if (method === 'POST') return gotMethods.post(url, options)
+	else if (method === 'GET') return gotMethods.get(url, options)
+	else if (method === 'PUT') return gotMethods.put(url, options)
+	else if (method === 'DELETE') return gotMethods.delete(url, options)
 	else return 'ERROR: method not supported'
 }
 Object.keys(gotMethods).forEach((key) => {
