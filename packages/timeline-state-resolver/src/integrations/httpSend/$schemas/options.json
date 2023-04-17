@@ -53,6 +53,10 @@
 						"enum": ["json", "form"],
 						"tsEnumNames": ["JSON", "FORM"]
 					},
+					"headers": {
+						"type": "object",
+						"additionalProperties": { "type": "string" }
+					},
 					"temporalPriority": {
 						"type": "integer",
 						"ui:title": "Temporal Priority",

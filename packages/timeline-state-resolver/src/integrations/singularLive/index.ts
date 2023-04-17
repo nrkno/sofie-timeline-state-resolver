@@ -13,7 +13,7 @@ import {
 	Mapping,
 } from 'timeline-state-resolver-types'
 import { DoOnTime, SendMode } from '../../devices/doOnTime'
-import * as request from 'request'
+import got from 'got'
 
 export interface DeviceOptionsSingularLiveInternal extends DeviceOptionsSingularLive {
 	commandReceiver?: CommandReceiver
@@ -297,25 +297,26 @@ export class SingularLiveDevice extends DeviceWithState<SingularLiveState, Devic
 		const url = SINGULAR_LIVE_API + this._accessToken + '/control'
 
 		return new Promise<void>((resolve, reject) => {
-			const handleResponse = (error, response) => {
-				if (error) {
+			got
+				.patch(url, { json: cmd })
+				.then((response) => {
+					if (response.statusCode === 200) {
+						this.emitDebug(
+							`SingularLive: ${cmd.subCompositionName}: Good statuscode response on url "${url}": ${response.statusCode} (${context})`
+						)
+						resolve()
+					} else {
+						this.emit(
+							'warning',
+							`SingularLive: ${cmd.subCompositionName}: Bad statuscode response on url "${url}": ${response.statusCode} (${context})`
+						)
+						resolve()
+					}
+				})
+				.catch((error) => {
 					this.emit('error', `SingularLive.response error ${cmd.subCompositionName} (${context}`, error)
 					reject(error)
-				} else if (response.statusCode === 200) {
-					this.emitDebug(
-						`SingularLive: ${cmd.subCompositionName}: Good statuscode response on url "${url}": ${response.statusCode} (${context})`
-					)
-					resolve()
-				} else {
-					this.emit(
-						'warning',
-						`SingularLive: ${cmd.subCompositionName}: Bad statuscode response on url "${url}": ${response.statusCode} (${context})`
-					)
-					resolve()
-				}
-			}
-
-			request.patch(url, { json: [cmd] }, handleResponse)
+				})
 		}).catch((error) => {
 			this.emit('commandError', error, cwc)
 		})

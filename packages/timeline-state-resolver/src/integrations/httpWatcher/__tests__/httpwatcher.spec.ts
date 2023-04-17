@@ -1,9 +1,10 @@
 import { Conductor } from '../../../conductor'
-import { Mappings, DeviceType, Mapping, SomeMappingHttpWatcher } from 'timeline-state-resolver-types'
+import { Mappings, DeviceType, Mapping, SomeMappingHttpWatcher, HttpMethod } from 'timeline-state-resolver-types'
 import { MockTime } from '../../../__tests__/mockTime'
 import { StatusCode } from '../../../devices/device'
+import got from 'got'
 
-import request = require('../../../__mocks__/request')
+jest.unmock('got') // Do not automock.
 
 const myLayerMapping0: Mapping<SomeMappingHttpWatcher> = {
 	device: DeviceType.HTTPWATCHER,
@@ -15,43 +16,27 @@ const myLayerMapping: Mappings = {
 }
 
 describe('HTTP-Watcher', () => {
-	jest.mock('request', () => request)
-
 	const mockTime = new MockTime()
-
-	let onGet: jest.Mock<void, any[]>
-	let mockStatusCode: number
-	let mockBody: string
 	let myConductor: Conductor = new Conductor({
 		multiThreadedResolver: false,
 		getCurrentTime: mockTime.getCurrentTime,
 	})
+	const get = jest.spyOn(got, 'get')
+	const post = jest.spyOn(got, 'post')
+	const goodStatusCode = 200
+	const goodBody = 'this is my keyword and its really nice'
+
 	beforeAll(() => {
 		Date.now = jest.fn(() => {
 			return mockTime.getCurrentTime()
 		})
-		onGet = jest.fn((url, _options, callback) => {
-			if (url === 'http://localhost') {
-				callback(
-					null,
-					{
-						statusCode: mockStatusCode,
-						body: mockBody,
-					},
-					mockBody
-				)
-			} else {
-				callback(new Error('Unsupported mock url: ' + url), null)
-			}
-		})
-		request.setMockGet(onGet)
 	})
 	beforeEach(() => {
 		mockTime.init()
-		onGet.mockClear()
-		mockStatusCode = 200
-		mockBody = 'this is my keyword and its really nice'
-		request.setMockGet(onGet)
+		get.mockClear()
+		post.mockClear()
+
+		get.mockResolvedValue({ statusCode: goodStatusCode, body: goodBody })
 		myConductor = new Conductor({
 			multiThreadedResolver: false,
 			getCurrentTime: mockTime.getCurrentTime,
@@ -66,28 +51,12 @@ describe('HTTP-Watcher', () => {
 		const onError = jest.fn()
 		myConductor.on('error', onError)
 
-		const onGetLocal = jest.fn((url, _options, callback) => {
-			if (url === 'http://localhost:1234') {
-				callback(
-					null,
-					{
-						statusCode: mockStatusCode,
-						body: mockBody,
-					},
-					mockBody
-				)
-			} else {
-				callback(new Error('Unsupported mock'), null)
-			}
-		})
-		request.setMockGet(onGetLocal)
-
 		await myConductor.init()
 		const generatedDeviceContainer = await myConductor.addDevice('myHTTPWatch', {
 			type: DeviceType.HTTPWATCHER,
 			options: {
 				uri: 'http://localhost:1234',
-				httpMethod: 'get',
+				httpMethod: HttpMethod.GET,
 				expectedHttpResponse: 200,
 				keyword: 'my keyword',
 				interval: 10 * 1000,
@@ -101,11 +70,10 @@ describe('HTTP-Watcher', () => {
 		myConductor.setTimelineAndMappings([], myLayerMapping)
 
 		await mockTime.advanceTimeTicks(10100)
-		expect(onGet).toHaveBeenCalledTimes(0)
-		expect(onGetLocal).toHaveBeenCalledTimes(2)
+		expect(get).toHaveBeenCalledTimes(2)
 		expect(await generatedDevice.getStatus()).toEqual({ statusCode: StatusCode.GOOD, messages: [], active: true })
 
-		mockStatusCode = 500
+		get.mockResolvedValueOnce({ statusCode: 500, body: goodBody })
 		await mockTime.advanceTimeTicks(10100)
 		expect(await generatedDevice.getStatus()).toMatchObject({
 			statusCode: StatusCode.BAD,
@@ -113,11 +81,10 @@ describe('HTTP-Watcher', () => {
 			active: true,
 		})
 
-		mockStatusCode = 200
 		await mockTime.advanceTimeTicks(10100)
 		expect(await generatedDevice.getStatus()).toEqual({ statusCode: StatusCode.GOOD, messages: [], active: true })
 
-		mockBody = 'sorry not sorry'
+		get.mockResolvedValueOnce({ statusCode: goodStatusCode, body: 'sorry not sorry' })
 		await mockTime.advanceTimeTicks(10100)
 		expect(await generatedDevice.getStatus()).toMatchObject({
 			statusCode: StatusCode.BAD,
@@ -125,7 +92,7 @@ describe('HTTP-Watcher', () => {
 			active: true,
 		})
 
-		mockBody = 'heres my keyword again'
+		get.mockResolvedValueOnce({ statusCode: goodStatusCode, body: 'heres my keyword again' })
 		await mockTime.advanceTimeTicks(10100)
 		expect(await generatedDevice.getStatus()).toEqual({ statusCode: StatusCode.GOOD, messages: [], active: true })
 
@@ -142,7 +109,7 @@ describe('HTTP-Watcher', () => {
 			type: DeviceType.HTTPWATCHER,
 			options: {
 				uri: 'http://localhost',
-				httpMethod: 'get',
+				httpMethod: HttpMethod.GET,
 				// expectedHttpResponse: 200,
 				keyword: 'my keyword',
 				interval: 10 * 1000,
@@ -156,35 +123,34 @@ describe('HTTP-Watcher', () => {
 		myConductor.setTimelineAndMappings([], myLayerMapping)
 
 		await mockTime.advanceTimeTicks(10100)
-		expect(onGet).toHaveBeenCalledTimes(2)
-		onGet.mockClear()
+		expect(get).toHaveBeenCalledTimes(2)
+		get.mockClear()
 		expect(await generatedDevice.getStatus()).toEqual({ statusCode: StatusCode.GOOD, messages: [], active: true })
 
-		mockStatusCode = 500 // should not matter
+		get.mockResolvedValueOnce({ statusCode: 500, body: goodBody })
 		await mockTime.advanceTimeTicks(10100)
-		expect(onGet).toHaveBeenCalledTimes(1)
-		onGet.mockClear()
+		expect(get).toHaveBeenCalledTimes(1)
+		get.mockClear()
 		expect(await generatedDevice.getStatus()).toEqual({ statusCode: StatusCode.GOOD, messages: [], active: true })
 
-		mockStatusCode = 200
 		await mockTime.advanceTimeTicks(10100)
-		expect(onGet).toHaveBeenCalledTimes(1)
-		onGet.mockClear()
+		expect(get).toHaveBeenCalledTimes(1)
+		get.mockClear()
 		expect(await generatedDevice.getStatus()).toEqual({ statusCode: StatusCode.GOOD, messages: [], active: true })
 
-		mockBody = 'sorry not sorry'
+		get.mockResolvedValueOnce({ statusCode: goodStatusCode, body: 'sorry not sorry' })
 		await mockTime.advanceTimeTicks(10100)
-		expect(onGet).toHaveBeenCalledTimes(1)
-		onGet.mockClear()
+		expect(get).toHaveBeenCalledTimes(1)
+		get.mockClear()
 		expect(await generatedDevice.getStatus()).toMatchObject({
 			statusCode: StatusCode.BAD,
 			messages: [/keyword/i],
 			active: true,
 		})
 
-		mockBody = 'heres my keyword again'
+		get.mockResolvedValueOnce({ statusCode: goodStatusCode, body: 'heres my keyword again' })
 		await mockTime.advanceTimeTicks(10100)
-		expect(onGet).toHaveBeenCalledTimes(1)
+		expect(get).toHaveBeenCalledTimes(1)
 		expect(await generatedDevice.getStatus()).toEqual({ statusCode: StatusCode.GOOD, messages: [], active: true })
 
 		await generatedDevice.terminate()
@@ -200,7 +166,7 @@ describe('HTTP-Watcher', () => {
 			type: DeviceType.HTTPWATCHER,
 			options: {
 				uri: 'http://localhost',
-				httpMethod: 'get',
+				httpMethod: HttpMethod.GET,
 				expectedHttpResponse: 200,
 				// keyword: 'my keyword',
 				interval: 10 * 1000,
@@ -214,36 +180,35 @@ describe('HTTP-Watcher', () => {
 		myConductor.setTimelineAndMappings([], myLayerMapping)
 
 		await mockTime.advanceTimeTicks(10100)
-		expect(onGet).toHaveBeenCalledTimes(2)
-		onGet.mockClear()
+		expect(get).toHaveBeenCalledTimes(2)
+		get.mockClear()
 		expect(await generatedDevice.getStatus()).toEqual({ statusCode: StatusCode.GOOD, messages: [], active: true })
 
-		mockStatusCode = 500
+		get.mockResolvedValueOnce({ statusCode: 500, body: goodBody })
 		await mockTime.advanceTimeTicks(10100)
-		expect(onGet).toHaveBeenCalledTimes(1)
-		onGet.mockClear()
+		expect(get).toHaveBeenCalledTimes(1)
+		get.mockClear()
 		expect(await generatedDevice.getStatus()).toMatchObject({
 			statusCode: StatusCode.BAD,
 			messages: [/status code/i],
 			active: true,
 		})
 
-		mockStatusCode = 200
 		await mockTime.advanceTimeTicks(10100)
-		expect(onGet).toHaveBeenCalledTimes(1)
-		onGet.mockClear()
+		expect(get).toHaveBeenCalledTimes(1)
+		get.mockClear()
 		expect(await generatedDevice.getStatus()).toEqual({ statusCode: StatusCode.GOOD, messages: [], active: true })
 
-		mockBody = 'sorry not sorry' // should not matter
+		get.mockResolvedValueOnce({ statusCode: goodStatusCode, body: 'sorry not sorry' })
 		await mockTime.advanceTimeTicks(10100)
-		expect(onGet).toHaveBeenCalledTimes(1)
-		onGet.mockClear()
+		expect(get).toHaveBeenCalledTimes(1)
+		get.mockClear()
 		expect(await generatedDevice.getStatus()).toEqual({ statusCode: StatusCode.GOOD, messages: [], active: true })
 
-		mockBody = 'heres my keyword again'
+		get.mockResolvedValueOnce({ statusCode: goodStatusCode, body: 'heres my keyword again' })
 		await mockTime.advanceTimeTicks(10100)
-		expect(onGet).toHaveBeenCalledTimes(1)
-		onGet.mockClear()
+		expect(get).toHaveBeenCalledTimes(1)
+		get.mockClear()
 		expect(await generatedDevice.getStatus()).toEqual({ statusCode: StatusCode.GOOD, messages: [], active: true })
 
 		await generatedDevice.terminate()
@@ -257,7 +222,7 @@ describe('HTTP-Watcher', () => {
 			type: DeviceType.HTTPWATCHER,
 			options: {
 				uri: 'http://localhost',
-				httpMethod: 'get',
+				httpMethod: HttpMethod.GET,
 				expectedHttpResponse: 200,
 				keyword: 'my keyword',
 				interval: 10 * 1000,
@@ -267,23 +232,21 @@ describe('HTTP-Watcher', () => {
 		expect(await generatedDevice.getStatus()).toEqual({ statusCode: StatusCode.UNKNOWN, messages: [], active: true })
 		myConductor.setTimelineAndMappings([], myLayerMapping)
 		await mockTime.advanceTimeTicks(10100)
-		expect(onGet).toHaveBeenCalledTimes(2)
+		expect(get).toHaveBeenCalledTimes(2)
 		expect(await generatedDevice.getStatus()).toEqual({ statusCode: StatusCode.GOOD, messages: [], active: true })
 
 		await generatedDevice.terminate()
 	})
 	test('Un-Successful get returns BAD state', async () => {
-		const onGetLocal = jest.fn((_url, _options, callback) => {
-			callback(new Error('Bad Gateway'), null)
-		})
-		request.setMockGet(onGetLocal)
+		get.mockRejectedValueOnce(new Error('Bad Gateway'))
+		get.mockRejectedValueOnce(new Error('Bad Gateway'))
 
 		await myConductor.init()
 		const generatedDeviceContainer = await myConductor.addDevice('myHTTPWatch', {
 			type: DeviceType.HTTPWATCHER,
 			options: {
 				uri: 'http://localhost',
-				httpMethod: 'get',
+				httpMethod: HttpMethod.GET,
 				expectedHttpResponse: 200,
 				keyword: 'my keyword',
 				interval: 10 * 1000,
@@ -294,7 +257,7 @@ describe('HTTP-Watcher', () => {
 		myConductor.setTimelineAndMappings([], myLayerMapping)
 
 		await mockTime.advanceTimeTicks(10100)
-		expect(onGetLocal).toHaveBeenCalledTimes(2)
+		expect(get).toHaveBeenCalledTimes(2)
 		expect(await generatedDevice.getStatus()).toEqual({
 			statusCode: StatusCode.BAD,
 			messages: ['Error: Bad Gateway'],
@@ -310,7 +273,7 @@ describe('HTTP-Watcher', () => {
 			type: DeviceType.HTTPWATCHER,
 			options: {
 				uri: 'http://localhost',
-				httpMethod: 'get',
+				httpMethod: HttpMethod.GET,
 				expectedHttpResponse: 200,
 				keyword: 'bad keyword',
 				interval: 10 * 1000,
@@ -321,7 +284,7 @@ describe('HTTP-Watcher', () => {
 		myConductor.setTimelineAndMappings([], myLayerMapping)
 
 		await mockTime.advanceTimeTicks(10100)
-		expect(onGet).toHaveBeenCalledTimes(2)
+		expect(get).toHaveBeenCalledTimes(2)
 		expect(await generatedDevice.getStatus()).toEqual({
 			statusCode: StatusCode.BAD,
 			messages: ['Expected keyword "bad keyword" not found'],
@@ -332,28 +295,15 @@ describe('HTTP-Watcher', () => {
 	})
 
 	test('Un-Successful get, wrong status code, returns BAD state', async () => {
-		const onGetLocal = jest.fn((url, _options, callback) => {
-			if (url === 'http://localhost:1234') {
-				callback(
-					null,
-					{
-						statusCode: 201,
-						body: 'my keyword',
-					},
-					'my keyword'
-				)
-			} else {
-				callback(new Error('Unsupported mock'), null)
-			}
-		})
-		request.setMockGet(onGetLocal)
+		get.mockResolvedValueOnce({ statusCode: 201, body: '' })
+		get.mockResolvedValueOnce({ statusCode: 201, body: '' })
 
 		await myConductor.init()
 		const generatedDeviceContainer = await myConductor.addDevice('myHTTPWatch', {
 			type: DeviceType.HTTPWATCHER,
 			options: {
 				uri: 'http://localhost:1234',
-				httpMethod: 'get',
+				httpMethod: HttpMethod.GET,
 				expectedHttpResponse: 200,
 				keyword: 'my keyword',
 				interval: 10 * 1000,
@@ -364,7 +314,7 @@ describe('HTTP-Watcher', () => {
 		myConductor.setTimelineAndMappings([], myLayerMapping)
 
 		await mockTime.advanceTimeTicks(10100)
-		expect(onGetLocal).toHaveBeenCalledTimes(2)
+		expect(get).toHaveBeenCalledTimes(2)
 		expect(await generatedDevice.getStatus()).toEqual({
 			statusCode: StatusCode.BAD,
 			messages: ['Expected status code 200, got 201'],
@@ -374,28 +324,14 @@ describe('HTTP-Watcher', () => {
 		await generatedDevice.terminate()
 	})
 	test('Successful http POST returns GOOD state', async () => {
-		const onPost = jest.fn((url, _options, callback) => {
-			if (url === 'http://localhost:1234') {
-				callback(
-					null,
-					{
-						statusCode: 200,
-						body: 'my keyword2',
-					},
-					'my keyword2'
-				)
-			} else {
-				callback(new Error('Unsupported mock'), null)
-			}
-		})
-		request.setMockPost(onPost)
+		post.mockResolvedValue({ statusCode: 200, body: 'my keyword2' })
 
 		await myConductor.init()
 		const generatedDeviceContainer = await myConductor.addDevice('myHTTPWatch', {
 			type: DeviceType.HTTPWATCHER,
 			options: {
 				uri: 'http://localhost:1234',
-				httpMethod: 'post',
+				httpMethod: HttpMethod.POST,
 				expectedHttpResponse: 200,
 				keyword: 'my keyword2',
 				interval: 10 * 1000,
@@ -406,8 +342,8 @@ describe('HTTP-Watcher', () => {
 		myConductor.setTimelineAndMappings([], myLayerMapping)
 
 		await mockTime.advanceTimeTicks(10000)
-		expect(onGet).toHaveBeenCalledTimes(0)
-		expect(onPost).toHaveBeenCalledTimes(2)
+		expect(get).toHaveBeenCalledTimes(0)
+		expect(post).toHaveBeenCalledTimes(2)
 		expect(await generatedDevice.getStatus()).toEqual({ statusCode: StatusCode.GOOD, messages: [], active: true })
 
 		await generatedDevice.terminate()
@@ -418,7 +354,7 @@ describe('HTTP-Watcher', () => {
 			type: DeviceType.HTTPWATCHER,
 			options: {
 				uri: 'http://localhost',
-				httpMethod: 'jibberish',
+				httpMethod: 'jibberish' as any,
 				expectedHttpResponse: 200,
 				keyword: 'my keyword',
 				interval: 10 * 1000,
@@ -429,7 +365,37 @@ describe('HTTP-Watcher', () => {
 		myConductor.setTimelineAndMappings([], myLayerMapping)
 
 		await mockTime.advanceTimeTicks(10100)
-		expect(onGet).toHaveBeenCalledTimes(2)
+		expect(get).toHaveBeenCalledTimes(2)
+		expect(await generatedDevice.getStatus()).toEqual({ statusCode: StatusCode.GOOD, messages: [], active: true })
+
+		await generatedDevice.terminate()
+	})
+	test('Send headers with request', async () => {
+		await myConductor.init()
+		const generatedDeviceContainer = await myConductor.addDevice('myHTTPWatch', {
+			type: DeviceType.HTTPWATCHER,
+			options: {
+				uri: 'http://localhost',
+				httpMethod: HttpMethod.GET,
+				expectedHttpResponse: 200,
+				keyword: 'my keyword',
+				interval: 10 * 1000,
+				headers: {
+					myHeader: 'myValue',
+				},
+			},
+		})
+		const generatedDevice = generatedDeviceContainer.device
+		expect(await generatedDevice.getStatus()).toEqual({ statusCode: StatusCode.UNKNOWN, messages: [], active: true })
+		myConductor.setTimelineAndMappings([], myLayerMapping)
+
+		await mockTime.advanceTimeTicks(10100)
+		expect(get).toHaveBeenCalledTimes(2)
+		expect(get).toHaveBeenCalledWith('http://localhost', {
+			headers: {
+				myHeader: 'myValue',
+			},
+		})
 		expect(await generatedDevice.getStatus()).toEqual({ statusCode: StatusCode.GOOD, messages: [], active: true })
 
 		await generatedDevice.terminate()

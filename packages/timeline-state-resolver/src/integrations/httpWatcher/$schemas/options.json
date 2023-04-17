@@ -9,7 +9,10 @@
 		},
 		"httpMethod": {
 			"type": "string",
-			"ui:title": "HTTP Method"
+			"ui:title": "HTTP Method",
+			"default": "get",
+			"enum": ["get", "post", "put", "delete"],
+			"tsEnumNames": ["GET", "POST", "PUT", "DELETE"]
 		},
 		"expectedHttpResponse": {
 			"type": "integer",
@@ -23,6 +26,10 @@
 		"interval": {
 			"type": "integer",
 			"ui:title": "Interval"
+		},
+		"headers": {
+			"type": "object",
+			"additionalProperties": { "type": "string" }
 		}
 	},
 	"required": ["uri"],

@@ -11,28 +11,31 @@ import {
 import { MockTime } from '../../../__tests__/mockTime'
 import { ThreadedClass } from 'threadedclass'
 import { getMockCall } from '../../../__tests__/lib'
-import request = require('../../../__mocks__/request')
+import got from '../../../__mocks__/got'
+import { Response } from 'got'
 
 const orgSetTimeout = setTimeout
 
 describe('Panasonic PTZ', () => {
-	jest.mock('request', () => request)
+	jest.mock('request', () => got)
 
 	const mockTime = new MockTime()
 
-	const onGet = jest.fn((url, _options, callback) => {
-		orgSetTimeout(() => {
-			if (url === 'http://192.168.0.10:8000/cgi-bin/aw_ptz?cmd=%23O&res=1') {
-				callback(null, {
-					statusCode: 200,
-					body: 'p1',
-				})
-			} else {
-				callback(new Error('Unsupported mock'), null)
-			}
-		}, 1)
+	const onGet = jest.fn(async (url, _options) => {
+		return new Promise<Pick<Response, 'body' | 'statusCode'>>((resolve, reject) => {
+			orgSetTimeout(() => {
+				if (url === 'http://192.168.0.10:8000/cgi-bin/aw_ptz?cmd=%23O&res=1') {
+					resolve({
+						statusCode: 200,
+						body: 'p1',
+					})
+				} else {
+					reject(new Error('Unsupported mock'))
+				}
+			}, 1)
+		})
 	})
-	request.setMockGet(onGet)
+	got.setMockGet(onGet)
 	beforeEach(() => {
 		mockTime.init()
 	})

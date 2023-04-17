@@ -42,7 +42,7 @@ import {
 } from 'casparcg-state'
 import { InternalState } from 'casparcg-state/dist/lib/stateObjectStorage'
 import { DoOnTime, SendMode } from '../../devices/doOnTime'
-import * as request from 'request'
+import got from 'got'
 import { InternalTransitionHandler } from '../../devices/transitions/transitionHandler'
 import Debug from 'debug'
 import { endTrace, startTrace, t } from '../../lib'
@@ -704,13 +704,10 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 
 		return new Promise<ActionExecutionResult>((resolve) => {
 			const url = `http://${this.initOptions?.launcherHost}:${this.initOptions?.launcherPort}/processes/${this.initOptions?.launcherProcess}/restart`
-			request.post(
-				url,
-				{}, // json: cmd.params
-				(error, response) => {
-					if (error) {
-						resolve({ result: ActionExecutionResultCode.Error, response: error })
-					} else if (response.statusCode === 200) {
+			got
+				.post(url)
+				.then((response) => {
+					if (response.statusCode === 200) {
 						resolve({ result: ActionExecutionResultCode.Ok })
 					} else {
 						resolve({
@@ -721,8 +718,10 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 							}),
 						})
 					}
-				}
-			)
+				})
+				.catch((error) => {
+					resolve({ result: ActionExecutionResultCode.Error, response: error })
+				})
 		})
 	}
 	getStatus(): DeviceStatus {

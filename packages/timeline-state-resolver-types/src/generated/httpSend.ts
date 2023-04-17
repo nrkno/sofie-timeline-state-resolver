@@ -23,6 +23,9 @@ export interface HTTPSendCommandContent {
 		[k: string]: unknown
 	}
 	paramsType?: TimelineContentTypeHTTPParamType
+	headers?: {
+		[k: string]: string
+	}
 	temporalPriority?: number
 	/**
 	 * Commands in the same queue will be sent in order (will wait for the previous to finish before sending next

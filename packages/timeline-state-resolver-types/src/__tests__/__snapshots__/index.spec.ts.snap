@@ -15,6 +15,7 @@ exports[`index imports 1`] = `
   "Direction",
   "Ease",
   "EmberParameterType",
+  "HttpMethod",
   "HttpSendActions",
   "HyperdeckActions",
   "LawoDeviceMode",

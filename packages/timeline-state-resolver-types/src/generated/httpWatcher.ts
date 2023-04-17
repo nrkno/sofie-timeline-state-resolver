@@ -7,10 +7,20 @@
 
 export interface HTTPWatcherOptions {
 	uri: string
-	httpMethod?: string
+	httpMethod?: HttpMethod
 	expectedHttpResponse?: number
 	keyword?: string
 	interval?: number
+	headers?: {
+		[k: string]: string
+	}
+}
+
+export enum HttpMethod {
+	GET = 'get',
+	POST = 'post',
+	PUT = 'put',
+	DELETE = 'delete'
 }
 
 export type SomeMappingHttpWatcher = Record<string, never>
