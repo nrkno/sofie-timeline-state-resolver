@@ -61,8 +61,8 @@
 		"watch": "run -T jest --watch",
 		"cov": "run -T jest --coverage && run cov-open",
 		"cov-open": "run -T open-cli coverage/lcov-report/index.html",
-		"validate:dependencies": "yarn npm audit --groups dependencies && run license-validate",
-		"validate:dev-dependencies": "yarn npm audit --groups devDependencies",
+		"validate:dependencies": "yarn npm audit --environment production && run license-validate",
+		"validate:dev-dependencies": "yarn npm audit --environment development",
 		"generate-schema-types": "node ./scripts/schema-types.mjs",
 		"translations:extract": "node ./scripts/translation/extract.mjs",
 		"translations:bundle": "node ./scripts/translation/bundle.mjs"
@@ -121,7 +121,7 @@
 	},
 	"lint-staged": {
 		"*.{css,json,md,scss}": [
-			"prettier --write"
+			"yarn run -T prettier --write"
 		],
 		"*.{ts,tsx,mjs,js,jsx}": [
 			"yarn lint:raw --fix"

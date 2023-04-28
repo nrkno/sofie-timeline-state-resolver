@@ -52,8 +52,8 @@
 		"build:main": "run -T tsc -p tsconfig.build.json",
 		"cov": "run -T jest --coverage && run cov-open",
 		"cov-open": "run -T open-cli coverage/lcov-report/index.html",
-		"validate:dependencies": "yarn npm  audit --groups dependencies && yarn license-validate",
-		"validate:dev-dependencies": "yarn npm audit --groups devDependencies",
+		"validate:dependencies": "yarn npm  audit --environment production && yarn license-validate",
+		"validate:dev-dependencies": "yarn npm audit --environment development",
 		"lint:raw": "run -T eslint --ext .ts --ext .js --ext .tsx --ext .jsx --ignore-pattern dist",
 		"lint": "run lint:raw .",
 		"lint-fix": "run lint --fix",
@@ -90,7 +90,7 @@
 	},
 	"lint-staged": {
 		"*.{css,json,md,scss}": [
-			"prettier --write"
+			"yarn run -T prettier --write"
 		],
 		"*.{ts,tsx,js,jsx}": [
 			"yarn lint:raw --fix"
