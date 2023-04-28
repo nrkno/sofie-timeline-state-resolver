@@ -20,6 +20,7 @@ import {
 	TSRTimelineContent,
 	TimelineDatastoreReferencesContent,
 	DeviceOptionsMultiOSC,
+	TimelineDatastoreReferences,
 } from 'timeline-state-resolver-types'
 
 import { DoOnTime } from './devices/doOnTime'
@@ -144,6 +145,13 @@ export class AbortError extends Error {
 	name = 'AbortError'
 }
 
+interface DeviceState {
+	state: Timeline.TimelineState<TSRTimelineContent>
+	mappings: Mappings
+	time: number
+	dependencies: string[]
+}
+
 /**
  * The Conductor class serves as the main class for interacting. It contains
  * methods for setting mappings, timelines and adding/removing devices. It keeps
@@ -157,12 +165,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 
 	private _datastore: Datastore = {}
 	private _deviceStates: {
-		[deviceId: string]: {
-			state: Timeline.TimelineState<TSRTimelineContent>
-			mappings: Mappings
-			time: number
-			dependencies: string[]
-		}[]
+		[deviceId: string]: DeviceState[]
 	} = {}
 
 	private _options: ConductorOptions
@@ -1197,7 +1200,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 		}
 		return nextResolveTime
 	}
-	private _setDeviceState(
+	private async _setDeviceState(
 		deviceId: string,
 		time: number,
 		state: Timeline.TimelineState<TSRTimelineContent>,
@@ -1207,9 +1210,11 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 
 		// find all references to the datastore that are in this state
 		const dependenciesSet = new Set<string>()
-		for (const { content } of Object.values(state.layers)) {
+		for (const { content } of Object.values<Timeline.ResolvedTimelineObjectInstance<TSRTimelineContent>>(
+			state.layers
+		)) {
 			const dataStoreContent = content as TimelineDatastoreReferencesContent
-			for (const r of Object.values(dataStoreContent.$references || {})) {
+			for (const r of Object.values<TimelineDatastoreReferences[0]>(dataStoreContent.$references || {})) {
 				dependenciesSet.add(r.datastoreKey)
 			}
 		}
@@ -1246,7 +1251,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 				for (const key of allKeys) {
 					if (this._datastore[key]?.value !== newStore[key]?.value) {
 						// it changed! let's sift through our dependencies to see if we need to do anything
-						Object.entries(this._deviceStates).forEach(([deviceId, states]) => {
+						Object.entries<DeviceState[]>(this._deviceStates).forEach(([deviceId, states]) => {
 							if (states.find((state) => state.dependencies.find((dep) => dep === key))) {
 								affectedDevices.push(deviceId)
 							}
@@ -1341,13 +1346,13 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 
 	private _diffStateForCallbacks(activeObjects: TimelineCallbacks, tlTime: number) {
 		// Clear callbacks scheduled after the current tlState
-		for (const [callbackId, o] of Object.entries(this._sentCallbacks)) {
+		for (const [callbackId, o] of Object.entries<TimelineCallback>(this._sentCallbacks)) {
 			if (o.time >= tlTime) {
 				delete this._sentCallbacks[callbackId]
 			}
 		}
 		// Send callbacks for playing objects:
-		for (const [callbackId, cb] of Object.entries(activeObjects)) {
+		for (const [callbackId, cb] of Object.entries<TimelineCallback>(activeObjects)) {
 			if (cb.callBack && cb.startTime) {
 				if (!this._sentCallbacks[callbackId]) {
 					// Object has started playing
@@ -1364,7 +1369,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 			}
 		}
 		// Send callbacks for stopped objects
-		for (const [callbackId, cb] of Object.entries(this._sentCallbacks)) {
+		for (const [callbackId, cb] of Object.entries<TimelineCallback>(this._sentCallbacks)) {
 			if (cb.callBackStopped && !activeObjects[callbackId]) {
 				// Object has stopped playing
 				this._queueCallback(false, {
@@ -1478,7 +1483,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 		}
 
 		// Sort the callbacks:
-		const callbacksArray = Object.values(callbacks).sort((a, b) => {
+		const callbacksArray = callbacks.sort((a, b) => {
 			if (a.type === 'start' && b.type !== 'start') return 1
 			if (a.type !== 'start' && b.type === 'start') return -1
 

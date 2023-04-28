@@ -62,7 +62,7 @@ const stringifyActionSchema = (action: Omit<TSRActionSchema, 'payload'> & { payl
 	payload: JSON.stringify(action.payload),
 })
 const stringifyMappingSchema = (schema: any): Record<string, string> =>
-	Object.fromEntries(Object.entries(schema.mappings).map(([id, sch]) => [id, JSON.stringify(sch)]))
+	Object.fromEntries(Object.entries<any>(schema.mappings).map(([id, sch]) => [id, JSON.stringify(sch)]))
 
 export type TSRDevicesManifest = {
 	[deviceType in DeviceType]: {

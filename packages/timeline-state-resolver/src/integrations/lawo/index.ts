@@ -359,7 +359,7 @@ export class LawoDevice extends DeviceWithState<LawoState, DeviceOptionsLawoInte
 					const emberType =
 						'emberType' in mapping.options &&
 						mapping.options.emberType &&
-						Object.values(EmberModel.ParameterType).includes(mapping.options.emberType as any)
+						Object.values<EmberModel.ParameterType>(EmberModel.ParameterType).includes(mapping.options.emberType as any)
 							? (mapping.options.emberType as unknown as EmberModel.ParameterType)
 							: EmberModel.ParameterType.Real
 
@@ -712,7 +712,7 @@ export class LawoDevice extends DeviceWithState<LawoState, DeviceOptionsLawoInte
 		const sources = (await req.response!) as EmberModel.NumberedTreeNode<EmberModel.EmberNode> | undefined
 		if (!sources) return
 
-		for (const child of Object.values(sources.children || {})) {
+		for (const child of Object.values<EmberModel.NumberedTreeNode<EmberModel.EmberElement>>(sources.children || {})) {
 			if (child.contents.type === EmberModel.ElementType.Node) {
 				try {
 					// get the identifier

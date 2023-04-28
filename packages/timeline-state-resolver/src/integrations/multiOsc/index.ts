@@ -127,7 +127,7 @@ export class MultiOSCMessageDevice extends DeviceWithState<OSCDeviceState, Devic
 			active: this.isActive,
 		}
 
-		for (const conn of Object.values(this._connections)) {
+		for (const conn of Object.values<OSCConnection>(this._connections)) {
 			if (!conn.connected) {
 				status.statusCode = StatusCode.BAD
 				status.messages.push(`${conn.connectionId} is disconnected`)
@@ -197,7 +197,7 @@ export class MultiOSCMessageDevice extends DeviceWithState<OSCDeviceState, Devic
 			this._doOnTime.queue(
 				time,
 				undefined,
-				(cmd: Command) => {
+				async (cmd: Command) => {
 					if (cmd.commandName === 'added' || cmd.commandName === 'changed') {
 						return this._addAndProcessQueue(cmd)
 					} else {

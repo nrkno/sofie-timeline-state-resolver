@@ -525,7 +525,9 @@ export class VizMSEManager extends EventEmitter {
 		const expectedPlayoutItems = await this._prepareAndGetExpectedPlayoutItems()
 		if (this.purgeUnknownElements) {
 			this.emit('debug', `Purging shows ${cmd.showIds} `)
-			const elementsToKeep = Object.values(expectedPlayoutItems).filter(isVizMSEPlayoutItemContentInternalInstance)
+			const elementsToKeep = Object.values<VizMSEPlayoutItemContentInstance>(expectedPlayoutItems).filter(
+				isVizMSEPlayoutItemContentInternalInstance
+			)
 			await rundown.purgeInternalElements(cmd.showIds, true, elementsToKeep)
 		}
 		this._triggerCommandSent()

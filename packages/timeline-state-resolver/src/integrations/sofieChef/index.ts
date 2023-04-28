@@ -23,6 +23,7 @@ import {
 	SendWSMessageStatus,
 	SendWSMessageType,
 	StatusCode as ChefStatusCode,
+	StatusObject,
 } from './api'
 import { actionNotFoundMessage, t } from '../../lib'
 
@@ -206,7 +207,9 @@ export class SofieChefDevice extends DeviceWithState<SofieChefState, DeviceOptio
 		const sofieChefState: SofieChefState = {
 			windows: {},
 		}
-		for (const [layer, layerState] of Object.entries(state.layers)) {
+		for (const [layer, layerState] of Object.entries<Timeline.ResolvedTimelineObjectInstance<TSRTimelineContent>>(
+			state.layers
+		)) {
 			const mapping = mappings[layer] as Mapping<SomeMappingSofieChef>
 			const content = layerState.content
 
@@ -282,7 +285,7 @@ export class SofieChefDevice extends DeviceWithState<SofieChefState, DeviceOptio
 			statusCode = this.convertStatusCode(this.status.app.statusCode)
 			messages.push(this.status.app.message)
 		} else {
-			for (const [index, window] of Object.entries(this.status.windows)) {
+			for (const [index, window] of Object.entries<StatusObject>(this.status.windows)) {
 				const windowStatusCode = this.convertStatusCode(window.statusCode)
 				if (windowStatusCode > statusCode) {
 					statusCode = windowStatusCode
@@ -333,7 +336,7 @@ export class SofieChefDevice extends DeviceWithState<SofieChefState, DeviceOptio
 		const commands: Command[] = []
 
 		// Added / Changed things:
-		for (const [windowId, window] of Object.entries(newSofieChefState.windows)) {
+		for (const [windowId, window] of Object.entries<SofieChefState['windows'][0]>(newSofieChefState.windows)) {
 			const oldWindow = oldSofieChefState.windows[windowId]
 
 			if (!oldWindow) {
@@ -365,7 +368,7 @@ export class SofieChefDevice extends DeviceWithState<SofieChefState, DeviceOptio
 			}
 		}
 		// Removed things
-		for (const [windowId, oldWindow] of Object.entries(oldSofieChefState.windows)) {
+		for (const [windowId, oldWindow] of Object.entries<SofieChefState['windows'][0]>(oldSofieChefState.windows)) {
 			const newWindow = newSofieChefState.windows[windowId]
 
 			if (!newWindow) {

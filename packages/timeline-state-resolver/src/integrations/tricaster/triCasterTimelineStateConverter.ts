@@ -60,7 +60,7 @@ export class TriCasterTimelineStateConverter {
 		const resultState = this.getDefaultState(newMappings)
 		const sortedLayers = this.sortLayers(timelineState)
 
-		for (const { tlObject, layerName } of Object.values(sortedLayers)) {
+		for (const { tlObject, layerName } of sortedLayers) {
 			const mapping: Mapping<SomeMappingTricaster> | undefined = newMappings[layerName]
 			if (!mapping) {
 				continue

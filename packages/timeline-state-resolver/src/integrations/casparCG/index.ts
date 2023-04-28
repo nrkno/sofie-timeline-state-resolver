@@ -527,14 +527,14 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 					: undefined
 
 				debug(
-					`${layerName} (${mapping.options.channel}-${mapping.options.layer}): FG keys: ${Object.entries(
+					`${layerName} (${mapping.options.channel}-${mapping.options.layer}): FG keys: ${Object.entries<any>(
 						foregroundStateLayer || {}
 					)
 						.map((e) => e[0] + ': ' + e[1])
 						.join(', ')}`
 				)
 				debug(
-					`${layerName} (${mapping.options.channel}-${mapping.options.layer}): BG keys: ${Object.entries(
+					`${layerName} (${mapping.options.channel}-${mapping.options.layer}): BG keys: ${Object.entries<any>(
 						backgroundStateLayer || {}
 					)
 						.map((e) => e[0] + ': ' + e[1])
@@ -545,7 +545,7 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 					const o = {
 						...o1,
 					}
-					Object.entries(o2).forEach(([key, value]) => {
+					Object.entries<any>(o2).forEach(([key, value]) => {
 						if (value !== undefined) {
 							o[key as keyof T] = value
 						}

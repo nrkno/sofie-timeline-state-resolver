@@ -20,6 +20,7 @@ import {
 	SomeMappingTricaster,
 	MappingTricasterType,
 	Mappings,
+	Mapping,
 } from 'timeline-state-resolver-types'
 import {
 	TriCasterCommand,
@@ -201,7 +202,7 @@ export class TriCasterStateDiffer {
 			mixOutputs: new Set(),
 			matrixOutputs: new Set(),
 		}
-		for (const mapping of Object.values(mappings)) {
+		for (const mapping of Object.values<Mapping<SomeMappingTricaster>>(mappings)) {
 			switch (mapping.options.mappingType) {
 				case MappingTricasterType.ME:
 					result.mixEffects.add(mapping.options.name as TriCasterMixEffectName)

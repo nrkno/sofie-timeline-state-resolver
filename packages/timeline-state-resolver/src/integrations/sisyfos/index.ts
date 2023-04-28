@@ -247,7 +247,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 		if (!deviceStateFromAPI) deviceStateFromAPI = deviceState
 
 		const channels = mappings
-			? Object.values(mappings || {})
+			? Object.values<Mapping<unknown>>(mappings || {})
 					.filter((m: Mapping<SomeMappingSisyfos>) => m.options.mappingType === MappingSisyfosType.Channel)
 					.map((m: Mapping<MappingSisyfosChannel>) => m.options.channel)
 			: Object.keys(deviceStateFromAPI.channels)
@@ -291,7 +291,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 		const deviceState: SisyfosState = this.getDeviceState(true, mappings)
 
 		// Set labels to layer names
-		for (const mapping of Object.values(mappings)) {
+		for (const mapping of Object.values<Mapping<unknown>>(mappings)) {
 			const sisyfosMapping = mapping as Mapping<SomeMappingSisyfos>
 
 			if (sisyfosMapping.options.mappingType !== MappingSisyfosType.Channel) continue

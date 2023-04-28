@@ -542,8 +542,8 @@ export class OBSDevice extends DeviceWithState<OBSState, DeviceOptionsOBSInterna
 
 		const oldScenes = oldState.scenes
 		const newScenes = newState.scenes
-		Object.entries(newScenes).forEach(([sceneName, scene]) => {
-			Object.entries(scene.sceneItems).forEach(([source, newSceneItemProperties]) => {
+		Object.entries<OBSScene>(newScenes).forEach(([sceneName, scene]) => {
+			Object.entries<OBSSceneItem>(scene.sceneItems).forEach(([source, newSceneItemProperties]) => {
 				const oldSceneItemProperties = oldScenes[sceneName]?.sceneItems[source]
 				if (
 					(oldSceneItemProperties as any) === undefined ||
@@ -573,7 +573,7 @@ export class OBSDevice extends DeviceWithState<OBSState, DeviceOptionsOBSInterna
 
 		const oldSources = oldState.sources
 		const newSources = newState.sources
-		Object.entries(newSources).forEach(([sourceName, source]) => {
+		Object.entries<OBSSourceState>(newSources).forEach(([sourceName, source]) => {
 			if (!_.isEqual(source.sourceSettings, oldSources[sourceName]?.sourceSettings)) {
 				commands.push({
 					command: {
@@ -647,9 +647,11 @@ export class OBSState {
 		[key: string]: OBSScene
 	}
 	sources: {
-		[key: string]: {
-			sourceType: string
-			sourceSettings: object
-		}
+		[key: string]: OBSSourceState
 	}
+}
+
+interface OBSSourceState {
+	sourceType: string
+	sourceSettings: object
 }

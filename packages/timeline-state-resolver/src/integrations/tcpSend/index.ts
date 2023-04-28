@@ -252,7 +252,7 @@ export class TCPSendDevice extends DeviceWithState<TSCSendState, DeviceOptionsTC
 			this._doOnTime.queue(
 				time,
 				undefined,
-				(cmd: TCPSendCommand) => {
+				async (cmd: TCPSendCommand) => {
 					if (cmd.commandName === 'added' || cmd.commandName === 'changed') {
 						return this._commandReceiver(time, cmd.content, cmd.context, cmd.timelineObjId)
 					} else {

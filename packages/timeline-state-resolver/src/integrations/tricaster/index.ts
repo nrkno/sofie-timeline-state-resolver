@@ -123,12 +123,15 @@ export class TriCasterDevice extends DeviceWithState<TriCasterState, DeviceOptio
 	}
 
 	private filterTriCasterMappings(newMappings: Mappings): MappingsTriCaster {
-		return Object.entries(newMappings).reduce<MappingsTriCaster>((accumulator, [layerName, mapping]) => {
-			if (mapping.device === DeviceType.TRICASTER && mapping.deviceId === this.deviceId) {
-				accumulator[layerName] = mapping as Mapping<SomeMappingTricaster>
-			}
-			return accumulator
-		}, {})
+		return Object.entries<Mapping<unknown>>(newMappings).reduce<MappingsTriCaster>(
+			(accumulator, [layerName, mapping]) => {
+				if (mapping.device === DeviceType.TRICASTER && mapping.deviceId === this.deviceId) {
+					accumulator[layerName] = mapping as Mapping<SomeMappingTricaster>
+				}
+				return accumulator
+			},
+			{}
+		)
 	}
 
 	clearFuture(clearAfterTime: number): void {

@@ -90,7 +90,7 @@ export class OscDevice extends EventEmitter implements Device<OSCOptions, OscDev
 		const addrToOSCMessage: OscDeviceState = {}
 		const addrToPriority: { [address: string]: number } = {}
 
-		Object.values(state.layers).forEach((layer) => {
+		Object.values<Timeline.ResolvedTimelineObjectInstance<TSRTimelineContent>>(state.layers).forEach((layer) => {
 			if (layer.content.deviceType === DeviceType.OSC) {
 				const content: OSCDeviceStateContent = {
 					...layer.content,
@@ -111,7 +111,7 @@ export class OscDevice extends EventEmitter implements Device<OSCOptions, OscDev
 	diffStates(oldState: OscDeviceState | undefined, newState: OscDeviceState): Array<OscCommandWithContext> {
 		const commands: Array<OscCommandWithContext> = []
 
-		Object.entries(newState).forEach(([address, newCommandContent]) => {
+		Object.entries<OSCDeviceStateContent>(newState).forEach(([address, newCommandContent]) => {
 			const oldLayer = oldState?.[address]
 			if (!oldLayer) {
 				// added!

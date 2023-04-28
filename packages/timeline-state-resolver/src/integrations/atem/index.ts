@@ -428,7 +428,7 @@ export class AtemDevice extends DeviceWithState<DeviceState, DeviceOptionsAtemIn
 
 		// bump out any auxes that we don't control as they may be used for CC etc.
 		const noOfAuxes = Math.max(oldAtemState.video.auxilliaries.length, newAtemState.video.auxilliaries.length)
-		const auxMappings = Object.values(mappings)
+		const auxMappings = Object.values<Mapping<unknown>>(mappings)
 			.filter(
 				(mapping: Mapping<SomeMappingAtem>): mapping is Mapping<MappingAtemAuxilliary> =>
 					mapping.options.mappingType === MappingAtemType.Auxilliary

@@ -67,7 +67,7 @@ const gotMethods = {
 		return _mockDelete(url, options)
 	},
 }
-const got: any = (url: string | Options, options?: Options) => {
+const got: any = async (url: string | Options, options?: Options) => {
 	const method = options?.method || (typeof url === 'object' && url.method) || 'GET'
 	if (method === 'POST') return gotMethods.post(url, options)
 	else if (method === 'GET') return gotMethods.get(url, options)
