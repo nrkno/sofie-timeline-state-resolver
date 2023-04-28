@@ -64,7 +64,7 @@
     "chokidar": "^3.2.1",
     "fast-clone": "^1.5.13",
     "timeline-state-resolver": "8.0.0-release49.0",
-    "tslib": "^2.4.1",
+    "tslib": "^2.5.0",
     "underscore": "^1.9.1"
   }
 }
