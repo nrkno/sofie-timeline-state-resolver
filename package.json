@@ -11,23 +11,25 @@
   },
   "scripts": {
     "prepare": "husky install",
-    "build": "yarn generate-schema-types && yarn build:types && yarn build:main",
+    "build": "run generate-schema-types && run build:types && run build:main",
     "build:types": "cd packages/timeline-state-resolver-types && yarn build",
     "build:main": "cd packages/timeline-state-resolver && yarn build",
-    "lint": "yarn lerna exec yarn lint -- --",
-    "test": "yarn lerna exec yarn test",
-    "unit": "yarn lerna exec yarn unit",
-    "unitci": "yarn lerna exec yarn unitci",
+    "lint": "lerna exec yarn lint -- --",
+    "test": "lerna exec yarn test",
+    "unit": "lerna exec yarn unit",
+    "unitci": "lerna exec yarn unitci",
     "watch": "lerna run --parallel build:main -- --watch --preserveWatchOutput",
-    "docs": "yarn typedoc .",
-    "postinstall": "lerna bootstrap",
+    "docs": "typedoc .",
     "release:set-version": "lerna version --exact --no-changelog --no-git-tag-version --no-push --yes",
     "release:bump-release": "lerna version --exact --conventional-commits --changelog-preset conventionalcommits --conventional-graduate --tag-version-prefix='' --no-push --force-publish=*",
     "release:bump-prerelease": "lerna version --exact --conventional-commits --changelog-preset conventionalcommits --conventional-prerelease --tag-version-prefix='' --no-push --force-publish=*",
-    "validate:dependencies": "yarn lerna exec --parallel yarn validate:dependencies",
-    "validate:dev-dependencies": "yarn lerna exec --parallel yarn validate:dev-dependencies",
+    "validate:dependencies": "lerna exec --parallel yarn validate:dependencies",
+    "validate:dev-dependencies": "lerna exec --parallel yarn validate:dev-dependencies",
     "generate-schema-types": "lerna run generate-schema-types --stream",
-    "translations:extract": "lerna run translations:extract --stream"
+    "translations:extract": "lerna run translations:extract --stream",
+    "lint-staged": "./node_modules/.bin/lint-staged",
+    "prettier": "cd $INIT_CWD && \"$PROJECT_CWD/node_modules/.bin/prettier\"",
+    "eslint": "cd $INIT_CWD && \"$PROJECT_CWD/node_modules/.bin/eslint\""
   },
   "devDependencies": {
     "@sofie-automation/code-standard-preset": "~2.4.6",
@@ -49,5 +51,6 @@
     "typedoc": "^0.23.24",
     "typescript": "~4.9"
   },
-  "prettier": "@sofie-automation/code-standard-preset/.prettierrc.json"
+  "prettier": "@sofie-automation/code-standard-preset/.prettierrc.json",
+  "packageManager": "yarn@3.5.0"
 }
