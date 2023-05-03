@@ -1237,6 +1237,14 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 			}
 		}
 
+		for (const output of Object.values<VMixOutput>(state.outputs)) {
+			if (output.input === input.name || output.input === input.number) {
+				// Input might not technically be in PGM, but it's being used by an output,
+				// so stop the search and return true.
+				return true
+			}
+		}
+
 		return false
 	}
 }
