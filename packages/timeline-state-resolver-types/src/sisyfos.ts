@@ -1,33 +1,4 @@
-import { Mapping } from './mapping'
-import { DeviceType, TimelineDatastoreReferencesContent, TSRTimelineObjBase } from '.'
-
-export interface SisyfosOptions {
-	host: string
-	port: number
-}
-
-export enum MappingSisyfosType {
-	CHANNEL = 'channel',
-	CHANNEL_BY_LABEL = 'channel_by_label',
-	CHANNELS = 'channels',
-}
-export type MappingSisyfos = MappingSisyfosChannel | MappingSisyfosChannelByLabel | MappingSisyfosChannels
-interface MappingSisyfosBase extends Mapping {
-	device: DeviceType.SISYFOS
-	mappingType: MappingSisyfosType // defaults to MappingSisyfosType.CHANNEL if not set
-}
-export interface MappingSisyfosChannelByLabel extends MappingSisyfosBase {
-	mappingType: MappingSisyfosType.CHANNEL_BY_LABEL
-	label: string
-}
-export interface MappingSisyfosChannel extends MappingSisyfosBase {
-	mappingType: MappingSisyfosType.CHANNEL
-	channel: number
-	setLabelToLayerName: boolean
-}
-export interface MappingSisyfosChannels extends MappingSisyfosBase {
-	mappingType: MappingSisyfosType.CHANNELS
-}
+import { DeviceType } from '.'
 
 export enum TimelineContentTypeSisyfos {
 	CHANNEL = 'channel',
@@ -35,16 +6,14 @@ export enum TimelineContentTypeSisyfos {
 	TRIGGERVALUE = 'triggerValue',
 }
 
-export type TimelineObjSisyfosAny =
-	| TimelineObjSisyfosChannel
-	| TimelineObjSisyfosChannels
-	| TimelineObjSisyfosTriggerValue
+export type TimelineContentSisyfosAny =
+	| TimelineContentSisyfosChannel
+	| TimelineContentSisyfosChannels
+	| TimelineContentSisyfosTriggerValue
 
-export interface TimelineObjSisyfos extends TSRTimelineObjBase {
-	content: {
-		deviceType: DeviceType.SISYFOS
-		type: TimelineContentTypeSisyfos
-	}
+export interface TimelineContentSisyfos {
+	deviceType: DeviceType.SISYFOS
+	type: TimelineContentTypeSisyfos
 }
 
 export interface SisyfosChannelOptions {
@@ -55,33 +24,23 @@ export interface SisyfosChannelOptions {
 	fadeTime?: number
 }
 
-export interface TimelineObjSisyfosTriggerValue extends TimelineObjSisyfos {
-	content: {
-		deviceType: DeviceType.SISYFOS
-		type: TimelineContentTypeSisyfos.TRIGGERVALUE
+export interface TimelineContentSisyfosTriggerValue extends TimelineContentSisyfos {
+	type: TimelineContentTypeSisyfos.TRIGGERVALUE
 
-		triggerValue: string
-	} & TimelineDatastoreReferencesContent
+	triggerValue: string
 }
-export interface TimelineObjSisyfosChannel extends TimelineObjSisyfos {
-	content: {
-		deviceType: DeviceType.SISYFOS
-		type: TimelineContentTypeSisyfos.CHANNEL
-		resync?: boolean
-		overridePriority?: number // defaults to 0
-	} & SisyfosChannelOptions &
-		TimelineDatastoreReferencesContent
+export interface TimelineContentSisyfosChannel extends TimelineContentSisyfos, SisyfosChannelOptions {
+	type: TimelineContentTypeSisyfos.CHANNEL
+	resync?: boolean
+	overridePriority?: number // defaults to 0
 }
-export interface TimelineObjSisyfosChannels extends TimelineObjSisyfos {
-	content: {
-		deviceType: DeviceType.SISYFOS
-		type: TimelineContentTypeSisyfos.CHANNELS
-		channels: ({
-			/** The mapping layer to look up the channel from */
-			mappedLayer: string
-		} & SisyfosChannelOptions)[]
-		resync?: boolean
-		overridePriority?: number // defaults to 0
-		triggerValue?: string
-	} & TimelineDatastoreReferencesContent
+export interface TimelineContentSisyfosChannels extends TimelineContentSisyfos {
+	type: TimelineContentTypeSisyfos.CHANNELS
+	channels: ({
+		/** The mapping layer to look up the channel from */
+		mappedLayer: string
+	} & SisyfosChannelOptions)[]
+	resync?: boolean
+	overridePriority?: number // defaults to 0
+	triggerValue?: string
 }

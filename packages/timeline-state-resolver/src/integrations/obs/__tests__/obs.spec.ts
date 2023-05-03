@@ -1,21 +1,23 @@
 import { Conductor } from '../../../conductor'
 import {
-	MappingOBSCurrentScene,
 	Mappings,
 	DeviceType,
-	MappingOBSType,
-	MappingOBSCurrentTransition,
-	MappingOBSRecording,
-	MappingOBSSceneItemRender,
-	MappingOBSSourceSettings,
-	MappingOBSStreaming,
 	TimelineContentTypeOBS,
-	TimelineObjOBSCurrentScene,
-	TimelineObjOBSRecording,
-	TimelineObjOBSStreaming,
-	TimelineObjOBSCurrentTransition,
-	TimelineObjOBSSourceSettings,
-	TimelineObjOBSSceneItemRender,
+	TimelineContentOBSCurrentScene,
+	TimelineContentOBSRecording,
+	TimelineContentOBSStreaming,
+	TimelineContentOBSCurrentTransition,
+	TimelineContentOBSSourceSettings,
+	TimelineContentOBSSceneItemRender,
+	TSRTimelineObj,
+	MappingObsCurrentScene,
+	Mapping,
+	MappingObsCurrentTransition,
+	MappingObsRecording,
+	MappingObsStreaming,
+	MappingObsSourceSettings,
+	MappingObsSceneItemRender,
+	MappingObsType,
 } from 'timeline-state-resolver-types'
 import { MockTime } from '../../../__tests__/mockTime'
 import { literal } from '../../../devices/device'
@@ -26,9 +28,6 @@ import * as WebSocket from '../../../__mocks__/ws'
 
 describe('OBS', () => {
 	const mockTime = new MockTime()
-	beforeAll(() => {
-		mockTime.mockDateNow()
-	})
 	beforeEach(() => {
 		mockTime.init()
 		WebSocket.clearMockInstances()
@@ -46,38 +45,50 @@ describe('OBS', () => {
 		const commandReceiver0: any = jest.fn(async () => {
 			return Promise.resolve()
 		})
-		const currentSceneMapping: MappingOBSCurrentScene = {
+		const currentSceneMapping: Mapping<MappingObsCurrentScene> = {
 			device: DeviceType.OBS,
-			mappingType: MappingOBSType.CurrentScene,
 			deviceId: 'obs0',
+			options: {
+				mappingType: MappingObsType.CurrentScene,
+			},
 		}
-		const currentTransitionMapping: MappingOBSCurrentTransition = {
+		const currentTransitionMapping: Mapping<MappingObsCurrentTransition> = {
 			device: DeviceType.OBS,
-			mappingType: MappingOBSType.CurrentTransition,
 			deviceId: 'obs0',
+			options: {
+				mappingType: MappingObsType.CurrentTransition,
+			},
 		}
-		const recordingMapping: MappingOBSRecording = {
+		const recordingMapping: Mapping<MappingObsRecording> = {
 			device: DeviceType.OBS,
-			mappingType: MappingOBSType.Recording,
 			deviceId: 'obs0',
+			options: {
+				mappingType: MappingObsType.Recording,
+			},
 		}
-		const streamingMapping: MappingOBSStreaming = {
+		const streamingMapping: Mapping<MappingObsStreaming> = {
 			device: DeviceType.OBS,
-			mappingType: MappingOBSType.Streaming,
 			deviceId: 'obs0',
+			options: {
+				mappingType: MappingObsType.Streaming,
+			},
 		}
-		const sourceSettingsMapping: MappingOBSSourceSettings = {
+		const sourceSettingsMapping: Mapping<MappingObsSourceSettings> = {
 			device: DeviceType.OBS,
-			mappingType: MappingOBSType.SourceSettings,
 			deviceId: 'obs0',
-			source: 'source0',
+			options: {
+				mappingType: MappingObsType.SourceSettings,
+				source: 'source0',
+			},
 		}
-		const sceneItemRenderMapping: MappingOBSSceneItemRender = {
+		const sceneItemRenderMapping: Mapping<MappingObsSceneItemRender> = {
 			device: DeviceType.OBS,
-			mappingType: MappingOBSType.SceneItemRender,
 			deviceId: 'obs0',
-			sceneName: 'scene0',
-			source: 'source0',
+			options: {
+				mappingType: MappingObsType.SceneItemRender,
+				sceneName: 'scene0',
+				source: 'source0',
+			},
 		}
 		const myLayerMapping: Mappings = {
 			obs0_currentScene: currentSceneMapping,
@@ -157,7 +168,7 @@ describe('OBS', () => {
 		expect(await device.queue).toHaveLength(0)
 
 		myConductor.setTimelineAndMappings([
-			literal<TimelineObjOBSCurrentScene>({
+			literal<TSRTimelineObj<TimelineContentOBSCurrentScene>>({
 				id: 'obj0',
 				enable: {
 					start: mockTime.now + 1000, // in 1 second
@@ -205,7 +216,7 @@ describe('OBS', () => {
 		expect(await device.queue).toHaveLength(0)
 
 		myConductor.setTimelineAndMappings([
-			literal<TimelineObjOBSCurrentScene>({
+			literal<TSRTimelineObj<TimelineContentOBSCurrentScene>>({
 				id: 'obj0',
 				enable: {
 					start: mockTime.now + 1000, // in 1 second
@@ -227,7 +238,7 @@ describe('OBS', () => {
 		expect(commandReceiver0).toHaveBeenCalledTimes(1)
 
 		myConductor.setTimelineAndMappings([
-			literal<TimelineObjOBSCurrentScene>({
+			literal<TSRTimelineObj<TimelineContentOBSCurrentScene>>({
 				id: 'obj0',
 				enable: {
 					while: 1,
@@ -240,7 +251,7 @@ describe('OBS', () => {
 					sceneName: 'scene0',
 				},
 			}),
-			literal<TimelineObjOBSCurrentScene>({
+			literal<TSRTimelineObj<TimelineContentOBSCurrentScene>>({
 				id: 'lookahead_obj0',
 				enable: {
 					while: 1,
@@ -284,7 +295,7 @@ describe('OBS', () => {
 		expect(await device.queue).toHaveLength(0)
 
 		myConductor.setTimelineAndMappings([
-			literal<TimelineObjOBSRecording>({
+			literal<TSRTimelineObj<TimelineContentOBSRecording>>({
 				id: 'obj0',
 				enable: {
 					while: 1,
@@ -297,7 +308,7 @@ describe('OBS', () => {
 					on: true,
 				},
 			}),
-			literal<TimelineObjOBSStreaming>({
+			literal<TSRTimelineObj<TimelineContentOBSStreaming>>({
 				id: 'obj1',
 				enable: {
 					while: 1,
@@ -347,7 +358,7 @@ describe('OBS', () => {
 		expect(await device.queue).toHaveLength(0)
 
 		myConductor.setTimelineAndMappings([
-			literal<TimelineObjOBSCurrentTransition>({
+			literal<TSRTimelineObj<TimelineContentOBSCurrentTransition>>({
 				id: 'obj0',
 				enable: {
 					while: 1,
@@ -393,7 +404,7 @@ describe('OBS', () => {
 		expect(await device.queue).toHaveLength(0)
 
 		myConductor.setTimelineAndMappings([
-			literal<TimelineObjOBSSceneItemRender>({
+			literal<TSRTimelineObj<TimelineContentOBSSceneItemRender>>({
 				id: 'obj0',
 				enable: {
 					while: 1,
@@ -424,7 +435,7 @@ describe('OBS', () => {
 		expect(getMockCall(commandReceiver0, 0, 2)).toMatch(/changed/) // context
 
 		myConductor.setTimelineAndMappings([
-			literal<TimelineObjOBSSceneItemRender>({
+			literal<TSRTimelineObj<TimelineContentOBSSceneItemRender>>({
 				id: 'obj0',
 				enable: {
 					while: 1,
@@ -472,7 +483,7 @@ describe('OBS', () => {
 		expect(await device.queue).toHaveLength(0)
 
 		myConductor.setTimelineAndMappings([
-			literal<TimelineObjOBSSourceSettings>({
+			literal<TSRTimelineObj<TimelineContentOBSSourceSettings>>({
 				id: 'obj0',
 				enable: {
 					while: 1,
@@ -509,7 +520,7 @@ describe('OBS', () => {
 		expect(getMockCall(commandReceiver0, 0, 2)).toMatch(/changed/) // context
 
 		myConductor.setTimelineAndMappings([
-			literal<TimelineObjOBSSourceSettings>({
+			literal<TSRTimelineObj<TimelineContentOBSSourceSettings>>({
 				id: 'obj0',
 				enable: {
 					while: 1,

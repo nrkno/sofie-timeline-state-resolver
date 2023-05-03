@@ -1,5 +1,12 @@
-import { TimelineState } from 'superfly-timeline'
-import { TSRTimelineObjBase, Datastore } from 'timeline-state-resolver-types'
+import {
+	Datastore,
+	Timeline,
+	TimelineDatastoreReferencesContent,
+	TSRTimelineContent,
+	ITranslatableMessage,
+	ActionExecutionResultCode,
+	TimelineDatastoreReferences,
+} from 'timeline-state-resolver-types'
 import * as _ from 'underscore'
 
 /**
@@ -230,28 +237,54 @@ const set = (obj: Record<string, any>, path: string, val: any) => {
 	const p = path.split('.')
 	p.slice(0, -1).reduce((a, b) => (a[b] ? a[b] : (a[b] = {})), obj)[p.slice(-1)[0]] = val
 }
-export function fillStateFromDatastore(state: TimelineState, datastore: Datastore) {
+export function fillStateFromDatastore(state: Timeline.TimelineState<TSRTimelineContent>, datastore: Datastore) {
 	// clone the state so we can freely manipulate it
 	const filledState: typeof state = JSON.parse(JSON.stringify(state))
 
-	Object.values(filledState.layers).forEach(({ content, instance }) => {
-		if ((content as TSRTimelineObjBase['content']).$references) {
-			Object.entries((content as TSRTimelineObjBase['content']).$references || {}).forEach(([path, ref]) => {
-				const datastoreVal = datastore[ref.datastoreKey]
+	Object.values<Timeline.ResolvedTimelineObjectInstance<TSRTimelineContent>>(filledState.layers).forEach(
+		({ content, instance }) => {
+			if ((content as TimelineDatastoreReferencesContent).$references) {
+				Object.entries<TimelineDatastoreReferences[0]>(
+					(content as TimelineDatastoreReferencesContent).$references || {}
+				).forEach(([path, ref]) => {
+					const datastoreVal = datastore[ref.datastoreKey]
 
-				if (datastoreVal !== undefined) {
-					if (ref.overwrite) {
-						// only use the datastore value if it was changed after the tl obj started
-						if ((instance.originalStart || instance.start || 0) <= datastoreVal.modified) {
+					if (datastoreVal !== undefined) {
+						if (ref.overwrite) {
+							// only use the datastore value if it was changed after the tl obj started
+							if ((instance.originalStart || instance.start || 0) <= datastoreVal.modified) {
+								set(content, path, datastoreVal.value)
+							}
+						} else {
 							set(content, path, datastoreVal.value)
 						}
-					} else {
-						set(content, path, datastoreVal.value)
 					}
-				}
-			})
+				})
+			}
 		}
-	})
+	)
 
 	return filledState
+}
+
+export function t(key: string, args?: { [k: string]: any }): ITranslatableMessage {
+	return {
+		key,
+		args,
+	}
+}
+
+export function generateTranslation(key: string): string {
+	return key
+}
+
+export function assertNever(_never: never): void {
+	// Do nothing. This is a type guard
+}
+
+export function actionNotFoundMessage(id: string) {
+	return {
+		result: ActionExecutionResultCode.Error,
+		response: t('Action "{{id}}" not found', { id }),
+	}
 }

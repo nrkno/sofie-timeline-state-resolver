@@ -3,7 +3,8 @@ import {
 	Mappings,
 	DeviceType,
 	TSRTimeline,
-	MappingSisyfos,
+	Mapping,
+	SomeMappingSisyfos,
 	TimelineContentTypeSisyfos,
 	MappingSisyfosType,
 } from 'timeline-state-resolver-types'
@@ -26,9 +27,6 @@ describe('Sisyfos', () => {
 		})
 	}
 
-	beforeAll(() => {
-		mockTime.mockDateNow()
-	})
 	beforeEach(() => {
 		mockTime.init()
 	})
@@ -37,32 +35,40 @@ describe('Sisyfos', () => {
 		const commandReceiver0: any = jest.fn(async () => {
 			return Promise.resolve()
 		})
-		const myChannelMapping0: MappingSisyfos = {
+		const myChannelMapping0: Mapping<SomeMappingSisyfos> = {
 			device: DeviceType.SISYFOS,
-			mappingType: MappingSisyfosType.CHANNEL,
 			deviceId: 'mySisyfos',
-			channel: 0,
-			setLabelToLayerName: false,
+			options: {
+				mappingType: MappingSisyfosType.Channel,
+				channel: 0,
+				setLabelToLayerName: false,
+			},
 		}
-		const myChannelMapping1: MappingSisyfos = {
+		const myChannelMapping1: Mapping<SomeMappingSisyfos> = {
 			device: DeviceType.SISYFOS,
-			mappingType: MappingSisyfosType.CHANNEL,
 			deviceId: 'mySisyfos',
-			channel: 1,
-			setLabelToLayerName: false,
+			options: {
+				mappingType: MappingSisyfosType.Channel,
+				channel: 1,
+				setLabelToLayerName: false,
+			},
 		}
-		const myChannelMapping2: MappingSisyfos = {
+		const myChannelMapping2: Mapping<SomeMappingSisyfos> = {
 			device: DeviceType.SISYFOS,
-			mappingType: MappingSisyfosType.CHANNEL,
 			deviceId: 'mySisyfos',
-			channel: 1,
-			setLabelToLayerName: false,
+			options: {
+				mappingType: MappingSisyfosType.Channel,
+				channel: 1,
+				setLabelToLayerName: false,
+			},
 		}
-		// @ts-ignore skipping .mappingType to test backwards compatibility
-		const myChannelMapping3: MappingSisyfos = {
+		const myChannelMapping3: Mapping<SomeMappingSisyfos> = {
 			device: DeviceType.SISYFOS,
 			deviceId: 'mySisyfos',
-			channel: 3,
+			// @ts-expect-error skipping .mappingType to test backwards compatibility
+			options: {
+				channel: 3,
+			},
 		}
 		const myChannelMapping: Mappings = {
 			sisyfos_channel_1: myChannelMapping0,
@@ -255,33 +261,41 @@ describe('Sisyfos', () => {
 		const commandReceiver0: any = jest.fn(async () => {
 			return Promise.resolve()
 		})
-		const myChannelMapping0: MappingSisyfos = {
+		const myChannelMapping0: Mapping<SomeMappingSisyfos> = {
 			device: DeviceType.SISYFOS,
-			mappingType: MappingSisyfosType.CHANNEL,
 			deviceId: 'mySisyfos',
-			channel: 0,
-			setLabelToLayerName: false,
+			options: {
+				mappingType: MappingSisyfosType.Channel,
+				channel: 0,
+				setLabelToLayerName: false,
+			},
 		}
-		const myChannelMapping1: MappingSisyfos = {
+		const myChannelMapping1: Mapping<SomeMappingSisyfos> = {
 			device: DeviceType.SISYFOS,
-			mappingType: MappingSisyfosType.CHANNEL,
 			deviceId: 'mySisyfos',
-			channel: 1,
-			setLabelToLayerName: false,
+			options: {
+				mappingType: MappingSisyfosType.Channel,
+				channel: 1,
+				setLabelToLayerName: false,
+			},
 		}
-		const myChannelMapping2: MappingSisyfos = {
+		const myChannelMapping2: Mapping<SomeMappingSisyfos> = {
 			device: DeviceType.SISYFOS,
-			mappingType: MappingSisyfosType.CHANNEL,
 			deviceId: 'mySisyfos',
-			channel: 1,
-			setLabelToLayerName: false,
+			options: {
+				mappingType: MappingSisyfosType.Channel,
+				channel: 1,
+				setLabelToLayerName: false,
+			},
 		}
-		const myChannelMapping3: MappingSisyfos = {
+		const myChannelMapping3: Mapping<SomeMappingSisyfos> = {
 			device: DeviceType.SISYFOS,
-			mappingType: MappingSisyfosType.CHANNEL,
 			deviceId: 'mySisyfos',
-			channel: 3,
-			setLabelToLayerName: false,
+			options: {
+				mappingType: MappingSisyfosType.Channel,
+				channel: 3,
+				setLabelToLayerName: false,
+			},
 		}
 		const myChannelMapping: Mappings = {
 			sisyfos_channel_1: myChannelMapping0,
@@ -473,33 +487,41 @@ describe('Sisyfos', () => {
 		const commandReceiver0: any = jest.fn(async () => {
 			return Promise.resolve()
 		})
-		const myChannelMapping0: MappingSisyfos = {
+		const myChannelMapping0: Mapping<SomeMappingSisyfos> = {
 			device: DeviceType.SISYFOS,
-			mappingType: MappingSisyfosType.CHANNEL,
 			deviceId: 'mySisyfos',
-			channel: 0,
-			setLabelToLayerName: false,
+			options: {
+				mappingType: MappingSisyfosType.Channel,
+				channel: 0,
+				setLabelToLayerName: false,
+			},
 		}
-		const myChannelMapping1: MappingSisyfos = {
+		const myChannelMapping1: Mapping<SomeMappingSisyfos> = {
 			device: DeviceType.SISYFOS,
-			mappingType: MappingSisyfosType.CHANNEL,
 			deviceId: 'mySisyfos',
-			channel: 1,
-			setLabelToLayerName: false,
+			options: {
+				mappingType: MappingSisyfosType.Channel,
+				channel: 1,
+				setLabelToLayerName: false,
+			},
 		}
-		const myChannelMapping2: MappingSisyfos = {
+		const myChannelMapping2: Mapping<SomeMappingSisyfos> = {
 			device: DeviceType.SISYFOS,
-			mappingType: MappingSisyfosType.CHANNEL,
 			deviceId: 'mySisyfos',
-			channel: 1,
-			setLabelToLayerName: false,
+			options: {
+				mappingType: MappingSisyfosType.Channel,
+				channel: 1,
+				setLabelToLayerName: false,
+			},
 		}
-		const myChannelMapping3: MappingSisyfos = {
+		const myChannelMapping3: Mapping<SomeMappingSisyfos> = {
 			device: DeviceType.SISYFOS,
-			mappingType: MappingSisyfosType.CHANNEL,
 			deviceId: 'mySisyfos',
-			channel: 3,
-			setLabelToLayerName: false,
+			options: {
+				mappingType: MappingSisyfosType.Channel,
+				channel: 3,
+				setLabelToLayerName: false,
+			},
 		}
 		const myChannelMapping: Mappings = {
 			sisyfos_channel_1: myChannelMapping0,
@@ -607,29 +629,37 @@ describe('Sisyfos', () => {
 		const commandReceiver0: any = jest.fn(async () => {
 			return Promise.resolve()
 		})
-		const myChannelMapping0: MappingSisyfos = {
+		const myChannelMapping0: Mapping<SomeMappingSisyfos> = {
 			device: DeviceType.SISYFOS,
-			mappingType: MappingSisyfosType.CHANNELS,
 			deviceId: 'mySisyfos',
+			options: {
+				mappingType: MappingSisyfosType.Channels,
+			},
 		}
-		const myChannelMapping1: MappingSisyfos = {
+		const myChannelMapping1: Mapping<SomeMappingSisyfos> = {
 			device: DeviceType.SISYFOS,
-			mappingType: MappingSisyfosType.CHANNEL,
 			deviceId: 'mySisyfos',
-			channel: 1,
-			setLabelToLayerName: false,
+			options: {
+				mappingType: MappingSisyfosType.Channel,
+				channel: 1,
+				setLabelToLayerName: false,
+			},
 		}
-		const myChannelMapping2: MappingSisyfos = {
+		const myChannelMapping2: Mapping<SomeMappingSisyfos> = {
 			device: DeviceType.SISYFOS,
-			mappingType: MappingSisyfosType.CHANNEL,
 			deviceId: 'mySisyfos',
-			channel: 2,
-			setLabelToLayerName: false,
+			options: {
+				mappingType: MappingSisyfosType.Channel,
+				channel: 2,
+				setLabelToLayerName: false,
+			},
 		}
-		const myChannelMapping3: MappingSisyfos = {
+		const myChannelMapping3: Mapping<SomeMappingSisyfos> = {
 			device: DeviceType.SISYFOS,
-			mappingType: MappingSisyfosType.CHANNELS,
 			deviceId: 'mySisyfos',
+			options: {
+				mappingType: MappingSisyfosType.Channels,
+			},
 		}
 		const myChannelMapping: Mappings = {
 			sisyfos_channels_base: myChannelMapping0,
@@ -815,29 +845,37 @@ describe('Sisyfos', () => {
 		const commandReceiver0: any = jest.fn(async () => {
 			return Promise.resolve()
 		})
-		const myChannelMapping0: MappingSisyfos = {
+		const myChannelMapping0: Mapping<SomeMappingSisyfos> = {
 			device: DeviceType.SISYFOS,
-			mappingType: MappingSisyfosType.CHANNELS,
 			deviceId: 'mySisyfos',
+			options: {
+				mappingType: MappingSisyfosType.Channels,
+			},
 		}
-		const myChannelMapping1: MappingSisyfos = {
+		const myChannelMapping1: Mapping<SomeMappingSisyfos> = {
 			device: DeviceType.SISYFOS,
-			mappingType: MappingSisyfosType.CHANNEL,
 			deviceId: 'mySisyfos',
-			channel: 1,
-			setLabelToLayerName: false,
+			options: {
+				mappingType: MappingSisyfosType.Channel,
+				channel: 1,
+				setLabelToLayerName: false,
+			},
 		}
-		const myChannelMapping2: MappingSisyfos = {
+		const myChannelMapping2: Mapping<SomeMappingSisyfos> = {
 			device: DeviceType.SISYFOS,
-			mappingType: MappingSisyfosType.CHANNEL,
 			deviceId: 'mySisyfos',
-			channel: 2,
-			setLabelToLayerName: false,
+			options: {
+				mappingType: MappingSisyfosType.Channel,
+				channel: 2,
+				setLabelToLayerName: false,
+			},
 		}
-		const myChannelMapping3: MappingSisyfos = {
+		const myChannelMapping3: Mapping<SomeMappingSisyfos> = {
 			device: DeviceType.SISYFOS,
-			mappingType: MappingSisyfosType.CHANNELS,
 			deviceId: 'mySisyfos',
+			options: {
+				mappingType: MappingSisyfosType.Channels,
+			},
 		}
 		const myChannelMapping: Mappings = {
 			sisyfos_channels_base: myChannelMapping0,

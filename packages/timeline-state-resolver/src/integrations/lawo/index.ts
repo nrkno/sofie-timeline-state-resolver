@@ -4,27 +4,28 @@ import { DeviceWithState, CommandWithContext, DeviceStatus, StatusCode } from '.
 import {
 	DeviceType,
 	TimelineContentTypeLawo,
-	MappingLawo,
-	TimelineObjLawoSource,
-	TimelineObjLawoAny,
-	TimelineObjLawoEmberProperty,
-	TimelineObjLawoEmberRetrigger,
 	DeviceOptionsLawo,
 	LawoCommand,
-	SetLawoValueFn,
 	LawoOptions,
 	LawoDeviceMode,
-	ContentTimelineObjLawoSource,
+	TimelineContentLawoSourceValue,
 	MappingLawoType,
+	Timeline,
+	TSRTimelineContent,
+	Mapping,
+	SomeMappingLawo,
 	Mappings,
+	MappingLawoSource,
 } from 'timeline-state-resolver-types'
-import { TimelineState, ResolvedTimelineObjectInstance } from 'superfly-timeline'
 import { DoOnTime, SendMode } from '../../devices/doOnTime'
 import { deferAsync, getDiff } from '../../lib'
 import { EmberClient, Types as EmberTypes, Model as EmberModel } from 'emberplus-connection'
 
+export type SetLawoValueFn = (command: LawoCommand, timelineObjId: string, logCommand?: boolean) => Promise<any>
+
 export interface DeviceOptionsLawoInternal extends DeviceOptionsLawo {
 	commandReceiver?: CommandReceiver
+	setValueFn?: SetLawoValueFn
 }
 export type CommandReceiver = (
 	time: number,
@@ -101,8 +102,8 @@ export class LawoDevice extends DeviceWithState<LawoState, DeviceOptionsLawoInte
 			} else {
 				this._commandReceiver = this._defaultCommandReceiver.bind(this)
 			}
-			if (deviceOptions.options.setValueFn) {
-				this._setValueFn = deviceOptions.options.setValueFn
+			if (deviceOptions.setValueFn) {
+				this._setValueFn = deviceOptions.setValueFn
 			} else {
 				this._setValueFn = async (...args) => {
 					return this.setValueWrapper(...args)
@@ -213,7 +214,7 @@ export class LawoDevice extends DeviceWithState<LawoState, DeviceOptionsLawoInte
 	 * Handles a state such that the device will reflect that state at the given time.
 	 * @param newState
 	 */
-	handleState(newState: TimelineState, newMappings: Mappings) {
+	handleState(newState: Timeline.TimelineState<TSRTimelineContent>, newMappings: Mappings) {
 		super.onHandleState(newState, newMappings)
 		if (!this._initialized) return
 
@@ -275,7 +276,7 @@ export class LawoDevice extends DeviceWithState<LawoState, DeviceOptionsLawoInte
 	 * Converts a timeline state into a device state.
 	 * @param state
 	 */
-	convertStateToLawo(state: TimelineState, mappings: Mappings): LawoState {
+	convertStateToLawo(state: Timeline.TimelineState<TSRTimelineContent>, mappings: Mappings): LawoState {
 		const lawoState: LawoState = {
 			nodes: {},
 		}
@@ -285,8 +286,8 @@ export class LawoDevice extends DeviceWithState<LawoState, DeviceOptionsLawoInte
 		const newFaders: Array<{ attrPath: string; node: LawoStateNode; priority: number }> = []
 		const pushFader = (
 			identifier: string,
-			fader: ContentTimelineObjLawoSource,
-			mapping: MappingLawo,
+			fader: TimelineContentLawoSourceValue,
+			mapping: Mapping<MappingLawoSource>,
 			tlObjId: string,
 			priority = 0
 		) => {
@@ -300,65 +301,84 @@ export class LawoDevice extends DeviceWithState<LawoState, DeviceOptionsLawoInte
 					value: fader.faderValue,
 					valueType: EmberModel.ParameterType.Real,
 					transitionDuration: fader.transitionDuration,
-					priority: mapping.priority || 0,
+					priority: mapping.options.priority || 0,
 					timelineObjId: tlObjId,
 				},
 			})
 		}
 
-		_.each(state.layers, (tlObject: ResolvedTimelineObjectInstance, layerName: string) => {
+		_.each(state.layers, (tlObject, layerName: string) => {
 			// for every layer
-			const lawoObj = tlObject as any as TimelineObjLawoAny
+			const content = tlObject.content
 
-			const mapping: MappingLawo | undefined = mappings[layerName] as MappingLawo
+			const mapping = mappings[layerName] as Mapping<SomeMappingLawo> | undefined
 
-			if (mapping && mapping.device === DeviceType.LAWO && mapping.deviceId === this.deviceId) {
+			if (
+				mapping &&
+				mapping.device === DeviceType.LAWO &&
+				mapping.deviceId === this.deviceId &&
+				content.deviceType === DeviceType.LAWO
+			) {
 				// Mapping is for Lawo
 
 				if (
-					mapping.mappingType === MappingLawoType.SOURCES &&
-					lawoObj.content.type === TimelineContentTypeLawo.SOURCES
+					mapping.options.mappingType === MappingLawoType.Sources &&
+					content.type === TimelineContentTypeLawo.SOURCES
 				) {
 					// mapping implies a composite of sources
-					for (const fader of lawoObj.content.sources) {
+					for (const fader of content.sources) {
 						// for every mapping in the composite
-						const sourceMapping: MappingLawo | undefined = mappings[fader.mappingName] as MappingLawo
+						const sourceMapping = mappings[fader.mappingName] as Mapping<MappingLawoSource> | undefined
 
 						if (
 							!sourceMapping ||
-							!sourceMapping.identifier ||
-							sourceMapping.mappingType !== MappingLawoType.SOURCE ||
+							!sourceMapping.options.identifier ||
+							sourceMapping.options.mappingType !== MappingLawoType.Source ||
 							mapping.deviceId !== this.deviceId
 						)
 							continue
 						// mapped mapping is a source mapping
 
-						pushFader(sourceMapping.identifier, fader, sourceMapping, tlObject.id, lawoObj.content.overridePriority)
+						pushFader(sourceMapping.options.identifier, fader, sourceMapping, tlObject.id, content.overridePriority)
 					}
-				} else if (mapping.identifier && lawoObj.content.type === TimelineContentTypeLawo.SOURCE) {
+				} else if (
+					'identifier' in mapping.options && // TODO - this should check mapping type
+					mapping.options.identifier &&
+					content.type === TimelineContentTypeLawo.SOURCE
+				) {
 					// mapping is for a source
-					const tlObjectSource: TimelineObjLawoSource = lawoObj as TimelineObjLawoSource
-					const fader: ContentTimelineObjLawoSource = tlObjectSource.content
-					const priority = tlObjectSource.content.overridePriority
-					pushFader(mapping.identifier, fader, mapping, tlObject.id, priority)
-				} else if (mapping.identifier && lawoObj.content.type === TimelineContentTypeLawo.EMBER_PROPERTY) {
+					const priority = content.overridePriority
+					pushFader(mapping.options.identifier, content, mapping as Mapping<MappingLawoSource>, tlObject.id, priority)
+				} else if (
+					'identifier' in mapping.options && // TODO - this should check mapping type
+					mapping.options.identifier &&
+					content.type === TimelineContentTypeLawo.EMBER_PROPERTY
+				) {
 					// mapping is a property to set
-					const tlObjectSource: TimelineObjLawoEmberProperty = lawoObj as TimelineObjLawoEmberProperty
 
-					lawoState.nodes[mapping.identifier] = {
-						type: tlObjectSource.content.type,
+					const emberType =
+						'emberType' in mapping.options &&
+						mapping.options.emberType &&
+						Object.values<EmberModel.ParameterType>(EmberModel.ParameterType).includes(mapping.options.emberType as any)
+							? (mapping.options.emberType as unknown as EmberModel.ParameterType)
+							: EmberModel.ParameterType.Real
+
+					lawoState.nodes[mapping.options.identifier] = {
+						type: content.type,
 						key: '',
-						identifier: mapping.identifier,
-						value: tlObjectSource.content.value,
-						valueType: mapping.emberType || EmberModel.ParameterType.Real,
-						priority: mapping.priority || 0,
+						identifier: mapping.options.identifier,
+						value: content.value,
+						valueType: emberType,
+						priority: mapping.options.priority || 0,
 						timelineObjId: tlObject.id,
 					}
-				} else if (lawoObj.content.type === TimelineContentTypeLawo.TRIGGER_VALUE) {
+				} else if (
+					mapping.options.mappingType === MappingLawoType.TriggerValue &&
+					content.type === TimelineContentTypeLawo.TRIGGER_VALUE
+				) {
 					// mapping is a trigger value (will resend all commands to the Lawo to enforce state when changed)
-					const tlObjectSource: TimelineObjLawoEmberRetrigger = lawoObj as TimelineObjLawoEmberRetrigger
 
-					lawoState.triggerValue = tlObjectSource.content.triggerValue
+					lawoState.triggerValue = content.triggerValue
 				}
 			}
 		})
@@ -692,7 +712,7 @@ export class LawoDevice extends DeviceWithState<LawoState, DeviceOptionsLawoInte
 		const sources = (await req.response!) as EmberModel.NumberedTreeNode<EmberModel.EmberNode> | undefined
 		if (!sources) return
 
-		for (const child of Object.values(sources.children || {})) {
+		for (const child of Object.values<EmberModel.NumberedTreeNode<EmberModel.EmberElement>>(sources.children || {})) {
 			if (child.contents.type === EmberModel.ElementType.Node) {
 				try {
 					// get the identifier

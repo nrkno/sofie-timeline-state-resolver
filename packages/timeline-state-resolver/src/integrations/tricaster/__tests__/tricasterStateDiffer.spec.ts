@@ -1,39 +1,96 @@
-import { DeviceType, MappingTriCasterType as MappingType } from 'timeline-state-resolver-types'
+import { DeviceType, MappingTricasterType as MappingType } from 'timeline-state-resolver-types'
 import { TriCasterInfo } from '../triCasterConnection'
 import { MappingsTriCaster, TriCasterStateDiffer } from '../triCasterStateDiffer'
 
 const MOCK_DEVICE_ID = 'tc0'
 const MOCK_MAPPINGS: MappingsTriCaster = {
-	main: { device: DeviceType.TRICASTER, mappingType: MappingType.ME, deviceId: MOCK_DEVICE_ID, name: 'main' },
-	v1: { device: DeviceType.TRICASTER, mappingType: MappingType.ME, deviceId: MOCK_DEVICE_ID, name: 'v1' },
-	v2: { device: DeviceType.TRICASTER, mappingType: MappingType.ME, deviceId: MOCK_DEVICE_ID, name: 'v2' },
-	input1: { device: DeviceType.TRICASTER, mappingType: MappingType.INPUT, deviceId: MOCK_DEVICE_ID, name: 'input1' },
-	input2: { device: DeviceType.TRICASTER, mappingType: MappingType.INPUT, deviceId: MOCK_DEVICE_ID, name: 'input2' },
+	main: {
+		device: DeviceType.TRICASTER,
+		deviceId: MOCK_DEVICE_ID,
+		options: {
+			mappingType: MappingType.ME,
+			name: 'main',
+		},
+	},
+	v1: {
+		device: DeviceType.TRICASTER,
+		deviceId: MOCK_DEVICE_ID,
+		options: {
+			mappingType: MappingType.ME,
+			name: 'v1',
+		},
+	},
+	v2: {
+		device: DeviceType.TRICASTER,
+		deviceId: MOCK_DEVICE_ID,
+		options: {
+			mappingType: MappingType.ME,
+			name: 'v2',
+		},
+	},
+	input1: {
+		device: DeviceType.TRICASTER,
+		deviceId: MOCK_DEVICE_ID,
+		options: {
+			mappingType: MappingType.INPUT,
+			name: 'input1',
+		},
+	},
+	input2: {
+		device: DeviceType.TRICASTER,
+		deviceId: MOCK_DEVICE_ID,
+		options: {
+			mappingType: MappingType.INPUT,
+			name: 'input2',
+		},
+	},
 	audio_input1: {
 		device: DeviceType.TRICASTER,
-		mappingType: MappingType.AUDIO_CHANNEL,
 		deviceId: MOCK_DEVICE_ID,
-		name: 'input1',
+		options: {
+			mappingType: MappingType.AUDIOCHANNEL,
+			name: 'input1',
+		},
 	},
 	audio_input2: {
 		device: DeviceType.TRICASTER,
-		mappingType: MappingType.AUDIO_CHANNEL,
 		deviceId: MOCK_DEVICE_ID,
-		name: 'input2',
+		options: {
+			mappingType: MappingType.AUDIOCHANNEL,
+			name: 'input2',
+		},
 	},
-	mix1: { device: DeviceType.TRICASTER, mappingType: MappingType.MIX_OUTPUT, deviceId: MOCK_DEVICE_ID, name: 'mix1' },
-	mix2: { device: DeviceType.TRICASTER, mappingType: MappingType.MIX_OUTPUT, deviceId: MOCK_DEVICE_ID, name: 'mix2' },
+	mix1: {
+		device: DeviceType.TRICASTER,
+		deviceId: MOCK_DEVICE_ID,
+		options: {
+			mappingType: MappingType.MIXOUTPUT,
+			name: 'mix1',
+		},
+	},
+	mix2: {
+		device: DeviceType.TRICASTER,
+		deviceId: MOCK_DEVICE_ID,
+		options: {
+			mappingType: MappingType.MIXOUTPUT,
+			name: 'mix2',
+		},
+	},
 	out1: {
 		device: DeviceType.TRICASTER,
-		mappingType: MappingType.MATRIX_OUTPUT,
 		deviceId: MOCK_DEVICE_ID,
-		name: 'out1',
+		options: {
+			mappingType: MappingType.MATRIXOUTPUT,
+			name: 'out1',
+		},
 	},
 	out2: {
 		device: DeviceType.TRICASTER,
-		mappingType: MappingType.MATRIX_OUTPUT,
 		deviceId: MOCK_DEVICE_ID,
-		name: 'out2',
+		options: {
+			mappingType: MappingType.MATRIXOUTPUT,
+			name: 'out2',
+		},
 	},
 }
 
@@ -623,9 +680,11 @@ describe('TriCasterStateDiffer.getCommandsToAchieveState', () => {
 				{
 					mix1: {
 						device: DeviceType.TRICASTER,
-						mappingType: MappingType.MIX_OUTPUT,
 						deviceId: MOCK_DEVICE_ID,
-						name: 'mix1',
+						options: {
+							mappingType: MappingType.MIXOUTPUT,
+							name: 'mix1',
+						},
 					},
 				}
 			)

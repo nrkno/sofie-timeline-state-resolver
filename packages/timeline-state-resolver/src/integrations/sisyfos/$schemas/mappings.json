@@ -1,0 +1,42 @@
+{
+	"$schema": "../../../$schemas/mapping-schema.json",
+	"default": "channel",
+	"mappings": {
+		"channel": {
+			"type": "object",
+			"properties": {
+				"channel": {
+					"type": "integer",
+					"ui:title": "Channel",
+					"ui:summaryTitle": "Channel",
+					"ui:zeroBased": true
+				},
+				"setLabelToLayerName": {
+					"type": "boolean",
+					"ui:title": "Set channel label to layer name"
+				}
+			},
+			"required": ["channel"],
+			"additionalProperties": false
+		},
+		"channel_by_label": {
+			"type": "object",
+			"properties": {
+				"label": {
+					"type": "string",
+					"ui:title": "Label",
+					"ui:summaryTitle": "Label",
+					"ui:description": "Identify the channel by label (does not set the label in Sisyfos)"
+				}
+			},
+			"required": ["label"],
+			"additionalProperties": false
+		},
+		"channels": {
+			"type": "object",
+			"properties": {},
+			"required": [],
+			"additionalProperties": false
+		}
+	}
+}

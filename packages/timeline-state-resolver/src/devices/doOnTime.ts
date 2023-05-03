@@ -207,19 +207,21 @@ export class DoOnTime extends EventEmitter<DoOnTimeEvents> {
 		try {
 			if (!this._commandsToSendNow[queueId]) this._commandsToSendNow[queueId] = []
 
-			const commandToSend = this._commandsToSendNow[queueId].shift()
-			if (commandToSend) {
-				if (this._sendMode === SendMode.BURST) {
+			if (this._sendMode === SendMode.BURST) {
+				this._sendingCommands[queueId] = false
+
+				const commandsToSend = this._commandsToSendNow[queueId]
+				this._commandsToSendNow[queueId] = []
+
+				for (const commandToSend of commandsToSend) {
 					// send all at once:
 					commandToSend().catch((e) => {
 						this.emit('error', e)
 					})
-					this._sendingCommands[queueId] = false
-					// send next message:
-					setTimeout(() => {
-						this._sendNextCommand(queueId)
-					}, 0)
-				} else {
+				}
+			} else {
+				const commandToSend = this._commandsToSendNow[queueId].shift()
+				if (commandToSend) {
 					// SendMode.IN_ORDER
 					// send one, wait for it to finish, then send next:
 					commandToSend()
@@ -235,9 +237,9 @@ export class DoOnTime extends EventEmitter<DoOnTimeEvents> {
 							this._sendingCommands[queueId] = false
 							this.emit('error', e)
 						})
+				} else {
+					this._sendingCommands[queueId] = false
 				}
-			} else {
-				this._sendingCommands[queueId] = false
 			}
 		} catch (e) {
 			this._sendingCommands[queueId] = false

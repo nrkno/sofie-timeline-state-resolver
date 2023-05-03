@@ -3,44 +3,7 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
-## [3.5.1](https://github.com/tv2/tv-automation-state-timeline-resolver/compare/3.5.0...3.5.1) (2023-03-31)
-
-**Note:** Version bump only for package timeline-state-resolver-types
-
-## [3.5.0](https://github.com/tv2/tv-automation-state-timeline-resolver/compare/3.4.0...3.5.0) (2023-03-16)
-
-### Features
-
-- SOF-1254 add me_clean support for mix ouputs ([7f3fb9c](https://github.com/tv2/tv-automation-state-timeline-resolver/commit/7f3fb9c7d9edb03022db69c6e206302c5c69a815))
-
-## [3.4.0](https://github.com/tv2/tv-automation-state-timeline-resolver/compare/3.3.0...3.4.0) (2023-03-14)
-
-### Features
-
-- SOF-1254 add temporal priority to TriCaster ([7133774](https://github.com/tv2/tv-automation-state-timeline-resolver/commit/7133774a49e03a038d91a9ec8fd8d0f13cbd962c))
-
-## [3.3.0](https://github.com/tv2/tv-automation-state-timeline-resolver/compare/3.2.0...3.3.0) (2023-02-28)
-
-### Features
-
-- SOF-1254 add TriCaster matrix support ([dbb1b26](https://github.com/tv2/tv-automation-state-timeline-resolver/commit/dbb1b26e84a41227e3eca0fae902bf5b57ca5d8e))
-
-## [3.2.0](https://github.com/tv2/tv-automation-state-timeline-resolver/compare/3.0.3...3.2.0) (2023-02-15)
-
-### Features
-
-- SOF-1254 add TriCaster integration ([06b129e](https://github.com/tv2/tv-automation-state-timeline-resolver/commit/06b129ecec2d87b0caaa22fda36b2b5ef953653e))
-
-### Bug Fixes
-
-- SOF-1254 improve types ([0471a7b](https://github.com/tv2/tv-automation-state-timeline-resolver/commit/0471a7bf64f7340e83b5b6f47212003fd2586ca6))
-- SOF-1254 type guards and make some properties optional ([f8b8aab](https://github.com/tv2/tv-automation-state-timeline-resolver/commit/f8b8aab02a0ef7f0ad8814365ca3e08820c9a1af))
-
-## [3.0.3](https://github.com/tv2/tv-automation-state-timeline-resolver/compare/3.0.2...3.0.3) (2022-12-05)
-
-**Note:** Version bump only for package timeline-state-resolver-types
-
-## [3.0.0](https://github.com/tv2/tv-automation-state-timeline-resolver/compare/2.3.1...3.0.0) (2022-11-21)
+## [8.0.0-release49.0](https://github.com/nrkno/sofie-timeline-state-resolver/compare/8.0.0-release48.2...8.0.0-release49.0) (2023-03-21)
 
 ### ⚠ BREAKING CHANGES
 
@@ -48,78 +11,104 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
 
 ### Features
 
-- resolve MSE show names to IDs using the directory ([e094dda](https://github.com/tv2/tv-automation-state-timeline-resolver/commit/e094dda7dbd14b312ff8ffef5d45a39a1e802bcf))
-
-## [2.3.1](https://github.com/tv2/tv-automation-state-timeline-resolver/compare/2.3.0...2.3.1) (2022-11-11)
-
-**Note:** Version bump only for package timeline-state-resolver-types
-
-## [2.2.3](https://github.com/tv2/tv-automation-state-timeline-resolver/compare/2.2.2...2.2.3) (2022-10-18)
-
-**Note:** Version bump only for package timeline-state-resolver-types
-
-# [2.2.0](https://github.com/tv2/tv-automation-state-timeline-resolver/compare/2.1.7...2.2.0) (2022-10-04)
-
-# [7.3.0-release44.2](https://github.com/tv2/tv-automation-state-timeline-resolver/compare/7.4.0-release46.1...7.3.0-release44.2) (2022-09-29)
-
-# [7.4.0-release46.1](https://github.com/tv2/tv-automation-state-timeline-resolver/compare/7.4.0-release46.0...7.4.0-release46.1) (2022-09-27)
-
-# [7.4.0-release46.0](https://github.com/tv2/tv-automation-state-timeline-resolver/compare/7.3.0-release44.1...7.4.0-release46.0) (2022-09-26)
+- Emit debug state ([516a512](https://github.com/nrkno/sofie-timeline-state-resolver/commit/516a51203aa0af8c0a47552ecf9c0c99cd01d0be))
+- multi osc device ([b987680](https://github.com/nrkno/sofie-timeline-state-resolver/commit/b9876808d44543903e45ab5a1a1a2b85beed4aac))
+- resolve MSE show names to IDs using the directory ([e094dda](https://github.com/nrkno/sofie-timeline-state-resolver/commit/e094dda7dbd14b312ff8ffef5d45a39a1e802bcf))
+- SOF-1254 add TriCaster integration ([06b129e](https://github.com/nrkno/sofie-timeline-state-resolver/commit/06b129ecec2d87b0caaa22fda36b2b5ef953653e))
+- SOF-1254 add TriCaster matrix support ([dbb1b26](https://github.com/nrkno/sofie-timeline-state-resolver/commit/dbb1b26e84a41227e3eca0fae902bf5b57ca5d8e))
+- Vmix preset actions ([8b31294](https://github.com/nrkno/sofie-timeline-state-resolver/commit/8b3129412f3881ff9db2cd059927e5b5f3ae6caf))
+- **vmix:** add support for ListRemoveAll and ListAdd commands ([4a7240f](https://github.com/nrkno/sofie-timeline-state-resolver/commit/4a7240f7b2819bb16f263b72d1b06b98e3c40353))
+- **vmix:** add support for starting and stopping VB.NET scripts ([9f2d4ee](https://github.com/nrkno/sofie-timeline-state-resolver/commit/9f2d4eeeccd9ba0017fc00cfe5df18e3717ea660))
 
 ### Bug Fixes
 
-- index datastore references by path ([9b48d72](https://github.com/tv2/tv-automation-state-timeline-resolver/commit/9b48d725d79d4eee13e7347e450abaadf02b6db2))
+- change `DeviceType.MULTI_OSC` value ([386ba6c](https://github.com/nrkno/sofie-timeline-state-resolver/commit/386ba6c791a090553cf1d66c73ae82cb25edd03f))
+- SOF-1254 improve types ([0471a7b](https://github.com/nrkno/sofie-timeline-state-resolver/commit/0471a7bf64f7340e83b5b6f47212003fd2586ca6))
+- SOF-1254 type guards and make some properties optional ([f8b8aab](https://github.com/nrkno/sofie-timeline-state-resolver/commit/f8b8aab02a0ef7f0ad8814365ca3e08820c9a1af))
 
-# [7.3.0-release44.1](https://github.com/tv2/tv-automation-state-timeline-resolver/compare/2.1.6...7.3.0-release44.1) (2022-09-22)
+# [8.0.0-release48.2](https://github.com/nrkno/sofie-timeline-state-resolver/compare/7.5.0...8.0.0-release48.2) (2023-03-21)
+
+# [8.0.0-release48.1](https://github.com/nrkno/sofie-timeline-state-resolver/compare/7.5.0-release47.6...8.0.0-release48.1) (2023-02-14)
+
+# [8.0.0-release48.0](https://github.com/nrkno/sofie-timeline-state-resolver/compare/7.5.0-release47.3...8.0.0-release48.0) (2022-12-12)
+
+### Features
+
+- import quick-tsr to this repository ([bd42303](https://github.com/nrkno/sofie-timeline-state-resolver/commit/bd42303dc68054db530d10ccc590f63017b15afe))
+- translations for actions ([df4cb43](https://github.com/nrkno/sofie-timeline-state-resolver/commit/df4cb43cf16a8e2ae34c1fe44801c5a327f9b01e))
+- update for casparcg-connection rewrite ([5dfdd23](https://github.com/nrkno/sofie-timeline-state-resolver/commit/5dfdd2320caf89432d36513026c1259e2cf3d366))
+
+# [8.0.0-release48.1](https://github.com/nrkno/sofie-timeline-state-resolver/compare/7.5.0-release47.6...8.0.0-release48.1) (2023-02-14)
+
+# [8.0.0-release48.0](https://github.com/nrkno/sofie-timeline-state-resolver/compare/7.5.0-release47.3...8.0.0-release48.0) (2022-12-12)
+
+### Features
+
+- import quick-tsr to this repository ([bd42303](https://github.com/nrkno/sofie-timeline-state-resolver/commit/bd42303dc68054db530d10ccc590f63017b15afe))
+- translations for actions ([df4cb43](https://github.com/nrkno/sofie-timeline-state-resolver/commit/df4cb43cf16a8e2ae34c1fe44801c5a327f9b01e))
+- update for casparcg-connection rewrite ([5dfdd23](https://github.com/nrkno/sofie-timeline-state-resolver/commit/5dfdd2320caf89432d36513026c1259e2cf3d366))
+
+# [8.0.0-release48.0](https://github.com/nrkno/sofie-timeline-state-resolver/compare/7.5.0-release47.3...8.0.0-release48.0) (2022-12-12)
 
 ### Bug Fixes
 
-- invert warnOnEmptySlots to suppressEmptySlotWarnings ([edcd7b0](https://github.com/tv2/tv-automation-state-timeline-resolver/commit/edcd7b0fde747ae160c93f2ca1284661153f5647))
-- move all references to the root of the tl obj ([130b6c3](https://github.com/tv2/tv-automation-state-timeline-resolver/commit/130b6c3a908b0911f94ccedc67e7004404f11010))
-- put 'em back to make linter happy ([e83a5ed](https://github.com/tv2/tv-automation-state-timeline-resolver/commit/e83a5ed87f1983b16c9b5b8c134e1441fb8d324a))
-- **types:** remove unsupported/manual transport statuses ([b362072](https://github.com/tv2/tv-automation-state-timeline-resolver/commit/b362072424236f13f9c04bf477d6b98e41254359))
-- update typings with datastore references ([2c0074b](https://github.com/tv2/tv-automation-state-timeline-resolver/commit/2c0074bc74d8fa0eead89b44b558e73de4057638))
+- add optional parameter to HTTPSend timelineObj: paramsType ([979dc61](https://github.com/nrkno/sofie-timeline-state-resolver/commit/979dc61748c4c371a8b17c7fd8c5929c69f747d9))
+- add support for Node 18 ([6242dd6](https://github.com/nrkno/sofie-timeline-state-resolver/commit/6242dd68f54a491aa71bdfd30b066550d6f7e90e))
 
 ### Features
 
-- **HyperDeck:** add "warnOnEmptySlots" option ([233a413](https://github.com/tv2/tv-automation-state-timeline-resolver/commit/233a4132097f38723b7150b7e61635f39e08115d))
-- **Hyperdeck:** add support for play and goto commands ([50e9e15](https://github.com/tv2/tv-automation-state-timeline-resolver/commit/50e9e156651ba250a4fa3d5fcc01a184ba928ade))
+- import quick-tsr to this repository ([bd42303](https://github.com/nrkno/sofie-timeline-state-resolver/commit/bd42303dc68054db530d10ccc590f63017b15afe))
+- translations for actions ([df4cb43](https://github.com/nrkno/sofie-timeline-state-resolver/commit/df4cb43cf16a8e2ae34c1fe44801c5a327f9b01e))
+- update for casparcg-connection rewrite ([5dfdd23](https://github.com/nrkno/sofie-timeline-state-resolver/commit/5dfdd2320caf89432d36513026c1259e2cf3d366))
 
-# [7.3.0-release44.0](https://github.com/tv2/tv-automation-state-timeline-resolver/compare/2.1.3...7.3.0-release44.0) (2022-07-04)
+# [7.5.0](https://github.com/nrkno/sofie-timeline-state-resolver/compare/7.5.0-release47.7...7.5.0) (2023-02-28)
 
-# [7.0.0](https://github.com/tv2/tv-automation-state-timeline-resolver/compare/2.1.2...7.0.0) (2022-06-27)
+**Note:** Version bump only for package timeline-state-resolver-types
+
+# [7.5.0-release47.7](https://github.com/nrkno/sofie-timeline-state-resolver/compare/7.5.0-release47.6...7.5.0-release47.7) (2023-02-24)
+
+**Note:** Version bump only for package timeline-state-resolver-types
+
+# [7.5.0-release47.6](https://github.com/nrkno/sofie-timeline-state-resolver/compare/7.5.0-release47.5...7.5.0-release47.6) (2023-02-07)
+
+**Note:** Version bump only for package timeline-state-resolver-types
+
+# [7.5.0-release47.5](https://github.com/nrkno/sofie-timeline-state-resolver/compare/7.5.0-release47.4...7.5.0-release47.5) (2023-01-16)
+
+**Note:** Version bump only for package timeline-state-resolver-types
+
+# [7.5.0-release47.4](https://github.com/nrkno/sofie-timeline-state-resolver/compare/7.5.0-release47.3...7.5.0-release47.4) (2023-01-13)
+
+### Bug Fixes
+
+- add optional parameter to HTTPSend timelineObj: paramsType ([979dc61](https://github.com/nrkno/sofie-timeline-state-resolver/commit/979dc61748c4c371a8b17c7fd8c5929c69f747d9))
+- add support for Node 18 ([6242dd6](https://github.com/nrkno/sofie-timeline-state-resolver/commit/6242dd68f54a491aa71bdfd30b066550d6f7e90e))
+
+# [7.5.0-release47.3](https://github.com/nrkno/sofie-timeline-state-resolver/compare/7.5.0-release47.2...7.5.0-release47.3) (2022-11-07)
+
+**Note:** Version bump only for package timeline-state-resolver-types
+
+# [7.5.0-release47.2](https://github.com/nrkno/sofie-timeline-state-resolver/compare/7.5.0-release47.1...7.5.0-release47.2) (2022-11-02)
+
+**Note:** Version bump only for package timeline-state-resolver-types
+
+# [7.5.0-release47.1](https://github.com/nrkno/sofie-timeline-state-resolver/compare/7.5.0-release47.0...7.5.0-release47.1) (2022-11-02)
+
+**Note:** Version bump only for package timeline-state-resolver-types
+
+# [7.5.0-release47.0](https://github.com/nrkno/sofie-timeline-state-resolver/compare/7.3.0...7.5.0-release47.0) (2022-10-28)
+
+### Bug Fixes
+
+- update SofieChef device API ([514d827](https://github.com/nrkno/sofie-timeline-state-resolver/commit/514d8271dd0d1fbce673154067d92f02a25e0b4b))
 
 ### Features
 
-- timeline datastore prototype ([e122e8b](https://github.com/tv2/tv-automation-state-timeline-resolver/commit/e122e8bff7404b1955853131d24144c660f76753))
+- add Sofie Chef device ([4fac092](https://github.com/nrkno/sofie-timeline-state-resolver/commit/4fac092d6f896d1f5fa77c92b7f8a69339a75c55))
 
-# [7.1.0-release42.1](https://github.com/tv2/tv-automation-state-timeline-resolver/compare/7.0.0-release41.2...7.1.0-release42.1) (2022-04-29)
+# [7.4.0-release46.1](https://github.com/nrkno/sofie-timeline-state-resolver/compare/7.4.0-release46.0...7.4.0-release46.1) (2022-09-27)
 
-### Reverts
-
-- Revert "7.1.0" ([8ce054c](https://github.com/tv2/tv-automation-state-timeline-resolver/commit/8ce054c6016fc0d23ef37a3ae1d233090a829fb9))
-
-## [2.1.7](https://github.com/tv2/tv-automation-state-timeline-resolver/compare/2.1.6...2.1.7) (2022-10-03)
-
-**Note:** Version bump only for package timeline-state-resolver-types
-
-## [2.1.6](https://github.com/tv2/tv-automation-state-timeline-resolver/compare/2.1.5...2.1.6) (2022-09-06)
-
-**Note:** Version bump only for package timeline-state-resolver-types
-
-## [2.1.5](https://github.com/tv2/tv-automation-state-timeline-resolver/compare/2.1.4...2.1.5) (2022-08-17)
-
-**Note:** Version bump only for package timeline-state-resolver-types
-
-## [2.1.4](https://github.com/tv2/tv-automation-state-timeline-resolver/compare/2.1.3...2.1.4) (2022-08-11)
-
-**Note:** Version bump only for package timeline-state-resolver-types
-
-## [2.1.3](https://github.com/tv2/tv-automation-state-timeline-resolver/compare/2.1.2...2.1.3) (2022-07-04)
-
-**Note:** Version bump only for package timeline-state-resolver-types
-
-## [2.1.1](https://github.com/tv2/tv-automation-state-timeline-resolver/compare/v2.0.0...2.1.1) (2022-06-14)
+# [7.4.0-release46.0](https://github.com/nrkno/sofie-timeline-state-resolver/compare/7.3.0-release44.1...7.4.0-release46.0) (2022-09-26)
 
 ### Bug Fixes
 
@@ -136,18 +125,9 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
 - **Hyperdeck:** add support for play and goto commands ([50e9e15](https://github.com/nrkno/sofie-timeline-state-resolver/commit/50e9e156651ba250a4fa3d5fcc01a184ba928ade))
 - timeline datastore prototype ([e122e8b](https://github.com/nrkno/sofie-timeline-state-resolver/commit/e122e8bff7404b1955853131d24144c660f76753))
 
-# [7.4.0-release46.0](https://github.com/nrkno/sofie-timeline-state-resolver/compare/7.3.0-release44.1...7.4.0-release46.0) (2022-09-26)
+# [7.3.0](https://github.com/nrkno/sofie-timeline-state-resolver/compare/7.3.0-release44.2...7.3.0) (2022-10-24)
 
-### Bug Fixes
-
-- invert warnOnEmptySlots to suppressEmptySlotWarnings ([edcd7b0](https://github.com/nrkno/sofie-timeline-state-resolver/commit/edcd7b0fde747ae160c93f2ca1284661153f5647))
-- put 'em back to make linter happy ([e83a5ed](https://github.com/nrkno/sofie-timeline-state-resolver/commit/e83a5ed87f1983b16c9b5b8c134e1441fb8d324a))
-- **types:** remove unsupported/manual transport statuses ([b362072](https://github.com/nrkno/sofie-timeline-state-resolver/commit/b362072424236f13f9c04bf477d6b98e41254359))
-
-### Features
-
-- **HyperDeck:** add "warnOnEmptySlots" option ([233a413](https://github.com/nrkno/sofie-timeline-state-resolver/commit/233a4132097f38723b7150b7e61635f39e08115d))
-- **Hyperdeck:** add support for play and goto commands ([50e9e15](https://github.com/nrkno/sofie-timeline-state-resolver/commit/50e9e156651ba250a4fa3d5fcc01a184ba928ade))
+**Note:** Version bump only for package timeline-state-resolver-types
 
 # [7.3.0-release44.2](https://github.com/nrkno/sofie-timeline-state-resolver/compare/7.3.0-release44.1...7.3.0-release44.2) (2022-09-29)
 

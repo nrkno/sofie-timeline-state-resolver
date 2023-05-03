@@ -19,7 +19,8 @@ import {
 } from '../connection'
 import { getMockCall } from '../../../__tests__/lib'
 import * as WebSocket from '../../../__mocks__/ws'
-import * as request from '../../../__mocks__/request'
+import got from '../../../__mocks__/got'
+import { OptionsOfTextResponseBody, Response } from 'got'
 
 const orgSetTimeout = setTimeout
 
@@ -227,7 +228,6 @@ function getStandardPharosMockReply() {
 		} else if (data.subscribe) {
 			if (
 				data.subscribe === 'timeline' ||
-				data.subscribe === 'timeline' ||
 				data.subscribe === 'scene' ||
 				data.subscribe === 'group' ||
 				data.subscribe === 'content_target' ||
@@ -253,20 +253,22 @@ async function wait(time = 1) {
 }
 describe('PharosAPI', () => {
 	jest.mock('ws', () => WebSocket)
-	jest.mock('request', () => request)
+	jest.mock('got', () => got)
 
 	const requestReturnsOK = true
-	function handleRequest(url, _options, callback) {
-		orgSetTimeout(() => {
-			let body = ''
-			if (url.match(/api\/log/)) {
-				body = "my little log\nOo, here's an entry"
-			}
-			callback(null, {
-				statusCode: requestReturnsOK ? 200 : 500,
-				body: body,
-			})
-		}, 1)
+	async function handleRequest(url: string, _options?: OptionsOfTextResponseBody) {
+		return new Promise<Pick<Response, 'statusCode' | 'body'>>((resolve) => {
+			orgSetTimeout(() => {
+				let body = ''
+				if (url.match(/api\/log/)) {
+					body = "my little log\nOo, here's an entry"
+				}
+				resolve({
+					statusCode: requestReturnsOK ? 200 : 500,
+					body: body,
+				})
+			}, 1)
+		})
 	}
 
 	const onGet = jest.fn(handleRequest)
@@ -277,13 +279,13 @@ describe('PharosAPI', () => {
 	const onDel = jest.fn(handleRequest)
 	const onDelete = jest.fn(handleRequest)
 
-	request.setMockGet(onGet)
-	request.setMockPost(onPost)
-	request.setMockPut(onPut)
-	request.setMockHead(onHead)
-	request.setMockPatch(onPatch)
-	request.setMockDel(onDel)
-	request.setMockDelete(onDelete)
+	got.setMockGet(onGet)
+	got.setMockPost(onPost)
+	got.setMockPut(onPut)
+	got.setMockHead(onHead)
+	got.setMockPatch(onPatch)
+	got.setMockDel(onDel)
+	got.setMockDelete(onDelete)
 
 	beforeEach(() => {
 		jest.useFakeTimers()
@@ -782,8 +784,10 @@ describe('PharosAPI', () => {
 		expect(onPost).toHaveBeenCalledTimes(1)
 		expect(getMockCall(onPost, 0, 0)).toEqual('http://127.0.0.1/api/release_all')
 		expect(getMockCall(onPost, 0, 1)).toMatchObject({
-			group: 'group0',
-			fade: 20,
+			json: {
+				group: 'group0',
+				fade: 20,
+			},
 		})
 		onPost.mockClear()
 
@@ -791,7 +795,9 @@ describe('PharosAPI', () => {
 		expect(onPost).toHaveBeenCalledTimes(1)
 		expect(getMockCall(onPost, 0, 0)).toEqual('http://127.0.0.1/api/timeline')
 		expect(getMockCall(onPost, 0, 1)).toMatchObject({
-			action: 'pause',
+			json: {
+				action: 'pause',
+			},
 		})
 		onPost.mockClear()
 
@@ -799,7 +805,9 @@ describe('PharosAPI', () => {
 		expect(onPost).toHaveBeenCalledTimes(1)
 		expect(getMockCall(onPost, 0, 0)).toEqual('http://127.0.0.1/api/timeline')
 		expect(getMockCall(onPost, 0, 1)).toMatchObject({
-			action: 'resume',
+			json: {
+				action: 'resume',
+			},
 		})
 		onPost.mockClear()
 
@@ -807,9 +815,11 @@ describe('PharosAPI', () => {
 		expect(onPost).toHaveBeenCalledTimes(1)
 		expect(getMockCall(onPost, 0, 0)).toEqual('http://127.0.0.1/api/trigger')
 		expect(getMockCall(onPost, 0, 1)).toMatchObject({
-			num: 5,
-			var: 'a,b',
-			conditions: true,
+			json: {
+				num: 5,
+				var: 'a,b',
+				conditions: true,
+			},
 		})
 		onPost.mockClear()
 
@@ -817,7 +827,9 @@ describe('PharosAPI', () => {
 		expect(onPost).toHaveBeenCalledTimes(1)
 		expect(getMockCall(onPost, 0, 0)).toEqual('http://127.0.0.1/api/cmdline')
 		expect(getMockCall(onPost, 0, 1)).toMatchObject({
-			input: 'scriptName01',
+			json: {
+				input: 'scriptName01',
+			},
 		})
 		onPost.mockClear()
 
@@ -825,11 +837,13 @@ describe('PharosAPI', () => {
 		expect(onPost).toHaveBeenCalledTimes(1)
 		expect(getMockCall(onPost, 0, 0)).toEqual('http://127.0.0.1/api/group')
 		expect(getMockCall(onPost, 0, 1)).toMatchObject({
-			action: 'master_intensity',
-			num: 3,
-			level: 15,
-			fade: 20,
-			delay: 1,
+			json: {
+				action: 'master_intensity',
+				num: 3,
+				level: 15,
+				fade: 20,
+				delay: 1,
+			},
 		})
 		onPost.mockClear()
 
@@ -837,11 +851,13 @@ describe('PharosAPI', () => {
 		expect(onPost).toHaveBeenCalledTimes(1)
 		expect(getMockCall(onPost, 0, 0)).toEqual('http://127.0.0.1/api/content_target')
 		expect(getMockCall(onPost, 0, 1)).toMatchObject({
-			action: 'master_intensity',
-			type: 'primary',
-			level: 15,
-			fade: 20,
-			delay: 1,
+			json: {
+				action: 'master_intensity',
+				type: 'primary',
+				level: 15,
+				fade: 20,
+				delay: 1,
+			},
 		})
 		onPost.mockClear()
 
@@ -862,15 +878,17 @@ describe('PharosAPI', () => {
 		expect(onPut).toHaveBeenCalledTimes(1)
 		expect(getMockCall(onPut, 0, 0)).toEqual('http://127.0.0.1/api/override')
 		expect(getMockCall(onPut, 0, 1)).toMatchObject({
-			target: 'group',
-			num: 3,
-			intensity: 1,
-			red: 255,
-			green: 255,
-			blue: 255,
-			temperature: 255,
-			fade: 2.1,
-			path: 'Default',
+			json: {
+				target: 'group',
+				num: 3,
+				intensity: 1,
+				red: 255,
+				green: 255,
+				blue: 255,
+				temperature: 255,
+				fade: 2.1,
+				path: 'Default',
+			},
 		})
 		onPut.mockClear()
 
@@ -878,9 +896,11 @@ describe('PharosAPI', () => {
 		expect(onDelete).toHaveBeenCalledTimes(1)
 		expect(getMockCall(onDelete, 0, 0)).toEqual('http://127.0.0.1/api/override')
 		expect(getMockCall(onDelete, 0, 1)).toMatchObject({
-			target: 'group',
-			num: 3,
-			fade: 2.1,
+			json: {
+				target: 'group',
+				num: 3,
+				fade: 2.1,
+			},
 		})
 		onDelete.mockClear()
 
@@ -888,7 +908,9 @@ describe('PharosAPI', () => {
 		expect(onDelete).toHaveBeenCalledTimes(1)
 		expect(getMockCall(onDelete, 0, 0)).toEqual('http://127.0.0.1/api/override')
 		expect(getMockCall(onDelete, 0, 1)).toMatchObject({
-			target: 'group',
+			json: {
+				target: 'group',
+			},
 		})
 		onDelete.mockClear()
 
@@ -904,15 +926,17 @@ describe('PharosAPI', () => {
 		expect(onPut).toHaveBeenCalledTimes(1)
 		expect(getMockCall(onPut, 0, 0)).toEqual('http://127.0.0.1/api/override')
 		expect(getMockCall(onPut, 0, 1)).toMatchObject({
-			target: 'fixture',
-			num: 3,
-			intensity: 1,
-			red: 255,
-			green: 255,
-			blue: 255,
-			temperature: 255,
-			fade: 2.1,
-			path: 'Default',
+			json: {
+				target: 'fixture',
+				num: 3,
+				intensity: 1,
+				red: 255,
+				green: 255,
+				blue: 255,
+				temperature: 255,
+				fade: 2.1,
+				path: 'Default',
+			},
 		})
 		onPut.mockClear()
 
@@ -920,9 +944,11 @@ describe('PharosAPI', () => {
 		expect(onDelete).toHaveBeenCalledTimes(1)
 		expect(getMockCall(onDelete, 0, 0)).toEqual('http://127.0.0.1/api/override')
 		expect(getMockCall(onDelete, 0, 1)).toMatchObject({
-			target: 'fixture',
-			num: 3,
-			fade: 2.1,
+			json: {
+				target: 'fixture',
+				num: 3,
+				fade: 2.1,
+			},
 		})
 		onDelete.mockClear()
 
@@ -930,7 +956,9 @@ describe('PharosAPI', () => {
 		expect(onDelete).toHaveBeenCalledTimes(1)
 		expect(getMockCall(onDelete, 0, 0)).toEqual('http://127.0.0.1/api/override')
 		expect(getMockCall(onDelete, 0, 1)).toMatchObject({
-			target: 'fixture',
+			json: {
+				target: 'fixture',
+			},
 		})
 		onDelete.mockClear()
 
@@ -944,8 +972,10 @@ describe('PharosAPI', () => {
 		expect(onPost).toHaveBeenCalledTimes(1)
 		expect(getMockCall(onPost, 0, 0)).toEqual('http://127.0.0.1/api/output')
 		expect(getMockCall(onPost, 0, 1)).toMatchObject({
-			action: 'enable',
-			protocol: 'dmx',
+			json: {
+				action: 'enable',
+				protocol: 'dmx',
+			},
 		})
 		onPost.mockClear()
 
@@ -953,8 +983,10 @@ describe('PharosAPI', () => {
 		expect(onPost).toHaveBeenCalledTimes(1)
 		expect(getMockCall(onPost, 0, 0)).toEqual('http://127.0.0.1/api/output')
 		expect(getMockCall(onPost, 0, 1)).toMatchObject({
-			action: 'disable',
-			protocol: 'dmx',
+			json: {
+				action: 'disable',
+				protocol: 'dmx',
+			},
 		})
 		onPost.mockClear()
 
@@ -962,8 +994,10 @@ describe('PharosAPI', () => {
 		expect(onPut).toHaveBeenCalledTimes(1)
 		expect(getMockCall(onPut, 0, 0)).toEqual('http://127.0.0.1/api/text_slot')
 		expect(getMockCall(onPut, 0, 1)).toMatchObject({
-			name: 'slot1',
-			value: 'myLittleValue',
+			json: {
+				name: 'slot1',
+				value: 'myLittleValue',
+			},
 		})
 		onPut.mockClear()
 
@@ -976,9 +1010,11 @@ describe('PharosAPI', () => {
 		expect(onPost).toHaveBeenCalledTimes(1)
 		expect(getMockCall(onPost, 0, 0)).toEqual('http://127.0.0.1/api/channel')
 		expect(getMockCall(onPost, 0, 1)).toMatchObject({
-			universe: 'dmx:1',
-			channels: '1-5,7',
-			level: 128,
+			json: {
+				universe: 'dmx:1',
+				channels: '1-5,7',
+				level: 128,
+			},
 		})
 		onPost.mockClear()
 
@@ -986,8 +1022,10 @@ describe('PharosAPI', () => {
 		expect(onDelete).toHaveBeenCalledTimes(1)
 		expect(getMockCall(onDelete, 0, 0)).toEqual('http://127.0.0.1/api/channel')
 		expect(getMockCall(onDelete, 0, 1)).toMatchObject({
-			universe: 'dmx:1',
-			channels: '1-5,7',
+			json: {
+				universe: 'dmx:1',
+				channels: '1-5,7',
+			},
 		})
 		onDelete.mockClear()
 
@@ -1050,8 +1088,10 @@ describe('PharosAPI', () => {
 		expect(onPost).toHaveBeenCalledTimes(1)
 		expect(getMockCall(onPost, 0, 0)).toEqual('http://127.0.0.1/api/timeline')
 		expect(getMockCall(onPost, 0, 1)).toMatchObject({
-			action: 'start',
-			num: 5,
+			json: {
+				action: 'start',
+				num: 5,
+			},
 		})
 		onPost.mockClear()
 
@@ -1059,9 +1099,11 @@ describe('PharosAPI', () => {
 		expect(onPost).toHaveBeenCalledTimes(1)
 		expect(getMockCall(onPost, 0, 0)).toEqual('http://127.0.0.1/api/timeline')
 		expect(getMockCall(onPost, 0, 1)).toMatchObject({
-			action: 'release',
-			num: 5,
-			fade: 20,
+			json: {
+				action: 'release',
+				num: 5,
+				fade: 20,
+			},
 		})
 		onPost.mockClear()
 
@@ -1069,9 +1111,11 @@ describe('PharosAPI', () => {
 		expect(onPost).toHaveBeenCalledTimes(1)
 		expect(getMockCall(onPost, 0, 0)).toEqual('http://127.0.0.1/api/timeline')
 		expect(getMockCall(onPost, 0, 1)).toMatchObject({
-			action: 'toggle',
-			num: 5,
-			fade: 20,
+			json: {
+				action: 'toggle',
+				num: 5,
+				fade: 20,
+			},
 		})
 		onPost.mockClear()
 
@@ -1079,8 +1123,10 @@ describe('PharosAPI', () => {
 		expect(onPost).toHaveBeenCalledTimes(1)
 		expect(getMockCall(onPost, 0, 0)).toEqual('http://127.0.0.1/api/timeline')
 		expect(getMockCall(onPost, 0, 1)).toMatchObject({
-			action: 'pause',
-			num: 5,
+			json: {
+				action: 'pause',
+				num: 5,
+			},
 		})
 		onPost.mockClear()
 
@@ -1088,8 +1134,10 @@ describe('PharosAPI', () => {
 		expect(onPost).toHaveBeenCalledTimes(1)
 		expect(getMockCall(onPost, 0, 0)).toEqual('http://127.0.0.1/api/timeline')
 		expect(getMockCall(onPost, 0, 1)).toMatchObject({
-			action: 'resume',
-			num: 5,
+			json: {
+				action: 'resume',
+				num: 5,
+			},
 		})
 		onPost.mockClear()
 
@@ -1097,9 +1145,11 @@ describe('PharosAPI', () => {
 		expect(onPost).toHaveBeenCalledTimes(1)
 		expect(getMockCall(onPost, 0, 0)).toEqual('http://127.0.0.1/api/timeline')
 		expect(getMockCall(onPost, 0, 1)).toMatchObject({
-			action: 'release',
-			group: 'group0',
-			fade: 20,
+			json: {
+				action: 'release',
+				group: 'group0',
+				fade: 20,
+			},
 		})
 		onPost.mockClear()
 
@@ -1107,9 +1157,11 @@ describe('PharosAPI', () => {
 		expect(onPost).toHaveBeenCalledTimes(1)
 		expect(getMockCall(onPost, 0, 0)).toEqual('http://127.0.0.1/api/timeline')
 		expect(getMockCall(onPost, 0, 1)).toMatchObject({
-			action: 'set_rate',
-			num: 5,
-			rate: 0.5,
+			json: {
+				action: 'set_rate',
+				num: 5,
+				rate: 0.5,
+			},
 		})
 		onPost.mockClear()
 
@@ -1117,9 +1169,11 @@ describe('PharosAPI', () => {
 		expect(onPost).toHaveBeenCalledTimes(1)
 		expect(getMockCall(onPost, 0, 0)).toEqual('http://127.0.0.1/api/timeline')
 		expect(getMockCall(onPost, 0, 1)).toMatchObject({
-			action: 'set_position',
-			num: 5,
-			position: 0.6,
+			json: {
+				action: 'set_position',
+				num: 5,
+				position: 0.6,
+			},
 		})
 		onPost.mockClear()
 
@@ -1171,8 +1225,10 @@ describe('PharosAPI', () => {
 		expect(onPost).toHaveBeenCalledTimes(1)
 		expect(getMockCall(onPost, 0, 0)).toEqual('http://127.0.0.1/api/scene')
 		expect(getMockCall(onPost, 0, 1)).toMatchObject({
-			action: 'start',
-			num: 5,
+			json: {
+				action: 'start',
+				num: 5,
+			},
 		})
 		onPost.mockClear()
 
@@ -1180,9 +1236,11 @@ describe('PharosAPI', () => {
 		expect(onPost).toHaveBeenCalledTimes(1)
 		expect(getMockCall(onPost, 0, 0)).toEqual('http://127.0.0.1/api/scene')
 		expect(getMockCall(onPost, 0, 1)).toMatchObject({
-			action: 'release',
-			num: 5,
-			fade: 20,
+			json: {
+				action: 'release',
+				num: 5,
+				fade: 20,
+			},
 		})
 		onPost.mockClear()
 
@@ -1190,9 +1248,11 @@ describe('PharosAPI', () => {
 		expect(onPost).toHaveBeenCalledTimes(1)
 		expect(getMockCall(onPost, 0, 0)).toEqual('http://127.0.0.1/api/scene')
 		expect(getMockCall(onPost, 0, 1)).toMatchObject({
-			action: 'toggle',
-			num: 5,
-			fade: 20,
+			json: {
+				action: 'toggle',
+				num: 5,
+				fade: 20,
+			},
 		})
 		onPost.mockClear()
 
@@ -1200,9 +1260,11 @@ describe('PharosAPI', () => {
 		expect(onPost).toHaveBeenCalledTimes(1)
 		expect(getMockCall(onPost, 0, 0)).toEqual('http://127.0.0.1/api/scene')
 		expect(getMockCall(onPost, 0, 1)).toMatchObject({
-			action: 'release',
-			group: 'group0',
-			fade: 20,
+			json: {
+				action: 'release',
+				group: 'group0',
+				fade: 20,
+			},
 		})
 		onPost.mockClear()
 

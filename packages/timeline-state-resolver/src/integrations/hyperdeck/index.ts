@@ -1,17 +1,17 @@
 import * as _ from 'underscore'
-// import * as underScoreDeepExtend from 'underscore-deep-extend'
-import { TimelineState } from 'superfly-timeline'
 import { DeviceWithState, CommandWithContext, DeviceStatus, StatusCode } from '../../devices/device'
 import {
 	DeviceType,
 	TimelineContentTypeHyperdeck,
-	MappingHyperdeck,
 	MappingHyperdeckType,
 	HyperdeckOptions,
-	TimelineObjHyperdeckTransport,
-	TimelineObjHyperdeckAny,
 	DeviceOptionsHyperdeck,
 	Mappings,
+	TSRTimelineContent,
+	Timeline,
+	HyperdeckActions,
+	Mapping,
+	SomeMappingHyperdeck,
 } from 'timeline-state-resolver-types'
 import {
 	Hyperdeck,
@@ -22,7 +22,8 @@ import {
 } from 'hyperdeck-connection'
 import { DoOnTime, SendMode } from '../../devices/doOnTime'
 import { SlotInfoCommandResponse } from 'hyperdeck-connection/dist/commands'
-import { deferAsync, endTrace, startTrace } from '../../lib'
+import { deferAsync, endTrace, startTrace, t } from '../../lib'
+import { ActionExecutionResult, ActionExecutionResultCode } from 'timeline-state-resolver-types'
 
 export interface DeviceOptionsHyperdeckInternal extends DeviceOptionsHyperdeck {
 	commandReceiver?: CommandReceiver
@@ -193,18 +194,27 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState, DeviceOptionsH
 		return true
 	}
 
+	private async resync(): Promise<ActionExecutionResult> {
+		const time = this.getCurrentTime()
+		this._doOnTime.clearQueueNowAndAfter(time)
+
+		// TODO - could this being slow/offline be a problem?
+		const state = await this._queryCurrentState()
+
+		this.setState(state, time)
+		this.emit('resetResolver')
+
+		return {
+			result: ActionExecutionResultCode.Ok,
+		}
+	}
+
 	/**
 	 * Prepares device for playout
 	 */
 	async makeReady(okToDestroyStuff?: boolean): Promise<void> {
 		if (okToDestroyStuff) {
-			const time = this.getCurrentTime()
-			this._doOnTime.clearQueueNowAndAfter(time)
-
-			// TODO - could this being slow/offline be a problem?
-			const state = await this._queryCurrentState()
-
-			this.setState(state, time)
+			await this.resync()
 		}
 	}
 
@@ -212,7 +222,7 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState, DeviceOptionsH
 	 * Sends commands to the HyperDeck to format disks. Afterwards,
 	 * calls this._queryRecordingTime
 	 */
-	async formatDisks() {
+	private async formatDisks() {
 		const wait = async (t: number) => new Promise<void>((resolve) => setTimeout(() => resolve(), t))
 
 		for (let i = 1; i <= this._slots; i++) {
@@ -242,6 +252,21 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState, DeviceOptionsH
 
 		await this._queryRecordingTime()
 	}
+	async executeAction(actionId: string, _payload?: Record<string, any> | undefined): Promise<ActionExecutionResult> {
+		switch (actionId) {
+			case HyperdeckActions.FormatDisks:
+				try {
+					await this.formatDisks()
+					return { result: ActionExecutionResultCode.Ok }
+				} catch {
+					return { result: ActionExecutionResultCode.Error }
+				}
+			case HyperdeckActions.Resync:
+				return this.resync()
+			default:
+				return { result: ActionExecutionResultCode.Ok, response: t('Action "{{id}}" not found', { actionId }) }
+		}
+	}
 	/** Called by the Conductor a bit before a .handleState is called */
 	prepareForHandleState(newStateTime: number) {
 		// clear any queued commands later than this time:
@@ -253,7 +278,7 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState, DeviceOptionsH
 	 * that state at that time.
 	 * @param newState
 	 */
-	handleState(newState: TimelineState, newMappings: Mappings) {
+	handleState(newState: Timeline.TimelineState<TSRTimelineContent>, newMappings: Mappings) {
 		super.onHandleState(newState, newMappings)
 		if (!this._initialized) {
 			// before it's initialized don't do anything
@@ -303,7 +328,7 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState, DeviceOptionsH
 	 * Converts a timeline state to a device state.
 	 * @param state
 	 */
-	convertStateToHyperdeck(state: TimelineState, mappings: Mappings): DeviceState {
+	convertStateToHyperdeck(state: Timeline.TimelineState<TSRTimelineContent>, mappings: Mappings): DeviceState {
 		if (!this._initialized) throw Error('convertStateToHyperdeck cannot be used before inititialized')
 
 		// Convert the timeline state into something we can use easier:
@@ -313,17 +338,16 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState, DeviceOptionsH
 			a.layerName.localeCompare(b.layerName)
 		)
 		_.each(sortedLayers, ({ tlObject, layerName }) => {
-			const hyperdeckObj = tlObject as any as TimelineObjHyperdeckAny
+			const content = tlObject.content
 
-			const mapping = mappings[layerName] as MappingHyperdeck
+			const mapping = mappings[layerName] as Mapping<SomeMappingHyperdeck>
 
-			if (mapping && mapping.deviceId === this.deviceId) {
-				switch (mapping.mappingType) {
-					case MappingHyperdeckType.TRANSPORT:
-						if (hyperdeckObj.content.type === TimelineContentTypeHyperdeck.TRANSPORT) {
-							const hyperdeckObjTransport = tlObject as any as TimelineObjHyperdeckTransport
+			if (mapping && mapping.deviceId === this.deviceId && content.deviceType === DeviceType.HYPERDECK) {
+				switch (mapping.options.mappingType) {
+					case MappingHyperdeckType.Transport:
+						if (content.type === TimelineContentTypeHyperdeck.TRANSPORT) {
 							if (!deviceState.transport) {
-								switch (hyperdeckObjTransport.content.status) {
+								switch (content.status) {
 									case TransportStatus.PREVIEW:
 									case TransportStatus.STOPPED:
 									case TransportStatus.FORWARD:
@@ -331,7 +355,7 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState, DeviceOptionsH
 									case TransportStatus.JOG:
 									case TransportStatus.SHUTTLE:
 										deviceState.transport = {
-											status: hyperdeckObjTransport.content.status,
+											status: content.status,
 											speed: DEFAULT_SPEED,
 											loop: DEFAULT_LOOP,
 											singleClip: DEFAULT_SINGLE_CLIP,
@@ -340,37 +364,37 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState, DeviceOptionsH
 										break
 									case TransportStatus.PLAY:
 										deviceState.transport = {
-											status: hyperdeckObjTransport.content.status,
-											speed: hyperdeckObjTransport.content.speed ?? DEFAULT_SPEED,
-											loop: hyperdeckObjTransport.content.loop ?? DEFAULT_LOOP,
-											singleClip: hyperdeckObjTransport.content.singleClip ?? DEFAULT_SINGLE_CLIP,
-											clipId: hyperdeckObjTransport.content.clipId,
+											status: content.status,
+											speed: content.speed ?? DEFAULT_SPEED,
+											loop: content.loop ?? DEFAULT_LOOP,
+											singleClip: content.singleClip ?? DEFAULT_SINGLE_CLIP,
+											clipId: content.clipId,
 										}
 										break
 									case TransportStatus.RECORD:
 										deviceState.transport = {
-											status: hyperdeckObjTransport.content.status,
+											status: content.status,
 											speed: DEFAULT_SPEED,
 											loop: DEFAULT_LOOP,
 											singleClip: DEFAULT_SINGLE_CLIP,
 											clipId: DEFAULT_CLIP_ID,
-											recordFilename: hyperdeckObjTransport.content.recordFilename,
+											recordFilename: content.recordFilename,
 										}
 										break
 									default:
 										// @ts-ignore never
-										throw new Error(`Unsupported status "${hyperdeckObjTransport.content.status}"`)
+										throw new Error(`Unsupported status "${content.status}"`)
 								}
 							}
 
-							deviceState.transport.status = hyperdeckObjTransport.content.status
-							if (hyperdeckObjTransport.content.status === TransportStatus.RECORD) {
-								deviceState.transport.recordFilename = hyperdeckObjTransport.content.recordFilename
-							} else if (hyperdeckObjTransport.content.status === TransportStatus.PLAY) {
-								deviceState.transport.speed = hyperdeckObjTransport.content.speed ?? DEFAULT_SPEED
-								deviceState.transport.loop = hyperdeckObjTransport.content.loop ?? DEFAULT_LOOP
-								deviceState.transport.singleClip = hyperdeckObjTransport.content.singleClip ?? DEFAULT_SINGLE_CLIP
-								deviceState.transport.clipId = hyperdeckObjTransport.content.clipId
+							deviceState.transport.status = content.status
+							if (content.status === TransportStatus.RECORD) {
+								deviceState.transport.recordFilename = content.recordFilename
+							} else if (content.status === TransportStatus.PLAY) {
+								deviceState.transport.speed = content.speed ?? DEFAULT_SPEED
+								deviceState.transport.loop = content.loop ?? DEFAULT_LOOP
+								deviceState.transport.singleClip = content.singleClip ?? DEFAULT_SINGLE_CLIP
+								deviceState.transport.clipId = content.clipId
 							}
 						}
 						break

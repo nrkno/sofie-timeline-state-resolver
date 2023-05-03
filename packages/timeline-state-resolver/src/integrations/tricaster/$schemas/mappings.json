@@ -1,0 +1,78 @@
+{
+	"$schema": "../../../$schemas/mapping-schema.json",
+	"default": "ME",
+	"mappings": {
+		"ME": {
+			"type": "object",
+			"properties": {
+				"name": {
+					"type": "string",
+					"ui:title": "ME Name",
+					"ui:description": "Must be of form 'main' | `v${number}`",
+					"description": "Must be of form 'main' | `v${number}`"
+				}
+			},
+			"required": ["name"],
+			"additionalProperties": false
+		},
+		"DSK": {
+			"type": "object",
+			"properties": {
+				"name": {
+					"type": "string",
+					"ui:title": "Keyer Name",
+					"ui:description": "Must be of form `dsk${number}`",
+					"description": "Must be of form `dsk${number}`"
+				}
+			},
+			"required": ["name"],
+			"additionalProperties": false
+		},
+		"INPUT": {
+			"type": "object",
+			"properties": {
+				"name": {
+					"type": "string",
+					"ui:title": "Input Name",
+					"ui:description": "Must be of form `input${number}``",
+					"description": "Must be of form `input${number}`"
+				}
+			},
+			"required": ["name"],
+			"additionalProperties": false
+		},
+		"AUDIO_CHANNEL": {
+			"type": "object",
+			"properties": {
+				"name": {
+					"type": "string",
+					"ui:title": "Audio Channel Name"
+				}
+			},
+			"required": ["name"],
+			"additionalProperties": false
+		},
+		"MIX_OUTPUT": {
+			"type": "object",
+			"properties": {
+				"name": {
+					"type": "string",
+					"ui:title": "Mix Output Name"
+				}
+			},
+			"required": ["name"],
+			"additionalProperties": false
+		},
+		"MATRIX_OUTPUT": {
+			"type": "object",
+			"properties": {
+				"name": {
+					"type": "string",
+					"ui:title": "Matrix Output Name"
+				}
+			},
+			"required": ["name"],
+			"additionalProperties": false
+		}
+	}
+}

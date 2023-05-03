@@ -1,10 +1,4 @@
-import { Mapping } from './mapping'
-import { TSRTimelineObjBase, DeviceType, TimelineDatastoreReferencesContent } from '.'
-
-export interface MappingSingularLive extends Mapping {
-	device: DeviceType.SINGULAR_LIVE
-	compositionName: string
-}
+import { DeviceType } from '.'
 
 export interface SingularLiveContent {
 	type: TimelineContentTypeSingularLive
@@ -12,36 +6,24 @@ export interface SingularLiveContent {
 	/** Commands in the same queue will be sent in order (will wait for the previous to finish before sending next */
 	queueId?: string
 }
-export interface SingularLiveOptions {
-	accessToken: string
-	// makeReadyCommands?: SingularLiveContent[]
-}
 
 export enum TimelineContentTypeSingularLive {
 	COMPOSITION = 'composition',
 }
 
-export type TimelineObjSingularLiveAny = TimelineObjSingularLiveComposition
-export interface TimelineObjSingularLiveBase extends TSRTimelineObjBase {
-	content: {
-		deviceType: DeviceType.SINGULAR_LIVE
-		type: TimelineContentTypeSingularLive
-	} & TimelineDatastoreReferencesContent
+export type TimelineContentSingularLiveAny = TimelineContentSingularLiveComposition
+export interface TimelineContentSingularLiveBase {
+	deviceType: DeviceType.SINGULAR_LIVE
+	type: TimelineContentTypeSingularLive
 }
 
-export interface TimelineObjSingularLiveComposition extends TimelineObjSingularLiveBase {
-	content: {
-		deviceType: DeviceType.SINGULAR_LIVE
-		type: TimelineContentTypeSingularLive.COMPOSITION
-
-		animation?: SingularCompositionAnimation
-		controlNode: SingularCompositionControlNode
-	} & TimelineDatastoreReferencesContent
-}
-export interface SingularCompositionAnimation {
-	action: 'jump' | 'play'
-	// stage: string
+export interface TimelineContentSingularLiveComposition extends TimelineContentSingularLiveBase {
+	type: TimelineContentTypeSingularLive.COMPOSITION
+	controlNode: SingularCompositionControlNode
 }
 export interface SingularCompositionControlNode {
-	payload: { [key: string]: string }
+	/** The animation state that the node should be in. I.e. "In", "Out", etc. */
+	state?: string
+	/** The data that should be consumed by the node. Could be text, colors, etc. */
+	payload?: { [key: string]: string }
 }

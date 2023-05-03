@@ -1,22 +1,4 @@
-import { Mapping } from './mapping'
-import { TSRTimelineObjBase, DeviceType, TimelineDatastoreReferencesContent } from '.'
-
-export interface MappingHyperdeck extends Mapping {
-	device: DeviceType.HYPERDECK
-	mappingType: MappingHyperdeckType
-	index?: number
-}
-export enum MappingHyperdeckType {
-	TRANSPORT = 'transport',
-}
-
-export interface HyperdeckOptions {
-	host: string
-	port?: number
-	minRecordingTime?: number
-	/** If true, no warnings will be emitted when storage slots are empty. */
-	suppressEmptySlotWarnings?: boolean
-}
+import { DeviceType } from '.'
 
 export enum TimelineContentTypeHyperdeck {
 	TRANSPORT = 'transport',
@@ -70,20 +52,16 @@ export enum VideoFormat {
 }
 // -------------------------------------------------------------
 
-export type TimelineObjHyperdeckAny = TimelineObjHyperdeckTransport
+export type TimelineContentHyperdeckAny = TimelineContentHyperdeckTransport
 
-export interface TimelineObjHyperdeck extends TSRTimelineObjBase {
-	content: {
-		deviceType: DeviceType.HYPERDECK
-		/** The type of control of the Hyperdeck */
-		type: TimelineContentTypeHyperdeck
-	} & TimelineDatastoreReferencesContent
+export interface TimelineContentHyperdeck {
+	deviceType: DeviceType.HYPERDECK
+	/** The type of control of the Hyperdeck */
+	type: TimelineContentTypeHyperdeck
 }
-export interface TimelineObjHyperdeckTransport extends TimelineObjHyperdeck {
-	content: {
-		deviceType: DeviceType.HYPERDECK
-		type: TimelineContentTypeHyperdeck.TRANSPORT
-	} & (
+export type TimelineContentHyperdeckTransport = TimelineContentHyperdeck & {
+	type: TimelineContentTypeHyperdeck.TRANSPORT
+} & (
 		| {
 				status: TransportStatus.PREVIEW
 		  }
@@ -119,6 +97,4 @@ export interface TimelineObjHyperdeckTransport extends TimelineObjHyperdeck {
 				/** The filename to record to */
 				recordFilename?: string
 		  }
-	) &
-		TimelineDatastoreReferencesContent
-}
+	)

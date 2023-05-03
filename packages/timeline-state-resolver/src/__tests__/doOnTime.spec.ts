@@ -3,9 +3,6 @@ import { DoOnTime, SendMode } from '../devices/doOnTime'
 
 describe('DoOnTime', () => {
 	const mockTime = new MockTime()
-	beforeAll(() => {
-		mockTime.mockDateNow()
-	})
 	beforeEach(() => {
 		mockTime.init()
 	})
@@ -96,8 +93,8 @@ describe('DoOnTime', () => {
 
 		expect(f).toHaveBeenCalledTimes(3)
 		expect(f).toHaveBeenNthCalledWith(1, 'a', 10100)
-		expect(f).toHaveBeenNthCalledWith(2, 'c', 11105)
-		expect(f).toHaveBeenNthCalledWith(3, 'b', 12105)
+		expect(f).toHaveBeenNthCalledWith(2, 'c', 11100)
+		expect(f).toHaveBeenNthCalledWith(3, 'b', 12100)
 
 		d.dispose()
 	})
@@ -156,11 +153,11 @@ describe('DoOnTime', () => {
 		expect(f).toHaveBeenNthCalledWith(1, 'a', 10100)
 		expect(f).toHaveBeenNthCalledWith(2, 'a', 10100)
 
-		expect(f).toHaveBeenNthCalledWith(3, 'c', 11105)
-		expect(f).toHaveBeenNthCalledWith(4, 'c', 11105)
+		expect(f).toHaveBeenNthCalledWith(3, 'c', 11100)
+		expect(f).toHaveBeenNthCalledWith(4, 'c', 11100)
 
-		expect(f).toHaveBeenNthCalledWith(5, 'b', 12105)
-		expect(f).toHaveBeenNthCalledWith(6, 'b', 12105)
+		expect(f).toHaveBeenNthCalledWith(5, 'b', 12100)
+		expect(f).toHaveBeenNthCalledWith(6, 'b', 12100)
 
 		d.dispose()
 	})

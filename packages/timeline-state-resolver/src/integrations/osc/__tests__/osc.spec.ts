@@ -1,268 +1,360 @@
-import { Conductor } from '../../../conductor'
-import { OSCMessageDevice } from '../../../integrations/osc'
+/* eslint-disable jest/expect-expect */
 import {
-	MappingOSC,
-	Mappings,
 	DeviceType,
-	TimelineContentTypeOSC,
-	OSCValueType,
-	TimelineObjOSCMessage,
 	OSCDeviceType,
+	OSCValueType,
+	Timeline,
+	TimelineContentOSCAny,
+	TimelineContentTypeOSC,
+	TSRTimelineContent,
 } from 'timeline-state-resolver-types'
-import { MockTime } from '../../../__tests__/mockTime'
-import { literal } from '../../../devices/device'
-import { ThreadedClass } from 'threadedclass'
-import { getMockCall } from '../../../__tests__/lib'
+import { OscCommandWithContext, OscDevice, OscDeviceState } from '..'
 
-// let nowActual = Date.now()
-describe('OSC-Message', () => {
-	const mockTime = new MockTime()
-	beforeAll(() => {
-		mockTime.mockDateNow()
+const MOCKED_SOCKET_CONNECT = jest.fn()
+const MOCKED_SOCKET_WRITE = jest.fn()
+const SOCKET_EVENTS: Map<string, (...args: any[]) => void> = new Map()
+
+jest.mock('osc', () => {
+	return {
+		UDPPort: jest.fn().mockImplementation(() => {
+			return {
+				open: MOCKED_SOCKET_CONNECT,
+				send: MOCKED_SOCKET_WRITE,
+				on: (event: string, listener: (...args: any[]) => void) => {
+					SOCKET_EVENTS.set(event, listener)
+				},
+				close: jest.fn(),
+			}
+		}),
+	}
+})
+
+async function getInitialisedOscDevice() {
+	const dev = new OscDevice()
+	await dev.init({ host: 'localhost', port: 8082, type: OSCDeviceType.UDP })
+	return dev
+}
+
+describe('OSC Device', () => {
+	describe('convertTimelineStateToDeviceState', () => {
+		async function compareState(tlState: Timeline.TimelineState<TSRTimelineContent>, expDevState: OscDeviceState) {
+			const device = await getInitialisedOscDevice()
+
+			const actualState = device.convertTimelineStateToDeviceState(tlState)
+
+			expect(actualState).toEqual(expDevState)
+		}
+
+		test('convert empty state', async () => {
+			await compareState(createTimelineState({}), {})
+		})
+
+		test('added object', async () => {
+			await compareState(
+				createTimelineState({
+					layer0: {
+						id: 'obj0',
+						content: {
+							...DEFAULT_TL_CONTENT,
+
+							path: '/path/test',
+							values: [],
+						},
+					},
+				}),
+				{
+					'/path/test': {
+						...DEFAULT_TL_CONTENT,
+						fromTlObject: 'obj0',
+						path: '/path/test',
+						values: [],
+					},
+				}
+			)
+		})
+
+		test('object with values', async () => {
+			await compareState(
+				createTimelineState({
+					layer0: {
+						id: 'obj0',
+						content: {
+							...DEFAULT_TL_CONTENT,
+
+							path: '/path/test',
+							values: [
+								{
+									type: OSCValueType.INT,
+									value: 1,
+								},
+							],
+						},
+					},
+				}),
+				{
+					'/path/test': {
+						...DEFAULT_TL_CONTENT,
+						fromTlObject: 'obj0',
+						path: '/path/test',
+						values: [
+							{
+								type: OSCValueType.INT,
+								value: 1,
+							},
+						],
+					},
+				}
+			)
+		})
+
+		test('object with animation', async () => {
+			await compareState(
+				createTimelineState({
+					layer0: {
+						id: 'obj0',
+						content: {
+							...DEFAULT_TL_CONTENT,
+							path: '/path/test',
+							values: [
+								{
+									type: OSCValueType.FLOAT,
+									value: 1,
+								},
+							],
+							from: [
+								{
+									type: OSCValueType.FLOAT,
+									value: 0,
+								},
+							],
+							transition: {
+								duration: 500,
+								type: 'Linear',
+								direction: 'None',
+							},
+						},
+					},
+				}),
+				{
+					'/path/test': {
+						...DEFAULT_TL_CONTENT,
+						fromTlObject: 'obj0',
+
+						path: '/path/test',
+						values: [
+							{
+								type: OSCValueType.FLOAT,
+								value: 1,
+							},
+						],
+						from: [
+							{
+								type: OSCValueType.FLOAT,
+								value: 0,
+							},
+						],
+						transition: {
+							duration: 500,
+							type: 'Linear',
+							direction: 'None',
+						},
+					},
+				}
+			)
+		})
 	})
-	beforeEach(() => {
-		mockTime.init()
-	})
-	test('OSC message', async () => {
-		const commandReceiver0: any = jest.fn(async () => {
-			return Promise.resolve()
-		})
-		const myLayerMapping0: MappingOSC = {
-			device: DeviceType.OSC,
-			deviceId: 'osc0',
-		}
-		const myLayerMapping: Mappings = {
-			myLayer0: myLayerMapping0,
-		}
 
-		const myConductor = new Conductor({
-			multiThreadedResolver: false,
-			getCurrentTime: mockTime.getCurrentTime,
-		})
-		myConductor.on('error', (e) => console.error(e))
-		await myConductor.init()
-		await myConductor.addDevice('osc0', {
-			type: DeviceType.OSC,
-			options: {
-				host: '127.0.0.1',
-				port: 80,
-				type: OSCDeviceType.UDP,
-			},
-			commandReceiver: commandReceiver0,
-		})
-		myConductor.setTimelineAndMappings([], myLayerMapping)
-		await mockTime.advanceTimeToTicks(10100)
+	describe('diffState', () => {
+		async function compareStates(
+			oldDevState: OscDeviceState,
+			newDevState: OscDeviceState,
+			expCommands: OscCommandWithContext[]
+		) {
+			const device = await getInitialisedOscDevice()
 
-		const deviceContainer = myConductor.getDevice('osc0')
-		const device = deviceContainer!.device as ThreadedClass<OSCMessageDevice>
+			const commands = device.diffStates(oldDevState, newDevState)
 
-		// Check that no commands has been scheduled:
-		expect(await device.queue).toHaveLength(0)
-
-		myConductor.setTimelineAndMappings([
-			literal<TimelineObjOSCMessage>({
-				id: 'obj0',
-				enable: {
-					start: mockTime.now + 1000, // in 1 second
-					duration: 2000,
-				},
-				layer: 'myLayer0',
-				content: {
-					deviceType: DeviceType.OSC,
-					type: TimelineContentTypeOSC.OSC,
-
-					path: '/test-path',
-					values: [
-						{
-							type: OSCValueType.INT,
-							value: 123,
-						},
-						{
-							type: OSCValueType.FLOAT,
-							value: 123.45,
-						},
-						{
-							type: OSCValueType.STRING,
-							value: 'abc',
-						},
-						{
-							type: OSCValueType.BLOB,
-							value: new Uint8Array([1, 3, 5]),
-						},
-					],
-				},
-			}),
-		])
-
-		await mockTime.advanceTimeToTicks(10990)
-		expect(commandReceiver0).toHaveBeenCalledTimes(0)
-		await mockTime.advanceTimeToTicks(11100)
-
-		expect(commandReceiver0).toHaveBeenCalledTimes(1)
-		expect(getMockCall(commandReceiver0, 0, 1)).toMatchObject({
-			type: TimelineContentTypeOSC.OSC,
-			path: '/test-path',
-			values: [
-				{
-					type: OSCValueType.INT,
-					value: 123,
-				},
-				{
-					type: OSCValueType.FLOAT,
-					value: 123.45,
-				},
-				{
-					type: OSCValueType.STRING,
-					value: 'abc',
-				},
-				{
-					type: OSCValueType.BLOB,
-					value: new Uint8Array([1, 3, 5]),
-				},
-			],
-		})
-		expect(getMockCall(commandReceiver0, 0, 2)).toMatch(/added/) // context
-		await mockTime.advanceTimeToTicks(16000)
-		expect(commandReceiver0).toHaveBeenCalledTimes(1)
-	})
-	test('OSC transition', async () => {
-		const commandReceiver0: any = jest.fn(async () => {
-			return Promise.resolve()
-		})
-		const myLayerMapping0: MappingOSC = {
-			device: DeviceType.OSC,
-			deviceId: 'osc0',
-		}
-		const myLayerMapping: Mappings = {
-			myLayer0: myLayerMapping0,
+			expect(commands).toEqual(expCommands)
 		}
 
-		const myConductor = new Conductor({
-			multiThreadedResolver: false,
-			getCurrentTime: mockTime.getCurrentTime,
+		test('Empty states', async () => {
+			await compareStates({}, {}, [])
 		})
-		myConductor.on('error', (e) => console.error(e))
-		await myConductor.init()
-		await myConductor.addDevice('osc0', {
-			type: DeviceType.OSC,
-			options: {
-				host: '127.0.0.1',
-				port: 80,
-				type: OSCDeviceType.UDP,
-			},
-			oscSender: commandReceiver0,
-		})
-		myConductor.setTimelineAndMappings([], myLayerMapping)
-		await mockTime.advanceTimeToTicks(10100)
 
-		const deviceContainer = myConductor.getDevice('osc0')
-		const device = deviceContainer!.device as ThreadedClass<OSCMessageDevice>
-
-		// Check that no commands has been scheduled:
-		expect(await device.queue).toHaveLength(0)
-
-		myConductor.setTimelineAndMappings([
-			literal<TimelineObjOSCMessage>({
-				id: 'obj0',
-				enable: {
-					start: mockTime.now + 1000, // in 1 second
-					duration: 2000,
-				},
-				layer: 'myLayer0',
-				content: {
-					deviceType: DeviceType.OSC,
-					type: TimelineContentTypeOSC.OSC,
-
-					path: '/test-path',
-					values: [
-						{
-							type: OSCValueType.INT,
-							value: 123,
-						},
-						{
-							type: OSCValueType.FLOAT,
-							value: 123.45,
-						},
-						{
-							type: OSCValueType.FLOAT,
-							value: 118.5,
-						},
-						{
-							type: OSCValueType.STRING,
-							value: 'abc',
-						},
-						{
-							type: OSCValueType.BLOB,
-							value: new Uint8Array([1, 3, 5]),
-						},
-					],
-					from: [
-						{
-							type: OSCValueType.INT,
-							value: 100,
-						},
-						{
-							type: OSCValueType.FLOAT,
-							value: 100,
-						},
-					],
-					transition: {
-						duration: 1000,
-						type: 'Linear',
-						direction: 'None',
+		test('added object', async () => {
+			await compareStates(
+				{},
+				{
+					'/path/test': {
+						fromTlObject: 'obj0',
+						type: TimelineContentTypeOSC.OSC,
+						path: '/path/test',
+						values: [],
 					},
 				},
-			}),
-		])
-
-		await mockTime.advanceTimeToTicks(10990)
-		expect(commandReceiver0).toHaveBeenCalledTimes(0)
-		await mockTime.advanceTimeToTicks(11100)
-		expect(commandReceiver0).toHaveBeenCalledTimes(1)
-		await mockTime.advanceTimeToTicks(12100)
-		expect(commandReceiver0).toHaveBeenCalledTimes(26)
-
-		expect(getMockCall(commandReceiver0, 0, 0)).toMatchObject({
-			address: '/test-path',
-			args: [
-				{
-					type: OSCValueType.INT,
-					value: 100,
-				},
-				{
-					type: OSCValueType.FLOAT,
-					value: 100,
-				},
-				{
-					type: OSCValueType.FLOAT,
-					value: 118.5,
-				},
-				{
-					type: OSCValueType.STRING,
-					value: 'abc',
-				},
-				{
-					type: OSCValueType.BLOB,
-					value: new Uint8Array([1, 3, 5]),
-				},
-			],
+				[
+					{
+						command: {
+							fromTlObject: 'obj0',
+							path: '/path/test',
+							type: TimelineContentTypeOSC.OSC,
+							values: [],
+						},
+						context: 'added: obj0',
+						tlObjId: 'obj0',
+					},
+				]
+			)
 		})
-		let last = [100, 100]
 
-		for (let i = 0; i < 26; i++) {
-			const call = getMockCall(commandReceiver0, i, 0)
+		test('same object', async () => {
+			await compareStates(
+				{
+					'/path/test': {
+						fromTlObject: 'obj0',
+						type: TimelineContentTypeOSC.OSC,
+						path: '/path/test',
+						values: [],
+					},
+				},
+				{
+					'/path/test': {
+						fromTlObject: 'obj0',
+						type: TimelineContentTypeOSC.OSC,
+						path: '/path/test',
+						values: [],
+					},
+				},
+				[]
+			)
+		})
 
-			expect(call.address).toEqual('/test-path')
-			expect(call.args[0].value).toBeLessThanOrEqual(123)
-			expect(call.args[0].value).toBeGreaterThanOrEqual(last[0])
-			expect(call.args[0].value % 1).toEqual(0)
-			expect(call.args[1].value).toBeLessThanOrEqual(123.45)
-			expect(call.args[1].value).toBeGreaterThanOrEqual(last[1])
+		test('removed object', async () => {
+			await compareStates(
+				{
+					'/path/test': {
+						fromTlObject: 'obj0',
+						type: TimelineContentTypeOSC.OSC,
+						path: '/path/test',
+						values: [],
+					},
+				},
+				{},
+				[]
+			)
+		})
+	})
 
-			last = [call.args[0].value, call.args[1].value]
-		}
+	describe('sendCommand', () => {
+		test('send a command', async () => {
+			const dev = await getInitialisedOscDevice()
 
-		await mockTime.advanceTimeToTicks(16000)
-		expect(commandReceiver0).toHaveBeenCalledTimes(26)
+			dev
+				.sendCommand({
+					command: {
+						fromTlObject: 'obj0',
+						path: '/path/test',
+						type: TimelineContentTypeOSC.OSC,
+						values: [],
+					},
+					context: '',
+					tlObjId: '',
+				})
+				.catch((e) => {
+					throw e
+				})
+
+			expect(MOCKED_SOCKET_WRITE).toHaveBeenCalledTimes(1)
+			expect(MOCKED_SOCKET_WRITE).toHaveBeenCalledWith(
+				{
+					address: '/path/test',
+					args: [],
+				},
+				undefined,
+				undefined
+			)
+		})
+		test('execute animation', async () => {
+			MOCKED_SOCKET_WRITE.mockReset()
+			jest.useFakeTimers({ now: 10000 })
+			const dev = await getInitialisedOscDevice()
+
+			dev
+				.sendCommand({
+					command: {
+						fromTlObject: 'obj0',
+						path: '/path/test',
+						type: TimelineContentTypeOSC.OSC,
+						values: [
+							{
+								type: OSCValueType.FLOAT,
+								value: 123.45,
+							},
+						],
+						from: [
+							{
+								type: OSCValueType.FLOAT,
+								value: 100,
+							},
+						],
+						transition: {
+							duration: 1000,
+							type: 'Linear',
+							direction: 'None',
+						},
+					},
+					context: '',
+					tlObjId: '',
+				})
+				.catch((e) => {
+					throw e
+				})
+
+			// first command is sent immediately
+			expect(MOCKED_SOCKET_WRITE).toHaveBeenCalledTimes(1)
+			expect(MOCKED_SOCKET_WRITE).toHaveBeenCalledWith(
+				{
+					address: '/path/test',
+					args: [
+						{
+							type: 'f',
+							value: 100,
+						},
+					],
+				},
+				undefined,
+				undefined
+			)
+
+			jest.advanceTimersByTime(1000)
+			expect(MOCKED_SOCKET_WRITE).toHaveBeenCalledTimes(1000 / 40 + 1)
+
+			let last = 100
+			for (let i = 1; i < 26; i++) {
+				const v = MOCKED_SOCKET_WRITE.mock.calls[i][0].args?.[0]?.value
+				expect(v).toBeGreaterThan(last)
+				expect(v).toBeLessThanOrEqual(123.45)
+				last = v
+			}
+
+			expect(last).toBe(123.45)
+		})
 	})
 })
+
+function createTimelineState(
+	objs: Record<string, { id: string; content: TimelineContentOSCAny }>
+): Timeline.TimelineState<TSRTimelineContent> {
+	return {
+		time: 10,
+		layers: objs as any,
+		nextEvents: [],
+	}
+}
+const DEFAULT_TL_CONTENT: {
+	deviceType: DeviceType.OSC
+	type: TimelineContentTypeOSC.OSC
+} = {
+	deviceType: DeviceType.OSC,
+	type: TimelineContentTypeOSC.OSC,
+}

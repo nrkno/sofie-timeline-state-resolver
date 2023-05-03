@@ -1,11 +1,5 @@
 import * as _ from 'underscore'
-import {
-	TimelineState,
-	ResolvedTimelineObjectInstance,
-	ResolvedStates,
-	TimelineObject,
-	Resolver,
-} from 'superfly-timeline'
+import { ResolvedTimelineObjectInstance, ResolvedStates, TimelineObject, Resolver } from 'superfly-timeline'
 import { EventEmitter } from 'eventemitter3'
 import { MemUsageReport, threadedClass, ThreadedClass, ThreadedClassConfig, ThreadedClassManager } from 'threadedclass'
 import PQueue from 'p-queue'
@@ -17,16 +11,21 @@ import {
 	Mapping,
 	DeviceType,
 	ResolvedTimelineObjectInstanceExtended,
-	TSRTimeline,
 	DeviceOptionsBase,
-	TimelineDatastoreReferences,
 	Datastore,
 	DeviceOptionsTelemetrics,
+	TSRTimelineObj,
+	TSRTimeline,
+	Timeline,
+	TSRTimelineContent,
+	TimelineDatastoreReferencesContent,
+	DeviceOptionsMultiOSC,
+	TimelineDatastoreReferences,
 } from 'timeline-state-resolver-types'
 
 import { DoOnTime } from './devices/doOnTime'
 import { AsyncResolver } from './AsyncResolver'
-import { endTrace, fillStateFromDatastore, FinishedTrace, startTrace } from './lib'
+import { assertNever, endTrace, fillStateFromDatastore, FinishedTrace, startTrace } from './lib'
 
 import { CommandWithContext, DeviceEvents } from './devices/device'
 import { DeviceContainer } from './devices/deviceContainer'
@@ -40,7 +39,7 @@ import { PanasonicPtzDevice, DeviceOptionsPanasonicPTZInternal } from './integra
 import { HyperdeckDevice, DeviceOptionsHyperdeckInternal } from './integrations/hyperdeck'
 import { TCPSendDevice, DeviceOptionsTCPSendInternal } from './integrations/tcpSend'
 import { PharosDevice, DeviceOptionsPharosInternal } from './integrations/pharos'
-import { OSCMessageDevice, DeviceOptionsOSCInternal } from './integrations/osc'
+import { DeviceOptionsOSCInternal } from './integrations/osc'
 import { HTTPWatcherDevice, DeviceOptionsHTTPWatcherInternal } from './integrations/httpWatcher'
 import { QuantelDevice, DeviceOptionsQuantelInternal } from './integrations/quantel'
 import { SisyfosMessageDevice, DeviceOptionsSisyfosInternal } from './integrations/sisyfos'
@@ -49,8 +48,11 @@ import { VMixDevice, DeviceOptionsVMixInternal } from './integrations/vmix'
 import { OBSDevice, DeviceOptionsOBSInternal } from './integrations/obs'
 import { VizMSEDevice, DeviceOptionsVizMSEInternal } from './integrations/vizMSE'
 import { ShotokuDevice, DeviceOptionsShotokuInternal } from './integrations/shotoku'
-import { TelemetricsDevice } from './devices/telemetrics'
+import { DeviceOptionsSofieChefInternal, SofieChefDevice } from './integrations/sofieChef'
+import { TelemetricsDevice } from './integrations/telemetrics'
 import { TriCasterDevice, DeviceOptionsTriCasterInternal } from './integrations/tricaster'
+import { DeviceOptionsMultiOSCInternal, MultiOSCMessageDevice } from './integrations/multiOsc'
+import { BaseRemoteDeviceIntegration, RemoteDeviceInstance } from './service/remoteDeviceInstance'
 
 export { DeviceContainer }
 export { CommandWithContext }
@@ -128,6 +130,7 @@ export interface StatReport {
 export type ConductorEvents = {
 	error: [...args: any[]]
 	debug: [...args: any[]]
+	debugState: [...args: any[]]
 	info: [...args: any[]]
 	warning: [...args: any[]]
 
@@ -140,6 +143,13 @@ export type ConductorEvents = {
 
 export class AbortError extends Error {
 	name = 'AbortError'
+}
+
+interface DeviceState {
+	state: Timeline.TimelineState<TSRTimelineContent>
+	mappings: Mappings
+	time: number
+	dependencies: string[]
 }
 
 /**
@@ -155,17 +165,12 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 
 	private _datastore: Datastore = {}
 	private _deviceStates: {
-		[deviceId: string]: {
-			state: TimelineState
-			mappings: Mappings
-			time: number
-			dependencies: string[]
-		}[]
+		[deviceId: string]: DeviceState[]
 	} = {}
 
 	private _options: ConductorOptions
 
-	private devices = new Map<string, DeviceContainer<DeviceOptionsBase<any>>>()
+	private devices = new Map<string, BaseRemoteDeviceIntegration<DeviceOptionsBase<any>>>()
 
 	private _getCurrentTime?: () => number
 
@@ -323,7 +328,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 		this._estimateResolveTimeMultiplier = value
 	}
 
-	public getDevices(includeUninitialized = false): Array<DeviceContainer<DeviceOptionsBase<any>>> {
+	public getDevices(includeUninitialized = false): Array<BaseRemoteDeviceIntegration<DeviceOptionsBase<any>>> {
 		if (includeUninitialized) {
 			return Array.from(this.devices.values())
 		} else {
@@ -334,7 +339,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 	public getDevice(
 		deviceId: string,
 		includeUninitialized = false
-	): DeviceContainer<DeviceOptionsBase<any>> | undefined {
+	): BaseRemoteDeviceIntegration<DeviceOptionsBase<any>> | undefined {
 		if (includeUninitialized) {
 			return this.devices.get(deviceId)
 		} else {
@@ -358,7 +363,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 		deviceId: string,
 		deviceOptions: DeviceOptionsAnyInternal,
 		activeRundownPlaylistId?: string
-	): Promise<DeviceContainer<DeviceOptionsBase<any>>> {
+	): Promise<BaseRemoteDeviceIntegration<DeviceOptionsBase<any>>> {
 		const newDevice = await this.createDevice(deviceId, deviceOptions)
 
 		try {
@@ -376,11 +381,15 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 			const onDeviceDebug = (...args: DeviceEvents['debug']) => {
 				this.emit('debug', instanceId, ...args)
 			}
+			const onDeviceDebugState = (...args: DeviceEvents['debugState']) => {
+				this.emit('debugState', args)
+			}
 
 			newDevice.device.on('info', onDeviceInfo).catch(console.error)
 			newDevice.device.on('warning', onDeviceWarning).catch(console.error)
 			newDevice.device.on('error', onDeviceError).catch(console.error)
 			newDevice.device.on('debug', onDeviceDebug).catch(console.error)
+			newDevice.device.on('debugState', onDeviceDebugState).catch(console.error)
 
 			const device = await this.initDevice(deviceId, deviceOptions, activeRundownPlaylistId)
 
@@ -389,6 +398,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 			newDevice.device.removeListener('warning', onDeviceWarning).catch(console.error)
 			newDevice.device.removeListener('error', onDeviceError).catch(console.error)
 			newDevice.device.removeListener('debug', onDeviceDebug).catch(console.error)
+			newDevice.device.removeListener('debugState', onDeviceDebugState).catch(console.error)
 
 			return device
 		} catch (e) {
@@ -410,9 +420,9 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 		deviceId: string,
 		deviceOptions: DeviceOptionsAnyInternal,
 		options?: { signal?: AbortSignal }
-	): Promise<DeviceContainer<DeviceOptionsBase<any>>> {
-		let newDevice: DeviceContainer<DeviceOptionsBase<any>> | undefined
-		const throwIfAborted = this.throwIfAborted.bind(this, options?.signal, deviceId, 'creation')
+	): Promise<BaseRemoteDeviceIntegration<DeviceOptionsBase<any>>> {
+		let newDevice: BaseRemoteDeviceIntegration<DeviceOptionsBase<any>> | undefined
+		const throwIfAborted = () => this.throwIfAborted(options?.signal, deviceId, 'creation')
 		try {
 			if (this.devices.has(deviceId)) {
 				throw new Error(`Device "${deviceId}" already exists when creating device`)
@@ -482,7 +492,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 		deviceId: string,
 		getCurrentTime: () => number,
 		threadedClassOptions: ThreadedClassConfig
-	): Promise<DeviceContainer<DeviceOptionsBase<any>>> | null {
+	): Promise<BaseRemoteDeviceIntegration<DeviceOptionsBase<any>>> | null {
 		switch (deviceOptions.type) {
 			case DeviceType.ABSTRACT:
 				return DeviceContainer.create<DeviceOptionsAbstractInternal, typeof AbstractDevice>(
@@ -577,15 +587,6 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 					getCurrentTime,
 					threadedClassOptions
 				)
-			case DeviceType.OSC:
-				return DeviceContainer.create<DeviceOptionsOSCInternal, typeof OSCMessageDevice>(
-					'../../dist/integrations/osc/index.js',
-					'OSCMessageDevice',
-					deviceId,
-					deviceOptions,
-					getCurrentTime,
-					threadedClassOptions
-				)
 			case DeviceType.QUANTEL:
 				return DeviceContainer.create<DeviceOptionsQuantelInternal, typeof QuantelDevice>(
 					'../../dist/integrations/quantel/index.js',
@@ -651,8 +652,17 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 				)
 			case DeviceType.TELEMETRICS:
 				return DeviceContainer.create<DeviceOptionsTelemetrics, typeof TelemetricsDevice>(
-					'../../dist/devices/telemetrics.js',
+					'../../dist/integrations/telemetrics/index.js',
 					'TelemetricsDevice',
+					deviceId,
+					deviceOptions,
+					getCurrentTime,
+					threadedClassOptions
+				)
+			case DeviceType.SOFIE_CHEF:
+				return DeviceContainer.create<DeviceOptionsSofieChefInternal, typeof SofieChefDevice>(
+					'../../dist/integrations/sofieChef/index.js',
+					'SofieChefDevice',
 					deviceId,
 					deviceOptions,
 					getCurrentTime,
@@ -667,12 +677,32 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 					getCurrentTime,
 					threadedClassOptions
 				)
+			case DeviceType.MULTI_OSC:
+				return DeviceContainer.create<DeviceOptionsMultiOSC, typeof MultiOSCMessageDevice>(
+					'../../dist/integrations/multiOsc/index.js',
+					'MultiOSCMessageDevice',
+					deviceId,
+					deviceOptions,
+					getCurrentTime,
+					threadedClassOptions
+				)
+			case DeviceType.OSC:
+				// presumably this device is implemented in the new service handler
+				return RemoteDeviceInstance.create(
+					'../../dist/service/DeviceInstance.js',
+					'DeviceInstanceWrapper',
+					deviceId,
+					deviceOptions,
+					getCurrentTime,
+					threadedClassOptions
+				)
 			default:
+				assertNever(deviceOptions)
 				return null
 		}
 	}
 
-	private async terminateUnwantedDevice(newDevice: DeviceContainer<DeviceOptionsBase<any>> | undefined) {
+	private async terminateUnwantedDevice(newDevice: BaseRemoteDeviceIntegration<DeviceOptionsBase<any>> | undefined) {
 		await newDevice
 			?.terminate()
 			.catch((e) => this.emit('error', `Cleanup failed of aborted device "${newDevice.deviceId}": ${e}`))
@@ -691,8 +721,8 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 		deviceOptions: DeviceOptionsAnyInternal,
 		activeRundownPlaylistId?: string,
 		options?: { signal?: AbortSignal }
-	): Promise<DeviceContainer<DeviceOptionsBase<any>>> {
-		const throwIfAborted = this.throwIfAborted.bind(this, deviceId, 'initialisation')
+	): Promise<BaseRemoteDeviceIntegration<DeviceOptionsBase<any>>> {
+		const throwIfAborted = () => this.throwIfAborted(options?.signal, deviceId, 'initialisation')
 
 		throwIfAborted()
 
@@ -777,6 +807,8 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 
 	/**
 	 * Send a makeReady-trigger to all devices
+	 *
+	 * @deprecated replace by TSR actions
 	 */
 	public async devicesMakeReady(okToDestroyStuff?: boolean, activationId?: string): Promise<void> {
 		this.activationId = activationId
@@ -805,6 +837,8 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 
 	/**
 	 * Send a standDown-trigger to all devices
+	 *
+	 * @deprecated replaced by TSR actions
 	 */
 	public async devicesStandDown(okToDestroyStuff?: boolean): Promise<void> {
 		this.activationId = undefined
@@ -830,7 +864,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 
 	private async _mapAllDevices<T>(
 		includeUninitialized: boolean,
-		fcn: (d: DeviceContainer<DeviceOptionsBase<any>>) => Promise<T>
+		fcn: (d: BaseRemoteDeviceIntegration<DeviceOptionsBase<any>>) => Promise<T>
 	): Promise<T[]> {
 		return PAll(
 			this.getDevices(true)
@@ -944,14 +978,14 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 			const pPrepareForHandleStates: Promise<unknown> = Promise.all(
 				Array.from(this.devices.values())
 					.filter((d) => d.initialized === true)
-					.map(async (device: DeviceContainer<DeviceOptionsBase<any>>): Promise<void> => {
+					.map(async (device: BaseRemoteDeviceIntegration<DeviceOptionsBase<any>>): Promise<void> => {
 						await device.device.prepareForHandleState(resolveTime)
 					})
 			).catch((error) => {
 				this.emit('error', error)
 			})
 
-			const applyRecursively = (o: TimelineObject, func: (o: TimelineObject) => void) => {
+			const applyRecursively = (o: Timeline.TimelineObject<any>, func: (o: Timeline.TimelineObject<any>) => void) => {
 				func(o)
 
 				if (o.isGroup) {
@@ -1023,33 +1057,38 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 				)
 			}
 
+			const tlStateLayers: Timeline.TimelineState<any>['layers'] = tlState.layers // This is a cast, but only for the `content`
+
 			const layersPerDevice = this.filterLayersPerDevice(
-				tlState.layers,
+				tlStateLayers,
 				Array.from(this.devices.values()).filter((d) => d.initialized === true)
 			)
 
 			// Push state to the right device:
-			await this._mapAllDevices(false, async (device: DeviceContainer<DeviceOptionsBase<any>>): Promise<void> => {
-				if (this._options.optimizeForProduction) {
-					// Don't send any state to the abstract device, since it doesn't do anything anyway
-					if (device.deviceType === DeviceType.ABSTRACT) return
-				}
+			await this._mapAllDevices(
+				false,
+				async (device: BaseRemoteDeviceIntegration<DeviceOptionsBase<any>>): Promise<void> => {
+					if (this._options.optimizeForProduction) {
+						// Don't send any state to the abstract device, since it doesn't do anything anyway
+						if (device.deviceType === DeviceType.ABSTRACT) return
+					}
 
-				// The subState contains only the parts of the state relevant to that device:
-				const subState: TimelineState = {
-					time: tlState.time,
-					layers: layersPerDevice[device.deviceId] || {},
-					nextEvents: [],
-				}
+					// The subState contains only the parts of the state relevant to that device:
+					const subState: Timeline.TimelineState<TSRTimelineContent> = {
+						time: tlState.time,
+						layers: layersPerDevice[device.deviceId] || {},
+						nextEvents: [],
+					}
 
-				// Pass along the state to the device, it will generate its commands and execute them:
-				try {
-					// await device.device.handleState(removeParentFromState(subState), this._mappings)
-					await this._setDeviceState(device.deviceId, tlState.time, removeParentFromState(subState), this._mappings)
-				} catch (e) {
-					this.emit('error', 'Error in device "' + device.deviceId + '"' + e + ' ' + (e as Error).stack)
+					// Pass along the state to the device, it will generate its commands and execute them:
+					try {
+						// await device.device.handleState(removeParentFromState(subState), this._mappings)
+						await this._setDeviceState(device.deviceId, tlState.time, removeParentFromState(subState), this._mappings)
+					} catch (e) {
+						this.emit('error', 'Error in device "' + device.deviceId + '"' + e + ' ' + (e as Error).stack)
+					}
 				}
-			})
+			)
 
 			statTimeStateHandled = Date.now()
 
@@ -1076,7 +1115,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 			} else {
 				// there's nothing ahead in the timeline,
 				// Tell the devices that the future is clear:
-				await this._mapAllDevices(true, async (device: DeviceContainer<DeviceOptionsBase<any>>) => {
+				await this._mapAllDevices(true, async (device: BaseRemoteDeviceIntegration<DeviceOptionsBase<any>>) => {
 					try {
 						await device.device.clearFuture(tlState.time)
 					} catch (e) {
@@ -1161,16 +1200,25 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 		}
 		return nextResolveTime
 	}
-
-	private _setDeviceState(deviceId: string, time: number, state: TimelineState, mappings: Mappings) {
+	private async _setDeviceState(
+		deviceId: string,
+		time: number,
+		state: Timeline.TimelineState<TSRTimelineContent>,
+		mappings: Mappings
+	) {
 		if (!this._deviceStates[deviceId]) this._deviceStates[deviceId] = []
 
 		// find all references to the datastore that are in this state
-		const dependencies: string[] = Object.values(state.layers).flatMap(({ content }) =>
-			Object.values(content.$references || {}).map((r: TimelineDatastoreReferences[any]): string => {
-				return r.datastoreKey
-			})
-		)
+		const dependenciesSet = new Set<string>()
+		for (const { content } of Object.values<Timeline.ResolvedTimelineObjectInstance<TSRTimelineContent>>(
+			state.layers
+		)) {
+			const dataStoreContent = content as TimelineDatastoreReferencesContent
+			for (const r of Object.values<TimelineDatastoreReferences[0]>(dataStoreContent.$references || {})) {
+				dependenciesSet.add(r.datastoreKey)
+			}
+		}
+		const dependencies = Array.from(dependenciesSet)
 
 		// store all states between the current state and the new state
 		this._deviceStates[deviceId] = _.compact([
@@ -1203,7 +1251,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 				for (const key of allKeys) {
 					if (this._datastore[key]?.value !== newStore[key]?.value) {
 						// it changed! let's sift through our dependencies to see if we need to do anything
-						Object.entries(this._deviceStates).forEach(([deviceId, states]) => {
+						Object.entries<DeviceState[]>(this._deviceStates).forEach(([deviceId, states]) => {
 							if (states.find((state) => state.dependencies.find((dep) => dep === key))) {
 								affectedDevices.push(deviceId)
 							}
@@ -1215,7 +1263,8 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 
 				for (const deviceId of affectedDevices) {
 					const toBeFilled = _.compact([
-						this._deviceStates[deviceId].reverse().find((s) => s.time <= this.getCurrentTime()), // one state before now
+						// shallow clone so we don't reverse the array in place
+						[...this._deviceStates[deviceId]].reverse().find((s) => s.time <= this.getCurrentTime()), // one state before now
 						...this._deviceStates[deviceId].filter((s) => s.time > this.getCurrentTime()), // all states after now
 					])
 
@@ -1241,8 +1290,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 		}
 		return this._timelineSize
 	}
-
-	private getTimelineSizeInner(timelineObjects: TimelineObject[]): number {
+	private getTimelineSizeInner(timelineObjects: TSRTimelineObj<any>[]): number {
 		let size = 0
 		size += timelineObjects.length
 		for (const obj of timelineObjects) {
@@ -1298,13 +1346,13 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 
 	private _diffStateForCallbacks(activeObjects: TimelineCallbacks, tlTime: number) {
 		// Clear callbacks scheduled after the current tlState
-		for (const [callbackId, o] of Object.entries(this._sentCallbacks)) {
+		for (const [callbackId, o] of Object.entries<TimelineCallback>(this._sentCallbacks)) {
 			if (o.time >= tlTime) {
 				delete this._sentCallbacks[callbackId]
 			}
 		}
 		// Send callbacks for playing objects:
-		for (const [callbackId, cb] of Object.entries(activeObjects)) {
+		for (const [callbackId, cb] of Object.entries<TimelineCallback>(activeObjects)) {
 			if (cb.callBack && cb.startTime) {
 				if (!this._sentCallbacks[callbackId]) {
 					// Object has started playing
@@ -1321,7 +1369,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 			}
 		}
 		// Send callbacks for stopped objects
-		for (const [callbackId, cb] of Object.entries(this._sentCallbacks)) {
+		for (const [callbackId, cb] of Object.entries<TimelineCallback>(this._sentCallbacks)) {
 			if (cb.callBackStopped && !activeObjects[callbackId]) {
 				// Object has stopped playing
 				this._queueCallback(false, {
@@ -1435,7 +1483,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 		}
 
 		// Sort the callbacks:
-		const callbacksArray = Object.values(callbacks).sort((a, b) => {
+		const callbacksArray = callbacks.sort((a, b) => {
 			if (a.type === 'start' && b.type !== 'start') return 1
 			if (a.type !== 'start' && b.type === 'start') return -1
 
@@ -1490,17 +1538,20 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 	/**
 	 * Split the state into substates that are relevant for each device
 	 */
-	private filterLayersPerDevice(layers: TimelineState['layers'], devices: DeviceContainer<DeviceOptionsBase<any>>[]) {
-		const filteredStates: { [deviceId: string]: { [layerId: string]: ResolvedTimelineObjectInstance } } = {}
+	private filterLayersPerDevice(
+		layers: Timeline.TimelineState<TSRTimelineContent>['layers'],
+		devices: BaseRemoteDeviceIntegration<DeviceOptionsBase<any>>[]
+	) {
+		const filteredStates: { [deviceId: string]: { [layerId: string]: ResolvedTimelineObjectInstanceExtended } } = {}
 
 		const deviceIdAndTypes: { [idAndTyoe: string]: string } = {}
 
 		_.each(devices, (device) => {
 			deviceIdAndTypes[device.deviceId + '__' + device.deviceType] = device.deviceId
 		})
-		_.each(layers, (o: ResolvedTimelineObjectInstance, layerId: string) => {
+		_.each(layers, (o, layerId: string) => {
 			const oExt: ResolvedTimelineObjectInstanceExtended = o
-			let mapping: Mapping = this._mappings[o.layer + '']
+			let mapping: Mapping<unknown> = this._mappings[o.layer + '']
 			if (!mapping && oExt.isLookahead && oExt.lookaheadForLayer) {
 				mapping = this._mappings[oExt.lookaheadForLayer]
 			}
@@ -1541,7 +1592,9 @@ export type DeviceOptionsAnyInternal =
 	| DeviceOptionsPharosInternal
 	| DeviceOptionsOBSInternal
 	| DeviceOptionsOSCInternal
+	| DeviceOptionsMultiOSCInternal
 	| DeviceOptionsSisyfosInternal
+	| DeviceOptionsSofieChefInternal
 	| DeviceOptionsQuantelInternal
 	| DeviceOptionsSingularLiveInternal
 	| DeviceOptionsVMixInternal
@@ -1549,8 +1602,11 @@ export type DeviceOptionsAnyInternal =
 	| DeviceOptionsVizMSEInternal
 	| DeviceOptionsTelemetrics
 	| DeviceOptionsTriCasterInternal
+	| DeviceOptionsMultiOSC
 
-function removeParentFromState(o: TimelineState): TimelineState {
+function removeParentFromState(
+	o: Timeline.TimelineState<TSRTimelineContent>
+): Timeline.TimelineState<TSRTimelineContent> {
 	for (const key in o) {
 		if (key === 'parent') {
 			delete o['parent']
@@ -1579,13 +1635,13 @@ async function makeImmediatelyAbortable<T>(
 	const abortPromise = new Promise<void>((resolve, reject) => {
 		resolveAbortPromise = () => {
 			resolve()
-			// @ts-expect-error
+			// @ts-expect-error removeEventListener is missing in @types/node until 16.x
 			abortSignal.removeEventListener('abort', rejectPromise)
 		}
 		const rejectPromise = () => {
 			reject(new AbortError())
 		}
-		// @ts-expect-error
+		// @ts-expect-error addEventListener is missing in @types/node until 16.x
 		abortSignal.addEventListener('abort', rejectPromise, { once: true })
 	})
 	return Promise.race([mainPromise, abortPromise])

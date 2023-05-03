@@ -1,9 +1,17 @@
 import * as _ from 'underscore'
 import { DeviceWithState, CommandWithContext, DeviceStatus, StatusCode } from './../../devices/device'
-import { DeviceType, AbstractOptions, DeviceOptionsAbstract, Mappings } from 'timeline-state-resolver-types'
+import {
+	DeviceType,
+	AbstractOptions,
+	DeviceOptionsAbstract,
+	Mappings,
+	Timeline,
+	TSRTimelineContent,
+} from 'timeline-state-resolver-types'
 
-import { TimelineState, ResolvedTimelineObjectInstance } from 'superfly-timeline'
 import { DoOnTime, SendMode } from '../../devices/doOnTime'
+import { ActionExecutionResult, ActionExecutionResultCode } from 'timeline-state-resolver-types'
+import { t } from '../../lib'
 
 export interface Command {
 	commandName: string
@@ -23,7 +31,7 @@ export type CommandReceiver = (
 	context: CommandContext,
 	timelineObjId: string
 ) => Promise<any>
-type AbstractState = TimelineState
+type AbstractState = Timeline.TimelineState<TSRTimelineContent>
 /*
 	This is a wrapper for an "Abstract" device
 
@@ -51,6 +59,10 @@ export class AbstractDevice extends DeviceWithState<AbstractState, DeviceOptions
 		this.handleDoOnTime(this._doOnTime, 'Abstract')
 	}
 
+	async executeAction(_actionId: string, _payload?: Record<string, any> | undefined): Promise<ActionExecutionResult> {
+		return { result: ActionExecutionResultCode.Ok, response: t('Command received by the abstract device') }
+	}
+
 	/**
 	 * Initiates the connection with CasparCG through the ccg-connection lib.
 	 */
@@ -70,10 +82,10 @@ export class AbstractDevice extends DeviceWithState<AbstractState, DeviceOptions
 	 * Handle a new state, at the point in time specified
 	 * @param newState
 	 */
-	handleState(newState: TimelineState, newMappings: Mappings) {
+	handleState(newState: Timeline.TimelineState<TSRTimelineContent>, newMappings: Mappings) {
 		super.onHandleState(newState, newMappings)
 		const previousStateTime = Math.max(this.getCurrentTime(), newState.time)
-		const oldState: TimelineState = (
+		const oldState: Timeline.TimelineState<TSRTimelineContent> = (
 			this.getStateBefore(previousStateTime) || { state: { time: 0, layers: {}, nextEvents: [] } }
 		).state
 
@@ -89,6 +101,19 @@ export class AbstractDevice extends DeviceWithState<AbstractState, DeviceOptions
 
 		// store the new state, for later use:
 		this.setState(newState, newState.time)
+
+		if (this.deviceOptions.debugState) {
+			const debugState: Record<string, object> = {}
+			for (const layer of Object.keys(newMappings)) {
+				const tlObject = newAbstractState.layers[layer]
+				if (tlObject !== undefined) {
+					debugState[layer] = { id: tlObject.id, classes: tlObject.classes, content: tlObject.content }
+				} else {
+					debugState[layer] = {}
+				}
+			}
+			this.emitDebugState(debugState)
+		}
 	}
 	/**
 	 * Clear any scheduled commands after this time
@@ -114,7 +139,7 @@ export class AbstractDevice extends DeviceWithState<AbstractState, DeviceOptions
 	 * converts the timeline state into something we can use
 	 * @param state
 	 */
-	convertStateToAbstract(state: TimelineState) {
+	convertStateToAbstract(state: Timeline.TimelineState<TSRTimelineContent>) {
 		return state
 	}
 	get deviceType() {
@@ -154,12 +179,12 @@ export class AbstractDevice extends DeviceWithState<AbstractState, DeviceOptions
 	 * @param oldAbstractState
 	 * @param newAbstractState
 	 */
-	private _diffStates(oldAbstractState: TimelineState, newAbstractState: TimelineState) {
+	private _diffStates(oldAbstractState: AbstractState, newAbstractState: AbstractState) {
 		// in this abstract class, let's just cheat:
 
 		const commands: Array<Command> = []
 
-		_.each(newAbstractState.layers, (newLayer: ResolvedTimelineObjectInstance, layerKey) => {
+		_.each(newAbstractState.layers, (newLayer, layerKey) => {
 			const oldLayer = oldAbstractState.layers[layerKey]
 			if (!oldLayer) {
 				// added!
@@ -183,7 +208,7 @@ export class AbstractDevice extends DeviceWithState<AbstractState, DeviceOptions
 			}
 		})
 		// removed
-		_.each(oldAbstractState.layers, (oldLayer: ResolvedTimelineObjectInstance, layerKey) => {
+		_.each(oldAbstractState.layers, (oldLayer, layerKey) => {
 			const newLayer = newAbstractState.layers[layerKey]
 			if (!newLayer) {
 				// removed!

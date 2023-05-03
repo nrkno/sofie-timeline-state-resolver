@@ -5,12 +5,13 @@ import {
 	MediaObject,
 	TimelineContentTypeVizMSE,
 	VIZMSEPlayoutItemContent,
+	VIZMSEPlayoutItemContentExternal,
 	VIZMSEPlayoutItemContentInternal,
 	VIZMSETransitionType,
 } from 'timeline-state-resolver-types'
 import { ExternalElement, InternalElement, MSE, VElement, VRundown } from '@tv2media/v-connection'
 import { ExpectedPlayoutItem } from '../../expectedPlayoutItems'
-import * as request from 'request'
+import got from 'got'
 import { deferAsync } from '../../lib'
 import { VizMSEDevice } from './index'
 import {
@@ -116,8 +117,8 @@ export class VizMSEManager extends EventEmitter {
 	 * Our approach is to create a single rundown on initialization, and then use only that for later control.
 	 */
 	public async initializeRundown(activeRundownPlaylistId: string | undefined): Promise<void> {
-		this._vizMSE.on('connected', () => this._mseConnectionChanged(true))
-		this._vizMSE.on('disconnected', () => this._mseConnectionChanged(false))
+		this._vizMSE.on('connected', () => this.mseConnectionChanged(true))
+		this._vizMSE.on('disconnected', () => this.mseConnectionChanged(false))
 		this._vizMSE.on('warning', (message: string) => this.emit('warning', 'v-connection: ' + message))
 		this._activeRundownPlaylistId = activeRundownPlaylistId
 		this._preloadedRundownPlaylistId = this.onlyPreloadActivePlaylist ? activeRundownPlaylistId : undefined
@@ -131,7 +132,7 @@ export class VizMSEManager extends EventEmitter {
 				// Perform a ping, to ensure we are connected properly
 				await this._vizMSE.ping()
 				this._msePingConnected = true
-				this._mseConnectionChanged(true)
+				this.mseConnectionChanged(true)
 
 				// Setup the rundown used by this device:
 				const rundown = await this._getRundown()
@@ -189,7 +190,7 @@ export class VizMSEManager extends EventEmitter {
 				.then(async (hashesAndItems) => {
 					if (this._rundown && this._hasActiveRundown) {
 						this.emit('debug', 'VIZDEBUG: auto load internal elements...')
-						await this._updateElementsLoadedStatus()
+						await this.updateElementsLoadedStatus()
 
 						const elementHashesToDelete: string[] = []
 						// When a new element is added, we'll trigger a show init:
@@ -228,6 +229,13 @@ export class VizMSEManager extends EventEmitter {
 				.catch((error) => this.emit('error', error))
 		}
 	}
+	public async purgeRundown(clearAll: boolean): Promise<void> {
+		this.emit('debug', `VizMSE: purging rundown (manually)`)
+
+		const rundown = await this._getRundown()
+		const elementsToKeep = clearAll ? undefined : this.getElementsToKeep()
+		await rundown.purgeExternalElements(elementsToKeep || [])
+	}
 	/**
 	 * Activate the rundown.
 	 * This causes the MSE rundown to activate, which must be done before using it.
@@ -243,11 +251,8 @@ export class VizMSEManager extends EventEmitter {
 			// clear any existing elements from the existing rundown
 			try {
 				this.emit('debug', `VizMSE: purging rundown`)
-				const elementsToKeep = this._expectedPlayoutItems
-					.filter((item) => !!item.baseline)
-					.map((playoutItem) => this.getPlayoutItemContent(playoutItem))
-					.filter(isVizMSEPlayoutItemContentExternalInstance)
 
+				const elementsToKeep = this.getElementsToKeep()
 				await rundown.purgeExternalElements(elementsToKeep)
 			} catch (error) {
 				this.emit('error', error)
@@ -326,7 +331,7 @@ export class VizMSEManager extends EventEmitter {
 		})
 	}
 
-	logCommand(cmd: VizMSECommandElementBase, commandName: string) {
+	private logCommand(cmd: VizMSECommandElementBase, commandName: string) {
 		const content = cmd.content
 		if (isVizMSEPlayoutItemContentInternalInstance(content)) {
 			this.emit('debug', `VizMSE: ${commandName} "${content.instanceName}" in show "${content.showId}"`)
@@ -345,7 +350,7 @@ export class VizMSEManager extends EventEmitter {
 
 		if (cmd.transition) {
 			if (cmd.transition.type === VIZMSETransitionType.DELAY) {
-				if (await this._waitWithLayer(cmd.layerId || '__default', cmd.transition.delay)) {
+				if (await this.waitWithLayer(cmd.layerId || '__default', cmd.transition.delay)) {
 					// at this point, the wait aws aborted by someone else. Do nothing then.
 					return
 				}
@@ -366,7 +371,7 @@ export class VizMSEManager extends EventEmitter {
 
 		if (cmd.transition) {
 			if (cmd.transition.type === VIZMSETransitionType.DELAY) {
-				if (await this._waitWithLayer(cmd.layerId || '__default', cmd.transition.delay)) {
+				if (await this.waitWithLayer(cmd.layerId || '__default', cmd.transition.delay)) {
 					// at this point, the wait aws aborted by someone else. Do nothing then.
 					return
 				}
@@ -520,7 +525,9 @@ export class VizMSEManager extends EventEmitter {
 		const expectedPlayoutItems = await this._prepareAndGetExpectedPlayoutItems()
 		if (this.purgeUnknownElements) {
 			this.emit('debug', `Purging shows ${cmd.showIds} `)
-			const elementsToKeep = Object.values(expectedPlayoutItems).filter(isVizMSEPlayoutItemContentInternalInstance)
+			const elementsToKeep = Object.values<VizMSEPlayoutItemContentInstance>(expectedPlayoutItems).filter(
+				isVizMSEPlayoutItemContentInternalInstance
+			)
 			await rundown.purgeInternalElements(cmd.showIds, true, elementsToKeep)
 		}
 		this._triggerCommandSent()
@@ -547,13 +554,13 @@ export class VizMSEManager extends EventEmitter {
 		}
 	}
 
-	public async cleanupAllSofieShows(): Promise<void> {
+	public async cleanupAllShows(): Promise<void> {
 		this._triggerCommandSent()
 		const rundown = await this._getRundown()
 		try {
 			await rundown.cleanupAllSofieShows()
 		} catch (error) {
-			this.emit('error', `Error in cleanupAllSofieShows : ${error instanceof Error ? error.toString() : error}`)
+			this.emit('error', `Error in cleanupAllShows : ${error instanceof Error ? error.toString() : error}`)
 		}
 		this._triggerCommandSent()
 	}
@@ -573,10 +580,11 @@ export class VizMSEManager extends EventEmitter {
 		return `sofieInt_${layer.templateName}_${getHash((layer.templateData ?? []).join(','))}`
 	}
 
-	getPlayoutItemContent(playoutItem: VIZMSEPlayoutItemContent): VizMSEPlayoutItemContentInstance | undefined {
+	private getPlayoutItemContent(playoutItem: VIZMSEPlayoutItemContent): VizMSEPlayoutItemContentInstance | undefined {
 		if (isVIZMSEPlayoutItemContentExternal(playoutItem)) {
 			return playoutItem
 		}
+
 		const showId = this.resolveShowNameToId(playoutItem.showName)
 		if (!showId) {
 			this.emit(
@@ -729,6 +737,7 @@ export class VizMSEManager extends EventEmitter {
 			if ((e as Error).toString().match(/already exist/i)) {
 				// "An internal/external graphics element with name 'xxxxxxxxxxxxxxx' already exists."
 				// If the object already exists, it's not an error, fetch and use the element instead
+
 				const element = await rundown.getElement(content)
 
 				this._cacheElement(content, element)
@@ -784,7 +793,7 @@ export class VizMSEManager extends EventEmitter {
 	/**
 	 * Update the load-statuses of the expectedPlayoutItems -elements from MSE, where needed
 	 */
-	private async _updateElementsLoadedStatus(forceReloadAll?: boolean) {
+	private async updateElementsLoadedStatus(forceReloadAll?: boolean) {
 		const hashesAndItems = await this._prepareAndGetExpectedPlayoutItems()
 		let someUnloaded = false
 		const elementsToLoad = _.compact(
@@ -909,9 +918,10 @@ export class VizMSEManager extends EventEmitter {
 
 			this.emit('debug', '_triggerLoadAllElements starting')
 			// First, update the loading-status of all elements:
-			await this._updateElementsLoadedStatus(true)
+			await this.updateElementsLoadedStatus(true)
 
 			// if (this._initializeRundownOnLoadAll) {
+
 			// Then, load all elements that needs loading:
 			const loadAllElementsThatNeedsLoading = async () => {
 				const showIdsToInitialize = new Set<string>()
@@ -947,7 +957,7 @@ export class VizMSEManager extends EventEmitter {
 			await this._wait(2000)
 			if (loadTwice) {
 				// He's checking it twice:
-				await this._updateElementsLoadedStatus()
+				await this.updateElementsLoadedStatus()
 				// Gonna find out what's loaded and nice:
 				await loadAllElementsThatNeedsLoading()
 			}
@@ -998,14 +1008,14 @@ export class VizMSEManager extends EventEmitter {
 					// ok!
 					if (!this._msePingConnected) {
 						this._msePingConnected = true
-						this._onConnectionChanged()
+						this.onConnectionChanged()
 					}
 				})
 				.catch(() => {
 					// not ok!
 					if (this._msePingConnected) {
 						this._msePingConnected = false
-						this._onConnectionChanged()
+						this.onConnectionChanged()
 					}
 				})
 				.then(async () => {
@@ -1032,19 +1042,25 @@ export class VizMSEManager extends EventEmitter {
 		})
 		if (!_.isEqual(enginesDisconnected, this.enginesDisconnected)) {
 			this.enginesDisconnected = enginesDisconnected
-			this._onConnectionChanged()
+			this.onConnectionChanged()
 		}
 	}
 	private async _pingEngine(engine: Engine): Promise<EngineStatus> {
 		return new Promise((resolve) => {
 			const url = `http://${engine.host}:${this.engineRestPort}/#/status`
-			request.get(url, { timeout: 2000 }, (error, response: request.Response | undefined) => {
-				const alive = !error && response !== undefined && response?.statusCode < 400
-				if (!alive) {
-					this.emit('debug', `VizMSE: _pingEngine at "${url}", error ${error}, code ${response?.statusCode}`)
-				}
-				resolve({ ...engine, alive })
-			})
+			got
+				.get(url, { timeout: 2000 })
+				.then((response) => {
+					const alive = response !== undefined && response?.statusCode < 400
+					if (!alive) {
+						this.emit('debug', `VizMSE: _pingEngine at "${url}", code ${response?.statusCode}`)
+					}
+					resolve({ ...engine, alive })
+				})
+				.catch((error) => {
+					this.emit('debug', `VizMSE: _pingEngine at "${url}", error ${error}`)
+					resolve({ ...engine, alive: false })
+				})
 		})
 	}
 	/** Monitor loading status of expected elements */
@@ -1056,7 +1072,7 @@ export class VizMSEManager extends EventEmitter {
 				this.preloadAllElements &&
 				this._timeSinceLastCommandSent() > SAFE_PRELOAD_TIME
 			) {
-				await this._updateElementsLoadedStatus(false)
+				await this.updateElementsLoadedStatus(false)
 
 				let notLoaded = 0
 				let loading = 0
@@ -1185,6 +1201,7 @@ export class VizMSEManager extends EventEmitter {
 				// 		rundown.playlist === this._playlistID
 				// 	)
 				// })
+
 				this.emit('debug', `Creating new rundown ${[this._profile, this._playlistID]}`)
 
 				const rundown = await this._vizMSE.createRundown(this._profile, this._playlistID)
@@ -1208,7 +1225,7 @@ export class VizMSEManager extends EventEmitter {
 			return this._rundown
 		}
 	}
-	private _mseConnectionChanged(connected: boolean) {
+	private mseConnectionChanged(connected: boolean) {
 		if (connected !== this._mseConnected) {
 			if (connected) {
 				// not the first connection
@@ -1217,10 +1234,10 @@ export class VizMSEManager extends EventEmitter {
 				}
 			}
 			this._mseConnected = connected
-			this._onConnectionChanged()
+			this.onConnectionChanged()
 		}
 	}
-	private _onConnectionChanged() {
+	private onConnectionChanged() {
 		this.emit('connectionChanged', this._mseConnected && this._msePingConnected)
 	}
 
@@ -1234,7 +1251,7 @@ export class VizMSEManager extends EventEmitter {
 	/**
 	 * Returns true if the wait was cleared from someone else
 	 */
-	private async _waitWithLayer(layerId: string, delay: number): Promise<boolean> {
+	private async waitWithLayer(layerId: string, delay: number): Promise<boolean> {
 		return new Promise((resolve) => {
 			if (!this._waitWithLayers[layerId]) this._waitWithLayers[layerId] = []
 			this._waitWithLayers[layerId].push(resolve)
@@ -1242,5 +1259,11 @@ export class VizMSEManager extends EventEmitter {
 				resolve(false)
 			}, delay || 0)
 		})
+	}
+	private getElementsToKeep(): VIZMSEPlayoutItemContentExternal[] {
+		return this._expectedPlayoutItems
+			.filter((item) => !!item.baseline)
+			.map((playoutItem) => this.getPlayoutItemContent(playoutItem))
+			.filter(isVizMSEPlayoutItemContentExternalInstance)
 	}
 }

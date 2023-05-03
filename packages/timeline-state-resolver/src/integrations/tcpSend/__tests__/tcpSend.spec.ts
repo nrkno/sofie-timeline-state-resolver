@@ -1,4 +1,4 @@
-import { Mappings, DeviceType, MappingTCPSend } from 'timeline-state-resolver-types'
+import { Mappings, DeviceType, Mapping, SomeMappingTcpSend } from 'timeline-state-resolver-types'
 import { Conductor } from '../../../conductor'
 import { Socket as MockSocket } from 'net'
 import { StatusCode } from '../../../devices/device'
@@ -18,9 +18,6 @@ async function waitALittleBit() {
 // let nowActual = Date.now()
 describe('TCP-Send', () => {
 	const mockTime = new MockTime()
-	beforeAll(() => {
-		mockTime.mockDateNow()
-	})
 	beforeEach(() => {
 		mockTime.init()
 	})
@@ -47,9 +44,10 @@ describe('TCP-Send', () => {
 			socket.onClose = onSocketClose
 		})
 
-		const myLayerMapping0: MappingTCPSend = {
+		const myLayerMapping0: Mapping<SomeMappingTcpSend> = {
 			device: DeviceType.TCPSEND,
 			deviceId: 'myTCP',
+			options: {},
 		}
 		const myLayerMapping: Mappings = {
 			myLayer0: myLayerMapping0,

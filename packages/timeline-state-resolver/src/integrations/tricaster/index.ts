@@ -2,13 +2,15 @@ import * as _ from 'underscore'
 import { DeviceWithState, DeviceStatus, StatusCode } from './../../devices/device'
 import { DoOnTime, SendMode } from '../../devices/doOnTime'
 
-import { TimelineState } from 'superfly-timeline'
 import {
 	DeviceType,
 	Mappings,
 	TriCasterOptions,
 	DeviceOptionsTriCaster,
-	MappingTriCaster,
+	SomeMappingTricaster,
+	Timeline,
+	TSRTimelineContent,
+	Mapping,
 } from 'timeline-state-resolver-types'
 import { WithContext, MappingsTriCaster, TriCasterState, TriCasterStateDiffer } from './triCasterStateDiffer'
 import { TriCasterCommandWithContext } from './triCasterCommands'
@@ -90,7 +92,7 @@ export class TriCasterDevice extends DeviceWithState<WithContext<TriCasterState>
 		this.cleanUpStates(0, newStateTime)
 	}
 
-	handleState(newState: TimelineState, newMappings: Mappings): void {
+	handleState(newState: Timeline.TimelineState<TSRTimelineContent>, newMappings: Mappings): void {
 		const triCasterMappings: MappingsTriCaster = this.filterTriCasterMappings(newMappings)
 		super.onHandleState(newState, newMappings)
 		if (!this._initialized || !this._stateDiffer) {
@@ -121,12 +123,15 @@ export class TriCasterDevice extends DeviceWithState<WithContext<TriCasterState>
 	}
 
 	private filterTriCasterMappings(newMappings: Mappings): MappingsTriCaster {
-		return Object.entries(newMappings).reduce<MappingsTriCaster>((accumulator, [layerName, mapping]) => {
-			if (mapping.device === DeviceType.TRICASTER && mapping.deviceId === this.deviceId) {
-				accumulator[layerName] = mapping as MappingTriCaster
-			}
-			return accumulator
-		}, {})
+		return Object.entries<Mapping<unknown>>(newMappings).reduce<MappingsTriCaster>(
+			(accumulator, [layerName, mapping]) => {
+				if (mapping.device === DeviceType.TRICASTER && mapping.deviceId === this.deviceId) {
+					accumulator[layerName] = mapping as Mapping<SomeMappingTricaster>
+				}
+				return accumulator
+			},
+			{}
+		)
 	}
 
 	clearFuture(clearAfterTime: number): void {

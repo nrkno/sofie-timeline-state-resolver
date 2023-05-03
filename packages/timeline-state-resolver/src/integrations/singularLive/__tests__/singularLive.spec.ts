@@ -1,10 +1,12 @@
 import { Conductor } from '../../../conductor'
 import { SingularLiveDevice } from '..'
 import {
-	MappingSingularLive,
+	SomeMappingSingularLive,
+	Mapping,
 	Mappings,
 	DeviceType,
 	TimelineContentTypeSingularLive,
+	MappingSingularLiveType,
 } from 'timeline-state-resolver-types'
 import { MockTime } from '../../../__tests__/mockTime'
 import { ThreadedClass } from 'threadedclass'
@@ -13,9 +15,6 @@ import { getMockCall } from '../../../__tests__/lib'
 // let nowActual = Date.now()
 describe('Singular.Live', () => {
 	const mockTime = new MockTime()
-	beforeAll(() => {
-		mockTime.mockDateNow()
-	})
 	beforeEach(() => {
 		mockTime.init()
 	})
@@ -24,10 +23,13 @@ describe('Singular.Live', () => {
 		const commandReceiver0: any = jest.fn(async () => {
 			return Promise.resolve()
 		})
-		const myLayerMapping0: MappingSingularLive = {
+		const myLayerMapping0: Mapping<SomeMappingSingularLive> = {
 			device: DeviceType.SINGULAR_LIVE,
 			deviceId: 'mySingular',
-			compositionName: 'Lower Third',
+			options: {
+				mappingType: MappingSingularLiveType.Composition,
+				compositionName: 'Lower Third',
+			},
 		}
 		const myLayerMapping: Mappings = {
 			myLayer0: myLayerMapping0,
@@ -66,6 +68,7 @@ describe('Singular.Live', () => {
 					deviceType: DeviceType.SINGULAR_LIVE,
 					type: TimelineContentTypeSingularLive.COMPOSITION,
 					controlNode: {
+						state: 'In',
 						payload: {
 							Name: 'Thomas',
 							Title: 'Foreperson',
@@ -78,16 +81,15 @@ describe('Singular.Live', () => {
 		expect(commandReceiver0).toHaveBeenCalledTimes(0)
 		await mockTime.advanceTimeToTicks(11100)
 
-		expect(commandReceiver0).toHaveBeenCalledTimes(2)
-		expect(commandReceiver0).toBeCalledWith(
+		expect(commandReceiver0).toHaveBeenCalledTimes(1)
+		expect(commandReceiver0).toHaveBeenCalledWith(
 			expect.anything(),
 			expect.objectContaining({
-				compositionName: 'Lower Third',
-				controlNode: {
-					payload: {
-						Name: 'Thomas',
-						Title: 'Foreperson',
-					},
+				subCompositionName: 'Lower Third',
+				state: 'In',
+				payload: {
+					Name: 'Thomas',
+					Title: 'Foreperson',
 				},
 			}),
 			expect.anything(),
@@ -95,6 +97,6 @@ describe('Singular.Live', () => {
 		)
 		expect(getMockCall(commandReceiver0, 0, 2)).toMatch(/added/) // context
 		await mockTime.advanceTimeToTicks(16000)
-		expect(commandReceiver0).toHaveBeenCalledTimes(3)
+		expect(commandReceiver0).toHaveBeenCalledTimes(2)
 	})
 })

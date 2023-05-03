@@ -1,6 +1,6 @@
 import * as _ from 'underscore'
 import { EventEmitter } from 'events'
-import * as request from 'request'
+import got from 'got'
 import * as querystring from 'querystring'
 import { sprintf } from 'sprintf-js'
 
@@ -60,16 +60,17 @@ export class PanasonicPtzCamera extends EventEmitter {
 		this.emit('debug', 'Command sent', queryUrl)
 
 		qItem.executing = true
-		request.get(queryUrl, {}, (error, response) => {
-			if (error) {
+		got
+			.get(queryUrl)
+			.then((response) => {
+				this._dropFromQueue(qItem)
+				qItem.resolve(response.body)
+			})
+			.catch((error) => {
 				this.emit('error', error)
 				this._dropFromQueue(qItem)
 				qItem.reject(error)
-				return
-			}
-			this._dropFromQueue(qItem)
-			qItem.resolve(response.body)
-		})
+			})
 
 		// find any commands that aren't executing yet and execute one after 130ms
 		if (this._commandQueue.filter((i) => !i.executing).length > 0) {

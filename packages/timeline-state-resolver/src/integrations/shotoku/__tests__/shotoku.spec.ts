@@ -1,7 +1,8 @@
 import {
 	Mappings,
+	Mapping,
 	DeviceType,
-	MappingShotoku,
+	SomeMappingShotoku,
 	TimelineContentTypeShotoku,
 	ShotokuTransitionType,
 } from 'timeline-state-resolver-types'
@@ -23,9 +24,6 @@ async function waitALittleBit() {
 // let nowActual = Date.now()
 describe('Shotoku', () => {
 	const mockTime = new MockTime()
-	beforeAll(() => {
-		mockTime.mockDateNow()
-	})
 	beforeEach(() => {
 		mockTime.init()
 	})
@@ -52,9 +50,10 @@ describe('Shotoku', () => {
 			socket.onClose = onSocketClose
 		})
 
-		const myLayerMapping0: MappingShotoku = {
+		const myLayerMapping0: Mapping<SomeMappingShotoku> = {
 			device: DeviceType.SHOTOKU,
 			deviceId: 'myShotoku',
+			options: {},
 		}
 		const myLayerMapping: Mappings = {
 			myLayer0: myLayerMapping0,
@@ -228,9 +227,10 @@ describe('Shotoku', () => {
 			socket.onClose = onSocketClose
 		})
 
-		const myLayerMapping0: MappingShotoku = {
+		const myLayerMapping0: Mapping<SomeMappingShotoku> = {
 			device: DeviceType.SHOTOKU,
 			deviceId: 'myShotoku',
+			options: {},
 		}
 		const myLayerMapping: Mappings = {
 			myLayer0: myLayerMapping0,

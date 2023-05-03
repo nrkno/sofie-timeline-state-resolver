@@ -7,13 +7,13 @@ import {
 	DeviceOptionsShotoku,
 	ShotokuTransitionType,
 	Mappings,
-	TimelineObjShotoku,
 	TimelineContentTypeShotoku,
-	TimelineObjShotokuSequence,
+	TimelineContentShotokuSequence,
+	Timeline,
+	TSRTimelineContent,
 } from 'timeline-state-resolver-types'
 import { DoOnTime, SendMode } from '../../devices/doOnTime'
 
-import { TimelineState } from 'superfly-timeline'
 import { ShotokuAPI, ShotokuCommand, ShotokuCommandType } from './connection'
 import { startTrace, endTrace } from '../../lib'
 
@@ -34,13 +34,12 @@ interface Command {
 type CommandContext = string
 type ShotokuDeviceState = {
 	shots: Record<string, ShotokuCommandContent & { fromTlObject: string }>
-	sequences: Record<
-		string,
-		{
-			fromTlObject: string
-			shots: TimelineObjShotokuSequence['content']['shots']
-		}
-	>
+	sequences: Record<string, ShotokuSequence>
+}
+
+interface ShotokuSequence {
+	fromTlObject: string
+	shots: TimelineContentShotokuSequence['shots']
 }
 interface ShotokuDeviceStateContent extends ShotokuCommandContent {
 	fromTlObject: string
@@ -91,7 +90,7 @@ export class ShotokuDevice extends DeviceWithState<ShotokuDeviceState, DeviceOpt
 	 * in time.
 	 * @param newState
 	 */
-	handleState(newState: TimelineState, newMappings: Mappings) {
+	handleState(newState: Timeline.TimelineState<TSRTimelineContent>, newMappings: Mappings) {
 		super.onHandleState(newState, newMappings)
 		// Transform timeline states into device states
 		const previousStateTime = Math.max(this.getCurrentTime(), newState.time)
@@ -149,28 +148,30 @@ export class ShotokuDevice extends DeviceWithState<ShotokuDeviceState, DeviceOpt
 	 * a timeline state.
 	 * @param state
 	 */
-	convertStateToShotokuShots(state: TimelineState) {
+	convertStateToShotokuShots(state: Timeline.TimelineState<TSRTimelineContent>) {
 		const deviceState: ShotokuDeviceState = {
 			shots: {},
 			sequences: {},
 		}
 
 		_.each(state.layers, (layer) => {
-			const content = layer.content as TimelineObjShotoku['content']
+			const content = layer.content
 
-			if (content.type === TimelineContentTypeShotoku.SHOT) {
-				const show = content.show || 1
+			if (content.deviceType === DeviceType.SHOTOKU) {
+				if (content.type === TimelineContentTypeShotoku.SHOT) {
+					const show = content.show || 1
 
-				if (!content.shot) return
+					if (!content.shot) return
 
-				deviceState.shots[show + '.' + content.shot] = {
-					...content,
-					fromTlObject: layer.id,
-				}
-			} else {
-				deviceState.sequences[content.sequenceId] = {
-					shots: content.shots.filter((s) => !!s.shot),
-					fromTlObject: layer.id,
+					deviceState.shots[show + '.' + content.shot] = {
+						...content,
+						fromTlObject: layer.id,
+					}
+				} else {
+					deviceState.sequences[content.sequenceId] = {
+						shots: content.shots.filter((s) => !!s.shot),
+						fromTlObject: layer.id,
+					}
 				}
 			}
 		})
@@ -234,7 +235,7 @@ export class ShotokuDevice extends DeviceWithState<ShotokuDeviceState, DeviceOpt
 			}
 		})
 
-		Object.entries(newState.sequences).forEach(([index, newCommandContent]) => {
+		Object.entries<ShotokuSequence>(newState.sequences).forEach(([index, newCommandContent]) => {
 			const oldLayer = oldState.sequences[index]
 			if (!oldLayer) {
 				// added!

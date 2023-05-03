@@ -10,6 +10,7 @@ import {
 	QuantelOptions,
 	SingularLiveOptions,
 	SisyfosOptions,
+	SofieChefOptions,
 	TCPSendOptions,
 	AbstractOptions,
 	LawoOptions,
@@ -17,10 +18,12 @@ import {
 	HTTPWatcherOptions,
 	VizMSEOptions,
 	VMixOptions,
+	ShotokuOptions,
+	TelemetricsOptions,
 	TriCasterOptions,
+	MultiOSCOptions,
 } from '.'
-import { ShotokuOptions } from './shotoku'
-import { TelemetricsOptions } from './telemetrics'
+import { DeviceCommonOptions } from './generated/common-options'
 
 export enum StatusCode {
 	UNKNOWN = 0, // Status unknown
@@ -36,14 +39,11 @@ export interface DeviceStatus {
 	active: boolean
 }
 
-export interface DeviceOptionsBase<T> extends SlowReportOptions {
+export interface DeviceOptionsBase<T> extends SlowReportOptions, DeviceCommonOptions {
 	type: DeviceType
 	isMultiThreaded?: boolean
 	reportAllCommands?: boolean
-	threadUsage?: number
-	disable?: boolean
 	options?: T
-	debug?: boolean
 }
 
 export interface SlowReportOptions {
@@ -67,6 +67,7 @@ export type DeviceOptionsAny =
 	| DeviceOptionsOSC
 	| DeviceOptionsHTTPWatcher
 	| DeviceOptionsSisyfos
+	| DeviceOptionsSofieChef
 	| DeviceOptionsQuantel
 	| DeviceOptionsSingularLive
 	| DeviceOptionsVMix
@@ -74,6 +75,7 @@ export type DeviceOptionsAny =
 	| DeviceOptionsShotoku
 	| DeviceOptionsTelemetrics
 	| DeviceOptionsTriCaster
+	| DeviceOptionsMultiOSC
 
 export interface DeviceOptionsAbstract extends DeviceOptionsBase<AbstractOptions> {
 	type: DeviceType.ABSTRACT
@@ -114,6 +116,9 @@ export interface DeviceOptionsHTTPWatcher extends DeviceOptionsBase<HTTPWatcherO
 export interface DeviceOptionsSisyfos extends DeviceOptionsBase<SisyfosOptions> {
 	type: DeviceType.SISYFOS
 }
+export interface DeviceOptionsSofieChef extends DeviceOptionsBase<SofieChefOptions> {
+	type: DeviceType.SOFIE_CHEF
+}
 export interface DeviceOptionsQuantel extends DeviceOptionsBase<QuantelOptions> {
 	type: DeviceType.QUANTEL
 }
@@ -134,4 +139,7 @@ export interface DeviceOptionsTelemetrics extends DeviceOptionsBase<TelemetricsO
 }
 export interface DeviceOptionsTriCaster extends DeviceOptionsBase<TriCasterOptions> {
 	type: DeviceType.TRICASTER
+}
+export interface DeviceOptionsMultiOSC extends DeviceOptionsBase<MultiOSCOptions> {
+	type: DeviceType.MULTI_OSC
 }

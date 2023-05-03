@@ -1,0 +1,30 @@
+{
+	"$schema": "../../../$schemas/action-schema.json",
+	"actions": [
+		{
+			"id": "resync",
+			"name": "Resync HTTP device",
+			"destructive": true
+		},
+		{
+			"id": "sendCommand",
+			"name": "Send Command",
+			"destructive": false,
+			"payload": {
+				"type": "object",
+				"properties": {
+					"type": {
+						"type": "string"
+					},
+					"url": { "type": "string" },
+					"params": { "type": "object" },
+					"paramsType": { "type": "string" },
+					"temporalPriority": { "type": "number" },
+					"queueId": { "type": "string" }
+				},
+				"additionalProperties": false,
+				"required": ["type", "url", "params"]
+			}
+		}
+	]
+}

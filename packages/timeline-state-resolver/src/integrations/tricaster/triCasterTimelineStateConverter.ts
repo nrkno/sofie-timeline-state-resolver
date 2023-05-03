@@ -1,37 +1,32 @@
-import { TimelineState } from 'superfly-timeline'
 import {
-	MappingTriCaster,
-	MappingTriCasterType,
-	TSRTimelineObjBase,
-	isTimelineObjTriCasterAudioChannel,
-	isTimelineObjTriCasterDSK,
-	isTimelineObjTriCasterME,
-	isTimelineObjTriCasterMixOutput,
-	MappingTriCasterMixEffect,
-	MappingTriCasterDownStreamKeyer,
-	MappingTriCasterAudioChannel,
-	MappingTriCasterMixOutput,
+	SomeMappingTricaster,
+	MappingTricasterType,
+	MappingTricasterME,
+	MappingTricasterDSK,
+	MappingTricasterAUDIOCHANNEL,
+	MappingTricasterMIXOUTPUT,
+	MappingTricasterMATRIXOUTPUT,
+	MappingTricasterINPUT,
 	TriCasterAudioChannelName,
 	TriCasterMixEffectName,
 	TriCasterMixOutputName,
-	MappingTriCasterInput,
-	isTimelineObjTriCasterInput,
 	TriCasterInputName,
-	isTimelineObjTriCasterMatrixOutput,
+	Timeline,
+	TSRTimelineContent,
 	TriCasterMatrixOutputName,
-	MappingTriCasterMatrixOutput,
-	TimelineObjTriCasterBase,
+	Mapping,
 } from 'timeline-state-resolver-types'
 import * as _ from 'underscore'
+import { isStateEntry, MappingsTriCaster, TriCasterState, WithContext } from './triCasterStateDiffer'
 import {
-	WithContext,
-	isStateEntry,
-	MappingsTriCaster,
-	TriCasterAudioChannelState,
-	TriCasterInputState,
-	TriCasterMixEffectState,
-	TriCasterState,
-} from './triCasterStateDiffer'
+	isTimelineObjTriCaster,
+	isTimelineObjTriCasterAudioChannel,
+	isTimelineObjTriCasterDSK,
+	isTimelineObjTriCasterInput,
+	isTimelineObjTriCasterMatrixOutput,
+	isTimelineObjTriCasterME,
+	isTimelineObjTriCasterMixOutput,
+} from './types'
 
 type DeepPartial<T> = { [P in keyof T]?: T[P] extends object ? DeepPartial<T[P]> : T[P] }
 
@@ -60,35 +55,35 @@ export class TriCasterTimelineStateConverter {
 	}
 
 	getTriCasterStateFromTimelineState(
-		timelineState: TimelineState,
+		timelineState: Timeline.TimelineState<TSRTimelineContent>,
 		newMappings: MappingsTriCaster
 	): WithContext<TriCasterState> {
 		const resultState = this.getDefaultState(newMappings)
 		const sortedLayers = this.sortLayers(timelineState)
 
-		for (const { tlObject, layerName } of Object.values(sortedLayers)) {
-			const mapping: MappingTriCaster | undefined = newMappings[layerName]
+		for (const { tlObject, layerName } of sortedLayers) {
+			const mapping: Mapping<SomeMappingTricaster> | undefined = newMappings[layerName]
 			if (!mapping) {
 				continue
 			}
-			switch (mapping.mappingType) {
-				case MappingTriCasterType.ME:
-					this.applyMixEffectState(resultState, tlObject, mapping)
+			switch (mapping.options.mappingType) {
+				case MappingTricasterType.ME:
+					this.applyMixEffectState(resultState, tlObject, mapping.options)
 					break
-				case MappingTriCasterType.DSK:
-					this.applyDskState(resultState, tlObject, mapping)
+				case MappingTricasterType.DSK:
+					this.applyDskState(resultState, tlObject, mapping.options)
 					break
-				case MappingTriCasterType.INPUT:
-					this.applyInputState(resultState, tlObject, mapping)
+				case MappingTricasterType.INPUT:
+					this.applyInputState(resultState, tlObject, mapping.options)
 					break
-				case MappingTriCasterType.AUDIO_CHANNEL:
-					this.applyAudioChannelState(resultState, tlObject, mapping)
+				case MappingTricasterType.AUDIOCHANNEL:
+					this.applyAudioChannelState(resultState, tlObject, mapping.options)
 					break
-				case MappingTriCasterType.MIX_OUTPUT:
-					this.applyMixOutputState(resultState, tlObject, mapping)
+				case MappingTricasterType.MIXOUTPUT:
+					this.applyMixOutputState(resultState, tlObject, mapping.options)
 					break
-				case MappingTriCasterType.MATRIX_OUTPUT:
-					this.applyMatrixOutputState(resultState, tlObject, mapping)
+				case MappingTricasterType.MATRIXOUTPUT:
+					this.applyMatrixOutputState(resultState, tlObject, mapping.options)
 					break
 			}
 		}
@@ -96,21 +91,21 @@ export class TriCasterTimelineStateConverter {
 		return resultState
 	}
 
-	private sortLayers(state: TimelineState) {
+	private sortLayers(state: Timeline.TimelineState<TSRTimelineContent>) {
 		return _.map(state.layers, (tlObject, layerName) => ({
 			layerName,
-			tlObject: tlObject as unknown as TSRTimelineObjBase,
+			tlObject: tlObject,
 		})).sort((a, b) => a.layerName.localeCompare(b.layerName))
 	}
 
 	private applyMixEffectState(
 		resultState: WithContext<TriCasterState>,
-		tlObject: TSRTimelineObjBase,
-		mapping: MappingTriCasterMixEffect
+		tlObject: Timeline.ResolvedTimelineObjectInstance<TSRTimelineContent>,
+		mapping: MappingTricasterME
 	) {
 		const mixEffects = resultState.mixEffects
-		if (!isTimelineObjTriCasterME(tlObject) || !this.meNames.has(mapping.name)) return
-		this.deepApplyToExtendedState<TriCasterMixEffectState>(mixEffects[mapping.name], tlObject.content.me, tlObject)
+		if (!isTimelineObjTriCasterME(tlObject.content) || !this.meNames.has(mapping.name as TriCasterMixEffectName)) return
+		this.deepApplyToExtendedState(mixEffects[mapping.name], tlObject.content.me, tlObject)
 		const mixEffect = tlObject.content.me
 		if ('layers' in mixEffect && Object.keys(mixEffect.layers ?? []).length) {
 			mixEffects[mapping.name].isInEffectMode = { value: true }
@@ -119,11 +114,11 @@ export class TriCasterTimelineStateConverter {
 
 	private applyDskState(
 		resultState: WithContext<TriCasterState>,
-		tlObject: TSRTimelineObjBase,
-		mapping: MappingTriCasterDownStreamKeyer
+		tlObject: Timeline.ResolvedTimelineObjectInstance<TSRTimelineContent>,
+		mapping: MappingTricasterDSK
 	) {
 		const mainKeyers = resultState.mixEffects['main']
-		if (!isTimelineObjTriCasterDSK(tlObject) || !mainKeyers) {
+		if (!isTimelineObjTriCasterDSK(tlObject.content) || !mainKeyers) {
 			return
 		}
 		this.deepApplyToExtendedState(mainKeyers[mapping.name], tlObject.content.keyer, tlObject)
@@ -131,34 +126,39 @@ export class TriCasterTimelineStateConverter {
 
 	private applyInputState(
 		resultState: WithContext<TriCasterState>,
-		tlObject: TSRTimelineObjBase,
-		mapping: MappingTriCasterInput
+		tlObject: Timeline.ResolvedTimelineObjectInstance<TSRTimelineContent>,
+		mapping: MappingTricasterINPUT
 	) {
 		const inputs = resultState.inputs
-		if (!isTimelineObjTriCasterInput(tlObject) || !this.inputNames.has(mapping.name)) return
-		this.deepApplyToExtendedState<TriCasterInputState>(inputs[mapping.name], tlObject.content.input, tlObject)
+		if (!isTimelineObjTriCasterInput(tlObject.content) || !this.inputNames.has(mapping.name as TriCasterInputName))
+			return
+		this.deepApplyToExtendedState(inputs[mapping.name], tlObject.content.input, tlObject)
 	}
 
 	private applyAudioChannelState(
 		resultState: WithContext<TriCasterState>,
-		tlObject: TSRTimelineObjBase,
-		mapping: MappingTriCasterAudioChannel
+		tlObject: Timeline.ResolvedTimelineObjectInstance<TSRTimelineContent>,
+		mapping: MappingTricasterAUDIOCHANNEL
 	) {
 		const audioChannels = resultState.audioChannels
-		if (!isTimelineObjTriCasterAudioChannel(tlObject) || !this.audioChannelNames.has(mapping.name)) return
-		this.deepApplyToExtendedState<TriCasterAudioChannelState>(
-			audioChannels[mapping.name],
-			tlObject.content.audioChannel,
-			tlObject
+		if (
+			!isTimelineObjTriCasterAudioChannel(tlObject.content) ||
+			!this.audioChannelNames.has(mapping.name as TriCasterAudioChannelName)
 		)
+			return
+		this.deepApplyToExtendedState(audioChannels[mapping.name], tlObject.content.audioChannel, tlObject)
 	}
 
 	private applyMixOutputState(
 		resultState: WithContext<TriCasterState>,
-		tlObject: TSRTimelineObjBase,
-		mapping: MappingTriCasterMixOutput
+		tlObject: Timeline.ResolvedTimelineObjectInstance<TSRTimelineContent>,
+		mapping: MappingTricasterMIXOUTPUT
 	) {
-		if (!isTimelineObjTriCasterMixOutput(tlObject) || !this.mixOutputNames.has(mapping.name)) return
+		if (
+			!isTimelineObjTriCasterMixOutput(tlObject.content) ||
+			!this.mixOutputNames.has(mapping.name as TriCasterMixOutputName)
+		)
+			return
 		resultState.mixOutputs[mapping.name] = {
 			source: {
 				value: tlObject.content.source,
@@ -178,10 +178,15 @@ export class TriCasterTimelineStateConverter {
 
 	private applyMatrixOutputState(
 		resultState: WithContext<TriCasterState>,
-		tlObject: TSRTimelineObjBase,
-		mapping: MappingTriCasterMatrixOutput
+		tlObject: Timeline.ResolvedTimelineObjectInstance<TSRTimelineContent>,
+		mapping: MappingTricasterMATRIXOUTPUT
 	) {
-		if (!isTimelineObjTriCasterMatrixOutput(tlObject) || !this.matrixOutputNames.has(mapping.name)) return
+		if (
+			!isTimelineObjTriCasterMatrixOutput(tlObject.content) ||
+			!this.matrixOutputNames.has(mapping.name as TriCasterMatrixOutputName)
+		)
+			return
+
 		resultState.matrixOutputs[mapping.name] = {
 			source: {
 				value: tlObject.content.source,
@@ -197,8 +202,10 @@ export class TriCasterTimelineStateConverter {
 	private deepApplyToExtendedState<T>(
 		target: WithContext<T>,
 		source: DeepPartial<T>,
-		timelineObject: TimelineObjTriCasterBase
+		timelineObject: Timeline.ResolvedTimelineObjectInstance<TSRTimelineContent>
 	): void {
+		if (!isTimelineObjTriCaster(timelineObject.content)) return
+
 		let key: keyof T
 		for (key in source) {
 			const sourceValue = source[key]

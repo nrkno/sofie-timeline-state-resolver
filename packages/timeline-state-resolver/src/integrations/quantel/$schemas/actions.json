@@ -1,0 +1,15 @@
+{
+	"$schema": "../../../$schemas/action-schema.json",
+	"actions": [
+		{
+			"id": "restartGateway",
+			"name": "Restart gateway",
+			"destructive": true
+		},
+		{
+			"id": "clearStates",
+			"name": "Clear states",
+			"destructive": true
+		}
+	]
+}

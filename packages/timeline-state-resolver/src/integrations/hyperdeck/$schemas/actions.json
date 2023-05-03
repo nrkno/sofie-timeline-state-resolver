@@ -1,0 +1,16 @@
+{
+	"$schema": "../../../$schemas/action-schema.json",
+	"actions": [
+		{
+			"id": "formatDisks",
+			"name": "Format disks",
+			"destructive": true,
+			"timeout": 30000
+		},
+		{
+			"id": "resync",
+			"name": "Resync hyperdeck",
+			"destructive": false
+		}
+	]
+}

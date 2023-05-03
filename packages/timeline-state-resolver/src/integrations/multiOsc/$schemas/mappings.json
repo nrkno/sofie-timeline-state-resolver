@@ -1,0 +1,17 @@
+{
+	"$schema": "../../../$schemas/mapping-schema.json",
+	"mappings": {
+		"layer": {
+			"type": "object",
+			"properties": {
+				"connectionId": {
+					"type": "string",
+					"ui:title": "Connection ID",
+					"ui:summaryTitle": "Connection ID"
+				}
+			},
+			"required": ["connectionId"],
+			"additionalProperties": false
+		}
+	}
+}

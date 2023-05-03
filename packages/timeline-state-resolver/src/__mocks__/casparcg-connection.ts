@@ -1,23 +1,19 @@
 // mock CasparCG
-import {
-	AMCP as orgAMCP,
-	AMCPUtil as orgAMCPUtil,
-	Command as orgCommand,
-	CasparCGSocketStatusEvent as orgCasparCGSocketStatusEvent,
-} from 'casparcg-connection'
+import { Commands as orgCommands, AMCPCommand as orgAMCPCommand, SendResult } from 'casparcg-connection'
+import { ResponseTypes } from 'casparcg-connection/dist/connection'
 import { EventEmitter } from 'events'
 
 const mockDo = jest.fn()
 
-const instances: Array<CasparCG> = []
+const instances: Array<BasicCasparCGAPI> = []
 
-export const AMCP = orgAMCP
-export const AMCPUtil = orgAMCPUtil
-export const Command = orgCommand
-export const CasparCGSocketStatusEvent = orgCasparCGSocketStatusEvent
+export const Commands = orgCommands
+export type AMCPCommand = orgAMCPCommand
 
-export class CasparCG extends EventEmitter {
+export class BasicCasparCGAPI extends EventEmitter {
 	onConnected: () => void
+
+	connected = false
 
 	constructor() {
 		super()
@@ -25,59 +21,65 @@ export class CasparCG extends EventEmitter {
 		setTimeout(() => {
 			// simulate that we're connected
 			if (this.onConnected) this.onConnected()
-			this.emit(CasparCGSocketStatusEvent.CONNECTED, true)
+			this.emit('connect')
+			this.connected = true
 		}, 10)
 
 		instances.push(this)
 	}
 
-	async do(...args: unknown[]) {
-		mockDo.apply(this, args)
-		const cmd = args[0]
-		return Promise.resolve(cmd)
-	}
+	async executeCommand(command: AMCPCommand): Promise<SendResult> {
+		mockDo.apply(this, command)
 
-	async info() {
-		const cmd = new AMCP.InfoCommand()
-		cmd.response = new Command.AMCPResponse()
-		cmd.response.code = 200
-		cmd.response.raw = '200 INFO OK\n1 PAL PLAYING\n2 PAL PLAYING\n3 PAL PLAYING'
-		cmd.response.data = [
-			{
-				channel: 1,
-				format: 'pal',
-				channelRate: 50,
-				frameRate: 25,
-				interlaced: true,
-			},
-			{
-				channel: 2,
-				format: 'pal',
-				channelRate: 50,
-				frameRate: 25,
-				interlaced: true,
-			},
-			{
-				channel: 3,
-				format: 'pal',
-				channelRate: 50,
-				frameRate: 25,
-				interlaced: true,
-			},
-		]
-		return Promise.resolve(cmd)
-	}
-	async clear(channel) {
-		return this.do(new AMCP.ClearCommand({ channel }))
-	}
+		if (command.command === Commands.Info) {
+			return Promise.resolve({
+				error: undefined,
+				request: Promise.resolve({
+					reqId: 'mockedReq',
+					command: command.command,
+					responseCode: 200, // note: we may need to mock some actual responses
+					data: [
+						{
+							channel: 1,
+							format: 'pal',
+							channelRate: 50,
+							frameRate: 25,
+							interlaced: true,
+						},
+						{
+							channel: 2,
+							format: 'pal',
+							channelRate: 50,
+							frameRate: 25,
+							interlaced: true,
+						},
+						{
+							channel: 3,
+							format: 'pal',
+							channelRate: 50,
+							frameRate: 25,
+							interlaced: true,
+						},
+					],
 
-	async time(channel: number) {
-		const cmd = new AMCP.TimeCommand({ channel })
-		cmd.response = new Command.AMCPResponse()
-		cmd.response.code = 201
-		cmd.response.raw = '201 INFO OK\n00:00:00:00'
-		cmd.response.data = '00:00:00:00'
-		return Promise.resolve(cmd)
+					type: ResponseTypes.OK,
+					message: 'The command has been executed.',
+				}),
+			})
+		}
+
+		return Promise.resolve({
+			error: undefined,
+			request: Promise.resolve({
+				reqId: 'mockedReq',
+				command: command.command,
+				responseCode: 202, // note: we may need to mock some actual responses
+				data: [],
+
+				type: ResponseTypes.OK,
+				message: 'The command has been executed.',
+			}),
+		})
 	}
 
 	static get mockDo() {

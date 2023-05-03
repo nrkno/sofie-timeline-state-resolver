@@ -7,9 +7,14 @@ import {
 	TcpSendCommandContent,
 	DeviceOptionsTCPSend,
 	Mappings,
+	TSRTimelineContent,
+	Timeline,
+	ActionExecutionResult,
+	ActionExecutionResultCode,
+	TcpSendActions,
 } from 'timeline-state-resolver-types'
 import { DoOnTime, SendMode } from '../../devices/doOnTime'
-import { TimelineState, ResolvedTimelineObjectInstance } from 'superfly-timeline'
+import { actionNotFoundMessage } from '../../lib'
 
 const TIMEOUT = 3000 // ms
 const RETRY_TIMEOUT = 5000 // ms
@@ -31,7 +36,7 @@ interface TCPSendCommand {
 }
 type CommandContext = string
 
-type TSCSendState = TimelineState
+type TSCSendState = Timeline.TimelineState<TSRTimelineContent>
 
 /**
  * This is a TCPSendDevice, it sends commands over tcp when it feels like it
@@ -85,7 +90,7 @@ export class TCPSendDevice extends DeviceWithState<TSCSendState, DeviceOptionsTC
 		this._doOnTime.clearQueueNowAndAfter(newStateTime)
 		this.cleanUpStates(0, newStateTime)
 	}
-	handleState(newState: TimelineState, newMappings: Mappings) {
+	handleState(newState: Timeline.TimelineState<TSRTimelineContent>, newMappings: Mappings) {
 		super.onHandleState(newState, newMappings)
 		// Handle this new state, at the point in time specified
 
@@ -111,20 +116,69 @@ export class TCPSendDevice extends DeviceWithState<TSCSendState, DeviceOptionsTC
 		this._doOnTime.clearQueueAfter(clearAfterTime)
 	}
 
+	private async reconnect(): Promise<ActionExecutionResult> {
+		await this._disconnectTCPClient()
+		await this._connectTCPClient()
+
+		return {
+			result: ActionExecutionResultCode.Ok,
+		}
+	}
+
+	private async resetState(): Promise<ActionExecutionResult> {
+		this.clearStates()
+		this._doOnTime.clearQueueAfter(0)
+
+		return {
+			result: ActionExecutionResultCode.Ok,
+		}
+	}
+
+	private async sendCommand(payload: Record<string, any> | undefined): Promise<ActionExecutionResult> {
+		if (!payload) {
+			return {
+				result: ActionExecutionResultCode.Error,
+			}
+		}
+		if (!payload.message) {
+			return {
+				result: ActionExecutionResultCode.Error,
+			}
+		}
+
+		const time = this.getCurrentTime()
+		await this._commandReceiver(time, payload as TcpSendCommandContent, 'makeReady', '')
+
+		return {
+			result: ActionExecutionResultCode.Ok,
+		}
+	}
+	async executeAction(
+		actionId: TcpSendActions,
+		payload?: Record<string, any> | undefined
+	): Promise<ActionExecutionResult> {
+		switch (actionId) {
+			case TcpSendActions.Reconnect:
+				return this.reconnect()
+			case TcpSendActions.ResetState:
+				return this.resetState()
+			case TcpSendActions.SendTcpCommand:
+				return this.sendCommand(payload)
+			default:
+				return actionNotFoundMessage(actionId)
+		}
+	}
+
 	async makeReady(okToDestroyStuff?: boolean): Promise<void> {
 		if (okToDestroyStuff) {
-			await this._disconnectTCPClient()
-			await this._connectTCPClient()
-
-			const time = this.getCurrentTime()
+			await this.reconnect()
 
 			if (this._makeReadyDoesReset) {
-				this.clearStates()
-				this._doOnTime.clearQueueAfter(0)
+				await this.resetState()
 			}
 
 			for (const cmd of this._makeReadyCommands || []) {
-				await this._commandReceiver(time, cmd, 'makeReady', '')
+				await this.sendCommand(cmd)
 			}
 		}
 	}
@@ -142,7 +196,7 @@ export class TCPSendDevice extends DeviceWithState<TSCSendState, DeviceOptionsTC
 	get connected(): boolean {
 		return this._connected
 	}
-	convertStateToTCPSend(state: TimelineState) {
+	convertStateToTCPSend(state: Timeline.TimelineState<TSRTimelineContent>) {
 		// convert the timeline state into something we can use
 		// (won't even use this.mapping)
 		return state
@@ -198,7 +252,7 @@ export class TCPSendDevice extends DeviceWithState<TSCSendState, DeviceOptionsTC
 			this._doOnTime.queue(
 				time,
 				undefined,
-				(cmd: TCPSendCommand) => {
+				async (cmd: TCPSendCommand) => {
 					if (cmd.commandName === 'added' || cmd.commandName === 'changed') {
 						return this._commandReceiver(time, cmd.content, cmd.context, cmd.timelineObjId)
 					} else {
@@ -212,11 +266,11 @@ export class TCPSendDevice extends DeviceWithState<TSCSendState, DeviceOptionsTC
 	/**
 	 * Compares the new timeline-state with the old one, and generates commands to account for the difference
 	 */
-	private _diffStates(oldTCPSendState: TimelineState, newTCPSendState: TimelineState): Array<TCPSendCommand> {
+	private _diffStates(oldTCPSendState: TSCSendState, newTCPSendState: TSCSendState): Array<TCPSendCommand> {
 		// in this TCPSend class, let's just cheat:
 		const commands: Array<TCPSendCommand> = []
 
-		_.each(newTCPSendState.layers, (newLayer: ResolvedTimelineObjectInstance, layerKey: string) => {
+		_.each(newTCPSendState.layers, (newLayer, layerKey: string) => {
 			const oldLayer = oldTCPSendState.layers[layerKey]
 			// added/changed
 			if (newLayer.content) {
@@ -243,7 +297,7 @@ export class TCPSendDevice extends DeviceWithState<TSCSendState, DeviceOptionsTC
 			}
 		})
 		// removed
-		_.each(oldTCPSendState.layers, (oldLayer: ResolvedTimelineObjectInstance, layerKey) => {
+		_.each(oldTCPSendState.layers, (oldLayer, layerKey) => {
 			const newLayer = newTCPSendState.layers[layerKey]
 			if (!newLayer) {
 				// removed!

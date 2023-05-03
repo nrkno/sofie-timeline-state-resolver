@@ -1,76 +1,4 @@
-import { Mapping } from './mapping'
-import { TSRTimelineObjBase, DeviceType, TimelineDatastoreReferencesContent } from '.'
-
-export type MappingOBSAny =
-	| MappingOBSCurrentScene
-	| MappingOBSCurrentTransition
-	| MappingOBSStreaming
-	| MappingOBSRecording
-	| MappingOBSSceneItemRender
-	| MappingOBSMute
-	| MappingOBSSourceSettings
-
-export interface MappingOBS extends Mapping {
-	device: DeviceType.OBS
-	mappingType: MappingOBSType
-	deviceId: string
-}
-
-export interface MappingOBSCurrentScene extends MappingOBS {
-	mappingType: MappingOBSType.CurrentScene
-}
-
-export interface MappingOBSCurrentTransition extends MappingOBS {
-	mappingType: MappingOBSType.CurrentTransition
-}
-
-export interface MappingOBSRecording extends MappingOBS {
-	mappingType: MappingOBSType.Recording
-}
-
-export interface MappingOBSStreaming extends MappingOBS {
-	mappingType: MappingOBSType.Streaming
-}
-
-export interface MappingOBSSceneItemRender extends MappingOBS {
-	mappingType: MappingOBSType.SceneItemRender
-
-	/** Name of the scene item to be modified */
-	sceneName: string
-
-	/** Scene item source name */
-	source: string
-}
-
-export interface MappingOBSSourceSettings extends MappingOBS {
-	mappingType: MappingOBSType.SourceSettings
-
-	/** Source name */
-	source: string
-}
-
-export interface MappingOBSMute extends MappingOBS {
-	mappingType: MappingOBSType.Mute
-
-	/** Source name */
-	source: string
-}
-
-export enum MappingOBSType {
-	CurrentTransition = 0,
-	CurrentScene = 1,
-	Recording = 2,
-	Streaming = 3,
-	SceneItemRender = 4,
-	Mute = 5,
-	SourceSettings = 6,
-}
-
-export interface OBSOptions {
-	host: string
-	port: number
-	password?: string
-}
+import { DeviceType } from '.'
 
 export enum OBSRequest {
 	SET_CURRENT_SCENE = 'SetCurrentScene',
@@ -85,14 +13,14 @@ export enum OBSRequest {
 	SET_SOURCE_SETTINGS = 'SetSourceSettings',
 }
 
-export type TimelineObjOBSAny =
-	| TimelineObjOBSCurrentScene
-	| TimelineObjOBSCurrentTransition
-	| TimelineObjOBSRecording
-	| TimelineObjOBSStreaming
-	| TimelineObjOBSSceneItemRender
-	| TimelineObjOBSMute
-	| TimelineObjOBSSourceSettings
+export type TimelineContentOBSAny =
+	| TimelineContentOBSCurrentScene
+	| TimelineContentOBSCurrentTransition
+	| TimelineContentOBSRecording
+	| TimelineContentOBSStreaming
+	| TimelineContentOBSSceneItemRender
+	| TimelineContentOBSMute
+	| TimelineContentOBSSourceSettings
 
 export enum TimelineContentTypeOBS {
 	CURRENT_SCENE = 'CURRENT_SCENE',
@@ -103,71 +31,53 @@ export enum TimelineContentTypeOBS {
 	MUTE = 'MUTE',
 	SOURCE_SETTINGS = 'SOURCE_SETTINGS',
 }
-export interface TimelineObjOBSBase extends TSRTimelineObjBase {
-	content: {
-		deviceType: DeviceType.OBS
-		type: TimelineContentTypeOBS
-	}
+export interface TimelineContentOBSBase {
+	deviceType: DeviceType.OBS
+	type: TimelineContentTypeOBS
 }
 
-export interface TimelineObjOBSCurrentScene extends TimelineObjOBSBase {
-	content: {
-		deviceType: DeviceType.OBS
-		type: TimelineContentTypeOBS.CURRENT_SCENE
+export interface TimelineContentOBSCurrentScene extends TimelineContentOBSBase {
+	type: TimelineContentTypeOBS.CURRENT_SCENE
 
-		/** Name of the scene that should be current */
-		sceneName: string
-	} & TimelineDatastoreReferencesContent
+	/** Name of the scene that should be current */
+	sceneName: string
 }
 
-export interface TimelineObjOBSCurrentTransition extends TimelineObjOBSBase {
-	content: {
-		deviceType: DeviceType.OBS
-		type: TimelineContentTypeOBS.CURRENT_TRANSITION
+export interface TimelineContentOBSCurrentTransition extends TimelineContentOBSBase {
+	type: TimelineContentTypeOBS.CURRENT_TRANSITION
 
-		/** Name of the transition that should be current */
-		transitionName: string
-	} & TimelineDatastoreReferencesContent
+	/** Name of the transition that should be current */
+	transitionName: string
 }
 
-export interface TimelineObjOBSRecording extends TimelineObjOBSBase {
-	content: {
-		deviceType: DeviceType.OBS
-		type: TimelineContentTypeOBS.RECORDING
+export interface TimelineContentOBSRecording extends TimelineContentOBSBase {
+	type: TimelineContentTypeOBS.RECORDING
 
-		/** Should recording be turned on */
-		on: boolean
-	} & TimelineDatastoreReferencesContent
+	/** Should recording be turned on */
+	on: boolean
 }
 
-export interface TimelineObjOBSStreaming extends TimelineObjOBSBase {
-	content: {
-		deviceType: DeviceType.OBS
-		type: TimelineContentTypeOBS.STREAMING
+export interface TimelineContentOBSStreaming extends TimelineContentOBSBase {
+	type: TimelineContentTypeOBS.STREAMING
 
-		/** Should streaming be turned on */
-		on: boolean
-	} & TimelineDatastoreReferencesContent
+	/** Should streaming be turned on */
+	on: boolean
 }
 
-export interface TimelineObjOBSSceneItemRender extends TimelineObjOBSBase {
-	content: {
-		deviceType: DeviceType.OBS
-		type: TimelineContentTypeOBS.SCENE_ITEM_RENDER
+export interface TimelineContentOBSSceneItemRender extends TimelineContentOBSBase {
+	deviceType: DeviceType.OBS
+	type: TimelineContentTypeOBS.SCENE_ITEM_RENDER
 
-		/** Should the scene item be enabled */
-		on: boolean
-	}
+	/** Should the scene item be enabled */
+	on: boolean
 }
 
 type Without<T, U> = { [P in Exclude<keyof T, keyof U>]?: never }
 type XOR<T, U> = T | U extends Record<string, any> ? (Without<T, U> & U) | (Without<U, T> & T) : T | U
 
-export interface TimelineObjOBSSourceSettings extends TimelineObjOBSBase {
-	content: {
-		deviceType: DeviceType.OBS
-		type: TimelineContentTypeOBS.SOURCE_SETTINGS
-	} & XOR<
+export type TimelineContentOBSSourceSettings = TimelineContentOBSBase & {
+	type: TimelineContentTypeOBS.SOURCE_SETTINGS
+} & XOR<
 		{
 			sourceType: 'ffmpeg_source'
 			sourceSettings: {
@@ -183,14 +93,10 @@ export interface TimelineObjOBSSourceSettings extends TimelineObjOBSBase {
 			sourceType: 'dshow_input' | 'browser_source' | 'window_capture' | 'image_source'
 		}
 	>
-}
 
-export interface TimelineObjOBSMute extends TimelineObjOBSBase {
-	content: {
-		deviceType: DeviceType.OBS
-		type: TimelineContentTypeOBS.MUTE
+export interface TimelineContentOBSMute extends TimelineContentOBSBase {
+	type: TimelineContentTypeOBS.MUTE
 
-		/** If the audio should be muted (`true`: audio will not be output, `false`: audio will be output) */
-		mute: boolean
-	}
+	/** If the audio should be muted (`true`: audio will not be output, `false`: audio will be output) */
+	mute: boolean
 }

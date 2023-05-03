@@ -1,14 +1,4 @@
-import { Mapping } from './mapping'
-import { TSRTimelineObjBase, DeviceType, TimelineDatastoreReferencesContent } from '.'
-
-export interface ShotokuOptions {
-	host: string
-	port: number
-}
-
-export interface MappingShotoku extends Mapping {
-	device: DeviceType.SHOTOKU
-}
+import { DeviceType } from '.'
 
 export enum TimelineContentTypeShotoku {
 	SHOT = 'shot',
@@ -26,25 +16,20 @@ export interface ShotokuCommandContent {
 	changeOperatorScreen?: boolean
 }
 
-export interface TimelineObjShotokuShot extends TSRTimelineObjBase {
-	content: {
-		deviceType: DeviceType.SHOTOKU
-		type: TimelineContentTypeShotoku.SHOT
-	} & ShotokuCommandContent &
-		TimelineDatastoreReferencesContent
+export interface TimelineContentShotokuShot extends ShotokuCommandContent {
+	deviceType: DeviceType.SHOTOKU
+	type: TimelineContentTypeShotoku.SHOT
 }
-export interface TimelineObjShotokuSequence extends TSRTimelineObjBase {
-	content: {
-		deviceType: DeviceType.SHOTOKU
-		type: TimelineContentTypeShotoku.SEQUENCE
+export interface TimelineContentShotokuSequence {
+	deviceType: DeviceType.SHOTOKU
+	type: TimelineContentTypeShotoku.SEQUENCE
 
-		sequenceId: string
-		shots: Array<
-			{
-				offset: number
-			} & ShotokuCommandContent
-		>
-	} & TimelineDatastoreReferencesContent
+	sequenceId: string
+	shots: Array<
+		{
+			offset: number
+		} & ShotokuCommandContent
+	>
 }
 
-export type TimelineObjShotoku = TimelineObjShotokuShot | TimelineObjShotokuSequence
+export type TimelineContentShotoku = TimelineContentShotokuShot | TimelineContentShotokuSequence

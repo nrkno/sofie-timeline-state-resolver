@@ -1,6 +1,5 @@
-import { VMix } from '../connection'
 import { setupVmixMock } from './vmixMock'
-import { VMixOptions } from 'timeline-state-resolver-types'
+import { Response, VMix } from '../connection'
 
 const orgSetTimeout = setTimeout
 
@@ -10,48 +9,50 @@ async function wait(time = 1) {
 	})
 }
 describe('vMixAPI', () => {
-	const { vmixServer, onGet, onPost, onPut, onHead, onPatch, onDel, onDelete } = setupVmixMock()
+	const { vmixServer, onConnect, onData, disconnectAll } = setupVmixMock()
 
 	beforeEach(() => {
 		// jest.useFakeTimers()
 		// @ts-ignore
 		// WebSocket.clearMockInstances()
-		onGet.mockClear()
-		onPost.mockClear()
-		onPut.mockClear()
-		onHead.mockClear()
-		onPatch.mockClear()
-		onDel.mockClear()
-		onDelete.mockClear()
+		vmixServer.repliesAreGood = true
+		vmixServer.serverIsUp = true
+		onConnect.mockClear()
+		onData.mockClear()
+		jest.useFakeTimers()
 	})
 	test('Connectivity', async () => {
 		const onError = jest.fn()
 		const onConnected = jest.fn()
 		const onDisconnected = jest.fn()
 		const onStateChanged = jest.fn()
+		const onData = jest.fn((response: Response) => {
+			if (response.command === 'XML' && response.body) {
+				vmix.parseVMixState(response.body)
+			}
+		})
 
-		const vmix = new VMix()
+		const vmix = new VMix('255.255.255.255')
 		vmix.on('error', onError)
 		vmix.on('connected', onConnected)
 		vmix.on('disconnected', onDisconnected)
 		vmix.on('stateChanged', onStateChanged)
+		vmix.on('data', onData)
 
 		expect(vmix.connected).toBeFalsy()
 
-		const options: VMixOptions = {
-			host: '127.0.0.1',
-			port: 9999,
-		}
-		await vmix.connect(options)
+		vmix.connect()
 
-		await wait(100)
+		await wait(10)
 
 		expect(vmix.connected).toBeTruthy()
 
-		expect(onGet).toHaveBeenCalledTimes(1)
-		expect(onGet).toHaveBeenCalledWith('http://127.0.0.1:9999/api', undefined, expect.any(Function))
+		expect(onConnect).toHaveBeenLastCalledWith(8099, '255.255.255.255')
 
-		// console.log(vmix.state)
+		await vmix.requestVMixState()
+
+		await wait(10)
+
 		expect(vmix.state).toEqual({
 			version: '21.0.0.55',
 			edition: 'HD',
@@ -136,12 +137,12 @@ describe('vMixAPI', () => {
 		expect(onDisconnected).toHaveBeenCalledTimes(0)
 		expect(onError).toHaveBeenCalledTimes(0)
 
-		await vmix.dispose()
+		vmix.disconnect()
 
 		expect(vmix.connected).toBeFalsy()
 	})
 	test('Connection status', async () => {
-		const vmix = new VMix()
+		const vmix = new VMix('255.255.255.255')
 		const onError = jest.fn()
 		const onConnected = jest.fn()
 		const onDisconnected = jest.fn()
@@ -150,34 +151,32 @@ describe('vMixAPI', () => {
 		vmix.on('connected', onConnected)
 		vmix.on('disconnected', onDisconnected)
 		vmix.on('stateChanged', onStateChanged)
-		vmix.pingInterval = 2000
-		const options: VMixOptions = {
-			host: '127.0.0.1',
-			port: 9999,
-		}
-		await vmix.connect(options)
+		vmix.connect('255.255.255.255')
 
-		await wait(100)
+		await wait(10)
 
 		expect(vmix.connected).toEqual(true)
 		expect(onConnected).toHaveBeenCalledTimes(1)
 		expect(onDisconnected).toHaveBeenCalledTimes(0)
 		onConnected.mockClear()
 
-		vmixServer.serverIsUp = false
-		await wait(vmix.pingInterval)
+		disconnectAll()
+
+		await wait(10)
 
 		expect(vmix.connected).toBeFalsy()
 		expect(onDisconnected).toHaveBeenCalledTimes(1)
 		expect(onConnected).toHaveBeenCalledTimes(0)
 		onDisconnected.mockClear()
 
-		vmixServer.serverIsUp = true
-		await wait(vmix.pingInterval)
+		// should try to reconnect
+		jest.advanceTimersByTime(6000)
+
+		await wait(10)
 
 		expect(vmix.connected).toBeTruthy()
 		expect(onConnected).toHaveBeenCalledTimes(1)
 		onConnected.mockClear()
-		await vmix.dispose()
+		vmix.disconnect()
 	})
 })

@@ -2,10 +2,11 @@ import { EventEmitter } from 'eventemitter3'
 import { MockTime } from '../../../__tests__/mockTime'
 import {
 	DeviceType,
-	MappingTriCaster,
-	MappingTriCasterType,
+	SomeMappingTricaster,
+	MappingTricasterType,
 	TimelineContentTypeTriCaster,
-	TimelineObjTriCasterME,
+	TimelineContentTriCasterME,
+	Mapping,
 } from 'timeline-state-resolver-types'
 import { TriCasterDevice } from '..'
 import { TriCasterConnectionEvents, TriCasterConnection } from '../triCasterConnection'
@@ -57,13 +58,15 @@ describe('TriCasterDevice', () => {
 			port: 56789,
 		})
 
-		expect(MOCK_SEND).not.toBeCalled()
+		expect(MOCK_SEND).not.toHaveBeenCalled()
 		const mappings = {
-			tc_me0_0: literal<MappingTriCaster>({
+			tc_me0_0: literal<Mapping<SomeMappingTricaster>>({
 				device: DeviceType.TRICASTER,
-				mappingType: MappingTriCasterType.ME,
-				name: 'main',
 				deviceId: 'tc0',
+				options: {
+					mappingType: MappingTricasterType.ME,
+					name: 'main',
+				},
 			}),
 		}
 
@@ -72,7 +75,7 @@ describe('TriCasterDevice', () => {
 
 		// check that initial commands are sent after connection
 		// the number of them is not that relevant, but they have to only affect the mapped resource
-		expect(MOCK_SEND).toBeCalled()
+		expect(MOCK_SEND).toHaveBeenCalled()
 		expect(MOCK_SEND.mock.calls.filter((call) => (call as any)[0].target.startsWith('main')).length).toEqual(
 			MOCK_SEND.mock.calls.length
 		)
@@ -82,7 +85,7 @@ describe('TriCasterDevice', () => {
 			{
 				time: 12000,
 				layers: {
-					tc_me0_0: wrapIntoResolvedInstance<TimelineObjTriCasterME>({
+					tc_me0_0: wrapIntoResolvedInstance<TimelineContentTriCasterME>({
 						layer: 'tc_me0_0',
 						enable: { while: '1' },
 						id: 't0',

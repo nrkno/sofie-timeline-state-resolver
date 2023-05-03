@@ -1,12 +1,13 @@
 import {
 	DeviceType,
-	MappingTriCaster,
-	MappingTriCasterType,
+	MappingTricasterType,
 	TimelineContentTypeTriCaster,
-	TimelineObjTriCasterInput,
-	TimelineObjTriCasterMatrixOutput,
-	TimelineObjTriCasterME,
-	TimelineObjTriCasterMixOutput,
+	TimelineContentTriCasterInput,
+	TimelineContentTriCasterME,
+	TimelineContentTriCasterMixOutput,
+	TimelineContentTriCasterMatrixOutput,
+	Mapping,
+	SomeMappingTricaster,
 } from 'timeline-state-resolver-types'
 import { TriCasterTimelineStateConverter } from '../triCasterTimelineStateConverter'
 import {
@@ -103,7 +104,7 @@ describe('TimelineStateConverter.getTriCasterStateFromTimelineState', () => {
 			{
 				time: Date.now(),
 				layers: {
-					tc_me0_0: wrapIntoResolvedInstance<TimelineObjTriCasterME>({
+					tc_me0_0: wrapIntoResolvedInstance<TimelineContentTriCasterME>({
 						layer: 'tc_me0_0',
 						enable: { while: '1' },
 						id: 't0',
@@ -113,8 +114,8 @@ describe('TimelineStateConverter.getTriCasterStateFromTimelineState', () => {
 							me: { programInput: 'input2', previewInput: 'input3', transitionEffect: 5, transitionDuration: 20 },
 						},
 					}),
-					tc_me1_0: wrapIntoResolvedInstance<TimelineObjTriCasterME>({
-						layer: 'tc_me1_0',
+					tc_me0_1: wrapIntoResolvedInstance<TimelineContentTriCasterME>({
+						layer: 'tc_me0_1',
 						enable: { while: '1' },
 						id: 't1',
 						content: {
@@ -149,17 +150,21 @@ describe('TimelineStateConverter.getTriCasterStateFromTimelineState', () => {
 				nextEvents: [],
 			},
 			{
-				tc_me0_0: literal<MappingTriCaster>({
+				tc_me0_0: literal<Mapping<SomeMappingTricaster>>({
 					device: DeviceType.TRICASTER,
-					mappingType: MappingTriCasterType.ME,
-					name: 'main',
 					deviceId: 'tc0',
+					options: {
+						mappingType: MappingTricasterType.ME,
+						name: 'main',
+					},
 				}),
-				tc_me1_0: literal<MappingTriCaster>({
+				tc_me0_1: literal<Mapping<SomeMappingTricaster>>({
 					device: DeviceType.TRICASTER,
-					mappingType: MappingTriCasterType.ME,
-					name: 'v1',
 					deviceId: 'tc0',
+					options: {
+						mappingType: MappingTricasterType.ME,
+						name: 'v1',
+					},
 				}),
 			}
 		)
@@ -205,7 +210,7 @@ describe('TimelineStateConverter.getTriCasterStateFromTimelineState', () => {
 			{
 				time: Date.now(),
 				layers: {
-					tc_out2: wrapIntoResolvedInstance<TimelineObjTriCasterMatrixOutput>({
+					tc_out2: wrapIntoResolvedInstance<TimelineContentTriCasterMatrixOutput>({
 						layer: 'tc_out2',
 						enable: { while: '1' },
 						id: 't0',
@@ -219,11 +224,13 @@ describe('TimelineStateConverter.getTriCasterStateFromTimelineState', () => {
 				nextEvents: [],
 			},
 			{
-				tc_out2: literal<MappingTriCaster>({
+				tc_out2: literal<Mapping<SomeMappingTricaster>>({
 					device: DeviceType.TRICASTER,
-					mappingType: MappingTriCasterType.MATRIX_OUTPUT,
-					name: 'out2',
 					deviceId: 'tc0',
+					options: {
+						mappingType: MappingTricasterType.MATRIXOUTPUT,
+						name: 'out2',
+					},
 				}),
 			}
 		)
@@ -241,7 +248,7 @@ describe('TimelineStateConverter.getTriCasterStateFromTimelineState', () => {
 			{
 				time: Date.now(),
 				layers: {
-					tc_out2: wrapIntoResolvedInstance<TimelineObjTriCasterMixOutput>({
+					tc_out2: wrapIntoResolvedInstance<TimelineContentTriCasterMixOutput>({
 						layer: 'tc_out2',
 						enable: { while: '1' },
 						id: 't0',
@@ -256,11 +263,13 @@ describe('TimelineStateConverter.getTriCasterStateFromTimelineState', () => {
 				nextEvents: [],
 			},
 			{
-				tc_out2: literal<MappingTriCaster>({
+				tc_out2: literal<Mapping<SomeMappingTricaster>>({
 					device: DeviceType.TRICASTER,
-					mappingType: MappingTriCasterType.MIX_OUTPUT,
-					name: 'mix2',
 					deviceId: 'tc0',
+					options: {
+						mappingType: MappingTricasterType.MIXOUTPUT,
+						name: 'mix2',
+					},
 				}),
 			}
 		)
@@ -279,7 +288,7 @@ describe('TimelineStateConverter.getTriCasterStateFromTimelineState', () => {
 			{
 				time: Date.now(),
 				layers: {
-					tc_inp2: wrapIntoResolvedInstance<TimelineObjTriCasterInput>({
+					tc_inp2: wrapIntoResolvedInstance<TimelineContentTriCasterInput>({
 						layer: 'tc_inp2',
 						enable: { while: '1' },
 						id: 't0',
@@ -296,11 +305,13 @@ describe('TimelineStateConverter.getTriCasterStateFromTimelineState', () => {
 				nextEvents: [],
 			},
 			{
-				tc_inp2: literal<MappingTriCaster>({
+				tc_inp2: literal<Mapping<SomeMappingTricaster>>({
 					device: DeviceType.TRICASTER,
-					mappingType: MappingTriCasterType.INPUT,
-					name: 'input2',
 					deviceId: 'tc0',
+					options: {
+						mappingType: MappingTricasterType.INPUT,
+						name: 'input2',
+					},
 				}),
 			}
 		)
@@ -321,7 +332,7 @@ describe('TimelineStateConverter.getTriCasterStateFromTimelineState', () => {
 			{
 				time: Date.now(),
 				layers: {
-					tc_me0_0: wrapIntoResolvedInstance<TimelineObjTriCasterME>({
+					tc_me0_0: wrapIntoResolvedInstance<TimelineContentTriCasterME>({
 						layer: 'tc_me0_0',
 						enable: { while: '1' },
 						id: 't0',
@@ -331,7 +342,7 @@ describe('TimelineStateConverter.getTriCasterStateFromTimelineState', () => {
 							me: { programInput: 'input2', previewInput: 'input3', transitionEffect: 5, transitionDuration: 20 },
 						},
 					}),
-					tc_me0_1: wrapIntoResolvedInstance<TimelineObjTriCasterME>({
+					tc_me0_1: wrapIntoResolvedInstance<TimelineContentTriCasterME>({
 						layer: 'tc_me0_1',
 						enable: { while: '1' },
 						id: 't1',
@@ -348,17 +359,21 @@ describe('TimelineStateConverter.getTriCasterStateFromTimelineState', () => {
 				nextEvents: [],
 			},
 			{
-				tc_me0_0: literal<MappingTriCaster>({
+				tc_me0_0: literal<Mapping<SomeMappingTricaster>>({
 					device: DeviceType.TRICASTER,
-					mappingType: MappingTriCasterType.ME,
-					name: 'main',
 					deviceId: 'tc0',
+					options: {
+						mappingType: MappingTricasterType.ME,
+						name: 'main',
+					},
 				}),
-				tc_me0_1: literal<MappingTriCaster>({
+				tc_me0_1: literal<Mapping<SomeMappingTricaster>>({
 					device: DeviceType.TRICASTER,
-					mappingType: MappingTriCasterType.ME,
-					name: 'main',
 					deviceId: 'tc0',
+					options: {
+						mappingType: MappingTricasterType.ME,
+						name: 'main',
+					},
 				}),
 			}
 		)
