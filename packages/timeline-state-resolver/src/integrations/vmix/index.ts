@@ -1229,6 +1229,14 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 			}
 		}
 
+		for (const overlay of state.reportedState.overlays) {
+			if (overlay.input === input.name || overlay.input === input.number) {
+				// Input is in program as an overlay (DSK),
+				// so stop the search and return true.
+				return true
+			}
+		}
+
 		return false
 	}
 }
