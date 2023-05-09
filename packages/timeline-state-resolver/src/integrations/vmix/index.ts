@@ -687,7 +687,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 			 * on the same frame but, in reality, thanks to how vMix processes API commands,
 			 * things take place over the course of a few frames.
 			 */
-			const commands = this._isOnAir(oldVMixState, oldInput) ? postTransitionCommands : preTransitionCommands
+			const commands = this._isInUse(oldVMixState, oldInput) ? postTransitionCommands : preTransitionCommands
 
 			// It is important that the operations on listFilePaths happen before most other operations.
 			// Consider the case where we want to change the contents of a List input AND set it to playing.
@@ -1204,10 +1204,10 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 	}
 
 	/**
-	 * Checks if TSR thinks an input is currently on-air.
+	 * Checks if TSR thinks an input is currently in-use.
 	 * Not guaranteed to align with reality.
 	 */
-	private _isOnAir(state: VMixStateExtended, input: VMixInput): boolean {
+	private _isInUse(state: VMixStateExtended, input: VMixInput): boolean {
 		for (const mix of state.reportedState.mixes) {
 			if (mix.program === input.number || mix.program === input.name) {
 				// The input is in program in some mix, so stop the search and return true.
