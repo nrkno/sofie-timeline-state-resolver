@@ -21,6 +21,7 @@ import {
 	MappingVmixInput,
 	VmixActions,
 	ActionExecutionResultCode,
+	MappingVmixProgram,
 } from 'timeline-state-resolver-types'
 import { ThreadedClass } from 'threadedclass'
 import { VMixDevice } from '..'
@@ -944,20 +945,6 @@ describe('vMix', () => {
 			11000,
 			expect.objectContaining({
 				command: {
-					command: VMixCommand.AUDIO_VOLUME,
-					input: 'C:/videos/My Clip.mp4',
-					value: 25,
-					fade: 0,
-				},
-			}),
-			null,
-			expect.any(String)
-		)
-		expect(commandReceiver0).toHaveBeenNthCalledWith(
-			2,
-			11000,
-			expect.objectContaining({
-				command: {
 					command: VMixCommand.TRANSITION,
 					input: 'C:/videos/My Clip.mp4',
 					duration: 0,
@@ -968,18 +955,32 @@ describe('vMix', () => {
 			null,
 			expect.any(String)
 		)
+		expect(commandReceiver0).toHaveBeenNthCalledWith(
+			2,
+			11000,
+			expect.objectContaining({
+				command: {
+					command: VMixCommand.AUDIO_VOLUME,
+					input: 'C:/videos/My Clip.mp4',
+					value: 25,
+					fade: 0,
+				},
+			}),
+			null,
+			expect.any(String)
+		)
 
 		expect(onFunction).toHaveBeenCalledTimes(2)
 
 		expect(onFunction).toHaveBeenNthCalledWith(
 			1,
-			'SetVolume',
-			expect.stringContaining('Input=C:/videos/My Clip.mp4&Value=25')
+			'Cut',
+			expect.stringContaining('Input=C:/videos/My Clip.mp4&Duration=0&Mix=0')
 		)
 		expect(onFunction).toHaveBeenNthCalledWith(
 			2,
-			'Cut',
-			expect.stringContaining('Input=C:/videos/My Clip.mp4&Duration=0&Mix=0')
+			'SetVolume',
+			expect.stringContaining('Input=C:/videos/My Clip.mp4&Value=25')
 		)
 
 		clearMocks()
@@ -1019,10 +1020,11 @@ describe('vMix', () => {
 			16000,
 			expect.objectContaining({
 				command: {
-					command: VMixCommand.AUDIO_VOLUME,
+					command: VMixCommand.TRANSITION,
 					input: 'G:/videos/My Other Clip.mp4',
-					value: 25,
-					fade: 0,
+					duration: 0,
+					effect: VMixTransitionType.Cut,
+					mix: 0,
 				},
 			}),
 			null,
@@ -1033,11 +1035,10 @@ describe('vMix', () => {
 			16000,
 			expect.objectContaining({
 				command: {
-					command: VMixCommand.TRANSITION,
+					command: VMixCommand.AUDIO_VOLUME,
 					input: 'G:/videos/My Other Clip.mp4',
-					duration: 0,
-					effect: VMixTransitionType.Cut,
-					mix: 0,
+					value: 25,
+					fade: 0,
 				},
 			}),
 			null,
@@ -1070,13 +1071,13 @@ describe('vMix', () => {
 		)
 		expect(onFunction).toHaveBeenNthCalledWith(
 			3,
-			'SetVolume',
-			expect.stringContaining('Input=G:/videos/My Other Clip.mp4&Value=25')
+			'Cut',
+			expect.stringContaining('Input=G:/videos/My Other Clip.mp4&Duration=0&Mix=0')
 		)
 		expect(onFunction).toHaveBeenNthCalledWith(
 			4,
-			'Cut',
-			expect.stringContaining('Input=G:/videos/My Other Clip.mp4&Duration=0&Mix=0')
+			'SetVolume',
+			expect.stringContaining('Input=G:/videos/My Other Clip.mp4&Value=25')
 		)
 		expect(onFunction).toHaveBeenNthCalledWith(5, 'RemoveInput', expect.stringContaining('Input=C:/videos/My Clip.mp4'))
 
@@ -3404,6 +3405,227 @@ describe('vMix', () => {
 			'ListAdd',
 			expect.stringContaining(`Input=1&Value=${encodeURIComponent('C:\\foo.mov')}`)
 		)
+
+		clearMocks()
+		commandReceiver0.mockClear()
+
+		await myConductor.destroy()
+
+		expect(errorHandler).toHaveBeenCalledTimes(0)
+		expect(deviceErrorHandler).toHaveBeenCalledTimes(0)
+	})
+
+	test('Input command ordering using _isInUse', async () => {
+		let device: any = undefined
+		const commandReceiver0 = jest.fn((...args) => {
+			// pipe through the command
+			return device._defaultCommandReceiver(...args)
+		})
+
+		const myLayerMapping0: Mapping<MappingVmixInput> = {
+			device: DeviceType.VMIX,
+			deviceId: 'myvmix',
+			options: {
+				mappingType: MappingVmixType.Input,
+				index: '1',
+			},
+		}
+		const myLayerMapping1: Mapping<MappingVmixProgram> = {
+			device: DeviceType.VMIX,
+			deviceId: 'myvmix',
+			options: {
+				mappingType: MappingVmixType.Program,
+				index: 1,
+			},
+		}
+		const myLayerMapping2: Mapping<MappingVmixInput> = {
+			device: DeviceType.VMIX,
+			deviceId: 'myvmix',
+			options: {
+				mappingType: MappingVmixType.Input,
+				index: '2',
+			},
+		}
+		const myLayerMapping: Mappings = {
+			vmix_ico0: myLayerMapping0,
+			vmix_ico1: myLayerMapping1,
+			vmix_ico2: myLayerMapping2,
+		}
+
+		const myConductor = new Conductor({
+			multiThreadedResolver: false,
+			getCurrentTime: mockTime.getCurrentTime,
+		})
+		const errorHandler = jest.fn((...args) => console.log('Error in device', ...args))
+		myConductor.on('error', errorHandler)
+
+		await myConductor.init()
+
+		await runPromise(
+			myConductor.addDevice('myvmix', {
+				type: DeviceType.VMIX,
+				options: {
+					host: '127.0.0.1',
+					port: 9999,
+				},
+				commandReceiver: commandReceiver0,
+			}),
+			mockTime
+		)
+
+		const deviceContainer = myConductor.getDevice('myvmix')
+		device = deviceContainer!.device as ThreadedClass<VMixDevice>
+		const deviceErrorHandler = jest.fn((...args) => console.log('Error in device', ...args))
+		device.on('error', deviceErrorHandler)
+		device.on('commandError', deviceErrorHandler)
+
+		myConductor.setTimelineAndMappings([], myLayerMapping)
+
+		expect(mockTime.getCurrentTime()).toEqual(10050)
+		await mockTime.advanceTimeToTicks(10100)
+
+		// get initial info
+		expect(onXML).toHaveBeenCalledTimes(1)
+
+		clearMocks()
+		commandReceiver0.mockClear()
+
+		// Check that no commands has been scheduled:
+		expect(await device.queue).toHaveLength(0)
+
+		myConductor.setTimelineAndMappings([
+			{
+				id: 'ico3',
+				enable: {
+					start: 0,
+				},
+				layer: 'vmix_ico1',
+				content: {
+					deviceType: DeviceType.VMIX,
+					type: TimelineContentTypeVMix.PROGRAM,
+					input: 1,
+				},
+			},
+			{
+				id: 'ico0',
+				enable: {
+					start: 11000,
+					duration: 5000,
+				},
+				layer: 'vmix_ico0',
+				content: {
+					deviceType: DeviceType.VMIX,
+					type: TimelineContentTypeVMix.INPUT,
+					listFilePaths: [],
+				},
+			},
+			{
+				id: 'ico1',
+				enable: {
+					start: 11000,
+					duration: 5000,
+				},
+				layer: 'vmix_ico1',
+				content: {
+					deviceType: DeviceType.VMIX,
+					type: TimelineContentTypeVMix.PROGRAM,
+					input: 2,
+				},
+			},
+			{
+				id: 'ico2',
+				enable: {
+					start: 11000,
+					duration: 5000,
+				},
+				layer: 'vmix_ico2',
+				content: {
+					deviceType: DeviceType.VMIX,
+					type: TimelineContentTypeVMix.INPUT,
+					overlays: { 1: 3 },
+				},
+			},
+		])
+
+		await mockTime.advanceTimeToTicks(11300)
+
+		expect(commandReceiver0).toHaveBeenCalledTimes(5)
+		expect(commandReceiver0).toHaveBeenNthCalledWith(
+			1,
+			10105,
+			expect.objectContaining({
+				command: {
+					command: VMixCommand.TRANSITION,
+					effect: VMixTransitionType.Cut,
+					input: 1,
+					duration: 0,
+					mix: 0,
+				},
+			}),
+			null,
+			expect.any(String)
+		)
+		expect(commandReceiver0).toHaveBeenNthCalledWith(
+			2,
+			11000,
+			expect.objectContaining({
+				command: {
+					command: VMixCommand.SET_INPUT_OVERLAY,
+					input: '2',
+					value: 3,
+					index: 1,
+				},
+			}),
+			null,
+			expect.any(String)
+		)
+		expect(commandReceiver0).toHaveBeenNthCalledWith(
+			3,
+			11000,
+			expect.objectContaining({
+				command: {
+					command: VMixCommand.TRANSITION,
+					effect: VMixTransitionType.Cut,
+					input: 2,
+					duration: 0,
+					mix: 0,
+				},
+			}),
+			null,
+			expect.any(String)
+		)
+		expect(commandReceiver0).toHaveBeenNthCalledWith(
+			4,
+			11000,
+			expect.objectContaining({
+				command: {
+					command: VMixCommand.PAUSE_INPUT,
+					input: '1',
+				},
+			}),
+			null,
+			expect.any(String)
+		)
+		expect(commandReceiver0).toHaveBeenNthCalledWith(
+			5,
+			11000,
+			expect.objectContaining({
+				command: {
+					command: VMixCommand.LIST_REMOVE_ALL,
+					input: '1',
+				},
+			}),
+			null,
+			expect.any(String)
+		)
+
+		expect(onFunction).toHaveBeenCalledTimes(5)
+
+		expect(onFunction).toHaveBeenNthCalledWith(1, 'Cut', expect.stringContaining('Input=1'))
+		expect(onFunction).toHaveBeenNthCalledWith(2, 'SetMultiViewOverlay', expect.stringContaining('Input=2&Value=1,3'))
+		expect(onFunction).toHaveBeenNthCalledWith(3, 'Cut', expect.stringContaining('Input=2'))
+		expect(onFunction).toHaveBeenNthCalledWith(4, 'Pause', expect.stringContaining('Input=1'))
+		expect(onFunction).toHaveBeenNthCalledWith(5, 'ListRemoveAll', expect.stringContaining('Input=1'))
 
 		clearMocks()
 		commandReceiver0.mockClear()

@@ -646,8 +646,12 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 	private _resolveInputsState(
 		oldVMixState: VMixStateExtended,
 		newVMixState: VMixStateExtended
-	): Array<VMixStateCommandWithContext> {
-		const commands: Array<VMixStateCommandWithContext> = []
+	): {
+		preTransitionCommands: Array<VMixStateCommandWithContext>
+		postTransitionCommands: Array<VMixStateCommandWithContext>
+	} {
+		const preTransitionCommands: Array<VMixStateCommandWithContext> = []
+		const postTransitionCommands: Array<VMixStateCommandWithContext> = []
 		_.each(newVMixState.reportedState.inputs, (input, key) => {
 			if (input.name === undefined) {
 				input.name = key
@@ -674,6 +678,17 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 				this._addToQueue(addCommands, this.getCurrentTime())
 			}
 			const oldInput = oldVMixState.reportedState.inputs[key] || this._getDefaultInputState(0) // or {} but we assume that a new input has all parameters default
+
+			/**
+			 * If an input is currently on air, then we delay changes to it until after the transition has began.
+			 * Note the word "began", instead of "completed".
+			 *
+			 * This mostly helps in the case of CUT transitions, where in theory everything happens
+			 * on the same frame but, in reality, thanks to how vMix processes API commands,
+			 * things take place over the course of a few frames.
+			 */
+			const commands = this._isInUse(oldVMixState, oldInput) ? postTransitionCommands : preTransitionCommands
+
 			// It is important that the operations on listFilePaths happen before most other operations.
 			// Consider the case where we want to change the contents of a List input AND set it to playing.
 			// If we set it to playing first, it will automatically be forced to stop playing when
@@ -949,7 +964,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 				})
 			}
 		})
-		return commands
+		return { preTransitionCommands, postTransitionCommands }
 	}
 
 	private _resolveInputsRemovalState(
@@ -1155,9 +1170,11 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 	): Array<VMixStateCommandWithContext> {
 		let commands: Array<VMixStateCommandWithContext> = []
 
-		commands = commands.concat(this._resolveInputsState(oldVMixState, newVMixState))
+		const inputCommands = this._resolveInputsState(oldVMixState, newVMixState)
+		commands = commands.concat(inputCommands.preTransitionCommands)
 		commands = commands.concat(this._resolveMixState(oldVMixState, newVMixState))
 		commands = commands.concat(this._resolveOverlaysState(oldVMixState, newVMixState))
+		commands = commands.concat(inputCommands.postTransitionCommands)
 		commands = commands.concat(this._resolveRecordingState(oldVMixState, newVMixState))
 		commands = commands.concat(this._resolveStreamingState(oldVMixState, newVMixState))
 		commands = commands.concat(this._resolveExternalState(oldVMixState, newVMixState))
@@ -1184,6 +1201,51 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 		return this._vmix.sendCommand(cmd.command).catch((error) => {
 			this.emit('commandError', error, cwc)
 		})
+	}
+
+	/**
+	 * Checks if TSR thinks an input is currently in-use.
+	 * Not guaranteed to align with reality.
+	 */
+	private _isInUse(state: VMixStateExtended, input: VMixInput): boolean {
+		for (const mix of state.reportedState.mixes) {
+			if (mix.program === input.number || mix.program === input.name) {
+				// The input is in program in some mix, so stop the search and return true.
+				return true
+			}
+
+			if (typeof mix.program === 'undefined') continue
+
+			const pgmInput = state.reportedState.inputs[mix.program] as VMixInput | undefined
+			if (!pgmInput || !pgmInput.overlays) continue
+
+			for (const layer of Object.keys(pgmInput.overlays)) {
+				const layerInput = pgmInput.overlays[layer as unknown as keyof VMixInputOverlays]
+				if (layerInput === input.name || layerInput === input.number) {
+					// Input is in program as a layer of a Multi View of something else that is in program,
+					// so stop the search and return true.
+					return true
+				}
+			}
+		}
+
+		for (const overlay of state.reportedState.overlays) {
+			if (overlay.input === input.name || overlay.input === input.number) {
+				// Input is in program as an overlay (DSK),
+				// so stop the search and return true.
+				return true
+			}
+		}
+
+		for (const output of Object.values<VMixOutput>(state.outputs)) {
+			if (output.input === input.name || output.input === input.number) {
+				// Input might not technically be in PGM, but it's being used by an output,
+				// so stop the search and return true.
+				return true
+			}
+		}
+
+		return false
 	}
 }
 
