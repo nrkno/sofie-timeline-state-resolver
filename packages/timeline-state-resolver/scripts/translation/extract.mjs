@@ -5,6 +5,7 @@
  *
  * Translations in already existing .po files will be preserved.
  */
+/* eslint-disable */
 import { format, parse } from 'path'
 import { promises } from 'fs'
 const { readFile } = promises

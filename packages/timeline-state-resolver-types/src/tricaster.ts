@@ -46,6 +46,13 @@ export type TimelineContentTriCasterAny =
 export interface TimelineContentTriCasterBase {
 	deviceType: DeviceType.TRICASTER
 	type: TimelineContentTypeTriCaster
+
+	/**
+	 * Priority used to sort commands that are supposed to execute at the same time
+	 * Lower means faster execution (analaogous to other device integrations)
+	 * Default: 0
+	 */
+	temporalPriority?: number
 }
 
 interface TriCasterMixEffectBase {
@@ -160,6 +167,11 @@ export interface TimelineContentTriCasterMixOutput extends TimelineContentTriCas
 	 * or 'program', 'preview', 'program_clean', 'me_program', 'me_preview'
 	 */
 	source: TriCasterMixOutputSource
+
+	/**
+	 * Whether the clean version of the ME should be selected
+	 */
+	meClean?: boolean
 }
 
 // export function isTimelineObjTriCasterMixOutput(

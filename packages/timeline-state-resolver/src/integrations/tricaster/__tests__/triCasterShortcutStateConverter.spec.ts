@@ -22,8 +22,8 @@ describe('TriCasterShortcutStateConverter.getTriCasterStateFromShortcutState', (
 	<shortcut_state name="main_b_row_named_input" value="DDR2" type="" sender="unknown"/>
 </shortcut_states>`)
 
-			expect(state.mixEffects['main'].programInput).toEqual('input7')
-			expect(state.mixEffects['main'].previewInput).toEqual('ddr2')
+			expect(state.mixEffects['main'].programInput).toEqual({ value: 'input7' })
+			expect(state.mixEffects['main'].previewInput).toEqual({ value: 'ddr2' })
 		})
 	})
 
@@ -38,10 +38,10 @@ describe('TriCasterShortcutStateConverter.getTriCasterStateFromShortcutState', (
 	<shortcut_state name="main_dsk4_value" value="0" type="double" sender="unknown" />
 </shortcut_states>`)
 
-			expect(state.mixEffects.main.keyers?.dsk1.onAir).toEqual(false)
-			expect(state.mixEffects.main.keyers?.dsk2.onAir).toEqual(true)
-			expect(state.mixEffects.main.keyers?.dsk3.onAir).toEqual(true)
-			expect(state.mixEffects.main.keyers?.dsk4.onAir).toEqual(false)
+			expect(state.mixEffects.main.keyers?.dsk1.onAir).toEqual({ value: false })
+			expect(state.mixEffects.main.keyers?.dsk2.onAir).toEqual({ value: true })
+			expect(state.mixEffects.main.keyers?.dsk3.onAir).toEqual({ value: true })
+			expect(state.mixEffects.main.keyers?.dsk4.onAir).toEqual({ value: false })
 		})
 
 		test('sets input', () => {
@@ -51,7 +51,7 @@ describe('TriCasterShortcutStateConverter.getTriCasterStateFromShortcutState', (
 	<shortcut_state name="main_dsk3_select_named_input" value="v6" type="" sender="unknown"/>
 </shortcut_states>`)
 
-			expect(state.mixEffects.main.keyers?.dsk3.input).toEqual('v6')
+			expect(state.mixEffects.main.keyers?.dsk3.input).toEqual({ value: 'v6' })
 		})
 	})
 
@@ -63,7 +63,7 @@ describe('TriCasterShortcutStateConverter.getTriCasterStateFromShortcutState', (
 	<shortcut_state name="v2_a_row_named_input" value="v6" type="" sender="unknown"/>
 </shortcut_states>`)
 
-			expect(state.mixEffects.v2.layers?.a?.input).toEqual('v6')
+			expect(state.mixEffects.v2.layers?.a?.input).toEqual({ value: 'v6' })
 		})
 	})
 
@@ -76,8 +76,8 @@ describe('TriCasterShortcutStateConverter.getTriCasterStateFromShortcutState', (
 	<shortcut_state name="mix2_output_source" value="me_preview" type="" sender="unknown"/>
 </shortcut_states>`)
 
-			expect(state.mixOutputs.mix1.source).toEqual('input7')
-			expect(state.mixOutputs.mix2.source).toEqual('me_preview')
+			expect(state.mixOutputs.mix1.source).toEqual({ value: 'input7' })
+			expect(state.mixOutputs.mix2.source).toEqual({ value: 'me_preview' })
 		})
 	})
 
@@ -90,8 +90,8 @@ describe('TriCasterShortcutStateConverter.getTriCasterStateFromShortcutState', (
 	<shortcut_state name="out2_crosspoint_source" value="mix2" type="" sender="unknown"/>
 </shortcut_states>`)
 
-			expect(state.matrixOutputs.out1.source).toEqual('input5')
-			expect(state.matrixOutputs.out2.source).toEqual('mix2')
+			expect(state.matrixOutputs.out1.source).toEqual({ value: 'input5' })
+			expect(state.matrixOutputs.out2.source).toEqual({ value: 'mix2' })
 		})
 	})
 })

@@ -2,6 +2,7 @@
  * This script will read and bundle the translations in the project's .po files.
  * It is intended to be used by the Webpack config script.
  */
+/* eslint-disable */
 import { Transform } from 'stream'
 import vfs from 'vinyl-fs'
 import { writeFile } from 'fs/promises'

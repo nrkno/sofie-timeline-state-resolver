@@ -277,10 +277,10 @@ export class AtemDevice extends DeviceWithState<DeviceState, DeviceOptionsAtemIn
 									me.transitionProperties.nextStyle = transition as number as ConnectionEnums.TransitionStyle
 								}
 								if (atemObjKeyers) {
-									_.each(atemObjKeyers, (objKey, i) => {
-										const keyer = AtemStateUtil.getUpstreamKeyer(me, i)
-										deepExtend(keyer, objKey)
-									})
+									for (const objKeyer of atemObjKeyers) {
+										const keyer = AtemStateUtil.getUpstreamKeyer(me, objKeyer.upstreamKeyerId)
+										deepExtend(keyer, objKeyer)
+									}
 								}
 							}
 							break

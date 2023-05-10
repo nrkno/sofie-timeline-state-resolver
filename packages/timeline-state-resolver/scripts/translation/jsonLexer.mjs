@@ -1,3 +1,4 @@
+/* eslint-disable */
 import { BaseLexer } from 'i18next-parser'
 
 export class JsonLexer extends BaseLexer {
