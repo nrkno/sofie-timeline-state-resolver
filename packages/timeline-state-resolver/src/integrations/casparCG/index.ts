@@ -132,7 +132,7 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 							// We can't return here, as that will leave anything in channelPromises as potentially unhandled
 							channelPromises.push(Promise.reject('execute failed'))
 							break
-						} else if (request) {
+						} else {
 							channelPromises.push(request)
 						}
 					}
