@@ -834,62 +834,74 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 			'layer' in command.params &&
 			command.params.layer !== undefined
 		) {
-			const currentState = this.getState(time)
-			if (currentState) {
-				const currentCasparState = currentState.state
+			const currentExpectedState = this.getState(time)
+			if (currentExpectedState) {
+				const confirmedState = this._currentState
 
-				const trackedState = this._currentState
-
-				const channel = currentCasparState.channels[command.params.channel]
-				if (channel) {
-					if (!trackedState.channels[command.params.channel]) {
-						trackedState.channels[command.params.channel] = {
-							channelNo: channel.channelNo,
-							fps: channel.fps || 0,
-							videoMode: channel.videoMode || null,
+				const expectedChannelState = currentExpectedState.state.channels[command.params.channel]
+				if (expectedChannelState) {
+					let confirmedChannelState = confirmedState.channels[command.params.channel]
+					if (!confirmedState.channels[command.params.channel]) {
+						confirmedChannelState = confirmedState.channels[command.params.channel] = {
+							channelNo: expectedChannelState.channelNo,
+							fps: expectedChannelState.fps || 0,
+							videoMode: expectedChannelState.videoMode || null,
 							layers: {},
 						}
 					}
 
 					// copy into the trackedState
-					if (
-						(command.command === Commands.Play && command.params.clip) ||
-						(!('clip' in command.params) &&
-							trackedState.channels[command.params.channel].layers[command.params.layer].nextUp)
-					) {
-						// a play command without parameters (channel/layer) is only succesful if the nextUp worked
-						// a play command with params can always be accepted
-						trackedState.channels[command.params.channel].layers[command.params.layer] = {
-							...channel.layers[command.params.layer],
-							nextUp: undefined, // a play command always clears nextUp
-						}
-					} else if (command.command === Commands.Loadbg) {
-						// only loadbg can set nextUp and nextUp can only be set by loadbg
-						trackedState.channels[command.params.channel].layers[command.params.layer] = {
-							...trackedState.channels[command.params.channel].layers[command.params.layer],
-							nextUp: channel.layers[command.params.layer].nextUp,
-						}
-					} else if (
-						command.command === Commands.Stop &&
-						trackedState.channels[command.params.channel].layers[command.params.layer].nextUp?.auto
-					) {
-						// auto next + stop means bg -> fg => nextUp cleared
-						trackedState.channels[command.params.channel].layers[command.params.layer] = {
-							...channel.layers[command.params.layer],
-							nextUp: undefined, // auto next + stop means bg -> fg => nextUp cleared
-						}
-					} else if (command.command === Commands.Resume || command.command === Commands.Stop) {
-						// stop and resume can be done without affecting nextup
-						trackedState.channels[command.params.channel].layers[command.params.layer] = {
-							...channel.layers[command.params.layer],
-							nextUp: trackedState.channels[command.params.channel].layers[command.params.layer].nextUp,
-						}
-					} else {
-						// anything else can always be copied but also clears nextUp
-						// @todo - can LOADBG be followed by an empty LOAD? (if yes, apply same logic as PLAY)
-						trackedState.channels[command.params.channel].layers[command.params.layer] = {
-							...channel.layers[command.params.layer],
-							nextUp: undefined,
+					switch (command.command) {
+						case Commands.Play:
+						case Commands.Load:
+							if (!('clip' in command.params) && !confirmedChannelState.layers[command.params.layer]?.nextUp) {
+								// Ignore, no clip was loaded in confirmedChannelState
+							} else {
+								// a play/load command without parameters (channel/layer) is only succesful if the nextUp worked
+								// a play/load command with params can always be accepted
+								confirmedChannelState.layers[command.params.layer] = {
+									...expectedChannelState.layers[command.params.layer],
+									nextUp: undefined, // a play command always clears nextUp
+								}
+							}
+							break
+						case Commands.Loadbg:
+							// only loadbg can set nextUp and nextUp can only be set by loadbg
+							confirmedChannelState.layers[command.params.layer] = {
+								...confirmedChannelState.layers[command.params.layer],
+								nextUp: expectedChannelState.layers[command.params.layer]?.nextUp,
+							}
+							break
+						case Commands.Stop:
+							if (confirmedChannelState.layers[command.params.layer]?.nextUp?.auto) {
+								// auto next + stop means bg -> fg => nextUp cleared
+								confirmedChannelState.layers[command.params.layer] = {
+									...expectedChannelState.layers[command.params.layer],
+									nextUp: undefined, // auto next + stop means bg -> fg => nextUp cleared
+								}
+							} else {
+								// stop does not affect nextup
+								confirmedChannelState.layers[command.params.layer] = {
+									...expectedChannelState.layers[command.params.layer],
+									nextUp: confirmedChannelState.layers[command.params.layer]?.nextUp,
+								}
+							}
+							break
+						case Commands.Resume:
+							// resume does not affect nextup
+							confirmedChannelState.layers[command.params.layer] = {
+								...expectedChannelState.layers[command.params.layer],
+								nextUp: confirmedChannelState.layers[command.params.layer]?.nextUp,
+							}
+							break
+						case Commands.Clear:
+							// Remove both the background and foreground
+							delete confirmedChannelState.layers[command.params.layer]
+							break
+						default: {
+							// Never hit
+							// const _a: never = command.params.name
+							break
 						}
 					}
 				}
