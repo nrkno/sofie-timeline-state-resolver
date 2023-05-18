@@ -61,10 +61,10 @@
 		"production"
 	],
 	"dependencies": {
-		"chokidar": "^3.2.1",
+		"chokidar": "^3.5.3",
 		"fast-clone": "^1.5.13",
 		"timeline-state-resolver": "8.0.0-release49.0",
-		"tslib": "^2.5.0",
-		"underscore": "^1.9.1"
+		"tslib": "^2.5.1",
+		"underscore": "^1.13.6"
 	}
 }
