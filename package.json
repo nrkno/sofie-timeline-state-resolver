@@ -32,7 +32,7 @@
     "eslint": "cd $INIT_CWD && \"$PROJECT_CWD/node_modules/.bin/eslint\""
   },
   "devDependencies": {
-    "@sofie-automation/code-standard-preset": "~2.4.6",
+    "@sofie-automation/code-standard-preset": "~2.4.7",
     "@types/jest": "^29.5.1",
     "@types/node": "^16.18.6",
     "@types/request": "^2.48.8",
