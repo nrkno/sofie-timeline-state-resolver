@@ -253,6 +253,8 @@ export enum VMixTransitionType {
 	VerticalSlideReverse = 'VerticalSlideReverse',
 	Stinger1 = 'Stinger1',
 	Stinger2 = 'Stinger2',
+	Stinger3 = 'Stinger3',
+	Stinger4 = 'Stinger4',
 }
 
 export enum VMixInputType {
