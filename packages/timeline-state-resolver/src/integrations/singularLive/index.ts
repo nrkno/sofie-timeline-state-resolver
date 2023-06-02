@@ -298,7 +298,7 @@ export class SingularLiveDevice extends DeviceWithState<SingularLiveState, Devic
 
 		return new Promise<void>((resolve, reject) => {
 			got
-				.patch(url, { json: cmd })
+				.patch(url, { json: [cmd] })
 				.then((response) => {
 					if (response.statusCode === 200) {
 						this.emitDebug(
