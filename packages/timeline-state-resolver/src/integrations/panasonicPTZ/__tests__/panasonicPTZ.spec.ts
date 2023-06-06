@@ -212,12 +212,12 @@ describe('Panasonic PTZ', () => {
 
 		expect(commandReceiver0).toHaveBeenCalledTimes(2)
 		expect(getMockCall(commandReceiver0, 0, 1)).toMatchObject({
-			type: TimelineContentTypePanasonicPtz.PRESET,
-			preset: 1,
-		})
-		expect(getMockCall(commandReceiver0, 1, 1)).toMatchObject({
 			type: TimelineContentTypePanasonicPtz.SPEED,
 			speed: 250,
+		})
+		expect(getMockCall(commandReceiver0, 1, 1)).toMatchObject({
+			type: TimelineContentTypePanasonicPtz.PRESET,
+			preset: 1,
 		})
 
 		await mockTime.advanceTimeToTicks(11000)
