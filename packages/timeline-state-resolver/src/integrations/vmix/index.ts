@@ -121,6 +121,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 					state = deepMerge<VMixStateExtended>(state, { reportedState: this._vmix.state })
 					this.setState(state, time)
 					this._initialized = true
+					this.emit('connectionChanged', this.getStatus())
 					this.emit('resetResolver')
 				}
 			}
