@@ -277,6 +277,9 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 		if (!this._connected) {
 			statusCode = StatusCode.BAD
 			messages.push('Not connected')
+		} else if (!this._initialized) {
+			statusCode = StatusCode.BAD
+			messages.push('Not initialized')
 		}
 
 		return {
