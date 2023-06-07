@@ -121,6 +121,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 					state = deepMerge<VMixStateExtended>(state, { reportedState: this._vmix.state })
 					this.setState(state, time)
 					this._initialized = true
+					this.emit('connectionChanged', this.getStatus())
 					this.emit('resetResolver')
 				}
 			}
@@ -239,7 +240,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 		}
 
 		const previousStateTime = Math.max(this.getCurrentTime() + 0.1, newState.time)
-		const oldState: VMixStateExtended = (this.getStateBefore(previousStateTime) || { state: this._getDefaultState() })
+		const oldState: VMixStateExtended = (this.getStateBefore(previousStateTime) ?? { state: this._getDefaultState() })
 			.state
 
 		const newVMixState = this.convertStateToVMix(newState, newMappings)
@@ -277,6 +278,9 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 		if (!this._connected) {
 			statusCode = StatusCode.BAD
 			messages.push('Not connected')
+		} else if (!this._initialized) {
+			statusCode = StatusCode.BAD
+			messages.push('Not initialized')
 		}
 
 		return {
@@ -573,9 +577,12 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 	): Array<VMixStateCommandWithContext> {
 		const commands: Array<VMixStateCommandWithContext> = []
 		for (let i = 0; i < 4; i++) {
-			const oldMixState = oldVMixState.reportedState.mixes[i]
-			const newMixState = newVMixState.reportedState.mixes[i]
-			if (newMixState.program !== undefined) {
+			/**
+			 * It is *not* guaranteed to have all 4 mixes present in the vMix state, for reasons unknown.
+			 */
+			const oldMixState = oldVMixState.reportedState.mixes[i] as VMixMix | undefined
+			const newMixState = newVMixState.reportedState.mixes[i] as VMixMix | undefined
+			if (newMixState?.program !== undefined) {
 				let nextInput = newMixState.program
 				let changeOnLayer = false
 				if (newMixState.layerToProgram) {
@@ -583,7 +590,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 					changeOnLayer =
 						newVMixState.inputLayers[newMixState.program] !== oldVMixState.inputLayers[newMixState.program]
 				}
-				if (oldMixState.program !== newMixState.program || changeOnLayer) {
+				if (oldMixState?.program !== newMixState.program || changeOnLayer) {
 					commands.push({
 						command: {
 							command: VMixCommand.TRANSITION,
@@ -599,9 +606,9 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 			}
 
 			if (
-				oldMixState.program === newMixState.program && // if we're not switching what is on program, because it could break a transition
-				newMixState.preview !== undefined &&
-				newMixState.preview !== oldMixState.preview
+				oldMixState?.program === newMixState?.program && // if we're not switching what is on program, because it could break a transition
+				newMixState?.preview !== undefined &&
+				newMixState.preview !== oldMixState?.preview
 			) {
 				commands.push({
 					command: {
