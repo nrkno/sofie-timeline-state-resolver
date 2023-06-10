@@ -24,7 +24,7 @@ import {
 	MappingVmixProgram,
 } from 'timeline-state-resolver-types'
 import { ThreadedClass } from 'threadedclass'
-import { VMixDevice } from '..'
+import { VMixDevice, CommandContext } from '..'
 import { MockTime } from '../../../__tests__/mockTime'
 import '../../../__tests__/lib'
 
@@ -153,7 +153,7 @@ describe('vMix', () => {
 					value: 'Video|C:/videos/My Clip.mp4',
 				},
 			}),
-			null,
+			CommandContext.None,
 			expect.any(String)
 		)
 		expect(commandReceiver0).toHaveBeenNthCalledWith(
@@ -166,7 +166,7 @@ describe('vMix', () => {
 					value: 'C:/videos/My Clip.mp4',
 				},
 			}),
-			null,
+			CommandContext.None,
 			expect.any(String)
 		)
 
@@ -199,7 +199,7 @@ describe('vMix', () => {
 					input: 'C:/videos/My Clip.mp4',
 				},
 			}),
-			null,
+			CommandContext.None,
 			expect.any(String)
 		)
 
@@ -221,7 +221,7 @@ describe('vMix', () => {
 					input: 'C:/videos/My Clip.mp4',
 				},
 			}),
-			null,
+			CommandContext.None,
 			expect.any(String)
 		)
 
@@ -333,7 +333,7 @@ describe('vMix', () => {
 					value: 'Video|C:/videos/My Clip.mp4',
 				},
 			}),
-			null,
+			CommandContext.None,
 			expect.any(String)
 		)
 		expect(commandReceiver0).toHaveBeenNthCalledWith(
@@ -346,7 +346,7 @@ describe('vMix', () => {
 					value: 'C:/videos/My Clip.mp4',
 				},
 			}),
-			null,
+			CommandContext.None,
 			expect.any(String)
 		)
 
@@ -380,7 +380,7 @@ describe('vMix', () => {
 					value: 10000,
 				},
 			}),
-			null,
+			CommandContext.None,
 			expect.any(String)
 		)
 		expect(commandReceiver0).toHaveBeenNthCalledWith(
@@ -392,7 +392,7 @@ describe('vMix', () => {
 					input: 'C:/videos/My Clip.mp4',
 				},
 			}),
-			null,
+			CommandContext.None,
 			expect.any(String)
 		)
 		expect(commandReceiver0).toHaveBeenNthCalledWith(
@@ -405,7 +405,7 @@ describe('vMix', () => {
 					value: 0.5,
 				},
 			}),
-			null,
+			CommandContext.None,
 			expect.any(String)
 		)
 		expect(commandReceiver0).toHaveBeenNthCalledWith(
@@ -418,7 +418,7 @@ describe('vMix', () => {
 					value: 123,
 				},
 			}),
-			null,
+			CommandContext.None,
 			expect.any(String)
 		)
 		expect(commandReceiver0).toHaveBeenNthCalledWith(
@@ -431,7 +431,7 @@ describe('vMix', () => {
 					value: 0.3,
 				},
 			}),
-			null,
+			CommandContext.None,
 			expect.any(String)
 		)
 		expect(commandReceiver0).toHaveBeenNthCalledWith(
@@ -444,7 +444,7 @@ describe('vMix', () => {
 					value: 1.2,
 				},
 			}),
-			null,
+			CommandContext.None,
 			expect.any(String)
 		)
 		expect(commandReceiver0).toHaveBeenNthCalledWith(
@@ -458,7 +458,7 @@ describe('vMix', () => {
 					value: 'G:/videos/My Other Clip.mp4',
 				},
 			}),
-			null,
+			CommandContext.None,
 			expect.any(String)
 		)
 		expect(commandReceiver0).toHaveBeenNthCalledWith(
@@ -472,7 +472,7 @@ describe('vMix', () => {
 					value: 5,
 				},
 			}),
-			null,
+			CommandContext.None,
 			expect.any(String)
 		)
 		expect(commandReceiver0).toHaveBeenNthCalledWith(
@@ -484,7 +484,7 @@ describe('vMix', () => {
 					input: 'C:/videos/My Clip.mp4',
 				},
 			}),
-			null,
+			CommandContext.None,
 			expect.any(String)
 		)
 
@@ -623,7 +623,7 @@ describe('vMix', () => {
 					input: '2',
 				},
 			}),
-			null,
+			CommandContext.None,
 			expect.any(String)
 		)
 		expect(commandReceiver0).toHaveBeenNthCalledWith(
@@ -635,7 +635,7 @@ describe('vMix', () => {
 					input: '2',
 				},
 			}),
-			null,
+			CommandContext.None,
 			expect.any(String)
 		)
 		expect(commandReceiver0).toHaveBeenNthCalledWith(
@@ -649,7 +649,7 @@ describe('vMix', () => {
 					value: 'G:/videos/My Other Clip.mp4',
 				},
 			}),
-			null,
+			CommandContext.None,
 			expect.any(String)
 		)
 		expect(commandReceiver0).toHaveBeenNthCalledWith(
@@ -663,7 +663,7 @@ describe('vMix', () => {
 					value: 5,
 				},
 			}),
-			null,
+			CommandContext.None,
 			expect.any(String)
 		)
 		expect(commandReceiver0).toHaveBeenNthCalledWith(
@@ -675,7 +675,7 @@ describe('vMix', () => {
 					input: '2',
 				},
 			}),
-			null,
+			CommandContext.None,
 			expect.any(String)
 		)
 
@@ -704,7 +704,7 @@ describe('vMix', () => {
 					input: '2',
 				},
 			}),
-			null,
+			CommandContext.None,
 			expect.any(String)
 		)
 		expect(commandReceiver0).toHaveBeenNthCalledWith(
@@ -716,7 +716,7 @@ describe('vMix', () => {
 					input: '2',
 				},
 			}),
-			null,
+			CommandContext.None,
 			expect.any(String)
 		)
 		expect(commandReceiver0).toHaveBeenNthCalledWith(
@@ -730,7 +730,7 @@ describe('vMix', () => {
 					value: '',
 				},
 			}),
-			null,
+			CommandContext.None,
 			expect.any(String)
 		)
 		expect(commandReceiver0).toHaveBeenNthCalledWith(
@@ -744,7 +744,7 @@ describe('vMix', () => {
 					value: '',
 				},
 			}),
-			null,
+			CommandContext.None,
 			expect.any(String)
 		)
 
@@ -903,7 +903,7 @@ describe('vMix', () => {
 					value: 'Video|C:/videos/My Clip.mp4',
 				},
 			}),
-			null,
+			CommandContext.None,
 			expect.any(String)
 		)
 		expect(commandReceiver0).toHaveBeenNthCalledWith(
@@ -916,7 +916,7 @@ describe('vMix', () => {
 					value: 'C:/videos/My Clip.mp4',
 				},
 			}),
-			null,
+			CommandContext.None,
 			expect.any(String)
 		)
 
@@ -952,7 +952,7 @@ describe('vMix', () => {
 					mix: 0,
 				},
 			}),
-			null,
+			CommandContext.None,
 			expect.any(String)
 		)
 		expect(commandReceiver0).toHaveBeenNthCalledWith(
@@ -966,7 +966,7 @@ describe('vMix', () => {
 					fade: 0,
 				},
 			}),
-			null,
+			CommandContext.None,
 			expect.any(String)
 		)
 
@@ -999,7 +999,7 @@ describe('vMix', () => {
 					value: 'Video|G:/videos/My Other Clip.mp4',
 				},
 			}),
-			null,
+			CommandContext.None,
 			expect.any(String)
 		)
 		expect(commandReceiver0).toHaveBeenNthCalledWith(
@@ -1012,7 +1012,7 @@ describe('vMix', () => {
 					value: 'G:/videos/My Other Clip.mp4',
 				},
 			}),
-			null,
+			CommandContext.None,
 			expect.any(String)
 		)
 		expect(commandReceiver0).toHaveBeenNthCalledWith(
@@ -1027,7 +1027,7 @@ describe('vMix', () => {
 					mix: 0,
 				},
 			}),
-			null,
+			CommandContext.None,
 			expect.any(String)
 		)
 		expect(commandReceiver0).toHaveBeenNthCalledWith(
@@ -1041,7 +1041,7 @@ describe('vMix', () => {
 					fade: 0,
 				},
 			}),
-			null,
+			CommandContext.None,
 			expect.any(String)
 		)
 		expect(commandReceiver0).toHaveBeenNthCalledWith(
@@ -1053,7 +1053,7 @@ describe('vMix', () => {
 					input: 'C:/videos/My Clip.mp4',
 				},
 			}),
-			null,
+			CommandContext.None,
 			expect.any(String)
 		)
 
@@ -1178,7 +1178,7 @@ describe('vMix', () => {
 					fade: 1337,
 				},
 			}),
-			null,
+			CommandContext.None,
 			expect.any(String)
 		)
 		expect(commandReceiver0).toHaveBeenNthCalledWith(
@@ -1191,7 +1191,7 @@ describe('vMix', () => {
 					value: 0.12,
 				},
 			}),
-			null,
+			CommandContext.None,
 			expect.any(String)
 		)
 		expect(commandReceiver0).toHaveBeenNthCalledWith(
@@ -1203,7 +1203,7 @@ describe('vMix', () => {
 					input: '2',
 				},
 			}),
-			null,
+			CommandContext.None,
 			expect.any(String)
 		)
 		expect(commandReceiver0).toHaveBeenNthCalledWith(
@@ -1216,7 +1216,7 @@ describe('vMix', () => {
 					value: 'A',
 				},
 			}),
-			null,
+			CommandContext.None,
 			expect.any(String)
 		)
 		expect(commandReceiver0).toHaveBeenNthCalledWith(
@@ -1229,7 +1229,7 @@ describe('vMix', () => {
 					value: 'C',
 				},
 			}),
-			null,
+			CommandContext.None,
 			expect.any(String)
 		)
 		expect(commandReceiver0).toHaveBeenNthCalledWith(
@@ -1242,7 +1242,7 @@ describe('vMix', () => {
 					value: 'F',
 				},
 			}),
-			null,
+			CommandContext.None,
 			expect.any(String)
 		)
 		expect(commandReceiver0).toHaveBeenNthCalledWith(
@@ -1255,7 +1255,7 @@ describe('vMix', () => {
 					value: 'M',
 				},
 			}),
-			null,
+			CommandContext.None,
 			expect.any(String)
 		)
 		expect(commandReceiver0).toHaveBeenNthCalledWith(
@@ -1267,7 +1267,7 @@ describe('vMix', () => {
 					input: '2',
 				},
 			}),
-			null,
+			CommandContext.None,
 			expect.any(String)
 		)
 
@@ -1297,7 +1297,7 @@ describe('vMix', () => {
 					input: '2',
 				},
 			}),
-			null,
+			CommandContext.None,
 			expect.any(String)
 		)
 		expect(commandReceiver0).toHaveBeenNthCalledWith(
@@ -1311,7 +1311,7 @@ describe('vMix', () => {
 					fade: 0,
 				},
 			}),
-			null,
+			CommandContext.None,
 			expect.any(String)
 		)
 		expect(commandReceiver0).toHaveBeenNthCalledWith(
@@ -1324,7 +1324,7 @@ describe('vMix', () => {
 					value: 0,
 				},
 			}),
-			null,
+			CommandContext.None,
 			expect.any(String)
 		)
 		expect(commandReceiver0).toHaveBeenNthCalledWith(
@@ -1336,7 +1336,7 @@ describe('vMix', () => {
 					input: '2',
 				},
 			}),
-			null,
+			CommandContext.None,
 			expect.any(String)
 		)
 		expect(commandReceiver0).toHaveBeenNthCalledWith(
@@ -1349,7 +1349,7 @@ describe('vMix', () => {
 					value: 'M',
 				},
 			}),
-			null,
+			CommandContext.None,
 			expect.any(String)
 		)
 		expect(commandReceiver0).toHaveBeenNthCalledWith(
@@ -1362,7 +1362,7 @@ describe('vMix', () => {
 					value: 'A',
 				},
 			}),
-			null,
+			CommandContext.None,
 			expect.any(String)
 		)
 		expect(commandReceiver0).toHaveBeenNthCalledWith(
@@ -1375,7 +1375,7 @@ describe('vMix', () => {
 					value: 'C',
 				},
 			}),
-			null,
+			CommandContext.None,
 			expect.any(String)
 		)
 		expect(commandReceiver0).toHaveBeenNthCalledWith(
@@ -1388,7 +1388,7 @@ describe('vMix', () => {
 					value: 'F',
 				},
 			}),
-			null,
+			CommandContext.None,
 			expect.any(String)
 		)
 
@@ -1598,7 +1598,7 @@ describe('vMix', () => {
 					mix: 0,
 				},
 			}),
-			null,
+			CommandContext.None,
 			expect.any(String)
 		)
 		expect(commandReceiver0).toHaveBeenNthCalledWith(
@@ -1613,7 +1613,7 @@ describe('vMix', () => {
 					mix: 1,
 				},
 			}),
-			null,
+			CommandContext.None,
 			expect.any(String)
 		)
 		expect(commandReceiver0).toHaveBeenNthCalledWith(
@@ -1626,7 +1626,7 @@ describe('vMix', () => {
 					mix: 0,
 				},
 			}),
-			null,
+			CommandContext.None,
 			expect.any(String)
 		)
 		expect(commandReceiver0).toHaveBeenNthCalledWith(
@@ -1639,7 +1639,7 @@ describe('vMix', () => {
 					mix: 1,
 				},
 			}),
-			null,
+			CommandContext.None,
 			expect.any(String)
 		)
 
@@ -1752,7 +1752,7 @@ describe('vMix', () => {
 					value: 2,
 				},
 			}),
-			null,
+			CommandContext.None,
 			expect.any(String)
 		)
 
@@ -1775,7 +1775,7 @@ describe('vMix', () => {
 					value: 2,
 				},
 			}),
-			null,
+			CommandContext.None,
 			expect.any(String)
 		)
 
@@ -1878,7 +1878,7 @@ describe('vMix', () => {
 					command: VMixCommand.START_RECORDING,
 				},
 			}),
-			null,
+			CommandContext.None,
 			expect.any(String)
 		)
 
@@ -1900,7 +1900,7 @@ describe('vMix', () => {
 					command: VMixCommand.STOP_RECORDING,
 				},
 			}),
-			null,
+			CommandContext.None,
 			expect.any(String)
 		)
 
@@ -2003,7 +2003,7 @@ describe('vMix', () => {
 					command: VMixCommand.START_EXTERNAL,
 				},
 			}),
-			null,
+			CommandContext.None,
 			expect.any(String)
 		)
 
@@ -2025,7 +2025,7 @@ describe('vMix', () => {
 					command: VMixCommand.STOP_EXTERNAL,
 				},
 			}),
-			null,
+			CommandContext.None,
 			expect.any(String)
 		)
 
@@ -2128,7 +2128,7 @@ describe('vMix', () => {
 					command: VMixCommand.START_STREAMING,
 				},
 			}),
-			null,
+			CommandContext.None,
 			expect.any(String)
 		)
 
@@ -2150,7 +2150,7 @@ describe('vMix', () => {
 					command: VMixCommand.STOP_STREAMING,
 				},
 			}),
-			null,
+			CommandContext.None,
 			expect.any(String)
 		)
 
@@ -2256,7 +2256,7 @@ describe('vMix', () => {
 					value: 'Preview',
 				},
 			}),
-			null,
+			CommandContext.None,
 			expect.any(String)
 		)
 
@@ -2280,7 +2280,7 @@ describe('vMix', () => {
 					value: 'Output',
 				},
 			}),
-			null,
+			CommandContext.None,
 			expect.any(String)
 		)
 
@@ -2388,7 +2388,7 @@ describe('vMix', () => {
 					input: 2,
 				},
 			}),
-			null,
+			CommandContext.None,
 			expect.any(String)
 		)
 
@@ -2412,7 +2412,7 @@ describe('vMix', () => {
 					value: 'Output',
 				},
 			}),
-			null,
+			CommandContext.None,
 			expect.any(String)
 		)
 
@@ -2515,7 +2515,7 @@ describe('vMix', () => {
 					command: VMixCommand.FADE_TO_BLACK,
 				},
 			}),
-			null,
+			CommandContext.None,
 			expect.any(String)
 		)
 
@@ -2537,7 +2537,7 @@ describe('vMix', () => {
 					command: VMixCommand.FADE_TO_BLACK,
 				},
 			}),
-			null,
+			CommandContext.None,
 			expect.any(String)
 		)
 
@@ -2641,7 +2641,7 @@ describe('vMix', () => {
 					value: 126,
 				},
 			}),
-			null,
+			CommandContext.None,
 			expect.any(String)
 		)
 
@@ -2664,7 +2664,7 @@ describe('vMix', () => {
 					value: 0,
 				},
 			}),
-			null,
+			CommandContext.None,
 			expect.any(String)
 		)
 
@@ -2768,7 +2768,7 @@ describe('vMix', () => {
 					value: 'myscript',
 				},
 			}),
-			null,
+			CommandContext.None,
 			expect.any(String)
 		)
 
@@ -2872,7 +2872,7 @@ describe('vMix', () => {
 					value: 'myscript',
 				},
 			}),
-			null,
+			CommandContext.None,
 			expect.any(String)
 		)
 
@@ -2892,7 +2892,7 @@ describe('vMix', () => {
 					value: 'myscript',
 				},
 			}),
-			null,
+			CommandContext.None,
 			expect.any(String)
 		)
 
@@ -3275,7 +3275,7 @@ describe('vMix', () => {
 					input: '1',
 				},
 			}),
-			null,
+			CommandContext.None,
 			expect.any(String)
 		)
 		expect(commandReceiver0).toHaveBeenNthCalledWith(
@@ -3287,7 +3287,7 @@ describe('vMix', () => {
 					input: '1',
 				},
 			}),
-			null,
+			CommandContext.None,
 			expect.any(String)
 		)
 
@@ -3394,7 +3394,7 @@ describe('vMix', () => {
 					value: 'C:\\foo.mov',
 				},
 			}),
-			null,
+			CommandContext.None,
 			expect.any(String)
 		)
 
@@ -3562,7 +3562,7 @@ describe('vMix', () => {
 					mix: 0,
 				},
 			}),
-			null,
+			CommandContext.None,
 			expect.any(String)
 		)
 		expect(commandReceiver0).toHaveBeenNthCalledWith(
@@ -3576,7 +3576,7 @@ describe('vMix', () => {
 					index: 1,
 				},
 			}),
-			null,
+			CommandContext.None,
 			expect.any(String)
 		)
 		expect(commandReceiver0).toHaveBeenNthCalledWith(
@@ -3591,7 +3591,7 @@ describe('vMix', () => {
 					mix: 0,
 				},
 			}),
-			null,
+			CommandContext.None,
 			expect.any(String)
 		)
 		expect(commandReceiver0).toHaveBeenNthCalledWith(
@@ -3603,7 +3603,7 @@ describe('vMix', () => {
 					input: '1',
 				},
 			}),
-			null,
+			CommandContext.None,
 			expect.any(String)
 		)
 		expect(commandReceiver0).toHaveBeenNthCalledWith(
@@ -3615,7 +3615,7 @@ describe('vMix', () => {
 					input: '1',
 				},
 			}),
-			null,
+			CommandContext.None,
 			expect.any(String)
 		)
 

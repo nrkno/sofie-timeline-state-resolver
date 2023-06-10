@@ -52,7 +52,7 @@ export type CommandReceiver = (
 	timelineObjId: string
 	layer: string
 }*/
-enum CommandContext {
+export enum CommandContext {
 	None = 'none',
 	Retry = 'retry',
 }
