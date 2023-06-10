@@ -1307,15 +1307,13 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 		const confirmedState = cloneDeep(currentExpectedState.state)
 
 		for (const [inputName, input] of Object.entries<VMixInput>(currentExpectedState.state.reportedState.inputs)) {
-			if (input.filePath) {
-				// Currently disabled because, as far as we can tell, input.filePath
-				// doesn't actually currently do anything in TSR...
-				// if (input.filePath === fileNotFoundMatch.groups.fileName) {
-				// 	if (inputName in confirmedState.reportedState.inputs) {
-				// 		// This will cause the diff to generate a new command to load the file.
-				// 		delete confirmedState.reportedState.inputs[inputName].filePath
-				// 	}
-				// }
+			if (input.filePath || (input.type && input.type !== VMixInputType.List)) {
+				if (input.filePath === fileNotFoundMatch.groups.fileName || input.name === fileNotFoundMatch.groups.fileName) {
+					if (inputName in confirmedState.reportedState.inputs) {
+						// This will cause the diff to generate a new command to create the input.
+						delete confirmedState.reportedState.inputs[inputName]
+					}
+				}
 			} else if (input.listFilePaths) {
 				if (input.listFilePaths.includes(fileNotFoundMatch.groups.fileName)) {
 					if (inputName in confirmedState.reportedState.inputs) {
