@@ -1,3 +1,4 @@
+import { klona } from 'klona'
 import {
 	Datastore,
 	Timeline,
@@ -287,4 +288,8 @@ export function actionNotFoundMessage(id: string) {
 		result: ActionExecutionResultCode.Error,
 		response: t('Action "{{id}}" not found', { id }),
 	}
+}
+
+export function cloneDeep<T>(input: T): T {
+	return klona(input)
 }

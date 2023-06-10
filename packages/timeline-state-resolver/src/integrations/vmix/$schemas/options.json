@@ -10,6 +10,11 @@
 		"port": {
 			"type": "integer",
 			"ui:title": "Port"
+		},
+		"retryInterval": {
+			"type": "number",
+			"ui:title": "Retry Interval",
+			"description": "How often, in milliseconds, to try re-sending certain failed commands. Defaults to 10 seconds. Set to 0 to disable. As of June 9th, 2023, this only works for media loading commands."
 		}
 	},
 	"required": ["host", "port"],
