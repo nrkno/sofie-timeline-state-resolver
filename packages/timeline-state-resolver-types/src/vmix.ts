@@ -152,7 +152,7 @@ export interface TimelineContentVMixInput extends TimelineContentVMixBase {
 	/** Media file path */
 	filePath?: number | string
 
-	/** Set only when dealing with media */
+	/** Set only when dealing with media. If provided, TSR will attempt to automatically create **and potentially remove** the input. */
 	inputType?: VMixInputType
 
 	/** If media should be playing */

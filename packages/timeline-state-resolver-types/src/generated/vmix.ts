@@ -32,7 +32,7 @@ export interface MappingVmixPreview {
 
 export interface MappingVmixInput {
 	/**
-	 * Input number or name
+	 * Input number or name. Omit if you plan to use the `filePath` property in `TimelineContentVMixInput`.
 	 */
 	index?: string
 	mappingType: MappingVmixType.Input
