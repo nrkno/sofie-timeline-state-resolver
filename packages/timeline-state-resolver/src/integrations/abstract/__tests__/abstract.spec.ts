@@ -88,7 +88,7 @@ describe('Abstract device', () => {
 		expect(getMockCall(commandReceiver0, 0, 1)).toMatchObject({
 			commandName: 'addedAbstract',
 			content: {
-				deviceType: 0, // abstract
+				deviceType: 'ABSTRACT',
 				tmp0: 'abc',
 			},
 			context: 'added: obj0',
@@ -99,7 +99,7 @@ describe('Abstract device', () => {
 		expect(getMockCall(commandReceiver0, 1, 1)).toMatchObject({
 			commandName: 'changedAbstract',
 			content: {
-				deviceType: 0, // abstract
+				deviceType: 'ABSTRACT',
 				tmp0: 'abcde',
 			},
 			context: 'changed: obj1',
@@ -110,7 +110,7 @@ describe('Abstract device', () => {
 		expect(getMockCall(commandReceiver0, 2, 1)).toMatchObject({
 			commandName: 'removedAbstract',
 			content: {
-				deviceType: 0, // abstract
+				deviceType: 'ABSTRACT',
 				tmp0: 'abcde',
 			},
 			context: 'removed: obj1',

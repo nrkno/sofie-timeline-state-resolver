@@ -120,7 +120,7 @@ describe('Conductor', () => {
 		expect(getMockCall(commandReceiver0, 0, 1)).toMatchObject({
 			commandName: 'addedAbstract',
 			content: {
-				deviceType: 0, // abstract
+				deviceType: 'ABSTRACT',
 				myAttr1: 'one',
 				myAttr2: 'two',
 			},
@@ -138,7 +138,7 @@ describe('Conductor', () => {
 		expect(getMockCall(commandReceiver0, 0, 1)).toMatchObject({
 			commandName: 'removedAbstract',
 			content: {
-				deviceType: 0, // abstract
+				deviceType: 'ABSTRACT',
 				myAttr1: 'one',
 				myAttr2: 'two',
 			},
@@ -149,7 +149,7 @@ describe('Conductor', () => {
 		expect(getMockCall(commandReceiver1, 0, 1)).toMatchObject({
 			commandName: 'addedAbstract',
 			content: {
-				deviceType: 0, // abstract
+				deviceType: 'ABSTRACT',
 				myAttr1: 'three',
 				myAttr2: 'four',
 			},
@@ -165,7 +165,7 @@ describe('Conductor', () => {
 		expect(getMockCall(commandReceiver1, 0, 1)).toMatchObject({
 			commandName: 'removedAbstract',
 			content: {
-				deviceType: 0, // abstract
+				deviceType: 'ABSTRACT',
 				myAttr1: 'three',
 				myAttr2: 'four',
 			},

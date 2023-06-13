@@ -64,13 +64,15 @@ const stringifyActionSchema = (action: Omit<TSRActionSchema, 'payload'> & { payl
 const stringifyMappingSchema = (schema: any): Record<string, string> =>
 	Object.fromEntries(Object.entries<any>(schema.mappings).map(([id, sch]) => [id, JSON.stringify(sch)]))
 
+export type TSRDevicesManifestEntry = {
+	displayName: string
+	configSchema: string
+	actions?: TSRActionSchema[]
+	mappingsSchemas: Record<string, string>
+}
+
 export type TSRDevicesManifest = {
-	[deviceType in DeviceType]: {
-		displayName: string
-		configSchema: string
-		actions?: TSRActionSchema[]
-		mappingsSchemas: Record<string, string>
-	}
+	[deviceType in DeviceType]: TSRDevicesManifestEntry
 }
 
 export interface TSRManifest {
