@@ -31,7 +31,7 @@ export class SisyfosApi extends EventEmitter {
 
 		this._oscClient = new osc.UDPPort({
 			localAddress: '0.0.0.0',
-			localPort: 5256, // To avoid not using the same port both ways on local installs, this port is one higher
+			localPort: 0,
 			remoteAddress: this.host,
 			remotePort: this.port,
 			metadata: true,
