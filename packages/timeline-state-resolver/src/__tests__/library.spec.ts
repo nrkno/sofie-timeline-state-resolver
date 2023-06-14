@@ -22,10 +22,10 @@ describe('Usage of library', () => {
 			type: DeviceType.ABSTRACT,
 			options: {},
 		}
-		expect(options.type).toEqual(0)
+		expect(options.type).toEqual('ABSTRACT')
 	})
 	test('types', () => {
-		expect(Types_DeviceType.ATEM).toEqual(2)
+		expect(Types_DeviceType.ATEM).toEqual('ATEM')
 
 		expect(Types_DeviceType).toEqual(DeviceType)
 
@@ -44,6 +44,6 @@ describe('Usage of library', () => {
 			classes: [],
 		}
 		const tl: TSRTimeline = [obj]
-		expect(tl[0].content.deviceType).toEqual(0)
+		expect(tl[0].content.deviceType).toEqual('ABSTRACT')
 	})
 })

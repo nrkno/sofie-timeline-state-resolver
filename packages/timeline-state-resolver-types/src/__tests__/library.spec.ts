@@ -6,7 +6,7 @@ describe('Usage of library', () => {
 
 	// Note that the command 'yarn types-build' must have been run for these tests to pass
 	test('types', () => {
-		expect(Types_DeviceType.ATEM).toEqual(2)
+		expect(Types_DeviceType.ATEM).toEqual('ATEM')
 
 		// Expect these types to work:
 		const obj: TSRTimelineObj<TimelineContentEmpty> = {
@@ -23,6 +23,6 @@ describe('Usage of library', () => {
 			classes: [],
 		}
 		const tl: TSRTimeline = [obj]
-		expect(tl[0].content.deviceType).toEqual(0)
+		expect(tl[0].content.deviceType).toEqual('ABSTRACT')
 	})
 })
