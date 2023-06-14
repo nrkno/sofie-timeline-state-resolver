@@ -36,9 +36,9 @@
 				"index": {
 					"type": "string",
 					"ui:title": "Index",
-					"ui:description": "Input number or name",
+					"ui:description": "Input number or name. Omit if you plan to use the `filePath` property in `TimelineContentVMixInput`.",
 					"ui:summaryTitle": "Index",
-					"description": "Input number or name",
+					"description": "Input number or name. Omit if you plan to use the `filePath` property in `TimelineContentVMixInput`.",
 					"TODO": "string | number. this could be done with 'anyOf' or something, but adds complexity for little benefit"
 				}
 			},

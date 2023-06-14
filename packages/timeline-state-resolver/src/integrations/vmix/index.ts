@@ -4,7 +4,7 @@ import * as deepMerge from 'deepmerge'
 import { DeviceWithState, CommandWithContext, DeviceStatus, StatusCode } from './../../devices/device'
 import { DoOnTime, SendMode } from '../../devices/doOnTime'
 
-import { VMix, VMixStateCommand } from './connection'
+import { VMix, VMixStateCommand, Response as VMixResponse } from './connection'
 import {
 	DeviceType,
 	DeviceOptionsVMix,
@@ -28,7 +28,13 @@ import {
 	SavePresetPayload,
 	VmixActions,
 } from 'timeline-state-resolver-types'
-import { t } from '../../lib'
+import { cloneDeep, t } from '../../lib'
+
+/**
+ * Default time, in milliseconds, for when we should retry loading media files.
+ */
+const DEFAULT_MEDIA_RETRY_INTERVAL = 10 * 1000
+const FILE_NOT_FOUND_REGEX = /File Not Found: (?<fileName>.+)/i
 
 export interface DeviceOptionsVMixInternal extends DeviceOptionsVMix {
 	commandReceiver?: CommandReceiver
@@ -46,7 +52,10 @@ export type CommandReceiver = (
 	timelineObjId: string
 	layer: string
 }*/
-type CommandContext = any
+export enum CommandContext {
+	None = 'none',
+	Retry = 'retry',
+}
 export interface VMixStateCommandWithContext {
 	command: VMixStateCommand
 	context: CommandContext
@@ -78,6 +87,20 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 	private _vmix: VMix
 	private _connected = false
 	private _initialized = false
+	private _retryTimeout: NodeJS.Timeout
+	private _retryTime: number | null = null
+	/**
+	 * Our best guess as to what the real state of vMix is at this moment.
+	 * This is *not* the same thing as `this._vmix.state.reportedState`,
+	 * even though they seem and sound very similar. The difference is that
+	 * this reacts to incoming command error messages (specifically for media loading)
+	 * and updates itself based on those. From there, it is used to generate diffs that
+	 * are used to re-send failed commands (again, specifically for media loading).
+	 *
+	 * In short: this uses a heuristic to guess the real state of vMix,
+	 * spefically its media statuses.
+	 */
+	private _bestGuessActualState: VMixStateExtended | null = null
 
 	constructor(deviceId: string, deviceOptions: DeviceOptionsVMixInternal, getCurrentTime: () => Promise<number>) {
 		super(deviceId, deviceOptions, getCurrentTime)
@@ -124,11 +147,18 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 					this.emit('connectionChanged', this.getStatus())
 					this.emit('resetResolver')
 				}
+			} else if (d.response === 'ER' && FILE_NOT_FOUND_REGEX.test(d.message)) {
+				this._changeTrackedStateFromIncomingData(d)
 			}
 		})
 		// this._vmix.on('debug', (...args) => this.emitDebug(...args))
 
 		this._vmix.connect()
+
+		if (typeof options.retryInterval !== 'number' || options.retryInterval > 0) {
+			this._retryTime = options.retryInterval ?? DEFAULT_MEDIA_RETRY_INTERVAL
+			this._retryTimeout = setTimeout(() => this._assertIntendedState(), this._retryTime)
+		}
 
 		return true
 	}
@@ -267,6 +297,8 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 
 		this._vmix.removeAllListeners()
 		this._vmix.disconnect()
+
+		clearTimeout(this._retryTimeout)
 
 		return Promise.resolve(true)
 	}
@@ -599,7 +631,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 							duration: changeOnLayer ? 0 : newMixState.transition.duration,
 							mix: i,
 						},
-						context: null,
+						context: CommandContext.None,
 						timelineId: '',
 					})
 				}
@@ -616,7 +648,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 						input: newMixState.preview,
 						mix: i,
 					},
-					context: null,
+					context: CommandContext.None,
 					timelineId: '',
 				})
 			}
@@ -629,7 +661,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 						command: VMixCommand.FADER,
 						value: newVMixState.reportedState.faderPosition || 0,
 					},
-					context: null,
+					context: CommandContext.None,
 					timelineId: '',
 				})
 				// newVMixState.reportedState.program = undefined
@@ -643,7 +675,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 				command: {
 					command: VMixCommand.FADE_TO_BLACK,
 				},
-				context: null,
+				context: CommandContext.None,
 				timelineId: '',
 			})
 		}
@@ -670,7 +702,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 						command: VMixCommand.ADD_INPUT,
 						value: `${input.type}|${input.name}`,
 					},
-					context: null,
+					context: CommandContext.None,
 					timelineId: '',
 				})
 				addCommands.push({
@@ -679,7 +711,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 						input: this.getFilename(input.name),
 						value: input.name,
 					},
-					context: null,
+					context: CommandContext.None,
 					timelineId: '',
 				})
 				this._addToQueue(addCommands, this.getCurrentTime())
@@ -716,7 +748,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 							command: VMixCommand.PAUSE_INPUT,
 							input: input.name,
 						},
-						context: null,
+						context: CommandContext.None,
 						timelineId: '',
 					})
 				}
@@ -725,7 +757,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 						command: VMixCommand.LIST_REMOVE_ALL,
 						input: input.name,
 					},
-					context: null,
+					context: CommandContext.None,
 					timelineId: '',
 				})
 				if (Array.isArray(input.listFilePaths)) {
@@ -736,7 +768,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 								input: input.name,
 								value: filePath,
 							},
-							context: null,
+							context: CommandContext.None,
 							timelineId: '',
 						})
 					}
@@ -748,7 +780,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 						command: VMixCommand.PAUSE_INPUT,
 						input: input.name,
 					},
-					context: null,
+					context: CommandContext.None,
 					timelineId: '',
 				})
 			}
@@ -759,7 +791,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 						input: key,
 						value: input.position ? input.position : 0,
 					},
-					context: null,
+					context: CommandContext.None,
 					timelineId: '',
 				})
 			}
@@ -769,7 +801,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 						command: VMixCommand.RESTART_INPUT,
 						input: key,
 					},
-					context: null,
+					context: CommandContext.None,
 					timelineId: '',
 				})
 			}
@@ -780,7 +812,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 							command: VMixCommand.LOOP_ON,
 							input: input.name,
 						},
-						context: null,
+						context: CommandContext.None,
 						timelineId: '',
 					})
 				} else {
@@ -789,7 +821,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 							command: VMixCommand.LOOP_OFF,
 							input: input.name,
 						},
-						context: null,
+						context: CommandContext.None,
 						timelineId: '',
 					})
 				}
@@ -800,7 +832,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 						command: VMixCommand.AUDIO_OFF,
 						input: key,
 					},
-					context: null,
+					context: CommandContext.None,
 					timelineId: '',
 				})
 			}
@@ -812,7 +844,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 						value: input.volume,
 						fade: input.fade,
 					},
-					context: null,
+					context: CommandContext.None,
 					timelineId: '',
 				})
 			}
@@ -823,7 +855,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 						input: key,
 						value: input.balance,
 					},
-					context: null,
+					context: CommandContext.None,
 					timelineId: '',
 				})
 			}
@@ -834,7 +866,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 							command: VMixCommand.AUDIO_AUTO_OFF,
 							input: key,
 						},
-						context: null,
+						context: CommandContext.None,
 						timelineId: '',
 					})
 				} else {
@@ -843,7 +875,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 							command: VMixCommand.AUDIO_AUTO_ON,
 							input: key,
 						},
-						context: null,
+						context: CommandContext.None,
 						timelineId: '',
 					})
 				}
@@ -858,7 +890,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 							input: key,
 							value: bus,
 						},
-						context: null,
+						context: CommandContext.None,
 						timelineId: '',
 					})
 				})
@@ -869,7 +901,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 							input: key,
 							value: bus,
 						},
-						context: null,
+						context: CommandContext.None,
 						timelineId: '',
 					})
 				})
@@ -880,7 +912,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 						command: VMixCommand.AUDIO_ON,
 						input: key,
 					},
-					context: null,
+					context: CommandContext.None,
 					timelineId: '',
 				})
 			}
@@ -892,7 +924,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 							input: key,
 							value: input.transform.zoom,
 						},
-						context: null,
+						context: CommandContext.None,
 						timelineId: '',
 					})
 				}
@@ -903,7 +935,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 							input: key,
 							value: input.transform.alpha,
 						},
-						context: null,
+						context: CommandContext.None,
 						timelineId: '',
 					})
 				}
@@ -914,7 +946,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 							input: key,
 							value: input.transform.panX,
 						},
-						context: null,
+						context: CommandContext.None,
 						timelineId: '',
 					})
 				}
@@ -925,7 +957,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 							input: key,
 							value: input.transform.panY,
 						},
-						context: null,
+						context: CommandContext.None,
 						timelineId: '',
 					})
 				}
@@ -940,7 +972,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 								value: input.overlays![Number(index)],
 								index: Number(index),
 							},
-							context: null,
+							context: CommandContext.None,
 							timelineId: '',
 						})
 					}
@@ -954,7 +986,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 								value: '',
 								index: Number(index),
 							},
-							context: null,
+							context: CommandContext.None,
 							timelineId: '',
 						})
 					}
@@ -966,7 +998,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 						command: VMixCommand.PLAY_INPUT,
 						input: input.name,
 					},
-					context: null,
+					context: CommandContext.None,
 					timelineId: '',
 				})
 			}
@@ -990,7 +1022,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 						command: VMixCommand.REMOVE_INPUT,
 						input: oldVMixState.reportedState.inputs[input].name || input,
 					},
-					context: null,
+					context: CommandContext.None,
 					timelineId: '',
 				})
 			}
@@ -1012,7 +1044,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 							command: VMixCommand.OVERLAY_INPUT_OUT,
 							value: overlay.number,
 						},
-						context: null,
+						context: CommandContext.None,
 						timelineId: '',
 					})
 				} else {
@@ -1022,7 +1054,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 							input: overlay.input,
 							value: overlay.number,
 						},
-						context: null,
+						context: CommandContext.None,
 						timelineId: '',
 					})
 				}
@@ -1042,7 +1074,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 					command: {
 						command: VMixCommand.START_RECORDING,
 					},
-					context: null,
+					context: CommandContext.None,
 					timelineId: '',
 				})
 			} else {
@@ -1050,7 +1082,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 					command: {
 						command: VMixCommand.STOP_RECORDING,
 					},
-					context: null,
+					context: CommandContext.None,
 					timelineId: '',
 				})
 			}
@@ -1069,7 +1101,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 					command: {
 						command: VMixCommand.START_STREAMING,
 					},
-					context: null,
+					context: CommandContext.None,
 					timelineId: '',
 				})
 			} else {
@@ -1077,7 +1109,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 					command: {
 						command: VMixCommand.STOP_STREAMING,
 					},
-					context: null,
+					context: CommandContext.None,
 					timelineId: '',
 				})
 			}
@@ -1096,7 +1128,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 					command: {
 						command: VMixCommand.START_EXTERNAL,
 					},
-					context: null,
+					context: CommandContext.None,
 					timelineId: '',
 				})
 			} else {
@@ -1104,7 +1136,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 					command: {
 						command: VMixCommand.STOP_EXTERNAL,
 					},
-					context: null,
+					context: CommandContext.None,
 					timelineId: '',
 				})
 			}
@@ -1129,7 +1161,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 						input: output.input,
 						name,
 					},
-					context: null,
+					context: CommandContext.None,
 					timelineId: '',
 				})
 			}
@@ -1150,7 +1182,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 						command: VMixCommand.SCRIPT_START,
 						value: name,
 					},
-					context: null,
+					context: CommandContext.None,
 					timelineId: '',
 				})
 			}
@@ -1163,7 +1195,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 						command: VMixCommand.SCRIPT_STOP,
 						value: name,
 					},
-					context: null,
+					context: CommandContext.None,
 					timelineId: '',
 				})
 			}
@@ -1198,6 +1230,12 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 		context: CommandContext,
 		timelineObjId: string
 	): Promise<any> {
+		// do not retry while we are sending commands, instead always retry closely after:
+		if (context !== CommandContext.Retry) {
+			clearTimeout(this._retryTimeout)
+			if (this._retryTime) this._retryTimeout = setTimeout(() => this._assertIntendedState(), this._retryTime)
+		}
+
 		const cwc: CommandWithContext = {
 			context: context,
 			command: cmd,
@@ -1254,6 +1292,80 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 
 		return false
 	}
+
+	/**
+	 * Receives incoming data (i.e. command responses, though it may be subscription data too)
+	 * from vMix and changes our tracked state based on the contents of that data.
+	 */
+	private _changeTrackedStateFromIncomingData(data: VMixResponse): void {
+		const currentExpectedState = this.getState(this.getCurrentTime())
+		if (!currentExpectedState) return
+
+		const fileNotFoundMatch = data.message.match(FILE_NOT_FOUND_REGEX)
+		if (!fileNotFoundMatch?.groups) return // We only handle "file not found" responses, so ignore everything else.
+
+		const confirmedState = cloneDeep(currentExpectedState.state)
+
+		for (const [inputName, input] of Object.entries<VMixInput>(currentExpectedState.state.reportedState.inputs)) {
+			if (input.filePath || (input.type && input.type !== VMixInputType.List)) {
+				if (input.filePath === fileNotFoundMatch.groups.fileName || input.name === fileNotFoundMatch.groups.fileName) {
+					if (inputName in confirmedState.reportedState.inputs) {
+						// This will cause the diff to generate a new command to create the input.
+						delete confirmedState.reportedState.inputs[inputName]
+					}
+				}
+			} else if (input.listFilePaths) {
+				if (input.listFilePaths.includes(fileNotFoundMatch.groups.fileName)) {
+					if (inputName in confirmedState.reportedState.inputs) {
+						// This will cause the diff to generate a new command to load the file.
+						confirmedState.reportedState.inputs[inputName].listFilePaths = input.listFilePaths.filter(
+							(fp) => fp !== fileNotFoundMatch.groups!.fileName
+						)
+					}
+				}
+			}
+		}
+
+		this._bestGuessActualState = confirmedState
+	}
+
+	/**
+	 * Takes the current timeline-state and diffs it with the known
+	 * vMix state. If any media has failed to load, it will create a diff with
+	 * the intended (timeline) state and that command will be executed.
+	 */
+	private _assertIntendedState() {
+		if (this._retryTime) {
+			this._retryTimeout = setTimeout(() => this._assertIntendedState(), this._retryTime)
+		}
+
+		if (!this._bestGuessActualState) return
+
+		const tlState = this.getState(this.getCurrentTime())
+
+		if (!tlState) return // no state implies any state is correct
+
+		const vmixState = tlState.state
+
+		const diff = this._diffStates(this._bestGuessActualState, vmixState)
+
+		const cmds: Array<VMixStateCommandWithContext> = []
+		for (const cmd of diff) {
+			// This system currently only handles media loading commands. Others could be added in the future.
+			if (cmd.command.command === VMixCommand.ADD_INPUT || cmd.command.command === VMixCommand.LIST_ADD) {
+				cmd.context = CommandContext.Retry
+				cmds.push(cmd)
+			}
+		}
+
+		if (cmds.length > 0) {
+			this._addToQueue(cmds, this.getCurrentTime())
+		}
+
+		// We have to now blindly hope that our sent commands will work.
+		// If not, that's okay, because we'll get new errors for them and the cycle will begin anew.
+		this._bestGuessActualState = vmixState
+	}
 }
 
 interface VMixOutput {
@@ -1262,6 +1374,12 @@ interface VMixOutput {
 }
 
 export interface VMixStateExtended {
+	/**
+	 * The state of vMix (as far as we know) as reported by vMix **+
+	 * our expectations based on the commands we've set**.
+	 * This might not align with reality, or it may lag behind reality, partially
+	 * because there's no good way to subscribe to vMix's state via its API.
+	 */
 	reportedState: VMixState
 	outputs: {
 		External2: VMixOutput

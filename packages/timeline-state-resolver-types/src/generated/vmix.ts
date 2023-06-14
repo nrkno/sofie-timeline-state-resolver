@@ -8,6 +8,10 @@
 export interface VMixOptions {
 	host: string
 	port: number
+	/**
+	 * How often, in milliseconds, to try re-sending certain failed commands. Defaults to 10 seconds. Set to 0 to disable. As of June 9th, 2023, this only works for media loading commands.
+	 */
+	retryInterval?: number
 }
 
 export interface MappingVmixProgram {
@@ -28,7 +32,7 @@ export interface MappingVmixPreview {
 
 export interface MappingVmixInput {
 	/**
-	 * Input number or name
+	 * Input number or name. Omit if you plan to use the `filePath` property in `TimelineContentVMixInput`.
 	 */
 	index?: string
 	mappingType: MappingVmixType.Input
