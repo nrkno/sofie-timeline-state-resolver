@@ -133,7 +133,7 @@ export class BaseConnection extends EventEmitter<ConnectionEvents> {
 						len -= l.length + 2
 						lines.push(l)
 					}
-					response.body = lines.join('\r\n')
+					response.body = lines.join('')
 					processedLines += lines.length
 				}
 
