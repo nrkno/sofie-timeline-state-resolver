@@ -55,6 +55,12 @@ export * from './translations'
 
 export * from './generated'
 
+/**
+ * An identifier of a particular device class
+ *
+ * @export
+ * @enum {string}
+ */
 export enum DeviceType {
 	ABSTRACT = 'ABSTRACT',
 	CASPARCG = 'CASPARCG',
