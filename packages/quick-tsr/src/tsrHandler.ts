@@ -4,15 +4,17 @@ import {
 	TimelineTriggerTimeResult,
 	DeviceOptionsAny,
 	Mappings,
-	DeviceContainer,
 	TSRTimeline,
 	Datastore,
 	DeviceStatus,
 	SlowSentCommandInfo,
+	DeviceOptionsBase,
+	SlowFulfilledCommandInfo,
 } from 'timeline-state-resolver'
 
 import * as _ from 'underscore'
 import { TSRSettings } from './index'
+import { BaseRemoteDeviceIntegration } from 'timeline-state-resolver/dist/service/remoteDeviceInstance'
 
 /**
  * Represents a connection between Gateway and TSR
@@ -25,7 +27,7 @@ export class TSRHandler {
 	// private _timeline: TSRTimeline
 	// private _mappings: Mappings
 
-	private _devices: { [deviceId: string]: DeviceContainer<any> } = {}
+	private _devices: { [deviceId: string]: BaseRemoteDeviceIntegration<DeviceOptionsBase<any>> } = {}
 
 	constructor() {
 		// nothing
@@ -123,7 +125,7 @@ export class TSRHandler {
 			}
 		})
 
-		_.each(this.tsr.getDevices(), (oldDevice: DeviceContainer<any>) => {
+		_.each(this.tsr.getDevices(), (oldDevice: BaseRemoteDeviceIntegration<DeviceOptionsBase<any>>) => {
 			const deviceId = oldDevice.deviceId
 			if (!devices[deviceId]) {
 				console.log('Un-initializing device: ' + deviceId)
@@ -147,8 +149,11 @@ export class TSRHandler {
 			await device.device.on('connectionChanged', ((status: DeviceStatus) => {
 				console.log(`Device ${device.deviceId} status changed: ${status}`)
 			}) as () => void)
-			await device.device.on('slowCommand', ((_info: SlowSentCommandInfo) => {
-				// console.log(`Device ${device.deviceId} slow command: ${_info}`)
+			await device.device.on('slowSentCommand', ((_info: SlowSentCommandInfo) => {
+				// console.log(`Device ${device.deviceId} slow sent command: ${_info}`)
+			}) as () => void)
+			await device.device.on('slowFulfilledCommand', ((_info: SlowFulfilledCommandInfo) => {
+				// console.log(`Device ${device.deviceId} slow fulfilled command: ${_info}`)
 			}) as () => void)
 			// also ask for the status now, and update:
 			// onConnectionChanged(await device.device.getStatus())
