@@ -28,7 +28,6 @@
 		"lint:raw": "run -T eslint --ext .ts --ext .js --ext .tsx --ext .jsx --ignore-pattern dist",
 		"lint": "run lint:raw .",
 		"lint-fix": "run lint --fix",
-		"unitci": "run build",
 		"inspect": "node --inspect dist/index.js",
 		"start": "run -T ts-node src/index.ts",
 		"validate:dependencies": "yarn npm audit --environment production && run license-validate",
