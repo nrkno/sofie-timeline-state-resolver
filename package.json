@@ -11,7 +11,7 @@
   },
   "scripts": {
     "prepare": "husky install",
-    "build": "run generate-schema-types && run build:types && run build:main",
+    "build": "run generate-schema-types && lerna run build",
     "build:types": "cd packages/timeline-state-resolver-types && yarn build",
     "build:main": "cd packages/timeline-state-resolver && yarn build",
     "lint": "lerna exec yarn lint -- --",
