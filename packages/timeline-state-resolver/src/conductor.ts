@@ -506,15 +506,6 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 						threadUsage: deviceOptions.isMultiThreaded ? 0.1 : 0,
 					}
 				)
-			case DeviceType.CASPARCG:
-				return DeviceContainer.create<DeviceOptionsCasparCGInternal, typeof CasparCGDevice>(
-					'../../dist/integrations/casparCG/index.js',
-					'CasparCGDevice',
-					deviceId,
-					deviceOptions,
-					getCurrentTime,
-					threadedClassOptions
-				)
 			case DeviceType.ATEM:
 				return DeviceContainer.create<DeviceOptionsAtemInternal, typeof AtemDevice>(
 					'../../dist/integrations/atem/index.js',
@@ -686,6 +677,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 					getCurrentTime,
 					threadedClassOptions
 				)
+			case DeviceType.CASPARCG:
 			case DeviceType.OSC:
 				// presumably this device is implemented in the new service handler
 				return RemoteDeviceInstance.create(

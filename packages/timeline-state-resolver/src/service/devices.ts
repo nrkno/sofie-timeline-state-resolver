@@ -1,6 +1,8 @@
-import { OscDevice } from '../integrations/osc'
 import { DeviceType } from 'timeline-state-resolver-types'
 import { Device } from './device'
+
+import { CasparCGDevice } from '../integrations/casparCG'
+import { OscDevice } from '../integrations/osc'
 
 export interface DeviceEntry {
 	deviceClass: new () => Device<any, any, any>
@@ -9,7 +11,7 @@ export interface DeviceEntry {
 	executionMode: (options: any) => 'salvo' | 'sequential'
 }
 
-type ImplementedDeviceTypes = DeviceType.OSC
+type ImplementedDeviceTypes = DeviceType.OSC | DeviceType.CASPARCG
 
 // TODO - move all device implementations here and remove the old Device classes
 export const DevicesDict: Record<ImplementedDeviceTypes, DeviceEntry> = {
@@ -17,6 +19,12 @@ export const DevicesDict: Record<ImplementedDeviceTypes, DeviceEntry> = {
 		deviceClass: OscDevice,
 		canConnect: true,
 		deviceName: (deviceId: string) => 'OSC ' + deviceId,
+		executionMode: () => 'salvo',
+	},
+	[DeviceType.CASPARCG]: {
+		deviceClass: CasparCGDevice,
+		canConnect: true,
+		deviceName: (deviceId: string) => 'CasparCG ' + deviceId,
 		executionMode: () => 'salvo',
 	},
 }
