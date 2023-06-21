@@ -13,7 +13,7 @@ export const input: TSRInput = {
 			id: 'video0',
 			enable: {
 				start: Date.now(),
-				duration: 20 * 1000,
+				duration: 5 * 1000,
 			},
 			layer: 'casparLayer0',
 			content: {

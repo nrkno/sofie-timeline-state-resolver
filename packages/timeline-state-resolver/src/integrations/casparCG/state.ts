@@ -10,6 +10,7 @@ import {
 	TemplateLayer,
 	TransitionObject,
 	Transition as StateTransition,
+	Mixer,
 } from 'casparcg-state'
 import { literal } from '../../devices/device'
 import {
@@ -17,7 +18,6 @@ import {
 	Mapping,
 	MappingCasparCGLayer,
 	Mappings,
-	Mixer,
 	ResolvedTimelineObjectInstanceExtended,
 	SomeMappingCasparCG,
 	TSRTimelineContent,

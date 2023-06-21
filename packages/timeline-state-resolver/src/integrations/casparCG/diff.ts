@@ -2,8 +2,14 @@ import { Mapping, Mappings, SomeMappingCasparCG } from 'timeline-state-resolver-
 import { InternalState, isValidCasparCGMapping, mappingToAddress } from './state'
 import { literal } from '../../devices/device'
 
-import { EmptyLayer, Layer, LayerContentType, NextUp, State as CcgState, AMCPCommandWithContext } from 'casparcg-state'
-import { resolveForegroundState } from 'casparcg-state/dist/lib/resolvers/foreground'
+import {
+	EmptyLayer,
+	Layer,
+	LayerContentType,
+	State as CcgState,
+	AMCPCommandWithContext,
+	CasparCGState,
+} from 'casparcg-state'
 import { InternalState as CcgInternalState } from 'casparcg-state/dist/lib/stateObjectStorage'
 
 type Command = any // @nocommit)
@@ -14,7 +20,7 @@ export function diffStates(
 	mappings: Mappings
 ): Array<Command> {
 	const addresses: Record<string, string[]> = {}
-	const allCommands: Array<AMCPCommandWithContext> = []
+	const allCommands: Array<{ layers: string[]; commands: AMCPCommandWithContext[] }> = []
 
 	for (const [mappingName, mapping] of Object.entries(mappings)) {
 		if (!isValidCasparCGMapping(mapping)) continue
@@ -40,7 +46,7 @@ export function diffStates(
 			newLayer = newState.layers[addr]
 		}
 		if (oldState?.layers[addr]) {
-			oldLayer = newState.layers[addr]
+			oldLayer = oldState.layers[addr]
 		}
 
 		if (newState.lookaheads[addr]) {
@@ -50,16 +56,17 @@ export function diffStates(
 			oldLayer.nextUp = oldState.lookaheads[addr]
 		}
 
-		const { commands, bgCleared } = resolveForegroundState(
+		const commands = CasparCGState.diffStatesOrderedCommands(
 			getInternalStateFromLayer(oldLayer, mapping),
 			getStateFromLayer(newLayer, mapping),
-			mapping.options.channel + '',
-			mapping.options.layer + '',
 			Date.now(), // @nocommit ???
 			150 // @nocommit - magic number....
 		)
 
-		allCommands.push(...commands.cmds)
+		allCommands.push({
+			layers: mappingNames,
+			commands,
+		})
 	}
 
 	// @nocommmit - check ordering of commands

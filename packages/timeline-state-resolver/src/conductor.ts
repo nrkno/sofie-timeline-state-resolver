@@ -30,7 +30,7 @@ import { assertNever, endTrace, fillStateFromDatastore, FinishedTrace, startTrac
 import { CommandWithContext, DeviceEvents } from './devices/device'
 import { DeviceContainer } from './devices/deviceContainer'
 
-import { CasparCGDevice, DeviceOptionsCasparCGInternal } from './integrations/casparCG'
+import { DeviceOptionsCasparCGInternal } from './integrations/casparCG/_index'
 import { AbstractDevice, DeviceOptionsAbstractInternal } from './integrations/abstract'
 import { HTTPSendDevice, DeviceOptionsHTTPSendInternal } from './integrations/httpSend'
 import { AtemDevice, DeviceOptionsAtemInternal } from './integrations/atem'
