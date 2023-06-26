@@ -1,5 +1,6 @@
 import {
 	ActionExecutionResult,
+	CasparCGActions,
 	CasparCGOptions,
 	DeviceStatus,
 	Mappings,
@@ -12,12 +13,14 @@ import { EventEmitter } from 'eventemitter3'
 import { convertTimelineStateToDeviceState } from './state'
 import { diffStates } from './diff'
 import { CasparCG, Commands, Response } from 'casparcg-connection'
+import { DeviceEvents } from '../../service/device'
+import { clearAllChannels, restartServer } from './actions'
 
 type DeviceOptions = CasparCGOptions
 type DeviceState = any
 type Command = any
 
-export class CasparCGDevice extends EventEmitter implements Device<DeviceOptions, DeviceState, Command> {
+export class CasparCGDevice extends EventEmitter<DeviceEvents> implements Device<DeviceOptions, DeviceState, Command> {
 	private _connection: CasparCG
 	private _options: DeviceOptions
 
@@ -84,6 +87,8 @@ export class CasparCGDevice extends EventEmitter implements Device<DeviceOptions
 						// this._currentState = { channels: {} }
 						// this.clearStates()
 						this.emit('resetResolver')
+
+						this.emit('resetFromState', { layers: {}, lookaheads: {} })
 					}
 				})
 				.catch((e) => {
@@ -98,7 +103,7 @@ export class CasparCGDevice extends EventEmitter implements Device<DeviceOptions
 		})
 
 		this._connection.on('error', (e) => {
-			this.emit('error', e)
+			this.emit('error', 'Error in casparcg-connection', e)
 		})
 
 		// then find out info about the server
@@ -106,11 +111,13 @@ export class CasparCGDevice extends EventEmitter implements Device<DeviceOptions
 		return true
 	}
 	async terminate(): Promise<boolean> {
+		this._connection.discard()
+
 		return true
 	}
 
 	get connected(): boolean {
-		return false
+		return this._connection.connected
 	}
 	getStatus(): Omit<DeviceStatus, 'active'> {
 		if (this._connection.connected) {
@@ -126,7 +133,14 @@ export class CasparCGDevice extends EventEmitter implements Device<DeviceOptions
 		}
 	}
 
-	actions: Record<string, (id: string, payload?: Record<string, any>) => Promise<ActionExecutionResult>> = {}
+	actions: Record<string, (id: string, payload?: Record<string, any>) => Promise<ActionExecutionResult>> = {
+		[CasparCGActions.ClearAllChannels]: async () => {
+			return clearAllChannels(this._connection, () => this.emit('resetFromState', { layers: {}, lookaheads: {} }))
+		},
+		[CasparCGActions.RestartServer]: async () => {
+			return restartServer(this._options)
+		},
+	}
 
 	convertTimelineStateToDeviceState(
 		state: Timeline.TimelineState<TSRTimelineContent>,
@@ -143,7 +157,7 @@ export class CasparCGDevice extends EventEmitter implements Device<DeviceOptions
 		const execSingleCommand = async (command: any) => {
 			const { request, error } = await this._connection.executeCommand(command)
 			if (error) {
-				this.emit('commandError', error)
+				this.emit('commandError', error, command)
 			}
 
 			try {

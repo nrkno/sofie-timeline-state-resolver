@@ -115,6 +115,18 @@ export class StateHandler<DeviceState, Command extends CommandWithContext> {
 		this.stateQueue = this.stateQueue.filter((s) => s.state.time <= t)
 	}
 
+	async resyncFromState(state: DeviceState) {
+		const oldState = this.currentState
+		if (oldState && oldState.deviceState) {
+			this.stateQueue.splice(0, 0, {
+				state: oldState.state,
+				deviceState: oldState.deviceState,
+				mappings: oldState.mappings,
+			})
+			await this.setCurrentState(state)
+		}
+	}
+
 	private async calculateNextStateChange() {
 		if (!this.currentState) return // a change is currently being executed, we'll be called again once it's done
 

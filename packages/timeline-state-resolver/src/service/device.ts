@@ -74,9 +74,10 @@ export interface DeviceEvents {
 
 	debugState: [state: object]
 	/** The connection status has changed */
-	connectionChanged: [status: DeviceStatus]
+	connectionChanged: [status: Omit<DeviceStatus, 'active'>]
 	/** A message to the resolver that something has happened that warrants a reset of the resolver (to re-run it again) */
 	resetResolver: []
+	resetFromState: [any] // @nocommit - any
 
 	/** A report that a command was sent too late */
 	slowSentCommand: [info: SlowSentCommandInfo]
