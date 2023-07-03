@@ -29,11 +29,11 @@ names and id&#39;s) to prevent a costly round trip over IPC.</p>
 <section class="tsd-panel tsd-hierarchy">
 <h4>Hierarchy</h4>
 <ul class="tsd-hierarchy">
-<li><span class="tsd-signature-type">EventEmitter</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">DeviceContainerEvents</span><span class="tsd-signature-symbol">&gt;</span>
+<li><span class="tsd-signature-type">BaseRemoteDeviceIntegration</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type" data-tsd-kind="Type parameter">TOptions</span><span class="tsd-signature-symbol">&gt;</span>
 <ul class="tsd-hierarchy">
 <li><span class="target">DeviceContainer</span></li></ul></li></ul></section><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/nrkno/sofie-timeline-state-resolver/blob/fbcd4ff87/packages/timeline-state-resolver/src/devices/deviceContainer.ts#L15">packages/timeline-state-resolver/src/devices/deviceContainer.ts:15</a></li></ul></aside>
+<li>Defined in <a href="https://github.com/nrkno/sofie-timeline-state-resolver/blob/35d4e5d64/packages/timeline-state-resolver/src/devices/deviceContainer.ts#L13">packages/timeline-state-resolver/src/devices/deviceContainer.ts:13</a></li></ul></aside>
 <section class="tsd-panel-group tsd-index-group">
 <section class="tsd-panel tsd-index-panel">
 <details class="tsd-index-content tsd-index-accordion" open><summary class="tsd-accordion-summary tsd-index-summary">
@@ -45,33 +45,26 @@ names and id&#39;s) to prevent a costly round trip over IPC.</p>
 </div></section>
 <section class="tsd-index-section">
 <h3 class="tsd-index-heading">Properties</h3>
-<div class="tsd-index-list"><a href="timeline_state_resolver.DeviceContainer.html#_debugLogging" class="tsd-index-link tsd-kind-property tsd-parent-kind-class tsd-is-private"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><rect fill="var(--color-icon-background)" stroke="#FF984D" stroke-width="1.5" x="1" y="1" width="22" height="22" rx="12" id="icon-1024-path"></rect><path d="M9.354 16V7.24H12.174C12.99 7.24 13.638 7.476 14.118 7.948C14.606 8.412 14.85 9.036 14.85 9.82C14.85 10.604 14.606 11.232 14.118 11.704C13.638 12.168 12.99 12.4 12.174 12.4H10.434V16H9.354ZM10.434 11.428H12.174C12.646 11.428 13.022 11.284 13.302 10.996C13.59 10.7 13.734 10.308 13.734 9.82C13.734 9.324 13.59 8.932 13.302 8.644C13.022 8.356 12.646 8.212 12.174 8.212H10.434V11.428Z" fill="var(--color-text)" id="icon-1024-text"></path></svg><span>_debug<wbr/>Logging</span></a>
-<a href="timeline_state_resolver.DeviceContainer.html#_debugState" class="tsd-index-link tsd-kind-property tsd-parent-kind-class tsd-is-private"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg><span>_debug<wbr/>State</span></a>
-<a href="timeline_state_resolver.DeviceContainer.html#_device" class="tsd-index-link tsd-kind-property tsd-parent-kind-class tsd-is-private"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg><span>_device</span></a>
-<a href="timeline_state_resolver.DeviceContainer.html#_deviceId" class="tsd-index-link tsd-kind-property tsd-parent-kind-class tsd-is-private"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg><span>_device<wbr/>Id</span></a>
-<a href="timeline_state_resolver.DeviceContainer.html#_deviceName" class="tsd-index-link tsd-kind-property tsd-parent-kind-class tsd-is-private"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg><span>_device<wbr/>Name</span></a>
-<a href="timeline_state_resolver.DeviceContainer.html#_deviceOptions" class="tsd-index-link tsd-kind-property tsd-parent-kind-class tsd-is-private"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg><span>_device<wbr/>Options</span></a>
-<a href="timeline_state_resolver.DeviceContainer.html#_deviceType" class="tsd-index-link tsd-kind-property tsd-parent-kind-class tsd-is-private"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg><span>_device<wbr/>Type</span></a>
-<a href="timeline_state_resolver.DeviceContainer.html#_initialized" class="tsd-index-link tsd-kind-property tsd-parent-kind-class tsd-is-private"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg><span>_initialized</span></a>
-<a href="timeline_state_resolver.DeviceContainer.html#_instanceId" class="tsd-index-link tsd-kind-property tsd-parent-kind-class tsd-is-private"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg><span>_instance<wbr/>Id</span></a>
-<a href="timeline_state_resolver.DeviceContainer.html#_onEventListeners" class="tsd-index-link tsd-kind-property tsd-parent-kind-class tsd-is-private"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg><span>_on<wbr/>Event<wbr/>Listeners</span></a>
-<a href="timeline_state_resolver.DeviceContainer.html#_startTime" class="tsd-index-link tsd-kind-property tsd-parent-kind-class tsd-is-private"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg><span>_start<wbr/>Time</span></a>
-<a href="timeline_state_resolver.DeviceContainer.html#_threadConfig" class="tsd-index-link tsd-kind-property tsd-parent-kind-class tsd-is-private"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg><span>_thread<wbr/>Config</span></a>
+<div class="tsd-index-list"><a href="timeline_state_resolver.DeviceContainer.html#_details" class="tsd-index-link tsd-kind-property tsd-parent-kind-class tsd-is-protected tsd-is-inherited"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><rect fill="var(--color-icon-background)" stroke="#FF984D" stroke-width="1.5" x="1" y="1" width="22" height="22" rx="12" id="icon-1024-path"></rect><path d="M9.354 16V7.24H12.174C12.99 7.24 13.638 7.476 14.118 7.948C14.606 8.412 14.85 9.036 14.85 9.82C14.85 10.604 14.606 11.232 14.118 11.704C13.638 12.168 12.99 12.4 12.174 12.4H10.434V16H9.354ZM10.434 11.428H12.174C12.646 11.428 13.022 11.284 13.302 10.996C13.59 10.7 13.734 10.308 13.734 9.82C13.734 9.324 13.59 8.932 13.302 8.644C13.022 8.356 12.646 8.212 12.174 8.212H10.434V11.428Z" fill="var(--color-text)" id="icon-1024-text"></path></svg><span>_details</span></a>
+<a href="timeline_state_resolver.DeviceContainer.html#_device" class="tsd-index-link tsd-kind-property tsd-parent-kind-class tsd-is-protected"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg><span>_device</span></a>
+<a href="timeline_state_resolver.DeviceContainer.html#_initialized" class="tsd-index-link tsd-kind-property tsd-parent-kind-class tsd-is-protected tsd-is-inherited"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg><span>_initialized</span></a>
+<a href="timeline_state_resolver.DeviceContainer.html#_onEventListeners" class="tsd-index-link tsd-kind-property tsd-parent-kind-class tsd-is-protected tsd-is-inherited"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg><span>_on<wbr/>Event<wbr/>Listeners</span></a>
 <a href="timeline_state_resolver.DeviceContainer.html#onChildClose" class="tsd-index-link tsd-kind-property tsd-parent-kind-class"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg><span>on<wbr/>Child<wbr/>Close</span></a>
 </div></section>
 <section class="tsd-index-section">
 <h3 class="tsd-index-heading">Accessors</h3>
-<div class="tsd-index-list"><a href="timeline_state_resolver.DeviceContainer.html#debugLogging" class="tsd-index-link tsd-kind-accessor tsd-parent-kind-class"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><rect fill="var(--color-icon-background)" stroke="#FF4D4D" stroke-width="1.5" x="1" y="1" width="22" height="22" rx="12" id="icon-262144-path"></rect><path d="M8.85 16L11.13 7.24H12.582L14.85 16H13.758L13.182 13.672H10.53L9.954 16H8.85ZM10.746 12.76H12.954L12.282 10.06C12.154 9.548 12.054 9.12 11.982 8.776C11.91 8.432 11.866 8.208 11.85 8.104C11.834 8.208 11.79 8.432 11.718 8.776C11.646 9.12 11.546 9.544 11.418 10.048L10.746 12.76Z" fill="var(--color-text)" id="icon-262144-text"></path></svg><span>debug<wbr/>Logging</span></a>
-<a href="timeline_state_resolver.DeviceContainer.html#debugState" class="tsd-index-link tsd-kind-accessor tsd-parent-kind-class"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-262144-path"></use><use href="#icon-262144-text"></use></svg><span>debug<wbr/>State</span></a>
-<a href="timeline_state_resolver.DeviceContainer.html#device" class="tsd-index-link tsd-kind-accessor tsd-parent-kind-class"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-262144-path"></use><use href="#icon-262144-text"></use></svg><span>device</span></a>
-<a href="timeline_state_resolver.DeviceContainer.html#deviceId" class="tsd-index-link tsd-kind-accessor tsd-parent-kind-class"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-262144-path"></use><use href="#icon-262144-text"></use></svg><span>device<wbr/>Id</span></a>
-<a href="timeline_state_resolver.DeviceContainer.html#deviceName" class="tsd-index-link tsd-kind-accessor tsd-parent-kind-class"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-262144-path"></use><use href="#icon-262144-text"></use></svg><span>device<wbr/>Name</span></a>
-<a href="timeline_state_resolver.DeviceContainer.html#deviceOptions" class="tsd-index-link tsd-kind-accessor tsd-parent-kind-class"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-262144-path"></use><use href="#icon-262144-text"></use></svg><span>device<wbr/>Options</span></a>
-<a href="timeline_state_resolver.DeviceContainer.html#deviceType" class="tsd-index-link tsd-kind-accessor tsd-parent-kind-class"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-262144-path"></use><use href="#icon-262144-text"></use></svg><span>device<wbr/>Type</span></a>
-<a href="timeline_state_resolver.DeviceContainer.html#initialized" class="tsd-index-link tsd-kind-accessor tsd-parent-kind-class"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-262144-path"></use><use href="#icon-262144-text"></use></svg><span>initialized</span></a>
-<a href="timeline_state_resolver.DeviceContainer.html#instanceId" class="tsd-index-link tsd-kind-accessor tsd-parent-kind-class"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-262144-path"></use><use href="#icon-262144-text"></use></svg><span>instance<wbr/>Id</span></a>
-<a href="timeline_state_resolver.DeviceContainer.html#startTime" class="tsd-index-link tsd-kind-accessor tsd-parent-kind-class"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-262144-path"></use><use href="#icon-262144-text"></use></svg><span>start<wbr/>Time</span></a>
-<a href="timeline_state_resolver.DeviceContainer.html#threadConfig" class="tsd-index-link tsd-kind-accessor tsd-parent-kind-class"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-262144-path"></use><use href="#icon-262144-text"></use></svg><span>thread<wbr/>Config</span></a>
+<div class="tsd-index-list"><a href="timeline_state_resolver.DeviceContainer.html#debugLogging" class="tsd-index-link tsd-kind-accessor tsd-parent-kind-class tsd-is-inherited"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><rect fill="var(--color-icon-background)" stroke="#FF4D4D" stroke-width="1.5" x="1" y="1" width="22" height="22" rx="12" id="icon-262144-path"></rect><path d="M8.85 16L11.13 7.24H12.582L14.85 16H13.758L13.182 13.672H10.53L9.954 16H8.85ZM10.746 12.76H12.954L12.282 10.06C12.154 9.548 12.054 9.12 11.982 8.776C11.91 8.432 11.866 8.208 11.85 8.104C11.834 8.208 11.79 8.432 11.718 8.776C11.646 9.12 11.546 9.544 11.418 10.048L10.746 12.76Z" fill="var(--color-text)" id="icon-262144-text"></path></svg><span>debug<wbr/>Logging</span></a>
+<a href="timeline_state_resolver.DeviceContainer.html#debugState" class="tsd-index-link tsd-kind-accessor tsd-parent-kind-class tsd-is-inherited"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-262144-path"></use><use href="#icon-262144-text"></use></svg><span>debug<wbr/>State</span></a>
+<a href="timeline_state_resolver.DeviceContainer.html#details" class="tsd-index-link tsd-kind-accessor tsd-parent-kind-class tsd-is-inherited"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-262144-path"></use><use href="#icon-262144-text"></use></svg><span>details</span></a>
+<a href="timeline_state_resolver.DeviceContainer.html#device" class="tsd-index-link tsd-kind-accessor tsd-parent-kind-class tsd-is-inherited"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-262144-path"></use><use href="#icon-262144-text"></use></svg><span>device</span></a>
+<a href="timeline_state_resolver.DeviceContainer.html#deviceId" class="tsd-index-link tsd-kind-accessor tsd-parent-kind-class tsd-is-inherited"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-262144-path"></use><use href="#icon-262144-text"></use></svg><span>device<wbr/>Id</span></a>
+<a href="timeline_state_resolver.DeviceContainer.html#deviceName" class="tsd-index-link tsd-kind-accessor tsd-parent-kind-class tsd-is-inherited"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-262144-path"></use><use href="#icon-262144-text"></use></svg><span>device<wbr/>Name</span></a>
+<a href="timeline_state_resolver.DeviceContainer.html#deviceOptions" class="tsd-index-link tsd-kind-accessor tsd-parent-kind-class tsd-is-inherited"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-262144-path"></use><use href="#icon-262144-text"></use></svg><span>device<wbr/>Options</span></a>
+<a href="timeline_state_resolver.DeviceContainer.html#deviceType" class="tsd-index-link tsd-kind-accessor tsd-parent-kind-class tsd-is-inherited"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-262144-path"></use><use href="#icon-262144-text"></use></svg><span>device<wbr/>Type</span></a>
+<a href="timeline_state_resolver.DeviceContainer.html#initialized" class="tsd-index-link tsd-kind-accessor tsd-parent-kind-class tsd-is-inherited"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-262144-path"></use><use href="#icon-262144-text"></use></svg><span>initialized</span></a>
+<a href="timeline_state_resolver.DeviceContainer.html#instanceId" class="tsd-index-link tsd-kind-accessor tsd-parent-kind-class tsd-is-inherited"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-262144-path"></use><use href="#icon-262144-text"></use></svg><span>instance<wbr/>Id</span></a>
+<a href="timeline_state_resolver.DeviceContainer.html#startTime" class="tsd-index-link tsd-kind-accessor tsd-parent-kind-class tsd-is-inherited"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-262144-path"></use><use href="#icon-262144-text"></use></svg><span>start<wbr/>Time</span></a>
+<a href="timeline_state_resolver.DeviceContainer.html#threadConfig" class="tsd-index-link tsd-kind-accessor tsd-parent-kind-class tsd-is-inherited"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-262144-path"></use><use href="#icon-262144-text"></use></svg><span>thread<wbr/>Config</span></a>
 </div></section>
 <section class="tsd-index-section">
 <h3 class="tsd-index-heading">Methods</h3>
@@ -87,9 +80,9 @@ names and id&#39;s) to prevent a costly round trip over IPC.</p>
 <a href="timeline_state_resolver.DeviceContainer.html#reloadProps" class="tsd-index-link tsd-kind-method tsd-parent-kind-class"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg><span>reload<wbr/>Props</span></a>
 <a href="timeline_state_resolver.DeviceContainer.html#removeAllListeners" class="tsd-index-link tsd-kind-method tsd-parent-kind-class tsd-is-inherited tsd-is-external"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg><span>remove<wbr/>All<wbr/>Listeners</span></a>
 <a href="timeline_state_resolver.DeviceContainer.html#removeListener" class="tsd-index-link tsd-kind-method tsd-parent-kind-class tsd-is-inherited tsd-is-external"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg><span>remove<wbr/>Listener</span></a>
-<a href="timeline_state_resolver.DeviceContainer.html#setDebugLogging" class="tsd-index-link tsd-kind-method tsd-parent-kind-class"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg><span>set<wbr/>Debug<wbr/>Logging</span></a>
-<a href="timeline_state_resolver.DeviceContainer.html#setDebugState" class="tsd-index-link tsd-kind-method tsd-parent-kind-class"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg><span>set<wbr/>Debug<wbr/>State</span></a>
-<a href="timeline_state_resolver.DeviceContainer.html#terminate" class="tsd-index-link tsd-kind-method tsd-parent-kind-class"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg><span>terminate</span></a>
+<a href="timeline_state_resolver.DeviceContainer.html#setDebugLogging" class="tsd-index-link tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg><span>set<wbr/>Debug<wbr/>Logging</span></a>
+<a href="timeline_state_resolver.DeviceContainer.html#setDebugState" class="tsd-index-link tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg><span>set<wbr/>Debug<wbr/>State</span></a>
+<a href="timeline_state_resolver.DeviceContainer.html#terminate" class="tsd-index-link tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg><span>terminate</span></a>
 <a href="timeline_state_resolver.DeviceContainer.html#create" class="tsd-index-link tsd-kind-method tsd-parent-kind-class"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg><span>create</span></a>
 </div></section></div></details></section></section>
 <section class="tsd-panel-group tsd-member-group">
@@ -112,71 +105,35 @@ names and id&#39;s) to prevent a costly round trip over IPC.</p>
 <li>
 <h5><code class="tsd-tag ts-flagOptional">Optional</code> threadConfig: <span class="tsd-signature-type">ThreadedClassConfig</span></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="timeline_state_resolver.DeviceContainer.html" class="tsd-signature-type" data-tsd-kind="Class">DeviceContainer</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type" data-tsd-kind="Type parameter">TOptions</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
-<p>Overrides EventEmitter&lt;DeviceContainerEvents&gt;.constructor</p>
+<p>Overrides BaseRemoteDeviceIntegration&lt;TOptions&gt;.constructor</p>
 <ul>
-<li>Defined in <a href="https://github.com/nrkno/sofie-timeline-state-resolver/blob/fbcd4ff87/packages/timeline-state-resolver/src/devices/deviceContainer.ts#L30">packages/timeline-state-resolver/src/devices/deviceContainer.ts:30</a></li></ul></aside></li></ul></section></section>
+<li>Defined in <a href="https://github.com/nrkno/sofie-timeline-state-resolver/blob/35d4e5d64/packages/timeline-state-resolver/src/devices/deviceContainer.ts#L17">packages/timeline-state-resolver/src/devices/deviceContainer.ts:17</a></li></ul></aside></li></ul></section></section>
 <section class="tsd-panel-group tsd-member-group">
 <h2>Properties</h2>
-<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-private"><a id="_debugLogging" class="tsd-anchor"></a>
-<h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagPrivate">Private</code> <span>_debug<wbr/>Logging</span><a href="#_debugLogging" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
-<div class="tsd-signature">_debug<wbr/>Logging<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol"> = true</span></div><aside class="tsd-sources">
+<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-protected tsd-is-inherited"><a id="_details" class="tsd-anchor"></a>
+<h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagProtected">Protected</code> <span>_details</span><a href="#_details" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
+<div class="tsd-signature">_details<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">DeviceDetails</span><span class="tsd-signature-symbol"> = ...</span></div><aside class="tsd-sources">
+<p>Inherited from BaseRemoteDeviceIntegration._details</p>
 <ul>
-<li>Defined in <a href="https://github.com/nrkno/sofie-timeline-state-resolver/blob/fbcd4ff87/packages/timeline-state-resolver/src/devices/deviceContainer.ts#L26">packages/timeline-state-resolver/src/devices/deviceContainer.ts:26</a></li></ul></aside></section>
-<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-private"><a id="_debugState" class="tsd-anchor"></a>
-<h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagPrivate">Private</code> <span>_debug<wbr/>State</span><a href="#_debugState" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
-<div class="tsd-signature">_debug<wbr/>State<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol"> = false</span></div><aside class="tsd-sources">
-<ul>
-<li>Defined in <a href="https://github.com/nrkno/sofie-timeline-state-resolver/blob/fbcd4ff87/packages/timeline-state-resolver/src/devices/deviceContainer.ts#L27">packages/timeline-state-resolver/src/devices/deviceContainer.ts:27</a></li></ul></aside></section>
-<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-private"><a id="_device" class="tsd-anchor"></a>
-<h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagPrivate">Private</code> <span>_device</span><a href="#_device" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
+<li>Defined in <a href="https://github.com/nrkno/sofie-timeline-state-resolver/blob/35d4e5d64/packages/timeline-state-resolver/src/service/remoteDeviceInstance.ts#L17">packages/timeline-state-resolver/src/service/remoteDeviceInstance.ts:17</a></li></ul></aside></section>
+<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-protected"><a id="_device" class="tsd-anchor"></a>
+<h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagProtected">Protected</code> <span>_device</span><a href="#_device" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <div class="tsd-signature">_device<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Promisify</span><span class="tsd-signature-symbol">&lt;</span><a href="timeline_state_resolver.Device.html" class="tsd-signature-type" data-tsd-kind="Class">Device</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type" data-tsd-kind="Type parameter">TOptions</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">&gt;</span></div><aside class="tsd-sources">
+<p>Overrides BaseRemoteDeviceIntegration._device</p>
 <ul>
-<li>Defined in <a href="https://github.com/nrkno/sofie-timeline-state-resolver/blob/fbcd4ff87/packages/timeline-state-resolver/src/devices/deviceContainer.ts#L16">packages/timeline-state-resolver/src/devices/deviceContainer.ts:16</a></li></ul></aside></section>
-<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-private"><a id="_deviceId" class="tsd-anchor"></a>
-<h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagPrivate">Private</code> <span>_device<wbr/>Id</span><a href="#_deviceId" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
-<div class="tsd-signature">_device<wbr/>Id<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> = &#39;N/A&#39;</span></div><aside class="tsd-sources">
-<ul>
-<li>Defined in <a href="https://github.com/nrkno/sofie-timeline-state-resolver/blob/fbcd4ff87/packages/timeline-state-resolver/src/devices/deviceContainer.ts#L17">packages/timeline-state-resolver/src/devices/deviceContainer.ts:17</a></li></ul></aside></section>
-<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-private"><a id="_deviceName" class="tsd-anchor"></a>
-<h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagPrivate">Private</code> <span>_device<wbr/>Name</span><a href="#_deviceName" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
-<div class="tsd-signature">_device<wbr/>Name<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> = &#39;N/A&#39;</span></div><aside class="tsd-sources">
-<ul>
-<li>Defined in <a href="https://github.com/nrkno/sofie-timeline-state-resolver/blob/fbcd4ff87/packages/timeline-state-resolver/src/devices/deviceContainer.ts#L19">packages/timeline-state-resolver/src/devices/deviceContainer.ts:19</a></li></ul></aside></section>
-<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-private"><a id="_deviceOptions" class="tsd-anchor"></a>
-<h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagPrivate">Private</code> <code class="tsd-tag ts-flagReadonly">Readonly</code> <span>_device<wbr/>Options</span><a href="#_deviceOptions" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
-<div class="tsd-signature">_device<wbr/>Options<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type" data-tsd-kind="Type parameter">TOptions</span></div><aside class="tsd-sources">
-<ul>
-<li>Defined in <a href="https://github.com/nrkno/sofie-timeline-state-resolver/blob/fbcd4ff87/packages/timeline-state-resolver/src/devices/deviceContainer.ts#L20">packages/timeline-state-resolver/src/devices/deviceContainer.ts:20</a></li></ul></aside></section>
-<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-private"><a id="_deviceType" class="tsd-anchor"></a>
-<h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagPrivate">Private</code> <span>_device<wbr/>Type</span><a href="#_deviceType" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
-<div class="tsd-signature">_device<wbr/>Type<span class="tsd-signature-symbol">:</span> <a href="../enums/timeline_state_resolver.DeviceType.html" class="tsd-signature-type" data-tsd-kind="Enumeration">DeviceType</a></div><aside class="tsd-sources">
-<ul>
-<li>Defined in <a href="https://github.com/nrkno/sofie-timeline-state-resolver/blob/fbcd4ff87/packages/timeline-state-resolver/src/devices/deviceContainer.ts#L18">packages/timeline-state-resolver/src/devices/deviceContainer.ts:18</a></li></ul></aside></section>
-<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-private"><a id="_initialized" class="tsd-anchor"></a>
-<h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagPrivate">Private</code> <span>_initialized</span><a href="#_initialized" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
+<li>Defined in <a href="https://github.com/nrkno/sofie-timeline-state-resolver/blob/35d4e5d64/packages/timeline-state-resolver/src/devices/deviceContainer.ts#L14">packages/timeline-state-resolver/src/devices/deviceContainer.ts:14</a></li></ul></aside></section>
+<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-protected tsd-is-inherited"><a id="_initialized" class="tsd-anchor"></a>
+<h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagProtected">Protected</code> <span>_initialized</span><a href="#_initialized" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <div class="tsd-signature">_initialized<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol"> = false</span></div><aside class="tsd-sources">
+<p>Inherited from BaseRemoteDeviceIntegration._initialized</p>
 <ul>
-<li>Defined in <a href="https://github.com/nrkno/sofie-timeline-state-resolver/blob/fbcd4ff87/packages/timeline-state-resolver/src/devices/deviceContainer.ts#L28">packages/timeline-state-resolver/src/devices/deviceContainer.ts:28</a></li></ul></aside></section>
-<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-private"><a id="_instanceId" class="tsd-anchor"></a>
-<h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagPrivate">Private</code> <span>_instance<wbr/>Id</span><a href="#_instanceId" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
-<div class="tsd-signature">_instance<wbr/>Id<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> = -1</span></div><aside class="tsd-sources">
-<ul>
-<li>Defined in <a href="https://github.com/nrkno/sofie-timeline-state-resolver/blob/fbcd4ff87/packages/timeline-state-resolver/src/devices/deviceContainer.ts#L23">packages/timeline-state-resolver/src/devices/deviceContainer.ts:23</a></li></ul></aside></section>
-<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-private"><a id="_onEventListeners" class="tsd-anchor"></a>
-<h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagPrivate">Private</code> <span>_on<wbr/>Event<wbr/>Listeners</span><a href="#_onEventListeners" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
+<li>Defined in <a href="https://github.com/nrkno/sofie-timeline-state-resolver/blob/35d4e5d64/packages/timeline-state-resolver/src/service/remoteDeviceInstance.ts#L33">packages/timeline-state-resolver/src/service/remoteDeviceInstance.ts:33</a></li></ul></aside></section>
+<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-protected tsd-is-inherited"><a id="_onEventListeners" class="tsd-anchor"></a>
+<h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagProtected">Protected</code> <span>_on<wbr/>Event<wbr/>Listeners</span><a href="#_onEventListeners" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <div class="tsd-signature">_on<wbr/>Event<wbr/>Listeners<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">{ </span><br/><span>    </span>stop<span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol"> = []</span></div><aside class="tsd-sources">
+<p>Inherited from BaseRemoteDeviceIntegration._onEventListeners</p>
 <ul>
-<li>Defined in <a href="https://github.com/nrkno/sofie-timeline-state-resolver/blob/fbcd4ff87/packages/timeline-state-resolver/src/devices/deviceContainer.ts#L25">packages/timeline-state-resolver/src/devices/deviceContainer.ts:25</a></li></ul></aside></section>
-<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-private"><a id="_startTime" class="tsd-anchor"></a>
-<h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagPrivate">Private</code> <span>_start<wbr/>Time</span><a href="#_startTime" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
-<div class="tsd-signature">_start<wbr/>Time<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> = -1</span></div><aside class="tsd-sources">
-<ul>
-<li>Defined in <a href="https://github.com/nrkno/sofie-timeline-state-resolver/blob/fbcd4ff87/packages/timeline-state-resolver/src/devices/deviceContainer.ts#L24">packages/timeline-state-resolver/src/devices/deviceContainer.ts:24</a></li></ul></aside></section>
-<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-private"><a id="_threadConfig" class="tsd-anchor"></a>
-<h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagPrivate">Private</code> <code class="tsd-tag ts-flagReadonly">Readonly</code> <span>_thread<wbr/>Config</span><a href="#_threadConfig" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
-<div class="tsd-signature">_thread<wbr/>Config<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">ThreadedClassConfig</span></div><aside class="tsd-sources">
-<ul>
-<li>Defined in <a href="https://github.com/nrkno/sofie-timeline-state-resolver/blob/fbcd4ff87/packages/timeline-state-resolver/src/devices/deviceContainer.ts#L21">packages/timeline-state-resolver/src/devices/deviceContainer.ts:21</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/nrkno/sofie-timeline-state-resolver/blob/35d4e5d64/packages/timeline-state-resolver/src/service/remoteDeviceInstance.ts#L27">packages/timeline-state-resolver/src/service/remoteDeviceInstance.ts:27</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class"><a id="onChildClose" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>on<wbr/>Child<wbr/>Close</span><a href="#onChildClose" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <div class="tsd-signature">on<wbr/>Child<wbr/>Close<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">)</span></div>
@@ -188,98 +145,119 @@ names and id&#39;s) to prevent a costly round trip over IPC.</p>
 <li class="tsd-signature" id="onChildClose.__type.__type-1"><span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">void</span></li>
 <li class="tsd-description">
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">void</span></h4></li></ul></li></ul></div><aside class="tsd-sources">
+<p>Overrides BaseRemoteDeviceIntegration.onChildClose</p>
 <ul>
-<li>Defined in <a href="https://github.com/nrkno/sofie-timeline-state-resolver/blob/fbcd4ff87/packages/timeline-state-resolver/src/devices/deviceContainer.ts#L22">packages/timeline-state-resolver/src/devices/deviceContainer.ts:22</a></li></ul></aside></section></section>
+<li>Defined in <a href="https://github.com/nrkno/sofie-timeline-state-resolver/blob/35d4e5d64/packages/timeline-state-resolver/src/devices/deviceContainer.ts#L15">packages/timeline-state-resolver/src/devices/deviceContainer.ts:15</a></li></ul></aside></section></section>
 <section class="tsd-panel-group tsd-member-group">
 <h2>Accessors</h2>
-<section class="tsd-panel tsd-member tsd-kind-accessor tsd-parent-kind-class"><a id="debugLogging" class="tsd-anchor"></a>
+<section class="tsd-panel tsd-member tsd-kind-accessor tsd-parent-kind-class tsd-is-inherited"><a id="debugLogging" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>debug<wbr/>Logging</span><a href="#debugLogging" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
-<ul class="tsd-signatures tsd-kind-accessor tsd-parent-kind-class">
+<ul class="tsd-signatures tsd-kind-accessor tsd-parent-kind-class tsd-is-inherited">
 <li class="tsd-signature" id="debugLogging.debugLogging-1"><span class="tsd-signature-symbol">get</span> debugLogging<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">boolean</span></li>
 <li class="tsd-description">
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4><aside class="tsd-sources">
+<p>Inherited from BaseRemoteDeviceIntegration.debugLogging</p>
 <ul>
-<li>Defined in <a href="https://github.com/nrkno/sofie-timeline-state-resolver/blob/fbcd4ff87/packages/timeline-state-resolver/src/devices/deviceContainer.ts#L142">packages/timeline-state-resolver/src/devices/deviceContainer.ts:142</a></li></ul></aside></li></ul></section>
-<section class="tsd-panel tsd-member tsd-kind-accessor tsd-parent-kind-class"><a id="debugState" class="tsd-anchor"></a>
+<li>Defined in <a href="https://github.com/nrkno/sofie-timeline-state-resolver/blob/35d4e5d64/packages/timeline-state-resolver/src/service/remoteDeviceInstance.ts#L89">packages/timeline-state-resolver/src/service/remoteDeviceInstance.ts:89</a></li></ul></aside></li></ul></section>
+<section class="tsd-panel tsd-member tsd-kind-accessor tsd-parent-kind-class tsd-is-inherited"><a id="debugState" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>debug<wbr/>State</span><a href="#debugState" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
-<ul class="tsd-signatures tsd-kind-accessor tsd-parent-kind-class">
+<ul class="tsd-signatures tsd-kind-accessor tsd-parent-kind-class tsd-is-inherited">
 <li class="tsd-signature" id="debugState.debugState-1"><span class="tsd-signature-symbol">get</span> debugState<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">boolean</span></li>
 <li class="tsd-description">
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4><aside class="tsd-sources">
+<p>Inherited from BaseRemoteDeviceIntegration.debugState</p>
 <ul>
-<li>Defined in <a href="https://github.com/nrkno/sofie-timeline-state-resolver/blob/fbcd4ff87/packages/timeline-state-resolver/src/devices/deviceContainer.ts#L146">packages/timeline-state-resolver/src/devices/deviceContainer.ts:146</a></li></ul></aside></li></ul></section>
-<section class="tsd-panel tsd-member tsd-kind-accessor tsd-parent-kind-class"><a id="device" class="tsd-anchor"></a>
-<h3 class="tsd-anchor-link"><span>device</span><a href="#device" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
-<ul class="tsd-signatures tsd-kind-accessor tsd-parent-kind-class">
-<li class="tsd-signature" id="device.device-1"><span class="tsd-signature-symbol">get</span> device<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promisify</span><span class="tsd-signature-symbol">&lt;</span><a href="timeline_state_resolver.Device.html" class="tsd-signature-type" data-tsd-kind="Class">Device</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type" data-tsd-kind="Type parameter">TOptions</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">&gt;</span></li>
+<li>Defined in <a href="https://github.com/nrkno/sofie-timeline-state-resolver/blob/35d4e5d64/packages/timeline-state-resolver/src/service/remoteDeviceInstance.ts#L93">packages/timeline-state-resolver/src/service/remoteDeviceInstance.ts:93</a></li></ul></aside></li></ul></section>
+<section class="tsd-panel tsd-member tsd-kind-accessor tsd-parent-kind-class tsd-is-inherited"><a id="details" class="tsd-anchor"></a>
+<h3 class="tsd-anchor-link"><span>details</span><a href="#details" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
+<ul class="tsd-signatures tsd-kind-accessor tsd-parent-kind-class tsd-is-inherited">
+<li class="tsd-signature" id="details.details-1"><span class="tsd-signature-symbol">get</span> details<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">DeviceDetails</span></li>
 <li class="tsd-description">
-<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promisify</span><span class="tsd-signature-symbol">&lt;</span><a href="timeline_state_resolver.Device.html" class="tsd-signature-type" data-tsd-kind="Class">Device</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type" data-tsd-kind="Type parameter">TOptions</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">DeviceDetails</span></h4><aside class="tsd-sources">
+<p>Inherited from BaseRemoteDeviceIntegration.details</p>
 <ul>
-<li>Defined in <a href="https://github.com/nrkno/sofie-timeline-state-resolver/blob/fbcd4ff87/packages/timeline-state-resolver/src/devices/deviceContainer.ts#L117">packages/timeline-state-resolver/src/devices/deviceContainer.ts:117</a></li></ul></aside></li></ul></section>
-<section class="tsd-panel tsd-member tsd-kind-accessor tsd-parent-kind-class"><a id="deviceId" class="tsd-anchor"></a>
+<li>Defined in <a href="https://github.com/nrkno/sofie-timeline-state-resolver/blob/35d4e5d64/packages/timeline-state-resolver/src/service/remoteDeviceInstance.ts#L97">packages/timeline-state-resolver/src/service/remoteDeviceInstance.ts:97</a></li></ul></aside></li></ul></section>
+<section class="tsd-panel tsd-member tsd-kind-accessor tsd-parent-kind-class tsd-is-inherited"><a id="device" class="tsd-anchor"></a>
+<h3 class="tsd-anchor-link"><span>device</span><a href="#device" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
+<ul class="tsd-signatures tsd-kind-accessor tsd-parent-kind-class tsd-is-inherited">
+<li class="tsd-signature" id="device.device-1"><span class="tsd-signature-symbol">get</span> device<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promisify</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">DeviceInstanceWrapper</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">Promisify</span><span class="tsd-signature-symbol">&lt;</span><a href="timeline_state_resolver.Device.html" class="tsd-signature-type" data-tsd-kind="Class">Device</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">TOptions</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">&gt;</span></li>
+<li class="tsd-description">
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promisify</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">DeviceInstanceWrapper</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">Promisify</span><span class="tsd-signature-symbol">&lt;</span><a href="timeline_state_resolver.Device.html" class="tsd-signature-type" data-tsd-kind="Class">Device</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">TOptions</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
+<p>Inherited from BaseRemoteDeviceIntegration.device</p>
+<ul>
+<li>Defined in <a href="https://github.com/nrkno/sofie-timeline-state-resolver/blob/35d4e5d64/packages/timeline-state-resolver/src/service/remoteDeviceInstance.ts#L64">packages/timeline-state-resolver/src/service/remoteDeviceInstance.ts:64</a></li></ul></aside></li></ul></section>
+<section class="tsd-panel tsd-member tsd-kind-accessor tsd-parent-kind-class tsd-is-inherited"><a id="deviceId" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>device<wbr/>Id</span><a href="#deviceId" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
-<ul class="tsd-signatures tsd-kind-accessor tsd-parent-kind-class">
+<ul class="tsd-signatures tsd-kind-accessor tsd-parent-kind-class tsd-is-inherited">
 <li class="tsd-signature" id="deviceId.deviceId-1"><span class="tsd-signature-symbol">get</span> deviceId<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span></li>
 <li class="tsd-description">
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span></h4><aside class="tsd-sources">
+<p>Inherited from BaseRemoteDeviceIntegration.deviceId</p>
 <ul>
-<li>Defined in <a href="https://github.com/nrkno/sofie-timeline-state-resolver/blob/fbcd4ff87/packages/timeline-state-resolver/src/devices/deviceContainer.ts#L120">packages/timeline-state-resolver/src/devices/deviceContainer.ts:120</a></li></ul></aside></li></ul></section>
-<section class="tsd-panel tsd-member tsd-kind-accessor tsd-parent-kind-class"><a id="deviceName" class="tsd-anchor"></a>
+<li>Defined in <a href="https://github.com/nrkno/sofie-timeline-state-resolver/blob/35d4e5d64/packages/timeline-state-resolver/src/service/remoteDeviceInstance.ts#L67">packages/timeline-state-resolver/src/service/remoteDeviceInstance.ts:67</a></li></ul></aside></li></ul></section>
+<section class="tsd-panel tsd-member tsd-kind-accessor tsd-parent-kind-class tsd-is-inherited"><a id="deviceName" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>device<wbr/>Name</span><a href="#deviceName" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
-<ul class="tsd-signatures tsd-kind-accessor tsd-parent-kind-class">
+<ul class="tsd-signatures tsd-kind-accessor tsd-parent-kind-class tsd-is-inherited">
 <li class="tsd-signature" id="deviceName.deviceName-1"><span class="tsd-signature-symbol">get</span> deviceName<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span></li>
 <li class="tsd-description">
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span></h4><aside class="tsd-sources">
+<p>Inherited from BaseRemoteDeviceIntegration.deviceName</p>
 <ul>
-<li>Defined in <a href="https://github.com/nrkno/sofie-timeline-state-resolver/blob/fbcd4ff87/packages/timeline-state-resolver/src/devices/deviceContainer.ts#L126">packages/timeline-state-resolver/src/devices/deviceContainer.ts:126</a></li></ul></aside></li></ul></section>
-<section class="tsd-panel tsd-member tsd-kind-accessor tsd-parent-kind-class"><a id="deviceOptions" class="tsd-anchor"></a>
+<li>Defined in <a href="https://github.com/nrkno/sofie-timeline-state-resolver/blob/35d4e5d64/packages/timeline-state-resolver/src/service/remoteDeviceInstance.ts#L73">packages/timeline-state-resolver/src/service/remoteDeviceInstance.ts:73</a></li></ul></aside></li></ul></section>
+<section class="tsd-panel tsd-member tsd-kind-accessor tsd-parent-kind-class tsd-is-inherited"><a id="deviceOptions" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>device<wbr/>Options</span><a href="#deviceOptions" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
-<ul class="tsd-signatures tsd-kind-accessor tsd-parent-kind-class">
-<li class="tsd-signature" id="deviceOptions.deviceOptions-1"><span class="tsd-signature-symbol">get</span> deviceOptions<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type" data-tsd-kind="Type parameter">TOptions</span></li>
+<ul class="tsd-signatures tsd-kind-accessor tsd-parent-kind-class tsd-is-inherited">
+<li class="tsd-signature" id="deviceOptions.deviceOptions-1"><span class="tsd-signature-symbol">get</span> deviceOptions<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">TOptions</span></li>
 <li class="tsd-description">
-<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type" data-tsd-kind="Type parameter">TOptions</span></h4><aside class="tsd-sources">
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">TOptions</span></h4><aside class="tsd-sources">
+<p>Inherited from BaseRemoteDeviceIntegration.deviceOptions</p>
 <ul>
-<li>Defined in <a href="https://github.com/nrkno/sofie-timeline-state-resolver/blob/fbcd4ff87/packages/timeline-state-resolver/src/devices/deviceContainer.ts#L129">packages/timeline-state-resolver/src/devices/deviceContainer.ts:129</a></li></ul></aside></li></ul></section>
-<section class="tsd-panel tsd-member tsd-kind-accessor tsd-parent-kind-class"><a id="deviceType" class="tsd-anchor"></a>
+<li>Defined in <a href="https://github.com/nrkno/sofie-timeline-state-resolver/blob/35d4e5d64/packages/timeline-state-resolver/src/service/remoteDeviceInstance.ts#L76">packages/timeline-state-resolver/src/service/remoteDeviceInstance.ts:76</a></li></ul></aside></li></ul></section>
+<section class="tsd-panel tsd-member tsd-kind-accessor tsd-parent-kind-class tsd-is-inherited"><a id="deviceType" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>device<wbr/>Type</span><a href="#deviceType" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
-<ul class="tsd-signatures tsd-kind-accessor tsd-parent-kind-class">
+<ul class="tsd-signatures tsd-kind-accessor tsd-parent-kind-class tsd-is-inherited">
 <li class="tsd-signature" id="deviceType.deviceType-1"><span class="tsd-signature-symbol">get</span> deviceType<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="../enums/timeline_state_resolver.DeviceType.html" class="tsd-signature-type" data-tsd-kind="Enumeration">DeviceType</a></li>
 <li class="tsd-description">
 <h4 class="tsd-returns-title">Returns <a href="../enums/timeline_state_resolver.DeviceType.html" class="tsd-signature-type" data-tsd-kind="Enumeration">DeviceType</a></h4><aside class="tsd-sources">
+<p>Inherited from BaseRemoteDeviceIntegration.deviceType</p>
 <ul>
-<li>Defined in <a href="https://github.com/nrkno/sofie-timeline-state-resolver/blob/fbcd4ff87/packages/timeline-state-resolver/src/devices/deviceContainer.ts#L123">packages/timeline-state-resolver/src/devices/deviceContainer.ts:123</a></li></ul></aside></li></ul></section>
-<section class="tsd-panel tsd-member tsd-kind-accessor tsd-parent-kind-class"><a id="initialized" class="tsd-anchor"></a>
+<li>Defined in <a href="https://github.com/nrkno/sofie-timeline-state-resolver/blob/35d4e5d64/packages/timeline-state-resolver/src/service/remoteDeviceInstance.ts#L70">packages/timeline-state-resolver/src/service/remoteDeviceInstance.ts:70</a></li></ul></aside></li></ul></section>
+<section class="tsd-panel tsd-member tsd-kind-accessor tsd-parent-kind-class tsd-is-inherited"><a id="initialized" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>initialized</span><a href="#initialized" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
-<ul class="tsd-signatures tsd-kind-accessor tsd-parent-kind-class">
+<ul class="tsd-signatures tsd-kind-accessor tsd-parent-kind-class tsd-is-inherited">
 <li class="tsd-signature" id="initialized.initialized-1"><span class="tsd-signature-symbol">get</span> initialized<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">boolean</span></li>
 <li class="tsd-description">
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4><aside class="tsd-sources">
+<p>Inherited from BaseRemoteDeviceIntegration.initialized</p>
 <ul>
-<li>Defined in <a href="https://github.com/nrkno/sofie-timeline-state-resolver/blob/fbcd4ff87/packages/timeline-state-resolver/src/devices/deviceContainer.ts#L80">packages/timeline-state-resolver/src/devices/deviceContainer.ts:80</a></li></ul></aside></li></ul></section>
-<section class="tsd-panel tsd-member tsd-kind-accessor tsd-parent-kind-class"><a id="instanceId" class="tsd-anchor"></a>
+<li>Defined in <a href="https://github.com/nrkno/sofie-timeline-state-resolver/blob/35d4e5d64/packages/timeline-state-resolver/src/service/remoteDeviceInstance.ts#L42">packages/timeline-state-resolver/src/service/remoteDeviceInstance.ts:42</a></li></ul></aside></li></ul></section>
+<section class="tsd-panel tsd-member tsd-kind-accessor tsd-parent-kind-class tsd-is-inherited"><a id="instanceId" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>instance<wbr/>Id</span><a href="#instanceId" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
-<ul class="tsd-signatures tsd-kind-accessor tsd-parent-kind-class">
+<ul class="tsd-signatures tsd-kind-accessor tsd-parent-kind-class tsd-is-inherited">
 <li class="tsd-signature" id="instanceId.instanceId-1"><span class="tsd-signature-symbol">get</span> instanceId<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span></li>
 <li class="tsd-description">
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">number</span></h4><aside class="tsd-sources">
+<p>Inherited from BaseRemoteDeviceIntegration.instanceId</p>
 <ul>
-<li>Defined in <a href="https://github.com/nrkno/sofie-timeline-state-resolver/blob/fbcd4ff87/packages/timeline-state-resolver/src/devices/deviceContainer.ts#L135">packages/timeline-state-resolver/src/devices/deviceContainer.ts:135</a></li></ul></aside></li></ul></section>
-<section class="tsd-panel tsd-member tsd-kind-accessor tsd-parent-kind-class"><a id="startTime" class="tsd-anchor"></a>
+<li>Defined in <a href="https://github.com/nrkno/sofie-timeline-state-resolver/blob/35d4e5d64/packages/timeline-state-resolver/src/service/remoteDeviceInstance.ts#L82">packages/timeline-state-resolver/src/service/remoteDeviceInstance.ts:82</a></li></ul></aside></li></ul></section>
+<section class="tsd-panel tsd-member tsd-kind-accessor tsd-parent-kind-class tsd-is-inherited"><a id="startTime" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>start<wbr/>Time</span><a href="#startTime" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
-<ul class="tsd-signatures tsd-kind-accessor tsd-parent-kind-class">
+<ul class="tsd-signatures tsd-kind-accessor tsd-parent-kind-class tsd-is-inherited">
 <li class="tsd-signature" id="startTime.startTime-1"><span class="tsd-signature-symbol">get</span> startTime<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span></li>
 <li class="tsd-description">
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">number</span></h4><aside class="tsd-sources">
+<p>Inherited from BaseRemoteDeviceIntegration.startTime</p>
 <ul>
-<li>Defined in <a href="https://github.com/nrkno/sofie-timeline-state-resolver/blob/fbcd4ff87/packages/timeline-state-resolver/src/devices/deviceContainer.ts#L138">packages/timeline-state-resolver/src/devices/deviceContainer.ts:138</a></li></ul></aside></li></ul></section>
-<section class="tsd-panel tsd-member tsd-kind-accessor tsd-parent-kind-class"><a id="threadConfig" class="tsd-anchor"></a>
+<li>Defined in <a href="https://github.com/nrkno/sofie-timeline-state-resolver/blob/35d4e5d64/packages/timeline-state-resolver/src/service/remoteDeviceInstance.ts#L85">packages/timeline-state-resolver/src/service/remoteDeviceInstance.ts:85</a></li></ul></aside></li></ul></section>
+<section class="tsd-panel tsd-member tsd-kind-accessor tsd-parent-kind-class tsd-is-inherited"><a id="threadConfig" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>thread<wbr/>Config</span><a href="#threadConfig" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
-<ul class="tsd-signatures tsd-kind-accessor tsd-parent-kind-class">
+<ul class="tsd-signatures tsd-kind-accessor tsd-parent-kind-class tsd-is-inherited">
 <li class="tsd-signature" id="threadConfig.threadConfig-1"><span class="tsd-signature-symbol">get</span> threadConfig<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">ThreadedClassConfig</span></li>
 <li class="tsd-description">
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">ThreadedClassConfig</span></h4><aside class="tsd-sources">
+<p>Inherited from BaseRemoteDeviceIntegration.threadConfig</p>
 <ul>
-<li>Defined in <a href="https://github.com/nrkno/sofie-timeline-state-resolver/blob/fbcd4ff87/packages/timeline-state-resolver/src/devices/deviceContainer.ts#L132">packages/timeline-state-resolver/src/devices/deviceContainer.ts:132</a></li></ul></aside></li></ul></section></section>
+<li>Defined in <a href="https://github.com/nrkno/sofie-timeline-state-resolver/blob/35d4e5d64/packages/timeline-state-resolver/src/service/remoteDeviceInstance.ts#L79">packages/timeline-state-resolver/src/service/remoteDeviceInstance.ts:79</a></li></ul></aside></li></ul></section></section>
 <section class="tsd-panel-group tsd-member-group">
 <h2>Methods</h2>
 <section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-inherited tsd-is-external"><a id="addListener" class="tsd-anchor"></a>
@@ -313,7 +291,7 @@ names and id&#39;s) to prevent a costly round trip over IPC.</p>
 <li>
 <h5><code class="tsd-tag ts-flagOptional">Optional</code> context: <span class="tsd-signature-type">any</span></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="timeline_state_resolver.DeviceContainer.html" class="tsd-signature-type" data-tsd-kind="Class">DeviceContainer</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type" data-tsd-kind="Type parameter">TOptions</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
-<p>Inherited from EventEmitter.addListener</p>
+<p>Inherited from BaseRemoteDeviceIntegration.addListener</p>
 <ul>
 <li>Defined in node_modules/eventemitter3/index.d.ts:45</li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-inherited tsd-is-external"><a id="emit" class="tsd-anchor"></a>
@@ -336,7 +314,7 @@ names and id&#39;s) to prevent a costly round trip over IPC.</p>
 <li>
 <h5><code class="tsd-tag ts-flagRest">Rest</code> <span class="tsd-signature-symbol">...</span>args: <span class="tsd-signature-type">ArgumentMap</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">DeviceContainerEvents</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">[</span><span class="tsd-signature-type">Extract</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type" data-tsd-kind="Type parameter">T</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">&quot;error&quot;</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">]</span></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4><aside class="tsd-sources">
-<p>Inherited from EventEmitter.emit</p>
+<p>Inherited from BaseRemoteDeviceIntegration.emit</p>
 <ul>
 <li>Defined in node_modules/eventemitter3/index.d.ts:32</li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-inherited tsd-is-external"><a id="eventNames" class="tsd-anchor"></a>
@@ -348,7 +326,7 @@ names and id&#39;s) to prevent a costly round trip over IPC.</p>
 listeners.</p>
 </div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">&quot;error&quot;</span><span class="tsd-signature-symbol">[]</span></h4><aside class="tsd-sources">
-<p>Inherited from EventEmitter.eventNames</p>
+<p>Inherited from BaseRemoteDeviceIntegration.eventNames</p>
 <ul>
 <li>Defined in node_modules/eventemitter3/index.d.ts:15</li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class"><a id="init" class="tsd-anchor"></a>
@@ -364,8 +342,9 @@ listeners.</p>
 <li>
 <h5>activeRundownPlaylistId: <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">string</span></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
+<p>Overrides BaseRemoteDeviceIntegration.init</p>
 <ul>
-<li>Defined in <a href="https://github.com/nrkno/sofie-timeline-state-resolver/blob/fbcd4ff87/packages/timeline-state-resolver/src/devices/deviceContainer.ts#L84">packages/timeline-state-resolver/src/devices/deviceContainer.ts:84</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/nrkno/sofie-timeline-state-resolver/blob/35d4e5d64/packages/timeline-state-resolver/src/devices/deviceContainer.ts#L81">packages/timeline-state-resolver/src/devices/deviceContainer.ts:81</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-inherited tsd-is-external"><a id="listenerCount" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>listener<wbr/>Count</span><a href="#listenerCount" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-inherited tsd-is-external">
@@ -379,7 +358,7 @@ listeners.</p>
 <li>
 <h5>event: <span class="tsd-signature-type">&quot;error&quot;</span></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">number</span></h4><aside class="tsd-sources">
-<p>Inherited from EventEmitter.listenerCount</p>
+<p>Inherited from BaseRemoteDeviceIntegration.listenerCount</p>
 <ul>
 <li>Defined in node_modules/eventemitter3/index.d.ts:27</li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-inherited tsd-is-external"><a id="listeners" class="tsd-anchor"></a>
@@ -400,7 +379,7 @@ listeners.</p>
 <li>
 <h5>event: <span class="tsd-signature-type" data-tsd-kind="Type parameter">T</span></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">...</span>args<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">ArgumentMap</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">DeviceContainerEvents</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">[</span><span class="tsd-signature-type">Extract</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type" data-tsd-kind="Type parameter">T</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">&quot;error&quot;</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">]</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">[]</span></h4><aside class="tsd-sources">
-<p>Inherited from EventEmitter.listeners</p>
+<p>Inherited from BaseRemoteDeviceIntegration.listeners</p>
 <ul>
 <li>Defined in node_modules/eventemitter3/index.d.ts:20</li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-inherited tsd-is-external"><a id="off" class="tsd-anchor"></a>
@@ -436,7 +415,7 @@ listeners.</p>
 <li>
 <h5><code class="tsd-tag ts-flagOptional">Optional</code> once: <span class="tsd-signature-type">boolean</span></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="timeline_state_resolver.DeviceContainer.html" class="tsd-signature-type" data-tsd-kind="Class">DeviceContainer</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type" data-tsd-kind="Type parameter">TOptions</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
-<p>Inherited from EventEmitter.off</p>
+<p>Inherited from BaseRemoteDeviceIntegration.off</p>
 <ul>
 <li>Defined in node_modules/eventemitter3/index.d.ts:69</li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-inherited tsd-is-external"><a id="on" class="tsd-anchor"></a>
@@ -472,7 +451,7 @@ listeners.</p>
 <li>
 <h5><code class="tsd-tag ts-flagOptional">Optional</code> context: <span class="tsd-signature-type">any</span></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="timeline_state_resolver.DeviceContainer.html" class="tsd-signature-type" data-tsd-kind="Class">DeviceContainer</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type" data-tsd-kind="Type parameter">TOptions</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
-<p>Inherited from EventEmitter.on</p>
+<p>Inherited from BaseRemoteDeviceIntegration.on</p>
 <ul>
 <li>Defined in node_modules/eventemitter3/index.d.ts:40</li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-inherited tsd-is-external"><a id="once" class="tsd-anchor"></a>
@@ -508,7 +487,7 @@ listeners.</p>
 <li>
 <h5><code class="tsd-tag ts-flagOptional">Optional</code> context: <span class="tsd-signature-type">any</span></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="timeline_state_resolver.DeviceContainer.html" class="tsd-signature-type" data-tsd-kind="Class">DeviceContainer</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type" data-tsd-kind="Type parameter">TOptions</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
-<p>Inherited from EventEmitter.once</p>
+<p>Inherited from BaseRemoteDeviceIntegration.once</p>
 <ul>
 <li>Defined in node_modules/eventemitter3/index.d.ts:54</li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class"><a id="reloadProps" class="tsd-anchor"></a>
@@ -517,8 +496,9 @@ listeners.</p>
 <li class="tsd-signature tsd-anchor-link" id="reloadProps.reloadProps-1">reload<wbr/>Props<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span><a href="#reloadProps.reloadProps-1" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></li>
 <li class="tsd-description">
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
+<p>Overrides BaseRemoteDeviceIntegration.reloadProps</p>
 <ul>
-<li>Defined in <a href="https://github.com/nrkno/sofie-timeline-state-resolver/blob/fbcd4ff87/packages/timeline-state-resolver/src/devices/deviceContainer.ts#L94">packages/timeline-state-resolver/src/devices/deviceContainer.ts:94</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/nrkno/sofie-timeline-state-resolver/blob/35d4e5d64/packages/timeline-state-resolver/src/devices/deviceContainer.ts#L70">packages/timeline-state-resolver/src/devices/deviceContainer.ts:70</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-inherited tsd-is-external"><a id="removeAllListeners" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>remove<wbr/>All<wbr/>Listeners</span><a href="#removeAllListeners" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-inherited tsd-is-external">
@@ -532,7 +512,7 @@ listeners.</p>
 <li>
 <h5><code class="tsd-tag ts-flagOptional">Optional</code> event: <span class="tsd-signature-type">&quot;error&quot;</span></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="timeline_state_resolver.DeviceContainer.html" class="tsd-signature-type" data-tsd-kind="Class">DeviceContainer</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type" data-tsd-kind="Type parameter">TOptions</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
-<p>Inherited from EventEmitter.removeAllListeners</p>
+<p>Inherited from BaseRemoteDeviceIntegration.removeAllListeners</p>
 <ul>
 <li>Defined in node_modules/eventemitter3/index.d.ts:79</li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-inherited tsd-is-external"><a id="removeListener" class="tsd-anchor"></a>
@@ -570,12 +550,12 @@ listeners.</p>
 <li>
 <h5><code class="tsd-tag ts-flagOptional">Optional</code> once: <span class="tsd-signature-type">boolean</span></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="timeline_state_resolver.DeviceContainer.html" class="tsd-signature-type" data-tsd-kind="Class">DeviceContainer</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type" data-tsd-kind="Type parameter">TOptions</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
-<p>Inherited from EventEmitter.removeListener</p>
+<p>Inherited from BaseRemoteDeviceIntegration.removeListener</p>
 <ul>
 <li>Defined in node_modules/eventemitter3/index.d.ts:63</li></ul></aside></li></ul></section>
-<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class"><a id="setDebugLogging" class="tsd-anchor"></a>
+<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a id="setDebugLogging" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>set<wbr/>Debug<wbr/>Logging</span><a href="#setDebugLogging" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
-<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
 <li class="tsd-signature tsd-anchor-link" id="setDebugLogging.setDebugLogging-1">set<wbr/>Debug<wbr/>Logging<span class="tsd-signature-symbol">(</span>debug<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span><a href="#setDebugLogging.setDebugLogging-1" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></li>
 <li class="tsd-description">
 <div class="tsd-parameters">
@@ -584,11 +564,12 @@ listeners.</p>
 <li>
 <h5>debug: <span class="tsd-signature-type">boolean</span></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
+<p>Inherited from BaseRemoteDeviceIntegration.setDebugLogging</p>
 <ul>
-<li>Defined in <a href="https://github.com/nrkno/sofie-timeline-state-resolver/blob/fbcd4ff87/packages/timeline-state-resolver/src/devices/deviceContainer.ts#L107">packages/timeline-state-resolver/src/devices/deviceContainer.ts:107</a></li></ul></aside></li></ul></section>
-<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class"><a id="setDebugState" class="tsd-anchor"></a>
+<li>Defined in <a href="https://github.com/nrkno/sofie-timeline-state-resolver/blob/35d4e5d64/packages/timeline-state-resolver/src/service/remoteDeviceInstance.ts#L54">packages/timeline-state-resolver/src/service/remoteDeviceInstance.ts:54</a></li></ul></aside></li></ul></section>
+<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a id="setDebugState" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>set<wbr/>Debug<wbr/>State</span><a href="#setDebugState" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
-<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
 <li class="tsd-signature tsd-anchor-link" id="setDebugState.setDebugState-1">set<wbr/>Debug<wbr/>State<span class="tsd-signature-symbol">(</span>debug<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span><a href="#setDebugState.setDebugState-1" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></li>
 <li class="tsd-description">
 <div class="tsd-parameters">
@@ -597,16 +578,18 @@ listeners.</p>
 <li>
 <h5>debug: <span class="tsd-signature-type">boolean</span></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
+<p>Inherited from BaseRemoteDeviceIntegration.setDebugState</p>
 <ul>
-<li>Defined in <a href="https://github.com/nrkno/sofie-timeline-state-resolver/blob/fbcd4ff87/packages/timeline-state-resolver/src/devices/deviceContainer.ts#L112">packages/timeline-state-resolver/src/devices/deviceContainer.ts:112</a></li></ul></aside></li></ul></section>
-<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class"><a id="terminate" class="tsd-anchor"></a>
+<li>Defined in <a href="https://github.com/nrkno/sofie-timeline-state-resolver/blob/35d4e5d64/packages/timeline-state-resolver/src/service/remoteDeviceInstance.ts#L59">packages/timeline-state-resolver/src/service/remoteDeviceInstance.ts:59</a></li></ul></aside></li></ul></section>
+<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a id="terminate" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>terminate</span><a href="#terminate" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
-<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
 <li class="tsd-signature tsd-anchor-link" id="terminate.terminate-1">terminate<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span><a href="#terminate.terminate-1" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></li>
 <li class="tsd-description">
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
+<p>Inherited from BaseRemoteDeviceIntegration.terminate</p>
 <ul>
-<li>Defined in <a href="https://github.com/nrkno/sofie-timeline-state-resolver/blob/fbcd4ff87/packages/timeline-state-resolver/src/devices/deviceContainer.ts#L102">packages/timeline-state-resolver/src/devices/deviceContainer.ts:102</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/nrkno/sofie-timeline-state-resolver/blob/35d4e5d64/packages/timeline-state-resolver/src/service/remoteDeviceInstance.ts#L49">packages/timeline-state-resolver/src/service/remoteDeviceInstance.ts:49</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class"><a id="create" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagStatic">Static</code> <span>create</span><a href="#create" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
@@ -642,7 +625,7 @@ listeners.</p>
 <h5><code class="tsd-tag ts-flagOptional">Optional</code> threadConfig: <span class="tsd-signature-type">ThreadedClassConfig</span></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="timeline_state_resolver.DeviceContainer.html" class="tsd-signature-type" data-tsd-kind="Class">DeviceContainer</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type" data-tsd-kind="Type parameter">TOptions</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/nrkno/sofie-timeline-state-resolver/blob/fbcd4ff87/packages/timeline-state-resolver/src/devices/deviceContainer.ts#L37">packages/timeline-state-resolver/src/devices/deviceContainer.ts:37</a></li></ul></aside></li></ul></section></section></div>
+<li>Defined in <a href="https://github.com/nrkno/sofie-timeline-state-resolver/blob/35d4e5d64/packages/timeline-state-resolver/src/devices/deviceContainer.ts#L21">packages/timeline-state-resolver/src/devices/deviceContainer.ts:21</a></li></ul></aside></li></ul></section></section></div>
 <div class="col-4 col-menu menu-sticky-wrap menu-highlight">
 <div class="tsd-navigation settings">
 <details class="tsd-index-accordion"><summary class="tsd-accordion-summary">
@@ -664,6 +647,7 @@ listeners.</p>
 <ul>
 <li class="current"><a href="../modules.html">Timeline <wbr/>State <wbr/>Resolver</a>
 <ul>
+<li class="tsd-kind-module"><a href="../modules/quick_tsr.html">quick-<wbr/>tsr</a></li>
 <li class="current tsd-kind-module"><a href="../modules/timeline_state_resolver.html">timeline-<wbr/>state-<wbr/>resolver</a>
 <ul>
 <li class="tsd-kind-namespace tsd-parent-kind-module"><a href="../modules/timeline_state_resolver.Timeline.html">Timeline</a></li></ul></li>
@@ -675,30 +659,23 @@ listeners.</p>
 <li class="current tsd-kind-class tsd-parent-kind-module"><a href="timeline_state_resolver.DeviceContainer.html" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><rect fill="var(--color-icon-background)" stroke="var(--color-ts-class)" stroke-width="1.5" x="1" y="1" width="22" height="22" rx="6" id="icon-128-path"></rect><path d="M11.898 16.1201C11.098 16.1201 10.466 15.8961 10.002 15.4481C9.53803 15.0001 9.30603 14.3841 9.30603 13.6001V9.64012C9.30603 8.85612 9.53803 8.24012 10.002 7.79212C10.466 7.34412 11.098 7.12012 11.898 7.12012C12.682 7.12012 13.306 7.34812 13.77 7.80412C14.234 8.25212 14.466 8.86412 14.466 9.64012H13.386C13.386 9.14412 13.254 8.76412 12.99 8.50012C12.734 8.22812 12.37 8.09212 11.898 8.09212C11.426 8.09212 11.054 8.22412 10.782 8.48812C10.518 8.75212 10.386 9.13212 10.386 9.62812V13.6001C10.386 14.0961 10.518 14.4801 10.782 14.7521C11.054 15.0161 11.426 15.1481 11.898 15.1481C12.37 15.1481 12.734 15.0161 12.99 14.7521C13.254 14.4801 13.386 14.0961 13.386 13.6001H14.466C14.466 14.3761 14.234 14.9921 13.77 15.4481C13.306 15.8961 12.682 16.1201 11.898 16.1201Z" fill="var(--color-text)" id="icon-128-text"></path></svg><span>Device<wbr/>Container</span></a>
 <ul>
 <li class="tsd-kind-constructor tsd-parent-kind-class tsd-is-private"><a href="timeline_state_resolver.DeviceContainer.html#constructor" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-512-path"></use><use href="#icon-512-text"></use></svg>constructor</a></li>
-<li class="tsd-kind-property tsd-parent-kind-class tsd-is-private"><a href="timeline_state_resolver.DeviceContainer.html#_debugLogging" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg>_debug<wbr/>Logging</a></li>
-<li class="tsd-kind-property tsd-parent-kind-class tsd-is-private"><a href="timeline_state_resolver.DeviceContainer.html#_debugState" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg>_debug<wbr/>State</a></li>
-<li class="tsd-kind-property tsd-parent-kind-class tsd-is-private"><a href="timeline_state_resolver.DeviceContainer.html#_device" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg>_device</a></li>
-<li class="tsd-kind-property tsd-parent-kind-class tsd-is-private"><a href="timeline_state_resolver.DeviceContainer.html#_deviceId" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg>_device<wbr/>Id</a></li>
-<li class="tsd-kind-property tsd-parent-kind-class tsd-is-private"><a href="timeline_state_resolver.DeviceContainer.html#_deviceName" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg>_device<wbr/>Name</a></li>
-<li class="tsd-kind-property tsd-parent-kind-class tsd-is-private"><a href="timeline_state_resolver.DeviceContainer.html#_deviceOptions" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg>_device<wbr/>Options</a></li>
-<li class="tsd-kind-property tsd-parent-kind-class tsd-is-private"><a href="timeline_state_resolver.DeviceContainer.html#_deviceType" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg>_device<wbr/>Type</a></li>
-<li class="tsd-kind-property tsd-parent-kind-class tsd-is-private"><a href="timeline_state_resolver.DeviceContainer.html#_initialized" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg>_initialized</a></li>
-<li class="tsd-kind-property tsd-parent-kind-class tsd-is-private"><a href="timeline_state_resolver.DeviceContainer.html#_instanceId" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg>_instance<wbr/>Id</a></li>
-<li class="tsd-kind-property tsd-parent-kind-class tsd-is-private"><a href="timeline_state_resolver.DeviceContainer.html#_onEventListeners" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg>_on<wbr/>Event<wbr/>Listeners</a></li>
-<li class="tsd-kind-property tsd-parent-kind-class tsd-is-private"><a href="timeline_state_resolver.DeviceContainer.html#_startTime" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg>_start<wbr/>Time</a></li>
-<li class="tsd-kind-property tsd-parent-kind-class tsd-is-private"><a href="timeline_state_resolver.DeviceContainer.html#_threadConfig" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg>_thread<wbr/>Config</a></li>
+<li class="tsd-kind-property tsd-parent-kind-class tsd-is-protected tsd-is-inherited"><a href="timeline_state_resolver.DeviceContainer.html#_details" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg>_details</a></li>
+<li class="tsd-kind-property tsd-parent-kind-class tsd-is-protected"><a href="timeline_state_resolver.DeviceContainer.html#_device" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg>_device</a></li>
+<li class="tsd-kind-property tsd-parent-kind-class tsd-is-protected tsd-is-inherited"><a href="timeline_state_resolver.DeviceContainer.html#_initialized" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg>_initialized</a></li>
+<li class="tsd-kind-property tsd-parent-kind-class tsd-is-protected tsd-is-inherited"><a href="timeline_state_resolver.DeviceContainer.html#_onEventListeners" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg>_on<wbr/>Event<wbr/>Listeners</a></li>
 <li class="tsd-kind-property tsd-parent-kind-class"><a href="timeline_state_resolver.DeviceContainer.html#onChildClose" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg>on<wbr/>Child<wbr/>Close</a></li>
-<li class="tsd-kind-accessor tsd-parent-kind-class"><a href="timeline_state_resolver.DeviceContainer.html#debugLogging" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-262144-path"></use><use href="#icon-262144-text"></use></svg>debug<wbr/>Logging</a></li>
-<li class="tsd-kind-accessor tsd-parent-kind-class"><a href="timeline_state_resolver.DeviceContainer.html#debugState" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-262144-path"></use><use href="#icon-262144-text"></use></svg>debug<wbr/>State</a></li>
-<li class="tsd-kind-accessor tsd-parent-kind-class"><a href="timeline_state_resolver.DeviceContainer.html#device" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-262144-path"></use><use href="#icon-262144-text"></use></svg>device</a></li>
-<li class="tsd-kind-accessor tsd-parent-kind-class"><a href="timeline_state_resolver.DeviceContainer.html#deviceId" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-262144-path"></use><use href="#icon-262144-text"></use></svg>device<wbr/>Id</a></li>
-<li class="tsd-kind-accessor tsd-parent-kind-class"><a href="timeline_state_resolver.DeviceContainer.html#deviceName" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-262144-path"></use><use href="#icon-262144-text"></use></svg>device<wbr/>Name</a></li>
-<li class="tsd-kind-accessor tsd-parent-kind-class"><a href="timeline_state_resolver.DeviceContainer.html#deviceOptions" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-262144-path"></use><use href="#icon-262144-text"></use></svg>device<wbr/>Options</a></li>
-<li class="tsd-kind-accessor tsd-parent-kind-class"><a href="timeline_state_resolver.DeviceContainer.html#deviceType" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-262144-path"></use><use href="#icon-262144-text"></use></svg>device<wbr/>Type</a></li>
-<li class="tsd-kind-accessor tsd-parent-kind-class"><a href="timeline_state_resolver.DeviceContainer.html#initialized" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-262144-path"></use><use href="#icon-262144-text"></use></svg>initialized</a></li>
-<li class="tsd-kind-accessor tsd-parent-kind-class"><a href="timeline_state_resolver.DeviceContainer.html#instanceId" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-262144-path"></use><use href="#icon-262144-text"></use></svg>instance<wbr/>Id</a></li>
-<li class="tsd-kind-accessor tsd-parent-kind-class"><a href="timeline_state_resolver.DeviceContainer.html#startTime" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-262144-path"></use><use href="#icon-262144-text"></use></svg>start<wbr/>Time</a></li>
-<li class="tsd-kind-accessor tsd-parent-kind-class"><a href="timeline_state_resolver.DeviceContainer.html#threadConfig" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-262144-path"></use><use href="#icon-262144-text"></use></svg>thread<wbr/>Config</a></li>
+<li class="tsd-kind-accessor tsd-parent-kind-class tsd-is-inherited"><a href="timeline_state_resolver.DeviceContainer.html#debugLogging" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-262144-path"></use><use href="#icon-262144-text"></use></svg>debug<wbr/>Logging</a></li>
+<li class="tsd-kind-accessor tsd-parent-kind-class tsd-is-inherited"><a href="timeline_state_resolver.DeviceContainer.html#debugState" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-262144-path"></use><use href="#icon-262144-text"></use></svg>debug<wbr/>State</a></li>
+<li class="tsd-kind-accessor tsd-parent-kind-class tsd-is-inherited"><a href="timeline_state_resolver.DeviceContainer.html#details" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-262144-path"></use><use href="#icon-262144-text"></use></svg>details</a></li>
+<li class="tsd-kind-accessor tsd-parent-kind-class tsd-is-inherited"><a href="timeline_state_resolver.DeviceContainer.html#device" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-262144-path"></use><use href="#icon-262144-text"></use></svg>device</a></li>
+<li class="tsd-kind-accessor tsd-parent-kind-class tsd-is-inherited"><a href="timeline_state_resolver.DeviceContainer.html#deviceId" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-262144-path"></use><use href="#icon-262144-text"></use></svg>device<wbr/>Id</a></li>
+<li class="tsd-kind-accessor tsd-parent-kind-class tsd-is-inherited"><a href="timeline_state_resolver.DeviceContainer.html#deviceName" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-262144-path"></use><use href="#icon-262144-text"></use></svg>device<wbr/>Name</a></li>
+<li class="tsd-kind-accessor tsd-parent-kind-class tsd-is-inherited"><a href="timeline_state_resolver.DeviceContainer.html#deviceOptions" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-262144-path"></use><use href="#icon-262144-text"></use></svg>device<wbr/>Options</a></li>
+<li class="tsd-kind-accessor tsd-parent-kind-class tsd-is-inherited"><a href="timeline_state_resolver.DeviceContainer.html#deviceType" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-262144-path"></use><use href="#icon-262144-text"></use></svg>device<wbr/>Type</a></li>
+<li class="tsd-kind-accessor tsd-parent-kind-class tsd-is-inherited"><a href="timeline_state_resolver.DeviceContainer.html#initialized" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-262144-path"></use><use href="#icon-262144-text"></use></svg>initialized</a></li>
+<li class="tsd-kind-accessor tsd-parent-kind-class tsd-is-inherited"><a href="timeline_state_resolver.DeviceContainer.html#instanceId" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-262144-path"></use><use href="#icon-262144-text"></use></svg>instance<wbr/>Id</a></li>
+<li class="tsd-kind-accessor tsd-parent-kind-class tsd-is-inherited"><a href="timeline_state_resolver.DeviceContainer.html#startTime" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-262144-path"></use><use href="#icon-262144-text"></use></svg>start<wbr/>Time</a></li>
+<li class="tsd-kind-accessor tsd-parent-kind-class tsd-is-inherited"><a href="timeline_state_resolver.DeviceContainer.html#threadConfig" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-262144-path"></use><use href="#icon-262144-text"></use></svg>thread<wbr/>Config</a></li>
 <li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited tsd-is-external"><a href="timeline_state_resolver.DeviceContainer.html#addListener" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg>add<wbr/>Listener</a></li>
 <li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited tsd-is-external"><a href="timeline_state_resolver.DeviceContainer.html#emit" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg>emit</a></li>
 <li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited tsd-is-external"><a href="timeline_state_resolver.DeviceContainer.html#eventNames" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg>event<wbr/>Names</a></li>
@@ -711,9 +688,9 @@ listeners.</p>
 <li class="tsd-kind-method tsd-parent-kind-class"><a href="timeline_state_resolver.DeviceContainer.html#reloadProps" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg>reload<wbr/>Props</a></li>
 <li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited tsd-is-external"><a href="timeline_state_resolver.DeviceContainer.html#removeAllListeners" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg>remove<wbr/>All<wbr/>Listeners</a></li>
 <li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited tsd-is-external"><a href="timeline_state_resolver.DeviceContainer.html#removeListener" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg>remove<wbr/>Listener</a></li>
-<li class="tsd-kind-method tsd-parent-kind-class"><a href="timeline_state_resolver.DeviceContainer.html#setDebugLogging" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg>set<wbr/>Debug<wbr/>Logging</a></li>
-<li class="tsd-kind-method tsd-parent-kind-class"><a href="timeline_state_resolver.DeviceContainer.html#setDebugState" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg>set<wbr/>Debug<wbr/>State</a></li>
-<li class="tsd-kind-method tsd-parent-kind-class"><a href="timeline_state_resolver.DeviceContainer.html#terminate" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg>terminate</a></li>
+<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="timeline_state_resolver.DeviceContainer.html#setDebugLogging" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg>set<wbr/>Debug<wbr/>Logging</a></li>
+<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="timeline_state_resolver.DeviceContainer.html#setDebugState" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg>set<wbr/>Debug<wbr/>State</a></li>
+<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="timeline_state_resolver.DeviceContainer.html#terminate" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg>terminate</a></li>
 <li class="tsd-kind-method tsd-parent-kind-class"><a href="timeline_state_resolver.DeviceContainer.html#create" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg>create</a></li></ul></li></ul></nav></div></div>
 <div class="container tsd-generator">
 <p>Generated using <a href="https://typedoc.org/" target="_blank">TypeDoc</a></p></div>
