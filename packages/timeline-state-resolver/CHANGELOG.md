@@ -3,6 +3,10 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [9.0.0-release50.4](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/9.0.0-release50.3...9.0.0-release50.4) (2023-07-03)
+
+**Note:** Version bump only for package timeline-state-resolver
+
 ## [9.0.0-release50.3](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/9.0.0-release50.2...9.0.0-release50.3) (2023-07-03)
 
 **Note:** Version bump only for package timeline-state-resolver
