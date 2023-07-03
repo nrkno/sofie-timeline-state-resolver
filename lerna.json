@@ -5,7 +5,7 @@
   "command": {
     "publish": {
       "ignoreChanges": [
-        "**/.yarnrc.yml"
+        ".yarnrc.yml"
       ]
     }
   }
