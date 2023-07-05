@@ -155,7 +155,7 @@ export class HTTPSendDevice extends DeviceWithState<HTTPSendState, DeviceOptions
 				response: t('Failed to send command: Missing url'),
 			}
 		}
-		if (Object.values<TimelineContentTypeHTTP>(TimelineContentTypeHTTP).includes(cmd.type as TimelineContentTypeHTTP)) {
+		if (Object.values<TimelineContentTypeHTTP>(TimelineContentTypeHTTP).includes(cmd.type)) {
 			return {
 				result: ActionExecutionResultCode.Error,
 				response: t('Failed to send command: type is invalid'),
@@ -174,7 +174,7 @@ export class HTTPSendDevice extends DeviceWithState<HTTPSendState, DeviceOptions
 			}
 		}
 
-		await this._commandReceiver(time, cmd as HTTPSendCommandContent, 'makeReady', '')
+		await this._commandReceiver(time, cmd, 'makeReady', '')
 
 		return {
 			result: ActionExecutionResultCode.Ok,
