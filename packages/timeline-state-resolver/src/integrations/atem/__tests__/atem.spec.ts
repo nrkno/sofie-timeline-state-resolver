@@ -313,12 +313,18 @@ describe('Atem', () => {
 				},
 			},
 			resolved: {
-				resolved: true,
+				resolvedReferences: true,
+				resolvedConflicts: true,
 				resolving: false,
-				instances: [{ start: mockTime.now - 1000, end: Infinity, id: 'a0', references: [] }],
+				instances: [{ start: mockTime.now - 1000, end: Infinity, id: '@a0', references: [] }],
 				directReferences: [],
+				levelDeep: 0,
+				parentId: undefined,
+				isKeyframe: false,
+				firstResolved: false,
+				isSelfReferencing: false,
 			},
-			instance: { start: mockTime.now - 1000, end: Infinity, id: 'a0', references: [] },
+			instance: { start: mockTime.now - 1000, end: Infinity, id: '@a0', references: [] },
 		}
 		const mockState: Timeline.TimelineState<TSRTimelineContent> = {
 			time: mockTime.now + 50,
