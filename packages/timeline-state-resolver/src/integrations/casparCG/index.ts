@@ -4,17 +4,19 @@ import {
 	CasparCGOptions,
 	DeviceStatus,
 	Mappings,
+	SomeMappingCasparCG,
 	StatusCode,
 	TSRTimelineContent,
 	Timeline,
 } from 'timeline-state-resolver-types'
 import { Device } from '../../service/device'
 import { EventEmitter } from 'eventemitter3'
-import { convertTimelineStateToDeviceState } from './state'
-import { diffStates } from './diff'
+import { convertTimelineStateToDeviceState, getStatus, mappingToAddress, updateStateFromCommands } from './state'
+import { diffStates, diffTrackerStates, diffTrackerStatesLayer } from './diff'
 import { CasparCG, Commands, Response } from 'casparcg-connection'
 import { DeviceEvents } from '../../service/device'
 import { clearAllChannels, restartServer } from './actions'
+import { StateTracker } from './stateTracker'
 
 type DeviceOptions = CasparCGOptions
 type DeviceState = any
@@ -22,7 +24,9 @@ type Command = any
 
 export class CasparCGDevice extends EventEmitter<DeviceEvents> implements Device<DeviceOptions, DeviceState, Command> {
 	private _connection: CasparCG
+	private _stateTracker: StateTracker<any, Command> = new StateTracker(diffTrackerStatesLayer, getStatus)
 	private _options: DeviceOptions
+	private _queueOverflow = false
 
 	async init(options: DeviceOptions): Promise<boolean> {
 		this._options = options
@@ -38,7 +42,6 @@ export class CasparCGDevice extends EventEmitter<DeviceEvents> implements Device
 			this.emit('connectionChanged', this.getStatus())
 
 			// do a virgin check
-
 			Promise.resolve()
 				.then(async () => {
 					// a "virgin server" was just restarted (so it is cleared & black).
@@ -84,10 +87,6 @@ export class CasparCGDevice extends EventEmitter<DeviceEvents> implements Device
 					this.emit('connectionChanged', this.getStatus())
 
 					if (doResync) {
-						// this._currentState = { channels: {} }
-						// this.clearStates()
-						this.emit('resetResolver')
-
 						this.emit('resetFromState', { layers: {}, lookaheads: {} })
 					}
 				})
@@ -106,7 +105,14 @@ export class CasparCGDevice extends EventEmitter<DeviceEvents> implements Device
 			this.emit('error', 'Error in casparcg-connection', e)
 		})
 
-		// then find out info about the server
+		// @nocommit - hardcoded mess for testing retries
+		setInterval(() => {
+			const diff = this._stateTracker.getDiff()
+
+			for (const [addr, cmds] of Object.entries(diff)) {
+				if (cmds.length) this.sendCommand({ commands: cmds })
+			}
+		}, 3000)
 
 		return true
 	}
@@ -120,17 +126,21 @@ export class CasparCGDevice extends EventEmitter<DeviceEvents> implements Device
 		return this._connection.connected
 	}
 	getStatus(): Omit<DeviceStatus, 'active'> {
-		if (this._connection.connected) {
-			return {
-				statusCode: StatusCode.GOOD,
-				messages: [],
-			}
-		} else {
-			return {
-				statusCode: StatusCode.BAD,
-				messages: [],
-			}
+		const status = {
+			statusCode: StatusCode.GOOD,
+			messages: [] as string[],
 		}
+
+		if (this._queueOverflow) {
+			status.statusCode = StatusCode.BAD
+			status.messages.push('Command queue overflow: CasparCG server has to be restarted')
+		}
+
+		if (!this._connection.connected) {
+			status.statusCode = StatusCode.BAD
+		}
+
+		return status
 	}
 
 	actions: Record<string, (id: string, payload?: Record<string, any>) => Promise<ActionExecutionResult>> = {
@@ -152,9 +162,10 @@ export class CasparCGDevice extends EventEmitter<DeviceEvents> implements Device
 		return diffStates(oldState, newState, mappings)
 	}
 	async sendCommand(command: Command): Promise<any> {
+		console.log(command)
 		// executes all commands on a layer so we can say something about the state of the layer
 
-		const execSingleCommand = async (command: any) => {
+		const execSingleCommand = async (command: any): Promise<number> => {
 			const { request, error } = await this._connection.executeCommand(command)
 			if (error) {
 				this.emit('commandError', error, command)
@@ -164,39 +175,54 @@ export class CasparCGDevice extends EventEmitter<DeviceEvents> implements Device
 				const response = await request
 
 				// Why would this response ever be undefined?
-				if (!response) return
+				if (!response) return 500
 
 				// this._changeTrackedStateFromCommand(cmd, response, time)
 
-				// if (response.responseCode === 504 && !this._queueOverflow) {
-				// 	this._queueOverflow = true
-				// 	this._connectionChanged()
-				// } else if (this._queueOverflow) {
-				// 	this._queueOverflow = false
-				// 	this._connectionChanged()
-				// }
+				if (response.responseCode === 504 && !this._queueOverflow) {
+					this._queueOverflow = true
+					this.emit('connectionChanged', this.getStatus())
+				} else if (this._queueOverflow) {
+					this._queueOverflow = false
+					this.emit('connectionChanged', this.getStatus())
+				}
 
-				// if (response.responseCode >= 400) {
-				// 	// this is an error code:
-				// 	let errorString = `${response.responseCode} ${cmd.command} ${response.type}: ${response.type}`
+				if (response.responseCode >= 400) {
+					// this is an error code:
+					let errorString = `${response.responseCode} ${command.command} ${response.type}: ${response.message}`
 
-				// 	if (Object.keys(cmd.params).length) {
-				// 		errorString += ' ' + JSON.stringify(cmd.params)
-				// 	}
+					if (Object.keys(command.params).length) {
+						errorString += ' ' + JSON.stringify(command.params)
+					}
 
-				// 	this.emit('commandError', new Error(errorString), cwc)
-				// }
+					this.emit('commandError', new Error(errorString), command)
+				}
+
+				return response.responseCode
 			} catch (e) {
 				// This shouldn't really happen
-				this.emit('commandError', Error('Command not sent: ' + e), cwc)
+				this.emit('commandError', Error('Command not sent: ' + e), command)
+				return 500
 			}
 		}
 
-		const executedCommands = command.commands.map((c) => execSingleCommand(c))
+		const executedCommands = (command.commands as any[]).map((c) => execSingleCommand(c))
 
-		await Promise.allSettled(executedCommands)
+		const result = await Promise.allSettled(executedCommands)
+		updateStateFromCommands(
+			this._stateTracker,
+			command.commands,
+			result.map((r) => (r.status === 'fulfilled' && r.value) || 500)
+		)
 
-		// now we know something about what state the layer is in
 		return true
+	}
+
+	updateExpectedState(state: DeviceState, mappings: Mappings<SomeMappingCasparCG>): void {
+		const addresses = Object.values(mappings).map((m) => mappingToAddress(m))
+
+		for (const addr of addresses) {
+			this._stateTracker.updateExpectedState(addr, { layer: state.layers[addr], lookahead: state.lookaheads[addr] })
+		}
 	}
 }

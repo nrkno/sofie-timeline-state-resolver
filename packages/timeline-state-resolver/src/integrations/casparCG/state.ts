@@ -11,6 +11,7 @@ import {
 	TransitionObject,
 	Transition as StateTransition,
 	Mixer,
+	AMCPCommandWithContext,
 } from 'casparcg-state'
 import { literal } from '../../devices/device'
 import {
@@ -29,6 +30,10 @@ import {
 } from 'timeline-state-resolver-types'
 import _ = require('underscore')
 import deepmerge = require('deepmerge')
+import { Commands } from 'casparcg-connection'
+import { klona } from 'klona'
+import { LayerStatus, StateTracker } from './stateTracker'
+import { ChannelLayer } from 'casparcg-connection/dist/parameters'
 
 export interface InternalState {
 	layers: {
@@ -37,6 +42,11 @@ export interface InternalState {
 	lookaheads: {
 		[address: string]: LayerBase
 	}
+}
+
+export interface TrackedLayer {
+	layer: LayerBase | undefined
+	lookahead: LayerBase | undefined
 }
 
 export function mappingToAddress(mapping: Mapping<SomeMappingCasparCG>): string {
@@ -270,4 +280,121 @@ export function convertTimelineStateToDeviceState(
 	}
 
 	return deviceState
+}
+
+export function stateUpdateFromCommandResult(
+	trackedLayer: TrackedLayer,
+	expectedlayer: TrackedLayer,
+	commands: AMCPCommandWithContext[],
+	results: number[]
+): TrackedLayer {
+	const newTrackedLayer = klona(trackedLayer ?? { lookahead: undefined, layer: undefined })
+
+	for (let i = 0; i < commands.length; i++) {
+		const command = commands[i]
+		const result = results[i]
+
+		if (!command || !result) continue
+		if (!command.command.match(/Loadbg|Play|Load|Clear|Stop|Resume/i)) continue
+		if (
+			!(
+				typeof command.params === 'object' &&
+				command.params &&
+				'channel' in command.params &&
+				command.params.channel !== undefined &&
+				'layer' in command.params &&
+				command.params.layer !== undefined
+			)
+		)
+			continue
+		if (result >= 300) continue
+
+		switch (command.command) {
+			case Commands.Play:
+			case Commands.Load:
+				if (!('clip' in command.params) && !trackedLayer.lookahead) {
+					// Ignore, no clip was loaded in confirmedChannelState
+				} else {
+					// a play/load command without parameters (channel/layer) is only succesful if the nextUp worked
+					// a play/load command with params can always be accepted
+					newTrackedLayer.layer = klona(expectedlayer.layer)
+					newTrackedLayer.lookahead = undefined // a play command always clears nextUp
+				}
+				break
+			case Commands.Loadbg:
+				// only loadbg can set nextUp and nextUp can only be set by loadbg
+				newTrackedLayer.lookahead = klona(expectedlayer.lookahead)
+				break
+			case Commands.Stop:
+				// note - technically an auto bg + stop => bg to fg but tsr never uses this...
+				newTrackedLayer.layer = undefined
+				break
+			case Commands.Resume:
+				// resume does not affect nextup
+				newTrackedLayer.layer = klona(expectedlayer.layer)
+				break
+			case Commands.Clear:
+				// Remove both the background and foreground
+				newTrackedLayer.layer = undefined
+				newTrackedLayer.lookahead = undefined
+				break
+			default: {
+				// Never hit
+				// const _a: never = command.params.name
+				break
+			}
+		}
+	}
+
+	return newTrackedLayer
+}
+export function updateStateFromCommands(
+	tracker: StateTracker<any, any>,
+	commands: AMCPCommandWithContext[],
+	results: number[]
+): void {
+	const addressedCommand = commands.find(
+		(command): command is AMCPCommandWithContext & { params: ChannelLayer } =>
+			!!(
+				typeof command.params === 'object' &&
+				command.params &&
+				'channel' in command.params &&
+				command.params.channel !== undefined &&
+				'layer' in command.params &&
+				command.params.layer !== undefined
+			)
+	)
+
+	if (!addressedCommand) return
+
+	const address = addressedCommand.params.channel + '-' + addressedCommand.params.layer
+
+	const expectedState = tracker.getExpectedState(address)
+	const currentState = tracker.getCurrentState(address)
+
+	const update = stateUpdateFromCommandResult(currentState, expectedState, commands, results)
+
+	tracker.updateState(address, update)
+}
+
+export function getStatus(currentLayer, _expectedLayer): { status: LayerStatus; mediaId: string | undefined } {
+	const fg = currentLayer?.layer?.media
+	const bg = currentLayer?.lookahead?.media
+
+	if (fg) {
+		return {
+			status: LayerStatus.Playing,
+			mediaId: fg.toString(),
+		}
+	} else if (bg) {
+		return {
+			status: LayerStatus.Loaded,
+			mediaId: bg.toString(),
+		}
+	} else {
+		return {
+			status: LayerStatus.Empty,
+			mediaId: undefined,
+		}
+	}
 }

@@ -21,13 +21,14 @@ const CLOCK_INTERVAL = 20
 export class StateHandler<DeviceState, Command extends CommandWithContext> {
 	private stateQueue: StateChange<DeviceState, Command>[] = []
 	private currentState: ExecutedStateChange<DeviceState, Command> | undefined
-	private _executingStateChange = false
+	private _executingStateChange: Promise<void> | undefined = undefined
 
 	private clock: NodeJS.Timeout
 
 	private convertTimelineStateToDeviceState: BaseDeviceAPI<DeviceState, Command>['convertTimelineStateToDeviceState']
 	private diffDeviceStates: BaseDeviceAPI<DeviceState, Command>['diffStates']
 	private executeCommand: BaseDeviceAPI<DeviceState, Command>['sendCommand']
+	private updateExpectedState: NonNullable<BaseDeviceAPI<DeviceState, Command>['updateExpectedState']>
 
 	private logger: StateHandlerContext['logger']
 
@@ -41,6 +42,7 @@ export class StateHandler<DeviceState, Command extends CommandWithContext> {
 		this.convertTimelineStateToDeviceState = (s, m) => device.convertTimelineStateToDeviceState(s, m)
 		this.diffDeviceStates = (o, n, m) => device.diffStates(o, n, m)
 		this.executeCommand = async (c) => device.sendCommand(c)
+		this.updateExpectedState = (s, m) => device.updateExpectedState && device.updateExpectedState(s, m)
 
 		this.setCurrentState(undefined).catch((e) => {
 			this.logger.error('Error while creating new StateHandler', e)
@@ -116,6 +118,7 @@ export class StateHandler<DeviceState, Command extends CommandWithContext> {
 	}
 
 	async resyncFromState(state: DeviceState) {
+		if (this._executingStateChange) await this._executingStateChange
 		const oldState = this.currentState
 		if (oldState && oldState.deviceState) {
 			this.stateQueue.splice(0, 0, {
@@ -123,8 +126,8 @@ export class StateHandler<DeviceState, Command extends CommandWithContext> {
 				deviceState: oldState.deviceState,
 				mappings: oldState.mappings,
 			})
-			await this.setCurrentState(state)
 		}
+		await this.setCurrentState(state)
 	}
 
 	private async calculateNextStateChange() {
@@ -158,7 +161,8 @@ export class StateHandler<DeviceState, Command extends CommandWithContext> {
 			// there is no next to execute - or we are currently executing something
 			return
 		}
-		this._executingStateChange = true
+		let finished: () => void = () => null
+		this._executingStateChange = new Promise((r) => (finished = r))
 
 		if (!this.stateQueue[0].commands) {
 			await this.calculateNextStateChange()
@@ -174,6 +178,8 @@ export class StateHandler<DeviceState, Command extends CommandWithContext> {
 		newState.measurement?.executeState()
 
 		this.currentState = undefined
+
+		this.updateExpectedState(newState.deviceState, newState.mappings)
 
 		if (this.config.executionType === 'salvo') {
 			Promise.allSettled(
@@ -212,7 +218,9 @@ export class StateHandler<DeviceState, Command extends CommandWithContext> {
 		}
 
 		this.currentState = newState as ExecutedStateChange<DeviceState, Command>
-		this._executingStateChange = false
+
+		this._executingStateChange = undefined
+		finished()
 
 		this.calculateNextStateChange().catch((e) => {
 			this.logger.error('Error while executing next state change', e)

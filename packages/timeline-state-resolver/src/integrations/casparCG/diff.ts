@@ -1,4 +1,4 @@
-import { Mapping, Mappings, SomeMappingCasparCG } from 'timeline-state-resolver-types'
+import { DeviceType, Mapping, MappingCasparCGType, Mappings, SomeMappingCasparCG } from 'timeline-state-resolver-types'
 import { InternalState, isValidCasparCGMapping, mappingToAddress } from './state'
 import { literal } from '../../devices/device'
 
@@ -63,13 +63,13 @@ export function diffStates(
 			150 // @nocommit - magic number....
 		)
 
-		allCommands.push({
-			layers: mappingNames,
-			commands,
-		})
+		if (commands.length)
+			allCommands.push({
+				layers: mappingNames,
+				commands,
+			})
 	}
 
-	// @nocommmit - check ordering of commands
 	return allCommands
 }
 
@@ -98,4 +98,62 @@ function getInternalStateFromLayer(layer: Layer, mapping: Mapping<SomeMappingCas
 			},
 		},
 	})
+}
+
+export function diffTrackerStates(currentState, expectedState): any[] {
+	// get addresses
+	// todo - this reduce must be very slow...
+	const addresses = [...Object.keys(currentState ?? {}), ...Object.keys(expectedState ?? {})]
+		.sort()
+		.reduce((a, b) => (a.slice(-1)[0] === b ? a : [...a, b]), [])
+
+	const commands = [] as any[]
+
+	for (const addr of addresses) {
+		commands.push(diffTrackerStatesLayer(addr, currentState[addr], expectedState[addr]))
+	}
+
+	return commands
+}
+
+export function diffTrackerStatesLayer(addr: string, currentLayer, expectedLayer): Command[] {
+	const [channel, layer] = addr.split('-').map((v) => parseInt(v))
+	const mapping: Mapping<SomeMappingCasparCG> = {
+		device: DeviceType.CASPARCG,
+		deviceId: '',
+
+		options: {
+			mappingType: MappingCasparCGType.Layer,
+
+			channel,
+			layer,
+		},
+	}
+
+	// @nocommit
+	let newLayer: any = getEmptyLayer(addr, mapping)
+	let oldLayer: any = getEmptyLayer(addr, mapping)
+
+	if (expectedLayer?.layer) {
+		newLayer = expectedLayer.layer
+	}
+	if (currentLayer?.layer) {
+		oldLayer = currentLayer.layer
+	}
+
+	if (expectedLayer?.lookahead) {
+		newLayer.nextUp = expectedLayer.lookahead
+	}
+	if (currentLayer?.lookahead) {
+		oldLayer.nextUp = currentLayer.lookahead
+	}
+
+	const commands = CasparCGState.diffStatesOrderedCommands(
+		getInternalStateFromLayer(oldLayer, mapping),
+		getStateFromLayer(newLayer, mapping),
+		Date.now(), // @nocommit ???
+		150 // @nocommit - magic number....
+	)
+
+	return commands
 }

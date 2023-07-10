@@ -229,6 +229,10 @@ export class DeviceInstanceWrapper extends EventEmitter<DeviceEvents> {
 			this.emit('resetResolver')
 		})
 
+		this._device.on('resetFromState', (s) => {
+			this._stateHandler.resyncFromState(s)
+		})
+
 		/** Something went wrong when executing a command  */
 		this._device.on('commandError', (error: Error, context: CommandWithContext) => {
 			this.emit('commandError', error, context)
