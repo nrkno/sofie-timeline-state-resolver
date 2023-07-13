@@ -12,18 +12,54 @@
 			"destructive": false,
 			"payload": {
 				"type": "object",
+				"tsType": "HTTPSendCommandContent",
 				"properties": {
 					"type": {
-						"type": "string"
+						"type": "string",
+						"title": "TimelineContentTypeHTTP",
+						"ui:title": "Type",
+						"ui:summaryTitle": "Type",
+						"default": "",
+						"enum": ["get", "post", "put", "delete"],
+						"tsEnumNames": ["GET", "POST", "PUT", "DELETE"]
 					},
-					"url": { "type": "string" },
-					"params": { "type": "object" },
-					"paramsType": { "type": "string" },
-					"temporalPriority": { "type": "number" },
-					"queueId": { "type": "string" }
+					"url": {
+						"type": "string",
+						"ui:title": "Url",
+						"ui:summaryTitle": "URL",
+						"default": ""
+					},
+					"params": {
+						"type": "object",
+						"ui:title": "Params",
+						"ui:displayType": "json",
+						"additionalProperties": true
+					},
+					"paramsType": {
+						"type": "string",
+						"title": "TimelineContentTypeHTTPParamType",
+						"ui:title": "Params type",
+						"default": "json",
+						"enum": ["json", "form"],
+						"tsEnumNames": ["JSON", "FORM"]
+					},
+					"headers": {
+						"type": "object",
+						"additionalProperties": { "type": "string" }
+					},
+					"temporalPriority": {
+						"type": "integer",
+						"ui:title": "Temporal Priority",
+						"default": 0
+					},
+					"queueId": {
+						"type": "string",
+						"description": "Commands in the same queue will be sent in order (will wait for the previous to finish before sending next",
+						"ui:title": "Send Queue Id"
+					}
 				},
-				"additionalProperties": false,
-				"required": ["type", "url", "params"]
+				"required": ["type", "url", "params"],
+				"additionalProperties": false
 			}
 		}
 	]
