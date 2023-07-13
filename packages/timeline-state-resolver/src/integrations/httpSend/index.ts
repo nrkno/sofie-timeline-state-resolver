@@ -40,6 +40,7 @@ export class HTTPSendDevice
 	private options: DeviceOptions
 	private activeLayers = new Map<string, string>()
 	private cacheable: CacheableLookup
+	private _terminated = false
 
 	async init(options: DeviceOptions): Promise<boolean> {
 		this.options = options
@@ -47,6 +48,7 @@ export class HTTPSendDevice
 		return true
 	}
 	async terminate(): Promise<boolean> {
+		this._terminated = true
 		return true
 	}
 
@@ -61,6 +63,10 @@ export class HTTPSendDevice
 	}
 
 	actions: Record<string, (id: HttpSendActions, payload?: Record<string, any>) => Promise<ActionExecutionResult>> = {
+		[HttpSendActions.Resync]: async () => {
+			this.emit('resetResolver')
+			return { result: ActionExecutionResultCode.Ok }
+		},
 		[HttpSendActions.SendCommand]: async (_id: HttpSendActions.SendCommand, payload?: SendCommandPayload) =>
 			this.sendManualCommand(payload),
 	}
@@ -77,7 +83,9 @@ export class HTTPSendDevice
 				response: t('Failed to send command: Missing url'),
 			}
 		}
-		if (Object.values<TimelineContentTypeHTTP>(TimelineContentTypeHTTP).includes(cmd.type as TimelineContentTypeHTTP)) {
+		if (
+			!Object.values<TimelineContentTypeHTTP>(TimelineContentTypeHTTP).includes(cmd.type as TimelineContentTypeHTTP)
+		) {
 			return {
 				result: ActionExecutionResultCode.Error,
 				response: t('Failed to send command: type is invalid'),
@@ -104,7 +112,7 @@ export class HTTPSendDevice
 				content: cmd as HTTPSendCommandContent,
 				layer: '',
 			},
-		})
+		}).catch(() => this.emit('warning', 'Manual command failed: ' + JSON.stringify(cmd)))
 
 		return {
 			result: ActionExecutionResultCode.Ok,
@@ -173,9 +181,12 @@ export class HTTPSendDevice
 			this.activeLayers.delete(command.layer)
 		}
 
-		if (command.layer) {
+		if (command.layer && command.commandName !== 'manual') {
 			const hash = this.activeLayers.get(command.layer)
 			if (JSON.stringify(command.content) !== hash) return Promise.resolve() // command is no longer relevant to state
+		}
+		if (this._terminated) {
+			return Promise.resolve()
 		}
 
 		const cwc: CommandWithContext = {
@@ -246,7 +257,7 @@ export class HTTPSendDevice
 					'EAI_AGAIN',
 				]
 
-				if (retryCodes.includes(err.code) && this.options?.resendTime) {
+				if (retryCodes.includes(err.code) && this.options?.resendTime && command.commandName !== 'manual') {
 					const timeLeft = Math.max(this.options.resendTime - (Date.now() - t), 0)
 					setTimeout(() => {
 						this.sendCommand({

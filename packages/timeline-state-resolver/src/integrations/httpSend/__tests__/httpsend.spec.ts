@@ -1,4 +1,9 @@
-import { DeviceType, TimelineContentTypeHTTP } from 'timeline-state-resolver-types'
+import {
+	ActionExecutionResultCode,
+	DeviceType,
+	HttpSendActions,
+	TimelineContentTypeHTTP,
+} from 'timeline-state-resolver-types'
 import { TimelineContentHTTPSendAny } from 'timeline-state-resolver-types'
 import { Timeline } from 'timeline-state-resolver-types'
 import { TSRTimelineContent } from 'timeline-state-resolver-types'
@@ -283,6 +288,24 @@ describe('HTTP-Send', () => {
 			expect(MOCKED_SOCKET_GET).toHaveBeenCalledTimes(2)
 			jest.advanceTimersByTime(1000)
 			expect(MOCKED_SOCKET_GET).toHaveBeenCalledTimes(2)
+		})
+	})
+
+	describe('Send action', () => {
+		test('Send action', async () => {
+			const device = await getInitialisedHttpDevice()
+
+			const result = await device.actions[HttpSendActions.SendCommand](HttpSendActions.SendCommand, {
+				...DEFAULT_TL_CONTENT,
+				type: TimelineContentTypeHTTP.GET,
+				url: 'http://testurl',
+				params: {},
+			})
+
+			expect(MOCKED_SOCKET_GET).toHaveBeenCalledTimes(1)
+			expect(result).toMatchObject({
+				result: ActionExecutionResultCode.Ok,
+			})
 		})
 	})
 })
