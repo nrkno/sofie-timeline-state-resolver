@@ -313,27 +313,55 @@ export class VMix extends BaseConnection {
 			version: xmlState['vmix']['version']['_text'],
 			edition: xmlState['vmix']['edition']['_text'],
 			inputs: _.indexBy(
-				(xmlState['vmix']['inputs']['input'] as Array<any>).map((input): VMixInput => {
-					fixedInputsCount++
-					return {
-						number: Number(input['_attributes']['number']),
-						type: input['_attributes']['type'],
-						state: input['_attributes']['state'],
-						position: Number(input['_attributes']['position']) || 0,
-						duration: Number(input['_attributes']['duration']) || 0,
-						loop: input['_attributes']['loop'] === 'False' ? false : true,
-						muted: input['_attributes']['muted'] === 'False' ? false : true,
-						volume: Number(input['_attributes']['volume'] || 100),
-						balance: Number(input['_attributes']['balance'] || 0),
-						audioBuses: input['_attributes']['audiobusses'],
-						transform: {
-							panX: Number(input['position'] ? input['position']['_attributes']['panX'] || 0 : 0),
-							panY: Number(input['position'] ? input['position']['_attributes']['panY'] || 0 : 0),
-							alpha: -1, // unavailable
-							zoom: Number(input['position'] ? input['position']['_attributes']['zoomX'] || 1 : 1), // assume that zoomX==zoomY
-						},
+				(xmlState['vmix']['inputs']['input'] as Array<any>).map(
+					(input): Required<Omit<VMixInput, 'filePath' | 'fade' | 'audioAuto' | 'restart'>> => {
+						fixedInputsCount++
+
+						let fixedListFilePaths: VMixInput['listFilePaths'] = undefined
+						if (input['_attributes']['type'] === 'VideoList') {
+							if (Array.isArray(input['list']['item'])) {
+								// Handles the case where there is more than one item in the list.
+								fixedListFilePaths = input['list']['item'].map((item) => item['_text'])
+							} else if (input['list']['item']) {
+								// Handles the case where there is exactly one item in the list.
+								fixedListFilePaths = [input['list']['item']['_text']]
+							}
+						}
+
+						let fixedOverlays: VMixInput['overlays'] = undefined
+						if (Array.isArray(input['overlay'])) {
+							// Handles the case where there is more than one item in the list.
+							fixedOverlays = input['overlay'].map((item) => parseInt(item['_attributes']['index'], 10))
+						} else if (input['overlay']) {
+							// Handles the case where there is exactly one item in the list.
+							fixedOverlays = [parseInt(input['overlay']['_attributes']['index'], 10)]
+						}
+
+						return {
+							number: Number(input['_attributes']['number']),
+							type: input['_attributes']['type'],
+							name: input['_attributes']['title'],
+							state: input['_attributes']['state'],
+							playing: input['_attributes']['state'] === 'Running',
+							position: Number(input['_attributes']['position']) || 0,
+							duration: Number(input['_attributes']['duration']) || 0,
+							loop: input['_attributes']['loop'] === 'False' ? false : true,
+							muted: input['_attributes']['muted'] === 'False' ? false : true,
+							volume: Number(input['_attributes']['volume'] || 100),
+							balance: Number(input['_attributes']['balance'] || 0),
+							solo: input['_attributes']['loop'] === 'False' ? false : true,
+							audioBuses: input['_attributes']['audiobusses'],
+							transform: {
+								panX: Number(input['position'] ? input['position']['_attributes']['panX'] || 0 : 0),
+								panY: Number(input['position'] ? input['position']['_attributes']['panY'] || 0 : 0),
+								alpha: -1, // unavailable
+								zoom: Number(input['position'] ? input['position']['_attributes']['zoomX'] || 1 : 1), // assume that zoomX==zoomY
+							},
+							overlays: fixedOverlays!,
+							listFilePaths: fixedListFilePaths!,
+						}
 					}
-				}),
+				),
 				'number'
 			),
 			overlays: (xmlState['vmix']['overlays']['overlay'] as Array<any>).map((overlay) => {

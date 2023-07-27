@@ -4,7 +4,7 @@ import * as deepMerge from 'deepmerge'
 import { DeviceWithState, CommandWithContext, DeviceStatus, StatusCode } from './../../devices/device'
 import { DoOnTime, SendMode } from '../../devices/doOnTime'
 
-import { VMix, VMixStateCommand, Response as VMixResponse } from './connection'
+import { VMix, VMixStateCommand } from './connection'
 import {
 	DeviceType,
 	DeviceOptionsVMix,
@@ -28,13 +28,12 @@ import {
 	SavePresetPayload,
 	VmixActions,
 } from 'timeline-state-resolver-types'
-import { cloneDeep, t } from '../../lib'
+import { t } from '../../lib'
 
 /**
- * Default time, in milliseconds, for when we should retry loading media files.
+ * Default time, in milliseconds, for when we should poll vMix to query its actual state.
  */
-const DEFAULT_MEDIA_RETRY_INTERVAL = 10 * 1000
-const FILE_NOT_FOUND_REGEX = /File Not Found: (?<fileName>.+)/i
+const DEFAULT_VMIX_POLL_INTERVAL = 10 * 1000
 
 export interface DeviceOptionsVMixInternal extends DeviceOptionsVMix {
 	commandReceiver?: CommandReceiver
@@ -87,20 +86,9 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 	private _vmix: VMix
 	private _connected = false
 	private _initialized = false
+	private _pollTimeout: NodeJS.Timeout
+	private _pollTime: number | null = null
 	private _retryTimeout: NodeJS.Timeout
-	private _retryTime: number | null = null
-	/**
-	 * Our best guess as to what the real state of vMix is at this moment.
-	 * This is *not* the same thing as `this._vmix.state.reportedState`,
-	 * even though they seem and sound very similar. The difference is that
-	 * this reacts to incoming command error messages (specifically for media loading)
-	 * and updates itself based on those. From there, it is used to generate diffs that
-	 * are used to re-send failed commands (again, specifically for media loading).
-	 *
-	 * In short: this uses a heuristic to guess the real state of vMix,
-	 * spefically its media statuses.
-	 */
-	private _bestGuessActualState: VMixStateExtended | null = null
 
 	constructor(deviceId: string, deviceOptions: DeviceOptionsVMixInternal, getCurrentTime: () => Promise<number>) {
 		super(deviceId, deviceOptions, getCurrentTime)
@@ -137,31 +125,25 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 			if (d.message !== 'Completed') this.emit('debug', d)
 			if (d.command === 'XML' && d.body) {
 				this._vmix.parseVMixState(d.body)
-
 				if (!this._initialized) {
-					const time = this.getCurrentTime()
-					let state = this._getDefaultState()
-					state = deepMerge<VMixStateExtended>(state, { reportedState: this._vmix.state })
-					this.setState(state, time)
 					this._initialized = true
 					this.emit('connectionChanged', this.getStatus())
 					this.emit('resetResolver')
 				}
-			} else if (d.response === 'ER' && FILE_NOT_FOUND_REGEX.test(d.message)) {
-				this._changeTrackedStateFromIncomingData(d)
 			}
 		})
 		// this._vmix.on('debug', (...args) => this.emitDebug(...args))
 
 		this._vmix.connect()
 
-		if (typeof options.retryInterval !== 'number' || options.retryInterval > 0) {
-			this._retryTime = options.retryInterval ?? DEFAULT_MEDIA_RETRY_INTERVAL
-			this._retryTimeout = setTimeout(() => this._assertIntendedState(), this._retryTime)
+		if (typeof options.pollInterval !== 'number' || options.pollInterval > 0) {
+			this._pollTime = options.pollInterval ?? DEFAULT_VMIX_POLL_INTERVAL
+			this._pollTimeout = setTimeout(() => this._pollVmix(), this._pollTime)
 		}
 
 		return true
 	}
+
 	private _connectionChanged() {
 		this.emit('connectionChanged', this.getStatus())
 	}
@@ -176,7 +158,23 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 	private _onVMixStateChanged(newState: VMixState) {
 		const time = this.getCurrentTime()
 		const oldState: VMixStateExtended = (this.getStateBefore(time) || { state: this._getDefaultState() }).state
-		oldState.reportedState = newState
+
+		// We can't get all properties from vMix's API.
+		// Therefore, all we can do is copy over the last known ones that we sent.
+		// This is fragile and intertwined with `parseVMixState` in `connection.ts`.
+		for (const key of Object.keys(oldState.reportedState.inputs)) {
+			newState.inputs[key].filePath = oldState.reportedState.inputs[key].filePath
+			newState.inputs[key].fade = oldState.reportedState.inputs[key].fade
+			newState.inputs[key].audioAuto = oldState.reportedState.inputs[key].audioAuto
+			newState.inputs[key].restart = oldState.reportedState.inputs[key].restart
+
+			// If we don't do this, then clips will keep seeking back to the start.
+			// This is perhaps a bad hack that will come back to haunt us if we start doing more stuff with seeking.
+			newState.inputs[key].position = oldState.reportedState.inputs[key].position
+		}
+
+		oldState.reportedState = deepMerge<VMixState>(oldState.reportedState, _.omit(newState, 'inputs'))
+		oldState.reportedState.inputs = newState.inputs
 		this.setState(oldState, time)
 	}
 
@@ -275,7 +273,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 
 		const newVMixState = this.convertStateToVMix(newState, newMappings)
 
-		const commandsToAchieveState: Array<any> = this._diffStates(oldState, newVMixState)
+		const commandsToAchieveState = this._diffStates(oldState, newVMixState)
 
 		// clear any queued commands later than this time:
 		this._doOnTime.clearQueueNowAndAfter(previousStateTime)
@@ -1230,11 +1228,9 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 		context: CommandContext,
 		timelineObjId: string
 	): Promise<any> {
-		// do not retry while we are sending commands, instead always retry closely after:
-		if (context !== CommandContext.Retry) {
-			clearTimeout(this._retryTimeout)
-			if (this._retryTime) this._retryTimeout = setTimeout(() => this._assertIntendedState(), this._retryTime)
-		}
+		// do not poll or retry while we are sending commands, instead always do it closely after:
+		clearTimeout(this._pollTimeout)
+		if (this._pollTime) this._pollTimeout = setTimeout(() => this._pollVmix(), this._pollTime)
 
 		const cwc: CommandWithContext = {
 			context: context,
@@ -1294,77 +1290,14 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 	}
 
 	/**
-	 * Receives incoming data (i.e. command responses, though it may be subscription data too)
-	 * from vMix and changes our tracked state based on the contents of that data.
+	 * Polls vMix's XML status endpoint, which will change our tracked state based on the response.
 	 */
-	private _changeTrackedStateFromIncomingData(data: VMixResponse): void {
-		const currentExpectedState = this.getState(this.getCurrentTime())
-		if (!currentExpectedState) return
-
-		const fileNotFoundMatch = data.message.match(FILE_NOT_FOUND_REGEX)
-		if (!fileNotFoundMatch?.groups) return // We only handle "file not found" responses, so ignore everything else.
-
-		const confirmedState = cloneDeep(currentExpectedState.state)
-
-		for (const [inputName, input] of Object.entries<VMixInput>(currentExpectedState.state.reportedState.inputs)) {
-			if (input.filePath || (input.type && input.type !== VMixInputType.List)) {
-				if (input.filePath === fileNotFoundMatch.groups.fileName || input.name === fileNotFoundMatch.groups.fileName) {
-					if (inputName in confirmedState.reportedState.inputs) {
-						// This will cause the diff to generate a new command to create the input.
-						delete confirmedState.reportedState.inputs[inputName]
-					}
-				}
-			} else if (input.listFilePaths) {
-				if (input.listFilePaths.includes(fileNotFoundMatch.groups.fileName)) {
-					if (inputName in confirmedState.reportedState.inputs) {
-						// This will cause the diff to generate a new command to load the file.
-						confirmedState.reportedState.inputs[inputName].listFilePaths = input.listFilePaths.filter(
-							(fp) => fp !== fileNotFoundMatch.groups!.fileName
-						)
-					}
-				}
-			}
+	private _pollVmix() {
+		clearTimeout(this._pollTimeout)
+		if (this._pollTime) {
+			this._pollTimeout = setTimeout(() => this._pollVmix(), this._pollTime)
 		}
-
-		this._bestGuessActualState = confirmedState
-	}
-
-	/**
-	 * Takes the current timeline-state and diffs it with the known
-	 * vMix state. If any media has failed to load, it will create a diff with
-	 * the intended (timeline) state and that command will be executed.
-	 */
-	private _assertIntendedState() {
-		if (this._retryTime) {
-			this._retryTimeout = setTimeout(() => this._assertIntendedState(), this._retryTime)
-		}
-
-		if (!this._bestGuessActualState) return
-
-		const tlState = this.getState(this.getCurrentTime())
-
-		if (!tlState) return // no state implies any state is correct
-
-		const vmixState = tlState.state
-
-		const diff = this._diffStates(this._bestGuessActualState, vmixState)
-
-		const cmds: Array<VMixStateCommandWithContext> = []
-		for (const cmd of diff) {
-			// This system currently only handles media loading commands. Others could be added in the future.
-			if (cmd.command.command === VMixCommand.ADD_INPUT || cmd.command.command === VMixCommand.LIST_ADD) {
-				cmd.context = CommandContext.Retry
-				cmds.push(cmd)
-			}
-		}
-
-		if (cmds.length > 0) {
-			this._addToQueue(cmds, this.getCurrentTime())
-		}
-
-		// We have to now blindly hope that our sent commands will work.
-		// If not, that's okay, because we'll get new errors for them and the cycle will begin anew.
-		this._bestGuessActualState = vmixState
+		this._vmix.requestVMixState().catch((e) => this.emit('error', 'VMix poll', e))
 	}
 }
 
@@ -1377,8 +1310,6 @@ export interface VMixStateExtended {
 	/**
 	 * The state of vMix (as far as we know) as reported by vMix **+
 	 * our expectations based on the commands we've set**.
-	 * This might not align with reality, or it may lag behind reality, partially
-	 * because there's no good way to subscribe to vMix's state via its API.
 	 */
 	reportedState: VMixState
 	outputs: {
