@@ -35,6 +35,11 @@ import { t } from '../../lib'
  */
 const DEFAULT_VMIX_POLL_INTERVAL = 10 * 1000
 
+/**
+ * How long to wait, in milliseconds, to poll vMix's state after we send commands to it.
+ */
+const BACKOFF_VMIX_POLL_INTERVAL = 5 * 1000
+
 export interface DeviceOptionsVMixInternal extends DeviceOptionsVMix {
 	commandReceiver?: CommandReceiver
 }
@@ -88,7 +93,6 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 	private _initialized = false
 	private _pollTimeout: NodeJS.Timeout
 	private _pollTime: number | null = null
-	private _retryTimeout: NodeJS.Timeout
 
 	constructor(deviceId: string, deviceOptions: DeviceOptionsVMixInternal, getCurrentTime: () => Promise<number>) {
 		super(deviceId, deviceOptions, getCurrentTime)
@@ -303,7 +307,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 		this._vmix.removeAllListeners()
 		this._vmix.disconnect()
 
-		clearTimeout(this._retryTimeout)
+		clearTimeout(this._pollTimeout)
 
 		return Promise.resolve(true)
 	}
@@ -1237,7 +1241,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 	): Promise<any> {
 		// do not poll or retry while we are sending commands, instead always do it closely after:
 		clearTimeout(this._pollTimeout)
-		if (this._pollTime) this._pollTimeout = setTimeout(() => this._pollVmix(), this._pollTime)
+		if (this._pollTime) this._pollTimeout = setTimeout(() => this._pollVmix(), BACKOFF_VMIX_POLL_INTERVAL)
 
 		const cwc: CommandWithContext = {
 			context: context,
