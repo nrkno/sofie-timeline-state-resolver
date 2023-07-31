@@ -31,6 +31,14 @@ export interface Response {
 	body?: string
 }
 
+/**
+ * This TSR integration polls the state of vMix and merges that into our last-known state.
+ * However, not all state properties can be retried from vMix's API.
+ * Therefore, there are some properties that we must "carry over" from our last-known state, every time.
+ * These are those property keys for the Input state objects.
+ */
+export type InferredPartialInputStateKeys = 'filePath' | 'fade' | 'audioAuto' | 'restart'
+
 export class BaseConnection extends EventEmitter<ConnectionEvents> {
 	private _socket?: Socket
 	private _unprocessedLines: string[] = []
@@ -314,7 +322,7 @@ export class VMix extends BaseConnection {
 			edition: xmlState['vmix']['edition']['_text'],
 			inputs: _.indexBy(
 				(xmlState['vmix']['inputs']['input'] as Array<any>).map(
-					(input): Required<Omit<VMixInput, 'filePath' | 'fade' | 'audioAuto' | 'restart'>> => {
+					(input): Required<Omit<VMixInput, InferredPartialInputStateKeys>> => {
 						fixedInputsCount++
 
 						let fixedListFilePaths: VMixInput['listFilePaths'] = undefined

@@ -4,7 +4,7 @@ import * as deepMerge from 'deepmerge'
 import { DeviceWithState, CommandWithContext, DeviceStatus, StatusCode } from './../../devices/device'
 import { DoOnTime, SendMode } from '../../devices/doOnTime'
 
-import { VMix, VMixStateCommand } from './connection'
+import { InferredPartialInputStateKeys, VMix, VMixStateCommand } from './connection'
 import {
 	DeviceType,
 	DeviceOptionsVMix,
@@ -161,16 +161,23 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 
 		// We can't get all properties from vMix's API.
 		// Therefore, all we can do is copy over the last known ones that we sent.
-		// This is fragile and intertwined with `parseVMixState` in `connection.ts`.
-		for (const key of Object.keys(oldState.reportedState.inputs)) {
-			newState.inputs[key].filePath = oldState.reportedState.inputs[key].filePath
-			newState.inputs[key].fade = oldState.reportedState.inputs[key].fade
-			newState.inputs[key].audioAuto = oldState.reportedState.inputs[key].audioAuto
-			newState.inputs[key].restart = oldState.reportedState.inputs[key].restart
+		// This is intertwined with `parseVMixState` in `connection.ts`.
+		for (const inputKey of Object.keys(oldState.reportedState.inputs)) {
+			const carriedOverOldState: Pick<VMixInput, InferredPartialInputStateKeys | 'position'> = {
+				filePath: oldState.reportedState.inputs[inputKey].filePath,
+				fade: oldState.reportedState.inputs[inputKey].fade,
+				audioAuto: oldState.reportedState.inputs[inputKey].audioAuto,
+				restart: oldState.reportedState.inputs[inputKey].restart,
 
-			// If we don't do this, then clips will keep seeking back to the start.
-			// This is perhaps a bad hack that will come back to haunt us if we start doing more stuff with seeking.
-			newState.inputs[key].position = oldState.reportedState.inputs[key].position
+				// If we don't do this, then clips will keep seeking back to the start.
+				// This is perhaps a bad hack that will come back to haunt us if we start doing more stuff with seeking.
+				position: oldState.reportedState.inputs[inputKey].position,
+			}
+
+			// Shallow merging is sufficient.
+			for (const [key, value] of Object.entries<string | number | boolean>(carriedOverOldState)) {
+				newState.inputs[inputKey][key] = value
+			}
 		}
 
 		oldState.reportedState = deepMerge<VMixState>(oldState.reportedState, _.omit(newState, 'inputs'))
