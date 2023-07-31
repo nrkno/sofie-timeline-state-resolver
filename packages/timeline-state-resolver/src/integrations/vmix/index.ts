@@ -1239,7 +1239,12 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 		context: CommandContext,
 		timelineObjId: string
 	): Promise<any> {
-		// do not poll or retry while we are sending commands, instead always do it closely after:
+		// Do not poll or retry while we are sending commands, instead always do it closely after.
+		// This is potentially an issue while producing a show, because it is theoretically possible
+		// that the operator keeps performing actions/takes within 5 seconds of one another and
+		// therefore this timeout keeps getting reset and never expires.
+		// For now, we classify this as an extreme outlier edge case and acknowledge that this system
+		// does not support it.
 		clearTimeout(this._pollTimeout)
 		if (this._pollTime) this._pollTimeout = setTimeout(() => this._pollVmix(), BACKOFF_VMIX_POLL_INTERVAL)
 
