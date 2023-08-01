@@ -8,7 +8,6 @@ import {
 	HTTPSendCommandContent,
 	HTTPSendOptions,
 	HttpSendActions,
-	SendCommandPayload,
 	StatusCode,
 	TSRTimelineContent,
 	Timeline,
@@ -67,11 +66,11 @@ export class HTTPSendDevice
 			this.emit('resetResolver')
 			return { result: ActionExecutionResultCode.Ok }
 		},
-		[HttpSendActions.SendCommand]: async (_id: HttpSendActions.SendCommand, payload?: SendCommandPayload) =>
+		[HttpSendActions.SendCommand]: async (_id: HttpSendActions.SendCommand, payload?: HTTPSendCommandContent) =>
 			this.sendManualCommand(payload),
 	}
 
-	private async sendManualCommand(cmd?: SendCommandPayload): Promise<ActionExecutionResult> {
+	private async sendManualCommand(cmd?: HTTPSendCommandContent): Promise<ActionExecutionResult> {
 		if (!cmd)
 			return {
 				result: ActionExecutionResultCode.Error,
@@ -83,9 +82,7 @@ export class HTTPSendDevice
 				response: t('Failed to send command: Missing url'),
 			}
 		}
-		if (
-			!Object.values<TimelineContentTypeHTTP>(TimelineContentTypeHTTP).includes(cmd.type as TimelineContentTypeHTTP)
-		) {
+		if (!Object.values<TimelineContentTypeHTTP>(TimelineContentTypeHTTP).includes(cmd.type)) {
 			return {
 				result: ActionExecutionResultCode.Error,
 				response: t('Failed to send command: type is invalid'),
@@ -109,7 +106,7 @@ export class HTTPSendDevice
 			context: 'makeReady',
 			command: {
 				commandName: 'manual',
-				content: cmd as HTTPSendCommandContent,
+				content: cmd,
 				layer: '',
 			},
 		}).catch(() => this.emit('warning', 'Manual command failed: ' + JSON.stringify(cmd)))

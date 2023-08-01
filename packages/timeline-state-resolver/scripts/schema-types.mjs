@@ -22,6 +22,7 @@ const PrettierConf = JSON.parse(
 try {
 	const actionSchemaDescr = JSON.parse(await fs.readFile('./src/$schemas/action-schema.json'))
 	const actionSchema = await compile(actionSchemaDescr.properties.actions.items, 'TSRActionSchema', {
+		enableConstEnums: false,
 		additionalProperties: false,
 		style: PrettierConf,
 		bannerComment: '',
@@ -40,6 +41,7 @@ try {
 		additionalProperties: false,
 		style: PrettierConf,
 		bannerComment: '',
+		enableConstEnums: false,
 	})
 
 	await fs.writeFile(
@@ -153,6 +155,7 @@ for (const dir of dirs) {
 					additionalProperties: false,
 					style: PrettierConf,
 					bannerComment: '',
+					enableConstEnums: false,
 				})
 				output += '\n' + actionTypes
 			}
