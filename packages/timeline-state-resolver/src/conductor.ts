@@ -47,7 +47,7 @@ import { SingularLiveDevice, DeviceOptionsSingularLiveInternal } from './integra
 import { VMixDevice, DeviceOptionsVMixInternal } from './integrations/vmix'
 import { OBSDevice, DeviceOptionsOBSInternal } from './integrations/obs'
 import { VizMSEDevice, DeviceOptionsVizMSEInternal } from './integrations/vizMSE'
-import { ShotokuDevice, DeviceOptionsShotokuInternal } from './integrations/shotoku'
+import { DeviceOptionsShotokuInternal } from './integrations/shotoku'
 import { DeviceOptionsSofieChefInternal, SofieChefDevice } from './integrations/sofieChef'
 import { TelemetricsDevice } from './integrations/telemetrics'
 import { TriCasterDevice, DeviceOptionsTriCasterInternal } from './integrations/tricaster'
@@ -587,15 +587,6 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 					getCurrentTime,
 					threadedClassOptions
 				)
-			case DeviceType.SHOTOKU:
-				return DeviceContainer.create<DeviceOptionsShotokuInternal, typeof ShotokuDevice>(
-					'../../dist/integrations/shotoku/index.js',
-					'ShotokuDevice',
-					deviceId,
-					deviceOptions,
-					getCurrentTime,
-					threadedClassOptions
-				)
 			case DeviceType.SISYFOS:
 				return DeviceContainer.create<DeviceOptionsSisyfosInternal, typeof SisyfosMessageDevice>(
 					'../../dist/integrations/sisyfos/index.js',
@@ -679,6 +670,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 				)
 			case DeviceType.HTTPSEND:
 			case DeviceType.OSC:
+			case DeviceType.SHOTOKU:
 				// presumably this device is implemented in the new service handler
 				return RemoteDeviceInstance.create(
 					'../../dist/service/DeviceInstance.js',
