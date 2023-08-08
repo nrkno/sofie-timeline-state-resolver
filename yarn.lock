@@ -2375,10 +2375,10 @@ atem-connection@2.5.0:
     tslib "^1.13.0"
     wavefile "^8.4.4"
 
-atem-state@0.12.3-nightly-v0-x-20230808-125421-d138a13.0:
-  version "0.12.3-nightly-v0-x-20230808-125421-d138a13.0"
-  resolved "https://registry.yarnpkg.com/atem-state/-/atem-state-0.12.3-nightly-v0-x-20230808-125421-d138a13.0.tgz#a8c72f6c5ac10e977b4618d705f24e68f548b2dd"
-  integrity sha512-+hnH5/MsH8Upu1RrVFQ4CoKOTAM9IyYC6sh5PQM9on1Sv8LaxPbiK69l9rmEC21DzvKktBgxOVtshSSTsXSZnQ==
+atem-state@0.13.0:
+  version "0.13.0"
+  resolved "https://registry.yarnpkg.com/atem-state/-/atem-state-0.13.0.tgz#07f6452364550cc2af0c9ddfdf1ffe40010e81c9"
+  integrity sha512-uEzt15vP8c155OfsyuWrkbxb3PKoLBpy4Q7WAlqx2t4AZTGSbHCpQz8YIx/9Zg9zPw9bDLt8eVUJBp30QYLp8Q==
   dependencies:
     deepmerge "^4.2.2"
     tslib "^2.3.1"
