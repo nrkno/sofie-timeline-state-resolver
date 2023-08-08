@@ -443,16 +443,12 @@ export class AtemDevice extends DeviceWithState<DeviceState, DeviceOptionsAtemIn
 			}
 		}
 
-		return _.map(this._state.diffStates(oldAtemState, newAtemState), (cmd: any) => {
-			if (_.has(cmd, 'command') && _.has(cmd, 'context')) {
-				return cmd as AtemCommandWithContext
-			} else {
-				// backwards compability, to be removed later:
-				return {
-					command: cmd as AtemCommands.ISerializableCommand,
-					context: null,
-					timelineObjId: '', // @todo: implement in Atem-state
-				}
+		const diffCommands = this._state.diffStates(oldAtemState, newAtemState)
+		return diffCommands.map((cmd) => {
+			return {
+				command: cmd,
+				context: null,
+				timelineObjId: '', // @todo: implement in Atem-state
 			}
 		})
 	}
