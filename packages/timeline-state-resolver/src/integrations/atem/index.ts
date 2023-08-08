@@ -314,6 +314,33 @@ export class AtemDevice extends DeviceWithState<DeviceState, DeviceOptionsAtemIn
 								}
 							}
 							break
+
+						case MappingAtemType.AudioRouting:
+							if (content.type === TimelineContentTypeAtem.AUDIOROUTING) {
+								// lazily generate the state properties, to make this be opt in per-mapping
+								if (!deviceState.fairlight)
+									deviceState.fairlight = {
+										inputs: {},
+									}
+								if (!deviceState.fairlight.audioRouting)
+									deviceState.fairlight.audioRouting = {
+										sources: {},
+										outputs: {},
+									}
+
+								deviceState.fairlight.audioRouting.outputs[mapping.index] = {
+									// readonly props, they won't be diffed
+									audioOutputId: mapping.index,
+									audioChannelPair: 0,
+									externalPortType: 0,
+									internalPortType: 0,
+
+									// mutable props
+									name: `Output ${mapping.index}`,
+									...content.audioRouting,
+								}
+							}
+							break
 					}
 				}
 
