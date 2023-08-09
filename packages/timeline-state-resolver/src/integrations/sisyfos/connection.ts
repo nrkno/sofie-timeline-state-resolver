@@ -104,14 +104,15 @@ export class SisyfosApi extends EventEmitter {
 				],
 			})
 		} else if (command.type === SisyfosCommandType.SET_FADER) {
+			const args: Array<MetaArgument> = (command as ValuesCommand).values.map((value) => {
+				return {
+					type: 'f',
+					value,
+				}
+			})
 			this._oscClient.send({
 				address: `/ch/${(command as ValueCommand).channel + 1}/faderlevel`,
-				args: [
-					{
-						type: 'f',
-						value: (command as ValueCommand).value,
-					},
-				],
+				args,
 			})
 		} else if (command.type === SisyfosCommandType.VISIBLE) {
 			this._oscClient.send({
@@ -158,14 +159,15 @@ export class SisyfosApi extends EventEmitter {
 				})
 			}
 			if ((command as SetChannelCommand).values.faderLevel !== undefined) {
+				const args: Array<MetaArgument> = (command as ValuesCommand).values.map((value) => {
+					return {
+						type: 'f',
+						value,
+					}
+				})
 				this._oscClient.send({
 					address: `/ch/${(command as ValueCommand).channel + 1}/faderlevel`,
-					args: [
-						{
-							type: 'f',
-							value: (command as SetChannelCommand).values.faderLevel as number,
-						},
-					],
+					args,
 				})
 			}
 			if ((command as SetChannelCommand).values.visible !== undefined) {
@@ -369,7 +371,7 @@ export interface ValueCommand extends ChannelCommand {
 }
 
 export interface ValuesCommand extends Omit<ChannelCommand, 'value'> {
-	type: SisyfosCommandType.TOGGLE_PGM
+	type: SisyfosCommandType.TOGGLE_PGM | SisyfosCommandType.SET_FADER
 	values: number[]
 }
 

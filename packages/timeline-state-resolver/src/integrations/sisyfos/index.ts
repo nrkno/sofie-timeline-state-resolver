@@ -536,13 +536,17 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 
 			if (oldChannel && oldChannel.faderLevel !== newChannel.faderLevel) {
 				debug(`change faderLevel ${index}: "${newChannel.faderLevel}"`)
+				const values: number[] = [newChannel.faderLevel]
+				if (newChannel.fadeTime) {
+					values.push(newChannel.fadeTime)
+				}
 				commands.push({
 					context: 'faderLevel change',
 					content: {
 						type: SisyfosCommandType.SET_FADER,
 						channel: Number(index),
-						value: newChannel.faderLevel,
-					},
+						values,
+					} as ValuesCommand,
 					timelineObjId: newChannel.tlObjIds[0] || '',
 				})
 			}
