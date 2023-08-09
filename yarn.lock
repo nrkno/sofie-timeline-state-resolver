@@ -2362,10 +2362,10 @@ at-least-node@^1.0.0:
   resolved "https://registry.yarnpkg.com/at-least-node/-/at-least-node-1.0.0.tgz#602cd4b46e844ad4effc92a8011a3c46e0238dc2"
   integrity sha512-+q/t7Ekv1EDY2l6Gda6LLiX14rU9TV20Wa3ofeQmwPFZbOMo9DXrLbOjFaaclkXKWidIaopwAObQDqwWtGUjqg==
 
-atem-connection@2.4.0:
-  version "2.4.0"
-  resolved "https://registry.yarnpkg.com/atem-connection/-/atem-connection-2.4.0.tgz#bcaf5713e6a3f64be45583bf98b0c294255b7f86"
-  integrity sha512-/D+fWWRrCcxzfCbSdUMT00nCR/S8xCwFTSE6oqFkFSb0mtxgCORs8WKMF0KZddPPuUU2S/4ZfR+Oh53Hm/d/jQ==
+atem-connection@2.5.0:
+  version "2.5.0"
+  resolved "https://registry.yarnpkg.com/atem-connection/-/atem-connection-2.5.0.tgz#dceb616595af37d0b3c118d0a9e6f613f1a2d419"
+  integrity sha512-JZI0B9jfw91ALSx4hOQH8Mk5TGQuJcK1/tdHQDIvoPW+z7qOds2JPlxNHkk5Thg5pLVKBgMHxIXDWfQ5vHPw8w==
   dependencies:
     big-integer "^1.6.51"
     eventemitter3 "^4.0.4"
@@ -2375,10 +2375,10 @@ atem-connection@2.4.0:
     tslib "^1.13.0"
     wavefile "^8.4.4"
 
-atem-state@^0.12.2:
-  version "0.12.2"
-  resolved "https://registry.yarnpkg.com/atem-state/-/atem-state-0.12.2.tgz#40a97b77d32ed9effee5e99505193d1e0c94deca"
-  integrity sha512-4OFp3HHpvhmcBHOpx7M/8Gjpf1xUkH5GZZGdPJGQt3N9JOZggONbC7ndoko4qhwapl7EQkM2eMhkI+uDAKj8LQ==
+atem-state@0.13.0:
+  version "0.13.0"
+  resolved "https://registry.yarnpkg.com/atem-state/-/atem-state-0.13.0.tgz#07f6452364550cc2af0c9ddfdf1ffe40010e81c9"
+  integrity sha512-uEzt15vP8c155OfsyuWrkbxb3PKoLBpy4Q7WAlqx2t4AZTGSbHCpQz8YIx/9Zg9zPw9bDLt8eVUJBp30QYLp8Q==
   dependencies:
     deepmerge "^4.2.2"
     tslib "^2.3.1"
