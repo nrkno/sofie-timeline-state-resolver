@@ -4,6 +4,7 @@ import { Device } from './device'
 import { HTTPSendDevice } from '../integrations/httpSend'
 import { ShotokuDevice } from '../integrations/shotoku'
 import { HTTPWatcherDevice } from '../integrations/httpWatcher'
+import { AbstractDevice } from '../integrations/abstract'
 
 export interface DeviceEntry {
 	deviceClass: new () => Device<any, any, any>
@@ -13,6 +14,7 @@ export interface DeviceEntry {
 }
 
 export type ImplementedServiceDeviceTypes =
+	| DeviceType.ABSTRACT
 	| DeviceType.HTTPSEND
 	| DeviceType.HTTPWATCHER
 	| DeviceType.OSC
@@ -20,6 +22,12 @@ export type ImplementedServiceDeviceTypes =
 
 // TODO - move all device implementations here and remove the old Device classes
 export const DevicesDict: Record<ImplementedServiceDeviceTypes, DeviceEntry> = {
+	[DeviceType.ABSTRACT]: {
+		deviceClass: AbstractDevice,
+		canConnect: true,
+		deviceName: (deviceId: string) => 'Abstract ' + deviceId,
+		executionMode: () => 'salvo',
+	},
 	[DeviceType.HTTPSEND]: {
 		deviceClass: HTTPSendDevice,
 		canConnect: false,

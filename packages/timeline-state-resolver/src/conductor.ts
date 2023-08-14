@@ -25,6 +25,7 @@ import {
 	DeviceOptionsShotoku,
 	DeviceOptionsHTTPSend,
 	DeviceOptionsHTTPWatcher,
+	DeviceOptionsAbstract,
 } from 'timeline-state-resolver-types'
 
 import { DoOnTime } from './devices/doOnTime'
@@ -35,7 +36,6 @@ import { CommandWithContext, DeviceEvents } from './devices/device'
 import { DeviceContainer } from './devices/deviceContainer'
 
 import { CasparCGDevice, DeviceOptionsCasparCGInternal } from './integrations/casparCG'
-import { AbstractDevice, DeviceOptionsAbstractInternal } from './integrations/abstract'
 import { AtemDevice, DeviceOptionsAtemInternal } from './integrations/atem'
 import { LawoDevice, DeviceOptionsLawoInternal } from './integrations/lawo'
 import { PanasonicPtzDevice, DeviceOptionsPanasonicPTZInternal } from './integrations/panasonicPTZ'
@@ -495,18 +495,6 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 		threadedClassOptions: ThreadedClassConfig
 	): Promise<BaseRemoteDeviceIntegration<DeviceOptionsBase<any>>> | null {
 		switch (deviceOptions.type) {
-			case DeviceType.ABSTRACT:
-				return DeviceContainer.create<DeviceOptionsAbstractInternal, typeof AbstractDevice>(
-					'../../dist/integrations/abstract/index.js',
-					'AbstractDevice',
-					deviceId,
-					deviceOptions,
-					getCurrentTime,
-					{
-						...threadedClassOptions,
-						threadUsage: deviceOptions.isMultiThreaded ? 0.1 : 0,
-					}
-				)
 			case DeviceType.CASPARCG:
 				return DeviceContainer.create<DeviceOptionsCasparCGInternal, typeof CasparCGDevice>(
 					'../../dist/integrations/casparCG/index.js',
@@ -660,6 +648,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 					getCurrentTime,
 					threadedClassOptions
 				)
+			case DeviceType.ABSTRACT:
 			case DeviceType.HTTPSEND:
 			case DeviceType.HTTPWATCHER:
 			case DeviceType.OSC:
@@ -1560,7 +1549,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 	}
 }
 export type DeviceOptionsAnyInternal =
-	| DeviceOptionsAbstractInternal
+	| DeviceOptionsAbstract
 	| DeviceOptionsCasparCGInternal
 	| DeviceOptionsAtemInternal
 	| DeviceOptionsLawoInternal
