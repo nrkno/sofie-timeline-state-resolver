@@ -12,10 +12,14 @@ export interface DeviceEntry {
 	executionMode: (options: any) => 'salvo' | 'sequential'
 }
 
-type ImplementedDeviceTypes = DeviceType.HTTPSEND | DeviceType.HTTPWATCHER | DeviceType.OSC | DeviceType.SHOTOKU
+export type ImplementedServiceDeviceTypes =
+	| DeviceType.HTTPSEND
+	| DeviceType.HTTPWATCHER
+	| DeviceType.OSC
+	| DeviceType.SHOTOKU
 
 // TODO - move all device implementations here and remove the old Device classes
-export const DevicesDict: Record<ImplementedDeviceTypes, DeviceEntry> = {
+export const DevicesDict: Record<ImplementedServiceDeviceTypes, DeviceEntry> = {
 	[DeviceType.HTTPSEND]: {
 		deviceClass: HTTPSendDevice,
 		canConnect: false,

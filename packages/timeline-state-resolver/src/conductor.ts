@@ -53,6 +53,7 @@ import { TelemetricsDevice } from './integrations/telemetrics'
 import { TriCasterDevice, DeviceOptionsTriCasterInternal } from './integrations/tricaster'
 import { DeviceOptionsMultiOSCInternal, MultiOSCMessageDevice } from './integrations/multiOsc'
 import { BaseRemoteDeviceIntegration, RemoteDeviceInstance } from './service/remoteDeviceInstance'
+import type { ImplementedServiceDeviceTypes } from './service/devices'
 
 export { DeviceContainer }
 export { CommandWithContext }
@@ -662,7 +663,9 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 			case DeviceType.HTTPSEND:
 			case DeviceType.HTTPWATCHER:
 			case DeviceType.OSC:
-			case DeviceType.SHOTOKU:
+			case DeviceType.SHOTOKU: {
+				ensureIsImplementedAsService(deviceOptions.type)
+
 				// presumably this device is implemented in the new service handler
 				return RemoteDeviceInstance.create(
 					'../../dist/service/DeviceInstance.js',
@@ -672,6 +675,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 					getCurrentTime,
 					threadedClassOptions
 				)
+			}
 			default:
 				assertNever(deviceOptions)
 				return null
@@ -1631,4 +1635,8 @@ async function makeImmediatelyAbortable<T>(
 			resolveAbortPromise()
 			throw reason
 		})
+}
+
+function ensureIsImplementedAsService(_type: ImplementedServiceDeviceTypes): void {
+	// This is a type check
 }
