@@ -200,7 +200,6 @@ export class StateHandler<DeviceState, Command extends CommandWithContext> {
 			)
 				.then((promiseResults) => {
 					if (newState.measurement) this.context.reportStateChangeMeasurement(newState.measurement.report())
-					console.log(promiseResults)
 					if (newState.commands) this.finishedStateChange(newState.commands, promiseResults)
 				})
 				.catch((e) => {

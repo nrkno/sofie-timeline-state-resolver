@@ -247,7 +247,9 @@ export class DeviceInstanceWrapper extends EventEmitter<DeviceEvents> {
 		})
 
 		this._device.on('getMappings', (cb) => cb(this._stateHandler.getCurrentState()?.mappings ?? {}))
-		this._device.on('layerState', (address, state, mediaId) => console.log('emit from device', address, state, mediaId))
+		this._device.on('layerState', (layer, state, mediaId) => {
+			this.emit('layerState', layer, state, mediaId)
+		})
 
 		this._device.on('timeTrace', (trace: FinishedTrace) => {
 			this.emit('timeTrace', trace)

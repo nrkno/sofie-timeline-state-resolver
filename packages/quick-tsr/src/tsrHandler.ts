@@ -15,6 +15,7 @@ import {
 import * as _ from 'underscore'
 import { TSRSettings } from './index'
 import { BaseRemoteDeviceIntegration } from 'timeline-state-resolver/dist/service/remoteDeviceInstance'
+import { DeviceInstanceWrapper } from 'timeline-state-resolver/dist/service/DeviceInstance'
 
 /**
  * Represents a connection between Gateway and TSR
@@ -155,6 +156,9 @@ export class TSRHandler {
 			await device.device.on('slowFulfilledCommand', ((_info: SlowFulfilledCommandInfo) => {
 				// console.log(`Device ${device.deviceId} slow fulfilled command: ${_info}`)
 			}) as () => void)
+			await (device.device as any as DeviceInstanceWrapper).on('layerState', (layer, state, mediaId) => {
+				console.log(layer, state, mediaId)
+			})
 			// also ask for the status now, and update:
 			// onConnectionChanged(await device.device.getStatus())
 		} catch (e) {

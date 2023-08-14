@@ -1,4 +1,4 @@
-import { LayerStatus } from 'src/integrations/casparCG/stateTracker'
+import { LayerStatus } from '../integrations/casparCG/stateTracker'
 import { SlowSentCommandInfo, SlowFulfilledCommandInfo, CommandReport } from '../'
 import { FinishedTrace } from '../lib'
 import {
