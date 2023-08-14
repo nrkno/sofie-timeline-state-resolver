@@ -167,7 +167,7 @@ export class HTTPSendDevice
 
 		return commands
 	}
-	async sendCommand({ tlObjId, context, command }: HttpSendDeviceCommand): Promise<any> {
+	async sendCommand({ tlObjId, context, command }: HttpSendDeviceCommand): Promise<void> {
 		if (command.commandName === 'added' || command.commandName === 'changed') {
 			this.activeLayers.set(command.layer, JSON.stringify(command.content))
 		} else if (command.commandName === 'removed') {

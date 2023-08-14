@@ -63,7 +63,7 @@ export interface BaseDeviceAPI<DeviceState, Command extends CommandWithContext> 
 	 */
 	diffStates(oldState: DeviceState | undefined, newState: DeviceState, mappings: Mappings): Array<Command>
 	/** This method will take a command and send it to the device */
-	sendCommand(command: Command): Promise<any>
+	sendCommand(command: Command): Promise<void>
 }
 
 export interface DeviceEvents {
