@@ -1309,6 +1309,11 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 	 * Polls vMix's XML status endpoint, which will change our tracked state based on the response.
 	 */
 	private _pollVmix() {
+		// Testing this sytem is currently unsupported.
+		// Supporting it may require making a more complex vMix mock
+		// that actually changes the XML it reports, instead of being a static thing
+		// that does not react to incoming commands.
+		if (process.env.NODE_ENV === 'test') return
 		clearTimeout(this._pollTimeout)
 		if (this._pollTime) {
 			this._pollTimeout = setTimeout(() => this._pollVmix(), this._pollTime)
