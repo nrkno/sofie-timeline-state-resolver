@@ -9,22 +9,35 @@ import {
 	TSRTimelineContent,
 	Timeline,
 } from 'timeline-state-resolver-types'
-import { Device } from '../../service/device'
+import { CommandWithContext, Device } from '../../service/device'
 import { EventEmitter } from 'eventemitter3'
 import { convertTimelineStateToDeviceState, getStatus, mappingToAddress, updateStateFromCommands } from './state'
-import { diffStates, diffTrackerStates, diffTrackerStatesLayer } from './diff'
+import { diffStates, diffTrackerStatesLayer } from './diff'
 import { CasparCG, Commands, Response } from 'casparcg-connection'
 import { DeviceEvents } from '../../service/device'
 import { clearAllChannels, restartServer } from './actions'
-import { StateTracker } from './stateTracker'
+import { LayerState, StateTracker } from './stateTracker'
+import { AMCPCommandWithContext } from 'casparcg-state'
 
 type DeviceOptions = CasparCGOptions
 type DeviceState = any
-type Command = any
+type Command = { command: AMCPCommandWithContext } & CommandWithContext
 
 export class CasparCGDevice extends EventEmitter<DeviceEvents> implements Device<DeviceOptions, DeviceState, Command> {
 	private _connection: CasparCG
-	private _stateTracker: StateTracker<any, Command> = new StateTracker(diffTrackerStatesLayer, getStatus)
+	private _stateTracker: StateTracker<any, Command> = new StateTracker(
+		diffTrackerStatesLayer,
+		getStatus,
+		(address: string, state: LayerState) => {
+			this.emit('getMappings', (mappings: Mappings<SomeMappingCasparCG>) => {
+				// convert mappings to addresses
+				for (const [layer, m] of Object.entries(mappings)) {
+					const addr = mappingToAddress(m)
+					if (addr === address) this.emit('layerState', layer, state.status, state.mediaId)
+				}
+			})
+		}
+	)
 	private _options: DeviceOptions
 	private _queueOverflow = false
 
@@ -109,8 +122,16 @@ export class CasparCGDevice extends EventEmitter<DeviceEvents> implements Device
 		setInterval(() => {
 			const diff = this._stateTracker.getDiff()
 
-			for (const [addr, cmds] of Object.entries(diff)) {
-				if (cmds.length) this.sendCommand({ commands: cmds })
+			for (const cmds of Object.values(diff)) {
+				Promise.allSettled(
+					cmds.filter((c) => c.command.command.match(/PLAY|LOADBG|LOAD/i)).map((c) => this.sendCommand(c))
+				).then((results) => {
+					updateStateFromCommands(
+						this._stateTracker,
+						cmds.map((c) => c.command),
+						results.map((r) => (r.status === 'fulfilled' ? r.value : 500))
+					)
+				})
 			}
 		}, 3000)
 
@@ -161,61 +182,46 @@ export class CasparCGDevice extends EventEmitter<DeviceEvents> implements Device
 	diffStates(oldState: DeviceState | undefined, newState: DeviceState, mappings: Mappings): Array<Command> {
 		return diffStates(oldState, newState, mappings)
 	}
-	async sendCommand(command: Command): Promise<any> {
-		console.log(command)
+	async sendCommand({ command }: Command): Promise<any> {
+		// console.log(command)
 		// executes all commands on a layer so we can say something about the state of the layer
 
-		const execSingleCommand = async (command: any): Promise<number> => {
-			const { request, error } = await this._connection.executeCommand(command)
-			if (error) {
-				this.emit('commandError', error, command)
-			}
-
-			try {
-				const response = await request
-
-				// Why would this response ever be undefined?
-				if (!response) return 500
-
-				// this._changeTrackedStateFromCommand(cmd, response, time)
-
-				if (response.responseCode === 504 && !this._queueOverflow) {
-					this._queueOverflow = true
-					this.emit('connectionChanged', this.getStatus())
-				} else if (this._queueOverflow) {
-					this._queueOverflow = false
-					this.emit('connectionChanged', this.getStatus())
-				}
-
-				if (response.responseCode >= 400) {
-					// this is an error code:
-					let errorString = `${response.responseCode} ${command.command} ${response.type}: ${response.message}`
-
-					if (Object.keys(command.params).length) {
-						errorString += ' ' + JSON.stringify(command.params)
-					}
-
-					this.emit('commandError', new Error(errorString), command)
-				}
-
-				return response.responseCode
-			} catch (e) {
-				// This shouldn't really happen
-				this.emit('commandError', Error('Command not sent: ' + e), command)
-				return 500
-			}
+		const { request, error } = await this._connection.executeCommand(command)
+		if (error) {
+			this.emit('commandError', error, command)
 		}
 
-		const executedCommands = (command.commands as any[]).map((c) => execSingleCommand(c))
+		try {
+			const response = await request
 
-		const result = await Promise.allSettled(executedCommands)
-		updateStateFromCommands(
-			this._stateTracker,
-			command.commands,
-			result.map((r) => (r.status === 'fulfilled' && r.value) || 500)
-		)
+			// Why would this response ever be undefined?
+			if (!response) return 500
 
-		return true
+			if (response.responseCode === 504 && !this._queueOverflow) {
+				this._queueOverflow = true
+				this.emit('connectionChanged', this.getStatus())
+			} else if (this._queueOverflow) {
+				this._queueOverflow = false
+				this.emit('connectionChanged', this.getStatus())
+			}
+
+			if (response.responseCode >= 400) {
+				// this is an error code:
+				let errorString = `${response.responseCode} ${command.command} ${response.type}: ${response.message}`
+
+				if (Object.keys(command.params).length) {
+					errorString += ' ' + JSON.stringify(command.params)
+				}
+
+				this.emit('commandError', new Error(errorString), command)
+			}
+
+			return response.responseCode
+		} catch (e) {
+			// This shouldn't really happen
+			this.emit('commandError', Error('Command not sent: ' + e), command)
+			return 500
+		}
 	}
 
 	updateExpectedState(state: DeviceState, mappings: Mappings<SomeMappingCasparCG>): void {
@@ -224,5 +230,12 @@ export class CasparCGDevice extends EventEmitter<DeviceEvents> implements Device
 		for (const addr of addresses) {
 			this._stateTracker.updateExpectedState(addr, { layer: state.layers[addr], lookahead: state.lookaheads[addr] })
 		}
+	}
+	finishedStateChange(commands: Command[], results: PromiseSettledResult<any>[]): void {
+		updateStateFromCommands(
+			this._stateTracker,
+			commands.map((c) => c.command), // note - a little weird we ignore the address here, no?
+			results.map((r) => (r.status === 'fulfilled' ? r.value : 500))
+		)
 	}
 }

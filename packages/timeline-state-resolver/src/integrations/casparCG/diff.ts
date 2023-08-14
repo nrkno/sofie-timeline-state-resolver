@@ -1,5 +1,6 @@
 import { DeviceType, Mapping, MappingCasparCGType, Mappings, SomeMappingCasparCG } from 'timeline-state-resolver-types'
 import { InternalState, isValidCasparCGMapping, mappingToAddress } from './state'
+import { CommandWithContext } from '../../service/device'
 import { literal } from '../../devices/device'
 
 import {
@@ -11,8 +12,9 @@ import {
 	CasparCGState,
 } from 'casparcg-state'
 import { InternalState as CcgInternalState } from 'casparcg-state/dist/lib/stateObjectStorage'
+import { Commands, PlayCommand, PlayDecklinkCommand, PlayHtmlCommand, PlayRouteCommand } from 'casparcg-connection'
 
-type Command = any // @nocommit)
+type Command = CommandWithContext // @nocommit)
 
 export function diffStates(
 	oldState: InternalState | undefined,
@@ -20,7 +22,7 @@ export function diffStates(
 	mappings: Mappings
 ): Array<Command> {
 	const addresses: Record<string, string[]> = {}
-	const allCommands: Array<{ layers: string[]; commands: AMCPCommandWithContext[] }> = []
+	const unorderedCommands: { commands: AMCPCommandWithContext[]; address: string; layers: string[] }[] = []
 
 	for (const [mappingName, mapping] of Object.entries(mappings)) {
 		if (!isValidCasparCGMapping(mapping)) continue
@@ -56,21 +58,21 @@ export function diffStates(
 			oldLayer.nextUp = oldState.lookaheads[addr]
 		}
 
-		const commands = CasparCGState.diffStatesOrderedCommands(
+		const commands = CasparCGState.diffStates(
 			getInternalStateFromLayer(oldLayer, mapping),
 			getStateFromLayer(newLayer, mapping),
 			Date.now(), // @nocommit ???
 			150 // @nocommit - magic number....
 		)
 
-		if (commands.length)
-			allCommands.push({
-				layers: mappingNames,
-				commands,
-			})
+		if (commands.length) {
+			unorderedCommands.push(
+				...commands.map((group) => ({ commands: group.cmds, address: addr, layers: mappingNames }))
+			)
+		}
 	}
 
-	return allCommands
+	return orderCommands(unorderedCommands)
 }
 
 function getEmptyLayer(addr: string, mapping: Mapping<SomeMappingCasparCG>) {
@@ -155,5 +157,77 @@ export function diffTrackerStatesLayer(addr: string, currentLayer, expectedLayer
 		150 // @nocommit - magic number....
 	)
 
-	return commands
+	return commands.map((c) => ({
+		command: c,
+		context: c.context.context,
+		tlObjId: c.context.layerId,
+		address: addr,
+	}))
+}
+
+function orderCommands(
+	diff: { commands: AMCPCommandWithContext[]; address: string; layers: string[] }[]
+): Array<{ command: AMCPCommandWithContext } & Command> {
+	const fastCommands: Array<{ command: AMCPCommandWithContext } & Command> = [] // fast to exec, and direct visual impact: PLAY 1-10
+	const slowCommands: Array<{ command: AMCPCommandWithContext } & Command> = [] // slow to exec, but direct visual impact: PLAY 1-10 FILE (needs to have all commands for that layer in the right order)
+	const lowPrioCommands: Array<{ command: AMCPCommandWithContext } & Command> = [] // slow to exec, and no direct visual impact: LOADBG 1-10 FILE
+
+	for (const layer of diff) {
+		let containsSlowCommand = false
+
+		// filter out lowPrioCommands
+		for (let i = 0; i < layer.commands.length; i++) {
+			if (
+				layer.commands[i].command === Commands.Loadbg ||
+				layer.commands[i].command === Commands.LoadbgDecklink ||
+				layer.commands[i].command === Commands.LoadbgRoute ||
+				layer.commands[i].command === Commands.LoadbgHtml
+			) {
+				lowPrioCommands.push({
+					command: layer.commands[i],
+					context: layer.commands[i].context.context,
+					tlObjId: layer.commands[i].context.layerId,
+					address: layer.address,
+				})
+				layer.commands.splice(i, 1)
+				i-- // next entry now has the same index as this one.
+			} else if (
+				(layer.commands[i].command === Commands.Play && (layer.commands[i].params as PlayCommand['params']).clip) ||
+				(layer.commands[i].command === Commands.PlayDecklink &&
+					(layer.commands[i].params as PlayDecklinkCommand['params']).device) ||
+				(layer.commands[i].command === Commands.PlayRoute &&
+					(layer.commands[i].params as PlayRouteCommand['params']).route) ||
+				(layer.commands[i].command === Commands.PlayHtml &&
+					(layer.commands[i].params as PlayHtmlCommand['params']).url) ||
+				layer.commands[i].command === Commands.Load // ||
+				// layer.cmds[i].command === 'LoadDecklinkCommand' ||
+				// layer.cmds[i].command === 'LoadRouteCommand' ||
+				// layer.cmds[i].command === 'LoadHtmlPageCommand'
+			) {
+				containsSlowCommand = true
+			}
+		}
+
+		if (containsSlowCommand) {
+			slowCommands.push(
+				...layer.commands.map((c) => ({
+					command: c,
+					context: c.context.context,
+					tlObjId: c.context.layerId,
+					address: layer.address,
+				}))
+			)
+		} else {
+			fastCommands.push(
+				...layer.commands.map((c) => ({
+					command: c,
+					context: c.context.context,
+					tlObjId: c.context.layerId,
+					address: layer.address,
+				}))
+			)
+		}
+	}
+
+	return [...fastCommands, ...slowCommands, ...lowPrioCommands]
 }

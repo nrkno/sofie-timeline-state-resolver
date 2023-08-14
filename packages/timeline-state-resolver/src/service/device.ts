@@ -1,3 +1,4 @@
+import { LayerStatus } from 'src/integrations/casparCG/stateTracker'
 import { SlowSentCommandInfo, SlowFulfilledCommandInfo, CommandReport } from '../'
 import { FinishedTrace } from '../lib'
 import {
@@ -15,6 +16,7 @@ export type CommandWithContext = {
 	command: any
 	context: CommandContext
 	tlObjId: string
+	address?: string
 }
 
 export interface Device<DeviceOptions, DeviceState, Command extends CommandWithContext>
@@ -66,6 +68,7 @@ export interface BaseDeviceAPI<DeviceState, Command extends CommandWithContext> 
 	sendCommand(command: Command): Promise<any>
 
 	updateExpectedState?(state: DeviceState, mappings: Mappings): void
+	finishedStateChange?(commands: Command[], results: any[]): void // todo
 }
 
 export interface DeviceEvents {
@@ -92,6 +95,10 @@ export interface DeviceEvents {
 	updateMediaObject: [collectionId: string, docId: string, doc: MediaObject | null]
 	/** Clear a MediaObjects collection */
 	clearMediaObjects: [collectionId: string]
+	/** layerState */
+	layerState: [address: string, state: LayerStatus, mediaIds: string[]]
+	/** getMappings */
+	getMappings: [cb: (mappings: any) => void]
 
 	commandReport: [commandReport: CommandReport]
 	timeTrace: [trace: FinishedTrace]

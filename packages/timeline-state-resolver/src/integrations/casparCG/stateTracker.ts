@@ -1,31 +1,34 @@
 export enum LayerStatus {
 	Empty = 'EMPTY',
 	Loaded = 'LOADED',
-	Playing = 'PLAYING',
-	LoadedAndPlaying = 'LOADED_PLAYING', // some devices can preload and play at the same time. i.e. casparcg.
+}
+
+export interface LayerState {
+	status: LayerStatus
+	mediaId: string[]
 }
 
 export class StateTracker<State, Command> {
 	private _state: {
 		[address: string]: {
-			status: LayerStatus
+			status: LayerState
 			expectedState: State | undefined
 			currentState: State | undefined
 		}
 	} = {}
 	private _diff: (address: string, currentState: State | undefined, expectedState: State) => Command[]
-	private _getStatus: (
-		currentState: State,
-		expectedState?: State
-	) => { status: LayerStatus; mediaId: string | undefined }
+	private _getStatus: (currentState: State, expectedState?: State) => { status: LayerStatus; mediaId: string[] }
+	private _onReportedChange: (addres: string, state: { status: LayerStatus; mediaId: string[] }) => void
 
 	constructor(
 		diff: (address: string, currentState: State | undefined, expectedState: State) => Command[],
-		getStatus: (currentState: State, expectedState: State) => { status: LayerStatus; mediaId: string | undefined }
+		getStatus: (currentState: State, expectedState: State) => { status: LayerStatus; mediaId: string[] },
+		onReportedChange: (addres: string, state: { status: LayerStatus; mediaId: string[] }) => void
 	) {
 		// note - the diff function should only consider
 		this._diff = diff
 		this._getStatus = getStatus
+		this._onReportedChange = onReportedChange
 	}
 
 	updateExpectedState(address: string, state: State) {
@@ -42,13 +45,15 @@ export class StateTracker<State, Command> {
 		this._state[address].currentState = state
 
 		const status = this._getStatus(state, this._state[address].expectedState)
-		this._state[address].status = status.status
+		this._state[address].status = status
 
-		// todo - report new status + mediaId
-		console.log('updated status', address, status)
+		this._onReportedChange(address, status)
 	}
 	getCurrentState(address: string): State | undefined {
 		return this._state[address]?.currentState
+	}
+	getCurrentStatus(address: string): LayerState | undefined {
+		return this._state[address]?.status
 	}
 
 	clearState() {
@@ -71,7 +76,7 @@ export class StateTracker<State, Command> {
 	private _assertAddressExists(address: string) {
 		if (!this._state[address])
 			this._state[address] = {
-				status: LayerStatus.Empty,
+				status: { status: LayerStatus.Empty, mediaId: [] },
 				expectedState: undefined,
 				currentState: undefined,
 			}

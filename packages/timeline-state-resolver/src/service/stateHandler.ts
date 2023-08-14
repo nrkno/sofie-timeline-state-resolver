@@ -29,6 +29,7 @@ export class StateHandler<DeviceState, Command extends CommandWithContext> {
 	private diffDeviceStates: BaseDeviceAPI<DeviceState, Command>['diffStates']
 	private executeCommand: BaseDeviceAPI<DeviceState, Command>['sendCommand']
 	private updateExpectedState: NonNullable<BaseDeviceAPI<DeviceState, Command>['updateExpectedState']>
+	private finishedStateChange: NonNullable<BaseDeviceAPI<DeviceState, Command>['finishedStateChange']>
 
 	private logger: StateHandlerContext['logger']
 
@@ -43,6 +44,7 @@ export class StateHandler<DeviceState, Command extends CommandWithContext> {
 		this.diffDeviceStates = (o, n, m) => device.diffStates(o, n, m)
 		this.executeCommand = async (c) => device.sendCommand(c)
 		this.updateExpectedState = (s, m) => device.updateExpectedState && device.updateExpectedState(s, m)
+		this.finishedStateChange = (c, r) => device.finishedStateChange && device.finishedStateChange(c, r)
 
 		this.setCurrentState(undefined).catch((e) => {
 			this.logger.error('Error while creating new StateHandler', e)
@@ -111,6 +113,9 @@ export class StateHandler<DeviceState, Command extends CommandWithContext> {
 			mappings: this.currentState?.mappings || {},
 		}
 		await this.calculateNextStateChange()
+	}
+	getCurrentState(): ExecutedStateChange<DeviceState, Command> | undefined {
+		return this.currentState
 	}
 
 	clearFutureAfterTimestamp(t: number) {
@@ -181,18 +186,22 @@ export class StateHandler<DeviceState, Command extends CommandWithContext> {
 
 		this.updateExpectedState(newState.deviceState, newState.mappings)
 
+		const results: PromiseSettledResult<any>[] = []
+
 		if (this.config.executionType === 'salvo') {
 			Promise.allSettled(
 				newState.commands.map(async (command) => {
 					newState.measurement?.executeCommand(command)
-					return this.executeCommand(command).then(() => {
+					return this.executeCommand(command).then((result) => {
 						newState.measurement?.finishedCommandExecution(command)
-						return command
+						return result
 					})
 				})
 			)
-				.then(() => {
+				.then((promiseResults) => {
 					if (newState.measurement) this.context.reportStateChangeMeasurement(newState.measurement.report())
+					console.log(promiseResults)
+					if (newState.commands) this.finishedStateChange(newState.commands, promiseResults)
 				})
 				.catch((e) => {
 					this.logger.error('Error while executing next state change', e)
@@ -201,15 +210,22 @@ export class StateHandler<DeviceState, Command extends CommandWithContext> {
 			const execAll = async () => {
 				for (const command of newState.commands || []) {
 					newState.measurement?.executeCommand(command)
-					await this.executeCommand(command).catch((e) => {
-						this.logger.error('Error while executing command', e)
-					})
+					const result = await this.executeCommand(command)
+						.then((value) => {
+							return { status: 'fulfilled', value } satisfies PromiseSettledResult<any>
+						})
+						.catch((e) => {
+							this.logger.error('Error while executing command', e)
+							return { status: 'rejected', reason: e } satisfies PromiseSettledResult<any>
+						})
+					results.push(result)
 					newState.measurement?.finishedCommandExecution(command)
 				}
 			}
 
 			execAll()
 				.then(() => {
+					if (newState.commands) this.finishedStateChange(newState.commands, results)
 					if (newState.measurement) this.context.reportStateChangeMeasurement(newState.measurement.report())
 				})
 				.catch((e) => {

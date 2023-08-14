@@ -377,24 +377,18 @@ export function updateStateFromCommands(
 	tracker.updateState(address, update)
 }
 
-export function getStatus(currentLayer, _expectedLayer): { status: LayerStatus; mediaId: string | undefined } {
+export function getStatus(currentLayer: any): { status: LayerStatus; mediaId: string[] } {
 	const fg = currentLayer?.layer?.media
 	const bg = currentLayer?.lookahead?.media
 
-	if (fg) {
-		return {
-			status: LayerStatus.Playing,
-			mediaId: fg.toString(),
-		}
-	} else if (bg) {
+	if (fg || bg) {
 		return {
 			status: LayerStatus.Loaded,
-			mediaId: bg.toString(),
+			mediaId: [fg.toString(), bg?.toString()].filter((m) => m !== undefined),
 		}
-	} else {
-		return {
-			status: LayerStatus.Empty,
-			mediaId: undefined,
-		}
+	}
+	return {
+		status: LayerStatus.Empty,
+		mediaId: [],
 	}
 }
