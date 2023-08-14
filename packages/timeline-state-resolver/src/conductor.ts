@@ -1,7 +1,14 @@
 import * as _ from 'underscore'
 import { ResolvedTimelineObjectInstance, ResolvedStates, TimelineObject, Resolver } from 'superfly-timeline'
 import { EventEmitter } from 'eventemitter3'
-import { MemUsageReport, threadedClass, ThreadedClass, ThreadedClassConfig, ThreadedClassManager } from 'threadedclass'
+import {
+	MemUsageReport,
+	Promisify,
+	threadedClass,
+	ThreadedClass,
+	ThreadedClassConfig,
+	ThreadedClassManager,
+} from 'threadedclass'
 import PQueue from 'p-queue'
 import * as PAll from 'p-all'
 import PTimeout from 'p-timeout'
@@ -53,6 +60,7 @@ import { TelemetricsDevice } from './integrations/telemetrics'
 import { TriCasterDevice, DeviceOptionsTriCasterInternal } from './integrations/tricaster'
 import { DeviceOptionsMultiOSCInternal, MultiOSCMessageDevice } from './integrations/multiOsc'
 import { BaseRemoteDeviceIntegration, RemoteDeviceInstance } from './service/remoteDeviceInstance'
+import { DeviceInstanceWrapper } from './service/DeviceInstance'
 
 export { DeviceContainer }
 export { CommandWithContext }
@@ -394,11 +402,12 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 			const device = await this.initDevice(deviceId, deviceOptions, activeRundownPlaylistId)
 
 			// Remove listeners, expect consumer to subscribe to them now.
-			newDevice.device.removeListener('info', onDeviceInfo).catch(console.error)
-			newDevice.device.removeListener('warning', onDeviceWarning).catch(console.error)
-			newDevice.device.removeListener('error', onDeviceError).catch(console.error)
-			newDevice.device.removeListener('debug', onDeviceDebug).catch(console.error)
-			newDevice.device.removeListener('debugState', onDeviceDebugState).catch(console.error)
+			const d = newDevice.device as Promisify<DeviceInstanceWrapper> // note - slightly unsafe type assertion because the different events do not play well with threadedclass typings
+			d.removeListener('info', onDeviceInfo).catch(console.error)
+			d.removeListener('warning', onDeviceWarning).catch(console.error)
+			d.removeListener('error', onDeviceError).catch(console.error)
+			d.removeListener('debug', onDeviceDebug).catch(console.error)
+			d.removeListener('debugState', onDeviceDebugState).catch(console.error)
 
 			return device
 		} catch (e) {
