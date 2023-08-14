@@ -5,12 +5,12 @@ import { EventEmitter } from 'events'
 
 const mockDo = jest.fn()
 
-const instances: Array<BasicCasparCGAPI> = []
+const instances: Array<CasparCG> = []
 
 export const Commands = orgCommands
 export type AMCPCommand = orgAMCPCommand
 
-export class BasicCasparCGAPI extends EventEmitter {
+export class CasparCG extends EventEmitter {
 	onConnected: () => void
 
 	connected = false
@@ -26,6 +26,10 @@ export class BasicCasparCGAPI extends EventEmitter {
 		}, 10)
 
 		instances.push(this)
+	}
+
+	connect(): void {
+		return
 	}
 
 	async executeCommand(command: AMCPCommand): Promise<SendResult> {
