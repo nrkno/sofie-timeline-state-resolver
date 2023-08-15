@@ -4,7 +4,7 @@ import * as deepMerge from 'deepmerge'
 import { DeviceWithState, CommandWithContext, DeviceStatus, StatusCode } from './../../devices/device'
 import { DoOnTime, SendMode } from '../../devices/doOnTime'
 
-import { InferredPartialInputStateKeys, VMix, VMixStateCommand } from './connection'
+import { VMix, VMixStateCommand } from './connection'
 import {
 	DeviceType,
 	DeviceOptionsVMix,
@@ -65,6 +65,8 @@ export interface VMixStateCommandWithContext {
 	context: CommandContext
 	timelineId: string
 }
+
+export type EnforceableVMixInputStateKeys = 'duration' | 'loop' | 'transform' | 'overlays' | 'listFilePaths'
 
 const mappingPriority: { [k in MappingVmixType]: number } = {
 	[MappingVmixType.Program]: 0,
@@ -159,34 +161,43 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 		}
 	}
 
-	private _onVMixStateChanged(newState: VMixState) {
+	/**
+	 * Runs when we receive XML state from vMix,
+	 * generally as the result of a reconnect or a poll (if polling/enforcement is enabled).
+	 * @param realState State as reported by vMix itself.
+	 */
+	private _onVMixStateChanged(realState: VMixState) {
 		const time = this.getCurrentTime()
-		const oldState: VMixStateExtended = (this.getStateBefore(time) || { state: this._getDefaultState() }).state
+		const expectedState: VMixStateExtended = (this.getStateBefore(time) || { state: this._getDefaultState() }).state
 
-		// We can't get all properties from vMix's API.
-		// Therefore, all we can do is copy over the last known ones that we sent.
-		// This is intertwined with `parseVMixState` in `connection.ts`.
-		for (const inputKey of Object.keys(oldState.reportedState.inputs)) {
-			const carriedOverOldState: Pick<VMixInput, InferredPartialInputStateKeys | 'position'> = {
-				filePath: oldState.reportedState.inputs[inputKey].filePath,
-				fade: oldState.reportedState.inputs[inputKey].fade,
-				audioAuto: oldState.reportedState.inputs[inputKey].audioAuto,
-				restart: oldState.reportedState.inputs[inputKey].restart,
+		// Merge the real into the expected, but don't merge the `inputs` of the real.
+		// We'll cherry pick specific things to take from the real state's inputs.
+		expectedState.reportedState = deepMerge<VMixState>(expectedState.reportedState, _.omit(realState, 'inputs'))
 
-				// If we don't do this, then clips will keep seeking back to the start.
-				// This is perhaps a bad hack that will come back to haunt us if we start doing more stuff with seeking.
-				position: oldState.reportedState.inputs[inputKey].position,
+		// This is where "enforcement" of expected state occurs.
+		// There is only a small number of properties which are safe to enforce.
+		// Enforcing others can lead to issues such as clips replaying, seeking back to the start,
+		// or even outright preventing Sisyfos from working.
+		for (const inputKey of Object.keys(realState.inputs)) {
+			const cherryPickedRealState: Pick<VMixInput, EnforceableVMixInputStateKeys> = {
+				duration: expectedState.reportedState.inputs[inputKey].duration,
+				loop: expectedState.reportedState.inputs[inputKey].loop,
+				transform: expectedState.reportedState.inputs[inputKey].transform,
+				overlays: expectedState.reportedState.inputs[inputKey].overlays,
+
+				// This particular key is what enables the ability to re-load failed/missing media in a List Input.
+				listFilePaths: expectedState.reportedState.inputs[inputKey].listFilePaths,
 			}
 
 			// Shallow merging is sufficient.
-			for (const [key, value] of Object.entries<string | number | boolean>(carriedOverOldState)) {
-				newState.inputs[inputKey][key] = value
+			for (const [key, value] of Object.entries<string | number | boolean | VMixTransform | VMixInputOverlays>(
+				cherryPickedRealState
+			)) {
+				expectedState.reportedState.inputs[inputKey][key] = value
 			}
 		}
 
-		oldState.reportedState = deepMerge<VMixState>(oldState.reportedState, _.omit(newState, 'inputs'))
-		oldState.reportedState.inputs = newState.inputs
-		this.setState(oldState, time)
+		this.setState(expectedState, time)
 	}
 
 	private _getDefaultInputState(num: number): VMixInput {
