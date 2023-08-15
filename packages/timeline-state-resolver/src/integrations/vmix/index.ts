@@ -180,13 +180,13 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 		// or even outright preventing Sisyfos from working.
 		for (const inputKey of Object.keys(realState.inputs)) {
 			const cherryPickedRealState: Pick<VMixInput, EnforceableVMixInputStateKeys> = {
-				duration: expectedState.reportedState.inputs[inputKey].duration,
-				loop: expectedState.reportedState.inputs[inputKey].loop,
-				transform: expectedState.reportedState.inputs[inputKey].transform,
-				overlays: expectedState.reportedState.inputs[inputKey].overlays,
+				duration: realState.inputs[inputKey].duration,
+				loop: realState.inputs[inputKey].loop,
+				transform: realState.inputs[inputKey].transform,
+				overlays: realState.inputs[inputKey].overlays,
 
 				// This particular key is what enables the ability to re-load failed/missing media in a List Input.
-				listFilePaths: expectedState.reportedState.inputs[inputKey].listFilePaths,
+				listFilePaths: realState.inputs[inputKey].listFilePaths,
 			}
 
 			// Shallow merging is sufficient.
