@@ -30,10 +30,15 @@ export interface DeviceDetails {
 	canConnect: boolean
 }
 
+export interface DeviceInstanceEvents extends Omit<DeviceEvents, 'connectionChanged'> {
+	/** The connection status has changed */
+	connectionChanged: [status: DeviceStatus]
+}
+
 /**
  * Top level container for setting up and interacting with any device integrations
  */
-export class DeviceInstanceWrapper extends EventEmitter<DeviceEvents> {
+export class DeviceInstanceWrapper extends EventEmitter<DeviceInstanceEvents> {
 	private _device: Device<any, DeviceState, CommandWithContext> & EventEmitter<DeviceEvents>
 	private _stateHandler: StateHandler<DeviceState, CommandWithContext>
 
@@ -221,9 +226,11 @@ export class DeviceInstanceWrapper extends EventEmitter<DeviceEvents> {
 			}
 		})
 		/** The connection status has changed */
-		this._device.on('connectionChanged', () => {
-			// TODO - the typings here arent correct
-			this.emit('connectionChanged', this.getStatus())
+		this._device.on('connectionChanged', (status) => {
+			this.emit('connectionChanged', {
+				...status,
+				active: this._isActive,
+			})
 		})
 		/** A message to the resolver that something has happened that warrants a reset of the resolver (to re-run it again) */
 		this._device.on('resetResolver', () => {
