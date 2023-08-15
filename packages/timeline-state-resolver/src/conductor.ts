@@ -21,6 +21,9 @@ import {
 	TimelineDatastoreReferencesContent,
 	DeviceOptionsMultiOSC,
 	TimelineDatastoreReferences,
+	DeviceOptionsOSC,
+	DeviceOptionsShotoku,
+	DeviceOptionsHTTPSend,
 } from 'timeline-state-resolver-types'
 
 import { DoOnTime } from './devices/doOnTime'
@@ -32,14 +35,12 @@ import { DeviceContainer } from './devices/deviceContainer'
 
 import { CasparCGDevice, DeviceOptionsCasparCGInternal } from './integrations/casparCG'
 import { AbstractDevice, DeviceOptionsAbstractInternal } from './integrations/abstract'
-import { DeviceOptionsHTTPSendInternal } from './integrations/httpSend'
 import { AtemDevice, DeviceOptionsAtemInternal } from './integrations/atem'
 import { LawoDevice, DeviceOptionsLawoInternal } from './integrations/lawo'
 import { PanasonicPtzDevice, DeviceOptionsPanasonicPTZInternal } from './integrations/panasonicPTZ'
 import { HyperdeckDevice, DeviceOptionsHyperdeckInternal } from './integrations/hyperdeck'
 import { TCPSendDevice, DeviceOptionsTCPSendInternal } from './integrations/tcpSend'
 import { PharosDevice, DeviceOptionsPharosInternal } from './integrations/pharos'
-import { DeviceOptionsOSCInternal } from './integrations/osc'
 import { HTTPWatcherDevice, DeviceOptionsHTTPWatcherInternal } from './integrations/httpWatcher'
 import { QuantelDevice, DeviceOptionsQuantelInternal } from './integrations/quantel'
 import { SisyfosMessageDevice, DeviceOptionsSisyfosInternal } from './integrations/sisyfos'
@@ -47,7 +48,6 @@ import { SingularLiveDevice, DeviceOptionsSingularLiveInternal } from './integra
 import { VMixDevice, DeviceOptionsVMixInternal } from './integrations/vmix'
 import { OBSDevice, DeviceOptionsOBSInternal } from './integrations/obs'
 import { VizMSEDevice, DeviceOptionsVizMSEInternal } from './integrations/vizMSE'
-import { DeviceOptionsShotokuInternal } from './integrations/shotoku'
 import { DeviceOptionsSofieChefInternal, SofieChefDevice } from './integrations/sofieChef'
 import { TelemetricsDevice } from './integrations/telemetrics'
 import { TriCasterDevice, DeviceOptionsTriCasterInternal } from './integrations/tricaster'
@@ -1568,21 +1568,21 @@ export type DeviceOptionsAnyInternal =
 	| DeviceOptionsCasparCGInternal
 	| DeviceOptionsAtemInternal
 	| DeviceOptionsLawoInternal
-	| DeviceOptionsHTTPSendInternal
+	| DeviceOptionsHTTPSend
 	| DeviceOptionsHTTPWatcherInternal
 	| DeviceOptionsPanasonicPTZInternal
 	| DeviceOptionsTCPSendInternal
 	| DeviceOptionsHyperdeckInternal
 	| DeviceOptionsPharosInternal
 	| DeviceOptionsOBSInternal
-	| DeviceOptionsOSCInternal
+	| DeviceOptionsOSC
 	| DeviceOptionsMultiOSCInternal
 	| DeviceOptionsSisyfosInternal
 	| DeviceOptionsSofieChefInternal
 	| DeviceOptionsQuantelInternal
 	| DeviceOptionsSingularLiveInternal
 	| DeviceOptionsVMixInternal
-	| DeviceOptionsShotokuInternal
+	| DeviceOptionsShotoku
 	| DeviceOptionsVizMSEInternal
 	| DeviceOptionsTelemetrics
 	| DeviceOptionsTriCasterInternal

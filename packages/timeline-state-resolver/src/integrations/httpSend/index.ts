@@ -3,7 +3,6 @@ import { CommandWithContext, Device, DeviceEvents } from '../../service/device'
 import {
 	ActionExecutionResult,
 	ActionExecutionResultCode,
-	DeviceOptionsHTTPSend,
 	DeviceStatus,
 	HTTPSendCommandContent,
 	HTTPSendOptions,
@@ -19,7 +18,6 @@ import got, { OptionsOfTextResponseBody, RequestError } from 'got'
 import { t } from '../../lib'
 import CacheableLookup from 'cacheable-lookup'
 
-type DeviceOptions = HTTPSendOptions
 export type HttpSendDeviceState = Timeline.TimelineState<TSRTimelineContent>
 
 export interface HttpSendDeviceCommand extends CommandWithContext {
@@ -30,18 +28,16 @@ export interface HttpSendDeviceCommand extends CommandWithContext {
 	}
 }
 
-export type DeviceOptionsHTTPSendInternal = DeviceOptionsHTTPSend
-
 export class HTTPSendDevice
 	extends EventEmitter<DeviceEvents>
-	implements Device<DeviceOptions, HttpSendDeviceState, HttpSendDeviceCommand>
+	implements Device<HTTPSendOptions, HttpSendDeviceState, HttpSendDeviceCommand>
 {
-	private options: DeviceOptions
+	private options: HTTPSendOptions
 	private activeLayers = new Map<string, string>()
 	private cacheable: CacheableLookup
 	private _terminated = false
 
-	async init(options: DeviceOptions): Promise<boolean> {
+	async init(options: HTTPSendOptions): Promise<boolean> {
 		this.options = options
 		this.cacheable = new CacheableLookup()
 		return true

@@ -2,7 +2,6 @@ import {
 	ActionExecutionResult,
 	DeviceStatus,
 	DeviceType,
-	OSCOptions,
 	StatusCode,
 	Timeline,
 	TimelineContentShotokuSequence,
@@ -11,16 +10,12 @@ import {
 	TimelineContentTypeShotoku,
 	ShotokuTransitionType,
 	ShotokuOptions,
-	DeviceOptionsShotoku,
 } from 'timeline-state-resolver-types'
 import { Device, DeviceEvents } from '../../service/device'
 
 import _ = require('underscore')
 import EventEmitter = require('eventemitter3')
 import { ShotokuAPI, ShotokuCommand, ShotokuCommandType } from './connection'
-
-export type ShotokuDeviceOptions = ShotokuOptions
-export type DeviceOptionsShotokuInternal = DeviceOptionsShotoku
 
 export interface ShotokuDeviceState {
 	shots: Record<string, ShotokuCommandContent & { fromTlObject: string }>
@@ -29,9 +24,6 @@ export interface ShotokuDeviceState {
 interface ShotokuSequence {
 	fromTlObject: string
 	shots: TimelineContentShotokuSequence['shots']
-}
-interface ShotokuDeviceStateContent extends ShotokuCommandContent {
-	fromTlObject: string
 }
 
 export interface ShotokuCommandWithContext {
@@ -42,19 +34,22 @@ export interface ShotokuCommandWithContext {
 
 export class ShotokuDevice
 	extends EventEmitter<DeviceEvents>
-	implements Device<OSCOptions, ShotokuDeviceState, ShotokuCommandWithContext>
+	implements Device<ShotokuOptions, ShotokuDeviceState, ShotokuCommandWithContext>
 {
 	private _shotoku: ShotokuAPI
 
-	async init(options: ShotokuDeviceOptions): Promise<boolean> {
+	async init(options: ShotokuOptions): Promise<boolean> {
 		this._shotoku = new ShotokuAPI()
 		this._shotoku.on('error', (info, e) => this.emit('error', e, info))
 
-		await this._shotoku.connect(options.host, options.port)
+		this._shotoku
+			.connect(options.host, options.port)
+			.catch((e) => this.emit('debug', 'Shotoku device failed initial connection attempt', e))
 
-		return Promise.resolve(true) // This device doesn't have any initialization procedure
+		return true
 	}
 	async terminate(): Promise<boolean> {
+		await this._shotoku.dispose()
 		return true
 	}
 
@@ -93,7 +88,7 @@ export class ShotokuDevice
 
 		const commands: Array<ShotokuCommandWithContext> = []
 
-		_.each(newState.shots, (newCommandContent: ShotokuDeviceStateContent, index: string) => {
+		Object.entries<ShotokuDeviceState['shots'][string]>(newState.shots).forEach(([index, newCommandContent]) => {
 			const oldLayer = oldState?.shots[index]
 			if (!oldLayer) {
 				// added!
@@ -141,20 +136,18 @@ export class ShotokuDevice
 
 		return commands
 	}
-	async sendCommand({ command, context, tlObjId }: ShotokuCommandWithContext): Promise<any> {
+	async sendCommand({ command, context, tlObjId }: ShotokuCommandWithContext): Promise<void> {
 		this.emit('debug', { command, context, tlObjId })
 
 		try {
 			if (this._shotoku.connected) {
-				this._shotoku.executeCommand(command).catch((e) => {
-					throw new Error(e)
-				})
+				await this._shotoku.executeCommand(command)
 			}
 
-			return Promise.resolve()
+			return
 		} catch (e) {
 			this.emit('commandError', e as Error, { command, context, tlObjId })
-			return Promise.resolve()
+			return
 		}
 	}
 
