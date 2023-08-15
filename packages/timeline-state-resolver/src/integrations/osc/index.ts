@@ -11,7 +11,7 @@ import {
 	Timeline,
 	TSRTimelineContent,
 } from 'timeline-state-resolver-types'
-import { Device } from '../../service/device'
+import { CommandWithContext, Device, DeviceEvents } from '../../service/device'
 import * as osc from 'osc'
 
 import Debug from 'debug'
@@ -33,7 +33,10 @@ export interface OscCommandWithContext {
 	tlObjId: string
 }
 
-export class OscDevice extends EventEmitter implements Device<OSCOptions, OscDeviceState, OscCommandWithContext> {
+export class OscDevice
+	extends EventEmitter<DeviceEvents>
+	implements Device<OSCOptions, OscDeviceState, OscCommandWithContext>
+{
 	private _oscClient: osc.UDPPort | osc.TCPSocketPort
 	private _oscClientStatus: 'connected' | 'disconnected' = 'disconnected'
 	private transitions: {
@@ -131,10 +134,10 @@ export class OscDevice extends EventEmitter implements Device<OSCOptions, OscDev
 		return commands
 	}
 	async sendCommand({ command, context, tlObjId }: OscCommandWithContext): Promise<any> {
-		const cwc = {
+		const cwc: CommandWithContext = {
 			context: context,
 			command: command,
-			timelineObjId: tlObjId,
+			tlObjId: tlObjId,
 		}
 		this.emit('debug', cwc)
 		debug(command)
