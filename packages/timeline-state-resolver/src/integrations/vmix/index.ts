@@ -179,7 +179,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 		// Enforcing others can lead to issues such as clips replaying, seeking back to the start,
 		// or even outright preventing Sisyfos from working.
 		for (const inputKey of Object.keys(realState.inputs)) {
-			const cherryPickedNewState: Pick<VMixInput, EnforceableVMixInputStateKeys> = {
+			const cherryPickedRealState: Pick<VMixInput, EnforceableVMixInputStateKeys> = {
 				duration: expectedState.reportedState.inputs[inputKey].duration,
 				loop: expectedState.reportedState.inputs[inputKey].loop,
 				transform: expectedState.reportedState.inputs[inputKey].transform,
@@ -191,7 +191,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 
 			// Shallow merging is sufficient.
 			for (const [key, value] of Object.entries<string | number | boolean | VMixTransform | VMixInputOverlays>(
-				cherryPickedNewState
+				cherryPickedRealState
 			)) {
 				expectedState.reportedState.inputs[inputKey][key] = value
 			}
