@@ -24,6 +24,7 @@ import {
 	DeviceOptionsOSC,
 	DeviceOptionsShotoku,
 	DeviceOptionsHTTPSend,
+	DeviceOptionsHTTPWatcher,
 } from 'timeline-state-resolver-types'
 
 import { DoOnTime } from './devices/doOnTime'
@@ -41,7 +42,6 @@ import { PanasonicPtzDevice, DeviceOptionsPanasonicPTZInternal } from './integra
 import { HyperdeckDevice, DeviceOptionsHyperdeckInternal } from './integrations/hyperdeck'
 import { TCPSendDevice, DeviceOptionsTCPSendInternal } from './integrations/tcpSend'
 import { PharosDevice, DeviceOptionsPharosInternal } from './integrations/pharos'
-import { HTTPWatcherDevice, DeviceOptionsHTTPWatcherInternal } from './integrations/httpWatcher'
 import { QuantelDevice, DeviceOptionsQuantelInternal } from './integrations/quantel'
 import { SisyfosMessageDevice, DeviceOptionsSisyfosInternal } from './integrations/sisyfos'
 import { SingularLiveDevice, DeviceOptionsSingularLiveInternal } from './integrations/singularLive'
@@ -524,15 +524,6 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 					getCurrentTime,
 					threadedClassOptions
 				)
-			case DeviceType.HTTPWATCHER:
-				return DeviceContainer.create<DeviceOptionsHTTPWatcherInternal, typeof HTTPWatcherDevice>(
-					'../../dist/integrations/httpWatcher/index.js',
-					'HTTPWatcherDevice',
-					deviceId,
-					deviceOptions,
-					getCurrentTime,
-					threadedClassOptions
-				)
 			case DeviceType.LAWO:
 				return DeviceContainer.create<DeviceOptionsLawoInternal, typeof LawoDevice>(
 					'../../dist/integrations/lawo/index.js',
@@ -669,6 +660,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 					threadedClassOptions
 				)
 			case DeviceType.HTTPSEND:
+			case DeviceType.HTTPWATCHER:
 			case DeviceType.OSC:
 			case DeviceType.SHOTOKU:
 				// presumably this device is implemented in the new service handler
@@ -1569,7 +1561,7 @@ export type DeviceOptionsAnyInternal =
 	| DeviceOptionsAtemInternal
 	| DeviceOptionsLawoInternal
 	| DeviceOptionsHTTPSend
-	| DeviceOptionsHTTPWatcherInternal
+	| DeviceOptionsHTTPWatcher
 	| DeviceOptionsPanasonicPTZInternal
 	| DeviceOptionsTCPSendInternal
 	| DeviceOptionsHyperdeckInternal

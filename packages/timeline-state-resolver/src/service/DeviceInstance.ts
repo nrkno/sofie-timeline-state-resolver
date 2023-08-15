@@ -222,6 +222,7 @@ export class DeviceInstanceWrapper extends EventEmitter<DeviceEvents> {
 		})
 		/** The connection status has changed */
 		this._device.on('connectionChanged', () => {
+			// TODO - the typings here arent correct
 			this.emit('connectionChanged', this.getStatus())
 		})
 		/** A message to the resolver that something has happened that warrants a reset of the resolver (to re-run it again) */
