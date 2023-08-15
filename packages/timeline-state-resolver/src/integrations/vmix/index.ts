@@ -167,7 +167,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 		// Therefore, all we can do is copy over the last known ones that we sent.
 		// This is intertwined with `parseVMixState` in `connection.ts`.
 		for (const inputKey of Object.keys(oldState.reportedState.inputs)) {
-			const carriedOverOldState: Pick<VMixInput, InferredPartialInputStateKeys | 'position'> = {
+			const carriedOverOldState: Pick<VMixInput, InferredPartialInputStateKeys | 'position' | 'state' | 'playing'> = {
 				filePath: oldState.reportedState.inputs[inputKey].filePath,
 				fade: oldState.reportedState.inputs[inputKey].fade,
 				audioAuto: oldState.reportedState.inputs[inputKey].audioAuto,
@@ -176,6 +176,10 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 				// If we don't do this, then clips will keep seeking back to the start.
 				// This is perhaps a bad hack that will come back to haunt us if we start doing more stuff with seeking.
 				position: oldState.reportedState.inputs[inputKey].position,
+
+				// If we don't do this, then clips will restart some seconds after completing.
+				state: oldState.reportedState.inputs[inputKey].state,
+				playing: oldState.reportedState.inputs[inputKey].playing,
 			}
 
 			// Shallow merging is sufficient.
