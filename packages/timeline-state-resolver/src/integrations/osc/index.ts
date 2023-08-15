@@ -3,7 +3,6 @@ import {
 	DeviceStatus,
 	DeviceType,
 	OSCDeviceType,
-	DeviceOptionsOSC,
 	OSCMessageCommandContent,
 	OSCOptions,
 	OSCValueType,
@@ -20,9 +19,6 @@ import _ = require('underscore')
 import { Easing } from '../../devices/transitions/easings'
 import EventEmitter = require('eventemitter3')
 const debug = Debug('timeline-state-resolver:osc')
-
-export type OscDeviceOptions = OSCOptions
-export type DeviceOptionsOSCInternal = DeviceOptionsOSC
 
 export interface OscDeviceState {
 	[address: string]: OSCDeviceStateContent
@@ -46,9 +42,9 @@ export class OscDevice extends EventEmitter implements Device<OSCOptions, OscDev
 		} & OSCMessageCommandContent
 	} = {}
 	private transitionInterval: NodeJS.Timer | undefined
-	private options: OscDeviceOptions | undefined
+	private options: OSCOptions | undefined
 
-	async init(options: OscDeviceOptions): Promise<boolean> {
+	async init(options: OSCOptions): Promise<boolean> {
 		this.options = options
 		if (options.type === OSCDeviceType.TCP) {
 			debug('Creating TCP OSC device')

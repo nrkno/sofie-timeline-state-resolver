@@ -2,6 +2,7 @@ import { OscDevice } from '../integrations/osc'
 import { DeviceType } from 'timeline-state-resolver-types'
 import { Device } from './device'
 import { HTTPSendDevice } from '../integrations/httpSend'
+import { ShotokuDevice } from '../integrations/shotoku'
 
 export interface DeviceEntry {
 	deviceClass: new () => Device<any, any, any>
@@ -10,7 +11,7 @@ export interface DeviceEntry {
 	executionMode: (options: any) => 'salvo' | 'sequential'
 }
 
-type ImplementedDeviceTypes = DeviceType.OSC | DeviceType.HTTPSEND
+type ImplementedDeviceTypes = DeviceType.OSC | DeviceType.HTTPSEND | DeviceType.SHOTOKU
 
 // TODO - move all device implementations here and remove the old Device classes
 export const DevicesDict: Record<ImplementedDeviceTypes, DeviceEntry> = {
@@ -25,5 +26,11 @@ export const DevicesDict: Record<ImplementedDeviceTypes, DeviceEntry> = {
 		canConnect: false,
 		deviceName: (deviceId: string) => 'HTTP ' + deviceId,
 		executionMode: () => 'sequential', // todo - config?
+	},
+	[DeviceType.SHOTOKU]: {
+		deviceClass: ShotokuDevice,
+		canConnect: true,
+		deviceName: (deviceId: string) => 'SHOTOKU' + deviceId,
+		executionMode: () => 'salvo',
 	},
 }
