@@ -5821,6 +5821,13 @@ asn1@evs-broadcast/node-asn1:
   languageName: node
   linkType: hard
 
+"hpagent@npm:^1.2.0":
+  version: 1.2.0
+  resolution: "hpagent@npm:1.2.0"
+  checksum: b029da695edae438cee4da2a437386f9db4ac27b3ceb7306d02e1b586c9c194741ed2e943c8a222e0cfefaf27ee3f863aca7ba1721b0950a2a19bf25bc0d85e2
+  languageName: node
+  linkType: hard
+
 "html-escaper@npm:^2.0.0":
   version: 2.0.2
   resolution: "html-escaper@npm:2.0.2"
@@ -11374,6 +11381,7 @@ asn1@evs-broadcast/node-asn1:
     emberplus-connection: ^0.1.2
     eventemitter3: ^4.0.7
     got: ^11.8.6
+    hpagent: ^1.2.0
     hyperdeck-connection: ^0.5.0
     i18next-conv: ^13.1.1
     i18next-parser: ^6.6.0
