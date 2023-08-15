@@ -167,7 +167,18 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 		// Therefore, all we can do is copy over the last known ones that we sent.
 		// This is intertwined with `parseVMixState` in `connection.ts`.
 		for (const inputKey of Object.keys(oldState.reportedState.inputs)) {
-			const carriedOverOldState: Pick<VMixInput, InferredPartialInputStateKeys | 'position' | 'state' | 'playing'> = {
+			const carriedOverOldState: Pick<
+				VMixInput,
+				| InferredPartialInputStateKeys
+				| 'position'
+				| 'state'
+				| 'playing'
+				| 'muted'
+				| 'volume'
+				| 'balance'
+				| 'solo'
+				| 'audioBuses'
+			> = {
 				filePath: oldState.reportedState.inputs[inputKey].filePath,
 				fade: oldState.reportedState.inputs[inputKey].fade,
 				audioAuto: oldState.reportedState.inputs[inputKey].audioAuto,
@@ -180,6 +191,13 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 				// If we don't do this, then clips will restart some seconds after completing.
 				state: oldState.reportedState.inputs[inputKey].state,
 				playing: oldState.reportedState.inputs[inputKey].playing,
+
+				// If we don't do this, then there are conflicts with Sisyfos.
+				muted: oldState.reportedState.inputs[inputKey].muted,
+				volume: oldState.reportedState.inputs[inputKey].volume,
+				balance: oldState.reportedState.inputs[inputKey].balance,
+				solo: oldState.reportedState.inputs[inputKey].solo,
+				audioBuses: oldState.reportedState.inputs[inputKey].audioBuses,
 			}
 
 			// Shallow merging is sufficient.
