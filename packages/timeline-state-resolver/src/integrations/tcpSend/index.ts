@@ -187,8 +187,6 @@ export class TCPSendDevice extends DeviceWithState<TSCSendState, DeviceOptionsTC
 		clearTimeout(this._retryConnectTimeout)
 
 		await this._disconnectTCPClient()
-
-		return true
 	}
 	get canConnect(): boolean {
 		return true

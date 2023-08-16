@@ -1,12 +1,13 @@
+/* eslint-disable jest/expect-expect */
 import {
 	ActionExecutionResultCode,
 	DeviceType,
 	HttpSendActions,
 	TimelineContentTypeHTTP,
+	TimelineContentHTTPSendAny,
+	Timeline,
+	TSRTimelineContent,
 } from 'timeline-state-resolver-types'
-import { TimelineContentHTTPSendAny } from 'timeline-state-resolver-types'
-import { Timeline } from 'timeline-state-resolver-types'
-import { TSRTimelineContent } from 'timeline-state-resolver-types'
 
 const MOCKED_SOCKET_GET = jest.fn()
 const MOCKED_SOCKET_POST = jest.fn()

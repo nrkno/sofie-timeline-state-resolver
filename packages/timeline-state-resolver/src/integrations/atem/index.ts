@@ -128,20 +128,10 @@ export class AtemDevice extends DeviceWithState<DeviceState, DeviceOptionsAtemIn
 	 * Safely terminate everything to do with this device such that it can be
 	 * garbage collected.
 	 */
-	async terminate(): Promise<boolean> {
+	async terminate(): Promise<void> {
 		this._doOnTime.dispose()
 
-		return new Promise((resolve) => {
-			// TODO: implement dispose function in atem-connection
-			this._atem
-				.disconnect()
-				.then(() => {
-					resolve(true)
-				})
-				.catch(() => {
-					resolve(false)
-				})
-		})
+		await this._atem.disconnect()
 	}
 
 	private async resyncState(): Promise<ActionExecutionResult> {

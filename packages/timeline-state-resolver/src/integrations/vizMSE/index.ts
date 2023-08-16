@@ -148,14 +148,12 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState, DeviceOptionsVizM
 	/**
 	 * Terminates the device safely such that things can be garbage collected.
 	 */
-	async terminate(): Promise<boolean> {
+	async terminate(): Promise<void> {
 		if (this._vizmseManager) {
 			await this._vizmseManager.terminate()
 			delete this._vizmseManager
 		}
 		this._doOnTime.dispose()
-
-		return true
 	}
 	/** Called by the Conductor a bit before a .handleState is called */
 	prepareForHandleState(newStateTime: number) {

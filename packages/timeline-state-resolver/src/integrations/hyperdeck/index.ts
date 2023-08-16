@@ -184,14 +184,12 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState, DeviceOptionsH
 	/**
 	 * Makes this device ready for garbage collection.
 	 */
-	async terminate(): Promise<boolean> {
+	async terminate(): Promise<void> {
 		this._doOnTime.dispose()
 		if (this._recTimePollTimer) clearTimeout(this._recTimePollTimer)
 
 		await this._hyperdeck.disconnect()
 		this._hyperdeck.removeAllListeners()
-
-		return true
 	}
 
 	private async resync(): Promise<ActionExecutionResult> {

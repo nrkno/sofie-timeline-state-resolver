@@ -132,11 +132,9 @@ export class QuantelDevice extends DeviceWithState<QuantelState, DeviceOptionsQu
 	/**
 	 * Terminates the device safely such that things can be garbage collected.
 	 */
-	async terminate(): Promise<boolean> {
+	async terminate(): Promise<void> {
 		this._quantel.dispose()
 		this._doOnTime.dispose()
-
-		return true
 	}
 	/** Called by the Conductor a bit before a .handleState is called */
 	prepareForHandleState(newStateTime: number) {

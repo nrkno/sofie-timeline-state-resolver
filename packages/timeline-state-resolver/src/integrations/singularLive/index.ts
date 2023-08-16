@@ -132,7 +132,6 @@ export class SingularLiveDevice extends DeviceWithState<SingularLiveState, Devic
 	}
 	async terminate() {
 		this._doOnTime.dispose()
-		return Promise.resolve(true)
 	}
 	getStatus(): DeviceStatus {
 		// Good, since this device has no status, really

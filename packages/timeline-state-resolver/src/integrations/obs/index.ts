@@ -232,7 +232,6 @@ export class OBSDevice extends DeviceWithState<OBSState, DeviceOptionsOBSInterna
 		this._setDisconnected = true
 		this._doOnTime.dispose()
 		this._obs.disconnect()
-		return true
 	}
 
 	getStatus(): DeviceStatus {

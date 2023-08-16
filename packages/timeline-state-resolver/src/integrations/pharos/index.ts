@@ -133,9 +133,7 @@ export class PharosDevice extends DeviceWithState<PharosState, DeviceOptionsPhar
 	}
 	async terminate() {
 		this._doOnTime.dispose()
-		return this._pharos.dispose().then(() => {
-			return true
-		})
+		await this._pharos.dispose()
 	}
 	get canConnect(): boolean {
 		return true

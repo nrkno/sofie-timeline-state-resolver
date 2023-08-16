@@ -194,8 +194,6 @@ export class SofieChefDevice extends DeviceWithState<SofieChefState, DeviceOptio
 
 		this._ws?.terminate()
 		this._ws?.removeAllListeners()
-
-		return true
 	}
 	get canConnect(): boolean {
 		return true

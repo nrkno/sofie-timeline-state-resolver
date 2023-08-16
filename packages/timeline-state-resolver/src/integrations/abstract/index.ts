@@ -127,7 +127,6 @@ export class AbstractDevice extends DeviceWithState<AbstractState, DeviceOptions
 	 */
 	async terminate() {
 		this._doOnTime.dispose()
-		return Promise.resolve(true)
 	}
 	get canConnect(): boolean {
 		return false

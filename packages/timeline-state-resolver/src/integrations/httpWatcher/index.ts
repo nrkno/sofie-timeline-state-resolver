@@ -102,10 +102,8 @@ export class HTTPWatcherDevice
 		return Promise.resolve(true)
 	}
 
-	async terminate(): Promise<boolean> {
+	async terminate(): Promise<void> {
 		this.stopInterval()
-
-		return true
 	}
 
 	getStatus(): Omit<DeviceStatus, 'active'> {

@@ -27,7 +27,7 @@ export interface Device<DeviceOptions, DeviceState, Command extends CommandWithC
 	/**
 	 * Ready this class for garbage collection
 	 */
-	terminate(): Promise<boolean>
+	terminate(): Promise<void>
 
 	/** @deprecated */
 	makeReady?(okToDestroyStuff?: boolean): Promise<void>

@@ -156,9 +156,8 @@ export abstract class Device<TOptions extends DeviceOptionsBase<any>>
 	 * @param activeRundownPlaylistId ID of active rundown playlist
 	 */
 	abstract init(initOptions: TOptions['options'], activeRundownPlaylistId?: string): Promise<boolean>
-	async terminate(): Promise<boolean> {
-		return Promise.resolve(true)
-	}
+	abstract terminate(): Promise<void>
+
 	getCurrentTime(): number {
 		if (this.useDirectTime) {
 			// Used when running in test
