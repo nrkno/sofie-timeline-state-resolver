@@ -48,9 +48,8 @@ export class ShotokuDevice
 
 		return true
 	}
-	async terminate(): Promise<boolean> {
+	async terminate(): Promise<void> {
 		await this._shotoku.dispose()
-		return true
 	}
 
 	convertTimelineStateToDeviceState(state: Timeline.TimelineState<TSRTimelineContent>): ShotokuDeviceState {

@@ -554,7 +554,7 @@ describe('vizMSE', () => {
 			statusCode: StatusCode.GOOD,
 		})
 
-		expect(await device.terminate()).toEqual(true)
+		await device.terminate()
 
 		await mockTime.advanceTimeTicks(1000)
 

@@ -81,8 +81,8 @@ export class OscDevice
 
 		return Promise.resolve(true) // This device doesn't have any initialization procedure
 	}
-	async terminate(): Promise<boolean> {
-		return true
+	async terminate(): Promise<void> {
+		//
 	}
 
 	convertTimelineStateToDeviceState(state: Timeline.TimelineState<TSRTimelineContent>): OscDeviceState {

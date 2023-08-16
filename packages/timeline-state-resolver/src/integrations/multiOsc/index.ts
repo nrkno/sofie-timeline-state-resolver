@@ -118,7 +118,6 @@ export class MultiOSCMessageDevice extends DeviceWithState<OSCDeviceState, Devic
 	}
 	async terminate() {
 		this._doOnTime.dispose()
-		return Promise.resolve(true)
 	}
 	getStatus(): DeviceStatus {
 		const status = {

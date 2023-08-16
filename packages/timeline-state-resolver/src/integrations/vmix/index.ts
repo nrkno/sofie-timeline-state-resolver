@@ -299,8 +299,6 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 		this._vmix.disconnect()
 
 		clearTimeout(this._retryTimeout)
-
-		return Promise.resolve(true)
 	}
 
 	getStatus(): DeviceStatus {

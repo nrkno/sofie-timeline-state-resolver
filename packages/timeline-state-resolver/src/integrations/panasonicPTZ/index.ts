@@ -263,7 +263,6 @@ export class PanasonicPtzDevice extends DeviceWithState<PanasonicPtzState, Devic
 		if (this._device) {
 			this._device.dispose()
 		}
-		return Promise.resolve(true)
 	}
 	getStatus(): DeviceStatus {
 		let statusCode = StatusCode.GOOD

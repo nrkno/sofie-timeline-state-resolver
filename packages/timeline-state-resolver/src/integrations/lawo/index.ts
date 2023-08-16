@@ -264,7 +264,6 @@ export class LawoDevice extends DeviceWithState<LawoState, DeviceOptionsLawoInte
 		} catch (e) {
 			this.emit('error', 'Lawo.terminate', e as Error)
 		}
-		return Promise.resolve(true)
 	}
 	get canConnect(): boolean {
 		return true

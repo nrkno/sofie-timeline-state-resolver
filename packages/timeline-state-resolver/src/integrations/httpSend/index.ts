@@ -42,9 +42,8 @@ export class HTTPSendDevice
 		this.cacheable = new CacheableLookup()
 		return true
 	}
-	async terminate(): Promise<boolean> {
+	async terminate(): Promise<void> {
 		this._terminated = true
-		return true
 	}
 
 	get connected(): boolean {

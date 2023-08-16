@@ -203,18 +203,18 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 	/**
 	 * Terminates the device safely such that things can be garbage collected.
 	 */
-	async terminate(): Promise<boolean> {
+	async terminate(): Promise<void> {
 		this._doOnTime.dispose()
 		this._transitionHandler.terminate()
 		clearTimeout(this._retryTimeout)
-		return new Promise((resolve) => {
+		return new Promise<void>((resolve) => {
 			if (!this._ccg) {
-				resolve(true)
+				resolve()
 				return
 			}
 			this._ccg.disconnect()
 			this._ccg.once('disconnect', () => {
-				resolve(true)
+				resolve()
 			})
 		})
 	}
