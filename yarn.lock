@@ -9799,7 +9799,7 @@ asn1@evs-broadcast/node-asn1:
   dependencies:
     chokidar: ^3.5.3
     fast-clone: ^1.5.13
-    timeline-state-resolver: 9.0.0-release50.5
+    timeline-state-resolver: 9.1.0-release51
     tslib: ^2.5.1
     underscore: ^1.13.6
   languageName: unknown
@@ -11350,7 +11350,7 @@ asn1@evs-broadcast/node-asn1:
   languageName: unknown
   linkType: soft
 
-"timeline-state-resolver-types@9.0.0-release50.5, timeline-state-resolver-types@workspace:packages/timeline-state-resolver-types":
+"timeline-state-resolver-types@9.1.0-release51, timeline-state-resolver-types@workspace:packages/timeline-state-resolver-types":
   version: 0.0.0-use.local
   resolution: "timeline-state-resolver-types@workspace:packages/timeline-state-resolver-types"
   dependencies:
@@ -11358,13 +11358,14 @@ asn1@evs-broadcast/node-asn1:
   languageName: unknown
   linkType: soft
 
-"timeline-state-resolver@9.0.0-release50.5, timeline-state-resolver@workspace:packages/timeline-state-resolver":
+"timeline-state-resolver@9.1.0-release51, timeline-state-resolver@workspace:packages/timeline-state-resolver":
   version: 0.0.0-use.local
   resolution: "timeline-state-resolver@workspace:packages/timeline-state-resolver"
   dependencies:
     "@tv2media/v-connection": ^7.3.0
     atem-connection: 2.4.0
     atem-state: ^0.12.2
+    cacheable-lookup: ^5.0.3
     casparcg-connection: ^6.0.3
     casparcg-state: ^3.0.2
     debug: ^4.3.4
@@ -11385,7 +11386,7 @@ asn1@evs-broadcast/node-asn1:
     sprintf-js: ^1.1.2
     superfly-timeline: 9.0.0-nightly-wip-big-rewrite-20230707-094049-a13df02.0
     threadedclass: ^1.2.1
-    timeline-state-resolver-types: 9.0.0-release50.5
+    timeline-state-resolver-types: 9.1.0-release51
     tslib: ^2.5.1
     tv-automation-quantel-gateway-client: ^3.1.11-agent-debug-20230117-160455-c2c4ee4.0
     underscore: ^1.13.6

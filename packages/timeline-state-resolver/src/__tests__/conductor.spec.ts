@@ -329,9 +329,6 @@ describe('Conductor', () => {
 		const commandReceiver2 = jest.fn(async () => {
 			return Promise.resolve()
 		})
-		const commandReceiver3 = jest.fn(async () => {
-			return Promise.resolve()
-		})
 		const commandReceiver4 = jest.fn(async () => {
 			return Promise.resolve()
 		})
@@ -363,7 +360,6 @@ describe('Conductor', () => {
 		await conductor.addDevice('device3', {
 			type: DeviceType.HTTPSEND,
 			options: {},
-			commandReceiver: commandReceiver3,
 		})
 		await conductor.addDevice('device4', {
 			type: DeviceType.LAWO,

@@ -3,76 +3,14 @@
 	"title": "HTTP Send Options",
 	"type": "object",
 	"properties": {
-		"makeReadyDoesReset": {
-			"type": "boolean",
-			"ui:title": "Whether Make Ready triggers a state reset",
-			"description": "Whether a makeReady should be treated as a reset of the device. It should be assumed clean, with the queue discarded, and state reapplied from empty",
-			"default": false
-		},
 		"resendTime": {
 			"type": "integer",
 			"description": "Minimum time in ms before a command is resent, set to <= 0 or undefined to disable",
 			"ui:description": "Minimum time in ms before a command is resent, set to a number > 0 to enable",
 			"ui:title": "Resend time in ms",
 			"default": 0
-		},
-		"makeReadyCommands": {
-			"type": "array",
-			"ui:title": "Make Ready Commands",
-			"items": {
-				"type": "object",
-				"title": "HTTPSendCommandContent",
-				"todo": "should this be pulled in from elsewhere? its a timeline object type too",
-				"properties": {
-					"type": {
-						"type": "string",
-						"title": "TimelineContentTypeHTTP",
-						"ui:title": "Type",
-						"ui:summaryTitle": "Type",
-						"default": "",
-						"enum": ["get", "post", "put", "delete"],
-						"tsEnumNames": ["GET", "POST", "PUT", "DELETE"]
-					},
-					"url": {
-						"type": "string",
-						"ui:title": "Url",
-						"ui:summaryTitle": "URL",
-						"default": ""
-					},
-					"params": {
-						"type": "object",
-						"ui:title": "Params",
-						"ui:displayType": "json",
-						"additionalProperties": true
-					},
-					"paramsType": {
-						"type": "string",
-						"title": "TimelineContentTypeHTTPParamType",
-						"ui:title": "Params type",
-						"default": "json",
-						"enum": ["json", "form"],
-						"tsEnumNames": ["JSON", "FORM"]
-					},
-					"headers": {
-						"type": "object",
-						"additionalProperties": { "type": "string" }
-					},
-					"temporalPriority": {
-						"type": "integer",
-						"ui:title": "Temporal Priority",
-						"default": 0
-					},
-					"queueId": {
-						"type": "string",
-						"description": "Commands in the same queue will be sent in order (will wait for the previous to finish before sending next",
-						"ui:title": "Send Queue Id"
-					}
-				},
-				"required": ["type", "url", "params"],
-				"additionalProperties": false
-			}
 		}
 	},
-	"required": ["host"],
+	"required": [],
 	"additionalProperties": false
 }

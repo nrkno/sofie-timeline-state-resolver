@@ -125,12 +125,6 @@ export class RemoteDeviceInstance<
 		getCurrentTime: () => number,
 		threadConfig?: ThreadedClassConfig
 	): Promise<RemoteDeviceInstance<TOptions>> {
-		if (process.env.JEST_WORKER_ID !== undefined && threadConfig && threadConfig.disableMultithreading) {
-			// running in Jest test environment.
-			// hack: we need to work around the mangling performed by threadedClass, as getCurrentTime needs to not return a promise
-			getCurrentTime = { inner: getCurrentTime } as any
-		}
-
 		const container = new RemoteDeviceInstance(deviceOptions, threadConfig)
 
 		container._device = await threadedClass<DeviceInstanceWrapper, TCtor>(

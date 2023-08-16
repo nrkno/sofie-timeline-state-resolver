@@ -7,15 +7,13 @@
 
 export interface HTTPSendOptions {
 	/**
-	 * Whether a makeReady should be treated as a reset of the device. It should be assumed clean, with the queue discarded, and state reapplied from empty
-	 */
-	makeReadyDoesReset?: boolean
-	/**
 	 * Minimum time in ms before a command is resent, set to <= 0 or undefined to disable
 	 */
 	resendTime?: number
-	makeReadyCommands?: HTTPSendCommandContent[]
 }
+
+export type SomeMappingHttpSend = Record<string, never>
+
 export interface HTTPSendCommandContent {
 	type: TimelineContentTypeHTTP
 	url: string
@@ -43,10 +41,6 @@ export enum TimelineContentTypeHTTPParamType {
 	JSON = 'json',
 	FORM = 'form'
 }
-
-export type SomeMappingHttpSend = Record<string, never>
-
-export type SendCommandPayload = HTTPSendCommandContent
 
 export enum HttpSendActions {
 	Resync = 'resync',
