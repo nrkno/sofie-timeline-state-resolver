@@ -16,6 +16,7 @@ import {
 import _ = require('underscore')
 import got, { OptionsOfTextResponseBody, RequestError } from 'got'
 import { t } from '../../lib'
+import { HttpProxyAgent, HttpsProxyAgent } from 'hpagent'
 import CacheableLookup from 'cacheable-lookup'
 
 export type HttpSendDeviceState = Timeline.TimelineState<TSRTimelineContent>
@@ -196,6 +197,23 @@ export class HTTPSendDevice
 				dnsCache: this.cacheable,
 				retry: 0,
 				headers: command.content.headers,
+			}
+
+			const url = new URL(command.content.url)
+			if (!this.options.noProxy?.includes(url.host)) {
+				if (url.protocol === 'http:' && this.options.httpProxy) {
+					options.agent = {
+						http: new HttpProxyAgent({
+							proxy: this.options.httpProxy,
+						}),
+					}
+				} else if (url.protocol === 'https:' && this.options.httpsProxy) {
+					options.agent = {
+						https: new HttpsProxyAgent({
+							proxy: this.options.httpsProxy,
+						}),
+					}
+				}
 			}
 
 			const params =

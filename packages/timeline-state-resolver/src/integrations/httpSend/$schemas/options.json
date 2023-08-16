@@ -9,6 +9,25 @@
 			"ui:description": "Minimum time in ms before a command is resent, set to a number > 0 to enable",
 			"ui:title": "Resend time in ms",
 			"default": 0
+		},
+		"httpProxy": {
+			"type": "string",
+			"description": "HTTP Proxy",
+			"ui:title": "HTTP Proxy address"
+		},
+		"httpsProxy": {
+			"type": "string",
+			"description": "HTTPS Proxy",
+			"ui:title": "HTTPS Proxy address"
+		},
+		"noProxy": {
+			"type": "array",
+			"items": {
+				"type": "string"
+			},
+			"description": "URLs not to use a proxy for (E.G. github.com)",
+			"ui:description": "URLs that shouldn't be accessed via a proxy (E.G. github.com)",
+			"ui:title": "No proxy"
 		}
 	},
 	"required": [],

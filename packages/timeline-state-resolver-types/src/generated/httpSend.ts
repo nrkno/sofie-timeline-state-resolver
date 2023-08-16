@@ -10,6 +10,18 @@ export interface HTTPSendOptions {
 	 * Minimum time in ms before a command is resent, set to <= 0 or undefined to disable
 	 */
 	resendTime?: number
+	/**
+	 * HTTP Proxy
+	 */
+	httpProxy?: string
+	/**
+	 * HTTPS Proxy
+	 */
+	httpsProxy?: string
+	/**
+	 * URLs not to use a proxy for (E.G. github.com)
+	 */
+	noProxy?: string[]
 }
 
 export type SomeMappingHttpSend = Record<string, never>
