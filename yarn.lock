@@ -11071,12 +11071,12 @@ asn1@evs-broadcast/node-asn1:
   languageName: node
   linkType: hard
 
-"superfly-timeline@npm:9.0.0-nightly-wip-big-rewrite-20230707-094049-a13df02.0":
-  version: 9.0.0-nightly-wip-big-rewrite-20230707-094049-a13df02.0
-  resolution: "superfly-timeline@npm:9.0.0-nightly-wip-big-rewrite-20230707-094049-a13df02.0"
+"superfly-timeline@npm:9.0.0-nightly-wip-big-rewrite-20230814-192948-870dbc7.0":
+  version: 9.0.0-nightly-wip-big-rewrite-20230814-192948-870dbc7.0
+  resolution: "superfly-timeline@npm:9.0.0-nightly-wip-big-rewrite-20230814-192948-870dbc7.0"
   dependencies:
     tslib: ^2.6.0
-  checksum: e40961d658d1d42395ca5c6390afb1ff41cb9cc0cb1910c0396ff0b134fdddd7302e413ab5c79e43217cd4155f3a4857f1f22f6436b6b1a4dcc68ef109dde19c
+  checksum: 25888ade1fcb7a8a471a184de11c36754e4a582265b436bcf463e5899b918a929689fe6df8b941d6574e09834380dbef7c1c2d9b709240cbb6ff12d1be33f161
   languageName: node
   linkType: hard
 
@@ -11384,7 +11384,7 @@ asn1@evs-broadcast/node-asn1:
     p-queue: ^6.6.2
     p-timeout: ^3.2.0
     sprintf-js: ^1.1.2
-    superfly-timeline: 9.0.0-nightly-wip-big-rewrite-20230707-094049-a13df02.0
+    superfly-timeline: 9.0.0-nightly-wip-big-rewrite-20230814-192948-870dbc7.0
     threadedclass: ^1.2.1
     timeline-state-resolver-types: 9.1.0-release51
     tslib: ^2.5.1
