@@ -22,14 +22,7 @@ import {
 
 import { DoOnTime, SendMode } from '../../devices/doOnTime'
 
-import {
-	SisyfosApi,
-	SisyfosCommand,
-	SisyfosState,
-	SisyfosChannel,
-	SisyfosCommandType,
-	ValuesCommand,
-} from './connection'
+import { SisyfosApi, SisyfosCommand, SisyfosState, SisyfosChannel, SisyfosCommandType } from './connection'
 import Debug from 'debug'
 import { startTrace, endTrace, actionNotFoundMessage } from '../../lib'
 const debug = Debug('timeline-state-resolver:sisyfos')
@@ -516,7 +509,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 						type: SisyfosCommandType.TOGGLE_PGM,
 						channel: Number(index),
 						values,
-					} as ValuesCommand,
+					},
 					timelineObjId: newChannel.tlObjIds[0] || '',
 				})
 			}
@@ -546,7 +539,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 						type: SisyfosCommandType.SET_FADER,
 						channel: Number(index),
 						values,
-					} as ValuesCommand,
+					},
 					timelineObjId: newChannel.tlObjIds[0] || '',
 				})
 			}
