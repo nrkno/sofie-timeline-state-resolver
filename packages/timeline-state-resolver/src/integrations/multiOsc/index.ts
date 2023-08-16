@@ -118,6 +118,10 @@ export class MultiOSCMessageDevice extends DeviceWithState<OSCDeviceState, Devic
 	}
 	async terminate() {
 		this._doOnTime.dispose()
+
+		for (const connection of Object.values<OSCConnection>(this._connections)) {
+			connection.dispose()
+		}
 	}
 	getStatus(): DeviceStatus {
 		const status = {
