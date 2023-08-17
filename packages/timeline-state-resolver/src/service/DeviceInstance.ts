@@ -29,7 +29,7 @@ export interface DeviceDetails {
 	canConnect: boolean
 }
 
-export interface DeviceInstanceEvents extends Omit<DeviceEvents, 'connectionChanged'> {
+export interface DeviceInstanceEvents<DeviceState> extends Omit<DeviceEvents<DeviceState>, 'connectionChanged'> {
 	/** The connection status has changed */
 	connectionChanged: [status: DeviceStatus]
 }
@@ -37,8 +37,8 @@ export interface DeviceInstanceEvents extends Omit<DeviceEvents, 'connectionChan
 /**
  * Top level container for setting up and interacting with any device integrations
  */
-export class DeviceInstanceWrapper extends EventEmitter<DeviceInstanceEvents> {
-	private _device: Device<any, DeviceState, CommandWithContext> & EventEmitter<DeviceEvents>
+export class DeviceInstanceWrapper extends EventEmitter<DeviceInstanceEvents<DeviceState>> {
+	private _device: Device<any, DeviceState, CommandWithContext> & EventEmitter<DeviceEvents<DeviceState>>
 	private _stateHandler: StateHandler<DeviceState, CommandWithContext>
 
 	private _deviceId: string
@@ -232,8 +232,8 @@ export class DeviceInstanceWrapper extends EventEmitter<DeviceInstanceEvents> {
 			})
 		})
 		/** A message to the resolver that something has happened that warrants a reset of the resolver (to re-run it again) */
-		this._device.on('resetResolver', () => {
-			this.emit('resetResolver')
+		this._device.on('resetResolver', (fromState) => {
+			this.emit('resetResolver', fromState)
 		})
 
 		/** Something went wrong when executing a command  */

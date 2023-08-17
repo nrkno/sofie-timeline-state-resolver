@@ -66,7 +66,7 @@ export interface BaseDeviceAPI<DeviceState, Command extends CommandWithContext> 
 	sendCommand(command: Command): Promise<void>
 }
 
-export interface DeviceEvents {
+export interface DeviceEvents<DeviceState> {
 	info: [info: string]
 	warning: [warning: string]
 	error: [context: string, err: Error]
@@ -76,7 +76,7 @@ export interface DeviceEvents {
 	/** The connection status has changed */
 	connectionChanged: [status: Omit<DeviceStatus, 'active'>]
 	/** A message to the resolver that something has happened that warrants a reset of the resolver (to re-run it again) */
-	resetResolver: []
+	resetResolver: [fromState?: DeviceState]
 
 	/** A report that a command was sent too late */
 	slowSentCommand: [info: SlowSentCommandInfo]

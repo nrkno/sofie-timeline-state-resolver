@@ -26,6 +26,7 @@ import {
 	DeviceOptionsHTTPSend,
 	DeviceOptionsHTTPWatcher,
 	DeviceOptionsAbstract,
+	DeviceOptionsAtem,
 } from 'timeline-state-resolver-types'
 
 import { DoOnTime } from './devices/doOnTime'
@@ -36,7 +37,6 @@ import { CommandWithContext, DeviceEvents } from './devices/device'
 import { DeviceContainer } from './devices/deviceContainer'
 
 import { CasparCGDevice, DeviceOptionsCasparCGInternal } from './integrations/casparCG'
-import { AtemDevice, DeviceOptionsAtemInternal } from './integrations/atem'
 import { LawoDevice, DeviceOptionsLawoInternal } from './integrations/lawo'
 import { PanasonicPtzDevice, DeviceOptionsPanasonicPTZInternal } from './integrations/panasonicPTZ'
 import { HyperdeckDevice, DeviceOptionsHyperdeckInternal } from './integrations/hyperdeck'
@@ -508,15 +508,6 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 					getCurrentTime,
 					threadedClassOptions
 				)
-			case DeviceType.ATEM:
-				return DeviceContainer.create<DeviceOptionsAtemInternal, typeof AtemDevice>(
-					'../../dist/integrations/atem/index.js',
-					'AtemDevice',
-					deviceId,
-					deviceOptions,
-					getCurrentTime,
-					threadedClassOptions
-				)
 			case DeviceType.LAWO:
 				return DeviceContainer.create<DeviceOptionsLawoInternal, typeof LawoDevice>(
 					'../../dist/integrations/lawo/index.js',
@@ -653,6 +644,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 					threadedClassOptions
 				)
 			case DeviceType.ABSTRACT:
+			case DeviceType.ATEM:
 			case DeviceType.HTTPSEND:
 			case DeviceType.HTTPWATCHER:
 			case DeviceType.OSC:
@@ -1560,7 +1552,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 export type DeviceOptionsAnyInternal =
 	| DeviceOptionsAbstract
 	| DeviceOptionsCasparCGInternal
-	| DeviceOptionsAtemInternal
+	| DeviceOptionsAtem
 	| DeviceOptionsLawoInternal
 	| DeviceOptionsHTTPSend
 	| DeviceOptionsHTTPWatcher

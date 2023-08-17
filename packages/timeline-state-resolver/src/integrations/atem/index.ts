@@ -1,13 +1,12 @@
 import * as _ from 'underscore'
 import * as underScoreDeepExtend from 'underscore-deep-extend'
-import { DeviceWithState, CommandWithContext, DeviceStatus, StatusCode } from './../../devices/device'
+import { DeviceStatus, StatusCode } from './../../devices/device'
 import {
 	DeviceType,
 	TimelineContentTypeAtem,
 	SomeMappingAtem,
 	MappingAtemType,
 	AtemOptions,
-	DeviceOptionsAtem,
 	Mappings,
 	AtemTransitionStyle,
 	Timeline,
@@ -26,8 +25,8 @@ import {
 	AtemStateUtil,
 	Enums as ConnectionEnums,
 } from 'atem-connection'
-import { DoOnTime, SendMode } from '../../devices/doOnTime'
-import { actionNotFoundMessage, endTrace, startTrace } from '../../lib'
+import { CommandWithContext, Device, DeviceEvents } from '../../service/device'
+import EventEmitter = require('eventemitter3')
 
 _.mixin({ deepExtend: underScoreDeepExtend(_) })
 
@@ -38,56 +37,34 @@ function deepExtend<T>(destination: T, ...sources: any[]) {
 
 export interface AtemCommandWithContext {
 	command: AtemCommands.ISerializableCommand
-	context: CommandContext
-	timelineObjId: string
+	context: string
+	tlObjId: string
 }
-type CommandContext = any
 
-export interface DeviceOptionsAtemInternal extends DeviceOptionsAtem {
-	commandReceiver?: CommandReceiver
-}
-export type CommandReceiver = (
-	time: number,
-	command: AtemCommands.ISerializableCommand,
-	context: CommandContext,
-	timelineObjId: string
-) => Promise<any>
+type AtemDeviceState = DeviceState
 
 /**
  * This is a wrapper for the Atem Device. Commands to any and all atem devices will be sent through here.
  */
-export class AtemDevice extends DeviceWithState<DeviceState, DeviceOptionsAtemInternal> {
-	private _doOnTime: DoOnTime
+export class AtemDevice
+	extends EventEmitter<DeviceEvents<AtemDeviceState>>
+	implements Device<AtemOptions, AtemDeviceState, AtemCommandWithContext>
+{
+	readonly actions: {
+		[id in AtemActions]: (id: string, payload: Record<string, any>) => Promise<ActionExecutionResult>
+	} = {
+		[AtemActions.Resync]: this.resyncState.bind(this),
+	}
 
 	private _atem: BasicAtem
 	private _state: AtemState
 	private _initialized = false
 	private _connected = false // note: ideally this should be replaced by this._atem.connected
 
-	private firstStateAfterMakeReady = true // note: temprorary for some improved logging
-
 	private _atemStatus: {
 		psus: Array<boolean>
 	} = {
 		psus: [],
-	}
-
-	private _commandReceiver: CommandReceiver
-
-	constructor(deviceId: string, deviceOptions: DeviceOptionsAtemInternal, getCurrentTime: () => Promise<number>) {
-		super(deviceId, deviceOptions, getCurrentTime)
-		if (deviceOptions.options) {
-			if (deviceOptions.commandReceiver) this._commandReceiver = deviceOptions.commandReceiver
-			else this._commandReceiver = this._defaultCommandReceiver.bind(this)
-		}
-		this._doOnTime = new DoOnTime(
-			() => {
-				return this.getCurrentTime()
-			},
-			SendMode.BURST,
-			this._deviceOptions
-		)
-		this.handleDoOnTime(this._doOnTime, 'Atem')
 	}
 
 	/**
@@ -106,11 +83,9 @@ export class AtemDevice extends DeviceWithState<DeviceState, DeviceOptionsAtemIn
 				resolve(true)
 			})
 			this._atem.on('connected', () => {
-				const time = this.getCurrentTime()
-				if (this._atem.state) this.setState(this._atem.state, time)
 				this._connected = true
 				this._connectionChanged()
-				this.emit('resetResolver')
+				this.emit('resetResolver', this._atem.state)
 			})
 			this._atem.on('disconnected', () => {
 				this._connected = false
@@ -129,28 +104,14 @@ export class AtemDevice extends DeviceWithState<DeviceState, DeviceOptionsAtemIn
 	 * garbage collected.
 	 */
 	async terminate(): Promise<void> {
-		this._doOnTime.dispose()
-
 		await this._atem.disconnect()
 	}
 
 	private async resyncState(): Promise<ActionExecutionResult> {
-		this._doOnTime.clearQueueNowAndAfter(this.getCurrentTime())
-		if (this._atem.state) this.setState(this._atem.state, this.getCurrentTime())
+		this.emit('resetResolver', this._atem.state)
 
 		return {
 			result: ActionExecutionResultCode.Ok,
-		}
-	}
-	async executeAction(
-		actionId: AtemActions,
-		_payload?: Record<string, any> | undefined
-	): Promise<ActionExecutionResult> {
-		switch (actionId) {
-			case AtemActions.Resync:
-				return this.resyncState()
-			default:
-				return actionNotFoundMessage(actionId)
 		}
 	}
 
@@ -163,79 +124,57 @@ export class AtemDevice extends DeviceWithState<DeviceState, DeviceOptionsAtemIn
 			await this.resyncState()
 		}
 	}
-	/** Called by the Conductor a bit before a .handleState is called */
-	prepareForHandleState(newStateTime: number) {
-		// clear any queued commands later than this time:
-		this._doOnTime.clearQueueNowAndAfter(newStateTime)
-		this.cleanUpStates(0, newStateTime)
-	}
-	/**
-	 * Process a state, diff against previous state and generate commands to
-	 * be executed at the state's time.
-	 * @param newState The state to handle
-	 */
-	handleState(newState: Timeline.TimelineState<TSRTimelineContent>, newMappings: Mappings) {
-		super.onHandleState(newState, newMappings)
-		if (!this._initialized) {
-			// before it's initialized don't do anything
-			this.emit('warning', 'Atem not initialized yet')
-			return
-		}
 
-		const previousStateTime = Math.max(this.getCurrentTime(), newState.time)
-		const oldState: DeviceState = (this.getStateBefore(previousStateTime) || { state: AtemStateUtil.Create() }).state
+	// /**
+	//  * Process a state, diff against previous state and generate commands to
+	//  * be executed at the state's time.
+	//  * @param newState The state to handle
+	//  */
+	// handleState(newState: Timeline.TimelineState<TSRTimelineContent>, newMappings: Mappings) {
+	// 	super.onHandleState(newState, newMappings)
+	// 	if (!this._initialized) {
+	// 		// before it's initialized don't do anything
+	// 		this.emit('warning', 'Atem not initialized yet')
+	// 		return
+	// 	}
 
-		const convertTrace = startTrace(`device:convertState`, { deviceId: this.deviceId })
-		const oldAtemState = oldState
-		const newAtemState = this.convertStateToAtem(newState, newMappings)
-		this.emit('timeTrace', endTrace(convertTrace))
+	// 	const previousStateTime = Math.max(this.getCurrentTime(), newState.time)
+	// 	const oldState: DeviceState = (this.getStateBefore(previousStateTime) || { state: AtemStateUtil.Create() }).state
 
-		if (this.firstStateAfterMakeReady) {
-			// emit a debug message with the states:
-			this.firstStateAfterMakeReady = false
-			this.emitDebug(
-				JSON.stringify({
-					reason: 'firstStateAfterMakeReady',
-					before: (oldAtemState || {}).video,
-					after: (newAtemState || {}).video,
-				})
-			)
-		}
+	// 	const convertTrace = startTrace(`device:convertState`, { deviceId: this.deviceId })
+	// 	const oldAtemState = oldState
+	// 	const newAtemState = this.convertStateToAtem(newState, newMappings)
+	// 	this.emit('timeTrace', endTrace(convertTrace))
 
-		const diffTrace = startTrace(`device:diffState`, { deviceId: this.deviceId })
-		const commandsToAchieveState: Array<AtemCommandWithContext> = this._diffStates(
-			oldAtemState,
-			newAtemState,
-			newMappings
-		)
-		this.emit('timeTrace', endTrace(diffTrace))
+	// 	const diffTrace = startTrace(`device:diffState`, { deviceId: this.deviceId })
+	// 	const commandsToAchieveState: Array<AtemCommandWithContext> = this._diffStates(
+	// 		oldAtemState,
+	// 		newAtemState,
+	// 		newMappings
+	// 	)
+	// 	this.emit('timeTrace', endTrace(diffTrace))
 
-		// clear any queued commands later than this time:
-		this._doOnTime.clearQueueNowAndAfter(previousStateTime)
-		// add the new commands to the queue:
-		this._addToQueue(commandsToAchieveState, newState.time)
+	// 	// clear any queued commands later than this time:
+	// 	this._doOnTime.clearQueueNowAndAfter(previousStateTime)
+	// 	// add the new commands to the queue:
+	// 	this._addToQueue(commandsToAchieveState, newState.time)
 
-		// store the new state, for later use:
-		this.setState(newAtemState, newState.time)
-	}
-	/**
-	 * Clear any scheduled commands after `clearAfterTime`
-	 * @param clearAfterTime
-	 */
-	clearFuture(clearAfterTime: number) {
-		this._doOnTime.clearQueueAfter(clearAfterTime)
-	}
-	get canConnect(): boolean {
-		return true
-	}
+	// 	// store the new state, for later use:
+	// 	this.setState(newAtemState, newState.time)
+	// }
+
 	get connected(): boolean {
 		return this._connected
 	}
+
 	/**
 	 * Convert a timeline state into an Atem state.
 	 * @param state The state to be converted
 	 */
-	convertStateToAtem(state: Timeline.TimelineState<TSRTimelineContent>, newMappings: Mappings): DeviceState {
+	convertTimelineStateToDeviceState(
+		state: Timeline.TimelineState<TSRTimelineContent>,
+		newMappings: Mappings
+	): AtemDeviceState {
 		if (!this._initialized) throw Error('convertStateToAtem cannot be used before inititialized')
 
 		// Start out with default state:
@@ -252,7 +191,7 @@ export class AtemDevice extends DeviceWithState<DeviceState, DeviceOptionsAtemIn
 
 			const mapping = newMappings[layerName] as Mapping<SomeMappingAtem> | undefined
 
-			if (mapping && mapping.deviceId === this.deviceId && content.deviceType === DeviceType.ATEM) {
+			if (mapping && content.deviceType === DeviceType.ATEM) {
 				if ('index' in mapping.options && mapping.options.index !== undefined && mapping.options.index >= 0) {
 					// index must be 0 or higher
 					switch (mapping.options.mappingType) {
@@ -341,19 +280,11 @@ export class AtemDevice extends DeviceWithState<DeviceState, DeviceOptionsAtemIn
 
 		return deviceState
 	}
-	get deviceType() {
-		return DeviceType.ATEM
-	}
-	get deviceName(): string {
-		return 'Atem ' + this.deviceId
-	}
-	get queue() {
-		return this._doOnTime.getQueue()
-	}
+
 	/**
 	 * Check status and return it with useful messages appended.
 	 */
-	public getStatus(): DeviceStatus {
+	public getStatus(): Omit<DeviceStatus, 'active'> {
 		let statusCode = StatusCode.GOOD
 		const messages: Array<string> = []
 
@@ -378,37 +309,20 @@ export class AtemDevice extends DeviceWithState<DeviceState, DeviceOptionsAtemIn
 			messages.push(`ATEM device connection not initialized (restart required)`)
 		}
 
-		const deviceStatus: DeviceStatus = {
+		return {
 			statusCode: statusCode,
 			messages: messages,
-			active: this.isActive,
 		}
-		return deviceStatus
 	}
-	/**
-	 * Add commands to queue, to be executed at the right time
-	 */
-	private _addToQueue(commandsToAchieveState: Array<AtemCommandWithContext>, time: number) {
-		_.each(commandsToAchieveState, (cmd: AtemCommandWithContext) => {
-			// add the new commands to the queue:
-			this._doOnTime.queue(
-				time,
-				undefined,
-				async (cmd: AtemCommandWithContext) => {
-					return this._commandReceiver(time, cmd.command, cmd.context, cmd.timelineObjId)
-				},
-				cmd
-			)
-		})
-	}
+
 	/**
 	 * Compares the new timeline-state with the old one, and generates commands to account for the difference
 	 * @param oldAtemState
 	 * @param newAtemState
 	 */
-	private _diffStates(
-		oldAtemState: DeviceState,
-		newAtemState: DeviceState,
+	diffStates(
+		oldAtemState: AtemDeviceState | undefined,
+		newAtemState: AtemDeviceState,
 		mappings: Mappings
 	): Array<AtemCommandWithContext> {
 		// Ensure the state diffs the correct version
@@ -432,41 +346,29 @@ export class AtemDevice extends DeviceWithState<DeviceState, DeviceOptionsAtemIn
 			}
 		}
 
-		return _.map(this._state.diffStates(oldAtemState, newAtemState), (cmd: any) => {
-			if (_.has(cmd, 'command') && _.has(cmd, 'context')) {
-				return cmd as AtemCommandWithContext
-			} else {
-				// backwards compability, to be removed later:
-				return {
-					command: cmd as AtemCommands.ISerializableCommand,
-					context: null,
-					timelineObjId: '', // @todo: implement in Atem-state
-				}
+		return this._state.diffStates(oldAtemState, newAtemState).map((cmd) => {
+			// backwards compability, to be removed later:
+			return {
+				command: cmd,
+				context: '',
+				tlObjId: '', // @todo: implement in Atem-state
 			}
 		})
 	}
 
-	private async _defaultCommandReceiver(
-		_time: number,
-		command: AtemCommands.ISerializableCommand,
-		context: CommandContext,
-		timelineObjId: string
-	): Promise<any> {
+	async sendCommand({ command, context, tlObjId }: AtemCommandWithContext): Promise<void> {
 		const cwc: CommandWithContext = {
 			context: context,
 			command: command,
-			timelineObjId: timelineObjId,
+			tlObjId: tlObjId,
 		}
-		this.emitDebug(cwc)
+		this.emit('debug', cwc)
 
-		return this._atem
-			.sendCommand(command)
-			.then(() => {
-				// @todo: command was acknowledged by atem, how will we check if it did what we wanted?
-			})
-			.catch((error) => {
-				this.emit('commandError', error, cwc)
-			})
+		try {
+			await this._atem.sendCommand(command)
+		} catch (error: any) {
+			this.emit('commandError', error, cwc)
+		}
 	}
 	private _onAtemStateChanged(newState: Readonly<NativeAtemState>) {
 		const psus = newState.info.power || []
