@@ -136,7 +136,7 @@ export class RemoteDeviceInstance<
 		container._device = await threadedClass<DeviceInstanceWrapper, TCtor>(
 			orgModule,
 			orgClassExport,
-			[deviceId, deviceOptions, getCurrentTime] as any, // TODO types
+			[deviceId, getCurrentTime(), deviceOptions, getCurrentTime] as any, // TODO types
 			threadConfig
 		)
 

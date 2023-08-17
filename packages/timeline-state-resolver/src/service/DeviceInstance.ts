@@ -47,7 +47,7 @@ export class DeviceInstanceWrapper extends EventEmitter<DeviceEvents> {
 	private _logDebug = false
 	private _logDebugStates = false
 
-	constructor(id: string, private config: Config, public getCurrentTime: () => number) {
+	constructor(id: string, time: number, private config: Config, public getCurrentTime: () => Promise<number>) {
 		super()
 
 		const deviceSpecs = DevicesDict[config.type]
@@ -60,7 +60,7 @@ export class DeviceInstanceWrapper extends EventEmitter<DeviceEvents> {
 		this._deviceId = id
 		this._deviceType = config.type
 		this._deviceName = deviceSpecs.deviceName(id, config)
-		this._startTime = this.getCurrentTime()
+		this._startTime = time
 
 		this._setupDeviceEventHandlers()
 
