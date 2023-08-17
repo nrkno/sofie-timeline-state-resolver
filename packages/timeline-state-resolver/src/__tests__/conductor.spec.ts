@@ -3,7 +3,6 @@ import {
 	DeviceType,
 	TSRTimelineObj,
 	TSRTimeline,
-	LawoDeviceMode,
 	TimelineContentTypeCasparCg,
 	TimelineContentCCGMedia,
 	SomeMappingAbstract,
@@ -11,14 +10,23 @@ import {
 	SomeMappingCasparCG,
 	MappingCasparCGType,
 } from 'timeline-state-resolver-types'
-import { Conductor, TimelineTriggerTimeResult } from '../conductor'
-import * as _ from 'underscore'
 import { MockTime } from './mockTime'
 import { ThreadedClass } from 'threadedclass'
 import { getMockCall } from './lib'
 import { setupAllMocks } from '../__mocks__/_setup-all-mocks'
 import { Commands } from 'casparcg-connection'
-import { DeviceInstanceWrapper } from '../service/DeviceInstance'
+import { MockDeviceInstanceWrapper, ConstructedMockDevices, DiscardAllMockDevices } from './mockDeviceInstanceWrapper'
+
+// Mock explicitly the 'dist' version, as that is what threadedClass is being told to load
+jest.mock('../../dist/service/DeviceInstance', () => ({
+	DeviceInstanceWrapper: MockDeviceInstanceWrapper,
+}))
+jest.mock('../service/DeviceInstance', () => ({
+	DeviceInstanceWrapper: MockDeviceInstanceWrapper,
+}))
+
+import { Conductor, TimelineTriggerTimeResult } from '../conductor'
+import type { DeviceInstanceWrapper } from '../service/DeviceInstance'
 
 describe('Conductor', () => {
 	const mockTime = new MockTime()
@@ -27,15 +35,19 @@ describe('Conductor', () => {
 	})
 	beforeEach(() => {
 		mockTime.init()
+		DiscardAllMockDevices()
 	})
-	test.only('Abstract-device functionality', async () => {
-		const commandReceiver0: any = jest.fn(async () => {
-			return Promise.resolve()
-		})
-		const commandReceiver1: any = jest.fn(async () => {
-			return Promise.resolve()
-		})
 
+	async function getMockDeviceWrapper(conductor: Conductor, deviceId: string): Promise<MockDeviceInstanceWrapper> {
+		const deviceContainer = conductor.getDevice(deviceId)
+		expect(deviceContainer).toBeTruthy()
+
+		const mockDevice = ConstructedMockDevices[deviceId]
+		expect(mockDevice).toBeTruthy()
+		return mockDevice
+	}
+
+	test('Abstract-device functionality', async () => {
 		const myLayerMapping0: Mapping<SomeMappingAbstract> = {
 			device: DeviceType.ABSTRACT,
 			deviceId: 'device0',
@@ -56,143 +68,142 @@ describe('Conductor', () => {
 			getCurrentTime: mockTime.getCurrentTime,
 		})
 
-		await conductor.init()
-		await conductor.addDevice('device0', {
-			type: DeviceType.ABSTRACT,
-			options: {},
-		})
-		await conductor.addDevice('device1', {
-			type: DeviceType.ABSTRACT,
-			options: {},
-		})
+		try {
+			await conductor.init()
+			await conductor.addDevice('device0', {
+				type: DeviceType.ABSTRACT,
+				options: {},
+			})
+			await conductor.addDevice('device1', {
+				type: DeviceType.ABSTRACT,
+				options: {},
+			})
 
-		// add something that will play in a seconds time
-		const abstractThing0: TSRTimelineObj<any> = {
-			id: 'a0',
-			enable: {
-				start: mockTime.now,
-				duration: 1000,
-			},
-			layer: 'myLayer0',
-			content: {
-				deviceType: DeviceType.ABSTRACT,
-				myAttr1: 'one',
-				myAttr2: 'two',
-			},
+			// add something that will play in a seconds time
+			const abstractThing0: TSRTimelineObj<any> = {
+				id: 'a0',
+				enable: {
+					start: mockTime.now,
+					duration: 1000,
+				},
+				layer: 'myLayer0',
+				content: {
+					deviceType: DeviceType.ABSTRACT,
+					myAttr1: 'one',
+					myAttr2: 'two',
+				},
+			}
+			const abstractThing1: TSRTimelineObj<any> = {
+				id: 'a1',
+				enable: {
+					start: mockTime.now + 1000,
+					duration: 1000,
+				},
+				layer: 'myLayer1',
+				content: {
+					deviceType: DeviceType.ABSTRACT,
+					myAttr1: 'three',
+					myAttr2: 'four',
+				},
+			}
+
+			const device0 = await getMockDeviceWrapper(conductor, 'device0')
+			const device1 = await getMockDeviceWrapper(conductor, 'device1')
+
+			// The queues should be empty
+			// console.log(device0, device0.handleState)
+			expect(device0.handleState).toHaveBeenCalledTimes(0)
+			expect(device1.handleState).toHaveBeenCalledTimes(0)
+			expect(device0.clearFuture).toHaveBeenCalledTimes(0)
+			expect(device1.clearFuture).toHaveBeenCalledTimes(0)
+
+			conductor.setTimelineAndMappings([abstractThing0, abstractThing1], myLayerMapping)
+
+			// Move forward in time, so that all states can be queued
+			await mockTime.advanceTimeTicks(500) // to time 10500
+
+			// Ensure device0 has been fed sensible states
+			expect(device0.clearFuture).toHaveBeenCalledTimes(1)
+			expect(device0.handleState).toHaveBeenCalledTimes(3)
+			expect(device0.handleState).toHaveBeenNthCalledWith(
+				1,
+				expect.objectContaining({
+					layers: {
+						[abstractThing0.layer]: expect.objectContaining({
+							...abstractThing0,
+							instance: expect.objectContaining({
+								start: 10000,
+								end: 11000,
+							}),
+						}),
+					},
+					time: 10005,
+				}),
+				myLayerMapping // TODO - is this correct?
+			)
+			expect(device0.handleState).toHaveBeenNthCalledWith(
+				2,
+				expect.objectContaining({
+					time: 11000,
+				}),
+				myLayerMapping // TODO - is this correct?
+			)
+			expect(device0.handleState).toHaveBeenNthCalledWith(
+				3,
+				expect.objectContaining({
+					layers: {},
+					time: 12000,
+				}),
+				myLayerMapping // TODO - is this correct?
+			)
+
+			// Ensure device1 has been fed sensible states
+			expect(device1.clearFuture).toHaveBeenCalledTimes(1)
+			expect(device1.handleState).toHaveBeenCalledTimes(3)
+			expect(device1.handleState).toHaveBeenNthCalledWith(
+				1,
+				expect.objectContaining({
+					layers: {},
+				}),
+				myLayerMapping // TODO - is this correct?
+			)
+			expect(device1.handleState).toHaveBeenNthCalledWith(
+				2,
+				expect.objectContaining({
+					layers: {
+						[abstractThing1.layer]: expect.objectContaining({
+							...abstractThing1,
+							instance: expect.objectContaining({
+								start: 11000,
+								end: 12000,
+							}),
+						}),
+					},
+				}),
+				myLayerMapping // TODO - is this correct?
+			)
+			expect(device1.handleState).toHaveBeenNthCalledWith(
+				3,
+				expect.objectContaining({
+					layers: {},
+				}),
+				myLayerMapping // TODO - is this correct?
+			)
+
+			// Remove the device
+			await conductor.removeDevice('device1')
+			expect(conductor.getDevice('device1')).toBeFalsy()
+			expect(ConstructedMockDevices['device1']).toBeFalsy()
+
+			// Re-add a device
+			const addedDevice = await conductor.addDevice('device1', { type: DeviceType.ABSTRACT, options: {} })
+			expect(addedDevice).toBeTruthy()
+		} finally {
+			await conductor.destroy()
 		}
-		const abstractThing1: TSRTimelineObj<any> = {
-			id: 'a1',
-			enable: {
-				start: mockTime.now + 1000,
-				duration: 1000,
-			},
-			layer: 'myLayer1',
-			content: {
-				deviceType: DeviceType.ABSTRACT,
-				myAttr1: 'three',
-				myAttr2: 'four',
-			},
-		}
-
-		const device0Container = conductor.getDevice('device0')
-		const device0 = device0Container!.device
-		const device1Container = conductor.getDevice('device1')
-		const device1 = device1Container!.device
-
-		// The queues should be empty
-		expect(await device0['queue']).toHaveLength(0)
-		expect(await device1['queue']).toHaveLength(0)
-
-		conductor.setTimelineAndMappings([abstractThing0, abstractThing1], myLayerMapping)
-
-		// there should now be one command queued:
-		await mockTime.tick()
-		expect(await device0['queue']).toHaveLength(1)
-		expect(await device1['queue']).toHaveLength(0)
-
-		// Move forward in time
-		await mockTime.advanceTimeTicks(500) // to time 10500
-
-		expect(commandReceiver0).toHaveBeenCalledTimes(1)
-		expect(getMockCall(commandReceiver0, 0, 0)).toEqual(10000)
-		expect(getMockCall(commandReceiver0, 0, 1)).toMatchObject({
-			commandName: 'addedAbstract',
-			content: {
-				deviceType: 'ABSTRACT',
-				myAttr1: 'one',
-				myAttr2: 'two',
-			},
-		})
-		expect(getMockCall(commandReceiver0, 0, 2)).toEqual('added: a0') // context
-		expect(commandReceiver1).toHaveBeenCalledTimes(0)
-
-		commandReceiver0.mockClear()
-		await mockTime.advanceTimeToTicks(11500)
-
-		// expect(device0['queue']).toHaveLength(0)
-
-		expect(commandReceiver0).toHaveBeenCalledTimes(1)
-		expect(getMockCall(commandReceiver0, 0, 0)).toEqual(11000)
-		expect(getMockCall(commandReceiver0, 0, 1)).toMatchObject({
-			commandName: 'removedAbstract',
-			content: {
-				deviceType: 'ABSTRACT',
-				myAttr1: 'one',
-				myAttr2: 'two',
-			},
-		})
-		expect(getMockCall(commandReceiver0, 0, 2)).toEqual('removed: a0') // context
-		expect(commandReceiver1).toHaveBeenCalledTimes(1)
-		expect(getMockCall(commandReceiver1, 0, 0)).toEqual(11000)
-		expect(getMockCall(commandReceiver1, 0, 1)).toMatchObject({
-			commandName: 'addedAbstract',
-			content: {
-				deviceType: 'ABSTRACT',
-				myAttr1: 'three',
-				myAttr2: 'four',
-			},
-		})
-
-		commandReceiver0.mockClear()
-		commandReceiver1.mockClear()
-		await mockTime.advanceTimeTicks(3000)
-
-		expect(commandReceiver0).toHaveBeenCalledTimes(0)
-		expect(commandReceiver1).toHaveBeenCalledTimes(1)
-		expect(getMockCall(commandReceiver1, 0, 0)).toEqual(12000)
-		expect(getMockCall(commandReceiver1, 0, 1)).toMatchObject({
-			commandName: 'removedAbstract',
-			content: {
-				deviceType: 'ABSTRACT',
-				myAttr1: 'three',
-				myAttr2: 'four',
-			},
-		})
-		expect(getMockCall(commandReceiver1, 0, 2)).toEqual('removed: a1') // context
-
-		await conductor.removeDevice('device1')
-		expect(conductor.getDevice('device1')).toBeFalsy()
-
-		await conductor.addDevice('device1', { type: DeviceType.ABSTRACT, options: {} }).then((res) => {
-			expect(res).toBeTruthy()
-		})
-
-		// @ts-ignore
-		abstractThing0.enable.start = mockTime.now
-		conductor.setTimelineAndMappings([abstractThing0], {
-			myLayer0: myLayerMapping1,
-			myLayer1: myLayerMapping0,
-		})
-		if (_.isArray(abstractThing0.enable)) throw new Error('.enable should not be an array')
-		abstractThing0.enable.start = mockTime.now
-		conductor.setTimelineAndMappings([abstractThing0])
 	})
 
 	test('the "Now" and "Callback-functionality', async () => {
-		const commandReceiver0: any = jest.fn(async () => {
-			return Promise.resolve()
-		})
-
 		const myLayerMapping0: Mapping<SomeMappingAbstract> = {
 			device: DeviceType.ABSTRACT,
 			deviceId: 'device0',
@@ -207,196 +218,205 @@ describe('Conductor', () => {
 			getCurrentTime: mockTime.getCurrentTime,
 		})
 
-		await conductor.init()
-		await conductor.addDevice('device0', {
-			type: DeviceType.ABSTRACT,
-			options: {},
-		})
-
-		// add something that will play "now"
-		const abstractThing0: TSRTimelineObj<any> = {
-			// will be converted from "now" to 10000
-			id: 'a0',
-			enable: {
-				start: 'now', // 10000
-				duration: 5000, // 15000
-			},
-			layer: 'myLayer0',
-			content: {
-				deviceType: DeviceType.ABSTRACT,
-				myAttr1: 'one',
-				myAttr2: 'two',
-			},
-		}
-		const abstractThing1: TSRTimelineObj<any> = {
-			// will cause a callback to be sent
-			id: 'a1',
-			enable: {
-				start: '#a0.start + 300', // 10300
-				duration: 5000, // 15300
-			},
-			layer: 'myLayer0',
-			content: {
-				deviceType: DeviceType.ABSTRACT,
-				myAttr1: 'one',
-				myAttr2: 'two',
-				callBack: 'abc',
-				callBackData: {
-					hello: 'dude',
-				},
-				callBackStopped: 'abcStopped',
-			},
-		}
-		const timeline: TSRTimeline = [abstractThing0, abstractThing1]
-
-		const setTimelineTriggerTime = jest.fn((results: TimelineTriggerTimeResult) => {
-			_.each(results, (trigger) => {
-				const o = _.findWhere(timeline, { id: trigger.id })
-				if (o) {
-					if (_.isArray(o.enable)) throw new Error('.enable should not be an array')
-					o.enable.start = trigger.time
-				}
+		try {
+			await conductor.init()
+			await conductor.addDevice('device0', {
+				type: DeviceType.ABSTRACT,
+				options: {},
 			})
-			// update the timeline:
+
+			// add something that will play "now"
+			const abstractThing0: TSRTimelineObj<any> = {
+				// will be converted from "now" to 10000
+				id: 'a0',
+				enable: {
+					start: 'now', // 10000
+					duration: 5000, // 15000
+				},
+				layer: 'myLayer0',
+				content: {
+					deviceType: DeviceType.ABSTRACT,
+					myAttr1: 'one',
+					myAttr2: 'two',
+				},
+			}
+			const abstractThing1: TSRTimelineObj<any> = {
+				// will cause a callback to be sent
+				id: 'a1',
+				enable: {
+					start: '#a0.start + 300', // 10300
+					duration: 5000, // 15300
+				},
+				layer: 'myLayer0',
+				content: {
+					deviceType: DeviceType.ABSTRACT,
+					myAttr1: 'one',
+					myAttr2: 'two',
+					callBack: 'abc',
+					callBackData: {
+						hello: 'dude',
+					},
+					callBackStopped: 'abcStopped',
+				},
+			}
+			const timeline: TSRTimeline = [abstractThing0, abstractThing1]
+
+			// Implement the `setTimelineTriggerTime` callback
+			const setTimelineTriggerTime = jest.fn((results: TimelineTriggerTimeResult) => {
+				for (const trigger of results) {
+					const o = timeline.find((obj) => obj.id === trigger.id)
+					if (o) {
+						if (Array.isArray(o.enable)) throw new Error('.enable should not be an array')
+						o.enable.start = trigger.time
+					}
+				}
+				// update the timeline:
+				conductor.setTimelineAndMappings(timeline, myLayerMapping)
+			})
+			conductor.on('setTimelineTriggerTime', setTimelineTriggerTime)
+
+			const timelineCallback = jest.fn()
+			conductor.on('timelineCallback', timelineCallback)
+
+			const device0 = await getMockDeviceWrapper(conductor, 'device0')
+
+			// The queues should be empty
+			expect(device0.clearFuture).toHaveBeenCalledTimes(0)
+			expect(device0.handleState).toHaveBeenCalledTimes(0)
+
+			expect(setTimelineTriggerTime).toHaveBeenCalledTimes(0)
+
 			conductor.setTimelineAndMappings(timeline, myLayerMapping)
-		})
-		conductor.on('setTimelineTriggerTime', setTimelineTriggerTime)
 
-		const timelineCallback = jest.fn()
-		conductor.on('timelineCallback', timelineCallback)
+			// there should now be commands queued:
+			await mockTime.tick()
 
-		const device0Container = conductor.getDevice('device0')
-		const device0 = device0Container!.device as ThreadedClass<DeviceInstanceWrapper>
-		expect(device0).toBeTruthy()
-		// let device1 = conductor.getDevice('device1')
+			// the setTimelineTriggerTime event should have been emitted:
+			expect(setTimelineTriggerTime).toHaveBeenCalledTimes(1)
+			expect(setTimelineTriggerTime).toHaveBeenLastCalledWith([{ id: abstractThing0.id, time: 10000 }])
 
-		// The queues should be empty
-		// expect(await device0.queue).toHaveLength(0)
-		// expect(device1['queue']).toHaveLength(0)
+			// the timelineCallback event should have been emitted:
+			expect(timelineCallback).toHaveBeenCalledTimes(0)
 
-		expect(setTimelineTriggerTime).toHaveBeenCalledTimes(0)
+			// Move forward in time
+			await mockTime.advanceTimeToTicks(10100)
 
-		conductor.setTimelineAndMappings(timeline)
+			expect(device0.clearFuture).toHaveBeenCalledTimes(0)
+			expect(device0.handleState).toHaveBeenCalledTimes(3)
+			expect(device0.handleState).toHaveBeenNthCalledWith(
+				1, // Initial timeline
+				expect.objectContaining({
+					layers: {
+						[abstractThing0.layer]: expect.objectContaining({
+							...abstractThing0,
+							instance: expect.objectContaining({
+								start: 10000,
+								end: 10300,
+							}),
+						}),
+					},
+					time: 10000,
+				}),
+				myLayerMapping
+			)
+			expect(device0.handleState).toHaveBeenNthCalledWith(
+				2, // setTimelineTriggerTime
+				expect.objectContaining({
+					layers: {
+						[abstractThing0.layer]: expect.objectContaining({
+							...abstractThing0,
+							instance: expect.objectContaining({
+								start: 10000,
+								end: 10300,
+							}),
+						}),
+					},
+					time: 10000,
+				}),
+				myLayerMapping
+			)
+			expect(device0.handleState).toHaveBeenNthCalledWith(
+				3, // End of object
+				expect.objectContaining({
+					layers: {
+						[abstractThing1.layer]: expect.objectContaining({
+							...abstractThing1,
+							instance: expect.objectContaining({
+								start: 10300,
+								end: 15300,
+							}),
+						}),
+					},
+					time: 10300,
+				}),
+				myLayerMapping
+			)
 
-		// there should now be commands queued:
-		await mockTime.tick()
+			device0.handleState.mockClear()
 
-		// const q = await device0.queue
-		// expect(q).toHaveLength(2)
-		// expect(q[0].time).toEqual(10000)
-		// expect(q[1].time).toEqual(10300)
+			await mockTime.advanceTimeToTicks(15500)
 
-		// the setTimelineTriggerTime event should have been emitted:
-		expect(setTimelineTriggerTime).toHaveBeenCalledTimes(1)
-		expect(getMockCall(setTimelineTriggerTime, 0, 0)[0].time).toEqual(10000)
-
-		// the timelineCallback event should have been emitted:
-		expect(timelineCallback).toHaveBeenCalledTimes(0)
-
-		// Move forward in time
-		await mockTime.advanceTimeToTicks(10100)
-
-		expect(commandReceiver0).toHaveBeenCalledTimes(1)
-		expect(timelineCallback).toHaveBeenCalledTimes(0)
-
-		await mockTime.advanceTimeToTicks(10500)
-
-		expect(commandReceiver0).toHaveBeenCalledTimes(2)
-		expect(timelineCallback).toHaveBeenCalledTimes(1)
-		expect(getMockCall(timelineCallback, 0, 0)).toEqual(10300)
-		expect(getMockCall(timelineCallback, 0, 1)).toEqual('a1')
-		expect(getMockCall(timelineCallback, 0, 2)).toEqual('abc')
-		expect(getMockCall(timelineCallback, 0, 3)).toEqual({ hello: 'dude' })
-
-		await mockTime.advanceTimeToTicks(15500)
-
-		// expect(commandReceiver0).toHaveBeenCalledTimes(3)
-		expect(commandReceiver0.mock.calls).toHaveLength(3)
+			expect(device0.clearFuture).toHaveBeenCalledTimes(2)
+			expect(device0.handleState).toHaveBeenCalledTimes(2)
+			expect(device0.handleState).toHaveBeenNthCalledWith(
+				1,
+				expect.objectContaining({
+					layers: {},
+					time: 15300,
+				}),
+				myLayerMapping
+			)
+			expect(device0.handleState).toHaveBeenNthCalledWith(
+				1,
+				expect.objectContaining({
+					layers: {},
+					time: 15300,
+				}),
+				myLayerMapping
+			)
+		} finally {
+			await conductor.destroy()
+		}
 	})
 
 	test('devicesMakeReady', async () => {
-		const commandReceiver1 = jest.fn(async () => {
-			return Promise.resolve()
-		})
-		const commandReceiver2 = jest.fn(async () => {
-			return Promise.resolve()
-		})
-		const commandReceiver4 = jest.fn(async () => {
-			return Promise.resolve()
-		})
 		const conductor = new Conductor({
 			multiThreadedResolver: false,
 			getCurrentTime: mockTime.getCurrentTime,
 		})
 
-		await conductor.init()
-		await conductor.addDevice('device0', {
-			type: DeviceType.ABSTRACT,
-			options: {},
-		})
-		await conductor.addDevice('device1', {
-			type: DeviceType.CASPARCG,
-			options: {
-				host: '127.0.0.1',
-			},
-			commandReceiver: commandReceiver1,
-		})
-		await conductor.addDevice('device2', {
-			type: DeviceType.ATEM,
-			options: {
-				host: '127.0.0.1',
-			},
-			commandReceiver: commandReceiver2,
-		})
-		await conductor.addDevice('device3', {
-			type: DeviceType.HTTPSEND,
-			options: {},
-		})
-		await conductor.addDevice('device4', {
-			type: DeviceType.LAWO,
-			options: {
-				host: '',
-				deviceMode: LawoDeviceMode.Ruby,
-			},
-			commandReceiver: commandReceiver4,
-		})
+		try {
+			await conductor.init()
+			await conductor.addDevice('device0', {
+				type: DeviceType.ABSTRACT,
+				options: {},
+			})
+			await conductor.addDevice('device1', {
+				type: DeviceType.HTTPSEND,
+				options: {},
+			})
 
-		await mockTime.advanceTimeTicks(10) // to allow casparcg to fake "connect"
+			const device0 = await getMockDeviceWrapper(conductor, 'device0')
+			device0.makeReady.mockImplementationOnce(async () => {
+				// Allow it
+			})
+			const device1 = await getMockDeviceWrapper(conductor, 'device1')
+			device1.makeReady.mockImplementationOnce(async () => {
+				// Allow it
+			})
 
-		await conductor.devicesMakeReady(true)
+			expect(device0.makeReady).toHaveBeenCalledTimes(0)
+			expect(device1.makeReady).toHaveBeenCalledTimes(0)
 
-		await mockTime.advanceTimeTicks(10) // to allow for commands to be sent
+			await mockTime.advanceTimeTicks(10) // to allow casparcg to fake "connect"
 
-		// expect(commandReceiver1).toHaveBeenCalledTimes(3)
-		expect(commandReceiver1.mock.calls).toHaveLength(3)
-		// expect(getMockCall(commandReceiver1, 0, 1).name).toEqual('TimeCommand')
-		// expect(getMockCall(commandReceiver1, 0, 1)._objectParams).toMatchObject({
-		// 	channel: 1,
-		// 	timecode: '00:00:10:00'
-		// })
-		// expect(getMockCall(commandReceiver1, 1, 1).name).toEqual('TimeCommand')
-		// expect(getMockCall(commandReceiver1, 1, 1)._objectParams).toMatchObject({
-		// 	channel: 2,
-		// 	timecode: '00:00:10:00'
-		// })
-		// expect(getMockCall(commandReceiver1, 2, 1).name).toEqual('TimeCommand')
-		// expect(getMockCall(commandReceiver1, 2, 1)._objectParams).toMatchObject({
-		// 	channel: 3,
-		// 	timecode: '00:00:10:00'
-		// })
+			await conductor.devicesMakeReady(true)
 
-		expect(getMockCall(commandReceiver1, 0, 1).command).toEqual(Commands.Clear)
-		expect(getMockCall(commandReceiver1, 0, 1).params).toMatchObject({
-			channel: 1,
-		})
-		expect(getMockCall(commandReceiver1, 1, 1).command).toEqual(Commands.Clear)
-		expect(getMockCall(commandReceiver1, 1, 1).params).toMatchObject({
-			channel: 2,
-		})
-		expect(getMockCall(commandReceiver1, 2, 1).command).toEqual(Commands.Clear)
-		expect(getMockCall(commandReceiver1, 2, 1).params).toMatchObject({
-			channel: 3,
-		})
+			expect(device0.makeReady).toHaveBeenCalledTimes(1)
+			expect(device1.makeReady).toHaveBeenCalledTimes(1)
+		} finally {
+			await conductor.destroy()
+		}
 	})
 
 	test('Construction of multithreaded device', async () => {
@@ -415,17 +435,22 @@ describe('Conductor', () => {
 		})
 		conductor.on('error', console.error)
 
-		await conductor.init()
-		await conductor.addDevice('device0', {
-			type: DeviceType.ABSTRACT,
-			options: {},
-			isMultiThreaded: true,
-		})
-		conductor.setTimelineAndMappings([], myLayerMapping)
+		try {
+			await conductor.init()
+			await conductor.addDevice('device0', {
+				type: DeviceType.ABSTRACT,
+				options: {},
+				isMultiThreaded: true,
+			})
+			conductor.setTimelineAndMappings([], myLayerMapping)
 
-		const device = conductor.getDevice('device0')!.device
-		expect(await device.getCurrentTime()).toBeTruthy()
+			const device = conductor.getDevice('device0')!.device
+			expect(await device.getCurrentTime()).toBeTruthy()
+		} finally {
+			await conductor.destroy()
+		}
 	}, 1500)
+
 	test('Changing of mappings live', async () => {
 		const commandReceiver0: any = jest.fn(async () => {
 			return Promise.resolve()

@@ -114,12 +114,7 @@ export class RemoteDeviceInstance<
 		super(deviceOptions, threadConfig)
 	}
 
-	static async create<
-		TOptions extends DeviceOptionsBase<unknown>,
-		TCtor extends new (...args: any[]) => DeviceInstanceWrapper
-	>(
-		orgModule: string,
-		orgClassExport: string,
+	static async create<TOptions extends DeviceOptionsBase<unknown>>(
 		deviceId: string,
 		deviceOptions: TOptions,
 		getCurrentTime: () => number,
@@ -127,9 +122,9 @@ export class RemoteDeviceInstance<
 	): Promise<RemoteDeviceInstance<TOptions>> {
 		const container = new RemoteDeviceInstance(deviceOptions, threadConfig)
 
-		container._device = await threadedClass<DeviceInstanceWrapper, TCtor>(
-			orgModule,
-			orgClassExport,
+		container._device = await threadedClass<DeviceInstanceWrapper, typeof DeviceInstanceWrapper>(
+			'../../dist/service/DeviceInstance.js',
+			'DeviceInstanceWrapper',
 			[deviceId, deviceOptions, getCurrentTime] as any, // TODO types
 			threadConfig
 		)
@@ -142,7 +137,7 @@ export class RemoteDeviceInstance<
 						if (container.onChildClose) container.onChildClose()
 					}),
 					ThreadedClassManager.onEvent(container._device, 'error', (error) => {
-						container.emit('error', `${orgClassExport} "${deviceId}" threadedClass error`, error)
+						container.emit('error', `DeviceInstanceWrapper "${deviceId}" threadedClass error`, error)
 					}),
 				]
 			}

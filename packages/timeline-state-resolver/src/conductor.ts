@@ -656,14 +656,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 				ensureIsImplementedAsService(deviceOptions.type)
 
 				// presumably this device is implemented in the new service handler
-				return RemoteDeviceInstance.create(
-					'../../dist/service/DeviceInstance.js',
-					'DeviceInstanceWrapper',
-					deviceId,
-					deviceOptions,
-					getCurrentTime,
-					threadedClassOptions
-				)
+				return RemoteDeviceInstance.create(deviceId, deviceOptions, getCurrentTime, threadedClassOptions)
 			}
 			default:
 				assertNever(deviceOptions)
