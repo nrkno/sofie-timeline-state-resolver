@@ -33,7 +33,7 @@ describe('stateHandler', () => {
 				},
 				emitTimeTrace: () => null,
 				reportStateChangeMeasurement: () => null,
-				getCurrentTime: () => Date.now(),
+				getCurrentTime: async () => Date.now(),
 			},
 			{
 				executionType: 'salvo',
