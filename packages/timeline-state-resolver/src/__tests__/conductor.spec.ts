@@ -426,7 +426,7 @@ describe('Conductor', () => {
 
 		await conductor.init()
 		await conductor.addDevice('device0', {
-			type: DeviceType.ABSTRACT,
+			type: DeviceType.HTTPSEND,
 			options: {},
 			isMultiThreaded: true,
 		})
