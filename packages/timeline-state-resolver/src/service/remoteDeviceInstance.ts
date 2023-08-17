@@ -2,7 +2,7 @@ import { ThreadedClass, threadedClass, ThreadedClassConfig, ThreadedClassManager
 import { DeviceType, DeviceOptionsBase } from 'timeline-state-resolver-types'
 import { EventEmitter } from 'eventemitter3'
 import { DeviceDetails, DeviceInstanceWrapper } from './DeviceInstance'
-import { Device } from '../conductor'
+import type { Device, DeviceOptionsAnyInternal } from '../conductor'
 
 export type DeviceContainerEvents = {
 	error: [context: string, err: Error]
@@ -125,7 +125,7 @@ export class RemoteDeviceInstance<
 		container._device = await threadedClass<DeviceInstanceWrapper, typeof DeviceInstanceWrapper>(
 			'../../dist/service/DeviceInstance.js',
 			'DeviceInstanceWrapper',
-			[deviceId, deviceOptions, getCurrentTime] as any, // TODO types
+			[deviceId, deviceOptions as DeviceOptionsAnyInternal, getCurrentTime],
 			threadConfig
 		)
 
