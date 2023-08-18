@@ -401,7 +401,7 @@ export function getStatus(currentLayer: any): { status: LayerStatus; mediaId: st
 	if (fg || bg) {
 		return {
 			status: LayerStatus.Loaded,
-			mediaId: [fg.toString(), bg?.toString()].filter((m) => m !== undefined),
+			mediaId: [fg?.toString(), bg?.toString()].filter((m) => m !== undefined),
 		}
 	}
 	return {
