@@ -1442,6 +1442,7 @@ class VMixInputHandler extends EventEmitter {
 	// how long to let an input linger before removing it
 	private TTL = 1000
 
+	/** Tracks the actual state in vmix of which inputs are loaded */
 	private _inputs: Map<
 		string,
 		{
@@ -1477,7 +1478,7 @@ class VMixInputHandler extends EventEmitter {
 	public removeInput(time: number, key: string) {
 		const existing = this._inputs.get(key)
 		if (existing) {
-			existing.removeTime = Math.min(existing.removeTime ?? Infinity, time + this.TTL)
+			existing.removeTime = Math.max(existing.removeTime ?? 0, time + this.TTL)
 
 			this._triggerUpdate()
 		}

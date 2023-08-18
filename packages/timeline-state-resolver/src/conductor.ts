@@ -1002,7 +1002,8 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 			if (
 				this._resolved.resolvedTimeline &&
 				resolveTime >= this._resolved.resolveTime &&
-				resolveTime < this._resolved.validTo
+				// if we have less than PREPARETIME left of the valid time, we should re-resolve so we are prepared for what comes after
+				resolveTime < this._resolved.validTo - PREPARETIME
 			) {
 				// Yes, we can use the previously resolved timeline:
 				resolvedTimeline = this._resolved.resolvedTimeline
