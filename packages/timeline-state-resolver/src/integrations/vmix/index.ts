@@ -1440,12 +1440,15 @@ class VMixInputHandler extends EventEmitter {
 	// how long to let an input linger before removing it
 	private TTL = 1000
 
+	/** Tracks the actual state in vmix of which inputs are loaded */
 	private _inputs: Map<
 		string,
 		{
 			type: string
 			name: string
-			added: boolean
+			/** Is set to true when the commands to add the input has been set. */
+			addedCommandSent: boolean
+			/** Is set to something when the input is scheduled to be removed. */
 			removeTime?: number
 		}
 	> = new Map()
@@ -1462,7 +1465,7 @@ class VMixInputHandler extends EventEmitter {
 			existing = {
 				type,
 				name,
-				added: false,
+				addedCommandSent: false,
 			}
 			this._inputs.set(key, existing)
 		}
@@ -1475,7 +1478,7 @@ class VMixInputHandler extends EventEmitter {
 	public removeInput(time: number, key: string) {
 		const existing = this._inputs.get(key)
 		if (existing) {
-			existing.removeTime = Math.min(existing.removeTime ?? Infinity, time + this.TTL)
+			existing.removeTime = Math.max(existing.removeTime ?? 0, time + this.TTL)
 
 			this._triggerUpdate()
 		}
@@ -1502,7 +1505,7 @@ class VMixInputHandler extends EventEmitter {
 
 		for (const [key, input] of this._inputs.entries()) {
 			if (input.removeTime && input.removeTime <= now) {
-				if (input.added) {
+				if (input.addedCommandSent) {
 					commands.push({
 						command: {
 							command: VMixCommand.REMOVE_INPUT,
@@ -1513,8 +1516,9 @@ class VMixInputHandler extends EventEmitter {
 					})
 				}
 				this._inputs.delete(key)
+				continue // don't update nextTimeout
 			} else {
-				if (!input.added) {
+				if (!input.addedCommandSent) {
 					commands.push({
 						command: {
 							command: VMixCommand.ADD_INPUT,
@@ -1533,7 +1537,7 @@ class VMixInputHandler extends EventEmitter {
 						timelineId: '',
 					})
 
-					input.added = true
+					input.addedCommandSent = true
 				}
 			}
 
