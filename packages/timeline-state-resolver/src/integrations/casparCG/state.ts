@@ -2,7 +2,6 @@ import {
 	EmptyLayer,
 	HtmlPageLayer,
 	InputLayer,
-	LayerBase,
 	LayerContentType,
 	MediaLayer,
 	RecordLayer,
@@ -12,6 +11,7 @@ import {
 	Transition as StateTransition,
 	Mixer,
 	AMCPCommandWithContext,
+	Layer,
 } from 'casparcg-state'
 import { literal } from '../../devices/device'
 import {
@@ -37,16 +37,16 @@ import { ChannelLayer } from 'casparcg-connection/dist/parameters'
 
 export interface InternalState {
 	layers: {
-		[address: string]: LayerBase
+		[address: string]: Layer
 	}
 	lookaheads: {
-		[address: string]: LayerBase
+		[address: string]: Layer
 	}
 }
 
 export interface TrackedLayer {
-	layer: LayerBase | undefined
-	lookahead: LayerBase | undefined
+	layer: Layer | undefined
+	lookahead: Layer | undefined
 }
 
 export function mappingToAddress(mapping: Mapping<SomeMappingCasparCG>): string {
@@ -58,14 +58,14 @@ export function convertObjectToCasparState(
 	layer: Timeline.ResolvedTimelineObjectInstance,
 	mapping: MappingCasparCGLayer,
 	isForeground: boolean
-): LayerBase {
+): Layer {
 	let startTime = layer.instance.originalStart || layer.instance.start
 	if (startTime === 0) startTime = 1 // @todo: startTime === 0 will make ccg-state seek to the current time
 
 	const layerProps = layer as Timeline.ResolvedTimelineObjectInstance & TSRTimelineObjProps
 	const content = layer.content as TimelineContentCasparCGAny
 
-	let stateLayer: LayerBase | null = null
+	let stateLayer: Layer | null = null
 	if (content.type === TimelineContentTypeCasparCg.MEDIA) {
 		const holdOnFirstFrame = !isForeground || layerProps.isLookahead
 		const loopingPlayTime = content.loop && !content.seek && !content.inPoint && !content.length
@@ -273,9 +273,26 @@ export function convertTimelineStateToDeviceState(
 		const lookaheadLayer = isLookaheadLayer(layer)
 
 		if (lookaheadLayer) {
-			deviceState.lookaheads[address] = layerState
+			const old = deviceState.lookaheads[address] ?? {}
+			deviceState.lookaheads[address] = { ...old, ...layerState }
 		} else {
-			deviceState.layers[address] = deepmerge(deviceState.layers[address] ?? {}, layerState)
+			const old: Layer = deviceState.layers[address] ?? {}
+			deviceState.layers[address] = { ...old, ...layerState }
+
+			// deepmerge template data
+			if (
+				old.content === LayerContentType.TEMPLATE &&
+				old.templateData &&
+				typeof old.templateData !== 'string' &&
+				layerState.content === LayerContentType.TEMPLATE &&
+				layerState.templateData &&
+				typeof layerState.templateData !== 'string'
+			) {
+				;(deviceState.layers[address] as TemplateLayer).templateData = deepmerge(
+					old.templateData,
+					layerState.templateData
+				)
+			}
 		}
 	}
 
