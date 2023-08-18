@@ -265,12 +265,12 @@ export function convertTimelineStateToDeviceState(
 	}
 
 	for (const layer of Object.values(state.layers)) {
-		const mapping = newMappings[layer.layer]
+		const lookaheadLayer = isLookaheadLayer(layer)
+		const mapping = newMappings[lookaheadLayer ?? layer.layer]
 		if (!isValidCasparCGMapping(mapping)) continue
 
 		const address = mappingToAddress(mapping as Mapping<SomeMappingCasparCG>)
 		const layerState = convertObjectToCasparState(newMappings, layer, mapping.options, true)
-		const lookaheadLayer = isLookaheadLayer(layer)
 
 		if (lookaheadLayer) {
 			const old = deviceState.lookaheads[address] ?? {}
