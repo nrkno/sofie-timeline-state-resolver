@@ -14,6 +14,8 @@ interface CommandWithContext {
 }
 
 const MOCK_COMMAND_RECEIVER = jest.fn()
+const orgSetTimeout = setTimeout
+const wait = async (t: number) => new Promise<void>((r) => orgSetTimeout(() => r(), t))
 
 describe('stateHandler', () => {
 	beforeEach(() => {
@@ -79,6 +81,8 @@ describe('stateHandler', () => {
 			console.error('Error while handling state', e)
 		})
 
+		await wait(100)
+
 		expect(MOCK_COMMAND_RECEIVER).toHaveBeenCalledTimes(1)
 		expect(MOCK_COMMAND_RECEIVER).toHaveBeenCalledWith({
 			command: {
@@ -103,6 +107,8 @@ describe('stateHandler', () => {
 			console.error('Error while handling state', e)
 		})
 
+		await wait(100)
+
 		expect(MOCK_COMMAND_RECEIVER).toHaveBeenCalledTimes(1)
 		expect(MOCK_COMMAND_RECEIVER).toHaveBeenCalledWith({
 			command: {
@@ -122,12 +128,17 @@ describe('stateHandler', () => {
 				console.error('Error while handling state', e)
 			})
 
+		await wait(100)
+
 		// do not expect to be called because this is in the future
 		expect(MOCK_COMMAND_RECEIVER).toHaveBeenCalledTimes(1)
 
 		// advance time
 		MOCK_COMMAND_RECEIVER.mockReset()
-		jest.advanceTimersByTime(101)
+		jest.advanceTimersByTime(120)
+
+		jest.useRealTimers() // for some reason jest is unhappy executing setTimeout calls
+		await wait(100)
 
 		// now expect to be called with new commands
 		expect(MOCK_COMMAND_RECEIVER).toHaveBeenCalledTimes(1)

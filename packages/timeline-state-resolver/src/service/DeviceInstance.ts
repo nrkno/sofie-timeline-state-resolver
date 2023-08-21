@@ -52,7 +52,7 @@ export class DeviceInstanceWrapper extends EventEmitter<DeviceInstanceEvents> {
 	private _logDebug = false
 	private _logDebugStates = false
 
-	constructor(id: string, private config: Config, public getCurrentTime: () => Promise<number>) {
+	constructor(id: string, time: number, private config: Config, public getCurrentTime: () => Promise<number>) {
 		super()
 
 		const deviceSpecs = DevicesDict[config.type]
@@ -65,14 +65,7 @@ export class DeviceInstanceWrapper extends EventEmitter<DeviceInstanceEvents> {
 		this._deviceId = id
 		this._deviceType = config.type
 		this._deviceName = deviceSpecs.deviceName(id, config)
-		this._startTime = Date.now() // temporary value...
-		this.getCurrentTime()
-			.then((t) => {
-				this._startTime = t
-			})
-			.catch((e) => {
-				this.emit('error', 'Could not get current time from main thread', e)
-			})
+		this._startTime = time
 
 		this._setupDeviceEventHandlers()
 
