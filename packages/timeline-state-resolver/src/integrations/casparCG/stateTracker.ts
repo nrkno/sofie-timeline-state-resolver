@@ -1,12 +1,4 @@
-export enum LayerStatus {
-	Empty = 'EMPTY',
-	Loaded = 'LOADED',
-}
-
-export interface LayerState {
-	status: LayerStatus
-	mediaId: string[]
-}
+import { LayerState, LayerStatus } from 'timeline-state-resolver-types'
 
 export class StateTracker<State, Command> {
 	private _state: {
@@ -17,13 +9,13 @@ export class StateTracker<State, Command> {
 		}
 	} = {}
 	private _diff: (address: string, currentState: State | undefined, expectedState: State) => Command[]
-	private _getStatus: (currentState: State, expectedState?: State) => { status: LayerStatus; mediaId: string[] }
-	private _onReportedChange: (addres: string, state: { status: LayerStatus; mediaId: string[] }) => void
+	private _getStatus: (currentState: State, expectedState?: State) => LayerState
+	private _onReportedChange: (addres: string, state: LayerState) => void
 
 	constructor(
 		diff: (address: string, currentState: State | undefined, expectedState: State) => Command[],
-		getStatus: (currentState: State, expectedState: State) => { status: LayerStatus; mediaId: string[] },
-		onReportedChange: (addres: string, state: { status: LayerStatus; mediaId: string[] }) => void
+		getStatus: (currentState: State, expectedState: State) => LayerState,
+		onReportedChange: (addres: string, state: LayerState) => void
 	) {
 		// note - the diff function should only consider
 		this._diff = diff
@@ -76,7 +68,7 @@ export class StateTracker<State, Command> {
 	private _assertAddressExists(address: string) {
 		if (!this._state[address])
 			this._state[address] = {
-				status: { status: LayerStatus.Empty, mediaId: [] },
+				status: { status: LayerStatus.Empty, mediaId: [], failedMediaId: [] },
 				expectedState: undefined,
 				currentState: undefined,
 			}

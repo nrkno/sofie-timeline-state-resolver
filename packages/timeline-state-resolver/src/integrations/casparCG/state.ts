@@ -15,6 +15,8 @@ import {
 } from 'casparcg-state'
 import { literal } from '../../devices/device'
 import {
+	LayerState,
+	LayerStatus,
 	DeviceType,
 	Mapping,
 	MappingCasparCGLayer,
@@ -32,7 +34,7 @@ import _ = require('underscore')
 import deepmerge = require('deepmerge')
 import { Commands } from 'casparcg-connection'
 import { klona } from 'klona'
-import { LayerStatus, StateTracker } from './stateTracker'
+import { StateTracker } from './stateTracker'
 import { ChannelLayer } from 'casparcg-connection/dist/parameters'
 
 export interface InternalState {
@@ -394,18 +396,19 @@ export function updateStateFromCommands(
 	tracker.updateState(address, update)
 }
 
-export function getStatus(currentLayer: any): { status: LayerStatus; mediaId: string[] } {
+export function getStatus(currentLayer: any, expectedLayer?: any): LayerState {
+	const expectedIds: string[] = [
+		expectedLayer?.layer?.media?.toString(),
+		expectedLayer?.lookahead?.media?.toString(),
+	].filter((m) => m !== undefined)
+
 	const fg = currentLayer?.layer?.media
 	const bg = currentLayer?.lookahead?.media
+	const actualIds = [fg?.toString(), bg?.toString()].filter((m) => m !== undefined)
 
-	if (fg || bg) {
-		return {
-			status: LayerStatus.Loaded,
-			mediaId: [fg?.toString(), bg?.toString()].filter((m) => m !== undefined),
-		}
-	}
 	return {
-		status: LayerStatus.Empty,
-		mediaId: [],
+		status: fg || bg ? LayerStatus.Loaded : LayerStatus.Empty,
+		mediaId: actualIds,
+		failedMediaId: expectedIds.filter((id) => !actualIds.includes(id)),
 	}
 }

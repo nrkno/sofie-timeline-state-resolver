@@ -27,6 +27,7 @@ exports[`index imports 1`] = `
   "HyperdeckDevice",
   "LOOKAHEADTIME",
   "LawoDeviceMode",
+  "LayerStatus",
   "MINTIMEUNIT",
   "MINTRIGGERTIME",
   "MappingAtemType",

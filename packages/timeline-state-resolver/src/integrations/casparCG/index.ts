@@ -1,4 +1,5 @@
 import {
+	LayerState,
 	ActionExecutionResult,
 	CasparCGActions,
 	CasparCGOptions,
@@ -16,7 +17,7 @@ import { diffStates, diffTrackerStatesLayer } from './diff'
 import { CasparCG, Commands, Response } from 'casparcg-connection'
 import { DeviceEvents } from '../../service/device'
 import { clearAllChannels, restartServer } from './actions'
-import { LayerState, StateTracker } from './stateTracker'
+import { StateTracker } from './stateTracker'
 import { AMCPCommandWithContext } from 'casparcg-state'
 
 type DeviceOptions = CasparCGOptions
@@ -33,7 +34,7 @@ export class CasparCGDevice extends EventEmitter<DeviceEvents> implements Device
 				// convert mappings to addresses
 				for (const [layer, m] of Object.entries(mappings)) {
 					const addr = mappingToAddress(m)
-					if (addr === address) this.emit('layerState', layer, state.status, state.mediaId)
+					if (addr === address) this.emit('layerState', layer, state)
 				}
 			})
 		}

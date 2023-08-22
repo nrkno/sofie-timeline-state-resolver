@@ -165,3 +165,14 @@ export enum ActionExecutionResultCode {
 	Error = 'ERROR',
 	Ok = 'OK',
 }
+
+export enum LayerStatus {
+	Empty = 'EMPTY',
+	Loaded = 'LOADED',
+}
+
+export interface LayerState {
+	status: LayerStatus
+	mediaId: string[]
+	failedMediaId: string[]
+}

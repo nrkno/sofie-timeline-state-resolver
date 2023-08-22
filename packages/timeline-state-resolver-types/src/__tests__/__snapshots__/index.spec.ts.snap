@@ -19,6 +19,7 @@ exports[`index imports 1`] = `
   "HttpSendActions",
   "HyperdeckActions",
   "LawoDeviceMode",
+  "LayerStatus",
   "MappingAtemType",
   "MappingCasparCGType",
   "MappingHyperdeckType",

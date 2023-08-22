@@ -1,4 +1,3 @@
-import { LayerStatus } from '../integrations/casparCG/stateTracker'
 import { SlowSentCommandInfo, SlowFulfilledCommandInfo, CommandReport } from '../'
 import { FinishedTrace } from '../lib'
 import {
@@ -8,6 +7,7 @@ import {
 	DeviceStatus,
 	ActionExecutionResult,
 	MediaObject,
+	LayerState,
 } from 'timeline-state-resolver-types'
 
 type CommandContext = any
@@ -96,7 +96,7 @@ export interface DeviceEvents {
 	/** Clear a MediaObjects collection */
 	clearMediaObjects: [collectionId: string]
 	/** layerState */
-	layerState: [address: string, state: LayerStatus, mediaIds: string[]]
+	layerState: [address: string, state: LayerState]
 	/** getMappings */
 	getMappings: [cb: (mappings: any) => void]
 
