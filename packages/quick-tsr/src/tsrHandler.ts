@@ -156,8 +156,8 @@ export class TSRHandler {
 			await device.device.on('slowFulfilledCommand', ((_info: SlowFulfilledCommandInfo) => {
 				// console.log(`Device ${device.deviceId} slow fulfilled command: ${_info}`)
 			}) as () => void)
-			await (device.device as any as DeviceInstanceWrapper).on('layerState', (layer, state, mediaId) => {
-				console.log(layer, state, mediaId)
+			await (device.device as any as DeviceInstanceWrapper).on('layerState', (layer, state) => {
+				console.log(layer, state)
 			})
 			// also ask for the status now, and update:
 			// onConnectionChanged(await device.device.getStatus())
