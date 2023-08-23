@@ -107,7 +107,7 @@
 		"p-queue": "^6.6.2",
 		"p-timeout": "^3.2.0",
 		"sprintf-js": "^1.1.2",
-		"superfly-timeline": "9.0.0-nightly-wip-big-rewrite-20230818-064242-241b192.0",
+		"superfly-timeline": "^9.0.0",
 		"threadedclass": "^1.2.1",
 		"timeline-state-resolver-types": "9.1.0-release51",
 		"tslib": "^2.5.1",
