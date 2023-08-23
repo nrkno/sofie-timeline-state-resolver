@@ -112,6 +112,9 @@ export class DeviceInstanceWrapper extends EventEmitter<DeviceEvents> {
 						})
 					})
 				},
+				reportLayerState: (layer, state) => {
+					this.emit('layerState', layer, state)
+				},
 				getCurrentTime: this.getCurrentTime,
 			},
 			{

@@ -9,36 +9,34 @@ import {
 	StatusCode,
 	TSRTimelineContent,
 	Timeline,
+	MappingCasparCGLayer,
+	Mapping,
 } from 'timeline-state-resolver-types'
 import { CommandWithContext, Device } from '../../service/device'
 import { EventEmitter } from 'eventemitter3'
-import { convertTimelineStateToDeviceState, getStatus, mappingToAddress, updateStateFromCommands } from './state'
+import {
+	TrackedLayer,
+	convertTimelineStateToDeviceState,
+	getStatus,
+	mappingToAddress,
+	stateUpdateFromCommandResult,
+	updateStateFromCommands,
+} from './state'
 import { diffStates, diffTrackerStatesLayer } from './diff'
 import { CasparCG, Commands, Response } from 'casparcg-connection'
 import { DeviceEvents } from '../../service/device'
 import { clearAllChannels, restartServer } from './actions'
-import { StateTracker } from './stateTracker'
 import { AMCPCommandWithContext } from 'casparcg-state'
 
 type DeviceOptions = CasparCGOptions
 type DeviceState = any
 type Command = { command: AMCPCommandWithContext } & CommandWithContext
 
-export class CasparCGDevice extends EventEmitter<DeviceEvents> implements Device<DeviceOptions, DeviceState, Command> {
+export class CasparCGDevice
+	extends EventEmitter<DeviceEvents>
+	implements Device<DeviceOptions, DeviceState, Command, TrackedLayer, number>
+{
 	private _connection: CasparCG
-	private _stateTracker: StateTracker<any, Command> = new StateTracker(
-		diffTrackerStatesLayer,
-		getStatus,
-		(address: string, state: LayerState) => {
-			this.emit('getMappings', (mappings: Mappings<SomeMappingCasparCG>) => {
-				// convert mappings to addresses
-				for (const [layer, m] of Object.entries(mappings)) {
-					const addr = mappingToAddress(m)
-					if (addr === address) this.emit('layerState', layer, state)
-				}
-			})
-		}
-	)
 	private _options: DeviceOptions
 	private _queueOverflow = false
 
@@ -120,21 +118,21 @@ export class CasparCGDevice extends EventEmitter<DeviceEvents> implements Device
 		})
 
 		// @nocommit - hardcoded mess for testing retries
-		setInterval(() => {
-			const diff = this._stateTracker.getDiff()
+		// setInterval(() => {
+		// 	const diff = this._stateTracker.getDiff()
 
-			for (const cmds of Object.values(diff)) {
-				Promise.allSettled(
-					cmds.filter((c) => c.command.command.match(/PLAY|LOADBG|LOAD/i)).map((c) => this.sendCommand(c))
-				).then((results) => {
-					updateStateFromCommands(
-						this._stateTracker,
-						cmds.map((c) => c.command),
-						results.map((r) => (r.status === 'fulfilled' ? r.value : 500))
-					)
-				})
-			}
-		}, 3000)
+		// 	for (const cmds of Object.values(diff)) {
+		// 		Promise.allSettled(
+		// 			cmds.filter((c) => c.command.command.match(/PLAY|LOADBG|LOAD/i)).map((c) => this.sendCommand(c))
+		// 		).then((results) => {
+		// 			updateStateFromCommands(
+		// 				this._stateTracker,
+		// 				cmds.map((c) => c.command),
+		// 				results.map((r) => (r.status === 'fulfilled' ? r.value : 500))
+		// 			)
+		// 		})
+		// 	}
+		// }, 3000)
 
 		return true
 	}
@@ -225,18 +223,32 @@ export class CasparCGDevice extends EventEmitter<DeviceEvents> implements Device
 		}
 	}
 
-	updateExpectedState(state: DeviceState, mappings: Mappings<SomeMappingCasparCG>): void {
-		const addresses = Object.values(mappings).map((m) => mappingToAddress(m))
-
-		for (const addr of addresses) {
-			this._stateTracker.updateExpectedState(addr, { layer: state.layers[addr], lookahead: state.lookaheads[addr] })
+	diffLayer(a: string, currentState: TrackedLayer | undefined, expectedState: TrackedLayer): Command[] {
+		return diffTrackerStatesLayer(a, currentState, expectedState)
+	}
+	getLayerStatus(currentState: TrackedLayer, expectedState: TrackedLayer): LayerState {
+		return getStatus(currentState, expectedState)
+	}
+	mappingToAddress(mapping: Mapping<MappingCasparCGLayer>): string {
+		return mappingToAddress(mapping)
+	}
+	getAddressStateFromDeviceState(address: string, state: DeviceState): TrackedLayer {
+		return {
+			layer: state.layers[address],
+			lookahead: state.lookaheads[address],
 		}
 	}
-	finishedStateChange(commands: Command[], results: PromiseSettledResult<any>[]): void {
-		updateStateFromCommands(
-			this._stateTracker,
-			commands.map((c) => c.command), // note - a little weird we ignore the address here, no?
-			results.map((r) => (r.status === 'fulfilled' ? r.value : 500))
+	stateUpdatesFromCommands(
+		currentState: TrackedLayer | undefined,
+		expectedState: TrackedLayer,
+		commands: Command[],
+		results: any[]
+	): TrackedLayer {
+		return stateUpdateFromCommandResult(
+			currentState,
+			expectedState,
+			commands.map((c) => c.command),
+			results
 		)
 	}
 }

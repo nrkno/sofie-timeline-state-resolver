@@ -1,4 +1,4 @@
-import { DeviceType } from 'timeline-state-resolver-types'
+import { DeviceType, Mapping } from 'timeline-state-resolver-types'
 import { Device } from './device'
 
 import { CasparCGDevice } from '../integrations/casparCG'

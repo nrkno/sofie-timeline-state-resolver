@@ -302,7 +302,7 @@ export function convertTimelineStateToDeviceState(
 }
 
 export function stateUpdateFromCommandResult(
-	trackedLayer: TrackedLayer,
+	trackedLayer: TrackedLayer | undefined,
 	expectedlayer: TrackedLayer,
 	commands: AMCPCommandWithContext[],
 	results: number[]
@@ -340,7 +340,16 @@ export function stateUpdateFromCommandResult(
 					newTrackedLayer.lookahead = undefined // a play command always clears nextUp
 				}
 				break
+			case Commands.PlayDecklink:
+			case Commands.PlayHtml:
+			case Commands.PlayRoute:
+				newTrackedLayer.layer = klona(expectedlayer.layer)
+				newTrackedLayer.lookahead = undefined // a play command always clears nextUp
+				break
 			case Commands.Loadbg:
+			case Commands.LoadbgDecklink:
+			case Commands.LoadbgHtml:
+			case Commands.LoadbgRoute:
 				// only loadbg can set nextUp and nextUp can only be set by loadbg
 				newTrackedLayer.lookahead = klona(expectedlayer.lookahead)
 				break
@@ -372,28 +381,37 @@ export function updateStateFromCommands(
 	commands: AMCPCommandWithContext[],
 	results: number[]
 ): void {
-	const addressedCommand = commands.find(
-		(command): command is AMCPCommandWithContext & { params: ChannelLayer } =>
-			!!(
-				typeof command.params === 'object' &&
-				command.params &&
-				'channel' in command.params &&
-				command.params.channel !== undefined &&
-				'layer' in command.params &&
-				command.params.layer !== undefined
-			)
-	)
+	// group commands by address:
+	const commandToAddress = (command: AMCPCommandWithContext & { params: ChannelLayer }) =>
+		command.params.channel + '-' + command.params.layer
+	const addressedCommand = commands
+		.filter(
+			(command): command is AMCPCommandWithContext & { params: ChannelLayer } =>
+				!!(
+					typeof command.params === 'object' &&
+					command.params &&
+					'channel' in command.params &&
+					command.params.channel !== undefined &&
+					'layer' in command.params &&
+					command.params.layer !== undefined
+				)
+		)
+		.reduce((addressed, command) => {
+			const addr = commandToAddress(command)
+			if (!addressed[addr]) addressed[addr] = []
+			addressed[addr].push(command)
+			return addressed
+		}, {} as Record<string, AMCPCommandWithContext[]>)
 
-	if (!addressedCommand) return
+	// send updates for every address
+	for (const [address, commands] of Object.entries(addressedCommand)) {
+		const expectedState = tracker.getExpectedState(address)
+		const currentState = tracker.getCurrentState(address)
 
-	const address = addressedCommand.params.channel + '-' + addressedCommand.params.layer
+		const update = stateUpdateFromCommandResult(currentState, expectedState, commands, results)
 
-	const expectedState = tracker.getExpectedState(address)
-	const currentState = tracker.getCurrentState(address)
-
-	const update = stateUpdateFromCommandResult(currentState, expectedState, commands, results)
-
-	tracker.updateState(address, update)
+		tracker.updateState(address, update)
+	}
 }
 
 export function getStatus(currentLayer: any, expectedLayer?: any): LayerState {

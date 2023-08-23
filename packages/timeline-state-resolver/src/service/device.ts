@@ -8,6 +8,8 @@ import {
 	ActionExecutionResult,
 	MediaObject,
 	LayerState,
+	Mapping as TSRMapping,
+	TSRMappingOptions,
 } from 'timeline-state-resolver-types'
 
 type CommandContext = any
@@ -19,8 +21,13 @@ export type CommandWithContext = {
 	address?: string
 }
 
-export interface Device<DeviceOptions, DeviceState, Command extends CommandWithContext>
-	extends BaseDeviceAPI<DeviceState, Command> {
+export interface Device<
+	DeviceOptions,
+	DeviceState,
+	Command extends CommandWithContext,
+	AddressState = void,
+	CommandResult = void
+> extends BaseDeviceAPI<DeviceState, Command, AddressState, CommandResult> {
 	/**
 	 * Initiates the device connection, after this has resolved the device
 	 * is ready to be controlled
@@ -46,7 +53,12 @@ export interface Device<DeviceOptions, DeviceState, Command extends CommandWithC
 /**
  * Minimal API for the StateHandler to be able to use a device
  */
-export interface BaseDeviceAPI<DeviceState, Command extends CommandWithContext> {
+export interface BaseDeviceAPI<
+	DeviceState,
+	Command extends CommandWithContext,
+	AddressState = {},
+	CommandResult = void
+> {
 	/**
 	 * This method takes in a Timeline State that describes a point
 	 * in time on the timeline and returns a decice state that
@@ -65,10 +77,28 @@ export interface BaseDeviceAPI<DeviceState, Command extends CommandWithContext> 
 	 */
 	diffStates(oldState: DeviceState | undefined, newState: DeviceState, mappings: Mappings): Array<Command>
 	/** This method will take a command and send it to the device */
-	sendCommand(command: Command): Promise<any>
+	sendCommand(command: Command): Promise<CommandResult>
 
 	updateExpectedState?(state: DeviceState, mappings: Mappings): void
 	finishedStateChange?(commands: Command[], results: any[]): void // todo
+
+	/**
+	 * The implementaiton should return a set of commands to transition the addressed part of the device from the currentState to the expectedState.
+	 */
+	diffLayer?(address: string, currentState: AddressState | undefined, expectedState: AddressState): Command[]
+	/**
+	 * The implementation shall return a LayerState as derived from the currentState and expectedState
+	 */
+	getLayerStatus?(currentState: AddressState, expectedState: AddressState): LayerState
+	/** The eimplementation shall return a string literal that can be used to identify a part of the device */
+	mappingToAddress?<Mapping extends TSRMapping<TSRMappingOptions>>(mapping: Mapping): string
+	getAddressStateFromDeviceState?(address: string, state: DeviceState): AddressState
+	stateUpdatesFromCommands?(
+		currentState: AddressState | undefined,
+		expectedState: AddressState,
+		commands: Command[],
+		results: any[]
+	): AddressState
 }
 
 export interface DeviceEvents {
