@@ -413,7 +413,9 @@ export class SofieChefDevice extends DeviceWithState<SofieChefState, DeviceOptio
 
 				// Is it in the mappings?
 				// We should only touch stuff that is in our mappings:
-				const foundMapping = Object.values(newMappings).find((mapping) => mapping.options.windowId === windowId)
+				const foundMapping = Object.values<Mapping<SomeMappingSofieChef>>(newMappings).find(
+					(mapping) => mapping.options.windowId === windowId
+				)
 
 				if (foundMapping) {
 					commands.push({
