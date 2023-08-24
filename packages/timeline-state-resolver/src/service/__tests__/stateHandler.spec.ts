@@ -1,5 +1,6 @@
 import { Timeline, TSRTimelineContent } from 'timeline-state-resolver-types'
 import { StateHandler } from '../stateHandler'
+import { MockTime } from '../../__tests__/mockTime'
 
 interface DeviceState {
 	[prop: string]: true
@@ -14,12 +15,12 @@ interface CommandWithContext {
 }
 
 const MOCK_COMMAND_RECEIVER = jest.fn()
-const orgSetTimeout = setTimeout
-const wait = async (t: number) => new Promise<void>((r) => orgSetTimeout(() => r(), t))
 
 describe('stateHandler', () => {
+	const mockTime = new MockTime()
 	beforeEach(() => {
-		jest.useFakeTimers({ now: 10000 })
+		mockTime.init()
+		// jest.useFakeTimers({ now: 10000 })
 		MOCK_COMMAND_RECEIVER.mockReset()
 	})
 
@@ -81,7 +82,7 @@ describe('stateHandler', () => {
 			console.error('Error while handling state', e)
 		})
 
-		await wait(100)
+		await mockTime.tick()
 
 		expect(MOCK_COMMAND_RECEIVER).toHaveBeenCalledTimes(1)
 		expect(MOCK_COMMAND_RECEIVER).toHaveBeenCalledWith({
@@ -107,7 +108,7 @@ describe('stateHandler', () => {
 			console.error('Error while handling state', e)
 		})
 
-		await wait(100)
+		await mockTime.tick()
 
 		expect(MOCK_COMMAND_RECEIVER).toHaveBeenCalledTimes(1)
 		expect(MOCK_COMMAND_RECEIVER).toHaveBeenCalledWith({
@@ -128,17 +129,14 @@ describe('stateHandler', () => {
 				console.error('Error while handling state', e)
 			})
 
-		await wait(100)
+		await mockTime.tick()
 
 		// do not expect to be called because this is in the future
 		expect(MOCK_COMMAND_RECEIVER).toHaveBeenCalledTimes(1)
 
 		// advance time
 		MOCK_COMMAND_RECEIVER.mockReset()
-		jest.advanceTimersByTime(120)
-
-		jest.useRealTimers() // for some reason jest is unhappy executing setTimeout calls
-		await wait(100)
+		await mockTime.advanceTimeTicks(100)
 
 		// now expect to be called with new commands
 		expect(MOCK_COMMAND_RECEIVER).toHaveBeenCalledTimes(1)
