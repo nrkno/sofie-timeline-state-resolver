@@ -24,7 +24,7 @@ export type ImplementedServiceDeviceTypes =
 export const DevicesDict: Record<ImplementedServiceDeviceTypes, DeviceEntry> = {
 	[DeviceType.ABSTRACT]: {
 		deviceClass: AbstractDevice,
-		canConnect: true,
+		canConnect: false,
 		deviceName: (deviceId: string) => 'Abstract ' + deviceId,
 		executionMode: () => 'salvo',
 	},
