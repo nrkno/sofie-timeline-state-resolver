@@ -31,6 +31,8 @@ export class AbstractDevice
 {
 	readonly actions: Record<string, (id: string, payload: Record<string, any>) => Promise<ActionExecutionResult>> = {}
 
+	public readonly connected = false
+
 	/**
 	 * Initiates the connection with CasparCG through the ccg-connection lib.
 	 */
@@ -44,10 +46,6 @@ export class AbstractDevice
 	 */
 	async terminate(): Promise<void> {
 		// Noop
-	}
-
-	get connected(): boolean {
-		return false
 	}
 
 	/**
