@@ -8,7 +8,6 @@ import {
 	SomeMappingSofieChef,
 	TSRTimelineContent,
 	Timeline,
-	Mapping,
 	ActionExecutionResult,
 	ActionExecutionResultCode,
 	SofieChefActions,
@@ -162,7 +161,7 @@ export class SofieChefDevice extends DeviceWithState<SofieChefState, DeviceOptio
 				})
 		}, RECONNECT_WAIT_TIME)
 	}
-	async resyncState() {
+	private async resyncState() {
 		const response = (await this._sendMessage({
 			msgId: 0, // set later
 			type: ReceiveWSMessageType.LIST,
@@ -205,7 +204,7 @@ export class SofieChefDevice extends DeviceWithState<SofieChefState, DeviceOptio
 
 		const newSofieChefState = this.convertStateToSofieChef(newState, newMappings)
 
-		const commandsToAchieveState: Array<Command> = this._diffStates(oldSofieChefState, newSofieChefState, newMappings)
+		const commandsToAchieveState: Array<Command> = this._diffStates(oldSofieChefState, newSofieChefState)
 
 		// clear any queued commands later than this time:
 		this._doOnTime.clearQueueNowAndAfter(previousStateTime)
@@ -365,11 +364,7 @@ export class SofieChefDevice extends DeviceWithState<SofieChefState, DeviceOptio
 	/**
 	 * Compares the new timeline-state with the old one, and generates commands to account for the difference
 	 */
-	private _diffStates(
-		oldSofieChefState: SofieChefState,
-		newSofieChefState: SofieChefState,
-		newMappings: Mappings<SomeMappingSofieChef>
-	) {
+	private _diffStates(oldSofieChefState: SofieChefState, newSofieChefState: SofieChefState) {
 		const commands: Command[] = []
 
 		// Added / Changed things:
@@ -411,23 +406,15 @@ export class SofieChefDevice extends DeviceWithState<SofieChefState, DeviceOptio
 			if (!newWindow) {
 				// Removed
 
-				// Is it in the mappings?
-				// We should only touch stuff that is in our mappings:
-				const foundMapping = Object.values<Mapping<SomeMappingSofieChef>>(newMappings).find(
-					(mapping) => mapping.options.windowId === windowId
-				)
-
-				if (foundMapping) {
-					commands.push({
-						context: 'removed',
-						timelineObjId: oldWindow.urlTimelineObjId,
-						content: {
-							msgId: 0, // set later
-							type: ReceiveWSMessageType.STOP,
-							windowId: windowId,
-						},
-					})
-				}
+				commands.push({
+					context: 'removed',
+					timelineObjId: oldWindow.urlTimelineObjId,
+					content: {
+						msgId: 0, // set later
+						type: ReceiveWSMessageType.STOP,
+						windowId: windowId,
+					},
+				})
 			}
 		}
 
