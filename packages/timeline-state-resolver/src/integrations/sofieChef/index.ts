@@ -24,6 +24,8 @@ import {
 	SendWSMessageType,
 	StatusCode as ChefStatusCode,
 	StatusObject,
+	APIResponse,
+	APIResponseList,
 } from './api'
 import { actionNotFoundMessage, t } from '../../lib'
 
@@ -148,14 +150,39 @@ export class SofieChefDevice extends DeviceWithState<SofieChefState, DeviceOptio
 			delete this.reconnectTimeout
 
 			this._setupWSConnection()
-				.then(() => {
+				.then(async () => {
 					// is connected, yay!
+
+					// Resync state:
+					await this.resyncState()
 				})
 				.catch(() => {
 					// Unable to reconnect, try again later:
 					this.tryReconnect()
 				})
 		}, RECONNECT_WAIT_TIME)
+	}
+	async resyncState() {
+		const response = (await this._sendMessage({
+			msgId: 0, // set later
+			type: ReceiveWSMessageType.LIST,
+		})) as APIResponseList
+
+		if (response.code === 200) {
+			// Update state to reflec the actual state of Chef:
+			const state: SofieChefState = { windows: {} }
+			for (const window of response.list) {
+				state.windows[window.id] = {
+					url: window.url ?? '',
+					urlTimelineObjId: 'N/A',
+				}
+			}
+			this.clearStates()
+			this.setState(state, this.getCurrentTime())
+
+			// Trigger conductor to resolve the timeline:
+			this.emit('resetResolver')
+		}
 	}
 	/** Called by the Conductor a bit before a .handleState is called */
 	prepareForHandleState(newStateTime: number) {
