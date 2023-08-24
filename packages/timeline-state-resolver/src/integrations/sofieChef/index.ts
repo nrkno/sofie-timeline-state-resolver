@@ -195,7 +195,7 @@ export class SofieChefDevice extends DeviceWithState<SofieChefState, DeviceOptio
 	 * in time.
 	 * @param newState
 	 */
-	handleState(newState: Timeline.TimelineState<TSRTimelineContent>, newMappings: Mappings) {
+	handleState(newState: Timeline.TimelineState<TSRTimelineContent>, newMappings: Mappings<SomeMappingSofieChef>) {
 		super.onHandleState(newState, newMappings)
 		// Handle this new state, at the point in time specified
 
@@ -205,7 +205,7 @@ export class SofieChefDevice extends DeviceWithState<SofieChefState, DeviceOptio
 
 		const newSofieChefState = this.convertStateToSofieChef(newState, newMappings)
 
-		const commandsToAchieveState: Array<Command> = this._diffStates(oldSofieChefState, newSofieChefState)
+		const commandsToAchieveState: Array<Command> = this._diffStates(oldSofieChefState, newSofieChefState, newMappings)
 
 		// clear any queued commands later than this time:
 		this._doOnTime.clearQueueNowAndAfter(previousStateTime)
@@ -233,14 +233,17 @@ export class SofieChefDevice extends DeviceWithState<SofieChefState, DeviceOptio
 	get connected(): boolean {
 		return this._connected
 	}
-	convertStateToSofieChef(state: Timeline.TimelineState<TSRTimelineContent>, mappings: Mappings): SofieChefState {
+	convertStateToSofieChef(
+		state: Timeline.TimelineState<TSRTimelineContent>,
+		mappings: Mappings<SomeMappingSofieChef>
+	): SofieChefState {
 		const sofieChefState: SofieChefState = {
 			windows: {},
 		}
 		for (const [layer, layerState] of Object.entries<Timeline.ResolvedTimelineObjectInstance<TSRTimelineContent>>(
 			state.layers
 		)) {
-			const mapping = mappings[layer] as Mapping<SomeMappingSofieChef>
+			const mapping = mappings[layer]
 			const content = layerState.content
 
 			if (mapping && content.deviceType === DeviceType.SOFIE_CHEF) {
@@ -362,7 +365,11 @@ export class SofieChefDevice extends DeviceWithState<SofieChefState, DeviceOptio
 	/**
 	 * Compares the new timeline-state with the old one, and generates commands to account for the difference
 	 */
-	private _diffStates(oldSofieChefState: SofieChefState, newSofieChefState: SofieChefState) {
+	private _diffStates(
+		oldSofieChefState: SofieChefState,
+		newSofieChefState: SofieChefState,
+		newMappings: Mappings<SomeMappingSofieChef>
+	) {
 		const commands: Command[] = []
 
 		// Added / Changed things:
@@ -403,15 +410,22 @@ export class SofieChefDevice extends DeviceWithState<SofieChefState, DeviceOptio
 
 			if (!newWindow) {
 				// Removed
-				commands.push({
-					context: 'removed',
-					timelineObjId: oldWindow.urlTimelineObjId,
-					content: {
-						msgId: 0, // set later
-						type: ReceiveWSMessageType.STOP,
-						windowId: windowId,
-					},
-				})
+
+				// Is it in the mappings?
+				// We should only touch stuff that is in our mappings:
+				const foundMapping = Object.values(newMappings).find((mapping) => mapping.options.windowId === windowId)
+
+				if (foundMapping) {
+					commands.push({
+						context: 'removed',
+						timelineObjId: oldWindow.urlTimelineObjId,
+						content: {
+							msgId: 0, // set later
+							type: ReceiveWSMessageType.STOP,
+							windowId: windowId,
+						},
+					})
+				}
 			}
 		}
 
