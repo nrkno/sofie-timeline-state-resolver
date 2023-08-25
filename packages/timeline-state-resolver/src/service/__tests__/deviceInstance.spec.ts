@@ -54,7 +54,7 @@ jest.mock('../../integrations/abstract/index', () => ({
 }))
 
 function getDeviceInstance(): DeviceInstanceWrapper {
-	return new DeviceInstanceWrapper('wrapper0', { type: DeviceType.ABSTRACT }, () => Date.now())
+	return new DeviceInstanceWrapper('wrapper0', Date.now(), { type: DeviceType.ABSTRACT }, async () => Date.now())
 }
 
 describe('DeviceInstance', () => {
@@ -66,7 +66,10 @@ describe('DeviceInstance', () => {
 		const dev = getDeviceInstance()
 		expect(dev).toBeTruthy()
 
-		// todo - check that the statehandler was created as expected
+		// @ts-expect-error
+		expect(dev._stateHandler).toBeTruthy()
+		// @ts-expect-error
+		expect(dev._device).toBeTruthy()
 	})
 
 	test('initDevice', async () => {
