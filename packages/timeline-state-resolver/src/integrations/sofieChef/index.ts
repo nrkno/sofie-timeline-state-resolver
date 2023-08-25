@@ -23,8 +23,7 @@ import {
 	SendWSMessageType,
 	StatusCode as ChefStatusCode,
 	StatusObject,
-	APIResponse,
-	APIResponseList,
+	ReceiveWSMessageResponse,
 } from './api'
 import { actionNotFoundMessage, t } from '../../lib'
 
@@ -162,15 +161,15 @@ export class SofieChefDevice extends DeviceWithState<SofieChefState, DeviceOptio
 		}, RECONNECT_WAIT_TIME)
 	}
 	private async resyncState() {
-		const response = (await this._sendMessage({
+		const response = await this._sendMessage({
 			msgId: 0, // set later
 			type: ReceiveWSMessageType.LIST,
-		})) as APIResponseList
+		})
 
 		if (response.code === 200) {
 			// Update state to reflec the actual state of Chef:
 			const state: SofieChefState = { windows: {} }
-			for (const window of response.list) {
+			for (const window of response.body) {
 				state.windows[window.id] = {
 					url: window.url ?? '',
 					urlTimelineObjId: 'N/A',
@@ -268,7 +267,7 @@ export class SofieChefDevice extends DeviceWithState<SofieChefState, DeviceOptio
 	}
 	/** Restart (reload) all windows */
 	private async restartAllWindows() {
-		await this._sendMessage({
+		return this._sendMessage({
 			msgId: 0, // set later
 			type: ReceiveWSMessageType.RESTART,
 			windowId: '$all', // Magic token, restart all windows
@@ -276,7 +275,7 @@ export class SofieChefDevice extends DeviceWithState<SofieChefState, DeviceOptio
 	}
 	/** Restart (reload) a window */
 	private async restartWindow(windowId: string) {
-		await this._sendMessage({
+		return this._sendMessage({
 			msgId: 0, // set later
 			type: ReceiveWSMessageType.RESTART,
 			windowId: windowId,
@@ -484,7 +483,7 @@ export class SofieChefDevice extends DeviceWithState<SofieChefState, DeviceOptio
 		}
 	} = {}
 
-	private async _sendMessage(msg: ReceiveWSMessageAny): Promise<APIResponse> {
+	private async _sendMessage<M extends ReceiveWSMessageAny>(msg: M): Promise<ReceiveWSMessageResponse<M['type']>> {
 		return new Promise((resolve, reject) => {
 			msg.msgId = this.msgId++
 			if (this.initOptions?.apiKey) {
