@@ -125,7 +125,7 @@ export class RemoteDeviceInstance<
 		container._device = await threadedClass<DeviceInstanceWrapper, typeof DeviceInstanceWrapper>(
 			'../../dist/service/DeviceInstance.js',
 			'DeviceInstanceWrapper',
-			[deviceId, getCurrentTime(), deviceOptions as DeviceOptionsAnyInternal, getCurrentTime],
+			[deviceId, getCurrentTime(), deviceOptions as DeviceOptionsAnyInternal, getCurrentTime as any], // any because callbacks can't be casted
 			threadConfig
 		)
 
