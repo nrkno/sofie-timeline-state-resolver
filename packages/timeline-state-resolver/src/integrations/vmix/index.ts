@@ -285,6 +285,8 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 
 		// store the new state, for later use:
 		this.setState(newVMixState, newState.time)
+
+		this.emitDebugState(newVMixState)
 	}
 
 	clearFuture(clearAfterTime: number) {
