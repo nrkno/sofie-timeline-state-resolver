@@ -39,8 +39,9 @@ export class MockDeviceInstanceWrapper
 {
 	constructor(
 		public readonly deviceId: string,
+		_startTime: string,
 		public readonly config: DeviceOptionsAnyInternal,
-		public readonly getCurrentTime: () => number
+		public readonly getCurrentTime: () => Promise<number>
 	) {
 		super()
 
