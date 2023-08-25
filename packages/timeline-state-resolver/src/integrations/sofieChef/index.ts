@@ -8,7 +8,6 @@ import {
 	SomeMappingSofieChef,
 	TSRTimelineContent,
 	Timeline,
-	Mapping,
 	ActionExecutionResult,
 	ActionExecutionResultCode,
 	SofieChefActions,
@@ -24,6 +23,8 @@ import {
 	SendWSMessageType,
 	StatusCode as ChefStatusCode,
 	StatusObject,
+	APIResponse,
+	APIResponseList,
 } from './api'
 import { actionNotFoundMessage, t } from '../../lib'
 
@@ -66,7 +67,7 @@ export class SofieChefDevice extends DeviceWithState<SofieChefState, DeviceOptio
 
 	private _ws?: WebSocket
 	private _connected = false
-	private status: SendWSMessageStatus['status'] = {
+	private _status: SendWSMessageStatus['status'] = {
 		app: {
 			statusCode: ChefStatusCode.ERROR,
 			message: 'No status received yet',
@@ -111,6 +112,11 @@ export class SofieChefDevice extends DeviceWithState<SofieChefState, DeviceOptio
 				reject(new Error(`this.initOptions not set, run init() first!`))
 				return
 			}
+			if (this._ws) {
+				// Clean up previous connection:
+				this._ws.removeAllListeners()
+				delete this._ws
+			}
 			this._ws = new WebSocket(this.initOptions.address)
 
 			this._ws.on('error', (e) => {
@@ -118,15 +124,13 @@ export class SofieChefDevice extends DeviceWithState<SofieChefState, DeviceOptio
 				this.emit('error', 'SofieChef', e)
 			})
 			this._ws.on('open', () => {
-				this._connected = true
-				this._connectionChanged()
+				this._updateConnected(true)
 				resolve()
 			})
 			this._ws.on('close', () => {
-				this._connected = false
 				this._ws?.removeAllListeners()
 				delete this._ws
-				this._connectionChanged()
+				this._updateConnected(false)
 				this.tryReconnect()
 			})
 			this._ws.on('message', (data) => {
@@ -145,14 +149,39 @@ export class SofieChefDevice extends DeviceWithState<SofieChefState, DeviceOptio
 			delete this.reconnectTimeout
 
 			this._setupWSConnection()
-				.then(() => {
+				.then(async () => {
 					// is connected, yay!
+
+					// Resync state:
+					await this.resyncState()
 				})
 				.catch(() => {
 					// Unable to reconnect, try again later:
 					this.tryReconnect()
 				})
 		}, RECONNECT_WAIT_TIME)
+	}
+	private async resyncState() {
+		const response = (await this._sendMessage({
+			msgId: 0, // set later
+			type: ReceiveWSMessageType.LIST,
+		})) as APIResponseList
+
+		if (response.code === 200) {
+			// Update state to reflec the actual state of Chef:
+			const state: SofieChefState = { windows: {} }
+			for (const window of response.list) {
+				state.windows[window.id] = {
+					url: window.url ?? '',
+					urlTimelineObjId: 'N/A',
+				}
+			}
+			this.clearStates()
+			this.setState(state, this.getCurrentTime())
+
+			// Trigger conductor to resolve the timeline:
+			this.emit('resetResolver')
+		}
 	}
 	/** Called by the Conductor a bit before a .handleState is called */
 	prepareForHandleState(newStateTime: number) {
@@ -165,7 +194,7 @@ export class SofieChefDevice extends DeviceWithState<SofieChefState, DeviceOptio
 	 * in time.
 	 * @param newState
 	 */
-	handleState(newState: Timeline.TimelineState<TSRTimelineContent>, newMappings: Mappings) {
+	handleState(newState: Timeline.TimelineState<TSRTimelineContent>, newMappings: Mappings<SomeMappingSofieChef>) {
 		super.onHandleState(newState, newMappings)
 		// Handle this new state, at the point in time specified
 
@@ -203,14 +232,17 @@ export class SofieChefDevice extends DeviceWithState<SofieChefState, DeviceOptio
 	get connected(): boolean {
 		return this._connected
 	}
-	convertStateToSofieChef(state: Timeline.TimelineState<TSRTimelineContent>, mappings: Mappings): SofieChefState {
+	convertStateToSofieChef(
+		state: Timeline.TimelineState<TSRTimelineContent>,
+		mappings: Mappings<SomeMappingSofieChef>
+	): SofieChefState {
 		const sofieChefState: SofieChefState = {
 			windows: {},
 		}
 		for (const [layer, layerState] of Object.entries<Timeline.ResolvedTimelineObjectInstance<TSRTimelineContent>>(
 			state.layers
 		)) {
-			const mapping = mappings[layer] as Mapping<SomeMappingSofieChef>
+			const mapping = mappings[layer]
 			const content = layerState.content
 
 			if (mapping && content.deviceType === DeviceType.SOFIE_CHEF) {
@@ -281,11 +313,11 @@ export class SofieChefDevice extends DeviceWithState<SofieChefState, DeviceOptio
 		if (!this.connected) {
 			statusCode = StatusCode.BAD
 			messages.push('Not connected')
-		} else if (this.status.app.statusCode !== ChefStatusCode.GOOD) {
-			statusCode = this.convertStatusCode(this.status.app.statusCode)
-			messages.push(this.status.app.message)
+		} else if (this._status.app.statusCode !== ChefStatusCode.GOOD) {
+			statusCode = this.convertStatusCode(this._status.app.statusCode)
+			messages.push(this._status.app.message)
 		} else {
-			for (const [index, window] of Object.entries<StatusObject>(this.status.windows)) {
+			for (const [index, window] of Object.entries<StatusObject>(this._status.windows)) {
 				const windowStatusCode = this.convertStatusCode(window.statusCode)
 				if (windowStatusCode > statusCode) {
 					statusCode = windowStatusCode
@@ -373,6 +405,7 @@ export class SofieChefDevice extends DeviceWithState<SofieChefState, DeviceOptio
 
 			if (!newWindow) {
 				// Removed
+
 				commands.push({
 					context: 'removed',
 					timelineObjId: oldWindow.urlTimelineObjId,
@@ -408,8 +441,17 @@ export class SofieChefDevice extends DeviceWithState<SofieChefState, DeviceOptio
 			this.emit('commandError', e as Error, cwc)
 		}
 	}
-	private _connectionChanged() {
-		this.emit('connectionChanged', this.getStatus())
+	private _updateConnected(connected: boolean) {
+		if (this._connected !== connected) {
+			this._connected = connected
+			this.emit('connectionChanged', this.getStatus())
+		}
+	}
+	private _updateStatus(status: SendWSMessageStatus['status']) {
+		if (!_.isEqual(this._status, status)) {
+			this._status = status
+			this.emit('connectionChanged', this.getStatus())
+		}
 	}
 	private _handleReceivedMessage(data: WebSocket.Data) {
 		try {
@@ -425,10 +467,7 @@ export class SofieChefDevice extends DeviceWithState<SofieChefState, DeviceOptio
 						}
 					}
 				} else if (message.type === SendWSMessageType.STATUS) {
-					if (!_.isEqual(message.status, this.status)) {
-						this.status = message.status
-						this._connectionChanged()
-					}
+					this._updateStatus(message.status)
 				} else {
 					// @ts-expect-error never
 					this.emit('error', 'SofieChef', new Error(`Unknown command ${message.type}`))
@@ -445,7 +484,7 @@ export class SofieChefDevice extends DeviceWithState<SofieChefState, DeviceOptio
 		}
 	} = {}
 
-	private async _sendMessage(msg: ReceiveWSMessageAny): Promise<void> {
+	private async _sendMessage(msg: ReceiveWSMessageAny): Promise<APIResponse> {
 		return new Promise((resolve, reject) => {
 			msg.msgId = this.msgId++
 			if (this.initOptions?.apiKey) {

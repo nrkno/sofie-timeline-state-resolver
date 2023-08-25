@@ -13,6 +13,7 @@ export type ReceiveWSMessageAny =
 	| ReceiveWSMessageRestart
 	| ReceiveWSMessageStop
 	| ReceiveWSMessageExecute
+	| ReceiveWSMessageList
 
 export interface ReceiveWSMessageBase {
 	type: ReceiveWSMessageType
@@ -25,6 +26,7 @@ export enum ReceiveWSMessageType {
 	RESTART = 'restart',
 	STOP = 'stop',
 	EXECUTE = 'execute',
+	LIST = 'list',
 }
 
 export interface ReceiveWSMessagePlayURL extends ReceiveWSMessageBase {
@@ -47,6 +49,17 @@ export interface ReceiveWSMessageExecute extends ReceiveWSMessageBase {
 	type: ReceiveWSMessageType.EXECUTE
 	windowId: string
 	jsCode: string
+}
+export interface ReceiveWSMessageList extends ReceiveWSMessageBase {
+	type: ReceiveWSMessageType.LIST
+}
+export interface APIResponseList extends APIResponse {
+	list: {
+		id: string
+		url: string | null
+		statusCode: string
+		statusMessage: string
+	}[]
 }
 
 export type SendWSMessageAny = SendWSMessageReply | SendWSMessageStatus
@@ -83,4 +96,14 @@ export enum StatusCode {
 export interface StatusObject {
 	statusCode: StatusCode
 	message: string
+}
+
+export enum IpcMethods {
+	// Note: update this enum in lib/preload.ts when changed
+	ReportStatus = 'ReportStatus',
+}
+
+export interface ReportStatusIpcPayload {
+	status: StatusCode
+	message?: string
 }
