@@ -1,4 +1,4 @@
-import { ResolvedTimelineObjectInstance } from './superfly-timeline'
+import { Content, ResolvedTimelineObjectInstance } from './superfly-timeline'
 import { DeviceType, TSRTimelineContent } from '.'
 
 export interface Mappings<TOptions extends { mappingType: string } | unknown = unknown> {
@@ -16,7 +16,7 @@ export interface Mapping<TOptions extends { mappingType: string } | unknown, TTy
 	options: TOptions
 }
 
-export interface ResolvedTimelineObjectInstanceExtended<TContent = TSRTimelineContent>
+export interface ResolvedTimelineObjectInstanceExtended<TContent extends Content = TSRTimelineContent>
 	extends ResolvedTimelineObjectInstance<TContent>,
 		TSRTimelineObjProps {}
 

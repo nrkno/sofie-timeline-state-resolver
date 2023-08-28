@@ -1,6 +1,7 @@
 import * as _ from 'underscore'
 import * as path from 'path'
 import * as deepMerge from 'deepmerge'
+import { EventEmitter } from 'eventemitter3'
 import { DeviceWithState, CommandWithContext, DeviceStatus, StatusCode } from './../../devices/device'
 import { DoOnTime, SendMode } from '../../devices/doOnTime'
 
@@ -102,6 +103,8 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 	 */
 	private _bestGuessActualState: VMixStateExtended | null = null
 
+	private inputHandler: VMixInputHandler
+
 	constructor(deviceId: string, deviceOptions: DeviceOptionsVMixInternal, getCurrentTime: () => Promise<number>) {
 		super(deviceId, deviceOptions, getCurrentTime)
 		if (deviceOptions.options) {
@@ -119,6 +122,8 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 		this._doOnTime.on('slowCommand', (msg) => this.emit('slowCommand', this.deviceName + ': ' + msg))
 		this._doOnTime.on('slowSentCommand', (info) => this.emit('slowSentCommand', info))
 		this._doOnTime.on('slowFulfilledCommand', (info) => this.emit('slowFulfilledCommand', info))
+
+		this.inputHandler = new VMixInputHandler(this)
 	}
 	async init(options: VMixOptions): Promise<boolean> {
 		this._vmix = new VMix(options.host, options.port, false)
@@ -275,13 +280,14 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 
 		const newVMixState = this.convertStateToVMix(newState, newMappings)
 
-		const commandsToAchieveState: Array<any> = this._diffStates(oldState, newVMixState)
+		const commandsToAchieveState: Array<any> = this._diffStates(newState.time, oldState, newVMixState)
 
 		// clear any queued commands later than this time:
 		this._doOnTime.clearQueueNowAndAfter(previousStateTime)
 
 		// add the new commands to the queue:
-		this._addToQueue(commandsToAchieveState, newState.time)
+
+		this.addToQueue(commandsToAchieveState, newState.time)
 
 		// store the new state, for later use:
 		this.setState(newVMixState, newState.time)
@@ -525,10 +531,6 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 		return deviceState
 	}
 
-	getFilename(filePath: string) {
-		return path.basename(filePath)
-	}
-
 	modifyInput(
 		deviceState: VMixStateExtended,
 		newInput: VMixInput,
@@ -589,7 +591,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 		return this._doOnTime.getQueue()
 	}
 
-	private _addToQueue(commandsToAchieveState: Array<VMixStateCommandWithContext>, time: number) {
+	public addToQueue(commandsToAchieveState: Array<VMixStateCommandWithContext>, time: number) {
 		_.each(commandsToAchieveState, (cmd: VMixStateCommandWithContext) => {
 			// add the new commands to the queue:
 			this._doOnTime.queue(
@@ -696,25 +698,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 				input.name = key
 			}
 			if (!_.has(oldVMixState.reportedState.inputs, key) && input.type !== undefined) {
-				const addCommands: Array<VMixStateCommandWithContext> = []
-				addCommands.push({
-					command: {
-						command: VMixCommand.ADD_INPUT,
-						value: `${input.type}|${input.name}`,
-					},
-					context: CommandContext.None,
-					timelineId: '',
-				})
-				addCommands.push({
-					command: {
-						command: VMixCommand.SET_INPUT_NAME,
-						input: this.getFilename(input.name),
-						value: input.name,
-					},
-					context: CommandContext.None,
-					timelineId: '',
-				})
-				this._addToQueue(addCommands, this.getCurrentTime())
+				this.inputHandler.addInput(key, input.type, input.name)
 			}
 			const oldInput = oldVMixState.reportedState.inputs[key] || this._getDefaultInputState(0) // or {} but we assume that a new input has all parameters default
 
@@ -1007,6 +991,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 	}
 
 	private _resolveInputsRemovalState(
+		time: number,
 		oldVMixState: VMixStateExtended,
 		newVMixState: VMixStateExtended
 	): Array<VMixStateCommandWithContext> {
@@ -1016,15 +1001,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 			Object.keys(newVMixState.reportedState.inputs)
 		).forEach((input) => {
 			if (oldVMixState.reportedState.inputs[input].type !== undefined) {
-				// TODO: either schedule this command for later or make the timeline object long enough to prevent removing while transitioning
-				commands.push({
-					command: {
-						command: VMixCommand.REMOVE_INPUT,
-						input: oldVMixState.reportedState.inputs[input].name || input,
-					},
-					context: CommandContext.None,
-					timelineId: '',
-				})
+				this.inputHandler.removeInput(time, input)
 			}
 		})
 		return commands
@@ -1204,6 +1181,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 	}
 
 	private _diffStates(
+		time: number,
 		oldVMixState: VMixStateExtended,
 		newVMixState: VMixStateExtended
 	): Array<VMixStateCommandWithContext> {
@@ -1218,7 +1196,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 		commands = commands.concat(this._resolveStreamingState(oldVMixState, newVMixState))
 		commands = commands.concat(this._resolveExternalState(oldVMixState, newVMixState))
 		commands = commands.concat(this._resolveOutputsState(oldVMixState, newVMixState))
-		commands = commands.concat(this._resolveInputsRemovalState(oldVMixState, newVMixState))
+		commands = commands.concat(this._resolveInputsRemovalState(time, oldVMixState, newVMixState))
 		commands = commands.concat(this._resolveScriptsState(oldVMixState, newVMixState))
 
 		return commands
@@ -1347,7 +1325,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 
 		const vmixState = tlState.state
 
-		const diff = this._diffStates(this._bestGuessActualState, vmixState)
+		const diff = this._diffStates(this.getCurrentTime(), this._bestGuessActualState, vmixState)
 
 		const cmds: Array<VMixStateCommandWithContext> = []
 		for (const cmd of diff) {
@@ -1359,7 +1337,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 		}
 
 		if (cmds.length > 0) {
-			this._addToQueue(cmds, this.getCurrentTime())
+			this.addToQueue(cmds, this.getCurrentTime())
 		}
 
 		// We have to now blindly hope that our sent commands will work.
@@ -1455,4 +1433,129 @@ export interface VMixAudioChannel {
 	meterF1: number
 	meterF2: number
 	headphonesVolume: number
+}
+
+/**
+ * Handles pre-loading of inputs.
+ */
+class VMixInputHandler extends EventEmitter {
+	// how long to let an input linger before removing it
+	private TTL = 1000
+
+	/** Tracks the actual state in vmix of which inputs are loaded */
+	private _inputs: Map<
+		string,
+		{
+			type: string
+			name: string
+			added: boolean
+			removeTime?: number
+		}
+	> = new Map()
+
+	private _updateTimeout: NodeJS.Timeout | undefined = undefined
+
+	constructor(private _vmix: VMixDevice) {
+		super()
+	}
+
+	public addInput(key: string, type: string, name: string) {
+		let existing = this._inputs.get(key)
+		if (!existing) {
+			existing = {
+				type,
+				name,
+				added: false,
+			}
+			this._inputs.set(key, existing)
+		}
+		delete existing.removeTime
+
+		this._triggerUpdate()
+	}
+
+	/** Mark input for removal */
+	public removeInput(time: number, key: string) {
+		const existing = this._inputs.get(key)
+		if (existing) {
+			existing.removeTime = Math.max(existing.removeTime ?? 0, time + this.TTL)
+
+			this._triggerUpdate()
+		}
+	}
+
+	private _triggerUpdate() {
+		if (this._updateTimeout) {
+			clearTimeout(this._updateTimeout)
+			this._updateTimeout = undefined
+		}
+		setImmediate(() => {
+			try {
+				this._update()
+			} catch (e) {
+				this.emit('error', e)
+			}
+		})
+	}
+	private _update() {
+		const commands: Array<VMixStateCommandWithContext> = []
+
+		const now = this._vmix.getCurrentTime()
+		let nextTimeout = Infinity
+
+		for (const [key, input] of this._inputs.entries()) {
+			if (input.removeTime && input.removeTime <= now) {
+				if (input.added) {
+					commands.push({
+						command: {
+							command: VMixCommand.REMOVE_INPUT,
+							input: input.name,
+						},
+						context: CommandContext.None,
+						timelineId: '',
+					})
+				}
+				this._inputs.delete(key)
+			} else {
+				if (!input.added) {
+					commands.push({
+						command: {
+							command: VMixCommand.ADD_INPUT,
+							value: `${input.type}|${input.name}`,
+						},
+						context: CommandContext.None,
+						timelineId: '',
+					})
+					commands.push({
+						command: {
+							command: VMixCommand.SET_INPUT_NAME,
+							input: this.getFilename(input.name),
+							value: input.name,
+						},
+						context: CommandContext.None,
+						timelineId: '',
+					})
+
+					input.added = true
+				}
+			}
+
+			if (input.removeTime) {
+				nextTimeout = Math.min(nextTimeout, input.removeTime)
+			}
+		}
+
+		this._vmix.addToQueue(commands, now)
+
+		const timeToNextTimeout = nextTimeout - now
+		if (timeToNextTimeout > 0 && timeToNextTimeout !== Infinity) {
+			this._updateTimeout = setTimeout(() => {
+				this._updateTimeout = undefined
+				this._triggerUpdate()
+			}, timeToNextTimeout)
+		}
+	}
+	private getFilename(filePath: string) {
+		return path.basename(filePath)
+	}
 }
