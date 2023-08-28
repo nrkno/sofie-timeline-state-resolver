@@ -73,7 +73,7 @@ export class AbstractDevice
 
 		const commands: Array<AbstractCommandWithContext> = []
 
-		for (const [layerKey, newLayer] of Object.entries<Timeline.ResolvedTimelineObjectInstance<unknown>>(
+		for (const [layerKey, newLayer] of Object.entries<Timeline.ResolvedTimelineObjectInstance<any>>(
 			newAbstractState.layers
 		)) {
 			const oldLayer = oldAbstractState.layers[layerKey]
@@ -98,7 +98,7 @@ export class AbstractDevice
 		}
 
 		// removed
-		for (const [layerKey, oldLayer] of Object.entries<Timeline.ResolvedTimelineObjectInstance<unknown>>(
+		for (const [layerKey, oldLayer] of Object.entries<Timeline.ResolvedTimelineObjectInstance<any>>(
 			oldAbstractState.layers
 		)) {
 			const newLayer = newAbstractState.layers[layerKey]
