@@ -1,9 +1,8 @@
-import * as _ from 'underscore'
 import * as path from 'path'
 import { EventEmitter } from 'eventemitter3'
 
 import { VMixCommand } from 'timeline-state-resolver-types'
-import { CommandContext, VMixDevice, VMixStateCommandWithContext } from '.'
+import { CommandContext, VMixStateCommandWithContext } from '.'
 /**
  * Handles pre-loading of inputs.
  */
@@ -26,7 +25,12 @@ export class VMixInputHandler extends EventEmitter {
 
 	private _updateTimeout: NodeJS.Timeout | undefined = undefined
 
-	constructor(private _vmix: VMixDevice) {
+	constructor(
+		private _vmix: {
+			getCurrentTime: () => number
+			addToQueue: (commandsToAchieveState: Array<VMixStateCommandWithContext>, time: number) => void
+		}
+	) {
 		super()
 	}
 

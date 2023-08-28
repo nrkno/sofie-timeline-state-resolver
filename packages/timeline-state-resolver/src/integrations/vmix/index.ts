@@ -122,7 +122,10 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 		this._doOnTime.on('slowSentCommand', (info) => this.emit('slowSentCommand', info))
 		this._doOnTime.on('slowFulfilledCommand', (info) => this.emit('slowFulfilledCommand', info))
 
-		this.inputHandler = new VMixInputHandler(this)
+		this.inputHandler = new VMixInputHandler({
+			getCurrentTime: this.getCurrentTime.bind(this),
+			addToQueue: this.addToQueue.bind(this),
+		})
 	}
 	async init(options: VMixOptions): Promise<boolean> {
 		this._vmix = new VMix(options.host, options.port, false)
@@ -589,7 +592,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 		return this._doOnTime.getQueue()
 	}
 
-	public addToQueue(commandsToAchieveState: Array<VMixStateCommandWithContext>, time: number) {
+	private addToQueue(commandsToAchieveState: Array<VMixStateCommandWithContext>, time: number) {
 		_.each(commandsToAchieveState, (cmd: VMixStateCommandWithContext) => {
 			// add the new commands to the queue:
 			this._doOnTime.queue(
