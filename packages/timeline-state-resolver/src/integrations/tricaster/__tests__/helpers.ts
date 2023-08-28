@@ -5,10 +5,16 @@ export const wrapIntoResolvedInstance = <Content extends TimelineContentTriCaste
 ): Timeline.ResolvedTimelineObjectInstance<Content> => ({
 	...timelineObject,
 	resolved: {
-		resolved: true,
+		resolvedReferences: true,
+		resolvedConflicts: true,
 		resolving: false,
-		instances: [{ start: 0, end: Infinity, id: timelineObject.id, references: [] }],
+		instances: [{ start: 0, end: Infinity, id: `@${timelineObject.id}`, references: [] }],
 		directReferences: [],
+		levelDeep: 0,
+		parentId: undefined,
+		isKeyframe: false,
+		firstResolved: false,
+		isSelfReferencing: false,
 	},
-	instance: { start: 0, end: Infinity, id: timelineObject.id, references: [] },
+	instance: { start: 0, end: Infinity, id: `@${timelineObject.id}`, references: [] },
 })

@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [9.0.0-release50.6](https://github.com/nrkno/sofie-timeline-state-resolver/compare/9.0.0-release50.5...9.0.0-release50.6) (2023-08-25)
+
+### Bug Fixes
+
+- **httpSend:** Use the same types for the sendCommand action as a timeline object ([#269](https://github.com/nrkno/sofie-timeline-state-resolver/issues/269)) ([3385217](https://github.com/nrkno/sofie-timeline-state-resolver/commit/3385217afcb6e45aa37123f5400d1dea4a0c8972))
+
 ## [9.0.0-release50.5](https://github.com/nrkno/sofie-timeline-state-resolver/compare/9.0.0-release50.4...9.0.0-release50.5) (2023-07-03)
 
 **Note:** Version bump only for package timeline-state-resolver-types

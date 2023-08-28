@@ -2,19 +2,18 @@ import EventEmitter = require('eventemitter3')
 import { FinishedTrace, t } from '../lib'
 import {
 	ActionExecutionResultCode,
-	DeviceStatus,
-	DeviceType,
-	Mappings,
-	MediaObject,
-	Timeline,
-	TSRTimelineContent,
+	type DeviceStatus,
+	type DeviceType,
+	type Mappings,
+	type MediaObject,
+	type Timeline,
+	type TSRTimelineContent,
 } from 'timeline-state-resolver-types'
-import { CommandWithContext, Device } from './device'
+import type { CommandWithContext, Device, DeviceEvents } from './device'
 import { StateHandler } from './stateHandler'
 import { DevicesDict } from './devices'
-import { DeviceEvents } from './device'
-import { DeviceOptionsAnyInternal, ExpectedPlayoutItem } from '..'
-import { StateChangeReport } from './measure'
+import type { DeviceOptionsAnyInternal, ExpectedPlayoutItem } from '..'
+import type { StateChangeReport } from './measure'
 
 type Config = DeviceOptionsAnyInternal
 type DeviceState = any
@@ -52,7 +51,7 @@ export class DeviceInstanceWrapper extends EventEmitter<DeviceInstanceEvents> {
 	private _logDebug = false
 	private _logDebugStates = false
 
-	constructor(id: string, private config: Config, public getCurrentTime: () => number) {
+	constructor(id: string, time: number, private config: Config, public getCurrentTime: () => Promise<number>) {
 		super()
 
 		const deviceSpecs = DevicesDict[config.type]
@@ -65,7 +64,7 @@ export class DeviceInstanceWrapper extends EventEmitter<DeviceInstanceEvents> {
 		this._deviceId = id
 		this._deviceType = config.type
 		this._deviceName = deviceSpecs.deviceName(id, config)
-		this._startTime = this.getCurrentTime()
+		this._startTime = time
 
 		this._setupDeviceEventHandlers()
 

@@ -1,5 +1,5 @@
 import * as _ from 'underscore'
-import { ResolvedTimelineObjectInstance, ResolvedStates, TimelineObject, Resolver } from 'superfly-timeline'
+import { getResolvedState, ResolvedTimeline, ResolvedTimelineObjectInstance, TimelineObject } from 'superfly-timeline'
 import { EventEmitter } from 'eventemitter3'
 import { MemUsageReport, threadedClass, ThreadedClass, ThreadedClassConfig, ThreadedClassManager } from 'threadedclass'
 import PQueue from 'p-queue'
@@ -25,6 +25,7 @@ import {
 	DeviceOptionsShotoku,
 	DeviceOptionsHTTPSend,
 	DeviceOptionsHTTPWatcher,
+	DeviceOptionsAbstract,
 } from 'timeline-state-resolver-types'
 
 import { DoOnTime } from './devices/doOnTime'
@@ -35,7 +36,6 @@ import { CommandWithContext, DeviceEvents } from './devices/device'
 import { DeviceContainer } from './devices/deviceContainer'
 
 import { CasparCGDevice, DeviceOptionsCasparCGInternal } from './integrations/casparCG'
-import { AbstractDevice, DeviceOptionsAbstractInternal } from './integrations/abstract'
 import { AtemDevice, DeviceOptionsAtemInternal } from './integrations/atem'
 import { LawoDevice, DeviceOptionsLawoInternal } from './integrations/lawo'
 import { PanasonicPtzDevice, DeviceOptionsPanasonicPTZInternal } from './integrations/panasonicPTZ'
@@ -64,7 +64,7 @@ export const MINTRIGGERTIME = 10 // Minimum time between triggers
 export const MINTIMEUNIT = 1 // Minimum unit of time
 
 /** When resolving and the timeline has repeating objects, only resolve this far into the future */
-const RESOLVE_LIMIT_TIME = 10000
+const RESOLVE_LIMIT_TIME = 10 * 1000
 
 const FREEZE_LIMIT = 5000 // how long to wait before considering the child to be unresponsive
 
@@ -176,12 +176,16 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 	private _getCurrentTime?: () => number
 
 	private _nextResolveTime = 0
-	private _resolvedStates: {
-		resolvedStates: ResolvedStates | null
+	private _resolved: {
+		resolvedTimeline: ResolvedTimeline<TSRTimelineContent> | null
+		/** Timestamp, when the timeline was resolved */
 		resolveTime: number
+		/** Timestamp, when the timeline needs to be re-resolved */
+		validTo: number
 	} = {
-		resolvedStates: null,
+		resolvedTimeline: null,
 		resolveTime: 0,
+		validTo: 0,
 	}
 	private _resolveTimelineTrigger: NodeJS.Timer | undefined
 	private _isInitialized = false
@@ -495,18 +499,6 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 		threadedClassOptions: ThreadedClassConfig
 	): Promise<BaseRemoteDeviceIntegration<DeviceOptionsBase<any>>> | null {
 		switch (deviceOptions.type) {
-			case DeviceType.ABSTRACT:
-				return DeviceContainer.create<DeviceOptionsAbstractInternal, typeof AbstractDevice>(
-					'../../dist/integrations/abstract/index.js',
-					'AbstractDevice',
-					deviceId,
-					deviceOptions,
-					getCurrentTime,
-					{
-						...threadedClassOptions,
-						threadUsage: deviceOptions.isMultiThreaded ? 0.1 : 0,
-					}
-				)
 			case DeviceType.CASPARCG:
 				return DeviceContainer.create<DeviceOptionsCasparCGInternal, typeof CasparCGDevice>(
 					'../../dist/integrations/casparCG/index.js',
@@ -660,6 +652,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 					getCurrentTime,
 					threadedClassOptions
 				)
+			case DeviceType.ABSTRACT:
 			case DeviceType.HTTPSEND:
 			case DeviceType.HTTPWATCHER:
 			case DeviceType.OSC:
@@ -667,14 +660,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 				ensureIsImplementedAsService(deviceOptions.type)
 
 				// presumably this device is implemented in the new service handler
-				return RemoteDeviceInstance.create(
-					'../../dist/service/DeviceInstance.js',
-					'DeviceInstanceWrapper',
-					deviceId,
-					deviceOptions,
-					getCurrentTime,
-					threadedClassOptions
-				)
+				return RemoteDeviceInstance.create(deviceId, deviceOptions, getCurrentTime, threadedClassOptions)
 			}
 			default:
 				assertNever(deviceOptions)
@@ -773,13 +759,14 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 		this._actionQueue
 			.add(async () => {
 				this._nextResolveTime = 0 // This will cause _resolveTimeline() to generate the state for NOW
-				this._resolvedStates = {
-					resolvedStates: null,
+				this._resolved = {
+					resolvedTimeline: null,
 					resolveTime: 0,
+					validTo: 0,
 				}
 			})
 			.catch(() => {
-				this.emit('error', 'Failed to reset the resolvedStates, timeline may not be updated appropriately!')
+				this.emit('error', 'Failed to reset the ResolvedTimeline, timeline may not be updated appropriately!')
 			})
 
 		this._triggerResolveTimeline()
@@ -887,7 +874,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 			.add(async () => {
 				return this._resolveTimelineInner()
 					.then((nextResolveTime) => {
-						this._nextResolveTime = nextResolveTime || 0
+						this._nextResolveTime = nextResolveTime ?? 0
 					})
 					.catch((e) => {
 						this.emit('error', 'Caught error in _resolveTimelineInner' + e)
@@ -927,6 +914,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 				resolveTime === 0 || // About to be resolved ASAP
 				resolveTime < now + estimatedResolveTime // We're late
 			) {
+				// Set resolveTime to the earliest point in the future we can reasonable achieve it:
 				resolveTime = now + estimatedResolveTime
 				this.emitWhenActive(
 					'debug',
@@ -988,14 +976,15 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 			_.each(timeline, (o) => applyRecursively(o, deleteParent))
 
 			// Determine if we can use the pre-resolved timeline:
-			let resolvedStates: ResolvedStates
+			let resolvedTimeline: ResolvedTimeline<TSRTimelineContent>
 			if (
-				this._resolvedStates.resolvedStates &&
-				resolveTime >= this._resolvedStates.resolveTime &&
-				resolveTime < this._resolvedStates.resolveTime + RESOLVE_LIMIT_TIME
+				this._resolved.resolvedTimeline &&
+				resolveTime >= this._resolved.resolveTime &&
+				// if we have less than PREPARETIME left of the valid time, we should re-resolve so we are prepared for what comes after
+				resolveTime < this._resolved.validTo - PREPARETIME
 			) {
 				// Yes, we can use the previously resolved timeline:
-				resolvedStates = this._resolvedStates.resolvedStates
+				resolvedTimeline = this._resolved.resolvedTimeline
 			} else {
 				// No, we need to resolve the timeline again:
 				const o = await this._resolver.resolveTimeline(
@@ -1004,10 +993,12 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 					resolveTime + RESOLVE_LIMIT_TIME,
 					this._useCacheWhenResolving
 				)
-				resolvedStates = o.resolvedStates
+				resolvedTimeline = o.resolvedTimeline
 
-				this._resolvedStates.resolvedStates = resolvedStates
-				this._resolvedStates.resolveTime = resolveTime
+				this._resolved.resolvedTimeline = resolvedTimeline
+				this._resolved.resolveTime = resolveTime
+
+				this._resolved.validTo = resolveTime + RESOLVE_LIMIT_TIME - 0 // Ensure we re-resolve the timeline before it expires
 
 				// Apply changes to fixed objects (set "now" triggers to an actual time):
 				// This gets persisted on this.timeline, so we only have to do this once
@@ -1023,7 +1014,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 				_.each(timeline, (o) => applyRecursively(o, fixNow))
 			}
 
-			const tlState = Resolver.getState(resolvedStates, resolveTime)
+			const tlState = getResolvedState(resolvedTimeline, resolveTime, 1)
 			await pPrepareForHandleStates
 
 			statTimeTimelineResolved = Date.now()
@@ -1037,10 +1028,8 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 				)
 			}
 
-			const tlStateLayers: Timeline.TimelineState<any>['layers'] = tlState.layers // This is a cast, but only for the `content`
-
 			const layersPerDevice = this.filterLayersPerDevice(
-				tlStateLayers,
+				tlState.layers as Timeline.StateInTime<TSRTimelineContent>,
 				Array.from(this.devices.values()).filter((d) => d.initialized === true)
 			)
 
@@ -1073,27 +1062,10 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 			statTimeStateHandled = Date.now()
 
 			// Now that we've handled this point in time, it's time to determine what the next point in time is:
-			let nextEventTime: number | null = null
-			_.each(tlState.nextEvents, (event) => {
-				if (event.time && event.time > now && (!nextEventTime || event.time < nextEventTime)) {
-					nextEventTime = event.time
-				}
-			})
+			const nextEventTime: number | undefined = tlState.nextEvents[0]?.time
 
-			const nowPostExec = this.getCurrentTime()
-			if (nextEventTime) {
-				timeUntilNextResolve = Math.max(
-					MINTRIGGERTIME, // At minimum, we should wait this time
-					Math.min(
-						LOOKAHEADTIME, // We should wait maximum this time, because we might have deferred a resolving this far ahead
-						RESOLVE_LIMIT_TIME, // We should wait maximum this time, because we've only resolved repeating objects this far
-						nextEventTime - nowPostExec - PREPARETIME
-					)
-				)
-				// resolve at nextEventTime next time:
-				nextResolveTime = Math.min(tlState.time + LOOKAHEADTIME, nextEventTime)
-			} else {
-				// there's nothing ahead in the timeline,
+			if (!nextEventTime && tlState.time < this._resolved.validTo) {
+				// There's nothing ahead in the timeline (as far as we can see, ref: this._resolved.validTo)
 				// Tell the devices that the future is clear:
 				await this._mapAllDevices(true, async (device: BaseRemoteDeviceIntegration<DeviceOptionsBase<any>>) => {
 					try {
@@ -1105,9 +1077,34 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 						)
 					}
 				})
+			}
 
+			const nowPostExec = this.getCurrentTime()
+
+			/** Time left until the next event in the timeline */
+			const timeToNextEventTime = nextEventTime ? nextEventTime - nowPostExec : Infinity
+			/** Time left until the timeline needs to ge re-resolved */
+			const timeLeftValidTimeline = this._resolved.validTo ? this._resolved.validTo - nowPostExec : Infinity
+
+			timeUntilNextResolve = Math.max(
+				MINTRIGGERTIME, // At minimum, we should wait this time
+				Math.min(
+					LOOKAHEADTIME, // We should wait maximum this time, because we might have deferred a resolving this far ahead
+					timeLeftValidTimeline - PREPARETIME,
+					timeToNextEventTime - PREPARETIME
+				)
+			)
+			if (nextEventTime) {
+				// resolve at nextEventTime next time:
+				nextResolveTime = Math.min(
+					// Resolve at next timeline event:
+					nextEventTime,
+					// Ensure that we don't resolve too far ahead:
+					tlState.time + LOOKAHEADTIME
+				)
+			} else {
 				// resolve at this time then next time (or later):
-				nextResolveTime = Math.min(tlState.time)
+				nextResolveTime = tlState.time
 			}
 
 			// Special function: send callback to Core
@@ -1178,6 +1175,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 		} catch (e) {
 			this.emit('error', 'triggerResolveTimeline', e)
 		}
+
 		return nextResolveTime
 	}
 	private async _setDeviceState(
@@ -1519,7 +1517,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 	 * Split the state into substates that are relevant for each device
 	 */
 	private filterLayersPerDevice(
-		layers: Timeline.TimelineState<TSRTimelineContent>['layers'],
+		layers: Timeline.StateInTime<TSRTimelineContent>,
 		devices: BaseRemoteDeviceIntegration<DeviceOptionsBase<any>>[]
 	) {
 		const filteredStates: { [deviceId: string]: { [layerId: string]: ResolvedTimelineObjectInstanceExtended } } = {}
@@ -1560,7 +1558,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 	}
 }
 export type DeviceOptionsAnyInternal =
-	| DeviceOptionsAbstractInternal
+	| DeviceOptionsAbstract
 	| DeviceOptionsCasparCGInternal
 	| DeviceOptionsAtemInternal
 	| DeviceOptionsLawoInternal

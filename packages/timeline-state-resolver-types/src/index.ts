@@ -21,6 +21,7 @@ import { TimelineContentVMixAny } from './vmix'
 import { TimelineContentOBSAny } from './obs'
 import { TimelineContentTriCasterAny } from './tricaster'
 import { ITranslatableMessage } from './translations'
+import { Content } from './superfly-timeline'
 
 export * from './abstract'
 export * from './atem'
@@ -86,7 +87,9 @@ export enum DeviceType {
 	MULTI_OSC = 'MULTI_OSC',
 }
 
-export type TSRTimelineKeyframe<TContent> = Timeline.TimelineKeyframe<TContent>
+export interface TSRTimelineKeyframe<TContent> extends Omit<Timeline.TimelineKeyframe, 'content'> {
+	content: TContent
+}
 
 /**
  * An object containing references to the datastore
@@ -116,7 +119,7 @@ export interface TSRTimelineObj<TContent extends { deviceType: DeviceType }>
 	children?: TSRTimelineObj<TSRTimelineContent>[]
 }
 
-export interface TimelineContentEmpty {
+export interface TimelineContentEmpty extends Content {
 	deviceType: DeviceType.ABSTRACT
 	type: 'empty'
 }
