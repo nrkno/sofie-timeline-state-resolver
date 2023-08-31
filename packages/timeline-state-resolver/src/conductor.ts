@@ -450,7 +450,9 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 
 			if (!newDevicePromise) {
 				const type: any = deviceOptions.type
-				return Promise.reject(`No matching device type for "${type}" ("${DeviceType[type]}") found in conductor`)
+				return Promise.reject(
+					new Error(`No matching device type for "${type}" ("${DeviceType[type]}") found in conductor`)
+				)
 			}
 
 			newDevice = await makeImmediatelyAbortable(async () => {

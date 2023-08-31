@@ -48,7 +48,7 @@ type AtemDeviceState = DeviceState
  * This is a wrapper for the Atem Device. Commands to any and all atem devices will be sent through here.
  */
 export class AtemDevice
-	extends EventEmitter<DeviceEvents<AtemDeviceState>>
+	extends EventEmitter<DeviceEvents>
 	implements Device<AtemOptions, AtemDeviceState, AtemCommandWithContext>
 {
 	readonly actions: {
@@ -73,34 +73,29 @@ export class AtemDevice
 	 * and initiates Atem State lib.
 	 */
 	async init(options: AtemOptions): Promise<boolean> {
-		return new Promise((resolve, reject) => {
-			// This is where we would do initialization, like connecting to the devices, etc
-			this._atem.once('connected', () => {
-				// check if state has been initialized:
-				this._connected = true
-				this._initialized = true
-				resolve(true)
-			})
-			this._atem.on('connected', () => {
-				this._connected = true
-				this._connectionChanged()
-				this.emit('resetResolver', this._atem.state)
-
-				if (this._atem.state) {
-					this._protocolVersion = this._atem.state.info.apiVersion
-				}
-			})
-			this._atem.on('disconnected', () => {
-				this._connected = false
-				this._connectionChanged()
-			})
-			this._atem.on('error', (e) => this.emit('error', 'Atem', new Error(e)))
-			this._atem.on('stateChanged', (state) => this._onAtemStateChanged(state))
-
-			this._atem.connect(options.host, options.port).catch((e) => {
-				reject(e)
-			})
+		this._atem.on('disconnected', () => {
+			this._connected = false
+			this._connectionChanged()
 		})
+		this._atem.on('error', (e) => this.emit('error', 'Atem', new Error(e)))
+		this._atem.on('stateChanged', (state) => this._onAtemStateChanged(state))
+
+		this._atem.on('connected', () => {
+			this._connected = true
+			this._initialized = true
+
+			this._connectionChanged()
+			this.emit('resetResolver')
+
+			if (this._atem.state) {
+				this._protocolVersion = this._atem.state.info.apiVersion
+			}
+		})
+
+		// This only waits for the child thread to start, it doesn't wait for connection TODO-verify
+		await this._atem.connect(options.host, options.port)
+
+		return true
 	}
 	/**
 	 * Safely terminate everything to do with this device such that it can be
@@ -108,10 +103,11 @@ export class AtemDevice
 	 */
 	async terminate(): Promise<void> {
 		await this._atem.disconnect()
+		await this._atem.destroy()
 	}
 
 	private async resyncState(): Promise<ActionExecutionResult> {
-		this.emit('resetResolver', this._atem.state)
+		this.emit('resetResolver')
 
 		return {
 			result: ActionExecutionResultCode.Ok,
@@ -140,8 +136,6 @@ export class AtemDevice
 		state: Timeline.TimelineState<TSRTimelineContent>,
 		newMappings: Mappings
 	): AtemDeviceState {
-		if (!this._initialized) throw Error('convertStateToAtem cannot be used before inititialized')
-
 		// Start out with default state:
 		const deviceState = AtemStateUtil.Create()
 
@@ -290,8 +284,11 @@ export class AtemDevice
 		newAtemState: AtemDeviceState,
 		mappings: Mappings
 	): Array<AtemCommandWithContext> {
+		// Skip diffing if not connected, a resolverReset will be fired upon reconnection
+		if (!this._connected) return []
+
 		// Make sure there is something to diff against
-		oldAtemState = oldAtemState ?? AtemStateUtil.Create()
+		oldAtemState = oldAtemState ?? this._atem.state ?? AtemStateUtil.Create()
 
 		// bump out any auxes that we don't control as they may be used for CC etc.
 		const noOfAuxes = Math.max(oldAtemState.video.auxilliaries.length, newAtemState.video.auxilliaries.length)
@@ -326,6 +323,9 @@ export class AtemDevice
 			tlObjId: tlObjId,
 		}
 		this.emit('debug', cwc)
+
+		// Skip attempting send if not connected
+		if (!this._connected) return
 
 		try {
 			await this._atem.sendCommand(command)

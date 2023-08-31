@@ -30,7 +30,7 @@ export interface HttpSendDeviceCommand extends CommandWithContext {
 }
 
 export class HTTPSendDevice
-	extends EventEmitter<DeviceEvents<HttpSendDeviceState>>
+	extends EventEmitter<DeviceEvents>
 	implements Device<HTTPSendOptions, HttpSendDeviceState, HttpSendDeviceCommand>
 {
 	private options: HTTPSendOptions
