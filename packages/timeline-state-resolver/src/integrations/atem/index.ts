@@ -27,6 +27,7 @@ import {
 } from 'atem-connection'
 import { CommandWithContext, Device, DeviceEvents } from '../../service/device'
 import EventEmitter = require('eventemitter3')
+import { ProtocolVersion } from 'atem-connection/dist/enums'
 
 _.mixin({ deepExtend: underScoreDeepExtend(_) })
 
@@ -56,8 +57,7 @@ export class AtemDevice
 		[AtemActions.Resync]: this.resyncState.bind(this),
 	}
 
-	private _atem: BasicAtem
-	private _state: AtemState
+	private readonly _atem = new BasicAtem()
 	private _initialized = false
 	private _connected = false // note: ideally this should be replaced by this._atem.connected
 
@@ -74,8 +74,6 @@ export class AtemDevice
 	async init(options: AtemOptions): Promise<boolean> {
 		return new Promise((resolve, reject) => {
 			// This is where we would do initialization, like connecting to the devices, etc
-			this._state = new AtemState()
-			this._atem = new BasicAtem()
 			this._atem.once('connected', () => {
 				// check if state has been initialized:
 				this._connected = true
@@ -124,44 +122,6 @@ export class AtemDevice
 			await this.resyncState()
 		}
 	}
-
-	// /**
-	//  * Process a state, diff against previous state and generate commands to
-	//  * be executed at the state's time.
-	//  * @param newState The state to handle
-	//  */
-	// handleState(newState: Timeline.TimelineState<TSRTimelineContent>, newMappings: Mappings) {
-	// 	super.onHandleState(newState, newMappings)
-	// 	if (!this._initialized) {
-	// 		// before it's initialized don't do anything
-	// 		this.emit('warning', 'Atem not initialized yet')
-	// 		return
-	// 	}
-
-	// 	const previousStateTime = Math.max(this.getCurrentTime(), newState.time)
-	// 	const oldState: DeviceState = (this.getStateBefore(previousStateTime) || { state: AtemStateUtil.Create() }).state
-
-	// 	const convertTrace = startTrace(`device:convertState`, { deviceId: this.deviceId })
-	// 	const oldAtemState = oldState
-	// 	const newAtemState = this.convertStateToAtem(newState, newMappings)
-	// 	this.emit('timeTrace', endTrace(convertTrace))
-
-	// 	const diffTrace = startTrace(`device:diffState`, { deviceId: this.deviceId })
-	// 	const commandsToAchieveState: Array<AtemCommandWithContext> = this._diffStates(
-	// 		oldAtemState,
-	// 		newAtemState,
-	// 		newMappings
-	// 	)
-	// 	this.emit('timeTrace', endTrace(diffTrace))
-
-	// 	// clear any queued commands later than this time:
-	// 	this._doOnTime.clearQueueNowAndAfter(previousStateTime)
-	// 	// add the new commands to the queue:
-	// 	this._addToQueue(commandsToAchieveState, newState.time)
-
-	// 	// store the new state, for later use:
-	// 	this.setState(newAtemState, newState.time)
-	// }
 
 	get connected(): boolean {
 		return this._connected
@@ -297,7 +257,7 @@ export class AtemDevice
 		if (statusCode === StatusCode.GOOD) {
 			const psus = this._atemStatus.psus
 
-			_.each(psus, (psu: boolean, i: number) => {
+			psus.forEach((psu: boolean, i: number) => {
 				if (!psu) {
 					statusCode = StatusCode.WARNING_MAJOR
 					messages.push(`Atem PSU ${i + 1} is faulty. The device has ${psus.length} PSU(s) in total.`)
@@ -326,9 +286,10 @@ export class AtemDevice
 		mappings: Mappings
 	): Array<AtemCommandWithContext> {
 		// Ensure the state diffs the correct version
-		if (this._atem.state) {
-			this._state.version = this._atem.state.info.apiVersion
-		}
+		const protocolVersion = this._atem.state?.info?.apiVersion ?? ProtocolVersion.V8_1_1
+
+		// Make sure there is something to diff against
+		oldAtemState = oldAtemState ?? AtemStateUtil.Create()
 
 		// bump out any auxes that we don't control as they may be used for CC etc.
 		const noOfAuxes = Math.max(oldAtemState.video.auxilliaries.length, newAtemState.video.auxilliaries.length)
@@ -346,7 +307,7 @@ export class AtemDevice
 			}
 		}
 
-		return this._state.diffStates(oldAtemState, newAtemState).map((cmd) => {
+		return AtemState.diffStates(protocolVersion, oldAtemState, newAtemState).map((cmd) => {
 			// backwards compability, to be removed later:
 			return {
 				command: cmd,
@@ -374,7 +335,7 @@ export class AtemDevice
 		const psus = newState.info.power || []
 
 		if (!_.isEqual(this._atemStatus.psus, psus)) {
-			this._atemStatus.psus = _.clone(psus)
+			this._atemStatus.psus = psus.slice()
 
 			this._connectionChanged()
 		}
