@@ -58,6 +58,7 @@ export class AtemDevice
 	}
 
 	private readonly _atem = new BasicAtem()
+	private _protocolVersion = ProtocolVersion.V8_1_1
 	private _initialized = false
 	private _connected = false // note: ideally this should be replaced by this._atem.connected
 
@@ -84,6 +85,10 @@ export class AtemDevice
 				this._connected = true
 				this._connectionChanged()
 				this.emit('resetResolver', this._atem.state)
+
+				if (this._atem.state) {
+					this._protocolVersion = this._atem.state.info.apiVersion
+				}
 			})
 			this._atem.on('disconnected', () => {
 				this._connected = false
@@ -285,9 +290,6 @@ export class AtemDevice
 		newAtemState: AtemDeviceState,
 		mappings: Mappings
 	): Array<AtemCommandWithContext> {
-		// Ensure the state diffs the correct version
-		const protocolVersion = this._atem.state?.info?.apiVersion ?? ProtocolVersion.V8_1_1
-
 		// Make sure there is something to diff against
 		oldAtemState = oldAtemState ?? AtemStateUtil.Create()
 
@@ -307,7 +309,7 @@ export class AtemDevice
 			}
 		}
 
-		return AtemState.diffStates(protocolVersion, oldAtemState, newAtemState).map((cmd) => {
+		return AtemState.diffStates(this._protocolVersion, oldAtemState, newAtemState).map((cmd) => {
 			// backwards compability, to be removed later:
 			return {
 				command: cmd,
