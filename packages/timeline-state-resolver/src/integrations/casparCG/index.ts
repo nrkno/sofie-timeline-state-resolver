@@ -168,6 +168,7 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 			this._ccg.disconnect()
 			this._ccg.onDisconnected = () => {
 				resolve(true)
+				this._ccg.removeAllListeners()
 			}
 		})
 	}

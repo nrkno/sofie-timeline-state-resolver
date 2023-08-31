@@ -243,6 +243,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 	async terminate() {
 		this._doOnTime.dispose()
 		await this._vmix.dispose()
+		this._vmix.removeAllListeners()
 		return Promise.resolve(true)
 	}
 
