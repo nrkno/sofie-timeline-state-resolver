@@ -529,7 +529,7 @@ describe('AtemStateBuilder', () => {
 			expect(expectedState.audio?.channels).toBeFalsy()
 			expectedState.audio = { channels: {} }
 
-			expectedState.audio.channels[1] = Object.assign(cloneDeep(Defaults.Audio.Channel), {
+			expectedState.audio.channels[1] = Object.assign(cloneDeep(Defaults.ClassicAudio.Channel), {
 				gain: 123,
 				balance: 456,
 				mixOption: 2,

@@ -839,6 +839,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@julusian/freetype2@npm:^1.1.2":
+  version: 1.1.2
+  resolution: "@julusian/freetype2@npm:1.1.2"
+  dependencies:
+    node-addon-api: ^5.0.0
+    node-gyp: latest
+    pkg-prebuilds: ^0.2.1
+  checksum: c690cf169908995c0cd3b2bd63f226c85ab9615d2da4c000644a311fd8ca736abae9e355ee7e2332dbaf1c59dd6be364f2711c6a31c4b0cfafdee28cb73a6beb
+  languageName: node
+  linkType: hard
+
 "@lerna/child-process@npm:6.6.2":
   version: 6.6.2
   resolution: "@lerna/child-process@npm:6.6.2"
@@ -2529,31 +2540,34 @@ asn1@evs-broadcast/node-asn1:
   languageName: node
   linkType: hard
 
-"atem-connection@npm:2.5.0":
-  version: 2.5.0
-  resolution: "atem-connection@npm:2.5.0"
+"atem-connection@npm:3.3.0":
+  version: 3.3.0
+  resolution: "atem-connection@npm:3.3.0"
   dependencies:
-    big-integer: ^1.6.51
-    eventemitter3: ^4.0.4
+    "@julusian/freetype2": ^1.1.2
+    debug: ^4.3.4
+    eventemitter3: ^4.0.7
     exit-hook: ^2.2.1
     nanotimer: ^0.3.15
-    threadedclass: ^0.8.0
-    tslib: ^1.13.0
+    p-lazy: ^3.1.0
+    p-queue: ^6.6.2
+    threadedclass: ^1.2.1
+    tslib: ^2.5.0
     wavefile: ^8.4.4
-  checksum: beaaffceb729f16056b85fbcd711a371973905353e9c8cdf85a0732fa0ff7d89b11039ffb70a599f184d30042110c59fd695ee772b17580073746c5beeb07e5b
+  checksum: d03c257f63e79b64885d9db2a59e9343cb3bf44345407535b06a0f5a73b9b6ea6454d69663cf604e456014abca0bcc71acdc07206539bdbb17feb405eb8d871c
   languageName: node
   linkType: hard
 
-"atem-state@npm:0.13.0":
-  version: 0.13.0
-  resolution: "atem-state@npm:0.13.0"
+"atem-state@npm:1.1.0-nightly-master-20230808-162153-a3d828d.0":
+  version: 1.1.0-nightly-master-20230808-162153-a3d828d.0
+  resolution: "atem-state@npm:1.1.0-nightly-master-20230808-162153-a3d828d.0"
   dependencies:
-    deepmerge: ^4.2.2
-    tslib: ^2.3.1
-    type-fest: ^1.4.0
+    deepmerge: ^4.3.1
+    tslib: ^2.6.1
+    type-fest: ^3.13.1
   peerDependencies:
-    atem-connection: ~2.5
-  checksum: d6b912e6a6a8f2e8c1a101234b24687ef5b4a5ae6fb407479088c881af1ee4cd8882f6f56310d087bf006f5f432bb298306890b6af445e077e0526b5651fdee1
+    atem-connection: 3.3.0-nightly-master-20230802-084852-005f0d57.0
+  checksum: 25e301019640db785c74e4a85775a8112954c63077f0300c866892d0ace279ea6ba9fa221aae35728c8fa091ddf23e15f43694c2e7c1ec8c23500ba6df72edb6
   languageName: node
   linkType: hard
 
@@ -2704,7 +2718,7 @@ asn1@evs-broadcast/node-asn1:
   languageName: node
   linkType: hard
 
-"big-integer@npm:^1.6.44, big-integer@npm:^1.6.51":
+"big-integer@npm:^1.6.44":
   version: 1.6.51
   resolution: "big-integer@npm:1.6.51"
   checksum: 3d444173d1b2e20747e2c175568bedeebd8315b0637ea95d75fd27830d3b8e8ba36c6af40374f36bdaea7b5de376dcada1b07587cb2a79a928fccdb6e6e3c518
@@ -9087,6 +9101,13 @@ asn1@evs-broadcast/node-asn1:
   languageName: node
   linkType: hard
 
+"p-lazy@npm:^3.1.0":
+  version: 3.1.0
+  resolution: "p-lazy@npm:3.1.0"
+  checksum: 289dbfd9de7d241498fd2d1ac9ec4e36de78672a92175f4b3c5fa9527b62f7549b06f549570b47f218d90b946f3a75611f9b8407934fe01512bc4fb56fdbf47d
+  languageName: node
+  linkType: hard
+
 "p-limit@npm:^1.1.0":
   version: 1.3.0
   resolution: "p-limit@npm:1.3.0"
@@ -9533,6 +9554,18 @@ asn1@evs-broadcast/node-asn1:
   dependencies:
     find-up: ^4.0.0
   checksum: 9863e3f35132bf99ae1636d31ff1e1e3501251d480336edb1c211133c8d58906bed80f154a1d723652df1fda91e01c7442c2eeaf9dc83157c7ae89087e43c8d6
+  languageName: node
+  linkType: hard
+
+"pkg-prebuilds@npm:^0.2.1":
+  version: 0.2.1
+  resolution: "pkg-prebuilds@npm:0.2.1"
+  dependencies:
+    yargs: ^17.5.1
+  bin:
+    pkg-prebuilds-copy: bin/copy.mjs
+    pkg-prebuilds-verify: bin/verify.mjs
+  checksum: ba4c802200558d5aa89e96e474976633c1f964ef0b2035a70dfde4b83af782a6624f33b4b83c19dd85db7aa9097e259a55ad53d63d55d62ac5d524997f3bbd17
   languageName: node
   linkType: hard
 
@@ -11283,18 +11316,6 @@ asn1@evs-broadcast/node-asn1:
   languageName: node
   linkType: hard
 
-"threadedclass@npm:^0.8.0":
-  version: 0.8.3
-  resolution: "threadedclass@npm:0.8.3"
-  dependencies:
-    callsites: ^3.1.0
-    eventemitter3: ^4.0.4
-    is-running: ^2.1.0
-    tslib: ^1.13.0
-  checksum: 64f3c25e1c3178fb4f2bbc278329cdf348a5d7379fa80fe5489e2107c69c5bf01daadc44421881ffc314bbbc8d1a5e17f5886147a3fd55bc80cd667b63e842e6
-  languageName: node
-  linkType: hard
-
 "threadedclass@npm:^1.2.1":
   version: 1.2.1
   resolution: "threadedclass@npm:1.2.1"
@@ -11362,7 +11383,6 @@ asn1@evs-broadcast/node-asn1:
     symlink-dir: ^5.1.1
     ts-jest: ^29.1.0
     ts-node: ^8.10.2
-    type-fest: ^3.10.0
     typedoc: ^0.23.28
     typescript: ~4.9.5
   languageName: unknown
@@ -11381,8 +11401,8 @@ asn1@evs-broadcast/node-asn1:
   resolution: "timeline-state-resolver@workspace:packages/timeline-state-resolver"
   dependencies:
     "@tv2media/v-connection": ^7.3.0
-    atem-connection: 2.5.0
-    atem-state: 0.13.0
+    atem-connection: 3.3.0
+    atem-state: 1.1.0-nightly-master-20230808-162153-a3d828d.0
     cacheable-lookup: ^5.0.3
     casparcg-connection: ^6.0.6
     casparcg-state: ^3.0.2
@@ -11409,8 +11429,8 @@ asn1@evs-broadcast/node-asn1:
     timeline-state-resolver-types: 9.1.0-release51
     tslib: ^2.5.1
     tv-automation-quantel-gateway-client: ^3.1.7
+    type-fest: ^3.10.0
     underscore: ^1.13.6
-    underscore-deep-extend: ^1.1.5
     utf-8-validate: ^5.0.10
     vinyl-fs: ^3.0.3
     ws: ^7.5.9
@@ -11621,17 +11641,10 @@ asn1@evs-broadcast/node-asn1:
   languageName: node
   linkType: hard
 
-"tslib@npm:^2.1.0, tslib@npm:^2.3.0, tslib@npm:^2.3.1, tslib@npm:^2.4.0, tslib@npm:^2.5.0, tslib@npm:^2.5.1":
-  version: 2.5.1
-  resolution: "tslib@npm:2.5.1"
-  checksum: 535e41e956b32d21aeff007a2c74989d1a6bf3fecb2b0141d80e5b9920bf90e23b4f0cd3772704bc03637c762dbdc1a314d75a407dd7189afbe3e83d80df9392
-  languageName: node
-  linkType: hard
-
-"tslib@npm:^2.6.0":
-  version: 2.6.0
-  resolution: "tslib@npm:2.6.0"
-  checksum: c01066038f950016a18106ddeca4649b4d76caa76ec5a31e2a26e10586a59fceb4ee45e96719bf6c715648e7c14085a81fee5c62f7e9ebee68e77a5396e5538f
+"tslib@npm:^2.1.0, tslib@npm:^2.3.0, tslib@npm:^2.3.1, tslib@npm:^2.4.0, tslib@npm:^2.5.0, tslib@npm:^2.5.1, tslib@npm:^2.6.0, tslib@npm:^2.6.1":
+  version: 2.6.2
+  resolution: "tslib@npm:2.6.2"
+  checksum: 329ea56123005922f39642318e3d1f0f8265d1e7fcb92c633e0809521da75eeaca28d2cf96d7248229deb40e5c19adf408259f4b9640afd20d13aecc1430f3ad
   languageName: node
   linkType: hard
 
@@ -11756,7 +11769,7 @@ asn1@evs-broadcast/node-asn1:
   languageName: node
   linkType: hard
 
-"type-fest@npm:^1.0.1, type-fest@npm:^1.4.0":
+"type-fest@npm:^1.0.1":
   version: 1.4.0
   resolution: "type-fest@npm:1.4.0"
   checksum: b011c3388665b097ae6a109a437a04d6f61d81b7357f74cbcb02246f2f5bd72b888ae33631b99871388122ba0a87f4ff1c94078e7119ff22c70e52c0ff828201
@@ -11770,12 +11783,10 @@ asn1@evs-broadcast/node-asn1:
   languageName: node
   linkType: hard
 
-"type-fest@npm:^3.1.0, type-fest@npm:^3.10.0":
-  version: 3.10.0
-  resolution: "type-fest@npm:3.10.0"
-  peerDependencies:
-    typescript: ">=4.7.0"
-  checksum: df3bd25809ea79ac7712da7c11648251118c23f65b226eba263797e42be60ba34085874ec492202b8ecf2e5a2273b27ddcbfe3be2c275dfcef3f0e2ee90ea179
+"type-fest@npm:^3.1.0, type-fest@npm:^3.10.0, type-fest@npm:^3.13.1":
+  version: 3.13.1
+  resolution: "type-fest@npm:3.13.1"
+  checksum: c06b0901d54391dc46de3802375f5579868949d71f93b425ce564e19a428a0d411ae8d8cb0e300d330071d86152c3ea86e744c3f2860a42a79585b6ec2fdae8e
   languageName: node
   linkType: hard
 
@@ -11856,13 +11867,6 @@ asn1@evs-broadcast/node-asn1:
   version: 0.1.2
   resolution: "unc-path-regex@npm:0.1.2"
   checksum: a05fa2006bf4606051c10fc7968f08ce7b28fa646befafa282813aeb1ac1a56f65cb1b577ca7851af2726198d59475bb49b11776036257b843eaacee2860a4ec
-  languageName: node
-  linkType: hard
-
-"underscore-deep-extend@npm:^1.1.5":
-  version: 1.1.5
-  resolution: "underscore-deep-extend@npm:1.1.5"
-  checksum: 5bc6d1af0e4cc5cc177284eb00327991a08f5a6b632f45daa2cc625f54705b4e22330752b68d340356f0df2d5d01310aa22c28a9a9a63ec16ac78e082aba9e03
   languageName: node
   linkType: hard
 
@@ -12581,7 +12585,7 @@ asn1@evs-broadcast/node-asn1:
   languageName: node
   linkType: hard
 
-"yargs@npm:^17.3.1, yargs@npm:^17.6.2":
+"yargs@npm:^17.3.1, yargs@npm:^17.5.1, yargs@npm:^17.6.2":
   version: 17.7.2
   resolution: "yargs@npm:17.7.2"
   dependencies:

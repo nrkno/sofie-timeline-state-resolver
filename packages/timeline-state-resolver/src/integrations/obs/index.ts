@@ -1,5 +1,4 @@
 import * as _ from 'underscore'
-import * as underScoreDeepExtend from 'underscore-deep-extend'
 import { DeviceWithState, CommandWithContext, DeviceStatus, StatusCode } from './../../devices/device'
 import { DoOnTime, SendMode } from '../../devices/doOnTime'
 
@@ -18,17 +17,13 @@ import {
 	Mapping,
 	MappingObsType,
 } from 'timeline-state-resolver-types'
+import { deepExtend } from '../../lib'
 
 interface OBSRequest {
 	requestName: OBSRequestName
 	args: object
 }
 
-_.mixin({ deepExtend: underScoreDeepExtend(_) })
-function deepExtend<T>(destination: T, ...sources: any[]) {
-	// @ts-ignore (mixin)
-	return _.deepExtend(destination, ...sources)
-}
 export interface DeviceOptionsOBSInternal extends DeviceOptionsOBS {
 	commandReceiver?: CommandReceiver
 }

@@ -1,4 +1,4 @@
-import { AtemStateUtil, Enums } from 'atem-connection'
+import { AtemStateUtil, Enums, VideoState } from 'atem-connection'
 import {
 	Mapping,
 	SomeMappingAtem,
@@ -25,19 +25,12 @@ import {
 	MappingAtemSuperSourceBox,
 	MappingAtemSuperSourceProperties,
 	MappingAtemDownStreamKeyer,
+	MappingAtemAudioRouting,
+	TimelineContentAtemAudioRouting,
 } from 'timeline-state-resolver-types'
 import _ = require('underscore')
-import * as underScoreDeepExtend from 'underscore-deep-extend'
 import { State as DeviceState, Defaults as StateDefault } from 'atem-state'
-import { assertNever, cloneDeep } from '../../lib'
-import { MappingAtemAudioRouting, TimelineContentAtemAudioRouting } from 'timeline-state-resolver-types/src'
-
-_.mixin({ deepExtend: underScoreDeepExtend(_) })
-
-function deepExtend<T>(destination: T, ...sources: any[]) {
-	// @ts-ignore (mixin)
-	return _.deepExtend(destination, ...sources)
-}
+import { assertNever, cloneDeep, deepExtend } from '../../lib'
 
 export class AtemStateBuilder {
 	// Start out with default state:
@@ -124,7 +117,16 @@ export class AtemStateBuilder {
 		if (typeof mapping.index !== 'number' || mapping.index < 0) return
 
 		const stateMixEffect = AtemStateUtil.getMixEffect(this.#deviceState, mapping.index)
-		deepExtend(stateMixEffect, _.omit(content.me, 'upstreamKeyers'))
+		deepExtend(stateMixEffect, _.omit(content.me, 'upstreamKeyers', 'transitionPosition'))
+		if (typeof content.me.transitionPosition === 'number') {
+			stateMixEffect.transitionPosition = {
+				handlePosition: content.me.transitionPosition,
+
+				// Readonly properties
+				inTransition: false,
+				remainingFrames: 0,
+			}
+		}
 
 		const objectTransition = content.me.transition
 		if (this._isAssignableToNextStyle(objectTransition)) {
@@ -157,7 +159,10 @@ export class AtemStateBuilder {
 			if (stateBox) {
 				deepExtend(stateBox, objBox)
 			} else {
-				stateSuperSource.boxes[i] = deepExtend(cloneDeep(StateDefault.Video.SuperSourceBox), objBox)
+				stateSuperSource.boxes[i] = deepExtend<VideoState.SuperSource.SuperSourceBox>(
+					cloneDeep(StateDefault.Video.SuperSourceBox),
+					objBox
+				)
 			}
 		})
 	}
@@ -209,7 +214,8 @@ export class AtemStateBuilder {
 
 		if (!this.#deviceState.audio) this.#deviceState.audio = { channels: {} }
 
-		const stateAudioChannel = this.#deviceState.audio.channels[mapping.index] ?? cloneDeep(StateDefault.Audio.Channel)
+		const stateAudioChannel =
+			this.#deviceState.audio.channels[mapping.index] ?? cloneDeep(StateDefault.ClassicAudio.Channel)
 		this.#deviceState.audio.channels[mapping.index] = {
 			...cloneDeep(stateAudioChannel),
 			...content.audioChannel,
