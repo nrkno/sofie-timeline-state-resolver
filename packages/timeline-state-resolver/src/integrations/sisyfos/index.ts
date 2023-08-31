@@ -151,6 +151,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 	}
 	async terminate() {
 		this._doOnTime.dispose()
+		this._sisyfos.dispose()
 		return Promise.resolve(true)
 	}
 	getStatus(): DeviceStatus {
