@@ -327,6 +327,33 @@ export class AtemDevice extends DeviceWithState<DeviceState, DeviceOptionsAtemIn
 								}
 							}
 							break
+
+						case MappingAtemType.AudioRouting:
+							if (content.type === TimelineContentTypeAtem.AUDIOROUTING) {
+								// lazily generate the state properties, to make this be opt in per-mapping
+								if (!deviceState.fairlight)
+									deviceState.fairlight = {
+										inputs: {},
+									}
+								if (!deviceState.fairlight.audioRouting)
+									deviceState.fairlight.audioRouting = {
+										sources: {},
+										outputs: {},
+									}
+
+								deviceState.fairlight.audioRouting.outputs[mapping.options.index] = {
+									// readonly props, they won't be diffed
+									audioOutputId: mapping.options.index,
+									audioChannelPair: 0,
+									externalPortType: 0,
+									internalPortType: 0,
+
+									// mutable props
+									name: `Output ${mapping.options.index}`,
+									...content.audioRouting,
+								}
+							}
+							break
 					}
 				}
 
@@ -432,16 +459,12 @@ export class AtemDevice extends DeviceWithState<DeviceState, DeviceOptionsAtemIn
 			}
 		}
 
-		return _.map(this._state.diffStates(oldAtemState, newAtemState), (cmd: any) => {
-			if (_.has(cmd, 'command') && _.has(cmd, 'context')) {
-				return cmd as AtemCommandWithContext
-			} else {
-				// backwards compability, to be removed later:
-				return {
-					command: cmd as AtemCommands.ISerializableCommand,
-					context: null,
-					timelineObjId: '', // @todo: implement in Atem-state
-				}
+		const diffCommands = this._state.diffStates(oldAtemState, newAtemState)
+		return diffCommands.map((cmd) => {
+			return {
+				command: cmd,
+				context: null,
+				timelineObjId: '', // @todo: implement in Atem-state
 			}
 		})
 	}
