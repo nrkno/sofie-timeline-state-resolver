@@ -2,6 +2,7 @@
 import { compile, compileFromFile } from 'json-schema-to-typescript'
 import * as fs from 'fs/promises'
 import * as path from 'path'
+import $RefParser from 'json-schema-ref-parser'
 
 /** ********************************************************
  *
@@ -74,10 +75,22 @@ for (const dir of dirs) {
 
 	let output = ''
 
+	await derefSchema(dirPath, 'options')
+	await derefSchema(dirPath, 'mappings')
+	await derefSchema(dirPath, 'actions')
+
 	// compile options from file
 	try {
-		const filePath = path.join(dirPath, '$schemas/options.json')
-		if (await fsExists(filePath)) {
+		const filePaths = [path.join(dirPath, '$schemas/options.deref.json'), path.join(dirPath, '$schemas/options.json')]
+		let filePath = undefined
+		for (const path of filePaths) {
+			if (await fsExists(path)) {
+				filePath = path
+				break
+			}
+		}
+
+		if (filePath !== undefined) {
 			const options = await compileFromFile(filePath, {
 				additionalProperties: false,
 				style: PrettierConf,
@@ -94,8 +107,16 @@ for (const dir of dirs) {
 	// compile mappings from file
 	const mappingIds = []
 	try {
-		const filePath = path.join(dirPath, '$schemas/mappings.json')
-		if (await fsExists(filePath)) {
+		const filePaths = [path.join(dirPath, '$schemas/mappings.deref.json'), path.join(dirPath, '$schemas/mappings.json')]
+		let filePath = undefined
+		for (const path of filePaths) {
+			if (await fsExists(path)) {
+				filePath = path
+				break
+			}
+		}
+
+		if (filePath !== undefined) {
 			const mappingDescr = JSON.parse(await fs.readFile(filePath))
 			for (const [id, mapping] of Object.entries(mappingDescr.mappings)) {
 				mappingIds.push(id)
@@ -144,8 +165,16 @@ for (const dir of dirs) {
 	// compile actions from file
 	const actionIds = []
 	try {
-		const filePath = path.join(dirPath, '$schemas/actions.json')
-		if (await fsExists(filePath)) {
+		const filePaths = [path.join(dirPath, '$schemas/actions.deref.json'), path.join(dirPath, '$schemas/actions.json')]
+		let filePath = undefined
+		for (const path of filePaths) {
+			if (await fsExists(path)) {
+				filePath = path
+				break
+			}
+		}
+
+		if (filePath !== undefined) {
 			const actionsDescr = JSON.parse(await fs.readFile(filePath))
 			for (const action of actionsDescr.actions) {
 				actionIds.push(action.id)
@@ -214,5 +243,22 @@ async function fsUnlink(filePath) {
 	} catch (e) {
 		if (`${e}`.match(/ENOENT/)) return false // File doesn't exist, that's okay
 		throw e
+	}
+}
+
+async function derefSchema(dirPath, schemaPath) {
+	try {
+		// Check for schema files with references and write a flattened version for the manifest
+		const filePath = path.join(dirPath, `$schemas/${schemaPath}.json`)
+		if ((await fsExists(filePath)) && (await fs.readFile(filePath, { encoding: 'utf-8' })).includes('"$ref":')) {
+			const derefOptions = await $RefParser.dereference(filePath)
+			await fs.writeFile(
+				path.join(dirPath, `$schemas/${schemaPath}.deref.json`),
+				JSON.stringify(derefOptions, undefined, 2)
+			)
+		}
+	} catch (e) {
+		console.error(`Error while dereferencing ${schemaPath} for ' + dir + ', continuing...`)
+		console.error(e)
 	}
 }

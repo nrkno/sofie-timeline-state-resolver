@@ -133,6 +133,7 @@
 	"devDependencies": {
 		"i18next-conv": "^13.1.1",
 		"i18next-parser": "^6.6.0",
+		"json-schema-ref-parser": "^9.0.9",
 		"json-schema-to-typescript": "^10.1.5",
 		"vinyl-fs": "^3.0.3"
 	}
