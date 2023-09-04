@@ -28,6 +28,10 @@ TSR is primarily developed to be used in the [Playout Gateway](https://github.co
 
 When developing support for new devices, a helpful tool for quickly trying out new functionality is the [Quick-TSR repo](https://github.com/nytamin/quickTSR).
 
+### Using references in integration schemas
+
+When writing the schemas for integrations (for actions, mappings, and options), json-schema references may be used to split the schemas into multiple files. If, for example, the `mappings.json` file contains any `"$ref"` to other schemas, then a file called `mappings.deref.json` will be generated. This file should be used in `packages/timeline-state-resolver/src/manifest.ts` to register the mappings for the integration.
+
 ## Installation instructions (for developers)
 
 ### Prerequisites
