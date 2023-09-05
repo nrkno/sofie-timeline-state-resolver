@@ -155,6 +155,8 @@ export class OSCMessageDevice extends DeviceWithState<OSCDeviceState, DeviceOpti
 	}
 	async terminate() {
 		this._doOnTime.dispose()
+		this._oscClient.close()
+		this._oscClient.removeAllListeners()
 		return Promise.resolve(true)
 	}
 	getStatus(): DeviceStatus {

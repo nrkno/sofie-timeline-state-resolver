@@ -125,6 +125,7 @@ export class ShotokuDevice extends DeviceWithState<ShotokuDeviceState, DeviceOpt
 	}
 	async terminate() {
 		this._doOnTime.dispose()
+		await this._shotoku.dispose()
 		return Promise.resolve(true)
 	}
 	getStatus(): DeviceStatus {
