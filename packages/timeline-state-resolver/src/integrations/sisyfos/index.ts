@@ -150,6 +150,8 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 	}
 	async terminate() {
 		this._doOnTime.dispose()
+		this._sisyfos.dispose()
+		this._sisyfos.removeAllListeners()
 	}
 	getStatus(): DeviceStatus {
 		let statusCode = StatusCode.GOOD

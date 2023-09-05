@@ -132,6 +132,8 @@ export class AtemDevice extends DeviceWithState<DeviceState, DeviceOptionsAtemIn
 		this._doOnTime.dispose()
 
 		await this._atem.disconnect()
+		this._atem.destroy().catch(() => null)
+		this._atem.removeAllListeners()
 	}
 
 	private async resyncState(): Promise<ActionExecutionResult> {

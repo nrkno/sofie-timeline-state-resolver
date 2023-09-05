@@ -44,6 +44,7 @@ export class HTTPSendDevice
 		return true
 	}
 	async terminate(): Promise<void> {
+		this.activeLayers.clear()
 		this._terminated = true
 	}
 

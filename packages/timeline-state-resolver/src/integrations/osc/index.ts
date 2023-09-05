@@ -83,6 +83,7 @@ export class OscDevice
 	}
 	async terminate(): Promise<void> {
 		this._oscClient.close()
+		this._oscClient.removeAllListeners()
 	}
 
 	convertTimelineStateToDeviceState(state: Timeline.TimelineState<TSRTimelineContent>): OscDeviceState {
