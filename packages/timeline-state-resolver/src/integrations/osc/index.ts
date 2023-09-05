@@ -83,6 +83,8 @@ export class OscDevice extends EventEmitter implements Device<OSCOptions, OscDev
 		return Promise.resolve(true) // This device doesn't have any initialization procedure
 	}
 	async terminate(): Promise<boolean> {
+		this._oscClient.close()
+		this._oscClient.removeAllListeners()
 		return true
 	}
 

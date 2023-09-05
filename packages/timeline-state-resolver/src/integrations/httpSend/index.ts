@@ -116,6 +116,7 @@ export class HTTPSendDevice extends DeviceWithState<HTTPSendState, DeviceOptions
 	}
 	async terminate() {
 		this._doOnTime.dispose()
+		this.activeLayers.clear()
 		return Promise.resolve(true)
 	}
 	getStatus(): DeviceStatus {

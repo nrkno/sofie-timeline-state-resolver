@@ -141,6 +141,10 @@ export class AtemDevice extends DeviceWithState<DeviceState, DeviceOptionsAtemIn
 				.catch(() => {
 					resolve(false)
 				})
+				.finally(() => {
+					this._atem.destroy().catch(() => null)
+					this._atem.removeAllListeners()
+				})
 		})
 	}
 
