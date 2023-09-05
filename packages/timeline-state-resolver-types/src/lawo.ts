@@ -2,7 +2,7 @@ import { Mapping } from './mapping'
 import { DeviceType } from '.'
 
 export type EmberValue = number | string | boolean | Buffer | null
-enum ParameterType {
+export enum EmberParameterType {
 	Null = 'NULL',
 	Integer = 'INTEGER',
 	Real = 'REAL',
@@ -17,7 +17,7 @@ export interface MappingLawo extends Mapping {
 	device: DeviceType.LAWO
 	mappingType: MappingLawoType
 	identifier?: string
-	emberType?: ParameterType
+	emberType?: EmberParameterType
 	priority?: number
 }
 export enum MappingLawoType {
@@ -52,7 +52,7 @@ export type SetLawoValueFn = (command: LawoCommand, timelineObjId: string, logCo
 export interface LawoCommand {
 	path: string
 	value: EmberValue
-	valueType: ParameterType
+	valueType: EmberParameterType
 	key: string
 	identifier: string
 	type: TimelineContentTypeLawo
