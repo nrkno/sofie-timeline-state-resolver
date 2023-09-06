@@ -105,7 +105,7 @@ for (const dir of dirs) {
 
 	// compile options from file
 	try {
-		const filePath = path.join(generatedSchemaDirectory, 'options.deref.json')
+		const filePath = path.join(generatedSchemaDirectory, 'options.json')
 		if (await fsExists(filePath)) {
 			const options = await compileFromFile(filePath, {
 				additionalProperties: false,
@@ -123,7 +123,7 @@ for (const dir of dirs) {
 	// compile mappings from file
 	const mappingIds = []
 	try {
-		const filePath = path.join(generatedSchemaDirectory, 'mappings.deref.json')
+		const filePath = path.join(generatedSchemaDirectory, 'mappings.json')
 		if (await fsExists(filePath)) {
 			const mappingDescr = JSON.parse(await fs.readFile(filePath))
 			for (const [id, mapping] of Object.entries(mappingDescr.mappings)) {
@@ -173,7 +173,7 @@ for (const dir of dirs) {
 	// compile actions from file
 	const actionIds = []
 	try {
-		const filePath = path.join(generatedSchemaDirectory, 'actions.deref.json')
+		const filePath = path.join(generatedSchemaDirectory, 'actions.json')
 		if (await fsExists(filePath)) {
 			const actionsDescr = JSON.parse(await fs.readFile(filePath))
 			for (const action of actionsDescr.actions) {
@@ -252,10 +252,7 @@ async function derefSchema(dirPath, schemaPath, outputDirectory) {
 		const filePath = path.join(dirPath, `$schemas/${schemaPath}.json`)
 		if (await fsExists(filePath)) {
 			const derefOptions = await $RefParser.dereference(filePath)
-			await fs.writeFile(
-				path.join(outputDirectory, `${schemaPath}.deref.json`),
-				JSON.stringify(derefOptions, undefined, 2)
-			)
+			await fs.writeFile(path.join(outputDirectory, `${schemaPath}.json`), JSON.stringify(derefOptions, undefined, 2))
 		}
 	} catch (e) {
 		console.error(`Error while dereferencing ${schemaPath} for '${dir}', continuing...`)
