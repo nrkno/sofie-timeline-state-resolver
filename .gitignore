@@ -11,6 +11,7 @@ wallaby.conf.js
 
 .DS_Store
 packages/*/coverage/
+packages/**/$schemas/*.deref.json
 .npmrc
 
 # Ignore JetBrains IDE specific files

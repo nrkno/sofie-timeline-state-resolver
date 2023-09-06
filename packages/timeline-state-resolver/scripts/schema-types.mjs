@@ -81,16 +81,8 @@ for (const dir of dirs) {
 
 	// compile options from file
 	try {
-		const filePaths = [path.join(dirPath, '$schemas/options.deref.json'), path.join(dirPath, '$schemas/options.json')]
-		let filePath = undefined
-		for (const path of filePaths) {
-			if (await fsExists(path)) {
-				filePath = path
-				break
-			}
-		}
-
-		if (filePath !== undefined) {
+		const filePath = path.join(dirPath, '$schemas/options.deref.json')
+		if (await fsExists(filePath)) {
 			const options = await compileFromFile(filePath, {
 				additionalProperties: false,
 				style: PrettierConf,
@@ -107,16 +99,8 @@ for (const dir of dirs) {
 	// compile mappings from file
 	const mappingIds = []
 	try {
-		const filePaths = [path.join(dirPath, '$schemas/mappings.deref.json'), path.join(dirPath, '$schemas/mappings.json')]
-		let filePath = undefined
-		for (const path of filePaths) {
-			if (await fsExists(path)) {
-				filePath = path
-				break
-			}
-		}
-
-		if (filePath !== undefined) {
+		const filePath = path.join(dirPath, '$schemas/mappings.deref.json')
+		if (await fsExists(filePath)) {
 			const mappingDescr = JSON.parse(await fs.readFile(filePath))
 			for (const [id, mapping] of Object.entries(mappingDescr.mappings)) {
 				mappingIds.push(id)
@@ -165,16 +149,8 @@ for (const dir of dirs) {
 	// compile actions from file
 	const actionIds = []
 	try {
-		const filePaths = [path.join(dirPath, '$schemas/actions.deref.json'), path.join(dirPath, '$schemas/actions.json')]
-		let filePath = undefined
-		for (const path of filePaths) {
-			if (await fsExists(path)) {
-				filePath = path
-				break
-			}
-		}
-
-		if (filePath !== undefined) {
+		const filePath = path.join(dirPath, '$schemas/actions.deref.json')
+		if (await fsExists(filePath)) {
 			const actionsDescr = JSON.parse(await fs.readFile(filePath))
 			for (const action of actionsDescr.actions) {
 				actionIds.push(action.id)
@@ -250,7 +226,7 @@ async function derefSchema(dirPath, schemaPath) {
 	try {
 		// Check for schema files with references and write a flattened version for the manifest
 		const filePath = path.join(dirPath, `$schemas/${schemaPath}.json`)
-		if ((await fsExists(filePath)) && (await fs.readFile(filePath, { encoding: 'utf-8' })).includes('"$ref":')) {
+		if (await fsExists(filePath)) {
 			const derefOptions = await $RefParser.dereference(filePath)
 			await fs.writeFile(
 				path.join(dirPath, `$schemas/${schemaPath}.deref.json`),
