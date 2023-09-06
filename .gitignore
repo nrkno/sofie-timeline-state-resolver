@@ -11,7 +11,7 @@ wallaby.conf.js
 
 .DS_Store
 packages/*/coverage/
-packages/**/$schemas/*.deref.json
+packages/timeline-state-resolver/src/generated
 .npmrc
 
 # Ignore JetBrains IDE specific files
