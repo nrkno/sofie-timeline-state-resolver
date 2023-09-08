@@ -6,6 +6,7 @@ import { ShotokuDevice } from '../integrations/shotoku'
 import { HTTPWatcherDevice } from '../integrations/httpWatcher'
 import { AbstractDevice } from '../integrations/abstract'
 import { TcpSendDevice } from '../integrations/tcpSend'
+import { QuantelDevice } from '../integrations/quantel'
 
 export interface DeviceEntry {
 	deviceClass: new (context: DeviceContextAPI) => Device<any, any, any>
@@ -21,6 +22,7 @@ export type ImplementedServiceDeviceTypes =
 	| DeviceType.OSC
 	| DeviceType.SHOTOKU
 	| DeviceType.TCPSEND
+	| DeviceType.QUANTEL
 
 // TODO - move all device implementations here and remove the old Device classes
 export const DevicesDict: Record<ImplementedServiceDeviceTypes, DeviceEntry> = {
@@ -59,5 +61,11 @@ export const DevicesDict: Record<ImplementedServiceDeviceTypes, DeviceEntry> = {
 		canConnect: true,
 		deviceName: (deviceId: string) => 'TCP' + deviceId,
 		executionMode: () => 'sequential', // todo: should this be configurable?
+	},
+	[DeviceType.QUANTEL]: {
+		deviceClass: QuantelDevice,
+		canConnect: true,
+		deviceName: (deviceId: string) => 'Quantel' + deviceId,
+		executionMode: () => 'salvo',
 	},
 }
