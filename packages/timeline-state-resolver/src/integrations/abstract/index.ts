@@ -5,6 +5,8 @@ import {
 	TSRTimelineContent,
 	ActionExecutionResult,
 	DeviceOptionsAbstract,
+	AbstractActions,
+	ActionExecutionResultCode,
 } from 'timeline-state-resolver-types'
 import EventEmitter = require('eventemitter3')
 import { Device } from '../../service/device'
@@ -29,7 +31,12 @@ export class AbstractDevice
 	extends EventEmitter<DeviceEvents>
 	implements Device<AbstractOptions, AbstractDeviceState, AbstractCommandWithContext>
 {
-	readonly actions: Record<string, (id: string, payload: Record<string, any>) => Promise<ActionExecutionResult>> = {}
+	readonly actions: Record<string, (id: string, payload: Record<string, any>) => Promise<ActionExecutionResult>> = {
+		[AbstractActions.TestAction]: async () => {
+			// noop
+			return { result: ActionExecutionResultCode.Ok }
+		},
+	}
 
 	public readonly connected = false
 
