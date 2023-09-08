@@ -1,4 +1,4 @@
-import { DeviceType, TcpSendCommandContent } from '.'
+import { DeviceType, TcpSendCommandContent } from '..'
 
 export enum TimelineContentTypeTcp {
 	GET = 'get',

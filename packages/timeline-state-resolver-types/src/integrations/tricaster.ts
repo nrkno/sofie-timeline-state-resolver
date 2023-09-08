@@ -1,4 +1,4 @@
-import { DeviceType } from '.'
+import { DeviceType } from '..'
 
 export type TriCasterMixEffectName = 'main' | `v${number}`
 export type TriCasterKeyerName = `dsk${number}`

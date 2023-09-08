@@ -1,4 +1,4 @@
-import { DeviceType } from '.'
+import { DeviceType } from '..'
 // import {EmberParameterType} from './generated/lawo'
 
 export type EmberValue = number | string | boolean | Buffer | null

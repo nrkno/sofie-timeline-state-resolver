@@ -1,4 +1,4 @@
-import { DeviceType } from '.'
+import { DeviceType } from '..'
 
 // Note: This type is a loose referral to (a copy of) keyof typeof Easing in '../../easings', so that Easing structure won't be included in the types package
 export type OSCEasingType =
