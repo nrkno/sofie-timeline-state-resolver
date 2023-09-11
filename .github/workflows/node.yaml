@@ -21,7 +21,7 @@ jobs:
         lib-name: [timeline-state-resolver, timeline-state-resolver-types]
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Use Node.js
         uses: actions/setup-node@v3
         with:
@@ -46,7 +46,7 @@ jobs:
     timeout-minutes: 15
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Use Node.js
         uses: actions/setup-node@v3
         with:
@@ -75,7 +75,7 @@ jobs:
         lib-name: [timeline-state-resolver, timeline-state-resolver-types]
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v3
         with:
@@ -118,7 +118,7 @@ jobs:
       # - validate-dependencies
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
       - name: Use Node.js
@@ -188,7 +188,7 @@ jobs:
         lib-name: [timeline-state-resolver, timeline-state-resolver-types]
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Use Node.js
         uses: actions/setup-node@v3
         with:
@@ -221,7 +221,7 @@ jobs:
         lib-name: [timeline-state-resolver, timeline-state-resolver-types]
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Use Node.js
         uses: actions/setup-node@v3
         with:
