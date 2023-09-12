@@ -21,26 +21,19 @@ const CLOCK_INTERVAL = 20
 export class StateHandler<DeviceState, Command extends CommandWithContext> {
 	private stateQueue: StateChange<DeviceState, Command>[] = []
 	private currentState: ExecutedStateChange<DeviceState, Command> | undefined
+	/** Semaphore, to ensure that .executeNextStateChange() is only executed one at a time */
 	private _executingStateChange = false
 
 	private clock: NodeJS.Timeout
-
-	private convertTimelineStateToDeviceState: BaseDeviceAPI<DeviceState, Command>['convertTimelineStateToDeviceState']
-	private diffDeviceStates: BaseDeviceAPI<DeviceState, Command>['diffStates']
-	private executeCommand: BaseDeviceAPI<DeviceState, Command>['sendCommand']
 
 	private logger: StateHandlerContext['logger']
 
 	constructor(
 		private context: StateHandlerContext,
 		private config: StateHandlerConfig,
-		device: BaseDeviceAPI<DeviceState, Command>
+		private device: BaseDeviceAPI<DeviceState, Command>
 	) {
 		this.logger = context.logger
-
-		this.convertTimelineStateToDeviceState = (s, m) => device.convertTimelineStateToDeviceState(s, m)
-		this.diffDeviceStates = (o, n, m) => device.diffStates(o, n, m)
-		this.executeCommand = async (c) => device.sendCommand(c)
 
 		this.setCurrentState(undefined).catch((e) => {
 			this.logger.error('Error while creating new StateHandler', e)
@@ -85,9 +78,11 @@ export class StateHandler<DeviceState, Command extends CommandWithContext> {
 		const nextState = this.stateQueue[0]
 
 		const trace = startTrace('device:convertTimelineStateToDeviceState', { deviceId: this.context.deviceId })
-		const deviceState = this.convertTimelineStateToDeviceState(state, mappings)
+		const deviceState = this.device.convertTimelineStateToDeviceState(state, mappings)
 		this.context.emitTimeTrace(endTrace(trace))
 
+		// Discard any states that comes after this one,
+		//  and append this one to the end:
 		this.stateQueue = [
 			...this.stateQueue.filter((s) => s.state.time < state.time), // TODO - can we smuggle a little and execute something for the next frame?
 			{
@@ -130,7 +125,7 @@ export class StateHandler<DeviceState, Command extends CommandWithContext> {
 
 		try {
 			const trace = startTrace('device:diffDeviceStates', { deviceId: this.context.deviceId })
-			nextState.commands = this.diffDeviceStates(
+			nextState.commands = this.device.diffStates(
 				this.currentState?.deviceState,
 				nextState.deviceState,
 				nextState.mappings
@@ -174,7 +169,7 @@ export class StateHandler<DeviceState, Command extends CommandWithContext> {
 			Promise.allSettled(
 				newState.commands.map(async (command) => {
 					newState.measurement?.executeCommand(command)
-					return this.executeCommand(command).then(() => {
+					return this.device.sendCommand(command).then(() => {
 						newState.measurement?.finishedCommandExecution(command)
 						return command
 					})
@@ -190,7 +185,7 @@ export class StateHandler<DeviceState, Command extends CommandWithContext> {
 			const execAll = async () => {
 				for (const command of newState.commands || []) {
 					newState.measurement?.executeCommand(command)
-					await this.executeCommand(command).catch((e) => {
+					await this.device.sendCommand(command).catch((e) => {
 						this.logger.error('Error while executing command', e)
 					})
 					newState.measurement?.finishedCommandExecution(command)
