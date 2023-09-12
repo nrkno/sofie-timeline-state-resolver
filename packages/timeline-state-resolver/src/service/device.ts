@@ -16,6 +16,8 @@ export type CommandWithContext = {
 	context: CommandContext
 	/** ID of the timeline-object that the command originated from */
 	timelineObjId: string
+	/** this command is to be executed x ms _before_ the scheduled time */
+	preliminary?: number
 }
 
 /**
