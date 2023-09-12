@@ -9,9 +9,9 @@ import {
 	type Timeline,
 	type TSRTimelineContent,
 } from 'timeline-state-resolver-types'
-import type { CommandWithContext, Device, DeviceEvents } from './device'
+import type { CommandWithContext, Device, DeviceContextAPI, DeviceEvents } from './device'
 import { StateHandler } from './stateHandler'
-import { DevicesDict } from './devices'
+import { DeviceEntry, DevicesDict } from './devices'
 import type { DeviceOptionsAnyInternal, ExpectedPlayoutItem } from '..'
 import type { StateChangeReport } from './measure'
 
@@ -54,13 +54,13 @@ export class DeviceInstanceWrapper extends EventEmitter<DeviceInstanceEvents> {
 	constructor(id: string, time: number, private config: Config, public getCurrentTime: () => Promise<number>) {
 		super()
 
-		const deviceSpecs = DevicesDict[config.type]
+		const deviceSpecs: DeviceEntry = DevicesDict[config.type]
 
 		if (!deviceSpecs) {
 			throw new Error('Could not find device of type ' + config.type)
 		}
 
-		this._device = new deviceSpecs.deviceClass()
+		this._device = new deviceSpecs.deviceClass(this._getDeviceContextAPI())
 		this._deviceId = id
 		this._deviceType = config.type
 		this._deviceName = deviceSpecs.deviceName(id, config)
@@ -147,9 +147,7 @@ export class DeviceInstanceWrapper extends EventEmitter<DeviceInstanceEvents> {
 	}
 
 	async makeReady(okToDestroyStuff?: boolean): Promise<void> {
-		if (this._device.makeReady) {
-			return this._device.makeReady(okToDestroyStuff)
-		}
+		return this._device.makeReady(okToDestroyStuff)
 	}
 	async standDown(): Promise<void> {
 		if (this._device.standDown) {
@@ -252,5 +250,11 @@ export class DeviceInstanceWrapper extends EventEmitter<DeviceInstanceEvents> {
 		this._device.on('timeTrace', (trace: FinishedTrace) => {
 			this.emit('timeTrace', trace)
 		})
+	}
+
+	private _getDeviceContextAPI(): DeviceContextAPI {
+		return {
+			hello: () => 'world',
+		}
 	}
 }

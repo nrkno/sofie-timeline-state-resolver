@@ -11,13 +11,12 @@ import {
 	Timeline,
 	TSRTimelineContent,
 } from 'timeline-state-resolver-types'
-import { CommandWithContext, Device, DeviceEvents } from '../../service/device'
+import { CommandWithContext, Device } from '../../service/device'
 import * as osc from 'osc'
 
 import Debug from 'debug'
 import _ = require('underscore')
 import { Easing } from '../../devices/transitions/easings'
-import EventEmitter = require('eventemitter3')
 const debug = Debug('timeline-state-resolver:osc')
 
 export interface OscDeviceState {
@@ -33,10 +32,7 @@ export interface OscCommandWithContext {
 	tlObjId: string
 }
 
-export class OscDevice
-	extends EventEmitter<DeviceEvents>
-	implements Device<OSCOptions, OscDeviceState, OscCommandWithContext>
-{
+export class OscDevice extends Device<OSCOptions, OscDeviceState, OscCommandWithContext> {
 	private _oscClient: osc.UDPPort | osc.TCPSocketPort
 	private _oscClientStatus: 'connected' | 'disconnected' = 'disconnected'
 	private transitions: {

@@ -1,4 +1,4 @@
-import { DeviceStatus, StatusCode, DeviceEvents } from './../../devices/device'
+import { DeviceStatus, StatusCode } from './../../devices/device'
 import {
 	AbstractOptions,
 	Timeline,
@@ -8,7 +8,6 @@ import {
 	AbstractActions,
 	ActionExecutionResultCode,
 } from 'timeline-state-resolver-types'
-import EventEmitter = require('eventemitter3')
 import { Device } from '../../service/device'
 
 export interface AbstractCommandWithContext {
@@ -27,10 +26,7 @@ export type AbstractDeviceState = Timeline.TimelineState<TSRTimelineContent>
 	An abstract device is just a test-device that doesn't really do anything, but can be used
 	as a preliminary mock
 */
-export class AbstractDevice
-	extends EventEmitter<DeviceEvents>
-	implements Device<AbstractOptions, AbstractDeviceState, AbstractCommandWithContext>
-{
+export class AbstractDevice extends Device<AbstractOptions, AbstractDeviceState, AbstractCommandWithContext> {
 	readonly actions: Record<string, (id: string, payload: Record<string, any>) => Promise<ActionExecutionResult>> = {
 		[AbstractActions.TestAction]: async () => {
 			// noop

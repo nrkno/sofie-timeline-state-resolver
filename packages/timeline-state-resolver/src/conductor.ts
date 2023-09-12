@@ -32,7 +32,7 @@ import { DoOnTime } from './devices/doOnTime'
 import { AsyncResolver } from './AsyncResolver'
 import { assertNever, endTrace, fillStateFromDatastore, FinishedTrace, startTrace } from './lib'
 
-import { CommandWithContext, DeviceEvents } from './devices/device'
+import { CommandWithContext } from './devices/device'
 import { DeviceContainer } from './devices/deviceContainer'
 
 import { CasparCGDevice, DeviceOptionsCasparCGInternal } from './integrations/casparCG'
@@ -54,6 +54,7 @@ import { TriCasterDevice, DeviceOptionsTriCasterInternal } from './integrations/
 import { DeviceOptionsMultiOSCInternal, MultiOSCMessageDevice } from './integrations/multiOsc'
 import { BaseRemoteDeviceIntegration, RemoteDeviceInstance } from './service/remoteDeviceInstance'
 import type { ImplementedServiceDeviceTypes } from './service/devices'
+import { DeviceEvents } from './service/device'
 
 export { DeviceContainer }
 export { CommandWithContext }

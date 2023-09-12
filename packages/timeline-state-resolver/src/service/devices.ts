@@ -1,13 +1,13 @@
 import { OscDevice } from '../integrations/osc'
 import { DeviceType } from 'timeline-state-resolver-types'
-import { Device } from './device'
+import { Device, DeviceContextAPI } from './device'
 import { HTTPSendDevice } from '../integrations/httpSend'
 import { ShotokuDevice } from '../integrations/shotoku'
 import { HTTPWatcherDevice } from '../integrations/httpWatcher'
 import { AbstractDevice } from '../integrations/abstract'
 
 export interface DeviceEntry {
-	deviceClass: new () => Device<any, any, any>
+	deviceClass: new (context: DeviceContextAPI) => Device<any, any, any>
 	canConnect: boolean
 	deviceName: (deviceId: string, options: any) => string
 	executionMode: (options: any) => 'salvo' | 'sequential'

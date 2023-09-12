@@ -11,10 +11,9 @@ import {
 	ShotokuTransitionType,
 	ShotokuOptions,
 } from 'timeline-state-resolver-types'
-import { Device, DeviceEvents } from '../../service/device'
+import { Device } from '../../service/device'
 
 import _ = require('underscore')
-import EventEmitter = require('eventemitter3')
 import { ShotokuAPI, ShotokuCommand, ShotokuCommandType } from './connection'
 
 export interface ShotokuDeviceState {
@@ -32,10 +31,7 @@ export interface ShotokuCommandWithContext {
 	tlObjId: string
 }
 
-export class ShotokuDevice
-	extends EventEmitter<DeviceEvents>
-	implements Device<ShotokuOptions, ShotokuDeviceState, ShotokuCommandWithContext>
-{
+export class ShotokuDevice extends Device<ShotokuOptions, ShotokuDeviceState, ShotokuCommandWithContext> {
 	private _shotoku: ShotokuAPI
 
 	async init(options: ShotokuOptions): Promise<boolean> {

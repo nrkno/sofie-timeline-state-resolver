@@ -8,6 +8,7 @@ import {
 	ActionExecutionResult,
 	MediaObject,
 } from 'timeline-state-resolver-types'
+import EventEmitter = require('eventemitter3')
 
 type CommandContext = any
 
@@ -18,28 +19,50 @@ export type CommandWithContext = {
 	tlObjId: string
 }
 
-export interface Device<DeviceOptions, DeviceState, Command extends CommandWithContext>
-	extends BaseDeviceAPI<DeviceState, Command> {
+/**
+ * API for use by the DeviceInstance to be able to use a device
+ */
+export abstract class Device<DeviceOptions, DeviceState, Command extends CommandWithContext>
+	extends EventEmitter<DeviceEvents, any>
+	implements BaseDeviceAPI<DeviceState, Command>
+{
+	constructor(protected context: DeviceContextAPI) {
+		super()
+	}
 	/**
 	 * Initiates the device connection, after this has resolved the device
 	 * is ready to be controlled
 	 */
-	init(options: DeviceOptions): Promise<boolean>
+	abstract init(options: DeviceOptions): Promise<boolean>
 	/**
 	 * Ready this class for garbage collection
 	 */
-	terminate(): Promise<void>
+	abstract terminate(): Promise<void>
 
 	/** @deprecated */
-	makeReady?(okToDestroyStuff?: boolean): Promise<void>
-	standDown?(): Promise<void>
+	async makeReady(_okToDestroyStuff?: boolean): Promise<void> {
+		// Do nothing by default
+	}
+	/** @deprecated */
+	async standDown(): Promise<void> {
+		// Do nothing by default
+	}
 
-	get connected(): boolean
-	getStatus(): Omit<DeviceStatus, 'active'>
+	abstract get connected(): boolean
+	abstract getStatus(): Omit<DeviceStatus, 'active'>
 
-	actions: Record<string, (id: string, payload?: Record<string, any>) => Promise<ActionExecutionResult>>
+	abstract actions: Record<string, (id: string, payload?: Record<string, any>) => Promise<ActionExecutionResult>>
 
 	// todo - add media objects
+
+	// From BaseDeviceAPI: -----------------------------------------------
+	abstract convertTimelineStateToDeviceState(
+		state: Timeline.TimelineState<TSRTimelineContent>,
+		newMappings: Mappings
+	): DeviceState
+	abstract diffStates(oldState: DeviceState | undefined, newState: DeviceState, mappings: Mappings): Array<Command>
+	abstract sendCommand(command: Command): Promise<void>
+	// -------------------------------------------------------------------
 }
 
 /**
@@ -93,4 +116,9 @@ export interface DeviceEvents {
 
 	commandReport: [commandReport: CommandReport]
 	timeTrace: [trace: FinishedTrace]
+}
+
+/** Various methods that the Devices can call */
+export interface DeviceContextAPI {
+	hello: () => string
 }

@@ -1,5 +1,4 @@
-import { EventEmitter } from 'eventemitter3'
-import { CommandWithContext, Device, DeviceEvents } from '../../service/device'
+import { CommandWithContext, Device } from '../../service/device'
 import {
 	ActionExecutionResult,
 	ActionExecutionResultCode,
@@ -29,10 +28,7 @@ export interface HttpSendDeviceCommand extends CommandWithContext {
 	}
 }
 
-export class HTTPSendDevice
-	extends EventEmitter<DeviceEvents>
-	implements Device<HTTPSendOptions, HttpSendDeviceState, HttpSendDeviceCommand>
-{
+export class HTTPSendDevice extends Device<HTTPSendOptions, HttpSendDeviceState, HttpSendDeviceCommand> {
 	private options: HTTPSendOptions
 	/** Maps layers -> sent command-hashes */
 	private trackedState = new Map<string, string>()

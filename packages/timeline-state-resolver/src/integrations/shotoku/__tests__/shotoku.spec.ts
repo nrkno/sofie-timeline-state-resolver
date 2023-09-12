@@ -7,6 +7,7 @@ import {
 	TSRTimelineContent,
 } from 'timeline-state-resolver-types'
 import { ShotokuCommandWithContext, ShotokuDevice, ShotokuDeviceState } from '..'
+import { DEFAULT_NOOP_CONTEXT } from '../../__tests__/testlib'
 import { ShotokuCommandType } from '../connection'
 
 const MOCKED_SOCKET_CONNECT = jest.fn((_: any, _2: any, cb: any) => cb())
@@ -28,7 +29,7 @@ jest.mock('net', () => {
 })
 
 async function getInitialisedDevice() {
-	const dev = new ShotokuDevice()
+	const dev = new ShotokuDevice(DEFAULT_NOOP_CONTEXT)
 	await dev.init({ host: 'localhost', port: 8082 })
 
 	const cb = SOCKET_EVENTS.get('connect')

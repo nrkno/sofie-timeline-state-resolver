@@ -4,9 +4,10 @@ import { AbstractCommandWithContext, AbstractDevice, AbstractDeviceState } from 
 import { StatusCode } from '../../../devices/device'
 import { MockTime } from '../../../__tests__/mockTime'
 import { ResolvedTimelineObjectInstance } from 'timeline-state-resolver-types/dist/superfly-timeline'
+import { DEFAULT_NOOP_CONTEXT } from '../../__tests__/testlib'
 
 async function getInitialisedDevice() {
-	const dev = new AbstractDevice()
+	const dev = new AbstractDevice(DEFAULT_NOOP_CONTEXT)
 	await dev.init({})
 
 	return dev
