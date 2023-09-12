@@ -26,6 +26,7 @@ import {
 	DeviceOptionsHTTPSend,
 	DeviceOptionsHTTPWatcher,
 	DeviceOptionsAbstract,
+	DeviceOptionsTCPSend,
 } from 'timeline-state-resolver-types'
 
 import { DoOnTime } from './devices/doOnTime'
@@ -40,7 +41,6 @@ import { AtemDevice, DeviceOptionsAtemInternal } from './integrations/atem'
 import { LawoDevice, DeviceOptionsLawoInternal } from './integrations/lawo'
 import { PanasonicPtzDevice, DeviceOptionsPanasonicPTZInternal } from './integrations/panasonicPTZ'
 import { HyperdeckDevice, DeviceOptionsHyperdeckInternal } from './integrations/hyperdeck'
-import { TCPSendDevice, DeviceOptionsTCPSendInternal } from './integrations/tcpSend'
 import { PharosDevice, DeviceOptionsPharosInternal } from './integrations/pharos'
 import { QuantelDevice, DeviceOptionsQuantelInternal } from './integrations/quantel'
 import { SisyfosMessageDevice, DeviceOptionsSisyfosInternal } from './integrations/sisyfos'
@@ -527,15 +527,6 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 					getCurrentTime,
 					threadedClassOptions
 				)
-			case DeviceType.TCPSEND:
-				return DeviceContainer.create<DeviceOptionsTCPSendInternal, typeof TCPSendDevice>(
-					'../../dist/integrations/tcpSend/index.js',
-					'TCPSendDevice',
-					deviceId,
-					deviceOptions,
-					getCurrentTime,
-					threadedClassOptions
-				)
 			case DeviceType.PANASONIC_PTZ:
 				return DeviceContainer.create<DeviceOptionsPanasonicPTZInternal, typeof PanasonicPtzDevice>(
 					'../../dist/integrations/panasonicPTZ/index.js',
@@ -657,7 +648,8 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 			case DeviceType.HTTPSEND:
 			case DeviceType.HTTPWATCHER:
 			case DeviceType.OSC:
-			case DeviceType.SHOTOKU: {
+			case DeviceType.SHOTOKU:
+			case DeviceType.TCPSEND: {
 				ensureIsImplementedAsService(deviceOptions.type)
 
 				// presumably this device is implemented in the new service handler
@@ -1566,7 +1558,7 @@ export type DeviceOptionsAnyInternal =
 	| DeviceOptionsHTTPSend
 	| DeviceOptionsHTTPWatcher
 	| DeviceOptionsPanasonicPTZInternal
-	| DeviceOptionsTCPSendInternal
+	| DeviceOptionsTCPSend
 	| DeviceOptionsHyperdeckInternal
 	| DeviceOptionsPharosInternal
 	| DeviceOptionsOBSInternal

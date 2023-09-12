@@ -1,222 +1,303 @@
-import { Mappings, DeviceType, Mapping, SomeMappingTcpSend } from 'timeline-state-resolver-types'
-import { Conductor } from '../../../conductor'
-import { Socket as MockSocket } from 'net'
-import { StatusCode } from '../../../devices/device'
-import { ThreadedClass } from 'threadedclass'
-import { MockTime } from '../../../__tests__/mockTime'
-import { TCPSendDevice } from '..'
+import { DeviceType, TimelineContentTCPSendAny, TSRTimelineContent, Timeline } from 'timeline-state-resolver-types'
+import { Socket as OrgSocket } from 'net'
+import { Socket as MockSocket } from '../../../__mocks__/net'
+import { literal } from '../../../devices/device'
+import { TcpSendDevice } from '..'
+import { getDeviceContext } from '../../__tests__/testlib'
 
 jest.mock('net')
+
+const SocketMock = OrgSocket as any as typeof MockSocket
+
+// SocketMock.mockClose
+
 const setTimeoutOrg = setTimeout
 
-async function waitALittleBit() {
+async function sleep(duration: number) {
 	return new Promise((resolve) => {
-		setTimeoutOrg(resolve, 10)
+		setTimeoutOrg(resolve, duration)
 	})
 }
 
-// let nowActual = Date.now()
-describe('TCP-Send', () => {
-	const mockTime = new MockTime()
-	beforeEach(() => {
-		mockTime.init()
+async function getInitializedTcpDevice() {
+	const dev = new TcpSendDevice(getDeviceContext())
+	await dev.init({
+		host: '192.168.0.254',
+		port: 1234,
 	})
-	// afterEach(() => {})
-	test('Send message', async () => {
-		const commandReceiver0: any = jest.fn((time, cmd, context) => {
-			// return Promise.resolve()
-			// @ts-ignore
-			device._defaultCommandReceiver(time, cmd, context)
-		})
+	await sleep(10)
+	return dev
+}
 
-		const onSocketCreate = jest.fn()
-		const onConnection = jest.fn()
-		const onSocketClose = jest.fn()
-		const onSocketWrite = jest.fn()
-		const onConnectionChanged = jest.fn()
+describe('TCP-Send', () => {
+	const onSocketCreate = jest.fn()
+	const onConnection = jest.fn()
+	const onSocketClose = jest.fn()
+	const onSocketWrite = jest.fn()
+	const onConnectionChanged = jest.fn()
 
-		// @ts-ignore MockSocket
-		MockSocket.mockOnNextSocket((socket: any) => {
-			onSocketCreate(onSocketCreate)
+	function setupSocketMock() {
+		SocketMock.mockOnNextSocket((socket: any) => {
+			onSocketCreate()
 
 			socket.onConnect = onConnection
 			socket.onWrite = onSocketWrite
 			socket.onClose = onSocketClose
 		})
+	}
+	beforeEach(() => {
+		setupSocketMock()
+	})
+	afterEach(() => {
+		const sockets = SocketMock.openSockets()
+		// Destroy any lingering sockets, to prevent a failing test from affecting other tests:
+		sockets.forEach((s) => s.destroy())
 
-		const myLayerMapping0: Mapping<SomeMappingTcpSend> = {
-			device: DeviceType.TCPSEND,
-			deviceId: 'myTCP',
-			options: {},
-		}
-		const myLayerMapping: Mappings = {
-			myLayer0: myLayerMapping0,
-		}
+		SocketMock.clearMockOnNextSocket()
+		onSocketCreate.mockClear()
+		onConnection.mockClear()
+		onSocketClose.mockClear()
+		onSocketWrite.mockClear()
+		onConnectionChanged.mockClear()
 
-		const myConductor = new Conductor({
-			multiThreadedResolver: false,
-			getCurrentTime: () => mockTime.now,
+		// Just a check to ensure that the unit tests cleaned up the socket after themselves:
+		// eslint-disable-next-line jest/no-standalone-expect
+		expect(sockets).toHaveLength(0)
+	})
+
+	describe('diffState', () => {
+		test('Empty states', async () => {
+			const device = await getInitializedTcpDevice()
+			const commands = device.diffStates(createTimelineState({}), createTimelineState({}))
+			expect(commands).toEqual([])
+			await device.terminate()
 		})
-		const onError = jest.fn(console.log)
-		myConductor.on('error', onError)
-		await myConductor.init()
+		test('New command', async () => {
+			const device = await getInitializedTcpDevice()
 
-		await myConductor.addDevice('myTCP', {
-			type: DeviceType.TCPSEND,
-
-			options: {
-				host: '192.168.0.1',
-				port: 1234,
-				makeReadyCommands: [
-					{
-						message: 'makeReady0',
+			const content = literal<TimelineContentTCPSendAny>({
+				...DEFAULT_TL_CONTENT,
+				message: 'hello world',
+			})
+			const commands = device.diffStates(
+				createTimelineState({}),
+				createTimelineState({
+					layer0: {
+						id: 'obj0',
+						content,
 					},
-					{
-						message: 'makeReady1',
+				})
+			)
+			expect(commands).toEqual([
+				{
+					timelineObjId: 'obj0',
+					context: `added: obj0`,
+					command: {
+						commandName: 'added',
+						content,
+						layer: 'layer0',
 					},
-				],
-				// bufferEncoding: 'hex',
-			},
-			commandReceiver: commandReceiver0,
-		})
-
-		expect(onSocketCreate).toHaveBeenCalledTimes(1)
-
-		// @ts-ignore
-		const sockets = MockSocket.mockSockets()
-		expect(sockets).toHaveLength(1)
-		const socket = sockets[0]
-
-		myConductor.setTimelineAndMappings([], myLayerMapping)
-		await mockTime.advanceTimeToTicks(10100) // 10100
-		expect(mockTime.now).toEqual(10100)
-		expect(onConnection).toHaveBeenCalledTimes(1)
-
-		const deviceContainer = myConductor.getDevice('myTCP')
-		const device = deviceContainer!.device as ThreadedClass<TCPSendDevice>
-
-		await device.on('connectionChanged', onConnectionChanged)
-
-		expect(await device.canConnect).toEqual(true)
-		expect(await device.deviceName).toMatch(/tcp/i)
-
-		// Check that no commands has been scheduled:
-		expect(await device.queue).toHaveLength(0)
-
-		// Test Added object:
-		myConductor.setTimelineAndMappings([
-			{
-				id: 'obj0',
-				enable: {
-					start: 11000,
-					duration: 2000,
 				},
-				layer: 'myLayer0',
-				content: {
-					deviceType: DeviceType.TCPSEND,
-					message: 'hello world',
+			])
+			await device.terminate()
+		})
+
+		test('Changed command', async () => {
+			const device = await getInitializedTcpDevice()
+
+			const content0 = literal<TimelineContentTCPSendAny>({
+				...DEFAULT_TL_CONTENT,
+				message: 'hello world',
+			})
+			const content1 = literal<TimelineContentTCPSendAny>({
+				...DEFAULT_TL_CONTENT,
+				message: 'goodbye world',
+			})
+			const commands = device.diffStates(
+				createTimelineState({
+					layer0: {
+						id: 'obj0',
+						content: content0,
+					},
+				}),
+				createTimelineState({
+					layer0: {
+						id: 'obj1',
+						content: content1,
+					},
+				})
+			)
+			expect(commands).toEqual([
+				{
+					timelineObjId: 'obj1',
+					context: `changed: obj1`,
+					command: {
+						commandName: 'changed',
+						content: {
+							...content1,
+						},
+						layer: 'layer0',
+					},
 				},
-			},
-		])
-
-		await mockTime.advanceTimeToTicks(10990)
-
-		expect(commandReceiver0).toHaveBeenCalledTimes(0)
-		await mockTime.advanceTimeToTicks(11100)
-
-		expect(commandReceiver0).toHaveBeenCalledTimes(1)
-		expect(commandReceiver0.mock.calls[0][1]).toMatchObject({
-			message: 'hello world',
+			])
+			await device.terminate()
 		})
-		expect(commandReceiver0.mock.calls[0][2]).toMatch(/added: obj0/)
-		await waitALittleBit()
-		expect(onSocketWrite).toHaveBeenCalledTimes(1)
-		expect(onSocketWrite.mock.calls[0][0]).toEqual(Buffer.from('hello world'))
 
-		// Test Changed object:
-		myConductor.setTimelineAndMappings([
-			{
-				id: 'obj0',
-				enable: {
-					start: 11000,
-					duration: 2000,
+		test('Removed command', async () => {
+			const device = await getInitializedTcpDevice()
+
+			const content = literal<TimelineContentTCPSendAny>({
+				...DEFAULT_TL_CONTENT,
+				message: 'hello world',
+			})
+			const commands = device.diffStates(
+				createTimelineState({
+					layer0: {
+						id: 'obj0',
+						content,
+					},
+				}),
+				createTimelineState({})
+			)
+			expect(commands).toEqual([
+				{
+					timelineObjId: 'obj0',
+					context: `removed: obj0`,
+					command: {
+						commandName: 'removed',
+						content,
+						layer: 'layer0',
+					},
 				},
-				layer: 'myLayer0',
-				content: {
-					deviceType: DeviceType.TCPSEND,
-					message: 'anyone here',
-				},
-			},
-		])
-
-		await mockTime.advanceTimeToTicks(12000) // 12000
-		expect(commandReceiver0).toHaveBeenCalledTimes(2)
-		expect(commandReceiver0.mock.calls[1][1]).toMatchObject({
-			message: 'anyone here',
+			])
+			await device.terminate()
 		})
-		expect(commandReceiver0.mock.calls[1][2]).toMatch(/changed: obj0/)
-		await waitALittleBit() // allow for async socket events to fire
-		expect(onSocketWrite).toHaveBeenCalledTimes(2)
-		expect(onSocketWrite.mock.calls[1][0]).toEqual(Buffer.from('anyone here'))
+	})
+	describe('Socket connection', () => {
+		test('Connect', async () => {
+			const device = await getInitializedTcpDevice()
 
-		// Test Removed object:
-		await mockTime.advanceTimeToTicks(16000) // 16000
-		expect(commandReceiver0).toHaveBeenCalledTimes(2)
-		expect(onSocketWrite).toHaveBeenCalledTimes(2)
+			expect(device.connected).toBe(true)
+			expect(onSocketCreate).toHaveBeenCalledTimes(1)
+			expect(onConnection).toHaveBeenCalledTimes(1)
+			expect(SocketMock.openSockets()).toHaveLength(1)
+			expect(onSocketClose).toHaveBeenCalledTimes(0)
+			expect(onSocketWrite).toHaveBeenCalledTimes(0)
 
-		// test disconnected
-		// @ts-ignore
-		socket.mockClose()
-		expect(onSocketClose).toHaveBeenCalledTimes(1)
-		await waitALittleBit()
-		expect(onConnectionChanged).toHaveBeenCalledTimes(1)
-		expect(onConnectionChanged.mock.calls[0][0]).toMatchObject({
-			statusCode: StatusCode.BAD,
+			await device.terminate()
 		})
+		test('Disconnect', async () => {
+			const device = await getInitializedTcpDevice()
+			await device.terminate()
 
-		// test retry
-		await mockTime.advanceTimeTicks(6000) // enough time has passed
-
-		// a new connection should have been made
-
-		expect(onConnection).toHaveBeenCalledTimes(2)
-		await waitALittleBit()
-		expect(onConnectionChanged).toHaveBeenCalledTimes(2)
-		expect(onConnectionChanged.mock.calls[1][0]).toMatchObject({
-			statusCode: StatusCode.GOOD,
+			expect(device.connected).toBe(false)
+			expect(SocketMock.openSockets()).toHaveLength(0)
+			expect(onSocketClose).toHaveBeenCalledTimes(1)
 		})
+		test('Lose connection and reconnect', async () => {
+			const device = await getInitializedTcpDevice()
 
-		// Test makeReady:
-		await myConductor.devicesMakeReady(true)
-		await mockTime.advanceTimeTicks(10)
-		await waitALittleBit()
+			expect(device.connected).toBe(true)
 
-		expect(onConnectionChanged).toHaveBeenCalledTimes(4)
-		expect(onConnectionChanged.mock.calls[2][0]).toMatchObject({
-			statusCode: StatusCode.BAD,
+			const sockets = SocketMock.openSockets()
+			expect(sockets).toHaveLength(1)
+
+			// Simulate that the socket is closed:
+			sockets[0].mockClose()
+			await sleep(10)
+			// The device should have disconnected:
+			expect(device.connected).toBe(false)
+
+			await sleep(600)
+
+			// The device should have reconnected:
+			expect(device.connected).toBe(true)
+
+			await device.terminate()
 		})
-		expect(onConnectionChanged.mock.calls[3][0]).toMatchObject({
-			statusCode: StatusCode.GOOD,
-		})
+	})
+	describe('sendCommand', () => {
+		test('Send message', async () => {
+			const device = await getInitializedTcpDevice()
 
-		expect(commandReceiver0).toHaveBeenCalledTimes(4)
-		expect(commandReceiver0.mock.calls[2][1]).toMatchObject({
-			message: 'makeReady0',
-		})
-		expect(commandReceiver0.mock.calls[3][1]).toMatchObject({
-			message: 'makeReady1',
-		})
+			const content = literal<TimelineContentTCPSendAny>({
+				...DEFAULT_TL_CONTENT,
+				message: 'hello world',
+			})
+			const commands = device.diffStates(
+				createTimelineState({}),
+				createTimelineState({
+					layer0: {
+						id: 'obj0',
+						content,
+					},
+				})
+			)
 
-		// dispose
-		await device.terminate()
+			expect(commands).toHaveLength(1)
+			await device.sendCommand(commands[0])
 
-		expect(onSocketClose).toHaveBeenCalledTimes(2)
-		expect(onConnectionChanged).toHaveBeenCalledTimes(5)
-		expect(onConnectionChanged.mock.calls[4][0]).toMatchObject({
-			statusCode: StatusCode.BAD,
+			expect(onSocketCreate).toHaveBeenCalledTimes(1)
+			expect(SocketMock.openSockets()).toHaveLength(1)
+			expect(onConnection).toHaveBeenCalledTimes(1)
+
+			expect(onSocketWrite).toHaveBeenCalledTimes(1)
+			expect(onSocketWrite.mock.calls[0][0]).toEqual(Buffer.from('hello world'))
+
+			await device.terminate()
 		})
+		test('Send message when disconnected', async () => {
+			setupSocketMock() // Add one more socket mock
+			const device = await getInitializedTcpDevice()
 
-		expect(onError).toHaveBeenCalledTimes(0)
-		// expect(0).toEqual(1)
+			const content = literal<TimelineContentTCPSendAny>({
+				...DEFAULT_TL_CONTENT,
+				message: 'hello world',
+			})
+			const commands = device.diffStates(
+				createTimelineState({}),
+				createTimelineState({
+					layer0: {
+						id: 'obj0',
+						content,
+					},
+				})
+			)
+			expect(commands).toHaveLength(1)
+
+			// Simulate that the socket is closed:
+			const sockets = SocketMock.openSockets()
+			expect(sockets).toHaveLength(1)
+			sockets[0].mockClose()
+			await sleep(10)
+			// The device should have disconnected:
+			expect(device.connected).toBe(false)
+			expect(SocketMock.openSockets()).toHaveLength(0)
+
+			// Now, send a command. This should trigger an immediate reconnect:
+			await device.sendCommand(commands[0])
+			expect(device.connected).toBe(true)
+
+			expect(SocketMock.openSockets()).toHaveLength(1)
+
+			expect(onSocketWrite).toHaveBeenCalledTimes(1)
+			expect(onSocketWrite.mock.calls[0][0]).toEqual(Buffer.from('hello world'))
+
+			await device.terminate()
+		})
 	})
 })
+function createTimelineState(
+	objs: Record<string, { id: string; content: TimelineContentTCPSendAny }>
+): Timeline.TimelineState<TSRTimelineContent> {
+	return {
+		time: 10,
+		layers: objs as any,
+		nextEvents: [],
+	}
+}
+const DEFAULT_TL_CONTENT: {
+	deviceType: DeviceType.TCPSEND
+} = {
+	deviceType: DeviceType.TCPSEND,
+}
