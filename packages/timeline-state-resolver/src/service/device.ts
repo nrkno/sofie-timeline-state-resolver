@@ -14,6 +14,7 @@ type CommandContext = any
 export type CommandWithContext = {
 	command: any
 	context: CommandContext
+	/** ID of the timeline-object that the command originated from */
 	tlObjId: string
 }
 
