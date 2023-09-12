@@ -34,7 +34,8 @@ export class HTTPSendDevice
 	implements Device<HTTPSendOptions, HttpSendDeviceState, HttpSendDeviceCommand>
 {
 	private options: HTTPSendOptions
-	private activeLayers = new Map<string, string>()
+	/** Maps layers -> sent command-hashes */
+	private trackedState = new Map<string, string>()
 	private cacheable: CacheableLookup
 	private _terminated = false
 
@@ -44,7 +45,7 @@ export class HTTPSendDevice
 		return true
 	}
 	async terminate(): Promise<void> {
-		this.activeLayers.clear()
+		this.trackedState.clear()
 		this._terminated = true
 	}
 
@@ -71,7 +72,7 @@ export class HTTPSendDevice
 		if (!cmd)
 			return {
 				result: ActionExecutionResultCode.Error,
-				response: t('Failed to send command: Missing upayloadrl'),
+				response: t('Failed to send command: Missing payloadurl'),
 			}
 		if (!cmd.url) {
 			return {
@@ -169,15 +170,18 @@ export class HTTPSendDevice
 		return commands
 	}
 	async sendCommand({ tlObjId, context, command }: HttpSendDeviceCommand): Promise<void> {
+		const commandHash = this.getTrackedStateHash(command)
+
 		if (command.commandName === 'added' || command.commandName === 'changed') {
-			this.activeLayers.set(command.layer, JSON.stringify(command.content))
+			this.trackedState.set(command.layer, commandHash)
 		} else if (command.commandName === 'removed') {
-			this.activeLayers.delete(command.layer)
+			this.trackedState.delete(command.layer)
 		}
 
+		// Avoid sending multiple identical commands for the same state:
 		if (command.layer && command.commandName !== 'manual') {
-			const hash = this.activeLayers.get(command.layer)
-			if (JSON.stringify(command.content) !== hash) return Promise.resolve() // command is no longer relevant to state
+			const trackedHash = this.trackedState.get(command.layer)
+			if (commandHash !== trackedHash) return Promise.resolve() // command is no longer relevant to state
 		}
 		if (this._terminated) {
 			return Promise.resolve()
@@ -283,5 +287,8 @@ export class HTTPSendDevice
 				}
 			}
 		}
+	}
+	private getTrackedStateHash(command: HttpSendDeviceCommand['command']): string {
+		return JSON.stringify(command.content)
 	}
 }

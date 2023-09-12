@@ -290,6 +290,69 @@ describe('HTTP-Send', () => {
 			jest.advanceTimersByTime(1000)
 			expect(MOCKED_SOCKET_GET).toHaveBeenCalledTimes(2)
 		})
+		test('2 identical sends after each other', async () => {
+			const content = {
+				...DEFAULT_TL_CONTENT,
+				type: TimelineContentTypeHTTP.POST,
+				url: 'http://testurl',
+				params: {},
+			}
+
+			const state = {
+				genesis: createTimelineState({}),
+				aStart: createTimelineState({
+					layer0: {
+						id: 'obj0',
+						content,
+					},
+				}),
+				aEnd: createTimelineState({}),
+				bStart: createTimelineState({
+					layer0: {
+						id: 'obj1',
+						content,
+					},
+				}),
+				bEnd: createTimelineState({}),
+			}
+
+			const device = await getInitialisedHttpDevice()
+
+			await Promise.all(device.diffStates(state.genesis, state.aStart).map(async (c) => device.sendCommand(c)))
+			await Promise.all(device.diffStates(state.aStart, state.aEnd).map(async (c) => device.sendCommand(c)))
+
+			{
+				const commands = device.diffStates(state.aEnd, state.bStart)
+				// Test that the internal state in HTTPSendDevice is correct:
+				expect(commands).toStrictEqual([
+					{
+						tlObjId: 'obj1',
+						context: `added: obj1`,
+						command: {
+							commandName: 'added',
+							content: content,
+							layer: 'layer0',
+						},
+					},
+				])
+				await Promise.all(commands.map(async (c) => device.sendCommand(c)))
+			}
+
+			{
+				// Verify the removal commands:
+				expect(device.diffStates(state.bStart, state.bEnd)).toStrictEqual([
+					{
+						tlObjId: 'obj1',
+						context: `removed: obj1`,
+						command: {
+							commandName: 'removed',
+							content: content,
+							layer: 'layer0',
+						},
+					},
+				])
+			}
+		})
 	})
 
 	describe('Send action', () => {
