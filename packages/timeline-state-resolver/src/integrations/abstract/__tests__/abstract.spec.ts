@@ -4,6 +4,7 @@ import { AbstractCommandWithContext, AbstractDevice, AbstractDeviceState } from 
 import { StatusCode } from '../../../devices/device'
 import { MockTime } from '../../../__tests__/mockTime'
 import { ResolvedTimelineObjectInstance } from 'timeline-state-resolver-types/dist/superfly-timeline'
+import { makeTimelineObjectResolved } from '../../../__mocks__/objects'
 
 async function getInitialisedDevice() {
 	const dev = new AbstractDevice()
@@ -147,7 +148,7 @@ function createResolvedTimelineObject(
 	objectId: string,
 	layerName: string
 ): ResolvedTimelineObjectInstance<TimelineContentAbstractAny> {
-	return {
+	return makeTimelineObjectResolved({
 		id: objectId,
 		enable: {
 			start: 0,
@@ -156,23 +157,5 @@ function createResolvedTimelineObject(
 		content: {
 			deviceType: DeviceType.ABSTRACT,
 		},
-		resolved: {
-			resolvedReferences: true,
-			resolvedConflicts: true,
-			resolving: false,
-			instances: [],
-			directReferences: [],
-			levelDeep: 0,
-			parentId: undefined,
-			isKeyframe: false,
-			firstResolved: true,
-			isSelfReferencing: false,
-		},
-		instance: {
-			id: `@${objectId}:0`,
-			start: 0,
-			end: null,
-			references: [],
-		},
-	}
+	})
 }
