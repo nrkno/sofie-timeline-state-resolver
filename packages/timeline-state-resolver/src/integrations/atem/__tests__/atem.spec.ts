@@ -85,7 +85,7 @@ describe('Atem', () => {
 		const atem = getAtemConnection(device)
 
 		expect(device.getStatus()).toEqual({
-			messages: ['Atem disconnected', 'ATEM device connection not initialized (restart required)'],
+			messages: ['ATEM device connection not initialized (restart required)'],
 			statusCode: StatusCode.BAD,
 		})
 

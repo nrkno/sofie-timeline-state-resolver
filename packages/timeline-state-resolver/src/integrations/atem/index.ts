@@ -82,7 +82,7 @@ export class AtemDevice
 
 		this._initialized = true
 
-		// This only waits for the child thread to start, it doesn't wait for connection TODO-verify
+		// This only waits for the child thread to start, it doesn't wait for connection
 		await this._atem.connect(options.host, options.port)
 
 		return true
@@ -133,33 +133,32 @@ export class AtemDevice
 	 * Check status and return it with useful messages appended.
 	 */
 	public getStatus(): Omit<DeviceStatus, 'active'> {
-		let statusCode = StatusCode.GOOD
-		const messages: Array<string> = []
-
-		if (statusCode === StatusCode.GOOD) {
-			if (!this._connected) {
-				statusCode = StatusCode.BAD
-				messages.push(`Atem disconnected`)
+		if (!this._initialized) {
+			return {
+				statusCode: StatusCode.BAD,
+				messages: [`ATEM device connection not initialized (restart required)`],
 			}
-		}
-		if (statusCode === StatusCode.GOOD) {
-			const psus = this._atemStatus.psus
+		} else if (!this._connected) {
+			return {
+				statusCode: StatusCode.BAD,
+				messages: [`Atem disconnected`],
+			}
+		} else {
+			let statusCode = StatusCode.GOOD
+			const messages: Array<string> = []
 
+			const psus = this._atemStatus.psus
 			psus.forEach((psu: boolean, i: number) => {
 				if (!psu) {
 					statusCode = StatusCode.WARNING_MAJOR
 					messages.push(`Atem PSU ${i + 1} is faulty. The device has ${psus.length} PSU(s) in total.`)
 				}
 			})
-		}
-		if (!this._initialized) {
-			statusCode = StatusCode.BAD
-			messages.push(`ATEM device connection not initialized (restart required)`)
-		}
 
-		return {
-			statusCode: statusCode,
-			messages: messages,
+			return {
+				statusCode: statusCode,
+				messages: messages,
+			}
 		}
 	}
 
