@@ -4,6 +4,7 @@ import {
 	DeviceType,
 	Mapping,
 	MappingAtemAudioChannel,
+	MappingAtemAudioRouting,
 	MappingAtemAuxilliary,
 	MappingAtemDownStreamKeyer,
 	MappingAtemMacroPlayer,
@@ -18,6 +19,7 @@ import {
 	Timeline,
 	TimelineContentAtemAUX,
 	TimelineContentAtemAudioChannel,
+	TimelineContentAtemAudioRouting,
 	TimelineContentAtemDSK,
 	TimelineContentAtemMacroPlayer,
 	TimelineContentAtemMediaPlayer,
@@ -532,6 +534,63 @@ describe('AtemStateBuilder', () => {
 				balance: 456,
 				mixOption: 2,
 			})
+
+			const deviceState1 = AtemStateBuilder.fromTimeline(mockState1, myLayerMapping)
+			expect(deviceState1).toEqual(expectedState)
+		})
+	})
+
+	describe('Audio Routing', () => {
+		const myLayerMapping0: Mapping<MappingAtemAudioRouting> = {
+			device: DeviceType.ATEM,
+			deviceId: 'myAtem',
+			options: {
+				mappingType: MappingAtemType.AudioRouting,
+				index: 123,
+			},
+		}
+		const myLayerMapping: Mappings = {
+			myLayer0: myLayerMapping0,
+		}
+
+		test('Basic', async () => {
+			const mockState1: Timeline.StateInTime<TimelineContentAtemAudioRouting> = {
+				myLayer0: makeTimelineObjectResolved({
+					id: 'obj0',
+					enable: {
+						start: -1000, // 1 seconds ago
+						duration: 2000,
+					},
+					layer: 'myLayer0',
+					content: {
+						deviceType: DeviceType.ATEM,
+						type: TimelineContentTypeAtem.AUDIOROUTING,
+						audioRouting: {
+							sourceId: 456,
+						},
+					},
+				}),
+			}
+
+			const expectedState = AtemConnection.AtemStateUtil.Create()
+			expectedState.fairlight = {
+				inputs: {},
+			}
+			expectedState.fairlight.audioRouting = {
+				sources: {},
+				outputs: {},
+			}
+
+			expectedState.fairlight.audioRouting.outputs[123] = {
+				// readonly props, they won't be diffed
+				audioOutputId: 123,
+				audioChannelPair: 0,
+				externalPortType: 0,
+				internalPortType: 0,
+
+				name: `Output 123`,
+				sourceId: 456,
+			}
 
 			const deviceState1 = AtemStateBuilder.fromTimeline(mockState1, myLayerMapping)
 			expect(deviceState1).toEqual(expectedState)
