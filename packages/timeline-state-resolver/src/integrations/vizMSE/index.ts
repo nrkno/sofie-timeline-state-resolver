@@ -151,6 +151,7 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState, DeviceOptionsVizM
 	async terminate(): Promise<void> {
 		if (this._vizmseManager) {
 			await this._vizmseManager.terminate()
+			this._vizmseManager.removeAllListeners()
 			delete this._vizmseManager
 		}
 		this._doOnTime.dispose()

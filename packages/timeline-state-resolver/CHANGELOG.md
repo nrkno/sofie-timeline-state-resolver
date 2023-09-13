@@ -284,6 +284,14 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
 - translations for actions ([df4cb43](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/df4cb43cf16a8e2ae34c1fe44801c5a327f9b01e))
 - update for casparcg-connection rewrite ([5dfdd23](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/5dfdd2320caf89432d36513026c1259e2cf3d366))
 
+## [7.5.1](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/7.5.0...7.5.1) (2023-09-04)
+
+### Bug Fixes
+
+- casparcg disconnect handler may not fire ([74c1f8a](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/74c1f8ac6626bdc9c7ac2bb2737550306905f4b1))
+- **sisyfos:** remove local port & terminate correctly ([c11801a](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/c11801a1f787e3fbd965416138e973c3c940d1b7))
+- terminate devices fully ([028167a](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/028167ae7dbc1e2cb5f70820554068d434bed75d))
+
 # [7.5.0](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/7.5.0-release47.7...7.5.0) (2023-02-28)
 
 **Note:** Version bump only for package timeline-state-resolver

@@ -92,8 +92,9 @@ export class AtemDevice
 	 * garbage collected.
 	 */
 	async terminate(): Promise<void> {
-		await this._atem.disconnect()
-		await this._atem.destroy()
+		await this._atem.disconnect().catch(() => null)
+		await this._atem.destroy().catch(() => null)
+		this._atem.removeAllListeners()
 	}
 
 	private async resyncState(): Promise<ActionExecutionResult> {

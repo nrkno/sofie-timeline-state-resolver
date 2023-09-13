@@ -211,11 +211,16 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 			if (!this._ccg) {
 				resolve()
 				return
-			}
-			this._ccg.disconnect()
-			this._ccg.once('disconnect', () => {
+			} else if (!this._ccg.connected) {
+				this._ccg.once('disconnect', () => {
+					resolve()
+					this._ccg.removeAllListeners()
+				})
+				this._ccg.disconnect()
+			} else {
+				this._ccg.removeAllListeners()
 				resolve()
-			})
+			}
 		})
 	}
 	/** Called by the Conductor a bit before a .handleState is called */

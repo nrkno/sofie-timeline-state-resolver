@@ -30,6 +30,7 @@ import _ = require('underscore')
 import * as underScoreDeepExtend from 'underscore-deep-extend'
 import { State as DeviceState, Defaults as StateDefault } from 'atem-state'
 import { assertNever, cloneDeep } from '../../lib'
+import { MappingAtemAudioRouting, TimelineContentAtemAudioRouting } from 'timeline-state-resolver-types/src'
 
 _.mixin({ deepExtend: underScoreDeepExtend(_) })
 
@@ -91,6 +92,11 @@ export class AtemStateBuilder {
 					case MappingAtemType.AudioChannel:
 						if (content.type === TimelineContentTypeAtem.AUDIOCHANNEL) {
 							builder._applyAudioChannel(mapping.options, content)
+						}
+						break
+					case MappingAtemType.AudioRouting:
+						if (content.type === TimelineContentTypeAtem.AUDIOROUTING) {
+							builder._applyAudioRouting(mapping.options, content)
 						}
 						break
 					case MappingAtemType.MacroPlayer:
@@ -207,6 +213,28 @@ export class AtemStateBuilder {
 		this.#deviceState.audio.channels[mapping.index] = {
 			...cloneDeep(stateAudioChannel),
 			...content.audioChannel,
+		}
+	}
+
+	private _applyAudioRouting(mapping: MappingAtemAudioRouting, content: TimelineContentAtemAudioRouting): void {
+		// lazily generate the state properties, to make this be opt in per-mapping
+		if (!this.#deviceState.fairlight) this.#deviceState.fairlight = { inputs: {} }
+		if (!this.#deviceState.fairlight.audioRouting)
+			this.#deviceState.fairlight.audioRouting = {
+				sources: {},
+				outputs: {},
+			}
+
+		this.#deviceState.fairlight.audioRouting.outputs[mapping.index] = {
+			// readonly props, they won't be diffed
+			audioOutputId: mapping.index,
+			audioChannelPair: 0,
+			externalPortType: 0,
+			internalPortType: 0,
+
+			// mutable props
+			name: `Output ${mapping.index}`,
+			...content.audioRouting,
 		}
 	}
 

@@ -61,6 +61,11 @@ export interface MappingAtemMacroPlayer {
 	mappingType: MappingAtemType.MacroPlayer
 }
 
+export interface MappingAtemAudioRouting {
+	index: number
+	mappingType: MappingAtemType.AudioRouting
+}
+
 export enum MappingAtemType {
 	MixEffect = 'mixEffect',
 	DownStreamKeyer = 'downStreamKeyer',
@@ -70,9 +75,10 @@ export enum MappingAtemType {
 	SuperSourceProperties = 'superSourceProperties',
 	AudioChannel = 'audioChannel',
 	MacroPlayer = 'macroPlayer',
+	AudioRouting = 'audioRouting',
 }
 
-export type SomeMappingAtem = MappingAtemMixEffect | MappingAtemDownStreamKeyer | MappingAtemSuperSourceBox | MappingAtemAuxilliary | MappingAtemMediaPlayer | MappingAtemSuperSourceProperties | MappingAtemAudioChannel | MappingAtemMacroPlayer
+export type SomeMappingAtem = MappingAtemMixEffect | MappingAtemDownStreamKeyer | MappingAtemSuperSourceBox | MappingAtemAuxilliary | MappingAtemMediaPlayer | MappingAtemSuperSourceProperties | MappingAtemAudioChannel | MappingAtemMacroPlayer | MappingAtemAudioRouting
 
 export enum AtemActions {
 	Resync = 'resync',
