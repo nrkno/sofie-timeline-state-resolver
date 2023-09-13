@@ -58,11 +58,10 @@ describe('Atem', () => {
 		const atem = getAtemConnection(device)
 
 		expect(device.getStatus()).toEqual({
-			messages: ['ATEM device connection not initialized (restart required)'],
+			messages: ['Atem disconnected'],
 			statusCode: StatusCode.BAD,
 		})
 
-		// Check init clears one line
 		await device.init(
 			literal<AtemOptions>({
 				host: '127.0.0.1',

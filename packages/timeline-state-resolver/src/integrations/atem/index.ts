@@ -48,7 +48,6 @@ export class AtemDevice
 
 	private readonly _atem = new BasicAtem()
 	private _protocolVersion = ConnectionEnums.ProtocolVersion.V8_1_1
-	private _initialized = false
 	private _connected = false // note: ideally this should be replaced by this._atem.connected
 
 	private _atemStatus: {
@@ -80,8 +79,6 @@ export class AtemDevice
 			}
 		})
 
-		this._initialized = true
-
 		// This only waits for the child thread to start, it doesn't wait for connection
 		await this._atem.connect(options.host, options.port)
 
@@ -105,16 +102,6 @@ export class AtemDevice
 		}
 	}
 
-	/**
-	 * Prepare device for playout
-	 * @param okToDestroyStuff If true, may break output
-	 */
-	async makeReady(okToDestroyStuff?: boolean): Promise<void> {
-		if (okToDestroyStuff) {
-			await this.resyncState()
-		}
-	}
-
 	get connected(): boolean {
 		return this._connected
 	}
@@ -134,12 +121,7 @@ export class AtemDevice
 	 * Check status and return it with useful messages appended.
 	 */
 	public getStatus(): Omit<DeviceStatus, 'active'> {
-		if (!this._initialized) {
-			return {
-				statusCode: StatusCode.BAD,
-				messages: [`ATEM device connection not initialized (restart required)`],
-			}
-		} else if (!this._connected) {
+		if (!this._connected) {
 			return {
 				statusCode: StatusCode.BAD,
 				messages: [`Atem disconnected`],
