@@ -16,6 +16,9 @@ import {
 } from 'timeline-state-resolver-types'
 import { literal } from '../../../devices/device'
 import { makeTimelineObjectResolved } from '../../../__mocks__/objects'
+import { promisify } from 'util'
+
+const sleep = promisify(setTimeout)
 
 describe('Atem', () => {
 	const mockTime = new MockTime()
@@ -43,8 +46,12 @@ describe('Atem', () => {
 			})
 		)
 
-		// HACK: force to appear connected
-		;(device as any)._connected = true
+		for (let i = 0; i < 10; i++) {
+			await sleep(10)
+			if (device.connected) break
+		}
+
+		if (!device.connected) throw new Error('Mock device failed to report connected')
 
 		return { device, myLayerMapping }
 	}
