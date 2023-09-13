@@ -192,8 +192,8 @@ function deepDiff(a: any, b: any, aStack: any, bStack: any): string | null {
 }
 
 /** Deeply extend an object with some partial objects */
-export function deepExtend<T extends object>(destination: T, sources: PartialDeep<T>): T {
-	return deepmerge<T>(destination, sources)
+export function deepMerge<T extends object>(destination: T, source: PartialDeep<T>): T {
+	return deepmerge<T>(destination, source)
 }
 
 export interface Trace {
