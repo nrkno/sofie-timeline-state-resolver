@@ -1,5 +1,5 @@
 import { literal } from '../../../devices/device'
-import { AtemDevice } from '..'
+import { AtemCommandWithContext, AtemDevice } from '..'
 import * as AtemConnection from 'atem-connection'
 import { promisify } from 'util'
 import { AtemOptions } from 'timeline-state-resolver-types'
@@ -38,4 +38,33 @@ export function compareAtemCommands(
 	expect(received.serialize(AtemConnection.Enums.ProtocolVersion.V8_0)).toEqual(
 		expected.serialize(AtemConnection.Enums.ProtocolVersion.V8_0)
 	)
+}
+
+export function expectIncludesAtemCommands(
+	received: AtemCommandWithContext[],
+	expected: AtemConnection.Commands.ISerializableCommand
+) {
+	const failedCommands: AtemConnection.Commands.ISerializableCommand[] = []
+	for (const candidate of received) {
+		if (candidate.command.constructor.name === expected.constructor.name) {
+			if (
+				candidate.command
+					.serialize(AtemConnection.Enums.ProtocolVersion.V8_0)
+					.equals(expected.serialize(AtemConnection.Enums.ProtocolVersion.V8_0))
+			) {
+				// Buffer matched
+				return
+			} else {
+				failedCommands.push(candidate.command)
+			}
+		}
+	}
+
+	// Found some candidates of the same type, with a different payload
+	expect(failedCommands).toBeFalsy()
+}
+
+export function expectIncludesAtemCommandName(received: AtemCommandWithContext[], expectedName: string) {
+	const commandNames = received.map((cmd) => cmd.command.constructor.name)
+	expect(commandNames).toContain(expectedName)
 }
