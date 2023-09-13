@@ -29,7 +29,7 @@ import {
 import _ = require('underscore')
 import * as underScoreDeepExtend from 'underscore-deep-extend'
 import { State as DeviceState, Defaults as StateDefault } from 'atem-state'
-import { assertNever } from '../../lib'
+import { assertNever, cloneDeep } from '../../lib'
 
 _.mixin({ deepExtend: underScoreDeepExtend(_) })
 
@@ -42,14 +42,11 @@ export class AtemStateBuilder {
 	// Start out with default state:
 	readonly #deviceState = AtemStateUtil.Create()
 
-	public static fromTimeline(
-		timelineState: Timeline.TimelineState<TSRTimelineContent>,
-		mappings: Mappings
-	): DeviceState {
+	public static fromTimeline(timelineState: Timeline.StateInTime<TSRTimelineContent>, mappings: Mappings): DeviceState {
 		const builder = new AtemStateBuilder()
 
 		// Sort layer based on Layer name
-		const sortedLayers = _.map(timelineState.layers, (tlObject, layerName) => ({ layerName, tlObject })).sort((a, b) =>
+		const sortedLayers = _.map(timelineState, (tlObject, layerName) => ({ layerName, tlObject })).sort((a, b) =>
 			a.layerName.localeCompare(b.layerName)
 		)
 
@@ -111,7 +108,7 @@ export class AtemStateBuilder {
 		return builder.#deviceState
 	}
 
-	private _isAssignableToNextStyle(transition: AtemTransitionStyle | undefined) {
+	private _isAssignableToNextStyle(transition: AtemTransitionStyle | undefined): boolean {
 		return (
 			transition !== undefined && transition !== AtemTransitionStyle.DUMMY && transition !== AtemTransitionStyle.CUT
 		)
@@ -120,18 +117,19 @@ export class AtemStateBuilder {
 	private _applyMixEffect(mapping: MappingAtemMixEffect, content: TimelineContentAtemME): void {
 		if (typeof mapping.index !== 'number' || mapping.index < 0) return
 
-		const me = AtemStateUtil.getMixEffect(this.#deviceState, mapping.index)
-		const atemObjKeyers = content.me.upstreamKeyers
-		const transition = content.me.transition
+		const stateMixEffect = AtemStateUtil.getMixEffect(this.#deviceState, mapping.index)
+		deepExtend(stateMixEffect, _.omit(content.me, 'upstreamKeyers'))
 
-		deepExtend(me, _.omit(content.me, 'upstreamKeyers'))
-		if (this._isAssignableToNextStyle(transition)) {
-			me.transitionProperties.nextStyle = transition as number as Enums.TransitionStyle
+		const objectTransition = content.me.transition
+		if (this._isAssignableToNextStyle(objectTransition)) {
+			stateMixEffect.transitionProperties.nextStyle = objectTransition as number as Enums.TransitionStyle
 		}
-		if (atemObjKeyers) {
-			for (const objKeyer of atemObjKeyers) {
-				const keyer = AtemStateUtil.getUpstreamKeyer(me, objKeyer.upstreamKeyerId)
-				deepExtend(keyer, objKeyer)
+
+		const objectKeyers = content.me.upstreamKeyers
+		if (objectKeyers) {
+			for (const objKeyer of objectKeyers) {
+				const stateKeyer = AtemStateUtil.getUpstreamKeyer(stateMixEffect, objKeyer.upstreamKeyerId)
+				deepExtend(stateKeyer, objKeyer)
 			}
 		}
 	}
@@ -139,36 +137,52 @@ export class AtemStateBuilder {
 	private _applyDownStreamKeyer(mapping: MappingAtemDownStreamKeyer, content: TimelineContentAtemDSK): void {
 		if (typeof mapping.index !== 'number' || mapping.index < 0) return
 
-		const dsk = AtemStateUtil.getDownstreamKeyer(this.#deviceState, mapping.index)
-		if (dsk) deepExtend(dsk, content.dsk)
+		const stateDSK = AtemStateUtil.getDownstreamKeyer(this.#deviceState, mapping.index)
+		deepExtend(stateDSK, content.dsk)
 	}
 
 	private _applySuperSourceBox(mapping: MappingAtemSuperSourceBox, content: TimelineContentAtemSsrc): void {
 		if (typeof mapping.index !== 'number' || mapping.index < 0) return
 
-		const ssrc = AtemStateUtil.getSuperSource(this.#deviceState, mapping.index)
-		if (ssrc) {
-			const objBoxes = content.ssrc.boxes
-			_.each(objBoxes, (box, i) => {
-				if (ssrc.boxes[i]) {
-					deepExtend(ssrc.boxes[i], box)
-				} else {
-					ssrc.boxes[i] = {
-						...StateDefault.Video.SuperSourceBox,
-						...box,
-					}
-				}
-			})
-		}
+		const stateSuperSource = AtemStateUtil.getSuperSource(this.#deviceState, mapping.index)
+
+		content.ssrc.boxes.forEach((objBox, i) => {
+			const stateBox = stateSuperSource.boxes[i]
+			if (stateBox) {
+				deepExtend(stateBox, objBox)
+			} else {
+				stateSuperSource.boxes[i] = deepExtend(cloneDeep(StateDefault.Video.SuperSourceBox), objBox)
+			}
+		})
 	}
 
 	private _applySuperSourceProperties(
 		mapping: MappingAtemSuperSourceProperties,
 		content: TimelineContentAtemSsrcProps
 	): void {
-		const ssrc = AtemStateUtil.getSuperSource(this.#deviceState, mapping.index)
-		if (!ssrc.properties) ssrc.properties = { ...StateDefault.Video.SuperSourceProperties }
-		if (ssrc) deepExtend(ssrc.properties, content.ssrcProps)
+		const stateSuperSource = AtemStateUtil.getSuperSource(this.#deviceState, mapping.index)
+
+		const borderKeys = [
+			'borderEnabled',
+			'borderBevel',
+			'borderOuterWidth',
+			'borderInnerWidth',
+			'borderOuterSoftness',
+			'borderInnerSoftness',
+			'borderBevelSoftness',
+			'borderBevelPosition',
+			'borderHue',
+			'borderSaturation',
+			'borderLuma',
+			'borderLightSourceDirection',
+			'borderLightSourceAltitude',
+		]
+
+		if (!stateSuperSource.properties) stateSuperSource.properties = cloneDeep(StateDefault.Video.SuperSourceProperties)
+		deepExtend(stateSuperSource.properties, _.omit(content.ssrcProps, ...borderKeys))
+
+		if (!stateSuperSource.border) stateSuperSource.border = cloneDeep(StateDefault.Video.SuperSourceBorder)
+		deepExtend(stateSuperSource.border, _.pick(content.ssrcProps, ...borderKeys))
 	}
 
 	private _applyAuxilliary(mapping: MappingAtemAuxilliary, content: TimelineContentAtemAUX): void {
@@ -187,17 +201,17 @@ export class AtemStateBuilder {
 	private _applyAudioChannel(mapping: MappingAtemAudioChannel, content: TimelineContentAtemAudioChannel): void {
 		if (typeof mapping.index !== 'number' || mapping.index < 0) return
 
-		const chan = this.#deviceState.audio?.channels[mapping.index]
-		if (chan && this.#deviceState.audio) {
-			this.#deviceState.audio.channels[mapping.index] = {
-				...chan,
-				...content.audioChannel,
-			}
+		if (!this.#deviceState.audio) this.#deviceState.audio = { channels: {} }
+
+		const stateAudioChannel = this.#deviceState.audio.channels[mapping.index] ?? cloneDeep(StateDefault.Audio.Channel)
+		this.#deviceState.audio.channels[mapping.index] = {
+			...cloneDeep(stateAudioChannel),
+			...content.audioChannel,
 		}
 	}
 
 	private _applyMacroPlayer(_mapping: MappingAtemMacroPlayer, content: TimelineContentAtemMacroPlayer): void {
-		const ms = this.#deviceState.macro.macroPlayer
-		if (ms) deepExtend(ms, content.macroPlayer)
+		const stateMacroPlayer = this.#deviceState.macro.macroPlayer
+		deepExtend(stateMacroPlayer, content.macroPlayer)
 	}
 }

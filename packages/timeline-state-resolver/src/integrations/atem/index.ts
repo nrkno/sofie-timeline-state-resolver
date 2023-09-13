@@ -126,7 +126,7 @@ export class AtemDevice
 		timelineState: Timeline.TimelineState<TSRTimelineContent>,
 		mappings: Mappings
 	): AtemDeviceState {
-		return AtemStateBuilder.fromTimeline(timelineState, mappings)
+		return AtemStateBuilder.fromTimeline(timelineState.layers, mappings)
 	}
 
 	/**
