@@ -1,14 +1,10 @@
 import * as _ from 'underscore'
-import * as underScoreDeepExtend from 'underscore-deep-extend'
 import { DeviceStatus, StatusCode } from './../../devices/device'
 import {
-	DeviceType,
-	TimelineContentTypeAtem,
 	SomeMappingAtem,
 	MappingAtemType,
 	AtemOptions,
 	Mappings,
-	AtemTransitionStyle,
 	Timeline,
 	TSRTimelineContent,
 	Mapping,
@@ -17,7 +13,7 @@ import {
 	ActionExecutionResultCode,
 	AtemActions,
 } from 'timeline-state-resolver-types'
-import { AtemState, State as DeviceState, Defaults as StateDefault } from 'atem-state'
+import { AtemState, State as DeviceState } from 'atem-state'
 import {
 	BasicAtem,
 	Commands as AtemCommands,
@@ -27,14 +23,7 @@ import {
 } from 'atem-connection'
 import { CommandWithContext, Device, DeviceEvents } from '../../service/device'
 import EventEmitter = require('eventemitter3')
-import { ProtocolVersion } from 'atem-connection/dist/enums'
-
-_.mixin({ deepExtend: underScoreDeepExtend(_) })
-
-function deepExtend<T>(destination: T, ...sources: any[]) {
-	// @ts-ignore (mixin)
-	return _.deepExtend(destination, ...sources)
-}
+import { AtemStateBuilder } from './stateBuilder'
 
 export interface AtemCommandWithContext {
 	command: AtemCommands.ISerializableCommand
@@ -58,7 +47,7 @@ export class AtemDevice
 	}
 
 	private readonly _atem = new BasicAtem()
-	private _protocolVersion = ProtocolVersion.V8_1_1
+	private _protocolVersion = ConnectionEnums.ProtocolVersion.V8_1_1
 	private _initialized = false
 	private _connected = false // note: ideally this should be replaced by this._atem.connected
 
@@ -82,7 +71,6 @@ export class AtemDevice
 
 		this._atem.on('connected', () => {
 			this._connected = true
-			this._initialized = true
 
 			this._connectionChanged()
 			this.emit('resetResolver')
@@ -91,6 +79,8 @@ export class AtemDevice
 				this._protocolVersion = this._atem.state.info.apiVersion
 			}
 		})
+
+		this._initialized = true
 
 		// This only waits for the child thread to start, it doesn't wait for connection TODO-verify
 		await this._atem.connect(options.host, options.port)
@@ -130,114 +120,13 @@ export class AtemDevice
 
 	/**
 	 * Convert a timeline state into an Atem state.
-	 * @param state The state to be converted
+	 * @param timelineState The state to be converted
 	 */
 	convertTimelineStateToDeviceState(
-		state: Timeline.TimelineState<TSRTimelineContent>,
-		newMappings: Mappings
+		timelineState: Timeline.TimelineState<TSRTimelineContent>,
+		mappings: Mappings
 	): AtemDeviceState {
-		// Start out with default state:
-		const deviceState = AtemStateUtil.Create()
-
-		// Sort layer based on Layer name
-		const sortedLayers = _.map(state.layers, (tlObject, layerName) => ({ layerName, tlObject })).sort((a, b) =>
-			a.layerName.localeCompare(b.layerName)
-		)
-
-		// For every layer, augment the state
-		_.each(sortedLayers, ({ tlObject, layerName }) => {
-			const content = tlObject.content
-
-			const mapping = newMappings[layerName] as Mapping<SomeMappingAtem> | undefined
-
-			if (mapping && content.deviceType === DeviceType.ATEM) {
-				if ('index' in mapping.options && mapping.options.index !== undefined && mapping.options.index >= 0) {
-					// index must be 0 or higher
-					switch (mapping.options.mappingType) {
-						case MappingAtemType.MixEffect:
-							if (content.type === TimelineContentTypeAtem.ME) {
-								const me = AtemStateUtil.getMixEffect(deviceState, mapping.options.index)
-								const atemObjKeyers = content.me.upstreamKeyers
-								const transition = content.me.transition
-
-								deepExtend(me, _.omit(content.me, 'upstreamKeyers'))
-								if (this._isAssignableToNextStyle(transition)) {
-									me.transitionProperties.nextStyle = transition as number as ConnectionEnums.TransitionStyle
-								}
-								if (atemObjKeyers) {
-									for (const objKeyer of atemObjKeyers) {
-										const keyer = AtemStateUtil.getUpstreamKeyer(me, objKeyer.upstreamKeyerId)
-										deepExtend(keyer, objKeyer)
-									}
-								}
-							}
-							break
-						case MappingAtemType.DownStreamKeyer:
-							if (content.type === TimelineContentTypeAtem.DSK) {
-								const dsk = AtemStateUtil.getDownstreamKeyer(deviceState, mapping.options.index)
-								if (dsk) deepExtend(dsk, content.dsk)
-							}
-							break
-						case MappingAtemType.SuperSourceBox:
-							if (content.type === TimelineContentTypeAtem.SSRC) {
-								const ssrc = AtemStateUtil.getSuperSource(deviceState, mapping.options.index)
-								if (ssrc) {
-									const objBoxes = content.ssrc.boxes
-									_.each(objBoxes, (box, i) => {
-										if (ssrc.boxes[i]) {
-											deepExtend(ssrc.boxes[i], box)
-										} else {
-											ssrc.boxes[i] = {
-												...StateDefault.Video.SuperSourceBox,
-												...box,
-											}
-										}
-									})
-								}
-							}
-							break
-						case MappingAtemType.SuperSourceProperties:
-							if (content.type === TimelineContentTypeAtem.SSRCPROPS) {
-								const ssrc = AtemStateUtil.getSuperSource(deviceState, mapping.options.index)
-								if (!ssrc.properties) ssrc.properties = { ...StateDefault.Video.SuperSourceProperties }
-								if (ssrc) deepExtend(ssrc.properties, content.ssrcProps)
-							}
-							break
-						case MappingAtemType.Auxilliary:
-							if (content.type === TimelineContentTypeAtem.AUX) {
-								deviceState.video.auxilliaries[mapping.options.index] = content.aux.input
-							}
-							break
-						case MappingAtemType.MediaPlayer:
-							if (content.type === TimelineContentTypeAtem.MEDIAPLAYER) {
-								const ms = AtemStateUtil.getMediaPlayer(deviceState, mapping.options.index)
-								if (ms) deepExtend(ms, content.mediaPlayer)
-							}
-							break
-						case MappingAtemType.AudioChannel:
-							if (content.type === TimelineContentTypeAtem.AUDIOCHANNEL) {
-								const chan = deviceState.audio?.channels[mapping.options.index]
-								if (chan && deviceState.audio) {
-									deviceState.audio.channels[mapping.options.index] = {
-										...chan,
-										...content.audioChannel,
-									}
-								}
-							}
-							break
-					}
-				}
-
-				if (mapping.options.mappingType === MappingAtemType.MacroPlayer) {
-					if (content.type === TimelineContentTypeAtem.MACROPLAYER) {
-						const ms = deviceState.macro.macroPlayer
-						if (ms) deepExtend(ms, content.macroPlayer)
-					}
-				}
-			}
-		})
-
-		return deviceState
+		return AtemStateBuilder.fromTimeline(timelineState, mappings)
 	}
 
 	/**
@@ -344,10 +233,5 @@ export class AtemDevice
 	}
 	private _connectionChanged() {
 		this.emit('connectionChanged', this.getStatus())
-	}
-	private _isAssignableToNextStyle(transition: AtemTransitionStyle | undefined) {
-		return (
-			transition !== undefined && transition !== AtemTransitionStyle.DUMMY && transition !== AtemTransitionStyle.CUT
-		)
 	}
 }

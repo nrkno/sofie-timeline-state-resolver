@@ -17,7 +17,7 @@ export namespace AtemConnection {
 		}
 		async connect(): Promise<void> {
 			setTimeoutOrg(() => {
-				this.emit('connected', true)
+				this.emit('connected')
 			}, 10)
 
 			return new Promise<void>((resolve) => {

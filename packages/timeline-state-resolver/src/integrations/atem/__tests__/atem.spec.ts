@@ -13,6 +13,7 @@ import {
 	TSRTimelineContent,
 	Timeline,
 	TimelineContentAtemME,
+	StatusCode,
 } from 'timeline-state-resolver-types'
 import { literal } from '../../../devices/device'
 import { makeTimelineObjectResolved } from '../../../__mocks__/objects'
@@ -22,6 +23,20 @@ const sleep = promisify(setTimeout)
 
 describe('Atem', () => {
 	const mockTime = new MockTime()
+
+	async function waitForConnection(device: AtemDevice) {
+		for (let i = 0; i < 10; i++) {
+			await sleep(10)
+			if (device.connected) break
+		}
+		if (!device.connected) throw new Error('Mock device failed to report connected')
+	}
+
+	function getAtemConnection(device: AtemDevice): AtemConnection.BasicAtem {
+		const atem = (device as any)._atem
+		if (!atem) throw new Error('Property is missing, has `_atem` been renamed?')
+		return atem
+	}
 
 	async function createTestee(): Promise<{
 		device: AtemDevice
@@ -46,12 +61,7 @@ describe('Atem', () => {
 			})
 		)
 
-		for (let i = 0; i < 10; i++) {
-			await sleep(10)
-			if (device.connected) break
-		}
-
-		if (!device.connected) throw new Error('Mock device failed to report connected')
+		await waitForConnection(device)
 
 		return { device, myLayerMapping }
 	}
@@ -68,6 +78,66 @@ describe('Atem', () => {
 
 	beforeEach(() => {
 		mockTime.init()
+	})
+
+	test('Check Status', async () => {
+		const device = new AtemDevice()
+		const atem = getAtemConnection(device)
+
+		expect(device.getStatus()).toEqual({
+			messages: ['Atem disconnected', 'ATEM device connection not initialized (restart required)'],
+			statusCode: StatusCode.BAD,
+		})
+
+		// Check init clears one line
+		await device.init(
+			literal<AtemOptions>({
+				host: '127.0.0.1',
+			})
+		)
+		expect(device.getStatus()).toEqual({
+			messages: ['Atem disconnected'],
+			statusCode: StatusCode.BAD,
+		})
+
+		// Check OK once connected
+		await waitForConnection(device)
+		expect(device.getStatus()).toEqual({
+			messages: [],
+			statusCode: StatusCode.GOOD,
+		})
+
+		// Report two psus as connected
+		const testState = AtemConnection.AtemStateUtil.Create()
+		testState.info.power = [true, true]
+		atem.emit('stateChanged', testState, ['info.power'])
+		expect(device.getStatus()).toEqual({
+			messages: [],
+			statusCode: StatusCode.GOOD,
+		})
+
+		// Report one psus as offline
+		testState.info.power = [true, false]
+		atem.emit('stateChanged', testState, ['info.power'])
+		expect(device.getStatus()).toEqual({
+			messages: ['Atem PSU 2 is faulty. The device has 2 PSU(s) in total.'],
+			statusCode: StatusCode.WARNING_MAJOR,
+		})
+
+		// Report only one psu
+		testState.info.power = [true]
+		atem.emit('stateChanged', testState, ['info.power'])
+		expect(device.getStatus()).toEqual({
+			messages: [],
+			statusCode: StatusCode.GOOD,
+		})
+
+		// Disconnect
+		atem.emit('disconnected')
+		expect(device.getStatus()).toEqual({
+			messages: ['Atem disconnected'],
+			statusCode: StatusCode.BAD,
+		})
 	})
 
 	test('Atem: Ensure clean initial state', async () => {
