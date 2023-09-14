@@ -27,10 +27,10 @@ jest.mock('got', () => {
 
 // note - this import should be below the got mock
 import { HTTPSendDevice, HttpSendDeviceCommand, HttpSendDeviceState } from '..'
-import { DEFAULT_NOOP_CONTEXT } from '../../__tests__/testlib'
+import { getDeviceContext } from '../../__tests__/testlib'
 
 async function getInitialisedHttpDevice(retries = false) {
-	const dev = new HTTPSendDevice(DEFAULT_NOOP_CONTEXT)
+	const dev = new HTTPSendDevice(getDeviceContext())
 	await dev.init({
 		resendTime: retries === true ? 1000 : undefined,
 	})

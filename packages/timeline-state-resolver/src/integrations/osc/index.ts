@@ -56,11 +56,11 @@ export class OscDevice extends Device<OSCOptions, OscDeviceState, OscCommandWith
 			client.open() // creates client.socket
 			client.socket.on('connect', () => {
 				this._oscClientStatus = 'connected'
-				this.emit('connectionChanged', this.getStatus())
+				this.context.connectionChanged(this.getStatus())
 			})
 			client.socket.on('close', () => {
 				this._oscClientStatus = 'disconnected'
-				this.emit('connectionChanged', this.getStatus())
+				this.context.connectionChanged(this.getStatus())
 			})
 		} else if (options.type === OSCDeviceType.UDP) {
 			debug('Creating UDP OSC device')
@@ -136,7 +136,7 @@ export class OscDevice extends Device<OSCOptions, OscDeviceState, OscCommandWith
 			command: command,
 			tlObjId: tlObjId,
 		}
-		this.emit('debug', cwc)
+		this.context.emitDebug(cwc)
 		debug(command)
 
 		try {
@@ -176,7 +176,7 @@ export class OscDevice extends Device<OSCOptions, OscDeviceState, OscCommandWith
 
 			return Promise.resolve()
 		} catch (e) {
-			this.emit('commandError', e as Error, cwc)
+			this.context.commandError(e as Error, cwc)
 			return Promise.resolve()
 		}
 	}
@@ -200,7 +200,7 @@ export class OscDevice extends Device<OSCOptions, OscDeviceState, OscCommandWith
 	actions: Record<string, (id: string, payload: Record<string, any>) => Promise<ActionExecutionResult>> = {}
 
 	private _oscSender(msg: osc.OscMessage, address?: string | undefined, port?: number | undefined): void {
-		this.emit('debug', 'sending ' + msg.address)
+		this.context.emitDebug('sending ' + msg.address)
 		this._oscClient.send(msg, address, port)
 	}
 	private runAnimation() {

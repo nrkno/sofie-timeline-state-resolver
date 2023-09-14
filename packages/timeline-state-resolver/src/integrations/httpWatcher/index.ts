@@ -113,7 +113,7 @@ export class HTTPWatcherDevice extends Device<HTTPWatcherOptions, HTTPWatcherDev
 			this.status = status
 			this.statusReason = reason
 
-			this.emit('connectionChanged', this.getStatus())
+			this.context.connectionChanged(this.getStatus())
 		}
 	}
 

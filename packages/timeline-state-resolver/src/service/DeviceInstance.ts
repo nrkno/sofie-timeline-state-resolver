@@ -38,7 +38,7 @@ export interface DeviceInstanceEvents extends Omit<DeviceEvents, 'connectionChan
  * Top level container for setting up and interacting with any device integrations
  */
 export class DeviceInstanceWrapper extends EventEmitter<DeviceInstanceEvents> {
-	private _device: Device<any, DeviceState, CommandWithContext> & EventEmitter<DeviceEvents>
+	private _device: Device<any, DeviceState, CommandWithContext>
 	private _stateHandler: StateHandler<DeviceState, CommandWithContext>
 
 	private _deviceId: string
@@ -65,8 +65,6 @@ export class DeviceInstanceWrapper extends EventEmitter<DeviceInstanceEvents> {
 		this._deviceType = config.type
 		this._deviceName = deviceSpecs.deviceName(id, config)
 		this._startTime = time
-
-		this._setupDeviceEventHandlers()
 
 		this._stateHandler = new StateHandler(
 			{
@@ -200,61 +198,55 @@ export class DeviceInstanceWrapper extends EventEmitter<DeviceInstanceEvents> {
 		this._logDebugStates = value
 	}
 
-	// @todo - should some of these be moved over to a context object?
-	private _setupDeviceEventHandlers() {
-		this._device.on('info', (info: string) => {
-			this.emit('info', info)
-		})
-		this._device.on('warning', (warning: string) => {
-			this.emit('warning', warning)
-		})
-		this._device.on('error', (context: string, err: Error) => {
-			this.emit('error', context, err)
-		})
-		this._device.on('debug', (...debug: any[]) => {
-			if (this._logDebug) {
-				this.emit('debug', ...debug)
-			}
-		})
-
-		this._device.on('debugState', (state: object) => {
-			if (this._logDebugStates) {
-				this.emit('debugState', state)
-			}
-		})
-		/** The connection status has changed */
-		this._device.on('connectionChanged', (status) => {
-			this.emit('connectionChanged', {
-				...status,
-				active: this._isActive,
-			})
-		})
-		/** A message to the resolver that something has happened that warrants a reset of the resolver (to re-run it again) */
-		this._device.on('resetResolver', () => {
-			this.emit('resetResolver')
-		})
-
-		/** Something went wrong when executing a command  */
-		this._device.on('commandError', (error: Error, context: CommandWithContext) => {
-			this.emit('commandError', error, context)
-		})
-		/** Update a MediaObject  */
-		this._device.on('updateMediaObject', (collectionId: string, docId: string, doc: MediaObject | null) => {
-			this.emit('updateMediaObject', collectionId, docId, doc)
-		})
-		/** Clear a MediaObjects collection */
-		this._device.on('clearMediaObjects', (collectionId: string) => {
-			this.emit('clearMediaObjects', collectionId)
-		})
-
-		this._device.on('timeTrace', (trace: FinishedTrace) => {
-			this.emit('timeTrace', trace)
-		})
-	}
-
 	private _getDeviceContextAPI(): DeviceContextAPI {
 		return {
-			hello: () => 'world',
+			emitError: (context: string, err: Error) => {
+				this.emit('error', context, err)
+			},
+			emitWarning: (warning: string) => {
+				this.emit('warning', warning)
+			},
+			emitInfo: (info: string) => {
+				this.emit('info', info)
+			},
+			emitDebug: (...debug: any[]) => {
+				if (this._logDebug) this.emit('debug', ...debug)
+			},
+
+			emitDebugState: (state: object) => {
+				if (this._logDebugStates) {
+					this.emit('debugState', state)
+				}
+			},
+
+			connectionChanged: (status: Omit<DeviceStatus, 'active'>) => {
+				this.emit('connectionChanged', {
+					...status,
+					active: this._isActive,
+				})
+			},
+			resetResolver: () => {
+				this.emit('resetResolver')
+			},
+
+			commandError: (error: Error, context: CommandWithContext) => {
+				this.emit('commandError', error, context)
+			},
+			updateMediaObject: (collectionId: string, docId: string, doc: MediaObject | null) => {
+				this.emit('updateMediaObject', collectionId, docId, doc)
+			},
+			clearMediaObjects: (collectionId: string) => {
+				this.emit('clearMediaObjects', collectionId)
+			},
+
+			timeTrace: (trace: FinishedTrace) => {
+				this.emit('timeTrace', trace)
+			},
+
+			resetState: async () => {
+				await this._stateHandler.clearFutureStates()
+				this.emit('resetResolver')
+			},
 		}
 	}
 }

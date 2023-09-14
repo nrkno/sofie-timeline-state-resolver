@@ -36,11 +36,11 @@ export class ShotokuDevice extends Device<ShotokuOptions, ShotokuDeviceState, Sh
 
 	async init(options: ShotokuOptions): Promise<boolean> {
 		this._shotoku = new ShotokuAPI()
-		this._shotoku.on('error', (info, e) => this.emit('error', e, info))
+		this._shotoku.on('error', (info, error) => this.context.emitError(info, error))
 
 		this._shotoku
 			.connect(options.host, options.port)
-			.catch((e) => this.emit('debug', 'Shotoku device failed initial connection attempt', e))
+			.catch((e) => this.context.emitDebug('Shotoku device failed initial connection attempt', e))
 
 		return true
 	}
@@ -131,8 +131,8 @@ export class ShotokuDevice extends Device<ShotokuOptions, ShotokuDeviceState, Sh
 
 		return commands
 	}
-	async sendCommand({ command, context, tlObjId }: ShotokuCommandWithContext): Promise<void> {
-		this.emit('debug', { command, context, tlObjId })
+	async sendCommand({ command, context, timelineObjId }: ShotokuCommandWithContext): Promise<void> {
+		this.context.emitDebug({ command, context, timelineObjId })
 
 		try {
 			if (this._shotoku.connected) {
@@ -141,7 +141,7 @@ export class ShotokuDevice extends Device<ShotokuOptions, ShotokuDeviceState, Sh
 
 			return
 		} catch (e) {
-			this.emit('commandError', e as Error, { command, context, tlObjId })
+			this.context.commandError(e as Error, { command, context, timelineObjId })
 			return
 		}
 	}

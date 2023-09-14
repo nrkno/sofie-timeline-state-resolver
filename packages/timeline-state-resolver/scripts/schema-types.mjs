@@ -54,7 +54,7 @@ try {
 }
 
 const basePath = path.resolve('./src/integrations/')
-const dirs = (await fs.readdir(basePath, { withFileTypes: true })).filter((c) => c.isDirectory()).map((d) => d.name)
+const dirs = (await fs.readdir(basePath, { withFileTypes: true })).filter((c) => c.isDirectory() && !c.name.includes('__tests__')).map((d) => d.name)
 
 const capitalise = (s) => {
 	const base = s.slice(0, 1).toUpperCase() + s.slice(1)

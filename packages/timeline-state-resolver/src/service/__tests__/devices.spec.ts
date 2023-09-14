@@ -1,4 +1,4 @@
-import { DEFAULT_NOOP_CONTEXT } from '../../integrations/__tests__/testlib'
+import { getDeviceContext } from '../../integrations/__tests__/testlib'
 import { manifest } from '../../manifest'
 import { DeviceEntry, DevicesDict } from '../devices'
 
@@ -8,7 +8,7 @@ describe('Ensure that all integrations have defined their actions', () => {
 			const deviceManifest = manifest.subdevices[key]
 			expect(deviceManifest).toBeTruthy()
 
-			const deviceInstance = new device.deviceClass(DEFAULT_NOOP_CONTEXT)
+			const deviceInstance = new device.deviceClass(getDeviceContext())
 			expect(deviceInstance).toBeTruthy()
 
 			if (deviceManifest.actions) {

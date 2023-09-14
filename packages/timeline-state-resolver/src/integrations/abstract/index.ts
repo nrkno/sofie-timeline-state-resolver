@@ -120,7 +120,7 @@ export class AbstractDevice extends Device<AbstractOptions, AbstractDeviceState,
 
 	async sendCommand({ command, context, tlObjId }: AbstractCommandWithContext): Promise<any> {
 		// emit the command to debug:
-		this.emit('debug', { command, context, tlObjId })
+		this.context.emitDebug({ command, context, timelineObjId })
 
 		// Note: In the Abstract case, the execution does nothing
 

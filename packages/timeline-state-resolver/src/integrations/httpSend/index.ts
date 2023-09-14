@@ -57,7 +57,7 @@ export class HTTPSendDevice extends Device<HTTPSendOptions, HttpSendDeviceState,
 
 	actions: Record<string, (id: HttpSendActions, payload?: Record<string, any>) => Promise<ActionExecutionResult>> = {
 		[HttpSendActions.Resync]: async () => {
-			this.emit('resetResolver')
+			this.context.resetResolver()
 			return { result: ActionExecutionResultCode.Ok }
 		},
 		[HttpSendActions.SendCommand]: async (_id: HttpSendActions.SendCommand, payload?: HTTPSendCommandContent) =>
@@ -103,7 +103,7 @@ export class HTTPSendDevice extends Device<HTTPSendOptions, HttpSendDeviceState,
 				content: cmd,
 				layer: '',
 			},
-		}).catch(() => this.emit('warning', 'Manual command failed: ' + JSON.stringify(cmd)))
+		}).catch(() => this.context.emitWarning('Manual command failed: ' + JSON.stringify(cmd)))
 
 		return {
 			result: ActionExecutionResultCode.Ok,
@@ -188,7 +188,7 @@ export class HTTPSendDevice extends Device<HTTPSendOptions, HttpSendDeviceState,
 			command,
 			tlObjId,
 		}
-		this.emit('debug', { context, tlObjId, command })
+		this.context.emitDebug({ context, timelineObjId, command })
 
 		const t = Date.now()
 
@@ -235,25 +235,22 @@ export class HTTPSendDevice extends Device<HTTPSendOptions, HttpSendDeviceState,
 			const response = await httpReq(command.content.url, options)
 
 			if (response.statusCode === 200) {
-				this.emit(
-					'debug',
+				this.context.emitDebug(
 					`HTTPSend: ${command.content.type}: Good statuscode response on url "${command.content.url}": ${response.statusCode} (${context})`
 				)
 			} else {
-				this.emit(
-					'warning',
+				this.context.emitWarning(
 					`HTTPSend: ${command.content.type}: Bad statuscode response on url "${command.content.url}": ${response.statusCode} (${context})`
 				)
 			}
 		} catch (error) {
 			const err = error as RequestError // make typescript happy
 
-			this.emit(
-				'error',
+			this.context.emitError(
 				`HTTPSend.response error on ${command.content.type} "${command.content.url}" (${context})`,
 				err
 			)
-			this.emit('commandError', err, cwc)
+			this.context.commandError(err, cwc)
 
 			if ('code' in err) {
 				const retryCodes = [

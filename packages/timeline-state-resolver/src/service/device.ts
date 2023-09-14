@@ -8,7 +8,6 @@ import {
 	ActionExecutionResult,
 	MediaObject,
 } from 'timeline-state-resolver-types'
-import EventEmitter = require('eventemitter3')
 
 type CommandContext = any
 
@@ -23,11 +22,10 @@ export type CommandWithContext = {
  * API for use by the DeviceInstance to be able to use a device
  */
 export abstract class Device<DeviceOptions, DeviceState, Command extends CommandWithContext>
-	extends EventEmitter<DeviceEvents, any>
 	implements BaseDeviceAPI<DeviceState, Command>
 {
 	constructor(protected context: DeviceContextAPI) {
-		super()
+		// Nothing
 	}
 	/**
 	 * Initiates the device connection, after this has resolved the device
@@ -90,22 +88,25 @@ export interface BaseDeviceAPI<DeviceState, Command extends CommandWithContext> 
 	sendCommand(command: Command): Promise<void>
 }
 
+/** Events emitted by the device, to be listened on by Conductor */
 export interface DeviceEvents {
 	info: [info: string]
 	warning: [warning: string]
 	error: [context: string, err: Error]
 	debug: [...debug: any[]]
-
 	debugState: [state: object]
 	/** The connection status has changed */
 	connectionChanged: [status: Omit<DeviceStatus, 'active'>]
 	/** A message to the resolver that something has happened that warrants a reset of the resolver (to re-run it again) */
 	resetResolver: []
 
+	/** @deprecated replaced by slowSentCommand & slowFulfilledCommand  */
+	slowCommand: [commandInfo: string]
 	/** A report that a command was sent too late */
 	slowSentCommand: [info: SlowSentCommandInfo]
 	/** A report that a command was fullfilled too late */
 	slowFulfilledCommand: [info: SlowFulfilledCommandInfo]
+	commandReport: [commandReport: CommandReport]
 
 	/** Something went wrong when executing a command  */
 	commandError: [error: Error, context: CommandWithContext]
@@ -114,11 +115,37 @@ export interface DeviceEvents {
 	/** Clear a MediaObjects collection */
 	clearMediaObjects: [collectionId: string]
 
-	commandReport: [commandReport: CommandReport]
 	timeTrace: [trace: FinishedTrace]
 }
 
 /** Various methods that the Devices can call */
 export interface DeviceContextAPI {
-	hello: () => string
+	/** Emit a "error" message */
+	emitError: (context: string, err: Error) => void
+	/** Emit a "warning" message */
+	emitWarning: (warning: string) => void
+	/** Emit a "info" message */
+	emitInfo: (info: string) => void
+	/** Emit a "debug" message */
+	emitDebug: (...debug: any[]) => void
+
+	/** Emit a "debugState" message */
+	emitDebugState: (state: object) => void
+
+	/** Notify that the connection status has changed. */
+	connectionChanged: (status: Omit<DeviceStatus, 'active'>) => void
+	/** Notify the conductor that it should reset the resolver, in order to trigger it again. */
+	resetResolver: () => void
+
+	/** Something went wrong when executing a command  */
+	commandError: (error: Error, context: CommandWithContext) => void
+	/** Update a MediaObject  */
+	updateMediaObject: (collectionId: string, docId: string, doc: MediaObject | null) => void
+	/** Clear a MediaObjects collection */
+	clearMediaObjects: (collectionId: string) => void
+
+	timeTrace: (trace: FinishedTrace) => void
+
+	/** Reset the state of the State */
+	resetState: () => Promise<void>
 }

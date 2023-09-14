@@ -20,10 +20,10 @@ jest.mock('got', () => {
 
 // note - this import should be below the got mock
 import { HTTPWatcherDevice } from '..'
-import { DEFAULT_NOOP_CONTEXT } from '../../__tests__/testlib'
+import { getDeviceContext } from '../../__tests__/testlib'
 
 async function getInitialisedDevice(options: HTTPWatcherOptions) {
-	const dev = new HTTPWatcherDevice(DEFAULT_NOOP_CONTEXT)
+	const dev = new HTTPWatcherDevice(getDeviceContext())
 	await dev.init(options)
 	return dev
 }

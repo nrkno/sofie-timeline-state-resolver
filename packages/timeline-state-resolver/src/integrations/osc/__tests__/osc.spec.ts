@@ -9,7 +9,7 @@ import {
 	TSRTimelineContent,
 } from 'timeline-state-resolver-types'
 import { OscCommandWithContext, OscDevice, OscDeviceState } from '..'
-import { DEFAULT_NOOP_CONTEXT } from '../../__tests__/testlib'
+import { getDeviceContext } from '../../__tests__/testlib'
 
 const MOCKED_SOCKET_CONNECT = jest.fn()
 const MOCKED_SOCKET_WRITE = jest.fn()
@@ -31,7 +31,7 @@ jest.mock('osc', () => {
 })
 
 async function getInitialisedOscDevice() {
-	const dev = new OscDevice(DEFAULT_NOOP_CONTEXT)
+	const dev = new OscDevice(getDeviceContext())
 	await dev.init({ host: 'localhost', port: 8082, type: OSCDeviceType.UDP })
 	return dev
 }
