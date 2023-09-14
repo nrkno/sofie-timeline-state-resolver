@@ -23,11 +23,11 @@ export type CommandWithContext = {
 
 export interface Device<
 	DeviceOptions,
-	DeviceState,
+	AddressState,
+	MappingOptions extends TSRMappingOptions,
 	Command extends CommandWithContext,
-	AddressState = void,
 	CommandResult = void
-> extends BaseDeviceAPI<DeviceState, Command, AddressState, CommandResult> {
+> extends BaseDeviceAPI<AddressState, Command, MappingOptions, CommandResult> {
 	/**
 	 * Initiates the device connection, after this has resolved the device
 	 * is ready to be controlled
@@ -54,45 +54,37 @@ export interface Device<
  * Minimal API for the StateHandler to be able to use a device
  */
 export interface BaseDeviceAPI<
-	DeviceState,
+	AddressState,
 	Command extends CommandWithContext,
-	AddressState = {},
+	MappingOptions extends TSRMappingOptions,
 	CommandResult = void
 > {
 	/**
 	 * This method takes in a Timeline State that describes a point
-	 * in time on the timeline and returns a decice state that
+	 * in time on the timeline and returns a device state that
 	 * describes how the device should be according to the timeline state
 	 *
 	 * @param state State obj from timeline
 	 * @param newMappings Mappings to resolve devices with
 	 */
-	convertTimelineStateToDeviceState(
+	convertTimelineStateToAddressStates(
 		state: Timeline.TimelineState<TSRTimelineContent>,
 		newMappings: Mappings
-	): DeviceState
+	): Record<string, AddressState>
 	/**
 	 * This method takes 2 states and returns a set of commands that will
 	 * transition the device from oldState to newState
 	 */
-	diffStates(oldState: DeviceState | undefined, newState: DeviceState, mappings: Mappings): Array<Command>
+	diffStates(currentState: Record<string, AddressState>, expectedState: Record<string, AddressState>): Array<Command>
 	/** This method will take a command and send it to the device */
 	sendCommand(command: Command): Promise<CommandResult>
 
-	updateExpectedState?(state: DeviceState, mappings: Mappings): void
-	finishedStateChange?(commands: Command[], results: any[]): void // todo
-
-	/**
-	 * The implementaiton should return a set of commands to transition the addressed part of the device from the currentState to the expectedState.
-	 */
-	diffLayer?(address: string, currentState: AddressState | undefined, expectedState: AddressState): Command[]
 	/**
 	 * The implementation shall return a LayerState as derived from the currentState and expectedState
 	 */
 	getLayerStatus?(currentState: AddressState, expectedState: AddressState): LayerState
-	/** The eimplementation shall return a string literal that can be used to identify a part of the device */
-	mappingToAddress?<Mapping extends TSRMapping<TSRMappingOptions>>(mapping: Mapping): string
-	getAddressStateFromDeviceState?(address: string, state: DeviceState): AddressState
+	/** The implementation shall return a string literal that can be used to identify a part of the device */
+	mappingToAddress(mapping: TSRMapping<MappingOptions>): string
 	stateUpdatesFromCommands?(
 		currentState: AddressState | undefined,
 		expectedState: AddressState,

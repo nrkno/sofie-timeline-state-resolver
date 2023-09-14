@@ -4,93 +4,62 @@ import { BaseDeviceAPI, CommandWithContext } from './device'
 import { Measurement, StateChangeReport } from './measure'
 import { StateTracker } from './stateTracker'
 
-interface StateChange<DeviceState, Command extends CommandWithContext> {
+interface StateChange<AddressState, Command extends CommandWithContext> {
 	commands?: Command[]
 	state: Timeline.TimelineState<TSRTimelineContent>
-	deviceState: DeviceState
-	mappings: Mappings
+	deviceState: Record<string, AddressState>
+	mappings: Mappings<TSRMappingOptions>
 
 	measurement?: Measurement
 }
-interface ExecutedStateChange<DeviceState, Command extends CommandWithContext>
-	extends StateChange<DeviceState | undefined, Command> {
+interface ExecutedStateChange<AddressState, Command extends CommandWithContext>
+	extends StateChange<AddressState, Command> {
 	commands: Command[]
 }
 
 const CLOCK_INTERVAL = 20
 
-export class StateHandler<DeviceState, Command extends CommandWithContext, AddressState = {}, CommandResult = void> {
-	private stateQueue: StateChange<DeviceState, Command>[] = []
-	private currentState: ExecutedStateChange<DeviceState, Command> | undefined
+export class StateHandler<AddressState, Command extends CommandWithContext, CommandResult = void> {
+	private stateQueue: StateChange<AddressState, Command>[] = []
+	private currentState: ExecutedStateChange<AddressState, Command> | undefined
 	private _executingStateChange: Promise<void> | undefined = undefined
 
 	private clock: NodeJS.Timeout
-
-	private convertTimelineStateToDeviceState: BaseDeviceAPI<DeviceState, Command>['convertTimelineStateToDeviceState']
-	private diffDeviceStates: BaseDeviceAPI<DeviceState, Command>['diffStates']
-	private executeCommand: BaseDeviceAPI<DeviceState, Command, AddressState, CommandResult>['sendCommand']
-
-	// note - should these be left in place as generic hooks for "beforeStateChange" and "afterStateChange"?
-	private updateExpectedState: NonNullable<BaseDeviceAPI<DeviceState, Command>['updateExpectedState']>
-	private finishedStateChange: NonNullable<BaseDeviceAPI<DeviceState, Command>['finishedStateChange']>
-
 	private _stateTracker?: StateTracker<AddressState, Command>
-	private mappingToAddress: NonNullable<BaseDeviceAPI<DeviceState, Command>['mappingToAddress']>
-	private getAddressStateFromDeviceState: NonNullable<
-		BaseDeviceAPI<DeviceState, Command, AddressState>['getAddressStateFromDeviceState']
-	>
-	private stateUpdatesFromCommands: BaseDeviceAPI<
-		DeviceState,
-		Command,
-		AddressState,
-		CommandResult
-	>['stateUpdatesFromCommands']
-
 	private logger: StateHandlerContext['logger']
 
 	constructor(
 		private context: StateHandlerContext,
 		private config: StateHandlerConfig,
-		device: BaseDeviceAPI<DeviceState, Command, AddressState, CommandResult>
+		private device: BaseDeviceAPI<AddressState, Command, CommandResult>
 	) {
 		this.logger = context.logger
 
-		this.convertTimelineStateToDeviceState = (s, m) => device.convertTimelineStateToDeviceState(s, m)
-		this.diffDeviceStates = (o, n, m) => device.diffStates(o, n, m)
-		this.executeCommand = async (c) => device.sendCommand(c)
-		this.updateExpectedState = (s, m) => device.updateExpectedState && device.updateExpectedState(s, m)
-		this.finishedStateChange = (c, r) => device.finishedStateChange && device.finishedStateChange(c, r)
-
-		this.mappingToAddress = (m) => (device.mappingToAddress && device.mappingToAddress(m)) || ''
-		this.getAddressStateFromDeviceState = (a, s) =>
-			(device.getAddressStateFromDeviceState && device.getAddressStateFromDeviceState(a, s)) || ({} as AddressState)
-		// todo - if a device doesn't expose this, it should still be able to report state somehow
-		this.stateUpdatesFromCommands = (c, e, cs, rs) =>
-			(device.stateUpdatesFromCommands && device.stateUpdatesFromCommands(c, e, cs, rs)) || ({} as AddressState)
-
-		if (device.diffLayer && device.getLayerStatus && device.mappingToAddress && device.getAddressStateFromDeviceState)
-			this._stateTracker = new StateTracker(device.diffLayer, device.getLayerStatus, (address, state) => {
+		if (device.getLayerStatus)
+			this._stateTracker = new StateTracker(device.diffStates, device.getLayerStatus, (address, state) => {
 				;(this._executingStateChange ?? Promise.resolve()).then(() => {
+					if (!device.mappingToAddress) return
+
 					// now there should be a currentState
 					const mappings = this.currentState?.mappings
 					if (!mappings) return
 
 					// find all layer names for this address
 					for (const [layer, m] of Object.entries(mappings)) {
-						const addr = this.mappingToAddress(m)
+						const addr = device.mappingToAddress(m)
 						if (addr === address) this.context.reportLayerState(layer, state)
 					}
 				})
 			})
 
-		this.setCurrentState(undefined).catch((e) => {
+		this.setCurrentState({}).catch((e) => {
 			this.logger.error('Error while creating new StateHandler', e)
 		})
 
-		this.clock = setInterval(() => {
+		this.clock = setInterval(async () => {
 			// main clock to check if next state needs to be sent out
 			for (const state of this.stateQueue) {
-				const nextTime = Math.max(0, state?.state.time - context.getCurrentTime())
+				const nextTime = Math.max(0, state?.state.time - (await context.getCurrentTime()))
 				if (nextTime > CLOCK_INTERVAL) break
 				// schedule any states between now and the next tick
 
@@ -115,11 +84,11 @@ export class StateHandler<DeviceState, Command extends CommandWithContext, Addre
 		this.stateQueue = []
 	}
 
-	async handleState(state: Timeline.TimelineState<TSRTimelineContent>, mappings: Mappings) {
+	async handleState(state: Timeline.TimelineState<TSRTimelineContent>, mappings: Mappings<TSRMappingOptions>) {
 		const nextState = this.stateQueue[0]
 
 		const trace = startTrace('device:convertTimelineStateToDeviceState', { deviceId: this.context.deviceId })
-		const deviceState = this.convertTimelineStateToDeviceState(state, mappings)
+		const deviceState = this.device.convertTimelineStateToAddressStates(state, mappings)
 		this.context.emitTimeTrace(endTrace(trace))
 
 		this.stateQueue = [
@@ -142,7 +111,7 @@ export class StateHandler<DeviceState, Command extends CommandWithContext, Addre
 		}
 	}
 
-	async setCurrentState(state: DeviceState | undefined) {
+	async setCurrentState(state: Record<string, AddressState>) {
 		this.currentState = {
 			commands: [],
 			deviceState: state,
@@ -151,7 +120,7 @@ export class StateHandler<DeviceState, Command extends CommandWithContext, Addre
 		}
 		await this.calculateNextStateChange()
 	}
-	getCurrentState(): ExecutedStateChange<DeviceState, Command> | undefined {
+	getCurrentState(): ExecutedStateChange<AddressState, Command> | undefined {
 		return this.currentState
 	}
 
@@ -159,7 +128,7 @@ export class StateHandler<DeviceState, Command extends CommandWithContext, Addre
 		this.stateQueue = this.stateQueue.filter((s) => s.state.time <= t)
 	}
 
-	async resyncFromState(state: DeviceState) {
+	async resyncFromState(state: Record<string, AddressState>) {
 		if (this._executingStateChange) await this._executingStateChange
 		const oldState = this.currentState
 		if (oldState && oldState.deviceState) {
@@ -180,14 +149,9 @@ export class StateHandler<DeviceState, Command extends CommandWithContext, Addre
 
 		try {
 			const trace = startTrace('device:diffDeviceStates', { deviceId: this.context.deviceId })
-			nextState.commands = this.diffDeviceStates(
-				this.currentState?.deviceState,
-				nextState.deviceState,
-				nextState.mappings
-			)
+			nextState.commands = this.device.diffStates(this.currentState?.deviceState, nextState.deviceState)
 			this.context.emitTimeTrace(endTrace(trace))
 		} catch (e) {
-			// todo - log an error
 			this.logger.error('diffDeviceState failed, t = ' + nextState.state.time, e as Error)
 			// we don't want to get stuck, so we should act as if this can be executed anyway
 			nextState.commands = []
@@ -221,13 +185,13 @@ export class StateHandler<DeviceState, Command extends CommandWithContext, Addre
 
 		this.currentState = undefined
 
-		this.updateExpectedState(newState.deviceState, newState.mappings)
-		if (this._stateTracker) {
+		if (this._stateTracker && this.device.mappingToAddress) {
 			// update the expected state
-			const addresses = Object.values(newState.mappings).map((m) => this.mappingToAddress(m))
+			for (const m of Object.values(newState.mappings)) {
+				const addr = this.device.mappingToAddress(m)
 
-			for (const addr of addresses) {
-				const update = this.getAddressStateFromDeviceState(addr, newState.deviceState)
+				// const update = this.device.getAddressStateFromDeviceState(addr, newState.deviceState)
+				const update = newState.deviceState[addr]
 				this._stateTracker.updateExpectedState(addr, update)
 			}
 		}
@@ -238,7 +202,7 @@ export class StateHandler<DeviceState, Command extends CommandWithContext, Addre
 			Promise.allSettled(
 				newState.commands.map(async (command) => {
 					newState.measurement?.executeCommand(command)
-					return this.executeCommand(command).then((result) => {
+					return this.device.sendCommand(command).then((result) => {
 						newState.measurement?.finishedCommandExecution(command)
 						return result
 					})
@@ -246,7 +210,6 @@ export class StateHandler<DeviceState, Command extends CommandWithContext, Addre
 			)
 				.then((promiseResults) => {
 					if (newState.measurement) this.context.reportStateChangeMeasurement(newState.measurement.report())
-					if (newState.commands) this.finishedStateChange(newState.commands, promiseResults)
 					if (newState.commands && this._stateTracker)
 						this.applyCommandResultsToStateTracker(newState.commands, promiseResults)
 				})
@@ -257,7 +220,8 @@ export class StateHandler<DeviceState, Command extends CommandWithContext, Addre
 			const execAll = async () => {
 				for (const command of newState.commands || []) {
 					newState.measurement?.executeCommand(command)
-					const result = await this.executeCommand(command)
+					const result = await this.device
+						.sendCommand(command)
 						.then((value) => {
 							return { status: 'fulfilled', value } satisfies PromiseSettledResult<any>
 						})
@@ -272,7 +236,6 @@ export class StateHandler<DeviceState, Command extends CommandWithContext, Addre
 
 			execAll()
 				.then(() => {
-					if (newState.commands) this.finishedStateChange(newState.commands, results)
 					if (newState.measurement) this.context.reportStateChangeMeasurement(newState.measurement.report())
 					if (newState.commands && this._stateTracker)
 						this.applyCommandResultsToStateTracker(newState.commands, results)
@@ -282,7 +245,7 @@ export class StateHandler<DeviceState, Command extends CommandWithContext, Addre
 				})
 		}
 
-		this.currentState = newState as ExecutedStateChange<DeviceState, Command>
+		this.currentState = newState as ExecutedStateChange<AddressState, Command>
 
 		this._executingStateChange = undefined
 		finished()
@@ -296,7 +259,7 @@ export class StateHandler<DeviceState, Command extends CommandWithContext, Addre
 		commands: Command[],
 		results: PromiseSettledResult<Awaited<CommandResult>>[]
 	) {
-		if (!this._stateTracker || !this.stateUpdatesFromCommands) return
+		if (!this._stateTracker || !this.device.stateUpdatesFromCommands) return
 
 		// group commands by addresses
 		const groupedCommands: Record<
@@ -322,7 +285,12 @@ export class StateHandler<DeviceState, Command extends CommandWithContext, Addre
 
 			if (!expectedState) continue
 
-			const update = this.stateUpdatesFromCommands(currentState, expectedState, commands.commands, commands.results)
+			const update = this.device.stateUpdatesFromCommands(
+				currentState,
+				expectedState,
+				commands.commands,
+				commands.results
+			)
 
 			this._stateTracker.updateState(address, update)
 		}

@@ -5,36 +5,33 @@ import {
 	CasparCGOptions,
 	DeviceStatus,
 	Mappings,
-	SomeMappingCasparCG,
 	StatusCode,
 	TSRTimelineContent,
 	Timeline,
-	MappingCasparCGLayer,
 	Mapping,
+	SomeMappingCasparCG,
 } from 'timeline-state-resolver-types'
 import { CommandWithContext, Device } from '../../service/device'
 import { EventEmitter } from 'eventemitter3'
 import {
 	TrackedLayer,
-	convertTimelineStateToDeviceState,
+	convertTimelineStateToAddressStates,
 	getStatus,
 	mappingToAddress,
 	stateUpdateFromCommandResult,
-	updateStateFromCommands,
 } from './state'
-import { diffStates, diffTrackerStatesLayer } from './diff'
+import { diffTrackerStates } from './diff'
 import { CasparCG, Commands, Response } from 'casparcg-connection'
 import { DeviceEvents } from '../../service/device'
 import { clearAllChannels, restartServer } from './actions'
 import { AMCPCommandWithContext } from 'casparcg-state'
 
 type DeviceOptions = CasparCGOptions
-type DeviceState = any
 type Command = { command: AMCPCommandWithContext } & CommandWithContext
 
 export class CasparCGDevice
 	extends EventEmitter<DeviceEvents>
-	implements Device<DeviceOptions, DeviceState, Command, TrackedLayer, number>
+	implements Device<DeviceOptions, TrackedLayer, SomeMappingCasparCG, Command, number>
 {
 	private _connection: CasparCG
 	private _options: DeviceOptions
@@ -172,16 +169,16 @@ export class CasparCGDevice
 		},
 	}
 
-	convertTimelineStateToDeviceState(
+	convertTimelineStateToAddressStates(
 		state: Timeline.TimelineState<TSRTimelineContent>,
 		newMappings: Mappings
-	): DeviceState {
-		return convertTimelineStateToDeviceState(state, newMappings)
+	): { [address: string]: TrackedLayer } {
+		return convertTimelineStateToAddressStates(state, newMappings)
 	}
-	diffStates(oldState: DeviceState | undefined, newState: DeviceState, mappings: Mappings): Array<Command> {
-		return diffStates(oldState, newState, mappings)
+	diffStates(oldState: Record<string, TrackedLayer>, newState: Record<string, TrackedLayer>): Array<Command> {
+		return diffTrackerStates(oldState, newState)
 	}
-	async sendCommand({ command }: Command): Promise<any> {
+	async sendCommand({ command }: Command): Promise<number> {
 		// console.log(command)
 		// executes all commands on a layer so we can say something about the state of the layer
 
@@ -223,20 +220,11 @@ export class CasparCGDevice
 		}
 	}
 
-	diffLayer(a: string, currentState: TrackedLayer | undefined, expectedState: TrackedLayer): Command[] {
-		return diffTrackerStatesLayer(a, currentState, expectedState)
-	}
 	getLayerStatus(currentState: TrackedLayer, expectedState: TrackedLayer): LayerState {
 		return getStatus(currentState, expectedState)
 	}
-	mappingToAddress(mapping: Mapping<MappingCasparCGLayer>): string {
+	mappingToAddress(mapping: Mapping<SomeMappingCasparCG>): string {
 		return mappingToAddress(mapping)
-	}
-	getAddressStateFromDeviceState(address: string, state: DeviceState): TrackedLayer {
-		return {
-			layer: state.layers[address],
-			lookahead: state.lookaheads[address],
-		}
 	}
 	stateUpdatesFromCommands(
 		currentState: TrackedLayer | undefined,

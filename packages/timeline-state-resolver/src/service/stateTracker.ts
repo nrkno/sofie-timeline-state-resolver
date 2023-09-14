@@ -8,12 +8,12 @@ export class StateTracker<State, Command> {
 			currentState: State | undefined
 		}
 	} = {}
-	private _diff: (address: string, currentState: State | undefined, expectedState: State) => Command[]
+	private _diff: (currentState: Record<string, State>, expectedState: Record<string, State>) => Array<Command>
 	private _getStatus: (currentState: State, expectedState?: State) => LayerState
 	private _onReportedChange: (addres: string, state: LayerState) => void
 
 	constructor(
-		diff: (address: string, currentState: State | undefined, expectedState: State) => Command[],
+		diff: (currentState: Record<string, State>, expectedState: Record<string, State>) => Array<Command>,
 		getStatus: (currentState: State, expectedState: State) => LayerState,
 		onReportedChange: (addres: string, state: LayerState) => void
 	) {
@@ -52,17 +52,12 @@ export class StateTracker<State, Command> {
 		this._state = {}
 	}
 
-	getDiff(): { [address: string]: Command[] } {
-		const diff: { [address: string]: Command[] } = {}
+	getDiff(): Command[] {
+		const stateEntries = Object.entries(this._state)
+		const expectedState = Object.fromEntries(stateEntries.map(([a, s]) => [a, s.expectedState]).filter(([_, s]) => !!s))
+		const currentState = Object.fromEntries(stateEntries.map(([a, s]) => [a, s.currentState]).filter(([_, s]) => !!s))
 
-		for (const [address, state] of Object.entries(this._state)) {
-			if (!state.expectedState) continue // note - should this be interpreted as empty/unloaded instead?
-
-			const commands = this._diff(address, state.currentState, state.expectedState)
-			diff[address] = commands
-		}
-
-		return diff
+		return this._diff(currentState, expectedState)
 	}
 
 	private _assertAddressExists(address: string) {

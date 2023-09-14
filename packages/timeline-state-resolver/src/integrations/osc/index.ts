@@ -11,6 +11,7 @@ import {
 	StatusCode,
 	Timeline,
 	TSRTimelineContent,
+	SomeMappingOsc,
 } from 'timeline-state-resolver-types'
 import { Device } from '../../service/device'
 import * as osc from 'osc'
@@ -37,7 +38,10 @@ export interface OscCommandWithContext {
 	tlObjId: string
 }
 
-export class OscDevice extends EventEmitter implements Device<OSCOptions, OscDeviceState, OscCommandWithContext> {
+export class OscDevice
+	extends EventEmitter
+	implements Device<OSCOptions, OscDeviceState, SomeMappingOsc, OscCommandWithContext>
+{
 	private _oscClient: osc.UDPPort | osc.TCPSocketPort
 	private _oscClientStatus: 'connected' | 'disconnected' = 'disconnected'
 	private transitions: {
@@ -86,7 +90,9 @@ export class OscDevice extends EventEmitter implements Device<OSCOptions, OscDev
 		return true
 	}
 
-	convertTimelineStateToDeviceState(state: Timeline.TimelineState<TSRTimelineContent>): OscDeviceState {
+	convertTimelineStateToAddressStates(
+		state: Timeline.TimelineState<TSRTimelineContent>
+	): Record<'state', OscDeviceState> {
 		const addrToOSCMessage: OscDeviceState = {}
 		const addrToPriority: { [address: string]: number } = {}
 
@@ -106,13 +112,13 @@ export class OscDevice extends EventEmitter implements Device<OSCOptions, OscDev
 			}
 		})
 
-		return addrToOSCMessage
+		return { state: addrToOSCMessage }
 	}
-	diffStates(oldState: OscDeviceState | undefined, newState: OscDeviceState): Array<OscCommandWithContext> {
+	diffStates(oldState: { state?: OscDeviceState }, newState: { state: OscDeviceState }): Array<OscCommandWithContext> {
 		const commands: Array<OscCommandWithContext> = []
 
-		Object.entries<OSCDeviceStateContent>(newState).forEach(([address, newCommandContent]) => {
-			const oldLayer = oldState?.[address]
+		Object.entries<OSCDeviceStateContent>(newState.state).forEach(([address, newCommandContent]) => {
+			const oldLayer = oldState.state?.[address]
 			if (!oldLayer) {
 				// added!
 				commands.push({
@@ -272,5 +278,9 @@ export class OscDevice extends EventEmitter implements Device<OSCOptions, OscDev
 	private getMonotonicTime() {
 		const hrTime = process.hrtime()
 		return hrTime[0] * 1000 + hrTime[1] / 1000000
+	}
+
+	mappingToAddress() {
+		return 'state'
 	}
 }

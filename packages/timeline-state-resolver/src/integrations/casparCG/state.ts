@@ -37,15 +37,6 @@ import { klona } from 'klona'
 import { StateTracker } from './stateTracker'
 import { ChannelLayer } from 'casparcg-connection/dist/parameters'
 
-export interface InternalState {
-	layers: {
-		[address: string]: Layer
-	}
-	lookaheads: {
-		[address: string]: Layer
-	}
-}
-
 export interface TrackedLayer {
 	layer: Layer | undefined
 	lookahead: Layer | undefined
@@ -55,7 +46,7 @@ export function mappingToAddress(mapping: Mapping<SomeMappingCasparCG>): string 
 	return mapping.options.channel + '-' + mapping.options.layer
 }
 
-export function convertObjectToCasparState(
+function convertObjectToCasparState(
 	mappings: Mappings,
 	layer: Timeline.ResolvedTimelineObjectInstance,
 	mapping: MappingCasparCGLayer,
@@ -245,11 +236,11 @@ export function convertObjectToCasparState(
 	return stateLayer
 }
 
-export function isValidCasparCGMapping(mapping: Mapping<unknown>): mapping is Mapping<SomeMappingCasparCG> {
+function isValidCasparCGMapping(mapping: Mapping<unknown>): mapping is Mapping<SomeMappingCasparCG> {
 	return !!mapping && mapping.device === DeviceType.CASPARCG
 }
 
-export function isLookaheadLayer(
+function isLookaheadLayer(
 	layer: Timeline.ResolvedTimelineObjectInstance<TSRTimelineContent>
 ): string | number | undefined {
 	const l: ResolvedTimelineObjectInstanceExtended = layer
@@ -257,14 +248,11 @@ export function isLookaheadLayer(
 	return l.isLookahead ? l.lookaheadForLayer : undefined
 }
 
-export function convertTimelineStateToDeviceState(
+export function convertTimelineStateToAddressStates(
 	state: Timeline.TimelineState<TSRTimelineContent>,
 	newMappings: Mappings
-): InternalState {
-	const deviceState: InternalState = {
-		layers: {},
-		lookaheads: {},
-	}
+): { [address: string]: TrackedLayer } {
+	const deviceState: { [address: string]: TrackedLayer } = {}
 
 	for (const layer of Object.values(state.layers)) {
 		const lookaheadLayer = isLookaheadLayer(layer)
@@ -274,18 +262,20 @@ export function convertTimelineStateToDeviceState(
 		const address = mappingToAddress(mapping as Mapping<SomeMappingCasparCG>)
 		const layerState = convertObjectToCasparState(newMappings, layer, mapping.options, true)
 
-		if (lookaheadLayer) {
-			const old = deviceState.lookaheads[address] ?? {}
-			deviceState.lookaheads[address] = { ...old, ...layerState }
-		} else {
-			const old: Layer = deviceState.layers[address] ?? {}
-			deviceState.layers[address] = { ...old, ...layerState }
+		const addressState: TrackedLayer = deviceState[address] ?? { layer: undefined, lookahead: undefined }
 
-			// deepmerge template data
+		if (lookaheadLayer) {
+			const old = addressState.lookahead ?? {}
+			addressState.lookahead = { ...old, ...layerState }
+		} else {
+			const old: Layer | undefined = addressState.layer
+			addressState.layer = { ...(old ?? {}), ...layerState }
+
+			// deep merge template data
 			if (
-				old.content === LayerContentType.TEMPLATE &&
-				old.templateData &&
-				typeof old.templateData !== 'string' &&
+				old?.content === LayerContentType.TEMPLATE &&
+				old?.templateData &&
+				typeof old?.templateData !== 'string' &&
 				layerState.content === LayerContentType.TEMPLATE &&
 				layerState.templateData &&
 				typeof layerState.templateData !== 'string'
@@ -296,6 +286,8 @@ export function convertTimelineStateToDeviceState(
 				)
 			}
 		}
+
+		deviceState[address] = addressState
 	}
 
 	return deviceState
@@ -303,7 +295,7 @@ export function convertTimelineStateToDeviceState(
 
 export function stateUpdateFromCommandResult(
 	trackedLayer: TrackedLayer | undefined,
-	expectedlayer: TrackedLayer,
+	expectedLayer: TrackedLayer,
 	commands: AMCPCommandWithContext[],
 	results: number[]
 ): TrackedLayer {
@@ -336,14 +328,14 @@ export function stateUpdateFromCommandResult(
 				} else {
 					// a play/load command without parameters (channel/layer) is only succesful if the nextUp worked
 					// a play/load command with params can always be accepted
-					newTrackedLayer.layer = klona(expectedlayer.layer)
+					newTrackedLayer.layer = klona(expectedLayer.layer)
 					newTrackedLayer.lookahead = undefined // a play command always clears nextUp
 				}
 				break
 			case Commands.PlayDecklink:
 			case Commands.PlayHtml:
 			case Commands.PlayRoute:
-				newTrackedLayer.layer = klona(expectedlayer.layer)
+				newTrackedLayer.layer = klona(expectedLayer.layer)
 				newTrackedLayer.lookahead = undefined // a play command always clears nextUp
 				break
 			case Commands.Loadbg:
@@ -351,7 +343,7 @@ export function stateUpdateFromCommandResult(
 			case Commands.LoadbgHtml:
 			case Commands.LoadbgRoute:
 				// only loadbg can set nextUp and nextUp can only be set by loadbg
-				newTrackedLayer.lookahead = klona(expectedlayer.lookahead)
+				newTrackedLayer.lookahead = klona(expectedLayer.lookahead)
 				break
 			case Commands.Stop:
 				// note - technically an auto bg + stop => bg to fg but tsr never uses this...
@@ -359,7 +351,7 @@ export function stateUpdateFromCommandResult(
 				break
 			case Commands.Resume:
 				// resume does not affect nextup
-				newTrackedLayer.layer = klona(expectedlayer.layer)
+				newTrackedLayer.layer = klona(expectedLayer.layer)
 				break
 			case Commands.Clear:
 				// Remove both the background and foreground
@@ -375,43 +367,6 @@ export function stateUpdateFromCommandResult(
 	}
 
 	return newTrackedLayer
-}
-export function updateStateFromCommands(
-	tracker: StateTracker<any, any>,
-	commands: AMCPCommandWithContext[],
-	results: number[]
-): void {
-	// group commands by address:
-	const commandToAddress = (command: AMCPCommandWithContext & { params: ChannelLayer }) =>
-		command.params.channel + '-' + command.params.layer
-	const addressedCommand = commands
-		.filter(
-			(command): command is AMCPCommandWithContext & { params: ChannelLayer } =>
-				!!(
-					typeof command.params === 'object' &&
-					command.params &&
-					'channel' in command.params &&
-					command.params.channel !== undefined &&
-					'layer' in command.params &&
-					command.params.layer !== undefined
-				)
-		)
-		.reduce((addressed, command) => {
-			const addr = commandToAddress(command)
-			if (!addressed[addr]) addressed[addr] = []
-			addressed[addr].push(command)
-			return addressed
-		}, {} as Record<string, AMCPCommandWithContext[]>)
-
-	// send updates for every address
-	for (const [address, commands] of Object.entries(addressedCommand)) {
-		const expectedState = tracker.getExpectedState(address)
-		const currentState = tracker.getCurrentState(address)
-
-		const update = stateUpdateFromCommandResult(currentState, expectedState, commands, results)
-
-		tracker.updateState(address, update)
-	}
 }
 
 export function getStatus(currentLayer: any, expectedLayer?: any): LayerState {

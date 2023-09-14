@@ -40,9 +40,9 @@ describe('OSC Device', () => {
 		async function compareState(tlState: Timeline.TimelineState<TSRTimelineContent>, expDevState: OscDeviceState) {
 			const device = await getInitialisedOscDevice()
 
-			const actualState = device.convertTimelineStateToDeviceState(tlState)
+			const actualState = device.convertTimelineStateToAddressStates(tlState)
 
-			expect(actualState).toEqual(expDevState)
+			expect(actualState).toEqual({ state: expDevState })
 		}
 
 		test('convert empty state', async () => {
@@ -172,7 +172,7 @@ describe('OSC Device', () => {
 		) {
 			const device = await getInitialisedOscDevice()
 
-			const commands = device.diffStates(oldDevState, newDevState)
+			const commands = device.diffStates({ state: oldDevState }, { state: newDevState })
 
 			expect(commands).toEqual(expCommands)
 		}

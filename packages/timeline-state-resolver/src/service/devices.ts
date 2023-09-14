@@ -5,7 +5,7 @@ import { CasparCGDevice } from '../integrations/casparCG'
 import { OscDevice } from '../integrations/osc'
 
 export interface DeviceEntry {
-	deviceClass: new () => Device<any, any, any>
+	deviceClass: new () => Device<any, any, any, any>
 	canConnect: boolean
 	deviceName: (deviceId: string, options: any) => string
 	executionMode: (options: any) => 'salvo' | 'sequential'
