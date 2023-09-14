@@ -3,7 +3,7 @@ import { Commands as orgCommands, AMCPCommand as orgAMCPCommand, SendResult } fr
 import { ResponseTypes } from 'casparcg-connection/dist/connection'
 import { EventEmitter } from 'events'
 
-const mockDo = jest.fn()
+export const mockDo = jest.fn()
 
 const instances: Array<BasicCasparCGAPI> = []
 
@@ -28,8 +28,13 @@ export class BasicCasparCGAPI extends EventEmitter {
 		instances.push(this)
 	}
 
+	connect() {
+		this.connected = true
+		this.emit('connect')
+	}
+
 	async executeCommand(command: AMCPCommand): Promise<SendResult> {
-		mockDo.apply(this, command)
+		mockDo.apply(this, [command])
 
 		if (command.command === Commands.Info) {
 			return Promise.resolve({
@@ -89,3 +94,5 @@ export class BasicCasparCGAPI extends EventEmitter {
 		return instances
 	}
 }
+
+export class CasparCG extends BasicCasparCGAPI {}

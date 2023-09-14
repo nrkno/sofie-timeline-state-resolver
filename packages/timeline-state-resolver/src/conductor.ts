@@ -27,6 +27,7 @@ import {
 	DeviceOptionsHTTPWatcher,
 	DeviceOptionsAbstract,
 	DeviceOptionsTCPSend,
+	DeviceOptionsCasparCG,
 } from 'timeline-state-resolver-types'
 
 import { DoOnTime } from './devices/doOnTime'
@@ -36,7 +37,6 @@ import { assertNever, endTrace, fillStateFromDatastore, FinishedTrace, startTrac
 import { CommandWithContext } from './devices/device'
 import { DeviceContainer } from './devices/deviceContainer'
 
-import { CasparCGDevice, DeviceOptionsCasparCGInternal } from './integrations/casparCG'
 import { AtemDevice, DeviceOptionsAtemInternal } from './integrations/atem'
 import { LawoDevice, DeviceOptionsLawoInternal } from './integrations/lawo'
 import { PanasonicPtzDevice, DeviceOptionsPanasonicPTZInternal } from './integrations/panasonicPTZ'
@@ -501,15 +501,6 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 		threadedClassOptions: ThreadedClassConfig
 	): Promise<BaseRemoteDeviceIntegration<DeviceOptionsBase<any>>> | null {
 		switch (deviceOptions.type) {
-			case DeviceType.CASPARCG:
-				return DeviceContainer.create<DeviceOptionsCasparCGInternal, typeof CasparCGDevice>(
-					'../../dist/integrations/casparCG/index.js',
-					'CasparCGDevice',
-					deviceId,
-					deviceOptions,
-					getCurrentTime,
-					threadedClassOptions
-				)
 			case DeviceType.ATEM:
 				return DeviceContainer.create<DeviceOptionsAtemInternal, typeof AtemDevice>(
 					'../../dist/integrations/atem/index.js',
@@ -646,6 +637,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 					threadedClassOptions
 				)
 			case DeviceType.ABSTRACT:
+			case DeviceType.CASPARCG:
 			case DeviceType.HTTPSEND:
 			case DeviceType.HTTPWATCHER:
 			case DeviceType.OSC:
@@ -1553,7 +1545,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 }
 export type DeviceOptionsAnyInternal =
 	| DeviceOptionsAbstract
-	| DeviceOptionsCasparCGInternal
+	| DeviceOptionsCasparCG
 	| DeviceOptionsAtemInternal
 	| DeviceOptionsLawoInternal
 	| DeviceOptionsHTTPSend

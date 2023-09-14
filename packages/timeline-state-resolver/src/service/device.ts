@@ -69,7 +69,7 @@ export abstract class Device<DeviceOptions, DeviceState, Command extends Command
 export interface BaseDeviceAPI<DeviceState, Command extends CommandWithContext> {
 	/**
 	 * This method takes in a Timeline State that describes a point
-	 * in time on the timeline and returns a decice state that
+	 * in time on the timeline and returns a device state that
 	 * describes how the device should be according to the timeline state
 	 *
 	 * @param state State obj from timeline
