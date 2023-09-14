@@ -37,6 +37,15 @@ export class ShotokuDevice extends Device<ShotokuOptions, ShotokuDeviceState, Sh
 	async init(options: ShotokuOptions): Promise<boolean> {
 		this._shotoku = new ShotokuAPI()
 		this._shotoku.on('error', (info, error) => this.context.emitError(info, error))
+		this._shotoku.on('connected', () => {
+			this.context.connectionChanged(this.getStatus())
+		})
+		this._shotoku.on('disconnected', () => {
+			this.context.connectionChanged(this.getStatus())
+		})
+		this._shotoku.on('warn', (message: string) => {
+			this.context.emitWarning(message)
+		})
 
 		this._shotoku
 			.connect(options.host, options.port)
@@ -150,6 +159,8 @@ export class ShotokuDevice extends Device<ShotokuOptions, ShotokuDeviceState, Sh
 		return this._shotoku.connected
 	}
 	getStatus(): Omit<DeviceStatus, 'active'> {
+		const messages: string[] = []
+		if (!this._shotoku.connected) messages.push('Not connected')
 		return {
 			statusCode: this._shotoku.connected ? StatusCode.GOOD : StatusCode.BAD,
 			messages: [],
