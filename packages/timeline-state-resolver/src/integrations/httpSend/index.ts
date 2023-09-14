@@ -96,7 +96,7 @@ export class HTTPSendDevice extends Device<HTTPSendOptions, HttpSendDeviceState,
 		}
 
 		await this.sendCommand({
-			tlObjId: '',
+			timelineObjId: '',
 			context: 'makeReady',
 			command: {
 				commandName: 'manual',
@@ -121,7 +121,7 @@ export class HTTPSendDevice extends Device<HTTPSendOptions, HttpSendDeviceState,
 			if (!oldLayer) {
 				// added!
 				commands.push({
-					tlObjId: newLayer.id,
+					timelineObjId: newLayer.id,
 					context: `added: ${newLayer.id}`,
 					command: {
 						commandName: 'added',
@@ -134,7 +134,7 @@ export class HTTPSendDevice extends Device<HTTPSendOptions, HttpSendDeviceState,
 				if (!_.isEqual(oldLayer.content, newLayer.content)) {
 					// changed!
 					commands.push({
-						tlObjId: newLayer.id,
+						timelineObjId: newLayer.id,
 						context: `changed: ${newLayer.id} (previously: ${oldLayer.id})`,
 						command: {
 							commandName: 'changed',
@@ -151,7 +151,7 @@ export class HTTPSendDevice extends Device<HTTPSendOptions, HttpSendDeviceState,
 			if (!newLayer) {
 				// removed!
 				commands.push({
-					tlObjId: oldLayer.id,
+					timelineObjId: oldLayer.id,
 					context: `removed: ${oldLayer.id}`,
 					command: { commandName: 'removed', content: oldLayer.content as HTTPSendCommandContent, layer: layerKey },
 				})
@@ -165,7 +165,7 @@ export class HTTPSendDevice extends Device<HTTPSendOptions, HttpSendDeviceState,
 
 		return commands
 	}
-	async sendCommand({ tlObjId, context, command }: HttpSendDeviceCommand): Promise<void> {
+	async sendCommand({ timelineObjId, context, command }: HttpSendDeviceCommand): Promise<void> {
 		const commandHash = this.getTrackedStateHash(command)
 
 		if (command.commandName === 'added' || command.commandName === 'changed') {
@@ -186,7 +186,7 @@ export class HTTPSendDevice extends Device<HTTPSendOptions, HttpSendDeviceState,
 		const cwc: CommandWithContext = {
 			context,
 			command,
-			tlObjId,
+			timelineObjId,
 		}
 		this.context.emitDebug({ context, timelineObjId, command })
 
@@ -269,7 +269,7 @@ export class HTTPSendDevice extends Device<HTTPSendOptions, HttpSendDeviceState,
 					const timeLeft = Math.max(this.options.resendTime - (Date.now() - t), 0)
 					setTimeout(() => {
 						this.sendCommand({
-							tlObjId,
+							timelineObjId,
 							context,
 							command: {
 								...command,

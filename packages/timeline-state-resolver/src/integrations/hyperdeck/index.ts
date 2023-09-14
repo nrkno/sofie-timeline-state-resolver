@@ -815,8 +815,8 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState, DeviceOptionsH
 		timelineObjId: string
 	): Promise<any> {
 		const cwc: CommandWithContext = {
-			context: context,
-			timelineObjId: timelineObjId,
+			context,
+			timelineObjId,
 			command: command,
 		}
 		this.emitDebug(cwc)

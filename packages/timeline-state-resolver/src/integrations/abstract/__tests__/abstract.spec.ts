@@ -88,7 +88,7 @@ describe('Abstract device', () => {
 					{
 						command: 'addedAbstract',
 						context: 'added: obj0',
-						tlObjId: 'obj0',
+						timelineObjId: 'obj0',
 					},
 				]
 			)
@@ -114,7 +114,7 @@ describe('Abstract device', () => {
 					{
 						command: 'changedAbstract',
 						context: 'changed: obj1',
-						tlObjId: 'obj1',
+						timelineObjId: 'obj1',
 					},
 				]
 			)
@@ -136,7 +136,7 @@ describe('Abstract device', () => {
 					{
 						command: 'removedAbstract',
 						context: 'removed: obj0',
-						tlObjId: 'obj0',
+						timelineObjId: 'obj0',
 					},
 				]
 			)

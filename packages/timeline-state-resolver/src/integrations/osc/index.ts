@@ -29,7 +29,7 @@ interface OSCDeviceStateContent extends OSCMessageCommandContent {
 export interface OscCommandWithContext {
 	command: any // todo
 	context: string
-	tlObjId: string
+	timelineObjId: string
 }
 
 export class OscDevice extends Device<OSCOptions, OscDeviceState, OscCommandWithContext> {
@@ -113,7 +113,7 @@ export class OscDevice extends Device<OSCOptions, OscDeviceState, OscCommandWith
 				// added!
 				commands.push({
 					context: `added: ${newCommandContent.fromTlObject}`,
-					tlObjId: newCommandContent.fromTlObject,
+					timelineObjId: newCommandContent.fromTlObject,
 					command: newCommandContent,
 				})
 			} else {
@@ -122,7 +122,7 @@ export class OscDevice extends Device<OSCOptions, OscDeviceState, OscCommandWith
 					// changed!
 					commands.push({
 						context: `changed: ${newCommandContent.fromTlObject}`,
-						tlObjId: newCommandContent.fromTlObject,
+						timelineObjId: newCommandContent.fromTlObject,
 						command: newCommandContent,
 					})
 				}
@@ -130,11 +130,11 @@ export class OscDevice extends Device<OSCOptions, OscDeviceState, OscCommandWith
 		})
 		return commands
 	}
-	async sendCommand({ command, context, tlObjId }: OscCommandWithContext): Promise<any> {
+	async sendCommand({ command, context, timelineObjId }: OscCommandWithContext): Promise<any> {
 		const cwc: CommandWithContext = {
 			context: context,
 			command: command,
-			tlObjId: tlObjId,
+			timelineObjId,
 		}
 		this.context.emitDebug(cwc)
 		debug(command)

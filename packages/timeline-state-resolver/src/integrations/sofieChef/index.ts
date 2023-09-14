@@ -425,9 +425,9 @@ export class SofieChefDevice extends DeviceWithState<SofieChefState, DeviceOptio
 	): Promise<any> {
 		// emit the command to debug:
 		const cwc: CommandWithContext = {
-			context: context,
+			context,
 			command: cmd.content,
-			timelineObjId: timelineObjId,
+			timelineObjId,
 		}
 		this.emitDebug(cwc)
 

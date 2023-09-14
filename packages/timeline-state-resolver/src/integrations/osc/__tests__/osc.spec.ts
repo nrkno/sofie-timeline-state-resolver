@@ -202,7 +202,7 @@ describe('OSC Device', () => {
 							values: [],
 						},
 						context: 'added: obj0',
-						tlObjId: 'obj0',
+						timelineObjId: 'obj0',
 					},
 				]
 			)
@@ -259,7 +259,7 @@ describe('OSC Device', () => {
 						values: [],
 					},
 					context: '',
-					tlObjId: '',
+					timelineObjId: '',
 				})
 				.catch((e) => {
 					throw e
@@ -305,7 +305,7 @@ describe('OSC Device', () => {
 						},
 					},
 					context: '',
-					tlObjId: '',
+					timelineObjId: '',
 				})
 				.catch((e) => {
 					throw e

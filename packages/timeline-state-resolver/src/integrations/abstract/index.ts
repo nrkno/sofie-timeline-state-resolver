@@ -12,7 +12,7 @@ import { Device } from '../../service/device'
 
 export interface AbstractCommandWithContext {
 	command: string
-	tlObjId: string
+	timelineObjId: string
 	context: string
 }
 
@@ -84,7 +84,7 @@ export class AbstractDevice extends Device<AbstractOptions, AbstractDeviceState,
 				// added!
 				commands.push({
 					command: 'addedAbstract',
-					tlObjId: newLayer.id,
+					timelineObjId: newLayer.id,
 					context: `added: ${newLayer.id}`,
 				})
 			} else {
@@ -93,7 +93,7 @@ export class AbstractDevice extends Device<AbstractOptions, AbstractDeviceState,
 					// changed!
 					commands.push({
 						command: 'changedAbstract',
-						tlObjId: newLayer.id,
+						timelineObjId: newLayer.id,
 						context: `changed: ${newLayer.id}`,
 					})
 				}
@@ -109,7 +109,7 @@ export class AbstractDevice extends Device<AbstractOptions, AbstractDeviceState,
 				// removed!
 				commands.push({
 					command: 'removedAbstract',
-					tlObjId: oldLayer.id,
+					timelineObjId: oldLayer.id,
 					context: `removed: ${oldLayer.id}`,
 				})
 			}
@@ -118,7 +118,7 @@ export class AbstractDevice extends Device<AbstractOptions, AbstractDeviceState,
 		return commands
 	}
 
-	async sendCommand({ command, context, tlObjId }: AbstractCommandWithContext): Promise<any> {
+	async sendCommand({ command, context, timelineObjId }: AbstractCommandWithContext): Promise<any> {
 		// emit the command to debug:
 		this.context.emitDebug({ command, context, timelineObjId })
 

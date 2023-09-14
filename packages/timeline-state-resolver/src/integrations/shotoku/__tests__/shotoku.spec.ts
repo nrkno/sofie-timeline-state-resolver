@@ -175,7 +175,7 @@ describe('Shotoku Device', () => {
 							shot: 1,
 						},
 						context: 'added: obj0',
-						tlObjId: 'obj0',
+						timelineObjId: 'obj0',
 					},
 				]
 			)
@@ -222,7 +222,7 @@ describe('Shotoku Device', () => {
 							],
 						},
 						context: 'added: obj0',
-						tlObjId: 'obj0',
+						timelineObjId: 'obj0',
 					},
 				]
 			)
@@ -244,7 +244,7 @@ describe('Shotoku Device', () => {
 						shot: 1,
 					},
 					context: '',
-					tlObjId: '',
+					timelineObjId: '',
 				})
 				.catch((e) => {
 					throw e
@@ -277,7 +277,7 @@ describe('Shotoku Device', () => {
 						],
 					},
 					context: '',
-					tlObjId: '',
+					timelineObjId: '',
 				})
 				.catch((e) => {
 					throw e

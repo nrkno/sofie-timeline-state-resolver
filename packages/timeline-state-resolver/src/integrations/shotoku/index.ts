@@ -28,7 +28,7 @@ interface ShotokuSequence {
 export interface ShotokuCommandWithContext {
 	command: ShotokuCommand // todo
 	context: string
-	tlObjId: string
+	timelineObjId: string
 }
 
 export class ShotokuDevice extends Device<ShotokuOptions, ShotokuDeviceState, ShotokuCommandWithContext> {
@@ -107,7 +107,7 @@ export class ShotokuDevice extends Device<ShotokuOptions, ShotokuDeviceState, Sh
 				}
 				commands.push({
 					context: `added: ${newCommandContent.fromTlObject}`,
-					tlObjId: newCommandContent.fromTlObject,
+					timelineObjId: newCommandContent.fromTlObject,
 					command: shotokuCommand,
 				})
 			} else {
@@ -130,7 +130,7 @@ export class ShotokuDevice extends Device<ShotokuOptions, ShotokuDeviceState, Sh
 				}
 				commands.push({
 					context: `added: ${newCommandContent.fromTlObject}`,
-					tlObjId: newCommandContent.fromTlObject,
+					timelineObjId: newCommandContent.fromTlObject,
 					command: shotokuCommand,
 				})
 			} else {

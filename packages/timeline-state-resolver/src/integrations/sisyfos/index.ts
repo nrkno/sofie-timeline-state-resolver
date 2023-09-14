@@ -251,7 +251,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 
 			let channel: SisyfosChannel = {
 				...channelFromAPI,
-				tlObjIds: [],
+				timelineObjIds: [],
 			}
 
 			if (isDefaultState) {
@@ -273,7 +273,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 			pstOn: 0,
 			label: '',
 			visible: true,
-			tlObjIds: [],
+			timelineObjIds: [],
 		}
 	}
 	/**
@@ -310,7 +310,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 			overridePriority: number
 			channel: number
 			isLookahead: boolean
-			tlObjId: string
+			timelineObjId: string
 		} & SisyfosChannelOptions)[] = []
 
 		_.each(state.layers, (tlObject, layerName) => {
@@ -355,7 +355,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 						channel: foundMapping.options.channel,
 						overridePriority: content.overridePriority || 0,
 						isLookahead: layer.isLookahead || false,
-						tlObjId: layer.id,
+						timelineObjId: layer.id,
 					})
 					deviceState.resync = deviceState.resync || content.resync || false
 				} else if (
@@ -371,7 +371,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 						channel: ch,
 						overridePriority: content.overridePriority || 0,
 						isLookahead: layer.isLookahead || false,
-						tlObjId: layer.id,
+						timelineObjId: layer.id,
 					})
 					deviceState.resync = deviceState.resync || content.resync || false
 				} else if (
@@ -386,7 +386,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 								channel: referencedMapping.options.channel,
 								overridePriority: content.overridePriority || 0,
 								isLookahead: layer.isLookahead || false,
-								tlObjId: layer.id,
+								timelineObjId: layer.id,
 							})
 						} else if (
 							referencedMapping &&
@@ -401,7 +401,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 								channel: ch,
 								overridePriority: content.overridePriority || 0,
 								isLookahead: layer.isLookahead || false,
-								tlObjId: layer.id,
+								timelineObjId: layer.id,
 							})
 						}
 					})
@@ -432,7 +432,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 				if (newChannel.visible !== undefined) channel.visible = newChannel.visible
 				if (newChannel.fadeTime !== undefined) channel.fadeTime = newChannel.fadeTime
 
-				channel.tlObjIds.push(newChannel.tlObjId)
+				channel.timelineObjIds.push(newChannel.timelineObjId)
 			}
 		)
 		return deviceState
@@ -493,7 +493,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 						channel: Number(index),
 						values: newChannel,
 					},
-					timelineObjId: newChannel.tlObjIds[0] || '',
+					timelineObjId: newChannel.timelineObjIds[0] || '',
 				})
 				return
 			}
@@ -511,7 +511,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 						channel: Number(index),
 						values,
 					},
-					timelineObjId: newChannel.tlObjIds[0] || '',
+					timelineObjId: newChannel.timelineObjIds[0] || '',
 				})
 			}
 
@@ -524,7 +524,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 						channel: Number(index),
 						value: newChannel.pstOn,
 					},
-					timelineObjId: newChannel.tlObjIds[0] || '',
+					timelineObjId: newChannel.timelineObjIds[0] || '',
 				})
 			}
 
@@ -541,7 +541,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 						channel: Number(index),
 						values,
 					},
-					timelineObjId: newChannel.tlObjIds[0] || '',
+					timelineObjId: newChannel.timelineObjIds[0] || '',
 				})
 			}
 
@@ -555,7 +555,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 						channel: Number(index),
 						value: newChannel.label,
 					},
-					timelineObjId: newChannel.tlObjIds[0] || '',
+					timelineObjId: newChannel.timelineObjIds[0] || '',
 				})
 			}
 
@@ -568,7 +568,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 						channel: Number(index),
 						value: newChannel.visible,
 					},
-					timelineObjId: newChannel.tlObjIds[0] || '',
+					timelineObjId: newChannel.timelineObjIds[0] || '',
 				})
 			}
 		})
@@ -582,9 +582,9 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 		timelineObjId: string
 	): Promise<any> {
 		const cwc: CommandWithContext = {
-			context: context,
+			context,
 			command: cmd,
-			timelineObjId: timelineObjId,
+			timelineObjId,
 		}
 		this.emitDebug(cwc)
 

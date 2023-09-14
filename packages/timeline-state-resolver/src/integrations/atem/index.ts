@@ -478,9 +478,9 @@ export class AtemDevice extends DeviceWithState<DeviceState, DeviceOptionsAtemIn
 		timelineObjId: string
 	): Promise<any> {
 		const cwc: CommandWithContext = {
-			context: context,
-			command: command,
-			timelineObjId: timelineObjId,
+			context,
+			command,
+			timelineObjId,
 		}
 		this.emitDebug(cwc)
 
