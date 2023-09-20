@@ -9,6 +9,7 @@ export enum TimelineContentTypeAtem { //  Atem-state
 	MEDIAPLAYER = 'mp',
 	AUDIOCHANNEL = 'audioChan',
 	MACROPLAYER = 'macroPlayer',
+	AUDIOROUTING = 'audioRouting',
 }
 
 export enum AtemTransitionStyle { // Note: copied from atem-state
@@ -85,6 +86,8 @@ export type TimelineContentAtemAny =
 	| TimelineContentAtemMacroPlayer
 	| TimelineContentAtemAudioChannel
 	| TimelineContentAtemMediaPlayer
+	| TimelineContentAtemAudioRouting
+
 export interface TimelineContentAtemBase {
 	deviceType: DeviceType.ATEM
 	type: TimelineContentTypeAtem
@@ -315,5 +318,11 @@ export interface TimelineContentAtemMacroPlayer extends TimelineContentAtemBase 
 		macroIndex: number
 		isRunning: boolean
 		loop?: boolean
+	}
+}
+export interface TimelineContentAtemAudioRouting extends TimelineContentAtemBase {
+	type: TimelineContentTypeAtem.AUDIOROUTING
+	audioRouting: {
+		sourceId: number
 	}
 }
