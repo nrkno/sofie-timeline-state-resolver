@@ -198,6 +198,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 		}
 
 		this.setState(expectedState, time)
+		this.emit('resetResolver')
 	}
 
 	private _getDefaultInputState(num: number): VMixInput {
