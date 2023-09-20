@@ -97,6 +97,7 @@ describe('vMix', () => {
 				options: {
 					host: '127.0.0.1',
 					port: 8099,
+					pollInterval: 0,
 				},
 				commandReceiver: commandReceiver0,
 			}),
@@ -211,6 +212,7 @@ describe('vMix', () => {
 
 		// Time to stop playing
 		await mockTime.advanceTimeToTicks(16050)
+		console.log(JSON.stringify(commandReceiver0.mock.calls, undefined, 4))
 		expect(commandReceiver0).toHaveBeenCalledTimes(1)
 		expect(commandReceiver0).toHaveBeenNthCalledWith(
 			1,
@@ -267,6 +269,7 @@ describe('vMix', () => {
 				options: {
 					host: '127.0.0.1',
 					port: 8099,
+					pollInterval: 0,
 				},
 				commandReceiver: commandReceiver0,
 			}),
@@ -568,6 +571,7 @@ describe('vMix', () => {
 				options: {
 					host: '127.0.0.1',
 					port: 8099,
+					pollInterval: 0,
 				},
 				commandReceiver: commandReceiver0,
 			}),
@@ -811,6 +815,7 @@ describe('vMix', () => {
 				options: {
 					host: '127.0.0.1',
 					port: 8099,
+					pollInterval: 0,
 				},
 				commandReceiver: commandReceiver0,
 			}),
@@ -1121,6 +1126,7 @@ describe('vMix', () => {
 				options: {
 					host: '127.0.0.1',
 					port: 8099,
+					pollInterval: 0,
 				},
 				commandReceiver: commandReceiver0,
 			}),
@@ -1471,6 +1477,7 @@ describe('vMix', () => {
 				options: {
 					host: '127.0.0.1',
 					port: 8099,
+					pollInterval: 0,
 				},
 				commandReceiver: commandReceiver0,
 			}),
@@ -1697,6 +1704,7 @@ describe('vMix', () => {
 				options: {
 					host: '127.0.0.1',
 					port: 8099,
+					pollInterval: 0,
 				},
 				commandReceiver: commandReceiver0,
 			}),
@@ -1825,6 +1833,7 @@ describe('vMix', () => {
 				options: {
 					host: '127.0.0.1',
 					port: 8099,
+					pollInterval: 0,
 				},
 				commandReceiver: commandReceiver0,
 			}),
@@ -1950,6 +1959,7 @@ describe('vMix', () => {
 				options: {
 					host: '127.0.0.1',
 					port: 8099,
+					pollInterval: 0,
 				},
 				commandReceiver: commandReceiver0,
 			}),
@@ -2075,6 +2085,7 @@ describe('vMix', () => {
 				options: {
 					host: '127.0.0.1',
 					port: 8099,
+					pollInterval: 0,
 				},
 				commandReceiver: commandReceiver0,
 			}),
@@ -2201,6 +2212,7 @@ describe('vMix', () => {
 				options: {
 					host: '127.0.0.1',
 					port: 8099,
+					pollInterval: 0,
 				},
 				commandReceiver: commandReceiver0,
 			}),
@@ -2331,6 +2343,7 @@ describe('vMix', () => {
 				options: {
 					host: '127.0.0.1',
 					port: 8099,
+					pollInterval: 0,
 				},
 				commandReceiver: commandReceiver0,
 			}),
@@ -2462,6 +2475,7 @@ describe('vMix', () => {
 				options: {
 					host: '127.0.0.1',
 					port: 8099,
+					pollInterval: 0,
 				},
 				commandReceiver: commandReceiver0,
 			}),
@@ -2587,6 +2601,7 @@ describe('vMix', () => {
 				options: {
 					host: '127.0.0.1',
 					port: 8099,
+					pollInterval: 0,
 				},
 				commandReceiver: commandReceiver0,
 			}),
