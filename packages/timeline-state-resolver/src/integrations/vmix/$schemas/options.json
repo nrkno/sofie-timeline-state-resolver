@@ -13,7 +13,7 @@
 		},
 		"pollInterval": {
 			"type": "number",
-			"ui:title": "Retry Interval",
+			"ui:title": "Poll Interval",
 			"description": "How often, in milliseconds, for when we should poll vMix to query its actual state. Used to know when to re-send certain failed commands."
 		}
 	},
