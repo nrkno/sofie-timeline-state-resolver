@@ -1,17 +1,18 @@
-import { DeviceStatus, StatusCode, DeviceEvents } from './../../devices/device'
+import { DeviceStatus, StatusCode } from './../../devices/device'
 import {
 	AbstractOptions,
 	Timeline,
 	TSRTimelineContent,
 	ActionExecutionResult,
 	DeviceOptionsAbstract,
+	AbstractActions,
+	ActionExecutionResultCode,
 } from 'timeline-state-resolver-types'
-import EventEmitter = require('eventemitter3')
 import { Device } from '../../service/device'
 
 export interface AbstractCommandWithContext {
 	command: string
-	tlObjId: string
+	timelineObjId: string
 	context: string
 }
 
@@ -25,11 +26,13 @@ export type AbstractDeviceState = Timeline.TimelineState<TSRTimelineContent>
 	An abstract device is just a test-device that doesn't really do anything, but can be used
 	as a preliminary mock
 */
-export class AbstractDevice
-	extends EventEmitter<DeviceEvents>
-	implements Device<AbstractOptions, AbstractDeviceState, AbstractCommandWithContext>
-{
-	readonly actions: Record<string, (id: string, payload: Record<string, any>) => Promise<ActionExecutionResult>> = {}
+export class AbstractDevice extends Device<AbstractOptions, AbstractDeviceState, AbstractCommandWithContext> {
+	readonly actions: Record<string, (id: string, payload: Record<string, any>) => Promise<ActionExecutionResult>> = {
+		[AbstractActions.TestAction]: async () => {
+			// noop
+			return { result: ActionExecutionResultCode.Ok }
+		},
+	}
 
 	public readonly connected = false
 
@@ -81,7 +84,7 @@ export class AbstractDevice
 				// added!
 				commands.push({
 					command: 'addedAbstract',
-					tlObjId: newLayer.id,
+					timelineObjId: newLayer.id,
 					context: `added: ${newLayer.id}`,
 				})
 			} else {
@@ -90,7 +93,7 @@ export class AbstractDevice
 					// changed!
 					commands.push({
 						command: 'changedAbstract',
-						tlObjId: newLayer.id,
+						timelineObjId: newLayer.id,
 						context: `changed: ${newLayer.id}`,
 					})
 				}
@@ -106,7 +109,7 @@ export class AbstractDevice
 				// removed!
 				commands.push({
 					command: 'removedAbstract',
-					tlObjId: oldLayer.id,
+					timelineObjId: oldLayer.id,
 					context: `removed: ${oldLayer.id}`,
 				})
 			}
@@ -115,9 +118,9 @@ export class AbstractDevice
 		return commands
 	}
 
-	async sendCommand({ command, context, tlObjId }: AbstractCommandWithContext): Promise<any> {
+	async sendCommand({ command, context, timelineObjId }: AbstractCommandWithContext): Promise<any> {
 		// emit the command to debug:
-		this.emit('debug', { command, context, tlObjId })
+		this.context.emitDebug({ command, context, timelineObjId })
 
 		// Note: In the Abstract case, the execution does nothing
 

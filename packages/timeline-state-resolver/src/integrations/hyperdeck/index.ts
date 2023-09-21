@@ -262,7 +262,7 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState, DeviceOptionsH
 			case HyperdeckActions.Resync:
 				return this.resync()
 			default:
-				return { result: ActionExecutionResultCode.Ok, response: t('Action "{{id}}" not found', { actionId }) }
+				return { result: ActionExecutionResultCode.Ok, response: t('Action "{{id}}" not found', { id: actionId }) }
 		}
 	}
 	/** Called by the Conductor a bit before a .handleState is called */
@@ -815,8 +815,8 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState, DeviceOptionsH
 		timelineObjId: string
 	): Promise<any> {
 		const cwc: CommandWithContext = {
-			context: context,
-			timelineObjId: timelineObjId,
+			context,
+			timelineObjId,
 			command: command,
 		}
 		this.emitDebug(cwc)

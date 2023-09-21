@@ -1,4 +1,4 @@
-import { DeviceType } from '.'
+import { DeviceType } from '..'
 
 export type TimelineContentAbstractAny = TSRTimelineContentAbstract
 export interface TSRTimelineContentAbstract {

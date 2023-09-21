@@ -59,7 +59,7 @@ try {
 
 const basePath = path.resolve('./src/integrations')
 const basePathOfDereferencedShemas = path.resolve(`./src/${DEREFERENCED_SCHEMA_DIRECTORY}`)
-const dirs = (await fs.readdir(basePath, { withFileTypes: true })).filter((c) => c.isDirectory()).map((d) => d.name)
+const dirs = (await fs.readdir(basePath, { withFileTypes: true })).filter((c) => c.isDirectory() && !c.name.includes('__tests__')).map((d) => d.name)
 
 // Create output folder for dereferenced schemas
 try {

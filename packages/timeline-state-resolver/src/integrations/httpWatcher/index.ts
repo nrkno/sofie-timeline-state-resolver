@@ -6,8 +6,7 @@ import {
 	DeviceStatus,
 } from 'timeline-state-resolver-types'
 import got, { Headers, Response } from 'got'
-import EventEmitter = require('eventemitter3')
-import { CommandWithContext, Device, DeviceEvents } from '../../service/device'
+import { CommandWithContext, Device } from '../../service/device'
 
 type HTTPWatcherDeviceState = Record<string, never>
 
@@ -15,10 +14,7 @@ type HTTPWatcherDeviceState = Record<string, never>
  * This is a HTTPWatcherDevice, requests a uri on a regular interval and watches
  * it's response.
  */
-export class HTTPWatcherDevice
-	extends EventEmitter<DeviceEvents>
-	implements Device<HTTPWatcherOptions, HTTPWatcherDeviceState, CommandWithContext>
-{
+export class HTTPWatcherDevice extends Device<HTTPWatcherOptions, HTTPWatcherDeviceState, CommandWithContext> {
 	readonly actions: Record<string, (id: string, payload: Record<string, any>) => Promise<ActionExecutionResult>> = {}
 
 	private uri?: string
@@ -117,7 +113,7 @@ export class HTTPWatcherDevice
 			this.status = status
 			this.statusReason = reason
 
-			this.emit('connectionChanged', this.getStatus())
+			this.context.connectionChanged(this.getStatus())
 		}
 	}
 

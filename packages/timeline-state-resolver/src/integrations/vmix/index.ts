@@ -1216,9 +1216,9 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 		}
 
 		const cwc: CommandWithContext = {
-			context: context,
+			context,
 			command: cmd,
-			timelineObjId: timelineObjId,
+			timelineObjId,
 		}
 		this.emitDebug(cwc)
 

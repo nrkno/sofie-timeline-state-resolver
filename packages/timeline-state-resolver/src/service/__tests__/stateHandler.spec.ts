@@ -11,7 +11,7 @@ interface CommandWithContext {
 		property: string
 	}
 	context: string
-	tlObjId: string
+	timelineObjId: string
 }
 
 const MOCK_COMMAND_RECEIVER = jest.fn()

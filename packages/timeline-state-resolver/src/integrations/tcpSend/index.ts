@@ -397,9 +397,9 @@ export class TCPSendDevice extends DeviceWithState<TSCSendState, DeviceOptionsTC
 		// this.emit('info', 'TCTSend ', cmd)
 
 		const cwc: CommandWithContext = {
-			context: context,
+			context,
 			command: cmd,
-			timelineObjId: timelineObjId,
+			timelineObjId,
 		}
 		this.emitDebug(cwc)
 

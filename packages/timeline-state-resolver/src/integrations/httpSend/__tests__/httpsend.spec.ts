@@ -27,9 +27,10 @@ jest.mock('got', () => {
 
 // note - this import should be below the got mock
 import { HTTPSendDevice, HttpSendDeviceCommand, HttpSendDeviceState } from '..'
+import { getDeviceContext } from '../../__tests__/testlib'
 
 async function getInitialisedHttpDevice(retries = false) {
-	const dev = new HTTPSendDevice()
+	const dev = new HTTPSendDevice(getDeviceContext())
 	await dev.init({
 		resendTime: retries === true ? 1000 : undefined,
 	})
@@ -83,7 +84,7 @@ describe('HTTP-Send', () => {
 				}),
 				[
 					{
-						tlObjId: 'obj0',
+						timelineObjId: 'obj0',
 						context: `added: obj0`,
 						command: {
 							commandName: 'added',
@@ -122,7 +123,7 @@ describe('HTTP-Send', () => {
 				}),
 				[
 					{
-						tlObjId: 'obj1',
+						timelineObjId: 'obj1',
 						context: `changed: obj1 (previously: obj0)`,
 						command: {
 							commandName: 'changed',
@@ -156,7 +157,7 @@ describe('HTTP-Send', () => {
 				createTimelineState({}),
 				[
 					{
-						tlObjId: 'obj0',
+						timelineObjId: 'obj0',
 						context: `removed: obj0`,
 						command: {
 							commandName: 'removed',
@@ -175,7 +176,7 @@ describe('HTTP-Send', () => {
 
 			device
 				.sendCommand({
-					tlObjId: 'abc123',
+					timelineObjId: 'abc123',
 					context: 'A context',
 					command: {
 						commandName: 'added',
@@ -203,7 +204,7 @@ describe('HTTP-Send', () => {
 
 			device
 				.sendCommand({
-					tlObjId: 'abc123',
+					timelineObjId: 'abc123',
 					context: 'A context',
 					command: {
 						commandName: 'added',
@@ -243,7 +244,7 @@ describe('HTTP-Send', () => {
 			// send the command
 			await device
 				.sendCommand({
-					tlObjId: 'abc123',
+					timelineObjId: 'abc123',
 					context: 'A context',
 					command: {
 						commandName: 'added',
@@ -268,7 +269,7 @@ describe('HTTP-Send', () => {
 			// remove the command
 			await device
 				.sendCommand({
-					tlObjId: 'abc123',
+					timelineObjId: 'abc123',
 					context: 'A context',
 					command: {
 						commandName: 'removed',
@@ -289,6 +290,69 @@ describe('HTTP-Send', () => {
 			expect(MOCKED_SOCKET_GET).toHaveBeenCalledTimes(2)
 			jest.advanceTimersByTime(1000)
 			expect(MOCKED_SOCKET_GET).toHaveBeenCalledTimes(2)
+		})
+		test('2 identical sends after each other', async () => {
+			const content = {
+				...DEFAULT_TL_CONTENT,
+				type: TimelineContentTypeHTTP.POST,
+				url: 'http://testurl',
+				params: {},
+			}
+
+			const state = {
+				genesis: createTimelineState({}),
+				aStart: createTimelineState({
+					layer0: {
+						id: 'obj0',
+						content,
+					},
+				}),
+				aEnd: createTimelineState({}),
+				bStart: createTimelineState({
+					layer0: {
+						id: 'obj1',
+						content,
+					},
+				}),
+				bEnd: createTimelineState({}),
+			}
+
+			const device = await getInitialisedHttpDevice()
+
+			await Promise.all(device.diffStates(state.genesis, state.aStart).map(async (c) => device.sendCommand(c)))
+			await Promise.all(device.diffStates(state.aStart, state.aEnd).map(async (c) => device.sendCommand(c)))
+
+			{
+				const commands = device.diffStates(state.aEnd, state.bStart)
+				// Test that the internal state in HTTPSendDevice is correct:
+				expect(commands).toStrictEqual([
+					{
+						timelineObjId: 'obj1',
+						context: `added: obj1`,
+						command: {
+							commandName: 'added',
+							content: content,
+							layer: 'layer0',
+						},
+					},
+				])
+				await Promise.all(commands.map(async (c) => device.sendCommand(c)))
+			}
+
+			{
+				// Verify the removal commands:
+				expect(device.diffStates(state.bStart, state.bEnd)).toStrictEqual([
+					{
+						timelineObjId: 'obj1',
+						context: `removed: obj1`,
+						command: {
+							commandName: 'removed',
+							content: content,
+							layer: 'layer0',
+						},
+					},
+				])
+			}
 		})
 	})
 

@@ -324,7 +324,7 @@ export class SisyfosApi extends EventEmitter {
 				pstOn: ch.pstOn === true ? 1 : 0,
 				label: ch.label || '',
 				visible: ch.showChannel ? true : false,
-				tlObjIds: [],
+				timelineObjIds: [],
 			}
 
 			deviceState.channels[index] = channel
@@ -398,7 +398,7 @@ export type SisyfosCommand =
 	| SetChannelCommand
 
 export interface SisyfosChannel extends SisyfosAPIChannel {
-	tlObjIds: string[]
+	timelineObjIds: string[]
 }
 export interface SisyfosState {
 	channels: { [index: string]: SisyfosChannel }

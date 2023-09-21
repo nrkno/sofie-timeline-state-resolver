@@ -14,31 +14,53 @@ type CommandContext = any
 export type CommandWithContext = {
 	command: any
 	context: CommandContext
-	tlObjId: string
+	/** ID of the timeline-object that the command originated from */
+	timelineObjId: string
 }
 
-export interface Device<DeviceOptions, DeviceState, Command extends CommandWithContext>
-	extends BaseDeviceAPI<DeviceState, Command> {
+/**
+ * API for use by the DeviceInstance to be able to use a device
+ */
+export abstract class Device<DeviceOptions, DeviceState, Command extends CommandWithContext>
+	implements BaseDeviceAPI<DeviceState, Command>
+{
+	constructor(protected context: DeviceContextAPI) {
+		// Nothing
+	}
 	/**
 	 * Initiates the device connection, after this has resolved the device
 	 * is ready to be controlled
 	 */
-	init(options: DeviceOptions): Promise<boolean>
+	abstract init(options: DeviceOptions): Promise<boolean>
 	/**
 	 * Ready this class for garbage collection
 	 */
-	terminate(): Promise<void>
+	abstract terminate(): Promise<void>
 
 	/** @deprecated */
-	makeReady?(okToDestroyStuff?: boolean): Promise<void>
-	standDown?(): Promise<void>
+	async makeReady(_okToDestroyStuff?: boolean): Promise<void> {
+		// Do nothing by default
+	}
+	/** @deprecated */
+	async standDown(): Promise<void> {
+		// Do nothing by default
+	}
 
-	get connected(): boolean
-	getStatus(): Omit<DeviceStatus, 'active'>
+	abstract get connected(): boolean
+	abstract getStatus(): Omit<DeviceStatus, 'active'>
 
-	actions: Record<string, (id: string, payload?: Record<string, any>) => Promise<ActionExecutionResult>>
+	abstract actions: Record<string, (id: string, payload?: Record<string, any>) => Promise<ActionExecutionResult>>
 
 	// todo - add media objects
+
+	// From BaseDeviceAPI: -----------------------------------------------
+	abstract convertTimelineStateToDeviceState(
+		state: Timeline.TimelineState<TSRTimelineContent>,
+		newMappings: Mappings
+	): DeviceState
+	abstract diffStates(oldState: DeviceState | undefined, newState: DeviceState, mappings: Mappings): Array<Command>
+	abstract sendCommand(command: Command): Promise<void>
+	// -------------------------------------------------------------------
 }
 
 /**
@@ -66,22 +88,25 @@ export interface BaseDeviceAPI<DeviceState, Command extends CommandWithContext> 
 	sendCommand(command: Command): Promise<void>
 }
 
+/** Events emitted by the device, to be listened on by Conductor */
 export interface DeviceEvents {
 	info: [info: string]
 	warning: [warning: string]
 	error: [context: string, err: Error]
 	debug: [...debug: any[]]
-
 	debugState: [state: object]
 	/** The connection status has changed */
 	connectionChanged: [status: Omit<DeviceStatus, 'active'>]
 	/** A message to the resolver that something has happened that warrants a reset of the resolver (to re-run it again) */
 	resetResolver: []
 
+	/** @deprecated replaced by slowSentCommand & slowFulfilledCommand  */
+	slowCommand: [commandInfo: string]
 	/** A report that a command was sent too late */
 	slowSentCommand: [info: SlowSentCommandInfo]
 	/** A report that a command was fullfilled too late */
 	slowFulfilledCommand: [info: SlowFulfilledCommandInfo]
+	commandReport: [commandReport: CommandReport]
 
 	/** Something went wrong when executing a command  */
 	commandError: [error: Error, context: CommandWithContext]
@@ -90,6 +115,37 @@ export interface DeviceEvents {
 	/** Clear a MediaObjects collection */
 	clearMediaObjects: [collectionId: string]
 
-	commandReport: [commandReport: CommandReport]
 	timeTrace: [trace: FinishedTrace]
+}
+
+/** Various methods that the Devices can call */
+export interface DeviceContextAPI {
+	/** Emit a "error" message */
+	emitError: (context: string, err: Error) => void
+	/** Emit a "warning" message */
+	emitWarning: (warning: string) => void
+	/** Emit a "info" message */
+	emitInfo: (info: string) => void
+	/** Emit a "debug" message */
+	emitDebug: (...debug: any[]) => void
+
+	/** Emit a "debugState" message */
+	emitDebugState: (state: object) => void
+
+	/** Notify that the connection status has changed. */
+	connectionChanged: (status: Omit<DeviceStatus, 'active'>) => void
+	/** Notify the conductor that it should reset the resolver, in order to trigger it again. */
+	resetResolver: () => void
+
+	/** Something went wrong when executing a command  */
+	commandError: (error: Error, context: CommandWithContext) => void
+	/** Update a MediaObject  */
+	updateMediaObject: (collectionId: string, docId: string, doc: MediaObject | null) => void
+	/** Clear a MediaObjects collection */
+	clearMediaObjects: (collectionId: string) => void
+
+	timeTrace: (trace: FinishedTrace) => void
+
+	/** Reset the state of the State */
+	resetState: () => Promise<void>
 }

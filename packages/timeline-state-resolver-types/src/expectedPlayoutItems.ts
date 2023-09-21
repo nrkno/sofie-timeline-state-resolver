@@ -1,3 +1,3 @@
-import { VIZMSEPlayoutItemContent } from './vizMSE'
+import { VIZMSEPlayoutItemContent } from './integrations/vizMSE'
 
 export type ExpectedPlayoutItemContent = VIZMSEPlayoutItemContent

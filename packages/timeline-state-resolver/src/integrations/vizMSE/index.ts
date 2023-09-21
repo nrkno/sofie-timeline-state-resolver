@@ -267,7 +267,7 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState, DeviceOptionsVizM
 			case VizMSEActions.StandDown:
 				return this.executeStandDown()
 			default:
-				return { result: ActionExecutionResultCode.Ok, response: t('Action "{{id}}" not found', { actionId }) }
+				return { result: ActionExecutionResultCode.Ok, response: t('Action "{{id}}" not found', { id: actionId }) }
 		}
 	}
 

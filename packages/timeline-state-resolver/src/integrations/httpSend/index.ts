@@ -1,5 +1,4 @@
-import { EventEmitter } from 'eventemitter3'
-import { CommandWithContext, Device, DeviceEvents } from '../../service/device'
+import { CommandWithContext, Device } from '../../service/device'
 import {
 	ActionExecutionResult,
 	ActionExecutionResultCode,
@@ -29,12 +28,10 @@ export interface HttpSendDeviceCommand extends CommandWithContext {
 	}
 }
 
-export class HTTPSendDevice
-	extends EventEmitter<DeviceEvents>
-	implements Device<HTTPSendOptions, HttpSendDeviceState, HttpSendDeviceCommand>
-{
+export class HTTPSendDevice extends Device<HTTPSendOptions, HttpSendDeviceState, HttpSendDeviceCommand> {
 	private options: HTTPSendOptions
-	private activeLayers = new Map<string, string>()
+	/** Maps layers -> sent command-hashes */
+	private trackedState = new Map<string, string>()
 	private cacheable: CacheableLookup
 	private _terminated = false
 
@@ -44,7 +41,7 @@ export class HTTPSendDevice
 		return true
 	}
 	async terminate(): Promise<void> {
-		this.activeLayers.clear()
+		this.trackedState.clear()
 		this._terminated = true
 	}
 
@@ -60,7 +57,7 @@ export class HTTPSendDevice
 
 	actions: Record<string, (id: HttpSendActions, payload?: Record<string, any>) => Promise<ActionExecutionResult>> = {
 		[HttpSendActions.Resync]: async () => {
-			this.emit('resetResolver')
+			this.context.resetResolver()
 			return { result: ActionExecutionResultCode.Ok }
 		},
 		[HttpSendActions.SendCommand]: async (_id: HttpSendActions.SendCommand, payload?: HTTPSendCommandContent) =>
@@ -71,7 +68,7 @@ export class HTTPSendDevice
 		if (!cmd)
 			return {
 				result: ActionExecutionResultCode.Error,
-				response: t('Failed to send command: Missing upayloadrl'),
+				response: t('Failed to send command: Missing payloadurl'),
 			}
 		if (!cmd.url) {
 			return {
@@ -99,14 +96,14 @@ export class HTTPSendDevice
 		}
 
 		await this.sendCommand({
-			tlObjId: '',
+			timelineObjId: '',
 			context: 'makeReady',
 			command: {
 				commandName: 'manual',
 				content: cmd,
 				layer: '',
 			},
-		}).catch(() => this.emit('warning', 'Manual command failed: ' + JSON.stringify(cmd)))
+		}).catch(() => this.context.emitWarning('Manual command failed: ' + JSON.stringify(cmd)))
 
 		return {
 			result: ActionExecutionResultCode.Ok,
@@ -124,7 +121,7 @@ export class HTTPSendDevice
 			if (!oldLayer) {
 				// added!
 				commands.push({
-					tlObjId: newLayer.id,
+					timelineObjId: newLayer.id,
 					context: `added: ${newLayer.id}`,
 					command: {
 						commandName: 'added',
@@ -137,7 +134,7 @@ export class HTTPSendDevice
 				if (!_.isEqual(oldLayer.content, newLayer.content)) {
 					// changed!
 					commands.push({
-						tlObjId: newLayer.id,
+						timelineObjId: newLayer.id,
 						context: `changed: ${newLayer.id} (previously: ${oldLayer.id})`,
 						command: {
 							commandName: 'changed',
@@ -154,7 +151,7 @@ export class HTTPSendDevice
 			if (!newLayer) {
 				// removed!
 				commands.push({
-					tlObjId: oldLayer.id,
+					timelineObjId: oldLayer.id,
 					context: `removed: ${oldLayer.id}`,
 					command: { commandName: 'removed', content: oldLayer.content as HTTPSendCommandContent, layer: layerKey },
 				})
@@ -168,16 +165,19 @@ export class HTTPSendDevice
 
 		return commands
 	}
-	async sendCommand({ tlObjId, context, command }: HttpSendDeviceCommand): Promise<void> {
+	async sendCommand({ timelineObjId, context, command }: HttpSendDeviceCommand): Promise<void> {
+		const commandHash = this.getTrackedStateHash(command)
+
 		if (command.commandName === 'added' || command.commandName === 'changed') {
-			this.activeLayers.set(command.layer, JSON.stringify(command.content))
+			this.trackedState.set(command.layer, commandHash)
 		} else if (command.commandName === 'removed') {
-			this.activeLayers.delete(command.layer)
+			this.trackedState.delete(command.layer)
 		}
 
+		// Avoid sending multiple identical commands for the same state:
 		if (command.layer && command.commandName !== 'manual') {
-			const hash = this.activeLayers.get(command.layer)
-			if (JSON.stringify(command.content) !== hash) return Promise.resolve() // command is no longer relevant to state
+			const trackedHash = this.trackedState.get(command.layer)
+			if (commandHash !== trackedHash) return Promise.resolve() // command is no longer relevant to state
 		}
 		if (this._terminated) {
 			return Promise.resolve()
@@ -186,9 +186,9 @@ export class HTTPSendDevice
 		const cwc: CommandWithContext = {
 			context,
 			command,
-			tlObjId,
+			timelineObjId,
 		}
-		this.emit('debug', { context, tlObjId, command })
+		this.context.emitDebug({ context, timelineObjId, command })
 
 		const t = Date.now()
 
@@ -235,25 +235,22 @@ export class HTTPSendDevice
 			const response = await httpReq(command.content.url, options)
 
 			if (response.statusCode === 200) {
-				this.emit(
-					'debug',
+				this.context.emitDebug(
 					`HTTPSend: ${command.content.type}: Good statuscode response on url "${command.content.url}": ${response.statusCode} (${context})`
 				)
 			} else {
-				this.emit(
-					'warning',
+				this.context.emitWarning(
 					`HTTPSend: ${command.content.type}: Bad statuscode response on url "${command.content.url}": ${response.statusCode} (${context})`
 				)
 			}
 		} catch (error) {
 			const err = error as RequestError // make typescript happy
 
-			this.emit(
-				'error',
+			this.context.emitError(
 				`HTTPSend.response error on ${command.content.type} "${command.content.url}" (${context})`,
 				err
 			)
-			this.emit('commandError', err, cwc)
+			this.context.commandError(err, cwc)
 
 			if ('code' in err) {
 				const retryCodes = [
@@ -272,7 +269,7 @@ export class HTTPSendDevice
 					const timeLeft = Math.max(this.options.resendTime - (Date.now() - t), 0)
 					setTimeout(() => {
 						this.sendCommand({
-							tlObjId,
+							timelineObjId,
 							context,
 							command: {
 								...command,
@@ -283,5 +280,8 @@ export class HTTPSendDevice
 				}
 			}
 		}
+	}
+	private getTrackedStateHash(command: HttpSendDeviceCommand['command']): string {
+		return JSON.stringify(command.content)
 	}
 }

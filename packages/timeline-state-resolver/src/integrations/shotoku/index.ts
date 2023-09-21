@@ -11,10 +11,9 @@ import {
 	ShotokuTransitionType,
 	ShotokuOptions,
 } from 'timeline-state-resolver-types'
-import { Device, DeviceEvents } from '../../service/device'
+import { Device } from '../../service/device'
 
 import _ = require('underscore')
-import EventEmitter = require('eventemitter3')
 import { ShotokuAPI, ShotokuCommand, ShotokuCommandType } from './connection'
 
 export interface ShotokuDeviceState {
@@ -29,22 +28,28 @@ interface ShotokuSequence {
 export interface ShotokuCommandWithContext {
 	command: ShotokuCommand // todo
 	context: string
-	tlObjId: string
+	timelineObjId: string
 }
 
-export class ShotokuDevice
-	extends EventEmitter<DeviceEvents>
-	implements Device<ShotokuOptions, ShotokuDeviceState, ShotokuCommandWithContext>
-{
+export class ShotokuDevice extends Device<ShotokuOptions, ShotokuDeviceState, ShotokuCommandWithContext> {
 	private _shotoku: ShotokuAPI
 
 	async init(options: ShotokuOptions): Promise<boolean> {
 		this._shotoku = new ShotokuAPI()
-		this._shotoku.on('error', (info, e) => this.emit('error', e, info))
+		this._shotoku.on('error', (info, error) => this.context.emitError(info, error))
+		this._shotoku.on('connected', () => {
+			this.context.connectionChanged(this.getStatus())
+		})
+		this._shotoku.on('disconnected', () => {
+			this.context.connectionChanged(this.getStatus())
+		})
+		this._shotoku.on('warn', (message: string) => {
+			this.context.emitWarning(message)
+		})
 
 		this._shotoku
 			.connect(options.host, options.port)
-			.catch((e) => this.emit('debug', 'Shotoku device failed initial connection attempt', e))
+			.catch((e) => this.context.emitDebug('Shotoku device failed initial connection attempt', e))
 
 		return true
 	}
@@ -102,7 +107,7 @@ export class ShotokuDevice
 				}
 				commands.push({
 					context: `added: ${newCommandContent.fromTlObject}`,
-					tlObjId: newCommandContent.fromTlObject,
+					timelineObjId: newCommandContent.fromTlObject,
 					command: shotokuCommand,
 				})
 			} else {
@@ -125,7 +130,7 @@ export class ShotokuDevice
 				}
 				commands.push({
 					context: `added: ${newCommandContent.fromTlObject}`,
-					tlObjId: newCommandContent.fromTlObject,
+					timelineObjId: newCommandContent.fromTlObject,
 					command: shotokuCommand,
 				})
 			} else {
@@ -135,8 +140,8 @@ export class ShotokuDevice
 
 		return commands
 	}
-	async sendCommand({ command, context, tlObjId }: ShotokuCommandWithContext): Promise<void> {
-		this.emit('debug', { command, context, tlObjId })
+	async sendCommand({ command, context, timelineObjId }: ShotokuCommandWithContext): Promise<void> {
+		this.context.emitDebug({ command, context, timelineObjId })
 
 		try {
 			if (this._shotoku.connected) {
@@ -145,7 +150,7 @@ export class ShotokuDevice
 
 			return
 		} catch (e) {
-			this.emit('commandError', e as Error, { command, context, tlObjId })
+			this.context.commandError(e as Error, { command, context, timelineObjId })
 			return
 		}
 	}
@@ -154,6 +159,8 @@ export class ShotokuDevice
 		return this._shotoku.connected
 	}
 	getStatus(): Omit<DeviceStatus, 'active'> {
+		const messages: string[] = []
+		if (!this._shotoku.connected) messages.push('Not connected')
 		return {
 			statusCode: this._shotoku.connected ? StatusCode.GOOD : StatusCode.BAD,
 			messages: [],
