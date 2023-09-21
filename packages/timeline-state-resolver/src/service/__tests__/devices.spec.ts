@@ -11,21 +11,21 @@ describe('Ensure that all integrations have defined their actions', () => {
 			const deviceInstance = new device.deviceClass(getDeviceContext())
 			expect(deviceInstance).toBeTruthy()
 
-			if (deviceManifest.actions) {
-				for (const action of deviceManifest.actions) {
-					// check that the action is defined on the device:
-					const fcn = deviceInstance.actions[action.id]
-					try {
-						// eslint-disable-next-line jest/no-conditional-expect
-						expect(fcn).toBeTruthy()
-						// eslint-disable-next-line jest/no-conditional-expect
-						expect(typeof fcn).toBe('function')
-					} catch (e) {
-						if (e instanceof Error) {
-							e.message = `Action "${action.id}": ${e.message}`
-						}
-						throw e
+			if (!deviceManifest.actions) return
+
+			for (const action of deviceManifest.actions) {
+				// check that the action is defined on the device:
+				const fcn = deviceInstance.actions[action.id]
+				try {
+					// eslint-disable-next-line jest/no-conditional-expect
+					expect(fcn).toBeTruthy()
+					// eslint-disable-next-line jest/no-conditional-expect
+					expect(typeof fcn).toBe('function')
+				} catch (e) {
+					if (e instanceof Error) {
+						e.message = `Action "${action.id}": ${e.message}`
 					}
+					throw e
 				}
 			}
 		})
