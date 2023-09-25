@@ -55,7 +55,7 @@ export class TcpConnection extends EventEmitter<TcpConnectionEvents> {
 					resolve(tcpClient)
 				})
 				setTimeout(() => {
-					reject(`TCP timeout: Unable to connect to ${activeOptions.host}:${activeOptions.port}`)
+					reject(new Error(`TCP timeout: Unable to connect to ${activeOptions.host}:${activeOptions.port}`))
 				}, TIMEOUT)
 			} else {
 				resolve(tcpClient)
