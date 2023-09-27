@@ -173,7 +173,7 @@ export class ShotokuAPI extends EventEmitter<ShotokuAPIEvents> {
 					// client.write('Hello, server! Love, Client.');
 				})
 				setTimeout(() => {
-					reject(`TCP timeout: Unable to connect to ${this._host}:${this._port}`)
+					reject(new Error(`TCP timeout: Unable to connect to ${this._host}:${this._port}`))
 					this._triggerRetryConnection()
 					if (!resolved && this._tcpClient) {
 						this._tcpClient.destroy()
