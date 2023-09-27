@@ -12,7 +12,6 @@ import {
 } from 'timeline-state-resolver-types'
 import { t } from '../../lib'
 import _ = require('underscore')
-import { error } from 'console'
 import { TcpConnection } from './tcpConnection'
 
 export type TcpSendDeviceState = Timeline.TimelineState<TSRTimelineContent>
@@ -169,7 +168,7 @@ export class TcpSendDevice extends Device<TCPSendOptions, TcpSendDeviceState, Tc
 					layer: '',
 				},
 			})
-		} catch (e) {
+		} catch (error) {
 			this.context.emitWarning('Manual TCP command failed: ' + JSON.stringify(cmd))
 			return {
 				result: ActionExecutionResultCode.Error,
