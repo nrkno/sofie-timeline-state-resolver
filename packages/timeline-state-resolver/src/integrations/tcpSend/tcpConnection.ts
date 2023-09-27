@@ -35,24 +35,27 @@ export class TcpConnection extends EventEmitter<TcpConnectionEvents> {
 		if (!this.activeOptions) throw new Error('TCP connection not activated')
 		const activeOptions = this.activeOptions
 
-		return new Promise((resolve, reject) => {
-			if (!this._tcpClient) {
-				this._tcpClient = new Socket()
-				this._tcpClient.on('connect', () => {
-					this._setConnected(true)
-				})
-				this._tcpClient.on('close', () => {
-					this._setConnected(false)
-				})
-				this._tcpClient.on('end', () => {
-					this._setConnected(false)
-				})
-			}
-			const tcpClient: Socket = this._tcpClient
+		if (!this._tcpClient) {
+			this._tcpClient = new Socket()
+			this._tcpClient.on('connect', () => {
+				this._setConnected(true)
+			})
+			this._tcpClient.on('close', () => {
+				this._setConnected(false)
+			})
+			this._tcpClient.on('end', () => {
+				this._setConnected(false)
+			})
+		}
+		const tcpClient: Socket = this._tcpClient
 
+		return new Promise((resolve, reject) => {
 			if (!this.connected) {
 				tcpClient.connect(activeOptions.port, activeOptions.host, () => {
 					resolve(tcpClient)
+				})
+				tcpClient.once('error', (err) => {
+					reject(err)
 				})
 				setTimeout(() => {
 					reject(new Error(`TCP timeout: Unable to connect to ${activeOptions.host}:${activeOptions.port}`))
@@ -89,14 +92,7 @@ export class TcpConnection extends EventEmitter<TcpConnectionEvents> {
 			})
 		}
 
-		if (this._tcpClient) {
-			this._tcpClient.removeAllListeners('connect')
-			this._tcpClient.removeAllListeners('close')
-			this._tcpClient.removeAllListeners('end')
-			this._tcpClient.removeAllListeners('error')
-
-			this._tcpClient = null
-		}
+		this._cleanupTcpClient()
 		this._setConnected(false)
 	}
 	async reconnect() {
@@ -111,6 +107,16 @@ export class TcpConnection extends EventEmitter<TcpConnectionEvents> {
 		const tcpClient = await this.ensureConnection()
 
 		tcpClient.write(Buffer.from(message, this.activeOptions.bufferEncoding))
+	}
+	private _cleanupTcpClient(): void {
+		if (this._tcpClient) {
+			this._tcpClient.removeAllListeners('connect')
+			this._tcpClient.removeAllListeners('close')
+			this._tcpClient.removeAllListeners('end')
+			this._tcpClient.removeAllListeners('error')
+
+			this._tcpClient = null
+		}
 	}
 
 	private _setConnected(connected: boolean) {
