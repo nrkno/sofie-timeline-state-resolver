@@ -287,9 +287,9 @@ export class SingularLiveDevice extends DeviceWithState<SingularLiveState, Devic
 		timelineObjId: string
 	): Promise<any> {
 		const cwc: CommandWithContext = {
-			context: context,
+			context,
 			command: cmd,
-			timelineObjId: timelineObjId,
+			timelineObjId,
 		}
 		this.emitDebug(cwc)
 

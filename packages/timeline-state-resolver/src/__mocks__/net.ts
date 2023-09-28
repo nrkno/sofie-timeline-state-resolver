@@ -29,8 +29,14 @@ export class Socket extends EventEmitter {
 	public static mockSockets() {
 		return sockets
 	}
+	public static openSockets() {
+		return sockets.filter((s) => !s.destroyed)
+	}
 	public static mockOnNextSocket(cb: (s: Socket) => void) {
 		onNextSocket.push(cb)
+	}
+	public static clearMockOnNextSocket() {
+		onNextSocket.splice(0, 99999)
 	}
 	// this.emit('connect')
 	// this.emit('close')

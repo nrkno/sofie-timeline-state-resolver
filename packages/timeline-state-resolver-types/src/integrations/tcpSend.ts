@@ -1,11 +1,4 @@
-import { DeviceType, TcpSendCommandContent } from '.'
-
-export enum TimelineContentTypeTcp {
-	GET = 'get',
-	POST = 'post',
-	PUT = 'put',
-	DELETE = 'delete',
-}
+import { DeviceType, TcpSendCommandContent } from '..'
 
 export type TimelineContentTCPSendAny = TimelineContentTCPRequest
 export interface TimelineContentTCPSendBase {

@@ -495,18 +495,14 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 				_.has(foundMapping.options, 'layer')
 			) {
 				const mapping = foundMapping as Mapping<SomeMappingCasparCG>
-				mapping.options.channel = mapping.options.channel || 0
-				mapping.options.layer = mapping.options.layer || 0
+				mapping.options.channel = Number(mapping.options.channel) || 1
+				mapping.options.layer = Number(mapping.options.layer) || 0
 
 				// create a channel in state if necessary, or reuse existing channel
 				const channel = caspar.channels[mapping.options.channel] || { channelNo: mapping.options.channel, layers: {} }
-				channel.channelNo = Number(mapping.options.channel) || 1
+				channel.channelNo = mapping.options.channel
 				channel.fps = this.initOptions ? this.initOptions.fps || 25 : 25
 				caspar.channels[channel.channelNo] = channel
-
-				// @todo: check if we need to get fps.
-				channel.fps = this.initOptions ? this.initOptions.fps || 25 : 25
-				caspar.channels[mapping.options.channel] = channel
 
 				let foregroundObj: ResolvedTimelineObjectInstanceExtended | undefined = timelineState.layers[layerName]
 				let backgroundObj = _.last(
@@ -787,8 +783,8 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 		}
 
 		const cwc: CommandWithContext = {
-			context: context,
-			timelineObjId: timelineObjId,
+			context,
+			timelineObjId,
 			command: JSON.stringify(cmd),
 		}
 		this.emitDebug(cwc)
@@ -830,14 +826,14 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 		}
 	}
 
-	private _changeTrackedStateFromCommand(command: AMCPCommand, response: Response, time: number) {
+	private _changeTrackedStateFromCommand(command: AMCPCommand, response: Response, time: number): void {
+		// Ensure this is for a channel and layer
+		if (!('channel' in command.params) || command.params.channel === undefined) return
+		if (!('layer' in command.params) || command.params.layer === undefined) return
+
 		if (
 			response.responseCode < 300 && // TODO - maybe we accept every code except 404?
-			response.command.match(/Loadbg|Play|Load|Clear|Stop|Resume/i) &&
-			'channel' in command.params &&
-			command.params.channel !== undefined &&
-			'layer' in command.params &&
-			command.params.layer !== undefined
+			response.command.match(/Loadbg|Play|Load|Clear|Stop|Resume/i)
 		) {
 			const currentExpectedState = this.getState(time)
 			if (currentExpectedState) {

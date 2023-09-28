@@ -611,9 +611,9 @@ export class OBSDevice extends DeviceWithState<OBSState, DeviceOptionsOBSInterna
 		timelineObjId: string
 	): Promise<any> {
 		const cwc: CommandWithContext = {
-			context: context,
+			context,
 			command: cmd,
-			timelineObjId: timelineObjId,
+			timelineObjId,
 		}
 		this.emitDebug(cwc)
 

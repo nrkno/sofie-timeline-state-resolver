@@ -11,13 +11,12 @@ import {
 	Timeline,
 	TSRTimelineContent,
 } from 'timeline-state-resolver-types'
-import { CommandWithContext, Device, DeviceEvents } from '../../service/device'
+import { CommandWithContext, Device } from '../../service/device'
 import * as osc from 'osc'
 
 import Debug from 'debug'
 import _ = require('underscore')
 import { Easing } from '../../devices/transitions/easings'
-import EventEmitter = require('eventemitter3')
 const debug = Debug('timeline-state-resolver:osc')
 
 export interface OscDeviceState {
@@ -30,13 +29,10 @@ interface OSCDeviceStateContent extends OSCMessageCommandContent {
 export interface OscCommandWithContext {
 	command: any // todo
 	context: string
-	tlObjId: string
+	timelineObjId: string
 }
 
-export class OscDevice
-	extends EventEmitter<DeviceEvents>
-	implements Device<OSCOptions, OscDeviceState, OscCommandWithContext>
-{
+export class OscDevice extends Device<OSCOptions, OscDeviceState, OscCommandWithContext> {
 	private _oscClient: osc.UDPPort | osc.TCPSocketPort
 	private _oscClientStatus: 'connected' | 'disconnected' = 'disconnected'
 	private transitions: {
@@ -60,11 +56,11 @@ export class OscDevice
 			client.open() // creates client.socket
 			client.socket.on('connect', () => {
 				this._oscClientStatus = 'connected'
-				this.emit('connectionChanged', this.getStatus())
+				this.context.connectionChanged(this.getStatus())
 			})
 			client.socket.on('close', () => {
 				this._oscClientStatus = 'disconnected'
-				this.emit('connectionChanged', this.getStatus())
+				this.context.connectionChanged(this.getStatus())
 			})
 		} else if (options.type === OSCDeviceType.UDP) {
 			debug('Creating UDP OSC device')
@@ -117,7 +113,7 @@ export class OscDevice
 				// added!
 				commands.push({
 					context: `added: ${newCommandContent.fromTlObject}`,
-					tlObjId: newCommandContent.fromTlObject,
+					timelineObjId: newCommandContent.fromTlObject,
 					command: newCommandContent,
 				})
 			} else {
@@ -126,7 +122,7 @@ export class OscDevice
 					// changed!
 					commands.push({
 						context: `changed: ${newCommandContent.fromTlObject}`,
-						tlObjId: newCommandContent.fromTlObject,
+						timelineObjId: newCommandContent.fromTlObject,
 						command: newCommandContent,
 					})
 				}
@@ -134,13 +130,13 @@ export class OscDevice
 		})
 		return commands
 	}
-	async sendCommand({ command, context, tlObjId }: OscCommandWithContext): Promise<any> {
+	async sendCommand({ command, context, timelineObjId }: OscCommandWithContext): Promise<any> {
 		const cwc: CommandWithContext = {
 			context: context,
 			command: command,
-			tlObjId: tlObjId,
+			timelineObjId,
 		}
-		this.emit('debug', cwc)
+		this.context.emitDebug(cwc)
 		debug(command)
 
 		try {
@@ -180,7 +176,7 @@ export class OscDevice
 
 			return Promise.resolve()
 		} catch (e) {
-			this.emit('commandError', e as Error, cwc)
+			this.context.commandError(e as Error, cwc)
 			return Promise.resolve()
 		}
 	}
@@ -204,7 +200,7 @@ export class OscDevice
 	actions: Record<string, (id: string, payload: Record<string, any>) => Promise<ActionExecutionResult>> = {}
 
 	private _oscSender(msg: osc.OscMessage, address?: string | undefined, port?: number | undefined): void {
-		this.emit('debug', 'sending ' + msg.address)
+		this.context.emitDebug('sending ' + msg.address)
 		this._oscClient.send(msg, address, port)
 	}
 	private runAnimation() {

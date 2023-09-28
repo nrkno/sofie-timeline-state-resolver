@@ -5,9 +5,10 @@ import { StatusCode } from '../../../devices/device'
 import { MockTime } from '../../../__tests__/mockTime'
 import { ResolvedTimelineObjectInstance } from 'timeline-state-resolver-types/dist/superfly-timeline'
 import { makeTimelineObjectResolved } from '../../../__mocks__/objects'
+import { getDeviceContext } from '../../__tests__/testlib'
 
 async function getInitialisedDevice() {
-	const dev = new AbstractDevice()
+	const dev = new AbstractDevice(getDeviceContext())
 	await dev.init({})
 
 	return dev
@@ -88,7 +89,7 @@ describe('Abstract device', () => {
 					{
 						command: 'addedAbstract',
 						context: 'added: obj0',
-						tlObjId: 'obj0',
+						timelineObjId: 'obj0',
 					},
 				]
 			)
@@ -114,7 +115,7 @@ describe('Abstract device', () => {
 					{
 						command: 'changedAbstract',
 						context: 'changed: obj1',
-						tlObjId: 'obj1',
+						timelineObjId: 'obj1',
 					},
 				]
 			)
@@ -136,7 +137,7 @@ describe('Abstract device', () => {
 					{
 						command: 'removedAbstract',
 						context: 'removed: obj0',
-						tlObjId: 'obj0',
+						timelineObjId: 'obj0',
 					},
 				]
 			)

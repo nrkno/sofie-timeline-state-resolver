@@ -298,9 +298,9 @@ export class PanasonicPtzDevice extends DeviceWithState<PanasonicPtzState, Devic
 		timelineObjId: string
 	): Promise<any> {
 		const cwc: CommandWithContext = {
-			context: context,
+			context,
 			command: cmd,
-			timelineObjId: timelineObjId,
+			timelineObjId,
 		}
 		try {
 			if (this._device) {

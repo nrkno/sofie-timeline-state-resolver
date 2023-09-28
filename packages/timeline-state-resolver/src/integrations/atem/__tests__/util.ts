@@ -3,6 +3,7 @@ import { AtemDevice } from '..'
 import * as AtemConnection from 'atem-connection'
 import { promisify } from 'util'
 import { AtemOptions } from 'timeline-state-resolver-types'
+import { getDeviceContext } from '../../__tests__/testlib'
 
 const sleep = promisify(setTimeout)
 
@@ -15,7 +16,7 @@ export async function waitForConnection(device: AtemDevice) {
 }
 
 export async function createDevice(doWaitForConnection = true): Promise<AtemDevice> {
-	const device = new AtemDevice()
+	const device = new AtemDevice(getDeviceContext())
 	await device.init(
 		literal<AtemOptions>({
 			host: '127.0.0.1',

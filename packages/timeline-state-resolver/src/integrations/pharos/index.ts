@@ -385,13 +385,13 @@ export class PharosDevice extends DeviceWithState<PharosState, DeviceOptionsPhar
 	): Promise<any> {
 		// emit the command to debug:
 		const cwc: CommandWithContext = {
-			context: context,
+			context,
 			command: {
 				// commandName: cmd.content.args,
 				args: cmd.content.args,
 				// content: cmd.content
 			},
-			timelineObjId: timelineObjId,
+			timelineObjId,
 		}
 		this.emitDebug(cwc)
 

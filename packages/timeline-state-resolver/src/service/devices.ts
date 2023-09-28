@@ -1,14 +1,15 @@
 import { OscDevice } from '../integrations/osc'
 import { DeviceType } from 'timeline-state-resolver-types'
-import { Device } from './device'
+import { Device, DeviceContextAPI } from './device'
 import { HTTPSendDevice } from '../integrations/httpSend'
 import { ShotokuDevice } from '../integrations/shotoku'
 import { HTTPWatcherDevice } from '../integrations/httpWatcher'
 import { AbstractDevice } from '../integrations/abstract'
 import { AtemDevice } from '../integrations/atem'
+import { TcpSendDevice } from '../integrations/tcpSend'
 
 export interface DeviceEntry {
-	deviceClass: new () => Device<any, any, any>
+	deviceClass: new (context: DeviceContextAPI) => Device<any, any, any>
 	canConnect: boolean
 	deviceName: (deviceId: string, options: any) => string
 	executionMode: (options: any) => 'salvo' | 'sequential'
@@ -21,6 +22,7 @@ export type ImplementedServiceDeviceTypes =
 	| DeviceType.HTTPWATCHER
 	| DeviceType.OSC
 	| DeviceType.SHOTOKU
+	| DeviceType.TCPSEND
 
 // TODO - move all device implementations here and remove the old Device classes
 export const DevicesDict: Record<ImplementedServiceDeviceTypes, DeviceEntry> = {
@@ -59,5 +61,11 @@ export const DevicesDict: Record<ImplementedServiceDeviceTypes, DeviceEntry> = {
 		canConnect: true,
 		deviceName: (deviceId: string) => 'SHOTOKU' + deviceId,
 		executionMode: () => 'salvo',
+	},
+	[DeviceType.TCPSEND]: {
+		deviceClass: TcpSendDevice,
+		canConnect: true,
+		deviceName: (deviceId: string) => 'TCP' + deviceId,
+		executionMode: () => 'sequential', // todo: should this be configurable?
 	},
 }

@@ -7,6 +7,7 @@ import {
 	TSRTimelineContent,
 } from 'timeline-state-resolver-types'
 import { ShotokuCommandWithContext, ShotokuDevice, ShotokuDeviceState } from '..'
+import { getDeviceContext } from '../../__tests__/testlib'
 import { ShotokuCommandType } from '../connection'
 
 const MOCKED_SOCKET_CONNECT = jest.fn((_: any, _2: any, cb: any) => cb())
@@ -28,7 +29,7 @@ jest.mock('net', () => {
 })
 
 async function getInitialisedDevice() {
-	const dev = new ShotokuDevice()
+	const dev = new ShotokuDevice(getDeviceContext())
 	await dev.init({ host: 'localhost', port: 8082 })
 
 	const cb = SOCKET_EVENTS.get('connect')
@@ -174,7 +175,7 @@ describe('Shotoku Device', () => {
 							shot: 1,
 						},
 						context: 'added: obj0',
-						tlObjId: 'obj0',
+						timelineObjId: 'obj0',
 					},
 				]
 			)
@@ -221,7 +222,7 @@ describe('Shotoku Device', () => {
 							],
 						},
 						context: 'added: obj0',
-						tlObjId: 'obj0',
+						timelineObjId: 'obj0',
 					},
 				]
 			)
@@ -243,7 +244,7 @@ describe('Shotoku Device', () => {
 						shot: 1,
 					},
 					context: '',
-					tlObjId: '',
+					timelineObjId: '',
 				})
 				.catch((e) => {
 					throw e
@@ -276,7 +277,7 @@ describe('Shotoku Device', () => {
 						],
 					},
 					context: '',
-					tlObjId: '',
+					timelineObjId: '',
 				})
 				.catch((e) => {
 					throw e

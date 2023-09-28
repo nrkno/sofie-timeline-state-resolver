@@ -21,14 +21,13 @@ import {
 	AtemStateUtil,
 	Enums as ConnectionEnums,
 } from 'atem-connection'
-import { CommandWithContext, Device, DeviceEvents } from '../../service/device'
-import EventEmitter = require('eventemitter3')
+import { CommandWithContext, Device } from '../../service/device'
 import { AtemStateBuilder } from './stateBuilder'
 
 export interface AtemCommandWithContext {
 	command: AtemCommands.ISerializableCommand
 	context: string
-	tlObjId: string
+	timelineObjId: string
 }
 
 type AtemDeviceState = DeviceState
@@ -36,10 +35,7 @@ type AtemDeviceState = DeviceState
 /**
  * This is a wrapper for the Atem Device. Commands to any and all atem devices will be sent through here.
  */
-export class AtemDevice
-	extends EventEmitter<DeviceEvents>
-	implements Device<AtemOptions, AtemDeviceState, AtemCommandWithContext>
-{
+export class AtemDevice extends Device<AtemOptions, AtemDeviceState, AtemCommandWithContext> {
 	readonly actions: {
 		[id in AtemActions]: (id: string, payload: Record<string, any>) => Promise<ActionExecutionResult>
 	} = {
@@ -65,14 +61,14 @@ export class AtemDevice
 			this._connected = false
 			this._connectionChanged()
 		})
-		this._atem.on('error', (e) => this.emit('error', 'Atem', new Error(e)))
+		this._atem.on('error', (e) => this.context.emitError('Atem', new Error(e)))
 		this._atem.on('stateChanged', (state) => this._onAtemStateChanged(state))
 
 		this._atem.on('connected', () => {
 			this._connected = true
 
 			this._connectionChanged()
-			this.emit('resetResolver')
+			this.context.resetResolver()
 
 			if (this._atem.state) {
 				this._protocolVersion = this._atem.state.info.apiVersion
@@ -95,7 +91,7 @@ export class AtemDevice
 	}
 
 	private async resyncState(): Promise<ActionExecutionResult> {
-		this.emit('resetResolver')
+		this.context.resetResolver()
 
 		return {
 			result: ActionExecutionResultCode.Ok,
@@ -182,18 +178,18 @@ export class AtemDevice
 			return {
 				command: cmd,
 				context: '',
-				tlObjId: '', // @todo: implement in Atem-state
+				timelineObjId: '', // @todo: implement in Atem-state
 			}
 		})
 	}
 
-	async sendCommand({ command, context, tlObjId }: AtemCommandWithContext): Promise<void> {
+	async sendCommand({ command, context, timelineObjId }: AtemCommandWithContext): Promise<void> {
 		const cwc: CommandWithContext = {
-			context: context,
-			command: command,
-			tlObjId: tlObjId,
+			context,
+			command,
+			timelineObjId,
 		}
-		this.emit('debug', cwc)
+		this.context.emitDebug(cwc)
 
 		// Skip attempting send if not connected
 		if (!this._connected) return
@@ -201,7 +197,7 @@ export class AtemDevice
 		try {
 			await this._atem.sendCommand(command)
 		} catch (error: any) {
-			this.emit('commandError', error, cwc)
+			this.context.commandError(error, cwc)
 		}
 	}
 	private _onAtemStateChanged(newState: Readonly<NativeAtemState>) {
@@ -214,6 +210,6 @@ export class AtemDevice
 		}
 	}
 	private _connectionChanged() {
-		this.emit('connectionChanged', this.getStatus())
+		this.context.connectionChanged(this.getStatus())
 	}
 }

@@ -18,6 +18,7 @@ import {
 import { literal } from '../../../devices/device'
 import { makeTimelineObjectResolved } from '../../../__mocks__/objects'
 import { compareAtemCommands, createDevice, waitForConnection } from './util'
+import { getDeviceContext } from '../../__tests__/testlib'
 
 describe('Atem', () => {
 	const mockTime = new MockTime()
@@ -54,7 +55,7 @@ describe('Atem', () => {
 	})
 
 	test('Check Status', async () => {
-		const device = new AtemDevice()
+		const device = new AtemDevice(getDeviceContext())
 		const atem = getAtemConnection(device)
 
 		expect(device.getStatus()).toEqual({

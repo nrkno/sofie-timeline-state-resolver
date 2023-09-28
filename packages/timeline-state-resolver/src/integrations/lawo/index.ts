@@ -89,7 +89,7 @@ export class LawoDevice extends DeviceWithState<LawoState, DeviceOptionsLawoInte
 	private transitions: {
 		[address: string]: {
 			started: number
-			tlObjId: string
+			timelineObjId: string
 		} & LawoCommand
 	} = {}
 	private transitionInterval: NodeJS.Timer | undefined
@@ -287,7 +287,7 @@ export class LawoDevice extends DeviceWithState<LawoState, DeviceOptionsLawoInte
 			identifier: string,
 			fader: TimelineContentLawoSourceValue,
 			mapping: Mapping<MappingLawoSource>,
-			tlObjId: string,
+			timelineObjId: string,
 			priority = 0
 		) => {
 			newFaders.push({
@@ -301,7 +301,7 @@ export class LawoDevice extends DeviceWithState<LawoState, DeviceOptionsLawoInte
 					valueType: EmberModel.ParameterType.Real,
 					transitionDuration: fader.transitionDuration,
 					priority: mapping.options.priority || 0,
-					timelineObjId: tlObjId,
+					timelineObjId,
 				},
 			})
 		}
@@ -519,9 +519,9 @@ export class LawoDevice extends DeviceWithState<LawoState, DeviceOptionsLawoInte
 		timelineObjId: string
 	): Promise<any> {
 		const cwc: CommandWithContext = {
-			context: context,
-			command: command,
-			timelineObjId: timelineObjId,
+			context,
+			command,
+			timelineObjId,
 		}
 		this.emitDebug(cwc)
 
@@ -554,7 +554,7 @@ export class LawoDevice extends DeviceWithState<LawoState, DeviceOptionsLawoInte
 
 					this.transitions[command.path] = {
 						...command,
-						tlObjId: timelineObjId,
+						timelineObjId,
 						started: this.getCurrentTime(),
 					}
 
@@ -666,7 +666,7 @@ export class LawoDevice extends DeviceWithState<LawoState, DeviceOptionsLawoInte
 				delete this.transitions[addr]
 
 				// assert correct finished value:
-				this._setValueFn(transition, transition.tlObjId).catch(() => null)
+				this._setValueFn(transition, transition.timelineObjId).catch(() => null)
 			}
 		}
 
@@ -684,7 +684,7 @@ export class LawoDevice extends DeviceWithState<LawoState, DeviceOptionsLawoInte
 
 			const v = from + p * (to - from) // should this have easing?
 
-			this._setValueFn({ ...transition, value: v }, transition.tlObjId, false).catch(() => null)
+			this._setValueFn({ ...transition, value: v }, transition.timelineObjId, false).catch(() => null)
 		}
 
 		if (Object.keys(this.transitions).length === 0) {
