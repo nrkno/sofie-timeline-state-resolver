@@ -9,6 +9,10 @@ import {
 	Mappings,
 } from 'timeline-state-resolver-types'
 
+/**
+  Returns an option object to be passed into AtemState.diffStates().
+  Based on the mappings, these options enables/disables certain areas-of-interest in the diff atem state.
+*/
 export function createDiffOptions(mappings: Mappings): DeepComplete<Diff.SectionsToDiff> {
 	// Find the auxes that have mappings
 	const auxMappings = Object.values<Mapping<unknown>>(mappings)
