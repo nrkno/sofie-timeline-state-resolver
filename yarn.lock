@@ -2540,9 +2540,9 @@ asn1@evs-broadcast/node-asn1:
   languageName: node
   linkType: hard
 
-"atem-connection@npm:3.3.0":
-  version: 3.3.0
-  resolution: "atem-connection@npm:3.3.0"
+"atem-connection@npm:3.3.2":
+  version: 3.3.2
+  resolution: "atem-connection@npm:3.3.2"
   dependencies:
     "@julusian/freetype2": ^1.1.2
     debug: ^4.3.4
@@ -2552,22 +2552,22 @@ asn1@evs-broadcast/node-asn1:
     p-lazy: ^3.1.0
     p-queue: ^6.6.2
     threadedclass: ^1.2.1
-    tslib: ^2.5.0
-    wavefile: ^8.4.4
-  checksum: d03c257f63e79b64885d9db2a59e9343cb3bf44345407535b06a0f5a73b9b6ea6454d69663cf604e456014abca0bcc71acdc07206539bdbb17feb405eb8d871c
+    tslib: ^2.6.2
+    wavefile: ^8.4.6
+  checksum: dbfe751a75bd6d7de7877eda84800d9ca5a644a97f603cc60050eabbf02c2ebfe516344c3f6525a2417b83d35f98e542787a8178c85e660d54964a49f6b47664
   languageName: node
   linkType: hard
 
-"atem-state@npm:1.1.0-nightly-master-20230808-162153-a3d828d.0":
-  version: 1.1.0-nightly-master-20230808-162153-a3d828d.0
-  resolution: "atem-state@npm:1.1.0-nightly-master-20230808-162153-a3d828d.0"
+"atem-state@npm:1.1.0":
+  version: 1.1.0
+  resolution: "atem-state@npm:1.1.0"
   dependencies:
     deepmerge: ^4.3.1
-    tslib: ^2.6.1
+    tslib: ^2.6.2
     type-fest: ^3.13.1
   peerDependencies:
-    atem-connection: 3.3.0-nightly-master-20230802-084852-005f0d57.0
-  checksum: 25e301019640db785c74e4a85775a8112954c63077f0300c866892d0ace279ea6ba9fa221aae35728c8fa091ddf23e15f43694c2e7c1ec8c23500ba6df72edb6
+    atem-connection: 3.3.2
+  checksum: 9e48469117bb00b10a59f983eb319d0ec2128164e24eb643b4e9cd52bfeaf9a942f5b9342c3a475d44352524315f761d960f878bb05401250db7414cfaa67640
   languageName: node
   linkType: hard
 
@@ -11401,8 +11401,8 @@ asn1@evs-broadcast/node-asn1:
   resolution: "timeline-state-resolver@workspace:packages/timeline-state-resolver"
   dependencies:
     "@tv2media/v-connection": ^7.3.0
-    atem-connection: 3.3.0
-    atem-state: 1.1.0-nightly-master-20230808-162153-a3d828d.0
+    atem-connection: 3.3.2
+    atem-state: 1.1.0
     cacheable-lookup: ^5.0.3
     casparcg-connection: ^6.0.6
     casparcg-state: ^3.0.2
@@ -11641,7 +11641,7 @@ asn1@evs-broadcast/node-asn1:
   languageName: node
   linkType: hard
 
-"tslib@npm:^2.1.0, tslib@npm:^2.3.0, tslib@npm:^2.3.1, tslib@npm:^2.4.0, tslib@npm:^2.5.0, tslib@npm:^2.5.1, tslib@npm:^2.6.0, tslib@npm:^2.6.1":
+"tslib@npm:^2.1.0, tslib@npm:^2.3.0, tslib@npm:^2.3.1, tslib@npm:^2.4.0, tslib@npm:^2.5.0, tslib@npm:^2.5.1, tslib@npm:^2.6.0, tslib@npm:^2.6.2":
   version: 2.6.2
   resolution: "tslib@npm:2.6.2"
   checksum: 329ea56123005922f39642318e3d1f0f8265d1e7fcb92c633e0809521da75eeaca28d2cf96d7248229deb40e5c19adf408259f4b9640afd20d13aecc1430f3ad
@@ -12250,7 +12250,7 @@ asn1@evs-broadcast/node-asn1:
   languageName: node
   linkType: hard
 
-"wavefile@npm:^8.4.4":
+"wavefile@npm:^8.4.6":
   version: 8.4.6
   resolution: "wavefile@npm:8.4.6"
   dependencies:
