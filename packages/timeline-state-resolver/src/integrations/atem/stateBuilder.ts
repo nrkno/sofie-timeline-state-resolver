@@ -121,7 +121,7 @@ export class AtemStateBuilder {
 			_.omit(content.me, 'upstreamKeyers', 'transitionPosition')
 		)
 		this.#deviceState.video.mixEffects[mapping.index] = stateMixEffect
-		if (typeof content.me.transitionPosition === 'number') {
+		if (content.me.transitionPosition !== undefined) {
 			stateMixEffect.transitionPosition = {
 				handlePosition: content.me.transitionPosition,
 
