@@ -723,7 +723,9 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 			.catch((error) => {
 				return {
 					result: ActionExecutionResultCode.Error,
-					response: error.toString(),
+					response: t('{{message}}', {
+						message: error.toString(),
+					}),
 				}
 			})
 	}
