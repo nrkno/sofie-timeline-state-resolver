@@ -42,12 +42,6 @@
 			"ui:title": "Media retry interval",
 			"ui:description": "Time between retries for media that could not be loaded on first try. Set to -1 to disable.",
 			"default": 0
-		},
-		"useScheduling": {
-			"type": "boolean",
-			"description": "whether to use the CasparCG-SCHEDULE command to run future commands, or the internal (backwards-compatible) command queue",
-			"ui:title": "Use CasparCG Timecode Scheduler",
-			"default": false
 		}
 	},
 	"required": ["host"],

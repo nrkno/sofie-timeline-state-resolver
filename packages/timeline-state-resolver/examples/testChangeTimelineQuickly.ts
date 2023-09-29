@@ -13,7 +13,6 @@ const a = async function () {
 	await tsr.addDevice('casparcg0', {
 		type: DeviceType.CASPARCG,
 		options: {
-			// useScheduling: true,
 			host: '127.0.0.1',
 			// port: 5250
 		},
