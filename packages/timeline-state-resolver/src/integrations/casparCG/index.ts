@@ -702,7 +702,11 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 
 		const url = `http://${this.initOptions?.launcherHost}:${this.initOptions?.launcherPort}/processes/${this.initOptions?.launcherProcess}/restart`
 		return got
-			.post(url)
+			.post(url, {
+				timeout: {
+					request: 5000, // Arbitary, long enough for realistic scenarios
+				},
+			})
 			.then((response) => {
 				if (response.statusCode === 200) {
 					return { result: ActionExecutionResultCode.Ok }
