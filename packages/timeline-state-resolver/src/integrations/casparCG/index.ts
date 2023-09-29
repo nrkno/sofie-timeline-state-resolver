@@ -671,10 +671,7 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 			case CasparCGActions.ClearAllChannels:
 				return this.clearAllChannels()
 			case CasparCGActions.RestartServer:
-				await this.restartCasparCG()
-				return {
-					result: ActionExecutionResultCode.Ok,
-				}
+				return this.restartCasparCG()
 			default:
 				return {
 					result: ActionExecutionResultCode.Error,
@@ -703,27 +700,28 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 			}
 		}
 
-		return new Promise<ActionExecutionResult>((resolve) => {
-			const url = `http://${this.initOptions?.launcherHost}:${this.initOptions?.launcherPort}/processes/${this.initOptions?.launcherProcess}/restart`
-			got
-				.post(url)
-				.then((response) => {
-					if (response.statusCode === 200) {
-						resolve({ result: ActionExecutionResultCode.Ok })
-					} else {
-						resolve({
-							result: ActionExecutionResultCode.Error,
-							response: t('Bad reply: [{{statusCode}}] {{body}}', {
-								statusCode: response.statusCode,
-								body: response.body,
-							}),
-						})
+		const url = `http://${this.initOptions?.launcherHost}:${this.initOptions?.launcherPort}/processes/${this.initOptions?.launcherProcess}/restart`
+		return got
+			.post(url)
+			.then((response) => {
+				if (response.statusCode === 200) {
+					return { result: ActionExecutionResultCode.Ok }
+				} else {
+					return {
+						result: ActionExecutionResultCode.Error,
+						response: t('Bad reply: [{{statusCode}}] {{body}}', {
+							statusCode: response.statusCode,
+							body: response.body,
+						}),
 					}
-				})
-				.catch((error) => {
-					resolve({ result: ActionExecutionResultCode.Error, response: error })
-				})
-		})
+				}
+			})
+			.catch((error) => {
+				return {
+					result: ActionExecutionResultCode.Error,
+					response: error.toString(),
+				}
+			})
 	}
 	getStatus(): DeviceStatus {
 		let statusCode = StatusCode.GOOD
