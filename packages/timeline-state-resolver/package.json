@@ -91,7 +91,7 @@
 		"@tv2media/v-connection": "^7.3.0",
 		"atem-connection": "2.5.0",
 		"atem-state": "0.13.0",
-		"casparcg-connection": "^6.0.3",
+		"casparcg-connection": "^6.0.5",
 		"casparcg-state": "^3.0.2",
 		"debug": "^4.3.4",
 		"deepmerge": "^4.3.1",
