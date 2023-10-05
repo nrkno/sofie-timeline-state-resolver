@@ -150,6 +150,13 @@ export class TSRHandler {
 			await device.device.on('slowCommand', ((_info: SlowSentCommandInfo) => {
 				// console.log(`Device ${device.deviceId} slow command: ${_info}`)
 			}) as () => void)
+			await device.device.on('commandReport', ((command: any) => {
+				console.log(`Device ${device.deviceId} command: ${JSON.stringify(command)}`)
+			}) as () => void)
+			await device.device.on('debug', (...args: any[]) => {
+				const data = args.map((arg) => (typeof arg === 'object' ? JSON.stringify(arg) : arg))
+				console.log(`Device ${device.deviceId} debug: ${data}`)
+			})
 			// also ask for the status now, and update:
 			// onConnectionChanged(await device.device.getStatus())
 		} catch (e) {
