@@ -4,40 +4,30 @@ import * as deepMerge from 'deepmerge'
 import { DeviceWithState, CommandWithContext, DeviceStatus, StatusCode } from './../../devices/device'
 import { DoOnTime, SendMode } from '../../devices/doOnTime'
 
-import { TimelineState } from 'superfly-timeline'
 import { VMix, VMixStateCommand } from './connection'
 import {
 	DeviceType,
 	DeviceOptionsVMix,
 	VMixOptions,
 	Mappings,
-	MappingVMix,
 	TimelineContentTypeVMix,
 	VMixCommand,
 	VMixTransition,
 	VMixTransitionType,
-	TimelineObjVMixProgram,
-	TimelineObjVMixPreview,
-	TimelineObjVMixAudio,
-	TimelineObjVMixFader,
-	TimelineObjVMixOutput,
-	TimelineObjVMixRecording,
-	TimelineObjVMixStreaming,
-	TimelineObjVMixExternal,
-	TimelineObjVMixFadeToBlack,
-	TimelineObjVMixOverlay,
-	TimelineObjVMixInput,
 	VMixInputType,
 	VMixTransform,
 	VMixInputOverlays,
 	MappingVMixType,
-	MappingVMixProgram,
-	MappingVMixPreview,
-	MappingVMixInput,
-	MappingVMixAudioChannel,
-	MappingVMixOutput,
-	MappingVMixOverlay,
+	MappingVMixAny,
+	Timeline,
+	TSRTimelineContent,
+	ActionExecutionResult,
+	ActionExecutionResultCode,
+	OpenPresetPayload,
+	SavePresetPayload,
+	VmixActions,
 } from 'timeline-state-resolver-types'
+import { t } from '../../lib'
 
 export interface DeviceOptionsVMixInternal extends DeviceOptionsVMix {
 	commandReceiver?: CommandReceiver
@@ -92,24 +82,38 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 		this._doOnTime.on('slowFulfilledCommand', (info) => this.emit('slowFulfilledCommand', info))
 	}
 	async init(options: VMixOptions): Promise<boolean> {
-		this._vmix = new VMix()
+		this._vmix = new VMix(options.host, options.port, false)
 		this._vmix.on('connected', () => {
-			const time = this.getCurrentTime()
-			let state = this._getDefaultState()
-			state = deepMerge<VMixStateExtended>(state, { reportedState: this._vmix.state })
-			this.setState(state, time)
-			this._initialized = true
+			// We are not resetting the state at this point and waiting for the state to arrive. Otherwise, we risk
+			// going back and forth on reconnections
 			this._setConnected(true)
-			this.emit('resetResolver')
+			this._vmix.requestVMixState().catch((e) => this.emit('error', 'VMix init', e))
 		})
 		this._vmix.on('disconnected', () => {
 			this._setConnected(false)
 		})
 		this._vmix.on('error', (e) => this.emit('error', 'VMix', e))
 		this._vmix.on('stateChanged', (state) => this._onVMixStateChanged(state))
-		this._vmix.on('debug', (...args) => this.emitDebug(...args))
+		this._vmix.on('data', (d) => {
+			if (d.message !== 'Completed') this.emit('debug', d)
+			if (d.command === 'XML' && d.body) {
+				this._vmix.parseVMixState(d.body)
 
-		return this._vmix.connect(options)
+				if (!this._initialized) {
+					const time = this.getCurrentTime()
+					let state = this._getDefaultState()
+					state = deepMerge<VMixStateExtended>(state, { reportedState: this._vmix.state })
+					this.setState(state, time)
+					this._initialized = true
+					this.emit('resetResolver')
+				}
+			}
+		})
+		// this._vmix.on('debug', (...args) => this.emitDebug(...args))
+
+		this._vmix.connect()
+
+		return true
 	}
 	private _connectionChanged() {
 		this.emit('connectionChanged', this.getStatus())
@@ -199,6 +203,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 				Fullscreen2: { source: 'Program' },
 			},
 			inputLayers: {},
+			runningScripts: [],
 		}
 	}
 
@@ -209,7 +214,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 		this.cleanUpStates(0, newStateTime + 0.1)
 	}
 
-	handleState(newState: TimelineState, newMappings: Mappings) {
+	handleState(newState: Timeline.TimelineState<TSRTimelineContent>, newMappings: Mappings) {
 		super.onHandleState(newState, newMappings)
 		if (!this._initialized) {
 			// before it's initialized don't do anything
@@ -242,8 +247,10 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 
 	async terminate() {
 		this._doOnTime.dispose()
-		await this._vmix.dispose()
+
 		this._vmix.removeAllListeners()
+		this._vmix.disconnect()
+
 		return Promise.resolve(true)
 	}
 
@@ -269,6 +276,75 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 		}
 	}
 
+	async executeAction(actionId: string, payload?: Record<string, any> | undefined): Promise<ActionExecutionResult> {
+		switch (actionId) {
+			case VmixActions.LastPreset:
+				return await this._lastPreset()
+			case VmixActions.OpenPreset:
+				return await this._openPreset(payload as OpenPresetPayload)
+			case VmixActions.SavePreset:
+				return await this._savePreset(payload as SavePresetPayload)
+			default:
+				return {
+					result: ActionExecutionResultCode.Error,
+					response: t('Action "{{actionId}}" not found', { actionId }),
+				}
+		}
+	}
+
+	_checkPresetAction(payload?: any, payloadRequired?: boolean): ActionExecutionResult | undefined {
+		if (!this._vmix.connected) {
+			return {
+				result: ActionExecutionResultCode.Error,
+				response: t('Cannot perform VMix action without a connection'),
+			}
+		}
+
+		if (payloadRequired) {
+			if (!payload || typeof payload !== 'object') {
+				return {
+					result: ActionExecutionResultCode.Error,
+					response: t('Action payload is invalid'),
+				}
+			}
+
+			if (!payload.filename) {
+				return {
+					result: ActionExecutionResultCode.Error,
+					response: t('No preset filename specified'),
+				}
+			}
+		}
+		return
+	}
+
+	async _lastPreset() {
+		const presetActionCheckResult = this._checkPresetAction()
+		if (presetActionCheckResult) return presetActionCheckResult
+		await this._vmix.lastPreset()
+		return {
+			result: ActionExecutionResultCode.Ok,
+		}
+	}
+
+	async _openPreset(payload: OpenPresetPayload) {
+		const presetActionCheckResult = this._checkPresetAction(payload, true)
+		if (presetActionCheckResult) return presetActionCheckResult
+		await this._vmix.openPreset(payload.filename)
+		return {
+			result: ActionExecutionResultCode.Ok,
+		}
+	}
+
+	async _savePreset(payload: SavePresetPayload) {
+		const presetActionCheckResult = this._checkPresetAction(payload, true)
+		if (presetActionCheckResult) return presetActionCheckResult
+		await this._vmix.savePreset(payload.filename)
+		return {
+			result: ActionExecutionResultCode.Ok,
+		}
+	}
+
 	get canConnect(): boolean {
 		return false
 	}
@@ -277,7 +353,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 		return false
 	}
 
-	convertStateToVMix(state: TimelineState, mappings: Mappings): VMixStateExtended {
+	convertStateToVMix(state: Timeline.TimelineState<TSRTimelineContent>, mappings: Mappings): VMixStateExtended {
 		if (!this._initialized) throw Error('convertStateToVMix cannot be used before inititialized')
 
 		const deviceState = this._getDefaultState()
@@ -287,130 +363,107 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 			_.map(state.layers, (tlObject, layerName) => ({
 				layerName,
 				tlObject,
-				mapping: mappings[layerName] as MappingVMix,
+				mapping: mappings[layerName] as MappingVMixAny,
 			})).sort((a, b) => a.layerName.localeCompare(b.layerName)),
 			(o) => o.mapping.mappingType
 		)
 
 		_.each(sortedLayers, ({ tlObject, layerName, mapping }) => {
-			if (mapping) {
+			const content = tlObject.content
+
+			if (mapping && content.deviceType === DeviceType.VMIX) {
 				switch (mapping.mappingType) {
 					case MappingVMixType.Program:
-						if (tlObject.content.type === TimelineContentTypeVMix.PROGRAM) {
-							const vmixTlProgram = tlObject as any as TimelineObjVMixProgram
-							const mixProgram = ((mapping as MappingVMixProgram).index || 1) - 1
-							if (vmixTlProgram.content.input !== undefined) {
-								this.switchToInput(
-									vmixTlProgram.content.input,
-									deviceState,
-									mixProgram,
-									vmixTlProgram.content.transition
-								)
-							} else if (vmixTlProgram.content.inputLayer) {
-								this.switchToInput(
-									vmixTlProgram.content.inputLayer,
-									deviceState,
-									mixProgram,
-									vmixTlProgram.content.transition,
-									true
-								)
+						if (content.type === TimelineContentTypeVMix.PROGRAM) {
+							const mixProgram = (mapping.index || 1) - 1
+							if (content.input !== undefined) {
+								this.switchToInput(content.input, deviceState, mixProgram, content.transition)
+							} else if (content.inputLayer) {
+								this.switchToInput(content.inputLayer, deviceState, mixProgram, content.transition, true)
 							}
 						}
 						break
 					case MappingVMixType.Preview:
-						if (tlObject.content.type === TimelineContentTypeVMix.PREVIEW) {
-							const vmixTlPreview = tlObject as any as TimelineObjVMixPreview
-							const mixPreview = ((mapping as MappingVMixPreview).index || 1) - 1
-							if (vmixTlPreview.content.input)
-								deviceState.reportedState.mixes[mixPreview].preview = vmixTlPreview.content.input
+						if (content.type === TimelineContentTypeVMix.PREVIEW) {
+							const mixPreview = (mapping.index || 1) - 1
+							if (content.input) deviceState.reportedState.mixes[mixPreview].preview = content.input
 						}
 						break
 					case MappingVMixType.AudioChannel:
-						if (tlObject.content.type === TimelineContentTypeVMix.AUDIO) {
-							const vmixTlAudio = tlObject as any as TimelineObjVMixAudio
-							const vmixTlAudioPicked = _.pick(
-								vmixTlAudio.content,
-								'volume',
-								'balance',
-								'audioAuto',
-								'audioBuses',
-								'muted',
-								'fade'
-							)
-							const vmixAudioMapping = mapping as MappingVMixAudioChannel
-							if (vmixAudioMapping.index) {
+						if (content.type === TimelineContentTypeVMix.AUDIO) {
+							const vmixTlAudioPicked = _.pick(content, 'volume', 'balance', 'audioAuto', 'audioBuses', 'muted', 'fade')
+							if (mapping.index) {
 								deviceState.reportedState.inputs = this.modifyInput(deviceState, vmixTlAudioPicked, {
-									key: vmixAudioMapping.index,
+									key: mapping.index,
 								})
-							} else if (vmixAudioMapping.inputLayer) {
+							} else if (mapping.inputLayer) {
 								deviceState.reportedState.inputs = this.modifyInput(deviceState, vmixTlAudioPicked, {
-									layer: vmixAudioMapping.inputLayer,
+									layer: mapping.inputLayer,
 								})
 							}
 						}
 						break
 					case MappingVMixType.Fader:
-						if (tlObject.content.type === TimelineContentTypeVMix.FADER) {
-							const vmixTlFader = tlObject as any as TimelineObjVMixFader
-							deviceState.reportedState.faderPosition = vmixTlFader.content.position
+						if (content.type === TimelineContentTypeVMix.FADER) {
+							deviceState.reportedState.faderPosition = content.position
 						}
 						break
 					case MappingVMixType.Recording:
-						if (tlObject.content.type === TimelineContentTypeVMix.RECORDING) {
-							const vmixTlRecording = tlObject as any as TimelineObjVMixRecording
-							deviceState.reportedState.recording = vmixTlRecording.content.on
+						if (content.type === TimelineContentTypeVMix.RECORDING) {
+							deviceState.reportedState.recording = content.on
 						}
 						break
 					case MappingVMixType.Streaming:
-						if (tlObject.content.type === TimelineContentTypeVMix.STREAMING) {
-							const vmixTlStreaming = tlObject as any as TimelineObjVMixStreaming
-							deviceState.reportedState.streaming = vmixTlStreaming.content.on
+						if (content.type === TimelineContentTypeVMix.STREAMING) {
+							deviceState.reportedState.streaming = content.on
 						}
 						break
 					case MappingVMixType.External:
-						if (tlObject.content.type === TimelineContentTypeVMix.EXTERNAL) {
-							const vmixTlExternal = tlObject as any as TimelineObjVMixExternal
-							deviceState.reportedState.external = vmixTlExternal.content.on
+						if (content.type === TimelineContentTypeVMix.EXTERNAL) {
+							deviceState.reportedState.external = content.on
 						}
 						break
 					case MappingVMixType.FadeToBlack:
-						if (tlObject.content.type === TimelineContentTypeVMix.FADE_TO_BLACK) {
-							const vmixTlFTB = tlObject as any as TimelineObjVMixFadeToBlack
-							deviceState.reportedState.fadeToBlack = vmixTlFTB.content.on
+						if (content.type === TimelineContentTypeVMix.FADE_TO_BLACK) {
+							deviceState.reportedState.fadeToBlack = content.on
 						}
 						break
 					case MappingVMixType.Input:
-						if (tlObject.content.type === TimelineContentTypeVMix.INPUT) {
-							const vmixTlMedia = tlObject as any as TimelineObjVMixInput
+						if (content.type === TimelineContentTypeVMix.INPUT) {
 							deviceState.reportedState.inputs = this.modifyInput(
 								deviceState,
 								{
-									type: vmixTlMedia.content.inputType,
-									playing: vmixTlMedia.content.playing,
-									loop: vmixTlMedia.content.loop,
-									position: vmixTlMedia.content.seek,
-									transform: vmixTlMedia.content.transform,
-									overlays: vmixTlMedia.content.overlays,
+									type: content.inputType,
+									playing: content.playing,
+									loop: content.loop,
+									position: content.seek,
+									transform: content.transform,
+									overlays: content.overlays,
+									listFilePaths: content.listFilePaths,
 								},
-								{ key: (mapping as MappingVMixInput).index || vmixTlMedia.content.filePath },
+
+								{ key: mapping.index || content.filePath },
 								layerName
 							)
 						}
 						break
 					case MappingVMixType.Output:
-						if (tlObject.content.type === TimelineContentTypeVMix.OUTPUT) {
-							const tlObjSetOutput = tlObject as any as TimelineObjVMixOutput
-							deviceState.outputs[(mapping as MappingVMixOutput).index] = {
-								source: tlObjSetOutput.content.source,
-								input: tlObjSetOutput.content.input,
+						if (content.type === TimelineContentTypeVMix.OUTPUT) {
+							deviceState.outputs[mapping.index] = {
+								source: content.source,
+								input: content.input,
 							}
 						}
 						break
 					case MappingVMixType.Overlay:
-						if (tlObject.content.type === TimelineContentTypeVMix.OVERLAY) {
-							const tlObjOverlayInputIn = tlObject as any as TimelineObjVMixOverlay
-							const overlayIndex = (mapping as MappingVMixOverlay).index - 1
-							deviceState.reportedState.overlays[overlayIndex].input = tlObjOverlayInputIn.content.input
+						if (content.type === TimelineContentTypeVMix.OVERLAY) {
+							const overlayIndex = mapping.index - 1
+							deviceState.reportedState.overlays[overlayIndex].input = content.input
+						}
+						break
+					case MappingVMixType.Script:
+						if (content.type === TimelineContentTypeVMix.SCRIPT) {
+							deviceState.runningScripts.push(content.name)
 						}
 						break
 				}
@@ -604,6 +657,52 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 				this._addToQueue(addCommands, this.getCurrentTime())
 			}
 			const oldInput = oldVMixState.reportedState.inputs[key] || this._getDefaultInputState(0) // or {} but we assume that a new input has all parameters default
+			// It is important that the operations on listFilePaths happen before most other operations.
+			// Consider the case where we want to change the contents of a List input AND set it to playing.
+			// If we set it to playing first, it will automatically be forced to stop playing when
+			// we dispatch LIST_REMOVE_ALL.
+			// So, order of operations matters here.
+			if (!_.isEqual(oldInput.listFilePaths, input.listFilePaths)) {
+				// vMix has a quirk that we are working around here:
+				// When a List input has no items, its Play/Pause button becomes inactive and
+				// clicking it does nothing. However, if the List was playing when it was emptied,
+				// it'll remain in a playing state. This means that as soon as new content is
+				// added to the playlist, it will immediately begin playing. This feels like a
+				// bug/mistake/otherwise unwanted behavior in every scenario. To work around this,
+				// we automatically dispatch a PAUSE_INPUT command before emptying the playlist,
+				// but only if there's no new content being added afterward.
+				if (!input.listFilePaths || (Array.isArray(input.listFilePaths) && input.listFilePaths.length <= 0)) {
+					commands.push({
+						command: {
+							command: VMixCommand.PAUSE_INPUT,
+							input: input.name,
+						},
+						context: null,
+						timelineId: '',
+					})
+				}
+				commands.push({
+					command: {
+						command: VMixCommand.LIST_REMOVE_ALL,
+						input: input.name,
+					},
+					context: null,
+					timelineId: '',
+				})
+				if (Array.isArray(input.listFilePaths)) {
+					for (const filePath of input.listFilePaths) {
+						commands.push({
+							command: {
+								command: VMixCommand.LIST_ADD,
+								input: input.name,
+								value: filePath,
+							},
+							context: null,
+							timelineId: '',
+						})
+					}
+				}
+			}
 			if (input.playing !== undefined && oldInput.playing !== input.playing && !input.playing) {
 				commands.push({
 					command: {
@@ -989,6 +1088,40 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 		return commands
 	}
 
+	private _resolveScriptsState(
+		oldVMixState: VMixStateExtended,
+		newVMixState: VMixStateExtended
+	): Array<VMixStateCommandWithContext> {
+		const commands: Array<VMixStateCommandWithContext> = []
+		_.map(newVMixState.runningScripts, (name) => {
+			const alreadyRunning = oldVMixState.runningScripts.includes(name)
+			if (!alreadyRunning) {
+				commands.push({
+					command: {
+						command: VMixCommand.SCRIPT_START,
+						value: name,
+					},
+					context: null,
+					timelineId: '',
+				})
+			}
+		})
+		_.map(oldVMixState.runningScripts, (name) => {
+			const noLongerDesired = !newVMixState.runningScripts.includes(name)
+			if (noLongerDesired) {
+				commands.push({
+					command: {
+						command: VMixCommand.SCRIPT_STOP,
+						value: name,
+					},
+					context: null,
+					timelineId: '',
+				})
+			}
+		})
+		return commands
+	}
+
 	private _diffStates(
 		oldVMixState: VMixStateExtended,
 		newVMixState: VMixStateExtended
@@ -1003,6 +1136,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 		commands = commands.concat(this._resolveExternalState(oldVMixState, newVMixState))
 		commands = commands.concat(this._resolveOutputsState(oldVMixState, newVMixState))
 		commands = commands.concat(this._resolveInputsRemovalState(oldVMixState, newVMixState))
+		commands = commands.concat(this._resolveScriptsState(oldVMixState, newVMixState))
 
 		return commands
 	}
@@ -1044,6 +1178,7 @@ export interface VMixStateExtended {
 		Fullscreen2: VMixOutput
 	}
 	inputLayers: { [key: string]: string }
+	runningScripts: string[]
 }
 
 export interface VMixState {
@@ -1091,6 +1226,7 @@ export interface VMixInput {
 	audioAuto?: boolean
 	transform?: VMixTransform
 	overlays?: VMixInputOverlays
+	listFilePaths?: string[]
 }
 
 export interface VMixOverlay {

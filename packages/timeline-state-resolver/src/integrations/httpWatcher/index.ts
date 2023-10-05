@@ -5,10 +5,10 @@ import {
 	HTTPWatcherOptions,
 	DeviceOptionsHTTPWatcher,
 	Mappings,
+	Timeline,
+	TSRTimelineContent,
 } from 'timeline-state-resolver-types'
 import * as request from 'request'
-
-import { TimelineState } from 'superfly-timeline'
 
 export type DeviceOptionsHTTPWatcherInternal = DeviceOptionsHTTPWatcher
 
@@ -101,7 +101,7 @@ export class HTTPWatcherDevice extends Device<DeviceOptionsHTTPWatcherInternal> 
 	prepareForHandleState(_newStateTime: number) {
 		// NOP
 	}
-	handleState(newState: TimelineState, newMappings: Mappings) {
+	handleState(newState: Timeline.TimelineState<TSRTimelineContent>, newMappings: Mappings) {
 		super.onHandleState(newState, newMappings)
 		// NOP
 	}

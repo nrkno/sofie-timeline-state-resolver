@@ -32,10 +32,6 @@ describe('Panasonic PTZ', () => {
 		}, 1)
 	})
 	request.setMockGet(onGet)
-
-	beforeAll(() => {
-		mockTime.mockDateNow()
-	})
 	beforeEach(() => {
 		mockTime.init()
 	})

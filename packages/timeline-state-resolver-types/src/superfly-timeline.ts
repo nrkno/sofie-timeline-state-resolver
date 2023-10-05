@@ -27,25 +27,23 @@ export interface ResolveOptions {
 	/** If set to true, the resolver will go through the instances of the objects and fix collisions, so that the instances more closely resembles the end state. */
 	resolveInstanceCollisions?: boolean
 }
-export interface TimelineObject {
+export interface TimelineObject<TContent = unknown> {
 	id: ObjectId
 	enable: TimelineEnable | TimelineEnable[]
 	layer: string | number
 	/** Group children */
-	children?: Array<TimelineObject>
+	children?: Array<TimelineObject<any>> // Future: this should be typed better, but doing so breaks type compatability with superfly-timeline
 	/** Keyframes can be used to modify the content of an object */
-	keyframes?: Array<TimelineKeyframe>
+	keyframes?: Array<TimelineKeyframe<TContent>>
 	classes?: Array<string>
 	disabled?: boolean
 	isGroup?: boolean
 	priority?: number
 	/** If set to true, colliding timeline-instances will be merged into one */
 	seamless?: boolean
-	content: Content
+	content: TContent
 }
-export declare type Content = {
-	[key: string]: any
-}
+
 export interface TimelineEnable {
 	/**
 	 * Examples of references:
@@ -68,20 +66,19 @@ export interface TimelineEnable {
 	/** (Optional) Makes the object repeat with given interval */
 	repeating?: Expression
 }
-export interface TimelineKeyframe {
+export interface TimelineKeyframe<TContent = unknown> {
 	id: string
 	enable: TimelineEnable | TimelineEnable[]
 	duration?: number | string
 	classes?: Array<string>
-	content: Content
+	content: Partial<TContent>
 	disabled?: boolean
 }
-export interface TimelineObjectKeyframe extends TimelineObject, TimelineKeyframe {}
-export interface ResolvedTimeline {
+export interface ResolvedTimeline<TContent = unknown> {
 	/** The options used to resolve the timeline */
 	options: ResolveOptions
 	/** Map of all objects on timeline */
-	objects: ResolvedTimelineObjects
+	objects: ResolvedTimelineObjects<TContent>
 	/** Map of all classes on timeline, maps className to object ids */
 	classes: {
 		[className: string]: Array<string>
@@ -107,10 +104,8 @@ export interface ResolvedTimeline {
 		resolvingCount: number
 	}
 }
-export interface ResolvedTimelineObjects {
-	[id: string]: ResolvedTimelineObject
-}
-export interface ResolvedTimelineObject extends TimelineObject {
+export type ResolvedTimelineObjects<TContent = unknown> = Record<string, ResolvedTimelineObject<TContent>>
+export interface ResolvedTimelineObject<TContent = unknown> extends TimelineObject<TContent> {
 	resolved: {
 		/** Is set to true when object has been resolved */
 		resolved: boolean
@@ -131,12 +126,28 @@ export interface ResolvedTimelineObject extends TimelineObject {
 	}
 }
 export interface TimelineObjectInstance {
+	/** id of the instance (unique)  */
 	id: string
+	/** if true, the instance starts from the beginning of time */
 	isFirst?: boolean
+	/** The start time of the instance */
 	start: Time
+	/** The end time of the instance (null = infinite) */
 	end: Time | null
+	/** The original start time of the instance (if an instance is split or capped, the original start time is retained in here).
+	 * If undefined, fallback to .start
+	 */
+	originalStart?: Time
+	/** The original end time of the instance (if an instance is split or capped, the original end time is retained in here)
+	 * If undefined, fallback to .end
+	 */
+	originalEnd?: Time | null
+	/** array of the id of the referenced objects */
 	references: Array<string>
+	/** If set, tells the cap of the parent. The instance will always be capped inside this. */
 	caps?: Array<Cap>
+	/** If the instance was generated from another instance, reference to the original */
+	fromInstanceId?: string
 }
 export interface Cap {
 	id: string
@@ -159,23 +170,14 @@ export interface ExpressionObj {
 	o: string
 	r: Expression
 }
-export declare type ExpressionEvent = InstanceEvent<boolean>
-export declare type ResolvedExpression = Array<ExpressionEvent>
-export interface ResolvedExpressionObj {
-	l: ResolvedExpression
-	o: '+' | '-' | '*' | '/' | '&' | '|' | '!'
-	r: ResolvedExpression
-}
-export interface TimelineState {
+
+export interface TimelineState<TContent = unknown> {
 	time: Time
-	layers: StateInTime
+	layers: StateInTime<TContent>
 	nextEvents: Array<NextEvent>
 }
-export interface ResolvedStates extends ResolvedTimeline {
-	state: AllStates
-	nextEvents: Array<NextEvent>
-}
-export interface ResolvedTimelineObjectInstance extends ResolvedTimelineObject {
+
+export interface ResolvedTimelineObjectInstance<TContent = unknown> extends ResolvedTimelineObject<TContent> {
 	instance: TimelineObjectInstance
 }
 export interface NextEvent {
@@ -183,50 +185,21 @@ export interface NextEvent {
 	time: Time
 	objId: string
 }
-export interface ResolvedTimelineObjectInstanceKeyframe extends ResolvedTimelineObjectInstance {
+export interface ResolvedTimelineObjectInstanceKeyframe<TContent = unknown>
+	extends ResolvedTimelineObjectInstance<TContent> {
 	isKeyframe?: boolean
 	keyframeEndTime?: TimeMaybe
 }
-export interface AllStates {
+export interface AllStates<TContent = unknown> {
 	[layer: string]: {
-		[time: string]: ResolvedTimelineObjectInstanceKeyframe[] | null
+		[time: string]: ResolvedTimelineObjectInstanceKeyframe<TContent>[] | null
 	}
 }
-export interface StateInTime {
-	[layer: string]: ResolvedTimelineObjectInstance
+export interface StateInTime<TContent = unknown> {
+	[layer: string]: ResolvedTimelineObjectInstance<TContent>
 }
 export interface TimeEvent {
 	time: number
 	/** true when the event indicate that something starts, false when something ends */
 	enable: boolean
 }
-
-// Resolver ------------------------------------------------------------
-export declare class Resolver {
-	/**
-	 * Go through all objects on the timeline and calculate all the timings.
-	 * Returns a ResolvedTimeline which can be piped into Resolver.getState()
-	 * @param timeline Array of timeline objects
-	 * @param options Resolve options
-	 */
-	static resolveTimeline(timeline: Array<TimelineObject>, options: ResolveOptions): ResolvedTimeline
-	/** Calculate the state for all points in time.  */
-	static resolveAllStates(resolvedTimeline: ResolvedTimeline): ResolvedStates
-	/**
-	 * Calculate the state at a given point in time.
-	 * Using a ResolvedTimeline calculated by Resolver.resolveTimeline() or
-	 * a ResolvedStates calculated by Resolver.resolveAllStates()
-	 * @param resolved ResolvedTimeline calculated by Resolver.resolveTimeline.
-	 * @param time The point in time where to calculate the state
-	 * @param eventLimit (Optional) Limits the number of returned upcoming events.
-	 */
-	static getState(resolved: ResolvedTimeline | ResolvedStates, time: Time, eventLimit?: number): TimelineState
-}
-export declare function resolveTimelineObj(resolvedTimeline: ResolvedTimeline, obj: ResolvedTimelineObject): void
-declare type ObjectRefType = 'start' | 'end' | 'duration'
-export declare function lookupExpression(
-	resolvedTimeline: ResolvedTimeline,
-	obj: TimelineObject,
-	expr: Expression | null,
-	context: ObjectRefType
-): Array<TimelineObjectInstance> | ValueWithReference | null

@@ -30,10 +30,6 @@ describe('Hyperdeck', () => {
 	jest.mock('hyperdeck-connection', () => HyperdeckConnection)
 
 	const mockTime = new MockTime()
-
-	beforeAll(() => {
-		mockTime.mockDateNow()
-	})
 	beforeEach(() => {
 		mockTime.init()
 	})

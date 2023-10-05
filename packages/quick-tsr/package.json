@@ -1,0 +1,70 @@
+{
+  "name": "quick-tsr",
+  "private": true,
+  "version": "8.0.0",
+  "description": "Read timeline from file, use TSR, play stuff",
+  "main": "dist/index.js",
+  "typings": "dist/index.d.ts",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nrkno/sofie-timeline-state-resolver.git"
+  },
+  "bugs": {
+    "url": "https://github.com/nrkno/sofie-timeline-state-resolver/issues"
+  },
+  "homepage": "https://github.com/nrkno/sofie-timeline-state-resolver#readme",
+  "author": {
+    "name": "Johan Nyman",
+    "email": "johan@superfly.tv",
+    "url": "http://superfly.tv"
+  },
+  "contributors": [],
+  "scripts": {
+    "build": "rimraf dist && yarn build:main",
+    "buildstart": "yarn build && yarn start",
+    "buildinspect": "yarn build && yarn inspect",
+    "build:main": "tsc -p tsconfig.build.json",
+    "lint:raw": "eslint --ext .ts --ext .js --ext .tsx --ext .jsx --ignore-pattern dist",
+    "lint": "yarn lint:raw .",
+    "lint-fix": "yarn lint --fix",
+    "inspect": "node --inspect dist/index.js",
+    "start": "ts-node src/index.ts",
+    "validate:dependencies": "yarn audit --groups dependencies && yarn license-validate",
+    "validate:dev-dependencies": "yarn audit --groups devDependencies",
+    "license-validate": "yarn sofie-licensecheck",
+    "test": "echo \"Note: no test specified for quick-tsr\" && exit 0"
+  },
+  "prettier": "@sofie-automation/code-standard-preset/.prettierrc.json",
+  "lint-staged": {
+    "*.{css,json,md,scss}": [
+      "prettier --write"
+    ],
+    "*.{ts,tsx,js,jsx}": [
+      "yarn lint:raw --fix"
+    ]
+  },
+  "engines": {
+    "node": ">=12.20"
+  },
+  "keywords": [
+    "broadcast",
+    "socket",
+    "typescript",
+    "javascript",
+    "open",
+    "source",
+    "automation",
+    "ncs",
+    "nrcs",
+    "rundown",
+    "production"
+  ],
+  "dependencies": {
+    "chokidar": "^3.2.1",
+    "fast-clone": "^1.5.13",
+    "timeline-state-resolver": "8.0.0",
+    "tslib": "^2.4.1",
+    "underscore": "^1.9.1"
+  }
+}

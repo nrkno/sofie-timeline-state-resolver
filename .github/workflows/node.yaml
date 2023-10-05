@@ -28,6 +28,7 @@ jobs:
           node-version-file: '.node-version'
       - name: Prepare Environment
         run: |
+          yarn config set cache-folder /home/runner/lint-${{ matrix.lib-name }}-cache
           yarn install
           yarn build
         env:
@@ -53,6 +54,7 @@ jobs:
           node-version-file: '.node-version'
       - name: Prepare Environment
         run: |
+          yarn config set cache-folder /home/runner/docs-cache
           yarn install
           yarn build
         env:
@@ -82,6 +84,7 @@ jobs:
           node-version: ${{ matrix.node-version }}
       - name: Prepare Environment
         run: |
+          yarn config set cache-folder /home/runner/test-${{ matrix.lib-name }}-${{ matrix.node-version }}-cache
           yarn install
           yarn build
         env:
@@ -95,11 +98,8 @@ jobs:
       - name: Send coverage
         if: matrix.node-version == '16.x'
         uses: codecov/codecov-action@v3
-        with:
-          fail_ci_if_error: true
-          # name: codecov-umbrella
       # - name: Check docs generation
-      #   if: matrix.node-version == '14.x'
+      #   if: matrix.node-version == '16.x'
       #   run: |
       #     yarn docs:test
       #   env:
@@ -155,6 +155,7 @@ jobs:
       - name: Prepare build
         if: ${{ steps.do-publish.outputs.tag }}
         run: |
+          yarn config set cache-folder /home/runner/release-cache
           yarn install
           yarn build
         env:
@@ -195,6 +196,7 @@ jobs:
           node-version-file: '.node-version'
       - name: Prepare Environment
         run: |
+          yarn config set cache-folder /home/runner/validate-deps-${{ matrix.lib-name }}-cache
           yarn install
         env:
           CI: true
@@ -228,6 +230,7 @@ jobs:
           node-version-file: '.node-version'
       - name: Prepare Environment
         run: |
+          yarn config set cache-folder /home/runner/validate-all-deps-${{ matrix.lib-name }}-cache
           yarn install
         env:
           CI: true

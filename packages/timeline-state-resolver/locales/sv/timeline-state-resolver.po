@@ -1,0 +1,56 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: i18next-conv\n"
+"mime-version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1)\n"
+"POT-Creation-Date: 2022-11-25T09:30:24.048Z\n"
+"PO-Revision-Date: 2022-11-25T09:30:24.048Z\n"
+"Language: sv\n"
+
+msgid "Action \"{{id}}\" not found"
+msgstr "Funktionen \"{{id}}\" hittades inte"
+
+msgid "Bad reply: [{{statusCode}}] {{body}}"
+msgstr "Felaktigt svar: [{{statusCode}}] {{body}}"
+
+msgid "Cannot restart CasparCG without a connection"
+msgstr "Kan inte starta om CasparCG utan en anslutning"
+
+msgid "CasparCGDevice: config.launcherHost is not set!"
+msgstr "CasparCG: config.launcherHost är inte ifylld!"
+
+msgid "CasparCGDevice: config.launcherPort is not set!"
+msgstr "CasparCG: config.launcherPort är inte ifylld!"
+
+msgid "Clear"
+msgstr "Rensa"
+
+msgid "Command received by the abstract device"
+msgstr "Kommandot har tagits emot av abstract-enheten"
+
+msgid "Device does not implement an action handler"
+msgstr "Enheten har inte stöd för funktioner"
+
+msgid "Format disks"
+msgstr "Formatera hårddiskarna"
+
+msgid "Purge Viz Rundown"
+msgstr "Rensa Viz Rundown"
+
+msgid "Restart gateway"
+msgstr "Starta om gatewayen"
+
+msgid "Restart Server"
+msgstr "Starta om servern"
+
+msgid "Resync Atem"
+msgstr "Synka om Atem"
+
+msgid "Test action"
+msgstr "Testa funktion"
+
+msgctxt "connectionOptions is not set!"
+msgid "CasparCGDevice."
+msgstr "CasparCGDevice."

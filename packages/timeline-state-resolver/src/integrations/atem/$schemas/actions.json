@@ -1,0 +1,10 @@
+{
+	"$schema": "../../../$schemas/action-schema.json",
+	"actions": [
+		{
+			"id": "resync",
+			"name": "Resync Atem",
+			"destructive": false
+		}
+	]
+}

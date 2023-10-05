@@ -1,15 +1,13 @@
-import { DeviceType, TSRTimelineObjBase } from './index'
+import { DeviceType } from './index'
 
 export interface TelemetricsOptions {
 	host: string
 	port?: number
 }
 
-export type TimelineObjTelemetricsAny = TimelineObjTelemetrics
+export type TimelineContentTelemetricsAny = TimelineContentTelemetrics
 
-export interface TimelineObjTelemetrics extends TSRTimelineObjBase {
-	content: {
-		deviceType: DeviceType.TELEMETRICS
-		presetShotIdentifiers: number[]
-	}
+export interface TimelineContentTelemetrics {
+	deviceType: DeviceType.TELEMETRICS
+	presetShotIdentifiers: number[]
 }

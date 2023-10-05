@@ -1,5 +1,5 @@
 // These imports are pointed to what external libraries will import
-import { DeviceType as Types_DeviceType, TSRTimeline, TimelineObjEmpty } from '../../dist'
+import { DeviceType as Types_DeviceType, TSRTimeline, TimelineContentEmpty, TSRTimelineObj } from '../../dist'
 
 describe('Usage of library', () => {
 	// These tests test that the library can be imported and used by the library consumers.
@@ -9,7 +9,7 @@ describe('Usage of library', () => {
 		expect(Types_DeviceType.ATEM).toEqual(2)
 
 		// Expect these types to work:
-		const obj: TimelineObjEmpty = {
+		const obj: TSRTimelineObj<TimelineContentEmpty> = {
 			id: 'myId',
 			enable: {
 				start: 0,

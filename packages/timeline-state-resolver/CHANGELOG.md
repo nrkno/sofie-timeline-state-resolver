@@ -3,18 +3,249 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
-## [7.5.1](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/7.5.0...7.5.1) (2023-09-04)
+## [8.0.0](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/7.5.1...8.0.0) (2023-10-05)
 
+
+### Features
+
+* atem audio routing control SOFIE-2512 ([#274](https://github.com/nrkno/tv-automation-state-timeline-resolver/issues/274)) ([de9dfd1](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/de9dfd138452794bd7ad83a2fd1e82d2849abdcd))
+
+
+### Bug Fixes
+
+* handle some additional cases in casparCG trackedState SOFIE-2359 ([#259](https://github.com/nrkno/tv-automation-state-timeline-resolver/issues/259)) ([810959f](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/810959f06a13caef2e16fb9d90d8d8257ba1620e))
+
+## [8.0.0-release49.0](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/8.0.0-release48.2...8.0.0-release49.0) (2023-03-21)
+
+## [8.0.0-release48.2](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/7.5.0...8.0.0-release48.2) (2023-03-21)
+
+
+### Features
+
+* SOF-1254 add TriCaster matrix support ([dbb1b26](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/dbb1b26e84a41227e3eca0fae902bf5b57ca5d8e))
+* Vmix preset actions ([8b31294](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/8b3129412f3881ff9db2cd059927e5b5f3ae6caf))
+* **vmix:** add support for ListRemoveAll and ListAdd commands ([4a7240f](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/4a7240f7b2819bb16f263b72d1b06b98e3c40353))
+* **vmix:** add support for starting and stopping VB.NET scripts ([9f2d4ee](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/9f2d4eeeccd9ba0017fc00cfe5df18e3717ea660))
+
+
+### Bug Fixes
+
+* allow resetting to baseline ([572118b](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/572118b94a2855598848f1daa1575bc3ccc6186a))
+* casparcg doesnt resync state after server restart SOFIE-2156 ([#248](https://github.com/nrkno/tv-automation-state-timeline-resolver/issues/248)) ([13d51dc](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/13d51dca9d0587e20fb78405834adee106ae60b1))
+* ensure that LIST_REMOVE_ALL and LIST_ADD are sent before most other commands ([13bf78a](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/13bf78ad650df861dc1305998dc55e9d779d77ac))
+* pause List inputs before emptying them ([9abc089](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/9abc0895ae02a2dfd387551b9f3a7f495abf6282))
+* properly parse multi-packet vMix TCP API responses ([754adeb](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/754adeb578e18851b6a6f1dd026e11ac12bed702))
+* properly parse multi-packet vMix TCP API responses ([35ba046](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/35ba0464905e29d1f84c2c61327e321250a44e73))
+* reduce amount of `setTimeout` when using `DoInTime` in `BURST` mode ([5123405](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/51234050e12156e08cc0e1a13e28ca17046e7a42))
+* review comments ([cb21206](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/cb2120650f928e1bc7958136318403feb1d493ec))
+* SOF-1254 control only resources that are mapped ([7892669](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/789266983a40cfc52df75fce48cb5dbce4c977f3))
+* SOF-1254 improve types ([0471a7b](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/0471a7bf64f7340e83b5b6f47212003fd2586ca6))
+* SOF-1254 log warning when websocket disconnected ([3d9964a](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/3d9964af7c4352c36e95824dd323cd2fe46717fd))
+
+## [8.0.0-release48.1](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/7.5.0-release47.6...8.0.0-release48.1) (2023-02-14)
+
+
+### Features
+
+* Emit debug state ([516a512](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/516a51203aa0af8c0a47552ecf9c0c99cd01d0be))
+* multi osc device ([b987680](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/b9876808d44543903e45ab5a1a1a2b85beed4aac))
+* SOF-1135 make `createDevice` and `initDevice` abortable ([70bfef2](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/70bfef20029b8972aeb248a7c2012b5d92fb2ecc))
+* SOF-1254 add TriCaster integration ([06b129e](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/06b129ecec2d87b0caaa22fda36b2b5ef953653e))
+
+
+### Bug Fixes
+
+* change mocks to be TCP, fix vmixAPI test ([def9a21](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/def9a21719815ec20c99dabd49bfa7c553136cb0))
+* improve data fragmentation handling, logging of unrecognized responses ([96cfe87](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/96cfe87f68d223ea6ef5566a31e2fd7caa9abe2e))
+* multi osc device udp stateless ([af34aa0](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/af34aa023965b2e5e18b54f66478812a2488ecb8))
+* use TCP for vmix api ([3c1d1f6](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/3c1d1f65042772b03e9e8284dda5b4e0feca80d9))
+* **vmix:** improve vmix mock, update tests to use new mock ([265dcf1](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/265dcf1a0f4d05cc6fc549a2783f51a782bc0c26))
+
+## [8.0.0-release48.0](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/3.0.3...8.0.0-release48.0) (2022-12-12)
+
+## [3.0.3](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/3.0.2...3.0.3) (2022-12-05)
+
+## [3.0.2](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/3.0.0...3.0.2) (2022-11-29)
+
+
+### ⚠ BREAKING CHANGES
+
+* drop support for node 14 (for tsr, tsr-types support remains)
+
+### Miscellaneous Chores
+
+* drop support for node 14 (for tsr, tsr-types support remains) ([36c4859](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/36c48597226dd86270b06040c64c7d3518c32e87))
+
+## [3.0.0](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/2.3.1...3.0.0) (2022-11-21)
+
+
+### ⚠ BREAKING CHANGES
+
+* refactor types to work better with typescript 4.7 (#227)
+* resolve MSE show names to IDs using the directory
+
+### Features
+
+* add vizmse actions ([f7e585c](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/f7e585c97e852ab30e9fd6d20077be906038af70))
+* refactor types to work better with typescript 4.7 ([#227](https://github.com/nrkno/tv-automation-state-timeline-resolver/issues/227)) ([abe499c](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/abe499ce1da13c2d7a68333f6b1dcc8c7ea71e97))
+* resolve MSE show names to IDs using the directory ([e094dda](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/e094dda7dbd14b312ff8ffef5d45a39a1e802bcf))
+
+
+### Bug Fixes
+
+* unable to resolve show ids (bug from previous refactor) ([cdf2c62](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/cdf2c62227517e7a48a7c8c7ae102374167056cd))
+
+## [2.3.1](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/7.5.0-release47.3...2.3.1) (2022-11-11)
+
+
+### Features
+
+* action manifests ([681d4c8](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/681d4c8a72fb409dba919fd13db17f3c2f168d1a))
+* translations for actions ([df4cb43](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/df4cb43cf16a8e2ae34c1fe44801c5a327f9b01e))
+* update for casparcg-connection rewrite ([5dfdd23](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/5dfdd2320caf89432d36513026c1259e2cf3d366))
+
+## [2.3.0](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/7.5.0-release47.0...2.3.0) (2022-10-28)
+
+
+### Features
+
+* SOF-1140 handle warnings from v-connection ([a48d313](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/a48d313d20344ebd8a061c625d8ed3491df95465))
+
+
+### Bug Fixes
+
+* SOF-1140 wrap strings in Errors to avoid mangled logs ([bca62cb](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/bca62cb7d3abd05974e79f5eece079de98a4bacf))
+
+
+
+## [8.0.0-release49.0](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/8.0.0-release48.2...8.0.0-release49.0) (2023-03-21)
+
+
+### ⚠ BREAKING CHANGES
+
+* resolve MSE show names to IDs using the directory
+
+### Features
+
+* Emit debug state ([516a512](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/516a51203aa0af8c0a47552ecf9c0c99cd01d0be))
+* multi osc device ([b987680](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/b9876808d44543903e45ab5a1a1a2b85beed4aac))
+* resolve MSE show names to IDs using the directory ([e094dda](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/e094dda7dbd14b312ff8ffef5d45a39a1e802bcf))
+* SOF-1135 make `createDevice` and `initDevice` abortable ([70bfef2](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/70bfef20029b8972aeb248a7c2012b5d92fb2ecc))
+* SOF-1140 handle warnings from v-connection ([a48d313](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/a48d313d20344ebd8a061c625d8ed3491df95465))
+* SOF-1254 add TriCaster integration ([06b129e](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/06b129ecec2d87b0caaa22fda36b2b5ef953653e))
+* SOF-1254 add TriCaster matrix support ([dbb1b26](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/dbb1b26e84a41227e3eca0fae902bf5b57ca5d8e))
+* Vmix preset actions ([8b31294](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/8b3129412f3881ff9db2cd059927e5b5f3ae6caf))
+* **vmix:** add support for ListRemoveAll and ListAdd commands ([4a7240f](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/4a7240f7b2819bb16f263b72d1b06b98e3c40353))
+* **vmix:** add support for starting and stopping VB.NET scripts ([9f2d4ee](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/9f2d4eeeccd9ba0017fc00cfe5df18e3717ea660))
+
+
+### Bug Fixes
+
+* allow resetting to baseline ([572118b](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/572118b94a2855598848f1daa1575bc3ccc6186a))
+* ensure that LIST_REMOVE_ALL and LIST_ADD are sent before most other commands ([13bf78a](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/13bf78ad650df861dc1305998dc55e9d779d77ac))
+* multi osc device udp stateless ([af34aa0](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/af34aa023965b2e5e18b54f66478812a2488ecb8))
+* pause List inputs before emptying them ([9abc089](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/9abc0895ae02a2dfd387551b9f3a7f495abf6282))
+* properly parse multi-packet vMix TCP API responses ([35ba046](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/35ba0464905e29d1f84c2c61327e321250a44e73))
+* reduce amount of `setTimeout` when using `DoInTime` in `BURST` mode ([5123405](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/51234050e12156e08cc0e1a13e28ca17046e7a42))
+* review comments ([cb21206](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/cb2120650f928e1bc7958136318403feb1d493ec))
+* SOF-1140 wrap strings in Errors to avoid mangled logs ([bca62cb](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/bca62cb7d3abd05974e79f5eece079de98a4bacf))
+* SOF-1254 control only resources that are mapped ([7892669](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/789266983a40cfc52df75fce48cb5dbce4c977f3))
+* SOF-1254 improve types ([0471a7b](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/0471a7bf64f7340e83b5b6f47212003fd2586ca6))
+* SOF-1254 log warning when websocket disconnected ([3d9964a](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/3d9964af7c4352c36e95824dd323cd2fe46717fd))
+* unable to resolve show ids (bug from previous refactor) ([cdf2c62](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/cdf2c62227517e7a48a7c8c7ae102374167056cd))
+
+
+
+# [8.0.0-release48.2](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/7.5.0...8.0.0-release48.2) (2023-03-21)
+
+
+### Bug Fixes
+
+* casparcg doesnt resync state after server restart SOFIE-2156 ([#248](https://github.com/nrkno/tv-automation-state-timeline-resolver/issues/248)) ([13d51dc](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/13d51dca9d0587e20fb78405834adee106ae60b1))
+* properly parse multi-packet vMix TCP API responses ([754adeb](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/754adeb578e18851b6a6f1dd026e11ac12bed702))
+
+
+
+# [8.0.0-release48.1](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/7.5.0-release47.6...8.0.0-release48.1) (2023-02-14)
+
+
+### Bug Fixes
+
+* change mocks to be TCP, fix vmixAPI test ([def9a21](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/def9a21719815ec20c99dabd49bfa7c553136cb0))
+* improve data fragmentation handling, logging of unrecognized responses ([96cfe87](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/96cfe87f68d223ea6ef5566a31e2fd7caa9abe2e))
+* use TCP for vmix api ([3c1d1f6](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/3c1d1f65042772b03e9e8284dda5b4e0feca80d9))
+* **vmix:** improve vmix mock, update tests to use new mock ([265dcf1](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/265dcf1a0f4d05cc6fc549a2783f51a782bc0c26))
+
+
+
+# [8.0.0-release48.0](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/7.5.0-release47.3...8.0.0-release48.0) (2022-12-12)
+
+
+### Features
+
+* action manifests ([681d4c8](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/681d4c8a72fb409dba919fd13db17f3c2f168d1a))
+* add vizmse actions ([f7e585c](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/f7e585c97e852ab30e9fd6d20077be906038af70))
+* translations for actions ([df4cb43](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/df4cb43cf16a8e2ae34c1fe44801c5a327f9b01e))
+* update for casparcg-connection rewrite ([5dfdd23](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/5dfdd2320caf89432d36513026c1259e2cf3d366))
+
+
+
+
+
+# [8.0.0-release48.1](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/7.5.0-release47.6...8.0.0-release48.1) (2023-02-14)
+
+
+### Bug Fixes
+
+* change mocks to be TCP, fix vmixAPI test ([def9a21](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/def9a21719815ec20c99dabd49bfa7c553136cb0))
+* improve data fragmentation handling, logging of unrecognized responses ([96cfe87](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/96cfe87f68d223ea6ef5566a31e2fd7caa9abe2e))
+* use TCP for vmix api ([3c1d1f6](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/3c1d1f65042772b03e9e8284dda5b4e0feca80d9))
+* **vmix:** improve vmix mock, update tests to use new mock ([265dcf1](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/265dcf1a0f4d05cc6fc549a2783f51a782bc0c26))
+
+
+
+# [8.0.0-release48.0](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/7.5.0-release47.3...8.0.0-release48.0) (2022-12-12)
+
+
+### Features
+
+* action manifests ([681d4c8](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/681d4c8a72fb409dba919fd13db17f3c2f168d1a))
+* add vizmse actions ([f7e585c](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/f7e585c97e852ab30e9fd6d20077be906038af70))
+* translations for actions ([df4cb43](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/df4cb43cf16a8e2ae34c1fe44801c5a327f9b01e))
+* update for casparcg-connection rewrite ([5dfdd23](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/5dfdd2320caf89432d36513026c1259e2cf3d366))
+
+
+
+
+
+# [8.0.0-release48.0](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/7.5.0-release47.3...8.0.0-release48.0) (2022-12-12)
+
+
+### Bug Fixes
+
+* add optional parameter to HTTPSend timelineObj: paramsType ([979dc61](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/979dc61748c4c371a8b17c7fd8c5929c69f747d9))
+* add support for Node 18 ([6242dd6](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/6242dd68f54a491aa71bdfd30b066550d6f7e90e))
+* bug fix: HTTPSend device didn't send GET requests ([8315531](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/83155314706497a9c630dbde14d5c5d7e57103cf))
+* prevent in place reverse in setDatastore ([473ab71](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/473ab713785325c2062db983c8ece80ea5dede4d))
+* track ccg state internally ([fd5596f](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/fd5596fcf975a7a122c6fb21946f13c2e97a4233))
+
+
+### Features
+
+* action manifests ([681d4c8](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/681d4c8a72fb409dba919fd13db17f3c2f168d1a))
+* add vizmse actions ([f7e585c](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/f7e585c97e852ab30e9fd6d20077be906038af70))
+* translations for actions ([df4cb43](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/df4cb43cf16a8e2ae34c1fe44801c5a327f9b01e))
+* update for casparcg-connection rewrite ([5dfdd23](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/5dfdd2320caf89432d36513026c1259e2cf3d366))
+
+
+
+## [7.5.1](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/7.5.0...7.5.1) (2023-09-04)
 
 ### Bug Fixes
 
 * casparcg disconnect handler may not fire ([74c1f8a](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/74c1f8ac6626bdc9c7ac2bb2737550306905f4b1))
 * **sisyfos:** remove local port & terminate correctly ([c11801a](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/c11801a1f787e3fbd965416138e973c3c940d1b7))
 * terminate devices fully ([028167a](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/028167ae7dbc1e2cb5f70820554068d434bed75d))
-
-
-
-
 
 # [7.5.0](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/7.5.0-release47.7...7.5.0) (2023-02-28)
 

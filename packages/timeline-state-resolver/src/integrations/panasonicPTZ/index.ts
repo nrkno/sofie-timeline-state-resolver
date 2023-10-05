@@ -2,18 +2,15 @@ import * as _ from 'underscore'
 import { DeviceWithState, CommandWithContext, DeviceStatus, StatusCode } from '../../devices/device'
 import {
 	DeviceType,
-	TimelineObjPanasonicPtzPreset,
-	TimelineObjPanasonicPtzPresetSpeed,
-	TimelineObjPanasonicPtzZoomSpeed,
-	TimelineObjPanasonicPtzZoom,
 	TimelineContentTypePanasonicPtz,
 	MappingPanasonicPtz,
 	MappingPanasonicPtzType,
 	PanasonicPTZOptions,
 	DeviceOptionsPanasonicPTZ,
 	Mappings,
+	TSRTimelineContent,
+	Timeline,
 } from 'timeline-state-resolver-types'
-import { TimelineState, ResolvedTimelineObjectInstance } from 'superfly-timeline'
 import { DoOnTime, SendMode } from '../../devices/doOnTime'
 import { PanasonicPtzHttpInterface } from './connection'
 
@@ -152,35 +149,48 @@ export class PanasonicPtzDevice extends DeviceWithState<PanasonicPtzState, Devic
 	 * Converts a timeline state into a device state.
 	 * @param state
 	 */
-	convertStateToPtz(state: TimelineState, mappings: Mappings): PanasonicPtzState {
+	convertStateToPtz(state: Timeline.TimelineState<TSRTimelineContent>, mappings: Mappings): PanasonicPtzState {
 		// convert the timeline state into something we can use
 		const ptzState: PanasonicPtzState = this._getDefaultState()
 
-		_.each(state.layers, (tlObject: ResolvedTimelineObjectInstance, layerName: string) => {
+		_.each(state.layers, (tlObject, layerName: string) => {
 			const mapping: MappingPanasonicPtz | undefined = mappings[layerName] as MappingPanasonicPtz
-			if (mapping && mapping.device === DeviceType.PANASONIC_PTZ && mapping.deviceId === this.deviceId) {
-				if (mapping.mappingType === MappingPanasonicPtzType.PRESET) {
-					const tlObjectSource = tlObject as any as TimelineObjPanasonicPtzPreset
+			if (
+				mapping &&
+				mapping.device === DeviceType.PANASONIC_PTZ &&
+				mapping.deviceId === this.deviceId &&
+				tlObject.content.deviceType === DeviceType.PANASONIC_PTZ
+			) {
+				if (
+					mapping.mappingType === MappingPanasonicPtzType.PRESET &&
+					tlObject.content.type === TimelineContentTypePanasonicPtz.PRESET
+				) {
 					ptzState.preset = {
-						value: tlObjectSource.content.preset,
+						value: tlObject.content.preset,
 						timelineObjId: tlObject.id,
 					}
-				} else if (mapping.mappingType === MappingPanasonicPtzType.PRESET_SPEED) {
-					const tlObjectSource = tlObject as any as TimelineObjPanasonicPtzPresetSpeed
+				} else if (
+					mapping.mappingType === MappingPanasonicPtzType.PRESET_SPEED &&
+					tlObject.content.type === TimelineContentTypePanasonicPtz.SPEED
+				) {
 					ptzState.speed = {
-						value: tlObjectSource.content.speed,
+						value: tlObject.content.speed,
 						timelineObjId: tlObject.id,
 					}
-				} else if (mapping.mappingType === MappingPanasonicPtzType.ZOOM_SPEED) {
-					const tlObjectSource = tlObject as any as TimelineObjPanasonicPtzZoomSpeed
+				} else if (
+					mapping.mappingType === MappingPanasonicPtzType.ZOOM_SPEED &&
+					tlObject.content.type === TimelineContentTypePanasonicPtz.ZOOM_SPEED
+				) {
 					ptzState.zoomSpeed = {
-						value: tlObjectSource.content.zoomSpeed,
+						value: tlObject.content.zoomSpeed,
 						timelineObjId: tlObject.id,
 					}
-				} else if (mapping.mappingType === MappingPanasonicPtzType.ZOOM) {
-					const tlObjectSource = tlObject as any as TimelineObjPanasonicPtzZoom
+				} else if (
+					mapping.mappingType === MappingPanasonicPtzType.ZOOM &&
+					tlObject.content.type === TimelineContentTypePanasonicPtz.ZOOM
+				) {
 					ptzState.zoom = {
-						value: tlObjectSource.content.zoom,
+						value: tlObject.content.zoom,
 						timelineObjId: tlObject.id,
 					}
 				}
@@ -200,7 +210,7 @@ export class PanasonicPtzDevice extends DeviceWithState<PanasonicPtzState, Devic
 	 * in time.
 	 * @param newState
 	 */
-	handleState(newState: TimelineState, newMappings: Mappings) {
+	handleState(newState: Timeline.TimelineState<TSRTimelineContent>, newMappings: Mappings) {
 		super.onHandleState(newState, newMappings)
 		// Create device states
 		const previousStateTime = Math.max(this.getCurrentTime(), newState.time)

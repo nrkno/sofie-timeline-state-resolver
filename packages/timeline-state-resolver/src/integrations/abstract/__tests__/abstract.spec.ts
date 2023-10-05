@@ -8,9 +8,6 @@ import { getMockCall } from '../../../__tests__/lib'
 
 describe('Abstract device', () => {
 	const mockTime = new MockTime()
-	beforeAll(() => {
-		mockTime.mockDateNow()
-	})
 	beforeEach(() => {
 		mockTime.init()
 	})
@@ -67,7 +64,7 @@ describe('Abstract device', () => {
 					content: {
 						deviceType: DeviceType.ABSTRACT,
 						tmp0: 'abc',
-					},
+					} as any,
 				},
 				{
 					id: 'obj1',
@@ -79,7 +76,7 @@ describe('Abstract device', () => {
 					content: {
 						deviceType: DeviceType.ABSTRACT,
 						tmp0: 'abcde',
-					},
+					} as any,
 				},
 			],
 			myLayerMapping

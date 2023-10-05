@@ -17,9 +17,6 @@ import { SendWSMessageAny, SendWSMessageType, StatusCode as ChefStatusCode } fro
 describe('SofieChef', () => {
 	jest.mock('ws', () => WebSocket)
 	const mockTime = new MockTime()
-	beforeAll(() => {
-		mockTime.mockDateNow()
-	})
 	beforeEach(() => {
 		mockTime.init()
 

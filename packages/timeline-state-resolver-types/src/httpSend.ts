@@ -1,5 +1,5 @@
 import { Mapping } from './mapping'
-import { TSRTimelineObjBase, DeviceType, TimelineDatastoreReferencesContent } from '.'
+import { DeviceType } from '.'
 
 export interface MappingHTTPSend extends Mapping {
 	device: DeviceType.HTTPSEND
@@ -35,16 +35,9 @@ export enum TimelineContentTypeHTTPParamType {
 	FORM = 'form',
 }
 
-export type TimelineObjHTTPSendAny = TimelineObjHTTPRequest
-export interface TimelineObjHTTPSendBase extends TSRTimelineObjBase {
-	content: {
-		deviceType: DeviceType.HTTPSEND
-		// type: TimelineContentTypeCasparCg
-	}
+export type TimelineContentHTTPSendAny = TimelineContentHTTPRequest
+export interface TimelineContentHTTPSendBase {
+	deviceType: DeviceType.HTTPSEND
+	// type: TimelineContentTypeCasparCg
 }
-export interface TimelineObjHTTPRequest extends TimelineObjHTTPSendBase {
-	content: {
-		deviceType: DeviceType.HTTPSEND
-	} & HTTPSendCommandContent &
-		TimelineDatastoreReferencesContent
-}
+export type TimelineContentHTTPRequest = TimelineContentHTTPSendBase & HTTPSendCommandContent

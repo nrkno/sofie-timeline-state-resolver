@@ -22,6 +22,20 @@ import { CommandResult } from '@tv2media/v-connection/dist/msehttp'
 import { PepResponse } from '@tv2media/v-connection/dist/peptalk'
 import _ = require('underscore')
 
+interface MockShow {
+	id: string
+	basePath: string
+	name: string
+}
+
+export const MOCK_SHOWS: MockShow[] = [
+	{ id: 'UUID1', basePath: 'SOFIE/', name: 'mock_show1' },
+	{ id: 'UUID2', basePath: 'SOFIE/', name: 'mock_show2' },
+	{ id: 'UUID3', basePath: 'SOFIE/', name: 'mock_show3' },
+	{ id: 'UUID4', basePath: 'SOFIE/', name: 'mock_show4' },
+	{ id: 'UUID5', basePath: '', name: 'mock_show1' },
+]
+
 const mockMSEs: MSEMock[] = []
 
 export const createMSE: typeof orgCreateMSE = function createMSE0(
@@ -85,7 +99,7 @@ export class MSEMock extends EventEmitter implements MSE {
 		return []
 	}
 	async listShowsFromDirectory(): Promise<Map<string, string>> {
-		return new Map()
+		return new Map(MOCK_SHOWS.map((show) => [`${show.basePath}${show.name}.show`, show.id]))
 	}
 	async getShow(showID: string): Promise<VShow> {
 		return {

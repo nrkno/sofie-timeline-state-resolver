@@ -3,7 +3,6 @@ import * as underScoreDeepExtend from 'underscore-deep-extend'
 import { DeviceWithState, CommandWithContext, DeviceStatus, StatusCode } from './../../devices/device'
 import { DoOnTime, SendMode } from '../../devices/doOnTime'
 
-import { TimelineState } from 'superfly-timeline'
 import * as OBSWebSocket from 'obs-websocket-js'
 import {
 	DeviceType,
@@ -13,18 +12,13 @@ import {
 	MappingOBS,
 	TimelineContentTypeOBS,
 	OBSRequest as OBSRequestName,
-	TimelineObjOBSCurrentScene,
 	MappingOBSType,
-	TimelineObjOBSCurrentTransition,
-	TimelineObjOBSRecording,
-	TimelineObjOBSStreaming,
-	TimelineObjOBSMute,
-	TimelineObjOBSSceneItemRender,
 	MappingOBSMute,
 	MappingOBSSceneItemRender,
-	TimelineObjOBSSourceSettings,
 	MappingOBSSourceSettings,
 	ResolvedTimelineObjectInstanceExtended,
+	TSRTimelineContent,
+	Timeline,
 } from 'timeline-state-resolver-types'
 
 interface OBSRequest {
@@ -202,7 +196,7 @@ export class OBSDevice extends DeviceWithState<OBSState, DeviceOptionsOBSInterna
 		this.cleanUpStates(0, newStateTime)
 	}
 
-	handleState(newState: TimelineState, newMappings: Mappings) {
+	handleState(newState: Timeline.TimelineState<TSRTimelineContent>, newMappings: Mappings) {
 		super.onHandleState(newState, newMappings)
 		if (!this._initialized) {
 			// before it's initialized don't do anything
@@ -276,7 +270,7 @@ export class OBSDevice extends DeviceWithState<OBSState, DeviceOptionsOBSInterna
 		return this._connected
 	}
 
-	convertStateToOBS(state: TimelineState, mappings: Mappings): OBSState {
+	convertStateToOBS(state: Timeline.TimelineState<TSRTimelineContent>, mappings: Mappings): OBSState {
 		if (!this._initialized) {
 			throw Error('convertStateToOBS cannot be used before inititialized')
 		}
@@ -301,16 +295,14 @@ export class OBSDevice extends DeviceWithState<OBSState, DeviceOptionsOBSInterna
 		)
 
 		_.each(sortedLayers, ({ tlObject, mapping }) => {
-			if (mapping) {
+			if (mapping && tlObject.content.deviceType === DeviceType.OBS) {
 				switch (mapping.mappingType) {
 					case MappingOBSType.CurrentScene:
 						if (tlObject.content.type === TimelineContentTypeOBS.CURRENT_SCENE) {
 							if ((tlObject as ResolvedTimelineObjectInstanceExtended).isLookahead) {
-								const obsTlCurrentScene = tlObject as any as TimelineObjOBSCurrentScene
-								deviceState.previewScene = obsTlCurrentScene.content.sceneName
+								deviceState.previewScene = tlObject.content.sceneName
 							} else {
-								const obsTlCurrentScene = tlObject as any as TimelineObjOBSCurrentScene
-								deviceState.currentScene = obsTlCurrentScene.content.sceneName
+								deviceState.currentScene = tlObject.content.sceneName
 							}
 						}
 						break
@@ -321,8 +313,7 @@ export class OBSDevice extends DeviceWithState<OBSState, DeviceOptionsOBSInterna
 								break
 							}
 
-							const obsTlCurrentTransition = tlObject as any as TimelineObjOBSCurrentTransition
-							deviceState.currentTransition = obsTlCurrentTransition.content.transitionName
+							deviceState.currentTransition = tlObject.content.transitionName
 						}
 						break
 					case MappingOBSType.Recording:
@@ -332,8 +323,7 @@ export class OBSDevice extends DeviceWithState<OBSState, DeviceOptionsOBSInterna
 								break
 							}
 
-							const obsTlRecording = tlObject as any as TimelineObjOBSRecording
-							deviceState.recording = obsTlRecording.content.on
+							deviceState.recording = tlObject.content.on
 						}
 						break
 					case MappingOBSType.Streaming:
@@ -343,8 +333,7 @@ export class OBSDevice extends DeviceWithState<OBSState, DeviceOptionsOBSInterna
 								break
 							}
 
-							const obsTlStreaming = tlObject as any as TimelineObjOBSStreaming
-							deviceState.streaming = obsTlStreaming.content.on
+							deviceState.streaming = tlObject.content.on
 						}
 						break
 					case MappingOBSType.Mute:
@@ -354,9 +343,8 @@ export class OBSDevice extends DeviceWithState<OBSState, DeviceOptionsOBSInterna
 								break
 							}
 
-							const obsTlMute = tlObject as any as TimelineObjOBSMute
 							const source = (mapping as MappingOBSMute).source
-							deviceState.muted[source] = obsTlMute.content.mute
+							deviceState.muted[source] = tlObject.content.mute
 						}
 						break
 					case MappingOBSType.SceneItemRender:
@@ -366,14 +354,13 @@ export class OBSDevice extends DeviceWithState<OBSState, DeviceOptionsOBSInterna
 								break
 							}
 
-							const obsTlSceneItemRender = tlObject as any as TimelineObjOBSSceneItemRender
 							const source = (mapping as MappingOBSSceneItemRender).source
 							const sceneName = (mapping as MappingOBSSceneItemRender).sceneName
 							deepExtend(deviceState.scenes, {
 								[sceneName]: {
 									sceneItems: {
 										[source]: {
-											render: obsTlSceneItemRender.content.on,
+											render: tlObject.content.on,
 										},
 									},
 								},
@@ -387,13 +374,12 @@ export class OBSDevice extends DeviceWithState<OBSState, DeviceOptionsOBSInterna
 								break
 							}
 
-							const obsTlSourceSettings = tlObject as any as TimelineObjOBSSourceSettings
 							const source = (mapping as MappingOBSSourceSettings).source
 
 							deepExtend(deviceState.sources, {
 								[source]: {
-									sourceType: obsTlSourceSettings.content.sourceType,
-									sourceSettings: obsTlSourceSettings.content.sourceSettings,
+									sourceType: tlObject.content.sourceType,
+									sourceSettings: tlObject.content.sourceSettings,
 								},
 							})
 						}
