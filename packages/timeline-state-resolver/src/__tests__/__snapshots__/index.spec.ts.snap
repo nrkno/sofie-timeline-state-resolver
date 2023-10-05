@@ -20,6 +20,7 @@ exports[`index imports 1`] = `
   "Direction",
   "DoOnTime",
   "Ease",
+  "EmberParameterType",
   "HyperdeckActions",
   "HyperdeckDevice",
   "LOOKAHEADTIME",

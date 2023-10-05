@@ -11,6 +11,8 @@ import {
 	LawoOptions,
 	LawoDeviceMode,
 	TimelineContentLawoSourceValue,
+	EmberValue,
+	EmberParameterType,
 	MappingLawoType,
 	Mappings,
 	Timeline,
@@ -18,7 +20,7 @@ import {
 } from 'timeline-state-resolver-types'
 import { DoOnTime, SendMode } from '../../devices/doOnTime'
 import { deferAsync, getDiff } from '../../lib'
-import { EmberClient, Types as EmberTypes, Model as EmberModel } from 'emberplus-connection'
+import { EmberClient, Model as EmberModel } from 'emberplus-connection'
 
 export interface DeviceOptionsLawoInternal extends DeviceOptionsLawo {
 	commandReceiver?: CommandReceiver
@@ -41,8 +43,8 @@ export interface LawoState {
 
 export interface LawoStateNode {
 	type: TimelineContentTypeLawo
-	value: EmberTypes.EmberValue
-	valueType: EmberModel.ParameterType
+	value: EmberValue
+	valueType: EmberParameterType
 	key: string
 	identifier: string
 	transitionDuration?: number
@@ -295,7 +297,7 @@ export class LawoDevice extends DeviceWithState<LawoState, DeviceOptionsLawoInte
 					key: 'fader',
 					identifier: identifier,
 					value: fader.faderValue,
-					valueType: EmberModel.ParameterType.Real,
+					valueType: EmberParameterType.Real,
 					transitionDuration: fader.transitionDuration,
 					priority: mapping.priority || 0,
 					timelineObjId: tlObjId,
@@ -346,7 +348,7 @@ export class LawoDevice extends DeviceWithState<LawoState, DeviceOptionsLawoInte
 						key: '',
 						identifier: mapping.identifier,
 						value: content.value,
-						valueType: mapping.emberType || EmberModel.ParameterType.Real,
+						valueType: mapping.emberType || EmberParameterType.Real,
 						priority: mapping.priority || 0,
 						timelineObjId: tlObject.id,
 					}
