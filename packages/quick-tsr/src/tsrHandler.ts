@@ -145,7 +145,7 @@ export class TSRHandler {
 			this._devices[deviceId] = device
 
 			await device.device.on('connectionChanged', ((status: DeviceStatus) => {
-				console.log(`Device ${device.deviceId} status changed: ${status}`)
+				console.log(`Device ${device.deviceId} status changed: ${JSON.stringify(status)}`)
 			}) as () => void)
 			await device.device.on('slowCommand', ((_info: SlowSentCommandInfo) => {
 				// console.log(`Device ${device.deviceId} slow command: ${_info}`)
