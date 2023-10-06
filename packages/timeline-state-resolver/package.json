@@ -110,7 +110,7 @@
 		"threadedclass": "^1.2.1",
 		"timeline-state-resolver-types": "9.0.0-release50.6",
 		"tslib": "^2.5.1",
-		"tv-automation-quantel-gateway-client": "^3.1.11-agent-debug-20230117-160455-c2c4ee4.0",
+		"tv-automation-quantel-gateway-client": "^3.1.7",
 		"underscore": "^1.13.6",
 		"underscore-deep-extend": "^1.1.5",
 		"utf-8-validate": "^5.0.10",

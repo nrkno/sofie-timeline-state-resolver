@@ -11399,7 +11399,7 @@ asn1@evs-broadcast/node-asn1:
     threadedclass: ^1.2.1
     timeline-state-resolver-types: 9.0.0-release50.6
     tslib: ^2.5.1
-    tv-automation-quantel-gateway-client: ^3.1.11-agent-debug-20230117-160455-c2c4ee4.0
+    tv-automation-quantel-gateway-client: ^3.1.7
     underscore: ^1.13.6
     underscore-deep-extend: ^1.1.5
     utf-8-validate: ^5.0.10
@@ -11650,12 +11650,12 @@ asn1@evs-broadcast/node-asn1:
   languageName: node
   linkType: hard
 
-"tv-automation-quantel-gateway-client@npm:^3.1.11-agent-debug-20230117-160455-c2c4ee4.0":
-  version: 3.1.11-agent-debug-20230117-160455-c2c4ee4.0
-  resolution: "tv-automation-quantel-gateway-client@npm:3.1.11-agent-debug-20230117-160455-c2c4ee4.0"
+"tv-automation-quantel-gateway-client@npm:^3.1.7":
+  version: 3.1.7
+  resolution: "tv-automation-quantel-gateway-client@npm:3.1.7"
   dependencies:
     got: ^11.8.6
-  checksum: 352bd6e5c8388322687dc9c46b1e655b2e53a65dfdd4c53efe311b156c00944e5c72bdfbdee04fdc53ad01c6df81511d42273f62b5e4f0e278b3d6f68f5ccf28
+  checksum: 84009ec17cd6286492a1993a040d10f0b08a5a73daf4869e82a80ab19f181e9f0f64fe2256294ddc4b391c5d5404009a648d86e80385910711f6ee13bb0d6022
   languageName: node
   linkType: hard
 
