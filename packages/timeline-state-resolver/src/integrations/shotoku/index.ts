@@ -34,13 +34,12 @@ interface Command {
 type CommandContext = string
 type ShotokuDeviceState = {
 	shots: Record<string, ShotokuCommandContent & { fromTlObject: string }>
-	sequences: Record<
-		string,
-		{
-			fromTlObject: string
-			shots: TimelineContentShotokuSequence['shots']
-		}
-	>
+	sequences: Record<string, ShotokuSequence>
+}
+
+interface ShotokuSequence {
+	fromTlObject: string
+	shots: TimelineContentShotokuSequence['shots']
 }
 interface ShotokuDeviceStateContent extends ShotokuCommandContent {
 	fromTlObject: string
@@ -237,7 +236,7 @@ export class ShotokuDevice extends DeviceWithState<ShotokuDeviceState, DeviceOpt
 			}
 		})
 
-		Object.entries(newState.sequences).forEach(([index, newCommandContent]) => {
+		Object.entries<ShotokuSequence>(newState.sequences).forEach(([index, newCommandContent]) => {
 			const oldLayer = oldState.sequences[index]
 			if (!oldLayer) {
 				// added!

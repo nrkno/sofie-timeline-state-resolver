@@ -11,7 +11,7 @@ import {
 } from 'timeline-state-resolver-types'
 import { ExternalElement, InternalElement, MSE, VElement, VRundown } from '@tv2media/v-connection'
 import { ExpectedPlayoutItem } from '../../expectedPlayoutItems'
-import * as request from 'request'
+import got from 'got'
 import { deferAsync } from '../../lib'
 import { VizMSEDevice } from './index'
 import {
@@ -525,7 +525,9 @@ export class VizMSEManager extends EventEmitter {
 		const expectedPlayoutItems = await this._prepareAndGetExpectedPlayoutItems()
 		if (this.purgeUnknownElements) {
 			this.emit('debug', `Purging shows ${cmd.showIds} `)
-			const elementsToKeep = Object.values(expectedPlayoutItems).filter(isVizMSEPlayoutItemContentInternalInstance)
+			const elementsToKeep = Object.values<VizMSEPlayoutItemContentInstance>(expectedPlayoutItems).filter(
+				isVizMSEPlayoutItemContentInternalInstance
+			)
 			await rundown.purgeInternalElements(cmd.showIds, true, elementsToKeep)
 		}
 		this._triggerCommandSent()
@@ -1046,13 +1048,19 @@ export class VizMSEManager extends EventEmitter {
 	private async _pingEngine(engine: Engine): Promise<EngineStatus> {
 		return new Promise((resolve) => {
 			const url = `http://${engine.host}:${this.engineRestPort}/#/status`
-			request.get(url, { timeout: 2000 }, (error, response: request.Response | undefined) => {
-				const alive = !error && response !== undefined && response?.statusCode < 400
-				if (!alive) {
-					this.emit('debug', `VizMSE: _pingEngine at "${url}", error ${error}, code ${response?.statusCode}`)
-				}
-				resolve({ ...engine, alive })
-			})
+			got
+				.get(url, { timeout: 2000 })
+				.then((response) => {
+					const alive = response !== undefined && response?.statusCode < 400
+					if (!alive) {
+						this.emit('debug', `VizMSE: _pingEngine at "${url}", code ${response?.statusCode}`)
+					}
+					resolve({ ...engine, alive })
+				})
+				.catch((error) => {
+					this.emit('debug', `VizMSE: _pingEngine at "${url}", error ${error}`)
+					resolve({ ...engine, alive: false })
+				})
 		})
 	}
 	/** Monitor loading status of expected elements */

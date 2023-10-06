@@ -1,40 +1,4 @@
-import { Mapping } from './mapping'
 import { DeviceType } from '.'
-
-export interface MappingAtem extends Mapping {
-	device: DeviceType.ATEM
-	mappingType: MappingAtemType
-	index?: number
-}
-export enum MappingAtemType {
-	MixEffect,
-	DownStreamKeyer,
-	SuperSourceBox,
-	Auxilliary,
-	MediaPlayer,
-	SuperSourceProperties,
-	AudioChannel,
-	MacroPlayer,
-	AudioRouting,
-}
-
-export enum AtemMediaPoolType {
-	Still = 'still',
-	Clip = 'clip',
-	Audio = 'audio',
-}
-
-export interface AtemMediaPoolAsset {
-	type: AtemMediaPoolType
-	position: number
-	path: string
-}
-
-export interface AtemOptions {
-	host: string
-	port?: number
-	mediaPoolAssets?: AtemMediaPoolAsset[]
-}
 
 export enum TimelineContentTypeAtem { //  Atem-state
 	ME = 'me',

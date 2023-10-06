@@ -43,22 +43,25 @@ export enum CommandName {
 	// outputs
 	OUTPUT_SOURCE = '_output_source',
 	CROSSPOINT_SOURCE = '_crosspoint_source',
+	SET_OUTPUT_CONFIG_VIDEO_SOURCE = 'set_output_config_video_source',
 }
 
 export type ValueTypes = boolean | number | string
 
-type CommandWithValue<NameType extends CommandName, ValueType extends ValueTypes> = {
+interface Command<NameType extends CommandName> {
 	name: NameType
+}
+
+interface CommandWithValue<NameType extends CommandName, ValueType extends ValueTypes> extends Command<NameType> {
 	value: ValueType
 }
 
-type CommandWithTarget<NameType extends CommandName> = {
-	name: NameType
+interface CommandWithTarget<NameType extends CommandName> extends Command<NameType> {
 	target: string
 }
 
-type CommandWithValueAndTarget<NameType extends CommandName, ValueType extends ValueTypes> = {
-	name: NameType
+interface CommandWithValueAndTarget<NameType extends CommandName, ValueType extends ValueTypes>
+	extends Command<NameType> {
 	value: ValueType
 	target: string
 }
@@ -69,6 +72,7 @@ type RowNamedInputCommand = CommandWithValueAndTarget<CommandName.ROW_NAMED_INPU
 type TakeCommand = CommandWithTarget<CommandName.TAKE>
 type AutoCommand = CommandWithTarget<CommandName.AUTO>
 type SelectIndexCommand = CommandWithValueAndTarget<CommandName.SELECT_INDEX, number>
+type SetMixEffectBinIndexCommand = CommandWithValueAndTarget<CommandName.SET_MIX_EFFECT_BIN_INDEX, number>
 type SpeedCommand = CommandWithValueAndTarget<CommandName.SPEED, number>
 type DelegateCommand = CommandWithValueAndTarget<CommandName.DELEGATE, string>
 
@@ -100,6 +104,10 @@ type StreamingToggle = CommandWithValue<CommandName.STREAMING_TOGGLE, number>
 
 type OutputSource = CommandWithValueAndTarget<CommandName.OUTPUT_SOURCE, string>
 type CrosspointSource = CommandWithValueAndTarget<CommandName.CROSSPOINT_SOURCE, string>
+interface OutputMeClean extends Command<CommandName.SET_OUTPUT_CONFIG_VIDEO_SOURCE> {
+	output_index: number
+	me_clean: boolean
+}
 
 export type TriCasterCommand =
 	| RowCommand
@@ -107,6 +115,7 @@ export type TriCasterCommand =
 	| TakeCommand
 	| AutoCommand
 	| SelectIndexCommand
+	| SetMixEffectBinIndexCommand
 	| SpeedCommand
 	| DelegateCommand
 	| ValueCommand
@@ -132,6 +141,7 @@ export type TriCasterCommand =
 	| StreamingToggle
 	| OutputSource
 	| CrosspointSource
+	| OutputMeClean
 
 type TriCasterGenericNumberCommand = Extract<
 	TriCasterCommand,
@@ -162,8 +172,9 @@ export type TriCasterGenericCommandName<T> = T extends boolean
 export type TriCasterCommandContext = any
 export interface TriCasterCommandWithContext {
 	command: TriCasterCommand
-	context: TriCasterCommandContext
-	timelineObjId: string
+	context?: TriCasterCommandContext
+	timelineObjId?: string
+	temporalPriority: number
 }
 
 export function serializeToWebSocketMessage(command: TriCasterCommand): string {

@@ -1,4 +1,4 @@
-import { Mappings, DeviceType, MappingAbstract } from 'timeline-state-resolver-types'
+import { Mappings, DeviceType, Mapping, SomeMappingAbstract } from 'timeline-state-resolver-types'
 import { Conductor } from '../../../conductor'
 import { AbstractDevice } from '..'
 import { StatusCode } from '../../../devices/device'
@@ -15,9 +15,10 @@ describe('Abstract device', () => {
 		const commandReceiver0: any = jest.fn(async () => {
 			return Promise.resolve()
 		})
-		const myLayerMapping0: MappingAbstract = {
+		const myLayerMapping0: Mapping<SomeMappingAbstract> = {
 			device: DeviceType.ABSTRACT,
 			deviceId: 'myAbstract',
+			options: {},
 		}
 		const myLayerMapping: Mappings = {
 			myLayer0: myLayerMapping0,
@@ -87,7 +88,7 @@ describe('Abstract device', () => {
 		expect(getMockCall(commandReceiver0, 0, 1)).toMatchObject({
 			commandName: 'addedAbstract',
 			content: {
-				deviceType: 0, // abstract
+				deviceType: 'ABSTRACT',
 				tmp0: 'abc',
 			},
 			context: 'added: obj0',
@@ -98,7 +99,7 @@ describe('Abstract device', () => {
 		expect(getMockCall(commandReceiver0, 1, 1)).toMatchObject({
 			commandName: 'changedAbstract',
 			content: {
-				deviceType: 0, // abstract
+				deviceType: 'ABSTRACT',
 				tmp0: 'abcde',
 			},
 			context: 'changed: obj1',
@@ -109,7 +110,7 @@ describe('Abstract device', () => {
 		expect(getMockCall(commandReceiver0, 2, 1)).toMatchObject({
 			commandName: 'removedAbstract',
 			content: {
-				deviceType: 0, // abstract
+				deviceType: 'ABSTRACT',
 				tmp0: 'abcde',
 			},
 			context: 'removed: obj1',
@@ -122,9 +123,10 @@ describe('Abstract device', () => {
 		expect(onError).toHaveBeenCalledTimes(0)
 	})
 	test('Abstract without mock', async () => {
-		const myLayerMapping0: MappingAbstract = {
+		const myLayerMapping0: Mapping<SomeMappingAbstract> = {
 			device: DeviceType.ABSTRACT,
 			deviceId: 'myAbstract',
+			options: {},
 		}
 		const myLayerMapping: Mappings = {
 			myLayer0: myLayerMapping0,

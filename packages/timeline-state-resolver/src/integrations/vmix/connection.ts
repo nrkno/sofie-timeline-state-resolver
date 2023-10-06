@@ -133,7 +133,7 @@ export class BaseConnection extends EventEmitter<ConnectionEvents> {
 						len -= l.length + 2
 						lines.push(l)
 					}
-					response.body = lines.join('\r\n')
+					response.body = lines.join('')
 					processedLines += lines.length
 				}
 
@@ -295,6 +295,8 @@ export class VMix extends BaseConnection {
 				return this.listAdd(command.input, command.value)
 			case VMixCommand.LIST_REMOVE_ALL:
 				return this.listRemoveAll(command.input)
+			case VMixCommand.RESTART_INPUT:
+				return this.restart(command.input)
 			default:
 				throw new Error(`vmixAPI: Command ${((command || {}) as any).command} not implemented`)
 		}
@@ -554,6 +556,10 @@ export class VMix extends BaseConnection {
 	public async listRemoveAll(input: string | number): Promise<any> {
 		return this.sendCommandFunction(`ListRemoveAll`, { input })
 	}
+
+	public async restart(input: string | number): Promise<any> {
+		return this.sendCommandFunction(`Restart`, { input })
+	}
 }
 
 export interface VMixStateCommandBase {
@@ -728,6 +734,10 @@ export interface VMixStateCommandListRemoveAll extends VMixStateCommandBase {
 	command: VMixCommand.LIST_REMOVE_ALL
 	input: string | number
 }
+export interface VMixStateCommandRestart extends VMixStateCommandBase {
+	command: VMixCommand.RESTART_INPUT
+	input: string | number
+}
 export type VMixStateCommand =
 	| VMixStateCommandPreviewInput
 	| VMixStateCommandTransition
@@ -768,3 +778,4 @@ export type VMixStateCommand =
 	| VMixStateCommandScriptStopAll
 	| VMixStateCommandListAdd
 	| VMixStateCommandListRemoveAll
+	| VMixStateCommandRestart

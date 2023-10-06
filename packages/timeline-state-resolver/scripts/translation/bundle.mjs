@@ -2,6 +2,7 @@
  * This script will read and bundle the translations in the project's .po files.
  * It is intended to be used by the Webpack config script.
  */
+/* eslint-disable */
 import { Transform } from 'stream'
 import vfs from 'vinyl-fs'
 import { writeFile } from 'fs/promises'
@@ -9,6 +10,8 @@ import { gettextToI18next } from 'i18next-conv'
 import { readFile } from 'fs/promises'
 
 import { conversionOptions } from './config.mjs'
+
+const reverseHack = !!process.env.GENERATE_REVERSE_ENGLISH
 
 class poToI18nextTransform extends Transform {
 	constructor(namespace) {
@@ -27,7 +30,6 @@ class poToI18nextTransform extends Transform {
 				if (!poFile) {
 					return null
 				}
-
 				return gettextToI18next(
 					language,
 					poFile,
@@ -37,7 +39,7 @@ class poToI18nextTransform extends Transform {
 						// be used as value if no values are found. Since we use the string as key, this means
 						// untranslated keys will be represented by their original (English) text. This is not great
 						// but better than inserting empty strings everywhere.
-						skipUntranslated: true,
+						skipUntranslated: !reverseHack || language !== 'en',
 						ns: file.stem,
 					})
 				)
@@ -47,6 +49,12 @@ class poToI18nextTransform extends Transform {
 				console.info(
 					`Processed ${namespace} ${language} (${Object.keys(data).length} translated keys) (${Date.now() - start} ms)`
 				)
+				if (reverseHack && language == 'en') {
+					for (const key of Object.keys(data)) {
+						// reverse in place
+						data[key] = key.split('').reverse().join('')
+					}
+				}
 				callback(null, {
 					type: 'i18next',
 					language,

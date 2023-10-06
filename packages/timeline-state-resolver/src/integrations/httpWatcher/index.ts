@@ -8,7 +8,7 @@ import {
 	Timeline,
 	TSRTimelineContent,
 } from 'timeline-state-resolver-types'
-import * as request from 'request'
+import got, { Headers, Response } from 'got'
 
 export type DeviceOptionsHTTPWatcherInternal = DeviceOptionsHTTPWatcher
 
@@ -20,6 +20,7 @@ export class HTTPWatcherDevice extends Device<DeviceOptionsHTTPWatcherInternal> 
 	private uri?: string
 	private httpMethod: TimelineContentTypeHTTP
 	private expectedHttpResponse: number | undefined
+	private headers?: Headers
 	private keyword: string | undefined
 	private intervalTime: number
 	private interval: NodeJS.Timer | undefined
@@ -31,8 +32,8 @@ export class HTTPWatcherDevice extends Device<DeviceOptionsHTTPWatcherInternal> 
 		getCurrentTime: () => Promise<number>
 	) {
 		super(deviceId, deviceOptions, getCurrentTime)
-		const opts = deviceOptions.options || {}
-		switch (opts.httpMethod) {
+		const opts = deviceOptions.options
+		switch (opts?.httpMethod) {
 			case 'post':
 				this.httpMethod = TimelineContentTypeHTTP.POST
 				break
@@ -49,10 +50,11 @@ export class HTTPWatcherDevice extends Device<DeviceOptionsHTTPWatcherInternal> 
 				break
 		}
 
-		this.expectedHttpResponse = Number(opts.expectedHttpResponse) || undefined
-		this.keyword = opts.keyword
-		this.intervalTime = Math.max(Number(opts.interval) || 1000, 1000)
-		this.uri = opts.uri
+		this.expectedHttpResponse = Number(opts?.expectedHttpResponse) || undefined
+		this.headers = opts?.headers
+		this.keyword = opts?.keyword
+		this.intervalTime = Math.max(Number(opts?.interval) || 1000, 1000)
+		this.uri = opts?.uri
 	}
 
 	onInterval() {
@@ -60,9 +62,16 @@ export class HTTPWatcherDevice extends Device<DeviceOptionsHTTPWatcherInternal> 
 			this._setStatus(StatusCode.BAD, 'URI not set')
 			return
 		}
-		const reqMethod = request[this.httpMethod]
+
+		const reqMethod = got[this.httpMethod]
 		if (reqMethod) {
-			reqMethod(this.uri, {}, this.handleResponse.bind(this))
+			reqMethod(this.uri, {
+				headers: this.headers,
+			})
+				.then((response) => this.handleResponse(response))
+				.catch((error) => {
+					this._setStatus(StatusCode.BAD, error.toString() || 'Unknown')
+				})
 		} else {
 			this._setStatus(StatusCode.BAD, `Bad request method: "${this.httpMethod}"`)
 		}
@@ -80,12 +89,10 @@ export class HTTPWatcherDevice extends Device<DeviceOptionsHTTPWatcherInternal> 
 		setTimeout(() => this.onInterval(), 300)
 	}
 
-	handleResponse(error: any, response: request.Response, body: any) {
-		if (error) {
-			this._setStatus(StatusCode.BAD, error.toString() || 'Unknown')
-		} else if (this.expectedHttpResponse && this.expectedHttpResponse !== response.statusCode) {
+	handleResponse(response: Response<string>) {
+		if (this.expectedHttpResponse && this.expectedHttpResponse !== response.statusCode) {
 			this._setStatus(StatusCode.BAD, `Expected status code ${this.expectedHttpResponse}, got ${response.statusCode}`)
-		} else if (this.keyword && body && (body.toString() || '').indexOf(this.keyword) === -1) {
+		} else if (this.keyword && response.body && response.body.indexOf(this.keyword) === -1) {
 			this._setStatus(StatusCode.BAD, `Expected keyword "${this.keyword}" not found`)
 		} else {
 			this._setStatus(StatusCode.GOOD)

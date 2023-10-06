@@ -1,22 +1,4 @@
-import { Mapping } from './mapping'
 import { DeviceType } from '.'
-
-export interface MappingHyperdeck extends Mapping {
-	device: DeviceType.HYPERDECK
-	mappingType: MappingHyperdeckType
-	index?: number
-}
-export enum MappingHyperdeckType {
-	TRANSPORT = 'transport',
-}
-
-export interface HyperdeckOptions {
-	host: string
-	port?: number
-	minRecordingTime?: number
-	/** If true, no warnings will be emitted when storage slots are empty. */
-	suppressEmptySlotWarnings?: boolean
-}
 
 export enum TimelineContentTypeHyperdeck {
 	TRANSPORT = 'transport',

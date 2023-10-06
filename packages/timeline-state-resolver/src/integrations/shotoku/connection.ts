@@ -35,7 +35,7 @@ export class ShotokuAPI extends EventEmitter {
 		if ('shot' in command) {
 			return this.send(command)
 		} else {
-			Object.values(command.shots).forEach((command) => {
+			Object.values<ShotokuSequenceCommand['shots'][0]>(command.shots).forEach((command) => {
 				setTimeout(() => {
 					this.send(command).catch(() => this.emit('warn', 'Command from sequence failed...'))
 				}, command.offset)

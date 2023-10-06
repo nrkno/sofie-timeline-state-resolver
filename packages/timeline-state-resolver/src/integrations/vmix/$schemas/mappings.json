@@ -1,0 +1,133 @@
+{
+	"$schema": "../../../$schemas/mapping-schema.json",
+	"default": "program",
+	"mappings": {
+		"program": {
+			"type": "object",
+			"properties": {
+				"index": {
+					"type": "integer",
+					"ui:title": "Index",
+					"ui:summaryTitle": "Index",
+					"description": "Number of the mix (1 is the main mix, 2-4 are optional Mix Inputs)",
+					"enum": [1, 2, 3, 4]
+				}
+			},
+			"required": [],
+			"additionalProperties": false
+		},
+		"preview": {
+			"type": "object",
+			"properties": {
+				"index": {
+					"type": "integer",
+					"ui:title": "Index",
+					"ui:summaryTitle": "Index",
+					"description": "Number of the mix (1 is the main mix, 2-4 are optional Mix Inputs)",
+					"enum": [1, 2, 3, 4]
+				}
+			},
+			"required": [],
+			"additionalProperties": false
+		},
+		"input": {
+			"type": "object",
+			"properties": {
+				"index": {
+					"type": "string",
+					"ui:title": "Index",
+					"ui:description": "Input number or name. Omit if you plan to use the `filePath` property in `TimelineContentVMixInput`.",
+					"ui:summaryTitle": "Index",
+					"description": "Input number or name. Omit if you plan to use the `filePath` property in `TimelineContentVMixInput`.",
+					"TODO": "string | number. this could be done with 'anyOf' or something, but adds complexity for little benefit"
+				}
+			},
+			"required": [],
+			"additionalProperties": false
+		},
+		"audioChannel": {
+			"type": "object",
+			"properties": {
+				"index": {
+					"type": "string",
+					"ui:title": "Index",
+					"ui:description": "Input number or name",
+					"ui:summaryTitle": "Index",
+					"description": "Input number or name",
+					"TODO": "string | number. this could be done with 'anyOf' or something, but adds complexity for little benefit"
+				},
+				"inputLayer": {
+					"type": "string",
+					"ui:title": "Input Layer",
+					"description": "Input layer name"
+				}
+			},
+			"required": [],
+			"additionalProperties": false
+		},
+		"output": {
+			"type": "object",
+			"properties": {
+				"index": {
+					"type": "string",
+					"ui:title": "Index",
+					"ui:summaryTitle": "Index",
+					"description": "Output",
+					"enum": ["2", "3", "4", "External2", "Fullscreen", "Fullscreen2"]
+				}
+			},
+			"required": ["index"],
+			"additionalProperties": false
+		},
+		"overlay": {
+			"type": "object",
+			"properties": {
+				"index": {
+					"type": "integer",
+					"ui:title": "Index",
+					"ui:summaryTitle": "Index",
+					"description": "Overlay number",
+					"enum": [1, 2, 3, 4]
+				}
+			},
+			"required": ["index"],
+			"additionalProperties": false
+		},
+		"recording": {
+			"type": "object",
+			"properties": {},
+			"required": [],
+			"additionalProperties": false
+		},
+		"streaming": {
+			"type": "object",
+			"properties": {},
+			"required": [],
+			"additionalProperties": false
+		},
+		"external": {
+			"type": "object",
+			"properties": {},
+			"required": [],
+			"additionalProperties": false
+		},
+		"fadeToBlack": {
+			"type": "object",
+			"properties": {},
+			"required": [],
+			"additionalProperties": false
+		},
+		"fader": {
+			"type": "object",
+			"properties": {},
+			"required": [],
+			"additionalProperties": false
+		},
+		"script": {
+			"type": "object",
+			"properties": {},
+			"required": [],
+			"additionalProperties": false
+		}
+	}
+}

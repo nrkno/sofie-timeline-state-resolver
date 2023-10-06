@@ -1,0 +1,18 @@
+{
+	"$schema": "../../../$schemas/mapping-schema.json",
+	"default": "window",
+	"mappings": {
+		"window": {
+			"type": "object",
+			"properties": {
+				"windowId": {
+					"type": "string",
+					"ui:title": "Window ID",
+					"ui:summaryTitle": "Window ID"
+				}
+			},
+			"required": ["windowId"],
+			"additionalProperties": false
+		}
+	}
+}

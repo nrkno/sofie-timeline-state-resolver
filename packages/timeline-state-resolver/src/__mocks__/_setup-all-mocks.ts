@@ -6,8 +6,6 @@ import * as got from './got'
 import * as hyperdeckConnection from './hyperdeck-connection'
 import * as net from './net'
 import * as osc from './osc'
-import * as request from './request'
-import * as requestPromiseNative from './request-promise-native'
 import * as vConnection from './v-connection'
 import * as ws from './ws'
 
@@ -24,8 +22,6 @@ export function setupAllMocks() {
 	jest.mock('hyperdeck-connection', () => hyperdeckConnection)
 	jest.mock('net', () => net)
 	jest.mock('osc', () => osc)
-	jest.mock('request', () => request)
-	jest.mock('request-promise-native', () => requestPromiseNative)
 	jest.mock('@tv2media/v-connection', () => vConnection)
 	jest.mock('ws', () => ws)
 }

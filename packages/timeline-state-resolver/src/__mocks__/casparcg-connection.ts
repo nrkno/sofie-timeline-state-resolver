@@ -13,6 +13,8 @@ export type AMCPCommand = orgAMCPCommand
 export class BasicCasparCGAPI extends EventEmitter {
 	onConnected: () => void
 
+	connected = false
+
 	constructor() {
 		super()
 
@@ -20,6 +22,7 @@ export class BasicCasparCGAPI extends EventEmitter {
 			// simulate that we're connected
 			if (this.onConnected) this.onConnected()
 			this.emit('connect')
+			this.connected = true
 		}, 10)
 
 		instances.push(this)

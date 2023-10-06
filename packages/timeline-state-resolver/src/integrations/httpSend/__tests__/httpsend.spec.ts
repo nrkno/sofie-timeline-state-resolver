@@ -1,7 +1,8 @@
 import { Conductor } from '../../../conductor'
 import { HTTPSendDevice } from '..'
 import {
-	MappingHTTPSend,
+	SomeMappingHttpSend,
+	Mapping,
 	Mappings,
 	DeviceType,
 	TimelineContentHTTPRequest,
@@ -22,9 +23,10 @@ describe('HTTP-Send', () => {
 		const commandReceiver0: any = jest.fn(async () => {
 			return Promise.resolve()
 		})
-		const myLayerMapping0: MappingHTTPSend = {
+		const myLayerMapping0: Mapping<SomeMappingHttpSend> = {
 			device: DeviceType.HTTPSEND,
 			deviceId: 'myHTTP',
+			options: {},
 		}
 		const myLayerMapping: Mappings = {
 			myLayer0: myLayerMapping0,
@@ -96,9 +98,10 @@ describe('HTTP-Send', () => {
 		const commandReceiver0: any = jest.fn(async () => {
 			return Promise.resolve()
 		})
-		const myLayerMapping0: MappingHTTPSend = {
+		const myLayerMapping0: Mapping<SomeMappingHttpSend> = {
 			device: DeviceType.HTTPSEND,
 			deviceId: 'myHTTP',
+			options: {},
 		}
 		const myLayerMapping: Mappings = {
 			myLayer0: myLayerMapping0,
@@ -207,5 +210,86 @@ describe('HTTP-Send', () => {
 			expect.stringContaining('obj1'),
 			expect.anything()
 		)
+	})
+	test('POST message with headers', async () => {
+		const commandReceiver0: any = jest.fn(async () => {
+			return Promise.resolve()
+		})
+		const myLayerMapping0: Mapping<SomeMappingHttpSend> = {
+			device: DeviceType.HTTPSEND,
+			deviceId: 'myHTTP',
+			options: {},
+		}
+		const myLayerMapping: Mappings = {
+			myLayer0: myLayerMapping0,
+		}
+
+		const myConductor = new Conductor({
+			multiThreadedResolver: false,
+			getCurrentTime: mockTime.getCurrentTime,
+		})
+		await myConductor.init()
+		await myConductor.addDevice('myHTTP', {
+			type: DeviceType.HTTPSEND,
+			options: {},
+			commandReceiver: commandReceiver0,
+		})
+		myConductor.setTimelineAndMappings([], myLayerMapping)
+		await mockTime.advanceTimeToTicks(10100)
+
+		const deviceContainer = myConductor.getDevice('myHTTP')
+		const device = deviceContainer!.device as ThreadedClass<HTTPSendDevice>
+
+		// Check that no commands has been scheduled:
+		expect(await device.queue).toHaveLength(0)
+
+		myConductor.setTimelineAndMappings([
+			{
+				id: 'obj0',
+				enable: {
+					start: mockTime.now + 1000, // in 1 second
+					duration: 2000,
+				},
+				layer: 'myLayer0',
+				content: {
+					deviceType: DeviceType.HTTPSEND,
+					type: TimelineContentTypeHTTP.POST,
+
+					url: 'http://superfly.tv',
+					params: {
+						a: 1,
+						b: 2,
+					},
+					headers: {
+						myHeader: 'myValue',
+					},
+				},
+			},
+		])
+		await mockTime.advanceTimeToTicks(10990)
+		expect(commandReceiver0).toHaveBeenCalledTimes(0)
+		await mockTime.advanceTimeToTicks(11100)
+
+		expect(commandReceiver0).toHaveBeenCalledTimes(1)
+		expect(commandReceiver0).toHaveBeenCalledWith(
+			expect.anything(),
+			expect.objectContaining({
+				type: 'post',
+				url: 'http://superfly.tv',
+				params: {
+					a: 1,
+					b: 2,
+				},
+				headers: {
+					myHeader: 'myValue',
+				},
+			}),
+			expect.anything(),
+			expect.stringContaining('obj0'),
+			expect.anything()
+		)
+		expect(getMockCall(commandReceiver0, 0, 2)).toMatch(/added/) // context
+		await mockTime.advanceTimeToTicks(16000)
+		expect(commandReceiver0).toHaveBeenCalledTimes(1)
 	})
 })

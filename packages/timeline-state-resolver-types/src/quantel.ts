@@ -1,44 +1,4 @@
-import { Mapping } from './mapping'
 import { DeviceType } from '.'
-
-export interface MappingQuantel extends Mapping {
-	device: DeviceType.QUANTEL
-
-	/** The port to use  */
-	portId: string
-	/** The channel to connect the port to */
-	channelId: number
-	// keyChannelID: number // not implemented yet, used when outputting Key + Fill
-
-	/** Which strategy to use during "busy times" (defaults to QUALITY) */
-	mode?: QuantelControlMode
-}
-export enum QuantelControlMode {
-	/** Try to avoid freeze-frames when playing */
-	QUALITY = 'quality',
-	/** Try to play as fast as possible */
-	SPEED = 'speed',
-}
-
-export interface QuantelOptions {
-	/** Url to the quantel gateway  */
-	gatewayUrl: string
-
-	/** Location of the ISA manager to be connected to first of all. */
-	ISAUrlMaster: string
-	/** Optional backup ISA manager for the gateway to switch to in the event of failure of the master. */
-	ISAUrlBackup?: string
-
-	/** The ID of the zone to use. If omitted, will be using "default" */
-	zoneId?: string
-	/** The id of the server to control. An integer */
-	serverId: number
-
-	/** If set: If a clip turns out to be on the wrong server, an attempt to copy the clip will be done. */
-	allowCloneClips?: boolean
-
-	// doAutomaticCloningIfNeeded?: bool // not implemented yet
-}
 
 export type TimelineContentQuantelAny = TimelineContentQuantelClip
 export interface TimelineContentQuantelClip {

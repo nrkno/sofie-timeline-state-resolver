@@ -3,7 +3,6 @@ import { DeviceWithState, CommandWithContext, DeviceStatus, StatusCode } from '.
 import {
 	DeviceType,
 	TimelineContentTypeHyperdeck,
-	MappingHyperdeck,
 	MappingHyperdeckType,
 	HyperdeckOptions,
 	DeviceOptionsHyperdeck,
@@ -11,6 +10,8 @@ import {
 	TSRTimelineContent,
 	Timeline,
 	HyperdeckActions,
+	Mapping,
+	SomeMappingHyperdeck,
 } from 'timeline-state-resolver-types'
 import {
 	Hyperdeck,
@@ -193,18 +194,27 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState, DeviceOptionsH
 		return true
 	}
 
+	private async resync(): Promise<ActionExecutionResult> {
+		const time = this.getCurrentTime()
+		this._doOnTime.clearQueueNowAndAfter(time)
+
+		// TODO - could this being slow/offline be a problem?
+		const state = await this._queryCurrentState()
+
+		this.setState(state, time)
+		this.emit('resetResolver')
+
+		return {
+			result: ActionExecutionResultCode.Ok,
+		}
+	}
+
 	/**
 	 * Prepares device for playout
 	 */
 	async makeReady(okToDestroyStuff?: boolean): Promise<void> {
 		if (okToDestroyStuff) {
-			const time = this.getCurrentTime()
-			this._doOnTime.clearQueueNowAndAfter(time)
-
-			// TODO - could this being slow/offline be a problem?
-			const state = await this._queryCurrentState()
-
-			this.setState(state, time)
+			await this.resync()
 		}
 	}
 
@@ -212,7 +222,7 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState, DeviceOptionsH
 	 * Sends commands to the HyperDeck to format disks. Afterwards,
 	 * calls this._queryRecordingTime
 	 */
-	async formatDisks() {
+	private async formatDisks() {
 		const wait = async (t: number) => new Promise<void>((resolve) => setTimeout(() => resolve(), t))
 
 		for (let i = 1; i <= this._slots; i++) {
@@ -251,6 +261,8 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState, DeviceOptionsH
 				} catch {
 					return { result: ActionExecutionResultCode.Error }
 				}
+			case HyperdeckActions.Resync:
+				return this.resync()
 			default:
 				return { result: ActionExecutionResultCode.Ok, response: t('Action "{{id}}" not found', { actionId }) }
 		}
@@ -328,11 +340,11 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState, DeviceOptionsH
 		_.each(sortedLayers, ({ tlObject, layerName }) => {
 			const content = tlObject.content
 
-			const mapping = mappings[layerName] as MappingHyperdeck
+			const mapping = mappings[layerName] as Mapping<SomeMappingHyperdeck>
 
 			if (mapping && mapping.deviceId === this.deviceId && content.deviceType === DeviceType.HYPERDECK) {
-				switch (mapping.mappingType) {
-					case MappingHyperdeckType.TRANSPORT:
+				switch (mapping.options.mappingType) {
+					case MappingHyperdeckType.Transport:
 						if (content.type === TimelineContentTypeHyperdeck.TRANSPORT) {
 							if (!deviceState.transport) {
 								switch (content.status) {

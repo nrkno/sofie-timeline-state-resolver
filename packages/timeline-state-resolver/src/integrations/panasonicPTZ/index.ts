@@ -3,13 +3,14 @@ import { DeviceWithState, CommandWithContext, DeviceStatus, StatusCode } from '.
 import {
 	DeviceType,
 	TimelineContentTypePanasonicPtz,
-	MappingPanasonicPtz,
-	MappingPanasonicPtzType,
+	SomeMappingPanasonicPTZ,
+	MappingPanasonicPTZType,
 	PanasonicPTZOptions,
 	DeviceOptionsPanasonicPTZ,
 	Mappings,
 	TSRTimelineContent,
 	Timeline,
+	Mapping,
 } from 'timeline-state-resolver-types'
 import { DoOnTime, SendMode } from '../../devices/doOnTime'
 import { PanasonicPtzHttpInterface } from './connection'
@@ -58,6 +59,14 @@ export interface PanasonicPtzCommandWithContext {
 type CommandContext = any
 
 const PROBE_INTERVAL = 10 * 1000 // Probe every 10s
+
+const COMMAND_PRIORITY: Record<PanasonicPtzCommand['type'], number> = {
+	presetSpeed: 0,
+	zoomSpeed: 1,
+	zoom: 2,
+	presetMem: 3,
+}
+
 /**
  * A wrapper for panasonic ptz cameras. Maps timeline states to device states and
  * executes commands to achieve such states. Depends on PanasonicPTZAPI class for
@@ -69,6 +78,7 @@ export class PanasonicPtzDevice extends DeviceWithState<PanasonicPtzState, Devic
 	private _connected = false
 
 	private _commandReceiver: CommandReceiver
+	private _pingInterval: NodeJS.Timer
 
 	constructor(
 		deviceId: string,
@@ -92,57 +102,69 @@ export class PanasonicPtzDevice extends DeviceWithState<PanasonicPtzState, Devic
 		)
 		this.handleDoOnTime(this._doOnTime, 'PanasonicPTZ')
 
-		if (deviceOptions.options && deviceOptions.options.host) {
-			// set up connection class
-			this._device = new PanasonicPtzHttpInterface(
-				deviceOptions.options.host,
-				deviceOptions.options.port,
-				deviceOptions.options.https
-			)
-			this._device.on('error', (msg) => {
-				if (msg.code === 'ECONNREFUSED') return // ignore, since we catch this in connection logic
-				this.emit('error', 'PanasonicPtzHttpInterface', msg)
-			})
-			this._device.on('disconnected', () => {
-				this._setConnected(false)
-			})
-			this._device.on('debug', (...args) => {
-				this.emitDebug('Panasonic PTZ', ...args)
-			})
-		} else {
+		if (!deviceOptions.options || !deviceOptions.options.host) {
 			this._device = undefined
+			return
 		}
+
+		// set up connection class
+		this._device = new PanasonicPtzHttpInterface(
+			deviceOptions.options.host,
+			deviceOptions.options.port,
+			deviceOptions.options.https
+		)
+		this._device.on('error', (msg) => {
+			if (msg.code === 'ECONNREFUSED') return // ignore, since we catch this in connection logic
+			this.emit('error', 'PanasonicPtzHttpInterface', msg)
+		})
+		this._device.on('disconnected', () => {
+			this._setConnected(false)
+		})
+		this._device.on('debug', (...args) => {
+			this.emitDebug('Panasonic PTZ', ...args)
+		})
 	}
 
 	/**
 	 * Initiates the device: set up ping for connection logic.
 	 */
 	async init(_initOptions: PanasonicPTZOptions): Promise<boolean> {
-		if (this._device) {
-			return new Promise((resolve, reject) => {
-				setInterval(() => {
-					this._device!.ping()
-						.then((result) => {
-							this._setConnected(!!result)
-						})
-						.catch(() => {
-							this._setConnected(false)
-						})
-				}, PROBE_INTERVAL)
+		if (!this._device) {
+			return Promise.reject('There are no cameras set up for this device')
+		}
 
-				this._device!.ping()
+		return new Promise((resolve, reject) => {
+			this._pingInterval = setInterval(() => {
+				if (!this._device) {
+					this.emit('error', `init() interval`, new Error(`Device handler for "${this.deviceId}" not defined`))
+					return
+				}
+
+				this._device
+					.ping()
 					.then((result) => {
 						this._setConnected(!!result)
+					})
+					.catch(() => {
+						this._setConnected(false)
+					})
+			}, PROBE_INTERVAL)
 
-						resolve(true)
-					})
-					.catch((e) => {
-						reject(e)
-					})
-			})
-		}
-		// @ts-ignore no-unused-vars
-		return Promise.reject('There are no cameras set up for this device')
+			if (!this._device) {
+				throw new Error(`Device handler for "${this.deviceId}" not defined`)
+			}
+
+			this._device
+				.ping()
+				.then((result) => {
+					this._setConnected(!!result)
+
+					resolve(true)
+				})
+				.catch((e) => {
+					reject(e)
+				})
+		})
 	}
 
 	/**
@@ -154,7 +176,7 @@ export class PanasonicPtzDevice extends DeviceWithState<PanasonicPtzState, Devic
 		const ptzState: PanasonicPtzState = this._getDefaultState()
 
 		_.each(state.layers, (tlObject, layerName: string) => {
-			const mapping: MappingPanasonicPtz | undefined = mappings[layerName] as MappingPanasonicPtz
+			const mapping = mappings[layerName] as Mapping<SomeMappingPanasonicPTZ> | undefined
 			if (
 				mapping &&
 				mapping.device === DeviceType.PANASONIC_PTZ &&
@@ -162,7 +184,7 @@ export class PanasonicPtzDevice extends DeviceWithState<PanasonicPtzState, Devic
 				tlObject.content.deviceType === DeviceType.PANASONIC_PTZ
 			) {
 				if (
-					mapping.mappingType === MappingPanasonicPtzType.PRESET &&
+					mapping.options.mappingType === MappingPanasonicPTZType.PresetMem &&
 					tlObject.content.type === TimelineContentTypePanasonicPtz.PRESET
 				) {
 					ptzState.preset = {
@@ -170,7 +192,7 @@ export class PanasonicPtzDevice extends DeviceWithState<PanasonicPtzState, Devic
 						timelineObjId: tlObject.id,
 					}
 				} else if (
-					mapping.mappingType === MappingPanasonicPtzType.PRESET_SPEED &&
+					mapping.options.mappingType === MappingPanasonicPTZType.PresetSpeed &&
 					tlObject.content.type === TimelineContentTypePanasonicPtz.SPEED
 				) {
 					ptzState.speed = {
@@ -178,7 +200,7 @@ export class PanasonicPtzDevice extends DeviceWithState<PanasonicPtzState, Devic
 						timelineObjId: tlObject.id,
 					}
 				} else if (
-					mapping.mappingType === MappingPanasonicPtzType.ZOOM_SPEED &&
+					mapping.options.mappingType === MappingPanasonicPTZType.ZoomSpeed &&
 					tlObject.content.type === TimelineContentTypePanasonicPtz.ZOOM_SPEED
 				) {
 					ptzState.zoomSpeed = {
@@ -186,7 +208,7 @@ export class PanasonicPtzDevice extends DeviceWithState<PanasonicPtzState, Devic
 						timelineObjId: tlObject.id,
 					}
 				} else if (
-					mapping.mappingType === MappingPanasonicPtzType.ZOOM &&
+					mapping.options.mappingType === MappingPanasonicPTZType.Zoom &&
 					tlObject.content.type === TimelineContentTypePanasonicPtz.ZOOM
 				) {
 					ptzState.zoom = {
@@ -237,6 +259,7 @@ export class PanasonicPtzDevice extends DeviceWithState<PanasonicPtzState, Devic
 		this._doOnTime.clearQueueAfter(clearAfterTime)
 	}
 	async terminate() {
+		if (this._pingInterval) clearInterval(this._pingInterval)
 		if (this._device) {
 			this._device.dispose()
 		}
@@ -319,7 +342,11 @@ export class PanasonicPtzDevice extends DeviceWithState<PanasonicPtzState, Devic
 	 * Add commands to queue, to be executed at the right time
 	 */
 	private _addToQueue(commandsToAchieveState: Array<PanasonicPtzCommandWithContext>, time: number) {
-		_.each(commandsToAchieveState, (cmd: PanasonicPtzCommandWithContext) => {
+		const sortedCommandsToAchieveState = commandsToAchieveState.sort(
+			(a, b) => COMMAND_PRIORITY[a.command.type] - COMMAND_PRIORITY[b.command.type]
+		)
+
+		_.each(sortedCommandsToAchieveState, (cmd: PanasonicPtzCommandWithContext) => {
 			// add the new commands to the queue:
 			this._doOnTime.queue(
 				time,

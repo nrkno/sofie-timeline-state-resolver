@@ -26,7 +26,6 @@ export * from './abstract'
 export * from './atem'
 export * from './casparcg'
 export * from './httpSend'
-export * from './httpWatcher'
 export * from './hyperdeck'
 export * from './lawo'
 export * from './osc'
@@ -56,29 +55,35 @@ export * from './translations'
 
 export * from './generated'
 
+/**
+ * An identifier of a particular device class
+ *
+ * @export
+ * @enum {string}
+ */
 export enum DeviceType {
-	ABSTRACT = 0,
-	CASPARCG = 1,
-	ATEM = 2,
-	LAWO = 3,
-	HTTPSEND = 4,
-	PANASONIC_PTZ = 5,
-	TCPSEND = 6,
-	HYPERDECK = 7,
-	PHAROS = 8,
-	OSC = 9,
-	HTTPWATCHER = 10,
-	SISYFOS = 11,
-	QUANTEL = 12,
-	VIZMSE = 13,
-	SINGULAR_LIVE = 14,
-	SHOTOKU = 15,
-	VMIX = 20,
-	OBS = 21,
-	SOFIE_CHEF = 22,
-	TELEMETRICS = 23,
-	TRICASTER = 24,
-	MULTI_OSC = 25,
+	ABSTRACT = 'ABSTRACT',
+	CASPARCG = 'CASPARCG',
+	ATEM = 'ATEM',
+	LAWO = 'LAWO',
+	HTTPSEND = 'HTTPSEND',
+	PANASONIC_PTZ = 'PANASONIC_PTZ',
+	TCPSEND = 'TCPSEND',
+	HYPERDECK = 'HYPERDECK',
+	PHAROS = 'PHAROS',
+	OSC = 'OSC',
+	HTTPWATCHER = 'HTTPWATCHER',
+	SISYFOS = 'SISYFOS',
+	QUANTEL = 'QUANTEL',
+	VIZMSE = 'VIZMSE',
+	SINGULAR_LIVE = 'SINGULAR_LIVE',
+	SHOTOKU = 'SHOTOKU',
+	VMIX = 'VMIX',
+	OBS = 'OBS',
+	SOFIE_CHEF = 'SOFIE_CHEF',
+	TELEMETRICS = 'TELEMETRICS',
+	TRICASTER = 'TRICASTER',
+	MULTI_OSC = 'MULTI_OSC',
 }
 
 export type TSRTimelineKeyframe<TContent> = Timeline.TimelineKeyframe<TContent>

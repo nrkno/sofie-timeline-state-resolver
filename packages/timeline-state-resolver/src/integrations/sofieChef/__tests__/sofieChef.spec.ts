@@ -3,9 +3,11 @@ import { SofieChefDevice } from '..'
 import {
 	Mappings,
 	DeviceType,
-	MappingSofieChef,
+	Mapping,
+	SomeMappingSofieChef,
 	TimelineContentTypeSofieChef,
 	StatusCode,
+	MappingSofieChefType,
 } from 'timeline-state-resolver-types'
 import { MockTime } from '../../../__tests__/mockTime'
 import { ThreadedClass } from 'threadedclass'
@@ -30,10 +32,13 @@ describe('SofieChef', () => {
 			return device._defaultCommandReceiver(...args)
 			// return Promise.resolve()
 		})
-		const myLayerMapping0: MappingSofieChef = {
+		const myLayerMapping0: Mapping<SomeMappingSofieChef> = {
 			device: DeviceType.SOFIE_CHEF,
 			deviceId: 'chef0',
-			windowId: 'window0',
+			options: {
+				mappingType: MappingSofieChefType.Window,
+				windowId: 'window0',
+			},
 		}
 		const myLayerMapping: Mappings = {
 			myLayer0: myLayerMapping0,
@@ -164,10 +169,13 @@ describe('SofieChef', () => {
 			return device._defaultCommandReceiver(...args)
 			// return Promise.resolve()
 		})
-		const myLayerMapping0: MappingSofieChef = {
+		const myLayerMapping0: Mapping<SomeMappingSofieChef> = {
 			device: DeviceType.SOFIE_CHEF,
 			deviceId: 'chef0',
-			windowId: 'window0',
+			options: {
+				mappingType: MappingSofieChefType.Window,
+				windowId: 'window0',
+			},
 		}
 		const myLayerMapping: Mappings = {
 			myLayer0: myLayerMapping0,

@@ -10,12 +10,17 @@ import {
 	TSRTimelineContent,
 	TimelineContentTypeHTTP,
 	TimelineContentTypeHTTPParamType,
+	ActionExecutionResult,
+	ActionExecutionResultCode,
+	HttpSendActions,
+	SendCommandPayload,
 } from 'timeline-state-resolver-types'
 import { DoOnTime, SendMode } from '../../devices/doOnTime'
 import got, { OptionsOfTextResponseBody, RequestError } from 'got'
-import { endTrace, startTrace } from '../../lib'
+import { actionNotFoundMessage, endTrace, startTrace } from '../../lib'
 
 import Debug from 'debug'
+import { t } from '../../lib'
 const debug = Debug('timeline-state-resolver:httpsend')
 
 export interface DeviceOptionsHTTPSendInternal extends DeviceOptionsHTTPSend {
@@ -124,16 +129,69 @@ export class HTTPSendDevice extends DeviceWithState<HTTPSendState, DeviceOptions
 	}
 	async makeReady(okToDestroyStuff?: boolean): Promise<void> {
 		if (okToDestroyStuff) {
-			const time = this.getCurrentTime()
-
 			if (this._makeReadyDoesReset) {
-				this.clearStates()
-				this._doOnTime.clearQueueAfter(0)
+				await this.resync()
 			}
 
 			for (const cmd of this._makeReadyCommands || []) {
-				await this._commandReceiver(time, cmd, 'makeReady', '')
+				await this.sendCommand(cmd)
 			}
+		}
+	}
+
+	private async resync(): Promise<ActionExecutionResult> {
+		this.clearStates()
+		this._doOnTime.clearQueueAfter(0)
+
+		return {
+			result: ActionExecutionResultCode.Ok,
+		}
+	}
+
+	private async sendCommand(cmd: SendCommandPayload): Promise<ActionExecutionResult> {
+		const time = this.getCurrentTime()
+		if (!cmd.url) {
+			return {
+				result: ActionExecutionResultCode.Error,
+				response: t('Failed to send command: Missing url'),
+			}
+		}
+		if (Object.values<TimelineContentTypeHTTP>(TimelineContentTypeHTTP).includes(cmd.type)) {
+			return {
+				result: ActionExecutionResultCode.Error,
+				response: t('Failed to send command: type is invalid'),
+			}
+		}
+		if (!cmd.params) {
+			return {
+				result: ActionExecutionResultCode.Error,
+				response: t('Failed to send command: Missing params'),
+			}
+		}
+		if (cmd.paramsType && !(cmd.type in TimelineContentTypeHTTPParamType)) {
+			return {
+				result: ActionExecutionResultCode.Error,
+				response: t('Failed to send command: params type is invalid'),
+			}
+		}
+
+		await this._commandReceiver(time, cmd, 'makeReady', '')
+
+		return {
+			result: ActionExecutionResultCode.Ok,
+		}
+	}
+	async executeAction(
+		actionId: HttpSendActions,
+		payload?: Record<string, any> | undefined
+	): Promise<ActionExecutionResult> {
+		switch (actionId) {
+			case HttpSendActions.SendCommand:
+				return this.sendCommand(payload as SendCommandPayload)
+			case HttpSendActions.Resync:
+				return this.resync()
+			default:
+				return actionNotFoundMessage(actionId)
 		}
 	}
 
@@ -166,7 +224,7 @@ export class HTTPSendDevice extends DeviceWithState<HTTPSendState, DeviceOptions
 			this._doOnTime.queue(
 				time,
 				cmd.content.queueId,
-				(cmd: Command) => {
+				async (cmd: Command) => {
 					if (cmd.commandName === 'added' || cmd.commandName === 'changed') {
 						this.activeLayers.set(cmd.layer, JSON.stringify(cmd.content))
 						return this._commandReceiver(time, cmd.content, cmd.context, cmd.timelineObjId, cmd.layer)
@@ -258,12 +316,14 @@ export class HTTPSendDevice extends DeviceWithState<HTTPSendState, DeviceOptions
 
 		const httpReq = got[cmd.type]
 		try {
-			const options: OptionsOfTextResponseBody = {}
+			const options: OptionsOfTextResponseBody = {
+				headers: cmd.headers,
+			}
 
 			const params = 'params' in cmd && !_.isEmpty(cmd.params) ? cmd.params : undefined
 			if (params) {
 				if (cmd.type === TimelineContentTypeHTTP.GET) {
-					options.searchParams = params
+					options.searchParams = params as Record<string, any>
 				} else {
 					if (cmd.paramsType === TimelineContentTypeHTTPParamType.FORM) {
 						options.form = params

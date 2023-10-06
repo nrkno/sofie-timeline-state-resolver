@@ -1,0 +1,17 @@
+{
+	"$schema": "https://json-schema.org/draft/2020-12/schema",
+	"title": "Shotoku Options",
+	"type": "object",
+	"properties": {
+		"host": {
+			"type": "string",
+			"ui:title": "Host"
+		},
+		"port": {
+			"type": "integer",
+			"ui:title": "Port"
+		}
+	},
+	"required": ["host", "port"],
+	"additionalProperties": false
+}

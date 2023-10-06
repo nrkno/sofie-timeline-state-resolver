@@ -1,0 +1,13 @@
+{
+	"$schema": "https://json-schema.org/draft/2020-12/schema",
+	"title": "Singular Live Options",
+	"type": "object",
+	"properties": {
+		"accessToken": {
+			"type": "string",
+			"ui:title": "Access Token"
+		}
+	},
+	"required": ["accessToken"],
+	"additionalProperties": false
+}

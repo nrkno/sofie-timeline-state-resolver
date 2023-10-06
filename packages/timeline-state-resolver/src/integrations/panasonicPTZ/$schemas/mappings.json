@@ -1,0 +1,30 @@
+{
+	"$schema": "../../../$schemas/mapping-schema.json",
+	"default": "presetMem",
+	"mappings": {
+		"presetMem": {
+			"type": "object",
+			"properties": {},
+			"required": [],
+			"additionalProperties": false
+		},
+		"presetSpeed": {
+			"type": "object",
+			"properties": {},
+			"required": [],
+			"additionalProperties": false
+		},
+		"zoomSpeed": {
+			"type": "object",
+			"properties": {},
+			"required": [],
+			"additionalProperties": false
+		},
+		"zoom": {
+			"type": "object",
+			"properties": {},
+			"required": [],
+			"additionalProperties": false
+		}
+	}
+}

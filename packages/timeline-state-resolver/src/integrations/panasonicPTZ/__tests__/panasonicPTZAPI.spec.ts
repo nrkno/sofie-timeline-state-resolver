@@ -1,6 +1,7 @@
 import { PanasonicPtzHttpInterface } from '../../../integrations/panasonicPTZ/connection'
-import * as request from '../../../__mocks__/request'
+import got from '../../../__mocks__/got'
 import { URL } from 'url'
+import { OptionsOfJSONResponseBody, Response } from 'got'
 
 const orgSetTimeout = setTimeout
 
@@ -61,7 +62,7 @@ function mockReply(mockDevice: MockDevice, urlString: string) {
 	}
 }
 describe('PanasonicAPI', () => {
-	jest.mock('request', () => request)
+	jest.mock('got', () => got)
 
 	const mockDevice: MockDevice = {
 		powerMode: 'p1',
@@ -73,10 +74,12 @@ describe('PanasonicAPI', () => {
 	}
 
 	// let requestReturnsOK = true
-	function handleRequest(urlString, _options, callback) {
-		orgSetTimeout(() => {
-			callback(null, { body: mockReply(mockDevice, urlString) })
-		}, 1)
+	async function handleRequest(url: string, _options?: OptionsOfJSONResponseBody) {
+		return new Promise<Pick<Response, 'body'>>((resolve) => {
+			orgSetTimeout(() => {
+				resolve({ body: mockReply(mockDevice, url) })
+			}, 1)
+		})
 	}
 
 	const onGet = jest.fn(handleRequest)
@@ -87,13 +90,13 @@ describe('PanasonicAPI', () => {
 	const onDel = jest.fn(handleRequest)
 	const onDelete = jest.fn(handleRequest)
 
-	request.setMockGet(onGet)
-	request.setMockPost(onPost)
-	request.setMockPut(onPut)
-	request.setMockHead(onHead)
-	request.setMockPatch(onPatch)
-	request.setMockDel(onDel)
-	request.setMockDelete(onDelete)
+	got.setMockGet(onGet)
+	got.setMockPost(onPost)
+	got.setMockPut(onPut)
+	got.setMockHead(onHead)
+	got.setMockPatch(onPatch)
+	got.setMockDel(onDel)
+	got.setMockDelete(onDelete)
 
 	beforeEach(() => {
 		// jest.useFakeTimers()

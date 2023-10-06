@@ -3,6 +3,126 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [9.0.0-release50.6](https://github.com/nrkno/sofie-timeline-state-resolver/compare/9.0.0-release50.5...9.0.0-release50.6) (2023-08-25)
+
+### Bug Fixes
+
+- **httpSend:** Use the same types for the sendCommand action as a timeline object ([#269](https://github.com/nrkno/sofie-timeline-state-resolver/issues/269)) ([3385217](https://github.com/nrkno/sofie-timeline-state-resolver/commit/3385217afcb6e45aa37123f5400d1dea4a0c8972))
+
+## [9.0.0-release50.5](https://github.com/nrkno/sofie-timeline-state-resolver/compare/9.0.0-release50.4...9.0.0-release50.5) (2023-07-03)
+
+**Note:** Version bump only for package timeline-state-resolver-types
+
+## [9.0.0-release50.4](https://github.com/nrkno/sofie-timeline-state-resolver/compare/9.0.0-release50.3...9.0.0-release50.4) (2023-07-03)
+
+**Note:** Version bump only for package timeline-state-resolver-types
+
+## [9.0.0-release50.3](https://github.com/nrkno/sofie-timeline-state-resolver/compare/9.0.0-release50.2...9.0.0-release50.3) (2023-07-03)
+
+**Note:** Version bump only for package timeline-state-resolver-types
+
+## [9.0.0-release50.2](https://github.com/nrkno/sofie-timeline-state-resolver/compare/9.0.0-release50.1...9.0.0-release50.2) (2023-07-03)
+
+**Note:** Version bump only for package timeline-state-resolver-types
+
+## [9.0.0-release50.1](https://github.com/nrkno/sofie-timeline-state-resolver/compare/9.0.0-release50.0...9.0.0-release50.1) (2023-07-03)
+
+**Note:** Version bump only for package timeline-state-resolver-types
+
+## [9.0.0-release50.0](https://github.com/nrkno/sofie-timeline-state-resolver/compare/3.5.1...9.0.0-release50.0) (2023-07-03)
+
+### ⚠ BREAKING CHANGES
+
+- DeviceType enum has been changed from a number-based to a string-based one
+- json schemas for device config and mappings (#237)
+
+### Features
+
+- add restart command to vMix inputs ([e16e8c1](https://github.com/nrkno/sofie-timeline-state-resolver/commit/e16e8c14d263fffc8e004bf9f06cdde6073e16b2))
+- DeviceType enum has been changed from a number-based to a string-based one ([dd03bcc](https://github.com/nrkno/sofie-timeline-state-resolver/commit/dd03bcc7a0f246ff62ccd09091003195c97e4dc1))
+- json schemas for device config and mappings ([#237](https://github.com/nrkno/sofie-timeline-state-resolver/issues/237)) ([d43f3dc](https://github.com/nrkno/sofie-timeline-state-resolver/commit/d43f3dc70f5c8843081760846e9aa38fa4c71396))
+- replace makeready ([5abe41e](https://github.com/nrkno/sofie-timeline-state-resolver/commit/5abe41eaa421db4845a54837b2e3b41f2b33d062))
+- upgrade singular.live to API v2 ([2bb5c4d](https://github.com/nrkno/sofie-timeline-state-resolver/commit/2bb5c4d2557710d55b27556cef919dc8419fa1e9))
+- Use strings for DeviceType enum ([f1b95bc](https://github.com/nrkno/sofie-timeline-state-resolver/commit/f1b95bcb972aff329bce9c67b15f58a98bbf48cf))
+- **vMix:** retry sending media load commands if the file wasn't found ([4321aae](https://github.com/nrkno/sofie-timeline-state-resolver/commit/4321aae2684ba4c7f55e3cf810dacae187fe282b))
+
+### Bug Fixes
+
+- add types support for vMix stingers 3 and 4 ([44fa27d](https://github.com/nrkno/sofie-timeline-state-resolver/commit/44fa27d164bd717b58d7f1d1255d56d132007865))
+
+## [8.0.0-release49.0](https://github.com/nrkno/sofie-timeline-state-resolver/compare/8.0.0-release48.2...8.0.0-release49.0) (2023-03-21)
+
+## [8.0.0-release48.2](https://github.com/nrkno/sofie-timeline-state-resolver/compare/7.5.0...8.0.0-release48.2) (2023-03-21)
+
+### Features
+
+- Vmix preset actions ([8b31294](https://github.com/nrkno/sofie-timeline-state-resolver/commit/8b3129412f3881ff9db2cd059927e5b5f3ae6caf))
+
+### Bug Fixes
+
+- change `DeviceType.MULTI_OSC` value ([386ba6c](https://github.com/nrkno/sofie-timeline-state-resolver/commit/386ba6c791a090553cf1d66c73ae82cb25edd03f))
+
+## [7.5.0](https://github.com/nrkno/sofie-timeline-state-resolver/compare/7.5.0-release47.7...7.5.0) (2023-02-28)
+
+## [7.5.0-release47.7](https://github.com/nrkno/sofie-timeline-state-resolver/compare/8.0.0-release48.1...7.5.0-release47.7) (2023-02-24)
+
+### Features
+
+- **vmix:** add support for ListRemoveAll and ListAdd commands ([4a7240f](https://github.com/nrkno/sofie-timeline-state-resolver/commit/4a7240f7b2819bb16f263b72d1b06b98e3c40353))
+- **vmix:** add support for starting and stopping VB.NET scripts ([9f2d4ee](https://github.com/nrkno/sofie-timeline-state-resolver/commit/9f2d4eeeccd9ba0017fc00cfe5df18e3717ea660))
+
+## [8.0.0-release48.1](https://github.com/nrkno/sofie-timeline-state-resolver/compare/7.5.0-release47.6...8.0.0-release48.1) (2023-02-14)
+
+## [7.5.0-release47.6](https://github.com/nrkno/sofie-timeline-state-resolver/compare/7.5.0-release47.5...7.5.0-release47.6) (2023-02-07)
+
+## [7.5.0-release47.5](https://github.com/nrkno/sofie-timeline-state-resolver/compare/7.5.0-release47.4...7.5.0-release47.5) (2023-01-16)
+
+## [7.5.0-release47.4](https://github.com/nrkno/sofie-timeline-state-resolver/compare/8.0.0-release48.0...7.5.0-release47.4) (2023-01-13)
+
+### Features
+
+- Emit debug state ([516a512](https://github.com/nrkno/sofie-timeline-state-resolver/commit/516a51203aa0af8c0a47552ecf9c0c99cd01d0be))
+- multi osc device ([b987680](https://github.com/nrkno/sofie-timeline-state-resolver/commit/b9876808d44543903e45ab5a1a1a2b85beed4aac))
+
+## [8.0.0-release48.0](https://github.com/nrkno/sofie-timeline-state-resolver/compare/3.0.3...8.0.0-release48.0) (2022-12-12)
+
+### ⚠ BREAKING CHANGES
+
+- refactor types to work better with typescript 4.7 (#227)
+
+### Features
+
+- import quick-tsr to this repository ([bd42303](https://github.com/nrkno/sofie-timeline-state-resolver/commit/bd42303dc68054db530d10ccc590f63017b15afe))
+- refactor types to work better with typescript 4.7 ([#227](https://github.com/nrkno/sofie-timeline-state-resolver/issues/227)) ([abe499c](https://github.com/nrkno/sofie-timeline-state-resolver/commit/abe499ce1da13c2d7a68333f6b1dcc8c7ea71e97))
+- translations for actions ([df4cb43](https://github.com/nrkno/sofie-timeline-state-resolver/commit/df4cb43cf16a8e2ae34c1fe44801c5a327f9b01e))
+
+### Bug Fixes
+
+- add optional parameter to HTTPSend timelineObj: paramsType ([979dc61](https://github.com/nrkno/sofie-timeline-state-resolver/commit/979dc61748c4c371a8b17c7fd8c5929c69f747d9))
+- add support for Node 18 ([6242dd6](https://github.com/nrkno/sofie-timeline-state-resolver/commit/6242dd68f54a491aa71bdfd30b066550d6f7e90e))
+
+## [7.5.0-release47.3](https://github.com/nrkno/sofie-timeline-state-resolver/compare/7.5.0-release47.2...7.5.0-release47.3) (2022-11-07)
+
+## [7.5.0-release47.2](https://github.com/nrkno/sofie-timeline-state-resolver/compare/7.5.0-release47.1...7.5.0-release47.2) (2022-11-02)
+
+## [7.5.0-release47.1](https://github.com/nrkno/sofie-timeline-state-resolver/compare/2.3.0...7.5.0-release47.1) (2022-11-02)
+
+### Features
+
+- update for casparcg-connection rewrite ([5dfdd23](https://github.com/nrkno/sofie-timeline-state-resolver/commit/5dfdd2320caf89432d36513026c1259e2cf3d366))
+
+## [7.5.0-release47.0](https://github.com/nrkno/sofie-timeline-state-resolver/compare/7.3.0...7.5.0-release47.0) (2022-10-28)
+
+## [7.3.0](https://github.com/nrkno/sofie-timeline-state-resolver/compare/2.2.3...7.3.0) (2022-10-24)
+
+### Features
+
+- add Sofie Chef device ([4fac092](https://github.com/nrkno/sofie-timeline-state-resolver/commit/4fac092d6f896d1f5fa77c92b7f8a69339a75c55))
+
+### Bug Fixes
+
+- update SofieChef device API ([514d827](https://github.com/nrkno/sofie-timeline-state-resolver/commit/514d8271dd0d1fbce673154067d92f02a25e0b4b))
+
 ## [8.0.0-release49.0](https://github.com/nrkno/sofie-timeline-state-resolver/compare/8.0.0-release48.2...8.0.0-release49.0) (2023-03-21)
 
 ### ⚠ BREAKING CHANGES

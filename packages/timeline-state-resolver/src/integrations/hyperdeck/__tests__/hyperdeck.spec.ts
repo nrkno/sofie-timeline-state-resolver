@@ -12,7 +12,8 @@ import {
 	Mappings,
 	DeviceType,
 	TimelineContentTypeHyperdeck,
-	MappingHyperdeck,
+	Mapping,
+	SomeMappingHyperdeck,
 	MappingHyperdeckType,
 	TransportStatus,
 } from 'timeline-state-resolver-types'
@@ -20,10 +21,12 @@ import { MockTime } from '../../../__tests__/mockTime'
 import { ThreadedClass } from 'threadedclass'
 import { getMockCall } from '../../../__tests__/lib'
 
-const myChannelMapping0: MappingHyperdeck = {
+const myChannelMapping0: Mapping<SomeMappingHyperdeck> = {
 	device: DeviceType.HYPERDECK,
 	deviceId: 'hyperdeck0',
-	mappingType: MappingHyperdeckType.TRANSPORT,
+	options: {
+		mappingType: MappingHyperdeckType.Transport,
+	},
 }
 
 describe('Hyperdeck', () => {

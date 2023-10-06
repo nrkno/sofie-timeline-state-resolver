@@ -1,0 +1,12 @@
+{
+	"$schema": "../../../$schemas/mapping-schema.json",
+	"default": "transport",
+	"mappings": {
+		"transport": {
+			"type": "object",
+			"properties": {},
+			"required": [],
+			"additionalProperties": false
+		}
+	}
+}

@@ -1,19 +1,21 @@
 import { Conductor } from '../../../conductor'
-import { OSCMessageDevice } from '../../osc'
 import {
 	Mappings,
 	DeviceType,
 	TimelineContentTypeOSC,
 	OSCValueType,
 	TimelineContentOSCMessage,
-	OSCDeviceType,
 	TSRTimelineObj,
-	MappingMultiOSC,
+	MultiOSCDeviceType,
+	MappingMultiOscLayer,
+	Mapping,
+	MappingMultiOscType,
 } from 'timeline-state-resolver-types'
 import { MockTime } from '../../../__tests__/mockTime'
 import { literal } from '../../../devices/device'
 import { ThreadedClass } from 'threadedclass'
 import { getMockCall } from '../../../__tests__/lib'
+import { MultiOSCMessageDevice } from '..'
 
 // let nowActual = Date.now()
 describe('MultiOSC-Message', () => {
@@ -25,10 +27,13 @@ describe('MultiOSC-Message', () => {
 		const commandReceiver0: any = jest.fn(async () => {
 			return Promise.resolve()
 		})
-		const myLayerMapping0: MappingMultiOSC = {
+		const myLayerMapping0: Mapping<MappingMultiOscLayer> = {
 			device: DeviceType.MULTI_OSC,
 			deviceId: 'osc0',
-			connectionId: 'osc0',
+			options: {
+				mappingType: MappingMultiOscType.Layer,
+				connectionId: 'osc0',
+			},
 		}
 		const myLayerMapping: Mappings = {
 			myLayer0: myLayerMapping0,
@@ -48,7 +53,7 @@ describe('MultiOSC-Message', () => {
 						connectionId: 'osc0',
 						host: '127.0.0.1',
 						port: 80,
-						type: OSCDeviceType.UDP,
+						type: MultiOSCDeviceType.UDP,
 					},
 				],
 				timeBetweenCommands: 160,
@@ -59,7 +64,7 @@ describe('MultiOSC-Message', () => {
 		await mockTime.advanceTimeToTicks(10100)
 
 		const deviceContainer = myConductor.getDevice('osc0')
-		const device = deviceContainer!.device as ThreadedClass<OSCMessageDevice>
+		const device = deviceContainer!.device as ThreadedClass<MultiOSCMessageDevice>
 
 		// Check that no commands has been scheduled:
 		expect(await device.queue).toHaveLength(0)

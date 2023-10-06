@@ -9,8 +9,12 @@ import {
 	Mappings,
 	TSRTimelineContent,
 	Timeline,
+	ActionExecutionResult,
+	ActionExecutionResultCode,
+	TcpSendActions,
 } from 'timeline-state-resolver-types'
 import { DoOnTime, SendMode } from '../../devices/doOnTime'
+import { actionNotFoundMessage } from '../../lib'
 
 const TIMEOUT = 3000 // ms
 const RETRY_TIMEOUT = 5000 // ms
@@ -112,20 +116,69 @@ export class TCPSendDevice extends DeviceWithState<TSCSendState, DeviceOptionsTC
 		this._doOnTime.clearQueueAfter(clearAfterTime)
 	}
 
+	private async reconnect(): Promise<ActionExecutionResult> {
+		await this._disconnectTCPClient()
+		await this._connectTCPClient()
+
+		return {
+			result: ActionExecutionResultCode.Ok,
+		}
+	}
+
+	private async resetState(): Promise<ActionExecutionResult> {
+		this.clearStates()
+		this._doOnTime.clearQueueAfter(0)
+
+		return {
+			result: ActionExecutionResultCode.Ok,
+		}
+	}
+
+	private async sendCommand(payload: Record<string, any> | undefined): Promise<ActionExecutionResult> {
+		if (!payload) {
+			return {
+				result: ActionExecutionResultCode.Error,
+			}
+		}
+		if (!payload.message) {
+			return {
+				result: ActionExecutionResultCode.Error,
+			}
+		}
+
+		const time = this.getCurrentTime()
+		await this._commandReceiver(time, payload as TcpSendCommandContent, 'makeReady', '')
+
+		return {
+			result: ActionExecutionResultCode.Ok,
+		}
+	}
+	async executeAction(
+		actionId: TcpSendActions,
+		payload?: Record<string, any> | undefined
+	): Promise<ActionExecutionResult> {
+		switch (actionId) {
+			case TcpSendActions.Reconnect:
+				return this.reconnect()
+			case TcpSendActions.ResetState:
+				return this.resetState()
+			case TcpSendActions.SendTcpCommand:
+				return this.sendCommand(payload)
+			default:
+				return actionNotFoundMessage(actionId)
+		}
+	}
+
 	async makeReady(okToDestroyStuff?: boolean): Promise<void> {
 		if (okToDestroyStuff) {
-			await this._disconnectTCPClient()
-			await this._connectTCPClient()
-
-			const time = this.getCurrentTime()
+			await this.reconnect()
 
 			if (this._makeReadyDoesReset) {
-				this.clearStates()
-				this._doOnTime.clearQueueAfter(0)
+				await this.resetState()
 			}
 
 			for (const cmd of this._makeReadyCommands || []) {
-				await this._commandReceiver(time, cmd, 'makeReady', '')
+				await this.sendCommand(cmd)
 			}
 		}
 	}
@@ -199,7 +252,7 @@ export class TCPSendDevice extends DeviceWithState<TSCSendState, DeviceOptionsTC
 			this._doOnTime.queue(
 				time,
 				undefined,
-				(cmd: TCPSendCommand) => {
+				async (cmd: TCPSendCommand) => {
 					if (cmd.commandName === 'added' || cmd.commandName === 'changed') {
 						return this._commandReceiver(time, cmd.content, cmd.context, cmd.timelineObjId)
 					} else {

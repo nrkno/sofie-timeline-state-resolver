@@ -1,0 +1,49 @@
+{
+	"$schema": "https://json-schema.org/draft/2020-12/schema",
+	"title": "CasparCG Options",
+	"type": "object",
+	"properties": {
+		"host": {
+			"type": "string",
+			"description": "Host of CasparCG server",
+			"ui:title": "Host",
+			"default": ""
+		},
+		"port": {
+			"type": "integer",
+			"description": "Port of CasparCG server",
+			"ui:title": "Port",
+			"default": 5250
+		},
+		"launcherHost": {
+			"type": "string",
+			"ui:title": "Launcher Host",
+			"default": ""
+		},
+		"launcherPort": {
+			"type": "integer",
+			"ui:title": "Launcher Port",
+			"default": 8005
+		},
+		"launcherProcess": {
+			"type": "string",
+			"ui:title": "Launcher Process",
+			"default": "casparcg"
+		},
+		"fps": {
+			"type": "number",
+			"description": "fps used for all channels",
+			"ui:title": "Frame rate",
+			"default": 25
+		},
+		"retryInterval": {
+			"type": "number",
+			"description": "Interval (ms) for retrying to load media that previously failed. (-1 disables, 0 uses the default interval)",
+			"ui:title": "Media retry interval",
+			"ui:description": "Time between retries for media that could not be loaded on first try. Set to -1 to disable.",
+			"default": 0
+		}
+	},
+	"required": ["host"],
+	"additionalProperties": false
+}

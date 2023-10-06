@@ -2,28 +2,29 @@ import { setupVmixMock } from './vmixMock'
 import { Conductor } from '../../../conductor'
 import {
 	Mappings,
+	Mapping,
+	SomeMappingVmix,
 	DeviceType,
-	MappingVMix,
-	MappingVMixType,
 	TimelineContentTypeVMix,
 	VMixInputType,
 	VMixCommand,
-	MappingVMixAny,
 	VMixTransitionType,
-	MappingVMixOverlay,
-	MappingVMixRecording,
-	MappingVMixExternal,
-	MappingVMixStreaming,
-	MappingVMixOutput,
-	MappingVMixInput,
-	MappingVMixFadeToBlack,
-	MappingVMixFader,
-	MappingVMixScript,
+	MappingVmixType,
+	MappingVmixFader,
+	MappingVmixFadeToBlack,
+	MappingVmixOutput,
+	MappingVmixStreaming,
+	MappingVmixExternal,
+	MappingVmixRecording,
+	MappingVmixOverlay,
+	MappingVmixScript,
+	MappingVmixInput,
 	VmixActions,
 	ActionExecutionResultCode,
+	MappingVmixProgram,
 } from 'timeline-state-resolver-types'
 import { ThreadedClass } from 'threadedclass'
-import { VMixDevice } from '..'
+import { VMixDevice, CommandContext } from '..'
 import { MockTime } from '../../../__tests__/mockTime'
 import '../../../__tests__/lib'
 
@@ -70,10 +71,12 @@ describe('vMix', () => {
 			return device._defaultCommandReceiver(...args)
 		})
 
-		const myLayerMapping0: MappingVMix = {
+		const myLayerMapping0: Mapping<SomeMappingVmix> = {
 			device: DeviceType.VMIX,
-			mappingType: MappingVMixType.Input,
 			deviceId: 'myvmix',
+			options: {
+				mappingType: MappingVmixType.Input,
+			},
 		}
 		const myLayerMapping: Mappings = {
 			vmix_media0: myLayerMapping0,
@@ -150,7 +153,7 @@ describe('vMix', () => {
 					value: 'Video|C:/videos/My Clip.mp4',
 				},
 			}),
-			null,
+			CommandContext.None,
 			expect.any(String)
 		)
 		expect(commandReceiver0).toHaveBeenNthCalledWith(
@@ -163,7 +166,7 @@ describe('vMix', () => {
 					value: 'C:/videos/My Clip.mp4',
 				},
 			}),
-			null,
+			CommandContext.None,
 			expect.any(String)
 		)
 
@@ -196,7 +199,7 @@ describe('vMix', () => {
 					input: 'C:/videos/My Clip.mp4',
 				},
 			}),
-			null,
+			CommandContext.None,
 			expect.any(String)
 		)
 
@@ -218,7 +221,7 @@ describe('vMix', () => {
 					input: 'C:/videos/My Clip.mp4',
 				},
 			}),
-			null,
+			CommandContext.None,
 			expect.any(String)
 		)
 
@@ -238,10 +241,12 @@ describe('vMix', () => {
 			return device._defaultCommandReceiver(...args)
 		})
 
-		const myLayerMapping0: MappingVMixInput = {
+		const myLayerMapping0: Mapping<SomeMappingVmix> = {
 			device: DeviceType.VMIX,
-			mappingType: MappingVMixType.Input,
 			deviceId: 'myvmix',
+			options: {
+				mappingType: MappingVmixType.Input,
+			},
 		}
 		const myLayerMapping: Mappings = {
 			vmix_media0: myLayerMapping0,
@@ -328,7 +333,7 @@ describe('vMix', () => {
 					value: 'Video|C:/videos/My Clip.mp4',
 				},
 			}),
-			null,
+			CommandContext.None,
 			expect.any(String)
 		)
 		expect(commandReceiver0).toHaveBeenNthCalledWith(
@@ -341,7 +346,7 @@ describe('vMix', () => {
 					value: 'C:/videos/My Clip.mp4',
 				},
 			}),
-			null,
+			CommandContext.None,
 			expect.any(String)
 		)
 
@@ -375,7 +380,7 @@ describe('vMix', () => {
 					value: 10000,
 				},
 			}),
-			null,
+			CommandContext.None,
 			expect.any(String)
 		)
 		expect(commandReceiver0).toHaveBeenNthCalledWith(
@@ -387,7 +392,7 @@ describe('vMix', () => {
 					input: 'C:/videos/My Clip.mp4',
 				},
 			}),
-			null,
+			CommandContext.None,
 			expect.any(String)
 		)
 		expect(commandReceiver0).toHaveBeenNthCalledWith(
@@ -400,7 +405,7 @@ describe('vMix', () => {
 					value: 0.5,
 				},
 			}),
-			null,
+			CommandContext.None,
 			expect.any(String)
 		)
 		expect(commandReceiver0).toHaveBeenNthCalledWith(
@@ -413,7 +418,7 @@ describe('vMix', () => {
 					value: 123,
 				},
 			}),
-			null,
+			CommandContext.None,
 			expect.any(String)
 		)
 		expect(commandReceiver0).toHaveBeenNthCalledWith(
@@ -426,7 +431,7 @@ describe('vMix', () => {
 					value: 0.3,
 				},
 			}),
-			null,
+			CommandContext.None,
 			expect.any(String)
 		)
 		expect(commandReceiver0).toHaveBeenNthCalledWith(
@@ -439,7 +444,7 @@ describe('vMix', () => {
 					value: 1.2,
 				},
 			}),
-			null,
+			CommandContext.None,
 			expect.any(String)
 		)
 		expect(commandReceiver0).toHaveBeenNthCalledWith(
@@ -453,7 +458,7 @@ describe('vMix', () => {
 					value: 'G:/videos/My Other Clip.mp4',
 				},
 			}),
-			null,
+			CommandContext.None,
 			expect.any(String)
 		)
 		expect(commandReceiver0).toHaveBeenNthCalledWith(
@@ -467,7 +472,7 @@ describe('vMix', () => {
 					value: 5,
 				},
 			}),
-			null,
+			CommandContext.None,
 			expect.any(String)
 		)
 		expect(commandReceiver0).toHaveBeenNthCalledWith(
@@ -479,7 +484,7 @@ describe('vMix', () => {
 					input: 'C:/videos/My Clip.mp4',
 				},
 			}),
-			null,
+			CommandContext.None,
 			expect.any(String)
 		)
 
@@ -536,11 +541,13 @@ describe('vMix', () => {
 			return device._defaultCommandReceiver(...args)
 		})
 
-		const myLayerMapping0: MappingVMixInput = {
+		const myLayerMapping0: Mapping<SomeMappingVmix> = {
 			device: DeviceType.VMIX,
-			mappingType: MappingVMixType.Input,
 			deviceId: 'myvmix',
-			index: 2,
+			options: {
+				mappingType: MappingVmixType.Input,
+				index: '2',
+			},
 		}
 		const myLayerMapping: Mappings = {
 			vmix_media0: myLayerMapping0,
@@ -595,6 +602,7 @@ describe('vMix', () => {
 				content: {
 					deviceType: DeviceType.VMIX,
 					type: TimelineContentTypeVMix.INPUT,
+					restart: true,
 					loop: true,
 					playing: true,
 					overlays: {
@@ -611,11 +619,11 @@ describe('vMix', () => {
 			11000,
 			expect.objectContaining({
 				command: {
-					command: VMixCommand.LOOP_ON,
+					command: VMixCommand.RESTART_INPUT,
 					input: '2',
 				},
 			}),
-			null,
+			CommandContext.None,
 			expect.any(String)
 		)
 		expect(commandReceiver0).toHaveBeenNthCalledWith(
@@ -623,13 +631,11 @@ describe('vMix', () => {
 			11000,
 			expect.objectContaining({
 				command: {
-					command: VMixCommand.SET_INPUT_OVERLAY,
+					command: VMixCommand.LOOP_ON,
 					input: '2',
-					index: 1,
-					value: 'G:/videos/My Other Clip.mp4',
 				},
 			}),
-			null,
+			CommandContext.None,
 			expect.any(String)
 		)
 		expect(commandReceiver0).toHaveBeenNthCalledWith(
@@ -639,11 +645,11 @@ describe('vMix', () => {
 				command: {
 					command: VMixCommand.SET_INPUT_OVERLAY,
 					input: '2',
-					index: 3,
-					value: 5,
+					index: 1,
+					value: 'G:/videos/My Other Clip.mp4',
 				},
 			}),
-			null,
+			CommandContext.None,
 			expect.any(String)
 		)
 		expect(commandReceiver0).toHaveBeenNthCalledWith(
@@ -651,24 +657,39 @@ describe('vMix', () => {
 			11000,
 			expect.objectContaining({
 				command: {
+					command: VMixCommand.SET_INPUT_OVERLAY,
+					input: '2',
+					index: 3,
+					value: 5,
+				},
+			}),
+			CommandContext.None,
+			expect.any(String)
+		)
+		expect(commandReceiver0).toHaveBeenNthCalledWith(
+			5,
+			11000,
+			expect.objectContaining({
+				command: {
 					command: VMixCommand.PLAY_INPUT,
 					input: '2',
 				},
 			}),
-			null,
+			CommandContext.None,
 			expect.any(String)
 		)
 
-		expect(onFunction).toHaveBeenCalledTimes(4)
+		expect(onFunction).toHaveBeenCalledTimes(5)
 
-		expect(onFunction).toHaveBeenNthCalledWith(1, 'LoopOn', expect.stringContaining('Input=2'))
+		expect(onFunction).toHaveBeenNthCalledWith(1, 'Restart', expect.stringContaining('Input=2'))
+		expect(onFunction).toHaveBeenNthCalledWith(2, 'LoopOn', expect.stringContaining('Input=2'))
 		expect(onFunction).toHaveBeenNthCalledWith(
-			2,
+			3,
 			'SetMultiViewOverlay',
 			expect.stringContaining('Input=2&Value=1,G:/videos/My Other Clip.mp4')
 		)
-		expect(onFunction).toHaveBeenNthCalledWith(3, 'SetMultiViewOverlay', expect.stringContaining('Input=2&Value=3,5'))
-		expect(onFunction).toHaveBeenNthCalledWith(4, 'Play', expect.stringContaining('Input=2'))
+		expect(onFunction).toHaveBeenNthCalledWith(4, 'SetMultiViewOverlay', expect.stringContaining('Input=2&Value=3,5'))
+		expect(onFunction).toHaveBeenNthCalledWith(5, 'Play', expect.stringContaining('Input=2'))
 
 		clearMocks()
 		commandReceiver0.mockClear()
@@ -683,7 +704,7 @@ describe('vMix', () => {
 					input: '2',
 				},
 			}),
-			null,
+			CommandContext.None,
 			expect.any(String)
 		)
 		expect(commandReceiver0).toHaveBeenNthCalledWith(
@@ -695,7 +716,7 @@ describe('vMix', () => {
 					input: '2',
 				},
 			}),
-			null,
+			CommandContext.None,
 			expect.any(String)
 		)
 		expect(commandReceiver0).toHaveBeenNthCalledWith(
@@ -709,7 +730,7 @@ describe('vMix', () => {
 					value: '',
 				},
 			}),
-			null,
+			CommandContext.None,
 			expect.any(String)
 		)
 		expect(commandReceiver0).toHaveBeenNthCalledWith(
@@ -723,7 +744,7 @@ describe('vMix', () => {
 					value: '',
 				},
 			}),
-			null,
+			CommandContext.None,
 			expect.any(String)
 		)
 
@@ -747,21 +768,27 @@ describe('vMix', () => {
 			return device._defaultCommandReceiver(...args)
 		})
 
-		const myLayerMapping0: MappingVMixAny = {
+		const myLayerMapping0: Mapping<SomeMappingVmix> = {
 			device: DeviceType.VMIX,
-			mappingType: MappingVMixType.Input,
 			deviceId: 'myvmix',
+			options: {
+				mappingType: MappingVmixType.Input,
+			},
 		}
-		const myLayerMapping1: MappingVMixAny = {
+		const myLayerMapping1: Mapping<SomeMappingVmix> = {
 			device: DeviceType.VMIX,
-			mappingType: MappingVMixType.AudioChannel,
-			inputLayer: 'vmix_media0',
 			deviceId: 'myvmix',
+			options: {
+				mappingType: MappingVmixType.AudioChannel,
+				inputLayer: 'vmix_media0',
+			},
 		}
-		const myLayerMapping2: MappingVMixAny = {
+		const myLayerMapping2: Mapping<SomeMappingVmix> = {
 			device: DeviceType.VMIX,
-			mappingType: MappingVMixType.Program,
 			deviceId: 'myvmix',
+			options: {
+				mappingType: MappingVmixType.Program,
+			},
 		}
 		const myLayerMapping: Mappings = {
 			vmix_media0: myLayerMapping0,
@@ -876,7 +903,7 @@ describe('vMix', () => {
 					value: 'Video|C:/videos/My Clip.mp4',
 				},
 			}),
-			null,
+			CommandContext.None,
 			expect.any(String)
 		)
 		expect(commandReceiver0).toHaveBeenNthCalledWith(
@@ -889,7 +916,7 @@ describe('vMix', () => {
 					value: 'C:/videos/My Clip.mp4',
 				},
 			}),
-			null,
+			CommandContext.None,
 			expect.any(String)
 		)
 
@@ -918,20 +945,6 @@ describe('vMix', () => {
 			11000,
 			expect.objectContaining({
 				command: {
-					command: VMixCommand.AUDIO_VOLUME,
-					input: 'C:/videos/My Clip.mp4',
-					value: 25,
-					fade: 0,
-				},
-			}),
-			null,
-			expect.any(String)
-		)
-		expect(commandReceiver0).toHaveBeenNthCalledWith(
-			2,
-			11000,
-			expect.objectContaining({
-				command: {
 					command: VMixCommand.TRANSITION,
 					input: 'C:/videos/My Clip.mp4',
 					duration: 0,
@@ -939,7 +952,21 @@ describe('vMix', () => {
 					mix: 0,
 				},
 			}),
-			null,
+			CommandContext.None,
+			expect.any(String)
+		)
+		expect(commandReceiver0).toHaveBeenNthCalledWith(
+			2,
+			11000,
+			expect.objectContaining({
+				command: {
+					command: VMixCommand.AUDIO_VOLUME,
+					input: 'C:/videos/My Clip.mp4',
+					value: 25,
+					fade: 0,
+				},
+			}),
+			CommandContext.None,
 			expect.any(String)
 		)
 
@@ -947,13 +974,13 @@ describe('vMix', () => {
 
 		expect(onFunction).toHaveBeenNthCalledWith(
 			1,
-			'SetVolume',
-			expect.stringContaining('Input=C:/videos/My Clip.mp4&Value=25')
+			'Cut',
+			expect.stringContaining('Input=C:/videos/My Clip.mp4&Duration=0&Mix=0')
 		)
 		expect(onFunction).toHaveBeenNthCalledWith(
 			2,
-			'Cut',
-			expect.stringContaining('Input=C:/videos/My Clip.mp4&Duration=0&Mix=0')
+			'SetVolume',
+			expect.stringContaining('Input=C:/videos/My Clip.mp4&Value=25')
 		)
 
 		clearMocks()
@@ -972,7 +999,7 @@ describe('vMix', () => {
 					value: 'Video|G:/videos/My Other Clip.mp4',
 				},
 			}),
-			null,
+			CommandContext.None,
 			expect.any(String)
 		)
 		expect(commandReceiver0).toHaveBeenNthCalledWith(
@@ -985,25 +1012,11 @@ describe('vMix', () => {
 					value: 'G:/videos/My Other Clip.mp4',
 				},
 			}),
-			null,
+			CommandContext.None,
 			expect.any(String)
 		)
 		expect(commandReceiver0).toHaveBeenNthCalledWith(
 			3,
-			16000,
-			expect.objectContaining({
-				command: {
-					command: VMixCommand.AUDIO_VOLUME,
-					input: 'G:/videos/My Other Clip.mp4',
-					value: 25,
-					fade: 0,
-				},
-			}),
-			null,
-			expect.any(String)
-		)
-		expect(commandReceiver0).toHaveBeenNthCalledWith(
-			4,
 			16000,
 			expect.objectContaining({
 				command: {
@@ -1014,7 +1027,21 @@ describe('vMix', () => {
 					mix: 0,
 				},
 			}),
-			null,
+			CommandContext.None,
+			expect.any(String)
+		)
+		expect(commandReceiver0).toHaveBeenNthCalledWith(
+			4,
+			16000,
+			expect.objectContaining({
+				command: {
+					command: VMixCommand.AUDIO_VOLUME,
+					input: 'G:/videos/My Other Clip.mp4',
+					value: 25,
+					fade: 0,
+				},
+			}),
+			CommandContext.None,
 			expect.any(String)
 		)
 		expect(commandReceiver0).toHaveBeenNthCalledWith(
@@ -1026,7 +1053,7 @@ describe('vMix', () => {
 					input: 'C:/videos/My Clip.mp4',
 				},
 			}),
-			null,
+			CommandContext.None,
 			expect.any(String)
 		)
 
@@ -1044,13 +1071,13 @@ describe('vMix', () => {
 		)
 		expect(onFunction).toHaveBeenNthCalledWith(
 			3,
-			'SetVolume',
-			expect.stringContaining('Input=G:/videos/My Other Clip.mp4&Value=25')
+			'Cut',
+			expect.stringContaining('Input=G:/videos/My Other Clip.mp4&Duration=0&Mix=0')
 		)
 		expect(onFunction).toHaveBeenNthCalledWith(
 			4,
-			'Cut',
-			expect.stringContaining('Input=G:/videos/My Other Clip.mp4&Duration=0&Mix=0')
+			'SetVolume',
+			expect.stringContaining('Input=G:/videos/My Other Clip.mp4&Value=25')
 		)
 		expect(onFunction).toHaveBeenNthCalledWith(5, 'RemoveInput', expect.stringContaining('Input=C:/videos/My Clip.mp4'))
 
@@ -1067,11 +1094,13 @@ describe('vMix', () => {
 			return device._defaultCommandReceiver(...args)
 		})
 
-		const myLayerMapping0: MappingVMixAny = {
+		const myLayerMapping0: Mapping<SomeMappingVmix> = {
 			device: DeviceType.VMIX,
-			mappingType: MappingVMixType.AudioChannel,
-			index: '2',
 			deviceId: 'myvmix',
+			options: {
+				mappingType: MappingVmixType.AudioChannel,
+				index: '2',
+			},
 		}
 		const myLayerMapping: Mappings = {
 			vmix_audio0: myLayerMapping0,
@@ -1149,7 +1178,7 @@ describe('vMix', () => {
 					fade: 1337,
 				},
 			}),
-			null,
+			CommandContext.None,
 			expect.any(String)
 		)
 		expect(commandReceiver0).toHaveBeenNthCalledWith(
@@ -1162,7 +1191,7 @@ describe('vMix', () => {
 					value: 0.12,
 				},
 			}),
-			null,
+			CommandContext.None,
 			expect.any(String)
 		)
 		expect(commandReceiver0).toHaveBeenNthCalledWith(
@@ -1174,7 +1203,7 @@ describe('vMix', () => {
 					input: '2',
 				},
 			}),
-			null,
+			CommandContext.None,
 			expect.any(String)
 		)
 		expect(commandReceiver0).toHaveBeenNthCalledWith(
@@ -1187,7 +1216,7 @@ describe('vMix', () => {
 					value: 'A',
 				},
 			}),
-			null,
+			CommandContext.None,
 			expect.any(String)
 		)
 		expect(commandReceiver0).toHaveBeenNthCalledWith(
@@ -1200,7 +1229,7 @@ describe('vMix', () => {
 					value: 'C',
 				},
 			}),
-			null,
+			CommandContext.None,
 			expect.any(String)
 		)
 		expect(commandReceiver0).toHaveBeenNthCalledWith(
@@ -1213,7 +1242,7 @@ describe('vMix', () => {
 					value: 'F',
 				},
 			}),
-			null,
+			CommandContext.None,
 			expect.any(String)
 		)
 		expect(commandReceiver0).toHaveBeenNthCalledWith(
@@ -1226,7 +1255,7 @@ describe('vMix', () => {
 					value: 'M',
 				},
 			}),
-			null,
+			CommandContext.None,
 			expect.any(String)
 		)
 		expect(commandReceiver0).toHaveBeenNthCalledWith(
@@ -1238,7 +1267,7 @@ describe('vMix', () => {
 					input: '2',
 				},
 			}),
-			null,
+			CommandContext.None,
 			expect.any(String)
 		)
 
@@ -1268,7 +1297,7 @@ describe('vMix', () => {
 					input: '2',
 				},
 			}),
-			null,
+			CommandContext.None,
 			expect.any(String)
 		)
 		expect(commandReceiver0).toHaveBeenNthCalledWith(
@@ -1282,7 +1311,7 @@ describe('vMix', () => {
 					fade: 0,
 				},
 			}),
-			null,
+			CommandContext.None,
 			expect.any(String)
 		)
 		expect(commandReceiver0).toHaveBeenNthCalledWith(
@@ -1295,7 +1324,7 @@ describe('vMix', () => {
 					value: 0,
 				},
 			}),
-			null,
+			CommandContext.None,
 			expect.any(String)
 		)
 		expect(commandReceiver0).toHaveBeenNthCalledWith(
@@ -1307,7 +1336,7 @@ describe('vMix', () => {
 					input: '2',
 				},
 			}),
-			null,
+			CommandContext.None,
 			expect.any(String)
 		)
 		expect(commandReceiver0).toHaveBeenNthCalledWith(
@@ -1320,7 +1349,7 @@ describe('vMix', () => {
 					value: 'M',
 				},
 			}),
-			null,
+			CommandContext.None,
 			expect.any(String)
 		)
 		expect(commandReceiver0).toHaveBeenNthCalledWith(
@@ -1333,7 +1362,7 @@ describe('vMix', () => {
 					value: 'A',
 				},
 			}),
-			null,
+			CommandContext.None,
 			expect.any(String)
 		)
 		expect(commandReceiver0).toHaveBeenNthCalledWith(
@@ -1346,7 +1375,7 @@ describe('vMix', () => {
 					value: 'C',
 				},
 			}),
-			null,
+			CommandContext.None,
 			expect.any(String)
 		)
 		expect(commandReceiver0).toHaveBeenNthCalledWith(
@@ -1359,7 +1388,7 @@ describe('vMix', () => {
 					value: 'F',
 				},
 			}),
-			null,
+			CommandContext.None,
 			expect.any(String)
 		)
 
@@ -1390,27 +1419,35 @@ describe('vMix', () => {
 			return device._defaultCommandReceiver(...args)
 		})
 
-		const myLayerMapping0: MappingVMixAny = {
+		const myLayerMapping0: Mapping<SomeMappingVmix> = {
 			device: DeviceType.VMIX,
-			mappingType: MappingVMixType.Program,
 			deviceId: 'myvmix',
+			options: {
+				mappingType: MappingVmixType.Program,
+			},
 		}
-		const myLayerMapping1: MappingVMixAny = {
+		const myLayerMapping1: Mapping<SomeMappingVmix> = {
 			device: DeviceType.VMIX,
-			mappingType: MappingVMixType.Program,
-			index: 2,
 			deviceId: 'myvmix',
+			options: {
+				mappingType: MappingVmixType.Program,
+				index: 2,
+			},
 		}
-		const myLayerMapping2: MappingVMixAny = {
+		const myLayerMapping2: Mapping<SomeMappingVmix> = {
 			device: DeviceType.VMIX,
-			mappingType: MappingVMixType.Preview,
 			deviceId: 'myvmix',
+			options: {
+				mappingType: MappingVmixType.Preview,
+			},
 		}
-		const myLayerMapping3: MappingVMixAny = {
+		const myLayerMapping3: Mapping<SomeMappingVmix> = {
 			device: DeviceType.VMIX,
-			mappingType: MappingVMixType.Preview,
-			index: 2,
 			deviceId: 'myvmix',
+			options: {
+				mappingType: MappingVmixType.Preview,
+				index: 2,
+			},
 		}
 		const myLayerMapping: Mappings = {
 			vmix_program0: myLayerMapping0,
@@ -1561,7 +1598,7 @@ describe('vMix', () => {
 					mix: 0,
 				},
 			}),
-			null,
+			CommandContext.None,
 			expect.any(String)
 		)
 		expect(commandReceiver0).toHaveBeenNthCalledWith(
@@ -1576,7 +1613,7 @@ describe('vMix', () => {
 					mix: 1,
 				},
 			}),
-			null,
+			CommandContext.None,
 			expect.any(String)
 		)
 		expect(commandReceiver0).toHaveBeenNthCalledWith(
@@ -1589,7 +1626,7 @@ describe('vMix', () => {
 					mix: 0,
 				},
 			}),
-			null,
+			CommandContext.None,
 			expect.any(String)
 		)
 		expect(commandReceiver0).toHaveBeenNthCalledWith(
@@ -1602,7 +1639,7 @@ describe('vMix', () => {
 					mix: 1,
 				},
 			}),
-			null,
+			CommandContext.None,
 			expect.any(String)
 		)
 
@@ -1633,11 +1670,13 @@ describe('vMix', () => {
 			return device._defaultCommandReceiver(...args)
 		})
 
-		const myLayerMapping0: MappingVMixOverlay = {
+		const myLayerMapping0: Mapping<MappingVmixOverlay> = {
 			device: DeviceType.VMIX,
-			mappingType: MappingVMixType.Overlay,
-			index: 2,
 			deviceId: 'myvmix',
+			options: {
+				mappingType: MappingVmixType.Overlay,
+				index: 2,
+			},
 		}
 		const myLayerMapping: Mappings = {
 			vmix_overlay2: myLayerMapping0,
@@ -1713,7 +1752,7 @@ describe('vMix', () => {
 					value: 2,
 				},
 			}),
-			null,
+			CommandContext.None,
 			expect.any(String)
 		)
 
@@ -1736,7 +1775,7 @@ describe('vMix', () => {
 					value: 2,
 				},
 			}),
-			null,
+			CommandContext.None,
 			expect.any(String)
 		)
 
@@ -1760,10 +1799,12 @@ describe('vMix', () => {
 			return device._defaultCommandReceiver(...args)
 		})
 
-		const myLayerMapping0: MappingVMixRecording = {
+		const myLayerMapping0: Mapping<MappingVmixRecording> = {
 			device: DeviceType.VMIX,
-			mappingType: MappingVMixType.Recording,
 			deviceId: 'myvmix',
+			options: {
+				mappingType: MappingVmixType.Recording,
+			},
 		}
 		const myLayerMapping: Mappings = {
 			vmix_recording0: myLayerMapping0,
@@ -1837,7 +1878,7 @@ describe('vMix', () => {
 					command: VMixCommand.START_RECORDING,
 				},
 			}),
-			null,
+			CommandContext.None,
 			expect.any(String)
 		)
 
@@ -1859,7 +1900,7 @@ describe('vMix', () => {
 					command: VMixCommand.STOP_RECORDING,
 				},
 			}),
-			null,
+			CommandContext.None,
 			expect.any(String)
 		)
 
@@ -1883,10 +1924,12 @@ describe('vMix', () => {
 			return device._defaultCommandReceiver(...args)
 		})
 
-		const myLayerMapping0: MappingVMixExternal = {
+		const myLayerMapping0: Mapping<MappingVmixExternal> = {
 			device: DeviceType.VMIX,
-			mappingType: MappingVMixType.External,
 			deviceId: 'myvmix',
+			options: {
+				mappingType: MappingVmixType.External,
+			},
 		}
 		const myLayerMapping: Mappings = {
 			vmix_external0: myLayerMapping0,
@@ -1960,7 +2003,7 @@ describe('vMix', () => {
 					command: VMixCommand.START_EXTERNAL,
 				},
 			}),
-			null,
+			CommandContext.None,
 			expect.any(String)
 		)
 
@@ -1982,7 +2025,7 @@ describe('vMix', () => {
 					command: VMixCommand.STOP_EXTERNAL,
 				},
 			}),
-			null,
+			CommandContext.None,
 			expect.any(String)
 		)
 
@@ -2006,10 +2049,12 @@ describe('vMix', () => {
 			return device._defaultCommandReceiver(...args)
 		})
 
-		const myLayerMapping0: MappingVMixStreaming = {
+		const myLayerMapping0: Mapping<MappingVmixStreaming> = {
 			device: DeviceType.VMIX,
-			mappingType: MappingVMixType.Streaming,
 			deviceId: 'myvmix',
+			options: {
+				mappingType: MappingVmixType.Streaming,
+			},
 		}
 		const myLayerMapping: Mappings = {
 			vmix_streaming0: myLayerMapping0,
@@ -2083,7 +2128,7 @@ describe('vMix', () => {
 					command: VMixCommand.START_STREAMING,
 				},
 			}),
-			null,
+			CommandContext.None,
 			expect.any(String)
 		)
 
@@ -2105,7 +2150,7 @@ describe('vMix', () => {
 					command: VMixCommand.STOP_STREAMING,
 				},
 			}),
-			null,
+			CommandContext.None,
 			expect.any(String)
 		)
 
@@ -2129,11 +2174,13 @@ describe('vMix', () => {
 			return device._defaultCommandReceiver(...args)
 		})
 
-		const myLayerMapping0: MappingVMixOutput = {
+		const myLayerMapping0: Mapping<MappingVmixOutput> = {
 			device: DeviceType.VMIX,
-			mappingType: MappingVMixType.Output,
 			deviceId: 'myvmix',
-			index: 'Fullscreen',
+			options: {
+				mappingType: MappingVmixType.Output,
+				index: 'Fullscreen',
+			},
 		}
 		const myLayerMapping: Mappings = {
 			vmix_output0: myLayerMapping0,
@@ -2209,7 +2256,7 @@ describe('vMix', () => {
 					value: 'Preview',
 				},
 			}),
-			null,
+			CommandContext.None,
 			expect.any(String)
 		)
 
@@ -2233,7 +2280,7 @@ describe('vMix', () => {
 					value: 'Output',
 				},
 			}),
-			null,
+			CommandContext.None,
 			expect.any(String)
 		)
 
@@ -2257,11 +2304,13 @@ describe('vMix', () => {
 			return device._defaultCommandReceiver(...args)
 		})
 
-		const myLayerMapping0: MappingVMixOutput = {
+		const myLayerMapping0: Mapping<MappingVmixOutput> = {
 			device: DeviceType.VMIX,
-			mappingType: MappingVMixType.Output,
 			deviceId: 'myvmix',
-			index: 'Fullscreen',
+			options: {
+				mappingType: MappingVmixType.Output,
+				index: 'Fullscreen',
+			},
 		}
 		const myLayerMapping: Mappings = {
 			vmix_output0: myLayerMapping0,
@@ -2339,7 +2388,7 @@ describe('vMix', () => {
 					input: 2,
 				},
 			}),
-			null,
+			CommandContext.None,
 			expect.any(String)
 		)
 
@@ -2363,7 +2412,7 @@ describe('vMix', () => {
 					value: 'Output',
 				},
 			}),
-			null,
+			CommandContext.None,
 			expect.any(String)
 		)
 
@@ -2387,10 +2436,12 @@ describe('vMix', () => {
 			return device._defaultCommandReceiver(...args)
 		})
 
-		const myLayerMapping0: MappingVMixFadeToBlack = {
+		const myLayerMapping0: Mapping<MappingVmixFadeToBlack> = {
 			device: DeviceType.VMIX,
-			mappingType: MappingVMixType.FadeToBlack,
 			deviceId: 'myvmix',
+			options: {
+				mappingType: MappingVmixType.FadeToBlack,
+			},
 		}
 		const myLayerMapping: Mappings = {
 			vmix_ftb0: myLayerMapping0,
@@ -2464,7 +2515,7 @@ describe('vMix', () => {
 					command: VMixCommand.FADE_TO_BLACK,
 				},
 			}),
-			null,
+			CommandContext.None,
 			expect.any(String)
 		)
 
@@ -2486,7 +2537,7 @@ describe('vMix', () => {
 					command: VMixCommand.FADE_TO_BLACK,
 				},
 			}),
-			null,
+			CommandContext.None,
 			expect.any(String)
 		)
 
@@ -2510,10 +2561,12 @@ describe('vMix', () => {
 			return device._defaultCommandReceiver(...args)
 		})
 
-		const myLayerMapping0: MappingVMixFader = {
+		const myLayerMapping0: Mapping<MappingVmixFader> = {
 			device: DeviceType.VMIX,
-			mappingType: MappingVMixType.Fader,
 			deviceId: 'myvmix',
+			options: {
+				mappingType: MappingVmixType.Fader,
+			},
 		}
 		const myLayerMapping: Mappings = {
 			vmix_fader0: myLayerMapping0,
@@ -2588,7 +2641,7 @@ describe('vMix', () => {
 					value: 126,
 				},
 			}),
-			null,
+			CommandContext.None,
 			expect.any(String)
 		)
 
@@ -2611,7 +2664,7 @@ describe('vMix', () => {
 					value: 0,
 				},
 			}),
-			null,
+			CommandContext.None,
 			expect.any(String)
 		)
 
@@ -2635,10 +2688,12 @@ describe('vMix', () => {
 			return device._defaultCommandReceiver(...args)
 		})
 
-		const myLayerMapping0: MappingVMixScript = {
+		const myLayerMapping0: Mapping<MappingVmixScript> = {
 			device: DeviceType.VMIX,
-			mappingType: MappingVMixType.Script,
 			deviceId: 'myvmix',
+			options: {
+				mappingType: MappingVmixType.Script,
+			},
 		}
 		const myLayerMapping: Mappings = {
 			vmix_ss0: myLayerMapping0,
@@ -2713,7 +2768,7 @@ describe('vMix', () => {
 					value: 'myscript',
 				},
 			}),
-			null,
+			CommandContext.None,
 			expect.any(String)
 		)
 
@@ -2737,10 +2792,12 @@ describe('vMix', () => {
 			return device._defaultCommandReceiver(...args)
 		})
 
-		const myLayerMapping0: MappingVMixScript = {
+		const myLayerMapping0: Mapping<MappingVmixScript> = {
 			device: DeviceType.VMIX,
-			mappingType: MappingVMixType.Script,
 			deviceId: 'myvmix',
+			options: {
+				mappingType: MappingVmixType.Script,
+			},
 		}
 		const myLayerMapping: Mappings = {
 			vmix_ss0: myLayerMapping0,
@@ -2815,7 +2872,7 @@ describe('vMix', () => {
 					value: 'myscript',
 				},
 			}),
-			null,
+			CommandContext.None,
 			expect.any(String)
 		)
 
@@ -2835,7 +2892,7 @@ describe('vMix', () => {
 					value: 'myscript',
 				},
 			}),
-			null,
+			CommandContext.None,
 			expect.any(String)
 		)
 
@@ -2859,10 +2916,12 @@ describe('vMix', () => {
 			return device._defaultCommandReceiver(...args)
 		})
 
-		const myLayerMapping0: MappingVMixScript = {
+		const myLayerMapping0: Mapping<MappingVmixScript> = {
 			device: DeviceType.VMIX,
-			mappingType: MappingVMixType.Script,
 			deviceId: 'myvmix',
+			options: {
+				mappingType: MappingVmixType.Script,
+			},
 		}
 		const myLayerMapping: Mappings = {
 			vmix_ss0: myLayerMapping0,
@@ -2935,10 +2994,12 @@ describe('vMix', () => {
 			return device._defaultCommandReceiver(...args)
 		})
 
-		const myLayerMapping0: MappingVMixScript = {
+		const myLayerMapping0: Mapping<MappingVmixScript> = {
 			device: DeviceType.VMIX,
-			mappingType: MappingVMixType.Script,
 			deviceId: 'myvmix',
+			options: {
+				mappingType: MappingVmixType.Script,
+			},
 		}
 		const myLayerMapping: Mappings = {
 			vmix_ss0: myLayerMapping0,
@@ -3033,10 +3094,12 @@ describe('vMix', () => {
 			return device._defaultCommandReceiver(...args)
 		})
 
-		const myLayerMapping0: MappingVMixScript = {
+		const myLayerMapping0: Mapping<MappingVmixScript> = {
 			device: DeviceType.VMIX,
-			mappingType: MappingVMixType.Script,
 			deviceId: 'myvmix',
+			options: {
+				mappingType: MappingVmixType.Script,
+			},
 		}
 		const myLayerMapping: Mappings = {
 			vmix_ss0: myLayerMapping0,
@@ -3131,11 +3194,13 @@ describe('vMix', () => {
 			return device._defaultCommandReceiver(...args)
 		})
 
-		const myLayerMapping0: MappingVMixInput = {
+		const myLayerMapping0: Mapping<MappingVmixInput> = {
 			device: DeviceType.VMIX,
-			mappingType: MappingVMixType.Input,
 			deviceId: 'myvmix',
-			index: 1,
+			options: {
+				mappingType: MappingVmixType.Input,
+				index: '1',
+			},
 		}
 		const myLayerMapping: Mappings = {
 			vmix_lra0: myLayerMapping0,
@@ -3210,7 +3275,7 @@ describe('vMix', () => {
 					input: '1',
 				},
 			}),
-			null,
+			CommandContext.None,
 			expect.any(String)
 		)
 		expect(commandReceiver0).toHaveBeenNthCalledWith(
@@ -3222,7 +3287,7 @@ describe('vMix', () => {
 					input: '1',
 				},
 			}),
-			null,
+			CommandContext.None,
 			expect.any(String)
 		)
 
@@ -3247,11 +3312,13 @@ describe('vMix', () => {
 			return device._defaultCommandReceiver(...args)
 		})
 
-		const myLayerMapping0: MappingVMixInput = {
+		const myLayerMapping0: Mapping<MappingVmixInput> = {
 			device: DeviceType.VMIX,
-			mappingType: MappingVMixType.Input,
 			deviceId: 'myvmix',
-			index: 1,
+			options: {
+				mappingType: MappingVmixType.Input,
+				index: '1',
+			},
 		}
 		const myLayerMapping: Mappings = {
 			vmix_la0: myLayerMapping0,
@@ -3327,7 +3394,7 @@ describe('vMix', () => {
 					value: 'C:\\foo.mov',
 				},
 			}),
-			null,
+			CommandContext.None,
 			expect.any(String)
 		)
 
@@ -3338,6 +3405,227 @@ describe('vMix', () => {
 			'ListAdd',
 			expect.stringContaining(`Input=1&Value=${encodeURIComponent('C:\\foo.mov')}`)
 		)
+
+		clearMocks()
+		commandReceiver0.mockClear()
+
+		await myConductor.destroy()
+
+		expect(errorHandler).toHaveBeenCalledTimes(0)
+		expect(deviceErrorHandler).toHaveBeenCalledTimes(0)
+	})
+
+	test('Input command ordering using _isInUse', async () => {
+		let device: any = undefined
+		const commandReceiver0 = jest.fn((...args) => {
+			// pipe through the command
+			return device._defaultCommandReceiver(...args)
+		})
+
+		const myLayerMapping0: Mapping<MappingVmixInput> = {
+			device: DeviceType.VMIX,
+			deviceId: 'myvmix',
+			options: {
+				mappingType: MappingVmixType.Input,
+				index: '1',
+			},
+		}
+		const myLayerMapping1: Mapping<MappingVmixProgram> = {
+			device: DeviceType.VMIX,
+			deviceId: 'myvmix',
+			options: {
+				mappingType: MappingVmixType.Program,
+				index: 1,
+			},
+		}
+		const myLayerMapping2: Mapping<MappingVmixInput> = {
+			device: DeviceType.VMIX,
+			deviceId: 'myvmix',
+			options: {
+				mappingType: MappingVmixType.Input,
+				index: '2',
+			},
+		}
+		const myLayerMapping: Mappings = {
+			vmix_ico0: myLayerMapping0,
+			vmix_ico1: myLayerMapping1,
+			vmix_ico2: myLayerMapping2,
+		}
+
+		const myConductor = new Conductor({
+			multiThreadedResolver: false,
+			getCurrentTime: mockTime.getCurrentTime,
+		})
+		const errorHandler = jest.fn((...args) => console.log('Error in device', ...args))
+		myConductor.on('error', errorHandler)
+
+		await myConductor.init()
+
+		await runPromise(
+			myConductor.addDevice('myvmix', {
+				type: DeviceType.VMIX,
+				options: {
+					host: '127.0.0.1',
+					port: 9999,
+				},
+				commandReceiver: commandReceiver0,
+			}),
+			mockTime
+		)
+
+		const deviceContainer = myConductor.getDevice('myvmix')
+		device = deviceContainer!.device as ThreadedClass<VMixDevice>
+		const deviceErrorHandler = jest.fn((...args) => console.log('Error in device', ...args))
+		device.on('error', deviceErrorHandler)
+		device.on('commandError', deviceErrorHandler)
+
+		myConductor.setTimelineAndMappings([], myLayerMapping)
+
+		expect(mockTime.getCurrentTime()).toEqual(10050)
+		await mockTime.advanceTimeToTicks(10100)
+
+		// get initial info
+		expect(onXML).toHaveBeenCalledTimes(1)
+
+		clearMocks()
+		commandReceiver0.mockClear()
+
+		// Check that no commands has been scheduled:
+		expect(await device.queue).toHaveLength(0)
+
+		myConductor.setTimelineAndMappings([
+			{
+				id: 'ico3',
+				enable: {
+					start: 0,
+				},
+				layer: 'vmix_ico1',
+				content: {
+					deviceType: DeviceType.VMIX,
+					type: TimelineContentTypeVMix.PROGRAM,
+					input: 1,
+				},
+			},
+			{
+				id: 'ico0',
+				enable: {
+					start: 11000,
+					duration: 5000,
+				},
+				layer: 'vmix_ico0',
+				content: {
+					deviceType: DeviceType.VMIX,
+					type: TimelineContentTypeVMix.INPUT,
+					listFilePaths: [],
+				},
+			},
+			{
+				id: 'ico1',
+				enable: {
+					start: 11000,
+					duration: 5000,
+				},
+				layer: 'vmix_ico1',
+				content: {
+					deviceType: DeviceType.VMIX,
+					type: TimelineContentTypeVMix.PROGRAM,
+					input: 2,
+				},
+			},
+			{
+				id: 'ico2',
+				enable: {
+					start: 11000,
+					duration: 5000,
+				},
+				layer: 'vmix_ico2',
+				content: {
+					deviceType: DeviceType.VMIX,
+					type: TimelineContentTypeVMix.INPUT,
+					overlays: { 1: 3 },
+				},
+			},
+		])
+
+		await mockTime.advanceTimeToTicks(11300)
+
+		expect(commandReceiver0).toHaveBeenCalledTimes(5)
+		expect(commandReceiver0).toHaveBeenNthCalledWith(
+			1,
+			10105,
+			expect.objectContaining({
+				command: {
+					command: VMixCommand.TRANSITION,
+					effect: VMixTransitionType.Cut,
+					input: 1,
+					duration: 0,
+					mix: 0,
+				},
+			}),
+			CommandContext.None,
+			expect.any(String)
+		)
+		expect(commandReceiver0).toHaveBeenNthCalledWith(
+			2,
+			11000,
+			expect.objectContaining({
+				command: {
+					command: VMixCommand.SET_INPUT_OVERLAY,
+					input: '2',
+					value: 3,
+					index: 1,
+				},
+			}),
+			CommandContext.None,
+			expect.any(String)
+		)
+		expect(commandReceiver0).toHaveBeenNthCalledWith(
+			3,
+			11000,
+			expect.objectContaining({
+				command: {
+					command: VMixCommand.TRANSITION,
+					effect: VMixTransitionType.Cut,
+					input: 2,
+					duration: 0,
+					mix: 0,
+				},
+			}),
+			CommandContext.None,
+			expect.any(String)
+		)
+		expect(commandReceiver0).toHaveBeenNthCalledWith(
+			4,
+			11000,
+			expect.objectContaining({
+				command: {
+					command: VMixCommand.PAUSE_INPUT,
+					input: '1',
+				},
+			}),
+			CommandContext.None,
+			expect.any(String)
+		)
+		expect(commandReceiver0).toHaveBeenNthCalledWith(
+			5,
+			11000,
+			expect.objectContaining({
+				command: {
+					command: VMixCommand.LIST_REMOVE_ALL,
+					input: '1',
+				},
+			}),
+			CommandContext.None,
+			expect.any(String)
+		)
+
+		expect(onFunction).toHaveBeenCalledTimes(5)
+
+		expect(onFunction).toHaveBeenNthCalledWith(1, 'Cut', expect.stringContaining('Input=1'))
+		expect(onFunction).toHaveBeenNthCalledWith(2, 'SetMultiViewOverlay', expect.stringContaining('Input=2&Value=1,3'))
+		expect(onFunction).toHaveBeenNthCalledWith(3, 'Cut', expect.stringContaining('Input=2'))
+		expect(onFunction).toHaveBeenNthCalledWith(4, 'Pause', expect.stringContaining('Input=1'))
+		expect(onFunction).toHaveBeenNthCalledWith(5, 'ListRemoveAll', expect.stringContaining('Input=1'))
 
 		clearMocks()
 		commandReceiver0.mockClear()

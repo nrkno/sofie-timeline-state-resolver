@@ -1,29 +1,4 @@
-import { Mapping } from './mapping'
 import { DeviceType } from '.'
-
-export interface MappingCasparCG extends Mapping {
-	device: DeviceType.CASPARCG
-	channel: number
-	layer: number
-	previewWhenNotOnAir?: boolean
-}
-
-export interface CasparCGOptions {
-	/** Host of CasparCG server */
-	host: string
-	/** Port of CasparCG Server */
-	port?: number
-
-	/** whether to use the CasparCG-SCHEDULE command to run future commands, or the internal (backwards-compatible) command queue */
-	useScheduling?: boolean
-	/** Interval (ms) for retrying to load media that previously failed. (-1 disables, 0 uses the default interval) */
-	retryInterval?: number
-	/* fps used for all channels */
-	fps?: number
-
-	launcherHost?: string
-	launcherPort?: number
-}
 
 export enum TimelineContentTypeCasparCg { //  CasparCG-state
 	MEDIA = 'media',

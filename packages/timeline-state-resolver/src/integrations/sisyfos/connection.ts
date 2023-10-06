@@ -31,7 +31,7 @@ export class SisyfosApi extends EventEmitter {
 
 		this._oscClient = new osc.UDPPort({
 			localAddress: '0.0.0.0',
-			localPort: 0, // Random port
+			localPort: 0,
 			remoteAddress: this.host,
 			remotePort: this.port,
 			metadata: true,
@@ -246,7 +246,9 @@ export class SisyfosApi extends EventEmitter {
 		if (address[0] === 'state') {
 			if (address[1] === 'full') {
 				this._state = this.parseSisyfosState(message)
-				this._labelToChannel = new Map(Object.entries(this._state.channels).map((v) => [v[1].label, Number(v[0])]))
+				this._labelToChannel = new Map(
+					Object.entries<SisyfosChannel>(this._state.channels).map((v) => [v[1].label, Number(v[0])])
+				)
 				this.emit('initialized')
 			} else if (address[1] === 'ch' && this._state) {
 				const ch = address[2]

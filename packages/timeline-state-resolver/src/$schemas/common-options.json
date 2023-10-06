@@ -1,0 +1,29 @@
+{
+	"$schema": "https://json-schema.org/draft/2020-12/schema",
+	"title": "Device Common Options",
+	"type": "object",
+	"properties": {
+		"debug": {
+			"type": "boolean",
+			"ui:title": "Activate debug logging for device",
+			"default": false
+		},
+		"debugState": {
+			"type": "boolean",
+			"ui:title": "Activate State Debugging",
+			"default": false
+		},
+		"disable": {
+			"type": "boolean",
+			"ui:title": "Disable",
+			"default": false
+		},
+		"threadUsage": {
+			"type": "number",
+			"ui:title": "Thread Usage",
+			"default": 0
+		}
+	},
+	"required": [],
+	"additionalProperties": false
+}

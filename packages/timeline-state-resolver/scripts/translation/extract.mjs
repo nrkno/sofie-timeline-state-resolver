@@ -5,6 +5,7 @@
  *
  * Translations in already existing .po files will be preserved.
  */
+/* eslint-disable */
 import { format, parse } from 'path'
 import { promises } from 'fs'
 const { readFile } = promises
@@ -135,7 +136,7 @@ async function extract() {
 	let extractionStats = { locales: [] }
 
 	await pipeline(
-		vfs.src([`${entryPointRoot}/**/*.ts`, `${entryPointRoot}/**/$schemas/actions.json`]),
+		vfs.src([`${entryPointRoot}/**/*.ts`, `${entryPointRoot}/**/$schemas/*.json`]),
 		new i18nTransform(Object.assign({}, extractOptions, { defaultNamespace: entryPointName })).on(
 			'warning:variable',
 			console.log

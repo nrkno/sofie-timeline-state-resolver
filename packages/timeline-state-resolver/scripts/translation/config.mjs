@@ -19,7 +19,7 @@ export const extractOptions = {
 		ts: [
 			{
 				lexer: 'JavascriptLexer',
-				functions: ['t'], // Array of functions to match
+				functions: ['t', 'generateTranslation'], // Array of functions to match
 			},
 		],
 		json: [

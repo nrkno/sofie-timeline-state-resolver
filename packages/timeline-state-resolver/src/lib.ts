@@ -1,9 +1,12 @@
+import { klona } from 'klona'
 import {
 	Datastore,
 	Timeline,
 	TimelineDatastoreReferencesContent,
 	TSRTimelineContent,
 	ITranslatableMessage,
+	ActionExecutionResultCode,
+	TimelineDatastoreReferences,
 } from 'timeline-state-resolver-types'
 import * as _ from 'underscore'
 
@@ -239,24 +242,28 @@ export function fillStateFromDatastore(state: Timeline.TimelineState<TSRTimeline
 	// clone the state so we can freely manipulate it
 	const filledState: typeof state = JSON.parse(JSON.stringify(state))
 
-	Object.values(filledState.layers).forEach(({ content, instance }) => {
-		if ((content as TimelineDatastoreReferencesContent).$references) {
-			Object.entries((content as TimelineDatastoreReferencesContent).$references || {}).forEach(([path, ref]) => {
-				const datastoreVal = datastore[ref.datastoreKey]
+	Object.values<Timeline.ResolvedTimelineObjectInstance<TSRTimelineContent>>(filledState.layers).forEach(
+		({ content, instance }) => {
+			if ((content as TimelineDatastoreReferencesContent).$references) {
+				Object.entries<TimelineDatastoreReferences[0]>(
+					(content as TimelineDatastoreReferencesContent).$references || {}
+				).forEach(([path, ref]) => {
+					const datastoreVal = datastore[ref.datastoreKey]
 
-				if (datastoreVal !== undefined) {
-					if (ref.overwrite) {
-						// only use the datastore value if it was changed after the tl obj started
-						if ((instance.originalStart || instance.start || 0) <= datastoreVal.modified) {
+					if (datastoreVal !== undefined) {
+						if (ref.overwrite) {
+							// only use the datastore value if it was changed after the tl obj started
+							if ((instance.originalStart || instance.start || 0) <= datastoreVal.modified) {
+								set(content, path, datastoreVal.value)
+							}
+						} else {
 							set(content, path, datastoreVal.value)
 						}
-					} else {
-						set(content, path, datastoreVal.value)
 					}
-				}
-			})
+				})
+			}
 		}
-	})
+	)
 
 	return filledState
 }
@@ -268,6 +275,21 @@ export function t(key: string, args?: { [k: string]: any }): ITranslatableMessag
 	}
 }
 
+export function generateTranslation(key: string): string {
+	return key
+}
+
 export function assertNever(_never: never): void {
 	// Do nothing. This is a type guard
+}
+
+export function actionNotFoundMessage(id: string) {
+	return {
+		result: ActionExecutionResultCode.Error,
+		response: t('Action "{{id}}" not found', { id }),
+	}
+}
+
+export function cloneDeep<T>(input: T): T {
+	return klona(input)
 }

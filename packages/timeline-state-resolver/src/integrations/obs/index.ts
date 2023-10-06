@@ -9,16 +9,14 @@ import {
 	DeviceOptionsOBS,
 	OBSOptions,
 	Mappings,
-	MappingOBS,
+	SomeMappingObs,
 	TimelineContentTypeOBS,
 	OBSRequest as OBSRequestName,
-	MappingOBSType,
-	MappingOBSMute,
-	MappingOBSSceneItemRender,
-	MappingOBSSourceSettings,
 	ResolvedTimelineObjectInstanceExtended,
 	TSRTimelineContent,
 	Timeline,
+	Mapping,
+	MappingObsType,
 } from 'timeline-state-resolver-types'
 
 interface OBSRequest {
@@ -281,9 +279,9 @@ export class OBSDevice extends DeviceWithState<OBSState, DeviceOptionsOBSInterna
 		const sortedLayers = _.sortBy(
 			_.map(state.layers, (tlObject, layerName) => {
 				const tlObjectExt = tlObject as ResolvedTimelineObjectInstanceExtended
-				let mapping: MappingOBS = mappings[layerName] as MappingOBS
+				let mapping = mappings[layerName] as Mapping<SomeMappingObs> | undefined
 				if (!mapping && tlObjectExt.isLookahead && tlObjectExt.lookaheadForLayer) {
-					mapping = mappings[tlObjectExt.lookaheadForLayer] as MappingOBS
+					mapping = mappings[tlObjectExt.lookaheadForLayer] as Mapping<SomeMappingObs> | undefined
 				}
 				return {
 					layerName,
@@ -291,13 +289,13 @@ export class OBSDevice extends DeviceWithState<OBSState, DeviceOptionsOBSInterna
 					mapping,
 				}
 			}).sort((a, b) => a.layerName.localeCompare(b.layerName)),
-			(o) => o.mapping.mappingType
+			(o) => o.mapping?.options?.mappingType
 		)
 
 		_.each(sortedLayers, ({ tlObject, mapping }) => {
 			if (mapping && tlObject.content.deviceType === DeviceType.OBS) {
-				switch (mapping.mappingType) {
-					case MappingOBSType.CurrentScene:
+				switch (mapping.options.mappingType) {
+					case MappingObsType.CurrentScene:
 						if (tlObject.content.type === TimelineContentTypeOBS.CURRENT_SCENE) {
 							if ((tlObject as ResolvedTimelineObjectInstanceExtended).isLookahead) {
 								deviceState.previewScene = tlObject.content.sceneName
@@ -306,7 +304,7 @@ export class OBSDevice extends DeviceWithState<OBSState, DeviceOptionsOBSInterna
 							}
 						}
 						break
-					case MappingOBSType.CurrentTransition:
+					case MappingObsType.CurrentTransition:
 						if (tlObject.content.type === TimelineContentTypeOBS.CURRENT_TRANSITION) {
 							if ((tlObject as ResolvedTimelineObjectInstanceExtended).isLookahead) {
 								// CurrentTransiton can't be looked ahead, same below
@@ -316,7 +314,7 @@ export class OBSDevice extends DeviceWithState<OBSState, DeviceOptionsOBSInterna
 							deviceState.currentTransition = tlObject.content.transitionName
 						}
 						break
-					case MappingOBSType.Recording:
+					case MappingObsType.Recording:
 						if (tlObject.content.type === TimelineContentTypeOBS.RECORDING) {
 							if ((tlObject as ResolvedTimelineObjectInstanceExtended).isLookahead) {
 								// CurrentTransiton can't be looked ahead, same below
@@ -326,7 +324,7 @@ export class OBSDevice extends DeviceWithState<OBSState, DeviceOptionsOBSInterna
 							deviceState.recording = tlObject.content.on
 						}
 						break
-					case MappingOBSType.Streaming:
+					case MappingObsType.Streaming:
 						if (tlObject.content.type === TimelineContentTypeOBS.STREAMING) {
 							if ((tlObject as ResolvedTimelineObjectInstanceExtended).isLookahead) {
 								// CurrentTransiton can't be looked ahead, same below
@@ -336,26 +334,26 @@ export class OBSDevice extends DeviceWithState<OBSState, DeviceOptionsOBSInterna
 							deviceState.streaming = tlObject.content.on
 						}
 						break
-					case MappingOBSType.Mute:
+					case MappingObsType.Mute:
 						if (tlObject.content.type === TimelineContentTypeOBS.MUTE) {
 							if ((tlObject as ResolvedTimelineObjectInstanceExtended).isLookahead) {
 								// CurrentTransiton can't be looked ahead, same below
 								break
 							}
 
-							const source = (mapping as MappingOBSMute).source
+							const source = mapping.options.source
 							deviceState.muted[source] = tlObject.content.mute
 						}
 						break
-					case MappingOBSType.SceneItemRender:
+					case MappingObsType.SceneItemRender:
 						if (tlObject.content.type === TimelineContentTypeOBS.SCENE_ITEM_RENDER) {
 							if ((tlObject as ResolvedTimelineObjectInstanceExtended).isLookahead) {
 								// CurrentTransiton can't be looked ahead, same below
 								break
 							}
 
-							const source = (mapping as MappingOBSSceneItemRender).source
-							const sceneName = (mapping as MappingOBSSceneItemRender).sceneName
+							const source = mapping.options.source
+							const sceneName = mapping.options.sceneName
 							deepExtend(deviceState.scenes, {
 								[sceneName]: {
 									sceneItems: {
@@ -367,14 +365,14 @@ export class OBSDevice extends DeviceWithState<OBSState, DeviceOptionsOBSInterna
 							})
 						}
 						break
-					case MappingOBSType.SourceSettings:
+					case MappingObsType.SourceSettings:
 						if (tlObject.content.type === TimelineContentTypeOBS.SOURCE_SETTINGS) {
 							if ((tlObject as ResolvedTimelineObjectInstanceExtended).isLookahead) {
 								// CurrentTransiton can't be looked ahead, same below
 								break
 							}
 
-							const source = (mapping as MappingOBSSourceSettings).source
+							const source = mapping.options.source
 
 							deepExtend(deviceState.sources, {
 								[source]: {
@@ -544,8 +542,8 @@ export class OBSDevice extends DeviceWithState<OBSState, DeviceOptionsOBSInterna
 
 		const oldScenes = oldState.scenes
 		const newScenes = newState.scenes
-		Object.entries(newScenes).forEach(([sceneName, scene]) => {
-			Object.entries(scene.sceneItems).forEach(([source, newSceneItemProperties]) => {
+		Object.entries<OBSScene>(newScenes).forEach(([sceneName, scene]) => {
+			Object.entries<OBSSceneItem>(scene.sceneItems).forEach(([source, newSceneItemProperties]) => {
 				const oldSceneItemProperties = oldScenes[sceneName]?.sceneItems[source]
 				if (
 					(oldSceneItemProperties as any) === undefined ||
@@ -575,7 +573,7 @@ export class OBSDevice extends DeviceWithState<OBSState, DeviceOptionsOBSInterna
 
 		const oldSources = oldState.sources
 		const newSources = newState.sources
-		Object.entries(newSources).forEach(([sourceName, source]) => {
+		Object.entries<OBSSourceState>(newSources).forEach(([sourceName, source]) => {
 			if (!_.isEqual(source.sourceSettings, oldSources[sourceName]?.sourceSettings)) {
 				commands.push({
 					command: {
@@ -649,9 +647,11 @@ export class OBSState {
 		[key: string]: OBSScene
 	}
 	sources: {
-		[key: string]: {
-			sourceType: string
-			sourceSettings: object
-		}
+		[key: string]: OBSSourceState
 	}
+}
+
+interface OBSSourceState {
+	sourceType: string
+	sourceSettings: object
 }

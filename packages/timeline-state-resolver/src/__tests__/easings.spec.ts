@@ -15,7 +15,7 @@ describe('easings', () => {
 		Bounce: ['In', 'Out', 'InOut'],
 	}
 
-	Object.entries(easings).forEach((a) => {
+	Object.entries<string[]>(easings).forEach((a) => {
 		const easingName = a[0]
 		const subTypes = a[1]
 

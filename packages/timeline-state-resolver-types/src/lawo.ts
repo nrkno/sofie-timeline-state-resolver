@@ -1,8 +1,8 @@
-import { Mapping } from './mapping'
 import { DeviceType } from '.'
+// import {EmberParameterType} from './generated/lawo'
 
 export type EmberValue = number | string | boolean | Buffer | null
-export enum EmberParameterType {
+enum ParameterType {
 	Null = 'NULL',
 	Integer = 'INTEGER',
 	Real = 'REAL',
@@ -13,46 +13,10 @@ export enum EmberParameterType {
 	Octets = 'OCTETS',
 }
 
-export interface MappingLawo extends Mapping {
-	device: DeviceType.LAWO
-	mappingType: MappingLawoType
-	identifier?: string
-	emberType?: EmberParameterType
-	priority?: number
-}
-export enum MappingLawoType {
-	SOURCE = 'source',
-	SOURCES = 'sources', // TODO - naming? can this also be a full path or trigger val?
-	FULL_PATH = 'fullpath',
-	TRIGGER_VALUE = 'triggerValue',
-}
-export enum LawoDeviceMode {
-	R3lay,
-	Ruby,
-	RubyManualRamp,
-	MC2,
-	Manual,
-}
-export interface LawoOptions {
-	setValueFn?: SetLawoValueFn
-	host?: string
-	port?: number
-
-	deviceMode: LawoDeviceMode
-
-	faderInterval?: number
-
-	/** Manual mode only: */
-	sourcesPath?: string
-	dbPropertyName?: string
-	rampMotorFunctionPath?: string
-	faderThreshold?: number
-}
-export type SetLawoValueFn = (command: LawoCommand, timelineObjId: string, logCommand?: boolean) => Promise<any>
 export interface LawoCommand {
 	path: string
 	value: EmberValue
-	valueType: EmberParameterType
+	valueType: ParameterType
 	key: string
 	identifier: string
 	type: TimelineContentTypeLawo

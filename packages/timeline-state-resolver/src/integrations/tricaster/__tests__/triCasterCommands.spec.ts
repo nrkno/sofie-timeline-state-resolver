@@ -23,6 +23,16 @@ describe('serializeToWebSocketMessage', () => {
 		expect(message).toEqual('name=main_a_row_named_input&value=input3')
 	})
 
+	test('serializes command with additional properties', () => {
+		const message = serializeToWebSocketMessage({
+			name: CommandName.SET_OUTPUT_CONFIG_VIDEO_SOURCE,
+			output_index: 2,
+			me_clean: false,
+		})
+
+		expect(message).toEqual('name=set_output_config_video_source&output_index=2&me_clean=false')
+	})
+
 	test('order of properties does not affect the output', () => {
 		const message = serializeToWebSocketMessage({
 			value: 'input3',

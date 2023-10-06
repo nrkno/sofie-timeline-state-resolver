@@ -4,16 +4,16 @@ import {
 	DeviceType,
 	SingularLiveOptions,
 	TimelineContentTypeSingularLive,
-	MappingSingularLive,
+	SomeMappingSingularLive,
 	DeviceOptionsSingularLive,
-	SingularCompositionAnimation,
 	SingularCompositionControlNode,
 	Mappings,
 	TSRTimelineContent,
 	Timeline,
+	Mapping,
 } from 'timeline-state-resolver-types'
 import { DoOnTime, SendMode } from '../../devices/doOnTime'
-import * as request from 'request'
+import got from 'got'
 
 export interface DeviceOptionsSingularLiveInternal extends DeviceOptionsSingularLive {
 	commandReceiver?: CommandReceiver
@@ -25,21 +25,13 @@ export type CommandReceiver = (
 	timelineObjId: string
 ) => Promise<any>
 
-export interface SingularLiveAnimationCommandContent extends SingularLiveCommandContent {
-	animation: {
-		action: 'play' | 'jump'
-		to: 'In' | 'Out'
-	}
-}
-
 export interface SingularLiveControlNodeCommandContent extends SingularLiveCommandContent {
-	controlNode: {
-		payload: { [key: string]: string }
-	}
+	state?: string
+	payload?: { [controlNodeField: string]: string }
 }
 
 export interface SingularLiveCommandContent {
-	compositionName: string
+	subCompositionName: string
 }
 
 interface Command {
@@ -53,7 +45,6 @@ export type CommandContext = string
 
 export interface SingularComposition {
 	timelineObjId: string
-	animation: SingularCompositionAnimation
 	controlNode: SingularCompositionControlNode
 }
 
@@ -63,7 +54,7 @@ export interface SingularLiveState {
 	}
 }
 
-const SINGULAR_LIVE_API = 'https://app.singular.live/apiv1/control/'
+const SINGULAR_LIVE_API = 'https://app.singular.live/apiv2/controlapps/'
 
 /**
  * This is a Singular.Live device, it talks to a Singular.Live App Instance using an Access Token
@@ -176,7 +167,7 @@ export class SingularLiveDevice extends DeviceWithState<SingularLiveState, Devic
 		const singularState: SingularLiveState = this._getDefaultState()
 
 		_.each(state.layers, (tlObject, layerName: string) => {
-			const mapping: MappingSingularLive | undefined = newMappings[layerName] as MappingSingularLive
+			const mapping = newMappings[layerName] as Mapping<SomeMappingSingularLive>
 			if (
 				mapping &&
 				mapping.device === DeviceType.SINGULAR_LIVE &&
@@ -186,11 +177,9 @@ export class SingularLiveDevice extends DeviceWithState<SingularLiveState, Devic
 				const content = tlObject.content
 
 				if (content.type === TimelineContentTypeSingularLive.COMPOSITION) {
-					singularState.compositions[mapping.compositionName] = {
+					singularState.compositions[mapping.options.compositionName] = {
 						timelineObjId: tlObject.id,
-
 						controlNode: content.controlNode,
-						animation: content.animation || { action: 'play' },
 					}
 				}
 			}
@@ -239,24 +228,10 @@ export class SingularLiveDevice extends DeviceWithState<SingularLiveState, Devic
 				commands.push({
 					timelineObjId: composition.timelineObjId,
 					commandName: 'added',
-					content: literal<SingularLiveAnimationCommandContent>({
-						compositionName: compositionName,
-						animation: {
-							action: composition.animation.action,
-							to: 'In',
-						},
-					}),
-					context: `added: ${composition.timelineObjId}`,
-					layer: compositionName,
-				})
-				commands.push({
-					timelineObjId: composition.timelineObjId,
-					commandName: 'added',
 					content: literal<SingularLiveControlNodeCommandContent>({
-						compositionName: compositionName,
-						controlNode: {
-							payload: composition.controlNode.payload,
-						},
+						subCompositionName: compositionName,
+						state: composition.controlNode.state,
+						payload: composition.controlNode.payload,
 					}),
 					context: `added: ${composition.timelineObjId}`,
 					layer: compositionName,
@@ -269,10 +244,9 @@ export class SingularLiveDevice extends DeviceWithState<SingularLiveState, Devic
 						timelineObjId: composition.timelineObjId,
 						commandName: 'changed',
 						content: literal<SingularLiveControlNodeCommandContent>({
-							compositionName: compositionName,
-							controlNode: {
-								payload: composition.controlNode.payload,
-							},
+							subCompositionName: compositionName,
+							state: composition.controlNode.state,
+							payload: composition.controlNode.payload,
 						}),
 						context: `changed: ${composition.timelineObjId}  (previously: ${oldComposition.timelineObjId})`,
 						layer: compositionName,
@@ -288,12 +262,9 @@ export class SingularLiveDevice extends DeviceWithState<SingularLiveState, Devic
 				commands.push({
 					timelineObjId: composition.timelineObjId,
 					commandName: 'removed',
-					content: literal<SingularLiveAnimationCommandContent>({
-						compositionName: compositionName,
-						animation: {
-							action: composition.animation.action,
-							to: 'Out',
-						},
+					content: literal<SingularLiveControlNodeCommandContent>({
+						subCompositionName: compositionName,
+						state: 'Out',
 					}),
 					context: `removed: ${composition.timelineObjId}`,
 					layer: compositionName,
@@ -302,9 +273,9 @@ export class SingularLiveDevice extends DeviceWithState<SingularLiveState, Devic
 		})
 		return commands
 			.sort((a, b) =>
-				(a.content as any).controlNode && !(b.content as any).controlNode
+				(a.content as any).state && !(b.content as any).state
 					? 1
-					: !(a.content as any).controlNode && (b.content as any).controlNode
+					: !(a.content as any).state && (b.content as any).state
 					? -1
 					: 0
 			)
@@ -323,28 +294,29 @@ export class SingularLiveDevice extends DeviceWithState<SingularLiveState, Devic
 		}
 		this.emitDebug(cwc)
 
-		const url = SINGULAR_LIVE_API + this._accessToken
+		const url = SINGULAR_LIVE_API + this._accessToken + '/control'
 
 		return new Promise<void>((resolve, reject) => {
-			const handleResponse = (error, response) => {
-				if (error) {
-					this.emit('error', `SingularLive.response error ${cmd.compositionName} (${context}`, error)
+			got
+				.patch(url, { json: [cmd] })
+				.then((response) => {
+					if (response.statusCode === 200) {
+						this.emitDebug(
+							`SingularLive: ${cmd.subCompositionName}: Good statuscode response on url "${url}": ${response.statusCode} (${context})`
+						)
+						resolve()
+					} else {
+						this.emit(
+							'warning',
+							`SingularLive: ${cmd.subCompositionName}: Bad statuscode response on url "${url}": ${response.statusCode} (${context})`
+						)
+						resolve()
+					}
+				})
+				.catch((error) => {
+					this.emit('error', `SingularLive.response error ${cmd.subCompositionName} (${context}`, error)
 					reject(error)
-				} else if (response.statusCode === 200) {
-					this.emitDebug(
-						`SingularLive: ${cmd.compositionName}: Good statuscode response on url "${url}": ${response.statusCode} (${context})`
-					)
-					resolve()
-				} else {
-					this.emit(
-						'warning',
-						`SingularLive: ${cmd.compositionName}: Bad statuscode response on url "${url}": ${response.statusCode} (${context})`
-					)
-					resolve()
-				}
-			}
-
-			request.put(url, { json: [cmd] }, handleResponse)
+				})
 		}).catch((error) => {
 			this.emit('commandError', error, cwc)
 		})

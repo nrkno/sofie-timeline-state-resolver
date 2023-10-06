@@ -1,4 +1,4 @@
-import { Conductor, DeviceType } from '../src/' // from 'timeline-state-resolver
+import { Conductor, DeviceType, MappingCasparCGType, Mappings } from '../src/' // from 'timeline-state-resolver
 import { TimelineContentTypeCasparCg } from '../../timeline-state-resolver-types/src' // from 'timeline-state-resolver-types'
 
 // Initialize TSR:
@@ -13,19 +13,21 @@ const a = async function () {
 	await tsr.addDevice('casparcg0', {
 		type: DeviceType.CASPARCG,
 		options: {
-			// useScheduling: true,
 			host: '127.0.0.1',
 			// port: 5250
 		},
 	})
 
 	// Setup mappings from layers to outputs:
-	const mappings = {
+	const mappings: Mappings = {
 		layer0: {
 			device: DeviceType.CASPARCG,
 			deviceId: 'casparcg0',
-			channel: 1,
-			layer: 10,
+			options: {
+				mappingType: MappingCasparCGType.Layer,
+				channel: 1,
+				layer: 10,
+			},
 		},
 	}
 

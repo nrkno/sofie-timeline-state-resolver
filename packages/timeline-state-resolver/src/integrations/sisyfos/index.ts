@@ -5,7 +5,7 @@ import {
 	DeviceOptionsSisyfos,
 	Mappings,
 	SisyfosOptions,
-	MappingSisyfos,
+	SomeMappingSisyfos,
 	MappingSisyfosType,
 	TimelineContentSisyfosAny,
 	TimelineContentTypeSisyfos,
@@ -14,6 +14,10 @@ import {
 	TSRTimelineContent,
 	Timeline,
 	ResolvedTimelineObjectInstanceExtended,
+	Mapping,
+	SisyfosActions,
+	ActionExecutionResult,
+	ActionExecutionResultCode,
 } from 'timeline-state-resolver-types'
 
 import { DoOnTime, SendMode } from '../../devices/doOnTime'
@@ -27,7 +31,7 @@ import {
 	ValuesCommand,
 } from './connection'
 import Debug from 'debug'
-import { startTrace, endTrace } from '../../lib'
+import { startTrace, endTrace, actionNotFoundMessage } from '../../lib'
 const debug = Debug('timeline-state-resolver:sisyfos')
 
 export interface DeviceOptionsSisyfosInternal extends DeviceOptionsSisyfos {
@@ -182,39 +186,51 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 		}
 	}
 	async makeReady(okToDestroyStuff?: boolean): Promise<void> {
-		return this._makeReadyInner(okToDestroyStuff)
+		if (okToDestroyStuff) return this._makeReadyInner(okToDestroyStuff)
 	}
 
-	private async _makeReadyInner(okToDestroyStuff?: boolean, resync?: boolean): Promise<void> {
-		if (okToDestroyStuff) {
-			if (resync) {
-				this._resyncing = true
-				// If state is still not reinitialised afer 5 seconds, we may have a problem.
-				setTimeout(() => (this._resyncing = false), 5000)
-			}
-
-			this._doOnTime.clearQueueNowAndAfter(this.getCurrentTime())
-			this._sisyfos.reInitialize()
-			this._sisyfos.on('initialized', () => {
-				if (resync) {
-					this._resyncing = false
-					const targetState = this.getState(this.getCurrentTime())
-
-					if (targetState) {
-						this._handleStateInner(
-							this.getDeviceState(false),
-							targetState.state,
-							targetState.time,
-							this.getCurrentTime()
-						)
-					}
-				} else {
-					this.setState(this.getDeviceState(false), this.getCurrentTime())
-					this.emit('resetResolver')
-				}
-			})
+	private async _makeReadyInner(resync?: boolean): Promise<void> {
+		if (resync) {
+			this._resyncing = true
+			// If state is still not reinitialised afer 5 seconds, we may have a problem.
+			setTimeout(() => (this._resyncing = false), 5000)
 		}
+
+		this._doOnTime.clearQueueNowAndAfter(this.getCurrentTime())
+		this._sisyfos.reInitialize()
+		this._sisyfos.on('initialized', () => {
+			if (resync) {
+				this._resyncing = false
+				const targetState = this.getState(this.getCurrentTime())
+
+				if (targetState) {
+					this._handleStateInner(this.getDeviceState(false), targetState.state, targetState.time, this.getCurrentTime())
+				}
+			} else {
+				this.setState(this.getDeviceState(false), this.getCurrentTime())
+				this.emit('resetResolver')
+			}
+		})
+
 		return Promise.resolve()
+	}
+
+	async executeAction(
+		actionId: SisyfosActions,
+		_payload?: Record<string, any> | undefined
+	): Promise<ActionExecutionResult> {
+		switch (actionId) {
+			case SisyfosActions.Reinit:
+				return this._makeReadyInner()
+					.then(() => ({
+						result: ActionExecutionResultCode.Ok,
+					}))
+					.catch(() => ({
+						result: ActionExecutionResultCode.Error,
+					}))
+			default:
+				return actionNotFoundMessage(actionId)
+		}
 	}
 
 	get canConnect(): boolean {
@@ -233,9 +249,9 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 		if (!deviceStateFromAPI) deviceStateFromAPI = deviceState
 
 		const channels = mappings
-			? Object.values(mappings || {})
-					.filter((m: MappingSisyfos) => m.mappingType === MappingSisyfosType.CHANNEL)
-					.map((m: MappingSisyfosChannel) => m.channel)
+			? Object.values<Mapping<unknown>>(mappings || {})
+					.filter((m: Mapping<SomeMappingSisyfos>) => m.options.mappingType === MappingSisyfosType.Channel)
+					.map((m: Mapping<MappingSisyfosChannel>) => m.options.channel)
 			: Object.keys(deviceStateFromAPI.channels)
 
 		for (const ch of channels) {
@@ -277,16 +293,16 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 		const deviceState: SisyfosState = this.getDeviceState(true, mappings)
 
 		// Set labels to layer names
-		for (const mapping of Object.values(mappings)) {
-			const sisyfosMapping = mapping as MappingSisyfos
+		for (const mapping of Object.values<Mapping<unknown>>(mappings)) {
+			const sisyfosMapping = mapping as Mapping<SomeMappingSisyfos>
 
-			if (sisyfosMapping.mappingType !== MappingSisyfosType.CHANNEL) continue
+			if (sisyfosMapping.options.mappingType !== MappingSisyfosType.Channel) continue
 
-			if (!sisyfosMapping.setLabelToLayerName) continue
+			if (!sisyfosMapping.options.setLabelToLayerName) continue
 
 			if (!sisyfosMapping.layerName) continue
 
-			let channel = deviceState.channels[sisyfosMapping.channel] as SisyfosChannel | undefined
+			let channel = deviceState.channels[sisyfosMapping.options.channel] as SisyfosChannel | undefined
 
 			if (!channel) {
 				channel = this.getDefaultStateChannel()
@@ -294,7 +310,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 
 			channel.label = sisyfosMapping.layerName
 
-			deviceState.channels[sisyfosMapping.channel] = channel
+			deviceState.channels[sisyfosMapping.options.channel] = channel
 		}
 
 		// Preparation: put all channels that comes from the state in an array:
@@ -307,23 +323,23 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 
 		_.each(state.layers, (tlObject, layerName) => {
 			const layer = tlObject as ResolvedTimelineObjectInstanceExtended<any>
-			let foundMapping = mappings[layerName] as MappingSisyfos | undefined
+			let foundMapping = mappings[layerName] as Mapping<SomeMappingSisyfos> | undefined
 
 			const content = tlObject.content as TimelineContentSisyfosAny
 
 			// Allow resync without valid channel mapping
-			if (layer.content.resync !== undefined) {
-				deviceState.resync = deviceState.resync || layer.content.resync
+			if ('resync' in content && content.resync !== undefined) {
+				deviceState.resync = deviceState.resync || content.resync
 			}
 
 			// Allow retrigger without valid channel mapping
-			if (layer.content.triggerValue !== undefined) {
-				deviceState.triggerValue = layer.content.triggerValue
+			if ('triggerValue' in content && content.triggerValue !== undefined) {
+				deviceState.triggerValue = content.triggerValue
 			}
 
 			// if the tlObj is specifies to load to PST the original Layer is used to resolve the mapping
 			if (!foundMapping && layer.isLookahead && layer.lookaheadForLayer) {
-				foundMapping = mappings[layer.lookaheadForLayer] as MappingSisyfos | undefined
+				foundMapping = mappings[layer.lookaheadForLayer] as Mapping<SomeMappingSisyfos> | undefined
 			}
 
 			if (foundMapping && foundMapping.deviceId === this.deviceId) {
@@ -333,29 +349,29 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 				if (content.type === 'sisyfos') content.type = TimelineContentTypeSisyfos.CHANNEL
 
 				debug(
-					`Mapping ${foundMapping.layerName}: ${foundMapping.mappingType}, ${
-						(foundMapping as any).channel || (foundMapping as any).label
+					`Mapping ${foundMapping.layerName}: ${foundMapping.options.mappingType}, ${
+						(foundMapping.options as any).channel || (foundMapping.options as any).label
 					}`
 				)
 
 				if (
-					foundMapping.mappingType === MappingSisyfosType.CHANNEL &&
+					foundMapping.options.mappingType === MappingSisyfosType.Channel &&
 					content.type === TimelineContentTypeSisyfos.CHANNEL
 				) {
 					newChannels.push({
 						...content,
-						channel: foundMapping.channel,
+						channel: foundMapping.options.channel,
 						overridePriority: content.overridePriority || 0,
 						isLookahead: layer.isLookahead || false,
 						tlObjId: layer.id,
 					})
 					deviceState.resync = deviceState.resync || content.resync || false
 				} else if (
-					foundMapping.mappingType === MappingSisyfosType.CHANNEL_BY_LABEL &&
+					foundMapping.options.mappingType === MappingSisyfosType.ChannelByLabel &&
 					content.type === TimelineContentTypeSisyfos.CHANNEL
 				) {
-					const ch = this._sisyfos.getChannelByLabel(foundMapping.label)
-					debug(`Channel by label ${foundMapping.label}(${ch}): ${content.isPgm}`)
+					const ch = this._sisyfos.getChannelByLabel(foundMapping.options.label)
+					debug(`Channel by label ${foundMapping.options.label}(${ch}): ${content.isPgm}`)
 					if (ch === undefined) return
 
 					newChannels.push({
@@ -367,22 +383,25 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 					})
 					deviceState.resync = deviceState.resync || content.resync || false
 				} else if (
-					foundMapping.mappingType === MappingSisyfosType.CHANNELS &&
+					foundMapping.options.mappingType === MappingSisyfosType.Channels &&
 					content.type === TimelineContentTypeSisyfos.CHANNELS
 				) {
 					_.each(content.channels, (channel) => {
-						const referencedMapping = mappings[channel.mappedLayer] as MappingSisyfos | undefined
-						if (referencedMapping && referencedMapping.mappingType === MappingSisyfosType.CHANNEL) {
+						const referencedMapping = mappings[channel.mappedLayer] as Mapping<SomeMappingSisyfos> | undefined
+						if (referencedMapping && referencedMapping.options.mappingType === MappingSisyfosType.Channel) {
 							newChannels.push({
 								...channel,
-								channel: referencedMapping.channel,
+								channel: referencedMapping.options.channel,
 								overridePriority: content.overridePriority || 0,
 								isLookahead: layer.isLookahead || false,
 								tlObjId: layer.id,
 							})
-						} else if (referencedMapping && referencedMapping.mappingType === MappingSisyfosType.CHANNEL_BY_LABEL) {
-							const ch = this._sisyfos.getChannelByLabel(referencedMapping.label)
-							debug(`Channel by label ${referencedMapping.label}(${ch}): ${channel.isPgm}`)
+						} else if (
+							referencedMapping &&
+							referencedMapping.options.mappingType === MappingSisyfosType.ChannelByLabel
+						) {
+							const ch = this._sisyfos.getChannelByLabel(referencedMapping.options.label)
+							debug(`Channel by label ${referencedMapping.options.label}(${ch}): ${channel.isPgm}`)
 							if (ch === undefined) return
 
 							newChannels.push({
@@ -574,7 +593,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 		this.emitDebug(cwc)
 
 		if (cmd.type === SisyfosCommandType.RESYNC) {
-			return this._makeReadyInner(true, true)
+			return this._makeReadyInner(true)
 		} else {
 			try {
 				this._sisyfos.send(cmd)

@@ -1,6 +1,6 @@
 import * as WebSocket from 'ws'
 import { EventEmitter } from 'events'
-import * as request from 'request'
+import got, { GotRequestFunction } from 'got'
 import * as _ from 'underscore'
 
 /**
@@ -561,30 +561,44 @@ export class Pharos extends EventEmitter {
 					}
 				})
 			}
-			const handleResponse: request.RequestCallback = (error, response: request.Response) => {
-				if (error) {
+			let httpReq: GotRequestFunction
+			switch (method) {
+				case 'POST':
+					httpReq = got.post
+					break
+
+				case 'PUT':
+					httpReq = got.put
+					break
+
+				case 'GET':
+					httpReq = got.get
+					break
+
+				case 'DELETE':
+					httpReq = got.delete
+					break
+
+				default:
+					reject(`Unknown method: "${method}"`)
+					return
+			}
+
+			httpReq(url, { json: data })
+				.then((response) => {
+					if (response.statusCode === 400) {
+						reject(new Error(`Error: [400]: Bad request`))
+						// TODO: Maybe handle other response-codes?
+					} else if (response.statusCode >= 200 && response.statusCode <= 299) {
+						resolve(response.body)
+					} else {
+						reject(new Error(`Error: StatusCode: [${response.statusCode}]`))
+					}
+				})
+				.catch((error) => {
 					this.emit('error', new Error(`Error ${method}: ${error}`))
 					reject(error)
-				} else if (response.statusCode === 400) {
-					reject(new Error(`Error: [400]: Bad request`))
-					// TODO: Maybe handle other response-codes?
-				} else if (response.statusCode >= 200 && response.statusCode <= 299) {
-					resolve(response.body)
-				} else {
-					reject(new Error(`Error: StatusCode: [${response.statusCode}]`))
-				}
-			}
-			if (method === 'POST') {
-				request.post(url, { json: data }, handleResponse)
-			} else if (method === 'PUT') {
-				request.put(url, { json: data }, handleResponse)
-			} else if (method === 'GET') {
-				request.get(url, { json: data }, handleResponse)
-			} else if (method === 'DELETE') {
-				request.delete(url, { json: data }, handleResponse)
-			} else {
-				reject(`Unknown method: "${method}"`)
-			}
+				})
 		})
 	}
 

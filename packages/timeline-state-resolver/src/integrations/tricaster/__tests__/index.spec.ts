@@ -2,10 +2,11 @@ import { EventEmitter } from 'eventemitter3'
 import { MockTime } from '../../../__tests__/mockTime'
 import {
 	DeviceType,
-	MappingTriCaster,
-	MappingTriCasterType,
+	SomeMappingTricaster,
+	MappingTricasterType,
 	TimelineContentTypeTriCaster,
 	TimelineContentTriCasterME,
+	Mapping,
 } from 'timeline-state-resolver-types'
 import { TriCasterDevice } from '..'
 import { TriCasterConnectionEvents, TriCasterConnection } from '../triCasterConnection'
@@ -59,11 +60,13 @@ describe('TriCasterDevice', () => {
 
 		expect(MOCK_SEND).not.toHaveBeenCalled()
 		const mappings = {
-			tc_me0_0: literal<MappingTriCaster>({
+			tc_me0_0: literal<Mapping<SomeMappingTricaster>>({
 				device: DeviceType.TRICASTER,
-				mappingType: MappingTriCasterType.ME,
-				name: 'main',
 				deviceId: 'tc0',
+				options: {
+					mappingType: MappingTricasterType.ME,
+					name: 'main',
+				},
 			}),
 		}
 
@@ -99,7 +102,7 @@ describe('TriCasterDevice', () => {
 		)
 		await mockTime.advanceTimeToTicks(12010)
 		expect(MOCK_SEND).toHaveBeenCalledTimes(4)
-		expect(MOCK_SEND).toHaveBeenNthCalledWith(1, { target: 'main', name: '_select_index', value: 5 })
+		expect(MOCK_SEND).toHaveBeenNthCalledWith(1, { target: 'main', name: '_set_mix_effect_bin_index', value: 5 })
 		expect(MOCK_SEND).toHaveBeenNthCalledWith(2, { target: 'main', name: '_speed', value: 20 })
 		expect(MOCK_SEND).toHaveBeenNthCalledWith(3, { target: 'main_b', name: '_row_named_input', value: 'input2' })
 		expect(MOCK_SEND).toHaveBeenNthCalledWith(4, { target: 'main', name: '_auto' })

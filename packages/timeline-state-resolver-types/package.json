@@ -1,6 +1,6 @@
 {
 	"name": "timeline-state-resolver-types",
-	"version": "8.0.0-release49.0",
+	"version": "9.0.0-release50.6",
 	"description": "Have timeline, control stuff",
 	"main": "dist/index.js",
 	"typings": "dist/index.d.ts",
@@ -45,20 +45,19 @@
 		}
 	],
 	"scripts": {
-		"test": "yarn lint && yarn unit",
-		"unit": "jest",
-		"unitci": "jest --coverage",
-		"build": "rimraf dist && yarn build:main",
-		"build:main": "tsc -p tsconfig.build.json",
-		"cov": "jest --coverage && yarn cov-open",
-		"cov-open": "open-cli coverage/lcov-report/index.html",
-		"validate:dependencies": "yarn audit --groups dependencies && yarn license-validate",
-		"validate:dev-dependencies": "yarn audit --groups devDependencies",
-		"lint:raw": "eslint --ext .ts --ext .js --ext .tsx --ext .jsx --ignore-pattern dist",
-		"lint": "yarn lint:raw .",
-		"lint-fix": "yarn lint --fix",
-		"license-validate": "yarn sofie-licensecheck",
-		"precommit": "lint-staged"
+		"test": "run lint && run unit",
+		"unit": "run -T jest",
+		"unitci": "run -T jest --coverage",
+		"build": "run -T rimraf dist && run build:main",
+		"build:main": "run -T tsc -p tsconfig.build.json",
+		"cov": "run -T jest --coverage && run cov-open",
+		"cov-open": "run -T open-cli coverage/lcov-report/index.html",
+		"validate:dependencies": "yarn npm  audit --environment production && yarn license-validate",
+		"validate:dev-dependencies": "yarn npm audit --environment development",
+		"lint:raw": "run -T eslint --ext .ts --ext .js --ext .tsx --ext .jsx --ignore-pattern dist",
+		"lint": "run lint:raw .",
+		"lint-fix": "run lint --fix",
+		"license-validate": "run -T  sofie-licensecheck"
 	},
 	"engines": {
 		"node": ">=14.18"
@@ -84,14 +83,14 @@
 		"production"
 	],
 	"dependencies": {
-		"tslib": "^2.4.1"
+		"tslib": "^2.5.1"
 	},
 	"publishConfig": {
 		"access": "public"
 	},
 	"lint-staged": {
 		"*.{css,json,md,scss}": [
-			"prettier --write"
+			"yarn run -T prettier --write"
 		],
 		"*.{ts,tsx,js,jsx}": [
 			"yarn lint:raw --fix"

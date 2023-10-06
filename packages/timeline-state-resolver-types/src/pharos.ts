@@ -1,14 +1,4 @@
-import { Mapping } from './mapping'
 import { DeviceType } from '.'
-
-export interface PharosOptions {
-	host: string
-	ssl?: boolean
-}
-
-export interface MappingPharos extends Mapping {
-	device: DeviceType.PHAROS
-}
 
 export enum TimelineContentTypePharos {
 	SCENE = 'scene',

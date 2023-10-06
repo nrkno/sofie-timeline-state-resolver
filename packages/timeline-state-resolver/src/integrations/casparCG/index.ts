@@ -5,7 +5,7 @@ import { AMCPCommand, BasicCasparCGAPI, ClearCommand, Commands, Response } from 
 import {
 	DeviceType,
 	TimelineContentTypeCasparCg,
-	MappingCasparCG,
+	SomeMappingCasparCG,
 	CasparCGOptions,
 	TimelineContentCCGProducerBase,
 	ResolvedTimelineObjectInstanceExtended,
@@ -18,6 +18,8 @@ import {
 	ActionExecutionResult,
 	ActionExecutionResultCode,
 	CasparCGActions,
+	MappingCasparCGLayer,
+	Mapping,
 } from 'timeline-state-resolver-types'
 
 import {
@@ -40,7 +42,7 @@ import {
 } from 'casparcg-state'
 import { InternalState } from 'casparcg-state/dist/lib/stateObjectStorage'
 import { DoOnTime, SendMode } from '../../devices/doOnTime'
-import * as request from 'request'
+import got from 'got'
 import { InternalTransitionHandler } from '../../devices/transitions/transitionHandler'
 import Debug from 'debug'
 import { endTrace, startTrace, t } from '../../lib'
@@ -132,9 +134,8 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 							// We can't return here, as that will leave anything in channelPromises as potentially unhandled
 							channelPromises.push(Promise.reject('execute failed'))
 							break
-						} else {
-							channelPromises.push(request)
 						}
+						channelPromises.push(request)
 					}
 
 					// Wait for all commands
@@ -289,7 +290,7 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 	private convertObjectToCasparState(
 		mappings: Mappings,
 		layer: Timeline.ResolvedTimelineObjectInstance,
-		mapping: MappingCasparCG,
+		mapping: MappingCasparCGLayer,
 		isForeground: boolean
 	): LayerBase {
 		let startTime = layer.instance.originalStart || layer.instance.start
@@ -382,10 +383,10 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 			})
 		} else if (content.type === TimelineContentTypeCasparCg.ROUTE) {
 			if (content.mappedLayer) {
-				const routeMapping = mappings[content.mappedLayer] as MappingCasparCG
+				const routeMapping = mappings[content.mappedLayer] as Mapping<SomeMappingCasparCG>
 				if (routeMapping && routeMapping.deviceId === this.deviceId) {
-					content.channel = routeMapping.channel
-					content.layer = routeMapping.layer
+					content.channel = routeMapping.options.channel
+					content.layer = routeMapping.options.layer
 				}
 			}
 			stateLayer = literal<RouteLayer>({
@@ -490,22 +491,18 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 				foundMapping &&
 				foundMapping.device === DeviceType.CASPARCG &&
 				foundMapping.deviceId === this.deviceId &&
-				_.has(foundMapping, 'channel') &&
-				_.has(foundMapping, 'layer')
+				_.has(foundMapping.options, 'channel') &&
+				_.has(foundMapping.options, 'layer')
 			) {
-				const mapping = foundMapping as MappingCasparCG
-				mapping.channel = mapping.channel || 0
-				mapping.layer = mapping.layer || 0
+				const mapping = foundMapping as Mapping<SomeMappingCasparCG>
+				mapping.options.channel = Number(mapping.options.channel) || 1
+				mapping.options.layer = Number(mapping.options.layer) || 0
 
 				// create a channel in state if necessary, or reuse existing channel
-				const channel = caspar.channels[mapping.channel] || { channelNo: mapping.channel, layers: {} }
-				channel.channelNo = Number(mapping.channel) || 1
+				const channel = caspar.channels[mapping.options.channel] || { channelNo: mapping.options.channel, layers: {} }
+				channel.channelNo = mapping.options.channel
 				channel.fps = this.initOptions ? this.initOptions.fps || 25 : 25
 				caspar.channels[channel.channelNo] = channel
-
-				// @todo: check if we need to get fps.
-				channel.fps = this.initOptions ? this.initOptions.fps || 25 : 25
-				caspar.channels[mapping.channel] = channel
 
 				let foregroundObj: ResolvedTimelineObjectInstanceExtended | undefined = timelineState.layers[layerName]
 				let backgroundObj = _.last(
@@ -524,19 +521,23 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 
 				// create layer of appropriate type
 				const foregroundStateLayer = foregroundObj
-					? this.convertObjectToCasparState(mappings, foregroundObj, mapping, true)
+					? this.convertObjectToCasparState(mappings, foregroundObj, mapping.options, true)
 					: undefined
 				const backgroundStateLayer = backgroundObj
-					? this.convertObjectToCasparState(mappings, backgroundObj, mapping, false)
+					? this.convertObjectToCasparState(mappings, backgroundObj, mapping.options, false)
 					: undefined
 
 				debug(
-					`${layerName} (${mapping.channel}-${mapping.layer}): FG keys: ${Object.entries(foregroundStateLayer || {})
+					`${layerName} (${mapping.options.channel}-${mapping.options.layer}): FG keys: ${Object.entries<any>(
+						foregroundStateLayer || {}
+					)
 						.map((e) => e[0] + ': ' + e[1])
 						.join(', ')}`
 				)
 				debug(
-					`${layerName} (${mapping.channel}-${mapping.layer}): BG keys: ${Object.entries(backgroundStateLayer || {})
+					`${layerName} (${mapping.options.channel}-${mapping.options.layer}): BG keys: ${Object.entries<any>(
+						backgroundStateLayer || {}
+					)
 						.map((e) => e[0] + ': ' + e[1])
 						.join(', ')}`
 				)
@@ -545,7 +546,7 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 					const o = {
 						...o1,
 					}
-					Object.entries(o2).forEach(([key, value]) => {
+					Object.entries<any>(o2).forEach(([key, value]) => {
 						if (value !== undefined) {
 							o[key as keyof T] = value
 						}
@@ -554,16 +555,17 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 				}
 
 				if (foregroundStateLayer) {
-					const currentTemplateData = (channel.layers[mapping.layer] as any as TemplateLayer | undefined)?.templateData
+					const currentTemplateData = (channel.layers[mapping.options.layer] as any as TemplateLayer | undefined)
+						?.templateData
 					const foregroundTemplateData = (foregroundStateLayer as any as TemplateLayer | undefined)?.templateData
-					channel.layers[mapping.layer] = merge(channel.layers[mapping.layer], {
+					channel.layers[mapping.options.layer] = merge(channel.layers[mapping.options.layer], {
 						...foregroundStateLayer,
 						...(_.isObject(currentTemplateData) && _.isObject(foregroundTemplateData)
 							? { templateData: deepMerge(currentTemplateData, foregroundTemplateData) }
 							: {}),
 						nextUp: backgroundStateLayer
 							? merge(
-									(channel.layers[mapping.layer] || {}).nextUp!,
+									(channel.layers[mapping.options.layer] || {}).nextUp!,
 									literal<NextUp>({
 										...(backgroundStateLayer as NextUp),
 										auto: false,
@@ -572,18 +574,18 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 							: undefined,
 					})
 				} else if (backgroundStateLayer) {
-					if (mapping.previewWhenNotOnAir) {
-						channel.layers[mapping.layer] = merge(channel.layers[mapping.layer], {
-							...channel.layers[mapping.layer],
+					if (mapping.options.previewWhenNotOnAir) {
+						channel.layers[mapping.options.layer] = merge(channel.layers[mapping.options.layer], {
+							...channel.layers[mapping.options.layer],
 							...backgroundStateLayer,
 							playing: false,
 						})
 					} else {
-						channel.layers[mapping.layer] = merge(
-							channel.layers[mapping.layer],
+						channel.layers[mapping.options.layer] = merge(
+							channel.layers[mapping.options.layer],
 							literal<EmptyLayer>({
 								id: `${backgroundStateLayer.id}_empty_base`,
-								layerNo: mapping.layer,
+								layerNo: mapping.options.layer,
 								content: LayerContentType.NOTHING,
 								playing: false,
 								nextUp: literal<NextUp>({
@@ -607,38 +609,13 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 	 * @param okToDestroyStuff Whether it is OK to restart the device
 	 */
 	async makeReady(okToDestroyStuff?: boolean): Promise<void> {
-		// Sync Caspar Time to our time:
-		const command = await this._ccg.executeCommand({ command: Commands.Info, params: {} })
-		if (command.error) throw new Error('Could not makeReady')
-		const response = await command.request
-		const channels: any[] = response.data
-
-		// Clear all channels (?)
-		if (okToDestroyStuff) {
-			await Promise.all(
-				_.map(channels, async (channel: any) => {
-					await this._commandReceiver(
-						this.getCurrentTime(),
-						{
-							command: Commands.Clear,
-							params: {
-								channel: channel.channel,
-							},
-						},
-						'makeReady and destroystuff',
-						''
-					)
-				})
-			)
-		}
 		// reset our own state(s):
 		if (okToDestroyStuff) {
-			this.clearStates()
+			await this.clearAllChannels()
 		}
-		// a resolveTimeline will be triggered later
 	}
 
-	async clearAllChannels(): Promise<ActionExecutionResult> {
+	private async clearAllChannels(): Promise<ActionExecutionResult> {
 		if (!this._ccg.connected) {
 			return {
 				result: ActionExecutionResultCode.Error,
@@ -694,10 +671,7 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 			case CasparCGActions.ClearAllChannels:
 				return this.clearAllChannels()
 			case CasparCGActions.RestartServer:
-				await this.restartCasparCG()
-				return {
-					result: ActionExecutionResultCode.Ok,
-				}
+				return this.restartCasparCG()
 			default:
 				return {
 					result: ActionExecutionResultCode.Error,
@@ -709,7 +683,7 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 	/**
 	 * Attemps to restart casparcg over the HTTP API provided by CasparCG launcher.
 	 */
-	async restartCasparCG(): Promise<ActionExecutionResult> {
+	private async restartCasparCG(): Promise<ActionExecutionResult> {
 		if (!this.initOptions) {
 			return { result: ActionExecutionResultCode.Error, response: t('CasparCGDevice._connectionOptions is not set!') }
 		}
@@ -719,29 +693,41 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 		if (!this.initOptions.launcherPort) {
 			return { result: ActionExecutionResultCode.Error, response: t('CasparCGDevice: config.launcherPort is not set!') }
 		}
+		if (!this.initOptions.launcherProcess) {
+			return {
+				result: ActionExecutionResultCode.Error,
+				response: t('CasparCGDevice: config.launcherProcess is not set!'),
+			}
+		}
 
-		return new Promise<ActionExecutionResult>((resolve) => {
-			const url = `http://${this.initOptions?.launcherHost}:${this.initOptions?.launcherPort}/processes/casparcg/restart`
-			request.post(
-				url,
-				{}, // json: cmd.params
-				(error, response) => {
-					if (error) {
-						resolve({ result: ActionExecutionResultCode.Error, response: error })
-					} else if (response.statusCode === 200) {
-						resolve({ result: ActionExecutionResultCode.Ok })
-					} else {
-						resolve({
-							result: ActionExecutionResultCode.Error,
-							response: t('Bad reply: [{{statusCode}}] {{body}}', {
-								statusCode: response.statusCode,
-								body: response.body,
-							}),
-						})
+		const url = `http://${this.initOptions?.launcherHost}:${this.initOptions?.launcherPort}/processes/${this.initOptions?.launcherProcess}/restart`
+		return got
+			.post(url, {
+				timeout: {
+					request: 5000, // Arbitary, long enough for realistic scenarios
+				},
+			})
+			.then((response) => {
+				if (response.statusCode === 200) {
+					return { result: ActionExecutionResultCode.Ok }
+				} else {
+					return {
+						result: ActionExecutionResultCode.Error,
+						response: t('Bad reply: [{{statusCode}}] {{body}}', {
+							statusCode: response.statusCode,
+							body: response.body,
+						}),
 					}
 				}
-			)
-		})
+			})
+			.catch((error) => {
+				return {
+					result: ActionExecutionResultCode.Error,
+					response: t('{{message}}', {
+						message: error.toString(),
+					}),
+				}
+			})
 	}
 	getStatus(): DeviceStatus {
 		let statusCode = StatusCode.GOOD
@@ -844,14 +830,14 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 		}
 	}
 
-	private _changeTrackedStateFromCommand(command: AMCPCommand, response: Response, time: number) {
+	private _changeTrackedStateFromCommand(command: AMCPCommand, response: Response, time: number): void {
+		// Ensure this is for a channel and layer
+		if (!('channel' in command.params) || command.params.channel === undefined) return
+		if (!('layer' in command.params) || command.params.layer === undefined) return
+
 		if (
 			response.responseCode < 300 && // TODO - maybe we accept every code except 404?
-			response.command.match(/Loadbg|Play|Load|Clear|Stop|Resume/i) &&
-			'channel' in command.params &&
-			command.params.channel !== undefined &&
-			'layer' in command.params &&
-			command.params.layer !== undefined
+			response.command.match(/Loadbg|Play|Load|Clear|Stop|Resume/i)
 		) {
 			const currentExpectedState = this.getState(time)
 			if (currentExpectedState) {

@@ -1,7 +1,7 @@
 //ES6 example code based on playVideoInCaspar.ts
 //copy and paste it to your own project
 
-const { Conductor, DeviceType } = require('timeline-state-resolver')
+const { Conductor, DeviceType, MappingCasparCGType } = require('timeline-state-resolver')
 
 // Initialize TimelineStateResolver:
 const tsrConductor = new Conductor()
@@ -28,14 +28,17 @@ tsrConductor
 			'layer1-10': {
 				device: DeviceType.CASPARCG,
 				deviceId: 'casparcg0',
-				channel: 1,
-				layer: 10,
+				options: {
+					mappingType: MappingCasparCGType.Layer,
+					channel: 1,
+					layer: 10,
+				},
 			},
 		}
 	})
 	.then(() => {
 		// Set a new timeline:
-		var video0 = {
+		const video0 = {
 			id: 'video0', // the id must be unique
 			enable: {
 				start: Date.now(), // This will cause the video to start playing "now"

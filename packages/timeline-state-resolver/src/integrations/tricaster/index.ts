@@ -7,11 +7,12 @@ import {
 	Mappings,
 	TriCasterOptions,
 	DeviceOptionsTriCaster,
-	MappingTriCaster,
+	SomeMappingTricaster,
 	Timeline,
 	TSRTimelineContent,
+	Mapping,
 } from 'timeline-state-resolver-types'
-import { MappingsTriCaster, TriCasterState, TriCasterStateDiffer } from './triCasterStateDiffer'
+import { WithContext, MappingsTriCaster, TriCasterState, TriCasterStateDiffer } from './triCasterStateDiffer'
 import { TriCasterCommandWithContext } from './triCasterCommands'
 import { TriCasterConnection } from './triCasterConnection'
 
@@ -19,7 +20,7 @@ const DEFAULT_PORT = 5951
 
 export type DeviceOptionsTriCasterInternal = DeviceOptionsTriCaster
 
-export class TriCasterDevice extends DeviceWithState<TriCasterState, DeviceOptionsTriCasterInternal> {
+export class TriCasterDevice extends DeviceWithState<WithContext<TriCasterState>, DeviceOptionsTriCasterInternal> {
 	private _doOnTime: DoOnTime
 
 	private _resolveInitPromise: (value: boolean) => void
@@ -122,12 +123,15 @@ export class TriCasterDevice extends DeviceWithState<TriCasterState, DeviceOptio
 	}
 
 	private filterTriCasterMappings(newMappings: Mappings): MappingsTriCaster {
-		return Object.entries(newMappings).reduce<MappingsTriCaster>((accumulator, [layerName, mapping]) => {
-			if (mapping.device === DeviceType.TRICASTER && mapping.deviceId === this.deviceId) {
-				accumulator[layerName] = mapping as MappingTriCaster
-			}
-			return accumulator
-		}, {})
+		return Object.entries<Mapping<unknown>>(newMappings).reduce<MappingsTriCaster>(
+			(accumulator, [layerName, mapping]) => {
+				if (mapping.device === DeviceType.TRICASTER && mapping.deviceId === this.deviceId) {
+					accumulator[layerName] = mapping as Mapping<SomeMappingTricaster>
+				}
+				return accumulator
+			},
+			{}
+		)
 	}
 
 	clearFuture(clearAfterTime: number): void {

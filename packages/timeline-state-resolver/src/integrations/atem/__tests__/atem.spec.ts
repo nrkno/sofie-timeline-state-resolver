@@ -5,7 +5,8 @@ import { MockTime } from '../../../__tests__/mockTime'
 import {
 	Mappings,
 	DeviceType,
-	MappingAtem,
+	Mapping,
+	SomeMappingAtem,
 	MappingAtemType,
 	TimelineContentTypeAtem,
 	AtemOptions,
@@ -22,6 +23,45 @@ import { getMockCall } from '../../../__tests__/lib'
 
 describe('Atem', () => {
 	const mockTime = new MockTime()
+
+	async function createTestee(mockTime: MockTime): Promise<{
+		myConductor: Conductor
+		myLayerMapping: Mappings
+		commandReceiver0: jest.Mock
+	}> {
+		const commandReceiver0: any = jest.fn(async () => {
+			return Promise.resolve()
+		})
+		const myLayerMapping0: Mapping<SomeMappingAtem> = {
+			device: DeviceType.ATEM,
+			deviceId: 'myAtem',
+			options: {
+				mappingType: MappingAtemType.MixEffect,
+				index: 0,
+			},
+		}
+		const myLayerMapping: Mappings = {
+			myLayer0: myLayerMapping0,
+		}
+
+		const myConductor = new Conductor({
+			multiThreadedResolver: false,
+			getCurrentTime: mockTime.getCurrentTime,
+		})
+		await myConductor.init()
+		await myConductor.addDevice(
+			'myAtem',
+			literal<DeviceOptionsAtemInternal>({
+				type: DeviceType.ATEM,
+				options: {
+					host: '127.0.0.1',
+					port: 9910,
+				},
+				commandReceiver: commandReceiver0,
+			})
+		)
+		return { myConductor, myLayerMapping, commandReceiver0 }
+	}
 
 	function compareAtemCommands(
 		received: AtemConnection.Commands.ISerializableCommand,
@@ -74,35 +114,7 @@ describe('Atem', () => {
 	})
 
 	test('Atem: switch input', async () => {
-		const commandReceiver0: any = jest.fn(async () => {
-			return Promise.resolve()
-		})
-		const myLayerMapping0: MappingAtem = {
-			device: DeviceType.ATEM,
-			deviceId: 'myAtem',
-			mappingType: MappingAtemType.MixEffect,
-			index: 0,
-		}
-		const myLayerMapping: Mappings = {
-			myLayer0: myLayerMapping0,
-		}
-
-		const myConductor = new Conductor({
-			multiThreadedResolver: false,
-			getCurrentTime: mockTime.getCurrentTime,
-		})
-		await myConductor.init()
-		await myConductor.addDevice(
-			'myAtem',
-			literal<DeviceOptionsAtemInternal>({
-				type: DeviceType.ATEM,
-				options: {
-					host: '127.0.0.1',
-					port: 9910,
-				},
-				commandReceiver: commandReceiver0,
-			})
-		)
+		const { myConductor, myLayerMapping, commandReceiver0 } = await createTestee(mockTime)
 
 		await mockTime.advanceTimeToTicks(10100)
 
@@ -165,35 +177,7 @@ describe('Atem', () => {
 	})
 
 	test('Atem: upstream keyer', async () => {
-		const commandReceiver0: any = jest.fn(() => {
-			// nothing
-		})
-		const myLayerMapping0: MappingAtem = {
-			device: DeviceType.ATEM,
-			deviceId: 'myAtem',
-			mappingType: MappingAtemType.MixEffect,
-			index: 0,
-		}
-		const myLayerMapping: Mappings = {
-			myLayer0: myLayerMapping0,
-		}
-
-		const myConductor = new Conductor({
-			multiThreadedResolver: false,
-			getCurrentTime: mockTime.getCurrentTime,
-		})
-		await myConductor.init()
-		await myConductor.addDevice(
-			'myAtem',
-			literal<DeviceOptionsAtemInternal>({
-				type: DeviceType.ATEM,
-				options: {
-					host: '127.0.0.1',
-					port: 9910,
-				},
-				commandReceiver: commandReceiver0,
-			})
-		)
+		const { myConductor, myLayerMapping, commandReceiver0 } = await createTestee(mockTime)
 
 		await mockTime.advanceTimeToTicks(10100)
 
@@ -245,16 +229,71 @@ describe('Atem', () => {
 		compareAtemCommands(getMockCall(commandReceiver0, 0, 1), cmd)
 	})
 
+	test('Atem: uses upstreamKeyerId to address upstream keyers', async () => {
+		const { myConductor, myLayerMapping, commandReceiver0 } = await createTestee(mockTime)
+
+		await mockTime.advanceTimeToTicks(10100)
+
+		const deviceContainer = myConductor.getDevice('myAtem')
+		const device = deviceContainer!.device as ThreadedClass<AtemDevice>
+		// Check that no commands has been scheduled:
+		expect(await device.queue).toHaveLength(0)
+		myConductor.setTimelineAndMappings(
+			[
+				{
+					id: 'obj0',
+					enable: {
+						start: mockTime.now - 1000, // 1 seconds ago
+						duration: 2000,
+					},
+					layer: 'myLayer0',
+					content: {
+						deviceType: DeviceType.ATEM,
+						type: TimelineContentTypeAtem.ME,
+						me: {
+							upstreamKeyers: [
+								{
+									upstreamKeyerId: 2,
+
+									lumaSettings: {
+										preMultiplied: false,
+										clip: 300,
+										gain: 2,
+										invert: true,
+									},
+								},
+							],
+						},
+					},
+				},
+			],
+			myLayerMapping
+		)
+
+		await mockTime.advanceTimeToTicks(10200)
+
+		expect(commandReceiver0).toHaveBeenCalledTimes(1)
+		const cmd = new AtemConnection.Commands.MixEffectKeyLumaCommand(0, 2)
+		cmd.updateProps({
+			clip: 300,
+			gain: 2,
+			invert: true,
+		})
+		compareAtemCommands(getMockCall(commandReceiver0, 0, 1), cmd)
+	})
+
 	test('Atem: handle same state', async () => {
 		const commandReceiver0 = jest.fn(async () => {
 			return Promise.resolve()
 		})
 		const myLayerMapping: Mappings = {
-			myLayer0: literal<MappingAtem>({
+			myLayer0: literal<Mapping<SomeMappingAtem>>({
 				device: DeviceType.ATEM,
 				deviceId: 'mock',
-				mappingType: MappingAtemType.MixEffect,
-				index: 0,
+				options: {
+					mappingType: MappingAtemType.MixEffect,
+					index: 0,
+				},
 			}),
 		}
 
@@ -331,35 +370,7 @@ describe('Atem', () => {
 	})
 
 	test('Atem: sends TransitionPropertiesCommand for DIP', async () => {
-		const commandReceiver0: any = jest.fn(async () => {
-			return Promise.resolve()
-		})
-		const myLayerMapping0: MappingAtem = {
-			device: DeviceType.ATEM,
-			deviceId: 'myAtem',
-			mappingType: MappingAtemType.MixEffect,
-			index: 0,
-		}
-		const myLayerMapping: Mappings = {
-			myLayer0: myLayerMapping0,
-		}
-
-		const myConductor = new Conductor({
-			multiThreadedResolver: false,
-			getCurrentTime: mockTime.getCurrentTime,
-		})
-		await myConductor.init()
-		await myConductor.addDevice(
-			'myAtem',
-			literal<DeviceOptionsAtemInternal>({
-				type: DeviceType.ATEM,
-				options: {
-					host: '127.0.0.1',
-					port: 9910,
-				},
-				commandReceiver: commandReceiver0,
-			})
-		)
+		const { myConductor, myLayerMapping, commandReceiver0 } = await createTestee(mockTime)
 
 		const deviceContainer = myConductor.getDevice('myAtem')
 		const device = deviceContainer!.device as ThreadedClass<AtemDevice>
@@ -428,35 +439,7 @@ describe('Atem', () => {
 	})
 
 	test('Atem: does not reset transition properties when initial nextStyle is not 0', async () => {
-		const commandReceiver0: any = jest.fn(async () => {
-			return Promise.resolve()
-		})
-		const myLayerMapping0: MappingAtem = {
-			device: DeviceType.ATEM,
-			deviceId: 'myAtem',
-			mappingType: MappingAtemType.MixEffect,
-			index: 0,
-		}
-		const myLayerMapping: Mappings = {
-			myLayer0: myLayerMapping0,
-		}
-
-		const myConductor = new Conductor({
-			multiThreadedResolver: false,
-			getCurrentTime: mockTime.getCurrentTime,
-		})
-		await myConductor.init()
-		await myConductor.addDevice(
-			'myAtem',
-			literal<DeviceOptionsAtemInternal>({
-				type: DeviceType.ATEM,
-				options: {
-					host: '127.0.0.1',
-					port: 9910,
-				},
-				commandReceiver: commandReceiver0,
-			})
-		)
+		const { myConductor, myLayerMapping, commandReceiver0 } = await createTestee(mockTime)
 
 		await mockTime.advanceTimeToTicks(10100)
 
