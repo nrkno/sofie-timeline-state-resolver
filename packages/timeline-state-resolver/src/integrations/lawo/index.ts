@@ -9,6 +9,7 @@ import {
 	LawoOptions,
 	LawoDeviceMode,
 	TimelineContentLawoSourceValue,
+	EmberValue,
 	MappingLawoType,
 	Timeline,
 	TSRTimelineContent,
@@ -19,7 +20,7 @@ import {
 } from 'timeline-state-resolver-types'
 import { DoOnTime, SendMode } from '../../devices/doOnTime'
 import { deferAsync, getDiff } from '../../lib'
-import { EmberClient, Types as EmberTypes, Model as EmberModel } from 'emberplus-connection'
+import { EmberClient, Model as EmberModel } from 'emberplus-connection'
 
 export type SetLawoValueFn = (command: LawoCommand, timelineObjId: string, logCommand?: boolean) => Promise<any>
 
@@ -45,7 +46,7 @@ export interface LawoState {
 
 export interface LawoStateNode {
 	type: TimelineContentTypeLawo
-	value: EmberTypes.EmberValue
+	value: EmberValue
 	valueType: EmberModel.ParameterType
 	key: string
 	identifier: string
@@ -359,6 +360,7 @@ export class LawoDevice extends DeviceWithState<LawoState, DeviceOptionsLawoInte
 					const emberType =
 						'emberType' in mapping.options &&
 						mapping.options.emberType &&
+						// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
 						Object.values<EmberModel.ParameterType>(EmberModel.ParameterType).includes(mapping.options.emberType as any)
 							? (mapping.options.emberType as unknown as EmberModel.ParameterType)
 							: EmberModel.ParameterType.Real

@@ -50,6 +50,16 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
 
 - add types support for vMix stingers 3 and 4 ([44fa27d](https://github.com/nrkno/sofie-timeline-state-resolver/commit/44fa27d164bd717b58d7f1d1255d56d132007865))
 
+## [8.0.0](https://github.com/nrkno/sofie-timeline-state-resolver/compare/7.5.1...8.0.0) (2023-10-05)
+
+### Features
+
+- atem audio routing control SOFIE-2512 ([#274](https://github.com/nrkno/sofie-timeline-state-resolver/issues/274)) ([de9dfd1](https://github.com/nrkno/sofie-timeline-state-resolver/commit/de9dfd138452794bd7ad83a2fd1e82d2849abdcd))
+
+### Bug Fixes
+
+- export lawo parametertype ([65a73c4](https://github.com/nrkno/sofie-timeline-state-resolver/commit/65a73c41eb31cc2a18df9f0d282255c6cf6a171b))
+
 ## [8.0.0-release49.0](https://github.com/nrkno/sofie-timeline-state-resolver/compare/8.0.0-release48.2...8.0.0-release49.0) (2023-03-21)
 
 ## [8.0.0-release48.2](https://github.com/nrkno/sofie-timeline-state-resolver/compare/7.5.0...8.0.0-release48.2) (2023-03-21)
