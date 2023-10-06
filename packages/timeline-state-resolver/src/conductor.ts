@@ -423,7 +423,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 	): Promise<BaseRemoteDeviceIntegration<DeviceOptionsBase<any>>> {
 		let newDevice: BaseRemoteDeviceIntegration<DeviceOptionsBase<any>> | undefined
 		try {
-		  const throwIfAborted = () => this.throwIfAborted(options?.signal, deviceId, 'creation')
+			const throwIfAborted = () => this.throwIfAborted(options?.signal, deviceId, 'creation')
 			if (this.devices.has(deviceId)) {
 				throw new Error(`Device "${deviceId}" already exists when creating device`)
 			}
