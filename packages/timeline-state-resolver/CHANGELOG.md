@@ -62,6 +62,16 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
 - **vmix:** show a BAD status code when vMix is not initialized ([370be3a](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/370be3af2f01bada232ea244c76b6c5507e9773f))
 - wrap singular.live JSON commands in an array ([cc5b7ec](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/cc5b7ec61d456de993cbc0e25963c93ec8b65f38))
 
+## [8.0.0](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/7.5.1...8.0.0) (2023-10-05)
+
+### Features
+
+- atem audio routing control SOFIE-2512 ([#274](https://github.com/nrkno/tv-automation-state-timeline-resolver/issues/274)) ([de9dfd1](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/de9dfd138452794bd7ad83a2fd1e82d2849abdcd))
+
+### Bug Fixes
+
+- handle some additional cases in casparCG trackedState SOFIE-2359 ([#259](https://github.com/nrkno/tv-automation-state-timeline-resolver/issues/259)) ([810959f](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/810959f06a13caef2e16fb9d90d8d8257ba1620e))
+
 ## [8.0.0-release49.0](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/8.0.0-release48.2...8.0.0-release49.0) (2023-03-21)
 
 ## [8.0.0-release48.2](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/7.5.0...8.0.0-release48.2) (2023-03-21)

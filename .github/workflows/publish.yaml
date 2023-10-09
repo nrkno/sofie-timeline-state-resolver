@@ -17,7 +17,7 @@ jobs:
         lib-name: [timeline-state-resolver, timeline-state-resolver-types]
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v3
         with:
@@ -44,7 +44,7 @@ jobs:
       - test
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
       - name: Use Node.js
@@ -89,5 +89,8 @@ jobs:
         run: |
           echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" >> ~/.npmrc
           yarn lerna publish from-package --tag-version-prefix='' --dist-tag ${{ steps.do-publish.outputs.publish }} --yes --no-verify-access
+
+          NEW_VERSION=$(node -p "require('./packages/timeline-state-resolver/package.json').version")
+          echo "**Published:** $NEW_VERSION" >> $GITHUB_STEP_SUMMARY
         env:
           CI: true

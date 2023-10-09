@@ -428,8 +428,8 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 		options?: { signal?: AbortSignal }
 	): Promise<BaseRemoteDeviceIntegration<DeviceOptionsBase<any>>> {
 		let newDevice: BaseRemoteDeviceIntegration<DeviceOptionsBase<any>> | undefined
-		const throwIfAborted = () => this.throwIfAborted(options?.signal, deviceId, 'creation')
 		try {
+			const throwIfAborted = () => this.throwIfAborted(options?.signal, deviceId, 'creation')
 			if (this.devices.has(deviceId)) {
 				throw new Error(`Device "${deviceId}" already exists when creating device`)
 			}
@@ -451,7 +451,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 
 			if (!newDevicePromise) {
 				const type: any = deviceOptions.type
-				return Promise.reject(`No matching device type for "${type}" ("${DeviceType[type]}") found in conductor`)
+				throw new Error(`No matching device type for "${type}" ("${DeviceType[type]}") found in conductor`)
 			}
 
 			newDevice = await makeImmediatelyAbortable(async () => {
@@ -476,15 +476,16 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 				throw new Error(`Device "${deviceId}" already exists when creating device`)
 			}
 			throwIfAborted()
-			this.devices.set(deviceId, newDevice)
-
-			return newDevice
 		} catch (e) {
 			await this.terminateUnwantedDevice(newDevice)
-			this.devices.delete(deviceId)
+
 			this.emit('error', 'conductor.createDevice', e)
-			return Promise.reject(e)
+			throw e
 		}
+
+		this.devices.set(deviceId, newDevice)
+
+		return newDevice
 	}
 
 	private throwIfAborted(signal: AbortSignal | undefined, deviceId: string, action: string) {
