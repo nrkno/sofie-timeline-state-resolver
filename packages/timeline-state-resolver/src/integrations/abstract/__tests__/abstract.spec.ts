@@ -43,7 +43,7 @@ describe('Abstract device', () => {
 		const LAYERNAME = 'myLayer0'
 
 		async function compareStates(
-			oldDevState: AbstractDeviceState,
+			oldDevState: AbstractDeviceState | undefined,
 			newDevState: AbstractDeviceState,
 			expCommands: AbstractCommandWithContext[]
 		) {
@@ -53,6 +53,18 @@ describe('Abstract device', () => {
 
 			expect(commands).toEqual(expCommands)
 		}
+
+		test('From undefined', async () => {
+			await compareStates(
+				undefined,
+				{
+					time: 20,
+					nextEvents: [],
+					layers: {},
+				},
+				[]
+			)
+		})
 
 		test('Empty states', async () => {
 			await compareStates(

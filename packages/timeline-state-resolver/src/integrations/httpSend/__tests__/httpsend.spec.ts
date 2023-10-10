@@ -52,7 +52,7 @@ describe('HTTP-Send', () => {
 
 	describe('diffState', () => {
 		async function compareStates(
-			oldDevState: HttpSendDeviceState,
+			oldDevState: HttpSendDeviceState | undefined,
 			newDevState: HttpSendDeviceState,
 			expCommands: HttpSendDeviceCommand[]
 		) {
@@ -62,6 +62,18 @@ describe('HTTP-Send', () => {
 
 			expect(commands).toEqual(expCommands)
 		}
+
+		test('From undefined', async () => {
+			await compareStates(
+				undefined,
+				{
+					time: 20,
+					nextEvents: [],
+					layers: {},
+				},
+				[]
+			)
+		})
 
 		test('empty states', async () => {
 			await compareStates(createTimelineState({}), createTimelineState({}), [])
