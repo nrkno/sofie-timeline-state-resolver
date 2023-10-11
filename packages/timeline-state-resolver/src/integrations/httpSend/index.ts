@@ -103,7 +103,7 @@ export class HTTPSendDevice extends Device<HTTPSendOptions, HttpSendDeviceState,
 				content: cmd,
 				layer: '',
 			},
-		}).catch(() => this.context.emitWarning('Manual command failed: ' + JSON.stringify(cmd)))
+		}).catch(() => this.context.logger.warning('Manual command failed: ' + JSON.stringify(cmd)))
 
 		return {
 			result: ActionExecutionResultCode.Ok,
@@ -188,7 +188,7 @@ export class HTTPSendDevice extends Device<HTTPSendOptions, HttpSendDeviceState,
 			command,
 			timelineObjId,
 		}
-		this.context.emitDebug({ context, timelineObjId, command })
+		this.context.logger.debug({ context, timelineObjId, command })
 
 		const t = Date.now()
 
@@ -235,18 +235,18 @@ export class HTTPSendDevice extends Device<HTTPSendOptions, HttpSendDeviceState,
 			const response = await httpReq(command.content.url, options)
 
 			if (response.statusCode === 200) {
-				this.context.emitDebug(
+				this.context.logger.debug(
 					`HTTPSend: ${command.content.type}: Good statuscode response on url "${command.content.url}": ${response.statusCode} (${context})`
 				)
 			} else {
-				this.context.emitWarning(
+				this.context.logger.warning(
 					`HTTPSend: ${command.content.type}: Bad statuscode response on url "${command.content.url}": ${response.statusCode} (${context})`
 				)
 			}
 		} catch (error) {
 			const err = error as RequestError // make typescript happy
 
-			this.context.emitError(
+			this.context.logger.error(
 				`HTTPSend.response error on ${command.content.type} "${command.content.url}" (${context})`,
 				err
 			)
