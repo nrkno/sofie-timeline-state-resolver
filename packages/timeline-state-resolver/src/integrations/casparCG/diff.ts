@@ -88,14 +88,14 @@ function diffTrackerStatesLayer(
 	return commands.map((c) => ({
 		command: c,
 		context: c.context.context,
-		tlObjId: c.context.layerId,
+		timelineObjId: c.context.layerId,
 	}))
 }
 
 function getEmptyLayer(addr: string, mapping: Mapping<SomeMappingCasparCG>) {
 	return literal<EmptyLayer>({
 		id: `${addr}_empty_base`,
-		layerNo: mapping.options.layer,
+		layerNo: Number(mapping.options.layer),
 		content: LayerContentType.NOTHING,
 		playing: false,
 	})
@@ -104,7 +104,7 @@ function getInternalStateFromLayer(layer: Layer, mapping: Mapping<SomeMappingCas
 	return literal<CcgInternalState>({
 		channels: {
 			[mapping.options.channel]: {
-				channelNo: mapping.options.channel,
+				channelNo: Number(mapping.options.channel),
 				videoMode: 'PAL', // hardcoded but doesn't look like ccg-state is using it anyway
 				fps: fps,
 				layers: {

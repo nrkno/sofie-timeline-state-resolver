@@ -14,9 +14,10 @@ import { CasparCGDeviceState } from '../state'
 import { CasparCGCommand } from '../diff'
 import { Commands } from 'casparcg-connection'
 import { Layer, LayerContentType } from 'casparcg-state'
+import { getDeviceContext } from '../../../integrations/__tests__/testlib'
 
 async function getInitialisedOscDevice() {
-	const dev = new CasparCGDevice()
+	const dev = new CasparCGDevice(getDeviceContext())
 	await dev.init({ host: 'localhost', port: 8082 })
 	return dev
 }
@@ -169,7 +170,7 @@ describe('CasparCG Device', () => {
 							context: { layerId: '1-10_empty_base', context: 'Nextup media (amb)' },
 						},
 						context: 'Nextup media (amb)',
-						tlObjId: '1-10_empty_base', // note - this makes no sense but is an issue in casparcg-state
+						timelineObjId: '1-10_empty_base', // note - this makes no sense but is an issue in casparcg-state
 					},
 				]
 			)
@@ -192,7 +193,7 @@ describe('CasparCG Device', () => {
 							context: { layerId: 'obj0', context: 'VFilter diff ("undefined", "undefined") (content: media!=)' },
 						},
 						context: 'VFilter diff ("undefined", "undefined") (content: media!=)',
-						tlObjId: 'obj0',
+						timelineObjId: 'obj0',
 					},
 				]
 			)
@@ -215,7 +216,7 @@ describe('CasparCG Device', () => {
 							context: { layerId: 'obj0', context: 'No new content ()' },
 						},
 						context: 'No new content ()',
-						tlObjId: 'obj0',
+						timelineObjId: 'obj0',
 					},
 					{
 						command: {
@@ -224,7 +225,7 @@ describe('CasparCG Device', () => {
 							context: { layerId: 'obj0', context: 'Clear old stuff' },
 						},
 						context: 'Clear old stuff',
-						tlObjId: 'obj0',
+						timelineObjId: 'obj0',
 					},
 				]
 			)
@@ -252,7 +253,7 @@ describe('CasparCG Device', () => {
 				.sendCommand({
 					command,
 					context: '',
-					tlObjId: '',
+					timelineObjId: '',
 				})
 				.catch((e) => {
 					throw e

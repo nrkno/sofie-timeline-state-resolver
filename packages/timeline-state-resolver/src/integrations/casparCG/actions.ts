@@ -1,6 +1,6 @@
 import got from 'got'
 import { t } from '../../lib'
-import { ActionExecutionResultCode, ActionExecutionResult, CasparCGOptions } from 'timeline-state-resolver-types'
+import { ActionExecutionResultCode, CasparCGOptions } from 'timeline-state-resolver-types'
 import { CasparCG } from 'casparcg-connection'
 
 export async function clearAllChannels(connection: CasparCG, resetCb: () => void) {
@@ -55,25 +55,32 @@ export async function restartServer(options: CasparCGOptions | undefined) {
 		}
 	}
 
-	return new Promise<ActionExecutionResult>((resolve) => {
-		const url = `http://${options.launcherHost}:${options.launcherPort}/processes/${options.launcherProcess}/restart`
-		got
-			.post(url)
-			.then((response) => {
-				if (response.statusCode === 200) {
-					resolve({ result: ActionExecutionResultCode.Ok })
-				} else {
-					resolve({
-						result: ActionExecutionResultCode.Error,
-						response: t('Bad reply: [{{statusCode}}] {{body}}', {
-							statusCode: response.statusCode,
-							body: response.body,
-						}),
-					})
+	const url = `http://${options.launcherHost}:${options.launcherPort}/processes/${options.launcherProcess}/restart`
+	return got
+		.post(url, {
+			timeout: {
+				request: 5000, // Arbitrary, long enough for realistic scenarios
+			},
+		})
+		.then((response) => {
+			if (response.statusCode === 200) {
+				return { result: ActionExecutionResultCode.Ok }
+			} else {
+				return {
+					result: ActionExecutionResultCode.Error,
+					response: t('Bad reply: [{{statusCode}}] {{body}}', {
+						statusCode: response.statusCode,
+						body: response.body,
+					}),
 				}
-			})
-			.catch((error) => {
-				resolve({ result: ActionExecutionResultCode.Error, response: error })
-			})
-	})
+			}
+		})
+		.catch((error) => {
+			return {
+				result: ActionExecutionResultCode.Error,
+				response: t('{{message}}', {
+					message: error.toString(),
+				}),
+			}
+		})
 }
