@@ -13,9 +13,10 @@ import { QuantelCommandWithContext, QuantelDevice } from '..'
 import { QuantelCommandType, QuantelState } from '../types'
 import { setupQuantelGatewayMock } from './quantelGatewayMock'
 import { MockTime } from '../../../__tests__/mockTime'
+import { getDeviceContext } from '../../../integrations/__tests__/testlib'
 
 async function getInitialisedQuantelDevice(clearMock?: jest.Mock) {
-	const dev = new QuantelDevice()
+	const dev = new QuantelDevice(getDeviceContext())
 	await dev.init({
 		gatewayUrl: 'localhost:3000',
 		ISAUrlMaster: 'myISA:8000',
@@ -326,7 +327,7 @@ describe('Quantel Device', () => {
 							channel: 2,
 						},
 						context: 'Old state did not have port',
-						tlObjId: 'obj0',
+						timelineObjId: 'obj0',
 					},
 					{
 						command: {
@@ -338,7 +339,7 @@ describe('Quantel Device', () => {
 							transition: undefined,
 						},
 						context: 'New clip is empty',
-						tlObjId: 'obj0',
+						timelineObjId: 'obj0',
 					},
 				]
 			)
@@ -392,7 +393,7 @@ describe('Quantel Device', () => {
 							allowedToPrepareJump: true,
 						},
 						context: 'Load from current state',
-						tlObjId: 'obj1',
+						timelineObjId: 'obj1',
 					},
 					{
 						command: {
@@ -410,7 +411,7 @@ describe('Quantel Device', () => {
 							transition: undefined,
 						},
 						context: 'New clip is paused',
-						tlObjId: 'obj1',
+						timelineObjId: 'obj1',
 					},
 				]
 			)
@@ -469,7 +470,7 @@ describe('Quantel Device', () => {
 							allowedToPrepareJump: true,
 						},
 						context: 'Load from current state',
-						tlObjId: 'obj1',
+						timelineObjId: 'obj1',
 					},
 					{
 						command: {
@@ -487,7 +488,7 @@ describe('Quantel Device', () => {
 							transition: undefined,
 						},
 						context: 'New clip is playing',
-						tlObjId: 'obj1',
+						timelineObjId: 'obj1',
 					},
 				]
 			)
@@ -546,7 +547,7 @@ describe('Quantel Device', () => {
 							allowedToPrepareJump: true,
 						},
 						context: 'Load from current state',
-						tlObjId: 'obj1',
+						timelineObjId: 'obj1',
 					},
 					{
 						command: {
@@ -564,7 +565,7 @@ describe('Quantel Device', () => {
 							transition: undefined,
 						},
 						context: 'New clip is playing',
-						tlObjId: 'obj1',
+						timelineObjId: 'obj1',
 					},
 				]
 			)
@@ -599,7 +600,7 @@ describe('Quantel Device', () => {
 							timelineObjId: 'obj0',
 							fromLookahead: false,
 						},
-						tlObjId: 'obj0',
+						timelineObjId: 'obj0',
 						context: 'Port does not exist in new state',
 					},
 				]
@@ -627,7 +628,7 @@ describe('Quantel Device', () => {
 						channel: 2,
 					},
 					context: 'Old state did not have port',
-					tlObjId: 'obj0',
+					timelineObjId: 'obj0',
 				})
 				.catch((e) => {
 					throw e
@@ -675,7 +676,7 @@ describe('Quantel Device', () => {
 						allowedToPrepareJump: true,
 					},
 					context: 'Load from current state',
-					tlObjId: 'obj1',
+					timelineObjId: 'obj1',
 				})
 				.catch((e) => {
 					throw e
@@ -718,7 +719,7 @@ describe('Quantel Device', () => {
 						transition: undefined,
 					},
 					context: 'New clip is playing',
-					tlObjId: 'obj1',
+					timelineObjId: 'obj1',
 				})
 				.catch((e) => {
 					throw e
@@ -764,7 +765,7 @@ describe('Quantel Device', () => {
 						fromLookahead: false,
 					},
 					context: 'Clear',
-					tlObjId: 'obj1',
+					timelineObjId: 'obj1',
 				})
 				.catch((e) => {
 					throw e

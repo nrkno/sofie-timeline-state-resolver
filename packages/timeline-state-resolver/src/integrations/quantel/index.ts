@@ -11,10 +11,9 @@ import {
 	Timeline,
 	TSRTimelineContent,
 } from 'timeline-state-resolver-types'
-import { CommandWithContext, Device, DeviceEvents } from '../../service/device'
+import { CommandWithContext, Device } from '../../service/device'
 
 import Debug from 'debug'
-import EventEmitter = require('eventemitter3')
 import { QuantelCommand, QuantelCommandType, QuantelState } from './types'
 import { QuantelGateway } from 'tv-automation-quantel-gateway-client'
 import { QuantelManager } from './connection'
@@ -32,13 +31,10 @@ interface OSCDeviceStateContent extends OSCMessageCommandContent {
 export interface QuantelCommandWithContext {
 	command: QuantelCommand
 	context: string
-	tlObjId: string
+	timelineObjId: string
 }
 
-export class QuantelDevice
-	extends EventEmitter<DeviceEvents>
-	implements Device<QuantelOptions, QuantelState, QuantelCommandWithContext>
-{
+export class QuantelDevice extends Device<QuantelOptions, QuantelState, QuantelCommandWithContext> {
 	// TODO - monitor ports: this._quantel.setMonitoredPorts(this._getMappedPorts(newMappings))
 
 	private _quantel: QuantelGateway
@@ -46,20 +42,20 @@ export class QuantelDevice
 
 	async init(options: QuantelOptions): Promise<boolean> {
 		this._quantel = new QuantelGateway()
-		this._quantel.on('error', (e) => this.emit('error', 'Quantel.QuantelGateway', e))
+		this._quantel.on('error', (e) => this.context.logger.error('Quantel.QuantelGateway', e))
 		// this._quantelManager = new QuantelManager(this._quantel, () => this.getCurrentTime(), {
 		// todo - obv
 		this._quantelManager = new QuantelManager(this._quantel, () => Date.now(), {
 			allowCloneClips: options.allowCloneClips,
 		})
 		this._quantelManager.on('info', (x) =>
-			this.emit('info', `Quantel: ${typeof x === 'string' ? x : JSON.stringify(x)}`)
+			this.context.logger.info(`Quantel: ${typeof x === 'string' ? x : JSON.stringify(x)}`)
 		)
 		this._quantelManager.on('warning', (x) =>
-			this.emit('warning', `Quantel: ${typeof x === 'string' ? x : JSON.stringify(x)}`)
+			this.context.logger.warning(`Quantel: ${typeof x === 'string' ? x : JSON.stringify(x)}`)
 		)
-		this._quantelManager.on('error', (e) => this.emit('error', 'Quantel: ', e))
-		this._quantelManager.on('debug', (...args) => this.emit('debug', ...args))
+		this._quantelManager.on('error', (e) => this.context.logger.error('Quantel: ', e))
+		this._quantelManager.on('debug', (...args) => this.context.logger.debug(...args))
 
 		const ISAUrlMaster: string = options.ISAUrlMaster || options['ISAUrl'] // tmp: ISAUrl for backwards compatibility, to be removed later
 		if (!options.gatewayUrl) throw new Error('Quantel bad connection option: gatewayUrl')
@@ -73,7 +69,7 @@ export class QuantelDevice
 		await this._quantel.init(options.gatewayUrl, isaURLs, options.zoneId, options.serverId) // todo - maybe not to be awaited...
 
 		this._quantel.monitorServerStatus((_connected: boolean) => {
-			this.emit('connectionChanged', this.getStatus())
+			this.context.connectionChanged(this.getStatus())
 		})
 
 		return Promise.resolve(true)
@@ -91,13 +87,13 @@ export class QuantelDevice
 	diffStates(oldState: QuantelState | undefined, newState: QuantelState): Array<QuantelCommandWithContext> {
 		return diffStates(oldState, newState)
 	}
-	async sendCommand({ command, context, tlObjId }: QuantelCommandWithContext): Promise<any> {
+	async sendCommand({ command, context, timelineObjId }: QuantelCommandWithContext): Promise<any> {
 		const cwc: CommandWithContext = {
 			context: context,
 			command: command,
-			tlObjId: tlObjId,
+			timelineObjId: timelineObjId,
 		}
-		this.emit('debug', cwc)
+		this.context.logger.debug(cwc)
 		debug(command)
 
 		try {
@@ -123,7 +119,7 @@ export class QuantelDevice
 			if (error?.stack) {
 				errorString += error.stack
 			}
-			this.emit('commandError', new Error(errorString), cwc)
+			this.context.commandError(new Error(errorString), cwc)
 		}
 	}
 
@@ -156,7 +152,7 @@ export class QuantelDevice
 
 	actions: Record<QuantelActions, (id: QuantelActions) => Promise<ActionExecutionResult>> = {
 		[QuantelActions.ClearStates]: async () => {
-			this.emit('resetResolver')
+			this.context.resetResolver()
 			return {
 				result: ActionExecutionResultCode.Ok,
 			}
@@ -167,7 +163,7 @@ export class QuantelDevice
 					await this._quantel.kill()
 					return { result: ActionExecutionResultCode.Ok }
 				} catch (e) {
-					this.emit('error', 'Error killing quantel gateway', new Error(e as any)) // todo - what to do here...
+					this.context.logger.error('Error killing quantel gateway', new Error(e as any)) // todo - what to do here...
 				}
 			}
 			return { result: ActionExecutionResultCode.Error }

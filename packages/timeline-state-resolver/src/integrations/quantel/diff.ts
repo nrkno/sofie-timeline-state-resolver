@@ -17,7 +17,7 @@ export function diffStates(
 	const addCommand = (command: QuantelCommand, lowPriority: boolean, context?: string) => {
 		;(lowPriority ? lowPrioCommands : highPrioCommands).push({
 			command,
-			tlObjId: command.timelineObjId,
+			timelineObjId: command.timelineObjId,
 			context: context ?? 'Context not specified..',
 		})
 	}
