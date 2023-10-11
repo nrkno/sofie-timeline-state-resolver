@@ -27,6 +27,7 @@ jest.mock('../service/DeviceInstance', () => ({
 
 import { Conductor, TimelineTriggerTimeResult } from '../conductor'
 import type { DeviceInstanceWrapper } from '../service/DeviceInstance'
+import { mockDo } from '../__mocks__/casparcg-connection'
 
 describe('Conductor', () => {
 	const mockTime = new MockTime()
@@ -452,10 +453,6 @@ describe('Conductor', () => {
 	}, 1500)
 
 	test('Changing of mappings live', async () => {
-		const commandReceiver0: any = jest.fn(async () => {
-			return Promise.resolve()
-		})
-
 		const myLayerMapping0: Mapping<SomeMappingCasparCG> = {
 			device: DeviceType.CASPARCG,
 			deviceId: 'device0',
@@ -480,7 +477,6 @@ describe('Conductor', () => {
 			options: {
 				host: '127.0.0.1',
 			},
-			commandReceiver: commandReceiver0,
 		})
 		conductor.setTimelineAndMappings([], myLayerMapping)
 
@@ -516,15 +512,20 @@ describe('Conductor', () => {
 
 		await mockTime.advanceTimeToTicks(10500)
 
-		expect(commandReceiver0).toHaveBeenCalledTimes(1)
-		expect(getMockCall(commandReceiver0, 0, 1).command).toEqual(Commands.Play)
-		expect(getMockCall(commandReceiver0, 0, 1).params).toMatchObject({
-			clip: 'AMB',
-			channel: 1,
-			layer: 10,
+		expect(mockDo).toHaveBeenCalledTimes(1)
+		expect(mockDo).toHaveBeenNthCalledWith(1, {
+			command: Commands.Play,
+			params: {
+				channel: 1,
+				layer: 10,
+				clip: 'AMB',
+			},
+			context: {
+				context: '',
+				layerId: '',
+			},
 		})
-
-		commandReceiver0.mockClear()
+		mockDo.mockClear()
 
 		// modify the mapping:
 		myLayerMapping0.options.layer = 20
@@ -532,21 +533,31 @@ describe('Conductor', () => {
 
 		await mockTime.advanceTimeTicks(100) // just a little bit
 
-		expect(commandReceiver0).toHaveBeenCalledTimes(2)
-		expect(getMockCall(commandReceiver0, 0, 1).command).toEqual(Commands.Clear)
-		expect(getMockCall(commandReceiver0, 0, 1).params).toMatchObject({
-			// clip: 'AMB',
-			channel: 1,
-			layer: 10,
+		expect(mockDo).toHaveBeenCalledTimes(2)
+		expect(mockDo).toHaveBeenNthCalledWith(1, {
+			command: Commands.Clear,
+			params: {
+				channel: 1,
+				layer: 10,
+			},
+			context: {
+				context: '',
+				layerId: '',
+			},
 		})
-		expect(getMockCall(commandReceiver0, 1, 1).command).toEqual(Commands.Play)
-		expect(getMockCall(commandReceiver0, 1, 1).params).toMatchObject({
-			clip: 'AMB',
-			channel: 1,
-			layer: 20,
+		expect(mockDo).toHaveBeenNthCalledWith(2, {
+			command: Commands.Play,
+			params: {
+				channel: 1,
+				layer: 20,
+				clip: 'AMB',
+			},
+			context: {
+				context: '',
+				layerId: '',
+			},
 		})
-
-		commandReceiver0.mockClear()
+		mockDo.mockClear()
 
 		// Replace the mapping altogether:
 		delete myLayerMapping['myLayer0']
@@ -580,23 +591,32 @@ describe('Conductor', () => {
 		// 		},
 		// 	})
 		// } else {
-		expect(commandReceiver0).toHaveBeenCalledTimes(2)
-		expect(getMockCall(commandReceiver0, 0, 1)).toMatchObject({
+
+		expect(mockDo).toHaveBeenCalledTimes(2)
+		expect(mockDo).toHaveBeenNthCalledWith(1, {
 			command: Commands.Clear,
 			params: {
 				channel: 1,
 				layer: 20,
 			},
-		})
-
-		expect(getMockCall(commandReceiver0, 1, 1)).toMatchObject({
-			command: Commands.Play,
-			params: {
-				clip: 'AMB',
-				channel: 2,
-				layer: 10,
+			context: {
+				context: '',
+				layerId: '',
 			},
 		})
+		expect(mockDo).toHaveBeenNthCalledWith(1, {
+			command: Commands.Play,
+			params: {
+				channel: 2,
+				layer: 10,
+				clip: 'AMB',
+			},
+			context: {
+				context: '',
+				layerId: '',
+			},
+		})
+		mockDo.mockClear()
 		// }
 	})
 
