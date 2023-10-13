@@ -18,6 +18,8 @@ const BANNER =
 /// This is where schemas will be stored after they have had their references resolved.
 const DEREFERENCED_SCHEMA_DIRECTORY = '$schemas/generated'
 
+let hadError = false
+
 const PrettierConf = JSON.parse(
 	await fs.readFile('../../node_modules/@sofie-automation/code-standard-preset/.prettierrc.json')
 )
@@ -36,6 +38,7 @@ try {
 } catch (e) {
 	console.error('Error while generating action-schema.json, continuing...')
 	console.error(e)
+	hadError = true
 }
 
 // convert common-options
@@ -55,6 +58,7 @@ try {
 } catch (e) {
 	console.error('Error while generating common-options.json, continuing...')
 	console.error(e)
+	hadError = true
 }
 
 const basePath = path.resolve('./src/integrations')
@@ -69,9 +73,11 @@ try {
 } catch (e) {
 	console.error('Error while creating directory for dereferenced schemas, continuing...')
 	console.error(e)
+	hadError = true
 }
 
 const capitalise = (s) => {
+	if (!s) return s
 	const base = s.slice(0, 1).toUpperCase() + s.slice(1)
 
 	// replace `_a` with `A`
@@ -87,6 +93,10 @@ let baseMappingsTypes = []
 for (const dir of dirs) {
 	const dirPath = path.join(basePath, dir)
 
+	const dirId = capitalise(dir)
+
+	console.log(dirId)
+
 	let output = ''
 
 	const generatedSchemaDirectory = path.join(basePathOfDereferencedShemas, dir)
@@ -97,6 +107,7 @@ for (const dir of dirs) {
 	} catch (e) {
 		console.error(`Error while dereferencing schemas for '${dir}', continuing...`)
 		console.error(e)
+		hadError = true
 	}
 
 	await derefSchema(dirPath, 'options', generatedSchemaDirectory)
@@ -118,6 +129,7 @@ for (const dir of dirs) {
 	} catch (e) {
 		console.error('Error while generating options for ' + dirPath + ', continuing...')
 		console.error(e)
+		hadError = true
 	}
 
 	// compile mappings from file
@@ -130,10 +142,10 @@ for (const dir of dirs) {
 				mappingIds.push(id)
 
 				// Perform some tweaks of the schema for mappingType, which is required to be defined based on the id
-				mapping.title = `Mapping${capitalise(dir)}${capitalise(id)}`
+				mapping.title = `Mapping${dirId}${capitalise(id)}`
 				mapping.properties['mappingType'] = {
 					type: 'constant',
-					tsType: `Mapping${capitalise(dir)}Type.${capitalise(id)}`,
+					tsType: `Mapping${dirId}Type.${capitalise(id)}`,
 				}
 
 				if (!mapping.required) mapping.required = []
@@ -151,14 +163,15 @@ for (const dir of dirs) {
 	} catch (e) {
 		console.error('Error while generating mappings for ' + dirPath + ', continuing...')
 		console.error(e)
+		hadError = true
 	}
 
 	// very crude way to create an enum and union for the mappings:
 	const mappingTypes = []
 	if (mappingIds.length > 0) {
-		let mappingsEnum = 'export enum Mapping' + capitalise(dir) + 'Type {\n'
+		let mappingsEnum = 'export enum Mapping' + dirId + 'Type {\n'
 		for (const id of mappingIds) {
-			mappingTypes.push(`Mapping${capitalise(dir)}${capitalise(id)}`)
+			mappingTypes.push(`Mapping${dirId}${capitalise(id)}`)
 			mappingsEnum += '\t' + capitalise(id) + " = '" + id + "',\n"
 		}
 		mappingsEnum += '}\n'
@@ -166,43 +179,90 @@ for (const dir of dirs) {
 		output += '\n' + mappingsEnum
 	}
 
-	const someMappingName = `SomeMapping${capitalise(dir)}`
+	const someMappingName = `SomeMapping${dirId}`
 	baseMappingsTypes.push(someMappingName)
 	output += '\n' + `export type ${someMappingName} = ${mappingTypes.join(' | ') || 'Record<string, never>'}\n`
 
 	// compile actions from file
-	const actionIds = []
+	const actionDefinitions = []
+
 	try {
 		const filePath = path.join(generatedSchemaDirectory, 'actions.json')
 		if (await fsExists(filePath)) {
 			const actionsDescr = JSON.parse(await fs.readFile(filePath))
 			for (const action of actionsDescr.actions) {
-				actionIds.push(action.id)
-				if (!action.payload) continue
+				const actionDefinition = {
+					id: action.id,
+					payloadId: undefined,
+					returnDataId: undefined
+				}
+				actionDefinitions.push(actionDefinition)
 
-				const actionTypes = await compile(action.payload, action.id + 'Payload', {
-					additionalProperties: false,
-					style: PrettierConf,
-					bannerComment: '',
-					enableConstEnums: false,
-				})
-				output += '\n' + actionTypes
+
+				const actionTypes = []
+				// Payload:
+				if (action.payload) {
+					actionDefinition.payloadId = action.payload.id || capitalise(action.id + 'Payload')
+					actionTypes.push(await compile(action.payload, actionDefinition.payloadId, {
+						additionalProperties: false,
+						style: PrettierConf,
+						bannerComment: '',
+						enableConstEnums: false,
+					}))
+				}
+				// Return Data:
+				if (action.returnData) {
+					actionDefinition.returnDataId = action.returnData.id || capitalise(action.id + 'ReturnData')
+					actionTypes.push(await compile(action.returnData, actionDefinition.returnDataId, {
+						additionalProperties: false,
+						style: PrettierConf,
+						bannerComment: '',
+						enableConstEnums: false,
+					}))
+				}
+
+				if (actionTypes.length) {
+					output += '\n' + actionTypes.join('\n')
+				}
 			}
 		}
 	} catch (e) {
 		console.error('Error while generating actions for ' + dirPath + ', continuing...')
 		console.error(e)
+		hadError = true
 	}
 
-	// very crude way to create an enum for the actionIds:
-	if (actionIds.length > 0) {
-		let actionEnum = 'export enum ' + capitalise(dir) + 'Actions {\n'
-		for (const id of actionIds) {
-			actionEnum += '\t' + capitalise(id) + " = '" + id + "',\n"
-		}
-		actionEnum += '}\n'
+	if (actionDefinitions.length > 0) {
+		// An enum for all action ids:
 
-		output += '\n' + actionEnum
+		output += `
+export enum ${dirId}Actions {
+${actionDefinitions.map(
+			(actionDefinition) => `\t${capitalise(actionDefinition.id)} = '${actionDefinition.id}'`
+		).join(',\n')}
+}`
+		// An interface for all the action methods:
+		output += `
+export interface ${dirId}ActionExecutionResults {
+${actionDefinitions.map(
+			(actionDefinition) => `\t${actionDefinition.id}: (${actionDefinition.payloadId ? `payload: ${actionDefinition.payloadId}` : ''}) => ${actionDefinition.returnDataId || 'void'}`
+		).join(',\n')}
+}`
+		// Prepend import:
+		output = 'import { ActionExecutionResult } from ".."\n' + output
+
+
+		// A helper type used to access the action methods payload:
+		output += `
+export type ${dirId}ActionExecutionPayload<A extends keyof ${dirId}ActionExecutionResults> = Parameters<
+	${dirId}ActionExecutionResults[A]
+>[0]
+`
+		// A helper type used to access the action methods return Data:
+		output += `
+export type ${dirId}ActionExecutionResult<A extends keyof ${dirId}ActionExecutionResults> =
+	ActionExecutionResult<ReturnType<${dirId}ActionExecutionResults[A]>>
+`
 	}
 
 	// Output to tsr types package
@@ -226,6 +286,9 @@ if (baseMappingsTypes.length) {
 
 // Output the tsr-types index file
 await fs.writeFile('../timeline-state-resolver-types/src/generated/index.ts', indexFile + '\n')
+
+// Finally
+process.exit(hadError ? 1 : 0)
 
 async function fsExists(filePath) {
 	try {

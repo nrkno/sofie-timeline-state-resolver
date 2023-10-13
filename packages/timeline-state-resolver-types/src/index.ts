@@ -160,9 +160,12 @@ export interface Datastore {
 	}
 }
 
-export interface ActionExecutionResult {
+export interface ActionExecutionResult<ReturnData = undefined> {
 	result: ActionExecutionResultCode
+	/** Response message, intended to be displayed to a user */
 	response?: ITranslatableMessage
+	/** Response data */
+	returnData?: ReturnData
 }
 
 export enum ActionExecutionResultCode {
