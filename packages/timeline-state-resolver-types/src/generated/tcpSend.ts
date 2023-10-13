@@ -4,6 +4,7 @@
  * DO NOT MODIFY IT BY HAND. Instead, modify the source JSONSchema file,
  * and run "yarn generate-schema-types" to regenerate this file.
  */
+import { ActionExecutionResult } from ".."
 
 export interface TCPSendOptions {
 	host: string
@@ -47,5 +48,16 @@ export interface SendTcpCommandPayload {
 export enum TcpSendActions {
 	Reconnect = 'reconnect',
 	ResetState = 'resetState',
-	SendTcpCommand = 'sendTcpCommand',
+	SendTcpCommand = 'sendTcpCommand'
 }
+export interface TcpSendActionExecutionResults {
+	reconnect: () => void,
+	resetState: () => void,
+	sendTcpCommand: (payload: SendTcpCommandPayload) => void
+}
+export type TcpSendActionExecutionPayload<A extends keyof TcpSendActionExecutionResults> = Parameters<
+	TcpSendActionExecutionResults[A]
+>[0]
+
+export type TcpSendActionExecutionResult<A extends keyof TcpSendActionExecutionResults> =
+	ActionExecutionResult<ReturnType<TcpSendActionExecutionResults[A]>>

@@ -4,6 +4,7 @@
  * DO NOT MODIFY IT BY HAND. Instead, modify the source JSONSchema file,
  * and run "yarn generate-schema-types" to regenerate this file.
  */
+import { ActionExecutionResult } from ".."
 
 export interface AtemOptions {
 	host: string
@@ -81,5 +82,14 @@ export enum MappingAtemType {
 export type SomeMappingAtem = MappingAtemMixEffect | MappingAtemDownStreamKeyer | MappingAtemSuperSourceBox | MappingAtemAuxilliary | MappingAtemMediaPlayer | MappingAtemSuperSourceProperties | MappingAtemAudioChannel | MappingAtemMacroPlayer | MappingAtemAudioRouting
 
 export enum AtemActions {
-	Resync = 'resync',
+	Resync = 'resync'
 }
+export interface AtemActionExecutionResults {
+	resync: () => void
+}
+export type AtemActionExecutionPayload<A extends keyof AtemActionExecutionResults> = Parameters<
+	AtemActionExecutionResults[A]
+>[0]
+
+export type AtemActionExecutionResult<A extends keyof AtemActionExecutionResults> =
+	ActionExecutionResult<ReturnType<AtemActionExecutionResults[A]>>

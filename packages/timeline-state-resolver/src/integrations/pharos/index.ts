@@ -157,10 +157,8 @@ export class PharosDevice extends DeviceWithState<PharosState, DeviceOptionsPhar
 		return Promise.resolve()
 	}
 	async executeAction(actionId: string, _payload?: Record<string, any> | undefined): Promise<ActionExecutionResult> {
-		switch (actionId) {
-			default:
-				return actionNotFoundMessage(actionId)
-		}
+		// No actions defined
+		return actionNotFoundMessage(actionId as never)
 	}
 	getStatus(): DeviceStatus {
 		let statusCode = StatusCode.GOOD

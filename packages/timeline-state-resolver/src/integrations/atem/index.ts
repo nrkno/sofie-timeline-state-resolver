@@ -17,6 +17,8 @@ import {
 	ActionExecutionResult,
 	ActionExecutionResultCode,
 	AtemActions,
+	AtemActionExecutionResult,
+	AtemActionExecutionPayload,
 } from 'timeline-state-resolver-types'
 import { AtemState, State as DeviceState, Defaults as StateDefault } from 'atem-state'
 import {
@@ -144,13 +146,14 @@ export class AtemDevice extends DeviceWithState<DeviceState, DeviceOptionsAtemIn
 			result: ActionExecutionResultCode.Ok,
 		}
 	}
-	async executeAction(
-		actionId: AtemActions,
-		_payload?: Record<string, any> | undefined
-	): Promise<ActionExecutionResult> {
+	async executeAction<A extends AtemActions>(
+		actionId0: A,
+		_payload: AtemActionExecutionPayload<A>
+	): Promise<AtemActionExecutionResult<A>> {
+		const actionId = actionId0 as AtemActions // type fix for when there is only a single action
 		switch (actionId) {
 			case AtemActions.Resync:
-				return this.resyncState()
+				return this.resyncState() as Promise<AtemActionExecutionResult<A>>
 			default:
 				return actionNotFoundMessage(actionId)
 		}

@@ -20,6 +20,8 @@ import {
 	SomeMappingVizMSE,
 	TimelineContentVIZMSEElementPilot,
 	TimelineContentVIZMSEElementInternal,
+	VizMSEActionExecutionPayload,
+	VizMSEActionExecutionResult,
 } from 'timeline-state-resolver-types'
 
 import { createMSE, MSE } from '@tv2media/v-connection'
@@ -27,7 +29,7 @@ import { createMSE, MSE } from '@tv2media/v-connection'
 import { DoOnTime, SendMode } from '../../devices/doOnTime'
 
 import { ExpectedPlayoutItem } from '../../expectedPlayoutItems'
-import { endTrace, startTrace, t } from '../../lib'
+import { actionNotFoundMessage, endTrace, startTrace, t } from '../../lib'
 import { HTTPClientError, HTTPServerError } from '@tv2media/v-connection/dist/msehttp'
 import { VizMSEManager } from './vizMSEManager'
 import {
@@ -257,17 +259,20 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState, DeviceOptionsVizM
 		await this._vizmseManager?.purgeRundown(clearAll)
 	}
 
-	async executeAction(actionId: string, payload?: Record<string, any> | undefined): Promise<ActionExecutionResult> {
+	async executeAction<A extends VizMSEActions>(
+		actionId: A,
+		payload: VizMSEActionExecutionPayload<A>
+	): Promise<VizMSEActionExecutionResult<A>> {
 		switch (actionId) {
 			case VizMSEActions.PurgeRundown:
 				await this.purgeRundown(true)
 				return { result: ActionExecutionResultCode.Ok }
 			case VizMSEActions.Activate:
-				return this.activate(payload)
+				return this.activate(payload) as Promise<VizMSEActionExecutionResult<A>>
 			case VizMSEActions.StandDown:
-				return this.executeStandDown()
+				return this.executeStandDown() as Promise<VizMSEActionExecutionResult<A>>
 			default:
-				return { result: ActionExecutionResultCode.Ok, response: t('Action "{{id}}" not found', { id: actionId }) }
+				return actionNotFoundMessage(actionId)
 		}
 	}
 

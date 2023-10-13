@@ -16,10 +16,12 @@ import {
 	Timeline,
 	TSRTimelineContent,
 	ActionExecutionResult,
+	CasparCGActionExecutionResult,
 	ActionExecutionResultCode,
 	CasparCGActions,
 	MappingCasparCGLayer,
 	Mapping,
+	CasparCGActionExecutionPayload,
 } from 'timeline-state-resolver-types'
 
 import {
@@ -45,7 +47,7 @@ import { DoOnTime, SendMode } from '../../devices/doOnTime'
 import got from 'got'
 import { InternalTransitionHandler } from '../../devices/transitions/transitionHandler'
 import Debug from 'debug'
-import { endTrace, startTrace, t } from '../../lib'
+import { actionNotFoundMessage, endTrace, startTrace, t } from '../../lib'
 const debug = Debug('timeline-state-resolver:casparcg')
 
 const MEDIA_RETRY_INTERVAL = 10 * 1000 // default time in ms between checking whether a file needs to be retried loading
@@ -665,18 +667,17 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 			result: ActionExecutionResultCode.Ok,
 		}
 	}
-
-	async executeAction(id: CasparCGActions): Promise<ActionExecutionResult> {
-		switch (id) {
+	async executeAction<A extends CasparCGActions>(
+		actionId: A,
+		_payload: CasparCGActionExecutionPayload<A>
+	): Promise<CasparCGActionExecutionResult<A>> {
+		switch (actionId) {
 			case CasparCGActions.ClearAllChannels:
-				return this.clearAllChannels()
+				return this.clearAllChannels() as Promise<CasparCGActionExecutionResult<A>>
 			case CasparCGActions.RestartServer:
-				return this.restartCasparCG()
+				return this.restartCasparCG() as Promise<CasparCGActionExecutionResult<A>>
 			default:
-				return {
-					result: ActionExecutionResultCode.Error,
-					response: t('Action "{{id}}" not found', { id }),
-				}
+				return actionNotFoundMessage(actionId)
 		}
 	}
 

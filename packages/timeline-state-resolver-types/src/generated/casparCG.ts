@@ -4,6 +4,7 @@
  * DO NOT MODIFY IT BY HAND. Instead, modify the source JSONSchema file,
  * and run "yarn generate-schema-types" to regenerate this file.
  */
+import { ActionExecutionResult } from ".."
 
 export interface CasparCGOptions {
 	/**
@@ -42,5 +43,15 @@ export type SomeMappingCasparCG = MappingCasparCGLayer
 
 export enum CasparCGActions {
 	ClearAllChannels = 'clearAllChannels',
-	RestartServer = 'restartServer',
+	RestartServer = 'restartServer'
 }
+export interface CasparCGActionExecutionResults {
+	clearAllChannels: () => void,
+	restartServer: () => void
+}
+export type CasparCGActionExecutionPayload<A extends keyof CasparCGActionExecutionResults> = Parameters<
+	CasparCGActionExecutionResults[A]
+>[0]
+
+export type CasparCGActionExecutionResult<A extends keyof CasparCGActionExecutionResults> =
+	ActionExecutionResult<ReturnType<CasparCGActionExecutionResults[A]>>
