@@ -1,7 +1,7 @@
 import * as _ from 'underscore'
 import * as deepMerge from 'deepmerge'
 import { DeviceWithState, CommandWithContext, DeviceStatus, StatusCode, literal } from '../../devices/device'
-import { AMCPCommand, BasicCasparCGAPI, ClearCommand, Commands, Response } from 'casparcg-connection'
+import { AMCPCommand, BasicCasparCGAPI, ClearCommand, ClsCommand, Commands, Response } from 'casparcg-connection'
 import {
 	DeviceType,
 	TimelineContentTypeCasparCg,
@@ -48,6 +48,8 @@ import got from 'got'
 import { InternalTransitionHandler } from '../../devices/transitions/transitionHandler'
 import Debug from 'debug'
 import { actionNotFoundMessage, endTrace, startTrace, t } from '../../lib'
+import { ListMediaReturnData } from 'timeline-state-resolver-types'
+import { ClsParameters } from 'casparcg-connection/dist/parameters'
 const debug = Debug('timeline-state-resolver:casparcg')
 
 const MEDIA_RETRY_INTERVAL = 10 * 1000 // default time in ms between checking whether a file needs to be retried loading
@@ -669,13 +671,15 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 	}
 	async executeAction<A extends CasparCGActions>(
 		actionId: A,
-		_payload: CasparCGActionExecutionPayload<A>
+		payload: CasparCGActionExecutionPayload<A>
 	): Promise<CasparCGActionExecutionResult<A>> {
 		switch (actionId) {
 			case CasparCGActions.ClearAllChannels:
 				return this.clearAllChannels() as Promise<CasparCGActionExecutionResult<A>>
 			case CasparCGActions.RestartServer:
 				return this.restartCasparCG() as Promise<CasparCGActionExecutionResult<A>>
+			case CasparCGActions.ListMedia:
+				return this.listMedia(payload) as Promise<CasparCGActionExecutionResult<A>>
 			default:
 				return actionNotFoundMessage(actionId)
 		}
@@ -729,6 +733,34 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 					}),
 				}
 			})
+	}
+	private async listMedia(query: ClsParameters = {}): Promise<ActionExecutionResult<ListMediaReturnData>> {
+		const result = await this._ccg.executeCommand(
+			literal<ClsCommand>({
+				command: Commands.Cls,
+				params: query,
+			})
+		)
+		if (result.error)
+			return {
+				result: ActionExecutionResultCode.Error,
+				response: t(`Error message from CasparCG: {{message}}`, { message: `${result.error}` }),
+			}
+
+		const request = await result.request
+
+		if (request.responseCode === 200) {
+			// TODO: implement return data
+			return {
+				result: ActionExecutionResultCode.Ok,
+				returnData: [],
+			}
+		} else {
+			return {
+				result: ActionExecutionResultCode.Error,
+				response: t(`Error code {{code}} from CasparCG`, { code: request.responseCode }),
+			}
+		}
 	}
 	getStatus(): DeviceStatus {
 		let statusCode = StatusCode.GOOD

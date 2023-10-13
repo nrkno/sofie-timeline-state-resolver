@@ -41,13 +41,28 @@ export enum MappingCasparCGType {
 
 export type SomeMappingCasparCG = MappingCasparCGLayer
 
+export interface ListMediaPayload {
+	subDirectory?: string
+}
+
+export type ListMediaReturnData = {
+	clip: string
+	type: 'MOVIE' | 'STILL' | 'AUDIO'
+	size: number
+	dateTime: number
+	frames: number
+	framerate: number
+}[]
+
 export enum CasparCGActions {
 	ClearAllChannels = 'clearAllChannels',
-	RestartServer = 'restartServer'
+	RestartServer = 'restartServer',
+	ListMedia = 'listMedia'
 }
 export interface CasparCGActionExecutionResults {
 	clearAllChannels: () => void,
-	restartServer: () => void
+	restartServer: () => void,
+	listMedia: (payload: ListMediaPayload) => ListMediaReturnData
 }
 export type CasparCGActionExecutionPayload<A extends keyof CasparCGActionExecutionResults> = Parameters<
 	CasparCGActionExecutionResults[A]
