@@ -7,6 +7,7 @@ import { HTTPWatcherDevice } from '../integrations/httpWatcher'
 import { AbstractDevice } from '../integrations/abstract'
 import { TcpSendDevice } from '../integrations/tcpSend'
 import { QuantelDevice } from '../integrations/quantel'
+import { CasparCGDevice } from '../integrations/casparCG'
 
 export interface DeviceEntry {
 	deviceClass: new (context: DeviceContextAPI) => Device<any, any, any>
@@ -17,6 +18,7 @@ export interface DeviceEntry {
 
 export type ImplementedServiceDeviceTypes =
 	| DeviceType.ABSTRACT
+	| DeviceType.CASPARCG
 	| DeviceType.HTTPSEND
 	| DeviceType.HTTPWATCHER
 	| DeviceType.OSC
@@ -30,6 +32,12 @@ export const DevicesDict: Record<ImplementedServiceDeviceTypes, DeviceEntry> = {
 		deviceClass: AbstractDevice,
 		canConnect: false,
 		deviceName: (deviceId: string) => 'Abstract ' + deviceId,
+		executionMode: () => 'salvo',
+	},
+	[DeviceType.CASPARCG]: {
+		deviceClass: CasparCGDevice,
+		canConnect: true,
+		deviceName: (deviceId: string) => 'CasparCG ' + deviceId,
 		executionMode: () => 'salvo',
 	},
 	[DeviceType.HTTPSEND]: {
