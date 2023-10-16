@@ -490,10 +490,12 @@ export class LawoDevice extends DeviceWithState<LawoState, DeviceOptionsLawoInte
 	 * Gets an ember node based on its path
 	 * @param path
 	 */
-	private async _getNodeByPath(
+	private async _getParameterNodeByPath(
 		path: string
-	): Promise<EmberModel.NumberedTreeNode<EmberModel.EmberElement> | undefined> {
-		return this._lawo.getElementByPath(path)
+	): Promise<EmberModel.NumberedTreeNode<EmberModel.Parameter> | undefined> {
+		const node = await this._lawo.getElementByPath(path)
+
+		return node as EmberModel.NumberedTreeNode<EmberModel.Parameter> | undefined
 	}
 
 	private _identifierToNodeName(identifier: string): string {
@@ -540,9 +542,7 @@ export class LawoDevice extends DeviceWithState<LawoState, DeviceOptionsLawoInte
 					// add the fade to the fade object, such that we can fade the signal using the fader
 					if (!command.from) {
 						// @todo: see if we can query the lawo first
-						const node = (await this._getNodeByPath(command.path)) as
-							| EmberModel.NumberedTreeNode<EmberModel.Parameter>
-							| undefined
+						const node = await this._getParameterNodeByPath(command.path)
 						if (node) {
 							if (node.contents.factor) {
 								command.from = (node.contents.value as number) / (node.contents.factor || 1)
@@ -629,9 +629,7 @@ export class LawoDevice extends DeviceWithState<LawoState, DeviceOptionsLawoInte
 	}
 	private async setValueWrapper(command: LawoCommand, timelineObjId: string, logResult = true) {
 		try {
-			const node = (await this._getNodeByPath(command.path)) as
-				| EmberModel.NumberedTreeNode<EmberModel.Parameter>
-				| undefined
+			const node = await this._getParameterNodeByPath(command.path)
 
 			if (!node) throw new Error(`Unable to setValue for node "${command.path}", node not found!`)
 
@@ -710,7 +708,7 @@ export class LawoDevice extends DeviceWithState<LawoState, DeviceOptionsLawoInte
 		}
 
 		// get the sources
-		const req = await this._lawo.getDirectory(sourceNode)
+		const req = await this._lawo.getDirectory(sourceNode as EmberModel.NumberedTreeNode<EmberModel.EmberNode>)
 		const sources = (await req.response!) as EmberModel.NumberedTreeNode<EmberModel.EmberNode> | undefined
 		if (!sources) return
 

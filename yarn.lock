@@ -4241,17 +4241,17 @@ asn1@evs-broadcast/node-asn1:
   languageName: node
   linkType: hard
 
-"emberplus-connection@npm:^0.1.2":
-  version: 0.1.2
-  resolution: "emberplus-connection@npm:0.1.2"
+"emberplus-connection@npm:^0.2.1":
+  version: 0.2.1
+  resolution: "emberplus-connection@npm:0.2.1"
   dependencies:
     asn1: evs-broadcast/node-asn1
-    debug: ^4.3.3
-    enum: ^2.4.0
+    debug: ^4.3.4
+    eventemitter3: ^4.0.7
     long: ^3.2.0
     smart-buffer: ^3.0.3
-    tslib: ^2.3.1
-  checksum: 722da0cdcfde9cfdfb3fb378c870ccbf1e41312f200490843d294e80b92f8856ef683e65c4e33c505dbf3beb7469942824faa57da1c4cad626338d0e258ca76c
+    tslib: ^2.6.2
+  checksum: 80cad87885ae7e57694e309734c3fea0efe1687d774ff772287213e3e0d5caa170fb6df4f7bd7ad393c7d1c12a62732e8f34f5ca60878d3a50b72ac75d6822af
   languageName: node
   linkType: hard
 
@@ -4321,15 +4321,6 @@ asn1@evs-broadcast/node-asn1:
   version: 4.5.0
   resolution: "entities@npm:4.5.0"
   checksum: 853f8ebd5b425d350bffa97dd6958143179a5938352ccae092c62d1267c4e392a039be1bae7d51b6e4ffad25f51f9617531fedf5237f15df302ccfb452cbf2d7
-  languageName: node
-  linkType: hard
-
-"enum@npm:^2.4.0":
-  version: 2.5.0
-  resolution: "enum@npm:2.5.0"
-  dependencies:
-    is-buffer: ^1.1.0
-  checksum: a36bcc422ffda674cc8e08a0c9a936395a60fd44f2bab7d2b7016a9c1f9690ba1969b31f82570d908bb4025f323f2ad9879970678307bcff6fcc5026a445ed1b
   languageName: node
   linkType: hard
 
@@ -6234,7 +6225,7 @@ asn1@evs-broadcast/node-asn1:
   languageName: node
   linkType: hard
 
-"is-buffer@npm:^1.1.0, is-buffer@npm:^1.1.5":
+"is-buffer@npm:^1.1.5":
   version: 1.1.6
   resolution: "is-buffer@npm:1.1.6"
   checksum: 4a186d995d8bbf9153b4bd9ff9fd04ae75068fe695d29025d25e592d9488911eeece84eefbd8fa41b8ddcc0711058a71d4c466dcf6f1f6e1d83830052d8ca707
@@ -11381,7 +11372,7 @@ asn1@evs-broadcast/node-asn1:
     casparcg-state: ^3.0.2
     debug: ^4.3.4
     deepmerge: ^4.3.1
-    emberplus-connection: ^0.1.2
+    emberplus-connection: ^0.2.1
     eventemitter3: ^4.0.7
     got: ^11.8.6
     hyperdeck-connection: ^0.5.0
@@ -11616,6 +11607,13 @@ asn1@evs-broadcast/node-asn1:
   version: 2.5.1
   resolution: "tslib@npm:2.5.1"
   checksum: 535e41e956b32d21aeff007a2c74989d1a6bf3fecb2b0141d80e5b9920bf90e23b4f0cd3772704bc03637c762dbdc1a314d75a407dd7189afbe3e83d80df9392
+  languageName: node
+  linkType: hard
+
+"tslib@npm:^2.6.2":
+  version: 2.6.2
+  resolution: "tslib@npm:2.6.2"
+  checksum: 329ea56123005922f39642318e3d1f0f8265d1e7fcb92c633e0809521da75eeaca28d2cf96d7248229deb40e5c19adf408259f4b9640afd20d13aecc1430f3ad
   languageName: node
   linkType: hard
 
