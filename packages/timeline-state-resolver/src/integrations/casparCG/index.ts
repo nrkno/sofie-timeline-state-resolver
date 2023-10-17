@@ -763,8 +763,6 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 		const request = await result.request
 
 		if (request.responseCode === 200) {
-			// TODO: implement return data
-
 			return {
 				result: ActionExecutionResultCode.Ok,
 				resultData: request.data,
