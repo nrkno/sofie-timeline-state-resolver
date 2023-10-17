@@ -48,7 +48,7 @@ import got from 'got'
 import { InternalTransitionHandler } from '../../devices/transitions/transitionHandler'
 import Debug from 'debug'
 import { actionNotFoundMessage, endTrace, startTrace, t } from '../../lib'
-import { ListMediaReturnData } from 'timeline-state-resolver-types'
+import { ListMediaResult } from 'timeline-state-resolver-types'
 import { ClsParameters } from 'casparcg-connection/dist/parameters'
 const debug = Debug('timeline-state-resolver:casparcg')
 
@@ -734,7 +734,7 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 				}
 			})
 	}
-	private async listMedia(query: ClsParameters = {}): Promise<ActionExecutionResult<ListMediaReturnData>> {
+	private async listMedia(query: ClsParameters = {}): Promise<ActionExecutionResult<ListMediaResult>> {
 		const result = await this._ccg.executeCommand(
 			literal<ClsCommand>({
 				command: Commands.Cls,
@@ -753,7 +753,7 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 			// TODO: implement return data
 			return {
 				result: ActionExecutionResultCode.Ok,
-				returnData: [],
+				resultData: [],
 			}
 		} else {
 			return {

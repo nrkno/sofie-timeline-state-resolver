@@ -52,7 +52,7 @@
 							}
 						]
 					},
-					"returnData": {
+					"result": {
 						"type": "object",
 						"tsType": "undefined",
 						"description": "Defines the returned data",

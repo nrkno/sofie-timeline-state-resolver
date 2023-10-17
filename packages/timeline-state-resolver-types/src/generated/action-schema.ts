@@ -29,5 +29,5 @@ export interface TSRActionSchema {
 	/**
 	 * Defines the returned data
 	 */
-	returnData?: undefined
+	result?: undefined
 }

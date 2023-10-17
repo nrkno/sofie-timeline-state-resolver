@@ -95,8 +95,6 @@ for (const dir of dirs) {
 
 	const dirId = capitalise(dir)
 
-	console.log(dirId)
-
 	let output = ''
 
 	const generatedSchemaDirectory = path.join(basePathOfDereferencedShemas, dir)
@@ -194,7 +192,7 @@ for (const dir of dirs) {
 				const actionDefinition = {
 					id: action.id,
 					payloadId: undefined,
-					returnDataId: undefined
+					resultId: undefined
 				}
 				actionDefinitions.push(actionDefinition)
 
@@ -211,9 +209,9 @@ for (const dir of dirs) {
 					}))
 				}
 				// Return Data:
-				if (action.returnData) {
-					actionDefinition.returnDataId = action.returnData.id || capitalise(action.id + 'ReturnData')
-					actionTypes.push(await compile(action.returnData, actionDefinition.returnDataId, {
+				if (action.result) {
+					actionDefinition.resultId = action.result.id || capitalise(action.id + 'Result')
+					actionTypes.push(await compile(action.result, actionDefinition.resultId, {
 						additionalProperties: false,
 						style: PrettierConf,
 						bannerComment: '',
@@ -245,7 +243,7 @@ ${actionDefinitions.map(
 		output += `
 export interface ${dirId}ActionExecutionResults {
 ${actionDefinitions.map(
-			(actionDefinition) => `\t${actionDefinition.id}: (${actionDefinition.payloadId ? `payload: ${actionDefinition.payloadId}` : ''}) => ${actionDefinition.returnDataId || 'void'}`
+			(actionDefinition) => `\t${actionDefinition.id}: (${actionDefinition.payloadId ? `payload: ${actionDefinition.payloadId}` : ''}) => ${actionDefinition.resultId || 'void'}`
 		).join(',\n')}
 }`
 		// Prepend import:

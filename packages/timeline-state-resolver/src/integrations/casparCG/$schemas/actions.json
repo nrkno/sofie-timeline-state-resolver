@@ -24,7 +24,7 @@
 				},
 				"additionalProperties": false
 			},
-			"returnData": {
+			"result": {
 				"type": "array",
 				"items": {
 					"type": "object",

@@ -45,7 +45,7 @@ export interface ListMediaPayload {
 	subDirectory?: string
 }
 
-export type ListMediaReturnData = {
+export type ListMediaResult = {
 	clip: string
 	type: 'MOVIE' | 'STILL' | 'AUDIO'
 	size: number
@@ -62,7 +62,7 @@ export enum CasparCGActions {
 export interface CasparCGActionExecutionResults {
 	clearAllChannels: () => void,
 	restartServer: () => void,
-	listMedia: (payload: ListMediaPayload) => ListMediaReturnData
+	listMedia: (payload: ListMediaPayload) => ListMediaResult
 }
 export type CasparCGActionExecutionPayload<A extends keyof CasparCGActionExecutionResults> = Parameters<
 	CasparCGActionExecutionResults[A]
