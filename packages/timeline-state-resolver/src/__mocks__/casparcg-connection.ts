@@ -28,7 +28,7 @@ export class BasicCasparCGAPI extends EventEmitter {
 		instances.push(this)
 	}
 
-	async executeCommand(command: AMCPCommand): Promise<SendResult> {
+	async executeCommand(command: AMCPCommand): Promise<SendResult<any>> {
 		mockDo.apply(this, command)
 
 		if (command.command === Commands.Info) {
