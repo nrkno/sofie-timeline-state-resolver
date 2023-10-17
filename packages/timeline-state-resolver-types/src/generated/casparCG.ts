@@ -49,7 +49,7 @@ export type ListMediaResult = {
 	clip: string
 	type: 'MOVIE' | 'STILL' | 'AUDIO'
 	size: number
-	dateTime: number
+	datetime?: number
 	frames: number
 	framerate: number
 }[]

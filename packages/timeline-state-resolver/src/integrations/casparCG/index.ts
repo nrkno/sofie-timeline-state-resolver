@@ -1,7 +1,17 @@
 import * as _ from 'underscore'
 import * as deepMerge from 'deepmerge'
 import { DeviceWithState, CommandWithContext, DeviceStatus, StatusCode, literal } from '../../devices/device'
-import { AMCPCommand, BasicCasparCGAPI, ClearCommand, ClsCommand, Commands, Response } from 'casparcg-connection'
+import {
+	AMCPCommand,
+	BasicCasparCGAPI,
+	ClearCommand,
+	ClsCommand,
+	Commands,
+	Response,
+	InfoChannelEntry,
+	InfoEntry,
+	Command,
+} from 'casparcg-connection'
 import {
 	DeviceType,
 	TimelineContentTypeCasparCg,
@@ -123,7 +133,7 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 
 					const response = await request
 
-					const channelPromises: Promise<Response>[] = []
+					const channelPromises: Promise<Response<InfoChannelEntry | undefined>>[] = []
 					const channelLength: number = response?.data?.['length'] ?? 0
 
 					// Issue commands
@@ -131,7 +141,7 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 						// 1-based index for channels
 
 						const { error, request } = await this._ccg.executeCommand({
-							command: Commands.Info,
+							command: Commands.InfoChannel,
 							params: { channel: i },
 						})
 						if (error) {
@@ -145,8 +155,11 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 					// Wait for all commands
 					const channelResults = await Promise.all(channelPromises)
 
-					// Resync if all channels have no stage object (no possibility of anything playing)
-					return !channelResults.find((ch) => ch.data['stage'])
+					// Resync if all channels are empty
+					for (const ch of channelResults) {
+						if (ch.data && ch.data.channel.layers.length > 0) return false
+					}
+					return true
 				})
 				.catch((e) => {
 					this.emit('error', 'connect virgin check failed', e)
@@ -187,7 +200,7 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 			response.data.forEach((obj) => {
 				this._currentState.channels[obj.channel] = {
 					channelNo: obj.channel,
-					videoMode: obj.format.toUpperCase(),
+					videoMode: this.getVideMode(obj),
 					fps: obj.frameRate,
 					layers: {},
 				}
@@ -657,7 +670,7 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 		response.data.forEach((obj) => {
 			this._currentState.channels[obj.channel] = {
 				channelNo: obj.channel,
-				videoMode: obj.format.toUpperCase(),
+				videoMode: this.getVideMode(obj),
 				fps: obj.frameRate,
 				layers: {},
 			}
@@ -751,9 +764,10 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 
 		if (request.responseCode === 200) {
 			// TODO: implement return data
+
 			return {
 				result: ActionExecutionResultCode.Ok,
-				resultData: [],
+				resultData: request.data,
 			}
 		} else {
 			return {
@@ -795,8 +809,8 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 			this._doOnTime.queue(
 				time,
 				undefined,
-				async (c: { command: AMCPCommand; cmd: AMCPCommandWithContext }) => {
-					return this._commandReceiver(time, c.command, c.cmd.context.context, c.cmd.context.layerId)
+				async (c: { command: Command<Commands, unknown>; cmd: AMCPCommandWithContext }) => {
+					return this._commandReceiver(time, c.command as AMCPCommand, c.cmd.context.context, c.cmd.context.layerId)
 				},
 				{ command: { command: cmd.command, params: cmd.params }, cmd: cmd }
 			)
@@ -863,7 +877,7 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 		}
 	}
 
-	private _changeTrackedStateFromCommand(command: AMCPCommand, response: Response, time: number): void {
+	private _changeTrackedStateFromCommand(command: AMCPCommand, response: Response<unknown>, time: number): void {
 		// Ensure this is for a channel and layer
 		if (!('channel' in command.params) || command.params.channel === undefined) return
 		if (!('layer' in command.params) || command.params.layer === undefined) return
@@ -988,5 +1002,9 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 
 	private _connectionChanged() {
 		this.emit('connectionChanged', this.getStatus())
+	}
+
+	private getVideMode(info: InfoEntry): string {
+		return `${info.format}${info.interlaced ? 'I' : 'P'}${info.frameRate}`
 	}
 }

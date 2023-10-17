@@ -43,7 +43,7 @@
 						"size": {
 							"type": "number"
 						},
-						"dateTime": {
+						"datetime": {
 							"type": "number"
 						},
 						"frames": {
