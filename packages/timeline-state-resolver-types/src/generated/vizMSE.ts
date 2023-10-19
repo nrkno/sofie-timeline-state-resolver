@@ -5,4 +5,5 @@
  */
 export enum VizMSEActions {
 	PurgeRundown = 'purgeRundown',
+	ClearAllEngines = 'clearAllEngines',
 }

@@ -7,6 +7,13 @@
 			"description": "Purges all elements from the viz-rundown",
 			"destructive": true,
 			"timeout": 10000
+		},
+		{
+			"id": "clearAllEngines",
+			"name": "Clear Engines",
+			"description": "Clears all Engines in the Profile by sending the configured list of clear-commands",
+			"destructive": true,
+			"timeout": 10000
 		}
 	]
 }
