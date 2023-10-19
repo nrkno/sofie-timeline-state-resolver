@@ -3,6 +3,15 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [8.1.0](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/8.0.0...8.1.0) (2023-10-19)
+
+
+### Features
+
+* VizMSE action to send clear-commands (configured on the device settings) to all Engines in the Profile ([38e313f](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/38e313f77dfa7e61f495acf274b872768a1dbaa5))
+
+
+
 ## [8.0.0](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/7.5.1...8.0.0) (2023-10-05)
 
 
