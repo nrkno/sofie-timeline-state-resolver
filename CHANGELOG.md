@@ -71,6 +71,12 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
 
 - Revert "chore: enable node 20 in ci" ([2f31f95](https://github.com/nrkno/sofie-timeline-state-resolver/commit/2f31f95c8ef4b24d9401f27713a1bee1d5673960))
 
+## [8.1.0](https://github.com/nrkno/sofie-timeline-state-resolver/compare/8.0.0...8.1.0) (2023-10-19)
+
+### Features
+
+- VizMSE action to send clear-commands (configured on the device settings) to all Engines in the Profile ([38e313f](https://github.com/nrkno/sofie-timeline-state-resolver/commit/38e313f77dfa7e61f495acf274b872768a1dbaa5))
+
 ## [8.0.0](https://github.com/nrkno/sofie-timeline-state-resolver/compare/7.5.1...8.0.0) (2023-10-05)
 
 ### Features

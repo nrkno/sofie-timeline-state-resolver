@@ -62,6 +62,12 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
 - **vmix:** show a BAD status code when vMix is not initialized ([370be3a](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/370be3af2f01bada232ea244c76b6c5507e9773f))
 - wrap singular.live JSON commands in an array ([cc5b7ec](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/cc5b7ec61d456de993cbc0e25963c93ec8b65f38))
 
+## [8.1.0](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/8.0.0...8.1.0) (2023-10-19)
+
+### Features
+
+- VizMSE action to send clear-commands (configured on the device settings) to all Engines in the Profile ([38e313f](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/38e313f77dfa7e61f495acf274b872768a1dbaa5))
+
 ## [8.0.0](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/7.5.1...8.0.0) (2023-10-05)
 
 ### Features

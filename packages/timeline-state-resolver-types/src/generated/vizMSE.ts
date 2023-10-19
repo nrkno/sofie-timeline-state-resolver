@@ -80,4 +80,5 @@ export enum VizMSEActions {
 	PurgeRundown = 'purgeRundown',
 	Activate = 'activate',
 	StandDown = 'standDown',
+	ClearAllEngines = 'clearAllEngines',
 }
