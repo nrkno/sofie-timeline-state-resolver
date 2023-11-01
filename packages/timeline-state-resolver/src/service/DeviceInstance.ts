@@ -12,7 +12,7 @@ import {
 import type { CommandWithContext, Device, DeviceContextAPI, DeviceEvents } from './device'
 import { StateHandler } from './stateHandler'
 import { DeviceEntry, DevicesDict } from './devices'
-import type { DeviceOptionsAnyInternal, ExpectedPlayoutItem } from '..'
+import type { DeviceOptionsAnyInternal, ExpectedPlayoutItem, LayerState, TSRMappingOptions } from '..'
 import type { StateChangeReport } from './measure'
 
 type Config = DeviceOptionsAnyInternal
@@ -32,13 +32,15 @@ export interface DeviceDetails {
 export interface DeviceInstanceEvents extends Omit<DeviceEvents, 'connectionChanged'> {
 	/** The connection status has changed */
 	connectionChanged: [status: DeviceStatus]
+	/** The reported state of a layer has changed */
+	layerState: [layer: string, state: LayerState]
 }
 
 /**
  * Top level container for setting up and interacting with any device integrations
  */
 export class DeviceInstanceWrapper extends EventEmitter<DeviceInstanceEvents> {
-	private _device: Device<any, DeviceState, CommandWithContext>
+	private _device: Device<any, DeviceState, CommandWithContext, TSRMappingOptions, any>
 	private _stateHandler: StateHandler<DeviceState, CommandWithContext>
 
 	private _deviceId: string
@@ -115,6 +117,7 @@ export class DeviceInstanceWrapper extends EventEmitter<DeviceInstanceEvents> {
 					})
 				},
 				getCurrentTime: this.getCurrentTime,
+				reportLayerState: (l, s) => this.emit('layerState', l, s),
 			},
 			{
 				executionType: deviceSpecs.executionMode(config.options),
@@ -158,7 +161,7 @@ export class DeviceInstanceWrapper extends EventEmitter<DeviceInstanceEvents> {
 		//
 	}
 
-	handleState(newState: Timeline.TimelineState<TSRTimelineContent>, newMappings: Mappings) {
+	handleState(newState: Timeline.TimelineState<TSRTimelineContent>, newMappings: Mappings<TSRMappingOptions>) {
 		this._stateHandler.handleState(newState, newMappings).catch((e) => {
 			this.emit('error', 'Error while handling state', e)
 		})
@@ -247,6 +250,7 @@ export class DeviceInstanceWrapper extends EventEmitter<DeviceInstanceEvents> {
 
 			resetState: async () => {
 				await this._stateHandler.clearFutureStates()
+				await this._stateHandler.setCurrentState({})
 				this.emit('resetResolver')
 			},
 		}

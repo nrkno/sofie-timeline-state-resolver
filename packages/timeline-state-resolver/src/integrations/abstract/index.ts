@@ -7,6 +7,9 @@ import {
 	DeviceOptionsAbstract,
 	AbstractActions,
 	ActionExecutionResultCode,
+	SomeMappingAbstract,
+	DeviceType,
+	Mapping,
 } from 'timeline-state-resolver-types'
 import { Device } from '../../service/device'
 
@@ -26,7 +29,12 @@ export type AbstractDeviceState = Timeline.TimelineState<TSRTimelineContent>
 	An abstract device is just a test-device that doesn't really do anything, but can be used
 	as a preliminary mock
 */
-export class AbstractDevice extends Device<AbstractOptions, AbstractDeviceState, AbstractCommandWithContext> {
+export class AbstractDevice extends Device<
+	AbstractOptions,
+	AbstractDeviceState,
+	AbstractCommandWithContext,
+	SomeMappingAbstract
+> {
 	readonly actions: Record<string, (id: string, payload: Record<string, any>) => Promise<ActionExecutionResult>> = {
 		[AbstractActions.TestAction]: async () => {
 			// noop
@@ -56,7 +64,7 @@ export class AbstractDevice extends Device<AbstractOptions, AbstractDeviceState,
 	 * @param state
 	 */
 	convertTimelineStateToDeviceState(state: Timeline.TimelineState<TSRTimelineContent>) {
-		return state
+		return { abstract: state }
 	}
 
 	getStatus(): Omit<DeviceStatus, 'active'> {
@@ -71,7 +79,10 @@ export class AbstractDevice extends Device<AbstractOptions, AbstractDeviceState,
 	 * @param oldAbstractState
 	 * @param newAbstractState
 	 */
-	diffStates(oldAbstractState: AbstractDeviceState | undefined, newAbstractState: AbstractDeviceState) {
+	diffStates(
+		{ abstract: oldAbstractState }: { abstract: AbstractDeviceState | undefined },
+		{ abstract: newAbstractState }: { abstract: AbstractDeviceState }
+	) {
 		// in this abstract class, let's just cheat:
 
 		const commands: Array<AbstractCommandWithContext> = []
@@ -125,5 +136,9 @@ export class AbstractDevice extends Device<AbstractOptions, AbstractDeviceState,
 		// Note: In the Abstract case, the execution does nothing
 
 		return null
+	}
+
+	mappingToAddress(_mapping: Mapping<SomeMappingAbstract, DeviceType>): string {
+		return 'abstract'
 	}
 }

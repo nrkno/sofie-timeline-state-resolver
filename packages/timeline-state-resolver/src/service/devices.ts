@@ -10,7 +10,7 @@ import { QuantelDevice } from '../integrations/quantel'
 import { CasparCGDevice } from '../integrations/casparCG'
 
 export interface DeviceEntry {
-	deviceClass: new (context: DeviceContextAPI) => Device<any, any, any>
+	deviceClass: new (context: DeviceContextAPI) => Device<any, any, any, any, any>
 	canConnect: boolean
 	deviceName: (deviceId: string, options: any) => string
 	executionMode: (options: any) => 'salvo' | 'sequential'

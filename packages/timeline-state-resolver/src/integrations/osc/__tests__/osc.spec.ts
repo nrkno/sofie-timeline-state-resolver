@@ -43,7 +43,7 @@ describe('OSC Device', () => {
 
 			const actualState = device.convertTimelineStateToDeviceState(tlState)
 
-			expect(actualState).toEqual(expDevState)
+			expect(actualState).toEqual({ osc: expDevState })
 		}
 
 		test('convert empty state', async () => {
@@ -173,7 +173,7 @@ describe('OSC Device', () => {
 		) {
 			const device = await getInitialisedOscDevice()
 
-			const commands = device.diffStates(oldDevState, newDevState)
+			const commands = device.diffStates({ osc: oldDevState }, { osc: newDevState })
 
 			expect(commands).toEqual(expCommands)
 		}

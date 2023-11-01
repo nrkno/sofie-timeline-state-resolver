@@ -1,3 +1,4 @@
+import { LayerState } from 'timeline-state-resolver-types/src'
 import { SlowSentCommandInfo, SlowFulfilledCommandInfo, CommandReport } from '../'
 import { FinishedTrace } from '../lib'
 import {
@@ -7,6 +8,8 @@ import {
 	DeviceStatus,
 	ActionExecutionResult,
 	MediaObject,
+	Mapping as TSRMapping,
+	TSRMappingOptions,
 } from 'timeline-state-resolver-types'
 
 type CommandContext = any
@@ -18,13 +21,19 @@ export type CommandWithContext = {
 	timelineObjId: string
 	/** this command is to be executed x ms _before_ the scheduled time */
 	preliminary?: number
+	address?: string
 }
 
 /**
  * API for use by the DeviceInstance to be able to use a device
  */
-export abstract class Device<DeviceOptions, DeviceState, Command extends CommandWithContext>
-	implements BaseDeviceAPI<DeviceState, Command>
+export abstract class Device<
+	DeviceOptions,
+	AddressState,
+	Command extends CommandWithContext,
+	MappingOptions extends TSRMappingOptions,
+	CommandResult = void
+> implements BaseDeviceAPI<AddressState, Command, CommandResult>
 {
 	constructor(protected context: DeviceContextAPI) {
 		// Nothing
@@ -59,16 +68,21 @@ export abstract class Device<DeviceOptions, DeviceState, Command extends Command
 	abstract convertTimelineStateToDeviceState(
 		state: Timeline.TimelineState<TSRTimelineContent>,
 		newMappings: Mappings
-	): DeviceState
-	abstract diffStates(oldState: DeviceState | undefined, newState: DeviceState, mappings: Mappings): Array<Command>
-	abstract sendCommand(command: Command): Promise<void>
+	): Record<string, AddressState>
+	abstract diffStates(
+		oldState: Record<string, AddressState | undefined>,
+		newState: Record<string, AddressState>,
+		mappings: Mappings
+	): Array<Command>
+	abstract sendCommand(command: Command): Promise<CommandResult>
+	abstract mappingToAddress(mapping: TSRMapping<MappingOptions>): string
 	// -------------------------------------------------------------------
 }
 
 /**
  * Minimal API for the StateHandler to be able to use a device
  */
-export interface BaseDeviceAPI<DeviceState, Command extends CommandWithContext> {
+export interface BaseDeviceAPI<AddressState, Command extends CommandWithContext, CommandResult = void> {
 	/**
 	 * This method takes in a Timeline State that describes a point
 	 * in time on the timeline and returns a device state that
@@ -80,14 +94,31 @@ export interface BaseDeviceAPI<DeviceState, Command extends CommandWithContext> 
 	convertTimelineStateToDeviceState(
 		state: Timeline.TimelineState<TSRTimelineContent>,
 		newMappings: Mappings
-	): DeviceState
+	): Record<string, AddressState>
 	/**
 	 * This method takes 2 states and returns a set of commands that will
 	 * transition the device from oldState to newState
 	 */
-	diffStates(oldState: DeviceState | undefined, newState: DeviceState, mappings: Mappings): Array<Command>
+	diffStates(
+		oldState: Record<string, AddressState | undefined>,
+		newState: Record<string, AddressState>,
+		mappings: Mappings
+	): Array<Command>
 	/** This method will take a command and send it to the device */
-	sendCommand(command: Command): Promise<void>
+	sendCommand(command: Command): Promise<CommandResult>
+	/** The implementation shall return a string literal that can be used to identify a part of the device */
+	mappingToAddress(mapping: TSRMapping<TSRMappingOptions>): string
+
+	/**
+	 * The implementation shall return a LayerState as derived from the currentState and expectedState
+	 */
+	getLayerStatus?(currentState: AddressState, expectedState: AddressState): LayerState
+	stateUpdatesFromCommands?(
+		currentState: AddressState | undefined,
+		expectedState: AddressState | undefined,
+		commands: Command[],
+		results: PromiseSettledResult<CommandResult>[]
+	): AddressState
 }
 
 /** Events emitted by the device, to be listened on by Conductor */
@@ -150,6 +181,6 @@ export interface DeviceContextAPI {
 
 	timeTrace: (trace: FinishedTrace) => void
 
-	/** Reset the state of the State */
+	/** Reset the state of the State, this will clear any known state about the device */
 	resetState: () => Promise<void>
 }

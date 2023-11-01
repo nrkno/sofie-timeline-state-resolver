@@ -1,47 +1,81 @@
 import { FinishedTrace, startTrace, endTrace } from '../lib'
-import { Mappings, Timeline, TSRTimelineContent } from 'timeline-state-resolver-types'
+import {
+	LayerState,
+	Mapping,
+	Mappings,
+	Timeline,
+	TSRMappingOptions,
+	TSRTimelineContent,
+} from 'timeline-state-resolver-types'
 import { BaseDeviceAPI, CommandWithContext } from './device'
 import { Measurement, StateChangeReport } from './measure'
 import { CommandQueue } from './commandQueue'
+import { StateTracker } from './stateTracker'
 
-interface StateChange<DeviceState, Command extends CommandWithContext> {
+interface StateChange<AddressState, Command extends CommandWithContext> {
 	commands?: Command[]
 	preliminary?: number
 
 	state: Timeline.TimelineState<TSRTimelineContent>
-	deviceState: DeviceState
-	mappings: Mappings
+	deviceState: Record<string, AddressState>
+	mappings: Mappings<TSRMappingOptions>
 
 	measurement?: Measurement
 }
-interface ExecutedStateChange<DeviceState, Command extends CommandWithContext>
-	extends StateChange<DeviceState | undefined, Command> {
+interface ExecutedStateChange<AddressState, Command extends CommandWithContext>
+	extends StateChange<AddressState, Command> {
 	commands: Command[]
 }
 
 const CLOCK_INTERVAL = 20
 
-export class StateHandler<DeviceState, Command extends CommandWithContext> {
-	private stateQueue: StateChange<DeviceState, Command>[] = []
-	private currentState: ExecutedStateChange<DeviceState, Command> | undefined
+export class StateHandler<AddressState, Command extends CommandWithContext, CommandResult = void> {
+	private stateQueue: StateChange<AddressState, Command>[] = []
+	private currentState: ExecutedStateChange<AddressState, Command> | undefined
 	/** Semaphore, to ensure that .executeNextStateChange() is only executed one at a time */
 	private _executingStateChange = false
-	private _commandQueue: CommandQueue<DeviceState, Command>
+	private _commandQueue: CommandQueue<AddressState, Command, CommandResult>
 
 	private clock: NodeJS.Timeout
-
 	private logger: StateHandlerContext['logger']
+	private _stateTracker?: StateTracker<AddressState, Command>
 
 	constructor(
 		private context: StateHandlerContext,
 		private config: StateHandlerConfig,
-		private device: BaseDeviceAPI<DeviceState, Command>
+		private device: BaseDeviceAPI<AddressState, Command, CommandResult>
 	) {
 		this.logger = context.logger
 
-		this.setCurrentState(undefined).catch((e) => {
+		this.setCurrentState({}).catch((e) => {
 			this.logger.error('Error while creating new StateHandler', e)
 		})
+
+		if (device.getLayerStatus) {
+			this._stateTracker = new StateTracker(
+				(o, n) => device.diffStates(o, n, this.currentState?.mappings ?? {}),
+				(c, e) => {
+					if (device.getLayerStatus) return device.getLayerStatus(c, e)
+					throw new Error('Could not find implementation for device.getLayerStatus')
+				},
+				(address, state) => {
+					// todo - this relies on waiting till the state change has finished...
+					// ;(this._executingStateChange ?? Promise.resolve()).then(() => {
+					if (!device.mappingToAddress) return
+
+					// now there should be a currentState
+					const mappings = this.currentState?.mappings
+					if (!mappings) return
+
+					// find all layer names for this address
+					for (const [layer, m] of Object.entries<Mapping<TSRMappingOptions>>(mappings)) {
+						const addr = device.mappingToAddress(m as any)
+						if (addr === address) this.context.reportLayerState(layer, state)
+					}
+					// })
+				}
+			)
+		}
 
 		this._commandQueue = new CommandQueue(this.config.executionType, async (c) => device.sendCommand(c))
 
@@ -80,7 +114,7 @@ export class StateHandler<DeviceState, Command extends CommandWithContext> {
 		this.stateQueue = []
 	}
 
-	async handleState(state: Timeline.TimelineState<TSRTimelineContent>, mappings: Mappings) {
+	async handleState(state: Timeline.TimelineState<TSRTimelineContent>, mappings: Mappings<TSRMappingOptions>) {
 		const nextState = this.stateQueue[0]
 
 		const trace = startTrace('device:convertTimelineStateToDeviceState', { deviceId: this.context.deviceId })
@@ -109,7 +143,7 @@ export class StateHandler<DeviceState, Command extends CommandWithContext> {
 		}
 	}
 
-	async setCurrentState(state: DeviceState | undefined) {
+	async setCurrentState(state: Record<string, AddressState>) {
 		this.currentState = {
 			commands: [],
 			deviceState: state,
@@ -168,6 +202,7 @@ export class StateHandler<DeviceState, Command extends CommandWithContext> {
 
 		if (!newState || !newState.commands) {
 			// this should not be possible given our previous guard?
+			this._executingStateChange = false
 			return
 		}
 
@@ -175,21 +210,69 @@ export class StateHandler<DeviceState, Command extends CommandWithContext> {
 
 		this.currentState = undefined
 
+		if (this._stateTracker && this.device.mappingToAddress) {
+			// update the expected state
+			for (const m of Object.values<Mapping<TSRMappingOptions>>(newState.mappings)) {
+				const addr = this.device.mappingToAddress(m)
+
+				// const update = this.device.getAddressStateFromDeviceState(addr, newState.deviceState)
+				const update = newState.deviceState[addr]
+				this._stateTracker.updateExpectedState(addr, update)
+			}
+		}
+
 		this._commandQueue
 			.queueCommands(newState.commands, newState.measurement)
-			.then(() => {
+			.then((promiseResults) => {
 				if (newState.measurement) this.context.reportStateChangeMeasurement(newState.measurement.report())
+				if (newState.commands && this._stateTracker)
+					this.applyCommandResultsToStateTracker(newState.commands, promiseResults)
 			})
 			.catch((e) => {
 				this.logger.error('Error while executing next state change', e)
 			})
 
-		this.currentState = newState as ExecutedStateChange<DeviceState, Command>
+		this.currentState = newState as ExecutedStateChange<AddressState, Command>
 		this._executingStateChange = false
 
 		this.calculateNextStateChange().catch((e) => {
 			this.logger.error('Error while executing next state change', e)
 		})
+	}
+
+	private applyCommandResultsToStateTracker(commands: Command[], results: PromiseSettledResult<CommandResult>[]) {
+		if (!this._stateTracker || !this.device.stateUpdatesFromCommands) return
+
+		// group commands by addresses
+		const groupedCommands: Record<string, { commands: Command[]; results: PromiseSettledResult<CommandResult>[] }> = {}
+		for (let i = 0; i < commands.length && i < results.length; i++) {
+			const command = commands[i]
+			const result = results[i]
+
+			if (!command.address) continue
+
+			const group =
+				groupedCommands[command.address] ?? (groupedCommands[command.address] = { commands: [], results: [] })
+			group.commands.push(command)
+			group.results.push(result)
+		}
+
+		// apply updates for every address
+		for (const [address, commands] of Object.entries<(typeof groupedCommands)[keyof typeof groupedCommands]>(
+			groupedCommands
+		)) {
+			const expectedState = this._stateTracker.getExpectedState(address)
+			const currentState = this._stateTracker.getCurrentState(address)
+
+			const update = this.device.stateUpdatesFromCommands(
+				currentState,
+				expectedState,
+				commands.commands,
+				commands.results
+			)
+
+			this._stateTracker.updateState(address, update)
+		}
 	}
 }
 
@@ -211,4 +294,6 @@ export interface StateHandlerContext {
 	reportStateChangeMeasurement: (report: StateChangeReport) => void
 
 	getCurrentTime: () => Promise<number>
+
+	reportLayerState(layer: string, state: LayerState): void
 }

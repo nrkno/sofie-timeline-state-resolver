@@ -89,6 +89,7 @@ function diffTrackerStatesLayer(
 		command: c,
 		context: c.context.context,
 		timelineObjId: c.context.layerId,
+		address: addr,
 	}))
 }
 

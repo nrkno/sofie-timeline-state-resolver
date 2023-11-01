@@ -2,6 +2,9 @@ import {
 	ActionExecutionResult,
 	ActionExecutionResultCode,
 	DeviceStatus,
+	DeviceType,
+	Mapping,
+	MappingQuantelPort,
 	Mappings,
 	OSCMessageCommandContent,
 	QuantelActions,
@@ -34,7 +37,7 @@ export interface QuantelCommandWithContext {
 	timelineObjId: string
 }
 
-export class QuantelDevice extends Device<QuantelOptions, QuantelState, QuantelCommandWithContext> {
+export class QuantelDevice extends Device<QuantelOptions, QuantelState, QuantelCommandWithContext, SomeMappingQuantel> {
 	// TODO - monitor ports: this._quantel.setMonitoredPorts(this._getMappedPorts(newMappings))
 
 	private _quantel: QuantelGateway
@@ -81,11 +84,14 @@ export class QuantelDevice extends Device<QuantelOptions, QuantelState, QuantelC
 	convertTimelineStateToDeviceState(
 		timelineState: Timeline.TimelineState<TSRTimelineContent>,
 		mappings: Mappings<SomeMappingQuantel>
-	): QuantelState {
-		return convertTimelineStateToQuantelState(timelineState, mappings)
+	): { quantel: QuantelState } {
+		return { quantel: convertTimelineStateToQuantelState(timelineState, mappings) }
 	}
-	diffStates(oldState: QuantelState | undefined, newState: QuantelState): Array<QuantelCommandWithContext> {
-		return diffStates(oldState, newState)
+	diffStates(
+		oldState: { quantel: QuantelState | undefined },
+		newState: { quantel: QuantelState }
+	): Array<QuantelCommandWithContext> {
+		return diffStates(oldState.quantel, newState.quantel)
 	}
 	async sendCommand({ command, context, timelineObjId }: QuantelCommandWithContext): Promise<any> {
 		const cwc: CommandWithContext = {
@@ -121,6 +127,9 @@ export class QuantelDevice extends Device<QuantelOptions, QuantelState, QuantelC
 			}
 			this.context.commandError(new Error(errorString), cwc)
 		}
+	}
+	mappingToAddress(_mapping: Mapping<MappingQuantelPort, DeviceType>): string {
+		return 'quantel'
 	}
 
 	get connected(): boolean {

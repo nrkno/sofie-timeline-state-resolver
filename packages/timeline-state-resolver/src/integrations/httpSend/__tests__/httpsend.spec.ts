@@ -58,7 +58,7 @@ describe('HTTP-Send', () => {
 		) {
 			const device = await getInitialisedHttpDevice()
 
-			const commands = device.diffStates(oldDevState, newDevState)
+			const commands = device.diffStates({ httpSend: oldDevState }, { httpSend: newDevState })
 
 			expect(commands).toEqual(expCommands)
 		}

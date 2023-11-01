@@ -16,6 +16,8 @@ import {
 import deepmerge = require('deepmerge')
 import {
 	DeviceType,
+	LayerState,
+	LayerStatus,
 	Mapping,
 	MappingCasparCGLayer,
 	Mappings,
@@ -29,6 +31,9 @@ import {
 	TimelineContentTypeCasparCg,
 } from 'timeline-state-resolver-types'
 import { literal } from '../../devices/device'
+import { CasparCGCommand } from './diff'
+import { klona } from 'klona'
+import { Commands } from 'casparcg-connection'
 
 export interface TrackedLayer {
 	layer: Layer | undefined
@@ -294,4 +299,100 @@ function convertObjectToCasparState(
 
 	stateLayer.layerNo = mapping.layer
 	return stateLayer
+}
+
+export function stateUpdateFromCommandResult(
+	trackedLayer: TrackedLayer | undefined,
+	expectedLayer: TrackedLayer | undefined,
+	commands: CasparCGCommand[],
+	results: number[]
+): TrackedLayer {
+	const newTrackedLayer = klona(
+		trackedLayer ?? { time: expectedLayer?.time ?? 0, lookahead: undefined, layer: undefined }
+	)
+
+	for (let i = 0; i < commands.length; i++) {
+		const { command } = commands[i]
+		const result = results[i]
+
+		if (!command || !result) continue
+		if (!command.command.match(/Loadbg|Play|Load|Clear|Stop|Resume/i)) continue
+		if (
+			!(
+				typeof command.params === 'object' &&
+				command.params &&
+				'channel' in command.params &&
+				command.params.channel !== undefined &&
+				'layer' in command.params &&
+				command.params.layer !== undefined
+			)
+		)
+			continue
+		if (result >= 300) continue
+		console.log(command, result)
+
+		switch (command.command) {
+			case Commands.Play:
+			case Commands.Load:
+				if (!('clip' in command.params) && !trackedLayer?.lookahead) {
+					// Ignore, no clip was loaded in confirmedChannelState
+				} else {
+					// a play/load command without parameters (channel/layer) is only successful if the nextUp worked
+					// a play/load command with params can always be accepted
+					newTrackedLayer.layer = klona(expectedLayer?.layer)
+					newTrackedLayer.lookahead = undefined // a play command always clears nextUp
+				}
+				break
+			case Commands.PlayDecklink:
+			case Commands.PlayHtml:
+			case Commands.PlayRoute:
+				newTrackedLayer.layer = klona(expectedLayer?.layer)
+				newTrackedLayer.lookahead = undefined // a play command always clears nextUp
+				break
+			case Commands.Loadbg:
+			case Commands.LoadbgDecklink:
+			case Commands.LoadbgHtml:
+			case Commands.LoadbgRoute:
+				// only loadbg can set nextUp and nextUp can only be set by loadbg
+				newTrackedLayer.lookahead = klona(expectedLayer?.lookahead)
+				break
+			case Commands.Stop:
+				// note - technically an auto bg + stop => bg to fg but tsr never uses this...
+				newTrackedLayer.layer = undefined
+				break
+			case Commands.Resume:
+				// resume does not affect nextup
+				newTrackedLayer.layer = klona(expectedLayer?.layer)
+				break
+			case Commands.Clear:
+				// Remove both the background and foreground
+				newTrackedLayer.layer = undefined
+				newTrackedLayer.lookahead = undefined
+				break
+			default: {
+				// Never hit
+				// const _a: never = command.params.name
+				break
+			}
+		}
+	}
+
+	return newTrackedLayer
+}
+
+export function getLayerState(currentLayer: TrackedLayer, expectedLayer?: TrackedLayer): LayerState {
+	const expectedIds: string[] = [
+		expectedLayer?.layer?.media?.toString(),
+		expectedLayer?.lookahead?.media?.toString(),
+	].filter((m): m is string => m !== undefined)
+
+	const fg = currentLayer?.layer?.media
+	const bg = currentLayer?.lookahead?.media
+	const actualIds = [fg?.toString(), bg?.toString()].filter((m): m is string => m !== undefined)
+
+	return {
+		status: fg || bg ? LayerStatus.Loaded : LayerStatus.Empty,
+		mediaId: actualIds,
+		failedMediaId: expectedIds.filter((id) => !actualIds.includes(id)),
+	}
 }

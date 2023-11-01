@@ -6,6 +6,7 @@ import {
 	OSCMessageCommandContent,
 	OSCOptions,
 	OSCValueType,
+	SomeMappingOsc,
 	SomeOSCValue,
 	StatusCode,
 	Timeline,
@@ -32,7 +33,7 @@ export interface OscCommandWithContext {
 	timelineObjId: string
 }
 
-export class OscDevice extends Device<OSCOptions, OscDeviceState, OscCommandWithContext> {
+export class OscDevice extends Device<OSCOptions, OscDeviceState, OscCommandWithContext, SomeMappingOsc> {
 	private _oscClient: osc.UDPPort | osc.TCPSocketPort
 	private _oscClientStatus: 'connected' | 'disconnected' = 'disconnected'
 	private transitions: {
@@ -82,7 +83,7 @@ export class OscDevice extends Device<OSCOptions, OscDeviceState, OscCommandWith
 		this._oscClient.removeAllListeners()
 	}
 
-	convertTimelineStateToDeviceState(state: Timeline.TimelineState<TSRTimelineContent>): OscDeviceState {
+	convertTimelineStateToDeviceState(state: Timeline.TimelineState<TSRTimelineContent>): { osc: OscDeviceState } {
 		const addrToOSCMessage: OscDeviceState = {}
 		const addrToPriority: { [address: string]: number } = {}
 
@@ -102,9 +103,12 @@ export class OscDevice extends Device<OSCOptions, OscDeviceState, OscCommandWith
 			}
 		})
 
-		return addrToOSCMessage
+		return { osc: addrToOSCMessage }
 	}
-	diffStates(oldState: OscDeviceState | undefined, newState: OscDeviceState): Array<OscCommandWithContext> {
+	diffStates(
+		{ osc: oldState }: { osc: OscDeviceState | undefined },
+		{ osc: newState }: { osc: OscDeviceState }
+	): Array<OscCommandWithContext> {
 		const commands: Array<OscCommandWithContext> = []
 
 		Object.entries<OSCDeviceStateContent>(newState).forEach(([address, newCommandContent]) => {
@@ -198,6 +202,10 @@ export class OscDevice extends Device<OSCOptions, OscDeviceState, OscCommandWith
 	}
 
 	actions: Record<string, (id: string, payload: Record<string, any>) => Promise<ActionExecutionResult>> = {}
+
+	mappingToAddress(): string {
+		return 'osc'
+	}
 
 	private _oscSender(msg: osc.OscMessage, address?: string | undefined, port?: number | undefined): void {
 		this.context.logger.debug('sending ' + msg.address)

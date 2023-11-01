@@ -29,6 +29,7 @@ import {
 	DeviceOptionsTCPSend,
 	DeviceOptionsQuantel,
 	DeviceOptionsCasparCG,
+	TSRMappingOptions,
 } from 'timeline-state-resolver-types'
 
 import { DoOnTime } from './devices/doOnTime'
@@ -149,7 +150,7 @@ export class AbortError extends Error {
 
 interface DeviceState {
 	state: Timeline.TimelineState<TSRTimelineContent>
-	mappings: Mappings
+	mappings: Mappings<TSRMappingOptions>
 	time: number
 	dependencies: string[]
 }
@@ -163,7 +164,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 	private _logDebug = false
 	private _timeline: TSRTimeline = []
 	private _timelineSize: number | undefined = undefined
-	private _mappings: Mappings = {}
+	private _mappings: Mappings<TSRMappingOptions> = {}
 
 	private _datastore: Datastore = {}
 	private _deviceStates: {
@@ -301,7 +302,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 	/**
 	 * Sets a new timeline and resets the resolver.
 	 */
-	setTimelineAndMappings(timeline: TSRTimeline, mappings?: Mappings) {
+	setTimelineAndMappings(timeline: TSRTimeline, mappings?: Mappings<TSRMappingOptions>) {
 		this.statStartMeasure('timeline received')
 		this._timeline = timeline
 		this._timelineSize = undefined // reset the cache
@@ -1160,7 +1161,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 		deviceId: string,
 		time: number,
 		state: Timeline.TimelineState<TSRTimelineContent>,
-		mappings: Mappings
+		mappings: Mappings<TSRMappingOptions>
 	) {
 		if (!this._deviceStates[deviceId]) this._deviceStates[deviceId] = []
 

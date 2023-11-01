@@ -9,6 +9,7 @@ import {
 	TcpSendCommandContent,
 	TCPSendOptions,
 	TcpSendActions,
+	SomeMappingTcpSend,
 } from 'timeline-state-resolver-types'
 import { t } from '../../lib'
 import _ = require('underscore')
@@ -23,7 +24,12 @@ export interface TcpSendDeviceCommand extends CommandWithContext {
 		layer: string
 	}
 }
-export class TcpSendDevice extends Device<TCPSendOptions, TcpSendDeviceState, TcpSendDeviceCommand> {
+export class TcpSendDevice extends Device<
+	TCPSendOptions,
+	TcpSendDeviceState,
+	TcpSendDeviceCommand,
+	SomeMappingTcpSend
+> {
 	private activeLayers = new Map<string, string>()
 	private _terminated = false
 
@@ -63,10 +69,13 @@ export class TcpSendDevice extends Device<TCPSendOptions, TcpSendDeviceState, Tc
 		},
 	}
 
-	convertTimelineStateToDeviceState(state: Timeline.TimelineState<TSRTimelineContent>): TcpSendDeviceState {
-		return state
+	convertTimelineStateToDeviceState(state: Timeline.TimelineState<TSRTimelineContent>): { tcp: TcpSendDeviceState } {
+		return { tcp: state }
 	}
-	diffStates(oldState: TcpSendDeviceState | undefined, newState: TcpSendDeviceState): Array<TcpSendDeviceCommand> {
+	diffStates(
+		{ tcp: oldState }: { tcp: TcpSendDeviceState | undefined },
+		{ tcp: newState }: { tcp: TcpSendDeviceState }
+	): Array<TcpSendDeviceCommand> {
 		const commands: Array<TcpSendDeviceCommand> = []
 
 		for (const [layerKey, newLayer] of Object.entries<Timeline.ResolvedTimelineObjectInstance<TSRTimelineContent>>(
@@ -145,6 +154,9 @@ export class TcpSendDevice extends Device<TCPSendOptions, TcpSendDeviceState, Tc
 		this.context.logger.debug({ context, timelineObjId, command })
 
 		await this.tcpConnection.sendTCPMessage(command.content.message)
+	}
+	mappingToAddress(): string {
+		return 'osc'
 	}
 	private async actionSendTcpCommand(cmd?: TcpSendCommandContent): Promise<ActionExecutionResult> {
 		if (!cmd)

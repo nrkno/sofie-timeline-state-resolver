@@ -6,6 +6,7 @@ import {
 	HTTPSendCommandContent,
 	HTTPSendOptions,
 	HttpSendActions,
+	SomeMappingHttpSend,
 	StatusCode,
 	TSRTimelineContent,
 	Timeline,
@@ -28,7 +29,12 @@ export interface HttpSendDeviceCommand extends CommandWithContext {
 	}
 }
 
-export class HTTPSendDevice extends Device<HTTPSendOptions, HttpSendDeviceState, HttpSendDeviceCommand> {
+export class HTTPSendDevice extends Device<
+	HTTPSendOptions,
+	HttpSendDeviceState,
+	HttpSendDeviceCommand,
+	SomeMappingHttpSend
+> {
 	private options: HTTPSendOptions
 	/** Maps layers -> sent command-hashes */
 	private trackedState = new Map<string, string>()
@@ -110,10 +116,15 @@ export class HTTPSendDevice extends Device<HTTPSendOptions, HttpSendDeviceState,
 		}
 	}
 
-	convertTimelineStateToDeviceState(state: Timeline.TimelineState<TSRTimelineContent>): HttpSendDeviceState {
-		return state
+	convertTimelineStateToDeviceState(state: Timeline.TimelineState<TSRTimelineContent>): {
+		httpSend: HttpSendDeviceState
+	} {
+		return { httpSend: state }
 	}
-	diffStates(oldState: HttpSendDeviceState | undefined, newState: HttpSendDeviceState): Array<HttpSendDeviceCommand> {
+	diffStates(
+		{ httpSend: oldState }: { httpSend: HttpSendDeviceState | undefined },
+		{ httpSend: newState }: { httpSend: HttpSendDeviceState }
+	): Array<HttpSendDeviceCommand> {
 		const commands: Array<HttpSendDeviceCommand> = []
 
 		_.each(newState.layers, (newLayer, layerKey: string) => {
@@ -280,6 +291,9 @@ export class HTTPSendDevice extends Device<HTTPSendOptions, HttpSendDeviceState,
 				}
 			}
 		}
+	}
+	mappingToAddress(): string {
+		return 'httpSend'
 	}
 	private getTrackedStateHash(command: HttpSendDeviceCommand['command']): string {
 		return JSON.stringify(command.content)

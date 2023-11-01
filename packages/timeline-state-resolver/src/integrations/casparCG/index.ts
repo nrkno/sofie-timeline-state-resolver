@@ -3,7 +3,10 @@ import {
 	CasparCGActions,
 	CasparCGOptions,
 	DeviceStatus,
+	LayerState,
+	Mapping,
 	Mappings,
+	SomeMappingCasparCG,
 	StatusCode,
 	Timeline,
 	TSRTimelineContent,
@@ -12,12 +15,24 @@ import { Device } from '../../service/device'
 
 import Debug from 'debug'
 import { AMCPCommand, CasparCG, Commands, Response } from 'casparcg-connection'
-import { CasparCGDeviceState, convertTimelineStateToAddressStates } from './state'
+import {
+	CasparCGDeviceState,
+	convertTimelineStateToAddressStates,
+	getLayerState,
+	stateUpdateFromCommandResult,
+	TrackedLayer,
+} from './state'
 import { CasparCGCommand, diffStates } from './diff'
 import { clearAllChannels, restartServer } from './actions'
 const debug = Debug('timeline-state-resolver:casparcg')
 
-export class CasparCGDevice extends Device<CasparCGOptions, CasparCGDeviceState, CasparCGCommand> {
+export class CasparCGDevice extends Device<
+	CasparCGOptions,
+	TrackedLayer,
+	CasparCGCommand,
+	SomeMappingCasparCG,
+	number
+> {
 	private _connection: CasparCG
 	private _options: CasparCGOptions | undefined
 	private _queueOverflow = false
@@ -76,13 +91,14 @@ export class CasparCGDevice extends Device<CasparCGOptions, CasparCGDeviceState,
 					// Something failed, force the resync as glitching playback is better than black output
 					return true
 				})
-				.then((doResync) => {
+				.then(async (doResync) => {
 					// Finally we can report it as connected
 					this.context.connectionChanged(this.getStatus())
 
 					if (doResync) {
 						// this.emit('resetFromState', { layers: {}, lookaheads: {} })
-						this.context.resetResolver() // todo - use the correct reset
+						// this.context.resetResolver() // todo - use the correct reset
+						return this.context.resetState()
 					}
 				})
 				.catch((e) => {
@@ -112,15 +128,15 @@ export class CasparCGDevice extends Device<CasparCGOptions, CasparCGDeviceState,
 	): CasparCGDeviceState {
 		return convertTimelineStateToAddressStates(state, newMappings)
 	}
-	diffStates(oldState: CasparCGDeviceState | undefined, newState: CasparCGDeviceState): Array<CasparCGCommand> {
+	diffStates(oldState: CasparCGDeviceState, newState: CasparCGDeviceState): Array<CasparCGCommand> {
 		return diffStates(oldState, newState, this._options?.fps || 25)
 	}
-	async sendCommand(cwc: CasparCGCommand): Promise<void> {
+	async sendCommand(cwc: CasparCGCommand): Promise<number> {
 		const command = cwc.command as AMCPCommand
 		this.context.logger.debug(cwc)
 		debug(command)
 
-		if (!this._connection.connected) return
+		if (!this._connection.connected) return 500
 
 		const { request, error } = await this._connection.executeCommand(command)
 		if (error) {
@@ -131,7 +147,7 @@ export class CasparCGDevice extends Device<CasparCGOptions, CasparCGDeviceState,
 			const response = await request
 
 			// Why would this response ever be undefined?
-			if (!response) return
+			if (!response) return 500
 
 			if (response.responseCode === 504 && !this._queueOverflow) {
 				this._queueOverflow = true
@@ -151,9 +167,13 @@ export class CasparCGDevice extends Device<CasparCGOptions, CasparCGDeviceState,
 
 				this.context.commandError(new Error(errorString), cwc)
 			}
+
+			return response.responseCode
 		} catch (e) {
 			// This shouldn't really happen
 			this.context.commandError(Error('Command not sent: ' + e), cwc)
+
+			return 500
 		}
 	}
 
@@ -189,5 +209,25 @@ export class CasparCGDevice extends Device<CasparCGOptions, CasparCGDeviceState,
 		[CasparCGActions.RestartServer]: async () => {
 			return restartServer(this._options)
 		},
+	}
+
+	mappingToAddress(mapping: Mapping<SomeMappingCasparCG>): string {
+		return mapping.options.channel + '-' + mapping.options.layer
+	}
+	getLayerStatus?(currentState: TrackedLayer, expectedState: TrackedLayer): LayerState {
+		return getLayerState(currentState, expectedState)
+	}
+	stateUpdatesFromCommands?(
+		currentState: TrackedLayer | undefined,
+		expectedState: TrackedLayer | undefined,
+		commands: CasparCGCommand[],
+		results: PromiseSettledResult<number>[]
+	): TrackedLayer {
+		return stateUpdateFromCommandResult(
+			currentState,
+			expectedState,
+			commands,
+			results.map((r) => (r.status === 'fulfilled' ? r.value : 500))
+		)
 	}
 }

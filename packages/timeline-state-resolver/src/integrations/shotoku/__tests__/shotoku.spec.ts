@@ -45,7 +45,7 @@ describe('Shotoku Device', () => {
 
 			const actualState = device.convertTimelineStateToDeviceState(tlState)
 
-			expect(actualState).toEqual(expDevState)
+			expect(actualState).toEqual({ shotoku: expDevState })
 		}
 
 		test('convert empty state', async () => {
@@ -133,7 +133,7 @@ describe('Shotoku Device', () => {
 		) {
 			const device = await getInitialisedDevice()
 
-			const commands = device.diffStates(oldDevState, newDevState)
+			const commands = device.diffStates({ shotoku: oldDevState }, { shotoku: newDevState })
 
 			expect(commands).toEqual(expCommands)
 		}

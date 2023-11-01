@@ -68,13 +68,13 @@ describe('TCP-Send', () => {
 	describe('diffState', () => {
 		test('From undefined', async () => {
 			const device = await getInitializedTcpDevice()
-			const commands = device.diffStates(undefined, createTimelineState({}))
+			const commands = device.diffStates({ tcp: undefined }, createDeviceState({}))
 			expect(commands).toEqual([])
 			await device.terminate()
 		})
 		test('Empty states', async () => {
 			const device = await getInitializedTcpDevice()
-			const commands = device.diffStates(createTimelineState({}), createTimelineState({}))
+			const commands = device.diffStates(createDeviceState({}), createDeviceState({}))
 			expect(commands).toEqual([])
 			await device.terminate()
 		})
@@ -86,8 +86,8 @@ describe('TCP-Send', () => {
 				message: 'hello world',
 			})
 			const commands = device.diffStates(
-				createTimelineState({}),
-				createTimelineState({
+				createDeviceState({}),
+				createDeviceState({
 					layer0: {
 						id: 'obj0',
 						content,
@@ -120,13 +120,13 @@ describe('TCP-Send', () => {
 				message: 'goodbye world',
 			})
 			const commands = device.diffStates(
-				createTimelineState({
+				createDeviceState({
 					layer0: {
 						id: 'obj0',
 						content: content0,
 					},
 				}),
-				createTimelineState({
+				createDeviceState({
 					layer0: {
 						id: 'obj1',
 						content: content1,
@@ -157,13 +157,13 @@ describe('TCP-Send', () => {
 				message: 'hello world',
 			})
 			const commands = device.diffStates(
-				createTimelineState({
+				createDeviceState({
 					layer0: {
 						id: 'obj0',
 						content,
 					},
 				}),
-				createTimelineState({})
+				createDeviceState({})
 			)
 			expect(commands).toEqual([
 				{
@@ -231,8 +231,8 @@ describe('TCP-Send', () => {
 				message: 'hello world',
 			})
 			const commands = device.diffStates(
-				createTimelineState({}),
-				createTimelineState({
+				createDeviceState({}),
+				createDeviceState({
 					layer0: {
 						id: 'obj0',
 						content,
@@ -261,8 +261,8 @@ describe('TCP-Send', () => {
 				message: 'hello world',
 			})
 			const commands = device.diffStates(
-				createTimelineState({}),
-				createTimelineState({
+				createDeviceState({}),
+				createDeviceState({
 					layer0: {
 						id: 'obj0',
 						content,
@@ -293,13 +293,15 @@ describe('TCP-Send', () => {
 		})
 	})
 })
-function createTimelineState(
-	objs: Record<string, { id: string; content: TimelineContentTCPSendAny }>
-): Timeline.TimelineState<TSRTimelineContent> {
+function createDeviceState(objs: Record<string, { id: string; content: TimelineContentTCPSendAny }>): {
+	tcp: Timeline.TimelineState<TSRTimelineContent>
+} {
 	return {
-		time: 10,
-		layers: objs as any,
-		nextEvents: [],
+		tcp: {
+			time: 10,
+			layers: objs as any,
+			nextEvents: [],
+		},
 	}
 }
 const DEFAULT_TL_CONTENT: {

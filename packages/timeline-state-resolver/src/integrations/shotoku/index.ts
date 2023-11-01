@@ -10,6 +10,7 @@ import {
 	TimelineContentTypeShotoku,
 	ShotokuTransitionType,
 	ShotokuOptions,
+	SomeMappingShotoku,
 } from 'timeline-state-resolver-types'
 import { Device } from '../../service/device'
 
@@ -31,7 +32,12 @@ export interface ShotokuCommandWithContext {
 	timelineObjId: string
 }
 
-export class ShotokuDevice extends Device<ShotokuOptions, ShotokuDeviceState, ShotokuCommandWithContext> {
+export class ShotokuDevice extends Device<
+	ShotokuOptions,
+	ShotokuDeviceState,
+	ShotokuCommandWithContext,
+	SomeMappingShotoku
+> {
 	private _shotoku: ShotokuAPI
 
 	async init(options: ShotokuOptions): Promise<boolean> {
@@ -57,7 +63,9 @@ export class ShotokuDevice extends Device<ShotokuOptions, ShotokuDeviceState, Sh
 		await this._shotoku.dispose()
 	}
 
-	convertTimelineStateToDeviceState(state: Timeline.TimelineState<TSRTimelineContent>): ShotokuDeviceState {
+	convertTimelineStateToDeviceState(state: Timeline.TimelineState<TSRTimelineContent>): {
+		shotoku: ShotokuDeviceState
+	} {
 		const deviceState: ShotokuDeviceState = {
 			shots: {},
 			sequences: {},
@@ -85,9 +93,12 @@ export class ShotokuDevice extends Device<ShotokuOptions, ShotokuDeviceState, Sh
 			}
 		})
 
-		return deviceState
+		return { shotoku: deviceState }
 	}
-	diffStates(oldState: ShotokuDeviceState | undefined, newState: ShotokuDeviceState): Array<ShotokuCommandWithContext> {
+	diffStates(
+		{ shotoku: oldState }: { shotoku: ShotokuDeviceState | undefined },
+		{ shotoku: newState }: { shotoku: ShotokuDeviceState }
+	): Array<ShotokuCommandWithContext> {
 		// unfortunately we don't know what shots belong to what camera, so we can't do anything smart
 
 		const commands: Array<ShotokuCommandWithContext> = []
@@ -168,4 +179,8 @@ export class ShotokuDevice extends Device<ShotokuOptions, ShotokuDeviceState, Sh
 	}
 
 	actions: Record<string, (id: string, payload: Record<string, any>) => Promise<ActionExecutionResult>> = {}
+
+	mappingToAddress(): string {
+		return 'shotoku'
+	}
 }

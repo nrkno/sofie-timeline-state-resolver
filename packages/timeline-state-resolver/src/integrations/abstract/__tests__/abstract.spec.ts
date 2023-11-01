@@ -36,7 +36,7 @@ describe('Abstract device', () => {
 		}
 		const resultState = device.convertTimelineStateToDeviceState(testState)
 		expect(resultState).toBeTruthy()
-		expect(testState).toBe(resultState) // Exact same object
+		expect(testState).toBe(resultState.abstract) // Exact same object
 	})
 
 	describe('diffState', () => {
@@ -49,7 +49,7 @@ describe('Abstract device', () => {
 		) {
 			const device = await getInitialisedDevice()
 
-			const commands = device.diffStates(oldDevState, newDevState)
+			const commands = device.diffStates({ abstract: oldDevState }, { abstract: newDevState })
 
 			expect(commands).toEqual(expCommands)
 		}

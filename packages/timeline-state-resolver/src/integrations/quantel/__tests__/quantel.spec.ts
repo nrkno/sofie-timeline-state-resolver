@@ -44,7 +44,7 @@ describe('Quantel Device', () => {
 		) {
 			const device = await getInitialisedQuantelDevice()
 
-			const actualState = device.convertTimelineStateToDeviceState(tlState, mappings)
+			const { quantel: actualState } = device.convertTimelineStateToDeviceState(tlState, mappings)
 
 			expect(actualState).toEqual(expDevState)
 		}
@@ -286,16 +286,20 @@ describe('Quantel Device', () => {
 
 	describe('diffState', () => {
 		async function compareStates(
-			oldDevState: QuantelState,
+			oldDevState: QuantelState | undefined,
 			newDevState: QuantelState,
 			expCommands: QuantelCommandWithContext[]
 		) {
 			const device = await getInitialisedQuantelDevice()
 
-			const commands = device.diffStates(oldDevState, newDevState)
+			const commands = device.diffStates({ quantel: oldDevState }, { quantel: newDevState })
 
 			expect(commands).toEqual(expCommands)
 		}
+
+		test('Undefined old state', async () => {
+			await compareStates(undefined, { time: 10, port: {} }, [])
+		})
 
 		test('Empty states', async () => {
 			await compareStates({ time: 10, port: {} }, { time: 10, port: {} }, [])
