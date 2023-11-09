@@ -7,6 +7,9 @@ export interface QuantelState {
 		[portId: string]: QuantelStatePort
 	}
 }
+export interface QuantelAddressState extends QuantelStatePort {
+	time: number
+}
 export interface QuantelStatePort {
 	timelineObjId: string
 	clip?: QuantelStatePortClip

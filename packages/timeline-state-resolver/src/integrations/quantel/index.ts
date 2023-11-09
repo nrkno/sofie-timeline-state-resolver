@@ -3,6 +3,7 @@ import {
 	ActionExecutionResultCode,
 	DeviceStatus,
 	DeviceType,
+	LayerState,
 	Mapping,
 	MappingQuantelPort,
 	Mappings,
@@ -17,10 +18,10 @@ import {
 import { CommandWithContext, Device } from '../../service/device'
 
 import Debug from 'debug'
-import { QuantelCommand, QuantelCommandType, QuantelState } from './types'
+import { QuantelAddressState, QuantelCommand, QuantelCommandType } from './types'
 import { QuantelGateway } from 'tv-automation-quantel-gateway-client'
 import { QuantelManager } from './connection'
-import { convertTimelineStateToQuantelState } from './state'
+import { convertTimelineStateToQuantelState, getLayerStatus, stateUpdatesFromCommands } from './state'
 import { diffStates } from './diff'
 const debug = Debug('timeline-state-resolver:quantel')
 
@@ -35,9 +36,16 @@ export interface QuantelCommandWithContext {
 	command: QuantelCommand
 	context: string
 	timelineObjId: string
+	address: string
 }
 
-export class QuantelDevice extends Device<QuantelOptions, QuantelState, QuantelCommandWithContext, SomeMappingQuantel> {
+export class QuantelDevice extends Device<
+	QuantelOptions,
+	QuantelAddressState,
+	QuantelCommandWithContext,
+	SomeMappingQuantel,
+	boolean
+> {
 	// TODO - monitor ports: this._quantel.setMonitoredPorts(this._getMappedPorts(newMappings))
 
 	private _quantel: QuantelGateway
@@ -84,16 +92,16 @@ export class QuantelDevice extends Device<QuantelOptions, QuantelState, QuantelC
 	convertTimelineStateToDeviceState(
 		timelineState: Timeline.TimelineState<TSRTimelineContent>,
 		mappings: Mappings<SomeMappingQuantel>
-	): { quantel: QuantelState } {
-		return { quantel: convertTimelineStateToQuantelState(timelineState, mappings) }
+	): { [portId: string]: QuantelAddressState } {
+		return convertTimelineStateToQuantelState(timelineState, mappings)
 	}
 	diffStates(
-		oldState: { quantel: QuantelState | undefined },
-		newState: { quantel: QuantelState }
+		oldState: Record<string, QuantelAddressState | undefined>,
+		newState: Record<string, QuantelAddressState>
 	): Array<QuantelCommandWithContext> {
-		return diffStates(oldState.quantel, newState.quantel)
+		return diffStates(oldState, newState)
 	}
-	async sendCommand({ command, context, timelineObjId }: QuantelCommandWithContext): Promise<any> {
+	async sendCommand({ command, context, timelineObjId }: QuantelCommandWithContext): Promise<boolean> {
 		const cwc: CommandWithContext = {
 			context: context,
 			command: command,
@@ -109,9 +117,9 @@ export class QuantelDevice extends Device<QuantelOptions, QuantelState, QuantelC
 			} else if (command.type === QuantelCommandType.RELEASEPORT) {
 				await this._quantelManager.releasePort(command)
 			} else if (command.type === QuantelCommandType.LOADCLIPFRAGMENTS) {
-				await this._quantelManager.tryLoadClipFragments(command)
+				return await this._quantelManager.tryLoadClipFragments(command)
 			} else if (command.type === QuantelCommandType.PLAYCLIP) {
-				await this._quantelManager.playClip(command)
+				return this._quantelManager.playClip(command)
 			} else if (command.type === QuantelCommandType.PAUSECLIP) {
 				await this._quantelManager.pauseClip(command)
 			} else if (command.type === QuantelCommandType.CLEARCLIP) {
@@ -119,6 +127,8 @@ export class QuantelDevice extends Device<QuantelOptions, QuantelState, QuantelC
 			} else {
 				throw new Error(`Unsupported command type "${cmdType}"`)
 			}
+
+			return true // todo: are there places where a failed command does not throw?
 		} catch (e) {
 			const error = e as Error
 			let errorString = error && error.message ? error.message : error.toString()
@@ -126,10 +136,11 @@ export class QuantelDevice extends Device<QuantelOptions, QuantelState, QuantelC
 				errorString += error.stack
 			}
 			this.context.commandError(new Error(errorString), cwc)
+			return false
 		}
 	}
-	mappingToAddress(_mapping: Mapping<MappingQuantelPort, DeviceType>): string {
-		return 'quantel'
+	mappingToAddress(mapping: Mapping<MappingQuantelPort, DeviceType>): string {
+		return mapping.options.portId
 	}
 
 	get connected(): boolean {
@@ -177,5 +188,19 @@ export class QuantelDevice extends Device<QuantelOptions, QuantelState, QuantelC
 			}
 			return { result: ActionExecutionResultCode.Error }
 		},
+	}
+
+	getLayerStatus(currentState: QuantelAddressState, expectedState: QuantelAddressState): LayerState {
+		return getLayerStatus(currentState, expectedState)
+	}
+
+	stateUpdatesFromCommands(
+		currentState: QuantelAddressState | undefined,
+		expectedState: QuantelAddressState,
+		commands: QuantelCommandWithContext[],
+		results: PromiseSettledResult<boolean>[]
+	): QuantelAddressState {
+		// console.log('stateUpdatesFromCommands', currentState, expectedState, commands, results)
+		return stateUpdatesFromCommands(currentState, expectedState, commands, results)
 	}
 }

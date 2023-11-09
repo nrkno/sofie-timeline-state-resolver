@@ -1,4 +1,6 @@
 import {
+	LayerState,
+	LayerStatus,
 	Mapping,
 	MappingQuantelPort,
 	Mappings,
@@ -9,7 +11,9 @@ import {
 	Timeline,
 	TimelineContentQuantelClip,
 } from 'timeline-state-resolver-types'
-import { MappedPorts, QuantelState, QuantelStatePort } from './types'
+import { MappedPorts, QuantelAddressState, QuantelCommandType, QuantelStatePort } from './types'
+import { QuantelCommandWithContext } from '.'
+import { literal } from '../../devices/device'
 
 export function getMappedPorts(mappings: Mappings<SomeMappingQuantel>): MappedPorts {
 	const ports: MappedPorts = {}
@@ -39,14 +43,11 @@ export function getMappedPorts(mappings: Mappings<SomeMappingQuantel>): MappedPo
 export function convertTimelineStateToQuantelState(
 	timelineState: Timeline.TimelineState<TSRTimelineContent>,
 	mappings: Mappings<SomeMappingQuantel>
-): QuantelState {
-	const state: QuantelState = {
-		time: timelineState.time,
-		port: {},
-	}
+): Record<string, QuantelAddressState> {
+	const state: Record<string, QuantelAddressState> = {}
 
 	// create ports from mappings:
-	createPortsFromMappings(state, getMappedPorts(mappings))
+	createPortsFromMappings(state, getMappedPorts(mappings), timelineState.time)
 
 	// merge timeline layer states into port states
 	for (const [layerName, layer] of Object.entries<Timeline.ResolvedTimelineObjectInstance<TSRTimelineContent>>(
@@ -56,7 +57,7 @@ export function convertTimelineStateToQuantelState(
 
 		if (foundMapping && 'portId' in foundMapping.options && 'channelId' in foundMapping.options) {
 			// mapping exists
-			const port: QuantelStatePort = state.port[foundMapping.options.portId]
+			const port: QuantelStatePort = state[foundMapping.options.portId]
 			if (!port) throw new Error(`Port "${foundMapping.options.portId}" not found`)
 			// port exists
 
@@ -72,9 +73,10 @@ export function convertTimelineStateToQuantelState(
 }
 
 /** Creates port on state object from mappedPorts */
-function createPortsFromMappings(state: QuantelState, mappedPorts: MappedPorts) {
+function createPortsFromMappings(state: Record<string, QuantelAddressState>, mappedPorts: MappedPorts, time: number) {
 	for (const [portId, port] of Object.entries<MappedPorts[string]>(mappedPorts)) {
-		state.port[portId] = {
+		state[portId] = {
+			time: time,
 			channels: port.channels,
 			timelineObjId: '',
 			mode: port.mode,
@@ -146,5 +148,80 @@ function setPortStateFromLayer(
 
 			playTime: (content.noStarttime || isLookahead ? null : startTime) || null,
 		}
+	}
+}
+
+export function stateUpdatesFromCommands(
+	currentState: QuantelAddressState | undefined,
+	expectedState: QuantelAddressState,
+	commands: QuantelCommandWithContext[],
+	results: PromiseSettledResult<boolean>[]
+): QuantelAddressState {
+	const resultingState = literal<QuantelAddressState>({
+		time: expectedState?.time ?? 0,
+		timelineObjId: expectedState?.timelineObjId ?? 0,
+
+		channels: currentState?.channels ?? [],
+		mode: currentState?.mode ?? QuantelControlMode.QUALITY,
+		lookahead: false,
+
+		clip: currentState?.clip,
+		notOnAir: currentState?.notOnAir,
+		outTransition: currentState?.outTransition,
+		lookaheadClip: currentState?.lookaheadClip,
+	})
+
+	for (let i = 0; i < commands.length; i++) {
+		const result = results[i]
+		if (!(result && result.status === 'fulfilled' && result.value === true)) continue // skip any unfinished commands
+		const command = commands[i]
+		if (!command) continue
+
+		if (
+			command.command.type === QuantelCommandType.SETUPPORT ||
+			command.command.type === QuantelCommandType.RELEASEPORT
+		) {
+			resultingState.channels = expectedState.channels
+			// todo: should we reset other props?
+		}
+
+		if (command.command.type === QuantelCommandType.LOADCLIPFRAGMENTS) {
+			// load comes either from lookahead or actual clip
+			if (command.command.fromLookahead && !expectedState?.lookahead) {
+				resultingState.lookaheadClip = expectedState.lookaheadClip
+			} else {
+				resultingState.clip = expectedState.clip // todo - this copies over the playing state as well, should that be inferred from play/pause commands?
+			}
+		}
+
+		if (command.command.type === QuantelCommandType.PLAYCLIP || QuantelCommandType.PAUSECLIP) {
+			// this is on the foreground (presumably?)
+			if (resultingState.clip) {
+				resultingState.clip.playing = expectedState.clip?.playing ?? false
+				// todo: any other implied props like timing?
+			}
+		}
+
+		if (command.command.type === QuantelCommandType.CLEARCLIP) {
+			// todo: does this clear fg and bg?
+			resultingState.clip = undefined
+		}
+	}
+
+	return resultingState
+}
+
+export function getLayerStatus(currentState: QuantelAddressState, expectedState: QuantelAddressState): LayerState {
+	const expectedID = [expectedState.clip?.guid, expectedState.lookaheadClip?.guid].filter(
+		(id): id is string => id !== undefined
+	)
+	const loadedID = [currentState.clip?.guid, currentState.lookaheadClip?.guid].filter(
+		(id): id is string => id !== undefined
+	)
+
+	return {
+		status: loadedID.length > 0 ? LayerStatus.Loaded : LayerStatus.Empty,
+		mediaId: loadedID,
+		failedMediaId: expectedID.filter((id) => !loadedID.includes(id)),
 	}
 }

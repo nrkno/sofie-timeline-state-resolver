@@ -20,7 +20,6 @@ export class StateTracker<State, Command> {
 	}
 
 	updateExpectedState(address: string, state: State) {
-		console.log('update expeceted', address, state)
 		this._assertAddressExists(address)
 		this._state[address].expectedState = state
 	}
@@ -30,7 +29,7 @@ export class StateTracker<State, Command> {
 	}
 
 	updateState(address: string, state: State) {
-		console.log('update actual', address, state)
+		// console.log('update actual', address, state)
 		this._assertAddressExists(address)
 		this._state[address].currentState = state
 

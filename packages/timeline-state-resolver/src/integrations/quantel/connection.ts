@@ -126,7 +126,7 @@ export class QuantelManager extends EventEmitter {
 		// Delete the local tracking state:
 		delete this._quantelState.port[cmd.portId]
 	}
-	public async tryLoadClipFragments(cmd: QuantelCommandLoadClipFragments, fromRetry?: boolean): Promise<void> {
+	public async tryLoadClipFragments(cmd: QuantelCommandLoadClipFragments, fromRetry?: boolean): Promise<boolean> {
 		if (this._retryLoadFragmentsTimeout[cmd.portId]) {
 			clearTimeout(this._retryLoadFragmentsTimeout[cmd.portId])
 			delete this._retryLoadFragmentsTimeout[cmd.portId]
@@ -134,6 +134,7 @@ export class QuantelManager extends EventEmitter {
 
 		try {
 			await this.loadClipFragments(cmd)
+			console.log('loaded', cmd)
 
 			if (fromRetry) {
 				// The loading seemed to work now.
@@ -153,10 +154,14 @@ export class QuantelManager extends EventEmitter {
 				this._retryLoadFragmentsTimeout[cmd.portId] = setTimeout(() => {
 					this.tryLoadClipFragments(cmd, true).catch((fragErr) => this.emit('error', fragErr))
 				}, 10 * 1000) // 10 seconds
+
+				return false
 			} else {
 				throw err
 			}
 		}
+
+		return true
 	}
 	public async loadClipFragments(cmd: QuantelCommandLoadClipFragments): Promise<void> {
 		const trackedPort = this.getTrackedPort(cmd.portId)
@@ -300,8 +305,8 @@ export class QuantelManager extends EventEmitter {
 			trackedPort.jumpOffset = portInPoint
 		}
 	}
-	public async playClip(cmd: QuantelCommandPlayClip): Promise<void> {
-		await this.tryPrepareClipJump(cmd, 'play')
+	public async playClip(cmd: QuantelCommandPlayClip): Promise<boolean> {
+		return await this.tryPrepareClipJump(cmd, 'play')
 	}
 	public async pauseClip(cmd: QuantelCommandPauseClip): Promise<void> {
 		await this.tryPrepareClipJump(cmd, 'pause')
@@ -326,12 +331,13 @@ export class QuantelManager extends EventEmitter {
 		trackedPort.jumpOffset = null
 		trackedPort.scheduledStop = null
 	}
-	private async tryPrepareClipJump(cmd: QuantelCommandClip, alsoDoAction: 'play' | 'pause'): Promise<void> {
+	private async tryPrepareClipJump(cmd: QuantelCommandClip, alsoDoAction: 'play' | 'pause'): Promise<boolean> {
 		delete this._failedAction[cmd.portId]
 
 		try {
 			return await this.prepareClipJump(cmd, alsoDoAction)
 		} catch (err) {
+			console.log('failed to jump!')
 			if (this._retryLoadFragmentsTimeout[cmd.portId]) {
 				// It looks like there was an issue with loading fragments,
 				// that's probably why we got an error as well.
@@ -344,16 +350,18 @@ export class QuantelManager extends EventEmitter {
 					}
 				} else throw err
 			} else throw err
+
+			return false
 		}
 	}
-	private async prepareClipJump(cmd: QuantelCommandClip, alsoDoAction: 'play' | 'pause'): Promise<void> {
+	private async prepareClipJump(cmd: QuantelCommandClip, alsoDoAction: 'play' | 'pause'): Promise<boolean> {
 		// Fetch tracked reference to the loaded clip:
 		const trackedPort = this.getTrackedPort(cmd.portId)
 		if (cmd.transition) {
 			if (cmd.transition.type === QuantelTransitionType.DELAY) {
 				if (await this.waitWithPort(cmd.portId, cmd.transition.delay)) {
 					// at this point, the wait aws aborted by someone else. Do nothing then.
-					return
+					return false
 				}
 			}
 		}
@@ -503,6 +511,8 @@ export class QuantelManager extends EventEmitter {
 			trackedPort.playing = false
 			trackedPort.jumpOffset = null // As a safety precaution, remove any knowledge of any prepared jump, another preparation will be triggered on any following commands.
 		}
+
+		return true
 	}
 	private getTrackedPort(portId: string): QuantelTrackedStatePort {
 		const trackedPort = this._quantelState.port[portId]

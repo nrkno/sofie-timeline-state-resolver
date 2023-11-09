@@ -1,24 +1,57 @@
 import { QuantelOutTransition } from 'timeline-state-resolver-types'
 import { QuantelCommandWithContext } from '.'
-import { QuantelCommand, QuantelCommandType, QuantelState, QuantelStatePort, QuantelStatePortClip } from './types'
+import {
+	QuantelCommand,
+	QuantelCommandType,
+	QuantelAddressState,
+	QuantelStatePort,
+	QuantelStatePortClip,
+} from './types'
 import _ = require('underscore')
 
 const IDEAL_PREPARE_TIME = 1000
 const PREPARE_TIME_WAIT = 50
 
 export function diffStates(
-	oldState: QuantelState | undefined,
-	newState: QuantelState
+	oldState: Record<string, QuantelAddressState | undefined>,
+	newState: Record<string, QuantelAddressState>
 ): Array<QuantelCommandWithContext> {
-	const time = newState.time
 	const highPrioCommands: QuantelCommandWithContext[] = []
 	const lowPrioCommands: QuantelCommandWithContext[] = []
+
+	const ports = new Set<string>([...Object.keys(oldState), ...Object.keys(newState)])
+
+	for (const portId of ports.values()) {
+		diffAddressState(portId, oldState[portId], newState[portId], highPrioCommands, lowPrioCommands)
+	}
+
+	const allCommands = highPrioCommands.concat(lowPrioCommands)
+
+	allCommands.sort((a, b) => {
+		// Release ports should always be done first:
+		if (a.command.type === QuantelCommandType.RELEASEPORT && b.command.type !== QuantelCommandType.RELEASEPORT)
+			return -1
+		if (a.command.type !== QuantelCommandType.RELEASEPORT && b.command.type === QuantelCommandType.RELEASEPORT) return 1
+		return 0
+	})
+	return allCommands
+}
+
+export function diffAddressState(
+	portId: string,
+	oldState: QuantelAddressState | undefined,
+	newState: QuantelAddressState,
+	highPrioCommands: QuantelCommandWithContext[],
+	lowPrioCommands: QuantelCommandWithContext[]
+) {
+	const time = newState.time
 
 	const addCommand = (command: QuantelCommand, lowPriority: boolean, context?: string) => {
 		;(lowPriority ? lowPrioCommands : highPrioCommands).push({
 			command,
 			timelineObjId: command.timelineObjId,
 			context: context ?? 'Context not specified..',
+			address: portId,
 		})
 	}
 	const seenClips: { [identifier: string]: true } = {}
@@ -52,7 +85,7 @@ export function diffStates(
 	}
 
 	/** The time of when to run "preparation" commands */
-	const prepareTime = getPrepareTime(newState.time, oldState?.time)
+	const prepareTime = getPrepareTime(time, oldState?.time)
 
 	const lookaheadPreloadClips: {
 		portId: string
@@ -61,30 +94,25 @@ export function diffStates(
 		timelineObjId: string
 	}[] = []
 
-	for (const [portId, newPort] of Object.entries<QuantelStatePort>(newState.port)) {
-		// diff existing ports
-		const oldPort = oldState?.port[portId]
-		diffPort(portId, newPort, oldPort, newState.time, prepareTime, addCommand, loadFragments, lookaheadPreloadClips)
+	diffPort(portId, newState, oldState, newState.time, prepareTime, addCommand, loadFragments, lookaheadPreloadClips)
+
+	// diff old ports that may be removed
+	const newPort = newState
+	if (!newPort) {
+		// removed port
+		addCommand(
+			{
+				type: QuantelCommandType.RELEASEPORT,
+				time: prepareTime,
+				portId: portId,
+				timelineObjId: oldState?.timelineObjId ?? '',
+				fromLookahead: oldState?.lookahead,
+			},
+			oldState?.lookahead ?? false,
+			'Port does not exist in new state'
+		)
 	}
 
-	for (const [portId, oldPort] of Object.entries<QuantelStatePort>(oldState?.port ?? {})) {
-		// diff old ports that may be removed
-		const newPort = newState.port[portId]
-		if (!newPort) {
-			// removed port
-			addCommand(
-				{
-					type: QuantelCommandType.RELEASEPORT,
-					time: prepareTime,
-					portId: portId,
-					timelineObjId: oldPort.timelineObjId,
-					fromLookahead: oldPort.lookahead,
-				},
-				oldPort.lookahead,
-				'Port does not exist in new state'
-			)
-		}
-	}
 	// Lookaheads to preload:
 	_.each(lookaheadPreloadClips, (lookaheadPreloadClip) => {
 		// Preloads of lookaheads are handled last, to ensure that any load-fragments of high-prio clips are done first.
@@ -97,17 +125,6 @@ export function diffStates(
 			'Load from lookahead'
 		)
 	})
-
-	const allCommands = highPrioCommands.concat(lowPrioCommands)
-
-	allCommands.sort((a, b) => {
-		// Release ports should always be done first:
-		if (a.command.type === QuantelCommandType.RELEASEPORT && b.command.type !== QuantelCommandType.RELEASEPORT)
-			return -1
-		if (a.command.type !== QuantelCommandType.RELEASEPORT && b.command.type === QuantelCommandType.RELEASEPORT) return 1
-		return 0
-	})
-	return allCommands
 }
 
 /** The time of when to run "preparation" commands */
