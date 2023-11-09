@@ -10,6 +10,8 @@ import {
 	SlowSentCommandInfo,
 	DeviceOptionsBase,
 	SlowFulfilledCommandInfo,
+	LayerState,
+	TSRMappingOptions,
 } from 'timeline-state-resolver'
 
 import * as _ from 'underscore'
@@ -84,7 +86,7 @@ export class TSRHandler {
 		if (this.tsr) return this.tsr.destroy()
 		else return Promise.resolve()
 	}
-	setTimelineAndMappings(tl: TSRTimeline, mappings: Mappings): void {
+	setTimelineAndMappings(tl: TSRTimeline, mappings: Mappings<TSRMappingOptions>): void {
 		// this._timeline = tl
 		// this._mappings = mappings
 
@@ -147,13 +149,17 @@ export class TSRHandler {
 			this._devices[deviceId] = device
 
 			await device.device.on('connectionChanged', ((status: DeviceStatus) => {
-				console.log(`Device ${device.deviceId} status changed: ${status}`)
+				console.log(`Device ${device.deviceId} status changed: ${JSON.stringify(status)}`)
 			}) as () => void)
 			await device.device.on('slowSentCommand', ((_info: SlowSentCommandInfo) => {
 				// console.log(`Device ${device.deviceId} slow sent command: ${_info}`)
 			}) as () => void)
 			await device.device.on('slowFulfilledCommand', ((_info: SlowFulfilledCommandInfo) => {
 				// console.log(`Device ${device.deviceId} slow fulfilled command: ${_info}`)
+			}) as () => void)
+
+			await (device.device as any).on('layerState', ((layer: string, state: LayerState) => {
+				console.log(`Device ${device.deviceId} updated "${layer}" state: ${JSON.stringify(state)}`)
 			}) as () => void)
 			// also ask for the status now, and update:
 			// onConnectionChanged(await device.device.getStatus())
