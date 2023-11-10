@@ -8,6 +8,7 @@ import {
 	TimelineContentTypeSofieChef,
 	StatusCode,
 	MappingSofieChefType,
+	TSRMappingOptions,
 } from 'timeline-state-resolver-types'
 import { MockTime } from '../../../__tests__/mockTime'
 import { ThreadedClass } from 'threadedclass'
@@ -40,7 +41,7 @@ describe('SofieChef', () => {
 				windowId: 'window0',
 			},
 		}
-		const myLayerMapping: Mappings = {
+		const myLayerMapping: Mappings<TSRMappingOptions> = {
 			myLayer0: myLayerMapping0,
 		}
 
@@ -177,7 +178,7 @@ describe('SofieChef', () => {
 				windowId: 'window0',
 			},
 		}
-		const myLayerMapping: Mappings = {
+		const myLayerMapping: Mappings<TSRMappingOptions> = {
 			myLayer0: myLayerMapping0,
 		}
 

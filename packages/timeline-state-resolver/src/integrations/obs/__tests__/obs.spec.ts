@@ -18,6 +18,7 @@ import {
 	MappingObsSourceSettings,
 	MappingObsSceneItemRender,
 	MappingObsType,
+	TSRMappingOptions,
 } from 'timeline-state-resolver-types'
 import { MockTime } from '../../../__tests__/mockTime'
 import { literal } from '../../../devices/device'
@@ -90,7 +91,7 @@ describe('OBS', () => {
 				source: 'source0',
 			},
 		}
-		const myLayerMapping: Mappings = {
+		const myLayerMapping: Mappings<TSRMappingOptions> = {
 			obs0_currentScene: currentSceneMapping,
 			obs0_currentTransition: currentTransitionMapping,
 			obs0_recording: recordingMapping,

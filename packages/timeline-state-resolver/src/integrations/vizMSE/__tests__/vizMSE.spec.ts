@@ -10,6 +10,7 @@ import {
 	VizMSEOptions,
 	VIZMSEPlayoutItemContentExternal,
 	VIZMSEPlayoutItemContentInternal,
+	TSRMappingOptions,
 } from 'timeline-state-resolver-types'
 import { MockTime } from '../../../__tests__/mockTime'
 import { ThreadedClass } from 'threadedclass'
@@ -49,7 +50,7 @@ async function setupDevice() {
 		deviceId: 'myViz',
 		options: {},
 	}
-	const myChannelMapping: Mappings = {
+	const myChannelMapping: Mappings<TSRMappingOptions> = {
 		viz0: myChannelMapping0,
 		viz_continue: myChannelMapping1,
 	}
@@ -575,7 +576,7 @@ describe('vizMSE', () => {
 			deviceId: 'myViz',
 			options: {},
 		}
-		const myChannelMapping: Mappings = {
+		const myChannelMapping: Mappings<TSRMappingOptions> = {
 			viz0: myChannelMapping0,
 			viz_continue: myChannelMapping1,
 		}

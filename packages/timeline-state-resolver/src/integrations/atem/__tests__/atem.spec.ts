@@ -14,6 +14,7 @@ import {
 	TSRTimelineContent,
 	Timeline,
 	TimelineContentAtemME,
+	TSRMappingOptions,
 } from 'timeline-state-resolver-types'
 import { ThreadedClass } from 'threadedclass'
 import { AtemStateUtil } from 'atem-connection'
@@ -26,7 +27,7 @@ describe('Atem', () => {
 
 	async function createTestee(mockTime: MockTime): Promise<{
 		myConductor: Conductor
-		myLayerMapping: Mappings
+		myLayerMapping: Mappings<TSRMappingOptions>
 		commandReceiver0: jest.Mock
 	}> {
 		const commandReceiver0: any = jest.fn(async () => {
@@ -40,7 +41,7 @@ describe('Atem', () => {
 				index: 0,
 			},
 		}
-		const myLayerMapping: Mappings = {
+		const myLayerMapping: Mappings<TSRMappingOptions> = {
 			myLayer0: myLayerMapping0,
 		}
 

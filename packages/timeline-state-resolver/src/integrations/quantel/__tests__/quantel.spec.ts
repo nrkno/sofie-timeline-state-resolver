@@ -44,13 +44,13 @@ describe('Quantel Device', () => {
 		) {
 			const device = await getInitialisedQuantelDevice()
 
-			const { quantel: actualState } = device.convertTimelineStateToDeviceState(tlState, mappings)
+			const actualState = device.convertTimelineStateToDeviceState(tlState, mappings)
 
 			expect(actualState).toEqual(expDevState)
 		}
 
 		test('convert empty state', async () => {
-			await compareState(createTimelineState({}), {}, { time: 10, port: {} })
+			await compareState(createTimelineState({}), {}, {})
 		})
 
 		test('convert 1 layer', async () => {
@@ -81,20 +81,18 @@ describe('Quantel Device', () => {
 					},
 				},
 				{
-					time: 10,
-					port: {
-						my_port: {
-							timelineObjId: 'obj0',
-							mode: QuantelControlMode.QUALITY,
-							notOnAir: false,
-							lookahead: false,
-							clip: {
-								title: 'myClip0',
-								playTime: 10,
-								playing: true,
-							},
-							channels: [2],
+					my_port: {
+						time: 10,
+						timelineObjId: 'obj0',
+						mode: QuantelControlMode.QUALITY,
+						notOnAir: false,
+						lookahead: false,
+						clip: {
+							title: 'myClip0',
+							playTime: 10,
+							playing: true,
 						},
+						channels: [2],
 					},
 				}
 			)
@@ -149,20 +147,18 @@ describe('Quantel Device', () => {
 					},
 				},
 				{
-					time: 10,
-					port: {
-						my_port: {
-							timelineObjId: 'obj1',
-							mode: QuantelControlMode.QUALITY,
-							notOnAir: false,
-							lookahead: false,
-							clip: {
-								title: 'myClip1',
-								playTime: 10,
-								playing: true,
-							},
-							channels: [2, 3],
+					my_port: {
+						time: 10,
+						timelineObjId: 'obj1',
+						mode: QuantelControlMode.QUALITY,
+						notOnAir: false,
+						lookahead: false,
+						clip: {
+							title: 'myClip1',
+							playTime: 10,
+							playing: true,
 						},
+						channels: [2, 3],
 					},
 				}
 			)
@@ -197,24 +193,22 @@ describe('Quantel Device', () => {
 					},
 				},
 				{
-					time: 10,
-					port: {
-						my_port: {
+					my_port: {
+						time: 10,
+						timelineObjId: 'obj1',
+						mode: QuantelControlMode.QUALITY,
+						notOnAir: true,
+						lookahead: true,
+						lookaheadClip: {
 							timelineObjId: 'obj1',
-							mode: QuantelControlMode.QUALITY,
-							notOnAir: true,
-							lookahead: true,
-							lookaheadClip: {
-								timelineObjId: 'obj1',
-								title: 'myClip1',
-							},
-							clip: {
-								title: 'myClip1',
-								playing: false,
-								playTime: null,
-							},
-							channels: [2],
+							title: 'myClip1',
 						},
+						clip: {
+							title: 'myClip1',
+							playing: false,
+							playTime: null,
+						},
+						channels: [2],
 					},
 				}
 			)
@@ -260,24 +254,22 @@ describe('Quantel Device', () => {
 					},
 				},
 				{
-					time: 10,
-					port: {
-						my_port: {
-							timelineObjId: 'obj0',
-							mode: QuantelControlMode.QUALITY,
-							notOnAir: false,
-							lookahead: false,
-							lookaheadClip: {
-								timelineObjId: 'obj1',
-								title: 'myClip1',
-							},
-							clip: {
-								title: 'myClip0',
-								playTime: 10,
-								playing: true,
-							},
-							channels: [2],
+					my_port: {
+						time: 10,
+						timelineObjId: 'obj0',
+						mode: QuantelControlMode.QUALITY,
+						notOnAir: false,
+						lookahead: false,
+						lookaheadClip: {
+							timelineObjId: 'obj1',
+							title: 'myClip1',
 						},
+						clip: {
+							title: 'myClip0',
+							playTime: 10,
+							playing: true,
+						},
+						channels: [2],
 					},
 				}
 			)
@@ -286,41 +278,40 @@ describe('Quantel Device', () => {
 
 	describe('diffState', () => {
 		async function compareStates(
-			oldDevState: QuantelState | undefined,
+			oldDevState: QuantelState,
 			newDevState: QuantelState,
 			expCommands: QuantelCommandWithContext[]
 		) {
 			const device = await getInitialisedQuantelDevice()
 
-			const commands = device.diffStates({ quantel: oldDevState }, { quantel: newDevState })
+			const commands = device.diffStates(oldDevState, newDevState as any) // todo - fix types
 
 			expect(commands).toEqual(expCommands)
 		}
 
 		test('Undefined old state', async () => {
-			await compareStates(undefined, { time: 10, port: {} }, [])
+			await compareStates({ x: undefined }, {}, [])
 		})
 
 		test('Empty states', async () => {
-			await compareStates({ time: 10, port: {} }, { time: 10, port: {} }, [])
+			await compareStates({}, {}, [])
 		})
 
 		test('Set up port', async () => {
 			jest
 			await compareStates(
-				{ time: 1000, port: {} },
+				{},
 				{
-					time: 3000,
-					port: {
-						port0: {
-							timelineObjId: 'obj0',
-							mode: QuantelControlMode.QUALITY,
-							notOnAir: false,
-							lookahead: false,
-							channels: [2],
-						},
+					port0: {
+						time: 3000,
+						timelineObjId: 'obj0',
+						mode: QuantelControlMode.QUALITY,
+						notOnAir: false,
+						lookahead: false,
+						channels: [2],
 					},
 				},
+
 				[
 					{
 						command: {
@@ -332,6 +323,7 @@ describe('Quantel Device', () => {
 						},
 						context: 'Old state did not have port',
 						timelineObjId: 'obj0',
+						address: 'port0',
 					},
 					{
 						command: {
@@ -344,6 +336,7 @@ describe('Quantel Device', () => {
 						},
 						context: 'New clip is empty',
 						timelineObjId: 'obj0',
+						address: 'port0',
 					},
 				]
 			)
@@ -352,32 +345,28 @@ describe('Quantel Device', () => {
 		test('Load', async () => {
 			await compareStates(
 				{
-					time: 1000,
-					port: {
-						port0: {
-							timelineObjId: 'obj0',
-							mode: QuantelControlMode.QUALITY,
-							notOnAir: false,
-							lookahead: false,
-							channels: [2],
-						},
+					port0: {
+						time: 1000,
+						timelineObjId: 'obj0',
+						mode: QuantelControlMode.QUALITY,
+						notOnAir: false,
+						lookahead: false,
+						channels: [2],
 					},
 				},
 				{
-					time: 3000,
-					port: {
-						port0: {
-							timelineObjId: 'obj1',
-							mode: QuantelControlMode.QUALITY,
-							notOnAir: false,
-							lookahead: false,
-							clip: {
-								title: 'test0',
-								playing: false,
-								playTime: null,
-							},
-							channels: [2],
+					port0: {
+						time: 3000,
+						timelineObjId: 'obj1',
+						mode: QuantelControlMode.QUALITY,
+						notOnAir: false,
+						lookahead: false,
+						clip: {
+							title: 'test0',
+							playing: false,
+							playTime: null,
 						},
+						channels: [2],
 					},
 				},
 				[
@@ -398,6 +387,7 @@ describe('Quantel Device', () => {
 						},
 						context: 'Load from current state',
 						timelineObjId: 'obj1',
+						address: 'port0',
 					},
 					{
 						command: {
@@ -416,6 +406,7 @@ describe('Quantel Device', () => {
 						},
 						context: 'New clip is paused',
 						timelineObjId: 'obj1',
+						address: 'port0',
 					},
 				]
 			)
@@ -424,37 +415,33 @@ describe('Quantel Device', () => {
 		test('Load & play', async () => {
 			await compareStates(
 				{
-					time: 2000,
-					port: {
-						port0: {
-							timelineObjId: 'obj0',
-							mode: QuantelControlMode.QUALITY,
-							notOnAir: false,
-							lookahead: false,
-							clip: {
-								title: 'test0',
-								playing: false,
-								playTime: null,
-							},
-							channels: [2],
+					port0: {
+						time: 2000,
+						timelineObjId: 'obj0',
+						mode: QuantelControlMode.QUALITY,
+						notOnAir: false,
+						lookahead: false,
+						clip: {
+							title: 'test0',
+							playing: false,
+							playTime: null,
 						},
+						channels: [2],
 					},
 				},
 				{
-					time: 3000,
-					port: {
-						port0: {
-							timelineObjId: 'obj1',
-							mode: QuantelControlMode.QUALITY,
-							notOnAir: false,
-							lookahead: false,
-							clip: {
-								title: 'test0',
-								playing: true,
-								playTime: 3000,
-							},
-							channels: [2],
+					port0: {
+						time: 3000,
+						timelineObjId: 'obj1',
+						mode: QuantelControlMode.QUALITY,
+						notOnAir: false,
+						lookahead: false,
+						clip: {
+							title: 'test0',
+							playing: true,
+							playTime: 3000,
 						},
+						channels: [2],
 					},
 				},
 				[
@@ -475,6 +462,7 @@ describe('Quantel Device', () => {
 						},
 						context: 'Load from current state',
 						timelineObjId: 'obj1',
+						address: 'port0',
 					},
 					{
 						command: {
@@ -493,6 +481,7 @@ describe('Quantel Device', () => {
 						},
 						context: 'New clip is playing',
 						timelineObjId: 'obj1',
+						address: 'port0',
 					},
 				]
 			)
@@ -501,37 +490,33 @@ describe('Quantel Device', () => {
 		test('Play after play', async () => {
 			await compareStates(
 				{
-					time: 2000,
-					port: {
-						port0: {
-							timelineObjId: 'obj0',
-							mode: QuantelControlMode.QUALITY,
-							notOnAir: false,
-							lookahead: false,
-							clip: {
-								title: 'test0',
-								playing: true,
-								playTime: 2000,
-							},
-							channels: [2],
+					port0: {
+						time: 2000,
+						timelineObjId: 'obj0',
+						mode: QuantelControlMode.QUALITY,
+						notOnAir: false,
+						lookahead: false,
+						clip: {
+							title: 'test0',
+							playing: true,
+							playTime: 2000,
 						},
+						channels: [2],
 					},
 				},
 				{
-					time: 3000,
-					port: {
-						port0: {
-							timelineObjId: 'obj1',
-							mode: QuantelControlMode.QUALITY,
-							notOnAir: false,
-							lookahead: false,
-							clip: {
-								title: 'test1',
-								playing: true,
-								playTime: 3000,
-							},
-							channels: [2],
+					port0: {
+						time: 3000,
+						timelineObjId: 'obj1',
+						mode: QuantelControlMode.QUALITY,
+						notOnAir: false,
+						lookahead: false,
+						clip: {
+							title: 'test1',
+							playing: true,
+							playTime: 3000,
 						},
+						channels: [2],
 					},
 				},
 				[
@@ -552,6 +537,7 @@ describe('Quantel Device', () => {
 						},
 						context: 'Load from current state',
 						timelineObjId: 'obj1',
+						address: 'port0',
 					},
 					{
 						command: {
@@ -570,6 +556,7 @@ describe('Quantel Device', () => {
 						},
 						context: 'New clip is playing',
 						timelineObjId: 'obj1',
+						address: 'port0',
 					},
 				]
 			)
@@ -578,34 +565,33 @@ describe('Quantel Device', () => {
 		test('Clear', async () => {
 			await compareStates(
 				{
-					time: 2000,
-					port: {
-						port0: {
-							timelineObjId: 'obj0',
-							mode: QuantelControlMode.QUALITY,
-							notOnAir: false,
-							lookahead: false,
-							clip: {
-								title: 'test0',
-								playing: true,
-								playTime: 2000,
-							},
-							channels: [2],
+					port0: {
+						time: 2000,
+						timelineObjId: 'obj0',
+						mode: QuantelControlMode.QUALITY,
+						notOnAir: false,
+						lookahead: false,
+						clip: {
+							title: 'test0',
+							playing: true,
+							playTime: 2000,
 						},
+						channels: [2],
 					},
 				},
-				{ time: 3000, port: {} },
+				{},
 				[
 					{
 						command: {
 							type: QuantelCommandType.RELEASEPORT,
-							time: 2990,
+							time: 1990,
 							portId: 'port0',
 							timelineObjId: 'obj0',
 							fromLookahead: false,
 						},
 						timelineObjId: 'obj0',
 						context: 'Port does not exist in new state',
+						address: 'port0',
 					},
 				]
 			)
@@ -633,6 +619,7 @@ describe('Quantel Device', () => {
 					},
 					context: 'Old state did not have port',
 					timelineObjId: 'obj0',
+					address: 'my_port',
 				})
 				.catch((e) => {
 					throw e
@@ -681,6 +668,7 @@ describe('Quantel Device', () => {
 					},
 					context: 'Load from current state',
 					timelineObjId: 'obj1',
+					address: 'my_port',
 				})
 				.catch((e) => {
 					throw e
@@ -724,6 +712,7 @@ describe('Quantel Device', () => {
 					},
 					context: 'New clip is playing',
 					timelineObjId: 'obj1',
+					address: 'my_port',
 				})
 				.catch((e) => {
 					throw e
@@ -770,6 +759,7 @@ describe('Quantel Device', () => {
 					},
 					context: 'Clear',
 					timelineObjId: 'obj1',
+					address: 'my_port',
 				})
 				.catch((e) => {
 					throw e

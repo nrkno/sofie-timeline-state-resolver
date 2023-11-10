@@ -7,6 +7,7 @@ import {
 	Mapping,
 	SomeMappingPanasonicPTZ,
 	MappingPanasonicPTZType,
+	TSRMappingOptions,
 } from 'timeline-state-resolver-types'
 import { MockTime } from '../../../__tests__/mockTime'
 import { ThreadedClass } from 'threadedclass'
@@ -72,7 +73,7 @@ describe('Panasonic PTZ', () => {
 				mappingType: MappingPanasonicPTZType.ZoomSpeed,
 			},
 		}
-		const myChannelMapping: Mappings = {
+		const myChannelMapping: Mappings<TSRMappingOptions> = {
 			ptz_k1: myChannelMapping0,
 			ptz_k1_s: myChannelMapping1,
 			ptz_k1_z: myChannelMapping2,

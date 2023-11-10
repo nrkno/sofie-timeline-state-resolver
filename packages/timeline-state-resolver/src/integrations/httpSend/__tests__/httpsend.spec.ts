@@ -312,21 +312,25 @@ describe('HTTP-Send', () => {
 			}
 
 			const state = {
-				genesis: createTimelineState({}),
-				aStart: createTimelineState({
-					layer0: {
-						id: 'obj0',
-						content,
-					},
-				}),
-				aEnd: createTimelineState({}),
-				bStart: createTimelineState({
-					layer0: {
-						id: 'obj1',
-						content,
-					},
-				}),
-				bEnd: createTimelineState({}),
+				genesis: { httpSend: createTimelineState({}) },
+				aStart: {
+					httpSend: createTimelineState({
+						layer0: {
+							id: 'obj0',
+							content,
+						},
+					}),
+				},
+				aEnd: { httpSend: createTimelineState({}) },
+				bStart: {
+					httpSend: createTimelineState({
+						layer0: {
+							id: 'obj1',
+							content,
+						},
+					}),
+				},
+				bEnd: { httpSend: createTimelineState({}) },
 			}
 
 			const device = await getInitialisedHttpDevice()

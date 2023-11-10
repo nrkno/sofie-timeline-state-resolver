@@ -16,6 +16,7 @@ import {
 	SomeMappingHyperdeck,
 	MappingHyperdeckType,
 	TransportStatus,
+	TSRMappingOptions,
 } from 'timeline-state-resolver-types'
 import { MockTime } from '../../../__tests__/mockTime'
 import { ThreadedClass } from 'threadedclass'
@@ -46,7 +47,7 @@ describe('Hyperdeck', () => {
 			// @ts-ignore private function
 			return device._defaultCommandReceiver(...args)
 		})
-		const myChannelMapping: Mappings = {
+		const myChannelMapping: Mappings<TSRMappingOptions> = {
 			hyperdeck0_transport: myChannelMapping0,
 		}
 
@@ -154,7 +155,7 @@ describe('Hyperdeck', () => {
 			// @ts-ignore private function
 			return device._defaultCommandReceiver(...args)
 		})
-		const myChannelMapping: Mappings = {
+		const myChannelMapping: Mappings<TSRMappingOptions> = {
 			hyperdeck0_transport: myChannelMapping0,
 		}
 
@@ -268,7 +269,7 @@ describe('Hyperdeck', () => {
 			// @ts-ignore private function
 			return device._defaultCommandReceiver(...args)
 		})
-		const myChannelMapping: Mappings = {
+		const myChannelMapping: Mappings<TSRMappingOptions> = {
 			hyperdeck0_transport: myChannelMapping0,
 		}
 
@@ -409,7 +410,7 @@ describe('Hyperdeck', () => {
 			// @ts-ignore private function
 			return device._defaultCommandReceiver(...args)
 		})
-		const myChannelMapping: Mappings = {
+		const myChannelMapping: Mappings<TSRMappingOptions> = {
 			hyperdeck0_transport: myChannelMapping0,
 		}
 

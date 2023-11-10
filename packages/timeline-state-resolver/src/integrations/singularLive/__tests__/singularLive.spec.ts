@@ -7,6 +7,7 @@ import {
 	DeviceType,
 	TimelineContentTypeSingularLive,
 	MappingSingularLiveType,
+	TSRMappingOptions,
 } from 'timeline-state-resolver-types'
 import { MockTime } from '../../../__tests__/mockTime'
 import { ThreadedClass } from 'threadedclass'
@@ -31,7 +32,7 @@ describe('Singular.Live', () => {
 				compositionName: 'Lower Third',
 			},
 		}
-		const myLayerMapping: Mappings = {
+		const myLayerMapping: Mappings<TSRMappingOptions> = {
 			myLayer0: myLayerMapping0,
 		}
 

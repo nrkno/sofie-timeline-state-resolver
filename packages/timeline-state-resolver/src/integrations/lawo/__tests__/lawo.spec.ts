@@ -8,6 +8,7 @@ import {
 	SomeMappingLawo,
 	MappingLawoType,
 	LawoDeviceMode,
+	TSRMappingOptions,
 } from 'timeline-state-resolver-types'
 import { MockTime } from '../../../__tests__/mockTime'
 import { ThreadedClass } from 'threadedclass'
@@ -38,7 +39,7 @@ describe('Lawo', () => {
 				mappingType: MappingLawoType.TriggerValue,
 			},
 		}
-		const myChannelMapping: Mappings = {
+		const myChannelMapping: Mappings<TSRMappingOptions> = {
 			lawo_c1_fader: myChannelMapping0,
 			lawo_trigger: myRetriggerMapping,
 		}
@@ -202,7 +203,7 @@ describe('Lawo', () => {
 				mappingType: MappingLawoType.TriggerValue,
 			},
 		}
-		const myChannelMapping: Mappings = {
+		const myChannelMapping: Mappings<TSRMappingOptions> = {
 			lawo_c1_fader: myChannelMapping0,
 			lawo_c2_fader: myChannelMapping1,
 			lawo_base: myChannelsMapping,
@@ -418,7 +419,7 @@ describe('Lawo', () => {
 				mappingType: MappingLawoType.TriggerValue,
 			},
 		}
-		const myChannelMapping: Mappings = {
+		const myChannelMapping: Mappings<TSRMappingOptions> = {
 			lawo_c1_fader: myChannelMapping0,
 			lawo_c2_fader: myChannelMapping1,
 			lawo_base: myChannelsMapping,
@@ -593,7 +594,7 @@ describe('Lawo', () => {
 			},
 		}
 
-		const myChannelMapping: Mappings = {
+		const myChannelMapping: Mappings<TSRMappingOptions> = {
 			lawo_delay_on: lawoMainDelayOnMapping,
 			lawo_delay_time: lawoMainDelayTimeMapping,
 		}
@@ -687,7 +688,7 @@ describe('Lawo', () => {
 				identifier: 'RM1',
 			},
 		}
-		const myChannelMapping: Mappings = {
+		const myChannelMapping: Mappings<TSRMappingOptions> = {
 			lawo_c1_fader: myChannelMapping0,
 		}
 
@@ -795,7 +796,7 @@ describe('Lawo', () => {
 			},
 		}
 
-		const myChannelMapping: Mappings = {
+		const myChannelMapping: Mappings<TSRMappingOptions> = {
 			mapping0: mapping0,
 			mapping1: mapping1,
 			mapping2: mapping2,

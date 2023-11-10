@@ -40,11 +40,11 @@ export function diffStates(
 export function diffAddressState(
 	portId: string,
 	oldState: QuantelAddressState | undefined,
-	newState: QuantelAddressState,
+	newState: QuantelAddressState | undefined,
 	highPrioCommands: QuantelCommandWithContext[],
 	lowPrioCommands: QuantelCommandWithContext[]
 ) {
-	const time = newState.time
+	const time = newState?.time ?? oldState?.time ?? 0
 
 	const addCommand = (command: QuantelCommand, lowPriority: boolean, context?: string) => {
 		;(lowPriority ? lowPrioCommands : highPrioCommands).push({
@@ -94,11 +94,9 @@ export function diffAddressState(
 		timelineObjId: string
 	}[] = []
 
-	diffPort(portId, newState, oldState, newState.time, prepareTime, addCommand, loadFragments, lookaheadPreloadClips)
-
-	// diff old ports that may be removed
-	const newPort = newState
-	if (!newPort) {
+	if (newState) {
+		diffPort(portId, newState, oldState, time, prepareTime, addCommand, loadFragments, lookaheadPreloadClips)
+	} else if (oldState) {
 		// removed port
 		addCommand(
 			{

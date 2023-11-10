@@ -22,6 +22,7 @@ import {
 	VmixActions,
 	ActionExecutionResultCode,
 	MappingVmixProgram,
+	TSRMappingOptions,
 } from 'timeline-state-resolver-types'
 import { ThreadedClass } from 'threadedclass'
 import { VMixDevice, CommandContext } from '..'
@@ -78,7 +79,7 @@ describe('vMix', () => {
 				mappingType: MappingVmixType.Input,
 			},
 		}
-		const myLayerMapping: Mappings = {
+		const myLayerMapping: Mappings<TSRMappingOptions> = {
 			vmix_media0: myLayerMapping0,
 		}
 
@@ -248,7 +249,7 @@ describe('vMix', () => {
 				mappingType: MappingVmixType.Input,
 			},
 		}
-		const myLayerMapping: Mappings = {
+		const myLayerMapping: Mappings<TSRMappingOptions> = {
 			vmix_media0: myLayerMapping0,
 		}
 
@@ -549,7 +550,7 @@ describe('vMix', () => {
 				index: '2',
 			},
 		}
-		const myLayerMapping: Mappings = {
+		const myLayerMapping: Mappings<TSRMappingOptions> = {
 			vmix_media0: myLayerMapping0,
 		}
 
@@ -790,7 +791,7 @@ describe('vMix', () => {
 				mappingType: MappingVmixType.Program,
 			},
 		}
-		const myLayerMapping: Mappings = {
+		const myLayerMapping: Mappings<TSRMappingOptions> = {
 			vmix_media0: myLayerMapping0,
 			vmix_media0_audio: myLayerMapping1,
 			vmix_program: myLayerMapping2,
@@ -1102,7 +1103,7 @@ describe('vMix', () => {
 				index: '2',
 			},
 		}
-		const myLayerMapping: Mappings = {
+		const myLayerMapping: Mappings<TSRMappingOptions> = {
 			vmix_audio0: myLayerMapping0,
 		}
 
@@ -1449,7 +1450,7 @@ describe('vMix', () => {
 				index: 2,
 			},
 		}
-		const myLayerMapping: Mappings = {
+		const myLayerMapping: Mappings<TSRMappingOptions> = {
 			vmix_program0: myLayerMapping0,
 			vmix_program1: myLayerMapping1,
 			vmix_preview0: myLayerMapping2,
@@ -1678,7 +1679,7 @@ describe('vMix', () => {
 				index: 2,
 			},
 		}
-		const myLayerMapping: Mappings = {
+		const myLayerMapping: Mappings<TSRMappingOptions> = {
 			vmix_overlay2: myLayerMapping0,
 		}
 
@@ -1806,7 +1807,7 @@ describe('vMix', () => {
 				mappingType: MappingVmixType.Recording,
 			},
 		}
-		const myLayerMapping: Mappings = {
+		const myLayerMapping: Mappings<TSRMappingOptions> = {
 			vmix_recording0: myLayerMapping0,
 		}
 
@@ -1931,7 +1932,7 @@ describe('vMix', () => {
 				mappingType: MappingVmixType.External,
 			},
 		}
-		const myLayerMapping: Mappings = {
+		const myLayerMapping: Mappings<TSRMappingOptions> = {
 			vmix_external0: myLayerMapping0,
 		}
 
@@ -2056,7 +2057,7 @@ describe('vMix', () => {
 				mappingType: MappingVmixType.Streaming,
 			},
 		}
-		const myLayerMapping: Mappings = {
+		const myLayerMapping: Mappings<TSRMappingOptions> = {
 			vmix_streaming0: myLayerMapping0,
 		}
 
@@ -2182,7 +2183,7 @@ describe('vMix', () => {
 				index: 'Fullscreen',
 			},
 		}
-		const myLayerMapping: Mappings = {
+		const myLayerMapping: Mappings<TSRMappingOptions> = {
 			vmix_output0: myLayerMapping0,
 		}
 
@@ -2312,7 +2313,7 @@ describe('vMix', () => {
 				index: 'Fullscreen',
 			},
 		}
-		const myLayerMapping: Mappings = {
+		const myLayerMapping: Mappings<TSRMappingOptions> = {
 			vmix_output0: myLayerMapping0,
 		}
 
@@ -2443,7 +2444,7 @@ describe('vMix', () => {
 				mappingType: MappingVmixType.FadeToBlack,
 			},
 		}
-		const myLayerMapping: Mappings = {
+		const myLayerMapping: Mappings<TSRMappingOptions> = {
 			vmix_ftb0: myLayerMapping0,
 		}
 
@@ -2568,7 +2569,7 @@ describe('vMix', () => {
 				mappingType: MappingVmixType.Fader,
 			},
 		}
-		const myLayerMapping: Mappings = {
+		const myLayerMapping: Mappings<TSRMappingOptions> = {
 			vmix_fader0: myLayerMapping0,
 		}
 
@@ -2695,7 +2696,7 @@ describe('vMix', () => {
 				mappingType: MappingVmixType.Script,
 			},
 		}
-		const myLayerMapping: Mappings = {
+		const myLayerMapping: Mappings<TSRMappingOptions> = {
 			vmix_ss0: myLayerMapping0,
 		}
 
@@ -2799,7 +2800,7 @@ describe('vMix', () => {
 				mappingType: MappingVmixType.Script,
 			},
 		}
-		const myLayerMapping: Mappings = {
+		const myLayerMapping: Mappings<TSRMappingOptions> = {
 			vmix_ss0: myLayerMapping0,
 		}
 
@@ -2923,7 +2924,7 @@ describe('vMix', () => {
 				mappingType: MappingVmixType.Script,
 			},
 		}
-		const myLayerMapping: Mappings = {
+		const myLayerMapping: Mappings<TSRMappingOptions> = {
 			vmix_ss0: myLayerMapping0,
 		}
 
@@ -3001,7 +3002,7 @@ describe('vMix', () => {
 				mappingType: MappingVmixType.Script,
 			},
 		}
-		const myLayerMapping: Mappings = {
+		const myLayerMapping: Mappings<TSRMappingOptions> = {
 			vmix_ss0: myLayerMapping0,
 		}
 
@@ -3101,7 +3102,7 @@ describe('vMix', () => {
 				mappingType: MappingVmixType.Script,
 			},
 		}
-		const myLayerMapping: Mappings = {
+		const myLayerMapping: Mappings<TSRMappingOptions> = {
 			vmix_ss0: myLayerMapping0,
 		}
 
@@ -3202,7 +3203,7 @@ describe('vMix', () => {
 				index: '1',
 			},
 		}
-		const myLayerMapping: Mappings = {
+		const myLayerMapping: Mappings<TSRMappingOptions> = {
 			vmix_lra0: myLayerMapping0,
 		}
 
@@ -3320,7 +3321,7 @@ describe('vMix', () => {
 				index: '1',
 			},
 		}
-		const myLayerMapping: Mappings = {
+		const myLayerMapping: Mappings<TSRMappingOptions> = {
 			vmix_la0: myLayerMapping0,
 		}
 
@@ -3446,7 +3447,7 @@ describe('vMix', () => {
 				index: '2',
 			},
 		}
-		const myLayerMapping: Mappings = {
+		const myLayerMapping: Mappings<TSRMappingOptions> = {
 			vmix_ico0: myLayerMapping0,
 			vmix_ico1: myLayerMapping1,
 			vmix_ico2: myLayerMapping2,

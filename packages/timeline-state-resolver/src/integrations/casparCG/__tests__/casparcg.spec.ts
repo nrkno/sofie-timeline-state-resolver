@@ -171,6 +171,7 @@ describe('CasparCG Device', () => {
 						},
 						context: 'Nextup media (amb)',
 						timelineObjId: '1-10_empty_base', // note - this makes no sense but is an issue in casparcg-state
+						address: '1-10',
 					},
 				]
 			)
@@ -194,6 +195,7 @@ describe('CasparCG Device', () => {
 						},
 						context: 'VFilter diff ("undefined", "undefined") (content: media!=)',
 						timelineObjId: 'obj0',
+						address: '1-10',
 					},
 				]
 			)
@@ -217,6 +219,7 @@ describe('CasparCG Device', () => {
 						},
 						context: 'No new content ()',
 						timelineObjId: 'obj0',
+						address: '1-10',
 					},
 					{
 						command: {
@@ -226,6 +229,7 @@ describe('CasparCG Device', () => {
 						},
 						context: 'Clear old stuff',
 						timelineObjId: 'obj0',
+						address: '1-10',
 					},
 				]
 			)

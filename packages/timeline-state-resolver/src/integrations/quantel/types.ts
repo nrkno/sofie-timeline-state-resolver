@@ -2,10 +2,7 @@ import { QuantelControlMode, QuantelOutTransition } from 'timeline-state-resolve
 import { MonitorPorts } from 'tv-automation-quantel-gateway-client'
 
 export interface QuantelState {
-	time: number
-	port: {
-		[portId: string]: QuantelStatePort
-	}
+	[portId: string]: QuantelAddressState | undefined
 }
 export interface QuantelAddressState extends QuantelStatePort {
 	time: number

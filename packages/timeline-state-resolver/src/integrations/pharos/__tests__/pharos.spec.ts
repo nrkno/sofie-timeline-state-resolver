@@ -6,6 +6,7 @@ import {
 	Mapping,
 	SomeMappingPharos,
 	TimelineContentTypePharos,
+	TSRMappingOptions,
 } from 'timeline-state-resolver-types'
 import { MockTime } from '../../../__tests__/mockTime'
 import { ThreadedClass } from 'threadedclass'
@@ -40,7 +41,7 @@ describe('Pharos', () => {
 			deviceId: 'myPharos',
 			options: {},
 		}
-		const myLayerMapping: Mappings = {
+		const myLayerMapping: Mappings<TSRMappingOptions> = {
 			myLayer0: myLayerMapping0,
 		}
 

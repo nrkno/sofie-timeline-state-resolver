@@ -10,6 +10,7 @@ import {
 	MappingMultiOscLayer,
 	Mapping,
 	MappingMultiOscType,
+	TSRMappingOptions,
 } from 'timeline-state-resolver-types'
 import { MockTime } from '../../../__tests__/mockTime'
 import { literal } from '../../../devices/device'
@@ -35,7 +36,7 @@ describe('MultiOSC-Message', () => {
 				connectionId: 'osc0',
 			},
 		}
-		const myLayerMapping: Mappings = {
+		const myLayerMapping: Mappings<TSRMappingOptions> = {
 			myLayer0: myLayerMapping0,
 		}
 

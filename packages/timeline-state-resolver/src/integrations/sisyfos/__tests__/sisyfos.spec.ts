@@ -7,6 +7,7 @@ import {
 	SomeMappingSisyfos,
 	TimelineContentTypeSisyfos,
 	MappingSisyfosType,
+	TSRMappingOptions,
 } from 'timeline-state-resolver-types'
 import * as OSC from '../../../__mocks__/osc'
 const MockOSC = OSC.MockOSC
@@ -70,7 +71,7 @@ describe('Sisyfos', () => {
 				channel: 3,
 			},
 		}
-		const myChannelMapping: Mappings = {
+		const myChannelMapping: Mappings<TSRMappingOptions> = {
 			sisyfos_channel_1: myChannelMapping0,
 			sisyfos_channel_2: myChannelMapping1,
 			sisyfos_channel_2_lookahead: myChannelMapping2,
@@ -297,7 +298,7 @@ describe('Sisyfos', () => {
 				setLabelToLayerName: false,
 			},
 		}
-		const myChannelMapping: Mappings = {
+		const myChannelMapping: Mappings<TSRMappingOptions> = {
 			sisyfos_channel_1: myChannelMapping0,
 			sisyfos_channel_2: myChannelMapping1,
 			sisyfos_channel_2_lookahead: myChannelMapping2,
@@ -523,7 +524,7 @@ describe('Sisyfos', () => {
 				setLabelToLayerName: false,
 			},
 		}
-		const myChannelMapping: Mappings = {
+		const myChannelMapping: Mappings<TSRMappingOptions> = {
 			sisyfos_channel_1: myChannelMapping0,
 			sisyfos_channel_2: myChannelMapping1,
 			sisyfos_channel_2_lookahead: myChannelMapping2,
@@ -661,7 +662,7 @@ describe('Sisyfos', () => {
 				mappingType: MappingSisyfosType.Channels,
 			},
 		}
-		const myChannelMapping: Mappings = {
+		const myChannelMapping: Mappings<TSRMappingOptions> = {
 			sisyfos_channels_base: myChannelMapping0,
 			sisyfos_channel_1: myChannelMapping1,
 			sisyfos_channel_2: myChannelMapping2,
@@ -879,7 +880,7 @@ describe('Sisyfos', () => {
 				mappingType: MappingSisyfosType.Channels,
 			},
 		}
-		const myChannelMapping: Mappings = {
+		const myChannelMapping: Mappings<TSRMappingOptions> = {
 			sisyfos_channels_base: myChannelMapping0,
 			sisyfos_channel_1: myChannelMapping1,
 			sisyfos_channel_2: myChannelMapping2,
