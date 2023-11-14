@@ -136,7 +136,7 @@ export class StateHandler<DeviceState, Command extends CommandWithContext> {
 				nextState.deviceState,
 				nextState.mappings
 			)
-			nextState.preliminary = Math.max(...nextState.commands.map((c) => c.preliminary ?? 0))
+			nextState.preliminary = Math.max(0, ...nextState.commands.map((c) => c.preliminary ?? 0))
 			this.context.emitTimeTrace(endTrace(trace))
 		} catch (e) {
 			// todo - log an error
