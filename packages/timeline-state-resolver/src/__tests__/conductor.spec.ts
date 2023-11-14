@@ -59,9 +59,15 @@ describe('Conductor', () => {
 			deviceId: 'device1',
 			options: {},
 		}
-		const myLayerMapping: Mappings<TSRMappingOptions> = {
+		const device0Mappings: Mappings<TSRMappingOptions> = {
 			myLayer0: myLayerMapping0,
+		}
+		const device1Mappings: Mappings<TSRMappingOptions> = {
 			myLayer1: myLayerMapping1,
+		}
+		const myLayerMapping: Mappings<TSRMappingOptions> = {
+			...device0Mappings,
+			...device1Mappings,
 		}
 
 		const conductor = new Conductor({
@@ -140,14 +146,14 @@ describe('Conductor', () => {
 					},
 					time: 10005,
 				}),
-				myLayerMapping // TODO - is this correct?
+				device0Mappings // TODO - is this correct?
 			)
 			expect(device0.handleState).toHaveBeenNthCalledWith(
 				2,
 				expect.objectContaining({
 					time: 11000,
 				}),
-				myLayerMapping // TODO - is this correct?
+				device0Mappings // TODO - is this correct?
 			)
 			expect(device0.handleState).toHaveBeenNthCalledWith(
 				3,
@@ -155,7 +161,7 @@ describe('Conductor', () => {
 					layers: {},
 					time: 12000,
 				}),
-				myLayerMapping // TODO - is this correct?
+				device0Mappings // TODO - is this correct?
 			)
 
 			// Ensure device1 has been fed sensible states
@@ -166,7 +172,7 @@ describe('Conductor', () => {
 				expect.objectContaining({
 					layers: {},
 				}),
-				myLayerMapping // TODO - is this correct?
+				device1Mappings // TODO - is this correct?
 			)
 			expect(device1.handleState).toHaveBeenNthCalledWith(
 				2,
@@ -181,14 +187,14 @@ describe('Conductor', () => {
 						}),
 					},
 				}),
-				myLayerMapping // TODO - is this correct?
+				device1Mappings // TODO - is this correct?
 			)
 			expect(device1.handleState).toHaveBeenNthCalledWith(
 				3,
 				expect.objectContaining({
 					layers: {},
 				}),
-				myLayerMapping // TODO - is this correct?
+				device1Mappings // TODO - is this correct?
 			)
 
 			// Remove the device
