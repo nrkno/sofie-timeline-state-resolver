@@ -1177,6 +1177,13 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 		}
 		const dependencies = Array.from(dependenciesSet)
 
+		// dirty implementation to filter mappings (todo - make this nicer)
+		const deviceMappings = Object.fromEntries<Mapping<TSRMappingOptions, DeviceType>>(
+			Object.entries<Mapping<TSRMappingOptions, DeviceType>>(mappings).filter(
+				([_id, mapping]) => mapping.deviceId === deviceId
+			)
+		)
+
 		// store all states between the current state and the new state
 		this._deviceStates[deviceId] = _.compact([
 			this._deviceStates[deviceId].reverse().find((s) => s.time <= this.getCurrentTime()),
@@ -1196,7 +1203,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 		const filledState = fillStateFromDatastore(state, this._datastore)
 
 		// send the filled state to the device handler
-		return this.getDevice(deviceId)?.device.handleState(filledState, mappings)
+		return this.getDevice(deviceId)?.device.handleState(filledState, deviceMappings)
 	}
 
 	setDatastore(newStore: Datastore) {
