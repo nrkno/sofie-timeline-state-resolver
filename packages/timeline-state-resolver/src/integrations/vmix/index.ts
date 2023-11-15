@@ -142,9 +142,11 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 
 		this._vmix.connect()
 
-		this._pollTime = options.pollInterval ?? DEFAULT_VMIX_POLL_INTERVAL
-		if (typeof this._pollTime === 'number' && this._pollTime > 0) {
-			// options.pollInterval  <= 0 disables the polling
+		this._pollTime =
+			typeof options.pollInterval === 'number' && options.pollInterval >= 0 // options.pollInterval === 0 disables the polling
+				? options.pollInterval
+				: DEFAULT_VMIX_POLL_INTERVAL
+		if (this._pollTime) {
 			this._pollTimeout = setTimeout(() => this._pollVmix(), this._pollTime)
 		}
 
