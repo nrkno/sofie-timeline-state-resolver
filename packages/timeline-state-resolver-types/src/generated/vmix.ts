@@ -9,7 +9,7 @@ export interface VMixOptions {
 	host: string
 	port: number
 	/**
-	 * How often, in milliseconds, for when we should poll vMix to query its actual state. Used to know when to re-send certain failed commands.
+	 * How often, in milliseconds, for when we should poll vMix to query its actual state. Used to know when to re-send certain failed commands. Values <= 0 disables the polling. Defaults to 10000ms.
 	 */
 	pollInterval?: number
 }
