@@ -71,7 +71,7 @@ export class AbstractDevice extends Device<AbstractOptions, AbstractDeviceState,
 	 * @param oldAbstractState
 	 * @param newAbstractState
 	 */
-	diffStates(oldAbstractState: AbstractDeviceState, newAbstractState: AbstractDeviceState) {
+	diffStates(oldAbstractState: AbstractDeviceState | undefined, newAbstractState: AbstractDeviceState) {
 		// in this abstract class, let's just cheat:
 
 		const commands: Array<AbstractCommandWithContext> = []
@@ -79,7 +79,7 @@ export class AbstractDevice extends Device<AbstractOptions, AbstractDeviceState,
 		for (const [layerKey, newLayer] of Object.entries<Timeline.ResolvedTimelineObjectInstance<any>>(
 			newAbstractState.layers
 		)) {
-			const oldLayer = oldAbstractState.layers[layerKey]
+			const oldLayer = oldAbstractState?.layers[layerKey]
 			if (!oldLayer) {
 				// added!
 				commands.push({
@@ -102,7 +102,7 @@ export class AbstractDevice extends Device<AbstractOptions, AbstractDeviceState,
 
 		// removed
 		for (const [layerKey, oldLayer] of Object.entries<Timeline.ResolvedTimelineObjectInstance<any>>(
-			oldAbstractState.layers
+			oldAbstractState?.layers || {}
 		)) {
 			const newLayer = newAbstractState.layers[layerKey]
 			if (!newLayer) {
@@ -120,7 +120,7 @@ export class AbstractDevice extends Device<AbstractOptions, AbstractDeviceState,
 
 	async sendCommand({ command, context, timelineObjId }: AbstractCommandWithContext): Promise<any> {
 		// emit the command to debug:
-		this.context.emitDebug({ command, context, timelineObjId })
+		this.context.logger.debug({ command, context, timelineObjId })
 
 		// Note: In the Abstract case, the execution does nothing
 

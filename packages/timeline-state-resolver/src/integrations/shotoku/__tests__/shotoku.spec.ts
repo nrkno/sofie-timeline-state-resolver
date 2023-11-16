@@ -127,7 +127,7 @@ describe('Shotoku Device', () => {
 
 	describe('diffState', () => {
 		async function compareStates(
-			oldDevState: ShotokuDeviceState,
+			oldDevState: ShotokuDeviceState | undefined,
 			newDevState: ShotokuDeviceState,
 			expCommands: ShotokuCommandWithContext[]
 		) {
@@ -137,6 +137,17 @@ describe('Shotoku Device', () => {
 
 			expect(commands).toEqual(expCommands)
 		}
+
+		test('From undefined', async () => {
+			await compareStates(
+				undefined,
+				{
+					shots: {},
+					sequences: {},
+				},
+				[]
+			)
+		})
 
 		test('Empty states', async () => {
 			await compareStates(

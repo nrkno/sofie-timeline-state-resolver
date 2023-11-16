@@ -142,7 +142,7 @@ export class TcpSendDevice extends Device<TCPSendOptions, TcpSendDeviceState, Tc
 			return Promise.resolve()
 		}
 
-		this.context.emitDebug({ context, timelineObjId, command })
+		this.context.logger.debug({ context, timelineObjId, command })
 
 		await this.tcpConnection.sendTCPMessage(command.content.message)
 	}
@@ -169,7 +169,7 @@ export class TcpSendDevice extends Device<TCPSendOptions, TcpSendDeviceState, Tc
 				},
 			})
 		} catch (error) {
-			this.context.emitWarning('Manual TCP command failed: ' + JSON.stringify(cmd))
+			this.context.logger.warning('Manual TCP command failed: ' + JSON.stringify(cmd))
 			return {
 				result: ActionExecutionResultCode.Error,
 				response: t('Error when sending TCP command: {{errorMessage}}', { errorMessage: `${error}` }),

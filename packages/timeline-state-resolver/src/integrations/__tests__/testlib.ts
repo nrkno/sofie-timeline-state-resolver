@@ -4,10 +4,12 @@ import { DeviceContextAPI } from '../../service/device'
 
 export function getDeviceContext(): DeviceContextAPI {
 	return {
-		emitError: jest.fn(),
-		emitWarning: jest.fn(),
-		emitInfo: jest.fn(),
-		emitDebug: jest.fn(),
+		logger: {
+			error: jest.fn(),
+			warning: jest.fn(),
+			info: jest.fn(),
+			debug: jest.fn(),
+		},
 		emitDebugState: jest.fn(),
 		connectionChanged: jest.fn(),
 		resetResolver: jest.fn(),

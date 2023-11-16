@@ -167,7 +167,7 @@ describe('OSC Device', () => {
 
 	describe('diffState', () => {
 		async function compareStates(
-			oldDevState: OscDeviceState,
+			oldDevState: OscDeviceState | undefined,
 			newDevState: OscDeviceState,
 			expCommands: OscCommandWithContext[]
 		) {
@@ -177,6 +177,10 @@ describe('OSC Device', () => {
 
 			expect(commands).toEqual(expCommands)
 		}
+
+		test('From undefined', async () => {
+			await compareStates(undefined, {}, [])
+		})
 
 		test('Empty states', async () => {
 			await compareStates({}, {}, [])

@@ -66,6 +66,12 @@ describe('TCP-Send', () => {
 	})
 
 	describe('diffState', () => {
+		test('From undefined', async () => {
+			const device = await getInitializedTcpDevice()
+			const commands = device.diffStates(undefined, createTimelineState({}))
+			expect(commands).toEqual([])
+			await device.terminate()
+		})
 		test('Empty states', async () => {
 			const device = await getInitializedTcpDevice()
 			const commands = device.diffStates(createTimelineState({}), createTimelineState({}))

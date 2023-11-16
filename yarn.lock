@@ -3115,7 +3115,7 @@ asn1@evs-broadcast/node-asn1:
   languageName: node
   linkType: hard
 
-"casparcg-connection@npm:^6.0.0, casparcg-connection@npm:^6.0.3":
+"casparcg-connection@npm:^6.0.0":
   version: 6.0.3
   resolution: "casparcg-connection@npm:6.0.3"
   dependencies:
@@ -3123,6 +3123,17 @@ asn1@evs-broadcast/node-asn1:
     tslib: ^2.5.0
     xml2js: ^0.4.23
   checksum: 747cfc551b5955d9f38236c8d46bb7fb9cc8642e0cb73501d3e4d566787ccdb7290502d16686c0c1994e685feaba6be5aa6721104619a362096d3c153f942630
+  languageName: node
+  linkType: hard
+
+"casparcg-connection@npm:^6.0.6":
+  version: 6.0.6
+  resolution: "casparcg-connection@npm:6.0.6"
+  dependencies:
+    eventemitter3: ^4.0.7
+    tslib: ^2.5.0
+    xml2js: ^0.4.23
+  checksum: f2c02bdfaf29e1c43449a577f1b91fd5ce14ff91bdc6a48dbe5908c1420f5eaf9a3989454f750f93fbe8de399310e76a112e88866bcc3c18398e0e81b43f4dd1
   languageName: node
   linkType: hard
 
@@ -11373,7 +11384,7 @@ asn1@evs-broadcast/node-asn1:
     atem-connection: 2.5.0
     atem-state: 0.13.0
     cacheable-lookup: ^5.0.3
-    casparcg-connection: ^6.0.3
+    casparcg-connection: ^6.0.6
     casparcg-state: ^3.0.2
     debug: ^4.3.4
     deepmerge: ^4.3.1
@@ -11397,7 +11408,7 @@ asn1@evs-broadcast/node-asn1:
     threadedclass: ^1.2.1
     timeline-state-resolver-types: 9.1.0-release51
     tslib: ^2.5.1
-    tv-automation-quantel-gateway-client: ^3.1.11-agent-debug-20230117-160455-c2c4ee4.0
+    tv-automation-quantel-gateway-client: ^3.1.7
     underscore: ^1.13.6
     underscore-deep-extend: ^1.1.5
     utf-8-validate: ^5.0.10
@@ -11655,12 +11666,12 @@ asn1@evs-broadcast/node-asn1:
   languageName: node
   linkType: hard
 
-"tv-automation-quantel-gateway-client@npm:^3.1.11-agent-debug-20230117-160455-c2c4ee4.0":
-  version: 3.1.11-agent-debug-20230117-160455-c2c4ee4.0
-  resolution: "tv-automation-quantel-gateway-client@npm:3.1.11-agent-debug-20230117-160455-c2c4ee4.0"
+"tv-automation-quantel-gateway-client@npm:^3.1.7":
+  version: 3.1.7
+  resolution: "tv-automation-quantel-gateway-client@npm:3.1.7"
   dependencies:
     got: ^11.8.6
-  checksum: 352bd6e5c8388322687dc9c46b1e655b2e53a65dfdd4c53efe311b156c00944e5c72bdfbdee04fdc53ad01c6df81511d42273f62b5e4f0e278b3d6f68f5ccf28
+  checksum: 84009ec17cd6286492a1993a040d10f0b08a5a73daf4869e82a80ab19f181e9f0f64fe2256294ddc4b391c5d5404009a648d86e80385910711f6ee13bb0d6022
   languageName: node
   linkType: hard
 

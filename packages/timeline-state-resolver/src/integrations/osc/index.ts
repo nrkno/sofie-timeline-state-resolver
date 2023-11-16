@@ -136,7 +136,7 @@ export class OscDevice extends Device<OSCOptions, OscDeviceState, OscCommandWith
 			command: command,
 			timelineObjId,
 		}
-		this.context.emitDebug(cwc)
+		this.context.logger.debug(cwc)
 		debug(command)
 
 		try {
@@ -200,7 +200,7 @@ export class OscDevice extends Device<OSCOptions, OscDeviceState, OscCommandWith
 	actions: Record<string, (id: string, payload: Record<string, any>) => Promise<ActionExecutionResult>> = {}
 
 	private _oscSender(msg: osc.OscMessage, address?: string | undefined, port?: number | undefined): void {
-		this.context.emitDebug('sending ' + msg.address)
+		this.context.logger.debug('sending ' + msg.address)
 		this._oscClient.send(msg, address, port)
 	}
 	private runAnimation() {

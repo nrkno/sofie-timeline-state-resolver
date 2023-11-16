@@ -200,17 +200,19 @@ export class DeviceInstanceWrapper extends EventEmitter<DeviceInstanceEvents> {
 
 	private _getDeviceContextAPI(): DeviceContextAPI {
 		return {
-			emitError: (context: string, err: Error) => {
-				this.emit('error', context, err)
-			},
-			emitWarning: (warning: string) => {
-				this.emit('warning', warning)
-			},
-			emitInfo: (info: string) => {
-				this.emit('info', info)
-			},
-			emitDebug: (...debug: any[]) => {
-				if (this._logDebug) this.emit('debug', ...debug)
+			logger: {
+				error: (context: string, err: Error) => {
+					this.emit('error', context, err)
+				},
+				warning: (warning: string) => {
+					this.emit('warning', warning)
+				},
+				info: (info: string) => {
+					this.emit('info', info)
+				},
+				debug: (...debug: any[]) => {
+					if (this._logDebug) this.emit('debug', ...debug)
+				},
 			},
 
 			emitDebugState: (state: object) => {
