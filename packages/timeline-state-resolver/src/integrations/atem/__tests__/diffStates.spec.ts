@@ -1,5 +1,5 @@
 import * as AtemConnection from 'atem-connection'
-import { compareAtemCommands, createDevice } from './util'
+import { compareAtemCommands, createDevice, expectIncludesAtemCommandName } from './util'
 import {
 	AtemTransitionStyle,
 	DeviceType,
@@ -8,15 +8,37 @@ import {
 	MappingAtemType,
 	Mappings,
 } from 'timeline-state-resolver-types'
+import { AtemState } from 'atem-state'
+import { createDiffOptions } from '../diffState'
+
+const diffStatesSpy = jest.spyOn(AtemState, 'diffStates')
 
 describe('Diff States', () => {
+	beforeEach(() => {
+		diffStatesSpy.mockClear()
+	})
+
 	test('Simple diff against empty state', async () => {
 		const device = await createDevice()
 
 		const state1 = AtemConnection.AtemStateUtil.Create()
 		AtemConnection.AtemStateUtil.getMixEffect(state1, 0).programInput = 2
 
+		const diffOptions = createDiffOptions({})
+		expect(diffOptions).toMatchSnapshot()
+
+		expect(diffStatesSpy).toHaveBeenCalledTimes(0)
+
 		const commands = device.diffStates(undefined, state1, {})
+
+		expect(diffStatesSpy).toHaveBeenCalledTimes(1)
+		expect(diffStatesSpy).toHaveBeenNthCalledWith(
+			1,
+			expect.anything(),
+			AtemConnection.AtemStateUtil.Create(),
+			state1,
+			diffOptions
+		)
 
 		expect(commands).toHaveLength(1)
 		compareAtemCommands(commands[0].command, new AtemConnection.Commands.ProgramInputCommand(0, 2))
@@ -30,7 +52,14 @@ describe('Diff States', () => {
 		const state2 = AtemConnection.AtemStateUtil.Create()
 		AtemConnection.AtemStateUtil.getMixEffect(state2, 0).programInput = 3
 
+		const diffOptions = createDiffOptions({})
+
+		expect(diffStatesSpy).toHaveBeenCalledTimes(0)
+
 		const commands = device.diffStates(state1, state2, {})
+
+		expect(diffStatesSpy).toHaveBeenCalledTimes(1)
+		expect(diffStatesSpy).toHaveBeenNthCalledWith(1, expect.anything(), state1, state2, diffOptions)
 
 		expect(commands).toHaveLength(1)
 		compareAtemCommands(commands[0].command, new AtemConnection.Commands.ProgramInputCommand(0, 3))
@@ -42,7 +71,21 @@ describe('Diff States', () => {
 		const state1 = AtemConnection.AtemStateUtil.Create()
 		state1.video.auxilliaries[5] = 10
 
+		const diffOptions = createDiffOptions({})
+		expect(diffOptions.video?.auxiliaries).toStrictEqual([])
+
+		expect(diffStatesSpy).toHaveBeenCalledTimes(0)
+
 		const commands = device.diffStates(undefined, state1, {})
+
+		expect(diffStatesSpy).toHaveBeenCalledTimes(1)
+		expect(diffStatesSpy).toHaveBeenNthCalledWith(
+			1,
+			expect.anything(),
+			AtemConnection.AtemStateUtil.Create(),
+			state1,
+			diffOptions
+		)
 
 		expect(commands).toHaveLength(0)
 	})
@@ -64,7 +107,21 @@ describe('Diff States', () => {
 			},
 		}
 
+		const diffOptions = createDiffOptions(mappings)
+		expect(diffOptions.video?.auxiliaries).toStrictEqual([5])
+
+		expect(diffStatesSpy).toHaveBeenCalledTimes(0)
+
 		const commands = device.diffStates(undefined, state1, mappings)
+
+		expect(diffStatesSpy).toHaveBeenCalledTimes(1)
+		expect(diffStatesSpy).toHaveBeenNthCalledWith(
+			1,
+			expect.anything(),
+			AtemConnection.AtemStateUtil.Create(),
+			state1,
+			diffOptions
+		)
 
 		expect(commands).toHaveLength(1)
 		compareAtemCommands(commands[0].command, new AtemConnection.Commands.AuxSourceCommand(5, 10))
@@ -94,8 +151,7 @@ describe('Diff States', () => {
 			const commands = device.diffStates(undefined, deviceState1, mappings)
 
 			expect(commands).toHaveLength(2)
-			compareAtemCommands(commands[0].command, new AtemConnection.Commands.PreviewInputCommand(0, 2))
-			compareAtemCommands(commands[1].command, new AtemConnection.Commands.CutCommand(0))
+			expectIncludesAtemCommandName(commands, AtemConnection.Commands.CutCommand.name)
 		}
 
 		const deviceState2 = AtemConnection.AtemStateUtil.Create()
@@ -108,13 +164,8 @@ describe('Diff States', () => {
 			const commands = device.diffStates(deviceState1, deviceState2, mappings)
 
 			expect(commands).toHaveLength(4)
-			const transitionPropertiesCommand = new AtemConnection.Commands.TransitionPropertiesCommand(0)
-			transitionPropertiesCommand.updateProps({ nextStyle: 1 })
 
-			compareAtemCommands(commands[0].command, new AtemConnection.Commands.PreviewInputCommand(0, 3))
-			compareAtemCommands(commands[1].command, transitionPropertiesCommand)
-			compareAtemCommands(commands[2].command, new AtemConnection.Commands.TransitionPositionCommand(0, 0))
-			compareAtemCommands(commands[3].command, new AtemConnection.Commands.AutoTransitionCommand(0))
+			expectIncludesAtemCommandName(commands, AtemConnection.Commands.AutoTransitionCommand.name)
 		}
 	})
 
@@ -153,12 +204,8 @@ describe('Diff States', () => {
 			const commands = device.diffStates(deviceState1, deviceState2, mappings)
 
 			expect(commands).toHaveLength(3)
-			const transitionPropertiesCommand = new AtemConnection.Commands.TransitionPropertiesCommand(0)
-			transitionPropertiesCommand.updateProps({ nextStyle: 1 })
 
-			compareAtemCommands(commands[0].command, new AtemConnection.Commands.PreviewInputCommand(0, 4))
-			compareAtemCommands(commands[1].command, new AtemConnection.Commands.TransitionPositionCommand(0, 0))
-			compareAtemCommands(commands[2].command, new AtemConnection.Commands.AutoTransitionCommand(0))
+			expectIncludesAtemCommandName(commands, AtemConnection.Commands.AutoTransitionCommand.name)
 		}
 	})
 })

@@ -1,4 +1,4 @@
-import { AtemStateUtil, Enums } from 'atem-connection'
+import { AtemStateUtil, Enums, MacroState, VideoState } from 'atem-connection'
 import {
 	Mapping,
 	SomeMappingAtem,
@@ -25,19 +25,12 @@ import {
 	MappingAtemSuperSourceBox,
 	MappingAtemSuperSourceProperties,
 	MappingAtemDownStreamKeyer,
+	MappingAtemAudioRouting,
+	TimelineContentAtemAudioRouting,
 } from 'timeline-state-resolver-types'
 import _ = require('underscore')
-import * as underScoreDeepExtend from 'underscore-deep-extend'
 import { State as DeviceState, Defaults as StateDefault } from 'atem-state'
-import { assertNever, cloneDeep } from '../../lib'
-import { MappingAtemAudioRouting, TimelineContentAtemAudioRouting } from 'timeline-state-resolver-types/src'
-
-_.mixin({ deepExtend: underScoreDeepExtend(_) })
-
-function deepExtend<T>(destination: T, ...sources: any[]) {
-	// @ts-ignore (mixin)
-	return _.deepExtend(destination, ...sources)
-}
+import { assertNever, cloneDeep, deepMerge } from '../../lib'
 
 export class AtemStateBuilder {
 	// Start out with default state:
@@ -123,8 +116,20 @@ export class AtemStateBuilder {
 	private _applyMixEffect(mapping: MappingAtemMixEffect, content: TimelineContentAtemME): void {
 		if (typeof mapping.index !== 'number' || mapping.index < 0) return
 
-		const stateMixEffect = AtemStateUtil.getMixEffect(this.#deviceState, mapping.index)
-		deepExtend(stateMixEffect, _.omit(content.me, 'upstreamKeyers'))
+		const stateMixEffect = deepMerge(
+			AtemStateUtil.getMixEffect(this.#deviceState, mapping.index),
+			_.omit(content.me, 'upstreamKeyers', 'transitionPosition')
+		)
+		this.#deviceState.video.mixEffects[mapping.index] = stateMixEffect
+		if (content.me.transitionPosition !== undefined) {
+			stateMixEffect.transitionPosition = {
+				handlePosition: content.me.transitionPosition,
+
+				// Readonly properties
+				inTransition: false,
+				remainingFrames: 0,
+			}
+		}
 
 		const objectTransition = content.me.transition
 		if (this._isAssignableToNextStyle(objectTransition)) {
@@ -134,8 +139,10 @@ export class AtemStateBuilder {
 		const objectKeyers = content.me.upstreamKeyers
 		if (objectKeyers) {
 			for (const objKeyer of objectKeyers) {
-				const stateKeyer = AtemStateUtil.getUpstreamKeyer(stateMixEffect, objKeyer.upstreamKeyerId)
-				deepExtend(stateKeyer, objKeyer)
+				stateMixEffect.upstreamKeyers[objKeyer.upstreamKeyerId] = deepMerge(
+					AtemStateUtil.getUpstreamKeyer(stateMixEffect, objKeyer.upstreamKeyerId),
+					objKeyer
+				)
 			}
 		}
 	}
@@ -143,8 +150,10 @@ export class AtemStateBuilder {
 	private _applyDownStreamKeyer(mapping: MappingAtemDownStreamKeyer, content: TimelineContentAtemDSK): void {
 		if (typeof mapping.index !== 'number' || mapping.index < 0) return
 
-		const stateDSK = AtemStateUtil.getDownstreamKeyer(this.#deviceState, mapping.index)
-		deepExtend(stateDSK, content.dsk)
+		this.#deviceState.video.downstreamKeyers[mapping.index] = deepMerge<VideoState.DSK.DownstreamKeyer>(
+			AtemStateUtil.getDownstreamKeyer(this.#deviceState, mapping.index),
+			content.dsk
+		)
 	}
 
 	private _applySuperSourceBox(mapping: MappingAtemSuperSourceBox, content: TimelineContentAtemSsrc): void {
@@ -153,12 +162,10 @@ export class AtemStateBuilder {
 		const stateSuperSource = AtemStateUtil.getSuperSource(this.#deviceState, mapping.index)
 
 		content.ssrc.boxes.forEach((objBox, i) => {
-			const stateBox = stateSuperSource.boxes[i]
-			if (stateBox) {
-				deepExtend(stateBox, objBox)
-			} else {
-				stateSuperSource.boxes[i] = deepExtend(cloneDeep(StateDefault.Video.SuperSourceBox), objBox)
-			}
+			stateSuperSource.boxes[i] = deepMerge<VideoState.SuperSource.SuperSourceBox>(
+				stateSuperSource.boxes[i] ?? cloneDeep(StateDefault.Video.SuperSourceBox),
+				objBox
+			)
 		})
 	}
 
@@ -184,11 +191,15 @@ export class AtemStateBuilder {
 			'borderLightSourceAltitude',
 		]
 
-		if (!stateSuperSource.properties) stateSuperSource.properties = cloneDeep(StateDefault.Video.SuperSourceProperties)
-		deepExtend(stateSuperSource.properties, _.omit(content.ssrcProps, ...borderKeys))
+		stateSuperSource.properties = deepMerge(
+			stateSuperSource.properties ?? cloneDeep(StateDefault.Video.SuperSourceProperties),
+			_.omit(content.ssrcProps, ...borderKeys)
+		)
 
-		if (!stateSuperSource.border) stateSuperSource.border = cloneDeep(StateDefault.Video.SuperSourceBorder)
-		deepExtend(stateSuperSource.border, _.pick(content.ssrcProps, ...borderKeys))
+		stateSuperSource.border = deepMerge(
+			stateSuperSource.border ?? cloneDeep(StateDefault.Video.SuperSourceBorder),
+			_.pick(content.ssrcProps, ...borderKeys)
+		)
 	}
 
 	private _applyAuxilliary(mapping: MappingAtemAuxilliary, content: TimelineContentAtemAUX): void {
@@ -200,8 +211,10 @@ export class AtemStateBuilder {
 	private _applyMediaPlayer(mapping: MappingAtemMediaPlayer, content: TimelineContentAtemMediaPlayer): void {
 		if (typeof mapping.index !== 'number' || mapping.index < 0) return
 
-		const ms = AtemStateUtil.getMediaPlayer(this.#deviceState, mapping.index)
-		if (ms) deepExtend(ms, content.mediaPlayer)
+		this.#deviceState.media.players[mapping.index] = deepMerge(
+			AtemStateUtil.getMediaPlayer(this.#deviceState, mapping.index),
+			content.mediaPlayer
+		)
 	}
 
 	private _applyAudioChannel(mapping: MappingAtemAudioChannel, content: TimelineContentAtemAudioChannel): void {
@@ -209,7 +222,7 @@ export class AtemStateBuilder {
 
 		if (!this.#deviceState.audio) this.#deviceState.audio = { channels: {} }
 
-		const stateAudioChannel = this.#deviceState.audio.channels[mapping.index] ?? cloneDeep(StateDefault.Audio.Channel)
+		const stateAudioChannel = this.#deviceState.audio.channels[mapping.index] ?? StateDefault.ClassicAudio.Channel
 		this.#deviceState.audio.channels[mapping.index] = {
 			...cloneDeep(stateAudioChannel),
 			...content.audioChannel,
@@ -217,6 +230,8 @@ export class AtemStateBuilder {
 	}
 
 	private _applyAudioRouting(mapping: MappingAtemAudioRouting, content: TimelineContentAtemAudioRouting): void {
+		if (typeof mapping.index !== 'number' || mapping.index < 0) return
+
 		// lazily generate the state properties, to make this be opt in per-mapping
 		if (!this.#deviceState.fairlight) this.#deviceState.fairlight = { inputs: {} }
 		if (!this.#deviceState.fairlight.audioRouting)
@@ -239,7 +254,9 @@ export class AtemStateBuilder {
 	}
 
 	private _applyMacroPlayer(_mapping: MappingAtemMacroPlayer, content: TimelineContentAtemMacroPlayer): void {
-		const stateMacroPlayer = this.#deviceState.macro.macroPlayer
-		deepExtend(stateMacroPlayer, content.macroPlayer)
+		this.#deviceState.macro.macroPlayer = deepMerge<MacroState.MacroPlayerState>(
+			this.#deviceState.macro.macroPlayer,
+			content.macroPlayer
+		)
 	}
 }

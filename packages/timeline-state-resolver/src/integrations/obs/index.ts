@@ -1,5 +1,4 @@
 import * as _ from 'underscore'
-import * as underScoreDeepExtend from 'underscore-deep-extend'
 import { DeviceWithState, CommandWithContext, DeviceStatus, StatusCode } from './../../devices/device'
 import { DoOnTime, SendMode } from '../../devices/doOnTime'
 
@@ -24,11 +23,6 @@ interface OBSRequest {
 	args: object
 }
 
-_.mixin({ deepExtend: underScoreDeepExtend(_) })
-function deepExtend<T>(destination: T, ...sources: any[]) {
-	// @ts-ignore (mixin)
-	return _.deepExtend(destination, ...sources)
-}
 export interface DeviceOptionsOBSInternal extends DeviceOptionsOBS {
 	commandReceiver?: CommandReceiver
 }
@@ -353,15 +347,11 @@ export class OBSDevice extends DeviceWithState<OBSState, DeviceOptionsOBSInterna
 
 							const source = mapping.options.source
 							const sceneName = mapping.options.sceneName
-							deepExtend(deviceState.scenes, {
-								[sceneName]: {
-									sceneItems: {
-										[source]: {
-											render: tlObject.content.on,
-										},
-									},
-								},
-							})
+
+							if (!deviceState.scenes[sceneName]) deviceState.scenes[sceneName] = { sceneItems: {} }
+							deviceState.scenes[sceneName].sceneItems[source] = {
+								render: tlObject.content.on,
+							}
 						}
 						break
 					case MappingObsType.SourceSettings:
@@ -373,12 +363,10 @@ export class OBSDevice extends DeviceWithState<OBSState, DeviceOptionsOBSInterna
 
 							const source = mapping.options.source
 
-							deepExtend(deviceState.sources, {
-								[source]: {
-									sourceType: tlObject.content.sourceType,
-									sourceSettings: tlObject.content.sourceSettings,
-								},
-							})
+							deviceState.sources[source] = {
+								sourceType: tlObject.content.sourceType,
+								sourceSettings: tlObject.content.sourceSettings as object,
+							}
 						}
 						break
 				}

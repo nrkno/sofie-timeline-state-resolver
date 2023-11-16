@@ -1,0 +1,74 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Diff States Simple diff against empty state 1`] = `
+{
+  "audio": {
+    "classic": undefined,
+    "fairlight": {
+      "audioRouting": {
+        "outputs": {
+          "default": undefined,
+        },
+        "sources": undefined,
+      },
+      "crossfade": undefined,
+      "inputs": undefined,
+      "masterOutput": undefined,
+      "monitorOutput": undefined,
+    },
+  },
+  "colorGenerators": undefined,
+  "macros": {
+    "player": {
+      "player": true,
+    },
+  },
+  "media": {
+    "players": {
+      "source": true,
+      "status": true,
+    },
+  },
+  "settings": {
+    "multiviewer": undefined,
+  },
+  "video": {
+    "auxiliaries": [],
+    "downstreamKeyers": {
+      "mask": true,
+      "onAir": true,
+      "properties": true,
+      "sources": true,
+    },
+    "mixEffects": {
+      "programPreview": true,
+      "transitionProperties": true,
+      "transitionSettings": {
+        "DVE": false,
+        "dip": false,
+        "mix": true,
+        "stinger": false,
+        "wipe": true,
+      },
+      "transitionStatus": true,
+      "upstreamKeyers": {
+        "advancedChromaSettings": false,
+        "chromaSettings": false,
+        "dveSettings": true,
+        "flyKeyframes": undefined,
+        "lumaSettings": true,
+        "mask": true,
+        "onAir": true,
+        "patternSettings": true,
+        "sources": true,
+        "type": true,
+      },
+    },
+    "superSources": {
+      "border": true,
+      "boxes": "all",
+      "properties": true,
+    },
+  },
+}
+`;

@@ -1,14 +1,10 @@
 import * as _ from 'underscore'
 import { DeviceStatus, StatusCode } from './../../devices/device'
 import {
-	SomeMappingAtem,
-	MappingAtemType,
 	AtemOptions,
 	Mappings,
 	Timeline,
 	TSRTimelineContent,
-	Mapping,
-	MappingAtemAuxilliary,
 	ActionExecutionResult,
 	ActionExecutionResultCode,
 	AtemActions,
@@ -23,6 +19,7 @@ import {
 } from 'atem-connection'
 import { CommandWithContext, Device } from '../../service/device'
 import { AtemStateBuilder } from './stateBuilder'
+import { createDiffOptions } from './diffState'
 
 export interface AtemCommandWithContext {
 	command: AtemCommands.ISerializableCommand
@@ -157,23 +154,9 @@ export class AtemDevice extends Device<AtemOptions, AtemDeviceState, AtemCommand
 		// Make sure there is something to diff against
 		oldAtemState = oldAtemState ?? this._atem.state ?? AtemStateUtil.Create()
 
-		// bump out any auxes that we don't control as they may be used for CC etc.
-		const noOfAuxes = Math.max(oldAtemState.video.auxilliaries.length, newAtemState.video.auxilliaries.length)
-		const auxMappings = Object.values<Mapping<unknown>>(mappings)
-			.filter(
-				(mapping: Mapping<SomeMappingAtem>): mapping is Mapping<MappingAtemAuxilliary> =>
-					mapping.options.mappingType === MappingAtemType.Auxilliary
-			)
-			.map((mapping) => mapping.options.index)
+		const diffOptions = createDiffOptions(mappings)
 
-		for (let i = 0; i < noOfAuxes; i++) {
-			if (!auxMappings.includes(i)) {
-				oldAtemState.video.auxilliaries[i] = undefined
-				newAtemState.video.auxilliaries[i] = undefined
-			}
-		}
-
-		return AtemState.diffStates(this._protocolVersion, oldAtemState, newAtemState).map((cmd) => {
+		return AtemState.diffStates(this._protocolVersion, oldAtemState, newAtemState, diffOptions).map((cmd) => {
 			// backwards compability, to be removed later:
 			return {
 				command: cmd,

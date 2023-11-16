@@ -9,6 +9,8 @@ import {
 	TimelineDatastoreReferences,
 } from 'timeline-state-resolver-types'
 import * as _ from 'underscore'
+import { PartialDeep } from 'type-fest'
+import deepmerge = require('deepmerge')
 
 /**
  * getDiff is the reverse of underscore:s _.isEqual(): It compares two values and if they differ it returns an explanation of the difference
@@ -187,6 +189,11 @@ function deepDiff(a: any, b: any, aStack: any, bStack: any): string | null {
 	bStack.pop()
 
 	return null
+}
+
+/** Deeply extend an object with some partial objects */
+export function deepMerge<T extends object>(destination: T, source: PartialDeep<T>): T {
+	return deepmerge<T>(destination, source)
 }
 
 export interface Trace {
