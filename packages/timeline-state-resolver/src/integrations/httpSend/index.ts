@@ -197,7 +197,6 @@ export class HTTPSendDevice
 		const httpReq = got[command.content.type]
 		try {
 			const options: OptionsOfTextResponseBody = {
-				dnsCache: this.cacheable,
 				retry: 0,
 				headers: command.content.headers,
 			}
