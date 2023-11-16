@@ -74,6 +74,11 @@ describe('vMixAPI', () => {
 						panY: 0,
 						zoom: 1,
 					},
+					listFilePaths: undefined,
+					name: 'Cam 1',
+					overlays: undefined,
+					playing: true,
+					solo: false,
 				},
 				'2': {
 					number: 2,
@@ -92,6 +97,11 @@ describe('vMixAPI', () => {
 						panY: 0,
 						zoom: 1,
 					},
+					listFilePaths: undefined,
+					name: 'Cam 2',
+					overlays: undefined,
+					playing: true,
+					solo: false,
 				},
 			},
 			overlays: [

@@ -9,9 +9,9 @@ export interface VMixOptions {
 	host: string
 	port: number
 	/**
-	 * How often, in milliseconds, to try re-sending certain failed commands. Defaults to 10 seconds. Set to 0 to disable. As of June 9th, 2023, this only works for media loading commands.
+	 * How often, in milliseconds, for when we should poll vMix to query its actual state. Used to know when to re-send certain failed commands. Values <= 0 disables the polling. Defaults to 10000ms.
 	 */
-	retryInterval?: number
+	pollInterval?: number
 }
 
 export interface MappingVmixProgram {
