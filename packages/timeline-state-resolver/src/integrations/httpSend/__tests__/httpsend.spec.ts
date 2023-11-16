@@ -1,295 +1,402 @@
-import { Conductor } from '../../../conductor'
-import { HTTPSendDevice } from '..'
+/* eslint-disable jest/expect-expect */
 import {
-	SomeMappingHttpSend,
-	Mapping,
-	Mappings,
+	ActionExecutionResultCode,
 	DeviceType,
-	TimelineContentHTTPRequest,
+	HttpSendActions,
 	TimelineContentTypeHTTP,
-	TSRTimelineObj,
+	TimelineContentHTTPSendAny,
+	Timeline,
+	TSRTimelineContent,
 } from 'timeline-state-resolver-types'
-import { MockTime } from '../../../__tests__/mockTime'
-import { ThreadedClass } from 'threadedclass'
-import { getMockCall } from '../../../__tests__/lib'
 
-// let nowActual = Date.now()
+const MOCKED_SOCKET_GET = jest.fn()
+const MOCKED_SOCKET_POST = jest.fn()
+const MOCKED_SOCKET_PUT = jest.fn()
+const MOCKED_SOCKET_DELETE = jest.fn()
+
+jest.mock('got', () => {
+	return {
+		default: {
+			get: MOCKED_SOCKET_GET,
+			post: MOCKED_SOCKET_POST,
+			put: MOCKED_SOCKET_PUT,
+			delete: MOCKED_SOCKET_DELETE,
+		},
+	}
+})
+
+// note - this import should be below the got mock
+import { HTTPSendDevice, HttpSendDeviceCommand, HttpSendDeviceState } from '..'
+
+async function getInitialisedHttpDevice(retries = false) {
+	const dev = new HTTPSendDevice()
+	await dev.init({
+		resendTime: retries === true ? 1000 : undefined,
+	})
+	return dev
+}
+
 describe('HTTP-Send', () => {
-	const mockTime = new MockTime()
 	beforeEach(() => {
-		mockTime.init()
+		MOCKED_SOCKET_GET.mockReset()
+		MOCKED_SOCKET_POST.mockReset()
+		MOCKED_SOCKET_PUT.mockReset()
+		MOCKED_SOCKET_DELETE.mockReset()
+
+		MOCKED_SOCKET_GET.mockResolvedValue(Promise.resolve({ statusCode: 200 }))
+		MOCKED_SOCKET_POST.mockResolvedValue(Promise.resolve({ statusCode: 200 }))
+		MOCKED_SOCKET_PUT.mockResolvedValue(Promise.resolve({ statusCode: 200 }))
+		MOCKED_SOCKET_DELETE.mockResolvedValue(Promise.resolve({ statusCode: 200 }))
 	})
-	test('POST message', async () => {
-		const commandReceiver0: any = jest.fn(async () => {
-			return Promise.resolve()
-		})
-		const myLayerMapping0: Mapping<SomeMappingHttpSend> = {
-			device: DeviceType.HTTPSEND,
-			deviceId: 'myHTTP',
-			options: {},
+
+	describe('diffState', () => {
+		async function compareStates(
+			oldDevState: HttpSendDeviceState | undefined,
+			newDevState: HttpSendDeviceState,
+			expCommands: HttpSendDeviceCommand[]
+		) {
+			const device = await getInitialisedHttpDevice()
+
+			const commands = device.diffStates(oldDevState, newDevState)
+
+			expect(commands).toEqual(expCommands)
 		}
-		const myLayerMapping: Mappings = {
-			myLayer0: myLayerMapping0,
-		}
 
-		const myConductor = new Conductor({
-			multiThreadedResolver: false,
-			getCurrentTime: mockTime.getCurrentTime,
-		})
-		await myConductor.init()
-		await myConductor.addDevice('myHTTP', {
-			type: DeviceType.HTTPSEND,
-			options: {},
-			commandReceiver: commandReceiver0,
-		})
-		myConductor.setTimelineAndMappings([], myLayerMapping)
-		await mockTime.advanceTimeToTicks(10100)
-
-		const deviceContainer = myConductor.getDevice('myHTTP')
-		const device = deviceContainer!.device as ThreadedClass<HTTPSendDevice>
-
-		// Check that no commands has been scheduled:
-		expect(await device.queue).toHaveLength(0)
-
-		myConductor.setTimelineAndMappings([
-			{
-				id: 'obj0',
-				enable: {
-					start: mockTime.now + 1000, // in 1 second
-					duration: 2000,
+		test('From undefined', async () => {
+			await compareStates(
+				undefined,
+				{
+					time: 20,
+					nextEvents: [],
+					layers: {},
 				},
-				layer: 'myLayer0',
-				content: {
-					deviceType: DeviceType.HTTPSEND,
-					type: TimelineContentTypeHTTP.POST,
+				[]
+			)
+		})
 
-					url: 'http://superfly.tv',
-					params: {
+		test('empty states', async () => {
+			await compareStates(createTimelineState({}), createTimelineState({}), [])
+		})
+
+		test('new command', async () => {
+			const content = {
+				...DEFAULT_TL_CONTENT,
+				type: TimelineContentTypeHTTP.POST,
+				url: 'http://testurl',
+				params: {},
+			}
+			await compareStates(
+				createTimelineState({}),
+				createTimelineState({
+					layer0: {
+						id: 'obj0',
+						content,
+					},
+				}),
+				[
+					{
+						tlObjId: 'obj0',
+						context: `added: obj0`,
+						command: {
+							commandName: 'added',
+							content,
+							layer: 'layer0',
+						},
+					},
+				]
+			)
+		})
+
+		test('changed command', async () => {
+			const content = {
+				...DEFAULT_TL_CONTENT,
+				type: TimelineContentTypeHTTP.POST,
+				url: 'http://testurl',
+				params: {},
+			}
+			await compareStates(
+				createTimelineState({
+					layer0: {
+						id: 'obj0',
+						content,
+					},
+				}),
+				createTimelineState({
+					layer0: {
+						id: 'obj1',
+						content: {
+							...content,
+							params: {
+								xyz: 'asdf',
+							},
+						},
+					},
+				}),
+				[
+					{
+						tlObjId: 'obj1',
+						context: `changed: obj1 (previously: obj0)`,
+						command: {
+							commandName: 'changed',
+							content: {
+								...content,
+								params: {
+									xyz: 'asdf',
+								},
+							},
+							layer: 'layer0',
+						},
+					},
+				]
+			)
+		})
+
+		test('removed command', async () => {
+			const content = {
+				...DEFAULT_TL_CONTENT,
+				type: TimelineContentTypeHTTP.POST,
+				url: 'http://testurl',
+				params: {},
+			}
+			await compareStates(
+				createTimelineState({
+					layer0: {
+						id: 'obj0',
+						content,
+					},
+				}),
+				createTimelineState({}),
+				[
+					{
+						tlObjId: 'obj0',
+						context: `removed: obj0`,
+						command: {
+							commandName: 'removed',
+							content,
+							layer: 'layer0',
+						},
+					},
+				]
+			)
+		})
+	})
+
+	describe('sendCommand', () => {
+		test('POST message', async () => {
+			const device = await getInitialisedHttpDevice()
+
+			device
+				.sendCommand({
+					tlObjId: 'abc123',
+					context: 'A context',
+					command: {
+						commandName: 'added',
+						content: {
+							...DEFAULT_TL_CONTENT,
+							type: TimelineContentTypeHTTP.POST,
+							url: 'http://testurl',
+							params: {},
+						},
+						layer: 'layer0',
+					},
+				})
+				.catch((e) => {
+					throw e
+				})
+
+			expect(MOCKED_SOCKET_POST).toHaveBeenCalledTimes(1)
+			expect(MOCKED_SOCKET_POST).toHaveBeenCalledWith(
+				expect.stringMatching('http://testurl'),
+				expect.objectContaining({})
+			)
+		})
+		test('POST message with parameters', async () => {
+			const device = await getInitialisedHttpDevice()
+
+			device
+				.sendCommand({
+					tlObjId: 'abc123',
+					context: 'A context',
+					command: {
+						commandName: 'added',
+						content: {
+							...DEFAULT_TL_CONTENT,
+							type: TimelineContentTypeHTTP.POST,
+							url: 'http://testurl',
+							params: {
+								a: 1,
+								b: 'xyz',
+							},
+						},
+						layer: 'layer0',
+					},
+				})
+				.catch((e) => {
+					throw e
+				})
+
+			expect(MOCKED_SOCKET_POST).toHaveBeenCalledTimes(1)
+			expect(MOCKED_SOCKET_POST).toHaveBeenCalledWith(
+				expect.stringMatching('http://testurl'),
+				expect.objectContaining({
+					json: {
 						a: 1,
-						b: 2,
+						b: 'xyz',
 					},
-				},
-			},
-		])
-		await mockTime.advanceTimeToTicks(10990)
-		expect(commandReceiver0).toHaveBeenCalledTimes(0)
-		await mockTime.advanceTimeToTicks(11100)
+				})
+			)
+		})
+		test('Retries', async () => {
+			jest.useFakeTimers({ now: 10000 })
+			const device = await getInitialisedHttpDevice(true)
 
-		expect(commandReceiver0).toHaveBeenCalledTimes(1)
-		expect(commandReceiver0).toHaveBeenCalledWith(
-			expect.anything(),
-			expect.objectContaining({
-				type: 'post',
-				url: 'http://superfly.tv',
-				params: {
-					a: 1,
-					b: 2,
-				},
-			}),
-			expect.anything(),
-			expect.stringContaining('obj0'),
-			expect.anything()
-		)
-		expect(getMockCall(commandReceiver0, 0, 2)).toMatch(/added/) // context
-		await mockTime.advanceTimeToTicks(16000)
-		expect(commandReceiver0).toHaveBeenCalledTimes(1)
+			MOCKED_SOCKET_GET.mockRejectedValueOnce({ code: 'ETIMEDOUT' })
+
+			// send the command
+			await device
+				.sendCommand({
+					tlObjId: 'abc123',
+					context: 'A context',
+					command: {
+						commandName: 'added',
+						content: {
+							...DEFAULT_TL_CONTENT,
+							type: TimelineContentTypeHTTP.GET,
+							url: 'http://testurl',
+							params: {},
+						},
+						layer: 'layer0',
+					},
+				})
+				.catch((e) => {
+					throw e
+				})
+
+			// check that it retries the command
+			expect(MOCKED_SOCKET_GET).toHaveBeenCalledTimes(1)
+			jest.advanceTimersByTime(1000)
+			expect(MOCKED_SOCKET_GET).toHaveBeenCalledTimes(2)
+
+			// remove the command
+			await device
+				.sendCommand({
+					tlObjId: 'abc123',
+					context: 'A context',
+					command: {
+						commandName: 'removed',
+						content: {
+							...DEFAULT_TL_CONTENT,
+							type: TimelineContentTypeHTTP.GET,
+							url: 'http://testurl',
+							params: {},
+						},
+						layer: 'layer0',
+					},
+				})
+				.catch((e) => {
+					throw e
+				})
+
+			// check that it did nothing
+			expect(MOCKED_SOCKET_GET).toHaveBeenCalledTimes(2)
+			jest.advanceTimersByTime(1000)
+			expect(MOCKED_SOCKET_GET).toHaveBeenCalledTimes(2)
+		})
+		test('2 identical sends after each other', async () => {
+			const content = {
+				...DEFAULT_TL_CONTENT,
+				type: TimelineContentTypeHTTP.POST,
+				url: 'http://testurl',
+				params: {},
+			}
+
+			const state = {
+				genesis: createTimelineState({}),
+				aStart: createTimelineState({
+					layer0: {
+						id: 'obj0',
+						content,
+					},
+				}),
+				aEnd: createTimelineState({}),
+				bStart: createTimelineState({
+					layer0: {
+						id: 'obj1',
+						content,
+					},
+				}),
+				bEnd: createTimelineState({}),
+			}
+
+			const device = await getInitialisedHttpDevice()
+
+			await Promise.all(device.diffStates(state.genesis, state.aStart).map(async (c) => device.sendCommand(c)))
+			await Promise.all(device.diffStates(state.aStart, state.aEnd).map(async (c) => device.sendCommand(c)))
+
+			{
+				const commands = device.diffStates(state.aEnd, state.bStart)
+				// Test that the internal state in HTTPSendDevice is correct:
+				expect(commands).toStrictEqual([
+					{
+						tlObjId: 'obj1',
+						context: `added: obj1`,
+						command: {
+							commandName: 'added',
+							content: content,
+							layer: 'layer0',
+						},
+					},
+				])
+				await Promise.all(commands.map(async (c) => device.sendCommand(c)))
+			}
+
+			{
+				// Verify the removal commands:
+				expect(device.diffStates(state.bStart, state.bEnd)).toStrictEqual([
+					{
+						tlObjId: 'obj1',
+						context: `removed: obj1`,
+						command: {
+							commandName: 'removed',
+							content: content,
+							layer: 'layer0',
+						},
+					},
+				])
+			}
+		})
 	})
-	test('POST message, ordering of commands', async () => {
-		const commandReceiver0: any = jest.fn(async () => {
-			return Promise.resolve()
+
+	describe('Send action', () => {
+		test('Send action', async () => {
+			const device = await getInitialisedHttpDevice()
+
+			const result = await device.actions[HttpSendActions.SendCommand](HttpSendActions.SendCommand, {
+				...DEFAULT_TL_CONTENT,
+				type: TimelineContentTypeHTTP.GET,
+				url: 'http://testurl',
+				params: {},
+			})
+
+			expect(MOCKED_SOCKET_GET).toHaveBeenCalledTimes(1)
+			expect(result).toMatchObject({
+				result: ActionExecutionResultCode.Ok,
+			})
 		})
-		const myLayerMapping0: Mapping<SomeMappingHttpSend> = {
-			device: DeviceType.HTTPSEND,
-			deviceId: 'myHTTP',
-			options: {},
-		}
-		const myLayerMapping: Mappings = {
-			myLayer0: myLayerMapping0,
-			myLayer1: myLayerMapping0,
-			myLayer2: myLayerMapping0,
-		}
-
-		const myConductor = new Conductor({
-			multiThreadedResolver: false,
-			getCurrentTime: mockTime.getCurrentTime,
-		})
-		await myConductor.init()
-		await myConductor.addDevice('myHTTP', {
-			type: DeviceType.HTTPSEND,
-			options: {},
-			commandReceiver: commandReceiver0,
-		})
-		myConductor.setTimelineAndMappings([], myLayerMapping)
-		await mockTime.advanceTimeToTicks(10100)
-
-		const deviceContainer = myConductor.getDevice('myHTTP')
-		const device = deviceContainer!.device as ThreadedClass<HTTPSendDevice>
-
-		// Check that no commands has been scheduled:
-		expect(await device.queue).toHaveLength(0)
-
-		const timeline: Array<TSRTimelineObj<TimelineContentHTTPRequest>> = [
-			{
-				id: 'obj0',
-				enable: {
-					start: mockTime.now + 1000, // in 1 second
-					duration: 2000,
-				},
-				layer: 'myLayer0',
-				content: {
-					deviceType: DeviceType.HTTPSEND,
-					type: 'POST' as TimelineContentTypeHTTP.POST,
-
-					url: 'http://superfly.tv/1',
-					params: {},
-					temporalPriority: 1,
-				},
-			},
-			{
-				id: 'obj1',
-				enable: {
-					start: mockTime.now + 1000, // in 1 second
-					duration: 2000,
-				},
-				layer: 'myLayer1',
-				content: {
-					deviceType: DeviceType.HTTPSEND,
-					type: 'POST' as TimelineContentTypeHTTP.POST,
-
-					url: 'http://superfly.tv/2',
-					params: {},
-					temporalPriority: 3,
-				},
-			},
-			{
-				id: 'obj2',
-				enable: {
-					start: mockTime.now + 1000, // in 1 second
-					duration: 2000,
-				},
-				layer: 'myLayer2',
-				content: {
-					deviceType: DeviceType.HTTPSEND,
-					type: 'POST' as TimelineContentTypeHTTP.POST,
-
-					url: 'http://superfly.tv/3',
-					params: {},
-					temporalPriority: 2,
-				},
-			},
-		]
-		myConductor.setTimelineAndMappings(timeline)
-
-		await mockTime.advanceTimeToTicks(10990)
-		expect(commandReceiver0).toHaveBeenCalledTimes(0)
-		await mockTime.advanceTimeToTicks(11100)
-
-		// Expecting to see the ordering below:
-		expect(commandReceiver0).toHaveBeenCalledTimes(3)
-		expect(commandReceiver0).toHaveBeenNthCalledWith(
-			1,
-			expect.anything(),
-			expect.objectContaining({ url: 'http://superfly.tv/1' }),
-			expect.anything(),
-			expect.stringContaining('obj0'),
-			expect.anything()
-		)
-		expect(commandReceiver0).toHaveBeenNthCalledWith(
-			2,
-			expect.anything(),
-			expect.objectContaining({ url: 'http://superfly.tv/3' }),
-			expect.anything(),
-			expect.stringContaining('obj2'),
-			expect.anything()
-		)
-		expect(commandReceiver0).toHaveBeenNthCalledWith(
-			3,
-			expect.anything(),
-			expect.objectContaining({ url: 'http://superfly.tv/2' }),
-			expect.anything(),
-			expect.stringContaining('obj1'),
-			expect.anything()
-		)
-	})
-	test('POST message with headers', async () => {
-		const commandReceiver0: any = jest.fn(async () => {
-			return Promise.resolve()
-		})
-		const myLayerMapping0: Mapping<SomeMappingHttpSend> = {
-			device: DeviceType.HTTPSEND,
-			deviceId: 'myHTTP',
-			options: {},
-		}
-		const myLayerMapping: Mappings = {
-			myLayer0: myLayerMapping0,
-		}
-
-		const myConductor = new Conductor({
-			multiThreadedResolver: false,
-			getCurrentTime: mockTime.getCurrentTime,
-		})
-		await myConductor.init()
-		await myConductor.addDevice('myHTTP', {
-			type: DeviceType.HTTPSEND,
-			options: {},
-			commandReceiver: commandReceiver0,
-		})
-		myConductor.setTimelineAndMappings([], myLayerMapping)
-		await mockTime.advanceTimeToTicks(10100)
-
-		const deviceContainer = myConductor.getDevice('myHTTP')
-		const device = deviceContainer!.device as ThreadedClass<HTTPSendDevice>
-
-		// Check that no commands has been scheduled:
-		expect(await device.queue).toHaveLength(0)
-
-		myConductor.setTimelineAndMappings([
-			{
-				id: 'obj0',
-				enable: {
-					start: mockTime.now + 1000, // in 1 second
-					duration: 2000,
-				},
-				layer: 'myLayer0',
-				content: {
-					deviceType: DeviceType.HTTPSEND,
-					type: TimelineContentTypeHTTP.POST,
-
-					url: 'http://superfly.tv',
-					params: {
-						a: 1,
-						b: 2,
-					},
-					headers: {
-						myHeader: 'myValue',
-					},
-				},
-			},
-		])
-		await mockTime.advanceTimeToTicks(10990)
-		expect(commandReceiver0).toHaveBeenCalledTimes(0)
-		await mockTime.advanceTimeToTicks(11100)
-
-		expect(commandReceiver0).toHaveBeenCalledTimes(1)
-		expect(commandReceiver0).toHaveBeenCalledWith(
-			expect.anything(),
-			expect.objectContaining({
-				type: 'post',
-				url: 'http://superfly.tv',
-				params: {
-					a: 1,
-					b: 2,
-				},
-				headers: {
-					myHeader: 'myValue',
-				},
-			}),
-			expect.anything(),
-			expect.stringContaining('obj0'),
-			expect.anything()
-		)
-		expect(getMockCall(commandReceiver0, 0, 2)).toMatch(/added/) // context
-		await mockTime.advanceTimeToTicks(16000)
-		expect(commandReceiver0).toHaveBeenCalledTimes(1)
 	})
 })
+
+function createTimelineState(
+	objs: Record<string, { id: string; content: TimelineContentHTTPSendAny }>
+): Timeline.TimelineState<TSRTimelineContent> {
+	return {
+		time: 10,
+		layers: objs as any,
+		nextEvents: [],
+	}
+}
+const DEFAULT_TL_CONTENT: {
+	deviceType: DeviceType.HTTPSEND
+} = {
+	deviceType: DeviceType.HTTPSEND,
+}
