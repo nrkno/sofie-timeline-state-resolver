@@ -61,7 +61,7 @@ export class AtemDevice extends Device<AtemOptions, AtemDeviceState, AtemCommand
 			this._connected = false
 			this._connectionChanged()
 		})
-		this._atem.on('error', (e) => this.context.emitError('Atem', new Error(e)))
+		this._atem.on('error', (e) => this.context.logger.error('Atem', new Error(e)))
 		this._atem.on('stateChanged', (state) => this._onAtemStateChanged(state))
 
 		this._atem.on('connected', () => {
@@ -189,7 +189,7 @@ export class AtemDevice extends Device<AtemOptions, AtemDeviceState, AtemCommand
 			command,
 			timelineObjId,
 		}
-		this.context.emitDebug(cwc)
+		this.context.logger.debug(cwc)
 
 		// Skip attempting send if not connected
 		if (!this._connected) return
