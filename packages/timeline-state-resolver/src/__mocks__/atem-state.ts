@@ -1,16 +1,6 @@
 export * from 'atem-state'
 import * as OrigAtemConnection from 'atem-connection'
 import { EventEmitter } from 'events'
-import * as fs from 'fs'
-
-/** Note: This is incomplete, and should be filled in as needed */
-function parseAtemState(rawState: any): OrigAtemConnection.AtemState {
-	const state = rawState
-
-	return state
-}
-
-const mockData = parseAtemState(JSON.parse(fs.readFileSync(__dirname + '/atem-out.json', 'utf8')))
 
 const setTimeoutOrg = setTimeout
 
@@ -23,11 +13,11 @@ export namespace AtemConnection {
 			super()
 		}
 		get state(): OrigAtemConnection.AtemState {
-			return mockData
+			return OrigAtemConnection.AtemStateUtil.Create()
 		}
 		async connect(): Promise<void> {
 			setTimeoutOrg(() => {
-				this.emit('connected', true)
+				this.emit('connected')
 			}, 10)
 
 			return new Promise<void>((resolve) => {

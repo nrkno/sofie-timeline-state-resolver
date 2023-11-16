@@ -5,6 +5,7 @@ import { HTTPSendDevice } from '../integrations/httpSend'
 import { ShotokuDevice } from '../integrations/shotoku'
 import { HTTPWatcherDevice } from '../integrations/httpWatcher'
 import { AbstractDevice } from '../integrations/abstract'
+import { AtemDevice } from '../integrations/atem'
 import { TcpSendDevice } from '../integrations/tcpSend'
 
 export interface DeviceEntry {
@@ -16,6 +17,7 @@ export interface DeviceEntry {
 
 export type ImplementedServiceDeviceTypes =
 	| DeviceType.ABSTRACT
+	| DeviceType.ATEM
 	| DeviceType.HTTPSEND
 	| DeviceType.HTTPWATCHER
 	| DeviceType.OSC
@@ -28,6 +30,12 @@ export const DevicesDict: Record<ImplementedServiceDeviceTypes, DeviceEntry> = {
 		deviceClass: AbstractDevice,
 		canConnect: false,
 		deviceName: (deviceId: string) => 'Abstract ' + deviceId,
+		executionMode: () => 'salvo',
+	},
+	[DeviceType.ATEM]: {
+		deviceClass: AtemDevice,
+		canConnect: true,
+		deviceName: (deviceId: string) => 'Atem ' + deviceId,
 		executionMode: () => 'salvo',
 	},
 	[DeviceType.HTTPSEND]: {

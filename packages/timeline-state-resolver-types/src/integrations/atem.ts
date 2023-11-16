@@ -13,13 +13,13 @@ export enum TimelineContentTypeAtem { //  Atem-state
 }
 
 export enum AtemTransitionStyle { // Note: copied from atem-state
-	MIX,
-	DIP,
-	WIPE,
-	DVE,
-	STING,
-	CUT,
-	DUMMY,
+	MIX = 0,
+	DIP = 1,
+	WIPE = 2,
+	DVE = 3,
+	STING = 4,
+	CUT = 5,
+	DUMMY = 6,
 }
 export enum MediaSourceType { // Note: copied from atem-state
 	Still = 1,
