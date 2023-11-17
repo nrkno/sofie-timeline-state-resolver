@@ -7,6 +7,7 @@ import {
 	ITranslatableMessage,
 	ActionExecutionResultCode,
 	TimelineDatastoreReferences,
+	ActionExecutionResult,
 } from 'timeline-state-resolver-types'
 import * as _ from 'underscore'
 import { PartialDeep } from 'type-fest'
@@ -290,7 +291,9 @@ export function assertNever(_never: never): void {
 	// Do nothing. This is a type guard
 }
 
-export function actionNotFoundMessage(id: string) {
+export function actionNotFoundMessage(id: never): ActionExecutionResult<any> {
+	// Note: (id: never) is an assertNever(actionId)
+
 	return {
 		result: ActionExecutionResultCode.Error,
 		response: t('Action "{{id}}" not found', { id }),

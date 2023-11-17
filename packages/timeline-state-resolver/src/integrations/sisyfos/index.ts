@@ -16,8 +16,9 @@ import {
 	ResolvedTimelineObjectInstanceExtended,
 	Mapping,
 	SisyfosActions,
-	ActionExecutionResult,
 	ActionExecutionResultCode,
+	SisyfosActionExecutionPayload,
+	SisyfosActionExecutionResult,
 } from 'timeline-state-resolver-types'
 
 import { DoOnTime, SendMode } from '../../devices/doOnTime'
@@ -207,10 +208,11 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 		return Promise.resolve()
 	}
 
-	async executeAction(
-		actionId: SisyfosActions,
-		_payload?: Record<string, any> | undefined
-	): Promise<ActionExecutionResult> {
+	async executeAction<A extends SisyfosActions>(
+		actionId0: A,
+		_payload: SisyfosActionExecutionPayload<A>
+	): Promise<SisyfosActionExecutionResult<A>> {
+		const actionId = actionId0 as SisyfosActions // type fix for when there is only a single action
 		switch (actionId) {
 			case SisyfosActions.Reinit:
 				return this._makeReadyInner()

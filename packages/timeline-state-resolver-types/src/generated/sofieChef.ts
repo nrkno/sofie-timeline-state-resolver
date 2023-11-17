@@ -4,6 +4,7 @@
  * DO NOT MODIFY IT BY HAND. Instead, modify the source JSONSchema file,
  * and run "yarn generate-schema-types" to regenerate this file.
  */
+import { ActionExecutionResult } from ".."
 
 export interface SofieChefOptions {
 	/**
@@ -33,5 +34,15 @@ export interface RestartWindowPayload {
 
 export enum SofieChefActions {
 	RestartAllWindows = 'restartAllWindows',
-	RestartWindow = 'restartWindow',
+	RestartWindow = 'restartWindow'
 }
+export interface SofieChefActionExecutionResults {
+	restartAllWindows: () => void,
+	restartWindow: (payload: RestartWindowPayload) => void
+}
+export type SofieChefActionExecutionPayload<A extends keyof SofieChefActionExecutionResults> = Parameters<
+	SofieChefActionExecutionResults[A]
+>[0]
+
+export type SofieChefActionExecutionResult<A extends keyof SofieChefActionExecutionResults> =
+	ActionExecutionResult<ReturnType<SofieChefActionExecutionResults[A]>>

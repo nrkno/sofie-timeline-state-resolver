@@ -4,6 +4,7 @@
  * DO NOT MODIFY IT BY HAND. Instead, modify the source JSONSchema file,
  * and run "yarn generate-schema-types" to regenerate this file.
  */
+import { ActionExecutionResult } from ".."
 
 export interface VizMSEOptions {
 	/**
@@ -79,5 +80,16 @@ export interface ActivatePayload {
 export enum VizMSEActions {
 	PurgeRundown = 'purgeRundown',
 	Activate = 'activate',
-	StandDown = 'standDown',
+	StandDown = 'standDown'
 }
+export interface VizMSEActionExecutionResults {
+	purgeRundown: () => void,
+	activate: (payload: ActivatePayload) => void,
+	standDown: () => void
+}
+export type VizMSEActionExecutionPayload<A extends keyof VizMSEActionExecutionResults> = Parameters<
+	VizMSEActionExecutionResults[A]
+>[0]
+
+export type VizMSEActionExecutionResult<A extends keyof VizMSEActionExecutionResults> =
+	ActionExecutionResult<ReturnType<VizMSEActionExecutionResults[A]>>

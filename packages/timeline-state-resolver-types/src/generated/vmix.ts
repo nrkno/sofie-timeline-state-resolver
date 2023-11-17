@@ -4,6 +4,7 @@
  * DO NOT MODIFY IT BY HAND. Instead, modify the source JSONSchema file,
  * and run "yarn generate-schema-types" to regenerate this file.
  */
+import { ActionExecutionResult } from ".."
 
 export interface VMixOptions {
 	host: string
@@ -124,5 +125,16 @@ export interface SavePresetPayload {
 export enum VmixActions {
 	LastPreset = 'lastPreset',
 	OpenPreset = 'openPreset',
-	SavePreset = 'savePreset',
+	SavePreset = 'savePreset'
 }
+export interface VmixActionExecutionResults {
+	lastPreset: () => void,
+	openPreset: (payload: OpenPresetPayload) => void,
+	savePreset: (payload: SavePresetPayload) => void
+}
+export type VmixActionExecutionPayload<A extends keyof VmixActionExecutionResults> = Parameters<
+	VmixActionExecutionResults[A]
+>[0]
+
+export type VmixActionExecutionResult<A extends keyof VmixActionExecutionResults> =
+	ActionExecutionResult<ReturnType<VmixActionExecutionResults[A]>>

@@ -4,6 +4,7 @@
  * DO NOT MODIFY IT BY HAND. Instead, modify the source JSONSchema file,
  * and run "yarn generate-schema-types" to regenerate this file.
  */
+import { ActionExecutionResult } from ".."
 
 export interface HTTPSendOptions {
 	/**
@@ -56,5 +57,15 @@ export enum TimelineContentTypeHTTPParamType {
 
 export enum HttpSendActions {
 	Resync = 'resync',
-	SendCommand = 'sendCommand',
+	SendCommand = 'sendCommand'
 }
+export interface HttpSendActionExecutionResults {
+	resync: () => void,
+	sendCommand: (payload: HTTPSendCommandContent) => void
+}
+export type HttpSendActionExecutionPayload<A extends keyof HttpSendActionExecutionResults> = Parameters<
+	HttpSendActionExecutionResults[A]
+>[0]
+
+export type HttpSendActionExecutionResult<A extends keyof HttpSendActionExecutionResults> =
+	ActionExecutionResult<ReturnType<HttpSendActionExecutionResults[A]>>

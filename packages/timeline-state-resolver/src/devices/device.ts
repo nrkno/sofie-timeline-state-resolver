@@ -259,7 +259,7 @@ export abstract class Device<TOptions extends DeviceOptionsBase<any>>
 		return this._isActive
 	}
 
-	async executeAction(_actionId: string, _payload?: Record<string, any>): Promise<ActionExecutionResult> {
+	async executeAction(_actionId: string, _payload?: Record<string, any>): Promise<ActionExecutionResult<any>> {
 		return {
 			result: ActionExecutionResultCode.Error,
 			response: t('Device does not implement an action handler'),

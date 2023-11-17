@@ -4,6 +4,7 @@
  * DO NOT MODIFY IT BY HAND. Instead, modify the source JSONSchema file,
  * and run "yarn generate-schema-types" to regenerate this file.
  */
+import { ActionExecutionResult } from ".."
 
 export interface QuantelOptions {
 	/**
@@ -61,5 +62,15 @@ export type SomeMappingQuantel = MappingQuantelPort
 
 export enum QuantelActions {
 	RestartGateway = 'restartGateway',
-	ClearStates = 'clearStates',
+	ClearStates = 'clearStates'
 }
+export interface QuantelActionExecutionResults {
+	restartGateway: () => void,
+	clearStates: () => void
+}
+export type QuantelActionExecutionPayload<A extends keyof QuantelActionExecutionResults> = Parameters<
+	QuantelActionExecutionResults[A]
+>[0]
+
+export type QuantelActionExecutionResult<A extends keyof QuantelActionExecutionResults> =
+	ActionExecutionResult<ReturnType<QuantelActionExecutionResults[A]>>

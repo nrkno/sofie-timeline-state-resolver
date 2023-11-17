@@ -26,8 +26,10 @@ import {
 	OpenPresetPayload,
 	SavePresetPayload,
 	VmixActions,
+	VmixActionExecutionPayload,
+	VmixActionExecutionResult,
 } from 'timeline-state-resolver-types'
-import { cloneDeep, t } from '../../lib'
+import { actionNotFoundMessage, cloneDeep, t } from '../../lib'
 import { VMixInputHandler } from './VMixInputHandler'
 
 /**
@@ -335,19 +337,19 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 		}
 	}
 
-	async executeAction(actionId: string, payload?: Record<string, any> | undefined): Promise<ActionExecutionResult> {
+	async executeAction<A extends VmixActions>(
+		actionId: A,
+		payload: VmixActionExecutionPayload<A>
+	): Promise<VmixActionExecutionResult<A>> {
 		switch (actionId) {
 			case VmixActions.LastPreset:
-				return await this._lastPreset()
+				return this._lastPreset() as Promise<VmixActionExecutionResult<A>>
 			case VmixActions.OpenPreset:
-				return await this._openPreset(payload as OpenPresetPayload)
+				return this._openPreset(payload as OpenPresetPayload) as Promise<VmixActionExecutionResult<A>>
 			case VmixActions.SavePreset:
-				return await this._savePreset(payload as SavePresetPayload)
+				return this._savePreset(payload as SavePresetPayload) as Promise<VmixActionExecutionResult<A>>
 			default:
-				return {
-					result: ActionExecutionResultCode.Error,
-					response: t('Action "{{actionId}}" not found', { actionId }),
-				}
+				return actionNotFoundMessage(actionId)
 		}
 	}
 
@@ -377,7 +379,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 		return
 	}
 
-	private async _lastPreset() {
+	private async _lastPreset(): Promise<ActionExecutionResult> {
 		const presetActionCheckResult = this._checkPresetAction()
 		if (presetActionCheckResult) return presetActionCheckResult
 		await this._vmix.lastPreset()
@@ -386,7 +388,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 		}
 	}
 
-	private async _openPreset(payload: OpenPresetPayload) {
+	private async _openPreset(payload: OpenPresetPayload): Promise<ActionExecutionResult> {
 		const presetActionCheckResult = this._checkPresetAction(payload, true)
 		if (presetActionCheckResult) return presetActionCheckResult
 		await this._vmix.openPreset(payload.filename)
@@ -395,7 +397,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 		}
 	}
 
-	private async _savePreset(payload: SavePresetPayload) {
+	private async _savePreset(payload: SavePresetPayload): Promise<ActionExecutionResult> {
 		const presetActionCheckResult = this._checkPresetAction(payload, true)
 		if (presetActionCheckResult) return presetActionCheckResult
 		await this._vmix.savePreset(payload.filename)

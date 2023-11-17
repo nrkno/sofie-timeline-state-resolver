@@ -1,7 +1,6 @@
 import EventEmitter = require('eventemitter3')
-import { FinishedTrace, t } from '../lib'
+import { actionNotFoundMessage, FinishedTrace } from '../lib'
 import {
-	ActionExecutionResultCode,
 	type DeviceStatus,
 	type DeviceType,
 	type Mappings,
@@ -135,10 +134,7 @@ export class DeviceInstanceWrapper extends EventEmitter<DeviceInstanceEvents> {
 		const action = this._device.actions[id]
 
 		if (!action) {
-			return {
-				result: ActionExecutionResultCode.Error,
-				response: t('Action "{{id}}" not found', { id }),
-			}
+			return actionNotFoundMessage(id as never)
 		}
 
 		return action(id, payload)

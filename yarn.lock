@@ -3140,14 +3140,14 @@ asn1@evs-broadcast/node-asn1:
   languageName: node
   linkType: hard
 
-"casparcg-connection@npm:^6.0.6":
-  version: 6.0.6
-  resolution: "casparcg-connection@npm:6.0.6"
+"casparcg-connection@npm:^6.1.1":
+  version: 6.1.1
+  resolution: "casparcg-connection@npm:6.1.1"
   dependencies:
-    eventemitter3: ^4.0.7
+    eventemitter3: ^5.0.1
     tslib: ^2.5.0
-    xml2js: ^0.4.23
-  checksum: f2c02bdfaf29e1c43449a577f1b91fd5ce14ff91bdc6a48dbe5908c1420f5eaf9a3989454f750f93fbe8de399310e76a112e88866bcc3c18398e0e81b43f4dd1
+    xml2js: ^0.6.2
+  checksum: df4e9787386fe560b5bfe743bb38f8188e778d985a72bf0a2ee0f058d038e544cccfbdefcebbacc837c9dbd953be9a435075ac71a0d6a5c2be3488744473fe10
   languageName: node
   linkType: hard
 
@@ -4703,6 +4703,13 @@ asn1@evs-broadcast/node-asn1:
   version: 4.0.7
   resolution: "eventemitter3@npm:4.0.7"
   checksum: 1875311c42fcfe9c707b2712c32664a245629b42bb0a5a84439762dd0fd637fc54d078155ea83c2af9e0323c9ac13687e03cfba79b03af9f40c89b4960099374
+  languageName: node
+  linkType: hard
+
+"eventemitter3@npm:^5.0.1":
+  version: 5.0.1
+  resolution: "eventemitter3@npm:5.0.1"
+  checksum: 543d6c858ab699303c3c32e0f0f47fc64d360bf73c3daf0ac0b5079710e340d6fe9f15487f94e66c629f5f82cd1a8678d692f3dbb6f6fcd1190e1b97fcad36f8
   languageName: node
   linkType: hard
 
@@ -9850,6 +9857,7 @@ asn1@evs-broadcast/node-asn1:
   dependencies:
     chokidar: ^3.5.3
     fast-clone: ^1.5.13
+    threadedclass: ^1.2.1
     timeline-state-resolver: 9.1.0-release51
     tslib: ^2.5.1
     underscore: ^1.13.6
@@ -11404,7 +11412,7 @@ asn1@evs-broadcast/node-asn1:
     atem-connection: 3.3.2
     atem-state: 1.1.0
     cacheable-lookup: ^5.0.3
-    casparcg-connection: ^6.0.6
+    casparcg-connection: ^6.1.1
     casparcg-state: ^3.0.2
     debug: ^4.3.4
     deepmerge: ^4.3.1
@@ -12497,6 +12505,16 @@ asn1@evs-broadcast/node-asn1:
     sax: ">=0.6.0"
     xmlbuilder: ~11.0.0
   checksum: ca0cf2dfbf6deeaae878a891c8fbc0db6fd04398087084edf143cdc83d0509ad0fe199b890f62f39c4415cf60268a27a6aed0d343f0658f8779bd7add690fa98
+  languageName: node
+  linkType: hard
+
+"xml2js@npm:^0.6.2":
+  version: 0.6.2
+  resolution: "xml2js@npm:0.6.2"
+  dependencies:
+    sax: ">=0.6.0"
+    xmlbuilder: ~11.0.0
+  checksum: 458a83806193008edff44562c0bdb982801d61ee7867ae58fd35fab781e69e17f40dfeb8fc05391a4648c9c54012066d3955fe5d993ffbe4dc63399023f32ac2
   languageName: node
   linkType: hard
 

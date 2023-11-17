@@ -10,7 +10,12 @@ import {
 	SlowSentCommandInfo,
 	DeviceOptionsBase,
 	SlowFulfilledCommandInfo,
+	DeviceType,
+	CasparCGDevice,
+	CasparCGActions,
+	ActionExecutionResultCode,
 } from 'timeline-state-resolver'
+import { ThreadedClass } from 'threadedclass'
 
 import * as _ from 'underscore'
 import { TSRSettings } from './index'
@@ -83,6 +88,25 @@ export class TSRHandler {
 	async destroy(): Promise<void> {
 		if (this.tsr) return this.tsr.destroy()
 		else return Promise.resolve()
+	}
+	async logMediaList(): Promise<void> {
+		for (const deviceContainer of this.tsr.getDevices()) {
+			if (deviceContainer.deviceType === DeviceType.CASPARCG) {
+				const device = deviceContainer.device as ThreadedClass<CasparCGDevice>
+
+				console.log(`Fetching media list for ${device.deviceId}...`)
+
+				const list = await device.executeAction(CasparCGActions.ListMedia, undefined)
+
+				if (list.result === ActionExecutionResultCode.Error) {
+					console.log(`Error fetching media list: ${list.response?.key}`)
+				} else if (list.result === ActionExecutionResultCode.Ok) {
+					console.log(`Media list:`)
+					if (!list.resultData) return
+					console.log(list.resultData.map((m) => `${m.clip} ${m.size} ${m.datetime}`))
+				}
+			}
+		}
 	}
 	setTimelineAndMappings(tl: TSRTimeline, mappings: Mappings): void {
 		// this._timeline = tl

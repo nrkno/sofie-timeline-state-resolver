@@ -92,7 +92,7 @@
 		"atem-connection": "3.3.2",
 		"atem-state": "1.1.0",
 		"cacheable-lookup": "^5.0.3",
-		"casparcg-connection": "^6.0.6",
+		"casparcg-connection": "^6.1.1",
 		"casparcg-state": "^3.0.2",
 		"debug": "^4.3.4",
 		"deepmerge": "^4.3.1",
