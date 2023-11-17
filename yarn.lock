@@ -9824,6 +9824,7 @@ asn1@evs-broadcast/node-asn1:
   dependencies:
     chokidar: ^3.5.3
     fast-clone: ^1.5.13
+    threadedclass: ^1.2.1
     timeline-state-resolver: 9.1.0-release51
     tslib: ^2.5.1
     underscore: ^1.13.6
