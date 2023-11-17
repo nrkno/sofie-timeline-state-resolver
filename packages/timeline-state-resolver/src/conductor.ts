@@ -21,6 +21,7 @@ import {
 	TimelineDatastoreReferencesContent,
 	DeviceOptionsMultiOSC,
 	TimelineDatastoreReferences,
+	DeviceOptionsHTTPSend,
 } from 'timeline-state-resolver-types'
 
 import { DoOnTime } from './devices/doOnTime'
@@ -32,7 +33,6 @@ import { DeviceContainer } from './devices/deviceContainer'
 
 import { CasparCGDevice, DeviceOptionsCasparCGInternal } from './integrations/casparCG'
 import { AbstractDevice, DeviceOptionsAbstractInternal } from './integrations/abstract'
-import { HTTPSendDevice, DeviceOptionsHTTPSendInternal } from './integrations/httpSend'
 import { AtemDevice, DeviceOptionsAtemInternal } from './integrations/atem'
 import { LawoDevice, DeviceOptionsLawoInternal } from './integrations/lawo'
 import { PanasonicPtzDevice, DeviceOptionsPanasonicPTZInternal } from './integrations/panasonicPTZ'
@@ -525,15 +525,6 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 					getCurrentTime,
 					threadedClassOptions
 				)
-			case DeviceType.HTTPSEND:
-				return DeviceContainer.create<DeviceOptionsHTTPSendInternal, typeof HTTPSendDevice>(
-					'../../dist/integrations/httpSend/index.js',
-					'HTTPSendDevice',
-					deviceId,
-					deviceOptions,
-					getCurrentTime,
-					threadedClassOptions
-				)
 			case DeviceType.HTTPWATCHER:
 				return DeviceContainer.create<DeviceOptionsHTTPWatcherInternal, typeof HTTPWatcherDevice>(
 					'../../dist/integrations/httpWatcher/index.js',
@@ -688,6 +679,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 					threadedClassOptions
 				)
 			case DeviceType.OSC:
+			case DeviceType.HTTPSEND:
 				// presumably this device is implemented in the new service handler
 				return RemoteDeviceInstance.create(
 					'../../dist/service/DeviceInstance.js',
@@ -1585,7 +1577,7 @@ export type DeviceOptionsAnyInternal =
 	| DeviceOptionsCasparCGInternal
 	| DeviceOptionsAtemInternal
 	| DeviceOptionsLawoInternal
-	| DeviceOptionsHTTPSendInternal
+	| DeviceOptionsHTTPSend
 	| DeviceOptionsHTTPWatcherInternal
 	| DeviceOptionsPanasonicPTZInternal
 	| DeviceOptionsTCPSendInternal

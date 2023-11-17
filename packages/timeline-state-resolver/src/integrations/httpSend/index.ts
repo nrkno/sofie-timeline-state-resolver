@@ -1,162 +1,84 @@
-import * as _ from 'underscore'
-import { DeviceWithState, CommandWithContext, DeviceStatus, StatusCode } from './../../devices/device'
+import { CommandWithContext, Device, DeviceEvents } from '../../service/device'
 import {
-	DeviceType,
-	HTTPSendOptions,
-	HTTPSendCommandContent,
-	DeviceOptionsHTTPSend,
-	Mappings,
-	Timeline,
-	TSRTimelineContent,
-	TimelineContentTypeHTTP,
-	TimelineContentTypeHTTPParamType,
 	ActionExecutionResult,
 	ActionExecutionResultCode,
+	DeviceStatus,
+	HTTPSendCommandContent,
+	HTTPSendOptions,
 	HttpSendActions,
-	SendCommandPayload,
+	StatusCode,
+	TSRTimelineContent,
+	Timeline,
+	TimelineContentTypeHTTP,
+	TimelineContentTypeHTTPParamType,
 } from 'timeline-state-resolver-types'
-import { DoOnTime, SendMode } from '../../devices/doOnTime'
+import _ = require('underscore')
 import got, { OptionsOfTextResponseBody, RequestError } from 'got'
-import { actionNotFoundMessage, endTrace, startTrace } from '../../lib'
-
-import Debug from 'debug'
 import { t } from '../../lib'
-const debug = Debug('timeline-state-resolver:httpsend')
+import EventEmitter = require('eventemitter3')
 
-export interface DeviceOptionsHTTPSendInternal extends DeviceOptionsHTTPSend {
-	commandReceiver?: CommandReceiver
+export type HttpSendDeviceState = Timeline.TimelineState<TSRTimelineContent>
+
+export interface HttpSendDeviceCommand extends CommandWithContext {
+	command: {
+		commandName: 'added' | 'changed' | 'removed' | 'retry' | 'manual'
+		content: HTTPSendCommandContent
+		layer: string
+	}
 }
-export type CommandReceiver = (
-	time: number,
-	cmd: HTTPSendCommandContent,
-	context: CommandContext,
-	timelineObjId: string,
-	layer?: string
-) => Promise<any>
-interface Command {
-	commandName: 'added' | 'changed' | 'removed'
-	content: HTTPSendCommandContent
-	context: CommandContext
-	timelineObjId: string
-	layer: string
-}
-type CommandContext = string
 
-type HTTPSendState = Timeline.TimelineState<TSRTimelineContent>
+export class HTTPSendDevice
+	extends EventEmitter<DeviceEvents>
+	implements Device<HTTPSendOptions, HttpSendDeviceState, HttpSendDeviceCommand>
+{
+	private options: HTTPSendOptions
+	/** Maps layers -> sent command-hashes */
+	private trackedState = new Map<string, string>()
+	private _terminated = false
 
-/**
- * This is a HTTPSendDevice, it sends http commands when it feels like it
- */
-export class HTTPSendDevice extends DeviceWithState<HTTPSendState, DeviceOptionsHTTPSendInternal> {
-	private _makeReadyCommands: HTTPSendCommandContent[]
-	private _makeReadyDoesReset: boolean
-	private _resendTime?: number
-	private _doOnTime: DoOnTime
-
-	private _commandReceiver: CommandReceiver
-	private activeLayers = new Map<string, string>()
-
-	constructor(deviceId: string, deviceOptions: DeviceOptionsHTTPSendInternal, getCurrentTime: () => Promise<number>) {
-		super(deviceId, deviceOptions, getCurrentTime)
-		if (deviceOptions.options) {
-			if (deviceOptions.commandReceiver) this._commandReceiver = deviceOptions.commandReceiver
-			else this._commandReceiver = this._defaultCommandReceiver.bind(this)
-		}
-		this._doOnTime = new DoOnTime(
-			() => {
-				return this.getCurrentTime()
-			},
-			SendMode.IN_ORDER,
-			this._deviceOptions
-		)
-		this.handleDoOnTime(this._doOnTime, 'HTTPSend')
+	async init(options: HTTPSendOptions): Promise<boolean> {
+		this.options = options
+		return true
 	}
-	async init(initOptions: HTTPSendOptions): Promise<boolean> {
-		this._makeReadyCommands = initOptions.makeReadyCommands || []
-		this._makeReadyDoesReset = initOptions.makeReadyDoesReset || false
-		this._resendTime = initOptions.resendTime && initOptions.resendTime > 1 ? initOptions.resendTime : undefined
+	async terminate(): Promise<boolean> {
+		this.trackedState.clear()
+		this._terminated = true
 
-		return Promise.resolve(true) // This device doesn't have any initialization procedure
+		return true
 	}
-	/** Called by the Conductor a bit before a .handleState is called */
-	prepareForHandleState(newStateTime: number) {
-		// clear any queued commands later than this time:
-		this._doOnTime.clearQueueNowAndAfter(newStateTime)
-		this.cleanUpStates(0, newStateTime)
+
+	get connected(): boolean {
+		return false
 	}
-	handleState(newState: Timeline.TimelineState<TSRTimelineContent>, newMappings: Mappings) {
-		super.onHandleState(newState, newMappings)
-		// Handle this new state, at the point in time specified
-
-		const previousStateTime = Math.max(this.getCurrentTime(), newState.time)
-		const oldState: Timeline.TimelineState<TSRTimelineContent> = (
-			this.getStateBefore(previousStateTime) || { state: { time: 0, layers: {}, nextEvents: [] } }
-		).state
-
-		const convertTrace = startTrace(`device:convertState`, { deviceId: this.deviceId })
-		const oldHttpSendState = oldState
-		const newHttpSendState = this.convertStateToHttpSend(newState)
-		this.emit('timeTrace', endTrace(convertTrace))
-
-		const diffTrace = startTrace(`device:diffState`, { deviceId: this.deviceId })
-		const commandsToAchieveState: Array<any> = this._diffStates(oldHttpSendState, newHttpSendState)
-		this.emit('timeTrace', endTrace(diffTrace))
-
-		// clear any queued commands later than this time:
-		this._doOnTime.clearQueueNowAndAfter(previousStateTime)
-		// add the new commands to the queue:
-		this._addToQueue(commandsToAchieveState, newState.time)
-
-		// store the new state, for later use:
-		this.setState(newState, newState.time)
-	}
-	clearFuture(clearAfterTime: number) {
-		// Clear any scheduled commands after this time
-		this._doOnTime.clearQueueAfter(clearAfterTime)
-	}
-	async terminate() {
-		this._doOnTime.dispose()
-		this.activeLayers.clear()
-		return Promise.resolve(true)
-	}
-	getStatus(): DeviceStatus {
-		// Good, since this device has no status, really
+	getStatus(): Omit<DeviceStatus, 'active'> {
 		return {
 			statusCode: StatusCode.GOOD,
 			messages: [],
-			active: this.isActive,
 		}
 	}
-	async makeReady(okToDestroyStuff?: boolean): Promise<void> {
-		if (okToDestroyStuff) {
-			if (this._makeReadyDoesReset) {
-				await this.resync()
+
+	actions: Record<string, (id: HttpSendActions, payload?: Record<string, any>) => Promise<ActionExecutionResult>> = {
+		[HttpSendActions.Resync]: async () => {
+			this.emit('resetResolver')
+			return { result: ActionExecutionResultCode.Ok }
+		},
+		[HttpSendActions.SendCommand]: async (_id: HttpSendActions.SendCommand, payload?: HTTPSendCommandContent) =>
+			this.sendManualCommand(payload),
+	}
+
+	private async sendManualCommand(cmd?: HTTPSendCommandContent): Promise<ActionExecutionResult> {
+		if (!cmd)
+			return {
+				result: ActionExecutionResultCode.Error,
+				response: t('Failed to send command: Missing payloadurl'),
 			}
-
-			for (const cmd of this._makeReadyCommands || []) {
-				await this.sendCommand(cmd)
-			}
-		}
-	}
-
-	private async resync(): Promise<ActionExecutionResult> {
-		this.clearStates()
-		this._doOnTime.clearQueueAfter(0)
-
-		return {
-			result: ActionExecutionResultCode.Ok,
-		}
-	}
-
-	private async sendCommand(cmd: SendCommandPayload): Promise<ActionExecutionResult> {
-		const time = this.getCurrentTime()
 		if (!cmd.url) {
 			return {
 				result: ActionExecutionResultCode.Error,
 				response: t('Failed to send command: Missing url'),
 			}
 		}
-		if (Object.values<TimelineContentTypeHTTP>(TimelineContentTypeHTTP).includes(cmd.type)) {
+		if (!Object.values<TimelineContentTypeHTTP>(TimelineContentTypeHTTP).includes(cmd.type)) {
 			return {
 				result: ActionExecutionResultCode.Error,
 				response: t('Failed to send command: type is invalid'),
@@ -175,157 +97,117 @@ export class HTTPSendDevice extends DeviceWithState<HTTPSendState, DeviceOptions
 			}
 		}
 
-		await this._commandReceiver(time, cmd, 'makeReady', '')
+		await this.sendCommand({
+			tlObjId: '',
+			context: 'makeReady',
+			command: {
+				commandName: 'manual',
+				content: cmd,
+				layer: '',
+			},
+		}).catch(() => this.emit('warning', 'Manual command failed: ' + JSON.stringify(cmd)))
 
 		return {
 			result: ActionExecutionResultCode.Ok,
 		}
 	}
-	async executeAction(
-		actionId: HttpSendActions,
-		payload?: Record<string, any> | undefined
-	): Promise<ActionExecutionResult> {
-		switch (actionId) {
-			case HttpSendActions.SendCommand:
-				return this.sendCommand(payload as SendCommandPayload)
-			case HttpSendActions.Resync:
-				return this.resync()
-			default:
-				return actionNotFoundMessage(actionId)
-		}
-	}
 
-	get canConnect(): boolean {
-		return false
-	}
-	get connected(): boolean {
-		return false
-	}
-	convertStateToHttpSend(state: Timeline.TimelineState<TSRTimelineContent>) {
-		// convert the timeline state into something we can use
-		// (won't even use this.mapping)
+	convertTimelineStateToDeviceState(state: Timeline.TimelineState<TSRTimelineContent>): HttpSendDeviceState {
 		return state
 	}
-	get deviceType() {
-		return DeviceType.HTTPSEND
-	}
-	get deviceName(): string {
-		return 'HTTP-Send ' + this.deviceId
-	}
-	get queue() {
-		return this._doOnTime.getQueue()
-	}
-	/**
-	 * Add commands to queue, to be executed at the right time
-	 */
-	private _addToQueue(commandsToAchieveState: Array<Command>, time: number) {
-		_.each(commandsToAchieveState, (cmd: Command) => {
-			// add the new commands to the queue:
-			this._doOnTime.queue(
-				time,
-				cmd.content.queueId,
-				async (cmd: Command) => {
-					if (cmd.commandName === 'added' || cmd.commandName === 'changed') {
-						this.activeLayers.set(cmd.layer, JSON.stringify(cmd.content))
-						return this._commandReceiver(time, cmd.content, cmd.context, cmd.timelineObjId, cmd.layer)
-					} else {
-						this.activeLayers.delete(cmd.layer)
-						return null
-					}
-				},
-				cmd
-			)
-		})
-	}
-	/**
-	 * Compares the new timeline-state with the old one, and generates commands to account for the difference
-	 */
-	private _diffStates(oldhttpSendState: HTTPSendState, newhttpSendState: HTTPSendState): Array<Command> {
-		// in this httpSend class, let's just cheat:
+	diffStates(oldState: HttpSendDeviceState | undefined, newState: HttpSendDeviceState): Array<HttpSendDeviceCommand> {
+		const commands: Array<HttpSendDeviceCommand> = []
 
-		const commands: Array<Command> = []
-
-		_.each(newhttpSendState.layers, (newLayer, layerKey: string) => {
-			const oldLayer = oldhttpSendState.layers[layerKey]
+		_.each(newState.layers, (newLayer, layerKey: string) => {
+			const oldLayer = oldState?.layers[layerKey]
 			if (!oldLayer) {
 				// added!
 				commands.push({
-					timelineObjId: newLayer.id,
-					commandName: 'added',
-					content: newLayer.content as HTTPSendCommandContent,
+					tlObjId: newLayer.id,
 					context: `added: ${newLayer.id}`,
-					layer: layerKey,
+					command: {
+						commandName: 'added',
+						content: newLayer.content as HTTPSendCommandContent,
+						layer: layerKey,
+					},
 				})
 			} else {
 				// changed?
 				if (!_.isEqual(oldLayer.content, newLayer.content)) {
 					// changed!
 					commands.push({
-						timelineObjId: newLayer.id,
-						commandName: 'changed',
-						content: newLayer.content as HTTPSendCommandContent,
+						tlObjId: newLayer.id,
 						context: `changed: ${newLayer.id} (previously: ${oldLayer.id})`,
-						layer: layerKey,
+						command: {
+							commandName: 'changed',
+							content: newLayer.content as HTTPSendCommandContent,
+							layer: layerKey,
+						},
 					})
 				}
 			}
 		})
 		// removed
-		_.each(oldhttpSendState.layers, (oldLayer, layerKey) => {
-			const newLayer = newhttpSendState.layers[layerKey]
+		_.each(oldState?.layers ?? {}, (oldLayer, layerKey) => {
+			const newLayer = newState.layers[layerKey]
 			if (!newLayer) {
 				// removed!
 				commands.push({
-					timelineObjId: oldLayer.id,
-					commandName: 'removed',
-					content: oldLayer.content as HTTPSendCommandContent,
+					tlObjId: oldLayer.id,
 					context: `removed: ${oldLayer.id}`,
-					layer: layerKey,
+					command: { commandName: 'removed', content: oldLayer.content as HTTPSendCommandContent, layer: layerKey },
 				})
 			}
 		})
 
-		commands.sort((a, b) => a.layer.localeCompare(b.layer))
+		commands.sort((a, b) => a.command.layer.localeCompare(b.command.layer))
 		commands.sort((a, b) => {
-			return (a.content.temporalPriority || 0) - (b.content.temporalPriority || 0)
+			return (a.command.content.temporalPriority || 0) - (b.command.content.temporalPriority || 0)
 		})
 
 		return commands
 	}
+	async sendCommand({ tlObjId, context, command }: HttpSendDeviceCommand): Promise<void> {
+		const commandHash = this.getTrackedStateHash(command)
 
-	private async _defaultCommandReceiver(
-		_time: number,
-		cmd: HTTPSendCommandContent,
-		context: CommandContext,
-		timelineObjId: string,
-		layer?: string
-	): Promise<void> {
-		if (layer) {
-			const hash = this.activeLayers.get(layer)
-			if (JSON.stringify(cmd) !== hash) return Promise.resolve() // command is no longer relevant to state
+		if (command.commandName === 'added' || command.commandName === 'changed') {
+			this.trackedState.set(command.layer, commandHash)
+		} else if (command.commandName === 'removed') {
+			this.trackedState.delete(command.layer)
 		}
+
+		// Avoid sending multiple identical commands for the same state:
+		if (command.layer && command.commandName !== 'manual') {
+			const trackedHash = this.trackedState.get(command.layer)
+			if (commandHash !== trackedHash) return Promise.resolve() // command is no longer relevant to state
+		}
+		if (this._terminated) {
+			return Promise.resolve()
+		}
+
 		const cwc: CommandWithContext = {
-			context: context,
-			command: cmd,
-			timelineObjId: timelineObjId,
+			context,
+			command,
+			tlObjId,
 		}
-		this.emitDebug(cwc)
+		this.emit('debug', { context, tlObjId, command })
 
 		const t = Date.now()
-		debug(`${cmd.type}: ${cmd.url} ${JSON.stringify(cmd.params)} (${timelineObjId})`)
 
-		const httpReq = got[cmd.type]
+		const httpReq = got[command.content.type]
 		try {
 			const options: OptionsOfTextResponseBody = {
-				headers: cmd.headers,
+				retry: 0,
+				headers: command.content.headers,
 			}
 
-			const params = 'params' in cmd && !_.isEmpty(cmd.params) ? cmd.params : undefined
+			const params =
+				'params' in command.content && !_.isEmpty(command.content.params) ? command.content.params : undefined
 			if (params) {
-				if (cmd.type === TimelineContentTypeHTTP.GET) {
+				if (command.content.type === TimelineContentTypeHTTP.GET) {
 					options.searchParams = params as Record<string, any>
 				} else {
-					if (cmd.paramsType === TimelineContentTypeHTTPParamType.FORM) {
+					if (command.content.paramsType === TimelineContentTypeHTTPParamType.FORM) {
 						options.form = params
 					} else {
 						// Default is json:
@@ -334,25 +216,28 @@ export class HTTPSendDevice extends DeviceWithState<HTTPSendState, DeviceOptions
 				}
 			}
 
-			const response = await httpReq(cmd.url, options)
+			const response = await httpReq(command.content.url, options)
 
 			if (response.statusCode === 200) {
-				this.emitDebug(
-					`HTTPSend: ${cmd.type}: Good statuscode response on url "${cmd.url}": ${response.statusCode} (${context})`
+				this.emit(
+					'debug',
+					`HTTPSend: ${command.content.type}: Good statuscode response on url "${command.content.url}": ${response.statusCode} (${context})`
 				)
 			} else {
-				debug(`Bad response for ${cmd.url}: ${response.statusCode}`)
 				this.emit(
 					'warning',
-					`HTTPSend: ${cmd.type}: Bad statuscode response on url "${cmd.url}": ${response.statusCode} (${context})`
+					`HTTPSend: ${command.content.type}: Bad statuscode response on url "${command.content.url}": ${response.statusCode} (${context})`
 				)
 			}
 		} catch (error) {
 			const err = error as RequestError // make typescript happy
 
-			this.emit('error', `HTTPSend.response error on ${cmd.type} "${cmd.url}" (${context})`, err)
+			this.emit(
+				'error',
+				`HTTPSend.response error on ${command.content.type} "${command.content.url}" (${context})`,
+				err
+			)
 			this.emit('commandError', err, cwc)
-			debug(`Failed ${cmd.url}: ${error} (${timelineObjId})`)
 
 			if ('code' in err) {
 				const retryCodes = [
@@ -367,12 +252,23 @@ export class HTTPSendDevice extends DeviceWithState<HTTPSendState, DeviceOptions
 					'EAI_AGAIN',
 				]
 
-				if (retryCodes.includes(err.code) && this._resendTime) {
-					const timeLeft = Math.max(this._resendTime - (Date.now() - t), 0)
-					await new Promise<void>((resolve) => setTimeout(() => resolve(), timeLeft))
-					this._defaultCommandReceiver(_time, cmd, context, timelineObjId, layer).catch(() => null) // errors will be emitted
+				if (retryCodes.includes(err.code) && this.options?.resendTime && command.commandName !== 'manual') {
+					const timeLeft = Math.max(this.options.resendTime - (Date.now() - t), 0)
+					setTimeout(() => {
+						this.sendCommand({
+							tlObjId,
+							context,
+							command: {
+								...command,
+								commandName: 'retry',
+							},
+						}).catch(() => null) // errors will be emitted
+					}, timeLeft)
 				}
 			}
 		}
+	}
+	private getTrackedStateHash(command: HttpSendDeviceCommand['command']): string {
+		return JSON.stringify(command.content)
 	}
 }
