@@ -78,4 +78,5 @@ const got: any = async (url: string | Options, options?: Options) => {
 Object.keys(gotMethods).forEach((key) => {
 	got[key] = gotMethods[key]
 })
+got.default = got
 export default got

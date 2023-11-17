@@ -17,7 +17,7 @@ import { Response } from 'got'
 const orgSetTimeout = setTimeout
 
 describe('Panasonic PTZ', () => {
-	jest.mock('request', () => got)
+	jest.mock('got', () => got)
 
 	const mockTime = new MockTime()
 
