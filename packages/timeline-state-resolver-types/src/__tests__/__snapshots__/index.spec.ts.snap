@@ -8,6 +8,7 @@ exports[`index imports 1`] = `
   "AtemMediaPoolType",
   "AtemTransitionStyle",
   "BlendMode",
+  "BorderBevel",
   "CasparCGActions",
   "ChannelFormat",
   "Chroma",

@@ -25,6 +25,12 @@ export enum MediaSourceType { // Note: copied from atem-state
 	Still = 1,
 	Clip = 2,
 }
+export enum BorderBevel { // Note: copied from atem-state
+	None = 0,
+	InOut = 1,
+	In = 2,
+	Out = 3,
+}
 
 export type SuperSourceBox = {
 	enabled?: boolean
@@ -152,7 +158,64 @@ export interface TimelineContentAtemME extends TimelineContentAtemBase {
 			/** -16000 -> 16000 */
 			maskRight?: number
 
-			// dveSettings: UpstreamKeyerDVESettings;
+			dveSettings?: {
+				/** whether the DVE should have a border */
+				borderEnabled?: boolean
+				/** whether the DVE should have a shadow */
+				shadowEnabled?: boolean
+				/** what type of bevel the border has, defaults to none */
+				borderBevel?: BorderBevel
+				/** 1 - 250 */
+				rate?: number
+
+				/** 0 - 99990  */
+				sizeX?: number
+				/** 0 - 99990  */
+				sizeY?: number
+				/** -1000000 - 1000000 */
+				positionX?: number
+				/** -1000000 - 1000000 */
+				positionY?: number
+				/** -332230 - 332230 */
+				rotation?: number
+
+				/** 0 - 1600 */
+				borderOuterWidth?: number
+				/** 0 - 1600 */
+				borderInnerWidth?: number
+				/** 0 - 100 */
+				borderOuterSoftness?: number
+				/** 0 - 100 */
+				borderInnerSoftness?: number
+				/** 0 - 100 */
+				borderBevelSoftness?: number
+				/** 0 - 100 */
+				borderBevelPosition?: number
+
+				/** 0 - 100 */
+				borderOpacity?: number
+				/** 0 - 3599 */
+				borderHue?: number
+				/** 0 - 1000 */
+				borderSaturation?: number
+				/** 0 - 1000 */
+				borderLuma?: number
+
+				/** 0 - 3559 */
+				lightSourceDirection?: number
+				/** 0 - 100 */
+				lightSourceAltitude?: number
+
+				maskEnabled?: boolean
+				/** 0 - 38000 */
+				maskTop?: number
+				/** 0 - 38000 */
+				maskBottom?: number
+				/** 0 - 52000 */
+				maskLeft?: number
+				/** 0 - 52000 */
+				maskRight?: number
+			}
 			// chromaSettings: UpstreamKeyerChromaSettings;
 			// patternSettings: UpstreamKeyerPatternSettings;
 			// flyKeyframes: Array<UpstreamKeyerFlyKeyframe>;
