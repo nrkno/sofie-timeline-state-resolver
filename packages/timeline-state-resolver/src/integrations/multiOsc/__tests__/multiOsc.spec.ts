@@ -12,7 +12,7 @@ import {
 	MappingMultiOscType,
 } from 'timeline-state-resolver-types'
 import { MockTime } from '../../../__tests__/mockTime'
-import { literal } from '../../../devices/device'
+import { literal } from '../../../lib'
 import { ThreadedClass } from 'threadedclass'
 import { getMockCall } from '../../../__tests__/lib'
 import { MultiOSCMessageDevice } from '..'

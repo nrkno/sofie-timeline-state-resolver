@@ -1,5 +1,5 @@
 import * as _ from 'underscore'
-import { CommandWithContext, DeviceStatus, DeviceWithState, literal, StatusCode } from './../../devices/device'
+import { CommandWithContext, DeviceStatus, DeviceWithState, StatusCode } from './../../devices/device'
 
 import {
 	ActionExecutionResult,
@@ -29,7 +29,7 @@ import { createMSE, MSE } from '@tv2media/v-connection'
 import { DoOnTime, SendMode } from '../../devices/doOnTime'
 
 import { ExpectedPlayoutItem } from '../../expectedPlayoutItems'
-import { actionNotFoundMessage, endTrace, startTrace, t } from '../../lib'
+import { actionNotFoundMessage, endTrace, startTrace, t, literal } from '../../lib'
 import { HTTPClientError, HTTPServerError } from '@tv2media/v-connection/dist/msehttp'
 import { VizMSEManager } from './vizMSEManager'
 import {

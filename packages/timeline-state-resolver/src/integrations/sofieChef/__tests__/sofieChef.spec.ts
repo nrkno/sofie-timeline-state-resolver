@@ -13,7 +13,7 @@ import { MockTime } from '../../../__tests__/mockTime'
 import { ThreadedClass } from 'threadedclass'
 import { getMockCall } from '../../../__tests__/lib'
 import * as WebSocket from '../../../__mocks__/ws'
-import { literal } from '../../../devices/device'
+import { literal } from '../../../lib'
 import { SendWSMessageAny, SendWSMessageType, StatusCode as ChefStatusCode } from '../api'
 
 describe('SofieChef', () => {

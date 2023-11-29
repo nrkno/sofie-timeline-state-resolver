@@ -5,7 +5,7 @@ import {
 	TSRTimelineObj,
 } from 'timeline-state-resolver'
 import { TSRInput } from '../src'
-import { literal } from 'timeline-state-resolver/dist/devices/device'
+import { literal } from 'timeline-state-resolver/dist/lib'
 
 export const input: TSRInput = {
 	timeline: [

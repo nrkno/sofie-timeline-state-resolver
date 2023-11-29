@@ -1,6 +1,5 @@
 import * as _ from 'underscore'
-import * as deepMerge from 'deepmerge'
-import { DeviceWithState, CommandWithContext, DeviceStatus, StatusCode, literal } from '../../devices/device'
+import { DeviceWithState, CommandWithContext, DeviceStatus, StatusCode } from '../../devices/device'
 import {
 	AMCPCommand,
 	BasicCasparCGAPI,
@@ -57,7 +56,7 @@ import { DoOnTime, SendMode } from '../../devices/doOnTime'
 import got from 'got'
 import { InternalTransitionHandler } from '../../devices/transitions/transitionHandler'
 import Debug from 'debug'
-import { actionNotFoundMessage, endTrace, startTrace, t } from '../../lib'
+import { actionNotFoundMessage, deepMerge, endTrace, literal, startTrace, t } from '../../lib'
 import { ListMediaResult } from 'timeline-state-resolver-types'
 import { ClsParameters } from 'casparcg-connection/dist/parameters'
 const debug = Debug('timeline-state-resolver:casparcg')

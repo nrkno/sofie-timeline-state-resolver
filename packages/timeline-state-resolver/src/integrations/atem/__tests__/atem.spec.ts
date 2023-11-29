@@ -15,7 +15,7 @@ import {
 	TimelineContentAtemME,
 	StatusCode,
 } from 'timeline-state-resolver-types'
-import { literal } from '../../../devices/device'
+import { literal } from '../../../lib'
 import { makeTimelineObjectResolved } from '../../../__mocks__/objects'
 import { compareAtemCommands, createDevice, waitForConnection } from './util'
 import { getDeviceContext } from '../../__tests__/testlib'

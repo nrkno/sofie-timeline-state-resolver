@@ -9,7 +9,7 @@ import {
 } from 'timeline-state-resolver-types'
 import { Socket } from 'net'
 import { DoOrderFunctionNothing } from '../../../devices/doOnTime'
-import { literal } from '../../../devices/device'
+import { literal } from '../../../lib'
 
 const SERVER_PORT = 5000
 const SERVER_HOST = '1.1.1.1'

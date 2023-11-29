@@ -42,10 +42,6 @@ export interface DeviceCommandContainer {
 
 export type CommandWithContext = ServiceCommandWithContext
 
-export function literal<T>(o: T) {
-	return o
-}
-
 export { DeviceStatus, StatusCode }
 
 /**
