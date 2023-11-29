@@ -3,6 +3,84 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [9.0.0-release50.7](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/8.1.0...9.0.0-release50.7) (2023-11-17)
+
+### Features
+
+- changes the implementation of how to assign a pollTime. ([88b875d](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/88b875d4d6196f55379c2dadd6d4d570216a6f42))
+- changes the logic for setting a pollInterval ([a482e57](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/a482e57e2a647de9421898df3fb061cf28c74408)), closes [#277](https://github.com/nrkno/tv-automation-state-timeline-resolver/issues/277)
+
+### Bug Fixes
+
+- `createDevice` race condition ([#296](https://github.com/nrkno/tv-automation-state-timeline-resolver/issues/296)) ([20abff2](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/20abff2324809977e3ef1a135102791bd8b46525))
+- add a future-proof "resetResolver" event ([feb709b](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/feb709b5f4a80ce0ebcbe13329c86cec9904fbec))
+- bad merge in casparcg device, causing issues with channel 1 ([#293](https://github.com/nrkno/tv-automation-state-timeline-resolver/issues/293)) ([e259f5c](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/e259f5c0d7cdde5bc9dcd7fa0120697b6810bae0))
+- casparcg restart action always responds 'OK' SOFIE-2588 ([#295](https://github.com/nrkno/tv-automation-state-timeline-resolver/issues/295)) ([6488187](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/648818760a654e7e16407d6f635d59bb233870a3))
+- remove unused casparcg useScheduling option ([#294](https://github.com/nrkno/tv-automation-state-timeline-resolver/issues/294)) ([06d3c96](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/06d3c967d2da012aa2f6655c34d382201a45cab8))
+- update emberplus-connection ([0259fbf](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/0259fbfaa45240d041052a0cb76bffe9241cf49f))
+
+## [9.0.0-release50.6](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/9.0.0-release50.5...9.0.0-release50.6) (2023-08-25)
+
+### Bug Fixes
+
+- another potential fix for this system not working as intended ([c75d4d8](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/c75d4d8ee6271be95d1fcd60f8741c3281db0521))
+- **chef:** only stop windows that we know of in the Mappings ([43ab8f6](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/43ab8f6b59eda4bdd1e244355a648ee2753ef2f2))
+- **httpSend:** Use the same types for the sendCommand action as a timeline object ([#269](https://github.com/nrkno/tv-automation-state-timeline-resolver/issues/269)) ([3385217](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/3385217afcb6e45aa37123f5400d1dea4a0c8972))
+- media re-playing shortly after completing ([867f30f](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/867f30f2ea3c5c4d568e471f054bfabed877d52b))
+- prevent conflicts with sisyfos ([4780fcf](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/4780fcfb816a58a9de44a9af320031def88214dc))
+- promisify cb from threadedclass ([368ab92](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/368ab9209c5146a7e5f998dbbd69fd77b20e35f8))
+- **sofie-chef:** resync state upon reconnect ([80f0ab9](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/80f0ab9dc9616afdbf6e9c954163f09c18a3b8e1))
+- **vmix:** fix scenario where the media load retry system would load clips into playlists twice ([8ceddb2](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/8ceddb291ac3e25cc77f8cb77fa58f67d9167f4c))
+
+## [9.0.0-release50.5](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/9.0.0-release50.4...9.0.0-release50.5) (2023-07-03)
+
+## [9.0.0-release50.4](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/9.0.0-release50.3...9.0.0-release50.4) (2023-07-03)
+
+## [9.0.0-release50.3](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/9.0.0-release50.2...9.0.0-release50.3) (2023-07-03)
+
+## [9.0.0-release50.2](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/9.0.0-release50.1...9.0.0-release50.2) (2023-07-03)
+
+## [9.0.0-release50.1](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/9.0.0-release50.0...9.0.0-release50.1) (2023-07-03)
+
+## [9.0.0-release50.0](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/8.0.0-release49.0...9.0.0-release50.0) (2023-07-03)
+
+### ⚠ BREAKING CHANGES
+
+- json schemas for device config and mappings (#237)
+
+### Features
+
+- add restart command to vMix inputs ([e16e8c1](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/e16e8c14d263fffc8e004bf9f06cdde6073e16b2))
+- json schemas for device config and mappings ([#237](https://github.com/nrkno/tv-automation-state-timeline-resolver/issues/237)) ([d43f3dc](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/d43f3dc70f5c8843081760846e9aa38fa4c71396))
+- replace makeready ([5abe41e](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/5abe41eaa421db4845a54837b2e3b41f2b33d062))
+- SOF-1254 add me_clean support for mix ouputs ([7f3fb9c](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/7f3fb9c7d9edb03022db69c6e206302c5c69a815))
+- SOF-1254 add temporal priority to TriCaster ([7133774](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/7133774a49e03a038d91a9ec8fd8d0f13cbd962c))
+- state handler initial commit ([a219c84](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/a219c84f899fec4ae7e53fa402be9b3911fb8a59))
+- upgrade singular.live to API v2 ([2bb5c4d](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/2bb5c4d2557710d55b27556cef919dc8419fa1e9))
+- Use strings for DeviceType enum ([f1b95bc](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/f1b95bcb972aff329bce9c67b15f58a98bbf48cf))
+- **vMix:** retry sending media load commands if the file wasn't found ([4321aae](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/4321aae2684ba4c7f55e3cf810dacae187fe282b))
+
+### Bug Fixes
+
+- allow multiple sisyfos devices ([3d47f82](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/3d47f82f197ac58b68c21033eac6e0354fd72fa8))
+- consider outputs (Auxes) when checking if something is on air ([d629ed6](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/d629ed6b8f022d72688765aebb48bc087fb6a963))
+- consider overlays (DSKs) when checking if something is in PGM ([4863e0f](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/4863e0f70ef906dbe442d9cfb95e51f37a7cbc77))
+- don't join response packets together with an extraneous newline ([9258d11](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/9258d11ad99a2701895a91deba0779ff22d687df))
+- enable and fix logic for non-List inputs ([4cd3173](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/4cd3173ff6896d55a171d3ef6563163d8516452d))
+- osc animation should rely on monotonic time ([7989c9d](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/7989c9de9b7e8e11e7f0ee74d62d843059a0053b))
+- prevent lingering device containers ([e313198](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/e31319855d67209f402a4263bac51af264678efa))
+- **PTZ:** clean up interval on terminate(), sort commands in a predictable order ([13b6698](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/13b6698101747c6c3ae2117b28a8bfa38c16b0eb))
+- run post transition commands after overlays commands ([aa43869](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/aa43869085643cc104322ca6a3c8a65d53e1a685))
+- SOF-1254 don't send layer commands when not in effect mode ([daa7d9b](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/daa7d9bbd97cad87090592bb6f440f5efc0f048d))
+- SOF-1254 use bin_index command for M/Es ([569bde0](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/569bde0d863d3fefaed65fcda0c065a1203236a4))
+- SOF-1254 wrong scale defaults ([0b66153](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/0b6615351c9376d834868164b32797f2ea67de7d))
+- SOF-1404 use upstreamKeyerId to address ATEM upstream keyers ([61b0061](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/61b006156849455ec4b59d92415cd820982b1706))
+- **vmix:** account for the fact that some mixes may temporarily be undefined in the state ([50ffe80](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/50ffe805d9236bbd51924720c9927839d051c0bd))
+- **vmix:** change how commands are ordered to reduce flashes of content in PGM ([b2ebaad](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/b2ebaadbad0d9f1f48462f13ebe328cf14974594))
+- **vmix:** inform parent about the connection status changing after initialization ([e4e380e](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/e4e380eae62ac1da6ec9a7881cdf461184bc497d))
+- **vmix:** show a BAD status code when vMix is not initialized ([370be3a](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/370be3af2f01bada232ea244c76b6c5507e9773f))
+- wrap singular.live JSON commands in an array ([cc5b7ec](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/cc5b7ec61d456de993cbc0e25963c93ec8b65f38))
+
 ## [9.0.0-release50.6](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/9.0.0-release50.5...9.0.0-release50.6) (2023-08-25)
 
 ### Bug Fixes
@@ -61,6 +139,12 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
 - **vmix:** inform parent about the connection status changing after initialization ([e4e380e](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/e4e380eae62ac1da6ec9a7881cdf461184bc497d))
 - **vmix:** show a BAD status code when vMix is not initialized ([370be3a](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/370be3af2f01bada232ea244c76b6c5507e9773f))
 - wrap singular.live JSON commands in an array ([cc5b7ec](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/cc5b7ec61d456de993cbc0e25963c93ec8b65f38))
+
+## [8.1.0](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/8.0.0...8.1.0) (2023-10-19)
+
+### Features
+
+- VizMSE action to send clear-commands (configured on the device settings) to all Engines in the Profile ([38e313f](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/38e313f77dfa7e61f495acf274b872768a1dbaa5))
 
 ## [8.0.0](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/7.5.1...8.0.0) (2023-10-05)
 

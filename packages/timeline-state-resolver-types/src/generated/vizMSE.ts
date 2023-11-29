@@ -80,12 +80,14 @@ export interface ActivatePayload {
 export enum VizMSEActions {
 	PurgeRundown = 'purgeRundown',
 	Activate = 'activate',
-	StandDown = 'standDown'
+	StandDown = 'standDown',
+	ClearAllEngines = 'clearAllEngines'
 }
 export interface VizMSEActionExecutionResults {
 	purgeRundown: () => void,
 	activate: (payload: ActivatePayload) => void,
-	standDown: () => void
+	standDown: () => void,
+	clearAllEngines: () => void
 }
 export type VizMSEActionExecutionPayload<A extends keyof VizMSEActionExecutionResults> = Parameters<
 	VizMSEActionExecutionResults[A]

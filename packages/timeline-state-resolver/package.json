@@ -88,7 +88,7 @@
 		"production"
 	],
 	"dependencies": {
-		"@tv2media/v-connection": "^7.3.0",
+		"@tv2media/v-connection": "^7.3.2",
 		"atem-connection": "3.3.2",
 		"atem-state": "1.1.0",
 		"cacheable-lookup": "^5.0.3",
@@ -96,7 +96,7 @@
 		"casparcg-state": "^3.0.2",
 		"debug": "^4.3.4",
 		"deepmerge": "^4.3.1",
-		"emberplus-connection": "^0.1.2",
+		"emberplus-connection": "^0.2.1",
 		"eventemitter3": "^4.0.7",
 		"got": "^11.8.6",
 		"hpagent": "^1.2.0",

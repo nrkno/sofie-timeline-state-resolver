@@ -41,7 +41,7 @@ export const DevicesDict: Record<ImplementedServiceDeviceTypes, DeviceEntry> = {
 	[DeviceType.HTTPSEND]: {
 		deviceClass: HTTPSendDevice,
 		canConnect: false,
-		deviceName: (deviceId: string) => 'HTTP ' + deviceId,
+		deviceName: (deviceId: string) => 'HTTPSend ' + deviceId,
 		executionMode: () => 'sequential', // todo - config?
 	},
 	[DeviceType.HTTPWATCHER]: {
