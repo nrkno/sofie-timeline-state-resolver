@@ -1,5 +1,5 @@
 import * as _ from 'underscore'
-import { DeviceWithState, CommandWithContext, DeviceStatus, StatusCode, literal } from './../../devices/device'
+import { DeviceWithState, CommandWithContext, DeviceStatus, StatusCode } from './../../devices/device'
 import {
 	DeviceType,
 	SingularLiveOptions,
@@ -14,6 +14,7 @@ import {
 } from 'timeline-state-resolver-types'
 import { DoOnTime, SendMode } from '../../devices/doOnTime'
 import got from 'got'
+import { literal } from '../../lib'
 
 export interface DeviceOptionsSingularLiveInternal extends DeviceOptionsSingularLive {
 	commandReceiver?: CommandReceiver

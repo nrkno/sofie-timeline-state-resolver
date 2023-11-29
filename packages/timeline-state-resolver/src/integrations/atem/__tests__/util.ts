@@ -1,9 +1,9 @@
-import { literal } from '../../../devices/device'
 import { AtemCommandWithContext, AtemDevice } from '..'
 import * as AtemConnection from 'atem-connection'
 import { promisify } from 'util'
 import { AtemOptions } from 'timeline-state-resolver-types'
 import { getDeviceContext } from '../../__tests__/testlib'
+import { literal } from '../../../lib'
 
 const sleep = promisify(setTimeout)
 

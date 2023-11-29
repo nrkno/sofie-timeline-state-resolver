@@ -20,11 +20,11 @@ import {
 	MappingObsType,
 } from 'timeline-state-resolver-types'
 import { MockTime } from '../../../__tests__/mockTime'
-import { literal } from '../../../devices/device'
 import { ThreadedClass } from 'threadedclass'
 import { getMockCall } from '../../../__tests__/lib'
 import { OBSDevice } from '..'
 import * as WebSocket from '../../../__mocks__/ws'
+import { literal } from '../../../lib'
 
 describe('OBS', () => {
 	const mockTime = new MockTime()

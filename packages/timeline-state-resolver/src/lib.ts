@@ -13,6 +13,10 @@ import * as _ from 'underscore'
 import { PartialDeep } from 'type-fest'
 import deepmerge = require('deepmerge')
 
+export function literal<T>(o: T) {
+	return o
+}
+
 /**
  * getDiff is the reverse of underscore:s _.isEqual(): It compares two values and if they differ it returns an explanation of the difference
  * If the values are equal: return null

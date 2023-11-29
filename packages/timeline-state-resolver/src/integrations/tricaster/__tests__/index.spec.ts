@@ -10,7 +10,7 @@ import {
 } from 'timeline-state-resolver-types'
 import { TriCasterDevice } from '..'
 import { TriCasterConnectionEvents, TriCasterConnection } from '../triCasterConnection'
-import { literal } from '../../../devices/device'
+import { literal } from '../../../lib'
 import { wrapIntoResolvedInstance } from './helpers'
 
 const MOCK_CONNECT = jest.fn()
