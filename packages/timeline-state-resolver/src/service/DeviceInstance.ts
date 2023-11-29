@@ -1,20 +1,18 @@
 import EventEmitter = require('eventemitter3')
-import { FinishedTrace, t } from '../lib'
+import { actionNotFoundMessage, FinishedTrace } from '../lib'
 import {
-	ActionExecutionResultCode,
-	DeviceStatus,
-	DeviceType,
-	Mappings,
-	MediaObject,
-	Timeline,
-	TSRTimelineContent,
+	type DeviceStatus,
+	type DeviceType,
+	type Mappings,
+	type MediaObject,
+	type Timeline,
+	type TSRTimelineContent,
 } from 'timeline-state-resolver-types'
-import { CommandWithContext, Device } from './device'
+import type { CommandWithContext, Device, DeviceContextAPI, DeviceEvents } from './device'
 import { StateHandler } from './stateHandler'
-import { DevicesDict } from './devices'
-import { DeviceEvents } from './device'
-import { DeviceOptionsAnyInternal, ExpectedPlayoutItem } from '..'
-import { StateChangeReport } from './measure'
+import { DeviceEntry, DevicesDict } from './devices'
+import type { DeviceOptionsAnyInternal, ExpectedPlayoutItem } from '..'
+import type { StateChangeReport } from './measure'
 
 type Config = DeviceOptionsAnyInternal
 type DeviceState = any
@@ -30,11 +28,16 @@ export interface DeviceDetails {
 	canConnect: boolean
 }
 
+export interface DeviceInstanceEvents extends Omit<DeviceEvents, 'connectionChanged'> {
+	/** The connection status has changed */
+	connectionChanged: [status: DeviceStatus]
+}
+
 /**
  * Top level container for setting up and interacting with any device integrations
  */
-export class DeviceInstanceWrapper extends EventEmitter<DeviceEvents> {
-	private _device: Device<any, DeviceState, CommandWithContext> & EventEmitter<DeviceEvents>
+export class DeviceInstanceWrapper extends EventEmitter<DeviceInstanceEvents> {
+	private _device: Device<any, DeviceState, CommandWithContext>
 	private _stateHandler: StateHandler<DeviceState, CommandWithContext>
 
 	private _deviceId: string
@@ -50,19 +53,17 @@ export class DeviceInstanceWrapper extends EventEmitter<DeviceEvents> {
 	constructor(id: string, time: number, private config: Config, public getCurrentTime: () => Promise<number>) {
 		super()
 
-		const deviceSpecs = DevicesDict[config.type]
+		const deviceSpecs: DeviceEntry = DevicesDict[config.type]
 
 		if (!deviceSpecs) {
 			throw new Error('Could not find device of type ' + config.type)
 		}
 
-		this._device = new deviceSpecs.deviceClass()
+		this._device = new deviceSpecs.deviceClass(this._getDeviceContextAPI())
 		this._deviceId = id
 		this._deviceType = config.type
 		this._deviceName = deviceSpecs.deviceName(id, config)
 		this._startTime = time
-
-		this._setupDeviceEventHandlers()
 
 		this._stateHandler = new StateHandler(
 			{
@@ -133,19 +134,14 @@ export class DeviceInstanceWrapper extends EventEmitter<DeviceEvents> {
 		const action = this._device.actions[id]
 
 		if (!action) {
-			return {
-				result: ActionExecutionResultCode.Error,
-				response: t('Action "{{id}}" not found', { id }),
-			}
+			return actionNotFoundMessage(id as never)
 		}
 
 		return action(id, payload)
 	}
 
 	async makeReady(okToDestroyStuff?: boolean): Promise<void> {
-		if (this._device.makeReady) {
-			return this._device.makeReady(okToDestroyStuff)
-		}
+		return this._device.makeReady(okToDestroyStuff)
 	}
 	async standDown(): Promise<void> {
 		if (this._device.standDown) {
@@ -198,52 +194,57 @@ export class DeviceInstanceWrapper extends EventEmitter<DeviceEvents> {
 		this._logDebugStates = value
 	}
 
-	// @todo - should some of these be moved over to a context object?
-	private _setupDeviceEventHandlers() {
-		this._device.on('info', (info: string) => {
-			this.emit('info', info)
-		})
-		this._device.on('warning', (warning: string) => {
-			this.emit('warning', warning)
-		})
-		this._device.on('error', (context: string, err: Error) => {
-			this.emit('error', context, err)
-		})
-		this._device.on('debug', (...debug: any[]) => {
-			if (this._logDebug) {
-				this.emit('debug', ...debug)
-			}
-		})
+	private _getDeviceContextAPI(): DeviceContextAPI {
+		return {
+			logger: {
+				error: (context: string, err: Error) => {
+					this.emit('error', context, err)
+				},
+				warning: (warning: string) => {
+					this.emit('warning', warning)
+				},
+				info: (info: string) => {
+					this.emit('info', info)
+				},
+				debug: (...debug: any[]) => {
+					if (this._logDebug) this.emit('debug', ...debug)
+				},
+			},
 
-		this._device.on('debugState', (state: object) => {
-			if (this._logDebugStates) {
-				this.emit('debugState', state)
-			}
-		})
-		/** The connection status has changed */
-		this._device.on('connectionChanged', () => {
-			this.emit('connectionChanged', this.getStatus())
-		})
-		/** A message to the resolver that something has happened that warrants a reset of the resolver (to re-run it again) */
-		this._device.on('resetResolver', () => {
-			this.emit('resetResolver')
-		})
+			emitDebugState: (state: object) => {
+				if (this._logDebugStates) {
+					this.emit('debugState', state)
+				}
+			},
 
-		/** Something went wrong when executing a command  */
-		this._device.on('commandError', (error: Error, context: CommandWithContext) => {
-			this.emit('commandError', error, context)
-		})
-		/** Update a MediaObject  */
-		this._device.on('updateMediaObject', (collectionId: string, docId: string, doc: MediaObject | null) => {
-			this.emit('updateMediaObject', collectionId, docId, doc)
-		})
-		/** Clear a MediaObjects collection */
-		this._device.on('clearMediaObjects', (collectionId: string) => {
-			this.emit('clearMediaObjects', collectionId)
-		})
+			connectionChanged: (status: Omit<DeviceStatus, 'active'>) => {
+				this.emit('connectionChanged', {
+					...status,
+					active: this._isActive,
+				})
+			},
+			resetResolver: () => {
+				this.emit('resetResolver')
+			},
 
-		this._device.on('timeTrace', (trace: FinishedTrace) => {
-			this.emit('timeTrace', trace)
-		})
+			commandError: (error: Error, context: CommandWithContext) => {
+				this.emit('commandError', error, context)
+			},
+			updateMediaObject: (collectionId: string, docId: string, doc: MediaObject | null) => {
+				this.emit('updateMediaObject', collectionId, docId, doc)
+			},
+			clearMediaObjects: (collectionId: string) => {
+				this.emit('clearMediaObjects', collectionId)
+			},
+
+			timeTrace: (trace: FinishedTrace) => {
+				this.emit('timeTrace', trace)
+			},
+
+			resetState: async () => {
+				await this._stateHandler.clearFutureStates()
+				this.emit('resetResolver')
+			},
+		}
 	}
 }

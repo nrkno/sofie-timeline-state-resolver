@@ -4,6 +4,7 @@
  * DO NOT MODIFY IT BY HAND. Instead, modify the source JSONSchema file,
  * and run "yarn generate-schema-types" to regenerate this file.
  */
+import { ActionExecutionResult } from ".."
 
 export interface SisyfosOptions {
 	host: string
@@ -34,5 +35,14 @@ export enum MappingSisyfosType {
 export type SomeMappingSisyfos = MappingSisyfosChannel | MappingSisyfosChannelByLabel | MappingSisyfosChannels
 
 export enum SisyfosActions {
-	Reinit = 'reinit',
+	Reinit = 'reinit'
 }
+export interface SisyfosActionExecutionResults {
+	reinit: () => void
+}
+export type SisyfosActionExecutionPayload<A extends keyof SisyfosActionExecutionResults> = Parameters<
+	SisyfosActionExecutionResults[A]
+>[0]
+
+export type SisyfosActionExecutionResult<A extends keyof SisyfosActionExecutionResults> =
+	ActionExecutionResult<ReturnType<SisyfosActionExecutionResults[A]>>

@@ -74,107 +74,115 @@ export class SisyfosApi extends EventEmitter {
 			this._oscClient.send({ address: '/clearpst', args: [] })
 		} else if (command.type === SisyfosCommandType.LABEL) {
 			this._oscClient.send({
-				address: `/ch/${(command as StringCommand).channel + 1}/label`,
+				address: `/ch/${command.channel + 1}/label`,
 				args: [
 					{
 						type: 's',
-						value: (command as StringCommand).value,
+						value: command.value,
 					},
 				],
 			})
 		} else if (command.type === SisyfosCommandType.TOGGLE_PGM) {
-			const args: Array<MetaArgument> = (command as ValuesCommand).values.map((value) => {
+			const args: Array<MetaArgument> = command.values.map((value) => {
 				return {
 					type: 'i',
 					value,
 				}
 			})
 			this._oscClient.send({
-				address: `/ch/${(command as ValuesCommand).channel + 1}/pgm`,
+				address: `/ch/${command.channel + 1}/pgm`,
 				args,
 			})
 		} else if (command.type === SisyfosCommandType.TOGGLE_PST) {
 			this._oscClient.send({
-				address: `/ch/${(command as ValueCommand).channel + 1}/pst`,
+				address: `/ch/${command.channel + 1}/pst`,
 				args: [
 					{
 						type: 'i',
-						value: (command as ValueCommand).value,
+						value: command.value,
 					},
 				],
 			})
 		} else if (command.type === SisyfosCommandType.SET_FADER) {
+			const args: Array<MetaArgument> = command.values.map((value) => {
+				return {
+					type: 'f',
+					value,
+				}
+			})
 			this._oscClient.send({
-				address: `/ch/${(command as ValueCommand).channel + 1}/faderlevel`,
-				args: [
-					{
-						type: 'f',
-						value: (command as ValueCommand).value,
-					},
-				],
+				address: `/ch/${command.channel + 1}/faderlevel`,
+				args,
 			})
 		} else if (command.type === SisyfosCommandType.VISIBLE) {
 			this._oscClient.send({
-				address: `/ch/${(command as ValueCommand).channel + 1}/visible`,
+				address: `/ch/${command.channel + 1}/visible`,
 				args: [
 					{
 						type: 'i',
-						value: (command as ValueCommand).value,
+						value: command.value === true ? 1 : 0,
 					},
 				],
 			})
 		} else if (command.type === SisyfosCommandType.SET_CHANNEL) {
-			if ((command as SetChannelCommand).values.label) {
+			if (command.values.label) {
 				this._oscClient.send({
-					address: `/ch/${(command as StringCommand).channel + 1}/label`,
+					address: `/ch/${command.channel + 1}/label`,
 					args: [
 						{
 							type: 's',
-							value: (command as SetChannelCommand).values.label as string,
+							value: command.values.label,
 						},
 					],
 				})
 			}
-			if ((command as SetChannelCommand).values.pgmOn !== undefined) {
+			if (command.values.pgmOn !== undefined) {
 				this._oscClient.send({
-					address: `/ch/${(command as ValueCommand).channel + 1}/pgm`,
+					address: `/ch/${command.channel + 1}/pgm`,
 					args: [
 						{
 							type: 'i',
-							value: (command as SetChannelCommand).values.pgmOn as number,
+							value: command.values.pgmOn,
 						},
 					],
 				})
 			}
-			if ((command as SetChannelCommand).values.pstOn !== undefined) {
+			if (command.values.pstOn !== undefined) {
 				this._oscClient.send({
-					address: `/ch/${(command as ValueCommand).channel + 1}/pst`,
+					address: `/ch/${command.channel + 1}/pst`,
 					args: [
 						{
 							type: 'i',
-							value: (command as SetChannelCommand).values.pstOn as number,
+							value: command.values.pstOn,
 						},
 					],
 				})
 			}
-			if ((command as SetChannelCommand).values.faderLevel !== undefined) {
+			if (command.values.faderLevel !== undefined) {
+				const args: Array<MetaArgument> = [
+					{
+						type: 'f',
+						value: command.values.faderLevel,
+					},
+				]
+				if (command.values.fadeTime) {
+					args.push({
+						type: 'f',
+						value: command.values.fadeTime,
+					})
+				}
 				this._oscClient.send({
-					address: `/ch/${(command as ValueCommand).channel + 1}/faderlevel`,
-					args: [
-						{
-							type: 'f',
-							value: (command as SetChannelCommand).values.faderLevel as number,
-						},
-					],
+					address: `/ch/${command.channel + 1}/faderlevel`,
+					args,
 				})
 			}
-			if ((command as SetChannelCommand).values.visible !== undefined) {
+			if (command.values.visible !== undefined) {
 				this._oscClient.send({
-					address: `/ch/${(command as ValueCommand).channel + 1}/visible`,
+					address: `/ch/${command.channel + 1}/visible`,
 					args: [
 						{
 							type: 'i',
-							value: (command as SetChannelCommand).values.visible as unknown as number,
+							value: command.values.visible as unknown as number,
 						},
 					],
 				})
@@ -316,7 +324,7 @@ export class SisyfosApi extends EventEmitter {
 				pstOn: ch.pstOn === true ? 1 : 0,
 				label: ch.label || '',
 				visible: ch.showChannel ? true : false,
-				tlObjIds: [],
+				timelineObjIds: [],
 			}
 
 			deviceState.channels[index] = channel
@@ -348,7 +356,7 @@ export interface SetChannelCommand {
 	values: Partial<SisyfosAPIChannel>
 }
 
-export interface ChannelCommand {
+export interface ChannelCommand extends BaseCommand {
 	type:
 		| SisyfosCommandType.SET_FADER
 		| SisyfosCommandType.TOGGLE_PGM
@@ -356,7 +364,10 @@ export interface ChannelCommand {
 		| SisyfosCommandType.LABEL
 		| SisyfosCommandType.VISIBLE
 	channel: number
-	value: boolean | number | string
+}
+
+export interface GlobalCommand extends BaseCommand {
+	type: SisyfosCommandType.CLEAR_PST_ROW | SisyfosCommandType.TAKE | SisyfosCommandType.RESYNC
 }
 
 export interface BoolCommand extends ChannelCommand {
@@ -364,12 +375,12 @@ export interface BoolCommand extends ChannelCommand {
 	value: boolean
 }
 export interface ValueCommand extends ChannelCommand {
-	type: SisyfosCommandType.TOGGLE_PGM | SisyfosCommandType.TOGGLE_PST | SisyfosCommandType.SET_FADER
+	type: SisyfosCommandType.TOGGLE_PST | SisyfosCommandType.VISIBLE
 	value: number
 }
 
-export interface ValuesCommand extends Omit<ChannelCommand, 'value'> {
-	type: SisyfosCommandType.TOGGLE_PGM
+export interface ValuesCommand extends ChannelCommand {
+	type: SisyfosCommandType.TOGGLE_PGM | SisyfosCommandType.SET_FADER
 	values: number[]
 }
 
@@ -378,21 +389,16 @@ export interface StringCommand extends ChannelCommand {
 	value: string
 }
 
-export interface ResyncCommand extends BaseCommand {
-	type: SisyfosCommandType.RESYNC
-}
-
 export type SisyfosCommand =
-	| BaseCommand
+	| GlobalCommand
 	| ValueCommand
 	| ValuesCommand
 	| BoolCommand
 	| StringCommand
-	| ResyncCommand
 	| SetChannelCommand
 
 export interface SisyfosChannel extends SisyfosAPIChannel {
-	tlObjIds: string[]
+	timelineObjIds: string[]
 }
 export interface SisyfosState {
 	channels: { [index: string]: SisyfosChannel }

@@ -12,6 +12,8 @@ import {
 	HyperdeckActions,
 	Mapping,
 	SomeMappingHyperdeck,
+	HyperdeckActionExecutionPayload,
+	HyperdeckActionExecutionResult,
 } from 'timeline-state-resolver-types'
 import {
 	Hyperdeck,
@@ -22,7 +24,7 @@ import {
 } from 'hyperdeck-connection'
 import { DoOnTime, SendMode } from '../../devices/doOnTime'
 import { SlotInfoCommandResponse } from 'hyperdeck-connection/dist/commands'
-import { deferAsync, endTrace, startTrace, t } from '../../lib'
+import { actionNotFoundMessage, deferAsync, endTrace, startTrace } from '../../lib'
 import { ActionExecutionResult, ActionExecutionResultCode } from 'timeline-state-resolver-types'
 
 export interface DeviceOptionsHyperdeckInternal extends DeviceOptionsHyperdeck {
@@ -184,14 +186,12 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState, DeviceOptionsH
 	/**
 	 * Makes this device ready for garbage collection.
 	 */
-	async terminate(): Promise<boolean> {
+	async terminate(): Promise<void> {
 		this._doOnTime.dispose()
 		if (this._recTimePollTimer) clearTimeout(this._recTimePollTimer)
 
 		await this._hyperdeck.disconnect()
 		this._hyperdeck.removeAllListeners()
-
-		return true
 	}
 
 	private async resync(): Promise<ActionExecutionResult> {
@@ -252,7 +252,10 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState, DeviceOptionsH
 
 		await this._queryRecordingTime()
 	}
-	async executeAction(actionId: string, _payload?: Record<string, any> | undefined): Promise<ActionExecutionResult> {
+	async executeAction<A extends HyperdeckActions>(
+		actionId: A,
+		_payload: HyperdeckActionExecutionPayload<A>
+	): Promise<HyperdeckActionExecutionResult<A>> {
 		switch (actionId) {
 			case HyperdeckActions.FormatDisks:
 				try {
@@ -262,9 +265,9 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState, DeviceOptionsH
 					return { result: ActionExecutionResultCode.Error }
 				}
 			case HyperdeckActions.Resync:
-				return this.resync()
+				return this.resync() as Promise<HyperdeckActionExecutionResult<A>>
 			default:
-				return { result: ActionExecutionResultCode.Ok, response: t('Action "{{id}}" not found', { actionId }) }
+				return actionNotFoundMessage(actionId)
 		}
 	}
 	/** Called by the Conductor a bit before a .handleState is called */
@@ -817,8 +820,8 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState, DeviceOptionsH
 		timelineObjId: string
 	): Promise<any> {
 		const cwc: CommandWithContext = {
-			context: context,
-			timelineObjId: timelineObjId,
+			context,
+			timelineObjId,
 			command: command,
 		}
 		this.emitDebug(cwc)

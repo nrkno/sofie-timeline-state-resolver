@@ -839,6 +839,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@julusian/freetype2@npm:^1.1.2":
+  version: 1.1.2
+  resolution: "@julusian/freetype2@npm:1.1.2"
+  dependencies:
+    node-addon-api: ^5.0.0
+    node-gyp: latest
+    pkg-prebuilds: ^0.2.1
+  checksum: c690cf169908995c0cd3b2bd63f226c85ab9615d2da4c000644a311fd8ca736abae9e355ee7e2332dbaf1c59dd6be364f2711c6a31c4b0cfafdee28cb73a6beb
+  languageName: node
+  linkType: hard
+
 "@lerna/child-process@npm:6.6.2":
   version: 6.6.2
   resolution: "@lerna/child-process@npm:6.6.2"
@@ -2486,31 +2497,34 @@ asn1@evs-broadcast/node-asn1:
   languageName: node
   linkType: hard
 
-"atem-connection@npm:2.5.0":
-  version: 2.5.0
-  resolution: "atem-connection@npm:2.5.0"
+"atem-connection@npm:3.3.2":
+  version: 3.3.2
+  resolution: "atem-connection@npm:3.3.2"
   dependencies:
-    big-integer: ^1.6.51
-    eventemitter3: ^4.0.4
+    "@julusian/freetype2": ^1.1.2
+    debug: ^4.3.4
+    eventemitter3: ^4.0.7
     exit-hook: ^2.2.1
     nanotimer: ^0.3.15
-    threadedclass: ^0.8.0
-    tslib: ^1.13.0
-    wavefile: ^8.4.4
-  checksum: beaaffceb729f16056b85fbcd711a371973905353e9c8cdf85a0732fa0ff7d89b11039ffb70a599f184d30042110c59fd695ee772b17580073746c5beeb07e5b
+    p-lazy: ^3.1.0
+    p-queue: ^6.6.2
+    threadedclass: ^1.2.1
+    tslib: ^2.6.2
+    wavefile: ^8.4.6
+  checksum: dbfe751a75bd6d7de7877eda84800d9ca5a644a97f603cc60050eabbf02c2ebfe516344c3f6525a2417b83d35f98e542787a8178c85e660d54964a49f6b47664
   languageName: node
   linkType: hard
 
-"atem-state@npm:0.13.0":
-  version: 0.13.0
-  resolution: "atem-state@npm:0.13.0"
+"atem-state@npm:1.1.0":
+  version: 1.1.0
+  resolution: "atem-state@npm:1.1.0"
   dependencies:
-    deepmerge: ^4.2.2
-    tslib: ^2.3.1
-    type-fest: ^1.4.0
+    deepmerge: ^4.3.1
+    tslib: ^2.6.2
+    type-fest: ^3.13.1
   peerDependencies:
-    atem-connection: ~2.5
-  checksum: d6b912e6a6a8f2e8c1a101234b24687ef5b4a5ae6fb407479088c881af1ee4cd8882f6f56310d087bf006f5f432bb298306890b6af445e077e0526b5651fdee1
+    atem-connection: 3.3.2
+  checksum: 9e48469117bb00b10a59f983eb319d0ec2128164e24eb643b4e9cd52bfeaf9a942f5b9342c3a475d44352524315f761d960f878bb05401250db7414cfaa67640
   languageName: node
   linkType: hard
 
@@ -2638,7 +2652,7 @@ asn1@evs-broadcast/node-asn1:
   languageName: node
   linkType: hard
 
-"big-integer@npm:^1.6.44, big-integer@npm:^1.6.51":
+"big-integer@npm:^1.6.44":
   version: 1.6.51
   resolution: "big-integer@npm:1.6.51"
   checksum: 3d444173d1b2e20747e2c175568bedeebd8315b0637ea95d75fd27830d3b8e8ba36c6af40374f36bdaea7b5de376dcada1b07587cb2a79a928fccdb6e6e3c518
@@ -3053,14 +3067,14 @@ asn1@evs-broadcast/node-asn1:
   languageName: node
   linkType: hard
 
-"casparcg-connection@npm:^6.0.6":
-  version: 6.0.6
-  resolution: "casparcg-connection@npm:6.0.6"
+"casparcg-connection@npm:^6.1.1":
+  version: 6.1.1
+  resolution: "casparcg-connection@npm:6.1.1"
   dependencies:
-    eventemitter3: ^4.0.7
+    eventemitter3: ^5.0.1
     tslib: ^2.5.0
-    xml2js: ^0.4.23
-  checksum: f2c02bdfaf29e1c43449a577f1b91fd5ce14ff91bdc6a48dbe5908c1420f5eaf9a3989454f750f93fbe8de399310e76a112e88866bcc3c18398e0e81b43f4dd1
+    xml2js: ^0.6.2
+  checksum: df4e9787386fe560b5bfe743bb38f8188e778d985a72bf0a2ee0f058d038e544cccfbdefcebbacc837c9dbd953be9a435075ac71a0d6a5c2be3488744473fe10
   languageName: node
   linkType: hard
 
@@ -4584,6 +4598,13 @@ asn1@evs-broadcast/node-asn1:
   languageName: node
   linkType: hard
 
+"eventemitter3@npm:^5.0.1":
+  version: 5.0.1
+  resolution: "eventemitter3@npm:5.0.1"
+  checksum: 543d6c858ab699303c3c32e0f0f47fc64d360bf73c3daf0ac0b5079710e340d6fe9f15487f94e66c629f5f82cd1a8678d692f3dbb6f6fcd1190e1b97fcad36f8
+  languageName: node
+  linkType: hard
+
 "events@npm:^3.3.0":
   version: 3.3.0
   resolution: "events@npm:3.3.0"
@@ -5652,6 +5673,13 @@ asn1@evs-broadcast/node-asn1:
   dependencies:
     lru-cache: ^7.5.1
   checksum: fcd3ca2eaa05f3201425ccbb8aa47f88cdda4a3a6d79453f8e269f7171356278bd1db08f059d8439eb5eaa91c6a8a20800fc49cca6e9e4e899b202a332d5ba6b
+  languageName: node
+  linkType: hard
+
+"hpagent@npm:^1.2.0":
+  version: 1.2.0
+  resolution: "hpagent@npm:1.2.0"
+  checksum: b029da695edae438cee4da2a437386f9db4ac27b3ceb7306d02e1b586c9c194741ed2e943c8a222e0cfefaf27ee3f863aca7ba1721b0950a2a19bf25bc0d85e2
   languageName: node
   linkType: hard
 
@@ -6960,7 +6988,7 @@ asn1@evs-broadcast/node-asn1:
   languageName: node
   linkType: hard
 
-"json-schema-ref-parser@npm:^9.0.6":
+"json-schema-ref-parser@npm:^9.0.6, json-schema-ref-parser@npm:^9.0.9":
   version: 9.0.9
   resolution: "json-schema-ref-parser@npm:9.0.9"
   dependencies:
@@ -8845,6 +8873,13 @@ asn1@evs-broadcast/node-asn1:
   languageName: node
   linkType: hard
 
+"p-lazy@npm:^3.1.0":
+  version: 3.1.0
+  resolution: "p-lazy@npm:3.1.0"
+  checksum: 289dbfd9de7d241498fd2d1ac9ec4e36de78672a92175f4b3c5fa9527b62f7549b06f549570b47f218d90b946f3a75611f9b8407934fe01512bc4fb56fdbf47d
+  languageName: node
+  linkType: hard
+
 "p-limit@npm:^1.1.0":
   version: 1.3.0
   resolution: "p-limit@npm:1.3.0"
@@ -9287,6 +9322,18 @@ asn1@evs-broadcast/node-asn1:
   languageName: node
   linkType: hard
 
+"pkg-prebuilds@npm:^0.2.1":
+  version: 0.2.1
+  resolution: "pkg-prebuilds@npm:0.2.1"
+  dependencies:
+    yargs: ^17.5.1
+  bin:
+    pkg-prebuilds-copy: bin/copy.mjs
+    pkg-prebuilds-verify: bin/verify.mjs
+  checksum: ba4c802200558d5aa89e96e474976633c1f964ef0b2035a70dfde4b83af782a6624f33b4b83c19dd85db7aa9097e259a55ad53d63d55d62ac5d524997f3bbd17
+  languageName: node
+  linkType: hard
+
 "postcss-selector-parser@npm:^6.0.10":
   version: 6.0.13
   resolution: "postcss-selector-parser@npm:6.0.13"
@@ -9554,7 +9601,8 @@ asn1@evs-broadcast/node-asn1:
   dependencies:
     chokidar: ^3.5.3
     fast-clone: ^1.5.13
-    timeline-state-resolver: 9.0.0-release50.7
+    threadedclass: ^1.2.1
+    timeline-state-resolver: 9.1.0-release51
     tslib: ^2.5.1
     underscore: ^1.13.6
   languageName: unknown
@@ -10746,13 +10794,12 @@ asn1@evs-broadcast/node-asn1:
   languageName: node
   linkType: hard
 
-"superfly-timeline@npm:^8.3.1":
-  version: 8.3.1
-  resolution: "superfly-timeline@npm:8.3.1"
+"superfly-timeline@npm:^9.0.0":
+  version: 9.0.0
+  resolution: "superfly-timeline@npm:9.0.0"
   dependencies:
-    tslib: ^2.4.0
-    underscore: ^1.13.6
-  checksum: 3bc7dc89c6bdc4c427d6e9287c6af77948706d8e7e29524c021d4304eca6ae4bca6c4ef5952d3daa561aca39a72644f04a9c461f89fd6a93fcac7d3674b7d12c
+    tslib: ^2.6.0
+  checksum: bb56fc6d6884f2956cdc1f18edceff48bc693c2329b009170e4d399ce70b8123ef38ddada0f0479eb359690eae39e7e578a9ec4ba326d6e4704653f74cde1a6d
   languageName: node
   linkType: hard
 
@@ -10941,18 +10988,6 @@ asn1@evs-broadcast/node-asn1:
   languageName: node
   linkType: hard
 
-"threadedclass@npm:^0.8.0":
-  version: 0.8.3
-  resolution: "threadedclass@npm:0.8.3"
-  dependencies:
-    callsites: ^3.1.0
-    eventemitter3: ^4.0.4
-    is-running: ^2.1.0
-    tslib: ^1.13.0
-  checksum: 64f3c25e1c3178fb4f2bbc278329cdf348a5d7379fa80fe5489e2107c69c5bf01daadc44421881ffc314bbbc8d1a5e17f5886147a3fd55bc80cd667b63e842e6
-  languageName: node
-  linkType: hard
-
 "threadedclass@npm:^1.2.1":
   version: 1.2.1
   resolution: "threadedclass@npm:1.2.1"
@@ -11019,13 +11054,12 @@ asn1@evs-broadcast/node-asn1:
     symlink-dir: ^5.1.1
     ts-jest: ^29.1.0
     ts-node: ^8.10.2
-    type-fest: ^3.10.0
     typedoc: ^0.23.28
     typescript: ~4.9.5
   languageName: unknown
   linkType: soft
 
-"timeline-state-resolver-types@9.0.0-release50.7, timeline-state-resolver-types@workspace:packages/timeline-state-resolver-types":
+"timeline-state-resolver-types@9.1.0-release51, timeline-state-resolver-types@workspace:packages/timeline-state-resolver-types":
   version: 0.0.0-use.local
   resolution: "timeline-state-resolver-types@workspace:packages/timeline-state-resolver-types"
   dependencies:
@@ -11033,23 +11067,26 @@ asn1@evs-broadcast/node-asn1:
   languageName: unknown
   linkType: soft
 
-"timeline-state-resolver@9.0.0-release50.7, timeline-state-resolver@workspace:packages/timeline-state-resolver":
+"timeline-state-resolver@9.1.0-release51, timeline-state-resolver@workspace:packages/timeline-state-resolver":
   version: 0.0.0-use.local
   resolution: "timeline-state-resolver@workspace:packages/timeline-state-resolver"
   dependencies:
     "@tv2media/v-connection": ^7.3.2
-    atem-connection: 2.5.0
-    atem-state: 0.13.0
-    casparcg-connection: ^6.0.6
+    atem-connection: 3.3.2
+    atem-state: 1.1.0
+    cacheable-lookup: ^5.0.3
+    casparcg-connection: ^6.1.1
     casparcg-state: ^3.0.2
     debug: ^4.3.4
     deepmerge: ^4.3.1
     emberplus-connection: ^0.2.1
     eventemitter3: ^4.0.7
     got: ^11.8.6
+    hpagent: ^1.2.0
     hyperdeck-connection: ^0.5.0
     i18next-conv: ^13.1.1
     i18next-parser: ^6.6.0
+    json-schema-ref-parser: ^9.0.9
     json-schema-to-typescript: ^10.1.5
     klona: ^2.0.6
     obs-websocket-js: ^4.0.3
@@ -11058,13 +11095,13 @@ asn1@evs-broadcast/node-asn1:
     p-queue: ^6.6.2
     p-timeout: ^3.2.0
     sprintf-js: ^1.1.2
-    superfly-timeline: ^8.3.1
+    superfly-timeline: ^9.0.0
     threadedclass: ^1.2.1
-    timeline-state-resolver-types: 9.0.0-release50.7
+    timeline-state-resolver-types: 9.1.0-release51
     tslib: ^2.5.1
     tv-automation-quantel-gateway-client: ^3.1.7
+    type-fest: ^3.10.0
     underscore: ^1.13.6
-    underscore-deep-extend: ^1.1.5
     utf-8-validate: ^5.0.10
     vinyl-fs: ^3.0.3
     ws: ^7.5.9
@@ -11265,14 +11302,7 @@ asn1@evs-broadcast/node-asn1:
   languageName: node
   linkType: hard
 
-"tslib@npm:^2.1.0, tslib@npm:^2.3.0, tslib@npm:^2.3.1, tslib@npm:^2.4.0, tslib@npm:^2.5.0, tslib@npm:^2.5.1":
-  version: 2.5.1
-  resolution: "tslib@npm:2.5.1"
-  checksum: 535e41e956b32d21aeff007a2c74989d1a6bf3fecb2b0141d80e5b9920bf90e23b4f0cd3772704bc03637c762dbdc1a314d75a407dd7189afbe3e83d80df9392
-  languageName: node
-  linkType: hard
-
-"tslib@npm:^2.6.2":
+"tslib@npm:^2.1.0, tslib@npm:^2.3.0, tslib@npm:^2.3.1, tslib@npm:^2.4.0, tslib@npm:^2.5.0, tslib@npm:^2.5.1, tslib@npm:^2.6.0, tslib@npm:^2.6.2":
   version: 2.6.2
   resolution: "tslib@npm:2.6.2"
   checksum: 329ea56123005922f39642318e3d1f0f8265d1e7fcb92c633e0809521da75eeaca28d2cf96d7248229deb40e5c19adf408259f4b9640afd20d13aecc1430f3ad
@@ -11384,7 +11414,7 @@ asn1@evs-broadcast/node-asn1:
   languageName: node
   linkType: hard
 
-"type-fest@npm:^1.0.1, type-fest@npm:^1.4.0":
+"type-fest@npm:^1.0.1":
   version: 1.4.0
   resolution: "type-fest@npm:1.4.0"
   checksum: b011c3388665b097ae6a109a437a04d6f61d81b7357f74cbcb02246f2f5bd72b888ae33631b99871388122ba0a87f4ff1c94078e7119ff22c70e52c0ff828201
@@ -11398,12 +11428,10 @@ asn1@evs-broadcast/node-asn1:
   languageName: node
   linkType: hard
 
-"type-fest@npm:^3.1.0, type-fest@npm:^3.10.0":
-  version: 3.10.0
-  resolution: "type-fest@npm:3.10.0"
-  peerDependencies:
-    typescript: ">=4.7.0"
-  checksum: df3bd25809ea79ac7712da7c11648251118c23f65b226eba263797e42be60ba34085874ec492202b8ecf2e5a2273b27ddcbfe3be2c275dfcef3f0e2ee90ea179
+"type-fest@npm:^3.1.0, type-fest@npm:^3.10.0, type-fest@npm:^3.13.1":
+  version: 3.13.1
+  resolution: "type-fest@npm:3.13.1"
+  checksum: c06b0901d54391dc46de3802375f5579868949d71f93b425ce564e19a428a0d411ae8d8cb0e300d330071d86152c3ea86e744c3f2860a42a79585b6ec2fdae8e
   languageName: node
   linkType: hard
 
@@ -11484,13 +11512,6 @@ asn1@evs-broadcast/node-asn1:
   version: 0.1.2
   resolution: "unc-path-regex@npm:0.1.2"
   checksum: a05fa2006bf4606051c10fc7968f08ce7b28fa646befafa282813aeb1ac1a56f65cb1b577ca7851af2726198d59475bb49b11776036257b843eaacee2860a4ec
-  languageName: node
-  linkType: hard
-
-"underscore-deep-extend@npm:^1.1.5":
-  version: 1.1.5
-  resolution: "underscore-deep-extend@npm:1.1.5"
-  checksum: 5bc6d1af0e4cc5cc177284eb00327991a08f5a6b632f45daa2cc625f54705b4e22330752b68d340356f0df2d5d01310aa22c28a9a9a63ec16ac78e082aba9e03
   languageName: node
   linkType: hard
 
@@ -11854,7 +11875,7 @@ asn1@evs-broadcast/node-asn1:
   languageName: node
   linkType: hard
 
-"wavefile@npm:^8.4.4":
+"wavefile@npm:^8.4.6":
   version: 8.4.6
   resolution: "wavefile@npm:8.4.6"
   dependencies:
@@ -12199,7 +12220,7 @@ asn1@evs-broadcast/node-asn1:
   languageName: node
   linkType: hard
 
-"yargs@npm:^17.3.1, yargs@npm:^17.6.2":
+"yargs@npm:^17.3.1, yargs@npm:^17.5.1, yargs@npm:^17.6.2":
   version: 17.7.2
   resolution: "yargs@npm:17.7.2"
   dependencies:

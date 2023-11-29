@@ -7,8 +7,11 @@ import {
 	ITranslatableMessage,
 	ActionExecutionResultCode,
 	TimelineDatastoreReferences,
+	ActionExecutionResult,
 } from 'timeline-state-resolver-types'
 import * as _ from 'underscore'
+import { PartialDeep } from 'type-fest'
+import deepmerge = require('deepmerge')
 
 /**
  * getDiff is the reverse of underscore:s _.isEqual(): It compares two values and if they differ it returns an explanation of the difference
@@ -189,6 +192,11 @@ function deepDiff(a: any, b: any, aStack: any, bStack: any): string | null {
 	return null
 }
 
+/** Deeply extend an object with some partial objects */
+export function deepMerge<T extends object>(destination: T, source: PartialDeep<T>): T {
+	return deepmerge<T>(destination, source)
+}
+
 export interface Trace {
 	/** id of this trace, should be formatted as namespace:id */
 	measurement: string
@@ -283,7 +291,9 @@ export function assertNever(_never: never): void {
 	// Do nothing. This is a type guard
 }
 
-export function actionNotFoundMessage(id: string) {
+export function actionNotFoundMessage(id: never): ActionExecutionResult<any> {
+	// Note: (id: never) is an assertNever(actionId)
+
 	return {
 		result: ActionExecutionResultCode.Error,
 		response: t('Action "{{id}}" not found', { id }),

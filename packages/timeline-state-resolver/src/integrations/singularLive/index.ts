@@ -132,7 +132,6 @@ export class SingularLiveDevice extends DeviceWithState<SingularLiveState, Devic
 	}
 	async terminate() {
 		this._doOnTime.dispose()
-		return Promise.resolve(true)
 	}
 	getStatus(): DeviceStatus {
 		// Good, since this device has no status, really
@@ -288,9 +287,9 @@ export class SingularLiveDevice extends DeviceWithState<SingularLiveState, Devic
 		timelineObjId: string
 	): Promise<any> {
 		const cwc: CommandWithContext = {
-			context: context,
+			context,
 			command: cmd,
-			timelineObjId: timelineObjId,
+			timelineObjId,
 		}
 		this.emitDebug(cwc)
 

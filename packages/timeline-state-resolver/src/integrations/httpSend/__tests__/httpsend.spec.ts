@@ -27,9 +27,10 @@ jest.mock('got', () => {
 
 // note - this import should be below the got mock
 import { HTTPSendDevice, HttpSendDeviceCommand, HttpSendDeviceState } from '..'
+import { getDeviceContext } from '../../__tests__/testlib'
 
 async function getInitialisedHttpDevice(retries = false) {
-	const dev = new HTTPSendDevice()
+	const dev = new HTTPSendDevice(getDeviceContext())
 	await dev.init({
 		resendTime: retries === true ? 1000 : undefined,
 	})
@@ -95,7 +96,7 @@ describe('HTTP-Send', () => {
 				}),
 				[
 					{
-						tlObjId: 'obj0',
+						timelineObjId: 'obj0',
 						context: `added: obj0`,
 						command: {
 							commandName: 'added',
@@ -134,7 +135,7 @@ describe('HTTP-Send', () => {
 				}),
 				[
 					{
-						tlObjId: 'obj1',
+						timelineObjId: 'obj1',
 						context: `changed: obj1 (previously: obj0)`,
 						command: {
 							commandName: 'changed',
@@ -168,7 +169,7 @@ describe('HTTP-Send', () => {
 				createTimelineState({}),
 				[
 					{
-						tlObjId: 'obj0',
+						timelineObjId: 'obj0',
 						context: `removed: obj0`,
 						command: {
 							commandName: 'removed',
@@ -187,7 +188,7 @@ describe('HTTP-Send', () => {
 
 			device
 				.sendCommand({
-					tlObjId: 'abc123',
+					timelineObjId: 'abc123',
 					context: 'A context',
 					command: {
 						commandName: 'added',
@@ -215,7 +216,7 @@ describe('HTTP-Send', () => {
 
 			device
 				.sendCommand({
-					tlObjId: 'abc123',
+					timelineObjId: 'abc123',
 					context: 'A context',
 					command: {
 						commandName: 'added',
@@ -255,7 +256,7 @@ describe('HTTP-Send', () => {
 			// send the command
 			await device
 				.sendCommand({
-					tlObjId: 'abc123',
+					timelineObjId: 'abc123',
 					context: 'A context',
 					command: {
 						commandName: 'added',
@@ -280,7 +281,7 @@ describe('HTTP-Send', () => {
 			// remove the command
 			await device
 				.sendCommand({
-					tlObjId: 'abc123',
+					timelineObjId: 'abc123',
 					context: 'A context',
 					command: {
 						commandName: 'removed',
@@ -338,7 +339,7 @@ describe('HTTP-Send', () => {
 				// Test that the internal state in HTTPSendDevice is correct:
 				expect(commands).toStrictEqual([
 					{
-						tlObjId: 'obj1',
+						timelineObjId: 'obj1',
 						context: `added: obj1`,
 						command: {
 							commandName: 'added',
@@ -354,7 +355,7 @@ describe('HTTP-Send', () => {
 				// Verify the removal commands:
 				expect(device.diffStates(state.bStart, state.bEnd)).toStrictEqual([
 					{
-						tlObjId: 'obj1',
+						timelineObjId: 'obj1',
 						context: `removed: obj1`,
 						command: {
 							commandName: 'removed',

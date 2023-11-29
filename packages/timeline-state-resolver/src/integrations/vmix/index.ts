@@ -1,5 +1,4 @@
 import * as _ from 'underscore'
-import * as path from 'path'
 import * as deepMerge from 'deepmerge'
 import { DeviceWithState, CommandWithContext, DeviceStatus, StatusCode } from './../../devices/device'
 import { DoOnTime, SendMode } from '../../devices/doOnTime'
@@ -27,8 +26,11 @@ import {
 	OpenPresetPayload,
 	SavePresetPayload,
 	VmixActions,
+	VmixActionExecutionPayload,
+	VmixActionExecutionResult,
 } from 'timeline-state-resolver-types'
-import { t } from '../../lib'
+import { actionNotFoundMessage, t } from '../../lib'
+import { VMixInputHandler } from './VMixInputHandler'
 
 /**
  * Default time, in milliseconds, for when we should poll vMix to query its actual state.
@@ -96,6 +98,8 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 	private _pollTimeout: NodeJS.Timeout
 	private _pollTime: number | null = null
 
+	private inputHandler: VMixInputHandler
+
 	constructor(deviceId: string, deviceOptions: DeviceOptionsVMixInternal, getCurrentTime: () => Promise<number>) {
 		super(deviceId, deviceOptions, getCurrentTime)
 		if (deviceOptions.options) {
@@ -113,6 +117,11 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 		this._doOnTime.on('slowCommand', (msg) => this.emit('slowCommand', this.deviceName + ': ' + msg))
 		this._doOnTime.on('slowSentCommand', (info) => this.emit('slowSentCommand', info))
 		this._doOnTime.on('slowFulfilledCommand', (info) => this.emit('slowFulfilledCommand', info))
+
+		this.inputHandler = new VMixInputHandler({
+			getCurrentTime: this.getCurrentTime.bind(this),
+			addToQueue: this.addToQueue.bind(this),
+		})
 	}
 	async init(options: VMixOptions): Promise<boolean> {
 		this._vmix = new VMix(options.host, options.port, false)
@@ -299,13 +308,13 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 
 		const newVMixState = this.convertStateToVMix(newState, newMappings)
 
-		const commandsToAchieveState = this._diffStates(oldState, newVMixState)
+		const commandsToAchieveState = this._diffStates(newState.time, oldState, newVMixState)
 
 		// clear any queued commands later than this time:
 		this._doOnTime.clearQueueNowAndAfter(previousStateTime)
 
 		// add the new commands to the queue:
-		this._addToQueue(commandsToAchieveState, newState.time)
+		this.addToQueue(commandsToAchieveState, newState.time)
 
 		// store the new state, for later use:
 		this.setState(newVMixState, newState.time)
@@ -325,8 +334,6 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 		this._vmix.disconnect()
 
 		clearTimeout(this._pollTimeout)
-
-		return Promise.resolve(true)
 	}
 
 	getStatus(): DeviceStatus {
@@ -354,19 +361,19 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 		}
 	}
 
-	async executeAction(actionId: string, payload?: Record<string, any> | undefined): Promise<ActionExecutionResult> {
+	async executeAction<A extends VmixActions>(
+		actionId: A,
+		payload: VmixActionExecutionPayload<A>
+	): Promise<VmixActionExecutionResult<A>> {
 		switch (actionId) {
 			case VmixActions.LastPreset:
-				return await this._lastPreset()
+				return this._lastPreset() as Promise<VmixActionExecutionResult<A>>
 			case VmixActions.OpenPreset:
-				return await this._openPreset(payload as OpenPresetPayload)
+				return this._openPreset(payload as OpenPresetPayload) as Promise<VmixActionExecutionResult<A>>
 			case VmixActions.SavePreset:
-				return await this._savePreset(payload as SavePresetPayload)
+				return this._savePreset(payload as SavePresetPayload) as Promise<VmixActionExecutionResult<A>>
 			default:
-				return {
-					result: ActionExecutionResultCode.Error,
-					response: t('Action "{{actionId}}" not found', { actionId }),
-				}
+				return actionNotFoundMessage(actionId)
 		}
 	}
 
@@ -396,7 +403,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 		return
 	}
 
-	private async _lastPreset() {
+	private async _lastPreset(): Promise<ActionExecutionResult> {
 		const presetActionCheckResult = this._checkPresetAction()
 		if (presetActionCheckResult) return presetActionCheckResult
 		await this._vmix.lastPreset()
@@ -405,7 +412,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 		}
 	}
 
-	private async _openPreset(payload: OpenPresetPayload) {
+	private async _openPreset(payload: OpenPresetPayload): Promise<ActionExecutionResult> {
 		const presetActionCheckResult = this._checkPresetAction(payload, true)
 		if (presetActionCheckResult) return presetActionCheckResult
 		await this._vmix.openPreset(payload.filename)
@@ -414,7 +421,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 		}
 	}
 
-	private async _savePreset(payload: SavePresetPayload) {
+	private async _savePreset(payload: SavePresetPayload): Promise<ActionExecutionResult> {
 		const presetActionCheckResult = this._checkPresetAction(payload, true)
 		if (presetActionCheckResult) return presetActionCheckResult
 		await this._vmix.savePreset(payload.filename)
@@ -551,10 +558,6 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 		return deviceState
 	}
 
-	getFilename(filePath: string) {
-		return path.basename(filePath)
-	}
-
 	modifyInput(
 		deviceState: VMixStateExtended,
 		newInput: VMixInput,
@@ -615,7 +618,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 		return this._doOnTime.getQueue()
 	}
 
-	private _addToQueue(commandsToAchieveState: Array<VMixStateCommandWithContext>, time: number) {
+	private addToQueue(commandsToAchieveState: Array<VMixStateCommandWithContext>, time: number) {
 		_.each(commandsToAchieveState, (cmd: VMixStateCommandWithContext) => {
 			// add the new commands to the queue:
 			this._doOnTime.queue(
@@ -722,25 +725,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 				input.name = key
 			}
 			if (!_.has(oldVMixState.reportedState.inputs, key) && input.type !== undefined) {
-				const addCommands: Array<VMixStateCommandWithContext> = []
-				addCommands.push({
-					command: {
-						command: VMixCommand.ADD_INPUT,
-						value: `${input.type}|${input.name}`,
-					},
-					context: CommandContext.None,
-					timelineId: '',
-				})
-				addCommands.push({
-					command: {
-						command: VMixCommand.SET_INPUT_NAME,
-						input: this.getFilename(input.name),
-						value: input.name,
-					},
-					context: CommandContext.None,
-					timelineId: '',
-				})
-				this._addToQueue(addCommands, this.getCurrentTime())
+				this.inputHandler.addInput(key, input.type, input.name)
 			}
 			const oldInput = oldVMixState.reportedState.inputs[key] || this._getDefaultInputState(0) // or {} but we assume that a new input has all parameters default
 
@@ -1033,6 +1018,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 	}
 
 	private _resolveInputsRemovalState(
+		time: number,
 		oldVMixState: VMixStateExtended,
 		newVMixState: VMixStateExtended
 	): Array<VMixStateCommandWithContext> {
@@ -1042,15 +1028,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 			Object.keys(newVMixState.reportedState.inputs)
 		).forEach((input) => {
 			if (oldVMixState.reportedState.inputs[input].type !== undefined) {
-				// TODO: either schedule this command for later or make the timeline object long enough to prevent removing while transitioning
-				commands.push({
-					command: {
-						command: VMixCommand.REMOVE_INPUT,
-						input: oldVMixState.reportedState.inputs[input].name || input,
-					},
-					context: CommandContext.None,
-					timelineId: '',
-				})
+				this.inputHandler.removeInput(time, input)
 			}
 		})
 		return commands
@@ -1230,6 +1208,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 	}
 
 	private _diffStates(
+		time: number,
 		oldVMixState: VMixStateExtended,
 		newVMixState: VMixStateExtended
 	): Array<VMixStateCommandWithContext> {
@@ -1244,7 +1223,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 		commands = commands.concat(this._resolveStreamingState(oldVMixState, newVMixState))
 		commands = commands.concat(this._resolveExternalState(oldVMixState, newVMixState))
 		commands = commands.concat(this._resolveOutputsState(oldVMixState, newVMixState))
-		commands = commands.concat(this._resolveInputsRemovalState(oldVMixState, newVMixState))
+		commands = commands.concat(this._resolveInputsRemovalState(time, oldVMixState, newVMixState))
 		commands = commands.concat(this._resolveScriptsState(oldVMixState, newVMixState))
 
 		return commands
@@ -1266,9 +1245,9 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 		if (this._pollTime) this._pollTimeout = setTimeout(() => this._pollVmix(), BACKOFF_VMIX_POLL_INTERVAL)
 
 		const cwc: CommandWithContext = {
-			context: context,
+			context,
 			command: cmd,
-			timelineObjId: timelineObjId,
+			timelineObjId,
 		}
 		this.emitDebug(cwc)
 

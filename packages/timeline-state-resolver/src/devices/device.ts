@@ -15,6 +15,14 @@ import { EventEmitter } from 'eventemitter3'
 import { CommandReport, DoOnTime, SlowFulfilledCommandInfo, SlowSentCommandInfo } from './doOnTime'
 import { ExpectedPlayoutItem } from '../expectedPlayoutItems'
 import { FinishedTrace, t } from '../lib'
+import { DeviceEvents, CommandWithContext as ServiceCommandWithContext } from '../service/device'
+
+// =================================================================================================
+// =================================================================================================
+// NOTE: This file contains types for the OLD devices.
+// These types will eventually go away and replaced by the ones in ../service/device.ts
+// =================================================================================================
+// =================================================================================================
 
 /*
 	This is a base class for all the Device wrappers.
@@ -31,11 +39,8 @@ export interface DeviceCommandContainer {
 	deviceId: string
 	commands: Array<DeviceCommand>
 }
-export interface CommandWithContext {
-	context: any
-	timelineObjId: string
-	command: any
-}
+
+export type CommandWithContext = ServiceCommandWithContext
 
 export function literal<T>(o: T) {
 	return o
@@ -43,7 +48,11 @@ export function literal<T>(o: T) {
 
 export { DeviceStatus, StatusCode }
 
-export type DeviceEvents = {
+/**
+ * These are the old Device events, emitted by the devices and listened to by conductor.
+ * @deprecated
+ */
+export type DeviceEventsOLD = {
 	info: [info: string]
 	warning: [warning: string]
 	error: [context: string, err: Error]
@@ -156,9 +165,8 @@ export abstract class Device<TOptions extends DeviceOptionsBase<any>>
 	 * @param activeRundownPlaylistId ID of active rundown playlist
 	 */
 	abstract init(initOptions: TOptions['options'], activeRundownPlaylistId?: string): Promise<boolean>
-	async terminate(): Promise<boolean> {
-		return Promise.resolve(true)
-	}
+	abstract terminate(): Promise<void>
+
 	getCurrentTime(): number {
 		if (this.useDirectTime) {
 			// Used when running in test
@@ -251,7 +259,7 @@ export abstract class Device<TOptions extends DeviceOptionsBase<any>>
 		return this._isActive
 	}
 
-	async executeAction(_actionId: string, _payload?: Record<string, any>): Promise<ActionExecutionResult> {
+	async executeAction(_actionId: string, _payload?: Record<string, any>): Promise<ActionExecutionResult<any>> {
 		return {
 			result: ActionExecutionResultCode.Error,
 			response: t('Device does not implement an action handler'),

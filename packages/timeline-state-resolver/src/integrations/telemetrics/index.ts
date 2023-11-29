@@ -194,13 +194,12 @@ export class TelemetricsDevice extends DeviceWithState<TelemetricsState, DeviceO
 		this.cleanUpStates(0, newStateTime)
 	}
 
-	async terminate(): Promise<boolean> {
+	async terminate(): Promise<void> {
 		this.doOnTime.dispose()
 		if (this.retryConnectionTimer) {
 			clearTimeout(this.retryConnectionTimer)
 			this.retryConnectionTimer = undefined
 		}
 		this.socket?.destroy()
-		return true
 	}
 }

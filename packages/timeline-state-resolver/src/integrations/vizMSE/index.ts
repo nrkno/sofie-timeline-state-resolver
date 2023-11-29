@@ -20,6 +20,8 @@ import {
 	SomeMappingVizMSE,
 	TimelineContentVIZMSEElementPilot,
 	TimelineContentVIZMSEElementInternal,
+	VizMSEActionExecutionPayload,
+	VizMSEActionExecutionResult,
 } from 'timeline-state-resolver-types'
 
 import { createMSE, MSE } from '@tv2media/v-connection'
@@ -27,7 +29,7 @@ import { createMSE, MSE } from '@tv2media/v-connection'
 import { DoOnTime, SendMode } from '../../devices/doOnTime'
 
 import { ExpectedPlayoutItem } from '../../expectedPlayoutItems'
-import { endTrace, startTrace, t } from '../../lib'
+import { actionNotFoundMessage, endTrace, startTrace, t } from '../../lib'
 import { HTTPClientError, HTTPServerError } from '@tv2media/v-connection/dist/msehttp'
 import { VizMSEManager } from './vizMSEManager'
 import {
@@ -148,15 +150,13 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState, DeviceOptionsVizM
 	/**
 	 * Terminates the device safely such that things can be garbage collected.
 	 */
-	async terminate(): Promise<boolean> {
+	async terminate(): Promise<void> {
 		if (this._vizmseManager) {
 			await this._vizmseManager.terminate()
 			this._vizmseManager.removeAllListeners()
 			delete this._vizmseManager
 		}
 		this._doOnTime.dispose()
-
-		return true
 	}
 	/** Called by the Conductor a bit before a .handleState is called */
 	prepareForHandleState(newStateTime: number) {
@@ -268,20 +268,23 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState, DeviceOptionsVizM
 		})
 	}
 
-	async executeAction(actionId: string, payload?: Record<string, any> | undefined): Promise<ActionExecutionResult> {
+	async executeAction<A extends VizMSEActions>(
+		actionId: A,
+		payload: VizMSEActionExecutionPayload<A>
+	): Promise<VizMSEActionExecutionResult<A>> {
 		switch (actionId) {
 			case VizMSEActions.PurgeRundown:
 				await this.purgeRundown(true)
 				return { result: ActionExecutionResultCode.Ok }
 			case VizMSEActions.Activate:
-				return this.activate(payload)
+				return this.activate(payload) as Promise<VizMSEActionExecutionResult<A>>
 			case VizMSEActions.StandDown:
-				return this.executeStandDown()
+				return this.executeStandDown() as Promise<VizMSEActionExecutionResult<A>>
 			case VizMSEActions.ClearAllEngines:
 				await this.clearEngines()
 				return { result: ActionExecutionResultCode.Ok }
 			default:
-				return { result: ActionExecutionResultCode.Ok, response: t('Action "{{id}}" not found', { actionId }) }
+				return actionNotFoundMessage(actionId)
 		}
 	}
 

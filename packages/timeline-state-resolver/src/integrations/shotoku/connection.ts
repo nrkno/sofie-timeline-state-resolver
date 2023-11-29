@@ -1,10 +1,16 @@
-import { EventEmitter } from 'events'
+import { EventEmitter } from 'eventemitter3'
 import { Socket } from 'net'
 
 const TIMEOUT = 3000 // ms
 const RETRY_TIMEOUT = 5000 // ms
 
-export class ShotokuAPI extends EventEmitter {
+interface ShotokuAPIEvents {
+	warn: [message: string]
+	disconnected: []
+	connected: []
+	error: [context: string, error: Error]
+}
+export class ShotokuAPI extends EventEmitter<ShotokuAPIEvents> {
 	private _tcpClient: Socket | undefined = undefined
 	private _connected = false
 	private _host: string
@@ -154,7 +160,7 @@ export class ShotokuAPI extends EventEmitter {
 					// disconnection
 					this._setConnected(false)
 				} else {
-					this.emit('error', e)
+					this.emit('error', 'TCP socket', e)
 				}
 			})
 		}
@@ -167,7 +173,7 @@ export class ShotokuAPI extends EventEmitter {
 					// client.write('Hello, server! Love, Client.');
 				})
 				setTimeout(() => {
-					reject(`TCP timeout: Unable to connect to ${this._host}:${this._port}`)
+					reject(new Error(`TCP timeout: Unable to connect to ${this._host}:${this._port}`))
 					this._triggerRetryConnection()
 					if (!resolved && this._tcpClient) {
 						this._tcpClient.destroy()

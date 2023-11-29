@@ -8,9 +8,10 @@ import {
 	SomeMappingSofieChef,
 	TSRTimelineContent,
 	Timeline,
-	ActionExecutionResult,
 	ActionExecutionResultCode,
 	SofieChefActions,
+	SofieChefActionExecutionPayload,
+	SofieChefActionExecutionResult,
 } from 'timeline-state-resolver-types'
 
 import { DoOnTime, SendMode } from '../../devices/doOnTime'
@@ -222,8 +223,6 @@ export class SofieChefDevice extends DeviceWithState<SofieChefState, DeviceOptio
 
 		this._ws?.terminate()
 		this._ws?.removeAllListeners()
-
-		return true
 	}
 	get canConnect(): boolean {
 		return true
@@ -281,10 +280,10 @@ export class SofieChefDevice extends DeviceWithState<SofieChefState, DeviceOptio
 			windowId: windowId,
 		})
 	}
-	async executeAction(
-		actionId: SofieChefActions,
-		payload?: Record<string, any> | undefined
-	): Promise<ActionExecutionResult> {
+	async executeAction<A extends SofieChefActions>(
+		actionId: A,
+		payload: SofieChefActionExecutionPayload<A>
+	): Promise<SofieChefActionExecutionResult<A>> {
 		switch (actionId) {
 			case SofieChefActions.RestartAllWindows:
 				return this.restartAllWindows()
@@ -427,9 +426,9 @@ export class SofieChefDevice extends DeviceWithState<SofieChefState, DeviceOptio
 	): Promise<any> {
 		// emit the command to debug:
 		const cwc: CommandWithContext = {
-			context: context,
+			context,
 			command: cmd.content,
-			timelineObjId: timelineObjId,
+			timelineObjId,
 		}
 		this.emitDebug(cwc)
 

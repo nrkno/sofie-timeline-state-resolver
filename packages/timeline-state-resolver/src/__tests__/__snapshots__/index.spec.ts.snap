@@ -77,7 +77,6 @@ exports[`index imports 1`] = `
   "TimelineContentTypeSingularLive",
   "TimelineContentTypeSisyfos",
   "TimelineContentTypeSofieChef",
-  "TimelineContentTypeTcp",
   "TimelineContentTypeTriCaster",
   "TimelineContentTypeVMix",
   "TimelineContentTypeVizMSE",

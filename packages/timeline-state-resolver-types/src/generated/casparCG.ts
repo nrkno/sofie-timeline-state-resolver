@@ -4,6 +4,7 @@
  * DO NOT MODIFY IT BY HAND. Instead, modify the source JSONSchema file,
  * and run "yarn generate-schema-types" to regenerate this file.
  */
+import { ActionExecutionResult } from ".."
 
 export interface CasparCGOptions {
 	/**
@@ -40,7 +41,32 @@ export enum MappingCasparCGType {
 
 export type SomeMappingCasparCG = MappingCasparCGLayer
 
+export interface ListMediaPayload {
+	subDirectory?: string
+}
+
+export type ListMediaResult = {
+	clip: string
+	type: 'MOVIE' | 'STILL' | 'AUDIO'
+	size: number
+	datetime?: number
+	frames: number
+	framerate: number
+}[]
+
 export enum CasparCGActions {
 	ClearAllChannels = 'clearAllChannels',
 	RestartServer = 'restartServer',
+	ListMedia = 'listMedia'
 }
+export interface CasparCGActionExecutionResults {
+	clearAllChannels: () => void,
+	restartServer: () => void,
+	listMedia: (payload: ListMediaPayload) => ListMediaResult
+}
+export type CasparCGActionExecutionPayload<A extends keyof CasparCGActionExecutionResults> = Parameters<
+	CasparCGActionExecutionResults[A]
+>[0]
+
+export type CasparCGActionExecutionResult<A extends keyof CasparCGActionExecutionResults> =
+	ActionExecutionResult<ReturnType<CasparCGActionExecutionResults[A]>>

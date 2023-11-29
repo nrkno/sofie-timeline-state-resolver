@@ -1,22 +1,22 @@
-import { DeviceStatus, StatusCode, Device } from './../../devices/device'
 import {
-	DeviceType,
 	TimelineContentTypeHTTP,
 	HTTPWatcherOptions,
-	DeviceOptionsHTTPWatcher,
-	Mappings,
-	Timeline,
-	TSRTimelineContent,
+	ActionExecutionResult,
+	StatusCode,
+	DeviceStatus,
 } from 'timeline-state-resolver-types'
 import got, { Headers, Response } from 'got'
+import { CommandWithContext, Device } from '../../service/device'
 
-export type DeviceOptionsHTTPWatcherInternal = DeviceOptionsHTTPWatcher
+type HTTPWatcherDeviceState = Record<string, never>
 
 /**
  * This is a HTTPWatcherDevice, requests a uri on a regular interval and watches
  * it's response.
  */
-export class HTTPWatcherDevice extends Device<DeviceOptionsHTTPWatcherInternal> {
+export class HTTPWatcherDevice extends Device<HTTPWatcherOptions, HTTPWatcherDeviceState, CommandWithContext> {
+	readonly actions: Record<string, (id: string, payload: Record<string, any>) => Promise<ActionExecutionResult>> = {}
+
 	private uri?: string
 	private httpMethod: TimelineContentTypeHTTP
 	private expectedHttpResponse: number | undefined
@@ -26,38 +26,8 @@ export class HTTPWatcherDevice extends Device<DeviceOptionsHTTPWatcherInternal> 
 	private interval: NodeJS.Timer | undefined
 	private status: StatusCode = StatusCode.UNKNOWN
 	private statusReason: string | undefined
-	constructor(
-		deviceId: string,
-		deviceOptions: DeviceOptionsHTTPWatcherInternal,
-		getCurrentTime: () => Promise<number>
-	) {
-		super(deviceId, deviceOptions, getCurrentTime)
-		const opts = deviceOptions.options
-		switch (opts?.httpMethod) {
-			case 'post':
-				this.httpMethod = TimelineContentTypeHTTP.POST
-				break
-			case 'delete':
-				this.httpMethod = TimelineContentTypeHTTP.DELETE
-				break
-			case 'put':
-				this.httpMethod = TimelineContentTypeHTTP.PUT
-				break
-			case 'get':
-			case undefined:
-			default:
-				this.httpMethod = TimelineContentTypeHTTP.GET
-				break
-		}
 
-		this.expectedHttpResponse = Number(opts?.expectedHttpResponse) || undefined
-		this.headers = opts?.headers
-		this.keyword = opts?.keyword
-		this.intervalTime = Math.max(Number(opts?.interval) || 1000, 1000)
-		this.uri = opts?.uri
-	}
-
-	onInterval() {
+	private onInterval() {
 		if (!this.uri) {
 			this._setStatus(StatusCode.BAD, 'URI not set')
 			return
@@ -76,20 +46,20 @@ export class HTTPWatcherDevice extends Device<DeviceOptionsHTTPWatcherInternal> 
 			this._setStatus(StatusCode.BAD, `Bad request method: "${this.httpMethod}"`)
 		}
 	}
-	stopInterval() {
+	private stopInterval() {
 		if (this.interval) {
 			clearInterval(this.interval)
 			this.interval = undefined
 		}
 	}
-	startInterval() {
+	private startInterval() {
 		this.stopInterval()
 		this.interval = setInterval(() => this.onInterval(), this.intervalTime)
 		// Also do a check right away:
 		setTimeout(() => this.onInterval(), 300)
 	}
 
-	handleResponse(response: Response<string>) {
+	private handleResponse(response: Response<string>) {
 		if (this.expectedHttpResponse && this.expectedHttpResponse !== response.statusCode) {
 			this._setStatus(StatusCode.BAD, `Expected status code ${this.expectedHttpResponse}, got ${response.statusCode}`)
 		} else if (this.keyword && response.body && response.body.indexOf(this.keyword) === -1) {
@@ -99,55 +69,67 @@ export class HTTPWatcherDevice extends Device<DeviceOptionsHTTPWatcherInternal> 
 		}
 	}
 
-	async init(_initOptions: HTTPWatcherOptions): Promise<boolean> {
+	async init(options: HTTPWatcherOptions): Promise<boolean> {
+		switch (options.httpMethod) {
+			case 'post':
+				this.httpMethod = TimelineContentTypeHTTP.POST
+				break
+			case 'delete':
+				this.httpMethod = TimelineContentTypeHTTP.DELETE
+				break
+			case 'put':
+				this.httpMethod = TimelineContentTypeHTTP.PUT
+				break
+			case 'get':
+			case undefined:
+			default:
+				this.httpMethod = TimelineContentTypeHTTP.GET
+				break
+		}
+
+		this.expectedHttpResponse = Number(options.expectedHttpResponse) || undefined
+		this.headers = options.headers
+		this.keyword = options.keyword
+		this.intervalTime = Math.max(Number(options.interval) || 1000, 1000)
+		this.uri = options.uri
+
 		this.startInterval()
 
 		return Promise.resolve(true)
 	}
-	/** Called by the Conductor a bit before a .handleState is called */
-	prepareForHandleState(_newStateTime: number) {
-		// NOP
-	}
-	handleState(newState: Timeline.TimelineState<TSRTimelineContent>, newMappings: Mappings) {
-		super.onHandleState(newState, newMappings)
-		// NOP
-	}
-	clearFuture(_clearAfterTime: number) {
-		// NOP
-	}
-	getStatus(): DeviceStatus {
-		const s: DeviceStatus = {
-			statusCode: this.status,
-			messages: [],
-			active: true, // since this is not using any mappings, it's considered to be always active
-		}
-		if (this.statusReason) s.messages = [this.statusReason]
-		return s
-	}
-	async terminate(): Promise<boolean> {
-		this.stopInterval()
 
-		return Promise.resolve(true)
+	async terminate(): Promise<void> {
+		this.stopInterval()
+	}
+
+	getStatus(): Omit<DeviceStatus, 'active'> {
+		return {
+			statusCode: this.status,
+			messages: this.statusReason ? [this.statusReason] : [],
+		}
 	}
 	private _setStatus(status: StatusCode, reason?: string) {
 		if (this.status !== status || this.statusReason !== reason) {
 			this.status = status
 			this.statusReason = reason
 
-			this.emit('connectionChanged', this.getStatus())
+			this.context.connectionChanged(this.getStatus())
 		}
 	}
 
-	get canConnect(): boolean {
-		return false
-	}
 	get connected(): boolean {
 		return false
 	}
-	get deviceType() {
-		return DeviceType.HTTPWATCHER
+
+	convertTimelineStateToDeviceState(): HTTPWatcherDeviceState {
+		// Noop
+		return {}
 	}
-	get deviceName(): string {
-		return 'HTTP-Watch ' + this.deviceId
+	diffStates(): Array<CommandWithContext> {
+		// Noop
+		return []
+	}
+	async sendCommand(): Promise<void> {
+		// Noop
 	}
 }

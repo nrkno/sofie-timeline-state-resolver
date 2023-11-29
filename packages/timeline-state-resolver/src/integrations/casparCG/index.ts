@@ -1,7 +1,17 @@
 import * as _ from 'underscore'
 import * as deepMerge from 'deepmerge'
 import { DeviceWithState, CommandWithContext, DeviceStatus, StatusCode, literal } from '../../devices/device'
-import { AMCPCommand, BasicCasparCGAPI, ClearCommand, Commands, Response } from 'casparcg-connection'
+import {
+	AMCPCommand,
+	BasicCasparCGAPI,
+	ClearCommand,
+	ClsCommand,
+	Commands,
+	Response,
+	InfoChannelEntry,
+	InfoEntry,
+	Command,
+} from 'casparcg-connection'
 import {
 	DeviceType,
 	TimelineContentTypeCasparCg,
@@ -16,10 +26,12 @@ import {
 	Timeline,
 	TSRTimelineContent,
 	ActionExecutionResult,
+	CasparCGActionExecutionResult,
 	ActionExecutionResultCode,
 	CasparCGActions,
 	MappingCasparCGLayer,
 	Mapping,
+	CasparCGActionExecutionPayload,
 } from 'timeline-state-resolver-types'
 
 import {
@@ -45,7 +57,9 @@ import { DoOnTime, SendMode } from '../../devices/doOnTime'
 import got from 'got'
 import { InternalTransitionHandler } from '../../devices/transitions/transitionHandler'
 import Debug from 'debug'
-import { endTrace, startTrace, t } from '../../lib'
+import { actionNotFoundMessage, endTrace, startTrace, t } from '../../lib'
+import { ListMediaResult } from 'timeline-state-resolver-types'
+import { ClsParameters } from 'casparcg-connection/dist/parameters'
 const debug = Debug('timeline-state-resolver:casparcg')
 
 const MEDIA_RETRY_INTERVAL = 10 * 1000 // default time in ms between checking whether a file needs to be retried loading
@@ -119,7 +133,7 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 
 					const response = await request
 
-					const channelPromises: Promise<Response>[] = []
+					const channelPromises: Promise<Response<InfoChannelEntry | undefined>>[] = []
 					const channelLength: number = response?.data?.['length'] ?? 0
 
 					// Issue commands
@@ -127,7 +141,7 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 						// 1-based index for channels
 
 						const { error, request } = await this._ccg.executeCommand({
-							command: Commands.Info,
+							command: Commands.InfoChannel,
 							params: { channel: i },
 						})
 						if (error) {
@@ -141,8 +155,11 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 					// Wait for all commands
 					const channelResults = await Promise.all(channelPromises)
 
-					// Resync if all channels have no stage object (no possibility of anything playing)
-					return !channelResults.find((ch) => ch.data['stage'])
+					// Resync if all channels are empty
+					for (const ch of channelResults) {
+						if (ch.data && ch.data.channel.layers.length > 0) return false
+					}
+					return true
 				})
 				.catch((e) => {
 					this.emit('error', 'connect virgin check failed', e)
@@ -183,7 +200,7 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 			response.data.forEach((obj) => {
 				this._currentState.channels[obj.channel] = {
 					channelNo: obj.channel,
-					videoMode: obj.format.toUpperCase(),
+					videoMode: this.getVideMode(obj),
 					fps: obj.frameRate,
 					layers: {},
 				}
@@ -203,23 +220,23 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 	/**
 	 * Terminates the device safely such that things can be garbage collected.
 	 */
-	async terminate(): Promise<boolean> {
+	async terminate(): Promise<void> {
 		this._doOnTime.dispose()
 		this._transitionHandler.terminate()
 		clearTimeout(this._retryTimeout)
-		return new Promise((resolve) => {
+		return new Promise<void>((resolve) => {
 			if (!this._ccg) {
-				resolve(true)
+				resolve()
 				return
 			} else if (!this._ccg.connected) {
 				this._ccg.once('disconnect', () => {
-					resolve(true)
+					resolve()
 					this._ccg.removeAllListeners()
 				})
 				this._ccg.disconnect()
 			} else {
 				this._ccg.removeAllListeners()
-				resolve(true)
+				resolve()
 			}
 		})
 	}
@@ -653,7 +670,7 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 		response.data.forEach((obj) => {
 			this._currentState.channels[obj.channel] = {
 				channelNo: obj.channel,
-				videoMode: obj.format.toUpperCase(),
+				videoMode: this.getVideMode(obj),
 				fps: obj.frameRate,
 				layers: {},
 			}
@@ -665,18 +682,19 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 			result: ActionExecutionResultCode.Ok,
 		}
 	}
-
-	async executeAction(id: CasparCGActions): Promise<ActionExecutionResult> {
-		switch (id) {
+	async executeAction<A extends CasparCGActions>(
+		actionId: A,
+		payload: CasparCGActionExecutionPayload<A>
+	): Promise<CasparCGActionExecutionResult<A>> {
+		switch (actionId) {
 			case CasparCGActions.ClearAllChannels:
-				return this.clearAllChannels()
+				return this.clearAllChannels() as Promise<CasparCGActionExecutionResult<A>>
 			case CasparCGActions.RestartServer:
-				return this.restartCasparCG()
+				return this.restartCasparCG() as Promise<CasparCGActionExecutionResult<A>>
+			case CasparCGActions.ListMedia:
+				return this.listMedia(payload) as Promise<CasparCGActionExecutionResult<A>>
 			default:
-				return {
-					result: ActionExecutionResultCode.Error,
-					response: t('Action "{{id}}" not found', { id }),
-				}
+				return actionNotFoundMessage(actionId)
 		}
 	}
 
@@ -729,6 +747,33 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 				}
 			})
 	}
+	private async listMedia(query: ClsParameters = {}): Promise<ActionExecutionResult<ListMediaResult>> {
+		const result = await this._ccg.executeCommand(
+			literal<ClsCommand>({
+				command: Commands.Cls,
+				params: query,
+			})
+		)
+		if (result.error)
+			return {
+				result: ActionExecutionResultCode.Error,
+				response: t(`Error message from CasparCG: {{message}}`, { message: `${result.error}` }),
+			}
+
+		const request = await result.request
+
+		if (request.responseCode === 200) {
+			return {
+				result: ActionExecutionResultCode.Ok,
+				resultData: request.data,
+			}
+		} else {
+			return {
+				result: ActionExecutionResultCode.Error,
+				response: t(`Error code {{code}} from CasparCG`, { code: request.responseCode }),
+			}
+		}
+	}
 	getStatus(): DeviceStatus {
 		let statusCode = StatusCode.GOOD
 		const messages: Array<string> = []
@@ -762,8 +807,8 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 			this._doOnTime.queue(
 				time,
 				undefined,
-				async (c: { command: AMCPCommand; cmd: AMCPCommandWithContext }) => {
-					return this._commandReceiver(time, c.command, c.cmd.context.context, c.cmd.context.layerId)
+				async (c: { command: Command<Commands, unknown>; cmd: AMCPCommandWithContext }) => {
+					return this._commandReceiver(time, c.command as AMCPCommand, c.cmd.context.context, c.cmd.context.layerId)
 				},
 				{ command: { command: cmd.command, params: cmd.params }, cmd: cmd }
 			)
@@ -787,8 +832,8 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 		}
 
 		const cwc: CommandWithContext = {
-			context: context,
-			timelineObjId: timelineObjId,
+			context,
+			timelineObjId,
 			command: JSON.stringify(cmd),
 		}
 		this.emitDebug(cwc)
@@ -830,7 +875,7 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 		}
 	}
 
-	private _changeTrackedStateFromCommand(command: AMCPCommand, response: Response, time: number): void {
+	private _changeTrackedStateFromCommand(command: AMCPCommand, response: Response<unknown>, time: number): void {
 		// Ensure this is for a channel and layer
 		if (!('channel' in command.params) || command.params.channel === undefined) return
 		if (!('layer' in command.params) || command.params.layer === undefined) return
@@ -955,5 +1000,9 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 
 	private _connectionChanged() {
 		this.emit('connectionChanged', this.getStatus())
+	}
+
+	private getVideMode(info: InfoEntry): string {
+		return `${info.format}${info.interlaced ? 'I' : 'P'}${info.frameRate}`
 	}
 }

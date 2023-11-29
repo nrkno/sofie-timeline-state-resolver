@@ -15,13 +15,14 @@ import {
 	Timeline,
 	TSRTimelineContent,
 	QuantelActions,
-	ActionExecutionResult,
 	ActionExecutionResultCode,
+	QuantelActionExecutionPayload,
+	QuantelActionExecutionResult,
 } from 'timeline-state-resolver-types'
 
 import { DoOnTime, SendMode } from '../../devices/doOnTime'
 import { QuantelGateway } from 'tv-automation-quantel-gateway-client'
-import { startTrace, endTrace, t } from '../../lib'
+import { startTrace, endTrace, actionNotFoundMessage } from '../../lib'
 import { QuantelManager } from './connection'
 import {
 	QuantelCommand,
@@ -132,11 +133,9 @@ export class QuantelDevice extends DeviceWithState<QuantelState, DeviceOptionsQu
 	/**
 	 * Terminates the device safely such that things can be garbage collected.
 	 */
-	async terminate(): Promise<boolean> {
+	async terminate(): Promise<void> {
 		this._quantel.dispose()
 		this._doOnTime.dispose()
-
-		return true
 	}
 	/** Called by the Conductor a bit before a .handleState is called */
 	prepareForHandleState(newStateTime: number) {
@@ -191,7 +190,10 @@ export class QuantelDevice extends DeviceWithState<QuantelState, DeviceOptionsQu
 			throw new Error('Quantel Gateway not connected')
 		}
 	}
-	async executeAction(actionId: string, _payload?: Record<string, any> | undefined): Promise<ActionExecutionResult> {
+	async executeAction<A extends QuantelActions>(
+		actionId: A,
+		_payload: QuantelActionExecutionPayload<A>
+	): Promise<QuantelActionExecutionResult<A>> {
 		switch (actionId) {
 			case QuantelActions.RestartGateway:
 				try {
@@ -204,7 +206,7 @@ export class QuantelDevice extends DeviceWithState<QuantelState, DeviceOptionsQu
 				this.clearStates()
 				return { result: ActionExecutionResultCode.Ok }
 			default:
-				return { result: ActionExecutionResultCode.Ok, response: t('Action "{{id}}" not found', { actionId }) }
+				return actionNotFoundMessage(actionId)
 		}
 	}
 

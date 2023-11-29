@@ -4,6 +4,7 @@
  * DO NOT MODIFY IT BY HAND. Instead, modify the source JSONSchema file,
  * and run "yarn generate-schema-types" to regenerate this file.
  */
+import { ActionExecutionResult } from ".."
 
 export interface HyperdeckOptions {
 	host: string
@@ -27,5 +28,15 @@ export type SomeMappingHyperdeck = MappingHyperdeckTransport
 
 export enum HyperdeckActions {
 	FormatDisks = 'formatDisks',
-	Resync = 'resync',
+	Resync = 'resync'
 }
+export interface HyperdeckActionExecutionResults {
+	formatDisks: () => void,
+	resync: () => void
+}
+export type HyperdeckActionExecutionPayload<A extends keyof HyperdeckActionExecutionResults> = Parameters<
+	HyperdeckActionExecutionResults[A]
+>[0]
+
+export type HyperdeckActionExecutionResult<A extends keyof HyperdeckActionExecutionResults> =
+	ActionExecutionResult<ReturnType<HyperdeckActionExecutionResults[A]>>

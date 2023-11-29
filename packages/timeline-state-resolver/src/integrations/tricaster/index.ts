@@ -139,11 +139,10 @@ export class TriCasterDevice extends DeviceWithState<WithContext<TriCasterState>
 		this._doOnTime.clearQueueAfter(clearAfterTime)
 	}
 
-	async terminate(): Promise<boolean> {
+	async terminate(): Promise<void> {
 		this._isTerminating = true
 		this._doOnTime.dispose()
 		this._connection?.close()
-		return Promise.resolve(true)
 	}
 
 	getStatus(): DeviceStatus {

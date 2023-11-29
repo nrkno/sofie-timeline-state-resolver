@@ -133,9 +133,7 @@ export class PharosDevice extends DeviceWithState<PharosState, DeviceOptionsPhar
 	}
 	async terminate() {
 		this._doOnTime.dispose()
-		return this._pharos.dispose().then(() => {
-			return true
-		})
+		await this._pharos.dispose()
 	}
 	get canConnect(): boolean {
 		return true
@@ -159,10 +157,8 @@ export class PharosDevice extends DeviceWithState<PharosState, DeviceOptionsPhar
 		return Promise.resolve()
 	}
 	async executeAction(actionId: string, _payload?: Record<string, any> | undefined): Promise<ActionExecutionResult> {
-		switch (actionId) {
-			default:
-				return actionNotFoundMessage(actionId)
-		}
+		// No actions defined
+		return actionNotFoundMessage(actionId as never)
 	}
 	getStatus(): DeviceStatus {
 		let statusCode = StatusCode.GOOD
@@ -387,13 +383,13 @@ export class PharosDevice extends DeviceWithState<PharosState, DeviceOptionsPhar
 	): Promise<any> {
 		// emit the command to debug:
 		const cwc: CommandWithContext = {
-			context: context,
+			context,
 			command: {
 				// commandName: cmd.content.args,
 				args: cmd.content.args,
 				// content: cmd.content
 			},
-			timelineObjId: timelineObjId,
+			timelineObjId,
 		}
 		this.emitDebug(cwc)
 

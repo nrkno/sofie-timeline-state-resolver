@@ -1,4 +1,4 @@
-import * as atemState from './atem-state'
+import * as atemConnection from './atem-connection'
 import * as casparcgConnection from './casparcg-connection'
 import * as emberplusConnection from './emberplus-connection'
 import * as emberplus from './emberplus'
@@ -14,7 +14,7 @@ import * as ws from './ws'
 // does not work properly and need to be set up like this..
 
 export function setupAllMocks() {
-	jest.mock('atem-state', () => atemState)
+	jest.mock('atem-connection', () => atemConnection)
 	jest.mock('casparcg-connection', () => casparcgConnection)
 	jest.mock('emberplus-connection', () => emberplusConnection)
 	jest.mock('emberplus', () => emberplus)
