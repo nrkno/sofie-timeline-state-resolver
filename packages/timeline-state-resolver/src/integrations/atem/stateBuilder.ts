@@ -30,7 +30,8 @@ import {
 } from 'timeline-state-resolver-types'
 import _ = require('underscore')
 import { State as DeviceState, Defaults as StateDefault } from 'atem-state'
-import { assertNever, cloneDeep, deepMerge } from '../../lib'
+import { assertNever, cloneDeep, deepMerge, literal } from '../../lib'
+import { PartialDeep } from 'type-fest'
 
 export class AtemStateBuilder {
 	// Start out with default state:
@@ -139,9 +140,40 @@ export class AtemStateBuilder {
 		const objectKeyers = content.me.upstreamKeyers
 		if (objectKeyers) {
 			for (const objKeyer of objectKeyers) {
-				stateMixEffect.upstreamKeyers[objKeyer.upstreamKeyerId] = deepMerge(
+				const fixedObjKeyer: PartialDeep<VideoState.USK.UpstreamKeyer> = {
+					...objKeyer,
+					flyKeyframes: [undefined, undefined],
+					flyProperties: undefined,
+				}
+				delete fixedObjKeyer.flyProperties
+				delete fixedObjKeyer.flyKeyframes
+				if (objKeyer.flyProperties) {
+					fixedObjKeyer.flyProperties = {
+						isASet: false,
+						isBSet: false,
+						isAtKeyFrame: objKeyer.flyProperties.isAtKeyFrame as number,
+						runToInfiniteIndex: objKeyer.flyProperties.runToInfiniteIndex,
+					}
+				}
+				if (objKeyer.flyKeyframes) {
+					fixedObjKeyer.flyKeyframes = [undefined, undefined]
+					if (objKeyer.flyKeyframes[0]) {
+						fixedObjKeyer.flyKeyframes[0] = literal<PartialDeep<VideoState.USK.UpstreamKeyerFlyKeyframe>>({
+							keyFrameId: 0,
+							...objKeyer.flyKeyframes[0],
+						}) as VideoState.USK.UpstreamKeyerFlyKeyframe
+					}
+					if (objKeyer.flyKeyframes[1]) {
+						fixedObjKeyer.flyKeyframes[1] = literal<PartialDeep<VideoState.USK.UpstreamKeyerFlyKeyframe>>({
+							keyFrameId: 1,
+							...objKeyer.flyKeyframes[1],
+						}) as VideoState.USK.UpstreamKeyerFlyKeyframe
+					}
+				}
+
+				stateMixEffect.upstreamKeyers[objKeyer.upstreamKeyerId] = deepMerge<VideoState.USK.UpstreamKeyer>(
 					AtemStateUtil.getUpstreamKeyer(stateMixEffect, objKeyer.upstreamKeyerId),
-					objKeyer
+					fixedObjKeyer
 				)
 			}
 		}
