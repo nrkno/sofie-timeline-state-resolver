@@ -2515,16 +2515,16 @@ asn1@evs-broadcast/node-asn1:
   languageName: node
   linkType: hard
 
-"atem-state@npm:1.1.0":
-  version: 1.1.0
-  resolution: "atem-state@npm:1.1.0"
+"atem-state@npm:1.2.0-nightly-master-20231128-132120-3e4ccf1.0":
+  version: 1.2.0-nightly-master-20231128-132120-3e4ccf1.0
+  resolution: "atem-state@npm:1.2.0-nightly-master-20231128-132120-3e4ccf1.0"
   dependencies:
     deepmerge: ^4.3.1
     tslib: ^2.6.2
     type-fest: ^3.13.1
   peerDependencies:
     atem-connection: 3.3.2
-  checksum: 9e48469117bb00b10a59f983eb319d0ec2128164e24eb643b4e9cd52bfeaf9a942f5b9342c3a475d44352524315f761d960f878bb05401250db7414cfaa67640
+  checksum: 70d1f8001cdc94d24c83f023a5186c69e5cf3d93d357c65a57e564442bf00362a24862c7cf7756f0f0c6caf7597769ba687c32deaafe2bd1c10444765d9b6262
   languageName: node
   linkType: hard
 
@@ -11073,7 +11073,7 @@ asn1@evs-broadcast/node-asn1:
   dependencies:
     "@tv2media/v-connection": ^7.3.2
     atem-connection: 3.3.2
-    atem-state: 1.1.0
+    atem-state: 1.2.0-nightly-master-20231128-132120-3e4ccf1.0
     cacheable-lookup: ^5.0.3
     casparcg-connection: ^6.1.1
     casparcg-state: ^3.0.2
