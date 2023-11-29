@@ -57,7 +57,10 @@ export class MultiOSCMessageDevice extends DeviceWithState<OSCDeviceState, Devic
 		super(deviceId, deviceOptions, getCurrentTime)
 		if (deviceOptions.options) {
 			deviceOptions.options.connections.forEach(({ connectionId }) => {
-				this._connections[connectionId] = new OSCConnection()
+				const connection = new OSCConnection()
+				connection.on('error', (err) => this.emit('error', 'Error in MultiOSC connection ' + connectionId, err))
+				connection.on('debug', (...args) => this.emit('debug', 'from connection ' + connectionId, ...args))
+				this._connections[connectionId] = connection
 			})
 		}
 		this._doOnTime = new DoOnTime(
@@ -71,7 +74,18 @@ export class MultiOSCMessageDevice extends DeviceWithState<OSCDeviceState, Devic
 	}
 	async init(initOptions: MultiOSCOptions): Promise<boolean> {
 		for (const connOptions of initOptions.connections) {
-			await this._connections[connOptions.connectionId]?.connect({
+			const conn = this._connections[connOptions.connectionId]
+
+			if (!conn) {
+				this.emit(
+					'error',
+					'Could not initialise device',
+					new Error('Connection ' + connOptions.connectionId + ' not initialised')
+				)
+				continue
+			}
+
+			await conn.connect({
 				...connOptions,
 				oscSender: this._deviceOptions?.oscSenders?.[connOptions.connectionId] || undefined,
 			})
