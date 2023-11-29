@@ -140,6 +140,10 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
 - **vmix:** show a BAD status code when vMix is not initialized ([370be3a](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/370be3af2f01bada232ea244c76b6c5507e9773f))
 - wrap singular.live JSON commands in an array ([cc5b7ec](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/cc5b7ec61d456de993cbc0e25963c93ec8b65f38))
 
+## [8.1.1](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/8.1.0...8.1.1) (2023-11-29)
+
+**Note:** Version bump only for package timeline-state-resolver
+
 ## [8.1.0](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/8.0.0...8.1.0) (2023-10-19)
 
 ### Features
