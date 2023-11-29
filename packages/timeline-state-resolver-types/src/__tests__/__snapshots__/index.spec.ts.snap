@@ -16,6 +16,8 @@ exports[`index imports 1`] = `
   "Direction",
   "Ease",
   "EmberParameterType",
+  "FlyKeyDirection",
+  "FlyKeyKeyFrame",
   "HttpMethod",
   "HttpSendActions",
   "HyperdeckActions",
