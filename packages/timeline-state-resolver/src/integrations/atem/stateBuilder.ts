@@ -30,7 +30,8 @@ import {
 } from 'timeline-state-resolver-types'
 import _ = require('underscore')
 import { State as DeviceState, Defaults as StateDefault } from 'atem-state'
-import { assertNever, cloneDeep, deepMerge } from '../../lib'
+import { assertNever, cloneDeep, deepMerge, literal } from '../../lib'
+import { PartialDeep } from 'type-fest'
 
 export class AtemStateBuilder {
 	// Start out with default state:
@@ -139,10 +140,44 @@ export class AtemStateBuilder {
 		const objectKeyers = content.me.upstreamKeyers
 		if (objectKeyers) {
 			for (const objKeyer of objectKeyers) {
-				stateMixEffect.upstreamKeyers[objKeyer.upstreamKeyerId] = deepMerge(
+				const fixedObjKeyer: PartialDeep<VideoState.USK.UpstreamKeyer> = {
+					...objKeyer,
+					flyKeyframes: [undefined, undefined],
+					flyProperties: undefined,
+				}
+				delete fixedObjKeyer.flyProperties
+				delete fixedObjKeyer.flyKeyframes
+
+				if (objKeyer.flyProperties) {
+					fixedObjKeyer.flyProperties = {
+						isASet: false,
+						isBSet: false,
+						isAtKeyFrame: objKeyer.flyProperties.isAtKeyFrame as number,
+						runToInfiniteIndex: objKeyer.flyProperties.runToInfiniteIndex,
+					}
+				}
+
+				stateMixEffect.upstreamKeyers[objKeyer.upstreamKeyerId] = deepMerge<VideoState.USK.UpstreamKeyer>(
 					AtemStateUtil.getUpstreamKeyer(stateMixEffect, objKeyer.upstreamKeyerId),
-					objKeyer
+					fixedObjKeyer
 				)
+
+				const keyer = stateMixEffect.upstreamKeyers[objKeyer.upstreamKeyerId]
+				if (objKeyer.flyKeyframes && keyer) {
+					keyer.flyKeyframes = [keyer.flyKeyframes[0] ?? undefined, keyer.flyKeyframes[1] ?? undefined]
+					if (objKeyer.flyKeyframes[0]) {
+						keyer.flyKeyframes[0] = literal<VideoState.USK.UpstreamKeyerFlyKeyframe>({
+							...StateDefault.Video.flyKeyframe(0),
+							...objKeyer.flyKeyframes[0],
+						})
+					}
+					if (objKeyer.flyKeyframes[1]) {
+						keyer.flyKeyframes[1] = literal<VideoState.USK.UpstreamKeyerFlyKeyframe>({
+							...StateDefault.Video.flyKeyframe(1),
+							...objKeyer.flyKeyframes[1],
+						})
+					}
+				}
 			}
 		}
 	}
