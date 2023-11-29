@@ -147,6 +147,7 @@ export class AtemStateBuilder {
 				}
 				delete fixedObjKeyer.flyProperties
 				delete fixedObjKeyer.flyKeyframes
+
 				if (objKeyer.flyProperties) {
 					fixedObjKeyer.flyProperties = {
 						isASet: false,
@@ -155,26 +156,28 @@ export class AtemStateBuilder {
 						runToInfiniteIndex: objKeyer.flyProperties.runToInfiniteIndex,
 					}
 				}
-				if (objKeyer.flyKeyframes) {
-					fixedObjKeyer.flyKeyframes = [undefined, undefined]
-					if (objKeyer.flyKeyframes[0]) {
-						fixedObjKeyer.flyKeyframes[0] = literal<PartialDeep<VideoState.USK.UpstreamKeyerFlyKeyframe>>({
-							keyFrameId: 0,
-							...objKeyer.flyKeyframes[0],
-						}) as VideoState.USK.UpstreamKeyerFlyKeyframe
-					}
-					if (objKeyer.flyKeyframes[1]) {
-						fixedObjKeyer.flyKeyframes[1] = literal<PartialDeep<VideoState.USK.UpstreamKeyerFlyKeyframe>>({
-							keyFrameId: 1,
-							...objKeyer.flyKeyframes[1],
-						}) as VideoState.USK.UpstreamKeyerFlyKeyframe
-					}
-				}
 
 				stateMixEffect.upstreamKeyers[objKeyer.upstreamKeyerId] = deepMerge<VideoState.USK.UpstreamKeyer>(
 					AtemStateUtil.getUpstreamKeyer(stateMixEffect, objKeyer.upstreamKeyerId),
 					fixedObjKeyer
 				)
+
+				const keyer = stateMixEffect.upstreamKeyers[objKeyer.upstreamKeyerId]
+				if (objKeyer.flyKeyframes && keyer) {
+					keyer.flyKeyframes = [keyer.flyKeyframes[0] ?? undefined, keyer.flyKeyframes[1] ?? undefined]
+					if (objKeyer.flyKeyframes[0]) {
+						keyer.flyKeyframes[0] = literal<VideoState.USK.UpstreamKeyerFlyKeyframe>({
+							...StateDefault.Video.flyKeyframe(0),
+							...objKeyer.flyKeyframes[0],
+						})
+					}
+					if (objKeyer.flyKeyframes[1]) {
+						keyer.flyKeyframes[1] = literal<VideoState.USK.UpstreamKeyerFlyKeyframe>({
+							...StateDefault.Video.flyKeyframe(1),
+							...objKeyer.flyKeyframes[1],
+						})
+					}
+				}
 			}
 		}
 	}
