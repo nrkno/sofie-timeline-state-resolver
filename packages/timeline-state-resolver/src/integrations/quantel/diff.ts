@@ -8,17 +8,19 @@ const PREPARE_TIME_WAIT = 50
 
 export function diffStates(
 	oldState: QuantelState | undefined,
-	newState: QuantelState
+	newState: QuantelState,
+	currentTime: number
 ): Array<QuantelCommandWithContext> {
 	const time = newState.time
 	const highPrioCommands: QuantelCommandWithContext[] = []
 	const lowPrioCommands: QuantelCommandWithContext[] = []
 
-	const addCommand = (command: QuantelCommand, lowPriority: boolean, context?: string) => {
+	const addCommand = (command: QuantelCommand, lowPriority: boolean, context?: string, prelimTime?: number) => {
 		;(lowPriority ? lowPrioCommands : highPrioCommands).push({
 			command,
 			timelineObjId: command.timelineObjId,
 			context: context ?? 'Context not specified..',
+			preliminary: prelimTime,
 		})
 	}
 	const seenClips: { [identifier: string]: true } = {}
@@ -37,7 +39,6 @@ export function diffStates(
 			addCommand(
 				{
 					type: QuantelCommandType.LOADCLIPFRAGMENTS,
-					time: prepareTime,
 					portId: portId,
 					timelineObjId: timelineObjId,
 					fromLookahead: isPreloading || port.lookahead,
@@ -46,13 +47,14 @@ export function diffStates(
 					allowedToPrepareJump: !isPreloading,
 				},
 				isPreloading || port.lookahead,
-				context
+				context,
+				prelimTime
 			)
 		}
 	}
 
 	/** The time of when to run "preparation" commands */
-	const prepareTime = getPrepareTime(newState.time, oldState?.time)
+	const prelimTime = getPreliminaryTime(newState.time, oldState?.time, currentTime)
 
 	const lookaheadPreloadClips: {
 		portId: string
@@ -64,7 +66,7 @@ export function diffStates(
 	for (const [portId, newPort] of Object.entries<QuantelStatePort>(newState.port)) {
 		// diff existing ports
 		const oldPort = oldState?.port[portId]
-		diffPort(portId, newPort, oldPort, newState.time, prepareTime, addCommand, loadFragments, lookaheadPreloadClips)
+		diffPort(portId, newPort, oldPort, prelimTime, addCommand, loadFragments, lookaheadPreloadClips)
 	}
 
 	for (const [portId, oldPort] of Object.entries<QuantelStatePort>(oldState?.port ?? {})) {
@@ -75,13 +77,13 @@ export function diffStates(
 			addCommand(
 				{
 					type: QuantelCommandType.RELEASEPORT,
-					time: prepareTime,
 					portId: portId,
 					timelineObjId: oldPort.timelineObjId,
 					fromLookahead: oldPort.lookahead,
 				},
 				oldPort.lookahead,
-				'Port does not exist in new state'
+				'Port does not exist in new state',
+				prelimTime
 			)
 		}
 	}
@@ -110,25 +112,15 @@ export function diffStates(
 	return allCommands
 }
 
-/** The time of when to run "preparation" commands */
-function getPrepareTime(time: number, oldTime?: number): number {
-	let prepareTime = Math.min(
-		time,
-		Math.max(
-			time - IDEAL_PREPARE_TIME,
-			(oldTime ?? Date.now()) + PREPARE_TIME_WAIT // earliset possible prepareTime
-		)
-	)
-	if (prepareTime < Date.now()) {
-		// todo - is this a good usage of date.now vs getTime()
-		// Only to not emit an unnessesary slowCommand event
-		prepareTime = Date.now()
-	}
-	if (time < prepareTime) {
-		prepareTime = time - 10
-	}
+function getPreliminaryTime(time: number, oldTime: number | undefined, currentTime: number) {
+	// we want to be at least PREPARE_TIME_WAIT ms after the old state
+	const earliest = Math.max((oldTime ?? 0) + PREPARE_TIME_WAIT, currentTime)
 
-	return prepareTime
+	// time - earliest = the most delay we can use
+	const maxPrelim = Math.max(0, time - earliest)
+
+	// the best time is IDEAL_PREPARE_TIME, but we cannot use it if the oldState was too short ago
+	return Math.min(maxPrelim, IDEAL_PREPARE_TIME)
 }
 
 /** diff an existing port */
@@ -136,9 +128,8 @@ function diffPort(
 	portId: string,
 	newPort: QuantelStatePort,
 	oldPort: QuantelStatePort | undefined,
-	time: number,
-	prepareTime: number,
-	addCommand: (command: QuantelCommand, lowPriority: boolean, context?: string) => void,
+	prelimTime: number,
+	addCommand: (command: QuantelCommand, lowPriority: boolean, context?: string, prelimTime?: number) => void,
 	loadFragments: (
 		portId: string,
 		port: QuantelStatePort,
@@ -161,13 +152,13 @@ function diffPort(
 			addCommand(
 				{
 					type: QuantelCommandType.SETUPPORT,
-					time: prepareTime,
 					portId: portId,
 					timelineObjId: newPort.timelineObjId,
 					channel: channel,
 				},
 				newPort.lookahead,
-				'Old state did not have port'
+				'Old state did not have port',
+				prelimTime
 			)
 		}
 	}
@@ -189,7 +180,6 @@ function diffPort(
 				addCommand(
 					{
 						type: QuantelCommandType.PLAYCLIP,
-						time: time,
 						portId: portId,
 						timelineObjId: newPort.timelineObjId,
 						fromLookahead: newPort.lookahead,
@@ -204,7 +194,6 @@ function diffPort(
 				addCommand(
 					{
 						type: QuantelCommandType.PAUSECLIP,
-						time: time,
 						portId: portId,
 						timelineObjId: newPort.timelineObjId,
 						fromLookahead: newPort.lookahead,
@@ -220,7 +209,6 @@ function diffPort(
 			addCommand(
 				{
 					type: QuantelCommandType.CLEARCLIP,
-					time: time,
 					portId: portId,
 					timelineObjId: newPort.timelineObjId,
 					fromLookahead: newPort.lookahead,

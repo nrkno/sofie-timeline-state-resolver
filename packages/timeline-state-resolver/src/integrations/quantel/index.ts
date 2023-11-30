@@ -17,7 +17,7 @@ import Debug from 'debug'
 import { QuantelCommand, QuantelCommandType, QuantelState } from './types'
 import { QuantelGateway } from 'tv-automation-quantel-gateway-client'
 import { QuantelManager } from './connection'
-import { convertTimelineStateToQuantelState } from './state'
+import { convertTimelineStateToQuantelState, getMappedPorts } from './state'
 import { diffStates } from './diff'
 const debug = Debug('timeline-state-resolver:quantel')
 
@@ -32,11 +32,10 @@ export interface QuantelCommandWithContext {
 	command: QuantelCommand
 	context: string
 	timelineObjId: string
+	preliminary?: number
 }
 
 export class QuantelDevice extends Device<QuantelOptions, QuantelState, QuantelCommandWithContext> {
-	// TODO - monitor ports: this._quantel.setMonitoredPorts(this._getMappedPorts(newMappings))
-
 	private _quantel: QuantelGateway
 	private _quantelManager: QuantelManager
 
@@ -84,8 +83,15 @@ export class QuantelDevice extends Device<QuantelOptions, QuantelState, QuantelC
 	): QuantelState {
 		return convertTimelineStateToQuantelState(timelineState, mappings)
 	}
-	diffStates(oldState: QuantelState | undefined, newState: QuantelState): Array<QuantelCommandWithContext> {
-		return diffStates(oldState, newState)
+	diffStates(
+		oldState: QuantelState | undefined,
+		newState: QuantelState,
+		mappings: Mappings<SomeMappingQuantel>,
+		currentTime: number
+	): Array<QuantelCommandWithContext> {
+		this._quantel.setMonitoredPorts(getMappedPorts(mappings))
+
+		return diffStates(oldState, newState, currentTime)
 	}
 	async sendCommand({ command, context, timelineObjId }: QuantelCommandWithContext): Promise<any> {
 		const cwc: CommandWithContext = {
