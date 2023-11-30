@@ -60,7 +60,12 @@ export abstract class Device<DeviceOptions, DeviceState, Command extends Command
 		state: Timeline.TimelineState<TSRTimelineContent>,
 		newMappings: Mappings
 	): DeviceState
-	abstract diffStates(oldState: DeviceState | undefined, newState: DeviceState, mappings: Mappings): Array<Command>
+	abstract diffStates(
+		oldState: DeviceState | undefined,
+		newState: DeviceState,
+		mappings: Mappings,
+		time: number
+	): Array<Command>
 	abstract sendCommand(command: Command): Promise<void>
 	// -------------------------------------------------------------------
 }
@@ -85,7 +90,12 @@ export interface BaseDeviceAPI<DeviceState, Command extends CommandWithContext> 
 	 * This method takes 2 states and returns a set of commands that will
 	 * transition the device from oldState to newState
 	 */
-	diffStates(oldState: DeviceState | undefined, newState: DeviceState, mappings: Mappings): Array<Command>
+	diffStates(
+		oldState: DeviceState | undefined,
+		newState: DeviceState,
+		mappings: Mappings,
+		currentTime: number
+	): Array<Command>
 	/** This method will take a command and send it to the device */
 	sendCommand(command: Command): Promise<void>
 }

@@ -134,7 +134,8 @@ export class StateHandler<DeviceState, Command extends CommandWithContext> {
 			nextState.commands = this.device.diffStates(
 				this.currentState?.deviceState,
 				nextState.deviceState,
-				nextState.mappings
+				nextState.mappings,
+				await this.context.getCurrentTime()
 			)
 			nextState.preliminary = Math.max(0, ...nextState.commands.map((c) => c.preliminary ?? 0))
 			this.context.emitTimeTrace(endTrace(trace))
