@@ -65,10 +65,16 @@ export class AtemDevice extends Device<AtemOptions, AtemDeviceState, AtemCommand
 			this._connected = true
 
 			this._connectionChanged()
-			this.context.resetResolver()
 
 			if (this._atem.state) {
+				// Do a state diff to get to the desired state
 				this._protocolVersion = this._atem.state.info.apiVersion
+				this.context
+					.resetToState(this._atem.state)
+					.catch((e) => this.context.logger.error('Error resetting atem state', new Error(e)))
+			} else {
+				// Do a state diff to at least send all the commands we know about
+				this.context.resetState().catch((e) => this.context.logger.error('Error resetting atem state', new Error(e)))
 			}
 		})
 
