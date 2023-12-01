@@ -194,7 +194,7 @@ export class DeviceInstanceWrapper extends EventEmitter<DeviceInstanceEvents> {
 		this._logDebugStates = value
 	}
 
-	private _getDeviceContextAPI(): DeviceContextAPI {
+	private _getDeviceContextAPI(): DeviceContextAPI<any> {
 		return {
 			logger: {
 				error: (context: string, err: Error) => {

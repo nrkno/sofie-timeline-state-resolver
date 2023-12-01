@@ -24,7 +24,7 @@ export type CommandWithContext = {
 export abstract class Device<DeviceOptions, DeviceState, Command extends CommandWithContext>
 	implements BaseDeviceAPI<DeviceState, Command>
 {
-	constructor(protected context: DeviceContextAPI) {
+	constructor(protected context: DeviceContextAPI<DeviceState>) {
 		// Nothing
 	}
 	/**
@@ -119,7 +119,7 @@ export interface DeviceEvents {
 }
 
 /** Various methods that the Devices can call */
-export interface DeviceContextAPI {
+export interface DeviceContextAPI<DeviceState> {
 	logger: {
 		/** Emit a "error" message */
 		error: (context: string, err: Error) => void
@@ -156,5 +156,5 @@ export interface DeviceContextAPI {
 	resetState: () => Promise<void>
 
 	/** Reset the tracked device state to "state" and notify the conductor to reset the resolver */
-	resetToState: (state: any) => Promise<void> // todo - types?
+	resetToState: (state: DeviceState) => Promise<void>
 }
