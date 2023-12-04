@@ -22,7 +22,7 @@ import { AtemStateBuilder } from './stateBuilder'
 import { createDiffOptions } from './diffState'
 
 export interface AtemCommandWithContext {
-	command: AtemCommands.ISerializableCommand
+	command: AtemCommands.ISerializableCommand[]
 	context: string
 	timelineObjId: string
 }
@@ -156,14 +156,13 @@ export class AtemDevice extends Device<AtemOptions, AtemDeviceState, AtemCommand
 
 		const diffOptions = createDiffOptions(mappings)
 
-		return AtemState.diffStates(this._protocolVersion, oldAtemState, newAtemState, diffOptions).map((cmd) => {
-			// backwards compability, to be removed later:
-			return {
-				command: cmd,
+		return [
+			{
+				command: AtemState.diffStates(this._protocolVersion, oldAtemState, newAtemState, diffOptions),
 				context: '',
-				timelineObjId: '', // @todo: implement in Atem-state
-			}
-		})
+				timelineObjId: '',
+			},
+		]
 	}
 
 	async sendCommand({ command, context, timelineObjId }: AtemCommandWithContext): Promise<void> {
@@ -178,7 +177,7 @@ export class AtemDevice extends Device<AtemOptions, AtemDeviceState, AtemCommand
 		if (!this._connected) return
 
 		try {
-			await this._atem.sendCommand(command)
+			await this._atem.sendCommands(command)
 		} catch (error: any) {
 			this.context.commandError(error, cwc)
 		}
