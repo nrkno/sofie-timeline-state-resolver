@@ -155,14 +155,19 @@ export class AtemDevice extends Device<AtemOptions, AtemDeviceState, AtemCommand
 		oldAtemState = oldAtemState ?? this._atem.state ?? AtemStateUtil.Create()
 
 		const diffOptions = createDiffOptions(mappings)
+		const commands = AtemState.diffStates(this._protocolVersion, oldAtemState, newAtemState, diffOptions)
 
-		return [
-			{
-				command: AtemState.diffStates(this._protocolVersion, oldAtemState, newAtemState, diffOptions),
-				context: '',
-				timelineObjId: '',
-			},
-		]
+		if (commands.length > 0) {
+			return [
+				{
+					command: commands,
+					context: '',
+					timelineObjId: '',
+				},
+			]
+		} else {
+			return []
+		}
 	}
 
 	async sendCommand({ command, context, timelineObjId }: AtemCommandWithContext): Promise<void> {

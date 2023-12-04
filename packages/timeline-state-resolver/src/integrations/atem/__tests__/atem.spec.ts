@@ -17,7 +17,7 @@ import {
 } from 'timeline-state-resolver-types'
 import { literal } from '../../../lib'
 import { makeTimelineObjectResolved } from '../../../__mocks__/objects'
-import { compareAtemCommands, createDevice, waitForConnection } from './util'
+import { compareAtemCommands, createDevice, extractAllCommands, waitForConnection } from './util'
 import { getDeviceContext } from '../../__tests__/testlib'
 
 describe('Atem', () => {
@@ -163,9 +163,10 @@ describe('Atem', () => {
 		{
 			const commands = device.diffStates(undefined, deviceState1, myLayerMapping)
 
-			expect(commands).toHaveLength(2)
-			compareAtemCommands(commands[0].command, new AtemConnection.Commands.PreviewInputCommand(0, 2))
-			compareAtemCommands(commands[1].command, new AtemConnection.Commands.CutCommand(0))
+			const allCommands = extractAllCommands(commands)
+			expect(allCommands).toHaveLength(2)
+			compareAtemCommands(allCommands[0], new AtemConnection.Commands.PreviewInputCommand(0, 2))
+			compareAtemCommands(allCommands[1], new AtemConnection.Commands.CutCommand(0))
 		}
 
 		const mockState2: Timeline.TimelineState<TSRTimelineContent> = {
@@ -199,9 +200,10 @@ describe('Atem', () => {
 		{
 			const commands = device.diffStates(deviceState1, deviceState2, myLayerMapping)
 
-			expect(commands).toHaveLength(2)
-			compareAtemCommands(commands[0].command, new AtemConnection.Commands.PreviewInputCommand(0, 3))
-			compareAtemCommands(commands[1].command, new AtemConnection.Commands.CutCommand(0))
+			const allCommands = extractAllCommands(commands)
+			expect(allCommands).toHaveLength(2)
+			compareAtemCommands(allCommands[0], new AtemConnection.Commands.PreviewInputCommand(0, 3))
+			compareAtemCommands(allCommands[1], new AtemConnection.Commands.CutCommand(0))
 		}
 	})
 
@@ -239,7 +241,8 @@ describe('Atem', () => {
 
 		// Expect that a command has been scheduled
 		const commands = device.diffStates(undefined, deviceState, myLayerMapping)
-		expect(commands).toHaveLength(2)
+		const allCommands = extractAllCommands(commands)
+		expect(allCommands).toHaveLength(2)
 
 		// Diff the same state, after the commands have been sent
 		const commands2 = device.diffStates(deviceState, deviceState, myLayerMapping)
@@ -281,9 +284,10 @@ describe('Atem', () => {
 		{
 			const commands = device.diffStates(undefined, deviceState1, myLayerMapping)
 
-			expect(commands).toHaveLength(2)
-			compareAtemCommands(commands[0].command, new AtemConnection.Commands.PreviewInputCommand(0, 2))
-			compareAtemCommands(commands[1].command, new AtemConnection.Commands.CutCommand(0))
+			const allCommands = extractAllCommands(commands)
+			expect(allCommands).toHaveLength(2)
+			compareAtemCommands(allCommands[0], new AtemConnection.Commands.PreviewInputCommand(0, 2))
+			compareAtemCommands(allCommands[1], new AtemConnection.Commands.CutCommand(0))
 		}
 
 		const mockState2: Timeline.TimelineState<TSRTimelineContent> = {
@@ -317,15 +321,16 @@ describe('Atem', () => {
 		{
 			const commands = device.diffStates(deviceState1, deviceState2, myLayerMapping)
 
-			expect(commands).toHaveLength(5)
+			const allCommands = extractAllCommands(commands)
+			expect(allCommands).toHaveLength(5)
 			const transitionPropertiesCommand = new AtemConnection.Commands.TransitionPropertiesCommand(0)
 			transitionPropertiesCommand.updateProps({ nextStyle: 1 })
 
-			compareAtemCommands(commands[0].command, transitionPropertiesCommand)
-			compareAtemCommands(commands[1].command, new AtemConnection.Commands.PreviewInputCommand(0, 3))
-			compareAtemCommands(commands[2].command, transitionPropertiesCommand) // TODO - why is this sent twice?
-			compareAtemCommands(commands[3].command, new AtemConnection.Commands.TransitionPositionCommand(0, 0))
-			compareAtemCommands(commands[4].command, new AtemConnection.Commands.AutoTransitionCommand(0))
+			compareAtemCommands(allCommands[0], transitionPropertiesCommand)
+			compareAtemCommands(allCommands[1], new AtemConnection.Commands.PreviewInputCommand(0, 3))
+			compareAtemCommands(allCommands[2], transitionPropertiesCommand) // TODO - why is this sent twice?
+			compareAtemCommands(allCommands[3], new AtemConnection.Commands.TransitionPositionCommand(0, 0))
+			compareAtemCommands(allCommands[4], new AtemConnection.Commands.AutoTransitionCommand(0))
 		}
 	})
 })

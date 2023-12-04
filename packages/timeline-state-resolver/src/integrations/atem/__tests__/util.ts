@@ -4,6 +4,7 @@ import { promisify } from 'util'
 import { AtemOptions } from 'timeline-state-resolver-types'
 import { getDeviceContext } from '../../__tests__/testlib'
 import { literal } from '../../../lib'
+import { ISerializableCommand } from 'atem-connection/dist/commands'
 
 const sleep = promisify(setTimeout)
 
@@ -41,21 +42,21 @@ export function compareAtemCommands(
 }
 
 export function expectIncludesAtemCommands(
-	received: AtemCommandWithContext[],
+	received: ISerializableCommand[],
 	expected: AtemConnection.Commands.ISerializableCommand
 ) {
 	const failedCommands: AtemConnection.Commands.ISerializableCommand[] = []
 	for (const candidate of received) {
-		if (candidate.command.constructor.name === expected.constructor.name) {
+		if (candidate.constructor.name === expected.constructor.name) {
 			if (
-				candidate.command
+				candidate
 					.serialize(AtemConnection.Enums.ProtocolVersion.V8_0)
 					.equals(expected.serialize(AtemConnection.Enums.ProtocolVersion.V8_0))
 			) {
 				// Buffer matched
 				return
 			} else {
-				failedCommands.push(candidate.command)
+				failedCommands.push(candidate)
 			}
 		}
 	}
@@ -64,7 +65,11 @@ export function expectIncludesAtemCommands(
 	expect(failedCommands).toBeFalsy()
 }
 
-export function expectIncludesAtemCommandName(received: AtemCommandWithContext[], expectedName: string) {
-	const commandNames = received.map((cmd) => cmd.command.constructor.name)
+export function expectIncludesAtemCommandName(received: ISerializableCommand[], expectedName: string) {
+	const commandNames = received.map((cmd) => cmd.constructor.name)
 	expect(commandNames).toContain(expectedName)
+}
+
+export function extractAllCommands(commands: AtemCommandWithContext[]): ISerializableCommand[] {
+	return commands.flatMap((cmd) => cmd.command)
 }
