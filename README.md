@@ -5,13 +5,11 @@
 This is the _Timeline State Resolver (TSR)_ library, part of the [**Sofie** TV Automation System](https://github.com/nrkno/Sofie-TV-automation/). This library orchestrates and controls different devices. Its input is a [timeline](https://github.com/SuperFlyTV/supertimeline) data structure and a layer-to-device-map.
 Using this input, it resolves the expected state, diffs the state against current state, and sends commands to devices where necessary.
 
-### Repository-specific Info for Developers
-* [Developer Info](DEVELOPER.md)
-* [Contribution Guidelines](CONTRIBUTING.md)
-
-### General Sofie System Info
+## General Sofie System Info
 * [Documentation](https://nrkno.github.io/sofie-core/)
 * [Releases](https://nrkno.github.io/sofie-core/releases)
+* [Contribution Guidelines](CONTRIBUTING.md)
+* [License](LICENSE)
 
 ---
 
