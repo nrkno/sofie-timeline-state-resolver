@@ -120,9 +120,10 @@
 					"type": "integer",
 					"ui:title": "Index",
 					"ui:summaryTitle": "Audio Output Id",
+					"ui:description": "Calculated with `outputId << 16 + outputChannels`",
 					"default": 0,
 					"min": 0,
-					"ui:zeroBased": true
+					"ui:zeroBased": false
 				}
 			},
 			"required": ["index"],
