@@ -9,7 +9,7 @@ import { AtemDevice } from '../integrations/atem'
 import { TcpSendDevice } from '../integrations/tcpSend'
 
 export interface DeviceEntry {
-	deviceClass: new (context: DeviceContextAPI) => Device<any, any, any>
+	deviceClass: new (context: DeviceContextAPI<any>) => Device<any, any, any>
 	canConnect: boolean
 	deviceName: (deviceId: string, options: any) => string
 	executionMode: (options: any) => 'salvo' | 'sequential'

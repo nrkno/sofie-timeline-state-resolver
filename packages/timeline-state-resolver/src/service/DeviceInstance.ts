@@ -194,7 +194,7 @@ export class DeviceInstanceWrapper extends EventEmitter<DeviceInstanceEvents> {
 		this._logDebugStates = value
 	}
 
-	private _getDeviceContextAPI(): DeviceContextAPI {
+	private _getDeviceContextAPI(): DeviceContextAPI<any> {
 		return {
 			logger: {
 				error: (context: string, err: Error) => {
@@ -242,6 +242,13 @@ export class DeviceInstanceWrapper extends EventEmitter<DeviceInstanceEvents> {
 			},
 
 			resetState: async () => {
+				await this._stateHandler.setCurrentState(undefined)
+				await this._stateHandler.clearFutureStates()
+				this.emit('resetResolver')
+			},
+
+			resetToState: async (state: any) => {
+				await this._stateHandler.setCurrentState(state)
 				await this._stateHandler.clearFutureStates()
 				this.emit('resetResolver')
 			},

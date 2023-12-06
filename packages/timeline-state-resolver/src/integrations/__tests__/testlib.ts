@@ -2,7 +2,7 @@ import { DeviceContextAPI } from '../../service/device'
 
 /** A default context for devices used in unit tests */
 
-export function getDeviceContext(): DeviceContextAPI {
+export function getDeviceContext(): DeviceContextAPI<any> {
 	return {
 		logger: {
 			error: jest.fn(),
@@ -17,6 +17,7 @@ export function getDeviceContext(): DeviceContextAPI {
 		updateMediaObject: jest.fn(),
 		clearMediaObjects: jest.fn(),
 		timeTrace: jest.fn(),
-		resetState: jest.fn(),
+		resetState: jest.fn(async () => Promise.resolve()),
+		resetToState: jest.fn(async () => Promise.resolve()),
 	}
 }

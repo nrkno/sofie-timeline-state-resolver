@@ -24,7 +24,7 @@ export type CommandWithContext = {
 export abstract class Device<DeviceOptions, DeviceState, Command extends CommandWithContext>
 	implements BaseDeviceAPI<DeviceState, Command>
 {
-	constructor(protected context: DeviceContextAPI) {
+	constructor(protected context: DeviceContextAPI<DeviceState>) {
 		// Nothing
 	}
 	/**
@@ -119,7 +119,7 @@ export interface DeviceEvents {
 }
 
 /** Various methods that the Devices can call */
-export interface DeviceContextAPI {
+export interface DeviceContextAPI<DeviceState> {
 	logger: {
 		/** Emit a "error" message */
 		error: (context: string, err: Error) => void
@@ -136,7 +136,11 @@ export interface DeviceContextAPI {
 
 	/** Notify that the connection status has changed. */
 	connectionChanged: (status: Omit<DeviceStatus, 'active'>) => void
-	/** Notify the conductor that it should reset the resolver, in order to trigger it again. */
+	/**
+	 * Notify the conductor that it should reset the resolver, in order to trigger it again.
+	 * Note: this will not change anything about the current state and should technically not lead
+	 * to any new commands being sent
+	 */
 	resetResolver: () => void
 
 	/** Something went wrong when executing a command  */
@@ -148,6 +152,9 @@ export interface DeviceContextAPI {
 
 	timeTrace: (trace: FinishedTrace) => void
 
-	/** Reset the state of the State */
+	/** Reset the tracked device state to undefined and notify the conductor to reset the resolver */
 	resetState: () => Promise<void>
+
+	/** Reset the tracked device state to "state" and notify the conductor to reset the resolver */
+	resetToState: (state: DeviceState) => Promise<void>
 }
