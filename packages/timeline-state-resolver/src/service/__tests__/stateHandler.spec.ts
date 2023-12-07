@@ -29,7 +29,7 @@ const CONTEXT = {
 	},
 	emitTimeTrace: () => null,
 	reportStateChangeMeasurement: () => null,
-	getCurrentTime: async () => Date.now(),
+	getCurrentTime: () => Date.now(),
 }
 
 describe('stateHandler', () => {

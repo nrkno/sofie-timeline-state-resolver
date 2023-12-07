@@ -46,28 +46,22 @@ export class StateHandler<DeviceState, Command extends CommandWithContext> {
 		this._commandQueue = new CommandQueue(this.config.executionType, async (c) => device.sendCommand(c))
 
 		this.clock = setInterval(() => {
-			context
-				.getCurrentTime()
-				.then((t) => {
-					// main clock to check if next state needs to be sent out
-					for (const state of this.stateQueue) {
-						const nextTime = Math.max(0, state?.state.time - (state?.preliminary ?? 0) - t)
-						if (nextTime > CLOCK_INTERVAL) break
-						// schedule any states between now and the next tick
+			const t = context.getCurrentTime()
+			// main clock to check if next state needs to be sent out
+			for (const state of this.stateQueue) {
+				const nextTime = Math.max(0, state?.state.time - (state?.preliminary ?? 0) - t)
+				if (nextTime > CLOCK_INTERVAL) break
+				// schedule any states between now and the next tick
 
-						setTimeout(() => {
-							if (!this._executingStateChange && this.stateQueue[0] === state) {
-								// if this is the next state, execute it
-								this.executeNextStateChange().catch((e) => {
-									this.logger.error('Error while executing next state change', e)
-								})
-							}
-						}, nextTime)
+				setTimeout(() => {
+					if (!this._executingStateChange && this.stateQueue[0] === state) {
+						// if this is the next state, execute it
+						this.executeNextStateChange().catch((e) => {
+							this.logger.error('Error while executing next state change', e)
+						})
 					}
-				})
-				.catch((e) => {
-					this.logger.error('Error in main StateHandler loop', e)
-				})
+				}, nextTime)
+			}
 		}, CLOCK_INTERVAL)
 	}
 
@@ -113,7 +107,7 @@ export class StateHandler<DeviceState, Command extends CommandWithContext> {
 		this.currentState = {
 			commands: [],
 			deviceState: state,
-			state: this.currentState?.state || { time: await this.context.getCurrentTime(), layers: {}, nextEvents: [] },
+			state: this.currentState?.state || { time: this.context.getCurrentTime(), layers: {}, nextEvents: [] },
 			mappings: this.currentState?.mappings || {},
 		}
 		await this.calculateNextStateChange()
@@ -135,7 +129,7 @@ export class StateHandler<DeviceState, Command extends CommandWithContext> {
 				this.currentState?.deviceState,
 				nextState.deviceState,
 				nextState.mappings,
-				await this.context.getCurrentTime()
+				this.context.getCurrentTime()
 			)
 			nextState.preliminary = Math.max(0, ...nextState.commands.map((c) => c.preliminary ?? 0))
 			this.context.emitTimeTrace(endTrace(trace))
@@ -146,10 +140,7 @@ export class StateHandler<DeviceState, Command extends CommandWithContext> {
 			nextState.commands = []
 		}
 
-		if (
-			nextState.state.time - (nextState.preliminary ?? 0) <= (await this.context.getCurrentTime()) &&
-			this.currentState
-		) {
+		if (nextState.state.time - (nextState.preliminary ?? 0) <= this.context.getCurrentTime() && this.currentState) {
 			await this.executeNextStateChange()
 		}
 	}
@@ -211,5 +202,5 @@ export interface StateHandlerContext {
 	emitTimeTrace: (trace: FinishedTrace) => void
 	reportStateChangeMeasurement: (report: StateChangeReport) => void
 
-	getCurrentTime: () => Promise<number>
+	getCurrentTime: () => number
 }
