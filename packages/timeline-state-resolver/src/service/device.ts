@@ -146,6 +146,8 @@ export interface DeviceContextAPI<DeviceState> {
 	/** Emit a "debugState" message */
 	emitDebugState: (state: object) => void
 
+	getCurrentTime: () => number
+
 	/** Notify that the connection status has changed. */
 	connectionChanged: (status: Omit<DeviceStatus, 'active'>) => void
 	/**

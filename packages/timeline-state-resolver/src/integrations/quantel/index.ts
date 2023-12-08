@@ -42,9 +42,7 @@ export class QuantelDevice extends Device<QuantelOptions, QuantelState, QuantelC
 	async init(options: QuantelOptions): Promise<boolean> {
 		this._quantel = new QuantelGateway()
 		this._quantel.on('error', (e) => this.context.logger.error('Quantel.QuantelGateway', e))
-		// this._quantelManager = new QuantelManager(this._quantel, () => this.getCurrentTime(), {
-		// todo - obv
-		this._quantelManager = new QuantelManager(this._quantel, () => Date.now(), {
+		this._quantelManager = new QuantelManager(this._quantel, () => this.context.getCurrentTime(), {
 			allowCloneClips: options.allowCloneClips,
 		})
 		this._quantelManager.on('info', (x) =>
@@ -65,11 +63,14 @@ export class QuantelDevice extends Device<QuantelOptions, QuantelState, QuantelC
 		if (ISAUrlMaster) isaURLs.push(ISAUrlMaster)
 		if (options.ISAUrlBackup) isaURLs.push(options.ISAUrlBackup)
 
-		await this._quantel.init(options.gatewayUrl, isaURLs, options.zoneId, options.serverId) // todo - maybe not to be awaited...
-
-		this._quantel.monitorServerStatus((_connected: boolean) => {
-			this.context.connectionChanged(this.getStatus())
-		})
+		this._quantel
+			.init(options.gatewayUrl, isaURLs, options.zoneId, options.serverId)
+			.then(() => {
+				this._quantel.monitorServerStatus((_connected: boolean) => {
+					this.context.connectionChanged(this.getStatus())
+				})
+			})
+			.catch((e) => this.context.logger.error('Error initialising quantel', e))
 
 		return Promise.resolve(true)
 	}
@@ -169,7 +170,7 @@ export class QuantelDevice extends Device<QuantelOptions, QuantelState, QuantelC
 					await this._quantel.kill()
 					return { result: ActionExecutionResultCode.Ok }
 				} catch (e) {
-					this.context.logger.error('Error killing quantel gateway', new Error(e as any)) // todo - what to do here...
+					this.context.logger.error('Error killing quantel gateway', new Error(e as any)) // note - not 100% sure this is correct?
 				}
 			}
 			return { result: ActionExecutionResultCode.Error }

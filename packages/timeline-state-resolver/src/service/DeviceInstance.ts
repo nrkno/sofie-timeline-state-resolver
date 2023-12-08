@@ -228,6 +228,8 @@ export class DeviceInstanceWrapper extends EventEmitter<DeviceInstanceEvents> {
 				},
 			},
 
+			getCurrentTime: () => this.getCurrentTime(),
+
 			emitDebugState: (state: object) => {
 				if (this._logDebugStates) {
 					this.emit('debugState', state)

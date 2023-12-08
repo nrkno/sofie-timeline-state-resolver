@@ -1137,6 +1137,7 @@ describe('Quantel Device', () => {
 	})
 
 	describe('sendCommand', () => {
+		const ogTimeout = setTimeout
 		const mockTime = new MockTime()
 		beforeAll(() => {
 			mockTime.init()
@@ -1145,6 +1146,9 @@ describe('Quantel Device', () => {
 		test('sequence of commands', async () => {
 			// note - the internals of the QuantelManager class are state-based so it's easier to do all of this in one long test
 			const dev = await getInitialisedQuantelDevice()
+
+			// give it some time to finish the init
+			await new Promise<void>((r) => ogTimeout(() => r(), 10))
 
 			dev
 				.sendCommand({
@@ -1161,7 +1165,7 @@ describe('Quantel Device', () => {
 					throw e
 				})
 
-			// give it some time to settle
+			// give it some time to settle after the command
 			await mockTime.tick()
 
 			expect(onRequest).toHaveBeenCalledTimes(5)
