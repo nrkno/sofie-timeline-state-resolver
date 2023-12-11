@@ -2497,9 +2497,9 @@ asn1@evs-broadcast/node-asn1:
   languageName: node
   linkType: hard
 
-"atem-connection@npm:3.3.2":
-  version: 3.3.2
-  resolution: "atem-connection@npm:3.3.2"
+"atem-connection@npm:3.4.0":
+  version: 3.4.0
+  resolution: "atem-connection@npm:3.4.0"
   dependencies:
     "@julusian/freetype2": ^1.1.2
     debug: ^4.3.4
@@ -2511,7 +2511,7 @@ asn1@evs-broadcast/node-asn1:
     threadedclass: ^1.2.1
     tslib: ^2.6.2
     wavefile: ^8.4.6
-  checksum: dbfe751a75bd6d7de7877eda84800d9ca5a644a97f603cc60050eabbf02c2ebfe516344c3f6525a2417b83d35f98e542787a8178c85e660d54964a49f6b47664
+  checksum: 03a0c4ce624afe404f74735a37f469776d6eaab942731b950ff4e4bfe434021858fb54ffd8d7732e7290f28302646b4420265c86cfe3af421b68638216d31856
   languageName: node
   linkType: hard
 
@@ -11072,7 +11072,7 @@ asn1@evs-broadcast/node-asn1:
   resolution: "timeline-state-resolver@workspace:packages/timeline-state-resolver"
   dependencies:
     "@tv2media/v-connection": ^7.3.2
-    atem-connection: 3.3.2
+    atem-connection: 3.4.0
     atem-state: 1.2.0-nightly-master-20231129-144508-fb53d10.0
     cacheable-lookup: ^5.0.3
     casparcg-connection: ^6.1.1

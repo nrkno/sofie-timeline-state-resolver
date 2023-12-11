@@ -1,5 +1,5 @@
 import * as AtemConnection from 'atem-connection'
-import { compareAtemCommands, createDevice, expectIncludesAtemCommandName } from './util'
+import { compareAtemCommands, createDevice, expectIncludesAtemCommandName, extractAllCommands } from './util'
 import {
 	AtemTransitionStyle,
 	DeviceType,
@@ -40,8 +40,9 @@ describe('Diff States', () => {
 			diffOptions
 		)
 
-		expect(commands).toHaveLength(1)
-		compareAtemCommands(commands[0].command, new AtemConnection.Commands.ProgramInputCommand(0, 2))
+		const allCommands = extractAllCommands(commands)
+		expect(allCommands).toHaveLength(1)
+		compareAtemCommands(allCommands[0], new AtemConnection.Commands.ProgramInputCommand(0, 2))
 	})
 
 	test('Simple diff against other state', async () => {
@@ -61,8 +62,9 @@ describe('Diff States', () => {
 		expect(diffStatesSpy).toHaveBeenCalledTimes(1)
 		expect(diffStatesSpy).toHaveBeenNthCalledWith(1, expect.anything(), state1, state2, diffOptions)
 
-		expect(commands).toHaveLength(1)
-		compareAtemCommands(commands[0].command, new AtemConnection.Commands.ProgramInputCommand(0, 3))
+		const allCommands = extractAllCommands(commands)
+		expect(allCommands).toHaveLength(1)
+		compareAtemCommands(allCommands[0], new AtemConnection.Commands.ProgramInputCommand(0, 3))
 	})
 
 	test('Diff aux without mapping', async () => {
@@ -123,8 +125,9 @@ describe('Diff States', () => {
 			diffOptions
 		)
 
-		expect(commands).toHaveLength(1)
-		compareAtemCommands(commands[0].command, new AtemConnection.Commands.AuxSourceCommand(5, 10))
+		const allCommands = extractAllCommands(commands)
+		expect(allCommands).toHaveLength(1)
+		compareAtemCommands(allCommands[0], new AtemConnection.Commands.AuxSourceCommand(5, 10))
 	})
 
 	test('Diff set input with transition', async () => {
@@ -150,8 +153,9 @@ describe('Diff States', () => {
 		{
 			const commands = device.diffStates(undefined, deviceState1, mappings)
 
-			expect(commands).toHaveLength(2)
-			expectIncludesAtemCommandName(commands, AtemConnection.Commands.CutCommand.name)
+			const allCommands = extractAllCommands(commands)
+			expect(allCommands).toHaveLength(2)
+			expectIncludesAtemCommandName(allCommands, AtemConnection.Commands.CutCommand.name)
 		}
 
 		const deviceState2 = AtemConnection.AtemStateUtil.Create()
@@ -163,9 +167,10 @@ describe('Diff States', () => {
 		{
 			const commands = device.diffStates(deviceState1, deviceState2, mappings)
 
-			expect(commands).toHaveLength(4)
+			const allCommands = extractAllCommands(commands)
+			expect(allCommands).toHaveLength(4)
 
-			expectIncludesAtemCommandName(commands, AtemConnection.Commands.AutoTransitionCommand.name)
+			expectIncludesAtemCommandName(allCommands, AtemConnection.Commands.AutoTransitionCommand.name)
 		}
 	})
 
@@ -191,7 +196,9 @@ describe('Diff States', () => {
 
 		{
 			const commands = device.diffStates(undefined, deviceState1, mappings)
-			expect(commands).toHaveLength(4)
+
+			const allCommands = extractAllCommands(commands)
+			expect(allCommands).toHaveLength(4)
 		}
 
 		const deviceState2 = AtemConnection.AtemStateUtil.Create()
@@ -203,9 +210,10 @@ describe('Diff States', () => {
 		{
 			const commands = device.diffStates(deviceState1, deviceState2, mappings)
 
-			expect(commands).toHaveLength(3)
+			const allCommands = extractAllCommands(commands)
+			expect(allCommands).toHaveLength(3)
 
-			expectIncludesAtemCommandName(commands, AtemConnection.Commands.AutoTransitionCommand.name)
+			expectIncludesAtemCommandName(allCommands, AtemConnection.Commands.AutoTransitionCommand.name)
 		}
 	})
 })
