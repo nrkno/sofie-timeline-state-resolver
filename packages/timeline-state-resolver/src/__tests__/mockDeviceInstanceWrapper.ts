@@ -37,11 +37,7 @@ export class MockDeviceInstanceWrapper
 			| 'removeAllListeners'
 		>
 {
-	constructor(
-		public readonly deviceId: string,
-		_startTime: string,
-		public readonly config: DeviceOptionsAnyInternal // private readonly _getRemoteCurrentTime: () => number
-	) {
+	constructor(public readonly deviceId: string, _startTime: string, public readonly config: DeviceOptionsAnyInternal) {
 		super()
 
 		// const deviceSpecs = DevicesDict[config.type]
