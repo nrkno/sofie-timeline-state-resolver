@@ -1,5 +1,4 @@
 import { Commands as HyperdeckCommands, TransportStatus } from 'hyperdeck-connection'
-import type { TransportInfoCommandResponseExt } from '.'
 import _ = require('underscore')
 import {
 	DeviceType,
@@ -17,9 +16,17 @@ const DEFAULT_LOOP = false
 const DEFAULT_SINGLE_CLIP = true
 const DEFAULT_CLIP_ID = null
 
+export interface HyperdeckDeviceTransportState {
+	status: TransportStatus
+	speed: number
+	singleClip: boolean
+	loop: boolean
+	clipId: number | null
+	recordFilename?: string
+}
 export interface HyperdeckDeviceState {
 	notify: HyperdeckCommands.NotifyCommandResponse
-	transport: TransportInfoCommandResponseExt
+	transport: HyperdeckDeviceTransportState
 	/** The timelineObject this state originates from */
 	timelineObjId: string
 }

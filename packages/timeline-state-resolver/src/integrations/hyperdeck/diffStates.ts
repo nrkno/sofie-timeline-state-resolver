@@ -3,7 +3,7 @@ import { Commands as HyperdeckCommands, TransportStatus } from 'hyperdeck-connec
 import type { HyperdeckDeviceState } from './stateBuilder'
 
 export interface HyperdeckCommandWithContext {
-	command: HyperdeckCommands.AbstractCommand
+	command: HyperdeckCommands.AbstractCommand<any>
 	context: any
 	timelineObjId: string
 }

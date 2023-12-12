@@ -5772,12 +5772,13 @@ asn1@evs-broadcast/node-asn1:
   languageName: node
   linkType: hard
 
-"hyperdeck-connection@npm:^0.5.0":
-  version: 0.5.0
-  resolution: "hyperdeck-connection@npm:0.5.0"
+"hyperdeck-connection@npm:2.0.0-nightly-master-20231205-105655-157a483.0":
+  version: 2.0.0-nightly-master-20231205-105655-157a483.0
+  resolution: "hyperdeck-connection@npm:2.0.0-nightly-master-20231205-105655-157a483.0"
   dependencies:
-    tslib: ^2.3.1
-  checksum: 629ad01a767f06af8cfa6910dea4ba3e083f3750955aeda6ce7c264fee50aa938b5437c9903b475f239cef112151c93f6f129e2ac91d32ab7f3c74a57e41fb01
+    eventemitter3: ^4.0.7
+    tslib: ^2.6.2
+  checksum: 2c4e7f437cfe040903545a52b09664343130d668e546843db752f342b2ce474d90377011d4c5632feb8aa4f6b5474544cd7bef605e7f471eb3f89b76c3753d20
   languageName: node
   linkType: hard
 
@@ -11083,7 +11084,7 @@ asn1@evs-broadcast/node-asn1:
     eventemitter3: ^4.0.7
     got: ^11.8.6
     hpagent: ^1.2.0
-    hyperdeck-connection: ^0.5.0
+    hyperdeck-connection: 2.0.0-nightly-master-20231205-105655-157a483.0
     i18next-conv: ^13.1.1
     i18next-parser: ^6.6.0
     json-schema-ref-parser: ^9.0.9
@@ -11302,7 +11303,7 @@ asn1@evs-broadcast/node-asn1:
   languageName: node
   linkType: hard
 
-"tslib@npm:^2.1.0, tslib@npm:^2.3.0, tslib@npm:^2.3.1, tslib@npm:^2.4.0, tslib@npm:^2.5.0, tslib@npm:^2.5.1, tslib@npm:^2.6.0, tslib@npm:^2.6.2":
+"tslib@npm:^2.1.0, tslib@npm:^2.3.0, tslib@npm:^2.4.0, tslib@npm:^2.5.0, tslib@npm:^2.5.1, tslib@npm:^2.6.0, tslib@npm:^2.6.2":
   version: 2.6.2
   resolution: "tslib@npm:2.6.2"
   checksum: 329ea56123005922f39642318e3d1f0f8265d1e7fcb92c633e0809521da75eeaca28d2cf96d7248229deb40e5c19adf408259f4b9640afd20d13aecc1430f3ad

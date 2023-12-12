@@ -30,19 +30,10 @@ export interface DeviceOptionsHyperdeckInternal extends DeviceOptionsHyperdeck {
 }
 export type CommandReceiver = (
 	time: number,
-	command: HyperdeckCommands.AbstractCommand,
+	command: HyperdeckCommands.AbstractCommand<any>,
 	context: CommandContext,
 	timelineObjId: string
 ) => Promise<any>
-
-export interface TransportInfoCommandResponseExt {
-	status: TransportStatus
-	speed: number
-	singleClip: boolean
-	loop: boolean
-	clipId: number | null
-	recordFilename?: string
-}
 
 type CommandContext = any
 
@@ -139,9 +130,9 @@ export class HyperdeckDevice extends DeviceWithState<HyperdeckDeviceState, Devic
 				this._connected = false
 				this._connectionChanged()
 			})
-			this._hyperdeck.on('error', (e) => this.emit('error', 'Hyperdeck', e))
+			this._hyperdeck.on('error', (e) => this.emit('error', 'Hyperdeck', new Error(e)))
 
-			this._hyperdeck.on('notify.slot', (res: SlotInfoCommandResponse) => {
+			this._hyperdeck.on('notify.slot', (res) => {
 				deferAsync(
 					async () => {
 						await this._queryRecordingTime().catch((e) => this.emit('error', 'HyperDeck.queryRecordingTime', e))
@@ -152,7 +143,7 @@ export class HyperdeckDevice extends DeviceWithState<HyperdeckDeviceState, Devic
 					}
 				)
 			})
-			this._hyperdeck.on('notify.transport', (res: TransportInfoCommandResponseExt) => {
+			this._hyperdeck.on('notify.transport', (res) => {
 				if (res.status) {
 					this._transportStatus = res.status
 
@@ -209,7 +200,7 @@ export class HyperdeckDevice extends DeviceWithState<HyperdeckDeviceState, Devic
 		for (let i = 1; i <= this._slots; i++) {
 			// select slot
 			const slotSel = new HyperdeckCommands.SlotSelectCommand()
-			slotSel.slotId = i + ''
+			slotSel.slotId = i
 			try {
 				await this._hyperdeck.sendCommand(slotSel)
 			} catch (e) {
@@ -506,7 +497,7 @@ export class HyperdeckDevice extends DeviceWithState<HyperdeckDeviceState, Devic
 
 	private async _defaultCommandReceiver(
 		_time: number,
-		command: HyperdeckCommands.AbstractCommand,
+		command: HyperdeckCommands.AbstractCommand<any>,
 		context: CommandContext,
 		timelineObjId: string
 	): Promise<any> {
