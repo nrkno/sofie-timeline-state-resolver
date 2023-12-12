@@ -24,7 +24,7 @@ export function getMappedPorts(mappings: Mappings<SomeMappingQuantel>): MappedPo
 			}
 
 			// push now, sort later
-			ports[mapping.options.portId].channels.push(mapping.options.channelId)
+			ports[mapping.options.portId].channels.push(mapping.options.channelId) // todo: support for multiple channels (these should be unique)
 		}
 	}
 
