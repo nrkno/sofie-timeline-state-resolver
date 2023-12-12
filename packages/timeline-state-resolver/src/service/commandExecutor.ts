@@ -1,26 +1,32 @@
 import { BaseDeviceAPI, CommandWithContext } from './device'
 import { Measurement } from './measure'
+import { StateHandlerContext } from './stateHandler'
 
 const wait = async (t: number) => new Promise<void>((r) => setTimeout(() => r(), t))
 
-export class CommandQueue<DeviceState, Command extends CommandWithContext> {
+export class CommandExecutor<DeviceState, Command extends CommandWithContext> {
 	constructor(
+		private logger: StateHandlerContext['logger'],
 		private mode: 'salvo' | 'sequential',
 		private sendCommand: BaseDeviceAPI<DeviceState, Command>['sendCommand']
 	) {}
 
-	async queueCommands(commands: Command[], measurement?: Measurement): Promise<void> {
+	async executeCommands(commands: Command[], measurement?: Measurement): Promise<void> {
 		commands.sort((a, b) => (b.preliminary ?? 0) - (a.preliminary ?? 0))
 		const totalTime = commands[0].preliminary ?? 0
 
 		if (this.mode === 'salvo') {
-			return this._queueCommandsSalvo(totalTime, commands, measurement)
+			return this._executeCommandsSalvo(totalTime, commands, measurement)
 		} else {
-			return this._queueCommandsSequential(totalTime, commands, measurement)
+			return this._executeCommandsSequential(totalTime, commands, measurement)
 		}
 	}
 
-	private async _queueCommandsSalvo(totalTime: number, commands: Command[], measurement?: Measurement): Promise<void> {
+	private async _executeCommandsSalvo(
+		totalTime: number,
+		commands: Command[],
+		measurement?: Measurement
+	): Promise<void> {
 		await Promise.allSettled(
 			commands.map(async (command) => {
 				const timeToWait = totalTime - (command.preliminary ?? 0)
@@ -35,7 +41,7 @@ export class CommandQueue<DeviceState, Command extends CommandWithContext> {
 		)
 	}
 
-	private async _queueCommandsSequential(
+	private async _executeCommandsSequential(
 		totalTime: number,
 		commands: Command[],
 		measurement?: Measurement
@@ -48,7 +54,7 @@ export class CommandQueue<DeviceState, Command extends CommandWithContext> {
 
 			measurement?.executeCommand(command)
 			await this.sendCommand(command).catch((e) => {
-				console.error('Error while executing command', e) // todo
+				this.logger.error('Error while executing command', e)
 			})
 			measurement?.finishedCommandExecution(command)
 		}

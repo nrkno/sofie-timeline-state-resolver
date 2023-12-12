@@ -2,7 +2,7 @@ import { FinishedTrace, startTrace, endTrace } from '../lib'
 import { Mappings, Timeline, TSRTimelineContent } from 'timeline-state-resolver-types'
 import { BaseDeviceAPI, CommandWithContext } from './device'
 import { Measurement, StateChangeReport } from './measure'
-import { CommandQueue } from './commandQueue'
+import { CommandExecutor } from './commandExecutor'
 
 interface StateChange<DeviceState, Command extends CommandWithContext> {
 	commands?: Command[]
@@ -26,7 +26,7 @@ export class StateHandler<DeviceState, Command extends CommandWithContext> {
 	private currentState: ExecutedStateChange<DeviceState, Command> | undefined
 	/** Semaphore, to ensure that .executeNextStateChange() is only executed one at a time */
 	private _executingStateChange = false
-	private _commandQueue: CommandQueue<DeviceState, Command>
+	private _commandExecutor: CommandExecutor<DeviceState, Command>
 
 	private clock: NodeJS.Timeout
 
@@ -43,7 +43,9 @@ export class StateHandler<DeviceState, Command extends CommandWithContext> {
 			this.logger.error('Error while creating new StateHandler', e)
 		})
 
-		this._commandQueue = new CommandQueue(this.config.executionType, async (c) => device.sendCommand(c))
+		this._commandExecutor = new CommandExecutor(context.logger, this.config.executionType, async (c) =>
+			device.sendCommand(c)
+		)
 
 		this.clock = setInterval(() => {
 			const t = context.getCurrentTime()
@@ -167,8 +169,8 @@ export class StateHandler<DeviceState, Command extends CommandWithContext> {
 
 		this.currentState = undefined
 
-		this._commandQueue
-			.queueCommands(newState.commands, newState.measurement)
+		this._commandExecutor
+			.executeCommands(newState.commands, newState.measurement)
 			.then(() => {
 				if (newState.measurement) this.context.reportStateChangeMeasurement(newState.measurement.report())
 			})
