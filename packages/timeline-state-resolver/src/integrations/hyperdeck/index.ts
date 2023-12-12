@@ -2,16 +2,12 @@ import * as _ from 'underscore'
 import { DeviceWithState, CommandWithContext, DeviceStatus, StatusCode } from '../../devices/device'
 import {
 	DeviceType,
-	TimelineContentTypeHyperdeck,
-	MappingHyperdeckType,
 	HyperdeckOptions,
 	DeviceOptionsHyperdeck,
 	Mappings,
 	TSRTimelineContent,
 	Timeline,
 	HyperdeckActions,
-	Mapping,
-	SomeMappingHyperdeck,
 	HyperdeckActionExecutionPayload,
 	HyperdeckActionExecutionResult,
 } from 'timeline-state-resolver-types'
@@ -26,6 +22,8 @@ import { DoOnTime, SendMode } from '../../devices/doOnTime'
 import { SlotInfoCommandResponse } from 'hyperdeck-connection/dist/commands'
 import { actionNotFoundMessage, deferAsync, endTrace, startTrace } from '../../lib'
 import { ActionExecutionResult, ActionExecutionResultCode } from 'timeline-state-resolver-types'
+import { HyperdeckCommandWithContext, diffHyperdeckStates } from './diffStates'
+import { HyperdeckDeviceState, convertTimelineStateToHyperdeckState, getDefaultHyperdeckState } from './stateBuilder'
 
 export interface DeviceOptionsHyperdeckInternal extends DeviceOptionsHyperdeck {
 	commandReceiver?: CommandReceiver
@@ -36,11 +34,6 @@ export type CommandReceiver = (
 	context: CommandContext,
 	timelineObjId: string
 ) => Promise<any>
-export interface HyperdeckCommandWithContext {
-	command: HyperdeckCommands.AbstractCommand
-	context: CommandContext
-	timelineObjId: string
-}
 
 export interface TransportInfoCommandResponseExt {
 	status: TransportStatus
@@ -51,24 +44,12 @@ export interface TransportInfoCommandResponseExt {
 	recordFilename?: string
 }
 
-export interface DeviceState {
-	notify: HyperdeckCommands.NotifyCommandResponse
-	transport: TransportInfoCommandResponseExt
-	/** The timelineObject this state originates from */
-	timelineObjId: string
-}
-
 type CommandContext = any
-
-const DEFAULT_SPEED = 100 // 1x speed
-const DEFAULT_LOOP = false
-const DEFAULT_SINGLE_CLIP = true
-const DEFAULT_CLIP_ID = null
 
 /**
  * This is a wrapper for the Hyperdeck Device. Commands to any and all hyperdeck devices will be sent through here.
  */
-export class HyperdeckDevice extends DeviceWithState<DeviceState, DeviceOptionsHyperdeckInternal> {
+export class HyperdeckDevice extends DeviceWithState<HyperdeckDeviceState, DeviceOptionsHyperdeckInternal> {
 	private _doOnTime: DoOnTime
 
 	private _hyperdeck: Hyperdeck
@@ -291,7 +272,9 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState, DeviceOptionsH
 
 		// Create device states
 		const previousStateTime = Math.max(this.getCurrentTime(), newState.time)
-		const oldState: DeviceState = (this.getStateBefore(previousStateTime) || { state: this._getDefaultState() }).state
+		const oldState: HyperdeckDeviceState = (
+			this.getStateBefore(previousStateTime) || { state: this._getDefaultState() }
+		).state
 
 		const convertTrace = startTrace(`device:convertState`, { deviceId: this.deviceId })
 		const oldHyperdeckState = oldState
@@ -331,80 +314,10 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState, DeviceOptionsH
 	 * Converts a timeline state to a device state.
 	 * @param state
 	 */
-	convertStateToHyperdeck(state: Timeline.TimelineState<TSRTimelineContent>, mappings: Mappings): DeviceState {
+	convertStateToHyperdeck(state: Timeline.TimelineState<TSRTimelineContent>, mappings: Mappings): HyperdeckDeviceState {
 		if (!this._initialized) throw Error('convertStateToHyperdeck cannot be used before inititialized')
 
-		// Convert the timeline state into something we can use easier:
-		const deviceState = this._getDefaultState()
-
-		const sortedLayers = _.map(state.layers, (tlObject, layerName) => ({ layerName, tlObject })).sort((a, b) =>
-			a.layerName.localeCompare(b.layerName)
-		)
-		_.each(sortedLayers, ({ tlObject, layerName }) => {
-			const content = tlObject.content
-
-			const mapping = mappings[layerName] as Mapping<SomeMappingHyperdeck>
-
-			if (mapping && mapping.deviceId === this.deviceId && content.deviceType === DeviceType.HYPERDECK) {
-				switch (mapping.options.mappingType) {
-					case MappingHyperdeckType.Transport:
-						if (content.type === TimelineContentTypeHyperdeck.TRANSPORT) {
-							if (!deviceState.transport) {
-								switch (content.status) {
-									case TransportStatus.PREVIEW:
-									case TransportStatus.STOPPED:
-									case TransportStatus.FORWARD:
-									case TransportStatus.REWIND:
-									case TransportStatus.JOG:
-									case TransportStatus.SHUTTLE:
-										deviceState.transport = {
-											status: content.status,
-											speed: DEFAULT_SPEED,
-											loop: DEFAULT_LOOP,
-											singleClip: DEFAULT_SINGLE_CLIP,
-											clipId: DEFAULT_CLIP_ID,
-										}
-										break
-									case TransportStatus.PLAY:
-										deviceState.transport = {
-											status: content.status,
-											speed: content.speed ?? DEFAULT_SPEED,
-											loop: content.loop ?? DEFAULT_LOOP,
-											singleClip: content.singleClip ?? DEFAULT_SINGLE_CLIP,
-											clipId: content.clipId,
-										}
-										break
-									case TransportStatus.RECORD:
-										deviceState.transport = {
-											status: content.status,
-											speed: DEFAULT_SPEED,
-											loop: DEFAULT_LOOP,
-											singleClip: DEFAULT_SINGLE_CLIP,
-											clipId: DEFAULT_CLIP_ID,
-											recordFilename: content.recordFilename,
-										}
-										break
-									default:
-										// @ts-ignore never
-										throw new Error(`Unsupported status "${content.status}"`)
-								}
-							}
-
-							deviceState.transport.status = content.status
-							if (content.status === TransportStatus.RECORD) {
-								deviceState.transport.recordFilename = content.recordFilename
-							} else if (content.status === TransportStatus.PLAY) {
-								deviceState.transport.speed = content.speed ?? DEFAULT_SPEED
-								deviceState.transport.loop = content.loop ?? DEFAULT_LOOP
-								deviceState.transport.singleClip = content.singleClip ?? DEFAULT_SINGLE_CLIP
-								deviceState.transport.clipId = content.clipId
-							}
-						}
-						break
-				}
-			}
-		})
-		return deviceState
+		return convertTimelineStateToHyperdeckState(state, mappings)
 	}
 	get deviceType() {
 		return DeviceType.HYPERDECK
@@ -506,229 +419,26 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState, DeviceOptionsH
 	 * @param newHyperdeckState The desired state of the device
 	 */
 	private _diffStates(
-		oldHyperdeckState: DeviceState,
-		newHyperdeckState: DeviceState
+		oldHyperdeckState: HyperdeckDeviceState,
+		newHyperdeckState: HyperdeckDeviceState
 	): Array<HyperdeckCommandWithContext> {
-		const commandsToAchieveState: HyperdeckCommandWithContext[] = []
-
-		if (oldHyperdeckState.notify && newHyperdeckState.notify) {
-			const notifyCmd = new HyperdeckCommands.NotifySetCommand()
-			let hasChange: {
-				timelineObjId: string
-			} | null = null
-
-			const keys = _.unique(_.keys(oldHyperdeckState.notify).concat(_.keys(newHyperdeckState.notify)))
-			for (const k of keys) {
-				if (oldHyperdeckState.notify[k] !== newHyperdeckState.notify[k]) {
-					notifyCmd[k] = newHyperdeckState.notify[k]
-					hasChange = {
-						timelineObjId: newHyperdeckState.timelineObjId,
-					}
-				}
-			}
-
-			if (hasChange) {
-				commandsToAchieveState.push({
-					command: notifyCmd,
-					context: {
-						oldState: oldHyperdeckState.notify,
-						newState: newHyperdeckState.notify,
-					},
-					timelineObjId: hasChange.timelineObjId,
-				})
-			}
-		} else {
-			this.emit(
-				'error',
-				'Hyperdeck',
-				new Error(
-					`diffStates missing notify object: ${JSON.stringify(oldHyperdeckState.notify)}, ${JSON.stringify(
-						newHyperdeckState.notify
-					)}`
-				)
-			)
-		}
-
-		if (oldHyperdeckState.transport && newHyperdeckState.transport) {
-			switch (newHyperdeckState.transport.status) {
-				case TransportStatus.RECORD: {
-					// TODO - sometimes we can loose track of the filename (eg on reconnect).
-					// should we split the record when recovering from that? (it might loose some frames)
-					const filenameChanged =
-						oldHyperdeckState.transport.recordFilename !== undefined &&
-						oldHyperdeckState.transport.recordFilename !== newHyperdeckState.transport.recordFilename
-
-					if (oldHyperdeckState.transport.status !== newHyperdeckState.transport.status) {
-						// Start recording
-						commandsToAchieveState.push({
-							command: new HyperdeckCommands.RecordCommand(newHyperdeckState.transport.recordFilename),
-							context: {
-								oldState: oldHyperdeckState.transport,
-								newState: newHyperdeckState.transport,
-							},
-							timelineObjId: newHyperdeckState.timelineObjId,
-						})
-					} else if (filenameChanged) {
-						// Split recording
-						commandsToAchieveState.push({
-							command: new HyperdeckCommands.StopCommand(),
-							context: {
-								oldState: oldHyperdeckState.transport,
-								newState: newHyperdeckState.transport,
-							},
-							timelineObjId: newHyperdeckState.timelineObjId,
-						})
-						commandsToAchieveState.push({
-							command: new HyperdeckCommands.RecordCommand(newHyperdeckState.transport.recordFilename),
-							context: {
-								oldState: oldHyperdeckState.transport,
-								newState: newHyperdeckState.transport,
-							},
-							timelineObjId: newHyperdeckState.timelineObjId,
-						})
-					} // else continue recording
-
-					break
-				}
-				case TransportStatus.PLAY: {
-					if (
-						oldHyperdeckState.transport.status !== newHyperdeckState.transport.status ||
-						oldHyperdeckState.transport.speed !== newHyperdeckState.transport.speed ||
-						oldHyperdeckState.transport.loop !== newHyperdeckState.transport.loop ||
-						oldHyperdeckState.transport.singleClip !== newHyperdeckState.transport.singleClip
-					) {
-						// Start or modify playback
-						commandsToAchieveState.push({
-							command: new HyperdeckCommands.PlayCommand(
-								newHyperdeckState.transport.speed + '',
-								newHyperdeckState.transport.loop,
-								newHyperdeckState.transport.singleClip
-							),
-							context: {
-								oldState: oldHyperdeckState.transport,
-								newState: newHyperdeckState.transport,
-							},
-							timelineObjId: newHyperdeckState.timelineObjId,
-						})
-					} // else continue playing
-
-					if (
-						oldHyperdeckState.transport.clipId !== newHyperdeckState.transport.clipId &&
-						newHyperdeckState.transport.clipId !== null
-					) {
-						// Go to the new clip
-						commandsToAchieveState.push({
-							command: new HyperdeckCommands.GoToCommand(undefined, newHyperdeckState.transport.clipId),
-							context: {
-								oldState: oldHyperdeckState.transport,
-								newState: newHyperdeckState.transport,
-							},
-							timelineObjId: newHyperdeckState.timelineObjId,
-						})
-
-						/**
-						 * If the last played clip naturally reached its end and singleClip was
-						 * true or it was the last clip on the disk, the Hyperdeck will stop,
-						 * but our state will still think that it is playing.
-						 * This means that in order to reliably play the clip we just GoTo'd,
-						 * we have to always send a Play command.
-						 */
-						if (newHyperdeckState.transport.status === TransportStatus.PLAY) {
-							// Start or modify playback
-							commandsToAchieveState.push({
-								command: new HyperdeckCommands.PlayCommand(
-									newHyperdeckState.transport.speed + '',
-									newHyperdeckState.transport.loop,
-									newHyperdeckState.transport.singleClip
-								),
-								context: {
-									oldState: oldHyperdeckState.transport,
-									newState: newHyperdeckState.transport,
-								},
-								timelineObjId: newHyperdeckState.timelineObjId,
-							})
-						} // else continue playing
-					} // else continue playing
-
-					break
-				}
-				case TransportStatus.PREVIEW: {
-					if (oldHyperdeckState.transport.status !== newHyperdeckState.transport.status) {
-						// Switch to preview mode
-						// A subsequent play or record command will automatically override this
-						commandsToAchieveState.push({
-							command: new HyperdeckCommands.PreviewCommand(true),
-							context: {
-								oldState: oldHyperdeckState.transport,
-								newState: newHyperdeckState.transport,
-							},
-							timelineObjId: newHyperdeckState.timelineObjId,
-						})
-					}
-
-					break
-				}
-				case TransportStatus.STOPPED: {
-					if (oldHyperdeckState.transport.status !== newHyperdeckState.transport.status) {
-						// Stop playback/recording
-						commandsToAchieveState.push({
-							command: new HyperdeckCommands.StopCommand(),
-							context: {
-								oldState: oldHyperdeckState.transport,
-								newState: newHyperdeckState.transport,
-							},
-							timelineObjId: newHyperdeckState.timelineObjId,
-						})
-					}
-
-					break
-				}
-				default:
-					// TODO - warn
-					// for now we are assuming they want a stop. that could be conditional later on
-					if (
-						oldHyperdeckState.transport.status === TransportStatus.RECORD ||
-						oldHyperdeckState.transport.status === TransportStatus.PLAY
-					) {
-						commandsToAchieveState.push({
-							command: new HyperdeckCommands.StopCommand(),
-							context: {
-								oldState: oldHyperdeckState.transport,
-								newState: newHyperdeckState.transport,
-							},
-							timelineObjId: newHyperdeckState.timelineObjId,
-						})
-					}
-					break
-			}
-		} else {
-			this.emit(
-				'error',
-				'Hyperdeck',
-				new Error(
-					`diffStates missing transport object: ${JSON.stringify(oldHyperdeckState.transport)}, ${JSON.stringify(
-						newHyperdeckState.transport
-					)}`
-				)
-			)
-		}
-
-		return commandsToAchieveState
+		return diffHyperdeckStates(oldHyperdeckState, newHyperdeckState, (err) => {
+			this.emit('error', 'Hyperdeck', err)
+		})
 	}
 
 	/**
 	 * Gets the current state of the device
 	 */
-	private async _queryCurrentState(): Promise<DeviceState> {
+	private async _queryCurrentState(): Promise<HyperdeckDeviceState> {
 		if (!this._connected) return this._getDefaultState()
 
-		const notify = this._hyperdeck.sendCommand(new HyperdeckCommands.NotifyGetCommand())
-		const transport = this._hyperdeck.sendCommand(new HyperdeckCommands.TransportInfoCommand())
+		const [notifyRes, transportRes] = await Promise.all([
+			this._hyperdeck.sendCommand(new HyperdeckCommands.NotifyGetCommand()),
+			this._hyperdeck.sendCommand(new HyperdeckCommands.TransportInfoCommand()),
+		])
 
-		const notifyRes = await notify
-		const transportRes = await transport
-
-		const res: DeviceState = {
+		const res: HyperdeckDeviceState = {
 			notify: notifyRes,
 			transport: transportRes,
 			timelineObjId: 'currentState',
@@ -790,27 +500,8 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState, DeviceOptionsH
 	/**
 	 * Gets the default state of the device
 	 */
-	private _getDefaultState(): DeviceState {
-		const res: DeviceState = {
-			notify: {
-				// TODO - this notify block will want configuring per device or will the state lib always want it the same?
-				remote: false,
-				transport: false,
-				slot: false,
-				configuration: false,
-				droppedFrames: false,
-			},
-			transport: {
-				status: TransportStatus.STOPPED,
-				speed: DEFAULT_SPEED,
-				loop: DEFAULT_LOOP,
-				singleClip: DEFAULT_SINGLE_CLIP,
-				clipId: DEFAULT_CLIP_ID,
-			},
-			timelineObjId: '',
-		}
-
-		return res
+	private _getDefaultState(): HyperdeckDeviceState {
+		return getDefaultHyperdeckState()
 	}
 
 	private async _defaultCommandReceiver(
