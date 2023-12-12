@@ -24,9 +24,10 @@ import {
 	MappingVmixProgram,
 } from 'timeline-state-resolver-types'
 import { ThreadedClass } from 'threadedclass'
-import { VMixDevice, CommandContext } from '..'
+import { VMixDevice } from '..'
 import { MockTime } from '../../../__tests__/mockTime'
 import '../../../__tests__/lib'
+import { CommandContext } from '../vMixCommands'
 
 const orgSetTimeout = setTimeout
 
