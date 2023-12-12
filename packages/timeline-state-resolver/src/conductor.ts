@@ -29,6 +29,7 @@ import {
 	DeviceOptionsAtem,
 	DeviceOptionsTCPSend,
 	DeviceOptionsQuantel,
+	DeviceOptionsHyperdeck,
 } from 'timeline-state-resolver-types'
 
 import { DoOnTime } from './devices/doOnTime'
@@ -41,7 +42,6 @@ import { DeviceContainer } from './devices/deviceContainer'
 import { CasparCGDevice, DeviceOptionsCasparCGInternal } from './integrations/casparCG'
 import { LawoDevice, DeviceOptionsLawoInternal } from './integrations/lawo'
 import { PanasonicPtzDevice, DeviceOptionsPanasonicPTZInternal } from './integrations/panasonicPTZ'
-import { HyperdeckDevice, DeviceOptionsHyperdeckInternal } from './integrations/hyperdeck'
 import { PharosDevice, DeviceOptionsPharosInternal } from './integrations/pharos'
 import { SisyfosMessageDevice, DeviceOptionsSisyfosInternal } from './integrations/sisyfos'
 import { SingularLiveDevice, DeviceOptionsSingularLiveInternal } from './integrations/singularLive'
@@ -528,15 +528,6 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 					getCurrentTime,
 					threadedClassOptions
 				)
-			case DeviceType.HYPERDECK:
-				return DeviceContainer.create<DeviceOptionsHyperdeckInternal, typeof HyperdeckDevice>(
-					'../../dist/integrations/hyperdeck/index.js',
-					'HyperdeckDevice',
-					deviceId,
-					deviceOptions,
-					getCurrentTime,
-					threadedClassOptions
-				)
 			case DeviceType.PHAROS:
 				return DeviceContainer.create<DeviceOptionsPharosInternal, typeof PharosDevice>(
 					'../../dist/integrations/pharos/index.js',
@@ -631,6 +622,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 			case DeviceType.ATEM:
 			case DeviceType.HTTPSEND:
 			case DeviceType.HTTPWATCHER:
+			case DeviceType.HYPERDECK:
 			case DeviceType.OSC:
 			case DeviceType.SHOTOKU:
 			case DeviceType.TCPSEND:
@@ -1544,7 +1536,7 @@ export type DeviceOptionsAnyInternal =
 	| DeviceOptionsHTTPWatcher
 	| DeviceOptionsPanasonicPTZInternal
 	| DeviceOptionsTCPSend
-	| DeviceOptionsHyperdeckInternal
+	| DeviceOptionsHyperdeck
 	| DeviceOptionsPharosInternal
 	| DeviceOptionsOBSInternal
 	| DeviceOptionsOSC

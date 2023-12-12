@@ -1,5 +1,4 @@
 import { Commands as HyperdeckCommands, TransportStatus } from 'hyperdeck-connection'
-import _ = require('underscore')
 import {
 	DeviceType,
 	Mapping,
@@ -55,78 +54,78 @@ export function getDefaultHyperdeckState(): HyperdeckDeviceState {
 }
 
 export function convertTimelineStateToHyperdeckState(
-	state: Timeline.TimelineState<TSRTimelineContent>,
+	state: Timeline.StateInTime<TSRTimelineContent>,
 	mappings: Mappings
 ): HyperdeckDeviceState {
 	// Convert the timeline state into something we can use easier:
 	const deviceState = getDefaultHyperdeckState()
 
-	const sortedLayers = _.map(state.layers, (tlObject, layerName) => ({ layerName, tlObject })).sort((a, b) =>
-		a.layerName.localeCompare(b.layerName)
-	)
-	_.each(sortedLayers, ({ tlObject, layerName }) => {
+	const sortedLayers = Object.entries<Timeline.ResolvedTimelineObjectInstance<TSRTimelineContent>>(state)
+		.map(([layerName, tlObject]) => ({ layerName, tlObject }))
+		.sort((a, b) => a.layerName.localeCompare(b.layerName))
+
+	for (const { tlObject, layerName } of sortedLayers) {
 		const content = tlObject.content
 
 		const mapping = mappings[layerName] as Mapping<SomeMappingHyperdeck>
+		if (!mapping || content.deviceType !== DeviceType.HYPERDECK) continue
 
-		if (mapping && content.deviceType === DeviceType.HYPERDECK) {
-			switch (mapping.options.mappingType) {
-				case MappingHyperdeckType.Transport:
-					if (content.type === TimelineContentTypeHyperdeck.TRANSPORT) {
-						if (!deviceState.transport) {
-							switch (content.status) {
-								case TransportStatus.PREVIEW:
-								case TransportStatus.STOPPED:
-								case TransportStatus.FORWARD:
-								case TransportStatus.REWIND:
-								case TransportStatus.JOG:
-								case TransportStatus.SHUTTLE:
-									deviceState.transport = {
-										status: content.status,
-										speed: DEFAULT_SPEED,
-										loop: DEFAULT_LOOP,
-										singleClip: DEFAULT_SINGLE_CLIP,
-										clipId: DEFAULT_CLIP_ID,
-									}
-									break
-								case TransportStatus.PLAY:
-									deviceState.transport = {
-										status: content.status,
-										speed: content.speed ?? DEFAULT_SPEED,
-										loop: content.loop ?? DEFAULT_LOOP,
-										singleClip: content.singleClip ?? DEFAULT_SINGLE_CLIP,
-										clipId: content.clipId,
-									}
-									break
-								case TransportStatus.RECORD:
-									deviceState.transport = {
-										status: content.status,
-										speed: DEFAULT_SPEED,
-										loop: DEFAULT_LOOP,
-										singleClip: DEFAULT_SINGLE_CLIP,
-										clipId: DEFAULT_CLIP_ID,
-										recordFilename: content.recordFilename,
-									}
-									break
-								default:
-									// @ts-ignore never
-									throw new Error(`Unsupported status "${content.status}"`)
-							}
+		if (
+			mapping.options.mappingType === MappingHyperdeckType.Transport &&
+			content.type === TimelineContentTypeHyperdeck.TRANSPORT
+		) {
+			if (!deviceState.transport) {
+				switch (content.status) {
+					case TransportStatus.PREVIEW:
+					case TransportStatus.STOPPED:
+					case TransportStatus.FORWARD:
+					case TransportStatus.REWIND:
+					case TransportStatus.JOG:
+					case TransportStatus.SHUTTLE:
+						deviceState.transport = {
+							status: content.status,
+							speed: DEFAULT_SPEED,
+							loop: DEFAULT_LOOP,
+							singleClip: DEFAULT_SINGLE_CLIP,
+							clipId: DEFAULT_CLIP_ID,
 						}
+						break
+					case TransportStatus.PLAY:
+						deviceState.transport = {
+							status: content.status,
+							speed: content.speed ?? DEFAULT_SPEED,
+							loop: content.loop ?? DEFAULT_LOOP,
+							singleClip: content.singleClip ?? DEFAULT_SINGLE_CLIP,
+							clipId: content.clipId,
+						}
+						break
+					case TransportStatus.RECORD:
+						deviceState.transport = {
+							status: content.status,
+							speed: DEFAULT_SPEED,
+							loop: DEFAULT_LOOP,
+							singleClip: DEFAULT_SINGLE_CLIP,
+							clipId: DEFAULT_CLIP_ID,
+							recordFilename: content.recordFilename,
+						}
+						break
+					default:
+						// @ts-ignore never
+						throw new Error(`Unsupported status "${content.status}"`)
+				}
+			}
 
-						deviceState.transport.status = content.status
-						if (content.status === TransportStatus.RECORD) {
-							deviceState.transport.recordFilename = content.recordFilename
-						} else if (content.status === TransportStatus.PLAY) {
-							deviceState.transport.speed = content.speed ?? DEFAULT_SPEED
-							deviceState.transport.loop = content.loop ?? DEFAULT_LOOP
-							deviceState.transport.singleClip = content.singleClip ?? DEFAULT_SINGLE_CLIP
-							deviceState.transport.clipId = content.clipId
-						}
-					}
-					break
+			deviceState.transport.status = content.status
+			if (content.status === TransportStatus.RECORD) {
+				deviceState.transport.recordFilename = content.recordFilename
+			} else if (content.status === TransportStatus.PLAY) {
+				deviceState.transport.speed = content.speed ?? DEFAULT_SPEED
+				deviceState.transport.loop = content.loop ?? DEFAULT_LOOP
+				deviceState.transport.singleClip = content.singleClip ?? DEFAULT_SINGLE_CLIP
+				deviceState.transport.clipId = content.clipId
 			}
 		}
-	})
+	}
+
 	return deviceState
 }
