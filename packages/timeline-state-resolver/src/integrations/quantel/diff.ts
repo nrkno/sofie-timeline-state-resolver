@@ -56,12 +56,7 @@ export function diffStates(
 	/** The time of when to run "preparation" commands */
 	const prelimTime = getPreliminaryTime(newState.time, oldState?.time, currentTime)
 
-	const lookaheadPreloadClips: {
-		portId: string
-		port: QuantelStatePort
-		clip: QuantelStatePortClip
-		timelineObjId: string
-	}[] = []
+	const lookaheadPreloadClips: LookaheadPreloadClip[] = []
 
 	for (const [portId, newPort] of Object.entries<QuantelStatePort>(newState.port)) {
 		// diff existing ports
@@ -88,7 +83,7 @@ export function diffStates(
 		}
 	}
 	// Lookaheads to preload:
-	_.each(lookaheadPreloadClips, (lookaheadPreloadClip) => {
+	Object.values<LookaheadPreloadClip>(lookaheadPreloadClips).forEach((lookaheadPreloadClip) => {
 		// Preloads of lookaheads are handled last, to ensure that any load-fragments of high-prio clips are done first.
 		loadFragments(
 			lookaheadPreloadClip.portId,
@@ -110,6 +105,12 @@ export function diffStates(
 		return 0
 	})
 	return allCommands
+}
+interface LookaheadPreloadClip {
+	portId: string
+	port: QuantelStatePort
+	clip: QuantelStatePortClip
+	timelineObjId: string
 }
 
 function getPreliminaryTime(time: number, oldTime: number | undefined, currentTime: number) {
