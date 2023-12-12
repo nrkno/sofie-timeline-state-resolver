@@ -400,7 +400,6 @@ describe('Quantel Device', () => {
 		})
 
 		test('Set up port', async () => {
-			jest
 			await compareStates(
 				{ time: 1000, port: {} },
 				{

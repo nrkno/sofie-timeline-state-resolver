@@ -30,7 +30,7 @@ export function getMappedPorts(mappings: Mappings<SomeMappingQuantel>): MappedPo
 
 	// now sort in place
 	for (const port of Object.values<MappedPorts[string]>(ports)) {
-		port.channels.sort()
+		port.channels = port.channels.sort((a, b) => a - b)
 	}
 
 	return ports
