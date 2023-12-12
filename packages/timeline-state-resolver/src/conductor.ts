@@ -28,6 +28,7 @@ import {
 	DeviceOptionsAbstract,
 	DeviceOptionsAtem,
 	DeviceOptionsTCPSend,
+	DeviceOptionsQuantel,
 } from 'timeline-state-resolver-types'
 
 import { DoOnTime } from './devices/doOnTime'
@@ -42,7 +43,6 @@ import { LawoDevice, DeviceOptionsLawoInternal } from './integrations/lawo'
 import { PanasonicPtzDevice, DeviceOptionsPanasonicPTZInternal } from './integrations/panasonicPTZ'
 import { HyperdeckDevice, DeviceOptionsHyperdeckInternal } from './integrations/hyperdeck'
 import { PharosDevice, DeviceOptionsPharosInternal } from './integrations/pharos'
-import { QuantelDevice, DeviceOptionsQuantelInternal } from './integrations/quantel'
 import { SisyfosMessageDevice, DeviceOptionsSisyfosInternal } from './integrations/sisyfos'
 import { SingularLiveDevice, DeviceOptionsSingularLiveInternal } from './integrations/singularLive'
 import { VMixDevice, DeviceOptionsVMixInternal } from './integrations/vmix'
@@ -546,15 +546,6 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 					getCurrentTime,
 					threadedClassOptions
 				)
-			case DeviceType.QUANTEL:
-				return DeviceContainer.create<DeviceOptionsQuantelInternal, typeof QuantelDevice>(
-					'../../dist/integrations/quantel/index.js',
-					'QuantelDevice',
-					deviceId,
-					deviceOptions,
-					getCurrentTime,
-					threadedClassOptions
-				)
 			case DeviceType.SISYFOS:
 				return DeviceContainer.create<DeviceOptionsSisyfosInternal, typeof SisyfosMessageDevice>(
 					'../../dist/integrations/sisyfos/index.js',
@@ -642,7 +633,8 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 			case DeviceType.HTTPWATCHER:
 			case DeviceType.OSC:
 			case DeviceType.SHOTOKU:
-			case DeviceType.TCPSEND: {
+			case DeviceType.TCPSEND:
+			case DeviceType.QUANTEL: {
 				ensureIsImplementedAsService(deviceOptions.type)
 
 				// presumably this device is implemented in the new service handler
@@ -1559,7 +1551,7 @@ export type DeviceOptionsAnyInternal =
 	| DeviceOptionsMultiOSCInternal
 	| DeviceOptionsSisyfosInternal
 	| DeviceOptionsSofieChefInternal
-	| DeviceOptionsQuantelInternal
+	| DeviceOptionsQuantel
 	| DeviceOptionsSingularLiveInternal
 	| DeviceOptionsVMixInternal
 	| DeviceOptionsShotoku

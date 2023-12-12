@@ -53,8 +53,8 @@ jest.mock('../../integrations/abstract/index', () => ({
 	},
 }))
 
-function getDeviceInstance(): DeviceInstanceWrapper {
-	return new DeviceInstanceWrapper('wrapper0', Date.now(), { type: DeviceType.ABSTRACT }, async () => Date.now())
+function getDeviceInstance(getTime = async () => Date.now()): DeviceInstanceWrapper {
+	return new DeviceInstanceWrapper('wrapper0', Date.now(), { type: DeviceType.ABSTRACT }, getTime)
 }
 
 describe('DeviceInstance', () => {
@@ -159,6 +159,28 @@ describe('DeviceInstance', () => {
 			messages: [],
 			active: true, // because it has mappings now
 		})
+	})
+
+	test('getCurrentTime', async () => {
+		const getRemoteTime = jest.fn(async () => Date.now() - 10)
+		const dev = getDeviceInstance(getRemoteTime) // simulate 10ms ipc delay
+		// wait for the first sync to happen
+		await new Promise<void>((r) => setTimeout(() => r(), 10))
+		expect(getRemoteTime).toHaveBeenCalledTimes(1)
+
+		const t = dev.getCurrentTime()
+		// it may be a bit delayed
+		expect(t).toBeGreaterThanOrEqual(Date.now() - 12)
+		// it should never be faster
+		expect(t).toBeLessThanOrEqual(Date.now() - 10)
+
+		// check that this still works after a bit of delay
+		await new Promise<void>((r) => setTimeout(() => r(), 250))
+		expect(getRemoteTime).toHaveBeenCalledTimes(1)
+
+		const t2 = dev.getCurrentTime()
+		expect(t2).toBeGreaterThanOrEqual(Date.now() - 12)
+		expect(t2).toBeLessThanOrEqual(Date.now() - 10)
 	})
 
 	// todo - test event handlers

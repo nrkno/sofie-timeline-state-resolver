@@ -37,12 +37,7 @@ export class MockDeviceInstanceWrapper
 			| 'removeAllListeners'
 		>
 {
-	constructor(
-		public readonly deviceId: string,
-		_startTime: string,
-		public readonly config: DeviceOptionsAnyInternal,
-		public readonly getCurrentTime: () => Promise<number>
-	) {
+	constructor(public readonly deviceId: string, _startTime: string, public readonly config: DeviceOptionsAnyInternal) {
 		super()
 
 		// const deviceSpecs = DevicesDict[config.type]
@@ -53,6 +48,11 @@ export class MockDeviceInstanceWrapper
 
 		ConstructedMockDevices[deviceId] = this
 	}
+
+	getCurrentTime = jest.fn((): number => {
+		// throw new Error('Method not implemented.')
+		return Date.now()
+	})
 
 	initDevice = jest.fn(async (_activeRundownPlaylistId?: string | undefined): Promise<boolean> => {
 		// throw new Error('Method not implemented.')

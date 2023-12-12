@@ -50,7 +50,10 @@ export class DeviceInstanceWrapper extends EventEmitter<DeviceInstanceEvents> {
 	private _logDebug = false
 	private _logDebugStates = false
 
-	constructor(id: string, time: number, private config: Config, public getCurrentTime: () => Promise<number>) {
+	private _lastUpdateCurrentTime: number | undefined
+	private _tDiff: number | undefined
+
+	constructor(id: string, time: number, private config: Config, private getRemoteCurrentTime: () => Promise<number>) {
 		super()
 
 		const deviceSpecs: DeviceEntry = DevicesDict[config.type]
@@ -64,6 +67,8 @@ export class DeviceInstanceWrapper extends EventEmitter<DeviceInstanceEvents> {
 		this._deviceType = config.type
 		this._deviceName = deviceSpecs.deviceName(id, config)
 		this._startTime = time
+
+		this._updateTimeSync()
 
 		this._stateHandler = new StateHandler(
 			{
@@ -113,7 +118,7 @@ export class DeviceInstanceWrapper extends EventEmitter<DeviceInstanceEvents> {
 						})
 					})
 				},
-				getCurrentTime: this.getCurrentTime,
+				getCurrentTime: () => this.getCurrentTime(),
 			},
 			{
 				executionType: deviceSpecs.executionMode(config.options),
@@ -194,6 +199,18 @@ export class DeviceInstanceWrapper extends EventEmitter<DeviceInstanceEvents> {
 		this._logDebugStates = value
 	}
 
+	getCurrentTime(): number {
+		if (
+			!this._lastUpdateCurrentTime ||
+			this._tDiff === undefined ||
+			Date.now() - this._lastUpdateCurrentTime > 5 * 60 * 1000
+		) {
+			this._updateTimeSync()
+		}
+
+		return Date.now() + (this._tDiff ?? 0)
+	}
+
 	private _getDeviceContextAPI(): DeviceContextAPI<any> {
 		return {
 			logger: {
@@ -210,6 +227,8 @@ export class DeviceInstanceWrapper extends EventEmitter<DeviceInstanceEvents> {
 					if (this._logDebug) this.emit('debug', ...debug)
 				},
 			},
+
+			getCurrentTime: () => this.getCurrentTime(),
 
 			emitDebugState: (state: object) => {
 				if (this._logDebugStates) {
@@ -253,5 +272,20 @@ export class DeviceInstanceWrapper extends EventEmitter<DeviceInstanceEvents> {
 				this.emit('resetResolver')
 			},
 		}
+	}
+
+	private _updateTimeSync(): void {
+		this._lastUpdateCurrentTime = Date.now() // set this first so we don't update twice at the same time
+
+		const start = Date.now()
+		this.getRemoteCurrentTime()
+			.then((t) => {
+				const end = Date.now()
+
+				this._tDiff = t - Math.round((start + end) / 2)
+			})
+			.catch((e) => {
+				this.emit('error', 'Error when syncing time', e)
+			})
 	}
 }

@@ -2,9 +2,12 @@ import { FinishedTrace, startTrace, endTrace } from '../lib'
 import { Mappings, Timeline, TSRTimelineContent } from 'timeline-state-resolver-types'
 import { BaseDeviceAPI, CommandWithContext } from './device'
 import { Measurement, StateChangeReport } from './measure'
+import { CommandExecutor } from './commandExecutor'
 
 interface StateChange<DeviceState, Command extends CommandWithContext> {
 	commands?: Command[]
+	preliminary?: number
+
 	state: Timeline.TimelineState<TSRTimelineContent>
 	deviceState: DeviceState
 	mappings: Mappings
@@ -23,6 +26,7 @@ export class StateHandler<DeviceState, Command extends CommandWithContext> {
 	private currentState: ExecutedStateChange<DeviceState, Command> | undefined
 	/** Semaphore, to ensure that .executeNextStateChange() is only executed one at a time */
 	private _executingStateChange = false
+	private _commandExecutor: CommandExecutor<DeviceState, Command>
 
 	private clock: NodeJS.Timeout
 
@@ -39,29 +43,27 @@ export class StateHandler<DeviceState, Command extends CommandWithContext> {
 			this.logger.error('Error while creating new StateHandler', e)
 		})
 
-		this.clock = setInterval(() => {
-			context
-				.getCurrentTime()
-				.then((t) => {
-					// main clock to check if next state needs to be sent out
-					for (const state of this.stateQueue) {
-						const nextTime = Math.max(0, state?.state.time - t)
-						if (nextTime > CLOCK_INTERVAL) break
-						// schedule any states between now and the next tick
+		this._commandExecutor = new CommandExecutor(context.logger, this.config.executionType, async (c) =>
+			device.sendCommand(c)
+		)
 
-						setTimeout(() => {
-							if (!this._executingStateChange && this.stateQueue[0] === state) {
-								// if this is the next state, execute it
-								this.executeNextStateChange().catch((e) => {
-									this.logger.error('Error while executing next state change', e)
-								})
-							}
-						}, nextTime)
+		this.clock = setInterval(() => {
+			const t = context.getCurrentTime()
+			// main clock to check if next state needs to be sent out
+			for (const state of this.stateQueue) {
+				const nextTime = Math.max(0, state?.state.time - (state?.preliminary ?? 0) - t)
+				if (nextTime > CLOCK_INTERVAL) break
+				// schedule any states between now and the next tick
+
+				setTimeout(() => {
+					if (!this._executingStateChange && this.stateQueue[0] === state) {
+						// if this is the next state, execute it
+						this.executeNextStateChange().catch((e) => {
+							this.logger.error('Error while executing next state change', e)
+						})
 					}
-				})
-				.catch((e) => {
-					this.logger.error('Error in main StateHandler loop', e)
-				})
+				}, nextTime)
+			}
 		}, CLOCK_INTERVAL)
 	}
 
@@ -107,7 +109,7 @@ export class StateHandler<DeviceState, Command extends CommandWithContext> {
 		this.currentState = {
 			commands: [],
 			deviceState: state,
-			state: this.currentState?.state || { time: await this.context.getCurrentTime(), layers: {}, nextEvents: [] },
+			state: this.currentState?.state || { time: this.context.getCurrentTime(), layers: {}, nextEvents: [] },
 			mappings: this.currentState?.mappings || {},
 		}
 		await this.calculateNextStateChange()
@@ -128,8 +130,10 @@ export class StateHandler<DeviceState, Command extends CommandWithContext> {
 			nextState.commands = this.device.diffStates(
 				this.currentState?.deviceState,
 				nextState.deviceState,
-				nextState.mappings
+				nextState.mappings,
+				this.context.getCurrentTime()
 			)
+			nextState.preliminary = Math.max(0, ...nextState.commands.map((c) => c.preliminary ?? 0))
 			this.context.emitTimeTrace(endTrace(trace))
 		} catch (e) {
 			// todo - log an error
@@ -138,7 +142,7 @@ export class StateHandler<DeviceState, Command extends CommandWithContext> {
 			nextState.commands = []
 		}
 
-		if (nextState.state.time <= (await this.context.getCurrentTime()) && this.currentState) {
+		if (nextState.state.time - (nextState.preliminary ?? 0) <= this.context.getCurrentTime() && this.currentState) {
 			await this.executeNextStateChange()
 		}
 	}
@@ -165,41 +169,14 @@ export class StateHandler<DeviceState, Command extends CommandWithContext> {
 
 		this.currentState = undefined
 
-		if (this.config.executionType === 'salvo') {
-			Promise.allSettled(
-				newState.commands.map(async (command) => {
-					newState.measurement?.executeCommand(command)
-					return this.device.sendCommand(command).then(() => {
-						newState.measurement?.finishedCommandExecution(command)
-						return command
-					})
-				})
-			)
-				.then(() => {
-					if (newState.measurement) this.context.reportStateChangeMeasurement(newState.measurement.report())
-				})
-				.catch((e) => {
-					this.logger.error('Error while executing next state change', e)
-				})
-		} else {
-			const execAll = async () => {
-				for (const command of newState.commands || []) {
-					newState.measurement?.executeCommand(command)
-					await this.device.sendCommand(command).catch((e) => {
-						this.logger.error('Error while executing command', e)
-					})
-					newState.measurement?.finishedCommandExecution(command)
-				}
-			}
-
-			execAll()
-				.then(() => {
-					if (newState.measurement) this.context.reportStateChangeMeasurement(newState.measurement.report())
-				})
-				.catch((e) => {
-					this.logger.error('Error while executing next state change', e)
-				})
-		}
+		this._commandExecutor
+			.executeCommands(newState.commands, newState.measurement)
+			.then(() => {
+				if (newState.measurement) this.context.reportStateChangeMeasurement(newState.measurement.report())
+			})
+			.catch((e) => {
+				this.logger.error('Error while executing next state change', e)
+			})
 
 		this.currentState = newState as ExecutedStateChange<DeviceState, Command>
 		this._executingStateChange = false
@@ -227,5 +204,5 @@ export interface StateHandlerContext {
 	emitTimeTrace: (trace: FinishedTrace) => void
 	reportStateChangeMeasurement: (report: StateChangeReport) => void
 
-	getCurrentTime: () => Promise<number>
+	getCurrentTime: () => number
 }

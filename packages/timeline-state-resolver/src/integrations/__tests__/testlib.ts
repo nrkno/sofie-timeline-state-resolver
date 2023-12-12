@@ -10,6 +10,7 @@ export function getDeviceContext(): DeviceContextAPI<any> {
 			info: jest.fn(),
 			debug: jest.fn(),
 		},
+		getCurrentTime: jest.fn(() => Date.now()),
 		emitDebugState: jest.fn(),
 		connectionChanged: jest.fn(),
 		resetResolver: jest.fn(),

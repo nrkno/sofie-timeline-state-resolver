@@ -16,6 +16,8 @@ export type CommandWithContext = {
 	context: CommandContext
 	/** ID of the timeline-object that the command originated from */
 	timelineObjId: string
+	/** this command is to be executed x ms _before_ the scheduled time */
+	preliminary?: number
 }
 
 /**
@@ -58,7 +60,12 @@ export abstract class Device<DeviceOptions, DeviceState, Command extends Command
 		state: Timeline.TimelineState<TSRTimelineContent>,
 		newMappings: Mappings
 	): DeviceState
-	abstract diffStates(oldState: DeviceState | undefined, newState: DeviceState, mappings: Mappings): Array<Command>
+	abstract diffStates(
+		oldState: DeviceState | undefined,
+		newState: DeviceState,
+		mappings: Mappings,
+		time: number
+	): Array<Command>
 	abstract sendCommand(command: Command): Promise<void>
 	// -------------------------------------------------------------------
 }
@@ -83,7 +90,12 @@ export interface BaseDeviceAPI<DeviceState, Command extends CommandWithContext> 
 	 * This method takes 2 states and returns a set of commands that will
 	 * transition the device from oldState to newState
 	 */
-	diffStates(oldState: DeviceState | undefined, newState: DeviceState, mappings: Mappings): Array<Command>
+	diffStates(
+		oldState: DeviceState | undefined,
+		newState: DeviceState,
+		mappings: Mappings,
+		currentTime: number
+	): Array<Command>
 	/** This method will take a command and send it to the device */
 	sendCommand(command: Command): Promise<void>
 }
@@ -133,6 +145,8 @@ export interface DeviceContextAPI<DeviceState> {
 
 	/** Emit a "debugState" message */
 	emitDebugState: (state: object) => void
+
+	getCurrentTime: () => number
 
 	/** Notify that the connection status has changed. */
 	connectionChanged: (status: Omit<DeviceStatus, 'active'>) => void
