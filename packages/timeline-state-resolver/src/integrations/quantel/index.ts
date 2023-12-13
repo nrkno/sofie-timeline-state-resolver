@@ -36,9 +36,12 @@ export interface QuantelCommandWithContext {
 }
 
 export class QuantelDevice extends Device<QuantelOptions, QuantelState, QuantelCommandWithContext> {
-	private _quantel: QuantelGateway
-	private _quantelManager: QuantelManager
-	private options: QuantelOptions
+	/** Setup in init */
+	private _quantel!: QuantelGateway
+	/** Setup in init */
+	private _quantelManager!: QuantelManager
+	/** Setup in init */
+	private options!: QuantelOptions
 
 	private _disconnectedSince: number | undefined = undefined
 
@@ -176,7 +179,9 @@ export class QuantelDevice extends Device<QuantelOptions, QuantelState, QuantelC
 		}
 	}
 
-	actions: Record<QuantelActions, (id: QuantelActions) => Promise<ActionExecutionResult>> = {
+	readonly actions: {
+		[id in QuantelActions]: (id: string, payload?: Record<string, any>) => Promise<ActionExecutionResult>
+	} = {
 		[QuantelActions.ClearStates]: async () => {
 			this.context.resetResolver()
 			return {

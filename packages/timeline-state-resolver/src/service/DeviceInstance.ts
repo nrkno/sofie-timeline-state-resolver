@@ -66,6 +66,7 @@ export class DeviceInstanceWrapper extends EventEmitter<DeviceInstanceEvents> {
 		this._deviceId = id
 		this._deviceType = config.type
 		this._deviceName = deviceSpecs.deviceName(id, config)
+		this._instanceId = Math.floor(Math.random() * 10000)
 		this._startTime = time
 
 		this._updateTimeSync()

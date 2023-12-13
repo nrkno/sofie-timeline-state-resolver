@@ -77,13 +77,12 @@ export class SofieChefDevice extends DeviceWithState<SofieChefState, DeviceOptio
 
 	private initOptions?: SofieChefOptions
 	private msgId = 0
-	private _commandReceiver: CommandReceiver
+	private _commandReceiver: CommandReceiver = this._defaultCommandReceiver.bind(this)
 
 	constructor(deviceId: string, deviceOptions: DeviceOptionsSofieChefInternal, getCurrentTime: () => Promise<number>) {
 		super(deviceId, deviceOptions, getCurrentTime)
 		if (deviceOptions.options) {
 			if (deviceOptions.commandReceiver) this._commandReceiver = deviceOptions.commandReceiver
-			else this._commandReceiver = this._defaultCommandReceiver.bind(this)
 		}
 		this._doOnTime = new DoOnTime(
 			() => {

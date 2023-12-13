@@ -23,7 +23,6 @@ export type DeviceOptionsTriCasterInternal = DeviceOptionsTriCaster
 export class TriCasterDevice extends DeviceWithState<WithContext<TriCasterState>, DeviceOptionsTriCasterInternal> {
 	private _doOnTime: DoOnTime
 
-	private _resolveInitPromise: (value: boolean) => void
 	private _connected = false
 	private _initialized = false
 	private _isTerminating = false
@@ -40,16 +39,12 @@ export class TriCasterDevice extends DeviceWithState<WithContext<TriCasterState>
 		this._doOnTime.on('slowFulfilledCommand', (info) => this.emit('slowFulfilledCommand', info))
 	}
 	async init(options: TriCasterOptions): Promise<boolean> {
-		const initPromise = new Promise<boolean>((resolve) => {
-			this._resolveInitPromise = resolve
-		})
 		this._connection = new TriCasterConnection(options.host, options.port ?? DEFAULT_PORT)
 		this._connection.on('connected', (info, shortcutStateXml) => {
 			this._stateDiffer = new TriCasterStateDiffer(info)
 			this._setInitialState(shortcutStateXml)
 			this._setConnected(true)
 			this._initialized = true
-			this._resolveInitPromise(true)
 			this.emit('info', `Connected to TriCaster ${info.productModel}, session: ${info.sessionName}`)
 		})
 		this._connection.on('disconnected', (reason) => {
@@ -62,7 +57,7 @@ export class TriCasterDevice extends DeviceWithState<WithContext<TriCasterState>
 			this.emit('error', 'TriCasterConnection', reason)
 		})
 		this._connection.connect()
-		return initPromise
+		return true
 	}
 
 	private _setInitialState(shortcutStateXml: string): void {

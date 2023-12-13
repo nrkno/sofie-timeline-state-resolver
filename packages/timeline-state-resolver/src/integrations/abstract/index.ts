@@ -27,7 +27,9 @@ export type AbstractDeviceState = Timeline.TimelineState<TSRTimelineContent>
 	as a preliminary mock
 */
 export class AbstractDevice extends Device<AbstractOptions, AbstractDeviceState, AbstractCommandWithContext> {
-	readonly actions: Record<string, (id: string, payload: Record<string, any>) => Promise<ActionExecutionResult>> = {
+	readonly actions: {
+		[id in AbstractActions]: (id: string, payload?: Record<string, any>) => Promise<ActionExecutionResult>
+	} = {
 		[AbstractActions.TestAction]: async () => {
 			// noop
 			return { result: ActionExecutionResultCode.Ok }

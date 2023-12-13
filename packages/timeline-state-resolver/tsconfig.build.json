@@ -12,9 +12,7 @@
 		"types": ["node"],
 
 		// Temporary overrides, to allow for gradual migration project
-		"strictPropertyInitialization": false,
 		"noImplicitAny": false,
-		"strictFunctionTypes": false,
 		"resolveJsonModule": true
 	}
 }

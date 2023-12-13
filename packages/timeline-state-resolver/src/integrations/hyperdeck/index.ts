@@ -25,7 +25,7 @@ import { Device } from '../../service/device'
  */
 export class HyperdeckDevice extends Device<HyperdeckOptions, HyperdeckDeviceState, HyperdeckCommandWithContext> {
 	readonly actions: {
-		[id in HyperdeckActions]: (id: string, payload: Record<string, any>) => Promise<ActionExecutionResult>
+		[id in HyperdeckActions]: (id: string, payload?: Record<string, any>) => Promise<ActionExecutionResult>
 	} = {
 		[HyperdeckActions.FormatDisks]: this.formatDisks.bind(this),
 		[HyperdeckActions.Resync]: this.resyncState.bind(this),
@@ -34,14 +34,14 @@ export class HyperdeckDevice extends Device<HyperdeckOptions, HyperdeckDeviceSta
 	private readonly _hyperdeck = new Hyperdeck({ pingPeriod: 1000 })
 	private _connected = false
 
-	private _recordingTime: number
-	private _minRecordingTime: number // 15 minutes
-	private _recTimePollTimer: NodeJS.Timer
+	private _recordingTime = 0
+	private _minRecordingTime = 0 // 15 minutes
+	private _recTimePollTimer: NodeJS.Timer | undefined
 	private _slotCount = 0
 	private _slotStatus: Record<number, HyperdeckCommands.SlotInfoCommandResponse> = {}
-	private _transportStatus: TransportStatus
-	private _expectedTransportStatus: TransportStatus
-	private _suppressEmptySlotWarnings: boolean
+	private _transportStatus: TransportStatus | undefined
+	private _expectedTransportStatus: TransportStatus | undefined
+	private _suppressEmptySlotWarnings = false
 
 	/**
 	 * Initiates the connection with the Hyperdeck through the hyperdeck-connection lib.

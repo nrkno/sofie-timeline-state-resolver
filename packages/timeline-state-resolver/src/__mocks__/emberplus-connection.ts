@@ -9,7 +9,7 @@ const instances: Array<EmberClient> = []
 
 export class EmberClient extends EventEmitter {
 	tree = {}
-	onConnected: () => void
+	onConnected: (() => void) | undefined
 
 	constructor() {
 		super()

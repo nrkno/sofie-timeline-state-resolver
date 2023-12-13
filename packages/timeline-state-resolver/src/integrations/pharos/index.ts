@@ -49,13 +49,12 @@ export class PharosDevice extends DeviceWithState<PharosState, DeviceOptionsPhar
 	private _pharos: Pharos
 	private _pharosProjectInfo?: ProjectInfo
 
-	private _commandReceiver: CommandReceiver
+	private _commandReceiver: CommandReceiver = this._defaultCommandReceiver.bind(this)
 
 	constructor(deviceId: string, deviceOptions: DeviceOptionsPharosInternal, getCurrentTime: () => Promise<number>) {
 		super(deviceId, deviceOptions, getCurrentTime)
 		if (deviceOptions.options) {
 			if (deviceOptions.commandReceiver) this._commandReceiver = deviceOptions.commandReceiver
-			else this._commandReceiver = this._defaultCommandReceiver.bind(this)
 		}
 		this._doOnTime = new DoOnTime(
 			() => {

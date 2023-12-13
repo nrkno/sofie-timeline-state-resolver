@@ -34,7 +34,7 @@ type AtemDeviceState = DeviceState
  */
 export class AtemDevice extends Device<AtemOptions, AtemDeviceState, AtemCommandWithContext> {
 	readonly actions: {
-		[id in AtemActions]: (id: string, payload: Record<string, any>) => Promise<ActionExecutionResult>
+		[id in AtemActions]: (id: string, payload?: Record<string, any>) => Promise<ActionExecutionResult>
 	} = {
 		[AtemActions.Resync]: this.resyncState.bind(this),
 	}

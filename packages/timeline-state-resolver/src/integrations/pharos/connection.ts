@@ -202,7 +202,7 @@ export interface RGBOptions {
  * Implementation of the Pharos V2 http API
  */
 export class Pharos extends EventEmitter {
-	private _socket: WebSocket | null
+	private _socket: WebSocket | null = null
 
 	private _keepAlive = false
 	private _replyReceived = false
@@ -216,7 +216,8 @@ export class Pharos extends EventEmitter {
 	private _requestPromises: { [id: string]: Array<{ resolve: Function; reject: Function }> } = {}
 	private _broadcastCallbacks: { [id: string]: Array<Function> } = {}
 
-	private _options: Options
+	/** Setup in connect */
+	private _options!: Options
 	private _connected = false
 
 	private _webSocketKeepAliveTimeout: NodeJS.Timer | null = null
@@ -224,7 +225,9 @@ export class Pharos extends EventEmitter {
 	// constructor () {}
 	async connect(options: Options): Promise<void> {
 		this._isConnecting = true
-		return this._connectSocket(options).then(() => {
+		this._options = options
+
+		return this._connectSocket().then(() => {
 			this._isConnecting = false
 		})
 	}
@@ -602,11 +605,7 @@ export class Pharos extends EventEmitter {
 		})
 	}
 
-	private async _connectSocket(options?: Options): Promise<void> {
-		if (options) {
-			this._options = options
-		}
-
+	private async _connectSocket(): Promise<void> {
 		return new Promise((resolve, reject) => {
 			const pathName = `${this._options.ssl ? 'wss:' : 'ws:'}//${this._options.host}/query${this._queryString}`
 

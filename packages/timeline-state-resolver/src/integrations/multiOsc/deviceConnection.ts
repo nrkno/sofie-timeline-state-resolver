@@ -9,13 +9,11 @@ export type OSCConnectionOptions = MultiOSCOptions['connections'][any] & {
 type OSCSender = (msg: osc.OscMessage, address?: string | undefined, port?: number | undefined) => void
 
 export class OSCConnection extends EventEmitter {
-	connectionId: string
-	host: string
-	port: number
-	private _type: MultiOSCDeviceType
+	connectionId: string | undefined
+	private _type: MultiOSCDeviceType | undefined
 
-	private _oscClient: osc.UDPPort | osc.TCPSocketPort
-	private _oscSender: OSCSender
+	private _oscClient: osc.UDPPort | osc.TCPSocketPort | undefined
+	private _oscSender: OSCSender = this._defaultOscSender.bind(this)
 
 	private _connected = false
 
@@ -26,23 +24,21 @@ export class OSCConnection extends EventEmitter {
 	 */
 	async connect(options: OSCConnectionOptions): Promise<void> {
 		this.connectionId = options.connectionId
-		this.host = options.host
-		this.port = options.port
 		this._type = options.type
-		this._oscSender = options.oscSender || this._defaultOscSender.bind(this)
+		if (options.oscSender) this._oscSender = options.oscSender
 
 		if (options.type === MultiOSCDeviceType.UDP) {
 			this._oscClient = new osc.UDPPort({
 				localAddress: '0.0.0.0',
 				localPort: 0,
-				remoteAddress: this.host,
-				remotePort: this.port,
+				remoteAddress: options.host,
+				remotePort: options.port,
 				metadata: true,
 			})
 		} else {
 			this._oscClient = new osc.TCPSocketPort({
-				address: this.host,
-				port: this.port,
+				address: options.host,
+				port: options.port,
 				metadata: true,
 			})
 			;(this._oscClient as osc.TCPSocketPort).socket.on('close', () => this.updateIsConnected(false))
@@ -51,20 +47,20 @@ export class OSCConnection extends EventEmitter {
 		this._oscClient.on('error', (error: any) => this.emit('error', error))
 
 		return new Promise((resolve) => {
-			this._oscClient.on('ready', () => {
+			this._oscClient!.on('ready', () => {
 				resolve()
 			})
-			this._oscClient.open()
+			this._oscClient!.open()
 		})
 	}
 	dispose() {
 		this.updateIsConnected(false)
-		this._oscClient.close()
+		if (this._oscClient) this._oscClient.close()
 	}
 
 	private _defaultOscSender(msg: osc.OscMessage, address?: string | undefined, port?: number | undefined): void {
 		this.emit('debug', 'sending ' + msg.address)
-		this._oscClient.send(msg, address, port)
+		if (this._oscClient) this._oscClient.send(msg, address, port)
 	}
 
 	sendOsc(msg: osc.OscMessage, address?: string | undefined, port?: number | undefined): void {
@@ -72,7 +68,7 @@ export class OSCConnection extends EventEmitter {
 	}
 
 	disconnect() {
-		this._oscClient.close()
+		if (this._oscClient) this._oscClient.close()
 	}
 
 	get connected(): boolean {

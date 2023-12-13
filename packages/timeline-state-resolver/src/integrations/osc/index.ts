@@ -17,6 +17,7 @@ import * as osc from 'osc'
 import Debug from 'debug'
 import _ = require('underscore')
 import { Easing } from '../../devices/transitions/easings'
+import { assertNever } from '../../lib'
 const debug = Debug('timeline-state-resolver:osc')
 
 export interface OscDeviceState {
@@ -33,7 +34,8 @@ export interface OscCommandWithContext {
 }
 
 export class OscDevice extends Device<OSCOptions, OscDeviceState, OscCommandWithContext> {
-	private _oscClient: osc.UDPPort | osc.TCPSocketPort
+	/** Setup in init */
+	private _oscClient!: osc.UDPPort | osc.TCPSocketPort
 	private _oscClientStatus: 'connected' | 'disconnected' = 'disconnected'
 	private transitions: {
 		[address: string]: {
@@ -73,6 +75,9 @@ export class OscDevice extends Device<OSCOptions, OscDeviceState, OscCommandWith
 				metadata: true,
 			})
 			this._oscClient.open()
+		} else {
+			assertNever(options.type)
+			throw new Error(`Unknown device transport type: ${options.type}`)
 		}
 
 		return Promise.resolve(true) // This device doesn't have any initialization procedure
@@ -197,7 +202,7 @@ export class OscDevice extends Device<OSCOptions, OscDeviceState, OscCommandWith
 		}
 	}
 
-	actions: Record<string, (id: string, payload: Record<string, any>) => Promise<ActionExecutionResult>> = {}
+	readonly actions: Record<string, (id: string, payload?: Record<string, any>) => Promise<ActionExecutionResult>> = {}
 
 	private _oscSender(msg: osc.OscMessage, address?: string | undefined, port?: number | undefined): void {
 		this.context.logger.debug('sending ' + msg.address)

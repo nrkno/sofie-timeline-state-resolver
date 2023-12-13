@@ -62,7 +62,7 @@ const SINGULAR_LIVE_API = 'https://app.singular.live/apiv2/controlapps/'
  */
 export class SingularLiveDevice extends DeviceWithState<SingularLiveState, DeviceOptionsSingularLiveInternal> {
 	// private _makeReadyCommands: SingularLiveCommandContent[]
-	private _accessToken: string
+	private _accessToken: string | undefined
 	private _doOnTime: DoOnTime
 	private _deviceStatus: DeviceStatus = {
 		statusCode: StatusCode.GOOD,
@@ -70,7 +70,7 @@ export class SingularLiveDevice extends DeviceWithState<SingularLiveState, Devic
 		active: this.isActive,
 	}
 
-	private _commandReceiver: CommandReceiver
+	private _commandReceiver: CommandReceiver = this._defaultCommandReceiver.bind(this)
 
 	constructor(
 		deviceId: string,
@@ -80,7 +80,6 @@ export class SingularLiveDevice extends DeviceWithState<SingularLiveState, Devic
 		super(deviceId, deviceOptions, getCurrentTime)
 		if (deviceOptions.options) {
 			if (deviceOptions.commandReceiver) this._commandReceiver = deviceOptions.commandReceiver
-			else this._commandReceiver = this._defaultCommandReceiver.bind(this)
 		}
 		this._doOnTime = new DoOnTime(
 			() => {

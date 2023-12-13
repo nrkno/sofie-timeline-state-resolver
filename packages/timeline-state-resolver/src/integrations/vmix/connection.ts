@@ -221,7 +221,7 @@ export class BaseConnection extends EventEmitter<ConnectionEvents> {
 }
 
 export class VMix extends BaseConnection {
-	public state: VMixState
+	public state: VMixState | undefined
 
 	public async sendCommand(command: VMixStateCommand): Promise<any> {
 		switch (command.command) {

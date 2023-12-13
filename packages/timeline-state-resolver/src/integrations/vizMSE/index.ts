@@ -77,7 +77,7 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState, DeviceOptionsVizM
 	private _vizMSE?: MSE
 	private _vizmseManager?: VizMSEManager
 
-	private _commandReceiver: CommandReceiver
+	private _commandReceiver: CommandReceiver = this._defaultCommandReceiver.bind(this)
 
 	private _doOnTime: DoOnTime
 	private _doOnTimeBurst: DoOnTime
@@ -89,7 +89,6 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState, DeviceOptionsVizM
 
 		if (deviceOptions.options) {
 			if (deviceOptions.commandReceiver) this._commandReceiver = deviceOptions.commandReceiver
-			else this._commandReceiver = this._defaultCommandReceiver.bind(this)
 		}
 
 		this._doOnTime = new DoOnTime(
