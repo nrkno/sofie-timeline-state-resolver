@@ -38,8 +38,12 @@ export interface QuantelCommandWithContext {
 export class QuantelDevice extends Device<QuantelOptions, QuantelState, QuantelCommandWithContext> {
 	private _quantel: QuantelGateway
 	private _quantelManager: QuantelManager
+	private options: QuantelOptions
+
+	private _disconnectedSince: number | undefined = undefined
 
 	async init(options: QuantelOptions): Promise<boolean> {
+		this.options = options
 		this._quantel = new QuantelGateway()
 		this._quantel.on('error', (e) => this.context.logger.error('Quantel.QuantelGateway', e))
 		this._quantelManager = new QuantelManager(this._quantel, () => this.context.getCurrentTime(), {
@@ -66,7 +70,20 @@ export class QuantelDevice extends Device<QuantelOptions, QuantelState, QuantelC
 		this._quantel
 			.init(options.gatewayUrl, isaURLs, options.zoneId, options.serverId)
 			.then(() => {
-				this._quantel.monitorServerStatus((_connected: boolean) => {
+				this._quantel.monitorServerStatus((connected: boolean) => {
+					if (!this._disconnectedSince && connected === false && options.suppressDisconnectTime) {
+						this._disconnectedSince = Date.now()
+
+						// trigger another update after debounce
+						setTimeout(() => {
+							if (!this._quantel.connected) {
+								this.context.connectionChanged(this.getStatus())
+							}
+						}, options.suppressDisconnectTime)
+					} else if (connected === true) {
+						this._disconnectedSince = undefined
+					}
+
 					this.context.connectionChanged(this.getStatus())
 				})
 			})
@@ -136,12 +153,14 @@ export class QuantelDevice extends Device<QuantelOptions, QuantelState, QuantelC
 	getStatus(): Omit<DeviceStatus, 'active'> {
 		let statusCode = StatusCode.GOOD
 		const messages: Array<string> = []
+		const suppressServerDownWarning =
+			Date.now() < (this._disconnectedSince ?? 0) + (this.options?.suppressDisconnectTime ?? 0)
 
-		if (!this._quantel.connected) {
+		if (!this._quantel.connected && !suppressServerDownWarning) {
 			statusCode = StatusCode.BAD
 			messages.push('Not connected')
 		}
-		if (this._quantel.statusMessage) {
+		if (this._quantel.statusMessage && !suppressServerDownWarning) {
 			statusCode = StatusCode.BAD
 			messages.push(this._quantel.statusMessage)
 		}
