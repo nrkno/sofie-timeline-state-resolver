@@ -38,6 +38,13 @@ export interface QuantelOptions {
 	allowCloneClips?: boolean
 
 	// doAutomaticCloningIfNeeded?: bool // not implemented yet
+
+	/**
+	 * If the ISA goes down the gateway will temporarily emit a disconnection warning, this is a false
+	 * flag when a backup ISA is available. This option will suppress the disconnection warning for a
+	 * number of ms to give the system time to switch without warnings.
+	 */
+	suppressDisconnectTime?: number
 }
 
 export type TimelineContentQuantelAny = TimelineContentQuantelClip
