@@ -10,7 +10,7 @@ import {
 	VMixTransition,
 	VMixTransitionType,
 } from 'timeline-state-resolver-types'
-import { VMixInput, VMixStateExtended } from './vMixStateDiffer'
+import { TSR_INPUT_PREFIX, VMixInput, VMixState, VMixStateExtended } from './VMixStateDiffer'
 import * as deepMerge from 'deepmerge'
 import _ = require('underscore')
 
@@ -29,24 +29,26 @@ const mappingPriority: { [k in MappingVmixType]: number } = {
 	[MappingVmixType.Script]: 11,
 }
 
+export type MappingsVmix = Mappings<SomeMappingVmix>
+
 export class VMixTimelineStateConverter {
 	constructor(
 		private readonly getDefaultState: () => VMixStateExtended,
-		private readonly getDefaultInputState: (num: number) => VMixInput
+		private readonly getDefaultInputState: (inputIndex: number | string | undefined) => VMixInput
 	) {}
 
 	getVMixStateFromTimelineState(
 		state: Timeline.TimelineState<TSRTimelineContent>,
-		mappings: Mappings
+		mappings: MappingsVmix
 	): VMixStateExtended {
-		const deviceState = this.getDefaultState()
+		const deviceState = this._fillStateWithMappingsDefaults(this.getDefaultState(), mappings)
 
 		// Sort layer based on Mapping type (to make sure audio is after inputs) and Layer name
 		const sortedLayers = _.sortBy(
 			_.map(state.layers, (tlObject, layerName) => ({
 				layerName,
 				tlObject,
-				mapping: mappings[layerName] as Mapping<SomeMappingVmix>,
+				mapping: mappings[layerName],
 			})).sort((a, b) => a.layerName.localeCompare(b.layerName)),
 			(o) => mappingPriority[o.mapping.options.mappingType] ?? Number.POSITIVE_INFINITY
 		)
@@ -60,9 +62,9 @@ export class VMixTimelineStateConverter {
 						if (content.type === TimelineContentTypeVMix.PROGRAM) {
 							const mixProgram = (mapping.options.index || 1) - 1
 							if (content.input !== undefined) {
-								this.switchToInput(content.input, deviceState, mixProgram, content.transition)
+								this._switchToInput(content.input, deviceState, mixProgram, content.transition)
 							} else if (content.inputLayer) {
-								this.switchToInput(content.inputLayer, deviceState, mixProgram, content.transition, true)
+								this._switchToInput(content.inputLayer, deviceState, mixProgram, content.transition, true)
 							}
 						}
 						break
@@ -76,11 +78,11 @@ export class VMixTimelineStateConverter {
 						if (content.type === TimelineContentTypeVMix.AUDIO) {
 							const vmixTlAudioPicked = _.pick(content, 'volume', 'balance', 'audioAuto', 'audioBuses', 'muted', 'fade')
 							if (mapping.options.index) {
-								deviceState.reportedState.inputs = this.modifyInput(deviceState, vmixTlAudioPicked, {
+								deviceState.reportedState = this._modifyInput(deviceState, vmixTlAudioPicked, {
 									key: mapping.options.index,
 								})
 							} else if (mapping.options.inputLayer) {
-								deviceState.reportedState.inputs = this.modifyInput(deviceState, vmixTlAudioPicked, {
+								deviceState.reportedState = this._modifyInput(deviceState, vmixTlAudioPicked, {
 									layer: mapping.options.inputLayer,
 								})
 							}
@@ -113,7 +115,7 @@ export class VMixTimelineStateConverter {
 						break
 					case MappingVmixType.Input:
 						if (content.type === TimelineContentTypeVMix.INPUT) {
-							deviceState.reportedState.inputs = this.modifyInput(
+							deviceState.reportedState = this._modifyInput(
 								deviceState,
 								{
 									type: content.inputType,
@@ -126,7 +128,7 @@ export class VMixTimelineStateConverter {
 									restart: content.restart,
 								},
 
-								{ key: mapping.options.index || content.filePath },
+								{ key: mapping.options.index, filePath: content.filePath },
 								layerName
 							)
 						}
@@ -156,35 +158,34 @@ export class VMixTimelineStateConverter {
 		return deviceState
 	}
 
-	modifyInput(
+	private _modifyInput(
 		deviceState: VMixStateExtended,
 		newInput: VMixInput,
-		input: { key?: string | number; layer?: string },
+		input: { key?: string | number; layer?: string; filePath?: string },
 		layerName?: string
-	): { [key: string]: VMixInput } {
-		const inputs = deviceState.reportedState.inputs
+	): VMixState {
+		let inputs = deviceState.reportedState.existingInputs
 		const newInputPicked = _.pick(newInput, (x) => !_.isUndefined(x))
 		let inputKey: string | number | undefined
 		if (input.layer) {
 			inputKey = deviceState.inputLayers[input.layer]
+			inputs = deviceState.reportedState.inputsAddedByUs
+		} else if (input.filePath) {
+			inputKey = TSR_INPUT_PREFIX + input.filePath
+			inputs = deviceState.reportedState.inputsAddedByUs
 		} else {
-			inputKey = input.key!
+			inputKey = input.key
 		}
 		if (inputKey) {
-			if (inputKey in inputs) {
-				inputs[inputKey] = deepMerge(inputs[inputKey], newInputPicked)
-			} else {
-				const inputState = this.getDefaultInputState(0)
-				inputs[inputKey] = deepMerge(inputState, newInputPicked)
-			}
+			inputs[inputKey] = deepMerge(inputs[inputKey] ?? this.getDefaultInputState(inputKey), newInputPicked)
 			if (layerName) {
 				deviceState.inputLayers[layerName] = inputKey as string
 			}
 		}
-		return inputs
+		return deviceState.reportedState
 	}
 
-	switchToInput(
+	private _switchToInput(
 		input: number | string,
 		deviceState: VMixStateExtended,
 		mix: number,
@@ -202,5 +203,35 @@ export class VMixTimelineStateConverter {
 			mixState.transition = transition || { effect: VMixTransitionType.Cut, duration: 0 }
 			mixState.layerToProgram = layerToProgram
 		}
+	}
+
+	private _fillStateWithMappingsDefaults(state: VMixStateExtended, mappings: MappingsVmix) {
+		for (const mapping of Object.values<Mapping<SomeMappingVmix>>(mappings)) {
+			switch (mapping.options.mappingType) {
+				case MappingVmixType.Input:
+					if (mapping.options.index) {
+						state.reportedState.existingInputs[mapping.options.index] = this.getDefaultInputState(mapping.options.index)
+					}
+					break
+				case MappingVmixType.AudioChannel:
+					if (mapping.options.index) {
+						state.reportedState.existingInputs[mapping.options.index] = this.getDefaultInputState(mapping.options.index)
+					}
+					break
+				case MappingVmixType.Recording:
+					state.reportedState.recording = false
+					break
+				case MappingVmixType.Streaming:
+					state.reportedState.streaming = false
+					break
+				case MappingVmixType.External:
+					state.reportedState.external = false
+					break
+				case MappingVmixType.Output:
+					state.outputs[mapping.options.index] = { source: 'Program' }
+					break
+			}
+		}
+		return state
 	}
 }

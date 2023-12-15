@@ -1,9 +1,6 @@
 import { EventEmitter } from 'eventemitter3'
 import { Socket } from 'net'
-import * as xml from 'xml-js'
-import { VMixCommand, VMixTransitionType } from 'timeline-state-resolver-types'
-import * as _ from 'underscore'
-import { VMixInput, VMixMix, VMixState } from './vMixStateDiffer'
+import { VMixCommand } from 'timeline-state-resolver-types'
 import { VMixStateCommand } from './vMixCommands'
 
 const VMIX_DEFAULT_TCP_PORT = 8099
@@ -21,7 +18,6 @@ export type ConnectionEvents = {
 	connected: []
 	disconnected: []
 	initialized: []
-	stateChanged: [state: VMixState]
 	error: [error: Error]
 }
 
@@ -221,9 +217,7 @@ export class BaseConnection extends EventEmitter<ConnectionEvents> {
 	}
 }
 
-export class VMix extends BaseConnection {
-	public state: VMixState
-
+export class VMixConnection extends BaseConnection {
 	public async sendCommand(command: VMixStateCommand): Promise<any> {
 		switch (command.command) {
 			case VMixCommand.PREVIEW_INPUT:
@@ -309,116 +303,6 @@ export class VMix extends BaseConnection {
 			default:
 				throw new Error(`vmixAPI: Command ${((command || {}) as any).command} not implemented`)
 		}
-	}
-
-	public parseVMixState(responseBody: string): void {
-		const preParsed = xml.xml2json(responseBody, { compact: true, spaces: 4 })
-		const xmlState = JSON.parse(preParsed)
-		let mixes = xmlState['vmix']['mix']
-		mixes = Array.isArray(mixes) ? mixes : mixes ? [mixes] : []
-		let fixedInputsCount = 0
-		// For what lies ahead I apologise - Tom
-		const state: VMixState = {
-			version: xmlState['vmix']['version']['_text'],
-			edition: xmlState['vmix']['edition']['_text'],
-			inputs: _.indexBy(
-				(xmlState['vmix']['inputs']['input'] as Array<any>).map(
-					(input): Required<Omit<VMixInput, InferredPartialInputStateKeys>> => {
-						fixedInputsCount++
-
-						let fixedListFilePaths: VMixInput['listFilePaths'] = undefined
-						if (input['_attributes']['type'] === 'VideoList') {
-							if (Array.isArray(input['list']['item'])) {
-								// Handles the case where there is more than one item in the list.
-								fixedListFilePaths = input['list']['item'].map((item) => item['_text'])
-							} else if (input['list']['item']) {
-								// Handles the case where there is exactly one item in the list.
-								fixedListFilePaths = [input['list']['item']['_text']]
-							}
-						}
-
-						let fixedOverlays: VMixInput['overlays'] = undefined
-						if (Array.isArray(input['overlay'])) {
-							// Handles the case where there is more than one item in the list.
-							fixedOverlays = input['overlay'].map((item) => parseInt(item['_attributes']['index'], 10))
-						} else if (input['overlay']) {
-							// Handles the case where there is exactly one item in the list.
-							fixedOverlays = [parseInt(input['overlay']['_attributes']['index'], 10)]
-						}
-
-						return {
-							number: Number(input['_attributes']['number']),
-							type: input['_attributes']['type'],
-							name: input['_attributes']['title'],
-							state: input['_attributes']['state'],
-							playing: input['_attributes']['state'] === 'Running',
-							position: Number(input['_attributes']['position']) || 0,
-							duration: Number(input['_attributes']['duration']) || 0,
-							loop: input['_attributes']['loop'] === 'False' ? false : true,
-							muted: input['_attributes']['muted'] === 'False' ? false : true,
-							volume: Number(input['_attributes']['volume'] || 100),
-							balance: Number(input['_attributes']['balance'] || 0),
-							solo: input['_attributes']['loop'] === 'False' ? false : true,
-							audioBuses: input['_attributes']['audiobusses'],
-							transform: {
-								panX: Number(input['position'] ? input['position']['_attributes']['panX'] || 0 : 0),
-								panY: Number(input['position'] ? input['position']['_attributes']['panY'] || 0 : 0),
-								alpha: -1, // unavailable
-								zoom: Number(input['position'] ? input['position']['_attributes']['zoomX'] || 1 : 1), // assume that zoomX==zoomY
-							},
-							overlays: fixedOverlays!,
-							listFilePaths: fixedListFilePaths!,
-						}
-					}
-				),
-				'number'
-			),
-			overlays: (xmlState['vmix']['overlays']['overlay'] as Array<any>).map((overlay) => {
-				return {
-					number: Number(overlay['_attributes']['number']),
-					input: overlay['_text'],
-				}
-			}),
-			mixes: [
-				{
-					number: 1,
-					program: Number(xmlState['vmix']['active']['_text']),
-					preview: Number(xmlState['vmix']['preview']['_text']),
-					transition: { effect: VMixTransitionType.Cut, duration: 0 },
-				},
-				...mixes.map((mix: any): VMixMix => {
-					return {
-						number: Number(mix['_attributes']['number']),
-						program: Number(mix['active']['_text']),
-						preview: Number(mix['preview']['_text']),
-						transition: { effect: VMixTransitionType.Cut, duration: 0 },
-					}
-				}),
-			],
-			fadeToBlack: xmlState['vmix']['fadeToBlack']['_text'] === 'True' ? true : false,
-			recording: xmlState['vmix']['recording']['_text'] === 'True' ? true : false,
-			external: xmlState['vmix']['external']['_text'] === 'True' ? true : false,
-			streaming: xmlState['vmix']['streaming']['_text'] === 'True' ? true : false,
-			playlist: xmlState['vmix']['playList']['_text'] === 'True' ? true : false,
-			multiCorder: xmlState['vmix']['multiCorder']['_text'] === 'True' ? true : false,
-			fullscreen: xmlState['vmix']['fullscreen']['_text'] === 'True' ? true : false,
-			audio: [
-				{
-					volume: Number(xmlState['vmix']['audio']['master']['_attributes']['volume']),
-					muted: xmlState['vmix']['audio']['master']['_attributes']['muted'] === 'True' ? true : false,
-					meterF1: Number(xmlState['vmix']['audio']['master']['_attributes']['meterF1']),
-					meterF2: Number(xmlState['vmix']['audio']['master']['_attributes']['meterF2']),
-					headphonesVolume: Number(xmlState['vmix']['audio']['master']['_attributes']['headphonesVolume']),
-				},
-			],
-			fixedInputsCount,
-		}
-		this.setState(state)
-	}
-
-	public setState(state: VMixState): void {
-		this.state = state
-		this.emit('stateChanged', state)
 	}
 
 	public async setPreviewInput(input: number | string, mix: number): Promise<any> {

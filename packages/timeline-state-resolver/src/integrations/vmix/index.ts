@@ -1,16 +1,13 @@
 import * as _ from 'underscore'
-import * as deepMerge from 'deepmerge'
 import { DeviceWithState, CommandWithContext, DeviceStatus, StatusCode } from './../../devices/device'
 import { DoOnTime, SendMode } from '../../devices/doOnTime'
 
-import { VMix } from './connection'
+import { Response, VMixConnection } from './connection'
 import {
 	DeviceType,
 	DeviceOptionsVMix,
 	VMixOptions,
 	Mappings,
-	VMixTransform,
-	VMixInputOverlays,
 	Timeline,
 	TSRTimelineContent,
 	ActionExecutionResult,
@@ -20,9 +17,12 @@ import {
 	VmixActions,
 } from 'timeline-state-resolver-types'
 import { t } from '../../lib'
-import { VMixInput, VMixState, VMixStateDiffer, VMixStateExtended } from './vMixStateDiffer'
+import { VMixState, VMixStateDiffer, VMixStateExtended } from './VMixStateDiffer'
 import { CommandContext, VMixStateCommandWithContext } from './vMixCommands'
-import { VMixTimelineStateConverter } from './vMixTimelineStateConverter'
+import { MappingsVmix, VMixTimelineStateConverter } from './VMixTimelineStateConverter'
+import { VMixXmlStateParser } from './VMixXmlStateParser'
+import { VMixPollingTimer } from './VMixPollingTimer'
+import { VMixStateSynchronizer } from './VMixStateSynchronizer'
 
 /**
  * Default time, in milliseconds, for when we should poll vMix to query its actual state.
@@ -60,13 +60,16 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 	private _doOnTime: DoOnTime
 
 	private _commandReceiver: CommandReceiver
-	private _vmix: VMix
+	private _vMixConnection: VMixConnection
 	private _connected = false
 	private _initialized = false
-	private _pollTimeout: NodeJS.Timeout
-	private _pollTime: number | null = null
 	private _stateDiffer: VMixStateDiffer
 	private _timelineStateConverter: VMixTimelineStateConverter
+	private _xmlStateParser: VMixXmlStateParser
+	private _stateSynchronizer: VMixStateSynchronizer
+	private _expectingStateAfterConnecting = false
+	private _expectingPolledState = false
+	private _pollingTimer: VMixPollingTimer | null = null
 
 	constructor(deviceId: string, deviceOptions: DeviceOptionsVMixInternal, getCurrentTime: () => Promise<number>) {
 		super(deviceId, deviceOptions, getCurrentTime)
@@ -88,54 +91,72 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 		this._doOnTime.on('slowSentCommand', (info) => this.emit('slowSentCommand', info))
 		this._doOnTime.on('slowFulfilledCommand', (info) => this.emit('slowFulfilledCommand', info))
 
-		this._stateDiffer = new VMixStateDiffer(
-			() => this._vmix.state.fixedInputsCount,
-			(commands: VMixStateCommandWithContext[]) => this._addToQueue(commands, this.getCurrentTime())
+		this._stateDiffer = new VMixStateDiffer((commands: VMixStateCommandWithContext[]) =>
+			this._addToQueue(commands, this.getCurrentTime())
 		)
 
 		this._timelineStateConverter = new VMixTimelineStateConverter(
 			() => this._stateDiffer.getDefaultState(),
-			(num: number) => this._stateDiffer.getDefaultInputState(num)
+			(inputNumber: number) => this._stateDiffer.getDefaultInputState(inputNumber)
 		)
+
+		this._xmlStateParser = new VMixXmlStateParser()
+		this._stateSynchronizer = new VMixStateSynchronizer()
 	}
 
 	async init(options: VMixOptions): Promise<boolean> {
-		this._vmix = new VMix(options.host, options.port, false)
-		this._vmix.on('connected', () => {
+		this._vMixConnection = new VMixConnection(options.host, options.port, false)
+		this._vMixConnection.on('connected', () => {
 			// We are not resetting the state at this point and waiting for the state to arrive. Otherwise, we risk
 			// going back and forth on reconnections
 			this._setConnected(true)
-			this._vmix.requestVMixState().catch((e) => this.emit('error', 'VMix init', e))
+			this._expectingStateAfterConnecting = true
+			this.emit('debug', 'connected')
+			this._pollingTimer?.start()
+			this._requestVMixState('VMix init')
 		})
-		this._vmix.on('disconnected', () => {
+		this._vMixConnection.on('disconnected', () => {
 			this._setConnected(false)
+			this._pollingTimer?.stop()
 		})
-		this._vmix.on('error', (e) => this.emit('error', 'VMix', e))
-		this._vmix.on('stateChanged', (state) => this._onVMixStateChanged(state))
-		this._vmix.on('data', (d) => {
-			if (d.message !== 'Completed') this.emit('debug', d)
-			if (d.command === 'XML' && d.body) {
-				this._vmix.parseVMixState(d.body)
-				if (!this._initialized) {
-					this._initialized = true
-					this.emit('connectionChanged', this.getStatus())
-					this.emit('resetResolver')
-				}
-			}
-		})
+		this._vMixConnection.on('error', (e) => this.emit('error', 'VMix', e))
+		this._vMixConnection.on('data', (data) => this._onDataReceived(data))
 		// this._vmix.on('debug', (...args) => this.emitDebug(...args))
 
-		this._vmix.connect()
+		this._vMixConnection.connect()
 
-		this._pollTime =
+		const pollTime =
 			typeof options.pollInterval === 'number' && options.pollInterval >= 0 // options.pollInterval === 0 disables the polling
 				? options.pollInterval
 				: DEFAULT_VMIX_POLL_INTERVAL
-		if (this._pollTime) {
-			this._pollTimeout = setTimeout(() => this._pollVmix(), this._pollTime)
+
+		if (pollTime) {
+			this._pollingTimer = new VMixPollingTimer(pollTime)
+			this._pollingTimer.on('tick', () => {
+				this._expectingPolledState = true
+				this._requestVMixState('VMix poll')
+			})
 		}
 
 		return true
+	}
+
+	private _onDataReceived(data: Response): void {
+		if (data.message !== 'Completed') this.emit('debug', data)
+		if (data.command === 'XML' && data.body) {
+			if (!this._initialized) {
+				this._initialized = true
+				this.emit('connectionChanged', this.getStatus())
+			}
+			const realState = this._xmlStateParser.parseVMixState(data.body)
+			if (this._expectingStateAfterConnecting) {
+				this._setFullState(realState)
+				this._expectingStateAfterConnecting = false
+			} else if (this._expectingPolledState) {
+				this._setPartialInputState(realState)
+				this._expectingPolledState = false
+			}
+		}
 	}
 
 	private _connectionChanged() {
@@ -150,42 +171,29 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 	}
 
 	/**
-	 * Runs when we receive XML state from vMix,
-	 * generally as the result of a reconnect or a poll (if polling/enforcement is enabled).
+	 * Updates the entire state when we (re)connect
 	 * @param realState State as reported by vMix itself.
 	 */
-	private _onVMixStateChanged(realState: VMixState) {
+	private _setFullState(realState: VMixState) {
 		const time = this.getCurrentTime()
-		const expectedState: VMixStateExtended = (
-			this.getStateBefore(time) ?? { state: this._stateDiffer.getDefaultState() }
-		).state
+		const oldState: VMixStateExtended = (this.getStateBefore(time) ?? { state: this._stateDiffer.getDefaultState() })
+			.state
+		oldState.reportedState = realState
+		this.setState(oldState, time)
+		this.emit('resetResolver')
+	}
 
-		// Merge the real into the expected, but don't merge the `inputs` of the real.
-		// We'll cherry pick specific things to take from the real state's inputs.
-		expectedState.reportedState = deepMerge<VMixState>(expectedState.reportedState, _.omit(realState, 'inputs'))
+	/**
+	 * Runs when we receive XML state from vMix,
+	 * generally as the result a poll (if polling/enforcement is enabled).
+	 * @param realState State as reported by vMix itself.
+	 */
+	private _setPartialInputState(realState: VMixState) {
+		const time = this.getCurrentTime()
+		let expectedState: VMixStateExtended = (this.getStateBefore(time) ?? { state: this._stateDiffer.getDefaultState() })
+			.state
 
-		// This is where "enforcement" of expected state occurs.
-		// There is only a small number of properties which are safe to enforce.
-		// Enforcing others can lead to issues such as clips replaying, seeking back to the start,
-		// or even outright preventing Sisyfos from working.
-		for (const inputKey of Object.keys(realState.inputs)) {
-			const cherryPickedRealState: Pick<VMixInput, EnforceableVMixInputStateKeys> = {
-				duration: realState.inputs[inputKey].duration,
-				loop: realState.inputs[inputKey].loop,
-				transform: realState.inputs[inputKey].transform,
-				overlays: realState.inputs[inputKey].overlays,
-
-				// This particular key is what enables the ability to re-load failed/missing media in a List Input.
-				listFilePaths: realState.inputs[inputKey].listFilePaths,
-			}
-
-			// Shallow merging is sufficient.
-			for (const [key, value] of Object.entries<string | number | boolean | VMixTransform | VMixInputOverlays>(
-				cherryPickedRealState
-			)) {
-				expectedState.reportedState.inputs[inputKey][key] = value
-			}
-		}
+		expectedState = this._stateSynchronizer.applyRealState(expectedState, realState)
 
 		this.setState(expectedState, time)
 		this.emit('resetResolver')
@@ -194,8 +202,8 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 	/** Called by the Conductor a bit before a .handleState is called */
 	prepareForHandleState(newStateTime: number) {
 		// clear any queued commands later than this time:
-		this._doOnTime.clearQueueNowAndAfter(newStateTime + 0.1)
-		this.cleanUpStates(0, newStateTime + 0.1)
+		this._doOnTime.clearQueueNowAndAfter(newStateTime)
+		this.cleanUpStates(0, newStateTime)
 	}
 
 	handleState(newState: Timeline.TimelineState<TSRTimelineContent>, newMappings: Mappings) {
@@ -206,12 +214,15 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 			return
 		}
 
-		const previousStateTime = Math.max(this.getCurrentTime() + 0.1, newState.time)
+		const previousStateTime = Math.max(this.getCurrentTime(), newState.time)
 		const oldState: VMixStateExtended = (
 			this.getStateBefore(previousStateTime) ?? { state: this._stateDiffer.getDefaultState() }
 		).state
 
-		const newVMixState = this._timelineStateConverter.getVMixStateFromTimelineState(newState, newMappings)
+		const newVMixState = this._timelineStateConverter.getVMixStateFromTimelineState(
+			newState,
+			newMappings as MappingsVmix // is this safe? why is the TriCaster integration filtering?
+		)
 
 		const commandsToAchieveState = this._stateDiffer.getCommandsToAchieveState(oldState, newVMixState)
 
@@ -235,10 +246,9 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 	async terminate() {
 		this._doOnTime.dispose()
 
-		this._vmix.removeAllListeners()
-		this._vmix.disconnect()
-
-		clearTimeout(this._pollTimeout)
+		this._vMixConnection.removeAllListeners()
+		this._vMixConnection.disconnect()
+		this._pollingTimer?.stop()
 
 		return Promise.resolve(true)
 	}
@@ -285,7 +295,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 	}
 
 	_checkPresetAction(payload?: any, payloadRequired?: boolean): ActionExecutionResult | undefined {
-		if (!this._vmix.connected) {
+		if (!this._vMixConnection.connected) {
 			return {
 				result: ActionExecutionResultCode.Error,
 				response: t('Cannot perform VMix action without a connection'),
@@ -313,7 +323,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 	private async _lastPreset() {
 		const presetActionCheckResult = this._checkPresetAction()
 		if (presetActionCheckResult) return presetActionCheckResult
-		await this._vmix.lastPreset()
+		await this._vMixConnection.lastPreset()
 		return {
 			result: ActionExecutionResultCode.Ok,
 		}
@@ -322,7 +332,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 	private async _openPreset(payload: OpenPresetPayload) {
 		const presetActionCheckResult = this._checkPresetAction(payload, true)
 		if (presetActionCheckResult) return presetActionCheckResult
-		await this._vmix.openPreset(payload.filename)
+		await this._vMixConnection.openPreset(payload.filename)
 		return {
 			result: ActionExecutionResultCode.Ok,
 		}
@@ -331,7 +341,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 	private async _savePreset(payload: SavePresetPayload) {
 		const presetActionCheckResult = this._checkPresetAction(payload, true)
 		if (presetActionCheckResult) return presetActionCheckResult
-		await this._vmix.savePreset(payload.filename)
+		await this._vMixConnection.savePreset(payload.filename)
 		return {
 			result: ActionExecutionResultCode.Ok,
 		}
@@ -383,8 +393,8 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 		// therefore this timeout keeps getting reset and never expires.
 		// For now, we classify this as an extreme outlier edge case and acknowledge that this system
 		// does not support it.
-		clearTimeout(this._pollTimeout)
-		if (this._pollTime) this._pollTimeout = setTimeout(() => this._pollVmix(), BACKOFF_VMIX_POLL_INTERVAL)
+		this._expectingPolledState = false
+		this._pollingTimer?.postponeNextTick(BACKOFF_VMIX_POLL_INTERVAL)
 
 		const cwc: CommandWithContext = {
 			context: context,
@@ -393,19 +403,15 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 		}
 		this.emitDebug(cwc)
 
-		return this._vmix.sendCommand(cmd.command).catch((error) => {
+		return this._vMixConnection.sendCommand(cmd.command).catch((error) => {
 			this.emit('commandError', error, cwc)
 		})
 	}
 
 	/**
-	 * Polls vMix's XML status endpoint, which will change our tracked state based on the response.
+	 * Request vMix's XML status.
 	 */
-	private _pollVmix() {
-		clearTimeout(this._pollTimeout)
-		if (this._pollTime) {
-			this._pollTimeout = setTimeout(() => this._pollVmix(), this._pollTime)
-		}
-		this._vmix.requestVMixState().catch((e) => this.emit('error', 'VMix poll', e))
+	private _requestVMixState(context: string) {
+		this._vMixConnection.requestVMixState().catch((e) => this.emit('error', context, e))
 	}
 }
