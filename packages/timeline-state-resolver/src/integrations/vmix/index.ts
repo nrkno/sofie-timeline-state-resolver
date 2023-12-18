@@ -97,7 +97,8 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 
 		this._timelineStateConverter = new VMixTimelineStateConverter(
 			() => this._stateDiffer.getDefaultState(),
-			(inputNumber: number) => this._stateDiffer.getDefaultInputState(inputNumber)
+			(inputNumber: number) => this._stateDiffer.getDefaultInputState(inputNumber),
+			(inputNumber: number) => this._stateDiffer.getDefaultInputAudioState(inputNumber)
 		)
 
 		this._xmlStateParser = new VMixXmlStateParser()
@@ -111,13 +112,14 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 			// going back and forth on reconnections
 			this._setConnected(true)
 			this._expectingStateAfterConnecting = true
-			this.emit('debug', 'connected')
+			this.emitDebug('connected')
 			this._pollingTimer?.start()
 			this._requestVMixState('VMix init')
 		})
 		this._vMixConnection.on('disconnected', () => {
 			this._setConnected(false)
 			this._pollingTimer?.stop()
+			this.emitDebug('disconnected')
 		})
 		this._vMixConnection.on('error', (e) => this.emit('error', 'VMix', e))
 		this._vMixConnection.on('data', (data) => this._onDataReceived(data))
@@ -142,7 +144,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 	}
 
 	private _onDataReceived(data: Response): void {
-		if (data.message !== 'Completed') this.emit('debug', data)
+		if (data.message !== 'Completed') this.emitDebug(data)
 		if (data.command === 'XML' && data.body) {
 			if (!this._initialized) {
 				this._initialized = true

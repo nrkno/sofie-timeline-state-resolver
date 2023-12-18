@@ -208,11 +208,9 @@ export class BaseConnection extends EventEmitter<ConnectionEvents> {
 				this._connected = true
 				this.emit('connected')
 			}
-		} else {
-			if (this._connected) {
-				this._connected = false
-				this.emit('disconnected')
-			}
+		} else if (this._connected) {
+			this._connected = false
+			this.emit('disconnected')
 		}
 	}
 }

@@ -1,7 +1,8 @@
 import { VMixTransitionType } from 'timeline-state-resolver-types'
-import { TSR_INPUT_PREFIX, VMixState } from '../VMixStateDiffer'
+import { VMixState } from '../VMixStateDiffer'
 import { VMixXmlStateParser } from '../VMixXmlStateParser'
 import { makeMockVMixXmlState } from './vmixMock'
+import { prefixAddedInput } from './mockState'
 
 describe('VMixXmlStateParser', () => {
 	it('parses incoming state', () => {
@@ -20,10 +21,6 @@ describe('VMixXmlStateParser', () => {
 					position: 0,
 					duration: 0,
 					loop: false,
-					muted: false,
-					volume: 100,
-					balance: 0,
-					audioBuses: 'M',
 					transform: {
 						alpha: -1,
 						panX: 0,
@@ -31,10 +28,8 @@ describe('VMixXmlStateParser', () => {
 						zoom: 1,
 					},
 					listFilePaths: undefined,
-					// name: 'Cam 1',
-					overlays: undefined,
+					overlays: {},
 					playing: true,
-					solo: false,
 				},
 				'2': {
 					number: 2,
@@ -43,10 +38,6 @@ describe('VMixXmlStateParser', () => {
 					position: 0,
 					duration: 0,
 					loop: false,
-					muted: true,
-					volume: 100,
-					balance: 0,
-					audioBuses: 'M,C',
 					transform: {
 						alpha: -1,
 						panX: 0,
@@ -54,13 +45,28 @@ describe('VMixXmlStateParser', () => {
 						zoom: 1,
 					},
 					listFilePaths: undefined,
-					// name: 'Cam 2',
-					overlays: undefined,
+					overlays: {},
 					playing: true,
+				},
+			},
+			existingInputsAudio: {
+				'1': {
+					muted: false,
+					volume: 100,
+					balance: 0,
+					audioBuses: 'M',
+					solo: false,
+				},
+				'2': {
+					muted: true,
+					volume: 100,
+					balance: 0,
+					audioBuses: 'M,C',
 					solo: false,
 				},
 			},
 			inputsAddedByUs: {},
+			inputsAddedByUsAudio: {},
 			overlays: [
 				{ number: 1, input: undefined },
 				{ number: 2, input: undefined },
@@ -104,7 +110,9 @@ describe('VMixXmlStateParser', () => {
 
 		const xmlState = makeMockVMixXmlState([
 			'<input key="ca9bc59f-f698-41fe-b17d-1e1743cfee88" number="1" type="Capture" title="Cam 1" state="Running" position="0" duration="0" loop="False" muted="False" volume="100" balance="0" solo="False" audiobusses="M" meterF1="0.03034842" meterF2="0.03034842"></input>',
-			`<input key="1a50938d-c653-4eae-bc4c-24d9c12fa773" number="2" type="Video" title="${TSR_INPUT_PREFIX}C:\\someVideo.mp4" state="Running" position="0" duration="0" loop="False" muted="True" volume="100" balance="0" solo="False" audiobusses="M,C" meterF1="0.0007324442" meterF2="0.0007629627"></input>`,
+			`<input key="1a50938d-c653-4eae-bc4c-24d9c12fa773" number="2" type="Video" title="${prefixAddedInput(
+				'C:\\someVideo.mp4'
+			)}" state="Running" position="0" duration="0" loop="False" muted="True" volume="100" balance="0" solo="False" audiobusses="M,C" meterF1="0.0007324442" meterF2="0.0007629627"></input>`,
 		])
 		const parsedState = parser.parseVMixState(xmlState)
 
@@ -117,10 +125,6 @@ describe('VMixXmlStateParser', () => {
 					position: 0,
 					duration: 0,
 					loop: false,
-					muted: false,
-					volume: 100,
-					balance: 0,
-					audioBuses: 'M',
 					transform: {
 						alpha: -1,
 						panX: 0,
@@ -128,24 +132,27 @@ describe('VMixXmlStateParser', () => {
 						zoom: 1,
 					},
 					listFilePaths: undefined,
-					//name: 'Cam 1',
-					overlays: undefined,
+					overlays: {},
 					playing: true,
+				},
+			},
+			existingInputsAudio: {
+				'1': {
+					muted: false,
+					volume: 100,
+					balance: 0,
+					audioBuses: 'M',
 					solo: false,
 				},
 			},
 			inputsAddedByUs: {
-				[`${TSR_INPUT_PREFIX}C:\\someVideo.mp4`]: {
+				[prefixAddedInput('C:\\someVideo.mp4')]: {
 					number: 2,
 					type: 'Video',
 					state: 'Running',
 					position: 0,
 					duration: 0,
 					loop: false,
-					muted: true,
-					volume: 100,
-					balance: 0,
-					audioBuses: 'M,C',
 					transform: {
 						alpha: -1,
 						panX: 0,
@@ -153,10 +160,44 @@ describe('VMixXmlStateParser', () => {
 						zoom: 1,
 					},
 					listFilePaths: undefined,
-					name: `${TSR_INPUT_PREFIX}C:\\someVideo.mp4`,
-					overlays: undefined,
+					name: prefixAddedInput('C:\\someVideo.mp4'),
+					overlays: {},
 					playing: true,
+				},
+			},
+			inputsAddedByUsAudio: {
+				[prefixAddedInput('C:\\someVideo.mp4')]: {
+					muted: true,
+					volume: 100,
+					balance: 0,
+					audioBuses: 'M,C',
 					solo: false,
+				},
+			},
+		})
+	})
+
+	it('parses input overlays', () => {
+		const parser = new VMixXmlStateParser()
+
+		const parsedState = parser.parseVMixState(
+			makeMockVMixXmlState([
+				'<input key="a97b8de1-807a-4c14-8eb9-3de0129b41e3" number="1" type="Capture" title="Cam 0" state="Running" position="0" duration="0" loop="False" muted="False" volume="100" balance="0" solo="False" audiobusses="M" meterF1="0.03034842" meterF2="0.03034842"></input>',
+				`<input key="ca9bc59f-f698-41fe-b17d-1e1743cfee88" number="2" type="Capture" title="Cam 1" state="Running" position="0" duration="0" loop="False" muted="False" volume="100" balance="0" solo="False" audiobusses="M" meterF1="0.03034842" meterF2="0.03034842">
+	<overlay index="2" key="1d70bc59-6517-4571-a0c5-932e30311f01"/>
+	<overlay index="5" key="a97b8de1-807a-4c14-8eb9-3de0129b41e3"/>
+</input>`,
+				'<input key="1d70bc59-6517-4571-a0c5-932e30311f01" number="3" type="Capture" title="Cam 2" state="Running" position="0" duration="0" loop="False" muted="False" volume="100" balance="0" solo="False" audiobusses="M" meterF1="0.03034842" meterF2="0.03034842"></input>',
+			])
+		)
+
+		expect(parsedState).toMatchObject<Partial<VMixState>>({
+			existingInputs: {
+				'2': {
+					overlays: {
+						3: 3,
+						6: 1,
+					},
 				},
 			},
 		})
