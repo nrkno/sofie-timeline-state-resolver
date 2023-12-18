@@ -1,19 +1,12 @@
-import * as _ from 'underscore'
-import { DeviceWithState, CommandWithContext, DeviceStatus, StatusCode } from '../../devices/device'
+import { CommandWithContext, DeviceStatus, StatusCode } from '../../devices/device'
 import {
-	DeviceType,
-	TimelineContentTypeHyperdeck,
-	MappingHyperdeckType,
 	HyperdeckOptions,
-	DeviceOptionsHyperdeck,
 	Mappings,
 	TSRTimelineContent,
 	Timeline,
 	HyperdeckActions,
-	Mapping,
-	SomeMappingHyperdeck,
-	HyperdeckActionExecutionPayload,
-	HyperdeckActionExecutionResult,
+	ActionExecutionResult,
+	ActionExecutionResultCode,
 } from 'timeline-state-resolver-types'
 import {
 	Hyperdeck,
@@ -22,187 +15,133 @@ import {
 	FilesystemFormat,
 	SlotStatus,
 } from 'hyperdeck-connection'
-import { DoOnTime, SendMode } from '../../devices/doOnTime'
-import { SlotInfoCommandResponse } from 'hyperdeck-connection/dist/commands'
-import { actionNotFoundMessage, deferAsync, endTrace, startTrace } from '../../lib'
-import { ActionExecutionResult, ActionExecutionResultCode } from 'timeline-state-resolver-types'
-
-export interface DeviceOptionsHyperdeckInternal extends DeviceOptionsHyperdeck {
-	commandReceiver?: CommandReceiver
-}
-export type CommandReceiver = (
-	time: number,
-	command: HyperdeckCommands.AbstractCommand,
-	context: CommandContext,
-	timelineObjId: string
-) => Promise<any>
-export interface HyperdeckCommandWithContext {
-	command: HyperdeckCommands.AbstractCommand
-	context: CommandContext
-	timelineObjId: string
-}
-
-export interface TransportInfoCommandResponseExt {
-	status: TransportStatus
-	speed: number
-	singleClip: boolean
-	loop: boolean
-	clipId: number | null
-	recordFilename?: string
-}
-
-export interface DeviceState {
-	notify: HyperdeckCommands.NotifyCommandResponse
-	transport: TransportInfoCommandResponseExt
-	/** The timelineObject this state originates from */
-	timelineObjId: string
-}
-
-type CommandContext = any
-
-const DEFAULT_SPEED = 100 // 1x speed
-const DEFAULT_LOOP = false
-const DEFAULT_SINGLE_CLIP = true
-const DEFAULT_CLIP_ID = null
+import { deferAsync } from '../../lib'
+import { HyperdeckCommandWithContext, diffHyperdeckStates } from './diffState'
+import { HyperdeckDeviceState, convertTimelineStateToHyperdeckState, getDefaultHyperdeckState } from './stateBuilder'
+import { Device } from '../../service/device'
 
 /**
  * This is a wrapper for the Hyperdeck Device. Commands to any and all hyperdeck devices will be sent through here.
  */
-export class HyperdeckDevice extends DeviceWithState<DeviceState, DeviceOptionsHyperdeckInternal> {
-	private _doOnTime: DoOnTime
+export class HyperdeckDevice extends Device<HyperdeckOptions, HyperdeckDeviceState, HyperdeckCommandWithContext> {
+	readonly actions: {
+		[id in HyperdeckActions]: (id: string, payload: Record<string, any>) => Promise<ActionExecutionResult>
+	} = {
+		[HyperdeckActions.FormatDisks]: this.formatDisks.bind(this),
+		[HyperdeckActions.Resync]: this.resyncState.bind(this),
+	}
 
-	private _hyperdeck: Hyperdeck
-	private _initialized = false
+	private readonly _hyperdeck = new Hyperdeck({ pingPeriod: 1000 })
 	private _connected = false
 
 	private _recordingTime: number
 	private _minRecordingTime: number // 15 minutes
 	private _recTimePollTimer: NodeJS.Timer
-	private _slots = 0
-	private _slotStatus = {}
+	private _slotCount = 0
+	private _slotStatus: Record<number, HyperdeckCommands.SlotInfoCommandResponse> = {}
 	private _transportStatus: TransportStatus
+	private _expectedTransportStatus: TransportStatus
 	private _suppressEmptySlotWarnings: boolean
-
-	private _commandReceiver: CommandReceiver
-
-	constructor(deviceId: string, deviceOptions: DeviceOptionsHyperdeckInternal, getCurrentTime: () => Promise<number>) {
-		super(deviceId, deviceOptions, getCurrentTime)
-		if (deviceOptions.options) {
-			if (deviceOptions.commandReceiver) this._commandReceiver = deviceOptions.commandReceiver
-			else this._commandReceiver = this._defaultCommandReceiver.bind(this)
-		}
-		this._doOnTime = new DoOnTime(
-			() => {
-				return this.getCurrentTime()
-			},
-			SendMode.BURST,
-			this._deviceOptions
-		)
-		this.handleDoOnTime(this._doOnTime, 'Hyperdeck')
-	}
 
 	/**
 	 * Initiates the connection with the Hyperdeck through the hyperdeck-connection lib.
 	 */
 	async init(initOptions: HyperdeckOptions): Promise<boolean> {
-		return new Promise((resolve /*, reject*/) => {
-			let firstConnect = true
+		let firstConnect = true
 
-			this._hyperdeck = new Hyperdeck({ pingPeriod: 1000 })
-			this._hyperdeck.connect(initOptions.host, initOptions.port)
-			this._hyperdeck.on('connected', () => {
-				deferAsync(
-					async () => {
-						await this._hyperdeck.sendCommand(new HyperdeckCommands.RemoteCommand(true))
+		this._hyperdeck.connect(initOptions.host, initOptions.port)
+		this._hyperdeck.on('connected', () => {
+			deferAsync(
+				async () => {
+					await this._hyperdeck.sendCommand(new HyperdeckCommands.RemoteCommand(true))
 
-						this._queryCurrentState()
-							.then(async (state) => {
-								this.setState(state, this.getCurrentTime())
-								if (firstConnect) {
-									firstConnect = false
-									this._initialized = true
-									this._slots = await this._querySlotNumber()
-									resolve(true)
-								}
-								this._connected = true
-								this._connectionChanged()
-								this.emit('resetResolver')
-							})
-							.catch((e) => this.emit('error', 'Hyperdeck.on("connected")', e))
+					this._queryCurrentState()
+						.then(async (state) => {
+							if (firstConnect) {
+								firstConnect = false
+								this._slotCount = await this._querySlotNumber()
+							}
+							this._connected = true
+							this._connectionChanged()
 
-						if (initOptions.minRecordingTime) {
-							this._minRecordingTime = initOptions.minRecordingTime
-							if (this._recTimePollTimer) clearTimeout(this._recTimePollTimer)
-						}
-						this._queryRecordingTime().catch((e) => this.emit('error', 'HyperDeck.queryRecordingTime', e))
+							this.context
+								.resetToState(state)
+								.catch((e) => this.context.logger.error('Error resetting hyperdeck state', new Error(e)))
+						})
+						.catch((e) => this.context.logger.error('Hyperdeck.on("connected")', e))
 
-						this._suppressEmptySlotWarnings = !!initOptions.suppressEmptySlotWarnings
-
-						const notifyCmd = new HyperdeckCommands.NotifySetCommand()
-						notifyCmd.slot = true
-						notifyCmd.transport = true
-						this._hyperdeck.sendCommand(notifyCmd).catch((e) => this.emit('error', 'HyperDeck.on("connected")', e))
-
-						const tsCmd = new HyperdeckCommands.TransportInfoCommand()
-						this._hyperdeck
-							.sendCommand(tsCmd)
-							.then((r) => (this._transportStatus = r.status))
-							.catch((e) => this.emit('error', 'HyperDeck.on("connected")', e))
-					},
-					(e) => {
-						this.emit('error', 'Failed to send command', e as Error)
+					if (initOptions.minRecordingTime) {
+						this._minRecordingTime = initOptions.minRecordingTime
+						if (this._recTimePollTimer) clearTimeout(this._recTimePollTimer)
 					}
-				)
-			})
-			this._hyperdeck.on('disconnected', () => {
-				this._connected = false
-				this._connectionChanged()
-			})
-			this._hyperdeck.on('error', (e) => this.emit('error', 'Hyperdeck', e))
+					this._queryRecordingTime().catch((e) => this.context.logger.error('HyperDeck.queryRecordingTime', e))
 
-			this._hyperdeck.on('notify.slot', (res: SlotInfoCommandResponse) => {
-				deferAsync(
-					async () => {
-						await this._queryRecordingTime().catch((e) => this.emit('error', 'HyperDeck.queryRecordingTime', e))
-						if (res.status) this._connectionChanged()
-					},
-					(e) => {
-						this.emit('error', 'Failed to send command', e as Error)
-					}
-				)
-			})
-			this._hyperdeck.on('notify.transport', (res: TransportInfoCommandResponseExt) => {
-				if (res.status) {
-					this._transportStatus = res.status
+					this._suppressEmptySlotWarnings = !!initOptions.suppressEmptySlotWarnings
 
-					const state = this.getState()
-					if (state && state.state.transport.status !== res.status) {
-						this._connectionChanged()
-					}
+					const notifyCmd = new HyperdeckCommands.NotifySetCommand()
+					notifyCmd.slot = true
+					notifyCmd.transport = true
+					this._hyperdeck.sendCommand(notifyCmd).catch((e) => this.context.logger.error('HyperDeck.on("connected")', e))
+
+					const tsCmd = new HyperdeckCommands.TransportInfoCommand()
+					this._hyperdeck
+						.sendCommand(tsCmd)
+						.then((r) => (this._transportStatus = r.status))
+						.catch((e) => this.context.logger.error('HyperDeck.on("connected")', e))
+				},
+				(e) => {
+					this.context.logger.error('Failed to send command', e as Error)
 				}
-			})
+			)
 		})
+		this._hyperdeck.on('disconnected', () => {
+			this._connected = false
+			this._connectionChanged()
+		})
+		this._hyperdeck.on('error', (e) => this.context.logger.error('Hyperdeck', new Error(e)))
+
+		this._hyperdeck.on('notify.slot', (res) => {
+			deferAsync(
+				async () => {
+					await this._queryRecordingTime().catch((e) => this.context.logger.error('HyperDeck.queryRecordingTime', e))
+					if (res.status) this._connectionChanged()
+				},
+				(e) => {
+					this.context.logger.error('Failed to send command', e as Error)
+				}
+			)
+		})
+		this._hyperdeck.on('notify.transport', (res) => {
+			if (res.status) {
+				this._transportStatus = res.status
+
+				if (this._expectedTransportStatus !== res.status) {
+					this._connectionChanged()
+				}
+			}
+		})
+
+		return true
 	}
 	/**
 	 * Makes this device ready for garbage collection.
 	 */
 	async terminate(): Promise<void> {
-		this._doOnTime.dispose()
 		if (this._recTimePollTimer) clearTimeout(this._recTimePollTimer)
 
-		await this._hyperdeck.disconnect()
+		await this._hyperdeck.disconnect().catch(() => null)
 		this._hyperdeck.removeAllListeners()
 	}
 
-	private async resync(): Promise<ActionExecutionResult> {
-		const time = this.getCurrentTime()
-		this._doOnTime.clearQueueNowAndAfter(time)
+	private async resyncState(): Promise<ActionExecutionResult> {
+		try {
+			// TODO - could this being slow/offline be a problem?
+			const state = await this._queryCurrentState()
 
-		// TODO - could this being slow/offline be a problem?
-		const state = await this._queryCurrentState()
-
-		this.setState(state, time)
-		this.emit('resetResolver')
+			await this.context.resetToState(state)
+		} catch (e) {
+			this.context.resetResolver()
+		}
 
 		return {
 			result: ActionExecutionResultCode.Ok,
@@ -210,221 +149,113 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState, DeviceOptionsH
 	}
 
 	/**
-	 * Prepares device for playout
-	 */
-	async makeReady(okToDestroyStuff?: boolean): Promise<void> {
-		if (okToDestroyStuff) {
-			await this.resync()
-		}
-	}
-
-	/**
 	 * Sends commands to the HyperDeck to format disks. Afterwards,
 	 * calls this._queryRecordingTime
 	 */
-	private async formatDisks() {
-		const wait = async (t: number) => new Promise<void>((resolve) => setTimeout(() => resolve(), t))
+	private async formatDisks(): Promise<ActionExecutionResult> {
+		try {
+			const wait = async (t: number) => new Promise<void>((resolve) => setTimeout(() => resolve(), t))
 
-		for (let i = 1; i <= this._slots; i++) {
-			// select slot
-			const slotSel = new HyperdeckCommands.SlotSelectCommand()
-			slotSel.slotId = i + ''
-			try {
-				await this._hyperdeck.sendCommand(slotSel)
-			} catch (e) {
-				continue
-			}
-			// get code:
-			const prepare = new HyperdeckCommands.FormatCommand()
-			prepare.filesystem = FilesystemFormat.exFAT
-			const res = await this._hyperdeck.sendCommand(prepare)
-
-			const format = new HyperdeckCommands.FormatConfirmCommand()
-			format.code = res.code
-			await this._hyperdeck.sendCommand(format)
-
-			// now actualy await until finished:
-			const slotInfo = new HyperdeckCommands.SlotInfoCommand(i)
-			while ((await this._hyperdeck.sendCommand(slotInfo)).status === SlotStatus.EMPTY) {
-				await wait(500)
-			}
-		}
-
-		await this._queryRecordingTime()
-	}
-	async executeAction<A extends HyperdeckActions>(
-		actionId: A,
-		_payload: HyperdeckActionExecutionPayload<A>
-	): Promise<HyperdeckActionExecutionResult<A>> {
-		switch (actionId) {
-			case HyperdeckActions.FormatDisks:
+			for (let i = 1; i <= this._slotCount; i++) {
+				// select slot
+				const slotSel = new HyperdeckCommands.SlotSelectCommand()
+				slotSel.slotId = i
 				try {
-					await this.formatDisks()
-					return { result: ActionExecutionResultCode.Ok }
-				} catch {
-					return { result: ActionExecutionResultCode.Error }
+					await this._hyperdeck.sendCommand(slotSel)
+				} catch (e) {
+					continue
 				}
-			case HyperdeckActions.Resync:
-				return this.resync() as Promise<HyperdeckActionExecutionResult<A>>
-			default:
-				return actionNotFoundMessage(actionId)
+				// get code:
+				const prepare = new HyperdeckCommands.FormatCommand()
+				prepare.filesystem = FilesystemFormat.exFAT
+				const res = await this._hyperdeck.sendCommand(prepare)
+
+				const format = new HyperdeckCommands.FormatConfirmCommand()
+				format.code = res.code
+				await this._hyperdeck.sendCommand(format)
+
+				// now actualy await until finished:
+				const slotInfo = new HyperdeckCommands.SlotInfoCommand(i)
+				while ((await this._hyperdeck.sendCommand(slotInfo)).status === SlotStatus.EMPTY) {
+					await wait(500)
+				}
+			}
+
+			await this._queryRecordingTime()
+
+			return { result: ActionExecutionResultCode.Ok }
+		} catch {
+			return { result: ActionExecutionResultCode.Error }
 		}
 	}
-	/** Called by the Conductor a bit before a .handleState is called */
-	prepareForHandleState(newStateTime: number) {
-		// clear any queued commands later than this time:
-		this._doOnTime.clearQueueNowAndAfter(newStateTime)
-		this.cleanUpStates(0, newStateTime)
-	}
+
 	/**
-	 * Saves and handles state at specified point in time such that the device will be in
-	 * that state at that time.
-	 * @param newState
+	 * Compares the new timeline-state with the old one, and generates commands to account for the difference
+	 * @param oldHyperdeckState The assumed current state
+	 * @param newHyperdeckState The desired state of the device
 	 */
-	handleState(newState: Timeline.TimelineState<TSRTimelineContent>, newMappings: Mappings) {
-		super.onHandleState(newState, newMappings)
-		if (!this._initialized) {
-			// before it's initialized don't do anything
-			this.emit('info', 'Hyperdeck not initialized yet')
-			return
+	diffStates(
+		oldHyperdeckState: HyperdeckDeviceState | undefined,
+		newHyperdeckState: HyperdeckDeviceState
+	): Array<HyperdeckCommandWithContext> {
+		return diffHyperdeckStates(oldHyperdeckState, newHyperdeckState, (err) => {
+			this.context.logger.error('Hyperdeck diffStates', err)
+		})
+	}
+
+	async sendCommand({ command, context, timelineObjId }: HyperdeckCommandWithContext): Promise<void> {
+		const cwc: CommandWithContext = {
+			context,
+			command,
+			timelineObjId,
+		}
+		this.context.logger.debug(cwc)
+
+		// TODO: is this a good idea?
+		// Track what we expect the TransportStatus to be, only Commands we may send need to be considered
+		if (command instanceof HyperdeckCommands.PlayCommand) {
+			this._expectedTransportStatus = TransportStatus.PLAY
+		} else if (command instanceof HyperdeckCommands.StopCommand) {
+			this._expectedTransportStatus = TransportStatus.STOPPED
+		} else if (command instanceof HyperdeckCommands.RecordCommand) {
+			this._expectedTransportStatus = TransportStatus.RECORD
+		} else if (command instanceof HyperdeckCommands.PreviewCommand) {
+			this._expectedTransportStatus = TransportStatus.PREVIEW
 		}
 
-		// Create device states
-		const previousStateTime = Math.max(this.getCurrentTime(), newState.time)
-		const oldState: DeviceState = (this.getStateBefore(previousStateTime) || { state: this._getDefaultState() }).state
+		// Skip attempting send if not connected
+		if (!this._connected) return
 
-		const convertTrace = startTrace(`device:convertState`, { deviceId: this.deviceId })
-		const oldHyperdeckState = oldState
-		const newHyperdeckState = this.convertStateToHyperdeck(newState, newMappings)
-		this.emit('timeTrace', endTrace(convertTrace))
-
-		// Generate commands to transition to new state
-		const diffTrace = startTrace(`device:diffState`, { deviceId: this.deviceId })
-		const commandsToAchieveState: Array<HyperdeckCommandWithContext> = this._diffStates(
-			oldHyperdeckState,
-			newHyperdeckState
-		)
-		this.emit('timeTrace', endTrace(diffTrace))
-
-		// clear any queued commands later than this time:
-		this._doOnTime.clearQueueNowAndAfter(previousStateTime)
-		// add the new commands to the queue:
-		this._addToQueue(commandsToAchieveState, newState.time)
-
-		// store the new state, for later use:
-		this.setState(newHyperdeckState, newState.time)
+		try {
+			await this._hyperdeck.sendCommand(command)
+		} catch (error: any) {
+			this.context.commandError(error, cwc)
+		}
 	}
-	/**
-	 * Clears any scheduled commands after this time
-	 * @param clearAfterTime
-	 */
-	clearFuture(clearAfterTime: number) {
-		this._doOnTime.clearQueueAfter(clearAfterTime)
-	}
-	get canConnect(): boolean {
-		return true
-	}
+
 	get connected(): boolean {
 		return this._connected
 	}
+
 	/**
-	 * Converts a timeline state to a device state.
-	 * @param state
+	 * Convert a timeline state into an hyperdeck state.
+	 * @param timelineState The state to be converted
 	 */
-	convertStateToHyperdeck(state: Timeline.TimelineState<TSRTimelineContent>, mappings: Mappings): DeviceState {
-		if (!this._initialized) throw Error('convertStateToHyperdeck cannot be used before inititialized')
-
-		// Convert the timeline state into something we can use easier:
-		const deviceState = this._getDefaultState()
-
-		const sortedLayers = _.map(state.layers, (tlObject, layerName) => ({ layerName, tlObject })).sort((a, b) =>
-			a.layerName.localeCompare(b.layerName)
-		)
-		_.each(sortedLayers, ({ tlObject, layerName }) => {
-			const content = tlObject.content
-
-			const mapping = mappings[layerName] as Mapping<SomeMappingHyperdeck>
-
-			if (mapping && mapping.deviceId === this.deviceId && content.deviceType === DeviceType.HYPERDECK) {
-				switch (mapping.options.mappingType) {
-					case MappingHyperdeckType.Transport:
-						if (content.type === TimelineContentTypeHyperdeck.TRANSPORT) {
-							if (!deviceState.transport) {
-								switch (content.status) {
-									case TransportStatus.PREVIEW:
-									case TransportStatus.STOPPED:
-									case TransportStatus.FORWARD:
-									case TransportStatus.REWIND:
-									case TransportStatus.JOG:
-									case TransportStatus.SHUTTLE:
-										deviceState.transport = {
-											status: content.status,
-											speed: DEFAULT_SPEED,
-											loop: DEFAULT_LOOP,
-											singleClip: DEFAULT_SINGLE_CLIP,
-											clipId: DEFAULT_CLIP_ID,
-										}
-										break
-									case TransportStatus.PLAY:
-										deviceState.transport = {
-											status: content.status,
-											speed: content.speed ?? DEFAULT_SPEED,
-											loop: content.loop ?? DEFAULT_LOOP,
-											singleClip: content.singleClip ?? DEFAULT_SINGLE_CLIP,
-											clipId: content.clipId,
-										}
-										break
-									case TransportStatus.RECORD:
-										deviceState.transport = {
-											status: content.status,
-											speed: DEFAULT_SPEED,
-											loop: DEFAULT_LOOP,
-											singleClip: DEFAULT_SINGLE_CLIP,
-											clipId: DEFAULT_CLIP_ID,
-											recordFilename: content.recordFilename,
-										}
-										break
-									default:
-										// @ts-ignore never
-										throw new Error(`Unsupported status "${content.status}"`)
-								}
-							}
-
-							deviceState.transport.status = content.status
-							if (content.status === TransportStatus.RECORD) {
-								deviceState.transport.recordFilename = content.recordFilename
-							} else if (content.status === TransportStatus.PLAY) {
-								deviceState.transport.speed = content.speed ?? DEFAULT_SPEED
-								deviceState.transport.loop = content.loop ?? DEFAULT_LOOP
-								deviceState.transport.singleClip = content.singleClip ?? DEFAULT_SINGLE_CLIP
-								deviceState.transport.clipId = content.clipId
-							}
-						}
-						break
-				}
-			}
-		})
-		return deviceState
+	convertTimelineStateToDeviceState(
+		timelineState: Timeline.TimelineState<TSRTimelineContent>,
+		mappings: Mappings
+	): HyperdeckDeviceState {
+		return convertTimelineStateToHyperdeckState(timelineState.layers, mappings)
 	}
-	get deviceType() {
-		return DeviceType.HYPERDECK
-	}
-	get deviceName(): string {
-		return 'Hyperdeck ' + this.deviceId
-	}
-	get queue() {
-		return this._doOnTime.getQueue()
-	}
-	getStatus(): DeviceStatus {
+
+	getStatus(): Omit<DeviceStatus, 'active'> {
 		let statusCode = StatusCode.GOOD
 		const messages: Array<string> = []
 
 		if (!this._connected) {
 			statusCode = StatusCode.BAD
 			messages.push('Not connected')
-		}
-
-		if (this._connected) {
+		} else {
 			// check recording time left
 			if (this._minRecordingTime && this._recordingTime < this._minRecordingTime) {
 				if (this._recordingTime === 0) {
@@ -441,7 +272,7 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState, DeviceOptionsH
 
 			// check for available slots
 			let noAvailableSlots = true
-			for (let slot = 1; slot <= this._slots; slot++) {
+			for (let slot = 1; slot <= this._slotCount; slot++) {
 				if (
 					this._slotStatus[slot] &&
 					this._slotStatus[slot].status !== SlotStatus.MOUNTED &&
@@ -458,277 +289,35 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState, DeviceOptionsH
 			}
 
 			// check if transport status is correct
-			const state = this.getState()
-			if (state) {
-				const supposedState = state.state.transport.status
-				if (supposedState === TransportStatus.RECORD && this._transportStatus !== supposedState) {
+			if (this._expectedTransportStatus !== this._transportStatus) {
+				if (this._expectedTransportStatus === TransportStatus.RECORD) {
 					if (statusCode < StatusCode.WARNING_MAJOR) statusCode = StatusCode.WARNING_MAJOR
 					messages.push('Hyperdeck not recording')
-				}
-
-				if (supposedState === TransportStatus.PLAY && this._transportStatus !== supposedState) {
+				} else if (this._expectedTransportStatus === TransportStatus.PLAY) {
 					if (statusCode < StatusCode.WARNING_MAJOR) statusCode = StatusCode.WARNING_MAJOR
 					messages.push('Hyperdeck not playing')
 				}
 			}
 		}
-		if (!this._initialized) {
-			statusCode = StatusCode.BAD
-			messages.push(`Hyperdeck device connection not initialized (restart required)`)
-		}
 
 		return {
 			statusCode,
 			messages,
-			active: this.isActive,
 		}
-	}
-	/**
-	 * Add commands to queue, to be executed at the right time
-	 */
-	private _addToQueue(commandsToAchieveState: Array<HyperdeckCommandWithContext>, time: number) {
-		_.each(commandsToAchieveState, (cmd: HyperdeckCommandWithContext) => {
-			// add the new commands to the queue:
-			this._doOnTime.queue(
-				time,
-				undefined,
-				async (cmd: HyperdeckCommandWithContext) => {
-					return this._commandReceiver(time, cmd.command, cmd.context, cmd.timelineObjId)
-				},
-				cmd
-			)
-		})
-	}
-
-	/**
-	 * Compares the new timeline-state with the old one, and generates commands to account for the difference
-	 * @param oldHyperdeckState The assumed current state
-	 * @param newHyperdeckState The desired state of the device
-	 */
-	private _diffStates(
-		oldHyperdeckState: DeviceState,
-		newHyperdeckState: DeviceState
-	): Array<HyperdeckCommandWithContext> {
-		const commandsToAchieveState: HyperdeckCommandWithContext[] = []
-
-		if (oldHyperdeckState.notify && newHyperdeckState.notify) {
-			const notifyCmd = new HyperdeckCommands.NotifySetCommand()
-			let hasChange: {
-				timelineObjId: string
-			} | null = null
-
-			const keys = _.unique(_.keys(oldHyperdeckState.notify).concat(_.keys(newHyperdeckState.notify)))
-			for (const k of keys) {
-				if (oldHyperdeckState.notify[k] !== newHyperdeckState.notify[k]) {
-					notifyCmd[k] = newHyperdeckState.notify[k]
-					hasChange = {
-						timelineObjId: newHyperdeckState.timelineObjId,
-					}
-				}
-			}
-
-			if (hasChange) {
-				commandsToAchieveState.push({
-					command: notifyCmd,
-					context: {
-						oldState: oldHyperdeckState.notify,
-						newState: newHyperdeckState.notify,
-					},
-					timelineObjId: hasChange.timelineObjId,
-				})
-			}
-		} else {
-			this.emit(
-				'error',
-				'Hyperdeck',
-				new Error(
-					`diffStates missing notify object: ${JSON.stringify(oldHyperdeckState.notify)}, ${JSON.stringify(
-						newHyperdeckState.notify
-					)}`
-				)
-			)
-		}
-
-		if (oldHyperdeckState.transport && newHyperdeckState.transport) {
-			switch (newHyperdeckState.transport.status) {
-				case TransportStatus.RECORD: {
-					// TODO - sometimes we can loose track of the filename (eg on reconnect).
-					// should we split the record when recovering from that? (it might loose some frames)
-					const filenameChanged =
-						oldHyperdeckState.transport.recordFilename !== undefined &&
-						oldHyperdeckState.transport.recordFilename !== newHyperdeckState.transport.recordFilename
-
-					if (oldHyperdeckState.transport.status !== newHyperdeckState.transport.status) {
-						// Start recording
-						commandsToAchieveState.push({
-							command: new HyperdeckCommands.RecordCommand(newHyperdeckState.transport.recordFilename),
-							context: {
-								oldState: oldHyperdeckState.transport,
-								newState: newHyperdeckState.transport,
-							},
-							timelineObjId: newHyperdeckState.timelineObjId,
-						})
-					} else if (filenameChanged) {
-						// Split recording
-						commandsToAchieveState.push({
-							command: new HyperdeckCommands.StopCommand(),
-							context: {
-								oldState: oldHyperdeckState.transport,
-								newState: newHyperdeckState.transport,
-							},
-							timelineObjId: newHyperdeckState.timelineObjId,
-						})
-						commandsToAchieveState.push({
-							command: new HyperdeckCommands.RecordCommand(newHyperdeckState.transport.recordFilename),
-							context: {
-								oldState: oldHyperdeckState.transport,
-								newState: newHyperdeckState.transport,
-							},
-							timelineObjId: newHyperdeckState.timelineObjId,
-						})
-					} // else continue recording
-
-					break
-				}
-				case TransportStatus.PLAY: {
-					if (
-						oldHyperdeckState.transport.status !== newHyperdeckState.transport.status ||
-						oldHyperdeckState.transport.speed !== newHyperdeckState.transport.speed ||
-						oldHyperdeckState.transport.loop !== newHyperdeckState.transport.loop ||
-						oldHyperdeckState.transport.singleClip !== newHyperdeckState.transport.singleClip
-					) {
-						// Start or modify playback
-						commandsToAchieveState.push({
-							command: new HyperdeckCommands.PlayCommand(
-								newHyperdeckState.transport.speed + '',
-								newHyperdeckState.transport.loop,
-								newHyperdeckState.transport.singleClip
-							),
-							context: {
-								oldState: oldHyperdeckState.transport,
-								newState: newHyperdeckState.transport,
-							},
-							timelineObjId: newHyperdeckState.timelineObjId,
-						})
-					} // else continue playing
-
-					if (
-						oldHyperdeckState.transport.clipId !== newHyperdeckState.transport.clipId &&
-						newHyperdeckState.transport.clipId !== null
-					) {
-						// Go to the new clip
-						commandsToAchieveState.push({
-							command: new HyperdeckCommands.GoToCommand(undefined, newHyperdeckState.transport.clipId),
-							context: {
-								oldState: oldHyperdeckState.transport,
-								newState: newHyperdeckState.transport,
-							},
-							timelineObjId: newHyperdeckState.timelineObjId,
-						})
-
-						/**
-						 * If the last played clip naturally reached its end and singleClip was
-						 * true or it was the last clip on the disk, the Hyperdeck will stop,
-						 * but our state will still think that it is playing.
-						 * This means that in order to reliably play the clip we just GoTo'd,
-						 * we have to always send a Play command.
-						 */
-						if (newHyperdeckState.transport.status === TransportStatus.PLAY) {
-							// Start or modify playback
-							commandsToAchieveState.push({
-								command: new HyperdeckCommands.PlayCommand(
-									newHyperdeckState.transport.speed + '',
-									newHyperdeckState.transport.loop,
-									newHyperdeckState.transport.singleClip
-								),
-								context: {
-									oldState: oldHyperdeckState.transport,
-									newState: newHyperdeckState.transport,
-								},
-								timelineObjId: newHyperdeckState.timelineObjId,
-							})
-						} // else continue playing
-					} // else continue playing
-
-					break
-				}
-				case TransportStatus.PREVIEW: {
-					if (oldHyperdeckState.transport.status !== newHyperdeckState.transport.status) {
-						// Switch to preview mode
-						// A subsequent play or record command will automatically override this
-						commandsToAchieveState.push({
-							command: new HyperdeckCommands.PreviewCommand(true),
-							context: {
-								oldState: oldHyperdeckState.transport,
-								newState: newHyperdeckState.transport,
-							},
-							timelineObjId: newHyperdeckState.timelineObjId,
-						})
-					}
-
-					break
-				}
-				case TransportStatus.STOPPED: {
-					if (oldHyperdeckState.transport.status !== newHyperdeckState.transport.status) {
-						// Stop playback/recording
-						commandsToAchieveState.push({
-							command: new HyperdeckCommands.StopCommand(),
-							context: {
-								oldState: oldHyperdeckState.transport,
-								newState: newHyperdeckState.transport,
-							},
-							timelineObjId: newHyperdeckState.timelineObjId,
-						})
-					}
-
-					break
-				}
-				default:
-					// TODO - warn
-					// for now we are assuming they want a stop. that could be conditional later on
-					if (
-						oldHyperdeckState.transport.status === TransportStatus.RECORD ||
-						oldHyperdeckState.transport.status === TransportStatus.PLAY
-					) {
-						commandsToAchieveState.push({
-							command: new HyperdeckCommands.StopCommand(),
-							context: {
-								oldState: oldHyperdeckState.transport,
-								newState: newHyperdeckState.transport,
-							},
-							timelineObjId: newHyperdeckState.timelineObjId,
-						})
-					}
-					break
-			}
-		} else {
-			this.emit(
-				'error',
-				'Hyperdeck',
-				new Error(
-					`diffStates missing transport object: ${JSON.stringify(oldHyperdeckState.transport)}, ${JSON.stringify(
-						newHyperdeckState.transport
-					)}`
-				)
-			)
-		}
-
-		return commandsToAchieveState
 	}
 
 	/**
 	 * Gets the current state of the device
 	 */
-	private async _queryCurrentState(): Promise<DeviceState> {
-		if (!this._connected) return this._getDefaultState()
+	private async _queryCurrentState(): Promise<HyperdeckDeviceState> {
+		if (!this._connected) return getDefaultHyperdeckState()
 
-		const notify = this._hyperdeck.sendCommand(new HyperdeckCommands.NotifyGetCommand())
-		const transport = this._hyperdeck.sendCommand(new HyperdeckCommands.TransportInfoCommand())
+		const [notifyRes, transportRes] = await Promise.all([
+			this._hyperdeck.sendCommand(new HyperdeckCommands.NotifyGetCommand()),
+			this._hyperdeck.sendCommand(new HyperdeckCommands.TransportInfoCommand()),
+		])
 
-		const notifyRes = await notify
-		const transportRes = await transport
-
-		const res: DeviceState = {
+		const res: HyperdeckDeviceState = {
 			notify: notifyRes,
 			transport: transportRes,
 			timelineObjId: 'currentState',
@@ -739,42 +328,41 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState, DeviceOptionsH
 	/**
 	 * Queries the recording time left in seconds of the device and mutates
 	 * this._recordingTime
+	 * This is public for the unit tests
 	 */
-	private async _queryRecordingTime(): Promise<void> {
+	public async _queryRecordingTime(): Promise<void> {
 		if (this._recTimePollTimer) {
 			clearTimeout(this._recTimePollTimer)
 		}
-		let time = 0
+		let totalRecordingTime = 0
 
-		for (let slot = 1; slot <= this._slots; slot++) {
+		for (let slot = 1; slot <= this._slotCount; slot++) {
 			try {
-				const res: SlotInfoCommandResponse = await this._hyperdeck.sendCommand(
-					new HyperdeckCommands.SlotInfoCommand(slot)
-				)
+				const res = await this._hyperdeck.sendCommand(new HyperdeckCommands.SlotInfoCommand(slot))
 				this._slotStatus[slot] = res
 				if (res.status === 'mounted') {
-					time += res.recordingTime
+					totalRecordingTime += res.recordingTime
 				}
 			} catch (e) {
 				// null
 			}
 		}
 
-		if (time !== this._recordingTime) {
-			this._recordingTime = time
+		if (totalRecordingTime !== this._recordingTime) {
+			this._recordingTime = totalRecordingTime
 			this._connectionChanged()
 		}
 
 		let timeTillNextUpdate = 10
-		if (time > 10) {
-			if (time - this._minRecordingTime > 10) {
-				timeTillNextUpdate = (time - this._minRecordingTime) / 2
-			} else if (time - this._minRecordingTime < 0) {
-				timeTillNextUpdate = time / 2
+		if (totalRecordingTime > 10) {
+			if (totalRecordingTime - this._minRecordingTime > 10) {
+				timeTillNextUpdate = (totalRecordingTime - this._minRecordingTime) / 2
+			} else if (totalRecordingTime - this._minRecordingTime < 0) {
+				timeTillNextUpdate = totalRecordingTime / 2
 			}
 		}
 		this._recTimePollTimer = setTimeout(() => {
-			this._queryRecordingTime().catch((e) => this.emit('error', 'HyperDeck.queryRecordingTime', e))
+			this._queryRecordingTime().catch((e) => this.context.logger.error('HyperDeck.queryRecordingTime', e))
 		}, timeTillNextUpdate * 1000)
 	}
 
@@ -787,50 +375,7 @@ export class HyperdeckDevice extends DeviceWithState<DeviceState, DeviceOptionsH
 		return slots
 	}
 
-	/**
-	 * Gets the default state of the device
-	 */
-	private _getDefaultState(): DeviceState {
-		const res: DeviceState = {
-			notify: {
-				// TODO - this notify block will want configuring per device or will the state lib always want it the same?
-				remote: false,
-				transport: false,
-				slot: false,
-				configuration: false,
-				droppedFrames: false,
-			},
-			transport: {
-				status: TransportStatus.STOPPED,
-				speed: DEFAULT_SPEED,
-				loop: DEFAULT_LOOP,
-				singleClip: DEFAULT_SINGLE_CLIP,
-				clipId: DEFAULT_CLIP_ID,
-			},
-			timelineObjId: '',
-		}
-
-		return res
-	}
-
-	private async _defaultCommandReceiver(
-		_time: number,
-		command: HyperdeckCommands.AbstractCommand,
-		context: CommandContext,
-		timelineObjId: string
-	): Promise<any> {
-		const cwc: CommandWithContext = {
-			context,
-			timelineObjId,
-			command: command,
-		}
-		this.emitDebug(cwc)
-
-		return this._hyperdeck.sendCommand(command).catch((error) => {
-			this.emit('commandError', error, cwc)
-		})
-	}
 	private _connectionChanged() {
-		this.emit('connectionChanged', this.getStatus())
+		this.context.connectionChanged(this.getStatus())
 	}
 }
