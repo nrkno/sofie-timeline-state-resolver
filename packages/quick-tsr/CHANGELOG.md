@@ -63,6 +63,10 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
 - add ci for quick-tsr ([9f2c3d1](https://github.com/nrkno/sofie-timeline-state-resolver/commit/9f2c3d1f6606af55228d96be5a064b585e6f8287))
 - quick-tsr typing errors ([#267](https://github.com/nrkno/sofie-timeline-state-resolver/issues/267)) ([95b2eae](https://github.com/nrkno/sofie-timeline-state-resolver/commit/95b2eae93450db5f6f4d9f26c96380fa56b08a03))
 
+## [8.1.2](https://github.com/nrkno/sofie-timeline-state-resolver/compare/8.1.1...8.1.2) (2023-12-21)
+
+**Note:** Version bump only for package quick-tsr
+
 ## [8.1.1](https://github.com/nrkno/sofie-timeline-state-resolver/compare/8.1.0...8.1.1) (2023-11-29)
 
 **Note:** Version bump only for package quick-tsr
