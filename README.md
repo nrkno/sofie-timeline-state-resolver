@@ -1,4 +1,5 @@
-# Sofie Timeline State Resolver (TSR) 
+# Sofie Timeline State Resolver (TSR)
+
 [![Node CI](https://github.com/nrkno/sofie-timeline-state-resolver/actions/workflows/node.yaml/badge.svg)](https://github.com/nrkno/sofie-timeline-state-resolver/actions/workflows/node.yaml)
 [![codecov](https://codecov.io/gh/nrkno/sofie-timeline-state-resolver/branch/master/graph/badge.svg)](https://codecov.io/gh/nrkno/sofie-timeline-state-resolver)
 
@@ -6,10 +7,11 @@ This is the _Timeline State Resolver (TSR)_ library, part of the [**Sofie** TV A
 Using this input, it resolves the expected state, diffs the state against current state, and sends commands to devices where necessary.
 
 ## General Sofie System Information
-* [_Sofie_ Documentation](https://nrkno.github.io/sofie-core/)
-* [_Sofie_ Releases](https://nrkno.github.io/sofie-core/releases)
-* [Contribution Guidelines](CONTRIBUTING.md)
-* [License](LICENSE)
+
+- [_Sofie_ Documentation](https://nrkno.github.io/sofie-core/)
+- [_Sofie_ Releases](https://nrkno.github.io/sofie-core/releases)
+- [Contribution Guidelines](CONTRIBUTING.md)
+- [License](LICENSE)
 
 ---
 
@@ -19,13 +21,18 @@ Using this input, it resolves the expected state, diffs the state against curren
 - **Blackmagic Design ATEM** vision mixers - using the [atem-connection](https://github.com/nrkno/tv-automation-atem-connection) library
 - **Blackmagic Design Hyperdeck** record/playback devices - using the [hyperdeck-connection](https://github.com/nrkno/tv-automation-hyperdeck-connection) library
 - **Lawo** audio mixers - using the [emberplus](https://github.com/nrkno/tv-automation-emberplus-connection) library
-- **[OBS Studio](https://obsproject.com/)** live video production software
+- **[OBS Studio](https://obsproject.com/)** live video production software (currently not supporting v29)
 - **Panasoniz PTZ** cameras
 - **Pharos** light control devices
 - **[Sisyfos](https://github.com/olzzon/sisyfos-audio-controller)** audio controller
 - **Quantel** video server
 - **[vMix](https://www.vmix.com/)** software vision mixer
 - **VizRT MediaSequencer** graphics system - using the [v-connection](https://github.com/tv2/v-connection) library
+- **Shotoku TR-XT** camera robotics
+- **Singular Live Graphics**
+- **[Sofie Chef](https://github.com/nrkno/sofie-chef)**
+- **Telemetrics** camera robotics
+- **Newtek Tricaster** video mixers
 - Arbitrary [OSC](https://en.wikipedia.org/wiki/Open_Sound_Control) compatible devices
 - Arbitrary HTTP (REST) compatible devices
 - Arbitrary TCP-socket compatible devices
