@@ -156,6 +156,12 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
 
 - Revert "chore: enable node 20 in ci" ([2f31f95](https://github.com/nrkno/sofie-timeline-state-resolver/commit/2f31f95c8ef4b24d9401f27713a1bee1d5673960))
 
+## [8.1.2](https://github.com/nrkno/sofie-timeline-state-resolver/compare/8.1.1...8.1.2) (2023-12-21)
+
+### Bug Fixes
+
+- suppress quantel disconnect shortly ([f04befb](https://github.com/nrkno/sofie-timeline-state-resolver/commit/f04befb6464669cf8acd058cbeb541824a0bba1e))
+
 ## [8.1.1](https://github.com/nrkno/sofie-timeline-state-resolver/compare/8.1.0...8.1.1) (2023-11-29)
 
 **Note:** Version bump only for package timeline-state-resolver-packages

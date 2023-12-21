@@ -64,6 +64,8 @@ export class QuantelDevice extends DeviceWithState<QuantelState, DeviceOptionsQu
 	private _doOnTimeBurst: DoOnTime
 	private _initOptions?: QuantelOptions
 
+	private _disconnectedSince: number | undefined = undefined
+
 	constructor(deviceId: string, deviceOptions: DeviceOptionsQuantelInternal, getCurrentTime: () => Promise<number>) {
 		super(deviceId, deviceOptions, getCurrentTime)
 
@@ -122,7 +124,20 @@ export class QuantelDevice extends DeviceWithState<QuantelState, DeviceOptionsQu
 			this._initOptions.serverId
 		)
 
-		this._quantel.monitorServerStatus((_connected: boolean) => {
+		this._quantel.monitorServerStatus((connected: boolean) => {
+			if (!this._disconnectedSince && connected === false && initOptions.suppressDisconnectTime) {
+				this._disconnectedSince = Date.now()
+
+				// trigger another update after debounce
+				setTimeout(() => {
+					if (!this._quantel.connected) {
+						this._connectionChanged()
+					}
+				}, initOptions.suppressDisconnectTime)
+			} else if (connected === true) {
+				this._disconnectedSince = undefined
+			}
+
 			this._connectionChanged()
 		})
 
@@ -370,12 +385,14 @@ export class QuantelDevice extends DeviceWithState<QuantelState, DeviceOptionsQu
 	getStatus(): DeviceStatus {
 		let statusCode = StatusCode.GOOD
 		const messages: Array<string> = []
+		const suppressServerDownWarning =
+			Date.now() < (this._disconnectedSince ?? 0) + (this._initOptions?.suppressDisconnectTime ?? 0)
 
-		if (!this._quantel.connected) {
+		if (!this._quantel.connected && !suppressServerDownWarning) {
 			statusCode = StatusCode.BAD
 			messages.push('Not connected')
 		}
-		if (this._quantel.statusMessage) {
+		if (this._quantel.statusMessage && !suppressServerDownWarning) {
 			statusCode = StatusCode.BAD
 			messages.push(this._quantel.statusMessage)
 		}
