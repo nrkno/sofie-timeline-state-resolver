@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [8.1.2](https://github.com/nrkno/sofie-timeline-state-resolver/compare/8.1.1...8.1.2) (2023-12-21)
+
+### Bug Fixes
+
+- suppress quantel disconnect shortly ([f04befb](https://github.com/nrkno/sofie-timeline-state-resolver/commit/f04befb6464669cf8acd058cbeb541824a0bba1e))
+
 ## [8.1.0](https://github.com/nrkno/sofie-timeline-state-resolver/compare/8.0.0...8.1.0) (2023-10-19)
 
 ### Features
