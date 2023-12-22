@@ -952,6 +952,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@msgpack/msgpack@npm:^2.7.1":
+  version: 2.8.0
+  resolution: "@msgpack/msgpack@npm:2.8.0"
+  checksum: bead9393f57239007a2fe455df5277cbc03b125f14f310162a652b81471dcf3ab6780eaa24b36e20aa742998910a6840147d08b7267063b8e2de5d40c624360e
+  languageName: node
+  linkType: hard
+
 "@nodelib/fs.scandir@npm:2.1.5":
   version: 2.1.5
   resolution: "@nodelib/fs.scandir@npm:2.1.5"
@@ -3700,6 +3707,13 @@ asn1@evs-broadcast/node-asn1:
   languageName: node
   linkType: hard
 
+"crypto-js@npm:^4.1.1":
+  version: 4.2.0
+  resolution: "crypto-js@npm:4.2.0"
+  checksum: f051666dbc077c8324777f44fbd3aaea2986f198fe85092535130d17026c7c2ccf2d23ee5b29b36f7a4a07312db2fae23c9094b644cc35f7858b1b4fcaf27774
+  languageName: node
+  linkType: hard
+
 "crypto-random-string@npm:^2.0.0":
   version: 2.0.0
   resolution: "crypto-random-string@npm:2.0.0"
@@ -6374,12 +6388,12 @@ asn1@evs-broadcast/node-asn1:
   languageName: node
   linkType: hard
 
-"isomorphic-ws@npm:^4.0.1":
-  version: 4.0.1
-  resolution: "isomorphic-ws@npm:4.0.1"
+"isomorphic-ws@npm:^5.0.0":
+  version: 5.0.0
+  resolution: "isomorphic-ws@npm:5.0.0"
   peerDependencies:
     ws: "*"
-  checksum: d7190eadefdc28bdb93d67b5f0c603385aaf87724fa2974abb382ac1ec9756ed2cfb27065cbe76122879c2d452e2982bc4314317f3d6c737ddda6c047328771a
+  checksum: e20eb2aee09ba96247465fda40c6d22c1153394c0144fa34fe6609f341af4c8c564f60ea3ba762335a7a9c306809349f9b863c8beedf2beea09b299834ad5398
   languageName: node
   linkType: hard
 
@@ -8676,15 +8690,18 @@ asn1@evs-broadcast/node-asn1:
   languageName: node
   linkType: hard
 
-"obs-websocket-js@npm:^4.0.3":
-  version: 4.0.3
-  resolution: "obs-websocket-js@npm:4.0.3"
+"obs-websocket-js@npm:^5.0.3":
+  version: 5.0.3
+  resolution: "obs-websocket-js@npm:5.0.3"
   dependencies:
-    debug: ^4.1.0
-    isomorphic-ws: ^4.0.1
-    sha.js: ^2.4.9
-    ws: ^7.2.0
-  checksum: 54e267b3ba6616fbdaf152bbd4ce76657a71c6c30c639bcb90199b127f02bddb587d20b98bf33b81e5063b0708b23acf324bdf1ce9db41482281a5aa88dcbcc1
+    "@msgpack/msgpack": ^2.7.1
+    crypto-js: ^4.1.1
+    debug: ^4.3.2
+    eventemitter3: ^5.0.1
+    isomorphic-ws: ^5.0.0
+    type-fest: ^3.11.0
+    ws: ^8.13.0
+  checksum: 5941dacae236c1e9a302da92277a2cfbd48231bb31c98abdc02ea0ee0687097e51e417850ded0625e996b7ef09a4f01e504f99387e4f70f325b985ad696155ee
   languageName: node
   linkType: hard
 
@@ -10155,7 +10172,7 @@ asn1@evs-broadcast/node-asn1:
   languageName: node
   linkType: hard
 
-"safe-buffer@npm:^5.0.1, safe-buffer@npm:^5.1.0, safe-buffer@npm:^5.2.1, safe-buffer@npm:~5.2.0":
+"safe-buffer@npm:^5.1.0, safe-buffer@npm:^5.2.1, safe-buffer@npm:~5.2.0":
   version: 5.2.1
   resolution: "safe-buffer@npm:5.2.1"
   checksum: b99c4b41fdd67a6aaf280fcd05e9ffb0813654894223afb78a31f14a19ad220bba8aba1cb14eddce1fcfb037155fe6de4e861784eb434f7d11ed58d1e70dd491
@@ -10260,18 +10277,6 @@ asn1@evs-broadcast/node-asn1:
   version: 2.0.0
   resolution: "set-blocking@npm:2.0.0"
   checksum: 6e65a05f7cf7ebdf8b7c75b101e18c0b7e3dff4940d480efed8aad3a36a4005140b660fa1d804cb8bce911cac290441dc728084a30504d3516ac2ff7ad607b02
-  languageName: node
-  linkType: hard
-
-"sha.js@npm:^2.4.9":
-  version: 2.4.11
-  resolution: "sha.js@npm:2.4.11"
-  dependencies:
-    inherits: ^2.0.1
-    safe-buffer: ^5.0.1
-  bin:
-    sha.js: ./bin.js
-  checksum: ebd3f59d4b799000699097dadb831c8e3da3eb579144fd7eb7a19484cbcbb7aca3c68ba2bb362242eb09e33217de3b4ea56e4678184c334323eca24a58e3ad07
   languageName: node
   linkType: hard
 
@@ -11079,7 +11084,7 @@ asn1@evs-broadcast/node-asn1:
     json-schema-ref-parser: ^9.0.9
     json-schema-to-typescript: ^10.1.5
     klona: ^2.0.6
-    obs-websocket-js: ^4.0.3
+    obs-websocket-js: ^5.0.3
     osc: ^2.4.4
     p-all: ^3.0.0
     p-queue: ^6.6.2
@@ -11418,7 +11423,7 @@ asn1@evs-broadcast/node-asn1:
   languageName: node
   linkType: hard
 
-"type-fest@npm:^3.1.0, type-fest@npm:^3.10.0, type-fest@npm:^3.13.1":
+"type-fest@npm:^3.1.0, type-fest@npm:^3.10.0, type-fest@npm:^3.11.0, type-fest@npm:^3.13.1":
   version: 3.13.1
   resolution: "type-fest@npm:3.13.1"
   checksum: c06b0901d54391dc46de3802375f5579868949d71f93b425ce564e19a428a0d411ae8d8cb0e300d330071d86152c3ea86e744c3f2860a42a79585b6ec2fdae8e
@@ -12079,7 +12084,7 @@ asn1@evs-broadcast/node-asn1:
   languageName: node
   linkType: hard
 
-"ws@npm:^7.2.0, ws@npm:^7.4.6, ws@npm:^7.5.9":
+"ws@npm:^7.4.6, ws@npm:^7.5.9":
   version: 7.5.9
   resolution: "ws@npm:7.5.9"
   peerDependencies:
@@ -12091,6 +12096,21 @@ asn1@evs-broadcast/node-asn1:
     utf-8-validate:
       optional: true
   checksum: c3c100a181b731f40b7f2fddf004aa023f79d64f489706a28bc23ff88e87f6a64b3c6651fbec3a84a53960b75159574d7a7385709847a62ddb7ad6af76f49138
+  languageName: node
+  linkType: hard
+
+"ws@npm:^8.13.0":
+  version: 8.15.1
+  resolution: "ws@npm:8.15.1"
+  peerDependencies:
+    bufferutil: ^4.0.1
+    utf-8-validate: ">=5.0.2"
+  peerDependenciesMeta:
+    bufferutil:
+      optional: true
+    utf-8-validate:
+      optional: true
+  checksum: 8c67365f6e6134278ad635d558bfce466d7ef7543a043baea333aaa430429f0af8a130c0c36e7dd78f918d68167a659ba9b5067330b77c4b279e91533395952b
   languageName: node
   linkType: hard
 

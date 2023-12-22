@@ -27,7 +27,7 @@ export interface MappingObsStreaming {
 	mappingType: MappingObsType.Streaming
 }
 
-export interface MappingObsSceneItemRender {
+export interface MappingObsSceneItem {
 	/**
 	 * Name of the scene item to be modified
 	 */
@@ -36,23 +36,31 @@ export interface MappingObsSceneItemRender {
 	 * Scene item source name
 	 */
 	source: string
-	mappingType: MappingObsType.SceneItemRender
+	mappingType: MappingObsType.SceneItem
 }
 
-export interface MappingObsMute {
+export interface MappingObsInputAudio {
 	/**
-	 * Source name
+	 * Input name
 	 */
-	source: string
-	mappingType: MappingObsType.Mute
+	input: string
+	mappingType: MappingObsType.InputAudio
 }
 
-export interface MappingObsSourceSettings {
+export interface MappingObsInputSettings {
 	/**
-	 * Source name
+	 * Input name
 	 */
-	source: string
-	mappingType: MappingObsType.SourceSettings
+	input: string
+	mappingType: MappingObsType.InputSettings
+}
+
+export interface MappingObsInputMedia {
+	/**
+	 * Input name
+	 */
+	input: string
+	mappingType: MappingObsType.InputMedia
 }
 
 export enum MappingObsType {
@@ -60,9 +68,10 @@ export enum MappingObsType {
 	CurrentTransition = 'currentTransition',
 	Recording = 'recording',
 	Streaming = 'streaming',
-	SceneItemRender = 'sceneItemRender',
-	Mute = 'mute',
-	SourceSettings = 'sourceSettings',
+	SceneItem = 'sceneItem',
+	InputAudio = 'inputAudio',
+	InputSettings = 'inputSettings',
+	InputMedia = 'inputMedia',
 }
 
-export type SomeMappingObs = MappingObsCurrentScene | MappingObsCurrentTransition | MappingObsRecording | MappingObsStreaming | MappingObsSceneItemRender | MappingObsMute | MappingObsSourceSettings
+export type SomeMappingObs = MappingObsCurrentScene | MappingObsCurrentTransition | MappingObsRecording | MappingObsStreaming | MappingObsSceneItem | MappingObsInputAudio | MappingObsInputSettings | MappingObsInputMedia

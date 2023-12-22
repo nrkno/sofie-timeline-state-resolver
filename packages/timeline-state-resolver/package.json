@@ -102,7 +102,7 @@
 		"hpagent": "^1.2.0",
 		"hyperdeck-connection": "2.0.0-nightly-master-20231205-105655-157a483.0",
 		"klona": "^2.0.6",
-		"obs-websocket-js": "^4.0.3",
+		"obs-websocket-js": "^5.0.3",
 		"osc": "^2.4.4",
 		"p-all": "^3.0.0",
 		"p-queue": "^6.6.2",

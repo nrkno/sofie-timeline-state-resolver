@@ -1,16 +1,20 @@
 import { DeviceType } from '..'
 
 export enum OBSRequest {
-	SET_CURRENT_SCENE = 'SetCurrentScene',
-	SET_PREVIEW_SCENE = 'SetPreviewScene',
-	SET_CURRENT_TRANSITION = 'SetCurrentTransition',
-	START_RECORDING = 'StartRecording',
-	STOP_RECORDING = 'StopRecording',
-	START_STREAMING = 'StartStreaming',
-	STOP_STREAMING = 'StopStreaming',
-	SET_SCENE_ITEM_RENDEER = 'SetSceneItemRender',
-	SET_MUTE = 'SetMute',
-	SET_SOURCE_SETTINGS = 'SetSourceSettings',
+	SET_CURRENT_SCENE = 'SetCurrentProgramScene',
+	SET_PREVIEW_SCENE = 'SetCurrentPreviewScene',
+	SET_CURRENT_TRANSITION = 'SetCurrentSceneTransition',
+	START_RECORDING = 'StartRecord',
+	STOP_RECORDING = 'StopRecord',
+	START_STREAMING = 'StartStream',
+	STOP_STREAMING = 'StopStream',
+	SET_SCENE_ITEM_ENABLED = 'SetSceneItemEnabled',
+	SET_SCENE_ITEM_TRANSFORM = 'SetSceneItemTransform',
+	SET_MUTE = 'SetInputMute',
+	SET_SOURCE_SETTINGS = 'SetInputSettings',
+	SET_INPUT_VOLUME = 'SetInputVolume',
+	TRIGGER_MEDIA_INPUT_ACTION = 'TriggerMediaInputAction',
+	SET_MEDIA_INPUT_CURSOR = 'SetMediaInputCursor',
 }
 
 export type TimelineContentOBSAny =
@@ -18,18 +22,22 @@ export type TimelineContentOBSAny =
 	| TimelineContentOBSCurrentTransition
 	| TimelineContentOBSRecording
 	| TimelineContentOBSStreaming
-	| TimelineContentOBSSceneItemRender
-	| TimelineContentOBSMute
-	| TimelineContentOBSSourceSettings
+	| TimelineContentOBSSceneItem
+	| TimelineContentOBSInputAudio
+	| TimelineContentOBSInputSettings
+	| TimelineContentOBSInputMedia
 
 export enum TimelineContentTypeOBS {
 	CURRENT_SCENE = 'CURRENT_SCENE',
 	CURRENT_TRANSITION = 'CURRENT_TRANSITION',
 	RECORDING = 'RECORDING',
 	STREAMING = 'STREAMING',
-	SCENE_ITEM_RENDER = 'SCENE_ITEM_RENDER',
-	MUTE = 'MUTE',
-	SOURCE_SETTINGS = 'SOURCE_SETTINGS',
+
+	SCENE_ITEM = 'SCENE_ITEM',
+
+	INPUT_AUDIO = 'INPUT_AUDIO',
+	INPUT_SETTINGS = 'INPUT_SETTINGS',
+	INPUT_MEDIA = 'INPUT_MEDIA',
 }
 export interface TimelineContentOBSBase {
 	deviceType: DeviceType.OBS
@@ -64,19 +72,22 @@ export interface TimelineContentOBSStreaming extends TimelineContentOBSBase {
 	on: boolean
 }
 
-export interface TimelineContentOBSSceneItemRender extends TimelineContentOBSBase {
+export interface TimelineContentOBSSceneItem extends TimelineContentOBSBase {
 	deviceType: DeviceType.OBS
-	type: TimelineContentTypeOBS.SCENE_ITEM_RENDER
+	type: TimelineContentTypeOBS.SCENE_ITEM
 
 	/** Should the scene item be enabled */
-	on: boolean
+	on?: boolean
+
+	/** Should the scene item be enabled */
+	transform?: OBSSceneItemTransform
 }
 
 type Without<T, U> = { [P in Exclude<keyof T, keyof U>]?: never }
 type XOR<T, U> = T | U extends Record<string, any> ? (Without<T, U> & U) | (Without<U, T> & T) : T | U
 
-export type TimelineContentOBSSourceSettings = TimelineContentOBSBase & {
-	type: TimelineContentTypeOBS.SOURCE_SETTINGS
+export type TimelineContentOBSInputSettings = TimelineContentOBSBase & {
+	type: TimelineContentTypeOBS.INPUT_SETTINGS
 } & XOR<
 		{
 			sourceType: 'ffmpeg_source'
@@ -94,9 +105,35 @@ export type TimelineContentOBSSourceSettings = TimelineContentOBSBase & {
 		}
 	>
 
-export interface TimelineContentOBSMute extends TimelineContentOBSBase {
-	type: TimelineContentTypeOBS.MUTE
+export interface TimelineContentOBSInputAudio extends TimelineContentOBSBase {
+	type: TimelineContentTypeOBS.INPUT_AUDIO
 
 	/** If the audio should be muted (`true`: audio will not be output, `false`: audio will be output) */
-	mute: boolean
+	mute?: boolean
+
+	volume?: number
+}
+export interface TimelineContentOBSInputMedia extends TimelineContentOBSBase {
+	type: TimelineContentTypeOBS.INPUT_MEDIA
+
+	seek?: number
+	state?: 'playing' | 'paused' | 'stopped'
+}
+
+export interface OBSSceneItemTransform {
+	cropBottom?: number
+	cropLeft?: number
+	cropRight?: number
+	cropTop?: number
+
+	height?: number
+	width?: number
+
+	positionX?: number
+	positionY?: number
+
+	rotation?: number
+
+	scaleX?: number
+	scaleY?: number
 }

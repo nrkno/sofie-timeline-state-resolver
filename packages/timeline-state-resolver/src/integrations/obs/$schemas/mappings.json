@@ -26,7 +26,7 @@
 			"required": [],
 			"additionalProperties": false
 		},
-		"sceneItemRender": {
+		"sceneItem": {
 			"type": "object",
 			"properties": {
 				"sceneName": {
@@ -43,28 +43,40 @@
 			"required": ["sceneName", "source"],
 			"additionalProperties": false
 		},
-		"mute": {
+		"inputAudio": {
 			"type": "object",
 			"properties": {
-				"source": {
+				"input": {
 					"type": "string",
-					"ui:title": "Source",
-					"description": "Source name"
+					"ui:title": "Input",
+					"description": "Input name"
 				}
 			},
-			"required": ["source"],
+			"required": ["input"],
 			"additionalProperties": false
 		},
-		"sourceSettings": {
+		"inputSettings": {
 			"type": "object",
 			"properties": {
-				"source": {
+				"input": {
 					"type": "string",
-					"ui:title": "Source",
-					"description": "Source name"
+					"ui:title": "Input",
+					"description": "Input name"
 				}
 			},
-			"required": ["source"],
+			"required": ["input"],
+			"additionalProperties": false
+		},
+		"inputMedia": {
+			"type": "object",
+			"properties": {
+				"input": {
+					"type": "string",
+					"ui:title": "Input",
+					"description": "Input name"
+				}
+			},
+			"required": ["input"],
 			"additionalProperties": false
 		}
 	}

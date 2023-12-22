@@ -9,6 +9,7 @@ import { AtemDevice } from '../integrations/atem'
 import { TcpSendDevice } from '../integrations/tcpSend'
 import { QuantelDevice } from '../integrations/quantel'
 import { HyperdeckDevice } from '../integrations/hyperdeck'
+import { OBSDevice } from '../integrations/obs'
 
 export interface DeviceEntry {
 	deviceClass: new (context: DeviceContextAPI<any>) => Device<any, any, any>
@@ -23,6 +24,7 @@ export type ImplementedServiceDeviceTypes =
 	| DeviceType.HTTPSEND
 	| DeviceType.HTTPWATCHER
 	| DeviceType.HYPERDECK
+	| DeviceType.OBS
 	| DeviceType.OSC
 	| DeviceType.SHOTOKU
 	| DeviceType.TCPSEND
@@ -58,6 +60,12 @@ export const DevicesDict: Record<ImplementedServiceDeviceTypes, DeviceEntry> = {
 		deviceClass: HyperdeckDevice,
 		canConnect: true,
 		deviceName: (deviceId: string) => 'Hyperdeck ' + deviceId,
+		executionMode: () => 'salvo',
+	},
+	[DeviceType.OBS]: {
+		deviceClass: OBSDevice,
+		canConnect: true,
+		deviceName: (deviceId: string) => 'OBS ' + deviceId,
 		executionMode: () => 'salvo',
 	},
 	[DeviceType.OSC]: {
