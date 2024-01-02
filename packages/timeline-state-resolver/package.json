@@ -22,8 +22,8 @@
 			"url": "http://superfly.tv"
 		},
 		{
-			"name": "Balte de Wit",
-			"email": "balte@superfly.tv",
+			"name": "Mint de Wit",
+			"email": "mint@superfly.tv",
 			"url": "http://superfly.tv"
 		},
 		{
@@ -91,8 +91,8 @@
 		"@tv2media/v-connection": "^7.3.2",
 		"atem-connection": "2.5.0",
 		"atem-state": "0.13.0",
-		"casparcg-connection": "^6.0.6",
-		"casparcg-state": "^3.0.2",
+		"casparcg-connection": "6.2.0",
+		"casparcg-state": "3.0.3",
 		"debug": "^4.3.4",
 		"deepmerge": "^4.3.1",
 		"emberplus-connection": "^0.2.1",

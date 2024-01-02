@@ -1,7 +1,15 @@
 import * as _ from 'underscore'
 import * as deepMerge from 'deepmerge'
 import { DeviceWithState, CommandWithContext, DeviceStatus, StatusCode, literal } from '../../devices/device'
-import { AMCPCommand, BasicCasparCGAPI, ClearCommand, Commands, Response } from 'casparcg-connection'
+import {
+	AMCPCommand,
+	AllTypedCommands,
+	BasicCasparCGAPI,
+	ClearCommand,
+	Commands,
+	InfoChannelEntry,
+	Response,
+} from 'casparcg-connection'
 import {
 	DeviceType,
 	TimelineContentTypeCasparCg,
@@ -119,7 +127,7 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 
 					const response = await request
 
-					const channelPromises: Promise<Response>[] = []
+					const channelPromises: Promise<Response<InfoChannelEntry | undefined>>[] = []
 					const channelLength: number = response?.data?.['length'] ?? 0
 
 					// Issue commands
@@ -127,7 +135,7 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 						// 1-based index for channels
 
 						const { error, request } = await this._ccg.executeCommand({
-							command: Commands.Info,
+							command: Commands.InfoChannel,
 							params: { channel: i },
 						})
 						if (error) {
@@ -142,7 +150,7 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 					const channelResults = await Promise.all(channelPromises)
 
 					// Resync if all channels have no stage object (no possibility of anything playing)
-					return !channelResults.find((ch) => ch.data['stage'])
+					return !channelResults.find((ch) => ch.data?.['stage'])
 				})
 				.catch((e) => {
 					this.emit('error', 'connect virgin check failed', e)
@@ -830,7 +838,11 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 		}
 	}
 
-	private _changeTrackedStateFromCommand(command: AMCPCommand, response: Response, time: number): void {
+	private _changeTrackedStateFromCommand(
+		command: AMCPCommand,
+		response: Response<AllTypedCommands[Commands]['returnType']>,
+		time: number
+	): void {
 		// Ensure this is for a channel and layer
 		if (!('channel' in command.params) || command.params.channel === undefined) return
 		if (!('layer' in command.params) || command.params.layer === undefined) return
