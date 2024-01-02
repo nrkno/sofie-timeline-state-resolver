@@ -3056,36 +3056,25 @@ asn1@evs-broadcast/node-asn1:
   languageName: node
   linkType: hard
 
-"casparcg-connection@npm:^6.0.0":
-  version: 6.0.3
-  resolution: "casparcg-connection@npm:6.0.3"
-  dependencies:
-    eventemitter3: ^4.0.7
-    tslib: ^2.5.0
-    xml2js: ^0.4.23
-  checksum: 747cfc551b5955d9f38236c8d46bb7fb9cc8642e0cb73501d3e4d566787ccdb7290502d16686c0c1994e685feaba6be5aa6721104619a362096d3c153f942630
-  languageName: node
-  linkType: hard
-
-"casparcg-connection@npm:^6.1.1":
-  version: 6.1.1
-  resolution: "casparcg-connection@npm:6.1.1"
+"casparcg-connection@npm:6.2.0":
+  version: 6.2.0
+  resolution: "casparcg-connection@npm:6.2.0"
   dependencies:
     eventemitter3: ^5.0.1
     tslib: ^2.5.0
     xml2js: ^0.6.2
-  checksum: df4e9787386fe560b5bfe743bb38f8188e778d985a72bf0a2ee0f058d038e544cccfbdefcebbacc837c9dbd953be9a435075ac71a0d6a5c2be3488744473fe10
+  checksum: f12ccc55beb08c2c8b1e061cbcb52cb48dbcd262e9b8ae61bfa0c47cf4b920781121acdc87cc32915375247c722d296fef4368de07734b3055a78ccc741a5f02
   languageName: node
   linkType: hard
 
-"casparcg-state@npm:^3.0.2":
-  version: 3.0.2
-  resolution: "casparcg-state@npm:3.0.2"
+"casparcg-state@npm:3.0.3":
+  version: 3.0.3
+  resolution: "casparcg-state@npm:3.0.3"
   dependencies:
-    casparcg-connection: ^6.0.0
+    casparcg-connection: 6.2.0
     fast-clone: ^1.5.13
-    underscore: ^1.13.2
-  checksum: 8a705636e24741349dbb86db60bb07dc8309633f8e0389ff09c2552a747fda0e296be0c3eec22d36edeecf98e0cbdfd886a9d02d81433f2ccfb8559159f076bd
+    underscore: ^1.13.6
+  checksum: 9b86178e628c69b79d0d8362a7a1efab9d1f657d2ff583fbec3f6919258a79f8918c3ccff084397382cfbd6d1538385bc319ceda93bf516311d7f0b559507df0
   languageName: node
   linkType: hard
 
@@ -11076,8 +11065,8 @@ asn1@evs-broadcast/node-asn1:
     atem-connection: 3.4.0
     atem-state: 1.2.0-nightly-master-20231129-144508-fb53d10.0
     cacheable-lookup: ^5.0.3
-    casparcg-connection: ^6.1.1
-    casparcg-state: ^3.0.2
+    casparcg-connection: 6.2.0
+    casparcg-state: 3.0.3
     debug: ^4.3.4
     deepmerge: ^4.3.1
     emberplus-connection: ^0.2.1
@@ -11526,7 +11515,7 @@ asn1@evs-broadcast/node-asn1:
   languageName: node
   linkType: hard
 
-"underscore@npm:^1.13.2, underscore@npm:^1.13.6":
+"underscore@npm:^1.13.6":
   version: 1.13.6
   resolution: "underscore@npm:1.13.6"
   checksum: d5cedd14a9d0d91dd38c1ce6169e4455bb931f0aaf354108e47bd46d3f2da7464d49b2171a5cf786d61963204a42d01ea1332a903b7342ad428deaafaf70ec36
@@ -12113,16 +12102,6 @@ asn1@evs-broadcast/node-asn1:
   bin:
     xml-js: ./bin/cli.js
   checksum: 24a55479919413687105fc2d8ab05e613ebedb1c1bc12258a108e07cff5ef793779297db854800a4edf0281303ebd1f177bc4a588442f5344e62b3dddda26c2b
-  languageName: node
-  linkType: hard
-
-"xml2js@npm:^0.4.23":
-  version: 0.4.23
-  resolution: "xml2js@npm:0.4.23"
-  dependencies:
-    sax: ">=0.6.0"
-    xmlbuilder: ~11.0.0
-  checksum: ca0cf2dfbf6deeaae878a891c8fbc0db6fd04398087084edf143cdc83d0509ad0fe199b890f62f39c4415cf60268a27a6aed0d343f0658f8779bd7add690fa98
   languageName: node
   linkType: hard
 
