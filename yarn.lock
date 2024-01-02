@@ -2802,21 +2802,21 @@ caseless@~0.12.0:
   resolved "https://registry.yarnpkg.com/caseless/-/caseless-0.12.0.tgz#1b681c21ff84033c826543090689420d187151dc"
   integrity sha512-4tYFyifaFfGacoiObjJegolkwSU4xQNGbVgUiNYVUxbQ2x2lUsFvY4hVgVzGiIe6WLOPqycWXA40l+PWsxthUw==
 
-casparcg-connection@6.2.0-nightly-master-20240102-111829-2fe75295.0:
-  version "6.2.0-nightly-master-20240102-111829-2fe75295.0"
-  resolved "https://registry.yarnpkg.com/casparcg-connection/-/casparcg-connection-6.2.0-nightly-master-20240102-111829-2fe75295.0.tgz#3262f89cd7b50b57aad13616b2e2a119f0f6289a"
-  integrity sha512-+RLEEaxXA0qVj5XT3iv89X1WIJs8UgyDH/RCL/YB9OhvHv1LPxn9mMLH+6atuAmU77HWZwyZ4Q27sQCuu9U9LA==
+casparcg-connection@6.2.0:
+  version "6.2.0"
+  resolved "https://registry.yarnpkg.com/casparcg-connection/-/casparcg-connection-6.2.0.tgz#592d45ff5338f99585a873ea863ec014fe36e992"
+  integrity sha512-iFVmaU2BgCiZlClP3j6tVPuab3CUrhXi9ZYz3U1ENDNa6HQBtWfclwdRqdJWhCwrZc+YAFxR31sovuQ+BznVlQ==
   dependencies:
     eventemitter3 "^5.0.1"
     tslib "^2.5.0"
     xml2js "^0.6.2"
 
-casparcg-state@3.0.3-nightly-master-20240102-114313-991c61a.0:
-  version "3.0.3-nightly-master-20240102-114313-991c61a.0"
-  resolved "https://registry.yarnpkg.com/casparcg-state/-/casparcg-state-3.0.3-nightly-master-20240102-114313-991c61a.0.tgz#6c50f2358a9e53099c721feb4a39d76e5dfeef38"
-  integrity sha512-Vbvn1SzFjhadfMZGQp4sPIMAc+N00IOgoQR4P1xSGMl4YSKNRaWmB6Av7XxjCxCXbDEmeiHVt4J5uzTh2VDPtg==
+casparcg-state@3.0.3:
+  version "3.0.3"
+  resolved "https://registry.yarnpkg.com/casparcg-state/-/casparcg-state-3.0.3.tgz#bafd411d374c042f85cbeba2ba6553ee53097f47"
+  integrity sha512-dhE0VQymoZrbmIyNGf7aovijya0b/98tFsdM3/EG9vqXgdG0XXT09+r6di8pUX6nR49J+ypQP0wGK9UE0eRnfg==
   dependencies:
-    casparcg-connection "6.2.0-nightly-master-20240102-111829-2fe75295.0"
+    casparcg-connection "6.2.0"
     fast-clone "^1.5.13"
     underscore "^1.13.6"
 
