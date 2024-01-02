@@ -2802,7 +2802,16 @@ caseless@~0.12.0:
   resolved "https://registry.yarnpkg.com/caseless/-/caseless-0.12.0.tgz#1b681c21ff84033c826543090689420d187151dc"
   integrity sha512-4tYFyifaFfGacoiObjJegolkwSU4xQNGbVgUiNYVUxbQ2x2lUsFvY4hVgVzGiIe6WLOPqycWXA40l+PWsxthUw==
 
-casparcg-connection@^6.0.0, casparcg-connection@^6.0.6:
+casparcg-connection@6.2.0-nightly-master-20240102-111829-2fe75295.0:
+  version "6.2.0-nightly-master-20240102-111829-2fe75295.0"
+  resolved "https://registry.yarnpkg.com/casparcg-connection/-/casparcg-connection-6.2.0-nightly-master-20240102-111829-2fe75295.0.tgz#3262f89cd7b50b57aad13616b2e2a119f0f6289a"
+  integrity sha512-+RLEEaxXA0qVj5XT3iv89X1WIJs8UgyDH/RCL/YB9OhvHv1LPxn9mMLH+6atuAmU77HWZwyZ4Q27sQCuu9U9LA==
+  dependencies:
+    eventemitter3 "^5.0.1"
+    tslib "^2.5.0"
+    xml2js "^0.6.2"
+
+casparcg-connection@^6.0.0:
   version "6.0.6"
   resolved "https://registry.yarnpkg.com/casparcg-connection/-/casparcg-connection-6.0.6.tgz#88975bb9b1f1ee6db89ab420ca058fde79b01d2f"
   integrity sha512-VFGKg1KslF0mMteZoCz2gQBN+KYUbM3YiNsVWTUNyPuDV6o57iP8V++LY8geAKRYSjQ/RTB4I1QI81L7QZeJaA==
@@ -3942,6 +3951,11 @@ eventemitter3@^4.0.4, eventemitter3@^4.0.7:
   version "4.0.7"
   resolved "https://registry.yarnpkg.com/eventemitter3/-/eventemitter3-4.0.7.tgz#2de9b68f6528d5644ef5c59526a1b4a07306169f"
   integrity sha512-8guHBZCwKnFhYdHr2ysuRWErTwhoN2X8XELRlrRwpmfeY2jjuUN4taQMsULKUVo1K4DvZl+0pgfyoysHxvmvEw==
+
+eventemitter3@^5.0.1:
+  version "5.0.1"
+  resolved "https://registry.yarnpkg.com/eventemitter3/-/eventemitter3-5.0.1.tgz#53f5ffd0a492ac800721bb42c66b841de96423c4"
+  integrity sha512-GWkBvjiSZK87ELrYOSESUYeVIc9mvLLf/nXalMOS5dYrgZq9o5OVkbZAVM06CVxYsCwH9BDZFPlQTlPA1j4ahA==
 
 events@^3.3.0:
   version "3.3.0"
@@ -9215,6 +9229,14 @@ xml2js@^0.4.23:
   version "0.4.23"
   resolved "https://registry.yarnpkg.com/xml2js/-/xml2js-0.4.23.tgz#a0c69516752421eb2ac758ee4d4ccf58843eac66"
   integrity sha512-ySPiMjM0+pLDftHgXY4By0uswI3SPKLDw/i3UXbnO8M/p28zqexCUoPmQFrYD+/1BzhGJSs2i1ERWKJAtiLrug==
+  dependencies:
+    sax ">=0.6.0"
+    xmlbuilder "~11.0.0"
+
+xml2js@^0.6.2:
+  version "0.6.2"
+  resolved "https://registry.yarnpkg.com/xml2js/-/xml2js-0.6.2.tgz#dd0b630083aa09c161e25a4d0901e2b2a929b499"
+  integrity sha512-T4rieHaC1EXcES0Kxxj4JWgaUQHDk+qwHcYOCFHfiwKz7tOVPLq7Hjq9dM1WCMhylqMEfP7hMcOIChvotiZegA==
   dependencies:
     sax ">=0.6.0"
     xmlbuilder "~11.0.0"
