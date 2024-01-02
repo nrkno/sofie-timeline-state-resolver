@@ -2811,23 +2811,14 @@ casparcg-connection@6.2.0-nightly-master-20240102-111829-2fe75295.0:
     tslib "^2.5.0"
     xml2js "^0.6.2"
 
-casparcg-connection@^6.0.0:
-  version "6.0.6"
-  resolved "https://registry.yarnpkg.com/casparcg-connection/-/casparcg-connection-6.0.6.tgz#88975bb9b1f1ee6db89ab420ca058fde79b01d2f"
-  integrity sha512-VFGKg1KslF0mMteZoCz2gQBN+KYUbM3YiNsVWTUNyPuDV6o57iP8V++LY8geAKRYSjQ/RTB4I1QI81L7QZeJaA==
+casparcg-state@3.0.3-nightly-master-20240102-114313-991c61a.0:
+  version "3.0.3-nightly-master-20240102-114313-991c61a.0"
+  resolved "https://registry.yarnpkg.com/casparcg-state/-/casparcg-state-3.0.3-nightly-master-20240102-114313-991c61a.0.tgz#6c50f2358a9e53099c721feb4a39d76e5dfeef38"
+  integrity sha512-Vbvn1SzFjhadfMZGQp4sPIMAc+N00IOgoQR4P1xSGMl4YSKNRaWmB6Av7XxjCxCXbDEmeiHVt4J5uzTh2VDPtg==
   dependencies:
-    eventemitter3 "^4.0.7"
-    tslib "^2.5.0"
-    xml2js "^0.4.23"
-
-casparcg-state@^3.0.2:
-  version "3.0.2"
-  resolved "https://registry.yarnpkg.com/casparcg-state/-/casparcg-state-3.0.2.tgz#ffe808b1461da1e9b6e239026f80098efdf01bff"
-  integrity sha512-2HOD7VGoz11k3WNAq2OrPON5m4TR+PFUvmEt7MQAxP2EE02DxGFEKyrwxuqZuO4BsjpYeo1kMkfcq618Yx5AQA==
-  dependencies:
-    casparcg-connection "^6.0.0"
+    casparcg-connection "6.2.0-nightly-master-20240102-111829-2fe75295.0"
     fast-clone "^1.5.13"
-    underscore "^1.13.2"
+    underscore "^1.13.6"
 
 chalk@4.1.0:
   version "4.1.0"
@@ -8815,7 +8806,7 @@ underscore.string@~3.3.4:
     sprintf-js "^1.1.1"
     util-deprecate "^1.0.2"
 
-underscore@^1.13.2, underscore@^1.13.4, underscore@^1.13.6, underscore@^1.9.1:
+underscore@^1.13.4, underscore@^1.13.6, underscore@^1.9.1:
   version "1.13.6"
   resolved "https://registry.yarnpkg.com/underscore/-/underscore-1.13.6.tgz#04786a1f589dc6c09f761fc5f45b89e935136441"
   integrity sha512-+A5Sja4HP1M08MaXya7p5LvjuM7K6q/2EaC0+iovj/wOcMsTzMvDFbasi/oSapiwOlt252IqsKqPjCl7huKS0A==

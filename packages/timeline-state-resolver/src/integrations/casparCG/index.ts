@@ -3,10 +3,10 @@ import * as deepMerge from 'deepmerge'
 import { DeviceWithState, CommandWithContext, DeviceStatus, StatusCode, literal } from '../../devices/device'
 import {
 	AMCPCommand,
+	AllTypedCommands,
 	BasicCasparCGAPI,
 	ClearCommand,
 	Commands,
-	InfoChannelCommand,
 	InfoChannelEntry,
 	Response,
 } from 'casparcg-connection'
@@ -149,7 +149,7 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 					const channelResults = await Promise.all(channelPromises)
 
 					// Resync if all channels have no stage object (no possibility of anything playing)
-					return !channelResults.find((ch) => ch.data['stage'])
+					return !channelResults.find((ch) => ch.data?.['stage'])
 				})
 				.catch((e) => {
 					this.emit('error', 'connect virgin check failed', e)
@@ -852,7 +852,11 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 		}
 	}
 
-	private _changeTrackedStateFromCommand(command: AMCPCommand, response: Response, time: number) {
+	private _changeTrackedStateFromCommand(
+		command: AMCPCommand,
+		response: Response<AllTypedCommands[Commands]['returnType']>,
+		time: number
+	) {
 		if (
 			response.responseCode < 300 && // TODO - maybe we accept every code except 404?
 			response.command.match(/Loadbg|Play|Load|Clear|Stop|Resume/i) &&
