@@ -144,9 +144,7 @@ function resolveScenes(
 	Object.entries<OBSScene>(newScenes).forEach(([sceneName, scene]) => {
 		Object.entries<OBSSceneItem>(scene.sceneItems).forEach(([source, newSceneItemProperties]) => {
 			const oldSceneItemProperties = oldScenes[sceneName]?.sceneItems[source]
-			// console.log('get', sceneName, source)
 			const itemId = getSceneItemId(sceneName, source)
-			console.log(sceneName, source, itemId)
 			if (!itemId) return // can't do anything without it
 
 			if (
@@ -288,7 +286,7 @@ function resolveInputSettings(oldState: OBSDeviceState, newState: OBSDeviceState
 										mediaAction: 'OBS_WEBSOCKET_MEDIA_INPUT_ACTION_PLAY',
 									},
 								},
-								context: `source ${sourceName} paused`,
+								context: `source ${sourceName} playing`,
 								timelineObjId: '',
 							})
 						)
