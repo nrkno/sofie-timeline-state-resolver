@@ -1780,6 +1780,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/debug@npm:^4.1.12":
+  version: 4.1.12
+  resolution: "@types/debug@npm:4.1.12"
+  dependencies:
+    "@types/ms": "*"
+  checksum: 47876a852de8240bfdaf7481357af2b88cb660d30c72e73789abf00c499d6bc7cd5e52f41c915d1b9cd8ec9fef5b05688d7b7aef17f7f272c2d04679508d1053
+  languageName: node
+  linkType: hard
+
 "@types/glob@npm:*":
   version: 8.1.0
   resolution: "@types/glob@npm:8.1.0"
@@ -1882,6 +1891,13 @@ __metadata:
   version: 1.2.2
   resolution: "@types/minimist@npm:1.2.2"
   checksum: b8da83c66eb4aac0440e64674b19564d9d86c80ae273144db9681e5eeff66f238ade9515f5006ffbfa955ceff8b89ad2bd8ec577d7caee74ba101431fb07045d
+  languageName: node
+  linkType: hard
+
+"@types/ms@npm:*":
+  version: 0.7.34
+  resolution: "@types/ms@npm:0.7.34"
+  checksum: f38d36e7b6edecd9badc9cf50474159e9da5fa6965a75186cceaf883278611b9df6669dc3a3cc122b7938d317b68a9e3d573d316fcb35d1be47ec9e468c6bd8a
   languageName: node
   linkType: hard
 
@@ -8690,9 +8706,9 @@ asn1@evs-broadcast/node-asn1:
   languageName: node
   linkType: hard
 
-"obs-websocket-js@npm:^5.0.3":
+"obs-websocket-js@git+https://github.com/mint-dewit/obs-websocket-js.git#dd214862314df7f1617a50aaf97ac2e30c1d45f4":
   version: 5.0.3
-  resolution: "obs-websocket-js@npm:5.0.3"
+  resolution: "obs-websocket-js@https://github.com/mint-dewit/obs-websocket-js.git#commit=dd214862314df7f1617a50aaf97ac2e30c1d45f4"
   dependencies:
     "@msgpack/msgpack": ^2.7.1
     crypto-js: ^4.1.1
@@ -8701,7 +8717,7 @@ asn1@evs-broadcast/node-asn1:
     isomorphic-ws: ^5.0.0
     type-fest: ^3.11.0
     ws: ^8.13.0
-  checksum: 5941dacae236c1e9a302da92277a2cfbd48231bb31c98abdc02ea0ee0687097e51e417850ded0625e996b7ef09a4f01e504f99387e4f70f325b985ad696155ee
+  checksum: 4756ad48c1e666bf05f07a68a9068ce9cf35cb7499af9dfb148f4f0d012cf6fd42b2ded7207edd6a92139965de223273ef23615b9cc1f4b1baecded93a4a1344
   languageName: node
   linkType: hard
 
@@ -11036,6 +11052,7 @@ asn1@evs-broadcast/node-asn1:
   resolution: "timeline-state-resolver-packages@workspace:."
   dependencies:
     "@sofie-automation/code-standard-preset": ~2.4.7
+    "@types/debug": ^4.1.12
     "@types/jest": ^29.5.1
     "@types/node": ^16.18.31
     "@types/sprintf-js": ^1.1.2
@@ -11084,7 +11101,7 @@ asn1@evs-broadcast/node-asn1:
     json-schema-ref-parser: ^9.0.9
     json-schema-to-typescript: ^10.1.5
     klona: ^2.0.6
-    obs-websocket-js: ^5.0.3
+    obs-websocket-js: "git+https://github.com/mint-dewit/obs-websocket-js.git#dd214862314df7f1617a50aaf97ac2e30c1d45f4"
     osc: ^2.4.4
     p-all: ^3.0.0
     p-queue: ^6.6.2
