@@ -10,6 +10,7 @@ import { TcpSendDevice } from '../integrations/tcpSend'
 import { QuantelDevice } from '../integrations/quantel'
 import { HyperdeckDevice } from '../integrations/hyperdeck'
 import { OBSDevice } from '../integrations/obs'
+import { PanasonicPtzDevice } from '../integrations/panasonicPTZ'
 
 export interface DeviceEntry {
 	deviceClass: new (context: DeviceContextAPI<any>) => Device<any, any, any>
@@ -26,6 +27,7 @@ export type ImplementedServiceDeviceTypes =
 	| DeviceType.HYPERDECK
 	| DeviceType.OBS
 	| DeviceType.OSC
+	| DeviceType.PANASONIC_PTZ
 	| DeviceType.SHOTOKU
 	| DeviceType.TCPSEND
 	| DeviceType.QUANTEL
@@ -72,6 +74,12 @@ export const DevicesDict: Record<ImplementedServiceDeviceTypes, DeviceEntry> = {
 		deviceClass: OscDevice,
 		canConnect: true,
 		deviceName: (deviceId: string) => 'OSC ' + deviceId,
+		executionMode: () => 'salvo',
+	},
+	[DeviceType.PANASONIC_PTZ]: {
+		deviceClass: PanasonicPtzDevice,
+		canConnect: true,
+		deviceName: (deviceId: string) => 'Panasonic PTZ ' + deviceId,
 		executionMode: () => 'salvo',
 	},
 	[DeviceType.SHOTOKU]: {

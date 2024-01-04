@@ -1,458 +1,104 @@
-import * as _ from 'underscore'
-import { DeviceWithState, CommandWithContext, DeviceStatus, StatusCode } from '../../devices/device'
 import {
-	DeviceType,
-	TimelineContentTypePanasonicPtz,
-	SomeMappingPanasonicPTZ,
-	MappingPanasonicPTZType,
-	PanasonicPTZOptions,
-	DeviceOptionsPanasonicPTZ,
+	ActionExecutionResult,
+	DeviceStatus,
 	Mappings,
+	PanasonicPTZOptions,
+	StatusCode,
 	TSRTimelineContent,
 	Timeline,
-	Mapping,
+	TimelineContentTypePanasonicPtz,
 } from 'timeline-state-resolver-types'
-import { DoOnTime, SendMode } from '../../devices/doOnTime'
+import { Device } from '../../service/device'
+import { PanasonicPtzState, convertStateToPtz, getDefaultState } from './state'
+import { PanasonicPtzCommandWithContext, diffStates } from './diff'
 import { PanasonicPtzHttpInterface } from './connection'
 
-export interface DeviceOptionsPanasonicPTZInternal extends DeviceOptionsPanasonicPTZ {
-	commandReceiver?: CommandReceiver
-}
-export type CommandReceiver = (
-	time: number,
-	cmd: PanasonicPtzCommand,
-	context: CommandContext,
-	timelineObjId: string
-) => Promise<any>
+export class PanasonicPtzDevice extends Device<PanasonicPTZOptions, PanasonicPtzState, PanasonicPtzCommandWithContext> {
+	_device: PanasonicPtzHttpInterface
 
-export interface PanasonicPtzState {
-	speed?: {
-		value: number
-		timelineObjId: string
-	}
-	preset?: {
-		value: number
-		timelineObjId: string
-	}
-	zoomSpeed?: {
-		value: number
-		timelineObjId: string
-	}
-	zoom?: {
-		value: number
-		timelineObjId: string
-	}
-}
+	async init(options: PanasonicPTZOptions): Promise<boolean> {
+		this._device = new PanasonicPtzHttpInterface(options.host, options.port, options.https)
+		this._device.init()
+		this._device.on('error', (e) => this.context.logger.error('Error in PanasonicPtzHttpInterface', e))
 
-export interface PanasonicPtzCommand {
-	type: TimelineContentTypePanasonicPtz
-	speed?: number
-	preset?: number
-	zoomSpeed?: number // -1 is full speed WIDE, +1 is full speed TELE, 0 is stationary
-	zoom?: number // 0 is WIDE, 1 is TELE
-}
-export interface PanasonicPtzCommandWithContext {
-	command: PanasonicPtzCommand
-	context: CommandContext
-	timelineObjId: string
-}
-type CommandContext = any
-
-const PROBE_INTERVAL = 10 * 1000 // Probe every 10s
-
-const COMMAND_PRIORITY: Record<PanasonicPtzCommand['type'], number> = {
-	presetSpeed: 0,
-	zoomSpeed: 1,
-	zoom: 2,
-	presetMem: 3,
-}
-
-/**
- * A wrapper for panasonic ptz cameras. Maps timeline states to device states and
- * executes commands to achieve such states. Depends on PanasonicPTZAPI class for
- * connection with the physical device.
- */
-export class PanasonicPtzDevice extends DeviceWithState<PanasonicPtzState, DeviceOptionsPanasonicPTZInternal> {
-	private _doOnTime: DoOnTime
-	private _device: PanasonicPtzHttpInterface | undefined
-	private _connected = false
-
-	private _commandReceiver: CommandReceiver = this._defaultCommandReceiver.bind(this)
-	private _pingInterval: NodeJS.Timer | undefined
-
-	constructor(
-		deviceId: string,
-		deviceOptions: DeviceOptionsPanasonicPTZInternal,
-		getCurrentTime: () => Promise<number>
-	) {
-		super(deviceId, deviceOptions, getCurrentTime)
-		if (deviceOptions.options) {
-			if (deviceOptions.commandReceiver) this._commandReceiver = deviceOptions.commandReceiver
-		}
-		this._doOnTime = new DoOnTime(
-			() => {
-				return this.getCurrentTime()
-			},
-			SendMode.BURST,
-			this._deviceOptions
-		)
-		this.handleDoOnTime(this._doOnTime, 'PanasonicPTZ')
-
-		if (!deviceOptions.options || !deviceOptions.options.host) {
-			this._device = undefined
-			return
-		}
-
-		// set up connection class
-		this._device = new PanasonicPtzHttpInterface(
-			deviceOptions.options.host,
-			deviceOptions.options.port,
-			deviceOptions.options.https
-		)
-		this._device.on('error', (msg) => {
-			if (msg.code === 'ECONNREFUSED') return // ignore, since we catch this in connection logic
-			this.emit('error', 'PanasonicPtzHttpInterface', msg)
-		})
-		this._device.on('disconnected', () => {
-			this._setConnected(false)
-		})
-		this._device.on('debug', (...args) => {
-			this.emitDebug('Panasonic PTZ', ...args)
-		})
+		return true
 	}
 
-	/**
-	 * Initiates the device: set up ping for connection logic.
-	 */
-	async init(_initOptions: PanasonicPTZOptions): Promise<boolean> {
-		if (!this._device) {
-			return Promise.reject('There are no cameras set up for this device')
-		}
-
-		return new Promise((resolve, reject) => {
-			this._pingInterval = setInterval(() => {
-				if (!this._device) {
-					this.emit('error', `init() interval`, new Error(`Device handler for "${this.deviceId}" not defined`))
-					return
-				}
-
-				this._device
-					.ping()
-					.then((result) => {
-						this._setConnected(!!result)
-					})
-					.catch(() => {
-						this._setConnected(false)
-					})
-			}, PROBE_INTERVAL)
-
-			if (!this._device) {
-				throw new Error(`Device handler for "${this.deviceId}" not defined`)
-			}
-
-			this._device
-				.ping()
-				.then((result) => {
-					this._setConnected(!!result)
-
-					resolve(true)
-				})
-				.catch((e) => {
-					reject(e)
-				})
-		})
+	async terminate(): Promise<void> {
+		this._device.dispose()
 	}
 
-	/**
-	 * Converts a timeline state into a device state.
-	 * @param state
-	 */
-	convertStateToPtz(state: Timeline.TimelineState<TSRTimelineContent>, mappings: Mappings): PanasonicPtzState {
-		// convert the timeline state into something we can use
-		const ptzState: PanasonicPtzState = this._getDefaultState()
-
-		_.each(state.layers, (tlObject, layerName: string) => {
-			const mapping = mappings[layerName] as Mapping<SomeMappingPanasonicPTZ> | undefined
-			if (
-				mapping &&
-				mapping.device === DeviceType.PANASONIC_PTZ &&
-				mapping.deviceId === this.deviceId &&
-				tlObject.content.deviceType === DeviceType.PANASONIC_PTZ
-			) {
-				if (
-					mapping.options.mappingType === MappingPanasonicPTZType.PresetMem &&
-					tlObject.content.type === TimelineContentTypePanasonicPtz.PRESET
-				) {
-					ptzState.preset = {
-						value: tlObject.content.preset,
-						timelineObjId: tlObject.id,
-					}
-				} else if (
-					mapping.options.mappingType === MappingPanasonicPTZType.PresetSpeed &&
-					tlObject.content.type === TimelineContentTypePanasonicPtz.SPEED
-				) {
-					ptzState.speed = {
-						value: tlObject.content.speed,
-						timelineObjId: tlObject.id,
-					}
-				} else if (
-					mapping.options.mappingType === MappingPanasonicPTZType.ZoomSpeed &&
-					tlObject.content.type === TimelineContentTypePanasonicPtz.ZOOM_SPEED
-				) {
-					ptzState.zoomSpeed = {
-						value: tlObject.content.zoomSpeed,
-						timelineObjId: tlObject.id,
-					}
-				} else if (
-					mapping.options.mappingType === MappingPanasonicPTZType.Zoom &&
-					tlObject.content.type === TimelineContentTypePanasonicPtz.ZOOM
-				) {
-					ptzState.zoom = {
-						value: tlObject.content.zoom,
-						timelineObjId: tlObject.id,
-					}
-				}
-			}
-		})
-
-		return ptzState
+	convertTimelineStateToDeviceState(
+		state: Timeline.TimelineState<TSRTimelineContent>,
+		newMappings: Mappings
+	): PanasonicPtzState {
+		return convertStateToPtz(state, newMappings)
 	}
-	/** Called by the Conductor a bit before a .handleState is called */
-	prepareForHandleState(newStateTime: number) {
-		// clear any queued commands later than this time:
-		this._doOnTime.clearQueueNowAndAfter(newStateTime)
-		this.cleanUpStates(0, newStateTime)
+	diffStates(
+		oldState: PanasonicPtzState | undefined,
+		newState: PanasonicPtzState
+	): Array<PanasonicPtzCommandWithContext> {
+		return diffStates(oldState ?? getDefaultState(), newState)
 	}
-	/**
-	 * Handles a new state such that the device will be in that state at a specific point
-	 * in time.
-	 * @param newState
-	 */
-	handleState(newState: Timeline.TimelineState<TSRTimelineContent>, newMappings: Mappings) {
-		super.onHandleState(newState, newMappings)
-		// Create device states
-		const previousStateTime = Math.max(this.getCurrentTime(), newState.time)
-		const oldPtzState: PanasonicPtzState = (
-			this.getStateBefore(previousStateTime) || { state: this._getDefaultState() }
-		).state
+	async sendCommand(command: PanasonicPtzCommandWithContext): Promise<void> {
+		this.context.logger.debug(command)
 
-		const newPtzState = this.convertStateToPtz(newState, newMappings)
+		const cmd = command.command
 
-		// Generate commands needed to reach new state
-		const commandsToAchieveState: Array<PanasonicPtzCommandWithContext> = this._diffStates(oldPtzState, newPtzState)
-
-		// clear any queued commands later than this time:
-		this._doOnTime.clearQueueNowAndAfter(previousStateTime)
-		// add the new commands to the queue:
-		this._addToQueue(commandsToAchieveState, newState.time)
-
-		// store the new state, for later use:
-		this.setState(newPtzState, newState.time)
-	}
-
-	clearFuture(clearAfterTime: number) {
-		// Clear any scheduled commands after this time
-		this._doOnTime.clearQueueAfter(clearAfterTime)
-	}
-	async terminate() {
-		if (this._pingInterval) clearInterval(this._pingInterval)
-		if (this._device) {
-			this._device.dispose()
-		}
-	}
-	getStatus(): DeviceStatus {
-		let statusCode = StatusCode.GOOD
-		const messages: Array<string> = []
-
-		if (!this._connected) {
-			statusCode = StatusCode.BAD
-			messages.push('Not connected')
-		}
-
-		return {
-			statusCode: statusCode,
-			messages: messages,
-			active: this.isActive,
-		}
-	}
-	private _getDefaultState(): PanasonicPtzState {
-		return {
-			// preset: undefined,
-			// speed: undefined,
-			zoomSpeed: {
-				value: 0,
-				timelineObjId: 'default',
-			},
-			// zoom: undefined
-		}
-	}
-
-	private async _defaultCommandReceiver(
-		_time: number,
-		cmd: PanasonicPtzCommand,
-		context: CommandContext,
-		timelineObjId: string
-	): Promise<any> {
-		const cwc: CommandWithContext = {
-			context,
-			command: cmd,
-			timelineObjId,
-		}
 		try {
 			if (this._device) {
 				if (cmd.type === TimelineContentTypePanasonicPtz.PRESET) {
 					// recall preset
 					if (cmd.preset !== undefined) {
 						const res = await this._device.recallPreset(cmd.preset)
-						this.emitDebug(`Panasonic PTZ result: ${res}`)
+						this.context.logger.debug(`Panasonic PTZ result: ${res}`)
 					} else throw new Error(`Bad parameter: preset`)
 				} else if (cmd.type === TimelineContentTypePanasonicPtz.SPEED) {
 					// set speed
 					if (cmd.speed !== undefined) {
 						const res = await this._device.setSpeed(cmd.speed)
-						this.emitDebug(`Panasonic PTZ result: ${res}`)
+						this.context.logger.debug(`Panasonic PTZ result: ${res}`)
 					} else throw new Error(`Bad parameter: speed`)
 				} else if (cmd.type === TimelineContentTypePanasonicPtz.ZOOM_SPEED) {
 					// set zoom speed
 					if (cmd.zoomSpeed !== undefined) {
 						// scale -1 - 0 - +1 range to 01 - 50 - 99 range
 						const res = await this._device.setZoomSpeed(cmd.zoomSpeed * 49 + 50)
-						this.emitDebug(`Panasonic PTZ result: ${res}`)
+						this.context.logger.debug(`Panasonic PTZ result: ${res}`)
 					} else throw new Error(`Bad parameter: zoomSpeed`)
 				} else if (cmd.type === TimelineContentTypePanasonicPtz.ZOOM) {
 					// set zoom
 					if (cmd.zoom !== undefined) {
 						// scale 0 - +1 range to 555h - FFFh range
 						const res = await this._device.setZoom(cmd.zoom * 0xaaa + 0x555)
-						this.emitDebug(`Panasonic PTZ result: ${res}`)
+						this.context.logger.debug(`Panasonic PTZ result: ${res}`)
 					} else throw new Error(`Bad parameter: zoom`)
 				} else throw new Error(`PTZ: Unknown type: "${cmd.type}"`)
 			} else throw new Error(`PTZ device not set up`)
 		} catch (e) {
-			this.emit('commandError', e as Error, cwc)
+			this.context.commandError(e as Error, command)
 		}
 	}
 
-	/**
-	 * Add commands to queue, to be executed at the right time
-	 */
-	private _addToQueue(commandsToAchieveState: Array<PanasonicPtzCommandWithContext>, time: number) {
-		const sortedCommandsToAchieveState = commandsToAchieveState.sort(
-			(a, b) => COMMAND_PRIORITY[a.command.type] - COMMAND_PRIORITY[b.command.type]
-		)
-
-		_.each(sortedCommandsToAchieveState, (cmd: PanasonicPtzCommandWithContext) => {
-			// add the new commands to the queue:
-			this._doOnTime.queue(
-				time,
-				undefined,
-				async (cmd: PanasonicPtzCommandWithContext) => {
-					return this._commandReceiver(time, cmd.command, cmd.context, cmd.timelineObjId)
-				},
-				cmd
-			)
-		})
+	get connected() {
+		return this._device.connected
 	}
-	/**
-	 * Compares the new timeline-state with the old one, and generates commands to account for the difference
-	 */
-	private _diffStates(
-		oldPtzState: PanasonicPtzState,
-		newPtzState: PanasonicPtzState
-	): Array<PanasonicPtzCommandWithContext> {
-		const commands: Array<PanasonicPtzCommandWithContext> = []
-
-		const addCommands = (newNode: PanasonicPtzState, oldValue: PanasonicPtzState) => {
-			if (
-				newNode.preset &&
-				this.getValue(newNode.preset) !== this.getValue(oldValue.preset) &&
-				this.getValue(newNode.preset) !== undefined
-			) {
-				commands.push({
-					command: {
-						type: TimelineContentTypePanasonicPtz.PRESET,
-						preset: this.getValue(newNode.preset),
-					},
-					context: `preset differ (${this.getValue(newNode.preset)}, ${this.getValue(oldValue.preset)})`,
-					timelineObjId: newNode.preset.timelineObjId,
-				})
+	getStatus(): Omit<DeviceStatus, 'active'> {
+		if (!this._device.connected) {
+			return {
+				statusCode: StatusCode.GOOD,
+				messages: [],
 			}
-			if (
-				newNode.speed &&
-				this.getValue(newNode.speed) !== this.getValue(oldValue.speed) &&
-				this.getValue(newNode.speed) !== undefined
-			) {
-				commands.push({
-					command: {
-						type: TimelineContentTypePanasonicPtz.SPEED,
-						speed: this.getValue(newNode.speed),
-					},
-					context: `speed differ (${this.getValue(newNode.speed)}, ${this.getValue(oldValue.speed)})`,
-					timelineObjId: newNode.speed.timelineObjId,
-				})
-			}
-			if (
-				newNode.zoomSpeed &&
-				this.getValue(newNode.zoomSpeed) !== this.getValue(oldValue.zoomSpeed) &&
-				this.getValue(newNode.zoomSpeed) !== undefined
-			) {
-				commands.push({
-					command: {
-						type: TimelineContentTypePanasonicPtz.ZOOM_SPEED,
-						speed: this.getValue(newNode.zoomSpeed),
-					},
-					context: `zoom speed differ (${this.getValue(newNode.zoomSpeed)}, ${this.getValue(oldValue.zoomSpeed)})`,
-					timelineObjId: newNode.zoomSpeed.timelineObjId,
-				})
-			}
-			if (
-				newNode.zoom &&
-				this.getValue(newNode.zoom) !== this.getValue(oldValue.zoom) &&
-				this.getValue(newNode.zoom) !== undefined
-			) {
-				commands.push({
-					command: {
-						type: TimelineContentTypePanasonicPtz.ZOOM,
-						zoom: this.getValue(newNode.zoom),
-					},
-					context: `zoom differ (${this.getValue(newNode.zoom)}, ${this.getValue(oldValue.zoom)})`,
-					timelineObjId: newNode.zoom.timelineObjId,
-				})
+		} else {
+			return {
+				statusCode: StatusCode.BAD,
+				messages: ['Not connected'],
 			}
 		}
-
-		if (!_.isEqual(newPtzState, oldPtzState)) {
-			addCommands(newPtzState, oldPtzState)
-		}
-		return commands
 	}
 
-	get canConnect(): boolean {
-		return true
-	}
-	get connected(): boolean {
-		return this._connected
-	}
-	get deviceType() {
-		return DeviceType.PANASONIC_PTZ
-	}
-	get deviceName(): string {
-		return 'Panasonic PTZ ' + this.deviceId
-	}
-	get queue() {
-		return this._doOnTime.getQueue()
-	}
-	private _setConnected(connected: boolean) {
-		if (this._connected !== connected) {
-			this._connected = connected
-			this._connectionChanged()
-		}
-	}
-	private _connectionChanged() {
-		this.emit('connectionChanged', this.getStatus())
-	}
-	private getValue<A extends { value: B }, B>(a?: A): B | undefined {
-		if (a) return a.value
-		return undefined
-	}
+	actions: Record<
+		string,
+		(id: string, payload?: Record<string, any> | undefined) => Promise<ActionExecutionResult<undefined>>
+	> = {}
 }
