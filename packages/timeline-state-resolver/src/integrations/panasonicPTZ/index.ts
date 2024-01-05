@@ -77,8 +77,8 @@ export class PanasonicPtzDevice extends DeviceWithState<PanasonicPtzState, Devic
 	private _device: PanasonicPtzHttpInterface | undefined
 	private _connected = false
 
-	private _commandReceiver: CommandReceiver
-	private _pingInterval: NodeJS.Timer
+	private _commandReceiver: CommandReceiver = this._defaultCommandReceiver.bind(this)
+	private _pingInterval: NodeJS.Timer | undefined
 
 	constructor(
 		deviceId: string,
@@ -87,11 +87,7 @@ export class PanasonicPtzDevice extends DeviceWithState<PanasonicPtzState, Devic
 	) {
 		super(deviceId, deviceOptions, getCurrentTime)
 		if (deviceOptions.options) {
-			if (deviceOptions.commandReceiver) {
-				this._commandReceiver = deviceOptions.commandReceiver
-			} else {
-				this._commandReceiver = this._defaultCommandReceiver.bind(this)
-			}
+			if (deviceOptions.commandReceiver) this._commandReceiver = deviceOptions.commandReceiver
 		}
 		this._doOnTime = new DoOnTime(
 			() => {

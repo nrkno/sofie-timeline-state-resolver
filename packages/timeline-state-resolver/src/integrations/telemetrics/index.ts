@@ -30,10 +30,9 @@ interface TelemetricsState {
 export class TelemetricsDevice extends DeviceWithState<TelemetricsState, DeviceOptionsTelemetrics> {
 	private doOnTime: DoOnTime
 
-	private socket: Socket
+	private socket: Socket | undefined
 	private statusCode: StatusCode = StatusCode.UNKNOWN
-	private errorMessage: string
-	private resolveInitPromise: (value: boolean) => void
+	private errorMessage: string | undefined
 
 	private retryConnectionTimer: Timer | undefined
 
@@ -123,22 +122,19 @@ export class TelemetricsDevice extends DeviceWithState<TelemetricsState, DeviceO
 
 	private queueCommand(presetShotIdentifier: number, newState: Timeline.TimelineState<TSRTimelineContent>) {
 		const command = `${TELEMETRICS_COMMAND_PREFIX}${presetShotIdentifier}\r`
-		this.doOnTime.queue(newState.time, undefined, () => this.socket.write(command))
+		this.doOnTime.queue(newState.time, undefined, () => this.socket && this.socket.write(command))
 	}
 
 	async init(options: TelemetricsOptions): Promise<boolean> {
-		const initPromise = new Promise<boolean>((resolve) => {
-			this.resolveInitPromise = resolve
-		})
 		this.connectToDevice(options.host, options.port ?? DEFAULT_SOCKET_PORT)
-		return initPromise
+		return true
 	}
 
 	private connectToDevice(host: string, port: number) {
 		if (!this.socket || this.socket.destroyed) {
 			this.setupSocket(host, port)
 		}
-		this.socket.connect(port, host)
+		if (this.socket) this.socket.connect(port, host)
 	}
 
 	private setupSocket(host: string, port: number) {
@@ -165,7 +161,6 @@ export class TelemetricsDevice extends DeviceWithState<TelemetricsState, DeviceO
 		this.socket.on('connect', () => {
 			this.emit('debug', 'Successfully connected to device')
 			this.updateStatus(StatusCode.GOOD)
-			this.resolveInitPromise(true)
 		})
 	}
 

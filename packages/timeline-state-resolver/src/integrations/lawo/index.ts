@@ -76,13 +76,13 @@ export class LawoDevice extends DeviceWithState<LawoState, DeviceOptionsLawoInte
 	private _connected = false
 	private _initialized = false
 
-	private _commandReceiver: CommandReceiver
-	private _sourcesPath: string
-	private _rampMotorFunctionPath: string
-	private _dbPropertyName: string
-	private _setValueFn: SetLawoValueFn
-	private _faderIntervalTime: number
-	private _faderThreshold: number
+	private _commandReceiver: CommandReceiver = this._defaultCommandReceiver.bind(this)
+	private _sourcesPath = ''
+	private _rampMotorFunctionPath = ''
+	private _dbPropertyName = ''
+	private _setValueFn: SetLawoValueFn = this.setValueWrapper.bind(this)
+	private _faderIntervalTime = 0
+	private _faderThreshold = -60
 	private _sourceNamePath: string | undefined
 
 	private _sourceNameToNodeName = new Map<string, string>()
@@ -98,18 +98,8 @@ export class LawoDevice extends DeviceWithState<LawoState, DeviceOptionsLawoInte
 	constructor(deviceId: string, deviceOptions: DeviceOptionsLawoInternal, getCurrentTime: () => Promise<number>) {
 		super(deviceId, deviceOptions, getCurrentTime)
 		if (deviceOptions.options) {
-			if (deviceOptions.commandReceiver) {
-				this._commandReceiver = deviceOptions.commandReceiver
-			} else {
-				this._commandReceiver = this._defaultCommandReceiver.bind(this)
-			}
-			if (deviceOptions.setValueFn) {
-				this._setValueFn = deviceOptions.setValueFn
-			} else {
-				this._setValueFn = async (...args) => {
-					return this.setValueWrapper(...args)
-				}
-			}
+			if (deviceOptions.commandReceiver) this._commandReceiver = deviceOptions.commandReceiver
+			if (deviceOptions.setValueFn) this._setValueFn = deviceOptions.setValueFn
 
 			if (deviceOptions.options.faderInterval) {
 				this._faderIntervalTime = deviceOptions.options.faderInterval
@@ -718,7 +708,8 @@ export class LawoDevice extends DeviceWithState<LawoState, DeviceOptionsLawoInte
 					let previousNode: string | undefined = undefined
 					const node = await this._lawo.getElementByPath(
 						this._sourcesPath + '.' + child.number + '.' + this._sourceNamePath,
-						(node: EmberModel.NumberedTreeNode<EmberModel.Parameter>) => {
+						(node0) => {
+							const node = node0 as EmberModel.NumberedTreeNode<EmberModel.Parameter>
 							// identifier changed
 							if (!node) return
 

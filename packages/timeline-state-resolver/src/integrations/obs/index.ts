@@ -48,9 +48,10 @@ const RETRY_TIMEOUT = 5000 // ms
 export class OBSDevice extends DeviceWithState<OBSState, DeviceOptionsOBSInternal> {
 	private _doOnTime: DoOnTime
 
-	private _commandReceiver: CommandReceiver
-	private _obs: OBSWebSocket
-	private _options: OBSOptions
+	private _commandReceiver: CommandReceiver = this._defaultCommandReceiver.bind(this)
+	private readonly _obs = new OBSWebSocket()
+	/** Setup in init */
+	private _options!: OBSOptions
 	private _connected = false
 	private _authenticated = false
 	private _initialized = false
@@ -61,11 +62,7 @@ export class OBSDevice extends DeviceWithState<OBSState, DeviceOptionsOBSInterna
 	constructor(deviceId: string, deviceOptions: DeviceOptionsOBSInternal, options) {
 		super(deviceId, deviceOptions, options)
 		if (deviceOptions.options) {
-			if (deviceOptions.commandReceiver) {
-				this._commandReceiver = deviceOptions.commandReceiver
-			} else {
-				this._commandReceiver = this._defaultCommandReceiver.bind(this)
-			}
+			if (deviceOptions.commandReceiver) this._commandReceiver = deviceOptions.commandReceiver
 		}
 		this._doOnTime = new DoOnTime(
 			() => {
@@ -81,7 +78,6 @@ export class OBSDevice extends DeviceWithState<OBSState, DeviceOptionsOBSInterna
 	}
 	async init(options: OBSOptions): Promise<boolean> {
 		this._options = options
-		this._obs = new OBSWebSocket()
 		this._obs.on('AuthenticationFailure', () => {
 			this._setConnected(true, false)
 		})
@@ -629,13 +625,13 @@ export class OBSState {
 	streaming: boolean | undefined
 	muted: {
 		[key: string]: boolean
-	}
+	} = {}
 	scenes: {
 		[key: string]: OBSScene
-	}
+	} = {}
 	sources: {
 		[key: string]: OBSSourceState
-	}
+	} = {}
 }
 
 interface OBSSourceState {

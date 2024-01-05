@@ -34,18 +34,13 @@
 						"properties": {
 							"type": {
 								"type": "string",
-								"enum": [
-									"object"
-								]
+								"enum": ["object"]
 							},
 							"properties": {
 								"type": "object"
 							}
 						},
-						"required": [
-							"type",
-							"properties"
-						],
+						"required": ["type", "properties"],
 						"allOf": [
 							{
 								"$ref": "https://json-schema.org/draft/2020-12/schema"
@@ -54,16 +49,14 @@
 					},
 					"result": {
 						"type": "object",
-						"tsType": "undefined",
+						"tsType": "unknown",
 						"description": "Defines the returned data",
 						"properties": {
 							"type": {
 								"type": "string"
 							}
 						},
-						"required": [
-							"type"
-						],
+						"required": ["type"],
 						"allOf": [
 							{
 								"$ref": "https://json-schema.org/draft/2020-12/schema"
@@ -71,17 +64,11 @@
 						]
 					}
 				},
-				"required": [
-					"id",
-					"name",
-					"destructive"
-				],
+				"required": ["id", "name", "destructive"],
 				"additionalProperties": false
 			}
 		}
 	},
-	"required": [
-		"actions"
-	],
+	"required": ["actions"],
 	"additionalProperties": false
 }

@@ -21,8 +21,8 @@ export class Hyperdeck extends EventEmitter {
 	private _connected = false
 
 	private _connectionActive = false
-	private _host: string
-	private _port: number
+	private _host!: string
+	private _port!: number
 
 	private _mockCommandReceiver?: (cmd: Commands.AbstractCommand<any>) => Promise<any>
 

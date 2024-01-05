@@ -375,19 +375,19 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 		try {
 			// Temporary listening to events, these are removed after the devide has been initiated.
 			const instanceId = newDevice.instanceId
-			const onDeviceInfo = (...args: DeviceEvents['info']) => {
+			const onDeviceInfo: any = (...args: DeviceEvents['info']) => {
 				this.emit('info', instanceId, ...args)
 			}
-			const onDeviceWarning = (...args: DeviceEvents['warning']) => {
+			const onDeviceWarning: any = (...args: DeviceEvents['warning']) => {
 				this.emit('warning', instanceId, ...args)
 			}
-			const onDeviceError = (...args: DeviceEvents['error']) => {
+			const onDeviceError: any = (...args: DeviceEvents['error']) => {
 				this.emit('error', instanceId, ...args)
 			}
-			const onDeviceDebug = (...args: DeviceEvents['debug']) => {
+			const onDeviceDebug: any = (...args: DeviceEvents['debug']) => {
 				this.emit('debug', instanceId, ...args)
 			}
-			const onDeviceDebugState = (...args: DeviceEvents['debugState']) => {
+			const onDeviceDebugState: any = (...args: DeviceEvents['debugState']) => {
 				this.emit('debugState', args)
 			}
 

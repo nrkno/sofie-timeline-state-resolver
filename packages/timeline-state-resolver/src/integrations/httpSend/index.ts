@@ -29,15 +29,15 @@ export interface HttpSendDeviceCommand extends CommandWithContext {
 }
 
 export class HTTPSendDevice extends Device<HTTPSendOptions, HttpSendDeviceState, HttpSendDeviceCommand> {
-	private options: HTTPSendOptions
+	/** Setup in init */
+	private options!: HTTPSendOptions
 	/** Maps layers -> sent command-hashes */
 	private trackedState = new Map<string, string>()
-	private cacheable: CacheableLookup
+	private readonly cacheable = new CacheableLookup()
 	private _terminated = false
 
 	async init(options: HTTPSendOptions): Promise<boolean> {
 		this.options = options
-		this.cacheable = new CacheableLookup()
 		return true
 	}
 	async terminate(): Promise<void> {
@@ -55,13 +55,15 @@ export class HTTPSendDevice extends Device<HTTPSendOptions, HttpSendDeviceState,
 		}
 	}
 
-	actions: Record<string, (id: HttpSendActions, payload?: Record<string, any>) => Promise<ActionExecutionResult>> = {
+	readonly actions: {
+		[id in HttpSendActions]: (id: string, payload?: Record<string, any>) => Promise<ActionExecutionResult>
+	} = {
 		[HttpSendActions.Resync]: async () => {
 			this.context.resetResolver()
 			return { result: ActionExecutionResultCode.Ok }
 		},
-		[HttpSendActions.SendCommand]: async (_id: HttpSendActions.SendCommand, payload?: HTTPSendCommandContent) =>
-			this.sendManualCommand(payload),
+		[HttpSendActions.SendCommand]: async (_id: string, payload?: Record<string, any>) =>
+			this.sendManualCommand(payload as HTTPSendCommandContent | undefined),
 	}
 
 	private async sendManualCommand(cmd?: HTTPSendCommandContent): Promise<ActionExecutionResult> {

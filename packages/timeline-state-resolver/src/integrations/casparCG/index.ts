@@ -31,6 +31,7 @@ import {
 	MappingCasparCGLayer,
 	Mapping,
 	CasparCGActionExecutionPayload,
+	ListMediaResult,
 } from 'timeline-state-resolver-types'
 
 import {
@@ -57,7 +58,6 @@ import got from 'got'
 import { InternalTransitionHandler } from '../../devices/transitions/transitionHandler'
 import Debug from 'debug'
 import { actionNotFoundMessage, deepMerge, endTrace, literal, startTrace, t } from '../../lib'
-import { ListMediaResult } from 'timeline-state-resolver-types'
 import { ClsParameters } from 'casparcg-connection/dist/parameters'
 const debug = Debug('timeline-state-resolver:casparcg')
 
@@ -76,14 +76,15 @@ export type CommandReceiver = (time: number, cmd: AMCPCommand, context: string, 
  * optionally, uses the CasparCG command scheduling features.
  */
 export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCGInternal> {
-	private _ccg: BasicCasparCGAPI
-	private _commandReceiver: CommandReceiver
+	/** Setup in init */
+	private _ccg!: BasicCasparCGAPI
+	private _commandReceiver: CommandReceiver = this._defaultCommandReceiver.bind(this)
 	private _doOnTime: DoOnTime
 	private initOptions?: CasparCGOptions
 	private _connected = false
 	private _queueOverflow = false
 	private _transitionHandler: InternalTransitionHandler = new InternalTransitionHandler()
-	private _retryTimeout: NodeJS.Timeout
+	private _retryTimeout: NodeJS.Timeout | undefined
 	private _retryTime: number | null = null
 	private _currentState: InternalState = { channels: {} }
 
@@ -92,7 +93,6 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 
 		if (deviceOptions.options) {
 			if (deviceOptions.commandReceiver) this._commandReceiver = deviceOptions.commandReceiver
-			else this._commandReceiver = this._defaultCommandReceiver.bind(this)
 		}
 
 		this._doOnTime = new DoOnTime(

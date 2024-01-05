@@ -17,16 +17,16 @@ export function createDiffOptions(mappings: Mappings): DeepComplete<Diff.Section
 	// Find the auxes that have mappings
 	const auxMappings = Object.values<Mapping<unknown>>(mappings)
 		.filter(
-			(mapping: Mapping<SomeMappingAtem>): mapping is Mapping<MappingAtemAuxilliary> =>
-				mapping.options.mappingType === MappingAtemType.Auxilliary
+			(mapping): mapping is Mapping<MappingAtemAuxilliary> =>
+				(mapping as Mapping<SomeMappingAtem>).options.mappingType === MappingAtemType.Auxilliary
 		)
 		.map((mapping) => mapping.options.index)
 
 	// Find the audioOutputs that have mappings
 	const audioOutputs = Object.values<Mapping<unknown>>(mappings)
 		.filter(
-			(mapping: Mapping<SomeMappingAtem>): mapping is Mapping<MappingAtemAudioChannel> =>
-				mapping.options.mappingType === MappingAtemType.Auxilliary
+			(mapping): mapping is Mapping<MappingAtemAudioChannel> =>
+				(mapping as Mapping<SomeMappingAtem>).options.mappingType === MappingAtemType.Auxilliary
 		)
 		.map((mapping) => mapping.options.index)
 	const audioOutputsObj: DeepComplete<Record<number | 'default', Diff.DiffFairlightAudioRoutingOutput | undefined>> = {

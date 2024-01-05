@@ -32,10 +32,9 @@ export interface ShotokuCommandWithContext {
 }
 
 export class ShotokuDevice extends Device<ShotokuOptions, ShotokuDeviceState, ShotokuCommandWithContext> {
-	private _shotoku: ShotokuAPI
+	private readonly _shotoku = new ShotokuAPI()
 
 	async init(options: ShotokuOptions): Promise<boolean> {
-		this._shotoku = new ShotokuAPI()
 		this._shotoku.on('error', (info, error) => this.context.logger.error(info, error))
 		this._shotoku.on('connected', () => {
 			this.context.connectionChanged(this.getStatus())
@@ -167,5 +166,5 @@ export class ShotokuDevice extends Device<ShotokuOptions, ShotokuDeviceState, Sh
 		}
 	}
 
-	actions: Record<string, (id: string, payload: Record<string, any>) => Promise<ActionExecutionResult>> = {}
+	readonly actions: Record<string, (id: string, payload?: Record<string, any>) => Promise<ActionExecutionResult>> = {}
 }

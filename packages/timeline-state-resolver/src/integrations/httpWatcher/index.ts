@@ -15,14 +15,16 @@ type HTTPWatcherDeviceState = Record<string, never>
  * it's response.
  */
 export class HTTPWatcherDevice extends Device<HTTPWatcherOptions, HTTPWatcherDeviceState, CommandWithContext> {
-	readonly actions: Record<string, (id: string, payload: Record<string, any>) => Promise<ActionExecutionResult>> = {}
+	readonly actions: Record<string, (id: string, payload?: Record<string, any>) => Promise<ActionExecutionResult>> = {}
 
 	private uri?: string
-	private httpMethod: TimelineContentTypeHTTP
+	/** Setup in init */
+	private httpMethod!: TimelineContentTypeHTTP
 	private expectedHttpResponse: number | undefined
 	private headers?: Headers
 	private keyword: string | undefined
-	private intervalTime: number
+	/** Setup in init */
+	private intervalTime!: number
 	private interval: NodeJS.Timer | undefined
 	private status: StatusCode = StatusCode.UNKNOWN
 	private statusReason: string | undefined

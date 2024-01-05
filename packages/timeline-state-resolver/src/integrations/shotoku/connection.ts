@@ -13,8 +13,8 @@ interface ShotokuAPIEvents {
 export class ShotokuAPI extends EventEmitter<ShotokuAPIEvents> {
 	private _tcpClient: Socket | undefined = undefined
 	private _connected = false
-	private _host: string
-	private _port: number
+	private _host: string | undefined
+	private _port: number | undefined
 	private _setDisconnected = false // set to true if disconnect() has been called (then do not trye to reconnect)
 	private _retryConnectTimeout: NodeJS.Timer | undefined
 
@@ -166,6 +166,11 @@ export class ShotokuAPI extends EventEmitter<ShotokuAPIEvents> {
 		}
 		if (!this.connected) {
 			return new Promise((resolve, reject) => {
+				if (!this._host || !this._port) {
+					reject(new Error('Missing host or port'))
+					return
+				}
+
 				let resolved = false
 				this._tcpClient!.connect(this._port, this._host, () => {
 					resolve()

@@ -91,11 +91,12 @@ const mappingPriority: { [k in MappingVmixType]: number } = {
 export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptionsVMixInternal> {
 	private _doOnTime: DoOnTime
 
-	private _commandReceiver: CommandReceiver
-	private _vmix: VMix
+	private _commandReceiver: CommandReceiver = this._defaultCommandReceiver.bind(this)
+	/** Setup in init */
+	private _vmix!: VMix
 	private _connected = false
 	private _initialized = false
-	private _pollTimeout: NodeJS.Timeout
+	private _pollTimeout: NodeJS.Timeout | undefined
 	private _pollTime: number | null = null
 
 	private inputHandler: VMixInputHandler
@@ -104,7 +105,6 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 		super(deviceId, deviceOptions, getCurrentTime)
 		if (deviceOptions.options) {
 			if (deviceOptions.commandReceiver) this._commandReceiver = deviceOptions.commandReceiver
-			else this._commandReceiver = this._defaultCommandReceiver.bind(this)
 		}
 		this._doOnTime = new DoOnTime(
 			() => {
@@ -249,7 +249,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 				version: '',
 				edition: '',
 				fixedInputsCount: 0,
-				inputs: this._getDefaultInputsState(this._vmix.state.fixedInputsCount),
+				inputs: this._getDefaultInputsState(this._vmix.state?.fixedInputsCount ?? 0),
 				overlays: _.map([1, 2, 3, 4, 5, 6], (num) => {
 					return {
 						number: num,

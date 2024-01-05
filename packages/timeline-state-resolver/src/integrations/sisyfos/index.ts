@@ -50,7 +50,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 	private _doOnTime: DoOnTime
 	private _sisyfos: SisyfosApi
 
-	private _commandReceiver: CommandReceiver
+	private _commandReceiver: CommandReceiver = this._defaultCommandReceiver.bind(this)
 
 	private _resyncing = false
 
@@ -58,7 +58,6 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 		super(deviceId, deviceOptions, getCurrentTime)
 		if (deviceOptions.options) {
 			if (deviceOptions.commandReceiver) this._commandReceiver = deviceOptions.commandReceiver
-			else this._commandReceiver = this._defaultCommandReceiver.bind(this)
 		}
 
 		this._sisyfos = new SisyfosApi()
@@ -244,8 +243,11 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 
 		const channels = mappings
 			? Object.values<Mapping<unknown>>(mappings || {})
-					.filter((m: Mapping<SomeMappingSisyfos>) => m.options.mappingType === MappingSisyfosType.Channel)
-					.map((m: Mapping<MappingSisyfosChannel>) => m.options.channel)
+					.filter(
+						(m): m is Mapping<MappingSisyfosChannel> =>
+							(m as Mapping<SomeMappingSisyfos>).options.mappingType === MappingSisyfosType.Channel
+					)
+					.map((m) => m.options.channel)
 			: Object.keys(deviceStateFromAPI.channels)
 
 		for (const ch of channels) {

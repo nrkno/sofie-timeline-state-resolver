@@ -5,9 +5,9 @@ const onNextSocket: Array<Function> = []
 const orgSetImmediate = setImmediate
 
 export class Socket extends EventEmitter {
-	public onWrite: (buff: Buffer, encoding: string) => void
-	public onConnect: (port: number, host: string) => void
-	public onClose: () => void
+	public onWrite: ((buff: Buffer, encoding: string) => void) | undefined
+	public onConnect: ((port: number, host: string) => void) | undefined
+	public onClose: (() => void) | undefined
 
 	// private _port: number
 	// private _host: string

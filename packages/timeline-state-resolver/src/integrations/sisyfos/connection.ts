@@ -7,14 +7,11 @@ const CONNECTIVITY_INTERVAL = 3000 // ms
 const CONNECTIVITY_TIMEOUT = 1000 // ms
 
 export class SisyfosApi extends EventEmitter {
-	host: string
-	port: number
-
-	private _oscClient: osc.UDPPort
+	private _oscClient: osc.UDPPort | undefined
 	private _state?: SisyfosState
 	private _labelToChannel: Map<string, number> = new Map()
 
-	private _connectivityCheckInterval: NodeJS.Timer
+	private _connectivityCheckInterval: NodeJS.Timer | undefined
 	private _pingCounter: number = Math.round(Math.random() * 10000)
 	private _connectivityTimeout: NodeJS.Timer | null = null
 	private _connected = false
@@ -26,28 +23,25 @@ export class SisyfosApi extends EventEmitter {
 	 * @param port port the osc server is hosted on
 	 */
 	async connect(host: string, port: number): Promise<void> {
-		this.host = host
-		this.port = port
-
-		this._oscClient = new osc.UDPPort({
+		const client = (this._oscClient = new osc.UDPPort({
 			localAddress: '0.0.0.0',
 			localPort: 0,
-			remoteAddress: this.host,
-			remotePort: this.port,
+			remoteAddress: host,
+			remotePort: port,
 			metadata: true,
-		})
+		}))
 		this._oscClient.on('error', (error: any) => this.emit('error', error))
 		this._oscClient.on('message', (received: osc.OscMessage) => this.receiver(received))
 
 		return new Promise((resolve) => {
-			this._oscClient.once('ready', () => {
+			client.once('ready', () => {
 				// Monitor connectivity:
 				this._monitorConnectivity()
 
 				// Request initial, full state:
-				this._oscClient.send({ address: '/state/full', args: [] })
+				client.send({ address: '/state/full', args: [] })
 			})
-			this._oscClient.open()
+			client.open()
 
 			if (this.isInitialized()) {
 				resolve()
@@ -64,10 +58,14 @@ export class SisyfosApi extends EventEmitter {
 		if (this._connectivityCheckInterval) {
 			clearInterval(this._connectivityCheckInterval)
 		}
-		this._oscClient.close()
+		if (this._oscClient) this._oscClient.close()
 	}
 
 	send(command: SisyfosCommand) {
+		if (!this._oscClient) {
+			throw new Error(`OSC client not initialised`)
+		}
+
 		if (command.type === SisyfosCommandType.TAKE) {
 			this._oscClient.send({ address: '/take', args: [] })
 		} else if (command.type === SisyfosCommandType.CLEAR_PST_ROW) {
@@ -191,13 +189,17 @@ export class SisyfosApi extends EventEmitter {
 	}
 
 	disconnect() {
-		this._oscClient.close()
+		if (this._oscClient) this._oscClient.close()
 	}
 	isInitialized(): boolean {
 		return !!this._state
 	}
 	reInitialize() {
 		this._state = undefined
+
+		if (!this._oscClient) {
+			throw new Error(`OSC client not initialised`)
+		}
 		this._oscClient.send({ address: '/state/full', args: [] })
 	}
 
@@ -222,7 +224,7 @@ export class SisyfosApi extends EventEmitter {
 
 	private _monitorConnectivity() {
 		const pingSisyfos = () => {
-			this._oscClient.send({ address: `/ping/${this._pingCounter}`, args: [] })
+			if (this._oscClient) this._oscClient.send({ address: `/ping/${this._pingCounter}`, args: [] })
 
 			const waitingForPingCounter = this._pingCounter
 			// Expect a reply within a certain time:

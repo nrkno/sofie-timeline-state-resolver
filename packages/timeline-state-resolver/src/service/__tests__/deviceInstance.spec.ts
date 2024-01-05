@@ -128,8 +128,8 @@ describe('DeviceInstance', () => {
 			deviceId: 'wrapper0',
 			deviceType: DeviceType.ABSTRACT,
 			deviceName: DevicesDict[DeviceType.ABSTRACT].deviceName('wrapper0', {}),
-			instanceId: undefined,
-			startTime: expect.anything(),
+			instanceId: expect.any(Number),
+			startTime: expect.any(Number),
 
 			supportsExpectedPlayoutItems: false,
 			canConnect: DevicesDict[DeviceType.ABSTRACT].canConnect,

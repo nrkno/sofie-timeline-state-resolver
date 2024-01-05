@@ -11,7 +11,7 @@ export type DeviceContainerEvents = {
 export abstract class BaseRemoteDeviceIntegration<
 	TOptions extends DeviceOptionsBase<any>
 > extends EventEmitter<DeviceContainerEvents> {
-	public abstract onChildClose: () => void | undefined
+	public abstract onChildClose: (() => void) | undefined
 
 	protected abstract _device: ThreadedClass<DeviceInstanceWrapper> | ThreadedClass<Device<TOptions>>
 	protected _details: DeviceDetails = {
@@ -107,8 +107,8 @@ export abstract class BaseRemoteDeviceIntegration<
 export class RemoteDeviceInstance<
 	TOptions extends DeviceOptionsBase<any>
 > extends BaseRemoteDeviceIntegration<TOptions> {
-	protected _device: ThreadedClass<DeviceInstanceWrapper>
-	public onChildClose: () => void | undefined
+	protected _device!: ThreadedClass<DeviceInstanceWrapper>
+	public onChildClose: (() => void) | undefined
 
 	private constructor(deviceOptions: TOptions, threadConfig?: ThreadedClassConfig) {
 		super(deviceOptions, threadConfig)

@@ -20,7 +20,7 @@ const GOT_OPTIONS = {
 }
 
 export class TriCasterConnection extends EventEmitter<TriCasterConnectionEvents> {
-	private _socket: WebSocket
+	private _socket: WebSocket | undefined
 	private _pingTimeout: NodeJS.Timeout | null = null
 	private _isClosing = false
 
@@ -60,11 +60,11 @@ export class TriCasterConnection extends EventEmitter<TriCasterConnectionEvents>
 
 	private handleError(error: Error) {
 		this.emit('error', `Socket error: ${error.message}`)
-		this._socket.close()
+		if (this._socket) this._socket.close()
 	}
 
 	private ping() {
-		if (this._socket.readyState === WebSocket.OPEN) {
+		if (this._socket && this._socket.readyState === WebSocket.OPEN) {
 			this._socket.ping()
 		}
 		this._pingTimeout = setTimeout(() => {
@@ -74,8 +74,9 @@ export class TriCasterConnection extends EventEmitter<TriCasterConnectionEvents>
 
 	async send(message: TriCasterCommand): Promise<void> {
 		return new Promise((resolve, reject) => {
-			if (this._socket.readyState !== WebSocket.OPEN) {
+			if (!this._socket || this._socket.readyState !== WebSocket.OPEN) {
 				reject(new Error('Socket not connected'))
+				return
 			}
 			this._socket.send(serializeToWebSocketMessage(message), (err) => {
 				if (err) reject(err)
@@ -86,7 +87,7 @@ export class TriCasterConnection extends EventEmitter<TriCasterConnectionEvents>
 
 	close() {
 		this._isClosing = true
-		this._socket.close()
+		if (this._socket) this._socket.close()
 	}
 
 	private async getInfo(): Promise<TriCasterInfo> {

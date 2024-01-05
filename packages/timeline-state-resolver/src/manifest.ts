@@ -57,7 +57,9 @@ import VMixActions = require('./$schemas/generated/vmix/actions.json')
 import CommonOptions = require('./$schemas/common-options.json')
 import { generateTranslation } from './lib'
 
-const stringifyActionSchema = (action: Omit<TSRActionSchema, 'payload'> & { payload?: any }): TSRActionSchema => ({
+const stringifyActionSchema = (
+	action: Omit<TSRActionSchema, 'payload' | 'result'> & { payload?: any; result?: any }
+): TSRActionSchema => ({
 	...action,
 	payload: JSON.stringify(action.payload),
 })

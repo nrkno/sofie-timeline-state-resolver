@@ -11,7 +11,7 @@ export const Commands = orgCommands
 export type AMCPCommand = orgAMCPCommand
 
 export class BasicCasparCGAPI extends EventEmitter {
-	onConnected: () => void
+	onConnected: (() => void) | undefined
 
 	connected = false
 
