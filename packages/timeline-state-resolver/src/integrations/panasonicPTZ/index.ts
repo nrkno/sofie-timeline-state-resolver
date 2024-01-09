@@ -14,7 +14,7 @@ import { PanasonicPtzCommandWithContext, diffStates } from './diff'
 import { PanasonicPtzHttpInterface } from './connection'
 
 export class PanasonicPtzDevice extends Device<PanasonicPTZOptions, PanasonicPtzState, PanasonicPtzCommandWithContext> {
-	_device: PanasonicPtzHttpInterface
+	_device: PanasonicPtzHttpInterface | undefined = undefined
 
 	async init(options: PanasonicPTZOptions): Promise<boolean> {
 		this._device = new PanasonicPtzHttpInterface(options.host, options.port, options.https)
@@ -25,7 +25,7 @@ export class PanasonicPtzDevice extends Device<PanasonicPTZOptions, PanasonicPtz
 	}
 
 	async terminate(): Promise<void> {
-		this._device.dispose()
+		this._device?.dispose()
 	}
 
 	convertTimelineStateToDeviceState(
@@ -81,10 +81,10 @@ export class PanasonicPtzDevice extends Device<PanasonicPTZOptions, PanasonicPtz
 	}
 
 	get connected() {
-		return this._device.connected
+		return this._device?.connected ?? false
 	}
 	getStatus(): Omit<DeviceStatus, 'active'> {
-		if (!this._device.connected) {
+		if (!this._device?.connected) {
 			return {
 				statusCode: StatusCode.GOOD,
 				messages: [],

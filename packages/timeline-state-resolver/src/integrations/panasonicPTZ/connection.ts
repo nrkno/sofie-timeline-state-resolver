@@ -126,7 +126,7 @@ export class PanasonicPtzHttpInterface extends EventEmitter {
 	private _device: PanasonicPtzCamera
 
 	private _connected = false
-	private _pingInterval: NodeJS.Timer
+	private _pingInterval: NodeJS.Timer | undefined
 
 	constructor(host: string, port?: number, https?: boolean) {
 		super()
