@@ -3,7 +3,6 @@ import {
 	DeviceType,
 	MappingObsType,
 	Mappings,
-	OBSRequest,
 	SomeMappingObs,
 	Timeline,
 	TimelineContentOBSAny,
@@ -13,6 +12,7 @@ import {
 import { OBSCommandWithContext, OBSDevice } from '..'
 import { getDeviceContext } from '../../__tests__/testlib'
 import { getDefaultState, OBSDeviceState } from '../state'
+import { OBSRequestName } from '../diff'
 import '../../../__mocks__/ws'
 
 async function getInitialisedObsDevice() {
@@ -186,7 +186,7 @@ describe('OBS Device', () => {
 				[
 					{
 						command: {
-							requestName: OBSRequest.SET_CURRENT_SCENE,
+							requestName: OBSRequestName.SET_CURRENT_SCENE,
 							args: {
 								sceneName: 'scene1',
 							},
@@ -208,7 +208,7 @@ describe('OBS Device', () => {
 				[
 					{
 						command: {
-							requestName: OBSRequest.SET_CURRENT_TRANSITION,
+							requestName: OBSRequestName.SET_CURRENT_TRANSITION,
 							args: {
 								transitionName: 'transition1',
 							},
@@ -240,7 +240,7 @@ describe('OBS Device', () => {
 				[
 					// {
 					// 	command: {
-					// 		requestName: OBSRequest.SET_SCENE_ITEM_TRANSFORM,
+					// 		requestName: OBSRequestName.SET_SCENE_ITEM_TRANSFORM,
 					// 		args: {
 					// 			sceneName: 'scene1',
 					// 			sceneItemId: 1,
@@ -275,7 +275,7 @@ describe('OBS Device', () => {
 				[
 					{
 						command: {
-							requestName: OBSRequest.SET_SOURCE_SETTINGS,
+							requestName: OBSRequestName.SET_SOURCE_SETTINGS,
 							args: {
 								inputName: 'input1',
 								inputSettings: {
@@ -306,7 +306,7 @@ describe('OBS Device', () => {
 				[
 					{
 						command: {
-							requestName: OBSRequest.SET_INPUT_VOLUME,
+							requestName: OBSRequestName.SET_INPUT_VOLUME,
 							args: {
 								inputName: 'input1',
 								inputVolumeDb: 3,
@@ -338,7 +338,7 @@ describe('OBS Device', () => {
 				[
 					{
 						command: {
-							requestName: OBSRequest.TRIGGER_MEDIA_INPUT_ACTION,
+							requestName: OBSRequestName.TRIGGER_MEDIA_INPUT_ACTION,
 							args: {
 								inputName: 'input1',
 								mediaAction: 'OBS_WEBSOCKET_MEDIA_INPUT_ACTION_PLAY',
@@ -349,7 +349,7 @@ describe('OBS Device', () => {
 					},
 					{
 						command: {
-							requestName: OBSRequest.SET_MEDIA_INPUT_CURSOR,
+							requestName: OBSRequestName.SET_MEDIA_INPUT_CURSOR,
 							args: {
 								inputName: 'input1',
 								mediaCursor: 1000 - 200 + 80,

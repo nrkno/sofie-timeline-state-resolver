@@ -1575,13 +1575,11 @@ async function makeImmediatelyAbortable<T>(
 	const abortPromise = new Promise<void>((resolve, reject) => {
 		resolveAbortPromise = () => {
 			resolve()
-			// @ts-expect-error removeEventListener is missing in @types/node until 16.x
 			abortSignal.removeEventListener('abort', rejectPromise)
 		}
 		const rejectPromise = () => {
 			reject(new AbortError())
 		}
-		// @ts-expect-error addEventListener is missing in @types/node until 16.x
 		abortSignal.addEventListener('abort', rejectPromise, { once: true })
 	})
 	return Promise.race([mainPromise, abortPromise])

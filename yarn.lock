@@ -8706,9 +8706,9 @@ asn1@evs-broadcast/node-asn1:
   languageName: node
   linkType: hard
 
-"obs-websocket-js@git+https://github.com/mint-dewit/obs-websocket-js.git#dd214862314df7f1617a50aaf97ac2e30c1d45f4":
-  version: 5.0.3
-  resolution: "obs-websocket-js@https://github.com/mint-dewit/obs-websocket-js.git#commit=dd214862314df7f1617a50aaf97ac2e30c1d45f4"
+"obs-websocket-js@npm:^5.0.4":
+  version: 5.0.4
+  resolution: "obs-websocket-js@npm:5.0.4"
   dependencies:
     "@msgpack/msgpack": ^2.7.1
     crypto-js: ^4.1.1
@@ -8717,7 +8717,7 @@ asn1@evs-broadcast/node-asn1:
     isomorphic-ws: ^5.0.0
     type-fest: ^3.11.0
     ws: ^8.13.0
-  checksum: 4756ad48c1e666bf05f07a68a9068ce9cf35cb7499af9dfb148f4f0d012cf6fd42b2ded7207edd6a92139965de223273ef23615b9cc1f4b1baecded93a4a1344
+  checksum: 5fab50747624abebe18a186f1cacd3f2ba72fe2a642f43a05babcc4b8da6342f4bcce31e8aacd7a895debf17a88eaff2222e423c9c55d2ba6b116ebb05cc4c2e
   languageName: node
   linkType: hard
 
@@ -11101,7 +11101,7 @@ asn1@evs-broadcast/node-asn1:
     json-schema-ref-parser: ^9.0.9
     json-schema-to-typescript: ^10.1.5
     klona: ^2.0.6
-    obs-websocket-js: "git+https://github.com/mint-dewit/obs-websocket-js.git#dd214862314df7f1617a50aaf97ac2e30c1d45f4"
+    obs-websocket-js: ^5.0.4
     osc: ^2.4.4
     p-all: ^3.0.0
     p-queue: ^6.6.2

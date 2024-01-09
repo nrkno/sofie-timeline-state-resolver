@@ -1,22 +1,5 @@
 import { DeviceType } from '..'
 
-export enum OBSRequest {
-	SET_CURRENT_SCENE = 'SetCurrentProgramScene',
-	SET_PREVIEW_SCENE = 'SetCurrentPreviewScene',
-	SET_CURRENT_TRANSITION = 'SetCurrentSceneTransition',
-	START_RECORDING = 'StartRecord',
-	STOP_RECORDING = 'StopRecord',
-	START_STREAMING = 'StartStream',
-	STOP_STREAMING = 'StopStream',
-	SET_SCENE_ITEM_ENABLED = 'SetSceneItemEnabled',
-	SET_SCENE_ITEM_TRANSFORM = 'SetSceneItemTransform',
-	SET_MUTE = 'SetInputMute',
-	SET_SOURCE_SETTINGS = 'SetInputSettings',
-	SET_INPUT_VOLUME = 'SetInputVolume',
-	TRIGGER_MEDIA_INPUT_ACTION = 'TriggerMediaInputAction',
-	SET_MEDIA_INPUT_CURSOR = 'SetMediaInputCursor',
-}
-
 export type TimelineContentOBSAny =
 	| TimelineContentOBSCurrentScene
 	| TimelineContentOBSCurrentTransition
