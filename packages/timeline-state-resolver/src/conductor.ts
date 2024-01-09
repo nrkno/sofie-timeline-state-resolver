@@ -21,6 +21,7 @@ import {
 	TimelineDatastoreReferencesContent,
 	DeviceOptionsMultiOSC,
 	TimelineDatastoreReferences,
+	DeviceOptionsOBS,
 	DeviceOptionsOSC,
 	DeviceOptionsShotoku,
 	DeviceOptionsHTTPSend,
@@ -46,7 +47,6 @@ import { PharosDevice, DeviceOptionsPharosInternal } from './integrations/pharos
 import { SisyfosMessageDevice, DeviceOptionsSisyfosInternal } from './integrations/sisyfos'
 import { SingularLiveDevice, DeviceOptionsSingularLiveInternal } from './integrations/singularLive'
 import { VMixDevice, DeviceOptionsVMixInternal } from './integrations/vmix'
-import { OBSDevice, DeviceOptionsOBSInternal } from './integrations/obs'
 import { VizMSEDevice, DeviceOptionsVizMSEInternal } from './integrations/vizMSE'
 import { DeviceOptionsSofieChefInternal, SofieChefDevice } from './integrations/sofieChef'
 import { TelemetricsDevice } from './integrations/telemetrics'
@@ -573,15 +573,6 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 					getCurrentTime,
 					threadedClassOptions
 				)
-			case DeviceType.OBS:
-				return DeviceContainer.create<DeviceOptionsOBSInternal, typeof OBSDevice>(
-					'../../dist/integrations/obs/index.js',
-					'OBSDevice',
-					deviceId,
-					deviceOptions,
-					getCurrentTime,
-					threadedClassOptions
-				)
 			case DeviceType.TELEMETRICS:
 				return DeviceContainer.create<DeviceOptionsTelemetrics, typeof TelemetricsDevice>(
 					'../../dist/integrations/telemetrics/index.js',
@@ -623,6 +614,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 			case DeviceType.HTTPSEND:
 			case DeviceType.HTTPWATCHER:
 			case DeviceType.HYPERDECK:
+			case DeviceType.OBS:
 			case DeviceType.OSC:
 			case DeviceType.SHOTOKU:
 			case DeviceType.TCPSEND:
@@ -1538,7 +1530,7 @@ export type DeviceOptionsAnyInternal =
 	| DeviceOptionsTCPSend
 	| DeviceOptionsHyperdeck
 	| DeviceOptionsPharosInternal
-	| DeviceOptionsOBSInternal
+	| DeviceOptionsOBS
 	| DeviceOptionsOSC
 	| DeviceOptionsMultiOSCInternal
 	| DeviceOptionsSisyfosInternal
@@ -1583,13 +1575,11 @@ async function makeImmediatelyAbortable<T>(
 	const abortPromise = new Promise<void>((resolve, reject) => {
 		resolveAbortPromise = () => {
 			resolve()
-			// @ts-expect-error removeEventListener is missing in @types/node until 16.x
 			abortSignal.removeEventListener('abort', rejectPromise)
 		}
 		const rejectPromise = () => {
 			reject(new AbortError())
 		}
-		// @ts-expect-error addEventListener is missing in @types/node until 16.x
 		abortSignal.addEventListener('abort', rejectPromise, { once: true })
 	})
 	return Promise.race([mainPromise, abortPromise])

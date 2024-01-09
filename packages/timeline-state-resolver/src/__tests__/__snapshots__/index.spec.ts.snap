@@ -47,7 +47,6 @@ exports[`index imports 1`] = `
   "MappingVmixType",
   "MediaSourceType",
   "MultiOSCDeviceType",
-  "OBSRequest",
   "OSCDeviceType",
   "OSCValueType",
   "PREPARETIME",

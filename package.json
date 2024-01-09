@@ -33,6 +33,7 @@
   },
   "devDependencies": {
     "@sofie-automation/code-standard-preset": "~2.4.7",
+    "@types/debug": "^4.1.12",
     "@types/jest": "^29.5.1",
     "@types/node": "^16.18.31",
     "@types/sprintf-js": "^1.1.2",
