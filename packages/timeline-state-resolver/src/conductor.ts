@@ -31,6 +31,7 @@ import {
 	DeviceOptionsTCPSend,
 	DeviceOptionsQuantel,
 	DeviceOptionsHyperdeck,
+	DeviceOptionsPanasonicPTZ,
 } from 'timeline-state-resolver-types'
 
 import { DoOnTime } from './devices/doOnTime'
@@ -42,7 +43,6 @@ import { DeviceContainer } from './devices/deviceContainer'
 
 import { CasparCGDevice, DeviceOptionsCasparCGInternal } from './integrations/casparCG'
 import { LawoDevice, DeviceOptionsLawoInternal } from './integrations/lawo'
-import { PanasonicPtzDevice, DeviceOptionsPanasonicPTZInternal } from './integrations/panasonicPTZ'
 import { PharosDevice, DeviceOptionsPharosInternal } from './integrations/pharos'
 import { SisyfosMessageDevice, DeviceOptionsSisyfosInternal } from './integrations/sisyfos'
 import { SingularLiveDevice, DeviceOptionsSingularLiveInternal } from './integrations/singularLive'
@@ -519,15 +519,6 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 					getCurrentTime,
 					threadedClassOptions
 				)
-			case DeviceType.PANASONIC_PTZ:
-				return DeviceContainer.create<DeviceOptionsPanasonicPTZInternal, typeof PanasonicPtzDevice>(
-					'../../dist/integrations/panasonicPTZ/index.js',
-					'PanasonicPtzDevice',
-					deviceId,
-					deviceOptions,
-					getCurrentTime,
-					threadedClassOptions
-				)
 			case DeviceType.PHAROS:
 				return DeviceContainer.create<DeviceOptionsPharosInternal, typeof PharosDevice>(
 					'../../dist/integrations/pharos/index.js',
@@ -616,6 +607,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 			case DeviceType.HYPERDECK:
 			case DeviceType.OBS:
 			case DeviceType.OSC:
+			case DeviceType.PANASONIC_PTZ:
 			case DeviceType.SHOTOKU:
 			case DeviceType.TCPSEND:
 			case DeviceType.QUANTEL: {
@@ -1526,7 +1518,7 @@ export type DeviceOptionsAnyInternal =
 	| DeviceOptionsLawoInternal
 	| DeviceOptionsHTTPSend
 	| DeviceOptionsHTTPWatcher
-	| DeviceOptionsPanasonicPTZInternal
+	| DeviceOptionsPanasonicPTZ
 	| DeviceOptionsTCPSend
 	| DeviceOptionsHyperdeck
 	| DeviceOptionsPharosInternal
