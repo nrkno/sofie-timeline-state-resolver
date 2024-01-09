@@ -23,8 +23,8 @@ export interface OBSCommandWithContextTyped<Type extends keyof OBSRequestTypes> 
 }
 
 export class OBSDevice extends Device<OBSOptions, OBSDeviceState, OBSCommandWithContext> {
-	private _options: OBSOptions
-	private _obs: OBSConnection
+	private _options: OBSOptions | undefined = undefined
+	private _obs: OBSConnection | undefined = undefined
 
 	async init(options: OBSOptions): Promise<boolean> {
 		this._options = options
@@ -48,15 +48,15 @@ export class OBSDevice extends Device<OBSOptions, OBSDeviceState, OBSCommandWith
 	}
 
 	async terminate(): Promise<void> {
-		this._obs.disconnect()
+		this._obs?.disconnect()
 	}
 
 	get connected() {
-		return this._obs.connected
+		return this._obs?.connected ?? false
 	}
 
 	getStatus(): Omit<DeviceStatus, 'active'> {
-		if (this._obs.connected) {
+		if (this._obs?.connected) {
 			return {
 				statusCode: StatusCode.GOOD,
 				messages: [],
@@ -65,7 +65,7 @@ export class OBSDevice extends Device<OBSOptions, OBSDeviceState, OBSCommandWith
 
 		return {
 			statusCode: StatusCode.BAD,
-			messages: this._obs.error ? ['Disconnected', this._obs.error] : ['Disconnected'],
+			messages: this._obs?.error ? ['Disconnected', this._obs.error] : ['Disconnected'],
 		}
 	}
 
@@ -80,16 +80,16 @@ export class OBSDevice extends Device<OBSOptions, OBSDeviceState, OBSCommandWith
 
 	diffStates(oldState: OBSDeviceState | undefined, newState: OBSDeviceState): Array<OBSCommandWithContext> {
 		return diffStates(oldState ?? getDefaultState(newState.time), newState, (scene, source) =>
-			this._obs.getSceneItemId(scene, source)
+			this._obs?.getSceneItemId(scene, source)
 		)
 	}
 
 	async sendCommand(command: OBSCommandWithContext): Promise<void> {
-		if (!this._obs.connected) return
+		if (!this._obs?.connected) return
 
 		this.context.logger.debug(command)
 
-		this._obs.call(command.command.requestName, command.command.args).catch((e) => {
+		this._obs?.call(command.command.requestName, command.command.args).catch((e) => {
 			this.context.commandError(e, command)
 		})
 	}
