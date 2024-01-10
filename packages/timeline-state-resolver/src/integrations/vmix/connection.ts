@@ -1,9 +1,7 @@
 import { EventEmitter } from 'eventemitter3'
 import { Socket } from 'net'
-import * as xml from 'xml-js'
-import { VMixCommand, VMixTransitionType } from 'timeline-state-resolver-types'
-import { VMixState, VMixInput, VMixMix } from './index'
-import * as _ from 'underscore'
+import { VMixCommand } from 'timeline-state-resolver-types'
+import { VMixStateCommand } from './vMixCommands'
 
 const VMIX_DEFAULT_TCP_PORT = 8099
 const RESPONSE_REGEX = /^(?<command>\w+)\s+(?<response>OK|ER|\d+)(\s+(?<responseMsg>.*))?/i
@@ -20,7 +18,6 @@ export type ConnectionEvents = {
 	connected: []
 	disconnected: []
 	initialized: []
-	stateChanged: [state: VMixState]
 	error: [error: Error]
 }
 
@@ -211,18 +208,14 @@ export class BaseConnection extends EventEmitter<ConnectionEvents> {
 				this._connected = true
 				this.emit('connected')
 			}
-		} else {
-			if (this._connected) {
-				this._connected = false
-				this.emit('disconnected')
-			}
+		} else if (this._connected) {
+			this._connected = false
+			this.emit('disconnected')
 		}
 	}
 }
 
-export class VMix extends BaseConnection {
-	public state: VMixState
-
+export class VMixConnection extends BaseConnection {
 	public async sendCommand(command: VMixStateCommand): Promise<any> {
 		switch (command.command) {
 			case VMixCommand.PREVIEW_INPUT:
@@ -308,116 +301,6 @@ export class VMix extends BaseConnection {
 			default:
 				throw new Error(`vmixAPI: Command ${((command || {}) as any).command} not implemented`)
 		}
-	}
-
-	public parseVMixState(responseBody: string): void {
-		const preParsed = xml.xml2json(responseBody, { compact: true, spaces: 4 })
-		const xmlState = JSON.parse(preParsed)
-		let mixes = xmlState['vmix']['mix']
-		mixes = Array.isArray(mixes) ? mixes : mixes ? [mixes] : []
-		let fixedInputsCount = 0
-		// For what lies ahead I apologise - Tom
-		const state: VMixState = {
-			version: xmlState['vmix']['version']['_text'],
-			edition: xmlState['vmix']['edition']['_text'],
-			inputs: _.indexBy(
-				(xmlState['vmix']['inputs']['input'] as Array<any>).map(
-					(input): Required<Omit<VMixInput, InferredPartialInputStateKeys>> => {
-						fixedInputsCount++
-
-						let fixedListFilePaths: VMixInput['listFilePaths'] = undefined
-						if (input['_attributes']['type'] === 'VideoList') {
-							if (Array.isArray(input['list']['item'])) {
-								// Handles the case where there is more than one item in the list.
-								fixedListFilePaths = input['list']['item'].map((item) => item['_text'])
-							} else if (input['list']['item']) {
-								// Handles the case where there is exactly one item in the list.
-								fixedListFilePaths = [input['list']['item']['_text']]
-							}
-						}
-
-						let fixedOverlays: VMixInput['overlays'] = undefined
-						if (Array.isArray(input['overlay'])) {
-							// Handles the case where there is more than one item in the list.
-							fixedOverlays = input['overlay'].map((item) => parseInt(item['_attributes']['index'], 10))
-						} else if (input['overlay']) {
-							// Handles the case where there is exactly one item in the list.
-							fixedOverlays = [parseInt(input['overlay']['_attributes']['index'], 10)]
-						}
-
-						return {
-							number: Number(input['_attributes']['number']),
-							type: input['_attributes']['type'],
-							name: input['_attributes']['title'],
-							state: input['_attributes']['state'],
-							playing: input['_attributes']['state'] === 'Running',
-							position: Number(input['_attributes']['position']) || 0,
-							duration: Number(input['_attributes']['duration']) || 0,
-							loop: input['_attributes']['loop'] === 'False' ? false : true,
-							muted: input['_attributes']['muted'] === 'False' ? false : true,
-							volume: Number(input['_attributes']['volume'] || 100),
-							balance: Number(input['_attributes']['balance'] || 0),
-							solo: input['_attributes']['loop'] === 'False' ? false : true,
-							audioBuses: input['_attributes']['audiobusses'],
-							transform: {
-								panX: Number(input['position'] ? input['position']['_attributes']['panX'] || 0 : 0),
-								panY: Number(input['position'] ? input['position']['_attributes']['panY'] || 0 : 0),
-								alpha: -1, // unavailable
-								zoom: Number(input['position'] ? input['position']['_attributes']['zoomX'] || 1 : 1), // assume that zoomX==zoomY
-							},
-							overlays: fixedOverlays!,
-							listFilePaths: fixedListFilePaths!,
-						}
-					}
-				),
-				'number'
-			),
-			overlays: (xmlState['vmix']['overlays']['overlay'] as Array<any>).map((overlay) => {
-				return {
-					number: Number(overlay['_attributes']['number']),
-					input: overlay['_text'],
-				}
-			}),
-			mixes: [
-				{
-					number: 1,
-					program: Number(xmlState['vmix']['active']['_text']),
-					preview: Number(xmlState['vmix']['preview']['_text']),
-					transition: { effect: VMixTransitionType.Cut, duration: 0 },
-				},
-				...mixes.map((mix: any): VMixMix => {
-					return {
-						number: Number(mix['_attributes']['number']),
-						program: Number(mix['active']['_text']),
-						preview: Number(mix['preview']['_text']),
-						transition: { effect: VMixTransitionType.Cut, duration: 0 },
-					}
-				}),
-			],
-			fadeToBlack: xmlState['vmix']['fadeToBlack']['_text'] === 'True' ? true : false,
-			recording: xmlState['vmix']['recording']['_text'] === 'True' ? true : false,
-			external: xmlState['vmix']['external']['_text'] === 'True' ? true : false,
-			streaming: xmlState['vmix']['streaming']['_text'] === 'True' ? true : false,
-			playlist: xmlState['vmix']['playList']['_text'] === 'True' ? true : false,
-			multiCorder: xmlState['vmix']['multiCorder']['_text'] === 'True' ? true : false,
-			fullscreen: xmlState['vmix']['fullscreen']['_text'] === 'True' ? true : false,
-			audio: [
-				{
-					volume: Number(xmlState['vmix']['audio']['master']['_attributes']['volume']),
-					muted: xmlState['vmix']['audio']['master']['_attributes']['muted'] === 'True' ? true : false,
-					meterF1: Number(xmlState['vmix']['audio']['master']['_attributes']['meterF1']),
-					meterF2: Number(xmlState['vmix']['audio']['master']['_attributes']['meterF2']),
-					headphonesVolume: Number(xmlState['vmix']['audio']['master']['_attributes']['headphonesVolume']),
-				},
-			],
-			fixedInputsCount,
-		}
-		this.setState(state)
-	}
-
-	public setState(state: VMixState): void {
-		this.state = state
-		this.emit('stateChanged', state)
 	}
 
 	public async setPreviewInput(input: number | string, mix: number): Promise<any> {
@@ -597,221 +480,3 @@ export class VMix extends BaseConnection {
 		return this.sendCommandFunction(`Restart`, { input })
 	}
 }
-
-export interface VMixStateCommandBase {
-	command: VMixCommand
-}
-export interface VMixStateCommandPreviewInput extends VMixStateCommandBase {
-	command: VMixCommand.PREVIEW_INPUT
-	input: number | string
-	mix: number
-}
-export interface VMixStateCommandTransition extends VMixStateCommandBase {
-	command: VMixCommand.TRANSITION
-	input: number | string
-	effect: string
-	duration: number
-	mix: number
-}
-export interface VMixStateCommandAudio extends VMixStateCommandBase {
-	command: VMixCommand.AUDIO_VOLUME
-	input: number | string
-	value: number
-	fade?: number
-}
-export interface VMixStateCommandAudioBalance extends VMixStateCommandBase {
-	command: VMixCommand.AUDIO_BALANCE
-	input: number | string
-	value: number
-}
-export interface VMixStateCommandAudioOn extends VMixStateCommandBase {
-	command: VMixCommand.AUDIO_ON
-	input: number | string
-}
-export interface VMixStateCommandAudioOff extends VMixStateCommandBase {
-	command: VMixCommand.AUDIO_OFF
-	input: number | string
-}
-export interface VMixStateCommandAudioAutoOn extends VMixStateCommandBase {
-	command: VMixCommand.AUDIO_AUTO_ON
-	input: number | string
-}
-export interface VMixStateCommandAudioAutoOff extends VMixStateCommandBase {
-	command: VMixCommand.AUDIO_AUTO_OFF
-	input: number | string
-}
-export interface VMixStateCommandAudioBusOn extends VMixStateCommandBase {
-	command: VMixCommand.AUDIO_BUS_ON
-	input: number | string
-	value: string
-}
-export interface VMixStateCommandAudioBusOff extends VMixStateCommandBase {
-	command: VMixCommand.AUDIO_BUS_OFF
-	input: number | string
-	value: string
-}
-export interface VMixStateCommandFader extends VMixStateCommandBase {
-	command: VMixCommand.FADER
-	value: number
-}
-export interface VMixStateCommandSetPanX extends VMixStateCommandBase {
-	command: VMixCommand.SET_PAN_X
-	input: number | string
-	value: number
-}
-export interface VMixStateCommandSetPanY extends VMixStateCommandBase {
-	command: VMixCommand.SET_PAN_Y
-	input: number | string
-	value: number
-}
-export interface VMixStateCommandSetZoom extends VMixStateCommandBase {
-	command: VMixCommand.SET_ZOOM
-	input: number | string
-	value: number
-}
-export interface VMixStateCommandSetAlpha extends VMixStateCommandBase {
-	command: VMixCommand.SET_ALPHA
-	input: number | string
-	value: number
-}
-export interface VMixStateCommandStartStreaming extends VMixStateCommandBase {
-	command: VMixCommand.START_STREAMING
-}
-export interface VMixStateCommandStopStreaming extends VMixStateCommandBase {
-	command: VMixCommand.STOP_STREAMING
-}
-export interface VMixStateCommandStartRecording extends VMixStateCommandBase {
-	command: VMixCommand.START_RECORDING
-}
-export interface VMixStateCommandStopRecording extends VMixStateCommandBase {
-	command: VMixCommand.STOP_RECORDING
-}
-export interface VMixStateCommandFadeToBlack extends VMixStateCommandBase {
-	command: VMixCommand.FADE_TO_BLACK
-}
-export interface VMixStateCommandAddInput extends VMixStateCommandBase {
-	command: VMixCommand.ADD_INPUT
-	value: string
-}
-export interface VMixStateCommandRemoveInput extends VMixStateCommandBase {
-	command: VMixCommand.REMOVE_INPUT
-	input: string
-}
-export interface VMixStateCommandPlayInput extends VMixStateCommandBase {
-	command: VMixCommand.PLAY_INPUT
-	input: number | string
-}
-export interface VMixStateCommandPauseInput extends VMixStateCommandBase {
-	command: VMixCommand.PAUSE_INPUT
-	input: number | string
-}
-export interface VMixStateCommandSetPosition extends VMixStateCommandBase {
-	command: VMixCommand.SET_POSITION
-	input: number | string
-	value: number
-}
-export interface VMixStateCommandLoopOn extends VMixStateCommandBase {
-	command: VMixCommand.LOOP_ON
-	input: number | string
-}
-export interface VMixStateCommandLoopOff extends VMixStateCommandBase {
-	command: VMixCommand.LOOP_OFF
-	input: number | string
-}
-export interface VMixStateCommandSetInputName extends VMixStateCommandBase {
-	command: VMixCommand.SET_INPUT_NAME
-	input: number | string
-	value: string
-}
-export interface VMixStateCommandSetOuput extends VMixStateCommandBase {
-	command: VMixCommand.SET_OUPUT
-	name: string
-	value: string
-	input?: number | string
-}
-export interface VMixStateCommandStartExternal extends VMixStateCommandBase {
-	command: VMixCommand.START_EXTERNAL
-}
-export interface VMixStateCommandStopExternal extends VMixStateCommandBase {
-	command: VMixCommand.STOP_EXTERNAL
-}
-export interface VMixStateCommandOverlayInputIn extends VMixStateCommandBase {
-	command: VMixCommand.OVERLAY_INPUT_IN
-	value: number
-	input: string | number
-}
-export interface VMixStateCommandOverlayInputOut extends VMixStateCommandBase {
-	command: VMixCommand.OVERLAY_INPUT_OUT
-	value: number
-}
-export interface VMixStateCommandSetInputOverlay extends VMixStateCommandBase {
-	command: VMixCommand.SET_INPUT_OVERLAY
-	input: string | number
-	index: number
-	value: string | number
-}
-export interface VMixStateCommandScriptStart extends VMixStateCommandBase {
-	command: VMixCommand.SCRIPT_START
-	value: string
-}
-export interface VMixStateCommandScriptStop extends VMixStateCommandBase {
-	command: VMixCommand.SCRIPT_STOP
-	value: string
-}
-export interface VMixStateCommandScriptStopAll extends VMixStateCommandBase {
-	command: VMixCommand.SCRIPT_STOP_ALL
-}
-export interface VMixStateCommandListAdd extends VMixStateCommandBase {
-	command: VMixCommand.LIST_ADD
-	input: string | number
-	value: string
-}
-export interface VMixStateCommandListRemoveAll extends VMixStateCommandBase {
-	command: VMixCommand.LIST_REMOVE_ALL
-	input: string | number
-}
-export interface VMixStateCommandRestart extends VMixStateCommandBase {
-	command: VMixCommand.RESTART_INPUT
-	input: string | number
-}
-export type VMixStateCommand =
-	| VMixStateCommandPreviewInput
-	| VMixStateCommandTransition
-	| VMixStateCommandAudio
-	| VMixStateCommandAudioBalance
-	| VMixStateCommandAudioOn
-	| VMixStateCommandAudioOff
-	| VMixStateCommandAudioAutoOn
-	| VMixStateCommandAudioAutoOff
-	| VMixStateCommandAudioBusOn
-	| VMixStateCommandAudioBusOff
-	| VMixStateCommandFader
-	| VMixStateCommandSetZoom
-	| VMixStateCommandSetPanX
-	| VMixStateCommandSetPanY
-	| VMixStateCommandSetAlpha
-	| VMixStateCommandStartStreaming
-	| VMixStateCommandStopStreaming
-	| VMixStateCommandStartRecording
-	| VMixStateCommandStopRecording
-	| VMixStateCommandFadeToBlack
-	| VMixStateCommandAddInput
-	| VMixStateCommandRemoveInput
-	| VMixStateCommandPlayInput
-	| VMixStateCommandPauseInput
-	| VMixStateCommandSetPosition
-	| VMixStateCommandLoopOn
-	| VMixStateCommandLoopOff
-	| VMixStateCommandSetInputName
-	| VMixStateCommandSetOuput
-	| VMixStateCommandStartExternal
-	| VMixStateCommandStopExternal
-	| VMixStateCommandOverlayInputIn
-	| VMixStateCommandOverlayInputOut
-	| VMixStateCommandSetInputOverlay
-	| VMixStateCommandScriptStart
-	| VMixStateCommandScriptStop
-	| VMixStateCommandScriptStopAll
-	| VMixStateCommandListAdd
-	| VMixStateCommandListRemoveAll
-	| VMixStateCommandRestart
