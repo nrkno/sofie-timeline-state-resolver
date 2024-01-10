@@ -1,5 +1,5 @@
 import * as xml from 'xml-js'
-import { TSR_INPUT_PREFIX, VMixInput, VMixInputAudio, VMixMix, VMixState } from './WMixStateDiffer'
+import { TSR_INPUT_PREFIX, VMixInput, VMixInputAudio, VMixMix, VMixState } from './vMixStateDiffer'
 import { InferredPartialInputStateKeys } from './connection'
 import { VMixTransitionType } from 'timeline-state-resolver-types'
 

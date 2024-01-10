@@ -9,8 +9,8 @@ import {
 	TimelineContentVMixAny,
 	VMixInputType,
 } from 'timeline-state-resolver-types'
-import { VMixTimelineStateConverter } from '../WMixTimelineStateConverter'
-import { VMixOutput, VMixStateDiffer } from '../WMixStateDiffer'
+import { VMixTimelineStateConverter } from '../vMixTimelineStateConverter'
+import { VMixOutput, VMixStateDiffer } from '../vMixStateDiffer'
 import { prefixAddedInput } from './mockState'
 
 function createTestee(): VMixTimelineStateConverter {
