@@ -1,5 +1,5 @@
 import { VMixCommand } from 'timeline-state-resolver-types'
-import { VMixStateDiffer } from '../VMixStateDiffer'
+import { VMixStateDiffer } from '../WMixStateDiffer'
 import { makeMockFullState } from './mockState'
 
 function createTestee(): VMixStateDiffer {

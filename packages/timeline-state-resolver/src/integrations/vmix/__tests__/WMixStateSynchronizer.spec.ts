@@ -1,4 +1,4 @@
-import { VMixStateSynchronizer } from '../VMixStateSynchronizer'
+import { VMixStateSynchronizer } from '../WMixStateSynchronizer'
 import { ADDED_INPUT_NAME_1, ADDED_INPUT_NAME_2, makeMockFullState, makeMockReportedState } from './mockState'
 
 describe('VMixStateSynchronizer', () => {

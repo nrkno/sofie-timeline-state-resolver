@@ -1,5 +1,5 @@
 import { VMixTransitionType } from 'timeline-state-resolver-types'
-import { TSR_INPUT_PREFIX, VMixState, VMixStateExtended } from '../VMixStateDiffer'
+import { TSR_INPUT_PREFIX, VMixState, VMixStateExtended } from '../WMixStateDiffer'
 
 export const ADDED_INPUT_NAME_1 = `${TSR_INPUT_PREFIX}C:\\someVideo.mp4`
 export const ADDED_INPUT_NAME_2 = `${TSR_INPUT_PREFIX}C:\\anotherVideo.mp4`

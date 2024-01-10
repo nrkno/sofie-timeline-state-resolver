@@ -17,12 +17,12 @@ import {
 	VmixActions,
 } from 'timeline-state-resolver-types'
 import { t } from '../../lib'
-import { VMixState, VMixStateDiffer, VMixStateExtended } from './VMixStateDiffer'
+import { VMixState, VMixStateDiffer, VMixStateExtended } from './WMixStateDiffer'
 import { CommandContext, VMixStateCommandWithContext } from './vMixCommands'
-import { MappingsVmix, VMixTimelineStateConverter } from './VMixTimelineStateConverter'
-import { VMixXmlStateParser } from './VMixXmlStateParser'
-import { VMixPollingTimer } from './VMixPollingTimer'
-import { VMixStateSynchronizer } from './VMixStateSynchronizer'
+import { MappingsVmix, VMixTimelineStateConverter } from './WMixTimelineStateConverter'
+import { VMixXmlStateParser } from './WMixXmlStateParser'
+import { VMixPollingTimer } from './WMixPollingTimer'
+import { VMixStateSynchronizer } from './WMixStateSynchronizer'
 
 /**
  * Default time, in milliseconds, for when we should poll vMix to query its actual state.

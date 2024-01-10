@@ -1,4 +1,4 @@
-import { VMixInput, VMixState, VMixStateExtended } from './VMixStateDiffer'
+import { VMixInput, VMixState, VMixStateExtended } from './WMixStateDiffer'
 import { EnforceableVMixInputStateKeys } from '.'
 import { VMixInputOverlays, VMixTransform } from 'timeline-state-resolver-types'
 

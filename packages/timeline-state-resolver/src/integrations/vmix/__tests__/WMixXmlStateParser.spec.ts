@@ -1,6 +1,6 @@
 import { VMixTransitionType } from 'timeline-state-resolver-types'
-import { VMixState } from '../VMixStateDiffer'
-import { VMixXmlStateParser } from '../VMixXmlStateParser'
+import { VMixState } from '../WMixStateDiffer'
+import { VMixXmlStateParser } from '../WMixXmlStateParser'
 import { makeMockVMixXmlState } from './vmixMock'
 import { prefixAddedInput } from './mockState'
 

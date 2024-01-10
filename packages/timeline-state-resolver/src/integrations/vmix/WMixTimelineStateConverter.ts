@@ -10,7 +10,7 @@ import {
 	VMixTransition,
 	VMixTransitionType,
 } from 'timeline-state-resolver-types'
-import { TSR_INPUT_PREFIX, VMixInput, VMixInputAudio, VMixState, VMixStateExtended } from './VMixStateDiffer'
+import { TSR_INPUT_PREFIX, VMixInput, VMixInputAudio, VMixState, VMixStateExtended } from './WMixStateDiffer'
 import * as deepMerge from 'deepmerge'
 import _ = require('underscore')
 

@@ -1,4 +1,4 @@
-import { VMixPollingTimer } from '../VMixPollingTimer'
+import { VMixPollingTimer } from '../WMixPollingTimer'
 
 describe('VMixPollingTimer', () => {
 	beforeEach(() => {
