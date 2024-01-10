@@ -30,6 +30,10 @@ export interface QuantelOptions {
 	 * If set: If a clip turns out to be on the wrong server, an attempt to copy the clip will be done
 	 */
 	allowCloneClips?: boolean
+	/**
+	 * If the ISA goes down the gateway will temporarily emit a disconnection warning, this is a false flag when a backup ISA is available. This option will suppress the disconnection warning for a number of ms to give the system time to switch without warnings.
+	 */
+	suppressDisconnectTime?: number
 }
 
 export interface MappingQuantelPort {
