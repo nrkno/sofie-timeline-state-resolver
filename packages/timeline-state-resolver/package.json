@@ -1,6 +1,6 @@
 {
 	"name": "timeline-state-resolver",
-	"version": "8.1.2",
+	"version": "8.1.4",
 	"description": "Have timeline, control stuff",
 	"main": "dist/index.js",
 	"typings": "dist/index.d.ts",
@@ -22,8 +22,8 @@
 			"url": "http://superfly.tv"
 		},
 		{
-			"name": "Balte de Wit",
-			"email": "balte@superfly.tv",
+			"name": "Mint de Wit",
+			"email": "mint@superfly.tv",
 			"url": "http://superfly.tv"
 		},
 		{
@@ -92,8 +92,8 @@
 		"@tv2media/v-connection": "^7.3.0",
 		"atem-connection": "2.5.0",
 		"atem-state": "0.13.0",
-		"casparcg-connection": "^6.0.6",
-		"casparcg-state": "^3.0.2",
+		"casparcg-connection": "6.2.0",
+		"casparcg-state": "3.0.3",
 		"debug": "^4.3.1",
 		"deepmerge": "^4.2.2",
 		"emberplus-connection": "^0.1.2",

@@ -3,6 +3,23 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [8.1.4](https://github.com/nrkno/sofie-timeline-state-resolver/compare/8.1.3...8.1.4) (2024-01-18)
+
+**Note:** Version bump only for package timeline-state-resolver-packages
+
+
+
+
+
+## [8.1.3](https://github.com/nrkno/sofie-timeline-state-resolver/compare/8.1.2...8.1.3) (2024-01-02)
+
+
+### Bug Fixes
+
+* update failing ccg-connection ([54d031a](https://github.com/nrkno/sofie-timeline-state-resolver/commit/54d031a9eddbaa06a2165c41a3da5a20fea610e9))
+
+
+
 ## [8.1.2](https://github.com/nrkno/sofie-timeline-state-resolver/compare/8.1.1...8.1.2) (2023-12-21)
 
 
