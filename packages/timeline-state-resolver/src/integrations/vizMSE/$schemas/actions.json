@@ -33,6 +33,13 @@
 			"description": "Clears all Engines in the Profile by sending the configured list of clear-commands",
 			"destructive": true,
 			"timeout": 10000
+		},
+		{
+			"id": "reset",
+			"name": "Reset",
+			"description": "Purges all rundowns, clears the engine and reactivates the Viz playlist",
+			"destructive": true,
+			"timeout": 10000
 		}
 	]
 }

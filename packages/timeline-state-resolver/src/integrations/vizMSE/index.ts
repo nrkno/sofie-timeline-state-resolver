@@ -267,6 +267,11 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState, DeviceOptionsVizM
 			commands: this._initOptions?.clearAllCommands || [],
 		})
 	}
+	public async resetViz(): Promise<void> {
+		await this.purgeRundown(true) // note - this might not be 100% necessary
+		await this.clearEngines()
+		await this._vizmseManager?.activate(undefined)
+	}
 
 	async executeAction(actionId: string, payload?: Record<string, any> | undefined): Promise<ActionExecutionResult> {
 		switch (actionId) {
@@ -279,6 +284,9 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState, DeviceOptionsVizM
 				return this.executeStandDown()
 			case VizMSEActions.ClearAllEngines:
 				await this.clearEngines()
+				return { result: ActionExecutionResultCode.Ok }
+			case VizMSEActions.Reset:
+				await this.resetViz()
 				return { result: ActionExecutionResultCode.Ok }
 			default:
 				return { result: ActionExecutionResultCode.Ok, response: t('Action "{{id}}" not found', { actionId }) }

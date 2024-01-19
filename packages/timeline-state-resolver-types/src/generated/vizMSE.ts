@@ -81,4 +81,5 @@ export enum VizMSEActions {
 	Activate = 'activate',
 	StandDown = 'standDown',
 	ClearAllEngines = 'clearAllEngines',
+	Reset = 'reset',
 }
