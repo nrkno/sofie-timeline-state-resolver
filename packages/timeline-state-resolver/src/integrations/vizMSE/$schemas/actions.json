@@ -2,6 +2,24 @@
 	"$schema": "../../../$schemas/action-schema.json",
 	"actions": [
 		{
+			"id": "vizReset",
+			"name": "Reset",
+			"description": "Purges all rundowns, clears the engine and reactivates the Viz playlist",
+			"destructive": true,
+			"timeout": 10000,
+			"payload": {
+				"type": "object",
+				"properties": {
+					"activeRundownPlaylistId": {
+						"name": "Rundown playlist ID",
+						"description": "Optional property",
+						"type": "string"
+					}
+				},
+				"additionalProperties": false
+			}
+		},
+		{
 			"id": "purgeRundown",
 			"name": "Purge Viz Rundown",
 			"description": "Purges all elements from the viz-rundown",
@@ -31,13 +49,6 @@
 			"id": "clearAllEngines",
 			"name": "Clear Engines",
 			"description": "Clears all Engines in the Profile by sending the configured list of clear-commands",
-			"destructive": true,
-			"timeout": 10000
-		},
-		{
-			"id": "reset",
-			"name": "Reset",
-			"description": "Purges all rundowns, clears the engine and reactivates the Viz playlist",
 			"destructive": true,
 			"timeout": 10000
 		}
