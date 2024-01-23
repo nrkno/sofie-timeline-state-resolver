@@ -3,7 +3,20 @@ import { EventEmitter } from 'events'
 
 export { Model, Types } from 'emberplus-connection'
 
-const mockDo = jest.fn()
+export const mockSetValue = jest.fn(async () => {
+	return {
+		sentOk: true,
+		response: Promise.resolve(),
+	}
+})
+export const mockInvoke = jest.fn(async () => {
+	return {
+		sentOk: true,
+		response: Promise.resolve({
+			id: 13,
+		}),
+	}
+})
 
 const instances: Array<EmberClient> = []
 
@@ -41,23 +54,32 @@ export class EmberClient extends EventEmitter {
 		}
 	}
 	async getElementByPath(p) {
+		if (p === 'Ruby.Functions.RampMotorFader') {
+			return {
+				path: p,
+				contents: {
+					type: 'FUNCTION',
+					value: 0,
+				},
+			}
+		}
 		return {
 			path: p,
 			contents: {
-				parameterType: 'PARAMETER',
+				type: 'PARAMETER',
 				value: 0,
 			},
 		}
 	}
-	async setValue() {
-		return {
-			sentOk: true,
-			response: Promise.resolve(),
-		}
-	}
 
-	static get mockDo() {
-		return mockDo
+	setValue = mockSetValue
+	invoke = mockInvoke
+
+	static get mockSetValue() {
+		return mockSetValue
+	}
+	static get mockInvoke() {
+		return mockInvoke
 	}
 	static get instances() {
 		return instances

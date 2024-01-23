@@ -11,6 +11,7 @@ import { QuantelDevice } from '../integrations/quantel'
 import { HyperdeckDevice } from '../integrations/hyperdeck'
 import { OBSDevice } from '../integrations/obs'
 import { PanasonicPtzDevice } from '../integrations/panasonicPTZ'
+import { LawoDevice } from '../integrations/lawo'
 
 export interface DeviceEntry {
 	deviceClass: new (context: DeviceContextAPI<any>) => Device<any, any, any>
@@ -25,6 +26,7 @@ export type ImplementedServiceDeviceTypes =
 	| DeviceType.HTTPSEND
 	| DeviceType.HTTPWATCHER
 	| DeviceType.HYPERDECK
+	| DeviceType.LAWO
 	| DeviceType.OBS
 	| DeviceType.OSC
 	| DeviceType.PANASONIC_PTZ
@@ -62,6 +64,12 @@ export const DevicesDict: Record<ImplementedServiceDeviceTypes, DeviceEntry> = {
 		deviceClass: HyperdeckDevice,
 		canConnect: true,
 		deviceName: (deviceId: string) => 'Hyperdeck ' + deviceId,
+		executionMode: () => 'salvo',
+	},
+	[DeviceType.LAWO]: {
+		deviceClass: LawoDevice,
+		canConnect: true,
+		deviceName: (deviceId: string) => 'Lawo ' + deviceId,
 		executionMode: () => 'salvo',
 	},
 	[DeviceType.OBS]: {
