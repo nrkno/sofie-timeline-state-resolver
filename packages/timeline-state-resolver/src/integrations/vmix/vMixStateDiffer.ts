@@ -31,8 +31,8 @@ export interface VMixState {
 	existingInputsAudio: { [key: string]: VMixInputAudio }
 	inputsAddedByUs: { [key: string]: VMixInput }
 	inputsAddedByUsAudio: { [key: string]: VMixInputAudio }
-	overlays: VMixOverlay[]
-	mixes: VMixMix[]
+	overlays: Array<VMixOverlay | undefined>
+	mixes: Array<VMixMix | undefined>
 	fadeToBlack: boolean
 	faderPosition?: number
 	recording: boolean | undefined
@@ -208,8 +208,8 @@ export class VMixStateDiffer {
 			/**
 			 * It is *not* guaranteed to have all mixes present in the vMix state because it's a sparse array.
 			 */
-			const oldMixState = oldVMixState.reportedState.mixes[i] as VMixMix | undefined
-			const newMixState = newVMixState.reportedState.mixes[i] as VMixMix | undefined
+			const oldMixState = oldVMixState.reportedState.mixes[i]
+			const newMixState = newVMixState.reportedState.mixes[i]
 			if (newMixState?.program !== undefined) {
 				let nextInput = newMixState.program
 				let changeOnLayer = false
@@ -700,7 +700,7 @@ export class VMixStateDiffer {
 		const commands: Array<VMixStateCommandWithContext> = []
 		newVMixState.reportedState.overlays.forEach((overlay, index) => {
 			const oldOverlay = oldVMixState.reportedState.overlays[index]
-			if (oldOverlay == null || oldOverlay?.input !== overlay.input) {
+			if (overlay != null && (oldOverlay == null || oldOverlay?.input !== overlay.input)) {
 				if (overlay.input === undefined) {
 					commands.push({
 						command: {
@@ -863,6 +863,7 @@ export class VMixStateDiffer {
 	 */
 	private _isInUse(state: VMixStateExtended, input: VMixInput): boolean {
 		for (const mix of state.reportedState.mixes) {
+			if (mix == null) continue
 			if (mix.program === input.number || mix.program === input.name) {
 				// The input is in program in some mix, so stop the search and return true.
 				return true
@@ -886,6 +887,7 @@ export class VMixStateDiffer {
 		}
 
 		for (const overlay of state.reportedState.overlays) {
+			if (overlay == null) continue
 			if (overlay.input === input.name || overlay.input === input.number) {
 				// Input is in program as an overlay (DSK),
 				// so stop the search and return true.
@@ -894,7 +896,8 @@ export class VMixStateDiffer {
 		}
 
 		for (const output of Object.values<VMixOutput | undefined>({ ...state.outputs })) {
-			if (output != null && (output.input === input.name || output.input === input.number)) {
+			if (output == null) continue
+			if (output.input === input.name || output.input === input.number) {
 				// Input might not technically be in PGM, but it's being used by an output,
 				// so stop the search and return true.
 				return true

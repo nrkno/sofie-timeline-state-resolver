@@ -75,7 +75,8 @@ export class VMixTimelineStateConverter {
 					case MappingVmixType.Preview:
 						if (content.type === TimelineContentTypeVMix.PREVIEW) {
 							const mixPreview = (mapping.options.index || 1) - 1
-							if (content.input) deviceState.reportedState.mixes[mixPreview].preview = content.input
+							const mixState = deviceState.reportedState.mixes[mixPreview]
+							if (mixState != null && content.input != null) mixState.preview = content.input
 						}
 						break
 					case MappingVmixType.AudioChannel:
@@ -155,7 +156,10 @@ export class VMixTimelineStateConverter {
 					case MappingVmixType.Overlay:
 						if (content.type === TimelineContentTypeVMix.OVERLAY) {
 							const overlayIndex = mapping.options.index - 1
-							deviceState.reportedState.overlays[overlayIndex].input = content.input
+							const overlayState = deviceState.reportedState.overlays[overlayIndex]
+							if (overlayState != null) {
+								overlayState.input = content.input
+							}
 						}
 						break
 					case MappingVmixType.Script:
@@ -222,6 +226,7 @@ export class VMixTimelineStateConverter {
 		layerToProgram = false
 	) {
 		const mixState = deviceState.reportedState.mixes[mix]
+		if (mixState == null) return
 		if (
 			mixState.program === undefined ||
 			mixState.program !== input // mixing numeric and string input names can be dangerous
