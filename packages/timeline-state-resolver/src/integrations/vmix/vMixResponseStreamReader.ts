@@ -30,18 +30,13 @@ export class VMixResponseStreamReader extends EventEmitter<ResponseStreamReaderE
 		const string = this._lineRemainder + data.toString('utf-8')
 		this._lineRemainder = ''
 		const lines = string.split('\r\n')
+		const lastChunk = lines.pop()
 
-		if (lines[lines.length - 1] === '') {
-			// the data ends with a newline
-			this._unprocessedLines.push(...lines)
-		} else {
-			const incompleteLine = lines.pop()
-			this._unprocessedLines.push(...lines)
-			// we need to keep the remaining incomplete line
-			if (incompleteLine != null) {
-				this._lineRemainder = incompleteLine
-			}
+		if (lastChunk != null && lastChunk !== '') {
+			// Incomplete line found at the end - keep it
+			this._lineRemainder = lastChunk
 		}
+		this._unprocessedLines.push(...lines)
 
 		let lineToProcess: string | undefined
 
