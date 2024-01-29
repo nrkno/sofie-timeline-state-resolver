@@ -99,6 +99,6 @@ export class VMixResponseStreamReader extends EventEmitter<ResponseStreamReaderE
 			responseLen -= line.length + 2
 		}
 		this._unprocessedLines.splice(0, processedLines.length)
-		return processedLines.join('')
+		return processedLines.join('\r\n')
 	}
 }
