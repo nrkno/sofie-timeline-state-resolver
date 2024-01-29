@@ -2,7 +2,7 @@ import * as _ from 'underscore'
 import { DeviceWithState, CommandWithContext, DeviceStatus, StatusCode } from './../../devices/device'
 import { DoOnTime, SendMode } from '../../devices/doOnTime'
 
-import { Response, VMixConnection } from './connection'
+import { VMixConnection } from './connection'
 import {
 	DeviceType,
 	DeviceOptionsVMix,
@@ -23,6 +23,7 @@ import { MappingsVmix, VMixTimelineStateConverter } from './vMixTimelineStateCon
 import { VMixXmlStateParser } from './vMixXmlStateParser'
 import { VMixPollingTimer } from './vMixPollingTimer'
 import { VMixStateSynchronizer } from './vMixStateSynchronizer'
+import { Response } from './vMixResponseStreamReader'
 
 /**
  * Default time, in milliseconds, for when we should poll vMix to query its actual state.

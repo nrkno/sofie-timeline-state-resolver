@@ -229,6 +229,37 @@ describe('VMixResponseStreamReader', () => {
 		)
 	})
 
+	it('processes combined messages with data', async () => {
+		const reader = new VMixResponseStreamReader()
+
+		const onMessage = jest.fn()
+		reader.on('response', onMessage)
+
+		const xmlString =
+			'<vmix><version>27.0.0.49</version><edition>HD</edition><preset>C:\\preset.vmix</preset><inputs><inputs></vmix>'
+		const xmlString2 = '<vmix><version>25.0.0.1</version><edition>4K</edition><inputs><inputs></vmix>'
+
+		reader.processIncomingData(Buffer.from(makeXmlMessage(xmlString) + makeXmlMessage(xmlString2)))
+
+		expect(onMessage).toHaveBeenCalledTimes(2)
+		expect(onMessage).toHaveBeenNthCalledWith(
+			1,
+			expect.objectContaining({
+				command: 'XML',
+				response: 'OK',
+				body: xmlString,
+			})
+		)
+		expect(onMessage).toHaveBeenNthCalledWith(
+			2,
+			expect.objectContaining({
+				command: 'XML',
+				response: 'OK',
+				body: xmlString2,
+			})
+		)
+	})
+
 	it('catches errors thrown in response handler', async () => {
 		const reader = new VMixResponseStreamReader()
 
@@ -266,19 +297,20 @@ describe('VMixResponseStreamReader', () => {
 function makeXmlMessage(xmlString: string): string {
 	return `XML ${xmlString.length + 2}\r\n${xmlString}\r\n`
 }
+
 function splitAtIndices(text: string, indices: number[]) {
 	const result: string[] = []
 	let lastIndex = 0
 
 	indices.forEach((index) => {
 		if (index > lastIndex && index < text.length) {
-			result.push(text.substring(lastIndex, index).trim())
+			result.push(text.substring(lastIndex, index))
 			lastIndex = index
 		}
 	})
 
 	if (lastIndex < text.length) {
-		result.push(text.substring(lastIndex).trim())
+		result.push(text.substring(lastIndex))
 	}
 
 	return result

@@ -29,77 +29,76 @@ export class VMixResponseStreamReader extends EventEmitter<ResponseStreamReaderE
 	processIncomingData(data: Buffer) {
 		const string = this._lineRemainder + data.toString('utf-8')
 		this._lineRemainder = ''
-		const newLines = string.split('\r\n')
+		const lines = string.split('\r\n')
 
-		if (newLines[newLines.length - 1] === '') {
-			// we're lucky and the data ends with a newline
-			this._unprocessedLines.push(...newLines)
+		if (lines[lines.length - 1] === '') {
+			// the data ends with a newline
+			this._unprocessedLines.push(...lines)
 		} else {
-			const incompleteLine = newLines.pop()
-			this._unprocessedLines.push(...newLines)
+			const incompleteLine = lines.pop()
+			this._unprocessedLines.push(...lines)
 			// we need to keep the remaining incomplete line
 			if (incompleteLine != null) {
-				this._lineRemainder += incompleteLine
+				this._lineRemainder = incompleteLine
 			}
 		}
 
-		lineProcessing: while (this._unprocessedLines.length > 0) {
-			const firstLine = this._unprocessedLines[0]
-			const result = RESPONSE_REGEX.exec(firstLine)
-			let processedLines = 0
+		let lineToProcess: string | undefined
+
+		while ((lineToProcess = this._unprocessedLines.shift()) != null) {
+			const result = RESPONSE_REGEX.exec(lineToProcess)
 
 			if (result && result.groups?.['response']) {
+				const responseLen = parseInt(result?.groups?.['response'])
+
 				// create a response object
-				// Add 2 to account for the space between `command` and `response` as well as the newline after `response`.
-				const responseHeaderLength = result.groups?.['command'].length + result.groups?.['response'].length + 2
-				if (Number.isNaN(responseHeaderLength)) {
-					break lineProcessing
-				}
-				const responseLen = parseInt(result?.groups?.['response']) - responseHeaderLength
 				const response: Response = {
 					command: result.groups?.['command'],
 					response: (Number.isNaN(responseLen) ? result.groups?.['response'] : 'OK') as Response['response'],
 					message: result.groups?.['responseMsg'],
 					body: undefined as undefined | string,
 				}
-				processedLines++
 
 				// parse payload data if there is any
 				if (!Number.isNaN(responseLen)) {
-					let len = responseLen
-					const lines: string[] = []
-
-					while (len > 0) {
-						const l = this._unprocessedLines[lines.length + 1] // offset of 1 because first line is not data
-						if (l === undefined) {
-							// we have not received all the data from server, break line processing and wait for more data
-							break lineProcessing
-						}
-
-						len -= l.length + 2
-						lines.push(l)
+					const payloadData = this.processPayloadData(responseLen)
+					if (payloadData == null) {
+						this._unprocessedLines.unshift(lineToProcess)
+						break
+					} else {
+						response.body = payloadData
 					}
-					response.body = lines.join('')
-					processedLines += lines.length
 				}
 
 				// now do something with response
 				try {
 					this.emit('response', response)
 				} catch (e) {
-					this.emit('error', e instanceof Error ? e : new Error(`Couldn't process the response: "${firstLine}"`))
+					this.emit('error', e instanceof Error ? e : new Error(`Couldn't process the response: "${lineToProcess}"`))
 				}
-			} else if (firstLine.length > 0) {
+			} else if (lineToProcess.length > 0) {
 				// there is some data, but we can't recognize it, emit an error
-				this.emit('error', new Error(`Unknown response from vMix: "${firstLine}"`))
-				processedLines++
+				this.emit('error', new Error(`Unknown response from vMix: "${lineToProcess}"`))
 			} else {
 				// empty lines we silently ignore
-				processedLines++
+			}
+		}
+	}
+
+	private processPayloadData(responseLen: number): string | null {
+		const processedLines: string[] = []
+
+		while (responseLen > 0) {
+			const line = this._unprocessedLines[processedLines.length]
+			if (line == null) {
+				// we have not received all the data from server, break line processing and wait for more data
+				return null
 			}
 
-			// remove processed lines
-			this._unprocessedLines.splice(0, processedLines)
+			processedLines.push(line)
+			responseLen -= line.length + 2
 		}
+		this._unprocessedLines.splice(0, processedLines.length)
+		return processedLines.join('')
 	}
 }
