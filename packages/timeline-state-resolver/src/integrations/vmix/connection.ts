@@ -2,9 +2,9 @@ import { EventEmitter } from 'eventemitter3'
 import { Socket } from 'net'
 import { VMixCommand } from 'timeline-state-resolver-types'
 import { VMixStateCommand } from './vMixCommands'
+import { Response, VMixResponseStreamReader } from './vMixResponseStreamReader'
 
 const VMIX_DEFAULT_TCP_PORT = 8099
-const RESPONSE_REGEX = /^(?<command>\w+)\s+(?<response>OK|ER|\d+)(\s+(?<responseMsg>.*))?/i
 
 export enum ResponseTypes {
 	Info = 'INFO',
@@ -21,13 +21,6 @@ export type ConnectionEvents = {
 	error: [error: Error]
 }
 
-export interface Response {
-	command: string
-	response: 'OK' | 'ER'
-	message: string
-	body?: string
-}
-
 /**
  * This TSR integration polls the state of vMix and merges that into our last-known state.
  * However, not all state properties can be retried from vMix's API.
@@ -38,13 +31,15 @@ export type InferredPartialInputStateKeys = 'filePath' | 'fade' | 'audioAuto' | 
 
 export class BaseConnection extends EventEmitter<ConnectionEvents> {
 	private _socket?: Socket
-	private _unprocessedLines: string[] = []
 	private _reconnectTimeout?: NodeJS.Timeout
 	private _connected = false
+	private _responseStreamReader = new VMixResponseStreamReader()
 
 	constructor(private host: string, private port = VMIX_DEFAULT_TCP_PORT, autoConnect = false) {
 		super()
 		if (autoConnect) this._setupSocket()
+		this._responseStreamReader.on('response', (response) => this.emit('data', response))
+		this._responseStreamReader.on('error', (error) => this.emit('error', error))
 	}
 
 	get connected(): boolean {
@@ -96,68 +91,6 @@ export class BaseConnection extends EventEmitter<ConnectionEvents> {
 		})
 	}
 
-	private async _processIncomingData(data: Buffer) {
-		const string = data.toString('utf-8')
-		const newLines = string.split('\r\n')
-
-		this._unprocessedLines.push(...newLines)
-
-		lineProcessing: while (this._unprocessedLines.length > 0) {
-			const firstLine = this._unprocessedLines[0]
-			const result = RESPONSE_REGEX.exec(firstLine)
-			let processedLines = 0
-
-			if (result && result.groups?.['response']) {
-				// create a response object
-				// Add 2 to account for the space between `command` and `response` as well as the newline after `response`.
-				const responseHeaderLength = result.groups?.['command'].length + result.groups?.['response'].length + 2
-				if (Number.isNaN(responseHeaderLength)) {
-					break lineProcessing
-				}
-				const responseLen = parseInt(result?.groups?.['response']) - responseHeaderLength
-				const response: Response = {
-					command: result.groups?.['command'],
-					response: (Number.isNaN(responseLen) ? result.groups?.['response'] : 'OK') as Response['response'],
-					message: result.groups?.['responseMsg'],
-					body: undefined as undefined | string,
-				}
-				processedLines++
-
-				// parse payload data if there is any
-				if (!Number.isNaN(responseLen)) {
-					let len = responseLen
-					const lines: string[] = []
-
-					while (len > 0) {
-						const l = this._unprocessedLines[lines.length + 1] // offset of 1 because first line is not data
-						if (l === undefined) {
-							// we have not received all the data from server, break line processing and wait for more data
-							break lineProcessing
-						}
-
-						len -= l.length + 2
-						lines.push(l)
-					}
-					response.body = lines.join('')
-					processedLines += lines.length
-				}
-
-				// now do something with response
-				this.emit('data', response)
-			} else if (firstLine.length > 0) {
-				// there is some data, but we can't recognize it, emit an error
-				this.emit('error', new Error(`Unknown response from vMix: "${firstLine}"`))
-				processedLines++
-			} else {
-				// empty lines we silently ignore
-				processedLines++
-			}
-
-			// remove processed lines
-			this._unprocessedLines.splice(0, processedLines)
-		}
-	}
-
 	private _triggerReconnect() {
 		if (!this._reconnectTimeout) {
 			this._reconnectTimeout = setTimeout(() => {
@@ -181,10 +114,11 @@ export class BaseConnection extends EventEmitter<ConnectionEvents> {
 		this._socket.setEncoding('utf-8')
 
 		this._socket.on('data', (data) => {
-			this._processIncomingData(data).catch((e) => this.emit('error', e))
+			this._responseStreamReader.processIncomingData(data)
 		})
 		this._socket.on('connect', () => {
 			this._setConnected(true)
+			this._responseStreamReader.reset()
 		})
 		this._socket.on('close', () => {
 			this._setConnected(false)
