@@ -44,29 +44,29 @@ export class VMixResponseStreamReader extends EventEmitter<ResponseStreamReaderE
 			const result = RESPONSE_REGEX.exec(lineToProcess)
 
 			if (result && result.groups?.['response']) {
-				const responseLen = parseInt(result?.groups?.['response'])
-
-				// create a response object
-				const response: Response = {
-					command: result.groups?.['command'],
-					response: (Number.isNaN(responseLen) ? result.groups?.['response'] : 'OK') as Response['response'],
-					message: result.groups?.['responseMsg'],
-					body: undefined as undefined | string,
-				}
-
-				// parse payload data if there is any
-				if (!Number.isNaN(responseLen)) {
-					const payloadData = this.processPayloadData(responseLen)
-					if (payloadData == null) {
-						this._unprocessedLines.unshift(lineToProcess)
-						break
-					} else {
-						response.body = payloadData
-					}
-				}
-
-				// now do something with response
 				try {
+					const responseLen = parseInt(result?.groups?.['response'])
+
+					// create a response object
+					const response: Response = {
+						command: result.groups?.['command'],
+						response: (Number.isNaN(responseLen) ? result.groups?.['response'] : 'OK') as Response['response'],
+						message: result.groups?.['responseMsg'],
+						body: undefined as undefined | string,
+					}
+
+					// parse payload data if there is any
+					if (!Number.isNaN(responseLen)) {
+						const payloadData = this.processPayloadData(responseLen)
+						if (payloadData == null) {
+							this._unprocessedLines.unshift(lineToProcess)
+							break
+						} else {
+							response.body = payloadData
+						}
+					}
+
+					// now do something with response
 					this.emit('response', response)
 				} catch (e) {
 					this.emit('error', e instanceof Error ? e : new Error(`Couldn't process the response: "${lineToProcess}"`))
