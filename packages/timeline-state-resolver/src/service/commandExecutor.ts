@@ -12,6 +12,8 @@ export class CommandExecutor<DeviceState, Command extends CommandWithContext> {
 	) {}
 
 	async executeCommands(commands: Command[], measurement?: Measurement): Promise<void> {
+		if (commands.length === 0) return
+
 		commands.sort((a, b) => (b.preliminary ?? 0) - (a.preliminary ?? 0))
 		const totalTime = commands[0].preliminary ?? 0
 
