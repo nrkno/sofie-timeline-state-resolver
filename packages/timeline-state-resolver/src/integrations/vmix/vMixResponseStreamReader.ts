@@ -59,6 +59,7 @@ export class VMixResponseStreamReader extends EventEmitter<ResponseStreamReaderE
 					if (!Number.isNaN(responseLen)) {
 						const payloadData = this.processPayloadData(responseLen)
 						if (payloadData == null) {
+							// put the command back as we haven't received enough data
 							this._unprocessedLines.unshift(lineToProcess)
 							break
 						} else {
