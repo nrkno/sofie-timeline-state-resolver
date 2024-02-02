@@ -3,6 +3,37 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [9.0.0-release50.8](https://github.com/nrkno/sofie-timeline-state-resolver/compare/8.1.4...9.0.0-release50.8) (2024-02-02)
+
+## [9.0.0-release50.7](https://github.com/nrkno/sofie-timeline-state-resolver/compare/8.1.0...9.0.0-release50.7) (2023-11-17)
+
+### Features
+
+- **quick-tsr:** add command report and debug logging ([f693569](https://github.com/nrkno/sofie-timeline-state-resolver/commit/f693569601136d27c5fadb29b95787ef18c607ab))
+
+### Bug Fixes
+
+- **quick-tsr:** status logging ([634acb1](https://github.com/nrkno/sofie-timeline-state-resolver/commit/634acb123ec9f215a398fd127e6542d5f44e92cd))
+
+## [9.0.0-release50.6](https://github.com/nrkno/sofie-timeline-state-resolver/compare/9.0.0-release50.5...9.0.0-release50.6) (2023-08-25)
+
+## [9.0.0-release50.5](https://github.com/nrkno/sofie-timeline-state-resolver/compare/9.0.0-release50.4...9.0.0-release50.5) (2023-07-03)
+
+## [9.0.0-release50.4](https://github.com/nrkno/sofie-timeline-state-resolver/compare/9.0.0-release50.3...9.0.0-release50.4) (2023-07-03)
+
+## [9.0.0-release50.3](https://github.com/nrkno/sofie-timeline-state-resolver/compare/9.0.0-release50.2...9.0.0-release50.3) (2023-07-03)
+
+## [9.0.0-release50.2](https://github.com/nrkno/sofie-timeline-state-resolver/compare/9.0.0-release50.1...9.0.0-release50.2) (2023-07-03)
+
+## [9.0.0-release50.1](https://github.com/nrkno/sofie-timeline-state-resolver/compare/9.0.0-release50.0...9.0.0-release50.1) (2023-07-03)
+
+## [9.0.0-release50.0](https://github.com/nrkno/sofie-timeline-state-resolver/compare/3.5.1...9.0.0-release50.0) (2023-07-03)
+
+### Bug Fixes
+
+- add ci for quick-tsr ([9f2c3d1](https://github.com/nrkno/sofie-timeline-state-resolver/commit/9f2c3d1f6606af55228d96be5a064b585e6f8287))
+- quick-tsr typing errors ([#267](https://github.com/nrkno/sofie-timeline-state-resolver/issues/267)) ([95b2eae](https://github.com/nrkno/sofie-timeline-state-resolver/commit/95b2eae93450db5f6f4d9f26c96380fa56b08a03))
+
 ## [8.1.4](https://github.com/nrkno/sofie-timeline-state-resolver/compare/8.1.3...8.1.4) (2024-01-18)
 
 **Note:** Version bump only for package quick-tsr
