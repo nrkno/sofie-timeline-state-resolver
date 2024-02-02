@@ -3,6 +3,8 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [9.0.0-release50.8](https://github.com/nrkno/sofie-timeline-state-resolver/compare/8.1.4...9.0.0-release50.8) (2024-02-02)
+
 ## [9.0.0-release50.7](https://github.com/nrkno/sofie-timeline-state-resolver/compare/8.1.0...9.0.0-release50.7) (2023-11-17)
 
 ### Features
@@ -25,14 +27,16 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
 
 ## [9.0.0-release50.1](https://github.com/nrkno/sofie-timeline-state-resolver/compare/9.0.0-release50.0...9.0.0-release50.1) (2023-07-03)
 
-## [9.0.0-release50.0](https://github.com/nrkno/sofie-timeline-state-resolver/compare/8.0.0-release49.0...9.0.0-release50.0) (2023-07-03)
+## [9.0.0-release50.0](https://github.com/nrkno/sofie-timeline-state-resolver/compare/3.5.1...9.0.0-release50.0) (2023-07-03)
 
 ### Bug Fixes
 
 - add ci for quick-tsr ([9f2c3d1](https://github.com/nrkno/sofie-timeline-state-resolver/commit/9f2c3d1f6606af55228d96be5a064b585e6f8287))
 - quick-tsr typing errors ([#267](https://github.com/nrkno/sofie-timeline-state-resolver/issues/267)) ([95b2eae](https://github.com/nrkno/sofie-timeline-state-resolver/commit/95b2eae93450db5f6f4d9f26c96380fa56b08a03))
 
-## [9.0.0-release50.6](https://github.com/nrkno/sofie-timeline-state-resolver/compare/9.0.0-release50.5...9.0.0-release50.6) (2023-08-25)
+## [8.1.4](https://github.com/nrkno/sofie-timeline-state-resolver/compare/8.1.3...8.1.4) (2024-01-18)
+
+**Note:** Version bump only for package quick-tsr
 
 ## [8.1.3](https://github.com/nrkno/sofie-timeline-state-resolver/compare/8.1.2...8.1.3) (2024-01-02)
 

@@ -2,7 +2,8 @@ import * as path from 'path'
 import { EventEmitter } from 'eventemitter3'
 
 import { VMixCommand } from 'timeline-state-resolver-types'
-import { CommandContext, VMixStateCommandWithContext } from '.'
+import { TSR_INPUT_PREFIX } from './vMixStateDiffer'
+import { CommandContext, VMixStateCommandWithContext } from './vMixCommands'
 /**
  * Handles pre-loading of inputs.
  */
@@ -94,10 +95,11 @@ export class VMixInputHandler extends EventEmitter {
 				continue // don't update nextTimeout
 			} else {
 				if (!input.addedCommandSent) {
+					const actualName = key.substring(TSR_INPUT_PREFIX.length)
 					commands.push({
 						command: {
 							command: VMixCommand.ADD_INPUT,
-							value: `${input.type}|${input.name}`,
+							value: `${input.type}|${actualName}`,
 						},
 						context: CommandContext.None,
 						timelineId: '',
@@ -105,8 +107,8 @@ export class VMixInputHandler extends EventEmitter {
 					commands.push({
 						command: {
 							command: VMixCommand.SET_INPUT_NAME,
-							input: this.getFilename(input.name),
-							value: input.name,
+							input: this.getFilename(actualName),
+							value: key,
 						},
 						context: CommandContext.None,
 						timelineId: '',

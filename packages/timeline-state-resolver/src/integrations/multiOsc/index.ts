@@ -176,7 +176,7 @@ export class MultiOSCMessageDevice extends DeviceWithState<OSCDeviceState, Devic
 
 		_.each(state.layers, (layer) => {
 			const mapping = mappings[layer.layer] as Mapping<SomeMappingMultiOsc> | undefined
-			if (!mapping) return
+			if (!mapping || !addrToOSCMessage[mapping.options.connectionId]) return
 
 			if (layer.content.deviceType === DeviceType.OSC) {
 				const content: OSCDeviceStateContent = {
@@ -237,7 +237,7 @@ export class MultiOSCMessageDevice extends DeviceWithState<OSCDeviceState, Devic
 
 		for (const connectionId of Object.keys(this._connections)) {
 			_.each(newOscSendState[connectionId], (newCommandContent: OSCDeviceStateContent, address: string) => {
-				const oldLayer = oldOscSendState[connectionId][address]
+				const oldLayer = oldOscSendState[connectionId]?.[address]
 				if (!oldLayer) {
 					// added!
 					commands.push({
@@ -263,7 +263,7 @@ export class MultiOSCMessageDevice extends DeviceWithState<OSCDeviceState, Devic
 			})
 			// removed
 			_.each(oldOscSendState[connectionId], (oldCommandContent: OSCDeviceStateContent, address) => {
-				const newLayer = newOscSendState[connectionId][address]
+				const newLayer = newOscSendState[connectionId]?.[address]
 				if (!newLayer) {
 					// removed!
 					commands.push({

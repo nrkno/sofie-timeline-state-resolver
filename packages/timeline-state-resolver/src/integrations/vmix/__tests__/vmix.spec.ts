@@ -24,9 +24,11 @@ import {
 	MappingVmixProgram,
 } from 'timeline-state-resolver-types'
 import { ThreadedClass } from 'threadedclass'
-import { VMixDevice, CommandContext } from '..'
+import { VMixDevice } from '..'
 import { MockTime } from '../../../__tests__/mockTime'
 import '../../../__tests__/lib'
+import { CommandContext } from '../vMixCommands'
+import { prefixAddedInput } from './mockState'
 
 const orgSetTimeout = setTimeout
 
@@ -164,7 +166,7 @@ describe('vMix', () => {
 				command: {
 					command: VMixCommand.SET_INPUT_NAME,
 					input: 'My Clip.mp4',
-					value: 'C:/videos/My Clip.mp4',
+					value: prefixAddedInput('C:/videos/My Clip.mp4'),
 				},
 			}),
 			CommandContext.None,
@@ -181,7 +183,7 @@ describe('vMix', () => {
 		expect(onFunction).toHaveBeenNthCalledWith(
 			2,
 			'SetInputName',
-			expect.stringContaining('Input=My Clip.mp4&Value=C:/videos/My Clip.mp4')
+			expect.stringContaining('Input=My Clip.mp4&Value=' + prefixAddedInput('C:/videos/My Clip.mp4'))
 		)
 
 		clearMocks()
@@ -197,7 +199,7 @@ describe('vMix', () => {
 			expect.objectContaining({
 				command: {
 					command: VMixCommand.PLAY_INPUT,
-					input: 'C:/videos/My Clip.mp4',
+					input: prefixAddedInput('C:/videos/My Clip.mp4'),
 				},
 			}),
 			CommandContext.None,
@@ -205,7 +207,11 @@ describe('vMix', () => {
 		)
 
 		expect(onFunction).toHaveBeenCalledTimes(1)
-		expect(onFunction).toHaveBeenNthCalledWith(1, 'Play', expect.stringContaining('Input=C:/videos/My Clip.mp4'))
+		expect(onFunction).toHaveBeenNthCalledWith(
+			1,
+			'Play',
+			expect.stringContaining('Input=' + prefixAddedInput('C:/videos/My Clip.mp4'))
+		)
 
 		clearMocks()
 		commandReceiver0.mockClear()
@@ -219,7 +225,7 @@ describe('vMix', () => {
 			expect.objectContaining({
 				command: {
 					command: VMixCommand.REMOVE_INPUT,
-					input: 'C:/videos/My Clip.mp4',
+					input: prefixAddedInput('C:/videos/My Clip.mp4'),
 				},
 			}),
 			CommandContext.None,
@@ -227,7 +233,11 @@ describe('vMix', () => {
 		)
 
 		expect(onFunction).toHaveBeenCalledTimes(1)
-		expect(onFunction).toHaveBeenNthCalledWith(1, 'RemoveInput', expect.stringContaining('Input=C:/videos/My Clip.mp4'))
+		expect(onFunction).toHaveBeenNthCalledWith(
+			1,
+			'RemoveInput',
+			expect.stringContaining('Input=' + prefixAddedInput('C:/videos/My Clip.mp4'))
+		)
 
 		await myConductor.destroy()
 
@@ -332,7 +342,7 @@ describe('vMix', () => {
 			expect.objectContaining({
 				command: {
 					command: VMixCommand.ADD_INPUT,
-					value: 'Video|C:/videos/My Clip.mp4',
+					value: `Video|C:/videos/My Clip.mp4`,
 				},
 			}),
 			CommandContext.None,
@@ -345,7 +355,7 @@ describe('vMix', () => {
 				command: {
 					command: VMixCommand.SET_INPUT_NAME,
 					input: 'My Clip.mp4',
-					value: 'C:/videos/My Clip.mp4',
+					value: prefixAddedInput('C:/videos/My Clip.mp4'),
 				},
 			}),
 			CommandContext.None,
@@ -362,7 +372,7 @@ describe('vMix', () => {
 		expect(onFunction).toHaveBeenNthCalledWith(
 			2,
 			'SetInputName',
-			expect.stringContaining('Input=My Clip.mp4&Value=C:/videos/My Clip.mp4')
+			expect.stringContaining('Input=My Clip.mp4&Value=' + prefixAddedInput('C:/videos/My Clip.mp4'))
 		)
 
 		clearMocks()
@@ -378,7 +388,7 @@ describe('vMix', () => {
 			expect.objectContaining({
 				command: {
 					command: VMixCommand.SET_POSITION,
-					input: 'C:/videos/My Clip.mp4',
+					input: prefixAddedInput('C:/videos/My Clip.mp4'),
 					value: 10000,
 				},
 			}),
@@ -391,7 +401,7 @@ describe('vMix', () => {
 			expect.objectContaining({
 				command: {
 					command: VMixCommand.LOOP_ON,
-					input: 'C:/videos/My Clip.mp4',
+					input: prefixAddedInput('C:/videos/My Clip.mp4'),
 				},
 			}),
 			CommandContext.None,
@@ -403,7 +413,7 @@ describe('vMix', () => {
 			expect.objectContaining({
 				command: {
 					command: VMixCommand.SET_ZOOM,
-					input: 'C:/videos/My Clip.mp4',
+					input: prefixAddedInput('C:/videos/My Clip.mp4'),
 					value: 0.5,
 				},
 			}),
@@ -416,7 +426,7 @@ describe('vMix', () => {
 			expect.objectContaining({
 				command: {
 					command: VMixCommand.SET_ALPHA,
-					input: 'C:/videos/My Clip.mp4',
+					input: prefixAddedInput('C:/videos/My Clip.mp4'),
 					value: 123,
 				},
 			}),
@@ -429,7 +439,7 @@ describe('vMix', () => {
 			expect.objectContaining({
 				command: {
 					command: VMixCommand.SET_PAN_X,
-					input: 'C:/videos/My Clip.mp4',
+					input: prefixAddedInput('C:/videos/My Clip.mp4'),
 					value: 0.3,
 				},
 			}),
@@ -442,7 +452,7 @@ describe('vMix', () => {
 			expect.objectContaining({
 				command: {
 					command: VMixCommand.SET_PAN_Y,
-					input: 'C:/videos/My Clip.mp4',
+					input: prefixAddedInput('C:/videos/My Clip.mp4'),
 					value: 1.2,
 				},
 			}),
@@ -455,7 +465,7 @@ describe('vMix', () => {
 			expect.objectContaining({
 				command: {
 					command: VMixCommand.SET_INPUT_OVERLAY,
-					input: 'C:/videos/My Clip.mp4',
+					input: prefixAddedInput('C:/videos/My Clip.mp4'),
 					index: 1,
 					value: 'G:/videos/My Other Clip.mp4',
 				},
@@ -469,7 +479,7 @@ describe('vMix', () => {
 			expect.objectContaining({
 				command: {
 					command: VMixCommand.SET_INPUT_OVERLAY,
-					input: 'C:/videos/My Clip.mp4',
+					input: prefixAddedInput('C:/videos/My Clip.mp4'),
 					index: 3,
 					value: 5,
 				},
@@ -483,7 +493,7 @@ describe('vMix', () => {
 			expect.objectContaining({
 				command: {
 					command: VMixCommand.PLAY_INPUT,
-					input: 'C:/videos/My Clip.mp4',
+					input: prefixAddedInput('C:/videos/My Clip.mp4'),
 				},
 			}),
 			CommandContext.None,
@@ -495,40 +505,50 @@ describe('vMix', () => {
 		expect(onFunction).toHaveBeenNthCalledWith(
 			1,
 			'SetPosition',
-			expect.stringContaining('Input=C:/videos/My Clip.mp4&Value=10000')
+			expect.stringContaining('Input=' + prefixAddedInput('C:/videos/My Clip.mp4') + '&Value=10000')
 		)
-		expect(onFunction).toHaveBeenNthCalledWith(2, 'LoopOn', expect.stringContaining('Input=C:/videos/My Clip.mp4'))
+		expect(onFunction).toHaveBeenNthCalledWith(
+			2,
+			'LoopOn',
+			expect.stringContaining('Input=' + prefixAddedInput('C:/videos/My Clip.mp4'))
+		)
 		expect(onFunction).toHaveBeenNthCalledWith(
 			3,
 			'SetZoom',
-			expect.stringContaining('Input=C:/videos/My Clip.mp4&Value=0.5')
+			expect.stringContaining('Input=' + prefixAddedInput('C:/videos/My Clip.mp4') + '&Value=0.5')
 		)
 		expect(onFunction).toHaveBeenNthCalledWith(
 			4,
 			'SetAlpha',
-			expect.stringContaining('Input=C:/videos/My Clip.mp4&Value=123')
+			expect.stringContaining('Input=' + prefixAddedInput('C:/videos/My Clip.mp4') + '&Value=123')
 		)
 		expect(onFunction).toHaveBeenNthCalledWith(
 			5,
 			'SetPanX',
-			expect.stringContaining('Input=C:/videos/My Clip.mp4&Value=0.3')
+			expect.stringContaining('Input=' + prefixAddedInput('C:/videos/My Clip.mp4') + '&Value=0.3')
 		)
 		expect(onFunction).toHaveBeenNthCalledWith(
 			6,
 			'SetPanY',
-			expect.stringContaining('Input=C:/videos/My Clip.mp4&Value=1.2')
+			expect.stringContaining('Input=' + prefixAddedInput('C:/videos/My Clip.mp4') + '&Value=1.2')
 		)
 		expect(onFunction).toHaveBeenNthCalledWith(
 			7,
 			'SetMultiViewOverlay',
-			expect.stringContaining('Input=C:/videos/My Clip.mp4&Value=1,G:/videos/My Other Clip.mp4')
+			expect.stringContaining(
+				'Input=' + prefixAddedInput('C:/videos/My Clip.mp4') + '&Value=1,G:/videos/My Other Clip.mp4'
+			)
 		)
 		expect(onFunction).toHaveBeenNthCalledWith(
 			8,
 			'SetMultiViewOverlay',
-			expect.stringContaining('Input=C:/videos/My Clip.mp4&Value=3,5')
+			expect.stringContaining('Input=' + prefixAddedInput('C:/videos/My Clip.mp4') + '&Value=3,5')
 		)
-		expect(onFunction).toHaveBeenNthCalledWith(9, 'Play', expect.stringContaining('Input=C:/videos/My Clip.mp4'))
+		expect(onFunction).toHaveBeenNthCalledWith(
+			9,
+			'Play',
+			expect.stringContaining('Input=' + prefixAddedInput('C:/videos/My Clip.mp4'))
+		)
 
 		await myConductor.destroy()
 
@@ -917,7 +937,7 @@ describe('vMix', () => {
 				command: {
 					command: VMixCommand.SET_INPUT_NAME,
 					input: 'My Clip.mp4',
-					value: 'C:/videos/My Clip.mp4',
+					value: prefixAddedInput('C:/videos/My Clip.mp4'),
 				},
 			}),
 			CommandContext.None,
@@ -934,7 +954,7 @@ describe('vMix', () => {
 		expect(onFunction).toHaveBeenNthCalledWith(
 			2,
 			'SetInputName',
-			expect.stringContaining('Input=My Clip.mp4&Value=C:/videos/My Clip.mp4')
+			expect.stringContaining('Input=My Clip.mp4&Value=' + prefixAddedInput('C:/videos/My Clip.mp4'))
 		)
 
 		clearMocks()
@@ -950,7 +970,7 @@ describe('vMix', () => {
 			expect.objectContaining({
 				command: {
 					command: VMixCommand.TRANSITION,
-					input: 'C:/videos/My Clip.mp4',
+					input: prefixAddedInput('C:/videos/My Clip.mp4'),
 					duration: 0,
 					effect: VMixTransitionType.Cut,
 					mix: 0,
@@ -965,7 +985,7 @@ describe('vMix', () => {
 			expect.objectContaining({
 				command: {
 					command: VMixCommand.AUDIO_VOLUME,
-					input: 'C:/videos/My Clip.mp4',
+					input: prefixAddedInput('C:/videos/My Clip.mp4'),
 					value: 25,
 					fade: 0,
 				},
@@ -979,12 +999,12 @@ describe('vMix', () => {
 		expect(onFunction).toHaveBeenNthCalledWith(
 			1,
 			'Cut',
-			expect.stringContaining('Input=C:/videos/My Clip.mp4&Duration=0&Mix=0')
+			expect.stringContaining('Input=' + prefixAddedInput('C:/videos/My Clip.mp4') + '&Duration=0&Mix=0')
 		)
 		expect(onFunction).toHaveBeenNthCalledWith(
 			2,
 			'SetVolume',
-			expect.stringContaining('Input=C:/videos/My Clip.mp4&Value=25')
+			expect.stringContaining('Input=' + prefixAddedInput('C:/videos/My Clip.mp4') + '&Value=25')
 		)
 
 		clearMocks()
@@ -1013,7 +1033,7 @@ describe('vMix', () => {
 				command: {
 					command: VMixCommand.SET_INPUT_NAME,
 					input: 'My Other Clip.mp4',
-					value: 'G:/videos/My Other Clip.mp4',
+					value: prefixAddedInput('G:/videos/My Other Clip.mp4'),
 				},
 			}),
 			CommandContext.None,
@@ -1025,7 +1045,7 @@ describe('vMix', () => {
 			expect.objectContaining({
 				command: {
 					command: VMixCommand.TRANSITION,
-					input: 'G:/videos/My Other Clip.mp4',
+					input: prefixAddedInput('G:/videos/My Other Clip.mp4'),
 					duration: 0,
 					effect: VMixTransitionType.Cut,
 					mix: 0,
@@ -1040,7 +1060,7 @@ describe('vMix', () => {
 			expect.objectContaining({
 				command: {
 					command: VMixCommand.AUDIO_VOLUME,
-					input: 'G:/videos/My Other Clip.mp4',
+					input: prefixAddedInput('G:/videos/My Other Clip.mp4'),
 					value: 25,
 					fade: 0,
 				},
@@ -1054,7 +1074,7 @@ describe('vMix', () => {
 			expect.objectContaining({
 				command: {
 					command: VMixCommand.REMOVE_INPUT,
-					input: 'C:/videos/My Clip.mp4',
+					input: prefixAddedInput('C:/videos/My Clip.mp4'),
 				},
 			}),
 			CommandContext.None,
@@ -1071,19 +1091,23 @@ describe('vMix', () => {
 		expect(onFunction).toHaveBeenNthCalledWith(
 			2,
 			'SetInputName',
-			expect.stringContaining('Input=My Other Clip.mp4&Value=G:/videos/My Other Clip.mp4')
+			expect.stringContaining('Input=My Other Clip.mp4&Value=' + prefixAddedInput('G:/videos/My Other Clip.mp4'))
 		)
 		expect(onFunction).toHaveBeenNthCalledWith(
 			3,
 			'Cut',
-			expect.stringContaining('Input=G:/videos/My Other Clip.mp4&Duration=0&Mix=0')
+			expect.stringContaining('Input=' + prefixAddedInput('G:/videos/My Other Clip.mp4') + '&Duration=0&Mix=0')
 		)
 		expect(onFunction).toHaveBeenNthCalledWith(
 			4,
 			'SetVolume',
-			expect.stringContaining('Input=G:/videos/My Other Clip.mp4&Value=25')
+			expect.stringContaining('Input=' + prefixAddedInput('G:/videos/My Other Clip.mp4') + '&Value=25')
 		)
-		expect(onFunction).toHaveBeenNthCalledWith(5, 'RemoveInput', expect.stringContaining('Input=C:/videos/My Clip.mp4'))
+		expect(onFunction).toHaveBeenNthCalledWith(
+			5,
+			'RemoveInput',
+			expect.stringContaining('Input=' + prefixAddedInput('C:/videos/My Clip.mp4'))
+		)
 
 		await myConductor.destroy()
 
