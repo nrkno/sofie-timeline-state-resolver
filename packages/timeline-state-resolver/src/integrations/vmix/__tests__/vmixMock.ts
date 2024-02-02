@@ -46,7 +46,7 @@ ${inputs?.join('\r\n') ?? defaultInputs}\r\n
 <audio>
 <master volume="100" muted="False" meterF1="0.04211706" meterF2="0.04211706" headphonesVolume="74.80521"/>
 </audio>
-</vmix>`
+</vmix>\r\n`
 }
 
 export function setupVmixMock() {
