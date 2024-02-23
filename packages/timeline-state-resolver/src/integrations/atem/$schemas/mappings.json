@@ -128,6 +128,21 @@
 			},
 			"required": ["index"],
 			"additionalProperties": false
+		},
+		"colorGenerator": {
+			"type": "object",
+			"properties": {
+				"index": {
+					"type": "integer",
+					"ui:title": "Index",
+					"ui:summaryTitle": "Color Generator",
+					"default": 0,
+					"min": 0,
+					"ui:zeroBased": true
+				}
+			},
+			"required": ["index"],
+			"additionalProperties": false
 		}
 	}
 }

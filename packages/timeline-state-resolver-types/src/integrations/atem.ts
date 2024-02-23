@@ -10,6 +10,7 @@ export enum TimelineContentTypeAtem { //  Atem-state
 	AUDIOCHANNEL = 'audioChan',
 	MACROPLAYER = 'macroPlayer',
 	AUDIOROUTING = 'audioRouting',
+	COLORGENERATOR = 'colorGenerator',
 }
 
 export enum AtemTransitionStyle { // Note: copied from atem-state
@@ -112,6 +113,7 @@ export type TimelineContentAtemAny =
 	| TimelineContentAtemAudioChannel
 	| TimelineContentAtemMediaPlayer
 	| TimelineContentAtemAudioRouting
+	| TimelineContentAtemColorGenerator
 
 export interface TimelineContentAtemBase {
 	deviceType: DeviceType.ATEM
@@ -412,5 +414,15 @@ export interface TimelineContentAtemAudioRouting extends TimelineContentAtemBase
 	type: TimelineContentTypeAtem.AUDIOROUTING
 	audioRouting: {
 		sourceId: number
+	}
+}
+
+export interface TimelineContentAtemColorGenerator extends TimelineContentAtemBase {
+	type: TimelineContentTypeAtem.COLORGENERATOR
+
+	colorGenerator: {
+		hue: number
+		saturation: number
+		luma: number
 	}
 }
