@@ -27,9 +27,11 @@ import {
 	MappingAtemDownStreamKeyer,
 	MappingAtemAudioRouting,
 	TimelineContentAtemAudioRouting,
+	MappingAtemColorGenerator,
+	TimelineContentAtemColorGenerator,
 } from 'timeline-state-resolver-types'
 import _ = require('underscore')
-import { State as DeviceState, Defaults as StateDefault } from 'atem-state'
+import { Defaults, State as DeviceState, Defaults as StateDefault } from 'atem-state'
 import { assertNever, cloneDeep, deepMerge, literal } from '../../lib'
 import { PartialDeep } from 'type-fest'
 
@@ -96,6 +98,11 @@ export class AtemStateBuilder {
 					case MappingAtemType.MacroPlayer:
 						if (content.type === TimelineContentTypeAtem.MACROPLAYER) {
 							builder._applyMacroPlayer(mapping.options, content)
+						}
+						break
+					case MappingAtemType.ColorGenerator:
+						if (content.type === TimelineContentTypeAtem.COLORGENERATOR) {
+							builder._applyColorGenerator(mapping.options, content)
 						}
 						break
 					default:
@@ -293,5 +300,14 @@ export class AtemStateBuilder {
 			this.#deviceState.macro.macroPlayer,
 			content.macroPlayer
 		)
+	}
+
+	private _applyColorGenerator(mapping: MappingAtemColorGenerator, content: TimelineContentAtemColorGenerator): void {
+		if (!this.#deviceState.colorGenerators) this.#deviceState.colorGenerators = {}
+		this.#deviceState.colorGenerators[mapping.index] = {
+			...Defaults.Color.ColorGenerator,
+			...this.#deviceState.colorGenerators[mapping.index],
+			...content.colorGenerator,
+		}
 	}
 }

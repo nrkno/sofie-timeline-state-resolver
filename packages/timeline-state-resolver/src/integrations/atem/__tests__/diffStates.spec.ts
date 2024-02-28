@@ -4,6 +4,7 @@ import {
 	AtemTransitionStyle,
 	DeviceType,
 	MappingAtemAuxilliary,
+	MappingAtemColorGenerator,
 	MappingAtemMixEffect,
 	MappingAtemType,
 	Mappings,
@@ -215,5 +216,83 @@ describe('Diff States', () => {
 
 			expectIncludesAtemCommandName(allCommands, AtemConnection.Commands.AutoTransitionCommand.name)
 		}
+	})
+
+	test('Diff color generator without mapping', async () => {
+		const device = await createDevice()
+
+		const state1 = AtemConnection.AtemStateUtil.Create()
+		state1.colorGenerators = {
+			[0]: {
+				hue: 1,
+				saturation: 2,
+				luma: 3,
+			},
+		}
+
+		const diffOptions = createDiffOptions({})
+		expect(diffOptions.colorGenerators).toStrictEqual([])
+
+		expect(diffStatesSpy).toHaveBeenCalledTimes(0)
+
+		const commands = device.diffStates(undefined, state1, {})
+
+		expect(diffStatesSpy).toHaveBeenCalledTimes(1)
+		expect(diffStatesSpy).toHaveBeenNthCalledWith(
+			1,
+			expect.anything(),
+			AtemConnection.AtemStateUtil.Create(),
+			state1,
+			diffOptions
+		)
+
+		expect(commands).toHaveLength(0)
+	})
+
+	test('Diff color generator with mapping', async () => {
+		const device = await createDevice()
+
+		const state1 = AtemConnection.AtemStateUtil.Create()
+		state1.colorGenerators = {
+			[0]: {
+				hue: 1,
+				saturation: 2,
+				luma: 3,
+			},
+		}
+
+		const mappings: Mappings<MappingAtemColorGenerator> = {
+			myAux: {
+				device: DeviceType.ATEM,
+				deviceId: '',
+				options: {
+					mappingType: MappingAtemType.ColorGenerator,
+					index: 0,
+				},
+			},
+		}
+
+		const diffOptions = createDiffOptions(mappings)
+		expect(diffOptions.colorGenerators).toStrictEqual([0])
+
+		expect(diffStatesSpy).toHaveBeenCalledTimes(0)
+
+		const commands = device.diffStates(undefined, state1, mappings)
+
+		expect(diffStatesSpy).toHaveBeenCalledTimes(1)
+		expect(diffStatesSpy).toHaveBeenNthCalledWith(
+			1,
+			expect.anything(),
+			AtemConnection.AtemStateUtil.Create(),
+			state1,
+			diffOptions
+		)
+
+		const allCommands = extractAllCommands(commands)
+		expect(allCommands).toHaveLength(1)
+
+		const expectedCommand = new AtemConnection.Commands.ColorGeneratorCommand(0)
+		expectedCommand.updateProps({ hue: 1, saturation: 2, luma: 3 })
+		compareAtemCommands(allCommands[0], expectedCommand)
 	})
 })

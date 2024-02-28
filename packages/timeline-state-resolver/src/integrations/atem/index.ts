@@ -8,6 +8,7 @@ import {
 	ActionExecutionResult,
 	ActionExecutionResultCode,
 	AtemActions,
+	SomeMappingAtem,
 } from 'timeline-state-resolver-types'
 import { AtemState, State as DeviceState } from 'atem-state'
 import {
@@ -160,7 +161,7 @@ export class AtemDevice extends Device<AtemOptions, AtemDeviceState, AtemCommand
 		// Make sure there is something to diff against
 		oldAtemState = oldAtemState ?? this._atem.state ?? AtemStateUtil.Create()
 
-		const diffOptions = createDiffOptions(mappings)
+		const diffOptions = createDiffOptions(mappings as Mappings<SomeMappingAtem>)
 		const commands = AtemState.diffStates(this._protocolVersion, oldAtemState, newAtemState, diffOptions)
 
 		if (commands.length > 0) {

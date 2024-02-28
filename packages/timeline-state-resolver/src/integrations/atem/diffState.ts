@@ -1,34 +1,26 @@
 import { Diff } from 'atem-state'
 import { DeepComplete } from 'atem-state/dist/util'
-import {
-	Mapping,
-	SomeMappingAtem,
-	MappingAtemAuxilliary,
-	MappingAtemType,
-	MappingAtemAudioChannel,
-	Mappings,
-} from 'timeline-state-resolver-types'
+import { Mapping, SomeMappingAtem, MappingAtemType, Mappings } from 'timeline-state-resolver-types'
 
 /**
   Returns an option object to be passed into AtemState.diffStates().
   Based on the mappings, these options enables/disables certain areas-of-interest in the diff atem state.
 */
-export function createDiffOptions(mappings: Mappings): DeepComplete<Diff.SectionsToDiff> {
-	// Find the auxes that have mappings
-	const auxMappings = Object.values<Mapping<unknown>>(mappings)
-		.filter(
-			(mapping): mapping is Mapping<MappingAtemAuxilliary> =>
-				(mapping as Mapping<SomeMappingAtem>).options.mappingType === MappingAtemType.Auxilliary
-		)
-		.map((mapping) => mapping.options.index)
+export function createDiffOptions(mappings: Mappings<SomeMappingAtem>): DeepComplete<Diff.SectionsToDiff> {
+	const auxMappings: number[] = []
+	const audioOutputs: number[] = []
+	const colorGenerators: number[] = []
 
-	// Find the audioOutputs that have mappings
-	const audioOutputs = Object.values<Mapping<unknown>>(mappings)
-		.filter(
-			(mapping): mapping is Mapping<MappingAtemAudioChannel> =>
-				(mapping as Mapping<SomeMappingAtem>).options.mappingType === MappingAtemType.Auxilliary
-		)
-		.map((mapping) => mapping.options.index)
+	for (const mapping of Object.values<Mapping<SomeMappingAtem>>(mappings)) {
+		if (mapping.options.mappingType === MappingAtemType.Auxilliary) {
+			auxMappings.push(mapping.options.index)
+		} else if (mapping.options.mappingType === MappingAtemType.AudioChannel) {
+			audioOutputs.push(mapping.options.index)
+		} else if (mapping.options.mappingType === MappingAtemType.ColorGenerator) {
+			colorGenerators.push(mapping.options.index)
+		}
+	}
+
 	const audioOutputsObj: DeepComplete<Record<number | 'default', Diff.DiffFairlightAudioRoutingOutput | undefined>> = {
 		default: undefined,
 	}
@@ -42,7 +34,7 @@ export function createDiffOptions(mappings: Mappings): DeepComplete<Diff.Section
 	// Manually construct the tree of what to diff, to match the previous version of atem-state.
 	// Future: this should be computed from the mappings
 	return {
-		colorGenerators: undefined,
+		colorGenerators: colorGenerators,
 		settings: {
 			multiviewer: undefined,
 		},

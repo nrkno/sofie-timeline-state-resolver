@@ -17,7 +17,7 @@ exports[`Diff States Simple diff against empty state 1`] = `
       "monitorOutput": undefined,
     },
   },
-  "colorGenerators": undefined,
+  "colorGenerators": [],
   "macros": {
     "player": {
       "player": true,

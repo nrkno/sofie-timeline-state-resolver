@@ -6,6 +6,7 @@ import {
 	MappingAtemAudioChannel,
 	MappingAtemAudioRouting,
 	MappingAtemAuxilliary,
+	MappingAtemColorGenerator,
 	MappingAtemDownStreamKeyer,
 	MappingAtemMacroPlayer,
 	MappingAtemMediaPlayer,
@@ -20,6 +21,7 @@ import {
 	TimelineContentAtemAUX,
 	TimelineContentAtemAudioChannel,
 	TimelineContentAtemAudioRouting,
+	TimelineContentAtemColorGenerator,
 	TimelineContentAtemDSK,
 	TimelineContentAtemMacroPlayer,
 	TimelineContentAtemMediaPlayer,
@@ -636,6 +638,54 @@ describe('AtemStateBuilder', () => {
 				isWaiting: false,
 				loop: true,
 				macroIndex: 4,
+			}
+
+			const deviceState1 = AtemStateBuilder.fromTimeline(mockState1, myLayerMapping)
+			expect(deviceState1).toEqual(expectedState)
+		})
+	})
+
+	describe('Color Generator', () => {
+		const myLayerMapping0: Mapping<MappingAtemColorGenerator> = {
+			device: DeviceType.ATEM,
+			deviceId: 'myAtem',
+			options: {
+				mappingType: MappingAtemType.ColorGenerator,
+				index: 0,
+			},
+		}
+		const myLayerMapping: Mappings = {
+			myLayer0: myLayerMapping0,
+		}
+
+		test('Basic', async () => {
+			const mockState1: Timeline.StateInTime<TimelineContentAtemColorGenerator> = {
+				myLayer0: makeTimelineObjectResolved<TimelineContentAtemColorGenerator>({
+					id: 'obj0',
+					enable: {
+						start: -1000, // 1 seconds ago
+						duration: 2000,
+					},
+					layer: 'myLayer0',
+					content: {
+						deviceType: DeviceType.ATEM,
+						type: TimelineContentTypeAtem.COLORGENERATOR,
+						colorGenerator: {
+							hue: 123,
+							luma: 456,
+							saturation: 789,
+						},
+					},
+				}),
+			}
+
+			const expectedState = AtemConnection.AtemStateUtil.Create()
+			expectedState.colorGenerators = {
+				[0]: {
+					hue: 123,
+					luma: 456,
+					saturation: 789,
+				},
 			}
 
 			const deviceState1 = AtemStateBuilder.fromTimeline(mockState1, myLayerMapping)
