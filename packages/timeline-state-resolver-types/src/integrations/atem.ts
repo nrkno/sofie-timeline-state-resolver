@@ -421,8 +421,11 @@ export interface TimelineContentAtemColorGenerator extends TimelineContentAtemBa
 	type: TimelineContentTypeAtem.COLORGENERATOR
 
 	colorGenerator: {
+		/** 0-3599 */
 		hue: number
+		/** 0-1000 */
 		saturation: number
+		/** 0-1000 */
 		luma: number
 	}
 }
