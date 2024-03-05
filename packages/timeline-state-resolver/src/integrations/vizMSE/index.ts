@@ -272,6 +272,10 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState, DeviceOptionsVizM
 		await this.purgeRundown(true) // note - this might not be 100% necessary
 		await this.clearEngines()
 		await this._vizmseManager?.activate(payload?.activeRundownPlaylistId)
+
+		// lastly make sure we reset so timeline state is sent again
+		this.clearStates()
+		this.emit('resetResolver')
 	}
 
 	async executeAction(actionId: string, payload?: Record<string, any> | undefined): Promise<ActionExecutionResult> {
