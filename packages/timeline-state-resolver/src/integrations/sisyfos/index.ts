@@ -229,7 +229,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 					.catch(() => ({
 						result: ActionExecutionResultCode.Error,
 					}))
-			case SisyfosActions.ReinitChannel:
+			case SisyfosActions.ReSyncChannel:
 				if (typeof _payload?.channel !== 'number') {
 					return {
 						result: ActionExecutionResultCode.Error,

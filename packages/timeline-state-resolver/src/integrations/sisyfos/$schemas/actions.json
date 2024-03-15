@@ -8,8 +8,8 @@
 			"timeout": 5000
 		},
 		{
-			"id": "reinitChannel",
-			"name": "ReinitializeChannel",
+			"id": "reSyncChannel",
+			"name": "ReSyncChannel",
 			"payload": {
 				"channel": 1
 			},
