@@ -220,6 +220,26 @@ export class SisyfosApi extends EventEmitter {
 		this._oscClient.send({ address: `/ch/${channel}/state`, args: [] })
 	}
 
+	setSisyfosChannel(channel: number, state: SisyfosState) {
+		const channelState: SisyfosChannel = state.channels[channel]
+		const apiState: SisyfosAPIChannel = {
+			faderLevel: channelState.faderLevel,
+			pgmOn: channelState.pgmOn,
+			pstOn: channelState.pstOn,
+			label: channelState.label,
+			visible: channelState.visible,
+			fadeTime: channelState.fadeTime,
+			muteOn: channelState.muteOn,
+			inputGain: channelState.inputGain,
+			inputSelector: channelState.inputSelector,
+		}
+
+		if (!this._oscClient) {
+			throw new Error(`Can't set channel, OSC client not initialised`)
+		}
+		this._oscClient.send({ address: `setChannel/${channel}`, args: JSON.stringify(apiState) })
+	}
+
 	getChannelByLabel(label: string): number | undefined {
 		return this._labelToChannel.get(label)
 	}

@@ -38,13 +38,19 @@ export interface ReSyncChannelPayload {
 	[k: string]: unknown
 }
 
+export interface SetSisyfosChannelStatePayload {
+	[k: string]: unknown
+}
+
 export enum SisyfosActions {
 	Reinit = 'reinit',
-	ReSyncChannel = 'reSyncChannel'
+	ReSyncChannel = 'reSyncChannel',
+	SetSisyfosChannelState = 'setSisyfosChannelState'
 }
 export interface SisyfosActionExecutionResults {
 	reinit: () => void,
-	reSyncChannel: (payload: ReSyncChannelPayload) => void
+	reSyncChannel: (payload: ReSyncChannelPayload) => void,
+	setSisyfosChannelState: (payload: SetSisyfosChannelStatePayload) => void
 }
 export type SisyfosActionExecutionPayload<A extends keyof SisyfosActionExecutionResults> = Parameters<
 	SisyfosActionExecutionResults[A]

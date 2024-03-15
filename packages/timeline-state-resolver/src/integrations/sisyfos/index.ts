@@ -208,13 +208,9 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 	}
 
 	private async _resyncOneChannel(channel: number): Promise<void> {
-		this._resyncing = true
-		// If state is still not reinitialised afer 5 seconds, we may have a problem.
-		setTimeout(() => (this._resyncing = false), 5000)
 		this._sisyfos.reSyncOneChannel(channel)
 		return Promise.resolve()
 	}
-
 	async executeAction<A extends SisyfosActions>(
 		actionId0: A,
 		_payload: SisyfosActionExecutionPayload<A>
@@ -242,6 +238,16 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 					.catch(() => ({
 						result: ActionExecutionResultCode.Error,
 					}))
+			case SisyfosActions.SetSisyfosChannelState:
+				if (typeof _payload?.channel !== 'number') {
+					return {
+						result: ActionExecutionResultCode.Error,
+					}
+				}
+				this._sisyfos.setSisyfosChannel(_payload.channel, this.getDeviceState())
+				return {
+					result: ActionExecutionResultCode.Ok,
+				}
 			default:
 				return actionNotFoundMessage(actionId)
 		}
@@ -305,12 +311,13 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 			timelineObjIds: [],
 		}
 	}
+
 	/**
 	 * Transform the timeline state into a device state, which is in this case also
 	 * a timeline state.
 	 * @param state
 	 */
-	convertStateToSisyfosState(state: Timeline.TimelineState<TSRTimelineContent>, mappings: Mappings) {
+	convertStateToSisyfosState(state: Timeline.TimelineState<TSRTimelineContent>, mappings: Mappings): SisyfosState {
 		const deviceState: SisyfosState = this.getDeviceState(true, mappings)
 
 		// Set labels to layer names

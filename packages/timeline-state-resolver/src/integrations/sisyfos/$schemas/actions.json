@@ -15,6 +15,15 @@
 			},
 			"destructive": false,
 			"timeout": 5000
+		},
+		{
+			"id": "setSisyfosChannelState",
+			"name": "SetSisyfosChannelState",
+			"payload": {
+				"channel": 1
+			},
+			"destructive": false,
+			"timeout": 5000
 		}
 	]
 }
