@@ -11,7 +11,14 @@
 			"id": "reSyncChannel",
 			"name": "ReSyncChannel",
 			"payload": {
-				"channel": 1
+				"type": "object",
+				"properties": {
+					"channel": {
+						"type": "number"
+					}
+				},
+				"additionalProperties": false,
+				"required": ["channel"]
 			},
 			"destructive": false,
 			"timeout": 5000
@@ -20,7 +27,14 @@
 			"id": "setSisyfosChannelState",
 			"name": "SetSisyfosChannelState",
 			"payload": {
-				"channel": 1
+				"type": "object",
+				"properties": {
+					"channel": {
+						"type": "number"
+					}
+				},
+				"additionalProperties": false,
+				"required": ["channel"]
 			},
 			"destructive": false,
 			"timeout": 5000

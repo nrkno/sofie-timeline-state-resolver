@@ -35,11 +35,11 @@ export enum MappingSisyfosType {
 export type SomeMappingSisyfos = MappingSisyfosChannel | MappingSisyfosChannelByLabel | MappingSisyfosChannels
 
 export interface ReSyncChannelPayload {
-	[k: string]: unknown
+	channel: number
 }
 
 export interface SetSisyfosChannelStatePayload {
-	[k: string]: unknown
+	channel: number
 }
 
 export enum SisyfosActions {

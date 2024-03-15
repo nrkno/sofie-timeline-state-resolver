@@ -213,7 +213,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 	}
 	async executeAction<A extends SisyfosActions>(
 		actionId0: A,
-		_payload: SisyfosActionExecutionPayload<A>
+		payload: SisyfosActionExecutionPayload<A>
 	): Promise<SisyfosActionExecutionResult<A>> {
 		const actionId = actionId0 as SisyfosActions // type fix for when there is only a single action
 		switch (actionId) {
@@ -226,12 +226,12 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 						result: ActionExecutionResultCode.Error,
 					}))
 			case SisyfosActions.ReSyncChannel:
-				if (typeof _payload?.channel !== 'number') {
+				if (typeof payload?.channel !== 'number') {
 					return {
 						result: ActionExecutionResultCode.Error,
 					}
 				}
-				return this._resyncOneChannel(_payload.channel)
+				return this._resyncOneChannel(payload.channel)
 					.then(() => ({
 						result: ActionExecutionResultCode.Ok,
 					}))
@@ -239,12 +239,12 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 						result: ActionExecutionResultCode.Error,
 					}))
 			case SisyfosActions.SetSisyfosChannelState:
-				if (typeof _payload?.channel !== 'number') {
+				if (typeof payload?.channel !== 'number') {
 					return {
 						result: ActionExecutionResultCode.Error,
 					}
 				}
-				this._sisyfos.setSisyfosChannel(_payload.channel, this.getDeviceState())
+				this._sisyfos.setSisyfosChannel(payload.channel, this.getDeviceState())
 				return {
 					result: ActionExecutionResultCode.Ok,
 				}
