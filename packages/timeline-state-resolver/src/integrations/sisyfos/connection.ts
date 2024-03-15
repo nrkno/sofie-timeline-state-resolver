@@ -132,6 +132,26 @@ export class SisyfosApi extends EventEmitter {
 					},
 				],
 			})
+		} else if (command.type === SisyfosCommandType.SET_INPUT_GAIN) {
+			this._oscClient.send({
+				address: `/ch/${command.channel + 1}/faderlevel`,
+				args: [
+					{
+						type: 'f',
+						value: command.value,
+					},
+				],
+			})
+		} else if (command.type === SisyfosCommandType.SET_INPUT_SELECTOR) {
+			this._oscClient.send({
+				address: `/ch/${command.channel + 1}/inputselector`,
+				args: [
+					{
+						type: 'i',
+						value: command.value,
+					},
+				],
+			})
 		} else if (command.type === SisyfosCommandType.SET_CHANNEL) {
 			if (command.values.label) {
 				this._oscClient.send({
@@ -392,6 +412,8 @@ export enum SisyfosCommandType {
 	TOGGLE_PGM = 'togglePgm',
 	TOGGLE_PST = 'togglePst',
 	SET_FADER = 'setFader',
+	SET_INPUT_GAIN = 'setInputGain',
+	SET_INPUT_SELECTOR = 'setInputSelector',
 	CLEAR_PST_ROW = 'clearPstRow',
 	LABEL = 'label',
 	TAKE = 'take',
@@ -419,6 +441,8 @@ export interface ChannelCommand extends BaseCommand {
 		| SisyfosCommandType.LABEL
 		| SisyfosCommandType.VISIBLE
 		| SisyfosCommandType.RESYNC_CHANNEL
+		| SisyfosCommandType.SET_INPUT_SELECTOR
+		| SisyfosCommandType.SET_INPUT_GAIN
 	channel: number
 }
 
@@ -431,7 +455,12 @@ export interface BoolCommand extends ChannelCommand {
 	value: boolean
 }
 export interface ValueCommand extends ChannelCommand {
-	type: SisyfosCommandType.TOGGLE_PST | SisyfosCommandType.VISIBLE | SisyfosCommandType.RESYNC_CHANNEL
+	type:
+		| SisyfosCommandType.TOGGLE_PST
+		| SisyfosCommandType.VISIBLE
+		| SisyfosCommandType.RESYNC_CHANNEL
+		| SisyfosCommandType.SET_INPUT_SELECTOR
+		| SisyfosCommandType.SET_INPUT_GAIN
 	value: number
 }
 
