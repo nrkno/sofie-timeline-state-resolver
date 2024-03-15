@@ -207,7 +207,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 		return Promise.resolve()
 	}
 
-	private async _ResyncOneChannel(channel: number): Promise<void> {
+	private async _resyncOneChannel(channel: number): Promise<void> {
 		this._resyncing = true
 		// If state is still not reinitialised afer 5 seconds, we may have a problem.
 		setTimeout(() => (this._resyncing = false), 5000)
@@ -235,7 +235,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 						result: ActionExecutionResultCode.Error,
 					}
 				}
-				return this._ResyncOneChannel(_payload.channel)
+				return this._resyncOneChannel(_payload.channel)
 					.then(() => ({
 						result: ActionExecutionResultCode.Ok,
 					}))
