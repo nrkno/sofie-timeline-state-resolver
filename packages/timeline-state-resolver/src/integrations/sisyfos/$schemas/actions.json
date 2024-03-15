@@ -6,6 +6,15 @@
 			"name": "Reinitialize",
 			"destructive": false,
 			"timeout": 5000
+		},
+		{
+			"id": "reinitChannel",
+			"name": "ReinitializeChannel",
+			"payload": {
+				"channel": 1
+			},
+			"destructive": false,
+			"timeout": 5000
 		}
 	]
 }

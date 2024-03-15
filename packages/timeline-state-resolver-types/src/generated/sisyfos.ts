@@ -34,11 +34,17 @@ export enum MappingSisyfosType {
 
 export type SomeMappingSisyfos = MappingSisyfosChannel | MappingSisyfosChannelByLabel | MappingSisyfosChannels
 
+export interface ReinitChannelPayload {
+	[k: string]: unknown
+}
+
 export enum SisyfosActions {
-	Reinit = 'reinit'
+	Reinit = 'reinit',
+	ReinitChannel = 'reinitChannel'
 }
 export interface SisyfosActionExecutionResults {
-	reinit: () => void
+	reinit: () => void,
+	reinitChannel: (payload: ReinitChannelPayload) => void
 }
 export type SisyfosActionExecutionPayload<A extends keyof SisyfosActionExecutionResults> = Parameters<
 	SisyfosActionExecutionResults[A]

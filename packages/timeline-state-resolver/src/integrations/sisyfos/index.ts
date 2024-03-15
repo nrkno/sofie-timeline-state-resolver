@@ -207,6 +207,14 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 		return Promise.resolve()
 	}
 
+	private async _ResyncOneChannel(channel: number): Promise<void> {
+		this._resyncing = true
+		// If state is still not reinitialised afer 5 seconds, we may have a problem.
+		setTimeout(() => (this._resyncing = false), 5000)
+		this._sisyfos.reSyncOneChannel(channel)
+		return Promise.resolve()
+	}
+
 	async executeAction<A extends SisyfosActions>(
 		actionId0: A,
 		_payload: SisyfosActionExecutionPayload<A>
@@ -215,6 +223,19 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 		switch (actionId) {
 			case SisyfosActions.Reinit:
 				return this._makeReadyInner()
+					.then(() => ({
+						result: ActionExecutionResultCode.Ok,
+					}))
+					.catch(() => ({
+						result: ActionExecutionResultCode.Error,
+					}))
+			case SisyfosActions.ReinitChannel:
+				if (typeof _payload?.channel !== 'number') {
+					return {
+						result: ActionExecutionResultCode.Error,
+					}
+				}
+				return this._ResyncOneChannel(_payload.channel)
 					.then(() => ({
 						result: ActionExecutionResultCode.Ok,
 					}))
@@ -277,6 +298,10 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 			pstOn: 0,
 			label: '',
 			visible: true,
+			fadeTime: 0.2,
+			muteOn: false,
+			inputGain: 0.75,
+			inputSelector: 1,
 			timelineObjIds: [],
 		}
 	}
