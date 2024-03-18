@@ -394,7 +394,7 @@ export class SisyfosApi extends EventEmitter {
 				pstOn: ch.pstOn === true ? 1 : 0,
 				label: ch.label || '',
 				visible: ch.showChannel ? true : false,
-				fadeTime: ch.fadeTime || 0,
+				fadeTime: ch.fadeTime || undefined,
 				muteOn: ch.muteOn || false,
 				inputGain: ch.inputGain || 0.75,
 				inputSelector: ch.inputSelector || 1,
@@ -499,7 +499,7 @@ export interface SisyfosAPIChannel {
 	pstOn: number
 	label: string
 	visible: boolean
-	fadeTime: number
+	fadeTime?: number
 	muteOn: boolean
 	inputGain: number
 	inputSelector: number

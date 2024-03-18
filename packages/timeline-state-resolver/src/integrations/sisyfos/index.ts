@@ -215,7 +215,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 		actionId0: A,
 		payload: SisyfosActionExecutionPayload<A>
 	): Promise<SisyfosActionExecutionResult<A>> {
-		const actionId = actionId0 as SisyfosActions // type fix for when there is only a single action
+		const actionId = actionId0
 		switch (actionId) {
 			case SisyfosActions.Reinit:
 				return this._makeReadyInner()
@@ -304,7 +304,6 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 			pstOn: 0,
 			label: '',
 			visible: true,
-			fadeTime: 0.2,
 			muteOn: false,
 			inputGain: 0.75,
 			inputSelector: 1,
