@@ -606,6 +606,45 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 					timelineObjId: newChannel.timelineObjIds[0] || '',
 				})
 			}
+
+			if (oldChannel && oldChannel.muteOn !== newChannel.muteOn) {
+				debug(`Channel ${index} mute goes from "${oldChannel.muteOn}" to "${newChannel.muteOn}"`)
+				commands.push({
+					context: `Channel ${index} mute goes from "${oldChannel.muteOn}" to "${newChannel.muteOn}"`,
+					content: {
+						type: SisyfosCommandType.SET_MUTE,
+						channel: Number(index),
+						value: newChannel.muteOn,
+					},
+					timelineObjId: newChannel.timelineObjIds[0] || '',
+				})
+			}
+
+			if (oldChannel && oldChannel.inputGain !== newChannel.inputGain) {
+				debug(`Channel ${index} inputGain goes from "${oldChannel.inputGain}" to "${newChannel.inputGain}"`)
+				commands.push({
+					context: `Channel ${index} inputGain goes from "${oldChannel.inputGain}" to "${newChannel.inputGain}"`,
+					content: {
+						type: SisyfosCommandType.SET_INPUT_GAIN,
+						channel: Number(index),
+						value: newChannel.inputGain,
+					},
+					timelineObjId: newChannel.timelineObjIds[0] || '',
+				})
+			}
+
+			if (oldChannel && oldChannel.inputSelector !== newChannel.inputSelector) {
+				debug(`Channel ${index} inputSelector goes from "${oldChannel.inputSelector}" to "${newChannel.inputSelector}"`)
+				commands.push({
+					context: `Channel ${index} inputSelector goes from "${oldChannel.inputSelector}" to "${newChannel.inputSelector}"`,
+					content: {
+						type: SisyfosCommandType.SET_INPUT_SELECTOR,
+						channel: Number(index),
+						value: newChannel.inputSelector,
+					},
+					timelineObjId: newChannel.timelineObjIds[0] || '',
+				})
+			}
 		})
 
 		return commands

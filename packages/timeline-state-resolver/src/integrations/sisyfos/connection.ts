@@ -132,9 +132,19 @@ export class SisyfosApi extends EventEmitter {
 					},
 				],
 			})
+		} else if (command.type === SisyfosCommandType.SET_MUTE) {
+			this._oscClient.send({
+				address: `/ch/${command.channel + 1}/mute`,
+				args: [
+					{
+						type: 'i',
+						value: command.value === true ? 1 : 0,
+					},
+				],
+			})
 		} else if (command.type === SisyfosCommandType.SET_INPUT_GAIN) {
 			this._oscClient.send({
-				address: `/ch/${command.channel + 1}/faderlevel`,
+				address: `/ch/${command.channel + 1}/inputgain`,
 				args: [
 					{
 						type: 'f',
@@ -414,6 +424,7 @@ export enum SisyfosCommandType {
 	SET_FADER = 'setFader',
 	SET_INPUT_GAIN = 'setInputGain',
 	SET_INPUT_SELECTOR = 'setInputSelector',
+	SET_MUTE = 'setMute',
 	CLEAR_PST_ROW = 'clearPstRow',
 	LABEL = 'label',
 	TAKE = 'take',
@@ -443,6 +454,7 @@ export interface ChannelCommand extends BaseCommand {
 		| SisyfosCommandType.RESYNC_CHANNEL
 		| SisyfosCommandType.SET_INPUT_SELECTOR
 		| SisyfosCommandType.SET_INPUT_GAIN
+		| SisyfosCommandType.SET_MUTE
 	channel: number
 }
 
@@ -451,7 +463,7 @@ export interface GlobalCommand extends BaseCommand {
 }
 
 export interface BoolCommand extends ChannelCommand {
-	type: SisyfosCommandType.VISIBLE
+	type: SisyfosCommandType.VISIBLE | SisyfosCommandType.SET_MUTE
 	value: boolean
 }
 export interface ValueCommand extends ChannelCommand {
