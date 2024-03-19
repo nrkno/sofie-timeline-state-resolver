@@ -466,6 +466,9 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 				if (newChannel.label !== undefined && newChannel.label !== '') channel.label = newChannel.label
 				if (newChannel.visible !== undefined) channel.visible = newChannel.visible
 				if (newChannel.fadeTime !== undefined) channel.fadeTime = newChannel.fadeTime
+				if (newChannel.muteOn !== undefined) channel.muteOn = newChannel.muteOn
+				if (newChannel.inputGain !== undefined) channel.inputGain = newChannel.inputGain
+				if (newChannel.inputSelector !== undefined) channel.inputSelector = newChannel.inputSelector
 
 				channel.timelineObjIds.push(newChannel.timelineObjId)
 			}
