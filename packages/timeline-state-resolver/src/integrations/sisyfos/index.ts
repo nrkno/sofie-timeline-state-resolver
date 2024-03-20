@@ -244,7 +244,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 						result: ActionExecutionResultCode.Error,
 					}
 				}
-				this._sisyfos.setSisyfosChannel(payload.channel, this.getDeviceState())
+				this._sisyfos.setSisyfosChannel(payload.channel, { ...this.getDeviceState().channels[payload.channel] })
 				return {
 					result: ActionExecutionResultCode.Ok,
 				}

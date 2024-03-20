@@ -163,68 +163,11 @@ export class SisyfosApi extends EventEmitter {
 				],
 			})
 		} else if (command.type === SisyfosCommandType.SET_CHANNEL) {
-			if (command.values.label) {
-				this._oscClient.send({
-					address: `/ch/${command.channel + 1}/label`,
-					args: [
-						{
-							type: 's',
-							value: command.values.label,
-						},
-					],
-				})
+			// Resync all properties for a channel
+			const channelState: SisyfosSendChannelAPI = {
+				...command.values,
 			}
-			if (command.values.pgmOn !== undefined) {
-				this._oscClient.send({
-					address: `/ch/${command.channel + 1}/pgm`,
-					args: [
-						{
-							type: 'i',
-							value: command.values.pgmOn,
-						},
-					],
-				})
-			}
-			if (command.values.pstOn !== undefined) {
-				this._oscClient.send({
-					address: `/ch/${command.channel + 1}/pst`,
-					args: [
-						{
-							type: 'i',
-							value: command.values.pstOn,
-						},
-					],
-				})
-			}
-			if (command.values.faderLevel !== undefined) {
-				const args: Array<MetaArgument> = [
-					{
-						type: 'f',
-						value: command.values.faderLevel,
-					},
-				]
-				if (command.values.fadeTime) {
-					args.push({
-						type: 'f',
-						value: command.values.fadeTime,
-					})
-				}
-				this._oscClient.send({
-					address: `/ch/${command.channel + 1}/faderlevel`,
-					args,
-				})
-			}
-			if (command.values.visible !== undefined) {
-				this._oscClient.send({
-					address: `/ch/${command.channel + 1}/visible`,
-					args: [
-						{
-							type: 'i',
-							value: command.values.visible as unknown as number,
-						},
-					],
-				})
-			}
+			this.setSisyfosChannel(command.channel, channelState)
 		}
 	}
 
@@ -247,23 +190,11 @@ export class SisyfosApi extends EventEmitter {
 		if (!this._oscClient) {
 			throw new Error(`Can't resync channel, OSC client not initialised`)
 		}
+		// This will trigger Sisyfos to emit its state of that channel, to be picked up in this.receiver()
 		this._oscClient.send({ address: `/ch/${channel}/state`, args: [] })
 	}
 
-	setSisyfosChannel(channel: number, state: SisyfosState) {
-		const channelState: SisyfosChannel = state.channels[channel]
-		const apiState: SisyfosAPIChannel = {
-			faderLevel: channelState.faderLevel,
-			pgmOn: channelState.pgmOn,
-			pstOn: channelState.pstOn,
-			label: channelState.label,
-			visible: channelState.visible,
-			fadeTime: channelState.fadeTime,
-			muteOn: channelState.muteOn,
-			inputGain: channelState.inputGain,
-			inputSelector: channelState.inputSelector,
-		}
-
+	setSisyfosChannel(channel: number, apiState: SisyfosSendChannelAPI) {
 		if (!this._oscClient) {
 			throw new Error(`Can't set channel, OSC client not initialised`)
 		}
@@ -441,7 +372,7 @@ export interface BaseCommand {
 export interface SetChannelCommand {
 	type: SisyfosCommandType.SET_CHANNEL
 	channel: number
-	values: Partial<SisyfosAPIChannel>
+	values: Partial<SisyfosReceiveChannelAPI>
 }
 
 export interface ChannelCommand extends BaseCommand {
@@ -494,7 +425,7 @@ export type SisyfosCommand =
 	| StringCommand
 	| SetChannelCommand
 
-export interface SisyfosChannel extends SisyfosAPIChannel {
+export interface SisyfosChannel extends SisyfosReceiveChannelAPI {
 	timelineObjIds: string[]
 }
 export interface SisyfosState {
@@ -505,7 +436,7 @@ export interface SisyfosState {
 
 // ------------------------------------------------------
 // Interfaces for the data that comes over OSC:
-export interface SisyfosAPIChannel {
+export interface SisyfosReceiveChannelAPI {
 	faderLevel: number
 	pgmOn: number
 	pstOn: number
@@ -517,8 +448,22 @@ export interface SisyfosAPIChannel {
 	inputSelector: number
 }
 
+// ------------------------------------------------------
+// Interfaces for the data that sends over OSC to Sisyfos:
+export interface SisyfosSendChannelAPI {
+	faderLevel?: number
+	pgmOn?: number
+	pstOn?: number
+	label?: string
+	visible?: boolean
+	fadeTime?: number
+	muteOn?: boolean
+	inputGain?: number
+	inputSelector?: number
+}
+
 export interface SisyfosAPIState {
 	channels: {
-		[index: string]: SisyfosAPIChannel
+		[index: string]: SisyfosReceiveChannelAPI
 	}
 }
