@@ -19,24 +19,27 @@ const RESPONSE_REGEX = /^(?<command>\w+)\s+(?<response>OK|ER|\d+)(\s+(?<response
  */
 export class VMixResponseStreamReader extends EventEmitter<ResponseStreamReaderEvents> {
 	private _unprocessedLines: string[] = []
-	private _lineRemainder = ''
+	private _lineRemainder = Buffer.alloc(0)
 
 	reset() {
 		this._unprocessedLines = []
-		this._lineRemainder = ''
+		this._lineRemainder = Buffer.alloc(0)
 	}
 
 	processIncomingData(data: Buffer) {
-		const string = this._lineRemainder + data.toString('utf-8')
-		this._lineRemainder = ''
-		const lines = string.split('\r\n')
-		const lastChunk = lines.pop()
+		const remainingData = Buffer.concat([this._lineRemainder, data])
+		const stringData = remainingData.toString('utf-8')
+		const incomingLines = stringData.split('\r\n')
+		const lastChunk = incomingLines.pop()
 
 		if (lastChunk != null && lastChunk !== '') {
 			// Incomplete line found at the end - keep it
-			this._lineRemainder = lastChunk
+			const linesByteLength = this.calculatePreSplitByteLength(incomingLines)
+			this._lineRemainder = remainingData.slice(linesByteLength)
+		} else {
+			this._lineRemainder = Buffer.alloc(0)
 		}
-		this._unprocessedLines.push(...lines)
+		this._unprocessedLines.push(...incomingLines)
 
 		let lineToProcess: string | undefined
 
@@ -81,6 +84,12 @@ export class VMixResponseStreamReader extends EventEmitter<ResponseStreamReaderE
 		}
 	}
 
+	private calculatePreSplitByteLength(arrayOfStrings: string[]) {
+		const totalByteLength = arrayOfStrings.reduce((acc, str) => acc + Buffer.byteLength(str, 'utf-8'), 0)
+		const additionalBytes = arrayOfStrings.length * 2
+		return totalByteLength + additionalBytes
+	}
+
 	private processPayloadData(responseLen: number): string | null {
 		const processedLines: string[] = []
 
@@ -92,7 +101,7 @@ export class VMixResponseStreamReader extends EventEmitter<ResponseStreamReaderE
 			}
 
 			processedLines.push(line)
-			responseLen -= line.length + 2
+			responseLen -= Buffer.byteLength(line, 'utf-8') + 2
 		}
 		this._unprocessedLines.splice(0, processedLines.length)
 		return processedLines.join('\r\n')

@@ -1,6 +1,13 @@
 import { VMixResponseStreamReader } from '../vMixResponseStreamReader'
 
 describe('VMixResponseStreamReader', () => {
+	test('the helper uses byte length of strings', () => {
+		// this is a meta-test for the helper used in unit tests below, to assert that the data length is in bytes (utf-8), not characters
+		expect(makeXmlMessage('<vmix>abc</vmix>')).toBe('XML 18\r\n<vmix>abc</vmix>\r\n')
+		expect(makeXmlMessage('<vmix>abc¾</vmix>')).toBe('XML 20\r\n<vmix>abc¾</vmix>\r\n')
+		expect(makeXmlMessage('<vmix>abc🚀🚀</vmix>')).toBe('XML 26\r\n<vmix>abc🚀🚀</vmix>\r\n')
+	})
+
 	it('processes a complete message', async () => {
 		const reader = new VMixResponseStreamReader()
 
@@ -219,6 +226,57 @@ describe('VMixResponseStreamReader', () => {
 		const xmlString =
 			'<vmix><version>27.0.0.49</version><edition>HD</edition><preset>C:\\preset.vmix</preset><inputs><inputs></vmix>'
 		reader.processIncomingData(Buffer.from(makeXmlMessage(xmlString)))
+
+		expect(onMessage).toHaveBeenCalledTimes(1)
+		expect(onMessage).toHaveBeenNthCalledWith(
+			1,
+			expect.objectContaining({
+				command: 'XML',
+				response: 'OK',
+				body: xmlString,
+			})
+		)
+	})
+
+	it('processes a message with data containing multi-byte characters', async () => {
+		const reader = new VMixResponseStreamReader()
+
+		const onMessage = jest.fn()
+		reader.on('response', onMessage)
+
+		const xmlString =
+			'<vmix><version>27.0.0.49</version><edition>HD</edition><preset>C:\\🚀\\preset3¾.vmix</preset><inputs><inputs></vmix>'
+		reader.processIncomingData(Buffer.from(makeXmlMessage(xmlString)))
+
+		expect(onMessage).toHaveBeenCalledTimes(1)
+		expect(onMessage).toHaveBeenNthCalledWith(
+			1,
+			expect.objectContaining({
+				command: 'XML',
+				response: 'OK',
+				body: xmlString,
+			})
+		)
+	})
+
+	it('processes a fragmented message with data containing multi-byte characters, split mid-character', async () => {
+		const reader = new VMixResponseStreamReader()
+
+		const onMessage = jest.fn()
+		reader.on('response', onMessage)
+
+		const xmlString = '<vmix>🚀🚀</vmix>'
+		const xmlMessage = `XML 23\r\n${xmlString}\r\n`
+		const fullBuffer = Buffer.from(xmlMessage)
+
+		const firstPart = fullBuffer.slice(0, 16)
+		const secondPart = fullBuffer.slice(16)
+
+		// sanity check that we did actually split mid-character
+		expect(firstPart.toString('utf-8') + secondPart.toString('utf-8')).not.toBe(xmlMessage)
+
+		reader.processIncomingData(firstPart)
+		reader.processIncomingData(secondPart)
 
 		expect(onMessage).toHaveBeenCalledTimes(1)
 		expect(onMessage).toHaveBeenNthCalledWith(
@@ -466,7 +524,8 @@ describe('VMixResponseStreamReader', () => {
 })
 
 function makeXmlMessage(xmlString: string): string {
-	return `XML ${xmlString.length + 2}\r\n${xmlString}\r\n`
+	// the length of the data is in bytes, not characters!
+	return `XML ${Buffer.byteLength(xmlString, 'utf-8') + 2}\r\n${xmlString}\r\n`
 }
 
 function splitAtIndices(text: string, indices: number[]) {
