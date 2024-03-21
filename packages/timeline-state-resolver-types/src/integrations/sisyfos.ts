@@ -1,5 +1,10 @@
 import { DeviceType } from '..'
 
+/*
+ * TRIGGERVALUE is used to SET_CHANNEL in Sisyfos
+ * When value is changed to a new value (e.g. Date.now()) Sisyfos will set the channel to
+ * the Current TSR State using setSisyfosChannel()
+ */
 export enum TimelineContentTypeSisyfos {
 	CHANNEL = 'channel',
 	CHANNELS = 'channels',
@@ -22,6 +27,9 @@ export interface SisyfosChannelOptions {
 	label?: string
 	visible?: boolean
 	fadeTime?: number
+	muteOn?: boolean
+	inputGain?: number
+	inputSelector?: number
 }
 
 export interface TimelineContentSisyfosTriggerValue extends TimelineContentSisyfos {
