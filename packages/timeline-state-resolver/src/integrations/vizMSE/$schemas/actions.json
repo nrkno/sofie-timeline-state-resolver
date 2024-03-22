@@ -12,7 +12,7 @@
 				"properties": {
 					"activeRundownPlaylistId": {
 						"name": "Rundown playlist ID",
-						"description": "Optional property",
+						"description": "Optional property that helps track what rundown is active for optimisation reasons",
 						"type": "string"
 					}
 				},
@@ -33,8 +33,12 @@
 			"payload": {
 				"type": "object",
 				"properties": {
-					"activeRundownPlaylistId": { "type": "string" },
-					"clearAll": { "type": "boolean" }
+					"activeRundownPlaylistId": {
+						"type": "string"
+					},
+					"clearAll": {
+						"type": "boolean"
+					}
 				},
 				"required": ["activeRundownPlaylistId"],
 				"additionalProperties": false
