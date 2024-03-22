@@ -19,25 +19,23 @@ const RESPONSE_REGEX = /^(?<command>\w+)\s+(?<response>OK|ER|\d+)(\s+(?<response
  */
 export class VMixResponseStreamReader extends EventEmitter<ResponseStreamReaderEvents> {
 	private _unprocessedLines: string[] = []
-	private _lineRemainder = Buffer.alloc(0)
+	private _lineRemainder = ''
 
 	reset() {
 		this._unprocessedLines = []
-		this._lineRemainder = Buffer.alloc(0)
+		this._lineRemainder = ''
 	}
 
-	processIncomingData(data: Buffer) {
-		const remainingData = Buffer.concat([this._lineRemainder, data])
-		const stringData = remainingData.toString('utf-8')
-		const incomingLines = stringData.split('\r\n')
+	processIncomingData(data: string) {
+		const remainingData = this._lineRemainder + data
+		const incomingLines = remainingData.split('\r\n')
 		const lastChunk = incomingLines.pop()
 
 		if (lastChunk != null && lastChunk !== '') {
 			// Incomplete line found at the end - keep it
-			const linesByteLength = this.calculatePreSplitByteLength(incomingLines)
-			this._lineRemainder = remainingData.slice(linesByteLength)
+			this._lineRemainder = lastChunk
 		} else {
-			this._lineRemainder = Buffer.alloc(0)
+			this._lineRemainder = ''
 		}
 		this._unprocessedLines.push(...incomingLines)
 
@@ -82,12 +80,6 @@ export class VMixResponseStreamReader extends EventEmitter<ResponseStreamReaderE
 				// empty lines we silently ignore
 			}
 		}
-	}
-
-	private calculatePreSplitByteLength(arrayOfStrings: string[]) {
-		const totalByteLength = arrayOfStrings.reduce((acc, str) => acc + Buffer.byteLength(str, 'utf-8'), 0)
-		const additionalBytes = arrayOfStrings.length * 2
-		return totalByteLength + additionalBytes
 	}
 
 	private processPayloadData(responseLen: number): string | null {

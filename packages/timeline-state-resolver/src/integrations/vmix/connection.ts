@@ -114,6 +114,12 @@ export class BaseConnection extends EventEmitter<ConnectionEvents> {
 		this._socket.setEncoding('utf-8')
 
 		this._socket.on('data', (data) => {
+			if (typeof data !== 'string') {
+				// this is against the types, but according to the docs the data will be a string
+				// the problem of a character split into chunks in transit should be taken care of
+				// (https://nodejs.org/docs/latest-v12.x/api/stream.html#stream_readable_setencoding_encoding)
+				throw new Error('Received a non-string even though encoding should have been set to utf-8')
+			}
 			this._responseStreamReader.processIncomingData(data)
 		})
 		this._socket.on('connect', () => {
