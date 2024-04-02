@@ -3053,6 +3053,17 @@ asn1@evs-broadcast/node-asn1:
   languageName: node
   linkType: hard
 
+"casparcg-connection@npm:6.2.1":
+  version: 6.2.1
+  resolution: "casparcg-connection@npm:6.2.1"
+  dependencies:
+    eventemitter3: ^5.0.1
+    tslib: ^2.5.0
+    xml2js: ^0.6.2
+  checksum: a086810faf0dbf91fc2987c1f4062696d5396fcbfeee16bc8b969a1a5edaac30657179c25164b1b62d9f79789ceee2e842822fe30dece420893e6fab50a467dd
+  languageName: node
+  linkType: hard
+
 "casparcg-state@npm:3.0.3":
   version: 3.0.3
   resolution: "casparcg-state@npm:3.0.3"
@@ -11036,7 +11047,7 @@ asn1@evs-broadcast/node-asn1:
     "@tv2media/v-connection": ^7.3.2
     atem-connection: 2.5.0
     atem-state: 0.13.0
-    casparcg-connection: 6.2.0
+    casparcg-connection: 6.2.1
     casparcg-state: 3.0.3
     debug: ^4.3.4
     deepmerge: ^4.3.1
