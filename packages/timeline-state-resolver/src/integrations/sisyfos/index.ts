@@ -208,7 +208,14 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 	}
 
 	private async _resyncOneChannel(channel: number): Promise<void> {
+		this._resyncing = true
 		this._sisyfos.reSyncOneChannel(channel)
+		// Wait for state will be emitted from Sisyfos
+		// And set TSR state on current time
+		setTimeout(() => {
+			this.setState(this.getDeviceState(false), this.getCurrentTime())
+			this._resyncing = false
+		}, 500)
 		return Promise.resolve()
 	}
 	async executeAction<A extends SisyfosActions>(
@@ -231,7 +238,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 						result: ActionExecutionResultCode.Error,
 					}
 				}
-				return this._resyncOneChannel(payload.channel)
+				return this._resyncOneChannel(payload.channel + 1)
 					.then(() => ({
 						result: ActionExecutionResultCode.Ok,
 					}))
@@ -244,7 +251,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 						result: ActionExecutionResultCode.Error,
 					}
 				}
-				this._sisyfos.setSisyfosChannel(payload.channel, { ...this.getDeviceState().channels[payload.channel] })
+				this._sisyfos.setSisyfosChannel(payload.channel + 1, { ...this.getDeviceState().channels[payload.channel] })
 				return {
 					result: ActionExecutionResultCode.Ok,
 				}
