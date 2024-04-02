@@ -3,6 +3,15 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [9.0.1](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/9.0.0...9.0.1) (2024-04-02)
+
+
+### Bug Fixes
+
+* **vMix:** handling XML messages with multi-byte characters ([e811ef0](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/e811ef09f6118c69ea337e0b1eb969a663546bde))
+
+
+
 ## [9.0.0](https://github.com/nrkno/sofie-timeline-state-resolver/compare/9.0.0-release50.8...9.0.0) (2024-02-23)
 
 **Note:** Version bump only for package timeline-state-resolver-packages
