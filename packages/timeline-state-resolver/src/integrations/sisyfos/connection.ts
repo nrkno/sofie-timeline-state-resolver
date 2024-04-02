@@ -258,7 +258,7 @@ export class SisyfosApi extends EventEmitter {
 			)
 			this.emit('initialized')
 		} else if (address[0] === 'ch' && this._state) {
-			const ch = address[1]
+			const ch = Number(address[1]) - 1
 			this._state.channels[ch] = {
 				...this._state.channels[ch],
 				...this.parseChannelCommand(message, address.slice(2)),
