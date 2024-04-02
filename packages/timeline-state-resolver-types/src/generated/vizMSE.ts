@@ -73,7 +73,7 @@ export type SomeMappingVizMSE = Record<string, never>
 
 export interface VizResetPayload {
 	/**
-	 * Optional property
+	 * Optional property that helps track what rundown is active for optimisation reasons
 	 */
 	activeRundownPlaylistId?: string
 }
