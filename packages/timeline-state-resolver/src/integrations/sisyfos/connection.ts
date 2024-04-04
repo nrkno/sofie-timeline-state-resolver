@@ -1,12 +1,21 @@
 import * as osc from 'osc'
-import { EventEmitter } from 'events'
+import { EventEmitter } from 'eventemitter3'
 import { MetaArgument } from 'osc'
 
 /** How often to check connection status */
 const CONNECTIVITY_INTERVAL = 3000 // ms
 const CONNECTIVITY_TIMEOUT = 1000 // ms
 
-export class SisyfosApi extends EventEmitter {
+interface SisyfosApiEvents {
+	'error': [Error],
+	'initialized': [],
+	'channel-state-changed': [],
+	'mixerOnline': [boolean],
+	'connected': [],
+	'disconnected': []
+}
+
+export class SisyfosApi extends EventEmitter<SisyfosApiEvents> {
 	private _oscClient: osc.UDPPort | undefined
 	private _state?: SisyfosState
 	private _labelToChannel: Map<string, number> = new Map()
@@ -275,6 +284,8 @@ export class SisyfosApi extends EventEmitter {
 				...this._state.channels[ch],
 				...this.parseChannelCommand(message, address.slice(2)),
 			}
+			this.emit('channel-state-changed')
+			// this.setState(this._state, this.getCurrentTime())
 		} else if (address[0] === 'pong') {
 			// a reply to "/ping"
 			const pingValue = parseInt(message.args[0].value, 10)

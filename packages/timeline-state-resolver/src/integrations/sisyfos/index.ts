@@ -208,15 +208,13 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 	}
 
 	private async _resyncOneChannel(channel: number): Promise<void> {
-		this._resyncing = true
 		this._sisyfos.reSyncOneChannel(channel)
-		// Wait for state will be emitted from Sisyfos
-		// And set TSR state on current time
-		setTimeout(() => {
+		// Listen to the reply from sisyfos, and when it has updated the device state,
+		// set our state to that, so that the next time this.handleState() is triggered,
+		// commands to resync the state will be sent:
+		this._sisyfos.once('channel-state-changed', () => {
 			this.setState(this.getDeviceState(false), this.getCurrentTime())
-			this._resyncing = false
-		}, 500)
-		return Promise.resolve()
+		})
 	}
 	async executeAction<A extends SisyfosActions>(
 		actionId0: A,
