@@ -207,15 +207,6 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 		return Promise.resolve()
 	}
 
-	private async _resyncOneChannel(channel: number): Promise<void> {
-		this._sisyfos.reSyncOneChannel(channel)
-		// Listen to the reply from sisyfos, and when it has updated the device state,
-		// set our state to that, so that the next time this.handleState() is triggered,
-		// commands to resync the state will be sent:
-		this._sisyfos.once('channel-state-changed', () => {
-			this.setState(this.getDeviceState(false), this.getCurrentTime())
-		})
-	}
 	async executeAction<A extends SisyfosActions>(
 		actionId0: A,
 		payload: SisyfosActionExecutionPayload<A>
@@ -224,19 +215,6 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 		switch (actionId) {
 			case SisyfosActions.Reinit:
 				return this._makeReadyInner()
-					.then(() => ({
-						result: ActionExecutionResultCode.Ok,
-					}))
-					.catch(() => ({
-						result: ActionExecutionResultCode.Error,
-					}))
-			case SisyfosActions.ReSyncChannel:
-				if (typeof payload?.channel !== 'number') {
-					return {
-						result: ActionExecutionResultCode.Error,
-					}
-				}
-				return this._resyncOneChannel(payload.channel + 1)
 					.then(() => ({
 						result: ActionExecutionResultCode.Ok,
 					}))

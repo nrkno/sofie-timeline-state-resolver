@@ -7,12 +7,11 @@ const CONNECTIVITY_INTERVAL = 3000 // ms
 const CONNECTIVITY_TIMEOUT = 1000 // ms
 
 interface SisyfosApiEvents {
-	'error': [Error],
-	'initialized': [],
-	'channel-state-changed': [],
-	'mixerOnline': [boolean],
-	'connected': [],
-	'disconnected': []
+	error: [Error]
+	initialized: []
+	mixerOnline: [boolean]
+	connected: []
+	disconnected: []
 }
 
 export class SisyfosApi extends EventEmitter<SisyfosApiEvents> {
@@ -279,13 +278,15 @@ export class SisyfosApi extends EventEmitter<SisyfosApiEvents> {
 			)
 			this.emit('initialized')
 		} else if (address[0] === 'ch' && this._state) {
+			// This receives updates for a single channel
+			// But is not used in TSR as of now
+			// If once neeeded a new event should be implemented:
+			// like: this.emit('channel-state-changed')
 			const ch = Number(address[1]) - 1
 			this._state.channels[ch] = {
 				...this._state.channels[ch],
 				...this.parseChannelCommand(message, address.slice(2)),
 			}
-			this.emit('channel-state-changed')
-			// this.setState(this._state, this.getCurrentTime())
 		} else if (address[0] === 'pong') {
 			// a reply to "/ping"
 			const pingValue = parseInt(message.args[0].value, 10)
