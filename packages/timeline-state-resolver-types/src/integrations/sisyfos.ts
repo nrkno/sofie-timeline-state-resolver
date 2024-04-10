@@ -41,6 +41,7 @@ export interface TimelineContentSisyfosChannel extends TimelineContentSisyfos, S
 	type: TimelineContentTypeSisyfos.CHANNEL
 	resync?: boolean
 	overridePriority?: number // defaults to 0
+	triggerValue?: string
 }
 export interface TimelineContentSisyfosChannels extends TimelineContentSisyfos {
 	type: TimelineContentTypeSisyfos.CHANNELS
