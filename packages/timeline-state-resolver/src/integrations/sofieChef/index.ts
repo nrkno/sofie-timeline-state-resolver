@@ -89,7 +89,9 @@ export class SofieChefDevice extends Device<SofieChefOptions, SofieChefState, So
 	async init(initOptions: SofieChefOptions): Promise<boolean> {
 		// This is where we would do initialization, like connecting to the devices, etc
 		this.initOptions = initOptions
-		await this._setupWSConnection()
+
+		this._setupWSConnection().catch((e) => this.context.logger.error('Failed to initialise Sofie Chef connection', e))
+
 		return true
 	}
 	private async _setupWSConnection() {

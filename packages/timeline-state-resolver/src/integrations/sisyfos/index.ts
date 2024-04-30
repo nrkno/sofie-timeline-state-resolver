@@ -88,7 +88,11 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 			this.emit('resetResolver')
 		})
 
-		return this._sisyfos.connect(initOptions.host, initOptions.port).then(() => true)
+		this._sisyfos
+			.connect(initOptions.host, initOptions.port)
+			.catch((e) => this.emit('error', 'Failed to initialise Sisyfos connection', e))
+
+		return true
 	}
 	/** Called by the Conductor a bit before a .handleState is called */
 	prepareForHandleState(newStateTime: number) {

@@ -130,8 +130,6 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 
 			Promise.resolve()
 				.then(async () => {
-					if (this.deviceOptions.skipVirginCheck) return false
-
 					// a "virgin server" was just restarted (so it is cleared & black).
 					// Otherwise it was probably just a loss of connection
 
@@ -143,18 +141,29 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 					const channelPromises: Promise<Response<InfoChannelEntry | undefined>>[] = []
 					const channelLength: number = response?.data?.['length'] ?? 0
 
-					// Issue commands
-					for (let i = 1; i <= channelLength; i++) {
-						// 1-based index for channels
+					for (let i = 0; i < channelLength; i++) {
+						const obj = response.data[i]
 
+						if (!this._currentState.channels[i]) {
+							this._currentState.channels[obj.channel] = {
+								channelNo: obj.channel,
+								videoMode: this.getVideMode(obj),
+								fps: obj.frameRate,
+								layers: {},
+							}
+						}
+
+						if (this.deviceOptions.skipVirginCheck) continue
+
+						// Issue command
 						const { error, request } = await this._ccg.executeCommand({
 							command: Commands.InfoChannel,
-							params: { channel: i },
+							params: { channel: obj.channel },
 						})
 						if (error) {
 							// We can't return here, as that will leave anything in channelPromises as potentially unhandled
 							channelPromises.push(Promise.reject('execute failed'))
-							break
+							continue
 						}
 						channelPromises.push(request)
 					}
@@ -174,6 +183,8 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 					return true
 				})
 				.then((doResync) => {
+					if (this.deviceOptions.skipVirginCheck) return
+
 					// Finally we can report it as connected
 					this._connected = true
 					this._connectionChanged()
@@ -197,25 +208,6 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 			this._connectionChanged()
 		})
 
-		const { error, request } = await this._ccg.executeCommand({ command: Commands.Info, params: {} })
-		if (error) {
-			return false // todo - should this throw?
-		}
-		const response = await request
-
-		if (response?.data[0]) {
-			response.data.forEach((obj) => {
-				this._currentState.channels[obj.channel] = {
-					channelNo: obj.channel,
-					videoMode: this.getVideMode(obj),
-					fps: obj.frameRate,
-					layers: {},
-				}
-			})
-		} else {
-			return false // not being able to get channel count is a problem for us
-		}
-
 		if (typeof initOptions.retryInterval === 'number' && initOptions.retryInterval >= 0) {
 			this._retryTime = initOptions.retryInterval || MEDIA_RETRY_INTERVAL
 			this._retryTimeout = setTimeout(() => this._assertIntendedState(), this._retryTime)
@@ -235,7 +227,7 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 			if (!this._ccg) {
 				resolve()
 				return
-			} else if (!this._ccg.connected) {
+			} else if (this._ccg.connected) {
 				this._ccg.once('disconnect', () => {
 					resolve()
 					this._ccg.removeAllListeners()

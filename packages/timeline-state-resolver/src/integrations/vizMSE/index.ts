@@ -142,7 +142,9 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState, DeviceOptionsVizM
 		this._vizmseManager.on('error', (e) => this.emit('error', 'VizMSE', typeof e === 'string' ? new Error(e) : e))
 		this._vizmseManager.on('debug', (...args) => this.emitDebug(...args))
 
-		await this._vizmseManager.initializeRundown(activeRundownPlaylistId)
+		this._vizmseManager
+			.initializeRundown(activeRundownPlaylistId)
+			.catch((e) => this.emit('error', 'Failed to initialise Viz Rundown', e))
 
 		return true
 	}

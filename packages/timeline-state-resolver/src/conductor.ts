@@ -1,7 +1,7 @@
 import * as _ from 'underscore'
 import { getResolvedState, ResolvedTimeline, ResolvedTimelineObjectInstance, TimelineObject } from 'superfly-timeline'
 import { EventEmitter } from 'eventemitter3'
-import { MemUsageReport, threadedClass, ThreadedClass, ThreadedClassConfig, ThreadedClassManager } from 'threadedclass'
+import { MemUsageReport, threadedClass, ThreadedClass, ThreadedClassManager } from 'threadedclass'
 import PQueue from 'p-queue'
 import * as PAll from 'p-all'
 import PTimeout from 'p-timeout'
@@ -41,18 +41,17 @@ import {
 
 import { DoOnTime } from './devices/doOnTime'
 import { AsyncResolver } from './AsyncResolver'
-import { assertNever, endTrace, fillStateFromDatastore, FinishedTrace, startTrace } from './lib'
+import { endTrace, fillStateFromDatastore, FinishedTrace, startTrace } from './lib'
 
 import { CommandWithContext } from './devices/device'
 import { DeviceContainer } from './devices/deviceContainer'
 
-import { CasparCGDevice, DeviceOptionsCasparCGInternal } from './integrations/casparCG'
-import { SisyfosMessageDevice, DeviceOptionsSisyfosInternal } from './integrations/sisyfos'
-import { VMixDevice, DeviceOptionsVMixInternal } from './integrations/vmix'
-import { VizMSEDevice, DeviceOptionsVizMSEInternal } from './integrations/vizMSE'
-import { BaseRemoteDeviceIntegration, RemoteDeviceInstance } from './service/remoteDeviceInstance'
-import type { ImplementedServiceDeviceTypes } from './service/devices'
-import { DeviceEvents } from './service/device'
+import { DeviceOptionsCasparCGInternal } from './integrations/casparCG'
+import { DeviceOptionsSisyfosInternal } from './integrations/sisyfos'
+import { DeviceOptionsVMixInternal } from './integrations/vmix'
+import { DeviceOptionsVizMSEInternal } from './integrations/vizMSE'
+import { BaseRemoteDeviceIntegration } from './service/remoteDeviceInstance'
+import { ConnectionManager } from './service/ConnectionManager'
 
 export { DeviceContainer }
 export { CommandWithContext }
@@ -64,8 +63,6 @@ export const MINTIMEUNIT = 1 // Minimum unit of time
 
 /** When resolving and the timeline has repeating objects, only resolve this far into the future */
 const RESOLVE_LIMIT_TIME = 10 * 1000
-
-const FREEZE_LIMIT = 5000 // how long to wait before considering the child to be unresponsive
 
 export type TimelineTriggerTimeResult = Array<{ id: string; time: number }>
 
@@ -97,7 +94,6 @@ interface TimelineCallback {
 }
 type TimelineCallbacks = { [key: string]: TimelineCallback }
 const CALLBACK_WAIT_TIME = 50
-const REMOVE_TIMEOUT = 5000
 interface CallbackInstance {
 	playing: boolean | undefined
 
@@ -170,7 +166,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 
 	private _options: ConductorOptions
 
-	private devices = new Map<string, BaseRemoteDeviceIntegration<DeviceOptionsBase<any>>>()
+	public readonly connectionManager = new ConnectionManager()
 
 	private _getCurrentTime?: () => number
 
@@ -332,309 +328,6 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 		this._estimateResolveTimeMultiplier = value
 	}
 
-	public getDevices(includeUninitialized = false): Array<BaseRemoteDeviceIntegration<DeviceOptionsBase<any>>> {
-		if (includeUninitialized) {
-			return Array.from(this.devices.values())
-		} else {
-			return Array.from(this.devices.values()).filter((device) => device.initialized === true)
-		}
-	}
-
-	public getDevice(
-		deviceId: string,
-		includeUninitialized = false
-	): BaseRemoteDeviceIntegration<DeviceOptionsBase<any>> | undefined {
-		if (includeUninitialized) {
-			return this.devices.get(deviceId)
-		} else {
-			const device = this.devices.get(deviceId)
-			if (device?.initialized === true) {
-				return device
-			} else {
-				return undefined
-			}
-		}
-	}
-
-	/**
-	 * Adds a device that can be referenced by the timeline and mappings.
-	 * NOTE: use this with caution! if a device fails to initialise (i.e. because the hardware is turned off) this may never resolve. It is preferred to use createDevice and initDevice separately for this reason.
-	 * @param deviceId Id used by the mappings to reference the device.
-	 * @param deviceOptions The options used to initalize the device
-	 * @returns A promise that resolves with the created device, or rejects with an error message.
-	 */
-	public async addDevice(
-		deviceId: string,
-		deviceOptions: DeviceOptionsAnyInternal,
-		activeRundownPlaylistId?: string
-	): Promise<BaseRemoteDeviceIntegration<DeviceOptionsBase<any>>> {
-		const newDevice = await this.createDevice(deviceId, deviceOptions)
-
-		try {
-			// Temporary listening to events, these are removed after the devide has been initiated.
-			const instanceId = newDevice.instanceId
-			const onDeviceInfo: any = (...args: DeviceEvents['info']) => {
-				this.emit('info', instanceId, ...args)
-			}
-			const onDeviceWarning: any = (...args: DeviceEvents['warning']) => {
-				this.emit('warning', instanceId, ...args)
-			}
-			const onDeviceError: any = (...args: DeviceEvents['error']) => {
-				this.emit('error', instanceId, ...args)
-			}
-			const onDeviceDebug: any = (...args: DeviceEvents['debug']) => {
-				this.emit('debug', instanceId, ...args)
-			}
-			const onDeviceDebugState: any = (...args: DeviceEvents['debugState']) => {
-				this.emit('debugState', args)
-			}
-
-			newDevice.device.on('info', onDeviceInfo).catch(console.error)
-			newDevice.device.on('warning', onDeviceWarning).catch(console.error)
-			newDevice.device.on('error', onDeviceError).catch(console.error)
-			newDevice.device.on('debug', onDeviceDebug).catch(console.error)
-			newDevice.device.on('debugState', onDeviceDebugState).catch(console.error)
-
-			const device = await this.initDevice(deviceId, deviceOptions, activeRundownPlaylistId)
-
-			// Remove listeners, expect consumer to subscribe to them now.
-			newDevice.device.removeListener('info', onDeviceInfo).catch(console.error)
-			newDevice.device.removeListener('warning', onDeviceWarning).catch(console.error)
-			newDevice.device.removeListener('error', onDeviceError).catch(console.error)
-			newDevice.device.removeListener('debug', onDeviceDebug).catch(console.error)
-			newDevice.device.removeListener('debugState', onDeviceDebugState).catch(console.error)
-
-			return device
-		} catch (e) {
-			await this.terminateUnwantedDevice(newDevice)
-			this.devices.delete(deviceId)
-			this.emit('error', 'conductor.addDevice', e)
-			return Promise.reject(e)
-		}
-	}
-
-	/**
-	 * Creates an uninitialised device that can be referenced by the timeline and mappings.
-	 * @param deviceId Id used by the mappings to reference the device.
-	 * @param deviceOptions The options used to initalize the device
-	 * @param options Additional options
-	 * @returns A promise that resolves with the created device, or rejects with an error message.
-	 */
-	public async createDevice(
-		deviceId: string,
-		deviceOptions: DeviceOptionsAnyInternal,
-		options?: { signal?: AbortSignal }
-	): Promise<BaseRemoteDeviceIntegration<DeviceOptionsBase<any>>> {
-		let newDevice: BaseRemoteDeviceIntegration<DeviceOptionsBase<any>> | undefined
-		try {
-			const throwIfAborted = () => this.throwIfAborted(options?.signal, deviceId, 'creation')
-			if (this.devices.has(deviceId)) {
-				throw new Error(`Device "${deviceId}" already exists when creating device`)
-			}
-			throwIfAborted()
-
-			const threadedClassOptions: ThreadedClassConfig = {
-				threadUsage: deviceOptions.threadUsage || 1,
-				autoRestart: false,
-				disableMultithreading: !deviceOptions.isMultiThreaded,
-				instanceName: deviceId,
-				freezeLimit: FREEZE_LIMIT,
-			}
-
-			const getCurrentTime = () => {
-				return this.getCurrentTime()
-			}
-
-			const newDevicePromise = this.createDeviceContainer(deviceOptions, deviceId, getCurrentTime, threadedClassOptions)
-
-			if (!newDevicePromise) {
-				const type: any = deviceOptions.type
-				throw new Error(`No matching device type for "${type}" ("${DeviceType[type]}") found in conductor`)
-			}
-
-			newDevice = await makeImmediatelyAbortable(async () => {
-				throwIfAborted()
-				const newDevice = await newDevicePromise
-				if (options?.signal?.aborted) {
-					// if the promise above did not resolve before aborted,
-					// this executes some time after raceAbortable rejects, serving as a cleanup
-					await this.terminateUnwantedDevice(newDevice)
-					throw new AbortError(`Device "${deviceId}" creation aborted`)
-				}
-				return newDevice
-			}, options?.signal)
-
-			newDevice.device.on('resetResolver', () => this.resetResolver()).catch(console.error)
-			newDevice.on('error', (context, e) => {
-				this.emit('error', `deviceContainer for "${newDevice?.deviceId}" emitted an error: ${context}, ${e}`)
-			})
-
-			// Double check that it hasnt been created while we were busy waiting
-			if (this.devices.has(deviceId)) {
-				throw new Error(`Device "${deviceId}" already exists when creating device`)
-			}
-			throwIfAborted()
-		} catch (e) {
-			await this.terminateUnwantedDevice(newDevice)
-
-			this.emit('error', 'conductor.createDevice', e)
-			throw e
-		}
-
-		this.devices.set(deviceId, newDevice)
-
-		return newDevice
-	}
-
-	private throwIfAborted(signal: AbortSignal | undefined, deviceId: string, action: string) {
-		if (signal?.aborted) {
-			throw new AbortError(`Device "${deviceId}" ${action} aborted`)
-		}
-	}
-
-	private createDeviceContainer(
-		deviceOptions: DeviceOptionsAnyInternal,
-		deviceId: string,
-		getCurrentTime: () => number,
-		threadedClassOptions: ThreadedClassConfig
-	): Promise<BaseRemoteDeviceIntegration<DeviceOptionsBase<any>>> | null {
-		switch (deviceOptions.type) {
-			case DeviceType.CASPARCG:
-				return DeviceContainer.create<DeviceOptionsCasparCGInternal, typeof CasparCGDevice>(
-					'../../dist/integrations/casparCG/index.js',
-					'CasparCGDevice',
-					deviceId,
-					deviceOptions,
-					getCurrentTime,
-					threadedClassOptions
-				)
-			case DeviceType.SISYFOS:
-				return DeviceContainer.create<DeviceOptionsSisyfosInternal, typeof SisyfosMessageDevice>(
-					'../../dist/integrations/sisyfos/index.js',
-					'SisyfosMessageDevice',
-					deviceId,
-					deviceOptions,
-					getCurrentTime,
-					threadedClassOptions
-				)
-			case DeviceType.VIZMSE:
-				return DeviceContainer.create<DeviceOptionsVizMSEInternal, typeof VizMSEDevice>(
-					'../../dist/integrations/vizMSE/index.js',
-					'VizMSEDevice',
-					deviceId,
-					deviceOptions,
-					getCurrentTime,
-					threadedClassOptions
-				)
-			case DeviceType.VMIX:
-				return DeviceContainer.create<DeviceOptionsVMixInternal, typeof VMixDevice>(
-					'../../dist/integrations/vmix/index.js',
-					'VMixDevice',
-					deviceId,
-					deviceOptions,
-					getCurrentTime,
-					threadedClassOptions
-				)
-			case DeviceType.ABSTRACT:
-			case DeviceType.ATEM:
-			case DeviceType.HTTPSEND:
-			case DeviceType.HTTPWATCHER:
-			case DeviceType.HYPERDECK:
-			case DeviceType.LAWO:
-			case DeviceType.OBS:
-			case DeviceType.OSC:
-			case DeviceType.MULTI_OSC:
-			case DeviceType.PANASONIC_PTZ:
-			case DeviceType.PHAROS:
-			case DeviceType.SHOTOKU:
-			case DeviceType.SINGULAR_LIVE:
-			case DeviceType.SOFIE_CHEF:
-			case DeviceType.TCPSEND:
-			case DeviceType.TELEMETRICS:
-			case DeviceType.TRICASTER:
-			case DeviceType.QUANTEL: {
-				ensureIsImplementedAsService(deviceOptions.type)
-
-				// presumably this device is implemented in the new service handler
-				return RemoteDeviceInstance.create(deviceId, deviceOptions, getCurrentTime, threadedClassOptions)
-			}
-			default:
-				assertNever(deviceOptions)
-				return null
-		}
-	}
-
-	private async terminateUnwantedDevice(newDevice: BaseRemoteDeviceIntegration<DeviceOptionsBase<any>> | undefined) {
-		await newDevice
-			?.terminate()
-			.catch((e) => this.emit('error', `Cleanup failed of aborted device "${newDevice.deviceId}": ${e}`))
-	}
-
-	/**
-	 * Initialises an existing device that can be referenced by the timeline and mappings.
-	 * @param deviceId Id used by the mappings to reference the device.
-	 * @param deviceOptions The options used to initalize the device
-	 * @param activeRundownPlaylistId Id of the current rundown playlist
-	 * @param options Additional options
-	 * @returns A promise that resolves with the initialised device, or rejects with an error message.
-	 */
-	public async initDevice(
-		deviceId: string,
-		deviceOptions: DeviceOptionsAnyInternal,
-		activeRundownPlaylistId?: string,
-		options?: { signal?: AbortSignal }
-	): Promise<BaseRemoteDeviceIntegration<DeviceOptionsBase<any>>> {
-		const throwIfAborted = () => this.throwIfAborted(options?.signal, deviceId, 'initialisation')
-
-		throwIfAborted()
-
-		const newDevice = this.devices.get(deviceId)
-
-		if (!newDevice) {
-			throw new Error('Could not find device ' + deviceId + ', has it been created?')
-		}
-
-		if (newDevice.initialized === true) {
-			throw new Error('Device ' + deviceId + ' is already initialized!')
-		}
-		this.emit(
-			'info',
-			`Initializing device ${newDevice.deviceId} (${newDevice.instanceId}) of type ${DeviceType[deviceOptions.type]}...`
-		)
-		return makeImmediatelyAbortable(async () => {
-			throwIfAborted()
-			await newDevice.init(deviceOptions.options, activeRundownPlaylistId)
-			throwIfAborted()
-			await newDevice.reloadProps()
-			throwIfAborted()
-			this.emit('info', `Device ${newDevice.deviceId} (${newDevice.instanceId}) initialized!`)
-			return newDevice
-		}, options?.signal)
-	}
-
-	/**
-	 * Safely remove a device
-	 * @param deviceId The id of the device to be removed
-	 */
-	public async removeDevice(deviceId: string): Promise<void> {
-		const device = this.devices.get(deviceId)
-		if (device) {
-			try {
-				await Promise.race([
-					device.device.terminate(),
-					new Promise<void>((_, reject) => setTimeout(() => reject('Timeout'), REMOVE_TIMEOUT)),
-				])
-			} catch (e) {
-				// An error while terminating is probably not that important, since we'll kill the instance anyway
-				this.emit('warning', `Error when terminating device ${e}`)
-			}
-			await device.terminate()
-			this.devices.delete(deviceId)
-		} else {
-			return Promise.reject('No device found')
-		}
-	}
-
 	/**
 	 * Remove all devices
 	 */
@@ -643,7 +336,8 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 
 		if (this._triggerSendStartStopCallbacksTimeout) clearTimeout(this._triggerSendStartStopCallbacksTimeout)
 
-		await this._mapAllDevices(true, async (d) => this.removeDevice(d.deviceId))
+		// todo - reenable this
+		// await this._mapAllDevices(true, async (d) => this.removeDevice(d.deviceId))
 	}
 
 	/**
@@ -682,7 +376,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 			}`
 		)
 		await this._actionQueue.add(async () => {
-			await this._mapAllDevices(false, async (d) =>
+			await this._mapAllConnections(false, async (d) =>
 				PTimeout(
 					(async () => {
 						const trace = startTrace('conductor:makeReady:' + d.deviceId)
@@ -707,7 +401,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 		this.activationId = undefined
 		this.emit('debug', `devicesStandDown, ${okToDestroyStuff ? 'okToDestroyStuff' : 'undefined'}`)
 		await this._actionQueue.add(async () => {
-			await this._mapAllDevices(false, async (d) =>
+			await this._mapAllConnections(false, async (d) =>
 				PTimeout(
 					(async () => {
 						const trace = startTrace('conductor:standDown:' + d.deviceId)
@@ -725,14 +419,12 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 		return ThreadedClassManager.getThreadsMemoryUsage()
 	}
 
-	private async _mapAllDevices<T>(
+	private async _mapAllConnections<T>(
 		includeUninitialized: boolean,
 		fcn: (d: BaseRemoteDeviceIntegration<DeviceOptionsBase<any>>) => Promise<T>
 	): Promise<T[]> {
 		return PAll(
-			this.getDevices(true)
-				.filter((d) => includeUninitialized || d.initialized === true)
-				.map((d) => async () => fcn(d)),
+			this.connectionManager.getConnections(includeUninitialized).map((d) => async () => fcn(d)),
 			{
 				stopOnError: false,
 			}
@@ -840,8 +532,8 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 			// TODO - the PAll way of doing this provokes https://github.com/nrkno/tv-automation-state-timeline-resolver/pull/139
 			// The doOnTime calls fire before this, meaning we cleanup the state for a time we have already sent commands for
 			const pPrepareForHandleStates: Promise<unknown> = Promise.all(
-				Array.from(this.devices.values())
-					.filter((d) => d.initialized === true)
+				this.connectionManager
+					.getConnections(false)
 					.map(async (device: BaseRemoteDeviceIntegration<DeviceOptionsBase<any>>): Promise<void> => {
 						await device.device.prepareForHandleState(resolveTime)
 					})
@@ -926,11 +618,11 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 
 			const layersPerDevice = this.filterLayersPerDevice(
 				tlState.layers as Timeline.StateInTime<TSRTimelineContent>,
-				Array.from(this.devices.values()).filter((d) => d.initialized === true)
+				this.connectionManager.getConnections(false)
 			)
 
 			// Push state to the right device:
-			await this._mapAllDevices(
+			await this._mapAllConnections(
 				false,
 				async (device: BaseRemoteDeviceIntegration<DeviceOptionsBase<any>>): Promise<void> => {
 					if (this._options.optimizeForProduction) {
@@ -963,7 +655,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 			if (!nextEventTime && tlState.time < this._resolved.validTo) {
 				// There's nothing ahead in the timeline (as far as we can see, ref: this._resolved.validTo)
 				// Tell the devices that the future is clear:
-				await this._mapAllDevices(true, async (device: BaseRemoteDeviceIntegration<DeviceOptionsBase<any>>) => {
+				await this._mapAllConnections(true, async (device: BaseRemoteDeviceIntegration<DeviceOptionsBase<any>>) => {
 					try {
 						await device.device.clearFuture(tlState.time)
 					} catch (e) {
@@ -1113,7 +805,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 		const filledState = fillStateFromDatastore(state, this._datastore)
 
 		// send the filled state to the device handler
-		return this.getDevice(deviceId)?.device.handleState(filledState, mappings)
+		return this.connectionManager.getConnection(deviceId)?.device.handleState(filledState, mappings)
 	}
 
 	setDatastore(newStore: Datastore) {
@@ -1145,7 +837,8 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 					for (const s of toBeFilled) {
 						const filledState = fillStateFromDatastore(s.state, this._datastore)
 
-						this.getDevice(deviceId)
+						this.connectionManager
+							.getConnection(deviceId)
 							?.device.handleState(filledState, s.mappings)
 							.catch((e) => this.emit('error', 'resolveTimeline' + e + '\nStack: ' + (e as Error).stack))
 					}
@@ -1489,46 +1182,4 @@ function removeParentFromState(
 		}
 	}
 	return o
-}
-
-/**
- * If aborted, rejects as soon as possible, but lets the wraped function safely resolve or reject on its own
- * @param func async function to wrap
- * @param abortSignal the AbortSignal
- * @returns Promise of the same type as `func`
- */
-async function makeImmediatelyAbortable<T>(
-	func: (abortSignal?: AbortSignal) => Promise<T>,
-	abortSignal?: AbortSignal
-): Promise<T> {
-	const mainPromise = func(abortSignal)
-	if (!abortSignal) {
-		return mainPromise
-	}
-	let resolveAbortPromise: Function
-	const abortPromise = new Promise<void>((resolve, reject) => {
-		resolveAbortPromise = () => {
-			resolve()
-			abortSignal.removeEventListener('abort', rejectPromise)
-		}
-		const rejectPromise = () => {
-			reject(new AbortError())
-		}
-		abortSignal.addEventListener('abort', rejectPromise, { once: true })
-	})
-	return Promise.race([mainPromise, abortPromise])
-		.then((result) => {
-			// only mainPromise could have resolved, so the result must be T
-			resolveAbortPromise()
-			return result as T
-		})
-		.catch((reason) => {
-			// mainPromise or abortPromise might have rejected; calling resolveAbortPromise in the latter case is safe
-			resolveAbortPromise()
-			throw reason
-		})
-}
-
-function ensureIsImplementedAsService(_type: ImplementedServiceDeviceTypes): void {
-	// This is a type check
 }
