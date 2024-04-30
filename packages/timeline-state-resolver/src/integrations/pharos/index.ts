@@ -80,19 +80,20 @@ export class PharosDevice extends DeviceWithState<PharosState, DeviceOptionsPhar
 	 * Initiates the connection with Pharos through the PharosAPI.
 	 */
 	async init(initOptions: PharosOptions): Promise<boolean> {
-		return new Promise((resolve, reject) => {
-			// This is where we would do initialization, like connecting to the devices, etc
-			this._pharos
-				.connect(initOptions)
-				.then(async () => {
-					return this._pharos.getProjectInfo()
-				})
-				.then((systemInfo) => {
-					this._pharosProjectInfo = systemInfo
-				})
-				.then(() => resolve(true))
-				.catch((e) => reject(e))
-		})
+		// This is where we would do initialization, like connecting to the devices, etc
+		this._pharos
+			.connect(initOptions)
+			.then(async () => {
+				return this._pharos.getProjectInfo()
+			})
+			.then((systemInfo) => {
+				this._pharosProjectInfo = systemInfo
+			})
+			.catch((e) => {
+				this.emit('error', 'Pharos integration failed to initialise', e)
+			})
+
+		return Promise.resolve(true)
 	}
 	/** Called by the Conductor a bit before a .handleState is called */
 	prepareForHandleState(newStateTime: number) {
