@@ -1,7 +1,7 @@
 import { OscDevice } from '../integrations/osc'
-import { HTTPSendDevice } from '../integrations/httpSend'
 import { DeviceType } from 'timeline-state-resolver-types'
 import { Device } from './device'
+import { AuthenticatedHTTPSendDevice } from '../integrations/httpSend/AuthenticatedHTTPSendDevice'
 
 export interface DeviceEntry {
 	deviceClass: new () => Device<any, any, any>
@@ -21,7 +21,7 @@ export const DevicesDict: Record<ImplementedDeviceTypes, DeviceEntry> = {
 		executionMode: () => 'salvo',
 	},
 	[DeviceType.HTTPSEND]: {
-		deviceClass: HTTPSendDevice,
+		deviceClass: AuthenticatedHTTPSendDevice,
 		canConnect: false,
 		deviceName: (deviceId: string) => 'HTTPSend ' + deviceId,
 		executionMode: () => 'sequential', // todo - config?

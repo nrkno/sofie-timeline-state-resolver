@@ -31,10 +31,10 @@ export class HTTPSendDevice
 	extends EventEmitter<DeviceEvents>
 	implements Device<HTTPSendOptions, HttpSendDeviceState, HttpSendDeviceCommand>
 {
-	private options: HTTPSendOptions
+	protected options: HTTPSendOptions
 	/** Maps layers -> sent command-hashes */
-	private trackedState = new Map<string, string>()
-	private _terminated = false
+	protected trackedState = new Map<string, string>()
+	protected _terminated = false
 
 	async init(options: HTTPSendOptions): Promise<boolean> {
 		this.options = options

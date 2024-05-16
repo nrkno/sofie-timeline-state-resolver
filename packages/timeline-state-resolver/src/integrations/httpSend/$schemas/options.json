@@ -71,6 +71,22 @@
 				"required": ["type", "url", "params"],
 				"additionalProperties": false
 			}
+		},
+		"oauthTokenHost": {
+			"type": "string",
+			"ui:title": "OAuth Token Host"
+		},
+		"oauthClientId": {
+			"type": "string",
+			"ui:title": "OAuth Client ID"
+		},
+		"oauthClientSecret": {
+			"type": "string",
+			"ui:title": "OAuth Client Secret"
+		},
+		"oauthAudience": {
+			"type": "string",
+			"ui:title": "OAuth Audience"
 		}
 	},
 	"required": ["host"],

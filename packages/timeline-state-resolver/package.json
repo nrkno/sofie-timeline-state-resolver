@@ -105,6 +105,7 @@
 		"p-all": "^3.0.0",
 		"p-queue": "^6.6.2",
 		"p-timeout": "^3.2.0",
+		"simple-oauth2": "^5.0.0",
 		"sprintf-js": "^1.1.2",
 		"superfly-timeline": "^8.3.1",
 		"threadedclass": "^1.2.1",
@@ -129,6 +130,7 @@
 		]
 	},
 	"devDependencies": {
+		"@types/simple-oauth2": "^5.0.7",
 		"i18next-conv": "^13.1.1",
 		"i18next-parser": "^6.6.0",
 		"json-schema-to-typescript": "^10.1.5",

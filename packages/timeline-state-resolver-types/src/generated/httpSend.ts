@@ -15,6 +15,10 @@ export interface HTTPSendOptions {
 	 */
 	resendTime?: number
 	makeReadyCommands?: HTTPSendCommandContent[]
+	oauthTokenHost?: string
+	oauthClientId?: string
+	oauthClientSecret?: string
+	oauthAudience?: string
 }
 export interface HTTPSendCommandContent {
 	type: TimelineContentTypeHTTP
