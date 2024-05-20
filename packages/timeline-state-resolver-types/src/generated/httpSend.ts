@@ -19,6 +19,7 @@ export interface HTTPSendOptions {
 	oauthClientId?: string
 	oauthClientSecret?: string
 	oauthAudience?: string
+	bearerToken?: string
 }
 export interface HTTPSendCommandContent {
 	type: TimelineContentTypeHTTP
