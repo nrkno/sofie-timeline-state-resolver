@@ -61,13 +61,21 @@ export enum TimelineContentTypeHTTPParamType {
 	FORM = 'form'
 }
 
+export interface SendCommandResult {
+	statusCode: number
+	headers: {
+		[k: string]: string | string[]
+	}
+	body: string
+}
+
 export enum HttpSendActions {
 	Resync = 'resync',
 	SendCommand = 'sendCommand'
 }
 export interface HttpSendActionExecutionResults {
 	resync: () => void,
-	sendCommand: (payload: HTTPSendCommandContent) => void
+	sendCommand: (payload: HTTPSendCommandContent) => SendCommandResult
 }
 export type HttpSendActionExecutionPayload<A extends keyof HttpSendActionExecutionResults> = Parameters<
 	HttpSendActionExecutionResults[A]
