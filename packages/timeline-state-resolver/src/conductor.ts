@@ -33,6 +33,7 @@ import {
 	DeviceOptionsHyperdeck,
 	DeviceOptionsPanasonicPTZ,
 	DeviceOptionsLawo,
+	DeviceOptionsSofieChef,
 } from 'timeline-state-resolver-types'
 
 import { DoOnTime } from './devices/doOnTime'
@@ -48,7 +49,6 @@ import { SisyfosMessageDevice, DeviceOptionsSisyfosInternal } from './integratio
 import { SingularLiveDevice, DeviceOptionsSingularLiveInternal } from './integrations/singularLive'
 import { VMixDevice, DeviceOptionsVMixInternal } from './integrations/vmix'
 import { VizMSEDevice, DeviceOptionsVizMSEInternal } from './integrations/vizMSE'
-import { DeviceOptionsSofieChefInternal, SofieChefDevice } from './integrations/sofieChef'
 import { TelemetricsDevice } from './integrations/telemetrics'
 import { TriCasterDevice, DeviceOptionsTriCasterInternal } from './integrations/tricaster'
 import { DeviceOptionsMultiOSCInternal, MultiOSCMessageDevice } from './integrations/multiOsc'
@@ -564,15 +564,6 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 					getCurrentTime,
 					threadedClassOptions
 				)
-			case DeviceType.SOFIE_CHEF:
-				return DeviceContainer.create<DeviceOptionsSofieChefInternal, typeof SofieChefDevice>(
-					'../../dist/integrations/sofieChef/index.js',
-					'SofieChefDevice',
-					deviceId,
-					deviceOptions,
-					getCurrentTime,
-					threadedClassOptions
-				)
 			case DeviceType.TRICASTER:
 				return DeviceContainer.create<DeviceOptionsTriCasterInternal, typeof TriCasterDevice>(
 					'../../dist/integrations/tricaster/index.js',
@@ -601,6 +592,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 			case DeviceType.OSC:
 			case DeviceType.PANASONIC_PTZ:
 			case DeviceType.SHOTOKU:
+			case DeviceType.SOFIE_CHEF:
 			case DeviceType.TCPSEND:
 			case DeviceType.QUANTEL: {
 				ensureIsImplementedAsService(deviceOptions.type)
@@ -1518,7 +1510,7 @@ export type DeviceOptionsAnyInternal =
 	| DeviceOptionsOSC
 	| DeviceOptionsMultiOSCInternal
 	| DeviceOptionsSisyfosInternal
-	| DeviceOptionsSofieChefInternal
+	| DeviceOptionsSofieChef
 	| DeviceOptionsQuantel
 	| DeviceOptionsSingularLiveInternal
 	| DeviceOptionsVMixInternal
