@@ -102,7 +102,8 @@ export class SofieChefDevice extends DeviceWithState<SofieChefState, DeviceOptio
 
 		this.initOptions = initOptions
 
-		await this._setupWSConnection()
+		this._setupWSConnection().catch((e) => this.emit('error', 'Failed to initialise Sofie Chef connection', e))
+
 		return true
 	}
 	private async _setupWSConnection() {
