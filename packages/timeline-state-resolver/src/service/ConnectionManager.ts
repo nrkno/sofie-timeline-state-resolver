@@ -267,7 +267,7 @@ function configHasChanged(
 		return true
 
 	// now check device specific options
-	return _.isEqual(oldConfig.options, config.options)
+	return !_.isEqual(oldConfig.options, config.options)
 }
 
 function createContainer(
