@@ -12,6 +12,7 @@ import { HyperdeckDevice } from '../integrations/hyperdeck'
 import { OBSDevice } from '../integrations/obs'
 import { PanasonicPtzDevice } from '../integrations/panasonicPTZ'
 import { LawoDevice } from '../integrations/lawo'
+import { SofieChefDevice } from '../integrations/sofieChef'
 
 export interface DeviceEntry {
 	deviceClass: new (context: DeviceContextAPI<any>) => Device<any, any, any>
@@ -31,6 +32,7 @@ export type ImplementedServiceDeviceTypes =
 	| DeviceType.OSC
 	| DeviceType.PANASONIC_PTZ
 	| DeviceType.SHOTOKU
+	| DeviceType.SOFIE_CHEF
 	| DeviceType.TCPSEND
 	| DeviceType.QUANTEL
 
@@ -88,6 +90,12 @@ export const DevicesDict: Record<ImplementedServiceDeviceTypes, DeviceEntry> = {
 		deviceClass: PanasonicPtzDevice,
 		canConnect: true,
 		deviceName: (deviceId: string) => 'Panasonic PTZ ' + deviceId,
+		executionMode: () => 'salvo',
+	},
+	[DeviceType.SOFIE_CHEF]: {
+		deviceClass: SofieChefDevice,
+		canConnect: true,
+		deviceName: (deviceId: string) => 'SofieChef ' + deviceId,
 		executionMode: () => 'salvo',
 	},
 	[DeviceType.SHOTOKU]: {
