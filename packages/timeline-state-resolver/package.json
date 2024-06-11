@@ -131,6 +131,7 @@
 	"devDependencies": {
 		"i18next-conv": "^13.1.1",
 		"i18next-parser": "^6.6.0",
+		"jest-mock-extended": "^3.0.7",
 		"json-schema-to-typescript": "^10.1.5",
 		"vinyl-fs": "^3.0.3"
 	}

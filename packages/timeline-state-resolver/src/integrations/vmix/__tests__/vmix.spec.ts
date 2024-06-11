@@ -464,7 +464,7 @@ describe('vMix', () => {
 			11000,
 			expect.objectContaining({
 				command: {
-					command: VMixCommand.SET_INPUT_OVERLAY,
+					command: VMixCommand.SET_LAYER_INPUT,
 					input: prefixAddedInput('C:/videos/My Clip.mp4'),
 					index: 1,
 					value: 'G:/videos/My Other Clip.mp4',
@@ -478,7 +478,7 @@ describe('vMix', () => {
 			11000,
 			expect.objectContaining({
 				command: {
-					command: VMixCommand.SET_INPUT_OVERLAY,
+					command: VMixCommand.SET_LAYER_INPUT,
 					input: prefixAddedInput('C:/videos/My Clip.mp4'),
 					index: 3,
 					value: 5,
@@ -666,7 +666,7 @@ describe('vMix', () => {
 			11000,
 			expect.objectContaining({
 				command: {
-					command: VMixCommand.SET_INPUT_OVERLAY,
+					command: VMixCommand.SET_LAYER_INPUT,
 					input: '2',
 					index: 1,
 					value: 'G:/videos/My Other Clip.mp4',
@@ -680,7 +680,7 @@ describe('vMix', () => {
 			11000,
 			expect.objectContaining({
 				command: {
-					command: VMixCommand.SET_INPUT_OVERLAY,
+					command: VMixCommand.SET_LAYER_INPUT,
 					input: '2',
 					index: 3,
 					value: 5,
@@ -747,7 +747,7 @@ describe('vMix', () => {
 			16000,
 			expect.objectContaining({
 				command: {
-					command: VMixCommand.SET_INPUT_OVERLAY,
+					command: VMixCommand.SET_LAYER_INPUT,
 					input: '2',
 					index: 1,
 					value: '',
@@ -761,7 +761,7 @@ describe('vMix', () => {
 			16000,
 			expect.objectContaining({
 				command: {
-					command: VMixCommand.SET_INPUT_OVERLAY,
+					command: VMixCommand.SET_LAYER_INPUT,
 					input: '2',
 					index: 3,
 					value: '',
@@ -3616,7 +3616,7 @@ describe('vMix', () => {
 			11000,
 			expect.objectContaining({
 				command: {
-					command: VMixCommand.SET_INPUT_OVERLAY,
+					command: VMixCommand.SET_LAYER_INPUT,
 					input: '2',
 					value: 3,
 					index: 1,

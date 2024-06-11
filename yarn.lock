@@ -6671,6 +6671,18 @@ asn1@evs-broadcast/node-asn1:
   languageName: node
   linkType: hard
 
+"jest-mock-extended@npm:^3.0.7":
+  version: 3.0.7
+  resolution: "jest-mock-extended@npm:3.0.7"
+  dependencies:
+    ts-essentials: ^10.0.0
+  peerDependencies:
+    jest: ^24.0.0 || ^25.0.0 || ^26.0.0 || ^27.0.0 || ^28.0.0 || ^29.0.0
+    typescript: ^3.0.0 || ^4.0.0 || ^5.0.0
+  checksum: 59ab510934b0b66e0752c170b6e069f8c93a5b9de40ea2bd3e734f773a70be4b0c251451f8770e60c1c3754d5ddbd25dd1f55568a6379f396d109694d6d3ab79
+  languageName: node
+  linkType: hard
+
 "jest-mock@npm:^29.5.0":
   version: 29.5.0
   resolution: "jest-mock@npm:29.5.0"
@@ -11057,6 +11069,7 @@ asn1@evs-broadcast/node-asn1:
     hyperdeck-connection: ^0.5.0
     i18next-conv: ^13.1.1
     i18next-parser: ^6.6.0
+    jest-mock-extended: ^3.0.7
     json-schema-to-typescript: ^10.1.5
     klona: ^2.0.6
     obs-websocket-js: ^4.0.3
@@ -11198,6 +11211,18 @@ asn1@evs-broadcast/node-asn1:
   version: 4.1.1
   resolution: "trim-newlines@npm:4.1.1"
   checksum: 5b09f8e329e8f33c1111ef26906332ba7ba7248cde3e26fc054bb3d69f2858bf5feedca9559c572ff91f33e52977c28e0d41c387df6a02a633cbb8c2d8238627
+  languageName: node
+  linkType: hard
+
+"ts-essentials@npm:^10.0.0":
+  version: 10.0.0
+  resolution: "ts-essentials@npm:10.0.0"
+  peerDependencies:
+    typescript: ">=4.5.0"
+  peerDependenciesMeta:
+    typescript:
+      optional: true
+  checksum: 29c789b32b1885211bc7429410529810fabc0d6a6f3b13e05f15e2ca6540581c019a66296864ddc5d4510c4eec4dfee0627631857bedae12b48b368d9f62b230
   languageName: node
   linkType: hard
 
