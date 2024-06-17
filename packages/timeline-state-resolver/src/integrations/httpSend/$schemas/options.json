@@ -75,7 +75,12 @@
 		"oauthTokenHost": {
 			"type": "string",
 			"ui:title": "OAuth 2.0 Token Host",
-			"ui:description": "Base URL used to obtain access tokens. To use Client Credentials Flow, provide: OAuth 2.0 Token Host, OAuth 2.0 Client ID, OAuth 2.0 Client Secret, and optionally OAuth 2.0 Audience, to exchange them for a Bearer token that will be added to EVERY outgoing request made through this device"
+			"ui:description": "Base URL of the authorization server. To use Client Credentials Flow, provide: OAuth 2.0 Token Host, OAuth 2.0 Client ID, OAuth 2.0 Client Secret, and optionally: OAuth 2.0 Token Path, OAuth 2.0 Audience, to exchange the credentials for a Bearer token that will be added to EVERY outgoing request made through this device. Example: 'https://auth.example.com'"
+		},
+		"oauthTokenPath": {
+			"type": "string",
+			"ui:title": "OAuth 2.0 Token Path",
+			"ui:description": "Path of the Token endpoint. Example: '/oauth/token' (default)"
 		},
 		"oauthClientId": {
 			"type": "string",

@@ -4,24 +4,28 @@ import { AccessToken, ClientCredentials } from 'simple-oauth2'
 
 const TOKEN_REQUEST_RETRY_TIMEOUT_MS = 1000
 const TOKEN_EXPIRATION_WINDOW_SEC = 60
+const DEFAULT_TOKEN_PATH = '/oauth/token'
+
 const enum AuthMethod {
 	BEARER_TOKEN,
 	CLIENT_CREDENTIALS,
 }
+type AuthOptions =
+	| {
+			method: AuthMethod.CLIENT_CREDENTIALS
+			clientId: string
+			clientSecret: string
+			tokenHost: string
+			tokenPath: string
+			audience?: string
+	  }
+	| { method: AuthMethod.BEARER_TOKEN; bearerToken: string }
+	| undefined
 
 export class AuthenticatedHTTPSendDevice extends HTTPSendDevice {
 	private tokenPromise: Promise<AccessToken> | undefined
 	private tokenRequestPending = false
-	private authOptions:
-		| {
-				method: AuthMethod.CLIENT_CREDENTIALS
-				clientId: string
-				clientSecret: string
-				tokenHost: string
-				audience?: string
-		  }
-		| { method: AuthMethod.BEARER_TOKEN; bearerToken: string }
-		| undefined
+	private authOptions: AuthOptions
 	private tokenRefreshTimeout: NodeJS.Timeout | undefined
 
 	async init(options: HTTPSendOptions): Promise<boolean> {
@@ -37,6 +41,7 @@ export class AuthenticatedHTTPSendDevice extends HTTPSendDevice {
 				clientSecret: options.oauthClientSecret,
 				audience: options.oauthAudience,
 				tokenHost: options.oauthTokenHost,
+				tokenPath: options.oauthTokenPath ?? DEFAULT_TOKEN_PATH,
 			}
 			this.requestAccessToken()
 		}
@@ -101,6 +106,7 @@ export class AuthenticatedHTTPSendDevice extends HTTPSendDevice {
 			},
 			auth: {
 				tokenHost: this.authOptions.tokenHost,
+				tokenPath: this.authOptions.tokenPath,
 			},
 		}).getToken({
 			audience: this.authOptions.audience,
