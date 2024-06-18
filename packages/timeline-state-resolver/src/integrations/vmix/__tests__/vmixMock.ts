@@ -157,9 +157,8 @@ function buildResponse(command: string, state?: 'OK' | 'ER', dataOrMessage?: str
 // send every item in the array in a separate `data` event/packet
 function sendData(socket: net.Socket, response: string[]) {
 	for (const packet of response) {
-		const dataBuf = Buffer.from(packet, 'utf-8')
 		orgSetImmediate(() => {
-			socket.mockData(dataBuf)
+			socket.mockData(packet)
 		})
 	}
 }

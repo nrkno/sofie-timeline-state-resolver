@@ -3,6 +3,14 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [9.0.1](https://github.com/nrkno/sofie-timeline-state-resolver/compare/9.0.0...9.0.1) (2024-04-02)
+
+**Note:** Version bump only for package quick-tsr
+
+
+
+
+
 ## [9.0.0](https://github.com/nrkno/sofie-timeline-state-resolver/compare/9.0.0-release50.8...9.0.0) (2024-02-23)
 
 **Note:** Version bump only for package quick-tsr

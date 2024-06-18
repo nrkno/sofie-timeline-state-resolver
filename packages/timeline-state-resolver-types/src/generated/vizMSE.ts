@@ -72,12 +72,20 @@ export interface VizMSEOptions {
 
 export type SomeMappingVizMSE = Record<string, never>
 
+export interface VizResetPayload {
+	/**
+	 * Optional property that helps track what rundown is active for optimisation reasons
+	 */
+	activeRundownPlaylistId?: string
+}
+
 export interface ActivatePayload {
 	activeRundownPlaylistId: string
 	clearAll?: boolean
 }
 
 export enum VizMSEActions {
+	VizReset = 'vizReset',
 	PurgeRundown = 'purgeRundown',
 	Activate = 'activate',
 	StandDown = 'standDown',

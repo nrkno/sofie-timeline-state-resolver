@@ -22,6 +22,7 @@ import {
 	TimelineContentVIZMSEElementInternal,
 	VizMSEActionExecutionPayload,
 	VizMSEActionExecutionResult,
+	VizResetPayload,
 } from 'timeline-state-resolver-types'
 
 import { createMSE, MSE } from '@tv2media/v-connection'
@@ -266,6 +267,15 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState, DeviceOptionsVizM
 			commands: this._initOptions?.clearAllCommands || [],
 		})
 	}
+	public async resetViz(payload: VizResetPayload): Promise<void> {
+		await this.purgeRundown(true) // note - this might not be 100% necessary
+		await this.clearEngines()
+		await this._vizmseManager?.activate(payload?.activeRundownPlaylistId)
+
+		// lastly make sure we reset so timeline state is sent again
+		this.clearStates()
+		this.emit('resetResolver')
+	}
 
 	async executeAction<A extends VizMSEActions>(
 		actionId: A,
@@ -281,6 +291,9 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState, DeviceOptionsVizM
 				return this.executeStandDown() as Promise<VizMSEActionExecutionResult<A>>
 			case VizMSEActions.ClearAllEngines:
 				await this.clearEngines()
+				return { result: ActionExecutionResultCode.Ok }
+			case VizMSEActions.VizReset:
+				await this.resetViz(payload ?? {})
 				return { result: ActionExecutionResultCode.Ok }
 			default:
 				return actionNotFoundMessage(actionId)

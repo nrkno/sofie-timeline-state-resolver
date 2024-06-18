@@ -73,7 +73,7 @@ export class Socket extends EventEmitter {
 	public mockClose() {
 		this.setClosed()
 	}
-	public mockData(data: Buffer) {
+	public mockData(data: string) {
 		this.emit('data', data)
 	}
 
