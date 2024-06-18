@@ -30,11 +30,11 @@ export interface HttpSendDeviceCommand extends CommandWithContext {
 
 export class HTTPSendDevice extends Device<HTTPSendOptions, HttpSendDeviceState, HttpSendDeviceCommand> {
 	/** Setup in init */
-	private options!: HTTPSendOptions
+	protected options!: HTTPSendOptions
 	/** Maps layers -> sent command-hashes */
-	private trackedState = new Map<string, string>()
-	private readonly cacheable = new CacheableLookup()
-	private _terminated = false
+	protected trackedState = new Map<string, string>()
+	protected readonly cacheable = new CacheableLookup()
+	protected _terminated = false
 
 	async init(options: HTTPSendOptions): Promise<boolean> {
 		this.options = options

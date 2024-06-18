@@ -23,6 +23,12 @@ export interface HTTPSendOptions {
 	 * URLs not to use a proxy for (E.G. github.com)
 	 */
 	noProxy?: string[]
+	oauthTokenHost?: string
+	oauthTokenPath?: string
+	oauthClientId?: string
+	oauthClientSecret?: string
+	oauthAudience?: string
+	bearerToken?: string
 }
 
 export type SomeMappingHttpSend = Record<string, never>

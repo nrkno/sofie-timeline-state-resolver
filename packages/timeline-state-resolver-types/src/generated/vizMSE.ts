@@ -92,6 +92,7 @@ export enum VizMSEActions {
 	ClearAllEngines = 'clearAllEngines'
 }
 export interface VizMSEActionExecutionResults {
+	vizReset: (payload: VizResetPayload) => void,
 	purgeRundown: () => void,
 	activate: (payload: ActivatePayload) => void,
 	standDown: () => void,

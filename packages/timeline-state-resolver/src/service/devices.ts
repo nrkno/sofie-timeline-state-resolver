@@ -1,7 +1,7 @@
 import { OscDevice } from '../integrations/osc'
 import { DeviceType } from 'timeline-state-resolver-types'
 import { Device, DeviceContextAPI } from './device'
-import { HTTPSendDevice } from '../integrations/httpSend'
+import { AuthenticatedHTTPSendDevice } from '../integrations/httpSend/AuthenticatedHTTPSendDevice'
 import { ShotokuDevice } from '../integrations/shotoku'
 import { HTTPWatcherDevice } from '../integrations/httpWatcher'
 import { AbstractDevice } from '../integrations/abstract'
@@ -51,7 +51,7 @@ export const DevicesDict: Record<ImplementedServiceDeviceTypes, DeviceEntry> = {
 		executionMode: () => 'salvo',
 	},
 	[DeviceType.HTTPSEND]: {
-		deviceClass: HTTPSendDevice,
+		deviceClass: AuthenticatedHTTPSendDevice,
 		canConnect: false,
 		deviceName: (deviceId: string) => 'HTTPSend ' + deviceId,
 		executionMode: () => 'sequential', // todo - config?
