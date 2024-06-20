@@ -13,6 +13,7 @@ import { OBSDevice } from '../integrations/obs'
 import { PanasonicPtzDevice } from '../integrations/panasonicPTZ'
 import { LawoDevice } from '../integrations/lawo'
 import { SofieChefDevice } from '../integrations/sofieChef'
+import { PharosDevice } from '../integrations/pharos'
 
 export interface DeviceEntry {
 	deviceClass: new (context: DeviceContextAPI<any>) => Device<any, any, any>
@@ -31,6 +32,7 @@ export type ImplementedServiceDeviceTypes =
 	| DeviceType.OBS
 	| DeviceType.OSC
 	| DeviceType.PANASONIC_PTZ
+	| DeviceType.PHAROS
 	| DeviceType.SHOTOKU
 	| DeviceType.SOFIE_CHEF
 	| DeviceType.TCPSEND
@@ -90,6 +92,12 @@ export const DevicesDict: Record<ImplementedServiceDeviceTypes, DeviceEntry> = {
 		deviceClass: PanasonicPtzDevice,
 		canConnect: true,
 		deviceName: (deviceId: string) => 'Panasonic PTZ ' + deviceId,
+		executionMode: () => 'salvo',
+	},
+	[DeviceType.PHAROS]: {
+		deviceClass: PharosDevice,
+		canConnect: true,
+		deviceName: (deviceId: string) => 'Pharos ' + deviceId,
 		executionMode: () => 'salvo',
 	},
 	[DeviceType.SOFIE_CHEF]: {

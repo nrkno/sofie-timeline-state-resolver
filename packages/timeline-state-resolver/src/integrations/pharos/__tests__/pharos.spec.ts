@@ -1,5 +1,3 @@
-import { Conductor } from '../../../conductor'
-import { PharosDevice } from '..'
 import {
 	Mappings,
 	DeviceType,
@@ -7,34 +5,108 @@ import {
 	SomeMappingPharos,
 	TimelineContentTypePharos,
 } from 'timeline-state-resolver-types'
-import { MockTime } from '../../../__tests__/mockTime'
-import { ThreadedClass } from 'threadedclass'
-import { getMockCall } from '../../../__tests__/lib'
-import * as WebSocket from '../../../__mocks__/ws'
+import { getDeviceContext } from '../../__tests__/testlib'
+import { EventEmitter } from 'events'
+import type { Pharos, ProjectInfo } from '../connection'
+import { makeTimelineObjectResolved } from '../../../__mocks__/objects'
+
+class MockPharosApi
+	extends EventEmitter
+	implements
+		Pick<
+			Pharos,
+			| 'connect'
+			| 'dispose'
+			| 'getProjectInfo'
+			| 'releaseScene'
+			| 'releaseTimeline'
+			| 'pauseTimeline'
+			| 'resumeTimeline'
+			| 'setTimelineRate'
+			| 'startScene'
+			| 'startTimeline'
+		>
+{
+	static instances: MockPharosApi[] = []
+	constructor() {
+		super()
+
+		MockPharosApi.instances.push(this)
+	}
+
+	connected = false
+
+	connect = jest.fn(async () => {
+		this.connected = true
+
+		setImmediate(() => this.emit('connected'))
+	})
+	dispose = jest.fn(async () => {
+		this.connected = false
+
+		setImmediate(() => this.emit('disconnected'))
+	})
+
+	getProjectInfo = jest.fn(async () => {
+		return {
+			author: 'Jest',
+			filename: 'filename',
+			name: 'Jest test mock',
+			unique_id: 'abcde123',
+			upload_date: '2018-10-22T08:09:02',
+		} satisfies ProjectInfo
+	})
+
+	commandCalls: any[] = []
+	releaseScene = jest.fn(async (scene: number, fade?: number) => {
+		this.commandCalls.push({ type: 'releaseScene', scene, fade })
+	})
+	releaseTimeline = jest.fn(async (timeline: number, fade?: number) => {
+		this.commandCalls.push({ type: 'releaseTimeline', timeline, fade })
+	})
+	pauseTimeline = jest.fn(async (timeline: number) => {
+		this.commandCalls.push({ type: 'pauseTimeline', timeline })
+	})
+	resumeTimeline = jest.fn(async (timeline: number) => {
+		this.commandCalls.push({ type: 'resumeTimeline', timeline })
+	})
+	setTimelineRate = jest.fn(async (timeline: number, rate: number) => {
+		this.commandCalls.push({ type: 'setTimelineRate', timeline, rate })
+	})
+	startScene = jest.fn(async (scene: number, fade?: number) => {
+		this.commandCalls.push({ type: 'startScene', scene, fade })
+	})
+	startTimeline = jest.fn(async (timeline: number, rate?: number) => {
+		this.commandCalls.push({ type: 'startTimeline', timeline, rate })
+	})
+}
+jest.mock('../connection', () => ({ Pharos: MockPharosApi }))
+import { PharosDevice, PharosState } from '..'
 
 describe('Pharos', () => {
-	jest.mock('ws', () => WebSocket)
-	const mockTime = new MockTime()
+	jest.mock('ws', () => null)
 	beforeEach(() => {
-		mockTime.init()
-
-		WebSocket.clearMockInstances()
-
-		jest.useRealTimers()
-		setTimeout(() => {
-			const wsInstances = WebSocket.getMockInstances()
-			if (wsInstances.length !== 1) throw new Error('WebSocket Mock Instance not created')
-			WebSocket.getMockInstances()[0].mockSetConnected(true)
-		}, 200)
-		jest.useFakeTimers()
+		MockPharosApi.instances = []
 	})
+
+	afterEach(() => {
+		// eslint-disable-next-line jest/no-standalone-expect
+		expect(MockPharosApi.instances).toHaveLength(1)
+	})
+
+	// Future: this tests should be rewritten to be less monolithic and more granular
 	test('Scene', async () => {
-		let device: any = undefined
-		const commandReceiver0: any = jest.fn((...args) => {
-			// pipe through the command
-			return device._defaultCommandReceiver(...args)
-			// return Promise.resolve()
+		const context = getDeviceContext()
+		const pharos = new PharosDevice(context)
+
+		await pharos.init({
+			host: '127.0.0.1',
 		})
+		expect(pharos).toBeTruthy()
+
+		const mockApi = MockPharosApi.instances[0]
+		expect(mockApi).toBeTruthy()
+
 		const myLayerMapping0: Mapping<SomeMappingPharos> = {
 			device: DeviceType.PHAROS,
 			deviceId: 'myPharos',
@@ -44,68 +116,15 @@ describe('Pharos', () => {
 			myLayer0: myLayerMapping0,
 		}
 
-		const myConductor = new Conductor({
-			multiThreadedResolver: false,
-			getCurrentTime: mockTime.getCurrentTime,
-		})
-		const errorHandler = jest.fn()
-		myConductor.on('error', errorHandler)
+		const state0: PharosState = {}
+		const commands0 = pharos.diffStates(undefined, state0, myLayerMapping)
+		expect(commands0).toHaveLength(0)
 
-		const mockReply = jest.fn((_ws: WebSocket, message: string) => {
-			const data = JSON.parse(message)
-			if (data.request === 'project') {
-				return JSON.stringify({
-					request: data.request,
-					author: 'Jest',
-					filename: 'filename',
-					name: 'Jest test mock',
-					unique_id: 'abcde123',
-					upload_date: '2018-10-22T08:09:02',
-				})
-			} else {
-				console.log(data)
-			}
-			return ''
-		})
-		WebSocket.mockConstructor((ws: WebSocket) => {
-			// @ts-ignore mock
-			ws.mockReplyFunction((message) => {
-				if (message === '') return '' // ping message
-
-				return mockReply(ws, message)
-			})
-		})
-
-		await myConductor.init()
-		await myConductor.addDevice('myPharos', {
-			type: DeviceType.PHAROS,
-			options: {
-				host: '127.0.0.1',
-			},
-			commandReceiver: commandReceiver0,
-		})
-		myConductor.setTimelineAndMappings([], myLayerMapping)
-
-		const wsInstances = WebSocket.getMockInstances()
-		expect(wsInstances).toHaveLength(1)
-		// let wsInstance = wsInstances[0]
-
-		await mockTime.advanceTimeToTicks(10100)
-
-		const deviceContainer = myConductor.getDevice('myPharos')
-		device = deviceContainer!.device as ThreadedClass<PharosDevice>
-
-		expect(mockReply).toHaveBeenCalledTimes(1)
-		expect(getMockCall(mockReply, 0, 1)).toMatch(/project/) // get project info
-
-		// Check that no commands has been scheduled:
-		expect(await device.queue).toHaveLength(0)
-
-		myConductor.setTimelineAndMappings([
-			{
+		const state1: PharosState = {
+			myLayer0: makeTimelineObjectResolved({
 				id: 'scene0',
 				enable: {
-					start: mockTime.now + 1000,
+					start: 1000,
 					duration: 5000,
 				},
 				layer: 'myLayer0',
@@ -115,11 +134,21 @@ describe('Pharos', () => {
 
 					scene: 1,
 				},
-			},
-			{
+			}),
+		}
+		const commands1 = pharos.diffStates(state0, state1, myLayerMapping)
+		expect(commands1).toHaveLength(1)
+
+		for (const command of commands1) await pharos.sendCommand(command)
+		expect(context.commandError).toHaveBeenCalledTimes(0)
+		expect(mockApi.commandCalls).toEqual([{ type: 'startScene', scene: 1 }])
+		mockApi.commandCalls = []
+
+		const state2: PharosState = {
+			myLayer0: makeTimelineObjectResolved({
 				id: 'scene1',
 				enable: {
-					start: '#scene0.start + 1000',
+					start: 2000,
 					duration: 5000,
 				},
 				layer: 'myLayer0',
@@ -129,11 +158,24 @@ describe('Pharos', () => {
 
 					scene: 2,
 				},
-			},
-			{
+			}),
+		}
+		const commands2 = pharos.diffStates(state1, state2, myLayerMapping)
+		expect(commands2).toHaveLength(2)
+
+		for (const command of commands2) await pharos.sendCommand(command)
+		expect(context.commandError).toHaveBeenCalledTimes(0)
+		expect(mockApi.commandCalls).toEqual([
+			{ type: 'releaseScene', scene: 1 },
+			{ type: 'startScene', scene: 2 },
+		])
+		mockApi.commandCalls = []
+
+		const state3: PharosState = {
+			myLayer0: makeTimelineObjectResolved({
 				id: 'scene2',
 				enable: {
-					start: '#scene1.start + 1000',
+					start: 3000,
 					duration: 1000,
 				},
 				layer: 'myLayer0',
@@ -144,51 +186,25 @@ describe('Pharos', () => {
 					scene: 2,
 					stopped: true,
 				},
-			},
+			}),
+		}
+		const commands3 = pharos.diffStates(state2, state3, myLayerMapping)
+		expect(commands3).toHaveLength(2)
+
+		for (const command of commands3) await pharos.sendCommand(command)
+		expect(context.commandError).toHaveBeenCalledTimes(0)
+		expect(mockApi.commandCalls).toEqual([
+			{ type: 'releaseScene', scene: 2 },
+			{ type: 'releaseScene', scene: 2 },
 		])
+		mockApi.commandCalls = []
 
-		await mockTime.advanceTimeToTicks(10990)
-		expect(commandReceiver0).toHaveBeenCalledTimes(0)
+		const state4: PharosState = {}
+		const commands4 = pharos.diffStates(state3, state4, myLayerMapping)
+		expect(commands4).toHaveLength(1)
 
-		mockReply.mockReset()
-		expect(mockReply).toHaveBeenCalledTimes(0)
-
-		await mockTime.advanceTimeToTicks(11500)
-		expect(commandReceiver0).toHaveBeenCalledTimes(1)
-		expect(getMockCall(commandReceiver0, 0, 1).content.args[0]).toEqual(1) // scene
-		expect(getMockCall(commandReceiver0, 0, 2)).toMatch(/added/) // context
-		expect(getMockCall(commandReceiver0, 0, 2)).toMatch(/scene0/) // context
-
-		await mockTime.advanceTimeToTicks(12500)
-		expect(commandReceiver0).toHaveBeenCalledTimes(3)
-		expect(getMockCall(commandReceiver0, 1, 1).content.args[0]).toEqual(1) // scene
-		expect(getMockCall(commandReceiver0, 1, 2)).toMatch(/changed from/) // context
-		expect(getMockCall(commandReceiver0, 1, 2)).toMatch(/scene0/) // context
-
-		expect(getMockCall(commandReceiver0, 2, 1).content.args[0]).toEqual(2) // scene
-		expect(getMockCall(commandReceiver0, 2, 2)).toMatch(/changed to/) // context
-		expect(getMockCall(commandReceiver0, 2, 2)).toMatch(/scene1/) // context
-
-		await mockTime.advanceTimeToTicks(13500)
-		expect(commandReceiver0).toHaveBeenCalledTimes(5)
-		expect(getMockCall(commandReceiver0, 3, 1).content.args[0]).toEqual(2) // scene
-		expect(getMockCall(commandReceiver0, 3, 2)).toMatch(/removed/) // context
-		expect(getMockCall(commandReceiver0, 3, 2)).toMatch(/scene1/) // context
-
-		expect(getMockCall(commandReceiver0, 4, 1).content.args[0]).toEqual(2) // scene
-		expect(getMockCall(commandReceiver0, 4, 2)).toMatch(/removed/) // context
-		expect(getMockCall(commandReceiver0, 4, 2)).toMatch(/scene2/) // context
-
-		await mockTime.advanceTimeToTicks(14500)
-		expect(commandReceiver0).toHaveBeenCalledTimes(6)
-		expect(getMockCall(commandReceiver0, 5, 1).content.args[0]).toEqual(2) // scene
-		expect(getMockCall(commandReceiver0, 5, 2)).toMatch(/added/) // context
-		expect(getMockCall(commandReceiver0, 5, 2)).toMatch(/scene1/) // context
-
-		await mockTime.advanceTimeToTicks(20000)
-		expect(commandReceiver0).toHaveBeenCalledTimes(7)
-		expect(getMockCall(commandReceiver0, 6, 1).content.args[0]).toEqual(2) // scene
-		expect(getMockCall(commandReceiver0, 6, 2)).toMatch(/removed/) // context
-		expect(getMockCall(commandReceiver0, 6, 2)).toMatch(/scene1/) // context
+		for (const command of commands4) await pharos.sendCommand(command)
+		expect(context.commandError).toHaveBeenCalledTimes(0)
+		expect(mockApi.commandCalls).toEqual([{ type: 'releaseScene', scene: 2 }])
 	})
 })
