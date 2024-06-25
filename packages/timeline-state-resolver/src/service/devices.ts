@@ -14,6 +14,7 @@ import { PanasonicPtzDevice } from '../integrations/panasonicPTZ'
 import { LawoDevice } from '../integrations/lawo'
 import { SofieChefDevice } from '../integrations/sofieChef'
 import { PharosDevice } from '../integrations/pharos'
+import { TelemetricsDevice } from '../integrations/telemetrics'
 
 export interface DeviceEntry {
 	deviceClass: new (context: DeviceContextAPI<any>) => Device<any, any, any>
@@ -36,6 +37,7 @@ export type ImplementedServiceDeviceTypes =
 	| DeviceType.SHOTOKU
 	| DeviceType.SOFIE_CHEF
 	| DeviceType.TCPSEND
+	| DeviceType.TELEMETRICS
 	| DeviceType.QUANTEL
 
 // TODO - move all device implementations here and remove the old Device classes
@@ -117,6 +119,12 @@ export const DevicesDict: Record<ImplementedServiceDeviceTypes, DeviceEntry> = {
 		canConnect: true,
 		deviceName: (deviceId: string) => 'TCP' + deviceId,
 		executionMode: () => 'sequential', // todo: should this be configurable?
+	},
+	[DeviceType.TELEMETRICS]: {
+		deviceClass: TelemetricsDevice,
+		canConnect: true,
+		deviceName: (deviceId: string) => 'Telemetrics ' + deviceId,
+		executionMode: () => 'salvo',
 	},
 	[DeviceType.QUANTEL]: {
 		deviceClass: QuantelDevice,
