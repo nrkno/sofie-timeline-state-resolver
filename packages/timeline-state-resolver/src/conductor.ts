@@ -35,6 +35,7 @@ import {
 	DeviceOptionsLawo,
 	DeviceOptionsSofieChef,
 	DeviceOptionsPharos,
+	DeviceOptionsTriCaster,
 } from 'timeline-state-resolver-types'
 
 import { DoOnTime } from './devices/doOnTime'
@@ -50,7 +51,6 @@ import { SingularLiveDevice, DeviceOptionsSingularLiveInternal } from './integra
 import { VMixDevice, DeviceOptionsVMixInternal } from './integrations/vmix'
 import { VizMSEDevice, DeviceOptionsVizMSEInternal } from './integrations/vizMSE'
 import { TelemetricsDevice } from './integrations/telemetrics'
-import { TriCasterDevice, DeviceOptionsTriCasterInternal } from './integrations/tricaster'
 import { DeviceOptionsMultiOSCInternal, MultiOSCMessageDevice } from './integrations/multiOsc'
 import { BaseRemoteDeviceIntegration, RemoteDeviceInstance } from './service/remoteDeviceInstance'
 import type { ImplementedServiceDeviceTypes } from './service/devices'
@@ -555,15 +555,6 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 					getCurrentTime,
 					threadedClassOptions
 				)
-			case DeviceType.TRICASTER:
-				return DeviceContainer.create<DeviceOptionsTriCasterInternal, typeof TriCasterDevice>(
-					'../../dist/integrations/tricaster/index.js',
-					'TriCasterDevice',
-					deviceId,
-					deviceOptions,
-					getCurrentTime,
-					threadedClassOptions
-				)
 			case DeviceType.MULTI_OSC:
 				return DeviceContainer.create<DeviceOptionsMultiOSC, typeof MultiOSCMessageDevice>(
 					'../../dist/integrations/multiOsc/index.js',
@@ -586,6 +577,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 			case DeviceType.SHOTOKU:
 			case DeviceType.SOFIE_CHEF:
 			case DeviceType.TCPSEND:
+			case DeviceType.TRICASTER:
 			case DeviceType.QUANTEL: {
 				ensureIsImplementedAsService(deviceOptions.type)
 
@@ -1509,7 +1501,7 @@ export type DeviceOptionsAnyInternal =
 	| DeviceOptionsShotoku
 	| DeviceOptionsVizMSEInternal
 	| DeviceOptionsTelemetrics
-	| DeviceOptionsTriCasterInternal
+	| DeviceOptionsTriCaster
 	| DeviceOptionsMultiOSC
 
 function removeParentFromState(

@@ -731,11 +731,13 @@ describe('TriCasterStateDiffer.getCommandsToAchieveState', () => {
 			expect(commands[0]).toEqual({
 				command: { target: 'main_dsk2', name: '_select_named_input', value: 'input2' },
 				timelineObjId: 't3',
+				context: '',
 				temporalPriority: 0,
 			})
 			expect(commands[1]).toEqual({
 				command: { target: 'main_dsk2', name: '_value', value: 1 },
 				timelineObjId: 't2',
+				context: '',
 				temporalPriority: 0,
 			})
 		})
