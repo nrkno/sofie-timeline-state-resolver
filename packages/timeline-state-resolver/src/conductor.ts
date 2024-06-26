@@ -50,7 +50,6 @@ import { SisyfosMessageDevice, DeviceOptionsSisyfosInternal } from './integratio
 import { SingularLiveDevice, DeviceOptionsSingularLiveInternal } from './integrations/singularLive'
 import { VMixDevice, DeviceOptionsVMixInternal } from './integrations/vmix'
 import { VizMSEDevice, DeviceOptionsVizMSEInternal } from './integrations/vizMSE'
-import { TelemetricsDevice } from './integrations/telemetrics'
 import { DeviceOptionsMultiOSCInternal, MultiOSCMessageDevice } from './integrations/multiOsc'
 import { BaseRemoteDeviceIntegration, RemoteDeviceInstance } from './service/remoteDeviceInstance'
 import type { ImplementedServiceDeviceTypes } from './service/devices'
@@ -546,15 +545,6 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 					getCurrentTime,
 					threadedClassOptions
 				)
-			case DeviceType.TELEMETRICS:
-				return DeviceContainer.create<DeviceOptionsTelemetrics, typeof TelemetricsDevice>(
-					'../../dist/integrations/telemetrics/index.js',
-					'TelemetricsDevice',
-					deviceId,
-					deviceOptions,
-					getCurrentTime,
-					threadedClassOptions
-				)
 			case DeviceType.MULTI_OSC:
 				return DeviceContainer.create<DeviceOptionsMultiOSC, typeof MultiOSCMessageDevice>(
 					'../../dist/integrations/multiOsc/index.js',
@@ -577,6 +567,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 			case DeviceType.SHOTOKU:
 			case DeviceType.SOFIE_CHEF:
 			case DeviceType.TCPSEND:
+			case DeviceType.TELEMETRICS:
 			case DeviceType.TRICASTER:
 			case DeviceType.QUANTEL: {
 				ensureIsImplementedAsService(deviceOptions.type)

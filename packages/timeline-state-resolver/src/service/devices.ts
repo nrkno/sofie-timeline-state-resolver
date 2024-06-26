@@ -14,6 +14,7 @@ import { PanasonicPtzDevice } from '../integrations/panasonicPTZ'
 import { LawoDevice } from '../integrations/lawo'
 import { SofieChefDevice } from '../integrations/sofieChef'
 import { PharosDevice } from '../integrations/pharos'
+import { TelemetricsDevice } from '../integrations/telemetrics'
 import { TriCasterDevice } from '../integrations/tricaster'
 
 export interface DeviceEntry {
@@ -37,6 +38,7 @@ export type ImplementedServiceDeviceTypes =
 	| DeviceType.SHOTOKU
 	| DeviceType.SOFIE_CHEF
 	| DeviceType.TCPSEND
+	| DeviceType.TELEMETRICS
 	| DeviceType.TRICASTER
 	| DeviceType.QUANTEL
 
@@ -119,6 +121,12 @@ export const DevicesDict: Record<ImplementedServiceDeviceTypes, DeviceEntry> = {
 		canConnect: true,
 		deviceName: (deviceId: string) => 'TCP' + deviceId,
 		executionMode: () => 'sequential', // todo: should this be configurable?
+	},
+	[DeviceType.TELEMETRICS]: {
+		deviceClass: TelemetricsDevice,
+		canConnect: true,
+		deviceName: (deviceId: string) => 'Telemetrics ' + deviceId,
+		executionMode: () => 'salvo',
 	},
 	[DeviceType.TRICASTER]: {
 		deviceClass: TriCasterDevice,
