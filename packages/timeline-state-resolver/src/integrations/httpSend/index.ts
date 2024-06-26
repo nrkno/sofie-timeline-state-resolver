@@ -63,7 +63,7 @@ export class HTTPSendDevice extends Device<HTTPSendOptions, HttpSendDeviceState,
 			this.executeSendCommandAction(payload as HTTPSendCommandContent | undefined),
 	}
 
-	async executeResyncAction(): Promise<ActionExecutionResult<undefined>> {
+	private async executeResyncAction(): Promise<ActionExecutionResult<undefined>> {
 		this.context.resetResolver()
 		return { result: ActionExecutionResultCode.Ok }
 	}
