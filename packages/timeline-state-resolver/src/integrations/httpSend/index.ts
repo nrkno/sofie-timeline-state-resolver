@@ -6,6 +6,7 @@ import {
 	HTTPSendCommandContent,
 	HTTPSendOptions,
 	HttpSendActions,
+	SendCommandResult,
 	StatusCode,
 	TSRTimelineContent,
 	Timeline,
@@ -54,19 +55,22 @@ export class HTTPSendDevice extends Device<HTTPSendOptions, HttpSendDeviceState,
 			messages: [],
 		}
 	}
-
 	readonly actions: {
-		[id in HttpSendActions]: (id: string, payload?: Record<string, any>) => Promise<ActionExecutionResult>
+		[id in HttpSendActions]: (id: string, payload?: Record<string, any>) => Promise<ActionExecutionResult<any>>
 	} = {
-		[HttpSendActions.Resync]: async () => {
-			this.context.resetResolver()
-			return { result: ActionExecutionResultCode.Ok }
-		},
+		[HttpSendActions.Resync]: async (_id) => this.executeResyncAction(),
 		[HttpSendActions.SendCommand]: async (_id: string, payload?: Record<string, any>) =>
-			this.sendManualCommand(payload as HTTPSendCommandContent | undefined),
+			this.executeSendCommandAction(payload as HTTPSendCommandContent | undefined),
 	}
 
-	private async sendManualCommand(cmd?: HTTPSendCommandContent): Promise<ActionExecutionResult> {
+	private async executeResyncAction(): Promise<ActionExecutionResult<undefined>> {
+		this.context.resetResolver()
+		return { result: ActionExecutionResultCode.Ok }
+	}
+
+	private async executeSendCommandAction(
+		cmd?: HTTPSendCommandContent
+	): Promise<ActionExecutionResult<SendCommandResult>> {
 		if (!cmd)
 			return {
 				result: ActionExecutionResultCode.Error,
@@ -97,7 +101,7 @@ export class HTTPSendDevice extends Device<HTTPSendOptions, HttpSendDeviceState,
 			}
 		}
 
-		await this.sendCommand({
+		const response = await this.sendCommandWithResult({
 			timelineObjId: '',
 			context: 'makeReady',
 			command: {
@@ -107,9 +111,11 @@ export class HTTPSendDevice extends Device<HTTPSendOptions, HttpSendDeviceState,
 			},
 		}).catch(() => this.context.logger.warning('Manual command failed: ' + JSON.stringify(cmd)))
 
-		return {
-			result: ActionExecutionResultCode.Ok,
-		}
+		return (
+			response ?? {
+				result: ActionExecutionResultCode.Error,
+			}
+		)
 	}
 
 	convertTimelineStateToDeviceState(state: Timeline.TimelineState<TSRTimelineContent>): HttpSendDeviceState {
@@ -168,6 +174,13 @@ export class HTTPSendDevice extends Device<HTTPSendOptions, HttpSendDeviceState,
 		return commands
 	}
 	async sendCommand({ timelineObjId, context, command }: HttpSendDeviceCommand): Promise<void> {
+		await this.sendCommandWithResult({ timelineObjId, context, command })
+	}
+	async sendCommandWithResult({
+		timelineObjId,
+		context,
+		command,
+	}: HttpSendDeviceCommand): Promise<ActionExecutionResult<SendCommandResult>> {
 		const commandHash = this.getTrackedStateHash(command)
 
 		if (command.commandName === 'added' || command.commandName === 'changed') {
@@ -179,10 +192,15 @@ export class HTTPSendDevice extends Device<HTTPSendOptions, HttpSendDeviceState,
 		// Avoid sending multiple identical commands for the same state:
 		if (command.layer && command.commandName !== 'manual') {
 			const trackedHash = this.trackedState.get(command.layer)
-			if (commandHash !== trackedHash) return Promise.resolve() // command is no longer relevant to state
+			if (commandHash !== trackedHash)
+				return {
+					result: ActionExecutionResultCode.Error,
+				} // command is no longer relevant to state
 		}
 		if (this._terminated) {
-			return Promise.resolve()
+			return {
+				result: ActionExecutionResultCode.Error,
+			}
 		}
 
 		const cwc: CommandWithContext = {
@@ -245,6 +263,15 @@ export class HTTPSendDevice extends Device<HTTPSendOptions, HttpSendDeviceState,
 					`HTTPSend: ${command.content.type}: Bad statuscode response on url "${command.content.url}": ${response.statusCode} (${context})`
 				)
 			}
+
+			return {
+				result: ActionExecutionResultCode.Ok,
+				resultData: {
+					body: response.body,
+					statusCode: response.statusCode,
+					headers: response.headers as Record<string, string | string[]>,
+				},
+			}
 		} catch (error) {
 			const err = error as RequestError // make typescript happy
 
@@ -280,6 +307,10 @@ export class HTTPSendDevice extends Device<HTTPSendOptions, HttpSendDeviceState,
 						}).catch(() => null) // errors will be emitted
 					}, timeLeft)
 				}
+			}
+
+			return {
+				result: ActionExecutionResultCode.Error,
 			}
 		}
 	}
