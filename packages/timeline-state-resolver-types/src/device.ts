@@ -22,6 +22,7 @@ import {
 	TelemetricsOptions,
 	TriCasterOptions,
 	MultiOSCOptions,
+	ViscaOverIPOptions,
 } from '.'
 import { DeviceCommonOptions } from './generated/common-options'
 
@@ -76,6 +77,7 @@ export type DeviceOptionsAny =
 	| DeviceOptionsTelemetrics
 	| DeviceOptionsTriCaster
 	| DeviceOptionsMultiOSC
+	| DeviceOptionsViscaOverIP
 
 export interface DeviceOptionsAbstract extends DeviceOptionsBase<AbstractOptions> {
 	type: DeviceType.ABSTRACT
@@ -142,4 +144,7 @@ export interface DeviceOptionsTriCaster extends DeviceOptionsBase<TriCasterOptio
 }
 export interface DeviceOptionsMultiOSC extends DeviceOptionsBase<MultiOSCOptions> {
 	type: DeviceType.MULTI_OSC
+}
+export interface DeviceOptionsViscaOverIP extends DeviceOptionsBase<ViscaOverIPOptions> {
+	type: DeviceType.VISCA_OVER_IP
 }

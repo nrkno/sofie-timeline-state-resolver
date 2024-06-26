@@ -45,6 +45,7 @@ export * from './integrations/obs'
 export * from './integrations/tricaster'
 export * from './integrations/telemetrics'
 export * from './integrations/multiOsc'
+export * from './integrations/viscaOverIP'
 
 export * from './device'
 export * from './mapping'
@@ -86,6 +87,7 @@ export enum DeviceType {
 	TELEMETRICS = 'TELEMETRICS',
 	TRICASTER = 'TRICASTER',
 	MULTI_OSC = 'MULTI_OSC',
+	VISCA_OVER_IP = 'VISCA_OVER_IP',
 }
 
 export interface TSRTimelineKeyframe<TContent> extends Omit<Timeline.TimelineKeyframe, 'content'> {

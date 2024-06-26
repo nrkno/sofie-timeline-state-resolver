@@ -1,0 +1,6 @@
+{
+	"$schema": "../../../$schemas/mapping-schema.json",
+	"default": "",
+	"mappings": {
+	}
+}

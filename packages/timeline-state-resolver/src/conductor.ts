@@ -35,6 +35,7 @@ import {
 	DeviceOptionsLawo,
 	DeviceOptionsSofieChef,
 	DeviceOptionsPharos,
+	DeviceOptionsViscaOverIP,
 } from 'timeline-state-resolver-types'
 
 import { DoOnTime } from './devices/doOnTime'
@@ -586,6 +587,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 			case DeviceType.SHOTOKU:
 			case DeviceType.SOFIE_CHEF:
 			case DeviceType.TCPSEND:
+			case DeviceType.VISCA_OVER_IP:
 			case DeviceType.QUANTEL: {
 				ensureIsImplementedAsService(deviceOptions.type)
 
@@ -1511,6 +1513,7 @@ export type DeviceOptionsAnyInternal =
 	| DeviceOptionsTelemetrics
 	| DeviceOptionsTriCasterInternal
 	| DeviceOptionsMultiOSC
+	| DeviceOptionsViscaOverIP
 
 function removeParentFromState(
 	o: Timeline.TimelineState<TSRTimelineContent>

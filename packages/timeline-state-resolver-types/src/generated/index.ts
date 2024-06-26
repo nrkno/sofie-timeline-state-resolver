@@ -66,6 +66,9 @@ import { SomeMappingTelemetrics } from './telemetrics'
 export * from './tricaster'
 import { SomeMappingTricaster } from './tricaster'
 
+export * from './viscaOverIP'
+import { SomeMappingViscaOverIP } from './viscaOverIP'
+
 export * from './vizMSE'
 import { SomeMappingVizMSE } from './vizMSE'
 
@@ -93,5 +96,6 @@ export type TSRMappingOptions =
 	| SomeMappingTcpSend
 	| SomeMappingTelemetrics
 	| SomeMappingTricaster
+	| SomeMappingViscaOverIP
 	| SomeMappingVizMSE
 	| SomeMappingVmix

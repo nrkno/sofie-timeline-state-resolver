@@ -14,6 +14,7 @@ import { PanasonicPtzDevice } from '../integrations/panasonicPTZ'
 import { LawoDevice } from '../integrations/lawo'
 import { SofieChefDevice } from '../integrations/sofieChef'
 import { PharosDevice } from '../integrations/pharos'
+import { ViscaOverIpDevice } from '../integrations/viscaOverIP'
 
 export interface DeviceEntry {
 	deviceClass: new (context: DeviceContextAPI<any>) => Device<any, any, any>
@@ -37,6 +38,7 @@ export type ImplementedServiceDeviceTypes =
 	| DeviceType.SOFIE_CHEF
 	| DeviceType.TCPSEND
 	| DeviceType.QUANTEL
+	| DeviceType.VISCA_OVER_IP
 
 // TODO - move all device implementations here and remove the old Device classes
 export const DevicesDict: Record<ImplementedServiceDeviceTypes, DeviceEntry> = {
@@ -123,5 +125,11 @@ export const DevicesDict: Record<ImplementedServiceDeviceTypes, DeviceEntry> = {
 		canConnect: true,
 		deviceName: (deviceId: string) => 'Quantel' + deviceId,
 		executionMode: () => 'salvo',
+	},
+	[DeviceType.VISCA_OVER_IP]: {
+		deviceClass: ViscaOverIpDevice,
+		canConnect: false,
+		deviceName: (deviceId: string) => 'VISCAOverIP ' + deviceId,
+		executionMode: () => 'sequential',
 	},
 }
