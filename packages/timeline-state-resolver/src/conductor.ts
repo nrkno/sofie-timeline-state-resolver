@@ -36,6 +36,7 @@ import {
 	DeviceOptionsSofieChef,
 	DeviceOptionsPharos,
 	DeviceOptionsTriCaster,
+	DeviceOptionsSingularLive,
 } from 'timeline-state-resolver-types'
 
 import { DoOnTime } from './devices/doOnTime'
@@ -47,7 +48,6 @@ import { DeviceContainer } from './devices/deviceContainer'
 
 import { CasparCGDevice, DeviceOptionsCasparCGInternal } from './integrations/casparCG'
 import { SisyfosMessageDevice, DeviceOptionsSisyfosInternal } from './integrations/sisyfos'
-import { SingularLiveDevice, DeviceOptionsSingularLiveInternal } from './integrations/singularLive'
 import { VMixDevice, DeviceOptionsVMixInternal } from './integrations/vmix'
 import { VizMSEDevice, DeviceOptionsVizMSEInternal } from './integrations/vizMSE'
 import { DeviceOptionsMultiOSCInternal, MultiOSCMessageDevice } from './integrations/multiOsc'
@@ -527,15 +527,6 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 					getCurrentTime,
 					threadedClassOptions
 				)
-			case DeviceType.SINGULAR_LIVE:
-				return DeviceContainer.create<DeviceOptionsSingularLiveInternal, typeof SingularLiveDevice>(
-					'../../dist/integrations/singularLive/index.js',
-					'SingularLiveDevice',
-					deviceId,
-					deviceOptions,
-					getCurrentTime,
-					threadedClassOptions
-				)
 			case DeviceType.VMIX:
 				return DeviceContainer.create<DeviceOptionsVMixInternal, typeof VMixDevice>(
 					'../../dist/integrations/vmix/index.js',
@@ -565,6 +556,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 			case DeviceType.PANASONIC_PTZ:
 			case DeviceType.PHAROS:
 			case DeviceType.SHOTOKU:
+			case DeviceType.SINGULAR_LIVE:
 			case DeviceType.SOFIE_CHEF:
 			case DeviceType.TCPSEND:
 			case DeviceType.TELEMETRICS:
@@ -1487,7 +1479,7 @@ export type DeviceOptionsAnyInternal =
 	| DeviceOptionsSisyfosInternal
 	| DeviceOptionsSofieChef
 	| DeviceOptionsQuantel
-	| DeviceOptionsSingularLiveInternal
+	| DeviceOptionsSingularLive
 	| DeviceOptionsVMixInternal
 	| DeviceOptionsShotoku
 	| DeviceOptionsVizMSEInternal

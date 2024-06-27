@@ -16,6 +16,7 @@ import { SofieChefDevice } from '../integrations/sofieChef'
 import { PharosDevice } from '../integrations/pharos'
 import { TelemetricsDevice } from '../integrations/telemetrics'
 import { TriCasterDevice } from '../integrations/tricaster'
+import { SingularLiveDevice } from '../integrations/singularLive'
 
 export interface DeviceEntry {
 	deviceClass: new (context: DeviceContextAPI<any>) => Device<any, any, any>
@@ -36,6 +37,7 @@ export type ImplementedServiceDeviceTypes =
 	| DeviceType.PANASONIC_PTZ
 	| DeviceType.PHAROS
 	| DeviceType.SHOTOKU
+	| DeviceType.SINGULAR_LIVE
 	| DeviceType.SOFIE_CHEF
 	| DeviceType.TCPSEND
 	| DeviceType.TELEMETRICS
@@ -115,6 +117,12 @@ export const DevicesDict: Record<ImplementedServiceDeviceTypes, DeviceEntry> = {
 		canConnect: true,
 		deviceName: (deviceId: string) => 'SHOTOKU' + deviceId,
 		executionMode: () => 'salvo',
+	},
+	[DeviceType.SINGULAR_LIVE]: {
+		deviceClass: SingularLiveDevice,
+		canConnect: false,
+		deviceName: (deviceId: string) => 'Singular.Live ' + deviceId,
+		executionMode: () => 'sequential',
 	},
 	[DeviceType.TCPSEND]: {
 		deviceClass: TcpSendDevice,
