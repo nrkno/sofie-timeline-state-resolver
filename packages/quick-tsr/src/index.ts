@@ -144,6 +144,12 @@ function reloadInput(changed?: { path: string; stats: fs.Stats }) {
 				currentInput.mappings = clone(newInput.mappings)
 				currentInput.timeline = clone(newInput.timeline)
 
+				// Check that layers are correct.
+				newInput.timeline.forEach((obj) => {
+					if (!newInput.mappings[obj.layer])
+						console.error(`Object ${obj.id} refers to a layer/mapping that does not exist: "${obj.layer}"`)
+				})
+
 				tsr.setTimelineAndMappings(newInput.timeline, newInput.mappings)
 			}
 			if (!_.isEqual(newInput.datastore, currentInput.datastore)) {
