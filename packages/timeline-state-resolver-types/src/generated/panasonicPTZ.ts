@@ -37,88 +37,31 @@ export enum MappingPanasonicPTZType {
 
 export type SomeMappingPanasonicPTZ = MappingPanasonicPTZPresetMem | MappingPanasonicPTZPresetSpeed | MappingPanasonicPTZZoomSpeed | MappingPanasonicPTZZoom
 
-export interface SetPanTiltSpeedPayload {
-	/**
-	 * Pan Speed; Range: [-1.0, 1.0]; -1.0 = fastest LEFT, 0.0 = STOP, 1.0 = fastest RIGHT (each protocol might internally support a different range, which the value will be mapped into)
-	 */
-	panSpeed: number
-	/**
-	 * Tilt Speed; Range: [-1.0, 1.0]; -1.0 = fastest DOWN, 0.0 = STOP, 1.0 = fastest UP (each protocol might internally support a different range, which the value will be mapped into)
-	 */
-	tiltSpeed: number
-}
-
-export interface SetZoomSpeedPayload {
-	/**
-	 * Zoom Speed; Range: [-1.0, 1.0]; -1.0 = fastest WIDE, 0.0 = STOP, 1.0 = fastest TELE (each protocol might internally support a different range, which the value will be mapped into)
-	 */
-	zoomSpeed: number
-}
-
-export interface StorePresetPayload {
-	/**
-	 * Preset number, within the range supported by the camera
-	 */
-	presetNumber: number
-}
-
-export interface RecallPresetPayload {
-	/**
-	 * Preset number, within the range supported by the camera
-	 */
-	presetNumber: number
-}
-
-export interface ResetPresetPayload {
-	/**
-	 * Preset number, within the range supported by the camera
-	 */
-	presetNumber: number
-}
-
-export interface SetFocusSpeedPayload {
-	/**
-	 * Focus Speed; Range: [-1.0, 1.0]; -1.0 = fastest NEAR, 0.0 = STOP, 1.0 = fastest FAR (each protocol might internally support a different range, which the value will be mapped into)
-	 */
-	focusSpeed: number
-}
-
-export interface SetFocusModePayload {
-	mode: FocusMode
-}
-
-export enum FocusMode {
-	AUTO = 'auto',
-	MANUAL = 'manual'
-}
-
 export enum PanasonicPTZActions {
-	SetPanTiltSpeed = 'setPanTiltSpeed',
-	GetPanTiltPosition = 'getPanTiltPosition',
-	SetZoomSpeed = 'setZoomSpeed',
-	GetZoomPosition = 'getZoomPosition',
+	StartPanTilt = 'startPanTilt',
+	StopPanTilt = 'stopPanTilt',
+	StartZoom = 'startZoom',
+	StopZoom = 'stopZoom',
 	StorePreset = 'storePreset',
 	RecallPreset = 'recallPreset',
 	ResetPreset = 'resetPreset',
-	SetFocusSpeed = 'setFocusSpeed',
+	StartFocus = 'startFocus',
+	StopFocus = 'stopFocus',
 	SetFocusMode = 'setFocusMode',
-	TriggerOnePushFocus = 'triggerOnePushFocus',
-	GetFocusPosition = 'getFocusPosition',
-	GetFocusMode = 'getFocusMode'
+	TriggerOnePushFocus = 'triggerOnePushFocus'
 }
 export interface PanasonicPTZActionExecutionResults {
-	setPanTiltSpeed: (payload: SetPanTiltSpeedPayload) => void,
-	getPanTiltPosition: () => void,
-	setZoomSpeed: (payload: SetZoomSpeedPayload) => void,
-	getZoomPosition: () => void,
-	storePreset: (payload: StorePresetPayload) => void,
-	recallPreset: (payload: RecallPresetPayload) => void,
-	resetPreset: (payload: ResetPresetPayload) => void,
-	setFocusSpeed: (payload: SetFocusSpeedPayload) => void,
-	setFocusMode: (payload: SetFocusModePayload) => void,
-	triggerOnePushFocus: () => void,
-	getFocusPosition: () => void,
-	getFocusMode: () => void
+	startPanTilt: () => void,
+	stopPanTilt: () => void,
+	startZoom: () => void,
+	stopZoom: () => void,
+	storePreset: () => void,
+	recallPreset: () => void,
+	resetPreset: () => void,
+	startFocus: () => void,
+	stopFocus: () => void,
+	setFocusMode: () => void,
+	triggerOnePushFocus: () => void
 }
 export type PanasonicPTZActionExecutionPayload<A extends keyof PanasonicPTZActionExecutionResults> = Parameters<
 	PanasonicPTZActionExecutionResults[A]

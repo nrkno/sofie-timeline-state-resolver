@@ -93,14 +93,27 @@ export class PanasonicPtzCamera extends EventEmitter {
 enum PanasonicHttpCommands {
 	POWER_MODE_QUERY = '#O',
 
-	PRESET_NUMBER_CONTROL_TPL = '#R%02i',
+	PRESET_REGISTER_CONTROL_TPL = '#M%02i',
+	PRESET_PLAYBACK_CONTROL_TPL = '#R%02i',
+	PRESET_DELETE_CONTROL_TPL = '#C%02i',
 	PRESET_NUMBER_QUERY = '#S',
 	PRESET_SPEED_CONTROL_TPL = '#UPVS%03i',
 	PRESET_SPEED_QUERY = '#UPVS',
+
+	PAN_TILT_SPEED_CONTROL_TPL = '#PTS%02i%02i',
+
 	ZOOM_SPEED_CONTROL_TPL = '#Z%02i',
 	ZOOM_SPEED_QUERY = '#Z',
 	ZOOM_CONTROL_TPL = '#AXZ%03X',
 	ZOOM_QUERY = '#GZ',
+
+	FOCUS_SPEED_CONTROL_TPL = '#F%02i',
+	AUTO_FOCUS_ON_OFF_CONTROL_TPL = '#D1%d',
+	ONE_TOUCH_FOCUS_CONTROL = 'OSE:69:1',
+}
+export enum PanasonicFocusMode {
+	MANUAL = 0,
+	AUTO = 1,
 }
 enum PanasonicHttpResponse {
 	POWER_MODE_ON = 'p1',
@@ -110,9 +123,15 @@ enum PanasonicHttpResponse {
 	PRESET_NUMBER_TPL = 's',
 	PRESET_SPEED_TPL = 'uPVS',
 
+	PAN_TILT_SPEED_TPL = 'pTS',
+
 	ZOOM_SPEED_TPL = 'zS',
 	ZOOM_TPL = 'gz',
 	ZOOM_CONTROL_TPL = 'axz',
+
+	FOCUS_SPEED_TPL = 'fS',
+	AUTO_FOCUS_ON_OFF_TPL = 'd1',
+	ONE_TOUCH_FOCUS = 'OSE:69:1',
 
 	ERROR_1 = 'E1',
 	ERROR_2 = 'E2',
@@ -191,7 +210,7 @@ export class PanasonicPtzHttpInterface extends EventEmitter {
 					if (PanasonicPtzHttpInterface._isError(response)) {
 						reject(`Device returned an error: ${response}`)
 					} else if (response.startsWith(PanasonicHttpResponse.PRESET_NUMBER_TPL)) {
-						const preset = Number.parseInt(response.substr(PanasonicHttpResponse.PRESET_NUMBER_TPL.length), 10)
+						const preset = Number.parseInt(response.substring(PanasonicHttpResponse.PRESET_NUMBER_TPL.length), 10)
 						resolve(preset)
 					} else {
 						reject(`Unknown response to getPreset: ${response}`)
@@ -213,17 +232,16 @@ export class PanasonicPtzHttpInterface extends EventEmitter {
 	async recallPreset(preset: number): Promise<number> {
 		const device = this._device
 
-		if (!_.isFinite(preset)) throw new Error('Camera speed preset is not a finite number')
-		if (preset < 0 || preset > 99) throw new Error('Illegal preset number')
+		this.validatePresetNumber(preset)
 
 		return new Promise((resolve, reject) => {
 			device
-				.sendCommand(sprintf(PanasonicHttpCommands.PRESET_NUMBER_CONTROL_TPL, preset))
+				.sendCommand(sprintf(PanasonicHttpCommands.PRESET_PLAYBACK_CONTROL_TPL, preset))
 				.then((response) => {
 					if (PanasonicPtzHttpInterface._isError(response)) {
 						reject(`Device returned an error: ${response}`)
 					} else if (response.startsWith(PanasonicHttpResponse.PRESET_NUMBER_TPL)) {
-						const preset = Number.parseInt(response.substr(PanasonicHttpResponse.PRESET_NUMBER_TPL.length), 10)
+						const preset = Number.parseInt(response.substring(PanasonicHttpResponse.PRESET_NUMBER_TPL.length), 10)
 						resolve(preset)
 					} else {
 						reject(`Unknown response to recallPreset: ${response}`)
@@ -234,6 +252,73 @@ export class PanasonicPtzHttpInterface extends EventEmitter {
 					reject(error)
 				})
 		})
+	}
+
+	/**
+	 * Store camera preset
+	 * @param {number} preset The preset to be stored in the camera. 0-99
+	 * @returns {Promise<number>} A promise: the preset the camera will store to
+	 * @memberof PanasonicPtzHttpInterface
+	 */
+	async storePreset(preset: number): Promise<number> {
+		const device = this._device
+
+		this.validatePresetNumber(preset)
+
+		return new Promise((resolve, reject) => {
+			device
+				.sendCommand(sprintf(PanasonicHttpCommands.PRESET_REGISTER_CONTROL_TPL, preset))
+				.then((response) => {
+					if (PanasonicPtzHttpInterface._isError(response)) {
+						reject(`Device returned an error: ${response}`)
+					} else if (response.startsWith(PanasonicHttpResponse.PRESET_NUMBER_TPL)) {
+						const preset = Number.parseInt(response.substring(PanasonicHttpResponse.PRESET_NUMBER_TPL.length), 10)
+						resolve(preset)
+					} else {
+						reject(`Unknown response to storePreset: ${response}`)
+					}
+				})
+				.catch((error) => {
+					this.emit('disconnected', error)
+					reject(error)
+				})
+		})
+	}
+
+	/**
+	 * Reset camera preset
+	 * @param {number} preset The preset to be reset in the camera. 0-99
+	 * @returns {Promise<number>} A promise: the preset the camera will reset
+	 * @memberof PanasonicPtzHttpInterface
+	 */
+	async resetPreset(preset: number): Promise<number> {
+		const device = this._device
+
+		this.validatePresetNumber(preset)
+
+		return new Promise((resolve, reject) => {
+			device
+				.sendCommand(sprintf(PanasonicHttpCommands.PRESET_DELETE_CONTROL_TPL, preset))
+				.then((response) => {
+					if (PanasonicPtzHttpInterface._isError(response)) {
+						reject(`Device returned an error: ${response}`)
+					} else if (response.startsWith(PanasonicHttpResponse.PRESET_NUMBER_TPL)) {
+						const preset = Number.parseInt(response.substring(PanasonicHttpResponse.PRESET_NUMBER_TPL.length), 10)
+						resolve(preset)
+					} else {
+						reject(`Unknown response to resetPreset: ${response}`)
+					}
+				})
+				.catch((error) => {
+					this.emit('disconnected', error)
+					reject(error)
+				})
+		})
+	}
+
+	private validatePresetNumber(preset: number) {
+		if (!_.isFinite(preset)) throw new Error('Camera speed preset is not a finite number')
+		if (preset < 0 || preset > 99) throw new Error('Illegal preset number')
 	}
 
 	/**
@@ -251,7 +336,7 @@ export class PanasonicPtzHttpInterface extends EventEmitter {
 					if (PanasonicPtzHttpInterface._isError(response)) {
 						reject(`Device returned an error: ${response}`)
 					} else if (response.startsWith(PanasonicHttpResponse.PRESET_SPEED_TPL)) {
-						const speed = Number.parseInt(response.substr(PanasonicHttpResponse.PRESET_SPEED_TPL.length), 10)
+						const speed = Number.parseInt(response.substring(PanasonicHttpResponse.PRESET_SPEED_TPL.length), 10)
 						resolve(speed)
 					} else {
 						reject(`Unknown response to getSpeed: ${response}`)
@@ -284,7 +369,7 @@ export class PanasonicPtzHttpInterface extends EventEmitter {
 					if (PanasonicPtzHttpInterface._isError(response)) {
 						reject(`Device returned an error: ${response}`)
 					} else if (response.startsWith(PanasonicHttpResponse.PRESET_SPEED_TPL)) {
-						const speed = Number.parseInt(response.substr(PanasonicHttpResponse.PRESET_SPEED_TPL.length), 10)
+						const speed = Number.parseInt(response.substring(PanasonicHttpResponse.PRESET_SPEED_TPL.length), 10)
 						resolve(speed)
 					} else {
 						reject(`Unknown response to setSpeed: ${response}`)
@@ -312,7 +397,7 @@ export class PanasonicPtzHttpInterface extends EventEmitter {
 					if (PanasonicPtzHttpInterface._isError(response)) {
 						reject(`Device returned an error: ${response}`)
 					} else if (response.startsWith(PanasonicHttpResponse.ZOOM_SPEED_TPL)) {
-						const speed = Number.parseInt(response.substr(PanasonicHttpResponse.ZOOM_SPEED_TPL.length), 10)
+						const speed = Number.parseInt(response.substring(PanasonicHttpResponse.ZOOM_SPEED_TPL.length), 10)
 						resolve(speed)
 					} else {
 						reject(`Unknown response to getZoomSpeed: ${response}`)
@@ -328,7 +413,7 @@ export class PanasonicPtzHttpInterface extends EventEmitter {
 	/**
 	 * Set camera lens zoom speed (essentially, current virtual zoom rocker position)
 	 * @param {number} speed Speed to be set for the camera zoom. Acceptable values are 1-99. 50 is zoom stop, 49 is slowest WIDE, 51 is slowest TELE, 1 is fastest WIDE, 99 is fastest TELE
-	 * @returns {Promise<number>} A promise: the speed at which the lens is changing it's zoom
+	 * @returns {Promise<number>} A promise: the speed at which the lens is changing its focus
 	 * @memberof PanasonicPtzHttpInterface
 	 */
 	async setZoomSpeed(speed: number): Promise<number> {
@@ -344,7 +429,7 @@ export class PanasonicPtzHttpInterface extends EventEmitter {
 					if (PanasonicPtzHttpInterface._isError(response)) {
 						reject(`Device returned an error: ${response}`)
 					} else if (response.startsWith(PanasonicHttpResponse.ZOOM_SPEED_TPL)) {
-						const speed = Number.parseInt(response.substr(PanasonicHttpResponse.ZOOM_SPEED_TPL.length), 10)
+						const speed = Number.parseInt(response.substring(PanasonicHttpResponse.ZOOM_SPEED_TPL.length), 10)
 						resolve(speed)
 					} else {
 						reject(`Unknown response to setZoomSpeed: ${response}`)
@@ -372,7 +457,7 @@ export class PanasonicPtzHttpInterface extends EventEmitter {
 					if (PanasonicPtzHttpInterface._isError(response)) {
 						reject(`Device returned an error: ${response}`)
 					} else if (response.startsWith(PanasonicHttpResponse.ZOOM_TPL)) {
-						const zoom = Number.parseInt(response.substr(PanasonicHttpResponse.ZOOM_TPL.length), 16)
+						const zoom = Number.parseInt(response.substring(PanasonicHttpResponse.ZOOM_TPL.length), 16)
 						resolve(zoom)
 					} else {
 						reject(`Unknown response to getZoom: ${response}`)
@@ -404,7 +489,7 @@ export class PanasonicPtzHttpInterface extends EventEmitter {
 					if (PanasonicPtzHttpInterface._isError(response)) {
 						reject(`Device returned an error: ${response}`)
 					} else if (response.startsWith(PanasonicHttpResponse.ZOOM_CONTROL_TPL)) {
-						const level = Number.parseInt(response.substr(PanasonicHttpResponse.ZOOM_CONTROL_TPL.length), 16)
+						const level = Number.parseInt(response.substring(PanasonicHttpResponse.ZOOM_CONTROL_TPL.length), 16)
 						resolve(level)
 					} else {
 						reject(`Unknown response to setZoom: ${response}`)
@@ -418,7 +503,131 @@ export class PanasonicPtzHttpInterface extends EventEmitter {
 	}
 
 	/**
-	 * Ping a camera by checking it's power status. Will return true if the camera is on, false if it's off but reachable and will fail otherwise
+	 * Set camera focus speed
+	 * @param {number} speed Speed to be set for the camera focus. Acceptable values are 1-99. 50 is focus stop, 49 is slowest NEAR, 51 is slowest FAR, 1 is fastest NEAR, 99 is fastest FAR
+	 * @returns {Promise<number>} A promise: the speed at which the lens is changing its focus
+	 * @memberof PanasonicPtzHttpInterface
+	 */
+	async setFocusSpeed(speed: number): Promise<number> {
+		const device = this._device
+
+		if (!_.isFinite(speed)) throw new Error('Camera focus speed is not a finite number')
+		if (speed < 1 || speed > 99) throw new Error('Camera focus speed must be between 1 and 99')
+
+		return new Promise((resolve, reject) => {
+			device
+				.sendCommand(sprintf(PanasonicHttpCommands.FOCUS_SPEED_CONTROL_TPL, speed))
+				.then((response) => {
+					if (PanasonicPtzHttpInterface._isError(response)) {
+						reject(`Device returned an error: ${response}`)
+					} else if (response.startsWith(PanasonicHttpResponse.FOCUS_SPEED_TPL)) {
+						const speed = Number.parseInt(response.substring(PanasonicHttpResponse.FOCUS_SPEED_TPL.length), 10)
+						resolve(speed)
+					} else {
+						reject(`Unknown response to setFocusSpeed: ${response}`)
+					}
+				})
+				.catch((error) => {
+					this.emit('disconnected', error)
+					reject(error)
+				})
+		})
+	}
+
+	/**
+	 * Set camera focus mode (AUTO/MANUAL)
+	 * @param {PanasonicFocusMode} mode Mode to be set for the camera focus
+	 * @returns {Promise<PanasonicFocusMode>} A promise: the speed at which the lens is changing its focus
+	 * @memberof PanasonicPtzHttpInterface
+	 */
+	async setFocusMode(mode: PanasonicFocusMode): Promise<PanasonicFocusMode> {
+		const device = this._device
+
+		return new Promise((resolve, reject) => {
+			device
+				.sendCommand(sprintf(PanasonicHttpCommands.AUTO_FOCUS_ON_OFF_CONTROL_TPL, mode))
+				.then((response) => {
+					if (PanasonicPtzHttpInterface._isError(response)) {
+						reject(`Device returned an error: ${response}`)
+					} else if (response.startsWith(PanasonicHttpResponse.AUTO_FOCUS_ON_OFF_TPL)) {
+						const speed = Number.parseInt(response.substring(PanasonicHttpResponse.AUTO_FOCUS_ON_OFF_TPL.length), 10)
+						resolve(speed)
+					} else {
+						reject(`Unknown response to setFocusMode: ${response}`)
+					}
+				})
+				.catch((error) => {
+					this.emit('disconnected', error)
+					reject(error)
+				})
+		})
+	}
+
+	/**
+	 * Trigger one-touch focus
+	 * @returns {Promise<void>}
+	 * @memberof PanasonicPtzHttpInterface
+	 */
+	async triggerOneTouchFocus(): Promise<void> {
+		const device = this._device
+
+		return new Promise((resolve, reject) => {
+			device
+				.sendCommand(sprintf(PanasonicHttpCommands.ONE_TOUCH_FOCUS_CONTROL))
+				.then((response) => {
+					if (PanasonicPtzHttpInterface._isError(response)) {
+						reject(`Device returned an error: ${response}`)
+					} else if (response.startsWith(PanasonicHttpResponse.ONE_TOUCH_FOCUS)) {
+						resolve()
+					} else {
+						reject(`Unknown response to triggerOneTouchFocus: ${response}`)
+					}
+				})
+				.catch((error) => {
+					this.emit('disconnected', error)
+					reject(error)
+				})
+		})
+	}
+
+	/**
+	 * Set camera pan and tilt speed (essentially, current virtual joystick position)
+	 * @param {number} speed Speed to be set for the camera zoom. Acceptable values are 1-99. 50 is pan stop, 49 is slowest LEFT, 51 is slowest RIGHT, 1 is fastest LEFT, 99 is fastest RIGHT
+	 * @returns {Promise<number>} A promise: the speed at which the lens is changing its focus
+	 * @memberof PanasonicPtzHttpInterface
+	 */
+	async setPanTiltSpeed(panSpeed: number, tiltSpeed: number): Promise<{ panSpeed: number; tiltSpeed: number }> {
+		const device = this._device
+
+		if (!_.isFinite(panSpeed)) throw new Error('Camera pan speed is not a finite number')
+		if (panSpeed < 1 || panSpeed > 99) throw new Error('Camera pan speed must be between 1 and 99')
+		if (!_.isFinite(tiltSpeed)) throw new Error('Camera tilt speed is not a finite number')
+		if (tiltSpeed < 1 || tiltSpeed > 99) throw new Error('Camera tilt speed must be between 1 and 99')
+
+		return new Promise((resolve, reject) => {
+			device
+				.sendCommand(sprintf(PanasonicHttpCommands.PAN_TILT_SPEED_CONTROL_TPL, panSpeed, tiltSpeed))
+				.then((response) => {
+					if (PanasonicPtzHttpInterface._isError(response)) {
+						reject(`Device returned an error: ${response}`)
+					} else if (response.startsWith(PanasonicHttpResponse.PAN_TILT_SPEED_TPL)) {
+						const panTiltSpeed = response.substring(PanasonicHttpResponse.PAN_TILT_SPEED_TPL.length)
+						const panSpeed = Number.parseInt(panTiltSpeed.substring(0, 2), 10)
+						const tiltSpeed = Number.parseInt(panTiltSpeed.substring(2), 10)
+						resolve({ panSpeed, tiltSpeed })
+					} else {
+						reject(`Unknown response to setPanTiltSpeed: ${response}`)
+					}
+				})
+				.catch((error) => {
+					this.emit('disconnected', error)
+					reject(error)
+				})
+		})
+	}
+
+	/**
+	 * Ping a camera by checking its power status. Will return true if the camera is on, false if it's off but reachable and will fail otherwise
 	 * @returns {Promose<boolean | string>} A promise: true if the camera is ON, false if the camera is off, 'turningOn' if transitioning from STBY to ON
 	 * @memberof PanasonicPtzHttpInterface
 	 */

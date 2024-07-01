@@ -13,85 +13,6 @@ export interface ViscaOverIPOptions {
 
 export type SomeMappingViscaOverIP = Record<string, never>
 
-export interface StartPanTiltPayload {
-	direction: PanTiltDirection
-	/**
-	 * Pan Speed; Range: [0.0, 100.0]; (each protocol might support a different range, the value will be mapped into the supported range)
-	 */
-	panSpeed: number
-	/**
-	 * Tilt Speed; Range: [0.0, 100.0]; (each protocol might support a different range, the value will be mapped into the supported range)
-	 */
-	tiltSpeed: number
-}
-
-export enum PanTiltDirection {
-	LEFT = 'left',
-	UP_LEFT = 'up_left',
-	UP = 'up',
-	UP_RIGHT = 'up_right',
-	RIGHT = 'right',
-	DOWN_RIGHT = 'down_right',
-	DOWN = 'down',
-	DOWN_LEFT = 'down_left'
-}
-
-export interface StartZoomPayload {
-	direction: ZoomDirection
-	/**
-	 * Zoom Speed; Range: [0.0, 100.0]; (each protocol might support a different range, the value will be mapped into the supported range)
-	 */
-	zoomSpeed: number
-}
-
-export enum ZoomDirection {
-	WIDE = 'wide',
-	TELE = 'tele'
-}
-
-export interface StorePresetPayload {
-	/**
-	 * Preset number, within the range supported by the camera
-	 */
-	presetNumber: number
-}
-
-export interface RecallPresetPayload {
-	/**
-	 * Preset number, within the range supported by the camera
-	 */
-	presetNumber: number
-}
-
-export interface ResetPresetPayload {
-	/**
-	 * Preset number, within the range supported by the camera
-	 */
-	presetNumber: number
-}
-
-export interface StartFocusPayload {
-	direction: FocusDirection
-	/**
-	 * Focus Speed; Range: [0.0, 100.0]; (each protocol might support a different range, the value will be mapped into the supported range)
-	 */
-	focusSpeed: number
-}
-
-export enum FocusDirection {
-	NEAR = 'near',
-	FAR = 'far'
-}
-
-export interface SetFocusModePayload {
-	mode: FocusMode
-}
-
-export enum FocusMode {
-	AUTO = 'auto',
-	MANUAL = 'manual'
-}
-
 export enum ViscaOverIPActions {
 	StartPanTilt = 'startPanTilt',
 	StopPanTilt = 'stopPanTilt',
@@ -106,16 +27,16 @@ export enum ViscaOverIPActions {
 	TriggerOnePushFocus = 'triggerOnePushFocus'
 }
 export interface ViscaOverIPActionExecutionResults {
-	startPanTilt: (payload: StartPanTiltPayload) => void,
+	startPanTilt: () => void,
 	stopPanTilt: () => void,
-	startZoom: (payload: StartZoomPayload) => void,
+	startZoom: () => void,
 	stopZoom: () => void,
-	storePreset: (payload: StorePresetPayload) => void,
-	recallPreset: (payload: RecallPresetPayload) => void,
-	resetPreset: (payload: ResetPresetPayload) => void,
-	startFocus: (payload: StartFocusPayload) => void,
+	storePreset: () => void,
+	recallPreset: () => void,
+	resetPreset: () => void,
+	startFocus: () => void,
 	stopFocus: () => void,
-	setFocusMode: (payload: SetFocusModePayload) => void,
+	setFocusMode: () => void,
 	triggerOnePushFocus: () => void
 }
 export type ViscaOverIPActionExecutionPayload<A extends keyof ViscaOverIPActionExecutionResults> = Parameters<

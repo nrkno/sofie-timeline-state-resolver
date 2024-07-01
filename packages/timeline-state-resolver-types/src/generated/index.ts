@@ -6,6 +6,7 @@
  */
 
 export * from './action-schema'
+export * from './generic-ptz-actions'
 export * from './abstract'
 import { SomeMappingAbstract } from './abstract'
 
