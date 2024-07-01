@@ -1,10 +1,11 @@
 import {
 	VMixCommand,
-	VMixInputOverlays,
+	VMixLayers,
 	VMixInputType,
 	VMixTransform,
 	VMixTransition,
 	VMixTransitionType,
+	VMixLayer,
 } from 'timeline-state-resolver-types'
 import { CommandContext, VMixStateCommandWithContext } from './vMixCommands'
 import _ = require('underscore')
@@ -74,7 +75,7 @@ export interface VMixInput {
 	duration?: number
 	loop?: boolean
 	transform?: VMixTransform
-	overlays?: VMixInputOverlays
+	layers?: VMixLayers
 	listFilePaths?: string[]
 	restart?: boolean
 }
@@ -183,7 +184,7 @@ export class VMixStateDiffer {
 				panY: 0,
 				alpha: 255,
 			},
-			overlays: {},
+			layers: {},
 		}
 	}
 
@@ -470,26 +471,88 @@ export class VMixStateDiffer {
 				})
 			}
 		}
-		if (input.overlays !== undefined && !_.isEqual(oldInput.overlays, input.overlays)) {
-			for (const index of Object.keys(input.overlays)) {
-				if (oldInput.overlays === undefined || input.overlays[index] !== oldInput.overlays?.[index]) {
+		if (input.layers !== undefined && !_.isEqual(oldInput.layers, input.layers)) {
+			for (const [indexString, layer] of Object.entries<VMixLayer>(input.layers as Record<string, VMixLayer>)) {
+				const index = Number(indexString)
+				const oldLayer = oldInput.layers?.[index]
+				if (layer.input !== oldLayer?.input) {
 					commands.push({
 						command: {
-							command: VMixCommand.SET_INPUT_OVERLAY,
+							command: VMixCommand.SET_LAYER_INPUT,
 							input: key,
-							value: input.overlays[Number(index)],
-							index: Number(index),
+							value: layer.input,
+							index,
+						},
+						context: CommandContext.None,
+						timelineId: '',
+					})
+				}
+				if (layer.panX !== undefined && layer.panX !== oldLayer?.panX) {
+					commands.push({
+						command: {
+							command: VMixCommand.SET_LAYER_PAN_X,
+							input: key,
+							value: layer.panX,
+							index,
+						},
+						context: CommandContext.None,
+						timelineId: '',
+					})
+				}
+				if (layer.panY !== undefined && layer.panY !== oldLayer?.panY) {
+					commands.push({
+						command: {
+							command: VMixCommand.SET_LAYER_PAN_Y,
+							input: key,
+							value: layer.panY,
+							index,
+						},
+						context: CommandContext.None,
+						timelineId: '',
+					})
+				}
+				if (layer.zoom !== undefined && layer.zoom !== oldLayer?.zoom) {
+					commands.push({
+						command: {
+							command: VMixCommand.SET_LAYER_ZOOM,
+							input: key,
+							value: layer.zoom,
+							index,
+						},
+						context: CommandContext.None,
+						timelineId: '',
+					})
+				}
+				if (
+					(layer.cropLeft !== undefined ||
+						layer.cropTop !== undefined ||
+						layer.cropRight !== undefined ||
+						layer.cropBottom !== undefined) &&
+					(layer.cropLeft !== oldLayer?.cropLeft ||
+						layer.cropTop !== oldLayer?.cropTop ||
+						layer.cropRight !== oldLayer?.cropRight ||
+						layer.cropBottom !== oldLayer?.cropBottom)
+				) {
+					commands.push({
+						command: {
+							command: VMixCommand.SET_LAYER_CROP,
+							input: key,
+							cropLeft: layer.cropLeft ?? 0,
+							cropTop: layer.cropTop ?? 0,
+							cropRight: layer.cropRight ?? 1,
+							cropBottom: layer.cropBottom ?? 1,
+							index,
 						},
 						context: CommandContext.None,
 						timelineId: '',
 					})
 				}
 			}
-			for (const index of Object.keys(oldInput.overlays ?? {})) {
-				if (!input.overlays?.[index]) {
+			for (const index of Object.keys(oldInput.layers ?? {})) {
+				if (!input.layers?.[index]) {
 					commands.push({
 						command: {
-							command: VMixCommand.SET_INPUT_OVERLAY,
+							command: VMixCommand.SET_LAYER_INPUT,
 							input: key,
 							value: '',
 							index: Number(index),
@@ -874,11 +937,11 @@ export class VMixStateDiffer {
 			const pgmInput =
 				state.reportedState.existingInputs[mix.program] ??
 				(state.reportedState.inputsAddedByUs[mix.program] as VMixInput | undefined)
-			if (!pgmInput || !pgmInput.overlays) continue
+			if (!pgmInput || !pgmInput.layers) continue
 
-			for (const layer of Object.keys(pgmInput.overlays)) {
-				const layerInput = pgmInput.overlays[layer as unknown as keyof VMixInputOverlays]
-				if (layerInput === input.name || layerInput === input.number) {
+			for (const layer of Object.keys(pgmInput.layers)) {
+				const layerInput = pgmInput.layers[layer as unknown as keyof VMixLayers]
+				if (layerInput.input === input.name || layerInput.input === input.number) {
 					// Input is in program as a layer of a Multi View of something else that is in program,
 					// so stop the search and return true.
 					return true

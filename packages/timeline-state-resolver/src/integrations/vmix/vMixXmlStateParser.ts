@@ -33,12 +33,22 @@ export class VMixXmlStateParser {
 				fixedListFilePaths = this.ensureArray(input['list']['item']).map((item) => item['_text'])
 			}
 
-			const overlays: VMixInput['overlays'] = {}
+			const layers: VMixInput['layers'] = {}
 			if (input['overlay'] != null) {
-				this.ensureArray(input['overlay']).forEach(
-					(item) =>
-						(overlays[parseInt(item['_attributes']['index'], 10) + 1] = inputKeysToNumbers[item['_attributes']['key']])
-				)
+				this.ensureArray(input['overlay']).forEach((item) => {
+					const position = item['position']?.['_attributes']
+					const crop = item['crop']?.['_attributes']
+					layers[parseInt(item['_attributes']['index'], 10) + 1] = {
+						input: inputKeysToNumbers[item['_attributes']['key']],
+						zoom: Number(position?.['zoomX'] ?? 1), // assume that zoomX==zoomY because we can't control both
+						panX: Number(position?.['panX'] ?? 0),
+						panY: Number(position?.['panY'] ?? 0),
+						cropLeft: Number(crop?.['X1'] ?? 0),
+						cropTop: Number(crop?.['Y1'] ?? 0),
+						cropRight: Number(crop?.['X2'] ?? 1),
+						cropBottom: Number(crop?.['Y2'] ?? 1),
+					}
+				})
 			}
 
 			const result: VMixInput = {
@@ -52,12 +62,12 @@ export class VMixXmlStateParser {
 				loop: input['_attributes']['loop'] !== 'False',
 
 				transform: {
-					panX: Number(input['position'] ? input['position']['_attributes']['panX'] || 0 : 0),
-					panY: Number(input['position'] ? input['position']['_attributes']['panY'] || 0 : 0),
+					panX: Number(input['position']?.['_attributes']['panX'] ?? 0),
+					panY: Number(input['position']?.['_attributes']['panY'] ?? 0),
 					alpha: -1, // unavailable
-					zoom: Number(input['position'] ? input['position']['_attributes']['zoomX'] || 1 : 1), // assume that zoomX==zoomY
+					zoom: Number(input['position']?.['_attributes']['zoomX'] ?? 1), // assume that zoomX==zoomY
 				},
-				overlays,
+				layers,
 				listFilePaths: fixedListFilePaths!,
 			}
 

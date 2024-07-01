@@ -28,7 +28,7 @@ describe('VMixXmlStateParser', () => {
 						zoom: 1,
 					},
 					listFilePaths: undefined,
-					overlays: {},
+					layers: {},
 					playing: true,
 				},
 				'2': {
@@ -45,7 +45,7 @@ describe('VMixXmlStateParser', () => {
 						zoom: 1,
 					},
 					listFilePaths: undefined,
-					overlays: {},
+					layers: {},
 					playing: true,
 				},
 			},
@@ -132,7 +132,7 @@ describe('VMixXmlStateParser', () => {
 						zoom: 1,
 					},
 					listFilePaths: undefined,
-					overlays: {},
+					layers: {},
 					playing: true,
 				},
 			},
@@ -161,7 +161,7 @@ describe('VMixXmlStateParser', () => {
 					},
 					listFilePaths: undefined,
 					name: prefixAddedInput('C:\\someVideo.mp4'),
-					overlays: {},
+					layers: {},
 					playing: true,
 				},
 			},
@@ -194,9 +194,49 @@ describe('VMixXmlStateParser', () => {
 		expect(parsedState).toMatchObject<Partial<VMixState>>({
 			existingInputs: {
 				'2': {
-					overlays: {
-						3: 3,
-						6: 1,
+					layers: {
+						3: { input: 3 },
+						6: { input: 1 },
+					},
+				},
+			},
+		})
+	})
+
+	it('parses input overlay position and position+crop', () => {
+		const parser = new VMixXmlStateParser()
+
+		const parsedState = parser.parseVMixState(
+			makeMockVMixXmlState([
+				'<input key="a97b8de1-807a-4c14-8eb9-3de0129b41e3" number="1" type="Capture" title="Cam 0" state="Running" position="0" duration="0" loop="False" muted="False" volume="100" balance="0" solo="False" audiobusses="M" meterF1="0.03034842" meterF2="0.03034842"></input>',
+				`<input key="ca9bc59f-f698-41fe-b17d-1e1743cfee88" number="2" type="Capture" title="Cam 1" state="Running" position="0" duration="0" loop="False" muted="False" volume="100" balance="0" solo="False" audiobusses="M" meterF1="0.03034842" meterF2="0.03034842">
+	<overlay index="2" key="1d70bc59-6517-4571-a0c5-932e30311f01">
+		<position panX="-0.673" zoomX="0.4" zoomY="0.4" x="-70.1" y="324" width="768" height="432"/>
+	</overlay>
+	<overlay index="5" key="a97b8de1-807a-4c14-8eb9-3de0129b41e3">
+		<position panX="-0.79" panY="0.134" zoomX="0.208" zoomY="0.208" x="0" y="500" width="400" height="225"/>
+		<crop X1="0.1042" Y1="0.1" X2="0.8958" Y2="0.7"/>
+	</overlay>
+</input>`,
+				'<input key="1d70bc59-6517-4571-a0c5-932e30311f01" number="3" type="Capture" title="Cam 2" state="Running" position="0" duration="0" loop="False" muted="False" volume="100" balance="0" solo="False" audiobusses="M" meterF1="0.03034842" meterF2="0.03034842"></input>',
+			])
+		)
+
+		expect(parsedState).toMatchObject<Partial<VMixState>>({
+			existingInputs: {
+				'2': {
+					layers: {
+						3: { input: 3, panX: -0.673, panY: 0, zoom: 0.4, cropLeft: 0, cropTop: 0, cropBottom: 1, cropRight: 1 },
+						6: {
+							input: 1,
+							panX: -0.79,
+							panY: 0.134,
+							zoom: 0.208,
+							cropLeft: 0.1042,
+							cropTop: 0.1,
+							cropBottom: 0.7,
+							cropRight: 0.8958,
+						},
 					},
 				},
 			},

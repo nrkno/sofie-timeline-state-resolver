@@ -29,7 +29,15 @@ export type ConnectionEvents = {
  */
 export type InferredPartialInputStateKeys = 'filePath' | 'fade' | 'audioAuto' | 'restart'
 
-export class BaseConnection extends EventEmitter<ConnectionEvents> {
+interface SentCommandArgs {
+	input?: string | number
+	value?: string | number
+	extra?: string
+	duration?: number
+	mix?: number
+}
+
+export class VMixConnection extends EventEmitter<ConnectionEvents> {
 	private _socket?: Socket
 	private _reconnectTimeout?: NodeJS.Timeout
 	private _connected = false
@@ -63,10 +71,7 @@ export class BaseConnection extends EventEmitter<ConnectionEvents> {
 		return this._sendCommand('XML')
 	}
 
-	public async sendCommandFunction(
-		func: string,
-		args: { input?: string | number; value?: string | number; extra?: string; duration?: number; mix?: number }
-	): Promise<any> {
+	public async sendCommandFunction(func: string, args: SentCommandArgs): Promise<any> {
 		const inp = args.input !== undefined ? `&Input=${args.input}` : ''
 		const val = args.value !== undefined ? `&Value=${args.value}` : ''
 		const dur = args.duration !== undefined ? `&Duration=${args.duration}` : ''
@@ -155,7 +160,9 @@ export class BaseConnection extends EventEmitter<ConnectionEvents> {
 	}
 }
 
-export class VMixConnection extends BaseConnection {
+export class VMixCommandSender {
+	constructor(private vMixConnection: VMixConnection) {}
+
 	public async sendCommand(command: VMixStateCommand): Promise<any> {
 		switch (command.command) {
 			case VMixCommand.PREVIEW_INPUT:
@@ -224,8 +231,23 @@ export class VMixConnection extends BaseConnection {
 				return this.overlayInputIn(command.value, command.input)
 			case VMixCommand.OVERLAY_INPUT_OUT:
 				return this.overlayInputOut(command.value)
-			case VMixCommand.SET_INPUT_OVERLAY:
-				return this.setInputOverlay(command.input, command.index, command.value)
+			case VMixCommand.SET_LAYER_INPUT:
+				return this.setLayerInput(command.input, command.index, command.value)
+			case VMixCommand.SET_LAYER_CROP:
+				return this.setLayerCrop(
+					command.input,
+					command.index,
+					command.cropLeft,
+					command.cropTop,
+					command.cropRight,
+					command.cropBottom
+				)
+			case VMixCommand.SET_LAYER_PAN_X:
+				return this.setLayerPanX(command.input, command.index, command.value)
+			case VMixCommand.SET_LAYER_PAN_Y:
+				return this.setLayerPanY(command.input, command.index, command.value)
+			case VMixCommand.SET_LAYER_ZOOM:
+				return this.setLayerZoom(command.input, command.index, command.value)
 			case VMixCommand.SCRIPT_START:
 				return this.scriptStart(command.value)
 			case VMixCommand.SCRIPT_STOP:
@@ -379,9 +401,34 @@ export class VMixConnection extends BaseConnection {
 		return this.sendCommandFunction(`OverlayInput${name}Out`, {})
 	}
 
-	public async setInputOverlay(input: string | number, index: number, value: string | number): Promise<any> {
+	public async setLayerInput(input: string | number, index: number, value: string | number): Promise<any> {
 		const val = `${index},${value}`
+		// note: this could probably be replaced by SetLayer, but let's keep it backwards compatible until SetMultiViewOverlay becomes deprecated
 		return this.sendCommandFunction(`SetMultiViewOverlay`, { input, value: val })
+	}
+
+	public async setLayerCrop(
+		input: string | number,
+		index: number,
+		cropLeft: number,
+		cropTop: number,
+		cropRight: number,
+		cropBottom: number
+	): Promise<any> {
+		const value = `${cropLeft},${cropTop},${cropRight},${cropBottom}`
+		return this.sendCommandFunction(`SetLayer${index}Crop`, { input, value })
+	}
+
+	public async setLayerZoom(input: string | number, index: number, value: number): Promise<any> {
+		return this.sendCommandFunction(`SetLayer${index}Zoom`, { input, value })
+	}
+
+	public async setLayerPanX(input: string | number, index: number, value: number): Promise<any> {
+		return this.sendCommandFunction(`SetLayer${index}PanX`, { input, value })
+	}
+
+	public async setLayerPanY(input: string | number, index: number, value: number): Promise<any> {
+		return this.sendCommandFunction(`SetLayer${index}PanY`, { input, value })
 	}
 
 	public async scriptStart(value: string): Promise<any> {
@@ -418,5 +465,9 @@ export class VMixConnection extends BaseConnection {
 
 	public async restart(input: string | number): Promise<any> {
 		return this.sendCommandFunction(`Restart`, { input })
+	}
+
+	private async sendCommandFunction(func: string, args: SentCommandArgs) {
+		return this.vMixConnection.sendCommandFunction(func, args)
 	}
 }

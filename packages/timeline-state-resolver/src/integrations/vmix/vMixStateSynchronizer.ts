@@ -1,6 +1,6 @@
 import { VMixInput, VMixState, VMixStateExtended } from './vMixStateDiffer'
 import { EnforceableVMixInputStateKeys } from '.'
-import { VMixInputOverlays, VMixTransform } from 'timeline-state-resolver-types'
+import { VMixInputOverlays, VMixLayers, VMixTransform } from 'timeline-state-resolver-types'
 
 /**
  * Applies selected properties from the real state to allow retrying to achieve the state
@@ -37,16 +37,16 @@ export class VMixStateSynchronizer {
 								alpha: expectedInputs[inputKey].transform!.alpha, // we don't know the value of alpha - we have to assume it hasn't changed, otherwise we will be sending commands for it all the time
 						  }
 						: realInputs[inputKey].transform,
-				overlays: realInputs[inputKey].overlays,
+				layers: realInputs[inputKey].layers,
 
 				// This particular key is what enables the ability to re-load failed/missing media in a List Input.
 				listFilePaths: realInputs[inputKey].listFilePaths,
 			}
 
 			// Shallow merging is sufficient.
-			for (const [key, value] of Object.entries<string | number | boolean | VMixTransform | VMixInputOverlays>(
-				cherryPickedRealState
-			)) {
+			for (const [key, value] of Object.entries<
+				string | number | boolean | VMixTransform | VMixLayers | VMixInputOverlays
+			>(cherryPickedRealState)) {
 				expectedInputs[inputKey][key] = value
 			}
 		}
