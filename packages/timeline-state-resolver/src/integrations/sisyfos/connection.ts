@@ -135,14 +135,21 @@ export class SisyfosApi extends EventEmitter {
 				})
 			}
 			if (command.values.pgmOn !== undefined) {
+				const args: Array<MetaArgument> = [
+					{
+						type: 'i',
+						value: command.values.pgmOn as number,
+					},
+				]
+				if (command.values.fadeTime) {
+					args.push({
+						type: 'f',
+						value: command.values.fadeTime as number,
+					})
+				}
 				this._oscClient.send({
 					address: `/ch/${command.channel + 1}/pgm`,
-					args: [
-						{
-							type: 'i',
-							value: command.values.pgmOn,
-						},
-					],
+					args,
 				})
 			}
 			if (command.values.pstOn !== undefined) {
