@@ -138,13 +138,13 @@ export class SisyfosApi extends EventEmitter {
 				const args: Array<MetaArgument> = [
 					{
 						type: 'i',
-						value: command.values.pgmOn as number,
+						value: command.values.pgmOn,
 					},
 				]
 				if (command.values.fadeTime) {
 					args.push({
 						type: 'f',
-						value: command.values.fadeTime as number,
+						value: command.values.fadeTime,
 					})
 				}
 				this._oscClient.send({
