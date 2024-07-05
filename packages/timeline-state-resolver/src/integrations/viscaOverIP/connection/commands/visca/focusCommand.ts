@@ -2,8 +2,9 @@ import { FocusDirection } from '../../enums'
 import { ViscaCommand } from '../abstractCommand'
 
 export class FocusCommand extends ViscaCommand {
-	direction: FocusDirection
-	speed: number
+	constructor(private readonly direction: FocusDirection, private readonly speed: number = 0) {
+		super()
+	}
 
 	serialize() {
 		let data = this.direction

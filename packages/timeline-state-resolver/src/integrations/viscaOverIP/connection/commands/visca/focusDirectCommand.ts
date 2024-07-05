@@ -1,6 +1,6 @@
 import { ViscaCommand } from '../abstractCommand'
 
-export class ZoomDirectCommand extends ViscaCommand {
+export class FocusDirectCommand extends ViscaCommand {
 	constructor(private readonly position: number) {
 		super()
 	}
@@ -10,6 +10,6 @@ export class ZoomDirectCommand extends ViscaCommand {
 		const positionPadded = this.toIntWithZeroes(this.position)
 		buffer.writeUInt32BE(positionPadded)
 
-		return Buffer.from([0x81, 0x01, 0x04, 0x47, ...buffer, 0xff])
+		return Buffer.from([0x81, 0x01, 0x04, 0x48, ...buffer, 0xff])
 	}
 }

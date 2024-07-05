@@ -18,14 +18,14 @@ export class ViscaUdpSocket extends EventEmitter {
 	private _debug = false
 	private _reconnectTimer: NodeJS.Timer | undefined
 	private _retransmitTimer: NodeJS.Timer | undefined
-	private _connectionState: ConnectionState
+	private _connectionState!: ConnectionState
 
 	private _localPacketId = 0
 	private _maxPacketID = 0xffffffff
 
-	private _address: string
+	private _address
 	private _port = 52381
-	private _socket: Socket
+	private _socket!: Socket
 	private _reconnectInterval = 5000
 
 	private _inFlightTimeout = 1000
@@ -34,7 +34,7 @@ export class ViscaUdpSocket extends EventEmitter {
 	private _inFlight: (QueuedCommand & { lastSent: number; resent: number }) | undefined
 	private _queue: Array<QueuedCommand> = []
 
-	constructor(options: { address?: string; port?: number; debug?: boolean; log?: (...args) => void }) {
+	constructor(options: { address: string; port?: number; debug?: boolean; log?: (...args) => void }) {
 		super()
 		this._address = options.address || this._address
 		this._port = options.port || this._port
@@ -55,7 +55,7 @@ export class ViscaUdpSocket extends EventEmitter {
 				this._localPacketId = 0
 				this.log('reconnecting')
 				if (this._address && this._port) {
-					this.sendCommand(new ResetSequenceNumberCommand())
+					this.sendCommand(new ResetSequenceNumberCommand()).catch((reason) => this.log(reason))
 					this._connectionState = ConnectionState.Connecting
 				}
 			}, this._reconnectInterval)
@@ -71,7 +71,7 @@ export class ViscaUdpSocket extends EventEmitter {
 			this._port = port
 		}
 
-		this.sendCommand(new ResetSequenceNumberCommand())
+		this.sendCommand(new ResetSequenceNumberCommand()).catch((reason) => this.log(reason))
 		this._connectionState = ConnectionState.Connecting
 	}
 

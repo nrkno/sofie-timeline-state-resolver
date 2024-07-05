@@ -46,6 +46,12 @@
 			"generic": true
 		},
 		{
+			"id": "getPanTiltPosition",
+			"name": "Get absolute Pan and Tilt position",
+			"destructive": false,
+			"generic": true
+		},
+		{
 			"id": "startZoom",
 			"name": "Start Zoom adjustment (or change current direction and speed)",
 			"destructive": false,
@@ -78,6 +84,12 @@
 		{
 			"id": "stopZoom",
 			"name": "Stop Zoom adjustment",
+			"destructive": false,
+			"generic": true
+		},
+		{
+			"id": "getZoomPosition",
+			"name": "Get absolute Zoom position",
 			"destructive": false,
 			"generic": true
 		},
@@ -199,6 +211,18 @@
 		{
 			"id": "triggerOnePushFocus",
 			"name": "Trigger One Push AF",
+			"destructive": false,
+			"generic": true
+		},
+		{
+			"id": "getFocusPosition",
+			"name": "Get absolute Focus position",
+			"destructive": false,
+			"generic": true
+		},
+		{
+			"id": "getFocusMode",
+			"name": "Get Focus mode",
 			"destructive": false,
 			"generic": true
 		}

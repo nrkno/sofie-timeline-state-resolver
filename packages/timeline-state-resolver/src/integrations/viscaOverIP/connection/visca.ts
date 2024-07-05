@@ -6,7 +6,7 @@ export class ViscaDevice extends EventEmitter {
 	private _address: string
 	private _socket: ViscaUdpSocket
 
-	constructor(address: string, port?: number, debug?: boolean, log?: (...args) => void) {
+	constructor(address: string, port?: number, debug?: boolean, private log?: (...args) => void) {
 		super()
 		this._address = address
 		this._socket = new ViscaUdpSocket({ address, port, debug, log })
@@ -20,7 +20,7 @@ export class ViscaDevice extends EventEmitter {
 	}
 
 	disconnect() {
-		this._socket.disconnect()
+		this._socket.disconnect().catch((reason) => this.log?.(reason))
 	}
 
 	get address() {
@@ -29,7 +29,7 @@ export class ViscaDevice extends EventEmitter {
 
 	set address(address: string) {
 		if (address !== this._address) {
-			this._socket.disconnect()
+			this._socket.disconnect().catch((reason) => this.log?.(reason))
 			this._address = address
 			this._socket.connect(address)
 		}

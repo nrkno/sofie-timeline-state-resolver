@@ -2,8 +2,9 @@ import { ViscaCommand } from '../abstractCommand'
 import { ZoomDirection } from '../../enums'
 
 export class ZoomCommand extends ViscaCommand {
-	direction: ZoomDirection
-	speed: number
+	constructor(private readonly direction: ZoomDirection, private readonly speed: number = 0) {
+		super()
+	}
 
 	serialize() {
 		let data = this.direction

@@ -40,28 +40,36 @@ export type SomeMappingPanasonicPTZ = MappingPanasonicPTZPresetMem | MappingPana
 export enum PanasonicPTZActions {
 	StartPanTilt = 'startPanTilt',
 	StopPanTilt = 'stopPanTilt',
+	GetPanTiltPosition = 'getPanTiltPosition',
 	StartZoom = 'startZoom',
 	StopZoom = 'stopZoom',
+	GetZoomPosition = 'getZoomPosition',
 	StorePreset = 'storePreset',
 	RecallPreset = 'recallPreset',
 	ResetPreset = 'resetPreset',
 	StartFocus = 'startFocus',
 	StopFocus = 'stopFocus',
 	SetFocusMode = 'setFocusMode',
-	TriggerOnePushFocus = 'triggerOnePushFocus'
+	TriggerOnePushFocus = 'triggerOnePushFocus',
+	GetFocusPosition = 'getFocusPosition',
+	GetFocusMode = 'getFocusMode'
 }
 export interface PanasonicPTZActionExecutionResults {
 	startPanTilt: () => void,
 	stopPanTilt: () => void,
+	getPanTiltPosition: () => void,
 	startZoom: () => void,
 	stopZoom: () => void,
+	getZoomPosition: () => void,
 	storePreset: () => void,
 	recallPreset: () => void,
 	resetPreset: () => void,
 	startFocus: () => void,
 	stopFocus: () => void,
 	setFocusMode: () => void,
-	triggerOnePushFocus: () => void
+	triggerOnePushFocus: () => void,
+	getFocusPosition: () => void,
+	getFocusMode: () => void
 }
 export type PanasonicPTZActionExecutionPayload<A extends keyof PanasonicPTZActionExecutionResults> = Parameters<
 	PanasonicPTZActionExecutionResults[A]

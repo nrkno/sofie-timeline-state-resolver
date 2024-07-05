@@ -2,9 +2,13 @@ import { ViscaCommand } from '../abstractCommand'
 import { PanTiltDirection } from '../../enums'
 
 export class PanTiltDriveCommand extends ViscaCommand {
-	direction: PanTiltDirection
-	panSpeed: number
-	tiltSpeed: number
+	constructor(
+		private readonly direction: PanTiltDirection,
+		private readonly panSpeed: number = 0,
+		private readonly tiltSpeed: number = 0
+	) {
+		super()
+	}
 
 	serialize() {
 		const buffer = Buffer.alloc(4)
