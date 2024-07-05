@@ -172,8 +172,8 @@ export type TriCasterGenericCommandName<T> = T extends boolean
 export type TriCasterCommandContext = any
 export interface TriCasterCommandWithContext {
 	command: TriCasterCommand
-	context?: TriCasterCommandContext
-	timelineObjId?: string
+	context: TriCasterCommandContext
+	timelineObjId: string
 	temporalPriority: number
 }
 

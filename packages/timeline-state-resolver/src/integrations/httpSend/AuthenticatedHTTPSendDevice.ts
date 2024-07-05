@@ -1,4 +1,4 @@
-import { HTTPSendOptions } from 'timeline-state-resolver-types'
+import { ActionExecutionResult, HTTPSendOptions, SendCommandResult } from 'timeline-state-resolver-types'
 import { HTTPSendDevice, HttpSendDeviceCommand } from '.'
 import { AccessToken, ClientCredentials } from 'simple-oauth2'
 
@@ -114,7 +114,11 @@ export class AuthenticatedHTTPSendDevice extends HTTPSendDevice {
 		return token
 	}
 
-	async sendCommand({ timelineObjId, context, command }: HttpSendDeviceCommand): Promise<void> {
+	async sendCommandWithResult({
+		timelineObjId,
+		context,
+		command,
+	}: HttpSendDeviceCommand): Promise<ActionExecutionResult<SendCommandResult>> {
 		if (this.authOptions) {
 			const bearerToken =
 				this.authOptions.method === AuthMethod.BEARER_TOKEN ? this.authOptions.bearerToken : await this.tokenPromise
@@ -129,6 +133,6 @@ export class AuthenticatedHTTPSendDevice extends HTTPSendDevice {
 				}
 			}
 		}
-		return super.sendCommand({ timelineObjId, context, command })
+		return super.sendCommandWithResult({ timelineObjId, context, command })
 	}
 }

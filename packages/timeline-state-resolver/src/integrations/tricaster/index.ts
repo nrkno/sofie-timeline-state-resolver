@@ -1,7 +1,3 @@
-import * as _ from 'underscore'
-import { DeviceWithState, DeviceStatus, StatusCode } from './../../devices/device'
-import { DoOnTime, SendMode } from '../../devices/doOnTime'
-
 import {
 	DeviceType,
 	Mappings,
@@ -11,17 +7,27 @@ import {
 	Timeline,
 	TSRTimelineContent,
 	Mapping,
+	ActionExecutionResult,
+	StatusCode,
+	DeviceStatus,
 } from 'timeline-state-resolver-types'
 import { WithContext, MappingsTriCaster, TriCasterState, TriCasterStateDiffer } from './triCasterStateDiffer'
 import { TriCasterCommandWithContext } from './triCasterCommands'
 import { TriCasterConnection } from './triCasterConnection'
+import { Device } from '../../service/device'
 
 const DEFAULT_PORT = 5951
 
 export type DeviceOptionsTriCasterInternal = DeviceOptionsTriCaster
 
-export class TriCasterDevice extends DeviceWithState<WithContext<TriCasterState>, DeviceOptionsTriCasterInternal> {
-	private _doOnTime: DoOnTime
+export class TriCasterDevice extends Device<
+	TriCasterOptions,
+	WithContext<TriCasterState>,
+	TriCasterCommandWithContext
+> {
+	readonly actions: {
+		[id: string]: (id: string, payload?: Record<string, any>) => Promise<ActionExecutionResult>
+	} = {}
 
 	private _connected = false
 	private _initialized = false
@@ -29,15 +35,6 @@ export class TriCasterDevice extends DeviceWithState<WithContext<TriCasterState>
 	private _connection?: TriCasterConnection
 	private _stateDiffer?: TriCasterStateDiffer
 
-	constructor(deviceId: string, deviceOptions: DeviceOptionsTriCasterInternal, getCurrentTime: () => Promise<number>) {
-		super(deviceId, deviceOptions, getCurrentTime)
-
-		this._doOnTime = new DoOnTime(() => this.getCurrentTime(), SendMode.BURST, this._deviceOptions)
-		this._doOnTime.on('error', (e) => this.emit('error', 'TriCasterDevice.doOnTime', e))
-		this._doOnTime.on('slowCommand', (msg) => this.emit('slowCommand', this.deviceName + ': ' + msg))
-		this._doOnTime.on('slowSentCommand', (info) => this.emit('slowSentCommand', info))
-		this._doOnTime.on('slowFulfilledCommand', (info) => this.emit('slowFulfilledCommand', info))
-	}
 	async init(options: TriCasterOptions): Promise<boolean> {
 		this._connection = new TriCasterConnection(options.host, options.port ?? DEFAULT_PORT)
 		this._connection.on('connected', (info, shortcutStateXml) => {
@@ -45,16 +42,16 @@ export class TriCasterDevice extends DeviceWithState<WithContext<TriCasterState>
 			this._setInitialState(shortcutStateXml)
 			this._setConnected(true)
 			this._initialized = true
-			this.emit('info', `Connected to TriCaster ${info.productModel}, session: ${info.sessionName}`)
+			this.context.logger.info(`Connected to TriCaster ${info.productModel}, session: ${info.sessionName}`)
 		})
 		this._connection.on('disconnected', (reason) => {
 			if (!this._isTerminating) {
-				this.emit('warning', `TriCaster disconected due to: ${reason}`)
+				this.context.logger.warning(`TriCaster disconected due to: ${reason}`)
 			}
 			this._setConnected(false)
 		})
 		this._connection.on('error', (reason) => {
-			this.emit('error', 'TriCasterConnection', reason)
+			this.context.logger.error('TriCasterConnection', reason)
 		})
 		this._connection.connect()
 		return true
@@ -64,63 +61,61 @@ export class TriCasterDevice extends DeviceWithState<WithContext<TriCasterState>
 		if (!this._stateDiffer) {
 			throw new Error('State Differ not available')
 		}
-		const time = this.getCurrentTime()
-		const state = this._stateDiffer.shortcutStateConverter.getTriCasterStateFromShortcutState(shortcutStateXml)
-		this.setState(state, time)
-	}
 
-	private _connectionChanged(): void {
-		this.emit('connectionChanged', this.getStatus())
+		const state = this._stateDiffer.shortcutStateConverter.getTriCasterStateFromShortcutState(shortcutStateXml)
+		this.context.resetToState(state).catch((e) => {
+			this.context.logger.error('Error setting initial TriCaster state', e)
+		})
 	}
 
 	private _setConnected(connected: boolean): void {
 		if (this._connected !== connected) {
 			this._connected = connected
-			this._connectionChanged()
+			this.context.connectionChanged(this.getStatus())
 		}
 	}
 
-	/** Called by the Conductor a bit before handleState is called */
-	prepareForHandleState(newStateTime: number): void {
-		// clear any queued commands later than this time:
-		this._doOnTime.clearQueueNowAndAfter(newStateTime)
-		this.cleanUpStates(0, newStateTime)
-	}
-
-	handleState(newState: Timeline.TimelineState<TSRTimelineContent>, newMappings: Mappings): void {
-		const triCasterMappings: MappingsTriCaster = this.filterTriCasterMappings(newMappings)
-		super.onHandleState(newState, newMappings)
+	/**
+	 * Convert a timeline state into an Tricaster state.
+	 * @param timelineState The state to be converted
+	 */
+	convertTimelineStateToDeviceState(
+		timelineState: Timeline.TimelineState<TSRTimelineContent>,
+		mappings: Mappings
+	): WithContext<TriCasterState> {
 		if (!this._initialized || !this._stateDiffer) {
 			// before it's initialized don't do anything
-			this.emit('warning', 'TriCaster not initialized yet')
-			return
+			throw new Error('TriCaster not initialized yet')
 		}
 
-		const previousStateTime = Math.max(this.getCurrentTime(), newState.time)
-		const oldState =
-			this.getStateBefore(previousStateTime)?.state ?? this._stateDiffer.getDefaultState(triCasterMappings)
+		const triCasterMappings: MappingsTriCaster = this.filterTriCasterMappings(mappings)
 
-		const newTriCasterState = this._stateDiffer.timelineStateConverter.getTriCasterStateFromTimelineState(
-			newState,
-			triCasterMappings
-		)
+		return this._stateDiffer.timelineStateConverter.getTriCasterStateFromTimelineState(timelineState, triCasterMappings)
+	}
 
-		const commandsToAchieveState = this._stateDiffer.getCommandsToAchieveState(newTriCasterState, oldState)
+	/**
+	 * Compares the new timeline-state with the old one, and generates commands to account for the difference
+	 * @param oldAtemState
+	 * @param newAtemState
+	 */
+	diffStates(
+		oldTriCasterState: WithContext<TriCasterState> | undefined,
+		newTriCasterState: WithContext<TriCasterState>,
+		_mappings: Mappings
+	): Array<TriCasterCommandWithContext> {
+		if (!this._initialized || !this._stateDiffer) {
+			// before it's initialized don't do anything
+			this.context.logger.warning('TriCaster not initialized yet')
+			return []
+		}
 
-		// clear any queued commands later than this time:
-		this._doOnTime.clearQueueNowAndAfter(previousStateTime)
-
-		// add the new commands to the queue:
-		this._addToQueue(commandsToAchieveState, newState.time)
-
-		// store the new state, for later use:
-		this.setState(newTriCasterState, newState.time)
+		return this._stateDiffer.getCommandsToAchieveState(newTriCasterState, oldTriCasterState)
 	}
 
 	private filterTriCasterMappings(newMappings: Mappings): MappingsTriCaster {
 		return Object.entries<Mapping<unknown>>(newMappings).reduce<MappingsTriCaster>(
 			(accumulator, [layerName, mapping]) => {
-				if (mapping.device === DeviceType.TRICASTER && mapping.deviceId === this.deviceId) {
+				if (mapping.device === DeviceType.TRICASTER) {
 					accumulator[layerName] = mapping as Mapping<SomeMappingTricaster>
 				}
 				return accumulator
@@ -129,18 +124,12 @@ export class TriCasterDevice extends DeviceWithState<WithContext<TriCasterState>
 		)
 	}
 
-	clearFuture(clearAfterTime: number): void {
-		// Clear any scheduled commands after this time
-		this._doOnTime.clearQueueAfter(clearAfterTime)
-	}
-
 	async terminate(): Promise<void> {
 		this._isTerminating = true
-		this._doOnTime.dispose()
 		this._connection?.close()
 	}
 
-	getStatus(): DeviceStatus {
+	getStatus(): Omit<DeviceStatus, 'active'> {
 		let statusCode = StatusCode.GOOD
 		const messages: Array<string> = []
 
@@ -152,44 +141,15 @@ export class TriCasterDevice extends DeviceWithState<WithContext<TriCasterState>
 		return {
 			statusCode: statusCode,
 			messages: messages,
-			active: this.isActive,
 		}
-	}
-
-	async makeReady(okToDestroyStuff?: boolean): Promise<void> {
-		if (okToDestroyStuff) {
-			// do something?
-		}
-	}
-
-	get canConnect(): boolean {
-		return true
 	}
 
 	get connected(): boolean {
 		return this._connected
 	}
 
-	get deviceType() {
-		return DeviceType.TRICASTER
-	}
-
-	get deviceName(): string {
-		return 'TriCaster ' + this.deviceId
-	}
-
-	get queue() {
-		return this._doOnTime.getQueue()
-	}
-
-	private _addToQueue(commandsToAchieveState: Array<TriCasterCommandWithContext>, time: number): void {
-		_.each(commandsToAchieveState, (cmd: TriCasterCommandWithContext) => {
-			this._doOnTime.queue(time, undefined, async (cmd: TriCasterCommandWithContext) => this._sendCommand(cmd), cmd)
-		})
-	}
-
-	private _sendCommand = (commandWithContext: TriCasterCommandWithContext): Promise<void> | undefined => {
-		this.emitDebug(commandWithContext)
+	async sendCommand(commandWithContext: TriCasterCommandWithContext): Promise<void> {
+		this.context.logger.debug(commandWithContext)
 
 		return this._connection?.send(commandWithContext.command)
 	}

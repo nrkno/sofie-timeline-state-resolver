@@ -271,7 +271,7 @@ export class TriCasterStateDiffer {
 
 	getCommandsToAchieveState(
 		newState: WithContext<TriCasterState>,
-		oldState: WithContext<TriCasterState>
+		oldState: WithContext<TriCasterState> | undefined
 	): TriCasterCommandWithContext[] {
 		const commands: TriCasterCommandWithContext[] = []
 		this.recursivelyGenerateCommands<TriCasterState>(commands, this.commandGenerator, newState, oldState, '')
@@ -581,7 +581,8 @@ export function wrapStateInContext<T extends object>(state: T): WithContext<T> {
 export function wrapInContext(command: TriCasterCommand, entry: StateEntry<any>): TriCasterCommandWithContext {
 	return {
 		command,
-		timelineObjId: entry.timelineObjId,
+		context: '',
+		timelineObjId: entry.timelineObjId ?? '',
 		temporalPriority: entry.temporalPriority ?? DEFAULT_TEMPORAL_PRIORITY,
 	}
 }

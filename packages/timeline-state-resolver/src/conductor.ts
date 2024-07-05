@@ -36,6 +36,8 @@ import {
 	DeviceOptionsSofieChef,
 	DeviceOptionsPharos,
 	DeviceOptionsViscaOverIP,
+	DeviceOptionsTriCaster,
+	DeviceOptionsSingularLive,
 } from 'timeline-state-resolver-types'
 
 import { DoOnTime } from './devices/doOnTime'
@@ -47,11 +49,8 @@ import { DeviceContainer } from './devices/deviceContainer'
 
 import { CasparCGDevice, DeviceOptionsCasparCGInternal } from './integrations/casparCG'
 import { SisyfosMessageDevice, DeviceOptionsSisyfosInternal } from './integrations/sisyfos'
-import { SingularLiveDevice, DeviceOptionsSingularLiveInternal } from './integrations/singularLive'
 import { VMixDevice, DeviceOptionsVMixInternal } from './integrations/vmix'
 import { VizMSEDevice, DeviceOptionsVizMSEInternal } from './integrations/vizMSE'
-import { TelemetricsDevice } from './integrations/telemetrics'
-import { TriCasterDevice, DeviceOptionsTriCasterInternal } from './integrations/tricaster'
 import { DeviceOptionsMultiOSCInternal, MultiOSCMessageDevice } from './integrations/multiOsc'
 import { BaseRemoteDeviceIntegration, RemoteDeviceInstance } from './service/remoteDeviceInstance'
 import type { ImplementedServiceDeviceTypes } from './service/devices'
@@ -529,37 +528,10 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 					getCurrentTime,
 					threadedClassOptions
 				)
-			case DeviceType.SINGULAR_LIVE:
-				return DeviceContainer.create<DeviceOptionsSingularLiveInternal, typeof SingularLiveDevice>(
-					'../../dist/integrations/singularLive/index.js',
-					'SingularLiveDevice',
-					deviceId,
-					deviceOptions,
-					getCurrentTime,
-					threadedClassOptions
-				)
 			case DeviceType.VMIX:
 				return DeviceContainer.create<DeviceOptionsVMixInternal, typeof VMixDevice>(
 					'../../dist/integrations/vmix/index.js',
 					'VMixDevice',
-					deviceId,
-					deviceOptions,
-					getCurrentTime,
-					threadedClassOptions
-				)
-			case DeviceType.TELEMETRICS:
-				return DeviceContainer.create<DeviceOptionsTelemetrics, typeof TelemetricsDevice>(
-					'../../dist/integrations/telemetrics/index.js',
-					'TelemetricsDevice',
-					deviceId,
-					deviceOptions,
-					getCurrentTime,
-					threadedClassOptions
-				)
-			case DeviceType.TRICASTER:
-				return DeviceContainer.create<DeviceOptionsTriCasterInternal, typeof TriCasterDevice>(
-					'../../dist/integrations/tricaster/index.js',
-					'TriCasterDevice',
 					deviceId,
 					deviceOptions,
 					getCurrentTime,
@@ -585,9 +557,12 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 			case DeviceType.PANASONIC_PTZ:
 			case DeviceType.PHAROS:
 			case DeviceType.SHOTOKU:
+			case DeviceType.SINGULAR_LIVE:
 			case DeviceType.SOFIE_CHEF:
 			case DeviceType.TCPSEND:
 			case DeviceType.VISCA_OVER_IP:
+			case DeviceType.TELEMETRICS:
+			case DeviceType.TRICASTER:
 			case DeviceType.QUANTEL: {
 				ensureIsImplementedAsService(deviceOptions.type)
 
@@ -1506,12 +1481,12 @@ export type DeviceOptionsAnyInternal =
 	| DeviceOptionsSisyfosInternal
 	| DeviceOptionsSofieChef
 	| DeviceOptionsQuantel
-	| DeviceOptionsSingularLiveInternal
+	| DeviceOptionsSingularLive
 	| DeviceOptionsVMixInternal
 	| DeviceOptionsShotoku
 	| DeviceOptionsVizMSEInternal
 	| DeviceOptionsTelemetrics
-	| DeviceOptionsTriCasterInternal
+	| DeviceOptionsTriCaster
 	| DeviceOptionsMultiOSC
 	| DeviceOptionsViscaOverIP
 
