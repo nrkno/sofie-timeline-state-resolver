@@ -2,24 +2,21 @@ import {
 	ActionExecutionResult,
 	ActionExecutionResultCode,
 	DeviceStatus,
-	FocusDirection,
-	FocusMode,
 	Mappings,
-	PanTiltDirection,
 	PanasonicPTZActions,
 	PanasonicPTZOptions,
-	RecallPresetPayload,
-	ResetPresetPayload,
-	SetFocusModePayload,
-	StartFocusPayload,
-	StartPanTiltPayload,
-	StartZoomPayload,
 	StatusCode,
-	StorePresetPayload,
 	TSRTimelineContent,
 	Timeline,
 	TimelineContentTypePanasonicPtz,
-	ZoomDirection,
+	RecallPresetPayload,
+	StorePresetPayload,
+	ResetPresetPayload,
+	SetFocusModePayload,
+	FocusMode,
+	SetPanTiltSpeedPayload,
+	SetZoomSpeedPayload,
+	SetFocusSpeedPayload,
 } from 'timeline-state-resolver-types'
 import { Device } from '../../service/device'
 import { PanasonicPtzState, convertStateToPtz, getDefaultState } from './state'
@@ -142,38 +139,22 @@ export class PanasonicPtzDevice extends Device<PanasonicPTZOptions, PanasonicPtz
 		[PanasonicPTZActions.ResetPreset]: async (_id: string, payload: ResetPresetPayload) => {
 			return this.safelyExecuteActionCommand(() => new PresetDeleteControl(payload.presetNumber))
 		},
-		[PanasonicPTZActions.StartPanTilt]: async (_id: string, payload: StartPanTiltPayload) => {
-			const { panSpeed, tiltSpeed } = this.mapPanTiltSpeedToPanasonic(
-				payload.panSpeed,
-				payload.tiltSpeed,
-				payload.direction
-			)
-			return this.safelyExecuteActionCommand(() => new PanTiltSpeedControl(panSpeed, tiltSpeed))
-		},
-		[PanasonicPTZActions.StopPanTilt]: async (_id: string) => {
-			const { panSpeed, tiltSpeed } = this.mapPanTiltSpeedToPanasonic(0, 0)
+		[PanasonicPTZActions.SetPanTiltSpeed]: async (_id: string, payload: SetPanTiltSpeedPayload) => {
+			const { panSpeed, tiltSpeed } = this.mapPanTiltSpeedToPanasonic(payload.panSpeed, payload.tiltSpeed)
 			return this.safelyExecuteActionCommand(() => new PanTiltSpeedControl(panSpeed, tiltSpeed))
 		},
 		[PanasonicPTZActions.GetPanTiltPosition]: async (_id: string) => {
 			return this.safelyExecuteActionCommand(() => new PanTiltPositionQuery())
 		},
-		[PanasonicPTZActions.StartZoom]: async (_id: string, payload: StartZoomPayload) => {
-			const speed = this.mapZoomSpeedToPanasonic(payload.zoomSpeed, payload.direction)
-			return this.safelyExecuteActionCommand(() => new ZoomSpeedControl(speed))
-		},
-		[PanasonicPTZActions.StopZoom]: async (_id: string) => {
-			const speed = this.mapZoomSpeedToPanasonic(0)
+		[PanasonicPTZActions.SetZoomSpeed]: async (_id: string, payload: SetZoomSpeedPayload) => {
+			const speed = this.mapZoomSpeedToPanasonic(payload.zoomSpeed)
 			return this.safelyExecuteActionCommand(() => new ZoomSpeedControl(speed))
 		},
 		[PanasonicPTZActions.GetZoomPosition]: async (_id: string) => {
 			return this.safelyExecuteActionCommand(() => new ZoomPositionQuery())
 		},
-		[PanasonicPTZActions.StartFocus]: async (_id: string, payload: StartFocusPayload) => {
-			const speed = this.mapFocusSpeedToPanasonic(payload.focusSpeed, payload.direction)
-			return this.safelyExecuteActionCommand(() => new FocusSpeedControl(speed))
-		},
-		[PanasonicPTZActions.StopFocus]: async (_id: string) => {
-			const speed = this.mapFocusSpeedToPanasonic(0)
+		[PanasonicPTZActions.SetFocusSpeed]: async (_id: string, payload: SetFocusSpeedPayload) => {
+			const speed = this.mapFocusSpeedToPanasonic(payload.focusSpeed)
 			return this.safelyExecuteActionCommand(() => new FocusSpeedControl(speed))
 		},
 		[PanasonicPTZActions.SetFocusMode]: async (_id: string, payload: SetFocusModePayload) => {
@@ -206,47 +187,21 @@ export class PanasonicPtzDevice extends Device<PanasonicPTZOptions, PanasonicPtz
 		}
 	}
 
-	private mapPanTiltSpeedToPanasonic(panSpeed: number, tiltSpeed: number, direction?: PanTiltDirection) {
-		panSpeed = Math.round((panSpeed / 100.0) * 49)
-		tiltSpeed = Math.round((tiltSpeed / 100.0) * 49)
-		if (
-			direction === PanTiltDirection.DOWN_LEFT ||
-			direction === PanTiltDirection.LEFT ||
-			direction === PanTiltDirection.UP_LEFT
-		) {
-			panSpeed *= -1
-		}
-		panSpeed += 50
-		if (
-			direction === PanTiltDirection.DOWN ||
-			direction === PanTiltDirection.DOWN_LEFT ||
-			direction === PanTiltDirection.DOWN_RIGHT
-		) {
-			tiltSpeed *= -1
-		}
-		tiltSpeed += 50
+	private mapPanTiltSpeedToPanasonic(panSpeed: number, tiltSpeed: number) {
+		panSpeed = Math.round(panSpeed * 49 + 50)
+		tiltSpeed = Math.round(tiltSpeed * 49 + 50)
 		return {
 			panSpeed,
 			tiltSpeed,
 		}
 	}
 
-	private mapZoomSpeedToPanasonic(speed: number, direction?: ZoomDirection) {
-		speed = Math.round((speed / 100.0) * 49)
-		if (direction === ZoomDirection.WIDE) {
-			speed *= -1
-		}
-		speed += 50
-		return speed
+	private mapZoomSpeedToPanasonic(speed: number) {
+		return Math.round(speed * 49 + 50)
 	}
 
-	private mapFocusSpeedToPanasonic(speed: number, direction?: FocusDirection) {
-		speed = Math.round((speed / 100.0) * 49)
-		if (direction === FocusDirection.NEAR) {
-			speed *= -1
-		}
-		speed += 50
-		return speed
+	private mapFocusSpeedToPanasonic(speed: number) {
+		return Math.round(speed * 49 + 50)
 	}
 
 	async executeAction(actionId: PanasonicPTZActions, payload?: Record<string, any>): Promise<ActionExecutionResult> {

@@ -2,47 +2,32 @@
 	"$schema": "../../../$schemas/action-schema.json",
 	"actions": [
 		{
-			"id": "startPanTilt",
-			"name": "Start Pan Tilt movement (or change current direction and speed)",
+			"id": "setPanTiltSpeed",
+			"name": "Set Pan and Tilt movement speed (virtual joystick position)",
 			"destructive": false,
 			"payload": {
 				"type": "object",
 				"properties": {
-					"direction": {
-						"type": "string",
-						"title": "PanTiltDirection",
-						"ui:title": "Direction",
-						"ui:summaryTitle": "Direction",
-						"default": "",
-						"enum": ["left", "up_left", "up", "up_right", "right", "down_right", "down", "down_left"],
-						"tsEnumNames": ["LEFT", "UP_LEFT", "UP", "UP_RIGHT", "RIGHT", "DOWN_RIGHT", "DOWN", "DOWN_LEFT"]
-					},
                     "panSpeed": {
                         "type": "number",
                         "ui:title": "Pan Speed",
-                        "min": 0,
-                        "max": 100,
+                        "min": -1,
+                        "max": 1,
                         "default": 0,
-                        "description": "Pan Speed; Range: [0.0, 100.0]; (each protocol might support a different range, the value will be mapped into the supported range)"
+                        "description": "Pan Speed; Range: [-1.0, 1.0]; -1.0 = fastest LEFT, 0.0 = STOP, 1.0 = fastest RIGHT (each protocol might internally support a different range, which the value will be mapped into)"
                     },
                     "tiltSpeed": {
                         "type": "number",
                         "ui:title": "Tilt Speed",
-                        "min": 0,
-                        "max": 100,
+                        "min": -1,
+                        "max": 1,
                         "default": 0,
-                        "description": "Tilt Speed; Range: [0.0, 100.0]; (each protocol might support a different range, the value will be mapped into the supported range)"
+                        "description": "Tilt Speed; Range: [-1.0, 1.0]; -1.0 = fastest DOWN, 0.0 = STOP, 1.0 = fastest UP (each protocol might internally support a different range, which the value will be mapped into)"
                     }
 				},
-				"required": ["direction", "panSpeed", "tiltSpeed"],
+				"required": ["panSpeed", "tiltSpeed"],
 				"additionalProperties": false
 			},
-			"generic": true
-		},
-		{
-			"id": "stopPanTilt",
-			"name": "Stop Pan and Tilt movement",
-			"destructive": false,
 			"generic": true
 		},
 		{
@@ -52,39 +37,24 @@
 			"generic": true
 		},
 		{
-			"id": "startZoom",
-			"name": "Start Zoom adjustment (or change current direction and speed)",
+			"id": "setZoomSpeed",
+			"name": "Set Zoom adjustment speed (virtual zoom rocker position)",
 			"destructive": false,
 			"payload": {
 				"type": "object",
 				"properties": {
-					"direction": {
-						"type": "string",
-						"title": "ZoomDirection",
-						"ui:title": "Direction",
-						"ui:summaryTitle": "Direction",
-						"default": "",
-						"enum": ["wide", "tele"],
-						"tsEnumNames": ["WIDE", "TELE"]
-					},
                     "zoomSpeed": {
                         "type": "number",
                         "ui:title": "Zoom Speed",
-                        "min": 0,
-                        "max": 100,
+                        "min": -1,
+                        "max": 1,
                         "default": 0,
-                        "description": "Zoom Speed; Range: [0.0, 100.0]; (each protocol might support a different range, the value will be mapped into the supported range)"
+                        "description": "Zoom Speed; Range: [-1.0, 1.0]; -1.0 = fastest WIDE, 0.0 = STOP, 1.0 = fastest TELE (each protocol might internally support a different range, which the value will be mapped into)"
                     }
 				},
-				"required": ["direction", "zoomSpeed"],
+				"required": ["zoomSpeed"],
 				"additionalProperties": false
 			},
-			"generic": true
-		},
-		{
-			"id": "stopZoom",
-			"name": "Stop Zoom adjustment",
-			"destructive": false,
 			"generic": true
 		},
 		{
@@ -151,39 +121,24 @@
 			"generic": true
         },
 		{
-			"id": "startFocus",
-			"name": "Start Focus adjustment (or change current direction and speed)",
+			"id": "setFocusSpeed",
+			"name": "Set Focus adjustment speed (virtual focus ring velocity)",
 			"destructive": false,
 			"payload": {
 				"type": "object",
 				"properties": {
-					"direction": {
-						"type": "string",
-						"title": "FocusDirection",
-						"ui:title": "Direction",
-						"ui:summaryTitle": "Direction",
-						"default": "",
-						"enum": ["near", "far"],
-						"tsEnumNames": ["NEAR", "FAR"]
-					},
                     "focusSpeed": {
                         "type": "number",
                         "ui:title": "Focus Speed",
-                        "min": 0,
-                        "max": 100,
+                        "min": -1,
+                        "max": 1,
                         "default": 0,
-                        "description": "Focus Speed; Range: [0.0, 100.0]; (each protocol might support a different range, the value will be mapped into the supported range)"
+                        "description": "Focus Speed; Range: [-1.0, 1.0]; -1.0 = fastest NEAR, 0.0 = STOP, 1.0 = fastest FAR (each protocol might internally support a different range, which the value will be mapped into)"
                     }
 				},
-				"required": ["direction", "focusSpeed"],
+				"required": ["focusSpeed"],
 				"additionalProperties": false
 			},
-			"generic": true
-		},
-		{
-			"id": "stopFocus",
-			"name": "Stop Focus adjustment",
-			"destructive": false,
 			"generic": true
 		},
 		{

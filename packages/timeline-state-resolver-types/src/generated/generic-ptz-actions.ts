@@ -6,40 +6,22 @@
  */
 
 
-export interface StartPanTiltPayload {
-	direction: PanTiltDirection
+export interface SetPanTiltSpeedPayload {
 	/**
-	 * Pan Speed; Range: [0.0, 100.0]; (each protocol might support a different range, the value will be mapped into the supported range)
+	 * Pan Speed; Range: [-1.0, 1.0]; -1.0 = fastest LEFT, 0.0 = STOP, 1.0 = fastest RIGHT (each protocol might internally support a different range, which the value will be mapped into)
 	 */
 	panSpeed: number
 	/**
-	 * Tilt Speed; Range: [0.0, 100.0]; (each protocol might support a different range, the value will be mapped into the supported range)
+	 * Tilt Speed; Range: [-1.0, 1.0]; -1.0 = fastest DOWN, 0.0 = STOP, 1.0 = fastest UP (each protocol might internally support a different range, which the value will be mapped into)
 	 */
 	tiltSpeed: number
 }
 
-export const enum PanTiltDirection {
-	LEFT = 'left',
-	UP_LEFT = 'up_left',
-	UP = 'up',
-	UP_RIGHT = 'up_right',
-	RIGHT = 'right',
-	DOWN_RIGHT = 'down_right',
-	DOWN = 'down',
-	DOWN_LEFT = 'down_left'
-}
-
-export interface StartZoomPayload {
-	direction: ZoomDirection
+export interface SetZoomSpeedPayload {
 	/**
-	 * Zoom Speed; Range: [0.0, 100.0]; (each protocol might support a different range, the value will be mapped into the supported range)
+	 * Zoom Speed; Range: [-1.0, 1.0]; -1.0 = fastest WIDE, 0.0 = STOP, 1.0 = fastest TELE (each protocol might internally support a different range, which the value will be mapped into)
 	 */
 	zoomSpeed: number
-}
-
-export const enum ZoomDirection {
-	WIDE = 'wide',
-	TELE = 'tele'
 }
 
 export interface StorePresetPayload {
@@ -63,17 +45,11 @@ export interface ResetPresetPayload {
 	presetNumber: number
 }
 
-export interface StartFocusPayload {
-	direction: FocusDirection
+export interface SetFocusSpeedPayload {
 	/**
-	 * Focus Speed; Range: [0.0, 100.0]; (each protocol might support a different range, the value will be mapped into the supported range)
+	 * Focus Speed; Range: [-1.0, 1.0]; -1.0 = fastest NEAR, 0.0 = STOP, 1.0 = fastest FAR (each protocol might internally support a different range, which the value will be mapped into)
 	 */
 	focusSpeed: number
-}
-
-export const enum FocusDirection {
-	NEAR = 'near',
-	FAR = 'far'
 }
 
 export interface SetFocusModePayload {
