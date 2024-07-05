@@ -170,13 +170,16 @@ export interface TimelineContentVMixInput extends TimelineContentVMixBase {
 
 	transform?: VMixTransform
 
-	/** @deprecated use `layers` instead */
+	/**
+	 * List of input (Multi View) overlays; indexes start from 1
+	 * @deprecated Use `layers` instead. If both `layers` and `overlays` are provided, `overlays` will be discarded
+	 */
 	overlays?: VMixInputOverlays
 
 	/**
-	 * List of input Layers
-	 * indexes start from 1
-	 * requires vMix 27+
+	 * List of input Layers.
+	 * Indexes start from 1.
+	 * Requires vMix 27+.
 	 */
 	layers?: VMixLayers
 
