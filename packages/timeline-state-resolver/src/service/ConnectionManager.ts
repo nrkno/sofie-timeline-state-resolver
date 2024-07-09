@@ -31,10 +31,26 @@ interface Operation {
 
 const FREEZE_LIMIT = 5000 // how long to wait before considering the child to be unresponsive
 
-export class ConnectionManager extends EventEmitter {
+export type ConnectionManagerEvents = ConnectionManagerIntEvents & MappedDeviceEvents
+export interface ConnectionManagerIntEvents {
+	info: [info: string]
+	warning: [warning: string]
+	error: [context: string, err?: Error]
+	debug: [...debug: any[]]
+
+	connectionAdded: [id: string, container: BaseRemoteDeviceIntegration<DeviceOptionsBase<any>>]
+	connectionRemoved: [id: string]
+}
+export type MappedDeviceEvents = {
+	[T in keyof DeviceEvents as `connectionEvent:${T}`]: [id: string, ...DeviceEvents[T]]
+}
+
+export class ConnectionManager extends EventEmitter<ConnectionManagerEvents> {
 	private _config: Map<string, DeviceOptionsAnyInternal> = new Map()
 	private _connections: Map<string, BaseRemoteDeviceIntegration<DeviceOptionsAnyInternal>> = new Map()
 	private _updating = false
+
+	private _connectionAttempts = new Map<string, { last: number; next: number }>()
 
 	/**
 	 * Set the config options for all connections
@@ -110,42 +126,72 @@ export class ConnectionManager extends EventEmitter {
 		}
 
 		console.log('Ran update, got ops', operations)
+		const isAllowedOp = (op: Operation): boolean => {
+			if (op.operation !== 'create') return true // allow non-create ops
+
+			const nextCreate = this._connectionAttempts.get(op.id)
+			if (!nextCreate || nextCreate.next < Date.now()) return true
+
+			return false
+		}
+		const allowedOperations = operations.filter(isAllowedOp)
 
 		if (operations.length === 0) {
-			// no operations needed
+			// no operations needed, so stop the loop
 			this._updating = false
+			return
+		} else if (allowedOperations.length === 0) {
+			this._updating = false
+			// wait until next
+			const nextTime = Array.from(this._connectionAttempts.values()).reduce((a, b) => (a.next < b.next ? a : b))
+			// todo - keep track of these
+			setTimeout(() => {
+				this._updateConnections()
+			}, nextTime.next - Date.now())
+			// there's nothing to execute right now so return
 			return
 		}
 
-		Promise.allSettled(operations.map((op) => this.executeOperation(op))).then(() => {
+		Promise.allSettled(allowedOperations.map((op) => this.executeOperation(op))).then(() => {
 			this._updating = false
-			// todo - do another run to verify we have achieved creation of all devices (but prevent us from running into a death loop)
+			// rerun the algorithm once to make sure we have no missed operations in the meanwhile
+			this._updateConnections()
 		})
 	}
 
 	private async executeOperation({ operation, id }: Operation): Promise<void> {
-		// todo: timeout here or log errors?
-
-		switch (operation) {
-			case 'create':
-				await this.createConnection(id)
-				break
-			case 'delete':
-				await this.deleteConnection(id)
-				break
-			case 'update':
-				await this.deleteConnection(id)
-				await this.createConnection(id)
-				break
-			case 'setDebug':
-				await this.setDebugForConnection(id)
-				break
+		// todo - timeout?
+		try {
+			switch (operation) {
+				case 'create':
+					await this.createConnection(id)
+					break
+				case 'delete':
+					await this.deleteConnection(id)
+					break
+				case 'update':
+					await this.deleteConnection(id)
+					await this.createConnection(id)
+					break
+				case 'setDebug':
+					await this.setDebugForConnection(id)
+					break
+			}
+		} catch {
+			this.emit('warning', `Failed to execute "${operation} for ${id}"`)
 		}
 	}
 
 	private async createConnection(id: string): Promise<void> {
 		const deviceOptions = this._config.get(id)
-		if (!deviceOptions) return // unexpected - throw error?
+		if (!deviceOptions) return // has been removed since, so do not create
+
+		const lastAttempt = this._connectionAttempts.get(id)
+		const last = lastAttempt?.last ?? Date.now()
+		this._connectionAttempts.set(id, {
+			last: Date.now(),
+			next: Date.now() + Math.min(Math.max(Date.now() - last, 2000) * 2, 60 * 1000),
+		}) // first retry after 4secs, double it every try, max 60s
 
 		const threadedClassOptions: ThreadedClassConfig = {
 			threadUsage: deviceOptions.threadUsage || 1,
@@ -166,15 +212,24 @@ export class ConnectionManager extends EventEmitter {
 		this.emit('connectionAdded', id, container)
 
 		// trigger device init
-		this._handleConnectionInitialisation(id, container).catch(() => {
-			this.emit('error', 'Device ' + id + ' failed to initialise')
-			this._connections.delete(id) // todo - this will cause device to be recreated next, which may cause a spiral?
-		})
+		this._handleConnectionInitialisation(id, container)
+			.then(() => {
+				this._connectionAttempts.delete(id)
+				// todo - if this triggers false, shell we restart the connection?
+			})
+			.catch((e) => {
+				this.emit('error', 'Device ' + id + ' failed to initialise')
+				this._connections.delete(id)
+
+				container.terminate().catch(() => this.emit('warning', `Failed to initialise ${id} (${e})`))
+				// todo - find a good point to retrigger _updateConnections
+				this._updateConnections() // this can't be the right place... right?? it was not :kekw:... was it not??
+			})
 	}
 
 	private async deleteConnection(id: string): Promise<void> {
 		const connection = this._connections.get(id)
-		if (!connection) return
+		if (!connection) return // already removed / never existed
 
 		this._connections.delete(id)
 		this.emit('connectionRemoved', id)
@@ -197,7 +252,7 @@ export class ConnectionManager extends EventEmitter {
 			connection.device.setDebugLogging(config.debug ?? false)
 			connection.device.setDebugState(config.debugState ?? false)
 		} catch {
-			// log warning here
+			this.emit('warning', 'Failed to update debug values for ' + id)
 		}
 	}
 
@@ -222,7 +277,8 @@ export class ConnectionManager extends EventEmitter {
 		container: BaseRemoteDeviceIntegration<DeviceOptionsAnyInternal>
 	): Promise<void> {
 		const passEvent = <T extends keyof DeviceEvents>(ev: T) => {
-			const evHandler: any = (...args: DeviceEvents[T]) => this.emit('connectionEvent:' + ev, id, ...args)
+			const evHandler: any = (...args: DeviceEvents[T]) =>
+				this.emit(('connectionEvent:' + ev) as `connectionEvent:${keyof DeviceEvents}`, id, ...args)
 			container.device.on(ev, evHandler)
 		}
 
@@ -254,20 +310,8 @@ function configHasChanged(
 ): boolean {
 	const oldConfig = connection.deviceOptions
 
-	// first check common options
-	if (
-		oldConfig.disable !== config.disable ||
-		oldConfig.isMultiThreaded !== config.isMultiThreaded ||
-		oldConfig.limitSlowFulfilledCommand !== config.limitSlowFulfilledCommand ||
-		oldConfig.limitSlowSentCommand !== config.limitSlowSentCommand ||
-		oldConfig.reportAllCommands !== config.reportAllCommands ||
-		oldConfig.threadUsage !== config.threadUsage ||
-		oldConfig.type !== config.type
-	)
-		return true
-
 	// now check device specific options
-	return !_.isEqual(oldConfig.options, config.options)
+	return !_.isEqual(_.omit(oldConfig, 'debug', 'debugState'), _.omit(config, 'debug', 'debugState'))
 }
 
 function createContainer(
