@@ -2,7 +2,7 @@ import * as _ from 'underscore'
 import { DeviceWithState, CommandWithContext, DeviceStatus, StatusCode } from './../../devices/device'
 import { DoOnTime, SendMode } from '../../devices/doOnTime'
 
-import { VMixConnection } from './connection'
+import { VMixCommandSender, VMixConnection } from './connection'
 import {
 	DeviceType,
 	DeviceOptionsVMix,
@@ -54,7 +54,7 @@ export type CommandReceiver = (
 	layer: string
 }*/
 
-export type EnforceableVMixInputStateKeys = 'duration' | 'loop' | 'transform' | 'overlays' | 'listFilePaths'
+export type EnforceableVMixInputStateKeys = 'duration' | 'loop' | 'transform' | 'layers' | 'listFilePaths'
 
 /**
  * This is a VMixDevice, it sends commands when it feels like it
@@ -65,6 +65,8 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 	private _commandReceiver: CommandReceiver = this._defaultCommandReceiver.bind(this)
 	/** Setup in init */
 	private _vMixConnection!: VMixConnection
+	private _vMixCommandSender!: VMixCommandSender
+
 	private _connected = false
 	private _initialized = false
 	private _stateDiffer: VMixStateDiffer
@@ -111,6 +113,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 
 	async init(options: VMixOptions): Promise<boolean> {
 		this._vMixConnection = new VMixConnection(options.host, options.port, false)
+		this._vMixCommandSender = new VMixCommandSender(this._vMixConnection)
 		this._vMixConnection.on('connected', () => {
 			// We are not resetting the state at this point and waiting for the state to arrive. Otherwise, we risk
 			// going back and forth on reconnections
@@ -327,7 +330,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 	private async _lastPreset(): Promise<ActionExecutionResult> {
 		const presetActionCheckResult = this._checkPresetAction()
 		if (presetActionCheckResult) return presetActionCheckResult
-		await this._vMixConnection.lastPreset()
+		await this._vMixCommandSender.lastPreset()
 		return {
 			result: ActionExecutionResultCode.Ok,
 		}
@@ -336,7 +339,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 	private async _openPreset(payload: OpenPresetPayload): Promise<ActionExecutionResult> {
 		const presetActionCheckResult = this._checkPresetAction(payload, true)
 		if (presetActionCheckResult) return presetActionCheckResult
-		await this._vMixConnection.openPreset(payload.filename)
+		await this._vMixCommandSender.openPreset(payload.filename)
 		return {
 			result: ActionExecutionResultCode.Ok,
 		}
@@ -345,7 +348,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 	private async _savePreset(payload: SavePresetPayload): Promise<ActionExecutionResult> {
 		const presetActionCheckResult = this._checkPresetAction(payload, true)
 		if (presetActionCheckResult) return presetActionCheckResult
-		await this._vMixConnection.savePreset(payload.filename)
+		await this._vMixCommandSender.savePreset(payload.filename)
 		return {
 			result: ActionExecutionResultCode.Ok,
 		}
@@ -407,7 +410,7 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 		}
 		this.emitDebug(cwc)
 
-		return this._vMixConnection.sendCommand(cmd.command).catch((error) => {
+		return this._vMixCommandSender.sendCommand(cmd.command).catch((error) => {
 			this.emit('commandError', error, cwc)
 		})
 	}
