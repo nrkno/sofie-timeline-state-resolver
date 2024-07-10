@@ -48,7 +48,7 @@ describe('VMixStateDiffer', () => {
 			},
 		}
 
-		const commands = differ.getCommandsToAchieveState(oldState, newState)
+		const commands = differ.getCommandsToAchieveState(Date.now(), oldState, newState)
 
 		expect(commands.length).toBe(1)
 		expect(commands[0].command).toMatchObject({ command: VMixCommand.SET_LAYER_INPUT, value: 5, index: 2 })
@@ -75,7 +75,7 @@ describe('VMixStateDiffer', () => {
 			},
 		}
 
-		const commands = differ.getCommandsToAchieveState(oldState, newState)
+		const commands = differ.getCommandsToAchieveState(Date.now(), oldState, newState)
 
 		expect(commands.length).toBe(1)
 		expect(commands[0].command).toMatchObject({ command: VMixCommand.SET_LAYER_ZOOM, value: 1.5, index: 2 })
@@ -103,7 +103,7 @@ describe('VMixStateDiffer', () => {
 			},
 		}
 
-		const commands = differ.getCommandsToAchieveState(oldState, newState)
+		const commands = differ.getCommandsToAchieveState(Date.now(), oldState, newState)
 
 		expect(commands.length).toBe(2)
 		expect(commands[0].command).toMatchObject({ command: VMixCommand.SET_LAYER_PAN_X, value: -1, index: 2 })
@@ -134,7 +134,7 @@ describe('VMixStateDiffer', () => {
 			},
 		}
 
-		const commands = differ.getCommandsToAchieveState(oldState, newState)
+		const commands = differ.getCommandsToAchieveState(Date.now(), oldState, newState)
 
 		expect(commands.length).toBe(1)
 		expect(commands[0].command).toMatchObject({

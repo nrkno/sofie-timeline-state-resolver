@@ -158,13 +158,13 @@ export interface VMixStateCommandSetLayerZoom extends VMixStateCommandBase {
 	index: number
 	value: number
 }
-export class VMixStateCommandSetLayerPanX implements VMixStateCommandBase {
+export interface VMixStateCommandSetLayerPanX extends VMixStateCommandBase {
 	command: VMixCommand.SET_LAYER_PAN_X
 	input: string | number
 	index: number
 	value: number
 }
-export class VMixStateCommandSetLayerPanY implements VMixStateCommandBase {
+export interface VMixStateCommandSetLayerPanY extends VMixStateCommandBase {
 	command: VMixCommand.SET_LAYER_PAN_Y
 	input: string | number
 	index: number
