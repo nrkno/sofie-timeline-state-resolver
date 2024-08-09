@@ -5,4 +5,8 @@ export interface TimelineContentHTTPSendBase {
 	deviceType: DeviceType.HTTPSEND
 }
 
-export type TimelineContentHTTPRequest = TimelineContentHTTPSendBase & HTTPSendCommandContent
+export interface HTTPSendCommandContentExt extends Omit<HTTPSendCommandContent, 'url'> {
+	url: string | { key: string; args?: { [k: string]: any } }
+}
+
+export type TimelineContentHTTPRequest = TimelineContentHTTPSendBase & HTTPSendCommandContentExt
