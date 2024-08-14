@@ -315,8 +315,14 @@ export class AtemDevice extends DeviceWithState<DeviceState, DeviceOptionsAtemIn
 						case MappingAtemType.SuperSourceProperties:
 							if (content.type === TimelineContentTypeAtem.SSRCPROPS) {
 								const ssrc = AtemStateUtil.getSuperSource(deviceState, mapping.options.index)
+
+								// Future: These deepExtends are adding a load of noise to the library diffing, but it works for now
+
 								if (!ssrc.properties) ssrc.properties = { ...StateDefault.Video.SuperSourceProperties }
 								if (ssrc) deepExtend(ssrc.properties, content.ssrcProps)
+
+								if (!ssrc.border) ssrc.border = { ...StateDefault.Video.SuperSourceBorder }
+								if (ssrc) deepExtend(ssrc.border, content.ssrcProps)
 							}
 							break
 						case MappingAtemType.Auxilliary:
