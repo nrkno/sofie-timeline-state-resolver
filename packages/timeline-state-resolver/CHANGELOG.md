@@ -3,14 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
-## [9.0.1](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/9.0.0...9.0.1) (2024-04-02)
-
+## [9.0.2](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/9.0.1...9.0.2) (2024-08-15)
 
 ### Bug Fixes
 
-* **vMix:** handling XML messages with multi-byte characters ([e811ef0](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/e811ef09f6118c69ea337e0b1eb969a663546bde))
+- atem supersource border properties SOFIE-3307 ([#341](https://github.com/nrkno/tv-automation-state-timeline-resolver/issues/341)) ([27213b0](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/27213b0ca9fcf63ad70520e281f7e8e69bb7273d))
 
+## [9.0.1](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/9.0.0...9.0.1) (2024-04-02)
 
+### Bug Fixes
+
+- **vMix:** handling XML messages with multi-byte characters ([e811ef0](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/e811ef09f6118c69ea337e0b1eb969a663546bde))
 
 ## [9.0.0](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/9.0.0-release50.8...9.0.0) (2024-02-23)
 
