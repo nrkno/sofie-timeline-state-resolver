@@ -3,6 +3,15 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [9.0.2](https://github.com/nrkno/sofie-timeline-state-resolver/compare/9.0.1...9.0.2) (2024-08-15)
+
+
+### Bug Fixes
+
+* atem supersource border properties SOFIE-3307 ([#341](https://github.com/nrkno/sofie-timeline-state-resolver/issues/341)) ([27213b0](https://github.com/nrkno/sofie-timeline-state-resolver/commit/27213b0ca9fcf63ad70520e281f7e8e69bb7273d))
+
+
+
 ## [9.0.1](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/9.0.0...9.0.1) (2024-04-02)
 
 
