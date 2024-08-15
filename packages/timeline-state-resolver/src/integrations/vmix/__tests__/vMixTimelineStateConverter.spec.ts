@@ -8,6 +8,7 @@ import {
 	TimelineContentTypeVMix,
 	TimelineContentVMixAny,
 	VMixInputType,
+	VMixTransitionType,
 } from 'timeline-state-resolver-types'
 import { VMixTimelineStateConverter } from '../vMixTimelineStateConverter'
 import { VMixOutput, VMixStateDiffer } from '../vMixStateDiffer'
@@ -134,6 +135,74 @@ describe('VMixTimelineStateConverter', () => {
 			)
 			expect(result.reportedState.inputsAddedByUs[prefixAddedInput(filePath)]).toBeDefined()
 			expect(result.reportedState.inputsAddedByUsAudio[prefixAddedInput(filePath)]).toBeUndefined()
+		})
+
+		it('allows overriding transitions in usual layer order', () => {
+			const converter = createTestee()
+			const result = converter.getVMixStateFromTimelineState(
+				wrapInTimelineState({
+					pgm0: wrapInTimelineObject('pgm0', {
+						deviceType: DeviceType.VMIX,
+						type: TimelineContentTypeVMix.PROGRAM,
+						input: 2,
+					}),
+					pgm1: wrapInTimelineObject('pgm1', {
+						deviceType: DeviceType.VMIX,
+						type: TimelineContentTypeVMix.PROGRAM,
+						transition: {
+							duration: 500,
+							effect: VMixTransitionType.Fade,
+						},
+					}),
+				}),
+				{
+					pgm0: wrapInMapping({
+						mappingType: MappingVmixType.Program,
+					}),
+					pgm1: wrapInMapping({
+						mappingType: MappingVmixType.Program,
+					}),
+				}
+			)
+			expect(result.reportedState.mixes[0]?.transition).toEqual({
+				duration: 500,
+				effect: VMixTransitionType.Fade,
+			})
+			expect(result.reportedState.mixes[0]?.program).toEqual(2)
+		})
+
+		it('does not allow overriding transitions in reverse layer order', () => {
+			const converter = createTestee()
+			const result = converter.getVMixStateFromTimelineState(
+				wrapInTimelineState({
+					pgm0: wrapInTimelineObject('pgm0', {
+						deviceType: DeviceType.VMIX,
+						type: TimelineContentTypeVMix.PROGRAM,
+						transition: {
+							duration: 500,
+							effect: VMixTransitionType.Fade,
+						},
+					}),
+					pgm1: wrapInTimelineObject('pgm1', {
+						deviceType: DeviceType.VMIX,
+						type: TimelineContentTypeVMix.PROGRAM,
+						input: 2,
+					}),
+				}),
+				{
+					pgm0: wrapInMapping({
+						mappingType: MappingVmixType.Program,
+					}),
+					pgm1: wrapInMapping({
+						mappingType: MappingVmixType.Program,
+					}),
+				}
+			)
+			expect(result.reportedState.mixes[0]?.transition).toEqual({
+				duration: 0,
+				effect: VMixTransitionType.Cut,
+			})
+			expect(result.reportedState.mixes[0]?.program).toEqual(2)
 		})
 
 		// TODO: maybe we can't trust the defaults when adding an input? Make this test pass eventually
