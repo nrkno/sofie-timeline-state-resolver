@@ -57,7 +57,15 @@ import { DoOnTime, SendMode } from '../../devices/doOnTime'
 import got from 'got'
 import { InternalTransitionHandler } from '../../devices/transitions/transitionHandler'
 import Debug from 'debug'
-import { actionNotFoundMessage, deepMerge, endTrace, literal, startTrace, t } from '../../lib'
+import {
+	actionNotFoundMessage,
+	deepMerge,
+	endTrace,
+	interpolateTranslationIfNeeded,
+	literal,
+	startTrace,
+	t,
+} from '../../lib'
 import { ClsParameters } from 'casparcg-connection/dist/parameters'
 const debug = Debug('timeline-state-resolver:casparcg')
 
@@ -388,11 +396,13 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 				cgStop: content.useStopCommand,
 			})
 		} else if (content.type === TimelineContentTypeCasparCg.HTMLPAGE) {
+			const commandUrl = interpolateTranslationIfNeeded(content.url)
+
 			stateLayer = literal<HtmlPageLayer>({
 				id: layer.id,
 				layerNo: mapping.layer,
 				content: LayerContentType.HTMLPAGE,
-				media: content.url,
+				media: commandUrl,
 
 				playTime: startTime || null,
 				playing: true,
