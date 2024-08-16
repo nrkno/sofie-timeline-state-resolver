@@ -8,6 +8,7 @@ import {
 	ActionExecutionResultCode,
 	TimelineDatastoreReferences,
 	ActionExecutionResult,
+	StringInterpolation,
 } from 'timeline-state-resolver-types'
 import * as _ from 'underscore'
 import { PartialDeep } from 'type-fest'
@@ -323,4 +324,9 @@ export function interpolateTranslation(key: string, args: { [key: string]: any }
 	}
 
 	return interpolated
+}
+
+export function interpolateTranslationIfNeeded(str: string | StringInterpolation): string {
+	if (typeof str === 'string') return str
+	return interpolateTranslation(str.key, str.args)
 }

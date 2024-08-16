@@ -172,3 +172,10 @@ export enum ActionExecutionResultCode {
 	Error = 'ERROR',
 	Ok = 'OK',
 }
+
+export interface StringInterpolation {
+	key: string
+	args?: {
+		[k: string]: any
+	}
+}
