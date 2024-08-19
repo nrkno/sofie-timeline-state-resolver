@@ -23,10 +23,8 @@ export function buildSofieChefState(
 		const content = layerState.content
 
 		if (mapping && content.deviceType === DeviceType.SOFIE_CHEF) {
-			const commandUrl = interpolateTemplateStringIfNeeded(content.url)
-
 			sofieChefState.windows[mapping.options.windowId] = {
-				url: commandUrl,
+				url: interpolateTemplateStringIfNeeded(content.url),
 				urlTimelineObjId: layerState.id,
 			}
 		}

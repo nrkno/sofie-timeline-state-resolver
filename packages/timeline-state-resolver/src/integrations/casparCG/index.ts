@@ -396,13 +396,11 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 				cgStop: content.useStopCommand,
 			})
 		} else if (content.type === TimelineContentTypeCasparCg.HTMLPAGE) {
-			const commandUrl = interpolateTemplateStringIfNeeded(content.url)
-
 			stateLayer = literal<HtmlPageLayer>({
 				id: layer.id,
 				layerNo: mapping.layer,
 				content: LayerContentType.HTMLPAGE,
-				media: commandUrl,
+				media: interpolateTemplateStringIfNeeded(content.url),
 
 				playTime: startTime || null,
 				playing: true,
