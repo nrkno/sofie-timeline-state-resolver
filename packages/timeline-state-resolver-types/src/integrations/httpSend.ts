@@ -1,4 +1,4 @@
-import { DeviceType, HTTPSendCommandContent, StringInterpolation } from '..'
+import { DeviceType, HTTPSendCommandContent, TemplateString } from '..'
 
 export type TimelineContentHTTPSendAny = TimelineContentHTTPRequest
 export interface TimelineContentHTTPSendBase {
@@ -6,7 +6,7 @@ export interface TimelineContentHTTPSendBase {
 }
 
 export interface HTTPSendCommandContentExt extends Omit<HTTPSendCommandContent, 'url'> {
-	url: string | StringInterpolation
+	url: string | TemplateString
 }
 
 export type TimelineContentHTTPRequest = TimelineContentHTTPSendBase & HTTPSendCommandContentExt

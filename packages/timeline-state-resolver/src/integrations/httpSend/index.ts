@@ -16,7 +16,7 @@ import {
 } from 'timeline-state-resolver-types'
 import _ = require('underscore')
 import got, { OptionsOfTextResponseBody, RequestError } from 'got'
-import { interpolateTranslationIfNeeded, t } from '../../lib'
+import { interpolateTemplateStringIfNeeded, t } from '../../lib'
 import { HttpProxyAgent, HttpsProxyAgent } from 'hpagent'
 import CacheableLookup from 'cacheable-lookup'
 
@@ -221,7 +221,7 @@ export class HTTPSendDevice extends Device<HTTPSendOptions, HttpSendDeviceState,
 				headers: command.content.headers,
 			}
 
-			const commandUrl: string = interpolateTranslationIfNeeded(command.content.url)
+			const commandUrl: string = interpolateTemplateStringIfNeeded(command.content.url)
 
 			const parsedUrl = new URL(commandUrl)
 			if (!this.options.noProxy?.includes(parsedUrl.host)) {

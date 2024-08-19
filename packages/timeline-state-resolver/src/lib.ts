@@ -8,7 +8,7 @@ import {
 	ActionExecutionResultCode,
 	TimelineDatastoreReferences,
 	ActionExecutionResult,
-	StringInterpolation,
+	TemplateString,
 } from 'timeline-state-resolver-types'
 import * as _ from 'underscore'
 import { PartialDeep } from 'type-fest'
@@ -312,7 +312,7 @@ export function cloneDeep<T>(input: T): T {
 /**
  * Interpolate a translation style string
  */
-export function interpolateTranslation(key: string, args: { [key: string]: any } | undefined): string {
+export function interpolateTemplateString(key: string, args: { [key: string]: any } | undefined): string {
 	if (!args || typeof key !== 'string') {
 		return String(key)
 	}
@@ -326,7 +326,7 @@ export function interpolateTranslation(key: string, args: { [key: string]: any }
 	return interpolated
 }
 
-export function interpolateTranslationIfNeeded(str: string | StringInterpolation): string {
+export function interpolateTemplateStringIfNeeded(str: string | TemplateString): string {
 	if (typeof str === 'string') return str
-	return interpolateTranslation(str.key, str.args)
+	return interpolateTemplateString(str.key, str.args)
 }

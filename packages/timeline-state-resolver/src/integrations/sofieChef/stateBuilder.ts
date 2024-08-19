@@ -7,7 +7,7 @@ import {
 	DeviceType,
 } from 'timeline-state-resolver-types'
 import type { SofieChefState } from '.'
-import { interpolateTranslationIfNeeded } from '../../lib'
+import { interpolateTemplateStringIfNeeded } from '../../lib'
 
 export function buildSofieChefState(
 	timelineState: Timeline.TimelineState<TSRTimelineContent>,
@@ -23,7 +23,7 @@ export function buildSofieChefState(
 		const content = layerState.content
 
 		if (mapping && content.deviceType === DeviceType.SOFIE_CHEF) {
-			const commandUrl = interpolateTranslationIfNeeded(content.url)
+			const commandUrl = interpolateTemplateStringIfNeeded(content.url)
 
 			sofieChefState.windows[mapping.options.windowId] = {
 				url: commandUrl,

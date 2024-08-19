@@ -61,7 +61,7 @@ import {
 	actionNotFoundMessage,
 	deepMerge,
 	endTrace,
-	interpolateTranslationIfNeeded,
+	interpolateTemplateStringIfNeeded,
 	literal,
 	startTrace,
 	t,
@@ -396,7 +396,7 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 				cgStop: content.useStopCommand,
 			})
 		} else if (content.type === TimelineContentTypeCasparCg.HTMLPAGE) {
-			const commandUrl = interpolateTranslationIfNeeded(content.url)
+			const commandUrl = interpolateTemplateStringIfNeeded(content.url)
 
 			stateLayer = literal<HtmlPageLayer>({
 				id: layer.id,

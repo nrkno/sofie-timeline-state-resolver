@@ -174,7 +174,7 @@ export enum ActionExecutionResultCode {
 }
 
 /** This resolves to a string, where parts can be defined by the datastore */
-export interface TemplateString{
+export interface TemplateString {
 	/** The string template. Example: "http://google.com?q={{searchString}}" */
 	key: string
 	/** Values for the arguments in the key string. Example: { searchString: "TSR" } */
