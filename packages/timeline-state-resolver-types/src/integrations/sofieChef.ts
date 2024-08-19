@@ -1,4 +1,4 @@
-import { DeviceType } from '..'
+import { DeviceType, TemplateString } from '..'
 
 export enum TimelineContentTypeSofieChef {
 	URL = 'url',
@@ -13,5 +13,5 @@ export interface TimelineContentSofieChef {
 export interface TimelineContentSofieChefScene extends TimelineContentSofieChef {
 	type: TimelineContentTypeSofieChef.URL
 
-	url: string
+	url: string | TemplateString
 }

@@ -8,6 +8,7 @@ import {
 	ActionExecutionResultCode,
 	TimelineDatastoreReferences,
 	ActionExecutionResult,
+	TemplateString,
 } from 'timeline-state-resolver-types'
 import * as _ from 'underscore'
 import { PartialDeep } from 'type-fest'
@@ -306,4 +307,26 @@ export function actionNotFoundMessage(id: never): ActionExecutionResult<any> {
 
 export function cloneDeep<T>(input: T): T {
 	return klona(input)
+}
+
+/**
+ * Interpolate a translation style string
+ */
+export function interpolateTemplateString(key: string, args: { [key: string]: any } | undefined): string {
+	if (!args || typeof key !== 'string') {
+		return String(key)
+	}
+
+	let interpolated = String(key)
+	for (const placeholder of key.match(/[^{}]+(?=})/g) || []) {
+		const value = args[placeholder] || placeholder
+		interpolated = interpolated.replace(`{{${placeholder}}}`, value)
+	}
+
+	return interpolated
+}
+
+export function interpolateTemplateStringIfNeeded(str: string | TemplateString): string {
+	if (typeof str === 'string') return str
+	return interpolateTemplateString(str.key, str.args)
 }

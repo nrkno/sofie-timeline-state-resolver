@@ -4,6 +4,7 @@ import {
 	ActionExecutionResultCode,
 	DeviceStatus,
 	HTTPSendCommandContent,
+	HTTPSendCommandContentExt,
 	HTTPSendOptions,
 	HttpSendActions,
 	SendCommandResult,
@@ -15,7 +16,7 @@ import {
 } from 'timeline-state-resolver-types'
 import _ = require('underscore')
 import got, { OptionsOfTextResponseBody, RequestError } from 'got'
-import { t } from '../../lib'
+import { interpolateTemplateStringIfNeeded, t } from '../../lib'
 import { HttpProxyAgent, HttpsProxyAgent } from 'hpagent'
 import CacheableLookup from 'cacheable-lookup'
 
@@ -24,7 +25,7 @@ export type HttpSendDeviceState = Timeline.TimelineState<TSRTimelineContent>
 export interface HttpSendDeviceCommand extends CommandWithContext {
 	command: {
 		commandName: 'added' | 'changed' | 'removed' | 'retry' | 'manual'
-		content: HTTPSendCommandContent
+		content: HTTPSendCommandContentExt
 		layer: string
 	}
 }
@@ -69,7 +70,7 @@ export class HTTPSendDevice extends Device<HTTPSendOptions, HttpSendDeviceState,
 	}
 
 	private async executeSendCommandAction(
-		cmd?: HTTPSendCommandContent
+		cmd?: HTTPSendCommandContentExt
 	): Promise<ActionExecutionResult<SendCommandResult>> {
 		if (!cmd)
 			return {
@@ -133,7 +134,7 @@ export class HTTPSendDevice extends Device<HTTPSendOptions, HttpSendDeviceState,
 					context: `added: ${newLayer.id}`,
 					command: {
 						commandName: 'added',
-						content: newLayer.content as HTTPSendCommandContent,
+						content: newLayer.content as HTTPSendCommandContentExt,
 						layer: layerKey,
 					},
 				})
@@ -146,7 +147,7 @@ export class HTTPSendDevice extends Device<HTTPSendOptions, HttpSendDeviceState,
 						context: `changed: ${newLayer.id} (previously: ${oldLayer.id})`,
 						command: {
 							commandName: 'changed',
-							content: newLayer.content as HTTPSendCommandContent,
+							content: newLayer.content as HTTPSendCommandContentExt,
 							layer: layerKey,
 						},
 					})
@@ -161,7 +162,7 @@ export class HTTPSendDevice extends Device<HTTPSendOptions, HttpSendDeviceState,
 				commands.push({
 					timelineObjId: oldLayer.id,
 					context: `removed: ${oldLayer.id}`,
-					command: { commandName: 'removed', content: oldLayer.content as HTTPSendCommandContent, layer: layerKey },
+					command: { commandName: 'removed', content: oldLayer.content as HTTPSendCommandContentExt, layer: layerKey },
 				})
 			}
 		})
@@ -220,15 +221,17 @@ export class HTTPSendDevice extends Device<HTTPSendOptions, HttpSendDeviceState,
 				headers: command.content.headers,
 			}
 
-			const url = new URL(command.content.url)
-			if (!this.options.noProxy?.includes(url.host)) {
-				if (url.protocol === 'http:' && this.options.httpProxy) {
+			const commandUrl: string = interpolateTemplateStringIfNeeded(command.content.url)
+
+			const parsedUrl = new URL(commandUrl)
+			if (!this.options.noProxy?.includes(parsedUrl.host)) {
+				if (parsedUrl.protocol === 'http:' && this.options.httpProxy) {
 					options.agent = {
 						http: new HttpProxyAgent({
 							proxy: this.options.httpProxy,
 						}),
 					}
-				} else if (url.protocol === 'https:' && this.options.httpsProxy) {
+				} else if (parsedUrl.protocol === 'https:' && this.options.httpsProxy) {
 					options.agent = {
 						https: new HttpsProxyAgent({
 							proxy: this.options.httpsProxy,
@@ -252,7 +255,7 @@ export class HTTPSendDevice extends Device<HTTPSendOptions, HttpSendDeviceState,
 				}
 			}
 
-			const response = await httpReq(command.content.url, options)
+			const response = await httpReq(commandUrl, options)
 
 			if (response.statusCode === 200) {
 				this.context.logger.debug(
