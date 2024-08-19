@@ -1,7 +1,7 @@
 {
 	"name": "quick-tsr",
 	"private": true,
-	"version": "9.1.0-release51",
+	"version": "9.1.0",
 	"description": "Read timeline from file, use TSR, play stuff",
 	"main": "dist/index.js",
 	"typings": "dist/index.d.ts",
@@ -64,7 +64,7 @@
 		"chokidar": "^3.6.0",
 		"fast-clone": "^1.5.13",
 		"threadedclass": "^1.2.1",
-		"timeline-state-resolver": "9.1.0-release51",
+		"timeline-state-resolver": "9.1.0",
 		"tslib": "^2.6.2",
 		"underscore": "^1.13.6"
 	}

@@ -3,6 +3,29 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [9.1.0](https://github.com/nrkno/sofie-timeline-state-resolver/compare/9.0.2...9.1.0) (2024-08-19)
+
+### Features
+
+- add "returnData" to action schema ([529bcb3](https://github.com/nrkno/sofie-timeline-state-resolver/commit/529bcb3157f2e583c077dd54787d0c3ea4a25905))
+- atem color generator support SOFIE-2968 ([#322](https://github.com/nrkno/sofie-timeline-state-resolver/issues/322)) ([b7ceb69](https://github.com/nrkno/sofie-timeline-state-resolver/commit/b7ceb6950c875ff123dcc9bdd58a45c7922045d2))
+- **EAV-243:** add OAuth (Client Credentials grant) and Bearer Token to HTTPSend ([8fef807](https://github.com/nrkno/sofie-timeline-state-resolver/commit/8fef807e31c7b65d1017d772ba2e0a441f899226))
+- **EAV-243:** add oauth token path option for a broader support ([76592f2](https://github.com/nrkno/sofie-timeline-state-resolver/commit/76592f29d53b1ce5b64ddd1c283f7f045c155da3))
+- **EAV-269:** add vMix input layers props and commands ([1bcf056](https://github.com/nrkno/sofie-timeline-state-resolver/commit/1bcf056a70ed7932c1c5588fdad17f1c25d32832))
+- **httpSend:** Proxy support ([6dc4c59](https://github.com/nrkno/sofie-timeline-state-resolver/commit/6dc4c59424242b1ea6681c27c0647a9afaae7c17))
+- **HTTPSend:** return response data from HTTP SendCommand action ([#334](https://github.com/nrkno/sofie-timeline-state-resolver/issues/334)) ([d220c78](https://github.com/nrkno/sofie-timeline-state-resolver/commit/d220c786ea3ae139a690d741dcfdf9d8f0c8511f))
+- refactor pharos device SOFIE-2488 ([#333](https://github.com/nrkno/sofie-timeline-state-resolver/issues/333)) ([d57812c](https://github.com/nrkno/sofie-timeline-state-resolver/commit/d57812c2b2519635cadb7279803601f06918f91c))
+- support timeline v9 ([3ccc759](https://github.com/nrkno/sofie-timeline-state-resolver/commit/3ccc759f6d2d64cc2f3ca861634d96b427076490))
+
+### Bug Fixes
+
+- add missing typings for atem dve ([#305](https://github.com/nrkno/sofie-timeline-state-resolver/issues/305)) ([1758ffc](https://github.com/nrkno/sofie-timeline-state-resolver/commit/1758ffc229e8162efad5261dad8a83d69cf61747))
+- CasparCG: add listMedia action (wip) ([f4277ad](https://github.com/nrkno/sofie-timeline-state-resolver/commit/f4277ad5515d13803f9850b61b5110f7b8573706))
+- **EAV-269:** default to vMix layers instead of deprecated overlays ([dc719c8](https://github.com/nrkno/sofie-timeline-state-resolver/commit/dc719c8b105d88faf085daf059faef5b17dd03d0))
+- missing httpsend enums ([920da05](https://github.com/nrkno/sofie-timeline-state-resolver/commit/920da0506cd9f2142d0edabfd9894ccd88d288cf))
+- suppress quantel disconnect shortly ([9b6621d](https://github.com/nrkno/sofie-timeline-state-resolver/commit/9b6621dff7d358e8d7870af304678beb3c197987))
+- update casparcg-connection dependency ([e209ba8](https://github.com/nrkno/sofie-timeline-state-resolver/commit/e209ba822f9f026018a51d70498e0feb3a94473e))
+
 ## [9.0.2](https://github.com/nrkno/sofie-timeline-state-resolver/compare/9.0.1...9.0.2) (2024-08-15)
 
 **Note:** Version bump only for package timeline-state-resolver-types

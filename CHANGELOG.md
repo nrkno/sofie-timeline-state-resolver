@@ -3,6 +3,60 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [9.1.0](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/9.0.2...9.1.0) (2024-08-19)
+
+
+### Features
+
+* add "returnData" to action schema ([529bcb3](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/529bcb3157f2e583c077dd54787d0c3ea4a25905))
+* atem color generator support SOFIE-2968 ([#322](https://github.com/nrkno/tv-automation-state-timeline-resolver/issues/322)) ([b7ceb69](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/b7ceb6950c875ff123dcc9bdd58a45c7922045d2))
+* atem command batching SOFIE-2549 ([#308](https://github.com/nrkno/tv-automation-state-timeline-resolver/issues/308)) ([75e2cbe](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/75e2cbebd8ffe05e5de44d0f0f3797bbb07882e7))
+* convert quantel to state handler ([7f6e619](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/7f6e619e1284c3ff7e3cf9ad21e578018e19edd0))
+* Dereference schemas ([#286](https://github.com/nrkno/tv-automation-state-timeline-resolver/issues/286)) ([7f6a20e](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/7f6a20e7656e92e337e9ddd45048fe76b08e349e))
+* **EAV-243:** add OAuth (Client Credentials grant) and Bearer Token to HTTPSend ([8fef807](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/8fef807e31c7b65d1017d772ba2e0a441f899226))
+* **EAV-243:** add oauth token path option for a broader support ([76592f2](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/76592f29d53b1ce5b64ddd1c283f7f045c155da3))
+* **EAV-269:** add vMix input layers props and commands ([1bcf056](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/1bcf056a70ed7932c1c5588fdad17f1c25d32832))
+* **httpSend:** Proxy support ([6dc4c59](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/6dc4c59424242b1ea6681c27c0647a9afaae7c17))
+* **HTTPSend:** return response data from HTTP SendCommand action ([#334](https://github.com/nrkno/tv-automation-state-timeline-resolver/issues/334)) ([d220c78](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/d220c786ea3ae139a690d741dcfdf9d8f0c8511f))
+* include timestamp in statediff api ([06f095a](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/06f095a81ce917ec9c350c191f662f8b660123fd))
+* refactor chef device ([#330](https://github.com/nrkno/tv-automation-state-timeline-resolver/issues/330)) ([3c857c6](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/3c857c668006dcef3bc37833987f7520fb6c9444))
+* refactor pharos device SOFIE-2488 ([#333](https://github.com/nrkno/tv-automation-state-timeline-resolver/issues/333)) ([d57812c](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/d57812c2b2519635cadb7279803601f06918f91c))
+* refactor singular-live device SOFIE-2492 ([#337](https://github.com/nrkno/tv-automation-state-timeline-resolver/issues/337)) ([2d08c7c](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/2d08c7c14a53fa5c32b50e829f233c9f2a20654c))
+* refactor telemtrics device SOFIE-2496 ([#335](https://github.com/nrkno/tv-automation-state-timeline-resolver/issues/335)) ([96e0f6c](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/96e0f6ca66e479b2cadd61426ed5d7831da95c0b))
+* refactor tricaster device SOFIE-2497 ([#336](https://github.com/nrkno/tv-automation-state-timeline-resolver/issues/336)) ([4b4d2f6](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/4b4d2f63fb16cc66fb348c4c276803ea430d457b))
+* **sisyfos:** Send fadeTime with faderLevel if specified ([5fa0446](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/5fa0446a2b35e13e0ca293628022eeed925eb79a))
+* **state handler:** send commands before planned time of the state ([0a3ae5f](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/0a3ae5f6f764762c0761a53b4364314b945f1c9b))
+* support timeline v9 ([3ccc759](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/3ccc759f6d2d64cc2f3ca861634d96b427076490))
+* update atem-connection and atem-state SOFIE-2504 ([#289](https://github.com/nrkno/tv-automation-state-timeline-resolver/issues/289)) ([10d1509](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/10d15093654b50364e6deb4e5fe947d6ac0b3058))
+* update hyperdeck-connection ([65dc0dc](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/65dc0dc607a63d184ebb51a9c399e8631a0f835c))
+
+
+### Bug Fixes
+
+*  synced synchronous getCurrentTime ([db4c3e6](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/db4c3e6138396b8bd5dec85f54338e6add6af079))
+* 'connectionChanged' event typings ([dcd9f02](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/dcd9f026258ddebcc5f3303a691910308f940da7))
+* `TypeError: Cannot read properties of undefined (reading 'preliminary')` ([804f1ef](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/804f1ef7df42c7988cb57084d7706a4b8ff59aab))
+* abstract add missing action ([172feb5](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/172feb5ddbfc6d7b7371a369afdf5ce005186b56))
+* abstract device to handle undefined old state ([5f656bd](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/5f656bd1e28be012d8bfbf3f22f564588dee3dd8))
+* add missing cleanup to osc and multi-osc ([71d1d8f](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/71d1d8fb991abf5cfad691768b6acca66231b6c0))
+* add missing typings for atem dve ([#305](https://github.com/nrkno/tv-automation-state-timeline-resolver/issues/305)) ([1758ffc](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/1758ffc229e8162efad5261dad8a83d69cf61747))
+* bug in conductor resolve loop ([38a0a22](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/38a0a228a66a2613879642e9b4743a8eedd86505))
+* CasparCG: add listMedia action (wip) ([f4277ad](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/f4277ad5515d13803f9850b61b5110f7b8573706))
+* conductor unit tests ([3bbf519](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/3bbf519bd844ea3bb777f00e74c2f53483ab158d))
+* **EAV-243:** improve oauthTokenHost UI description ([e2ee7cf](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/e2ee7cfcf417d2f9aa790f7622d97c220a256828))
+* **EAV-269:** default to vMix layers instead of deprecated overlays ([dc719c8](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/dc719c8b105d88faf085daf059faef5b17dd03d0))
+* ensure new services are added to `DevicesDict` ([0067869](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/0067869a31b4d0c3a0afb8d0b647b655ed6a2fd3))
+* missing httpsend enums ([920da05](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/920da0506cd9f2142d0edabfd9894ccd88d288cf))
+* preliminary time is 0 for no commands ([9f1b481](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/9f1b481d5792518a68265f8a32b414786302b7fa))
+* reset atem upon connection ([9cbb458](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/9cbb4581d7003cf9107428eb1d6dfba8d3b9c8fc))
+* sisyfos add fade time during reset ([#339](https://github.com/nrkno/tv-automation-state-timeline-resolver/issues/339)) ([f6a3609](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/f6a36092351d9487e02706762adba69951d5ecd7))
+* suppress quantel disconnect shortly ([9b6621d](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/9b6621dff7d358e8d7870af304678beb3c197987))
+* update casparcg-connection dependency ([e209ba8](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/e209ba822f9f026018a51d70498e0feb3a94473e))
+* vmix: move pre-loading of media inputs into separate class ([39d3eba](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/39d3ebad6f175fc710bda7a94af6862a6452df80))
+* vmix: move pre-loading of media inputs into separate class ([184fad5](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/184fad55e91aef3f48ce5f8f94af1b9e869e5a71))
+
+
+
 ## [9.0.2](https://github.com/nrkno/sofie-timeline-state-resolver/compare/9.0.1...9.0.2) (2024-08-15)
 
 
