@@ -16,6 +16,7 @@
     "build:main": "cd packages/timeline-state-resolver && yarn build",
     "lint": "lerna exec yarn lint -- --",
     "test": "lerna exec yarn test",
+    "test:changed": "lerna run --since origin/master --include-dependents test",
     "unit": "lerna exec yarn unit",
     "unitci": "lerna exec yarn unitci",
     "watch": "lerna run --parallel build:main -- --watch --preserveWatchOutput",
