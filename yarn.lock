@@ -2616,16 +2616,16 @@ asn1@evs-broadcast/node-asn1:
   languageName: node
   linkType: hard
 
-"atem-state@npm:1.2.0-nightly-master-20240202-124617-5b52568.0":
-  version: 1.2.0-nightly-master-20240202-124617-5b52568.0
-  resolution: "atem-state@npm:1.2.0-nightly-master-20240202-124617-5b52568.0"
+"atem-state@npm:1.2.0":
+  version: 1.2.0
+  resolution: "atem-state@npm:1.2.0"
   dependencies:
     deepmerge: ^4.3.1
     tslib: ^2.6.2
     type-fest: ^3.13.1
   peerDependencies:
     atem-connection: 3.4
-  checksum: 473c305838b6e5540beba5433dd8c1bd9212734b578e130b6eca6aee274f70ef3d469412bb34ea069e89921f15bf7fa320adfb26658698fc99d82040c34d7a84
+  checksum: 7dd676d29091d0c769e3f40cce18c54e1e773e1ff3237803275147a4e3abfca0751af29349fdf8df2508b13e6834249690f6546258a25314d07986d33b9e3ab8
   languageName: node
   linkType: hard
 
@@ -3168,14 +3168,14 @@ asn1@evs-broadcast/node-asn1:
   languageName: node
   linkType: hard
 
-"casparcg-connection@npm:6.2.1":
-  version: 6.2.1
-  resolution: "casparcg-connection@npm:6.2.1"
+"casparcg-connection@npm:6.3.0":
+  version: 6.3.0
+  resolution: "casparcg-connection@npm:6.3.0"
   dependencies:
     eventemitter3: ^5.0.1
     tslib: ^2.5.0
     xml2js: ^0.6.2
-  checksum: a086810faf0dbf91fc2987c1f4062696d5396fcbfeee16bc8b969a1a5edaac30657179c25164b1b62d9f79789ceee2e842822fe30dece420893e6fab50a467dd
+  checksum: 2aa7e2160078f0de08b3b0491b2dde180baaca7fb96fdf4b74522b90f053efc265b42ea48cb7ae0ede2dab697be61d09d6ee18ce72826df0091156aaceeb8e06
   languageName: node
   linkType: hard
 
@@ -5898,13 +5898,13 @@ asn1@evs-broadcast/node-asn1:
   languageName: node
   linkType: hard
 
-"hyperdeck-connection@npm:2.0.0":
-  version: 2.0.0
-  resolution: "hyperdeck-connection@npm:2.0.0"
+"hyperdeck-connection@npm:2.0.1":
+  version: 2.0.1
+  resolution: "hyperdeck-connection@npm:2.0.1"
   dependencies:
     eventemitter3: ^4.0.7
     tslib: ^2.6.2
-  checksum: 86fd42d64771b9ce58eb4c542cd7f12ee3ab932ff97bc114840c52c09c3052a431f896b8b5900be2c2f2419182e50ab080bcb60a141285d9de2ba52fce4c8d61
+  checksum: 028f60498fa48c98a2cc0297c0f8af54e2f67c916f6796c64cb59c667a73e2bc314e1342b88ee234289e6085e10ac2886e81b0e5d2334a7e67d6c0d373fbcc88
   languageName: node
   linkType: hard
 
@@ -11239,9 +11239,9 @@ asn1@evs-broadcast/node-asn1:
     "@tv2media/v-connection": ^7.3.2
     "@types/simple-oauth2": ^5.0.7
     atem-connection: 3.5.0
-    atem-state: 1.2.0-nightly-master-20240202-124617-5b52568.0
+    atem-state: 1.2.0
     cacheable-lookup: ^5.0.4
-    casparcg-connection: 6.2.1
+    casparcg-connection: 6.3.0
     casparcg-state: 3.0.3
     debug: ^4.3.4
     deepmerge: ^4.3.1
@@ -11249,7 +11249,7 @@ asn1@evs-broadcast/node-asn1:
     eventemitter3: ^4.0.7
     got: ^11.8.6
     hpagent: ^1.2.0
-    hyperdeck-connection: 2.0.0
+    hyperdeck-connection: 2.0.1
     i18next-conv: ^13.1.1
     i18next-parser: ^6.6.0
     jest-mock-extended: ^3.0.7
