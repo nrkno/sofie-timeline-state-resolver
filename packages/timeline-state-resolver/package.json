@@ -117,7 +117,7 @@
 		"type-fest": "^3.13.1",
 		"underscore": "^1.13.7",
 		"utf-8-validate": "^6.0.4",
-		"ws": "^7.5.10",
+		"ws": "^8.18.0",
 		"xml-js": "^1.6.11"
 	},
 	"publishConfig": {
