@@ -126,7 +126,7 @@ export interface DeviceEvents {
 	commandError: [error: Error, context: CommandWithContext]
 	/** Update a MediaObject  */
 	updateMediaObject: [collectionId: string, docId: string, doc: MediaObject | null]
-	/** Clear a MediaObjects collection */
+	/** Clear MediaObjects from the device */
 	clearMediaObjects: [collectionId: string]
 
 	timeTrace: [trace: FinishedTrace]
@@ -162,9 +162,9 @@ export interface DeviceContextAPI<DeviceState> {
 	/** Something went wrong when executing a command  */
 	commandError: (error: Error, context: CommandWithContext) => void
 	/** Update a MediaObject  */
-	updateMediaObject: (collectionId: string, docId: string, doc: MediaObject | null) => void
+	updateMediaObject: (docId: string, doc: MediaObject | null) => void
 	/** Clear a MediaObjects collection */
-	clearMediaObjects: (collectionId: string) => void
+	clearMediaObjects: () => void
 
 	timeTrace: (trace: FinishedTrace) => void
 

@@ -33,7 +33,7 @@ export function diffVizMSEStates(
 	newState: VizMSEState,
 	stateTime: number,
 	currentTime: number,
-	options: VizMSEOptions | undefined,
+	options: VizMSEOptions,
 	logger: DeviceContextAPI<unknown>['logger']
 ): Array<VizMSECommand> {
 	const highPrioCommands: VizMSECommand[] = []
@@ -260,7 +260,7 @@ export function diffVizMSEStates(
 
 		const clearingCommands: VizMSECommand[] = []
 
-		const templateName = options && options.clearAllTemplateName
+		const templateName = options.clearAllTemplateName
 		if (!templateName) {
 			logger.warning(`vizMSE: initOptions.clearAllTemplateName is not set!`)
 		} else {
@@ -275,12 +275,7 @@ export function diffVizMSEStates(
 				})
 			)
 		}
-		if (
-			newState.isClearAll.channelsToSendCommands &&
-			options &&
-			options.clearAllCommands &&
-			options.clearAllCommands.length
-		) {
+		if (newState.isClearAll.channelsToSendCommands && options.clearAllCommands && options.clearAllCommands.length) {
 			// Send special commands to the engines:
 			clearingCommands.push(
 				literal<VizMSECommandClearAllEngines>({

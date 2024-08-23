@@ -7,6 +7,12 @@ import {
 } from 'timeline-state-resolver-types'
 import { VElement } from '@tv2media/v-connection'
 
+export interface VizMSECommandWithContext {
+	command: VizMSECommand
+	context: string
+	timelineObjId: string
+}
+
 export interface VizMSEState {
 	time: number
 	layer: {

@@ -1,30 +1,28 @@
 import * as _ from 'underscore'
-import { CommandWithContext, DeviceStatus, DeviceWithState, StatusCode } from './../../devices/device'
 import {
 	ActionExecutionResult,
 	ActionExecutionResultCode,
 	DeviceOptionsVizMSE,
-	DeviceType,
 	Mappings,
 	MediaObject,
 	Timeline,
 	TSRTimelineContent,
 	VizMSEOptions,
 	VizMSEActions,
-	VizMSEActionExecutionPayload,
-	VizMSEActionExecutionResult,
 	VizResetPayload,
+	DeviceStatus,
+	StatusCode,
 } from 'timeline-state-resolver-types'
 import { createMSE, MSE } from '@tv2media/v-connection'
 import { DoOnTime, SendMode } from '../../devices/doOnTime'
 import { ExpectedPlayoutItem } from '../../expectedPlayoutItems'
-import { actionNotFoundMessage, endTrace, startTrace, t } from '../../lib'
+import { t } from '../../lib'
 import { HTTPClientError, HTTPServerError } from '@tv2media/v-connection/dist/msehttp'
 import { VizMSEManager } from './vizMSEManager'
-import { VizMSECommand, VizMSEState, VizMSECommandType } from './types'
+import { VizMSECommand, VizMSEState, VizMSECommandType, VizMSECommandWithContext } from './types'
 import { diffVizMSEStates } from './diffState'
 import { convertStateToVizMSE } from './convertState'
-import type { DeviceContextAPI } from '../../service/device'
+import { DeviceContextAPI, Device } from '../../service/device'
 
 export interface DeviceOptionsVizMSEInternal extends DeviceOptionsVizMSE {
 	commandReceiver?: CommandReceiver
@@ -35,40 +33,18 @@ export type CommandReceiver = (time: number, cmd: VizMSECommand, context: string
  * This class is used to interface with a vizRT Media Sequence Editor, through the v-connection library.
  * It features playing both "internal" graphics element and vizPilot elements.
  */
-export class VizMSEDevice extends DeviceWithState<VizMSEState, DeviceOptionsVizMSEInternal> {
+export class VizMSEDevice extends Device<VizMSEOptions, VizMSEState, VizMSECommandWithContext> {
 	private _vizMSE?: MSE
 	private _vizmseManager?: VizMSEManager
 
-	private _commandReceiver: CommandReceiver = this._defaultCommandReceiver.bind(this)
-
-	private _doOnTime: DoOnTime
 	private _doOnTimeBurst: DoOnTime
 	private _initOptions?: VizMSEOptions
 	private _vizMSEConnected = false
 
-	constructor(deviceId: string, deviceOptions: DeviceOptionsVizMSEInternal, getCurrentTime: () => Promise<number>) {
-		super(deviceId, deviceOptions, getCurrentTime)
+	constructor(context: DeviceContextAPI<VizMSEState>) {
+		super(context)
 
-		if (deviceOptions.options) {
-			if (deviceOptions.commandReceiver) this._commandReceiver = deviceOptions.commandReceiver
-		}
-
-		this._doOnTime = new DoOnTime(
-			() => {
-				return this.getCurrentTime()
-			},
-			SendMode.IN_ORDER,
-			this._deviceOptions
-		)
-		this.handleDoOnTime(this._doOnTime, 'VizMSE')
-
-		this._doOnTimeBurst = new DoOnTime(
-			() => {
-				return this.getCurrentTime()
-			},
-			SendMode.BURST,
-			this._deviceOptions
-		)
+		this._doOnTimeBurst = new DoOnTime(() => this.context.getCurrentTime(), SendMode.BURST, this._deviceOptions)
 		this.handleDoOnTime(this._doOnTimeBurst, 'VizMSE.burst')
 	}
 
@@ -94,14 +70,16 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState, DeviceOptionsVizM
 
 		this._vizmseManager.on('connectionChanged', (connected) => this.connectionChanged(connected))
 		this._vizmseManager.on('updateMediaObject', (docId: string, doc: MediaObject | null) =>
-			this.emit('updateMediaObject', this.deviceId, docId, doc)
+			this.context.updateMediaObject(docId, doc)
 		)
-		this._vizmseManager.on('clearMediaObjects', () => this.emit('clearMediaObjects', this.deviceId))
+		this._vizmseManager.on('clearMediaObjects', () => this.context.clearMediaObjects())
 
-		this._vizmseManager.on('info', (str) => this.emit('info', 'VizMSE: ' + str))
-		this._vizmseManager.on('warning', (str) => this.emit('warning', 'VizMSE: ' + str))
-		this._vizmseManager.on('error', (e) => this.emit('error', 'VizMSE', typeof e === 'string' ? new Error(e) : e))
-		this._vizmseManager.on('debug', (...args) => this.emitDebug(...args))
+		this._vizmseManager.on('info', (str) => this.context.logger.info('VizMSE: ' + str))
+		this._vizmseManager.on('warning', (str) => this.context.logger.warning('VizMSE: ' + str))
+		this._vizmseManager.on('error', (e) =>
+			this.context.logger.error('VizMSE', typeof e === 'string' ? new Error(e) : e)
+		)
+		this._vizmseManager.on('debug', (...args) => this.context.logger.debug(...args))
 
 		await this._vizmseManager.initializeRundown(activeRundownPlaylistId)
 
@@ -117,58 +95,9 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState, DeviceOptionsVizM
 			this._vizmseManager.removeAllListeners()
 			delete this._vizmseManager
 		}
-		this._doOnTime.dispose()
-	}
-	/** Called by the Conductor a bit before a .handleState is called */
-	prepareForHandleState(newStateTime: number) {
-		// clear any queued commands later than this time:
-		this._doOnTime.clearQueueNowAndAfter(newStateTime)
-		this.cleanUpStates(0, newStateTime)
-	}
-	/**
-	 * Generates an array of VizMSE commands by comparing the newState against the oldState, or the current device state.
-	 */
-	handleState(newState: Timeline.TimelineState<TSRTimelineContent>, newMappings: Mappings) {
-		super.onHandleState(newState, newMappings)
-		// check if initialized:
-		if (!this._vizmseManager || !this._vizmseManager.initialized) {
-			this.emit('warning', 'VizMSE.v-connection not initialized yet')
-			return
-		}
-
-		const previousStateTime = Math.max(this.getCurrentTime(), newState.time)
-
-		const oldVizMSEState: VizMSEState = (this.getStateBefore(previousStateTime) || { state: { time: 0, layer: {} } })
-			.state
-
-		const convertTrace = startTrace(`device:convertState`, { deviceId: this.deviceId })
-		const newVizMSEState = this.convertStateToVizMSE(newState, newMappings)
-		this.emit('timeTrace', endTrace(convertTrace))
-
-		const diffTrace = startTrace(`device:diffState`, { deviceId: this.deviceId })
-		const commandsToAchieveState = this._diffStates(oldVizMSEState, newVizMSEState, newState.time)
-		this.emit('timeTrace', endTrace(diffTrace))
-
-		// clear any queued commands later than this time:
-		this._doOnTime.clearQueueNowAndAfter(previousStateTime)
-
-		// add the new commands to the queue
-		this._addToQueue(commandsToAchieveState)
-
-		// store the new state, for later use:
-		this.setState(newVizMSEState, newState.time)
+		this._doOnTimeBurst.dispose()
 	}
 
-	/**
-	 * Clear any scheduled commands after this time
-	 * @param clearAfterTime
-	 */
-	clearFuture(clearAfterTime: number) {
-		this._doOnTime.clearQueueAfter(clearAfterTime)
-	}
-	get canConnect(): boolean {
-		return true
-	}
 	get connected(): boolean {
 		return this._vizMSEConnected
 	}
@@ -198,13 +127,13 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState, DeviceOptionsVizM
 			}
 		}
 
-		this.clearStates()
+		await this.context.resetState()
 
 		if (this._initOptions && activeRundownPlaylistId !== previousPlaylistId) {
 			if (this._initOptions.clearAllCommands && this._initOptions.clearAllCommands.length) {
 				await this._vizmseManager.clearEngines({
 					type: VizMSECommandType.CLEAR_ALL_ENGINES,
-					time: this.getCurrentTime(),
+					time: this.context.getCurrentTime(),
 					timelineObjId: 'makeReady',
 					channels: 'all',
 					commands: this._initOptions.clearAllCommands,
@@ -222,7 +151,7 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState, DeviceOptionsVizM
 	public async clearEngines(): Promise<void> {
 		await this._vizmseManager?.clearEngines({
 			type: VizMSECommandType.CLEAR_ALL_ENGINES,
-			time: this.getCurrentTime(),
+			time: this.context.getCurrentTime(),
 			timelineObjId: 'clearAllEnginesAction',
 			channels: 'all',
 			commands: this._initOptions?.clearAllCommands || [],
@@ -234,89 +163,61 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState, DeviceOptionsVizM
 		await this._vizmseManager?.activate(payload?.activeRundownPlaylistId)
 
 		// lastly make sure we reset so timeline state is sent again
-		this.clearStates()
-		this.emit('resetResolver')
+		await this.context.resetState()
 	}
 
-	async executeAction<A extends VizMSEActions>(
-		actionId: A,
-		payload: VizMSEActionExecutionPayload<A>
-	): Promise<VizMSEActionExecutionResult<A>> {
-		switch (actionId) {
-			case VizMSEActions.PurgeRundown:
-				await this.purgeRundown(true)
-				return { result: ActionExecutionResultCode.Ok }
-			case VizMSEActions.Activate:
-				return this.activate(payload) as Promise<VizMSEActionExecutionResult<A>>
-			case VizMSEActions.StandDown:
-				return this.executeStandDown() as Promise<VizMSEActionExecutionResult<A>>
-			case VizMSEActions.ClearAllEngines:
-				await this.clearEngines()
-				return { result: ActionExecutionResultCode.Ok }
-			case VizMSEActions.VizReset:
-				await this.resetViz(payload ?? {})
-				return { result: ActionExecutionResultCode.Ok }
-			default:
-				return actionNotFoundMessage(actionId)
-		}
-	}
-
-	get deviceType() {
-		return DeviceType.VIZMSE
-	}
-	get deviceName(): string {
-		return `VizMSE ${this._vizMSE ? this._vizMSE.hostname : 'Uninitialized'}`
-	}
-
-	get queue() {
-		return this._doOnTime.getQueue()
+	readonly actions: Record<
+		VizMSEActions,
+		(id: string, payload?: Record<string, any>) => Promise<ActionExecutionResult>
+	> = {
+		[VizMSEActions.PurgeRundown]: async (_id: string, _payload?: Record<string, any>) => {
+			await this.purgeRundown(true)
+			return { result: ActionExecutionResultCode.Ok }
+		},
+		[VizMSEActions.Activate]: async (_id: string, payload?: Record<string, any>) => {
+			return this.activate(payload)
+		},
+		[VizMSEActions.StandDown]: async (_id: string, _payload?: Record<string, any>) => {
+			return this.executeStandDown()
+		},
+		[VizMSEActions.ClearAllEngines]: async (_id: string, _payload?: Record<string, any>) => {
+			await this.clearEngines()
+			return { result: ActionExecutionResultCode.Ok }
+		},
+		[VizMSEActions.VizReset]: async (_id: string, payload?: Record<string, any>) => {
+			await this.resetViz(payload ?? {})
+			return { result: ActionExecutionResultCode.Ok }
+		},
 	}
 
 	get supportsExpectedPlayoutItems(): boolean {
 		return true
 	}
 	public handleExpectedPlayoutItems(expectedPlayoutItems: Array<ExpectedPlayoutItem>): void {
-		this.emitDebug('VIZDEBUG: handleExpectedPlayoutItems called')
+		this.context.logger.debug('VIZDEBUG: handleExpectedPlayoutItems called')
 		if (this._vizmseManager) {
-			this.emitDebug('VIZDEBUG: manager exists')
+			this.context.logger.debug('VIZDEBUG: manager exists')
 			this._vizmseManager.setExpectedPlayoutItems(expectedPlayoutItems)
 		}
 	}
 
-	public getCurrentState(): VizMSEState | undefined {
-		return (this.getState() || { state: undefined }).state
-	}
 	public connectionChanged(connected?: boolean) {
 		if (connected === true || connected === false) this._vizMSEConnected = connected
 		if (connected === false) {
-			this.emit('clearMediaObjects', this.deviceId)
+			this.context.clearMediaObjects()
 		}
-		this.emit('connectionChanged', this.getStatus())
-	}
-
-	private _createFakeLogger(): DeviceContextAPI<unknown>['logger'] {
-		return {
-			debug: (...args) => {
-				this.emit('debug', ...args)
-			},
-			info: (...args) => {
-				this.emit('info', ...args)
-			},
-			warning: (...args) => {
-				this.emit('warning', ...args)
-			},
-			error: (...args) => {
-				this.emit('error', ...args)
-			},
-		}
+		this.context.connectionChanged(this.getStatus())
 	}
 
 	/**
 	 * Takes a timeline state and returns a VizMSE State that will work with the state lib.
 	 * @param timelineState The timeline state to generate from.
 	 */
-	convertStateToVizMSE(timelineState: Timeline.TimelineState<TSRTimelineContent>, mappings: Mappings): VizMSEState {
-		return convertStateToVizMSE(this._createFakeLogger(), this._vizmseManager, timelineState, mappings)
+	convertTimelineStateToDeviceState(
+		timelineState: Timeline.TimelineState<TSRTimelineContent>,
+		mappings: Mappings
+	): VizMSEState {
+		return convertStateToVizMSE(this.context.logger, this._vizmseManager, timelineState, mappings)
 	}
 
 	/**
@@ -332,7 +233,7 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState, DeviceOptionsVizM
 
 		if (okToDestroyStuff) {
 			// reset our own state(s):
-			this.clearStates()
+			await this.context.resetState()
 
 			if (this._vizmseManager) {
 				if (this._initOptions && activeRundownPlaylistId !== previousPlaylistId) {
@@ -343,7 +244,7 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState, DeviceOptionsVizM
 					) {
 						await this._vizmseManager.clearEngines({
 							type: VizMSECommandType.CLEAR_ALL_ENGINES,
-							time: this.getCurrentTime(),
+							time: this.context.getCurrentTime(),
 							timelineObjId: 'makeReady',
 							channels: 'all',
 							commands: this._initOptions.clearAllCommands,
@@ -375,7 +276,7 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState, DeviceOptionsVizM
 			return this.executeStandDown().then(() => undefined)
 		}
 	}
-	getStatus(): DeviceStatus {
+	getStatus(): Omit<DeviceStatus, 'active'> {
 		let statusCode = StatusCode.GOOD
 		const messages: Array<string> = []
 
@@ -400,26 +301,33 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState, DeviceOptionsVizM
 		return {
 			statusCode: statusCode,
 			messages: messages,
-			active: this.isActive,
 		}
 	}
 	/**
 	 * Compares the new timeline-state with the old one, and generates commands to account for the difference
 	 */
-	private _diffStates(oldState: VizMSEState, newState: VizMSEState, time: number): Array<VizMSECommand> {
+	public diffStates(
+		oldState: VizMSEState | undefined,
+		newState: VizMSEState,
+		_mappings: Mappings,
+		time: number
+	): Array<VizMSECommandWithContext> {
+		if (!this._initOptions) throw new Error('VizMSE not initialized yet')
+
 		return diffVizMSEStates(
 			oldState,
 			newState,
 			time,
-			this.getCurrentTime(),
+			this.context.getCurrentTime(),
 			this._initOptions,
-			this._createFakeLogger()
-		)
+			this.context.logger
+		).map((cmd) => ({
+			command: cmd,
+			timelineObjId: cmd.timelineObjId,
+			context: '', // TODO
+		}))
 	}
-	private async _doCommand(command: VizMSECommand, context: string, timlineObjId: string): Promise<void> {
-		const time = this.getCurrentTime()
-		return this._commandReceiver(time, command, context, timlineObjId)
-	}
+
 	/**
 	 * Add commands to queue, to be executed at the right time
 	 */
@@ -429,7 +337,12 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState, DeviceOptionsVizM
 				cmd.time,
 				cmd.layerId,
 				async (c: { cmd: VizMSECommand }) => {
-					return this._doCommand(c.cmd, c.cmd.type + '_' + c.cmd.timelineObjId, c.cmd.timelineObjId)
+					return this._commandReceiver(
+						this.getCurrentTime(),
+						c.cmd,
+						c.cmd.type + '_' + c.cmd.timelineObjId,
+						c.cmd.timelineObjId
+					)
 				},
 				{ cmd: cmd }
 			)
@@ -454,59 +367,49 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState, DeviceOptionsVizM
 	 * @param time deprecated
 	 * @param cmd Command to execute
 	 */
-	private async _defaultCommandReceiver(
-		_time: number,
-		cmd: VizMSECommand,
-		context: string,
-		timelineObjId: string
-	): Promise<any> {
-		const cwc: CommandWithContext = {
-			context: context,
-			timelineObjId: timelineObjId,
-			command: cmd,
-		}
-		this.emitDebug(cwc)
+	public async sendCommand(cmd: VizMSECommandWithContext): Promise<any> {
+		this.context.logger.debug(cmd)
 
 		try {
 			if (!this._vizmseManager) {
 				throw new Error(`Not initialized yet`)
 			}
-			switch (cmd.type) {
+			switch (cmd.command.type) {
 				case VizMSECommandType.PREPARE_ELEMENT:
-					await this._vizmseManager.prepareElement(cmd)
+					await this._vizmseManager.prepareElement(cmd.command)
 					break
 				case VizMSECommandType.CUE_ELEMENT:
-					await this._vizmseManager.cueElement(cmd)
+					await this._vizmseManager.cueElement(cmd.command)
 					break
 				case VizMSECommandType.TAKE_ELEMENT:
-					await this._vizmseManager.takeElement(cmd)
+					await this._vizmseManager.takeElement(cmd.command)
 					break
 				case VizMSECommandType.TAKEOUT_ELEMENT:
-					await this._vizmseManager.takeoutElement(cmd)
+					await this._vizmseManager.takeoutElement(cmd.command)
 					break
 				case VizMSECommandType.CONTINUE_ELEMENT:
-					await this._vizmseManager.continueElement(cmd)
+					await this._vizmseManager.continueElement(cmd.command)
 					break
 				case VizMSECommandType.CONTINUE_ELEMENT_REVERSE:
-					await this._vizmseManager.continueElementReverse(cmd)
+					await this._vizmseManager.continueElementReverse(cmd.command)
 					break
 				case VizMSECommandType.LOAD_ALL_ELEMENTS:
-					await this._vizmseManager.loadAllElements(cmd)
+					await this._vizmseManager.loadAllElements(cmd.command)
 					break
 				case VizMSECommandType.CLEAR_ALL_ELEMENTS:
-					await this._vizmseManager.clearAll(cmd)
+					await this._vizmseManager.clearAll(cmd.command)
 					break
 				case VizMSECommandType.CLEAR_ALL_ENGINES:
-					await this._vizmseManager.clearEngines(cmd)
+					await this._vizmseManager.clearEngines(cmd.command)
 					break
 				case VizMSECommandType.SET_CONCEPT:
-					await this._vizmseManager.setConcept(cmd)
+					await this._vizmseManager.setConcept(cmd.command)
 					break
 				case VizMSECommandType.INITIALIZE_SHOWS:
-					await this._vizmseManager.initializeShows(cmd)
+					await this._vizmseManager.initializeShows(cmd.command)
 					break
 				case VizMSECommandType.CLEANUP_SHOWS:
-					await this._vizmseManager.cleanupShows(cmd)
+					await this._vizmseManager.cleanupShows(cmd.command)
 					break
 				default:
 					// @ts-ignore never
@@ -526,7 +429,7 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState, DeviceOptionsVizM
 					`\n\nStatus: ${e.status}` +
 					`\nResponse:\n ${e.response}`
 			}
-			this.emit('commandError', new Error(errorString), cwc)
+			this.context.commandError(new Error(errorString), cmd)
 		}
 	}
 	public ignoreWaitsInTests() {
