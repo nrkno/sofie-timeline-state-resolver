@@ -197,32 +197,6 @@ export class MultiOSCMessageDevice extends Device<MultiOSCOptions, MultiOSCDevic
 					}
 				}
 			}
-
-			// // removed
-			// if (oldConnectionState) {
-			// 	for (const [address, oldCommandContent] of Object.entries<OSCDeviceStateContent | undefined>(
-			// 		oldConnectionState
-			// 	)) {
-			// 		if (!oldCommandContent) continue
-
-			// 		const newState = newOscSendState[connectionId]?.[address]
-			// 		if (newState) continue
-
-			// 		// removed!
-			// 		commands.push({
-			// 			commandName: 'removed',
-			// 			context: `removed: ${oldCommandContent.fromTlObject}`,
-			// 			connectionId: oldCommandContent.connectionId,
-			// 			timelineObjId: oldCommandContent.fromTlObject,
-			// 			content: oldCommandContent,
-			// 			command: {
-			// 				// commandName: 'removed',
-			// 				...oldCommandContent,
-			// 				connectionId: oldCommandContent.connectionId,
-			// 			},
-			// 		})
-			// 	}
-			// }
 		}
 
 		return commands
