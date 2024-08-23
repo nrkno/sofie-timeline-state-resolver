@@ -1,69 +1,30 @@
 import * as _ from 'underscore'
 import { CommandWithContext, DeviceStatus, DeviceWithState, StatusCode } from './../../devices/device'
-
 import {
 	ActionExecutionResult,
 	ActionExecutionResultCode,
 	DeviceOptionsVizMSE,
 	DeviceType,
-	Mapping,
 	Mappings,
 	MediaObject,
-	ResolvedTimelineObjectInstanceExtended,
 	Timeline,
-	TimelineContentTypeVizMSE,
-	TimelineContentVIZMSEAny,
 	TSRTimelineContent,
 	VizMSEOptions,
-	VIZMSETransitionType,
 	VizMSEActions,
-	SomeMappingVizMSE,
-	TimelineContentVIZMSEElementPilot,
-	TimelineContentVIZMSEElementInternal,
 	VizMSEActionExecutionPayload,
 	VizMSEActionExecutionResult,
 	VizResetPayload,
 } from 'timeline-state-resolver-types'
-
 import { createMSE, MSE } from '@tv2media/v-connection'
-
 import { DoOnTime, SendMode } from '../../devices/doOnTime'
-
 import { ExpectedPlayoutItem } from '../../expectedPlayoutItems'
-import { actionNotFoundMessage, endTrace, startTrace, t, literal } from '../../lib'
+import { actionNotFoundMessage, endTrace, startTrace, t } from '../../lib'
 import { HTTPClientError, HTTPServerError } from '@tv2media/v-connection/dist/msehttp'
 import { VizMSEManager } from './vizMSEManager'
-import {
-	VizMSECommand,
-	VizMSEState,
-	VizMSEStateLayerLoadAllElements,
-	VizMSEStateLayerContinue,
-	VizMSEStateLayerInitializeShows,
-	VizMSEStateLayerCleanupShows,
-	VizMSEStateLayerConcept,
-	VizMSEStateLayer,
-	VizMSEStateLayerInternal,
-	VizMSEStateLayerPilot,
-	VizMSECommandType,
-	VizMSECommandLoadAllElements,
-	VizMSECommandElementBase,
-	VizMSECommandContinue,
-	VizMSECommandContinueReverse,
-	VizMSECommandInitializeShows,
-	VizMSECommandCleanupShows,
-	VizMSECommandSetConcept,
-	VizMSECommandPrepare,
-	VizMSECommandCue,
-	VizMSECommandTake,
-	VizMSECommandTakeOut,
-	VizMSECommandClearAllElements,
-	VizMSECommandClearAllEngines,
-} from './types'
-
-/** The ideal time to prepare elements before going on air */
-const IDEAL_PREPARE_TIME = 1000
-/** Minimum time to wait after preparing elements */
-const PREPARE_TIME_WAIT = 50
+import { VizMSECommand, VizMSEState, VizMSECommandType } from './types'
+import { diffVizMSEStates } from './diffState'
+import { convertStateToVizMSE } from './convertState'
+import type { DeviceContextAPI } from '../../service/device'
 
 export interface DeviceOptionsVizMSEInternal extends DeviceOptionsVizMSE {
 	commandReceiver?: CommandReceiver
@@ -332,171 +293,30 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState, DeviceOptionsVizM
 		}
 		this.emit('connectionChanged', this.getStatus())
 	}
+
+	private _createFakeLogger(): DeviceContextAPI<unknown>['logger'] {
+		return {
+			debug: (...args) => {
+				this.emit('debug', ...args)
+			},
+			info: (...args) => {
+				this.emit('info', ...args)
+			},
+			warning: (...args) => {
+				this.emit('warning', ...args)
+			},
+			error: (...args) => {
+				this.emit('error', ...args)
+			},
+		}
+	}
+
 	/**
 	 * Takes a timeline state and returns a VizMSE State that will work with the state lib.
 	 * @param timelineState The timeline state to generate from.
 	 */
 	convertStateToVizMSE(timelineState: Timeline.TimelineState<TSRTimelineContent>, mappings: Mappings): VizMSEState {
-		const state: VizMSEState = {
-			time: timelineState.time,
-			layer: {},
-		}
-
-		_.each(timelineState.layers, (layer, layerName: string) => {
-			const layerExt: ResolvedTimelineObjectInstanceExtended = layer
-			let foundMapping = mappings[layerName] as Mapping<SomeMappingVizMSE>
-
-			let isLookahead = false
-			if (!foundMapping && layerExt.isLookahead && layerExt.lookaheadForLayer) {
-				foundMapping = mappings[layerExt.lookaheadForLayer] as Mapping<SomeMappingVizMSE>
-				isLookahead = true
-			}
-			if (foundMapping && foundMapping.device === DeviceType.VIZMSE && foundMapping.deviceId === this.deviceId) {
-				if (layer.content) {
-					const content = layer.content as TimelineContentVIZMSEAny
-
-					switch (content.type) {
-						case TimelineContentTypeVizMSE.LOAD_ALL_ELEMENTS:
-							state.layer[layerName] = literal<VizMSEStateLayerLoadAllElements>({
-								timelineObjId: layer.id,
-								contentType: TimelineContentTypeVizMSE.LOAD_ALL_ELEMENTS,
-							})
-							break
-						case TimelineContentTypeVizMSE.CLEAR_ALL_ELEMENTS: {
-							// Special case: clear all graphics:
-							const showId = this._vizmseManager?.resolveShowNameToId(content.showName)
-							if (!showId) {
-								this.emit(
-									'warning',
-									`convertStateToVizMSE: Unable to find Show Id for Clear-All template and Show Name "${content.showName}"`
-								)
-								break
-							}
-							state.isClearAll = {
-								timelineObjId: layer.id,
-								showId,
-								channelsToSendCommands: content.channelsToSendCommands,
-							}
-							break
-						}
-						case TimelineContentTypeVizMSE.CONTINUE:
-							state.layer[layerName] = literal<VizMSEStateLayerContinue>({
-								timelineObjId: layer.id,
-								contentType: TimelineContentTypeVizMSE.CONTINUE,
-								direction: content.direction,
-								reference: content.reference,
-							})
-							break
-						case TimelineContentTypeVizMSE.INITIALIZE_SHOWS:
-							state.layer[layerName] = literal<VizMSEStateLayerInitializeShows>({
-								timelineObjId: layer.id,
-								contentType: TimelineContentTypeVizMSE.INITIALIZE_SHOWS,
-								showIds: _.compact(
-									content.showNames.map((showName) => this._vizmseManager?.resolveShowNameToId(showName))
-								),
-							})
-							break
-						case TimelineContentTypeVizMSE.CLEANUP_SHOWS:
-							state.layer[layerName] = literal<VizMSEStateLayerCleanupShows>({
-								timelineObjId: layer.id,
-								contentType: TimelineContentTypeVizMSE.CLEANUP_SHOWS,
-								showIds: _.compact(
-									content.showNames.map((showName) => this._vizmseManager?.resolveShowNameToId(showName))
-								),
-							})
-							break
-						case TimelineContentTypeVizMSE.CONCEPT:
-							state.layer[layerName] = literal<VizMSEStateLayerConcept>({
-								timelineObjId: layer.id,
-								contentType: TimelineContentTypeVizMSE.CONCEPT,
-								concept: content.concept,
-							})
-							break
-						default: {
-							const stateLayer = this._contentToStateLayer(layer.id, content)
-							if (stateLayer) {
-								if (isLookahead) stateLayer.lookahead = true
-
-								state.layer[layerName] = stateLayer
-							}
-							break
-						}
-					}
-				}
-			}
-		})
-
-		if (state.isClearAll) {
-			// clear rest of state:
-			state.layer = {}
-		}
-
-		// Fix references:
-		_.each(state.layer, (layer) => {
-			if (layer.contentType === TimelineContentTypeVizMSE.CONTINUE) {
-				const otherLayer = state.layer[layer.reference]
-				if (otherLayer) {
-					if (
-						otherLayer.contentType === TimelineContentTypeVizMSE.ELEMENT_INTERNAL ||
-						otherLayer.contentType === TimelineContentTypeVizMSE.ELEMENT_PILOT
-					) {
-						layer.referenceContent = otherLayer
-					} else {
-						// it's not possible to reference that kind of object
-						this.emit(
-							'warning',
-							`object "${layer.timelineObjId}" of contentType="${layer.contentType}", cannot reference object "${otherLayer.timelineObjId}" on layer "${layer.reference}" of contentType="${otherLayer.contentType}" `
-						)
-					}
-				}
-			}
-		})
-
-		return state
-	}
-
-	private _contentToStateLayer(
-		timelineObjId: string,
-		content: TimelineContentVIZMSEElementInternal | TimelineContentVIZMSEElementPilot
-	): VizMSEStateLayer | undefined {
-		if (content.type === TimelineContentTypeVizMSE.ELEMENT_INTERNAL) {
-			const showId = this._vizmseManager?.resolveShowNameToId(content.showName)
-			if (!showId) {
-				this.emit(
-					'warning',
-					`_contentToStateLayer: Unable to find Show Id for template "${content.templateName}" and Show Name "${content.showName}"`
-				)
-				return undefined
-			}
-			const o: VizMSEStateLayerInternal = {
-				timelineObjId: timelineObjId,
-				contentType: TimelineContentTypeVizMSE.ELEMENT_INTERNAL,
-				continueStep: content.continueStep,
-				cue: content.cue,
-				outTransition: content.outTransition,
-
-				templateName: content.templateName,
-				templateData: content.templateData,
-				channelName: content.channelName,
-				delayTakeAfterOutTransition: content.delayTakeAfterOutTransition,
-				showId,
-			}
-			return o
-		} else if (content.type === TimelineContentTypeVizMSE.ELEMENT_PILOT) {
-			const o: VizMSEStateLayerPilot = {
-				timelineObjId: timelineObjId,
-				contentType: TimelineContentTypeVizMSE.ELEMENT_PILOT,
-				continueStep: content.continueStep,
-				cue: content.cue,
-				outTransition: content.outTransition,
-
-				templateVcpId: content.templateVcpId,
-				channelName: content.channelName,
-				delayTakeAfterOutTransition: content.delayTakeAfterOutTransition,
-			}
-			return o
-		}
-		return undefined
+		return convertStateToVizMSE(this._createFakeLogger(), this._vizmseManager, timelineState, mappings)
 	}
 
 	/**
@@ -587,309 +407,14 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState, DeviceOptionsVizM
 	 * Compares the new timeline-state with the old one, and generates commands to account for the difference
 	 */
 	private _diffStates(oldState: VizMSEState, newState: VizMSEState, time: number): Array<VizMSECommand> {
-		const highPrioCommands: VizMSECommand[] = []
-		const lowPrioCommands: VizMSECommand[] = []
-
-		const addCommand = (command: VizMSECommand, lowPriority?: boolean) => {
-			;(lowPriority ? lowPrioCommands : highPrioCommands).push(command)
-		}
-
-		/** The time of when to run "preparation" commands */
-		let prepareTime = Math.min(
+		return diffVizMSEStates(
+			oldState,
+			newState,
 			time,
-			Math.max(
-				time - IDEAL_PREPARE_TIME,
-				oldState.time + PREPARE_TIME_WAIT // earliset possible prepareTime
-			)
+			this.getCurrentTime(),
+			this._initOptions,
+			this._createFakeLogger()
 		)
-		if (prepareTime < this.getCurrentTime()) {
-			// Only to not emit an unnessesary slowCommand event
-			prepareTime = this.getCurrentTime()
-		}
-		if (time < prepareTime) {
-			prepareTime = time - 10
-		}
-
-		_.each(newState.layer, (newLayer: VizMSEStateLayer, layerId: string) => {
-			const oldLayer: VizMSEStateLayer | undefined = oldState.layer[layerId]
-
-			if (newLayer.contentType === TimelineContentTypeVizMSE.LOAD_ALL_ELEMENTS) {
-				if (!oldLayer || !_.isEqual(newLayer, oldLayer)) {
-					addCommand(
-						literal<VizMSECommandLoadAllElements>({
-							timelineObjId: newLayer.timelineObjId,
-							fromLookahead: newLayer.lookahead,
-							layerId: layerId,
-
-							type: VizMSECommandType.LOAD_ALL_ELEMENTS,
-							time: time,
-						}),
-						newLayer.lookahead
-					)
-				}
-			} else if (newLayer.contentType === TimelineContentTypeVizMSE.CONTINUE) {
-				if ((!oldLayer || !_.isEqual(newLayer, oldLayer)) && newLayer.referenceContent) {
-					const props: Omit<VizMSECommandElementBase, 'time' | 'type'> = {
-						timelineObjId: newLayer.timelineObjId,
-						fromLookahead: newLayer.lookahead,
-						layerId: layerId,
-
-						content: VizMSEManager.getPlayoutItemContentFromLayer(newLayer.referenceContent),
-					}
-					if ((newLayer.direction || 1) === 1) {
-						addCommand(
-							literal<VizMSECommandContinue>({
-								...props,
-								type: VizMSECommandType.CONTINUE_ELEMENT,
-								time: time,
-							}),
-							newLayer.lookahead
-						)
-					} else {
-						addCommand(
-							literal<VizMSECommandContinueReverse>({
-								...props,
-								type: VizMSECommandType.CONTINUE_ELEMENT_REVERSE,
-								time: time,
-							}),
-							newLayer.lookahead
-						)
-					}
-				}
-			} else if (newLayer.contentType === TimelineContentTypeVizMSE.INITIALIZE_SHOWS) {
-				if (!oldLayer || !_.isEqual(newLayer, oldLayer)) {
-					addCommand(
-						literal<VizMSECommandInitializeShows>({
-							type: VizMSECommandType.INITIALIZE_SHOWS,
-							timelineObjId: newLayer.timelineObjId,
-							showIds: newLayer.showIds,
-							time: time,
-						}),
-						newLayer.lookahead
-					)
-				}
-			} else if (newLayer.contentType === TimelineContentTypeVizMSE.CLEANUP_SHOWS) {
-				if (!oldLayer || !_.isEqual(newLayer, oldLayer)) {
-					const command: VizMSECommandCleanupShows = literal<VizMSECommandCleanupShows>({
-						type: VizMSECommandType.CLEANUP_SHOWS,
-						timelineObjId: newLayer.timelineObjId,
-						showIds: newLayer.showIds,
-						time: time,
-					})
-					addCommand(command, newLayer.lookahead)
-				}
-			} else if (newLayer.contentType === TimelineContentTypeVizMSE.CONCEPT) {
-				if (!oldLayer || !_.isEqual(newLayer, oldLayer)) {
-					addCommand(
-						literal<VizMSECommandSetConcept>({
-							concept: newLayer.concept,
-							type: VizMSECommandType.SET_CONCEPT,
-							time: time,
-							timelineObjId: newLayer.timelineObjId,
-						})
-					)
-				}
-			} else {
-				const props: Omit<VizMSECommandElementBase, 'time' | 'type'> = {
-					timelineObjId: newLayer.timelineObjId,
-					fromLookahead: newLayer.lookahead,
-					layerId: layerId,
-
-					content: VizMSEManager.getPlayoutItemContentFromLayer(newLayer),
-				}
-				if (
-					!oldLayer ||
-					!_.isEqual(
-						_.omit(newLayer, ['continueStep', 'timelineObjId', 'outTransition']),
-						_.omit(oldLayer, ['continueStep', 'timelineObjId', 'outTransition'])
-					)
-				) {
-					if (
-						newLayer.contentType === TimelineContentTypeVizMSE.ELEMENT_INTERNAL ||
-						newLayer.contentType === TimelineContentTypeVizMSE.ELEMENT_PILOT
-					) {
-						// Maybe prepare the element first:
-						addCommand(
-							literal<VizMSECommandPrepare>({
-								...props,
-								type: VizMSECommandType.PREPARE_ELEMENT,
-								time: prepareTime,
-							}),
-							newLayer.lookahead
-						)
-
-						if (newLayer.cue) {
-							// Cue the element
-							addCommand(
-								literal<VizMSECommandCue>({
-									...props,
-									type: VizMSECommandType.CUE_ELEMENT,
-									time: time,
-								}),
-								newLayer.lookahead
-							)
-						} else {
-							// Start playing element
-							addCommand(
-								literal<VizMSECommandTake>({
-									...props,
-									type: VizMSECommandType.TAKE_ELEMENT,
-									time: time,
-								}),
-								newLayer.lookahead
-							)
-						}
-					}
-				} else if (
-					(oldLayer.contentType === TimelineContentTypeVizMSE.ELEMENT_INTERNAL ||
-						oldLayer.contentType === TimelineContentTypeVizMSE.ELEMENT_PILOT) &&
-					(newLayer.continueStep || 0) > (oldLayer.continueStep || 0)
-				) {
-					// An increase in continueStep should result in triggering a continue:
-					addCommand(
-						literal<VizMSECommandContinue>({
-							...props,
-							type: VizMSECommandType.CONTINUE_ELEMENT,
-							time: time,
-						}),
-						newLayer.lookahead
-					)
-				} else if (
-					(oldLayer.contentType === TimelineContentTypeVizMSE.ELEMENT_INTERNAL ||
-						oldLayer.contentType === TimelineContentTypeVizMSE.ELEMENT_PILOT) &&
-					(newLayer.continueStep || 0) < (oldLayer.continueStep || 0)
-				) {
-					// A decrease in continueStep should result in triggering a continue:
-					addCommand(
-						literal<VizMSECommandContinueReverse>({
-							...props,
-							type: VizMSECommandType.CONTINUE_ELEMENT_REVERSE,
-							time: time,
-						}),
-						newLayer.lookahead
-					)
-				}
-			}
-		})
-
-		_.each(oldState.layer, (oldLayer: VizMSEStateLayer, layerId: string) => {
-			const newLayer = newState.layer[layerId]
-			if (!newLayer) {
-				if (
-					oldLayer.contentType === TimelineContentTypeVizMSE.ELEMENT_INTERNAL ||
-					oldLayer.contentType === TimelineContentTypeVizMSE.ELEMENT_PILOT
-				) {
-					// Stopped playing
-					addCommand(
-						literal<VizMSECommandTakeOut>({
-							type: VizMSECommandType.TAKEOUT_ELEMENT,
-							time: time,
-							timelineObjId: oldLayer.timelineObjId,
-							fromLookahead: oldLayer.lookahead,
-							layerId: layerId,
-							transition: oldLayer && oldLayer.outTransition,
-							content: VizMSEManager.getPlayoutItemContentFromLayer(oldLayer),
-						}),
-						oldLayer.lookahead
-					)
-				} else if (oldLayer.contentType === TimelineContentTypeVizMSE.INITIALIZE_SHOWS) {
-					addCommand(
-						literal<VizMSECommandInitializeShows>({
-							type: VizMSECommandType.INITIALIZE_SHOWS,
-							timelineObjId: oldLayer.timelineObjId,
-							showIds: [],
-							time: time,
-						}),
-						oldLayer.lookahead
-					)
-				}
-			}
-		})
-
-		if (newState.isClearAll && !oldState.isClearAll) {
-			// Special: clear all graphics
-
-			const clearingCommands: VizMSECommand[] = []
-
-			const templateName = this._initOptions && this._initOptions.clearAllTemplateName
-			if (!templateName) {
-				this.emit('warning', `vizMSE: initOptions.clearAllTemplateName is not set!`)
-			} else {
-				// Start playing special element:
-				clearingCommands.push(
-					literal<VizMSECommandClearAllElements>({
-						timelineObjId: newState.isClearAll.timelineObjId,
-						time: time,
-						type: VizMSECommandType.CLEAR_ALL_ELEMENTS,
-						templateName: templateName,
-						showId: newState.isClearAll.showId,
-					})
-				)
-			}
-			if (
-				newState.isClearAll.channelsToSendCommands &&
-				this._initOptions &&
-				this._initOptions.clearAllCommands &&
-				this._initOptions.clearAllCommands.length
-			) {
-				// Send special commands to the engines:
-				clearingCommands.push(
-					literal<VizMSECommandClearAllEngines>({
-						timelineObjId: newState.isClearAll.timelineObjId,
-						time: time,
-						type: VizMSECommandType.CLEAR_ALL_ENGINES,
-						channels: newState.isClearAll.channelsToSendCommands,
-						commands: this._initOptions.clearAllCommands,
-					})
-				)
-			}
-			return clearingCommands
-		}
-		const sortCommands = (commands: VizMSECommand[]): VizMSECommand[] => {
-			// Sort the commands so that take out:s are run first
-			return commands.sort((a, b) => {
-				if (a.type === VizMSECommandType.TAKEOUT_ELEMENT && b.type !== VizMSECommandType.TAKEOUT_ELEMENT) return -1
-				if (a.type !== VizMSECommandType.TAKEOUT_ELEMENT && b.type === VizMSECommandType.TAKEOUT_ELEMENT) return 1
-				return 0
-			})
-		}
-		sortCommands(highPrioCommands)
-		sortCommands(lowPrioCommands)
-
-		const concatCommands = sortCommands(highPrioCommands.concat(lowPrioCommands))
-
-		let highestDelay = 0
-		concatCommands.forEach((command) => {
-			if (command.type === VizMSECommandType.TAKEOUT_ELEMENT) {
-				if (command.transition && command.transition.delay) {
-					if (command.transition.delay > highestDelay) {
-						highestDelay = command.transition.delay
-					}
-				}
-			}
-		})
-
-		if (highestDelay > 0) {
-			concatCommands.forEach((command, index) => {
-				if (
-					command.type === VizMSECommandType.TAKE_ELEMENT &&
-					command.layerId &&
-					(newState.layer[command.layerId].contentType === TimelineContentTypeVizMSE.ELEMENT_INTERNAL ||
-						!!newState.layer[command.layerId].delayTakeAfterOutTransition)
-				) {
-					;(concatCommands[index] as VizMSECommandTake).transition = {
-						type: VIZMSETransitionType.DELAY,
-						delay: highestDelay + 20,
-					}
-				}
-			})
-		}
-
-		if (concatCommands.length) {
-			this.emitDebug(`VIZMSE: COMMANDS: ${JSON.stringify(sortCommands(concatCommands))}`)
-		}
-
-		return sortCommands(concatCommands)
 	}
 	private async _doCommand(command: VizMSECommand, context: string, timlineObjId: string): Promise<void> {
 		const time = this.getCurrentTime()
