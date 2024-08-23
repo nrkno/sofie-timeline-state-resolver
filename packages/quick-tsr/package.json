@@ -63,9 +63,9 @@
 	"dependencies": {
 		"chokidar": "^3.6.0",
 		"fast-clone": "^1.5.13",
-		"threadedclass": "^1.2.1",
+		"threadedclass": "^1.2.2",
 		"timeline-state-resolver": "9.2.0-release52",
-		"tslib": "^2.6.2",
-		"underscore": "^1.13.6"
+		"tslib": "^2.6.3",
+		"underscore": "^1.13.7"
 	}
 }
