@@ -1,147 +1,97 @@
 import * as _ from 'underscore'
-import { DeviceWithState, DeviceStatus, StatusCode } from '../../devices/device'
 import {
 	DeviceType,
 	OSCMessageCommandContent,
 	Mappings,
 	Timeline,
 	TSRTimelineContent,
-	DeviceOptionsMultiOSC,
 	MultiOSCOptions,
 	SomeMappingMultiOsc,
 	Mapping,
+	DeviceStatus,
+	StatusCode,
+	ActionExecutionResult,
 } from 'timeline-state-resolver-types'
-import { DoOnTime, SendMode } from '../../devices/doOnTime'
-
+import { Device } from '../../service/device'
+import { OSCConnection } from './deviceConnection'
+import { ResolvedTimelineObjectInstance } from 'superfly-timeline'
 import * as osc from 'osc'
 
-import { OSCConnection } from './deviceConnection'
-
-export interface DeviceOptionsMultiOSCInternal extends DeviceOptionsMultiOSC {
+export interface MultiOscInitTestOptions {
 	oscSenders?: Record<string, (msg: osc.OscMessage, address?: string | undefined, port?: number | undefined) => void>
 }
-export type CommandReceiver = (
-	time: number,
-	cmd: OSCMessageCommandContent,
-	context: CommandContext,
-	timelineObjId: string
-) => Promise<any>
-interface Command {
-	commandName: 'added' | 'changed' | 'removed'
-	connectionId: string
-	content: OSCMessageCommandContent
-	context: CommandContext
-	timelineObjId: string
-}
-type CommandContext = string
-interface OSCDeviceState {
-	[connectionId: string]: {
-		[address: string]: OSCDeviceStateContent
-	}
+
+interface MultiOSCDeviceState {
+	[connectionId: string]:
+		| {
+				[address: string]: OSCDeviceStateContent | undefined
+		  }
+		| undefined
 }
 interface OSCDeviceStateContent extends OSCMessageCommandContent {
 	connectionId: string
 	fromTlObject: string
 }
+
+export interface MultiOscCommandWithContext {
+	command: OSCDeviceStateContent
+	context: string
+	timelineObjId: string
+}
+
 /**
  * This is a generic wrapper for any osc-enabled device.
  */
-export class MultiOSCMessageDevice extends DeviceWithState<OSCDeviceState, DeviceOptionsMultiOSCInternal> {
-	private _doOnTime: DoOnTime
+export class MultiOSCMessageDevice extends Device<MultiOSCOptions, MultiOSCDeviceState, MultiOscCommandWithContext> {
+	readonly actions: Record<string, (id: string, payload?: Record<string, any>) => Promise<ActionExecutionResult>> = {}
 
 	private _connections: Record<string, OSCConnection> = {}
-	private _commandQueue: Array<Command> = []
+	private _commandQueue: Array<MultiOscCommandWithContext> = []
 	private _commandQueueTimer: NodeJS.Timeout | undefined
 
-	constructor(deviceId: string, deviceOptions: DeviceOptionsMultiOSCInternal, getCurrentTime: () => Promise<number>) {
-		super(deviceId, deviceOptions, getCurrentTime)
-		if (deviceOptions.options) {
-			deviceOptions.options.connections.forEach(({ connectionId }) => {
-				const connection = new OSCConnection()
-				connection.on('error', (err) => this.emit('error', 'Error in MultiOSC connection ' + connectionId, err))
-				connection.on('debug', (...args) => this.emit('debug', 'from connection ' + connectionId, ...args))
-				this._connections[connectionId] = connection
-			})
-		}
-		this._doOnTime = new DoOnTime(
-			() => {
-				return this.getCurrentTime()
-			},
-			SendMode.BURST,
-			this._deviceOptions
-		)
-		this.handleDoOnTime(this._doOnTime, 'OSC')
-	}
-	async init(initOptions: MultiOSCOptions): Promise<boolean> {
-		for (const connOptions of initOptions.connections) {
-			const conn = this._connections[connOptions.connectionId]
+	private _timeBetweenCommands: number | undefined
 
-			if (!conn) {
-				this.emit(
-					'error',
+	async init(initOptions: MultiOSCOptions, testOptions?: MultiOscInitTestOptions): Promise<boolean> {
+		this._timeBetweenCommands = initOptions.timeBetweenCommands
+
+		for (const connOptions of initOptions.connections) {
+			const connectionId = connOptions.connectionId
+
+			const connection = new OSCConnection()
+			connection.on('error', (err) => this.context.logger.error('Error in MultiOSC connection ' + connectionId, err))
+			connection.on('debug', (...args) => this.context.logger.debug('from connection ' + connectionId, ...args))
+			this._connections[connectionId] = connection
+
+			if (!connection) {
+				this.context.logger.error(
 					'Could not initialise device',
 					new Error('Connection ' + connOptions.connectionId + ' not initialised')
 				)
 				continue
 			}
 
-			await conn.connect({
+			await connection.connect({
 				...connOptions,
-				oscSender: this._deviceOptions?.oscSenders?.[connOptions.connectionId] || undefined,
+				oscSender: testOptions?.oscSenders?.[connOptions.connectionId] || undefined,
 			})
 		}
 
-		return Promise.resolve(true) // This device doesn't have any initialization procedure
+		return true
 	}
-	/** Called by the Conductor a bit before a .handleState is called */
-	prepareForHandleState(newStateTime: number) {
-		// clear any queued commands later than this time:
-		this._doOnTime.clearQueueNowAndAfter(newStateTime)
-		this.cleanUpStates(0, newStateTime)
-	}
-	/**
-	 * Handles a new state such that the device will be in that state at a specific point
-	 * in time.
-	 * @param newState
-	 */
-	handleState(newState: Timeline.TimelineState<TSRTimelineContent>, newMappings: Mappings) {
-		super.onHandleState(newState, newMappings)
-		// Transform timeline states into device states
-		const previousStateTime = Math.max(this.getCurrentTime(), newState.time)
-		const oldOSCState: OSCDeviceState = (this.getStateBefore(previousStateTime) || { state: {} }).state
 
-		const newOSCState = this.convertStateToOSCMessage(newState, newMappings)
-
-		// Generate commands necessary to transition to the new state
-		const commandsToAchieveState: Array<any> = this._diffStates(oldOSCState, newOSCState)
-
-		// clear any queued commands later than this time:
-		this._doOnTime.clearQueueNowAndAfter(previousStateTime)
-		// add the new commands to the queue:
-		this._addToQueue(commandsToAchieveState, newState.time)
-
-		// store the new state, for later use:
-		this.setState(newOSCState, newState.time)
-	}
-	/**
-	 * Clear any scheduled commands after this time
-	 * @param clearAfterTime
-	 */
-	clearFuture(clearAfterTime: number) {
-		this._doOnTime.clearQueueAfter(clearAfterTime)
-	}
 	async terminate() {
-		this._doOnTime.dispose()
-
 		for (const connection of Object.values<OSCConnection>(this._connections)) {
 			connection.dispose()
 		}
 	}
-	getStatus(): DeviceStatus {
+
+	get connected(): boolean {
+		return false
+	}
+	getStatus(): Omit<DeviceStatus, 'active'> {
 		const status = {
 			statusCode: StatusCode.GOOD,
 			messages: [] as string[],
-			active: this.isActive,
 		}
 
 		for (const conn of Object.values<OSCConnection>(this._connections)) {
@@ -153,30 +103,29 @@ export class MultiOSCMessageDevice extends DeviceWithState<OSCDeviceState, Devic
 
 		return status
 	}
-	async makeReady(_okToDestroyStuff?: boolean): Promise<void> {
-		return Promise.resolve()
-	}
 
-	get canConnect(): boolean {
-		return false
-	}
-	get connected(): boolean {
-		return false
-	}
 	/**
 	 * Transform the timeline state into a device state, which is in this case also
 	 * a timeline state.
 	 * @param state
 	 */
-	convertStateToOSCMessage(state: Timeline.TimelineState<TSRTimelineContent>, mappings: Mappings) {
-		const addrToOSCMessage: OSCDeviceState = Object.fromEntries(Object.keys(this._connections).map((id) => [id, {}]))
+	convertTimelineStateToDeviceState(
+		state: Timeline.TimelineState<TSRTimelineContent>,
+		mappings: Mappings
+	): MultiOSCDeviceState {
+		const addrToOSCMessage: MultiOSCDeviceState = Object.fromEntries(
+			Object.keys(this._connections).map((id) => [id, {}])
+		)
 		const addrToPriority: { [connectionId: string]: { [address: string]: number } } = Object.fromEntries(
 			Object.keys(this._connections).map((id) => [id, {}])
 		)
 
-		_.each(state.layers, (layer) => {
+		for (const layer of Object.values<ResolvedTimelineObjectInstance<TSRTimelineContent>>(state.layers)) {
 			const mapping = mappings[layer.layer] as Mapping<SomeMappingMultiOsc> | undefined
-			if (!mapping || !addrToOSCMessage[mapping.options.connectionId]) return
+			if (!mapping) continue
+
+			const connectionState = addrToOSCMessage[mapping.options.connectionId]
+			if (!connectionState) continue
 
 			if (layer.content.deviceType === DeviceType.OSC) {
 				const content: OSCDeviceStateContent = {
@@ -185,123 +134,126 @@ export class MultiOSCMessageDevice extends DeviceWithState<OSCDeviceState, Devic
 					fromTlObject: layer.id,
 				}
 				if (
-					(addrToOSCMessage[mapping.options.connectionId][content.path] &&
+					(connectionState[content.path] &&
 						addrToPriority[mapping.options.connectionId][content.path] <= (layer.priority || 0)) ||
-					!addrToOSCMessage[mapping.options.connectionId][content.path]
+					!connectionState[content.path]
 				) {
-					addrToOSCMessage[mapping.options.connectionId][content.path] = content
+					connectionState[content.path] = content
 					addrToPriority[mapping.options.connectionId][content.path] = layer.priority || 0
 				}
 			}
-		})
+		}
 
 		return addrToOSCMessage
 	}
-	get deviceType() {
-		return DeviceType.MULTI_OSC
-	}
-	get deviceName(): string {
-		return 'OSC ' + this.deviceId
-	}
-	get queue() {
-		return this._doOnTime.getQueue()
-	}
-	/**
-	 * Add commands to queue, to be executed at the right time
-	 */
-	private _addToQueue(commandsToAchieveState: Array<Command>, time: number) {
-		_.each(commandsToAchieveState, (cmd: Command) => {
-			this._doOnTime.queue(
-				time,
-				undefined,
-				async (cmd: Command) => {
-					if (cmd.commandName === 'added' || cmd.commandName === 'changed') {
-						return this._addAndProcessQueue(cmd)
-					} else {
-						return null
-					}
-				},
-				cmd
-			)
-		})
-	}
+
 	/**
 	 * Compares the new timeline-state with the old one, and generates commands to account for the difference
 	 * @param oldOscSendState The assumed current state
 	 * @param newOscSendState The desired state of the device
 	 */
-	private _diffStates(oldOscSendState: OSCDeviceState, newOscSendState: OSCDeviceState): Array<Command> {
+	diffStates(
+		oldOscSendState: MultiOSCDeviceState | undefined,
+		newOscSendState: MultiOSCDeviceState
+	): Array<MultiOscCommandWithContext> {
 		// in this oscSend class, let's just cheat:
 
-		const commands: Array<Command> = []
+		const commands: Array<MultiOscCommandWithContext> = []
 
 		for (const connectionId of Object.keys(this._connections)) {
-			_.each(newOscSendState[connectionId], (newCommandContent: OSCDeviceStateContent, address: string) => {
-				const oldLayer = oldOscSendState[connectionId]?.[address]
+			const oldConnectionState = oldOscSendState?.[connectionId]
+			const newConnectionState = newOscSendState[connectionId] ?? {}
+
+			for (const [address, newCommandContent] of Object.entries<OSCDeviceStateContent | undefined>(
+				newConnectionState
+			)) {
+				if (!newCommandContent) continue
+
+				const oldLayer = oldConnectionState?.[address]
 				if (!oldLayer) {
 					// added!
 					commands.push({
-						commandName: 'added',
 						context: `added: ${newCommandContent.fromTlObject}`,
-						connectionId: newCommandContent.connectionId,
 						timelineObjId: newCommandContent.fromTlObject,
-						content: newCommandContent,
+						command: {
+							// commandName: 'added',
+							...newCommandContent,
+							connectionId: newCommandContent.connectionId,
+						},
 					})
 				} else {
 					// changed?
 					if (!_.isEqual(oldLayer, newCommandContent)) {
 						// changed!
 						commands.push({
-							commandName: 'changed',
 							context: `changed: ${newCommandContent.fromTlObject}`,
-							connectionId: newCommandContent.connectionId,
 							timelineObjId: newCommandContent.fromTlObject,
-							content: newCommandContent,
+							command: {
+								// commandName: 'changed',
+								...newCommandContent,
+								connectionId: newCommandContent.connectionId,
+							},
 						})
 					}
 				}
-			})
-			// removed
-			_.each(oldOscSendState[connectionId], (oldCommandContent: OSCDeviceStateContent, address) => {
-				const newLayer = newOscSendState[connectionId]?.[address]
-				if (!newLayer) {
-					// removed!
-					commands.push({
-						commandName: 'removed',
-						context: `removed: ${oldCommandContent.fromTlObject}`,
-						connectionId: oldCommandContent.connectionId,
-						timelineObjId: oldCommandContent.fromTlObject,
-						content: oldCommandContent,
-					})
-				}
-			})
+			}
+
+			// // removed
+			// if (oldConnectionState) {
+			// 	for (const [address, oldCommandContent] of Object.entries<OSCDeviceStateContent | undefined>(
+			// 		oldConnectionState
+			// 	)) {
+			// 		if (!oldCommandContent) continue
+
+			// 		const newState = newOscSendState[connectionId]?.[address]
+			// 		if (newState) continue
+
+			// 		// removed!
+			// 		commands.push({
+			// 			commandName: 'removed',
+			// 			context: `removed: ${oldCommandContent.fromTlObject}`,
+			// 			connectionId: oldCommandContent.connectionId,
+			// 			timelineObjId: oldCommandContent.fromTlObject,
+			// 			content: oldCommandContent,
+			// 			command: {
+			// 				// commandName: 'removed',
+			// 				...oldCommandContent,
+			// 				connectionId: oldCommandContent.connectionId,
+			// 			},
+			// 		})
+			// 	}
+			// }
 		}
+
 		return commands
 	}
 
-	private async _addAndProcessQueue(cmd: Command): Promise<void> {
-		this._commandQueue.push(cmd)
+	async sendCommand(command: MultiOscCommandWithContext): Promise<any> {
+		this.context.logger.debug(command)
 
-		await this._processQueue()
+		this._commandQueue.push(command)
+
+		this._processQueue()
 	}
-	private async _processQueue() {
+
+	private _processQueue() {
 		if (this._commandQueueTimer) return
 
 		const nextCommand = this._commandQueue.shift()
 		if (!nextCommand) return
 
 		try {
-			this._connections[nextCommand.connectionId]?.sendOsc({
-				address: nextCommand.content.path,
-				args: nextCommand.content.values,
+			this._connections[nextCommand.command.connectionId]?.sendOsc({
+				address: nextCommand.command.path,
+				args: nextCommand.command.values,
 			})
 		} catch (e) {
-			this.emit('commandError', new Error('Command failed: ' + e), { ...nextCommand, command: nextCommand })
+			this.context.commandError(new Error('Command failed: ' + e), { ...nextCommand, command: nextCommand })
 		}
 
 		this._commandQueueTimer = setTimeout(() => {
 			this._commandQueueTimer = undefined
-			this._processQueue().catch((e) => this.emit('error', 'Error in processing queue', e))
-		}, this.deviceOptions.options?.timeBetweenCommands || 0)
+			this._processQueue()
+		}, this._timeBetweenCommands || 0)
 	}
 }

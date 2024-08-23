@@ -50,7 +50,6 @@ import { CasparCGDevice, DeviceOptionsCasparCGInternal } from './integrations/ca
 import { SisyfosMessageDevice, DeviceOptionsSisyfosInternal } from './integrations/sisyfos'
 import { VMixDevice, DeviceOptionsVMixInternal } from './integrations/vmix'
 import { VizMSEDevice, DeviceOptionsVizMSEInternal } from './integrations/vizMSE'
-import { DeviceOptionsMultiOSCInternal, MultiOSCMessageDevice } from './integrations/multiOsc'
 import { BaseRemoteDeviceIntegration, RemoteDeviceInstance } from './service/remoteDeviceInstance'
 import type { ImplementedServiceDeviceTypes } from './service/devices'
 import { DeviceEvents } from './service/device'
@@ -536,15 +535,6 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 					getCurrentTime,
 					threadedClassOptions
 				)
-			case DeviceType.MULTI_OSC:
-				return DeviceContainer.create<DeviceOptionsMultiOSC, typeof MultiOSCMessageDevice>(
-					'../../dist/integrations/multiOsc/index.js',
-					'MultiOSCMessageDevice',
-					deviceId,
-					deviceOptions,
-					getCurrentTime,
-					threadedClassOptions
-				)
 			case DeviceType.ABSTRACT:
 			case DeviceType.ATEM:
 			case DeviceType.HTTPSEND:
@@ -553,6 +543,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 			case DeviceType.LAWO:
 			case DeviceType.OBS:
 			case DeviceType.OSC:
+			case DeviceType.MULTI_OSC:
 			case DeviceType.PANASONIC_PTZ:
 			case DeviceType.PHAROS:
 			case DeviceType.SHOTOKU:
@@ -1475,7 +1466,7 @@ export type DeviceOptionsAnyInternal =
 	| DeviceOptionsPharos
 	| DeviceOptionsOBS
 	| DeviceOptionsOSC
-	| DeviceOptionsMultiOSCInternal
+	| DeviceOptionsMultiOSC
 	| DeviceOptionsSisyfosInternal
 	| DeviceOptionsSofieChef
 	| DeviceOptionsQuantel
