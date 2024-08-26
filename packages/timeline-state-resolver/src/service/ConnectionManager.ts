@@ -22,7 +22,7 @@ import { DeviceOptionsVizMSEInternal, VizMSEDevice } from '../integrations/vizMS
 import { DeviceOptionsVMixInternal, VMixDevice } from '../integrations/vmix'
 import { ImplementedServiceDeviceTypes } from './devices'
 import { EventEmitter } from 'eventemitter3'
-import { DeviceEvents } from './device'
+import { DeviceInstanceEvents } from './DeviceInstance'
 
 interface Operation {
 	operation: 'create' | 'update' | 'delete' | 'setDebug'
@@ -42,7 +42,7 @@ export interface ConnectionManagerIntEvents {
 	connectionRemoved: [id: string]
 }
 export type MappedDeviceEvents = {
-	[T in keyof DeviceEvents as `connectionEvent:${T}`]: [id: string, ...DeviceEvents[T]]
+	[T in keyof DeviceInstanceEvents as `connectionEvent:${T}`]: [deviceId: string, ...DeviceInstanceEvents[T]]
 }
 
 export class ConnectionManager extends EventEmitter<ConnectionManagerEvents> {
@@ -51,6 +51,7 @@ export class ConnectionManager extends EventEmitter<ConnectionManagerEvents> {
 	private _updating = false
 
 	private _connectionAttempts = new Map<string, { last: number; next: number }>()
+	private _nextAttempt: NodeJS.Timeout | undefined
 
 	/**
 	 * Set the config options for all connections
@@ -75,9 +76,9 @@ export class ConnectionManager extends EventEmitter<ConnectionManagerEvents> {
 		if (includeUninitialized) {
 			return this._connections.get(connectionId)
 		} else {
-			const device = this._connections.get(connectionId)
-			if (device?.initialized === true) {
-				return device
+			const connection = this._connections.get(connectionId)
+			if (connection?.initialized === true) {
+				return connection
 			} else {
 				return undefined
 			}
@@ -85,12 +86,17 @@ export class ConnectionManager extends EventEmitter<ConnectionManagerEvents> {
 	}
 
 	/**
-	 * Iterate over config and check that the existing device has the right config, if
+	 * Iterate over config and check that the existing connection has the right config, if
 	 * not... recreate it
 	 */
 	private _updateConnections() {
 		if (this._updating) return
 		this._updating = true
+
+		if (this._nextAttempt) {
+			clearTimeout(this._nextAttempt)
+			this._nextAttempt = undefined
+		}
 
 		const operations: Operation[] = []
 
@@ -125,7 +131,6 @@ export class ConnectionManager extends EventEmitter<ConnectionManagerEvents> {
 			}
 		}
 
-		console.log('Ran update, got ops', operations)
 		const isAllowedOp = (op: Operation): boolean => {
 			if (op.operation !== 'create') return true // allow non-create ops
 
@@ -142,18 +147,20 @@ export class ConnectionManager extends EventEmitter<ConnectionManagerEvents> {
 			return
 		} else if (allowedOperations.length === 0) {
 			this._updating = false
+
 			// wait until next
 			const nextTime = Array.from(this._connectionAttempts.values()).reduce((a, b) => (a.next < b.next ? a : b))
-			// todo - keep track of these
-			setTimeout(() => {
+			this._nextAttempt = setTimeout(() => {
 				this._updateConnections()
 			}, nextTime.next - Date.now())
+
 			// there's nothing to execute right now so return
 			return
 		}
 
 		Promise.allSettled(allowedOperations.map((op) => this.executeOperation(op))).then(() => {
 			this._updating = false
+
 			// rerun the algorithm once to make sure we have no missed operations in the meanwhile
 			this._updateConnections()
 		})
@@ -203,7 +210,10 @@ export class ConnectionManager extends EventEmitter<ConnectionManagerEvents> {
 
 		const container = await createContainer(deviceOptions, id, () => Date.now(), threadedClassOptions) // time out if this gets el stucko
 
-		if (!container) return // todo - log or throw error?
+		if (!container) {
+			this.emit('warning', 'Failed to create container for ' + id)
+			return
+		}
 
 		// set up event handlers
 		this._setupDeviceListeners(id, container)
@@ -211,14 +221,13 @@ export class ConnectionManager extends EventEmitter<ConnectionManagerEvents> {
 		this._connections.set(id, container)
 		this.emit('connectionAdded', id, container)
 
-		// trigger device init
+		// trigger conenction init
 		this._handleConnectionInitialisation(id, container)
 			.then(() => {
 				this._connectionAttempts.delete(id)
-				// todo - if this triggers false, shell we restart the connection?
 			})
 			.catch((e) => {
-				this.emit('error', 'Device ' + id + ' failed to initialise')
+				this.emit('error', 'Connection ' + id + ' failed to initialise')
 				this._connections.delete(id)
 
 				container.terminate().catch(() => this.emit('warning', `Failed to initialise ${id} (${e})`))
@@ -265,20 +274,20 @@ export class ConnectionManager extends EventEmitter<ConnectionManagerEvents> {
 
 		this.emit(
 			'info',
-			`Initializing device ${id} (${container.instanceId}) of type ${DeviceType[deviceOptions.type]}...`
+			`Initializing connection ${id} (${container.instanceId}) of type ${DeviceType[deviceOptions.type]}...`
 		)
 		await container.init(deviceOptions.options, undefined)
 		await container.reloadProps()
-		this.emit('info', `Device ${id} (${container.instanceId}) initialized!`)
+		this.emit('info', `Connection ${id} (${container.instanceId}) initialized!`)
 	}
 
 	private async _setupDeviceListeners(
 		id: string,
 		container: BaseRemoteDeviceIntegration<DeviceOptionsAnyInternal>
 	): Promise<void> {
-		const passEvent = <T extends keyof DeviceEvents>(ev: T) => {
-			const evHandler: any = (...args: DeviceEvents[T]) =>
-				this.emit(('connectionEvent:' + ev) as `connectionEvent:${keyof DeviceEvents}`, id, ...args)
+		const passEvent = <T extends keyof DeviceInstanceEvents>(ev: T) => {
+			const evHandler: any = (...args: DeviceInstanceEvents[T]) =>
+				this.emit(('connectionEvent:' + ev) as `connectionEvent:${keyof DeviceInstanceEvents}`, id, ...args)
 			container.device.on(ev, evHandler)
 		}
 
