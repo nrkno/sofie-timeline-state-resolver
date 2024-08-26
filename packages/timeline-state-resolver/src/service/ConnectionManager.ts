@@ -42,7 +42,7 @@ export interface ConnectionManagerIntEvents {
 	connectionRemoved: [id: string]
 }
 export type MappedDeviceEvents = {
-	[T in keyof DeviceInstanceEvents as `connectionEvent:${T}`]: [deviceId: string, ...DeviceInstanceEvents[T]]
+	[T in keyof DeviceInstanceEvents as `connectionEvent:${T}`]: [string, ...DeviceInstanceEvents[T]]
 }
 
 export class ConnectionManager extends EventEmitter<ConnectionManagerEvents> {
