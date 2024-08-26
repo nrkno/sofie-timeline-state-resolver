@@ -1,9 +1,15 @@
 type ResolveFn = (value: boolean) => void
 
+/**
+ * A WaitGroup is used to wait for a number of operations to complete, or timeout
+ */
 export class WaitGroup {
 	#store: Map<string, Map<number, ResolveFn>> = new Map()
 	#nextId = 0
 
+	/**
+	 * Resolve all waiting operations for a key, with success
+	 */
 	clearAllForKey(key: string): void {
 		const callbacks = this.#store.get(key)
 		if (!callbacks) return
@@ -15,11 +21,14 @@ export class WaitGroup {
 		}
 	}
 
-	async waitOnKey(portId: string, delay: number): Promise<boolean> {
-		let callbacks = this.#store.get(portId)
+	/**
+	 * Wait for a key to be resolved (true), or timeout (false)
+	 */
+	async waitOnKey(key: string, delay: number): Promise<boolean> {
+		let callbacks = this.#store.get(key)
 		if (!callbacks) {
 			callbacks = new Map()
-			this.#store.set(portId, callbacks)
+			this.#store.set(key, callbacks)
 		}
 		const callbacks2 = callbacks
 
