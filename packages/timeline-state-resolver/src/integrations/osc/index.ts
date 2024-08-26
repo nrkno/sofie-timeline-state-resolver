@@ -28,7 +28,7 @@ interface OSCDeviceStateContent extends OSCMessageCommandContent {
 }
 
 export interface OscCommandWithContext {
-	command: any // todo
+	command: OSCDeviceStateContent
 	context: string
 	timelineObjId: string
 }
