@@ -1087,8 +1087,13 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 		deviceId: string,
 		time: number,
 		state: Timeline.TimelineState<TSRTimelineContent>,
-		mappings: Mappings
+		unfilteredMappings: Mappings
 	) {
+		// only take mappings that are for this deviceId
+		const mappings = Object.fromEntries(
+			Object.entries<Mapping<unknown>>(unfilteredMappings).filter(([_, mapping]) => mapping.deviceId === deviceId)
+		)
+
 		if (!this._deviceStates[deviceId]) this._deviceStates[deviceId] = []
 
 		// find all references to the datastore that are in this state
