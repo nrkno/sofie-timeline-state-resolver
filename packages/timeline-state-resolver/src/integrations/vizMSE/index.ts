@@ -14,7 +14,6 @@ import {
 	StatusCode,
 } from 'timeline-state-resolver-types'
 import { createMSE, MSE } from '@tv2media/v-connection'
-import { DoOnTime, SendMode } from '../../devices/doOnTime'
 import { ExpectedPlayoutItem } from '../../expectedPlayoutItems'
 import { t } from '../../lib'
 import { HTTPClientError, HTTPServerError } from '@tv2media/v-connection/dist/msehttp'
@@ -23,6 +22,7 @@ import { VizMSECommand, VizMSEState, VizMSECommandType, VizMSECommandWithContext
 import { diffVizMSEStates } from './diffState'
 import { convertStateToVizMSE } from './convertState'
 import { DeviceContextAPI, Device } from '../../service/device'
+import PQueue from 'p-queue'
 
 export interface DeviceOptionsVizMSEInternal extends DeviceOptionsVizMSE {
 	commandReceiver?: CommandReceiver
@@ -37,15 +37,12 @@ export class VizMSEDevice extends Device<VizMSEOptions, VizMSEState, VizMSEComma
 	private _vizMSE?: MSE
 	private _vizmseManager?: VizMSEManager
 
-	private _doOnTimeBurst: DoOnTime
 	private _initOptions?: VizMSEOptions
 	private _vizMSEConnected = false
+	private _commandQueues = new Map<string | undefined, PQueue>()
 
 	constructor(context: DeviceContextAPI<VizMSEState>) {
 		super(context)
-
-		this._doOnTimeBurst = new DoOnTime(() => this.context.getCurrentTime(), SendMode.BURST, this._deviceOptions)
-		this.handleDoOnTime(this._doOnTimeBurst, 'VizMSE.burst')
 	}
 
 	async init(initOptions: VizMSEOptions, activeRundownPlaylistId?: string): Promise<boolean> {
@@ -95,7 +92,11 @@ export class VizMSEDevice extends Device<VizMSEOptions, VizMSEState, VizMSEComma
 			this._vizmseManager.removeAllListeners()
 			delete this._vizmseManager
 		}
-		this._doOnTimeBurst.dispose()
+
+		// Discard pending commands
+		for (const queue of this._commandQueues.values()) {
+			queue.clear()
+		}
 	}
 
 	get connected(): boolean {
@@ -329,45 +330,34 @@ export class VizMSEDevice extends Device<VizMSEOptions, VizMSEState, VizMSEComma
 	}
 
 	/**
-	 * Add commands to queue, to be executed at the right time
+	 * Sends commands to the VizMSE server
+	 * @param time deprecated
+	 * @param cmd Command to execute
 	 */
-	private _addToQueue(commandsToAchieveState: Array<VizMSECommand>) {
-		_.each(commandsToAchieveState, (cmd: VizMSECommand) => {
-			this._doOnTime.queue(
-				cmd.time,
-				cmd.layerId,
-				async (c: { cmd: VizMSECommand }) => {
-					return this._commandReceiver(
-						this.getCurrentTime(),
-						c.cmd,
-						c.cmd.type + '_' + c.cmd.timelineObjId,
-						c.cmd.timelineObjId
-					)
-				},
-				{ cmd: cmd }
-			)
+	public async sendCommand(c: VizMSECommandWithContext): Promise<void> {
+		// Ensure command isn't blocked by a previous wait/delay
+		if (c.command.type === VizMSECommandType.TAKE_ELEMENT && !c.command.fromLookahead) {
+			if (this._vizmseManager && c.command.layerId) {
+				this._vizmseManager.clearAllWaitWithLayer(c.command.layerId)
+			}
+		}
 
-			this._doOnTimeBurst.queue(
-				cmd.time,
-				undefined,
-				async (c: { cmd: VizMSECommand }) => {
-					if (c.cmd.type === VizMSECommandType.TAKE_ELEMENT && !c.cmd.fromLookahead) {
-						if (this._vizmseManager && c.cmd.layerId) {
-							this._vizmseManager.clearAllWaitWithLayer(c.cmd.layerId)
-						}
-					}
-					return Promise.resolve()
-				},
-				{ cmd: cmd }
-			)
-		})
+		// Get or create the queue for the layer
+		let queue = this._commandQueues.get(c.command.layerId)
+		if (!queue) {
+			queue = new PQueue({ concurrency: 1 })
+			this._commandQueues.set(c.command.layerId, queue)
+		}
+
+		// Queue the commands in a sequential queue
+		return queue.add(async () => this.sendCommandInner(c))
 	}
 	/**
 	 * Sends commands to the VizMSE server
 	 * @param time deprecated
 	 * @param cmd Command to execute
 	 */
-	public async sendCommand(cmd: VizMSECommandWithContext): Promise<any> {
+	private async sendCommandInner(cmd: VizMSECommandWithContext): Promise<void> {
 		this.context.logger.debug(cmd)
 
 		try {

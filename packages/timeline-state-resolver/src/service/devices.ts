@@ -162,6 +162,6 @@ export const DevicesDict: Record<ImplementedServiceDeviceTypes, DeviceEntry> = {
 		deviceClass: VizMSEDevice,
 		canConnect: true,
 		deviceName: (deviceId: string) => 'VizMSE' + deviceId,
-		executionMode: () => 'sequential',
+		executionMode: () => 'salvo', // Uses a queue internally to perform some sequential operations
 	},
 }
