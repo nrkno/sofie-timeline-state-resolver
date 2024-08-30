@@ -145,14 +145,14 @@ describe('Conductor', () => {
 					},
 					time: 10005,
 				}),
-				device0Mappings // TODO - is this correct?
+				device0Mappings
 			)
 			expect(device0.handleState).toHaveBeenNthCalledWith(
 				2,
 				expect.objectContaining({
 					time: 11000,
 				}),
-				device0Mappings // TODO - is this correct?
+				device0Mappings
 			)
 			expect(device0.handleState).toHaveBeenNthCalledWith(
 				3,
@@ -160,7 +160,7 @@ describe('Conductor', () => {
 					layers: {},
 					time: 12000,
 				}),
-				device0Mappings // TODO - is this correct?
+				device0Mappings
 			)
 
 			// Ensure device1 has been fed sensible states
@@ -171,7 +171,7 @@ describe('Conductor', () => {
 				expect.objectContaining({
 					layers: {},
 				}),
-				device1Mappings // TODO - is this correct?
+				device1Mappings
 			)
 			expect(device1.handleState).toHaveBeenNthCalledWith(
 				2,
@@ -186,14 +186,14 @@ describe('Conductor', () => {
 						}),
 					},
 				}),
-				device1Mappings // TODO - is this correct?
+				device1Mappings
 			)
 			expect(device1.handleState).toHaveBeenNthCalledWith(
 				3,
 				expect.objectContaining({
 					layers: {},
 				}),
-				device1Mappings // TODO - is this correct?
+				device1Mappings
 			)
 
 			// Remove the device
