@@ -144,6 +144,11 @@ export class VizMSEDevice extends DeviceWithState<VizMSEState, DeviceOptionsVizM
 
 		this._vizmseManager
 			.initializeRundown(activeRundownPlaylistId)
+			.then(() => {
+				// reset any states we had to re-enforce them
+				this.clearStates()
+				this.emit('resyncStates')
+			})
 			.catch((e) => this.emit('error', 'Failed to initialise Viz Rundown', e))
 
 		return true

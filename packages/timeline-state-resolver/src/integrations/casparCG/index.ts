@@ -123,6 +123,7 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 			host: initOptions.host,
 			port: initOptions.port,
 		})
+		let firstConnect = true
 
 		this._ccg.on('connect', () => {
 			this.makeReady(false) // always make sure timecode is correct, setting it can never do bad
@@ -183,16 +184,15 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 					return true
 				})
 				.then((doResync) => {
-					if (this.deviceOptions.skipVirginCheck) return
-
 					// Finally we can report it as connected
 					this._connected = true
 					this._connectionChanged()
 
-					if (doResync) {
+					if (firstConnect || doResync) {
+						firstConnect = false
 						this._currentState = { channels: {} }
 						this.clearStates()
-						this.emit('resetResolver')
+						this.emit('resyncStates')
 					}
 				})
 				.catch((e) => {

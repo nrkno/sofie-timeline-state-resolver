@@ -90,7 +90,12 @@ export class SofieChefDevice extends Device<SofieChefOptions, SofieChefState, So
 		// This is where we would do initialization, like connecting to the devices, etc
 		this.initOptions = initOptions
 
-		this._setupWSConnection().catch((e) => this.context.logger.error('Failed to initialise Sofie Chef connection', e))
+		this._setupWSConnection()
+			.then(() => {
+				// assume empty state on start (would be nice if we could get the url for each window on connection)
+				this.context.resetToState({ windows: {} })
+			})
+			.catch((e) => this.context.logger.error('Failed to initialise Sofie Chef connection', e))
 
 		return true
 	}

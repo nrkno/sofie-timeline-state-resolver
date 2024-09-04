@@ -90,6 +90,11 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 
 		this._sisyfos
 			.connect(initOptions.host, initOptions.port)
+			.then(() => {
+				// process any states that we missed
+				this.clearStates()
+				this.emit('resyncStates')
+			})
 			.catch((e) => this.emit('error', 'Failed to initialise Sisyfos connection', e))
 
 		return true
