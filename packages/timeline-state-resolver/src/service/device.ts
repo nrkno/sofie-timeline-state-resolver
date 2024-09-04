@@ -111,6 +111,8 @@ export interface DeviceEvents {
 	connectionChanged: [status: Omit<DeviceStatus, 'active'>]
 	/** A message to the resolver that something has happened that warrants a reset of the resolver (to re-run it again) */
 	resetResolver: []
+	/** A message to the resolver that the device needs to receive all known states */
+	resyncStates: []
 
 	/** @deprecated replaced by slowSentCommand & slowFulfilledCommand  */
 	slowCommand: [commandInfo: string]

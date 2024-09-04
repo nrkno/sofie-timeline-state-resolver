@@ -235,6 +235,9 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 				this.emit('error', 'Error during auto-init: ', e)
 			})
 		}
+
+		this.connectionManager.on('error', (e) => this.emit('error', e))
+		this.connectionManager.on('connectionEvent:resyncStates', (deviceId: string) => this.resyncDeviceStates(deviceId))
 	}
 	/**
 	 * Initializates the resolver, with optional multithreading
@@ -846,6 +849,29 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 			})
 			.catch((e) => {
 				this.emit('error', 'Caught error in setDatastore' + e)
+			})
+	}
+
+	private resyncDeviceStates(deviceId: string) {
+		this._actionQueue
+			.add(() => {
+				const toBeFilled = _.compact([
+					// shallow clone so we don't reverse the array in place
+					[...this._deviceStates[deviceId]].reverse().find((s) => s.time <= this.getCurrentTime()), // one state before now
+					...this._deviceStates[deviceId].filter((s) => s.time > this.getCurrentTime()), // all states after now
+				])
+
+				for (const s of toBeFilled) {
+					const filledState = fillStateFromDatastore(s.state, this._datastore)
+
+					this.connectionManager
+						.getConnection(deviceId)
+						?.device.handleState(filledState, s.mappings)
+						.catch((e) => this.emit('error', 'resolveTimeline' + e + '\nStack: ' + (e as Error).stack))
+				}
+			})
+			.catch((e) => {
+				this.emit('error', 'Caught error in resyncDeviceStates' + e)
 			})
 	}
 
