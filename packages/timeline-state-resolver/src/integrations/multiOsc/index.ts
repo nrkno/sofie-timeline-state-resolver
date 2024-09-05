@@ -114,6 +114,13 @@ export class MultiOSCMessageDevice extends DeviceWithState<OSCDeviceState, Devic
 
 		// Generate commands necessary to transition to the new state
 		const commandsToAchieveState: Array<any> = this._diffStates(oldOSCState, newOSCState)
+		if (this.deviceOptions.options?.debugLogCommands && commandsToAchieveState.length)
+			this.emit(
+				'debug',
+				`Generated commands for timestamp ${new Date(newState.time).toISOString()}: ${JSON.stringify(
+					commandsToAchieveState
+				)}`
+			)
 
 		// clear any queued commands later than this time:
 		this._doOnTime.clearQueueNowAndAfter(previousStateTime)
@@ -280,6 +287,7 @@ export class MultiOSCMessageDevice extends DeviceWithState<OSCDeviceState, Devic
 	}
 
 	private async _addAndProcessQueue(cmd: Command): Promise<void> {
+		if (this.deviceOptions.options?.debugLogCommands) this.emit('debug', 'push cmd ' + JSON.stringify(cmd))
 		this._commandQueue.push(cmd)
 
 		await this._processQueue()

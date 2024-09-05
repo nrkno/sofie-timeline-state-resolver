@@ -13,6 +13,7 @@ export interface MultiOSCOptions {
 		type: MultiOSCDeviceType
 	}[]
 	timeBetweenCommands: number
+	debugLogCommands: boolean
 }
 
 export enum MultiOSCDeviceType {

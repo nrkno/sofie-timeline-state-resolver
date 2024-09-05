@@ -27,19 +27,38 @@
 						"ui:title": "Type",
 						"title": "MultiOSCDeviceType",
 						"default": "udp",
-						"enum": ["tcp", "udp"],
-						"tsEnumNames": ["TCP", "UDP"]
+						"enum": [
+							"tcp",
+							"udp"
+						],
+						"tsEnumNames": [
+							"TCP",
+							"UDP"
+						]
 					}
 				},
-				"required": ["connectionId", "host", "port", "type"],
+				"required": [
+					"connectionId",
+					"host",
+					"port",
+					"type"
+				],
 				"additionalProperties": false
 			}
 		},
 		"timeBetweenCommands": {
 			"type": "integer",
 			"ui:title": "Time between commands in ms"
+		},
+		"debugLogCommands": {
+			"type": "boolean",
+			"ui:title": "Debug logging for missing commands"
 		}
 	},
-	"required": ["connections", "timeBetweenCommands"],
+	"required": [
+		"connections",
+		"timeBetweenCommands",
+		"debugLogCommands"
+	],
 	"additionalProperties": false
 }
