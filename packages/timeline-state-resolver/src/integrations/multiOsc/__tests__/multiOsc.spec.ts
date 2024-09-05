@@ -57,6 +57,7 @@ describe('MultiOSC-Message', () => {
 					},
 				],
 				timeBetweenCommands: 160,
+				debugLogCommands: false,
 			},
 			oscSenders: { osc0: commandReceiver0 },
 		})
