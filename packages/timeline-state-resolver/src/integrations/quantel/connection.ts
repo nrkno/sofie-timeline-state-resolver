@@ -591,11 +591,10 @@ export class QuantelManager extends EventEmitter {
 		})
 	}
 	public clearAllWaitWithPort(portId: string) {
-		if (!this._waitWithPorts[portId]) {
-			_.each(this._waitWithPorts[portId], (fcn) => {
-				fcn(true)
-			})
-		}
+		if (!this._waitWithPorts[portId]) return
+		_.each(this._waitWithPorts[portId], (fcn) => {
+			fcn(true)
+		})
 	}
 	/**
 	 * Returns true if the wait was cleared from someone else
