@@ -23,6 +23,7 @@ import { DeviceOptionsVMixInternal, VMixDevice } from '../integrations/vmix'
 import { ImplementedServiceDeviceTypes } from './devices'
 import { EventEmitter } from 'eventemitter3'
 import { DeviceInstanceEvents } from './DeviceInstance'
+import { deferAsync } from '../lib'
 
 interface Operation {
 	operation: 'create' | 'update' | 'delete' | 'setDebug'
@@ -158,16 +159,19 @@ export class ConnectionManager extends EventEmitter<ConnectionManagerEvents> {
 			return
 		}
 
-		Promise.allSettled(allowedOperations.map((op) => this.executeOperation(op))).then(() => {
-			this._updating = false
+		Promise.allSettled(allowedOperations.map(async (op) => this.executeOperation(op)))
+			.then(() => {
+				this._updating = false
 
-			// rerun the algorithm once to make sure we have no missed operations in the meanwhile
-			this._updateConnections()
-		})
+				// rerun the algorithm once to make sure we have no missed operations in the meanwhile
+				this._updateConnections()
+			})
+			.catch((e) => {
+				this.emit('warning', 'Error encountered while updating connections: ' + e)
+			})
 	}
 
 	private async executeOperation({ operation, id }: Operation): Promise<void> {
-		// todo - timeout?
 		try {
 			switch (operation) {
 				case 'create':
@@ -208,7 +212,7 @@ export class ConnectionManager extends EventEmitter<ConnectionManagerEvents> {
 			freezeLimit: FREEZE_LIMIT,
 		}
 
-		const container = await createContainer(deviceOptions, id, () => Date.now(), threadedClassOptions) // time out if this gets el stucko
+		const container = await createContainer(deviceOptions, id, () => Date.now(), threadedClassOptions) // we rely on threadedclass to timeout if this fails
 
 		if (!container) {
 			this.emit('warning', 'Failed to create container for ' + id)
@@ -216,12 +220,12 @@ export class ConnectionManager extends EventEmitter<ConnectionManagerEvents> {
 		}
 
 		// set up event handlers
-		this._setupDeviceListeners(id, container)
+		await this._setupDeviceListeners(id, container)
 
 		this._connections.set(id, container)
 		this.emit('connectionAdded', id, container)
 
-		// trigger conenction init
+		// trigger connection init
 		this._handleConnectionInitialisation(id, container)
 			.then(() => {
 				this._connectionAttempts.delete(id)
@@ -230,26 +234,51 @@ export class ConnectionManager extends EventEmitter<ConnectionManagerEvents> {
 				this.emit('error', 'Connection ' + id + ' failed to initialise')
 				this._connections.delete(id)
 
-				container.terminate().catch(() => this.emit('warning', `Failed to initialise ${id} (${e})`))
-				// todo - find a good point to retrigger _updateConnections
-				this._updateConnections() // this can't be the right place... right?? it was not :kekw:... was it not??
+				container
+					.terminate()
+					.catch(() => this.emit('warning', `Failed to initialise ${id} (${e})`))
+					.finally(() => {
+						this._updateConnections()
+					})
 			})
 	}
 
 	private async deleteConnection(id: string): Promise<void> {
 		const connection = this._connections.get(id)
-		if (!connection) return // already removed / never existed
+		if (!connection) return Promise.resolve() // already removed / never existed
 
 		this._connections.delete(id)
 		this.emit('connectionRemoved', id)
 
-		try {
-			await connection.device.terminate()
-			await connection.device.removeAllListeners()
-			await connection.terminate()
-		} catch {
-			await connection.terminate()
-		}
+		return new Promise((resolve) =>
+			deferAsync(
+				async () => {
+					let finished = false
+					setTimeout(() => {
+						if (!finished) {
+							resolve()
+							this.emit('warning', 'Failed to delete connection in time')
+
+							connection.terminate().catch((e) => this.emit('error', 'Failed to terminate connection: ' + e))
+						}
+					}, 30000)
+
+					try {
+						await connection.device.terminate()
+						await connection.device.removeAllListeners()
+						await connection.terminate()
+					} catch {
+						await connection.terminate()
+					}
+
+					finished = true
+					resolve()
+				},
+				(e) => {
+					this.emit('warning', 'Error encountered trying to delete connection: ' + e)
+				}
+			)
+		)
 	}
 
 	private async setDebugForConnection(id: string): Promise<void> {
@@ -258,8 +287,8 @@ export class ConnectionManager extends EventEmitter<ConnectionManagerEvents> {
 		if (!connection || !config) return
 
 		try {
-			connection.device.setDebugLogging(config.debug ?? false)
-			connection.device.setDebugState(config.debugState ?? false)
+			await connection.device.setDebugLogging(config.debug ?? false)
+			await connection.device.setDebugState(config.debugState ?? false)
 		} catch {
 			this.emit('warning', 'Failed to update debug values for ' + id)
 		}
@@ -270,7 +299,7 @@ export class ConnectionManager extends EventEmitter<ConnectionManagerEvents> {
 		container: BaseRemoteDeviceIntegration<DeviceOptionsAnyInternal>
 	) {
 		const deviceOptions = this._config.get(id)
-		if (!deviceOptions) return // unexpected - throw error?
+		if (!deviceOptions) return // if the config has been removed, the connection should be removed as well so no need to init
 
 		this.emit(
 			'info',
@@ -288,7 +317,9 @@ export class ConnectionManager extends EventEmitter<ConnectionManagerEvents> {
 		const passEvent = <T extends keyof DeviceInstanceEvents>(ev: T) => {
 			const evHandler: any = (...args: DeviceInstanceEvents[T]) =>
 				this.emit(('connectionEvent:' + ev) as `connectionEvent:${keyof DeviceInstanceEvents}`, id, ...args)
-			container.device.on(ev, evHandler)
+			container.device
+				.on(ev, evHandler)
+				.catch((e) => this.emit('error', 'Failed to attach listener for device: ' + id + ' ' + ev, e))
 		}
 
 		passEvent('info')
