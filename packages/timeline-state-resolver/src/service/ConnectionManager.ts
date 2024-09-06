@@ -29,6 +29,7 @@ export interface ConnectionManagerIntEvents {
 	debug: [...debug: any[]]
 
 	connectionAdded: [id: string, container: BaseRemoteDeviceIntegration<DeviceOptionsBase<any>>]
+	connectionInitialised: [id: string]
 	connectionRemoved: [id: string]
 }
 export type MappedDeviceEvents = {
@@ -218,6 +219,7 @@ export class ConnectionManager extends EventEmitter<ConnectionManagerEvents> {
 		this._handleConnectionInitialisation(id, container)
 			.then(() => {
 				this._connectionAttempts.delete(id)
+				this.emit('connectionInitialised', id)
 			})
 			.catch((e) => {
 				this.emit('error', 'Connection ' + id + ' failed to initialise')

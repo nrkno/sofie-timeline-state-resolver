@@ -863,6 +863,8 @@ describe('CasparCG', () => {
 			},
 		})
 
+		await mockTime.advanceTimeTicks(100) // let the device settle
+
 		// Check that no commands has been sent:
 		expect(commandReceiver0).toHaveBeenCalledTimes(0)
 

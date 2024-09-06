@@ -7,7 +7,6 @@ import {
 	SomeMappingVizMSE,
 	TimelineContentTypeVizMSE,
 	VIZMSETransitionType,
-	VizMSEOptions,
 	VIZMSEPlayoutItemContentExternal,
 	VIZMSEPlayoutItemContentInternal,
 } from 'timeline-state-resolver-types'

@@ -29,6 +29,7 @@ import { MockTime } from '../../../__tests__/mockTime'
 import '../../../__tests__/lib'
 import { CommandContext } from '../vMixCommands'
 import { prefixAddedInput } from './mockState'
+import { addConnections } from '../../../__tests__/lib'
 
 const orgSetTimeout = setTimeout
 
@@ -94,19 +95,21 @@ describe('vMix', () => {
 		await myConductor.init()
 
 		await runPromise(
-			myConductor.addDevice('myvmix', {
-				type: DeviceType.VMIX,
-				options: {
-					host: '127.0.0.1',
-					port: 8099,
-					pollInterval: 0,
+			addConnections(myConductor.connectionManager, {
+				myvmix: {
+					type: DeviceType.VMIX,
+					options: {
+						host: '127.0.0.1',
+						port: 8099,
+						pollInterval: 0,
+					},
+					commandReceiver: commandReceiver0,
 				},
-				commandReceiver: commandReceiver0,
 			}),
 			mockTime
 		)
 
-		const deviceContainer = myConductor.getDevice('myvmix')
+		const deviceContainer = myConductor.connectionManager.getConnection('myvmix')
 		device = deviceContainer!.device as ThreadedClass<VMixDevice>
 		const deviceErrorHandler = jest.fn((...args) => console.log('Error in device', ...args))
 		device.on('error', deviceErrorHandler)
@@ -273,19 +276,21 @@ describe('vMix', () => {
 		await myConductor.init()
 
 		await runPromise(
-			myConductor.addDevice('myvmix', {
-				type: DeviceType.VMIX,
-				options: {
-					host: '127.0.0.1',
-					port: 8099,
-					pollInterval: 0,
+			addConnections(myConductor.connectionManager, {
+				myvmix: {
+					type: DeviceType.VMIX,
+					options: {
+						host: '127.0.0.1',
+						port: 8099,
+						pollInterval: 0,
+					},
+					commandReceiver: commandReceiver0,
 				},
-				commandReceiver: commandReceiver0,
 			}),
 			mockTime
 		)
 
-		const deviceContainer = myConductor.getDevice('myvmix')
+		const deviceContainer = myConductor.connectionManager.getConnection('myvmix')
 		device = deviceContainer!.device as ThreadedClass<VMixDevice>
 		const deviceErrorHandler = jest.fn((...args) => console.log('Error in device', ...args))
 		device.on('error', deviceErrorHandler)
@@ -585,19 +590,21 @@ describe('vMix', () => {
 		await myConductor.init()
 
 		await runPromise(
-			myConductor.addDevice('myvmix', {
-				type: DeviceType.VMIX,
-				options: {
-					host: '127.0.0.1',
-					port: 8099,
-					pollInterval: 0,
+			addConnections(myConductor.connectionManager, {
+				myvmix: {
+					type: DeviceType.VMIX,
+					options: {
+						host: '127.0.0.1',
+						port: 8099,
+						pollInterval: 0,
+					},
+					commandReceiver: commandReceiver0,
 				},
-				commandReceiver: commandReceiver0,
 			}),
 			mockTime
 		)
 
-		const deviceContainer = myConductor.getDevice('myvmix')
+		const deviceContainer = myConductor.connectionManager.getConnection('myvmix')
 		device = deviceContainer!.device as ThreadedClass<VMixDevice>
 		const deviceErrorHandler = jest.fn((...args) => console.log('Error in device', ...args))
 		device.on('error', deviceErrorHandler)
@@ -829,19 +836,21 @@ describe('vMix', () => {
 		await myConductor.init()
 
 		await runPromise(
-			myConductor.addDevice('myvmix', {
-				type: DeviceType.VMIX,
-				options: {
-					host: '127.0.0.1',
-					port: 8099,
-					pollInterval: 0,
+			addConnections(myConductor.connectionManager, {
+				myvmix: {
+					type: DeviceType.VMIX,
+					options: {
+						host: '127.0.0.1',
+						port: 8099,
+						pollInterval: 0,
+					},
+					commandReceiver: commandReceiver0,
 				},
-				commandReceiver: commandReceiver0,
 			}),
 			mockTime
 		)
 
-		const deviceContainer = myConductor.getDevice('myvmix')
+		const deviceContainer = myConductor.connectionManager.getConnection('myvmix')
 		device = deviceContainer!.device as ThreadedClass<VMixDevice>
 		const deviceErrorHandler = jest.fn((...args) => console.log('Error in device', ...args))
 		device.on('error', deviceErrorHandler)
@@ -1144,19 +1153,21 @@ describe('vMix', () => {
 		await myConductor.init()
 
 		await runPromise(
-			myConductor.addDevice('myvmix', {
-				type: DeviceType.VMIX,
-				options: {
-					host: '127.0.0.1',
-					port: 8099,
-					pollInterval: 0,
+			addConnections(myConductor.connectionManager, {
+				myvmix: {
+					type: DeviceType.VMIX,
+					options: {
+						host: '127.0.0.1',
+						port: 8099,
+						pollInterval: 0,
+					},
+					commandReceiver: commandReceiver0,
 				},
-				commandReceiver: commandReceiver0,
 			}),
 			mockTime
 		)
 
-		const deviceContainer = myConductor.getDevice('myvmix')
+		const deviceContainer = myConductor.connectionManager.getConnection('myvmix')
 		device = deviceContainer!.device as ThreadedClass<VMixDevice>
 		const deviceErrorHandler = jest.fn((...args) => console.log('Error in device', ...args))
 		device.on('error', deviceErrorHandler)
@@ -1495,19 +1506,21 @@ describe('vMix', () => {
 		await myConductor.init()
 
 		await runPromise(
-			myConductor.addDevice('myvmix', {
-				type: DeviceType.VMIX,
-				options: {
-					host: '127.0.0.1',
-					port: 8099,
-					pollInterval: 0,
+			addConnections(myConductor.connectionManager, {
+				myvmix: {
+					type: DeviceType.VMIX,
+					options: {
+						host: '127.0.0.1',
+						port: 8099,
+						pollInterval: 0,
+					},
+					commandReceiver: commandReceiver0,
 				},
-				commandReceiver: commandReceiver0,
 			}),
 			mockTime
 		)
 
-		const deviceContainer = myConductor.getDevice('myvmix')
+		const deviceContainer = myConductor.connectionManager.getConnection('myvmix')
 		device = deviceContainer!.device as ThreadedClass<VMixDevice>
 		const deviceErrorHandler = jest.fn((...args) => console.log('Error in device', ...args))
 		device.on('error', deviceErrorHandler)
@@ -1722,19 +1735,21 @@ describe('vMix', () => {
 		await myConductor.init()
 
 		await runPromise(
-			myConductor.addDevice('myvmix', {
-				type: DeviceType.VMIX,
-				options: {
-					host: '127.0.0.1',
-					port: 8099,
-					pollInterval: 0,
+			addConnections(myConductor.connectionManager, {
+				myvmix: {
+					type: DeviceType.VMIX,
+					options: {
+						host: '127.0.0.1',
+						port: 8099,
+						pollInterval: 0,
+					},
+					commandReceiver: commandReceiver0,
 				},
-				commandReceiver: commandReceiver0,
 			}),
 			mockTime
 		)
 
-		const deviceContainer = myConductor.getDevice('myvmix')
+		const deviceContainer = myConductor.connectionManager.getConnection('myvmix')
 		device = deviceContainer!.device as ThreadedClass<VMixDevice>
 		const deviceErrorHandler = jest.fn((...args) => console.log('Error in device', ...args))
 		device.on('error', deviceErrorHandler)
@@ -1851,19 +1866,21 @@ describe('vMix', () => {
 		await myConductor.init()
 
 		await runPromise(
-			myConductor.addDevice('myvmix', {
-				type: DeviceType.VMIX,
-				options: {
-					host: '127.0.0.1',
-					port: 8099,
-					pollInterval: 0,
+			addConnections(myConductor.connectionManager, {
+				myvmix: {
+					type: DeviceType.VMIX,
+					options: {
+						host: '127.0.0.1',
+						port: 8099,
+						pollInterval: 0,
+					},
+					commandReceiver: commandReceiver0,
 				},
-				commandReceiver: commandReceiver0,
 			}),
 			mockTime
 		)
 
-		const deviceContainer = myConductor.getDevice('myvmix')
+		const deviceContainer = myConductor.connectionManager.getConnection('myvmix')
 		device = deviceContainer!.device as ThreadedClass<VMixDevice>
 		const deviceErrorHandler = jest.fn((...args) => console.log('Error in device', ...args))
 		device.on('error', deviceErrorHandler)
@@ -1977,19 +1994,21 @@ describe('vMix', () => {
 		await myConductor.init()
 
 		await runPromise(
-			myConductor.addDevice('myvmix', {
-				type: DeviceType.VMIX,
-				options: {
-					host: '127.0.0.1',
-					port: 8099,
-					pollInterval: 0,
+			addConnections(myConductor.connectionManager, {
+				myvmix: {
+					type: DeviceType.VMIX,
+					options: {
+						host: '127.0.0.1',
+						port: 8099,
+						pollInterval: 0,
+					},
+					commandReceiver: commandReceiver0,
 				},
-				commandReceiver: commandReceiver0,
 			}),
 			mockTime
 		)
 
-		const deviceContainer = myConductor.getDevice('myvmix')
+		const deviceContainer = myConductor.connectionManager.getConnection('myvmix')
 		device = deviceContainer!.device as ThreadedClass<VMixDevice>
 		const deviceErrorHandler = jest.fn((...args) => console.log('Error in device', ...args))
 		device.on('error', deviceErrorHandler)
@@ -2103,19 +2122,21 @@ describe('vMix', () => {
 		await myConductor.init()
 
 		await runPromise(
-			myConductor.addDevice('myvmix', {
-				type: DeviceType.VMIX,
-				options: {
-					host: '127.0.0.1',
-					port: 8099,
-					pollInterval: 0,
+			addConnections(myConductor.connectionManager, {
+				myvmix: {
+					type: DeviceType.VMIX,
+					options: {
+						host: '127.0.0.1',
+						port: 8099,
+						pollInterval: 0,
+					},
+					commandReceiver: commandReceiver0,
 				},
-				commandReceiver: commandReceiver0,
 			}),
 			mockTime
 		)
 
-		const deviceContainer = myConductor.getDevice('myvmix')
+		const deviceContainer = myConductor.connectionManager.getConnection('myvmix')
 		device = deviceContainer!.device as ThreadedClass<VMixDevice>
 		const deviceErrorHandler = jest.fn((...args) => console.log('Error in device', ...args))
 		device.on('error', deviceErrorHandler)
@@ -2230,19 +2251,21 @@ describe('vMix', () => {
 		await myConductor.init()
 
 		await runPromise(
-			myConductor.addDevice('myvmix', {
-				type: DeviceType.VMIX,
-				options: {
-					host: '127.0.0.1',
-					port: 8099,
-					pollInterval: 0,
+			addConnections(myConductor.connectionManager, {
+				myvmix: {
+					type: DeviceType.VMIX,
+					options: {
+						host: '127.0.0.1',
+						port: 8099,
+						pollInterval: 0,
+					},
+					commandReceiver: commandReceiver0,
 				},
-				commandReceiver: commandReceiver0,
 			}),
 			mockTime
 		)
 
-		const deviceContainer = myConductor.getDevice('myvmix')
+		const deviceContainer = myConductor.connectionManager.getConnection('myvmix')
 		device = deviceContainer!.device as ThreadedClass<VMixDevice>
 		const deviceErrorHandler = jest.fn((...args) => console.log('Error in device', ...args))
 		device.on('error', deviceErrorHandler)
@@ -2361,19 +2384,21 @@ describe('vMix', () => {
 		await myConductor.init()
 
 		await runPromise(
-			myConductor.addDevice('myvmix', {
-				type: DeviceType.VMIX,
-				options: {
-					host: '127.0.0.1',
-					port: 8099,
-					pollInterval: 0,
+			addConnections(myConductor.connectionManager, {
+				myvmix: {
+					type: DeviceType.VMIX,
+					options: {
+						host: '127.0.0.1',
+						port: 8099,
+						pollInterval: 0,
+					},
+					commandReceiver: commandReceiver0,
 				},
-				commandReceiver: commandReceiver0,
 			}),
 			mockTime
 		)
 
-		const deviceContainer = myConductor.getDevice('myvmix')
+		const deviceContainer = myConductor.connectionManager.getConnection('myvmix')
 		device = deviceContainer!.device as ThreadedClass<VMixDevice>
 		const deviceErrorHandler = jest.fn((...args) => console.log('Error in device', ...args))
 		device.on('error', deviceErrorHandler)
@@ -2493,19 +2518,21 @@ describe('vMix', () => {
 		await myConductor.init()
 
 		await runPromise(
-			myConductor.addDevice('myvmix', {
-				type: DeviceType.VMIX,
-				options: {
-					host: '127.0.0.1',
-					port: 8099,
-					pollInterval: 0,
+			addConnections(myConductor.connectionManager, {
+				myvmix: {
+					type: DeviceType.VMIX,
+					options: {
+						host: '127.0.0.1',
+						port: 8099,
+						pollInterval: 0,
+					},
+					commandReceiver: commandReceiver0,
 				},
-				commandReceiver: commandReceiver0,
 			}),
 			mockTime
 		)
 
-		const deviceContainer = myConductor.getDevice('myvmix')
+		const deviceContainer = myConductor.connectionManager.getConnection('myvmix')
 		device = deviceContainer!.device as ThreadedClass<VMixDevice>
 		const deviceErrorHandler = jest.fn((...args) => console.log('Error in device', ...args))
 		device.on('error', deviceErrorHandler)
@@ -2619,19 +2646,21 @@ describe('vMix', () => {
 		await myConductor.init()
 
 		await runPromise(
-			myConductor.addDevice('myvmix', {
-				type: DeviceType.VMIX,
-				options: {
-					host: '127.0.0.1',
-					port: 8099,
-					pollInterval: 0,
+			addConnections(myConductor.connectionManager, {
+				myvmix: {
+					type: DeviceType.VMIX,
+					options: {
+						host: '127.0.0.1',
+						port: 8099,
+						pollInterval: 0,
+					},
+					commandReceiver: commandReceiver0,
 				},
-				commandReceiver: commandReceiver0,
 			}),
 			mockTime
 		)
 
-		const deviceContainer = myConductor.getDevice('myvmix')
+		const deviceContainer = myConductor.connectionManager.getConnection('myvmix')
 		device = deviceContainer!.device as ThreadedClass<VMixDevice>
 		const deviceErrorHandler = jest.fn((...args) => console.log('Error in device', ...args))
 		device.on('error', deviceErrorHandler)
@@ -2747,19 +2776,21 @@ describe('vMix', () => {
 		await myConductor.init()
 
 		await runPromise(
-			myConductor.addDevice('myvmix', {
-				type: DeviceType.VMIX,
-				options: {
-					host: '127.0.0.1',
-					port: 9999,
-					pollInterval: 0,
+			addConnections(myConductor.connectionManager, {
+				myvmix: {
+					type: DeviceType.VMIX,
+					options: {
+						host: '127.0.0.1',
+						port: 9999,
+						pollInterval: 0,
+					},
+					commandReceiver: commandReceiver0,
 				},
-				commandReceiver: commandReceiver0,
 			}),
 			mockTime
 		)
 
-		const deviceContainer = myConductor.getDevice('myvmix')
+		const deviceContainer = myConductor.connectionManager.getConnection('myvmix')
 		device = deviceContainer!.device as ThreadedClass<VMixDevice>
 		const deviceErrorHandler = jest.fn((...args) => console.log('Error in device', ...args))
 		device.on('error', deviceErrorHandler)
@@ -2852,19 +2883,21 @@ describe('vMix', () => {
 		await myConductor.init()
 
 		await runPromise(
-			myConductor.addDevice('myvmix', {
-				type: DeviceType.VMIX,
-				options: {
-					host: '127.0.0.1',
-					port: 9999,
-					pollInterval: 0,
+			addConnections(myConductor.connectionManager, {
+				myvmix: {
+					type: DeviceType.VMIX,
+					options: {
+						host: '127.0.0.1',
+						port: 9999,
+						pollInterval: 0,
+					},
+					commandReceiver: commandReceiver0,
 				},
-				commandReceiver: commandReceiver0,
 			}),
 			mockTime
 		)
 
-		const deviceContainer = myConductor.getDevice('myvmix')
+		const deviceContainer = myConductor.connectionManager.getConnection('myvmix')
 		device = deviceContainer!.device as ThreadedClass<VMixDevice>
 		const deviceErrorHandler = jest.fn((...args) => console.log('Error in device', ...args))
 		device.on('error', deviceErrorHandler)
@@ -2977,19 +3010,21 @@ describe('vMix', () => {
 		await myConductor.init()
 
 		await runPromise(
-			myConductor.addDevice('myvmix', {
-				type: DeviceType.VMIX,
-				options: {
-					host: '127.0.0.1',
-					port: 9999,
-					pollInterval: 0,
+			addConnections(myConductor.connectionManager, {
+				myvmix: {
+					type: DeviceType.VMIX,
+					options: {
+						host: '127.0.0.1',
+						port: 9999,
+						pollInterval: 0,
+					},
+					commandReceiver: commandReceiver0,
 				},
-				commandReceiver: commandReceiver0,
 			}),
 			mockTime
 		)
 
-		const deviceContainer = myConductor.getDevice('myvmix')
+		const deviceContainer = myConductor.connectionManager.getConnection('myvmix')
 		device = deviceContainer!.device as ThreadedClass<VMixDevice>
 		const deviceErrorHandler = jest.fn((...args) => console.log('Error in device', ...args))
 		device.on('error', deviceErrorHandler)
@@ -3056,19 +3091,21 @@ describe('vMix', () => {
 		await myConductor.init()
 
 		await runPromise(
-			myConductor.addDevice('myvmix', {
-				type: DeviceType.VMIX,
-				options: {
-					host: '127.0.0.1',
-					port: 9999,
-					pollInterval: 0,
+			addConnections(myConductor.connectionManager, {
+				myvmix: {
+					type: DeviceType.VMIX,
+					options: {
+						host: '127.0.0.1',
+						port: 9999,
+						pollInterval: 0,
+					},
+					commandReceiver: commandReceiver0,
 				},
-				commandReceiver: commandReceiver0,
 			}),
 			mockTime
 		)
 
-		const deviceContainer = myConductor.getDevice('myvmix')
+		const deviceContainer = myConductor.connectionManager.getConnection('myvmix')
 		device = deviceContainer!.device as ThreadedClass<VMixDevice>
 		const deviceErrorHandler = jest.fn((...args) => console.log('Error in device', ...args))
 		device.on('error', deviceErrorHandler)
@@ -3157,19 +3194,21 @@ describe('vMix', () => {
 		await myConductor.init()
 
 		await runPromise(
-			myConductor.addDevice('myvmix', {
-				type: DeviceType.VMIX,
-				options: {
-					host: '127.0.0.1',
-					port: 9999,
-					pollInterval: 0,
+			addConnections(myConductor.connectionManager, {
+				myvmix: {
+					type: DeviceType.VMIX,
+					options: {
+						host: '127.0.0.1',
+						port: 9999,
+						pollInterval: 0,
+					},
+					commandReceiver: commandReceiver0,
 				},
-				commandReceiver: commandReceiver0,
 			}),
 			mockTime
 		)
 
-		const deviceContainer = myConductor.getDevice('myvmix')
+		const deviceContainer = myConductor.connectionManager.getConnection('myvmix')
 		device = deviceContainer!.device as ThreadedClass<VMixDevice>
 		const deviceErrorHandler = jest.fn((...args) => console.log('Error in device', ...args))
 		device.on('error', deviceErrorHandler)
@@ -3259,19 +3298,21 @@ describe('vMix', () => {
 		await myConductor.init()
 
 		await runPromise(
-			myConductor.addDevice('myvmix', {
-				type: DeviceType.VMIX,
-				options: {
-					host: '127.0.0.1',
-					port: 9999,
-					pollInterval: 0,
+			addConnections(myConductor.connectionManager, {
+				myvmix: {
+					type: DeviceType.VMIX,
+					options: {
+						host: '127.0.0.1',
+						port: 9999,
+						pollInterval: 0,
+					},
+					commandReceiver: commandReceiver0,
 				},
-				commandReceiver: commandReceiver0,
 			}),
 			mockTime
 		)
 
-		const deviceContainer = myConductor.getDevice('myvmix')
+		const deviceContainer = myConductor.connectionManager.getConnection('myvmix')
 		device = deviceContainer!.device as ThreadedClass<VMixDevice>
 		const deviceErrorHandler = jest.fn((...args) => console.log('Error in device', ...args))
 		device.on('error', deviceErrorHandler)
@@ -3378,19 +3419,21 @@ describe('vMix', () => {
 		await myConductor.init()
 
 		await runPromise(
-			myConductor.addDevice('myvmix', {
-				type: DeviceType.VMIX,
-				options: {
-					host: '127.0.0.1',
-					port: 9999,
-					pollInterval: 0,
+			addConnections(myConductor.connectionManager, {
+				myvmix: {
+					type: DeviceType.VMIX,
+					options: {
+						host: '127.0.0.1',
+						port: 9999,
+						pollInterval: 0,
+					},
+					commandReceiver: commandReceiver0,
 				},
-				commandReceiver: commandReceiver0,
 			}),
 			mockTime
 		)
 
-		const deviceContainer = myConductor.getDevice('myvmix')
+		const deviceContainer = myConductor.connectionManager.getConnection('myvmix')
 		device = deviceContainer!.device as ThreadedClass<VMixDevice>
 		const deviceErrorHandler = jest.fn((...args) => console.log('Error in device', ...args))
 		device.on('error', deviceErrorHandler)
@@ -3507,19 +3550,21 @@ describe('vMix', () => {
 		await myConductor.init()
 
 		await runPromise(
-			myConductor.addDevice('myvmix', {
-				type: DeviceType.VMIX,
-				options: {
-					host: '127.0.0.1',
-					port: 9999,
-					pollInterval: 0,
+			addConnections(myConductor.connectionManager, {
+				myvmix: {
+					type: DeviceType.VMIX,
+					options: {
+						host: '127.0.0.1',
+						port: 9999,
+						pollInterval: 0,
+					},
+					commandReceiver: commandReceiver0,
 				},
-				commandReceiver: commandReceiver0,
 			}),
 			mockTime
 		)
 
-		const deviceContainer = myConductor.getDevice('myvmix')
+		const deviceContainer = myConductor.connectionManager.getConnection('myvmix')
 		device = deviceContainer!.device as ThreadedClass<VMixDevice>
 		const deviceErrorHandler = jest.fn((...args) => console.log('Error in device', ...args))
 		device.on('error', deviceErrorHandler)

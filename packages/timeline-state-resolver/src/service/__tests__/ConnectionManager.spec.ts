@@ -1,6 +1,7 @@
 import { DeviceType, OSCDeviceType } from 'timeline-state-resolver-types'
 import { ConstructedMockDevices, MockDeviceInstanceWrapper } from '../../__tests__/mockDeviceInstanceWrapper'
 import { ConnectionManager } from '../ConnectionManager'
+import { DeviceOptionsAnyInternal } from '../..'
 
 // Mock explicitly the 'dist' version, as that is what threadedClass is being told to load
 jest.mock('../../../dist/service/DeviceInstance', () => ({
@@ -28,7 +29,7 @@ describe('ConnectionManager', () => {
 
 		connManager.setConnections(
 			new Map(
-				Object.entries({
+				Object.entries<DeviceOptionsAnyInternal>({
 					osc0: {
 						type: DeviceType.OSC,
 						options: {

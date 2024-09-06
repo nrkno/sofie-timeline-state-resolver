@@ -16,7 +16,7 @@ export async function addConnections(
 
 	let resolveAdded: undefined | (() => void) = undefined
 	const psAdded = new Promise<void>((resolveCb) => (resolveAdded = resolveCb))
-	connManager.on('connectionAdded', (id) => {
+	connManager.on('connectionInitialised', (id) => {
 		addedConns.push(id)
 
 		if (resolveAdded && addedConns.length === connectionIds.length) resolveAdded()
