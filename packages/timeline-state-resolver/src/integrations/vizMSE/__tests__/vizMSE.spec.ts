@@ -13,7 +13,7 @@ import {
 } from 'timeline-state-resolver-types'
 import { MockTime } from '../../../__tests__/mockTime'
 import { ThreadedClass } from 'threadedclass'
-import { getMockCall } from '../../../__tests__/lib'
+import { addConnections, getMockCall } from '../../../__tests__/lib'
 import { VizMSEDevice } from '..'
 import * as vConnection from '../../../__mocks__/v-connection'
 import * as net from '../../../__mocks__/net'
@@ -64,18 +64,20 @@ async function setupDevice() {
 
 	myConductor.setTimelineAndMappings([], myChannelMapping)
 	await myConductor.init()
-	await myConductor.addDevice('myViz', {
-		type: DeviceType.VIZMSE,
-		options: {
-			host: '127.0.0.1',
-			preloadAllElements: true,
-			playlistID: 'my-super-playlist-id',
-			profile: 'profile9999',
-			showDirectoryPath: 'SOFIE',
+	await addConnections(myConductor.connectionManager, {
+		myViz: {
+			type: DeviceType.VIZMSE,
+			options: {
+				host: '127.0.0.1',
+				preloadAllElements: true,
+				playlistID: 'my-super-playlist-id',
+				profile: 'profile9999',
+				showDirectoryPath: 'SOFIE',
+			},
+			commandReceiver: commandReceiver0,
 		},
-		commandReceiver: commandReceiver0,
 	})
-	const deviceContainer = myConductor.getDevice('myViz')
+	const deviceContainer = myConductor.connectionManager.getConnection('myViz')
 	device = deviceContainer!.device as ThreadedClass<VizMSEDevice>
 
 	return { device, myConductor, onError, commandReceiver0 }
@@ -482,7 +484,7 @@ describe('vizMSE', () => {
 
 		expect(onError).toHaveBeenCalledTimes(0)
 	})
-	test('bad init options & basic functionality', async () => {
+	test('basic functionality', async () => {
 		const myConductor = new Conductor({
 			multiThreadedResolver: false,
 			getCurrentTime: mockTime.getCurrentTime,
@@ -494,37 +496,19 @@ describe('vizMSE', () => {
 
 		await myConductor.init()
 
-		await expect(
-			myConductor.addDevice('myViz', {
-				type: DeviceType.VIZMSE,
-				options: literal<Omit<VizMSEOptions, 'host'>>({
-					// host: '127.0.0.1',
-					profile: 'myProfile',
-				}) as any,
-			})
-		).rejects.toMatch(/bad option/)
-		await expect(
-			// @ts-ignore
-			myConductor.addDevice('myViz', {
-				type: DeviceType.VIZMSE,
-				options: {
-					host: '127.0.0.1',
-					// profile: 'myProfile'
-				},
-			})
-		).rejects.toMatch(/bad option/)
-
 		expect(onError).toHaveBeenCalledTimes(2)
 		onError.mockClear()
 
-		const deviceContainer = await myConductor.addDevice('myViz', {
-			type: DeviceType.VIZMSE,
-			options: {
-				host: '127.0.0.1',
-				profile: 'myProfile',
+		await addConnections(myConductor.connectionManager, {
+			myViz: {
+				type: DeviceType.VIZMSE,
+				options: {
+					host: '127.0.0.1',
+					profile: 'myProfile',
+				},
 			},
 		})
-		const device = deviceContainer.device
+		const device = myConductor.connectionManager.getConnection('myViz')!.device
 		const connectionChanged = jest.fn()
 		await device.on('connectionChanged', connectionChanged)
 
@@ -587,22 +571,24 @@ describe('vizMSE', () => {
 		})
 		myConductor.setTimelineAndMappings([], myChannelMapping)
 		await myConductor.init()
-		await myConductor.addDevice('myViz', {
-			type: DeviceType.VIZMSE,
-			options: {
-				host: '127.0.0.1',
-				preloadAllElements: true,
-				playlistID: 'my-super-playlist-id',
-				profile: 'profile9999',
-				clearAllTemplateName: 'clear_all_of_them',
-				clearAllCommands: ['RENDERER*FRONT_LAYER SET_OBJECT ', 'RENDERER SET_OBJECT '],
-				showDirectoryPath: 'SOFIE',
+		await addConnections(myConductor.connectionManager, {
+			myViz: {
+				type: DeviceType.VIZMSE,
+				options: {
+					host: '127.0.0.1',
+					preloadAllElements: true,
+					playlistID: 'my-super-playlist-id',
+					profile: 'profile9999',
+					clearAllTemplateName: 'clear_all_of_them',
+					clearAllCommands: ['RENDERER*FRONT_LAYER SET_OBJECT ', 'RENDERER SET_OBJECT '],
+					showDirectoryPath: 'SOFIE',
+				},
+				commandReceiver: commandReceiver0,
 			},
-			commandReceiver: commandReceiver0,
 		})
 		await mockTime.advanceTimeToTicks(10100)
 
-		const deviceContainer = myConductor.getDevice('myViz')
+		const deviceContainer = myConductor.connectionManager.getConnection('myViz')
 		const device = deviceContainer!.device as ThreadedClass<VizMSEDevice>
 		await device.ignoreWaitsInTests()
 
@@ -1040,20 +1026,22 @@ describe('vizMSE', () => {
 			getCurrentTime: mockTime.getCurrentTime,
 		})
 		await myConductor.init()
-		await myConductor.addDevice('myViz', {
-			type: DeviceType.VIZMSE,
-			options: {
-				host: '127.0.0.1',
-				preloadAllElements: true,
-				playlistID: 'my-super-playlist-id',
-				profile: PROFILE_NAME,
-				clearAllOnMakeReady: true,
-				clearAllTemplateName: 'clear_all_of_them',
-				clearAllCommands: [CLEAR_COMMAND],
+		await addConnections(myConductor.connectionManager, {
+			myViz: {
+				type: DeviceType.VIZMSE,
+				options: {
+					host: '127.0.0.1',
+					preloadAllElements: true,
+					playlistID: 'my-super-playlist-id',
+					profile: PROFILE_NAME,
+					clearAllOnMakeReady: true,
+					clearAllTemplateName: 'clear_all_of_them',
+					clearAllCommands: [CLEAR_COMMAND],
+				},
 			},
 		})
 
-		const deviceContainer = myConductor.getDevice('myViz')
+		const deviceContainer = myConductor.connectionManager.getConnection('myViz')
 		const device = deviceContainer!.device as ThreadedClass<VizMSEDevice>
 		await device.ignoreWaitsInTests()
 
@@ -1111,20 +1099,22 @@ describe('vizMSE', () => {
 			getCurrentTime: mockTime.getCurrentTime,
 		})
 		await myConductor.init()
-		await myConductor.addDevice('myViz', {
-			type: DeviceType.VIZMSE,
-			options: {
-				host: '127.0.0.1',
-				preloadAllElements: true,
-				playlistID: 'my-super-playlist-id',
-				profile: PROFILE_NAME,
-				clearAllOnMakeReady: false,
-				clearAllTemplateName: 'clear_all_of_them',
-				clearAllCommands: [CLEAR_COMMAND],
+		await addConnections(myConductor.connectionManager, {
+			myViz: {
+				type: DeviceType.VIZMSE,
+				options: {
+					host: '127.0.0.1',
+					preloadAllElements: true,
+					playlistID: 'my-super-playlist-id',
+					profile: PROFILE_NAME,
+					clearAllOnMakeReady: false,
+					clearAllTemplateName: 'clear_all_of_them',
+					clearAllCommands: [CLEAR_COMMAND],
+				},
 			},
 		})
 
-		const deviceContainer = myConductor.getDevice('myViz')
+		const deviceContainer = myConductor.connectionManager.getConnection('myViz')
 		const device = deviceContainer!.device as ThreadedClass<VizMSEDevice>
 		await device.ignoreWaitsInTests()
 

@@ -332,15 +332,15 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 	}
 
 	/**
-	 * Remove all devices
+	 * Remove all connections
 	 */
 	public async destroy(): Promise<void> {
 		clearTimeout(this._interval)
 
 		if (this._triggerSendStartStopCallbacksTimeout) clearTimeout(this._triggerSendStartStopCallbacksTimeout)
 
-		// todo - reenable this
-		// await this._mapAllDevices(true, async (d) => this.removeDevice(d.deviceId))
+		// remove all connections:
+		this.connectionManager.setConnections(new Map())
 	}
 
 	/**

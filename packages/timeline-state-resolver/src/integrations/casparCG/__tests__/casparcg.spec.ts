@@ -13,7 +13,7 @@ import {
 	MappingCasparCGType,
 } from 'timeline-state-resolver-types'
 import { MockTime } from '../../../__tests__/mockTime'
-import { getMockCall } from '../../../__tests__/lib'
+import { addConnections, getMockCall } from '../../../__tests__/lib'
 import { Commands } from 'casparcg-connection'
 
 // usage logCalls(commandReceiver0)
@@ -51,13 +51,15 @@ describe('CasparCG', () => {
 			getCurrentTime: mockTime.getCurrentTime,
 		})
 		await myConductor.init() // we cannot do an await, because setTimeout will never call without jest moving on.
-		await myConductor.addDevice('myCCG', {
-			type: DeviceType.CASPARCG,
-			options: {
-				host: '127.0.0.1',
+		await addConnections(myConductor.connectionManager, {
+			myCCG: {
+				type: DeviceType.CASPARCG,
+				options: {
+					host: '127.0.0.1',
+				},
+				commandReceiver: commandReceiver0,
+				skipVirginCheck: true,
 			},
-			commandReceiver: commandReceiver0,
-			skipVirginCheck: true,
 		})
 		await mockTime.advanceTimeToTicks(10100)
 
@@ -129,13 +131,15 @@ describe('CasparCG', () => {
 			getCurrentTime: mockTime.getCurrentTime,
 		})
 		await myConductor.init() // we cannot do an await, because setTimeout will never call without jest moving on.
-		await myConductor.addDevice('myCCG', {
-			type: DeviceType.CASPARCG,
-			options: {
-				host: '127.0.0.1',
+		await addConnections(myConductor.connectionManager, {
+			myCCG: {
+				type: DeviceType.CASPARCG,
+				options: {
+					host: '127.0.0.1',
+				},
+				commandReceiver: commandReceiver0,
+				skipVirginCheck: true,
 			},
-			commandReceiver: commandReceiver0,
-			skipVirginCheck: true,
 		})
 		await mockTime.advanceTimeToTicks(10100)
 
@@ -196,14 +200,16 @@ describe('CasparCG', () => {
 			getCurrentTime: mockTime.getCurrentTime,
 		})
 		await myConductor.init() // we cannot do an await, because setTimeout will never call without jest moving on.
-		await myConductor.addDevice('myCCG', {
-			type: DeviceType.CASPARCG,
-			options: {
-				host: '127.0.0.1',
-				fps: 50,
+		await addConnections(myConductor.connectionManager, {
+			myCCG: {
+				type: DeviceType.CASPARCG,
+				options: {
+					host: '127.0.0.1',
+					fps: 50,
+				},
+				commandReceiver: commandReceiver0,
+				skipVirginCheck: true,
 			},
-			commandReceiver: commandReceiver0,
-			skipVirginCheck: true,
 		})
 		await mockTime.advanceTimeToTicks(10100)
 
@@ -278,13 +284,15 @@ describe('CasparCG', () => {
 			getCurrentTime: mockTime.getCurrentTime,
 		})
 		await myConductor.init()
-		await myConductor.addDevice('myCCG', {
-			type: DeviceType.CASPARCG,
-			options: {
-				host: '127.0.0.1',
+		await addConnections(myConductor.connectionManager, {
+			myCCG: {
+				type: DeviceType.CASPARCG,
+				options: {
+					host: '127.0.0.1',
+				},
+				commandReceiver: commandReceiver0,
+				skipVirginCheck: true,
 			},
-			commandReceiver: commandReceiver0,
-			skipVirginCheck: true,
 		})
 
 		myConductor.setTimelineAndMappings(
@@ -351,13 +359,15 @@ describe('CasparCG', () => {
 			getCurrentTime: mockTime.getCurrentTime,
 		})
 		await myConductor.init()
-		await myConductor.addDevice('myCCG', {
-			type: DeviceType.CASPARCG,
-			options: {
-				host: '127.0.0.1',
+		await addConnections(myConductor.connectionManager, {
+			myCCG: {
+				type: DeviceType.CASPARCG,
+				options: {
+					host: '127.0.0.1',
+				},
+				commandReceiver: commandReceiver0,
+				skipVirginCheck: true,
 			},
-			commandReceiver: commandReceiver0,
-			skipVirginCheck: true,
 		})
 
 		// await mockTime.advanceTimeToTicks(10050)
@@ -440,13 +450,15 @@ describe('CasparCG', () => {
 			getCurrentTime: mockTime.getCurrentTime,
 		})
 		await myConductor.init()
-		await myConductor.addDevice('myCCG', {
-			type: DeviceType.CASPARCG,
-			options: {
-				host: '127.0.0.1',
+		await addConnections(myConductor.connectionManager, {
+			myCCG: {
+				type: DeviceType.CASPARCG,
+				options: {
+					host: '127.0.0.1',
+				},
+				commandReceiver: commandReceiver0,
+				skipVirginCheck: true,
 			},
-			commandReceiver: commandReceiver0,
-			skipVirginCheck: true,
 		})
 
 		await mockTime.advanceTimeToTicks(10050)
@@ -519,13 +531,15 @@ describe('CasparCG', () => {
 			getCurrentTime: mockTime.getCurrentTime,
 		})
 		await myConductor.init()
-		await myConductor.addDevice('myCCG', {
-			type: DeviceType.CASPARCG,
-			options: {
-				host: '127.0.0.1',
+		await addConnections(myConductor.connectionManager, {
+			myCCG: {
+				type: DeviceType.CASPARCG,
+				options: {
+					host: '127.0.0.1',
+				},
+				commandReceiver: commandReceiver0,
+				skipVirginCheck: true,
 			},
-			commandReceiver: commandReceiver0,
-			skipVirginCheck: true,
 		})
 
 		await mockTime.advanceTimeToTicks(10050)
@@ -599,18 +613,20 @@ describe('CasparCG', () => {
 			getCurrentTime: mockTime.getCurrentTime,
 		})
 		await myConductor.init()
-		await myConductor.addDevice('myCCG', {
-			type: DeviceType.CASPARCG,
-			options: {
-				host: '127.0.0.1',
+		await addConnections(myConductor.connectionManager, {
+			myCCG: {
+				type: DeviceType.CASPARCG,
+				options: {
+					host: '127.0.0.1',
+				},
+				commandReceiver: commandReceiver0,
+				skipVirginCheck: true,
 			},
-			commandReceiver: commandReceiver0,
-			skipVirginCheck: true,
 		})
 
-		const deviceContainer = myConductor.getDevice('myCCG')
-		const device = deviceContainer!.device
-		await device['_ccgState']
+		const connContainer = myConductor.connectionManager.getConnection('myCCG')
+		const conn = connContainer!.device
+		await conn['_ccgState']
 
 		await mockTime.advanceTimeToTicks(10050)
 		expect(commandReceiver0).toHaveBeenCalledTimes(0)
@@ -715,13 +731,15 @@ describe('CasparCG', () => {
 			getCurrentTime: mockTime.getCurrentTime,
 		})
 		await myConductor.init()
-		await myConductor.addDevice('myCCG', {
-			type: DeviceType.CASPARCG,
-			options: {
-				host: '127.0.0.1',
+		await addConnections(myConductor.connectionManager, {
+			myCCG: {
+				type: DeviceType.CASPARCG,
+				options: {
+					host: '127.0.0.1',
+				},
+				commandReceiver: commandReceiver0,
+				skipVirginCheck: true,
 			},
-			commandReceiver: commandReceiver0,
-			skipVirginCheck: true,
 		})
 
 		// Check that no commands has been sent:
@@ -834,13 +852,15 @@ describe('CasparCG', () => {
 			console.warn(msg)
 		})
 		await myConductor.init()
-		await myConductor.addDevice('myCCG', {
-			type: DeviceType.CASPARCG,
-			options: {
-				host: '127.0.0.1',
+		await addConnections(myConductor.connectionManager, {
+			myCCG: {
+				type: DeviceType.CASPARCG,
+				options: {
+					host: '127.0.0.1',
+				},
+				commandReceiver: commandReceiver0,
+				skipVirginCheck: true,
 			},
-			commandReceiver: commandReceiver0,
-			skipVirginCheck: true,
 		})
 
 		// Check that no commands has been sent:
@@ -972,13 +992,15 @@ describe('CasparCG', () => {
 			getCurrentTime: mockTime.getCurrentTime,
 		})
 		await myConductor.init()
-		await myConductor.addDevice('myCCG', {
-			type: DeviceType.CASPARCG,
-			options: {
-				host: '127.0.0.1',
+		await addConnections(myConductor.connectionManager, {
+			myCCG: {
+				type: DeviceType.CASPARCG,
+				options: {
+					host: '127.0.0.1',
+				},
+				commandReceiver: commandReceiver0,
+				skipVirginCheck: true,
 			},
-			commandReceiver: commandReceiver0,
-			skipVirginCheck: true,
 		})
 
 		expect(mockTime.getCurrentTime()).toEqual(10000)
@@ -1077,13 +1099,15 @@ describe('CasparCG', () => {
 			getCurrentTime: mockTime.getCurrentTime,
 		})
 		await myConductor.init()
-		await myConductor.addDevice('myCCG', {
-			type: DeviceType.CASPARCG,
-			options: {
-				host: '127.0.0.1',
+		await addConnections(myConductor.connectionManager, {
+			myCCG: {
+				type: DeviceType.CASPARCG,
+				options: {
+					host: '127.0.0.1',
+				},
+				commandReceiver: commandReceiver0,
+				skipVirginCheck: true,
 			},
-			commandReceiver: commandReceiver0,
-			skipVirginCheck: true,
 		})
 
 		expect(mockTime.getCurrentTime()).toEqual(10000)
@@ -1181,13 +1205,15 @@ describe('CasparCG', () => {
 			getCurrentTime: mockTime.getCurrentTime,
 		})
 		await myConductor.init()
-		await myConductor.addDevice('myCCG', {
-			type: DeviceType.CASPARCG,
-			options: {
-				host: '127.0.0.1',
+		await addConnections(myConductor.connectionManager, {
+			myCCG: {
+				type: DeviceType.CASPARCG,
+				options: {
+					host: '127.0.0.1',
+				},
+				commandReceiver: commandReceiver0,
+				skipVirginCheck: true,
 			},
-			commandReceiver: commandReceiver0,
-			skipVirginCheck: true,
 		})
 
 		await mockTime.advanceTimeToTicks(10050)
@@ -1281,13 +1307,15 @@ describe('CasparCG', () => {
 			getCurrentTime: mockTime.getCurrentTime,
 		})
 		await myConductor.init()
-		await myConductor.addDevice('myCCG', {
-			type: DeviceType.CASPARCG,
-			options: {
-				host: '127.0.0.1',
+		await addConnections(myConductor.connectionManager, {
+			myCCG: {
+				type: DeviceType.CASPARCG,
+				options: {
+					host: '127.0.0.1',
+				},
+				commandReceiver: commandReceiver0,
+				skipVirginCheck: true,
 			},
-			commandReceiver: commandReceiver0,
-			skipVirginCheck: true,
 		})
 
 		await mockTime.advanceTimeToTicks(10050)
@@ -1370,13 +1398,15 @@ describe('CasparCG', () => {
 			getCurrentTime: mockTime.getCurrentTime,
 		})
 		await myConductor.init() // we cannot do an await, because setTimeout will never call without jest moving on.
-		await myConductor.addDevice('myCCG', {
-			type: DeviceType.CASPARCG,
-			options: {
-				host: '127.0.0.1',
+		await addConnections(myConductor.connectionManager, {
+			myCCG: {
+				type: DeviceType.CASPARCG,
+				options: {
+					host: '127.0.0.1',
+				},
+				commandReceiver: commandReceiver0,
+				skipVirginCheck: true,
 			},
-			commandReceiver: commandReceiver0,
-			skipVirginCheck: true,
 		})
 		await mockTime.advanceTimeToTicks(10100)
 
@@ -1454,14 +1484,16 @@ describe('CasparCG', () => {
 			getCurrentTime: mockTime.getCurrentTime,
 		})
 		await myConductor.init()
-		await myConductor.addDevice('myCCG', {
-			type: DeviceType.CASPARCG,
-			options: {
-				host: '127.0.0.1',
-				retryInterval: undefined, // disable retries explicitly, we will manually trigger them
+		await addConnections(myConductor.connectionManager, {
+			myCCG: {
+				type: DeviceType.CASPARCG,
+				options: {
+					host: '127.0.0.1',
+					retryInterval: undefined, // disable retries explicitly, we will manually trigger them
+				},
+				commandReceiver: commandReceiver0,
+				skipVirginCheck: true,
 			},
-			commandReceiver: commandReceiver0,
-			skipVirginCheck: true,
 		})
 		myConductor.setTimelineAndMappings([], myLayerMapping)
 		await mockTime.advanceTimeToTicks(10100)
@@ -1470,8 +1502,8 @@ describe('CasparCG', () => {
 
 		commandReceiver0.mockClear()
 
-		const deviceContainer = myConductor.getDevice('myCCG')
-		const device = deviceContainer!.device
+		const connContainer = myConductor.connectionManager.getConnection('myCCG')
+		const conn = connContainer!.device
 
 		myConductor.setTimelineAndMappings([
 			{
@@ -1513,7 +1545,7 @@ describe('CasparCG', () => {
 		// advance to half way
 		await mockTime.advanceTimeToTicks(10700)
 		// call the retry mechanism
-		await (device as any)._assertIntendedState()
+		await (conn as any)._assertIntendedState()
 		await mockTime.advanceTimeToTicks(10800)
 
 		expect(commandReceiver0).toHaveBeenCalledTimes(2)
@@ -1530,13 +1562,13 @@ describe('CasparCG', () => {
 		// apply command to internal ccg-state
 		const resCommand = getMockCall(commandReceiver0, 1, 1)
 		// @ts-ignore
-		await device._changeTrackedStateFromCommand(
+		await conn._changeTrackedStateFromCommand(
 			resCommand,
 			{ responseCode: 202, command: resCommand.command },
 			mockTime.getCurrentTime()
 		)
 		// trigger retry mechanism
-		await (device as any)._assertIntendedState()
+		await (conn as any)._assertIntendedState()
 		await mockTime.advanceTimeToTicks(10900)
 		// no retries done
 		expect(commandReceiver0).toHaveBeenCalledTimes(2)
@@ -1553,7 +1585,7 @@ describe('CasparCG', () => {
 		// advance time to after clip:
 		await mockTime.advanceTimeToTicks(11700)
 		// call the retry mechanism
-		await (device as any)._assertIntendedState()
+		await (conn as any)._assertIntendedState()
 		await mockTime.advanceTimeToTicks(11800)
 		// no retries issued
 		expect(commandReceiver0).toHaveBeenCalledTimes(3)
@@ -1581,14 +1613,16 @@ describe('CasparCG', () => {
 			getCurrentTime: mockTime.getCurrentTime,
 		})
 		await myConductor.init()
-		await myConductor.addDevice('myCCG', {
-			type: DeviceType.CASPARCG,
-			options: {
-				host: '127.0.0.1',
-				retryInterval: undefined, // disable retries explicitly, we will manually trigger them
+		await addConnections(myConductor.connectionManager, {
+			myCCG: {
+				type: DeviceType.CASPARCG,
+				options: {
+					host: '127.0.0.1',
+					retryInterval: undefined, // disable retries explicitly, we will manually trigger them
+				},
+				commandReceiver: commandReceiver0,
+				skipVirginCheck: true,
 			},
-			commandReceiver: commandReceiver0,
-			skipVirginCheck: true,
 		})
 		myConductor.setTimelineAndMappings([], myLayerMapping)
 		await mockTime.advanceTimeToTicks(10100)
@@ -1597,8 +1631,8 @@ describe('CasparCG', () => {
 
 		commandReceiver0.mockClear()
 
-		const deviceContainer = myConductor.getDevice('myCCG')
-		const device = deviceContainer!.device
+		const connContainer = myConductor.connectionManager.getConnection('myCCG')
+		const conn = connContainer!.device
 
 		myConductor.setTimelineAndMappings([
 			{
@@ -1658,7 +1692,7 @@ describe('CasparCG', () => {
 		// @ts-ignore
 		const resCommand = getMockCall(commandReceiver0, 0, 1)
 		// @ts-ignore
-		await device._changeTrackedStateFromCommand(
+		await conn._changeTrackedStateFromCommand(
 			resCommand,
 			{ responseCode: 202, command: resCommand.command },
 			mockTime.getCurrentTime()
@@ -1672,7 +1706,7 @@ describe('CasparCG', () => {
 		// advance to half way
 		await mockTime.advanceTimeToTicks(10700)
 		// call the retry mechanism
-		await (device as any)._assertIntendedState()
+		await (conn as any)._assertIntendedState()
 		// still no retries as empty always plays
 		expect(commandReceiver0).toHaveBeenCalledTimes(1)
 
@@ -1681,7 +1715,7 @@ describe('CasparCG', () => {
 		// advance time to after clip:
 		await mockTime.advanceTimeToTicks(20700)
 		// call the retry mechanism
-		await (device as any)._assertIntendedState()
+		await (conn as any)._assertIntendedState()
 		await mockTime.advanceTimeToTicks(20800)
 		// no retries issued
 		expect(commandReceiver0).toHaveBeenCalledTimes(1)
@@ -1710,13 +1744,15 @@ describe('CasparCG', () => {
 			getCurrentTime: mockTime.getCurrentTime,
 		})
 		await myConductor.init() // we cannot do an await, because setTimeout will never call without jest moving on.
-		await myConductor.addDevice('myCCG', {
-			type: DeviceType.CASPARCG,
-			options: {
-				host: '127.0.0.1',
+		await addConnections(myConductor.connectionManager, {
+			myCCG: {
+				type: DeviceType.CASPARCG,
+				options: {
+					host: '127.0.0.1',
+				},
+				commandReceiver: commandReceiver0,
+				skipVirginCheck: true,
 			},
-			commandReceiver: commandReceiver0,
-			skipVirginCheck: true,
 		})
 		await mockTime.advanceTimeToTicks(10100)
 
@@ -1806,13 +1842,15 @@ describe('CasparCG', () => {
 			getCurrentTime: mockTime.getCurrentTime,
 		})
 		await myConductor.init() // we cannot do an await, because setTimeout will never call without jest moving on.
-		await myConductor.addDevice('myCCG', {
-			type: DeviceType.CASPARCG,
-			options: {
-				host: '127.0.0.1',
+		await addConnections(myConductor.connectionManager, {
+			myCCG: {
+				type: DeviceType.CASPARCG,
+				options: {
+					host: '127.0.0.1',
+				},
+				commandReceiver: commandReceiver0,
+				skipVirginCheck: true,
 			},
-			commandReceiver: commandReceiver0,
-			skipVirginCheck: true,
 		})
 		await mockTime.advanceTimeToTicks(10100)
 

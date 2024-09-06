@@ -12,7 +12,7 @@ import {
 } from 'timeline-state-resolver-types'
 import { MockTime } from './mockTime'
 import { ThreadedClass } from 'threadedclass'
-import { getMockCall } from './lib'
+import { addConnections, getMockCall, removeConnections } from './lib'
 import { setupAllMocks } from '../__mocks__/_setup-all-mocks'
 import { Commands } from 'casparcg-connection'
 import { MockDeviceInstanceWrapper, ConstructedMockDevices, DiscardAllMockDevices } from './mockDeviceInstanceWrapper'
@@ -27,6 +27,8 @@ jest.mock('../service/DeviceInstance', () => ({
 
 import { Conductor, TimelineTriggerTimeResult } from '../conductor'
 import type { DeviceInstanceWrapper } from '../service/DeviceInstance'
+import { DeviceOptionsAnyInternal } from '..'
+import { ConnectionManager } from '../service/ConnectionManager'
 
 describe('Conductor', () => {
 	const mockTime = new MockTime()
@@ -38,11 +40,11 @@ describe('Conductor', () => {
 		DiscardAllMockDevices()
 	})
 
-	async function getMockDeviceWrapper(conductor: Conductor, deviceId: string): Promise<MockDeviceInstanceWrapper> {
-		const deviceContainer = conductor.getDevice(deviceId)
+	async function getMockDeviceWrapper(conductor: Conductor, connectionId: string): Promise<MockDeviceInstanceWrapper> {
+		const deviceContainer = conductor.connectionManager.getConnection(connectionId)
 		expect(deviceContainer).toBeTruthy()
 
-		const mockDevice = ConstructedMockDevices[deviceId]
+		const mockDevice = ConstructedMockDevices[connectionId]
 		expect(mockDevice).toBeTruthy()
 		return mockDevice
 	}
@@ -70,13 +72,15 @@ describe('Conductor', () => {
 
 		try {
 			await conductor.init()
-			await conductor.addDevice('device0', {
-				type: DeviceType.ABSTRACT,
-				options: {},
-			})
-			await conductor.addDevice('device1', {
-				type: DeviceType.ABSTRACT,
-				options: {},
+			await addConnections(conductor.connectionManager, {
+				device0: {
+					type: DeviceType.ABSTRACT,
+					options: {},
+				},
+				device1: {
+					type: DeviceType.ABSTRACT,
+					options: {},
+				},
 			})
 
 			// add something that will play in a seconds time
@@ -191,13 +195,18 @@ describe('Conductor', () => {
 			)
 
 			// Remove the device
-			await conductor.removeDevice('device1')
-			expect(conductor.getDevice('device1')).toBeFalsy()
+			await removeConnections(
+				conductor.connectionManager,
+				{
+					device0: {
+						type: DeviceType.ABSTRACT,
+						options: {},
+					},
+				},
+				['device1']
+			)
+			expect(conductor.connectionManager.getConnection('device1')).toBeFalsy()
 			expect(ConstructedMockDevices['device1']).toBeFalsy()
-
-			// Re-add a device
-			const addedDevice = await conductor.addDevice('device1', { type: DeviceType.ABSTRACT, options: {} })
-			expect(addedDevice).toBeTruthy()
 		} finally {
 			await conductor.destroy()
 		}
@@ -220,9 +229,11 @@ describe('Conductor', () => {
 
 		try {
 			await conductor.init()
-			await conductor.addDevice('device0', {
-				type: DeviceType.ABSTRACT,
-				options: {},
+			await addConnections(conductor.connectionManager, {
+				device0: {
+					type: DeviceType.ABSTRACT,
+					options: {},
+				},
 			})
 
 			// add something that will play "now"
@@ -387,13 +398,15 @@ describe('Conductor', () => {
 
 		try {
 			await conductor.init()
-			await conductor.addDevice('device0', {
-				type: DeviceType.ABSTRACT,
-				options: {},
-			})
-			await conductor.addDevice('device1', {
-				type: DeviceType.HTTPSEND,
-				options: {},
+			await addConnections(conductor.connectionManager, {
+				device0: {
+					type: DeviceType.ABSTRACT,
+					options: {},
+				},
+				device1: {
+					type: DeviceType.ABSTRACT,
+					options: {},
+				},
 			})
 
 			const device0 = await getMockDeviceWrapper(conductor, 'device0')
@@ -437,15 +450,17 @@ describe('Conductor', () => {
 
 		try {
 			await conductor.init()
-			await conductor.addDevice('device0', {
-				type: DeviceType.ABSTRACT,
-				options: {},
-				isMultiThreaded: true,
+			await addConnections(conductor.connectionManager, {
+				device0: {
+					type: DeviceType.ABSTRACT,
+					options: {},
+					isMultiThreaded: true,
+				},
 			})
 			conductor.setTimelineAndMappings([], myLayerMapping)
 
-			const device = conductor.getDevice('device0')!.device
-			expect(await device.getCurrentTime()).toBeTruthy()
+			const connection = conductor.connectionManager.getConnection('device0')!.device
+			expect(await connection.getCurrentTime()).toBeTruthy()
 		} finally {
 			await conductor.destroy()
 		}
@@ -475,12 +490,14 @@ describe('Conductor', () => {
 		})
 
 		await conductor.init()
-		await conductor.addDevice('device0', {
-			type: DeviceType.CASPARCG,
-			options: {
-				host: '127.0.0.1',
+		await addConnections(conductor.connectionManager, {
+			device0: {
+				type: DeviceType.CASPARCG,
+				options: {
+					host: '127.0.0.1',
+				},
+				commandReceiver: commandReceiver0,
 			},
-			commandReceiver: commandReceiver0,
 		})
 		conductor.setTimelineAndMappings([], myLayerMapping)
 
@@ -505,7 +522,7 @@ describe('Conductor', () => {
 
 		const timeline: TSRTimeline = [video0]
 
-		const device0Container = conductor.getDevice('device0')
+		const device0Container = conductor.connectionManager.getConnection('device0')
 		const device0 = device0Container!.device as ThreadedClass<DeviceInstanceWrapper>
 		expect(device0).toBeTruthy()
 

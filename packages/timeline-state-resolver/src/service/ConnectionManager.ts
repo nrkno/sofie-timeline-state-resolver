@@ -1,9 +1,4 @@
-import {
-	DeviceOptionsBase,
-	DeviceOptionsMultiOSC,
-	DeviceOptionsTelemetrics,
-	DeviceType,
-} from 'timeline-state-resolver-types'
+import { DeviceOptionsBase, DeviceType } from 'timeline-state-resolver-types'
 import { BaseRemoteDeviceIntegration, RemoteDeviceInstance } from './remoteDeviceInstance'
 import _ = require('underscore')
 import { ThreadedClassConfig } from 'threadedclass'
@@ -11,13 +6,7 @@ import { DeviceOptionsAnyInternal } from '../conductor'
 import { DeviceContainer } from '..//devices/deviceContainer'
 import { assertNever } from 'atem-connection/dist/lib/atemUtil'
 import { CasparCGDevice, DeviceOptionsCasparCGInternal } from '../integrations/casparCG'
-import { MultiOSCMessageDevice } from '../integrations/multiOsc'
-import { DeviceOptionsPharosInternal, PharosDevice } from '../integrations/pharos'
-import { DeviceOptionsSingularLiveInternal, SingularLiveDevice } from '../integrations/singularLive'
 import { DeviceOptionsSisyfosInternal, SisyfosMessageDevice } from '../integrations/sisyfos'
-import { DeviceOptionsSofieChefInternal, SofieChefDevice } from '../integrations/sofieChef'
-import { TelemetricsDevice } from '../integrations/telemetrics'
-import { DeviceOptionsTriCasterInternal, TriCasterDevice } from '../integrations/tricaster'
 import { DeviceOptionsVizMSEInternal, VizMSEDevice } from '../integrations/vizMSE'
 import { DeviceOptionsVMixInternal, VMixDevice } from '../integrations/vmix'
 import { ImplementedServiceDeviceTypes } from './devices'
@@ -370,15 +359,6 @@ function createContainer(
 				getCurrentTime,
 				threadedClassOptions
 			)
-		case DeviceType.PHAROS:
-			return DeviceContainer.create<DeviceOptionsPharosInternal, typeof PharosDevice>(
-				'../../dist/integrations/pharos/index.js',
-				'PharosDevice',
-				deviceId,
-				deviceOptions,
-				getCurrentTime,
-				threadedClassOptions
-			)
 		case DeviceType.SISYFOS:
 			return DeviceContainer.create<DeviceOptionsSisyfosInternal, typeof SisyfosMessageDevice>(
 				'../../dist/integrations/sisyfos/index.js',
@@ -397,15 +377,6 @@ function createContainer(
 				getCurrentTime,
 				threadedClassOptions
 			)
-		case DeviceType.SINGULAR_LIVE:
-			return DeviceContainer.create<DeviceOptionsSingularLiveInternal, typeof SingularLiveDevice>(
-				'../../dist/integrations/singularLive/index.js',
-				'SingularLiveDevice',
-				deviceId,
-				deviceOptions,
-				getCurrentTime,
-				threadedClassOptions
-			)
 		case DeviceType.VMIX:
 			return DeviceContainer.create<DeviceOptionsVMixInternal, typeof VMixDevice>(
 				'../../dist/integrations/vmix/index.js',
@@ -415,53 +386,23 @@ function createContainer(
 				getCurrentTime,
 				threadedClassOptions
 			)
+		case DeviceType.SINGULAR_LIVE:
 		case DeviceType.TELEMETRICS:
-			return DeviceContainer.create<DeviceOptionsTelemetrics, typeof TelemetricsDevice>(
-				'../../dist/integrations/telemetrics/index.js',
-				'TelemetricsDevice',
-				deviceId,
-				deviceOptions,
-				getCurrentTime,
-				threadedClassOptions
-			)
-		case DeviceType.SOFIE_CHEF:
-			return DeviceContainer.create<DeviceOptionsSofieChefInternal, typeof SofieChefDevice>(
-				'../../dist/integrations/sofieChef/index.js',
-				'SofieChefDevice',
-				deviceId,
-				deviceOptions,
-				getCurrentTime,
-				threadedClassOptions
-			)
-		case DeviceType.TRICASTER:
-			return DeviceContainer.create<DeviceOptionsTriCasterInternal, typeof TriCasterDevice>(
-				'../../dist/integrations/tricaster/index.js',
-				'TriCasterDevice',
-				deviceId,
-				deviceOptions,
-				getCurrentTime,
-				threadedClassOptions
-			)
-		case DeviceType.MULTI_OSC:
-			return DeviceContainer.create<DeviceOptionsMultiOSC, typeof MultiOSCMessageDevice>(
-				'../../dist/integrations/multiOsc/index.js',
-				'MultiOSCMessageDevice',
-				deviceId,
-				deviceOptions,
-				getCurrentTime,
-				threadedClassOptions
-			)
+		case DeviceType.PHAROS:
 		case DeviceType.ABSTRACT:
 		case DeviceType.ATEM:
 		case DeviceType.HTTPSEND:
 		case DeviceType.HTTPWATCHER:
 		case DeviceType.HYPERDECK:
 		case DeviceType.LAWO:
+		case DeviceType.MULTI_OSC:
 		case DeviceType.OBS:
 		case DeviceType.OSC:
 		case DeviceType.PANASONIC_PTZ:
 		case DeviceType.SHOTOKU:
+		case DeviceType.SOFIE_CHEF:
 		case DeviceType.TCPSEND:
+		case DeviceType.TRICASTER:
 		case DeviceType.QUANTEL: {
 			ensureIsImplementedAsService(deviceOptions.type)
 
