@@ -14,7 +14,7 @@ tsrConductor
 	.init()
 	.then(() => {
 		// Add devices to the TSR-conductor:
-		return tsr.connectionManager.setConnections({
+		return tsrConductor.connectionManager.setConnections({
 			casparcg0: {
 				type: DeviceType.CASPARCG,
 				options: {
