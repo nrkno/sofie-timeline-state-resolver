@@ -16,7 +16,6 @@ import {
 } from 'timeline-state-resolver'
 import { ThreadedClass } from 'threadedclass'
 
-import * as _ from 'underscore'
 import { TSRSettings } from './index'
 
 /**

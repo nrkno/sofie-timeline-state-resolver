@@ -14,11 +14,13 @@ tsrConductor
 	.init()
 	.then(() => {
 		// Add devices to the TSR-conductor:
-		return tsrConductor.addDevice('casparcg0', {
-			type: DeviceType.CASPARCG,
-			options: {
-				host: 'localhost',
-				port: 5250,
+		return tsr.connectionManager.setConnections({
+			casparcg0: {
+				type: DeviceType.CASPARCG,
+				options: {
+					host: 'localhost',
+					port: 5250,
+				},
 			},
 		})
 	})
