@@ -3788,6 +3788,17 @@ asn1@evs-broadcast/node-asn1:
   languageName: node
   linkType: hard
 
+"conventional-changelog-conventionalcommits@npm:^4.6.3":
+  version: 4.6.3
+  resolution: "conventional-changelog-conventionalcommits@npm:4.6.3"
+  dependencies:
+    compare-func: ^2.0.0
+    lodash: ^4.17.15
+    q: ^1.5.1
+  checksum: 7b8e8a21ebb56f9aaa510e12917b7c609202072c3e71089e0a09630c37c2e8146cdb04364809839b0e3eb55f807fe84d03b2079500b37f6186d505848be5c562
+  languageName: node
+  linkType: hard
+
 "conventional-changelog-core@npm:4.2.4":
   version: 4.2.4
   resolution: "conventional-changelog-core@npm:4.2.4"
@@ -11352,6 +11363,7 @@ asn1@evs-broadcast/node-asn1:
     "@types/sprintf-js": ^1.1.4
     "@types/underscore": ^1.11.15
     "@types/ws": ^7.4.7
+    conventional-changelog-conventionalcommits: ^4.6.3
     jest: ^29.7.0
     lerna: ^6.6.2
     open-cli: ^7.2.0
