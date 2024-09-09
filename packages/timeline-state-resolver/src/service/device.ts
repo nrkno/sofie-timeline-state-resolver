@@ -18,7 +18,7 @@ export type CommandWithContext = {
 	timelineObjId: string
 	/** this command is to be executed x ms _before_ the scheduled time */
 	preliminary?: number
-	/** commands with different queueId's can be executed in paralel in sequential mode */
+	/** commands with different queueId's can be executed in parallel in sequential mode */
 	queueId?: string
 }
 
