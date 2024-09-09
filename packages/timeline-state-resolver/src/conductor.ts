@@ -340,7 +340,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 		if (this._triggerSendStartStopCallbacksTimeout) clearTimeout(this._triggerSendStartStopCallbacksTimeout)
 
 		// remove all connections:
-		this.connectionManager.setConnections(new Map())
+		this.connectionManager.setConnections({})
 	}
 
 	/**

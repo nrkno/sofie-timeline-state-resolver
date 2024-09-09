@@ -27,8 +27,6 @@ jest.mock('../service/DeviceInstance', () => ({
 
 import { Conductor, TimelineTriggerTimeResult } from '../conductor'
 import type { DeviceInstanceWrapper } from '../service/DeviceInstance'
-import { DeviceOptionsAnyInternal } from '..'
-import { ConnectionManager } from '../service/ConnectionManager'
 
 describe('Conductor', () => {
 	const mockTime = new MockTime()

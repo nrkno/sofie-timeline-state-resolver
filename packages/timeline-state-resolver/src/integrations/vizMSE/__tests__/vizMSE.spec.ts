@@ -1,4 +1,4 @@
-import { Conductor, DeviceOptionsAnyInternal } from '../../../conductor'
+import { Conductor } from '../../../conductor'
 import {
 	Mappings,
 	DeviceType,
@@ -13,7 +13,7 @@ import {
 } from 'timeline-state-resolver-types'
 import { MockTime } from '../../../__tests__/mockTime'
 import { ThreadedClass } from 'threadedclass'
-import { addConnections, awaitNextRemoval, getMockCall, removeConnections } from '../../../__tests__/lib'
+import { addConnections, awaitNextRemoval, getMockCall } from '../../../__tests__/lib'
 import { VizMSEDevice } from '..'
 import * as vConnection from '../../../__mocks__/v-connection'
 import * as net from '../../../__mocks__/net'
@@ -25,7 +25,6 @@ import _ = require('underscore')
 import { StatusCode } from '../../../devices/device'
 import { MOCK_SHOWS } from '../../../__mocks__/v-connection'
 import { literal } from '../../../lib'
-import { ConnectionManager } from '../../../service/ConnectionManager'
 
 const orgSetTimeout = setTimeout
 

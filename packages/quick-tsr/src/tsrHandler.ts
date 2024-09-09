@@ -135,6 +135,6 @@ export class TSRHandler {
 		this.tsr.setDatastore(store)
 	}
 	public async setDevices(devices: { [deviceId: string]: DeviceOptionsAny }): Promise<void> {
-		this.tsr.connectionManager.setConnections(new Map(Object.entries(devices)))
+		this.tsr.connectionManager.setConnections(devices)
 	}
 }

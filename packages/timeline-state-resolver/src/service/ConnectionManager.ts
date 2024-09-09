@@ -47,17 +47,17 @@ export class ConnectionManager extends EventEmitter<ConnectionManagerEvents> {
 	/**
 	 * Set the config options for all connections
 	 */
-	public setConnections(connectionsConfig: Map<string, DeviceOptionsAnyInternal>) {
+	public setConnections(connectionsConfig: Record<string, DeviceOptionsAnyInternal>) {
 		// run through and see if we need to reset any of the counters
 		this._config.forEach((conf, id) => {
-			const newConf = connectionsConfig.get(id)
+			const newConf = connectionsConfig[id]
 			if (newConf && configHasChanged(conf, newConf)) {
 				// new conf warrants an immediate retry
 				this._connectionAttempts.delete(id)
 			}
 		})
 
-		this._config = connectionsConfig
+		this._config = new Map(Object.entries<DeviceOptionsAnyInternal>(connectionsConfig))
 		this._updateConnections()
 	}
 

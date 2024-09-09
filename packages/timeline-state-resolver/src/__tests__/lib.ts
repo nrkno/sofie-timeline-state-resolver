@@ -18,7 +18,6 @@ export async function addConnections(
 	let resolveAdded: undefined | (() => void) = undefined
 	const psAdded = new Promise<void>((resolveCb) => (resolveAdded = resolveCb))
 	const cb = (id: string) => {
-		console.log('got ' + id, 'expect ' + connectionIds)
 		addedConns.push(id)
 
 		if (resolveAdded && addedConns.length === connectionIds.length) {
@@ -36,7 +35,7 @@ export async function addConnections(
 		connManager.on('connectionAdded', cb)
 	}
 
-	connManager.setConnections(new Map(Object.entries(connections)))
+	connManager.setConnections(connections)
 
 	await psAdded
 }
@@ -56,7 +55,7 @@ export async function removeConnections(
 		if (resolveAdded && addedConns.length === toBeRemoved.length) resolveAdded()
 	})
 
-	connManager.setConnections(new Map(Object.entries(connections)))
+	connManager.setConnections(connections)
 
 	await psAdded
 }

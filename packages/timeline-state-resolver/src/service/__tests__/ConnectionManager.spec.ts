@@ -1,7 +1,6 @@
 import { DeviceType, OSCDeviceType } from 'timeline-state-resolver-types'
 import { ConstructedMockDevices, MockDeviceInstanceWrapper } from '../../__tests__/mockDeviceInstanceWrapper'
 import { ConnectionManager } from '../ConnectionManager'
-import { DeviceOptionsAnyInternal } from '../..'
 
 // Mock explicitly the 'dist' version, as that is what threadedClass is being told to load
 jest.mock('../../../dist/service/DeviceInstance', () => ({
@@ -27,26 +26,22 @@ describe('ConnectionManager', () => {
 			if (resolveRemoved) resolveRemoved()
 		})
 
-		connManager.setConnections(
-			new Map(
-				Object.entries<DeviceOptionsAnyInternal>({
-					osc0: {
-						type: DeviceType.OSC,
-						options: {
-							host: '127.0.0.1',
-							port: 5250,
-							type: OSCDeviceType.UDP,
-						},
-					},
-				})
-			)
-		)
+		connManager.setConnections({
+			osc0: {
+				type: DeviceType.OSC,
+				options: {
+					host: '127.0.0.1',
+					port: 5250,
+					type: OSCDeviceType.UDP,
+				},
+			},
+		})
 
 		await psAdded
 
 		expect(ConstructedMockDevices['osc0']).toBeTruthy()
 
-		connManager.setConnections(new Map())
+		connManager.setConnections({})
 
 		await psRemoved
 
