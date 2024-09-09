@@ -7,6 +7,12 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
 
 **Note:** Version bump only for package timeline-state-resolver-types
 
+## [9.2.0-alpha.0](https://github.com/nrkno/sofie-timeline-state-resolver/compare/9.1.0...9.2.0-alpha.0) (2024-09-09)
+
+### Features
+
+- allow sequential executionMode to paralelize multiple queues of Commands ([84a53cd](https://github.com/nrkno/sofie-timeline-state-resolver/commit/84a53cd5f1ee0978767d46ad766c01841559983d))
+
 ## [9.1.0](https://github.com/nrkno/sofie-timeline-state-resolver/compare/9.0.2...9.1.0) (2024-08-19)
 
 ### Features

@@ -346,6 +346,7 @@ describe('HTTP-Send', () => {
 							content: content,
 							layer: 'layer0',
 						},
+						queueId: undefined,
 					},
 				])
 				await Promise.all(commands.map(async (c) => device.sendCommand(c)))
@@ -362,6 +363,7 @@ describe('HTTP-Send', () => {
 							content: content,
 							layer: 'layer0',
 						},
+						queueId: undefined,
 					},
 				])
 			}

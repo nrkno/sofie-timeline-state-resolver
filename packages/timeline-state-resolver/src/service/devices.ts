@@ -154,6 +154,6 @@ export const DevicesDict: Record<ImplementedServiceDeviceTypes, DeviceEntry> = {
 		deviceClass: QuantelDevice,
 		canConnect: true,
 		deviceName: (deviceId: string) => 'Quantel' + deviceId,
-		executionMode: () => 'salvo',
+		executionMode: () => 'sequential',
 	},
 }
