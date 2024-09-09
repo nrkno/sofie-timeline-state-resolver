@@ -9,7 +9,7 @@ export class UDPPort extends EventEmitter {
 		this.emit('ready')
 	}
 
-	send({ address }) {
+	send({ address }: { address: string }) {
 		orgSetTimeout(() => {
 			if (MockOSC.connectionIsGood) {
 				if (address === '/state/full') {
@@ -21,11 +21,18 @@ export class UDPPort extends EventEmitter {
 								value: `{ "channel": [{
 								"faderLevel": 0.75,
 								"pgmOn": false,
-								"pstOn": false
+								"pstOn": false,
+								"showChannel": true
 							}, {
 								"faderLevel": 0.75,
 								"pgmOn": false,
-								"pstOn": false
+								"pstOn": false,
+								"showChannel": true
+							}, {
+								"faderLevel": 0.75,
+								"pgmOn": false,
+								"pstOn": false,
+								"showChannel": true
 							}] }`,
 							},
 						],

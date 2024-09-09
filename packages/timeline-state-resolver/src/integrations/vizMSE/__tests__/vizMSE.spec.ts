@@ -1,4 +1,4 @@
-import { Conductor } from '../../../conductor'
+import { Conductor, DeviceOptionsAnyInternal } from '../../../conductor'
 import {
 	Mappings,
 	DeviceType,
@@ -9,10 +9,11 @@ import {
 	VIZMSETransitionType,
 	VIZMSEPlayoutItemContentExternal,
 	VIZMSEPlayoutItemContentInternal,
+	VizMSEOptions,
 } from 'timeline-state-resolver-types'
 import { MockTime } from '../../../__tests__/mockTime'
 import { ThreadedClass } from 'threadedclass'
-import { addConnections, getMockCall } from '../../../__tests__/lib'
+import { addConnections, awaitNextRemoval, getMockCall, removeConnections } from '../../../__tests__/lib'
 import { VizMSEDevice } from '..'
 import * as vConnection from '../../../__mocks__/v-connection'
 import * as net from '../../../__mocks__/net'
@@ -24,6 +25,7 @@ import _ = require('underscore')
 import { StatusCode } from '../../../devices/device'
 import { MOCK_SHOWS } from '../../../__mocks__/v-connection'
 import { literal } from '../../../lib'
+import { ConnectionManager } from '../../../service/ConnectionManager'
 
 const orgSetTimeout = setTimeout
 
@@ -495,6 +497,35 @@ describe('vizMSE', () => {
 
 		await myConductor.init()
 
+		await addConnections(
+			myConductor.connectionManager,
+			{
+				myViz: {
+					type: DeviceType.VIZMSE,
+					options: literal<Omit<VizMSEOptions, 'host'>>({
+						// host: '127.0.0.1',
+						profile: 'myProfile',
+					}) as any,
+				},
+			},
+			false
+		)
+		await awaitNextRemoval(myConductor.connectionManager)
+		await addConnections(
+			myConductor.connectionManager,
+			{
+				myViz: {
+					type: DeviceType.VIZMSE,
+					options: literal<Omit<VizMSEOptions, 'profile'>>({
+						host: '127.0.0.1',
+						// profile: 'myProfile',
+					}) as any,
+				},
+			},
+			false
+		)
+		await awaitNextRemoval(myConductor.connectionManager)
+
 		expect(onError).toHaveBeenCalledTimes(2)
 		onError.mockClear()
 
@@ -648,7 +679,7 @@ describe('vizMSE', () => {
 
 		expect(getMockCall(commandReceiver0, 0, 1)).toMatchObject({
 			timelineObjId: 'obj0',
-			time: 10105,
+			time: 10100,
 			content: {
 				instanceName: expect.stringContaining('myInternalElement'),
 				templateName: 'myInternalElement',

@@ -48,6 +48,15 @@ export class ConnectionManager extends EventEmitter<ConnectionManagerEvents> {
 	 * Set the config options for all connections
 	 */
 	public setConnections(connectionsConfig: Map<string, DeviceOptionsAnyInternal>) {
+		// run through and see if we need to reset any of the counters
+		this._config.forEach((conf, id) => {
+			const newConf = connectionsConfig.get(id)
+			if (newConf && configHasChanged(conf, newConf)) {
+				// new conf warrants an immediate retry
+				this._connectionAttempts.delete(id)
+			}
+		})
+
 		this._config = connectionsConfig
 		this._updateConnections()
 	}
@@ -97,7 +106,7 @@ export class ConnectionManager extends EventEmitter<ConnectionManagerEvents> {
 
 			if (connection) {
 				// see if it should be restarted because of an update
-				if (configHasChanged(connection, config)) {
+				if (connectionConfigHasChanged(connection, config)) {
 					operations.push({ operation: 'update', id: deviceId })
 				} else if (
 					connection.deviceOptions.debug !== config.debug ||
@@ -224,6 +233,7 @@ export class ConnectionManager extends EventEmitter<ConnectionManagerEvents> {
 			.catch((e) => {
 				this.emit('error', 'Connection ' + id + ' failed to initialise')
 				this._connections.delete(id)
+				this.emit('connectionRemoved', id)
 
 				container
 					.terminate()
@@ -335,12 +345,16 @@ export class ConnectionManager extends EventEmitter<ConnectionManagerEvents> {
  * A config has changed if any of the options are no longer the same, taking default values into
  * consideration. In addition, the debug logging flag should be ignored as that can be changed at runtime.
  */
-function configHasChanged(
+function connectionConfigHasChanged(
 	connection: BaseRemoteDeviceIntegration<DeviceOptionsBase<any>>,
 	config: DeviceOptionsBase<any>
 ): boolean {
 	const oldConfig = connection.deviceOptions
 
+	// now check device specific options
+	return configHasChanged(oldConfig, config)
+}
+function configHasChanged(oldConfig: DeviceOptionsBase<any>, config: DeviceOptionsBase<any>): boolean {
 	// now check device specific options
 	return !_.isEqual(_.omit(oldConfig, 'debug', 'debugState'), _.omit(config, 'debug', 'debugState'))
 }

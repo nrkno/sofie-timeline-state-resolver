@@ -9,18 +9,32 @@ export function getMockCall<T>(fcn: jest.Mock<T>, callIndex: number, paramIndex:
 }
 export async function addConnections(
 	connManager: ConnectionManager,
-	connections: Record<string, DeviceOptionsAnyInternal>
+	connections: Record<string, DeviceOptionsAnyInternal>,
+	waitForInit = true
 ): Promise<void> {
 	const connectionIds = Object.keys(connections)
 	const addedConns: string[] = []
 
 	let resolveAdded: undefined | (() => void) = undefined
 	const psAdded = new Promise<void>((resolveCb) => (resolveAdded = resolveCb))
-	connManager.on('connectionInitialised', (id) => {
+	const cb = (id: string) => {
+		console.log('got ' + id, 'expect ' + connectionIds)
 		addedConns.push(id)
 
-		if (resolveAdded && addedConns.length === connectionIds.length) resolveAdded()
-	})
+		if (resolveAdded && addedConns.length === connectionIds.length) {
+			resolveAdded()
+			if (waitForInit) {
+				connManager.removeListener('connectionInitialised', cb)
+			} else {
+				connManager.removeListener('connectionAdded', cb)
+			}
+		}
+	}
+	if (waitForInit) {
+		connManager.on('connectionInitialised', cb)
+	} else {
+		connManager.on('connectionAdded', cb)
+	}
 
 	connManager.setConnections(new Map(Object.entries(connections)))
 
@@ -45,6 +59,14 @@ export async function removeConnections(
 	connManager.setConnections(new Map(Object.entries(connections)))
 
 	await psAdded
+}
+
+export async function awaitNextRemoval(connManager: ConnectionManager): Promise<void> {
+	return new Promise((resolve) => {
+		connManager.once('connectionRemoved', () => {
+			resolve()
+		})
+	})
 }
 
 // Excend jest.expect in functionality and typings

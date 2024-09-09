@@ -224,7 +224,7 @@ describe('vMix', () => {
 		expect(commandReceiver0).toHaveBeenCalledTimes(1)
 		expect(commandReceiver0).toHaveBeenNthCalledWith(
 			1,
-			17000,
+			17001,
 			expect.objectContaining({
 				command: {
 					command: VMixCommand.REMOVE_INPUT,
@@ -1079,7 +1079,7 @@ describe('vMix', () => {
 		)
 		expect(commandReceiver0).toHaveBeenNthCalledWith(
 			5,
-			17000,
+			17001,
 			expect.objectContaining({
 				command: {
 					command: VMixCommand.REMOVE_INPUT,
