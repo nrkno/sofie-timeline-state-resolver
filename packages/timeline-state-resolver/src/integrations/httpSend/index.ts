@@ -136,6 +136,7 @@ export class HTTPSendDevice extends Device<HTTPSendOptions, HttpSendDeviceState,
 						content: newLayer.content as HTTPSendCommandContent,
 						layer: layerKey,
 					},
+					queueId: (newLayer.content as HTTPSendCommandContent)?.queueId,
 				})
 			} else {
 				// changed?
@@ -149,6 +150,7 @@ export class HTTPSendDevice extends Device<HTTPSendOptions, HttpSendDeviceState,
 							content: newLayer.content as HTTPSendCommandContent,
 							layer: layerKey,
 						},
+						queueId: (newLayer.content as HTTPSendCommandContent)?.queueId,
 					})
 				}
 			}
@@ -162,6 +164,7 @@ export class HTTPSendDevice extends Device<HTTPSendOptions, HttpSendDeviceState,
 					timelineObjId: oldLayer.id,
 					context: `removed: ${oldLayer.id}`,
 					command: { commandName: 'removed', content: oldLayer.content as HTTPSendCommandContent, layer: layerKey },
+					queueId: (oldLayer.content as HTTPSendCommandContent)?.queueId,
 				})
 			}
 		})
@@ -194,7 +197,7 @@ export class HTTPSendDevice extends Device<HTTPSendOptions, HttpSendDeviceState,
 			const trackedHash = this.trackedState.get(command.layer)
 			if (commandHash !== trackedHash)
 				return {
-					result: ActionExecutionResultCode.Error,
+					result: ActionExecutionResultCode.IgnoredNotRelevant,
 				} // command is no longer relevant to state
 		}
 		if (this._terminated) {
@@ -254,7 +257,7 @@ export class HTTPSendDevice extends Device<HTTPSendOptions, HttpSendDeviceState,
 
 			const response = await httpReq(command.content.url, options)
 
-			if (response.statusCode === 200) {
+			if (response.statusCode >= 200 && response.statusCode < 300) {
 				this.context.logger.debug(
 					`HTTPSend: ${command.content.type}: Good statuscode response on url "${command.content.url}": ${response.statusCode} (${context})`
 				)

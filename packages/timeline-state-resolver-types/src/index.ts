@@ -170,5 +170,6 @@ export interface ActionExecutionResult<ResultData = undefined> {
 
 export enum ActionExecutionResultCode {
 	Error = 'ERROR',
+	IgnoredNotRelevant = 'IGNORED',
 	Ok = 'OK',
 }
