@@ -9929,7 +9929,7 @@ asn1@evs-broadcast/node-asn1:
     chokidar: ^3.6.0
     fast-clone: ^1.5.13
     threadedclass: ^1.2.1
-    timeline-state-resolver: 9.1.0
+    timeline-state-resolver: 9.2.0-alpha.0
     tslib: ^2.6.2
     underscore: ^1.13.6
   languageName: unknown
@@ -11376,7 +11376,7 @@ asn1@evs-broadcast/node-asn1:
   languageName: unknown
   linkType: soft
 
-"timeline-state-resolver-types@9.1.0, timeline-state-resolver-types@workspace:packages/timeline-state-resolver-types":
+"timeline-state-resolver-types@9.2.0-alpha.0, timeline-state-resolver-types@workspace:packages/timeline-state-resolver-types":
   version: 0.0.0-use.local
   resolution: "timeline-state-resolver-types@workspace:packages/timeline-state-resolver-types"
   dependencies:
@@ -11384,7 +11384,7 @@ asn1@evs-broadcast/node-asn1:
   languageName: unknown
   linkType: soft
 
-"timeline-state-resolver@9.1.0, timeline-state-resolver@workspace:packages/timeline-state-resolver":
+"timeline-state-resolver@9.2.0-alpha.0, timeline-state-resolver@workspace:packages/timeline-state-resolver":
   version: 0.0.0-use.local
   resolution: "timeline-state-resolver@workspace:packages/timeline-state-resolver"
   dependencies:
@@ -11417,7 +11417,7 @@ asn1@evs-broadcast/node-asn1:
     sprintf-js: ^1.1.3
     superfly-timeline: ^9.0.1
     threadedclass: ^1.2.1
-    timeline-state-resolver-types: 9.1.0
+    timeline-state-resolver-types: 9.2.0-alpha.0
     tslib: ^2.6.2
     tv-automation-quantel-gateway-client: ^3.1.7
     type-fest: ^3.13.1

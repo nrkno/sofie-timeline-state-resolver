@@ -3,6 +3,22 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [9.2.0-alpha.0](https://github.com/nrkno/sofie-timeline-state-resolver/compare/9.1.0...9.2.0-alpha.0) (2024-09-09)
+
+
+### Features
+
+* allow sequential executionMode to paralelize multiple queues of Commands ([84a53cd](https://github.com/nrkno/sofie-timeline-state-resolver/commit/84a53cd5f1ee0978767d46ad766c01841559983d))
+
+
+### Bug Fixes
+
+* filter mappings by deviceid ([f4402dd](https://github.com/nrkno/sofie-timeline-state-resolver/commit/f4402ddc6b9998e9cdf6d04f3c766ba94056d4bd))
+* update timeline dependency (see https://github.com/SuperFlyTV/supertimeline/pull/102 ) ([81af9f7](https://github.com/nrkno/sofie-timeline-state-resolver/commit/81af9f7a1e3c24cfd1bbd85e5497198ff4c612bc))
+* use sequential send mode for quantel ([940e68a](https://github.com/nrkno/sofie-timeline-state-resolver/commit/940e68ab09a37df7ce53944d888757a4a6f5a9c9))
+
+
+
 ## [9.1.0](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/9.0.2...9.1.0) (2024-08-19)
 
 
