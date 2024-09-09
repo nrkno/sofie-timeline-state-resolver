@@ -1,4 +1,3 @@
-import * as _ from 'underscore'
 import {
 	ActionExecutionResult,
 	ActionExecutionResultCode,
@@ -22,7 +21,6 @@ import { VizMSECommand, VizMSEState, VizMSECommandType, VizMSECommandWithContext
 import { diffVizMSEStates } from './diffState'
 import { convertStateToVizMSE } from './convertState'
 import { DeviceContextAPI, Device } from '../../service/device'
-import PQueue from 'p-queue'
 
 export interface DeviceOptionsVizMSEInternal extends DeviceOptionsVizMSE {
 	commandReceiver?: CommandReceiver
@@ -39,7 +37,6 @@ export class VizMSEDevice extends Device<VizMSEOptions, VizMSEState, VizMSEComma
 
 	private _initOptions?: VizMSEOptions
 	private _vizMSEConnected = false
-	private _commandQueues = new Map<string | undefined, PQueue>()
 
 	constructor(context: DeviceContextAPI<VizMSEState>) {
 		super(context)
@@ -91,11 +88,6 @@ export class VizMSEDevice extends Device<VizMSEOptions, VizMSEState, VizMSEComma
 			await this._vizmseManager.terminate()
 			this._vizmseManager.removeAllListeners()
 			delete this._vizmseManager
-		}
-
-		// Discard pending commands
-		for (const queue of this._commandQueues.values()) {
-			queue.clear()
 		}
 	}
 
@@ -322,11 +314,14 @@ export class VizMSEDevice extends Device<VizMSEOptions, VizMSEState, VizMSEComma
 			this.context.getCurrentTime(),
 			this._initOptions,
 			this.context.logger
-		).map((cmd) => ({
-			command: cmd,
-			timelineObjId: cmd.timelineObjId,
-			context: '', // TODO
-		}))
+		).map(
+			(cmd): VizMSECommandWithContext => ({
+				command: cmd,
+				timelineObjId: cmd.timelineObjId,
+				queueId: cmd.layerId,
+				context: '', // TODO
+			})
+		)
 	}
 
 	/**
@@ -342,15 +337,8 @@ export class VizMSEDevice extends Device<VizMSEOptions, VizMSEState, VizMSEComma
 			}
 		}
 
-		// Get or create the queue for the layer
-		let queue = this._commandQueues.get(c.command.layerId)
-		if (!queue) {
-			queue = new PQueue({ concurrency: 1 })
-			this._commandQueues.set(c.command.layerId, queue)
-		}
-
 		// Queue the commands in a sequential queue
-		return queue.add(async () => this.sendCommandInner(c))
+		return this.sendCommandInner(c)
 	}
 	/**
 	 * Sends commands to the VizMSE server

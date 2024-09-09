@@ -6,11 +6,10 @@ import {
 	VIZMSEPlayoutItemContentInternal,
 } from 'timeline-state-resolver-types'
 import { VElement } from '@tv2media/v-connection'
+import type { CommandWithContext } from '../../service/device'
 
-export interface VizMSECommandWithContext {
-	command: VizMSECommand
-	context: string
-	timelineObjId: string
+export interface VizMSECommandWithContext extends CommandWithContext<VizMSECommand, string> {
+	queueId: string | undefined
 }
 
 export interface VizMSEState {

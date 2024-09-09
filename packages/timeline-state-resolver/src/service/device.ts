@@ -11,9 +11,9 @@ import {
 
 type CommandContext = any
 
-export type CommandWithContext = {
-	command: any
-	context: CommandContext
+export type CommandWithContext<TCommand = any, TContext = CommandContext> = {
+	command: TCommand
+	context: TContext
 	/** ID of the timeline-object that the command originated from */
 	timelineObjId: string
 	/** this command is to be executed x ms _before_ the scheduled time */
