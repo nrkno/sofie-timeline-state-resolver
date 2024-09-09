@@ -185,8 +185,8 @@ export class DeviceInstanceWrapper extends EventEmitter<DeviceInstanceEvents> {
 		}
 	}
 
-	handleExpectedPlayoutItems(_expectedPlayoutItems: Array<ExpectedPlayoutItem>): void {
-		// do nothing yet, as this isn't implemented.
+	handleExpectedPlayoutItems(expectedPlayoutItems: Array<ExpectedPlayoutItem>): void {
+		this._device.handleExpectedPlayoutItems(expectedPlayoutItems)
 	}
 
 	getStatus(): DeviceStatus {

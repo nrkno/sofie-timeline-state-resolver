@@ -1,4 +1,4 @@
-import { SlowSentCommandInfo, SlowFulfilledCommandInfo, CommandReport } from '../'
+import { SlowSentCommandInfo, SlowFulfilledCommandInfo, CommandReport, ExpectedPlayoutItem } from '../'
 import { FinishedTrace } from '../lib'
 import {
 	Timeline,
@@ -55,7 +55,10 @@ export abstract class Device<DeviceOptions, DeviceState, Command extends Command
 
 	abstract actions: Record<string, (id: string, payload?: Record<string, any>) => Promise<ActionExecutionResult>>
 
-	// todo - add media objects
+	public handleExpectedPlayoutItems(_expectedPlayoutItems: Array<ExpectedPlayoutItem>): void {
+		// When receiving a new list of playoutItems.
+		// Do nothing by default
+	}
 
 	// From BaseDeviceAPI: -----------------------------------------------
 	abstract convertTimelineStateToDeviceState(
