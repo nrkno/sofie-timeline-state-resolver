@@ -1,0 +1,18 @@
+{
+	"$schema": "https://json-schema.org/draft/2020-12/schema",
+	"title": "Visca over IP Options",
+	"type": "object",
+	"properties": {
+		"host": {
+			"type": "string",
+			"ui:title": "Host"
+		},
+		"port": {
+			"type": "integer",
+			"ui:title": "Port",
+			"default": 52381
+		}
+	},
+	"required": ["host"],
+	"additionalProperties": false
+}
