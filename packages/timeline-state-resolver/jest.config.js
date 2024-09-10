@@ -5,7 +5,7 @@ module.exports = {
 			'ts-jest',
 			{
 				tsconfig: 'tsconfig.json',
-				diagnostics: { ignoreCodes: [6133, 6192] },
+				diagnostics: { ignoreCodes: [6133, 6192, 6196] },
 			},
 		],
 	},

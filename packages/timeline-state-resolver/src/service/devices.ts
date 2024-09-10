@@ -18,6 +18,7 @@ import { TelemetricsDevice } from '../integrations/telemetrics'
 import { TriCasterDevice } from '../integrations/tricaster'
 import { SingularLiveDevice } from '../integrations/singularLive'
 import { MultiOSCMessageDevice } from '../integrations/multiOsc'
+import { VizMSEDevice } from '../integrations/vizMSE'
 
 export interface DeviceEntry {
 	deviceClass: new (context: DeviceContextAPI<any>) => Device<any, any, any>
@@ -45,6 +46,7 @@ export type ImplementedServiceDeviceTypes =
 	| DeviceType.TELEMETRICS
 	| DeviceType.TRICASTER
 	| DeviceType.QUANTEL
+	| DeviceType.VIZMSE
 
 // TODO - move all device implementations here and remove the old Device classes
 export const DevicesDict: Record<ImplementedServiceDeviceTypes, DeviceEntry> = {
@@ -154,6 +156,12 @@ export const DevicesDict: Record<ImplementedServiceDeviceTypes, DeviceEntry> = {
 		deviceClass: QuantelDevice,
 		canConnect: true,
 		deviceName: (deviceId: string) => 'Quantel' + deviceId,
+		executionMode: () => 'sequential',
+	},
+	[DeviceType.VIZMSE]: {
+		deviceClass: VizMSEDevice,
+		canConnect: true,
+		deviceName: (deviceId: string) => 'VizMSE' + deviceId,
 		executionMode: () => 'sequential',
 	},
 }

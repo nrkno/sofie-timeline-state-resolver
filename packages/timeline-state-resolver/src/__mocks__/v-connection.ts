@@ -51,8 +51,13 @@ export const createMSE: typeof orgCreateMSE = function createMSE0(
 	return mse
 }
 
-export function getMockMSEs() {
+export function getMockMSEs(): MSEMock[] {
 	return mockMSEs
+}
+
+export function getLastMockMSE(): MSEMock {
+	if (mockMSEs.length === 0) throw new Error('No MSE found')
+	return mockMSEs[mockMSEs.length - 1]
 }
 
 export class MSEMock extends EventEmitter implements MSE {

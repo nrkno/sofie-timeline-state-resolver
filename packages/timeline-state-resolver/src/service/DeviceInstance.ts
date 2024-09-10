@@ -185,8 +185,8 @@ export class DeviceInstanceWrapper extends EventEmitter<DeviceInstanceEvents> {
 		}
 	}
 
-	handleExpectedPlayoutItems(_expectedPlayoutItems: Array<ExpectedPlayoutItem>): void {
-		// do nothing yet, as this isn't implemented.
+	handleExpectedPlayoutItems(expectedPlayoutItems: Array<ExpectedPlayoutItem>): void {
+		this._device.handleExpectedPlayoutItems(expectedPlayoutItems)
 	}
 
 	getStatus(): DeviceStatus {
@@ -250,11 +250,11 @@ export class DeviceInstanceWrapper extends EventEmitter<DeviceInstanceEvents> {
 			commandError: (error: Error, context: CommandWithContext) => {
 				this.emit('commandError', error, context)
 			},
-			updateMediaObject: (collectionId: string, docId: string, doc: MediaObject | null) => {
-				this.emit('updateMediaObject', collectionId, docId, doc)
+			updateMediaObject: (docId: string, doc: MediaObject | null) => {
+				this.emit('updateMediaObject', this._deviceId, docId, doc)
 			},
-			clearMediaObjects: (collectionId: string) => {
-				this.emit('clearMediaObjects', collectionId)
+			clearMediaObjects: () => {
+				this.emit('clearMediaObjects', this._deviceId)
 			},
 
 			timeTrace: (trace: FinishedTrace) => {

@@ -1,4 +1,4 @@
-import { SlowSentCommandInfo, SlowFulfilledCommandInfo, CommandReport } from '../'
+import { SlowSentCommandInfo, SlowFulfilledCommandInfo, CommandReport, ExpectedPlayoutItem } from '../'
 import { FinishedTrace } from '../lib'
 import {
 	Timeline,
@@ -11,9 +11,9 @@ import {
 
 type CommandContext = any
 
-export type CommandWithContext = {
-	command: any
-	context: CommandContext
+export type CommandWithContext<TCommand = any, TContext = CommandContext> = {
+	command: TCommand
+	context: TContext
 	/** ID of the timeline-object that the command originated from */
 	timelineObjId: string
 	/** this command is to be executed x ms _before_ the scheduled time */
@@ -55,7 +55,10 @@ export abstract class Device<DeviceOptions, DeviceState, Command extends Command
 
 	abstract actions: Record<string, (id: string, payload?: Record<string, any>) => Promise<ActionExecutionResult>>
 
-	// todo - add media objects
+	public handleExpectedPlayoutItems(_expectedPlayoutItems: Array<ExpectedPlayoutItem>): void {
+		// When receiving a new list of playoutItems.
+		// Do nothing by default
+	}
 
 	// From BaseDeviceAPI: -----------------------------------------------
 	abstract convertTimelineStateToDeviceState(
@@ -126,7 +129,7 @@ export interface DeviceEvents {
 	commandError: [error: Error, context: CommandWithContext]
 	/** Update a MediaObject  */
 	updateMediaObject: [collectionId: string, docId: string, doc: MediaObject | null]
-	/** Clear a MediaObjects collection */
+	/** Clear MediaObjects from the device */
 	clearMediaObjects: [collectionId: string]
 
 	timeTrace: [trace: FinishedTrace]
@@ -162,9 +165,9 @@ export interface DeviceContextAPI<DeviceState> {
 	/** Something went wrong when executing a command  */
 	commandError: (error: Error, context: CommandWithContext) => void
 	/** Update a MediaObject  */
-	updateMediaObject: (collectionId: string, docId: string, doc: MediaObject | null) => void
+	updateMediaObject: (docId: string, doc: MediaObject | null) => void
 	/** Clear a MediaObjects collection */
-	clearMediaObjects: (collectionId: string) => void
+	clearMediaObjects: () => void
 
 	timeTrace: (trace: FinishedTrace) => void
 

@@ -1239,9 +1239,8 @@ export class VizMSEManager extends EventEmitter {
 		this.emit('connectionChanged', this._mseConnected && this._msePingConnected)
 	}
 
-	public clearAllWaitWithLayer(_portId: string) {
-		// HACK: Prior to #344 this was broken. This has been left in the broken state until it can be tested that the 'fix' doesn't cause other issues SOFIE-3419
-		// this._waitWithLayers.clearAllForKey(portId)
+	public clearAllWaitWithLayer(portId: string) {
+		this._waitWithLayers.clearAllForKey(portId)
 	}
 	/**
 	 * Returns true if the wait was cleared from someone else

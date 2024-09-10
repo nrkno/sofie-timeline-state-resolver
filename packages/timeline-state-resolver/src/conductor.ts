@@ -37,6 +37,7 @@ import {
 	DeviceOptionsPharos,
 	DeviceOptionsTriCaster,
 	DeviceOptionsSingularLive,
+	DeviceOptionsVizMSE,
 } from 'timeline-state-resolver-types'
 
 import { DoOnTime } from './devices/doOnTime'
@@ -49,7 +50,6 @@ import { DeviceContainer } from './devices/deviceContainer'
 import { CasparCGDevice, DeviceOptionsCasparCGInternal } from './integrations/casparCG'
 import { SisyfosMessageDevice, DeviceOptionsSisyfosInternal } from './integrations/sisyfos'
 import { VMixDevice, DeviceOptionsVMixInternal } from './integrations/vmix'
-import { VizMSEDevice, DeviceOptionsVizMSEInternal } from './integrations/vizMSE'
 import { BaseRemoteDeviceIntegration, RemoteDeviceInstance } from './service/remoteDeviceInstance'
 import type { ImplementedServiceDeviceTypes } from './service/devices'
 import { DeviceEvents } from './service/device'
@@ -517,15 +517,6 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 					getCurrentTime,
 					threadedClassOptions
 				)
-			case DeviceType.VIZMSE:
-				return DeviceContainer.create<DeviceOptionsVizMSEInternal, typeof VizMSEDevice>(
-					'../../dist/integrations/vizMSE/index.js',
-					'VizMSEDevice',
-					deviceId,
-					deviceOptions,
-					getCurrentTime,
-					threadedClassOptions
-				)
 			case DeviceType.VMIX:
 				return DeviceContainer.create<DeviceOptionsVMixInternal, typeof VMixDevice>(
 					'../../dist/integrations/vmix/index.js',
@@ -552,7 +543,8 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 			case DeviceType.TCPSEND:
 			case DeviceType.TELEMETRICS:
 			case DeviceType.TRICASTER:
-			case DeviceType.QUANTEL: {
+			case DeviceType.QUANTEL:
+			case DeviceType.VIZMSE: {
 				ensureIsImplementedAsService(deviceOptions.type)
 
 				// presumably this device is implemented in the new service handler
@@ -1478,7 +1470,7 @@ export type DeviceOptionsAnyInternal =
 	| DeviceOptionsSingularLive
 	| DeviceOptionsVMixInternal
 	| DeviceOptionsShotoku
-	| DeviceOptionsVizMSEInternal
+	| DeviceOptionsVizMSE
 	| DeviceOptionsTelemetrics
 	| DeviceOptionsTriCaster
 	| DeviceOptionsMultiOSC
