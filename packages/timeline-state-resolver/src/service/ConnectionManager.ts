@@ -221,6 +221,19 @@ export class ConnectionManager extends EventEmitter<ConnectionManagerEvents> {
 		// set up event handlers
 		await this._setupDeviceListeners(id, container)
 
+		container.onChildClose = () => {
+			this.emit('error', 'Connection ' + id + ' closed')
+			this._connections.delete(id)
+			this.emit('connectionRemoved', id)
+
+			container
+				.terminate()
+				.catch((e) => this.emit('warning', `Failed to initialise ${id} (${e})`))
+				.finally(() => {
+					this._updateConnections()
+				})
+		}
+
 		this._connections.set(id, container)
 		this.emit('connectionAdded', id, container)
 
@@ -231,13 +244,13 @@ export class ConnectionManager extends EventEmitter<ConnectionManagerEvents> {
 				this.emit('connectionInitialised', id)
 			})
 			.catch((e) => {
-				this.emit('error', 'Connection ' + id + ' failed to initialise')
+				this.emit('error', 'Connection ' + id + ' failed to initialise', e)
 				this._connections.delete(id)
 				this.emit('connectionRemoved', id)
 
 				container
 					.terminate()
-					.catch(() => this.emit('warning', `Failed to initialise ${id} (${e})`))
+					.catch((e) => this.emit('warning', `Failed to initialise ${id} (${e})`))
 					.finally(() => {
 						this._updateConnections()
 					})
