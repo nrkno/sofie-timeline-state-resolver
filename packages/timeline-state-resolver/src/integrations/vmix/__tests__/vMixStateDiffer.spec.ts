@@ -146,4 +146,26 @@ describe('VMixStateDiffer', () => {
 			cropBottom: 0.8,
 		})
 	})
+
+	it('sets browser url', () => {
+		const differ = createTestee()
+
+		const oldState = makeMockFullState()
+		const newState = makeMockFullState()
+
+		oldState.reportedState.existingInputs['99'] = differ.getDefaultInputState(99)
+
+		newState.reportedState.existingInputs['99'] = differ.getDefaultInputState(99)
+		const url = 'https://example.com'
+		newState.reportedState.existingInputs['99'].url = url
+
+		const commands = differ.getCommandsToAchieveState(oldState, newState)
+
+		expect(commands.length).toBe(1)
+		expect(commands[0].command).toMatchObject({
+			command: VMixCommand.BROWSER_NAVIGATE,
+			input: '99',
+			value: url,
+		})
+	})
 })

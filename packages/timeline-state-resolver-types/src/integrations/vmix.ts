@@ -45,6 +45,7 @@ export enum VMixCommand {
 	LIST_ADD = 'LIST_ADD',
 	LIST_REMOVE_ALL = 'LIST_REMOVE_ALL',
 	RESTART_INPUT = 'RESTART_INPUT',
+	BROWSER_NAVIGATE = 'BROWSER_NAVIGATE',
 }
 
 export type TimelineContentVMixAny =
@@ -188,6 +189,9 @@ export interface TimelineContentVMixInput extends TimelineContentVMixBase {
 
 	/** If media should start from the beginning or resume from where it left off */
 	restart?: boolean
+
+	/** The URL for Browser input */
+	url?: string
 }
 
 export interface TimelineContentVMixOutput extends TimelineContentVMixBase {
@@ -325,4 +329,5 @@ export enum VMixInputType {
 	Flash = 'Flash',
 	PowerPoint = 'PowerPoint',
 	List = 'List',
+	Browser = 'Browser',
 }
