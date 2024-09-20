@@ -4349,9 +4349,9 @@ asn1@evs-broadcast/node-asn1:
   languageName: node
   linkType: hard
 
-"emberplus-connection@npm:^0.2.1":
-  version: 0.2.1
-  resolution: "emberplus-connection@npm:0.2.1"
+"emberplus-connection@npm:^0.2.2":
+  version: 0.2.2
+  resolution: "emberplus-connection@npm:0.2.2"
   dependencies:
     asn1: evs-broadcast/node-asn1
     debug: ^4.3.4
@@ -4359,7 +4359,7 @@ asn1@evs-broadcast/node-asn1:
     long: ^3.2.0
     smart-buffer: ^3.0.3
     tslib: ^2.6.2
-  checksum: 80cad87885ae7e57694e309734c3fea0efe1687d774ff772287213e3e0d5caa170fb6df4f7bd7ad393c7d1c12a62732e8f34f5ca60878d3a50b72ac75d6822af
+  checksum: ee420ae740ebc807900481f86df90560f6717d7ce074c6c1232b3f61d6447896c5bac1ed80fa73cb1b82b5583996f02339a5ba2b13e69ad272fdec886a1f9344
   languageName: node
   linkType: hard
 
@@ -11315,7 +11315,7 @@ asn1@evs-broadcast/node-asn1:
     casparcg-state: 3.0.3
     debug: ^4.3.6
     deepmerge: ^4.3.1
-    emberplus-connection: ^0.2.1
+    emberplus-connection: ^0.2.2
     eventemitter3: ^4.0.7
     got: ^11.8.6
     hpagent: ^1.2.0
