@@ -134,6 +134,28 @@ export class SisyfosApi extends EventEmitter {
 					],
 				})
 			}
+			if (command.values.inputGain !== undefined) {
+				this._oscClient.send({
+					address: `/ch/${command.channel + 1}/inputgain`,
+					args: [
+						{
+							type: 'f',
+							value: command.values.inputGain,
+						},
+					],
+				})
+			}
+			if (command.values.inputSelector !== undefined) {
+				this._oscClient.send({
+					address: `/ch/${command.channel + 1}/inputselector`,
+					args: [
+						{
+							type: 'i',
+							value: command.values.inputSelector,
+						},
+					],
+				})
+			}
 			if (command.values.pgmOn !== undefined) {
 				const args: Array<MetaArgument> = [
 					{
