@@ -76,6 +76,11 @@ export class MultiOSCMessageDevice extends Device<MultiOSCOptions, MultiOSCDevic
 			})
 		}
 
+		// note - we reset here but might still be missing some connections from tcp devices, not worth fixing right now
+		this.context
+			.resetToState(Object.fromEntries(Object.keys(this._connections).map((id) => [id, {}])))
+			.catch((e) => this.context.logger.warning('Failed to reset state: ' + e))
+
 		return true
 	}
 

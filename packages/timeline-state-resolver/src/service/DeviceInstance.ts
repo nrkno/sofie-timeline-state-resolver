@@ -264,13 +264,13 @@ export class DeviceInstanceWrapper extends EventEmitter<DeviceInstanceEvents> {
 			resetState: async () => {
 				await this._stateHandler.setCurrentState(undefined)
 				await this._stateHandler.clearFutureStates()
-				this.emit('resetResolver')
+				this.emit('resyncStates')
 			},
 
 			resetToState: async (state: any) => {
 				await this._stateHandler.setCurrentState(state)
 				await this._stateHandler.clearFutureStates()
-				this.emit('resetResolver')
+				this.emit('resyncStates')
 			},
 		}
 	}

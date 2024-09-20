@@ -85,10 +85,14 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 	async init(initOptions: SisyfosOptions): Promise<boolean> {
 		this._sisyfos.once('initialized', () => {
 			this.setState(this.getDeviceState(false), this.getCurrentTime())
-			this.emit('resetResolver')
+			this.emit('resyncStates')
 		})
 
-		return this._sisyfos.connect(initOptions.host, initOptions.port).then(() => true)
+		this._sisyfos
+			.connect(initOptions.host, initOptions.port)
+			.catch((e) => this.emit('error', 'Failed to initialise Sisyfos connection', e))
+
+		return true
 	}
 	/** Called by the Conductor a bit before a .handleState is called */
 	prepareForHandleState(newStateTime: number) {
@@ -190,7 +194,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 
 		this._doOnTime.clearQueueNowAndAfter(this.getCurrentTime())
 		this._sisyfos.reInitialize()
-		this._sisyfos.on('initialized', () => {
+		this._sisyfos.once('initialized', () => {
 			if (resync) {
 				this._resyncing = false
 				const targetState = this.getState(this.getCurrentTime())
@@ -200,7 +204,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 				}
 			} else {
 				this.setState(this.getDeviceState(false), this.getCurrentTime())
-				this.emit('resetResolver')
+				this.emit('resyncStates')
 			}
 		})
 
