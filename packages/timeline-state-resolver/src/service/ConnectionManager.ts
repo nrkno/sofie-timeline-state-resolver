@@ -149,7 +149,10 @@ export class ConnectionManager extends EventEmitter<ConnectionManagerEvents> {
 			this._updating = false
 
 			// wait until next
-			const nextTime = Array.from(this._connectionAttempts.values()).reduce((a, b) => (a.next < b.next ? a : b))
+			const nextTime = Array.from(this._connectionAttempts.values()).reduce((a, b) => (a.next < b.next ? a : b), {
+				last: Date.now(), // not used
+				next: Date.now() + 4000, // in 4 seconds
+			})
 			this._nextAttempt = setTimeout(() => {
 				this._updateConnections()
 			}, nextTime.next - Date.now())

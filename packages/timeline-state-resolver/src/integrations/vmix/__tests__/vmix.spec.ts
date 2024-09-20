@@ -26,7 +26,6 @@ import {
 import { ThreadedClass } from 'threadedclass'
 import { VMixDevice } from '..'
 import { MockTime } from '../../../__tests__/mockTime'
-import '../../../__tests__/lib'
 import { CommandContext } from '../vMixCommands'
 import { prefixAddedInput } from './mockState'
 import { addConnections } from '../../../__tests__/lib'

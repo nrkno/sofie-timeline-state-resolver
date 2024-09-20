@@ -89,12 +89,12 @@ declare global {
 /** setTimeout (not affected by jest.fakeTimers) */
 const setTimeoutOrg = setTimeout
 /** Sleep for a  */
-export function waitTime(ms: number): Promise<void> {
+export async function waitTime(ms: number): Promise<void> {
 	return new Promise((resolve) => setTimeoutOrg(resolve, ms))
 }
 
-/** An actual monotonic time, not affected by jest.fakeTimers */
-export const realTimeNow = performance.now
+/** The current time, not affected by jest.fakeTimers */
+export const realTimeNow = Date.now.bind(Date)
 /**
  * Executes {expectFcn} intermittently until it doesn't throw anymore.
  * Waits up to {maxWaitTime} ms, then throws the latest error.
@@ -109,8 +109,9 @@ export async function waitUntil(
 
 	const previousErrors: string[] = []
 
+	// eslint-disable-next-line no-constant-condition
 	while (true) {
-		mockTime?.advanceTimeTicks(100)
+		await mockTime?.advanceTimeTicks(100)
 		await waitTime(100)
 		try {
 			await Promise.resolve(expectFcn())
