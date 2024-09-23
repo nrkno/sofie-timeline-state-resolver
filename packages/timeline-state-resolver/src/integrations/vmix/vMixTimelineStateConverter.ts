@@ -7,6 +7,8 @@ import {
 	TSRTimelineContent,
 	Timeline,
 	TimelineContentTypeVMix,
+	VMixInputOverlays,
+	VMixLayers,
 	VMixTransition,
 	VMixTransitionType,
 } from 'timeline-state-resolver-types'
@@ -136,7 +138,9 @@ export class VMixTimelineStateConverter {
 									loop: content.loop,
 									position: content.seek,
 									transform: content.transform,
-									overlays: content.overlays,
+									layers:
+										content.layers ??
+										(content.overlays ? this._convertDeprecatedInputOverlays(content.overlays) : undefined),
 									listFilePaths: content.listFilePaths,
 									restart: content.restart,
 								},
@@ -286,5 +290,9 @@ export class VMixTimelineStateConverter {
 			}
 		}
 		return state
+	}
+
+	private _convertDeprecatedInputOverlays(overlays: VMixInputOverlays): VMixLayers {
+		return _.mapObject(overlays, (value: number | string) => ({ input: value }))
 	}
 }

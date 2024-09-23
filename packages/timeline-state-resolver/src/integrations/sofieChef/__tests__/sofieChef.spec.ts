@@ -1,20 +1,10 @@
-import { Conductor } from '../../../conductor'
 import { SofieChefDevice } from '..'
-import {
-	Mappings,
-	DeviceType,
-	Mapping,
-	SomeMappingSofieChef,
-	TimelineContentTypeSofieChef,
-	StatusCode,
-	MappingSofieChefType,
-} from 'timeline-state-resolver-types'
+import { StatusCode } from 'timeline-state-resolver-types'
 import { MockTime } from '../../../__tests__/mockTime'
-import { ThreadedClass } from 'threadedclass'
-import { getMockCall } from '../../../__tests__/lib'
 import * as WebSocket from '../../../__mocks__/ws'
 import { literal } from '../../../lib'
 import { SendWSMessageAny, SendWSMessageType, StatusCode as ChefStatusCode } from '../api'
+import { getDeviceContext } from '../../__tests__/testlib'
 
 describe('SofieChef', () => {
 	jest.mock('ws', () => WebSocket)
@@ -26,35 +16,10 @@ describe('SofieChef', () => {
 	})
 
 	test('Status & reconnection', async () => {
-		let device: any = undefined
-		const commandReceiver0: any = jest.fn((...args) => {
-			// pipe through the command
-			return device._defaultCommandReceiver(...args)
-			// return Promise.resolve()
-		})
-		const myLayerMapping0: Mapping<SomeMappingSofieChef> = {
-			device: DeviceType.SOFIE_CHEF,
-			deviceId: 'chef0',
-			options: {
-				mappingType: MappingSofieChefType.Window,
-				windowId: 'window0',
-			},
-		}
-		const myLayerMapping: Mappings = {
-			myLayer0: myLayerMapping0,
-		}
-
-		const myConductor = new Conductor({
-			multiThreadedResolver: false,
-			getCurrentTime: mockTime.getCurrentTime,
-		})
-		const errorHandler = jest.fn()
-		myConductor.on('error', errorHandler)
-
 		WebSocket.mockConstructor((ws: WebSocket) => {
 			// @ts-ignore mock
 			// ws.mockReplyFunction((message) => {
-			// 	return ''
+			// 	return Buffer.from('')
 			// })
 
 			setImmediate(() => {
@@ -85,32 +50,18 @@ describe('SofieChef', () => {
 			})
 		})
 
-		await myConductor.init()
-		await myConductor.addDevice('chef0', {
-			type: DeviceType.SOFIE_CHEF,
-			options: {
-				address: 'ws://127.0.0.1',
-			},
-			commandReceiver: commandReceiver0,
+		const device = new SofieChefDevice(getDeviceContext())
+		await device.init({
+			address: 'ws://127.0.0.1',
 		})
-		myConductor.setTimelineAndMappings([], myLayerMapping)
 
 		const wsInstances = WebSocket.getMockInstances()
 		expect(wsInstances).toHaveLength(1)
 		const wsInstance = wsInstances[0]
 
-		await mockTime.advanceTimeToTicks(10100)
-
-		const deviceContainer = myConductor.getDevice('chef0')
-		device = deviceContainer!.device as ThreadedClass<SofieChefDevice>
-		const chefDevice = deviceContainer!.device as ThreadedClass<SofieChefDevice>
-
-		// Check that no commands has been scheduled:
-		expect(await device.queue).toHaveLength(0)
-
 		await mockTime.advanceTimeTicks(100)
 
-		expect(await chefDevice.getStatus()).toMatchObject({
+		expect(device.getStatus()).toMatchObject({
 			statusCode: StatusCode.GOOD,
 		})
 
@@ -137,7 +88,7 @@ describe('SofieChef', () => {
 
 		await mockTime.advanceTimeTicks(100)
 
-		expect(await chefDevice.getStatus()).toMatchObject({
+		expect(device.getStatus()).toMatchObject({
 			statusCode: StatusCode.BAD,
 			messages: ['Window 5: whoopsie'],
 		})
@@ -147,7 +98,7 @@ describe('SofieChef', () => {
 
 		await mockTime.advanceTimeTicks(100)
 
-		expect(await chefDevice.getStatus()).toMatchObject({
+		expect(device.getStatus()).toMatchObject({
 			statusCode: StatusCode.BAD,
 			messages: ['Not connected'],
 		})
@@ -157,133 +108,9 @@ describe('SofieChef', () => {
 
 		await mockTime.advanceTimeTicks(5000)
 
-		expect(await chefDevice.getStatus()).toMatchObject({
+		expect(device.getStatus()).toMatchObject({
 			statusCode: StatusCode.GOOD,
 			messages: [],
-		})
-	})
-	test('Play & stop URL', async () => {
-		let device: any = undefined
-		const commandReceiver0: any = jest.fn((...args) => {
-			// pipe through the command
-			return device._defaultCommandReceiver(...args)
-			// return Promise.resolve()
-		})
-		const myLayerMapping0: Mapping<SomeMappingSofieChef> = {
-			device: DeviceType.SOFIE_CHEF,
-			deviceId: 'chef0',
-			options: {
-				mappingType: MappingSofieChefType.Window,
-				windowId: 'window0',
-			},
-		}
-		const myLayerMapping: Mappings = {
-			myLayer0: myLayerMapping0,
-		}
-
-		const myConductor = new Conductor({
-			multiThreadedResolver: false,
-			getCurrentTime: mockTime.getCurrentTime,
-		})
-		const errorHandler = jest.fn()
-		myConductor.on('error', errorHandler)
-
-		WebSocket.mockConstructor((ws: WebSocket) => {
-			setImmediate(() => {
-				ws.mockSetConnected(true)
-			})
-		})
-
-		await myConductor.init()
-		await myConductor.addDevice('chef0', {
-			type: DeviceType.SOFIE_CHEF,
-			options: {
-				address: 'ws://127.0.0.1',
-			},
-			commandReceiver: commandReceiver0,
-		})
-		myConductor.setTimelineAndMappings([], myLayerMapping)
-
-		const wsInstances = WebSocket.getMockInstances()
-		expect(wsInstances).toHaveLength(1)
-
-		await mockTime.advanceTimeToTicks(10100)
-
-		const deviceContainer = myConductor.getDevice('chef0')
-		device = deviceContainer!.device as ThreadedClass<SofieChefDevice>
-
-		// Check that no commands has been scheduled:
-		expect(await device.queue).toHaveLength(0)
-
-		myConductor.setTimelineAndMappings(
-			[
-				{
-					id: 'url0',
-					enable: {
-						start: 11000,
-						end: 20000,
-					},
-					layer: 'myLayer0',
-					content: {
-						deviceType: DeviceType.SOFIE_CHEF,
-						type: TimelineContentTypeSofieChef.URL,
-						url: 'http://google.com',
-					},
-					keyframes: [
-						{
-							id: 'kf0',
-							enable: {
-								start: 4000, // 15000
-							},
-							content: {
-								url: 'http://yahoo.com',
-							},
-						},
-					],
-				},
-			],
-			myLayerMapping
-		)
-
-		await mockTime.advanceTimeToTicks(10990)
-		expect(commandReceiver0).toHaveBeenCalledTimes(0)
-
-		await mockTime.advanceTimeToTicks(11100)
-		expect(commandReceiver0).toHaveBeenCalledTimes(1)
-		expect(getMockCall(commandReceiver0, 0, 1)).toMatchObject({
-			content: {
-				type: 'playurl',
-				url: 'http://google.com',
-				windowId: 'window0',
-			},
-			context: 'added',
-			timelineObjId: 'url0',
-		})
-
-		commandReceiver0.mockReset()
-
-		await mockTime.advanceTimeToTicks(18500)
-		expect(commandReceiver0).toHaveBeenCalledTimes(1)
-		expect(getMockCall(commandReceiver0, 0, 1)).toMatchObject({
-			content: {
-				type: 'playurl',
-				url: 'http://yahoo.com',
-				windowId: 'window0',
-			},
-			context: 'changed',
-			timelineObjId: 'url0',
-		})
-
-		commandReceiver0.mockReset()
-		await mockTime.advanceTimeToTicks(20100)
-		expect(commandReceiver0).toHaveBeenCalledTimes(1)
-		expect(getMockCall(commandReceiver0, 0, 1)).toMatchObject({
-			content: {
-				type: 'stop',
-				windowId: 'window0',
-			},
-			context: 'removed',
-			timelineObjId: 'url0',
 		})
 	})
 })

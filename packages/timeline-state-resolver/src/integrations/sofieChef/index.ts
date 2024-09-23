@@ -1,20 +1,15 @@
 import * as _ from 'underscore'
-import { DeviceWithState, CommandWithContext, DeviceStatus, StatusCode } from '../../devices/device'
 import {
-	DeviceType,
 	SofieChefOptions,
-	DeviceOptionsSofieChef,
 	Mappings,
-	SomeMappingSofieChef,
 	TSRTimelineContent,
 	Timeline,
 	ActionExecutionResultCode,
 	SofieChefActions,
-	SofieChefActionExecutionPayload,
-	SofieChefActionExecutionResult,
+	ActionExecutionResult,
+	StatusCode,
+	DeviceStatus,
 } from 'timeline-state-resolver-types'
-
-import { DoOnTime, SendMode } from '../../devices/doOnTime'
 import * as WebSocket from 'ws'
 import {
 	ReceiveWSMessageAny,
@@ -26,21 +21,14 @@ import {
 	StatusObject,
 	ReceiveWSMessageResponse,
 } from './api'
-import { actionNotFoundMessage, t } from '../../lib'
+import { t } from '../../lib'
+import { CommandWithContext, Device } from '../../service/device'
+import { diffStates } from './diffStates'
+import { buildSofieChefState } from './stateBuilder'
 
-export interface DeviceOptionsSofieChefInternal extends DeviceOptionsSofieChef {
-	commandReceiver?: CommandReceiver
-}
-export type CommandReceiver = (
-	time: number,
-	cmd: Command,
-	context: CommandContext,
-	timelineObjId: string
-) => Promise<any>
-
-export interface Command {
-	content: CommandContent
-	context: CommandContext
+export interface SofieChefCommandWithContext {
+	command: ReceiveWSMessageAny
+	context: string
 	timelineObjId: string
 }
 export interface SofieChefState {
@@ -56,15 +44,33 @@ export interface SofieChefState {
 const COMMAND_TIMEOUT_TIME = 5000
 const RECONNECT_WAIT_TIME = 5000
 
-type CommandContent = ReceiveWSMessageAny
-type CommandContext = string
 /**
  * This is a wrapper for a SofieChef-devices,
  * https://github.com/nrkno/sofie-chef
  */
-export class SofieChefDevice extends DeviceWithState<SofieChefState, DeviceOptionsSofieChefInternal> {
-	private _doOnTime: DoOnTime
+export class SofieChefDevice extends Device<SofieChefOptions, SofieChefState, SofieChefCommandWithContext> {
+	readonly actions: {
+		[id in SofieChefActions]: (id: string, payload?: Record<string, any>) => Promise<ActionExecutionResult>
+	} = {
+		[SofieChefActions.RestartAllWindows]: async () =>
+			this.restartAllWindows()
+				.then(() => ({
+					result: ActionExecutionResultCode.Ok,
+				}))
+				.catch(() => ({ result: ActionExecutionResultCode.Error })),
+		[SofieChefActions.RestartWindow]: async (_id, payload) => {
+			if (!payload?.windowId) {
+				return { result: ActionExecutionResultCode.Error, response: t('Missing window id') }
+			}
+			return this.restartWindow(payload.windowId)
+				.then(() => ({
+					result: ActionExecutionResultCode.Ok,
+				}))
+				.catch(() => ({ result: ActionExecutionResultCode.Error }))
+		},
+	}
 
+	// private _doOnTime: DoOnTime
 	private _ws?: WebSocket
 	private _connected = false
 	private _status: SendWSMessageStatus['status'] = {
@@ -74,35 +80,23 @@ export class SofieChefDevice extends DeviceWithState<SofieChefState, DeviceOptio
 		},
 		windows: {},
 	}
-
 	private initOptions?: SofieChefOptions
 	private msgId = 0
-	private _commandReceiver: CommandReceiver = this._defaultCommandReceiver.bind(this)
-
-	constructor(deviceId: string, deviceOptions: DeviceOptionsSofieChefInternal, getCurrentTime: () => Promise<number>) {
-		super(deviceId, deviceOptions, getCurrentTime)
-		if (deviceOptions.options) {
-			if (deviceOptions.commandReceiver) this._commandReceiver = deviceOptions.commandReceiver
-		}
-		this._doOnTime = new DoOnTime(
-			() => {
-				return this.getCurrentTime()
-			},
-			SendMode.BURST,
-			this._deviceOptions
-		)
-		this.handleDoOnTime(this._doOnTime, 'SofieChef')
-	}
 
 	/**
 	 * Initiates the connection with SofieChed through a websocket connection.
 	 */
 	async init(initOptions: SofieChefOptions): Promise<boolean> {
 		// This is where we would do initialization, like connecting to the devices, etc
-
 		this.initOptions = initOptions
 
-		await this._setupWSConnection()
+		this._setupWSConnection()
+			.then(() => {
+				// assume empty state on start (would be nice if we could get the url for each window on connection)
+				this.context.resetToState({ windows: {} }).catch((e) => this.context.logger.error('Failed to reset state', e))
+			})
+			.catch((e) => this.context.logger.error('Failed to initialise Sofie Chef connection', e))
+
 		return true
 	}
 	private async _setupWSConnection() {
@@ -117,10 +111,9 @@ export class SofieChefDevice extends DeviceWithState<SofieChefState, DeviceOptio
 				delete this._ws
 			}
 			this._ws = new WebSocket(this.initOptions.address)
-
 			this._ws.on('error', (e) => {
 				reject(new Error(`Error when connecting: ${e}`))
-				this.emit('error', 'SofieChef', e)
+				this.context.logger.error('SofieChef', e)
 			})
 			this._ws.on('open', () => {
 				this._updateConnected(true)
@@ -140,17 +133,15 @@ export class SofieChefDevice extends DeviceWithState<SofieChefState, DeviceOptio
 			}, COMMAND_TIMEOUT_TIME)
 		})
 	}
+
 	private reconnectTimeout?: NodeJS.Timer
 	private tryReconnect() {
 		if (this.reconnectTimeout) return
-
 		this.reconnectTimeout = setTimeout(() => {
 			delete this.reconnectTimeout
-
 			this._setupWSConnection()
 				.then(async () => {
 					// is connected, yay!
-
 					// Resync state:
 					await this.resyncState()
 				})
@@ -165,7 +156,6 @@ export class SofieChefDevice extends DeviceWithState<SofieChefState, DeviceOptio
 			msgId: 0, // set later
 			type: ReceiveWSMessageType.LIST,
 		})
-
 		if (response.code === 200) {
 			// Update state to reflec the actual state of Chef:
 			const state: SofieChefState = { windows: {} }
@@ -175,94 +165,25 @@ export class SofieChefDevice extends DeviceWithState<SofieChefState, DeviceOptio
 					urlTimelineObjId: 'N/A',
 				}
 			}
-			this.clearStates()
-			this.setState(state, this.getCurrentTime())
-
-			// Trigger conductor to resolve the timeline:
-			this.emit('resetResolver')
+			await this.context.resetToState(state)
 		}
 	}
-	/** Called by the Conductor a bit before a .handleState is called */
-	prepareForHandleState(newStateTime: number) {
-		// clear any queued commands later than this time:
-		this._doOnTime.clearQueueNowAndAfter(newStateTime)
-		this.cleanUpStates(0, newStateTime)
-	}
-	/**
-	 * Handles a new state such that the device will be in that state at a specific point
-	 * in time.
-	 * @param newState
-	 */
-	handleState(newState: Timeline.TimelineState<TSRTimelineContent>, newMappings: Mappings<SomeMappingSofieChef>) {
-		super.onHandleState(newState, newMappings)
-		// Handle this new state, at the point in time specified
-
-		const previousStateTime = Math.max(this.getCurrentTime(), newState.time)
-		const oldSofieChefState: SofieChefState = (this.getStateBefore(previousStateTime) || { state: { windows: {} } })
-			.state
-
-		const newSofieChefState = this.convertStateToSofieChef(newState, newMappings)
-
-		const commandsToAchieveState: Array<Command> = this._diffStates(oldSofieChefState, newSofieChefState)
-
-		// clear any queued commands later than this time:
-		this._doOnTime.clearQueueNowAndAfter(previousStateTime)
-		// add the new commands to the queue:
-		this._addToQueue(commandsToAchieveState, newState.time)
-
-		// store the new state, for later use:
-		this.setState(newSofieChefState, newState.time)
-	}
-	clearFuture(clearAfterTime: number) {
-		// Clear any scheduled commands after this time
-		this._doOnTime.clearQueueAfter(clearAfterTime)
-	}
 	async terminate() {
-		this._doOnTime.dispose()
-
 		this._ws?.terminate()
 		this._ws?.removeAllListeners()
 	}
-	get canConnect(): boolean {
-		return true
-	}
+
 	get connected(): boolean {
 		return this._connected
 	}
-	convertStateToSofieChef(
-		state: Timeline.TimelineState<TSRTimelineContent>,
-		mappings: Mappings<SomeMappingSofieChef>
-	): SofieChefState {
-		const sofieChefState: SofieChefState = {
-			windows: {},
-		}
-		for (const [layer, layerState] of Object.entries<Timeline.ResolvedTimelineObjectInstance<TSRTimelineContent>>(
-			state.layers
-		)) {
-			const mapping = mappings[layer]
-			const content = layerState.content
 
-			if (mapping && content.deviceType === DeviceType.SOFIE_CHEF) {
-				sofieChefState.windows[mapping.options.windowId] = {
-					url: content.url,
-					urlTimelineObjId: layerState.id,
-				}
-			}
-		}
-		return sofieChefState
+	convertTimelineStateToDeviceState(
+		timelineState: Timeline.TimelineState<TSRTimelineContent>,
+		mappings: Mappings
+	): SofieChefState {
+		return buildSofieChefState(timelineState, mappings)
 	}
-	get deviceType() {
-		return DeviceType.SOFIE_CHEF
-	}
-	get deviceName(): string {
-		return 'SofieChef ' + this.deviceId
-	}
-	get queue() {
-		return this._doOnTime.getQueue()
-	}
-	async makeReady(_okToDestroyStuff?: boolean): Promise<void> {
-		return Promise.resolve()
-	}
+
 	/** Restart (reload) all windows */
 	private async restartAllWindows() {
 		return this._sendMessage({
@@ -279,34 +200,10 @@ export class SofieChefDevice extends DeviceWithState<SofieChefState, DeviceOptio
 			windowId: windowId,
 		})
 	}
-	async executeAction<A extends SofieChefActions>(
-		actionId: A,
-		payload: SofieChefActionExecutionPayload<A>
-	): Promise<SofieChefActionExecutionResult<A>> {
-		switch (actionId) {
-			case SofieChefActions.RestartAllWindows:
-				return this.restartAllWindows()
-					.then(() => ({
-						result: ActionExecutionResultCode.Ok,
-					}))
-					.catch(() => ({ result: ActionExecutionResultCode.Error }))
-			case SofieChefActions.RestartWindow:
-				if (!payload?.windowId) {
-					return { result: ActionExecutionResultCode.Error, response: t('Missing window id') }
-				}
-				return this.restartWindow(payload.windowId)
-					.then(() => ({
-						result: ActionExecutionResultCode.Ok,
-					}))
-					.catch(() => ({ result: ActionExecutionResultCode.Error }))
-			default:
-				return actionNotFoundMessage(actionId)
-		}
-	}
-	getStatus(): DeviceStatus {
+
+	getStatus(): Omit<DeviceStatus, 'active'> {
 		let statusCode = StatusCode.GOOD
 		const messages: string[] = []
-
 		if (!this.connected) {
 			statusCode = StatusCode.BAD
 			messages.push('Not connected')
@@ -322,11 +219,9 @@ export class SofieChefDevice extends DeviceWithState<SofieChefState, DeviceOptio
 				}
 			}
 		}
-
 		return {
 			statusCode: statusCode,
 			messages: messages,
-			active: this.isActive,
 		}
 	}
 	private convertStatusCode(s: ChefStatusCode): StatusCode {
@@ -342,112 +237,45 @@ export class SofieChefDevice extends DeviceWithState<SofieChefState, DeviceOptio
 			}
 		}
 	}
-	/**
-	 * Add commands to queue, to be executed at the right time
-	 */
-	private _addToQueue(commandsToAchieveState: Array<Command>, time: number) {
-		for (const cmd of commandsToAchieveState) {
-			// add the new commands to the queue:
-			this._doOnTime.queue(
-				time,
-				undefined,
-				async (cmd: Command) => {
-					return this._commandReceiver(time, cmd, cmd.context, cmd.timelineObjId)
-				},
-				cmd
-			)
-		}
-	}
+
 	/**
 	 * Compares the new timeline-state with the old one, and generates commands to account for the difference
 	 */
-	private _diffStates(oldSofieChefState: SofieChefState, newSofieChefState: SofieChefState) {
-		const commands: Command[] = []
-
-		// Added / Changed things:
-		for (const [windowId, window] of Object.entries<SofieChefState['windows'][0]>(newSofieChefState.windows)) {
-			const oldWindow = oldSofieChefState.windows[windowId]
-
-			if (!oldWindow) {
-				// Added
-				commands.push({
-					context: 'added',
-					timelineObjId: window.urlTimelineObjId,
-					content: {
-						msgId: 0, // set later
-						type: ReceiveWSMessageType.PLAYURL,
-						windowId: windowId,
-						url: window.url,
-					},
-				})
-			} else {
-				// item is not new, but maybe it has changed:
-				if (oldWindow.url !== window.url) {
-					commands.push({
-						context: 'changed',
-						timelineObjId: window.urlTimelineObjId,
-						content: {
-							msgId: 0, // set later
-							type: ReceiveWSMessageType.PLAYURL,
-							windowId: windowId,
-							url: window.url,
-						},
-					})
-				}
-			}
-		}
-		// Removed things
-		for (const [windowId, oldWindow] of Object.entries<SofieChefState['windows'][0]>(oldSofieChefState.windows)) {
-			const newWindow = newSofieChefState.windows[windowId]
-
-			if (!newWindow) {
-				// Removed
-
-				commands.push({
-					context: 'removed',
-					timelineObjId: oldWindow.urlTimelineObjId,
-					content: {
-						msgId: 0, // set later
-						type: ReceiveWSMessageType.STOP,
-						windowId: windowId,
-					},
-				})
-			}
-		}
-
-		return commands
+	public diffStates(
+		oldSofieChefState: SofieChefState | undefined,
+		newSofieChefState: SofieChefState,
+		mappings: Mappings
+	): Array<SofieChefCommandWithContext> {
+		return diffStates(oldSofieChefState, newSofieChefState, mappings)
 	}
-	private async _defaultCommandReceiver(
-		_time: number,
-		cmd: Command,
-		context: CommandContext,
-		timelineObjId: string
-	): Promise<any> {
+
+	public async sendCommand({ command, context, timelineObjId }: SofieChefCommandWithContext): Promise<any> {
 		// emit the command to debug:
 		const cwc: CommandWithContext = {
 			context,
-			command: cmd.content,
+			command,
 			timelineObjId,
 		}
-		this.emitDebug(cwc)
+		this.context.logger.debug(cwc)
 
 		// execute the command here
 		try {
-			await this._sendMessage(cmd.content)
+			await this._sendMessage(command)
 		} catch (e) {
-			this.emit('commandError', e as Error, cwc)
+			this.context.commandError(e as Error, cwc)
 		}
 	}
+
 	private _updateConnected(connected: boolean) {
 		if (this._connected !== connected) {
 			this._connected = connected
-			this.emit('connectionChanged', this.getStatus())
+			this.context.connectionChanged(this.getStatus())
 		}
 	}
 	private _updateStatus(status: SendWSMessageStatus['status']) {
 		if (!_.isEqual(this._status, status)) {
 			this._status = status
-			this.emit('connectionChanged', this.getStatus())
+			this.context.connectionChanged(this.getStatus())
 		}
 	}
 	private _handleReceivedMessage(data: WebSocket.Data) {
@@ -471,29 +299,27 @@ export class SofieChefDevice extends DeviceWithState<SofieChefState, DeviceOptio
 				}
 			}
 		} catch (err) {
-			this.emit('error', 'SofieChef', err as Error)
+			this.context.logger.error('SofieChef', err as Error)
 		}
 	}
+
 	private waitingForReplies: {
 		[msgId: string]: {
 			resolve: (result: any) => void
 			reject: (error: any) => void
 		}
 	} = {}
-
 	private async _sendMessage<M extends ReceiveWSMessageAny>(msg: M): Promise<ReceiveWSMessageResponse<M['type']>> {
 		return new Promise((resolve, reject) => {
 			msg.msgId = this.msgId++
 			if (this.initOptions?.apiKey) {
 				msg.apiKey = this.initOptions?.apiKey
 			}
-
 			this.waitingForReplies[msg.msgId + ''] = {
 				resolve,
 				reject,
 			}
 			this._ws?.send(JSON.stringify(msg))
-
 			setTimeout(() => {
 				reject(new Error(`Command timed out`))
 			}, COMMAND_TIMEOUT_TIME)

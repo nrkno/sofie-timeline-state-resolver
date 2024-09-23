@@ -1,4 +1,4 @@
-import { DeviceType } from '..'
+import { DeviceType, TemplateString } from '..'
 
 export enum TimelineContentTypeCasparCg { //  CasparCG-state
 	MEDIA = 'media',
@@ -122,7 +122,7 @@ export interface TimelineContentCCGInput extends TimelineContentCasparCGBase, Ti
 export interface TimelineContentCCGHTMLPage extends TimelineContentCasparCGBase, TimelineContentCCGProducerBase {
 	type: TimelineContentTypeCasparCg.HTMLPAGE
 	/** The URL to load */
-	url: string
+	url: string | TemplateString
 }
 export interface TimelineContentCCGTemplate extends TimelineContentCasparCGBase, TimelineContentCCGProducerBase {
 	type: TimelineContentTypeCasparCg.TEMPLATE

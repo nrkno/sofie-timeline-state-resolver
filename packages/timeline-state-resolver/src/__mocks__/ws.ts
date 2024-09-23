@@ -19,7 +19,7 @@ class WebSocket extends EventEmitter {
 	private _emittedConnected = false
 	private _hasEmittedConnected = false
 	private _failConnectEmitTimeout = 3000
-	private _replyFunction?: Function
+	private _replyFunction?: (msg: string) => Promise<Buffer | null> | Buffer | null
 
 	private _readyState: number = this.CLOSED
 
@@ -91,7 +91,7 @@ class WebSocket extends EventEmitter {
 	public get readyState() {
 		return this._readyState
 	}
-	public mockReplyFunction(fcn: (msg: string) => Promise<string> | string) {
+	public mockReplyFunction(fcn: (msg: string) => Promise<Buffer | null> | Buffer | null) {
 		this._replyFunction = fcn
 	}
 	public mockSetConnected(connected: boolean) {
@@ -99,8 +99,9 @@ class WebSocket extends EventEmitter {
 
 		this._updateConnectionStatus()
 	}
-	public mockSendMessage(message: string | object) {
-		if (typeof message !== 'string') message = JSON.stringify(message)
+	public mockSendMessage(message: string | object | Buffer) {
+		if (typeof message !== 'string' && !Buffer.isBuffer(message)) message = JSON.stringify(message)
+		if (typeof message === 'string') message = Buffer.from(message)
 		this.emit('message', message)
 	}
 	public close() {

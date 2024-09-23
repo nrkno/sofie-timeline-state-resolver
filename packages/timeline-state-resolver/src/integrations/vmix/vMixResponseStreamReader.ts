@@ -26,17 +26,18 @@ export class VMixResponseStreamReader extends EventEmitter<ResponseStreamReaderE
 		this._lineRemainder = ''
 	}
 
-	processIncomingData(data: Buffer) {
-		const string = this._lineRemainder + data.toString('utf-8')
-		this._lineRemainder = ''
-		const lines = string.split('\r\n')
-		const lastChunk = lines.pop()
+	processIncomingData(data: string) {
+		const remainingData = this._lineRemainder + data
+		const incomingLines = remainingData.split('\r\n')
+		const lastChunk = incomingLines.pop()
 
 		if (lastChunk != null && lastChunk !== '') {
 			// Incomplete line found at the end - keep it
 			this._lineRemainder = lastChunk
+		} else {
+			this._lineRemainder = ''
 		}
-		this._unprocessedLines.push(...lines)
+		this._unprocessedLines.push(...incomingLines)
 
 		let lineToProcess: string | undefined
 
@@ -92,7 +93,7 @@ export class VMixResponseStreamReader extends EventEmitter<ResponseStreamReaderE
 			}
 
 			processedLines.push(line)
-			responseLen -= line.length + 2
+			responseLen -= Buffer.byteLength(line, 'utf-8') + 2
 		}
 		this._unprocessedLines.splice(0, processedLines.length)
 		return processedLines.join('\r\n')

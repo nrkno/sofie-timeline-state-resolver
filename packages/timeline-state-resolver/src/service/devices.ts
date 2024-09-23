@@ -1,7 +1,7 @@
 import { OscDevice } from '../integrations/osc'
 import { DeviceType } from 'timeline-state-resolver-types'
 import { Device, DeviceContextAPI } from './device'
-import { HTTPSendDevice } from '../integrations/httpSend'
+import { AuthenticatedHTTPSendDevice } from '../integrations/httpSend/AuthenticatedHTTPSendDevice'
 import { ShotokuDevice } from '../integrations/shotoku'
 import { HTTPWatcherDevice } from '../integrations/httpWatcher'
 import { AbstractDevice } from '../integrations/abstract'
@@ -12,6 +12,12 @@ import { HyperdeckDevice } from '../integrations/hyperdeck'
 import { OBSDevice } from '../integrations/obs'
 import { PanasonicPtzDevice } from '../integrations/panasonicPTZ'
 import { LawoDevice } from '../integrations/lawo'
+import { SofieChefDevice } from '../integrations/sofieChef'
+import { PharosDevice } from '../integrations/pharos'
+import { TelemetricsDevice } from '../integrations/telemetrics'
+import { TriCasterDevice } from '../integrations/tricaster'
+import { SingularLiveDevice } from '../integrations/singularLive'
+import { MultiOSCMessageDevice } from '../integrations/multiOsc'
 
 export interface DeviceEntry {
 	deviceClass: new (context: DeviceContextAPI<any>) => Device<any, any, any>
@@ -29,9 +35,15 @@ export type ImplementedServiceDeviceTypes =
 	| DeviceType.LAWO
 	| DeviceType.OBS
 	| DeviceType.OSC
+	| DeviceType.MULTI_OSC
 	| DeviceType.PANASONIC_PTZ
+	| DeviceType.PHAROS
 	| DeviceType.SHOTOKU
+	| DeviceType.SINGULAR_LIVE
+	| DeviceType.SOFIE_CHEF
 	| DeviceType.TCPSEND
+	| DeviceType.TELEMETRICS
+	| DeviceType.TRICASTER
 	| DeviceType.QUANTEL
 
 // TODO - move all device implementations here and remove the old Device classes
@@ -49,7 +61,7 @@ export const DevicesDict: Record<ImplementedServiceDeviceTypes, DeviceEntry> = {
 		executionMode: () => 'salvo',
 	},
 	[DeviceType.HTTPSEND]: {
-		deviceClass: HTTPSendDevice,
+		deviceClass: AuthenticatedHTTPSendDevice,
 		canConnect: false,
 		deviceName: (deviceId: string) => 'HTTPSend ' + deviceId,
 		executionMode: () => 'sequential', // todo - config?
@@ -84,10 +96,28 @@ export const DevicesDict: Record<ImplementedServiceDeviceTypes, DeviceEntry> = {
 		deviceName: (deviceId: string) => 'OSC ' + deviceId,
 		executionMode: () => 'salvo',
 	},
+	[DeviceType.MULTI_OSC]: {
+		deviceClass: MultiOSCMessageDevice,
+		canConnect: false,
+		deviceName: (deviceId: string) => 'MultiOSC ' + deviceId,
+		executionMode: () => 'salvo',
+	},
 	[DeviceType.PANASONIC_PTZ]: {
 		deviceClass: PanasonicPtzDevice,
 		canConnect: true,
 		deviceName: (deviceId: string) => 'Panasonic PTZ ' + deviceId,
+		executionMode: () => 'salvo',
+	},
+	[DeviceType.PHAROS]: {
+		deviceClass: PharosDevice,
+		canConnect: true,
+		deviceName: (deviceId: string) => 'Pharos ' + deviceId,
+		executionMode: () => 'salvo',
+	},
+	[DeviceType.SOFIE_CHEF]: {
+		deviceClass: SofieChefDevice,
+		canConnect: true,
+		deviceName: (deviceId: string) => 'SofieChef ' + deviceId,
 		executionMode: () => 'salvo',
 	},
 	[DeviceType.SHOTOKU]: {
@@ -96,16 +126,34 @@ export const DevicesDict: Record<ImplementedServiceDeviceTypes, DeviceEntry> = {
 		deviceName: (deviceId: string) => 'SHOTOKU' + deviceId,
 		executionMode: () => 'salvo',
 	},
+	[DeviceType.SINGULAR_LIVE]: {
+		deviceClass: SingularLiveDevice,
+		canConnect: false,
+		deviceName: (deviceId: string) => 'Singular.Live ' + deviceId,
+		executionMode: () => 'sequential',
+	},
 	[DeviceType.TCPSEND]: {
 		deviceClass: TcpSendDevice,
 		canConnect: true,
 		deviceName: (deviceId: string) => 'TCP' + deviceId,
 		executionMode: () => 'sequential', // todo: should this be configurable?
 	},
+	[DeviceType.TELEMETRICS]: {
+		deviceClass: TelemetricsDevice,
+		canConnect: true,
+		deviceName: (deviceId: string) => 'Telemetrics ' + deviceId,
+		executionMode: () => 'salvo',
+	},
+	[DeviceType.TRICASTER]: {
+		deviceClass: TriCasterDevice,
+		canConnect: true,
+		deviceName: (deviceId: string) => 'TriCaster ' + deviceId,
+		executionMode: () => 'salvo',
+	},
 	[DeviceType.QUANTEL]: {
 		deviceClass: QuantelDevice,
 		canConnect: true,
 		deviceName: (deviceId: string) => 'Quantel' + deviceId,
-		executionMode: () => 'salvo',
+		executionMode: () => 'sequential',
 	},
 }

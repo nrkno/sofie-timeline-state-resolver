@@ -29,9 +29,8 @@ export function setupQuantelGatewayMock() {
 		},
 	}
 
-	// @ts-ignore: not logging
 	const onRequest = jest.fn((_type: string, _url: string) => {
-		// console.log('onRequest', type, url)
+		// nothing
 	})
 
 	const onRequestRaw = jest.fn((type: string, url: string) => {
@@ -223,7 +222,6 @@ async function handleRequest(
 				message: `ISA URL not provided`,
 				stack: '',
 			}
-			// console.log(type, resource)
 
 			urlRoute(type, resource, {
 				// @ts-ignore: no need for params
@@ -837,7 +835,6 @@ async function handleRequest(
 				},
 			})
 				.then((body) => {
-					// console.log('got responding:', type, resource, body)
 					resolve({
 						statusCode: quantelServer.requestReturnsOK ? 200 : 500,
 						// body: JSON.stringify(body)

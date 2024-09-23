@@ -4,8 +4,10 @@ import {
 	ActionExecutionResultCode,
 	DeviceStatus,
 	HTTPSendCommandContent,
+	HTTPSendCommandContentExt,
 	HTTPSendOptions,
 	HttpSendActions,
+	SendCommandResult,
 	StatusCode,
 	TSRTimelineContent,
 	Timeline,
@@ -14,7 +16,7 @@ import {
 } from 'timeline-state-resolver-types'
 import _ = require('underscore')
 import got, { OptionsOfTextResponseBody, RequestError } from 'got'
-import { t } from '../../lib'
+import { interpolateTemplateStringIfNeeded, t } from '../../lib'
 import { HttpProxyAgent, HttpsProxyAgent } from 'hpagent'
 import CacheableLookup from 'cacheable-lookup'
 
@@ -23,18 +25,18 @@ export type HttpSendDeviceState = Timeline.TimelineState<TSRTimelineContent>
 export interface HttpSendDeviceCommand extends CommandWithContext {
 	command: {
 		commandName: 'added' | 'changed' | 'removed' | 'retry' | 'manual'
-		content: HTTPSendCommandContent
+		content: HTTPSendCommandContentExt
 		layer: string
 	}
 }
 
 export class HTTPSendDevice extends Device<HTTPSendOptions, HttpSendDeviceState, HttpSendDeviceCommand> {
 	/** Setup in init */
-	private options!: HTTPSendOptions
+	protected options!: HTTPSendOptions
 	/** Maps layers -> sent command-hashes */
-	private trackedState = new Map<string, string>()
-	private readonly cacheable = new CacheableLookup()
-	private _terminated = false
+	protected trackedState = new Map<string, string>()
+	protected readonly cacheable = new CacheableLookup()
+	protected _terminated = false
 
 	async init(options: HTTPSendOptions): Promise<boolean> {
 		this.options = options
@@ -54,19 +56,22 @@ export class HTTPSendDevice extends Device<HTTPSendOptions, HttpSendDeviceState,
 			messages: [],
 		}
 	}
-
 	readonly actions: {
-		[id in HttpSendActions]: (id: string, payload?: Record<string, any>) => Promise<ActionExecutionResult>
+		[id in HttpSendActions]: (id: string, payload?: Record<string, any>) => Promise<ActionExecutionResult<any>>
 	} = {
-		[HttpSendActions.Resync]: async () => {
-			this.context.resetResolver()
-			return { result: ActionExecutionResultCode.Ok }
-		},
+		[HttpSendActions.Resync]: async (_id) => this.executeResyncAction(),
 		[HttpSendActions.SendCommand]: async (_id: string, payload?: Record<string, any>) =>
-			this.sendManualCommand(payload as HTTPSendCommandContent | undefined),
+			this.executeSendCommandAction(payload as HTTPSendCommandContent | undefined),
 	}
 
-	private async sendManualCommand(cmd?: HTTPSendCommandContent): Promise<ActionExecutionResult> {
+	private async executeResyncAction(): Promise<ActionExecutionResult<undefined>> {
+		this.context.resetResolver()
+		return { result: ActionExecutionResultCode.Ok }
+	}
+
+	private async executeSendCommandAction(
+		cmd?: HTTPSendCommandContentExt
+	): Promise<ActionExecutionResult<SendCommandResult>> {
 		if (!cmd)
 			return {
 				result: ActionExecutionResultCode.Error,
@@ -97,7 +102,7 @@ export class HTTPSendDevice extends Device<HTTPSendOptions, HttpSendDeviceState,
 			}
 		}
 
-		await this.sendCommand({
+		const response = await this.sendCommandWithResult({
 			timelineObjId: '',
 			context: 'makeReady',
 			command: {
@@ -107,9 +112,11 @@ export class HTTPSendDevice extends Device<HTTPSendOptions, HttpSendDeviceState,
 			},
 		}).catch(() => this.context.logger.warning('Manual command failed: ' + JSON.stringify(cmd)))
 
-		return {
-			result: ActionExecutionResultCode.Ok,
-		}
+		return (
+			response ?? {
+				result: ActionExecutionResultCode.Error,
+			}
+		)
 	}
 
 	convertTimelineStateToDeviceState(state: Timeline.TimelineState<TSRTimelineContent>): HttpSendDeviceState {
@@ -127,9 +134,10 @@ export class HTTPSendDevice extends Device<HTTPSendOptions, HttpSendDeviceState,
 					context: `added: ${newLayer.id}`,
 					command: {
 						commandName: 'added',
-						content: newLayer.content as HTTPSendCommandContent,
+						content: newLayer.content as HTTPSendCommandContentExt,
 						layer: layerKey,
 					},
+					queueId: (newLayer.content as HTTPSendCommandContent)?.queueId,
 				})
 			} else {
 				// changed?
@@ -140,9 +148,10 @@ export class HTTPSendDevice extends Device<HTTPSendOptions, HttpSendDeviceState,
 						context: `changed: ${newLayer.id} (previously: ${oldLayer.id})`,
 						command: {
 							commandName: 'changed',
-							content: newLayer.content as HTTPSendCommandContent,
+							content: newLayer.content as HTTPSendCommandContentExt,
 							layer: layerKey,
 						},
+						queueId: (newLayer.content as HTTPSendCommandContent)?.queueId,
 					})
 				}
 			}
@@ -155,7 +164,8 @@ export class HTTPSendDevice extends Device<HTTPSendOptions, HttpSendDeviceState,
 				commands.push({
 					timelineObjId: oldLayer.id,
 					context: `removed: ${oldLayer.id}`,
-					command: { commandName: 'removed', content: oldLayer.content as HTTPSendCommandContent, layer: layerKey },
+					command: { commandName: 'removed', content: oldLayer.content as HTTPSendCommandContentExt, layer: layerKey },
+					queueId: (oldLayer.content as HTTPSendCommandContentExt)?.queueId,
 				})
 			}
 		})
@@ -168,6 +178,13 @@ export class HTTPSendDevice extends Device<HTTPSendOptions, HttpSendDeviceState,
 		return commands
 	}
 	async sendCommand({ timelineObjId, context, command }: HttpSendDeviceCommand): Promise<void> {
+		await this.sendCommandWithResult({ timelineObjId, context, command })
+	}
+	async sendCommandWithResult({
+		timelineObjId,
+		context,
+		command,
+	}: HttpSendDeviceCommand): Promise<ActionExecutionResult<SendCommandResult>> {
 		const commandHash = this.getTrackedStateHash(command)
 
 		if (command.commandName === 'added' || command.commandName === 'changed') {
@@ -179,10 +196,15 @@ export class HTTPSendDevice extends Device<HTTPSendOptions, HttpSendDeviceState,
 		// Avoid sending multiple identical commands for the same state:
 		if (command.layer && command.commandName !== 'manual') {
 			const trackedHash = this.trackedState.get(command.layer)
-			if (commandHash !== trackedHash) return Promise.resolve() // command is no longer relevant to state
+			if (commandHash !== trackedHash)
+				return {
+					result: ActionExecutionResultCode.IgnoredNotRelevant,
+				} // command is no longer relevant to state
 		}
 		if (this._terminated) {
-			return Promise.resolve()
+			return {
+				result: ActionExecutionResultCode.Error,
+			}
 		}
 
 		const cwc: CommandWithContext = {
@@ -202,15 +224,17 @@ export class HTTPSendDevice extends Device<HTTPSendOptions, HttpSendDeviceState,
 				headers: command.content.headers,
 			}
 
-			const url = new URL(command.content.url)
-			if (!this.options.noProxy?.includes(url.host)) {
-				if (url.protocol === 'http:' && this.options.httpProxy) {
+			const commandUrl: string = interpolateTemplateStringIfNeeded(command.content.url)
+
+			const parsedUrl = new URL(commandUrl)
+			if (!this.options.noProxy?.includes(parsedUrl.host)) {
+				if (parsedUrl.protocol === 'http:' && this.options.httpProxy) {
 					options.agent = {
 						http: new HttpProxyAgent({
 							proxy: this.options.httpProxy,
 						}),
 					}
-				} else if (url.protocol === 'https:' && this.options.httpsProxy) {
+				} else if (parsedUrl.protocol === 'https:' && this.options.httpsProxy) {
 					options.agent = {
 						https: new HttpsProxyAgent({
 							proxy: this.options.httpsProxy,
@@ -234,9 +258,9 @@ export class HTTPSendDevice extends Device<HTTPSendOptions, HttpSendDeviceState,
 				}
 			}
 
-			const response = await httpReq(command.content.url, options)
+			const response = await httpReq(commandUrl, options)
 
-			if (response.statusCode === 200) {
+			if (response.statusCode >= 200 && response.statusCode < 300) {
 				this.context.logger.debug(
 					`HTTPSend: ${command.content.type}: Good statuscode response on url "${command.content.url}": ${response.statusCode} (${context})`
 				)
@@ -244,6 +268,15 @@ export class HTTPSendDevice extends Device<HTTPSendOptions, HttpSendDeviceState,
 				this.context.logger.warning(
 					`HTTPSend: ${command.content.type}: Bad statuscode response on url "${command.content.url}": ${response.statusCode} (${context})`
 				)
+			}
+
+			return {
+				result: ActionExecutionResultCode.Ok,
+				resultData: {
+					body: response.body,
+					statusCode: response.statusCode,
+					headers: response.headers as Record<string, string | string[]>,
+				},
 			}
 		} catch (error) {
 			const err = error as RequestError // make typescript happy
@@ -280,6 +313,10 @@ export class HTTPSendDevice extends Device<HTTPSendOptions, HttpSendDeviceState,
 						}).catch(() => null) // errors will be emitted
 					}, timeLeft)
 				}
+			}
+
+			return {
+				result: ActionExecutionResultCode.Error,
 			}
 		}
 	}

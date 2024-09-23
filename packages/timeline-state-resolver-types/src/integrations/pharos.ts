@@ -30,6 +30,6 @@ export interface TimelineContentPharosTimeline extends TimelineContentPharos {
 
 	timeline: number
 	pause?: boolean
-	rate?: boolean
+	rate?: number
 	fade?: number
 }

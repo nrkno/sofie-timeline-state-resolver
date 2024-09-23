@@ -1,3 +1,4 @@
+import * as _ from 'underscore'
 import { BaseDeviceAPI, CommandWithContext } from './device'
 import { Measurement } from './measure'
 import { StateHandlerContext } from './stateHandler'
@@ -50,15 +51,21 @@ export class CommandExecutor<DeviceState, Command extends CommandWithContext> {
 	): Promise<void> {
 		const start = Date.now() // note - would be better to use monotonic time here but BigInt's are annoying
 
-		for (const command of commands || []) {
-			const timeToWait = totalTime - (Date.now() - start)
-			if (timeToWait > 0) await wait(timeToWait)
+		const commandQueues = _.groupBy(commands || [], (command) => command.queueId ?? '$$default')
 
-			measurement?.executeCommand(command)
-			await this.sendCommand(command).catch((e) => {
-				this.logger.error('Error while executing command', e)
+		await Promise.allSettled(
+			Object.values<Command[]>(commandQueues).map(async (commandsInQueue): Promise<void> => {
+				for (const command of commandsInQueue) {
+					const timeToWait = totalTime - (Date.now() - start)
+					if (timeToWait > 0) await wait(timeToWait)
+
+					measurement?.executeCommand(command)
+					await this.sendCommand(command).catch((e) => {
+						this.logger.error('Error while executing command', e)
+					})
+					measurement?.finishedCommandExecution(command)
+				}
 			})
-			measurement?.finishedCommandExecution(command)
-		}
+		)
 	}
 }

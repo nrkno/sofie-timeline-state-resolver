@@ -31,7 +31,7 @@ export class TriCasterConnection extends EventEmitter<TriCasterConnectionEvents>
 	connect() {
 		this._socket = new WebSocket(`ws://${this._host}:${this._port}/v1/shortcut_notifications`)
 		this._socket.on('open', () => this.handleOpen())
-		this._socket.on('close', (_, reason) => this.handleClose(reason))
+		this._socket.on('close', (_, reason) => this.handleClose(reason.toString()))
 		this._socket.on('error', (error) => this.handleError(error))
 	}
 
