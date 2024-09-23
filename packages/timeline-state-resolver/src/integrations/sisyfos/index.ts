@@ -213,9 +213,9 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 
 	async executeAction<A extends SisyfosActions>(
 		actionId0: A,
-		_payload: SisyfosActionExecutionPayload<A>
+		payload: SisyfosActionExecutionPayload<A>
 	): Promise<SisyfosActionExecutionResult<A>> {
-		const actionId = actionId0 as SisyfosActions // type fix for when there is only a single action
+		const actionId = actionId0
 		switch (actionId) {
 			case SisyfosActions.Reinit:
 				return this._makeReadyInner()
@@ -225,6 +225,16 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 					.catch(() => ({
 						result: ActionExecutionResultCode.Error,
 					}))
+			case SisyfosActions.SetSisyfosChannelState:
+				if (typeof payload?.channel !== 'number') {
+					return {
+						result: ActionExecutionResultCode.Error,
+					}
+				}
+				this._sisyfos.setSisyfosChannel(payload.channel + 1, { ...this.getDeviceState().channels[payload.channel] })
+				return {
+					result: ActionExecutionResultCode.Ok,
+				}
 			default:
 				return actionNotFoundMessage(actionId)
 		}
@@ -281,15 +291,19 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 			pstOn: 0,
 			label: '',
 			visible: true,
+			muteOn: false,
+			inputGain: 0.75,
+			inputSelector: 1,
 			timelineObjIds: [],
 		}
 	}
+
 	/**
 	 * Transform the timeline state into a device state, which is in this case also
 	 * a timeline state.
 	 * @param state
 	 */
-	convertStateToSisyfosState(state: Timeline.TimelineState<TSRTimelineContent>, mappings: Mappings) {
+	convertStateToSisyfosState(state: Timeline.TimelineState<TSRTimelineContent>, mappings: Mappings): SisyfosState {
 		const deviceState: SisyfosState = this.getDeviceState(true, mappings)
 
 		// Set labels to layer names
@@ -439,6 +453,9 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 				if (newChannel.label !== undefined && newChannel.label !== '') channel.label = newChannel.label
 				if (newChannel.visible !== undefined) channel.visible = newChannel.visible
 				if (newChannel.fadeTime !== undefined) channel.fadeTime = newChannel.fadeTime
+				if (newChannel.muteOn !== undefined) channel.muteOn = newChannel.muteOn
+				if (newChannel.inputGain !== undefined) channel.inputGain = newChannel.inputGain
+				if (newChannel.inputSelector !== undefined) channel.inputSelector = newChannel.inputSelector
 
 				channel.timelineObjIds.push(newChannel.timelineObjId)
 			}
@@ -575,6 +592,45 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 						type: SisyfosCommandType.VISIBLE,
 						channel: Number(index),
 						value: newChannel.visible,
+					},
+					timelineObjId: newChannel.timelineObjIds[0] || '',
+				})
+			}
+
+			if (oldChannel && oldChannel.muteOn !== newChannel.muteOn) {
+				debug(`Channel ${index} mute goes from "${oldChannel.muteOn}" to "${newChannel.muteOn}"`)
+				commands.push({
+					context: `Channel ${index} mute goes from "${oldChannel.muteOn}" to "${newChannel.muteOn}"`,
+					content: {
+						type: SisyfosCommandType.SET_MUTE,
+						channel: Number(index),
+						value: newChannel.muteOn,
+					},
+					timelineObjId: newChannel.timelineObjIds[0] || '',
+				})
+			}
+
+			if (oldChannel && oldChannel.inputGain !== newChannel.inputGain) {
+				debug(`Channel ${index} inputGain goes from "${oldChannel.inputGain}" to "${newChannel.inputGain}"`)
+				commands.push({
+					context: `Channel ${index} inputGain goes from "${oldChannel.inputGain}" to "${newChannel.inputGain}"`,
+					content: {
+						type: SisyfosCommandType.SET_INPUT_GAIN,
+						channel: Number(index),
+						value: newChannel.inputGain,
+					},
+					timelineObjId: newChannel.timelineObjIds[0] || '',
+				})
+			}
+
+			if (oldChannel && oldChannel.inputSelector !== newChannel.inputSelector) {
+				debug(`Channel ${index} inputSelector goes from "${oldChannel.inputSelector}" to "${newChannel.inputSelector}"`)
+				commands.push({
+					context: `Channel ${index} inputSelector goes from "${oldChannel.inputSelector}" to "${newChannel.inputSelector}"`,
+					content: {
+						type: SisyfosCommandType.SET_INPUT_SELECTOR,
+						channel: Number(index),
+						value: newChannel.inputSelector,
 					},
 					timelineObjId: newChannel.timelineObjIds[0] || '',
 				})
