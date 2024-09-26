@@ -45,6 +45,7 @@ export enum VMixCommand {
 	LIST_ADD = 'LIST_ADD',
 	LIST_REMOVE_ALL = 'LIST_REMOVE_ALL',
 	RESTART_INPUT = 'RESTART_INPUT',
+	SELECT_INDEX = 'SELECT_INDEX',
 }
 
 export type TimelineContentVMixAny =
@@ -188,6 +189,13 @@ export interface TimelineContentVMixInput extends TimelineContentVMixBase {
 
 	/** If media should start from the beginning or resume from where it left off */
 	restart?: boolean
+
+	/**
+	 * Photos, List: Selects item in List
+	 * Virtual Set: Zooms to selected preset using the current speed settings
+	 * starts from 1
+	 */
+	index?: number
 }
 
 export interface TimelineContentVMixOutput extends TimelineContentVMixBase {

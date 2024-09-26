@@ -203,6 +203,11 @@ export interface VMixStateCommandRestart extends VMixStateCommandBase {
 	command: VMixCommand.RESTART_INPUT
 	input: string | number
 }
+export interface VMixStateCommanSelectIndex extends VMixStateCommandBase {
+	command: VMixCommand.SELECT_INDEX
+	input: string | number
+	value: number
+}
 export type VMixStateCommand =
 	| VMixStateCommandPreviewInput
 	| VMixStateCommandTransition
@@ -248,6 +253,7 @@ export type VMixStateCommand =
 	| VMixStateCommandListAdd
 	| VMixStateCommandListRemoveAll
 	| VMixStateCommandRestart
+	| VMixStateCommanSelectIndex
 
 export enum CommandContext {
 	None = 'none',

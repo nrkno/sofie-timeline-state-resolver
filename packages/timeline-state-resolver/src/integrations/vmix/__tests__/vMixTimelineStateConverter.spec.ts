@@ -136,6 +136,27 @@ describe('VMixTimelineStateConverter', () => {
 			expect(result.reportedState.inputsAddedByUsAudio[prefixAddedInput(filePath)]).toBeUndefined()
 		})
 
+		it('supports index', () => {
+			const converter = createTestee()
+			const index = 3
+			const result = converter.getVMixStateFromTimelineState(
+				wrapInTimelineState({
+					inp0: wrapInTimelineObject('inp0', {
+						deviceType: DeviceType.VMIX,
+						index,
+						type: TimelineContentTypeVMix.INPUT,
+					}),
+				}),
+				{
+					inp0: wrapInMapping({
+						mappingType: MappingVmixType.Input,
+						index: '1',
+					}),
+				}
+			)
+			expect(result.reportedState.existingInputs['1'].index).toEqual(index)
+		})
+
 		// TODO: maybe we can't trust the defaults when adding an input? Make this test pass eventually
 		// it('tracks audio state for mapped inputs added by us', () => {
 		// 	const converter = createTestee()
