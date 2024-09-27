@@ -887,8 +887,16 @@ describe('Sisyfos', () => {
 				mappingType: MappingSisyfosType.Channels,
 			},
 		}
+		const myTriggerMapping0: Mapping<SomeMappingSisyfos> = {
+			device: DeviceType.SISYFOS,
+			deviceId: 'mySisyfos',
+			options: {
+				mappingType: MappingSisyfosType.Channels,
+			},
+		}
 		const myChannelMapping: Mappings = {
 			sisyfos_channels_base: myChannelMapping0,
+			sisyfos_channels_base_trigger: myTriggerMapping0,
 			sisyfos_channel_1: myChannelMapping1,
 			sisyfos_channel_2: myChannelMapping2,
 			sisyfos_channels: myChannelMapping3,
@@ -942,8 +950,19 @@ describe('Sisyfos', () => {
 							isPgm: 0,
 						},
 					],
-					triggerValue: 'a',
 					overridePriority: -999,
+				},
+			},
+			{
+				id: 'baseline_trigger',
+				enable: {
+					while: 1,
+				},
+				layer: 'sisyfos_channels_base_trigger',
+				content: {
+					deviceType: DeviceType.SISYFOS,
+					type: TimelineContentTypeSisyfos.TRIGGERVALUE,
+					triggerValue: 'a',
 				},
 			},
 			{
