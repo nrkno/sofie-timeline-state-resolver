@@ -2,10 +2,12 @@ import * as _ from 'underscore'
 import { BaseDeviceAPI, CommandWithContext } from './device'
 import { Measurement } from './measure'
 import { StateHandlerContext } from './stateHandler'
+import PQueue from 'p-queue'
 
 const wait = async (t: number) => new Promise<void>((r) => setTimeout(() => r(), t))
 
 export class CommandExecutor<DeviceState, Command extends CommandWithContext> {
+	private commandQueue = new PQueue({ concurrency: 1 })
 	constructor(
 		private logger: StateHandlerContext['logger'],
 		private mode: 'salvo' | 'sequential',
@@ -18,11 +20,13 @@ export class CommandExecutor<DeviceState, Command extends CommandWithContext> {
 		commands.sort((a, b) => (b.preliminary ?? 0) - (a.preliminary ?? 0))
 		const totalTime = commands[0].preliminary ?? 0
 
-		if (this.mode === 'salvo') {
-			return this._executeCommandsSalvo(totalTime, commands, measurement)
-		} else {
-			return this._executeCommandsSequential(totalTime, commands, measurement)
-		}
+		await this.commandQueue.add(async () => {
+			if (this.mode === 'salvo') {
+				return this._executeCommandsSalvo(totalTime, commands, measurement)
+			} else {
+				return this._executeCommandsSequential(totalTime, commands, measurement)
+			}
+		})
 	}
 
 	private async _executeCommandsSalvo(
