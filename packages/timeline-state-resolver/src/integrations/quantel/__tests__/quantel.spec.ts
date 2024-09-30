@@ -475,6 +475,15 @@ describe('Quantel Device', () => {
 				[
 					{
 						command: {
+							type: QuantelCommandType.CANCELWAITING,
+							portId: 'port0',
+							timelineObjId: '',
+						},
+						context: 'Clear all delayed out-transitions',
+						timelineObjId: '',
+					},
+					{
+						command: {
 							type: QuantelCommandType.LOADCLIPFRAGMENTS,
 							portId: 'port0',
 							timelineObjId: 'obj1',
@@ -505,6 +514,7 @@ describe('Quantel Device', () => {
 							mode: QuantelControlMode.QUALITY,
 							transition: undefined,
 						},
+						preliminary: undefined,
 						context: 'New clip is paused',
 						timelineObjId: 'obj1',
 					},
@@ -546,6 +556,15 @@ describe('Quantel Device', () => {
 				[
 					{
 						command: {
+							type: QuantelCommandType.CANCELWAITING,
+							portId: 'port0',
+							timelineObjId: '',
+						},
+						context: 'Clear all delayed out-transitions',
+						timelineObjId: '',
+					},
+					{
+						command: {
 							type: QuantelCommandType.LOADCLIPFRAGMENTS,
 							portId: 'port0',
 							timelineObjId: 'obj1',
@@ -578,6 +597,7 @@ describe('Quantel Device', () => {
 						},
 						context: 'New clip is paused',
 						timelineObjId: 'obj1',
+						preliminary: undefined,
 					},
 				]
 			)
@@ -622,6 +642,15 @@ describe('Quantel Device', () => {
 				[
 					{
 						command: {
+							type: QuantelCommandType.CANCELWAITING,
+							portId: 'port0',
+							timelineObjId: '',
+						},
+						context: 'Clear all delayed out-transitions',
+						timelineObjId: '',
+					},
+					{
+						command: {
 							type: QuantelCommandType.LOADCLIPFRAGMENTS,
 							portId: 'port0',
 							timelineObjId: 'obj1',
@@ -654,6 +683,7 @@ describe('Quantel Device', () => {
 						},
 						context: 'New clip is playing',
 						timelineObjId: 'obj1',
+						preliminary: undefined,
 					},
 				]
 			)
@@ -698,6 +728,15 @@ describe('Quantel Device', () => {
 				[
 					{
 						command: {
+							type: QuantelCommandType.CANCELWAITING,
+							portId: 'port0',
+							timelineObjId: '',
+						},
+						context: 'Clear all delayed out-transitions',
+						timelineObjId: '',
+					},
+					{
+						command: {
 							type: QuantelCommandType.LOADCLIPFRAGMENTS,
 							portId: 'port0',
 							timelineObjId: 'obj1',
@@ -730,6 +769,7 @@ describe('Quantel Device', () => {
 						},
 						context: 'New clip is playing',
 						timelineObjId: 'obj1',
+						preliminary: undefined,
 					},
 				]
 			)
@@ -810,6 +850,15 @@ describe('Quantel Device', () => {
 				[
 					{
 						command: {
+							type: QuantelCommandType.CANCELWAITING,
+							portId: 'port0',
+							timelineObjId: '',
+						},
+						context: 'Clear all delayed out-transitions',
+						timelineObjId: '',
+					},
+					{
+						command: {
 							type: QuantelCommandType.LOADCLIPFRAGMENTS,
 							portId: 'port0',
 							timelineObjId: 'obj2',
@@ -842,6 +891,7 @@ describe('Quantel Device', () => {
 						},
 						context: 'New clip is playing',
 						timelineObjId: 'obj2',
+						preliminary: undefined,
 					},
 				],
 				15020
@@ -948,6 +998,15 @@ describe('Quantel Device', () => {
 					[
 						{
 							command: {
+								type: QuantelCommandType.CANCELWAITING,
+								portId: 'port0',
+								timelineObjId: '',
+							},
+							context: 'Clear all delayed out-transitions',
+							timelineObjId: '',
+						},
+						{
+							command: {
 								type: QuantelCommandType.LOADCLIPFRAGMENTS,
 								portId: 'port0',
 								timelineObjId: 'obj2',
@@ -983,6 +1042,7 @@ describe('Quantel Device', () => {
 							},
 							context: 'New clip is paused',
 							timelineObjId: 'obj2',
+							preliminary: undefined,
 						},
 					],
 					11500
@@ -1033,6 +1093,15 @@ describe('Quantel Device', () => {
 					[
 						{
 							command: {
+								type: QuantelCommandType.CANCELWAITING,
+								portId: 'port0',
+								timelineObjId: '',
+							},
+							context: 'Clear all delayed out-transitions',
+							timelineObjId: '',
+						},
+						{
+							command: {
 								type: QuantelCommandType.LOADCLIPFRAGMENTS,
 								portId: 'port0',
 								timelineObjId: 'obj2',
@@ -1065,6 +1134,7 @@ describe('Quantel Device', () => {
 							},
 							context: 'New clip is paused',
 							timelineObjId: 'obj2',
+							preliminary: undefined,
 						},
 					],
 					11500
