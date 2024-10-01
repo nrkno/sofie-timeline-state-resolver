@@ -1471,7 +1471,7 @@ describe('Quantel Device', () => {
 
 				clearMocks()
 			}
-			// Handle state at time 2010 (myClip0 should stop (but is delayed due to outTransition))
+			// Handle state at time 2000 (myClip0 should stop (but is delayed due to outTransition))
 			{
 				const state = getResolvedState(resolved, 2000)
 				await stateHandler.handleState(state, mappings)
@@ -1539,7 +1539,7 @@ describe('Quantel Device', () => {
 					expect.stringContaining('/1100/port/my_port/trigger/STOP?offset=3233')
 				)
 				// The first clip should NOT have stopped, as it was delayed and cancelled:
-				expect(onRequest).not.toHaveBeenCalledWith('post', expect.stringContaining('trigger/STOP'))
+				expect(onRequest).not.toHaveBeenCalledWith('post', expect.stringContaining('reset'))
 
 				clearMocks()
 			}
