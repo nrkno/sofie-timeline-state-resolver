@@ -104,6 +104,30 @@ export function diffStates(
 		if (a.command.type !== QuantelCommandType.RELEASEPORT && b.command.type === QuantelCommandType.RELEASEPORT) return 1
 		return 0
 	})
+
+	const portIdsToClear: Set<string> = new Set()
+	for (const cmd of allCommands) {
+		if (
+			(cmd.command.type === QuantelCommandType.PLAYCLIP || cmd.command.type === QuantelCommandType.PAUSECLIP) &&
+			!cmd.command.fromLookahead
+		) {
+			// We should clear any delayed out-transitions for this port
+			portIdsToClear.add(cmd.command.portId)
+		}
+	}
+
+	for (const portId of portIdsToClear.values()) {
+		allCommands.unshift({
+			command: {
+				type: QuantelCommandType.CANCELWAITING,
+				portId: portId,
+				timelineObjId: '',
+			},
+			timelineObjId: '',
+			context: 'Clear all delayed out-transitions',
+		})
+	}
+
 	return allCommands
 }
 interface LookaheadPreloadClip {
