@@ -25,7 +25,15 @@ interface QuantelManagerOptions {
 	/** If set: If a clip turns out to be on the wrong server, an attempt to copy the clip will be done. */
 	allowCloneClips?: boolean
 }
-export class QuantelManager extends EventEmitter {
+
+interface QuantelManagerEvents {
+	info: [arg0: any]
+	warning: [arg0: any]
+	error: [err: any]
+	debug: [...arg: any]
+}
+
+export class QuantelManager extends EventEmitter<QuantelManagerEvents> {
 	private _quantelState: QuantelTrackedState = {
 		port: {},
 	}
@@ -48,7 +56,7 @@ export class QuantelManager extends EventEmitter {
 		private options: QuantelManagerOptions
 	) {
 		super()
-		this._quantel.on('error', (...args) => this.emit('error', ...args))
+		this._quantel.on('error', (...args) => this.emit('error', args))
 		this._quantel.on('debug', (...args) => this.emit('debug', ...args))
 	}
 
@@ -349,12 +357,20 @@ export class QuantelManager extends EventEmitter {
 	private async prepareClipJump(cmd: QuantelCommandClip, alsoDoAction: 'play' | 'pause'): Promise<void> {
 		// Fetch tracked reference to the loaded clip:
 		const trackedPort = this.getTrackedPort(cmd.portId)
+		const cmdStr = JSON.stringify(cmd)
+		this.emit('debug', `prepareClipJump: cmd=${cmdStr} ${alsoDoAction}`)
+
 		if (cmd.transition) {
 			if (cmd.transition.type === QuantelTransitionType.DELAY) {
+				this.emit(
+					'debug',
+					`prepareClipJump: cmd=${cmdStr} ${alsoDoAction}, waiting with port ${cmd.portId} for ${cmd.transition.delay}ms`
+				)
 				if (await this.waitWithPort(cmd.portId, cmd.transition.delay)) {
 					// at this point, the wait aws aborted by someone else. Do nothing then.
 					return
 				}
+				this.emit('debug', `prepareClipJump: cmd=${cmdStr} ${alsoDoAction}, waiting done`)
 			}
 		}
 
@@ -374,9 +390,9 @@ export class QuantelManager extends EventEmitter {
 		)
 		this.emit(
 			'warning',
-			`prepareClipJump: cmd=${JSON.stringify(
-				cmd
-			)}: ${alsoDoAction}: clipId=${clipId}: jumpToOffset=${jumpToOffset}: trackedPort=${JSON.stringify(trackedPort)}`
+			`prepareClipJump: cmd=${cmdStr}: ${alsoDoAction}: clipId=${clipId}: jumpToOffset=${jumpToOffset}: trackedPort=${JSON.stringify(
+				trackedPort
+			)}`
 		)
 		if (
 			(jumpToOffset === trackedPort.offset && trackedPort.playing === false) || // On request to play clip again, prepare jump // We're already there
@@ -452,6 +468,7 @@ export class QuantelManager extends EventEmitter {
 
 		if (alsoDoAction === 'play') {
 			// Start playing:
+			this.emit('debug', `prepareClipJump: cmd=${cmdStr} ${alsoDoAction}, portPlay`)
 			await this._quantel.portPlay(cmd.portId)
 
 			await this.wait(60)
@@ -497,6 +514,7 @@ export class QuantelManager extends EventEmitter {
 				trackedPort.scheduledStop = loadedFragments.portOutPoint
 			}
 		} else if (alsoDoAction === 'pause' && trackedPort.playing) {
+			this.emit('debug', `prepareClipJump: cmd=${cmdStr} ${alsoDoAction}, portHardJump ${jumpToOffset}`)
 			await this._quantel.portHardJump(cmd.portId, jumpToOffset)
 
 			trackedPort.offset = jumpToOffset
