@@ -57,7 +57,15 @@ import { DoOnTime, SendMode } from '../../devices/doOnTime'
 import got from 'got'
 import { InternalTransitionHandler } from '../../devices/transitions/transitionHandler'
 import Debug from 'debug'
-import { actionNotFoundMessage, deepMerge, endTrace, literal, startTrace, t } from '../../lib'
+import {
+	actionNotFoundMessage,
+	deepMerge,
+	endTrace,
+	interpolateTemplateStringIfNeeded,
+	literal,
+	startTrace,
+	t,
+} from '../../lib'
 import { ClsParameters } from 'casparcg-connection/dist/parameters'
 const debug = Debug('timeline-state-resolver:casparcg')
 
@@ -115,6 +123,7 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 			host: initOptions.host,
 			port: initOptions.port,
 		})
+		let firstConnect = true
 
 		this._ccg.on('connect', () => {
 			this.makeReady(false) // always make sure timecode is correct, setting it can never do bad
@@ -122,8 +131,6 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 
 			Promise.resolve()
 				.then(async () => {
-					if (this.deviceOptions.skipVirginCheck) return false
-
 					// a "virgin server" was just restarted (so it is cleared & black).
 					// Otherwise it was probably just a loss of connection
 
@@ -135,18 +142,29 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 					const channelPromises: Promise<Response<InfoChannelEntry | undefined>>[] = []
 					const channelLength: number = response?.data?.['length'] ?? 0
 
-					// Issue commands
-					for (let i = 1; i <= channelLength; i++) {
-						// 1-based index for channels
+					for (let i = 0; i < channelLength; i++) {
+						const obj = response.data[i]
 
+						if (!this._currentState.channels[i]) {
+							this._currentState.channels[obj.channel] = {
+								channelNo: obj.channel,
+								videoMode: this.getVideMode(obj),
+								fps: obj.frameRate,
+								layers: {},
+							}
+						}
+
+						if (this.deviceOptions.skipVirginCheck) continue
+
+						// Issue command
 						const { error, request } = await this._ccg.executeCommand({
 							command: Commands.InfoChannel,
-							params: { channel: i },
+							params: { channel: obj.channel },
 						})
 						if (error) {
 							// We can't return here, as that will leave anything in channelPromises as potentially unhandled
 							channelPromises.push(Promise.reject('execute failed'))
-							break
+							continue
 						}
 						channelPromises.push(request)
 					}
@@ -170,10 +188,11 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 					this._connected = true
 					this._connectionChanged()
 
-					if (doResync) {
+					if (firstConnect || doResync) {
+						firstConnect = false
 						this._currentState = { channels: {} }
 						this.clearStates()
-						this.emit('resetResolver')
+						this.emit('resyncStates')
 					}
 				})
 				.catch((e) => {
@@ -188,25 +207,6 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 			this._connected = false
 			this._connectionChanged()
 		})
-
-		const { error, request } = await this._ccg.executeCommand({ command: Commands.Info, params: {} })
-		if (error) {
-			return false // todo - should this throw?
-		}
-		const response = await request
-
-		if (response?.data[0]) {
-			response.data.forEach((obj) => {
-				this._currentState.channels[obj.channel] = {
-					channelNo: obj.channel,
-					videoMode: this.getVideMode(obj),
-					fps: obj.frameRate,
-					layers: {},
-				}
-			})
-		} else {
-			return false // not being able to get channel count is a problem for us
-		}
 
 		if (typeof initOptions.retryInterval === 'number' && initOptions.retryInterval >= 0) {
 			this._retryTime = initOptions.retryInterval || MEDIA_RETRY_INTERVAL
@@ -227,7 +227,7 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 			if (!this._ccg) {
 				resolve()
 				return
-			} else if (!this._ccg.connected) {
+			} else if (this._ccg.connected) {
 				this._ccg.once('disconnect', () => {
 					resolve()
 					this._ccg.removeAllListeners()
@@ -392,7 +392,7 @@ export class CasparCGDevice extends DeviceWithState<State, DeviceOptionsCasparCG
 				id: layer.id,
 				layerNo: mapping.layer,
 				content: LayerContentType.HTMLPAGE,
-				media: content.url,
+				media: interpolateTemplateStringIfNeeded(content.url),
 
 				playTime: startTime || null,
 				playing: true,

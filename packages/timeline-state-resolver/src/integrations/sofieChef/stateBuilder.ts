@@ -7,6 +7,7 @@ import {
 	DeviceType,
 } from 'timeline-state-resolver-types'
 import type { SofieChefState } from '.'
+import { interpolateTemplateStringIfNeeded } from '../../lib'
 
 export function buildSofieChefState(
 	timelineState: Timeline.TimelineState<TSRTimelineContent>,
@@ -23,7 +24,7 @@ export function buildSofieChefState(
 
 		if (mapping && content.deviceType === DeviceType.SOFIE_CHEF) {
 			sofieChefState.windows[mapping.options.windowId] = {
-				url: content.url,
+				url: interpolateTemplateStringIfNeeded(content.url),
 				urlTimelineObjId: layerState.id,
 			}
 		}

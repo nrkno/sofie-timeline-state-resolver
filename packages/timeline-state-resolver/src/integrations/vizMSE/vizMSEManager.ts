@@ -41,6 +41,7 @@ import {
 import { VizEngineTcpSender } from './vizEngineTcpSender'
 import * as crypto from 'crypto'
 import * as path from 'path'
+import { WaitGroup } from '../../waitGroup'
 
 /** Minimum time to wait before removing an element after an expectedPlayoutItem has been removed */
 const DELETE_TIME_WAIT = 20 * 1000
@@ -82,9 +83,7 @@ export class VizMSEManager extends EventEmitter {
 	private _mseConnected: boolean | undefined = undefined // undefined: first connection not established yet
 	private _msePingConnected = false
 	private _loadingAllElements = false
-	private _waitWithLayers: {
-		[portId: string]: Function[]
-	} = {}
+	private _waitWithLayers = new WaitGroup()
 	public ignoreAllWaits = false // Only to be used in tests
 	private _terminated = false
 	private _activeRundownPlaylistId: string | undefined
@@ -1240,24 +1239,15 @@ export class VizMSEManager extends EventEmitter {
 		this.emit('connectionChanged', this._mseConnected && this._msePingConnected)
 	}
 
-	public clearAllWaitWithLayer(portId: string) {
-		if (!this._waitWithLayers[portId]) {
-			_.each(this._waitWithLayers[portId], (fcn) => {
-				fcn(true)
-			})
-		}
+	public clearAllWaitWithLayer(_portId: string) {
+		// HACK: Prior to #344 this was broken. This has been left in the broken state until it can be tested that the 'fix' doesn't cause other issues SOFIE-3419
+		// this._waitWithLayers.clearAllForKey(portId)
 	}
 	/**
 	 * Returns true if the wait was cleared from someone else
 	 */
 	private async waitWithLayer(layerId: string, delay: number): Promise<boolean> {
-		return new Promise((resolve) => {
-			if (!this._waitWithLayers[layerId]) this._waitWithLayers[layerId] = []
-			this._waitWithLayers[layerId].push(resolve)
-			setTimeout(() => {
-				resolve(false)
-			}, delay || 0)
-		})
+		return this._waitWithLayers.waitOnKey(layerId, delay)
 	}
 	private getElementsToKeep(): VIZMSEPlayoutItemContentExternal[] {
 		return this._expectedPlayoutItems

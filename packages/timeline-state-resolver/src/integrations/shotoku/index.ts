@@ -48,6 +48,15 @@ export class ShotokuDevice extends Device<ShotokuOptions, ShotokuDeviceState, Sh
 
 		this._shotoku
 			.connect(options.host, options.port)
+			.then(() => {
+				this.context
+					.resetToState({ shots: {}, sequences: {} })
+					.catch((e) =>
+						this.context.logger.warning(
+							'Failed to reset to state after first connection, device may be in unknown state (reason: ' + e + ')'
+						)
+					)
+			})
 			.catch((e) => this.context.logger.debug('Shotoku device failed initial connection attempt', e))
 
 		return true

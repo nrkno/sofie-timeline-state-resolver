@@ -15,6 +15,7 @@ import {
 	QuantelTrackedState,
 	QuantelTrackedStatePort,
 } from './types'
+import { WaitGroup } from '../../waitGroup'
 
 let SOFT_JUMP_WAIT_TIME = 250 // Is a constant, but can be changed during unit tests
 
@@ -38,9 +39,7 @@ export class QuantelManager extends EventEmitter<QuantelManagerEvents> {
 		port: {},
 	}
 	private _cache = new Cache()
-	private _waitWithPorts: {
-		[portId: string]: Function[]
-	} = {}
+	private _waitWithPorts = new WaitGroup()
 	private _retryLoadFragmentsTimeout: { [portId: string]: NodeJS.Timeout } = {}
 	private _failedAction: {
 		[portId: string]: {
@@ -609,22 +608,13 @@ export class QuantelManager extends EventEmitter<QuantelManagerEvents> {
 		})
 	}
 	public clearAllWaitWithPort(portId: string) {
-		if (!this._waitWithPorts[portId]) return
-		_.each(this._waitWithPorts[portId], (fcn) => {
-			fcn(true)
-		})
+		this._waitWithPorts.clearAllForKey(portId)
 	}
 	/**
 	 * Returns true if the wait was cleared from someone else
 	 */
 	private async waitWithPort(portId: string, delay: number): Promise<boolean> {
-		return new Promise((resolve) => {
-			if (!this._waitWithPorts[portId]) this._waitWithPorts[portId] = []
-			this._waitWithPorts[portId].push(resolve)
-			setTimeout(() => {
-				resolve(false)
-			}, delay || 0)
-		})
+		return this._waitWithPorts.waitOnKey(portId, delay)
 	}
 }
 class Cache {

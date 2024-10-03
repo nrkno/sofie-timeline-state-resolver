@@ -161,6 +161,10 @@ export class VMixDevice extends DeviceWithState<VMixStateExtended, DeviceOptions
 			if (this._expectingStateAfterConnecting) {
 				this._setFullState(realState)
 				this._expectingStateAfterConnecting = false
+
+				// resync all tl states
+				this.clearStates()
+				this.emit('resyncStates')
 			} else if (this._expectingPolledState) {
 				this._setPartialInputState(realState)
 				this._expectingPolledState = false

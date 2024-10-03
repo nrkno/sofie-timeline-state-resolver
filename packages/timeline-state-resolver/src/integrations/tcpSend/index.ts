@@ -30,6 +30,17 @@ export class TcpSendDevice extends Device<TCPSendOptions, TcpSendDeviceState, Tc
 	private tcpConnection = new TcpConnection()
 
 	async init(options: TCPSendOptions): Promise<boolean> {
+		this.tcpConnection.once('connectionChanged', (connected) => {
+			if (connected) {
+				this.context
+					.resetState()
+					.catch((e) =>
+						this.context.logger.warning(
+							'Failed to reset state after first connection, device may be in unknown state (reason: ' + e + ')'
+						)
+					)
+			}
+		})
 		this.tcpConnection.activate(options)
 		return true
 	}

@@ -12,11 +12,13 @@ tsr.on('debug', (deviceId, cmd) => console.log('debug', deviceId, cmd))
 const a = async function () {
 	await tsr.init()
 
-	await tsr.addDevice('casparcg0', {
-		type: DeviceType.CASPARCG,
-		options: {
-			host: '127.0.0.1',
-			// port: 5250
+	tsr.connectionManager.setConnections({
+		casparcg0: {
+			type: DeviceType.CASPARCG,
+			options: {
+				host: '127.0.0.1',
+				// port: 5250
+			},
 		},
 	})
 

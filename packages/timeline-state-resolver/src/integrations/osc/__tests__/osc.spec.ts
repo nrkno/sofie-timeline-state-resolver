@@ -24,6 +24,12 @@ jest.mock('osc', () => {
 				on: (event: string, listener: (...args: any[]) => void) => {
 					SOCKET_EVENTS.set(event, listener)
 				},
+				once: (event: string, listener: (...args: any[]) => void) => {
+					SOCKET_EVENTS.set(event, (...args: any[]) => {
+						SOCKET_EVENTS.delete(event)
+						return listener(...args)
+					})
+				},
 				close: jest.fn(),
 			}
 		}),
