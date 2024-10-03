@@ -313,7 +313,7 @@ async function handleRequest(
 				'delete /:zoneID/server/:serverID/port/:portID': async (params): Promise<Q.ReleaseStatus | ErrorResponse> => {
 					if (!quantelServer.ISAOptionHasBeenProvided) return noIsaSetupResponse
 
-					await sleep(100)
+					await sleep(1)
 
 					const port = quantelServer.ports[params.portID]
 
