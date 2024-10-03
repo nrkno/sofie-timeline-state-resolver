@@ -7,7 +7,6 @@ import { HTTPWatcherDevice } from '../integrations/httpWatcher'
 import { AbstractDevice } from '../integrations/abstract'
 import { AtemDevice } from '../integrations/atem'
 import { TcpSendDevice } from '../integrations/tcpSend'
-import { QuantelDevice } from '../integrations/quantel'
 import { HyperdeckDevice } from '../integrations/hyperdeck'
 import { OBSDevice } from '../integrations/obs'
 import { PanasonicPtzDevice } from '../integrations/panasonicPTZ'
@@ -44,7 +43,6 @@ export type ImplementedServiceDeviceTypes =
 	| DeviceType.TCPSEND
 	| DeviceType.TELEMETRICS
 	| DeviceType.TRICASTER
-	| DeviceType.QUANTEL
 
 // TODO - move all device implementations here and remove the old Device classes
 export const DevicesDict: Record<ImplementedServiceDeviceTypes, DeviceEntry> = {
@@ -149,11 +147,5 @@ export const DevicesDict: Record<ImplementedServiceDeviceTypes, DeviceEntry> = {
 		canConnect: true,
 		deviceName: (deviceId: string) => 'TriCaster ' + deviceId,
 		executionMode: () => 'salvo',
-	},
-	[DeviceType.QUANTEL]: {
-		deviceClass: QuantelDevice,
-		canConnect: true,
-		deviceName: (deviceId: string) => 'Quantel' + deviceId,
-		executionMode: () => 'sequential',
 	},
 }
