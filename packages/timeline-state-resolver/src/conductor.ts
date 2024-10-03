@@ -35,7 +35,6 @@ import {
 	DeviceOptionsAbstract,
 	DeviceOptionsAtem,
 	DeviceOptionsTCPSend,
-	DeviceOptionsQuantel,
 	DeviceOptionsHyperdeck,
 	DeviceOptionsPanasonicPTZ,
 	DeviceOptionsLawo,
@@ -52,6 +51,7 @@ import { assertNever, endTrace, fillStateFromDatastore, FinishedTrace, startTrac
 import { CommandWithContext } from './devices/device'
 import { DeviceContainer } from './devices/deviceContainer'
 
+import { QuantelDevice, DeviceOptionsQuantelInternal } from './integrations/quantel'
 import { CasparCGDevice, DeviceOptionsCasparCGInternal } from './integrations/casparCG'
 import { SisyfosMessageDevice, DeviceOptionsSisyfosInternal } from './integrations/sisyfos'
 import { VMixDevice, DeviceOptionsVMixInternal } from './integrations/vmix'
@@ -554,6 +554,15 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 					getCurrentTime,
 					threadedClassOptions
 				)
+			case DeviceType.QUANTEL:
+				return DeviceContainer.create<DeviceOptionsQuantelInternal, typeof QuantelDevice>(
+					'../../dist/integrations/quantel/index.js',
+					'QuantelDevice',
+					deviceId,
+					deviceOptions,
+					getCurrentTime,
+					threadedClassOptions
+				)
 			case DeviceType.ABSTRACT:
 			case DeviceType.ATEM:
 			case DeviceType.HTTPSEND:
@@ -569,8 +578,7 @@ export class Conductor extends EventEmitter<ConductorEvents> {
 			case DeviceType.SOFIE_CHEF:
 			case DeviceType.TCPSEND:
 			case DeviceType.TELEMETRICS:
-			case DeviceType.TRICASTER:
-			case DeviceType.QUANTEL: {
+			case DeviceType.TRICASTER: {
 				ensureIsImplementedAsService(deviceOptions.type)
 
 				// presumably this device is implemented in the new service handler
@@ -1499,7 +1507,7 @@ export type DeviceOptionsAnyInternal =
 	| DeviceOptionsMultiOSCInternal
 	| DeviceOptionsSisyfosInternal
 	| DeviceOptionsSofieChef
-	| DeviceOptionsQuantel
+	| DeviceOptionsQuantelInternal
 	| DeviceOptionsSingularLive
 	| DeviceOptionsVMixInternal
 	| DeviceOptionsShotoku
