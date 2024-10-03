@@ -109,7 +109,7 @@
 		"p-timeout": "^3.2.0",
 		"simple-oauth2": "^5.0.0",
 		"sprintf-js": "^1.1.3",
-		"superfly-timeline": "^9.0.1",
+		"superfly-timeline": "9.0.2-nightly-fix-better-trace-resolving-20241003-064759-7723b89.0",
 		"threadedclass": "^1.2.1",
 		"timeline-state-resolver-types": "9.2.0-alpha.0",
 		"tslib": "^2.6.2",
