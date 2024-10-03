@@ -31,18 +31,11 @@ const debug = Debug('timeline-state-resolver:sisyfos')
 export interface DeviceOptionsSisyfosInternal extends DeviceOptionsSisyfos {
 	commandReceiver?: CommandReceiver
 }
-export type CommandReceiver = (
-	time: number,
-	cmd: SisyfosCommand,
-	context: CommandContext,
-	timelineObjId: string
-) => Promise<any>
-interface Command {
-	content: SisyfosCommand
-	context: CommandContext
-	timelineObjId: string
+export type CommandReceiver = (time: number, cmd: SisyfosCommand, context: any, timelineObjId: string) => Promise<any>
+interface Command extends CommandWithContext {
+	command: SisyfosCommand
 }
-type CommandContext = string
+
 /**
  * This is a generic wrapper for any osc-enabled device.
  */
@@ -482,7 +475,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 				time,
 				undefined,
 				async (cmd: Command) => {
-					return this._commandReceiver(time, cmd.content, cmd.context, cmd.timelineObjId)
+					return this._commandReceiver(time, cmd.command, cmd.context, cmd.timelineObjId)
 				},
 				cmd
 			)
@@ -497,7 +490,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 		if (newOscSendState.resync && !oldOscSendState.resync) {
 			commands.push({
 				context: `Resyncing with Sisyfos`,
-				content: {
+				command: {
 					type: SisyfosCommandType.RESYNC,
 				},
 				timelineObjId: '',
@@ -513,7 +506,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 				debug('reset channel ' + index)
 				commands.push({
 					context: `Channel ${index} reset`,
-					content: {
+					command: {
 						type: SisyfosCommandType.SET_CHANNEL,
 						channel: Number(index),
 						values: newChannel,
@@ -531,7 +524,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 				}
 				commands.push({
 					context: `Channel ${index} pgm goes from "${oldChannel.pgmOn}" to "${newChannel.pgmOn}"`,
-					content: {
+					command: {
 						type: SisyfosCommandType.TOGGLE_PGM,
 						channel: Number(index),
 						values,
@@ -544,7 +537,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 				debug(`Channel ${index} pst goes from "${oldChannel.pstOn}" to "${newChannel.pstOn}"`)
 				commands.push({
 					context: `Channel ${index} pst goes from "${oldChannel.pstOn}" to "${newChannel.pstOn}"`,
-					content: {
+					command: {
 						type: SisyfosCommandType.TOGGLE_PST,
 						channel: Number(index),
 						value: newChannel.pstOn,
@@ -561,7 +554,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 				}
 				commands.push({
 					context: 'faderLevel change',
-					content: {
+					command: {
 						type: SisyfosCommandType.SET_FADER,
 						channel: Number(index),
 						values,
@@ -575,7 +568,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 				debug(`set label on fader ${index}: "${newChannel.label}"`)
 				commands.push({
 					context: 'set label on fader',
-					content: {
+					command: {
 						type: SisyfosCommandType.LABEL,
 						channel: Number(index),
 						value: newChannel.label,
@@ -588,7 +581,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 				debug(`Channel ${index} Visibility goes from "${oldChannel.visible}" to "${newChannel.visible}"`)
 				commands.push({
 					context: `Channel ${index} Visibility goes from "${oldChannel.visible}" to "${newChannel.visible}"`,
-					content: {
+					command: {
 						type: SisyfosCommandType.VISIBLE,
 						channel: Number(index),
 						value: newChannel.visible,
@@ -601,7 +594,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 				debug(`Channel ${index} mute goes from "${oldChannel.muteOn}" to "${newChannel.muteOn}"`)
 				commands.push({
 					context: `Channel ${index} mute goes from "${oldChannel.muteOn}" to "${newChannel.muteOn}"`,
-					content: {
+					command: {
 						type: SisyfosCommandType.SET_MUTE,
 						channel: Number(index),
 						value: newChannel.muteOn,
@@ -614,7 +607,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 				debug(`Channel ${index} inputGain goes from "${oldChannel.inputGain}" to "${newChannel.inputGain}"`)
 				commands.push({
 					context: `Channel ${index} inputGain goes from "${oldChannel.inputGain}" to "${newChannel.inputGain}"`,
-					content: {
+					command: {
 						type: SisyfosCommandType.SET_INPUT_GAIN,
 						channel: Number(index),
 						value: newChannel.inputGain,
@@ -627,7 +620,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 				debug(`Channel ${index} inputSelector goes from "${oldChannel.inputSelector}" to "${newChannel.inputSelector}"`)
 				commands.push({
 					context: `Channel ${index} inputSelector goes from "${oldChannel.inputSelector}" to "${newChannel.inputSelector}"`,
-					content: {
+					command: {
 						type: SisyfosCommandType.SET_INPUT_SELECTOR,
 						channel: Number(index),
 						value: newChannel.inputSelector,
@@ -642,7 +635,7 @@ export class SisyfosMessageDevice extends DeviceWithState<SisyfosState, DeviceOp
 	private async _defaultCommandReceiver(
 		_time: number,
 		cmd: SisyfosCommand,
-		context: CommandContext,
+		context: string,
 		timelineObjId: string
 	): Promise<any> {
 		const cwc: CommandWithContext = {

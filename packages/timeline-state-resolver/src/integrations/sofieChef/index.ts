@@ -26,10 +26,8 @@ import { CommandWithContext, Device } from '../../service/device'
 import { diffStates } from './diffStates'
 import { buildSofieChefState } from './stateBuilder'
 
-export interface SofieChefCommandWithContext {
+export interface SofieChefCommandWithContext extends CommandWithContext {
 	command: ReceiveWSMessageAny
-	context: string
-	timelineObjId: string
 }
 export interface SofieChefState {
 	windows: {

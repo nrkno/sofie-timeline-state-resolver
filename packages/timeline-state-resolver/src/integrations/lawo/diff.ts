@@ -2,12 +2,11 @@ import { EmberValue } from 'timeline-state-resolver-types'
 import { LawoState } from './state'
 import { Model as EmberModel } from 'emberplus-connection'
 import { literal } from '../../lib'
+import { CommandWithContext } from '../..'
 
-export interface LawoCommandWithContext {
+export interface LawoCommandWithContext extends CommandWithContext {
 	command: LawoCommand
 	context: string
-	timelineObjId: string
-	preliminary?: number
 }
 
 export enum LawoCommandType {

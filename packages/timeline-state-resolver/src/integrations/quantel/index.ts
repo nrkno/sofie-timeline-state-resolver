@@ -28,11 +28,9 @@ interface OSCDeviceStateContent extends OSCMessageCommandContent {
 	fromTlObject: string
 }
 
-export interface QuantelCommandWithContext {
+export interface QuantelCommandWithContext extends CommandWithContext {
 	command: QuantelCommand
 	context: string
-	timelineObjId: string
-	preliminary?: number
 }
 
 export class QuantelDevice extends Device<QuantelOptions, QuantelState, QuantelCommandWithContext> {

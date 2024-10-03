@@ -27,10 +27,8 @@ interface OSCDeviceStateContent extends OSCMessageCommandContent {
 	fromTlObject: string
 }
 
-export interface OscCommandWithContext {
+export interface OscCommandWithContext extends CommandWithContext {
 	command: OSCDeviceStateContent
-	context: string
-	timelineObjId: string
 }
 
 export class OscDevice extends Device<OSCOptions, OscDeviceState, OscCommandWithContext> {
