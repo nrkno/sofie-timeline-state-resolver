@@ -7,7 +7,9 @@ import PQueue from 'p-queue'
 const wait = async (t: number) => new Promise<void>((r) => setTimeout(() => r(), t))
 
 export class CommandExecutor<DeviceState, Command extends CommandWithContext> {
-	private commandQueue = new PQueue({ concurrency: 1 })
+	private commandQueueSalvo = new PQueue({ concurrency: 1 })
+	private commandQueueSequential = new PQueue({ concurrency: 1 })
+
 	constructor(
 		private logger: StateHandlerContext['logger'],
 		private defaultMode: ExecuteMode,
@@ -20,13 +22,44 @@ export class CommandExecutor<DeviceState, Command extends CommandWithContext> {
 		commands.sort((a, b) => (b.preliminary ?? 0) - (a.preliminary ?? 0))
 		const totalTime = commands[0].preliminary ?? 0
 
-		await this.commandQueue.add(async () => {
-			if (this.mode === 'salvo') {
-				return this._executeCommandsSalvo(totalTime, commands, measurement)
+		const salvoCommands: Command[] = []
+		const sequentialCommands: Command[] = []
+
+		for (const command of commands) {
+			const mode = command.executeMode || this.defaultMode
+			if (mode === ExecuteMode.SEQUENTIAL) {
+				sequentialCommands.push(command)
 			} else {
-				return this._executeCommandsSequential(totalTime, commands, measurement)
+				salvoCommands.push(command)
 			}
+		}
+
+		// The execution logic is as follows:
+		// * When the commands sent into executeCommands() is called a BATCH.
+		//
+		// * Salvos should wait for Salvos from previous BATCH to have finished before executing
+		// * Salvos within the same BATCH are executed in parallel.
+		//
+		// * Sequentials should wait for all Salvos and Sequentials from previous BATCH to have finished before executing
+		// * Sequentials should be executed after all Salvos from the same BATCH have been executed
+		// * Sequentials within the same BATCH are executed in order
+
+		let pSequential: Promise<any> | null = null
+
+		// Wait for Salvos from previous batch to finish:
+		await this.commandQueueSalvo.add(async () => {
+			await this._executeCommandsSalvo(totalTime, salvoCommands, measurement)
+
+			// Salvos should not have to wait for Sequentials to finish, so we don't await the pSequential here:
+			// eslint-disable-next-line @typescript-eslint/await-thenable
+			pSequential = this.commandQueueSequential.add(async () => {
+				await this._executeCommandsSequential(totalTime, sequentialCommands, measurement)
+			})
 		})
+
+		if (!pSequential) throw new Error('Internal error in CommandExecutor: pSequential not set')
+		// eslint-disable-next-line @typescript-eslint/await-thenable
+		await pSequential
 	}
 
 	private async _executeCommandsSalvo(
