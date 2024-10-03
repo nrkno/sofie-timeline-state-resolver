@@ -41,6 +41,7 @@ export interface QuantelStatePortClipLookahead extends QuantelStatePortClipConte
 }
 
 interface QuantelCommandBase {
+	time: number
 	type: QuantelCommandType
 	portId: string
 	timelineObjId: string
