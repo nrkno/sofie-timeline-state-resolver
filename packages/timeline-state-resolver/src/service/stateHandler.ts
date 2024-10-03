@@ -1,6 +1,6 @@
 import { FinishedTrace, startTrace, endTrace } from '../lib'
 import { Mappings, Timeline, TSRTimelineContent } from 'timeline-state-resolver-types'
-import { BaseDeviceAPI, CommandWithContext } from './device'
+import { BaseDeviceAPI, CommandWithContext, ExecuteMode } from './device'
 import { Measurement, StateChangeReport } from './measure'
 import { CommandExecutor } from './commandExecutor'
 
@@ -188,7 +188,7 @@ export class StateHandler<DeviceState, Command extends CommandWithContext> {
 }
 
 export interface StateHandlerConfig {
-	executionType: 'salvo' | 'sequential'
+	executionType: ExecuteMode
 }
 
 export interface StateHandlerContext {
