@@ -1,5 +1,5 @@
 import * as _ from 'underscore'
-import { BaseDeviceAPI, CommandWithContext } from './device'
+import { BaseDeviceAPI, CommandWithContext, ExecuteMode } from './device'
 import { Measurement } from './measure'
 import { StateHandlerContext } from './stateHandler'
 import PQueue from 'p-queue'
@@ -10,7 +10,7 @@ export class CommandExecutor<DeviceState, Command extends CommandWithContext> {
 	private commandQueue = new PQueue({ concurrency: 1 })
 	constructor(
 		private logger: StateHandlerContext['logger'],
-		private mode: 'salvo' | 'sequential',
+		private defaultMode: ExecuteMode,
 		private sendCommand: BaseDeviceAPI<DeviceState, Command>['sendCommand']
 	) {}
 

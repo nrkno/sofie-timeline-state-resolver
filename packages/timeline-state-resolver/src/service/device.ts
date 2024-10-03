@@ -22,6 +22,11 @@ export type CommandWithContext = {
 	queueId?: string
 }
 
+export enum ExecuteMode {
+	SALVO = 'salvo',
+	SEQUENTIAL = 'sequential',
+}
+
 /**
  * API for use by the DeviceInstance to be able to use a device
  */

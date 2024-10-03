@@ -1,4 +1,5 @@
 import { CommandExecutor } from '../commandExecutor'
+import { ExecuteMode } from '../device'
 
 describe('commandExecutor', () => {
 	test('Sequential order', async () => {
@@ -14,7 +15,7 @@ describe('commandExecutor', () => {
 
 		let sequence = 0
 
-		const executor = new CommandExecutor(logger, 'sequential', async (c) => {
+		const executor = new CommandExecutor(logger, ExecuteMode.SEQUENTIAL, async (c) => {
 			await sleep(10)
 			sendCommand(c, sequence++)
 		})
