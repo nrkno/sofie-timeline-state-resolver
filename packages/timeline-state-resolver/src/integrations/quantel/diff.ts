@@ -105,18 +105,22 @@ export function diffStates(
 		return 0
 	})
 
-	const portIdsToClear: Set<string> = new Set()
+	// If we run any play-command, we will need to cancel any delayed/waiting out-transitions for that port:
+	const portIdsToCancelWaiting: Set<string> = new Set()
 	for (const cmd of allCommands) {
 		if (
-			(cmd.command.type === QuantelCommandType.PLAYCLIP || cmd.command.type === QuantelCommandType.PAUSECLIP) &&
+			(cmd.command.type === QuantelCommandType.PLAYCLIP ||
+				cmd.command.type === QuantelCommandType.PAUSECLIP ||
+				cmd.command.type === QuantelCommandType.CLEARCLIP ||
+				cmd.command.type === QuantelCommandType.RELEASEPORT) &&
 			!cmd.command.fromLookahead
 		) {
 			// We should clear any delayed out-transitions for this port
-			portIdsToClear.add(cmd.command.portId)
+			portIdsToCancelWaiting.add(cmd.command.portId)
 		}
 	}
 
-	for (const portId of portIdsToClear.values()) {
+	for (const portId of portIdsToCancelWaiting.values()) {
 		allCommands.unshift({
 			command: {
 				type: QuantelCommandType.CANCELWAITING,
