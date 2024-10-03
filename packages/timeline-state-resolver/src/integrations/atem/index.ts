@@ -22,10 +22,9 @@ import { CommandWithContext, Device } from '../../service/device'
 import { AtemStateBuilder } from './stateBuilder'
 import { createDiffOptions } from './diffState'
 
-export interface AtemCommandWithContext {
+export interface AtemCommandWithContext extends CommandWithContext {
 	command: AtemCommands.ISerializableCommand[]
 	context: string
-	timelineObjId: string
 }
 
 type AtemDeviceState = DeviceState

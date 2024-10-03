@@ -16,6 +16,7 @@ import { Device } from '../../service/device'
 import { OSCConnection } from './deviceConnection'
 import { ResolvedTimelineObjectInstance } from 'superfly-timeline'
 import * as osc from 'osc'
+import { CommandWithContext } from '../..'
 
 export interface MultiOscInitTestOptions {
 	oscSenders?: Record<string, (msg: osc.OscMessage, address?: string | undefined, port?: number | undefined) => void>
@@ -33,10 +34,8 @@ interface OSCDeviceStateContent extends OSCMessageCommandContent {
 	fromTlObject: string
 }
 
-export interface MultiOscCommandWithContext {
+export interface MultiOscCommandWithContext extends CommandWithContext {
 	command: OSCDeviceStateContent
-	context: string
-	timelineObjId: string
 }
 
 /**

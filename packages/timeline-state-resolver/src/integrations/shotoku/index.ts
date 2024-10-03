@@ -11,7 +11,7 @@ import {
 	ShotokuTransitionType,
 	ShotokuOptions,
 } from 'timeline-state-resolver-types'
-import { Device } from '../../service/device'
+import { CommandWithContext, Device } from '../../service/device'
 
 import _ = require('underscore')
 import { ShotokuAPI, ShotokuCommand, ShotokuCommandType } from './connection'
@@ -25,10 +25,8 @@ interface ShotokuSequence {
 	shots: TimelineContentShotokuSequence['shots']
 }
 
-export interface ShotokuCommandWithContext {
+export interface ShotokuCommandWithContext extends CommandWithContext {
 	command: ShotokuCommand // todo
-	context: string
-	timelineObjId: string
 }
 
 export class ShotokuDevice extends Device<ShotokuOptions, ShotokuDeviceState, ShotokuCommandWithContext> {

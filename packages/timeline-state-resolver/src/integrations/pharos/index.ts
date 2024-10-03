@@ -11,10 +11,8 @@ import { Pharos } from './connection'
 import { Device, CommandWithContext, DeviceContextAPI } from '../../service/device'
 import { diffStates } from './diffStates'
 
-export interface PharosCommandWithContext {
+export interface PharosCommandWithContext extends CommandWithContext {
 	command: CommandContent
-	context: string
-	timelineObjId: string
 }
 export type PharosState = Timeline.StateInTime<TSRTimelineContent>
 
