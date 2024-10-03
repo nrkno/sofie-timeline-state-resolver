@@ -21,6 +21,7 @@ import { CommandWithContext } from '../../..'
 import { getResolvedState, resolveTimeline } from 'superfly-timeline'
 import { DevicesDict } from '../../../service/devices'
 import { setSoftJumpWaitTime } from '../connection'
+import { ExecuteMode } from '../../../service/device'
 
 async function getInitialisedQuantelDevice(clearMock?: jest.Mock) {
 	const dev = new QuantelDevice(getDeviceContext())
@@ -429,6 +430,7 @@ describe('Quantel Device', () => {
 						},
 						context: 'Clear all delayed out-transitions',
 						timelineObjId: '',
+						executeMode: ExecuteMode.SALVO,
 					},
 					{
 						command: {
@@ -496,6 +498,7 @@ describe('Quantel Device', () => {
 						},
 						context: 'Clear all delayed out-transitions',
 						timelineObjId: '',
+						executeMode: ExecuteMode.SALVO,
 					},
 					{
 						command: {
@@ -577,6 +580,7 @@ describe('Quantel Device', () => {
 						},
 						context: 'Clear all delayed out-transitions',
 						timelineObjId: '',
+						executeMode: ExecuteMode.SALVO,
 					},
 					{
 						command: {
@@ -663,6 +667,7 @@ describe('Quantel Device', () => {
 						},
 						context: 'Clear all delayed out-transitions',
 						timelineObjId: '',
+						executeMode: ExecuteMode.SALVO,
 					},
 					{
 						command: {
@@ -749,6 +754,7 @@ describe('Quantel Device', () => {
 						},
 						context: 'Clear all delayed out-transitions',
 						timelineObjId: '',
+						executeMode: ExecuteMode.SALVO,
 					},
 					{
 						command: {
@@ -819,6 +825,7 @@ describe('Quantel Device', () => {
 						},
 						context: 'Clear all delayed out-transitions',
 						timelineObjId: '',
+						executeMode: ExecuteMode.SALVO,
 					},
 					{
 						command: {
@@ -880,6 +887,7 @@ describe('Quantel Device', () => {
 						},
 						context: 'Clear all delayed out-transitions',
 						timelineObjId: '',
+						executeMode: ExecuteMode.SALVO,
 					},
 					{
 						command: {
@@ -968,6 +976,7 @@ describe('Quantel Device', () => {
 							},
 							context: 'Clear all delayed out-transitions',
 							timelineObjId: '',
+							executeMode: ExecuteMode.SALVO,
 						},
 						{
 							command: {
@@ -1037,6 +1046,7 @@ describe('Quantel Device', () => {
 							},
 							context: 'Clear all delayed out-transitions',
 							timelineObjId: '',
+							executeMode: ExecuteMode.SALVO,
 						},
 						{
 							command: {
@@ -1132,6 +1142,7 @@ describe('Quantel Device', () => {
 							},
 							context: 'Clear all delayed out-transitions',
 							timelineObjId: '',
+							executeMode: ExecuteMode.SALVO,
 						},
 						{
 							command: {
@@ -1208,6 +1219,7 @@ describe('Quantel Device', () => {
 						},
 						context: 'Clear all delayed out-transitions',
 						timelineObjId: '',
+						executeMode: ExecuteMode.SALVO,
 					},
 					{
 						command: {
@@ -1217,6 +1229,7 @@ describe('Quantel Device', () => {
 						},
 						context: 'Clear all delayed out-transitions',
 						timelineObjId: '',
+						executeMode: ExecuteMode.SALVO,
 					},
 					{
 						command: {

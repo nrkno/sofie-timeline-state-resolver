@@ -100,7 +100,7 @@ export const DevicesDict: Record<ImplementedServiceDeviceTypes, DeviceEntry> = {
 		deviceClass: MultiOSCMessageDevice,
 		canConnect: false,
 		deviceName: (deviceId: string) => 'MultiOSC ' + deviceId,
-		executionMode: () => 'salvo',
+		executionMode: () => ExecuteMode.SALVO,
 	},
 	[DeviceType.PANASONIC_PTZ]: {
 		deviceClass: PanasonicPtzDevice,
