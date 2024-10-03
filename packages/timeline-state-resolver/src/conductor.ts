@@ -29,6 +29,7 @@ import {
 	DeviceOptionsAbstract,
 	DeviceOptionsAtem,
 	DeviceOptionsTCPSend,
+	DeviceOptionsQuantel,
 	DeviceOptionsHyperdeck,
 	DeviceOptionsPanasonicPTZ,
 	DeviceOptionsLawo,
@@ -1192,6 +1193,7 @@ export type DeviceOptionsAnyInternal =
 	| DeviceOptionsMultiOSC
 	| DeviceOptionsSisyfosInternal
 	| DeviceOptionsSofieChef
+	| DeviceOptionsQuantel
 	| DeviceOptionsSingularLive
 	| DeviceOptionsVMixInternal
 	| DeviceOptionsShotoku

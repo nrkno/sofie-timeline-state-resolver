@@ -13,7 +13,6 @@ import { ImplementedServiceDeviceTypes } from './devices'
 import { EventEmitter } from 'eventemitter3'
 import { DeviceInstanceEvents } from './DeviceInstance'
 import { deferAsync } from '../lib'
-import { DeviceOptionsQuantelInternal, QuantelDevice } from '../integrations/quantel'
 
 interface Operation {
 	operation: 'create' | 'update' | 'delete' | 'setDebug'
@@ -419,15 +418,6 @@ function createContainer(
 				getCurrentTime,
 				threadedClassOptions
 			)
-		case DeviceType.QUANTEL:
-			return DeviceContainer.create<DeviceOptionsQuantelInternal, typeof QuantelDevice>(
-				'../../dist/integrations/quantel/index.js',
-				'QuantelDevice',
-				deviceId,
-				deviceOptions,
-				getCurrentTime,
-				threadedClassOptions
-			)
 		case DeviceType.SINGULAR_LIVE:
 		case DeviceType.TELEMETRICS:
 		case DeviceType.PHAROS:
@@ -444,7 +434,8 @@ function createContainer(
 		case DeviceType.SHOTOKU:
 		case DeviceType.SOFIE_CHEF:
 		case DeviceType.TCPSEND:
-		case DeviceType.TRICASTER: {
+		case DeviceType.TRICASTER:
+		case DeviceType.QUANTEL: {
 			ensureIsImplementedAsService(deviceOptions.type)
 
 			// presumably this device is implemented in the new service handler
