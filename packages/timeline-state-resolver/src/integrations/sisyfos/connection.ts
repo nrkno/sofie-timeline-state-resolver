@@ -451,6 +451,7 @@ export type SisyfosCommand =
 
 export interface SisyfosChannel extends SisyfosChannelAPI {
 	timelineObjIds: string[]
+	triggerValue?: string
 }
 export interface SisyfosState {
 	channels: { [index: string]: SisyfosChannel }
