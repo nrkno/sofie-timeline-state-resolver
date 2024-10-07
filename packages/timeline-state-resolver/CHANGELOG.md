@@ -7,6 +7,12 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
 
 **Note:** Version bump only for package timeline-state-resolver
 
+## [9.2.0](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/9.2.0-alpha.0...9.2.0) (2024-10-07)
+
+### Bug Fixes
+
+- revert quantel device to release50 version ([36817aa](https://github.com/nrkno/tv-automation-state-timeline-resolver/commit/36817aadcd0d0657bfa6175a3b333b1bf9e2c798))
+
 ## [9.2.0-alpha.0](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/9.1.0...9.2.0-alpha.0) (2024-09-09)
 
 ### Features

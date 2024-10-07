@@ -5,6 +5,15 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
 
 ### [9.2.0-release52](https://github.com/nrkno/tv-automation-state-timeline-resolver/compare/9.1.0...9.2.0-release52) (2024-08-19)
 
+## [9.2.0](https://github.com/nrkno/sofie-timeline-state-resolver/compare/9.2.0-alpha.0...9.2.0) (2024-10-07)
+
+
+### Bug Fixes
+
+* revert quantel device to release50 version ([36817aa](https://github.com/nrkno/sofie-timeline-state-resolver/commit/36817aadcd0d0657bfa6175a3b333b1bf9e2c798))
+
+
+
 ## [9.2.0-alpha.0](https://github.com/nrkno/sofie-timeline-state-resolver/compare/9.1.0...9.2.0-alpha.0) (2024-09-09)
 
 
